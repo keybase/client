@@ -110,7 +110,7 @@ class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps, ToStel
             type="iconfont-identity-stellar"
             color={
               this.state.recipientPublicKey.length === 0 || this.props.errorMessage
-                ? Styles.globalColors.black_50
+                ? Styles.globalColors.black_20
                 : Styles.globalColors.black
             }
           />

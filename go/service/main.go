@@ -94,7 +94,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		home:             home.NewHome(g),
 		tlfUpgrader:      tlfupgrade.NewBackgroundTLFUpdater(g),
 		teamUpgrader:     teams.NewUpgrader(),
-		avatarLoader:     avatars.CreateSourceFromEnv(g),
+		avatarLoader:     avatars.CreateSourceFromEnvAndInstall(g),
 		walletState:      stellar.NewWalletState(g, remote.NewRemoteNet(g)),
 		offlineRPCCache:  offline.NewRPCCache(g),
 	}
@@ -424,6 +424,8 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	chatStorage.SetAssetDeleter(g.ConvSource)
 	g.RegexpSearcher = search.NewRegexpSearcher(g)
 	g.Indexer = search.NewIndexer(g)
+	g.AddLogoutHook(g.Indexer, "SearchIndexer")
+	g.AddDbNukeHook(g.Indexer, "SearchIndexer")
 	g.ServerCacheVersions = storage.NewServerVersions(g)
 
 	// Syncer and retriers
@@ -451,6 +453,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	g.TeamChannelSource = chat.NewTeamChannelSource(g)
 
 	g.AttachmentURLSrv = chat.NewAttachmentHTTPSrv(g, chat.NewCachingAttachmentFetcher(g, store, 1000), ri)
+	g.AddDbNukeHook(g.AttachmentURLSrv, "AttachmentURLSrv")
 
 	g.StellarLoader = stellar.DefaultLoader(g.ExternalG())
 	g.StellarSender = wallet.NewSender(g)
@@ -1324,13 +1327,4 @@ func (d *Service) StartStandaloneChat(g *libkb.GlobalContext) error {
 	d.startChatModules()
 
 	return nil
-}
-
-// Called by CtlHandler after DbNuke finishes and succeeds.
-func (d *Service) onDbNuke(ctx context.Context) {
-	mctx := libkb.NewMetaContext(ctx, d.G())
-	d.avatarLoader.OnCacheCleared(mctx)
-	if srv := d.ChatG().AttachmentURLSrv; srv != nil {
-		srv.OnCacheCleared(mctx)
-	}
 }

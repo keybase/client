@@ -96,8 +96,9 @@ func NewAttachmentHTTPSrv(g *globals.Context, fetcher types.AttachmentFetcher, r
 	return r
 }
 
-func (r *AttachmentHTTPSrv) OnCacheCleared(mctx libkb.MetaContext) {
-	r.fetcher.OnCacheCleared(mctx)
+func (r *AttachmentHTTPSrv) OnDbNuke(mctx libkb.MetaContext) error {
+	r.fetcher.OnDbNuke(mctx)
+	return nil
 }
 
 func (r *AttachmentHTTPSrv) monitorAppState() {
@@ -639,7 +640,7 @@ func (r *RemoteAttachmentFetcher) IsAssetLocal(ctx context.Context, asset chat1.
 	return false, nil
 }
 
-func (r *RemoteAttachmentFetcher) OnCacheCleared(mctx libkb.MetaContext) {}
+func (r *RemoteAttachmentFetcher) OnDbNuke(mctx libkb.MetaContext) error { return nil }
 
 type CachingAttachmentFetcher struct {
 	globals.Contextified
@@ -850,10 +851,11 @@ func (c *CachingAttachmentFetcher) DeleteAssets(ctx context.Context,
 	return nil
 }
 
-func (c *CachingAttachmentFetcher) OnCacheCleared(mctx libkb.MetaContext) {
+func (c *CachingAttachmentFetcher) OnDbNuke(mctx libkb.MetaContext) error {
 	if c.diskLRU != nil {
 		if err := c.diskLRU.Clean(mctx.Ctx(), mctx.G(), c.getCacheDir()); err != nil {
 			c.Debug(mctx.Ctx(), "unable to run clean: %v", err)
 		}
 	}
+	return nil
 }

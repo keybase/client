@@ -7,4 +7,7 @@ protocol loginUi {
   boolean promptRevokePaperKeys(int sessionID, Device device, int index);
   void displayPaperKeyPhrase(int sessionID, string phrase);
   void displayPrimaryPaperKey(int sessionID, string phrase);
+
+  boolean promptResetAccount(int sessionID, string text);
+  void displayResetProgress(int sessionID, string text);
 }

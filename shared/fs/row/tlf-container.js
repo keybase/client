@@ -1,16 +1,18 @@
 // @flow
 import * as React from 'react'
 import * as I from 'immutable'
-import * as RowTypes from './types'
+import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import {namedConnect} from '../../util/container'
 import OpenHOC from '../common/open-hoc'
 import Tlf from './tlf'
 
-type OwnProps = $Diff<RowTypes.TlfRowItem, {rowType: 'tlf'}> & {
-  routePath: I.List<string>,
+type OwnProps = {|
   destinationPickerIndex?: number,
-}
+  name: string,
+  routePath: I.List<string>,
+  tlfType: Types.TlfType,
+|}
 
 const mapStateToProps = (state, {tlfType, name}: OwnProps) => ({
   _tlf: Constants.getTlfFromTlfs(state.fs.tlfs, tlfType, name),

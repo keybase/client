@@ -2468,6 +2468,11 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 
 	var searchRes *chat1.ChatSearchInboxResults
 	if doIndexSearch {
+		select {
+		case <-time.After(50 * time.Millisecond):
+		case <-ctx.Done():
+			return
+		}
 		if searchRes, err = h.G().Indexer.Search(ctx, uid, query, arg.Opts, hitUICh, indexUICh); err != nil {
 			return res, err
 		}

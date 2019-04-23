@@ -30,6 +30,9 @@ type loginProvision struct {
 	hasPGP         bool
 	hasDevice      bool
 	perUserKeyring *libkb.PerUserKeyring
+
+	resetPending  bool
+	resetComplete bool
 }
 
 // gpgInterface defines the portions of gpg client that provision
@@ -43,6 +46,10 @@ type loginProvisionArg struct {
 	DeviceType string // desktop or mobile
 	ClientType keybase1.ClientType
 	User       *libkb.User
+
+	// Used for non-interactive provisioning
+	PaperKey   string
+	DeviceName string
 }
 
 // newLoginProvision creates a loginProvision engine.
@@ -115,6 +122,9 @@ func (e *loginProvision) Run(m libkb.MetaContext) error {
 
 		return err
 	}
+	if e.resetPending || e.resetComplete {
+		return nil
+	}
 
 	// e.route is point of no return. If it succeeds, it means that
 	// config has already been written and there is no way to roll
@@ -140,8 +150,9 @@ func (e *loginProvision) saveToSecretStore(m libkb.MetaContext) error {
 
 func (e *loginProvision) saveToSecretStoreWithLKS(m libkb.MetaContext, lks *libkb.LKSec) (err error) {
 	nun := e.arg.User.GetNormalizedName()
-	defer m.Trace(fmt.Sprintf("saveToSecretStore(%s)", nun), func() error { return err })()
-	return libkb.StoreSecretAfterLoginWithLKS(m, nun, lks)
+	defer m.Trace(fmt.Sprintf("loginProvision.saveToSecretStoreWithLKS(%s)", nun), func() error { return err })()
+	options := libkb.LoadAdvisorySecretStoreOptionsFromRemote(m)
+	return libkb.StoreSecretAfterLoginWithLKSWithOptions(m, nun, lks, &options)
 }
 
 // deviceWithType provisions this device with an existing device using the
@@ -286,19 +297,17 @@ func (e *loginProvision) deviceWithType(m libkb.MetaContext, provisionerType key
 }
 
 // paper attempts to provision the device via a paper key.
-func (e *loginProvision) paper(m libkb.MetaContext, device *libkb.Device) (err error) {
+func (e *loginProvision) paper(m libkb.MetaContext, device *libkb.Device, keys *libkb.DeviceWithKeys) (err error) {
 	defer m.Trace("loginProvision#paper", func() error { return err })()
 
-	// get the paper key from the user
-
-	expectedPrefix := device.Description
-	keys, err := e.getValidPaperKey(m, expectedPrefix)
-	if err != nil {
-		return err
+	// get the paper key from the user if we're in the interactive flow
+	if keys == nil {
+		expectedPrefix := device.Description
+		keys, err = e.getValidPaperKey(m, expectedPrefix)
+		if err != nil {
+			return err
+		}
 	}
-
-	m.Debug("paper signing key kid: %s", keys.SigningKey().GetKID())
-	m.Debug("paper encryption key kid: %s", keys.EncryptionKey().GetKID())
 
 	u := e.arg.User
 	uv := u.ToUserVersion()
@@ -508,6 +517,11 @@ func (e *loginProvision) deviceName(m libkb.MetaContext) (string, error) {
 		names = upk.AllDeviceNames()
 	}
 
+	// Fully non-interactive flow
+	if e.arg.DeviceName != "" {
+		return e.automatedDeviceName(m, names, e.arg.DeviceName)
+	}
+
 	arg := keybase1.PromptNewDeviceNameArg{
 		ExistingDevices: names,
 	}
@@ -548,6 +562,23 @@ func (e *loginProvision) deviceName(m libkb.MetaContext) (string, error) {
 		return devname, nil
 	}
 	return "", libkb.RetryExhaustedError{}
+}
+
+func (e *loginProvision) automatedDeviceName(m libkb.MetaContext, existing []string, devname string) (string, error) {
+	if !libkb.CheckDeviceName.F(devname) {
+		return "", libkb.DeviceBadNameError{}
+	}
+
+	devname = libkb.CheckDeviceName.Transform(devname)
+	normalizedDevName := libkb.CheckDeviceName.Normalize(devname)
+	for _, name := range existing {
+		if normalizedDevName == libkb.CheckDeviceName.Normalize(name) {
+			m.Debug("Device name reused: %q == %q", devname, name)
+			return "", libkb.DeviceNameInUseError{}
+		}
+	}
+
+	return devname, nil
 }
 
 // makeDeviceKeys uses DeviceWrap to generate device keys.
@@ -686,6 +717,11 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 	devices := partitionDeviceList(ckf.GetAllActiveDevices())
 	sort.Sort(devices)
 
+	// Fully non-interactive flow
+	if e.arg.PaperKey != "" {
+		return e.preloadedPaperKey(m, devices, e.arg.PaperKey)
+	}
+
 	expDevices := make([]keybase1.Device, len(devices))
 	idMap := make(map[keybase1.DeviceID]*libkb.Device)
 	for i, d := range devices {
@@ -693,20 +729,18 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 		idMap[d.ID] = d
 	}
 
-	arg := keybase1.ChooseDeviceArg{
-		Devices:           expDevices,
-		CanSelectNoDevice: true,
-	}
+	pipelineEnabled := m.G().Env.GetFeatureFlags().HasFeature(libkb.EnvironmentFeatureAutoresetPipeline)
 
 	// check to see if they have a PUK, in which case they must select a device
 	hasPUK, err := e.hasPerUserKey(m)
 	if err != nil {
 		return err
 	}
-	if hasPUK {
-		arg.CanSelectNoDevice = false
-	}
 
+	arg := keybase1.ChooseDeviceArg{
+		Devices:           expDevices,
+		CanSelectNoDevice: (pgp && !hasPUK) || pipelineEnabled,
+	}
 	id, err := m.UIs().ProvisionUI.ChooseDevice(m.Ctx(), arg)
 	if err != nil {
 		return err
@@ -717,15 +751,38 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 		m.Debug("user has devices, but chose not to use any of them")
 		if pgp {
 			if hasPUK {
-				m.Debug("user has a per-user-key, not attempting pgp provision")
 				return libkb.ProvisionViaDeviceRequiredError{}
 			}
 
 			// they have pgp keys, so try that:
-			return e.tryPGP(m)
+			if err := e.tryPGP(m); err != nil {
+				// TODO CORE-10630: consider this flow with autoreset
+				return err
+			}
+
+			return nil
 		}
-		// tell them they need to reset their account
-		return libkb.ProvisionUnavailableError{}
+
+		if !pipelineEnabled {
+			return libkb.ProvisionUnavailableError{}
+		}
+
+		// TODO CORE-10631 make this a UI
+		m.G().Log.Info(`
+The only way to provision this device is with access to one of your existing
+devices. You can try again later, or if you have lost access to all your
+existing devices you can reset your account and start fresh:`)
+
+		// go into the reset flow
+		eng := NewAccountReset(m.G(), e.arg.User.GetName())
+		eng.completeReset = true
+		if err := eng.Run(m); err != nil {
+			return err
+		}
+
+		e.resetPending = eng.resetPending
+		e.resetComplete = eng.resetComplete
+		return nil
 	}
 
 	m.Debug("user selected device %s", id)
@@ -737,7 +794,7 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 
 	switch selected.Type {
 	case libkb.DeviceTypePaper:
-		return e.paper(m, selected)
+		return e.paper(m, selected, nil)
 	case libkb.DeviceTypeDesktop:
 		return e.deviceWithType(m, keybase1.DeviceType_DESKTOP)
 	case libkb.DeviceTypeMobile:
@@ -745,6 +802,51 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 	default:
 		return fmt.Errorf("unknown device type: %v", selected.Type)
 	}
+}
+
+func (e *loginProvision) preloadedPaperKey(m libkb.MetaContext, devices []*libkb.Device, paperKey string) error {
+	// User has requested non-interactive provisioning - first parse their key
+	keys, prefix, err := getPaperKeyFromString(m, e.arg.PaperKey)
+	if err != nil {
+		return err
+	}
+
+	// ... then match it to the paper keys that can be used with this account
+	var matchedDevice *libkb.Device
+	for _, d := range devices {
+		if d.Type != libkb.DeviceTypePaper {
+			continue
+		}
+		if prefix != *d.Description {
+			continue
+		}
+
+		matchedDevice = d
+		break
+	}
+
+	if matchedDevice == nil {
+		return libkb.NoPaperKeysError{}
+	}
+
+	// use the KID to find the uid, deviceID and deviceName
+	uid, err := keys.Populate(m)
+	if err != nil {
+		switch err := err.(type) {
+		case libkb.NotFoundError:
+			return paperKeyNotFound
+		case libkb.AppStatusError:
+			if err.Code == libkb.SCNotFound {
+				return paperKeyNotFound
+			}
+		}
+		return err
+	}
+	if uid.NotEqual(e.arg.User.GetUID()) {
+		return paperKeyNotFound
+	}
+
+	return e.paper(m, matchedDevice, keys)
 }
 
 func (e *loginProvision) tryPGP(m libkb.MetaContext) (err error) {
@@ -1014,6 +1116,10 @@ func getPaperKey(m libkb.MetaContext, lastErr error, expectedPrefix *string) (ke
 		return nil, "", err
 	}
 
+	return getPaperKeyFromString(m, passphrase)
+}
+
+func getPaperKeyFromString(m libkb.MetaContext, passphrase string) (keys *libkb.DeviceWithKeys, prefix string, err error) {
 	paperPhrase, err := libkb.NewPaperKeyPhraseCheckVersion(m, passphrase)
 	if err != nil {
 		return nil, "", err

@@ -58,6 +58,7 @@ func init() {
 type MDOpsStandard struct {
 	config Config
 	log    logger.Logger
+	vlog   *libkb.VDebugLog
 
 	lock sync.Mutex
 	// For each TLF, maps an MD revision representing the next MD
@@ -71,9 +72,11 @@ type MDOpsStandard struct {
 
 // NewMDOpsStandard returns a new MDOpsStandard
 func NewMDOpsStandard(config Config) *MDOpsStandard {
+	log := config.MakeLogger("")
 	return &MDOpsStandard{
 		config: config,
-		log:    config.MakeLogger(""),
+		log:    log,
+		vlog:   config.MakeVLogger(log),
 		leafChainsValidated: make(
 			map[tlf.ID]map[kbfsmd.Revision]kbfsmd.Revision),
 	}
@@ -132,8 +135,10 @@ func (md *MDOpsStandard) decryptMerkleLeaf(
 		// completely separate from "application keygen", so we can't
 		// just use `rmd.LatestKeyGeneration()` here.)
 		minKeyGen := keybase1.PerTeamKeyGeneration(1)
-		md.log.CDebugf(ctx, "Decrypting Merkle leaf for team %s with min key "+
-			"generation %d", teamID, minKeyGen)
+		md.vlog.CLogf(
+			ctx, libkb.VLog1,
+			"Decrypting Merkle leaf for team %s with min key generation %d",
+			teamID, minKeyGen)
 		leafBytes, err := md.config.Crypto().DecryptTeamMerkleLeaf(
 			ctx, teamID, *kbfsRoot.EPubKey, cryptoLeaf, minKeyGen)
 		if err != nil {
@@ -212,8 +217,9 @@ func (md *MDOpsStandard) decryptMerkleLeaf(
 			return nil, err
 		}
 
-		md.log.CDebugf(ctx, "Key generation %d didn't work; searching for "+
-			"the next one", currKeyGen)
+		md.vlog.CLogf(
+			ctx, libkb.VLog1, "Key generation %d didn't work; searching for "+
+				"the next one", currKeyGen)
 
 	fetchLoop:
 		for {
@@ -227,7 +233,8 @@ func (md *MDOpsStandard) decryptMerkleLeaf(
 
 			for _, nextRmd := range nextRMDs {
 				if nextRmd.LatestKeyGeneration() > currKeyGen {
-					md.log.CDebugf(ctx, "Revision %d has key gen %d",
+					md.vlog.CLogf(
+						ctx, libkb.VLog1, "Revision %d has key gen %d",
 						nextRmd.Revision(), nextRmd.LatestKeyGeneration())
 					currRmd = nextRmd.ReadOnlyRootMetadata
 					break fetchLoop
@@ -374,7 +381,8 @@ func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 	switch errors.Cause(err).(type) {
 	case nil:
 	case NextMDNotCachedError:
-		md.log.CDebugf(ctx, "Finding next MD for TLF %s after global root %d",
+		md.vlog.CLogf(
+			ctx, libkb.VLog1, "Finding next MD for TLF %s after global root %d",
 			rmds.MD.TlfID(), root.Seqno)
 		mdserv, err := md.mdserver(ctx)
 		if err != nil {
@@ -477,7 +485,8 @@ func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 		}
 	}
 
-	md.log.CDebugf(ctx,
+	md.vlog.CLogf(
+		ctx, libkb.VLog1,
 		"Next KBFS merkle root is %d, included in global merkle root seqno=%d",
 		kbfsRoot.SeqNo, rootSeqno)
 
@@ -514,7 +523,8 @@ func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 	// writer-key-checking code by skipping revoked key verification.
 	// This is ok, because we only care about the hash chain for the
 	// purposes of verifying `irmd`.
-	md.log.CDebugf(ctx, "Validating MD chain for TLF %s between %d and %d",
+	md.vlog.CLogf(
+		ctx, libkb.VLog1, "Validating MD chain for TLF %s between %d and %d",
 		irmd.TlfID(), irmd.Revision()+1, newChainEnd)
 	chain, err := getMergedMDUpdatesWithEnd(
 		ctx, md.config, irmd.TlfID(), irmd.Revision()+1, newChainEnd, nil)
@@ -557,7 +567,8 @@ func (md *MDOpsStandard) verifyKey(
 		return true, nil
 	case RevokedDeviceVerificationError:
 		if ctx.Value(ctxMDOpsSkipKeyVerification) != nil {
-			md.log.CDebugf(ctx,
+			md.vlog.CLogf(
+				ctx, libkb.VLog1,
 				"Skipping revoked key verification due to recursion")
 			return false, nil
 		}
@@ -573,8 +584,9 @@ func (md *MDOpsStandard) verifyKey(
 		return false, err
 	}
 
-	md.log.CDebugf(ctx, "Revision %d for %s was signed by a device that was "+
-		"revoked at time=%d,root=%d; checking via Merkle",
+	md.vlog.CLogf(
+		ctx, libkb.VLog1, "Revision %d for %s was signed by a device that was "+
+			"revoked at time=%d,root=%d; checking via Merkle",
 		irmd.Revision(), irmd.TlfID(), info.Time, info.MerkleRoot.Seqno)
 
 	err = md.checkRevisionCameBeforeMerkle(
@@ -711,7 +723,8 @@ func (mbtc merkleBasedTeamChecker) IsTeamWriter(
 	if ctx.Value(ctxMDOpsSkipKeyVerification) != nil {
 		// Don't cache this fake verification.
 		mbtc.notCacheable = true
-		mbtc.md.log.CDebugf(ctx,
+		mbtc.md.vlog.CLogf(
+			ctx, libkb.VLog1,
 			"Skipping old team writership verification due to recursion")
 		return true, nil
 	}
@@ -720,9 +733,10 @@ func (mbtc merkleBasedTeamChecker) IsTeamWriter(
 	// were at the time this MD was written.  Find out the global
 	// merkle root where they were no longer a writer, and make sure
 	// this revision came before that.
-	mbtc.md.log.CDebugf(ctx, "User %s is no longer a writer of team %s; "+
-		"checking merkle trees to verify they were a writer at the time the "+
-		"MD was written.", uid, tid)
+	mbtc.md.vlog.CLogf(
+		ctx, libkb.VLog1, "User %s is no longer a writer of team %s; "+
+			"checking merkle trees to verify they were a writer at the time the "+
+			"MD was written.", uid, tid)
 	root, err := mbtc.teamMembershipChecker.NoLongerTeamWriter(
 		ctx, tid, mbtc.irmd.TlfID().Type(), uid, verifyingKey, offline)
 	if err != nil {
@@ -762,7 +776,8 @@ func (mbtc merkleBasedTeamChecker) IsTeamReader(
 	// of an update (the last modifying _writer_ is tested with the
 	// above function).  TODO: fix this once historic team readership
 	// is available in the service.
-	mbtc.md.log.CDebugf(ctx,
+	mbtc.md.vlog.CLogf(
+		ctx, libkb.VLog1,
 		"Faking old readership for user %s in team %s", uid, tid)
 	return true, nil
 }

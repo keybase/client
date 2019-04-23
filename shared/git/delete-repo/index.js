@@ -111,7 +111,7 @@ class DeleteRepo extends React.Component<Props, State> {
           <Kb.Box style={{flex: 1}} />
           <Kb.Box style={Styles.globalStyles.flexBoxRow}>
             <Kb.WaitingButton
-              type="Secondary"
+              type="Dim"
               onClick={this.props.onClose}
               label="Cancel"
               style={{marginRight: Styles.globalMargins.tiny}}

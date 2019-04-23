@@ -25,6 +25,7 @@ export type Props = {
   onEditDescription: () => void,
   onEditIcon: (image?: Response) => void,
   onFilePickerError: (error: Error) => void,
+  onRename: ?() => void,
 } & Kb.OverlayParentProps
 
 const _TeamHeader = (props: Props) => (
@@ -52,6 +53,18 @@ const _TeamHeader = (props: Props) => (
         onEditIcon={props.onEditIcon}
         onFilePickerError={props.onFilePickerError}
         teamname={props.teamname}
+        title={
+          props.onRename ? (
+            <Kb.Box2 direction="horizontal" alignItems="flex-end" gap="xtiny">
+              <Kb.Text type="HeaderBig" lineClamp={1}>
+                {props.teamname}
+              </Kb.Text>
+              <Kb.Icon type="iconfont-edit" onClick={props.onRename} />
+            </Kb.Box2>
+          ) : (
+            props.teamname
+          )
+        }
         metaOne={
           <Kb.Box style={Styles.globalStyles.flexBoxRow}>
             <Kb.Text type="BodySmall">TEAM</Kb.Text>
@@ -91,7 +104,7 @@ const _TeamHeader = (props: Props) => (
       {/* Actions */}
       <Kb.ButtonBar direction="row" style={styles.buttonBar}>
         {props.canChat && (
-          <Kb.Button type="Primary" label="Chat" onClick={props.onChat}>
+          <Kb.Button label="Chat" onClick={props.onChat}>
             <Kb.Icon
               type="iconfont-chat"
               style={Kb.iconCastPlatformStyles(styles.chatIcon)}
@@ -102,7 +115,8 @@ const _TeamHeader = (props: Props) => (
         )}
         {props.canManageMembers && (
           <Kb.Button
-            type="Secondary"
+            type="Default"
+            mode="Secondary"
             label={'Add people...'}
             ref={Styles.isMobile ? undefined : props.setAttachmentRef}
             onClick={props.toggleShowingMenu}

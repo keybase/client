@@ -18,6 +18,7 @@ import OpenInSystemFileManager from './open-in-system-file-manager'
 import {type OwnProps as PathItemIconOwnProps} from './path-item-icon-container'
 import {type OwnProps as PathItemInfoOwnProps} from './path-item-info-container'
 import SyncStatus from './sync-status'
+import PieSlice from './pie-slice'
 
 const PathItemActionMenuHeaderProps = (props: any) => ({
   childrenFiles: 0,
@@ -99,6 +100,10 @@ export const commonProvider = {
     refresh: Sb.action('refresh'),
   }),
   SendInAppAction: ({path}: {path: Types.Path}) => ({onClick: Sb.action('onClick'), path}),
+  SyncingFolders: () => ({
+    progress: 0.67,
+    show: true,
+  }),
   TlfInfo: ({path, mode}: PathItemInfoOwnProps) => ({
     mode,
     reset: ['foo', 'bar', 'cue'],
@@ -124,6 +129,26 @@ const pathItemActionCommonProps = {
   onHidden: Sb.action('onHidden'),
 }
 
+const pieSlices = [0, 20, 90, 179, 180, 181, 270, 359, 360]
+
+class PieSliceWrapper extends React.PureComponent<
+  {
+    initialDegrees: number,
+  },
+  {degrees: number}
+> {
+  state = {degrees: this.props.initialDegrees}
+  _onClick = () => this.setState(({degrees}) => ({degrees: (degrees + 72) % 361}))
+  render() {
+    return (
+      <Kb.Box2 direction="horizontal" gap="small">
+        <Kb.Text type="Header">{this.state.degrees} degrees: </Kb.Text>
+        <PieSlice degrees={this.state.degrees} animated={true} />
+        <Kb.Button onClick={this._onClick} label="Add progress" />
+      </Kb.Box2>
+    )
+  }
+}
 const load = () => {
   Sb.storiesOf('Files', module)
     .addDecorator(provider)
@@ -230,6 +255,8 @@ const load = () => {
         <PathItemInfo mode="default" lastModifiedTimestamp={1545110765} lastWriter="songgao_test" />
         <Kb.Text type="Body">mode=row</Kb.Text>
         <PathItemInfo mode="row" lastModifiedTimestamp={1545110765} lastWriter="songgao_test" />
+        <Kb.Text type="Body">mode=menu</Kb.Text>
+        <PathItemInfo mode="menu" lastModifiedTimestamp={1545110765} lastWriter="songgao_test" />
       </Kb.Box2>
     ))
     .add('KbfsDaemonNotRunning', () => <KbfsDaemonNotRunning />)
@@ -258,6 +285,13 @@ const load = () => {
         <SyncStatus status={'sync-error'} folder={true} />
         <SyncStatus status={'uploading'} folder={false} />
         <SyncStatus status={0.3} folder={false} />
+      </Kb.Box2>
+    ))
+    .add('Pie Loaders', () => (
+      <Kb.Box2 direction="vertical" gap="large" gapStart={true} fullWidth={false} alignItems={'center'}>
+        {pieSlices.map(deg => (
+          <PieSliceWrapper initialDegrees={deg} key={deg} />
+        ))}
       </Kb.Box2>
     ))
 

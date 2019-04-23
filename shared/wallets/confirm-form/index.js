@@ -59,10 +59,10 @@ const ConfirmSend = (props: ConfirmSendProps) => (
         style={styles.buttonContainer}
       >
         {props.readyToSend === 'spinning' ? (
-          <Kb.Button type="PrimaryGreen" fullWidth={true} style={styles.button} waiting={true} />
+          <Kb.Button type="Success" fullWidth={true} style={styles.button} waiting={true} />
         ) : (
           <Kb.WaitingButton
-            type="PrimaryGreen"
+            type="Success"
             disabled={props.sendFailed || props.readyToSend === 'disabled'}
             onClick={props.onSendClick}
             waitingKey={props.waitingKey}
@@ -114,8 +114,8 @@ const styles = Styles.styleSheetCreate({
   buttonText: {color: Styles.globalColors.white},
   container: Styles.platformStyles({
     isElectron: {
-      height: 525,
-      width: 360,
+      height: 560,
+      width: 400,
     },
     isMobile: {
       backgroundColor: Styles.globalColors.white,

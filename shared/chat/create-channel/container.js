@@ -23,14 +23,25 @@ const mapStateToProps = (state, ownProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {routePath}) => ({
+const mapDispatchToProps = (dispatch, ownProps) => ({
   _onCreateChannel: ({channelname, description, teamname}) => {
-    const rootPath = routePath.take(1)
-    const sourceSubPath = routePath.rest()
-    const destSubPath = sourceSubPath.butLast()
-    dispatch(
-      TeamsGen.createCreateChannel({channelname, description, destSubPath, rootPath, sourceSubPath, teamname})
-    )
+    if (flags.useNewRouter) {
+      dispatch(TeamsGen.createCreateChannel({channelname, description, teamname}))
+    } else {
+      const rootPath = ownProps.routePath.take(1)
+      const sourceSubPath = ownProps.routePath.rest()
+      const destSubPath = sourceSubPath.butLast()
+      dispatch(
+        TeamsGen.createCreateChannel({
+          channelname,
+          description,
+          destSubPath,
+          rootPath,
+          sourceSubPath,
+          teamname,
+        })
+      )
+    }
   },
   _onSetChannelCreationError: error => {
     dispatch(TeamsGen.createSetChannelCreationError({error}))
@@ -39,7 +50,10 @@ const mapDispatchToProps = (dispatch, {routePath}) => ({
     dispatch(
       flags.useNewRouter
         ? RouteTreeGen.createNavigateUp()
-        : RouteTreeGen.createNavigateTo({parentPath: routePath.butLast(), path: ['chatManageChannels']})
+        : RouteTreeGen.createNavigateTo({
+            parentPath: ownProps.routePath.butLast(),
+            path: ['chatManageChannels'],
+          })
     ),
   onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
 })

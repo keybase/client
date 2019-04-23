@@ -161,10 +161,11 @@ func newBlockRetrievalQueue(
 		throttledWorkCh = NewInfiniteChannelWrapper()
 	}
 
+	log := config.MakeLogger("")
 	q := &blockRetrievalQueue{
 		config:           config,
-		log:              config.MakeLogger(""),
-		vlog:             config.MakeVLogger(""),
+		log:              log,
+		vlog:             config.MakeVLogger(log),
 		ptrs:             make(map[blockPtrLookup]*blockRetrieval),
 		heap:             &blockRetrievalHeap{},
 		workerCh:         NewInfiniteChannelWrapper(),
@@ -349,10 +350,10 @@ func (brq *blockRetrievalQueue) PutInCaches(ctx context.Context,
 	case data.NoSuchBlockError:
 		// TODO: Add the block to the DBC. This is complicated because we
 		// need the serverHalf.
-		brq.vlog.CLogf(ctx, libkb.VLog1,
+		brq.vlog.CLogf(ctx, libkb.VLog2,
 			"Block %s missing for disk block cache metadata update", ptr.ID)
 	default:
-		brq.vlog.CLogf(ctx, libkb.VLog1, "Error updating metadata: %+v", err)
+		brq.vlog.CLogf(ctx, libkb.VLog2, "Error updating metadata: %+v", err)
 	}
 	// All disk cache errors are fatal
 	return err
@@ -411,7 +412,7 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 func (brq *blockRetrievalQueue) request(ctx context.Context,
 	priority int, kmd libkey.KeyMetadata, ptr data.BlockPointer, block data.Block,
 	lifetime data.BlockCacheLifetime, action BlockRequestAction) <-chan error {
-	brq.vlog.CLogf(ctx, libkb.VLog1,
+	brq.vlog.CLogf(ctx, libkb.VLog2,
 		"Request of %v, action=%s, priority=%d", ptr, action, priority)
 
 	// Only continue if we haven't been shut down
@@ -438,7 +439,7 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 	if err == nil {
 		if action != BlockRequestSolo {
 			brq.vlog.CLogf(
-				ctx, libkb.VLog1, "Found %v in caches: %s", ptr, prefetchStatus)
+				ctx, libkb.VLog2, "Found %v in caches: %s", ptr, prefetchStatus)
 		}
 		if action.PrefetchTracked() {
 			brq.Prefetcher().ProcessBlockForPrefetch(ctx, ptr, block, kmd,
@@ -537,9 +538,9 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 	}
 	// Update the action if needed.
 	brq.vlog.CLogf(
-		ctx, libkb.VLog1, "Combining actions %d and %d", action, br.action)
+		ctx, libkb.VLog2, "Combining actions %s and %s", action, br.action)
 	br.action = action.Combine(br.action)
-	brq.vlog.CLogf(ctx, libkb.VLog2, "Got action %d", br.action)
+	brq.vlog.CLogf(ctx, libkb.VLog2, "Got action %s", br.action)
 	return ch
 }
 
@@ -606,6 +607,8 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 				retrieval.blockPtr, block, retrieval.kmd, retrieval.priority,
 				retrieval.cacheLifetime, NoPrefetch, retrieval.action)
 		} else {
+			brq.log.CDebugf(
+				retrieval.ctx, "Couldn't get block %s: %+v", retrieval.blockPtr, retrievalErr)
 			brq.Prefetcher().CancelPrefetch(retrieval.blockPtr)
 		}
 	} else if retrievalErr == nil {

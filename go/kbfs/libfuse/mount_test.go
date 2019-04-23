@@ -47,12 +47,16 @@ func makeFS(t testing.TB, ctx context.Context, config *libkbfs.ConfigLocal) (
 	fuse.Debug = MakeFuseDebugFn(debugLog, false /* superVerbose */)
 
 	// TODO duplicates main() in kbfsfuse/main.go too much
+	quLog := config.MakeLogger(libkbfs.QuotaUsageLogModule("FSTest"))
 	filesys := &FS{
 		config:        config,
 		log:           log,
+		vlog:          config.MakeVLogger(log),
 		errLog:        log,
+		errVlog:       config.MakeVLogger(log),
 		notifications: libfs.NewFSNotifications(log),
-		quotaUsage:    libkbfs.NewEventuallyConsistentQuotaUsage(config, "FSTest"),
+		quotaUsage: libkbfs.NewEventuallyConsistentQuotaUsage(
+			config, quLog, config.MakeVLogger(quLog)),
 	}
 	filesys.root.private = &FolderList{
 		fs:      filesys,
@@ -3112,6 +3116,8 @@ func TestStatusFile(t *testing.T) {
 	mnt, _, cancelFn := makeFS(t, ctx, config)
 	defer mnt.Close()
 	defer cancelFn()
+
+	libfs.AddRootWrapper(config)
 
 	jdoe := libkbfs.GetRootNodeOrBust(ctx, t, config, "jdoe", tlf.Public)
 

@@ -2660,6 +2660,8 @@ func (e ResetMissingParamsError) Error() string {
 	return e.msg
 }
 
+//============================================================================
+
 type ChainLinkBadUnstubError struct {
 	msg string
 }
@@ -2670,4 +2672,54 @@ func NewChainLinkBadUnstubError(s string) error {
 
 func (c ChainLinkBadUnstubError) Error() string {
 	return c.msg
+}
+
+//============================================================================
+
+type PushSecretWithoutPasswordError struct {
+	msg string
+}
+
+func NewPushSecretWithoutPasswordError(msg string) error {
+	return PushSecretWithoutPasswordError{msg: msg}
+}
+
+func (e PushSecretWithoutPasswordError) Error() string {
+	return e.msg
+}
+
+
+// HumanErrorer is an interface that errors can implement if they want to expose what went wrong to
+// humans, either via the CLI or via the electron interface. It sometimes happens that errors get
+// wrapped inside of other errors up a stack, and it's hard to know what to show the user.
+// This can help.
+type HumanErrorer interface {
+	HumanError() error
+}
+
+// HumanError takes an error and returns the topmost human error that's in the error, maybe to export
+// to the CLI, KBFS, or Electron. It's a mashup of the pkg/errors Error() function, and also our
+// own desire to return the topmost HumanError.
+//
+// See https://github.com/pkg/errors/blob/master/errors.go for the original pkg/errors code
+func HumanError(err error) error {
+	type causer interface {
+		Cause() error
+	}
+
+	for err != nil {
+		humanErrorer, ok := err.(HumanErrorer)
+		if ok {
+			tmp := humanErrorer.HumanError()
+			if tmp != nil {
+				return tmp
+			}
+		}
+		cause, ok := err.(causer)
+		if !ok {
+			break
+		}
+		err = cause.Cause()
+	}
+	return err
 }

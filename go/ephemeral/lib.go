@@ -7,7 +7,6 @@ import (
 	"time"
 
 	lru "github.com/hashicorp/golang-lru"
-	"github.com/keybase/client/go/erasablekv"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -261,7 +260,7 @@ func (e *EKLib) newDeviceEKNeeded(mctx libkb.MetaContext, merkleRoot libkb.Merkl
 	defer mctx.TraceTimed("newDeviceEKNeeded", func() error { return err })()
 	defer func() {
 		switch err.(type) {
-		case erasablekv.UnboxError:
+		case libkb.UnboxError:
 			mctx.Debug("newDeviceEKNeeded: unable to fetch latest: %v, creating new deviceEK", err)
 			needed = true
 			err = nil
@@ -697,17 +696,6 @@ func (e *EKLib) PrepareNewTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	return prepareNewTeamEK(mctx, teamID, signingKey, usersMetadata, merkleRoot)
 }
 
-func (e *EKLib) OnLogin(mctx libkb.MetaContext) error {
-	// META??
-	if err := e.KeygenIfNeeded(mctx); err != nil {
-		mctx.Debug("OnLogin error: %v", err)
-	}
-	if deviceEKStorage := mctx.G().GetDeviceEKStorage(); deviceEKStorage != nil {
-		deviceEKStorage.SetLogPrefix(mctx)
-	}
-	return nil
-}
-
 func (e *EKLib) ClearCaches(mctx libkb.MetaContext) {
 	defer mctx.TraceTimed("EKLib.ClearCaches", func() error { return nil })()
 	e.Lock()
@@ -728,10 +716,25 @@ func (e *EKLib) ClearCaches(mctx libkb.MetaContext) {
 	}
 }
 
+func (e *EKLib) OnLogin(mctx libkb.MetaContext) error {
+	if err := e.KeygenIfNeeded(mctx); err != nil {
+		mctx.Debug("OnLogin error: %v", err)
+	}
+	if deviceEKStorage := mctx.G().GetDeviceEKStorage(); deviceEKStorage != nil {
+		deviceEKStorage.SetLogPrefix(mctx)
+	}
+	return nil
+}
+
 func (e *EKLib) OnLogout(mctx libkb.MetaContext) error {
 	e.ClearCaches(mctx)
 	if deviceEKStorage := mctx.G().GetDeviceEKStorage(); deviceEKStorage != nil {
 		deviceEKStorage.SetLogPrefix(mctx)
 	}
+	return nil
+}
+
+func (e *EKLib) OnDbNuke(mctx libkb.MetaContext) error {
+	e.ClearCaches(mctx)
 	return nil
 }

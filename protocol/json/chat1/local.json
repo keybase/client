@@ -2803,6 +2803,14 @@
       "name": "ProfileSearchConvStats",
       "fields": [
         {
+          "type": "string",
+          "name": "err"
+        },
+        {
+          "type": "string",
+          "name": "convName"
+        },
+        {
           "type": "int",
           "name": "numMessages"
         },

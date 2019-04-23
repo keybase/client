@@ -39,7 +39,7 @@ const Header = (p: Props) => (
       <Kb.Box2 direction="vertical" style={styles.grow}>
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           {p.channel ? (
-            <Kb.Text selectable={true} type="Header">
+            <Kb.Text selectable={true} type="Header" lineClamp={1}>
               {p.channel}
             </Kb.Text>
           ) : p.participants ? (
@@ -65,7 +65,7 @@ const Header = (p: Props) => (
           )}
         </Kb.Box2>
         {!!p.desc && (
-          <Kb.Text selectable={true} type="BodyTiny">
+          <Kb.Text selectable={true} type="BodyTiny" style={styles.desc} lineClamp={1}>
             {p.desc}
           </Kb.Text>
         )}
@@ -89,6 +89,7 @@ const styles = Styles.styleSheetCreate({
     flexGrow: 1,
     height: 40,
   },
+  desc: Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
   grow: {flexGrow: 1},
   left: {minWidth: 260},
   right: {
@@ -104,11 +105,14 @@ const styles = Styles.styleSheetCreate({
 
 const mapStateToProps = state => {
   const _conversationIDKey = Constants.getSelectedConversation(state)
+  const _fullnames = state.users.infoMap
   const _meta = Constants.getMeta(state, _conversationIDKey)
 
   return {
     _conversationIDKey,
+    _fullnames,
     _meta,
+    _username: state.config.username,
     infoPanelOpen: Constants.isInfoPanelOpen(state),
   }
 }
@@ -129,6 +133,12 @@ const mapDispatchToProps = dispatch => ({
 
 const mergeProps = (stateProps, dispatchProps) => {
   const meta = stateProps._meta
+  const otherParticipants = Constants.getRowParticipants(meta, stateProps._username || '').toArray()
+  // If it's a one-on-one chat, use the user's fullname as the description
+  const desc =
+    meta.teamType === 'adhoc' && otherParticipants.length === 1
+      ? stateProps._fullnames.get(otherParticipants[0], {fullname: ''}).fullname
+      : meta.description
   return {
     channel:
       meta.teamType === 'big'
@@ -136,7 +146,7 @@ const mergeProps = (stateProps, dispatchProps) => {
         : meta.teamType === 'small'
         ? meta.teamname
         : null,
-    desc: meta.description,
+    desc,
     infoPanelOpen: stateProps.infoPanelOpen,
     muted: meta.isMuted,
     onNewChat: dispatchProps.onNewChat,

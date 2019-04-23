@@ -22,6 +22,7 @@ import (
 
 	"github.com/keybase/client/go/kex2"
 	"github.com/keybase/client/go/libkb"
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -570,41 +571,74 @@ func TestProvisionWithRevoke(t *testing.T) {
 	}
 }
 
-// If a user has device keys and no pgp keys,
-// not selecting a device should result in
-// ProvisionUnavailable.
-func TestProvisionChooseNoDeviceWithoutPGP(t *testing.T) {
+// If a user has device keys and no pgp keys, not selecting a device
+// should trigger the autoreset flow.
+func TestProvisionAutoreset(t *testing.T) {
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "provision_x")
 	defer tcX.Cleanup()
 
 	// create user (and device X)
 	userX := CreateAndSignupFakeUser(tcX, "login")
+	require.NoError(t, AssertLoggedIn(tcX), "should be logged in on device x")
+	require.NoError(t, AssertProvisioned(tcX), "should be provisioned on device x")
 
 	// device Y (provisionee) context:
 	tcY := SetupEngineTest(t, "provision_y")
 	defer tcY.Cleanup()
+	libkb.AddEnvironmentFeatureForTest(tcY, libkb.EnvironmentFeatureAutoresetPipeline)
 
 	uis := libkb.UIs{
 		ProvisionUI: newTestProvisionUIChooseNoDevice(),
 		LoginUI:     &libkb.TestLoginUI{Username: userX.Username},
 		LogUI:       tcY.G.UI.GetLogUI(),
-		SecretUI:    &libkb.TestSecretUI{},
+		SecretUI:    &libkb.TestSecretUI{Passphrase: userX.Passphrase},
 		GPGUI:       &gpgtestui{},
 	}
 	m := NewMetaContextForTest(tcY).WithUIs(uis)
 	eng := NewLogin(tcY.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
-	err := RunEngine2(m, eng)
-	if err == nil {
-		t.Fatal("expected login to fail, but it ran without error")
-	}
-	if _, ok := err.(libkb.ProvisionUnavailableError); !ok {
-		t.Fatalf("expected ProvisionUnavailableError, got %T (%s)", err, err)
-	}
+	require.NoError(t, RunEngine2(m, eng), "expected login engine to succeed")
+	require.NotNil(t, AssertLoggedIn(tcY), "should not be logged in")
 
-	if err := AssertLoggedIn(tcY); err == nil {
-		t.Fatal("should not be logged in")
+	// Travel 3 days into future + 60s to make sure that it all runs
+	require.NoError(t, accelerateReset(tcX))
+	require.NoError(t, timeTravelReset(tcX, time.Hour*72))
+	time.Sleep(time.Second)
+
+	// Second iteration on device Y should result in a reset + provision
+	uis = libkb.UIs{
+		ProvisionUI: newTestProvisionUIChooseNoDevice(),
+		LoginUI:     &libkb.TestLoginUI{Username: userX.Username, ResetAccount: true},
+		LogUI:       tcY.G.UI.GetLogUI(),
+		SecretUI:    &libkb.TestSecretUI{Passphrase: userX.Passphrase},
+		GPGUI:       &gpgtestui{},
 	}
+	m = NewMetaContextForTest(tcY).WithUIs(uis)
+	eng = NewLogin(tcY.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	require.NoError(t, RunEngine2(m, eng), "expected 2nd login engine to succeed")
+	require.NoError(t, AssertLoggedIn(tcY), "should be logged in")
+	require.NoError(t, AssertProvisioned(tcY), "should be provisioned on device y")
+}
+
+func timeTravelReset(tc libkb.TestContext, duration time.Duration) error {
+	mctx := libkb.NewMetaContextForTest(tc)
+	_, err := tc.G.API.Post(mctx, libkb.APIArg{
+		Endpoint:    "autoreset/timetravel",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"duration_sec": libkb.I{Val: int(gregor1.ToDurationSec(duration))},
+		},
+	})
+	return err
+}
+
+func accelerateReset(tc libkb.TestContext) error {
+	mctx := libkb.NewMetaContextForTest(tc)
+	_, err := tc.G.API.Post(mctx, libkb.APIArg{
+		Endpoint:    "test/accelerate_autoresetd",
+		SessionType: libkb.APISessionTypeREQUIRED,
+	})
+	return err
 }
 
 func TestProvisionPassphraseNoKeysSolo(t *testing.T) {
@@ -3703,11 +3737,66 @@ func TestProvisioningWithSmartPunctuationDeviceName(t *testing.T) {
 	}
 }
 
+func TestProvisionAutomatedPaperKey(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	fu := NewFakeUserOrBust(t, "paper")
+	arg := MakeTestSignupEngineRunArg(fu)
+	arg.SkipPaper = false
+	loginUI := &paperLoginUI{Username: fu.Username}
+	uis := libkb.UIs{
+		LogUI:    tc.G.UI.GetLogUI(),
+		GPGUI:    &gpgtestui{},
+		SecretUI: fu.NewSecretUI(),
+		LoginUI:  loginUI,
+	}
+	s := NewSignupEngine(tc.G, &arg)
+	err := RunEngine2(NewMetaContextForTest(tc).WithUIs(uis), s)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+
+	assertNumDevicesAndKeys(tc, fu, 2, 4)
+
+	Logout(tc)
+
+	if len(loginUI.PaperPhrase) == 0 {
+		t.Fatal("login ui has no paper key phrase")
+	}
+
+	// redo SetupEngineTest to get a new home directory
+	tc2 := SetupEngineTest(t, "login")
+	defer tc2.Cleanup()
+
+	provUI := newTestProvisionUIPaper()
+	provLoginUI := &libkb.TestLoginUI{}
+	uis2 := libkb.UIs{
+		ProvisionUI: provUI,
+		LogUI:       tc2.G.UI.GetLogUI(),
+		SecretUI:    fu.NewSecretUI(),
+		LoginUI:     provLoginUI,
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, fu.Username, keybase1.ClientType_CLI)
+	eng.PaperKey = loginUI.PaperPhrase
+	eng.DeviceName = "a different device name"
+	m2 := NewMetaContextForTest(tc2).WithUIs(uis2)
+	require.NoError(t, RunEngine2(m2, eng), "run login engine")
+
+	assertNumDevicesAndKeys(tc, fu, 3, 6)
+	require.NoError(t, AssertProvisioned(tc2), "provisioned")
+
+	require.Equal(t, provLoginUI.CalledGetEmailOrUsername, 0, "expected no calls to GetEmailOrUsername")
+	require.Equal(t, provUI.calledChooseDevice, 0, "expected no calls to ChooseDevice")
+}
+
 type testProvisionUI struct {
 	secretCh               chan kex2.Secret
 	method                 keybase1.ProvisionMethod
 	gpgMethod              keybase1.GPGMethod
 	chooseDevice           string
+	calledChooseDevice     int
 	verbose                bool
 	calledChooseDeviceType int
 	abortSwitchToGPGSign   bool
@@ -3787,6 +3876,8 @@ func (u *testProvisionUI) SwitchToGPGSignOK(ctx context.Context, arg keybase1.Sw
 
 func (u *testProvisionUI) ChooseDevice(_ context.Context, arg keybase1.ChooseDeviceArg) (keybase1.DeviceID, error) {
 	u.printf("ChooseDevice")
+	u.calledChooseDevice++
+
 	if len(arg.Devices) == 0 {
 		return "", nil
 	}
@@ -3880,6 +3971,14 @@ func (p *paperLoginUI) DisplayPaperKeyPhrase(_ context.Context, arg keybase1.Dis
 
 func (p *paperLoginUI) DisplayPrimaryPaperKey(_ context.Context, arg keybase1.DisplayPrimaryPaperKeyArg) error {
 	p.PaperPhrase = arg.Phrase
+	return nil
+}
+
+func (p *paperLoginUI) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (bool, error) {
+	return false, nil
+}
+
+func (p *paperLoginUI) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
 	return nil
 }
 

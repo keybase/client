@@ -733,7 +733,7 @@ func TestDiskBlockCacheUnsyncTlf(t *testing.T) {
 	standardCache.numBlocksToEvictOnClear = 1
 
 	tlfToUnsync := tlf.FakeID(1, tlf.Private)
-	ch, err := config.SetTlfSyncState(tlfToUnsync, FolderSyncConfig{
+	ch, err := config.SetTlfSyncState(ctx, tlfToUnsync, FolderSyncConfig{
 		Mode: keybase1.FolderSyncMode_DISABLED,
 	})
 	require.NoError(t, err)

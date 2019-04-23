@@ -1,6 +1,7 @@
 package avatars
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
@@ -12,13 +13,13 @@ type Source interface {
 	LoadTeams(libkb.MetaContext, []string, []keybase1.AvatarFormat) (keybase1.LoadAvatarsRes, error)
 
 	ClearCacheForName(libkb.MetaContext, string, []keybase1.AvatarFormat) error
-	OnCacheCleared(libkb.MetaContext) // Called after leveldb data goes away after db nuke
+	OnDbNuke(libkb.MetaContext) error // Called after leveldb data goes away after db nuke
 
 	StartBackgroundTasks(libkb.MetaContext)
 	StopBackgroundTasks(libkb.MetaContext)
 }
 
-func CreateSourceFromEnv(g *libkb.GlobalContext) (s Source) {
+func CreateSourceFromEnvAndInstall(g *libkb.GlobalContext) (s Source) {
 	typ := g.Env.GetAvatarSource()
 	switch typ {
 	case "simple":
@@ -34,6 +35,7 @@ func CreateSourceFromEnv(g *libkb.GlobalContext) (s Source) {
 		// notification dismiss time should be adjusted as well.
 		s = NewFullCachingSource(time.Hour /* staleThreshold */, maxSize)
 	}
+	g.AddDbNukeHook(s, fmt.Sprintf("AvatarLoader[%s]", typ))
 	return s
 }
 

@@ -51,6 +51,10 @@ type prefetchRequest struct {
 	// obseleted is a channel that can be used to cancel this request while
 	// it is waiting in the queue if the prefetch is no longer necessary.
 	obseleted <-chan struct{}
+
+	// countedInOverall is true if the bytes of this block are counted
+	// in the overall sync status byte total currently.
+	countedInOverall bool
 }
 
 type ctxPrefetcherTagKey int
@@ -80,7 +84,11 @@ type prefetch struct {
 }
 
 func (p *prefetch) Close() {
-	close(p.waitCh)
+	select {
+	case <-p.waitCh:
+	default:
+		close(p.waitCh)
+	}
 	p.cancel()
 }
 
@@ -92,6 +100,12 @@ type rescheduledPrefetch struct {
 type queuedPrefetch struct {
 	waitingPrefetches int
 	channel           chan struct{}
+	tlfID             tlf.ID
+}
+
+type cancelTlfPrefetch struct {
+	tlfID   tlf.ID
+	channel chan<- struct{}
 }
 
 type blockPrefetcher struct {
@@ -108,6 +122,8 @@ type blockPrefetcher struct {
 	prefetchRequestCh channels.Channel
 	// channel to cancel prefetches
 	prefetchCancelCh channels.Channel
+	// channel to cancel all prefetches for a TLF
+	prefetchCancelTlfCh channels.Channel
 	// channel to reschedule prefetches
 	prefetchRescheduleCh channels.Channel
 	// channel to get prefetch status
@@ -134,6 +150,12 @@ type blockPrefetcher struct {
 	// map to channels for cancelling queued prefetches
 	queuedPrefetchHandlesLock sync.Mutex
 	queuedPrefetchHandles     map[data.BlockPointer]queuedPrefetch
+
+	// Tracks the overall bytes currently being prefetched to the sync
+	// cache.  The total outstanding bytes resets on the first new
+	// prefetch after a completion happens.
+	overallSyncStatusLock sync.RWMutex
+	overallSyncStatus     PrefetchProgress
 }
 
 var _ Prefetcher = (*blockPrefetcher)(nil)
@@ -153,6 +175,7 @@ func newBlockPrefetcher(retriever BlockRetriever,
 		retriever:             retriever,
 		prefetchRequestCh:     NewInfiniteChannelWrapper(),
 		prefetchCancelCh:      NewInfiniteChannelWrapper(),
+		prefetchCancelTlfCh:   NewInfiniteChannelWrapper(),
 		prefetchRescheduleCh:  NewInfiniteChannelWrapper(),
 		prefetchStatusCh:      NewInfiniteChannelWrapper(),
 		inFlightFetches:       NewInfiniteChannelWrapper(),
@@ -166,7 +189,7 @@ func newBlockPrefetcher(retriever BlockRetriever,
 	}
 	if config != nil {
 		p.log = config.MakeLogger("PRE")
-		p.vlog = config.MakeVLogger("PRE")
+		p.vlog = config.MakeVLogger(p.log)
 	} else {
 		p.log = logger.NewNull()
 		p.vlog = libkb.NewVDebugLog(p.log)
@@ -185,12 +208,71 @@ func newBlockPrefetcher(retriever BlockRetriever,
 	return p
 }
 
+func (p *blockPrefetcher) incOverallSyncTotalBytes(req *prefetchRequest) {
+	if !req.action.Sync() || req.countedInOverall {
+		return
+	}
+
+	p.overallSyncStatusLock.Lock()
+	defer p.overallSyncStatusLock.Unlock()
+	if p.overallSyncStatus.SubtreeBytesFetched ==
+		p.overallSyncStatus.SubtreeBytesTotal {
+		// Reset since we had already finished syncing.
+		p.overallSyncStatus = PrefetchProgress{}
+		p.overallSyncStatus.Start = p.config.Clock().Now()
+	}
+
+	p.overallSyncStatus.SubtreeBytesTotal += uint64(req.encodedSize)
+	req.countedInOverall = true
+}
+
+func (p *blockPrefetcher) decOverallSyncTotalBytes(req *prefetchRequest) {
+	if !req.action.Sync() || !req.countedInOverall {
+		return
+	}
+
+	p.overallSyncStatusLock.Lock()
+	defer p.overallSyncStatusLock.Unlock()
+	if p.overallSyncStatus.SubtreeBytesTotal < uint64(req.encodedSize) {
+		// Both log and panic so that we get the PFID in the log.
+		p.log.CErrorf(nil, "panic: decOverallSyncTotalBytes overstepped "+
+			"its bounds (bytes=%d, fetched=%d, total=%d)", req.encodedSize,
+			p.overallSyncStatus.SubtreeBytesFetched,
+			p.overallSyncStatus.SubtreeBytesTotal)
+		panic("decOverallSyncTotalBytes overstepped its bounds")
+	}
+
+	p.overallSyncStatus.SubtreeBytesTotal -= uint64(req.encodedSize)
+	req.countedInOverall = false
+}
+
+func (p *blockPrefetcher) incOverallSyncFetchedBytes(req *prefetchRequest) {
+	if !req.action.Sync() || !req.countedInOverall {
+		return
+	}
+
+	p.overallSyncStatusLock.Lock()
+	defer p.overallSyncStatusLock.Unlock()
+	p.overallSyncStatus.SubtreeBytesFetched += uint64(req.encodedSize)
+	req.countedInOverall = false
+	if p.overallSyncStatus.SubtreeBytesFetched >
+		p.overallSyncStatus.SubtreeBytesTotal {
+		// Both log and panic so that we get the PFID in the log.
+		p.log.CErrorf(nil, "panic: incOverallSyncFetchedBytes overstepped "+
+			"its bounds (fetched=%d, total=%d)",
+			p.overallSyncStatus.SubtreeBytesFetched,
+			p.overallSyncStatus.SubtreeBytesTotal)
+		panic("incOverallSyncFetchedBytes overstepped its bounds")
+	}
+}
+
 func (p *blockPrefetcher) newPrefetch(
 	count int, bytes uint64, triggered bool,
 	req *prefetchRequest) *prefetch {
 	ctx, cancel := context.WithTimeout(p.ctx, prefetchTimeout)
 	ctx = CtxWithRandomIDReplayable(
 		ctx, ctxPrefetchIDKey, ctxPrefetchID, p.log)
+	p.incOverallSyncTotalBytes(req)
 	return &prefetch{
 		subtreeBlockCount: count,
 		subtreeTriggered:  triggered,
@@ -409,7 +491,22 @@ func (p *blockPrefetcher) cancelQueuedPrefetch(ptr data.BlockPointer) {
 		delete(p.queuedPrefetchHandles, ptr)
 		p.log.Debug("cancelled queued prefetch for block %s", ptr)
 	} else {
-		p.vlog.Log(libkb.VLog1, "nothing to cancel for block %s", ptr)
+		p.vlog.Log(libkb.VLog2, "nothing to cancel for block %s", ptr)
+	}
+}
+
+func (p *blockPrefetcher) cancelQueuedPrefetchesForTlf(tlfID tlf.ID) {
+	p.queuedPrefetchHandlesLock.Lock()
+	defer p.queuedPrefetchHandlesLock.Unlock()
+	for ptr, qp := range p.queuedPrefetchHandles {
+		if qp.tlfID != tlfID {
+			continue
+		}
+
+		p.vlog.Log(
+			libkb.VLog2, "Canceling queued prefetch for %s, tlf=%s", ptr, tlfID)
+		close(qp.channel)
+		delete(p.queuedPrefetchHandles, ptr)
 	}
 }
 
@@ -419,7 +516,7 @@ func (p *blockPrefetcher) markQueuedPrefetchDone(ptr data.BlockPointer) {
 	qp, present := p.queuedPrefetchHandles[ptr]
 	if !present {
 		p.vlog.CLogf(
-			context.Background(), libkb.VLog1, "queuedPrefetch not present in"+
+			context.Background(), libkb.VLog2, "queuedPrefetch not present in"+
 				" queuedPrefetchHandles: %s", ptr)
 		return
 	}
@@ -427,8 +524,7 @@ func (p *blockPrefetcher) markQueuedPrefetchDone(ptr data.BlockPointer) {
 		delete(p.queuedPrefetchHandles, ptr)
 	} else {
 		p.queuedPrefetchHandles[ptr] = queuedPrefetch{
-			qp.waitingPrefetches - 1, qp.channel,
-		}
+			qp.waitingPrefetches - 1, qp.channel, qp.tlfID}
 	}
 }
 
@@ -437,6 +533,7 @@ func (p *blockPrefetcher) cancelPrefetch(ptr data.BlockPointer, pp *prefetch) {
 	if len(pp.parents) > 0 {
 		return
 	}
+	p.decOverallSyncTotalBytes(pp.req)
 	delete(p.prefetches, ptr.ID)
 	pp.Close()
 	p.clearRescheduleState(ptr.ID)
@@ -498,7 +595,7 @@ func (p *blockPrefetcher) request(ctx context.Context, priority int,
 		obseleted := make(chan struct{})
 		req := &prefetchRequest{
 			ptr, info.EncodedSize, block.NewEmptier(), kmd, priority,
-			lifetime, NoPrefetch, action, nil, obseleted}
+			lifetime, NoPrefetch, action, nil, obseleted, false}
 		pre = p.newPrefetch(1, uint64(info.EncodedSize), false, req)
 		p.prefetches[ptr.ID] = pre
 	}
@@ -517,7 +614,7 @@ func (p *blockPrefetcher) request(ctx context.Context, priority int,
 	}
 	parentPre, isParentWaiting := p.prefetches[parentPtr.ID]
 	if !isParentWaiting {
-		p.vlog.CLogf(pre.ctx, libkb.VLog1,
+		p.vlog.CLogf(pre.ctx, libkb.VLog2,
 			"prefetcher doesn't know about parent block "+
 				"%s for child block %s", parentPtr, ptr.ID)
 		panic("prefetcher doesn't know about parent block when trying to " +
@@ -537,7 +634,7 @@ func (p *blockPrefetcher) request(ctx context.Context, priority int,
 		}
 		pre.parents[ptr.RefNonce][parentPtr] = parentPre.waitCh
 		if pre.subtreeBlockCount > 0 {
-			p.vlog.CLogf(ctx, libkb.VLog1,
+			p.vlog.CLogf(ctx, libkb.VLog2,
 				"Prefetching %v, action=%s, numBlocks=%d, isParentNew=%t",
 				ptr, action, pre.subtreeBlockCount, isParentNew)
 		}
@@ -742,7 +839,7 @@ func (p *blockPrefetcher) stopIfNeeded(
 
 	defer func() {
 		if doStop {
-			p.vlog.CLogf(ctx, libkb.VLog1,
+			p.vlog.CLogf(ctx, libkb.VLog2,
 				"stopping prefetch for block %s due to full cache (sync=%t)",
 				req.ptr.ID, req.action.Sync())
 		}
@@ -818,6 +915,7 @@ func (p *blockPrefetcher) run(
 		close(p.doneCh)
 		p.prefetchRequestCh.Close()
 		p.prefetchCancelCh.Close()
+		p.prefetchCancelTlfCh.Close()
 		p.prefetchRescheduleCh.Close()
 		p.prefetchStatusCh.Close()
 		p.inFlightFetches.Close()
@@ -834,6 +932,7 @@ func (p *blockPrefetcher) run(
 			if p.inFlightFetches.Len() == 0 &&
 				p.prefetchRequestCh.Len() == 0 &&
 				p.prefetchCancelCh.Len() == 0 &&
+				p.prefetchCancelTlfCh.Len() == 0 &&
 				p.prefetchRescheduleCh.Len() == 0 &&
 				p.prefetchStatusCh.Len() == 0 {
 				return
@@ -863,15 +962,30 @@ func (p *blockPrefetcher) run(
 			ptr := ptrInt.(data.BlockPointer)
 			pre, ok := p.prefetches[ptr.ID]
 			if !ok {
-				p.log.Debug("nothing to cancel for block %s", ptr)
+				p.vlog.Log(libkb.VLog2, "nothing to cancel for block %s", ptr)
 				continue
 			}
-			p.log.Debug("canceling prefetch for block %s", ptr)
+			p.vlog.Log(libkb.VLog2, "canceling prefetch for block %s", ptr)
 			// Walk up the block tree and delete every parent, but
 			// only ancestors of this given pointer with this
 			// refnonce.  Other references to the same ID might still
 			// be live.
 			p.applyToPtrParentsRecursive(p.cancelPrefetch, ptr, pre)
+		case reqInt := <-p.prefetchCancelTlfCh.Out():
+			req := reqInt.(cancelTlfPrefetch)
+			p.log.CDebugf(nil, "Canceling all prefetches for TLF %s", req.tlfID)
+			// Cancel all prefetches for this TLF.
+			for _, pre := range p.prefetches {
+				if pre.req.kmd.TlfID() != req.tlfID {
+					continue
+				}
+
+				p.vlog.CLogf(
+					pre.ctx, libkb.VLog2, "TLF-canceling prefetch for %s",
+					pre.req.ptr)
+				pre.Close()
+			}
+			close(req.channel)
 		case reqInt := <-p.prefetchRescheduleCh.Out():
 			req := reqInt.(*prefetchRequest)
 			blockID := req.ptr.ID
@@ -885,7 +999,7 @@ func (p *blockPrefetcher) run(
 			} else {
 				pre.req = req
 			}
-			p.vlog.CLogf(pre.ctx, libkb.VLog1,
+			p.vlog.CLogf(pre.ctx, libkb.VLog2,
 				"rescheduling top-block prefetch for block %s", blockID)
 			p.applyToParentsRecursive(p.rescheduleTopBlock, blockID, pre)
 		case reqInt := <-p.prefetchRequestCh.Out():
@@ -916,7 +1030,7 @@ func (p *blockPrefetcher) run(
 			select {
 			case <-req.obseleted:
 				// This request was cancelled while it was waiting.
-				p.vlog.CLogf(context.Background(), libkb.VLog1,
+				p.vlog.CLogf(context.Background(), libkb.VLog2,
 					"Request not processing because it was canceled already"+
 						": id=%v action=%v", req.ptr.ID, req.action)
 				continue
@@ -924,11 +1038,22 @@ func (p *blockPrefetcher) run(
 				p.markQueuedPrefetchDone(req.ptr)
 			}
 
+			if isPrefetchWaiting {
+				select {
+				case <-pre.ctx.Done():
+					p.vlog.CLogf(context.Background(), libkb.VLog2,
+						"Request not processing because it was canceled "+
+							"already: id=%v action=%v", req.ptr.ID, req.action)
+					continue
+				default:
+				}
+			}
+
 			ctx := context.TODO()
 			if isPrefetchWaiting {
 				ctx = pre.ctx
 			}
-			p.vlog.CLogf(ctx, libkb.VLog1, "Handling request for %v, action=%s",
+			p.vlog.CLogf(ctx, libkb.VLog2, "Handling request for %v, action=%s",
 				req.ptr, req.action)
 
 			// Ensure the block is in the right cache.
@@ -938,6 +1063,14 @@ func (p *blockPrefetcher) run(
 					"%+v", req.ptr.ID, err)
 				// There's nothing for us to do when there's an error.
 				continue
+			}
+
+			if isPrefetchWaiting && !pre.req.action.Sync() &&
+				req.action.Sync() {
+				// This request turned into a syncing request, so
+				// update the overall sync status.
+				p.incOverallSyncTotalBytes(req)
+				p.incOverallSyncFetchedBytes(req)
 			}
 
 			// If the request is finished (i.e., if it's marked as
@@ -957,13 +1090,13 @@ func (p *blockPrefetcher) run(
 					// Since we decrement by `pre.subtreeBlockCount`, we're
 					// guaranteed that `pre` will be removed from the
 					// prefetcher.
+					numBytes := pre.SubtreeBytesTotal - pre.SubtreeBytesFetched
+					p.incOverallSyncFetchedBytes(req)
 					p.applyToParentsRecursive(
-						p.completePrefetch(
-							pre.subtreeBlockCount,
-							pre.SubtreeBytesTotal-pre.SubtreeBytesFetched),
+						p.completePrefetch(pre.subtreeBlockCount, numBytes),
 						req.ptr.ID, pre)
 				} else {
-					p.vlog.CLogf(ctx, libkb.VLog1,
+					p.vlog.CLogf(ctx, libkb.VLog2,
 						"skipping prefetch for finished block %s", req.ptr.ID)
 					if req.prefetchStatus != FinishedPrefetch {
 						// Mark this block as finished in the cache.
@@ -971,7 +1104,7 @@ func (p *blockPrefetcher) run(
 							ctx, req.ptr, req.kmd.TlfID(), b, req.lifetime,
 							FinishedPrefetch, req.action.CacheType())
 						if err != nil {
-							p.vlog.CLogf(ctx, libkb.VLog1,
+							p.vlog.CLogf(ctx, libkb.VLog2,
 								"Couldn't put finished block %s in cache: %+v",
 								req.ptr, err)
 						}
@@ -981,7 +1114,7 @@ func (p *blockPrefetcher) run(
 				continue
 			}
 			if !req.action.Prefetch(b) {
-				p.vlog.CLogf(ctx, libkb.VLog1,
+				p.vlog.CLogf(ctx, libkb.VLog2,
 					"skipping prefetch for block %s, action %s",
 					req.ptr.ID, req.action)
 				if isPrefetchWaiting && !pre.req.action.Prefetch(b) {
@@ -999,7 +1132,7 @@ func (p *blockPrefetcher) run(
 				(isPrefetchWaiting &&
 					req.action.Sync() == pre.req.action.Sync() &&
 					req.action.StopIfFull() == pre.req.action.StopIfFull()) {
-				p.vlog.CLogf(ctx, libkb.VLog1,
+				p.vlog.CLogf(ctx, libkb.VLog2,
 					"prefetch already triggered for block ID %s", req.ptr.ID)
 				continue
 			}
@@ -1015,10 +1148,13 @@ func (p *blockPrefetcher) run(
 			}
 
 			if isPrefetchWaiting {
+				if req.priority > pre.req.priority {
+					pre.req.priority = req.priority
+				}
 				newAction := pre.req.action.Combine(req.action)
 				if pre.subtreeTriggered {
 					p.vlog.CLogf(
-						ctx, libkb.VLog1, "prefetch subtree already triggered "+
+						ctx, libkb.VLog2, "prefetch subtree already triggered "+
 							"for block ID %s", req.ptr.ID)
 					// Redundant prefetch request.
 					// We've already seen _this_ block, and already triggered
@@ -1057,9 +1193,10 @@ func (p *blockPrefetcher) run(
 					}
 					p.applyToParentsRecursive(
 						p.decrementPrefetch, req.ptr.ID, pre)
+					bytes := uint64(b.GetEncodedSize())
+					p.incOverallSyncFetchedBytes(req)
 					p.applyToParentsRecursive(
-						p.addFetchedBytes(
-							uint64(b.GetEncodedSize())), req.ptr.ID, pre)
+						p.addFetchedBytes(bytes), req.ptr.ID, pre)
 					pre.subtreeTriggered = true
 					pre.req.action = newAction
 				}
@@ -1071,7 +1208,7 @@ func (p *blockPrefetcher) run(
 				pre = p.newPrefetch(0, 0, true, req)
 				p.prefetches[req.ptr.ID] = pre
 				ctx = pre.ctx
-				p.vlog.CLogf(ctx, libkb.VLog1,
+				p.vlog.CLogf(ctx, libkb.VLog2,
 					"created new prefetch for block %s", req.ptr.ID)
 			}
 
@@ -1094,7 +1231,7 @@ func (p *blockPrefetcher) run(
 				continue
 			}
 			if isTail {
-				p.vlog.CLogf(ctx, libkb.VLog1,
+				p.vlog.CLogf(ctx, libkb.VLog2,
 					"completed prefetch for tail block %s ", req.ptr.ID)
 				// This is a tail block with no children.  Parent blocks are
 				// potentially waiting for this prefetch, so we percolate the
@@ -1116,7 +1253,7 @@ func (p *blockPrefetcher) run(
 			}
 			// This is not a tail block.
 			if numBlocks == 0 {
-				p.vlog.CLogf(ctx, libkb.VLog1,
+				p.vlog.CLogf(ctx, libkb.VLog2,
 					"no blocks to prefetch for block %s", req.ptr.ID)
 				// All the blocks to be triggered have already done so. Do
 				// nothing.  This is simply an optimization to avoid crawling
@@ -1124,7 +1261,7 @@ func (p *blockPrefetcher) run(
 				continue
 			}
 			if !isPrefetchWaiting {
-				p.vlog.CLogf(ctx, libkb.VLog1,
+				p.vlog.CLogf(ctx, libkb.VLog2,
 					"adding block %s to the prefetch tree", req.ptr.ID)
 				// This block doesn't appear in the prefetch tree, so it's the
 				// root of a new prefetch tree. Add it to the tree.
@@ -1135,7 +1272,7 @@ func (p *blockPrefetcher) run(
 				// shouldn't block anything above it in the tree from
 				// completing.
 			}
-			p.vlog.CLogf(ctx, libkb.VLog1,
+			p.vlog.CLogf(ctx, libkb.VLog2,
 				"prefetching %d block(s) with parent block %s "+
 					"[bytesFetched=%d, bytesTotal=%d]",
 				numBlocks, req.ptr.ID, numBytesFetched, numBytesTotal)
@@ -1181,7 +1318,8 @@ func (p *blockPrefetcher) setObseletedOnQueuedPrefetch(req *prefetchRequest) {
 	} else {
 		obseleted := make(chan struct{})
 		req.obseleted = obseleted
-		p.queuedPrefetchHandles[req.ptr] = queuedPrefetch{1, obseleted}
+		p.queuedPrefetchHandles[req.ptr] = queuedPrefetch{
+			1, obseleted, req.kmd.TlfID()}
 	}
 }
 
@@ -1215,7 +1353,7 @@ func (p *blockPrefetcher) cacheOrCancelPrefetch(ctx context.Context,
 		}
 
 		p.vlog.CLogf(
-			ctx, libkb.VLog1, "error prefetching block %s: %+v, canceling",
+			ctx, libkb.VLog2, "error prefetching block %s: %+v, canceling",
 			ptr.ID, err)
 		p.CancelPrefetch(ptr)
 	}
@@ -1229,7 +1367,7 @@ func (p *blockPrefetcher) ProcessBlockForPrefetch(ctx context.Context,
 	action BlockRequestAction) {
 	req := &prefetchRequest{
 		ptr, block.GetEncodedSize(), block.NewEmptier(), kmd, priority,
-		lifetime, prefetchStatus, action, nil, nil}
+		lifetime, prefetchStatus, action, nil, nil, false}
 	if prefetchStatus == FinishedPrefetch {
 		// Finished prefetches can always be short circuited.
 		// If we're here, then FinishedPrefetch is already cached.
@@ -1262,7 +1400,8 @@ func (p *blockPrefetcher) WaitChannelForBlockPrefetch(
 	waitCh <-chan struct{}, err error) {
 	c := make(chan (<-chan struct{}), 1)
 	req := &prefetchRequest{
-		ptr, 0, nil, nil, 0, data.TransientEntry, 0, BlockRequestSolo, c, nil}
+		ptr, 0, nil, nil, 0, data.TransientEntry, 0, BlockRequestSolo, c, nil,
+		false}
 
 	select {
 	case p.prefetchRequestCh.In() <- req:
@@ -1307,6 +1446,14 @@ func (p *blockPrefetcher) Status(ctx context.Context, ptr data.BlockPointer) (
 	}
 }
 
+// OverallSyncStatus implements the Prefetcher interface for
+// blockPrefetcher.
+func (p *blockPrefetcher) OverallSyncStatus() PrefetchProgress {
+	p.overallSyncStatusLock.RLock()
+	defer p.overallSyncStatusLock.RUnlock()
+	return p.overallSyncStatus
+}
+
 func (p *blockPrefetcher) CancelPrefetch(ptr data.BlockPointer) {
 	p.cancelQueuedPrefetch(ptr)
 	select {
@@ -1314,6 +1461,30 @@ func (p *blockPrefetcher) CancelPrefetch(ptr data.BlockPointer) {
 	case <-p.shutdownCh:
 		p.log.Warning("Skipping prefetch cancel for block %v since "+
 			"the prefetcher is shutdown", ptr)
+	}
+}
+
+func (p *blockPrefetcher) CancelTlfPrefetches(
+	ctx context.Context, tlfID tlf.ID) error {
+	c := make(chan struct{})
+
+	p.cancelQueuedPrefetchesForTlf(tlfID)
+	select {
+	case p.prefetchCancelTlfCh.In() <- cancelTlfPrefetch{tlfID, c}:
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-p.shutdownCh:
+		p.log.Warning("Skipping prefetch cancel for TLF %s since "+
+			"the prefetcher is shutdown", tlfID)
+	}
+
+	select {
+	case <-c:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-p.shutdownCh:
+		return errPrefetcherAlreadyShutDown
 	}
 }
 

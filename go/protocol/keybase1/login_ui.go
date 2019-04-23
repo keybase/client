@@ -28,11 +28,23 @@ type DisplayPrimaryPaperKeyArg struct {
 	Phrase    string `codec:"phrase" json:"phrase"`
 }
 
+type PromptResetAccountArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Text      string `codec:"text" json:"text"`
+}
+
+type DisplayResetProgressArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Text      string `codec:"text" json:"text"`
+}
+
 type LoginUiInterface interface {
 	GetEmailOrUsername(context.Context, int) (string, error)
 	PromptRevokePaperKeys(context.Context, PromptRevokePaperKeysArg) (bool, error)
 	DisplayPaperKeyPhrase(context.Context, DisplayPaperKeyPhraseArg) error
 	DisplayPrimaryPaperKey(context.Context, DisplayPrimaryPaperKeyArg) error
+	PromptResetAccount(context.Context, PromptResetAccountArg) (bool, error)
+	DisplayResetProgress(context.Context, DisplayResetProgressArg) error
 }
 
 func LoginUiProtocol(i LoginUiInterface) rpc.Protocol {
@@ -99,6 +111,36 @@ func LoginUiProtocol(i LoginUiInterface) rpc.Protocol {
 					return
 				},
 			},
+			"promptResetAccount": {
+				MakeArg: func() interface{} {
+					var ret [1]PromptResetAccountArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]PromptResetAccountArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]PromptResetAccountArg)(nil), args)
+						return
+					}
+					ret, err = i.PromptResetAccount(ctx, typedArgs[0])
+					return
+				},
+			},
+			"displayResetProgress": {
+				MakeArg: func() interface{} {
+					var ret [1]DisplayResetProgressArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]DisplayResetProgressArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]DisplayResetProgressArg)(nil), args)
+						return
+					}
+					err = i.DisplayResetProgress(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -125,5 +167,15 @@ func (c LoginUiClient) DisplayPaperKeyPhrase(ctx context.Context, __arg DisplayP
 
 func (c LoginUiClient) DisplayPrimaryPaperKey(ctx context.Context, __arg DisplayPrimaryPaperKeyArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.loginUi.displayPrimaryPaperKey", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LoginUiClient) PromptResetAccount(ctx context.Context, __arg PromptResetAccountArg) (res bool, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.loginUi.promptResetAccount", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LoginUiClient) DisplayResetProgress(ctx context.Context, __arg DisplayResetProgressArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.loginUi.displayResetProgress", []interface{}{__arg}, nil)
 	return
 }

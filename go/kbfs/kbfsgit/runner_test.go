@@ -13,6 +13,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -139,8 +140,8 @@ func gitExec(t *testing.T, gitDir, workTree string, command ...string) {
 	cmd := exec.Command("git",
 		append([]string{"--git-dir", gitDir, "--work-tree", workTree},
 			command...)...)
-	err := cmd.Run()
-	require.NoError(t, err)
+	output, err := cmd.CombinedOutput()
+	require.NoError(t, err, string(output))
 }
 
 func makeLocalRepoWithOneFileCustomCommitMsg(t *testing.T,
@@ -977,57 +978,6 @@ func TestRepackObjects(t *testing.T) {
 	checkFile("foo4", "hello4")
 }
 
-func TestRunnerWithKBFSReset(t *testing.T) {
-	ctx, config, tempdir := initConfigForRunner(t)
-	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	defer os.RemoveAll(tempdir)
-
-	git1, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
-	require.NoError(t, err)
-	defer os.RemoveAll(git1)
-
-	makeLocalRepoWithOneFile(t, git1, "foo", "hello", "")
-
-	h, err := tlfhandle.ParseHandle(
-		ctx, config.KBPKI(), config.MDOps(), config, "user1", tlf.Private)
-	require.NoError(t, err)
-	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
-	require.NoError(t, err)
-
-	testPush(t, ctx, config, git1, "refs/heads/master:refs/heads/master")
-
-	// Reset using worktree.
-	repoFS, _, err := libgit.GetRepoAndID(ctx, config, h, "test", "")
-	require.NoError(t, err)
-	rootFS, err := libfs.NewFS(ctx, config, h, data.MasterBranch, "", "", 0)
-	require.NoError(t, err)
-	err = rootFS.MkdirAll("test-checkout", 0600)
-	require.NoError(t, err)
-	wtFS, err := rootFS.Chroot("test-checkout")
-	require.NoError(t, err)
-	err = libgit.Reset(ctx, repoFS, wtFS.(*libfs.FS), "refs/heads/master")
-	require.NoError(t, err)
-
-	f, err := wtFS.Open("foo")
-	require.NoError(t, err)
-	defer f.Close()
-	buf, err := ioutil.ReadAll(f)
-	require.NoError(t, err)
-	require.Equal(t, "hello", string(buf))
-
-	// Sync data and flush journal.
-	err = rootFS.SyncAll()
-	require.NoError(t, err)
-	jManager, err := libkbfs.GetJournalManager(config)
-	require.NoError(t, err)
-	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
-		ctx, h, data.MasterBranch)
-	require.NoError(t, err)
-	err = jManager.FinishSingleOp(ctx,
-		rootNode.GetFolderBranch().Tlf, nil, keybase1.MDPriorityGit)
-	require.NoError(t, err)
-}
-
 func testHandlePushBatch(t *testing.T, ctx context.Context,
 	config libkbfs.Config, git, refspec, tlfName string) libgit.RefDataByName {
 	var input bytes.Buffer
@@ -1126,4 +1076,61 @@ func TestRunnerHandlePushBatch(t *testing.T) {
 	master = refDataByName["refs/heads/master"]
 	require.True(t, master.IsDelete)
 	require.Len(t, master.Commits, 0)
+}
+
+func TestRunnerSubmodule(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("submodule add doesn't work well on Windows")
+	}
+
+	ctx, config, tempdir := initConfigForRunner(t)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
+	defer os.RemoveAll(tempdir)
+
+	shutdown := libgit.StartAutogit(config, 25)
+	defer shutdown()
+
+	t.Log("Make a local repo that will become a KBFS repo")
+	git1, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
+	require.NoError(t, err)
+	defer os.RemoveAll(git1)
+	makeLocalRepoWithOneFile(t, git1, "foo", "hello", "")
+	dotgit1 := filepath.Join(git1, ".git")
+
+	t.Log("Make a second local repo that will be a submodule")
+	git2, err := ioutil.TempDir(os.TempDir(), "kbfsgittest2")
+	require.NoError(t, err)
+	defer os.RemoveAll(git2)
+	makeLocalRepoWithOneFile(t, git2, "foo2", "hello2", "")
+	dotgit2 := filepath.Join(git2, ".git")
+
+	t.Log("Add the submodule to the first local repo")
+	// git-submodules requires a real working directory for some reason.
+	err = os.Chdir(git1)
+	require.NoError(t, err)
+	gitExec(t, dotgit1, git1, "submodule", "add", "-f", dotgit2)
+	gitExec(t, dotgit1, git1, "-c", "user.name=Foo",
+		"-c", "user.email=foo@foo.com", "commit", "-a", "-m", "submodule")
+
+	t.Log("Push the first local repo into KBFS")
+	h, err := tlfhandle.ParseHandle(
+		ctx, config.KBPKI(), config.MDOps(), config, "user1", tlf.Private)
+	require.NoError(t, err)
+	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
+	require.NoError(t, err)
+	testPush(t, ctx, config, git1, "refs/heads/master:refs/heads/master")
+
+	t.Log("Use autogit to browse it")
+	rootFS, err := libfs.NewFS(
+		ctx, config, h, data.MasterBranch, "", "", keybase1.MDPriorityNormal)
+	require.NoError(t, err)
+	fis, err := rootFS.ReadDir(".kbfs_autogit/test")
+	require.NoError(t, err)
+	require.Len(t, fis, 3 /* foo, kbfsgittest2, and .gitmodules */)
+	f, err := rootFS.Open(".kbfs_autogit/test/" + filepath.Base(git2))
+	require.NoError(t, err)
+	defer f.Close()
+	data, err := ioutil.ReadAll(f)
+	require.NoError(t, err)
+	require.True(t, strings.HasPrefix(string(data), "git submodule"))
 }

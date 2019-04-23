@@ -78,7 +78,6 @@ class Invites extends Component<Props, State> {
               />
             )}
             <Kb.Button
-              type="Primary"
               label="Generate invitation"
               onClick={() => this._invite()}
               waiting={props.waitingForResponse}

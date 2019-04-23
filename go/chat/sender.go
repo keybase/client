@@ -1080,30 +1080,27 @@ func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg 
 	return obr, nil
 }
 
-func (s *Deliverer) ActiveDeliveries(ctx context.Context) (res []chat1.ConversationID, err error) {
+func (s *Deliverer) ActiveDeliveries(ctx context.Context) (res []chat1.OutboxRecord, err error) {
 	defer s.Trace(ctx, func() error { return err }, "ActiveDeliveries")()
 	if !s.IsDelivering() {
 		s.Debug(ctx, "ActiveDeliveries: not delivering, returning empty")
 		return nil, nil
 	}
-	recs, err := s.outbox.PullAllConversations(ctx, false, false)
-	cmap := make(map[string]chat1.ConversationID)
+	obrs, err := s.outbox.PullAllConversations(ctx, false, false)
 	if err != nil {
 		s.Debug(ctx, "ActiveDeliveries: failed to pull convs: %s", err)
 		return res, err
 	}
-	for _, r := range recs {
-		styp, err := r.State.State()
+
+	for _, obr := range obrs {
+		styp, err := obr.State.State()
 		if err != nil {
-			s.Debug(ctx, "ActiveDeliveries: bogus state: outboxID: %s err: %s", r.OutboxID, err)
+			s.Debug(ctx, "ActiveDeliveries: bogus state: outboxID: %s err: %s", obr.OutboxID, err)
 			continue
 		}
 		if styp == chat1.OutboxStateType_SENDING {
-			cmap[r.ConvID.String()] = r.ConvID
+			res = append(res, obr)
 		}
-	}
-	for _, convID := range cmap {
-		res = append(res, convID)
 	}
 	return res, nil
 }

@@ -65,6 +65,7 @@ const longOperationDebugDumpDuration = time.Minute
 // NewKBFSOpsStandard constructs a new KBFSOpsStandard object.
 func NewKBFSOpsStandard(appStateUpdater env.AppStateUpdater, config Config) *KBFSOpsStandard {
 	log := config.MakeLogger("")
+	quLog := config.MakeLogger(QuotaUsageLogModule("KBFSOps"))
 	kops := &KBFSOpsStandard{
 		appStateUpdater:       appStateUpdater,
 		config:                config,
@@ -73,8 +74,9 @@ func NewKBFSOpsStandard(appStateUpdater env.AppStateUpdater, config Config) *KBF
 		ops:                   make(map[data.FolderBranch]*folderBranchOps),
 		opsByFav:              make(map[favorites.Folder]*folderBranchOps),
 		reIdentifyControlChan: make(chan chan<- struct{}),
-		favs:       NewFavorites(config),
-		quotaUsage: NewEventuallyConsistentQuotaUsage(config, "KBFSOps"),
+		favs: NewFavorites(config),
+		quotaUsage: NewEventuallyConsistentQuotaUsage(
+			config, quLog, config.MakeVLogger(quLog)),
 		longOperationDebugDumper: NewImpatientDebugDumper(
 			config, longOperationDebugDumpDuration),
 		currentStatus: &kbfsCurrentStatus{},
@@ -1177,6 +1179,30 @@ func (fs *KBFSOpsStandard) GetNodeMetadata(ctx context.Context, node Node) (
 
 	ops := fs.getOpsByNode(ctx, node)
 	return ops.GetNodeMetadata(ctx, node)
+}
+
+// GetRootNodeMetadata implements the KBFSOps interface for KBFSOpsStandard
+func (fs *KBFSOpsStandard) GetRootNodeMetadata(
+	ctx context.Context, folderBranch data.FolderBranch) (
+	NodeMetadata, *tlfhandle.Handle, error) {
+	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
+	defer timeTrackerDone()
+
+	ops := fs.getOps(ctx, folderBranch, FavoritesOpNoChange)
+	rootNode, _, _, err := ops.getRootNode(ctx)
+	if err != nil {
+		return NodeMetadata{}, nil, err
+	}
+	md, err := ops.GetNodeMetadata(ctx, rootNode)
+	if err != nil {
+		return NodeMetadata{}, nil, err
+	}
+
+	h, err := ops.GetTLFHandle(ctx, rootNode)
+	if err != nil {
+		return NodeMetadata{}, nil, err
+	}
+	return md, h, nil
 }
 
 func (fs *KBFSOpsStandard) findTeamByID(

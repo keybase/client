@@ -284,6 +284,12 @@ func (r *testRecoverUIProvision) GetPassphrase(p keybase1.GUIEntryArg, terminal 
 	res.Passphrase = r.paperkey
 	return res, nil
 }
+func (r *testRecoverUIProvision) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (bool, error) {
+	return false, nil
+}
+func (r *testRecoverUIProvision) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
+	return nil
+}
 
 type testRecoverUIRecover struct {
 	libkb.Contextified

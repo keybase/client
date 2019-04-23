@@ -733,7 +733,7 @@ func NewLoginUI(t libkb.TerminalUI, noPrompt bool) LoginUI {
 }
 
 func (l LoginUI) GetEmailOrUsername(_ context.Context, _ int) (string, error) {
-	return PromptWithChecker(PromptDescriptorLoginUsername, l.parent, "Your keybase username or email address", false,
+	return PromptWithChecker(PromptDescriptorLoginUsername, l.parent, "Your keybase username", false,
 		libkb.CheckEmailOrUsername)
 }
 
@@ -815,6 +815,15 @@ func (l LoginUI) DisplayPrimaryPaperKey(_ context.Context, arg keybase1.DisplayP
 			return err
 		}
 	}
+	return nil
+}
+
+func (l LoginUI) PromptResetAccount(ctx context.Context, arg keybase1.PromptResetAccountArg) (bool, error) {
+	return l.parent.PromptYesNo(PromptDescriptorResetAccount, arg.Text, libkb.PromptDefaultNo)
+}
+
+func (l LoginUI) DisplayResetProgress(ctx context.Context, arg keybase1.DisplayResetProgressArg) error {
+	l.parent.Printf("%s\n", arg.Text)
 	return nil
 }
 

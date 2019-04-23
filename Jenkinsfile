@@ -543,6 +543,9 @@ def testGo(prefix, packagesToTest) {
         'github.com/keybase/client/go/systests': [
           disable: true,
         ],
+        'github.com/keybase/client/go/chat': [
+          disable: true,
+        ],
       ],
     ]
     def getOverallTimeout = { testSpec ->

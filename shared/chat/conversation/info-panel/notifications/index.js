@@ -124,7 +124,6 @@ export const Notifications = (props: Props) => (
         style={{
           marginLeft: Styles.globalMargins.xtiny,
         }}
-        fontSize={Styles.isMobile ? 24 : undefined}
         color={Styles.globalColors.black_20}
       />
     </Kb.Box>

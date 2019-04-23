@@ -22,6 +22,7 @@ import (
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/libkb"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
@@ -121,10 +122,12 @@ func (fl *FolderList) addToFavorite(ctx context.Context, h *tlfhandle.Handle) (e
 	// `rmdir` command, and the lookup should not result in adding the dir to
 	// favorites.
 	if !fl.isRecentlyRemoved(cName) {
-		fl.fs.log.CDebugf(ctx, "adding %s to favorites", cName)
+		fl.fs.vlog.CLogf(ctx, libkb.VLog1, "adding %s to favorites", cName)
 		fl.fs.config.KBFSOps().AddFavorite(ctx, h.ToFavorite(), h.FavoriteData())
 	} else {
-		fl.fs.log.CDebugf(ctx, "recently removed; will skip adding %s to favorites and return ENOENT", cName)
+		fl.fs.vlog.CLogf(
+			ctx, libkb.VLog1, "recently removed; will skip adding %s to "+
+				"favorites and return ENOENT", cName)
 		return fuse.ENOENT
 	}
 	return nil
@@ -146,7 +149,7 @@ func (fl *FolderList) PathType() tlfhandle.PathType {
 
 // Create implements the fs.NodeCreater interface for FolderList.
 func (fl *FolderList) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.CreateResponse) (_ fs.Node, _ fs.Handle, err error) {
-	fl.fs.log.CDebugf(ctx, "FL Create")
+	fl.fs.vlog.CLogf(ctx, libkb.VLog1, "FL Create")
 	tlfName := tlf.CanonicalName(req.Name)
 	defer func() { err = fl.processError(ctx, libkbfs.WriteMode, tlfName, err) }()
 	if strings.HasPrefix(req.Name, "._") {
@@ -159,7 +162,7 @@ func (fl *FolderList) Create(ctx context.Context, req *fuse.CreateRequest, resp 
 
 // Mkdir implements the fs.NodeMkdirer interface for FolderList.
 func (fl *FolderList) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (_ fs.Node, err error) {
-	fl.fs.log.CDebugf(ctx, "FL Mkdir")
+	fl.fs.vlog.CLogf(ctx, libkb.VLog1, "FL Mkdir")
 	tlfName := tlf.CanonicalName(req.Name)
 	defer func() { err = fl.processError(ctx, libkbfs.WriteMode, tlfName, err) }()
 	return nil, libkbfs.NewWriteUnsupportedError(tlfhandle.BuildCanonicalPath(fl.PathType(), string(tlfName)))
@@ -167,7 +170,7 @@ func (fl *FolderList) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (_ fs.N
 
 // Lookup implements the fs.NodeRequestLookuper interface.
 func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (node fs.Node, err error) {
-	fl.fs.log.CDebugf(ctx, "FL Lookup %s", req.Name)
+	fl.fs.vlog.CLogf(ctx, libkb.VLog1, "FL Lookup %s", req.Name)
 	defer func() {
 		err = fl.processError(ctx, libkbfs.ReadMode,
 			tlf.CanonicalName(req.Name), err)
@@ -244,7 +247,7 @@ var _ fs.HandleReadDirAller = (*FolderList)(nil)
 
 // ReadDirAll implements the ReadDirAll interface.
 func (fl *FolderList) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
-	fl.fs.log.CDebugf(ctx, "FL ReadDirAll")
+	fl.fs.vlog.CLogf(ctx, libkb.VLog1, "FL ReadDirAll")
 	defer func() {
 		err = fl.fs.processError(ctx, libkbfs.ReadMode, err)
 	}()
@@ -282,7 +285,7 @@ var _ fs.NodeRemover = (*FolderList)(nil)
 
 // Remove implements the fs.NodeRemover interface for FolderList.
 func (fl *FolderList) Remove(ctx context.Context, req *fuse.RemoveRequest) (err error) {
-	fl.fs.log.CDebugf(ctx, "FolderList Remove %s", req.Name)
+	fl.fs.vlog.CLogf(ctx, libkb.VLog1, "FolderList Remove %s", req.Name)
 	defer func() { err = fl.fs.processError(ctx, libkbfs.WriteMode, err) }()
 
 	h, err := tlfhandle.ParseHandlePreferredQuick(
@@ -331,7 +334,8 @@ func (fl *FolderList) updateTlfName(ctx context.Context, oldName string,
 			return false
 		}
 
-		fl.fs.log.CDebugf(ctx, "Folder name updated: %s -> %s", oldName, newName)
+		fl.fs.vlog.CLogf(
+			ctx, libkb.VLog1, "Folder name updated: %s -> %s", oldName, newName)
 		delete(fl.folders, oldName)
 		fl.folders[newName] = tlf
 		return true

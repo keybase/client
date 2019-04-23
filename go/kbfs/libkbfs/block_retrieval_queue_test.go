@@ -16,6 +16,7 @@ import (
 	libkeytest "github.com/keybase/client/go/kbfs/libkey/test"
 	"github.com/keybase/client/go/kbfs/test/clocktest"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
@@ -36,7 +37,7 @@ func newTestBlockRetrievalConfig(t *testing.T, bg blockGetter,
 	dbc DiskBlockCache) *testBlockRetrievalConfig {
 	return &testBlockRetrievalConfig{
 		newTestCodecGetter(),
-		newTestLogMakerWithVDebug(t, "vlog2"),
+		newTestLogMakerWithVDebug(t, libkb.VLog2String),
 		data.NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity(NewInitModeFromType(InitDefault))),
 		bg,
 		newTestDiskBlockCacheGetter(t, dbc),

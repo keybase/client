@@ -8,6 +8,7 @@ import retentionWarning from './team/settings-tab/retention/warning/index.storie
 import roles from './role-picker/index.stories'
 import rolePicker from './role-picker-2/index.stories'
 import tabs from './team/tabs/index.stories'
+import rename from './rename-team/index.stories'
 
 const load = () => {
   main()
@@ -19,6 +20,7 @@ const load = () => {
   roles()
   rolePicker()
   tabs()
+  rename()
 }
 
 export default load

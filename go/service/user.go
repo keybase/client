@@ -6,7 +6,6 @@ package service
 import (
 	"fmt"
 	"sort"
-	"time"
 
 	"github.com/keybase/client/go/avatars"
 	"github.com/keybase/client/go/chat"
@@ -390,35 +389,48 @@ func (h *UserHandler) ProofSuggestions(ctx context.Context, sessionID int) (ret 
 
 type ProofSuggestion struct {
 	keybase1.ProofSuggestion
+	LogoKey  string
 	Priority int
 }
 
-var pgpProofSuggestion = keybase1.ProofSuggestion{
-	Key:           "pgp",
-	ProfileText:   "Add a PGP key",
-	PickerText:    "PGP key",
-	PickerSubtext: "",
+var pgpProofSuggestion = ProofSuggestion{
+	ProofSuggestion: keybase1.ProofSuggestion{
+		Key:           "pgp",
+		ProfileText:   "Add a PGP key",
+		PickerText:    "PGP key",
+		PickerSubtext: "",
+	},
+	LogoKey: "pgp",
 }
 
-var webProofSuggestion = keybase1.ProofSuggestion{
-	Key:           "web",
-	ProfileText:   "Prove your website",
-	PickerText:    "Your own website",
-	PickerSubtext: "",
+var webProofSuggestion = ProofSuggestion{
+	ProofSuggestion: keybase1.ProofSuggestion{
+		Key:           "web",
+		ProfileText:   "Prove your website",
+		PickerText:    "Your own website",
+		PickerSubtext: "",
+	},
+	LogoKey: "web",
 }
 
-var bitcoinProofSuggestion = keybase1.ProofSuggestion{
-	Key:           "btc",
-	ProfileText:   "Set a Bitcoin address",
-	PickerText:    "Bitcoin address",
-	PickerSubtext: "",
+var bitcoinProofSuggestion = ProofSuggestion{
+	ProofSuggestion: keybase1.ProofSuggestion{
+		Key:           "btc",
+		ProfileText:   "Set a Bitcoin address",
+		PickerText:    "Bitcoin address",
+		PickerSubtext: "",
+	},
+	LogoKey: "btc",
 }
 
-var zcashProofSuggestion = keybase1.ProofSuggestion{
-	Key:           "zcash",
-	ProfileText:   "Set a Zcash address",
-	PickerText:    "Zcash address",
-	PickerSubtext: "",
+var zcashProofSuggestion = ProofSuggestion{
+	ProofSuggestion: keybase1.ProofSuggestion{
+		Key:           "zcash",
+		ProfileText:   "Set a Zcash address",
+		PickerText:    "Zcash address",
+		PickerSubtext: "",
+	},
+	LogoKey: "zcash",
 }
 
 func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []ProofSuggestion, err error) {
@@ -456,32 +468,34 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []Proo
 		if serviceType.IsNew(mctx) {
 			metas = []keybase1.Identify3RowMeta{{Label: "new", Color: keybase1.Identify3RowColor_BLUE}}
 		}
-		suggestions = append(suggestions, ProofSuggestion{ProofSuggestion: keybase1.ProofSuggestion{
-			Key:           service,
-			ProfileText:   fmt.Sprintf("Prove your %v", serviceType.DisplayName()),
-			PickerText:    serviceType.DisplayName(),
-			PickerSubtext: subtext,
-			Metas:         metas,
-		}})
+		suggestions = append(suggestions, ProofSuggestion{
+			LogoKey: serviceType.GetLogoKey(),
+			ProofSuggestion: keybase1.ProofSuggestion{
+				Key:           service,
+				ProfileText:   fmt.Sprintf("Prove your %v", serviceType.DisplayName()),
+				PickerText:    serviceType.DisplayName(),
+				PickerSubtext: subtext,
+				Metas:         metas,
+			}})
 	}
 	hasPGP := len(user.GetActivePGPKeys(true)) > 0
 	if !hasPGP {
-		suggestions = append(suggestions, ProofSuggestion{ProofSuggestion: pgpProofSuggestion})
+		suggestions = append(suggestions, pgpProofSuggestion)
 	}
 	// Always show the option to create a new web proof.
-	suggestions = append(suggestions, ProofSuggestion{ProofSuggestion: webProofSuggestion})
+	suggestions = append(suggestions, webProofSuggestion)
 	if !user.IDTable().HasActiveCryptocurrencyFamily(libkb.CryptocurrencyFamilyBitcoin) {
-		suggestions = append(suggestions, ProofSuggestion{ProofSuggestion: bitcoinProofSuggestion})
+		suggestions = append(suggestions, bitcoinProofSuggestion)
 	}
 	if !user.IDTable().HasActiveCryptocurrencyFamily(libkb.CryptocurrencyFamilyZCash) {
-		suggestions = append(suggestions, ProofSuggestion{ProofSuggestion: zcashProofSuggestion})
+		suggestions = append(suggestions, zcashProofSuggestion)
 	}
 
 	// Attach icon urls
 	for i := range suggestions {
 		suggestion := &suggestions[i]
-		suggestion.ProfileIcon = externals.MakeIcons(mctx, suggestion.Key, "logo_black", 16)
-		suggestion.PickerIcon = externals.MakeIcons(mctx, suggestion.Key, "logo_full", 32)
+		suggestion.ProfileIcon = externals.MakeIcons(mctx, suggestion.LogoKey, "logo_black", 16)
+		suggestion.PickerIcon = externals.MakeIcons(mctx, suggestion.LogoKey, "logo_full", 32)
 	}
 
 	// Alphabetize so that ties later on in SliceStable are deterministic.
@@ -569,73 +583,7 @@ func (h *UserHandler) FindNextMerkleRootAfterReset(ctx context.Context, arg keyb
 
 func (h *UserHandler) LoadHasRandomPw(ctx context.Context, arg keybase1.LoadHasRandomPwArg) (res bool, err error) {
 	m := libkb.NewMetaContext(ctx, h.G())
-	m = m.WithLogTag("HASRPW")
-	defer m.TraceTimed(fmt.Sprintf("UserHandler#LoadHasRandomPw(forceRepoll=%t)", arg.ForceRepoll), func() error { return err })()
-
-	meUID := m.ActiveDevice().UID()
-	cacheKey := libkb.DbKey{
-		Typ: libkb.DBHasRandomPW,
-		Key: meUID.String(),
-	}
-
-	var cachedValue, hasCache bool
-	if !arg.ForceRepoll {
-		if hasCache, err = m.G().GetKVStore().GetInto(&cachedValue, cacheKey); err == nil {
-			if hasCache && !cachedValue {
-				m.Debug("Returning HasRandomPW=false from KVStore cache")
-				return false, nil
-			}
-			// If it was never cached or user *IS* RandomPW right now, pass through
-			// and call the API.
-		} else {
-			m.Debug("Unable to get cached value for HasRandomPW: %v", err)
-		}
-	}
-
-	var initialTimeout time.Duration
-	if !arg.ForceRepoll {
-		// If we are do not need accurate response from the API server, make
-		// the request with a timeout for quicker overall RPC response time
-		// if network is bad/unavailable.
-		initialTimeout = 3 * time.Second
-	}
-
-	var ret struct {
-		libkb.AppStatusEmbed
-		RandomPW bool `json:"random_pw"`
-	}
-	err = m.G().API.GetDecode(m, libkb.APIArg{
-		Endpoint:       "user/has_random_pw",
-		SessionType:    libkb.APISessionTypeREQUIRED,
-		InitialTimeout: initialTimeout,
-	}, &ret)
-	if err != nil {
-		if !arg.ForceRepoll {
-			if hasCache {
-				// We are allowed to return cache if we have any.
-				m.Warning("Unable to make a network request to has_random_pw. Returning cached value: %t", cachedValue)
-				return cachedValue, nil
-			}
-
-			m.Warning("Unable to make a network request to has_random_pw and there is no cache. Erroring out.")
-		}
-		return res, err
-	}
-
-	if !hasCache || cachedValue != ret.RandomPW {
-		// Cache current state. If we put `randomPW=false` in the cache, we will never
-		// ever have to call to the network from this device, because it's not possible
-		// to become `randomPW=true` again. If we cache `randomPW=true` we are going to
-		// keep asking the network, but we will be resilient to bad network conditions
-		// because we will have this cached state to fall back on.
-		if err := m.G().GetKVStore().PutObj(cacheKey, nil, ret.RandomPW); err == nil {
-			m.Debug("Adding HasRandomPW=%t to KVStore", ret.RandomPW)
-		} else {
-			m.Debug("Unable to add HasRandomPW state to KVStore")
-		}
-	}
-
-	return ret.RandomPW, err
+	return libkb.LoadHasRandomPw(m, arg)
 }
 
 func (h *UserHandler) CanLogout(ctx context.Context, sessionID int) (res keybase1.CanLogoutRes, err error) {

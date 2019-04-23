@@ -35,7 +35,7 @@ export type NameWithIconProps = {|
   size?: Size,
   teamname?: string,
   // for non-users
-  title?: string,
+  title?: string | React.Node,
   titleStyle?: Styles.StylesCrossPlatform,
   underline?: boolean,
   username?: string,
@@ -111,12 +111,11 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
         style={this.props.size === 'smaller' ? {} : styles.fullWidthText}
       />
     ) : (
-      <Text
-        type={this.props.horizontal ? 'BodySemibold' : adapterProps.titleType}
+      <TextOrComponent
+        textType={this.props.horizontal ? 'BodySemibold' : adapterProps.titleType}
         style={this.props.horizontal ? undefined : this.props.titleStyle}
-      >
-        {this.props.title}
-      </Text>
+        val={this.props.title || ''}
+      />
     )
 
     const metaOne = (

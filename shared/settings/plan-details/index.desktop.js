@@ -10,18 +10,17 @@ function PaymentOption({paymentOption}: {paymentOption: PaymentVariants}) {
   switch (paymentOption.type) {
     case 'credit-card-no-past':
       const {onAddCreditCard} = paymentOption
-      return <Button style={buttonStyle} type="Primary" onClick={onAddCreditCard} label="Add a credit card" />
+      return <Button style={buttonStyle} onClick={onAddCreditCard} label="Add a credit card" />
     case 'credit-card-with-past':
       const {cardInfo, onPayWithSavedCard, onUpdateCard} = paymentOption
       return (
         <Box style={globalStyles.flexBoxColumn}>
           <Button
             style={{...buttonStyle, marginBottom: globalMargins.small}}
-            type="Primary"
             onClick={onPayWithSavedCard}
             label={`Pay with ${cardInfo}`}
           />
-          <Button style={buttonStyle} type="Secondary" onClick={onUpdateCard} label="Update credit card" />
+          <Button style={buttonStyle} type="Dim" onClick={onUpdateCard} label="Update credit card" />
         </Box>
       )
     case 'apple-pay':
@@ -34,7 +33,7 @@ function PaymentOption({paymentOption}: {paymentOption: PaymentVariants}) {
           </Text>
           <Button
             style={buttonStyle}
-            type="Secondary"
+            type="Dim"
             onClick={onPayWithCardInstead}
             label="Use a credit card instead"
           />

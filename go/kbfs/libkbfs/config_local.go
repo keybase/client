@@ -261,7 +261,9 @@ func NewConfigLocal(mode InitMode,
 	config.ResetCaches()
 	config.SetKeyOps(libkey.NewKeyOpsStandard(keyOpsConfigWrapper{config}))
 	config.SetRekeyQueue(NewRekeyQueueStandard(config))
-	config.SetUserHistory(kbfsedits.NewUserHistory(config.MakeLogger("HIS")))
+	uhLog := config.MakeLogger("HIS")
+	config.SetUserHistory(kbfsedits.NewUserHistory(
+		uhLog, config.MakeVLogger(uhLog)))
 
 	config.maxNameBytes = data.MaxNameBytesDefault
 	config.rwpWaitTime = rekeyWithPromptWaitTimeDefault
@@ -880,7 +882,8 @@ func (c *ConfigLocal) resetCachesWithoutShutdown() data.DirtyBlockCache {
 	startSyncBufferSize := minSyncBufferSize
 
 	dbcLog := c.MakeLogger("DBC")
-	c.dirtyBcache = data.NewDirtyBlockCacheStandard(c.clock, dbcLog,
+	c.dirtyBcache = data.NewDirtyBlockCacheStandard(
+		c.clock, dbcLog, c.makeVLoggerLocked(dbcLog),
 		minSyncBufferSize, maxSyncBufferSize, startSyncBufferSize)
 	return oldDirtyBcache
 }
@@ -915,14 +918,18 @@ func (c *ConfigLocal) MakeLogger(module string) logger.Logger {
 	return c.loggerFn(module)
 }
 
-// MakeVLogger implements the logMaker interface for ConfigLocal.
-func (c *ConfigLocal) MakeVLogger(module string) *libkb.VDebugLog {
-	c.lock.Lock()
-	defer c.lock.Unlock()
-	vlog := libkb.NewVDebugLog(c.loggerFn(module))
+func (c *ConfigLocal) makeVLoggerLocked(log logger.Logger) *libkb.VDebugLog {
+	vlog := libkb.NewVDebugLog(log)
 	vlog.Configure(c.vdebugSetting)
 	c.vlogs = append(c.vlogs, vlog)
 	return vlog
+}
+
+// MakeVLogger implements the logMaker interface for ConfigLocal.
+func (c *ConfigLocal) MakeVLogger(log logger.Logger) *libkb.VDebugLog {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	return c.makeVLoggerLocked(log)
 }
 
 // MetricsRegistry implements the Config interface for ConfigLocal.
@@ -1145,7 +1152,8 @@ func (c *ConfigLocal) journalizeBcaches(jManager *JournalManager) error {
 	// always set the min and max to the same thing.
 	maxSyncBufferSize := int64(ForcedBranchSquashBytesThresholdDefault)
 	log := c.MakeLogger("DBCJ")
-	journalCache := data.NewDirtyBlockCacheStandard(c.clock, log,
+	journalCache := data.NewDirtyBlockCacheStandard(
+		c.clock, log, c.MakeVLogger(log),
 		maxSyncBufferSize, maxSyncBufferSize, maxSyncBufferSize)
 	c.SetDirtyBlockCache(jManager.dirtyBlockCache(journalCache))
 
@@ -1167,12 +1175,14 @@ func (c *ConfigLocal) getQuotaUsage(
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	quota, ok = c.quotaUsage[chargedTo]
+	log := c.MakeLogger(QuotaUsageLogModule("BDL"))
+	vlog := c.makeVLoggerLocked(log)
 	if !ok {
 		if chargedTo.IsTeamOrSubteam() {
 			quota = NewEventuallyConsistentTeamQuotaUsage(
-				c, chargedTo.AsTeamOrBust(), "BDL")
+				c, chargedTo.AsTeamOrBust(), log, vlog)
 		} else {
-			quota = NewEventuallyConsistentQuotaUsage(c, "BDL")
+			quota = NewEventuallyConsistentQuotaUsage(c, log, vlog)
 		}
 		c.quotaUsage[chargedTo] = quota
 	}
@@ -1379,6 +1389,9 @@ func (c *ConfigLocal) openConfigLevelDB(configName string) (*LevelDb, error) {
 }
 
 func (c *ConfigLocal) loadSyncedTlfsLocked() (err error) {
+	defer func() {
+		c.MakeLogger("").CDebugf(nil, "Loaded synced TLFs: %+v", err)
+	}()
 	syncedTlfs := make(map[tlf.ID]FolderSyncConfig)
 	syncedTlfPaths := make(map[string]bool)
 	if c.mode.IsTestMode() {
@@ -1473,32 +1486,32 @@ func (c *ConfigLocal) OfflineAvailabilityForID(
 }
 
 func (c *ConfigLocal) setTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (
-	<-chan error, BlockOps, error) {
+	<-chan error, error) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	diskCacheWrapped, ok := c.diskBlockCache.(*diskBlockCacheWrapped)
 	if !ok {
-		return nil, nil, errors.Errorf(
+		return nil, errors.Errorf(
 			"invalid disk cache type to set TLF sync state: %T",
 			c.diskBlockCache)
 	}
 	if !diskCacheWrapped.IsSyncCacheEnabled() {
-		return nil, nil, errors.New("sync block cache is not enabled")
+		return nil, errors.New("sync block cache is not enabled")
 	}
 
 	if !c.mode.IsTestMode() {
 		if c.storageRoot == "" {
-			return nil, nil, errors.New(
+			return nil, errors.New(
 				"empty storageRoot specified for non-test run")
 		}
 		ldb, err := c.openConfigLevelDB(syncedTlfConfigFolderName)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 		defer ldb.Close()
 		tlfBytes, err := tlfID.MarshalText()
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 		if config.Mode == keybase1.FolderSyncMode_DISABLED {
 			err = ldb.Delete(tlfBytes, nil)
@@ -1509,12 +1522,12 @@ func (c *ConfigLocal) setTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (
 			var buf []byte
 			buf, err = c.codec.Encode(&config)
 			if err != nil {
-				return nil, nil, err
+				return nil, err
 			}
 			err = ldb.Put(tlfBytes, buf, nil)
 		}
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 	}
 
@@ -1546,18 +1559,25 @@ func (c *ConfigLocal) setTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (
 	if config.TlfPath != "" {
 		c.syncedTlfPaths[config.TlfPath] = true
 	}
-	return ch, c.bops, nil
+	return ch, nil
 }
 
 // SetTlfSyncState implements the syncedTlfGetterSetter interface for
 // ConfigLocal.
-func (c *ConfigLocal) SetTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (
+func (c *ConfigLocal) SetTlfSyncState(
+	ctx context.Context, tlfID tlf.ID, config FolderSyncConfig) (
 	<-chan error, error) {
-	ch, bops, err := c.setTlfSyncState(tlfID, config)
-	// Toggle the prefetcher outside of holding the lock, since the
-	// previous prefetcher might depend on accessing the config.
-	<-bops.TogglePrefetcher(true)
-	return ch, err
+	if !c.IsTestMode() && config.Mode != keybase1.FolderSyncMode_ENABLED {
+		// If we're disabling, or just changing the partial sync
+		// config (which may be removing paths), we should cancel all
+		// the previous prefetches for this TLF.  For partial syncs, a
+		// new sync will be started.
+		err := c.BlockOps().Prefetcher().CancelTlfPrefetches(ctx, tlfID)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return c.setTlfSyncState(tlfID, config)
 }
 
 // GetAllSyncedTlfs implements the syncedTlfGetterSetter interface for
@@ -1643,4 +1663,11 @@ func (c *ConfigLocal) SetVLogLevel(levelString string) {
 	for _, vlog := range c.vlogs {
 		vlog.Configure(levelString)
 	}
+}
+
+// VLogLevel implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) VLogLevel() string {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	return c.vdebugSetting
 }

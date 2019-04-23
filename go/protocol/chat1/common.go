@@ -1140,6 +1140,7 @@ type MessageServerHeader struct {
 	SupersededBy MessageID     `codec:"supersededBy" json:"supersededBy"`
 	ReactionIDs  []MessageID   `codec:"r" json:"r"`
 	UnfurlIDs    []MessageID   `codec:"u" json:"u"`
+	Replies      []MessageID   `codec:"replies" json:"replies"`
 	Ctime        gregor1.Time  `codec:"ctime" json:"ctime"`
 	Now          gregor1.Time  `codec:"n" json:"n"`
 	Rtime        *gregor1.Time `codec:"rt,omitempty" json:"rt,omitempty"`
@@ -1171,6 +1172,17 @@ func (o MessageServerHeader) DeepCopy() MessageServerHeader {
 			}
 			return ret
 		})(o.UnfurlIDs),
+		Replies: (func(x []MessageID) []MessageID {
+			if x == nil {
+				return nil
+			}
+			ret := make([]MessageID, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Replies),
 		Ctime: o.Ctime.DeepCopy(),
 		Now:   o.Now.DeepCopy(),
 		Rtime: (func(x *gregor1.Time) *gregor1.Time {
@@ -1910,23 +1922,23 @@ func (e GetThreadReason) String() string {
 type ReIndexingMode int
 
 const (
-	ReIndexingMode_NONE        ReIndexingMode = 0
-	ReIndexingMode_FORCE       ReIndexingMode = 1
-	ReIndexingMode_AFTERSEARCH ReIndexingMode = 2
+	ReIndexingMode_NONE            ReIndexingMode = 0
+	ReIndexingMode_PRESEARCH_SYNC  ReIndexingMode = 1
+	ReIndexingMode_POSTSEARCH_SYNC ReIndexingMode = 2
 )
 
 func (o ReIndexingMode) DeepCopy() ReIndexingMode { return o }
 
 var ReIndexingModeMap = map[string]ReIndexingMode{
-	"NONE":        0,
-	"FORCE":       1,
-	"AFTERSEARCH": 2,
+	"NONE":            0,
+	"PRESEARCH_SYNC":  1,
+	"POSTSEARCH_SYNC": 2,
 }
 
 var ReIndexingModeRevMap = map[ReIndexingMode]string{
 	0: "NONE",
-	1: "FORCE",
-	2: "AFTERSEARCH",
+	1: "PRESEARCH_SYNC",
+	2: "POSTSEARCH_SYNC",
 }
 
 func (e ReIndexingMode) String() string {

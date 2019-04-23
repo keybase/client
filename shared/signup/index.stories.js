@@ -9,8 +9,8 @@ const load = () => {
   joinOrLogin()
   username()
   devicename()
-  email()
   phoneNumber()
+  email()
 }
 
 export default load

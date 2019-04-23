@@ -614,6 +614,8 @@ const (
 	DeriveReasonTeamEKExplodingChat DeriveReason = "Derived-Ephemeral-Team-NaCl-SecretBox-ExplodingChat-1"
 
 	DeriveReasonChatPairwiseMAC DeriveReason = "Derived-Chat-Pairwise-HMAC-SHA256-1"
+
+	DeriveReasonLinuxRevokableKeyring DeriveReason = "Keybase-Derived-LKS-SecretBox-1"
 )
 
 // Not a DeriveReason because it is not used in the same way.
@@ -706,3 +708,13 @@ const ClientTriplesecVersion = 3
 
 // Also hard-coded in packaging/linux/{post_install.sh,run_keybase}
 const DisableRootRedirectorConfigKey = "disable-root-redirector"
+
+// Also defined in lib_public/public_constants.iced
+const (
+	AutoresetEventStart  = 0
+	AutoresetEventVerify = 1
+	AutoresetEventCancel = 2
+	AutoresetEventNotify = 3
+	AutoresetEventReady  = 4
+	AutoresetEventReset  = 5
+)

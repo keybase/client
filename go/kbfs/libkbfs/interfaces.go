@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"context"
+	"os"
 	"time"
 
 	"github.com/keybase/client/go/kbfs/data"
@@ -29,7 +30,7 @@ import (
 
 type logMaker interface {
 	MakeLogger(module string) logger.Logger
-	MakeVLogger(module string) *libkb.VDebugLog
+	MakeVLogger(logger.Logger) *libkb.VDebugLog
 }
 
 type blockCacher interface {
@@ -122,7 +123,9 @@ type syncedTlfGetterSetter interface {
 	IsSyncedTlf(tlfID tlf.ID) bool
 	IsSyncedTlfPath(tlfPath string) bool
 	GetTlfSyncState(tlfID tlf.ID) FolderSyncConfig
-	SetTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (<-chan error, error)
+	SetTlfSyncState(
+		ctx context.Context, tlfID tlf.ID, config FolderSyncConfig) (
+		<-chan error, error)
 	GetAllSyncedTlfs() []tlf.ID
 
 	idutil.OfflineStatusGetter
@@ -169,13 +172,17 @@ type Node interface {
 	// as a context to use for the creation, the type of the new entry
 	// and the symbolic link contents if the entry is a Sym; the
 	// caller should then create this entry.  Otherwise it should
-	// return false.  It may return the type `FakeDir` to indicate
-	// that the caller should pretend the entry exists, even if it
-	// really does not.  An implementation that wraps another `Node`
-	// (`inner`) must return `inner.ShouldCreateMissedLookup()` if it
-	// decides not to return `true` on its own.
+	// return false.  It may return the types `FakeDir` or `FakeFile`
+	// to indicate that the caller should pretend the entry exists,
+	// even if it really does not.  In the case of fake files, a
+	// non-nil `fi` can be returned and used by the caller to
+	// construct the dir entry for the file.  An implementation that
+	// wraps another `Node` (`inner`) must return
+	// `inner.ShouldCreateMissedLookup()` if it decides not to return
+	// `true` on its own.
 	ShouldCreateMissedLookup(ctx context.Context, name string) (
-		shouldCreate bool, newCtx context.Context, et data.EntryType, sympath string)
+		shouldCreate bool, newCtx context.Context, et data.EntryType,
+		fi os.FileInfo, sympath string)
 	// ShouldRetryOnDirRead is called for Nodes representing
 	// directories, whenever a `Lookup` or `GetDirChildren` is done on
 	// them.  It should return true to instruct the caller that it
@@ -214,6 +221,9 @@ type Node interface {
 	EntryType() data.EntryType
 	// GetBlockID returns the block ID of the node.
 	GetBlockID() kbfsblock.ID
+	// FillCacheDuration sets `d` to the suggested cache time for this
+	// node, if desired.
+	FillCacheDuration(d *time.Duration)
 }
 
 // KBFSOps handles all file system operations.  Expands all indirect
@@ -453,6 +463,10 @@ type KBFSOps interface {
 
 	// GetNodeMetadata gets metadata associated with a Node.
 	GetNodeMetadata(ctx context.Context, node Node) (NodeMetadata, error)
+	// GetRootNodeMetadata gets metadata associated with the root node
+	// of a FolderBranch, and for convenience the TLF handle as well.
+	GetRootNodeMetadata(ctx context.Context, folderBranch data.FolderBranch) (
+		NodeMetadata, *tlfhandle.Handle, error)
 	// Shutdown is called to clean up any resources associated with
 	// this KBFSOps instance.
 	Shutdown(ctx context.Context) error
@@ -985,6 +999,12 @@ type DiskBlockCache interface {
 	// ClearHomeTLFs should be called on logout so that the old user's TLFs
 	// are not still marked as home.
 	ClearHomeTLFs(ctx context.Context) error
+	// GetTlfSize returns the number of bytes stored for the given TLF
+	// in the cache of the given type.  If `DiskBlockAnyCache` is
+	// specified, it returns the total sum of bytes across all caches.
+	GetTlfSize(
+		ctx context.Context, tlfID tlf.ID, cacheType DiskBlockCacheType) (
+		uint64, error)
 	// Shutdown cleanly shuts down the disk block cache.
 	Shutdown(ctx context.Context)
 }
@@ -1291,9 +1311,15 @@ type Prefetcher interface {
 	// Status returns the current status of the prefetch for the block
 	// tree rooted at the given pointer.
 	Status(ctx context.Context, ptr data.BlockPointer) (PrefetchProgress, error)
+	// OverallSyncStatus returns the current status of all sync
+	// prefetches.
+	OverallSyncStatus() PrefetchProgress
 	// CancelPrefetch notifies the prefetcher that a prefetch should be
 	// canceled.
 	CancelPrefetch(data.BlockPointer)
+	// CancelTlfPrefetches notifies the prefetcher that all prefetches
+	// for a given TLF should be canceled.
+	CancelTlfPrefetches(context.Context, tlf.ID) error
 	// Shutdown shuts down the prefetcher idempotently. Future calls to
 	// the various Prefetch* methods will return io.EOF. The returned channel
 	// allows upstream components to block until all pending prefetches are
@@ -2029,6 +2055,11 @@ type Config interface {
 	// strings are hard-coded in go/libkb/vdebug.go, but include
 	// "mobile", "vlog1", "vlog2", etc.
 	SetVLogLevel(levelString string)
+
+	// VLogLevel gets the vdebug level for this config.  The possible
+	// strings are hard-coded in go/libkb/vdebug.go, but include
+	// "mobile", "vlog1", "vlog2", etc.
+	VLogLevel() string
 }
 
 // NodeCache holds Nodes, and allows libkbfs to update them when

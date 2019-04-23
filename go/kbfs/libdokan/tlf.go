@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
+	"github.com/keybase/client/go/libkb"
 	"golang.org/x/net/context"
 )
 
@@ -263,7 +264,8 @@ func (tlf *TLF) Cleanup(ctx context.Context, fi *dokan.FileInfo) {
 		tlf.folder.handleMu.Lock()
 		fav := tlf.folder.h.ToFavorite()
 		tlf.folder.handleMu.Unlock()
-		tlf.folder.fs.log.CDebugf(ctx, "TLF Removing favorite %q", fav.Name)
+		tlf.folder.fs.vlog.CLogf(
+			ctx, libkb.VLog1, "TLF Removing favorite %q", fav.Name)
 		defer func() {
 			tlf.folder.reportErr(ctx, libkbfs.WriteMode, err)
 		}()

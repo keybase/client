@@ -195,14 +195,17 @@ export type BioTeamProofsProps = {|
 export class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
   render() {
     const addIdentity = this.props.onAddIdentity ? (
-      <Kb.Box2 direction="horizontal" style={styles.addIdentityContainer}>
-        <Kb.Button onClick={this.props.onAddIdentity} style={styles.addIdentityButton} type="Secondary">
-          <Kb.Text type="BodyBig" style={styles.label}>
-            Add more identities
-          </Kb.Text>
+      <Kb.ButtonBar style={styles.addIdentityContainer}>
+        <Kb.Button
+          fullWidth={true}
+          onClick={this.props.onAddIdentity}
+          style={styles.addIdentityButton}
+          mode="Secondary"
+          label="Add more identities"
+        >
           <Kb.Meta backgroundColor={Styles.globalColors.blue} title="NEW" style={styles.newMeta} />
         </Kb.Button>
-      </Kb.Box2>
+      </Kb.ButtonBar>
     ) : null
     return Styles.isMobile ? (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.bioAndProofs}>
@@ -504,7 +507,7 @@ const styles = Styles.styleSheetCreate({
   newMeta: Styles.platformStyles({
     common: {
       alignSelf: 'center',
-      marginLeft: Styles.globalMargins.tiny,
+      marginRight: Styles.globalMargins.tiny,
     },
     isMobile: {
       position: 'relative',

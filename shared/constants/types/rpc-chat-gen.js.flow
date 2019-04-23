@@ -571,8 +571,8 @@ export const commonNotificationKind = {
 
 export const commonReIndexingMode = {
   none: 0,
-  force: 1,
-  aftersearch: 2,
+  presearchSync: 1,
+  postsearchSync: 2,
 }
 
 export const commonRetentionPolicyType = {
@@ -1060,7 +1060,7 @@ export type MessagePreviousPointer = $ReadOnly<{id: MessageID, hash: Hash}>
 export type MessageReaction = $ReadOnly<{m /* messageID */: MessageID, b /* body */: String}>
 export type MessageRequestPayment = $ReadOnly<{requestID: Stellar1.KeybaseRequestID, note: String}>
 export type MessageSendPayment = $ReadOnly<{paymentID: Stellar1.PaymentID}>
-export type MessageServerHeader = $ReadOnly<{messageID: MessageID, supersededBy: MessageID, r /* reactionIDs */?: ?Array<MessageID>, u /* unfurlIDs */?: ?Array<MessageID>, ctime: Gregor1.Time, n /* now */: Gregor1.Time, rt /* rtime */?: ?Gregor1.Time}>
+export type MessageServerHeader = $ReadOnly<{messageID: MessageID, supersededBy: MessageID, r /* reactionIDs */?: ?Array<MessageID>, u /* unfurlIDs */?: ?Array<MessageID>, replies?: ?Array<MessageID>, ctime: Gregor1.Time, n /* now */: Gregor1.Time, rt /* rtime */?: ?Gregor1.Time}>
 export type MessageSummary = $ReadOnly<{msgID: MessageID, messageType: MessageType, tlfName: String, tlfPublic: Boolean, ctime: Gregor1.Time}>
 export type MessageSystem = {systemType: 0, addedtoteam: ?MessageSystemAddedToTeam} | {systemType: 1, inviteaddedtoteam: ?MessageSystemInviteAddedToTeam} | {systemType: 2, complexteam: ?MessageSystemComplexTeam} | {systemType: 3, createteam: ?MessageSystemCreateTeam} | {systemType: 4, gitpush: ?MessageSystemGitPush} | {systemType: 5, changeavatar: ?MessageSystemChangeAvatar} | {systemType: 6, changeretention: ?MessageSystemChangeRetention} | {systemType: 7, bulkaddtoconv: ?MessageSystemBulkAddToConv}
 export type MessageSystemAddedToTeam = $ReadOnly<{team: String, adder: String, addee: String, owners?: ?Array<String>, admins?: ?Array<String>, writers?: ?Array<String>, readers?: ?Array<String>}>
@@ -1165,12 +1165,12 @@ export type PreviewLocationTyp =
   | 1 // FILE_1
   | 2 // BYTES_2
 
-export type ProfileSearchConvStats = $ReadOnly<{numMessages: Int, indexSize: Int, durationMsec: Gregor1.DurationMsec, percentIndexed: Int}>
+export type ProfileSearchConvStats = $ReadOnly<{err: String, convName: String, numMessages: Int, indexSize: Int, durationMsec: Gregor1.DurationMsec, percentIndexed: Int}>
 export type RateLimit = $ReadOnly<{name: String, callsRemaining: Int, windowReset: Int, maxCalls: Int}>
 export type ReIndexingMode =
   | 0 // NONE_0
-  | 1 // FORCE_1
-  | 2 // AFTERSEARCH_2
+  | 1 // PRESEARCH_SYNC_1
+  | 2 // POSTSEARCH_SYNC_2
 
 export type Reaction = $ReadOnly<{ctime: Gregor1.Time, reactionMsgID: MessageID}>
 export type ReactionMap = $ReadOnly<{reactions: {[key: string]: {[key: string]: Reaction}}}>

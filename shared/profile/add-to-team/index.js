@@ -195,13 +195,12 @@ class AddToTeam extends React.Component<Props> {
           </FloatingRolePicker>
         </Kb.Box2>
         <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
-          {!Styles.isMobile && <Kb.Button type="Secondary" onClick={this.props.onBack} label="Cancel" />}
+          {!Styles.isMobile && <Kb.Button type="Dim" onClick={this.props.onBack} label="Cancel" />}
           <Kb.WaitingButton
             disabled={selectedTeamCount === 0}
             fullWidth={Styles.isMobile}
             style={styles.addButton}
-            type="Primary"
-            onClick={() => this.props.onSave()}
+            onClick={this.props.onSave}
             label={selectedTeamCount <= 1 ? 'Add to team' : `Add to ${selectedTeamCount} teams`}
             waitingKey={Constants.addUserToTeamsWaitingKey(this.props.them)}
           />

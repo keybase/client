@@ -120,7 +120,7 @@ class MenubarRender extends React.Component<Props, State> {
             You're logged out of Keybase!
           </Kb.Text>
           <Kb.ButtonBar direction="row">
-            <Kb.Button type="Primary" label="Log In" onClick={this.props.logIn} />
+            <Kb.Button label="Log In" onClick={this.props.logIn} />
           </Kb.ButtonBar>
         </Kb.Box>
       </Kb.Box>
@@ -294,9 +294,9 @@ class MenubarRender extends React.Component<Props, State> {
           >
             <Kb.Icon
               color={Styles.globalColors.darkBlue4}
-              hoverColor={Styles.globalColors.black}
+              hoverColor={Styles.globalColors.white}
               type="iconfont-nav-more"
-              sizeType="Big"
+              fontSize={20}
               ref={this.attachmentRef}
             />
             {!!badgeCountInMenu && (
@@ -370,7 +370,7 @@ const BadgeIcon = ({tab, countMap, openApp}) => {
         color={Styles.globalColors.darkBlue4}
         hoverColor={Styles.globalColors.white}
         onClick={() => openApp(tab)}
-        sizeType="Big"
+        fontSize={20}
         type={iconType}
       />
       {!!count && <Kb.Badge badgeNumber={count} badgeStyle={{position: 'absolute', right: -8, top: -6}} />}

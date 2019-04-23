@@ -71,15 +71,10 @@ func (c *CtlHandler) DbNuke(ctx context.Context, sessionID int) error {
 	}
 	logui.Warning("Nuking chat database %s", fn)
 
-	if teamLoader := c.G().GetTeamLoader(); teamLoader != nil {
-		teamLoader.ClearMem()
-	}
-	if ekLib := c.G().GetEKLib(); ekLib != nil {
-		ekLib.ClearCaches(c.MetaContext(ctx))
-	}
 	// Now drop caches, since we had the DB's state in-memory too.
 	c.G().FlushCaches()
-	c.service.onDbNuke(ctx)
+	mctx := libkb.NewMetaContext(ctx, c.G())
+	c.G().CallDbNukeHooks(mctx)
 	return nil
 }
 

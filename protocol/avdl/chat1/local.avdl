@@ -962,6 +962,8 @@ protocol local {
   void cancelActiveSearch();
 
   record ProfileSearchConvStats {
+    string err;
+    string convName;
     // number of messages in the conversation that were indexed (type TEXT)
     int numMessages;
     // number of bytes in the final index

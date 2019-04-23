@@ -85,7 +85,6 @@ export const TeamRequestRow = (props: Props) => {
             onClick={onAccept}
             small={true}
             style={{backgroundColor: Styles.globalColors.green, marginLeft: Styles.globalMargins.xtiny}}
-            type="Primary"
           />
         </FloatingRolePicker>
         <Button

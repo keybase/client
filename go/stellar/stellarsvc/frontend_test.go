@@ -2449,8 +2449,8 @@ func TestGetSendAssetChoices(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Len(t, choices, 2)
-	require.True(t, choices[0].Asset.Eq(keys))
-	require.True(t, choices[1].Asset.Eq(astro))
+	require.Equal(t, keys, choices[0].Asset)
+	require.Equal(t, astro, choices[1].Asset)
 	for _, v := range choices {
 		require.Equal(t, v.Asset.Code, v.Left)
 		require.Equal(t, v.Asset.Issuer, v.Right)
@@ -2466,7 +2466,7 @@ func TestGetSendAssetChoices(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, choices2, len(choices))
 	for i, v := range choices2 {
-		require.True(t, v.Asset.Eq(choices[i].Asset))
+		require.Equal(t, choices[i].Asset, v.Asset)
 		require.Equal(t, v.Asset.Code, v.Left)
 		require.Equal(t, v.Asset.Issuer, v.Right)
 		require.False(t, v.Enabled)
@@ -2488,11 +2488,11 @@ func TestGetSendAssetChoices(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, choices2, len(choices))
 
-	require.True(t, choices2[0].Asset.Eq(keys))
+	require.Equal(t, keys, choices2[0].Asset)
 	require.False(t, choices2[0].Enabled)
 	require.Equal(t, choices2[0].Subtext, fmt.Sprintf("Recipient does not accept %v", choices2[0].Asset.Code))
 
-	require.True(t, choices2[1].Asset.Eq(astro))
+	require.Equal(t, astro, choices2[1].Asset)
 	require.True(t, choices2[1].Enabled)
 
 	// Try with arg.To AccountID not in the system.
