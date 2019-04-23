@@ -135,7 +135,8 @@ func (b *Boxer) detectPermanentError(err error, tlfName string) types.UnboxingEr
 		libkb.AssertionCheckError,
 		DecryptionKeyNotFoundError,
 		NotAuthenticatedForThisDeviceError,
-		InvalidMACError:
+		InvalidMACError,
+		ImpteamBadteamError:
 		return NewPermanentUnboxingError(err)
 	case ephemeral.EphemeralKeyError:
 		// Normalize error message with EphemeralUnboxingError
