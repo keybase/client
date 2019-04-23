@@ -438,8 +438,8 @@ func (g *PushHandler) presentUIItem(ctx context.Context, conv *chat1.Conversatio
 	return res
 }
 
-func (g *PushHandler) getSupersedesTarget(ctx context.Context, uid gregor1.UID, conv *chat1.ConversationLocal,
-	msg chat1.MessageUnboxed) (res *chat1.UIMessage) {
+func (g *PushHandler) getSupersedesTarget(ctx context.Context, uid gregor1.UID,
+	conv *chat1.ConversationLocal, msg chat1.MessageUnboxed) (res *chat1.UIMessage) {
 	if !msg.IsValid() || conv == nil {
 		return nil
 	}
@@ -456,7 +456,8 @@ func (g *PushHandler) getSupersedesTarget(ctx context.Context, uid gregor1.UID, 
 			g.Debug(ctx, "getSupersedesTarget: failed to get xform'd message: %v", err)
 			return nil
 		}
-		uiMsg := utils.PresentMessageUnboxed(ctx, g.G(), msgs[0], uid, conv.GetConvID())
+		uiMsg := utils.PresentMessageUnboxed(ctx, g.G(),
+			NewReplyFiller(g.G()).FillSingle(ctx, uid, conv, msgs[0]), uid, conv.GetConvID())
 		return &uiMsg
 	}
 	return nil
