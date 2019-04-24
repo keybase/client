@@ -187,6 +187,8 @@ func kbfsTestShutdown(
 	t *testing.T, mockCtrl *gomock.Controller, config *ConfigMock,
 	ctx context.Context, cancel context.CancelFunc) {
 	config.ctr.CheckForFailures()
+	err := config.conflictResolutionDB.Close()
+	require.NoError(t, err)
 	config.KBFSOps().(*KBFSOpsStandard).Shutdown(ctx)
 	if config.mockDirtyBcache == nil {
 		if err := config.DirtyBlockCache().Shutdown(); err != nil {
@@ -194,7 +196,7 @@ func kbfsTestShutdown(
 		}
 	}
 	select {
-	case <-config.mockBops.Prefetcher().Shutdown():
+	case <-config.mockBops.BlockRetriever().(*blockRetrievalQueue).Shutdown():
 	case <-ctx.Done():
 		require.NoError(t, ctx.Err())
 	}
