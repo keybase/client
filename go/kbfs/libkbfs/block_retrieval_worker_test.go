@@ -110,7 +110,7 @@ func TestBlockRetrievalWorkerBasic(t *testing.T) {
 	q := newBlockRetrievalQueue(
 		0, 1, 0, newTestBlockRetrievalConfig(t, bg, nil))
 	require.NotNil(t, q)
-	defer endBlockRetrievalQueueTest(q)
+	defer endBlockRetrievalQueueTest(t, q)
 
 	ptr1 := makeRandomBlockPointer(t)
 	block1 := makeFakeFileBlock(t, false)
@@ -132,7 +132,7 @@ func TestBlockRetrievalWorkerBasicSoloCached(t *testing.T) {
 	q := newBlockRetrievalQueue(
 		0, 1, 0, newTestBlockRetrievalConfig(t, bg, nil))
 	require.NotNil(t, q)
-	defer endBlockRetrievalQueueTest(q)
+	defer endBlockRetrievalQueueTest(t, q)
 
 	ptr1 := makeRandomBlockPointer(t)
 	block1 := makeFakeFileBlock(t, false)
@@ -156,7 +156,7 @@ func TestBlockRetrievalWorkerMultipleWorkers(t *testing.T) {
 	q := newBlockRetrievalQueue(
 		2, 0, 0, newTestBlockRetrievalConfig(t, bg, nil))
 	require.NotNil(t, q)
-	defer endBlockRetrievalQueueTest(q)
+	defer endBlockRetrievalQueueTest(t, q)
 
 	ptr1, ptr2 := makeRandomBlockPointer(t), makeRandomBlockPointer(t)
 	block1, block2 := makeFakeFileBlock(t, false), makeFakeFileBlock(t, false)
@@ -204,7 +204,7 @@ func TestBlockRetrievalWorkerWithQueue(t *testing.T) {
 	q := newBlockRetrievalQueue(
 		1, 0, 0, newTestBlockRetrievalConfig(t, bg, nil))
 	require.NotNil(t, q)
-	defer endBlockRetrievalQueueTest(q)
+	defer endBlockRetrievalQueueTest(t, q)
 
 	ptr1, ptr2, ptr3 := makeRandomBlockPointer(t), makeRandomBlockPointer(t),
 		makeRandomBlockPointer(t)
@@ -269,11 +269,12 @@ func TestBlockRetrievalWorkerCancel(t *testing.T) {
 	q := newBlockRetrievalQueue(
 		0, 1, 0, newTestBlockRetrievalConfig(t, bg, nil))
 	require.NotNil(t, q)
-	defer endBlockRetrievalQueueTest(q)
+	defer endBlockRetrievalQueueTest(t, q)
 
 	ptr1 := makeRandomBlockPointer(t)
 	block1 := makeFakeFileBlock(t, false)
-	_, continueCh := bg.setBlockToReturn(ptr1, block1)
+	// Don't need continueCh here.
+	_, _ = bg.setBlockToReturn(ptr1, block1)
 
 	block := &data.FileBlock{}
 	ctx, cancel := context.WithCancel(context.Background())
@@ -282,8 +283,6 @@ func TestBlockRetrievalWorkerCancel(t *testing.T) {
 		ctx, 1, makeKMD(), ptr1, block, data.NoCacheEntry, BlockRequestWithPrefetch)
 	err := <-ch
 	require.EqualError(t, err, context.Canceled.Error())
-	// Send continueCh an error so the worker goroutine doesn't leak.
-	continueCh <- errors.New("error")
 }
 
 func TestBlockRetrievalWorkerShutdown(t *testing.T) {
@@ -292,7 +291,7 @@ func TestBlockRetrievalWorkerShutdown(t *testing.T) {
 	q := newBlockRetrievalQueue(
 		1, 0, 0, newTestBlockRetrievalConfig(t, bg, nil))
 	require.NotNil(t, q)
-	defer endBlockRetrievalQueueTest(q)
+	defer endBlockRetrievalQueueTest(t, q)
 
 	w := q.workers[0]
 	require.NotNil(t, w)
@@ -340,7 +339,7 @@ func TestBlockRetrievalWorkerPrefetchedPriorityElevation(t *testing.T) {
 	q := newBlockRetrievalQueue(
 		1, 1, 0, newTestBlockRetrievalConfig(t, bg, nil))
 	require.NotNil(t, q)
-	defer endBlockRetrievalQueueTest(q)
+	defer endBlockRetrievalQueueTest(t, q)
 
 	t.Log("Setup source blocks")
 	ptr1, ptr2 := makeRandomBlockPointer(t), makeRandomBlockPointer(t)
@@ -397,7 +396,7 @@ func TestBlockRetrievalWorkerStopIfFull(t *testing.T) {
 		1, 1, 0, newTestBlockRetrievalConfig(t, bg, dbc))
 	require.NotNil(t, q)
 	<-q.TogglePrefetcher(false, nil, nil)
-	defer endBlockRetrievalQueueTest(q)
+	defer endBlockRetrievalQueueTest(t, q)
 
 	ptr := makeRandomBlockPointer(t)
 	syncCache := dbc.syncCache

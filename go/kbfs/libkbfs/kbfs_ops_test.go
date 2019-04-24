@@ -196,7 +196,11 @@ func kbfsTestShutdown(mockCtrl *gomock.Controller, config *ConfigMock,
 	if err := libcontext.CleanupCancellationDelayer(ctx); err != nil {
 		panic(err)
 	}
-	<-config.mockBops.Prefetcher().Shutdown()
+	select {
+	case <-config.mockBops.Prefetcher().Shutdown():
+	case <-time.After(5 * time.Second):
+		panic("unable  to shutdown prefetcher")
+	}
 	mockCtrl.Finish()
 }
 

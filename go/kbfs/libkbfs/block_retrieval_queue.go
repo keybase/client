@@ -230,17 +230,21 @@ func (brq *blockRetrievalQueue) throttleReleaseLoop(
 	}
 }
 
-func (brq *blockRetrievalQueue) popIfNotEmpty() *blockRetrieval {
-	brq.mtx.Lock()
-	defer brq.mtx.Unlock()
+func (brq *blockRetrievalQueue) popIfNotEmptyLocked() *blockRetrieval {
 	if brq.heap.Len() > 0 {
 		return heap.Pop(brq.heap).(*blockRetrieval)
 	}
 	return nil
 }
 
+func (brq *blockRetrievalQueue) popIfNotEmpty() *blockRetrieval {
+	brq.mtx.Lock()
+	defer brq.mtx.Unlock()
+	return brq.popIfNotEmptyLocked()
+}
+
 func (brq *blockRetrievalQueue) shutdownRetrieval() {
-	retrieval := brq.popIfNotEmpty()
+	retrieval := brq.popIfNotEmptyLocked()
 	if retrieval != nil {
 		brq.FinalizeRequest(retrieval, nil, DiskBlockAnyCache, io.EOF)
 	}

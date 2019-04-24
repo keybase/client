@@ -91,15 +91,20 @@ func initBlockRetrievalQueueTest(t *testing.T) *blockRetrievalQueue {
 	return q
 }
 
-func endBlockRetrievalQueueTest(q *blockRetrievalQueue) {
-	<-q.Shutdown()
+func endBlockRetrievalQueueTest(t *testing.T, q *blockRetrievalQueue) {
+	t.Helper()
+	select {
+	case <-q.Shutdown():
+	case <-time.After(5 * time.Second):
+		t.Fatal("Waited too long for block retrieval queue to shutdown")
+	}
 }
 
 func TestBlockRetrievalQueueBasic(t *testing.T) {
 	t.Log("Add a block retrieval request to the queue and retrieve it.")
 	q := initBlockRetrievalQueueTest(t)
 	require.NotNil(t, q)
-	defer endBlockRetrievalQueueTest(q)
+	defer endBlockRetrievalQueueTest(t, q)
 
 	ctx := context.Background()
 	ptr1 := makeRandomBlockPointer(t)
@@ -125,7 +130,7 @@ func TestBlockRetrievalQueuePreemptPriority(t *testing.T) {
 		"priority request.")
 	q := initBlockRetrievalQueueTest(t)
 	require.NotNil(t, q)
-	defer endBlockRetrievalQueueTest(q)
+	defer endBlockRetrievalQueueTest(t, q)
 
 	ctx := context.Background()
 	ptr1 := makeRandomBlockPointer(t)
@@ -158,7 +163,7 @@ func TestBlockRetrievalQueueInterleavedPreemption(t *testing.T) {
 	t.Log("Handle a first request and then preempt another one.")
 	q := initBlockRetrievalQueueTest(t)
 	require.NotNil(t, q)
-	defer endBlockRetrievalQueueTest(q)
+	defer endBlockRetrievalQueueTest(t, q)
 
 	ctx := context.Background()
 	ptr1 := makeRandomBlockPointer(t)
@@ -204,7 +209,7 @@ func TestBlockRetrievalQueueMultipleRequestsSameBlock(t *testing.T) {
 	t.Log("Request the same block multiple times.")
 	q := initBlockRetrievalQueueTest(t)
 	require.NotNil(t, q)
-	defer endBlockRetrievalQueueTest(q)
+	defer endBlockRetrievalQueueTest(t, q)
 
 	ctx := context.Background()
 	ptr1 := makeRandomBlockPointer(t)
@@ -234,7 +239,7 @@ func TestBlockRetrievalQueueElevatePriorityExistingRequest(t *testing.T) {
 	t.Log("Elevate the priority on an existing request.")
 	q := initBlockRetrievalQueueTest(t)
 	require.NotNil(t, q)
-	defer endBlockRetrievalQueueTest(q)
+	defer endBlockRetrievalQueueTest(t, q)
 
 	ctx := context.Background()
 	ptr1 := makeRandomBlockPointer(t)
@@ -284,7 +289,7 @@ func TestBlockRetrievalQueueCurrentlyProcessingRequest(t *testing.T) {
 	t.Log("Begin processing a request and then add another one for the same block.")
 	q := initBlockRetrievalQueueTest(t)
 	require.NotNil(t, q)
-	defer endBlockRetrievalQueueTest(q)
+	defer endBlockRetrievalQueueTest(t, q)
 
 	ctx := context.Background()
 	ptr1 := makeRandomBlockPointer(t)
@@ -332,7 +337,7 @@ func TestBlockRetrievalQueueThrottling(t *testing.T) {
 	t.Log("Start test with no throttling channel so we can pass in our own")
 	q := initBlockRetrievalQueueTest(t)
 	require.NotNil(t, q)
-	defer endBlockRetrievalQueueTest(q)
+	defer endBlockRetrievalQueueTest(t, q)
 
 	throttleCh := channels.NewInfiniteChannel()
 	q.throttledWorkCh = throttleCh
