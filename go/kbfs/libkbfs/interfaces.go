@@ -1383,7 +1383,7 @@ type BlockOps interface {
 	Prefetcher() Prefetcher
 
 	// Shutdown shuts down all the workers performing Get operations
-	Shutdown()
+	Shutdown(ctx context.Context) error
 }
 
 // Duplicate kbfscrypto.AuthTokenRefreshHandler here to work around

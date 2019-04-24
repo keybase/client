@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -221,11 +222,12 @@ func (b *BlockOpsStandard) BlockRetriever() BlockRetriever {
 }
 
 // Shutdown implements the BlockOps interface for BlockOpsStandard.
-func (b *BlockOpsStandard) Shutdown() {
+func (b *BlockOpsStandard) Shutdown(ctx context.Context) error {
 	// Block on the queue being done.
 	select {
 	case <-b.queue.Shutdown():
-	case <-time.After(5 * time.Second):
-		panic("unable to shutdown block ops")
+		return nil
+	case <-ctx.Done():
+		return errors.WithStack(ctx.Err())
 	}
 }
