@@ -417,8 +417,8 @@ func (idx *Indexer) convsByMTime(ctx context.Context, uid gregor1.UID,
 
 // Search tokenizes the given query and finds the intersection of all matches
 // for each token, returning matches.
-func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, opts chat1.SearchOpts,
-	hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus) (res *chat1.ChatSearchInboxResults, err error) {
+func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query, origQuery string,
+	opts chat1.SearchOpts, hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus) (res *chat1.ChatSearchInboxResults, err error) {
 	defer idx.Trace(ctx, func() error { return err }, "Indexer.Search")()
 	defer func() {
 		if hitUICh != nil {
@@ -432,7 +432,7 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 		idx.Debug(ctx, "Search: Search indexer is disabled, results will be inaccurate.")
 	}
 
-	sess := newSearchSession(query, uid, hitUICh, indexUICh, idx, opts)
+	sess := newSearchSession(query, origQuery, uid, hitUICh, indexUICh, idx, opts)
 	return sess.run(ctx)
 }
 

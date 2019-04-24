@@ -2501,7 +2501,7 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 		case <-ctx.Done():
 			return
 		}
-		if searchRes, err = h.G().Indexer.Search(ctx, uid, query, opts, hitUICh, indexUICh); err != nil {
+		if searchRes, err = h.G().Indexer.Search(ctx, uid, query, arg.Query, opts, hitUICh, indexUICh); err != nil {
 			return res, err
 		}
 	}

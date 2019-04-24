@@ -19,12 +19,12 @@ import (
 // pipeline; presearch, search and postSearch.
 type searchSession struct {
 	sync.Mutex
-	query     string
-	uid       gregor1.UID
-	hitUICh   chan chat1.ChatSearchInboxHit
-	indexUICh chan chat1.ChatSearchIndexStatus
-	indexer   *Indexer
-	opts      chat1.SearchOpts
+	query, origQuery string
+	uid              gregor1.UID
+	hitUICh          chan chat1.ChatSearchInboxHit
+	indexUICh        chan chat1.ChatSearchIndexStatus
+	indexer          *Indexer
+	opts             chat1.SearchOpts
 
 	tokens                                                tokenMap
 	queryRe                                               *regexp.Regexp
@@ -39,7 +39,7 @@ type searchSession struct {
 	postSearchCh chan chat1.ConversationID
 }
 
-func newSearchSession(query string, uid gregor1.UID,
+func newSearchSession(query, origQuery string, uid gregor1.UID,
 	hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus,
 	indexer *Indexer, opts chat1.SearchOpts) *searchSession {
 	if opts.MaxHits > MaxAllowedSearchHits || opts.MaxHits < 0 {
@@ -53,6 +53,7 @@ func newSearchSession(query string, uid gregor1.UID,
 	}
 	return &searchSession{
 		query:        query,
+		origQuery:    origQuery,
 		uid:          uid,
 		hitUICh:      hitUICh,
 		indexUICh:    indexUICh,
@@ -322,7 +323,7 @@ func (s *searchSession) searchConvWithUIUpdate(ctx context.Context, convID chat1
 	if hits == nil {
 		return nil
 	}
-	hits.Query = s.query
+	hits.Query = s.origQuery
 	if s.hitUICh != nil {
 		// Stream search hits back to the UI channel
 		select {
