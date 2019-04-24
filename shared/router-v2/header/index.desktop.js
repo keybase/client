@@ -71,7 +71,6 @@ class Header extends React.PureComponent<Props> {
               color={this.props.allowBack ? Styles.globalColors.black_50 : Styles.globalColors.black_10}
               onClick={this.props.onPop}
             />
-
             {flags.kbfsOfflineMode && <SyncingFolders />}
             {!title && rightActions}
 
