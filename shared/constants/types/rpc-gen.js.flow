@@ -1651,6 +1651,7 @@ export const kbfsCommonFSNotificationType = {
   fileDeleted: 9,
   fileRenamed: 10,
   initialized: 11,
+  syncConfigChanged: 12,
 }
 
 export const kbfsCommonFSStatusCode = {
@@ -2225,6 +2226,7 @@ export type FSNotificationType =
   | 9 // FILE_DELETED_9
   | 10 // FILE_RENAMED_10
   | 11 // INITIALIZED_11
+  | 12 // SYNC_CONFIG_CHANGED_12
 
 export type FSPathSyncStatus = $ReadOnly<{folderType: FolderType, path: String, syncingBytes: Int64, syncingOps: Int64, syncedBytes: Int64}>
 export type FSStatusCode =
