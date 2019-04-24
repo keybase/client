@@ -219,6 +219,8 @@ const styles = Styles.styleSheetCreate({
   addToTeam: Styles.platformStyles({
     common: {
       alignItems: 'center',
+      flexShrink: 0,
+      marginBottom: Styles.globalMargins.small,
       marginLeft: Styles.globalMargins.small,
       marginRight: Styles.globalMargins.small,
     },

@@ -112,7 +112,7 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
                 onCancel={this.onCancelRolePicker}
                 position={'bottom center'}
                 open={this.state.isRolePickerOpen}
-                disabledRoles={{owner: 'Cannot invite an owner via email'}}
+                disabledRoles={{owner: 'Cannot invite an owner via email.'}}
               >
                 <Kb.DropdownButton
                   toggleOpen={this.onOpenRolePicker}
