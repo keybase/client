@@ -135,8 +135,11 @@ type blockRetrievalQueue struct {
 
 	// slices to store the workers so we can terminate them when we're done
 	workers []*blockRetrievalWorker
+
 	// channel to be closed when we're done accepting requests
-	doneCh             chan struct{}
+	doneLock sync.RWMutex
+	doneCh   chan struct{}
+
 	shutdownCompleteCh chan struct{}
 
 	// protects prefetcher
@@ -422,6 +425,9 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 		"Request of %v, action=%s, priority=%d", ptr, action, priority)
 
 	// Only continue if we haven't been shut down
+	brq.doneLock.RLock()
+	defer brq.doneLock.RUnlock()
+
 	ch := make(chan error, 1)
 	select {
 	case <-brq.doneCh:
@@ -657,6 +663,9 @@ func channelToWaitGroup(wg *sync.WaitGroup, ch <-chan struct{}) {
 
 // Shutdown is called when we are no longer accepting requests.
 func (brq *blockRetrievalQueue) Shutdown() <-chan struct{} {
+	brq.doneLock.Lock()
+	defer brq.doneLock.Unlock()
+
 	select {
 	case <-brq.doneCh:
 		return brq.shutdownCompleteCh
