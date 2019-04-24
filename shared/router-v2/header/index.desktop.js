@@ -11,6 +11,12 @@ import flags from '../../util/feature-flags'
 // Fix this as we figure out what this needs to be
 type Props = any
 
+const AppIconBox = Styles.styled(Kb.ClickableBox)({
+  ':hover': {
+    backgroundColor: Styles.globalColors.lightGrey,
+  },
+})
+
 class Header extends React.PureComponent<Props> {
   render() {
     // TODO add more here as we use more options on the mobile side maybe
@@ -75,26 +81,32 @@ class Header extends React.PureComponent<Props> {
             {!title && rightActions}
 
             {!Platform.isDarwin && (
-              <Kb.Box2 direction="horizontal" gap="small">
-                <Kb.Icon
-                  type="iconfont-app-minimize"
-                  style={styles.icon}
-                  color={Styles.globalColors.black_50}
-                  onClick={Window.minimizeWindow}
-                />
-
-                <Kb.Icon
-                  type="iconfont-app-maximize"
-                  style={styles.icon}
-                  color={Styles.globalColors.black_50}
+              <Kb.Box2 direction="horizontal" gap="tiny">
+                <AppIconBox direction="vertical" onClick={Window.minimizeWindow} style={styles.appIconBox}>
+                  <Kb.Icon
+                    type="iconfont-app-minimize"
+                    style={styles.appIcon}
+                    color={Styles.globalColors.black_50}
+                  />
+                </AppIconBox>
+                <AppIconBox
+                  direction="vertical"
                   onClick={Window.toggleMaximizeWindow}
-                />
-                <Kb.Icon
-                  type="iconfont-app-close"
-                  style={styles.icon}
-                  color={Styles.globalColors.black_50}
-                  onClick={Window.closeWindow}
-                />
+                  style={styles.appIconBox}
+                >
+                  <Kb.Icon
+                    type="iconfont-app-maximize"
+                    style={styles.appIcon}
+                    color={Styles.globalColors.black_50}
+                  />
+                </AppIconBox>
+                <AppIconBox direction="vertical" onClick={Window.closeWindow} style={styles.appIconBox}>
+                  <Kb.Icon
+                    type="iconfont-app-close"
+                    style={styles.appIcon}
+                    color={Styles.globalColors.black_50}
+                  />
+                </AppIconBox>
               </Kb.Box2>
             )}
           </Kb.Box2>
@@ -112,6 +124,15 @@ class Header extends React.PureComponent<Props> {
 }
 
 const styles = Styles.styleSheetCreate({
+  appIcon: Styles.platformStyles({
+    isElectron: {
+      ...Styles.desktopStyles.windowDraggingClickable,
+      padding: Styles.globalMargins.xtiny,
+      position: 'relative',
+      top: 2,
+    },
+  }),
+  appIconBox: {padding: 5},
   bottom: {minHeight: 40 - 1}, // for border
   disabledIcon: Styles.platformStyles({
     isElectron: {
