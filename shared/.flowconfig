@@ -17,6 +17,7 @@
 <PROJECT_ROOT>/node_modules/react-native/Libraries/Components/View/ViewPropTypes.js
 <PROJECT_ROOT>/node_modules/react-native/Libraries/EventEmitter/__mocks__
 <PROJECT_ROOT>/node_modules/react-native/Libraries/react-native/react-native-implementation.js
+<PROJECT_ROOT>/node_modules/react-navigation-tabs
 <PROJECT_ROOT>/node_modules/simple-markdown
 <PROJECT_ROOT>/node_modules/immutable/type-definitions/tests
 <PROJECT_ROOT>/node_modules/react-native-fast-image/.*

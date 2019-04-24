@@ -306,15 +306,13 @@ const routeToInitialScreen = state => {
       state.config.startupConversation &&
       state.config.startupConversation !== ChatConstants.noConversationIDKey
     ) {
-      // TEMP
-      // return [
-      // $FlowIssue
-      // RouteTreeGen.createSwitchRouteDef({path: ChatConstants.threadRoute, routeDef: appRouteTree}),
-      // ChatGen.createSelectConversation({
-      // conversationIDKey: state.config.startupConversation,
-      // reason: state.config.startupWasFromPush ? 'push' : 'savedLastState',
-      // }),
-      // ]
+      return [
+        RouteTreeGen.createSwitchRouteDef({path: [Tabs.chatTab], routeDef: appRouteTree}),
+        ChatGen.createSelectConversation({
+          conversationIDKey: state.config.startupConversation,
+          reason: state.config.startupWasFromPush ? 'push' : 'savedLastState',
+        }),
+      ]
     }
 
     // A share

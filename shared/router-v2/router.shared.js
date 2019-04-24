@@ -1,6 +1,5 @@
 // @flow
 import {StackActions, NavigationActions} from '@react-navigation/core'
-import shallowEqual from 'shallowequal'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Constants from '../constants/router2'
 import {modalRoutes, routes} from './routes'
@@ -48,15 +47,6 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
       if (!routeName) {
         return
       }
-      // don't allow pushing a dupe
-      // const path = Constants._getVisiblePathForNavigator(navigation.state)
-      // const visible = path[path.length - 1]
-      // if (visible) {
-      // if (routeName === visible.routeName && shallowEqual(visible.params, params)) {
-      // console.log('Skipping append dupe')
-      // return
-      // }
-      // }
 
       if (action.payload.replace) {
         // TODO figure out what this is
@@ -77,8 +67,7 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
       }
 
       // When we restore state we want the following stacks
-      // [People, TheLastTabYouWereOn, MaybeAConversationIfTheLastTabYouWereOnIsChat]
-      let sa = [] // NavigationActions.navigate({params: undefined, routeName: 'tabs.peopleTab'})]
+      let sa = []
 
       if (action.payload.path) {
         const p = action.payload.path.last
