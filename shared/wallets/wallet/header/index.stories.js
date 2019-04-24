@@ -5,6 +5,23 @@ import * as Types from '../../../constants/types/wallets'
 import {Box2} from '../../../common-adapters'
 import Header from '.'
 
+const provider = Sb.createPropProviderWithCommon({
+  WalletDropdownButton: props => ({
+    disabled: false,
+    onSettings: Sb.action('onSettings'),
+    onShowSecretKey: Sb.action('onShowSecretKey'),
+    small: props.small,
+  }),
+  WalletSendButton: props => ({
+    disabled: false,
+    disabledDueToMobileOnly: false,
+    onSendToAnotherAccount: Sb.action('onSendToAnotherAccount'),
+    onSendToKeybaseUser: Sb.action('onSendToKeybaseUser'),
+    onSendToStellarAddress: Sb.action('onSendToStellarAddress'),
+    small: props.small,
+  }),
+})
+
 const defaultWalletMock = {
   isDefaultWallet: true,
   keybaseUser: 'cecileb',
@@ -32,6 +49,7 @@ export const Container = (storyFn: any) => (
 
 const load = () => {
   Sb.storiesOf('Wallets/Wallet/Header', module)
+    .addDecorator(provider)
     .addDecorator(Container)
     .add('Default wallet', () => <Header {...common} {...defaultWalletMock} />)
     .add('Second wallet', () => <Header {...common} {...secondWalletMock} />)
