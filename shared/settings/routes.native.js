@@ -101,7 +101,7 @@ export const newRoutes = {
   inviteSent: {getScreen: () => require('./invite-generated/container').default},
   privacyPolicy: {getScreen: () => require('./web-links.native').default},
   removeDevice: {getScreen: () => require('../devices/device-revoke/container').default},
-  'tabs.settingsTab': {getScreen: () => require('./').default},
+  settingsRoot: {getScreen: () => require('./').default},
   terms: {getScreen: () => require('./web-links.native').default},
 }
 export const newModalRoutes = {}

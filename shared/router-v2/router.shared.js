@@ -78,7 +78,7 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
 
       // When we restore state we want the following stacks
       // [People, TheLastTabYouWereOn, MaybeAConversationIfTheLastTabYouWereOnIsChat]
-      let sa = [NavigationActions.navigate({params: undefined, routeName: 'tabs.peopleTab'})]
+      let sa = [] // NavigationActions.navigate({params: undefined, routeName: 'tabs.peopleTab'})]
 
       if (action.payload.path) {
         const p = action.payload.path.last

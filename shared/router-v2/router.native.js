@@ -8,6 +8,7 @@ import {createAppContainer} from '@react-navigation/native'
 import {createSwitchNavigator, StackActions, NavigationActions} from '@react-navigation/core'
 import {createBottomTabNavigator} from 'react-navigation-tabs'
 import {createStackNavigator} from 'react-navigation-stack'
+import * as Tabs from '../constants/tabs'
 import {modalRoutes, routes, nameToTab, loggedOutRoutes} from './routes'
 import {LeftAction} from '../common-adapters/header-hoc'
 import * as Constants from '../constants/router2'
@@ -67,36 +68,25 @@ const headerMode = 'float'
 // }
 // }
 
-const routesForTab = tab =>
-  Object.keys(routes).reduce((map, name) => {
-    if (nameToTab[name] === tab) {
-      map[name] = routes[name]
-    }
-    return map
-  }, {})
-
-const PeopleStack = createStackNavigator(Shim.shim(routesForTab('tabs.peopleTab')), {
-  defaultNavigationOptions,
-  headerMode,
-  initialRouteName: 'peopleRoot',
-  initialRouteParams: undefined,
-})
-const ChatStack = createStackNavigator(Shim.shim(routesForTab('tabs.chatTab')), {
-  defaultNavigationOptions,
-  headerMode,
-  initialRouteName: 'chatRoot',
-  initialRouteParams: undefined,
-})
-
-const tabs = ['tabs.peopleTab', 'tabs.chatTab']
+const tabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.teamsTab, Tabs.settingsTab]
+const tabRoots = {
+  [Tabs.peopleTab]: 'peopleRoot',
+  [Tabs.chatTab]: 'chatRoot',
+  [Tabs.teamsTab]: 'teamsRoot',
+  [Tabs.settingsTab]: 'settingsRoot',
+}
 
 const TabNavigator = createBottomTabNavigator(
+  tabs.reduce((map, tab) => {
+    map[tab] = createStackNavigator(Shim.shim(routes), {
+      defaultNavigationOptions,
+      headerMode,
+      initialRouteName: tabRoots[tab],
+      initialRouteParams: undefined,
+    })
+    return map
+  }, {}),
   {
-    'tabs.chatTab': ChatStack,
-    'tabs.peopleTab': PeopleStack,
-  },
-  {
-    backBehavior: 'history',
     order: tabs,
   }
 )
@@ -130,65 +120,6 @@ const RootStackNavigator = createSwitchNavigator(
   },
   {initialRouteName: 'loggedOut'}
 )
-
-// we bookkeep which navigations actually resulted in a tab switch. if there is one we store the key so we can do an additional tab switch on a back action
-const keyToRouteSwitch = {}
-const originalRootRouter = RootStackNavigator.router
-RootStackNavigator.router = {
-  ...originalRootRouter,
-  getStateForAction: (action, state) => {
-    // console.log('aaa override router', action)
-    const nextState = originalRootRouter.getStateForAction(action, state)
-
-    // bookkeep navigate navigate only
-    if (action.type === NavigationActions.NAVIGATE) {
-      // ignore tab switches
-      if (tabs.includes(action.routeName)) return nextState
-
-      // making assumptions about the nesting of the routes to simplify this logic
-      const rootState = state
-      const loggedInState = rootState?.routes[rootState.index]
-      // logged in
-      if (loggedInState?.routeName !== 'loggedIn') return nextState
-
-      const mainState = loggedInState?.routes[loggedInState.index]
-      // main screens only
-      if (mainState?.routeName !== 'Main') return nextState
-
-      const oldTabState = mainState?.routes[mainState.index]
-
-      // const oldTabState = state?.routes[0]?.routes[0]?.index
-      const nextTabState = nextState?.routes[0]?.routes[0]?.routes[nextState?.routes[0]?.routes[0]?.index]
-
-      if (oldTabState?.key === nextTabState?.key) return nextState
-      const path = Constants._getVisiblePathForNavigator(nextState)
-      if (!path.length) return nextState
-      const last = path[path.length - 1]
-      if (!last) return nextState
-
-      keyToRouteSwitch[last.key] = oldTabState?.key
-      console.log('aaa override navigate back store:', last.key, oldTabState?.key) // oldTabState, nextTabState, path, last.key, oldTabState?.key)
-    } else if (action.type === NavigationActions.BACK) {
-      // watch back
-      const key = action.key
-      // const path = Constants._getVisiblePathForNavigator(nextState)
-      // if (!path.length) return nextState
-      // const last = path[path.length - 1]
-      // if (!last) return nextState
-      const oldTab = keyToRouteSwitch[key]
-      if (!oldTab) return nextState
-      keyToRouteSwitch[key] = undefined
-
-      console.log('aaa override tab back replace:')
-      const nextStateWithTabSwitch = originalRootRouter.getStateForAction(
-        NavigationActions.navigate({routeName: oldTab}),
-        nextState
-      )
-      return nextStateWithTabSwitch
-    }
-    return nextState
-  },
-}
 
 const AppContainer = createAppContainer(RootStackNavigator)
 
