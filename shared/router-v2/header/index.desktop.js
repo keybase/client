@@ -1,7 +1,9 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
+import * as Platform from '../../constants/platform'
 import * as Styles from '../../styles'
+import * as Window from '../../util/window-management'
 import SyncingFolders from './syncing-folders'
 import flags from '../../util/feature-flags'
 // A mobile-like header for desktop
@@ -69,6 +71,30 @@ class Header extends React.PureComponent<Props> {
               color={this.props.allowBack ? Styles.globalColors.black_50 : Styles.globalColors.black_10}
               onClick={this.props.onPop}
             />
+
+            {!Platform.isDarwin && (
+              <Kb.Box2 direction="horizontal" gap="small">
+                <Kb.Icon
+                  type="iconfont-app-minimize"
+                  style={styles.icon}
+                  color={Styles.globalColors.black_50}
+                  onClick={Window.minimizeWindow}
+                />
+
+                <Kb.Icon
+                  type="iconfont-app-maximize"
+                  style={styles.icon}
+                  color={Styles.globalColors.black_50}
+                  onClick={Window.toggleMaximizeWindow}
+                />
+                <Kb.Icon
+                  type="iconfont-app-close"
+                  style={styles.icon}
+                  color={Styles.globalColors.black_50}
+                  onClick={Window.closeWindow}
+                />
+              </Kb.Box2>
+            )}
             {flags.kbfsOfflineMode && <SyncingFolders />}
             {!title && rightActions}
           </Kb.Box2>
