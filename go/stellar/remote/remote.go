@@ -1075,7 +1075,7 @@ func FindPaymentPath(mctx libkb.MetaContext, query stellar1.PaymentPathQuery) (s
 	payload := make(libkb.JSONPayload)
 	payload["query"] = query
 	apiArg := libkb.APIArg{
-		Endpoint:    "stellar/find_payment_path",
+		Endpoint:    "stellar/findpaymentpath",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
 	}
