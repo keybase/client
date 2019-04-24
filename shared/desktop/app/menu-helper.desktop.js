@@ -81,7 +81,7 @@ export default function makeMenu(window: any) {
             click() {
               executeActionsForContext('uiWindow')
             },
-            label: 'Quit',
+            label: 'Minimize to Tray',
           },
         ],
       },
@@ -109,7 +109,7 @@ export default function makeMenu(window: any) {
             click() {
               executeActionsForContext('uiWindow')
             },
-            label: '&Quit',
+            label: '&Minimize to Tray',
           },
         ],
       },

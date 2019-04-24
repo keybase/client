@@ -519,6 +519,13 @@ protocol local {
   // airdropRegisterLocal registers a user for an airdrop.
   void airdropRegisterLocal(int sessionID, boolean register);
 
+  // Trustline operations:
+  // In addTrustline, limit is optional, if not supplied, max limit will be used.
+  void addTrustlineLocal(int sessionID, AccountID accountID, Trustline trustline, string limit);
+  void deleteTrustlineLocal(int sessionID, AccountID accountID, Trustline trustline);
+  void changeTrustlineLimitLocal(int sessionID, AccountID accountID, Trustline trustline, string limit);
+  array<Balance> getTrustlinesLocal(int sessionID, AccountID accountID);
+
   // -------------------------------------------------------
   // CLI protocol
   // -------------------------------------------------------

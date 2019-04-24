@@ -297,4 +297,6 @@ protocol remote {
 
   // search by either an assetCode or an issuerAccountID (or both) to get back matches from stellard/horizon
   array<Asset> assetSearch(string assetCode, string issuerAccountID);
+
+  void changeTrustline(keybase1.UserVersion caller, string signedTransaction);
 }

@@ -61,6 +61,12 @@ func (o KeybaseRequestID) DeepCopy() KeybaseRequestID {
 	return o
 }
 
+type AssetCode string
+
+func (o AssetCode) DeepCopy() AssetCode {
+	return o
+}
+
 type Asset struct {
 	Type           string `codec:"type" json:"type"`
 	Code           string `codec:"code" json:"code"`
@@ -450,6 +456,18 @@ func (e AccountMode) String() string {
 		return v
 	}
 	return ""
+}
+
+type Trustline struct {
+	AssetCode AssetCode `codec:"assetCode" json:"assetCode"`
+	Issuer    AccountID `codec:"issuer" json:"issuer"`
+}
+
+func (o Trustline) DeepCopy() Trustline {
+	return Trustline{
+		AssetCode: o.AssetCode.DeepCopy(),
+		Issuer:    o.Issuer.DeepCopy(),
+	}
 }
 
 type CommonInterface interface {
