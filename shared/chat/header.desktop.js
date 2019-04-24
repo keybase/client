@@ -29,7 +29,7 @@ type Props = {|
 
 const Header = (p: Props) => {
   let description = !!p.desc && (
-    <Kb.Text type="BodySmall" lineClamp={1}>
+    <Kb.Text selectable={true} style={styles.desc} type="BodySmall" lineClamp={1}>
       {p.desc}
     </Kb.Text>
   )
