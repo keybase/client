@@ -257,9 +257,9 @@ const clearBuilding = () => WalletsGen.createClearBuilding()
 const clearErrors = () => WalletsGen.createClearErrors()
 
 const loadWalletDisclaimer = () =>
-  RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise(undefined, Constants.checkOnlineWaitingKey).then(
-    accepted => WalletsGen.createWalletDisclaimerReceived({accepted})
-  )
+  RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise(undefined, Constants.checkOnlineWaitingKey)
+    .then(accepted => WalletsGen.createWalletDisclaimerReceived({accepted}))
+    .catch(() => {}) // handled by reloadable
 
 const loadAccounts = (state, action) => {
   if (!state.config.loggedIn) {
