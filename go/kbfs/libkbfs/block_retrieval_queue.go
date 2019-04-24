@@ -643,6 +643,14 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 	retrieval.requests = nil
 }
 
+func channelToWaitGroup(wg *sync.WaitGroup, ch <-chan struct{}) {
+	wg.Add(1)
+	go func() {
+		<-ch
+		wg.Done()
+	}()
+}
+
 // Shutdown is called when we are no longer accepting requests.
 func (brq *blockRetrievalQueue) Shutdown() <-chan struct{} {
 	select {
@@ -656,20 +664,11 @@ func (brq *blockRetrievalQueue) Shutdown() <-chan struct{} {
 	// finalized immediately rather than racing with dying workers.
 	close(brq.doneCh)
 	for _, w := range brq.workers {
-		shutdownWaitGroup.Add(1)
-		ch := w.Shutdown()
-		go func() {
-			<-ch
-			shutdownWaitGroup.Done()
-		}()
+		channelToWaitGroup(&shutdownWaitGroup, w.Shutdown())
 	}
 	brq.prefetchMtx.Lock()
 	defer brq.prefetchMtx.Unlock()
-	ch := brq.prefetcher.Shutdown()
-	go func() {
-		<-ch
-		shutdownWaitGroup.Done()
-	}()
+	channelToWaitGroup(&shutdownWaitGroup, brq.prefetcher.Shutdown())
 
 	brq.workerCh.Close()
 	brq.prefetchWorkerCh.Close()
