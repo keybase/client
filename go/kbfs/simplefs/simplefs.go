@@ -2349,6 +2349,7 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(
 		[]keybase1.FolderSyncConfigAndStatusWithFolder, len(tlfIDs))
 
 	dbc := k.config.DiskBlockCache()
+	allNotStarted := true
 	for i, tlfID := range tlfIDs {
 		config, err := k.config.KBFSOps().GetSyncConfig(ctx, tlfID)
 		if err != nil {
@@ -2374,8 +2375,11 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(
 
 		res.Folders[i].Folder = f
 		res.Folders[i].Config = config
-		res.Folders[i].Status.PrefetchStatus =
-			md.PrefetchStatus.ToProtocolStatus()
+		status := md.PrefetchStatus.ToProtocolStatus()
+		res.Folders[i].Status.PrefetchStatus = status
+		if status != keybase1.PrefetchStatus_NOT_STARTED {
+			allNotStarted = false
+		}
 		if md.PrefetchProgress != nil {
 			res.Folders[i].Status.PrefetchProgress =
 				k.prefetchProgressFromByteStatus(*md.PrefetchProgress)
@@ -2402,7 +2406,10 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(
 		p := k.config.BlockOps().Prefetcher().OverallSyncStatus()
 		res.OverallStatus.PrefetchProgress =
 			k.prefetchProgressFromByteStatus(p)
-		if p.SubtreeBytesTotal == p.SubtreeBytesFetched ||
+		if allNotStarted {
+			res.OverallStatus.PrefetchStatus =
+				keybase1.PrefetchStatus_NOT_STARTED
+		} else if p.SubtreeBytesTotal == p.SubtreeBytesFetched ||
 			p.SubtreeBytesTotal == 0 {
 			res.OverallStatus.PrefetchStatus = keybase1.PrefetchStatus_COMPLETE
 		} else {
