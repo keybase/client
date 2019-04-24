@@ -180,7 +180,7 @@ func newBlockPrefetcher(retriever BlockRetriever,
 		prefetchStatusCh:      NewInfiniteChannelWrapper(),
 		inFlightFetches:       NewInfiniteChannelWrapper(),
 		shutdownCh:            make(chan struct{}),
-		almostDoneCh:          make(chan struct{}, 1),
+		almostDoneCh:          make(chan struct{}),
 		doneCh:                make(chan struct{}),
 		prefetches:            make(map[kbfsblock.ID]*prefetch),
 		queuedPrefetchHandles: make(map[data.BlockPointer]queuedPrefetch),
@@ -557,7 +557,7 @@ top:
 		ch := chInterface.(<-chan error)
 		<-ch
 	}
-	p.almostDoneCh <- struct{}{}
+	close(p.almostDoneCh)
 }
 
 // calculatePriority returns either a base priority for an unsynced TLF or a
