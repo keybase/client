@@ -999,6 +999,7 @@ func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid
 				UpdateType: chat1.StaleUpdateType_CONVUPDATE,
 			},
 		})
+		s.notifyUpdated(ctx, uid, convID, s.storage.GetExplodedReplies(ctx, convID, uid, explodedMsgs))
 	}
 }
 

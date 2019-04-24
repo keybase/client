@@ -607,17 +607,18 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 	// queue search index update in the background
 	go s.G().Indexer.Remove(ctx, convID, uid, allPurged)
 
-	flatten := func(m map[chat1.MessageID]chat1.MessageUnboxed) (res []chat1.MessageUnboxed) {
-		for _, msg := range m {
-			res = append(res, msg)
-		}
-		return res
-	}
 	return updateAllSupersededByRes{
-		reactionTargets: flatten(updatedReactionTargets),
-		unfurlTargets:   flatten(updatedUnfurlTargets),
-		repliesAffected: flatten(repliesAffected),
+		reactionTargets: s.flatten(updatedReactionTargets),
+		unfurlTargets:   s.flatten(updatedUnfurlTargets),
+		repliesAffected: s.flatten(repliesAffected),
 	}, nil
+}
+
+func (s *Storage) flatten(m map[chat1.MessageID]chat1.MessageUnboxed) (res []chat1.MessageUnboxed) {
+	for _, msg := range m {
+		res = append(res, msg)
+	}
+	return res
 }
 
 func (s *Storage) updateMinDeletableMessage(ctx context.Context, convID chat1.ConversationID,
@@ -1158,6 +1159,34 @@ func (s *Storage) updateRepliesAffected(ctx context.Context, convID chat1.Conver
 		}
 		replyMap[reply] = *replyMsg
 	}
+}
+
+func (s *Storage) GetExplodedReplies(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+	exploded []chat1.MessageUnboxed) []chat1.MessageUnboxed {
+	if len(exploded) == 0 {
+		return nil
+	}
+	defer s.Trace(ctx, func() error { return nil }, "getExplodedReplies: num: %d", len(exploded))()
+	var replies []chat1.MessageID
+	for _, msg := range exploded {
+		if !msg.IsValid() {
+			continue
+		}
+		replies = append(replies, msg.Valid().ServerHeader.Replies...)
+	}
+	replyMap := make(map[chat1.MessageID]chat1.MessageUnboxed)
+	for _, reply := range replies {
+		if _, ok := replyMap[reply]; ok {
+			continue
+		}
+		replyMsg, err := s.getMessage(ctx, convID, uid, reply)
+		if err != nil || replyMsg == nil {
+			s.Debug(ctx, "getExplodedReplies: no target message found: replyID: %v err: %s", reply, err)
+			continue
+		}
+		replyMap[replyMsg.GetMessageID()] = *replyMsg
+	}
+	return s.flatten(replyMap)
 }
 
 // updateReactionIDs appends `msgid` to `reactionIDs` if it is not already
