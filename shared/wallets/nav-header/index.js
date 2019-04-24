@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/wallets'
-import {SmallAccountID} from '../common'
+import {SmallAccountID, SendButton, DropdownButton} from '../common'
 import AddAccount from './add-account'
 
 type HeaderTitleProps = {|
@@ -28,8 +28,21 @@ export const HeaderTitle = (props: HeaderTitleProps) => (
   </Kb.Box2>
 )
 
+type HeaderRightActionsProps = {|
+  onReceive: () => void,
+|}
+
+export const HeaderRightActions = (props: HeaderRightActionsProps) => (
+  <Kb.Box2 direction="horizontal" gap="tiny" style={styles.rightActions}>
+    <SendButton small={true} />
+    <Kb.Button type="Wallet" mode="Secondary" label="Receive" small={true} onClick={props.onReceive} />
+    <DropdownButton small={true} />
+  </Kb.Box2>
+)
+
 const styles = Styles.styleSheetCreate({
   accountInfo: {
+    paddingBottom: Styles.globalMargins.xtiny,
     paddingLeft: Styles.globalMargins.xsmall,
   },
   accountNameContainer: {
@@ -38,6 +51,9 @@ const styles = Styles.styleSheetCreate({
   left: {
     minWidth: 240,
     paddingLeft: Styles.globalMargins.xsmall,
+    paddingRight: Styles.globalMargins.xsmall,
+  },
+  rightActions: {
     paddingRight: Styles.globalMargins.xsmall,
   },
 })

@@ -179,10 +179,11 @@ export const newRoutes = {
           {}
         )
 
-        const HeaderTitle = require('./nav-header/container').HeaderTitle
+        const {HeaderTitle, HeaderRightActions} = require('./nav-header/container')
 
         WalletsSubNavigator.navigationOptions = {
           header: undefined,
+          headerRightActions: HeaderRightActions,
           headerTitle: HeaderTitle,
           title: 'Wallet',
         }
