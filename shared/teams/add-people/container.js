@@ -110,7 +110,7 @@ class AddPeopleStateWrapper extends React.Component<AddPeopleProps & ExtraProps,
   state = {
     rolePickerOpen: false,
     selectedRole: 'writer',
-    sendNotification: false,
+    sendNotification: true,
   }
   _setRef = false
 

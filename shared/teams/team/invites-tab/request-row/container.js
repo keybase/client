@@ -66,7 +66,7 @@ class RequestRowStateWrapper extends React.Component<RowProps & ExtraProps, Stat
   state = {
     rolePickerOpen: false,
     selectedRole: 'writer',
-    sendNotification: false,
+    sendNotification: true,
   }
   _setRef = false
 

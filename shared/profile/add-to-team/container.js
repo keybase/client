@@ -94,7 +94,7 @@ class AddToTeamStateWrapper extends React.Component<{|...ExtraProps, ...AddToTea
     rolePickerOpen: false,
     selectedRole: 'writer',
     selectedTeams: I.Set(),
-    sendNotification: false,
+    sendNotification: true,
   }
 
   componentDidMount() {
