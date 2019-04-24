@@ -737,6 +737,16 @@ export const usernameInPath = (username: string, path: Types.Path) => {
   return elems.length >= 3 && elems[2].split(',').includes(username)
 }
 
+export const isOfflineUnsynced = (
+  daemonStatus: Types.KbfsDaemonStatus,
+  pathItem: Types.PathItem,
+  path: Types.Path
+) =>
+  flags.kbfsOfflineMode &&
+  !daemonStatus.online &&
+  Types.getPathLevel(path) > 2 &&
+  pathItem.prefetchStatus !== prefetchComplete
+
 // To make sure we have consistent badging, all badging related stuff should go
 // through this function. That is:
 // * When calculating number of TLFs being badged, a TLF should be counted if
