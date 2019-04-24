@@ -7,7 +7,7 @@ import {HeaderTitle as _HeaderTitle, HeaderRightActions as _HeaderRightActions} 
 
 const mapStateToPropsHeaderTitle = state => ({
   _account: Constants.getSelectedAccountData(state),
-  username: state.config.username || '',
+  username: state.config.username,
 })
 
 const mergePropsHeaderTitle = s => ({

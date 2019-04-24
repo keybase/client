@@ -15,15 +15,15 @@ type SendProps = {|
 class _SendButton extends React.PureComponent<SendProps & Kb.OverlayParentProps> {
   _menuItems = [
     {
-      onClick: () => this.props.onSendToKeybaseUser(),
+      onClick: this.props.onSendToKeybaseUser,
       title: 'To a Keybase user',
     },
     {
-      onClick: () => this.props.onSendToStellarAddress(),
+      onClick: this.props.onSendToStellarAddress,
       title: 'To a Stellar address',
     },
     {
-      onClick: () => this.props.onSendToAnotherAccount(),
+      onClick: this.props.onSendToAnotherAccount,
       title: 'To one of your other Stellar accounts',
     },
   ]
@@ -71,12 +71,12 @@ class _DropdownButton extends React.PureComponent<DropdownProps & Kb.OverlayPare
     const _menuItems = [
       onShowSecretKey
         ? {
-            onClick: () => onShowSecretKey(),
+            onClick: onShowSecretKey,
             title: 'Show secret key',
           }
         : null,
       {
-        onClick: () => this.props.onSettings(),
+        onClick: this.props.onSettings,
         title: 'Settings',
       },
     ].filter(Boolean)
