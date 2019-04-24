@@ -15,7 +15,7 @@ type HeaderTitleProps = {|
 
 export const HeaderTitle = (props: HeaderTitleProps) => (
   <Kb.Box2 direction="horizontal">
-    <Kb.Box2 direction="horizontal" style={styles.left}>
+    <Kb.Box2 alignItems="flex-end" direction="horizontal" style={styles.left}>
       <AddAccount />
     </Kb.Box2>
     <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.accountInfo}>
@@ -33,7 +33,7 @@ type HeaderRightActionsProps = {|
 |}
 
 export const HeaderRightActions = (props: HeaderRightActionsProps) => (
-  <Kb.Box2 direction="horizontal" gap="tiny" style={styles.rightActions}>
+  <Kb.Box2 alignItems="flex-end" direction="horizontal" gap="tiny" style={styles.rightActions}>
     <SendButton small={true} />
     <Kb.Button type="Wallet" mode="Secondary" label="Receive" small={true} onClick={props.onReceive} />
     <DropdownButton small={true} />
@@ -49,11 +49,15 @@ const styles = Styles.styleSheetCreate({
     alignSelf: 'flex-start',
   },
   left: {
+    alignSelf: 'stretch',
     minWidth: 240,
+    paddingBottom: 6,
     paddingLeft: Styles.globalMargins.xsmall,
     paddingRight: Styles.globalMargins.xsmall,
   },
   rightActions: {
+    alignSelf: 'stretch',
+    paddingBottom: 6,
     paddingRight: Styles.globalMargins.xsmall,
   },
 })
