@@ -5,7 +5,7 @@ import * as React from 'react'
 import GlobalError from '../app/global-errors/container'
 import TabBar from './tab-bar/container'
 import {createAppContainer} from '@react-navigation/native'
-import {createSwitchNavigator, StackActions} from '@react-navigation/core'
+import {createSwitchNavigator, StackActions, NavigationActions} from '@react-navigation/core'
 import {createBottomTabNavigator} from 'react-navigation-tabs'
 import {createStackNavigator} from 'react-navigation-stack'
 import {modalRoutes, routes, nameToTab, loggedOutRoutes} from './routes'
@@ -88,14 +88,16 @@ const ChatStack = createStackNavigator(Shim.shim(routesForTab('tabs.chatTab')), 
   initialRouteParams: undefined,
 })
 
+const tabs = ['tabs.peopleTab', 'tabs.chatTab']
+
 const TabNavigator = createBottomTabNavigator(
   {
     'tabs.chatTab': ChatStack,
     'tabs.peopleTab': PeopleStack,
   },
   {
-    backBehavior: 'order',
-    order: ['tabs.peopleTab', 'tabs.chatTab'],
+    backBehavior: 'history',
+    order: tabs,
   }
 )
 
@@ -129,6 +131,65 @@ const RootStackNavigator = createSwitchNavigator(
   {initialRouteName: 'loggedOut'}
 )
 
+// we bookkeep which navigations actually resulted in a tab switch. if there is one we store the key so we can do an additional tab switch on a back action
+const keyToRouteSwitch = {}
+const originalRootRouter = RootStackNavigator.router
+RootStackNavigator.router = {
+  ...originalRootRouter,
+  getStateForAction: (action, state) => {
+    // console.log('aaa override router', action)
+    const nextState = originalRootRouter.getStateForAction(action, state)
+
+    // bookkeep navigate navigate only
+    if (action.type === NavigationActions.NAVIGATE) {
+      // ignore tab switches
+      if (tabs.includes(action.routeName)) return nextState
+
+      // making assumptions about the nesting of the routes to simplify this logic
+      const rootState = state
+      const loggedInState = rootState?.routes[rootState.index]
+      // logged in
+      if (loggedInState?.routeName !== 'loggedIn') return nextState
+
+      const mainState = loggedInState?.routes[loggedInState.index]
+      // main screens only
+      if (mainState?.routeName !== 'Main') return nextState
+
+      const oldTabState = mainState?.routes[mainState.index]
+
+      // const oldTabState = state?.routes[0]?.routes[0]?.index
+      const nextTabState = nextState?.routes[0]?.routes[0]?.routes[nextState?.routes[0]?.routes[0]?.index]
+
+      if (oldTabState?.key === nextTabState?.key) return nextState
+      const path = Constants._getVisiblePathForNavigator(nextState)
+      if (!path.length) return nextState
+      const last = path[path.length - 1]
+      if (!last) return nextState
+
+      keyToRouteSwitch[last.key] = oldTabState?.key
+      console.log('aaa override navigate back store:', last.key, oldTabState?.key) // oldTabState, nextTabState, path, last.key, oldTabState?.key)
+    } else if (action.type === NavigationActions.BACK) {
+      // watch back
+      const key = action.key
+      // const path = Constants._getVisiblePathForNavigator(nextState)
+      // if (!path.length) return nextState
+      // const last = path[path.length - 1]
+      // if (!last) return nextState
+      const oldTab = keyToRouteSwitch[key]
+      if (!oldTab) return nextState
+      keyToRouteSwitch[key] = undefined
+
+      console.log('aaa override tab back replace:')
+      const nextStateWithTabSwitch = originalRootRouter.getStateForAction(
+        NavigationActions.navigate({routeName: oldTab}),
+        nextState
+      )
+      return nextStateWithTabSwitch
+    }
+    return nextState
+  },
+}
+
 const AppContainer = createAppContainer(RootStackNavigator)
 
 class RNApp extends React.PureComponent<any, any> {
@@ -143,7 +204,10 @@ class RNApp extends React.PureComponent<any, any> {
     const actions = Shared.oldActionToNewActions(old, nav._navigation) || []
     try {
       console.log('aaa nav actions', actions)
-      actions.forEach(a => nav.dispatch(a))
+      actions.forEach(a => {
+        nav.dispatch(a)
+        console.log('aaaa after nav history', nav?._navState?.routes[0]?.routes[0]?.routeKeyHistory, a)
+      })
     } catch (e) {
       logger.error('Nav error', e)
     }
