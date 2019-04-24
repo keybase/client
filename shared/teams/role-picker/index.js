@@ -296,7 +296,7 @@ const styles = Styles.styleSheetCreate({
     paddingTop: Styles.globalMargins.tiny,
   },
   footerButtonBar: {
-    alignItems: 'flex-end',
+    minHeight: undefined,
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
   },
