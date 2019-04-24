@@ -524,6 +524,7 @@ protocol local {
   void addTrustlineLocal(int sessionID, AccountID accountID, Trustline trustline, string limit);
   void deleteTrustlineLocal(int sessionID, AccountID accountID, Trustline trustline);
   void changeTrustlineLimitLocal(int sessionID, AccountID accountID, Trustline trustline, string limit);
+  array<Balance> getTrustlinesLocal(int sessionID, AccountID accountID);
 
   // -------------------------------------------------------
   // CLI protocol

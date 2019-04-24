@@ -1249,6 +1249,11 @@ type ChangeTrustlineLimitLocalArg struct {
 	Limit     string    `codec:"limit" json:"limit"`
 }
 
+type GetTrustlinesLocalArg struct {
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	AccountID AccountID `codec:"accountID" json:"accountID"`
+}
+
 type BalancesLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
@@ -1384,6 +1389,7 @@ type LocalInterface interface {
 	AddTrustlineLocal(context.Context, AddTrustlineLocalArg) error
 	DeleteTrustlineLocal(context.Context, DeleteTrustlineLocalArg) error
 	ChangeTrustlineLimitLocal(context.Context, ChangeTrustlineLimitLocalArg) error
+	GetTrustlinesLocal(context.Context, GetTrustlinesLocalArg) ([]Balance, error)
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendCLILocal(context.Context, SendCLILocalArg) (SendResultCLILocal, error)
 	ClaimCLILocal(context.Context, ClaimCLILocalArg) (RelayClaimResult, error)
@@ -2098,6 +2104,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getTrustlinesLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]GetTrustlinesLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetTrustlinesLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetTrustlinesLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetTrustlinesLocal(ctx, typedArgs[0])
+					return
+				},
+			},
 			"balancesLocal": {
 				MakeArg: func() interface{} {
 					var ret [1]BalancesLocalArg
@@ -2591,6 +2612,11 @@ func (c LocalClient) DeleteTrustlineLocal(ctx context.Context, __arg DeleteTrust
 
 func (c LocalClient) ChangeTrustlineLimitLocal(ctx context.Context, __arg ChangeTrustlineLimitLocalArg) (err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.changeTrustlineLimitLocal", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) GetTrustlinesLocal(ctx context.Context, __arg GetTrustlinesLocalArg) (res []Balance, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.getTrustlinesLocal", []interface{}{__arg}, &res)
 	return
 }
 

@@ -2796,6 +2796,16 @@ func TestManageTrustlines(t *testing.T) {
 	require.Equal(t, "0", balances[1].BalanceTotal)
 	require.Equal(t, "0", balances[1].BalanceAvailableToSend)
 
+	// Check if shows up it GetTrustlinesLocal
+	balances2, err := tcs[0].Srv.GetTrustlinesLocal(context.Background(), stellar1.GetTrustlinesLocalArg{
+		AccountID: senderAccountID,
+	})
+	require.NoError(t, err)
+	require.Len(t, balances2, 1)
+	require.Equal(t, keys, balances2[0].Asset)
+	require.Equal(t, "0.0000000", balances2[0].Amount)
+	require.Equal(t, "922337203685.4775807", balances2[0].Limit) // max limit
+
 	// Change limit.
 	err = tcs[0].Srv.ChangeTrustlineLimitLocal(context.Background(), stellar1.ChangeTrustlineLimitLocalArg{
 		AccountID: senderAccountID,
@@ -2803,17 +2813,17 @@ func TestManageTrustlines(t *testing.T) {
 		Limit:     "100",
 	})
 	require.NoError(t, err)
+	// Check if our mock account has changed:
 	require.Equal(t, "100.0000000", accounts[0].otherBalances[0].Limit)
 
 	// Check if new limit shows up in BalancesLocal. Limit is not currently
 	// returned via GetAccountAssetsLocal.
-	balances2, err := tcs[0].Srv.BalancesLocal(context.Background(), senderAccountID)
+	balances2, err = tcs[0].Srv.BalancesLocal(context.Background(), senderAccountID)
 	require.NoError(t, err)
 	require.Len(t, balances2, 2)
 	require.True(t, balances2[0].Asset.IsNativeXLM())
 	require.Equal(t, "20.0000000", balances2[0].Amount)
 	require.Equal(t, "", balances2[0].Limit)
-
 	require.Equal(t, keys, balances2[1].Asset)
 	require.Equal(t, "0.0000000", balances2[1].Amount)
 	require.Equal(t, "100.0000000", balances2[1].Limit)

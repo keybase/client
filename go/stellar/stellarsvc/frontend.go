@@ -1124,3 +1124,25 @@ func (s *Server) ChangeTrustlineLimitLocal(ctx context.Context, arg stellar1.Cha
 	}
 	return stellar.ChangeTrustlineLimitLocal(mctx, arg)
 }
+
+func (s *Server) GetTrustlinesLocal(ctx context.Context, arg stellar1.GetTrustlinesLocalArg) (ret []stellar1.Balance, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName: "GetTrustlinesLocal",
+		Err:     &err,
+	})
+	defer fin()
+	if err != nil {
+		return ret, err
+	}
+	balances, err := s.remoter.Balances(mctx.Ctx(), arg.AccountID)
+	if err != nil {
+		return ret, err
+	}
+	ret = make([]stellar1.Balance, 0, len(balances)-1)
+	for _, balance := range balances {
+		if !balance.Asset.IsNativeXLM() {
+			ret = append(ret, balance)
+		}
+	}
+	return ret, nil
+}

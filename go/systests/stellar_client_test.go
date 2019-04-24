@@ -664,4 +664,14 @@ func (s *stellarRetryClient) ChangeTrustlineLimitLocal(ctx context.Context, arg 
 	return err
 }
 
+func (s *stellarRetryClient) GetTrustlinesLocal(ctx context.Context, arg stellar1.GetTrustlinesLocalArg) (ret []stellar1.Balance, err error) {
+	for i := 0; i < retryCount; i++ {
+		ret, err = s.cli.GetTrustlinesLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return ret, err
+}
+
 var _ stellar1.LocalInterface = (*stellarRetryClient)(nil)
