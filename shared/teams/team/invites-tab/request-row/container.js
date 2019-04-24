@@ -50,7 +50,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 
 type State = {
   rolePickerOpen: boolean,
-  selectedRole: ?Types.TeamRoleType,
+  selectedRole: Types.TeamRoleType,
   sendNotification: boolean,
 }
 
@@ -61,7 +61,7 @@ type LetIn = {
 class RequestRowStateWrapper extends React.Component<RowProps & LetIn, State> {
   state = {
     rolePickerOpen: false,
-    selectedRole: null,
+    selectedRole: 'writer',
     sendNotification: false,
   }
   _setRef = false

@@ -202,8 +202,8 @@ const IgnoreAccessRequests = (props: SettingProps) =>
 
 const toRolePickerPropsHelper = (state: State, setState) => ({
   disabledReasonsForRolePicker: {
-    admin: `Open teams cannot let users in as admins.`,
-    owner: `Open teams cannot let users in as owners.`,
+    admin: `Users can't join open teams as admins.`,
+    owner: `Users can't join open teams as owners.`,
   },
   isRolePickerOpen: state.isRolePickerOpen,
   newOpenTeamRole: state.newOpenTeamRole,

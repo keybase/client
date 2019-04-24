@@ -88,7 +88,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 
 type State = {
   rolePickerOpen: boolean,
-  selectedRole: ?Types.TeamRoleType,
+  selectedRole: Types.TeamRoleType,
   sendNotification: boolean,
 }
 
@@ -100,7 +100,7 @@ type ExtraProps = {
 class AddPeopleStateWrapper extends React.Component<AddPeopleProps & ExtraProps, State> {
   state = {
     rolePickerOpen: false,
-    selectedRole: null,
+    selectedRole: 'writer',
     sendNotification: false,
   }
   _setRef = false
