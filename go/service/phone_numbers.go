@@ -120,12 +120,8 @@ func newPhoneNumbersGregorHandler(g *libkb.GlobalContext) *phoneNumbersGregorHan
 
 func (r *phoneNumbersGregorHandler) Create(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) (bool, error) {
 	switch category {
-	case "phone.added":
-		return true, r.handleAddedMsg(ctx, cli, item)
-	case "phone.verified":
-		return true, r.handleVerifiedMsg(ctx, cli, item)
-	case "phone.superseded":
-		return true, r.handleSupersededMsg(ctx, cli, item)
+	case "phone.added", "phone.verified", "phone.superseded":
+		return true, r.handlePhoneMsg(ctx, cli, category, item)
 	default:
 		if strings.HasPrefix(category, "phone.") {
 			return false, fmt.Errorf("unknown phoneNumbersGregorHandler category: %q", category)
@@ -146,47 +142,42 @@ func (r *phoneNumbersGregorHandler) Name() string {
 	return phoneNumbersGregorHandlerName
 }
 
-func (r *phoneNumbersGregorHandler) handleAddedMsg(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
-	m := libkb.NewMetaContext(ctx, r.G())
-	m.Debug("phoneNumbersGregorHandler: phone.added received")
-	var msg keybase1.PhoneNumberAddedMsg
-	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
-		m.Debug("error unmarshaling phone.added item: %s", err)
-		return err
+func (r *phoneNumbersGregorHandler) handlePhoneMsg(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
+	mctx := libkb.NewMetaContext(ctx, r.G())
+	mctx.Debug("phoneNumbersGregorHandler: %s received", category)
+	var phoneNumber keybase1.PhoneNumber
+	switch category {
+	case "phone.added":
+		var msg keybase1.PhoneNumberAddedMsg
+		if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
+			mctx.Debug("error unmarshaling %s item: %s", category, err)
+			return err
+		}
+		mctx.Debug("%s unmarshaled: %+v", category, msg)
+		phoneNumber = msg.PhoneNumber
+	case "phone.verified":
+		var msg keybase1.PhoneNumberVerifiedMsg
+		if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
+			mctx.Debug("error unmarshaling %s item: %s", category, err)
+			return err
+		}
+		mctx.Debug("%s unmarshaled: %+v", category, msg)
+		phoneNumber = msg.PhoneNumber
+	case "phone.superseded":
+		var msg keybase1.PhoneNumberSupersededMsg
+		if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
+			mctx.Debug("error unmarshaling %s item: %s", category, err)
+			return err
+		}
+		mctx.Debug("%s unmarshaled: %+v", category, msg)
+		phoneNumber = msg.PhoneNumber
 	}
-	m.Debug("phone.added unmarshaled: %+v", msg)
 
-	r.G().NotifyRouter.HandlePhoneNumberAdded(ctx, msg.PhoneNumber)
-
-	return r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
-}
-
-func (r *phoneNumbersGregorHandler) handleVerifiedMsg(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
-	m := libkb.NewMetaContext(ctx, r.G())
-	m.Debug("phoneNumbersGregorHandler: phone.verified received")
-	var msg keybase1.PhoneNumberVerifiedMsg
-	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
-		m.Debug("error unmarshaling phone.verified item: %s", err)
-		return err
+	phoneNumbers, err := phonenumbers.GetPhoneNumbers(mctx)
+	if err != nil {
+		mctx.Error("Could not get current phone number list during handlePhoneMsg: %s", err)
+	} else {
+		r.G().NotifyRouter.HandlePhoneNumbersChanged(ctx, phoneNumbers, category, phoneNumber)
 	}
-	m.Debug("phone.verified unmarshaled: %+v", msg)
-
-	r.G().NotifyRouter.HandlePhoneNumberVerified(ctx, msg.PhoneNumber)
-
-	return r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
-}
-
-func (r *phoneNumbersGregorHandler) handleSupersededMsg(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
-	m := libkb.NewMetaContext(ctx, r.G())
-	m.Debug("phoneNumbersGregorHandler: phone.superseded received")
-	var msg keybase1.PhoneNumberSupersededMsg
-	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
-		m.Debug("error unmarshaling phone.superseded item: %s", err)
-		return err
-	}
-	m.Debug("phone.superseded unmarshaled: %+v", msg)
-
-	r.G().NotifyRouter.HandlePhoneNumberSuperseded(ctx, msg.PhoneNumber)
-
 	return r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
 }

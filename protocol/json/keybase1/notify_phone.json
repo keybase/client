@@ -8,28 +8,19 @@
   ],
   "types": [],
   "messages": {
-    "phoneNumberAdded": {
+    "phoneNumbersChanged": {
       "request": [
         {
-          "name": "phoneNumber",
-          "type": "PhoneNumber"
-        }
-      ],
-      "response": null,
-      "oneway": true
-    },
-    "phoneNumberVerified": {
-      "request": [
+          "name": "list",
+          "type": {
+            "type": "array",
+            "items": "UserPhoneNumber"
+          }
+        },
         {
-          "name": "phoneNumber",
-          "type": "PhoneNumber"
-        }
-      ],
-      "response": null,
-      "oneway": true
-    },
-    "phoneNumberSuperseded": {
-      "request": [
+          "name": "category",
+          "type": "string"
+        },
         {
           "name": "phoneNumber",
           "type": "PhoneNumber"

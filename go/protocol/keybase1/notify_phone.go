@@ -8,70 +8,32 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type PhoneNumberAddedArg struct {
-	PhoneNumber PhoneNumber `codec:"phoneNumber" json:"phoneNumber"`
-}
-
-type PhoneNumberVerifiedArg struct {
-	PhoneNumber PhoneNumber `codec:"phoneNumber" json:"phoneNumber"`
-}
-
-type PhoneNumberSupersededArg struct {
-	PhoneNumber PhoneNumber `codec:"phoneNumber" json:"phoneNumber"`
+type PhoneNumbersChangedArg struct {
+	List        []UserPhoneNumber `codec:"list" json:"list"`
+	Category    string            `codec:"category" json:"category"`
+	PhoneNumber PhoneNumber       `codec:"phoneNumber" json:"phoneNumber"`
 }
 
 type NotifyPhoneNumberInterface interface {
-	PhoneNumberAdded(context.Context, PhoneNumber) error
-	PhoneNumberVerified(context.Context, PhoneNumber) error
-	PhoneNumberSuperseded(context.Context, PhoneNumber) error
+	PhoneNumbersChanged(context.Context, PhoneNumbersChangedArg) error
 }
 
 func NotifyPhoneNumberProtocol(i NotifyPhoneNumberInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.NotifyPhoneNumber",
 		Methods: map[string]rpc.ServeHandlerDescription{
-			"phoneNumberAdded": {
+			"phoneNumbersChanged": {
 				MakeArg: func() interface{} {
-					var ret [1]PhoneNumberAddedArg
+					var ret [1]PhoneNumbersChangedArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]PhoneNumberAddedArg)
+					typedArgs, ok := args.(*[1]PhoneNumbersChangedArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]PhoneNumberAddedArg)(nil), args)
+						err = rpc.NewTypeError((*[1]PhoneNumbersChangedArg)(nil), args)
 						return
 					}
-					err = i.PhoneNumberAdded(ctx, typedArgs[0].PhoneNumber)
-					return
-				},
-			},
-			"phoneNumberVerified": {
-				MakeArg: func() interface{} {
-					var ret [1]PhoneNumberVerifiedArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]PhoneNumberVerifiedArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]PhoneNumberVerifiedArg)(nil), args)
-						return
-					}
-					err = i.PhoneNumberVerified(ctx, typedArgs[0].PhoneNumber)
-					return
-				},
-			},
-			"phoneNumberSuperseded": {
-				MakeArg: func() interface{} {
-					var ret [1]PhoneNumberSupersededArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]PhoneNumberSupersededArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]PhoneNumberSupersededArg)(nil), args)
-						return
-					}
-					err = i.PhoneNumberSuperseded(ctx, typedArgs[0].PhoneNumber)
+					err = i.PhoneNumbersChanged(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -83,20 +45,7 @@ type NotifyPhoneNumberClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c NotifyPhoneNumberClient) PhoneNumberAdded(ctx context.Context, phoneNumber PhoneNumber) (err error) {
-	__arg := PhoneNumberAddedArg{PhoneNumber: phoneNumber}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyPhoneNumber.phoneNumberAdded", []interface{}{__arg})
-	return
-}
-
-func (c NotifyPhoneNumberClient) PhoneNumberVerified(ctx context.Context, phoneNumber PhoneNumber) (err error) {
-	__arg := PhoneNumberVerifiedArg{PhoneNumber: phoneNumber}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyPhoneNumber.phoneNumberVerified", []interface{}{__arg})
-	return
-}
-
-func (c NotifyPhoneNumberClient) PhoneNumberSuperseded(ctx context.Context, phoneNumber PhoneNumber) (err error) {
-	__arg := PhoneNumberSupersededArg{PhoneNumber: phoneNumber}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyPhoneNumber.phoneNumberSuperseded", []interface{}{__arg})
+func (c NotifyPhoneNumberClient) PhoneNumbersChanged(ctx context.Context, __arg PhoneNumbersChangedArg) (err error) {
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyPhoneNumber.phoneNumbersChanged", []interface{}{__arg})
 	return
 }
