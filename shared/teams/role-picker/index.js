@@ -33,20 +33,22 @@ type RoleRowProps = {
   icon: ?React.Node,
   selected: boolean,
   title: React.Node,
+  onSelect: ?() => void,
 }
 const RoleRow = (p: RoleRowProps) => (
   <Kb.Box2 direction={'vertical'} fullWidth={true} alignItems={'flex-start'} style={styles.row}>
-    <Kb.Box2
-      direction={'vertical'}
-      fullWidth={true}
-      style={Styles.collapseStyles([p.disabledReason ? styles.disabledRow : undefined, styles.rowChild])}
-    >
-      <Kb.Box2 direction={'horizontal'} alignItems={'center'} fullWidth={true}>
-        <Kb.RadioButton label="" onSelect={() => {}} selected={p.selected} />
+    <Kb.Box2 direction={'vertical'} fullWidth={true} style={styles.rowChild}>
+      <Kb.Box2
+        direction={'horizontal'}
+        alignItems={'center'}
+        fullWidth={true}
+        style={p.disabledReason ? styles.disabledRow : undefined}
+      >
+        <Kb.RadioButton label="" onSelect={p.onSelect || (() => {})} selected={p.selected} />
         {p.icon}
         {p.title}
       </Kb.Box2>
-      <Kb.Box style={styles.rowBody}>
+      <Kb.Box style={p.disabledReason ? undefined : styles.rowBody}>
         {p.body}
         {p.disabledReason}
       </Kb.Box>
@@ -173,7 +175,7 @@ const roleElementHelper = (selectedRole: ?Role) =>
     }))
 
 const disabledTextHelper = (text: string) => (
-  <Kb.Text type="BodySmallError" style={styles.text}>
+  <Kb.Text type="BodySmall" style={styles.text}>
     {text}
   </Kb.Text>
 )
@@ -189,10 +191,10 @@ const headerTextHelper = (text: ?string) =>
   )
 
 const footerButtonsHelper = (onCancel, onConfirm, confirmLabel) => (
-  <Kb.Box2 direction="horizontal" alignItems="flex-end">
+  <Kb.ButtonBar direction="row" fullWidth={true} style={styles.footerButtonBar}>
     {!!onCancel && <Kb.Button type="Dim" label="Cancel" onClick={onCancel} />}
-    <Kb.Button style={styles.confirmButton} disabled={!onConfirm} label={confirmLabel} onClick={onConfirm} />
-  </Kb.Box2>
+    <Kb.Button fullWidth={true} disabled={!onConfirm} label={confirmLabel} onClick={onConfirm} />
+  </Kb.ButtonBar>
 )
 
 const confirmLabelHelper = (presetRole: ?Role, selectedRole: ?Role): string => {
@@ -207,37 +209,31 @@ const confirmLabelHelper = (presetRole: ?Role, selectedRole: ?Role): string => {
 const RolePicker = (props: Props) => {
   let selectedRole = props.selectedRole || props.presetRole
   return (
-    <Kb.Box2
-      direction="vertical"
-      alignItems={'stretch'}
-      fullHeight={Styles.isMobile}
-      fullWidth={Styles.isMobile}
-      style={styles.container}
-    >
+    <Kb.Box2 direction="vertical" alignItems={'stretch'} style={styles.container}>
       {headerTextHelper(props.headerText)}
       {map(
         roleElementHelper(selectedRole),
         // $FlowIssue, the library type for map is wrong
-        ({role, ...nodeMap}: {[key: string]: React.Node, role: Role}): React.Node => (
-          <Kb.ClickableBox
-            key={role}
-            onClick={
-              props.disabledRoles && props.disabledRoles[role] ? undefined : () => props.onSelectRole(role)
-            }
-          >
-            <RoleRow
-              selected={selectedRole === role}
-              title={nodeMap.title}
-              body={nodeMap.body}
-              icon={nodeMap.icon}
-              disabledReason={
-                props.disabledRoles &&
-                props.disabledRoles[role] &&
-                disabledTextHelper(props.disabledRoles[role])
-              }
-            />
-          </Kb.ClickableBox>
-        )
+        ({role, ...nodeMap}: {[key: string]: React.Node, role: Role}): React.Node => {
+          const onSelect =
+            props.disabledRoles && props.disabledRoles[role] ? undefined : () => props.onSelectRole(role)
+          return (
+            <Kb.ClickableBox key={role} onClick={onSelect}>
+              <RoleRow
+                selected={selectedRole === role}
+                title={nodeMap.title}
+                body={nodeMap.body}
+                icon={nodeMap.icon}
+                onSelect={onSelect}
+                disabledReason={
+                  props.disabledRoles &&
+                  props.disabledRoles[role] &&
+                  disabledTextHelper(props.disabledRoles[role])
+                }
+              />
+            </Kb.ClickableBox>
+          )
+        }
       ).map((row, i, arr) => [row, i === arr.length - 1 ? null : <Kb.Divider key={i} />])}
       <Kb.Box2 fullWidth={true} direction="vertical" style={styles.footer}>
         {props.footerComponent}
@@ -268,11 +264,6 @@ const styles = Styles.styleSheetCreate({
     paddingTop: 2,
     position: 'absolute',
   },
-  confirmButton: {
-    alignSelf: 'flex-end',
-    marginLeft: Styles.globalMargins.tiny,
-    minWidth: 128,
-  },
   container: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.white,
@@ -287,7 +278,7 @@ const styles = Styles.styleSheetCreate({
       width: 310,
     },
     isMobile: {
-      paddingTop: Styles.globalMargins.medium,
+      flex: 1,
     },
   }),
   disabledRow: {
@@ -298,6 +289,11 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'flex-end',
     paddingBottom: Styles.globalMargins.small,
     paddingTop: Styles.globalMargins.tiny,
+  },
+  footerButtonBar: {
+    alignItems: 'flex-end',
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
   },
   headerText: {
     alignSelf: 'center',
@@ -350,7 +346,7 @@ export class FloatingRolePicker extends React.Component<FloatingProps, S> {
   _returnRef = () => this.state.ref
   _setRef = ref => this.setState({ref})
   render() {
-    const {position, children, open, floatingContainerStyle, ...props} = this.props
+    const {position, children, open, floatingContainerStyle, onCancel, ...props} = this.props
     return (
       <>
         <Kb.Box ref={this._setRef}>{children}</Kb.Box>
@@ -358,11 +354,14 @@ export class FloatingRolePicker extends React.Component<FloatingProps, S> {
           <Kb.FloatingBox
             attachTo={this.state.ref && this._returnRef}
             position={position || 'top center'}
-            onHidden={props.onCancel}
+            onHidden={onCancel}
           >
-            <Kb.Box style={floatingContainerStyle}>
-              <RolePicker {...props} />
-            </Kb.Box>
+            <Kb.Box2 direction={'vertical'} fullHeight={Styles.isMobile} style={floatingContainerStyle}>
+              {Styles.isMobile && (
+                <Kb.HeaderHocHeader onLeftAction={onCancel} leftAction={'cancel'} title="Pick a role" />
+              )}
+              <RolePicker {...props} onCancel={Styles.isMobile ? undefined : onCancel} />
+            </Kb.Box2>
           </Kb.FloatingBox>
         )}
       </>
