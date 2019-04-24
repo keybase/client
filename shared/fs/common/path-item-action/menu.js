@@ -106,6 +106,14 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => [
         },
       ]
     : []),
+  ...(props.copyPath
+    ? [
+        {
+          onClick: hideMenuOnClick(props.copyPath, hideMenu),
+          title: 'Copy path',
+        },
+      ]
+    : []),
   ...(props.share
     ? [
         {
@@ -154,14 +162,6 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => [
             ) : (
               <ActionableMenuEntry text="Send to other app" />
             ),
-        },
-      ]
-    : []),
-  ...(props.copyPath
-    ? [
-        {
-          onClick: hideMenuOnClick(props.copyPath, hideMenu),
-          title: 'Copy path',
         },
       ]
     : []),

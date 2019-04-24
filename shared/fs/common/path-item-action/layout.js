@@ -116,7 +116,7 @@ const totalShare = layout =>
   (layout.sendAttachmentToChat ? 1 : 0) + (layout.sendLinkToChat ? 1 : 0) + (layout.sendToOtherApp ? 1 : 0)
 
 const consolidateShares = (layout: Layout): Layout =>
-  totalShare(layout) > 1
+  isMobile && totalShare(layout) > 1
     ? {
         ...layout,
         sendAttachmentToChat: false,

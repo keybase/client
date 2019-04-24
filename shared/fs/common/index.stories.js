@@ -108,7 +108,6 @@ export const commonProvider = {
   RefreshDriverStatusOnMount: () => ({
     refresh: Sb.action('refresh'),
   }),
-  SendInAppAction: ({path}: {path: Types.Path}) => ({onClick: Sb.action('onClick'), path}),
   SyncStatus: () => ({
     folder: false,
     status: 'online-only',

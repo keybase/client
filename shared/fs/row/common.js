@@ -4,7 +4,7 @@ import * as Styles from '../../styles'
 import * as Types from '../../constants/types/fs'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import {OpenInSystemFileManager, PathItemIcon, PathItemAction, SendInAppAction, SyncStatus} from '../common'
+import {OpenInSystemFileManager, PathItemIcon, PathItemAction, SyncStatus} from '../common'
 import flags from '../../util/feature-flags'
 
 export type StillCommonProps = {
@@ -36,7 +36,6 @@ export const StillCommon = (
       Types.getPathLevel(props.path) > 2 && (
         <Kb.Box2 direction="horizontal">
           <OpenInSystemFileManager path={props.path} />
-          <SendInAppAction path={props.path} />
           <PathItemAction
             path={props.path}
             clickable={{type: 'icon'}}
