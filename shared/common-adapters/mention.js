@@ -20,7 +20,7 @@ export default ({username, theme, style, allowFontScaling, onClick}: Props) => (
     type="BodySemibold"
     onClick={onClick || undefined}
     className={Styles.classNames({'hover-underline': !Styles.isMobile})}
-    style={Styles.collapseStyles([style, styles[theme || 'none'], styles.kerning])}
+    style={Styles.collapseStyles([style, styles[theme || 'none'], styles.text])}
     allowFontScaling={allowFontScaling}
   >
     @{username}
@@ -37,9 +37,6 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.yellow,
     borderRadius: 2,
   },
-  kerning: {
-    letterSpacing: 0.3,
-  },
   nonFollow: {
     backgroundColor: Styles.globalColors.blue4,
     borderRadius: 2,
@@ -48,4 +45,14 @@ const styles = Styles.styleSheetCreate({
   none: {
     borderRadius: 2,
   },
+  text: Styles.platformStyles({
+    common: {
+      letterSpacing: 0.3,
+      paddingLeft: 2,
+      paddingRight: 2,
+    },
+    isElectron: {
+      display: 'inline-block',
+    },
+  }),
 })
