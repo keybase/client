@@ -72,6 +72,9 @@ class Header extends React.PureComponent<Props> {
               onClick={this.props.onPop}
             />
 
+            {flags.kbfsOfflineMode && <SyncingFolders />}
+            {!title && rightActions}
+
             {!Platform.isDarwin && (
               <Kb.Box2 direction="horizontal" gap="small">
                 <Kb.Icon
@@ -95,8 +98,6 @@ class Header extends React.PureComponent<Props> {
                 />
               </Kb.Box2>
             )}
-            {flags.kbfsOfflineMode && <SyncingFolders />}
-            {!title && rightActions}
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bottom}>
             <Kb.Box2 direction="horizontal" style={styles.flexOne}>
