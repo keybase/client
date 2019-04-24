@@ -61,7 +61,7 @@ const icons = {
 }
 
 const TabBarIcon = ({badgeNumber, focused, routeName}) => (
-  <Kb.NativeView style={tabStyles.iconContainer}>
+  <Kb.NativeView style={tabStyles.container}>
     <Kb.Icon
       type={icons[routeName]}
       fontSize={32}
@@ -114,23 +114,7 @@ const tabStyles = Styles.styleSheetCreate({
     top: 3,
   },
   container: {
-    alignItems: 'center',
-    backgroundColor: Styles.globalColors.darkBlue2,
-    height: Styles.isAndroid ? 56 : 48,
-    justifyContent: 'space-around',
-  },
-  iconContainer: {
     position: 'relative',
-  },
-  // When we have new tabs
-  meta: {
-    position: 'absolute',
-    right: 0,
-    top: 0,
-  },
-  safe: {
-    backgroundColor: Styles.globalColors.darkBlue2,
-    flexGrow: 0,
   },
   tab: {
     paddingBottom: 6,
