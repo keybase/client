@@ -42,7 +42,7 @@ const Header = (p: Props) => {
   }
   if (p.isTeam && p.desc && p.canEditDesc) {
     description = (
-      <Kb.WithTooltip position="bottom center" text="Set the description using the /headline command.">
+      <Kb.WithTooltip position="bottom left" text="Set the description using the /headline command.">
         {description}
       </Kb.WithTooltip>
     )
