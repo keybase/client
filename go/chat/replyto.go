@@ -165,32 +165,28 @@ func (f *ReplyFiller) Fill(ctx context.Context, uid gregor1.UID, conv types.Unbo
 	}
 
 	// Modify messages
-	for _, msg := range msgs {
+	res = make([]chat1.MessageUnboxed, len(msgs))
+	for index, msg := range msgs {
+		res[index] = msg
 		if replyToID := f.getReplyTo(msg); replyToID != nil {
 			st, err := msg.State()
 			if err != nil {
-				res = append(res, msg)
 				continue
 			}
 			replyTo, found := replyMap[*replyToID]
 			if !found {
-				res = append(res, msg)
 				continue
 			}
 			switch st {
 			case chat1.MessageUnboxedState_VALID:
 				mvalid := msg.Valid()
 				mvalid.ReplyTo = &replyTo
-				res = append(res, chat1.NewMessageUnboxedWithValid(mvalid))
+				res[index] = chat1.NewMessageUnboxedWithValid(mvalid)
 			case chat1.MessageUnboxedState_OUTBOX:
 				obr := msg.Outbox()
 				obr.ReplyTo = &replyTo
-				res = append(res, chat1.NewMessageUnboxedWithOutbox(obr))
-			default:
-				res = append(res, msg)
+				res[index] = chat1.NewMessageUnboxedWithOutbox(obr)
 			}
-		} else {
-			res = append(res, msg)
 		}
 	}
 	return res, nil
