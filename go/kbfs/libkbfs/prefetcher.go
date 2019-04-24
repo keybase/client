@@ -656,8 +656,8 @@ func (p *blockPrefetcher) handleStatusRequest(req *prefetchStatusRequest) {
 // handleCriticalRequests should be called periodically during any
 // long prefetch requests, to make sure we handle critical requests
 // quickly.  These are requests that are required to be run in the
-// main processing goroutine, but shouldn'won't interfere with
-// whatever request we're in the middle of.
+// main processing goroutine, but won't interfere with whatever
+// request we're in the middle of.
 func (p *blockPrefetcher) handleCriticalRequests() {
 	for {
 		// Fulfill any status requests since the user could be waiting
