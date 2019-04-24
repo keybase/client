@@ -16,18 +16,13 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-// cap the in-memory cache size
-const cacheSize = 250
-
 type Indexer struct {
 	globals.Contextified
 	utils.DebugLabeler
 	sync.Mutex
 
 	// encrypted on-disk storage
-	store *store
-	// in-memory cache, "uid:convID" -> idx
-	cache    map[string]*chat1.ConversationIndex
+	store    *store
 	pageSize int
 	stopCh   chan struct{}
 	started  bool
@@ -45,7 +40,6 @@ func NewIndexer(g *globals.Context) *Indexer {
 	idx := &Indexer{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Search.Indexer", false),
-		cache:        make(map[string]*chat1.ConversationIndex),
 		store:        newStore(g),
 		pageSize:     defaultPageSize,
 		stopCh:       make(chan struct{}),
@@ -133,50 +127,11 @@ func (idx *Indexer) Stop(ctx context.Context) chan struct{} {
 	return ch
 }
 
-func (idx *Indexer) ClearCache() {
-	idx.Lock()
-	defer idx.Unlock()
-	idx.cache = make(map[string]*chat1.ConversationIndex)
-}
-
-func (idx *Indexer) OnLogout(mctx libkb.MetaContext) error {
-	idx.ClearCache()
-	return nil
-}
-
-func (idx *Indexer) OnDbNuke(mctx libkb.MetaContext) error {
-	idx.ClearCache()
-	return nil
-}
-
-func (idx *Indexer) cacheKey(convID chat1.ConversationID, uid gregor1.UID) string {
-	return fmt.Sprintf("%s:%s", uid, convID)
-}
-
-func (idx *Indexer) deleteFromCache(convID chat1.ConversationID, uid gregor1.UID) {
-	idx.Lock()
-	defer idx.Unlock()
-
-	key := idx.cacheKey(convID, uid)
-	delete(idx.cache, key)
-}
-
 func (idx *Indexer) GetConvIndex(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (*chat1.ConversationIndex, error) {
 	idx.Lock()
 	defer idx.Unlock()
 
-	key := idx.cacheKey(convID, uid)
-	if convIdx, ok := idx.cache[key]; ok {
-		return convIdx, nil
-	}
-	convIdx, err := idx.store.getConvIndex(ctx, convID, uid)
-	if err != nil {
-		return nil, err
-	}
-	if len(idx.cache) < cacheSize {
-		idx.cache[key] = convIdx
-	}
-	return convIdx, nil
+	return idx.store.getConvIndex(ctx, convID, uid)
 }
 
 // validBatch verifies the topic type is CHAT
@@ -217,7 +172,6 @@ func (idx *Indexer) Add(ctx context.Context, convID chat1.ConversationID, uid gr
 	defer idx.Trace(ctx, func() error { return err },
 		fmt.Sprintf("Indexer.Add convID: %v, msgs: %d", convID.String(), len(msgs)))()
 	defer idx.consumeResultsForTest(convID, err)
-	idx.deleteFromCache(convID, uid)
 	return idx.store.add(ctx, convID, uid, msgs)
 }
 
@@ -232,7 +186,6 @@ func (idx *Indexer) Remove(ctx context.Context, convID chat1.ConversationID, uid
 	defer idx.Trace(ctx, func() error { return err },
 		fmt.Sprintf("Indexer.Remove convID: %v, msgs: %d", convID.String(), len(msgs)))()
 	defer idx.consumeResultsForTest(convID, err)
-	idx.deleteFromCache(convID, uid)
 	return idx.store.remove(ctx, convID, uid, msgs)
 }
 
