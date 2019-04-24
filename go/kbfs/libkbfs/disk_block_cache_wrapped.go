@@ -503,6 +503,7 @@ func (cache *diskBlockCacheWrapped) GetTlfSize(
 	defer cache.mtx.RUnlock()
 
 	if cacheType != DiskBlockWorkingSetCache {
+		// Either sync cache only, or both.
 		syncSize, err := cache.syncCache.GetTlfSize(ctx, tlfID)
 		if err != nil {
 			return 0, err
@@ -511,6 +512,7 @@ func (cache *diskBlockCacheWrapped) GetTlfSize(
 	}
 
 	if cacheType != DiskBlockSyncCache {
+		// Either working set cache only, or both.
 		workingSetSize, err := cache.workingSetCache.GetTlfSize(ctx, tlfID)
 		if err != nil {
 			return 0, err
@@ -530,6 +532,7 @@ func (cache *diskBlockCacheWrapped) GetTlfIDs(
 	defer cache.mtx.RUnlock()
 
 	if cacheType != DiskBlockWorkingSetCache {
+		// Either sync cache only, or both.
 		tlfIDs, err = cache.syncCache.GetTlfIDs(ctx)
 		if err != nil {
 			return nil, err
@@ -537,6 +540,7 @@ func (cache *diskBlockCacheWrapped) GetTlfIDs(
 	}
 
 	if cacheType != DiskBlockSyncCache {
+		// Either working set cache only, or both.
 		wsTlfIDs, err := cache.workingSetCache.GetTlfIDs(ctx)
 		if err != nil {
 			return nil, err
