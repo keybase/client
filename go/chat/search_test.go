@@ -105,11 +105,11 @@ func TestChatSearchConvRegexp(t *testing.T) {
 		}
 
 		runSearch := func(query string, isRegex bool, opts chat1.SearchOpts) chat1.SearchRegexpRes {
+			opts.IsRegex = isRegex
 			res, err := tc1.chatLocalHandler().SearchRegexp(tc1.startCtx, chat1.SearchRegexpArg{
-				ConvID:  convID,
-				Query:   query,
-				IsRegex: isRegex,
-				Opts:    opts,
+				ConvID: convID,
+				Query:  query,
+				Opts:   opts,
 			})
 			require.NoError(t, err)
 			t.Logf("query: %v, searchRes: %+v", query, res)
@@ -348,9 +348,11 @@ func TestChatSearchConvRegexp(t *testing.T) {
 
 		// Test invalid regex
 		_, err = tc1.chatLocalHandler().SearchRegexp(tc1.startCtx, chat1.SearchRegexpArg{
-			ConvID:  convID,
-			Query:   "(",
-			IsRegex: true,
+			ConvID: convID,
+			Query:  "(",
+			Opts: chat1.SearchOpts{
+				IsRegex: true,
+			},
 		})
 		require.Error(t, err)
 	})
