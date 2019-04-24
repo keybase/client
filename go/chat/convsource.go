@@ -146,7 +146,9 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 	if replyFiller == nil {
 		replyFiller = NewReplyFiller(s.G())
 	}
-	thread.Messages = replyFiller.Fill(ctx, uid, conv, thread.Messages)
+	if thread.Messages, err = replyFiller.Fill(ctx, uid, conv, thread.Messages); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -923,7 +925,10 @@ func (s *HybridConversationSource) notifyUpdated(ctx context.Context, uid gregor
 		return
 	}
 	s.Debug(ctx, "notifyUpdated: %d messages after transform", len(updatedMsgs))
-	updatedMsgs = NewReplyFiller(s.G()).Fill(ctx, uid, conv.Conv, updatedMsgs)
+	if updatedMsgs, err = NewReplyFiller(s.G()).Fill(ctx, uid, conv.Conv, updatedMsgs); err != nil {
+		s.Debug(ctx, "notifyUpdated: failed to fill replies %s", err)
+		return
+	}
 	notif := chat1.MessagesUpdated{
 		ConvID: convID,
 	}

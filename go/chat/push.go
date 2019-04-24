@@ -456,17 +456,20 @@ func (g *PushHandler) getSupersedesTarget(ctx context.Context, uid gregor1.UID,
 			g.Debug(ctx, "getSupersedesTarget: failed to get xform'd message: %v", err)
 			return nil
 		}
-		uiMsg := utils.PresentMessageUnboxed(ctx, g.G(),
-			NewReplyFiller(g.G()).FillSingle(ctx, uid, conv, msgs[0]), uid, conv.GetConvID())
+		filledMsg, err := NewReplyFiller(g.G()).FillSingle(ctx, uid, conv, msgs[0])
+		if err != nil {
+			g.Debug(ctx, "getSupersedesTarget: failed to fill reply: %v", err)
+		}
+		uiMsg := utils.PresentMessageUnboxed(ctx, g.G(), filledMsg, uid, conv.GetConvID())
 		return &uiMsg
 	}
 	return nil
 }
 
 func (g *PushHandler) getReplyMessage(ctx context.Context, uid gregor1.UID, conv *chat1.ConversationLocal,
-	msg chat1.MessageUnboxed) chat1.MessageUnboxed {
+	msg chat1.MessageUnboxed) (chat1.MessageUnboxed, error) {
 	if conv == nil {
-		return msg
+		return msg, nil
 	}
 	return NewReplyFiller(g.G()).FillSingle(ctx, uid, conv, msg)
 }
@@ -550,11 +553,11 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				nm.Message, nm.MaxMsgs); err != nil {
 				g.Debug(ctx, "chat activity: unable to update inbox: %v", err)
 			}
+			// Add on reply information if we have it
+			decmsg, pushErr = g.getReplyMessage(ctx, uid, conv, decmsg)
 
 			// If we have no error on this message, then notify the frontend
 			if pushErr == nil {
-				// Add on reply information if we have it
-				decmsg = g.getReplyMessage(ctx, uid, conv, decmsg)
 				// Make a pagination object so client can use it in GetThreadLocal
 				pmsgs := []pager.Message{nm.Message}
 				pager := pager.NewThreadPager()

@@ -101,17 +101,20 @@ func (f *ReplyFiller) getReplyTo(msg chat1.MessageUnboxed) *chat1.MessageID {
 }
 
 func (f *ReplyFiller) FillSingle(ctx context.Context, uid gregor1.UID, conv types.UnboxConversationInfo,
-	msg chat1.MessageUnboxed) (res chat1.MessageUnboxed) {
-	msgs := f.Fill(ctx, uid, conv, []chat1.MessageUnboxed{msg})
-	if len(msgs) == 0 {
-		return msg
+	msg chat1.MessageUnboxed) (res chat1.MessageUnboxed, err error) {
+	msgs, err := f.Fill(ctx, uid, conv, []chat1.MessageUnboxed{msg})
+	if err != nil {
+		return res, err
 	}
-	return msgs[0]
+	if len(msgs) == 0 {
+		return msg, nil
+	}
+	return msgs[0], nil
 }
 
 func (f *ReplyFiller) Fill(ctx context.Context, uid gregor1.UID, conv types.UnboxConversationInfo,
-	msgs []chat1.MessageUnboxed) (res []chat1.MessageUnboxed) {
-
+	msgs []chat1.MessageUnboxed) (res []chat1.MessageUnboxed, err error) {
+	defer f.Trace(ctx, func() error { return err }, "Fill")()
 	// Gather up the message IDs we need
 	repliedToMsgIDsLocal := newFillerReplyMsgs(f.localFetcher)
 	repliedToMsgIDsRemote := newFillerReplyMsgs(f.G().ConvSource.GetMessages)
@@ -139,13 +142,13 @@ func (f *ReplyFiller) Fill(ctx context.Context, uid gregor1.UID, conv types.Unbo
 	// Fetch messages
 	localMsgs, err := repliedToMsgIDsLocal.fill(ctx, uid, conv)
 	if err != nil {
-		localMsgs = nil
 		f.Debug(ctx, "Fill: failed to get local messages: %s", err)
+		return res, err
 	}
 	remoteMsgs, err := repliedToMsgIDsRemote.fill(ctx, uid, conv)
 	if err != nil {
-		remoteMsgs = nil
 		f.Debug(ctx, "Fill: failed to get remote messages: %s", err)
+		return res, err
 	}
 	origMsgs := append(localMsgs, remoteMsgs...)
 	transform := newBasicSupersedesTransform(f.G(), basicSupersedesTransformOpts{
@@ -154,7 +157,7 @@ func (f *ReplyFiller) Fill(ctx context.Context, uid gregor1.UID, conv types.Unbo
 	allMsgs, err := transform.Run(ctx, conv, uid, origMsgs)
 	if err != nil {
 		f.Debug(ctx, "Fill: failed to supersede replies: %s", err)
-		allMsgs = origMsgs
+		return res, err
 	}
 	replyMap := make(map[chat1.MessageID]chat1.MessageUnboxed)
 	for _, msg := range allMsgs {
@@ -188,5 +191,5 @@ func (f *ReplyFiller) Fill(ctx context.Context, uid gregor1.UID, conv types.Unbo
 			res = append(res, msg)
 		}
 	}
-	return res
+	return res, nil
 }

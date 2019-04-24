@@ -915,8 +915,11 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	// Send up to frontend
 	if cerr == nil && boxed.GetMessageType() != chat1.MessageType_LEAVE {
 		if convLocal != nil {
-			unboxedMsg = NewReplyFiller(s.G()).FillSingle(ctx, boxed.ClientHeader.Sender, *convLocal,
+			unboxedMsg, err = NewReplyFiller(s.G()).FillSingle(ctx, boxed.ClientHeader.Sender, *convLocal,
 				unboxedMsg)
+			if err != nil {
+				s.Debug(ctx, "Send: failed to fill reply: %s", err)
+			}
 		}
 		activity := chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
 			Message: utils.PresentMessageUnboxed(ctx, s.G(), unboxedMsg, boxed.ClientHeader.Sender,
@@ -1025,9 +1028,9 @@ func (s *Deliverer) Start(ctx context.Context, uid gregor1.UID) {
 			}
 			conv := newBasicUnboxConversationInfo(convID, chat1.ConversationMembersType_IMPTEAMNATIVE, nil,
 				vis)
-			msgs := NewReplyFiller(s.G()).Fill(ctx, uid, conv,
+			msgs, err := NewReplyFiller(s.G()).Fill(ctx, uid, conv,
 				[]chat1.MessageUnboxed{chat1.NewMessageUnboxedWithOutbox(obr)})
-			if len(msgs) > 0 {
+			if err != nil && len(msgs) > 0 {
 				obr.ReplyTo = &msgs[0]
 			}
 			act := chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
