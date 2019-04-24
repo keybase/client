@@ -18,7 +18,6 @@ const load = () => {
             icon="iconfont-search"
             placeholderText="Search in the universe"
             onChange={Sb.action('onChange')}
-            type="Small"
             waiting={true}
           />
         </Box2>
@@ -29,7 +28,7 @@ const load = () => {
             icon="iconfont-search"
             placeholderText="Search in the universe"
             onChange={Sb.action('onChange')}
-            type="Full-width"
+            fullWidth={true}
             waiting={true}
           />
         </Box2>
@@ -41,7 +40,7 @@ const load = () => {
             placeholderText="Search in the universe"
             onChange={Sb.action('onChange')}
             onClick={Sb.action('onClick')}
-            type="Full-width"
+            fullWidth={true}
             waiting={true}
           />
         </Box2>
@@ -50,7 +49,7 @@ const load = () => {
           icon="iconfont-search"
           placeholderText="Search in the universe (by itself in a column flex box)"
           onChange={Sb.action('onChange')}
-          type="Full-width"
+          fullWidth={true}
         />
         <Box style={{backgroundColor: Styles.globalColors.blue, padding: Styles.globalMargins.large}}>
           <SearchFilter
@@ -60,24 +59,17 @@ const load = () => {
             negative={true}
             placeholderText="Search in the universe"
             onChange={Sb.action('onChange')}
-            type="Small"
           />
         </Box>
       </Box2>
     ))
     .add('SearchFilter - Mobile', () => (
       <Box2 direction="vertical" fullWidth={true} gap="small" gapStart={true}>
+        <SearchFilter icon="iconfont-search" placeholderText="Search" onChange={Sb.action('onChange')} />
         <SearchFilter
           icon="iconfont-search"
           placeholderText="Search"
           onChange={Sb.action('onChange')}
-          type="Mobile"
-        />
-        <SearchFilter
-          icon="iconfont-search"
-          placeholderText="Search"
-          onChange={Sb.action('onChange')}
-          type="Mobile"
           waiting={true}
         />
         <Box style={{backgroundColor: Styles.globalColors.blue}}>
@@ -85,7 +77,6 @@ const load = () => {
             icon="iconfont-search"
             placeholderText="Search"
             onChange={Sb.action('onChange')}
-            type="Mobile"
             negative={true}
           />
         </Box>
@@ -94,7 +85,6 @@ const load = () => {
             icon="iconfont-search"
             placeholderText="Search"
             onChange={Sb.action('onChange')}
-            type="Mobile"
             waiting={true}
             negative={true}
           />

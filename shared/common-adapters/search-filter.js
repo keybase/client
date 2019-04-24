@@ -25,13 +25,13 @@ const Kb = {
 
 type Props = {|
   icon?: ?IconType,
-  focusOnMount?: ?boolean,
-  negative?: ?boolean,
+  focusOnMount?: boolean,
+  fullWidth?: boolean,
+  negative?: boolean,
   onChange: (text: string) => void,
   placeholderText: string,
   style?: ?Styles.StylesCrossPlatform,
-  type: 'Small' | 'Full-width' | 'Mobile',
-  waiting?: ?boolean,
+  waiting?: boolean,
 
   onBlur?: ?() => void,
   // If onClick is provided, this component won't focus on click. User is
@@ -57,7 +57,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
     text: '',
   }
 
-  _input = React.createRef()
+  _inputRef = React.createRef()
   _onBlur = () => {
     this.setState({focused: false})
     this.props.onBlur && this.props.onBlur()
@@ -68,14 +68,12 @@ class SearchFilter extends React.PureComponent<Props, State> {
 
   _focus = () => {
     if (this.state.focused) {
-      // Can't just make a null for Kb.ClickableBox as that'd cause
-      // PlainInput to be re-constructed.
       return
     }
-    this._input.current && this._input.current.focus()
+    this._inputRef.current && this._inputRef.current.focus()
   }
   _blur = () => {
-    this._input.current && this._input.current.blur()
+    this._inputRef.current && this._inputRef.current.blur()
   }
   _clear = () => {
     this._update('')
@@ -103,29 +101,111 @@ class SearchFilter extends React.PureComponent<Props, State> {
   componentDidMount() {
     this.props.focusOnMount && this._focus()
   }
-  render() {
-    if (
-      (this.props.type === 'Mobile' && !Styles.isMobile) ||
-      (this.props.type !== 'Mobile' && Styles.isMobile)
-    ) {
-      return (
-        <Kb.Text type="Header" style={{color: Styles.globalColors.red}}>
-          Unsupported type
-        </Kb.Text>
+  _keyHandler() {
+    return (
+      !Styles.isMobile &&
+      this.props.hotkey &&
+      !this.props.onClick && (
+        <KeyHandler
+          onHotkey={this._onHotkey}
+          hotkeys={[(Platforms.isDarwin ? 'command+' : 'ctrl+') + this.props.hotkey]}
+        />
       )
-    }
-    const iconColor = this.props.negative ? Styles.globalColors.white_75 : Styles.globalColors.black_50
-    const iconSizeType = this.props.type === 'Full-width' ? 'Default' : 'Small'
+    )
+  }
+  _iconSizeType() {
+    return !Styles.isMobile && this.props.fullWidth ? 'Default' : 'Small'
+  }
+  _iconColor() {
+    return this.props.negative ? Styles.globalColors.white_75 : Styles.globalColors.black_50
+  }
+  _leftIcon() {
+    return (
+      this.props.icon &&
+      !this._typing() && (
+        <Kb.Icon
+          type={this.props.icon}
+          sizeType={this._iconSizeType()}
+          color={this._iconColor()}
+          style={{
+            marginRight:
+              !Styles.isMobile && !this.props.fullWidth
+                ? Styles.globalMargins.xtiny
+                : Styles.globalMargins.tiny,
+          }}
+        />
+      )
+    )
+  }
+  _input() {
     const hotkeyText =
       this.props.hotkey && !this.props.onClick && !Styles.isMobile
         ? ` (${Platforms.shortcutSymbol}+${this.props.hotkey.toUpperCase()})`
         : ''
+    return (
+      <Kb.NewInput
+        value={this.state.text}
+        placeholder={this.props.placeholderText + hotkeyText}
+        onChangeText={this._update}
+        onBlur={this._onBlur}
+        onFocus={this._onFocus}
+        onKeyDown={this._onKeyDown}
+        onKeyUp={this.props.onKeyUp}
+        ref={this._inputRef}
+        hideBorder={true}
+        containerStyle={Styles.collapseStyles([
+          styles.inputContainer,
+          Styles.isMobile && !this._typing() && styles.inputNoGrow,
+        ])}
+        style={Styles.collapseStyles([
+          styles.input,
+          !!this.props.negative && styles.textNegative,
+          Styles.isMobile && !this._typing() && styles.inputNoGrow,
+        ])}
+        placeholderColor={this.props.negative ? Styles.globalColors.white_75 : ''}
+      />
+    )
+  }
+  _waiting() {
+    return (
+      !!this.props.waiting &&
+      (Styles.isMobile ? (
+        <Kb.ProgressIndicator type="Small" style={styles.spinnerMobile} white={!!this.props.negative} />
+      ) : (
+        <Kb.Icon
+          type={this.props.negative ? 'icon-progress-white-animated' : 'icon-progress-grey-animated'}
+          style={this.props.fullWidth ? styles.spinnerFullWidth : styles.spinnerSmall}
+        />
+      ))
+    )
+  }
+  _rightCancelIcon() {
+    return Styles.isMobile
+      ? !!this.state.text && (
+          <Kb.Icon
+            type="iconfont-remove"
+            sizeType={this._iconSizeType()}
+            onClick={this._clear}
+            color={this._iconColor()}
+            style={styles.removeIconNonFullWidth}
+          />
+        )
+      : this._typing() && (
+          <Kb.ClickableBox
+            onClick={this._cancel}
+            style={this.props.fullWidth ? styles.removeIconFullWidth : styles.removeIconNonFullWidth}
+          >
+            <Kb.Icon type="iconfont-remove" sizeType={this._iconSizeType()} color={this._iconColor()} />
+          </Kb.ClickableBox>
+        )
+  }
+  render() {
     const content = (
       <Kb.ClickableBox
         style={Styles.collapseStyles([
           styles.container,
-          this.props.type === 'Small' && styles.containerSmall,
-          this.props.type !== 'Small' && styles.containerNonSmall,
+          !Styles.isMobile && !this.props.fullWidth && styles.containerSmall,
+          (Styles.isMobile || this.props.fullWidth) && styles.containerNonSmall,
           !this.props.negative && (this.state.focused || this.state.hover ? styles.light : styles.dark),
           this.props.negative &&
             (this.state.focused || this.state.hover ? styles.lightNegative : styles.darkNegative),
@@ -133,78 +213,20 @@ class SearchFilter extends React.PureComponent<Props, State> {
         ])}
         onMouseOver={this._mouseOver}
         onMouseLeave={this._mouseLeave}
-        onClick={this.props.onClick || this._focus}
+        onClick={
+          this.props.onClick ||
+          // Can't just make a null for Kb.ClickableBox here when focused, as
+          // that'd cause PlainInput to be re-constructed.
+          this._focus
+        }
         underlayColor={Styles.globalColors.transparent}
         hoverColor={Styles.globalColors.transparent}
       >
-        {!Styles.isMobile && this.props.hotkey && !this.props.onClick && (
-          <KeyHandler
-            onHotkey={this._onHotkey}
-            hotkeys={[(Platforms.isDarwin ? 'command+' : 'ctrl+') + this.props.hotkey]}
-          />
-        )}
-        {this.props.icon && !this._typing() && (
-          <Kb.Icon
-            type={this.props.icon}
-            sizeType={iconSizeType}
-            color={iconColor}
-            style={{
-              marginRight:
-                this.props.type === 'Small' ? Styles.globalMargins.xtiny : Styles.globalMargins.tiny,
-            }}
-          />
-        )}
-        <Kb.NewInput
-          value={this.state.text}
-          placeholder={this.props.placeholderText + hotkeyText}
-          onChangeText={this._update}
-          onBlur={this._onBlur}
-          onFocus={this._onFocus}
-          onKeyDown={this._onKeyDown}
-          onKeyUp={this.props.onKeyUp}
-          ref={this._input}
-          hideBorder={true}
-          containerStyle={Styles.collapseStyles([
-            styles.inputContainer,
-            Styles.isMobile && !this._typing() && styles.inputNoGrow,
-          ])}
-          style={Styles.collapseStyles([
-            styles.input,
-            !!this.props.negative && styles.textNegative,
-            Styles.isMobile && !this._typing() && styles.inputNoGrow,
-          ])}
-          placeholderColor={this.props.negative ? Styles.globalColors.white_75 : ''}
-        />
-        {!!this.props.waiting &&
-          (this.props.type === 'Mobile' ? (
-            <Kb.ProgressIndicator type="Small" style={styles.spinnerMobile} white={!!this.props.negative} />
-          ) : (
-            <Kb.Icon
-              type={this.props.negative ? 'icon-progress-white-animated' : 'icon-progress-grey-animated'}
-              style={this.props.type === 'Small' ? styles.spinnerSmall : styles.spinnerFullWidth}
-            />
-          ))}
-        {Styles.isMobile && !!this.state.text && (
-          <Kb.Icon
-            type="iconfont-remove"
-            sizeType={iconSizeType}
-            onClick={this._clear}
-            color={iconColor}
-            style={
-              this.props.type === 'Full-width' ? styles.removeIconFullWidth : styles.removeIconNonFullWidth
-            }
-          />
-        )}
-        {!Styles.isMobile && this._typing() && (
-          <Kb.ClickableBox
-            onClick={this._cancel}
-            style={
-              this.props.type === 'Full-width' ? styles.removeIconFullWidth : styles.removeIconNonFullWidth
-            }
-          >
-            <Kb.Icon type="iconfont-remove" sizeType={iconSizeType} color={iconColor} />
-          </Kb.ClickableBox>
-        )}
+        {this._keyHandler()}
+        {this._leftIcon()}
+        {this._input()}
+        {this._waiting()}
+        {this._rightCancelIcon()}
       </Kb.ClickableBox>
     )
     return Styles.isMobile ? (

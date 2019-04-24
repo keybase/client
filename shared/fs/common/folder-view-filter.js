@@ -17,13 +17,7 @@ type Props = {|
 
 const FolderViewFilter = (props: Props) =>
   Types.getPathLevel(props.path) > 1 && (
-    <Kb.SearchFilter
-      hotkey="f"
-      onChange={props.onUpdate}
-      placeholderText="Filter"
-      type="Small"
-      style={props.style}
-    />
+    <Kb.SearchFilter hotkey="f" onChange={props.onUpdate} placeholderText="Filter" style={props.style} />
   )
 
 type OwnProps = {|
