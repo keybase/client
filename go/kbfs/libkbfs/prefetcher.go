@@ -225,13 +225,7 @@ func (p *blockPrefetcher) sendOverallSyncStatusLocked() {
 	var status keybase1.FolderSyncStatus
 	status.PrefetchProgress = p.overallSyncStatus.ToProtocolProgress(
 		p.config.Clock())
-	if p.overallSyncStatus.SubtreeBytesTotal ==
-		p.overallSyncStatus.SubtreeBytesFetched ||
-		p.overallSyncStatus.SubtreeBytesTotal == 0 {
-		status.PrefetchStatus = keybase1.PrefetchStatus_COMPLETE
-	} else {
-		status.PrefetchStatus = keybase1.PrefetchStatus_IN_PROGRESS
-	}
+	status.PrefetchStatus = p.overallSyncStatus.ToProtocolStatus()
 
 	// Don't fill in the local disk stats for now; add this later if
 	// needed.

@@ -637,3 +637,15 @@ func (p PrefetchProgress) ToProtocolProgress(clock Clock) (
 	out.EndEstimate = keybase1.ToTime(endEstimate)
 	return out
 }
+
+// ToProtocolStatus creates a status suitable of being sent over the
+// keybase1 protocol to the service.  It never generates NOT_STARTED
+// since that doesn't make sense once you already have a prefetch
+// progress created.
+func (p PrefetchProgress) ToProtocolStatus() keybase1.PrefetchStatus {
+	if p.SubtreeBytesTotal == p.SubtreeBytesFetched ||
+		p.SubtreeBytesTotal == 0 {
+		return keybase1.PrefetchStatus_COMPLETE
+	}
+	return keybase1.PrefetchStatus_IN_PROGRESS
+}
