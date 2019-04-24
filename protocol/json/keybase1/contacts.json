@@ -12,6 +12,10 @@
       "name": "ContactComponent",
       "fields": [
         {
+          "type": "string",
+          "name": "label"
+        },
+        {
           "type": [
             null,
             "RawPhoneNumber"
@@ -24,10 +28,6 @@
             "EmailAddress"
           ],
           "name": "email"
-        },
-        {
-          "type": "string",
-          "name": "label"
         }
       ]
     },
@@ -54,7 +54,7 @@
       "fields": [
         {
           "type": "string",
-          "name": "name"
+          "name": "displayName"
         },
         {
           "type": "int",

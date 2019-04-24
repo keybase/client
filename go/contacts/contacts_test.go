@@ -83,7 +83,7 @@ func stringifyResults(res []keybase1.ResolvedContact) (ret []string) {
 			} else if r.Component.Email != nil {
 				phoneOrEmail = string(*r.Component.Email)
 			}
-			ret[i] = fmt.Sprintf("%s %s (%s)", r.Name, phoneOrEmail, r.Component.Label)
+			ret[i] = fmt.Sprintf("%s %s (%s)", r.DisplayName, phoneOrEmail, r.Component.Label)
 		}
 	}
 	return ret
@@ -112,7 +112,7 @@ func TestLookupContacts(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, res, 3)
 	for _, r := range res {
-		require.Equal(t, "Joe", r.Name)
+		require.Equal(t, "Joe", r.DisplayName)
 		require.False(t, r.Resolved)
 		require.True(t, r.Uid.IsNil())
 	}
@@ -123,7 +123,7 @@ func TestLookupContacts(t *testing.T) {
 	res, err = ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
 	require.NoError(t, err)
 	require.Len(t, res, 1)
-	require.Equal(t, "joe", res[0].Name)
+	require.Equal(t, "joe", res[0].DisplayName)
 	require.Equal(t, "Home", res[0].Component.Label)
 	require.NotNil(t, res[0].Component.PhoneNumber)
 	require.Nil(t, res[0].Component.Email)
@@ -150,7 +150,7 @@ func TestLookupContacts(t *testing.T) {
 	res, err = ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
 	require.NoError(t, err)
 	require.Len(t, res, 1)
-	require.Equal(t, "joe", res[0].Name)
+	require.Equal(t, "joe", res[0].DisplayName)
 	require.Equal(t, "E-mail", res[0].Component.Label)
 	require.Nil(t, res[0].Component.PhoneNumber)
 	require.NotNil(t, res[0].Component.Email)
@@ -204,8 +204,8 @@ func TestLookupContactsMultipleUsers(t *testing.T) {
 	res, err = ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
 	require.NoError(t, err)
 	expected = []string{
-		"bob (1)",
 		"charlie (2)",
+		"bob (1)",
 		"Alice +1111222 (Home)",
 		"Alice +199123 (Work)",
 	}

@@ -9,13 +9,14 @@ import (
 )
 
 type ContactComponent struct {
+	Label       string          `codec:"label" json:"label"`
 	PhoneNumber *RawPhoneNumber `codec:"phoneNumber,omitempty" json:"phoneNumber,omitempty"`
 	Email       *EmailAddress   `codec:"email,omitempty" json:"email,omitempty"`
-	Label       string          `codec:"label" json:"label"`
 }
 
 func (o ContactComponent) DeepCopy() ContactComponent {
 	return ContactComponent{
+		Label: o.Label,
 		PhoneNumber: (func(x *RawPhoneNumber) *RawPhoneNumber {
 			if x == nil {
 				return nil
@@ -30,7 +31,6 @@ func (o ContactComponent) DeepCopy() ContactComponent {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Email),
-		Label: o.Label,
 	}
 }
 
@@ -57,7 +57,7 @@ func (o Contact) DeepCopy() Contact {
 }
 
 type ResolvedContact struct {
-	Name         string           `codec:"name" json:"name"`
+	DisplayName  string           `codec:"displayName" json:"displayName"`
 	ContactIndex int              `codec:"contactIndex" json:"contactIndex"`
 	Component    ContactComponent `codec:"component" json:"component"`
 	Err          *string          `codec:"err,omitempty" json:"err,omitempty"`
@@ -69,7 +69,7 @@ type ResolvedContact struct {
 
 func (o ResolvedContact) DeepCopy() ResolvedContact {
 	return ResolvedContact{
-		Name:         o.Name,
+		DisplayName:  o.DisplayName,
 		ContactIndex: o.ContactIndex,
 		Component:    o.Component.DeepCopy(),
 		Err: (func(x *string) *string {

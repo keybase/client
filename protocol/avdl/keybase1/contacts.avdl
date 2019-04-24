@@ -6,17 +6,17 @@ protocol contacts {
     // ---------------------------
 
     record ContactComponent {
+        string label; // "", "Home", "Work"
         // One of:
         union { null, RawPhoneNumber } phoneNumber;
         union { null, EmailAddress } email;
-        string label; // "", "Home", "Work"
     }
     record Contact {
         string name; // "Bob Goodman"
         array<ContactComponent> components;
     }
     record ResolvedContact {
-        string name; // "Bob Goodman"
+        string displayName; // "Bob Goodman"
         int contactIndex; // to associate the resolution to input contact entry
         ContactComponent component;
 
