@@ -223,5 +223,9 @@ func (b *BlockOpsStandard) BlockRetriever() BlockRetriever {
 // Shutdown implements the BlockOps interface for BlockOpsStandard.
 func (b *BlockOpsStandard) Shutdown() {
 	// Block on the queue being done.
-	<-b.queue.Shutdown()
+	select {
+	case <-b.queue.Shutdown():
+	case <-time.After(5 * time.Second):
+		panic("unable to shutdown block ops")
+	}
 }
