@@ -567,7 +567,7 @@ func TestDiskBlockCacheWithRetrievalQueue(t *testing.T) {
 	require.NoError(t, err)
 	// No workers initialized, so no need to clean up the continue ch since
 	// there will be nothing blocking on it.
-	_, _ := bg.setBlockToReturn(ptr1, block1)
+	_, _ = bg.setBlockToReturn(ptr1, block1)
 
 	t.Log("Request a block retrieval for ptr1. " +
 		"Verify the block against the one we put in the disk block cache.")
