@@ -10,9 +10,11 @@ export function intersperseFn<A, B>(
     return arr
   }
 
-  let toReturn = [arr[0]]
+  let toReturn = new Array(arr.length * 2 - 1)
+  toReturn[0] = arr[0]
   for (let i = 1; i < arr.length; i++) {
-    toReturn.push(separatorFn(i, arr[i], arr), arr[i])
+    toReturn[i * 2 - 1] = separatorFn(i, arr[i], arr)
+    toReturn[i * 2] = arr[i]
   }
   return toReturn
 }
