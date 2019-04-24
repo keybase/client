@@ -3,13 +3,13 @@ import * as Kb from '../common-adapters/mobile.native'
 import * as Styles from '../styles'
 import * as React from 'react'
 import GlobalError from '../app/global-errors/container'
-import TabBar from './tab-bar/container'
+import {connect} from '../util/container'
 import {createAppContainer} from '@react-navigation/native'
-import {createSwitchNavigator, StackActions, NavigationActions} from '@react-navigation/core'
+import {createSwitchNavigator, StackActions} from '@react-navigation/core'
 import {createBottomTabNavigator} from 'react-navigation-tabs'
 import {createStackNavigator} from 'react-navigation-stack'
 import * as Tabs from '../constants/tabs'
-import {modalRoutes, routes, nameToTab, loggedOutRoutes} from './routes'
+import {modalRoutes, routes, loggedOutRoutes} from './routes'
 import {LeftAction} from '../common-adapters/header-hoc'
 import * as Constants from '../constants/router2'
 import * as Shared from './router.shared'
@@ -45,29 +45,6 @@ const defaultNavigationOptions = {
 }
 const headerMode = 'float'
 
-// Where the main app stuff happens. You're logged in and have a tab bar etc
-// const MainStackNavigatorPlain = createStackNavigator(Shim.shim(routes), {
-// defaultNavigationOptions,
-// headerMode,
-// initialRouteName: 'tabs.peopleTab',
-// initialRouteParams: undefined,
-// })
-// class MainStackNavigator extends React.PureComponent<any> {
-// static router = MainStackNavigatorPlain.router
-
-// render() {
-// const routeName = this.props.navigation.state.routes[this.props.navigation.state.index].routeName
-// return (
-// <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-// <MainStackNavigatorPlain navigation={this.props.navigation} />
-// <TabBar selectedTab={nameToTab[routeName]} />
-// <GlobalError />
-// <OutOfDate />
-// </Kb.Box2>
-// )
-// }
-// }
-
 const tabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.teamsTab, Tabs.settingsTab]
 const tabRoots = {
   [Tabs.peopleTab]: 'peopleRoot',
@@ -83,6 +60,28 @@ const icons = {
   [Tabs.walletsTab]: 'iconfont-nav-2-wallets',
 }
 
+const TabBarIcon = ({badgeNumber, focused, routeName}) => (
+  <Kb.NativeView style={tabStyles.iconContainer}>
+    <Kb.Icon
+      type={icons[routeName]}
+      fontSize={32}
+      style={tabStyles.tab}
+      color={focused ? Styles.globalColors.white : Styles.globalColors.darkBlue4}
+    />
+    {!!badgeNumber && <Kb.Badge badgeNumber={badgeNumber} badgeStyle={tabStyles.badge} />}
+  </Kb.NativeView>
+)
+
+const ConnectedTabBarIcon = connect<{|focused: boolean, routeName: Tabs.Tab|}, _, _, _, _>(
+  (state, {routeName}) => ({badgeNumber: state.notifications.navBadges.get(routeName)}),
+  () => ({}),
+  (s, _, o) => ({
+    badgeNumber: s.badgeNumber,
+    focused: o.focused,
+    routeName: o.routeName,
+  })
+)(TabBarIcon)
+
 const TabNavigator = createBottomTabNavigator(
   tabs.reduce((map, tab) => {
     map[tab] = createStackNavigator(Shim.shim(routes), {
@@ -95,24 +94,15 @@ const TabNavigator = createBottomTabNavigator(
   }, {}),
   {
     defaultNavigationOptions: ({navigation}) => ({
-      tabBarIcon: ({focused}) => {
-        const {routeName} = navigation.state
-        return (
-          <Kb.NativeView style={tabStyles.iconContainer}>
-            <Kb.Icon
-              type={icons[routeName]}
-              fontSize={32}
-              style={tabStyles.tab}
-              color={focused ? Styles.globalColors.white : Styles.globalColors.darkBlue4}
-            />
-          </Kb.NativeView>
-        )
-      },
+      tabBarIcon: ({focused}) => (
+        <ConnectedTabBarIcon focused={focused} routeName={navigation.state.routeName} />
+      ),
     }),
     order: tabs,
     tabBarOptions: {
       activeBackgroundColor: Styles.globalColors.darkBlue2,
       inactiveBackgroundColor: Styles.globalColors.darkBlue2,
+      showLabel: false,
     },
   }
 )
