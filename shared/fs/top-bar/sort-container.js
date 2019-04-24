@@ -11,6 +11,7 @@ type OwnProps = {|
 
 const mapStateToProps = (state, {path}: OwnProps) => ({
   _isEmpty: Constants.isEmptyFolder(state.fs.pathItems, path),
+  _isOffline: Constants.isOfflineUnsynced(state.fs.kbfsDaemonStatus, state.fs.pathItems, path),
   _sortSetting: state.fs.pathUserSettings.get(path, Constants.defaultPathUserSetting).sort,
 })
 
@@ -34,7 +35,10 @@ const mapDispatchToProps = (dispatch, {path}) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => ({
-  sortSetting: path === Constants.defaultPath || stateProps._isEmpty ? undefined : stateProps._sortSetting,
+  sortSetting:
+    path === Constants.defaultPath || stateProps._isEmpty || stateProps._isOffline
+      ? undefined
+      : stateProps._sortSetting,
   ...dispatchProps,
 })
 

@@ -39,7 +39,7 @@ const TopBar = (props: Props) =>
       {Types.getPathLevel(props.path) === 3 && <SyncToggle tlfPath={props.path} />}
       <Kb.Box style={styles.flex} />
       <Loading path={props.path} />
-      {props.mode !== 'offline' && <Sort path={props.path} />}
+      <Sort path={props.path} />
     </TopBarContainer>
   )
 

@@ -11,7 +11,7 @@ type Props = {|
 
 const OfflineFolder = (props: Props) => (
   <Kb.Box2 direction="vertical" style={styles.contentContainer} fullWidth={true} alignItems={'stretch'}>
-    <TopBar path={props.path} mode={'offline'} />
+    <TopBar path={props.path} />
     <Kb.Box2 direction="vertical" style={styles.emptyContainer} fullWidth={true} centerChildren={true}>
       <Kb.Icon type="iconfont-cloud" sizeType={'Huge'} color={Styles.globalColors.black_10} />
       <Kb.Text type="BodySmall">You haven't synced this folder.</Kb.Text>
