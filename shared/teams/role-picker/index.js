@@ -390,7 +390,7 @@ export const sendNotificationFooter = (
 ) => (
   <Kb.Box2
     direction="horizontal"
-    fullWidth={true}
+    fullWidth={!Styles.isMobile}
     centerChildren={true}
     style={{
       paddingBottom: Styles.globalMargins.tiny,
