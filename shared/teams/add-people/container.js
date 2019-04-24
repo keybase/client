@@ -6,7 +6,12 @@ import * as SearchConstants from '../../constants/search'
 import * as WaitingConstants from '../../constants/waiting'
 import {sendNotificationFooter} from '../role-picker'
 import * as Types from '../../constants/types/teams'
-import {getRole, getDisabledReasonsForRolePicker, addPeopleToTeamWaitingKey} from '../../constants/teams'
+import {
+  getRole,
+  getDisabledReasonsForRolePicker,
+  addPeopleToTeamWaitingKey,
+  getTeamType,
+} from '../../constants/teams'
 import {upperFirst} from 'lodash-es'
 import AddPeople, {type AddPeopleProps} from '.'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
@@ -18,6 +23,8 @@ type OwnProps = Container.RouteProps<{teamname: string}, {}>
 const mapStateToProps = (state, ownProps) => {
   const teamname = Container.getRouteProps(ownProps, 'teamname')
   return {
+    _notifLabel:
+      getTeamType(state, teamname) === 'big' ? `Announce them in #general` : `Announce them in team chat`,
     _yourRole: getRole(state, teamname),
     disabledReasonsForRolePicker: getDisabledReasonsForRolePicker(state, teamname, null),
     errorText: upperFirst(state.teams.teamInviteError),
@@ -73,6 +80,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   return {
     _addPeople: dispatchProps._addPeople,
     _getSuggestions: dispatchProps._getSuggestions,
+    _notifLabel: stateProps._notifLabel,
     addButtonLabel:
       stateProps.numberOfUsersSelected > 0 ? `Add (${stateProps.numberOfUsersSelected})` : 'Add',
     disabledReasonsForRolePicker: stateProps.disabledReasonsForRolePicker,
@@ -95,6 +103,7 @@ type State = {
 type ExtraProps = {
   _addPeople: (role: Types.TeamRoleType, sendNotification: boolean) => void,
   _getSuggestions: () => void,
+  _notifLabel: string,
 }
 
 class AddPeopleStateWrapper extends React.Component<AddPeopleProps & ExtraProps, State> {
@@ -110,7 +119,7 @@ class AddPeopleStateWrapper extends React.Component<AddPeopleProps & ExtraProps,
   }
 
   render() {
-    const {_addPeople, _getSuggestions, ...rest} = this.props
+    const {_addPeople, _getSuggestions, _notifLabel, ...rest} = this.props
     return (
       <AddPeople
         {...rest}
@@ -127,7 +136,7 @@ class AddPeopleStateWrapper extends React.Component<AddPeopleProps & ExtraProps,
             ? `Add as ${this.state.selectedRole}${this.props.numberOfUsersSelected > 1 ? 's' : ''}`
             : undefined
         }
-        footerComponent={sendNotificationFooter(this.state.sendNotification, nextVal =>
+        footerComponent={sendNotificationFooter(_notifLabel, this.state.sendNotification, nextVal =>
           this.setState({sendNotification: nextVal})
         )}
         onSelectRole={selectedRole => this.setState({selectedRole})}

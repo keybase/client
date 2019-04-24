@@ -371,7 +371,11 @@ export class FloatingRolePicker extends React.Component<FloatingProps, S> {
 }
 
 // Helper since it's common for some users to want this
-export const sendNotificationFooter = (checked: boolean, onCheck: (nextVal: boolean) => void) => (
+export const sendNotificationFooter = (
+  label: string,
+  checked: boolean,
+  onCheck: (nextVal: boolean) => void
+) => (
   <Kb.Box2
     direction="horizontal"
     fullWidth={true}
@@ -381,7 +385,7 @@ export const sendNotificationFooter = (checked: boolean, onCheck: (nextVal: bool
       paddingTop: Styles.globalMargins.tiny,
     }}
   >
-    <Kb.Checkbox checked={checked} onCheck={onCheck} label="Send chat notification" />
+    <Kb.Checkbox checked={checked} onCheck={onCheck} label={label} />
   </Kb.Box2>
 )
 

@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as TeamsGen from '../../../../actions/teams-gen'
 import * as Types from '../../../../constants/types/teams'
-import {getDisabledReasonsForRolePicker} from '../../../../constants/teams'
+import {getDisabledReasonsForRolePicker, getTeamType} from '../../../../constants/teams'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {sendNotificationFooter} from '../../../role-picker'
 import {TeamRequestRow, type RowProps} from '.'
@@ -15,6 +15,8 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state, {username, teamname}) => ({
+  _notifLabel:
+    getTeamType(state, teamname) === 'big' ? `Announce them in #general` : `Announce them in team chat`,
   disabledReasonsForRolePicker: getDisabledReasonsForRolePicker(state, teamname, username),
 })
 
@@ -38,6 +40,7 @@ const mapDispatchToProps = (dispatch, {username, teamname}) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   return {
+    _notifLabel: stateProps._notifLabel,
     disabledReasonsForRolePicker: stateProps.disabledReasonsForRolePicker,
     letIn: dispatchProps.letIn,
     onChat: dispatchProps.onChat,
@@ -54,11 +57,12 @@ type State = {
   sendNotification: boolean,
 }
 
-type LetIn = {
+type ExtraProps = {
+  _notifLabel: string,
   letIn: (sendNotification: boolean, role: Types.TeamRoleType) => void,
 }
 
-class RequestRowStateWrapper extends React.Component<RowProps & LetIn, State> {
+class RequestRowStateWrapper extends React.Component<RowProps & ExtraProps, State> {
   state = {
     rolePickerOpen: false,
     selectedRole: 'writer',
@@ -67,7 +71,7 @@ class RequestRowStateWrapper extends React.Component<RowProps & LetIn, State> {
   _setRef = false
 
   render() {
-    const {letIn, ...rest} = this.props
+    const {_notifLabel, letIn, ...rest} = this.props
     return (
       <TeamRequestRow
         {...rest}
@@ -75,7 +79,7 @@ class RequestRowStateWrapper extends React.Component<RowProps & LetIn, State> {
         isRolePickerOpen={this.state.rolePickerOpen}
         onCancelRolePicker={() => this.setState({rolePickerOpen: false})}
         onEditMembership={() => this.setState({rolePickerOpen: true})}
-        footerComponent={sendNotificationFooter(this.state.sendNotification, nextVal =>
+        footerComponent={sendNotificationFooter(_notifLabel, this.state.sendNotification, nextVal =>
           this.setState({sendNotification: nextVal})
         )}
         onConfirmRolePicker={role => {
