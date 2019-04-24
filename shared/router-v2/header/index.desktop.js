@@ -4,6 +4,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import SyncingFolders from './syncing-folders'
 import flags from '../../util/feature-flags'
+import DesktopBanner from './desktop-banner'
 // A mobile-like header for desktop
 
 // Fix this as we figure out what this needs to be
@@ -55,7 +56,7 @@ class Header extends React.PureComponent<Props> {
 
     return (
       <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true}>
-        {!!opt.headerBanner && opt.headerBanner}
+        <DesktopBanner />
         <Kb.Box2
           noShrink={true}
           direction="vertical"

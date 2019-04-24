@@ -7,7 +7,6 @@ import {commonProvider} from '../common/index.stories'
 import Nav2Header from '../../router-v2/header'
 import Title from './title-container'
 import Actions from './actions'
-import DesktopBanner from './desktop-banner'
 import MobileHeader from './mobile-header'
 
 const makeHeaderProps = offline => ({
@@ -45,7 +44,6 @@ const TestWrapper = ({path, offline}: {path: Types.Path, offline?: ?boolean}) =>
       allowBack={true}
       onPop={Sb.action('onPop')}
       options={{
-        headerBanner: <DesktopBanner />,
         headerRightActions: () => <Actions path={path} />,
         headerTitle: () => <Title path={path} />,
       }}

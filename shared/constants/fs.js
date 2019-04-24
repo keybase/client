@@ -267,7 +267,7 @@ export const makeSystemFileManagerIntegration: I.RecordFactory<Types._SystemFile
 )
 
 export const makeKbfsDaemonStatus: I.RecordFactory<Types._KbfsDaemonStatus> = I.Record({
-  online: false,
+  online: true,
   rpcStatus: 'unknown',
 })
 
