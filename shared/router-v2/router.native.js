@@ -75,6 +75,13 @@ const tabRoots = {
   [Tabs.teamsTab]: 'teamsRoot',
   [Tabs.settingsTab]: 'settingsRoot',
 }
+const icons = {
+  [Tabs.chatTab]: 'iconfont-nav-2-chat',
+  [Tabs.teamsTab]: 'iconfont-nav-2-teams',
+  [Tabs.peopleTab]: 'iconfont-nav-2-people',
+  [Tabs.settingsTab]: 'iconfont-nav-2-more',
+  [Tabs.walletsTab]: 'iconfont-nav-2-wallets',
+}
 
 const TabNavigator = createBottomTabNavigator(
   tabs.reduce((map, tab) => {
@@ -87,9 +94,61 @@ const TabNavigator = createBottomTabNavigator(
     return map
   }, {}),
   {
+    defaultNavigationOptions: ({navigation}) => ({
+      tabBarIcon: ({focused}) => {
+        const {routeName} = navigation.state
+        return (
+          <Kb.NativeView style={tabStyles.iconContainer}>
+            <Kb.Icon
+              type={icons[routeName]}
+              fontSize={32}
+              style={tabStyles.tab}
+              color={focused ? Styles.globalColors.white : Styles.globalColors.darkBlue4}
+            />
+          </Kb.NativeView>
+        )
+      },
+    }),
     order: tabs,
+    tabBarOptions: {
+      activeBackgroundColor: Styles.globalColors.darkBlue2,
+      inactiveBackgroundColor: Styles.globalColors.darkBlue2,
+    },
   }
 )
+
+const tabStyles = Styles.styleSheetCreate({
+  badge: {
+    position: 'absolute',
+    right: 8,
+    top: 3,
+  },
+  container: {
+    alignItems: 'center',
+    backgroundColor: Styles.globalColors.darkBlue2,
+    height: Styles.isAndroid ? 56 : 48,
+    justifyContent: 'space-around',
+  },
+  iconContainer: {
+    position: 'relative',
+  },
+  // When we have new tabs
+  meta: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+  },
+  safe: {
+    backgroundColor: Styles.globalColors.darkBlue2,
+    flexGrow: 0,
+  },
+  tab: {
+    paddingBottom: 6,
+    paddingLeft: 16,
+    paddingRight: 16,
+    paddingTop: 6,
+  },
+})
 
 const LoggedInStackNavigator = createStackNavigator(
   {
