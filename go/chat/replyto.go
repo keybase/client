@@ -169,10 +169,12 @@ func (f *ReplyFiller) Fill(ctx context.Context, uid gregor1.UID, conv types.Unbo
 		if replyToID := f.getReplyTo(msg); replyToID != nil {
 			st, err := msg.State()
 			if err != nil {
+				res = append(res, msg)
 				continue
 			}
 			replyTo, found := replyMap[*replyToID]
 			if !found {
+				res = append(res, msg)
 				continue
 			}
 			switch st {

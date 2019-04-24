@@ -1175,17 +1175,7 @@ func (s *Storage) GetExplodedReplies(ctx context.Context, convID chat1.Conversat
 		replies = append(replies, msg.Valid().ServerHeader.Replies...)
 	}
 	replyMap := make(map[chat1.MessageID]chat1.MessageUnboxed)
-	for _, reply := range replies {
-		if _, ok := replyMap[reply]; ok {
-			continue
-		}
-		replyMsg, err := s.getMessage(ctx, convID, uid, reply)
-		if err != nil || replyMsg == nil {
-			s.Debug(ctx, "getExplodedReplies: no target message found: replyID: %v err: %s", reply, err)
-			continue
-		}
-		replyMap[replyMsg.GetMessageID()] = *replyMsg
-	}
+	s.updateRepliesAffected(ctx, convID, uid, replies, replyMap)
 	return s.flatten(replyMap)
 }
 

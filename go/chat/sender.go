@@ -496,6 +496,7 @@ func (s *BlockingSender) handleReplyTo(ctx context.Context, msg chat1.MessagePla
 	}
 	switch typ {
 	case chat1.MessageType_TEXT:
+		s.Debug(ctx, "handleReplyTo: handling text message")
 		header := msg.ClientHeader
 		header.Supersedes = *replyTo
 		return chat1.MessagePlaintext{
@@ -507,6 +508,8 @@ func (s *BlockingSender) handleReplyTo(ctx context.Context, msg chat1.MessagePla
 			}),
 			SupersedesOutboxID: msg.SupersedesOutboxID,
 		}
+	default:
+		s.Debug(ctx, "handleReplyTo: skipping message of type: %v", typ)
 	}
 	return msg
 }
@@ -1028,10 +1031,12 @@ func (s *Deliverer) Start(ctx context.Context, uid gregor1.UID) {
 			}
 			conv := newBasicUnboxConversationInfo(convID, chat1.ConversationMembersType_IMPTEAMNATIVE, nil,
 				vis)
-			msgs, err := NewReplyFiller(s.G()).Fill(ctx, uid, conv,
-				[]chat1.MessageUnboxed{chat1.NewMessageUnboxedWithOutbox(obr)})
-			if err != nil && len(msgs) > 0 {
-				obr.ReplyTo = &msgs[0]
+			msg, err := NewReplyFiller(s.G()).FillSingle(ctx, uid, conv,
+				chat1.NewMessageUnboxedWithOutbox(obr))
+			if err != nil {
+				s.Debug(ctx, "outboxNotify: failed to get replyto: %s", err)
+			} else {
+				obr.ReplyTo = &msg
 			}
 			act := chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
 				Message: utils.PresentMessageUnboxed(ctx, s.G(), chat1.NewMessageUnboxedWithOutbox(obr),
