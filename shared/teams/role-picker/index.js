@@ -44,7 +44,12 @@ const RoleRow = (p: RoleRowProps) => (
         fullWidth={true}
         style={p.disabledReason ? styles.disabledRow : undefined}
       >
-        <Kb.RadioButton label="" onSelect={p.onSelect || (() => {})} selected={p.selected} />
+        <Kb.RadioButton
+          label=""
+          style={styles.radioButton}
+          onSelect={p.onSelect || (() => {})}
+          selected={p.selected}
+        />
         {p.icon}
         {p.title}
       </Kb.Box2>
@@ -300,6 +305,9 @@ const styles = Styles.styleSheetCreate({
     paddingBottom: Styles.globalMargins.tiny,
     paddingTop: Styles.globalMargins.tiny,
   },
+  radioButton: Styles.platformStyles({
+    isMobile: {paddingRight: Styles.globalMargins.tiny},
+  }),
   roleIcon: {
     paddingRight: Styles.globalMargins.xtiny,
   },
@@ -312,7 +320,7 @@ const styles = Styles.styleSheetCreate({
       paddingLeft: 22,
     },
     isMobile: {
-      paddingLeft: 30,
+      paddingLeft: 38,
     },
   }),
   rowChild: Styles.platformStyles({
@@ -321,6 +329,11 @@ const styles = Styles.styleSheetCreate({
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
       paddingTop: Styles.globalMargins.tiny,
+    },
+
+    isMobile: {
+      paddingBottom: Styles.globalMargins.small,
+      paddingTop: Styles.globalMargins.small,
     },
   }),
   text: {
