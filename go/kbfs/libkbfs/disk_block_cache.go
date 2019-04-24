@@ -1440,8 +1440,8 @@ func (cache *DiskBlockCacheLocal) ClearHomeTLFs(ctx context.Context) error {
 // the cache.
 func (cache *DiskBlockCacheLocal) GetTlfSize(
 	_ context.Context, tlfID tlf.ID) (uint64, error) {
-	cache.lock.Lock()
-	defer cache.lock.Unlock()
+	cache.lock.RLock()
+	defer cache.lock.RUnlock()
 	return cache.tlfSizes[tlfID], nil
 }
 

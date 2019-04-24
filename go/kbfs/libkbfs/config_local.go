@@ -1281,7 +1281,7 @@ func (c *ConfigLocal) EnableJournaling(
 	return nil
 }
 
-func (c *ConfigLocal) cleanSyncBlockCacheForTlfInBackground(
+func (c *ConfigLocal) cleanSyncBlockCacheForTlfInBackgroundLocked(
 	tlfID tlf.ID, ch chan<- error) {
 	// Start a background goroutine deleting all the blocks from this
 	// TLF.
@@ -1321,7 +1321,7 @@ func (c *ConfigLocal) cleanSyncBlockCache() {
 			continue
 		}
 
-		c.cleanSyncBlockCacheForTlfInBackground(id, make(chan error, 1))
+		c.cleanSyncBlockCacheForTlfInBackgroundLocked(id, make(chan error, 1))
 	}
 }
 
@@ -1580,7 +1580,7 @@ func (c *ConfigLocal) setTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (
 
 	ch := make(chan error, 1)
 	if config.Mode == keybase1.FolderSyncMode_DISABLED {
-		c.cleanSyncBlockCacheForTlfInBackground(tlfID, ch)
+		c.cleanSyncBlockCacheForTlfInBackgroundLocked(tlfID, ch)
 	} else {
 		ch <- nil
 	}
