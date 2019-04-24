@@ -742,13 +742,13 @@ export const usernameInPath = (username: string, path: Types.Path) => {
 
 export const isOfflineUnsynced = (
   daemonStatus: Types.KbfsDaemonStatus,
-  pathItems: Types.PathItems,
+  pathItem: Types.PathItem,
   path: Types.Path
 ) =>
   flags.kbfsOfflineMode &&
   !daemonStatus.online &&
   Types.getPathLevel(path) > 2 &&
-  pathItems.get(path, unknownPathItem).prefetchStatus !== prefetchComplete
+  pathItem.prefetchStatus !== prefetchComplete
 
 // To make sure we have consistent badging, all badging related stuff should go
 // through this function. That is:
