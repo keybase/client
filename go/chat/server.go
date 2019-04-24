@@ -2390,7 +2390,7 @@ func (h *Server) CancelActiveInboxSearch(ctx context.Context) (err error) {
 }
 
 func (h *Server) delegateInboxSearch(ctx context.Context, uid gregor1.UID, query, origQuery string,
-	opts chat1.SearchOpts, ui libkb.ChatUI, sessionID int) (res chat1.ChatSearchInboxResults, err error) {
+	opts chat1.SearchOpts, ui libkb.ChatUI) (res chat1.ChatSearchInboxResults, err error) {
 	defer h.Trace(ctx, func() error { return err }, "delegateInboxSearch")()
 	convs, err := h.G().Indexer.SearchableConvs(ctx, uid, opts.ConvID)
 	if err != nil {
@@ -2399,6 +2399,12 @@ func (h *Server) delegateInboxSearch(ctx context.Context, uid gregor1.UID, query
 	re, err := h.getSearchRegexp(query, opts)
 	if err != nil {
 		return res, err
+	}
+	select {
+	case <-ctx.Done():
+		return res, ctx.Err()
+	default:
+		ui.ChatSearchConvHits(ctx, chat1.UIChatSearchConvHits{})
 	}
 	for index, conv := range convs {
 		hits, err := h.G().RegexpSearcher.Search(ctx, uid, conv.GetConvID(), re, nil, opts)
@@ -2422,7 +2428,6 @@ func (h *Server) delegateInboxSearch(ctx context.Context, uid gregor1.UID, query
 			return res, ctx.Err()
 		default:
 			ui.ChatSearchInboxHit(ctx, chat1.ChatSearchInboxHitArg{
-				SessionID: sessionID,
 				SearchHit: inboxHit,
 			})
 		}
@@ -2438,9 +2443,7 @@ func (h *Server) delegateInboxSearch(ctx context.Context, uid gregor1.UID, query
 	case <-ctx.Done():
 		return res, ctx.Err()
 	default:
-		ui.ChatSearchInboxDone(ctx, chat1.ChatSearchInboxDoneArg{
-			SessionID: sessionID,
-		})
+		ui.ChatSearchInboxDone(ctx, chat1.ChatSearchInboxDoneArg{})
 	}
 	return res, nil
 }
@@ -2467,7 +2470,7 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 	username := h.G().GetEnv().GetUsernameForUID(keybase1.UID(uid.String())).String()
 	query, opts := search.UpgradeSearchOptsFromQuery(arg.Query, arg.Opts, username)
 	if opts.IsRegex {
-		inboxRes, err := h.delegateInboxSearch(ctx, uid, query, arg.Query, opts, chatUI, arg.SessionID)
+		inboxRes, err := h.delegateInboxSearch(ctx, uid, query, arg.Query, opts, chatUI)
 		if err != nil {
 			return res, err
 		}
