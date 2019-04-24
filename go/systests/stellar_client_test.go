@@ -634,4 +634,44 @@ func (s *stellarRetryClient) AirdropStatusLocal(ctx context.Context, sessionID i
 	return res, err
 }
 
+func (s *stellarRetryClient) AddTrustlineLocal(ctx context.Context, arg stellar1.AddTrustlineLocalArg) (err error) {
+	for i := 0; i < retryCount; i++ {
+		err = s.cli.AddTrustlineLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return err
+}
+
+func (s *stellarRetryClient) DeleteTrustlineLocal(ctx context.Context, arg stellar1.DeleteTrustlineLocalArg) (err error) {
+	for i := 0; i < retryCount; i++ {
+		err = s.cli.DeleteTrustlineLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return err
+}
+
+func (s *stellarRetryClient) ChangeTrustlineLimitLocal(ctx context.Context, arg stellar1.ChangeTrustlineLimitLocalArg) (err error) {
+	for i := 0; i < retryCount; i++ {
+		err = s.cli.ChangeTrustlineLimitLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return err
+}
+
+func (s *stellarRetryClient) GetTrustlinesLocal(ctx context.Context, arg stellar1.GetTrustlinesLocalArg) (ret []stellar1.Balance, err error) {
+	for i := 0; i < retryCount; i++ {
+		ret, err = s.cli.GetTrustlinesLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return ret, err
+}
+
 var _ stellar1.LocalInterface = (*stellarRetryClient)(nil)

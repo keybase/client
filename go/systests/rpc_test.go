@@ -102,7 +102,7 @@ func TestRPCs(t *testing.T) {
 	stage("testGetUpdateInfo2")
 	testGetUpdateInfo2(t, tc2.G)
 
-	if err := client.CtlServiceStop(tc2.G); err != nil {
+	if err := CtlStop(tc2.G); err != nil {
 		t.Fatal(err)
 	}
 
