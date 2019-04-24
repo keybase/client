@@ -245,6 +245,7 @@ const styles = Styles.styleSheetCreate({
       justifyContent: 'center',
     },
     isElectron: {
+      ...Styles.desktopStyles.windowDraggingClickable,
       cursor: 'text',
     },
   }),
