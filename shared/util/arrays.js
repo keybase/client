@@ -6,13 +6,15 @@ export function intersperseFn<A, B>(
   arr: Array<A>
 ): Array<A | B> {
   if (arr.length === 0) {
-    return []
+    // $FlowIssue an array with no length is a valid type for any Array
+    return arr
   }
 
-  return arr.slice(1).reduce(
-    (acc, x, i, a) => {
-      return acc.concat([separatorFn(i, x, a), x])
-    },
-    [arr[0]]
-  )
+  let toReturn = new Array(arr.length * 2 - 1)
+  toReturn[0] = arr[0]
+  for (let i = 1; i < arr.length; i++) {
+    toReturn[i * 2 - 1] = separatorFn(i, arr[i], arr)
+    toReturn[i * 2] = arr[i]
+  }
+  return toReturn
 }
