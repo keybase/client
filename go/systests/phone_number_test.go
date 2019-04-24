@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/emails"
 	"github.com/keybase/client/go/kbtest"
@@ -127,33 +128,33 @@ func TestServerTrustResolveInvalidInput(t *testing.T) {
 	checkErr(err)
 }
 
+type mockPhoneNotification struct {
+	list        []keybase1.UserPhoneNumber
+	category    string
+	phoneNumber keybase1.PhoneNumber
+}
+
 type mockPhoneListener struct {
 	libkb.NoopNotifyListener
-	addedPhones      []keybase1.PhoneNumber
-	verifiedPhones   []keybase1.PhoneNumber
-	supersededPhones []keybase1.PhoneNumber
+	notifications []mockPhoneNotification
 }
 
 var _ libkb.NotifyListener = (*mockPhoneListener)(nil)
 
-func (n *mockPhoneListener) PhoneNumberAdded(phoneNumber keybase1.PhoneNumber) {
-	n.addedPhones = append(n.addedPhones, phoneNumber)
+func (n *mockPhoneListener) PhoneNumbersChanged(list []keybase1.UserPhoneNumber, category string, phoneNumber keybase1.PhoneNumber) {
+	n.notifications = append(n.notifications, mockPhoneNotification{
+		list, category, phoneNumber,
+	})
 }
 
-func (n *mockPhoneListener) PhoneNumberVerified(phoneNumber keybase1.PhoneNumber) {
-	n.verifiedPhones = append(n.verifiedPhones, phoneNumber)
-}
-
-func (n *mockPhoneListener) PhoneNumberSuperseded(phoneNumber keybase1.PhoneNumber) {
-	n.supersededPhones = append(n.supersededPhones, phoneNumber)
+func (n *mockPhoneListener) DrainPhoneNumberNotifications() (ret []mockPhoneNotification) {
+	ret = n.notifications
+	n.notifications = nil
+	return ret
 }
 
 func setupUserWithMockPhoneListener(user *userPlusDevice) *mockPhoneListener {
-	userListener := &mockPhoneListener{
-		addedPhones:      []keybase1.PhoneNumber(nil),
-		verifiedPhones:   []keybase1.PhoneNumber(nil),
-		supersededPhones: []keybase1.PhoneNumber(nil),
-	}
+	userListener := &mockPhoneListener{}
 	user.tc.G.SetService()
 	user.tc.G.NotifyRouter.AddListener(userListener)
 	return userListener
@@ -172,7 +173,6 @@ func TestPhoneNumberNotifications(t *testing.T) {
 
 	phone := "+" + kbtest.GenerateTestPhoneNumber()
 	kbPhone := keybase1.PhoneNumber(phone)
-	expectedNotification := []keybase1.PhoneNumber{kbPhone}
 	cli := &client.CmdAddPhoneNumber{
 		Contextified: libkb.NewContextified(ann.tc.G),
 		PhoneNumber:  phone,
@@ -182,7 +182,11 @@ func TestPhoneNumberNotifications(t *testing.T) {
 
 	// adding the phone number generates a notification
 	ann.drainGregor()
-	require.Equal(t, annListener.addedPhones, expectedNotification)
+	notifications := annListener.DrainPhoneNumberNotifications()
+	require.Len(t, notifications, 1)
+	require.Equal(t, kbPhone, notifications[0].phoneNumber)
+	require.Equal(t, "phone.added", notifications[0].category)
+	require.Len(t, notifications[0].list, 1)
 
 	// verifying the phone number generates a notification
 	code, err := kbtest.GetPhoneVerificationCode(ann.MetaContext(), kbPhone)
@@ -195,8 +199,12 @@ func TestPhoneNumberNotifications(t *testing.T) {
 	err = cli2.Run()
 	require.NoError(t, err)
 	ann.drainGregor()
-	require.Equal(t, annListener.verifiedPhones, expectedNotification)
-	require.Equal(t, annListener.supersededPhones, []keybase1.PhoneNumber(nil))
+	notifications = annListener.DrainPhoneNumberNotifications()
+	require.Len(t, notifications, 1)
+	require.Equal(t, kbPhone, notifications[0].phoneNumber)
+	require.Equal(t, "phone.verified", notifications[0].category)
+	require.Len(t, notifications[0].list, 1)
+	require.True(t, notifications[0].list[0].Verified)
 
 	// if bob now adds and verifies that same number, he should have new notifications for add and verify
 	// and ann should have one that her number was superseded
@@ -207,7 +215,10 @@ func TestPhoneNumberNotifications(t *testing.T) {
 	err = cli3.Run()
 	require.NoError(t, err)
 	bob.drainGregor()
-	require.Equal(t, bobListener.addedPhones, expectedNotification)
+	notifications = bobListener.DrainPhoneNumberNotifications()
+	require.Len(t, notifications, 1)
+	require.Equal(t, "phone.added", notifications[0].category)
+	require.Equal(t, kbPhone, notifications[0].phoneNumber)
 	code, err = kbtest.GetPhoneVerificationCode(bob.MetaContext(), kbPhone)
 	require.NoError(t, err)
 	cli4 := &client.CmdVerifyPhoneNumber{
@@ -217,9 +228,24 @@ func TestPhoneNumberNotifications(t *testing.T) {
 	}
 	err = cli4.Run()
 	require.NoError(t, err)
+
 	bob.drainGregor()
-	require.Equal(t, bobListener.verifiedPhones, expectedNotification)
-	require.Equal(t, annListener.supersededPhones, expectedNotification)
+	notifications = bobListener.DrainPhoneNumberNotifications()
+	require.Len(t, notifications, 1)
+	require.Equal(t, "phone.verified", notifications[0].category)
+	require.Equal(t, kbPhone, notifications[0].phoneNumber)
+	require.Len(t, notifications[0].list, 1)
+
+	phoneCli := keybase1.PhoneNumbersClient{Cli: ann.teamsClient.Cli}
+	res, err := phoneCli.GetPhoneNumbers(context.Background(), 0)
+	require.NoError(t, err)
+	spew.Dump(res) // TODO: Bug here, phone is superseded but it's still in the list.
+
+	ann.drainGregor()
+	notifications = annListener.DrainPhoneNumberNotifications()
+	require.Equal(t, "phone.superseded", notifications[0].category)
+	require.Equal(t, kbPhone, notifications[0].phoneNumber)
+	require.Len(t, notifications[0].list, 0) // TODO: Bug here, phone is superseded but it's still in the list.
 }
 
 func TestImplicitTeamWithEmail(t *testing.T) {
