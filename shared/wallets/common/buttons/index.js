@@ -108,6 +108,7 @@ class _DropdownButton extends React.PureComponent<DropdownProps & Kb.OverlayPare
           onHidden={this.props.toggleShowingMenu}
           visible={this.props.showingMenu}
           position="bottom center"
+          positionFallbacks={[]}
         />
       </Kb.ClickableBox>
     )
