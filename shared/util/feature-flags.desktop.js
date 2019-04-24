@@ -24,7 +24,6 @@ const ff: FeatureFlags = {
   outOfDateBanner: false,
   plansEnabled: false,
   proofProviders: true,
-  sendAttachmentToChat: false,
   useNewRouter: false,
 }
 
@@ -34,7 +33,6 @@ const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
   moveOrCopy: true,
   outOfDateBanner: true,
   proofProviders: true,
-  sendAttachmentToChat: true,
   useNewRouter: true,
 }
 

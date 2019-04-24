@@ -102,7 +102,7 @@ const getRawLayout = (
         showInSystemFileManager: !isMobile,
         // share menu items
         // eslint-disable-next-line sort-keys
-        sendAttachmentToChat: flags.sendAttachmentToChat && pathItem.type === 'file', // desktop uses separate button
+        sendAttachmentToChat: pathItem.type === 'file', // desktop uses separate button
         sendLinkToChat: Constants.canSendLinkToChat(parsedPath), // desktop uses separate button
         sendToOtherApp: pathItem.type === 'file' && isMobile,
       }
