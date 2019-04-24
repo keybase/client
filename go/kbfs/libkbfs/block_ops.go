@@ -47,7 +47,7 @@ func NewBlockOpsStandard(
 	bg := &realBlockGetter{config: config}
 	qConfig := &realBlockRetrievalConfig{
 		blockRetrievalPartialConfig: config,
-		bg:                          bg,
+		bg: bg,
 	}
 	q := newBlockRetrievalQueue(
 		queueSize, prefetchQueueSize, throttledPrefetchPeriod, qConfig)
@@ -222,5 +222,6 @@ func (b *BlockOpsStandard) BlockRetriever() BlockRetriever {
 
 // Shutdown implements the BlockOps interface for BlockOpsStandard.
 func (b *BlockOpsStandard) Shutdown() {
-	b.queue.Shutdown()
+	// Block on the queue being done.
+	<-b.queue.Shutdown()
 }
