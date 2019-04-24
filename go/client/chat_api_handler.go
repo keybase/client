@@ -178,6 +178,7 @@ type sendOptionsV1 struct {
 	MembersType       string            `json:"members_type"`
 	EphemeralLifetime ephemeralLifetime `json:"exploding_lifetime"`
 	ConfirmLumenSend  bool              `json:"confirm_lumen_send"`
+	ReplyTo           *chat1.MessageID  `json:"reply_to"`
 }
 
 func (s sendOptionsV1) Check() error {
