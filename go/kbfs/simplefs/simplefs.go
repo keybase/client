@@ -2390,12 +2390,8 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(
 		if allNotStarted {
 			res.OverallStatus.PrefetchStatus =
 				keybase1.PrefetchStatus_NOT_STARTED
-		} else if p.SubtreeBytesTotal == p.SubtreeBytesFetched ||
-			p.SubtreeBytesTotal == 0 {
-			res.OverallStatus.PrefetchStatus = keybase1.PrefetchStatus_COMPLETE
 		} else {
-			res.OverallStatus.PrefetchStatus =
-				keybase1.PrefetchStatus_IN_PROGRESS
+			res.OverallStatus.PrefetchStatus = p.ToProtocolStatus()
 		}
 	}
 
