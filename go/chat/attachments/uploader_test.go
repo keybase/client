@@ -3,6 +3,7 @@ package attachments
 import (
 	"errors"
 	"io"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -244,4 +245,15 @@ func TestAttachmentUploader(t *testing.T) {
 	case res := <-resChan.Wait():
 		require.NotNil(t, res.Error)
 	}
+
+	// verify uploadedPreviewsDir is clean
+	baseDir := uploader.getBaseDir()
+	uploadedPreviews, err := filepath.Glob(filepath.Join(baseDir, uploadedPreviewsDir, "*"))
+	require.NoError(t, err)
+	require.Zero(t, len(uploadedPreviews))
+
+	// verify uploadedFullsDir is clean
+	uploadedFulls, err := filepath.Glob(filepath.Join(baseDir, uploadedFullsDir, "*"))
+	require.NoError(t, err)
+	require.Zero(t, len(uploadedFulls))
 }

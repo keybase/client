@@ -389,6 +389,7 @@ type AttachmentUploader interface {
 	Cancel(ctx context.Context, outboxID chat1.OutboxID) error
 	Complete(ctx context.Context, outboxID chat1.OutboxID)
 	GetUploadTempFile(ctx context.Context, outboxID chat1.OutboxID, filename string) (string, error)
+	OnDbNuke(mctx libkb.MetaContext) error
 }
 
 type NativeVideoHelper interface {

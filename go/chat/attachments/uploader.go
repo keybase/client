@@ -22,6 +22,11 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+const (
+	uploadedPreviewsDir = "uploadedpreviews"
+	uploadedFullsDir    = "uploadedfulls"
+)
+
 type uploaderTask struct {
 	UID             gregor1.UID
 	OutboxID        chat1.OutboxID
@@ -188,6 +193,8 @@ func NewUploader(g *globals.Context, store Store, s3signer s3.Signer, ri func() 
 }
 
 func (u *Uploader) SetPreviewTempDir(dir string) {
+	u.Lock()
+	defer u.Unlock()
 	u.tempDir = dir
 }
 
@@ -331,11 +338,18 @@ func (u *Uploader) doneUploading(outboxID chat1.OutboxID) {
 	delete(u.uploads, outboxID.String())
 }
 
-func (u *Uploader) uploadFile(ctx context.Context, dirname, prefix string) (f *os.File, err error) {
+func (u *Uploader) getBaseDir() string {
+	u.Lock()
+	defer u.Unlock()
 	baseDir := u.G().GetCacheDir()
 	if u.tempDir != "" {
 		baseDir = u.tempDir
 	}
+	return baseDir
+}
+
+func (u *Uploader) uploadFile(ctx context.Context, dirname, prefix string) (f *os.File, err error) {
+	baseDir := u.getBaseDir()
 	dir := filepath.Join(baseDir, dirname)
 	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 		return nil, err
@@ -344,7 +358,7 @@ func (u *Uploader) uploadFile(ctx context.Context, dirname, prefix string) (f *o
 }
 
 func (u *Uploader) uploadPreviewFile(ctx context.Context) (f *os.File, err error) {
-	return u.uploadFile(ctx, "uploadedpreviews", "up")
+	return u.uploadFile(ctx, uploadedPreviewsDir, "up")
 }
 
 func (u *Uploader) uploadFullFile(ctx context.Context, md chat1.AssetMetadata) (f *os.File, err error) {
@@ -359,7 +373,7 @@ func (u *Uploader) uploadFullFile(ctx context.Context, md chat1.AssetMetadata) (
 	default:
 		return nil, fmt.Errorf("not storing full of type: %v", typ)
 	}
-	return u.uploadFile(ctx, "uploadedfulls", "fl")
+	return u.uploadFile(ctx, uploadedFullsDir, "fl")
 }
 
 func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
@@ -457,6 +471,7 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 			uf = nil
 		} else {
 			defer uf.Close()
+			defer os.Remove(uf.Name())
 			encryptedOut = uf
 		}
 
@@ -509,6 +524,7 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 				up = nil
 			} else {
 				defer up.Close()
+				defer os.Remove(up.Name())
 				encryptedOut = up
 			}
 
@@ -582,4 +598,28 @@ func (u *Uploader) GetUploadTempFile(ctx context.Context, outboxID chat1.OutboxI
 		return "", err
 	}
 	return filepath.Join(dir, filepath.Base(filename)), nil
+}
+
+func (u *Uploader) OnDbNuke(mctx libkb.MetaContext) error {
+	rmAll := func(dirname string) error {
+		baseDir := u.getBaseDir()
+		cacheDir := filepath.Join(baseDir, dirname)
+		files, err := filepath.Glob(filepath.Join(cacheDir, "*"))
+		if err != nil {
+			return err
+		}
+
+		u.Debug(mctx.Ctx(), "OnDbNuke: found %d files to delete in %s",
+			len(files), cacheDir)
+		for _, v := range files {
+			if err := os.Remove(v); err != nil {
+				u.Debug(mctx.Ctx(), "OnDbNuke: failed to delete file %q: %s", v, err)
+			}
+		}
+		return nil
+	}
+	epick := libkb.FirstErrorPicker{}
+	epick.Push(rmAll(uploadedPreviewsDir))
+	epick.Push(rmAll(uploadedFullsDir))
+	return epick.Error()
 }

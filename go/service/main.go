@@ -444,6 +444,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	s3signer := attachments.NewS3Signer(ri)
 	store := attachments.NewS3Store(g.GetLog(), g.GetEnv(), g.GetRuntimeDir())
 	g.AttachmentUploader = attachments.NewUploader(g, store, s3signer, ri)
+	g.AddDbNukeHook(g.AttachmentUploader, "AttachmentUploader")
 	sender := chat.NewBlockingSender(g, chat.NewBoxer(g), ri)
 	g.MessageDeliverer = chat.NewDeliverer(g, sender)
 
