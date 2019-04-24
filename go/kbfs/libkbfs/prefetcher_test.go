@@ -737,8 +737,6 @@ func testPrefetcherForSyncedTLF(
 	case <-ctx.Done():
 		t.Fatal(ctx.Err())
 	}
-	// Release after getting status.
-	notifySyncCh(t, prefetchSyncCh)
 	// Release after prefetching fileC
 	notifySyncCh(t, prefetchSyncCh)
 	// Release after prefetching dirB
