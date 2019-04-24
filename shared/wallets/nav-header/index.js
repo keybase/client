@@ -21,7 +21,9 @@ export const HeaderTitle = (props: HeaderTitleProps) => (
     <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.accountInfo}>
       <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" style={styles.accountNameContainer}>
         {props.isDefault && <Kb.Avatar size={16} username={props.username} />}
-        <Kb.Text type="Header">{props.accountName}</Kb.Text>
+        <Kb.Text type="Header" lineClamp={1}>
+          {props.accountName}
+        </Kb.Text>
       </Kb.Box2>
       <SmallAccountID accountID={props.accountID} />
     </Kb.Box2>
