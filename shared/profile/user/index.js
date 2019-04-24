@@ -413,9 +413,15 @@ const styles = Styles.styleSheetCreate({
     marginBottom: Styles.globalMargins.xsmall,
     marginTop: Styles.globalMargins.xsmall,
   },
-  addIdentityContainer: {
-    justifyContent: 'center',
-  },
+  addIdentityContainer: Styles.platformStyles({
+    common: {
+      justifyContent: 'center',
+    },
+    isElectron: {
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
+    },
+  }),
   backButton: {color: Styles.globalColors.white},
   backgroundColor: {
     ...Styles.globalStyles.fillAbsolute,
