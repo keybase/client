@@ -252,12 +252,45 @@ function* uninstallKBFSConfirm() {
     return
   }
 
+  yield Saga.put(FsGen.createDriverDisabling())
   yield Saga.callUntyped(RPCTypes.installUninstallKBFSRpcPromise)
   yield Saga.callUntyped(() => {
     // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
     SafeElectron.getApp().relaunch()
     SafeElectron.getApp().exit(0)
   })
+}
+
+const uninstallDokanPromise = state => {
+  if (state.fs.sfmi.driverStatus.type !== 'enabled') {
+    return
+  }
+  if (!state.fs.sfmi.driverStatus.dokanUninstallExecPath) {
+    return new Promise(resolve =>
+      SafeElectron.getDialog().showMessageBox(
+        null,
+        {
+          buttons: ['Got it'],
+          detail:
+            'We looked everywhere but did not find a Dokan uninstaller. Please remove it from the Control Panel.',
+          message: 'Please uninstall Dokan from the Control Panel.',
+          type: 'info',
+        },
+        resp => resolve(FsGen.createRefreshDriverStatus())
+      )
+    )
+  }
+
+  const execPath: string = state.fs.sfmi.driverStatus.dokanUninstallExecPath
+  logger.info('Invoking dokan uninstaller', execPath)
+  return new Promise(resolve => {
+    try {
+      exec(execPath, {windowsHide: true}, resolve)
+    } catch (e) {
+      logger.error('uninstallDokan caught', e)
+      resolve()
+    }
+  }).then(() => FsGen.createRefreshDriverStatus())
 }
 
 const openSecurityPreferences = () => {
@@ -305,38 +338,6 @@ const installCachedDokan = (state, action) =>
   })
     .then(() => FsGen.createRefreshDriverStatus())
     .catch(makeUnretriableErrorHandler(action))
-
-const uninstallDokanPromise = state => {
-  if (state.fs.sfmi.driverStatus.type !== 'enabled') {
-    return
-  }
-  if (!state.fs.sfmi.driverStatus.dokanUninstallExecPath) {
-    return new Promise(resolve =>
-      SafeElectron.getDialog().showMessageBox(
-        null,
-        {
-          buttons: ['Got it'],
-          detail:
-            'We looked everywhere but did not find a Dokan uninstaller. Please remove it from the Control Panel.',
-          message: 'Please uninstall Dokan from the Control Panel.',
-          type: 'info',
-        },
-        resp => resolve(FsGen.createRefreshDriverStatus())
-      )
-    )
-  }
-
-  const execPath: string = state.fs.sfmi.driverStatus.dokanUninstallExecPath
-  logger.info('Invoking dokan uninstaller', execPath)
-  return new Promise(resolve => {
-    try {
-      exec(execPath, {windowsHide: true}, resolve)
-    } catch (e) {
-      logger.error('uninstallDokan caught', e)
-      resolve()
-    }
-  }).then(() => FsGen.createRefreshDriverStatus())
-}
 
 const openAndUploadToPromise = (state: TypedState, action: FsGen.OpenAndUploadPayload) =>
   new Promise((resolve, reject) =>
