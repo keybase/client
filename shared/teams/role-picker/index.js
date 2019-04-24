@@ -190,25 +190,8 @@ const headerTextHelper = (text: ?string) =>
 
 const footerButtonsHelper = (onCancel, onConfirm, confirmLabel) => (
   <Kb.Box2 direction="horizontal" alignItems="flex-end">
-    {!!onCancel && (
-      <Kb.Button
-        style={{
-          alignSelf: 'flex-end',
-          marginRight: Styles.globalMargins.tiny,
-        }}
-        type="Dim"
-        label="Cancel"
-        onClick={onCancel}
-      />
-    )}
-    <Kb.Button
-      style={{
-        alignSelf: 'flex-end',
-      }}
-      disabled={!onConfirm}
-      label={confirmLabel}
-      onClick={onConfirm}
-    />
+    {!!onCancel && <Kb.Button type="Dim" label="Cancel" onClick={onCancel} />}
+    <Kb.Button style={styles.confirmButton} disabled={!onConfirm} label={confirmLabel} onClick={onConfirm} />
   </Kb.Box2>
 )
 
@@ -284,6 +267,11 @@ const styles = Styles.styleSheetCreate({
     left: -24,
     paddingTop: 2,
     position: 'absolute',
+  },
+  confirmButton: {
+    alignSelf: 'flex-end',
+    marginLeft: Styles.globalMargins.tiny,
+    minWidth: 128,
   },
   container: Styles.platformStyles({
     common: {
@@ -367,7 +355,11 @@ export class FloatingRolePicker extends React.Component<FloatingProps, S> {
       <>
         <Kb.Box ref={this._setRef}>{children}</Kb.Box>
         {open && (
-          <Kb.FloatingBox attachTo={this.state.ref && this._returnRef} position={position || 'top center'}>
+          <Kb.FloatingBox
+            attachTo={this.state.ref && this._returnRef}
+            position={position || 'top center'}
+            onHidden={props.onCancel}
+          >
             <Kb.Box style={floatingContainerStyle}>
               <RolePicker {...props} />
             </Kb.Box>
