@@ -23,6 +23,9 @@ declare module 'react-native' {
 declare module 'react-navigation/src/views/CardStack/CardStackTransitioner' {
   declare module.exports: any
 }
+declare module 'react-navigation-tabs' {
+  declare module.exports: any
+}
 declare module 'react-navigation' {
   declare module.exports: any
 }
