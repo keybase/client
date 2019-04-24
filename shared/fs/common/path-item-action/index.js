@@ -28,6 +28,7 @@ export type Clickable = ClickableComponent | ClickableIcon
 type Props = {|
   clickable: Clickable,
   init: () => void,
+  position?: 'row' | 'header',
   onHidden: () => void,
   path: Types.Path,
   routePath: I.List<string>,
@@ -85,6 +86,7 @@ const PathItemAction = Kb.OverlayParentHOC((props: Props & Kb.OverlayParentProps
       {props.showingMenu && (
         <ChooseView
           path={props.path}
+          position={props.position}
           routePath={props.routePath}
           floatingMenuProps={{
             attachTo: props.getAttachmentRef,

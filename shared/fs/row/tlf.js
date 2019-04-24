@@ -5,7 +5,7 @@ import * as Styles from '../../styles'
 import * as Constants from '../../constants/fs'
 import {rowStyles, StillCommon, type StillCommonProps} from './common'
 import * as Kb from '../../common-adapters'
-import {TlfInfo} from '../common'
+import {TlfInfo, LoadPathMetadataWhenNeeded} from '../common'
 
 type TlfProps = StillCommonProps & {
   isNew: boolean,
@@ -25,6 +25,7 @@ const Tlf = (props: TlfProps) => (
     badge={props.isNew ? 'new' : props.needsRekey ? 'rekey' : null}
     routePath={props.routePath}
   >
+    <LoadPathMetadataWhenNeeded path={props.path} />
     <Kb.Box style={rowStyles.itemBox}>
       <Kb.Box2 direction="horizontal" fullWidth={true}>
         <Kb.Text
