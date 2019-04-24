@@ -381,7 +381,7 @@ export type MessageTypes = {|
     outParam: SearchInboxRes,
   |},
   'chat.1.local.searchRegexp': {|
-    inParam: $ReadOnly<{|convID: ConversationID, query: String, isRegex: Boolean, opts: SearchOpts, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
+    inParam: $ReadOnly<{|convID: ConversationID, query: String, opts: SearchOpts, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
     outParam: SearchRegexpRes,
   |},
   'chat.1.local.setAppNotificationSettingsLocal': {|
@@ -1194,7 +1194,7 @@ export type RpRetain = $ReadOnly<{}>
 export type S3Params = $ReadOnly<{bucket: String, objectKey: String, accessKey: String, acl: String, regionName: String, regionEndpoint: String, regionBucketEndpoint: String}>
 export type SealedData = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
 export type SearchInboxRes = $ReadOnly<{res?: ?ChatSearchInboxResults, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
-export type SearchOpts = $ReadOnly<{sentBy: String, sentBefore: Gregor1.Time, sentAfter: Gregor1.Time, maxHits: Int, maxMessages: Int, beforeContext: Int, afterContext: Int, reindexMode: ReIndexingMode, maxConvsSearched: Int, maxConvsHit: Int, convID?: ?ConversationID, maxNameConvs: Int}>
+export type SearchOpts = $ReadOnly<{isRegex: Boolean, sentBy: String, sentBefore: Gregor1.Time, sentAfter: Gregor1.Time, maxHits: Int, maxMessages: Int, beforeContext: Int, afterContext: Int, reindexMode: ReIndexingMode, maxConvsSearched: Int, maxConvsHit: Int, convID?: ?ConversationID, maxNameConvs: Int}>
 export type SearchRegexpRes = $ReadOnly<{hits?: ?Array<ChatSearchHit>, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 export type ServerCacheVers = $ReadOnly<{inboxVers: Int, bodiesVers: Int}>
 export type ServerNowRes = $ReadOnly<{rateLimit?: ?RateLimit, now: Gregor1.Time}>

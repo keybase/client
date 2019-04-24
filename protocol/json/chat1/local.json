@@ -4172,10 +4172,6 @@
           "type": "string"
         },
         {
-          "name": "isRegex",
-          "type": "boolean"
-        },
-        {
           "name": "opts",
           "type": "SearchOpts"
         },

@@ -1427,6 +1427,10 @@
       "name": "SearchOpts",
       "fields": [
         {
+          "type": "boolean",
+          "name": "isRegex"
+        },
+        {
           "type": "string",
           "name": "sentBy"
         },

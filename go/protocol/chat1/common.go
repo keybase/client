@@ -1949,6 +1949,7 @@ func (e ReIndexingMode) String() string {
 }
 
 type SearchOpts struct {
+	IsRegex          bool            `codec:"isRegex" json:"isRegex"`
 	SentBy           string          `codec:"sentBy" json:"sentBy"`
 	SentBefore       gregor1.Time    `codec:"sentBefore" json:"sentBefore"`
 	SentAfter        gregor1.Time    `codec:"sentAfter" json:"sentAfter"`
@@ -1965,6 +1966,7 @@ type SearchOpts struct {
 
 func (o SearchOpts) DeepCopy() SearchOpts {
 	return SearchOpts{
+		IsRegex:          o.IsRegex,
 		SentBy:           o.SentBy,
 		SentBefore:       o.SentBefore.DeepCopy(),
 		SentAfter:        o.SentAfter.DeepCopy(),

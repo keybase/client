@@ -1353,6 +1353,7 @@ function* threadSearch(state, action) {
   try {
     yield RPCChatTypes.localSearchInboxRpcSaga({
       incomingCallMap: {
+        'chat.1.chatUi.chatSearchDone': onDone,
         'chat.1.chatUi.chatSearchHit': onHit,
         'chat.1.chatUi.chatSearchInboxDone': onDone,
         'chat.1.chatUi.chatSearchInboxHit': onInboxHit,
@@ -1366,10 +1367,11 @@ function* threadSearch(state, action) {
           beforeContext: 0,
           convID: Types.keyToConversationID(conversationIDKey),
           forceReindex: false,
+          isRegex: false,
           maxConvsHit: 0,
           maxConvsSearched: 0,
           maxHits: -1,
-          maxMessages: 0,
+          maxMessages: -1,
           maxNameConvs: 0,
           reindexMode: RPCChatTypes.commonReIndexingMode.postsearchSync,
           sentAfter: 0,
@@ -1473,6 +1475,7 @@ function* inboxSearch(state, action) {
         opts: {
           afterContext: 0,
           beforeContext: 0,
+          isRegex: false,
           maxConvsHit: Constants.inboxSearchMaxTextResults,
           maxConvsSearched: 0,
           maxHits: Constants.inboxSearchMaxTextMessages,
