@@ -219,7 +219,7 @@ type StateMachine interface {
 	Outbox(context.Context, UID) ([]Message, error)
 	RemoveFromOutbox(context.Context, UID, MsgID) error
 
-	// PrependToOutbox adds a slice of messages to the beginning of the outbox
+	// InitOutbox initializes a users outbox with the given messages
 	InitOutbox(context.Context, UID, []Message) error
 
 	// ConsumeOutboxMessage add a message to the outbox

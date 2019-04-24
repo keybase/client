@@ -9,10 +9,13 @@ import (
 func newCmdWallet(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	// please keep sorted
 	subcommands := []cli.Command{
+		newCmdWalletAddTrustline(cl, g),
 		newCmdWalletAPI(cl, g),
 		newCmdWalletBalances(cl, g),
 		newCmdWalletCancel(cl, g),
 		newCmdWalletCancelRequest(cl, g),
+		newCmdWalletChangeTrustlineLimit(cl, g),
+		newCmdWalletDeleteTrustline(cl, g),
 		newCmdWalletDetail(cl, g),
 		newCmdWalletExport(cl, g),
 		newCmdWalletGetInflation(cl, g),

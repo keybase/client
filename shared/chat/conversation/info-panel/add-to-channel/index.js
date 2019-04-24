@@ -21,7 +21,7 @@ type State = {|
 class AddToChannel extends React.Component<Props, State> {
   state = {selected: I.Set()}
   _itemHeight = {
-    height: Styles.isMobile ? 48 : 40,
+    height: 48,
     type: 'fixed',
   }
 

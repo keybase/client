@@ -29,6 +29,7 @@ const EnterEmail = (props: Props) => (
         keyboardType="email-address"
         placeholder="Email address"
         onChangeText={props.onChangeEmail}
+        textContentType="emailAddress"
       />
       <Kb.Checkbox
         label="Allow friends to find you by this email address"
