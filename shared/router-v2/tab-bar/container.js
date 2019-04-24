@@ -8,7 +8,11 @@ import * as TrackerConstants from '../../constants/tracker2'
 import TabBar from '.'
 import {connect} from '../../util/container'
 import {memoize} from '../../util/memoize'
+import {isLinux} from '../../constants/platform'
 import openURL from '../../util/open-url'
+import {quit, hideWindow} from '../../util/quit-helper'
+import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as SettingsGen from '../../actions/settings-gen'
 
 type OwnProps = {|
   selectedTab: Tabs.Tab,
@@ -30,6 +34,20 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     dispatch(RouteTreeGen.createNavigateAppend({path: [tab]}))
   },
   onHelp: () => openURL('https://keybase.io/docs'),
+  onQuit: () => {
+    if (!__DEV__) {
+      if (isLinux) {
+        dispatch(SettingsGen.createStop({exitCode: RPCTypes.ctlExitCode.ok}))
+      } else {
+        dispatch(ConfigGen.createDumpLogs({reason: 'quitting through menu'}))
+      }
+    }
+    // In case dump log doesn't exit for us
+    hideWindow()
+    setTimeout(() => {
+      quit('quitButton')
+    }, 2000)
+  },
   onSettings: () => dispatch(RouteTreeGen.createNavigateAppend({path: [Tabs.settingsTab]})),
   onSignOut: () => dispatch(ConfigGen.createLogout()),
 })
@@ -42,6 +60,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   isWalletsNew: stateProps.isWalletsNew,
   onHelp: dispatchProps.onHelp,
   onProfileClick: () => dispatchProps._onProfileClick(stateProps.username),
+  onQuit: dispatchProps.onQuit,
   onSettings: dispatchProps.onSettings,
   onSignOut: dispatchProps.onSignOut,
   onTabClick: (tab: Tabs.Tab) => dispatchProps._onTabClick(tab),
