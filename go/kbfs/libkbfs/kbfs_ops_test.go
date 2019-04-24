@@ -4735,7 +4735,6 @@ func waitForIndirectPtrBlocksInTest(
 }
 
 func TestKBFSOpsPartialSync(t *testing.T) {
-	t.Skip("FIXME: Can flake with a status that isn't FinishedPrefetch on line 4914.")
 	var u1 kbname.NormalizedUsername = "u1"
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)

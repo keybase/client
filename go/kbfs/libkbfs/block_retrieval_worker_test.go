@@ -196,8 +196,6 @@ func TestBlockRetrievalWorkerMultipleWorkers(t *testing.T) {
 	err = <-req1Ch
 	require.NoError(t, err)
 	require.Equal(t, block1, block)
-
-	// FIXME: Figure out why the block prefetcher has a pending request for ptr2.
 }
 
 func TestBlockRetrievalWorkerWithQueue(t *testing.T) {
@@ -263,8 +261,6 @@ func TestBlockRetrievalWorkerWithQueue(t *testing.T) {
 	err = <-req2Ch
 	require.NoError(t, err)
 	require.Equal(t, block2, block)
-
-	// FIXME: figure out why the prefetcher has a pending request for ptr1.
 }
 
 func TestBlockRetrievalWorkerCancel(t *testing.T) {
