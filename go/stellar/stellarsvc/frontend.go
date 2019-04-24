@@ -1159,15 +1159,7 @@ func (s *Server) FindPaymentPathLocal(ctx context.Context, arg stellar1.FindPaym
 		return stellar1.PaymentPathLocal{}, err
 	}
 
-	recipient, err := stellar.LookupRecipient(mctx, stellarcommon.RecipientInput(arg.To), false)
-	if err != nil {
-		return stellar1.PaymentPathLocal{}, err
-	}
-	if recipient.AccountID == nil {
-		return stellar1.PaymentPathLocal{}, errors.New("cannot send a path payment to a user without a stellar account")
-	}
-
-	path, err := stellar.FindPaymentPath(mctx, s.remoter, arg.From, *recipient.AccountID, arg.SourceAsset, arg.DestinationAsset, arg.Amount)
+	path, err := stellar.FindPaymentPath(mctx, s.remoter, arg.From, arg.To, arg.SourceAsset, arg.DestinationAsset, arg.Amount)
 	if err != nil {
 		return stellar1.PaymentPathLocal{}, err
 	}

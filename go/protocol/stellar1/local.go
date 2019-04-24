@@ -1297,11 +1297,11 @@ type SendCLILocalArg struct {
 }
 
 type SendPathCLILocalArg struct {
-	Source      AccountID   `codec:"source" json:"source"`
-	Destination AccountID   `codec:"destination" json:"destination"`
-	Path        PaymentPath `codec:"path" json:"path"`
-	Note        string      `codec:"note" json:"note"`
-	PublicNote  string      `codec:"publicNote" json:"publicNote"`
+	Source     AccountID   `codec:"source" json:"source"`
+	Recipient  string      `codec:"recipient" json:"recipient"`
+	Path       PaymentPath `codec:"path" json:"path"`
+	Note       string      `codec:"note" json:"note"`
+	PublicNote string      `codec:"publicNote" json:"publicNote"`
 }
 
 type ClaimCLILocalArg struct {

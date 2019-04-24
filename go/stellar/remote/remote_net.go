@@ -38,6 +38,10 @@ func (r *RemoteNet) SubmitRelayPayment(ctx context.Context, post stellar1.Paymen
 	return SubmitRelayPayment(ctx, r.G(), post)
 }
 
+func (r *RemoteNet) SubmitPathPayment(mctx libkb.MetaContext, post stellar1.PathPaymentPost) (stellar1.PaymentResult, error) {
+	return SubmitPathPayment(mctx, post)
+}
+
 func (r *RemoteNet) SubmitMultiPayment(ctx context.Context, post stellar1.PaymentMultiPost) (stellar1.SubmitMultiRes, error) {
 	return SubmitMultiPayment(ctx, r.G(), post)
 }

@@ -233,7 +233,7 @@ func (s *Server) SendPathCLILocal(ctx context.Context, arg stellar1.SendPathCLIL
 
 	sendRes, err := stellar.SendPathPaymentCLI(mctx, s.walletState, stellar.SendPathPaymentArg{
 		From:        arg.Source,
-		To:          arg.Destination,
+		To:          stellarcommon.RecipientInput(arg.Recipient),
 		Path:        arg.Path,
 		SecretNote:  arg.Note,
 		PublicMemo:  arg.PublicNote,

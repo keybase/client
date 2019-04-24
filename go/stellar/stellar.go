@@ -698,7 +698,7 @@ func sendPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendP
 
 type SendPathPaymentArg struct {
 	From        stellar1.AccountID
-	To          stellar1.AccountID
+	To          stellarcommon.RecipientInput
 	Path        stellar1.PaymentPath
 	SecretNote  string
 	PublicMemo  string
@@ -707,25 +707,27 @@ type SendPathPaymentArg struct {
 
 // SendPathPaymentCLI sends a path payment from CLI.
 func SendPathPaymentCLI(mctx libkb.MetaContext, walletState *WalletState, sendArg SendPathPaymentArg) (res SendPaymentResult, err error) {
-	// look up sender account
 	senderEntry, senderAccountBundle, err := LookupSender(mctx, sendArg.From)
 	if err != nil {
 		return res, err
 	}
-	senderSeed := senderAccountBundle.Signers[0]
+	senderSeed, err := stellarnet.NewSeedStr(senderAccountBundle.Signers[0].SecureNoLogString())
+	if err != nil {
+		return res, err
+	}
 	senderAccountID := senderEntry.AccountID
+
+	recipient, err := LookupRecipient(mctx, stellarcommon.RecipientInput(sendArg.To), false)
+	if err != nil {
+		return res, err
+	}
+	if recipient.AccountID == nil {
+		return res, errors.New("cannot send a path payment to a user without a stellar account")
+	}
 
 	baseFee := walletState.BaseFee(mctx)
 
-	to, err := stellarnet.NewAddressStr(sendArg.To.String())
-	if err != nil {
-		return res, err
-	}
-	sourceIssuer, err := stellarnet.NewAddressStr(sendArg.SourceAsset.Issuer)
-	if err != nil {
-		return res, err
-	}
-	destinationIssuer, err := stellarnet.NewAddressStr(sendArg.DestinationAsset.Issuer)
+	to, err := stellarnet.NewAddressStr(recipient.AccountID.String())
 	if err != nil {
 		return res, err
 	}
@@ -733,13 +735,80 @@ func SendPathPaymentCLI(mctx libkb.MetaContext, walletState *WalletState, sendAr
 	sp, unlock := NewSeqnoProvider(mctx, walletState)
 	defer unlock()
 
-	sig, err := stellarnet.PathPaymentTransaction(senderSeed, to, sendArg.Path.SourceAsset.Code, sourceIssuer, sendArg.Path.SourceAmountMax, sendArg.Path.DestinationAsset.Code, destinationIssuer, sendArg.Path.DestinationAmount, sendArg.Path.Path, sendArg.PublicMemo, sp, nil, baseFee)
+	sig, err := stellarnet.PathPaymentTransaction(senderSeed, to, sendArg.Path.SourceAsset, sendArg.Path.SourceAmountMax, sendArg.Path.DestinationAsset, sendArg.Path.DestinationAmount, AssetSliceToAssetBase(sendArg.Path.Path), sendArg.PublicMemo, sp, nil, baseFee)
 	if err != nil {
 		return res, err
 	}
-	_ = sig
 
-	return res, errors.New("not yet implemented")
+	post := stellar1.PathPaymentPost{
+		FromDeviceID:      mctx.G().ActiveDevice.DeviceID(),
+		QuickReturn:       sendArg.QuickReturn,
+		SignedTransaction: sig.Signed,
+	}
+
+	if err := walletState.AddPendingTx(mctx.Ctx(), senderEntry.AccountID, stellar1.TransactionID(sig.TxHash), sig.Seqno); err != nil {
+		mctx.Debug("error calling AddPendingTx: %s", err)
+	}
+
+	if len(sendArg.SecretNote) > 0 {
+		noteClear := stellar1.NoteContents{
+			Note:      sendArg.SecretNote,
+			StellarID: stellar1.TransactionID(sig.TxHash),
+		}
+		var recipientUv *keybase1.UserVersion
+		if recipient.User != nil {
+			recipientUv = &recipient.User.UV
+		}
+		post.NoteB64, err = NoteEncryptB64(mctx, noteClear, recipientUv)
+		if err != nil {
+			return res, fmt.Errorf("error encrypting note: %v", err)
+		}
+	}
+
+	rres, err := walletState.SubmitPathPayment(mctx, post)
+	if err != nil {
+		mctx.Debug("SEQNO SubmitPathPayment error seqno: %d txID: %s, err: %s", sig.Seqno, rres.StellarID, err)
+		if rerr := walletState.RemovePendingTx(mctx.Ctx(), senderEntry.AccountID, stellar1.TransactionID(sig.TxHash)); rerr != nil {
+			mctx.Debug("error calling RemovePendingTx: %s", rerr)
+		}
+		return res, err
+	}
+	mctx.Debug("sent path payment (direct) kbTxID:%v txID:%v pending:%v", sig.Seqno, rres.KeybaseID, rres.StellarID, rres.Pending)
+	mctx.Debug("SEQNO SubmitPathPayment success seqno: %d txID: %s", sig.Seqno, rres.StellarID)
+	if !rres.Pending {
+		mctx.Debug("SubmitPathPayment result wasn't pending, removing from wallet state: %s/%s", senderAccountID, sig.TxHash)
+		err = walletState.RemovePendingTx(mctx.Ctx(), senderEntry.AccountID, stellar1.TransactionID(sig.TxHash))
+		if err != nil {
+			mctx.Debug("SubmitPathPayment ws.RemovePendingTx error: %s", err)
+		}
+	}
+
+	err = walletState.Refresh(mctx, senderEntry.AccountID, "SubmitPathPayment")
+	if err != nil {
+		mctx.Debug("SubmitPathPayment ws.Refresh error: %s", err)
+	}
+
+	if senderEntry.IsPrimary {
+		sendChat := func(mctx libkb.MetaContext) {
+			if err := chatSendPaymentMessage(mctx, recipient, rres.StellarID); err != nil {
+				// if the chat message fails to send, just log the error
+				mctx.Debug("failed to send chat SendPathPayment message: %s", err)
+			}
+		}
+		if sendArg.QuickReturn {
+			go sendChat(mctx.WithCtx(context.Background()))
+		} else {
+			sendChat(mctx)
+		}
+	} else {
+		mctx.Debug("not sending chat message: sending from non-primary account")
+	}
+
+	return SendPaymentResult{
+		KbTxID:  rres.KeybaseID,
+		TxID:    rres.StellarID,
+		Pending: rres.Pending,
+	}, nil
 }
 
 type indexedSpec struct {
@@ -2180,10 +2249,18 @@ func AirdropStatus(mctx libkb.MetaContext) (stellar1.AirdropStatus, error) {
 	return TransformToAirdropStatus(apiStatus), nil
 }
 
-func FindPaymentPath(mctx libkb.MetaContext, remoter remote.Remoter, source stellar1.AccountID, to stellarnet.AddressStr, sourceAsset, destinationAsset stellar1.Asset, amount string) (stellar1.PaymentPath, error) {
+func FindPaymentPath(mctx libkb.MetaContext, remoter remote.Remoter, source stellar1.AccountID, to string, sourceAsset, destinationAsset stellar1.Asset, amount string) (stellar1.PaymentPath, error) {
+	recipient, err := LookupRecipient(mctx, stellarcommon.RecipientInput(to), false)
+	if err != nil {
+		return stellar1.PaymentPath{}, err
+	}
+	if recipient.AccountID == nil {
+		return stellar1.PaymentPath{}, errors.New("cannot send a path payment to a user without a stellar account")
+	}
+
 	query := stellar1.PaymentPathQuery{
 		Source:           source,
-		Destination:      stellar1.AccountID(to.String()),
+		Destination:      stellar1.AccountID(recipient.AccountID.String()),
 		SourceAsset:      sourceAsset,
 		DestinationAsset: destinationAsset,
 		Amount:           amount,

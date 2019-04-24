@@ -538,8 +538,8 @@ func PaymentXLMTransaction(from SeedStr, to AddressStr, amount, memoText string,
 }
 
 // payment creates a payment transaction for a custom asset and sends it to the network.
-func payment(from SeedStr, to AddressStr, assetCode string, assetIssuer AddressStr, amount, memoText string) (ledger int32, txid string, attempt int, err error) {
-	sig, err := PaymentTransaction(from, to, assetCode, assetIssuer, amount, memoText, Client(), nil /* timeBounds */, build.DefaultBaseFee)
+func payment(from SeedStr, to AddressStr, asset AssetBase, amount, memoText string) (ledger int32, txid string, attempt int, err error) {
+	sig, err := PaymentTransaction(from, to, asset, amount, memoText, Client(), nil /* timeBounds */, build.DefaultBaseFee)
 	if err != nil {
 		return 0, "", 0, errMap(err)
 	}
@@ -547,25 +547,25 @@ func payment(from SeedStr, to AddressStr, assetCode string, assetIssuer AddressS
 }
 
 // PaymentTransaction creates a signed transaction to send a payment from 'from' to 'to' for a custom asset.
-func PaymentTransaction(from SeedStr, to AddressStr, assetCode string, issuerID AddressStr, amount, memoText string,
+func PaymentTransaction(from SeedStr, to AddressStr, asset AssetBase, amount, memoText string,
 	seqnoProvider build.SequenceProvider, timeBounds *build.Timebounds, baseFee uint64) (res SignResult, err error) {
 	t, err := newBaseTxSeed(from, seqnoProvider, baseFee)
 	if err != nil {
 		return res, err
 	}
-	asset, err := makeXDRAsset(assetCode, issuerID)
+	assetXDR, err := assetBaseToXDR(asset)
 	if err != nil {
 		return res, err
 	}
-	t.AddAssetPaymentOp(to, asset, amount)
+	t.AddAssetPaymentOp(to, assetXDR, amount)
 	t.AddMemoText(memoText)
 	t.AddBuiltTimeBounds(timeBounds)
 	return t.Sign(from)
 }
 
 // pathPayment creates a transaction with a path payment operation in it and submits it to the network.
-func pathPayment(from SeedStr, to AddressStr, sendAssetCode string, sendAssetIssuer AddressStr, sendAmountMax string, destAssetCode string, destAssetIssuer AddressStr, destAmount string, path []PathAsset, memoText string) (ledger int32, txid string, attempt int, err error) {
-	sig, err := PathPaymentTransaction(from, to, sendAssetCode, sendAssetIssuer, sendAmountMax, destAssetCode, destAssetIssuer, destAmount, path, memoText, Client(), nil /* timeBounds */, build.DefaultBaseFee)
+func pathPayment(from SeedStr, to AddressStr, sendAsset AssetBase, sendAmountMax string, destAsset AssetBase, destAmount string, path []AssetBase, memoText string) (ledger int32, txid string, attempt int, err error) {
+	sig, err := PathPaymentTransaction(from, to, sendAsset, sendAmountMax, destAsset, destAmount, path, memoText, Client(), nil /* timeBounds */, build.DefaultBaseFee)
 	if err != nil {
 		return 0, "", 0, errMap(err)
 	}
@@ -573,22 +573,13 @@ func pathPayment(from SeedStr, to AddressStr, sendAssetCode string, sendAssetIss
 }
 
 // PathPaymentTransaction creates a signed transaction for a path payment.
-func PathPaymentTransaction(from SeedStr, to AddressStr, sendAssetCode string, sendAssetIssuer AddressStr, sendAmountMax string, destAssetCode string, destAssetIssuer AddressStr, destAmount string, path []PathAsset, memoText string, seqnoProvider build.SequenceProvider, timeBounds *build.Timebounds, baseFee uint64) (SignResult, error) {
+func PathPaymentTransaction(from SeedStr, to AddressStr, sendAsset AssetBase, sendAmountMax string, destAsset AssetBase, destAmount string, path []AssetBase, memoText string, seqnoProvider build.SequenceProvider, timeBounds *build.Timebounds, baseFee uint64) (SignResult, error) {
 	t, err := newBaseTxSeed(from, seqnoProvider, baseFee)
 	if err != nil {
 		return SignResult{}, err
 	}
 
-	sendAssetXDR, err := makeXDRAsset(sendAssetCode, sendAssetIssuer)
-	if err != nil {
-		return SignResult{}, err
-	}
-	destAssetXDR, err := makeXDRAsset(destAssetCode, destAssetIssuer)
-	if err != nil {
-		return SignResult{}, err
-	}
-
-	t.AddPathPaymentOp(to, sendAssetXDR, sendAmountMax, destAssetXDR, destAmount, path)
+	t.AddPathPaymentOp(to, sendAsset, sendAmountMax, destAsset, destAmount, path)
 	t.AddMemoText(memoText)
 	t.AddBuiltTimeBounds(timeBounds)
 
@@ -871,7 +862,11 @@ func CreateCustomAssetWithKPs(source SeedStr, issuerPair, distPair *keypair.Full
 	}
 
 	// 4. create the asset by paying the distributor
-	_, _, _, err = payment(issuer, distributorAddr, assetCode, issuerAddr, limit, "")
+	asset, err := NewAssetMinimal(assetCode, issuerAddr.String())
+	if err != nil {
+		return issuer, distributor, err
+	}
+	_, _, _, err = payment(issuer, distributorAddr, asset, limit, "")
 	if err != nil {
 		return issuer, distributor, err
 	}

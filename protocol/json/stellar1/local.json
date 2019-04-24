@@ -2079,8 +2079,8 @@
           "type": "AccountID"
         },
         {
-          "name": "destination",
-          "type": "AccountID"
+          "name": "recipient",
+          "type": "string"
         },
         {
           "name": "path",
