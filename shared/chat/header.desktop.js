@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Constants from '../constants/chat2'
+import * as TeamConstants from '../constants/teams'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
@@ -11,9 +12,11 @@ import ChatInboxHeader from './inbox/row/chat-inbox-header/container'
 type OwnProps = {||}
 
 type Props = {|
+  canEditDesc: boolean,
   channel: ?string,
   desc: string,
   infoPanelOpen: boolean,
+  isTeam: boolean,
   muted: boolean,
   onOpenFolder: () => void,
   onNewChat: () => void,
@@ -24,65 +27,82 @@ type Props = {|
   unMuteConversation: () => void,
 |}
 
-const Header = (p: Props) => (
-  <Kb.Box2 direction="horizontal" style={styles.container}>
-    <Kb.Box2 direction="vertical" style={styles.left}>
-      <ChatInboxHeader onNewChat={p.onNewChat} />
-    </Kb.Box2>
-    <Kb.Box2
-      direction="horizontal"
-      style={styles.right}
-      gap="small"
-      alignItems="flex-end"
-      alignSelf="flex-end"
-    >
-      <Kb.Box2 direction="vertical" style={styles.grow}>
-        <Kb.Box2 direction="horizontal" fullWidth={true}>
-          {p.channel ? (
-            <Kb.Text selectable={true} type="Header" lineClamp={1}>
-              {p.channel}
-            </Kb.Text>
-          ) : p.participants ? (
-            <Kb.ConnectedUsernames
-              colorFollowing={true}
-              underline={true}
-              inline={false}
-              commaColor={Styles.globalColors.black_50}
-              type="Header"
-              usernames={p.participants}
-              onUsernameClicked="profile"
-              skipSelf={p.participants.length > 1 /* length ===1 means just you so show yourself */}
-            />
-          ) : null}
-          {p.muted && (
-            <Kb.Icon
-              type="iconfont-shh"
-              style={styles.shhIconStyle}
-              color={Styles.globalColors.black_20}
-              fontSize={20}
-              onClick={p.unMuteConversation}
-            />
-          )}
+const Header = (p: Props) => {
+  let description = !!p.desc && (
+    <Kb.Text type="BodySmall" lineClamp={1}>
+      {p.desc}
+    </Kb.Text>
+  )
+  if (p.isTeam && !p.desc && p.canEditDesc) {
+    description = (
+      <Kb.Text type="BodySmallItalic" lineClamp={1}>
+        Set a description using the <Kb.Text type="BodySmallSemiboldItalic">/headline</Kb.Text> command.
+      </Kb.Text>
+    )
+  }
+  if (p.isTeam && p.desc && p.canEditDesc) {
+    description = (
+      <Kb.WithTooltip position="bottom center" text="Set the description using the /headline command.">
+        {description}
+      </Kb.WithTooltip>
+    )
+  }
+  return (
+    <Kb.Box2 direction="horizontal" style={styles.container}>
+      <Kb.Box2 direction="vertical" style={styles.left}>
+        <ChatInboxHeader onNewChat={p.onNewChat} />
+      </Kb.Box2>
+      <Kb.Box2
+        direction="horizontal"
+        style={styles.right}
+        gap="small"
+        alignItems="flex-end"
+        alignSelf="flex-end"
+      >
+        <Kb.Box2 direction="vertical" style={styles.grow}>
+          <Kb.Box2 direction="horizontal" fullWidth={true}>
+            {p.channel ? (
+              <Kb.Text selectable={true} type="Header" lineClamp={1}>
+                {p.channel}
+              </Kb.Text>
+            ) : p.participants ? (
+              <Kb.ConnectedUsernames
+                colorFollowing={true}
+                underline={true}
+                inline={false}
+                commaColor={Styles.globalColors.black_50}
+                type="Header"
+                usernames={p.participants}
+                onUsernameClicked="profile"
+                skipSelf={p.participants.length > 1 /* length ===1 means just you so show yourself */}
+              />
+            ) : null}
+            {p.muted && (
+              <Kb.Icon
+                type="iconfont-shh"
+                style={styles.shhIconStyle}
+                color={Styles.globalColors.black_20}
+                fontSize={20}
+                onClick={p.unMuteConversation}
+              />
+            )}
+          </Kb.Box2>
+          {description}
         </Kb.Box2>
-        {!!p.desc && (
-          <Kb.Text selectable={true} type="BodyTiny" style={styles.desc} lineClamp={1}>
-            {p.desc}
-          </Kb.Text>
+        {p.showActions && (
+          <Kb.Box2 direction="horizontal" gap="small" alignItems="flex-end" alignSelf="flex-end">
+            <Kb.Icon type="iconfont-search" onClick={p.onToggleThreadSearch} />
+            <Kb.Icon type="iconfont-folder-private" onClick={p.onOpenFolder} />
+            <Kb.Icon
+              type={p.infoPanelOpen ? 'iconfont-close' : 'iconfont-info'}
+              onClick={p.onToggleInfoPanel}
+            />
+          </Kb.Box2>
         )}
       </Kb.Box2>
-      {p.showActions && (
-        <Kb.Box2 direction="horizontal" gap="small" alignItems="flex-end" alignSelf="flex-end">
-          <Kb.Icon type="iconfont-search" onClick={p.onToggleThreadSearch} />
-          <Kb.Icon type="iconfont-folder-private" onClick={p.onOpenFolder} />
-          <Kb.Icon
-            type={p.infoPanelOpen ? 'iconfont-close' : 'iconfont-info'}
-            onClick={p.onToggleInfoPanel}
-          />
-        </Kb.Box2>
-      )}
     </Kb.Box2>
-  </Kb.Box2>
-)
+  )
+}
 
 const styles = Styles.styleSheetCreate({
   container: {
@@ -113,6 +133,7 @@ const mapStateToProps = state => {
     _fullnames,
     _meta,
     _username: state.config.username,
+    canEditDesc: TeamConstants.getCanPerform(state, _meta.teamname).editChannelDescription,
     infoPanelOpen: Constants.isInfoPanelOpen(state),
   }
 }
@@ -140,6 +161,7 @@ const mergeProps = (stateProps, dispatchProps) => {
       ? stateProps._fullnames.get(otherParticipants[0], {fullname: ''}).fullname
       : meta.description
   return {
+    canEditDesc: stateProps.canEditDesc,
     channel:
       meta.teamType === 'big'
         ? `${meta.teamname}#${meta.channelname}`
@@ -148,6 +170,7 @@ const mergeProps = (stateProps, dispatchProps) => {
         : null,
     desc,
     infoPanelOpen: stateProps.infoPanelOpen,
+    isTeam: ['small', 'big'].includes(meta.teamType),
     muted: meta.isMuted,
     onNewChat: dispatchProps.onNewChat,
     onOpenFolder: () => dispatchProps._onOpenFolder(stateProps._conversationIDKey),
