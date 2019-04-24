@@ -2495,7 +2495,6 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 				return
 			default:
 				chatUI.ChatSearchInboxHit(ctx, chat1.ChatSearchInboxHitArg{
-					SessionID: arg.SessionID,
 					SearchHit: searchHit,
 				})
 			}
@@ -2515,8 +2514,7 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 				return
 			default:
 				chatUI.ChatSearchIndexStatus(ctx, chat1.ChatSearchIndexStatusArg{
-					SessionID: arg.SessionID,
-					Status:    status,
+					Status: status,
 				})
 			}
 		}
@@ -2572,8 +2570,7 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 		return res, ctx.Err()
 	default:
 		chatUI.ChatSearchInboxDone(ctx, chat1.ChatSearchInboxDoneArg{
-			SessionID: arg.SessionID,
-			Res:       doneRes,
+			Res: doneRes,
 		})
 	}
 	return chat1.SearchInboxRes{
