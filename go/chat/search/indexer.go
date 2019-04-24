@@ -247,9 +247,10 @@ type reindexOpts struct {
 // background conversation loader. For a small number of messages we use the
 // GetMessages api to fill in the holes. If our index is missing many messages,
 // we page through and add batches of missing messages.
-func (idx *Indexer) reindexConv(ctx context.Context, conv chat1.Conversation, uid gregor1.UID,
+func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversation, uid gregor1.UID,
 	convIdx *chat1.ConversationIndex, opts reindexOpts) (completedJobs int, newIdx *chat1.ConversationIndex, err error) {
 
+	conv := rconv.Conv
 	missingIDs := convIdx.MissingIDForConv(conv)
 	if len(missingIDs) == 0 {
 		return 0, convIdx, nil
@@ -259,8 +260,8 @@ func (idx *Indexer) reindexConv(ctx context.Context, conv chat1.Conversation, ui
 
 	convID := conv.GetConvID()
 	defer idx.Trace(ctx, func() error { return err },
-		fmt.Sprintf("Indexer.reindex: convID: %v, minID: %v, maxID: %v, numMissing: %v",
-			convID, minIdxID, maxIdxID, len(missingIDs)))()
+		fmt.Sprintf("Indexer.reindex: conv: %v, minID: %v, maxID: %v, numMissing: %v",
+			rconv.GetName(), minIdxID, maxIdxID, len(missingIDs)))()
 
 	reason := chat1.GetThreadReason_INDEXED_SEARCH
 	if len(missingIDs) < idx.pageSize {
@@ -463,7 +464,7 @@ func (idx *Indexer) SelectiveSync(ctx context.Context, uid gregor1.UID, forceRei
 			continue
 		}
 
-		completedJobs, _, err := idx.reindexConv(ctx, conv.Conv, uid, convIdx, reindexOpts{
+		completedJobs, _, err := idx.reindexConv(ctx, conv, uid, convIdx, reindexOpts{
 			forceReindex: forceReindex, // only true in tests
 			limitMaxJobs: true,
 			maxJobs:      maxJobs - totalCompletedJobs,
@@ -516,6 +517,10 @@ func (idx *Indexer) indexConvWithProfile(ctx context.Context, conv types.RemoteC
 	defer func() {
 		res.ConvName = conv.GetName()
 		if convIdx != nil {
+			min, max := convIdx.MinMaxIDs(conv.Conv)
+			res.MinConvID = min
+			res.MaxConvID = max
+			res.NumMissing = len(convIdx.MissingIDForConv(conv.Conv))
 			res.NumMessages = len(convIdx.Metadata.SeenIDs)
 			res.PercentIndexed = convIdx.PercentIndexed(conv.Conv)
 		}
@@ -531,7 +536,7 @@ func (idx *Indexer) indexConvWithProfile(ctx context.Context, conv types.RemoteC
 	}
 
 	startT := time.Now()
-	_, convIdx, err = idx.reindexConv(ctx, conv.Conv, uid, convIdx, reindexOpts{forceReindex: true})
+	_, convIdx, err = idx.reindexConv(ctx, conv, uid, convIdx, reindexOpts{forceReindex: true})
 	if err != nil {
 		return res, err
 	}

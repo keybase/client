@@ -964,7 +964,12 @@ protocol local {
   record ProfileSearchConvStats {
     string err;
     string convName;
-    // number of messages in the conversation that were indexed (type TEXT)
+    // min/max messages we care about for the index.
+    MessageID minConvID;
+    MessageID maxConvID;
+    // number of missing ids from the index
+    int numMissing;
+    // number of messages in the conversation that were indexed
     int numMessages;
     // number of bytes in the final index
     int indexSize;
