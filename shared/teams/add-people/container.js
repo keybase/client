@@ -3,9 +3,10 @@ import * as React from 'react'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as SearchGen from '../../actions/search-gen'
 import * as SearchConstants from '../../constants/search'
+import * as WaitingConstants from '../../constants/waiting'
 import {sendNotificationFooter} from '../role-picker'
 import * as Types from '../../constants/types/teams'
-import {getRole, getDisabledReasonsForRolePicker} from '../../constants/teams'
+import {getRole, getDisabledReasonsForRolePicker, addPeopleToTeamWaitingKey} from '../../constants/teams'
 import {upperFirst} from 'lodash-es'
 import AddPeople, {type AddPeopleProps} from '.'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
@@ -22,6 +23,7 @@ const mapStateToProps = (state, ownProps) => {
     errorText: upperFirst(state.teams.teamInviteError),
     name: teamname,
     numberOfUsersSelected: SearchConstants.getUserInputItemIds(state, 'addToTeamSearch').size,
+    waiting: WaitingConstants.anyWaiting(state, addPeopleToTeamWaitingKey(teamname)),
   }
 }
 
@@ -80,6 +82,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onClearSearch: dispatchProps.onClearSearch,
     onClose: dispatchProps.onClose,
     title: `Add to ${stateProps.name}`,
+    waiting: stateProps.waiting,
   }
 }
 

@@ -31,6 +31,7 @@ export type AddPeopleProps = {|
   onClose: () => void,
   name: string,
   title: string,
+  waiting: boolean,
 |}
 
 type RolePickerProps = {|
@@ -57,7 +58,7 @@ const AddPeople = (props: Props) => (
         headerStyle={styles.header}
         onCancel={Styles.isMobile ? props.onClose : null}
         onRightAction={props.numberOfUsersSelected > 0 ? props.onOpenRolePicker : null}
-        rightActionLabel={props.addButtonLabel}
+        rightActionLabel={props.waiting ? 'Adding...' : props.addButtonLabel}
         title={props.title}
       />
       {!!props.errorText && (
@@ -82,26 +83,30 @@ const AddPeople = (props: Props) => (
         </Kb.Box>
       )}
 
-      <Kb.Box style={Styles.globalStyles.flexBoxColumn}>
-        <UserInput
-          autoFocus={true}
-          hideAddButton={true}
-          onExitSearch={props.onClearSearch}
-          placeholder="Add people"
-          searchKey={'addToTeamSearch'}
-          showServiceFilter={true}
-        />
-      </Kb.Box>
-      <Kb.Box style={{...Styles.desktopStyles.scrollable, flex: 1}}>
-        <SearchResultsList
-          searchKey={'addToTeamSearch'}
-          disableIfInTeamName={props.name}
-          style={
-            Styles.isMobile ? {bottom: 0, left: 0, position: 'absolute', right: 0, top: 0} : {height: 300}
-          }
-          keyboardDismissMode="on-drag"
-        />
-      </Kb.Box>
+      {props.waiting && Styles.isMobile ? (
+        <Kb.ProgressIndicator type="Large" style={{paddingTop: Styles.globalMargins.medium}} />
+      ) : (
+        <>
+          <Kb.Box style={Styles.globalStyles.flexBoxColumn}>
+            <UserInput
+              autoFocus={true}
+              hideAddButton={true}
+              onExitSearch={props.onClearSearch}
+              placeholder="Add people"
+              searchKey={'addToTeamSearch'}
+              showServiceFilter={true}
+            />
+          </Kb.Box>
+          <Kb.Box style={{...Styles.desktopStyles.scrollable, flex: 1}}>
+            <SearchResultsList
+              searchKey={'addToTeamSearch'}
+              disableIfInTeamName={props.name}
+              style={Styles.collapseStyles([styles.searchList, props.waiting ? {opacity: 0.4} : null])}
+              keyboardDismissMode="on-drag"
+            />
+          </Kb.Box>
+        </>
+      )}
       {!Styles.isMobile ? (
         <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, padding: Styles.globalMargins.medium}}>
           <Kb.Box style={{...Styles.globalStyles.flexBoxRow, justifyContent: 'center'}}>
@@ -176,6 +181,18 @@ const styles = Styles.styleSheetCreate({
   popupCover: {
     backgroundColor: Styles.globalColors.black,
   },
+  searchList: Styles.platformStyles({
+    isElectron: {
+      height: 300,
+    },
+    isMobile: {
+      bottom: 0,
+      left: 0,
+      position: 'absolute',
+      right: 0,
+      top: 0,
+    },
+  }),
 })
 
 export default AddPeople
