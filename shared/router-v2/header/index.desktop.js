@@ -16,6 +16,11 @@ const AppIconBox = Styles.styled(Kb.ClickableBox)({
     backgroundColor: Styles.globalColors.lightGrey,
   },
 })
+const AppIconBoxOnRed = Styles.styled(Kb.ClickableBox)({
+  ':hover': {
+    backgroundColor: Styles.globalColors.red,
+  },
+})
 
 class Header extends React.PureComponent<Props> {
   render() {
@@ -81,12 +86,13 @@ class Header extends React.PureComponent<Props> {
             {!title && rightActions}
 
             {!Platform.isDarwin && (
-              <Kb.Box2 direction="horizontal" gap="tiny">
+              <Kb.Box2 direction="horizontal">
                 <AppIconBox direction="vertical" onClick={Window.minimizeWindow} style={styles.appIconBox}>
                   <Kb.Icon
-                    type="iconfont-app-minimize"
-                    style={styles.appIcon}
                     color={Styles.globalColors.black_50}
+                    onClick={Window.toggleMaximizeWindow}
+                    style={styles.appIcon}
+                    type="iconfont-app-minimize"
                   />
                 </AppIconBox>
                 <AppIconBox
@@ -95,18 +101,21 @@ class Header extends React.PureComponent<Props> {
                   style={styles.appIconBox}
                 >
                   <Kb.Icon
+                    color={Styles.globalColors.black_50}
+                    onClick={Window.toggleMaximizeWindow}
+                    style={styles.appIcon}
                     type="iconfont-app-maximize"
-                    style={styles.appIcon}
-                    color={Styles.globalColors.black_50}
                   />
                 </AppIconBox>
-                <AppIconBox direction="vertical" onClick={Window.closeWindow} style={styles.appIconBox}>
+                <AppIconBoxOnRed direction="vertical" onClick={Window.closeWindow} style={styles.appIconBox}>
                   <Kb.Icon
-                    type="iconfont-app-close"
-                    style={styles.appIcon}
                     color={Styles.globalColors.black_50}
+                    hoverColor={Styles.globalColors.white}
+                    onClick={Window.closeWindow}
+                    style={styles.appIcon}
+                    type="iconfont-app-close"
                   />
-                </AppIconBox>
+                </AppIconBoxOnRed>
               </Kb.Box2>
             )}
           </Kb.Box2>
@@ -129,10 +138,14 @@ const styles = Styles.styleSheetCreate({
       ...Styles.desktopStyles.windowDraggingClickable,
       padding: Styles.globalMargins.xtiny,
       position: 'relative',
-      top: 2,
+      top: Styles.globalMargins.xxtiny,
     },
   }),
-  appIconBox: {padding: 5},
+  appIconBox: {
+    padding: Styles.globalMargins.tiny,
+    position: 'relative',
+    top: -Styles.globalMargins.xtiny,
+  },
   bottom: {minHeight: 40 - 1}, // for border
   disabledIcon: Styles.platformStyles({
     isElectron: {
