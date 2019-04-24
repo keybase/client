@@ -342,11 +342,12 @@ func (idx *Indexer) reindexConv(ctx context.Context, conv chat1.Conversation, ui
 	return completedJobs, convIdx, nil
 }
 
-func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID) (map[string]types.RemoteConversation, error) {
+func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) (map[string]types.RemoteConversation, error) {
 	// Find all conversations in our inbox
 	pagination := &chat1.Pagination{Num: idx.pageSize}
 	topicType := chat1.TopicType_CHAT
 	inboxQuery := &chat1.GetInboxQuery{
+		ConvID:            convID,
 		ComputeActiveList: false,
 		TopicType:         &topicType,
 		Status: []chat1.ConversationStatus{
@@ -441,7 +442,7 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 func (idx *Indexer) SelectiveSync(ctx context.Context, uid gregor1.UID, forceReindex bool) {
 	defer idx.Trace(ctx, func() error { return nil }, "SelectiveSync")()
 
-	convMap, err := idx.allConvs(ctx, uid)
+	convMap, err := idx.allConvs(ctx, uid, nil)
 	if err != nil {
 		idx.Debug(ctx, "SelectiveSync: Unable to get convs: %v", err)
 		return
@@ -490,7 +491,7 @@ func (idx *Indexer) SelectiveSync(ctx context.Context, uid gregor1.UID, forceRei
 func (idx *Indexer) IndexInbox(ctx context.Context, uid gregor1.UID) (res map[string]chat1.ProfileSearchConvStats, err error) {
 	defer idx.Trace(ctx, func() error { return err }, "Indexer.IndexInbox")()
 
-	convMap, err := idx.allConvs(ctx, uid)
+	convMap, err := idx.allConvs(ctx, uid, nil)
 	if err != nil {
 		return nil, err
 	}

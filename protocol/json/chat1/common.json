@@ -1467,6 +1467,13 @@
           "name": "maxConvsHit"
         },
         {
+          "type": [
+            null,
+            "ConversationID"
+          ],
+          "name": "convID"
+        },
+        {
           "type": "int",
           "name": "maxNameConvs"
         }

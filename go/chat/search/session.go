@@ -501,7 +501,7 @@ func (s *searchSession) initRun(ctx context.Context) (shouldRun bool, err error)
 		return false, err
 	}
 
-	s.convMap, err = s.indexer.allConvs(ctx, s.uid)
+	s.convMap, err = s.indexer.allConvs(ctx, s.uid, s.opts.ConvID)
 	if err != nil {
 		return false, err
 	}
