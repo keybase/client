@@ -1077,7 +1077,10 @@ func (c *ConfigLocal) Shutdown(ctx context.Context) error {
 		// Continue with shutdown regardless of err.
 		err = nil
 	}
-	c.BlockOps().Shutdown()
+	err = c.BlockOps().Shutdown(ctx)
+	if err != nil {
+		return err
+	}
 	c.MDServer().Shutdown()
 	c.KeyServer().Shutdown()
 	c.KeybaseService().Shutdown()
