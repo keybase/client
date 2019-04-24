@@ -107,7 +107,6 @@ const settingsSubRoutes = {
   [Constants.deleteMeTab]: {getScreen: () => require('./delete/container').default},
   [Constants.invitationsTab]: {getScreen: () => require('./invites/container').default},
   [Constants.landingTab]: {getScreen: () => require('./landing/container').default},
-  [Constants.logOutTab]: {getScreen: () => require('./logout/container').default},
   [Constants.notificationsTab]: {getScreen: () => require('./notifications/container').default},
   changeEmail: {getScreen: () => require('./email/container').default},
   changePassword: {getScreen: () => require('./password/container').default},
@@ -161,4 +160,6 @@ SettingsSubNavigator.navigationOptions = {
 export const newRoutes = {
   'tabs.settingsTab': {getScreen: () => SettingsSubNavigator, upgraded: true},
 }
-export const newModalRoutes = {}
+export const newModalRoutes = {
+  [Constants.logOutTab]: {getScreen: () => require('./logout/container').default},
+}
