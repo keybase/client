@@ -5,6 +5,7 @@ import StartNewChat from '../start-new-chat'
 
 type Props = {
   isSearching: boolean,
+  onBack: () => void,
   onNewChat: () => void,
   showNewChat: boolean,
   onSelectUp: () => void,
@@ -32,7 +33,7 @@ class ChatInboxHeader extends React.Component<Props, State> {
   }
   render() {
     return this.props.showNewChat ? (
-      <StartNewChat onNewChat={this.props.onNewChat} />
+      <StartNewChat onBack={this.props.onBack} onNewChat={this.props.onNewChat} />
     ) : (
       <ChatFilterRow
         onNewChat={this.props.onNewChat}
