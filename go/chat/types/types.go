@@ -357,6 +357,9 @@ func (d DummyIndexer) Add(ctx context.Context, convID chat1.ConversationID, uid 
 func (d DummyIndexer) Remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg []chat1.MessageUnboxed) error {
 	return nil
 }
+func (d DummyIndexer) SearchableConvs(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) ([]RemoteConversation, error) {
+	return nil, nil
+}
 func (d DummyIndexer) IndexInbox(ctx context.Context, uid gregor1.UID) (map[string]chat1.ProfileSearchConvStats, error) {
 	return nil, nil
 }

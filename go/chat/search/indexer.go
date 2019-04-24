@@ -342,6 +342,14 @@ func (idx *Indexer) reindexConv(ctx context.Context, conv chat1.Conversation, ui
 	return completedJobs, convIdx, nil
 }
 
+func (idx *Indexer) SearchableConvs(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) (res []types.RemoteConversation, err error) {
+	convMap, err := idx.allConvs(ctx, uid, convID)
+	if err != nil {
+		return res, err
+	}
+	return idx.convsByMTime(ctx, uid, convMap), nil
+}
+
 func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) (map[string]types.RemoteConversation, error) {
 	// Find all conversations in our inbox
 	pagination := &chat1.Pagination{Num: idx.pageSize}

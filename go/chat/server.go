@@ -2306,6 +2306,19 @@ func (h *Server) CancelActiveSearch(ctx context.Context) (err error) {
 	return nil
 }
 
+func (h *Server) getSearchRegexp(query string, opts chat1.SearchOpts) (re *regexp.Regexp, err error) {
+	if opts.IsRegex {
+		re, err = regexp.Compile(query)
+	} else {
+		// String queries are set case insensitive
+		re, err = utils.GetQueryRe(query)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return re, nil
+}
+
 func (h *Server) SearchRegexp(ctx context.Context, arg chat1.SearchRegexpArg) (res chat1.SearchRegexpRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
@@ -2319,14 +2332,7 @@ func (h *Server) SearchRegexp(ctx context.Context, arg chat1.SearchRegexpArg) (r
 
 	query, opts := search.UpgradeSearchOptsFromQuery(arg.Query, arg.Opts,
 		h.G().GetEnv().GetUsername().String())
-	h.Debug(ctx, "SearchRegexp: query: %s opts: %+v", query, opts)
-	var re *regexp.Regexp
-	if opts.IsRegex {
-		re, err = regexp.Compile(query)
-	} else {
-		// String queries are set case insensitive
-		re, err = utils.GetQueryRe(query)
-	}
+	re, err := h.getSearchRegexp(query, opts)
 	if err != nil {
 		return res, err
 	}
@@ -2383,6 +2389,62 @@ func (h *Server) CancelActiveInboxSearch(ctx context.Context) (err error) {
 	return nil
 }
 
+func (h *Server) delegateInboxSearch(ctx context.Context, uid gregor1.UID, query, origQuery string,
+	opts chat1.SearchOpts, ui libkb.ChatUI, sessionID int) (res chat1.ChatSearchInboxResults, err error) {
+	defer h.Trace(ctx, func() error { return err }, "delegateInboxSearch")()
+	convs, err := h.G().Indexer.SearchableConvs(ctx, uid, opts.ConvID)
+	if err != nil {
+		return res, err
+	}
+	re, err := h.getSearchRegexp(query, opts)
+	if err != nil {
+		return res, err
+	}
+	for index, conv := range convs {
+		hits, err := h.G().RegexpSearcher.Search(ctx, uid, conv.GetConvID(), re, nil, opts)
+		if err != nil {
+			h.Debug(ctx, "delegateInboxSearch: failed to search conv: %s", err)
+			continue
+		}
+		if len(hits) == 0 {
+			continue
+		}
+		inboxHit := chat1.ChatSearchInboxHit{
+			ConvID:   conv.GetConvID(),
+			TeamType: conv.GetTeamType(),
+			ConvName: conv.GetName(),
+			Query:    origQuery,
+			Time:     hits[0].HitMessage.Valid().Ctime,
+			Hits:     hits,
+		}
+		select {
+		case <-ctx.Done():
+			return res, ctx.Err()
+		default:
+			ui.ChatSearchInboxHit(ctx, chat1.ChatSearchInboxHitArg{
+				SessionID: sessionID,
+				SearchHit: inboxHit,
+			})
+		}
+		res.Hits = append(res.Hits, inboxHit)
+		if opts.MaxConvsHit > 0 && len(res.Hits) > opts.MaxConvsHit {
+			break
+		}
+		if opts.MaxConvsSearched > 0 && index > opts.MaxConvsSearched {
+			break
+		}
+	}
+	select {
+	case <-ctx.Done():
+		return res, ctx.Err()
+	default:
+		ui.ChatSearchInboxDone(ctx, chat1.ChatSearchInboxDoneArg{
+			SessionID: sessionID,
+		})
+	}
+	return res, nil
+}
+
 func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res chat1.SearchInboxRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
@@ -2404,28 +2466,13 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 
 	username := h.G().GetEnv().GetUsernameForUID(keybase1.UID(uid.String())).String()
 	query, opts := search.UpgradeSearchOptsFromQuery(arg.Query, arg.Opts, username)
-	if opts.IsRegex && opts.ConvID != nil {
-		// Delegate regex single conv searches to the regexp RPC
-		regexRes, err := h.SearchRegexp(ctx, chat1.SearchRegexpArg{
-			SessionID:        arg.SessionID,
-			ConvID:           *opts.ConvID,
-			Query:            arg.Query,
-			Opts:             arg.Opts,
-			IdentifyBehavior: arg.IdentifyBehavior,
-		})
+	if opts.IsRegex {
+		inboxRes, err := h.delegateInboxSearch(ctx, uid, query, arg.Query, opts, chatUI, arg.SessionID)
 		if err != nil {
 			return res, err
 		}
-		var inboxResults chat1.ChatSearchInboxResults
-		var inboxHit chat1.ChatSearchInboxHit
-		inboxHit.ConvID = *opts.ConvID
-		for _, hit := range regexRes.Hits {
-			inboxHit.Hits = append(inboxHit.Hits, hit)
-		}
-		inboxResults.Hits = []chat1.ChatSearchInboxHit{inboxHit}
-		res.Res = &inboxResults
-		res.RateLimits = regexRes.RateLimits
-		res.IdentifyFailures = regexRes.IdentifyFailures
+		res.Res = &inboxRes
+		res.IdentifyFailures = identBreaks
 		return res, nil
 	}
 	// stream hits back to client UI
