@@ -2350,3 +2350,10 @@ func (g FlipGameID) String() string               { return hex.EncodeToString(g)
 func (g FlipGameID) Eq(h FlipGameID) bool         { return hmac.Equal(g[:], h[:]) }
 func (g FlipGameID) IsZero() bool                 { return isZero(g[:]) }
 func (g FlipGameID) Check() bool                  { return g != nil && !g.IsZero() }
+
+func (o *SenderSendOptions) GetJoinMentionsAs() *ConversationMemberStatus {
+	if o == nil {
+		return nil
+	}
+	return o.JoinMentionsAs
+}

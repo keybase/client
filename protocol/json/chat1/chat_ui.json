@@ -774,6 +774,13 @@
         {
           "type": "boolean",
           "name": "isEditable"
+        },
+        {
+          "type": [
+            null,
+            "UIMessage"
+          ],
+          "name": "replyTo"
         }
       ]
     },
@@ -822,6 +829,13 @@
             "string"
           ],
           "name": "flipGameID"
+        },
+        {
+          "type": [
+            null,
+            "UIMessage"
+          ],
+          "name": "replyTo"
         },
         {
           "type": "string",

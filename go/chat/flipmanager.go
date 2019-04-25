@@ -1458,7 +1458,7 @@ func (m *FlipManager) sendNonblock(ctx context.Context, convID chat1.Conversatio
 				TopicType: topicType,
 			},
 		},
-	}, 0, &outboxID, nil)
+	}, 0, &outboxID, nil, nil)
 	return err
 }
 

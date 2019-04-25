@@ -30,6 +30,7 @@ protocol local {
   record MessageText {
     string body;
     array<TextPayment> payments;
+    union { null, MessageID } replyTo;
   }
 
   record MessageConversationMetadata {
@@ -195,6 +196,15 @@ protocol local {
     case FLIP: MessageFlip;
   }
 
+  record SenderPrepareOptions {
+    boolean skipTopicNameState;
+     union { null, MessageID } replyTo;
+  }
+
+  record SenderSendOptions {
+     union { null, ConversationMemberStatus } joinMentionsAs;
+  }
+
   enum OutboxStateType {
     SENDING_0,
     ERROR_1
@@ -230,8 +240,11 @@ protocol local {
     @lint("ignore")
     MessagePlaintext Msg;
     keybase1.TLFIdentifyBehavior identifyBehavior;
+    union { null, SenderPrepareOptions } prepareOpts;
+    union { null, SenderSendOptions } sendOpts;
     int ordinal; // the position of this outbox record behind the clientPrev in Msg
     union { null, MakePreviewRes } preview;
+    union { null, MessageUnboxed } replyTo; // only used for display
   }
 
   enum HeaderPlaintextVersion {
@@ -397,6 +410,9 @@ protocol local {
     // reactionText -> [Reaction(username, reactionMsgID)...]
     ReactionMap reactions;
     map<MessageID, UnfurlResult> unfurls;
+
+    // The message this replied to (if any)
+    union { null, MessageUnboxed } replyTo;
   }
 
   enum MessageUnboxedErrorType {
@@ -688,7 +704,7 @@ protocol local {
 
   NonblockFetchRes getInboxNonblockLocal(int sessionID, union { null, int } maxUnbox, boolean skipUnverified, union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
 
-  PostLocalRes postLocal(ConversationID conversationID, MessagePlaintext msg, keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalRes postLocal(ConversationID conversationID, MessagePlaintext msg, union { null, MessageID }  replyTo, keybase1.TLFIdentifyBehavior identifyBehavior);
   record PostLocalRes {
     array<RateLimit> rateLimits;
     MessageID messageID;
@@ -696,14 +712,14 @@ protocol local {
   }
 
   OutboxID generateOutboxID();
-  PostLocalNonblockRes postLocalNonblock(int sessionID, ConversationID conversationID, MessagePlaintext msg, MessageID clientPrev, union { null, OutboxID } outboxID, keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalNonblockRes postLocalNonblock(int sessionID, ConversationID conversationID, MessagePlaintext msg, MessageID clientPrev, union { null, OutboxID } outboxID, union { null, MessageID }  replyTo, keybase1.TLFIdentifyBehavior identifyBehavior);
   record PostLocalNonblockRes {
     array<RateLimit> rateLimits;
     OutboxID outboxID;
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  PostLocalNonblockRes postTextNonblock(int sessionID, ConversationID conversationID, string tlfName, boolean tlfPublic, string body, MessageID clientPrev, union { null, OutboxID } outboxID, keybase1.TLFIdentifyBehavior identifyBehavior, union {null, gregor1.DurationSec} ephemeralLifetime);
+  PostLocalNonblockRes postTextNonblock(int sessionID, ConversationID conversationID, string tlfName, boolean tlfPublic, string body, MessageID clientPrev, union { null, MessageID } replyTo, union { null, OutboxID } outboxID, keybase1.TLFIdentifyBehavior identifyBehavior, union {null, gregor1.DurationSec} ephemeralLifetime);
   PostLocalNonblockRes postDeleteNonblock(ConversationID conversationID, string tlfName, boolean tlfPublic, MessageID supersedes,MessageID clientPrev, union { null, OutboxID } outboxID,  keybase1.TLFIdentifyBehavior identifyBehavior);
 
   record EditTarget {

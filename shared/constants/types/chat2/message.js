@@ -115,6 +115,8 @@ export type _MessageText = {
   mentionsChannelName: MentionsChannelName,
   ordinal: Ordinal,
   outboxID: ?OutboxID,
+  // eslint-disable-next-line no-use-before-define
+  replyTo: ?Message,
   text: HiddenString,
   timestamp: number,
   unfurls: UnfurlMap,

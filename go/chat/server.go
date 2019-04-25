@@ -554,6 +554,10 @@ func (h *Server) mergeLocalRemoteThread(ctx context.Context, remoteThread, local
 				newMsg.GetMessageID())
 			return true
 		}
+		// If replyTo is different, then let's also transmit this up
+		if newMsg.Valid().ReplyTo != oldMsg.Valid().ReplyTo {
+			return true
+		}
 		return false
 	}
 	switch mode {
@@ -1176,8 +1180,10 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 		return res, err
 	}
 
+	var prepareOpts chat1.SenderPrepareOptions
+	prepareOpts.ReplyTo = arg.ReplyTo
 	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
-	_, msgBoxed, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0, nil, nil)
+	_, msgBoxed, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0, nil, nil, &prepareOpts)
 	if err != nil {
 		h.Debug(ctx, "PostLocal: unable to send message: %s", err.Error())
 		return res, err
@@ -1296,6 +1302,7 @@ func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonbloc
 	parg.ConversationID = arg.ConversationID
 	parg.IdentifyBehavior = arg.IdentifyBehavior
 	parg.OutboxID = arg.OutboxID
+	parg.ReplyTo = arg.ReplyTo
 	parg.Msg.ClientHeader.MessageType = chat1.MessageType_TEXT
 	parg.Msg.ClientHeader.TlfName = arg.TlfName
 	parg.Msg.ClientHeader.TlfPublic = arg.TlfPublic
@@ -1480,10 +1487,12 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 	}
 
 	// Create non block sender
+	var prepareOpts chat1.SenderPrepareOptions
 	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
 	nonblockSender := NewNonblockingSender(h.G(), sender)
-
-	obid, _, err := nonblockSender.Send(ctx, arg.ConversationID, arg.Msg, arg.ClientPrev, arg.OutboxID, nil)
+	prepareOpts.ReplyTo = arg.ReplyTo
+	obid, _, err := nonblockSender.Send(ctx, arg.ConversationID, arg.Msg, arg.ClientPrev, arg.OutboxID,
+		nil, &prepareOpts)
 	if err != nil {
 		return res, fmt.Errorf("PostLocalNonblock: unable to send message: err: %s", err.Error())
 	}
@@ -2801,7 +2810,9 @@ func (h *Server) BulkAddToConv(ctx context.Context, arg chat1.BulkAddToConvArg) 
 		MessageBody: body,
 	}
 	status := chat1.ConversationMemberStatus_ACTIVE
-	_, _, err = sender.Send(ctx, arg.ConvID, msg, 0, nil, &status)
+	_, _, err = sender.Send(ctx, arg.ConvID, msg, 0, nil, &chat1.SenderSendOptions{
+		JoinMentionsAs: &status,
+	}, nil)
 	return err
 }
 
