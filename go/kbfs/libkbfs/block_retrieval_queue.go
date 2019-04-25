@@ -226,7 +226,9 @@ func (brq *blockRetrievalQueue) throttleReleaseLoop(
 
 		select {
 		case <-brq.throttledWorkCh.Out():
+			brq.mtx.Lock()
 			brq.sendWork(brq.prefetchWorkerCh)
+			brq.mtx.Unlock()
 		case <-brq.doneCh:
 			return
 		}
