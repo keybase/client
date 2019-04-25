@@ -90,8 +90,8 @@ type merkleStoreKitT struct {
 
 // GetLatestEntry returns the latest entry for the given MerkleStore.
 // Returns (nil, nil) if knownHash is the active entry.
-func (s *MerkleStoreImpl) GetLatestEntryWithKnown(m libkb.MetaContext, knownHash *keybase1.MerkleStoreKitHash) (*keybase1.MerkleStoreEntry, error) {
-	tracer := m.G().CTimeTracer(m.Ctx(), "MerkleStore.GetLatestEntry", libkb.ProfileProofSuggestions)
+func (s *MerkleStoreImpl) GetLatestEntryWithKnown(m libkb.MetaContext, knownHash *keybase1.MerkleStoreKitHash) (ret *keybase1.MerkleStoreEntry, err error) {
+	tracer := m.G().CTimeTracer(m.Ctx(), "MerkleStore.GetLatestEntryWithKnown", false)
 	defer tracer.Finish()
 	kitJSON, hash, err := s.getKitString(m, knownHash, tracer)
 	if err != nil {

@@ -118,7 +118,7 @@ func (p *proofServices) SuggestionFoldPriority() int {
 }
 
 func (p *proofServices) loadServiceConfigs() {
-	tracer := p.G().CTimeTracer(context.TODO(), "proofServices.loadServiceConfigs", libkb.ProfileProofSuggestions)
+	tracer := p.G().CTimeTracer(context.TODO(), "proofServices.loadServiceConfigs", false)
 	defer tracer.Finish()
 	if !p.G().ShouldUseParameterizedProofs() {
 		return
@@ -134,6 +134,7 @@ func (p *proofServices) loadServiceConfigs() {
 		// Latest config already loaded.
 		return
 	}
+	defer mctx.TraceTimed("proofServices.loadServiceConfigsBulk", func() error { return err })()
 	tracer.Stage("parse")
 	config, err := p.parseServerConfig(*entry)
 	if err != nil {
