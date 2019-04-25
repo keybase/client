@@ -10,6 +10,7 @@
       "teams": "Array<string>",
       "user": "string"
     },
+    "clearNavBadges": {},
     "createNewTeam": {
       "joinSubteam": "boolean",
       "teamname": "string",
@@ -47,7 +48,9 @@
       "_description": "Fetches the channel information for all channels in a team from the server. Should only be called for components that need the full list.",
       "teamname": "string"
     },
-    "getTeams": {},
+    "getTeams": {
+      "clearNavBadges?": "boolean"
+    },
     "getDetails": {
       "teamname": "string"
     },
@@ -286,6 +289,11 @@
       "_description": "Sets the retention policy for a team. The store will be updated automatically.",
       "teamname": "string",
       "policy": "RetentionPolicy"
+    },
+    "renameTeam": {
+      "_description": "Rename a subteam",
+      "oldName": "string",
+      "newName": "string"
     }
   }
 }

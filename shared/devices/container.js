@@ -10,6 +10,7 @@ import {compose, isMobile, namedConnect, safeSubmitPerMount} from '../util/conta
 import {partition} from 'lodash-es'
 import flags from '../util/feature-flags'
 import type {RouteProps} from '../route-tree/render-route'
+import {HeaderTitle, HeaderRightActions} from './nav-header/container'
 
 const mapStateToProps = state => ({
   _deviceMap: state.devices.deviceMap,
@@ -112,7 +113,8 @@ if (!isMobile) {
   // $FlowIssue lets fix this
   Connected.navigationOptions = {
     header: undefined,
-    headerTitle: 'Devices',
+    headerRightActions: HeaderRightActions,
+    headerTitle: HeaderTitle,
     title: 'Devices',
   }
 }

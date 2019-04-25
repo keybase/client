@@ -89,6 +89,7 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
     paddingBottom: Styles.globalMargins.small,
+    textAlign: 'center',
     width: '100%',
   },
   popup: {

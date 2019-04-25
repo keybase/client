@@ -23,6 +23,7 @@ type Props = {|
   ignoreTlf?: ?() => void,
   moveOrCopy?: ?() => void,
   pathItemType: Types.PathType,
+  position?: 'header' | 'row',
   saveMedia?: ?ActionOrInProgress,
   showInSystemFileManager?: ?() => void,
   // share menu items
@@ -55,6 +56,7 @@ const hideMenuOnClick = (onClick: (evt?: SyntheticEvent<>) => void, hideMenu: ()
 }
 
 const makeMenuItems = (props: Props, hideMenu: () => void) => [
+  'Divider',
   ...(props.showInSystemFileManager
     ? [
         {
@@ -141,7 +143,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => [
     ? [
         {
           onClick: hideMenuOnClick(props.download, hideMenu),
-          title: 'Download a copy',
+          title: 'Download',
         },
       ]
     : []),

@@ -1014,9 +1014,9 @@ const rootReducer = (
       return state.update('unsentTextMap', old =>
         old.setIn([action.payload.conversationIDKey], action.payload.text)
       )
-    case Chat2Gen.threadSearchResult:
+    case Chat2Gen.threadSearchResults:
       return state.updateIn(['threadSearchInfoMap', action.payload.conversationIDKey], info =>
-        info.set('hits', info.hits.push(action.payload.message))
+        info.set('hits', info.hits.concat(action.payload.messages))
       )
     case Chat2Gen.setThreadSearchStatus:
       return state.updateIn(

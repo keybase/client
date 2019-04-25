@@ -3117,6 +3117,8 @@ func TestStatusFile(t *testing.T) {
 	defer mnt.Close()
 	defer cancelFn()
 
+	libfs.AddRootWrapper(config)
+
 	jdoe := libkbfs.GetRootNodeOrBust(ctx, t, config, "jdoe", tlf.Public)
 
 	ops := config.KBFSOps()

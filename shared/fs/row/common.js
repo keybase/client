@@ -4,7 +4,8 @@ import * as Styles from '../../styles'
 import * as Types from '../../constants/types/fs'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import {OpenInSystemFileManager, PathItemIcon, PathItemAction, SendInAppAction} from '../common'
+import {OpenInSystemFileManager, PathItemIcon, PathItemAction, SendInAppAction, SyncStatus} from '../common'
+import flags from '../../util/feature-flags'
 
 export type StillCommonProps = {
   name: string,
@@ -22,6 +23,9 @@ export const StillCommon = (
 ) => (
   <Kb.ListItem2
     type="Small"
+    statusIcon={
+      flags.kbfsOfflineMode && Types.getPathLevel(props.path) > 2 && <SyncStatus path={props.path} />
+    }
     icon={<PathItemIcon path={props.path} size={32} style={rowStyles.pathItemIcon} badge={props.badge} />}
     firstItem={true /* we add divider in Rows */}
     onClick={props.onOpen}

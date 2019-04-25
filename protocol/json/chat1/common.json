@@ -872,6 +872,13 @@
           "jsonkey": "u"
         },
         {
+          "type": {
+            "type": "array",
+            "items": "MessageID"
+          },
+          "name": "replies"
+        },
+        {
           "type": "gregor1.Time",
           "name": "ctime"
         },
@@ -1412,14 +1419,17 @@
       "symbols": [
         "NONE_0",
         "PRESEARCH_SYNC_1",
-        "POSTSEARCH_ASYNC_2",
-        "POSTSEARCH_SYNC_3"
+        "POSTSEARCH_SYNC_2"
       ]
     },
     {
       "type": "record",
       "name": "SearchOpts",
       "fields": [
+        {
+          "type": "boolean",
+          "name": "isRegex"
+        },
         {
           "type": "string",
           "name": "sentBy"
@@ -1459,6 +1469,13 @@
         {
           "type": "int",
           "name": "maxConvsHit"
+        },
+        {
+          "type": [
+            null,
+            "ConversationID"
+          ],
+          "name": "convID"
         },
         {
           "type": "int",

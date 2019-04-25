@@ -9,6 +9,7 @@ type Props = {
   disabled?: boolean,
   onClickRequest?: Function,
   onClickSend?: Function,
+  sendDisabledDueToMobileOnly: boolean,
   waitingKey: string,
   worthDescription?: string,
 }
@@ -28,7 +29,6 @@ const Footer = (props: Props) => {
           type="iconfont-stellar-send"
           style={Kb.iconCastPlatformStyles(styles.icon)}
           color={Styles.globalColors.white}
-          fontSize={Styles.isMobile ? 22 : 16}
         />
       }
     />
@@ -80,14 +80,15 @@ const Footer = (props: Props) => {
                   type="iconfont-stellar-request"
                   style={Kb.iconCastPlatformStyles(styles.icon)}
                   color={Styles.globalColors.white}
-                  fontSize={Styles.isMobile ? 22 : 16}
                 />
               }
             />
           )}
           {!!props.onClickSend &&
-            (props.disabled ? (
-              <Kb.WithTooltip text="This is a mobile-only wallet.">{sendButton}</Kb.WithTooltip>
+            (props.sendDisabledDueToMobileOnly ? (
+              <Kb.WithTooltip text="This is a mobile-only wallet." containerStyle={styles.fullWidth}>
+                {sendButton}
+              </Kb.WithTooltip>
             ) : (
               sendButton
             ))}
@@ -125,6 +126,9 @@ const styles = Styles.styleSheetCreate({
       justifyContent: 'flex-end',
     },
   }),
+  fullWidth: {
+    width: '100%',
+  },
   icon: {marginRight: Styles.globalMargins.tiny},
   questionIcon: {
     marginLeft: 1,

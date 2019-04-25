@@ -81,6 +81,11 @@ class TabBar extends React.PureComponent<Props, State> {
       onClick: this.props.onSignOut,
       title: 'Sign out',
     },
+    {
+      danger: true,
+      onClick: this.props.onQuit,
+      title: 'Quit Keybase',
+    },
   ]
 
   render() {

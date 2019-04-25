@@ -118,12 +118,13 @@ type RegexpSearcher interface {
 type Indexer interface {
 	Resumable
 
-	Search(ctx context.Context, uid gregor1.UID, query string, opts chat1.SearchOpts,
+	Search(ctx context.Context, uid gregor1.UID, query, origQuery string, opts chat1.SearchOpts,
 		hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus) (*chat1.ChatSearchInboxResults, error)
 	// Add/update the index with the given messages
 	Add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg []chat1.MessageUnboxed) error
 	// Remove the given messages from the index
 	Remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg []chat1.MessageUnboxed) error
+	SearchableConvs(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) ([]RemoteConversation, error)
 	// For devel/testing
 	IndexInbox(ctx context.Context, uid gregor1.UID) (map[string]chat1.ProfileSearchConvStats, error)
 }
@@ -348,7 +349,7 @@ type AttachmentFetcher interface {
 		ri func() chat1.RemoteInterface, signer s3.Signer) (io.ReadSeeker, error)
 	PutUploadedAsset(ctx context.Context, filename string, asset chat1.Asset) error
 	IsAssetLocal(ctx context.Context, asset chat1.Asset) (bool, error)
-	OnCacheCleared(mctx libkb.MetaContext)
+	OnDbNuke(mctx libkb.MetaContext) error
 }
 
 type AttachmentURLSrv interface {
@@ -360,7 +361,7 @@ type AttachmentURLSrv interface {
 	GetGiphyGalleryURL(ctx context.Context, convID chat1.ConversationID,
 		tlfName string, results []chat1.GiphySearchResult) string
 	GetAttachmentFetcher() AttachmentFetcher
-	OnCacheCleared(mctx libkb.MetaContext)
+	OnDbNuke(mctx libkb.MetaContext) error
 }
 
 type RateLimitedResult interface {

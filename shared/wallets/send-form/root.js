@@ -58,8 +58,8 @@ const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     isElectron: {
       borderRadius: 4,
-      height: 525,
-      width: 360,
+      height: 560,
+      width: 400,
     },
     isMobile: {
       backgroundColor: Styles.globalColors.white,

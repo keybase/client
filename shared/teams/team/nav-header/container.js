@@ -52,8 +52,10 @@ const mapStateToPropsTitle = (state, {teamname}) => {
   const role = Constants.getRole(state, teamname)
   const description = Constants.getTeamPublicitySettings(state, teamname).description
   const members = Constants.getTeamMemberCount(state, teamname)
+  const yourOperations = Constants.getCanPerform(state, teamname)
   return {
-    _canEditDescAvatar: Constants.getCanPerform(state, teamname).editTeamDescription,
+    _canEditDescAvatar: yourOperations.editTeamDescription,
+    _canRenameTeam: yourOperations.manageSubteams && teamname.includes('.'),
     description,
     members,
     role,
@@ -74,12 +76,15 @@ const mapDispatchToPropsTitle = (dispatch, {teamname}) => ({
     dispatch(
       RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamEditTeamDescription'}]})
     ),
+  onRename: () =>
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamRename'}]})),
 })
 const mergePropsTitle = (stateProps, dispatchProps) => ({
   description: stateProps.description,
   members: stateProps.members,
   onEditAvatar: stateProps._canEditDescAvatar ? dispatchProps.onEditAvatar : null,
   onEditDescription: stateProps._canEditDescAvatar ? dispatchProps.onEditDescription : null,
+  onRename: stateProps._canRenameTeam ? dispatchProps.onRename : null,
   role: stateProps.role,
   teamname: stateProps.teamname,
 })

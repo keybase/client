@@ -58,6 +58,12 @@
     },
     {
       "type": "record",
+      "name": "AssetCode",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "Asset",
       "fields": [
         {
@@ -79,6 +85,14 @@
         {
           "type": "string",
           "name": "issuerName"
+        },
+        {
+          "type": "string",
+          "name": "desc"
+        },
+        {
+          "type": "string",
+          "name": "infoUrl"
         }
       ]
     },
@@ -376,6 +390,20 @@
         "NONE_0",
         "USER_1",
         "MOBILE_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Trustline",
+      "fields": [
+        {
+          "type": "AssetCode",
+          "name": "assetCode"
+        },
+        {
+          "type": "AccountID",
+          "name": "issuer"
+        }
       ]
     }
   ],

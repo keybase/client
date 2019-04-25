@@ -257,7 +257,7 @@ class MenubarRender extends React.Component<Props, State> {
       ...webLink,
       {onClick: this.props.showBug, title: 'Report a bug'},
       {onClick: this.props.showHelp, title: 'Help'},
-      {onClick: this.props.quit, title: 'Quit app'},
+      {onClick: this.props.quit, title: 'Quit Keybase'},
     ]
   }
 
@@ -294,9 +294,9 @@ class MenubarRender extends React.Component<Props, State> {
           >
             <Kb.Icon
               color={Styles.globalColors.darkBlue4}
-              hoverColor={Styles.globalColors.black}
+              hoverColor={Styles.globalColors.white}
               type="iconfont-nav-more"
-              sizeType="Big"
+              fontSize={20}
               ref={this.attachmentRef}
             />
             {!!badgeCountInMenu && (
@@ -370,7 +370,7 @@ const BadgeIcon = ({tab, countMap, openApp}) => {
         color={Styles.globalColors.darkBlue4}
         hoverColor={Styles.globalColors.white}
         onClick={() => openApp(tab)}
-        sizeType="Big"
+        fontSize={20}
         type={iconType}
       />
       {!!count && <Kb.Badge badgeNumber={count} badgeStyle={{position: 'absolute', right: -8, top: -6}} />}

@@ -27,7 +27,7 @@ const mapStateToProps = state => {
 }
 
 const mapDispatchToProps = dispatch => ({
-  loadTeams: teamname => dispatch(TeamsGen.createGetTeams()),
+  loadTeams: teamname => dispatch(TeamsGen.createGetTeams({clearNavBadges: false})),
   onCancel: (you: string) => {
     // sadly a little racy, doing this for now
     setTimeout(() => {

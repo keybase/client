@@ -8,6 +8,7 @@ export type Props = {|
   isWalletsNew?: boolean,
   onHelp: () => void,
   onProfileClick: () => void,
+  onQuit: () => void,
   onSettings: () => void,
   onSignOut: () => void,
   onTabClick: (tab: Tabs.Tab) => void,

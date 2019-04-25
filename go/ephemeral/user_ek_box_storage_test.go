@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/erasablekv"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
@@ -79,7 +78,7 @@ func TestUserEKBoxStorage(t *testing.T) {
 	deviceEKStorage.ClearCache()
 	deviceEK, err := deviceEKStorage.Get(mctx, deviceEKMaxGen)
 	require.Error(t, err)
-	require.IsType(t, erasablekv.UnboxError{}, err)
+	require.IsType(t, libkb.UnboxError{}, err)
 	require.Equal(t, keybase1.DeviceEk{}, deviceEK)
 
 	bad, err := s.Get(mctx, userEKMetadata.Generation, nil)

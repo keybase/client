@@ -6,7 +6,7 @@ import PathItemInfo from './path-item-info'
 
 export type OwnProps = {
   path: Types.Path,
-  mode: 'row' | 'default',
+  mode: 'row' | 'default' | 'menu',
 }
 
 const mapStateToProps = (state, {path}) => ({
@@ -19,7 +19,7 @@ const mergeProps = (stateProps, dispatchProps, {mode}) => ({
       ? undefined
       : stateProps._pathItem.lastModifiedTimestamp,
   lastWriter:
-    stateProps._pathItem === Constants.unknownPathItem ? undefined : stateProps._pathItem.lastWriter.username,
+    stateProps._pathItem === Constants.unknownPathItem ? undefined : stateProps._pathItem.lastWriter,
   mode,
 })
 

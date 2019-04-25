@@ -11,7 +11,6 @@ import (
 	"regexp"
 	"sort"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -2307,6 +2306,19 @@ func (h *Server) CancelActiveSearch(ctx context.Context) (err error) {
 	return nil
 }
 
+func (h *Server) getSearchRegexp(query string, opts chat1.SearchOpts) (re *regexp.Regexp, err error) {
+	if opts.IsRegex {
+		re, err = regexp.Compile(query)
+	} else {
+		// String queries are set case insensitive
+		re, err = utils.GetQueryRe(query)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return re, nil
+}
+
 func (h *Server) SearchRegexp(ctx context.Context, arg chat1.SearchRegexpArg) (res chat1.SearchRegexpRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
@@ -2318,14 +2330,9 @@ func (h *Server) SearchRegexp(ctx context.Context, arg chat1.SearchRegexpArg) (r
 	}
 	ctx = h.getSearchContext(ctx)
 
-	arg = search.UpgradeRegexpArgFromQuery(arg, h.G().GetEnv().GetUsername().String())
-	var re *regexp.Regexp
-	if arg.IsRegex {
-		re, err = regexp.Compile(arg.Query)
-	} else {
-		// String queries are set case insensitive
-		re, err = utils.GetQueryRe(arg.Query)
-	}
+	query, opts := search.UpgradeSearchOptsFromQuery(arg.Query, arg.Opts,
+		h.G().GetEnv().GetUsername().String())
+	re, err := h.getSearchRegexp(query, opts)
 	if err != nil {
 		return res, err
 	}
@@ -2342,7 +2349,7 @@ func (h *Server) SearchRegexp(ctx context.Context, arg chat1.SearchRegexpArg) (r
 		}
 		close(ch)
 	}()
-	hits, err := h.G().RegexpSearcher.Search(ctx, uid, arg.ConvID, re, uiCh, arg.Opts)
+	hits, err := h.G().RegexpSearcher.Search(ctx, uid, arg.ConvID, re, uiCh, opts)
 	if err != nil {
 		return res, err
 	}
@@ -2382,6 +2389,65 @@ func (h *Server) CancelActiveInboxSearch(ctx context.Context) (err error) {
 	return nil
 }
 
+func (h *Server) delegateInboxSearch(ctx context.Context, uid gregor1.UID, query, origQuery string,
+	opts chat1.SearchOpts, ui libkb.ChatUI) (res chat1.ChatSearchInboxResults, err error) {
+	defer h.Trace(ctx, func() error { return err }, "delegateInboxSearch")()
+	convs, err := h.G().Indexer.SearchableConvs(ctx, uid, opts.ConvID)
+	if err != nil {
+		return res, err
+	}
+	re, err := h.getSearchRegexp(query, opts)
+	if err != nil {
+		return res, err
+	}
+	select {
+	case <-ctx.Done():
+		return res, ctx.Err()
+	default:
+		ui.ChatSearchConvHits(ctx, chat1.UIChatSearchConvHits{})
+	}
+	for index, conv := range convs {
+		hits, err := h.G().RegexpSearcher.Search(ctx, uid, conv.GetConvID(), re, nil, opts)
+		if err != nil {
+			h.Debug(ctx, "delegateInboxSearch: failed to search conv: %s", err)
+			continue
+		}
+		if len(hits) == 0 {
+			continue
+		}
+		inboxHit := chat1.ChatSearchInboxHit{
+			ConvID:   conv.GetConvID(),
+			TeamType: conv.GetTeamType(),
+			ConvName: conv.GetName(),
+			Query:    origQuery,
+			Time:     hits[0].HitMessage.Valid().Ctime,
+			Hits:     hits,
+		}
+		select {
+		case <-ctx.Done():
+			return res, ctx.Err()
+		default:
+			ui.ChatSearchInboxHit(ctx, chat1.ChatSearchInboxHitArg{
+				SearchHit: inboxHit,
+			})
+		}
+		res.Hits = append(res.Hits, inboxHit)
+		if opts.MaxConvsHit > 0 && len(res.Hits) > opts.MaxConvsHit {
+			break
+		}
+		if opts.MaxConvsSearched > 0 && index > opts.MaxConvsSearched {
+			break
+		}
+	}
+	select {
+	case <-ctx.Done():
+		return res, ctx.Err()
+	default:
+		ui.ChatSearchInboxDone(ctx, chat1.ChatSearchInboxDoneArg{})
+	}
+	return res, nil
+}
+
 func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res chat1.SearchInboxRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
@@ -2402,11 +2468,20 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 	}
 
 	username := h.G().GetEnv().GetUsernameForUID(keybase1.UID(uid.String())).String()
+	query, opts := search.UpgradeSearchOptsFromQuery(arg.Query, arg.Opts, username)
+	if opts.IsRegex {
+		inboxRes, err := h.delegateInboxSearch(ctx, uid, query, arg.Query, opts, chatUI)
+		if err != nil {
+			return res, err
+		}
+		res.Res = &inboxRes
+		res.IdentifyFailures = identBreaks
+		return res, nil
+	}
 	// stream hits back to client UI
 	hitUICh := make(chan chat1.ChatSearchInboxHit)
 	hitUIDone := make(chan struct{})
 	numHits := 0
-	query := strings.Trim(arg.Query, " ")
 	doIndexSearch := !arg.NamesOnly && len(query) > 0
 	go func() {
 		defer close(hitUIDone)
@@ -2420,7 +2495,6 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 				return
 			default:
 				chatUI.ChatSearchInboxHit(ctx, chat1.ChatSearchInboxHitArg{
-					SessionID: arg.SessionID,
 					SearchHit: searchHit,
 				})
 			}
@@ -2440,8 +2514,7 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 				return
 			default:
 				chatUI.ChatSearchIndexStatus(ctx, chat1.ChatSearchIndexStatusArg{
-					SessionID: arg.SessionID,
-					Status:    status,
+					Status: status,
 				})
 			}
 		}
@@ -2450,7 +2523,10 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 	convUIDone := make(chan struct{})
 	go func() {
 		defer close(convUIDone)
-		convHits, err := h.G().InboxSource.Search(ctx, uid, query, arg.Opts.MaxNameConvs)
+		if opts.MaxNameConvs == 0 {
+			return
+		}
+		convHits, err := h.G().InboxSource.Search(ctx, uid, query, opts.MaxNameConvs)
 		if err != nil {
 			h.Debug(ctx, "SearchInbox: failed to get conv hits: %s", err)
 		} else {
@@ -2468,7 +2544,12 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 
 	var searchRes *chat1.ChatSearchInboxResults
 	if doIndexSearch {
-		if searchRes, err = h.G().Indexer.Search(ctx, uid, query, arg.Opts, hitUICh, indexUICh); err != nil {
+		select {
+		case <-time.After(50 * time.Millisecond):
+		case <-ctx.Done():
+			return
+		}
+		if searchRes, err = h.G().Indexer.Search(ctx, uid, query, arg.Query, opts, hitUICh, indexUICh); err != nil {
 			return res, err
 		}
 	}
@@ -2489,8 +2570,7 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 		return res, ctx.Err()
 	default:
 		chatUI.ChatSearchInboxDone(ctx, chat1.ChatSearchInboxDoneArg{
-			SessionID: arg.SessionID,
-			Res:       doneRes,
+			Res: doneRes,
 		})
 	}
 	return chat1.SearchInboxRes{

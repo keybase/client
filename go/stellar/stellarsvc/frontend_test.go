@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
+	"github.com/keybase/stellarnet"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -2449,8 +2450,8 @@ func TestGetSendAssetChoices(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Len(t, choices, 2)
-	require.True(t, choices[0].Asset.Eq(keys))
-	require.True(t, choices[1].Asset.Eq(astro))
+	require.Equal(t, keys, choices[0].Asset)
+	require.Equal(t, astro, choices[1].Asset)
 	for _, v := range choices {
 		require.Equal(t, v.Asset.Code, v.Left)
 		require.Equal(t, v.Asset.Issuer, v.Right)
@@ -2466,7 +2467,7 @@ func TestGetSendAssetChoices(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, choices2, len(choices))
 	for i, v := range choices2 {
-		require.True(t, v.Asset.Eq(choices[i].Asset))
+		require.Equal(t, choices[i].Asset, v.Asset)
 		require.Equal(t, v.Asset.Code, v.Left)
 		require.Equal(t, v.Asset.Issuer, v.Right)
 		require.False(t, v.Enabled)
@@ -2488,11 +2489,11 @@ func TestGetSendAssetChoices(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, choices2, len(choices))
 
-	require.True(t, choices2[0].Asset.Eq(keys))
+	require.Equal(t, keys, choices2[0].Asset)
 	require.False(t, choices2[0].Enabled)
 	require.Equal(t, choices2[0].Subtext, fmt.Sprintf("Recipient does not accept %v", choices2[0].Asset.Code))
 
-	require.True(t, choices2[1].Asset.Eq(astro))
+	require.Equal(t, astro, choices2[1].Asset)
 	require.True(t, choices2[1].Enabled)
 
 	// Try with arg.To AccountID not in the system.
@@ -2755,6 +2756,155 @@ func TestGetInflationDestinations(t *testing.T) {
 		}
 	}
 	require.True(t, found, "expecting to find lumenaut in the list")
+}
+
+func TestManageTrustlines(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	acceptDisclaimer(tcs[0])
+	accounts := tcs[0].Backend.ImportAccountsForUser(tcs[0])
+
+	senderAccountID, err := stellar.GetOwnPrimaryAccountID(tcs[0].MetaContext())
+	require.NoError(t, err)
+	tcs[0].Backend.Gift(senderAccountID, "20")
+
+	keys := tcs[0].Backend.CreateFakeAsset("KEYS")
+	trustlineArg := stellar1.Trustline{
+		AssetCode: stellar1.AssetCode(keys.Code),
+		Issuer:    stellar1.AccountID(keys.Issuer),
+	}
+
+	// Add trustline to the account.
+	err = tcs[0].Srv.AddTrustlineLocal(context.Background(), stellar1.AddTrustlineLocalArg{
+		AccountID: senderAccountID,
+		Trustline: trustlineArg,
+		Limit:     "",
+	})
+	require.NoError(t, err)
+
+	// Check if it shows up in GetAccountAssetsLocal
+	balances, err := tcs[0].Srv.GetAccountAssetsLocal(context.Background(), stellar1.GetAccountAssetsLocalArg{
+		AccountID: senderAccountID,
+	})
+	require.NoError(t, err)
+	require.Len(t, balances, 2)
+
+	require.Equal(t, keys.Code, balances[1].AssetCode)
+	require.Equal(t, keys.Code, balances[1].Name)
+	require.Equal(t, keys.Issuer, balances[1].IssuerAccountID)
+	require.Equal(t, "0", balances[1].BalanceTotal)
+	require.Equal(t, "0", balances[1].BalanceAvailableToSend)
+
+	// Check if shows up it GetTrustlinesLocal
+	balances2, err := tcs[0].Srv.GetTrustlinesLocal(context.Background(), stellar1.GetTrustlinesLocalArg{
+		AccountID: senderAccountID,
+	})
+	require.NoError(t, err)
+	require.Len(t, balances2, 1)
+	require.Equal(t, keys, balances2[0].Asset)
+	require.Equal(t, "0.0000000", balances2[0].Amount)
+	require.Equal(t, "922337203685.4775807", balances2[0].Limit) // max limit
+
+	// Change limit.
+	err = tcs[0].Srv.ChangeTrustlineLimitLocal(context.Background(), stellar1.ChangeTrustlineLimitLocalArg{
+		AccountID: senderAccountID,
+		Trustline: trustlineArg,
+		Limit:     "100",
+	})
+	require.NoError(t, err)
+	// Check if our mock account has changed:
+	require.Equal(t, "100.0000000", accounts[0].otherBalances[0].Limit)
+
+	// Check if new limit shows up in BalancesLocal. Limit is not currently
+	// returned via GetAccountAssetsLocal.
+	balances2, err = tcs[0].Srv.BalancesLocal(context.Background(), senderAccountID)
+	require.NoError(t, err)
+	require.Len(t, balances2, 2)
+	require.True(t, balances2[0].Asset.IsNativeXLM())
+	require.Equal(t, "20.0000000", balances2[0].Amount)
+	require.Equal(t, "", balances2[0].Limit)
+	require.Equal(t, keys, balances2[1].Asset)
+	require.Equal(t, "0.0000000", balances2[1].Amount)
+	require.Equal(t, "100.0000000", balances2[1].Limit)
+
+	// Delete trustline.
+	err = tcs[0].Srv.DeleteTrustlineLocal(context.Background(), stellar1.DeleteTrustlineLocalArg{
+		AccountID: senderAccountID,
+		Trustline: trustlineArg,
+	})
+	require.NoError(t, err)
+
+	// See if it's gone from GetAccountAssetsLocal.
+	balances, err = tcs[0].Srv.GetAccountAssetsLocal(context.Background(), stellar1.GetAccountAssetsLocalArg{
+		AccountID: senderAccountID,
+	})
+	require.NoError(t, err)
+	require.Len(t, balances, 1)
+	require.Equal(t, "Lumens", balances[0].Name)
+	require.Equal(t, "Stellar network", balances[0].IssuerName)
+	require.Equal(t, "", balances[0].IssuerAccountID)
+}
+
+func TestManageTrustlinesErrors(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	acceptDisclaimer(tcs[0])
+	accounts := tcs[0].Backend.ImportAccountsForUser(tcs[0])
+
+	senderAccountID, err := stellar.GetOwnPrimaryAccountID(tcs[0].MetaContext())
+	require.NoError(t, err)
+	tcs[0].Backend.Gift(senderAccountID, "20")
+
+	keys := tcs[0].Backend.CreateFakeAsset("KEYS")
+	trustlineArg := stellar1.Trustline{
+		AssetCode: stellar1.AssetCode(keys.Code),
+		Issuer:    stellar1.AccountID(keys.Issuer),
+	}
+
+	// Removing a trustline that's not currently in the account should fail.
+	err = tcs[0].Srv.DeleteTrustlineLocal(context.Background(), stellar1.DeleteTrustlineLocalArg{
+		AccountID: senderAccountID,
+		Trustline: trustlineArg,
+	})
+	require.Error(t, err)
+
+	// Cannot change limist of a trustline that wasn't added.
+	err = tcs[0].Srv.ChangeTrustlineLimitLocal(context.Background(), stellar1.ChangeTrustlineLimitLocalArg{
+		AccountID: senderAccountID,
+		Trustline: trustlineArg,
+		Limit:     "10",
+	})
+	require.Error(t, err)
+
+	// Finally, add the trustline.
+	err = tcs[0].Srv.AddTrustlineLocal(context.Background(), stellar1.AddTrustlineLocalArg{
+		Trustline: trustlineArg,
+		Limit:     "",
+	})
+	require.NoError(t, err)
+
+	b, err := stellarnet.ParseStellarAmount("20")
+	require.NoError(t, err)
+	accounts[0].AdjustAssetBalance(b, keys)
+	err = tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), accounts[0].accountID, "test adjust balance")
+	require.NoError(t, err)
+
+	// Cannot change limit to below current balance.
+	err = tcs[0].Srv.ChangeTrustlineLimitLocal(context.Background(), stellar1.ChangeTrustlineLimitLocalArg{
+		AccountID: senderAccountID,
+		Trustline: trustlineArg,
+		Limit:     "10",
+	})
+	require.Error(t, err)
+
+	// Cannot remove trustline with balance.
+	err = tcs[0].Srv.DeleteTrustlineLocal(context.Background(), stellar1.DeleteTrustlineLocalArg{
+		AccountID: senderAccountID,
+		Trustline: trustlineArg,
+	})
+	require.Error(t, err)
 }
 
 type chatListener struct {

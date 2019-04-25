@@ -119,6 +119,8 @@ func (f *File) attr(ctx context.Context, a *fuse.Attr) (err error) {
 		return err
 	}
 
+	f.node.FillCacheDuration(&a.Valid)
+
 	return f.fillAttrWithMode(ctx, &de, a)
 }
 

@@ -331,6 +331,7 @@
     array<MessageID> reactionIDs;
     @mpackkey("u") @jsonkey("u")
     array<MessageID> unfurlIDs;
+    array<MessageID> replies;
     gregor1.Time ctime;
     // server's view of now(), used to calculate ephemeral lifetimes
     @mpackkey("n") @jsonkey("n")
@@ -543,11 +544,11 @@
   enum ReIndexingMode {
     NONE_0,
     PRESEARCH_SYNC_1,
-    POSTSEARCH_ASYNC_2,
-    POSTSEARCH_SYNC_3
+    POSTSEARCH_SYNC_2
   }
 
   record SearchOpts {
+    boolean isRegex;
     string sentBy;
     gregor1.Time sentBefore;
     gregor1.Time sentAfter;
@@ -560,6 +561,7 @@
     ReIndexingMode reindexMode;
     int maxConvsSearched;
     int maxConvsHit;
+    union { null, ConversationID } convID;
     // only used by conversation name search
     int maxNameConvs;
   }

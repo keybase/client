@@ -100,8 +100,13 @@ export const commonProvider = {
     refresh: Sb.action('refresh'),
   }),
   SendInAppAction: ({path}: {path: Types.Path}) => ({onClick: Sb.action('onClick'), path}),
+  SyncStatus: () => ({
+    folder: false,
+    status: 'online-only',
+  }),
   SyncingFolders: () => ({
     progress: 0.67,
+    show: true,
   }),
   TlfInfo: ({path, mode}: PathItemInfoOwnProps) => ({
     mode,
@@ -254,6 +259,8 @@ const load = () => {
         <PathItemInfo mode="default" lastModifiedTimestamp={1545110765} lastWriter="songgao_test" />
         <Kb.Text type="Body">mode=row</Kb.Text>
         <PathItemInfo mode="row" lastModifiedTimestamp={1545110765} lastWriter="songgao_test" />
+        <Kb.Text type="Body">mode=menu</Kb.Text>
+        <PathItemInfo mode="menu" lastModifiedTimestamp={1545110765} lastWriter="songgao_test" />
       </Kb.Box2>
     ))
     .add('KbfsDaemonNotRunning', () => <KbfsDaemonNotRunning />)

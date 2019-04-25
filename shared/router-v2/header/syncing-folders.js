@@ -6,29 +6,34 @@ import PieSlice from '../../fs/common/pie-slice'
 
 type Props = {|
   progress: number,
+  show: boolean,
 |}
 
 const SyncingFolders = (props: Props) =>
-  props.progress !== 1.0 && (
+  props.show && props.progress !== 1.0 ? (
     <Kb.Box2 direction="horizontal" alignItems="center">
       <PieSlice degrees={props.progress * 360} animated={true} />
       <Kb.Text type="BodyTiny" style={{marginLeft: 5}}>
         Syncing Folders...
       </Kb.Text>
     </Kb.Box2>
-  )
+  ) : null
 
 const mapStateToProps = state => ({
   _syncingFoldersProgress: state.fs.syncingFoldersProgress,
+  online: state.fs.kbfsDaemonStatus.online,
 })
 
 const mapDispatchToProps = dispatch => ({})
 
 const mergeProps = (s, d, o) => {
   if (s._syncingFoldersProgress.bytesTotal === 0) {
-    return {progress: 1}
+    return {progress: 0, show: false}
   }
-  return {progress: s._syncingFoldersProgress.bytesFetched / s._syncingFoldersProgress.bytesTotal}
+  return {
+    progress: s._syncingFoldersProgress.bytesFetched / s._syncingFoldersProgress.bytesTotal,
+    show: s.online,
+  }
 }
 
 type OwnProps = {||}
