@@ -179,7 +179,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => [
         {
           danger: true,
           onClick: hideMenuOnClick(props.ignoreTlf, hideMenu),
-          subTitle: 'The folder will no longer appear in your folders list.',
+          subTitle: 'Will hide the folder from your list.',
           title: 'Ignore this folder',
         },
       ]
