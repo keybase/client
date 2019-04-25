@@ -90,13 +90,26 @@ const Header = (p: Props) => {
           {description}
         </Kb.Box2>
         {p.showActions && (
-          <Kb.Box2 direction="horizontal" gap="small" alignItems="flex-end" alignSelf="center">
-            <Kb.Icon type="iconfont-search" onClick={p.onToggleThreadSearch} />
-            <Kb.Icon type="iconfont-folder-private" onClick={p.onOpenFolder} />
-            <Kb.Icon
-              type={p.infoPanelOpen ? 'iconfont-close' : 'iconfont-info'}
-              onClick={p.onToggleInfoPanel}
-            />
+          <Kb.Box2
+            direction="horizontal"
+            gap="small"
+            alignItems="flex-end"
+            alignSelf="flex-end"
+            style={styles.actionIcons}
+          >
+            <Kb.WithTooltip text="Search in this chat">
+              <Kb.Icon type="iconfont-search" onClick={p.onToggleThreadSearch} />
+            </Kb.WithTooltip>
+            <Kb.WithTooltip text="Open folder">
+              <Kb.Icon type="iconfont-folder-private" onClick={p.onOpenFolder} />
+            </Kb.WithTooltip>
+            <Kb.WithTooltip text="Chat info & settings">
+              <Kb.Icon
+                type={'iconfont-info'}
+                onClick={p.onToggleInfoPanel}
+                color={p.infoPanelOpen ? Styles.globalColors.blue : undefined}
+              />
+            </Kb.WithTooltip>
           </Kb.Box2>
         )}
       </Kb.Box2>
@@ -105,6 +118,9 @@ const Header = (p: Props) => {
 }
 
 const styles = Styles.styleSheetCreate({
+  actionIcons: {
+    paddingBottom: Styles.globalMargins.xsmall - 4,
+  },
   container: {
     flexGrow: 1,
     height: 40 - 1,
