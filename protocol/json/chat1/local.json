@@ -2811,6 +2811,18 @@
           "name": "convName"
         },
         {
+          "type": "MessageID",
+          "name": "minConvID"
+        },
+        {
+          "type": "MessageID",
+          "name": "maxConvID"
+        },
+        {
+          "type": "int",
+          "name": "numMissing"
+        },
+        {
           "type": "int",
           "name": "numMessages"
         },
@@ -4170,10 +4182,6 @@
         {
           "name": "query",
           "type": "string"
-        },
-        {
-          "name": "isRegex",
-          "type": "boolean"
         },
         {
           "name": "opts",

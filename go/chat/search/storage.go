@@ -250,7 +250,7 @@ func (s *store) remove(ctx context.Context, convID chat1.ConversationID, uid gre
 	seenIDs := entry.Metadata.SeenIDs
 	for _, msg := range msgs {
 		// Don't remove if we haven't seen
-		if _, ok := entry.Metadata.SeenIDs[msg.GetMessageID()]; !ok {
+		if _, ok := seenIDs[msg.GetMessageID()]; !ok {
 			continue
 		}
 		seenIDs[msg.GetMessageID()] = chat1.EmptyStruct{}

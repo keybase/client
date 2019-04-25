@@ -479,6 +479,8 @@ const loadHasRandomPW = state =>
 // Mark that we are not randomPW anymore if we got a password change.
 const passwordChanged = () => SettingsGen.createLoadedHasRandomPw({randomPW: false})
 
+const stop = (_, action) => RPCTypes.ctlStopRpcPromise({exitCode: action.payload.exitCode})
+
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<SettingsGen.InvitesReclaimPayload>(SettingsGen.invitesReclaim, reclaimInvite)
   yield* Saga.chainAction<SettingsGen.InvitesRefreshPayload>(SettingsGen.invitesRefresh, refreshInvites)
@@ -540,6 +542,8 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     EngineGen.keybase1NotifyUsersPasswordChanged,
     passwordChanged
   )
+
+  yield* Saga.chainAction<SettingsGen.StopPayload>(SettingsGen.stop, stop)
 
   yield* Saga.chainAction<SettingsGen.CheckPasswordPayload>(SettingsGen.checkPassword, checkPassword)
 }

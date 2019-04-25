@@ -658,7 +658,11 @@ const styles = Styles.styleSheetCreate({
     isElectron: {lineHeight: 19},
   }),
   usernameCrown: Styles.platformStyles({
-    isElectron: {alignItems: 'baseline'},
+    isElectron: {
+      alignItems: 'baseline',
+      position: 'relative',
+      top: -2,
+    },
     isMobile: {alignItems: 'center'},
   }),
 })

@@ -105,11 +105,11 @@ func TestChatSearchConvRegexp(t *testing.T) {
 		}
 
 		runSearch := func(query string, isRegex bool, opts chat1.SearchOpts) chat1.SearchRegexpRes {
+			opts.IsRegex = isRegex
 			res, err := tc1.chatLocalHandler().SearchRegexp(tc1.startCtx, chat1.SearchRegexpArg{
-				ConvID:  convID,
-				Query:   query,
-				IsRegex: isRegex,
-				Opts:    opts,
+				ConvID: convID,
+				Query:  query,
+				Opts:   opts,
 			})
 			require.NoError(t, err)
 			t.Logf("query: %v, searchRes: %+v", query, res)
@@ -348,9 +348,11 @@ func TestChatSearchConvRegexp(t *testing.T) {
 
 		// Test invalid regex
 		_, err = tc1.chatLocalHandler().SearchRegexp(tc1.startCtx, chat1.SearchRegexpArg{
-			ConvID:  convID,
-			Query:   "(",
-			IsRegex: true,
+			ConvID: convID,
+			Query:  "(",
+			Opts: chat1.SearchOpts{
+				IsRegex: true,
+			},
 		})
 		require.Error(t, err)
 	})
@@ -542,6 +544,7 @@ func TestChatSearchInbox(t *testing.T) {
 			BeforeContext: 2,
 			AfterContext:  2,
 			MaxMessages:   1000,
+			MaxNameConvs:  1,
 		}
 
 		// Test basic equality match
@@ -838,7 +841,6 @@ func TestChatSearchInbox(t *testing.T) {
 
 		// DB nuke, ensure that we reindex after the search
 		g1.LocalChatDb.Nuke()
-		indexer1.ClearCache()
 		opts.ReindexMode = chat1.ReIndexingMode_PRESEARCH_SYNC // force reindex so we're fully up to date.
 		res = runSearch(query, opts, true /* expectedReindex*/)
 		require.Equal(t, 1, len(res.Hits))
@@ -856,7 +858,6 @@ func TestChatSearchInbox(t *testing.T) {
 		// Verify POSTSEARCH_SYNC
 		ictx := globals.CtxAddIdentifyMode(ctx, keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil)
 		g1.LocalChatDb.Nuke()
-		indexer1.ClearCache()
 		indexer1.SelectiveSync(ictx, uid1, true /* forceReindex */)
 		opts.ReindexMode = chat1.ReIndexingMode_POSTSEARCH_SYNC
 		res = runSearch(query, opts, true /* expectedReindex*/)

@@ -565,6 +565,7 @@ func InitWithLogPrefix(
 			case SIGINT:
 			default:
 				if interruptErr != nil {
+					log.Info("Failed to unmount before exit: %s", interruptErr)
 					os.Exit(1)
 				} else {
 					// Do not return 128 + signal since kbfsfuse is not a shell command

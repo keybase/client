@@ -1052,3 +1052,16 @@ func AirdropStatus(mctx libkb.MetaContext) (AirdropStatusAPI, error) {
 	}
 	return status, nil
 }
+
+func ChangeTrustline(ctx context.Context, g *libkb.GlobalContext, signedTx string) (err error) {
+	mctx := libkb.NewMetaContext(ctx, g)
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/change_trustline",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"sig": libkb.S{Val: signedTx},
+		},
+	}
+	_, err = mctx.G().API.Post(mctx, apiArg)
+	return err
+}

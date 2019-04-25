@@ -69,3 +69,9 @@ const crossplatformQuit = (reason: string) => {
 }
 
 export {crossplatformQuit as quit}
+
+export function hideWindow() {
+  SafeElectron.getRemote()
+    .getCurrentWindow()
+    .hide()
+}

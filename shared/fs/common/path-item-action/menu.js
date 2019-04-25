@@ -23,6 +23,7 @@ type Props = {|
   ignoreTlf?: ?() => void,
   moveOrCopy?: ?() => void,
   pathItemType: Types.PathType,
+  position?: 'header' | 'row',
   saveMedia?: ?ActionOrInProgress,
   showInSystemFileManager?: ?() => void,
   // share menu items

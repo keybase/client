@@ -96,6 +96,7 @@ class _ProofsList extends React.Component<Props, State> {
               fontSize={Styles.isMobile ? 20 : 16}
             />
             <Kb.PlainInput
+              autoFocus={true}
               placeholder={`Search ${this.props.providers.length} platforms`}
               placeholderColor={Styles.globalColors.black_50}
               flexable={true}

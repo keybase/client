@@ -537,6 +537,12 @@ export const kbfsCommonFSStatusCode = {
   error: 2,
 }
 
+export const loginUiResetPromptType = {
+  complete: 0,
+  enterNoDevices: 1,
+  enterForgotPw: 2,
+}
+
 export const notifyTeamAvatarUpdateType = {
   none: 0,
   user: 1,
@@ -929,6 +935,7 @@ export const configWaitForClientRpcPromise = (params, waitingKey) => new Promise
 export const cryptocurrencyRegisterAddressRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.cryptocurrency.registerAddress', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const ctlDbCleanRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.ctl.dbClean', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const ctlDbNukeRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.ctl.dbNuke', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const ctlStopRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.ctl.stop', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const delegateUiCtlRegisterChatUIRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.delegateUiCtl.registerChatUI', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const delegateUiCtlRegisterGregorFirehoseFilteredRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.delegateUiCtl.registerGregorFirehoseFiltered', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const delegateUiCtlRegisterHomeUIRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.delegateUiCtl.registerHomeUI', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

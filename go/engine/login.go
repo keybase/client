@@ -177,10 +177,12 @@ func (e *Login) loginProvision(m libkb.MetaContext) (bool, error) {
 	}
 
 	// Skip notifications if we haven't provisioned
-	if deng.resetPending {
+	if !deng.LoggedIn() {
 		return true, nil
 	}
-	if deng.resetComplete {
+
+	// If account was reset, rerun the provisioning with the existing session
+	if deng.AccountReset() {
 		return e.loginProvision(m)
 	}
 

@@ -63,6 +63,19 @@
       ],
       "response": null
     },
+    "stopService": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "exitCode",
+          "type": "ExitCode"
+        }
+      ],
+      "response": null
+    },
     "logRotate": {
       "request": [
         {

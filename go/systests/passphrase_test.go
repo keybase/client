@@ -67,7 +67,7 @@ func TestPassphraseChange(t *testing.T) {
 	_, err = libkb.VerifyPassphraseForLoggedInUser(m, oldPassphrase)
 	require.Error(t, err, "old passphrase failed to verify")
 
-	if err := client.CtlServiceStop(tc2.G); err != nil {
+	if err := CtlStop(tc2.G); err != nil {
 		t.Fatal(err)
 	}
 
@@ -213,11 +213,11 @@ func testPassphraseRecover(t *testing.T, createDeviceClone bool) {
 	require.Error(t, err, "old passphrase passed verification after passphrase change")
 
 	t.Logf("Stop tc1")
-	err = client.CtlServiceStop(tc1.G)
+	err = CtlStop(tc1.G)
 	require.NoError(t, err)
 
 	t.Logf("Stop tc2")
-	err = client.CtlServiceStop(tc2.G)
+	err = CtlStop(tc2.G)
 	require.NoError(t, err)
 
 	t.Logf("Waiting for services to stop")

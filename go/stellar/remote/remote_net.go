@@ -129,3 +129,7 @@ func (r *RemoteNet) NetworkOptions(ctx context.Context) (stellar1.NetworkOptions
 func (r *RemoteNet) DetailsPlusPayments(ctx context.Context, accountID stellar1.AccountID) (stellar1.DetailsPlusPayments, error) {
 	return DetailsPlusPayments(ctx, r.G(), accountID)
 }
+
+func (r *RemoteNet) ChangeTrustline(ctx context.Context, signedTx string) error {
+	return ChangeTrustline(ctx, r.G(), signedTx)
+}

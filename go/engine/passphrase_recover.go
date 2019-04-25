@@ -135,6 +135,25 @@ func (e *PassphraseRecover) chooseDevice(mctx libkb.MetaContext, ckf *libkb.Comp
 }
 
 func (e *PassphraseRecover) suggestReset(mctx libkb.MetaContext) (err error) {
+	enterReset, err := mctx.UIs().LoginUI.PromptResetAccount(mctx.Ctx(), keybase1.PromptResetAccountArg{
+		Kind: keybase1.ResetPromptType_ENTER_FORGOT_PW,
+	})
+	if err != nil {
+		return err
+	}
+	if !enterReset {
+		// Cancel the engine as it successfully resulted in the user entering the reset pipeline.
+		return nil
+	}
+
+	// We are certain the user will not know their password, so we can disable that prompt.
+	eng := NewAccountReset(mctx.G(), e.arg.Username)
+	eng.skipPasswordPrompt = true
+	if err := eng.Run(mctx); err != nil {
+		return err
+	}
+
+	// We're ignoring eng.ResetPending() as we've disabled reset completion
 	return nil
 }
 
