@@ -27,11 +27,25 @@ type Props = {|
   unMuteConversation: () => void,
 |}
 
+const descStyleOverride = {
+  del: {fontSize: 12, lineHeight: '16px'},
+  em: {fontSize: 12, lineHeight: '16px'},
+  fence: {fontSize: 12, lineHeight: '16px'},
+  inlineCode: {fontSize: 12, lineHeight: '16px'},
+  kbfsPath: {fontSize: 12, lineHeight: '16px'},
+  link: {fontSize: 12, lineHeight: '16px'},
+  mailto: {fontSize: 12, lineHeight: '16px'},
+  paragraph: {fontSize: 12, lineHeight: '16px'},
+  preview: {fontSize: 12, lineHeight: '16px'},
+  strong: {fontSize: 12, lineHeight: '16px'},
+}
+
 const Header = (p: Props) => {
   let description = !!p.desc && (
-    <Kb.Text selectable={true} style={styles.desc} type="BodySmall" lineClamp={1}>
+    // $FlowIssue not used on mobile
+    <Kb.Markdown style={styles.desc} styleOverride={descStyleOverride} lineClamp={1}>
       {p.desc}
-    </Kb.Text>
+    </Kb.Markdown>
   )
   if (p.isTeam && !p.desc && p.canEditDesc) {
     description = (
@@ -109,7 +123,11 @@ const styles = Styles.styleSheetCreate({
     flexGrow: 1,
     height: 40,
   },
-  desc: Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
+  desc: {
+    ...Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
+    color: Styles.globalColors.black_50,
+    fontSize: 12,
+  },
   grow: {flexGrow: 1},
   left: {minWidth: 260},
   right: {
