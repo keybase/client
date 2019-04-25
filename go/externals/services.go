@@ -117,7 +117,7 @@ func (p *proofServices) SuggestionFoldPriority() int {
 }
 
 func (p *proofServices) loadServiceConfigs() {
-	tracer := p.G().CTimeTracer(context.TODO(), "proofServices.loadServiceConfigs", true)
+	tracer := p.G().CTimeTracer(context.TODO(), "proofServices.loadServiceConfigs", libkb.ProfileProofSuggestions)
 	defer tracer.Finish()
 	if !p.G().ShouldUseParameterizedProofs() {
 		return

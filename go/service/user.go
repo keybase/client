@@ -373,7 +373,7 @@ func (h *UserHandler) UploadUserAvatar(ctx context.Context, arg keybase1.UploadU
 func (h *UserHandler) ProofSuggestions(ctx context.Context, sessionID int) (ret keybase1.ProofSuggestionsRes, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("US")
 	defer mctx.TraceTimed("ProofSuggestions", func() error { return err })()
-	tracer := mctx.G().CTimeTracer(mctx.Ctx(), "ProofSuggestions", true)
+	tracer := mctx.G().CTimeTracer(mctx.Ctx(), "ProofSuggestions", libkb.ProfileProofSuggestions)
 	defer tracer.Finish()
 	suggestions, err := h.proofSuggestionsHelper(mctx, tracer)
 	if err != nil {
