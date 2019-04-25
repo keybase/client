@@ -59,12 +59,14 @@ func newStore(g *globals.Context) *store {
 func (s *store) dbKey(convID chat1.ConversationID, uid gregor1.UID) libkb.DbKey {
 	return libkb.DbKey{
 		Typ: libkb.DBChatIndex,
-		Key: fmt.Sprintf("idx:%s:%s", uid, convID),
+		Key: fmt.Sprintf("idx_j:%s:%s", uid, convID),
 	}
 }
 
 func (s *store) marshal(idx *chat1.ConversationIndexDisk) ([]byte, error) {
-	return json.Marshal(idx)
+	res, err := json.Marshal(idx)
+	s.Debug(context.TODO(), "marshal: %s", res)
+	return res, err
 }
 
 func (s *store) unmarshalIndex(idx *chat1.ConversationIndexDisk, dat []byte) (err error) {
@@ -103,6 +105,7 @@ func (s *store) unmarshalAliases(idx *chat1.ConversationIndexDisk, dat []byte) (
 	var res []chat1.AliasTuple
 	jsonparser.ArrayEach(dat,
 		func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+			s.Debug(context.TODO(), "unmarshal: aliases: %s", value)
 			var alias string
 			alias, err = jsonparserw.GetString(value, "a")
 			if err != nil {
@@ -157,6 +160,7 @@ func (s *store) unmarshalMetadata(idx *chat1.ConversationIndexDisk, dat []byte) 
 }
 
 func (s *store) unmarshal(idx *chat1.ConversationIndexDisk, dat []byte) error {
+	s.Debug(context.TODO(), "unmarshal: begin: %s", dat)
 	jsonIndexList, _, _, err := jsonparser.Get(dat, "i")
 	if err != nil {
 		return err
@@ -203,8 +207,11 @@ func (s *store) getLocked(ctx context.Context, convID chat1.ConversationID, uid 
 
 	dbKey := s.dbKey(convID, uid)
 	var entry chat1.ConversationIndexDisk
-	found, err := s.encryptedDB.Get(ctx, dbKey, &entry)
+	raw, found, err := s.encryptedDB.GetRaw(ctx, dbKey)
 	if err != nil || !found {
+		return nil, err
+	}
+	if err := s.unmarshal(&entry, raw); err != nil {
 		return nil, err
 	}
 	if entry.Metadata.Version != IndexVersion {
@@ -283,7 +290,11 @@ func (s *store) putLocked(ctx context.Context, convID chat1.ConversationID, uid 
 		entry.Metadata.SeenIDs[k] = msgID
 		k++
 	}
-	return s.encryptedDB.Put(ctx, dbKey, entry)
+	raw, err := s.marshal(&entry)
+	if err != nil {
+		return err
+	}
+	return s.encryptedDB.PutRaw(ctx, dbKey, raw)
 }
 
 func (s *store) deleteLocked(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error {
