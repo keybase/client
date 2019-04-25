@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -15,12 +16,11 @@ import (
 // where the user is shown instructions on how to either change their password
 // on other devices or allows them to change the password using a paper key.
 type PassphraseRecover struct {
-	arg             *keybase1.RecoverPassphraseArg
-	pipelineEnabled bool
+	arg keybase1.RecoverPassphraseArg
 	libkb.Contextified
 }
 
-func NewPassphraseRecover(g *libkb.GlobalContext, arg *keybase1.RecoverPassphraseArg) *PassphraseRecover {
+func NewPassphraseRecover(g *libkb.GlobalContext, arg keybase1.RecoverPassphraseArg) *PassphraseRecover {
 	return &PassphraseRecover{
 		arg:          arg,
 		Contextified: libkb.NewContextified(g),
@@ -44,7 +44,9 @@ func (e *PassphraseRecover) RequiredUIs() []libkb.UIKind {
 
 // SubConsumers requires the other UI consumers of this engine
 func (e *PassphraseRecover) SubConsumers() []libkb.UIConsumer {
-	return []libkb.UIConsumer{}
+	return []libkb.UIConsumer{
+		&LoginWithPaperKey{},
+	}
 }
 
 // Run the engine
@@ -56,8 +58,15 @@ func (e *PassphraseRecover) Run(mctx libkb.MetaContext) (err error) {
 		mctx.Debug("Already logged in with unlocked device keys")
 		return nil
 	}
-
 	mctx.Debug("No device keys available, proceeding with recovery")
+
+	// Look up the passed username against the list of configured users
+	usernameFound, err := e.processUsername(mctx)
+	if err != nil {
+		return err
+	}
+
+	mctx.Error("usernameFound %v", usernameFound)
 
 	// Load the user by username
 	ueng := newLoginLoadUser(mctx.G(), e.arg.Username)
@@ -73,6 +82,10 @@ func (e *PassphraseRecover) Run(mctx libkb.MetaContext) (err error) {
 
 	// If the reset pipeline is not enabled, we'll want this to act exactly the same way as before
 	if !mctx.G().Env.GetFeatureFlags().HasFeature(libkb.EnvironmentFeatureAutoresetPipeline) {
+		// The device has to be preprovisioned for this account in this flow
+		if !usernameFound {
+			return libkb.NotProvisionedError{}
+		}
 		return e.legacyRecovery(mctx)
 	}
 
@@ -81,11 +94,37 @@ func (e *PassphraseRecover) Run(mctx libkb.MetaContext) (err error) {
 		return e.suggestReset(mctx)
 	}
 
-	return nil
+	return e.chooseDevice(mctx, ckf)
+}
+
+func (e *PassphraseRecover) processUsername(mctx libkb.MetaContext) (ok bool, err error) {
+	// Fetch usernames from user configs
+	currentUsername, otherUsernames, err := mctx.G().GetAllUserNames()
+	if err != nil {
+		return false, err
+	}
+	usernamesMap := map[libkb.NormalizedUsername]struct{}{
+		currentUsername: struct{}{},
+	}
+	for _, username := range otherUsernames {
+		usernamesMap[username] = struct{}{}
+	}
+
+	var normalized kbun.NormalizedUsername
+	if e.arg.Username != "" {
+		normalized = libkb.NewNormalizedUsername(e.arg.Username)
+	} else {
+		normalized = currentUsername
+	}
+	e.arg.Username = normalized.String()
+
+	// Check if the passed username is in the map
+	_, ok = usernamesMap[normalized]
+	return ok, nil
 }
 
 func (e *PassphraseRecover) legacyRecovery(mctx libkb.MetaContext) (err error) {
-	return nil
+	return e.changeWithPaper(mctx)
 }
 
 func (e *PassphraseRecover) chooseDevice(mctx libkb.MetaContext, ckf *libkb.ComputedKeyFamily) (err error) {
@@ -126,7 +165,7 @@ func (e *PassphraseRecover) chooseDevice(mctx libkb.MetaContext, ckf *libkb.Comp
 	// Roughly the same flow as in provisioning
 	switch selected.Type {
 	case libkb.DeviceTypePaper:
-		return e.changeWithPaper(mctx, selected)
+		return e.changeWithPaper(mctx)
 	case libkb.DeviceTypeDesktop, libkb.DeviceTypeMobile:
 		return e.explainChange(mctx, selected)
 	default:
@@ -157,10 +196,77 @@ func (e *PassphraseRecover) suggestReset(mctx libkb.MetaContext) (err error) {
 	return nil
 }
 
-func (e *PassphraseRecover) changeWithPaper(mctx libkb.MetaContext, paperKey *libkb.Device) (err error) {
+func (e *PassphraseRecover) changeWithPaper(mctx libkb.MetaContext) (err error) {
+	// First log in using the paper key
+	loginEng := NewLoginWithPaperKey(mctx.G(), e.arg.Username)
+	if err := RunEngine2(mctx, loginEng); err != nil {
+		mctx.Error("login fail %v", err)
+		return err
+	}
+
+	mctx.Error("hsk before")
+	// Once logged in, check if there are any server keys
+	hskEng := NewHasServerKeys(mctx.G())
+	if err := RunEngine2(mctx, hskEng); err != nil {
+		return err
+	}
+	if hskEng.GetResult().HasServerKeys {
+		// Prompt the user explaining that they'll lose server keys
+		proceed, err := mctx.UIs().LoginUI.PromptPassphraseRecovery(mctx.Ctx(), keybase1.PromptPassphraseRecoveryArg{
+			Kind: keybase1.PassphraseRecoveryPromptType_ENCRYPTED_PGP_KEYS,
+		})
+		if err != nil {
+			return err
+		}
+		if !proceed {
+			mctx.Info("Password recovery canceled")
+			return nil
+		}
+	}
+
+	// We either have no server keys or the user is OK with resetting them
+	// Prompt the user for a new passphrase.
+	passphrase, err := e.promptPassphrase(mctx)
+
+	// ppres.Passphrase contains our new password
+	// Run passphrase change to finish the flow
+	changeEng := NewPassphraseChange(mctx.G(), &keybase1.PassphraseChangeArg{
+		Passphrase: passphrase,
+		Force:      true,
+	})
+	if err := RunEngine2(mctx, changeEng); err != nil {
+		return err
+	}
+
+	// We have a new passphrase!
 	return nil
 }
 
-func (e *PassphraseRecover) explainChange(mctx libkb.MetaContext, paperKey *libkb.Device) (err error) {
-	return nil
+func (e *PassphraseRecover) explainChange(mctx libkb.MetaContext, device *libkb.Device) (err error) {
+	var name string
+	if device.Description != nil {
+		name = *device.Description
+	}
+
+	// The actual contents of the shown prompt will depend on the UI impl
+	return mctx.UIs().LoginUI.ExplainDeviceRecovery(mctx.Ctx(), keybase1.ExplainDeviceRecoveryArg{
+		Name: name,
+		Kind: keybase1.DeviceTypeMap[device.Type],
+	})
+}
+
+func (e *PassphraseRecover) promptPassphrase(mctx libkb.MetaContext) (string, error) {
+	arg := libkb.DefaultPassphraseArg(mctx)
+	arg.WindowTitle = "Pick a new passphrase"
+	arg.Prompt = fmt.Sprintf("Pick a new strong passphrase (%d+ characters)", libkb.MinPassphraseLength)
+	arg.Type = keybase1.PassphraseType_VERIFY_PASS_PHRASE
+
+	ppres, err := libkb.GetNewKeybasePassphrase(
+		mctx, mctx.UIs().SecretUI, arg,
+		"Please reenter your new passphrase for confirmation",
+	)
+	if err != nil {
+		return "", err
+	}
+	return ppres.Passphrase, nil
 }

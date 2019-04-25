@@ -184,11 +184,13 @@ func (h *LoginHandler) LoginOneshot(ctx context.Context, arg keybase1.LoginOnesh
 
 func (h *LoginHandler) RecoverPassphrase(ctx context.Context, arg keybase1.RecoverPassphraseArg) error {
 	uis := libkb.UIs{
-		LogUI:     h.getLogUI(arg.SessionID),
-		LoginUI:   h.getLoginUI(arg.SessionID),
-		SessionID: arg.SessionID,
+		LogUI:       h.getLogUI(arg.SessionID),
+		LoginUI:     h.getLoginUI(arg.SessionID),
+		SecretUI:    h.getSecretUI(arg.SessionID, h.G()),
+		ProvisionUI: h.getProvisionUI(arg.SessionID),
+		SessionID:   arg.SessionID,
 	}
-	eng := engine.NewRecoverPassphrase(h.G(), arg)
+	eng := engine.NewPassphraseRecover(h.G(), arg)
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
 	return engine.RunEngine2(m, eng)
 }

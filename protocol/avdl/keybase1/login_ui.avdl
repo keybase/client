@@ -21,7 +21,18 @@ protocol loginUi {
   boolean promptResetAccount(int sessionID, ResetPromptType kind);
 
   /**
-   In some flows the user will get
+   In some flows the user will get notified of the reset progress
    */
   void displayResetProgress(int sessionID, string text);
+
+  /**
+   During recovery the service might want to explain to the user how they can change
+   their password by using the "change password" functionality on other devices.
+   */
+  void explainDeviceRecovery(int sessionID, DeviceType kind, string name);
+
+  enum PassphraseRecoveryPromptType {
+    ENCRYPTED_PGP_KEYS_0 // explain to the user that they'll lose encrypted pgp keys
+  }
+  bool promptPassphraseRecovery(int sessionID, PassphraseRecoveryPromptType kind);
 }

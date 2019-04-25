@@ -7,13 +7,12 @@ import (
 	"errors"
 	"fmt"
 
-	"golang.org/x/net/context"
-
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"golang.org/x/net/context"
 )
 
 type CmdPassphraseRecover struct {
@@ -39,98 +38,31 @@ func NewCmdPassphraseRecoverRunner(g *libkb.GlobalContext) *CmdPassphraseRecover
 }
 
 func (c *CmdPassphraseRecover) Run() error {
-	ui := c.G().UI.GetTerminalUI()
 	protocols := []rpc.Protocol{
+		NewProvisionUIProtocol(c.G(), libkb.KexRoleProvisionee),
+		NewLoginUIProtocol(c.G()),
 		NewSecretUIProtocol(c.G()),
 	}
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return err
 	}
-
-	if c.Username != "" {
-		// Check the username in the user configs
-		normalized := libkb.NewNormalizedUsername(c.Username)
-
-		// Fetch usernames from user configs
-		currentUsername, otherUsernames, err := c.G().GetAllUserNames()
-		if err != nil {
-			return err
-		}
-		usernamesMap := map[libkb.NormalizedUsername]struct{}{
-			currentUsername: struct{}{},
-		}
-		for _, username := range otherUsernames {
-			usernamesMap[username] = struct{}{}
-		}
-
-		// Check if the passed username is in the map
-		if _, ok := usernamesMap[normalized]; !ok {
-			return c.errNotProvisioned()
-		}
-	} else {
-		// Check the current UID - by proxy checks if the device has been provisioned
-		uid := c.G().GetMyUID()
-		if !uid.Exists() {
-			return c.errNotProvisioned()
-		}
-	}
-
-	// Login with unlocked keys or a prompted paper key.
-	err := c.loginWithPaperKey(context.TODO())
-	switch err.(type) {
-	case libkb.InputCanceledError:
-		return c.errLockedKeys()
-	case libkb.NoPaperKeysError:
-		return c.errNoPaperKeys()
-	}
-	if err != nil {
-		return err
-	}
-
-	// Check whether the user would lose server-stored encrypted PGP keys.
-	// (bug) This will return true even if those keys are already lost.
-	hsk, err := hasServerKeys(c.G())
-	if err != nil {
-		return err
-	}
-
-	// Confirm with the user.
-	if hsk.HasServerKeys {
-		ui.Printf("You have uploaded an encrypted PGP private key, it will be lost.\n")
-		if err = ui.PromptForConfirmation("Continue with password recovery?"); err != nil {
-			return err
-		}
-	}
-
-	// Ask for the new passphase.
-	pp, err := PromptNewPassphrase(c.G())
-	if err != nil {
-		return err
-	}
-
-	// Run the main recovery engine. At this point the user should be logged in with
-	// unlocked keys. This has the potential to issue all sorts of prompts
-	// but given that we should now be logged in and unlocked, it shouldn't
-	// issue any prompts.
-	return passphraseChange(c.G(), newChangeArg(pp, true))
-
-	// BUG the user sometimes ends up recovered and unlocked, but logged out after all this.
-	// Running `keybase login` or restarting the service both effortlessly log them in.
-}
-
-func (c *CmdPassphraseRecover) loginWithPaperKey(ctx context.Context) error {
-	// TODO How can we be sure here that a missing SecretUI isn't going to cause a panic?
 	client, err := GetLoginClient(c.G())
 	if err != nil {
 		return err
 	}
-	err = client.LoginWithPaperKey(ctx, keybase1.LoginWithPaperKeyArg{
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	if err := client.RecoverPassphrase(ctx, keybase1.RecoverPassphraseArg{
 		Username: c.Username,
-	})
-	if err != nil {
+	}); err != nil {
 		return err
 	}
-	return err
+
+	// BUG the user sometimes ends up recovered and unlocked, but logged out after all this.
+	// Running `keybase login` or restarting the service both effortlessly log them in.
+	return nil
 }
 
 func (c *CmdPassphraseRecover) ParseArgv(ctx *cli.Context) error {

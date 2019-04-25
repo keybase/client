@@ -15,6 +15,13 @@
         "ENTER_NO_DEVICES_1",
         "ENTER_FORGOT_PW_2"
       ]
+    },
+    {
+      "type": "enum",
+      "name": "PassphraseRecoveryPromptType",
+      "symbols": [
+        "ENCRYPTED_PGP_KEYS_0"
+      ]
     }
   ],
   "messages": {
@@ -96,7 +103,38 @@
         }
       ],
       "response": null,
-      "doc": "In some flows the user will get"
+      "doc": "In some flows the user will get notified of the reset progress"
+    },
+    "explainDeviceRecovery": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "kind",
+          "type": "DeviceType"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "doc": "During recovery the service might want to explain to the user how they can change\n   their password by using the \"change password\" functionality on other devices."
+    },
+    "promptPassphraseRecovery": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "kind",
+          "type": "PassphraseRecoveryPromptType"
+        }
+      ],
+      "response": "bool"
     }
   },
   "namespace": "keybase.1"
