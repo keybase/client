@@ -6,6 +6,8 @@ import {Box2} from './box'
 import Text from './text'
 import Icon from './icon'
 import Button from './button'
+import OverlayParentHOC from './overlay/parent-hoc'
+import FloatingMenu from './floating-menu'
 import {globalColors} from '../styles'
 
 const body1 = (
@@ -26,6 +28,27 @@ const actionButton = <Button label={'Action'} small={true} onClick={Sb.action('b
 const icon1 = <Icon type="icon-computer-32" />
 const icon2 = <Icon type="icon-bitcoin-logo-48" />
 const icon3 = <Icon type="iconfont-cloud" sizeType="Small" color={globalColors.blue} />
+
+const ActionButtonWithPopup = OverlayParentHOC(props => (
+  <>
+    <Button small={true} label="btn" ref={props.setAttachmentRef} onClick={props.toggleShowingMenu} />
+    <FloatingMenu
+      attachTo={props.getAttachmentRef}
+      closeOnSelect={true}
+      onHidden={() => {}}
+      visible={props.showingMenu}
+      header={{
+        title: 'unused',
+        view: (
+          <Box2 direction="horizontal" style={{backgroundColor: 'red', padding: 16}}>
+            <Text type="Body">click here shouldn't trigger click on listitem2</Text>
+          </Box2>
+        ),
+      }}
+      items={[]}
+    />
+  </>
+))
 
 const load = () => {
   Sb.storiesOf('Common', module)
@@ -64,6 +87,14 @@ const load = () => {
         <ListItem firstItem={false} type="Large" icon={icon2} body={body1} action={actionButton} />
         <ListItem firstItem={false} type="Large" icon={icon2} body={body1} action={actionButton} />
         <ListItem firstItem={false} type="Large" icon={icon1} body={body1} action={actionButton} />
+        <ListItem
+          onClick={Sb.action('ListItem:onClick')}
+          firstItem={false}
+          type="Large"
+          icon={icon1}
+          body={body1}
+          action={<ActionButtonWithPopup />}
+        />
       </Box2>
     ))
 }
