@@ -155,7 +155,7 @@ export const newModalRoutes = {
   teamAddPeople: {getScreen: () => require('./add-people/container').default, upgraded: true},
   teamEditTeamAvatar: {getScreen: () => require('../profile/edit-avatar/container').default, upgraded: true},
   teamEditTeamDescription: {
-    getScreen: () => MaybePopupHoc(true)(require('./edit-team-description/container').default),
+    getScreen: () => MaybePopupHoc(false)(require('./edit-team-description/container').default),
     upgraded: true,
   },
   teamInviteByEmail: {getScreen: () => require('./invite-by-email/container').default, upgraded: true},
