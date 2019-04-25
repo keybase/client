@@ -1949,21 +1949,24 @@ func (e ReIndexingMode) String() string {
 }
 
 type SearchOpts struct {
-	SentBy           string         `codec:"sentBy" json:"sentBy"`
-	SentBefore       gregor1.Time   `codec:"sentBefore" json:"sentBefore"`
-	SentAfter        gregor1.Time   `codec:"sentAfter" json:"sentAfter"`
-	MaxHits          int            `codec:"maxHits" json:"maxHits"`
-	MaxMessages      int            `codec:"maxMessages" json:"maxMessages"`
-	BeforeContext    int            `codec:"beforeContext" json:"beforeContext"`
-	AfterContext     int            `codec:"afterContext" json:"afterContext"`
-	ReindexMode      ReIndexingMode `codec:"reindexMode" json:"reindexMode"`
-	MaxConvsSearched int            `codec:"maxConvsSearched" json:"maxConvsSearched"`
-	MaxConvsHit      int            `codec:"maxConvsHit" json:"maxConvsHit"`
-	MaxNameConvs     int            `codec:"maxNameConvs" json:"maxNameConvs"`
+	IsRegex          bool            `codec:"isRegex" json:"isRegex"`
+	SentBy           string          `codec:"sentBy" json:"sentBy"`
+	SentBefore       gregor1.Time    `codec:"sentBefore" json:"sentBefore"`
+	SentAfter        gregor1.Time    `codec:"sentAfter" json:"sentAfter"`
+	MaxHits          int             `codec:"maxHits" json:"maxHits"`
+	MaxMessages      int             `codec:"maxMessages" json:"maxMessages"`
+	BeforeContext    int             `codec:"beforeContext" json:"beforeContext"`
+	AfterContext     int             `codec:"afterContext" json:"afterContext"`
+	ReindexMode      ReIndexingMode  `codec:"reindexMode" json:"reindexMode"`
+	MaxConvsSearched int             `codec:"maxConvsSearched" json:"maxConvsSearched"`
+	MaxConvsHit      int             `codec:"maxConvsHit" json:"maxConvsHit"`
+	ConvID           *ConversationID `codec:"convID,omitempty" json:"convID,omitempty"`
+	MaxNameConvs     int             `codec:"maxNameConvs" json:"maxNameConvs"`
 }
 
 func (o SearchOpts) DeepCopy() SearchOpts {
 	return SearchOpts{
+		IsRegex:          o.IsRegex,
 		SentBy:           o.SentBy,
 		SentBefore:       o.SentBefore.DeepCopy(),
 		SentAfter:        o.SentAfter.DeepCopy(),
@@ -1974,7 +1977,14 @@ func (o SearchOpts) DeepCopy() SearchOpts {
 		ReindexMode:      o.ReindexMode.DeepCopy(),
 		MaxConvsSearched: o.MaxConvsSearched,
 		MaxConvsHit:      o.MaxConvsHit,
-		MaxNameConvs:     o.MaxNameConvs,
+		ConvID: (func(x *ConversationID) *ConversationID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ConvID),
+		MaxNameConvs: o.MaxNameConvs,
 	}
 }
 
