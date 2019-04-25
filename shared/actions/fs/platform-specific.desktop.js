@@ -230,7 +230,7 @@ const driverEnableFuse = (state, action) =>
           .then(() => FsGen.createRefreshDriverStatus())
   )
 
-const uninstallKBFSConfirmPromise = () =>
+const uninstallKBFSConfirm = () =>
   new Promise((resolve, reject) =>
     SafeElectron.getDialog().showMessageBox(
       null,
@@ -240,11 +240,12 @@ const uninstallKBFSConfirmPromise = () =>
         message: `Remove Keybase from ${fileUIName}`,
         type: 'question',
       },
+      // resp is the index of the button that's clicked
       resp => resp === 0 ? resolve(FsGen.createDriverDisabling()) : resolve()
     )
   )
 
-const uninstallKBFSPromise = () =>
+const uninstallKBFS = () =>
   RPCTypes.installUninstallKBFSRpcPromise()
     .then(() => {
       // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
@@ -252,7 +253,7 @@ const uninstallKBFSPromise = () =>
       SafeElectron.getApp().exit(0)
     })
 
-const uninstallDokanConfirmPromise = state => {
+const uninstallDokanConfirm = state => {
   if (state.fs.sfmi.driverStatus.type !== 'enabled') {
     return
   }
@@ -274,7 +275,7 @@ const uninstallDokanConfirmPromise = state => {
   return FsGen.createDriverDisabling()
 }
 
-const uninstallDokanPromise = state => {
+const uninstallDokan = state => {
   if (state.fs.sfmi.driverStatus.type !== 'enabled') return
   const execPath: string = state.fs.sfmi.driverStatus.dokanUninstallExecPath || ''
   logger.info('Invoking dokan uninstaller', execPath)
@@ -393,12 +394,12 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<FsGen.OpenFilesFromWidgetPayload>(FsGen.openFilesFromWidget, openFilesFromWidget)
   if (isWindows) {
     yield* Saga.chainAction<FsGen.DriverEnablePayload>(FsGen.driverEnable, installCachedDokan)
-    yield* Saga.chainAction<FsGen.DriverDisablePayload>(FsGen.driverDisable, uninstallDokanConfirmPromise)
-    yield* Saga.chainAction<FsGen.DriverDisablingPayload>(FsGen.driverDisabling, uninstallDokanPromise)
+    yield* Saga.chainAction<FsGen.DriverDisablePayload>(FsGen.driverDisable, uninstallDokanConfirm)
+    yield* Saga.chainAction<FsGen.DriverDisablingPayload>(FsGen.driverDisabling, uninstallDokan)
   } else {
     yield* Saga.chainAction<FsGen.DriverEnablePayload>(FsGen.driverEnable, driverEnableFuse)
-    yield* Saga.chainAction<FsGen.DriverDisablePayload>(FsGen.driverDisable, uninstallKBFSConfirmPromise)
-    yield* Saga.chainAction<FsGen.DriverDisablePayload>(FsGen.driverDisabling, uninstallKBFSPromise)
+    yield* Saga.chainAction<FsGen.DriverDisablePayload>(FsGen.driverDisable, uninstallKBFSConfirm)
+    yield* Saga.chainAction<FsGen.DriverDisablePayload>(FsGen.driverDisabling, uninstallKBFS)
   }
   yield* Saga.chainAction<FsGen.OpenSecurityPreferencesPayload>(
     FsGen.openSecurityPreferences,
