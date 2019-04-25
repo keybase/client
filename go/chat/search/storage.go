@@ -56,7 +56,7 @@ func newStore(g *globals.Context) *store {
 func (s *store) dbKey(convID chat1.ConversationID, uid gregor1.UID) libkb.DbKey {
 	return libkb.DbKey{
 		Typ: libkb.DBChatIndex,
-		Key: fmt.Sprintf("idxd:%s:%s", uid, convID),
+		Key: fmt.Sprintf("idx:%s:%s", uid, convID),
 	}
 }
 
