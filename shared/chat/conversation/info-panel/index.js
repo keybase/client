@@ -29,7 +29,8 @@ const listStyle = {
       }),
 }
 const styleTurnIntoTeam = {
-  padding: globalMargins.small,
+  paddingLeft: globalMargins.small,
+  paddingRight: globalMargins.small,
 }
 const Spacer = ({height}: {height: number}) => <Box style={{height, width: 1}} />
 
