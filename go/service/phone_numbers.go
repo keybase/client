@@ -145,39 +145,18 @@ func (r *phoneNumbersGregorHandler) Name() string {
 func (r *phoneNumbersGregorHandler) handlePhoneMsg(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
 	mctx := libkb.NewMetaContext(ctx, r.G())
 	mctx.Debug("phoneNumbersGregorHandler: %s received", category)
-	var phoneNumber keybase1.PhoneNumber
-	switch category {
-	case "phone.added":
-		var msg keybase1.PhoneNumberAddedMsg
-		if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
-			mctx.Debug("error unmarshaling %s item: %s", category, err)
-			return err
-		}
-		mctx.Debug("%s unmarshaled: %+v", category, msg)
-		phoneNumber = msg.PhoneNumber
-	case "phone.verified":
-		var msg keybase1.PhoneNumberVerifiedMsg
-		if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
-			mctx.Debug("error unmarshaling %s item: %s", category, err)
-			return err
-		}
-		mctx.Debug("%s unmarshaled: %+v", category, msg)
-		phoneNumber = msg.PhoneNumber
-	case "phone.superseded":
-		var msg keybase1.PhoneNumberSupersededMsg
-		if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
-			mctx.Debug("error unmarshaling %s item: %s", category, err)
-			return err
-		}
-		mctx.Debug("%s unmarshaled: %+v", category, msg)
-		phoneNumber = msg.PhoneNumber
+	var msg keybase1.PhoneNumberChangedMsg
+	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
+		mctx.Debug("error unmarshaling %s item: %s", category, err)
+		return err
 	}
+	mctx.Debug("%s unmarshaled: %+v", category, msg)
 
 	phoneNumbers, err := phonenumbers.GetPhoneNumbers(mctx)
 	if err != nil {
 		mctx.Error("Could not get current phone number list during handlePhoneMsg: %s", err)
 	} else {
-		r.G().NotifyRouter.HandlePhoneNumbersChanged(ctx, phoneNumbers, category, phoneNumber)
+		r.G().NotifyRouter.HandlePhoneNumbersChanged(ctx, phoneNumbers, category, msg.PhoneNumber)
 	}
 	return r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
 }

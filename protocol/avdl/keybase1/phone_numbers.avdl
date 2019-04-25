@@ -40,17 +40,10 @@ protocol phoneNumbers {
     void setVisibilityAllPhoneNumber(int sessionID, IdentityVisibility visibility);
     array<PhoneNumberLookupResult> bulkLookupPhoneNumbers(int sessionID, array<RawPhoneNumber> phoneNumberContacts, array<RegionCode> regionCodes, union { null, RegionCode } userRegionCode);
 
-    record PhoneNumberAddedMsg {
-        @jsonkey("phone")
-        PhoneNumber phoneNumber;
-    }
-
-    record PhoneNumberVerifiedMsg {
-        @jsonkey("phone")
-        PhoneNumber phoneNumber;
-    }
-
-    record PhoneNumberSupersededMsg {
+    // Notification from gregor when phone number changes it's state. It is sent
+    // to clients when phone number is either added, deleted, changes its publicity
+    // setting or is superseded.
+    record PhoneNumberChangedMsg {
         @jsonkey("phone")
         PhoneNumber phoneNumber;
     }

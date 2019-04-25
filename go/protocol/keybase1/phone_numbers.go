@@ -59,32 +59,12 @@ func (o PhoneNumberLookupResult) DeepCopy() PhoneNumberLookupResult {
 	}
 }
 
-type PhoneNumberAddedMsg struct {
+type PhoneNumberChangedMsg struct {
 	PhoneNumber PhoneNumber `codec:"phoneNumber" json:"phone"`
 }
 
-func (o PhoneNumberAddedMsg) DeepCopy() PhoneNumberAddedMsg {
-	return PhoneNumberAddedMsg{
-		PhoneNumber: o.PhoneNumber.DeepCopy(),
-	}
-}
-
-type PhoneNumberVerifiedMsg struct {
-	PhoneNumber PhoneNumber `codec:"phoneNumber" json:"phone"`
-}
-
-func (o PhoneNumberVerifiedMsg) DeepCopy() PhoneNumberVerifiedMsg {
-	return PhoneNumberVerifiedMsg{
-		PhoneNumber: o.PhoneNumber.DeepCopy(),
-	}
-}
-
-type PhoneNumberSupersededMsg struct {
-	PhoneNumber PhoneNumber `codec:"phoneNumber" json:"phone"`
-}
-
-func (o PhoneNumberSupersededMsg) DeepCopy() PhoneNumberSupersededMsg {
-	return PhoneNumberSupersededMsg{
+func (o PhoneNumberChangedMsg) DeepCopy() PhoneNumberChangedMsg {
+	return PhoneNumberChangedMsg{
 		PhoneNumber: o.PhoneNumber.DeepCopy(),
 	}
 }
