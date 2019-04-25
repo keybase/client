@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
 import type {RetentionPolicy} from '../../../constants/types/retention-policy'
 import {Box2, Box, Button, Checkbox, Text} from '../../../common-adapters'
+import {InlineDropdown} from '../../../common-adapters/dropdown'
 import {globalColors, globalMargins, globalStyles, styleSheetCreate, platformStyles} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 import {FloatingRolePicker} from '../../role-picker'
@@ -133,11 +134,6 @@ const OpenTeam = (props: {|...SettingProps, ...RolePickerProps|}) => {
     return null
   }
 
-  const onOpenRolePicker = (e: SyntheticEvent<>) => {
-    e.stopPropagation()
-    props.onOpenRolePicker()
-  }
-
   // <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1, paddingRight: globalMargins.small}}>
   return (
     <Box style={stylesPublicitySettingsBox}>
@@ -153,7 +149,7 @@ const OpenTeam = (props: {|...SettingProps, ...RolePickerProps|}) => {
             }}
           >
             <Text type="Body">Make this an open team</Text>
-            <Box2 direction="horizontal" centerChildren={true}>
+            <Box2 direction="vertical" alignItems="flex-start" alignSelf="flex-start">
               <Text type="BodySmall">Anyone will be able to join immediately. Users will join as </Text>
               <FloatingRolePicker
                 confirmLabel={`Let in as ${pluralize(props.newOpenTeamRole)}`}
@@ -166,14 +162,12 @@ const OpenTeam = (props: {|...SettingProps, ...RolePickerProps|}) => {
                 open={props.isRolePickerOpen}
                 disabledRoles={props.disabledReasonsForRolePicker}
               >
-                <Text
-                  type={props.newOpenTeam ? 'BodySmallPrimaryLink' : 'BodySmall'}
-                  onClick={props.newOpenTeam ? onOpenRolePicker : undefined}
-                >
-                  {pluralize(props.newOpenTeamRole)}
-                </Text>
+                <InlineDropdown
+                  label={pluralize(props.newOpenTeamRole)}
+                  onPress={props.newOpenTeam ? props.onOpenRolePicker : () => {}}
+                  type="BodySmall"
+                />
               </FloatingRolePicker>
-              <Text type="BodySmall">.</Text>
             </Box2>
           </Box>
         }
