@@ -127,15 +127,21 @@ func (e *PassphraseRecover) chooseDevice(mctx libkb.MetaContext, ckf *libkb.Comp
 	switch selected.Type {
 	case libkb.DeviceTypePaper:
 		return e.changeWithPaper(mctx, selected)
-	case libkb.DeviceTypeDesktop:
-		return e.explainChange(mctx, keybase1.DeviceType_DESKTOP)
-	case libkb.DeviceTypeMobile:
-		return e.explainChange(mctx, keybase1.DeviceType_MOBILE)
+	case libkb.DeviceTypeDesktop, libkb.DeviceTypeMobile:
+		return e.explainChange(mctx, selected)
 	default:
 		return fmt.Errorf("unknown device type: %v", selected.Type)
 	}
 }
 
 func (e *PassphraseRecover) suggestReset(mctx libkb.MetaContext) (err error) {
+	return nil
+}
+
+func (e *PassphraseRecover) changeWithPaper(mctx libkb.MetaContext, paperKey *libkb.Device) (err error) {
+	return nil
+}
+
+func (e *PassphraseRecover) explainChange(mctx libkb.MetaContext, paperKey *libkb.Device) (err error) {
 	return nil
 }
