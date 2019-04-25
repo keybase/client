@@ -45,7 +45,7 @@ const defaultNavigationOptions = {
 }
 const headerMode = 'float'
 
-const tabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.teamsTab, Tabs.settingsTab]
+const tabs = Shared.mobileTabs
 const tabRoots = {
   [Tabs.peopleTab]: 'peopleRoot',
   [Tabs.chatTab]: 'chatRoot',
@@ -102,8 +102,8 @@ const TabNavigator = createBottomTabNavigator(
     tabBarOptions: {
       activeBackgroundColor: Styles.globalColors.darkBlue2,
       inactiveBackgroundColor: Styles.globalColors.darkBlue2,
-      // else keyboard avoiding is racy and won't work correctly
-      keyboardHidesTabBar: false,
+      // else keyboard avoiding is racy on ios and won't work correctly
+      keyboardHidesTabBar: Styles.isAndroid,
       showLabel: false,
     },
   }

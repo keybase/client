@@ -2,6 +2,7 @@
 import {StackActions, NavigationActions} from '@react-navigation/core'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Constants from '../constants/router2'
+import * as Tabs from '../constants/tabs'
 import {modalRoutes, routes} from './routes'
 import logger from '../logger'
 
@@ -17,6 +18,8 @@ const getNumModals = navigation => {
   })
   return numModals
 }
+
+export const mobileTabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.teamsTab, Tabs.settingsTab]
 
 // Helper to convert old route tree actions to new actions. Likely goes away as we make
 // actual routing actions (or make RouteTreeGen append/up the only action)
@@ -49,11 +52,9 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
       }
 
       if (action.payload.replace) {
-        // TODO figure out what this is
         return [StackActions.replace({params, routeName})]
       }
 
-      // return [StackActions.push({params, routeName})]
       return [NavigationActions.navigate({params, routeName})]
     }
     case RouteTreeGen.switchRouteDef: {
@@ -78,25 +79,17 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
         if (p === 'chatConversation') {
           sa.push(NavigationActions.navigate({params: undefined, routeName: 'tabs.chatTab'}))
           sa.push(NavigationActions.navigate({params: undefined, routeName: 'chatConversation'}))
-        } else if (p !== 'tabs.peopleTab') {
+        } else {
           sa.push(NavigationActions.navigate({params: undefined, routeName: p}))
         }
       }
 
-      // TODO make this better, just to get this to build
-      const tabs = ['tabs.chatTab', 'tabs.peopleTab', 'tabs.loginTab']
-
       // validate sa
-      if (!sa.every(a => routes[a.routeName] || tabs.includes(a.routeName))) {
+      if (!sa.every(a => routes[a.routeName] || mobileTabs.includes(a.routeName))) {
         logger.error('Invalid route found, bailing on push', sa)
         sa = []
       }
 
-      // switch the switch and do a reset of the stack
-      // MUST pass undefined as key in reset else it won't work correctly
-      // return sa.length
-      // ? [switchStack, StackActions.reset({actions: sa, index: sa.length - 1, key: undefined})]
-      // : [switchStack]
       return sa
     }
     case RouteTreeGen.clearModals: {
