@@ -2,12 +2,15 @@ package search
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
+	"github.com/buger/jsonparser"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/encrypteddb"
+	"github.com/keybase/client/go/jsonparserw"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -58,6 +61,125 @@ func (s *store) dbKey(convID chat1.ConversationID, uid gregor1.UID) libkb.DbKey 
 		Typ: libkb.DBChatIndex,
 		Key: fmt.Sprintf("idx:%s:%s", uid, convID),
 	}
+}
+
+func (s *store) marshal(idx *chat1.ConversationIndexDisk) ([]byte, error) {
+	return json.Marshal(idx)
+}
+
+func (s *store) unmarshalIndex(idx *chat1.ConversationIndexDisk, dat []byte) (err error) {
+	var res []chat1.TokenTuple
+	jsonparser.ArrayEach(dat,
+		func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+			var token string
+			token, err = jsonparserw.GetString(value, "t")
+			if err != nil {
+				return
+			}
+			var tokenTuple chat1.TokenTuple
+			tokenTuple.Token = token
+			jsonparser.ArrayEach(value,
+				func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+					var msgID int64
+					msgID, err = jsonparserw.GetInt(value)
+					if err != nil {
+						return
+					}
+					tokenTuple.MsgIDs = append(tokenTuple.MsgIDs, chat1.MessageID(msgID))
+				}, "m")
+			if err != nil {
+				return
+			}
+			res = append(res, tokenTuple)
+		})
+	if err != nil {
+		return err
+	}
+	idx.Index = res
+	return nil
+}
+
+func (s *store) unmarshalAliases(idx *chat1.ConversationIndexDisk, dat []byte) (err error) {
+	var res []chat1.AliasTuple
+	jsonparser.ArrayEach(dat,
+		func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+			var alias string
+			alias, err = jsonparserw.GetString(value, "a")
+			if err != nil {
+				return
+			}
+			var aliasTuple chat1.AliasTuple
+			aliasTuple.Alias = alias
+			jsonparser.ArrayEach(value,
+				func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+					var token string
+					token, err = jsonparserw.GetString(value)
+					if err != nil {
+						return
+					}
+					aliasTuple.Tokens = append(aliasTuple.Tokens, token)
+				}, "t")
+			if err != nil {
+				return
+			}
+			res = append(res, aliasTuple)
+		})
+	if err != nil {
+		return err
+	}
+	idx.Alias = res
+	return nil
+}
+
+func (s *store) unmarshalMetadata(idx *chat1.ConversationIndexDisk, dat []byte) (err error) {
+	version, err := jsonparserw.GetInt(dat, "v")
+	if err != nil {
+		return err
+	}
+	var seenIDs []chat1.MessageID
+	jsonparser.ArrayEach(dat,
+		func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+			var msgID int64
+			msgID, err = jsonparserw.GetInt(value)
+			if err != nil {
+				return
+			}
+			seenIDs = append(seenIDs, chat1.MessageID(msgID))
+		}, "s")
+	if err != nil {
+		return err
+	}
+	idx.Metadata = chat1.ConversationIndexMetadataDisk{
+		Version: int(version),
+		SeenIDs: seenIDs,
+	}
+	return nil
+}
+
+func (s *store) unmarshal(idx *chat1.ConversationIndexDisk, dat []byte) error {
+	jsonIndexList, _, _, err := jsonparser.Get(dat, "i")
+	if err != nil {
+		return err
+	}
+	jsonAliasList, _, _, err := jsonparser.Get(dat, "a")
+	if err != nil {
+		return err
+	}
+	jsonMetadata, _, _, err := jsonparser.Get(dat, "metadata")
+	if err != nil {
+		return err
+	}
+
+	if err := s.unmarshalIndex(idx, jsonIndexList); err != nil {
+		return err
+	}
+	if err := s.unmarshalAliases(idx, jsonAliasList); err != nil {
+		return err
+	}
+	if err := s.unmarshalMetadata(idx, jsonMetadata); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *store) getLocked(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (ret *chat1.ConversationIndex, err error) {
