@@ -3211,7 +3211,7 @@ export type UserOrTeamResult =
   | 1 // USER_1
   | 2 // TEAM_2
 
-export type UserPhoneNumber = $ReadOnly<{phoneNumber: PhoneNumber, verified: Boolean, visibility: IdentityVisibility, ctime: UnixTime}>
+export type UserPhoneNumber = $ReadOnly<{phoneNumber: PhoneNumber, verified: Boolean, superseded: Boolean, visibility: IdentityVisibility, ctime: UnixTime}>
 export type UserPlusAllKeys = $ReadOnly<{base: UserPlusKeys, pgpKeys?: ?Array<PublicKey>, remoteTracks?: ?Array<RemoteTrack>}>
 export type UserPlusKeys = $ReadOnly<{uid: UID, username: String, eldestSeqno: Seqno, status: StatusCode, deviceKeys?: ?Array<PublicKey>, revokedDeviceKeys?: ?Array<RevokedKey>, pgpKeyCount: Int, uvv: UserVersionVector, deletedDeviceKeys?: ?Array<PublicKey>, perUserKeys?: ?Array<PerUserKey>, resets?: ?Array<ResetSummary>}>
 export type UserPlusKeysV2 = $ReadOnly<{uid: UID, username: String, eldestSeqno: Seqno, status: StatusCode, perUserKeys?: ?Array<PerUserKey>, deviceKeys: {[key: string]: PublicKeyV2NaCl}, pgpKeys: {[key: string]: PublicKeyV2PGPSummary}, stellarAccountID?: ?String, remoteTracks: {[key: string]: RemoteTrack}, reset?: ?ResetSummary, unstubbed: Boolean}>

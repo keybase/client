@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/emails"
 	"github.com/keybase/client/go/kbtest"
@@ -192,6 +191,9 @@ func TestPhoneNumberNotifications(t *testing.T) {
 	ann.drainGregor()
 	list := assertNotificationGetList(annListener, kbPhone, "phone.added")
 	require.Len(t, list, 1)
+	require.Equal(t, kbPhone, list[0].PhoneNumber)
+	require.False(t, list[0].Verified)
+	require.False(t, list[0].Superseded)
 
 	// verifying the phone number generates a notification
 	code, err := kbtest.GetPhoneVerificationCode(ann.MetaContext(), kbPhone)
@@ -206,7 +208,9 @@ func TestPhoneNumberNotifications(t *testing.T) {
 	ann.drainGregor()
 	list = assertNotificationGetList(annListener, kbPhone, "phone.verified")
 	require.Len(t, list, 1)
+	require.Equal(t, kbPhone, list[0].PhoneNumber)
 	require.True(t, list[0].Verified)
+	require.False(t, list[0].Superseded)
 
 	// if bob now adds and verifies that same number, he should have new notifications for add and verify
 	// and ann should have one that her number was superseded
@@ -232,15 +236,16 @@ func TestPhoneNumberNotifications(t *testing.T) {
 	bob.drainGregor()
 	list = assertNotificationGetList(bobListener, kbPhone, "phone.verified")
 	require.Len(t, list, 1)
-
-	phoneCli := keybase1.PhoneNumbersClient{Cli: ann.teamsClient.Cli}
-	res, err := phoneCli.GetPhoneNumbers(context.Background(), 0)
-	require.NoError(t, err)
-	spew.Dump(res) // TODO: Bug here, phone is superseded but it's still in the list.
+	require.Equal(t, kbPhone, list[0].PhoneNumber)
+	require.True(t, list[0].Verified)
+	require.False(t, list[0].Superseded)
 
 	ann.drainGregor()
 	list = assertNotificationGetList(annListener, kbPhone, "phone.superseded")
-	require.Len(t, list, 0) // TODO: Bug here, phone is superseded but it's still in the list.
+	require.Len(t, list, 1)
+	require.Equal(t, kbPhone, list[0].PhoneNumber)
+	require.True(t, list[0].Verified)
+	require.True(t, list[0].Superseded)
 }
 
 func TestImplicitTeamWithEmail(t *testing.T) {

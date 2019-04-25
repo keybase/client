@@ -28,6 +28,11 @@
           "jsonkey": "verified"
         },
         {
+          "type": "boolean",
+          "name": "superseded",
+          "jsonkey": "superseded"
+        },
+        {
           "type": "IdentityVisibility",
           "name": "visibility",
           "jsonkey": "visibility"

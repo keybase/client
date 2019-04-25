@@ -18,6 +18,7 @@ func (o RawPhoneNumber) DeepCopy() RawPhoneNumber {
 type UserPhoneNumber struct {
 	PhoneNumber PhoneNumber        `codec:"phoneNumber" json:"phone_number"`
 	Verified    bool               `codec:"verified" json:"verified"`
+	Superseded  bool               `codec:"superseded" json:"superseded"`
 	Visibility  IdentityVisibility `codec:"visibility" json:"visibility"`
 	Ctime       UnixTime           `codec:"ctime" json:"ctime"`
 }
@@ -26,6 +27,7 @@ func (o UserPhoneNumber) DeepCopy() UserPhoneNumber {
 	return UserPhoneNumber{
 		PhoneNumber: o.PhoneNumber.DeepCopy(),
 		Verified:    o.Verified,
+		Superseded:  o.Superseded,
 		Visibility:  o.Visibility.DeepCopy(),
 		Ctime:       o.Ctime.DeepCopy(),
 	}

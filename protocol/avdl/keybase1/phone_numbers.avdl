@@ -14,6 +14,8 @@ protocol phoneNumbers {
       PhoneNumber phoneNumber;
       @jsonkey("verified")
       boolean verified;
+      @jsonkey("superseded")
+      boolean superseded;
       @jsonkey("visibility")
       IdentityVisibility visibility;
       @jsonkey("ctime")
