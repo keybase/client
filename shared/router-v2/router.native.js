@@ -169,16 +169,10 @@ class RNApp extends React.PureComponent<any, any> {
 
     const actions = Shared.oldActionToNewActions(old, nav._navigation) || []
     try {
-      console.log('aaa nav actions', actions)
-      actions.forEach(a => {
-        nav.dispatch(a)
-        console.log('aaaa after nav history', nav?._navState?.routes[0]?.routes[0]?.routeKeyHistory, a)
-      })
+      actions.forEach(a => nav.dispatch(a))
     } catch (e) {
       logger.error('Nav error', e)
     }
-
-    this._persistRoute()
   }
 
   dispatch = (a: any) => {
@@ -234,7 +228,7 @@ class RNApp extends React.PureComponent<any, any> {
   render() {
     return (
       <>
-        <AppContainer ref={nav => (this._nav = nav)} />
+        <AppContainer ref={nav => (this._nav = nav)} onNavigationStateChange={this._persistRoute} />
         <GlobalError />
         <OutOfDate />
       </>
