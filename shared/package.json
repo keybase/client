@@ -160,6 +160,7 @@
     "react-native-fast-image": "5.1.1",
     "react-native-gesture-handler": "1.1.0",
     "react-native-image-picker": "git://github.com/keybase/react-native-image-picker#v0.27.1-with-keybase-fixes",
+    "react-native-iphone-x-helper": "1.2.0",
     "react-native-mime-types": "2.2.1",
     "react-native-push-notification": "git://github.com/keybase/react-native-push-notification#keybase-fixes-off-311-fcm",
     "react-native-reanimated": "1.0.1",

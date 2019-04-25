@@ -11669,6 +11669,11 @@ react-native-gesture-handler@1.1.0:
   version "0.27.1"
   resolved "git://github.com/keybase/react-native-image-picker#bbbf8fdf1fb351c3e739ea6dab55b15c390430d4"
 
+react-native-iphone-x-helper@1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/react-native-iphone-x-helper/-/react-native-iphone-x-helper-1.2.0.tgz#9f8a376eb00bc712115abff4420318a0063fa796"
+  integrity sha512-xIeTo4s77wwKgBZLVRIZC9tM9/PkXS46Ul76NXmvmixEb3ZwqGdQesR3zRiLMOoIdfOURB6N9bba9po7+x9Bag==
+
 react-native-mime-types@2.2.1:
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/react-native-mime-types/-/react-native-mime-types-2.2.1.tgz#a9760e9916e4e7df03512c60516668f23543f2c0"

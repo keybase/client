@@ -102,6 +102,8 @@ const TabNavigator = createBottomTabNavigator(
     tabBarOptions: {
       activeBackgroundColor: Styles.globalColors.darkBlue2,
       inactiveBackgroundColor: Styles.globalColors.darkBlue2,
+      // else keyboard avoiding is racy and won't work correctly
+      keyboardHidesTabBar: false,
       showLabel: false,
     },
   }
