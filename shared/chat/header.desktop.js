@@ -35,8 +35,8 @@ const Header = (p: Props) => {
   )
   if (p.isTeam && !p.desc && p.canEditDesc) {
     description = (
-      <Kb.Text type="BodySmallItalic" lineClamp={1}>
-        Set a description using the <Kb.Text type="BodySmallSemiboldItalic">/headline</Kb.Text> command.
+      <Kb.Text type="BodySmall" lineClamp={1}>
+        Set a description using the <Kb.Text type="BodySmallBold">/headline</Kb.Text> command.
       </Kb.Text>
     )
   }
@@ -59,7 +59,7 @@ const Header = (p: Props) => {
         alignItems="flex-end"
         alignSelf="flex-end"
       >
-        <Kb.Box2 direction="vertical" style={styles.grow}>
+        <Kb.Box2 direction="vertical" style={styles.headerTitle}>
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             {p.channel ? (
               <Kb.Text selectable={true} type="Header" lineClamp={1}>
@@ -90,7 +90,7 @@ const Header = (p: Props) => {
           {description}
         </Kb.Box2>
         {p.showActions && (
-          <Kb.Box2 direction="horizontal" gap="small" alignItems="flex-end" alignSelf="flex-end">
+          <Kb.Box2 direction="horizontal" gap="small" alignItems="flex-end" alignSelf="center">
             <Kb.Icon type="iconfont-search" onClick={p.onToggleThreadSearch} />
             <Kb.Icon type="iconfont-folder-private" onClick={p.onOpenFolder} />
             <Kb.Icon
@@ -107,14 +107,13 @@ const Header = (p: Props) => {
 const styles = Styles.styleSheetCreate({
   container: {
     flexGrow: 1,
-    height: 40,
+    height: 40 - 1,
   },
   desc: Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
-  grow: {flexGrow: 1},
+  headerTitle: {flexGrow: 1, paddingBottom: 4},
   left: {minWidth: 260},
   right: {
     flexGrow: 1,
-    paddingBottom: Styles.globalMargins.xtiny,
     paddingLeft: Styles.globalMargins.xsmall,
     paddingRight: Styles.globalMargins.xsmall,
   },

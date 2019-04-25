@@ -25,7 +25,7 @@ const listStyle = {
     : {
         backgroundColor: globalColors.white,
         borderLeft: border,
-        marginTop: -4 /* Necessary fix: adds 1px at the top so we hide the gray divider */,
+        marginTop: -5 /* Necessary fix: adds 1px at the top so we hide the gray divider */,
       }),
 }
 const styleTurnIntoTeam = {
