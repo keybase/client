@@ -218,7 +218,7 @@ func TestChatSrvAttachmentUploadPreviewCached(t *testing.T) {
 	tc.ChatG.AttachmentURLSrv = NewAttachmentHTTPSrv(tc.Context(),
 		fetcher, func() chat1.RemoteInterface { return mockSigningRemote{} })
 	uploader := attachments.NewUploader(tc.Context(), store, mockSigningRemote{},
-		func() chat1.RemoteInterface { return ri })
+		func() chat1.RemoteInterface { return ri }, 1)
 	uploader.SetPreviewTempDir(fetcher.tempDir)
 	tc.ChatG.AttachmentUploader = uploader
 
