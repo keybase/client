@@ -2893,7 +2893,11 @@
         },
         {
           "type": "int",
-          "name": "indexSize"
+          "name": "indexSizeDisk"
+        },
+        {
+          "type": "int64",
+          "name": "indexSizeMem"
         },
         {
           "type": "gregor1.DurationMsec",
