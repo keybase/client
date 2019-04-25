@@ -15,24 +15,27 @@ const getReplyProps = (replyTo, onReplyClick) => {
   if (!replyTo) {
     return undefined
   }
+  const deletedProps = {
+    deleted: true,
+    edited: false,
+    onClick: replyNoop,
+    text: '',
+    username: '',
+  }
   switch (replyTo.type) {
     case 'text':
-      return {
-        deleted: false,
-        edited: replyTo.hasBeenEdited,
-        onClick: () => onReplyClick(replyTo.id),
-        text: replyTo.text.stringValue(),
-        username: replyTo.author,
-      }
+      return replyTo.exploded
+        ? deletedProps
+        : {
+            deleted: false,
+            edited: replyTo.hasBeenEdited,
+            onClick: () => onReplyClick(replyTo.id),
+            text: replyTo.text.stringValue(),
+            username: replyTo.author,
+          }
     case 'deleted':
     case 'placeholder':
-      return {
-        deleted: true,
-        edited: false,
-        onClick: replyNoop,
-        text: '',
-        username: '',
-      }
+      return deletedProps
   }
   return undefined
 }
