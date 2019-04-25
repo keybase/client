@@ -25,6 +25,7 @@ const body3 = (
 const actionButton = <Button label={'Action'} small={true} onClick={Sb.action('button')} />
 const icon1 = <Icon type="icon-computer-32" />
 const icon2 = <Icon type="icon-bitcoin-logo-48" />
+const icon3 = <Icon type="iconfont-cloud" sizeType="Small" color={globalColors.blue} />
 
 const load = () => {
   Sb.storiesOf('Common', module)
@@ -35,7 +36,7 @@ const load = () => {
           Small
         </Text>
         <ListItem firstItem={true} type="Small" icon={icon1} body={body1} />
-        <ListItem firstItem={false} type="Small" icon={icon1} body={body1} />
+        <ListItem firstItem={false} type="Small" icon={icon1} body={body1} statusIcon={icon3} />
         <ListItem firstItem={false} type="Small" icon={icon1} body={body2} />
         <ListItem firstItem={false} type="Small" icon={icon1} body={body3} />
         <ListItem firstItem={false} type="Small" icon={icon1} body={body1} />

@@ -1332,32 +1332,52 @@ function* threadSearch(state, action) {
   const {conversationIDKey, query} = action.payload
   const onHit = hit => {
     const message = Constants.uiMessageToMessage(state, conversationIDKey, hit.searchHit.hitMessage)
-    return message ? Saga.put(Chat2Gen.createThreadSearchResult({conversationIDKey, message})) : []
+    return message
+      ? Saga.put(Chat2Gen.createThreadSearchResults({conversationIDKey, messages: [message]}))
+      : []
+  }
+  const onInboxHit = resp => {
+    const messages = (resp.searchHit.hits || []).reduce((l, h) => {
+      const uiMsg = Constants.uiMessageToMessage(state, conversationIDKey, h.hitMessage)
+      if (uiMsg) {
+        l.push(uiMsg)
+      }
+      return l
+    }, [])
+    return messages.length > 0
+      ? Saga.put(Chat2Gen.createThreadSearchResults({conversationIDKey, messages}))
+      : []
   }
   const onDone = () => {
     return Saga.put(Chat2Gen.createSetThreadSearchStatus({conversationIDKey, status: 'done'}))
   }
-  yield Saga.put(Chat2Gen.createSetThreadSearchStatus({conversationIDKey, status: 'inprogress'}))
+  const onStart = () => {
+    return Saga.put(Chat2Gen.createSetThreadSearchStatus({conversationIDKey, status: 'inprogress'}))
+  }
   try {
-    yield RPCChatTypes.localSearchRegexpRpcSaga({
+    yield RPCChatTypes.localSearchInboxRpcSaga({
       incomingCallMap: {
         'chat.1.chatUi.chatSearchDone': onDone,
         'chat.1.chatUi.chatSearchHit': onHit,
+        'chat.1.chatUi.chatSearchInboxDone': onDone,
+        'chat.1.chatUi.chatSearchInboxHit': onInboxHit,
+        'chat.1.chatUi.chatSearchInboxStart': onStart,
       },
       params: {
-        convID: Types.keyToConversationID(conversationIDKey),
         identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-        isRegex: false,
+        namesOnly: false,
         opts: {
           afterContext: 0,
           beforeContext: 0,
+          convID: Types.keyToConversationID(conversationIDKey),
           forceReindex: false,
+          isRegex: false,
           maxConvsHit: 0,
           maxConvsSearched: 0,
-          maxHits: -1,
+          maxHits: Constants.inboxSearchMaxTextMessages,
           maxMessages: -1,
-          maxNameConvs: 15,
-          reindexMode: RPCChatTypes.commonReIndexingMode.none,
+          maxNameConvs: 0,
+          reindexMode: RPCChatTypes.commonReIndexingMode.postsearchSync,
           sentAfter: 0,
           sentBefore: 0,
           sentBy: '',
@@ -1459,10 +1479,11 @@ function* inboxSearch(state, action) {
         opts: {
           afterContext: 0,
           beforeContext: 0,
+          isRegex: false,
           maxConvsHit: Constants.inboxSearchMaxTextResults,
           maxConvsSearched: 0,
           maxHits: Constants.inboxSearchMaxTextMessages,
-          maxMessages: 0,
+          maxMessages: -1,
           maxNameConvs:
             query.stringValue().length > 0
               ? Constants.inboxSearchMaxNameResults

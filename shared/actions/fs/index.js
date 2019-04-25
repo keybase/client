@@ -35,7 +35,7 @@ const loadFavorites = (state, action) =>
     )
     .catch(makeRetriableErrorHandler(action))
 
-const getSyncConfigFromRPC = (config: RPCTypes.FolderSyncConfig): Types.TlfSyncConfig => {
+const getSyncConfigFromRPC = (tlfName, tlfType, config: RPCTypes.FolderSyncConfig): Types.TlfSyncConfig => {
   switch (config.mode) {
     case RPCTypes.simpleFSFolderSyncMode.disabled:
       return Constants.tlfSyncDisabled
@@ -43,7 +43,9 @@ const getSyncConfigFromRPC = (config: RPCTypes.FolderSyncConfig): Types.TlfSyncC
       return Constants.tlfSyncEnabled
     case RPCTypes.simpleFSFolderSyncMode.partial:
       return Constants.makeTlfSyncPartial({
-        enabledPaths: config.paths ? I.List(config.paths.map(str => Types.stringToPath(str))) : I.List(),
+        enabledPaths: config.paths
+          ? I.List(config.paths.map(str => Types.getPathFromRelative(tlfName, tlfType, str)))
+          : I.List(),
       })
     default:
       // $FlowIssue the const objects aren't flow-friendly.
@@ -57,7 +59,7 @@ const tlfListToGetSyncConfigPromise = (state, tlfType) =>
     RPCTypes.SimpleFSSimpleFSFolderSyncConfigAndStatusRpcPromise({
       path: Constants.pathToRPCPath(Constants.tlfTypeAndNameToPath(tlfType, tlfName)),
     }).then(result => ({
-      syncConfig: getSyncConfigFromRPC(result.config),
+      syncConfig: getSyncConfigFromRPC(tlfName, tlfType, result.config),
       tlfName,
       tlfType,
     }))
@@ -100,7 +102,7 @@ const loadTlfSyncConfig = (state, action) => {
     path: Constants.pathToRPCPath(action.payload.tlfPath),
   }).then(result =>
     FsGen.createTlfSyncConfigLoaded({
-      syncConfig: getSyncConfigFromRPC(result.config),
+      syncConfig: getSyncConfigFromRPC(parsedPath.tlfName, parsedPath.tlfType, result.config),
       tlfName: parsedPath.tlfName,
       tlfType: parsedPath.tlfType,
     })
@@ -696,7 +698,7 @@ const deleteFile = (state, action) => {
     path: Constants.pathToRPCPath(action.payload.path),
     recursive: true,
   })
-    .then(() => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}))
+    .then(() => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}, Constants.deleteWaitingKey))
     .catch(makeRetriableErrorHandler(action))
 }
 

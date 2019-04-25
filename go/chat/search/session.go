@@ -19,12 +19,12 @@ import (
 // pipeline; presearch, search and postSearch.
 type searchSession struct {
 	sync.Mutex
-	query     string
-	uid       gregor1.UID
-	hitUICh   chan chat1.ChatSearchInboxHit
-	indexUICh chan chat1.ChatSearchIndexStatus
-	indexer   *Indexer
-	opts      chat1.SearchOpts
+	query, origQuery string
+	uid              gregor1.UID
+	hitUICh          chan chat1.ChatSearchInboxHit
+	indexUICh        chan chat1.ChatSearchIndexStatus
+	indexer          *Indexer
+	opts             chat1.SearchOpts
 
 	tokens                                                tokenMap
 	queryRe                                               *regexp.Regexp
@@ -39,7 +39,7 @@ type searchSession struct {
 	postSearchCh chan chat1.ConversationID
 }
 
-func newSearchSession(query string, uid gregor1.UID,
+func newSearchSession(query, origQuery string, uid gregor1.UID,
 	hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus,
 	indexer *Indexer, opts chat1.SearchOpts) *searchSession {
 	if opts.MaxHits > MaxAllowedSearchHits || opts.MaxHits < 0 {
@@ -53,6 +53,7 @@ func newSearchSession(query string, uid gregor1.UID,
 	}
 	return &searchSession{
 		query:        query,
+		origQuery:    origQuery,
 		uid:          uid,
 		hitUICh:      hitUICh,
 		indexUICh:    indexUICh,
@@ -277,9 +278,10 @@ func (s *searchSession) searchHitsFromMsgIDs(ctx context.Context, conv types.Rem
 	}, nil
 }
 
-func (s *searchSession) reindexConvWithUIUpdate(ctx context.Context, convIdx *chat1.ConversationIndex, conv chat1.Conversation) error {
+func (s *searchSession) reindexConvWithUIUpdate(ctx context.Context, convIdx *chat1.ConversationIndex, rconv types.RemoteConversation) error {
+	conv := rconv.Conv
 	percentIndexed := convIdx.PercentIndexed(conv)
-	_, convIdx, err := s.indexer.reindexConv(ctx, conv, s.uid, convIdx,
+	_, convIdx, err := s.indexer.reindexConv(ctx, rconv, s.uid, convIdx,
 		reindexOpts{forceReindex: true})
 	if err != nil {
 		return err
@@ -289,6 +291,8 @@ func (s *searchSession) reindexConvWithUIUpdate(ctx context.Context, convIdx *ch
 	newPercentIndexed := convIdx.PercentIndexed(conv)
 	if percentIndexed != newPercentIndexed { // only write out updates..
 		s.addTotalPercentIndex(newPercentIndexed - percentIndexed)
+		s.indexer.Debug(ctx, "Search: reindexConvWithUIUpdate: %s %d%% indexed, total %d%% indexed",
+			rconv.GetName(), newPercentIndexed, s.percentIndexed())
 		if s.indexUICh != nil { // stream back index percentage as we update it
 			select {
 			case <-ctx.Done():
@@ -316,13 +320,13 @@ func (s *searchSession) searchConvWithUIUpdate(ctx context.Context, convID chat1
 		return err
 	}
 	if len(msgIDs) != hits.Size() {
-		s.indexer.Debug(ctx, "Search: hit mismatch, found %d msgIDs in index, %d hits in conv: %v",
-			len(msgIDs), hits.Size(), conv.GetName())
+		s.indexer.Debug(ctx, "Search: hit mismatch, found %d msgIDs in index, %d hits in conv: %v, %v",
+			len(msgIDs), hits.Size(), conv.GetName(), conv.GetConvID())
 	}
 	if hits == nil {
 		return nil
 	}
-	hits.Query = s.query
+	hits.Query = s.origQuery
 	if s.hitUICh != nil {
 		// Stream search hits back to the UI channel
 		select {
@@ -399,8 +403,8 @@ func (s *searchSession) preSearch(ctx context.Context) error {
 			default:
 			}
 			convIdx := s.getConvIdx(conv.GetConvID())
-			if err := s.reindexConvWithUIUpdate(ctx, convIdx, conv.Conv); err != nil {
-				s.indexer.Debug(ctx, "Search: Unable to reindexConv: %v, %v", conv.GetName(), err)
+			if err := s.reindexConvWithUIUpdate(ctx, convIdx, conv); err != nil {
+				s.indexer.Debug(ctx, "Search: Unable to reindexConv: %v, %v", conv.GetName(), conv.GetConvID(), err)
 				s.decrementIndexableConvs()
 				continue
 			}
@@ -452,38 +456,40 @@ func (s *searchSession) postSearch(ctx context.Context) error {
 	}()
 	switch s.opts.ReindexMode {
 	case chat1.ReIndexingMode_POSTSEARCH_SYNC:
-		var prevConvID chat1.ConversationID
-		for convID := range s.postSearchCh {
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			default:
-			}
-			// free the memory associated with the completed index
-			if !prevConvID.IsNil() {
-				s.rmConvIdx(prevConvID)
-			}
-			prevConvID = convID
+	default:
+		return nil
+	}
+	var prevConvID chat1.ConversationID
+	for convID := range s.postSearchCh {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
+		// free the memory associated with the completed index
+		if !prevConvID.IsNil() {
+			s.rmConvIdx(prevConvID)
+		}
+		prevConvID = convID
 
-			conv := s.getConv(convID)
-			convIdx := s.getConvIdx(convID)
-			// ignore any fully indexed convs since we respect
-			// opts.MaxConvsSearched
-			if convIdx.FullyIndexed(conv.Conv) {
-				continue
-			}
-			if err := s.reindexConvWithUIUpdate(ctx, convIdx, conv.Conv); err != nil {
-				s.indexer.Debug(ctx, "Search: postSync: error reindexing: convID: %s err: %s",
-					conv.GetConvID(), err)
-				s.decrementIndexableConvs()
-				continue
-			}
-			if s.searchDone(ctx, "postSearch") {
-				continue
-			}
-			if err := s.searchConvWithUIUpdate(ctx, convID); err != nil {
-				return err
-			}
+		conv := s.getConv(convID)
+		convIdx := s.getConvIdx(convID)
+		// ignore any fully indexed convs since we respect
+		// opts.MaxConvsSearched
+		if convIdx.FullyIndexed(conv.Conv) {
+			continue
+		}
+		if err := s.reindexConvWithUIUpdate(ctx, convIdx, conv); err != nil {
+			s.indexer.Debug(ctx, "Search: postSync: error reindexing: conv: %v convID: %s err: %s",
+				conv.GetName(), conv.GetConvID(), err)
+			s.decrementIndexableConvs()
+			continue
+		}
+		if s.searchDone(ctx, "postSearch") {
+			continue
+		}
+		if err := s.searchConvWithUIUpdate(ctx, convID); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -501,7 +507,7 @@ func (s *searchSession) initRun(ctx context.Context) (shouldRun bool, err error)
 		return false, err
 	}
 
-	s.convMap, err = s.indexer.allConvs(ctx, s.uid)
+	s.convMap, err = s.indexer.allConvs(ctx, s.uid, s.opts.ConvID)
 	if err != nil {
 		return false, err
 	}
@@ -517,7 +523,7 @@ func (s *searchSession) run(ctx context.Context) (res *chat1.ChatSearchInboxResu
 	defer func() {
 		if err != nil {
 			s.Lock()
-			s.indexer.Debug(ctx, "search aborts,%v %d hits, %d percentIndexed, %d indexableConvs, %d convs searched, opts: %+v",
+			s.indexer.Debug(ctx, "search aborted, %v %d hits, %d percentIndexed, %d indexableConvs, %d convs searched, opts: %+v",
 				err, len(s.hitMap), s.percentIndexed(), s.indexableConvs, s.numConvsSearched, s.opts)
 			s.Unlock()
 		}
@@ -547,7 +553,7 @@ func (s *searchSession) run(ctx context.Context) (res *chat1.ChatSearchInboxResu
 		Hits:           hits,
 		PercentIndexed: percentIndexed,
 	}
-	s.indexer.Debug(ctx, "search complete, %d hits, %d percentIndexed, %d indexableConvs, %d convs searched, opts: %+v",
+	s.indexer.Debug(ctx, "search completed, %d hits, %d percentIndexed, %d indexableConvs, %d convs searched, opts: %+v",
 		len(hits), percentIndexed, s.indexableConvs, s.numConvsSearched, s.opts)
 	return res, nil
 }

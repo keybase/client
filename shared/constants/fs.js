@@ -20,6 +20,9 @@ import {type TypedActions} from '../actions/typed-actions-gen'
 import flags from '../util/feature-flags'
 
 export const syncToggleWaitingKey = 'fs:syncToggle'
+export const sendLinkToChatFindConversationWaitingKey = 'fs:sendLinkToChatFindConversation'
+export const sendLinkToChatSendWaitingKey = 'fs:sendLinkToChatSend'
+export const deleteWaitingKey = 'fs:delete'
 
 export const defaultPath = Types.stringToPath('/keybase')
 
@@ -691,7 +694,7 @@ export const getTlfListAndTypeFromPath = (
 export const unknownTlf = makeTlf()
 export const getTlfFromPath = (tlfs: Types.Tlfs, path: Types.Path): Types.Tlf => {
   const elems = Types.getPathElements(path)
-  if (elems.length !== 3) {
+  if (elems.length < 3) {
     return unknownTlf
   }
   const {tlfList} = getTlfListAndTypeFromPath(tlfs, path)
@@ -736,6 +739,16 @@ export const usernameInPath = (username: string, path: Types.Path) => {
   const elems = Types.getPathElements(path)
   return elems.length >= 3 && elems[2].split(',').includes(username)
 }
+
+export const isOfflineUnsynced = (
+  daemonStatus: Types.KbfsDaemonStatus,
+  pathItem: Types.PathItem,
+  path: Types.Path
+) =>
+  flags.kbfsOfflineMode &&
+  !daemonStatus.online &&
+  Types.getPathLevel(path) > 2 &&
+  pathItem.prefetchStatus !== prefetchComplete
 
 // To make sure we have consistent badging, all badging related stuff should go
 // through this function. That is:
@@ -963,7 +976,7 @@ const isPathEnabledForSync = (syncConfig: Types.TlfSyncConfig, path: Types.Path)
     case 'partial':
       // TODO: when we enable partial sync lookup, remember to deal with
       // potential ".." traversal as well.
-      return false
+      return syncConfig.enabledPaths.includes(path)
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(syncConfig.mode)
       return false
@@ -1002,6 +1015,9 @@ export const getSyncStatusInMergeProps = (
         return 'awaiting-to-sync'
       }
       const inProgress: Types.PrefetchInProgress = pathItem.prefetchStatus
+      if (inProgress.bytesTotal === 0) {
+        return 'sync-error'
+      }
       return inProgress.bytesFetched / inProgress.bytesTotal
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(pathItem.prefetchStatus.state)

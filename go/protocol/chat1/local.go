@@ -4730,6 +4730,9 @@ func (o SearchInboxRes) DeepCopy() SearchInboxRes {
 type ProfileSearchConvStats struct {
 	Err            string               `codec:"err" json:"err"`
 	ConvName       string               `codec:"convName" json:"convName"`
+	MinConvID      MessageID            `codec:"minConvID" json:"minConvID"`
+	MaxConvID      MessageID            `codec:"maxConvID" json:"maxConvID"`
+	NumMissing     int                  `codec:"numMissing" json:"numMissing"`
 	NumMessages    int                  `codec:"numMessages" json:"numMessages"`
 	IndexSize      int                  `codec:"indexSize" json:"indexSize"`
 	DurationMsec   gregor1.DurationMsec `codec:"durationMsec" json:"durationMsec"`
@@ -4740,6 +4743,9 @@ func (o ProfileSearchConvStats) DeepCopy() ProfileSearchConvStats {
 	return ProfileSearchConvStats{
 		Err:            o.Err,
 		ConvName:       o.ConvName,
+		MinConvID:      o.MinConvID.DeepCopy(),
+		MaxConvID:      o.MaxConvID.DeepCopy(),
+		NumMissing:     o.NumMissing,
 		NumMessages:    o.NumMessages,
 		IndexSize:      o.IndexSize,
 		DurationMsec:   o.DurationMsec.DeepCopy(),
@@ -5320,7 +5326,6 @@ type SearchRegexpArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	ConvID           ConversationID               `codec:"convID" json:"convID"`
 	Query            string                       `codec:"query" json:"query"`
-	IsRegex          bool                         `codec:"isRegex" json:"isRegex"`
 	Opts             SearchOpts                   `codec:"opts" json:"opts"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }

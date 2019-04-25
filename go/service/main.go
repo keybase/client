@@ -424,8 +424,6 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	chatStorage.SetAssetDeleter(g.ConvSource)
 	g.RegexpSearcher = search.NewRegexpSearcher(g)
 	g.Indexer = search.NewIndexer(g)
-	g.AddLogoutHook(g.Indexer, "SearchIndexer")
-	g.AddDbNukeHook(g.Indexer, "SearchIndexer")
 	g.ServerCacheVersions = storage.NewServerVersions(g)
 
 	// Syncer and retriers

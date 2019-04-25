@@ -2090,7 +2090,7 @@ func (h *ChatSearchInboxHit) Size() int {
 	return len(h.Hits)
 }
 
-func (idx *ConversationIndex) minMaxIDs(conv Conversation) (min, max MessageID) {
+func (idx *ConversationIndex) MinMaxIDs(conv Conversation) (min, max MessageID) {
 	// lowest msgID we care about
 	min = conv.GetMaxDeletedUpTo()
 	if min == 0 {
@@ -2102,11 +2102,7 @@ func (idx *ConversationIndex) minMaxIDs(conv Conversation) (min, max MessageID) 
 }
 
 func (idx *ConversationIndex) MissingIDForConv(conv Conversation) (res []MessageID) {
-	min, max := idx.minMaxIDs(conv)
-	return idx.missingIDs(min, max)
-}
-
-func (idx *ConversationIndex) missingIDs(min, max MessageID) (res []MessageID) {
+	min, max := idx.MinMaxIDs(conv)
 	for i := min; i <= max; i++ {
 		if _, ok := idx.Metadata.SeenIDs[i]; !ok {
 			res = append(res, i)
@@ -2115,28 +2111,37 @@ func (idx *ConversationIndex) missingIDs(min, max MessageID) (res []MessageID) {
 	return res
 }
 
+func (idx *ConversationIndex) numMissing(min, max MessageID) (numMissing int) {
+	for i := min; i <= max; i++ {
+		if _, ok := idx.Metadata.SeenIDs[i]; !ok {
+			numMissing++
+		}
+	}
+	return numMissing
+}
+
 func (idx *ConversationIndex) PercentIndexed(conv Conversation) int {
 	if idx == nil {
 		return 0
 	}
-	min, max := idx.minMaxIDs(conv)
+	min, max := idx.MinMaxIDs(conv)
 	numMessages := int(max) - int(min)
 	if numMessages <= 0 {
 		return 100
 	}
-	missingIDs := idx.missingIDs(min, max)
-	return 100 * (1 - (len(missingIDs) / numMessages))
+	numMissing := idx.numMissing(min, max)
+	return int(100 * (1 - (float64(numMissing) / float64(numMessages))))
 }
 
 func (idx *ConversationIndex) FullyIndexed(conv Conversation) bool {
 	if idx == nil {
 		return false
 	}
-	min, max := idx.minMaxIDs(conv)
+	min, max := idx.MinMaxIDs(conv)
 	if max <= min {
 		return true
 	}
-	return len(idx.MissingIDForConv(conv)) == 0
+	return idx.numMissing(min, max) == 0
 }
 
 func (u UnfurlRaw) GetUrl() string {

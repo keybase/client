@@ -889,12 +889,12 @@ func (c *chatServiceHandler) SearchRegexpV1(ctx context.Context, opts searchRege
 		}
 		searchOpts.SentAfter = gregor1.ToTime(sentAfter)
 	}
+	searchOpts.IsRegex = opts.IsRegex
 
 	arg := chat1.SearchRegexpArg{
 		ConvID:           convID,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		Query:            opts.Query,
-		IsRegex:          opts.IsRegex,
 		Opts:             searchOpts,
 	}
 

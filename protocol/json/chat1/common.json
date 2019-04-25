@@ -1427,6 +1427,10 @@
       "name": "SearchOpts",
       "fields": [
         {
+          "type": "boolean",
+          "name": "isRegex"
+        },
+        {
           "type": "string",
           "name": "sentBy"
         },
@@ -1465,6 +1469,13 @@
         {
           "type": "int",
           "name": "maxConvsHit"
+        },
+        {
+          "type": [
+            null,
+            "ConversationID"
+          ],
+          "name": "convID"
         },
         {
           "type": "int",

@@ -1024,9 +1024,9 @@ const rootReducer = (
       return action.payload.ordinal
         ? state.setIn(['replyToMap', action.payload.conversationIDKey], action.payload.ordinal)
         : state.deleteIn(['replyToMap', action.payload.conversationIDKey])
-    case Chat2Gen.threadSearchResult:
+    case Chat2Gen.threadSearchResults:
       return state.updateIn(['threadSearchInfoMap', action.payload.conversationIDKey], info =>
-        info.set('hits', info.hits.push(action.payload.message))
+        info.set('hits', info.hits.concat(action.payload.messages))
       )
     case Chat2Gen.setThreadSearchStatus:
       return state.updateIn(

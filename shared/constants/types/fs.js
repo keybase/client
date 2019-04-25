@@ -488,7 +488,8 @@ export const direntToPathType = (d: RPCTypes.Dirent): PathType => {
       return 'unknown'
   }
 }
-
+export const getPathFromRelative = (tlfName: string, tlfType: TlfType, inTlfPath: string): Path =>
+  '/keybase/' + tlfType + '/' + tlfName + '/' + inTlfPath
 export const stringToEditID = (s: string): EditID => s
 export const editIDToString = (s: EditID): string => s
 export const stringToPath = (s: string): Path => (s.indexOf('/') === 0 ? s : null)
