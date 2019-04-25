@@ -8,7 +8,6 @@ import * as Types from '../../constants/types/wallets'
 type SmallAccountIDProps = {
   accountID: Types.AccountID,
   style?: Styles.StylesCrossPlatform,
-  textType?: TextType,
 }
 
 class SmallAccountID extends React.Component<SmallAccountIDProps, {expanded: boolean}> {
@@ -26,7 +25,7 @@ class SmallAccountID extends React.Component<SmallAccountIDProps, {expanded: boo
   render() {
     return (
       <Kb.Text
-        type={this.props.textType}
+        type="BodySmall"
         className={Styles.classNames({'hover-underline': !this.state.expanded})}
         selectable={this.state.expanded}
         style={Styles.collapseStyles([styles.text, this.props.style])}

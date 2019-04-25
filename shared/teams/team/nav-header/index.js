@@ -46,7 +46,7 @@ const _HeaderRightActions = (props: Props) => (
       <Kb.Button small={true} mode="Secondary" label="Open folder" onClick={props.onOpenFolder} />
     )}
     <Kb.Button mode="Secondary" small={true} ref={props.setAttachmentRef} onClick={props.toggleShowingMenu}>
-      <Kb.Icon type="iconfont-ellipsis" style={styles.ellipsisIcon} />
+      <Kb.Icon type="iconfont-ellipsis" color={Styles.globalColors.blue} />
     </Kb.Button>
     <TeamMenu
       attachTo={props.getAttachmentRef}
@@ -132,7 +132,6 @@ const styles = Styles.styleSheetCreate({
       ...Styles.desktopStyles.windowDraggingClickable,
     },
   }),
-  ellipsisIcon: {color: Styles.globalColors.blue},
   marginRightTiny: {
     marginRight: Styles.globalMargins.tiny,
   },
