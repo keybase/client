@@ -776,7 +776,7 @@ const initSendLinkToChat = (state, action) => {
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
       oneChatPerTLF: false,
-      tlfName: elems[2],
+      tlfName: elems[2].replace('#', ','),
       topicName: '',
       topicType: RPCChatTypes.commonTopicType.chat,
       visibility: RPCTypes.commonTLFVisibility.private,
@@ -842,7 +842,7 @@ const triggerSendLinkToChat = (state, action) => {
         // It's an impl team conversation. So first make sure it exists.
         identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
         membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
-        tlfName: elems[2],
+        tlfName: elems[2].replace('#', ','),
         tlfVisibility: RPCTypes.commonTLFVisibility.private,
         topicType: RPCChatTypes.commonTopicType.chat,
       }).then(result => ({

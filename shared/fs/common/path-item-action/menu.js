@@ -22,6 +22,7 @@ type Props = {|
   download?: ?() => void,
   ignoreTlf?: ?() => void,
   moveOrCopy?: ?() => void,
+  me: string,
   newFolder?: ?() => void,
   openChatNonTeam?: ?() => void,
   openChatTeam?: ?() => void,
@@ -131,7 +132,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => [
             props.sendLinkToChat()
           },
           subTitle: `The ${props.pathItemType === 'folder' ? 'folder' : 'file'} will be sent as a link.`,
-          title: `Send to ${Constants.isTeamPath(props.path) ? 'team' : 'group'} conversation`,
+          title: `Send to ${Constants.getChatTarget(props.path, props.me)}`,
         },
       ]
     : []),

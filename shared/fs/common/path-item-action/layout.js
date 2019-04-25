@@ -79,7 +79,7 @@ const getRawLayout = (
           : {}),
         copyPath: true,
         ignoreTlf: parsedPath.kind === 'team-tlf' || !isMyOwn(parsedPath, me),
-        sendLinkToChat: Constants.canSendLinkToChat(parsedPath), // desktop uses separate button
+        sendLinkToChat: Constants.canSendLinkToChat(parsedPath),
         showInSystemFileManager: !isMobile,
       }
     case 'in-group-tlf':
@@ -102,8 +102,8 @@ const getRawLayout = (
         showInSystemFileManager: !isMobile,
         // share menu items
         // eslint-disable-next-line sort-keys
-        sendAttachmentToChat: pathItem.type === 'file', // desktop uses separate button
-        sendLinkToChat: Constants.canSendLinkToChat(parsedPath), // desktop uses separate button
+        sendAttachmentToChat: pathItem.type === 'file',
+        sendLinkToChat: Constants.canSendLinkToChat(parsedPath),
         sendToOtherApp: pathItem.type === 'file' && isMobile,
       }
     default:
