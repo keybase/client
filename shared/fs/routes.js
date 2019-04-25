@@ -9,6 +9,7 @@ const routeTree = () => {
   const KextPermissionPopup = require('./banner/system-file-manager-integration-banner/kext-permission-popup-container')
     .default
   const DestinationPicker = require('./destination-picker/container').default
+  const ReallyDelete = require('./really-delete/container').default
   const SendLinkToChat = require('./send-link-to-chat/container').default
   const SendAttachmentToChat = require('./send-attachment-to-chat/container').default
   const Oops = require('./oops/container').default
@@ -39,6 +40,15 @@ const routeTree = () => {
             }),
           },
         }),
+    reallyDelete: {
+      component: ReallyDelete,
+      tags: makeLeafTags({
+        fullscreen: isMobile,
+        layerOnTop: !isMobile,
+        renderTopmostOnly: !isMobile,
+        title: 'Really Delete Folder?',
+      }),
+    },
     sendAttachmentToChat: {
       component: SendAttachmentToChat,
       tags: makeLeafTags({
@@ -104,6 +114,7 @@ export const newModalRoutes = {
   barePreview: {getScreen: () => require('./filepreview').BarePreview},
   destinationPicker: {getScreen: () => require('./destination-picker/container').default, upgraded: true},
   oops: {getScreen: () => require('./oops/container').default, upgraded: true},
+  reallyDelete: {getScreen: () => require('./really-delete/container').default, upgraded: true},
   sendAttachmentToChat: {
     getScreen: () => require('./send-attachment-to-chat/container').default,
     upgraded: true,

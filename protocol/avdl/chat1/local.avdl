@@ -946,7 +946,7 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  SearchRegexpRes searchRegexp(int sessionID, ConversationID convID, string query, boolean isRegex,
+  SearchRegexpRes searchRegexp(int sessionID, ConversationID convID, string query,
     SearchOpts opts, keybase1.TLFIdentifyBehavior identifyBehavior);
   void cancelActiveInboxSearch();
 

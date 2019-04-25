@@ -548,6 +548,7 @@
   }
 
   record SearchOpts {
+    boolean isRegex;
     string sentBy;
     gregor1.Time sentBefore;
     gregor1.Time sentAfter;
@@ -560,6 +561,7 @@
     ReIndexingMode reindexMode;
     int maxConvsSearched;
     int maxConvsHit;
+    union { null, ConversationID } convID;
     // only used by conversation name search
     int maxNameConvs;
   }

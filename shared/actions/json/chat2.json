@@ -602,10 +602,10 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "query": "HiddenString"
     },
-    "threadSearchResult": {
+    "threadSearchResults": {
       "_description": "Record a new thread search result",
       "conversationIDKey": "Types.ConversationIDKey",
-      "message": "Types.Message"
+      "messages": "Array<Types.Message>"
     },
     "setThreadSearchStatus": {
       "_description": "Set the status of a thread search",

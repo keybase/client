@@ -11,10 +11,13 @@ import flags from '../../../util/feature-flags'
 import Menu from './menu'
 import type {FloatingMenuProps} from './types'
 import {getRootLayout, getShareLayout} from './layout'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import {fsTab} from '../../../constants/tabs'
 
 type OwnProps = {|
   floatingMenuProps: FloatingMenuProps,
   path: Types.Path,
+  position?: 'row' | 'header',
   routePath: I.List<string>,
 |}
 
@@ -27,7 +30,7 @@ const mapStateToProps = (state, {path}) => ({
   _view: state.fs.pathItemActionMenu.view,
 })
 
-const mapDispatchToProps = (dispatch, {path, routePath}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {path, position, routePath}: OwnProps) => ({
   _cancel: (key: string) => dispatch(FsGen.createCancelDownload({key})),
   _confirmSaveMedia: (toCancel: ?string) =>
     dispatch(FsGen.createSetPathItemActionMenuView({view: 'confirm-save-media'})),
@@ -35,8 +38,12 @@ const mapDispatchToProps = (dispatch, {path, routePath}: OwnProps) => ({
     dispatch(FsGen.createSetPathItemActionMenuView({view: 'confirm-send-to-other-app'})),
   _copyPath: () => dispatch(ConfigGen.createCopyToClipboard({text: Constants.escapePath(path)})),
   _delete: () => {
-    dispatch(FsGen.createDeleteFile({path}))
-    dispatch(Constants.makeActionForOpenPathInFilesTab(Types.getPathParent(path), routePath))
+    dispatch(
+      RouteTreeGen.createNavigateTo({
+        parentPath: [fsTab],
+        path: [{props: {path, position}, selected: 'reallyDelete'}],
+      })
+    )
   },
   _download: () => dispatch(FsGen.createDownload({key: Constants.makeDownloadKey(path), path})),
   _ignoreTlf: () => dispatch(FsGen.createFavoriteIgnore({path})),
@@ -142,6 +149,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     ignoreTlf: layout.ignoreTlf ? c(dispatchProps._ignoreTlf) : null,
     moveOrCopy: flags.moveOrCopy && layout.moveOrCopy ? c(dispatchProps._moveOrCopy) : null,
     pathItemType: stateProps._pathItem.type,
+    position: ownProps.position,
     saveMedia: layout.saveMedia ? getSaveMedia(stateProps, dispatchProps, c) : null,
     showInSystemFileManager:
       layout.showInSystemFileManager && stateProps._sfmiEnabled
