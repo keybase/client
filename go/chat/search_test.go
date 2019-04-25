@@ -841,7 +841,6 @@ func TestChatSearchInbox(t *testing.T) {
 
 		// DB nuke, ensure that we reindex after the search
 		g1.LocalChatDb.Nuke()
-		indexer1.ClearCache()
 		opts.ReindexMode = chat1.ReIndexingMode_PRESEARCH_SYNC // force reindex so we're fully up to date.
 		res = runSearch(query, opts, true /* expectedReindex*/)
 		require.Equal(t, 1, len(res.Hits))
@@ -859,7 +858,6 @@ func TestChatSearchInbox(t *testing.T) {
 		// Verify POSTSEARCH_SYNC
 		ictx := globals.CtxAddIdentifyMode(ctx, keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil)
 		g1.LocalChatDb.Nuke()
-		indexer1.ClearCache()
 		indexer1.SelectiveSync(ictx, uid1, true /* forceReindex */)
 		opts.ReindexMode = chat1.ReIndexingMode_POSTSEARCH_SYNC
 		res = runSearch(query, opts, true /* expectedReindex*/)

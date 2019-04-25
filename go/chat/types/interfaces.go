@@ -125,11 +125,8 @@ type Indexer interface {
 	// Remove the given messages from the index
 	Remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg []chat1.MessageUnboxed) error
 	SearchableConvs(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) ([]RemoteConversation, error)
-	ClearCache()
 	// For devel/testing
 	IndexInbox(ctx context.Context, uid gregor1.UID) (map[string]chat1.ProfileSearchConvStats, error)
-	OnLogout(mctx libkb.MetaContext) error
-	OnDbNuke(mctx libkb.MetaContext) error
 }
 
 type Sender interface {
