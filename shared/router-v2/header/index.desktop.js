@@ -90,7 +90,7 @@ class Header extends React.PureComponent<Props> {
                 <AppIconBox direction="vertical" onClick={Window.minimizeWindow} style={styles.appIconBox}>
                   <Kb.Icon
                     color={Styles.globalColors.black_50}
-                    onClick={Window.toggleMaximizeWindow}
+                    onClick={Window.minimizeWindow}
                     style={styles.appIcon}
                     type="iconfont-app-minimize"
                   />
