@@ -113,7 +113,7 @@ class TabBar extends React.PureComponent<Props, State> {
                 />
                 <>
                   <Kb.Text className="username" type="BodyTinySemibold" style={styles.username}>
-                    Hi {p.username}!
+                    Hi {p.firstname || p.username}!
                   </Kb.Text>
                   <Kb.Icon
                     type="iconfont-arrow-down"

@@ -56,6 +56,7 @@ const getBadges = memoize(b => b.toObject())
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   badgeNumbers: getBadges(stateProps._badgeNumbers),
+  firstname: stateProps.fullname.split(' ')[0],
   fullname: stateProps.fullname,
   isWalletsNew: stateProps.isWalletsNew,
   onHelp: dispatchProps.onHelp,
