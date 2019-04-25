@@ -209,10 +209,11 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   flexOne: {flex: 1},
-  icon: {
-    position: 'relative',
-    top: 1,
-  },
+  icon: Styles.platformStyles({
+    common: {position: 'relative'},
+    isElectron: {top: 1},
+    isMobile: {top: 0},
+  }),
   input: {
     color: Styles.globalColors.black_50,
     position: 'relative',
@@ -228,12 +229,20 @@ const styles = Styles.styleSheetCreate({
     position: 'relative',
     top: 1,
   },
-  text: {
-    color: Styles.globalColors.black_50,
-    marginLeft: Styles.globalMargins.xtiny,
-    marginRight: Styles.globalMargins.xtiny,
-    position: 'relative',
-  },
+  text: Styles.platformStyles({
+    common: {
+      color: Styles.globalColors.black_50,
+      marginLeft: Styles.globalMargins.xtiny,
+      marginRight: Styles.globalMargins.xtiny,
+      position: 'relative',
+    },
+    isElectron: {
+      top: 0,
+    },
+    isMobile: {
+      top: 1,
+    },
+  }),
   textFaint: {
     color: Styles.globalColors.black_35,
     position: 'relative',
