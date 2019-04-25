@@ -370,7 +370,7 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 			if err == context.DeadlineExceeded {
 				newCtx, _ := context.WithTimeout(context.Background(),
 					favoritesBackgroundRefreshTimeout)
-				go f.RefreshCache(newCtx, FavoritesRefreshModeBlocking)
+				go f.RefreshCache(newCtx, FavoritesRefreshModeBackground)
 			}
 			f.log.CDebugf(req.ctx,
 				"Serving possibly stale favorites; new data could not be"+
@@ -652,20 +652,28 @@ func (f *Favorites) Delete(ctx context.Context, fav favorites.Folder) error {
 	})
 }
 
+// FavoritesRefreshMode controls how a favorites refresh happens.
 type FavoritesRefreshMode int
 
 const (
+	// FavoritesRefreshModeInMainFavoritesLoop means to refresh the favorites
+	// in the main loop, blocking any favorites requests after until the refresh
+	// is done.
 	FavoritesRefreshModeInMainFavoritesLoop = iota
-	FavoritesRefreshModeBlocking
+	// FavoritesRefreshModeBackground means to refresh the favorites outside
+	// of the main loop.
+	FavoritesRefreshModeBackground
 )
 
-// RefreshCache refreshes the cached list of favorites. If async is true, then
-// this request is processed outside of the normal Favorites queue order.
+// RefreshCache refreshes the cached list of favorites.
 //
-// In FavoritesRefreshModeBlocking, request the favorites in this thread,
-// then send them off to the main thread to be processed.
+// In FavoritesRefreshModeBackground, request the favorites in this function,
+// then send them to the main goroutine to be processed. This should be called
+// in a separate goroutine from anything mission-critical, because it might wait
+// on network for up to 15 seconds.
+//
 // In FavoritesRefreshModeInMainFavoritesLoop, this just sets up a request and
-// sends it to the main thread to process it - this is useful if e.g.
+// sends it to the main goroutine to process it - this is useful if e.g.
 // the favorites cache has not been initialized at all and cannot serve any
 // requests until this refresh is completed.
 func (f *Favorites) RefreshCache(ctx context.Context, mode FavoritesRefreshMode) {
@@ -692,7 +700,7 @@ func (f *Favorites) RefreshCache(ctx context.Context, mode FavoritesRefreshMode)
 	}
 	f.wg.Add(1)
 
-	if mode == FavoritesRefreshModeBlocking {
+	if mode == FavoritesRefreshModeBackground {
 		favResult, err := f.config.KBPKI().FavoriteList(ctx)
 		if err != nil {
 			f.log.CDebugf(ctx, "Failed to refresh cached Favorites: %+v", err)
