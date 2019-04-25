@@ -60,15 +60,14 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
     case RouteTreeGen.switchRouteDef: {
       // used to tell if its the login one or app one. this will all change when we deprecate the old routing
       const routeName = action.payload.routeDef.defaultSelected === 'tabs.loginTab' ? 'loggedOut' : 'loggedIn'
-      const switchStack = NavigationActions.navigate({params: undefined, routeName})
 
       // You're logged out
       if (routeName === 'loggedOut') {
-        return [switchStack]
+        return [NavigationActions.navigate({params: undefined, routeName: 'loggedOut'})]
       }
 
       // When we restore state we want the following stacks
-      let sa = []
+      let sa = [NavigationActions.navigate({params: undefined, routeName: 'loggedIn'})]
 
       if (action.payload.path) {
         const p = action.payload.path.last
@@ -85,7 +84,9 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
       }
 
       // validate sa
-      if (!sa.every(a => routes[a.routeName] || mobileTabs.includes(a.routeName))) {
+      if (
+        !sa.every(a => a.routeName === 'loggedIn' || routes[a.routeName] || mobileTabs.includes(a.routeName))
+      ) {
         logger.error('Invalid route found, bailing on push', sa)
         sa = []
       }
