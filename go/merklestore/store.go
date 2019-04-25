@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/profiling"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -89,11 +90,14 @@ type merkleStoreKitT struct {
 
 // GetLatestEntry returns the latest (active) entry for the given MerkleStore
 func (s *MerkleStoreImpl) GetLatestEntry(m libkb.MetaContext) (ret keybase1.MerkleStoreEntry, err error) {
-	kitJSON, hash, err := s.getKitString(m)
+	tracer := m.G().CTimeTracer(m.Ctx(), "MerkleStore.GetLatestEntry", true)
+	defer tracer.Finish()
+	kitJSON, hash, err := s.getKitString(m, tracer)
 	if err != nil {
 		return ret, err
 	}
 
+	tracer.Stage("unmarshal")
 	var kit merkleStoreKitT
 	if err = json.Unmarshal([]byte(kitJSON), &kit); err != nil {
 		return ret, NewMerkleStoreError("unmarshalling kit: %s", err)
@@ -116,7 +120,7 @@ func (s *MerkleStoreImpl) GetLatestEntry(m libkb.MetaContext) (ret keybase1.Merk
 // Get stored kit as a string.  First it makes sure that the merkle root is
 // recent enough.  Using the hash from that, it fetches from in-memory falling
 // back to db falling back to server.
-func (s *MerkleStoreImpl) getKitString(m libkb.MetaContext) (
+func (s *MerkleStoreImpl) getKitString(m libkb.MetaContext, tracer profiling.TimeTracer) (
 	keybase1.MerkleStoreKit, keybase1.MerkleStoreKitHash, error) {
 
 	// Use a file instead if specified.
@@ -133,6 +137,7 @@ func (s *MerkleStoreImpl) getKitString(m libkb.MetaContext) (
 	s.Lock()
 	defer s.Unlock()
 
+	tracer.Stage("LastRoot")
 	root := mc.LastRoot()
 	// The time that the root was fetched is used rather than when the
 	// root was published so that we can continue to operate even if
@@ -160,6 +165,7 @@ func (s *MerkleStoreImpl) getKitString(m libkb.MetaContext) (
 	}
 
 	// This is the hash we are being instructed to use.
+	tracer.Stage("hash")
 	hash := keybase1.MerkleStoreKitHash(s.getHash(*root))
 
 	if hash == "" {
@@ -167,11 +173,13 @@ func (s *MerkleStoreImpl) getKitString(m libkb.MetaContext) (
 	}
 
 	// Use in-memory cache if it matches
+	tracer.Stage("mem")
 	if fromMem := s.memGet(hash); fromMem != nil {
 		m.VLogf(libkb.VLog0, "MerkleStore: mem cache hit %s, using hash: %s", s.tag, hash)
 		return *fromMem, hash, nil
 	}
 
+	tracer.Stage("db")
 	// Use db cache if it matches
 	if fromDB := s.dbGet(m, hash); fromDB != nil {
 		m.Debug("MerkleStore: db cache hit")
@@ -185,15 +193,18 @@ func (s *MerkleStoreImpl) getKitString(m libkb.MetaContext) (
 
 	// Fetch from the server
 	// This validates the hash
+	tracer.Stage("fetch")
 	kitJSON, err := s.fetch(m, hash)
 	if err != nil {
 		return "", "", err
 	}
 
 	// Store to memory
+	tracer.Stage("mem-set")
 	s.memSet(hash, kitJSON)
 
 	// db write
+	tracer.Stage("db-set")
 	s.dbSet(m.BackgroundWithLogTags(), hash, kitJSON)
 
 	m.Debug("MerkleStore: using hash: %s", hash)

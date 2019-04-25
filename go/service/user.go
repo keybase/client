@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/offline"
+	"github.com/keybase/client/go/profiling"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
@@ -372,11 +373,15 @@ func (h *UserHandler) UploadUserAvatar(ctx context.Context, arg keybase1.UploadU
 func (h *UserHandler) ProofSuggestions(ctx context.Context, sessionID int) (ret keybase1.ProofSuggestionsRes, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("US")
 	defer mctx.TraceTimed("ProofSuggestions", func() error { return err })()
-	suggestions, err := h.proofSuggestionsHelper(mctx)
+	tracer := mctx.G().CTimeTracer(mctx.Ctx(), "ProofSuggestions", true)
+	defer tracer.Finish()
+	suggestions, err := h.proofSuggestionsHelper(mctx, tracer)
 	if err != nil {
 		return ret, err
 	}
+	tracer.Stage("fold-pri")
 	foldPriority := mctx.G().GetProofServices().SuggestionFoldPriority()
+	tracer.Stage("fold-loop")
 	for _, suggestion := range suggestions {
 		if foldPriority > 0 && suggestion.Priority >= foldPriority {
 			ret.ShowMore = true
@@ -433,7 +438,7 @@ var zcashProofSuggestion = ProofSuggestion{
 	LogoKey: "zcash",
 }
 
-func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []ProofSuggestion, err error) {
+func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext, tracer profiling.TimeTracer) (ret []ProofSuggestion, err error) {
 	user, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(mctx).WithPublicKeyOptional())
 	if err != nil {
 		return ret, err
@@ -442,8 +447,10 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []Proo
 		return ret, fmt.Errorf("could not load logged-in user")
 	}
 
+	tracer.Stage("get_list")
 	var suggestions []ProofSuggestion
 	serviceKeys := mctx.G().GetProofServices().ListServicesThatAcceptNewProofs(mctx)
+	tracer.Stage("loop_keys")
 	for _, service := range serviceKeys {
 		switch service {
 		case "web", "dns", "http", "https":
@@ -478,6 +485,7 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []Proo
 				Metas:         metas,
 			}})
 	}
+	tracer.Stage("misc")
 	hasPGP := len(user.GetActivePGPKeys(true)) > 0
 	if !hasPGP {
 		suggestions = append(suggestions, pgpProofSuggestion)
@@ -492,6 +500,7 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []Proo
 	}
 
 	// Attach icon urls
+	tracer.Stage("icons")
 	for i := range suggestions {
 		suggestion := &suggestions[i]
 		suggestion.ProfileIcon = externals.MakeIcons(mctx, suggestion.LogoKey, "logo_black", 16)
@@ -499,11 +508,13 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []Proo
 	}
 
 	// Alphabetize so that ties later on in SliceStable are deterministic.
+	tracer.Stage("alphabetize")
 	sort.Slice(suggestions, func(i, j int) bool {
 		return suggestions[i].Key < suggestions[j].Key
 	})
 
 	// Priorities from the server.
+	tracer.Stage("prioritize-server")
 	serverPriority := make(map[string]int) // key -> server priority
 	maxServerPriority := 0
 	for _, displayConfig := range mctx.G().GetProofServices().ListDisplayConfigs() {
@@ -532,6 +543,7 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []Proo
 
 	// Fallback priorities for rows the server missed.
 	// Fallback priorities are placed after server priorities.
+	tracer.Stage("fallback")
 	offlineOrder := []string{
 		"twitter",
 		"github",
@@ -548,6 +560,7 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []Proo
 		offlineOrderMap[k] = i
 	}
 
+	tracer.Stage("prioritize-again")
 	priorityFn := func(key string) int {
 		if p, ok := serverPriority[key]; ok {
 			return p
@@ -561,6 +574,7 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []Proo
 		suggestions[i].Priority = priorityFn(suggestions[i].Key)
 	}
 
+	tracer.Stage("sort-final")
 	sort.SliceStable(suggestions, func(i, j int) bool {
 		return suggestions[i].Priority < suggestions[j].Priority
 	})

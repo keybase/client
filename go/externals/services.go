@@ -117,6 +117,8 @@ func (p *proofServices) SuggestionFoldPriority() int {
 }
 
 func (p *proofServices) loadServiceConfigs() {
+	tracer := p.G().CTimeTracer(context.TODO(), "proofServices.loadServiceConfigs", true)
+	defer tracer.Finish()
 	if !p.G().ShouldUseParameterizedProofs() {
 		return
 	}
@@ -127,19 +129,23 @@ func (p *proofServices) loadServiceConfigs() {
 		p.G().Log.CDebugf(context.TODO(), "unable to load paramproofs: %v", err)
 		return
 	}
+	tracer.Stage("parse")
 	config, err := p.parseServerConfig(entry)
 	if err != nil {
 		p.G().Log.CDebugf(context.TODO(), "unable to parse paramproofs: %v", err)
 		return
 	}
+	tracer.Stage("fill")
 	p.suggestionFold = config.SuggestionFold
 	services := []libkb.ServiceType{}
 	for _, config := range config.ProofConfigs {
 		services = append(services, NewGenericSocialProofServiceType(config))
 	}
+	tracer.Stage("register")
 	p.clearServiceTypes()
 	p.registerServiceTypes(getStaticProofServices())
 	p.registerServiceTypes(services)
+	tracer.Stage("disp")
 	for _, config := range config.DisplayConfigs {
 		p.displayConfigs[config.Key] = *config
 		if service, ok := p.externalServices[config.Key]; ok {
