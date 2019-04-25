@@ -36,6 +36,7 @@ const styles = Styles.styleSheetCreate({
   folderViewFilter: {
     marginLeft: Styles.globalMargins.tiny,
     marginRight: Styles.globalMargins.tiny,
+    width: 140,
   },
   outerContainer: Styles.platformStyles({
     isElectron: {
