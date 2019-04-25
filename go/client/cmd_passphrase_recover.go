@@ -5,23 +5,27 @@ package client
 
 import (
 	"errors"
+	"fmt"
 
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type CmdPassphraseRecover struct {
 	libkb.Contextified
+	Username string
 }
 
 func NewCmdPassphraseRecover(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:  "recover",
-		Usage: "Recover your keybase account passphrase",
+		Name:         "recover",
+		ArgumentHelp: "[username]",
+		Usage:        "Recover your keybase account passphrase",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdPassphraseRecoverRunner(g), "recover", c)
 		},
@@ -43,11 +47,32 @@ func (c *CmdPassphraseRecover) Run() error {
 		return err
 	}
 
-	// Check that there is a UID.
-	// This a proxy for whether this device has been provisioned for the recoverer.
-	uid := c.G().GetMyUID()
-	if !uid.Exists() {
-		return c.errNoUID()
+	if c.Username != "" {
+		// Check the username in the user configs
+		normalized := libkb.NewNormalizedUsername(c.Username)
+
+		// Fetch usernames from user configs
+		currentUsername, otherUsernames, err := c.G().GetAllUserNames()
+		if err != nil {
+			return err
+		}
+		usernamesMap := map[libkb.NormalizedUsername]struct{}{
+			currentUsername: struct{}{},
+		}
+		for _, username := range otherUsernames {
+			usernamesMap[username] = struct{}{}
+		}
+
+		// Check if the passed username is in the map
+		if _, ok := usernamesMap[normalized]; !ok {
+			return c.errNotProvisioned()
+		}
+	} else {
+		// Check the current UID - by proxy checks if the device has been provisioned
+		uid := c.G().GetMyUID()
+		if !uid.Exists() {
+			return c.errNotProvisioned()
+		}
 	}
 
 	// Login with unlocked keys or a prompted paper key.
@@ -99,7 +124,9 @@ func (c *CmdPassphraseRecover) loginWithPaperKey(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	err = client.LoginWithPaperKey(ctx, 0)
+	err = client.LoginWithPaperKey(ctx, keybase1.LoginWithPaperKeyArg{
+		Username: c.Username,
+	})
 	if err != nil {
 		return err
 	}
@@ -107,6 +134,18 @@ func (c *CmdPassphraseRecover) loginWithPaperKey(ctx context.Context) error {
 }
 
 func (c *CmdPassphraseRecover) ParseArgv(ctx *cli.Context) error {
+	nargs := len(ctx.Args())
+	if nargs > 1 {
+		return errors.New("Invalid arguments.")
+	}
+
+	if nargs == 1 {
+		c.Username = ctx.Args()[0]
+		checker := libkb.CheckUsername
+		if !checker.F(c.Username) {
+			return fmt.Errorf("Invalid username. Valid usernames are: %s", checker.Hint)
+		}
+	}
 	return nil
 }
 
@@ -118,8 +157,8 @@ func (c *CmdPassphraseRecover) GetUsage() libkb.Usage {
 	}
 }
 
-func (c *CmdPassphraseRecover) errNoUID() error {
-	return errors.New(`Can't recover without a UID.
+func (c *CmdPassphraseRecover) errNotProvisioned() error {
+	return errors.New(`Can't recover without device keys.
 
 If you have not provisioned this device before but do have
 your paper key, try running: keybase login

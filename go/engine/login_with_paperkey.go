@@ -13,13 +13,15 @@ import (
 // LoginWithPaperKey is an engine.
 type LoginWithPaperKey struct {
 	libkb.Contextified
+	username string
 }
 
 // NewLoginWithPaperKey creates a LoginWithPaperKey engine.
 // Uses the paperkey to log in and unlock LKS.
-func NewLoginWithPaperKey(g *libkb.GlobalContext) *LoginWithPaperKey {
+func NewLoginWithPaperKey(g *libkb.GlobalContext, username string) *LoginWithPaperKey {
 	return &LoginWithPaperKey{
 		Contextified: libkb.NewContextified(g),
+		username:     username,
 	}
 }
 
@@ -47,10 +49,18 @@ func (e *LoginWithPaperKey) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *LoginWithPaperKey) Run(m libkb.MetaContext) error {
-	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m).WithForceReload())
-	if err != nil {
-		return err
+func (e *LoginWithPaperKey) Run(m libkb.MetaContext) (err error) {
+	var me *libkb.User
+	if e.username == "" {
+		me, err = libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m).WithForceReload())
+		if err != nil {
+			return err
+		}
+	} else {
+		me, err = libkb.LoadUser(libkb.NewLoadUserArgWithMetaContext(m).WithForceReload().WithName(e.username))
+		if err != nil {
+			return err
+		}
 	}
 
 	if loggedIn, _ := isLoggedIn(m); loggedIn {
