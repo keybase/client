@@ -25,7 +25,7 @@ export const HeaderTitle = (props: HeaderTitleProps) => (
           {props.accountName}
         </Kb.Text>
       </Kb.Box2>
-      <SmallAccountID accountID={props.accountID} />
+      <SmallAccountID textType="BodyTiny" accountID={props.accountID} style={styles.accountID} />
     </Kb.Box2>
   </Kb.Box2>
 )
@@ -51,9 +51,7 @@ const styles = Styles.styleSheetCreate({
     alignSelf: 'flex-start',
   },
   left: {
-    alignSelf: 'stretch',
     minWidth: 240,
-    paddingBottom: 6,
     paddingLeft: Styles.globalMargins.xsmall,
     paddingRight: Styles.globalMargins.xsmall,
   },

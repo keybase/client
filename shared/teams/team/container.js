@@ -113,6 +113,7 @@ type State = {|selectedTab: string|}
 // We don't use route state anymore
 class TabsState extends React.PureComponent<React.ElementConfig<typeof Team>, State> {
   static navigationOptions = ({navigation}: {navigation: any}) => ({
+    headerExpandable: true,
     headerHideBorder: true,
     headerRightActions: isMobile
       ? undefined

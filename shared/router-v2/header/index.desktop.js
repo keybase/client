@@ -72,7 +72,11 @@ class Header extends React.PureComponent<Props> {
             {flags.kbfsOfflineMode && <SyncingFolders />}
             {!title && rightActions}
           </Kb.Box2>
-          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bottom}>
+          <Kb.Box2
+            direction="horizontal"
+            fullWidth={true}
+            style={opt.headerExpandable ? styles.bottomExpandable : styles.bottom}
+          >
             <Kb.Box2 direction="horizontal" style={styles.flexOne}>
               {title}
             </Kb.Box2>
@@ -86,7 +90,8 @@ class Header extends React.PureComponent<Props> {
 }
 
 const styles = Styles.styleSheetCreate({
-  bottom: {minHeight: 40 - 1}, // for border
+  bottom: {height: 40 - 1}, // for border
+  bottomExpandable: {minHeight: 40 - 1},
   disabledIcon: Styles.platformStyles({
     isElectron: {
       cursor: 'default',

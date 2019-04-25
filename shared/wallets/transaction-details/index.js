@@ -62,7 +62,7 @@ const PartyAccount = (props: PartyAccountProps) => {
       <Kb.Icon type="icon-wallet-32" style={styles.icon32} />
       <Kb.Box2 direction="vertical" style={styles.flexOne}>
         <Kb.Text type="BodySemibold">{props.accountName}</Kb.Text>
-        {!!props.accountID && <SmallAccountID accountID={props.accountID} />}
+        {!!props.accountID && <SmallAccountID textType="BodySmall" accountID={props.accountID} />}
       </Kb.Box2>
     </Kb.Box2>
   )
@@ -136,7 +136,7 @@ const AccountMeta = ({counterpartyMeta, accountID}) => (
         &nbsp;
       </Kb.Text>
     )}
-    {!!accountID && <SmallAccountID accountID={accountID} />}
+    {!!accountID && <SmallAccountID textType="BodySmall" accountID={accountID} />}
   </Kb.Box2>
 )
 
