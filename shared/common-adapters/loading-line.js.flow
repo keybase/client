@@ -1,8 +1,6 @@
 // @flow
 import {Component} from 'react'
 
-export type Props = {
-  style?: ?Object,
-}
+export type Props = {||}
 
 export default class LoadingLine extends Component<Props> {}

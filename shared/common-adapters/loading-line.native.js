@@ -1,61 +1,73 @@
 // @flow
-import Box from './box'
-import React, {Component} from 'react'
-import {NativeAnimated, NativeEasing} from './native-wrappers.native'
+import * as React from 'react'
+import {ReAnimated, ReAnimatedEasing} from './mobile.native'
 import {globalColors, styleSheetCreate} from '../styles'
-
 import type {Props} from './loading-line'
 
-const animMax = 0.9
+const R = ReAnimated
 
-class LoadingLine extends Component<Props, {fadeAnim: any}> {
-  state = {
-    fadeAnim: new NativeAnimated.Value(animMax),
-  }
-  _animation = NativeAnimated.loop(
-    NativeAnimated.sequence([
-      NativeAnimated.timing(this.state.fadeAnim, {
-        duration: 600,
-        easing: NativeEasing.ease,
-        isInteraction: false,
-        toValue: 0,
-        useNativeDriver: true,
-      }),
-      NativeAnimated.timing(this.state.fadeAnim, {
-        duration: 600,
-        easing: NativeEasing.ease,
-        isInteraction: false,
-        toValue: animMax,
-        useNativeDriver: true,
-      }),
-    ])
-  )
-  componentDidMount() {
-    this._animation.start()
+function runLoop() {
+  const clock = new R.Clock()
+
+  const state = {
+    finished: new R.Value(0),
+    frameTime: new R.Value(0),
+    position: new R.Value(-1),
+    time: new R.Value(0),
   }
 
-  componentWillUnmount() {
-    this._animation.stop()
+  const config = {
+    duration: new R.Value(600 * 2),
+    easing: ReAnimatedEasing.inOut(ReAnimatedEasing.ease),
+    toValue: new R.Value(1),
   }
+
+  return R.block([
+    // start right away
+    R.startClock(clock),
+
+    // process your state
+    R.timing(clock, state, config),
+
+    // when over (processed by timing at the end)
+    R.cond(state.finished, [
+      // we stop
+      R.stopClock(clock),
+
+      // set flag ready to be restarted
+      R.set(state.finished, 0),
+      // same value as the initial defined in the state creation
+      R.set(state.position, -1),
+
+      // very important to reset this ones !!! as mentioned in the doc about timing is saying
+      R.set(state.time, 0),
+      R.set(state.frameTime, 0),
+
+      // and we restart
+      R.startClock(clock),
+    ]),
+    // state.position,
+    R.interpolate(state.position, {
+      inputRange: [-1, 0, 1],
+      outputRange: [0, 1, 0],
+      extrapolate: R.Extrapolate.CLAMP,
+    }),
+  ])
+}
+
+class LoadingLine extends React.Component<Props> {
+  _opacity = runLoop()
 
   render() {
-    return (
-      <Box style={styles.container}>
-        <NativeAnimated.View style={[styles.line, this.props.style, {opacity: this.state.fadeAnim}]} />
-      </Box>
-    )
+    return <R.View style={[styles.line, {opacity: this._opacity}]} />
   }
 }
 
 const styles = styleSheetCreate({
-  container: {
+  line: {
     backgroundColor: globalColors.blue,
     height: 1,
     position: 'relative',
-  },
-  line: {
-    backgroundColor: globalColors.white,
-    height: '100%',
     width: '100%',
   },
 })
