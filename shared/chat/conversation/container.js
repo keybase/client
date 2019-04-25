@@ -1,27 +1,52 @@
 // @flow
 import * as React from 'react'
 import * as Constants from '../../constants/chat2'
+import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Types from '../../constants/types/chat2'
 import * as Flow from '../../util/flow'
 import {isMobile} from '../../styles'
-import {connect} from '../../util/container'
+import {connect, getRouteProps} from '../../util/container'
 import Normal from './normal/container'
 import NoConversation from './no-conversation'
 import Error from './error/container'
 import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
+import flags from '../../util/feature-flags'
 
 type OwnProps = {||}
 
 type SwitchProps = {
   conversationIDKey: Types.ConversationIDKey,
   isPending: boolean,
+  isFocused?: boolean,
+  selectConversation: () => void,
+  deselectConversation: () => void,
   type: 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rekey',
 }
 
 const DONT_RENDER_CONVERSATION = __DEV__ && false
 
-class Conversation extends React.PureComponent<SwitchProps> {
+class ConversationImpl extends React.PureComponent<SwitchProps> {
+  _handleSelectionChange = () => {
+    if (this.props.isFocused) {
+      this.props.selectConversation()
+    } else {
+      // need to defer this so we don't race if we're clicking between two chats on 2 tabs. TODO think of a better way to make this safe
+      setTimeout(this.props.deselectConversation, 100)
+    }
+  }
+  componentWillMount() {
+    this._handleSelectionChange()
+  }
+  componentDidUpdate(prevProps: SwitchProps) {
+    if (
+      this.props.isFocused !== prevProps.isFocused ||
+      this.props.conversationIDKey !== prevProps.conversationIDKey
+    ) {
+      this._handleSelectionChange()
+    }
+  }
+
   render() {
     if (DONT_RENDER_CONVERSATION) {
       return <NoConversation />
@@ -54,8 +79,22 @@ class Conversation extends React.PureComponent<SwitchProps> {
   }
 }
 
-const mapStateToProps = state => {
-  let conversationIDKey = Constants.getSelectedConversation(state)
+let Conversation
+if (flags.useNewRouter) {
+  const {withNavigationFocus} = require('@react-navigation/core')
+  Conversation = withNavigationFocus(ConversationImpl)
+} else {
+  Conversation = ConversationImpl
+}
+
+const mapStateToProps = (state, ownProps) => {
+  let _storeConvoIDKey = Constants.getSelectedConversation(state)
+  let conversationIDKey
+  if (flags.useNewRouter) {
+    conversationIDKey = getRouteProps(ownProps, 'conversationIDKey')
+  } else {
+    conversationIDKey = _storeConvoIDKey
+  }
   let _meta = Constants.getMeta(state, conversationIDKey)
   let isPending = false
 
@@ -65,15 +104,33 @@ const mapStateToProps = state => {
     const resolvedPendingConversationIDKey = Constants.getResolvedPendingConversationIDKey(state)
     if (Constants.isValidConversationIDKey(resolvedPendingConversationIDKey)) {
       conversationIDKey = resolvedPendingConversationIDKey
+      // update route props
+      if (flags.useNewRouter) {
+        setTimeout(() => {
+          // $FlowIssue
+          ownProps.navigation.setParams('conversationIDKey', conversationIDKey)
+        }, 1000)
+      }
     }
   }
 
   return {
     _meta,
+    _storeConvoIDKey,
     conversationIDKey,
     isPending,
   }
 }
+
+const mapDispatchToProps = dispatch => ({
+  _selectConversation: conversationIDKey =>
+    dispatch(
+      Chat2Gen.createSelectConversation({
+        conversationIDKey,
+        reason: 'focused',
+      })
+    ),
+})
 
 const mergeProps = (stateProps, dispatchProps) => {
   let type
@@ -100,13 +157,23 @@ const mergeProps = (stateProps, dispatchProps) => {
 
   return {
     conversationIDKey: stateProps.conversationIDKey, // we pass down conversationIDKey so this can be calculated once and also this lets us have chat things in other contexts so we can theoretically show multiple chats at the same time (like in a modal)
+    deselectConversation:
+      !flags.useNewRouter || stateProps._storeConvoIDKey !== stateProps.conversationIDKey
+        ? () => {}
+        : () => dispatchProps._selectConversation(Constants.noConversationIDKey),
     isPending: stateProps.isPending,
+    selectConversation:
+      !flags.useNewRouter ||
+      stateProps._storeConvoIDKey === stateProps.conversationIDKey ||
+      stateProps.conversationIDKey === Constants.pendingConversationIDKey
+        ? () => {} // ignore if already selected or pending
+        : () => dispatchProps._selectConversation(stateProps.conversationIDKey),
     type,
   }
 }
 
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
-  () => ({}),
+  mapDispatchToProps,
   mergeProps
 )(Conversation)

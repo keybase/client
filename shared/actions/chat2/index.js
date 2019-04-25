@@ -1715,13 +1715,13 @@ const changeSelectedConversation = (state, action) => {
             conversationIDKey: Constants.pendingConversationIDKey,
             reason: 'setPendingMode',
           }),
-          navigateToThreadRoute,
+          navigateToThreadRoute(Constants.pendingConversationIDKey),
         ]
       } else if (action.payload.noneDestination === 'inbox') {
         return Chat2Gen.createNavigateToInbox({findNewConversation: true})
       } else if (action.payload.noneDestination === 'thread') {
         // don't allow check of isValidConversationIDKey
-        return navigateToThreadRoute
+        return navigateToThreadRoute(state.chat2.selectedConversation)
       }
       break
     }
@@ -2252,21 +2252,25 @@ const navigateToInbox = (state, action) => {
 // Unchecked version of Chat2Gen.createNavigateToThread() --
 // Saga.put() this if you want to select the pending conversation
 // (which doesn't count as valid).
-const navigateToThreadRoute = flags.useNewRouter
-  ? RouteTreeGen.createNavigateAppend({path: Constants.newRouterThreadRoute})
-  : RouteTreeGen.createNavigateTo({path: Constants.threadRoute})
+//
+const navigateToThreadRoute = conversationIDKey =>
+  flags.useNewRouter
+    ? RouteTreeGen.createNavigateAppend({
+        path: isMobile ? [{selected: 'chatConversation', props: {conversationIDKey}}] : [Tabs.chatTab],
+      })
+    : RouteTreeGen.createNavigateTo({path: Constants.threadRoute})
 
 const navigateToThread = (state, action) => {
   if (!Constants.isValidConversationIDKey(state.chat2.selectedConversation)) {
     console.log('Skip nav to thread on invalid conversation')
     return
   }
-  return navigateToThreadRoute
+  return navigateToThreadRoute(state.chat2.selectedConversation)
 }
 
 const mobileNavigateOnSelect = (state, action) => {
   if (Constants.isValidConversationIDKey(action.payload.conversationIDKey)) {
-    return navigateToThreadRoute
+    return navigateToThreadRoute(state.chat2.selectedConversation)
   }
 }
 
