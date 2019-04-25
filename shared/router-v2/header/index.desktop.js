@@ -22,7 +22,13 @@ const AppIconBoxOnRed = Styles.styled(Kb.ClickableBox)({
   },
 })
 
-class Header extends React.PureComponent<Props> {
+type State = {|
+  hoveringOnClose: boolean,
+|}
+
+class Header extends React.PureComponent<Props, State> {
+  state = {hoveringOnClose: false}
+
   render() {
     // TODO add more here as we use more options on the mobile side maybe
     const opt = this.props.options
@@ -107,9 +113,17 @@ class Header extends React.PureComponent<Props> {
                     type="iconfont-app-maximize"
                   />
                 </AppIconBox>
-                <AppIconBoxOnRed direction="vertical" onClick={Window.closeWindow} style={styles.appIconBox}>
+                <AppIconBoxOnRed
+                  direction="vertical"
+                  onMouseEnter={() => this.setState({hoveringOnClose: true})}
+                  onMouseLeave={() => this.setState({hoveringOnClose: false})}
+                  onClick={Window.closeWindow}
+                  style={styles.appIconBox}
+                >
                   <Kb.Icon
-                    color={Styles.globalColors.black_50}
+                    color={
+                      this.state.hoveringOnClose ? Styles.globalColors.white : Styles.globalColors.black_50
+                    }
                     hoverColor={Styles.globalColors.white}
                     onClick={Window.closeWindow}
                     style={styles.appIcon}
@@ -141,11 +155,15 @@ const styles = Styles.styleSheetCreate({
       top: Styles.globalMargins.xxtiny,
     },
   }),
-  appIconBox: {
-    padding: Styles.globalMargins.tiny,
-    position: 'relative',
-    top: -Styles.globalMargins.xtiny,
-  },
+  appIconBox: Styles.platformStyles({
+    isElectron: {
+      ...Styles.desktopStyles.windowDraggingClickable,
+      padding: Styles.globalMargins.tiny,
+      position: 'relative',
+      right: -Styles.globalMargins.xsmall,
+      top: -Styles.globalMargins.xtiny,
+    },
+  }),
   bottom: {minHeight: 40 - 1}, // for border
   disabledIcon: Styles.platformStyles({
     isElectron: {
