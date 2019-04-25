@@ -180,5 +180,15 @@ func (h *LoginHandler) LoginOneshot(ctx context.Context, arg keybase1.LoginOnesh
 	eng := engine.NewLoginOneshot(h.G(), arg)
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
 	return engine.RunEngine2(m, eng)
+}
 
+func (h *LoginHandler) RecoverPassphrase(ctx context.Context, arg keybase1.RecoverPassphraseArg) error {
+	uis := libkb.UIs{
+		LogUI:     h.getLogUI(arg.SessionID),
+		LoginUI:   h.getLoginUI(arg.SessionID),
+		SessionID: arg.SessionID,
+	}
+	eng := engine.NewRecoverPassphrase(h.G(), arg)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	return engine.RunEngine2(m, eng)
 }

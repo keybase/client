@@ -148,6 +148,20 @@
       ],
       "response": null
     },
+    "recoverPassphrase": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "doc": "Guide the user through possibilities of changing their passphrase.\n    Lets them change their passphrase using a paper key or enter the reset pipeline."
+    },
     "paperKey": {
       "request": [
         {

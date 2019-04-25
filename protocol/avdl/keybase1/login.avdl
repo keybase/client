@@ -57,6 +57,12 @@ protocol login {
   void recoverAccountFromEmailAddress(string email);
 
   /**
+    Guide the user through possibilities of changing their passphrase.
+    Lets them change their passphrase using a paper key or enter the reset pipeline.
+    */
+  void recoverPassphrase(int sessionID, string username);
+
+  /**
     PaperKey generates paper backup keys for restoring an account.
     It calls login_ui.displayPaperKeyPhrase with the phrase.
     */
