@@ -554,6 +554,10 @@ func (h *Server) mergeLocalRemoteThread(ctx context.Context, remoteThread, local
 				newMsg.GetMessageID())
 			return true
 		}
+		// If replyTo is different, then let's also transmit this up
+		if newMsg.Valid().ReplyTo != oldMsg.Valid().ReplyTo {
+			return true
+		}
 		return false
 	}
 	switch mode {
