@@ -32,6 +32,7 @@ export const changeFocus = 'chat2:changeFocus'
 export const clearPaymentConfirmInfo = 'chat2:clearPaymentConfirmInfo'
 export const confirmScreenResponse = 'chat2:confirmScreenResponse'
 export const createConversation = 'chat2:createConversation'
+export const deselectConversation = 'chat2:deselectConversation'
 export const desktopNotification = 'chat2:desktopNotification'
 export const giphyGotSearchResult = 'chat2:giphyGotSearchResult'
 export const giphySend = 'chat2:giphySend'
@@ -156,6 +157,7 @@ type _ChangeFocusPayload = $ReadOnly<{|nextFocus: Types.Focus|}>
 type _ClearPaymentConfirmInfoPayload = void
 type _ConfirmScreenResponsePayload = $ReadOnly<{|accept: boolean|}>
 type _CreateConversationPayload = $ReadOnly<{|participants: Array<string>|}>
+type _DeselectConversationPayload = $ReadOnly<{|ifConversationIDKey: Types.ConversationIDKey|}>
 type _DesktopNotificationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, author: string, body: string|}>
 type _GiphyGotSearchResultPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, results: RPCChatTypes.GiphySearchResults|}>
 type _GiphySendPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, url: HiddenString|}>
@@ -496,6 +498,7 @@ export const createAttachmentUploading = (payload: _AttachmentUploadingPayload) 
 export const createAttachmentsUpload = (payload: _AttachmentsUploadPayload) => ({payload, type: attachmentsUpload})
 export const createBadgesUpdated = (payload: _BadgesUpdatedPayload) => ({payload, type: badgesUpdated})
 export const createBlockConversation = (payload: _BlockConversationPayload) => ({payload, type: blockConversation})
+export const createDeselectConversation = (payload: _DeselectConversationPayload) => ({payload, type: deselectConversation})
 export const createDesktopNotification = (payload: _DesktopNotificationPayload) => ({payload, type: desktopNotification})
 export const createHideConversation = (payload: _HideConversationPayload) => ({payload, type: hideConversation})
 export const createInboxRefresh = (payload: _InboxRefreshPayload) => ({payload, type: inboxRefresh})
@@ -571,6 +574,7 @@ export type ChangeFocusPayload = {|+payload: _ChangeFocusPayload, +type: 'chat2:
 export type ClearPaymentConfirmInfoPayload = {|+payload: _ClearPaymentConfirmInfoPayload, +type: 'chat2:clearPaymentConfirmInfo'|}
 export type ConfirmScreenResponsePayload = {|+payload: _ConfirmScreenResponsePayload, +type: 'chat2:confirmScreenResponse'|}
 export type CreateConversationPayload = {|+payload: _CreateConversationPayload, +type: 'chat2:createConversation'|}
+export type DeselectConversationPayload = {|+payload: _DeselectConversationPayload, +type: 'chat2:deselectConversation'|}
 export type DesktopNotificationPayload = {|+payload: _DesktopNotificationPayload, +type: 'chat2:desktopNotification'|}
 export type GiphyGotSearchResultPayload = {|+payload: _GiphyGotSearchResultPayload, +type: 'chat2:giphyGotSearchResult'|}
 export type GiphySendPayload = {|+payload: _GiphySendPayload, +type: 'chat2:giphySend'|}
@@ -698,6 +702,7 @@ export type Actions =
   | ClearPaymentConfirmInfoPayload
   | ConfirmScreenResponsePayload
   | CreateConversationPayload
+  | DeselectConversationPayload
   | DesktopNotificationPayload
   | GiphyGotSearchResultPayload
   | GiphySendPayload

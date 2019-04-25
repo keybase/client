@@ -8,6 +8,10 @@
   ],
   "actions": {
     "toggleSmallTeamsExpanded": {},
+    // Deselct if this is still selected, used in nav2 when you go away from a chat convo
+    "deselectConversation": {
+      "ifConversationIDKey": "Types.ConversationIDKey",
+    },
     // Select a conversation (or leave nothing selected)
     "selectConversation": {
       "conversationIDKey": "Types.ConversationIDKey",

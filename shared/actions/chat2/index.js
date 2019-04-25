@@ -2268,6 +2268,15 @@ const navigateToThread = (state, action) => {
   return navigateToThreadRoute(state.chat2.selectedConversation)
 }
 
+const deselectConversation = (state, action) => {
+  if (state.chat2.selectedConversation === action.payload.ifConversationIDKey) {
+    return Chat2Gen.createSelectConversation({
+      conversationIDKey: Constants.noConversationIDKey,
+      reason: 'clearSelected',
+    })
+  }
+}
+
 const mobileNavigateOnSelect = (state, action) => {
   if (Constants.isValidConversationIDKey(action.payload.conversationIDKey)) {
     return navigateToThreadRoute(state.chat2.selectedConversation)
@@ -3360,6 +3369,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     onToggleThreadSearch
   )
   yield* Saga.chainAction<Chat2Gen.ToggleThreadSearchPayload>(Chat2Gen.selectConversation, hideThreadSearch)
+  yield* Saga.chainAction<Chat2Gen.DeselectConversation>(Chat2Gen.deselectConversation, deselectConversation)
 
   yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnect)
 

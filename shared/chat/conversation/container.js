@@ -26,26 +26,40 @@ type SwitchProps = {
 
 const DONT_RENDER_CONVERSATION = __DEV__ && false
 
-class ConversationImpl extends React.PureComponent<SwitchProps> {
-  _handleSelectionChange = () => {
-    if (this.props.isFocused) {
-      this.props.selectConversation()
-    } else {
-      // need to defer this so we don't race if we're clicking between two chats on 2 tabs. TODO think of a better way to make this safe
-      setTimeout(this.props.deselectConversation, 100)
-    }
+let NavigationEvents
+if (flags.useNewRouter) {
+  NavigationEvents = require('@react-navigation/core').NavigationEvents
+} else {
+  NavigationEvents = () => null
+}
+
+class Conversation extends React.PureComponent<SwitchProps> {
+  _onDidFocus = () => {
+    this.props.selectConversation()
   }
-  componentWillMount() {
-    this._handleSelectionChange()
+  _onWillBlur = () => {
+    this.props.deselectConversation()
   }
-  componentDidUpdate(prevProps: SwitchProps) {
-    if (
-      this.props.isFocused !== prevProps.isFocused ||
-      this.props.conversationIDKey !== prevProps.conversationIDKey
-    ) {
-      this._handleSelectionChange()
-    }
-  }
+
+  // _handleSelectionChange = () => {
+  // if (this.props.isFocused) {
+  // this.props.selectConversation()
+  // } else {
+  // // need to defer this so we don't race if we're clicking between two chats on 2 tabs. TODO think of a better way to make this safe
+  // setTimeout(this.props.deselectConversation, 1000)
+  // }
+  // }
+  // componentWillMount() {
+  // this._handleSelectionChange()
+  // }
+  // componentDidUpdate(prevProps: SwitchProps) {
+  // if (
+  // this.props.isFocused !== prevProps.isFocused ||
+  // this.props.conversationIDKey !== prevProps.conversationIDKey
+  // ) {
+  // this._handleSelectionChange()
+  // }
+  // }
 
   render() {
     if (DONT_RENDER_CONVERSATION) {
@@ -67,7 +81,12 @@ class ConversationImpl extends React.PureComponent<SwitchProps> {
         // To solve this we render a blank screen on mobile conversation views with "noConvo"
         return isMobile ? null : <NoConversation />
       case 'normal':
-        return <Normal conversationIDKey={this.props.conversationIDKey} isPending={this.props.isPending} />
+        return (
+          <>
+            <NavigationEvents onDidFocus={this._onDidFocus} onWillBlur={this._onWillBlur} />
+            <Normal conversationIDKey={this.props.conversationIDKey} isPending={this.props.isPending} />
+          </>
+        )
       case 'youAreReset':
         return <YouAreReset />
       case 'rekey':
@@ -77,14 +96,6 @@ class ConversationImpl extends React.PureComponent<SwitchProps> {
         return <NoConversation />
     }
   }
-}
-
-let Conversation
-if (flags.useNewRouter) {
-  const {withNavigationFocus} = require('@react-navigation/core')
-  Conversation = withNavigationFocus(ConversationImpl)
-} else {
-  Conversation = ConversationImpl
 }
 
 const mapStateToProps = (state, ownProps) => {
@@ -123,6 +134,12 @@ const mapStateToProps = (state, ownProps) => {
 }
 
 const mapDispatchToProps = dispatch => ({
+  _deselectConversation: ifConversationIDKey =>
+    dispatch(
+      Chat2Gen.createDeselectConversation({
+        ifConversationIDKey,
+      })
+    ),
   _selectConversation: conversationIDKey =>
     dispatch(
       Chat2Gen.createSelectConversation({
@@ -160,7 +177,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     deselectConversation:
       !flags.useNewRouter || stateProps._storeConvoIDKey !== stateProps.conversationIDKey
         ? () => {}
-        : () => dispatchProps._selectConversation(Constants.noConversationIDKey),
+        : () => dispatchProps._deselectConversation(stateProps.conversationIDKey),
     isPending: stateProps.isPending,
     selectConversation:
       !flags.useNewRouter ||
