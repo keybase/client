@@ -554,7 +554,12 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				g.Debug(ctx, "chat activity: unable to update inbox: %v", err)
 			}
 			// Add on reply information if we have it
-			decmsg, pushErr = g.getReplyMessage(ctx, uid, conv, decmsg)
+			if pushErr == nil {
+				decmsg, pushErr = g.getReplyMessage(ctx, uid, conv, decmsg)
+				if pushErr != nil {
+					g.Debug(ctx, "chat activity: failed to get reply for push: %s", err)
+				}
+			}
 
 			// If we have no error on this message, then notify the frontend
 			if pushErr == nil {
