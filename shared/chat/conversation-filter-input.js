@@ -70,18 +70,12 @@ class ConversationFilterInput extends React.PureComponent<Props> {
             this.props.style,
           ])}
         >
-          <Kb.Icon
-            type="iconfont-search"
-            style={styles.icon}
-            color={Styles.globalColors.black_50}
-            fontSize={Styles.isMobile ? 20 : 16}
-          />
           <Kb.Input
             autoFocus={Styles.isMobile}
             hideUnderline={true}
             small={true}
             value={this.props.filter}
-            hintText="Search..."
+            hintText="Search your chats..."
             onChangeText={this.props.onSetFilter}
             onKeyDown={this._onKeyDown}
             onEnterKeyDown={this._onEnterKeyDown}
@@ -90,7 +84,7 @@ class ConversationFilterInput extends React.PureComponent<Props> {
           />
           <Kb.Icon
             type="iconfont-remove"
-            fontSize={16}
+            sizeType="Small"
             color={Styles.globalColors.black_50}
             onClick={this.props.onStopSearch}
             style={styles.icon}
@@ -122,10 +116,10 @@ class ConversationFilterInput extends React.PureComponent<Props> {
                 type="iconfont-search"
                 style={styles.icon}
                 color={Styles.globalColors.black_50}
-                fontSize={Styles.isMobile ? 20 : 16}
+                sizeType="Small"
               />
               <Kb.Text type="BodySemibold" style={styles.text}>
-                Search...
+                Search
               </Kb.Text>
               {!Styles.isMobile && !this.props.noShortcut && (
                 <Kb.Text type="BodySemibold" style={styles.textFaint}>
@@ -163,16 +157,17 @@ const styles = Styles.styleSheetCreate({
   },
   containerFiltering: Styles.platformStyles({
     common: {
-      height: 48,
       position: 'relative',
     },
     isElectron: {
       ...Styles.padding(0, Styles.globalMargins.small),
       backgroundColor: Styles.globalColors.blueGrey,
+      height: 39,
     },
     isMobile: {
       ...Styles.padding(0, Styles.globalMargins.small, 0, Styles.globalMargins.xsmall),
       backgroundColor: Styles.globalColors.fastBlank,
+      height: 48,
     },
   }),
   containerNotFiltering: Styles.platformStyles({
@@ -238,12 +233,10 @@ const styles = Styles.styleSheetCreate({
     marginLeft: Styles.globalMargins.xtiny,
     marginRight: Styles.globalMargins.xtiny,
     position: 'relative',
-    top: 1,
   },
   textFaint: {
     color: Styles.globalColors.black_35,
     position: 'relative',
-    top: 1,
   },
   whiteBg: {
     backgroundColor: Styles.globalColors.white,
