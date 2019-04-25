@@ -48,7 +48,7 @@ class InboxSearch extends React.Component<Props, State> {
     return item.type === 'big' ? (
       <SelectableBigTeamChannel
         conversationIDKey={item.conversationIDKey}
-        isSelected={this.props.selectedIndex === realIndex}
+        isSelected={!Styles.isMobile && this.props.selectedIndex === realIndex}
         numSearchHits={item?.numHits ?? undefined}
         maxSearchHits={Constants.inboxSearchMaxTextMessages}
         onSelectConversation={() => section.onSelect(item, realIndex)}
@@ -56,7 +56,7 @@ class InboxSearch extends React.Component<Props, State> {
     ) : (
       <SelectableSmallTeam
         conversationIDKey={item.conversationIDKey}
-        isSelected={this.props.selectedIndex === realIndex}
+        isSelected={!Styles.isMobile && this.props.selectedIndex === realIndex}
         numSearchHits={item?.numHits ?? undefined}
         maxSearchHits={Constants.inboxSearchMaxTextMessages}
         onSelectConversation={() => section.onSelect(item, realIndex)}
