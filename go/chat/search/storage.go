@@ -59,20 +59,22 @@ func newStore(g *globals.Context) *store {
 func (s *store) dbKey(convID chat1.ConversationID, uid gregor1.UID) libkb.DbKey {
 	return libkb.DbKey{
 		Typ: libkb.DBChatIndex,
-		Key: fmt.Sprintf("idx_j:%s:%s", uid, convID),
+		Key: fmt.Sprintf("idx_j2:%s:%s", uid, convID),
 	}
 }
 
 func (s *store) marshal(idx *chat1.ConversationIndexDisk) ([]byte, error) {
 	res, err := json.Marshal(idx)
-	s.Debug(context.TODO(), "marshal: %s", res)
 	return res, err
 }
 
 func (s *store) unmarshalIndex(idx *chat1.ConversationIndexDisk, dat []byte) (err error) {
 	var res []chat1.TokenTuple
 	jsonparser.ArrayEach(dat,
-		func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+		func(value []byte, dataType jsonparser.ValueType, offset int, inErr error) {
+			if err != nil {
+				return
+			}
 			var token string
 			token, err = jsonparserw.GetString(value, "t")
 			if err != nil {
@@ -104,8 +106,10 @@ func (s *store) unmarshalIndex(idx *chat1.ConversationIndexDisk, dat []byte) (er
 func (s *store) unmarshalAliases(idx *chat1.ConversationIndexDisk, dat []byte) (err error) {
 	var res []chat1.AliasTuple
 	jsonparser.ArrayEach(dat,
-		func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
-			s.Debug(context.TODO(), "unmarshal: aliases: %s", value)
+		func(value []byte, dataType jsonparser.ValueType, offset int, inErr error) {
+			if err != nil {
+				return
+			}
 			var alias string
 			alias, err = jsonparserw.GetString(value, "a")
 			if err != nil {
@@ -115,16 +119,8 @@ func (s *store) unmarshalAliases(idx *chat1.ConversationIndexDisk, dat []byte) (
 			aliasTuple.Alias = alias
 			jsonparser.ArrayEach(value,
 				func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
-					var token string
-					token, err = jsonparserw.GetString(value)
-					if err != nil {
-						return
-					}
-					aliasTuple.Tokens = append(aliasTuple.Tokens, token)
+					aliasTuple.Tokens = append(aliasTuple.Tokens, string(value))
 				}, "t")
-			if err != nil {
-				return
-			}
 			res = append(res, aliasTuple)
 		})
 	if err != nil {
@@ -141,7 +137,10 @@ func (s *store) unmarshalMetadata(idx *chat1.ConversationIndexDisk, dat []byte) 
 	}
 	var seenIDs []chat1.MessageID
 	jsonparser.ArrayEach(dat,
-		func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+		func(value []byte, dataType jsonparser.ValueType, offset int, inErr error) {
+			if err != nil {
+				return
+			}
 			var msgID int64
 			msgID, err = jsonparserw.GetInt(value)
 			if err != nil {
@@ -160,7 +159,6 @@ func (s *store) unmarshalMetadata(idx *chat1.ConversationIndexDisk, dat []byte) 
 }
 
 func (s *store) unmarshal(idx *chat1.ConversationIndexDisk, dat []byte) error {
-	s.Debug(context.TODO(), "unmarshal: begin: %s", dat)
 	jsonIndexList, _, _, err := jsonparser.Get(dat, "i")
 	if err != nil {
 		return err
