@@ -429,6 +429,7 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
         type="Body"
         lineClamp={this.props.lineClamp}
         style={Styles.collapseStyles([styles.rootWrapper, this.props.style])}
+        selectable={this.props.selectable}
       >
         {inner}
       </Text>

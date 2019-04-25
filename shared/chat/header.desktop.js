@@ -43,7 +43,7 @@ const descStyleOverride = {
 const Header = (p: Props) => {
   let description = !!p.desc && (
     // $FlowIssue not used on mobile
-    <Kb.Markdown style={styles.desc} styleOverride={descStyleOverride} lineClamp={1}>
+    <Kb.Markdown style={styles.desc} styleOverride={descStyleOverride} lineClamp={1} selectable={true}>
       {p.desc}
     </Kb.Markdown>
   )
@@ -126,7 +126,6 @@ const styles = Styles.styleSheetCreate({
   desc: {
     ...Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
     color: Styles.globalColors.black_50,
-    fontSize: 12,
   },
   grow: {flexGrow: 1},
   left: {minWidth: 260},

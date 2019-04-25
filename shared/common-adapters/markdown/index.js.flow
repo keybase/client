@@ -42,6 +42,7 @@ export type StyleOverride = {
 export type Props = {|
   children?: string,
   lineClamp?: number,
+  selectable?: boolean, // desktop - applies to outer container only
   preview?: boolean, // if true render a simplified version
   // Style only styles the top level container.
   // This is only useful in desktop because of cascading styles and there is a top level wrapper.
