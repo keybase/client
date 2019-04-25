@@ -22,6 +22,7 @@ const SupportedVersion int = 1
 type proofServices struct {
 	sync.Mutex
 	libkb.Contextified
+	loadedHash       *keybase1.MerkleStoreKitHash
 	externalServices map[string]libkb.ServiceType // map keys are ServiceType.Key()
 	displayConfigs   map[string]keybase1.ServiceDisplayConfig
 	suggestionFold   int
@@ -124,13 +125,17 @@ func (p *proofServices) loadServiceConfigs() {
 	}
 
 	mctx := libkb.NewMetaContext(context.TODO(), p.G())
-	entry, err := p.G().GetParamProofStore().GetLatestEntry(mctx)
+	entry, err := p.G().GetParamProofStore().GetLatestEntryWithKnown(mctx, p.loadedHash)
 	if err != nil {
 		p.G().Log.CDebugf(context.TODO(), "unable to load paramproofs: %v", err)
 		return
 	}
+	if entry == nil {
+		// Latest config already loaded.
+		return
+	}
 	tracer.Stage("parse")
-	config, err := p.parseServerConfig(entry)
+	config, err := p.parseServerConfig(*entry)
 	if err != nil {
 		p.G().Log.CDebugf(context.TODO(), "unable to parse paramproofs: %v", err)
 		return
@@ -152,6 +157,7 @@ func (p *proofServices) loadServiceConfigs() {
 			service.SetDisplayConfig(config)
 		}
 	}
+	p.loadedHash = &entry.Hash
 }
 
 type parsedServerConfig struct {

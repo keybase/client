@@ -88,39 +88,59 @@ type merkleStoreKitT struct {
 	Tab map[int]json.RawMessage `json:"tab"`
 }
 
-// GetLatestEntry returns the latest (active) entry for the given MerkleStore
-func (s *MerkleStoreImpl) GetLatestEntry(m libkb.MetaContext) (ret keybase1.MerkleStoreEntry, err error) {
+// GetLatestEntry returns the latest entry for the given MerkleStore.
+// Returns (nil, nil) if knownHash is the active entry.
+func (s *MerkleStoreImpl) GetLatestEntryWithKnown(m libkb.MetaContext, knownHash *keybase1.MerkleStoreKitHash) (*keybase1.MerkleStoreEntry, error) {
 	tracer := m.G().CTimeTracer(m.Ctx(), "MerkleStore.GetLatestEntry", libkb.ProfileProofSuggestions)
 	defer tracer.Finish()
-	kitJSON, hash, err := s.getKitString(m, tracer)
+	kitJSON, hash, err := s.getKitString(m, knownHash, tracer)
 	if err != nil {
-		return ret, err
+		return nil, err
+	}
+	if kitJSON == "" {
+		if knownHash != nil && hash == *knownHash {
+			return nil, nil
+		}
+		return nil, NewMerkleStoreError("unexpected empty merkle store response")
 	}
 
 	tracer.Stage("unmarshal")
 	var kit merkleStoreKitT
 	if err = json.Unmarshal([]byte(kitJSON), &kit); err != nil {
-		return ret, NewMerkleStoreError("unmarshalling kit: %s", err)
+		return nil, NewMerkleStoreError("unmarshalling kit: %s", err)
 	}
 
 	sub, ok := kit.Tab[int(s.supportedVersion)]
 	if !ok {
-		return ret, NewMerkleStoreError("missing %s for version: %d", s.tag, s.supportedVersion)
+		return nil, NewMerkleStoreError("missing %s for version: %d", s.tag, s.supportedVersion)
 	}
 	if len(sub) == 0 {
-		return ret, NewMerkleStoreError("empty %s for version: %d", s.tag, s.supportedVersion)
+		return nil, NewMerkleStoreError("empty %s for version: %d", s.tag, s.supportedVersion)
 	}
 
-	return keybase1.MerkleStoreEntry{
+	return &keybase1.MerkleStoreEntry{
 		Hash:  hash,
 		Entry: keybase1.MerkleStoreEntryString(sub),
 	}, nil
 }
 
+// GetLatestEntry returns the latest entry for the given MerkleStore
+func (s *MerkleStoreImpl) GetLatestEntry(m libkb.MetaContext) (keybase1.MerkleStoreEntry, error) {
+	ret, err := s.GetLatestEntryWithKnown(m, nil)
+	if err != nil {
+		return keybase1.MerkleStoreEntry{}, err
+	}
+	if ret == nil {
+		return keybase1.MerkleStoreEntry{}, NewMerkleStoreError("unexpected empty merkle store response")
+	}
+	return *ret, nil
+}
+
 // Get stored kit as a string.  First it makes sure that the merkle root is
 // recent enough.  Using the hash from that, it fetches from in-memory falling
 // back to db falling back to server.
-func (s *MerkleStoreImpl) getKitString(m libkb.MetaContext, tracer profiling.TimeTracer) (
+// A special case: Returns ("", hash, nil) if hash == knownHash.
+func (s *MerkleStoreImpl) getKitString(m libkb.MetaContext, knownHash *keybase1.MerkleStoreKitHash, tracer profiling.TimeTracer) (
 	keybase1.MerkleStoreKit, keybase1.MerkleStoreKitHash, error) {
 
 	// Use a file instead if specified.
@@ -170,6 +190,9 @@ func (s *MerkleStoreImpl) getKitString(m libkb.MetaContext, tracer profiling.Tim
 
 	if hash == "" {
 		return "", "", NewMerkleStoreError("merkle root has empty %s hash: %v", s.tag, seqnoWrap(root.Seqno()))
+	}
+	if knownHash != nil && hash == *knownHash {
+		return "", hash, nil
 	}
 
 	// Use in-memory cache if it matches
