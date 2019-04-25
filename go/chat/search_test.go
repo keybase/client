@@ -544,6 +544,7 @@ func TestChatSearchInbox(t *testing.T) {
 			BeforeContext: 2,
 			AfterContext:  2,
 			MaxMessages:   1000,
+			MaxNameConvs:  1,
 		}
 
 		// Test basic equality match
