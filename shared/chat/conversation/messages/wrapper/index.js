@@ -90,7 +90,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
   }
 
   componentDidUpdate(prevProps: Props) {
-    if (this.props.centeredOrdinal && !prevProps.centeredOrdinal) {
+    if (this.props.centeredOrdinal !== prevProps.centeredOrdinal) {
       this._updateHighlightMode()
     }
     if (this.props.measure) {
