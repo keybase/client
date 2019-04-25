@@ -11,18 +11,16 @@ type Props = {|
 |}
 
 const FsNavHeaderRightActions = (props: Props) => (
-  <Kb.Box style={styles.outerContainer}>
-    <Kb.Box2 direction="horizontal" style={styles.container} centerChildren={true}>
-      <Kbfs.UploadButton path={props.path} style={styles.uploadButton} />
-      {Styles.isMobile ? (
-        <Kbfs.FolderViewFilterIcon path={props.path} onClick={props.onTriggerFilterMobile} />
-      ) : (
-        <Kbfs.FolderViewFilter path={props.path} style={styles.folderViewFilter} />
-      )}
-      <Kbfs.OpenInSystemFileManager path={props.path} />
-      <Kbfs.PathItemAction path={props.path} clickable={{type: 'icon'}} initView="root" mode="screen" />
-    </Kb.Box2>
-  </Kb.Box>
+  <Kb.Box2 direction="horizontal" style={styles.container} centerChildren={true}>
+    <Kbfs.UploadButton path={props.path} style={styles.uploadButton} />
+    {Styles.isMobile ? (
+      <Kbfs.FolderViewFilterIcon path={props.path} onClick={props.onTriggerFilterMobile} />
+    ) : (
+      <Kbfs.FolderViewFilter path={props.path} style={styles.folderViewFilter} />
+    )}
+    <Kbfs.OpenInSystemFileManager path={props.path} />
+    <Kbfs.PathItemAction path={props.path} clickable={{type: 'icon'}} initView="root" mode="screen" />
+  </Kb.Box2>
 )
 
 export default FsNavHeaderRightActions
@@ -40,13 +38,6 @@ const styles = Styles.styleSheetCreate({
     marginRight: Styles.globalMargins.tiny,
     width: 140,
   },
-  outerContainer: Styles.platformStyles({
-    isElectron: {
-      // this extra container make the inner container positioned at top of the
-      // 40px space. 39 is because divider is part of this.
-      height: 39,
-    },
-  }),
   uploadButton: Styles.platformStyles({
     isElectron: {
       marginLeft: Styles.globalMargins.tiny,
