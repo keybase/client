@@ -66,8 +66,6 @@ func (e *PassphraseRecover) Run(mctx libkb.MetaContext) (err error) {
 		return err
 	}
 
-	mctx.Error("usernameFound %v", usernameFound)
-
 	// Load the user by username
 	ueng := newLoginLoadUser(mctx.G(), e.arg.Username)
 	if err := RunEngine2(mctx, ueng); err != nil {
@@ -124,7 +122,7 @@ func (e *PassphraseRecover) processUsername(mctx libkb.MetaContext) (ok bool, er
 }
 
 func (e *PassphraseRecover) legacyRecovery(mctx libkb.MetaContext) (err error) {
-	return e.changeWithPaper(mctx)
+	return e.loginWithPaperKey(mctx)
 }
 
 func (e *PassphraseRecover) chooseDevice(mctx libkb.MetaContext, ckf *libkb.ComputedKeyFamily) (err error) {
@@ -165,7 +163,7 @@ func (e *PassphraseRecover) chooseDevice(mctx libkb.MetaContext, ckf *libkb.Comp
 	// Roughly the same flow as in provisioning
 	switch selected.Type {
 	case libkb.DeviceTypePaper:
-		return e.changeWithPaper(mctx)
+		return e.loginWithPaperKey(mctx)
 	case libkb.DeviceTypeDesktop, libkb.DeviceTypeMobile:
 		return e.explainChange(mctx, selected)
 	default:
@@ -196,15 +194,26 @@ func (e *PassphraseRecover) suggestReset(mctx libkb.MetaContext) (err error) {
 	return nil
 }
 
-func (e *PassphraseRecover) changeWithPaper(mctx libkb.MetaContext) (err error) {
+func (e *PassphraseRecover) loginWithPaperKey(mctx libkb.MetaContext) (err error) {
 	// First log in using the paper key
 	loginEng := NewLoginWithPaperKey(mctx.G(), e.arg.Username)
 	if err := RunEngine2(mctx, loginEng); err != nil {
-		mctx.Error("login fail %v", err)
 		return err
 	}
 
-	mctx.Error("hsk before")
+	if err := e.changePassword(mctx); err != nil {
+		// Log out before returning
+		if err2 := RunEngine2(mctx, NewLogout()); err2 != nil {
+			mctx.Warning("Unable to log out after password change failed: %v", err2)
+		}
+
+		return err
+	}
+
+	return nil
+}
+
+func (e *PassphraseRecover) changePassword(mctx libkb.MetaContext) (err error) {
 	// Once logged in, check if there are any server keys
 	hskEng := NewHasServerKeys(mctx.G())
 	if err := RunEngine2(mctx, hskEng); err != nil {
