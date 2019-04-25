@@ -35,7 +35,7 @@ const mapStateToProps = (state, {path}) => ({
   _view: state.fs.pathItemActionMenu.view,
 })
 
-const mapDispatchToProps = (dispatch, {path, mode, routePath}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {mode, path, routePath}: OwnProps) => ({
   _cancel: (key: string) => dispatch(FsGen.createCancelDownload({key})),
   _confirmSaveMedia: (toCancel: ?string) =>
     dispatch(FsGen.createSetPathItemActionMenuView({view: 'confirm-save-media'})),
@@ -46,7 +46,7 @@ const mapDispatchToProps = (dispatch, {path, mode, routePath}: OwnProps) => ({
     dispatch(
       RouteTreeGen.createNavigateTo({
         parentPath: [fsTab],
-        path: [{props: {path, mode}, selected: 'reallyDelete'}],
+        path: [{props: {mode, path}, selected: 'reallyDelete'}],
       })
     )
   },
