@@ -443,15 +443,15 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	// Message sending apparatus
 	s3signer := attachments.NewS3Signer(ri)
 	store := attachments.NewS3Store(g.GetLog(), g.GetEnv(), g.GetRuntimeDir())
-	g.AttachmentUploader = attachments.NewUploader(g, store, s3signer, ri)
-	g.AddDbNukeHook(g.AttachmentUploader, "AttachmentUploader")
+	attachmentLRUSize := 1000
+	g.AttachmentUploader = attachments.NewUploader(g, store, s3signer, ri, attachmentLRUSize)
 	sender := chat.NewBlockingSender(g, chat.NewBoxer(g), ri)
 	g.MessageDeliverer = chat.NewDeliverer(g, sender)
 
 	// team channel source
 	g.TeamChannelSource = chat.NewTeamChannelSource(g)
 
-	g.AttachmentURLSrv = chat.NewAttachmentHTTPSrv(g, chat.NewCachingAttachmentFetcher(g, store, 1000), ri)
+	g.AttachmentURLSrv = chat.NewAttachmentHTTPSrv(g, chat.NewCachingAttachmentFetcher(g, store, attachmentLRUSize), ri)
 	g.AddDbNukeHook(g.AttachmentURLSrv, "AttachmentURLSrv")
 
 	g.StellarLoader = stellar.DefaultLoader(g.ExternalG())

@@ -417,6 +417,9 @@ func (d *DiskLRU) Clean(ctx context.Context, lctx libkb.LRUContext, cacheDir str
 	d.Lock()
 	defer d.Unlock()
 
+	// clear our inmemory cache without flushing to disk to force a new read
+	d.index = nil
+
 	// reverse map of filepaths to lru keys
 	cacheRevMap := map[string]string{}
 	allVals, err := d.allValuesLocked(ctx, lctx)
