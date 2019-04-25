@@ -117,7 +117,7 @@ const _TeamHeader = (props: Props) => (
           <Kb.Button
             type="Default"
             mode="Secondary"
-            label={'Add people...'}
+            label={'Add people'}
             ref={Styles.isMobile ? undefined : props.setAttachmentRef}
             onClick={props.toggleShowingMenu}
           />
