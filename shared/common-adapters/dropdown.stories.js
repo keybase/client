@@ -4,7 +4,7 @@ import Box from './box'
 import Text from './text'
 import * as Styles from '../styles'
 import * as Sb from '../stories/storybook'
-import Dropdown from './dropdown'
+import Dropdown, {InlineDropdown} from './dropdown'
 
 const load = () => {
   Sb.storiesOf('Common', module)
@@ -101,6 +101,14 @@ const load = () => {
             style={styles.dropdownPositions}
           />
         ))}
+        <Box style={styles.space} />
+      </Box>
+    ))
+    .add('InlineDropdown', () => (
+      <Box style={styles.container}>
+        <Box style={styles.space} />
+        <InlineDropdown label="Pick" type="Body" onPress={Sb.action('onPress')} />
+        <InlineDropdown label="Pick" type="BodySmall" onPress={Sb.action('onPress')} />
         <Box style={styles.space} />
       </Box>
     ))
