@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
+import * as Platform from '../../constants/platform'
 import * as Styles from '../../styles'
 import SyncingFolders from './syncing-folders'
 import flags from '../../util/feature-flags'
@@ -53,6 +54,10 @@ class Header extends React.PureComponent<Props> {
       showDivider = false
     }
 
+    const backArrowStyle = {
+      ...(this.props.allowBack ? styles.icon : styles.disabledIcon),
+      ...(!this.props.loggedIn && Platform.isDarwin ? {position: 'relative', top: 30} : {}),
+    }
     return (
       <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true}>
         {!!opt.headerBanner && opt.headerBanner}
@@ -65,7 +70,7 @@ class Header extends React.PureComponent<Props> {
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerBack} alignItems="center">
             <Kb.Icon
               type="iconfont-arrow-left"
-              style={this.props.allowBack ? styles.icon : styles.disabledIcon}
+              style={backArrowStyle}
               color={this.props.allowBack ? Styles.globalColors.black_50 : Styles.globalColors.black_10}
               onClick={this.props.onPop}
             />
