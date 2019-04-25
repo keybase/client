@@ -623,6 +623,11 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal?": "Types.Ordinal"
     },
+    "replyJump": {
+      "_description": "Jump to a replied to message",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "Types.MessageID"
+    },
     "setThreadSearchQuery": {
       "_description": "Set thread search query (used from inbox search to initialize it)",
       "conversationIDKey": "Types.ConversationIDKey",

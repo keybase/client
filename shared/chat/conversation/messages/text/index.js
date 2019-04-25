@@ -5,6 +5,7 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 
 type ReplyProps = {
+  deleted: boolean,
   edited: boolean,
   onClick: () => void,
   text: string,
@@ -29,7 +30,13 @@ const Reply = (props: ReplyProps) => {
               {props.username}
             </Kb.Text>
           </Kb.Box2>
-          <Kb.Text type="BodySmall">{props.text}</Kb.Text>
+          {!props.deleted ? (
+            <Kb.Text type="BodySmall">{props.text}</Kb.Text>
+          ) : (
+            <Kb.Text type="BodyTiny" style={styles.replyEdited}>
+              Original message deleted
+            </Kb.Text>
+          )}
           {props.edited && (
             <Kb.Text type="BodyTiny" style={styles.replyEdited}>
               EDITED

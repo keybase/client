@@ -1501,6 +1501,14 @@ function* inboxSearch(state, action) {
   }
 }
 
+const onReplyJump = (state, action) => {
+  return Chat2Gen.createLoadMessagesCentered({
+    conversationIDKey: action.payload.conversationIDKey,
+    highlightMode: 'flash',
+    messageID: action.payload.messageID,
+  })
+}
+
 function* messageSend(state, action) {
   const {conversationIDKey, text} = action.payload
 
@@ -3373,6 +3381,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     EngineGen.chat1ChatUiChatCommandMarkdown,
     onChatCommandMarkdown
   )
+
+  yield* Saga.chainAction<Chat2Gen.ReplyJumpPayload>(Chat2Gen.replyJump, onReplyJump)
 
   yield* Saga.chainGenerator<Chat2Gen.InboxSearchPayload>(Chat2Gen.inboxSearch, inboxSearch)
   yield* Saga.chainAction<Chat2Gen.ToggleInboxSearchPayload>(Chat2Gen.toggleInboxSearch, onToggleInboxSearch)

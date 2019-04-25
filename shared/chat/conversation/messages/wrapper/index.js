@@ -42,8 +42,7 @@ import {formatTimeForChat} from '../../../../util/timestamp'
 export type Props = {|
   authorIsAdmin: ?boolean,
   authorIsOwner: ?boolean,
-  centeredOrdinal: boolean,
-  centeredOrdinalHighlightMode: Types.CenterOrdinalHighlightMode,
+  centeredOrdinal: Types.CenterOrdinalHighlightMode,
   conversationIDKey: Types.ConversationIDKey,
   decorate: boolean,
   exploded: boolean,
@@ -104,7 +103,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     }
   }
   _updateHighlightMode = () => {
-    switch (this.props.centeredOrdinalHighlightMode) {
+    switch (this.props.centeredOrdinal) {
       case 'flash':
         this.setState({disableCenteredHighlight: false})
         setTimeout(() => {
@@ -119,10 +118,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     }
   }
   _showCenteredHighlight = () => {
-    return (
-      !this.state.disableCenteredHighlight &&
-      (this.props.centeredOrdinal && this.props.centeredOrdinal !== 'none')
-    )
+    return !this.state.disableCenteredHighlight && this.props.centeredOrdinal !== 'none'
   }
   _onMouseOver = () => this.setState(o => (o.showMenuButton ? null : {showMenuButton: true}))
   _setShowingPicker = (showingPicker: boolean) =>

@@ -15,7 +15,7 @@ const mapStateToProps = (state, {conversationIDKey}) => {
   const text = message && message.type === 'text' ? message.text.stringValue() : ''
   return {
     text,
-    username: message ? message.author : '',
+    username: message?.author || '',
   }
 }
 

@@ -88,6 +88,7 @@ export const paymentInfoReceived = 'chat2:paymentInfoReceived'
 export const pendingMessageWasEdited = 'chat2:pendingMessageWasEdited'
 export const prepareFulfillRequestForm = 'chat2:prepareFulfillRequestForm'
 export const previewConversation = 'chat2:previewConversation'
+export const replyJump = 'chat2:replyJump'
 export const requestInfoReceived = 'chat2:requestInfoReceived'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
@@ -213,6 +214,7 @@ type _PaymentInfoReceivedPayload = $ReadOnly<{|conversationIDKey: Types.Conversa
 type _PendingMessageWasEditedPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal, text: HiddenString|}>
 type _PrepareFulfillRequestFormPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal|}>
 type _PreviewConversationPayload = $ReadOnly<{|participants?: Array<string>, teamname?: string, channelname?: string, conversationIDKey?: Types.ConversationIDKey, reason: 'manageView' | 'messageLink' | 'resetChatWithoutThem' | 'tracker' | 'teamHeader' | 'files' | 'teamInvite' | 'fromAReset' | 'profile' | 'teamMember' | 'teamHeader' | 'convertAdHoc' | 'memberView' | 'newChannel' | 'transaction' | 'requestedPayment'|}>
+type _ReplyJumpPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID|}>
 type _RequestInfoReceivedPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: RPCChatTypes.MessageID, requestInfo: Types.ChatRequestInfo|}>
 type _ResetChatWithoutThemPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _ResetLetThemInPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, username: string|}>
@@ -322,6 +324,10 @@ export const createInboxSearchNameResults = (payload: _InboxSearchNameResultsPay
  * Inbox text result has arrived
  */
 export const createInboxSearchTextResult = (payload: _InboxSearchTextResultPayload) => ({payload, type: inboxSearchTextResult})
+/**
+ * Jump to a replied to message
+ */
+export const createReplyJump = (payload: _ReplyJumpPayload) => ({payload, type: replyJump})
 /**
  * Jump to most recent messages in a conversation
  */
@@ -633,6 +639,7 @@ export type PaymentInfoReceivedPayload = {|+payload: _PaymentInfoReceivedPayload
 export type PendingMessageWasEditedPayload = {|+payload: _PendingMessageWasEditedPayload, +type: 'chat2:pendingMessageWasEdited'|}
 export type PrepareFulfillRequestFormPayload = {|+payload: _PrepareFulfillRequestFormPayload, +type: 'chat2:prepareFulfillRequestForm'|}
 export type PreviewConversationPayload = {|+payload: _PreviewConversationPayload, +type: 'chat2:previewConversation'|}
+export type ReplyJumpPayload = {|+payload: _ReplyJumpPayload, +type: 'chat2:replyJump'|}
 export type RequestInfoReceivedPayload = {|+payload: _RequestInfoReceivedPayload, +type: 'chat2:requestInfoReceived'|}
 export type ResetChatWithoutThemPayload = {|+payload: _ResetChatWithoutThemPayload, +type: 'chat2:resetChatWithoutThem'|}
 export type ResetLetThemInPayload = {|+payload: _ResetLetThemInPayload, +type: 'chat2:resetLetThemIn'|}
@@ -761,6 +768,7 @@ export type Actions =
   | PendingMessageWasEditedPayload
   | PrepareFulfillRequestFormPayload
   | PreviewConversationPayload
+  | ReplyJumpPayload
   | RequestInfoReceivedPayload
   | ResetChatWithoutThemPayload
   | ResetLetThemInPayload

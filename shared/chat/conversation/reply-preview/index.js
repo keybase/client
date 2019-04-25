@@ -18,7 +18,7 @@ const ReplyPreview = (props: Props) => {
           <Kb.Text type="BodyTiny">Replying to...</Kb.Text>
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.replyContainer}>
-          <Kb.Box2 direction="vertical" fullWidth={!Styles.isMobile} gap="tiny">
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.contentContainer} gap="tiny">
             <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
               <Kb.Avatar username={props.username} size={32} />
               <Kb.Text type="BodySemibold" style={styles.username}>
@@ -54,6 +54,11 @@ const styles = Styles.styleSheetCreate({
       borderRadius: Styles.borderRadius,
     },
   }),
+  contentContainer: Styles.platformStyles({
+    isMobile: {
+      flex: 1,
+    },
+  }),
   outerContainer: Styles.platformStyles({
     isElectron: {
       marginBottom: Styles.globalMargins.xtiny,
@@ -77,7 +82,7 @@ const styles = Styles.styleSheetCreate({
       whiteSpace: 'nowrap',
     },
     isMobile: {
-      maxWidth: '95%',
+      flex: 1,
     },
   }),
   title: {

@@ -9,16 +9,32 @@ type OwnProps = {|
   message: Types.MessageText,
 |}
 
+const replyNoop = () => {}
+
 const getReplyProps = (replyTo, onReplyClick) => {
-  if (!replyTo || replyTo.type !== 'text') {
+  if (!replyTo) {
     return undefined
   }
-  return {
-    edited: replyTo.hasBeenEdited,
-    onClick: () => onReplyClick(replyTo.id),
-    text: replyTo.text.stringValue(),
-    username: replyTo.author,
+  switch (replyTo.type) {
+    case 'text':
+      return {
+        deleted: false,
+        edited: replyTo.hasBeenEdited,
+        onClick: () => onReplyClick(replyTo.id),
+        text: replyTo.text.stringValue(),
+        username: replyTo.author,
+      }
+    case 'deleted':
+    case 'placeholder':
+      return {
+        deleted: true,
+        edited: false,
+        onClick: replyNoop,
+        text: '',
+        username: '',
+      }
   }
+  return undefined
 }
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
@@ -30,9 +46,8 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 const mapDispatchToProps = (dispatch, {message}: OwnProps) => ({
   _onReplyClick: messageID =>
     dispatch(
-      Chat2Gen.createLoadMessagesCentered({
+      Chat2Gen.createReplyJump({
         conversationIDKey: message.conversationIDKey,
-        highlightMode: 'flash',
         messageID,
       })
     ),
