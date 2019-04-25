@@ -1168,7 +1168,7 @@ export type PreviewLocationTyp =
   | 1 // FILE_1
   | 2 // BYTES_2
 
-export type ProfileSearchConvStats = $ReadOnly<{err: String, convName: String, minConvID: MessageID, maxConvID: MessageID, numMissing: Int, numMessages: Int, indexSize: Int, durationMsec: Gregor1.DurationMsec, percentIndexed: Int}>
+export type ProfileSearchConvStats = $ReadOnly<{err: String, convName: String, minConvID: MessageID, maxConvID: MessageID, numMissing: Int, numMessages: Int, indexSizeDisk: Int, indexSizeMem: Int64, durationMsec: Gregor1.DurationMsec, percentIndexed: Int}>
 export type RateLimit = $ReadOnly<{name: String, callsRemaining: Int, windowReset: Int, maxCalls: Int}>
 export type ReIndexingMode =
   | 0 // NONE_0

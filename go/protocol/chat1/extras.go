@@ -15,6 +15,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unsafe"
 
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -2088,6 +2089,30 @@ func (h *ChatSearchInboxHit) Size() int {
 		return 0
 	}
 	return len(h.Hits)
+}
+
+func (m ConversationIndexMetadata) Size() int64 {
+	size := unsafe.Sizeof(m.Version)
+	size += uintptr(len(m.SeenIDs)) * unsafe.Sizeof(MessageID(0))
+	return int64(size)
+}
+
+func (idx *ConversationIndex) Size() int64 {
+	if idx == nil {
+		return 0
+	}
+	var size uintptr
+	for token, msgMap := range idx.Index {
+		size += unsafe.Sizeof(token)
+		size += uintptr(len(msgMap)) * unsafe.Sizeof(MessageID(0))
+	}
+	for alias, tokenMap := range idx.Alias {
+		size += unsafe.Sizeof(alias)
+		for token := range tokenMap {
+			size += unsafe.Sizeof(token)
+		}
+	}
+	return int64(size) + idx.Metadata.Size()
 }
 
 func (idx *ConversationIndex) MinMaxIDs(conv Conversation) (min, max MessageID) {
