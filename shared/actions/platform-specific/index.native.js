@@ -202,20 +202,27 @@ function* persistRoute(state, action) {
   }
 
   const path = action.payload.path
-  const top = path[path.length - 2] // real top is the root of the tab (aka chatRoot) and not the tab itself
-  if (!top) return
+  const tab = path[path.length - 2] // real top is the root of the tab (aka chatRoot) and not the tab itself
+  if (!tab) return
   let param = {}
   let routeName = ''
   // top level tab?
-  if (Tabs.isValidInitialTabString(top.routeName)) {
-    routeName = top.routeName
+  if (tab.routeName === 'tabs.chatTab') {
+    const convo = path[path.length - 1]
+    // a specific convo?
+    if (convo.routeName === 'chatConversation') {
+      routeName = convo.routeName
+      param = {selectedConversationIDKey: state.chat2.selectedConversation}
+    } else {
+      // just the inbox
+      routeName = tab.routeName
+    }
+  } else if (Tabs.isValidInitialTabString(tab.routeName)) {
+    routeName = tab.routeName
     if (routeName === _lastPersist) {
       // skip rewriting this
       return
     }
-  } else if (top.routeName === 'chatConversation') {
-    routeName = 'tabs.chatTab'
-    param = {selectedConversationIDKey: state.chat2.selectedConversation}
   } else {
     return // don't write, keep the last
   }

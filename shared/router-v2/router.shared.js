@@ -84,12 +84,12 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
           ? action.payload.path.last()
           : action.payload.path[action.payload.path.length - 1]
 
-        // a chat, we want people/inbox/chat
+        // a chat, we want inbox/chat
         if (p === 'chatConversation') {
           sa.push(NavigationActions.navigate({params: undefined, routeName: 'tabs.chatTab'}))
           sa.push(StackActions.push({params: undefined, routeName: 'chatConversation'}))
         } else {
-          sa.push(StackActions.push({params: undefined, routeName: p}))
+          sa.push(NavigationActions.navigate({params: undefined, routeName: p}))
         }
       }
 
