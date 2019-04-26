@@ -22,11 +22,14 @@ export const HeaderRightActions = ({onAdd}: {|onAdd: () => void|}) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  addDeviceButton: {
-    alignSelf: 'flex-end',
-    marginBottom: 6,
-    marginRight: Styles.globalMargins.xsmall,
-  },
+  addDeviceButton: Styles.platformStyles({
+    common: {
+      alignSelf: 'flex-end',
+      marginBottom: 6,
+      marginRight: Styles.globalMargins.xsmall,
+    },
+    isElectron: Styles.desktopStyles.windowDraggingClickable,
+  }),
   headerTitle: {
     paddingBottom: Styles.globalMargins.xtiny,
     paddingLeft: Styles.globalMargins.xsmall,
