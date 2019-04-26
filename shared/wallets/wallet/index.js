@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/wallets'
+import flags from '../../util/feature-flags'
 import AccountReloader from '../common/account-reloader'
 import Header from './header/container'
 import Asset from '../asset/container'
@@ -116,7 +117,9 @@ class Wallet extends React.Component<Props> {
   render() {
     return (
       <Kb.Box2 direction="vertical" style={{flexGrow: 1}} fullHeight={true}>
-        <Header navigateAppend={this.props.navigateAppend} onBack={this.props.onBack} />
+        {(!flags.useNewRouter || Styles.isMobile) && (
+          <Header navigateAppend={this.props.navigateAppend} onBack={this.props.onBack} />
+        )}
         <Kb.SectionList
           sections={this.props.sections}
           renderItem={this._renderItem}

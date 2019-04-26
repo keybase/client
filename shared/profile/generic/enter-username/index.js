@@ -171,9 +171,11 @@ class _EnterUsername extends React.Component<Props> {
               style={styles.serviceProofIcon}
             />
           </Kb.Box2>
-          <Kb.Box2 direction="vertical" alignItems="center">
+          <Kb.Box2 direction="vertical" alignItems="center" style={styles.serviceMeta}>
             <Kb.Text type="BodySemibold">{props.serviceName}</Kb.Text>
-            <Kb.Text type="BodySmall">{props.serviceSub}</Kb.Text>
+            <Kb.Text type="BodySmall" center={true}>
+              {props.serviceSub}
+            </Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
         <Kb.Box2
@@ -319,6 +321,16 @@ const styles = Styles.styleSheetCreate({
   serviceIconHeaderContainer: {
     paddingTop: Styles.globalMargins.medium,
   },
+  serviceMeta: Styles.platformStyles({
+    isElectron: {
+      paddingLeft: Styles.globalMargins.medium,
+      paddingRight: Styles.globalMargins.medium,
+    },
+    isMobile: {
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+    },
+  }),
   serviceProofIcon: {bottom: 0, position: 'absolute', right: 0},
   unreachableBox: Styles.platformStyles({
     common: {...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall)},

@@ -10,6 +10,7 @@ import SyncToggle from './sync-toggle-container'
 
 type Props = {|
   path: Types.Path,
+  mode?: 'offline' | 'default',
 |}
 
 const TopBarContainer = (props: {|children: React.Node|}) => (

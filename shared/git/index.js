@@ -4,6 +4,7 @@ import * as I from 'immutable'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import Row from './row/container'
+import flags from '../util/feature-flags'
 
 type Props = {|
   expandedSet: I.Set<string>,
@@ -47,19 +48,21 @@ class _Git extends React.Component<Props & Kb.OverlayParentProps, {}> {
   render() {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-        <Kb.ClickableBox
-          ref={this.props.setAttachmentRef}
-          style={styles.header}
-          onClick={this.props.toggleShowingMenu}
-        >
-          <Kb.Icon
-            type="iconfont-new"
-            style={{marginRight: Styles.globalMargins.tiny}}
-            color={Styles.globalColors.blue}
-            fontSize={Styles.isMobile ? 20 : 16}
-          />
-          <Kb.Text type="BodyBigLink">New encrypted git repository...</Kb.Text>
-        </Kb.ClickableBox>
+        {(!flags.useNewRouter || Styles.isMobile) && (
+          <Kb.ClickableBox
+            ref={this.props.setAttachmentRef}
+            style={styles.header}
+            onClick={this.props.toggleShowingMenu}
+          >
+            <Kb.Icon
+              type="iconfont-new"
+              style={{marginRight: Styles.globalMargins.tiny}}
+              color={Styles.globalColors.blue}
+              fontSize={Styles.isMobile ? 20 : 16}
+            />
+            <Kb.Text type="BodyBigLink">New encrypted git repository...</Kb.Text>
+          </Kb.ClickableBox>
+        )}
         <Kb.SectionList
           keyExtractor={item => item}
           renderItem={this._renderItem}

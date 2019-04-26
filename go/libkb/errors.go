@@ -2688,7 +2688,6 @@ func (e PushSecretWithoutPasswordError) Error() string {
 	return e.msg
 }
 
-
 // HumanErrorer is an interface that errors can implement if they want to expose what went wrong to
 // humans, either via the CLI or via the electron interface. It sometimes happens that errors get
 // wrapped inside of other errors up a stack, and it's hard to know what to show the user.

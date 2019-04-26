@@ -62,7 +62,9 @@ class OfferToCheckPassword extends React.Component<TestProps, State> {
         {!this.props.checkPasswordIsCorrect ? (
           <Kb.Box2 direction="vertical">
             <Kb.ButtonBar align="center" direction="row" fullWidth={true}>
-              <Kb.Button onClick={this.props.onCancel} label="Cancel" fullWidth={true} type="Dim" />
+              {!Styles.isMobile && (
+                <Kb.Button onClick={this.props.onCancel} label="Cancel" fullWidth={true} type="Dim" />
+              )}
               <Kb.WaitingButton
                 fullWidth={true}
                 waitingKey={Constants.checkPasswordWaitingKey}

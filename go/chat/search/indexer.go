@@ -16,18 +16,13 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-// cap the in-memory cache size
-const cacheSize = 250
-
 type Indexer struct {
 	globals.Contextified
 	utils.DebugLabeler
 	sync.Mutex
 
 	// encrypted on-disk storage
-	store *store
-	// in-memory cache, "uid:convID" -> idx
-	cache    map[string]*chat1.ConversationIndex
+	store    *store
 	pageSize int
 	stopCh   chan struct{}
 	started  bool
@@ -45,7 +40,6 @@ func NewIndexer(g *globals.Context) *Indexer {
 	idx := &Indexer{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Search.Indexer", false),
-		cache:        make(map[string]*chat1.ConversationIndex),
 		store:        newStore(g),
 		pageSize:     defaultPageSize,
 		stopCh:       make(chan struct{}),
@@ -133,50 +127,11 @@ func (idx *Indexer) Stop(ctx context.Context) chan struct{} {
 	return ch
 }
 
-func (idx *Indexer) ClearCache() {
-	idx.Lock()
-	defer idx.Unlock()
-	idx.cache = make(map[string]*chat1.ConversationIndex)
-}
-
-func (idx *Indexer) OnLogout(mctx libkb.MetaContext) error {
-	idx.ClearCache()
-	return nil
-}
-
-func (idx *Indexer) OnDbNuke(mctx libkb.MetaContext) error {
-	idx.ClearCache()
-	return nil
-}
-
-func (idx *Indexer) cacheKey(convID chat1.ConversationID, uid gregor1.UID) string {
-	return fmt.Sprintf("%s:%s", uid, convID)
-}
-
-func (idx *Indexer) deleteFromCache(convID chat1.ConversationID, uid gregor1.UID) {
-	idx.Lock()
-	defer idx.Unlock()
-
-	key := idx.cacheKey(convID, uid)
-	delete(idx.cache, key)
-}
-
 func (idx *Indexer) GetConvIndex(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (*chat1.ConversationIndex, error) {
 	idx.Lock()
 	defer idx.Unlock()
 
-	key := idx.cacheKey(convID, uid)
-	if convIdx, ok := idx.cache[key]; ok {
-		return convIdx, nil
-	}
-	convIdx, err := idx.store.getConvIndex(ctx, convID, uid)
-	if err != nil {
-		return nil, err
-	}
-	if len(idx.cache) < cacheSize {
-		idx.cache[key] = convIdx
-	}
-	return convIdx, nil
+	return idx.store.getConvIndex(ctx, convID, uid)
 }
 
 // validBatch verifies the topic type is CHAT
@@ -217,7 +172,6 @@ func (idx *Indexer) Add(ctx context.Context, convID chat1.ConversationID, uid gr
 	defer idx.Trace(ctx, func() error { return err },
 		fmt.Sprintf("Indexer.Add convID: %v, msgs: %d", convID.String(), len(msgs)))()
 	defer idx.consumeResultsForTest(convID, err)
-	idx.deleteFromCache(convID, uid)
 	return idx.store.add(ctx, convID, uid, msgs)
 }
 
@@ -232,7 +186,6 @@ func (idx *Indexer) Remove(ctx context.Context, convID chat1.ConversationID, uid
 	defer idx.Trace(ctx, func() error { return err },
 		fmt.Sprintf("Indexer.Remove convID: %v, msgs: %d", convID.String(), len(msgs)))()
 	defer idx.consumeResultsForTest(convID, err)
-	idx.deleteFromCache(convID, uid)
 	return idx.store.remove(ctx, convID, uid, msgs)
 }
 
@@ -247,9 +200,10 @@ type reindexOpts struct {
 // background conversation loader. For a small number of messages we use the
 // GetMessages api to fill in the holes. If our index is missing many messages,
 // we page through and add batches of missing messages.
-func (idx *Indexer) reindexConv(ctx context.Context, conv chat1.Conversation, uid gregor1.UID,
+func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversation, uid gregor1.UID,
 	convIdx *chat1.ConversationIndex, opts reindexOpts) (completedJobs int, newIdx *chat1.ConversationIndex, err error) {
 
+	conv := rconv.Conv
 	missingIDs := convIdx.MissingIDForConv(conv)
 	if len(missingIDs) == 0 {
 		return 0, convIdx, nil
@@ -259,8 +213,8 @@ func (idx *Indexer) reindexConv(ctx context.Context, conv chat1.Conversation, ui
 
 	convID := conv.GetConvID()
 	defer idx.Trace(ctx, func() error { return err },
-		fmt.Sprintf("Indexer.reindex: convID: %v, minID: %v, maxID: %v, numMissing: %v",
-			convID, minIdxID, maxIdxID, len(missingIDs)))()
+		fmt.Sprintf("Indexer.reindex: conv: %v, minID: %v, maxID: %v, numMissing: %v",
+			rconv.GetName(), minIdxID, maxIdxID, len(missingIDs)))()
 
 	reason := chat1.GetThreadReason_INDEXED_SEARCH
 	if len(missingIDs) < idx.pageSize {
@@ -342,11 +296,20 @@ func (idx *Indexer) reindexConv(ctx context.Context, conv chat1.Conversation, ui
 	return completedJobs, convIdx, nil
 }
 
-func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID) (map[string]types.RemoteConversation, error) {
+func (idx *Indexer) SearchableConvs(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) (res []types.RemoteConversation, err error) {
+	convMap, err := idx.allConvs(ctx, uid, convID)
+	if err != nil {
+		return res, err
+	}
+	return idx.convsByMTime(ctx, uid, convMap), nil
+}
+
+func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) (map[string]types.RemoteConversation, error) {
 	// Find all conversations in our inbox
 	pagination := &chat1.Pagination{Num: idx.pageSize}
 	topicType := chat1.TopicType_CHAT
 	inboxQuery := &chat1.GetInboxQuery{
+		ConvID:            convID,
 		ComputeActiveList: false,
 		TopicType:         &topicType,
 		Status: []chat1.ConversationStatus{
@@ -416,8 +379,8 @@ func (idx *Indexer) convsByMTime(ctx context.Context, uid gregor1.UID,
 
 // Search tokenizes the given query and finds the intersection of all matches
 // for each token, returning matches.
-func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, opts chat1.SearchOpts,
-	hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus) (res *chat1.ChatSearchInboxResults, err error) {
+func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query, origQuery string,
+	opts chat1.SearchOpts, hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus) (res *chat1.ChatSearchInboxResults, err error) {
 	defer idx.Trace(ctx, func() error { return err }, "Indexer.Search")()
 	defer func() {
 		if hitUICh != nil {
@@ -431,7 +394,7 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 		idx.Debug(ctx, "Search: Search indexer is disabled, results will be inaccurate.")
 	}
 
-	sess := newSearchSession(query, uid, hitUICh, indexUICh, idx, opts)
+	sess := newSearchSession(query, origQuery, uid, hitUICh, indexUICh, idx, opts)
 	return sess.run(ctx)
 }
 
@@ -441,7 +404,7 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 func (idx *Indexer) SelectiveSync(ctx context.Context, uid gregor1.UID, forceReindex bool) {
 	defer idx.Trace(ctx, func() error { return nil }, "SelectiveSync")()
 
-	convMap, err := idx.allConvs(ctx, uid)
+	convMap, err := idx.allConvs(ctx, uid, nil)
 	if err != nil {
 		idx.Debug(ctx, "SelectiveSync: Unable to get convs: %v", err)
 		return
@@ -463,7 +426,7 @@ func (idx *Indexer) SelectiveSync(ctx context.Context, uid gregor1.UID, forceRei
 			continue
 		}
 
-		completedJobs, _, err := idx.reindexConv(ctx, conv.Conv, uid, convIdx, reindexOpts{
+		completedJobs, _, err := idx.reindexConv(ctx, conv, uid, convIdx, reindexOpts{
 			forceReindex: forceReindex, // only true in tests
 			limitMaxJobs: true,
 			maxJobs:      maxJobs - totalCompletedJobs,
@@ -490,7 +453,7 @@ func (idx *Indexer) SelectiveSync(ctx context.Context, uid gregor1.UID, forceRei
 func (idx *Indexer) IndexInbox(ctx context.Context, uid gregor1.UID) (res map[string]chat1.ProfileSearchConvStats, err error) {
 	defer idx.Trace(ctx, func() error { return err }, "Indexer.IndexInbox")()
 
-	convMap, err := idx.allConvs(ctx, uid)
+	convMap, err := idx.allConvs(ctx, uid, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -516,6 +479,10 @@ func (idx *Indexer) indexConvWithProfile(ctx context.Context, conv types.RemoteC
 	defer func() {
 		res.ConvName = conv.GetName()
 		if convIdx != nil {
+			min, max := convIdx.MinMaxIDs(conv.Conv)
+			res.MinConvID = min
+			res.MaxConvID = max
+			res.NumMissing = len(convIdx.MissingIDForConv(conv.Conv))
 			res.NumMessages = len(convIdx.Metadata.SeenIDs)
 			res.PercentIndexed = convIdx.PercentIndexed(conv.Conv)
 		}
@@ -531,7 +498,7 @@ func (idx *Indexer) indexConvWithProfile(ctx context.Context, conv types.RemoteC
 	}
 
 	startT := time.Now()
-	_, convIdx, err = idx.reindexConv(ctx, conv.Conv, uid, convIdx, reindexOpts{forceReindex: true})
+	_, convIdx, err = idx.reindexConv(ctx, conv, uid, convIdx, reindexOpts{forceReindex: true})
 	if err != nil {
 		return res, err
 	}
@@ -541,6 +508,7 @@ func (idx *Indexer) indexConvWithProfile(ctx context.Context, conv types.RemoteC
 	if err != nil {
 		return res, err
 	}
-	res.IndexSize = len(b)
+	res.IndexSizeDisk = len(b)
+	res.IndexSizeMem = convIdx.Size()
 	return res, nil
 }

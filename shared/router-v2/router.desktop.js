@@ -71,7 +71,12 @@ class AppView extends React.PureComponent<any> {
           style={selectedTab ? styles.contentArea : styles.contentAreaLogin}
         >
           {scene}
-          <Header options={descriptor.options} onPop={() => childNav.pop()} allowBack={index !== 0} />
+          <Header
+            loggedIn={!!selectedTab}
+            options={descriptor.options}
+            onPop={() => childNav.pop()}
+            allowBack={index !== 0}
+          />
         </Kb.Box2>
       </Kb.Box2>
     )
@@ -286,7 +291,6 @@ const styles = Styles.styleSheetCreate({
   contentAreaLogin: Styles.platformStyles({
     isElectron: {
       flexGrow: 1,
-      paddingTop: 20, // don't cover system buttons
       position: 'relative',
     },
     isMobile: {

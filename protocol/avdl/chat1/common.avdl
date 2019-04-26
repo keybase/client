@@ -548,6 +548,7 @@
   }
 
   record SearchOpts {
+    boolean isRegex;
     string sentBy;
     gregor1.Time sentBefore;
     gregor1.Time sentAfter;
@@ -560,6 +561,7 @@
     ReIndexingMode reindexMode;
     int maxConvsSearched;
     int maxConvsHit;
+    union { null, ConversationID } convID;
     // only used by conversation name search
     int maxNameConvs;
   }
@@ -584,6 +586,35 @@
     map<string, map<string, EmptyStruct>> alias;
     @mpackkey("m") @jsonkey("m")
     ConversationIndexMetadata metadata;
+  }
+
+  record ConversationIndexMetadataDisk {
+    @mpackkey("s") @jsonkey("s")
+    array<MessageID> seenIDs;
+    @mpackkey("v") @jsonkey("v")
+    int version;
+  }
+
+  record TokenTuple {
+    @mpackkey("t") @jsonkey("t")
+    string token;
+    @mpackkey("m") @jsonkey("m")
+    array<MessageID> msgIDs;
+  }
+
+  record AliasTuple {
+    @mpackkey("a") @jsonkey("a")
+    string alias;
+    @mpackkey("t") @jsonkey("t")
+    array<string> tokens;
+  }
+
+  record ConversationIndexDisk {
+    @mpackkey("i") @jsonkey("i")
+    array<TokenTuple> index;
+    @mpackkey("a") @jsonkey("a")
+    array<AliasTuple> alias;
+    ConversationIndexMetadataDisk metadata;
   }
 
   record ChatSearchMatch {

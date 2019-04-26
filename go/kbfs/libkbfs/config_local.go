@@ -1077,7 +1077,10 @@ func (c *ConfigLocal) Shutdown(ctx context.Context) error {
 		// Continue with shutdown regardless of err.
 		err = nil
 	}
-	c.BlockOps().Shutdown()
+	err = c.BlockOps().Shutdown(ctx)
+	if err != nil {
+		return err
+	}
 	c.MDServer().Shutdown()
 	c.KeyServer().Shutdown()
 	c.KeybaseService().Shutdown()
@@ -1281,12 +1284,59 @@ func (c *ConfigLocal) EnableJournaling(
 	return nil
 }
 
+func (c *ConfigLocal) cleanSyncBlockCacheForTlfInBackgroundLocked(
+	tlfID tlf.ID, ch chan<- error) {
+	// Start a background goroutine deleting all the blocks from this
+	// TLF.
+	ctx, cancel := context.WithCancel(context.Background())
+	if oldCancel, ok := c.tlfClearCancels[tlfID]; ok {
+		oldCancel()
+	}
+	c.tlfClearCancels[tlfID] = cancel
+	diskBlockCache := c.diskBlockCache
+	go func() {
+		defer cancel()
+		ch <- diskBlockCache.ClearAllTlfBlocks(
+			ctx, tlfID, DiskBlockSyncCache)
+	}()
+}
+
+func (c *ConfigLocal) cleanSyncBlockCache() {
+	ctx := context.Background()
+	err := c.DiskBlockCache().WaitUntilStarted(DiskBlockSyncCache)
+	if err != nil {
+		c.MakeLogger("").CDebugf(
+			ctx, "Disk block cache failed to start; can't clean: %+v", err)
+		return
+	}
+
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	cacheTlfIDs, err := c.diskBlockCache.GetTlfIDs(ctx, DiskBlockSyncCache)
+	if err != nil {
+		c.MakeLogger("").CDebugf(
+			ctx, "Disk block cache can't get TLF IDs; can't clean: %+v", err)
+		return
+	}
+
+	for _, id := range cacheTlfIDs {
+		if _, ok := c.syncedTlfs[id]; ok {
+			continue
+		}
+
+		c.cleanSyncBlockCacheForTlfInBackgroundLocked(id, make(chan error, 1))
+	}
+}
+
 func (c *ConfigLocal) resetDiskBlockCacheLocked() error {
 	dbc, err := newDiskBlockCacheWrapped(c, c.storageRoot, c.mode)
 	if err != nil {
 		return err
 	}
 	c.diskBlockCache = dbc
+	if !c.mode.IsTestMode() {
+		go c.cleanSyncBlockCache()
+	}
 	return nil
 }
 
@@ -1533,19 +1583,7 @@ func (c *ConfigLocal) setTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (
 
 	ch := make(chan error, 1)
 	if config.Mode == keybase1.FolderSyncMode_DISABLED {
-		// Start a background goroutine deleting all the blocks
-		// from this TLF.
-		ctx, cancel := context.WithCancel(context.Background())
-		if oldCancel, ok := c.tlfClearCancels[tlfID]; ok {
-			oldCancel()
-		}
-		c.tlfClearCancels[tlfID] = cancel
-		diskBlockCache := c.diskBlockCache
-		go func() {
-			defer cancel()
-			ch <- diskBlockCache.ClearAllTlfBlocks(
-				ctx, tlfID, DiskBlockSyncCache)
-		}()
+		c.cleanSyncBlockCacheForTlfInBackgroundLocked(tlfID, ch)
 	} else {
 		ch <- nil
 	}

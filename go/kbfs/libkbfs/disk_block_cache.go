@@ -1440,9 +1440,22 @@ func (cache *DiskBlockCacheLocal) ClearHomeTLFs(ctx context.Context) error {
 // the cache.
 func (cache *DiskBlockCacheLocal) GetTlfSize(
 	_ context.Context, tlfID tlf.ID) (uint64, error) {
-	cache.lock.Lock()
-	defer cache.lock.Unlock()
+	cache.lock.RLock()
+	defer cache.lock.RUnlock()
 	return cache.tlfSizes[tlfID], nil
+}
+
+// GetTlfIDs returns the IDs of all the TLFs with blocks stored in
+// the cache.
+func (cache *DiskBlockCacheLocal) GetTlfIDs(
+	_ context.Context) (tlfIDs []tlf.ID, err error) {
+	cache.lock.RLock()
+	defer cache.lock.RUnlock()
+	tlfIDs = make([]tlf.ID, 0, len(cache.tlfSizes))
+	for id := range cache.tlfSizes {
+		tlfIDs = append(tlfIDs, id)
+	}
+	return tlfIDs, nil
 }
 
 // Shutdown implements the DiskBlockCache interface for DiskBlockCacheLocal.

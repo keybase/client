@@ -644,6 +644,33 @@ func (p *blockPrefetcher) request(ctx context.Context, priority int,
 	return 0, 0, 0
 }
 
+func (p *blockPrefetcher) handleStatusRequest(req *prefetchStatusRequest) {
+	pre, isPrefetchWaiting := p.prefetches[req.ptr.ID]
+	if !isPrefetchWaiting {
+		req.ch <- PrefetchProgress{}
+	} else {
+		req.ch <- pre.PrefetchProgress
+	}
+}
+
+// handleCriticalRequests should be called periodically during any
+// long prefetch requests, to make sure we handle critical requests
+// quickly.  These are requests that are required to be run in the
+// main processing goroutine, but won't interfere with whatever
+// request we're in the middle of.
+func (p *blockPrefetcher) handleCriticalRequests() {
+	for {
+		// Fulfill any status requests since the user could be waiting
+		// for them.
+		select {
+		case req := <-p.prefetchStatusCh.Out():
+			p.handleStatusRequest(req.(*prefetchStatusRequest))
+		default:
+			return
+		}
+	}
+}
+
 func (p *blockPrefetcher) prefetchIndirectFileBlock(
 	ctx context.Context, parentPtr data.BlockPointer, b *data.FileBlock,
 	kmd libkey.KeyMetadata, lifetime data.BlockCacheLifetime, isPrefetchNew bool,
@@ -659,6 +686,8 @@ func (p *blockPrefetcher) prefetchIndirectFileBlock(
 		numBlocks += b
 		numBytesFetched += f
 		numBytesTotal += t
+
+		p.handleCriticalRequests()
 	}
 	return numBlocks, numBytesFetched, numBytesTotal, len(b.IPtrs) == 0
 }
@@ -678,6 +707,8 @@ func (p *blockPrefetcher) prefetchIndirectDirBlock(
 		numBlocks += b
 		numBytesFetched += f
 		numBytesTotal += t
+
+		p.handleCriticalRequests()
 	}
 	return numBlocks, numBytesFetched, numBytesTotal, len(b.IPtrs) == 0
 }
@@ -719,6 +750,8 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(
 		numBlocks += b
 		numBytesFetched += f
 		numBytesTotal += t
+
+		p.handleCriticalRequests()
 	}
 	if totalChildEntries == 0 {
 		isTail = true
@@ -864,15 +897,6 @@ type prefetchStatusRequest struct {
 	ch  chan<- PrefetchProgress
 }
 
-func (p *blockPrefetcher) handleStatusRequest(req *prefetchStatusRequest) {
-	pre, isPrefetchWaiting := p.prefetches[req.ptr.ID]
-	if !isPrefetchWaiting {
-		req.ch <- PrefetchProgress{}
-	} else {
-		req.ch <- pre.PrefetchProgress
-	}
-}
-
 // run prefetches blocks.
 // E.g. a synced prefetch:
 // a -> {b -> {c, d}, e -> {f, g}}:
@@ -942,20 +966,13 @@ func (p *blockPrefetcher) run(
 			<-testSyncCh
 		}
 
-		// First fulfill any status requests since the user could be
-		// waiting for them.
-		select {
-		case req := <-p.prefetchStatusCh.Out():
-			p.handleStatusRequest(req.(*prefetchStatusRequest))
-			continue
-		default:
-		}
+		p.handleCriticalRequests()
 
 		select {
 		case req := <-p.prefetchStatusCh.Out():
 			p.handleStatusRequest(req.(*prefetchStatusRequest))
 		case chInterface := <-shuttingDownCh:
-			p.log.Debug("shutting down")
+			p.log.Debug("shutting down, clearing in flight fetches")
 			ch := chInterface.(<-chan error)
 			<-ch
 		case ptrInt := <-p.prefetchCancelCh.Out():

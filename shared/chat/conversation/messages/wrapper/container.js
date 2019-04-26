@@ -29,8 +29,11 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     message.type === 'text'
       ? state.chat2.unfurlPromptMap.getIn([message.conversationIDKey, message.id])
       : null
+  const centeredOrdinalInfo = state.chat2.messageCenterOrdinals.get(message.conversationIDKey)
   const centeredOrdinal =
-    state.chat2.messageCenterOrdinals.get(message.conversationIDKey, 0) === ownProps.ordinal
+    centeredOrdinalInfo && centeredOrdinalInfo.ordinal === ownProps.ordinal
+      ? centeredOrdinalInfo.highlightMode
+      : 'none'
   const meta = Constants.getMeta(state, message.conversationIDKey)
   const teamname = meta.teamname
   const authorIsAdmin = teamname

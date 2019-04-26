@@ -104,7 +104,8 @@ type MessageDeliverer interface {
 	Resumable
 
 	Queue(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
-		outboxID *chat1.OutboxID, identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.OutboxRecord, error)
+		outboxID *chat1.OutboxID, sendOpts *chat1.SenderSendOptions,
+		prepareOpts *chat1.SenderPrepareOptions, identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.OutboxRecord, error)
 	ForceDeliverLoop(ctx context.Context)
 	ActiveDeliveries(ctx context.Context) ([]chat1.OutboxRecord, error)
 	NextFailure() (chan []chat1.OutboxRecord, func())
@@ -118,25 +119,23 @@ type RegexpSearcher interface {
 type Indexer interface {
 	Resumable
 
-	Search(ctx context.Context, uid gregor1.UID, query string, opts chat1.SearchOpts,
+	Search(ctx context.Context, uid gregor1.UID, query, origQuery string, opts chat1.SearchOpts,
 		hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus) (*chat1.ChatSearchInboxResults, error)
 	// Add/update the index with the given messages
 	Add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg []chat1.MessageUnboxed) error
 	// Remove the given messages from the index
 	Remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg []chat1.MessageUnboxed) error
-	ClearCache()
+	SearchableConvs(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) ([]RemoteConversation, error)
 	// For devel/testing
 	IndexInbox(ctx context.Context, uid gregor1.UID) (map[string]chat1.ProfileSearchConvStats, error)
-	OnLogout(mctx libkb.MetaContext) error
-	OnDbNuke(mctx libkb.MetaContext) error
 }
 
 type Sender interface {
 	Send(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
 		clientPrev chat1.MessageID, outboxID *chat1.OutboxID,
-		joinMentionsAs *chat1.ConversationMemberStatus) (chat1.OutboxID, *chat1.MessageBoxed, error)
+		sendOpts *chat1.SenderSendOptions, prepareOpts *chat1.SenderPrepareOptions) (chat1.OutboxID, *chat1.MessageBoxed, error)
 	Prepare(ctx context.Context, msg chat1.MessagePlaintext, membersType chat1.ConversationMembersType,
-		conv *chat1.Conversation, opts *SenderPrepareOptions) (SenderPrepareResult, error)
+		conv *chat1.Conversation, opts *chat1.SenderPrepareOptions) (SenderPrepareResult, error)
 }
 
 type InboxSource interface {

@@ -159,8 +159,8 @@ var fromRegex = regexp.MustCompile("from:(@?[a-z0-9][a-z0-9_]+)")
 var dateRangeRegex = regexp.MustCompile(fmt.Sprintf(
 	`(%s|%s)(\d{1,4}[-/\.]+\d{1,2}[-/\.]+\d{1,4})`, beforeFilter, afterFilter))
 
-func UpgradeRegexpArgFromQuery(arg chat1.SearchRegexpArg, username string) chat1.SearchRegexpArg {
-	query := arg.Query
+func UpgradeSearchOptsFromQuery(query string, opts chat1.SearchOpts, username string) (string, chat1.SearchOpts) {
+	query = strings.Trim(query, " ")
 	var hasQueryOpts bool
 	// From
 	if match := fromRegex.FindStringSubmatch(query); match != nil && len(match) == 2 {
@@ -170,7 +170,7 @@ func UpgradeRegexpArgFromQuery(arg chat1.SearchRegexpArg, username string) chat1
 		if sentBy == "me" {
 			sentBy = username
 		}
-		arg.Opts.SentBy = sentBy
+		opts.SentBy = sentBy
 	}
 
 	matches := dateRangeRegex.FindAllStringSubmatch(query, 2)
@@ -189,9 +189,9 @@ func UpgradeRegexpArgFromQuery(arg chat1.SearchRegexpArg, username string) chat1
 		gtime := gregor1.ToTime(time)
 		switch match[1] {
 		case beforeFilter:
-			arg.Opts.SentBefore = gtime
+			opts.SentBefore = gtime
 		case afterFilter:
-			arg.Opts.SentAfter = gtime
+			opts.SentAfter = gtime
 		}
 	}
 
@@ -201,8 +201,7 @@ func UpgradeRegexpArgFromQuery(arg chat1.SearchRegexpArg, username string) chat1
 	// IsRegex
 	if len(query) > 2 && query[0] == '/' && query[len(query)-1] == '/' {
 		query = query[1 : len(query)-1]
-		arg.IsRegex = true
+		opts.IsRegex = true
 	}
-	arg.Query = query
-	return arg
+	return query, opts
 }

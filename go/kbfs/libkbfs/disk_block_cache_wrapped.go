@@ -503,6 +503,7 @@ func (cache *diskBlockCacheWrapped) GetTlfSize(
 	defer cache.mtx.RUnlock()
 
 	if cacheType != DiskBlockWorkingSetCache {
+		// Either sync cache only, or both.
 		syncSize, err := cache.syncCache.GetTlfSize(ctx, tlfID)
 		if err != nil {
 			return 0, err
@@ -511,6 +512,7 @@ func (cache *diskBlockCacheWrapped) GetTlfSize(
 	}
 
 	if cacheType != DiskBlockSyncCache {
+		// Either working set cache only, or both.
 		workingSetSize, err := cache.workingSetCache.GetTlfSize(ctx, tlfID)
 		if err != nil {
 			return 0, err
@@ -519,6 +521,74 @@ func (cache *diskBlockCacheWrapped) GetTlfSize(
 	}
 
 	return size, nil
+}
+
+// GetTlfSize implements the DiskBlockCache interface for
+// diskBlockCacheWrapped.
+func (cache *diskBlockCacheWrapped) GetTlfIDs(
+	ctx context.Context, cacheType DiskBlockCacheType) (
+	tlfIDs []tlf.ID, err error) {
+	cache.mtx.RLock()
+	defer cache.mtx.RUnlock()
+
+	if cacheType != DiskBlockWorkingSetCache {
+		// Either sync cache only, or both.
+		tlfIDs, err = cache.syncCache.GetTlfIDs(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if cacheType != DiskBlockSyncCache {
+		// Either working set cache only, or both.
+		wsTlfIDs, err := cache.workingSetCache.GetTlfIDs(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		// Uniquify them if needed.
+		if len(tlfIDs) == 0 {
+			tlfIDs = wsTlfIDs
+		} else {
+			s := make(map[tlf.ID]bool, len(tlfIDs)+len(wsTlfIDs))
+			for _, id := range tlfIDs {
+				s[id] = true
+			}
+			for _, id := range wsTlfIDs {
+				s[id] = true
+			}
+			tlfIDs = make([]tlf.ID, 0, len(s))
+			for id := range s {
+				tlfIDs = append(tlfIDs, id)
+			}
+		}
+	}
+
+	return tlfIDs, nil
+}
+
+// WaitUntilStarted implements the DiskBlockCache interface for
+// diskBlockCacheWrapped.
+func (cache *diskBlockCacheWrapped) WaitUntilStarted(
+	cacheType DiskBlockCacheType) (err error) {
+	cache.mtx.RLock()
+	defer cache.mtx.RUnlock()
+
+	if cacheType != DiskBlockWorkingSetCache {
+		err = cache.syncCache.WaitUntilStarted()
+		if err != nil {
+			return err
+		}
+	}
+
+	if cacheType != DiskBlockSyncCache {
+		err = cache.workingSetCache.WaitUntilStarted()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // Shutdown implements the DiskBlockCache interface for diskBlockCacheWrapped.

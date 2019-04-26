@@ -430,6 +430,7 @@ const rootReducer = (
             s.deleteIn(['orangeLineMap', conversationIDKey])
           }
         }
+        s.deleteIn(['messageCenterOrdinals', conversationIDKey])
         s.setIn(['containsLatestMessageMap', conversationIDKey], true)
         s.set('selectedConversation', conversationIDKey)
       })
@@ -456,7 +457,9 @@ const rootReducer = (
       return state.set('flipStatusMap', fm)
     }
     case Chat2Gen.messageSend:
-      return state.deleteIn(['commandMarkdownMap', action.payload.conversationIDKey])
+      return state
+        .deleteIn(['commandMarkdownMap', action.payload.conversationIDKey])
+        .deleteIn(['replyToMap', action.payload.conversationIDKey])
     case Chat2Gen.setCommandMarkdown: {
       const {conversationIDKey, md} = action.payload
       return md
@@ -781,7 +784,10 @@ const rootReducer = (
         if (!ordinal) {
           ordinal = Types.numberToOrdinal(Types.messageIDToNumber(cm.messageID))
         }
-        messageCenterOrdinals = messageCenterOrdinals.set(cm.conversationIDKey, ordinal)
+        messageCenterOrdinals = messageCenterOrdinals.set(cm.conversationIDKey, {
+          highlightMode: cm.highlightMode,
+          ordinal,
+        })
       })
       return state.withMutations(s => {
         s.set('messageMap', messageMap)
@@ -1014,9 +1020,15 @@ const rootReducer = (
       return state.update('unsentTextMap', old =>
         old.setIn([action.payload.conversationIDKey], action.payload.text)
       )
-    case Chat2Gen.threadSearchResult:
+    case Chat2Gen.toggleReplyToMessage:
+      return action.payload.ordinal
+        ? state.setIn(['replyToMap', action.payload.conversationIDKey], action.payload.ordinal)
+        : state.deleteIn(['replyToMap', action.payload.conversationIDKey])
+    case Chat2Gen.replyJump:
+      return state.deleteIn(['messageCenterOrdinals', action.payload.conversationIDKey])
+    case Chat2Gen.threadSearchResults:
       return state.updateIn(['threadSearchInfoMap', action.payload.conversationIDKey], info =>
-        info.set('hits', info.hits.push(action.payload.message))
+        info.set('hits', info.hits.concat(action.payload.messages))
       )
     case Chat2Gen.setThreadSearchStatus:
       return state.updateIn(
@@ -1284,7 +1296,7 @@ const rootReducer = (
     case Chat2Gen.toggleMessageCollapse:
     case Chat2Gen.toggleInfoPanel:
     case Chat2Gen.addUsersToChannel:
-    case Chat2Gen.loadMessagesFromSearchHit:
+    case Chat2Gen.loadMessagesCentered:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
