@@ -33,7 +33,7 @@ export default class ExportSecretKeyPopup extends React.Component<Props> {
         {this.props.accountName ? (
           <Text type="BodySmallSemibold">{this.props.accountName}</Text>
         ) : (
-          <SmallAccountID textType="BodySmall" accountID={this.props.accountID} />
+          <SmallAccountID accountID={this.props.accountID} />
         )}
         <Text center={true} type={Styles.isMobile ? 'BodyBig' : 'Header'} style={styles.headerText}>
           Secret key

@@ -119,14 +119,14 @@ const Header = (p: Props) => {
 
 const styles = Styles.styleSheetCreate({
   actionIcons: {
-    paddingBottom: Styles.globalMargins.xsmall - 4,
+    paddingBottom: Styles.globalMargins.tiny,
   },
   container: {
     flexGrow: 1,
     height: 40 - 1,
   },
   desc: Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
-  headerTitle: {flexGrow: 1, paddingBottom: 4},
+  headerTitle: {flexGrow: 1, paddingBottom: Styles.globalMargins.xtiny},
   left: {minWidth: 260},
   right: {
     flexGrow: 1,

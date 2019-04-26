@@ -48,7 +48,7 @@ const Header = (props: Props) => {
           </Kb.Box2>
         )}
         <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
-          <SmallAccountID textType="BodySmall" accountID={props.accountID} style={styles.smallAccountID} />
+          <SmallAccountID accountID={props.accountID} style={styles.smallAccountID} />
         </Kb.Box2>
       </Kb.Box2>
     </MaybeSwitcher>
