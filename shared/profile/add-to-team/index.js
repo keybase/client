@@ -159,7 +159,7 @@ class AddToTeam extends React.Component<Props> {
             )}
           </Kb.Box2>
         </Kb.ScrollView>
-        <Kb.Box2 direction={Styles.isMobile ? 'vertical' : 'horizontal'} style={styles.addToTeam}>
+        <Kb.Box2 direction={'horizontal'} style={styles.addToTeam}>
           <Kb.Text style={styles.addToTeamTitle} type="BodySmall">
             {this.props.them} will be added as a
           </Kb.Text>
@@ -207,6 +207,7 @@ const styles = Styles.styleSheetCreate({
     common: {
       alignItems: 'center',
       flexShrink: 0,
+      flexWrap: 'wrap',
       marginBottom: Styles.globalMargins.small,
       marginLeft: Styles.globalMargins.small,
       marginRight: Styles.globalMargins.small,
@@ -216,7 +217,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   addToTeamTitle: Styles.platformStyles({
-    isElectron: {
+    common: {
       marginRight: Styles.globalMargins.tiny,
     },
     isMobile: {
