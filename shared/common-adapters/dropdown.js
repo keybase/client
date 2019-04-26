@@ -199,7 +199,8 @@ const ItemBox = Styles.styled(Box)({
   width: '100%',
 })
 
-const ButtonBox = Styles.styled(Box)(props => ({
+// $FlowIssue styled can have more than one argument
+const ButtonBox = Styles.styled(Box, {shouldForwardProp: prop => prop !== 'inline'})(props => ({
   ...Styles.globalStyles.flexBoxRow,
   ...(!props.disabled && !Styles.isMobile
     ? {
