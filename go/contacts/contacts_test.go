@@ -15,6 +15,7 @@ import (
 type mockLookupUser struct {
 	UID      keybase1.UID
 	Username string
+	Fullname string
 }
 
 type MockContactsProvider struct {
@@ -35,7 +36,6 @@ func (c *MockContactsProvider) LookupPhoneNumbers(mctx libkb.MetaContext, number
 		if user, found := c.phoneNumbers[number]; found {
 			result.Found = true
 			result.UID = user.UID
-			result.KeybaseUsername = user.Username
 		}
 		res = append(res, result)
 	}
@@ -48,7 +48,6 @@ func (c *MockContactsProvider) LookupEmails(mctx libkb.MetaContext, emails []key
 		if user, found := c.emails[email]; found {
 			result.Found = true
 			result.UID = user.UID
-			result.KeybaseUsername = user.Username
 		}
 		res = append(res, result)
 	}
@@ -56,7 +55,29 @@ func (c *MockContactsProvider) LookupEmails(mctx libkb.MetaContext, emails []key
 }
 
 func (c *MockContactsProvider) FillUsernames(mctx libkb.MetaContext, res []keybase1.ProcessedContact) {
-
+	for i, v := range res {
+		if v.Resolved {
+			var found bool
+			for _, y := range c.phoneNumbers {
+				if y.UID.Equal(v.Uid) {
+					res[i].Username = y.Username
+					res[i].FullName = y.Fullname
+					found = true
+					break
+				}
+			}
+			if found {
+				continue
+			}
+			for _, y := range c.emails {
+				if y.UID.Equal(v.Uid) {
+					res[i].Username = y.Username
+					res[i].FullName = y.Fullname
+					break
+				}
+			}
+		}
+	}
 }
 
 func makePhoneComponent(label string, phone string) keybase1.ContactComponent {
@@ -123,11 +144,12 @@ func TestLookupContacts(t *testing.T) {
 
 	// At least one of the components resolves the user, return just that one
 	// contact.
-	provider.phoneNumbers["+1111222"] = mockLookupUser{UID: keybase1.UID("1"), Username: "joe"}
+	provider.phoneNumbers["+1111222"] = mockLookupUser{UID: keybase1.UID("1"), Username: "joe", Fullname: "JOE"}
 	res, err = ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
 	require.NoError(t, err)
 	require.Len(t, res, 1)
 	require.Equal(t, "joe", res[0].DisplayName)
+	require.Equal(t, "JOE", res[0].FullName)
 	require.Equal(t, "Home", res[0].Component.Label)
 	require.NotNil(t, res[0].Component.PhoneNumber)
 	require.Nil(t, res[0].Component.Email)
@@ -146,6 +168,10 @@ func TestLookupContacts(t *testing.T) {
 	res, err = ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
 	require.NoError(t, err)
 	require.Len(t, res, 2)
+	require.Equal(t, []string{
+		"joe (1)",
+		"ed (2)",
+	}, stringifyResults(res))
 
 	// Test with email
 	provider = makeProvider()

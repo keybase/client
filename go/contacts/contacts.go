@@ -13,9 +13,6 @@ import (
 type ContactLookupResult struct {
 	Found bool
 	UID   keybase1.UID
-	// TODO: The following are not returned by lookup API endpoints.
-	KeybaseUsername string
-	KeybaseFullName string
 }
 
 type ContactsProvider interface {
@@ -92,7 +89,6 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 			Component:    component,
 			Resolved:     true,
 			Uid:          lookupRes.UID,
-			Username:     lookupRes.KeybaseUsername,
 			Following:    true, // assume following=true for now because this creates better display label.
 
 			// following, username (TODO???), and full name are filled later.
