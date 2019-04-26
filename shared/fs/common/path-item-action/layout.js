@@ -3,7 +3,6 @@ import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
 import {isMobile, isIOS} from '../../../constants/platform'
 import * as Flow from '../../../util/flow'
-import flags from '../../../util/feature-flags'
 
 export type Layout = {
   copyPath: boolean,
@@ -95,7 +94,7 @@ const getRawLayout = (
             }
           : {}),
         copyPath: true,
-        delete: pathItem.type === 'file' || flags.enableDeleteFolder,
+        delete: true,
         download: pathItem.type === 'file' && !isIOS,
         moveOrCopy: true,
         saveMedia: isMobile && pathItem.type === 'file' && Constants.canSaveMedia(pathItem),
