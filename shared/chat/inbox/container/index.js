@@ -97,7 +97,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     allowShowFloatingButton: stateProps.allowShowFloatingButton,
     isSearching: stateProps.isSearching,
     neverLoaded: stateProps.neverLoaded,
-    onDeselectConversation: () => dispatchProps._onSelect(Constants.noConversationIDKey),
     onEnsureSelection: () => {
       // $ForceType
       if (stateProps.rows.find(r => r.conversationIDKey === stateProps._selectedConversationIDKey)) {

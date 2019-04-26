@@ -89,6 +89,12 @@ const TabNavigator = createBottomTabNavigator(
       headerMode,
       initialRouteName: tabRoots[tab],
       initialRouteParams: undefined,
+      // just to test
+      // transitionConfig: () => ({
+      // transitionSpec: {
+      // duration: 5000,
+      // },
+      // }),
     })
     return map
   }, {}),
@@ -128,7 +134,6 @@ const tabStyles = Styles.styleSheetCreate({
 
 const LoggedInStackNavigator = createStackNavigator(
   {
-    // Main: {screen: MainStackNavigator},
     Main: TabNavigator,
     ...Shim.shim(modalRoutes),
   },

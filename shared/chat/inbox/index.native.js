@@ -212,8 +212,6 @@ class Inbox extends React.PureComponent<Props, State> {
     return {index, length, offset}
   }
 
-  _onDidFocus = () => this.props.onDeselectConversation()
-
   render() {
     this._dividerShowButton = false
     this._dividerIndex = this.props.rows.findIndex(r => {
@@ -233,7 +231,6 @@ class Inbox extends React.PureComponent<Props, State> {
     const HeadComponent = <ChatInboxHeader onNewChat={this.props.onNewChat} />
     return (
       <Kb.ErrorBoundary>
-        <Kb.NavigationEvents onDidFocus={this._onDidFocus} />
         <Kb.Box style={styles.container}>
           {this.props.isSearching ? (
             <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -250,7 +247,6 @@ class Inbox extends React.PureComponent<Props, State> {
               windowSize={5}
               keyboardShouldPersistTaps="handled"
               getItemLayout={this._getItemLayout}
-              removeClippedSubviews={true}
             />
           )}
           {noChats}

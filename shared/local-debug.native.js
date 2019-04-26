@@ -4,8 +4,6 @@
  */
 import {NativeModules, YellowBox} from 'react-native'
 import {noop} from 'lodash-es'
-// import MessageQueue from 'react-native/Libraries/BatchedBridge/MessageQueue.js'
-
 const nativeBridge = NativeModules.KeybaseEngine || {test: 'fallback'}
 
 // Uncomment this to disable yellowboxes
@@ -22,6 +20,11 @@ window.console._log = window.console.log
 window.console._warn = window.console.warn
 window.console._error = window.console.error
 window.console._info = window.console.info
+
+// uncomment this to watch the RN bridge traffic: https://github.com/facebook/react-native/commit/77e48f17824870d30144a583be77ec5c9cf9f8c5
+// require('MessageQueue').spy(msg => console._log('queuespy: ', msg, JSON.stringify(msg).length))
+// uncomment this to watch for event loop stalls: https://github.com/facebook/react-native/blob/0.59-stable/Libraries/Interaction/BridgeSpyStallHandler.js
+// require('InteractionStallDebugger').install({thresholdMS: 100})
 
 // Set this to true if you want to turn off most console logging so you can profile easier
 const PERF = false
