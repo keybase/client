@@ -25,7 +25,7 @@ export const HeaderTitle = (props: HeaderTitleProps) => (
           {props.accountName}
         </Kb.Text>
       </Kb.Box2>
-      <SmallAccountID accountID={props.accountID} style={styles.accountID} />
+      <SmallAccountID accountID={props.accountID} />
     </Kb.Box2>
   </Kb.Box2>
 )
