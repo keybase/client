@@ -164,7 +164,6 @@ class Header extends React.PureComponent<Props, State> {
 }
 
 const styles = Styles.styleSheetCreate({
-<<<<<<< HEAD
   bottom: {height: 40 - 1}, // for border
   bottomExpandable: {minHeight: 40 - 1},
   appIcon: Styles.platformStyles({
