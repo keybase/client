@@ -372,6 +372,8 @@ func (d DummyIndexer) OnLogout(mctx libkb.MetaContext) error {
 func (d DummyIndexer) OnDbNuke(mctx libkb.MetaContext) error {
 	return nil
 }
+func (d DummyIndexer) ClearMemory() {
+}
 
 type DummyNativeVideoHelper struct{}
 

@@ -47,7 +47,7 @@ func prefixes(token string) (res []string) {
 			continue
 		}
 		// Skip any prefixes longer than 20 to limit the index size.
-		if i >= 20 {
+		if i >= 10 {
 			break
 		}
 		res = append(res, token[:i])
@@ -68,7 +68,7 @@ func tokenize(msgText string) tokenMap {
 	tokens := splitExpr.Split(msgText, -1)
 	tokenMap := tokenMap{}
 	for _, token := range tokens {
-		if token == "" {
+		if len(token) < 3 {
 			continue
 		}
 

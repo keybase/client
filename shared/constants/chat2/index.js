@@ -90,7 +90,7 @@ export const makeThreadSearchInfo: I.RecordFactory<Types._ThreadSearchInfo> = I.
   visible: false,
 })
 
-export const inboxSearchMaxTextMessages = 100
+export const inboxSearchMaxTextMessages = 25
 export const inboxSearchMaxTextResults = 50
 export const inboxSearchMaxNameResults = 7
 export const inboxSearchMaxUnreadNameResults = isMobile ? 5 : 10

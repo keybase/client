@@ -128,6 +128,7 @@ type Indexer interface {
 	SearchableConvs(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) ([]RemoteConversation, error)
 	// For devel/testing
 	IndexInbox(ctx context.Context, uid gregor1.UID) (map[string]chat1.ProfileSearchConvStats, error)
+	ClearMemory()
 }
 
 type Sender interface {

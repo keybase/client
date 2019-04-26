@@ -427,15 +427,17 @@ func TestChatSearchInbox(t *testing.T) {
 			types.InboxSourceDataSourceRemoteOnly)
 		require.NoError(t, err)
 		// verify zero messages case
-		convIdx, err := indexer1.GetConvIndex(ctx, convID, uid1)
+		convIdx, lock, err := indexer1.AcquireConvIndex(ctx, convID, uid1)
 		require.NoError(t, err)
 		require.True(t, convIdx.FullyIndexed(rconv.Conv))
 		require.Equal(t, 100, convIdx.PercentIndexed(rconv.Conv))
+		lock.Release(context.TODO())
 
-		convIdx, err = indexer2.GetConvIndex(ctx, convID, uid2)
+		convIdx, lock, err = indexer2.AcquireConvIndex(ctx, convID, uid2)
 		require.NoError(t, err)
 		require.True(t, convIdx.FullyIndexed(rconv.Conv))
 		require.Equal(t, 100, convIdx.PercentIndexed(rconv.Conv))
+		lock.Release(context.TODO())
 
 		sendMessage := func(msgBody chat1.MessageBody, user *kbtest.FakeUser) chat1.MessageID {
 			msgID := mustPostLocalForTest(t, ctc, user, conv, msgBody)
@@ -513,15 +515,17 @@ func TestChatSearchInbox(t *testing.T) {
 			t.Logf("verify user 1 index")
 
 			verifyIndexConsumption(consumeCh1)
-			convIdx1, err := indexer1.GetConvIndex(ctx, convID, uid1)
+			convIdx1, lock, err := indexer1.AcquireConvIndex(ctx, convID, uid1)
 			require.NoError(t, err)
-			require.Equal(t, expectedIndex, convIdx1)
+			require.Equal(t, expectedIndex, convIdx1.GetIndexUnsafe())
+			lock.Release(context.TODO())
 
 			t.Logf("verify user 2 index")
 			verifyIndexConsumption(consumeCh2)
-			convIdx2, err := indexer2.GetConvIndex(ctx, convID, uid2)
+			convIdx2, lock, err := indexer2.AcquireConvIndex(ctx, convID, uid2)
 			require.NoError(t, err)
-			require.Equal(t, expectedIndex, convIdx2)
+			require.Equal(t, expectedIndex, convIdx2.GetIndexUnsafe())
+			lock.Release(context.TODO())
 		}
 
 		runSearch := func(query string, opts chat1.SearchOpts, expectedReindex bool) *chat1.ChatSearchInboxResults {
@@ -825,9 +829,6 @@ func TestChatSearchInbox(t *testing.T) {
 		expectedIndex.Alias[`约`] = map[string]chat1.EmptyStruct{msgBody: chat1.EmptyStruct{}}
 		expectedIndex.Alias[`约书`] = map[string]chat1.EmptyStruct{msgBody: chat1.EmptyStruct{}}
 		expectedIndex.Alias[`约书亚`] = map[string]chat1.EmptyStruct{msgBody: chat1.EmptyStruct{}}
-		expectedIndex.Alias[`约书亚和`] = map[string]chat1.EmptyStruct{msgBody: chat1.EmptyStruct{}}
-		expectedIndex.Alias[`约书亚和约`] = map[string]chat1.EmptyStruct{msgBody: chat1.EmptyStruct{}}
-		expectedIndex.Alias[`约书亚和约翰`] = map[string]chat1.EmptyStruct{msgBody: chat1.EmptyStruct{}}
 		// NOTE other prefixes are cut off since they exceed the max length
 		expectedIndex.Metadata.SeenIDs[msgID8] = chat1.EmptyStruct{}
 		verifyIndex(expectedIndex)
@@ -840,7 +841,7 @@ func TestChatSearchInbox(t *testing.T) {
 		verifySearchDone(1)
 
 		// DB nuke, ensure that we reindex after the search
-		g1.LocalChatDb.Nuke()
+		g1.Indexer.ClearMemory()
 		opts.ReindexMode = chat1.ReIndexingMode_PRESEARCH_SYNC // force reindex so we're fully up to date.
 		res = runSearch(query, opts, true /* expectedReindex*/)
 		require.Equal(t, 1, len(res.Hits))
@@ -857,7 +858,7 @@ func TestChatSearchInbox(t *testing.T) {
 
 		// Verify POSTSEARCH_SYNC
 		ictx := globals.CtxAddIdentifyMode(ctx, keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil)
-		g1.LocalChatDb.Nuke()
+		g1.Indexer.ClearMemory()
 		indexer1.SelectiveSync(ictx, uid1, true /* forceReindex */)
 		opts.ReindexMode = chat1.ReIndexingMode_POSTSEARCH_SYNC
 		res = runSearch(query, opts, true /* expectedReindex*/)

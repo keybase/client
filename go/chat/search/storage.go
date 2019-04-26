@@ -56,69 +56,14 @@ func newStore(g *globals.Context) *store {
 func (s *store) dbKey(convID chat1.ConversationID, uid gregor1.UID) libkb.DbKey {
 	return libkb.DbKey{
 		Typ: libkb.DBChatIndex,
-		Key: fmt.Sprintf("idx:%s:%s", uid, convID),
+		Key: fmt.Sprintf("idx_v6:%s:%s", uid, convID),
 	}
 }
 
-func (s *store) getLocked(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (ret *chat1.ConversationIndex, err error) {
-	defer func() {
-		// return a blank index
-		if err == nil && ret == nil {
-			ret = &chat1.ConversationIndex{
-				Index: make(map[string]map[chat1.MessageID]chat1.EmptyStruct),
-				Alias: make(map[string]map[string]chat1.EmptyStruct),
-				Metadata: chat1.ConversationIndexMetadata{
-					SeenIDs: make(map[chat1.MessageID]chat1.EmptyStruct),
-				},
-			}
-		}
-		if err != nil {
-			if derr := s.deleteLocked(ctx, convID, uid); derr != nil {
-				s.Debug(ctx, "unable to delete: %v", derr)
-			}
-		}
-	}()
-
-	dbKey := s.dbKey(convID, uid)
-	var entry chat1.ConversationIndexDisk
-	found, err := s.encryptedDB.Get(ctx, dbKey, &entry)
-	if err != nil || !found {
-		return nil, err
-	}
-	if entry.Metadata.Version != IndexVersion {
-		// drop the whole index for this conv
-		err = s.deleteLocked(ctx, convID, uid)
-		return nil, err
-	}
-
-	ret = &chat1.ConversationIndex{
-		Index: make(map[string]map[chat1.MessageID]chat1.EmptyStruct, len(entry.Index)),
-		Alias: make(map[string]map[string]chat1.EmptyStruct, len(entry.Alias)),
-		Metadata: chat1.ConversationIndexMetadata{
-			Version: entry.Metadata.Version,
-			SeenIDs: make(map[chat1.MessageID]chat1.EmptyStruct, len(entry.Metadata.SeenIDs)),
-		},
-	}
-	for _, t := range entry.Index {
-		ret.Index[t.Token] = make(map[chat1.MessageID]chat1.EmptyStruct, len(t.MsgIDs))
-		for _, msgID := range t.MsgIDs {
-			ret.Index[t.Token][msgID] = chat1.EmptyStruct{}
-		}
-	}
-	for _, t := range entry.Alias {
-		ret.Alias[t.Alias] = make(map[string]chat1.EmptyStruct, len(t.Tokens))
-		for _, token := range t.Tokens {
-			ret.Alias[t.Alias][token] = chat1.EmptyStruct{}
-		}
-	}
-	for _, msgID := range entry.Metadata.SeenIDs {
-		ret.Metadata.SeenIDs[msgID] = chat1.EmptyStruct{}
-	}
-
-	return ret, nil
-}
-
-func (s *store) putLocked(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, idx *chat1.ConversationIndex) error {
+func (s *store) putConvIndex(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+	idx *chat1.ConversationIndex) error {
+	lock := s.lockTab.AcquireOnName(ctx, s.G(), convID.String())
+	defer lock.Release(ctx)
 	if idx == nil {
 		return nil
 	}
@@ -169,155 +114,62 @@ func (s *store) deleteLocked(ctx context.Context, convID chat1.ConversationID, u
 	return s.encryptedDB.Delete(ctx, dbKey)
 }
 
-func (s *store) getConvIndex(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (entry *chat1.ConversationIndex, err error) {
+func (s *store) getConvIndex(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (ret *chat1.ConversationIndex, err error) {
 	lock := s.lockTab.AcquireOnName(ctx, s.G(), convID.String())
 	defer lock.Release(ctx)
-	return s.getLocked(ctx, convID, uid)
-}
-
-// addTokensLocked add the given tokens to the index under the given message
-// id, when ingesting EDIT messages the msgID is of the superseded msg but the
-// tokens are from the EDIT itself.
-func (s *store) addTokensLocked(entry *chat1.ConversationIndex, tokens tokenMap, msgID chat1.MessageID) {
-	for token, aliases := range tokens {
-		msgIDs, ok := entry.Index[token]
-		if !ok {
-			msgIDs = map[chat1.MessageID]chat1.EmptyStruct{}
-		}
-		msgIDs[msgID] = chat1.EmptyStruct{}
-		entry.Index[token] = msgIDs
-		for alias := range aliases {
-			atoken, ok := entry.Alias[alias]
-			if !ok {
-				atoken = map[string]chat1.EmptyStruct{}
-			}
-			atoken[token] = chat1.EmptyStruct{}
-			entry.Alias[alias] = atoken
-		}
-	}
-}
-
-func (s *store) addMsgLocked(entry *chat1.ConversationIndex, msg chat1.MessageUnboxed) {
-	tokens := tokensFromMsg(msg)
-	s.addTokensLocked(entry, tokens, msg.GetMessageID())
-}
-
-func (s *store) removeMsgLocked(entry *chat1.ConversationIndex, msg chat1.MessageUnboxed) {
-	// find the msgID that the index stores
-	var msgID chat1.MessageID
-	switch msg.GetMessageType() {
-	case chat1.MessageType_EDIT, chat1.MessageType_ATTACHMENTUPLOADED:
-		superIDs, err := utils.GetSupersedes(msg)
-		if err != nil || len(superIDs) != 1 {
-			return
-		}
-		msgID = superIDs[0]
-	default:
-		msgID = msg.GetMessageID()
-	}
-
-	for token, aliases := range tokensFromMsg(msg) {
-		msgIDs := entry.Index[token]
-		delete(msgIDs, msgID)
-		if len(msgIDs) == 0 {
-			delete(entry.Index, token)
-		}
-		for alias := range aliases {
-			for atoken := range entry.Alias[alias] {
-				_, ok := entry.Index[atoken]
-				if !ok {
-					delete(entry.Alias[alias], atoken)
-				}
-			}
-			if len(entry.Alias[alias]) == 0 {
-				delete(entry.Alias, alias)
+	defer func() {
+		// return a blank index
+		if err == nil && ret == nil {
+			ret = &chat1.ConversationIndex{
+				Index: make(map[string]map[chat1.MessageID]chat1.EmptyStruct),
+				Alias: make(map[string]map[string]chat1.EmptyStruct),
+				Metadata: chat1.ConversationIndexMetadata{
+					Version: IndexVersion,
+					SeenIDs: make(map[chat1.MessageID]chat1.EmptyStruct),
+				},
 			}
 		}
-	}
-}
-
-func (s *store) add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-	msgs []chat1.MessageUnboxed) (err error) {
-	lock := s.lockTab.AcquireOnName(ctx, s.G(), convID.String())
-	defer lock.Release(ctx)
-
-	entry, err := s.getLocked(ctx, convID, uid)
-	if err != nil {
-		return err
-	}
-
-	fetchSupersededMsgs := func(msg chat1.MessageUnboxed) []chat1.MessageUnboxed {
-		superIDs, err := utils.GetSupersedes(msg)
 		if err != nil {
-			s.Debug(ctx, "unable to get supersedes: %v", err)
-			return nil
-		}
-		reason := chat1.GetThreadReason_INDEXED_SEARCH
-		supersededMsgs, err := s.G().ChatHelper.GetMessages(ctx, uid, convID, superIDs,
-			false /* resolveSupersedes*/, &reason)
-		if err != nil {
-			// Log but ignore error
-			s.Debug(ctx, "unable to get fetch messages: %v", err)
-			return nil
-		}
-		return supersededMsgs
-	}
-
-	for _, msg := range msgs {
-		seenIDs := entry.Metadata.SeenIDs
-		// Don't add if we've seen
-		if _, ok := seenIDs[msg.GetMessageID()]; ok {
-			continue
-		}
-		seenIDs[msg.GetMessageID()] = chat1.EmptyStruct{}
-		// NOTE DELETE and DELETEHISTORY are handled through calls to `remove`,
-		// other messages will be added if there is any content that can be
-		// indexed.
-		switch msg.GetMessageType() {
-		case chat1.MessageType_ATTACHMENTUPLOADED:
-			supersededMsgs := fetchSupersededMsgs(msg)
-			for _, sm := range supersededMsgs {
-				seenIDs[sm.GetMessageID()] = chat1.EmptyStruct{}
-				s.addMsgLocked(entry, sm)
+			if derr := s.deleteLocked(ctx, convID, uid); derr != nil {
+				s.Debug(ctx, "unable to delete: %v", derr)
 			}
-		case chat1.MessageType_EDIT:
-			tokens := tokensFromMsg(msg)
-			supersededMsgs := fetchSupersededMsgs(msg)
-			// remove the original message text and replace it with the edited
-			// contents (using the original id in the index)
-			for _, sm := range supersededMsgs {
-				seenIDs[sm.GetMessageID()] = chat1.EmptyStruct{}
-				s.removeMsgLocked(entry, sm)
-				s.addTokensLocked(entry, tokens, sm.GetMessageID())
-			}
-		default:
-			s.addMsgLocked(entry, msg)
+		}
+	}()
+
+	dbKey := s.dbKey(convID, uid)
+	var entry chat1.ConversationIndexDisk
+	found, err := s.encryptedDB.Get(ctx, dbKey, &entry)
+	if err != nil || !found {
+		return nil, err
+	}
+	if entry.Metadata.Version != IndexVersion {
+		// drop the whole index for this conv
+		err = s.deleteLocked(ctx, convID, uid)
+		return nil, err
+	}
+
+	ret = &chat1.ConversationIndex{
+		Index: make(map[string]map[chat1.MessageID]chat1.EmptyStruct, len(entry.Index)),
+		Alias: make(map[string]map[string]chat1.EmptyStruct, len(entry.Alias)),
+		Metadata: chat1.ConversationIndexMetadata{
+			Version: entry.Metadata.Version,
+			SeenIDs: make(map[chat1.MessageID]chat1.EmptyStruct, len(entry.Metadata.SeenIDs)),
+		},
+	}
+	for _, t := range entry.Index {
+		ret.Index[t.Token] = make(map[chat1.MessageID]chat1.EmptyStruct, len(t.MsgIDs))
+		for _, msgID := range t.MsgIDs {
+			ret.Index[t.Token][msgID] = chat1.EmptyStruct{}
 		}
 	}
-	err = s.putLocked(ctx, convID, uid, entry)
-	return err
-}
-
-// Remove tokenizes the message content and updates/removes index keys for each token.
-func (s *store) remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-	msgs []chat1.MessageUnboxed) (err error) {
-	lock := s.lockTab.AcquireOnName(ctx, s.G(), convID.String())
-	defer lock.Release(ctx)
-
-	entry, err := s.getLocked(ctx, convID, uid)
-	if err != nil {
-		return err
-	}
-
-	seenIDs := entry.Metadata.SeenIDs
-	for _, msg := range msgs {
-		// Don't remove if we haven't seen
-		if _, ok := seenIDs[msg.GetMessageID()]; !ok {
-			continue
+	for _, t := range entry.Alias {
+		ret.Alias[t.Alias] = make(map[string]chat1.EmptyStruct, len(t.Tokens))
+		for _, token := range t.Tokens {
+			ret.Alias[t.Alias][token] = chat1.EmptyStruct{}
 		}
-		seenIDs[msg.GetMessageID()] = chat1.EmptyStruct{}
-		s.removeMsgLocked(entry, msg)
 	}
-	err = s.putLocked(ctx, convID, uid, entry)
-	return err
+	for _, msgID := range entry.Metadata.SeenIDs {
+		ret.Metadata.SeenIDs[msgID] = chat1.EmptyStruct{}
+	}
+	return ret, nil
 }
