@@ -91,7 +91,6 @@ const styles = Styles.styleSheetCreate({
       marginLeft: Styles.globalMargins.tiny,
       marginRight: Styles.globalMargins.tiny,
     },
-    isElectron: {display: 'inline'},
     isMobile: {backgroundColor: Styles.globalColors.fastBlank},
   }),
   teamRowContainer: Styles.platformStyles({
