@@ -10,8 +10,8 @@ import Confirm from './confirm-container'
 
 type OwnProps = {|
   floatingMenuProps: FloatingMenuProps,
+  mode: 'row' | 'screen',
   path: Types.Path,
-  position?: 'row' | 'header',
   routePath: I.List<string>,
 |}
 
@@ -25,7 +25,7 @@ const ChooseView = props => {
       <Menu
         routePath={props.routePath}
         path={props.path}
-        position={props.position}
+        mode={props.mode}
         floatingMenuProps={props.floatingMenuProps}
       />
     )

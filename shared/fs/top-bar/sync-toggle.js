@@ -23,8 +23,10 @@ class HideFloatingMenuWhenDone extends React.PureComponent<Props, {||}> {
 
 const Confirm = props => (
   <Kb.Box2 direction="vertical" style={styles.popupContainer} centerChildren={true}>
-    <Kb.Text type="BodyBig">Unsync this folder now?</Kb.Text>
-    <Kb.Text type="BodySmall" center={true} style={styles.explainText}>
+    <Kb.Text key="title" type="BodyBig">
+      Unsync this folder now?
+    </Kb.Text>
+    <Kb.Text key="explain" type="BodySmall" center={true} style={styles.explainText}>
       This will delete your local copies of all the files in this folder.
     </Kb.Text>
     {!Styles.isMobile && (
@@ -36,6 +38,7 @@ const Confirm = props => (
         centerChildren={true}
       >
         <Kb.Button
+          key="cancel"
           small={true}
           type="Dim"
           label="Cancel"
@@ -43,6 +46,7 @@ const Confirm = props => (
           disabled={props.waiting}
         />
         <Kb.Button
+          key="yes"
           small={true}
           type="Danger"
           label="Yes, unsync"

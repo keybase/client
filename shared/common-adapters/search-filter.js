@@ -34,6 +34,7 @@ type Props = {|
   waiting?: boolean,
 
   onBlur?: ?() => void,
+  onCancel?: ?() => void,
   // If onClick is provided, this component won't focus on click. User is
   // expected to handle actual filter/search in a separate component, perhaps
   // in a popup.
@@ -81,6 +82,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
   _cancel = e => {
     this._blur()
     this._clear()
+    this.props.onCancel && this.props.onCancel()
     e && e.stopPropagation()
   }
   _update = text => {

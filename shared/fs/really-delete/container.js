@@ -7,7 +7,13 @@ import {anyWaiting} from '../../constants/waiting'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 
-type OwnProps = Container.RouteProps<{path: Types.Path, position?: 'row' | 'header'}, {}>
+type OwnProps = Container.RouteProps<
+  {
+    path: Types.Path,
+    mode: 'row' | 'screen',
+  },
+  {}
+>
 
 const mapStateToProps = state => ({
   _deleting: anyWaiting(state, Constants.deleteWaitingKey),
@@ -16,12 +22,12 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = (dispatch, ownProps) => {
   const path = Container.getRouteProps(ownProps, 'path')
-  const position = Container.getRouteProps(ownProps, 'position')
+  const mode = Container.getRouteProps(ownProps, 'mode')
   return {
     _onFinishDelete: () => {
-      // If this is a header menu, then we're deleting the folder we're in,
+      // If this is a screen menu, then we're deleting the folder we're in,
       // and we need to navigate up twice.
-      if (position === 'header') {
+      if (mode === 'screen') {
         dispatch(Constants.makeActionForOpenPathInFilesTab(Types.getPathParent(path)))
         dispatch(RouteTreeGen.createNavigateUp())
       } else {

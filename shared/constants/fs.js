@@ -1134,6 +1134,9 @@ export const makeActionsForShowSendAttachmentToChat = (
 export const splitFileNameAndExtension = (fileName: string) =>
   ((str, idx) => [str.slice(0, idx), str.slice(idx)])(fileName, fileName.lastIndexOf('.'))
 
+export const isFolder = (path: Types.Path, pathItem: Types.PathItem) =>
+  Types.getPathLevel(path) <= 3 || pathItem.type === 'folder'
+
 export const erroredActionToMessage = (action: FsGen.Actions, error: string): string => {
   const errorIsTimeout = error.includes('context deadline exceeded')
   const timeoutExplain = 'An operation took too long to complete. Are you connected to the Internet?'
