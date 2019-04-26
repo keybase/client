@@ -66,6 +66,15 @@ func (e *PassphraseRecover) Run(mctx libkb.MetaContext) (err error) {
 		return err
 	}
 
+	// If the reset pipeline is not enabled, we'll want this to act exactly the same way as before
+	if !mctx.G().Env.GetFeatureFlags().HasFeature(libkb.EnvironmentFeatureAutoresetPipeline) {
+		// The device has to be preprovisioned for this account in this flow
+		if !usernameFound {
+			return libkb.NotProvisionedError{}
+		}
+		return e.legacyRecovery(mctx)
+	}
+
 	// Load the user by username
 	ueng := newLoginLoadUser(mctx.G(), e.arg.Username)
 	if err := RunEngine2(mctx, ueng); err != nil {
@@ -76,15 +85,6 @@ func (e *PassphraseRecover) Run(mctx libkb.MetaContext) (err error) {
 	ckf := ueng.User().GetComputedKeyFamily()
 	if ckf == nil {
 		return libkb.NewNotFoundError("Account missing key family")
-	}
-
-	// If the reset pipeline is not enabled, we'll want this to act exactly the same way as before
-	if !mctx.G().Env.GetFeatureFlags().HasFeature(libkb.EnvironmentFeatureAutoresetPipeline) {
-		// The device has to be preprovisioned for this account in this flow
-		if !usernameFound {
-			return libkb.NotProvisionedError{}
-		}
-		return e.legacyRecovery(mctx)
 	}
 
 	if !ckf.HasActiveDevice() {
@@ -209,6 +209,11 @@ func (e *PassphraseRecover) loginWithPaperKey(mctx libkb.MetaContext) (err error
 
 		return err
 	}
+
+	mctx.Debug("PassphraseRecover with paper key success, sending login notification")
+	mctx.G().NotifyRouter.HandleLogin(mctx.Ctx(), e.arg.Username)
+	mctx.Debug("PassphraseRecover with paper key success, calling login hooks")
+	mctx.G().CallLoginHooks(mctx)
 
 	return nil
 }
