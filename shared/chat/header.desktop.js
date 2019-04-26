@@ -28,16 +28,16 @@ type Props = {|
 |}
 
 const descStyleOverride = {
-  del: {fontSize: 12, lineHeight: '16px'},
-  em: {fontSize: 12, lineHeight: '16px'},
-  fence: {fontSize: 12, lineHeight: '16px'},
-  inlineCode: {fontSize: 12, lineHeight: '16px'},
-  kbfsPath: {fontSize: 12, lineHeight: '16px'},
-  link: {fontSize: 12, lineHeight: '16px'},
-  mailto: {fontSize: 12, lineHeight: '16px'},
-  paragraph: {fontSize: 12, lineHeight: '16px'},
-  preview: {fontSize: 12, lineHeight: '16px'},
-  strong: {fontSize: 12, lineHeight: '16px'},
+  del: {fontSize: 12, lineHeight: '16px', wordBreak: 'break-all'},
+  em: {fontSize: 12, lineHeight: '16px', wordBreak: 'break-all'},
+  fence: {fontSize: 12, lineHeight: '16px', wordBreak: 'break-all'},
+  inlineCode: {fontSize: 12, lineHeight: '16px', wordBreak: 'break-all'},
+  kbfsPath: {fontSize: 12, lineHeight: '16px', wordBreak: 'break-all'},
+  link: {fontSize: 12, lineHeight: '16px', wordBreak: 'break-all'},
+  mailto: {fontSize: 12, lineHeight: '16px', wordBreak: 'break-all'},
+  paragraph: {fontSize: 12, lineHeight: '16px', wordBreak: 'break-all'},
+  preview: {fontSize: 12, lineHeight: '16px', wordBreak: 'break-all'},
+  strong: {fontSize: 12, lineHeight: '16px', wordBreak: 'break-all'},
 }
 
 const Header = (p: Props) => {
