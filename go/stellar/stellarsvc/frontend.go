@@ -1194,7 +1194,7 @@ func (s *Server) FindPaymentPathLocal(ctx context.Context, arg stellar1.FindPaym
 
 	res.FullPath = path
 
-	// XXX need sourceDisplay, sourceMaxDisplay, destinationDisplay (waiting on design)
+	// TODO: need sourceDisplay, sourceMaxDisplay, destinationDisplay (waiting on design)
 
 	return res, nil
 }
