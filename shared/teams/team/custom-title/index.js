@@ -11,14 +11,12 @@ import {
 import {globalStyles, globalMargins, isMobile, styleSheetCreate} from '../../../styles'
 import TeamMenu from '../menu-container'
 
-type Props = {
-  onOpenFolder: () => void,
+type Props = {|
   onChat: () => void,
   canChat: boolean,
-  canViewFolder: boolean,
   loading: boolean,
   teamname: string,
-}
+|}
 
 const fontSize = isMobile ? 20 : 16
 
@@ -31,14 +29,6 @@ const _CustomComponent = (props: Props & OverlayParentProps) => (
         fontSize={fontSize}
         style={iconCastPlatformStyles(styles.icon)}
         type="iconfont-chat"
-      />
-    )}
-    {!isMobile && props.canViewFolder && (
-      <Icon
-        onClick={props.onOpenFolder}
-        fontSize={fontSize}
-        style={iconCastPlatformStyles(styles.icon)}
-        type="iconfont-folder-private"
       />
     )}
     <Icon

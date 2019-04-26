@@ -10,6 +10,7 @@ type HeaderTitleProps = {|
   accountID: Types.AccountID,
   accountName: string,
   isDefault: boolean,
+  loading: boolean,
   username: string,
 |}
 
@@ -19,13 +20,19 @@ export const HeaderTitle = (props: HeaderTitleProps) => (
       <AddAccount />
     </Kb.Box2>
     <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.accountInfo}>
-      <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" style={styles.accountNameContainer}>
-        {props.isDefault && <Kb.Avatar size={16} username={props.username} />}
-        <Kb.Text type="Header" lineClamp={1}>
-          {props.accountName}
-        </Kb.Text>
-      </Kb.Box2>
-      <SmallAccountID accountID={props.accountID} />
+      {props.loading ? (
+        <Kb.ProgressIndicator small={true} style={styles.loading} />
+      ) : (
+        <>
+          <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" style={styles.accountNameContainer}>
+            {props.isDefault && <Kb.Avatar size={16} username={props.username} />}
+            <Kb.Text type="Header" lineClamp={1}>
+              {props.accountName}
+            </Kb.Text>
+          </Kb.Box2>
+          <SmallAccountID accountID={props.accountID} />
+        </>
+      )}
     </Kb.Box2>
   </Kb.Box2>
 )
@@ -54,6 +61,10 @@ const styles = Styles.styleSheetCreate({
     minWidth: 240,
     paddingLeft: Styles.globalMargins.xsmall,
     paddingRight: Styles.globalMargins.xsmall,
+  },
+  loading: {
+    height: 16,
+    width: 16,
   },
   rightActions: {
     alignSelf: 'stretch',
