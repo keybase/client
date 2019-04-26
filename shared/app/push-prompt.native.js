@@ -64,7 +64,7 @@ const styles = Styles.styleSheetCreate({
       width: '170%',
     },
   }),
-  scrollContent: {minHeight: '100%'},
+  scrollContent: {backgroundColor: Styles.globalColors.white, minHeight: '100%'},
   spacer: {flexGrow: 1},
   text: {
     color: Styles.globalColors.black,

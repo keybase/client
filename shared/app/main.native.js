@@ -6,7 +6,7 @@ import * as Styles from '../styles'
 import PushPrompt from './push-prompt.native'
 import RouterSwitcheroo from '../router-v2/switcheroo'
 import {connect} from '../util/container'
-import {GatewayDest} from 'react-gateway'
+import {GatewayDest, Gateway} from 'react-gateway'
 import {View} from 'react-native'
 import {getPath} from '../route-tree'
 import flags from '../util/feature-flags'
@@ -37,7 +37,7 @@ class Main extends React.Component<Props> {
 
   render() {
     if (this.props.showPushPrompt) {
-      return <PushPrompt />
+      // return <PushPrompt />
     }
 
     // TODO likely collapse index.native/main.native/nav.native etc
@@ -55,6 +55,11 @@ class Main extends React.Component<Props> {
           pointerEvents="box-none"
           style={Styles.globalStyles.fillAbsolute}
         />
+        {this.props.showPushPrompt && (
+          <Gateway into="popup-root">
+            <PushPrompt />
+          </Gateway>
+        )}
         {flags.useNewRouter && (
           <Kb.NativeKeyboardAvoidingView
             style={Styles.globalStyles.fillAbsolute}
