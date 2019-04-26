@@ -107,7 +107,7 @@ class ConversationFilterInput extends React.PureComponent<Props> {
           gapEnd={true}
           fullWidth={true}
         >
-          <Kb.Box2 alignItems="center" direction="horizontal" style={styles.flexOne}>
+          <Kb.Box2 alignItems="center" direction="horizontal" style={styles.searchBox}>
             {flags.useNewRouter && Styles.isMobile && (
               <Kb.BackButton onClick={this.props.onBack} style={styles.backButton} />
             )}
@@ -130,7 +130,7 @@ class ConversationFilterInput extends React.PureComponent<Props> {
           </Kb.Box2>
           {!!this.props.onNewChat && (
             <Kb.WithTooltip position="bottom center" text={`New chat (${Platforms.shortcutSymbol}N)`}>
-              <Kb.Button small={true} onClick={this.props.onNewChat}>
+              <Kb.Button small={true} onClick={this.props.onNewChat} style={styles.newChatButton}>
                 <Kb.Icon type="iconfont-compose" color={Styles.globalColors.white} style={styles.newIcon} />
               </Kb.Button>
             </Kb.WithTooltip>
@@ -160,6 +160,7 @@ const styles = Styles.styleSheetCreate({
       position: 'relative',
     },
     isElectron: {
+      ...Styles.desktopStyles.windowDraggingClickable,
       ...Styles.padding(0, Styles.globalMargins.small),
       backgroundColor: Styles.globalColors.blueGrey,
       height: 39,
@@ -225,10 +226,15 @@ const styles = Styles.styleSheetCreate({
     position: 'absolute',
     right: 0,
   },
+  newChatButton: Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
   newIcon: {
     position: 'relative',
     top: 1,
   },
+  searchBox: Styles.platformStyles({
+    common: {flex: 1},
+    isElectron: Styles.desktopStyles.windowDraggingClickable,
+  }),
   text: Styles.platformStyles({
     common: {
       color: Styles.globalColors.black_50,

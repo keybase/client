@@ -28,6 +28,7 @@ export default FsNavHeaderRightActions
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     isElectron: {
+      ...Styles.desktopStyles.windowDraggingClickable,
       height: 28,
       // Supposed to be small, but icons already have padding
       paddingRight: Styles.globalMargins.tiny,
