@@ -53,10 +53,6 @@
       "name": "ProcessedContact",
       "fields": [
         {
-          "type": "string",
-          "name": "displayName"
-        },
-        {
           "type": "int",
           "name": "contactIndex"
         },
@@ -79,6 +75,18 @@
         {
           "type": "string",
           "name": "fullName"
+        },
+        {
+          "type": "boolean",
+          "name": "following"
+        },
+        {
+          "type": "string",
+          "name": "displayName"
+        },
+        {
+          "type": "string",
+          "name": "displayLabel"
         }
       ]
     }

@@ -78,7 +78,6 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 		usersFound[lookupRes.UID] = struct{}{}
 
 		res = append(res, keybase1.ProcessedContact{
-			DisplayName:  lookupRes.KeybaseUsername, // if found, return username
 			ContactIndex: toContact.contactIndex,
 			Component:    component,
 			Resolved:     true,

@@ -57,24 +57,28 @@ func (o Contact) DeepCopy() Contact {
 }
 
 type ProcessedContact struct {
-	DisplayName  string           `codec:"displayName" json:"displayName"`
 	ContactIndex int              `codec:"contactIndex" json:"contactIndex"`
 	Component    ContactComponent `codec:"component" json:"component"`
 	Resolved     bool             `codec:"resolved" json:"resolved"`
 	Uid          UID              `codec:"uid" json:"uid"`
 	Username     string           `codec:"username" json:"username"`
 	FullName     string           `codec:"fullName" json:"fullName"`
+	Following    bool             `codec:"following" json:"following"`
+	DisplayName  string           `codec:"displayName" json:"displayName"`
+	DisplayLabel string           `codec:"displayLabel" json:"displayLabel"`
 }
 
 func (o ProcessedContact) DeepCopy() ProcessedContact {
 	return ProcessedContact{
-		DisplayName:  o.DisplayName,
 		ContactIndex: o.ContactIndex,
 		Component:    o.Component.DeepCopy(),
 		Resolved:     o.Resolved,
 		Uid:          o.Uid.DeepCopy(),
 		Username:     o.Username,
 		FullName:     o.FullName,
+		Following:    o.Following,
+		DisplayName:  o.DisplayName,
+		DisplayLabel: o.DisplayLabel,
 	}
 }
 
