@@ -217,7 +217,7 @@ const clickCatcherStyle = {
   left: flags.useNewRouter ? 0 : 80,
   position: 'absolute',
   right: 0,
-  top: flags.useNewRouter ? 43 : 38,
+  top: flags.useNewRouter ? 39 : 38,
 }
 const panelContainerStyle = {
   bottom: 0,
