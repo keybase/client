@@ -113,6 +113,7 @@ const TabNavigator = createBottomTabNavigator(
       // else keyboard avoiding is racy on ios and won't work correctly
       keyboardHidesTabBar: Styles.isAndroid,
       showLabel: false,
+      style: {backgroundColor: Styles.globalColors.darkBlue2},
     },
   }
 )
