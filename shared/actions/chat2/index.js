@@ -2262,14 +2262,8 @@ const navigateToThreadRoute = conversationIDKey => {
     return RouteTreeGen.createNavigateTo({path: Constants.threadRoute})
   }
 
-  // do nothing if we're looking at a chat
-  // const s = Router2Constants.getVisibleScreen()
-  // if (['chatConversation', 'tabs.chatTab'].includes(s.routeName)) {
-  // return
-  // }
-  // temporary hackiness to deal with pending convos. TODO implement a better flow for this
   return RouteTreeGen.createNavigateAppend({
-    path: isMobile ? [{selected: 'chatConversation', props: {conversationIDKey}}] : [Tabs.chatTab],
+    path: isMobile ? [{props: {conversationIDKey}, selected: 'chatConversation'}] : [Tabs.chatTab],
   })
 }
 
