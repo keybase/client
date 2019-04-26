@@ -89,12 +89,14 @@ const TabNavigator = createBottomTabNavigator(
       headerMode,
       initialRouteName: tabRoots[tab],
       initialRouteParams: undefined,
-      // just to test
-      // transitionConfig: () => ({
-      // transitionSpec: {
-      // duration: 5000,
-      // },
-      // }),
+      transitionConfig: () => ({
+        transitionSpec: {
+          // the 'accurate' ios one is very slow to stop so going back leads to a missed taps
+          duration: 250,
+          easing: Kb.NativeEasing.bezier(0.2833, 0.99, 0.31833, 0.99),
+          timing: Kb.NativeAnimated.timing,
+        },
+      }),
     })
     return map
   }, {}),
