@@ -44,14 +44,13 @@ const _AddPeople = (props: Props) => {
     directLabel = 'Add members to channel'
   }
   return (
-    <Box2 direction="horizontal" centerChildren={true}>
+    <Box2 direction="horizontal" centerChildren={true} style={styles.addButtonContainer}>
       {menu}
       <Button
         onClick={directAction || props.toggleShowingMenu}
         label={directLabel || 'Add someone...'}
         ref={props.setAttachmentRef}
         fullWidth={true}
-        style={styles.addButton}
       />
     </Box2>
   )
@@ -101,7 +100,7 @@ const AddPeople = compose(
 )(_AddPeople)
 
 const styles = Styles.styleSheetCreate({
-  addButton: {marginLeft: Styles.globalMargins.small, marginRight: Styles.globalMargins.small},
+  addButtonContainer: {marginLeft: Styles.globalMargins.small, marginRight: Styles.globalMargins.small},
 })
 
 export default AddPeople
