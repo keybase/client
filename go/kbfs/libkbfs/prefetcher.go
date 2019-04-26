@@ -972,7 +972,7 @@ func (p *blockPrefetcher) run(
 		case req := <-p.prefetchStatusCh.Out():
 			p.handleStatusRequest(req.(*prefetchStatusRequest))
 		case chInterface := <-shuttingDownCh:
-			p.log.Debug("shutting down")
+			p.log.Debug("shutting down, clearing in flight fetches")
 			ch := chInterface.(<-chan error)
 			<-ch
 		case ptrInt := <-p.prefetchCancelCh.Out():

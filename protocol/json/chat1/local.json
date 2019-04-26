@@ -104,6 +104,13 @@
             "items": "TextPayment"
           },
           "name": "payments"
+        },
+        {
+          "type": [
+            null,
+            "MessageID"
+          ],
+          "name": "replyTo"
         }
       ]
     },
@@ -694,6 +701,36 @@
       ]
     },
     {
+      "type": "record",
+      "name": "SenderPrepareOptions",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "skipTopicNameState"
+        },
+        {
+          "type": [
+            null,
+            "MessageID"
+          ],
+          "name": "replyTo"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SenderSendOptions",
+      "fields": [
+        {
+          "type": [
+            null,
+            "ConversationMemberStatus"
+          ],
+          "name": "joinMentionsAs"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "OutboxStateType",
       "symbols": [
@@ -784,6 +821,20 @@
           "name": "identifyBehavior"
         },
         {
+          "type": [
+            null,
+            "SenderPrepareOptions"
+          ],
+          "name": "prepareOpts"
+        },
+        {
+          "type": [
+            null,
+            "SenderSendOptions"
+          ],
+          "name": "sendOpts"
+        },
+        {
           "type": "int",
           "name": "ordinal"
         },
@@ -793,6 +844,13 @@
             "MakePreviewRes"
           ],
           "name": "preview"
+        },
+        {
+          "type": [
+            null,
+            "MessageUnboxed"
+          ],
+          "name": "replyTo"
         }
       ]
     },
@@ -1237,6 +1295,13 @@
             "keys": "MessageID"
           },
           "name": "unfurls"
+        },
+        {
+          "type": [
+            null,
+            "MessageUnboxed"
+          ],
+          "name": "replyTo"
         }
       ]
     },
@@ -2828,7 +2893,11 @@
         },
         {
           "type": "int",
-          "name": "indexSize"
+          "name": "indexSizeDisk"
+        },
+        {
+          "type": "int64",
+          "name": "indexSizeMem"
         },
         {
           "type": "gregor1.DurationMsec",
@@ -3175,6 +3244,13 @@
           "type": "MessagePlaintext"
         },
         {
+          "name": "replyTo",
+          "type": [
+            null,
+            "MessageID"
+          ]
+        },
+        {
           "name": "identifyBehavior",
           "type": "keybase1.TLFIdentifyBehavior"
         }
@@ -3211,6 +3287,13 @@
           ]
         },
         {
+          "name": "replyTo",
+          "type": [
+            null,
+            "MessageID"
+          ]
+        },
+        {
           "name": "identifyBehavior",
           "type": "keybase1.TLFIdentifyBehavior"
         }
@@ -3242,6 +3325,13 @@
         {
           "name": "clientPrev",
           "type": "MessageID"
+        },
+        {
+          "name": "replyTo",
+          "type": [
+            null,
+            "MessageID"
+          ]
         },
         {
           "name": "outboxID",

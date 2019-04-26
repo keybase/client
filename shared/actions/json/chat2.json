@@ -149,7 +149,7 @@
       "messages": "Array<Types.Message>",
       // true if these should be the only messages we know about
       "shouldClearOthers?": "boolean",
-      "centeredMessageIDs?": "Array<{conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID}>",
+      "centeredMessageIDs?": "Array<{conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, highlightMode: Types.CenterOrdinalHighlightMode}>",
       "forceContainsLatestCalc?": "boolean"
     },
     // Got an error sending a message
@@ -238,9 +238,10 @@
     "loadNewerMessagesDueToScroll": {
       "conversationIDKey": "Types.ConversationIDKey"
     },
-    "loadMessagesFromSearchHit": {
+    "loadMessagesCentered": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "messageID": "Types.MessageID"
+      "messageID": "Types.MessageID",
+      "highlightMode": "Types.CenterOrdinalHighlightMode"
     },
     // Show a desktop notification
     "desktopNotification": {
@@ -251,7 +252,8 @@
     // Send a text message
     "messageSend": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "text": "HiddenString"
+      "text": "HiddenString",
+      "replyTo?": "Types.MessageID"
     },
     "toggleLocalReaction": {
       "_description": "Toggle a reaction in the store.",
@@ -615,6 +617,16 @@
     "toggleThreadSearch": {
       "_description": "Toggle the display of the thread search window",
       "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "toggleReplyToMessage": {
+      "_description": "Reply to a message publicly",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal?": "Types.Ordinal"
+    },
+    "replyJump": {
+      "_description": "Jump to a replied to message",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "Types.MessageID"
     },
     "setThreadSearchQuery": {
       "_description": "Set thread search query (used from inbox search to initialize it)",

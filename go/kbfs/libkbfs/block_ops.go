@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -47,7 +48,7 @@ func NewBlockOpsStandard(
 	bg := &realBlockGetter{config: config}
 	qConfig := &realBlockRetrievalConfig{
 		blockRetrievalPartialConfig: config,
-		bg: bg,
+		bg:                          bg,
 	}
 	q := newBlockRetrievalQueue(
 		queueSize, prefetchQueueSize, throttledPrefetchPeriod, qConfig)
@@ -221,6 +222,12 @@ func (b *BlockOpsStandard) BlockRetriever() BlockRetriever {
 }
 
 // Shutdown implements the BlockOps interface for BlockOpsStandard.
-func (b *BlockOpsStandard) Shutdown() {
-	b.queue.Shutdown()
+func (b *BlockOpsStandard) Shutdown(ctx context.Context) error {
+	// Block on the queue being done.
+	select {
+	case <-b.queue.Shutdown():
+		return nil
+	case <-ctx.Done():
+		return errors.WithStack(ctx.Err())
+	}
 }

@@ -135,8 +135,12 @@ type blockRetrievalQueue struct {
 
 	// slices to store the workers so we can terminate them when we're done
 	workers []*blockRetrievalWorker
+
 	// channel to be closed when we're done accepting requests
-	doneCh chan struct{}
+	doneLock sync.RWMutex
+	doneCh   chan struct{}
+
+	shutdownCompleteCh chan struct{}
 
 	// protects prefetcher
 	prefetchMtx sync.RWMutex
@@ -163,15 +167,16 @@ func newBlockRetrievalQueue(
 
 	log := config.MakeLogger("")
 	q := &blockRetrievalQueue{
-		config:           config,
-		log:              log,
-		vlog:             config.MakeVLogger(log),
-		ptrs:             make(map[blockPtrLookup]*blockRetrieval),
-		heap:             &blockRetrievalHeap{},
-		workerCh:         NewInfiniteChannelWrapper(),
-		prefetchWorkerCh: NewInfiniteChannelWrapper(),
-		throttledWorkCh:  throttledWorkCh,
-		doneCh:           make(chan struct{}),
+		config:             config,
+		log:                log,
+		vlog:               config.MakeVLogger(log),
+		ptrs:               make(map[blockPtrLookup]*blockRetrieval),
+		heap:               &blockRetrievalHeap{},
+		workerCh:           NewInfiniteChannelWrapper(),
+		prefetchWorkerCh:   NewInfiniteChannelWrapper(),
+		throttledWorkCh:    throttledWorkCh,
+		doneCh:             make(chan struct{}),
+		shutdownCompleteCh: make(chan struct{}),
 		workers: make([]*blockRetrievalWorker, 0,
 			numWorkers+numPrefetchWorkers),
 	}
@@ -221,24 +226,30 @@ func (brq *blockRetrievalQueue) throttleReleaseLoop(
 
 		select {
 		case <-brq.throttledWorkCh.Out():
+			brq.mtx.Lock()
 			brq.sendWork(brq.prefetchWorkerCh)
+			brq.mtx.Unlock()
 		case <-brq.doneCh:
 			return
 		}
 	}
 }
 
-func (brq *blockRetrievalQueue) popIfNotEmpty() *blockRetrieval {
-	brq.mtx.Lock()
-	defer brq.mtx.Unlock()
+func (brq *blockRetrievalQueue) popIfNotEmptyLocked() *blockRetrieval {
 	if brq.heap.Len() > 0 {
 		return heap.Pop(brq.heap).(*blockRetrieval)
 	}
 	return nil
 }
 
+func (brq *blockRetrievalQueue) popIfNotEmpty() *blockRetrieval {
+	brq.mtx.Lock()
+	defer brq.mtx.Unlock()
+	return brq.popIfNotEmptyLocked()
+}
+
 func (brq *blockRetrievalQueue) shutdownRetrieval() {
-	retrieval := brq.popIfNotEmpty()
+	retrieval := brq.popIfNotEmptyLocked()
 	if retrieval != nil {
 		brq.FinalizeRequest(retrieval, nil, DiskBlockAnyCache, io.EOF)
 	}
@@ -416,6 +427,9 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 		"Request of %v, action=%s, priority=%d", ptr, action, priority)
 
 	// Only continue if we haven't been shut down
+	brq.doneLock.RLock()
+	defer brq.doneLock.RUnlock()
+
 	ch := make(chan error, 1)
 	select {
 	case <-brq.doneCh:
@@ -641,27 +655,47 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 	retrieval.requests = nil
 }
 
+func channelToWaitGroup(wg *sync.WaitGroup, ch <-chan struct{}) {
+	wg.Add(1)
+	go func() {
+		<-ch
+		wg.Done()
+	}()
+}
+
 // Shutdown is called when we are no longer accepting requests.
-func (brq *blockRetrievalQueue) Shutdown() {
+func (brq *blockRetrievalQueue) Shutdown() <-chan struct{} {
+	brq.doneLock.Lock()
+	defer brq.doneLock.Unlock()
+
 	select {
 	case <-brq.doneCh:
+		return brq.shutdownCompleteCh
 	default:
-		// We close `doneCh` first so that new requests coming in get
-		// finalized immediately rather than racing with dying workers.
-		close(brq.doneCh)
-		for _, w := range brq.workers {
-			w.Shutdown()
-		}
-		brq.prefetchMtx.Lock()
-		defer brq.prefetchMtx.Unlock()
-		brq.prefetcher.Shutdown()
-
-		brq.workerCh.Close()
-		brq.prefetchWorkerCh.Close()
-		if brq.throttledWorkCh != nil {
-			brq.throttledWorkCh.Close()
-		}
 	}
+
+	var shutdownWaitGroup sync.WaitGroup
+	// We close `doneCh` first so that new requests coming in get
+	// finalized immediately rather than racing with dying workers.
+	close(brq.doneCh)
+	for _, w := range brq.workers {
+		channelToWaitGroup(&shutdownWaitGroup, w.Shutdown())
+	}
+	brq.prefetchMtx.Lock()
+	defer brq.prefetchMtx.Unlock()
+	channelToWaitGroup(&shutdownWaitGroup, brq.prefetcher.Shutdown())
+
+	brq.workerCh.Close()
+	brq.prefetchWorkerCh.Close()
+	if brq.throttledWorkCh != nil {
+		brq.throttledWorkCh.Close()
+	}
+
+	go func() {
+		shutdownWaitGroup.Wait()
+		close(brq.shutdownCompleteCh)
+	}()
+	return brq.shutdownCompleteCh
 }
 
 // TogglePrefetcher allows upstream components to turn the prefetcher on or

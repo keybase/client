@@ -79,13 +79,12 @@ const mapDispatchToProps = dispatch => ({
       })
     )
   },
-  _onQuote: (message: Types.Message) => {
+  _onReply: (message: Types.Message) => {
     if (message.type === 'text') {
       dispatch(
-        Chat2Gen.createMessageSetQuoting({
+        Chat2Gen.createToggleReplyToMessage({
+          conversationIDKey: message.conversationIDKey,
           ordinal: message.ordinal,
-          sourceConversationIDKey: message.conversationIDKey,
-          targetConversationIDKey: message.conversationIDKey,
         })
       )
     }
@@ -124,7 +123,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
       : null,
     onEdit: yourMessage && message.type === 'text' ? () => dispatchProps._onEdit(message) : null,
     onHidden: () => ownProps.onHidden(),
-    onQuote: message.type === 'text' && !yourMessage ? () => dispatchProps._onQuote(message) : null,
+    onReply: message.type === 'text' ? () => dispatchProps._onReply(message) : null,
     onReplyPrivately:
       message.type === 'text' && !yourMessage && stateProps._participantsCount > 2
         ? () => dispatchProps._onReplyPrivately(message)

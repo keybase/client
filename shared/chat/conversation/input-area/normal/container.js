@@ -43,11 +43,13 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const unsentText = state.chat2.unsentTextMap.get(conversationIDKey)
   const showCommandMarkdown = state.chat2.commandMarkdownMap.get(conversationIDKey, '') !== ''
   const showGiphySearch = state.chat2.giphyWindowMap.get(conversationIDKey, false)
+  const _replyTo = Constants.getReplyToMessageID(state, conversationIDKey)
   const _containsLatestMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey, false)
   return {
     _containsLatestMessage,
     _editOrdinal: editInfo ? editInfo.ordinal : null,
     _isExplodingModeLocked: Constants.isExplodingModeLocked(state, conversationIDKey),
+    _replyTo,
     _you,
     conversationIDKey,
     editText: editInfo ? editInfo.text : '',
@@ -104,8 +106,14 @@ const mapDispatchToProps = dispatch => ({
         text: new HiddenString(body),
       })
     ),
-  _onPostMessage: (conversationIDKey: Types.ConversationIDKey, text: string) =>
-    dispatch(Chat2Gen.createMessageSend({conversationIDKey, text: new HiddenString(text)})),
+  _onPostMessage: (conversationIDKey: Types.ConversationIDKey, text: string, replyTo: ?Types.MessageID) =>
+    dispatch(
+      Chat2Gen.createMessageSend({
+        conversationIDKey,
+        replyTo: replyTo || undefined,
+        text: new HiddenString(text),
+      })
+    ),
   _sendTyping: (conversationIDKey: Types.ConversationIDKey, typing: boolean) =>
     conversationIDKey && dispatch(Chat2Gen.createSendTyping({conversationIDKey, typing})),
   _unsentTextChanged: (conversationIDKey: Types.ConversationIDKey, text: string) =>
@@ -140,7 +148,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
     if (stateProps._editOrdinal) {
       dispatchProps._onEditMessage(stateProps.conversationIDKey, stateProps._editOrdinal, text)
     } else {
-      dispatchProps._onPostMessage(stateProps.conversationIDKey, text)
+      dispatchProps._onPostMessage(stateProps.conversationIDKey, text, stateProps._replyTo)
     }
     if (stateProps._containsLatestMessage) {
       ownProps.onRequestScrollToBottom()
@@ -167,6 +175,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   },
   showCommandMarkdown: stateProps.showCommandMarkdown,
   showGiphySearch: stateProps.showGiphySearch,
+  showReplyPreview: !!stateProps._replyTo,
   showTypingStatus: stateProps.showTypingStatus,
   showWalletsIcon: stateProps.showWalletsIcon,
   suggestChannels: stateProps.suggestChannels,

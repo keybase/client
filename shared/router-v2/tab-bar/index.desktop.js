@@ -112,7 +112,7 @@ class TabBar extends React.PureComponent<Props, State> {
                   style={styles.avatar}
                 />
                 <>
-                  <Kb.Text className="username" type="BodyTinySemibold" style={styles.username}>
+                  <Kb.Text className="username" lineClamp={1} type="BodyTinySemibold" style={styles.username}>
                     Hi {p.username}!
                   </Kb.Text>
                   <Kb.Icon
@@ -179,7 +179,9 @@ const styles = Styles.styleSheetCreate({
     paddingRight: 12,
     position: 'relative',
   },
-  username: {color: Styles.globalColors.blue3, flexGrow: 1},
+  username: Styles.platformStyles({
+    isElectron: {color: Styles.globalColors.blue3, flexGrow: 1, wordBreak: 'break-all'},
+  }),
 })
 
 const keysMap = Tabs.desktopTabOrder.reduce((map, tab, index) => {

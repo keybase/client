@@ -349,6 +349,12 @@ func (s *searchSession) preSearch(ctx context.Context) error {
 		}
 		s.addTotalPercentIndex(convIdx.PercentIndexed(conv.Conv))
 		switch s.opts.ReindexMode {
+		case chat1.ReIndexingMode_PRESEARCH_SYNC:
+			if err := s.reindexConvWithUIUpdate(ctx, convIdx, conv); err != nil {
+				s.indexer.Debug(ctx, "Search: Unable to reindexConv: %v, %v, %v", conv.GetName(), conv.GetConvID(), err)
+				s.decrementIndexableConvs()
+				continue
+			}
 		case chat1.ReIndexingMode_POSTSEARCH_SYNC:
 			if !convIdx.FullyIndexed(conv.Conv) {
 				s.reindexConvs[convID.String()] = convID
@@ -367,27 +373,6 @@ func (s *searchSession) preSearch(ctx context.Context) error {
 		}
 	}
 	s.indexer.Debug(ctx, "Search: percent: %d", percentIndexed)
-
-	// TODO move this into the first loop if we remove pipelining.
-	switch s.opts.ReindexMode {
-	case chat1.ReIndexingMode_PRESEARCH_SYNC:
-		for _, conv := range s.convList {
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			default:
-			}
-			convIdx, err := s.indexer.GetConvIndex(ctx, conv.GetConvID(), s.uid)
-			if err != nil {
-				return err
-			}
-			if err := s.reindexConvWithUIUpdate(ctx, convIdx, conv); err != nil {
-				s.indexer.Debug(ctx, "Search: Unable to reindexConv: %v, %v, %v", conv.GetName(), conv.GetConvID(), err)
-				s.decrementIndexableConvs()
-				continue
-			}
-		}
-	}
 	return nil
 }
 

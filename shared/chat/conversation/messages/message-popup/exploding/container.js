@@ -83,6 +83,13 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
         ordinal: ownProps.message.ordinal,
       })
     ),
+  _onReply: () =>
+    dispatch(
+      Chat2Gen.createToggleReplyToMessage({
+        conversationIDKey: ownProps.message.conversationIDKey,
+        ordinal: ownProps.message.ordinal,
+      })
+    ),
   _onSaveAttachment: () =>
     dispatch(
       Chat2Gen.createMessageAttachmentNativeSave({
@@ -141,6 +148,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       items.push({onClick: dispatchProps._onEdit, title: 'Edit'})
     }
     items.push({onClick: dispatchProps._onCopy, title: 'Copy text'})
+    items.push({onClick: dispatchProps._onReply, title: 'Reply'})
   }
   return {
     attachTo: ownProps.attachTo,

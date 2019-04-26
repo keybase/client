@@ -137,6 +137,7 @@ func (o TextPayment) DeepCopy() TextPayment {
 type MessageText struct {
 	Body     string        `codec:"body" json:"body"`
 	Payments []TextPayment `codec:"payments" json:"payments"`
+	ReplyTo  *MessageID    `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
 }
 
 func (o MessageText) DeepCopy() MessageText {
@@ -153,6 +154,13 @@ func (o MessageText) DeepCopy() MessageText {
 			}
 			return ret
 		})(o.Payments),
+		ReplyTo: (func(x *MessageID) *MessageID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ReplyTo),
 	}
 }
 
@@ -1342,6 +1350,40 @@ func (o MessageBody) DeepCopy() MessageBody {
 	}
 }
 
+type SenderPrepareOptions struct {
+	SkipTopicNameState bool       `codec:"skipTopicNameState" json:"skipTopicNameState"`
+	ReplyTo            *MessageID `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
+}
+
+func (o SenderPrepareOptions) DeepCopy() SenderPrepareOptions {
+	return SenderPrepareOptions{
+		SkipTopicNameState: o.SkipTopicNameState,
+		ReplyTo: (func(x *MessageID) *MessageID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ReplyTo),
+	}
+}
+
+type SenderSendOptions struct {
+	JoinMentionsAs *ConversationMemberStatus `codec:"joinMentionsAs,omitempty" json:"joinMentionsAs,omitempty"`
+}
+
+func (o SenderSendOptions) DeepCopy() SenderSendOptions {
+	return SenderSendOptions{
+		JoinMentionsAs: (func(x *ConversationMemberStatus) *ConversationMemberStatus {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.JoinMentionsAs),
+	}
+}
+
 type OutboxStateType int
 
 const (
@@ -1510,8 +1552,11 @@ type OutboxRecord struct {
 	Ctime            gregor1.Time                 `codec:"ctime" json:"ctime"`
 	Msg              MessagePlaintext             `codec:"Msg" json:"Msg"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	PrepareOpts      *SenderPrepareOptions        `codec:"prepareOpts,omitempty" json:"prepareOpts,omitempty"`
+	SendOpts         *SenderSendOptions           `codec:"sendOpts,omitempty" json:"sendOpts,omitempty"`
 	Ordinal          int                          `codec:"ordinal" json:"ordinal"`
 	Preview          *MakePreviewRes              `codec:"preview,omitempty" json:"preview,omitempty"`
+	ReplyTo          *MessageUnboxed              `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
 }
 
 func (o OutboxRecord) DeepCopy() OutboxRecord {
@@ -1522,7 +1567,21 @@ func (o OutboxRecord) DeepCopy() OutboxRecord {
 		Ctime:            o.Ctime.DeepCopy(),
 		Msg:              o.Msg.DeepCopy(),
 		IdentifyBehavior: o.IdentifyBehavior.DeepCopy(),
-		Ordinal:          o.Ordinal,
+		PrepareOpts: (func(x *SenderPrepareOptions) *SenderPrepareOptions {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.PrepareOpts),
+		SendOpts: (func(x *SenderSendOptions) *SenderSendOptions {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.SendOpts),
+		Ordinal: o.Ordinal,
 		Preview: (func(x *MakePreviewRes) *MakePreviewRes {
 			if x == nil {
 				return nil
@@ -1530,6 +1589,13 @@ func (o OutboxRecord) DeepCopy() OutboxRecord {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Preview),
+		ReplyTo: (func(x *MessageUnboxed) *MessageUnboxed {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ReplyTo),
 	}
 }
 
@@ -2435,6 +2501,7 @@ type MessageUnboxedValid struct {
 	ChannelNameMentions   []ChannelNameMention        `codec:"channelNameMentions" json:"channelNameMentions"`
 	Reactions             ReactionMap                 `codec:"reactions" json:"reactions"`
 	Unfurls               map[MessageID]UnfurlResult  `codec:"unfurls" json:"unfurls"`
+	ReplyTo               *MessageUnboxed             `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
 }
 
 func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
@@ -2520,6 +2587,13 @@ func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
 			}
 			return ret
 		})(o.Unfurls),
+		ReplyTo: (func(x *MessageUnboxed) *MessageUnboxed {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ReplyTo),
 	}
 }
 
@@ -4660,7 +4734,8 @@ type ProfileSearchConvStats struct {
 	MaxConvID      MessageID            `codec:"maxConvID" json:"maxConvID"`
 	NumMissing     int                  `codec:"numMissing" json:"numMissing"`
 	NumMessages    int                  `codec:"numMessages" json:"numMessages"`
-	IndexSize      int                  `codec:"indexSize" json:"indexSize"`
+	IndexSizeDisk  int                  `codec:"indexSizeDisk" json:"indexSizeDisk"`
+	IndexSizeMem   int64                `codec:"indexSizeMem" json:"indexSizeMem"`
 	DurationMsec   gregor1.DurationMsec `codec:"durationMsec" json:"durationMsec"`
 	PercentIndexed int                  `codec:"percentIndexed" json:"percentIndexed"`
 }
@@ -4673,7 +4748,8 @@ func (o ProfileSearchConvStats) DeepCopy() ProfileSearchConvStats {
 		MaxConvID:      o.MaxConvID.DeepCopy(),
 		NumMissing:     o.NumMissing,
 		NumMessages:    o.NumMessages,
-		IndexSize:      o.IndexSize,
+		IndexSizeDisk:  o.IndexSizeDisk,
+		IndexSizeMem:   o.IndexSizeMem,
 		DurationMsec:   o.DurationMsec.DeepCopy(),
 		PercentIndexed: o.PercentIndexed,
 	}
@@ -4925,6 +5001,7 @@ type GetInboxNonblockLocalArg struct {
 type PostLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Msg              MessagePlaintext             `codec:"msg" json:"msg"`
+	ReplyTo          *MessageID                   `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
@@ -4937,6 +5014,7 @@ type PostLocalNonblockArg struct {
 	Msg              MessagePlaintext             `codec:"msg" json:"msg"`
 	ClientPrev       MessageID                    `codec:"clientPrev" json:"clientPrev"`
 	OutboxID         *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	ReplyTo          *MessageID                   `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
@@ -4947,6 +5025,7 @@ type PostTextNonblockArg struct {
 	TlfPublic         bool                         `codec:"tlfPublic" json:"tlfPublic"`
 	Body              string                       `codec:"body" json:"body"`
 	ClientPrev        MessageID                    `codec:"clientPrev" json:"clientPrev"`
+	ReplyTo           *MessageID                   `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
 	OutboxID          *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 	IdentifyBehavior  keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 	EphemeralLifetime *gregor1.DurationSec         `codec:"ephemeralLifetime,omitempty" json:"ephemeralLifetime,omitempty"`

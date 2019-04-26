@@ -262,9 +262,11 @@ func (i *UIAdapter) rowPartial(mctx libkb.MetaContext, proof keybase1.RemoteProo
 					row.SiteURL = profileURL
 				}
 			}
+			iconKey = serviceType.GetLogoKey()
+		} else {
+			iconKey = proof.Key
 		}
 		row.ProofURL = i.makeSigchainViewURL(mctx, proof.SigID)
-		iconKey = serviceType.GetLogoKey()
 	case keybase1.ProofType_GENERIC_WEB_SITE:
 		protocol := "https"
 		if proof.Key != "https" {

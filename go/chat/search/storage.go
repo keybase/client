@@ -80,7 +80,7 @@ func (s *store) getLocked(ctx context.Context, convID chat1.ConversationID, uid 
 	}()
 
 	dbKey := s.dbKey(convID, uid)
-	var entry chat1.ConversationIndex
+	var entry chat1.ConversationIndexDisk
 	found, err := s.encryptedDB.Get(ctx, dbKey, &entry)
 	if err != nil || !found {
 		return nil, err
@@ -90,16 +90,78 @@ func (s *store) getLocked(ctx context.Context, convID chat1.ConversationID, uid 
 		err = s.deleteLocked(ctx, convID, uid)
 		return nil, err
 	}
-	return &entry, nil
+
+	ret = &chat1.ConversationIndex{
+		Index: make(map[string]map[chat1.MessageID]chat1.EmptyStruct, len(entry.Index)),
+		Alias: make(map[string]map[string]chat1.EmptyStruct, len(entry.Alias)),
+		Metadata: chat1.ConversationIndexMetadata{
+			Version: entry.Metadata.Version,
+			SeenIDs: make(map[chat1.MessageID]chat1.EmptyStruct, len(entry.Metadata.SeenIDs)),
+		},
+	}
+	for _, t := range entry.Index {
+		ret.Index[t.Token] = make(map[chat1.MessageID]chat1.EmptyStruct, len(t.MsgIDs))
+		for _, msgID := range t.MsgIDs {
+			ret.Index[t.Token][msgID] = chat1.EmptyStruct{}
+		}
+	}
+	for _, t := range entry.Alias {
+		ret.Alias[t.Alias] = make(map[string]chat1.EmptyStruct, len(t.Tokens))
+		for _, token := range t.Tokens {
+			ret.Alias[t.Alias][token] = chat1.EmptyStruct{}
+		}
+	}
+	for _, msgID := range entry.Metadata.SeenIDs {
+		ret.Metadata.SeenIDs[msgID] = chat1.EmptyStruct{}
+	}
+
+	return ret, nil
 }
 
-func (s *store) putLocked(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, entry *chat1.ConversationIndex) error {
-	if entry == nil {
+func (s *store) putLocked(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, idx *chat1.ConversationIndex) error {
+	if idx == nil {
 		return nil
 	}
 	dbKey := s.dbKey(convID, uid)
-	entry.Metadata.Version = IndexVersion
-	return s.encryptedDB.Put(ctx, dbKey, *entry)
+	entry := chat1.ConversationIndexDisk{
+		Index: make([]chat1.TokenTuple, len(idx.Index)),
+		Alias: make([]chat1.AliasTuple, len(idx.Alias)),
+		Metadata: chat1.ConversationIndexMetadataDisk{
+			Version: IndexVersion,
+			SeenIDs: make([]chat1.MessageID, len(idx.Metadata.SeenIDs)),
+		},
+	}
+
+	i := 0
+	for token, msgIDMap := range idx.Index {
+		msgIDs := make([]chat1.MessageID, len(msgIDMap))
+		ii := 0
+		for msgID := range msgIDMap {
+			msgIDs[ii] = msgID
+			ii++
+		}
+		entry.Index[i] = chat1.TokenTuple{Token: token, MsgIDs: msgIDs}
+		i++
+	}
+
+	j := 0
+	for alias, tokenMap := range idx.Alias {
+		tokens := make([]string, len(tokenMap))
+		jj := 0
+		for token := range tokenMap {
+			tokens[jj] = token
+			jj++
+		}
+		entry.Alias[j] = chat1.AliasTuple{Alias: alias, Tokens: tokens}
+		j++
+	}
+
+	k := 0
+	for msgID := range idx.Metadata.SeenIDs {
+		entry.Metadata.SeenIDs[k] = msgID
+		k++
+	}
+	return s.encryptedDB.Put(ctx, dbKey, entry)
 }
 
 func (s *store) deleteLocked(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error {

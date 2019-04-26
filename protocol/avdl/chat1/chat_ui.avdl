@@ -190,6 +190,7 @@ protocol chatUi {
     union { null, string } flipGameID;
     boolean isDeleteable;
     boolean isEditable;
+    union { null, UIMessage } replyTo;
   }
 
   record UIMessageOutbox {
@@ -202,6 +203,7 @@ protocol chatUi {
     double ordinal;
     boolean isEphemeral;
     union { null, string} flipGameID;
+    union { null, UIMessage } replyTo;
 
     // For attachments
     string filename;
