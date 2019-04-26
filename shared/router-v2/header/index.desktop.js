@@ -72,6 +72,19 @@ class Header extends React.PureComponent<Props, State> {
       showDivider = false
     }
 
+    // We normally have the back arrow at the top of the screen. It doesn't overlap with the system
+    // icons (minimize etc) because the left nav bar pushes it to the right -- unless you're logged
+    // out, in which case there's no nav bar and they overlap. So, if we're on Mac, and logged out,
+    // push the back arrow down below the system icons.
+    const backArrowStyle = {
+      ...(this.props.allowBack ? styles.icon : styles.disabledIcon),
+      ...(!this.props.loggedIn && Platform.isDarwin ? {position: 'relative', top: 30} : {}),
+    }
+    const iconColor = this.props.allowBack
+      ? Styles.globalColors.black_50
+      : this.props.loggedIn
+      ? Styles.globalColors.black_10
+      : Styles.globalColors.transparent
     return (
       <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true}>
         {!!opt.headerBanner && opt.headerBanner}
@@ -84,9 +97,9 @@ class Header extends React.PureComponent<Props, State> {
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerBack} alignItems="center">
             <Kb.Icon
               type="iconfont-arrow-left"
-              style={this.props.allowBack ? styles.icon : styles.disabledIcon}
-              color={this.props.allowBack ? Styles.globalColors.black_50 : Styles.globalColors.black_10}
-              onClick={this.props.onPop}
+              style={backArrowStyle}
+              color={iconColor}
+              onClick={this.props.allowBack || this.props.loggedIn ? this.props.onPop : null}
             />
             {flags.kbfsOfflineMode && <SyncingFolders />}
             {!title && rightActions}
