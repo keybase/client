@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../../../constants/tracker2'
+import * as ChatConstants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
@@ -38,7 +39,12 @@ const Actions = (p: Props) => {
   )
 
   const chatButton = (
-    <Kb.WaitingButton key="Chat" label="Chat" waitingKey={Constants.waitingKey} onClick={p.onChat}>
+    <Kb.WaitingButton
+      key="Chat"
+      label="Chat"
+      waitingKey={ChatConstants.waitingKeyCreating}
+      onClick={p.onChat}
+    >
       <Kb.Icon type="iconfont-chat" color={Styles.globalColors.white} style={styles.chatIcon} />
     </Kb.WaitingButton>
   )

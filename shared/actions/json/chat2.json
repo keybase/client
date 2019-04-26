@@ -17,6 +17,7 @@
       "conversationIDKey": "Types.ConversationIDKey",
       // why this happened, sometimes there's different side effects
       "reason": [
+        "'focused'", // nav focus changed
         "'clearSelected'", // deselect
         "'desktopNotification'", // clicked notification
         "'setPendingMode'", // set to pending

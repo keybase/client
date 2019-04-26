@@ -1,5 +1,6 @@
 // @flow
 import {StackActions, NavigationActions} from '@react-navigation/core'
+import shallowEqual from 'shallowequal'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Constants from '../constants/router2'
 import * as Tabs from '../constants/tabs'
@@ -51,11 +52,20 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
         return
       }
 
+      const path = Constants._getVisiblePathForNavigator(navigation.state)
+      const visible = path[path.length - 1]
+      if (visible) {
+        if (routeName === visible.routeName && shallowEqual(visible.params, params)) {
+          console.log('Skipping append dupe')
+          return
+        }
+      }
+
       if (action.payload.replace) {
         return [StackActions.replace({params, routeName})]
       }
 
-      return [NavigationActions.navigate({params, routeName})]
+      return [StackActions.push({params, routeName})]
     }
     case RouteTreeGen.switchRouteDef: {
       // used to tell if its the login one or app one. this will all change when we deprecate the old routing
@@ -77,9 +87,9 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
         // a chat, we want people/inbox/chat
         if (p === 'chatConversation') {
           sa.push(NavigationActions.navigate({params: undefined, routeName: 'tabs.chatTab'}))
-          sa.push(NavigationActions.navigate({params: undefined, routeName: 'chatConversation'}))
+          sa.push(StackActions.push({params: undefined, routeName: 'chatConversation'}))
         } else {
-          sa.push(NavigationActions.navigate({params: undefined, routeName: p}))
+          sa.push(StackActions.push({params: undefined, routeName: p}))
         }
       }
 

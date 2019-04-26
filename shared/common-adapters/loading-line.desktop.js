@@ -1,13 +1,14 @@
 // @flow
 import Box from './box'
-import React, {Component} from 'react'
-import {globalColors, globalStyles} from '../styles'
+import * as React from 'react'
+import * as Styles from '../styles'
 
-import type {Props} from './loading-line'
+const Kb = {
+  Box,
+}
 
-class LoadingLine extends Component<Props> {
-  render() {
-    const realCSS = `
+const LoadingLine = React.memo<{||}>(() => {
+  const realCSS = `
     @keyframes fadeIn {
       from { opacity: 0; }
     }
@@ -16,21 +17,23 @@ class LoadingLine extends Component<Props> {
       animation: fadeIn 1s infinite alternate;
     }
 `
-    return (
-      <Box style={{position: 'relative'}}>
-        <style>{realCSS}</style>
-        <Box
-          className="loading-line"
-          style={{
-            ...globalStyles.fillAbsolute,
-            backgroundColor: globalColors.blue,
-            height: 1,
-            ...this.props.style,
-          }}
-        />
-      </Box>
-    )
-  }
-}
+  return (
+    <Kb.Box style={styles.container}>
+      <style>{realCSS}</style>
+      <Kb.Box className="loading-line" style={styles.line} />
+    </Kb.Box>
+  )
+})
+
+const styles = Styles.styleSheetCreate({
+  container: {
+    position: 'relative',
+  },
+  line: {
+    ...Styles.globalStyles.fillAbsolute,
+    backgroundColor: Styles.globalColors.blue,
+    height: 1,
+  },
+})
 
 export default LoadingLine

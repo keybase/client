@@ -48,9 +48,9 @@ function runLoop() {
     ]),
     // state.position,
     R.interpolate(state.position, {
+      extrapolate: R.Extrapolate.CLAMP,
       inputRange: [-1, 0, 1],
       outputRange: [0, 1, 0],
-      extrapolate: R.Extrapolate.CLAMP,
     }),
   ])
 }

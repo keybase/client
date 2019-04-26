@@ -1562,144 +1562,148 @@ const confirmScreenResponse = (_, action) => {
   storeStellarConfirmWindowResponse(action.payload.accept, null)
 }
 
-function* previewConversationAfterFindExisting(state, action, results, users) {
-  // still looking for this result?
-  if (
-    // If action.type === Chat2Gen.setPendingConversationUsers, then
-    // we know that fromSearch is true and participants is non-empty
-    // (see previewConversationFindExisting).
-    action.type === Chat2Gen.setPendingConversationUsers &&
-    !Constants.getMeta(state, Constants.pendingConversationIDKey)
-      .participants.toSet()
-      .equals(I.Set(users))
-  ) {
-    console.log('Ignoring old preview find due to participant mismatch')
-    return
-  }
+// function* previewConversationAfterFindExisting(state, action, results, users) {
+// // still looking for this result?
+// if (
+// // If action.type === Chat2Gen.setPendingConversationUsers, then
+// // we know that fromSearch is true and participants is non-empty
+// // (see previewConversationFindExisting).
+// action.type === Chat2Gen.setPendingConversationUsers &&
+// !Constants.getMeta(state, Constants.pendingConversationIDKey)
+// .participants.toSet()
+// .equals(I.Set(users))
+// ) {
+// console.log('Ignoring old preview find due to participant mismatch')
+// return
+// }
 
-  let existingConversationIDKey
+// let existingConversationIDKey
 
-  const isTeam =
-    action.type === Chat2Gen.previewConversation && (action.payload.teamname || action.payload.channelname)
-  if (action.type === Chat2Gen.previewConversation && action.payload.conversationIDKey) {
-    existingConversationIDKey = action.payload.conversationIDKey
-  } else if (results.length > 0) {
-    // Even if we find an existing conversation lets put it into the pending state so its on top always, makes the UX simpler and better to see it selected
-    // and allows quoting privately to work nicely
-    existingConversationIDKey = results[0].conversationIDKey
+// const isTeam =
+// action.type === Chat2Gen.previewConversation && (action.payload.teamname || action.payload.channelname)
+// if (action.type === Chat2Gen.previewConversation && action.payload.conversationIDKey) {
+// existingConversationIDKey = action.payload.conversationIDKey
+// } else if (results.length > 0) {
+// // Even if we find an existing conversation lets put it into the pending state so its on top always, makes the UX simpler and better to see it selected
+// // and allows quoting privately to work nicely
+// existingConversationIDKey = results[0].conversationIDKey
 
-    // If we get a conversationIDKey we don't know about (maybe an empty convo) lets treat it as not being found so we can go through the create flow
-    // if it's a team avoid the flow and just preview & select the channel
-    if (
-      !isTeam &&
-      existingConversationIDKey &&
-      Constants.getMeta(state, existingConversationIDKey).conversationIDKey === Constants.noConversationIDKey
-    ) {
-      existingConversationIDKey = Constants.noConversationIDKey
-    }
-  }
+// // If we get a conversationIDKey we don't know about (maybe an empty convo) lets treat it as not being found so we can go through the create flow
+// // if it's a team avoid the flow and just preview & select the channel
+// if (
+// !isTeam &&
+// existingConversationIDKey &&
+// Constants.getMeta(state, existingConversationIDKey).conversationIDKey === Constants.noConversationIDKey
+// ) {
+// existingConversationIDKey = Constants.noConversationIDKey
+// }
+// }
 
-  // If we're previewing a team conversation we want to actually make an rpc call and add it to the inbox
-  if (isTeam) {
-    if (!existingConversationIDKey || existingConversationIDKey === Constants.noConversationIDKey) {
-      throw new Error('Tried to preview a non-existant channel?')
-    }
-    yield Saga.callUntyped(RPCChatTypes.localPreviewConversationByIDLocalRpcPromise, {
-      convID: Types.keyToConversationID(existingConversationIDKey),
-    })
-    yield Saga.put(
-      Chat2Gen.createSelectConversation({
-        conversationIDKey: existingConversationIDKey,
-        reason: 'previewResolved',
-      })
-    )
-    yield Saga.put(Chat2Gen.createNavigateToThread())
-  } else {
-    yield Saga.put(
-      Chat2Gen.createSetPendingConversationExistingConversationIDKey({
-        conversationIDKey: existingConversationIDKey || Constants.noConversationIDKey,
-      })
-    )
-    yield Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: false, users}))
-    yield Saga.put(Chat2Gen.createNavigateToThread())
-  }
-}
+// // If we're previewing a team conversation we want to actually make an rpc call and add it to the inbox
+// if (isTeam) {
+// if (!existingConversationIDKey || existingConversationIDKey === Constants.noConversationIDKey) {
+// throw new Error('Tried to preview a non-existant channel?')
+// }
+// yield Saga.callUntyped(RPCChatTypes.localPreviewConversationByIDLocalRpcPromise, {
+// convID: Types.keyToConversationID(existingConversationIDKey),
+// })
+// yield Saga.put(
+// Chat2Gen.createSelectConversation({
+// conversationIDKey: existingConversationIDKey,
+// reason: 'previewResolved',
+// })
+// )
+// yield Saga.put(Chat2Gen.createNavigateToThread())
+// } else {
+// yield Saga.put(
+// Chat2Gen.createSetPendingConversationExistingConversationIDKey({
+// conversationIDKey: existingConversationIDKey || Constants.noConversationIDKey,
+// })
+// )
+// yield Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: false, users}))
+// yield Saga.put(Chat2Gen.createNavigateToThread())
+// }
+// }
 
+// We always make a convo and never preview it
+const previewConversationNowMakesAConversation = (state, action) =>
+  action.payload.participants &&
+  Chat2Gen.createCreateConversation({participants: action.payload.participants})
 // Start a conversation, or select an existing one
-function* previewConversationFindExisting(state, action) {
-  let participants
-  let teamname
-  let channelname
-  let conversationIDKey
-  if (action.type === Chat2Gen.previewConversation) {
-    participants = action.payload.participants
-    teamname = action.payload.teamname
-    channelname = action.payload.channelname || 'general'
-    conversationIDKey = action.payload.conversationIDKey
-  } else if (action.type === Chat2Gen.setPendingConversationUsers) {
-    if (!action.payload.fromSearch) {
-      return
-    }
-    participants = action.payload.users
-    if (!participants.length) {
-      yield Saga.put(
-        Chat2Gen.createSetPendingConversationExistingConversationIDKey({
-          conversationIDKey: Constants.noConversationIDKey,
-        })
-      )
-      return
-    }
-  }
-  const you = state.config.username || ''
+// function* previewConversationFindExisting(state, action) {
+// let participants
+// let teamname
+// let channelname
+// let conversationIDKey
+// if (action.type === Chat2Gen.previewConversation) {
+// participants = action.payload.participants
+// teamname = action.payload.teamname
+// channelname = action.payload.channelname || 'general'
+// conversationIDKey = action.payload.conversationIDKey
+// } else if (action.type === Chat2Gen.setPendingConversationUsers) {
+// if (!action.payload.fromSearch) {
+// return
+// }
+// participants = action.payload.users
+// if (!participants.length) {
+// yield Saga.put(
+// Chat2Gen.createSetPendingConversationExistingConversationIDKey({
+// conversationIDKey: Constants.noConversationIDKey,
+// })
+// )
+// return
+// }
+// }
+// const you = state.config.username || ''
 
-  let params
-  let users = []
+// let params
+// let users = []
 
-  // we handled participants or teams
-  if (participants) {
-    const toFind = I.Set(participants).add(you)
-    params = {tlfName: toFind.join(',')}
-    users = I.Set(participants)
-      .subtract([you])
-      .toArray()
-    yield Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: false, users}))
-  } else if (teamname) {
-    params = {
-      membersType: RPCChatTypes.commonConversationMembersType.team,
-      tlfName: teamname,
-      topicName: channelname,
-    }
-  } else if (conversationIDKey) {
-    // we can skip the call if we have a conversationid already
-  } else {
-    throw new Error('Start conversation called w/ no participants or teamname')
-  }
+// // we handled participants or teams
+// if (participants) {
+// const toFind = I.Set(participants).add(you)
+// params = {tlfName: toFind.join(',')}
+// users = I.Set(participants)
+// .subtract([you])
+// .toArray()
+// yield Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: false, users}))
+// } else if (teamname) {
+// params = {
+// membersType: RPCChatTypes.commonConversationMembersType.team,
+// tlfName: teamname,
+// topicName: channelname,
+// }
+// } else if (conversationIDKey) {
+// // we can skip the call if we have a conversationid already
+// } else {
+// throw new Error('Start conversation called w/ no participants or teamname')
+// }
 
-  yield Saga.put(
-    Chat2Gen.createSetPendingConversationExistingConversationIDKey({
-      conversationIDKey: Constants.pendingWaitingConversationIDKey,
-    })
-  )
+// yield Saga.put(
+// Chat2Gen.createSetPendingConversationExistingConversationIDKey({
+// conversationIDKey: Constants.pendingWaitingConversationIDKey,
+// })
+// )
 
-  if (!conversationIDKey) {
-    const results = yield* Saga.callPromise(RPCChatTypes.localFindConversationsLocalRpcPromise, {
-      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-      membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
-      oneChatPerTLF: true,
-      topicName: '',
-      topicType: RPCChatTypes.commonTopicType.chat,
-      visibility: RPCTypes.commonTLFVisibility.private,
-      ...params,
-    })
-    const resultMetas = (results.uiConversations || [])
-      .map(row => Constants.inboxUIItemToConversationMeta(row))
-      .filter(Boolean)
-    yield Saga.put(Chat2Gen.createMetasReceived({metas: resultMetas}))
-    yield* previewConversationAfterFindExisting(state, action, resultMetas, users)
-  } else {
-    yield* previewConversationAfterFindExisting(state, action, [], [])
-  }
-}
+// if (!conversationIDKey) {
+// const results = yield* Saga.callPromise(RPCChatTypes.localFindConversationsLocalRpcPromise, {
+// identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+// membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
+// oneChatPerTLF: true,
+// topicName: '',
+// topicType: RPCChatTypes.commonTopicType.chat,
+// visibility: RPCTypes.commonTLFVisibility.private,
+// ...params,
+// })
+// const resultMetas = (results.uiConversations || [])
+// .map(row => Constants.inboxUIItemToConversationMeta(row))
+// .filter(Boolean)
+// yield Saga.put(Chat2Gen.createMetasReceived({metas: resultMetas}))
+// yield* previewConversationAfterFindExisting(state, action, resultMetas, users)
+// } else {
+// yield* previewConversationAfterFindExisting(state, action, [], [])
+// }
+// }
 
 const startupInboxLoad = state =>
   state.config.username ? Chat2Gen.createInboxRefresh({reason: 'bootstrap'}) : undefined
@@ -1871,23 +1875,23 @@ const getRecommendations = (state, action) => {
 
 const clearSearchResults = () => SearchGen.createClearSearchResults({searchKey: 'chatSearch'})
 
-const updatePendingParticipants = (state, action) => {
-  let users
-  if (action.type === Chat2Gen.setPendingMode) {
-    // Ignore the pendingMode changes other than the clear
-    if (action.payload.pendingMode !== 'none') {
-      return
-    }
-    users = []
-  } else {
-    users = action.payload.userInputItemIds || []
-  }
+// const updatePendingParticipants = (state, action) => {
+// let users
+// if (action.type === Chat2Gen.setPendingMode) {
+// // Ignore the pendingMode changes other than the clear
+// if (action.payload.pendingMode !== 'none') {
+// return
+// }
+// users = []
+// } else {
+// users = action.payload.userInputItemIds || []
+// }
 
-  return [
-    Chat2Gen.createSetPendingConversationUsers({fromSearch: true, users}),
-    SearchGen.createSetUserInputItems({searchKey: 'chatSearch', searchResults: users}),
-  ]
-}
+// return [
+// Chat2Gen.createSetPendingConversationUsers({fromSearch: true, users}),
+// SearchGen.createSetUserInputItems({searchKey: 'chatSearch', searchResults: users}),
+// ]
+// }
 
 function* downloadAttachment(fileName: string, message: Types.Message) {
   try {
@@ -2253,12 +2257,21 @@ const navigateToInbox = (state, action) => {
 // Saga.put() this if you want to select the pending conversation
 // (which doesn't count as valid).
 //
-const navigateToThreadRoute = conversationIDKey =>
-  flags.useNewRouter
-    ? RouteTreeGen.createNavigateAppend({
-        path: isMobile ? [{selected: 'chatConversation', props: {conversationIDKey}}] : [Tabs.chatTab],
-      })
-    : RouteTreeGen.createNavigateTo({path: Constants.threadRoute})
+const navigateToThreadRoute = conversationIDKey => {
+  if (!flags.useNewRouter) {
+    return RouteTreeGen.createNavigateTo({path: Constants.threadRoute})
+  }
+
+  // do nothing if we're looking at a chat
+  // const s = Router2Constants.getVisibleScreen()
+  // if (['chatConversation', 'tabs.chatTab'].includes(s.routeName)) {
+  // return
+  // }
+  // temporary hackiness to deal with pending convos. TODO implement a better flow for this
+  return RouteTreeGen.createNavigateAppend({
+    path: isMobile ? [{selected: 'chatConversation', props: {conversationIDKey}}] : [Tabs.chatTab],
+  })
+}
 
 const navigateToThread = (state, action) => {
   if (!Constants.isValidConversationIDKey(state.chat2.selectedConversation)) {
@@ -2279,6 +2292,9 @@ const deselectConversation = (state, action) => {
 
 const mobileNavigateOnSelect = (state, action) => {
   if (Constants.isValidConversationIDKey(action.payload.conversationIDKey)) {
+    if (action.payload.reason === 'focused') {
+      return // never nav if this is from a nav
+    }
     return navigateToThreadRoute(state.chat2.selectedConversation)
   }
 }
@@ -2469,57 +2485,57 @@ const toggleMessageCollapse = (_, action) => {
   }).then(() => {})
 }
 
-const changePendingMode = (state, action) => {
-  switch (action.type) {
-    case Chat2Gen.previewConversation:
-      // We decided to make a team instead of start a convo, so no resolution will take place
-      if (action.payload.reason === 'convertAdHoc') {
-        return Chat2Gen.createSetPendingMode({noneDestination: 'inbox', pendingMode: 'none'})
-      }
-      // We're selecting a team so we never want to show the row, we'll instead make the rpc call to add it to the inbox
-      if (action.payload.teamname || action.payload.channelname) {
-        return Chat2Gen.createSetPendingMode({pendingMode: 'none'})
-      } else {
-        // Otherwise, we're starting a chat with some users.
-        return Chat2Gen.createSetPendingMode({
-          pendingMode: action.payload.reason === 'fromAReset' ? 'startingFromAReset' : 'fixedSetOfUsers',
-        })
-      }
-    case Chat2Gen.selectConversation: {
-      if (state.chat2.pendingMode === 'none') {
-        return
-      }
-      if (
-        action.payload.conversationIDKey === Constants.pendingConversationIDKey ||
-        action.payload.conversationIDKey === Constants.pendingWaitingConversationIDKey
-      ) {
-        return
-      }
+// const changePendingMode = (state, action) => {
+// switch (action.type) {
+// case Chat2Gen.previewConversation:
+// // We decided to make a team instead of start a convo, so no resolution will take place
+// if (action.payload.reason === 'convertAdHoc') {
+// return Chat2Gen.createSetPendingMode({noneDestination: 'inbox', pendingMode: 'none'})
+// }
+// // We're selecting a team so we never want to show the row, we'll instead make the rpc call to add it to the inbox
+// if (action.payload.teamname || action.payload.channelname) {
+// return Chat2Gen.createSetPendingMode({pendingMode: 'none'})
+// } else {
+// // Otherwise, we're starting a chat with some users.
+// return Chat2Gen.createSetPendingMode({
+// pendingMode: action.payload.reason === 'fromAReset' ? 'startingFromAReset' : 'fixedSetOfUsers',
+// })
+// }
+// case Chat2Gen.selectConversation: {
+// if (state.chat2.pendingMode === 'none') {
+// return
+// }
+// if (
+// action.payload.conversationIDKey === Constants.pendingConversationIDKey ||
+// action.payload.conversationIDKey === Constants.pendingWaitingConversationIDKey
+// ) {
+// return
+// }
 
-      // Selected another conversation and the pending users are empty
-      const meta = Constants.getMeta(state, Constants.pendingConversationIDKey)
-      if (meta.participants.isEmpty()) {
-        return Chat2Gen.createSetPendingMode({pendingMode: 'none'})
-      }
+// // Selected another conversation and the pending users are empty
+// const meta = Constants.getMeta(state, Constants.pendingConversationIDKey)
+// if (meta.participants.isEmpty()) {
+// return Chat2Gen.createSetPendingMode({pendingMode: 'none'})
+// }
 
-      // Selected the resolved pending conversation? Exit pendingMode
-      if (meta.conversationIDKey === action.payload.conversationIDKey) {
-        return Chat2Gen.createSetPendingMode({pendingMode: 'none'})
-      }
-    }
-  }
-}
+// // Selected the resolved pending conversation? Exit pendingMode
+// if (meta.conversationIDKey === action.payload.conversationIDKey) {
+// return Chat2Gen.createSetPendingMode({pendingMode: 'none'})
+// }
+// }
+// }
+// }
 
 // TODO create a conversation row that has a pending tag applied to it
-const createPendingConversation = function*(users: Array<string>) {
-  yield Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'newTeamBuilding'}))
-  yield Saga.put(Chat2Gen.createSetPendingStatus({pendingStatus: 'none'}))
-  yield Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: true, users}))
-}
+// const createPendingConversation = function*(users: Array<string>) {
+// yield Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'newTeamBuilding'}))
+// yield Saga.put(Chat2Gen.createSetPendingStatus({pendingStatus: 'none'}))
+// yield Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: true, users}))
+// }
 
-const removePendingConversation = function*() {
-  yield Saga.put(Chat2Gen.createSetPendingMode({noneDestination: 'thread', pendingMode: 'none'}))
-}
+// const removePendingConversation = function*() {
+// yield Saga.put(Chat2Gen.createSetPendingMode({noneDestination: 'thread', pendingMode: 'none'}))
+// }
 
 // TODO This will break if you try to make 2 new conversations at the same time because there is
 // only one pending conversation state.
@@ -2531,10 +2547,10 @@ function* createConversation(state, action) {
     return
   }
 
-  const {
-    payload: {participants},
-  } = action
-  yield createPendingConversation(participants)
+  // const {
+  // payload: {participants},
+  // } = action
+  // yield createPendingConversation(participants)
   try {
     const result: RPCChatTypes.NewConversationLocalRes = yield* Saga.callPromise(
       RPCChatTypes.localNewConversationLocalRpcPromise,
@@ -2560,7 +2576,7 @@ function* createConversation(state, action) {
     logger.error(`Failed to create new conversation: ${e.message}`)
   }
 
-  yield removePendingConversation()
+  // yield removePendingConversation()
 }
 
 const messageReplyPrivately = (state, action) => {
@@ -3133,19 +3149,23 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainAction<Chat2Gen.UnfurlRemovePayload>(Chat2Gen.unfurlRemove, unfurlRemove)
 
-  yield* Saga.chainGenerator<
-    Chat2Gen.PreviewConversationPayload | Chat2Gen.SetPendingConversationUsersPayload
-  >([Chat2Gen.previewConversation, Chat2Gen.setPendingConversationUsers], previewConversationFindExisting)
+  yield* Saga.chainAction<Chat2Gen.PreviewConversationPayload>(
+    Chat2Gen.previewConversation,
+    previewConversationNowMakesAConversation
+  )
+  // yield* Saga.chainGenerator<
+  // Chat2Gen.PreviewConversationPayload | Chat2Gen.SetPendingConversationUsersPayload
+  // >([Chat2Gen.previewConversation, Chat2Gen.setPendingConversationUsers], previewConversationFindExisting)
   yield* Saga.chainAction<Chat2Gen.OpenFolderPayload>(Chat2Gen.openFolder, openFolder)
 
   // On login lets load the untrusted inbox. This helps make some flows easier
   yield* Saga.chainAction<ConfigGen.LoggedInPayload>(ConfigGen.loggedIn, startupInboxLoad)
 
   // Search handling
-  yield* Saga.chainAction<Chat2Gen.SetPendingModePayload | SearchGen.UserInputItemsUpdatedPayload>(
-    [Chat2Gen.setPendingMode, SearchConstants.isUserInputItemsUpdated('chatSearch')],
-    updatePendingParticipants
-  )
+  // yield* Saga.chainAction<Chat2Gen.SetPendingModePayload | SearchGen.UserInputItemsUpdatedPayload>(
+  // [Chat2Gen.setPendingMode, SearchConstants.isUserInputItemsUpdated('chatSearch')],
+  // updatePendingParticipants
+  // )
   yield* Saga.chainAction<SearchGen.UserInputItemsUpdatedPayload>(
     SearchConstants.isUserInputItemsUpdated('chatSearch'),
     clearSearchResults
@@ -3240,10 +3260,10 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     Chat2Gen.messageReplyPrivately,
     messageReplyPrivately
   )
-  yield* Saga.chainAction<Chat2Gen.SelectConversationPayload | Chat2Gen.PreviewConversationPayload>(
-    [Chat2Gen.selectConversation, Chat2Gen.previewConversation],
-    changePendingMode
-  )
+  // yield* Saga.chainAction<Chat2Gen.SelectConversationPayload | Chat2Gen.PreviewConversationPayload>(
+  // [Chat2Gen.selectConversation, Chat2Gen.previewConversation],
+  // changePendingMode
+  // )
   yield* Saga.chainAction<Chat2Gen.OpenChatFromWidgetPayload>(Chat2Gen.openChatFromWidget, openChatFromWidget)
   yield* Saga.chainAction<Chat2Gen.ToggleInfoPanelPayload>(Chat2Gen.toggleInfoPanel, toggleInfoPanel)
 
@@ -3369,7 +3389,10 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     onToggleThreadSearch
   )
   yield* Saga.chainAction<Chat2Gen.ToggleThreadSearchPayload>(Chat2Gen.selectConversation, hideThreadSearch)
-  yield* Saga.chainAction<Chat2Gen.DeselectConversation>(Chat2Gen.deselectConversation, deselectConversation)
+  yield* Saga.chainAction<Chat2Gen.DeselectConversationPayload>(
+    Chat2Gen.deselectConversation,
+    deselectConversation
+  )
 
   yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnect)
 
