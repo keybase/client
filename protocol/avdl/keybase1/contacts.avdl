@@ -5,9 +5,12 @@ protocol contacts {
     // Contact syncing / resolving
     // ---------------------------
 
+    // Contact records coming from the operating system API. Usually
+    // a contact will have a name and a number of associated "components"
+    // like phone numbers or emails.
     record ContactComponent {
         string label; // "", "Home", "Work"
-        // One of:
+        // Variant record, one of:
         union { null, RawPhoneNumber } phoneNumber;
         union { null, EmailAddress } email;
     }
@@ -15,13 +18,15 @@ protocol contacts {
         string name; // "Bob Goodman"
         array<ContactComponent> components;
     }
+
+    // ProcessedContact is either a contact that has been resolved and points
+    // to a Keybase user, providing username and full name. Or if not resolved,
+    // it will be shown in the list as the phone number or email, allowing SBS.
     record ProcessedContact {
         string displayName; // "Bob Goodman"
         int contactIndex; // to associate the resolution to input contact entry
         ContactComponent component;
 
-        // Outputs:
-        union { null, string } err;
         boolean resolved;
         // If resolved:
         UID uid; // uid

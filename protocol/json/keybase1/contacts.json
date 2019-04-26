@@ -65,13 +65,6 @@
           "name": "component"
         },
         {
-          "type": [
-            null,
-            "string"
-          ],
-          "name": "err"
-        },
-        {
           "type": "boolean",
           "name": "resolved"
         },

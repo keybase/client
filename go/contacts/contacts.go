@@ -9,8 +9,9 @@ import (
 )
 
 type ContactLookupResult struct {
-	Found           bool
-	UID             keybase1.UID
+	Found bool
+	UID   keybase1.UID
+	// TODO: The following are not returned by lookup API endpoints.
 	KeybaseUsername string
 	KeybaseFullName string
 }
@@ -116,8 +117,15 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 		}
 	}
 
-	// Uidmap everything to get full names.
-	provider.FillUsernames(mctx, res)
+	if len(res) > 0 {
+		// Uidmap everything to get Keybase usernames and full names.
+
+		// TODO: The uidmapper part might not be needed if we change the lookup
+		// endpoints to return usernames and full names. This is fine since
+		// phone/email is server trust, and also UIDMapper trusts sever for
+		// full names anyway.
+		provider.FillUsernames(mctx, res)
+	}
 
 	// Add all components from all contacts that were not resolved by any
 	// component.

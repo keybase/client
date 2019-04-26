@@ -132,7 +132,6 @@ func TestLookupContacts(t *testing.T) {
 	require.NotNil(t, res[0].Component.PhoneNumber)
 	require.Nil(t, res[0].Component.Email)
 	require.EqualValues(t, "+1111222", *res[0].Component.PhoneNumber)
-	require.Nil(t, res[0].Err)
 	require.True(t, res[0].Resolved)
 	require.EqualValues(t, "1", res[0].Uid)
 
@@ -159,7 +158,6 @@ func TestLookupContacts(t *testing.T) {
 	require.Nil(t, res[0].Component.PhoneNumber)
 	require.NotNil(t, res[0].Component.Email)
 	require.EqualValues(t, "joe@linux.org", *res[0].Component.Email)
-	require.Nil(t, res[0].Err)
 	require.True(t, res[0].Resolved)
 	require.EqualValues(t, "1", res[0].Uid)
 }

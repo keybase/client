@@ -2721,3 +2721,7 @@ func (a BoxAuditAttempt) String() string {
 	}
 	return ret
 }
+
+func (r RegionCode) IsNil() bool {
+	return len(r) == 0
+}

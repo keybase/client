@@ -4,9 +4,9 @@
 package contacts
 
 import (
-	"errors"
 	"time"
 
+	"github.com/keybase/client/go/emails"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/phonenumbers"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -21,30 +21,44 @@ func (c *BulkLookupContactsProvider) LookupPhoneNumbers(mctx libkb.MetaContext, 
 
 	var regionCodes []keybase1.RegionCode
 	var maybeUserRegion *keybase1.RegionCode
-	if len(userRegion) > 0 {
+	if !userRegion.IsNil() {
 		maybeUserRegion = &userRegion
 	}
 	ret, err := phonenumbers.BulkLookupPhoneNumbers(mctx, numbers, regionCodes, maybeUserRegion)
 	if err != nil {
 		return res, err
 	}
-	res = make([]ContactLookupResult, len(ret))
-	for i, r := range ret {
-		if r.Err != nil {
-			mctx.Debug("Server returned an error while looking up phone %q: %s", numbers[i], *r.Err)
+	res = make([]ContactLookupResult, len(numbers))
+	for i, v := range ret {
+		if v.Err != nil {
+			mctx.Debug("Server returned an error while looking up phone %q: %s", numbers[i], *v.Err)
 			continue
 		}
-		if r.Uid != nil {
-			//res[i] =
+		if v.Uid != nil {
+			res[i].Found = true
+			res[i].UID = *v.Uid
 		}
 	}
 	return res, nil
 }
 
-func (c *BulkLookupContactsProvider) LookupEmails(mctx libkb.MetaContext, emails []keybase1.EmailAddress) (res []ContactLookupResult, err error) {
-	// TODO: Call something that bulk looks up emails, needs to add API to
-	// kbweb.
-	return res, errors.New("not implemented")
+func (c *BulkLookupContactsProvider) LookupEmails(mctx libkb.MetaContext, emailList []keybase1.EmailAddress) (res []ContactLookupResult, err error) {
+	strList := make([]string, len(emailList))
+	for i, v := range emailList {
+		strList[i] = string(v)
+	}
+	ret, err := emails.BulkLookupEmails(mctx, strList)
+	if err != nil {
+		return res, err
+	}
+	res = make([]ContactLookupResult, len(emailList))
+	for i, v := range ret {
+		if v.Uid != nil {
+			res[i].Found = true
+			res[i].UID = *v.Uid
+		}
+	}
+	return res, nil
 }
 
 func (c *BulkLookupContactsProvider) FillUsernames(mctx libkb.MetaContext, res []keybase1.ProcessedContact) {
