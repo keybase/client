@@ -1068,7 +1068,7 @@ func ChangeTrustline(ctx context.Context, g *libkb.GlobalContext, signedTx strin
 
 type findPaymentPathResult struct {
 	libkb.AppStatusEmbed
-	Result stellar1.PaymentPath `json:"payment_path"`
+	Result stellar1.PaymentPath `json:"result"`
 }
 
 func FindPaymentPath(mctx libkb.MetaContext, query stellar1.PaymentPathQuery) (stellar1.PaymentPath, error) {

@@ -2258,8 +2258,13 @@ func FindPaymentPath(mctx libkb.MetaContext, remoter remote.Remoter, source stel
 		return stellar1.PaymentPath{}, errors.New("cannot send a path payment to a user without a stellar account")
 	}
 
+	sourceEntry, _, err := LookupSender(mctx, source)
+	if err != nil {
+		return stellar1.PaymentPath{}, err
+	}
+
 	query := stellar1.PaymentPathQuery{
-		Source:           source,
+		Source:           sourceEntry.AccountID,
 		Destination:      stellar1.AccountID(recipient.AccountID.String()),
 		SourceAsset:      sourceAsset,
 		DestinationAsset: destinationAsset,
