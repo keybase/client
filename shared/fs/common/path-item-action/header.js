@@ -30,6 +30,22 @@ class Header extends React.PureComponent<Props> {
   componentDidUpdate(prevProps: Props) {
     this.props.path !== prevProps.path && this.refresh()
   }
+  _filesAndFoldersCount() {
+    return (
+      this.props.type === 'folder' && (
+        <Kb.Text type="BodySmall">
+          {this.props.childrenFolders
+            ? `${this.props.childrenFolders} Folder${this.props.childrenFolders > 1 ? 's' : ''}${
+                this.props.childrenFiles ? ', ' : ''
+              }`
+            : undefined}
+          {this.props.childrenFiles
+            ? `${this.props.childrenFiles} File${this.props.childrenFiles > 1 ? 's' : ''}`
+            : undefined}
+        </Kb.Text>
+      )
+    )
+  }
   render() {
     return (
       <Kb.Box
@@ -59,18 +75,7 @@ class Header extends React.PureComponent<Props> {
           {this.props.type === 'file' && (
             <Kb.Text type="BodySmall">{Constants.humanReadableFileSize(this.props.size)}</Kb.Text>
           )}
-          {this.props.type === 'folder' && (
-            <Kb.Text type="BodySmall">
-              {this.props.childrenFolders
-                ? `${this.props.childrenFolders} Folder${this.props.childrenFolders > 1 ? 's' : ''}${
-                    this.props.childrenFiles ? ', ' : ''
-                  }`
-                : undefined}
-              {this.props.childrenFiles
-                ? `${this.props.childrenFiles} File${this.props.childrenFiles > 1 ? 's' : ''}`
-                : undefined}
-            </Kb.Text>
-          )}
+          {this._filesAndFoldersCount()}
           <TlfOrPathItemInfo path={this.props.path} mode="menu" />
         </Kb.Box2>
       </Kb.Box>
