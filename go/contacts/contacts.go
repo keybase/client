@@ -33,6 +33,11 @@ type ContactsProvider interface {
 func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts []keybase1.Contact,
 	regionCode keybase1.RegionCode) (res []keybase1.ProcessedContact, err error) {
 
+	if len(contacts) == 0 {
+		mctx.Debug("`contacts` is empty, nothing to resolve")
+		return res, nil
+	}
+
 	type contactRef struct {
 		// Use this struct to point back from phoneNumbers or emails entry to
 		// our contacts list.
@@ -61,6 +66,8 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 			}
 		}
 	}
+
+	mctx.Debug("Going to look up %d emails and %d phone numbers", len(emails), len(phoneNumbers))
 
 	// contactIndex -> true for all contacts that have at least one compoonent resolved.
 	contactsFound := make(map[int]struct{})

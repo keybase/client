@@ -19,7 +19,7 @@ type BulkLookupContactsProvider struct {
 func (c *BulkLookupContactsProvider) LookupPhoneNumbers(mctx libkb.MetaContext, numbers []keybase1.RawPhoneNumber,
 	userRegion keybase1.RegionCode) (res []ContactLookupResult, err error) {
 
-	var regionCodes []keybase1.RegionCode
+	regionCodes := make([]keybase1.RegionCode, len(numbers))
 	var maybeUserRegion *keybase1.RegionCode
 	if !userRegion.IsNil() {
 		maybeUserRegion = &userRegion
@@ -71,7 +71,7 @@ func (c *BulkLookupContactsProvider) FillUsernames(mctx libkb.MetaContext, res [
 			uidSet[v.Uid] = struct{}{}
 		}
 	}
-	uids := make([]keybase1.UID, len(uidSet))
+	uids := make([]keybase1.UID, 0, len(uidSet))
 	for k := range uidSet {
 		uids = append(uids, k)
 	}
