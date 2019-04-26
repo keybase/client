@@ -328,6 +328,9 @@ type folderBranchOps struct {
 
 	// Closed on shutdown
 	shutdownChan chan struct{}
+	// Closed once we're done shutting down. Any goroutine that logs must be
+	// registered with this WaitGroup, to avoid test races.
+	doneWg sync.WaitGroup
 
 	// Can be used to turn off notifications for a while (e.g., for testing)
 	updatePauseChan chan (<-chan struct{})
@@ -336,8 +339,7 @@ type folderBranchOps struct {
 	// Cancels the goroutine currently waiting on TLF MD updates.
 	cancelUpdates context.CancelFunc
 
-	// After a shutdown, this channel will be closed when the register
-	// goroutine completes.
+	// This channel will be closed when the register goroutine completes.
 	updateDoneChan chan struct{}
 
 	// forceSyncChan is read from by the background sync process
@@ -497,6 +499,7 @@ func newFolderBranchOps(
 	fbo.fbm = newFolderBlockManager(appStateUpdater, config, fb, bType, fbo)
 	fbo.rekeyFSM = NewRekeyFSM(fbo)
 	if config.DoBackgroundFlushes() && bType == standard {
+		fbo.doneWg.Add(1)
 		go fbo.backgroundFlusher()
 	}
 
@@ -547,11 +550,9 @@ func (fbo *folderBranchOps) Shutdown(ctx context.Context) error {
 	fbo.cr.Shutdown()
 	fbo.fbm.shutdown()
 	fbo.rekeyFSM.Shutdown()
-	// Wait for the update goroutine to finish, so that we don't have
-	// any races with logging during test reporting.
-	if fbo.updateDoneChan != nil {
-		<-fbo.updateDoneChan
-	}
+	// Wait for all the goroutines to finish, so that we don't have any races
+	// with logging during test reporting.
+	fbo.doneWg.Wait()
 	return nil
 }
 
@@ -838,6 +839,7 @@ func (fbo *folderBranchOps) startMonitorChat(tlfName tlf.CanonicalName) {
 		// monitoring hasn't been started yet.
 		fbo.editActivity.Add(1)
 		fbo.editChannels <- editChannelActivity{nil, "", ""}
+		fbo.doneWg.Add(1)
 		go fbo.monitorEditsChat(tlfName)
 	})
 }
@@ -1135,6 +1137,7 @@ func (fbo *folderBranchOps) kickOffPartialSync(
 	if fbo.markAndSweepTrigger == nil {
 		trigger := make(chan struct{}, 1)
 		fbo.markAndSweepTrigger = trigger
+		fbo.doneWg.Add(1)
 		go fbo.partialMarkAndSweepLoop(trigger)
 	}
 }
@@ -1425,6 +1428,7 @@ func (fbo *folderBranchOps) kickOffPartialMarkAndSweepIfNeeded(
 }
 
 func (fbo *folderBranchOps) partialMarkAndSweepLoop(trigger <-chan struct{}) {
+	defer fbo.doneWg.Done()
 	// For partially-synced TLFs, run this:
 	// * Once an hour-ish, only if the latest merged revision has changed.
 	// * When a path is removed from the config.
@@ -1538,6 +1542,7 @@ func (fbo *folderBranchOps) waitForRootBlockFetch(
 
 func (fbo *folderBranchOps) commitFlushedMD(
 	rmd ImmutableRootMetadata, updatedCh <-chan struct{}) {
+	defer fbo.doneWg.Done()
 	diskMDCache := fbo.config.DiskMDCache()
 	if diskMDCache == nil {
 		return
@@ -1774,6 +1779,7 @@ func (fbo *folderBranchOps) setHeadLocked(
 	}
 
 	if ct == mdCommit {
+		fbo.doneWg.Add(1)
 		go fbo.commitFlushedMD(md, fbo.latestMergedUpdated)
 	}
 
@@ -1796,6 +1802,7 @@ func (fbo *folderBranchOps) setHeadLocked(
 		if fbo.bType == standard {
 			if fbo.config.Mode().TLFUpdatesEnabled() {
 				fbo.updateDoneChan = make(chan struct{})
+				fbo.doneWg.Add(1)
 				go fbo.registerAndWaitForUpdates()
 			}
 			fbo.startMonitorChat(md.GetTlfHandle().GetCanonicalName())
@@ -7432,6 +7439,7 @@ func (fbo *folderBranchOps) locallyFinalizeTLF(ctx context.Context) {
 }
 
 func (fbo *folderBranchOps) registerAndWaitForUpdates() {
+	defer fbo.doneWg.Done()
 	defer close(fbo.updateDoneChan)
 	childDone := make(chan struct{})
 	var lastUpdate time.Time
@@ -7623,6 +7631,7 @@ func (fbo *folderBranchOps) getCachedDirOpsCount(
 }
 
 func (fbo *folderBranchOps) backgroundFlusher() {
+	defer fbo.doneWg.Done()
 	lState := makeFBOLockState()
 	var prevDirtyFileMap map[data.BlockRef]bool
 	sameDirtyFileCount := 0
@@ -7992,6 +8001,7 @@ func (fbo *folderBranchOps) handleMDFlush(
 	}
 	fbo.fbm.archiveUnrefBlocks(rmd.ReadOnly())
 
+	fbo.doneWg.Add(1)
 	go fbo.commitFlushedMD(rmd, latestMergedUpdated)
 }
 
@@ -9160,6 +9170,7 @@ func (fbo *folderBranchOps) refreshEditHistory() {
 }
 
 func (fbo *folderBranchOps) monitorEditsChat(tlfName tlf.CanonicalName) {
+	defer fbo.doneWg.Done()
 	ctx, cancelFunc := fbo.newCtxWithFBOID()
 	defer cancelFunc()
 	fbo.log.CDebugf(ctx, "Starting kbfs-edits chat monitoring")
