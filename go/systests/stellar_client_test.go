@@ -674,4 +674,34 @@ func (s *stellarRetryClient) GetTrustlinesLocal(ctx context.Context, arg stellar
 	return ret, err
 }
 
+func (s *stellarRetryClient) FindPaymentPathLocal(ctx context.Context, arg stellar1.FindPaymentPathLocalArg) (ret stellar1.PaymentPathLocal, err error) {
+	for i := 0; i < retryCount; i++ {
+		ret, err = s.cli.FindPaymentPathLocal(ctx, arg)
+		if err == nil {
+			return ret, nil
+		}
+	}
+	return stellar1.PaymentPathLocal{}, err
+}
+
+func (s *stellarRetryClient) SendPathCLILocal(ctx context.Context, arg stellar1.SendPathCLILocalArg) (ret stellar1.SendResultCLILocal, err error) {
+	for i := 0; i < retryCount; i++ {
+		ret, err = s.cli.SendPathCLILocal(ctx, arg)
+		if err == nil {
+			return ret, nil
+		}
+	}
+	return stellar1.SendResultCLILocal{}, err
+}
+
+func (s *stellarRetryClient) SendPathLocal(ctx context.Context, arg stellar1.SendPathLocalArg) (ret stellar1.SendPaymentResLocal, err error) {
+	for i := 0; i < retryCount; i++ {
+		ret, err = s.cli.SendPathLocal(ctx, arg)
+		if err == nil {
+			return ret, nil
+		}
+	}
+	return stellar1.SendPaymentResLocal{}, err
+}
+
 var _ stellar1.LocalInterface = (*stellarRetryClient)(nil)
