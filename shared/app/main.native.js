@@ -36,10 +36,6 @@ class Main extends React.Component<Props> {
   }
 
   render() {
-    if (this.props.showPushPrompt) {
-      // return <PushPrompt />
-    }
-
     // TODO likely collapse index.native/main.native/nav.native etc
     return (
       <React.Fragment>
