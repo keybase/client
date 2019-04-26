@@ -15,8 +15,6 @@ const routeTree = () => {
   const EditTeamDescription = require('./edit-team-description/container').default
   const CreateChannel = require('../chat/create-channel/container').default
   const ReallyLeaveTeam = require('./really-leave-team/container').default
-  const RolePicker = require('./role-picker/container').default
-  const ControlledRolePicker = require('./role-picker/controlled-container').default
   const Member = require('./team/member/container').default
   const ReallyRemoveMember = require('./team/really-remove-member/container').default
   const Team = require('./team/container').default
@@ -41,19 +39,9 @@ const routeTree = () => {
     },
   }
 
-  const teamRolePicker = {
-    children: {},
-    component: RolePicker,
-    tags: makeLeafTags({layerOnTop: !isMobile}),
-  }
   const teamReallyLeaveTeam = {
     children: {},
     component: ReallyLeaveTeam,
-    tags: makeLeafTags({layerOnTop: !isMobile}),
-  }
-  const teamControlledRolePicker = {
-    children: {},
-    component: ControlledRolePicker,
     tags: makeLeafTags({layerOnTop: !isMobile}),
   }
   const teamReallyRemoveMember = {
@@ -70,12 +58,12 @@ const routeTree = () => {
 
   const makeAddPeopleOptions = {
     teamAddPeople: {
-      children: {teamControlledRolePicker},
+      children: {},
       component: AddPeopleDialog,
       tags: makeLeafTags({layerOnTop: !isMobile}),
     },
     teamInviteByEmail: {
-      children: {teamControlledRolePicker},
+      children: {},
       component: InviteByEmailDialog,
       tags: makeLeafTags({layerOnTop: !isMobile}),
     },
@@ -93,7 +81,6 @@ const routeTree = () => {
       ...makeAddPeopleOptions,
       retentionWarning,
       team: () => teamRoute,
-      teamControlledRolePicker,
       teamEditTeamAvatar: {
         component: EditTeamAvatar,
         tags: makeLeafTags({layerOnTop: !isMobile}),
@@ -107,7 +94,6 @@ const routeTree = () => {
         children: {
           teamReallyLeaveTeam,
           teamReallyRemoveMember,
-          teamRolePicker,
         },
         component: Member,
       },
@@ -118,7 +104,6 @@ const routeTree = () => {
         component: RenameTeam,
         tags: makeLeafTags({layerOnTop: !isMobile}),
       },
-      teamRolePicker,
     },
     component: Team,
   })
@@ -144,7 +129,6 @@ export const newRoutes = {
   'settingsTabs.teamsTab': {getScreen: () => require('./container').default, upgraded: true},
   'tabs.teamsTab': {getScreen: () => require('./container').default, upgraded: true},
   team: {getScreen: () => require('./team/container').default, upgraded: true},
-  teamControlledRolePicker: {getScreen: () => require('./role-picker/controlled-container').default},
   teamMember: {getScreen: () => require('./team/member/container').default, upgraded: true},
 }
 
@@ -171,5 +155,4 @@ export const newModalRoutes = {
     getScreen: () => require('./rename-team/container').default,
     upgraded: true,
   },
-  teamRolePicker: {getScreen: () => require('./role-picker/container').default},
 }

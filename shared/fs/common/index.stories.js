@@ -79,6 +79,10 @@ export const commonProvider = {
     canCreateNewFolder: Types.getPathLevel(path) > 2,
     onNewFolder: Sb.action('onNewFolder'),
   }),
+  OfflineFolder: ({path}: {path: Types.Path}) => ({
+    path,
+    syncEnabled: false,
+  }),
   OpenChat: ({path}: {path: Types.Path}) => ({
     onChat: Constants.canChat(path) ? Sb.action('onChat') : null,
   }),

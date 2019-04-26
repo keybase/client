@@ -25,11 +25,11 @@ const listStyle = {
     : {
         backgroundColor: globalColors.white,
         borderLeft: border,
-        marginTop: -4 /* Necessary fix: adds 1px at the top so we hide the gray divider */,
       }),
 }
 const styleTurnIntoTeam = {
-  padding: globalMargins.small,
+  paddingLeft: globalMargins.small,
+  paddingRight: globalMargins.small,
 }
 const Spacer = ({height}: {height: number}) => <Box style={{height, width: 1}} />
 

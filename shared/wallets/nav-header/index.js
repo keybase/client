@@ -51,9 +51,7 @@ const styles = Styles.styleSheetCreate({
     alignSelf: 'flex-start',
   },
   left: {
-    alignSelf: 'stretch',
     minWidth: 240,
-    paddingBottom: 6,
     paddingLeft: Styles.globalMargins.xsmall,
     paddingRight: Styles.globalMargins.xsmall,
   },

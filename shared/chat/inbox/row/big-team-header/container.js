@@ -1,5 +1,5 @@
 // @flow
-import {connect} from '../../../../util/container'
+import {namedConnect} from '../../../../util/container'
 import {isTeamWithChosenChannels} from '../../../../constants/teams'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {teamsTab} from '../../../../constants/tabs'
@@ -29,8 +29,9 @@ const mergeProps = (stateProps, dispatchProps) => ({
   teamname: stateProps.teamname,
 })
 
-export default connect<OwnProps, _, _, _, _>(
+export default namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
-  mergeProps
+  mergeProps,
+  'InboxBigTeamHeader'
 )(BigTeamHeader)
