@@ -54,6 +54,10 @@ class Header extends React.PureComponent<Props> {
       showDivider = false
     }
 
+    // We normally have the back arrow at the top of the screen. It doesn't overlap with the system
+    // icons (minimize etc) because the left nav bar pushes it to the right -- unless you're logged
+    // out, in which case there's no nav bar and they overlap. So, if we're on Mac, and logged out,
+    // push the back arrow down below the system icons.
     const backArrowStyle = {
       ...(this.props.allowBack ? styles.icon : styles.disabledIcon),
       ...(!this.props.loggedIn && Platform.isDarwin ? {position: 'relative', top: 30} : {}),
