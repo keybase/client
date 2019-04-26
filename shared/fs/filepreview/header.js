@@ -28,7 +28,6 @@ const Header = (props: HeaderProps) => (
       <Kbfs.PathItemAction
         path={props.path}
         clickable={{
-          actionIconFontSize: 16,
           type: 'icon',
         }}
         routePath={props.routePath}

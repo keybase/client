@@ -168,6 +168,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     delete: layout.delete ? c(dispatchProps._delete) : null,
     download: layout.download ? c(dispatchProps._download) : null,
     ignoreTlf: layout.ignoreTlf ? c(dispatchProps._ignoreTlf) : null,
+    me: stateProps._username,
     moveOrCopy: flags.moveOrCopy && layout.moveOrCopy ? c(dispatchProps._moveOrCopy) : null,
     newFolder: layout.newFolder ? c(dispatchProps._newFolder) : null,
     openChatNonTeam: layout.openChatNonTeam ? c(dispatchProps._openChat) : null,
