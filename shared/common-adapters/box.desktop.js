@@ -5,7 +5,7 @@ import type {Box2Props} from './box'
 
 class Box extends React.PureComponent<any> {
   render() {
-    const {forwardedRef, ...rest} = this.props
+    const {forwardedRef, inline, ...rest} = this.props
     return <div {...rest} ref={this.props.forwardedRef} />
   }
 }
