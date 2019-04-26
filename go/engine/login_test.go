@@ -3985,6 +3985,14 @@ func (p *paperLoginUI) DisplayResetProgress(_ context.Context, arg keybase1.Disp
 	return nil
 }
 
+func (p *paperLoginUI) ExplainDeviceRecovery(_ context.Context, arg keybase1.ExplainDeviceRecoveryArg) error {
+	return nil
+}
+
+func (p *paperLoginUI) PromptPassphraseRecovery(_ context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
+	return false, nil
+}
+
 func signString(tc libkb.TestContext, input string, secUI libkb.SecretUI) error {
 	var sink bytes.Buffer
 

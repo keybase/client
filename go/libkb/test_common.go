@@ -431,6 +431,7 @@ type TestLoginUI struct {
 	RevokeBackup             bool
 	CalledGetEmailOrUsername int
 	ResetAccount             bool
+	PassphraseRecovery       bool
 }
 
 func (t *TestLoginUI) GetEmailOrUsername(_ context.Context, _ int) (string, error) {
@@ -456,6 +457,14 @@ func (t *TestLoginUI) PromptResetAccount(_ context.Context, arg keybase1.PromptR
 
 func (t *TestLoginUI) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
 	return nil
+}
+
+func (t *TestLoginUI) ExplainDeviceRecovery(_ context.Context, arg keybase1.ExplainDeviceRecoveryArg) error {
+	return nil
+}
+
+func (t *TestLoginUI) PromptPassphraseRecovery(_ context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
+	return t.PassphraseRecovery, nil
 }
 
 type TestLoginCancelUI struct {
