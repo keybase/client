@@ -12,7 +12,6 @@ const routeTree = () => {
   const ReallyDelete = require('./really-delete/container').default
   const SendLinkToChat = require('./send-link-to-chat/container').default
   const SendAttachmentToChat = require('./send-attachment-to-chat/container').default
-  const Oops = require('./oops/container').default
 
   const _destinationPicker = {
     children: {
@@ -82,16 +81,6 @@ const routeTree = () => {
           }),
         }),
       main: () => makeRouteDefNode(_mainRoute),
-      oops: () =>
-        makeRouteDefNode({
-          component: Oops,
-          tags: makeLeafTags({
-            fullscreen: isMobile,
-            layerOnTop: !isMobile,
-            renderTopmostOnly: !isMobile,
-            title: 'Permission error',
-          }),
-        }),
     },
     component: Files,
   }
@@ -113,7 +102,6 @@ export const newRoutes = {
 export const newModalRoutes = {
   barePreview: {getScreen: () => require('./filepreview').BarePreview},
   destinationPicker: {getScreen: () => require('./destination-picker/container').default, upgraded: true},
-  oops: {getScreen: () => require('./oops/container').default, upgraded: true},
   reallyDelete: {getScreen: () => require('./really-delete/container').default, upgraded: true},
   sendAttachmentToChat: {
     getScreen: () => require('./send-attachment-to-chat/container').default,

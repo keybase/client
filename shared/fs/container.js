@@ -12,13 +12,18 @@ import {NormalPreview} from './filepreview'
 import Loading from './common/loading'
 import KbfsDaemonNotRunning from './common/kbfs-daemon-not-running'
 import LoadPathMetadataWhenNeeded from './common/load-path-metadata-when-needed'
+import Oops from './oops'
 import {Actions, DesktopBanner, MobileHeader, Title} from './nav-header'
 import flags from '../util/feature-flags'
 
-const mapStateToProps = state => ({
-  _pathItems: state.fs.pathItems,
-  kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
-})
+const mapStateToProps = (state, ownProps) => {
+  const path = getRouteProps(ownProps, 'path') || Constants.defaultPath
+  return {
+    _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
+    _softErrors: state.fs.softErrors,
+    kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
+  }
+}
 
 const mapDispatchToProps = (dispatch, {routePath}) => ({
   _emitBarePreview: flags.useNewRouter
@@ -46,14 +51,15 @@ const mapDispatchToProps = (dispatch, {routePath}) => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const path = getRouteProps(ownProps, 'path') || Constants.defaultPath
   const isDefinitelyFolder = Types.getPathElements(path).length <= 3
-  const pathItem = stateProps._pathItems.get(path, Constants.unknownPathItem)
   return {
     emitBarePreview: () => dispatchProps._emitBarePreview(path),
     kbfsDaemonStatus: stateProps.kbfsDaemonStatus,
-    mimeType: !isDefinitelyFolder && pathItem.type === 'file' ? pathItem.mimeType : null,
+    mimeType:
+      !isDefinitelyFolder && stateProps._pathItem.type === 'file' ? stateProps._pathItem.mimeType : null,
     path,
-    pathType: isDefinitelyFolder ? 'folder' : stateProps._pathItems.get(path, Constants.unknownPathItem).type,
+    pathType: isDefinitelyFolder ? 'folder' : stateProps._pathItem.type,
     routePath: ownProps.routePath,
+    softError: Constants.getSoftError(stateProps._softErrors, path),
     waitForKbfsDaemon: dispatchProps.waitForKbfsDaemon,
   }
 }
@@ -65,6 +71,7 @@ type ChooseComponentProps = {|
   path: Types.Path,
   pathType: Types.PathType,
   routePath: I.List<string>,
+  softError: ?Types.SoftError,
   waitForKbfsDaemon: () => void,
 |}
 
@@ -98,6 +105,9 @@ class ChooseComponent extends React.PureComponent<ChooseComponentProps> {
   }
 
   getContent() {
+    if (this.props.softError) {
+      return <Oops path={this.props.path} reason={this.props.softError} />
+    }
     switch (this.props.pathType) {
       case 'folder':
         return <Folder path={this.props.path} routePath={this.props.routePath} />

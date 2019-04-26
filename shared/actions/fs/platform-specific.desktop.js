@@ -100,7 +100,7 @@ const _openPathInSystemFileManagerPromise = (openPath: string, isFolder: boolean
 const openLocalPathInSystemFileManager = (state, action) =>
   getPathType(action.payload.localPath)
     .then(pathType => _openPathInSystemFileManagerPromise(action.payload.localPath, pathType === 'directory'))
-    .catch(makeUnretriableErrorHandler(action))
+    .catch(makeUnretriableErrorHandler(action, null))
 
 const _rebaseKbfsPathToMountLocation = (kbfsPath: Types.Path, mountLocation: string) =>
   path.resolve(
@@ -121,7 +121,7 @@ const openPathInSystemFileManager = (state, action) =>
           )
         )
         .catch(err => {
-          return makeRetriableErrorHandler(action)(err)
+          return makeRetriableErrorHandler(action, action.payload.path)(err)
         })
     : new Promise((resolve, reject) =>
         // This usually indicates a developer error as
@@ -241,17 +241,16 @@ const uninstallKBFSConfirm = () =>
         type: 'question',
       },
       // resp is the index of the button that's clicked
-      resp => resp === 0 ? resolve(FsGen.createDriverDisabling()) : resolve()
+      resp => (resp === 0 ? resolve(FsGen.createDriverDisabling()) : resolve())
     )
   )
 
 const uninstallKBFS = () =>
-  RPCTypes.installUninstallKBFSRpcPromise()
-    .then(() => {
-      // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
-      SafeElectron.getApp().relaunch()
-      SafeElectron.getApp().exit(0)
-    })
+  RPCTypes.installUninstallKBFSRpcPromise().then(() => {
+    // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
+    SafeElectron.getApp().relaunch()
+    SafeElectron.getApp().exit(0)
+  })
 
 const uninstallDokanConfirm = state => {
   if (state.fs.sfmi.driverStatus.type !== 'enabled') {
@@ -333,7 +332,7 @@ const installCachedDokan = (state, action) =>
     })
   })
     .then(() => FsGen.createRefreshDriverStatus())
-    .catch(makeUnretriableErrorHandler(action))
+    .catch(makeUnretriableErrorHandler(action, null))
 
 const openAndUploadToPromise = (state: TypedState, action: FsGen.OpenAndUploadPayload) =>
   new Promise((resolve, reject) =>

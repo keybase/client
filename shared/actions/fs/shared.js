@@ -6,44 +6,28 @@ import type {TypedActions} from '../typed-actions-gen'
 import * as RouteTreeGen from '../route-tree-gen'
 import flags from '../../util/feature-flags'
 
-const _makeActionsForNavigateUpThenRootThen = flags.useNewRouter
-  ? finalRoute => [
-      RouteTreeGen.createNavigateUp(), // This is unfortunate but we do need to get rid of the bad path.
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {path: Constants.defaultPath}, selected: 'tabs.fsTab'}, finalRoute],
-      }),
-    ]
-  : finalRoute => [RouteTreeGen.createNavigateTo({path: [...Constants.fsRootRouteForNav1, finalRoute]})]
-
-const _getRouteChangeActionForPermissionError = (path: Types.Path) =>
-  _makeActionsForNavigateUpThenRootThen({props: {path, reason: 'no-access'}, selected: 'oops'})
-
-const _getRouteChangeActionForNonExistentError = (path: Types.Path) =>
-  _makeActionsForNavigateUpThenRootThen({props: {path, reason: 'non-existent'}, selected: 'oops'})
-
-const makeErrorHandler = (action: FsGen.Actions, retriable: boolean) => (error: any): Array<TypedActions> => {
-  // TODO: add and use proper error code for all these
-  if (typeof error.desc === 'string') {
-    if (
-      error.desc.includes('does not have read access to') ||
-      error.desc.includes('You are not a member of this team') ||
-      // team doesn't exist
-      error.desc.includes('Root team does not exist') ||
-      // public tlf doesn't exist
-      error.desc.includes("Can't create TLF ID for non-team-backed handle")
-    ) {
-      return _getRouteChangeActionForPermissionError(
-        // If you get a flow error here after aadding an action that has a 'path'
-        // field, try rename that field if the field is not of type FsTypes.Path.
-        (action.payload && action.payload.path) || Constants.defaultPath
-      )
-    }
-    if (error.desc.includes('file does not exist')) {
-      return _getRouteChangeActionForNonExistentError(
-        // If you get a flow error here after aadding an action that has a 'path'
-        // field, try rename that field if the field is not of type FsTypes.Path.
-        (action.payload && action.payload.path) || Constants.defaultPath
-      )
+const makeErrorHandler = (action: FsGen.Actions, path: ?Types.Path, retriable: boolean) => (
+  error: any
+): Array<TypedActions> => {
+  if (path) {
+    // TODO: add and use proper error code for all these
+    if (typeof error.desc === 'string') {
+      if (
+        error.desc.includes('does not have read access to') ||
+        error.desc.includes('You are not a member of this team') ||
+        // team doesn't exist
+        error.desc.includes('Root team does not exist') ||
+        // public tlf doesn't exist
+        error.desc.includes("Can't create TLF ID for non-team-backed handle")
+      ) {
+        const tlfPath = Constants.getTlfPath(path)
+        if (tlfPath) {
+          return [FsGen.createSetTlfSoftError({path: tlfPath, softError: 'no-access'})]
+        }
+      }
+      if (error.desc.includes('file does not exist')) {
+        return [FsGen.createSetPathSoftError({path, softError: 'non-existent'})]
+      }
     }
     if (error.desc.includes('KBFS client not found.')) {
       return [
@@ -69,6 +53,8 @@ const makeErrorHandler = (action: FsGen.Actions, retriable: boolean) => (error: 
   ]
 }
 
-export const makeRetriableErrorHandler = (action: FsGen.Actions) => makeErrorHandler(action, true)
+export const makeRetriableErrorHandler = (action: FsGen.Actions, path: ?Types.Path) =>
+  makeErrorHandler(action, path, true)
 
-export const makeUnretriableErrorHandler = (action: FsGen.Actions) => makeErrorHandler(action, false)
+export const makeUnretriableErrorHandler = (action: FsGen.Actions, path: ?Types.Path) =>
+  makeErrorHandler(action, path, false)

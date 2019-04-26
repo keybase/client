@@ -248,6 +248,14 @@
     "overallSyncStatusChanged": {
       "progress": "Types.SyncingFoldersProgress"
     },
+    "setPathSoftError": {
+      "path": "Types.Path",
+      "softError": "?Types.SoftError",
+    },
+    "setTlfSoftError": {
+      "path": "Types.Path",
+      "softError": "?Types.SoftError",
+    },
 
     "placeholderAction": {}
   }

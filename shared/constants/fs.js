@@ -271,6 +271,11 @@ export const makeKbfsDaemonStatus: I.RecordFactory<Types._KbfsDaemonStatus> = I.
   rpcStatus: 'unknown',
 })
 
+export const makeSoftErrors: I.RecordFactory<Types._SoftErrors> = I.Record({
+  pathErrors: I.Map(),
+  tlfErrors: I.Map(),
+})
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   destinationPicker: makeDestinationPicker(),
   downloads: I.Map(),
@@ -286,6 +291,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   sendAttachmentToChat: makeSendAttachmentToChat(),
   sendLinkToChat: makeSendLinkToChat(),
   sfmi: makeSystemFileManagerIntegration(),
+  softErrors: makeSoftErrors(),
   syncingFoldersProgress: makeSyncingFoldersProgress(),
   tlfUpdates: I.List(),
   tlfs: makeTlfs(),
@@ -1156,6 +1162,23 @@ export const splitFileNameAndExtension = (fileName: string) =>
 
 export const isFolder = (path: Types.Path, pathItem: Types.PathItem) =>
   Types.getPathLevel(path) <= 3 || pathItem.type === 'folder'
+
+export const getTlfPath = (path: Types.Path): ?Types.Path => {
+  const elems = Types.getPathElements(path)
+  return elems.length > 2 ? Types.pathConcat(Types.pathConcat(defaultPath, elems[1]), elems[2]) : null
+}
+
+export const getSoftError = (softErrors: Types.SoftErrors, path: Types.Path): ?Types.SoftError => {
+  const pathError = softErrors.pathErrors.get(path)
+  if (pathError) {
+    return pathError
+  }
+  if (!softErrors.tlfErrors.size) {
+    return null
+  }
+  const tlfPath = getTlfPath(path)
+  return tlfPath ? softErrors.tlfErrors.get(tlfPath) : null
+}
 
 export const erroredActionToMessage = (action: FsGen.Actions, error: string): string => {
   const errorIsTimeout = error.includes('context deadline exceeded')

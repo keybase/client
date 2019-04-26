@@ -545,6 +545,22 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           driverStatus.type === 'enabled' ? driverStatus.set('isDisabling', true) : driverStatus
         )
       )
+    case FsGen.setPathSoftError:
+      return state.update('softErrors', softErrors =>
+        softErrors.update('pathErrors', pathErrors =>
+          action.payload.softError
+            ? pathErrors.set(action.payload.path, action.payload.softError)
+            : pathErrors.remove(action.payload.path)
+        )
+      )
+    case FsGen.setTlfSoftError:
+      return state.update('softErrors', softErrors =>
+        softErrors.update('tlfErrors', tlfErrors =>
+          action.payload.softError
+            ? tlfErrors.set(action.payload.path, action.payload.softError)
+            : tlfErrors.remove(action.payload.path)
+        )
+      )
 
     case FsGen.driverDisable:
     case FsGen.folderListLoad:
