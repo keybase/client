@@ -106,7 +106,7 @@ func (c *CmdWalletSendPathPayment) Run() (err error) {
 		return err
 	}
 
-	// XXX when SourceDisplay, SourceMaxDisplay, DestinationDisplay filled in, use those
+	// TODO: when SourceDisplay, SourceMaxDisplay, DestinationDisplay filled in, use those
 	ui.Printf("Sending approximately %s of %s (at most %s)\n", path.FullPath.SourceAmount, path.FullPath.SourceAsset, path.FullPath.SourceAmountMax)
 	ui.Printf("User %s will receive %s of %s\n\n", c.Recipient, path.FullPath.DestinationAmount, path.FullPath.DestinationAsset)
 
