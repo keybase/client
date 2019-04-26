@@ -56,7 +56,7 @@ func (o Contact) DeepCopy() Contact {
 	}
 }
 
-type ResolvedContact struct {
+type ProcessedContact struct {
 	DisplayName  string           `codec:"displayName" json:"displayName"`
 	ContactIndex int              `codec:"contactIndex" json:"contactIndex"`
 	Component    ContactComponent `codec:"component" json:"component"`
@@ -67,8 +67,8 @@ type ResolvedContact struct {
 	FullName     string           `codec:"fullName" json:"fullName"`
 }
 
-func (o ResolvedContact) DeepCopy() ResolvedContact {
-	return ResolvedContact{
+func (o ProcessedContact) DeepCopy() ProcessedContact {
+	return ProcessedContact{
 		DisplayName:  o.DisplayName,
 		ContactIndex: o.ContactIndex,
 		Component:    o.Component.DeepCopy(),
@@ -93,7 +93,7 @@ type LookupContactListArg struct {
 }
 
 type ContactsInterface interface {
-	LookupContactList(context.Context, LookupContactListArg) ([]ResolvedContact, error)
+	LookupContactList(context.Context, LookupContactListArg) ([]ProcessedContact, error)
 }
 
 func ContactsProtocol(i ContactsInterface) rpc.Protocol {
@@ -123,7 +123,7 @@ type ContactsClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c ContactsClient) LookupContactList(ctx context.Context, __arg LookupContactListArg) (res []ResolvedContact, err error) {
+func (c ContactsClient) LookupContactList(ctx context.Context, __arg LookupContactListArg) (res []ProcessedContact, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.contacts.lookupContactList", []interface{}{__arg}, &res)
 	return
 }

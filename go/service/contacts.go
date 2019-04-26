@@ -25,10 +25,12 @@ func NewContactsHandler(xp rpc.Transporter, g *libkb.GlobalContext) *ContactsHan
 
 var _ keybase1.ContactsInterface = (*ContactsHandler)(nil)
 
-func (h *ContactsHandler) LookupContactList(ctx context.Context, arg keybase1.LookupContactListArg) (res []keybase1.ResolvedContact, err error) {
+func (h *ContactsHandler) LookupContactList(ctx context.Context, arg keybase1.LookupContactListArg) (res []keybase1.ProcessedContact, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed(fmt.Sprintf("ContactsHandler#LookupContactList(len=%d)", len(arg.Contacts)),
 		func() error { return err })()
-	provider := &contacts.CachedContactsProvider{}
+	provider := &contacts.CachedContactsProvider{
+		Provider: &contacts.BulkLookupContactsProvider{},
+	}
 	return contacts.ResolveContacts(mctx, provider, arg.Contacts, arg.UserRegionCode)
 }

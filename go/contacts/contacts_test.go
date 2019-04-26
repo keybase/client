@@ -35,7 +35,7 @@ func (c *MockContactsProvider) LookupPhoneNumbers(mctx libkb.MetaContext, number
 		if user, found := c.phoneNumbers[number]; found {
 			result.Found = true
 			result.UID = user.UID
-			result.Username = user.Username
+			result.KeybaseUsername = user.Username
 		}
 		res = append(res, result)
 	}
@@ -48,11 +48,15 @@ func (c *MockContactsProvider) LookupEmails(mctx libkb.MetaContext, emails []key
 		if user, found := c.emails[email]; found {
 			result.Found = true
 			result.UID = user.UID
-			result.Username = user.Username
+			result.KeybaseUsername = user.Username
 		}
 		res = append(res, result)
 	}
 	return res, nil
+}
+
+func (c *MockContactsProvider) FillUsernames(mctx libkb.MetaContext, res []keybase1.ProcessedContact) {
+
 }
 
 func makePhoneComponent(label string, phone string) keybase1.ContactComponent {
@@ -71,7 +75,7 @@ func makeEmailComponent(label string, email string) keybase1.ContactComponent {
 	}
 }
 
-func stringifyResults(res []keybase1.ResolvedContact) (ret []string) {
+func stringifyResults(res []keybase1.ProcessedContact) (ret []string) {
 	ret = make([]string, len(res))
 	for i, r := range res {
 		if r.Resolved {

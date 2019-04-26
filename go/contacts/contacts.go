@@ -4,36 +4,21 @@
 package contacts
 
 import (
-	"errors"
-
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 type ContactLookupResult struct {
-	Found    bool
-	UID      keybase1.UID
-	Username string
+	Found           bool
+	UID             keybase1.UID
+	KeybaseUsername string
+	KeybaseFullName string
 }
 
 type ContactsProvider interface {
 	LookupPhoneNumbers(libkb.MetaContext, []keybase1.RawPhoneNumber, keybase1.RegionCode) ([]ContactLookupResult, error)
 	LookupEmails(libkb.MetaContext, []keybase1.EmailAddress) ([]ContactLookupResult, error)
-}
-
-type CachedContactsProvider struct {
-}
-
-func (c *CachedContactsProvider) LookupPhoneNumbers(mctx libkb.MetaContext, numbers []keybase1.RawPhoneNumber,
-	userRegion keybase1.RegionCode) (res []ContactLookupResult, err error) {
-	// TODO: Call BulkLookupPhoneNumbers
-	return res, errors.New("not implemented")
-}
-
-func (c *CachedContactsProvider) LookupEmails(mctx libkb.MetaContext, emails []keybase1.EmailAddress) (res []ContactLookupResult, err error) {
-	// TODO: Call something that bulk looks up emails, needs to add API to
-	// kbweb.
-	return res, errors.New("not implemented")
+	FillUsernames(libkb.MetaContext, []keybase1.ProcessedContact)
 }
 
 // ResolveContacts resolves contacts with cache for UI. See API documentation
@@ -43,30 +28,30 @@ func (c *CachedContactsProvider) LookupEmails(mctx libkb.MetaContext, emails []k
 // used when resolving local phone numbers, they are assumed to be local to the
 // user, so in the same region.
 func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts []keybase1.Contact,
-	regionCode keybase1.RegionCode) (res []keybase1.ResolvedContact, err error) {
+	regionCode keybase1.RegionCode) (res []keybase1.ProcessedContact, err error) {
 
-	type phoneToContact struct {
+	type contactRef struct {
 		// Use this struct to point back from phoneNumbers or emails entry to
 		// our contacts list.
 		contactIndex   int
 		componentIndex int
 	}
 	var phoneNumbers []keybase1.RawPhoneNumber
-	var phoneComps []phoneToContact
+	var phoneComps []contactRef
 	var emails []keybase1.EmailAddress
-	var emailComps []phoneToContact
+	var emailComps []contactRef
 	for contactI, k := range contacts {
 		for compI, component := range k.Components {
 			if component.Email != nil {
 				emails = append(emails, *component.Email)
-				emailComps = append(emailComps, phoneToContact{
+				emailComps = append(emailComps, contactRef{
 					contactIndex:   contactI,
 					componentIndex: compI,
 				})
 			}
 			if component.PhoneNumber != nil {
 				phoneNumbers = append(phoneNumbers, *component.PhoneNumber)
-				phoneComps = append(phoneComps, phoneToContact{
+				phoneComps = append(phoneComps, contactRef{
 					contactIndex:   contactI,
 					componentIndex: compI,
 				})
@@ -78,7 +63,7 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 	contactsFound := make(map[int]bool)
 	usersFound := make(map[keybase1.UID]bool)
 
-	insertResult := func(lookupRes ContactLookupResult, toContact phoneToContact) {
+	insertResult := func(lookupRes ContactLookupResult, toContact contactRef) {
 		contactsFound[toContact.contactIndex] = true
 
 		if _, found := usersFound[lookupRes.UID]; found {
@@ -91,13 +76,13 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 
 		usersFound[lookupRes.UID] = true
 
-		res = append(res, keybase1.ResolvedContact{
-			DisplayName:  lookupRes.Username, // if found, return username
+		res = append(res, keybase1.ProcessedContact{
+			DisplayName:  lookupRes.KeybaseUsername, // if found, return username
 			ContactIndex: toContact.contactIndex,
 			Component:    component,
 			Resolved:     true,
 			Uid:          lookupRes.UID,
-			Username:     lookupRes.Username,
+			Username:     lookupRes.KeybaseUsername,
 		})
 	}
 
@@ -131,6 +116,9 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 		}
 	}
 
+	// Uidmap everything to get full names.
+	provider.FillUsernames(mctx, res)
+
 	// Add all components from all contacts that were not resolved by any
 	// component.
 	for i, c := range contacts {
@@ -139,7 +127,7 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 		}
 
 		for _, component := range c.Components {
-			res = append(res, keybase1.ResolvedContact{
+			res = append(res, keybase1.ProcessedContact{
 				DisplayName: c.Name, // contact not resolved, return name from contact list
 				Component:   component,
 				Resolved:    false,
