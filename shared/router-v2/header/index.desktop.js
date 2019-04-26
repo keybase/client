@@ -1,7 +1,9 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
+import * as Platform from '../../constants/platform'
 import * as Styles from '../../styles'
+import * as Window from '../../util/window-management'
 import SyncingFolders from './syncing-folders'
 import flags from '../../util/feature-flags'
 // A mobile-like header for desktop
@@ -9,7 +11,24 @@ import flags from '../../util/feature-flags'
 // Fix this as we figure out what this needs to be
 type Props = any
 
-class Header extends React.PureComponent<Props> {
+const AppIconBox = Styles.styled(Kb.ClickableBox)({
+  ':hover': {
+    backgroundColor: Styles.globalColors.lightGrey,
+  },
+})
+const AppIconBoxOnRed = Styles.styled(Kb.ClickableBox)({
+  ':hover': {
+    backgroundColor: Styles.globalColors.red,
+  },
+})
+
+type State = {|
+  hoveringOnClose: boolean,
+|}
+
+class Header extends React.PureComponent<Props, State> {
+  state = {hoveringOnClose: false}
+
   render() {
     // TODO add more here as we use more options on the mobile side maybe
     const opt = this.props.options
@@ -71,6 +90,48 @@ class Header extends React.PureComponent<Props> {
             />
             {flags.kbfsOfflineMode && <SyncingFolders />}
             {!title && rightActions}
+
+            {!Platform.isDarwin && (
+              <Kb.Box2 direction="horizontal">
+                <AppIconBox direction="vertical" onClick={Window.minimizeWindow} style={styles.appIconBox}>
+                  <Kb.Icon
+                    color={Styles.globalColors.black_50}
+                    onClick={Window.minimizeWindow}
+                    style={styles.appIcon}
+                    type="iconfont-app-minimize"
+                  />
+                </AppIconBox>
+                <AppIconBox
+                  direction="vertical"
+                  onClick={Window.toggleMaximizeWindow}
+                  style={styles.appIconBox}
+                >
+                  <Kb.Icon
+                    color={Styles.globalColors.black_50}
+                    onClick={Window.toggleMaximizeWindow}
+                    style={styles.appIcon}
+                    type="iconfont-app-maximize"
+                  />
+                </AppIconBox>
+                <AppIconBoxOnRed
+                  direction="vertical"
+                  onMouseEnter={() => this.setState({hoveringOnClose: true})}
+                  onMouseLeave={() => this.setState({hoveringOnClose: false})}
+                  onClick={Window.closeWindow}
+                  style={styles.appIconBox}
+                >
+                  <Kb.Icon
+                    color={
+                      this.state.hoveringOnClose ? Styles.globalColors.white : Styles.globalColors.black_50
+                    }
+                    hoverColor={Styles.globalColors.white}
+                    onClick={Window.closeWindow}
+                    style={styles.appIcon}
+                    type="iconfont-app-close"
+                  />
+                </AppIconBoxOnRed>
+              </Kb.Box2>
+            )}
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bottom}>
             <Kb.Box2 direction="horizontal" style={styles.flexOne}>
@@ -86,6 +147,23 @@ class Header extends React.PureComponent<Props> {
 }
 
 const styles = Styles.styleSheetCreate({
+  appIcon: Styles.platformStyles({
+    isElectron: {
+      ...Styles.desktopStyles.windowDraggingClickable,
+      padding: Styles.globalMargins.xtiny,
+      position: 'relative',
+      top: Styles.globalMargins.xxtiny,
+    },
+  }),
+  appIconBox: Styles.platformStyles({
+    isElectron: {
+      ...Styles.desktopStyles.windowDraggingClickable,
+      padding: Styles.globalMargins.tiny,
+      position: 'relative',
+      right: -Styles.globalMargins.xsmall,
+      top: -Styles.globalMargins.xtiny,
+    },
+  }),
   bottom: {minHeight: 40 - 1}, // for border
   disabledIcon: Styles.platformStyles({
     isElectron: {
