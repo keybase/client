@@ -382,6 +382,8 @@ protocol local {
     boolean pending;
   }
 
+  SendPaymentResLocal sendPathLocal(AccountID source, string recipient, PaymentPath path, string note, string publicNote);
+
   // Check but do not send a request.
   //
   // Arguments are optional unless otherwise described.  However, a coherent

@@ -707,6 +707,15 @@ type SendPathPaymentArg struct {
 
 // SendPathPaymentCLI sends a path payment from CLI.
 func SendPathPaymentCLI(mctx libkb.MetaContext, walletState *WalletState, sendArg SendPathPaymentArg) (res SendPaymentResult, err error) {
+	return sendPathPayment(mctx, walletState, sendArg)
+}
+
+// SendPathPaymentGUI sends a path payment from GUI.
+func SendPathPaymentGUI(mctx libkb.MetaContext, walletState *WalletState, sendArg SendPathPaymentArg) (res SendPaymentResult, err error) {
+	return sendPathPayment(mctx, walletState, sendArg)
+}
+
+func sendPathPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendPathPaymentArg) (res SendPaymentResult, err error) {
 	senderEntry, senderAccountBundle, err := LookupSender(mctx, sendArg.From)
 	if err != nil {
 		return res, err

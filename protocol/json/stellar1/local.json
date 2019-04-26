@@ -1698,6 +1698,31 @@
       ],
       "response": "SendPaymentResLocal"
     },
+    "sendPathLocal": {
+      "request": [
+        {
+          "name": "source",
+          "type": "AccountID"
+        },
+        {
+          "name": "recipient",
+          "type": "string"
+        },
+        {
+          "name": "path",
+          "type": "PaymentPath"
+        },
+        {
+          "name": "note",
+          "type": "string"
+        },
+        {
+          "name": "publicNote",
+          "type": "string"
+        }
+      ],
+      "response": "SendPaymentResLocal"
+    },
     "buildRequestLocal": {
       "request": [
         {

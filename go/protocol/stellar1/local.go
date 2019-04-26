@@ -1171,6 +1171,14 @@ type SendPaymentLocalArg struct {
 	QuickReturn   bool                 `codec:"quickReturn" json:"quickReturn"`
 }
 
+type SendPathLocalArg struct {
+	Source     AccountID   `codec:"source" json:"source"`
+	Recipient  string      `codec:"recipient" json:"recipient"`
+	Path       PaymentPath `codec:"path" json:"path"`
+	Note       string      `codec:"note" json:"note"`
+	PublicNote string      `codec:"publicNote" json:"publicNote"`
+}
+
 type BuildRequestLocalArg struct {
 	SessionID  int                  `codec:"sessionID" json:"sessionID"`
 	To         string               `codec:"to" json:"to"`
@@ -1406,6 +1414,7 @@ type LocalInterface interface {
 	BuildPaymentLocal(context.Context, BuildPaymentLocalArg) (BuildPaymentResLocal, error)
 	ReviewPaymentLocal(context.Context, ReviewPaymentLocalArg) error
 	SendPaymentLocal(context.Context, SendPaymentLocalArg) (SendPaymentResLocal, error)
+	SendPathLocal(context.Context, SendPathLocalArg) (SendPaymentResLocal, error)
 	BuildRequestLocal(context.Context, BuildRequestLocalArg) (BuildRequestResLocal, error)
 	GetRequestDetailsLocal(context.Context, GetRequestDetailsLocalArg) (RequestDetailsLocal, error)
 	CancelRequestLocal(context.Context, CancelRequestLocalArg) error
@@ -1882,6 +1891,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.SendPaymentLocal(ctx, typedArgs[0])
+					return
+				},
+			},
+			"sendPathLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]SendPathLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SendPathLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SendPathLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.SendPathLocal(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -2590,6 +2614,11 @@ func (c LocalClient) ReviewPaymentLocal(ctx context.Context, __arg ReviewPayment
 
 func (c LocalClient) SendPaymentLocal(ctx context.Context, __arg SendPaymentLocalArg) (res SendPaymentResLocal, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.sendPaymentLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) SendPathLocal(ctx context.Context, __arg SendPathLocalArg) (res SendPaymentResLocal, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.sendPathLocal", []interface{}{__arg}, &res)
 	return
 }
 

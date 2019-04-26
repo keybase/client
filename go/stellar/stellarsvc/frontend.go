@@ -821,6 +821,34 @@ func (s *Server) SendPaymentLocal(ctx context.Context, arg stellar1.SendPaymentL
 	return stellar.SendPaymentLocal(mctx, arg)
 }
 
+func (s *Server) SendPathLocal(ctx context.Context, arg stellar1.SendPathLocalArg) (res stellar1.SendPaymentResLocal, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName:       "SendPathLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return res, err
+	}
+
+	sendRes, err := stellar.SendPathPaymentGUI(mctx, s.walletState, stellar.SendPathPaymentArg{
+		From:        arg.Source,
+		To:          stellarcommon.RecipientInput(arg.Recipient),
+		Path:        arg.Path,
+		SecretNote:  arg.Note,
+		PublicMemo:  arg.PublicNote,
+		QuickReturn: true,
+	})
+	if err != nil {
+		return res, err
+	}
+	return stellar1.SendPaymentResLocal{
+		KbTxID:  sendRes.KbTxID,
+		Pending: sendRes.Pending,
+	}, nil
+}
+
 func (s *Server) CreateWalletAccountLocal(ctx context.Context, arg stellar1.CreateWalletAccountLocalArg) (res stellar1.AccountID, err error) {
 	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:       "CreateWalletAccountLocal",
