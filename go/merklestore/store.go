@@ -168,7 +168,11 @@ func (s *MerkleStoreImpl) getKitString(m libkb.MetaContext) (
 
 	// Use in-memory cache if it matches
 	if fromMem := s.memGet(hash); fromMem != nil {
-		m.VLogf(libkb.VLog0, "MerkleStore: mem cache hit %s, using hash: %s", s.tag, hash)
+		vLogLevel := libkb.VLog0
+		if s.tag == "paramproofs" {
+			vLogLevel = libkb.VLog1
+		}
+		m.VLogf(vLogLevel, "MerkleStore: mem cache hit %s, using hash: %s", s.tag, hash)
 		return *fromMem, hash, nil
 	}
 
