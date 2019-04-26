@@ -27,19 +27,22 @@ export type MarkdownMeta = {|
 |}
 
 export type StyleOverride = {
-    paragraph?: Styles.StylesCrossPlatform,
-    fence?: Styles.StylesCrossPlatform,
-    inlineCode?: Styles.StylesCrossPlatform,
-    strong?: Styles.StylesCrossPlatform,
-    em?: Styles.StylesCrossPlatform,
-    del?: Styles.StylesCrossPlatform,
-    link?: Styles.StylesCrossPlatform,
-    mailto?: Styles.StylesCrossPlatform,
-    preview?: Styles.StylesCrossPlatform,
+  paragraph?: Styles.StylesCrossPlatform,
+  fence?: Styles.StylesCrossPlatform,
+  inlineCode?: Styles.StylesCrossPlatform,
+  strong?: Styles.StylesCrossPlatform,
+  em?: Styles.StylesCrossPlatform,
+  del?: Styles.StylesCrossPlatform,
+  link?: Styles.StylesCrossPlatform,
+  mailto?: Styles.StylesCrossPlatform,
+  preview?: Styles.StylesCrossPlatform,
+  kbfsPath?: Styles.StylesCrossPlatform,
 }
 
-export type Props = {
+export type Props = {|
   children?: string,
+  lineClamp?: number,
+  selectable?: boolean, // desktop - applies to outer container only
   preview?: boolean, // if true render a simplified version
   // Style only styles the top level container.
   // This is only useful in desktop because of cascading styles and there is a top level wrapper.
@@ -57,6 +60,6 @@ export type Props = {
   // for example you may want to make paragraphs, italics, etc to be black_50
   // but want blue_30 for the inline code
   styleOverride?: StyleOverride,
-}
+|}
 
 export default class Markdown extends React.Component<Props> {}

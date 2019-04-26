@@ -164,8 +164,6 @@ class Header extends React.PureComponent<Props, State> {
 }
 
 const styles = Styles.styleSheetCreate({
-  bottom: {height: 40 - 1}, // for border
-  bottomExpandable: {minHeight: 40 - 1},
   appIcon: Styles.platformStyles({
     isElectron: {
       ...Styles.desktopStyles.windowDraggingClickable,
@@ -183,6 +181,8 @@ const styles = Styles.styleSheetCreate({
       top: -Styles.globalMargins.xtiny,
     },
   }),
+  bottom: {height: 40 - 1}, // for border
+  bottomExpandable: {minHeight: 40 - 1},
   disabledIcon: Styles.platformStyles({
     isElectron: {
       cursor: 'default',

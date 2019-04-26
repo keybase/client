@@ -413,7 +413,7 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
           this.props.style,
           styleOverride.preview,
         ])}
-        lineClamp={Styles.isMobile ? 1 : undefined}
+        lineClamp={1}
       >
         {output}
       </Text>
@@ -425,7 +425,12 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
     return Styles.isMobile ? (
       inner
     ) : (
-      <Text type="Body" style={Styles.collapseStyles([styles.rootWrapper, this.props.style])}>
+      <Text
+        type="Body"
+        lineClamp={this.props.lineClamp}
+        style={Styles.collapseStyles([styles.rootWrapper, this.props.style])}
+        selectable={this.props.selectable}
+      >
         {inner}
       </Text>
     )

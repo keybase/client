@@ -27,11 +27,25 @@ type Props = {|
   unMuteConversation: () => void,
 |}
 
+const descStyleOverride = {
+  del: {fontSize: 12, lineHeight: '16px', wordBreak: 'break-all'},
+  em: {fontSize: 12, lineHeight: '16px', wordBreak: 'break-all'},
+  fence: {fontSize: 12, lineHeight: '16px', wordBreak: 'break-all'},
+  inlineCode: {fontSize: 12, lineHeight: '16px', wordBreak: 'break-all'},
+  kbfsPath: {fontSize: 12, lineHeight: '16px', wordBreak: 'break-all'},
+  link: {fontSize: 12, lineHeight: '16px', wordBreak: 'break-all'},
+  mailto: {fontSize: 12, lineHeight: '16px', wordBreak: 'break-all'},
+  paragraph: {fontSize: 12, lineHeight: '16px', wordBreak: 'break-all'},
+  preview: {fontSize: 12, lineHeight: '16px', wordBreak: 'break-all'},
+  strong: {fontSize: 12, lineHeight: '16px', wordBreak: 'break-all'},
+}
+
 const Header = (p: Props) => {
   let description = !!p.desc && (
-    <Kb.Text selectable={true} style={styles.desc} type="BodySmall" lineClamp={1}>
+    // $FlowIssue not used on mobile
+    <Kb.Markdown style={styles.desc} styleOverride={descStyleOverride} lineClamp={1} selectable={true}>
       {p.desc}
-    </Kb.Text>
+    </Kb.Markdown>
   )
   if (p.isTeam && !p.desc && p.canEditDesc) {
     description = (
@@ -125,7 +139,10 @@ const styles = Styles.styleSheetCreate({
     flexGrow: 1,
     height: 40 - 1,
   },
-  desc: Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
+  desc: {
+    ...Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
+    color: Styles.globalColors.black_50,
+  },
   headerTitle: {flexGrow: 1, paddingBottom: Styles.globalMargins.xtiny},
   left: {minWidth: 260},
   right: {
