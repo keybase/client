@@ -7,13 +7,14 @@ import type {Props} from '.'
 
 const icons = {
   [Tabs.chatTab]: 'iconfont-nav-2-chat',
+  [Tabs.fsTab]: 'iconfont-nav-files',
   [Tabs.teamsTab]: 'iconfont-nav-2-teams',
   [Tabs.peopleTab]: 'iconfont-nav-2-people',
   [Tabs.settingsTab]: 'iconfont-nav-2-more',
   [Tabs.walletsTab]: 'iconfont-nav-2-wallets',
 }
 
-const tabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.teamsTab, Tabs.settingsTab]
+const tabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.fsTab, Tabs.settingsTab]
 
 // Immediately draw selected and don't wait for the store
 type State = {|justSelected: ?string|}

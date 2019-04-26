@@ -4734,7 +4734,8 @@ type ProfileSearchConvStats struct {
 	MaxConvID      MessageID            `codec:"maxConvID" json:"maxConvID"`
 	NumMissing     int                  `codec:"numMissing" json:"numMissing"`
 	NumMessages    int                  `codec:"numMessages" json:"numMessages"`
-	IndexSize      int                  `codec:"indexSize" json:"indexSize"`
+	IndexSizeDisk  int                  `codec:"indexSizeDisk" json:"indexSizeDisk"`
+	IndexSizeMem   int64                `codec:"indexSizeMem" json:"indexSizeMem"`
 	DurationMsec   gregor1.DurationMsec `codec:"durationMsec" json:"durationMsec"`
 	PercentIndexed int                  `codec:"percentIndexed" json:"percentIndexed"`
 }
@@ -4747,7 +4748,8 @@ func (o ProfileSearchConvStats) DeepCopy() ProfileSearchConvStats {
 		MaxConvID:      o.MaxConvID.DeepCopy(),
 		NumMissing:     o.NumMissing,
 		NumMessages:    o.NumMessages,
-		IndexSize:      o.IndexSize,
+		IndexSizeDisk:  o.IndexSizeDisk,
+		IndexSizeMem:   o.IndexSizeMem,
 		DurationMsec:   o.DurationMsec.DeepCopy(),
 		PercentIndexed: o.PercentIndexed,
 	}

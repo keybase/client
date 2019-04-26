@@ -987,8 +987,10 @@ protocol local {
     int numMissing;
     // number of messages in the conversation that were indexed
     int numMessages;
-    // number of bytes in the final index
-    int indexSize;
+    // number of bytes in the index on disk
+    int indexSizeDisk;
+    // number of bytes in the index in memory
+    int64 indexSizeMem;
     // total time to index the conv
     gregor1.DurationMsec durationMsec;
     int percentIndexed;

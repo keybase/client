@@ -508,6 +508,7 @@ func (idx *Indexer) indexConvWithProfile(ctx context.Context, conv types.RemoteC
 	if err != nil {
 		return res, err
 	}
-	res.IndexSize = len(b)
+	res.IndexSizeDisk = len(b)
+	res.IndexSizeMem = convIdx.Size()
 	return res, nil
 }
