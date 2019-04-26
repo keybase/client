@@ -24,7 +24,7 @@ type ContactsProvider interface {
 // ResolveContacts resolves contacts with cache for UI. See API documentation
 // in phone_numbers.avdl
 //
-// regionCode is optional, user region should be provided if it's know. It's
+// regionCode is optional, user region should be provided if it's known. It's
 // used when resolving local phone numbers, they are assumed to be local to the
 // user, so in the same region.
 func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts []keybase1.Contact,
