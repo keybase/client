@@ -644,6 +644,7 @@ type ExternalServicesCollector interface {
 // parameterized proofs.
 type MerkleStore interface {
 	GetLatestEntry(m MetaContext) (keybase1.MerkleStoreEntry, error)
+	GetLatestEntryWithKnown(MetaContext, *keybase1.MerkleStoreKitHash) (*keybase1.MerkleStoreEntry, error)
 }
 
 // UserChangedHandler is a generic interface for handling user changed events.

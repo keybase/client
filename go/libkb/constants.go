@@ -718,3 +718,5 @@ const (
 	AutoresetEventReady  = 4
 	AutoresetEventReset  = 5
 )
+
+const ProfileProofSuggestions = true
