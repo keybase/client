@@ -49,8 +49,8 @@ const Header = (p: Props) => {
   )
   if (p.isTeam && !p.desc && p.canEditDesc) {
     description = (
-      <Kb.Text type="BodySmallItalic" lineClamp={1}>
-        Set a description using the <Kb.Text type="BodySmallSemiboldItalic">/headline</Kb.Text> command.
+      <Kb.Text type="BodySmall" lineClamp={1}>
+        Set a description using the <Kb.Text type="BodySmallBold">/headline</Kb.Text> command.
       </Kb.Text>
     )
   }
@@ -73,7 +73,7 @@ const Header = (p: Props) => {
         alignItems="flex-end"
         alignSelf="flex-end"
       >
-        <Kb.Box2 direction="vertical" style={styles.grow}>
+        <Kb.Box2 direction="vertical" style={styles.headerTitle}>
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             {p.channel ? (
               <Kb.Text selectable={true} type="Header" lineClamp={1}>
@@ -104,13 +104,26 @@ const Header = (p: Props) => {
           {description}
         </Kb.Box2>
         {p.showActions && (
-          <Kb.Box2 direction="horizontal" gap="small" alignItems="flex-end" alignSelf="flex-end">
-            <Kb.Icon type="iconfont-search" onClick={p.onToggleThreadSearch} />
-            <Kb.Icon type="iconfont-folder-private" onClick={p.onOpenFolder} />
-            <Kb.Icon
-              type={p.infoPanelOpen ? 'iconfont-close' : 'iconfont-info'}
-              onClick={p.onToggleInfoPanel}
-            />
+          <Kb.Box2
+            direction="horizontal"
+            gap="small"
+            alignItems="flex-end"
+            alignSelf="flex-end"
+            style={styles.actionIcons}
+          >
+            <Kb.WithTooltip text="Search in this chat">
+              <Kb.Icon type="iconfont-search" onClick={p.onToggleThreadSearch} />
+            </Kb.WithTooltip>
+            <Kb.WithTooltip text="Open folder">
+              <Kb.Icon type="iconfont-folder-private" onClick={p.onOpenFolder} />
+            </Kb.WithTooltip>
+            <Kb.WithTooltip text="Chat info & settings">
+              <Kb.Icon
+                type={'iconfont-info'}
+                onClick={p.onToggleInfoPanel}
+                color={p.infoPanelOpen ? Styles.globalColors.blue : undefined}
+              />
+            </Kb.WithTooltip>
           </Kb.Box2>
         )}
       </Kb.Box2>
@@ -119,19 +132,21 @@ const Header = (p: Props) => {
 }
 
 const styles = Styles.styleSheetCreate({
+  actionIcons: {
+    paddingBottom: Styles.globalMargins.tiny,
+  },
   container: {
     flexGrow: 1,
-    height: 40,
+    height: 40 - 1,
   },
   desc: {
     ...Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
     color: Styles.globalColors.black_50,
   },
-  grow: {flexGrow: 1},
+  headerTitle: {flexGrow: 1, paddingBottom: Styles.globalMargins.xtiny},
   left: {minWidth: 260},
   right: {
     flexGrow: 1,
-    paddingBottom: Styles.globalMargins.xtiny,
     paddingLeft: Styles.globalMargins.xsmall,
     paddingRight: Styles.globalMargins.xsmall,
   },
