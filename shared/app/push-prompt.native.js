@@ -14,7 +14,7 @@ type Props = {
 }
 
 const PushPrompt = (props: Props) => (
-  <Kb.ScrollView contentContainerStyle={styles.scrollContent}>
+  <Kb.ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" style={styles.container}>
       <Kb.Box style={styles.spacer} />
       <Kb.Text center={true} type="Header" style={styles.text}>
@@ -65,6 +65,9 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   scrollContent: {minHeight: '100%'},
+  scroll: {
+    ...Styles.fillAbsolute,
+  },
   spacer: {flexGrow: 1},
   text: {
     color: Styles.globalColors.black,
