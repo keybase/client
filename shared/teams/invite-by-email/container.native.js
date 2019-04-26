@@ -91,23 +91,6 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     )
     dispatch(TeamsGen.createGetTeams({clearNavBadges: false}))
   },
-  onOpenRolePicker: (role: string, onComplete: string => void) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {
-              allowAdmin: false,
-              allowOwner: false,
-              onComplete,
-              selectedRole: role,
-            },
-            selected: 'teamControlledRolePicker',
-          },
-        ],
-      })
-    )
-  },
   onUninvite: (invitee: string, id?: string) => {
     dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
     dispatch(
