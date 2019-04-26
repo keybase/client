@@ -25,11 +25,12 @@ export const FolderViewFilterIcon = (props: Props) =>
     />
   )
 
-type OwnProps = {|
-  onClick: () => void,
-  path: Types.Path,
-  style?: ?Styles.StylesCrossPlatform,
-|}
+type OwnProps = $Diff<
+  Props,
+  {|
+    pathItem: Types.PathItem,
+  |}
+>
 
 const mapStateToProps = (state, {path}) => ({
   pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
@@ -37,10 +38,8 @@ const mapStateToProps = (state, {path}) => ({
 const mapDispatchToProps = dispatch => ({})
 
 const mergeProps = (s, d, o) => ({
-  onClick: o.onClick,
-  path: o.path,
+  ...o,
   pathItem: s.pathItem,
-  style: o.style,
 })
 
 export default (!flags.folderViewFilter

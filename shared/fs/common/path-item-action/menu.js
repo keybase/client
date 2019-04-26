@@ -71,7 +71,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => [
     ? [
         {
           onClick: hideMenuOnClick(props.openChatTeam, hideMenu),
-          title: 'Chat with users in this team',
+          title: 'Chat with team',
         },
       ]
     : []),
@@ -79,7 +79,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => [
     ? [
         {
           onClick: hideMenuOnClick(props.openChatNonTeam, hideMenu),
-          title: 'Chat with users in this folder',
+          title: 'Chat with them',
         },
       ]
     : []),

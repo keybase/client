@@ -37,10 +37,10 @@ class MobileHeader extends React.PureComponent<Props, State> {
       >
         {this.props.bannerType === 'offline' && <Kb.Banner text="You are offline." color="blue" />}
         {this.state.filterExpanded ? (
-          <Kbfs.FolderViewFilter path={this.props.path} onBlur={this._filterDone} />
+          <Kbfs.FolderViewFilter path={this.props.path} onCancel={this._filterDone} />
         ) : (
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.expandedTopContainer}>
-            <Kb.BackButton badgeNumber={0 /* TODO */} onClick={this.props.onBack} />
+            <Kb.BackButton badgeNumber={0 /* TODO KBFS-4109 */} onClick={this.props.onBack} />
             <Kb.Box style={styles.gap} />
             <Actions path={this.props.path} onTriggerFilterMobile={this._triggerFilterMobile} />
           </Kb.Box2>

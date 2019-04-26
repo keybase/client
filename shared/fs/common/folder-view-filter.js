@@ -10,31 +10,47 @@ import {debounce} from 'lodash-es'
 import flags from '../../util/feature-flags'
 
 type Props = {|
-  onBlur?: ?() => void,
+  onCancel?: ?() => void,
   onUpdate: string => void,
   path: Types.Path,
   pathItem: Types.PathItem,
   style?: ?Styles.StylesCrossPlatform,
 |}
 
-const FolderViewFilter = (props: Props) =>
-  Constants.isFolder(props.path, props.pathItem) &&
-  Types.getPathLevel(props.path) > 1 && (
-    <Kb.SearchFilter
-      focusOnMount={Styles.isMobile}
-      hotkey="f"
-      onBlur={props.onBlur}
-      onChange={props.onUpdate}
-      placeholderText="Filter"
-      style={props.style}
-    />
-  )
+class FolderViewFilter extends React.PureComponent<Props> {
+  _clear() {
+    this.props.onUpdate('')
+  }
+  componentWillUnmount() {
+    this._clear()
+  }
+  componentDidUpdate(prevProps) {
+    prevProps.path !== this.props.path && this._clear()
+  }
+  render() {
+    return (
+      Constants.isFolder(this.props.path, this.props.pathItem) &&
+      Types.getPathLevel(this.props.path) > 1 && (
+        <Kb.SearchFilter
+          focusOnMount={Styles.isMobile}
+          hotkey="f"
+          onCancel={this.props.onCancel}
+          onChange={this.props.onUpdate}
+          placeholderText="Filter"
+          style={this.props.style}
+        />
+      )
+    )
+  }
+}
 
-type OwnProps = {|
-  onBlur?: ?() => void,
-  path: Types.Path,
-  style?: ?Styles.StylesCrossPlatform,
-|}
+type OwnProps = $Diff<
+  Props,
+  {|
+    onUpdate: string => void,
+    pathItem: Types.PathItem,
+  |}
+>
 
 const mapStateToProps = (state, {path}) => ({
   pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
@@ -44,11 +60,9 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
 })
 
 const mergeProps = (s, d, o) => ({
-  onBlur: o.onBlur,
+  ...o,
   onUpdate: debounce(d._onUpdate, 100),
-  path: o.path,
   pathItem: s.pathItem,
-  style: o.style,
 })
 
 export default (!flags.folderViewFilter

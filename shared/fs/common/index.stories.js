@@ -176,31 +176,31 @@ const load = () => {
         <PathItemAction
           path={Types.stringToPath('/keybase/private/meatball/folder/treat')}
           routePath={I.List()}
-          {...pathItemActionCommonProps}
           mode="row"
+          {...pathItemActionCommonProps}
         />
         <Kb.Text type="Body">Screen mode</Kb.Text>
         <PathItemAction
           path={Types.stringToPath('/keybase/private/meatball/folder/treat')}
           routePath={I.List()}
-          {...pathItemActionCommonProps}
           mode="screen"
+          {...pathItemActionCommonProps}
         />
         <PathItemAction
           path={Types.stringToPath(
             '/keybase/private/meatball/treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat'
           )}
           routePath={I.List()}
-          {...pathItemActionCommonProps}
           mode="screen"
+          {...pathItemActionCommonProps}
         />
         <PathItemAction
           path={Types.stringToPath(
             '/keybaes/private/meatball/foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar'
           )}
           routePath={I.List()}
-          {...pathItemActionCommonProps}
           mode="screen"
+          {...pathItemActionCommonProps}
         />
       </Kb.Box2>
     ))
