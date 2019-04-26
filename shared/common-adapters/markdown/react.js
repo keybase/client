@@ -247,7 +247,14 @@ const reactComponentsForMarkdownType = {
     )
   },
   kbfsPath: (node, output, state) => {
-    return <KbfsPath escapedPath={node.content} key={state.key} allowFontScaling={state.allowFontScaling} />
+    return (
+      <KbfsPath
+        escapedPath={node.content}
+        key={state.key}
+        allowFontScaling={state.allowFontScaling}
+        style={state.styleOverride.kbfsPath}
+      />
+    )
   },
   link: (node, output, state) => {
     const {protocol, afterProtocol, spaceInFront} = node
