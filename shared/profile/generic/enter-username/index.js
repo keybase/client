@@ -305,9 +305,12 @@ const styles = Styles.styleSheetCreate({
     opacity: 0.75,
   },
   paddingRightTiny: {paddingRight: Styles.globalMargins.tiny},
-  placeholder: {
-    color: Styles.globalColors.black_40,
-  },
+  placeholder: Styles.platformStyles({
+    common: {color: Styles.globalColors.black_40},
+    isElectron: {
+      wordBreak: 'break-all',
+    },
+  }),
   placeholderService: {
     color: Styles.globalColors.black_20,
   },
