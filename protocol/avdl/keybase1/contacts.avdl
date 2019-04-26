@@ -24,16 +24,21 @@ protocol contacts {
     // it will be shown in the list as the phone number or email, allowing SBS.
     record ProcessedContact {
         int contactIndex; // to associate the resolution to input contact entry
-        ContactComponent component;
+        string contactName; // redundant, taken from contact to avoid lookups on consumer side.
+        ContactComponent component; // component from contact that was used to create this entry.
 
         boolean resolved;
         // If resolved:
         UID uid; // uid
-        string username; // keybase username
-        string fullName; // keybase full name
+        string username; // Keybase username
+        string fullName; // Keybase full name
         boolean following; // whether resolved user is followed by current user
 
-        // Used for display, derived by service from the fields above.
+        // Used for display in UI, derived by service from the fields above.
+        // If contact is not resolved, these will be populated by some fields
+        // from contact itself.
+        // If resolved, these will be populated by a combination of Keybase username, 
+        // Keybase full name, and contact name, depending what's available.
         string displayName;
         string displayLabel;
     }

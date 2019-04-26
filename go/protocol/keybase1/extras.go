@@ -2725,3 +2725,14 @@ func (a BoxAuditAttempt) String() string {
 func (r RegionCode) IsNil() bool {
 	return len(r) == 0
 }
+
+func (c ContactComponent) ValueString() string {
+	switch {
+	case c.Email != nil:
+		return string(*c.Email)
+	case c.PhoneNumber != nil:
+		return string(*c.PhoneNumber)
+	default:
+		return ""
+	}
+}

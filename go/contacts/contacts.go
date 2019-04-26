@@ -4,6 +4,8 @@
 package contacts
 
 import (
+	"errors"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -79,10 +81,16 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 
 		res = append(res, keybase1.ProcessedContact{
 			ContactIndex: toContact.contactIndex,
+			ContactName:  contact.Name,
 			Component:    component,
 			Resolved:     true,
 			Uid:          lookupRes.UID,
 			Username:     lookupRes.KeybaseUsername,
+			Following:    true, // assume following=true for now because this creates better display label.
+
+			// following, username (TODO???), and full name are filled later.
+			// unless endpoints start providing this data through
+			// ContactLookupResult
 		})
 	}
 
@@ -122,8 +130,26 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 		// TODO: The uidmapper part might not be needed if we change the lookup
 		// endpoints to return usernames and full names. This is fine since
 		// phone/email is server trust, and also UIDMapper trusts sever for
-		// full names anyway.
+		// full names anyway. Also might need to return follow information.
 		provider.FillUsernames(mctx, res)
+
+		// And now that we have Keybase names and following information, make a
+		// decision about displayName and displayLabel.
+		for i, v := range res {
+			if !v.Resolved || v.Uid.IsNil() {
+				// Sanity check - should only have resolveds now.
+				return res, errors.New("found unresolved contact in display name processing")
+			}
+
+			res[i].DisplayName = v.Username
+			if v.Following && v.FullName != "" {
+				res[i].DisplayLabel = v.FullName
+			} else if v.ContactName != "" {
+				res[i].DisplayLabel = v.ContactName
+			} else {
+				res[i].DisplayLabel = v.Component.ValueString()
+			}
+		}
 	}
 
 	// Add all components from all contacts that were not resolved by any
@@ -135,9 +161,13 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 
 		for _, component := range c.Components {
 			res = append(res, keybase1.ProcessedContact{
-				DisplayName: c.Name, // contact not resolved, return name from contact list
-				Component:   component,
-				Resolved:    false,
+				ContactIndex: i,
+				ContactName:  c.Name,
+				Component:    component,
+				Resolved:     false,
+
+				DisplayName:  c.Name,
+				DisplayLabel: component.ValueString(),
 			})
 		}
 	}

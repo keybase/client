@@ -57,6 +57,10 @@
           "name": "contactIndex"
         },
         {
+          "type": "string",
+          "name": "contactName"
+        },
+        {
           "type": "ContactComponent",
           "name": "component"
         },
