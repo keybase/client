@@ -1,6 +1,8 @@
 // @flow
 import * as React from 'react'
 import * as Constants from '../../constants/teams'
+import * as FsConstants from '../../constants/fs'
+import * as FsTypes from '../../constants/types/fs'
 import {connect} from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {type MenuItem} from '../../common-adapters/floating-menu/menu-layout'
@@ -21,6 +23,7 @@ const mapStateToProps = (state, {teamname}: OwnProps) => {
     canCreateSubteam: yourOperations.manageSubteams,
     canLeaveTeam: yourOperations.leaveTeam,
     canManageChat: yourOperations.renameChannel,
+    canViewFolder: !yourOperations.joinTeam,
     isBigTeam,
   }
 }
@@ -47,6 +50,8 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
         path: [{props: {teamname}, selected: 'chatManageChannels'}],
       })
     ),
+  onOpenFolder: () =>
+    dispatch(FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`))),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
@@ -63,6 +68,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
   if (stateProps.canCreateSubteam) {
     items.push({onClick: dispatchProps.onCreateSubteam, title: 'Create subteam'})
+  }
+  if (stateProps.canViewFolder) {
+    items.push({onClick: dispatchProps.onOpenFolder, title: 'Open folder'})
   }
   return {
     attachTo: ownProps.attachTo,
