@@ -99,6 +99,11 @@ func (idx *Indexer) ClearMemory() {
 	idx.clearMemoryLocked()
 }
 
+func (idx *Indexer) OnDbNuke(mctx libkb.MetaContext) error {
+	idx.ClearMemory()
+	return nil
+}
+
 func (idx *Indexer) Flush() {
 	defer idx.Trace(context.Background(), func() error { return nil }, "Flush")()
 	var dirties []chat1.ConversationID
@@ -211,6 +216,7 @@ func (idx *Indexer) AcquireConvIndex(ctx context.Context, convID chat1.Conversat
 	defer func() {
 		if err != nil {
 			lock.Release(ctx)
+			lock = nil
 		} else {
 			res = NewConversationIndexWrapper(idx.G(), convIdx)
 		}
@@ -607,16 +613,16 @@ func (idx *Indexer) IndexInbox(ctx context.Context, uid gregor1.UID) (res map[st
 func (idx *Indexer) indexConvWithProfile(ctx context.Context, conv types.RemoteConversation,
 	uid gregor1.UID) (res chat1.ProfileSearchConvStats, err error) {
 	defer idx.Trace(ctx, func() error { return err }, "Indexer.indexConvWithProfile")()
-	return res, nil
-	/*var convIdx *chat1.ConversationIndex
+	var convIdx *ConversationIndexWrapper
 	defer func() {
 		res.ConvName = conv.GetName()
+
 		if convIdx != nil {
 			min, max := convIdx.MinMaxIDs(conv.Conv)
 			res.MinConvID = min
 			res.MaxConvID = max
 			res.NumMissing = len(convIdx.MissingIDForConv(conv.Conv))
-			res.NumMessages = len(convIdx.Metadata.SeenIDs)
+			res.NumMessages = len(convIdx.GetIndexUnsafe().Metadata.SeenIDs)
 			res.PercentIndexed = convIdx.PercentIndexed(conv.Conv)
 		}
 		if err != nil {
@@ -637,6 +643,11 @@ func (idx *Indexer) indexConvWithProfile(ctx context.Context, conv types.RemoteC
 		return res, err
 	}
 	res.IndexSizeDisk = len(b)
+	convIdx, lock, err := idx.AcquireConvIndex(ctx, conv.GetConvID(), uid)
+	if err != nil {
+		return res, err
+	}
+	defer lock.Release(ctx)
 	res.IndexSizeMem = convIdx.Size()
-	return res, nil*/
+	return res, nil
 }

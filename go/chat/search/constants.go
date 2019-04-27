@@ -20,8 +20,12 @@ const (
 	// max convs to sync in the background
 	maxSyncConvsDesktop = 10
 	maxSyncConvsMobile  = 5
+
+	// tokenizer
+	maxPrefixLength = 10
+	minTokenLength  = 3
 )
 
 // Bumped whenever there are tokenization or structural changes to building the
 // index
-const IndexVersion = 5
+const IndexVersion = 6

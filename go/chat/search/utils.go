@@ -38,9 +38,6 @@ var stripSeps = []string{
 }
 var stripExpr = regexp.MustCompile(strings.Join(stripSeps, "|"))
 
-const maxPrefixLength = 10
-const minTokenLength = 3
-
 func prefixes(token string) (res []string) {
 	if len(token) < minTokenLength {
 		return nil

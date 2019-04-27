@@ -130,6 +130,7 @@ type Indexer interface {
 	// For devel/testing
 	IndexInbox(ctx context.Context, uid gregor1.UID) (map[string]chat1.ProfileSearchConvStats, error)
 	ClearMemory()
+	OnDbNuke(mctx libkb.MetaContext) error
 }
 
 type Sender interface {
