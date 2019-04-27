@@ -119,7 +119,7 @@ func (s *store) getConvIndex(ctx context.Context, convID chat1.ConversationID, u
 	defer lock.Release(ctx)
 	defer func() {
 		// return a blank index
-		if err == nil && ret == nil {
+		if ret == nil {
 			ret = &chat1.ConversationIndex{
 				Index: make(map[string]map[chat1.MessageID]chat1.EmptyStruct),
 				Alias: make(map[string]map[string]chat1.EmptyStruct),
@@ -130,9 +130,11 @@ func (s *store) getConvIndex(ctx context.Context, convID chat1.ConversationID, u
 			}
 		}
 		if err != nil {
+			s.Debug(ctx, "getConvIndex: failed to get index: %s", err)
 			if derr := s.deleteLocked(ctx, convID, uid); derr != nil {
 				s.Debug(ctx, "unable to delete: %v", derr)
 			}
+			err = nil
 		}
 	}()
 

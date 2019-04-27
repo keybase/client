@@ -431,6 +431,7 @@ func (s *searchSession) postSearch(ctx context.Context) (err error) {
 	default:
 		return nil
 	}
+	s.Debug(ctx, "postSearch: indexing: %d convs", len(s.reindexConvs))
 	for _, convID := range s.reindexConvs {
 		select {
 		case <-ctx.Done():
