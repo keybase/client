@@ -212,6 +212,16 @@ func jsonLocalDbLookup(ops LocalDbOps, id DbKey) (*jsonw.Wrapper, error) {
 	return ret, err
 }
 
+func jsonLocalDbLookupIntoMsgpack(ops LocalDbOps, obj interface{}, alias DbKey) (found bool, err error) {
+	var buf []byte
+	buf, found, err = ops.Lookup(alias)
+	if err != nil || !found {
+		return found, err
+	}
+	err = MsgpackDecode(obj, buf)
+	return true, err
+}
+
 func jsonLocalDbGetIntoMsgpack(ops LocalDbOps, obj interface{}, id DbKey) (found bool, err error) {
 	var buf []byte
 	buf, found, err = ops.Get(id)
@@ -267,6 +277,10 @@ func (j *JSONLocalDb) PutObj(id DbKey, aliases []DbKey, obj interface{}) (err er
 
 func (j *JSONLocalDb) Lookup(id DbKey) (*jsonw.Wrapper, error) {
 	return jsonLocalDbLookup(j.engine, id)
+}
+
+func (j *JSONLocalDb) LookupIntoMsgpack(obj interface{}, alias DbKey) (found bool, err error) {
+	return jsonLocalDbLookupIntoMsgpack(j.engine, obj, alias)
 }
 
 func (j *JSONLocalDb) GetIntoMsgpack(obj interface{}, id DbKey) (found bool, err error) {
