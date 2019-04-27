@@ -88,11 +88,15 @@ func (idx *Indexer) forceFlush() {
 	}
 }
 
+func (idx *Indexer) clearMemoryLocked() {
+	idx.indexes = make(map[string]*chat1.ConversationIndex)
+	idx.dirtyIndexes = make(map[string]chat1.ConversationID)
+}
+
 func (idx *Indexer) ClearMemory() {
 	idx.Lock()
 	defer idx.Unlock()
-	idx.indexes = make(map[string]*chat1.ConversationIndex)
-	idx.dirtyIndexes = make(map[string]chat1.ConversationID)
+	idx.clearMemoryLocked()
 }
 
 func (idx *Indexer) Flush() {
@@ -193,6 +197,7 @@ func (idx *Indexer) Stop(ctx context.Context) chan struct{} {
 		close(idx.stopCh)
 		idx.stopCh = make(chan struct{})
 		idx.started = false
+		idx.clearMemoryLocked()
 	}
 	close(ch)
 	return ch
