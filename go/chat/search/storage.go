@@ -82,9 +82,15 @@ func (s *store) getHits(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 
 func (s *store) getTokenEntry(ctx context.Context, key libkb.DbKey) (res *tokenEntry, err error) {
 	var te tokenEntry
-	found, err := s.G().LocalChatDb.LookupIntoMsgpack(&te, key)
+	found, err := s.G().LocalChatDb.GetIntoMsgpack(&te, key)
 	if err != nil {
-		return res, err
+		return nil, err
+	}
+	if !found {
+		found, err = s.G().LocalChatDb.LookupIntoMsgpack(&te, key)
+		if err != nil {
+			return res, err
+		}
 	}
 	if !found {
 		return newTokenEntry(), nil
