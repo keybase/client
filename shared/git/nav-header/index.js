@@ -67,9 +67,8 @@ const styles = Styles.styleSheetCreate({
   headerTitleLink: Styles.platformStyles({
     isElectron: {...Styles.desktopStyles.windowDraggingClickable, cursor: 'pointer'},
   }),
-  newRepoButton: {
-    alignSelf: 'flex-end',
-    marginBottom: 6,
-    marginRight: Styles.globalMargins.xsmall,
-  },
+  newRepoButton: Styles.platformStyles({
+    common: {alignSelf: 'flex-end', marginBottom: 6, marginRight: Styles.globalMargins.xsmall},
+    isElectron: Styles.desktopStyles.windowDraggingClickable,
+  }),
 })

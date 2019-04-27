@@ -1,7 +1,5 @@
 // @flow
 import * as Constants from '../../../constants/teams'
-import * as FsConstants from '../../../constants/fs'
-import * as FsTypes from '../../../constants/types/fs'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as SearchGen from '../../../actions/search-gen'
@@ -20,24 +18,19 @@ const mapStateToProps = (state, {teamname}) => {
   return {
     canAddPeople: yourOperations.manageMembers,
     canChat: !yourOperations.joinTeam,
-    canViewFolder: !yourOperations.joinTeam,
     loading: anyWaiting(state, Constants.teamWaitingKey(teamname)),
   }
 }
 
 const mapDispatchToProps = (dispatch, {teamname}) => ({
   onChat: () => dispatch(Chat2Gen.createPreviewConversation({reason: 'teamHeader', teamname})),
-  onOpenFolder: () =>
-    dispatch(FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`))),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   canAddPeople: stateProps.canAddPeople,
   canChat: stateProps.canChat,
-  canViewFolder: stateProps.canViewFolder,
   loading: stateProps.loading,
   onChat: dispatchProps.onChat,
-  onOpenFolder: dispatchProps.onOpenFolder,
   teamname: ownProps.teamname,
 })
 

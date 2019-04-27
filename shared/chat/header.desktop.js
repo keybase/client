@@ -49,7 +49,7 @@ const Header = (p: Props) => {
   )
   if (p.isTeam && !p.desc && p.canEditDesc) {
     description = (
-      <Kb.Text type="BodySmall" lineClamp={1}>
+      <Kb.Text selectable={true} type="BodySmall" lineClamp={1}>
         Set a description using the <Kb.Text type="BodySmallBold">/headline</Kb.Text> command.
       </Kb.Text>
     )
@@ -112,13 +112,14 @@ const Header = (p: Props) => {
             style={styles.actionIcons}
           >
             <Kb.WithTooltip text="Search in this chat">
-              <Kb.Icon type="iconfont-search" onClick={p.onToggleThreadSearch} />
+              <Kb.Icon style={styles.clickable} type="iconfont-search" onClick={p.onToggleThreadSearch} />
             </Kb.WithTooltip>
             <Kb.WithTooltip text="Open folder">
-              <Kb.Icon type="iconfont-folder-private" onClick={p.onOpenFolder} />
+              <Kb.Icon style={styles.clickable} type="iconfont-folder-private" onClick={p.onOpenFolder} />
             </Kb.WithTooltip>
             <Kb.WithTooltip text="Chat info & settings">
               <Kb.Icon
+                style={styles.clickable}
                 type={'iconfont-info'}
                 onClick={p.onToggleInfoPanel}
                 color={p.infoPanelOpen ? Styles.globalColors.blue : undefined}
@@ -135,6 +136,7 @@ const styles = Styles.styleSheetCreate({
   actionIcons: {
     paddingBottom: Styles.globalMargins.tiny,
   },
+  clickable: Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
   container: {
     flexGrow: 1,
     height: 40 - 1,
@@ -143,7 +145,10 @@ const styles = Styles.styleSheetCreate({
     ...Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
     color: Styles.globalColors.black_50,
   },
-  headerTitle: {flexGrow: 1, paddingBottom: Styles.globalMargins.xtiny},
+  headerTitle: Styles.platformStyles({
+    common: {flexGrow: 1, paddingBottom: Styles.globalMargins.xtiny},
+    isElectron: Styles.desktopStyles.windowDraggingClickable,
+  }),
   left: {minWidth: 260},
   right: {
     flexGrow: 1,

@@ -148,7 +148,7 @@ Connected.navigationOptions = ({navigation}: {navigation: any}) => {
     : {
         header: undefined,
         headerBanner: <DesktopBanner />,
-        headerRightActions: () => <Actions path={path} />,
+        headerRightActions: () => <Actions path={path} onTriggerFilterMobile={() => {}} />,
         headerTitle: () => <Title path={path} />,
         title: path === Constants.defaultPath ? 'Files' : Types.getPathName(path),
       }

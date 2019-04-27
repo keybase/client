@@ -29,11 +29,9 @@ const AddPeopleButton = Kb.OverlayParentHOC(_AddPeopleButton)
 
 type Props = {|
   ...$Exact<Kb.OverlayParentProps>,
-  onOpenFolder: () => void,
   onChat: () => void,
   canAddPeople: boolean,
   canChat: boolean,
-  canViewFolder: boolean,
   loading: boolean,
   teamname: string,
 |}
@@ -42,9 +40,6 @@ const _HeaderRightActions = (props: Props) => (
   <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.rightActionsContainer}>
     {props.canChat && <Kb.Button label="Chat" onClick={props.onChat} small={true} />}
     {props.canAddPeople && <AddPeopleButton teamname={props.teamname} />}
-    {!Styles.isMobile && props.canViewFolder && (
-      <Kb.Button small={true} mode="Secondary" label="Open folder" onClick={props.onOpenFolder} />
-    )}
     <Kb.Button mode="Secondary" small={true} ref={props.setAttachmentRef} onClick={props.toggleShowingMenu}>
       <Kb.Icon type="iconfont-ellipsis" color={Styles.globalColors.blue} />
     </Kb.Button>
