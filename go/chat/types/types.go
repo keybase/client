@@ -374,6 +374,9 @@ func (d DummyIndexer) OnDbNuke(mctx libkb.MetaContext) error {
 }
 func (d DummyIndexer) ClearMemory() {
 }
+func (d DummyIndexer) FullyIndexed(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (bool, error) {
+	return false, nil
+}
 
 type DummyNativeVideoHelper struct{}
 

@@ -2478,7 +2478,20 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 
 	username := h.G().GetEnv().GetUsernameForUID(keybase1.UID(uid.String())).String()
 	query, opts := search.UpgradeSearchOptsFromQuery(arg.Query, arg.Opts, username)
-	if opts.IsRegex {
+	forceDelegate := false
+	if arg.Opts.ConvID != nil {
+		fullyIndexed, err := h.G().Indexer.FullyIndexed(ctx, *arg.Opts.ConvID, uid)
+		if err != nil {
+			h.Debug(ctx, "SearchInbox: failed to check fully indexed, delegating... err: %s", err)
+			forceDelegate = true
+		} else {
+			forceDelegate = !fullyIndexed
+		}
+		if forceDelegate {
+			h.Debug(ctx, "SearchInbox: force delegating since not indexed")
+		}
+	}
+	if opts.IsRegex || forceDelegate {
 		inboxRes, err := h.delegateInboxSearch(ctx, uid, query, arg.Query, opts, chatUI)
 		if err != nil {
 			return res, err

@@ -1374,7 +1374,7 @@ function* threadSearch(state, action) {
           isRegex: false,
           maxConvsHit: 0,
           maxConvsSearched: 0,
-          maxHits: Constants.inboxSearchMaxTextMessages,
+          maxHits: 1000,
           maxMessages: -1,
           maxNameConvs: 0,
           reindexMode: RPCChatTypes.commonReIndexingMode.postsearchSync,

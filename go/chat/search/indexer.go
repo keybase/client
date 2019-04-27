@@ -96,7 +96,7 @@ func (idx *Indexer) ClearMemory() {
 }
 
 func (idx *Indexer) Flush() {
-	defer idx.Trace(context.Background(), func() error { return nil }, "Flsh")()
+	defer idx.Trace(context.Background(), func() error { return nil }, "Flush")()
 	var dirties []chat1.ConversationID
 	idx.Lock()
 	for _, convID := range idx.dirtyIndexes {
@@ -448,7 +448,6 @@ func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID, convID *chat1
 		},
 		SkipBgLoads: true,
 	}
-	username := idx.G().Env.GetUsername().String()
 	// convID -> remoteConv
 	convMap := map[string]types.RemoteConversation{}
 	for !pagination.Last {
@@ -468,7 +467,7 @@ func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID, convID *chat1
 			pagination.Previous = nil
 		}
 		for _, conv := range inbox.ConvsUnverified {
-			if !conv.Conv.IsSelfFinalized(username) {
+			if conv.Conv.GetFinalizeInfo() == nil {
 				convID := conv.GetConvID()
 				convMap[convID.String()] = conv
 			}
@@ -521,6 +520,20 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query, origQuer
 
 	sess := newSearchSession(idx.G().GetLog(), query, origQuery, uid, hitUICh, indexUICh, idx, opts)
 	return sess.run(ctx)
+}
+
+func (idx *Indexer) FullyIndexed(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (res bool, err error) {
+	defer idx.Trace(ctx, func() error { return err }, "FullyIndexed")()
+	conv, err := utils.GetUnverifiedConv(ctx, idx.G(), uid, convID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return false, err
+	}
+	convIdx, lock, err := idx.AcquireConvIndex(ctx, conv.GetConvID(), uid)
+	if err != nil {
+		return false, err
+	}
+	defer lock.Release(ctx)
+	return convIdx.FullyIndexed(conv.Conv), nil
 }
 
 // SelectiveSync queues up a small number of jobs on the background loader
