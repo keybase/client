@@ -48,7 +48,7 @@ func (w *ConversationIndexWrapper) fetchSupersededMsgs(ctx context.Context, conv
 	return supersededMsgs
 }
 
-// addTokensLocked add the given tokens to the index under the given message
+// addTokens adds the given tokens to the index under the given message
 // id, when ingesting EDIT messages the msgID is of the superseded msg but the
 // tokens are from the EDIT itself.
 func (w *ConversationIndexWrapper) addTokens(tokens tokenMap, msgID chat1.MessageID) {
