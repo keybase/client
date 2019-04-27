@@ -4,6 +4,7 @@
 package contacts
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/keybase/client/go/emails"
@@ -18,6 +19,9 @@ type BulkLookupContactsProvider struct {
 
 func (c *BulkLookupContactsProvider) LookupPhoneNumbers(mctx libkb.MetaContext, numbers []keybase1.RawPhoneNumber,
 	userRegion keybase1.RegionCode) (res []ContactLookupResult, err error) {
+
+	defer mctx.TraceTimed(fmt.Sprintf("BulkLookupContactsProvider#LookupContactList(len=%d)", len(numbers)),
+		func() error { return err })()
 
 	regionCodes := make([]keybase1.RegionCode, len(numbers))
 	var maybeUserRegion *keybase1.RegionCode
@@ -43,6 +47,9 @@ func (c *BulkLookupContactsProvider) LookupPhoneNumbers(mctx libkb.MetaContext, 
 }
 
 func (c *BulkLookupContactsProvider) LookupEmails(mctx libkb.MetaContext, emailList []keybase1.EmailAddress) (res []ContactLookupResult, err error) {
+	defer mctx.TraceTimed(fmt.Sprintf("BulkLookupContactsProvider#LookupEmails(len=%d)", len(emailList)),
+		func() error { return err })()
+
 	strList := make([]string, len(emailList))
 	for i, v := range emailList {
 		strList[i] = string(v)
@@ -62,6 +69,9 @@ func (c *BulkLookupContactsProvider) LookupEmails(mctx libkb.MetaContext, emailL
 }
 
 func (c *BulkLookupContactsProvider) FillUsernames(mctx libkb.MetaContext, res []keybase1.ProcessedContact) {
+	defer mctx.TraceTimed(fmt.Sprintf("BulkLookupContactsProvider#FillUsernames(len=%d)", len(res)),
+		func() error { return nil })()
+
 	const fullnameFreshness = 10 * time.Minute
 	const networkTimeBudget = 0
 

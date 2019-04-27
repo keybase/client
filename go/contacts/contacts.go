@@ -35,9 +35,13 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 		return res, nil
 	}
 
+	// Collect phone numbers and emails from Contact list. Iterate through
+	// contacts and descend into components. We will be passing phone number
+	// list and email list to the provider to try to resolve them.
 	type contactRef struct {
 		// Use this struct to point back from phoneNumbers or emails entry to
-		// our contacts list.
+		// our contacts list. We need a way to associate result from the
+		// provider to the contact and component they come from.
 		contactIndex   int
 		componentIndex int
 	}
