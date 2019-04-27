@@ -1435,6 +1435,10 @@
           "name": "sentBy"
         },
         {
+          "type": "string",
+          "name": "sentTo"
+        },
+        {
           "type": "gregor1.Time",
           "name": "sentBefore"
         },
