@@ -128,6 +128,7 @@ func (c *CmdChatSearchRegexp) ParseArgv(ctx *cli.Context) (err error) {
 	}
 	c.query = ctx.Args().Get(1)
 	c.opts.SentBy = ctx.String("sent-by")
+	c.opts.SentTo = ctx.String("sent-to")
 	sentBeforeStr := ctx.String("sent-before")
 	sentAfterStr := ctx.String("sent-after")
 	if sentBeforeStr != "" && sentAfterStr != "" {
