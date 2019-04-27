@@ -46,7 +46,7 @@ func prefixes(token string) (res []string) {
 		if i <= 2 {
 			continue
 		}
-		// Skip any prefixes longer than 20 to limit the index size.
+		// Skip any prefixes longer than maxPrefixLength to limit the index size.
 		if i >= 10 {
 			break
 		}
