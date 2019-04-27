@@ -350,6 +350,7 @@ func Reset() error {
 // ForceGC Forces a gc
 func ForceGC() {
 	fmt.Printf("Flushing global caches\n")
+	kbChatCtx.Indexer.ClearMemory()
 	kbCtx.FlushCaches()
 	fmt.Printf("Done flushing global caches\n")
 
