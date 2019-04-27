@@ -166,6 +166,9 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 			continue
 		}
 
+		// Add e.g. "(Work)" labels to display labels if there are multiple
+		// components in a contact.
+		var addLabel = len(c.Components) > 1
 		for _, component := range c.Components {
 			res = append(res, keybase1.ProcessedContact{
 				ContactIndex: i,
@@ -174,7 +177,7 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 				Resolved:     false,
 
 				DisplayName:  c.Name,
-				DisplayLabel: component.ValueString(),
+				DisplayLabel: component.FormatDisplayLabel(addLabel),
 			})
 		}
 	}

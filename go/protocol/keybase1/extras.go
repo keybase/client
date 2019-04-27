@@ -2736,3 +2736,10 @@ func (c ContactComponent) ValueString() string {
 		return ""
 	}
 }
+
+func (c ContactComponent) FormatDisplayLabel(addLabel bool) string {
+	if addLabel {
+		return fmt.Sprintf("%s (%s)", c.ValueString(), c.Label)
+	}
+	return c.ValueString()
+}
