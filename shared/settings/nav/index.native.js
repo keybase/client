@@ -33,7 +33,7 @@ function SettingsNav(props: Props) {
             flags.useNewRouter
               ? {
                   badgeNumber: props.badgeNumbers[TabConstants.teamsTab],
-                  icon: 'iconfont-nav-2-teams',
+                  icon: 'iconfont-nav-teams',
                   onClick: () => props.onTabChange(Constants.teamsTab),
                   text: 'Teams',
                 }
