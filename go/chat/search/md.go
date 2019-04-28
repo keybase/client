@@ -16,7 +16,7 @@ type indexMetadata struct {
 
 func newIndexMetadata() *indexMetadata {
 	return &indexMetadata{
-		Version: fmt.Sprintf("%s:%s", indexVersion, indexMetadataVersion),
+		Version: fmt.Sprintf("%d:%d", indexVersion, indexMetadataVersion),
 		SeenIDs: make(map[chat1.MessageID]chat1.EmptyStruct),
 	}
 }
