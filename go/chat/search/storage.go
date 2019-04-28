@@ -10,12 +10,13 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-const indexVersion = 5
+const indexVersion = 7
 const tokenEntryVersion = 2
 const aliasEntryVersion = 1
 
@@ -53,18 +54,24 @@ type store struct {
 	globals.Contextified
 	keyFn      func(ctx context.Context) ([32]byte, error)
 	aliasCache *lru.Cache
+	edb        *encrypteddb.EncryptedDB
 }
 
 func newStore(g *globals.Context) *store {
 	ac, _ := lru.New(10000)
+	keyFn := func(ctx context.Context) ([32]byte, error) {
+		return storage.GetSecretBoxKey(ctx, g.ExternalG(), storage.DefaultSecretUI)
+	}
+	dbFn := func(g *libkb.GlobalContext) *libkb.JSONLocalDb {
+		return g.LocalChatDb
+	}
 	return &store{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Search.store", false),
 		lockTab:      &libkb.LockTable{},
-		keyFn: func(ctx context.Context) ([32]byte, error) {
-			return storage.GetSecretBoxKey(ctx, g.ExternalG(), storage.DefaultSecretUI)
-		},
-		aliasCache: ac,
+		keyFn:        keyFn,
+		aliasCache:   ac,
+		edb:          encrypteddb.New(g.ExternalG(), dbFn, keyFn),
 	}
 }
 
@@ -80,7 +87,7 @@ func (s *store) entryKey(ctx context.Context, uid gregor1.UID, convID chat1.Conv
 	if err != nil {
 		return res, err
 	}
-	termPart := append([]byte(dat), material[:]...)
+	termPart := append(append([]byte(dat), material[:]...), convID.DbShortForm()...)
 	termPartBytes := hmac.New(sha256.New, termPart).Sum(nil)
 	return libkb.DbKey{
 		Typ: libkb.DBChatIndex,
@@ -101,7 +108,7 @@ func (s *store) aliasKey(ctx context.Context, dat string) (res libkb.DbKey, err 
 	termPartBytes := hmac.New(sha256.New, termPart).Sum(nil)
 	return libkb.DbKey{
 		Typ: libkb.DBChatIndex,
-		Key: fmt.Sprintf("alias:%s", termPartBytes),
+		Key: fmt.Sprintf("al:%s", termPartBytes),
 	}, nil
 }
 
@@ -137,7 +144,7 @@ func (s *store) getTokenEntry(ctx context.Context, uid gregor1.UID, convID chat1
 	if err != nil {
 		return nil, err
 	}
-	found, err := s.G().LocalChatDb.GetIntoMsgpack(&te, key)
+	found, err := s.edb.Get(ctx, key, &te)
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +167,7 @@ func (s *store) getAliasEntry(ctx context.Context, alias string) (res *aliasEntr
 	if err != nil {
 		return res, err
 	}
-	found, err := s.G().LocalChatDb.GetIntoMsgpack(&ae, key)
+	found, err := s.edb.Get(ctx, key, &ae)
 	if err != nil {
 		return nil, err
 	}
@@ -181,7 +188,7 @@ func (s *store) putTokenEntry(ctx context.Context, uid gregor1.UID, convID chat1
 	if err != nil {
 		return err
 	}
-	return s.G().LocalChatDb.PutObjMsgpack(key, nil, te)
+	return s.edb.Put(ctx, key, te)
 }
 
 func (s *store) putAliasEntry(ctx context.Context, alias string, ae *aliasEntry) error {
@@ -190,7 +197,7 @@ func (s *store) putAliasEntry(ctx context.Context, alias string, ae *aliasEntry)
 		return err
 	}
 	s.aliasCache.Remove(key)
-	return s.G().LocalChatDb.PutObjMsgpack(key, nil, ae)
+	return s.edb.Put(ctx, key, ae)
 }
 
 func (s *store) deleteTokenEntry(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
