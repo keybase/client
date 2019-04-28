@@ -5,7 +5,6 @@ export type FeatureFlags = {|
   chatIndexProfilingEnabled: boolean,
   dbCleanEnabled: boolean,
   enableDeleteFolder: boolean,
-  folderViewFilter: boolean,
   foldersInProfileTab: boolean,
   kbfsOfflineMode: boolean,
   moveOrCopy: boolean,

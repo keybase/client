@@ -5,7 +5,6 @@ import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as React from 'react'
-import flags from '../../util/feature-flags'
 
 type Props = {|
   onClick: () => void,
@@ -42,11 +41,9 @@ const mergeProps = (s, d, o) => ({
   pathItem: s.pathItem,
 })
 
-export default (!flags.folderViewFilter
-  ? () => null
-  : namedConnect<OwnProps, _, _, _, _>(
-      mapStateToProps,
-      mapDispatchToProps,
-      mergeProps,
-      'FolderViewFilterIcon'
-    )(FolderViewFilterIcon))
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'FolderViewFilterIcon'
+)(FolderViewFilterIcon)

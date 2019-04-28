@@ -7,7 +7,6 @@ import * as FsGen from '../../actions/fs-gen'
 import * as Styles from '../../styles'
 import * as React from 'react'
 import {debounce} from 'lodash-es'
-import flags from '../../util/feature-flags'
 
 type Props = {|
   onCancel?: ?() => void,
@@ -65,8 +64,9 @@ const mergeProps = (s, d, o) => ({
   pathItem: s.pathItem,
 })
 
-export default (!flags.folderViewFilter
-  ? () => null
-  : namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'FolderViewFilter')(
-      FolderViewFilter
-    ))
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'FolderViewFilter'
+)(FolderViewFilter)

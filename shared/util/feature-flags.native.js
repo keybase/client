@@ -12,7 +12,6 @@ const ff: FeatureFlags = {
   chatIndexProfilingEnabled: false,
   dbCleanEnabled: false,
   enableDeleteFolder: false,
-  folderViewFilter: false,
   foldersInProfileTab: false,
   kbfsOfflineMode: false,
   moveOrCopy: false,
