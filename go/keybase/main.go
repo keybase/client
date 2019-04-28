@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"runtime"
@@ -15,7 +17,7 @@ import (
 	"syscall"
 	"time"
 
-	"golang.org/x/net/context"
+	_ "net/http/pprof"
 
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/externals"
@@ -27,6 +29,7 @@ import (
 	"github.com/keybase/client/go/service"
 	"github.com/keybase/client/go/uidmap"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"golang.org/x/net/context"
 )
 
 var cmd libcmdline.Command
@@ -53,6 +56,9 @@ func main() {
 	// when logging is functioning.
 	var startupErrors []error
 
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 	if err := libkb.SaferDLLLoading(); err != nil {
 		// Don't abort here. This should not happen on any known
 		// version of Windows, but new MS platforms may create

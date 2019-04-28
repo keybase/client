@@ -481,3 +481,16 @@ func (idx *Indexer) indexConvWithProfile(ctx context.Context, conv types.RemoteC
 	res.IndexSizeMem = 0
 	return res, nil
 }
+
+func (idx *Indexer) FullyIndexed(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (res bool, err error) {
+	defer idx.Trace(ctx, func() error { return err }, "Indexer.fullyIndexed")()
+	conv, err := utils.GetUnverifiedConv(ctx, idx.G(), uid, convID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return false, err
+	}
+	md, err := idx.store.getMetadata(ctx, uid, convID)
+	if err != nil {
+		return false, err
+	}
+	return md.FullyIndexed(conv.Conv), nil
+}

@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
@@ -14,29 +15,48 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-const tokenEntryVersion = 1
+const indexVersion = 4
+const tokenEntryVersion = 2
+const aliasEntryVersion = 1
 
 type tokenEntry struct {
-	Version int                                   `codec:"v"`
+	Version string                                `codec:"v"`
 	MsgIDs  map[chat1.MessageID]chat1.EmptyStruct `codec:"m"`
 }
 
 func newTokenEntry() *tokenEntry {
 	return &tokenEntry{
-		Version: tokenEntryVersion,
+		Version: fmt.Sprintf("%s:%s", indexVersion, tokenEntryVersion),
 		MsgIDs:  make(map[chat1.MessageID]chat1.EmptyStruct),
 	}
 }
+
+var refTokenEntry = newTokenEntry()
+
+type aliasEntry struct {
+	Version string                       `codec:"v"`
+	Aliases map[string]chat1.EmptyStruct `codec:"a"`
+}
+
+func newAliasEntry() *aliasEntry {
+	return &aliasEntry{
+		Version: fmt.Sprintf("%s:%s", indexVersion, aliasEntryVersion),
+		Aliases: make(map[string]chat1.EmptyStruct),
+	}
+}
+
+var refAliasEntry = newAliasEntry()
 
 type store struct {
 	utils.DebugLabeler
 	lockTab *libkb.LockTable
 	globals.Contextified
-	keyFn func(ctx context.Context) ([32]byte, error)
+	keyFn      func(ctx context.Context) ([32]byte, error)
+	aliasCache *lru.Cache
 }
 
 func newStore(g *globals.Context) *store {
-
+	ac, _ := lru.New(100000)
 	return &store{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Search.store", false),
@@ -44,17 +64,18 @@ func newStore(g *globals.Context) *store {
 		keyFn: func(ctx context.Context) ([32]byte, error) {
 			return storage.GetSecretBoxKey(ctx, g.ExternalG(), storage.DefaultSecretUI)
 		},
+		aliasCache: ac,
 	}
 }
 
 func (s *store) metadataKey(uid gregor1.UID, convID chat1.ConversationID) libkb.DbKey {
 	return libkb.DbKey{
 		Typ: libkb.DBChatIndex,
-		Key: fmt.Sprintf("idx_md:%s:%s", uid, convID),
+		Key: fmt.Sprintf("md:%s:%s", uid, convID),
 	}
 }
 
-func (s *store) termKey(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, dat string) (res libkb.DbKey, err error) {
+func (s *store) entryKey(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, dat, name string) (res libkb.DbKey, err error) {
 	material, err := s.keyFn(ctx)
 	if err != nil {
 		return res, err
@@ -63,21 +84,71 @@ func (s *store) termKey(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 	termPartBytes := hmac.New(sha256.New, termPart).Sum(nil)
 	return libkb.DbKey{
 		Typ: libkb.DBChatIndex,
-		Key: fmt.Sprintf("idx_term:%s:%s:%s", uid, convID, termPartBytes),
+		Key: fmt.Sprintf("%s:%s:%s:%s", name, uid, convID, termPartBytes),
 	}, nil
+}
+
+func (s *store) termKey(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, dat string) (res libkb.DbKey, err error) {
+	return s.entryKey(ctx, uid, convID, dat, "term")
+}
+
+func (s *store) aliasKey(ctx context.Context, dat string) (res libkb.DbKey, err error) {
+	material, err := s.keyFn(ctx)
+	if err != nil {
+		return res, err
+	}
+	termPart := append([]byte(dat), material[:]...)
+	termPartBytes := hmac.New(sha256.New, termPart).Sum(nil)
+	return libkb.DbKey{
+		Typ: libkb.DBChatIndex,
+		Key: fmt.Sprintf("alias:%s", termPartBytes),
+	}, nil
+}
+
+func (s *store) getTermAliases(ctx context.Context, term string) (aliases map[string]chat1.EmptyStruct, err error) {
+	aliasKey, err := s.aliasKey(ctx, term)
+	if err != nil {
+		return aliases, err
+	}
+	ae, err := s.getAliasEntry(ctx, aliasKey)
+	if err != nil {
+		return aliases, err
+	}
+	return ae.Aliases, nil
 }
 
 func (s *store) getHits(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, term string) (res map[chat1.MessageID]chat1.EmptyStruct, err error) {
 	res = make(map[chat1.MessageID]chat1.EmptyStruct)
-	key, err := s.termKey(ctx, uid, convID, term)
+	// Get all terms and aliases
+	terms := make(map[string]chat1.EmptyStruct)
+	aliases, err := s.getTermAliases(ctx, term)
 	if err != nil {
 		return res, err
 	}
-	te, err := s.getTokenEntry(ctx, key)
-	if err != nil {
-		return res, err
+	terms[term] = chat1.EmptyStruct{}
+	for alias := range aliases {
+		terms[alias] = chat1.EmptyStruct{}
 	}
-	return te.MsgIDs, nil
+	// Get all the keys
+	var keys []libkb.DbKey
+	for term := range terms {
+		key, err := s.termKey(ctx, uid, convID, term)
+		if err != nil {
+			return res, err
+		}
+		keys = append(keys, key)
+	}
+	// Find all the msg IDs
+	for _, key := range keys {
+		te, err := s.getTokenEntry(ctx, key)
+		if err != nil {
+			return nil, err
+		}
+		for msgID := range te.MsgIDs {
+			res[msgID] = chat1.EmptyStruct{}
+		}
+	}
+	return res, nil
 }
 
 func (s *store) getTokenEntry(ctx context.Context, key libkb.DbKey) (res *tokenEntry, err error) {
@@ -87,38 +158,53 @@ func (s *store) getTokenEntry(ctx context.Context, key libkb.DbKey) (res *tokenE
 		return nil, err
 	}
 	if !found {
-		found, err = s.G().LocalChatDb.LookupIntoMsgpack(&te, key)
-		if err != nil {
-			return res, err
-		}
-	}
-	if !found {
 		return newTokenEntry(), nil
 	}
 	res = &te
-	if res.Version != tokenEntryVersion {
+	if res.Version != refTokenEntry.Version {
 		return newTokenEntry(), nil
 	}
 	return res, nil
 }
 
-func (s *store) putTokenEntry(ctx context.Context, key libkb.DbKey, te *tokenEntry, aliases []libkb.DbKey) error {
-	return s.G().LocalChatDb.PutObjMsgpack(key, aliases, te)
+func (s *store) getAliasEntry(ctx context.Context, key libkb.DbKey) (res *aliasEntry, err error) {
+	var ae aliasEntry
+	if dat, ok := s.aliasCache.Get(key); ok {
+		return dat.(*aliasEntry), nil
+	}
+	found, err := s.G().LocalChatDb.GetIntoMsgpack(&ae, key)
+	if err != nil {
+		return nil, err
+	}
+	if !found {
+		return newAliasEntry(), nil
+	}
+	res = &ae
+	if res.Version != refAliasEntry.Version {
+		return newAliasEntry(), nil
+	}
+	s.aliasCache.Add(key, res)
+	return res, nil
 }
 
-func (s *store) deleteTokenEntry(ctx context.Context, key libkb.DbKey, aliases []libkb.DbKey) {
-	keys := append(aliases, key)
-	for _, key := range keys {
-		if err := s.G().LocalChatDb.Delete(key); err != nil {
-			s.Debug(ctx, "deleteTokenEntry: failed to delete key: %s", err)
-		}
+func (s *store) putTokenEntry(ctx context.Context, key libkb.DbKey, te *tokenEntry) error {
+	return s.G().LocalChatDb.PutObjMsgpack(key, nil, te)
+}
+
+func (s *store) putAliasEntry(ctx context.Context, key libkb.DbKey, ae *aliasEntry) error {
+	s.aliasCache.Remove(key)
+	return s.G().LocalChatDb.PutObjMsgpack(key, nil, ae)
+}
+
+func (s *store) deleteEntry(ctx context.Context, key libkb.DbKey) {
+	if err := s.G().LocalChatDb.Delete(key); err != nil {
+		s.Debug(ctx, "deleteTokenEntry: failed to delete key: %s", err)
 	}
 }
 
-func (s *store) getAliasKeys(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	aliases map[string]chat1.EmptyStruct) (res []libkb.DbKey, err error) {
+func (s *store) getAliasKeys(ctx context.Context, aliases map[string]chat1.EmptyStruct) (res []libkb.DbKey, err error) {
 	for alias := range aliases {
-		aliasKey, err := s.termKey(ctx, uid, convID, alias)
+		aliasKey, err := s.aliasKey(ctx, alias)
 		if err != nil {
 			return res, err
 		}
@@ -137,19 +223,37 @@ func (s *store) addTokensLocked(ctx context.Context, uid gregor1.UID, convID cha
 		if err != nil {
 			return err
 		}
+		// Update the token entry with the msg ID hit
 		te, err := s.getTokenEntry(ctx, tokenKey)
 		if err != nil {
 			return err
 		}
-		te.MsgIDs[msgID] = chat1.EmptyStruct{}
-		var aliasKeys []libkb.DbKey
-		if len(te.MsgIDs) == 1 {
-			if aliasKeys, err = s.getAliasKeys(ctx, uid, convID, aliases); err != nil {
+		if _, ok := te.MsgIDs[msgID]; !ok {
+			te.MsgIDs[msgID] = chat1.EmptyStruct{}
+			s.Debug(ctx, "addTokensLocked: token write: %s id: %d", token, msgID)
+			if err := s.putTokenEntry(ctx, tokenKey, te); err != nil {
 				return err
 			}
 		}
-		if err := s.putTokenEntry(ctx, tokenKey, te, aliasKeys); err != nil {
+
+		// Update all the aliases to point at the token
+		aliasKeys, err := s.getAliasKeys(ctx, aliases)
+		if err != nil {
 			return err
+		}
+		for _, aliasKey := range aliasKeys {
+			aliasEntry, err := s.getAliasEntry(ctx, aliasKey)
+			if err != nil {
+				return err
+			}
+			if _, ok := aliasEntry.Aliases[token]; ok {
+				continue
+			}
+			aliasEntry.Aliases[token] = chat1.EmptyStruct{}
+			s.Debug(ctx, "addTokensLocked: alias write: %s", token)
+			if err := s.putAliasEntry(ctx, aliasKey, aliasEntry); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -177,6 +281,7 @@ func (s *store) removeMsgLocked(ctx context.Context, uid gregor1.UID, convID cha
 	}
 
 	for token, aliases := range tokensFromMsg(msg) {
+		// handle token
 		tokenKey, err := s.termKey(ctx, uid, convID, token)
 		if err != nil {
 			return err
@@ -187,15 +292,30 @@ func (s *store) removeMsgLocked(ctx context.Context, uid gregor1.UID, convID cha
 		}
 		delete(te.MsgIDs, msgID)
 		if len(te.MsgIDs) == 0 {
-			var aliasKeys []libkb.DbKey
-			if aliasKeys, err = s.getAliasKeys(ctx, uid, convID, aliases); err != nil {
-				return err
-			}
-			s.deleteTokenEntry(ctx, tokenKey, aliasKeys)
+			s.deleteEntry(ctx, tokenKey)
 		} else {
 			// If there are still IDs, just write out the updated version
-			if err := s.putTokenEntry(ctx, tokenKey, te, nil); err != nil {
+			if err := s.putTokenEntry(ctx, tokenKey, te); err != nil {
 				return err
+			}
+		}
+		// take out aliases
+		aliasKeys, err := s.getAliasKeys(ctx, aliases)
+		if err != nil {
+			return err
+		}
+		for _, aliasKey := range aliasKeys {
+			aliasEntry, err := s.getAliasEntry(ctx, aliasKey)
+			if err != nil {
+				return err
+			}
+			delete(aliasEntry.Aliases, token)
+			if len(aliasEntry.Aliases) == 0 {
+				s.deleteEntry(ctx, aliasKey)
+			} else {
+				if err := s.putAliasEntry(ctx, aliasKey, aliasEntry); err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -209,6 +329,9 @@ func (s *store) getMetadata(ctx context.Context, uid gregor1.UID, convID chat1.C
 		return res, err
 	}
 	if !found {
+		return newIndexMetadata(), nil
+	}
+	if md.Version != refIndexMetadata.Version {
 		return newIndexMetadata(), nil
 	}
 	return &md, nil

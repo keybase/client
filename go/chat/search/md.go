@@ -1,24 +1,27 @@
 package search
 
 import (
+	"fmt"
 	"unsafe"
 
 	"github.com/keybase/client/go/protocol/chat1"
 )
 
-const indexMetadataVersion = 1
+const indexMetadataVersion = 3
 
 type indexMetadata struct {
 	SeenIDs map[chat1.MessageID]chat1.EmptyStruct `codec:"s"`
-	Version int                                   `codec:"v"`
+	Version string                                `codec:"v"`
 }
 
 func newIndexMetadata() *indexMetadata {
 	return &indexMetadata{
-		Version: indexMetadataVersion,
+		Version: fmt.Sprintf("%s:%s", indexVersion, indexMetadataVersion),
 		SeenIDs: make(map[chat1.MessageID]chat1.EmptyStruct),
 	}
 }
+
+var refIndexMetadata = newIndexMetadata()
 
 func (m *indexMetadata) Size() int64 {
 	size := unsafe.Sizeof(m.Version)
