@@ -28,6 +28,9 @@ class MobileHeader extends React.PureComponent<Props, State> {
   _filterDone = () => {
     this.setState({filterExpanded: false})
   }
+  componentDidUpdate(prevProps) {
+    prevProps.path !== this.props.path && this.setState({filterExpanded: false})
+  }
   render() {
     return (
       <Kb.Box2
