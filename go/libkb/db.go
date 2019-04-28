@@ -107,6 +107,7 @@ func IsPermDbKey(typ ObjType) bool {
 		DBHasRandomPW,
 		DBChatReacji,
 		DBStellarDisclaimer,
+		DBChatIndex,
 		DBBoxAuditorPermanent:
 		return true
 	default:
