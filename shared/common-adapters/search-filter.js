@@ -217,9 +217,9 @@ class SearchFilter extends React.PureComponent<Props, State> {
         onMouseLeave={this._mouseLeave}
         onClick={
           this.props.onClick ||
-          // Can't just make a null for Kb.ClickableBox here when focused, as
-          // that'd cause PlainInput to be re-constructed.
-          this._focus
+          // On mobile we can't just make a null for Kb.ClickableBox here when
+          // focused, as that'd cause PlainInput to be re-constructed.
+          (Styles.isMobile || !this.state.focused ? this._focus : null)
         }
         underlayColor={Styles.globalColors.transparent}
         hoverColor={Styles.globalColors.transparent}
