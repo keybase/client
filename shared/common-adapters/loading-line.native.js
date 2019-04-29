@@ -34,7 +34,7 @@ function runLoop() {
       R.set(state.position, -1),
       R.set(state.time, 0),
 
-      // start cock again
+      // start clock again
       R.startClock(clock),
     ]),
     // Iterpolate alpha from 0 => 1 => 0 so it loops
