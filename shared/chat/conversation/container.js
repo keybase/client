@@ -59,7 +59,7 @@ class Conversation extends React.PureComponent<SwitchProps> {
       case 'normal':
         return (
           <>
-            <NavigationEvents onDidFocus={this._onDidFocus} onWillBlur={this._onWillBlur} />
+            {isMobile && <NavigationEvents onDidFocus={this._onDidFocus} onWillBlur={this._onWillBlur} />}
             <Normal conversationIDKey={this.props.conversationIDKey} />
           </>
         )
