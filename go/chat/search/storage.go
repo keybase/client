@@ -17,9 +17,15 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-const indexVersion = 9
-const tokenEntryVersion = 2
-const aliasEntryVersion = 1
+const (
+	indexVersion      = 9
+	tokenEntryVersion = 2
+	aliasEntryVersion = 1
+
+	mdDiskVersion    = 4
+	tokenDiskVersion = 1
+	aliasDiskVersion = 1
+)
 
 type tokenEntry struct {
 	Version string                                `codec:"v"`
@@ -80,40 +86,119 @@ func newStore(g *globals.Context) *store {
 }
 
 func (s *store) metadataKey(uid gregor1.UID, convID chat1.ConversationID) libkb.DbKey {
+	return s.metadataKeyWithVersion(uid, convID, mdDiskVersion)
+}
+
+func (s *store) metadataKeyWithVersion(uid gregor1.UID, convID chat1.ConversationID, version int) libkb.DbKey {
+	var key string
+	switch version {
+	case 1:
+		// original key
+		key = fmt.Sprintf("idx:%s:%s", convID, uid)
+	case 2:
+		// uid as a prefix makes more sense for leveldb to keep values
+		// co-located
+		key = fmt.Sprintf("idx:%s:%s", uid, convID)
+	case 3:
+		// changed to use chat1.ConversationIndexDisk to store arrays instead
+		// of maps.
+		key = fmt.Sprintf("idxd:%s:%s", uid, convID)
+	case 4:
+		// change to store metadata separate from tokens/aliases
+		key = fmt.Sprintf("md:%s:%s", uid, convID)
+	default:
+		panic("invalid index key version specified")
+	}
 	return libkb.DbKey{
 		Typ: libkb.DBChatIndex,
-		Key: fmt.Sprintf("md:%s:%s", uid, convID),
+		Key: key,
 	}
 }
 
 func (s *store) tokenKey(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, dat string) (res libkb.DbKey, err error) {
-	material, err := s.keyFn(ctx)
-	if err != nil {
-		return res, err
+	return s.tokenKeyWithVersion(ctx, uid, convID, dat, tokenDiskVersion)
+}
+
+func (s *store) tokenKeyWithVersion(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, dat string, version int) (res libkb.DbKey, err error) {
+	var key string
+	switch version {
+	case 1:
+		material, err := s.keyFn(ctx)
+		if err != nil {
+			return res, err
+		}
+		hasher := hmac.New(sha256.New, material[:])
+		hasher.Write([]byte(dat))
+		hasher.Write(convID.DbShortForm())
+		hasher.Write(uid.Bytes())
+		hasher.Write([]byte(libkb.EncryptionReasonChatIndexerTokenKey))
+		key = fmt.Sprintf("tm:%s:%s:%s", uid, convID, hasher.Sum(nil))
 	}
-	hasher := hmac.New(sha256.New, material[:])
-	hasher.Write([]byte(dat))
-	hasher.Write(convID.DbShortForm())
-	hasher.Write(uid.Bytes())
-	hasher.Write([]byte(libkb.EncryptionReasonChatIndexerTokenKey))
 	return libkb.DbKey{
 		Typ: libkb.DBChatIndex,
-		Key: fmt.Sprintf("tm:%s:%s:%s", uid, convID, hasher.Sum(nil)),
+		Key: key,
 	}, nil
 }
 
 func (s *store) aliasKey(ctx context.Context, dat string) (res libkb.DbKey, err error) {
-	material, err := s.keyFn(ctx)
-	if err != nil {
-		return res, err
+	return s.aliasKeyWithVersion(ctx, dat, aliasDiskVersion)
+}
+
+func (s *store) aliasKeyWithVersion(ctx context.Context, dat string, version int) (res libkb.DbKey, err error) {
+	var key string
+	switch version {
+	case 1:
+		material, err := s.keyFn(ctx)
+		if err != nil {
+			return res, err
+		}
+		hasher := hmac.New(sha256.New, material[:])
+		hasher.Write([]byte(dat))
+		hasher.Write([]byte(libkb.EncryptionReasonChatIndexerAliasKey))
+		key = fmt.Sprintf("al:%s", hasher.Sum(nil))
 	}
-	hasher := hmac.New(sha256.New, material[:])
-	hasher.Write([]byte(dat))
-	hasher.Write([]byte(libkb.EncryptionReasonChatIndexerAliasKey))
 	return libkb.DbKey{
 		Typ: libkb.DBChatIndex,
-		Key: fmt.Sprintf("al:%s", hasher.Sum(nil)),
+		Key: key,
 	}, nil
+}
+
+// deleteOldVersions purges old disk structures so we don't error out on msg
+// pack decode or strand indexes with ephemeral content.
+func (s *store) deleteOldVersions(ctx context.Context, keyFn func(int) (libkb.DbKey, error), maxVersion int) {
+	for version := 1; version < maxVersion; version++ {
+		key, err := keyFn(version)
+		if err != nil {
+			s.Debug(ctx, "unable to get key for version %d, %v", version, err)
+			continue
+		}
+		s.Debug(ctx, "cleaning old version %d: for key %v", version, key)
+		if err := s.G().LocalChatDb.Delete(key); err != nil {
+			s.Debug(ctx, "deleteOldVersions: failed to delete key: %s", err)
+		}
+	}
+}
+
+func (s *store) deleteOldMetadataVersions(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) {
+	keyFn := func(version int) (libkb.DbKey, error) {
+		return s.metadataKeyWithVersion(uid, convID, version), nil
+	}
+	s.deleteOldVersions(ctx, keyFn, mdDiskVersion)
+}
+
+func (s *store) deleteOldTokenVersions(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, token string) {
+	keyFn := func(version int) (libkb.DbKey, error) {
+		return s.tokenKeyWithVersion(ctx, uid, convID, token, version)
+	}
+	s.deleteOldVersions(ctx, keyFn, tokenDiskVersion)
+}
+
+func (s *store) deleteOldAliasVersions(ctx context.Context, alias string) {
+	keyFn := func(version int) (libkb.DbKey, error) {
+		return s.aliasKeyWithVersion(ctx, alias, version)
+	}
+	s.deleteOldVersions(ctx, keyFn, aliasDiskVersion)
 }
 
 func (s *store) GetHits(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, term string) (res map[chat1.MessageID]chat1.EmptyStruct, err error) {
@@ -169,6 +254,7 @@ func (s *store) getTokenEntry(ctx context.Context, uid gregor1.UID, convID chat1
 		return nil, err
 	}
 	if !found {
+		s.deleteOldTokenVersions(ctx, uid, convID, token)
 		return newTokenEntry(), nil
 	}
 	res = &te
@@ -197,6 +283,7 @@ func (s *store) getAliasEntry(ctx context.Context, alias string) (res *aliasEntr
 		return nil, err
 	}
 	if !found {
+		s.deleteOldAliasVersions(ctx, alias)
 		return newAliasEntry(), nil
 	}
 	res = &ae
@@ -400,6 +487,7 @@ func (s *store) GetMetadata(ctx context.Context, uid gregor1.UID, convID chat1.C
 		return res, err
 	}
 	if !found {
+		s.deleteOldMetadataVersions(ctx, uid, convID)
 		return newIndexMetadata(), nil
 	}
 	if md.Version != refIndexMetadata.Version {
