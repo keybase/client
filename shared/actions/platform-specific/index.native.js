@@ -202,7 +202,7 @@ function* persistRoute(state, action) {
   }
 
   const path = action.payload.path
-  const tab = path[path.length - 2] // real top is the root of the tab (aka chatRoot) and not the tab itself
+  const tab = path[2] // real top is the root of the tab (aka chatRoot) and not the tab itself
   if (!tab) return
   let param = {}
   let routeName = ''

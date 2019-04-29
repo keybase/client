@@ -201,6 +201,7 @@ export const isUserActivelyLookingAtThisThread = (
   let chatThreadSelected = false
   if (flags.useNewRouter) {
     chatThreadSelected = true // conversationIDKey === selectedConversationIDKey is the only thing that matters in the new router
+    // TODO remove this var when we switch entirely
   } else {
     const routePath = getPath(state.routeTree.routeState)
     if (isMobile) {
