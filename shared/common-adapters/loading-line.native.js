@@ -6,6 +6,7 @@ import type {Props} from './loading-line'
 
 const R = ReAnimated
 
+// An alpha animation from 0 to 1 and back, 600ms on each side, goes forever
 function runLoop() {
   const clock = new R.Clock()
 
@@ -23,30 +24,20 @@ function runLoop() {
   }
 
   return R.block([
-    // start right away
     R.startClock(clock),
-
-    // process your state
     R.timing(clock, state, config),
-
-    // when over (processed by timing at the end)
     R.cond(state.finished, [
-      // we stop
       R.stopClock(clock),
-
-      // set flag ready to be restarted
+      // reset state
       R.set(state.finished, 0),
-      // same value as the initial defined in the state creation
-      R.set(state.position, -1),
-
-      // very important to reset this ones !!! as mentioned in the doc about timing is saying
-      R.set(state.time, 0),
       R.set(state.frameTime, 0),
+      R.set(state.position, -1),
+      R.set(state.time, 0),
 
-      // and we restart
+      // start cock again
       R.startClock(clock),
     ]),
-    // state.position,
+    // Iterpolate alpha from 0 => 1 => 0 so it loops
     R.interpolate(state.position, {
       extrapolate: R.Extrapolate.CLAMP,
       inputRange: [-1, 0, 1],
