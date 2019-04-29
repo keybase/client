@@ -18,6 +18,7 @@ import (
 type PassphraseRecover struct {
 	arg keybase1.RecoverPassphraseArg
 	libkb.Contextified
+	usernameFound bool
 }
 
 func NewPassphraseRecover(g *libkb.GlobalContext, arg keybase1.RecoverPassphraseArg) *PassphraseRecover {
@@ -61,15 +62,14 @@ func (e *PassphraseRecover) Run(mctx libkb.MetaContext) (err error) {
 	mctx.Debug("No device keys available, proceeding with recovery")
 
 	// Look up the passed username against the list of configured users
-	usernameFound, err := e.processUsername(mctx)
-	if err != nil {
+	if err := e.processUsername(mctx); err != nil {
 		return err
 	}
 
 	// If the reset pipeline is not enabled, we'll want this to act exactly the same way as before
 	if !mctx.G().Env.GetFeatureFlags().HasFeature(libkb.EnvironmentFeatureAutoresetPipeline) {
 		// The device has to be preprovisioned for this account in this flow
-		if !usernameFound {
+		if !e.usernameFound {
 			return libkb.NotProvisionedError{}
 		}
 		return e.legacyRecovery(mctx)
@@ -95,11 +95,11 @@ func (e *PassphraseRecover) Run(mctx libkb.MetaContext) (err error) {
 	return e.chooseDevice(mctx, ckf)
 }
 
-func (e *PassphraseRecover) processUsername(mctx libkb.MetaContext) (ok bool, err error) {
+func (e *PassphraseRecover) processUsername(mctx libkb.MetaContext) error {
 	// Fetch usernames from user configs
 	currentUsername, otherUsernames, err := mctx.G().GetAllUserNames()
 	if err != nil {
-		return false, err
+		return err
 	}
 	usernamesMap := map[libkb.NormalizedUsername]struct{}{
 		currentUsername: struct{}{},
@@ -117,8 +117,9 @@ func (e *PassphraseRecover) processUsername(mctx libkb.MetaContext) (ok bool, er
 	e.arg.Username = normalized.String()
 
 	// Check if the passed username is in the map
-	_, ok = usernamesMap[normalized]
-	return ok, nil
+	_, ok := usernamesMap[normalized]
+	e.usernameFound = ok
+	return nil
 }
 
 func (e *PassphraseRecover) legacyRecovery(mctx libkb.MetaContext) (err error) {
@@ -136,6 +137,10 @@ func (e *PassphraseRecover) chooseDevice(mctx libkb.MetaContext, ckf *libkb.Comp
 	expDevices := make([]keybase1.Device, len(devices))
 	idMap := make(map[keybase1.DeviceID]*libkb.Device)
 	for i, d := range devices {
+		// Don't show paper keys if the device hasn't been configured
+		if !e.usernameFound && d.Type == libkb.DeviceTypePaper {
+			continue
+		}
 		expDevices[i] = *d.ProtExport()
 		idMap[d.ID] = d
 	}

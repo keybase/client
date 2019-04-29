@@ -249,6 +249,7 @@ func TestPassphraseRecoverChangeWithPaper(t *testing.T) {
 	Logout(tc2)
 
 	loginUI := &TestLoginUIRecover{}
+	provisionUI := newTestProvisionUIPaper()
 	uis := libkb.UIs{
 		LogUI:   tc1.G.UI.GetLogUI(),
 		LoginUI: loginUI,
@@ -257,7 +258,7 @@ func TestPassphraseRecoverChangeWithPaper(t *testing.T) {
 			PaperKey: paperkey2,
 			Password: "test1234",
 		},
-		ProvisionUI: newTestProvisionUIPaper(),
+		ProvisionUI: provisionUI,
 	}
 	m := NewMetaContextForTest(tc1).WithUIs(uis)
 	arg := keybase1.RecoverPassphraseArg{}
@@ -288,11 +289,19 @@ func TestPassphraseRecoverChangeWithPaper(t *testing.T) {
 		PaperKey: paperkey3,
 		Password: "test1234",
 	}
+	provisionUI = newTestProvisionUIPaper()
+	uis.ProvisionUI = provisionUI
 	m = m.WithUIs(uis)
 	arg.Username = u3.Username
-	require.Error(t, NewPassphraseRecover(tc1.G, arg).Run(m))
+
+	require.NoError(t, NewPassphraseRecover(tc1.G, arg).Run(m))
+	require.Equal(t, 1, provisionUI.calledChooseDevice)
+	for _, device := range provisionUI.lastDevices {
+		require.NotEqual(t, libkb.DeviceTypePaper, device.Type)
+	}
 	require.Error(t, AssertLoggedIn(tc1))
 	require.Error(t, AssertProvisioned(tc1))
+	require.Nil(t, AssertAutoreset(tc1, u3.UID(), -1))
 }
 
 func AssertAutoreset(tc libkb.TestContext, uid keybase1.UID, expectedStatus int) error {
@@ -314,6 +323,9 @@ func AssertAutoreset(tc libkb.TestContext, uid keybase1.UID, expectedStatus int)
 			return fmt.Errorf("expected account %s to not be in reset pipeline", uid.String())
 		}
 		return nil
+	}
+	if !ok {
+		return fmt.Errorf("expected account %s to be in %d state (got null)", uid.String(), expectedStatus)
 	}
 	if status != expectedStatus {
 		return fmt.Errorf("expected account %s to be in %d state (got %d)", uid.String(), expectedStatus, status)

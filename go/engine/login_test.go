@@ -3805,6 +3805,7 @@ type testProvisionUI struct {
 	verbose                bool
 	calledChooseDeviceType int
 	abortSwitchToGPGSign   bool
+	lastDevices            []keybase1.Device
 }
 
 func newTestProvisionUI() *testProvisionUI {
@@ -3888,6 +3889,8 @@ func (u *testProvisionUI) SwitchToGPGSignOK(ctx context.Context, arg keybase1.Sw
 func (u *testProvisionUI) ChooseDevice(_ context.Context, arg keybase1.ChooseDeviceArg) (keybase1.DeviceID, error) {
 	u.printf("ChooseDevice")
 	u.calledChooseDevice++
+
+	u.lastDevices = arg.Devices
 
 	if len(arg.Devices) == 0 {
 		return "", nil
