@@ -171,21 +171,14 @@ func (t *BaseServiceType) DisplayGroup() string {
 }
 
 func (t *BaseServiceType) CanMakeNewProofs(mctx MetaContext) bool {
-	t.Lock()
-	defer t.Unlock()
-	if mctx.G().GetEnv().GetProveBypass() {
-		return true
-	}
-	if t.displayConf == nil {
-		return true
-	}
-	if mctx.G().FeatureFlags.Enabled(mctx, ExperimentalGenericProofs) {
-		return true
-	}
-	return !t.displayConf.CreationDisabled
+	return t.canMakeNewProofsHelper(mctx, false)
 }
 
 func (t *BaseServiceType) CanMakeNewProofsSkipFeatureFlag(mctx MetaContext) bool {
+	return t.canMakeNewProofsHelper(mctx, true)
+}
+
+func (t *BaseServiceType) canMakeNewProofsHelper(mctx MetaContext, skipFeatureFlag bool) bool {
 	t.Lock()
 	defer t.Unlock()
 	if mctx.G().GetEnv().GetProveBypass() {
@@ -193,6 +186,11 @@ func (t *BaseServiceType) CanMakeNewProofsSkipFeatureFlag(mctx MetaContext) bool
 	}
 	if t.displayConf == nil {
 		return true
+	}
+	if !skipFeatureFlag {
+		if mctx.G().FeatureFlags.Enabled(mctx, ExperimentalGenericProofs) {
+			return true
+		}
 	}
 	return !t.displayConf.CreationDisabled
 }
