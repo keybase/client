@@ -101,7 +101,7 @@ class InboxSearch extends React.Component<Props, State> {
               Search failed, please try again, or contact Keybase describing the problem.
             </Kb.Text>
           </Kb.Box2>
-        ) : this.props.indexPercent > 0 ? (
+        ) : this.props.indexPercent >= 0 ? (
           <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.percentContainer} fullWidth={true}>
             <Kb.Text type="BodyTiny">Indexing...</Kb.Text>
             <Kb.ProgressBar style={styles.progressBar} ratio={this.props.indexPercent / 100.0} />
