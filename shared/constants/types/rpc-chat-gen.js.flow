@@ -357,7 +357,7 @@ export type MessageTypes = {|
     outParam: PostLocalNonblockRes,
   |},
   'chat.1.local.postTextNonblock': {|
-    inParam: $ReadOnly<{|conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, body: String, clientPrev: MessageID, outboxID?: ?OutboxID, identifyBehavior: Keybase1.TLFIdentifyBehavior, ephemeralLifetime?: ?Gregor1.DurationSec|}>,
+    inParam: $ReadOnly<{|conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, body: String, clientPrev: MessageID, replyTo?: ?MessageID, outboxID?: ?OutboxID, identifyBehavior: Keybase1.TLFIdentifyBehavior, ephemeralLifetime?: ?Gregor1.DurationSec|}>,
     outParam: PostLocalNonblockRes,
   |},
   'chat.1.local.previewConversationByIDLocal': {|
@@ -381,7 +381,7 @@ export type MessageTypes = {|
     outParam: SearchInboxRes,
   |},
   'chat.1.local.searchRegexp': {|
-    inParam: $ReadOnly<{|convID: ConversationID, query: String, isRegex: Boolean, opts: SearchOpts, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
+    inParam: $ReadOnly<{|convID: ConversationID, query: String, opts: SearchOpts, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
     outParam: SearchRegexpRes,
   |},
   'chat.1.local.setAppNotificationSettingsLocal': {|
@@ -773,6 +773,7 @@ export const unfurlUnfurlType = {
   youtube: 1,
   giphy: 2,
 }
+export type AliasTuple = $ReadOnly<{a /* alias */: String, t /* tokens */?: ?Array<String>}>
 export type AppNotificationSettingLocal = $ReadOnly<{deviceType: Keybase1.DeviceType, kind: NotificationKind, enabled: Boolean}>
 export type Asset = $ReadOnly<{filename: String, region: String, endpoint: String, bucket: String, path: String, size: Long, mimeType: String, encHash: Hash, key: Bytes, verifyKey: Bytes, title: String, nonce: Bytes, metadata: AssetMetadata, tag: AssetTag}>
 export type AssetMetadata = {assetType: 1, image: ?AssetMetadataImage} | {assetType: 2, video: ?AssetMetadataVideo} | {assetType: 3, audio: ?AssetMetadataAudio}
@@ -880,7 +881,9 @@ export type ConversationIDMessageIDPair = $ReadOnly<{convID: ConversationID, msg
 export type ConversationIDMessageIDPairs = $ReadOnly<{pairs?: ?Array<ConversationIDMessageIDPair>}>
 export type ConversationIDTriple = $ReadOnly<{tlfid: TLFID, topicType: TopicType, topicID: TopicID}>
 export type ConversationIndex = $ReadOnly<{i /* index */: {[key: string]: {[key: string]: EmptyStruct}}, a /* alias */: {[key: string]: {[key: string]: EmptyStruct}}, m /* metadata */: ConversationIndexMetadata}>
+export type ConversationIndexDisk = $ReadOnly<{i /* index */?: ?Array<TokenTuple>, a /* alias */?: ?Array<AliasTuple>, metadata: ConversationIndexMetadataDisk}>
 export type ConversationIndexMetadata = $ReadOnly<{s /* seenIDs */: {[key: string]: EmptyStruct}, v /* version */: Int}>
+export type ConversationIndexMetadataDisk = $ReadOnly<{s /* seenIDs */?: ?Array<MessageID>, v /* version */: Int}>
 export type ConversationInfoLocal = $ReadOnly<{id: ConversationID, triple: ConversationIDTriple, tlfName: String, topicName: String, headline: String, snippetMsg?: ?MessageUnboxed, visibility: Keybase1.TLFVisibility, status: ConversationStatus, membersType: ConversationMembersType, memberStatus: ConversationMemberStatus, teamType: TeamType, existence: ConversationExistence, version: ConversationVers, localVersion: LocalConversationVers, participants?: ?Array<ConversationLocalParticipant>, finalizeInfo?: ?ConversationFinalizeInfo, resetNames?: ?Array<String>}>
 export type ConversationLocal = $ReadOnly<{error?: ?ConversationErrorLocal, info: ConversationInfoLocal, readerInfo: ConversationReaderInfo, creatorInfo?: ?ConversationCreatorInfoLocal, notifications?: ?ConversationNotificationInfo, supersedes?: ?Array<ConversationMetadata>, supersededBy?: ?Array<ConversationMetadata>, maxMessages?: ?Array<MessageSummary>, isEmpty: Boolean, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>, expunge: Expunge, convRetention?: ?RetentionPolicy, teamRetention?: ?RetentionPolicy, convSettings?: ?ConversationSettingsLocal, commands: ConversationCommandGroups}>
 export type ConversationLocalParticipant = $ReadOnly<{username: String, fullname?: ?String}>
@@ -1081,7 +1084,7 @@ export type MessageSystemType =
   | 6 // CHANGERETENTION_6
   | 7 // BULKADDTOCONV_7
 
-export type MessageText = $ReadOnly<{body: String, payments?: ?Array<TextPayment>}>
+export type MessageText = $ReadOnly<{body: String, payments?: ?Array<TextPayment>, replyTo?: ?MessageID}>
 export type MessageType =
   | 0 // NONE_0
   | 1 // TEXT_1
@@ -1119,7 +1122,7 @@ export type MessageUnboxedState =
   | 3 // OUTBOX_3
   | 4 // PLACEHOLDER_4
 
-export type MessageUnboxedValid = $ReadOnly<{clientHeader: MessageClientHeaderVerified, serverHeader: MessageServerHeader, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, bodyHash: Hash, headerHash: Hash, headerSignature?: ?SignatureInfo, verificationKey?: ?Bytes, senderDeviceRevokedAt?: ?Gregor1.Time, atMentionUsernames?: ?Array<String>, atMentions?: ?Array<Gregor1.UID>, channelMention: ChannelMention, channelNameMentions?: ?Array<ChannelNameMention>, reactions: ReactionMap, unfurls: {[key: string]: UnfurlResult}}>
+export type MessageUnboxedValid = $ReadOnly<{clientHeader: MessageClientHeaderVerified, serverHeader: MessageServerHeader, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, bodyHash: Hash, headerHash: Hash, headerSignature?: ?SignatureInfo, verificationKey?: ?Bytes, senderDeviceRevokedAt?: ?Gregor1.Time, atMentionUsernames?: ?Array<String>, atMentions?: ?Array<Gregor1.UID>, channelMention: ChannelMention, channelNameMentions?: ?Array<ChannelNameMention>, reactions: ReactionMap, unfurls: {[key: string]: UnfurlResult}, replyTo?: ?MessageUnboxed}>
 export type MessageUnfurl = $ReadOnly<{unfurl: UnfurlResult, messageID: MessageID}>
 export type MessagesUpdated = $ReadOnly<{convID: ConversationID, updates?: ?Array<UIMessage>}>
 export type MsgEphemeralMetadata = $ReadOnly<{l /* lifetime */: Gregor1.DurationSec, g /* generation */: Keybase1.EkGeneration, u /* explodedBy */?: ?String}>
@@ -1147,7 +1150,7 @@ export type OutboxErrorType =
 
 export type OutboxID = Bytes
 export type OutboxInfo = $ReadOnly<{prev: MessageID, composeTime: Gregor1.Time}>
-export type OutboxRecord = $ReadOnly<{state: OutboxState, outboxID: OutboxID, convID: ConversationID, ctime: Gregor1.Time, Msg: MessagePlaintext, identifyBehavior: Keybase1.TLFIdentifyBehavior, ordinal: Int, preview?: ?MakePreviewRes}>
+export type OutboxRecord = $ReadOnly<{state: OutboxState, outboxID: OutboxID, convID: ConversationID, ctime: Gregor1.Time, Msg: MessagePlaintext, identifyBehavior: Keybase1.TLFIdentifyBehavior, prepareOpts?: ?SenderPrepareOptions, sendOpts?: ?SenderSendOptions, ordinal: Int, preview?: ?MakePreviewRes, replyTo?: ?MessageUnboxed}>
 export type OutboxState = {state: 0, sending: ?Int} | {state: 1, error: ?OutboxStateError}
 export type OutboxStateError = $ReadOnly<{message: String, typ: OutboxErrorType}>
 export type OutboxStateType =
@@ -1165,7 +1168,7 @@ export type PreviewLocationTyp =
   | 1 // FILE_1
   | 2 // BYTES_2
 
-export type ProfileSearchConvStats = $ReadOnly<{err: String, convName: String, numMessages: Int, indexSize: Int, durationMsec: Gregor1.DurationMsec, percentIndexed: Int}>
+export type ProfileSearchConvStats = $ReadOnly<{err: String, convName: String, minConvID: MessageID, maxConvID: MessageID, numMissing: Int, numMessages: Int, indexSizeDisk: Int, indexSizeMem: Int64, durationMsec: Gregor1.DurationMsec, percentIndexed: Int}>
 export type RateLimit = $ReadOnly<{name: String, callsRemaining: Int, windowReset: Int, maxCalls: Int}>
 export type ReIndexingMode =
   | 0 // NONE_0
@@ -1194,8 +1197,10 @@ export type RpRetain = $ReadOnly<{}>
 export type S3Params = $ReadOnly<{bucket: String, objectKey: String, accessKey: String, acl: String, regionName: String, regionEndpoint: String, regionBucketEndpoint: String}>
 export type SealedData = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
 export type SearchInboxRes = $ReadOnly<{res?: ?ChatSearchInboxResults, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
-export type SearchOpts = $ReadOnly<{sentBy: String, sentBefore: Gregor1.Time, sentAfter: Gregor1.Time, maxHits: Int, maxMessages: Int, beforeContext: Int, afterContext: Int, reindexMode: ReIndexingMode, maxConvsSearched: Int, maxConvsHit: Int, maxNameConvs: Int}>
+export type SearchOpts = $ReadOnly<{isRegex: Boolean, sentBy: String, sentTo: String, sentBefore: Gregor1.Time, sentAfter: Gregor1.Time, maxHits: Int, maxMessages: Int, beforeContext: Int, afterContext: Int, reindexMode: ReIndexingMode, maxConvsSearched: Int, maxConvsHit: Int, convID?: ?ConversationID, maxNameConvs: Int}>
 export type SearchRegexpRes = $ReadOnly<{hits?: ?Array<ChatSearchHit>, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
+export type SenderPrepareOptions = $ReadOnly<{skipTopicNameState: Boolean, replyTo?: ?MessageID}>
+export type SenderSendOptions = $ReadOnly<{joinMentionsAs?: ?ConversationMemberStatus}>
 export type ServerCacheVers = $ReadOnly<{inboxVers: Int, bodiesVers: Int}>
 export type ServerNowRes = $ReadOnly<{rateLimit?: ?RateLimit, now: Gregor1.Time}>
 export type SetAppNotificationSettingsInfo = $ReadOnly<{convID: ConversationID, settings: ConversationNotificationInfo}>
@@ -1260,6 +1265,7 @@ export type TextPaymentResultTyp =
 export type ThreadID = Bytes
 export type ThreadView = $ReadOnly<{messages?: ?Array<MessageUnboxed>, pagination?: ?Pagination}>
 export type ThreadViewBoxed = $ReadOnly<{messages?: ?Array<MessageBoxed>, pagination?: ?Pagination}>
+export type TokenTuple = $ReadOnly<{t /* token */: String, m /* msgIDs */?: ?Array<MessageID>}>
 export type TopicID = Bytes
 export type TopicNameState = Bytes
 export type TopicType =
@@ -1307,9 +1313,9 @@ export type UICoinFlipResultTyp =
 export type UICoinFlipStatus = $ReadOnly<{gameID: String, phase: UICoinFlipPhase, progressText: String, resultText: String, commitmentVisualization: String, revealVisualization: String, participants?: ?Array<UICoinFlipParticipant>, errorInfo?: ?UICoinFlipError, resultInfo?: ?UICoinFlipResult}>
 export type UICommandMarkdown = $ReadOnly<{body: String, title?: ?String}>
 export type UIMessage = {state: 1, valid: ?UIMessageValid} | {state: 2, error: ?MessageUnboxedError} | {state: 3, outbox: ?UIMessageOutbox} | {state: 4, placeholder: ?MessageUnboxedPlaceholder}
-export type UIMessageOutbox = $ReadOnly<{state: OutboxState, outboxID: String, messageType: MessageType, body: String, decoratedTextBody?: ?String, ctime: Gregor1.Time, ordinal: Double, isEphemeral: Boolean, flipGameID?: ?String, filename: String, title: String, preview?: ?MakePreviewRes}>
+export type UIMessageOutbox = $ReadOnly<{state: OutboxState, outboxID: String, messageType: MessageType, body: String, decoratedTextBody?: ?String, ctime: Gregor1.Time, ordinal: Double, isEphemeral: Boolean, flipGameID?: ?String, replyTo?: ?UIMessage, filename: String, title: String, preview?: ?MakePreviewRes}>
 export type UIMessageUnfurlInfo = $ReadOnly<{unfurlMessageID: MessageID, url: String, unfurl: UnfurlDisplay, isCollapsed: Boolean}>
-export type UIMessageValid = $ReadOnly<{messageID: MessageID, ctime: Gregor1.Time, outboxID?: ?String, messageBody: MessageBody, decoratedTextBody?: ?String, bodySummary: String, senderUsername: String, senderDeviceName: String, senderDeviceType: String, senderUID: Gregor1.UID, senderDeviceID: Gregor1.DeviceID, superseded: Boolean, assetUrlInfo?: ?UIAssetUrlInfo, senderDeviceRevokedAt?: ?Gregor1.Time, atMentions?: ?Array<String>, channelMention: ChannelMention, channelNameMentions?: ?Array<UIChannelNameMention>, isEphemeral: Boolean, isEphemeralExpired: Boolean, explodedBy?: ?String, etime: Gregor1.Time, reactions: ReactionMap, hasPairwiseMacs: Boolean, paymentInfos?: ?Array<UIPaymentInfo>, requestInfo?: ?UIRequestInfo, unfurls?: ?Array<UIMessageUnfurlInfo>, isCollapsed: Boolean, flipGameID?: ?String, isDeleteable: Boolean, isEditable: Boolean}>
+export type UIMessageValid = $ReadOnly<{messageID: MessageID, ctime: Gregor1.Time, outboxID?: ?String, messageBody: MessageBody, decoratedTextBody?: ?String, bodySummary: String, senderUsername: String, senderDeviceName: String, senderDeviceType: String, senderUID: Gregor1.UID, senderDeviceID: Gregor1.DeviceID, superseded: Boolean, assetUrlInfo?: ?UIAssetUrlInfo, senderDeviceRevokedAt?: ?Gregor1.Time, atMentions?: ?Array<String>, channelMention: ChannelMention, channelNameMentions?: ?Array<UIChannelNameMention>, isEphemeral: Boolean, isEphemeralExpired: Boolean, explodedBy?: ?String, etime: Gregor1.Time, reactions: ReactionMap, hasPairwiseMacs: Boolean, paymentInfos?: ?Array<UIPaymentInfo>, requestInfo?: ?UIRequestInfo, unfurls?: ?Array<UIMessageUnfurlInfo>, isCollapsed: Boolean, flipGameID?: ?String, isDeleteable: Boolean, isEditable: Boolean, replyTo?: ?UIMessage}>
 export type UIMessages = $ReadOnly<{messages?: ?Array<UIMessage>, pagination?: ?UIPagination}>
 export type UIPagination = $ReadOnly<{next: String, previous: String, num: Int, last: Boolean}>
 export type UIPaymentInfo = $ReadOnly<{accountID?: ?Stellar1.AccountID, amountDescription: String, worth: String, worthAtSendTime: String, delta: Stellar1.BalanceDelta, note: String, paymentID: Stellar1.PaymentID, status: Stellar1.PaymentStatus, statusDescription: String, statusDetail: String, showCancel: Boolean, fromUsername: String, toUsername: String}>

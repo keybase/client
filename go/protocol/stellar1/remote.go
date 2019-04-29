@@ -917,6 +917,16 @@ type DetailsPlusPaymentsArg struct {
 	AccountID AccountID            `codec:"accountID" json:"accountID"`
 }
 
+type AssetSearchArg struct {
+	AssetCode       string `codec:"assetCode" json:"assetCode"`
+	IssuerAccountID string `codec:"issuerAccountID" json:"issuerAccountID"`
+}
+
+type ChangeTrustlineArg struct {
+	Caller            keybase1.UserVersion `codec:"caller" json:"caller"`
+	SignedTransaction string               `codec:"signedTransaction" json:"signedTransaction"`
+}
+
 type RemoteInterface interface {
 	Balances(context.Context, BalancesArg) ([]Balance, error)
 	Details(context.Context, DetailsArg) (AccountDetails, error)
@@ -940,6 +950,8 @@ type RemoteInterface interface {
 	Ping(context.Context) (string, error)
 	NetworkOptions(context.Context, keybase1.UserVersion) (NetworkOptions, error)
 	DetailsPlusPayments(context.Context, DetailsPlusPaymentsArg) (DetailsPlusPayments, error)
+	AssetSearch(context.Context, AssetSearchArg) ([]Asset, error)
+	ChangeTrustline(context.Context, ChangeTrustlineArg) error
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -1271,6 +1283,36 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 					return
 				},
 			},
+			"assetSearch": {
+				MakeArg: func() interface{} {
+					var ret [1]AssetSearchArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]AssetSearchArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]AssetSearchArg)(nil), args)
+						return
+					}
+					ret, err = i.AssetSearch(ctx, typedArgs[0])
+					return
+				},
+			},
+			"changeTrustline": {
+				MakeArg: func() interface{} {
+					var ret [1]ChangeTrustlineArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChangeTrustlineArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChangeTrustlineArg)(nil), args)
+						return
+					}
+					err = i.ChangeTrustline(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -1389,5 +1431,15 @@ func (c RemoteClient) NetworkOptions(ctx context.Context, caller keybase1.UserVe
 
 func (c RemoteClient) DetailsPlusPayments(ctx context.Context, __arg DetailsPlusPaymentsArg) (res DetailsPlusPayments, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.remote.detailsPlusPayments", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) AssetSearch(ctx context.Context, __arg AssetSearchArg) (res []Asset, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.remote.assetSearch", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) ChangeTrustline(ctx context.Context, __arg ChangeTrustlineArg) (err error) {
+	err = c.Cli.Call(ctx, "stellar.1.remote.changeTrustline", []interface{}{__arg}, nil)
 	return
 }

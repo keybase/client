@@ -15,12 +15,14 @@ import (
 type blockRetrievalWorker struct {
 	blockGetter
 	stopCh chan struct{}
+	doneCh chan struct{}
 	queue  *blockRetrievalQueue
 	workCh channels.Channel
 }
 
 // run runs the worker loop until Shutdown is called
 func (brw *blockRetrievalWorker) run() {
+	defer close(brw.doneCh)
 	for {
 		err := brw.HandleRequest()
 		// Only io.EOF is relevant to the loop; other errors are handled in
@@ -39,6 +41,7 @@ func newBlockRetrievalWorker(bg blockGetter, q *blockRetrievalQueue,
 	brw := &blockRetrievalWorker{
 		blockGetter: bg,
 		stopCh:      make(chan struct{}),
+		doneCh:      make(chan struct{}),
 		queue:       q,
 		workCh:      workCh,
 	}
@@ -105,10 +108,11 @@ func (brw *blockRetrievalWorker) HandleRequest() (err error) {
 }
 
 // Shutdown shuts down the blockRetrievalWorker once its current work is done.
-func (brw *blockRetrievalWorker) Shutdown() {
+func (brw *blockRetrievalWorker) Shutdown() <-chan struct{} {
 	select {
 	case <-brw.stopCh:
 	default:
 		close(brw.stopCh)
 	}
+	return brw.doneCh
 }

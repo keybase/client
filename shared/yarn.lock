@@ -11739,7 +11739,7 @@ react-native-tab-view@^2.2.0:
 
 "react-native@git://github.com/keybase/react-native#keybase-fixes-off-578":
   version "0.57.8"
-  resolved "git://github.com/keybase/react-native#b99467164fa51f014fbee954c273baf9a0c6a332"
+  resolved "git://github.com/keybase/react-native#3bb14d2d04e5afebced95bf4d1db46b898faebba"
   dependencies:
     "@babel/runtime" "^7.0.0"
     absolute-path "^0.0.0"

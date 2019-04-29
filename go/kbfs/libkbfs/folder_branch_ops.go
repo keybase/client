@@ -8730,6 +8730,22 @@ func (fbo *folderBranchOps) SetSyncConfig(
 			"Cannot set partial sync config on an uninitialized TLF")
 	}
 
+	// Cancel any existing working set prefetches.
+	if config.Mode != keybase1.FolderSyncMode_DISABLED {
+		func() {
+			fbo.headLock.Lock(lState)
+			defer fbo.headLock.Unlock(lState)
+			if fbo.latestMergedUpdated != nil {
+				close(fbo.latestMergedUpdated)
+			}
+			fbo.latestMergedUpdated = make(chan struct{})
+		}()
+		err = fbo.partialSyncs.Wait(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	// On the way back out (after the syncLock is released), kick off
 	// the partial sync.
 	defer func() {

@@ -6,7 +6,7 @@ import PathItemInfo from './path-item-info'
 
 export type OwnProps = {
   path: Types.Path,
-  mode: 'row' | 'default',
+  mode: 'row' | 'default' | 'menu',
 }
 
 const mapStateToProps = (state, {path}) => ({

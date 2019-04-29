@@ -111,7 +111,7 @@ type AssetEmbed struct {
 	} `json:"flags"`
 }
 
-// AssetsPage contains all the page data for an assets request.
+// AssetsPage is a page of assets.
 type AssetsPage struct {
 	Links struct {
 		Self horizon.Link `json:"self"`
@@ -120,5 +120,38 @@ type AssetsPage struct {
 	} `json:"_links"`
 	Embedded struct {
 		Records []AssetEmbed `json:"records"`
+	} `json:"_embedded"`
+}
+
+// PathAsset is a path hop through which a path payment
+// will go to get to its destination.
+type PathAsset struct {
+	AssetType   string `json:"asset_type"`
+	AssetCode   string `json:"asset_code"`
+	AssetIssuer string `json:"asset_issuer"`
+}
+
+// FullPath contains a potential path for a path payment.
+type FullPath struct {
+	SourceAmount           string      `json:"source_amount"`
+	SourceAssetType        string      `json:"source_asset_type"`
+	SourceAssetCode        string      `json:"source_asset_code"`
+	SourceAssetIssuer      string      `json:"source_asset_issuer"`
+	Path                   []PathAsset `json:"path"`
+	DestinationAmount      string      `json:"destination_amount"`
+	DestinationAssetType   string      `json:"destination_asset_type"`
+	DestinationAssetCode   string      `json:"destination_asset_code"`
+	DestinationAssetIssuer string      `json:"destination_asset_issuer"`
+}
+
+// PathsPage is used to unmarshal the results from the /paths endpoint.
+type PathsPage struct {
+	Links struct {
+		Self horizon.Link `json:"self"`
+		Next horizon.Link `json:"next"`
+		Prev horizon.Link `json:"prev"`
+	} `json:"_links"`
+	Embedded struct {
+		Records []FullPath `json:"records"`
 	} `json:"_embedded"`
 }

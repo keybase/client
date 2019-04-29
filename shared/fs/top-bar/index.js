@@ -10,6 +10,7 @@ import SyncToggle from './sync-toggle-container'
 
 type Props = {|
   path: Types.Path,
+  mode?: 'offline' | 'default',
 |}
 
 const TopBarContainer = (props: {|children: React.Node|}) => (
@@ -57,7 +58,7 @@ export const asRows = (path: Types.Path): Array<RowTypes.HeaderRowItem> => [
   {
     height,
     key: 'top-bar',
-    node: <TopBar path={path} />,
+    node: <TopBar key="topbar" path={path} />,
     rowType: 'header',
   },
 ] // We always show this, but just fill with blank at /keybase

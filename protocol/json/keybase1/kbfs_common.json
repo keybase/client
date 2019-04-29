@@ -254,6 +254,10 @@
         {
           "type": "PrefetchProgress",
           "name": "prefetchProgress"
+        },
+        {
+          "type": "int64",
+          "name": "storedBytesTotal"
         }
       ]
     }

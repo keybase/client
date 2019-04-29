@@ -68,5 +68,9 @@ export const isLookingAtDevices = (state: TypedState, action: RouteTreeGen.Switc
 export const isWaiting = (state: TypedState) => WaitingConstants.anyWaiting(state, waitingKey)
 export const getDevice = (state: TypedState, id: ?Types.DeviceID) =>
   id ? state.devices.deviceMap.get(id, emptyDevice) : emptyDevice
+export const getDeviceCounts = (state: TypedState) => ({
+  numActive: state.devices.deviceMap.count(v => !v.revokedAt),
+  numRevoked: state.devices.deviceMap.count(v => v.revokedAt),
+})
 export const getEndangeredTLFs = (state: TypedState, id: ?Types.DeviceID) =>
   id ? state.devices.endangeredTLFMap.get(id, emptySet) : emptySet

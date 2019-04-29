@@ -20,6 +20,9 @@ import {type TypedActions} from '../actions/typed-actions-gen'
 import flags from '../util/feature-flags'
 
 export const syncToggleWaitingKey = 'fs:syncToggle'
+export const sendLinkToChatFindConversationWaitingKey = 'fs:sendLinkToChatFindConversation'
+export const sendLinkToChatSendWaitingKey = 'fs:sendLinkToChatSend'
+export const deleteWaitingKey = 'fs:delete'
 
 export const defaultPath = Types.stringToPath('/keybase')
 
@@ -691,7 +694,7 @@ export const getTlfListAndTypeFromPath = (
 export const unknownTlf = makeTlf()
 export const getTlfFromPath = (tlfs: Types.Tlfs, path: Types.Path): Types.Tlf => {
   const elems = Types.getPathElements(path)
-  if (elems.length !== 3) {
+  if (elems.length < 3) {
     return unknownTlf
   }
   const {tlfList} = getTlfListAndTypeFromPath(tlfs, path)
@@ -736,6 +739,16 @@ export const usernameInPath = (username: string, path: Types.Path) => {
   const elems = Types.getPathElements(path)
   return elems.length >= 3 && elems[2].split(',').includes(username)
 }
+
+export const isOfflineUnsynced = (
+  daemonStatus: Types.KbfsDaemonStatus,
+  pathItem: Types.PathItem,
+  path: Types.Path
+) =>
+  flags.kbfsOfflineMode &&
+  !daemonStatus.online &&
+  Types.getPathLevel(path) > 2 &&
+  pathItem.prefetchStatus !== prefetchComplete
 
 // To make sure we have consistent badging, all badging related stuff should go
 // through this function. That is:
@@ -928,6 +941,26 @@ export const isTeamPath = (path: Types.Path): boolean => {
   return parsedPath.kind !== 'root' && parsedPath.tlfType === 'team'
 }
 
+export const getChatTarget = (path: Types.Path, me: string): string => {
+  const parsedPath = parsePath(path)
+  if (parsedPath.kind !== 'root' && parsedPath.tlfType === 'team') {
+    return 'team conversation'
+  }
+  if (parsedPath.kind === 'group-tlf' || parsedPath.kind === 'in-group-tlf') {
+    if (parsedPath.writers.size === 1 && !parsedPath.readers && parsedPath.writers.first() === me) {
+      return 'myself'
+    }
+    if (parsedPath.writers.size + (parsedPath.readers ? parsedPath.readers.size : 0) === 2) {
+      const notMe = parsedPath.writers.concat(parsedPath.readers || []).filter(u => u !== me)
+      if (notMe.size === 1) {
+        return notMe.first()
+      }
+    }
+    return 'group conversation'
+  }
+  return 'conversation'
+}
+
 export const isEmptyFolder = (pathItems: Types.PathItems, path: Types.Path) => {
   const _pathItem = pathItems.get(path, unknownPathItem)
   return _pathItem.type === 'folder' && !_pathItem.children.size
@@ -963,7 +996,7 @@ const isPathEnabledForSync = (syncConfig: Types.TlfSyncConfig, path: Types.Path)
     case 'partial':
       // TODO: when we enable partial sync lookup, remember to deal with
       // potential ".." traversal as well.
-      return false
+      return syncConfig.enabledPaths.includes(path)
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(syncConfig.mode)
       return false
@@ -1002,6 +1035,9 @@ export const getSyncStatusInMergeProps = (
         return 'awaiting-to-sync'
       }
       const inProgress: Types.PrefetchInProgress = pathItem.prefetchStatus
+      if (inProgress.bytesTotal === 0) {
+        return 'sync-error'
+      }
       return inProgress.bytesFetched / inProgress.bytesTotal
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(pathItem.prefetchStatus.state)
@@ -1117,6 +1153,9 @@ export const makeActionsForShowSendAttachmentToChat = (
 
 export const splitFileNameAndExtension = (fileName: string) =>
   ((str, idx) => [str.slice(0, idx), str.slice(idx)])(fileName, fileName.lastIndexOf('.'))
+
+export const isFolder = (path: Types.Path, pathItem: Types.PathItem) =>
+  Types.getPathLevel(path) <= 3 || pathItem.type === 'folder'
 
 export const erroredActionToMessage = (action: FsGen.Actions, error: string): string => {
   const errorIsTimeout = error.includes('context deadline exceeded')

@@ -15,7 +15,6 @@ const commonProps = {
   publicityMember: true,
   publicityTeam: true,
   savePublicity: Sb.action('savePublicity'),
-  setOpenTeamRole: Sb.action('setOpenTeamRole'),
   teamname: 'myteam',
   waitingForSavePublicity: false,
   yourOperations: {

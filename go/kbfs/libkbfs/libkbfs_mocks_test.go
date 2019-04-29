@@ -168,15 +168,17 @@ func (mr *MockBlockOpsMockRecorder) Ready(arg0, arg1, arg2 interface{}) *gomock.
 }
 
 // Shutdown mocks base method
-func (m *MockBlockOps) Shutdown() {
+func (m *MockBlockOps) Shutdown(arg0 context.Context) error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Shutdown")
+	ret := m.ctrl.Call(m, "Shutdown", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // Shutdown indicates an expected call of Shutdown
-func (mr *MockBlockOpsMockRecorder) Shutdown() *gomock.Call {
+func (mr *MockBlockOpsMockRecorder) Shutdown(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shutdown", reflect.TypeOf((*MockBlockOps)(nil).Shutdown))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shutdown", reflect.TypeOf((*MockBlockOps)(nil).Shutdown), arg0)
 }
 
 // TogglePrefetcher mocks base method

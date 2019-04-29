@@ -16,7 +16,6 @@ const profileRoute = () => {
   const SearchPopup = require('./search/container').default
   const NonUserProfile = require('./non-user-profile/container').default
   const ShowcaseTeamOffer = require('./showcase-team-offer/container').default
-  const ControlledRolePicker = require('../teams/role-picker/controlled-container').default
   const WalletConstants = require('../constants/wallets')
   const ProofsList = require('./generic/proofs-list/container').default
   const GenericEnterUsername = require('./generic/enter-username/container').default
@@ -52,13 +51,7 @@ const profileRoute = () => {
     children: {
       profile: profileRoute,
       profileAddToTeam: {
-        children: {
-          teamControlledRolePicker: {
-            children: {},
-            component: ControlledRolePicker,
-            tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile}),
-          },
-        },
+        children: {},
         component: AddToTeam,
         tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile}),
       },
@@ -144,7 +137,6 @@ export const newModalRoutes = {
     getScreen: () => require('./showcase-team-offer/container').default,
     upgraded: true,
   },
-  teamControlledRolePicker: {getScreen: () => require('../teams/role-picker/controlled-container').default},
   ...require('./pgp/routes').newRoutes,
 }
 

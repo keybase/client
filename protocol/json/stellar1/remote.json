@@ -1143,6 +1143,35 @@
         }
       ],
       "response": "DetailsPlusPayments"
+    },
+    "assetSearch": {
+      "request": [
+        {
+          "name": "assetCode",
+          "type": "string"
+        },
+        {
+          "name": "issuerAccountID",
+          "type": "string"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "Asset"
+      }
+    },
+    "changeTrustline": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        },
+        {
+          "name": "signedTransaction",
+          "type": "string"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "stellar.1"

@@ -999,6 +999,21 @@ type DiskBlockCache interface {
 	// ClearHomeTLFs should be called on logout so that the old user's TLFs
 	// are not still marked as home.
 	ClearHomeTLFs(ctx context.Context) error
+	// GetTlfSize returns the number of bytes stored for the given TLF
+	// in the cache of the given type.  If `DiskBlockAnyCache` is
+	// specified, it returns the total sum of bytes across all caches.
+	GetTlfSize(
+		ctx context.Context, tlfID tlf.ID, cacheType DiskBlockCacheType) (
+		uint64, error)
+	// GetTlfIDs returns the TLF IDs with blocks in the cache.  If
+	// `DiskBlockAnyCache` is specified, it returns the set of
+	// TLF IDs across all caches.
+	GetTlfIDs(
+		ctx context.Context, cacheType DiskBlockCacheType) ([]tlf.ID, error)
+	// WaitUntilStarted waits until the block cache of the given type
+	// has finished starting. If `DiskBlockAnyCache` is specified, it
+	// waits for all caches to start.
+	WaitUntilStarted(cacheType DiskBlockCacheType) error
 	// Shutdown cleanly shuts down the disk block cache.
 	Shutdown(ctx context.Context)
 }
@@ -1368,7 +1383,7 @@ type BlockOps interface {
 	Prefetcher() Prefetcher
 
 	// Shutdown shuts down all the workers performing Get operations
-	Shutdown()
+	Shutdown(ctx context.Context) error
 }
 
 // Duplicate kbfscrypto.AuthTokenRefreshHandler here to work around

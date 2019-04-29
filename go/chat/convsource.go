@@ -84,7 +84,7 @@ func (s *baseConversationSource) addPendingPreviews(ctx context.Context, thread 
 
 func (s *baseConversationSource) postProcessThread(ctx context.Context, uid gregor1.UID,
 	conv types.UnboxConversationInfo, thread *chat1.ThreadView, q *chat1.GetThreadQuery,
-	superXform supersedesTransform, checkPrev bool, patchPagination bool) (err error) {
+	superXform supersedesTransform, replyFiller *ReplyFiller, checkPrev bool, patchPagination bool) (err error) {
 	if q != nil && q.DisablePostProcessThread {
 		return nil
 	}
@@ -142,6 +142,13 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 	}
 	// Add attachment previews to pending messages
 	s.addPendingPreviews(ctx, thread)
+	// Set reply to messages
+	if replyFiller == nil {
+		replyFiller = NewReplyFiller(s.G())
+	}
+	if thread.Messages, err = replyFiller.Fill(ctx, uid, conv, thread.Messages); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -297,7 +304,7 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Post process thread before returning
-	if err = s.postProcessThread(ctx, uid, conv.Conv, &thread, query, nil, true, false); err != nil {
+	if err = s.postProcessThread(ctx, uid, conv.Conv, &thread, query, nil, nil, true, false); err != nil {
 		return chat1.ThreadView{}, err
 	}
 
@@ -579,7 +586,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 				s.Debug(ctx, "Pull: skipping mark as read call")
 			}
 			// Run post process stuff
-			if err = s.postProcessThread(ctx, uid, conv, &thread, query, nil, true, true); err != nil {
+			if err = s.postProcessThread(ctx, uid, conv, &thread, query, nil, nil, true, true); err != nil {
 				return thread, err
 			}
 			return thread, nil
@@ -620,7 +627,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Run post process stuff
-	if err = s.postProcessThread(ctx, uid, unboxConv, &thread, query, nil, true, true); err != nil {
+	if err = s.postProcessThread(ctx, uid, unboxConv, &thread, query, nil, nil, true, true); err != nil {
 		return thread, err
 	}
 	return thread, nil
@@ -695,10 +702,11 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 				}
 				return res, nil
 			})
+			replyFiller := NewReplyFiller(s.G(), LocalOnlyReplyFill(true))
 			// Form a fake version of a conversation so we don't need to hit the network ever here
 			var conv chat1.Conversation
 			conv.Metadata.ConversationID = convID
-			err = s.postProcessThread(ctx, uid, conv, &tv, query, superXform, false, true)
+			err = s.postProcessThread(ctx, uid, conv, &tv, query, superXform, replyFiller, false, true)
 		}
 	}()
 
@@ -899,28 +907,32 @@ func (s *HybridConversationSource) notifyExpunge(ctx context.Context, uid gregor
 	}
 }
 
-func (s *HybridConversationSource) notifyUnfurls(ctx context.Context, uid gregor1.UID,
+func (s *HybridConversationSource) notifyUpdated(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msgs []chat1.MessageUnboxed) {
 	if len(msgs) == 0 {
-		s.Debug(ctx, "notifyUnfurls: nothing to do")
+		s.Debug(ctx, "notifyUpdated: nothing to do")
 		return
 	}
-	s.Debug(ctx, "notifyUnfurls: notifying %d messages", len(msgs))
+	s.Debug(ctx, "notifyUpdated: notifying %d messages", len(msgs))
 	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
-		s.Debug(ctx, "notifyUnfurls: failed to get conv: %s", err)
+		s.Debug(ctx, "notifyUpdated: failed to get conv: %s", err)
 		return
 	}
-	unfurledMsgs, err := s.TransformSupersedes(ctx, conv.Conv, uid, msgs)
+	updatedMsgs, err := s.TransformSupersedes(ctx, conv.Conv, uid, msgs)
 	if err != nil {
-		s.Debug(ctx, "notifyUnfurls: failed to transform supersedes: %s", err)
+		s.Debug(ctx, "notifyUpdated: failed to transform supersedes: %s", err)
 		return
 	}
-	s.Debug(ctx, "notifyUnfurls: %d messages after transform", len(unfurledMsgs))
+	s.Debug(ctx, "notifyUpdated: %d messages after transform", len(updatedMsgs))
+	if updatedMsgs, err = NewReplyFiller(s.G()).Fill(ctx, uid, conv.Conv, updatedMsgs); err != nil {
+		s.Debug(ctx, "notifyUpdated: failed to fill replies %s", err)
+		return
+	}
 	notif := chat1.MessagesUpdated{
 		ConvID: convID,
 	}
-	for _, msg := range unfurledMsgs {
+	for _, msg := range updatedMsgs {
 		notif.Updates = append(notif.Updates, utils.PresentMessageUnboxed(ctx, s.G(), msg, uid, convID))
 	}
 	act := chat1.NewChatActivityWithMessagesUpdated(notif)
@@ -992,6 +1004,7 @@ func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid
 				UpdateType: chat1.StaleUpdateType_CONVUPDATE,
 			},
 		})
+		s.notifyUpdated(ctx, uid, convID, s.storage.GetExplodedReplies(ctx, convID, uid, explodedMsgs))
 	}
 }
 
@@ -1027,7 +1040,8 @@ func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
 	s.notifyExpunge(ctx, uid, convID, mergeRes)
 	s.notifyEphemeralPurge(ctx, uid, convID, mergeRes.Exploded)
 	s.notifyReactionUpdates(ctx, uid, convID, mergeRes.ReactionTargets)
-	s.notifyUnfurls(ctx, uid, convID, mergeRes.UnfurlTargets)
+	s.notifyUpdated(ctx, uid, convID, mergeRes.UnfurlTargets)
+	s.notifyUpdated(ctx, uid, convID, mergeRes.RepliesAffected)
 	return nil
 }
 

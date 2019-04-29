@@ -248,6 +248,10 @@ body {
   text-decoration: underline;
 }
 
+.hover-underline-container:hover .hover-underline-child {
+  text-decoration: underline;
+}
+
 .hover-opacity {
   opacity: 0.8;
 }

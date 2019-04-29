@@ -20,7 +20,7 @@ const OutOfDate = (p: Props) =>
         Your version of Keybase is critically out of date!
       </Kb.Text>
       <Kb.Box2 direction="vertical" style={styles.messageContainer} fullWidth={true}>
-        <Kb.Markdown type="BodySmall">{p.message}</Kb.Markdown>
+        <Kb.Markdown>{p.message}</Kb.Markdown>
       </Kb.Box2>
       {Styles.isMobile && <Kb.Button label="Update" onClick={p.onOpenAppStore} />}
     </Kb.Box2>

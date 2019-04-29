@@ -140,6 +140,18 @@ func (t *BaseServiceType) GetAPIArgKey() string {
 
 func (t *BaseServiceType) IsDevelOnly() bool { return false }
 
+func (t *BaseServiceType) GetLogoKey() string {
+	t.Lock()
+	defer t.Unlock()
+	if t.displayConf == nil {
+		return ""
+	}
+	if t.displayConf.LogoKey != "" {
+		return t.displayConf.LogoKey
+	}
+	return t.displayConf.Key
+}
+
 func (t *BaseServiceType) DisplayPriority() int {
 	t.Lock()
 	defer t.Unlock()

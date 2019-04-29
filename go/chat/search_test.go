@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -105,11 +106,11 @@ func TestChatSearchConvRegexp(t *testing.T) {
 		}
 
 		runSearch := func(query string, isRegex bool, opts chat1.SearchOpts) chat1.SearchRegexpRes {
+			opts.IsRegex = isRegex
 			res, err := tc1.chatLocalHandler().SearchRegexp(tc1.startCtx, chat1.SearchRegexpArg{
-				ConvID:  convID,
-				Query:   query,
-				IsRegex: isRegex,
-				Opts:    opts,
+				ConvID: convID,
+				Query:  query,
+				Opts:   opts,
 			})
 			require.NoError(t, err)
 			t.Logf("query: %v, searchRes: %+v", query, res)
@@ -187,9 +188,10 @@ func TestChatSearchConvRegexp(t *testing.T) {
 		require.Zero(t, len(res.Hits))
 		verifySearchDone(0)
 
-		// send from user2 and make sure we can filter
+		// send from user2 and make sure we can filter, @mention user1 to test
+		// SentTo later.
 		opts.SentBy = u2.Username
-		msgBody = "hi"
+		msgBody = fmt.Sprintf("hi @%s", u1.Username)
 		msgID4 := sendMessage(chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: msgBody,
 		}), u2)
@@ -198,6 +200,20 @@ func TestChatSearchConvRegexp(t *testing.T) {
 		verifyHit([]chat1.MessageID{msgID2, msgID3}, msgID4, nil, []chat1.ChatSearchMatch{searchMatch}, res.Hits[0])
 		verifySearchDone(1)
 		opts.SentBy = ""
+
+		// test sentTo
+		// invalid username
+		opts.SentTo = u1.Username + "foo"
+		res = runSearch(query, isRegex, opts)
+		require.Zero(t, len(res.Hits))
+		verifySearchDone(0)
+
+		opts.SentTo = u1.Username
+		res = runSearch(query, isRegex, opts)
+		require.Equal(t, 1, len(res.Hits))
+		verifyHit([]chat1.MessageID{msgID2, msgID3}, msgID4, nil, []chat1.ChatSearchMatch{searchMatch}, res.Hits[0])
+		verifySearchDone(1)
+		opts.SentTo = ""
 
 		// test sentBefore/sentAfter
 		msgRes, err := tc1.chatLocalHandler().GetMessagesLocal(tc1.startCtx, chat1.GetMessagesLocalArg{
@@ -210,21 +226,21 @@ func TestChatSearchConvRegexp(t *testing.T) {
 		msg4 := msgRes.Messages[1]
 
 		// nothing sent after msg4
-		opts.SentAfter = msg4.GetCtime() + 500
+		opts.SentAfter = msg4.Ctime() + 500
 		res = runSearch(query, isRegex, opts)
 		require.Zero(t, len(res.Hits))
 
-		opts.SentAfter = msg1.GetCtime()
+		opts.SentAfter = msg1.Ctime()
 		res = runSearch(query, isRegex, opts)
 		require.Equal(t, 4, len(res.Hits))
 
 		// nothing sent before msg1
 		opts.SentAfter = 0
-		opts.SentBefore = msg1.GetCtime() - 500
+		opts.SentBefore = msg1.Ctime() - 500
 		res = runSearch(query, isRegex, opts)
 		require.Zero(t, len(res.Hits))
 
-		opts.SentBefore = msg4.GetCtime()
+		opts.SentBefore = msg4.Ctime()
 		res = runSearch(query, isRegex, opts)
 		require.Equal(t, 4, len(res.Hits))
 
@@ -348,9 +364,11 @@ func TestChatSearchConvRegexp(t *testing.T) {
 
 		// Test invalid regex
 		_, err = tc1.chatLocalHandler().SearchRegexp(tc1.startCtx, chat1.SearchRegexpArg{
-			ConvID:  convID,
-			Query:   "(",
-			IsRegex: true,
+			ConvID: convID,
+			Query:  "(",
+			Opts: chat1.SearchOpts{
+				IsRegex: true,
+			},
 		})
 		require.Error(t, err)
 	})
@@ -542,6 +560,7 @@ func TestChatSearchInbox(t *testing.T) {
 			BeforeContext: 2,
 			AfterContext:  2,
 			MaxMessages:   1000,
+			MaxNameConvs:  1,
 		}
 
 		// Test basic equality match
@@ -702,12 +721,12 @@ func TestChatSearchInbox(t *testing.T) {
 		msg4 := msgRes.Messages[1]
 
 		// nothing sent after msg4
-		opts.SentAfter = msg4.GetCtime() + 500
+		opts.SentAfter = msg4.Ctime() + 500
 		res = runSearch(query, opts, false /* expectedReindex*/)
 		require.Zero(t, len(res.Hits))
 		verifySearchDone(0)
 
-		opts.SentAfter = msg1.GetCtime()
+		opts.SentAfter = msg1.Ctime()
 		res = runSearch(query, opts, false /* expectedReindex*/)
 		require.Equal(t, 1, len(res.Hits))
 		require.Equal(t, 4, len(res.Hits[0].Hits))
@@ -715,12 +734,12 @@ func TestChatSearchInbox(t *testing.T) {
 
 		// nothing sent before msg1
 		opts.SentAfter = 0
-		opts.SentBefore = msg1.GetCtime() - 500
+		opts.SentBefore = msg1.Ctime() - 500
 		res = runSearch(query, opts, false /* expectedReindex*/)
 		require.Zero(t, len(res.Hits))
 		verifySearchDone(0)
 
-		opts.SentBefore = msg4.GetCtime()
+		opts.SentBefore = msg4.Ctime()
 		res = runSearch(query, opts, false /* expectedReindex*/)
 		require.Equal(t, 1, len(res.Hits))
 		require.Equal(t, 4, len(res.Hits[0].Hits))
@@ -838,7 +857,6 @@ func TestChatSearchInbox(t *testing.T) {
 
 		// DB nuke, ensure that we reindex after the search
 		g1.LocalChatDb.Nuke()
-		indexer1.ClearCache()
 		opts.ReindexMode = chat1.ReIndexingMode_PRESEARCH_SYNC // force reindex so we're fully up to date.
 		res = runSearch(query, opts, true /* expectedReindex*/)
 		require.Equal(t, 1, len(res.Hits))
@@ -856,7 +874,6 @@ func TestChatSearchInbox(t *testing.T) {
 		// Verify POSTSEARCH_SYNC
 		ictx := globals.CtxAddIdentifyMode(ctx, keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil)
 		g1.LocalChatDb.Nuke()
-		indexer1.ClearCache()
 		indexer1.SelectiveSync(ictx, uid1, true /* forceReindex */)
 		opts.ReindexMode = chat1.ReIndexingMode_POSTSEARCH_SYNC
 		res = runSearch(query, opts, true /* expectedReindex*/)
@@ -900,5 +917,33 @@ func TestChatSearchInbox(t *testing.T) {
 		expectedIndex.Alias = map[string]map[string]chat1.EmptyStruct{}
 		expectedIndex.Metadata.SeenIDs[msgID9] = chat1.EmptyStruct{}
 		verifyIndex(expectedIndex)
+
+		// test sentTo
+		msgBody = "hello @" + u1.Username
+		query = "hello"
+		searchMatch = chat1.ChatSearchMatch{
+			StartIndex: 0,
+			EndIndex:   5,
+			Match:      "hello",
+		}
+		msgID10 := sendMessage(chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: msgBody,
+		}), u2)
+
+		// invalid username
+		opts.SentTo = u1.Username + "foo"
+		res = runSearch(query, opts, false /* expectedReindex*/)
+		require.Zero(t, len(res.Hits))
+		verifySearchDone(0)
+
+		opts.SentTo = u1.Username
+		res = runSearch(query, opts, false /* expectedReindex*/)
+		require.Equal(t, 1, len(res.Hits))
+		convHit = res.Hits[0]
+		require.Equal(t, convID, convHit.ConvID)
+		require.Equal(t, 1, len(convHit.Hits))
+		verifyHit(convID, []chat1.MessageID{}, msgID10, nil, []chat1.ChatSearchMatch{searchMatch}, convHit.Hits[0])
+		verifySearchDone(1)
+		opts.SentTo = ""
 	})
 }

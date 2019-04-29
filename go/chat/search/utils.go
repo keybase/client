@@ -154,26 +154,40 @@ func getUIMsgs(ctx context.Context, g *globals.Context, convID chat1.Conversatio
 
 const beforeFilter = "before:"
 const afterFilter = "after:"
+const fromFilter = "from:"
+const toFilter = "to:"
 
-var fromRegex = regexp.MustCompile("from:(@?[a-z0-9][a-z0-9_]+)")
+var senderRegex = regexp.MustCompile(fmt.Sprintf(
+	"(%s|%s)(@?[a-z0-9][a-z0-9_]+)", fromFilter, toFilter))
 var dateRangeRegex = regexp.MustCompile(fmt.Sprintf(
 	`(%s|%s)(\d{1,4}[-/\.]+\d{1,2}[-/\.]+\d{1,4})`, beforeFilter, afterFilter))
 
-func UpgradeRegexpArgFromQuery(arg chat1.SearchRegexpArg, username string) chat1.SearchRegexpArg {
-	query := arg.Query
+func UpgradeSearchOptsFromQuery(query string, opts chat1.SearchOpts, username string) (string, chat1.SearchOpts) {
+	query = strings.Trim(query, " ")
 	var hasQueryOpts bool
-	// From
-	if match := fromRegex.FindStringSubmatch(query); match != nil && len(match) == 2 {
+
+	// To/From
+	matches := senderRegex.FindAllStringSubmatch(query, 2)
+	for _, match := range matches {
+		// [fullMatch, filter, sender]
+		if len(match) != 3 {
+			continue
+		}
 		hasQueryOpts = true
 		query = strings.TrimSpace(strings.Replace(query, match[0], "", 1))
-		sentBy := strings.TrimSpace(strings.Replace(match[1], "@", "", -1))
-		if sentBy == "me" {
-			sentBy = username
+		sender := strings.TrimSpace(strings.Replace(match[2], "@", "", -1))
+		if sender == "me" {
+			sender = username
 		}
-		arg.Opts.SentBy = sentBy
+		switch match[1] {
+		case fromFilter:
+			opts.SentBy = sender
+		case toFilter:
+			opts.SentTo = sender
+		}
 	}
 
-	matches := dateRangeRegex.FindAllStringSubmatch(query, 2)
+	matches = dateRangeRegex.FindAllStringSubmatch(query, 2)
 	for _, match := range matches {
 		// [fullMatch, filter, dateRange]
 		if len(match) != 3 {
@@ -189,9 +203,9 @@ func UpgradeRegexpArgFromQuery(arg chat1.SearchRegexpArg, username string) chat1
 		gtime := gregor1.ToTime(time)
 		switch match[1] {
 		case beforeFilter:
-			arg.Opts.SentBefore = gtime
+			opts.SentBefore = gtime
 		case afterFilter:
-			arg.Opts.SentAfter = gtime
+			opts.SentAfter = gtime
 		}
 	}
 
@@ -201,8 +215,7 @@ func UpgradeRegexpArgFromQuery(arg chat1.SearchRegexpArg, username string) chat1
 	// IsRegex
 	if len(query) > 2 && query[0] == '/' && query[len(query)-1] == '/' {
 		query = query[1 : len(query)-1]
-		arg.IsRegex = true
+		opts.IsRegex = true
 	}
-	arg.Query = query
-	return arg
+	return query, opts
 }

@@ -10,6 +10,7 @@ import Confirm from './confirm-container'
 
 type OwnProps = {|
   floatingMenuProps: FloatingMenuProps,
+  mode: 'row' | 'screen',
   path: Types.Path,
   routePath: I.List<string>,
 |}
@@ -20,7 +21,14 @@ const mapStateToProps = state => ({
 
 const ChooseView = props => {
   if (props.view === 'root' || props.view === 'share') {
-    return <Menu routePath={props.routePath} path={props.path} floatingMenuProps={props.floatingMenuProps} />
+    return (
+      <Menu
+        routePath={props.routePath}
+        path={props.path}
+        mode={props.mode}
+        floatingMenuProps={props.floatingMenuProps}
+      />
+    )
   } else if (props.view === 'confirm-save-media' || props.view === 'confirm-send-to-other-app') {
     return <Confirm path={props.path} floatingMenuProps={props.floatingMenuProps} />
   } else {

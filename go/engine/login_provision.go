@@ -31,7 +31,7 @@ type loginProvision struct {
 	hasDevice      bool
 	perUserKeyring *libkb.PerUserKeyring
 
-	resetPending  bool
+	skippedLogin  bool
 	resetComplete bool
 }
 
@@ -85,6 +85,7 @@ func (e *loginProvision) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		&DeviceWrap{},
 		&PaperKeyPrimary{},
+		&AccountReset{},
 	}
 }
 
@@ -122,7 +123,7 @@ func (e *loginProvision) Run(m libkb.MetaContext) error {
 
 		return err
 	}
-	if e.resetPending || e.resetComplete {
+	if e.skippedLogin || e.resetComplete {
 		return nil
 	}
 
@@ -729,7 +730,7 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 		idMap[d.ID] = d
 	}
 
-	pipelineEnabled := m.G().Env.GetFeatureFlags().HasFeature(libkb.EnvironmentFeatureAutoresetPipeline)
+	autoresetEnabled := m.G().Env.GetFeatureFlags().HasFeature(libkb.EnvironmentFeatureAutoresetPipeline)
 
 	// check to see if they have a PUK, in which case they must select a device
 	hasPUK, err := e.hasPerUserKey(m)
@@ -739,7 +740,7 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 
 	arg := keybase1.ChooseDeviceArg{
 		Devices:           expDevices,
-		CanSelectNoDevice: (pgp && !hasPUK) || pipelineEnabled,
+		CanSelectNoDevice: (pgp && !hasPUK) || autoresetEnabled,
 	}
 	id, err := m.UIs().ProvisionUI.ChooseDevice(m.Ctx(), arg)
 	if err != nil {
@@ -749,29 +750,47 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 	if len(id) == 0 {
 		// they chose not to use a device
 		m.Debug("user has devices, but chose not to use any of them")
-		if pgp {
-			if hasPUK {
-				return libkb.ProvisionViaDeviceRequiredError{}
+
+		if pgp && !hasPUK {
+			// they have pgp keys, so try that:
+			err = e.tryPGP(m)
+			if err == nil {
+				// Provisioning succeeded
+				return nil
 			}
 
-			// they have pgp keys, so try that:
-			if err := e.tryPGP(m); err != nil {
-				// TODO CORE-10630: consider this flow with autoreset
+			// If autoreset is enabled, an error here should passthrough into
+			// autoreset.
+			if autoresetEnabled {
+				m.Warning("Unable to log in with a PGP signature: %s", err.Error())
+			} else {
 				return err
 			}
-
-			return nil
 		}
 
-		if !pipelineEnabled {
+		// Error differs depending on the input.
+		if !autoresetEnabled {
+			if pgp && hasPUK {
+				return libkb.ProvisionViaDeviceRequiredError{}
+			}
 			return libkb.ProvisionUnavailableError{}
 		}
 
-		// TODO CORE-10631 make this a UI
-		m.G().Log.Info(`
-The only way to provision this device is with access to one of your existing
-devices. You can try again later, or if you have lost access to all your
-existing devices you can reset your account and start fresh:`)
+		// Prompt the user whether they'd like to enter the reset flow.
+		// We will ask them for a password in AccountReset.
+		enterReset, err := m.UIs().LoginUI.PromptResetAccount(m.Ctx(), keybase1.PromptResetAccountArg{
+			Kind: keybase1.ResetPromptType_ENTER_NO_DEVICES,
+		})
+		if err != nil {
+			return err
+		}
+
+		if !enterReset {
+			// User had to explicitly decline entering the pipeline so in order to prevent
+			// confusion prevent further prompts by completing a noop login flow.
+			e.skippedLogin = true
+			return nil
+		}
 
 		// go into the reset flow
 		eng := NewAccountReset(m.G(), e.arg.User.GetName())
@@ -780,8 +799,8 @@ existing devices you can reset your account and start fresh:`)
 			return err
 		}
 
-		e.resetPending = eng.resetPending
-		e.resetComplete = eng.resetComplete
+		e.skippedLogin = eng.ResetPending()
+		e.resetComplete = eng.ResetComplete()
 		return nil
 	}
 
@@ -1173,6 +1192,13 @@ func (e *loginProvision) cleanup(m libkb.MetaContext) {
 	// the best way to cleanup is to logout...
 	m.Debug("an error occurred during provisioning, logging out")
 	m.G().Logout(m.Ctx())
+}
+
+func (e *loginProvision) LoggedIn() bool {
+	return !e.skippedLogin
+}
+func (e *loginProvision) AccountReset() bool {
+	return e.resetComplete
 }
 
 var devtypeSortOrder = map[string]int{libkb.DeviceTypeMobile: 0, libkb.DeviceTypeDesktop: 1, libkb.DeviceTypePaper: 2}

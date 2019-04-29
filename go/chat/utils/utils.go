@@ -1430,6 +1430,11 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			so := valid.ClientHeader.OutboxID.String()
 			strOutboxID = &so
 		}
+		var replyTo *chat1.UIMessage
+		if valid.ReplyTo != nil {
+			replyTo = new(chat1.UIMessage)
+			*replyTo = PresentMessageUnboxed(ctx, g, *valid.ReplyTo, uid, convID)
+		}
 		res = chat1.NewUIMessageWithValid(chat1.UIMessageValid{
 			MessageID:             rawMsg.GetMessageID(),
 			Ctime:                 valid.ServerHeader.Ctime,
@@ -1460,6 +1465,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Unfurls:               PresentUnfurls(ctx, g, uid, convID, valid.Unfurls),
 			IsDeleteable:          IsDeleteableByDeleteMessageType(rawMsg.GetMessageType()),
 			IsEditable:            IsEditableByEditMessageType(rawMsg.GetMessageType()),
+			ReplyTo:               replyTo,
 			IsCollapsed: collapses.IsCollapsed(ctx, uid, convID, rawMsg.GetMessageID(),
 				rawMsg.GetMessageType()),
 		})
@@ -1488,6 +1494,11 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 				filename = msgBody.Attachment().Object.Filename
 			}
 		}
+		var replyTo *chat1.UIMessage
+		if rawMsg.Outbox().ReplyTo != nil {
+			replyTo = new(chat1.UIMessage)
+			*replyTo = PresentMessageUnboxed(ctx, g, *rawMsg.Outbox().ReplyTo, uid, convID)
+		}
 		res = chat1.NewUIMessageWithOutbox(chat1.UIMessageOutbox{
 			State:             rawMsg.Outbox().State,
 			OutboxID:          rawMsg.Outbox().OutboxID.String(),
@@ -1501,6 +1512,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Filename:          filename,
 			IsEphemeral:       rawMsg.Outbox().Msg.IsEphemeral(),
 			FlipGameID:        presentFlipGameID(ctx, g, uid, convID, rawMsg),
+			ReplyTo:           replyTo,
 		})
 	case chat1.MessageUnboxedState_ERROR:
 		res = chat1.NewUIMessageWithError(rawMsg.Error())

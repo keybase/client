@@ -5,6 +5,7 @@ import type {ConversationIDKey} from './chat2'
 import type {RetentionPolicy} from './retention-policy'
 
 export type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner'
+export type DisabledReasonsForRolePicker = {[key: TeamRoleType]: string}
 export type MaybeTeamRoleType = 'none' | TeamRoleType
 export type TeamOperations = RPCTypes.TeamOperation
 export type PublicitySettings = {

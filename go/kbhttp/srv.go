@@ -95,6 +95,7 @@ type Srv struct {
 
 	listenerSource ListenerSource
 	server         *http.Server
+	doneCh         chan struct{}
 }
 
 // NewSrv creates a new HTTP server with the given listener
@@ -125,12 +126,14 @@ func (h *Srv) Start() (err error) {
 		Addr:    address,
 		Handler: h.ServeMux,
 	}
-	go func(server *http.Server) {
+	h.doneCh = make(chan struct{})
+	go func(server *http.Server, doneCh chan struct{}) {
 		h.log.Debug("kbhttp.Srv: server starting on: %s", address)
 		if err := server.Serve(listener); err != nil {
 			h.log.Debug("kbhttp.Srv: server died: %s", err)
 		}
-	}(h.server)
+		close(doneCh)
+	}(h.server, h.doneCh)
 	return nil
 }
 
@@ -152,11 +155,15 @@ func (h *Srv) Addr() (string, error) {
 }
 
 // Stop stops listening on the server's listener source.
-func (h *Srv) Stop() {
+func (h *Srv) Stop() <-chan struct{} {
 	h.Lock()
 	defer h.Unlock()
 	if h.server != nil {
 		h.server.Close()
 		h.server = nil
+		return h.doneCh
 	}
+	doneCh := make(chan struct{})
+	close(doneCh)
+	return doneCh
 }

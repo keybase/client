@@ -228,7 +228,7 @@ func DefaultInitParams(ctx Context) InitParams {
 		DiskCacheMode:                  DiskCacheModeLocal,
 		DiskBlockCacheFraction:         0.10,
 		SyncBlockCacheFraction:         1.00,
-		Mode: InitDefaultString,
+		Mode:                           InitDefaultString,
 	}
 }
 
@@ -565,6 +565,7 @@ func InitWithLogPrefix(
 			case SIGINT:
 			default:
 				if interruptErr != nil {
+					log.Info("Failed to unmount before exit: %s", interruptErr)
 					os.Exit(1)
 				} else {
 					// Do not return 128 + signal since kbfsfuse is not a shell command

@@ -13,6 +13,7 @@ import inputArea from './conversation/input-area/normal/index.stories'
 import manageChannels from './manage-channels/index.stories'
 import messagePopup from './conversation/messages/message-popup/index.stories'
 import paymentStatus from './payments/status/index.stories'
+import replyPreview from './conversation/reply-preview/index.stories'
 import setExplodingMessage from './conversation/messages/set-explode-popup/index.stories'
 import suggestors from './conversation/input-area/suggestors/index.stories'
 import messages from './conversation/messages/index.stories'
@@ -37,6 +38,7 @@ const load = () => {
     messagePopup,
     messages,
     paymentStatus,
+    replyPreview,
     setExplodingMessage,
     suggestors,
     thread,

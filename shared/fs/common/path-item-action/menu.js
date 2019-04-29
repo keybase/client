@@ -22,6 +22,10 @@ type Props = {|
   download?: ?() => void,
   ignoreTlf?: ?() => void,
   moveOrCopy?: ?() => void,
+  me: string,
+  newFolder?: ?() => void,
+  openChatNonTeam?: ?() => void,
+  openChatTeam?: ?() => void,
   pathItemType: Types.PathType,
   saveMedia?: ?ActionOrInProgress,
   showInSystemFileManager?: ?() => void,
@@ -55,6 +59,31 @@ const hideMenuOnClick = (onClick: (evt?: SyntheticEvent<>) => void, hideMenu: ()
 }
 
 const makeMenuItems = (props: Props, hideMenu: () => void) => [
+  'Divider',
+  ...(props.newFolder
+    ? [
+        {
+          onClick: hideMenuOnClick(props.newFolder, hideMenu),
+          title: 'New folder',
+        },
+      ]
+    : []),
+  ...(props.openChatTeam
+    ? [
+        {
+          onClick: hideMenuOnClick(props.openChatTeam, hideMenu),
+          title: 'Chat with team',
+        },
+      ]
+    : []),
+  ...(props.openChatNonTeam
+    ? [
+        {
+          onClick: hideMenuOnClick(props.openChatNonTeam, hideMenu),
+          title: 'Chat with them',
+        },
+      ]
+    : []),
   ...(props.showInSystemFileManager
     ? [
         {
@@ -78,6 +107,14 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => [
         },
       ]
     : []),
+  ...(props.copyPath
+    ? [
+        {
+          onClick: hideMenuOnClick(props.copyPath, hideMenu),
+          title: 'Copy path',
+        },
+      ]
+    : []),
   ...(props.share
     ? [
         {
@@ -95,7 +132,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => [
             props.sendLinkToChat()
           },
           subTitle: `The ${props.pathItemType === 'folder' ? 'folder' : 'file'} will be sent as a link.`,
-          title: `Send to ${Constants.isTeamPath(props.path) ? 'team' : 'group'} conversation`,
+          title: `Send to ${Constants.getChatTarget(props.path, props.me)}`,
         },
       ]
     : []),
@@ -129,14 +166,6 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => [
         },
       ]
     : []),
-  ...(props.copyPath
-    ? [
-        {
-          onClick: hideMenuOnClick(props.copyPath, hideMenu),
-          title: 'Copy path',
-        },
-      ]
-    : []),
   ...(props.download
     ? [
         {
@@ -150,7 +179,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => [
         {
           danger: true,
           onClick: hideMenuOnClick(props.ignoreTlf, hideMenu),
-          subTitle: 'The folder will no longer appear in your folders list.',
+          subTitle: 'Will hide the folder from your list.',
           title: 'Ignore this folder',
         },
       ]

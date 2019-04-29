@@ -209,6 +209,15 @@ func (a *Asset) IsNativeXLM() bool {
 	return a.Type == "native"
 }
 
+// String returns a display friendly form of the asset, compatible with
+// xdr.Asset fomat: type/code/issuer or just "native" if asset is native XLM.
+func (a Asset) String() string {
+	if a.Type == "native" {
+		return a.Type
+	}
+	return fmt.Sprintf("%s/%s/%s", a.Type, a.Code, a.Issuer)
+}
+
 func AssetNative() Asset {
 	return Asset{
 		Type:   "native",
@@ -372,5 +381,25 @@ func NewChatConversationID(b []byte) *ChatConversationID {
 func (a *AccountDetails) SetDefaultDisplayCurrency() {
 	if a.DisplayCurrency == "" {
 		a.DisplayCurrency = "USD"
+	}
+}
+
+func (a AssetCode) String() string {
+	return string(a)
+}
+
+func (a AssetCode) Eq(other AssetCode) bool {
+	return a == other
+}
+
+func (a AssetCode) GetAssetType() string {
+	switch {
+	case len(a) >= 1 && len(a) <= 4:
+		return "credit_alphanum4"
+	case len(a) >= 5 && len(a) <= 12:
+		return "credit_alphanum12"
+	default:
+		// nil or invalid AssetCode.
+		return "asset_code_invalid"
 	}
 }

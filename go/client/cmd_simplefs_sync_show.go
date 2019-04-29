@@ -37,9 +37,15 @@ func NewCmdSimpleFSSyncShow(
 	}
 }
 
+func printBytesStored(ui libkb.TerminalUI, bytes int64, tab string) {
+	if bytes >= 0 {
+		ui.Printf("%s%s bytes stored\n", tab, humanizeBytes(bytes, false))
+	}
+}
+
 func printPrefetchStatus(
 	ui libkb.TerminalUI, status keybase1.PrefetchStatus,
-	progress keybase1.PrefetchProgress, tab string) {
+	progress keybase1.PrefetchProgress, totalBytes int64, tab string) {
 	switch status {
 	case keybase1.PrefetchStatus_COMPLETE:
 		ui.Printf("%sStatus: fully synced\n", tab)
@@ -62,6 +68,7 @@ func printPrefetchStatus(
 	default:
 		ui.Printf("%sStatus: unknown\n", tab)
 	}
+	printBytesStored(ui, totalBytes, tab)
 }
 
 func appendToTlfPath(tlfPath keybase1.Path, p string) (keybase1.Path, error) {
@@ -87,7 +94,8 @@ func printFolderStatus(
 	case keybase1.FolderSyncMode_ENABLED:
 		ui.Printf("%sSyncing enabled\n", tab)
 		printPrefetchStatus(
-			ui, status.PrefetchStatus, status.PrefetchProgress, tab)
+			ui, status.PrefetchStatus, status.PrefetchProgress,
+			status.StoredBytesTotal, tab)
 		if doPrintLocalStats {
 			printLocalStats(ui, status)
 		}
@@ -114,8 +122,9 @@ func printFolderStatus(
 
 			ui.Printf("%s\t%s\n", tab, p)
 			printPrefetchStatus(
-				ui, e.PrefetchStatus, e.PrefetchProgress, tab+"\t\t")
+				ui, e.PrefetchStatus, e.PrefetchProgress, -1, tab+"\t\t")
 		}
+		printBytesStored(ui, status.StoredBytesTotal, tab)
 	default:
 		return fmt.Errorf("Unknown sync mode: %s", config.Mode)
 	}
@@ -150,6 +159,7 @@ func (c *CmdSimpleFSSyncShow) Run() error {
 			}
 			ui.Printf("\n")
 		}
+		printBytesStored(ui, res.OverallStatus.StoredBytesTotal, "")
 		printLocalStats(ui, res.OverallStatus)
 	} else {
 		res, err := cli.SimpleFSFolderSyncConfigAndStatus(ctx, c.path)

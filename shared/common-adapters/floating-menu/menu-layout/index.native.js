@@ -56,12 +56,14 @@ class MenuLayout extends React.Component<MenuLayoutProps> {
       }
       return arr
     }, [])
+    const beginningDivider = this.props.items[0] === 'Divider'
 
     return (
       <SafeAreaView style={styles.safeArea}>
         <Box style={Styles.collapseStyles([styles.menuBox, this.props.style])}>
           {/* Display header if there is one */}
           {this.props.header && this.props.header.view}
+          {beginningDivider && <Divider style={styles.divider} />}
           <ScrollView
             alwaysBounceVertical={false}
             style={Styles.collapseStyles([
@@ -121,8 +123,8 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
     backgroundColor: Styles.globalColors.white,
+    height: 56,
     justifyContent: 'center',
-    minHeight: 56,
     paddingBottom: Styles.globalMargins.tiny,
     paddingLeft: Styles.globalMargins.medium,
     paddingRight: Styles.globalMargins.medium,

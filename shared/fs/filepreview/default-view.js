@@ -45,7 +45,7 @@ const DefaultView = (props: DefaultViewProps) => (
         </Kb.Text>
       )}
       {// Enable this button for desktop when we have in-app sharing.
-      hasShare(props.path, props.pathItem) && (
+      hasShare('screen', props.path, props.pathItem) && (
         <>
           <Kb.Box2 direction="vertical" gap="medium" gapStart={true} />
           <PathItemAction
@@ -58,6 +58,7 @@ const DefaultView = (props: DefaultViewProps) => (
             path={props.path}
             routePath={props.routePath}
             initView="share"
+            mode="screen"
           />
         </>
       )}

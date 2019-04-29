@@ -103,7 +103,7 @@ const Unreachable = props => (
       style={Styles.collapseStyles([styles.opacity75, styles.inlineIcon])}
     />
     <Kb.Box2 direction="vertical" style={styles.flexOne}>
-      <Kb.Text type="BodySemibold" style={styles.placeholder}>
+      <Kb.Text type="BodySemibold" style={styles.unreachablePlaceholder}>
         <Kb.Text type="BodySemibold" style={styles.colorRed}>
           {props.username}
         </Kb.Text>
@@ -171,9 +171,11 @@ class _EnterUsername extends React.Component<Props> {
               style={styles.serviceProofIcon}
             />
           </Kb.Box2>
-          <Kb.Box2 direction="vertical" alignItems="center">
+          <Kb.Box2 direction="vertical" alignItems="center" style={styles.serviceMeta}>
             <Kb.Text type="BodySemibold">{props.serviceName}</Kb.Text>
-            <Kb.Text type="BodySmall">{props.serviceSub}</Kb.Text>
+            <Kb.Text type="BodySmall" center={true}>
+              {props.serviceSub}
+            </Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
         <Kb.Box2
@@ -319,10 +321,26 @@ const styles = Styles.styleSheetCreate({
   serviceIconHeaderContainer: {
     paddingTop: Styles.globalMargins.medium,
   },
+  serviceMeta: Styles.platformStyles({
+    isElectron: {
+      paddingLeft: Styles.globalMargins.medium,
+      paddingRight: Styles.globalMargins.medium,
+    },
+    isMobile: {
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+    },
+  }),
   serviceProofIcon: {bottom: 0, position: 'absolute', right: 0},
   unreachableBox: Styles.platformStyles({
     common: {...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall)},
     isElectron: {width: 360},
+  }),
+  unreachablePlaceholder: Styles.platformStyles({
+    common: {color: Styles.globalColors.black_40},
+    isElectron: {
+      wordBreak: 'break-all',
+    },
   }),
   warningText: {color: Styles.globalColors.brown_75, marginTop: Styles.globalMargins.small},
 })

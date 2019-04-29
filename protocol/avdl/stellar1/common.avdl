@@ -10,6 +10,7 @@ protocol common {
   @typedef("long")   record TimeMs {} // ms since epoch
   @typedef("bytes")  record Hash {}
   @typedef("string") record KeybaseRequestID {}
+  @typedef("string") record AssetCode {}
 
   record Asset {
     string type; // 'native' | 'credit_alphanum4' | 'credit_alphanum12'
@@ -145,5 +146,13 @@ protocol common {
     NONE_0,
     USER_1,  // Each of the user's devices has access to the keys
     MOBILE_2 // Only the user's mobile devices have access to the keys
+  }
+
+  // Record describing trustline input argument for trustline operations - when
+  // changing trustlines, caller only needs to supply issuer account ID and asset
+  // code.
+  record Trustline {
+    AssetCode assetCode;
+    AccountID issuer;
   }
 }

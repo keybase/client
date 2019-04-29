@@ -262,6 +262,9 @@ func (i *UIAdapter) rowPartial(mctx libkb.MetaContext, proof keybase1.RemoteProo
 					row.SiteURL = profileURL
 				}
 			}
+			iconKey = serviceType.GetLogoKey()
+		} else {
+			iconKey = proof.Key
 		}
 		row.ProofURL = i.makeSigchainViewURL(mctx, proof.SigID)
 	case keybase1.ProofType_GENERIC_WEB_SITE:

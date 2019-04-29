@@ -248,30 +248,30 @@ const mapPropProviderProps = {
 
   // Big Team B
   bigTeamBHeader: {
-    teamname: 'techtonica',
+    teamname: 'techtonica.long.team.name.with.ellipsis',
     memberCount: 0, // Handled by PropProviders.TeamDropdownMenu
     badgeSubscribe: false,
   },
   bigTeamBChannel1: {
     ...commonBigChannel,
-    teamname: 'techtonica',
+    teamname: 'techtonica.long.team.name.with.ellipsis',
     channelname: 'general',
     isSelected: !isMobile,
   },
   bigTeamBChannel2: {
     ...commonBigChannel,
-    teamname: 'techtonica',
+    teamname: 'techtonica.long.team.name.with.ellipsis',
     channelname: 'ignore-selected-below',
   },
   bigTeamBChannel3: {
     ...commonBigChannel,
-    teamname: 'techtonica',
+    teamname: 'techtonica.long.team.name.with.ellipsis',
     channelname: 'random',
     isMuted: true,
   },
   bigTeamBChannel4: {
     ...commonBigChannel,
-    teamname: 'techtonica',
+    teamname: 'techtonica.long.team.name.with.ellipsis',
     channelname: 'happy-hour',
     isMuted: true,
   },
@@ -324,7 +324,7 @@ const mapPropProviderProps = {
  * Uses either conversationIDKey or teamname as a key in mapPropProviderProps
  */
 const getPropProviderProps = own => {
-  if (own.conversationIDKey) {
+  if (own.conversationIDKey && own.conversationIDKey !== 'EMPTY') {
     const props = mapPropProviderProps[own.conversationIDKey]
     return {
       ...props,
@@ -387,10 +387,14 @@ const propsInboxTeam = {
     makeRowItemBigChannel('bigTeamAChannel4', 'Keybase', 'video-games'),
 
     makeRowItemBigHeader('bigTeamBHeader'),
-    makeRowItemBigChannel('bigTeamBChannel1', 'techtonica', 'general'),
-    makeRowItemBigChannel('bigTeamBChannel2', 'techtonica', 'ignore-selected-below'),
-    makeRowItemBigChannel('bigTeamBChannel3', 'techtonica', 'random'),
-    makeRowItemBigChannel('bigTeamBChannel4', 'techtonica', 'happy-hour'),
+    makeRowItemBigChannel('bigTeamBChannel1', 'techtonica.long.team.name.with.ellipsis', 'general'),
+    makeRowItemBigChannel(
+      'bigTeamBChannel2',
+      'techtonica.long.team.name.with.ellipsis',
+      'ignore-selected-below'
+    ),
+    makeRowItemBigChannel('bigTeamBChannel3', 'techtonica.long.team.name.with.ellipsis', 'random'),
+    makeRowItemBigChannel('bigTeamBChannel4', 'techtonica.long.team.name.with.ellipsis', 'happy-hour'),
   ],
 }
 
@@ -418,10 +422,14 @@ const propsInboxDivider = {
 
     // Big Team B
     makeRowItemBigHeader('bigTeamBHeader'),
-    makeRowItemBigChannel('bigTeamBChannel1', 'techtonica', 'general'),
-    makeRowItemBigChannel('bigTeamBChannel2', 'techtonica', 'ignore-selected-below'),
-    makeRowItemBigChannel('bigTeamBChannel3', 'techtonica', 'random'),
-    makeRowItemBigChannel('bigTeamBChannel4', 'techtonica', 'happy-hour'),
+    makeRowItemBigChannel('bigTeamBChannel1', 'techtonica.long.team.name.with.ellipsis', 'general'),
+    makeRowItemBigChannel(
+      'bigTeamBChannel2',
+      'techtonica.long.team.name.with.ellipsis',
+      'ignore-selected-below'
+    ),
+    makeRowItemBigChannel('bigTeamBChannel3', 'techtonica.long.team.name.with.ellipsis', 'random'),
+    makeRowItemBigChannel('bigTeamBChannel4', 'techtonica.long.team.name.with.ellipsis', 'happy-hour'),
   ],
 }
 
@@ -449,7 +457,7 @@ const propsInboxExpanded = {
  */
 const teamMemberCounts = {
   Keybase: 30,
-  techtonica: 30,
+  'techtonica.long.team.name.with.ellipsis': 30,
   stripe: 1337,
 }
 
@@ -494,10 +502,8 @@ const provider = Sb.createPropProviderWithCommon({
     style: {marginBottom: globalMargins.tiny},
     toggle: Sb.action('onToggle'),
   }),
-  // BigTeamHeader is wrapped by OverlayParent
-  OverlayParent: getPropProviderProps,
+  InboxBigTeamHeader: getPropProviderProps,
   SmallTeam: getPropProviderProps,
-  BigTeamHeader: getPropProviderProps,
   BigTeamsDivider: ownProps => ({badgeCount: 5}),
   BigTeamChannel: getPropProviderProps,
   FilterSmallTeam: getPropProviderProps,

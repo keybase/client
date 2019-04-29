@@ -622,6 +622,7 @@ type ServiceType interface {
 		kbUsername, remoteUsername string, sigID keybase1.SigID) (string, error)
 	GetAPIArgKey() string
 	IsDevelOnly() bool
+	GetLogoKey() string
 
 	MakeProofChecker(l RemoteProofChainLink) ProofChecker
 	SetDisplayConfig(*keybase1.ServiceDisplayConfig)
@@ -643,6 +644,7 @@ type ExternalServicesCollector interface {
 // parameterized proofs.
 type MerkleStore interface {
 	GetLatestEntry(m MetaContext) (keybase1.MerkleStoreEntry, error)
+	GetLatestEntryWithKnown(MetaContext, *keybase1.MerkleStoreKitHash) (*keybase1.MerkleStoreEntry, error)
 }
 
 // UserChangedHandler is a generic interface for handling user changed events.

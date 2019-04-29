@@ -168,15 +168,12 @@ func TestTokenize(t *testing.T) {
 	require.Nil(t, tokenize(""))
 }
 
-func TestUpgradeRegexpArg(t *testing.T) {
+func TestUpgradeSearchOptsFromQuery(t *testing.T) {
 	username := "mikem"
 	sentByCase := func(query, resQuery, resSentBy string) {
-		arg := chat1.SearchRegexpArg{
-			Query: query,
-		}
-		res := UpgradeRegexpArgFromQuery(arg, username)
-		require.Equal(t, resQuery, res.Query)
-		require.Equal(t, resSentBy, res.Opts.SentBy)
+		query, opts := UpgradeSearchOptsFromQuery(query, chat1.SearchOpts{}, username)
+		require.Equal(t, resQuery, query)
+		require.Equal(t, resSentBy, opts.SentBy)
 	}
 	sentByCase("from:karenm hi mike", "hi mike", "karenm")
 	sentByCase("from:@karenm hi mike", "hi mike", "karenm")
@@ -185,13 +182,22 @@ func TestUpgradeRegexpArg(t *testing.T) {
 	sentByCase("hi mike from:karenm", "hi mike", "karenm")
 	sentByCase("from:me hi mike", "hi mike", "mikem")
 
+	sentToCase := func(query, resQuery, resSentTo string) {
+		query, opts := UpgradeSearchOptsFromQuery(query, chat1.SearchOpts{}, username)
+		require.Equal(t, resQuery, query)
+		require.Equal(t, resSentTo, opts.SentTo)
+	}
+	sentToCase("to:karenm hi mike", "hi mike", "karenm")
+	sentToCase("to:@karenm hi mike", "hi mike", "karenm")
+	sentToCase("to:@karenm          hi mike          ", "hi mike", "karenm")
+	sentToCase("to: hi mike", "to: hi mike", "")
+	sentToCase("hi mike to:karenm", "hi mike", "karenm")
+	sentToCase("to:me hi mike", "hi mike", "mikem")
+
 	regexpCase := func(query, resQuery string, isRegex bool) {
-		arg := chat1.SearchRegexpArg{
-			Query: query,
-		}
-		res := UpgradeRegexpArgFromQuery(arg, username)
-		require.Equal(t, resQuery, res.Query)
-		require.Equal(t, isRegex, res.IsRegex)
+		query, opts := UpgradeSearchOptsFromQuery(query, chat1.SearchOpts{}, username)
+		require.Equal(t, resQuery, query)
+		require.Equal(t, isRegex, opts.IsRegex)
 	}
 	regexpCase("/", "/", false)
 	regexpCase("//", "//", false)
@@ -199,13 +205,10 @@ func TestUpgradeRegexpArg(t *testing.T) {
 	regexpCase("X/mike.*always/", "X/mike.*always/", false)
 
 	dateFilterCase := func(query, resQuery string, sentBefore, sentAfter gregor1.Time) {
-		arg := chat1.SearchRegexpArg{
-			Query: query,
-		}
-		res := UpgradeRegexpArgFromQuery(arg, username)
-		require.Equal(t, resQuery, res.Query)
-		require.Equal(t, sentBefore, res.Opts.SentBefore)
-		require.Equal(t, sentAfter, res.Opts.SentAfter)
+		query, opts := UpgradeSearchOptsFromQuery(query, chat1.SearchOpts{}, username)
+		require.Equal(t, resQuery, query)
+		require.Equal(t, sentBefore, opts.SentBefore)
+		require.Equal(t, sentAfter, opts.SentAfter)
 	}
 	parsed, err := time.Parse(time.RFC822, "16 Mar 18 00:00 UTC")
 	require.NoError(t, err)
@@ -219,14 +222,13 @@ func TestUpgradeRegexpArg(t *testing.T) {
 	dateFilterCase("before:2018 after:asdf hi mike", "before:2018 after:asdf hi mike", 0, 0)
 
 	// the whole shabang
-	arg := chat1.SearchRegexpArg{
-		Query: "from:karenm before:2018-03-16 after:3/16/18 /Lisa.*something/",
-	}
-	res := UpgradeRegexpArgFromQuery(arg, username)
-	require.Equal(t, "Lisa.*something", res.Query)
-	require.Equal(t, "karenm", res.Opts.SentBy)
-	require.Equal(t, expectedTime, res.Opts.SentBefore)
-	require.Equal(t, expectedTime, res.Opts.SentBefore)
-	require.True(t, res.IsRegex)
+	query, opts := UpgradeSearchOptsFromQuery("from:karenm to:mikem before:2018-03-16 after:3/16/18 /Lisa.*something/",
+		chat1.SearchOpts{}, username)
+	require.Equal(t, "Lisa.*something", query)
+	require.Equal(t, "karenm", opts.SentBy)
+	require.Equal(t, "mikem", opts.SentTo)
+	require.Equal(t, expectedTime, opts.SentBefore)
+	require.Equal(t, expectedTime, opts.SentBefore)
+	require.True(t, opts.IsRegex)
 
 }

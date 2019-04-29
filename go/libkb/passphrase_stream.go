@@ -122,7 +122,7 @@ func (ps PassphraseStream) PDPKA5KID() (keybase1.KID, error) {
 
 func (ps PassphraseStream) String() string {
 	return fmt.Sprintf("pwh:   %x\nEdDSA: %x\nDH:    %x\nlks:   %x",
-		ps.PWHash(), ps.EdDSASeed(), ps.DHSeed(), ps.LksClientHalf())
+		ps.PWHash(), ps.EdDSASeed(), ps.DHSeed(), ps.LksClientHalf().Bytes())
 }
 
 // Generation returns the generation of this passphrase stream.

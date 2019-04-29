@@ -49,6 +49,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   pendingOutboxToOrdinal: I.Map(),
   pendingStatus: 'none',
   quote: null,
+  replyToMap: I.Map(),
   selectedConversation: noConversationIDKey,
   smallTeamsExpanded: false,
   staticConfig: null,
@@ -151,6 +152,13 @@ export const getHasBadge = (state: TypedState, id: Types.ConversationIDKey) =>
 export const getHasUnread = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.unreadMap.get(id, 0) > 0
 export const getSelectedConversation = (state: TypedState) => state.chat2.selectedConversation
+export const getReplyToOrdinal = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
+  return state.chat2.replyToMap.get(conversationIDKey, null)
+}
+export const getReplyToMessageID = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
+  const ordinal = getReplyToOrdinal(state, conversationIDKey)
+  return ordinal ? getMessage(state, conversationIDKey, ordinal)?.id : null
+}
 
 export const getEditInfo = (state: TypedState, id: Types.ConversationIDKey) => {
   const ordinal = state.chat2.editingMap.get(id)

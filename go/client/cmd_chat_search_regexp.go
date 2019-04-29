@@ -110,7 +110,6 @@ func (c *CmdChatSearchRegexp) Run() (err error) {
 		ConvID:           conversationInfo.Id,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		Query:            c.query,
-		IsRegex:          c.isRegex,
 		Opts:             c.opts,
 	}
 
@@ -129,6 +128,7 @@ func (c *CmdChatSearchRegexp) ParseArgv(ctx *cli.Context) (err error) {
 	}
 	c.query = ctx.Args().Get(1)
 	c.opts.SentBy = ctx.String("sent-by")
+	c.opts.SentTo = ctx.String("sent-to")
 	sentBeforeStr := ctx.String("sent-before")
 	sentAfterStr := ctx.String("sent-after")
 	if sentBeforeStr != "" && sentAfterStr != "" {
@@ -166,9 +166,9 @@ func (c *CmdChatSearchRegexp) ParseArgv(ctx *cli.Context) (err error) {
 		c.opts.AfterContext = context
 	}
 
-	c.isRegex = ctx.Bool("regex")
+	c.opts.IsRegex = ctx.Bool("regex")
 	query := c.query
-	if !c.isRegex {
+	if !c.opts.IsRegex {
 		query = regexp.QuoteMeta(c.query)
 	}
 	if _, err := regexp.Compile(query); err != nil {

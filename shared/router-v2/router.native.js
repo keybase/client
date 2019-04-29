@@ -49,12 +49,12 @@ const tabs = Shared.mobileTabs
 const tabRoots = {
   [Tabs.peopleTab]: 'peopleRoot',
   [Tabs.chatTab]: 'chatRoot',
-  [Tabs.teamsTab]: 'teamsRoot',
+  [Tabs.fsTab]: 'fsRoot',
   [Tabs.settingsTab]: 'settingsRoot',
 }
 const icons = {
   [Tabs.chatTab]: 'iconfont-nav-2-chat',
-  [Tabs.teamsTab]: 'iconfont-nav-2-teams',
+  [Tabs.fsTab]: 'iconfont-nav-2-files',
   [Tabs.peopleTab]: 'iconfont-nav-2-people',
   [Tabs.settingsTab]: 'iconfont-nav-2-more',
   [Tabs.walletsTab]: 'iconfont-nav-2-wallets',

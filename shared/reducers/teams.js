@@ -162,6 +162,7 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
     case TeamsGen.leaveTeam:
     case TeamsGen.leftTeam:
     case TeamsGen.removeMemberOrPendingInvite:
+    case TeamsGen.renameTeam:
     case TeamsGen.saveChannelMembership:
     case TeamsGen.setMemberPublicity:
     case TeamsGen.setPublicity:

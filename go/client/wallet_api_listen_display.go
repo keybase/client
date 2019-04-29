@@ -42,7 +42,7 @@ func newWalletNotificationDisplay(g *libkb.GlobalContext) *walletNotificationDis
 	}
 	return &walletNotificationDisplay{
 		baseNotificationDisplay: newBaseNotificationDisplay(g),
-		cli: cli,
+		cli:                     cli,
 	}
 }
 

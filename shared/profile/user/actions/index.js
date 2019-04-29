@@ -9,6 +9,7 @@ import FollowButton from './follow-button'
 
 type Props = {|
   followThem: boolean,
+  followsYou: boolean,
   onAccept: () => void,
   onAddToTeam: () => void,
   onBrowsePublicFolder: () => void,
@@ -100,6 +101,7 @@ const Actions = (p: Props) => {
         <FollowButton
           key="follow"
           following={false}
+          followsYou={p.followsYou}
           onFollow={p.onFollow}
           waitingKey={Constants.waitingKey}
         />,

@@ -940,9 +940,9 @@ function* loadMoreMessages(state, action) {
       key = action.payload.conversationIDKey
       reason = 'scroll forward'
       break
-    case Chat2Gen.loadMessagesFromSearchHit:
+    case Chat2Gen.loadMessagesCentered:
       key = action.payload.conversationIDKey
-      reason = 'search hit'
+      reason = 'centered'
       messageIDControl = {
         mode: RPCChatTypes.localMessageIDControlMode.centered,
         num: Constants.numMessagesOnInitialLoad,
@@ -950,7 +950,11 @@ function* loadMoreMessages(state, action) {
       }
       forceClear = true
       forceContainsLatestCalc = true
-      centeredMessageIDs.push({conversationIDKey: key, messageID: action.payload.messageID})
+      centeredMessageIDs.push({
+        conversationIDKey: key,
+        highlightMode: action.payload.highlightMode,
+        messageID: action.payload.messageID,
+      })
       break
     case Chat2Gen.jumpToRecent:
       key = action.payload.conversationIDKey
@@ -1302,35 +1306,56 @@ function* threadSearch(state, action) {
   const {conversationIDKey, query} = action.payload
   const onHit = hit => {
     const message = Constants.uiMessageToMessage(state, conversationIDKey, hit.searchHit.hitMessage)
-    return message ? Saga.put(Chat2Gen.createThreadSearchResult({conversationIDKey, message})) : []
+    return message
+      ? Saga.put(Chat2Gen.createThreadSearchResults({conversationIDKey, messages: [message]}))
+      : []
+  }
+  const onInboxHit = resp => {
+    const messages = (resp.searchHit.hits || []).reduce((l, h) => {
+      const uiMsg = Constants.uiMessageToMessage(state, conversationIDKey, h.hitMessage)
+      if (uiMsg) {
+        l.push(uiMsg)
+      }
+      return l
+    }, [])
+    return messages.length > 0
+      ? Saga.put(Chat2Gen.createThreadSearchResults({conversationIDKey, messages}))
+      : []
   }
   const onDone = () => {
     return Saga.put(Chat2Gen.createSetThreadSearchStatus({conversationIDKey, status: 'done'}))
   }
-  yield Saga.put(Chat2Gen.createSetThreadSearchStatus({conversationIDKey, status: 'inprogress'}))
+  const onStart = () => {
+    return Saga.put(Chat2Gen.createSetThreadSearchStatus({conversationIDKey, status: 'inprogress'}))
+  }
   try {
-    yield RPCChatTypes.localSearchRegexpRpcSaga({
+    yield RPCChatTypes.localSearchInboxRpcSaga({
       incomingCallMap: {
         'chat.1.chatUi.chatSearchDone': onDone,
         'chat.1.chatUi.chatSearchHit': onHit,
+        'chat.1.chatUi.chatSearchInboxDone': onDone,
+        'chat.1.chatUi.chatSearchInboxHit': onInboxHit,
+        'chat.1.chatUi.chatSearchInboxStart': onStart,
       },
       params: {
-        convID: Types.keyToConversationID(conversationIDKey),
         identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-        isRegex: false,
+        namesOnly: false,
         opts: {
           afterContext: 0,
           beforeContext: 0,
+          convID: Types.keyToConversationID(conversationIDKey),
           forceReindex: false,
+          isRegex: false,
           maxConvsHit: 0,
           maxConvsSearched: 0,
-          maxHits: -1,
+          maxHits: Constants.inboxSearchMaxTextMessages,
           maxMessages: -1,
-          maxNameConvs: 15,
-          reindexMode: RPCChatTypes.commonReIndexingMode.none,
+          maxNameConvs: 0,
+          reindexMode: RPCChatTypes.commonReIndexingMode.postsearchSync,
           sentAfter: 0,
           sentBefore: 0,
           sentBy: '',
+          sentTo: '',
         },
         query: query.stringValue(),
       },
@@ -1429,10 +1454,11 @@ function* inboxSearch(state, action) {
         opts: {
           afterContext: 0,
           beforeContext: 0,
+          isRegex: false,
           maxConvsHit: Constants.inboxSearchMaxTextResults,
           maxConvsSearched: 0,
           maxHits: Constants.inboxSearchMaxTextMessages,
-          maxMessages: 0,
+          maxMessages: -1,
           maxNameConvs:
             query.stringValue().length > 0
               ? Constants.inboxSearchMaxNameResults
@@ -1441,6 +1467,7 @@ function* inboxSearch(state, action) {
           sentAfter: 0,
           sentBefore: 0,
           sentBy: '',
+          sentTo: '',
         },
         query: query.stringValue(),
       },
@@ -1450,12 +1477,21 @@ function* inboxSearch(state, action) {
   }
 }
 
+const onReplyJump = (state, action) => {
+  return Chat2Gen.createLoadMessagesCentered({
+    conversationIDKey: action.payload.conversationIDKey,
+    highlightMode: 'flash',
+    messageID: action.payload.messageID,
+  })
+}
+
 function* messageSend(state, action) {
   const {conversationIDKey, text} = action.payload
 
   const meta = Constants.getMeta(state, conversationIDKey)
   const tlfName = meta.tlfname
   const clientPrev = Constants.getClientPrev(state, conversationIDKey)
+  const replyTo = action.payload.replyTo
 
   // disable sending exploding messages if flag is false
   const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
@@ -1509,6 +1545,7 @@ function* messageSend(state, action) {
         conversationID: Types.keyToConversationID(conversationIDKey),
         identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
         outboxID: null,
+        replyTo,
         tlfName,
         tlfPublic: false,
       },
@@ -2819,7 +2856,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     | Chat2Gen.JumpToRecentPayload
     | Chat2Gen.LoadOlderMessagesDueToScrollPayload
     | Chat2Gen.LoadNewerMessagesDueToScrollPayload
-    | Chat2Gen.LoadMessagesFromSearchHitPayload
+    | Chat2Gen.LoadMessagesCenteredPayload
     | Chat2Gen.MarkConversationsStalePayload
     | Chat2Gen.MetasReceivedPayload
     | ConfigGen.ChangedFocusPayload
@@ -2829,7 +2866,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.jumpToRecent,
       Chat2Gen.loadOlderMessagesDueToScroll,
       Chat2Gen.loadNewerMessagesDueToScroll,
-      Chat2Gen.loadMessagesFromSearchHit,
+      Chat2Gen.loadMessagesCentered,
       Chat2Gen.markConversationsStale,
       Chat2Gen.metasReceived,
       ConfigGen.changedFocus,
@@ -3089,6 +3126,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     EngineGen.chat1ChatUiChatCommandMarkdown,
     onChatCommandMarkdown
   )
+
+  yield* Saga.chainAction<Chat2Gen.ReplyJumpPayload>(Chat2Gen.replyJump, onReplyJump)
 
   yield* Saga.chainGenerator<Chat2Gen.InboxSearchPayload>(Chat2Gen.inboxSearch, inboxSearch)
   yield* Saga.chainAction<Chat2Gen.ToggleInboxSearchPayload>(Chat2Gen.toggleInboxSearch, onToggleInboxSearch)
