@@ -128,9 +128,9 @@ type Indexer interface {
 	FullyIndexed(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (bool, error)
 	PercentIndexed(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (int, error)
 	SearchableConvs(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) ([]RemoteConversation, error)
+	OnDbNuke(mctx libkb.MetaContext) error
 	// For devel/testing
 	IndexInbox(ctx context.Context, uid gregor1.UID) (map[string]chat1.ProfileSearchConvStats, error)
-	OnDbNuke(mctx libkb.MetaContext) error
 }
 
 type Sender interface {

@@ -874,9 +874,15 @@ func TestChatSearchInbox(t *testing.T) {
 		// Test canceling sync loop
 		syncLoopCh := make(chan struct{})
 		indexer1.SetSyncLoopCh(syncLoopCh)
-		ctx, cancelFn := context.WithCancel(ctx)
 		go indexer1.SyncLoop(ctx, uid1)
-		cancelFn()
+		indexer1.CancelSync()
+		select {
+		case <-time.After(5 * time.Second):
+			require.Fail(t, "indexer SyncLoop never finished")
+		case <-syncLoopCh:
+		}
+		indexer1.PokeSync()
+		indexer1.CancelSync()
 		select {
 		case <-time.After(5 * time.Second):
 			require.Fail(t, "indexer SyncLoop never finished")

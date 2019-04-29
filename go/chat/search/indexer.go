@@ -32,9 +32,9 @@ type Indexer struct {
 	startSyncDelay time.Duration
 
 	// for testing
-	consumeCh  chan chat1.ConversationID
-	reindexCh  chan chat1.ConversationID
-	syncLoopCh chan struct{}
+	consumeCh                            chan chat1.ConversationID
+	reindexCh                            chan chat1.ConversationID
+	syncLoopCh, cancelSyncCh, pokeSyncCh chan struct{}
 }
 
 var _ types.Indexer = (*Indexer)(nil)
@@ -46,6 +46,8 @@ func NewIndexer(g *globals.Context) *Indexer {
 		store:        newStore(g),
 		pageSize:     defaultPageSize,
 		stopCh:       make(chan struct{}),
+		cancelSyncCh: make(chan struct{}, 100),
+		pokeSyncCh:   make(chan struct{}, 100),
 	}
 	switch idx.G().GetAppType() {
 	case libkb.MobileAppType:
@@ -99,37 +101,30 @@ func (idx *Indexer) Start(ctx context.Context, uid gregor1.UID) {
 	go idx.SyncLoop(ctx, uid)
 }
 
+func (idx *Indexer) CancelSync() {
+	idx.Debug(context.TODO(), "CancelSync")
+	select {
+	case idx.cancelSyncCh <- struct{}{}:
+	default:
+	}
+}
+
+func (idx *Indexer) PokeSync() {
+	idx.Debug(context.TODO(), "PokeSync")
+	select {
+	case idx.pokeSyncCh <- struct{}{}:
+	default:
+	}
+}
+
 func (idx *Indexer) SyncLoop(ctx context.Context, uid gregor1.UID) {
 	idx.Lock()
 	stopCh := idx.stopCh
-	syncLoopCh := idx.syncLoopCh
 	idx.Unlock()
 	idx.Debug(ctx, "starting SelectiveSync bg loop")
 
 	var cancelFn context.CancelFunc
 	var l sync.Mutex
-	attemptSync := func(ctx context.Context) {
-		l.Lock()
-		defer l.Unlock()
-		if cancelFn == nil {
-			ctx, cancelFn = context.WithCancel(ctx)
-			go func() {
-				idx.Debug(ctx, "running SelectiveSync")
-				if err := idx.SelectiveSync(ctx, uid); err != nil {
-					idx.Debug(ctx, "unable to complete SelectiveSync: %v", err)
-					if syncLoopCh != nil {
-						syncLoopCh <- struct{}{}
-					}
-				}
-				l.Lock()
-				if cancelFn != nil {
-					cancelFn()
-					cancelFn = nil
-				}
-				l.Unlock()
-			}()
-		}
-	}
 	cancelSync := func() {
 		l.Lock()
 		defer l.Unlock()
@@ -138,11 +133,38 @@ func (idx *Indexer) SyncLoop(ctx context.Context, uid gregor1.UID) {
 			cancelFn = nil
 		}
 	}
+	attemptSync := func(ctx context.Context) {
+		l.Lock()
+		defer l.Unlock()
+		if cancelFn != nil {
+			cancelFn()
+		}
+		ctx, cancelFn = context.WithCancel(ctx)
+		go func() {
+			idx.Debug(ctx, "running SelectiveSync")
+			if err := idx.SelectiveSync(ctx, uid); err != nil {
+				idx.Debug(ctx, "unable to complete SelectiveSync: %v", err)
+				if idx.syncLoopCh != nil {
+					idx.syncLoopCh <- struct{}{}
+				}
+			}
+			l.Lock()
+			defer l.Unlock()
+			if cancelFn != nil {
+				cancelFn()
+				cancelFn = nil
+			}
+		}()
+	}
 	ticker := libkb.NewBgTicker(time.Hour)
 	after := time.After(idx.startSyncDelay)
 	state := keybase1.MobileAppState_FOREGROUND
 	for {
 		select {
+		case <-idx.cancelSyncCh:
+			cancelSync()
+		case <-idx.pokeSyncCh:
+			attemptSync(ctx)
 		case <-after:
 			attemptSync(ctx)
 		case <-ticker.C:
@@ -394,6 +416,10 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query, origQuer
 	opts chat1.SearchOpts, hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus) (res *chat1.ChatSearchInboxResults, err error) {
 	defer idx.Trace(ctx, func() error { return err }, "Indexer.Search")()
 	defer func() {
+		// get a selective sync to run after the search completes even if we
+		// errored.
+		idx.PokeSync()
+
 		if hitUICh != nil {
 			close(hitUICh)
 		}
@@ -405,6 +431,7 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query, origQuer
 		idx.Debug(ctx, "Search: Search indexer is disabled, results will be inaccurate.")
 	}
 
+	idx.CancelSync()
 	sess := newSearchSession(query, origQuery, uid, hitUICh, indexUICh, idx, opts)
 	return sess.run(ctx)
 }
