@@ -193,9 +193,6 @@ export const isUserActivelyLookingAtThisThread = (
   let chatThreadSelected = false
   if (flags.useNewRouter) {
     chatThreadSelected = true // conversationIDKey === selectedConversationIDKey is the only thing that matters in the new router
-    // const routePath = Router2.getVisiblePath()
-    // chatThreadSelected =
-    // routePath[routePath.length - 1]?.routeName === (isMobile ? 'chatConversation' : 'tabs.chatTab')
   } else {
     const routePath = getPath(state.routeTree.routeState)
     if (isMobile) {
