@@ -68,7 +68,9 @@ func TestLoaderStaleNoUpdates(t *testing.T) {
 	t.Logf("make the cache look old")
 	st := getStorageFromG(tc.G)
 	mctx := libkb.NewMetaContextForTest(tc)
-	team = st.Get(mctx, teamID, public)
+	team, frozen, tombstoned := st.Get(mctx, teamID, public)
+	require.False(t, frozen)
+	require.False(t, tombstoned)
 	require.NotNil(t, team)
 	t.Logf("cache  pre-set cachedAt:%v", team.CachedAt.Time())
 	team.CachedAt = keybase1.ToTime(tc.G.Clock().Now().Add(freshnessLimit * -2))
@@ -834,8 +836,10 @@ func TestInflateAfterPermissionsChange(t *testing.T) {
 
 	t.Logf("check that the link is stubbed in storage")
 	mctx := libkb.NewMetaContextForTest(*tcs[2])
-	rootData := tcs[2].G.GetTeamLoader().(*TeamLoader).storage.Get(mctx, rootID, rootID.IsPublic())
+	rootData, frozen, tombstoned := tcs[2].G.GetTeamLoader().(*TeamLoader).storage.Get(mctx, rootID, rootID.IsPublic())
 	require.NotNil(t, rootData, "root team should be cached")
+	require.False(t, frozen)
+	require.False(t, tombstoned)
 	require.True(t, (TeamSigChainState{rootData.Chain}).HasAnyStubbedLinks(), "root team should have a stubbed link")
 
 	t.Logf("U0 adds U2 to lair")
@@ -1147,4 +1151,167 @@ func randomTlfID(t *testing.T) keybase1.TLFID {
 	idBytes, err := libkb.RandBytesWithSuffix(16, suffix)
 	require.NoError(t, err)
 	return keybase1.TLFID(hex.EncodeToString(idBytes))
+}
+
+func getFastStorageFromG(g *libkb.GlobalContext) *FTLStorage {
+	tl := g.GetFastTeamLoader().(*FastTeamChainLoader)
+	return tl.storage
+}
+
+type freezeF = func(*libkb.TestContext, *kbtest.FakeUser, keybase1.TeamID, keybase1.TeamName, *libkb.TestContext) error
+
+func freezeTest(t *testing.T, freezeAction freezeF, unfreezeAction freezeF) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	rootName, rootID := createTeam2(*tcs[0])
+
+	_, err := AddMember(context.Background(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_OWNER)
+	require.NoError(t, err)
+
+	// Explicitly load in FTL since AddMember doesn't do it
+	mctx := libkb.NewMetaContextForTest(*tcs[0])
+	_, err = tcs[0].G.GetFastTeamLoader().Load(mctx, keybase1.FastTeamLoadArg{
+		ID:     rootID,
+		Public: rootID.IsPublic(),
+	})
+	require.NoError(t, err)
+
+	err = freezeAction(tcs[0], fus[0], rootID, rootName, tcs[1])
+	require.NoError(t, err)
+
+	st := getStorageFromG(tcs[0].G)
+	td, frozen, tombstoned := st.Get(mctx, rootID, rootID.IsPublic())
+	require.NotNil(t, td)
+	require.True(t, frozen)
+	require.False(t, tombstoned)
+	require.Nil(t, td.ReaderKeyMasks)
+	require.NotNil(t, td.Chain)
+	require.NotNil(t, td.Chain.LastSeqno)
+	require.NotNil(t, td.Chain.LastLinkID)
+	require.Nil(t, td.Chain.UserLog)
+	require.Nil(t, td.Chain.PerTeamKeys)
+	fastS := getFastStorageFromG(tcs[0].G)
+	ftd, frozen, tombstoned := fastS.Get(mctx, rootID, rootID.IsPublic())
+	require.NotNil(t, ftd)
+	require.True(t, frozen)
+	require.False(t, tombstoned)
+	require.NotNil(t, ftd.Chain)
+	require.Nil(t, ftd.ReaderKeyMasks)
+	require.Nil(t, ftd.Chain.PerTeamKeys)
+	require.NotNil(t, ftd.Chain.ID)
+	require.NotNil(t, ftd.Chain.Public)
+	require.NotNil(t, ftd.Chain.Last)
+	require.NotNil(t, ftd.Chain.Last.Seqno)
+	require.NotNil(t, ftd.Chain.Last.LinkID)
+
+	err = unfreezeAction(tcs[0], fus[0], rootID, rootName, tcs[1])
+	require.NoError(t, err)
+
+	// Load chains again, forcing repoll
+	_, err = tcs[0].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+		ID:     rootID,
+		Public: rootID.IsPublic(),
+	})
+	require.NoError(t, err)
+	_, err = tcs[0].G.GetFastTeamLoader().Load(mctx, keybase1.FastTeamLoadArg{
+		ID:     rootID,
+		Public: rootID.IsPublic(),
+	})
+	require.NoError(t, err)
+
+	td, frozen, tombstoned = st.Get(mctx, rootID, rootID.IsPublic())
+	require.NotNil(t, td)
+	require.NotNil(t, td.ReaderKeyMasks)
+	require.NotNil(t, td.Chain.UserLog)
+	require.NotNil(t, td.Chain.PerTeamKeys)
+	ftd, frozen, tombstoned = fastS.Get(mctx, rootID, rootID.IsPublic())
+	require.NotNil(t, ftd)
+	require.False(t, frozen)
+	require.False(t, tombstoned)
+	require.NotNil(t, ftd.Chain)
+	require.NotNil(t, ftd.ReaderKeyMasks)
+	require.NotNil(t, ftd.Chain.PerTeamKeys)
+	require.NotNil(t, ftd.Chain.ID)
+	require.NotNil(t, ftd.Chain.Public)
+	require.NotNil(t, ftd.Chain.Last)
+	require.NotNil(t, ftd.Chain.Last.Seqno)
+	require.NotNil(t, ftd.Chain.Last.LinkID)
+}
+
+func TestFreezeBasic(t *testing.T) {
+	freezeTest(t, func(tc *libkb.TestContext, fu *kbtest.FakeUser, teamID keybase1.TeamID, _ keybase1.TeamName, _ *libkb.TestContext) error {
+		return FreezeTeam(libkb.NewMetaContextForTest(*tc), teamID)
+	}, func(tc *libkb.TestContext, fu *kbtest.FakeUser, teamID keybase1.TeamID, _ keybase1.TeamName, _ *libkb.TestContext) error {
+		return nil
+	})
+}
+
+func TestFreezeViaLeave(t *testing.T) {
+	freezeTest(t, func(tc *libkb.TestContext, fu *kbtest.FakeUser, teamID keybase1.TeamID, teamName keybase1.TeamName, _ *libkb.TestContext) error {
+		return Leave(context.TODO(), tc.G, teamName.String(), false)
+	}, func(tc *libkb.TestContext, fu *kbtest.FakeUser, teamID keybase1.TeamID, teamName keybase1.TeamName, otherTc *libkb.TestContext) error {
+		_, err := AddMember(context.TODO(), otherTc.G, teamName.String(), fu.Username, keybase1.TeamRole_READER)
+		return err
+	})
+}
+
+func TestTombstoneViaDelete(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	rootName, rootID := createTeam2(*tcs[0])
+	_, err := AddMember(context.Background(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_OWNER)
+	require.NoError(t, err)
+
+	// Explicitly load in FTL since AddMember doesn't do it
+	mctx := libkb.NewMetaContextForTest(*tcs[0])
+	_, err = tcs[0].G.GetFastTeamLoader().Load(mctx, keybase1.FastTeamLoadArg{
+		ID:     rootID,
+		Public: rootID.IsPublic(),
+	})
+	require.NoError(t, err)
+
+	err = Delete(context.TODO(), tcs[0].G, &teamsUI{}, rootName.String())
+	require.NoError(t, err)
+
+	st := getStorageFromG(tcs[0].G)
+	td, frozen, tombstoned := st.Get(mctx, rootID, rootID.IsPublic())
+	require.NotNil(t, td)
+	require.False(t, frozen)
+	require.True(t, tombstoned)
+	require.Nil(t, td.ReaderKeyMasks)
+	require.NotNil(t, td.Chain)
+	require.NotNil(t, td.Chain.LastSeqno)
+	require.NotNil(t, td.Chain.LastLinkID)
+	require.Nil(t, td.Chain.UserLog)
+	require.Nil(t, td.Chain.PerTeamKeys)
+
+	fastS := getFastStorageFromG(tcs[0].G)
+	ftd, frozen, tombstoned := fastS.Get(mctx, rootID, rootID.IsPublic())
+	require.NotNil(t, ftd)
+	require.False(t, frozen)
+	require.True(t, tombstoned)
+	require.NotNil(t, ftd.Chain)
+	require.Nil(t, ftd.ReaderKeyMasks)
+	require.Nil(t, ftd.Chain.PerTeamKeys)
+	require.NotNil(t, ftd.Chain.ID)
+	require.NotNil(t, ftd.Chain.Public)
+	require.NotNil(t, ftd.Chain.Last)
+
+	// Load chains again, should error due to tombstone
+	_, err = tcs[0].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+		ID:     rootID,
+		Public: rootID.IsPublic(),
+	})
+	require.NotNil(t, err)
+	_, ok := err.(*TeamTombstonedError)
+	require.True(t, ok)
+	_, err = tcs[0].G.GetFastTeamLoader().Load(mctx, keybase1.FastTeamLoadArg{
+		ID:     rootID,
+		Public: rootID.IsPublic(),
+	})
+	require.NotNil(t, err)
+	_, ok = err.(*TeamTombstonedError)
+	require.True(t, ok)
 }

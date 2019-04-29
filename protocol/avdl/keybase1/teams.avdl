@@ -145,6 +145,13 @@ protocol teams {
     @mpackkey("v") @jsonkey("v")
     int subversion;
 
+    // If set, all other members are invalid except for Chain.ID, Chain.Public,
+    // Chain.LastSeqno and Chain.LastLinkID.
+    boolean frozen;
+
+    // If set, cannot be loaded ever again. All other members are invalid.
+    boolean tombstoned;
+
     // Whether this snapshot is entirely missing secrets.
     // Not used. Might as well get rid of this field next time the cache is busted.
     boolean secretless;
@@ -180,6 +187,12 @@ protocol teams {
 
   // Snapshot of a fast-loaded team.
   record FastTeamData {
+    // If set, all other members are invalid except for Chain.ID, Chain.Public,
+    // and Chain.Last.
+    boolean frozen;
+
+    // If set, cannot be loaded ever again. All other members are invalid.
+    boolean tombstoned;
 
     // Name of the team. This is tricky.
     // The root ancestor, final part, and the depth are always correct.
