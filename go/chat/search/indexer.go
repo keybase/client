@@ -25,7 +25,7 @@ type Indexer struct {
 	// encrypted on-disk storage
 	store    *store
 	pageSize int
-	stopCh   chan struct{}
+	stopCh   chan chan struct{}
 	started  bool
 
 	maxSyncConvs   int
@@ -45,7 +45,7 @@ func NewIndexer(g *globals.Context) *Indexer {
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Search.Indexer", false),
 		store:        newStore(g),
 		pageSize:     defaultPageSize,
-		stopCh:       make(chan struct{}),
+		stopCh:       make(chan chan struct{}),
 		cancelSyncCh: make(chan struct{}, 100),
 		pokeSyncCh:   make(chan struct{}, 100),
 	}
@@ -176,10 +176,11 @@ func (idx *Indexer) SyncLoop(ctx context.Context, uid gregor1.UID) {
 			default:
 				cancelSync()
 			}
-		case <-stopCh:
+		case ch := <-stopCh:
 			idx.Debug(ctx, "stopping SelectiveSync bg loop")
 			cancelSync()
 			ticker.Stop()
+			close(ch)
 			return
 		}
 	}
@@ -192,11 +193,11 @@ func (idx *Indexer) Stop(ctx context.Context) chan struct{} {
 	idx.store.ClearMemory()
 	ch := make(chan struct{})
 	if idx.started {
-		close(idx.stopCh)
-		idx.stopCh = make(chan struct{})
+		idx.stopCh <- ch
 		idx.started = false
+	} else {
+		close(ch)
 	}
-	close(ch)
 	return ch
 }
 
