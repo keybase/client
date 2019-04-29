@@ -1389,7 +1389,7 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msg chat1
 	// Payment decorations
 	body = g.StellarSender.DecorateWithPayments(ctx, body, payments)
 	// Mentions
-	body = DecorateWithMentions(ctx, body, msg.AtMentionUsernames, msg.ChannelMention,
+	body = DecorateWithMentions(ctx, body, msg.AtMentionUsernames, msg.TeamMentions, msg.ChannelMention,
 		msg.ChannelNameMentions)
 	return &body
 }
@@ -2019,15 +2019,24 @@ func DecorateBody(ctx context.Context, body string, offset, length int, decorati
 }
 
 func DecorateWithMentions(ctx context.Context, body string, atMentions []string,
-	chanMention chat1.ChannelMention, channelNameMentions []chat1.ChannelNameMention) string {
+	teamMentions []chat1.TeamMention, chanMention chat1.ChannelMention,
+	channelNameMentions []chat1.ChannelNameMention) string {
 	var added int
 	offset := 0
 	if len(atMentions) > 0 || chanMention != chat1.ChannelMention_NONE {
 		inputBody := body
 		atMatches := parseRegexpNames(ctx, inputBody, atMentionRegExp)
 		atMap := make(map[string]bool)
+		teamMap := make(map[string]chat1.TeamMention)
 		for _, at := range atMentions {
 			atMap[at] = true
+		}
+		for _, tm := range teamMentions {
+			name := tm.TeamName
+			if len(tm.ChannelName) > 0 {
+				name += "#" + tm.ChannelName
+			}
+			teamMap[name] = tm
 		}
 		for _, m := range atMatches {
 			switch m.name {
@@ -2035,14 +2044,17 @@ func DecorateWithMentions(ctx context.Context, body string, atMentions []string,
 				if chanMention == chat1.ChannelMention_NONE {
 					continue
 				}
-			default:
-				if !atMap[m.name] {
-					continue
-				}
 			}
-			body, added = DecorateBody(ctx, body, m.position[0]+offset-1, m.Len()+1,
-				chat1.NewUITextDecorationWithAtmention(m.name))
-			offset += added
+			if atMap[m.name] {
+				body, added = DecorateBody(ctx, body, m.position[0]+offset-1, m.Len()+1,
+					chat1.NewUITextDecorationWithAtmention(m.name))
+				offset += added
+			}
+			if tm, ok := teamMap[m.name]; ok {
+				body, added = DecorateBody(ctx, body, m.position[0]+offset-1, m.Len()+1,
+					chat1.NewUITextDecorationWithTeammention(tm))
+				offset += added
+			}
 		}
 	}
 	if len(channelNameMentions) > 0 {

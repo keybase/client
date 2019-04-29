@@ -928,7 +928,8 @@
       "symbols": [
         "PAYMENT_0",
         "ATMENTION_1",
-        "CHANNELNAMEMENTION_2"
+        "CHANNELNAMEMENTION_2",
+        "TEAMMENTION_3"
       ]
     },
     {
@@ -959,6 +960,13 @@
             "def": false
           },
           "body": "UIChannelNameMention"
+        },
+        {
+          "label": {
+            "name": "TEAMMENTION",
+            "def": false
+          },
+          "body": "TeamMention"
         }
       ]
     },

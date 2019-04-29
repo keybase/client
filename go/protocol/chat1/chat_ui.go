@@ -959,6 +959,7 @@ const (
 	UITextDecorationTyp_PAYMENT            UITextDecorationTyp = 0
 	UITextDecorationTyp_ATMENTION          UITextDecorationTyp = 1
 	UITextDecorationTyp_CHANNELNAMEMENTION UITextDecorationTyp = 2
+	UITextDecorationTyp_TEAMMENTION        UITextDecorationTyp = 3
 )
 
 func (o UITextDecorationTyp) DeepCopy() UITextDecorationTyp { return o }
@@ -967,12 +968,14 @@ var UITextDecorationTypMap = map[string]UITextDecorationTyp{
 	"PAYMENT":            0,
 	"ATMENTION":          1,
 	"CHANNELNAMEMENTION": 2,
+	"TEAMMENTION":        3,
 }
 
 var UITextDecorationTypRevMap = map[UITextDecorationTyp]string{
 	0: "PAYMENT",
 	1: "ATMENTION",
 	2: "CHANNELNAMEMENTION",
+	3: "TEAMMENTION",
 }
 
 func (e UITextDecorationTyp) String() string {
@@ -987,6 +990,7 @@ type UITextDecoration struct {
 	Payment__            *TextPayment          `codec:"payment,omitempty" json:"payment,omitempty"`
 	Atmention__          *string               `codec:"atmention,omitempty" json:"atmention,omitempty"`
 	Channelnamemention__ *UIChannelNameMention `codec:"channelnamemention,omitempty" json:"channelnamemention,omitempty"`
+	Teammention__        *TeamMention          `codec:"teammention,omitempty" json:"teammention,omitempty"`
 }
 
 func (o *UITextDecoration) Typ() (ret UITextDecorationTyp, err error) {
@@ -1004,6 +1008,11 @@ func (o *UITextDecoration) Typ() (ret UITextDecorationTyp, err error) {
 	case UITextDecorationTyp_CHANNELNAMEMENTION:
 		if o.Channelnamemention__ == nil {
 			err = errors.New("unexpected nil value for Channelnamemention__")
+			return ret, err
+		}
+	case UITextDecorationTyp_TEAMMENTION:
+		if o.Teammention__ == nil {
+			err = errors.New("unexpected nil value for Teammention__")
 			return ret, err
 		}
 	}
@@ -1040,6 +1049,16 @@ func (o UITextDecoration) Channelnamemention() (res UIChannelNameMention) {
 	return *o.Channelnamemention__
 }
 
+func (o UITextDecoration) Teammention() (res TeamMention) {
+	if o.Typ__ != UITextDecorationTyp_TEAMMENTION {
+		panic("wrong case accessed")
+	}
+	if o.Teammention__ == nil {
+		return
+	}
+	return *o.Teammention__
+}
+
 func NewUITextDecorationWithPayment(v TextPayment) UITextDecoration {
 	return UITextDecoration{
 		Typ__:     UITextDecorationTyp_PAYMENT,
@@ -1058,6 +1077,13 @@ func NewUITextDecorationWithChannelnamemention(v UIChannelNameMention) UITextDec
 	return UITextDecoration{
 		Typ__:                UITextDecorationTyp_CHANNELNAMEMENTION,
 		Channelnamemention__: &v,
+	}
+}
+
+func NewUITextDecorationWithTeammention(v TeamMention) UITextDecoration {
+	return UITextDecoration{
+		Typ__:         UITextDecorationTyp_TEAMMENTION,
+		Teammention__: &v,
 	}
 }
 
@@ -1085,6 +1111,13 @@ func (o UITextDecoration) DeepCopy() UITextDecoration {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Channelnamemention__),
+		Teammention__: (func(x *TeamMention) *TeamMention {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Teammention__),
 	}
 }
 
