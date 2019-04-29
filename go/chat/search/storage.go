@@ -93,6 +93,8 @@ func (s *store) tokenKey(ctx context.Context, uid gregor1.UID, convID chat1.Conv
 	hasher := hmac.New(sha256.New, material[:])
 	hasher.Write([]byte(dat))
 	hasher.Write(convID.DbShortForm())
+	hasher.Write(uid.Bytes())
+	hasher.Write([]byte(libkb.EncryptionReasonChatIndexerTokenKey))
 	return libkb.DbKey{
 		Typ: libkb.DBChatIndex,
 		Key: fmt.Sprintf("tm:%s:%s:%s", uid, convID, hasher.Sum(nil)),
@@ -106,6 +108,7 @@ func (s *store) aliasKey(ctx context.Context, dat string) (res libkb.DbKey, err 
 	}
 	hasher := hmac.New(sha256.New, material[:])
 	hasher.Write([]byte(dat))
+	hasher.Write([]byte(libkb.EncryptionReasonChatIndexerAliasKey))
 	return libkb.DbKey{
 		Typ: libkb.DBChatIndex,
 		Key: fmt.Sprintf("al:%s", hasher.Sum(nil)),
@@ -213,12 +216,16 @@ func (s *store) putTokenEntry(ctx context.Context, uid gregor1.UID, convID chat1
 	return s.edb.Put(ctx, key, te)
 }
 
-func (s *store) putAliasEntry(ctx context.Context, alias string, ae *aliasEntry) error {
+func (s *store) putAliasEntry(ctx context.Context, alias string, ae *aliasEntry) (err error) {
+	defer func() {
+		if err == nil {
+			s.aliasCache.Add(alias, ae)
+		}
+	}()
 	key, err := s.aliasKey(ctx, alias)
 	if err != nil {
 		return err
 	}
-	s.aliasCache.Remove(key)
 	return s.edb.Put(ctx, key, ae)
 }
 
@@ -493,4 +500,9 @@ func (s *store) Remove(ctx context.Context, uid gregor1.UID, convID chat1.Conver
 	}
 	err = s.putMetadata(ctx, uid, convID, md)
 	return err
+}
+
+func (s *store) ClearMemory() {
+	s.aliasCache.Purge()
+	s.tokenCache.Purge()
 }

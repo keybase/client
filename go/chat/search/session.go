@@ -363,6 +363,9 @@ func (s *searchSession) preSearch(ctx context.Context) error {
 		case chat1.ReIndexingMode_POSTSEARCH_SYNC:
 			fullyIndexed, err := s.convFullyIndexed(ctx, conv.Conv)
 			if err != nil || !fullyIndexed {
+				if err != nil {
+					s.indexer.Debug(ctx, "Search: failed to compute full indexed: %s", err)
+				}
 				s.reindexConvs = append(s.reindexConvs, convID)
 			}
 		}

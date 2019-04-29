@@ -116,7 +116,7 @@ func (idx *Indexer) Stop(ctx context.Context) chan struct{} {
 	defer idx.Trace(ctx, func() error { return nil }, "Stop")()
 	idx.Lock()
 	defer idx.Unlock()
-
+	idx.store.ClearMemory()
 	ch := make(chan struct{})
 	if idx.started {
 		close(idx.stopCh)
@@ -464,9 +464,22 @@ func (idx *Indexer) IndexInbox(ctx context.Context, uid gregor1.UID) (res map[st
 func (idx *Indexer) indexConvWithProfile(ctx context.Context, conv types.RemoteConversation,
 	uid gregor1.UID) (res chat1.ProfileSearchConvStats, err error) {
 	defer idx.Trace(ctx, func() error { return err }, "Indexer.indexConvWithProfile")()
+	md, err := idx.store.GetMetadata(ctx, uid, conv.GetConvID())
+	if err != nil {
+		return res, err
+	}
 	defer func() {
 		res.ConvName = conv.GetName()
+		if md != nil {
+			min, max := MinMaxIDs(conv.Conv)
+			res.MinConvID = min
+			res.MaxConvID = max
+			res.NumMissing = len(md.MissingIDForConv(conv.Conv))
+			res.NumMessages = len(md.SeenIDs)
+			res.PercentIndexed = md.PercentIndexed(conv.Conv)
+		}
 		if err != nil {
+
 			res.Err = err.Error()
 		}
 	}()
@@ -477,7 +490,7 @@ func (idx *Indexer) indexConvWithProfile(ctx context.Context, conv types.RemoteC
 		return res, err
 	}
 	res.DurationMsec = gregor1.ToDurationMsec(time.Now().Sub(startT))
-	res.IndexSizeDisk = 0
+	res.IndexSizeDisk = int(md.Size())
 	res.IndexSizeMem = 0
 	return res, nil
 }
@@ -506,4 +519,9 @@ func (idx *Indexer) PercentIndexed(ctx context.Context, convID chat1.Conversatio
 		return 0, err
 	}
 	return md.PercentIndexed(conv.Conv), nil
+}
+
+func (idx *Indexer) OnDbNuke(mctx libkb.MetaContext) error {
+	idx.store.ClearMemory()
+	return nil
 }
