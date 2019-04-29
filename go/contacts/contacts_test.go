@@ -128,7 +128,7 @@ func TestLookupContacts(t *testing.T) {
 
 	contactList := []keybase1.Contact{
 		keybase1.Contact{
-			Name: "Joe",
+			FirstName: "Joe",
 			Components: []keybase1.ContactComponent{
 				makePhoneComponent("Home", "+1111222"),
 				makePhoneComponent("Work", "+199123"),
@@ -202,20 +202,20 @@ func TestLookupContactsMultipleUsers(t *testing.T) {
 
 	contactList := []keybase1.Contact{
 		keybase1.Contact{
-			Name: "Alice",
+			FirstName: "Alice",
 			Components: []keybase1.ContactComponent{
 				makePhoneComponent("Home", "+1111222"),
 				makePhoneComponent("Work", "+199123"),
 			},
 		},
 		keybase1.Contact{
-			Name: "Bob",
+			FirstName: "Bob Test",
 			Components: []keybase1.ContactComponent{
 				makePhoneComponent("Home", "+123456"),
 			},
 		},
 		keybase1.Contact{
-			Name: "Charlie",
+			FirstName: "Charlie",
 			Components: []keybase1.ContactComponent{
 				makeEmailComponent("E-mail", "charlie+test@keyba.se"),
 			},
@@ -229,13 +229,13 @@ func TestLookupContactsMultipleUsers(t *testing.T) {
 	expected := []string{
 		"Alice +1111222 (Home)",
 		"Alice +199123 (Work)",
-		"Bob +123456 (Home)",
+		"Bob Test +123456 (Home)",
 		"Charlie charlie+test@keyba.se (E-mail)",
 	}
 	require.Equal(t, expected, stringifyResults(res))
 
 	provider.phoneNumbers["+123456"] = mockLookupUser{UID: keybase1.UID("1"), Username: "bob"}
-	provider.emails["charlie+test@keyba.se"] = mockLookupUser{UID: keybase1.UID("2"), Username: "charlie"}
+	provider.emails["charlie+test@keyba.se"] = mockLookupUser{UID: keybase1.UID("2"), Username: "charlie", Fullname: "Charlie9000"}
 
 	res, err = ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
 	require.NoError(t, err)
@@ -247,8 +247,8 @@ func TestLookupContactsMultipleUsers(t *testing.T) {
 	}
 	require.Equal(t, expected, stringifyResults(res))
 	expected = []string{
-		`"charlie" "Charlie"`,
-		`"bob" "Bob"`,
+		`"charlie" "Charlie9000"`, // keybase full name is available, should be using this as a label
+		`"bob" "Bob Test"`,        // keybase full name is not available, use contact full name
 		`"Alice" "+1111222 (Home)"`,
 		`"Alice" "+199123 (Work)"`,
 	}
@@ -261,7 +261,7 @@ func TestEmptyComponentLabels(t *testing.T) {
 
 	contactList := []keybase1.Contact{
 		keybase1.Contact{
-			Name: "Alice",
+			FirstName: "Alice",
 			Components: []keybase1.ContactComponent{
 				makePhoneComponent("", "+1111222"),
 				makeEmailComponent("", "alice+test@keyba.se"),

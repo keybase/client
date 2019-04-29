@@ -2726,6 +2726,17 @@ func (r RegionCode) IsNil() bool {
 	return len(r) == 0
 }
 
+func (c Contact) FullName() string {
+	var components []string
+	if c.FirstName != "" {
+		components = append(components, c.FirstName)
+	}
+	if c.LastName != "" {
+		components = append(components, c.LastName)
+	}
+	return strings.Join(components, " ")
+}
+
 func (c ContactComponent) ValueString() string {
 	switch {
 	case c.Email != nil:

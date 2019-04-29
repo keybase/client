@@ -35,13 +35,15 @@ func (o ContactComponent) DeepCopy() ContactComponent {
 }
 
 type Contact struct {
-	Name       string             `codec:"name" json:"name"`
+	FirstName  string             `codec:"firstName" json:"firstName"`
+	LastName   string             `codec:"lastName" json:"lastName"`
 	Components []ContactComponent `codec:"components" json:"components"`
 }
 
 func (o Contact) DeepCopy() Contact {
 	return Contact{
-		Name: o.Name,
+		FirstName: o.FirstName,
+		LastName:  o.LastName,
 		Components: (func(x []ContactComponent) []ContactComponent {
 			if x == nil {
 				return nil
