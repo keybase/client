@@ -131,6 +131,30 @@ type PathAsset struct {
 	AssetIssuer string `json:"asset_issuer"`
 }
 
+// TypeString implements AssetBase.
+func (p PathAsset) TypeString() string {
+	return p.AssetType
+}
+
+// CodeString implements AssetBase.
+func (p PathAsset) CodeString() string {
+	return p.AssetCode
+}
+
+// IssuerString implements AssetBase.
+func (p PathAsset) IssuerString() string {
+	return p.AssetIssuer
+}
+
+// PathAssetSliceToAssetBase converts []PathAsset to []AssetBase.
+func PathAssetSliceToAssetBase(path []PathAsset) []AssetBase {
+	a := make([]AssetBase, len(path))
+	for i, p := range path {
+		a[i] = p
+	}
+	return a
+}
+
 // FullPath contains a potential path for a path payment.
 type FullPath struct {
 	SourceAmount           string      `json:"source_amount"`
@@ -142,6 +166,24 @@ type FullPath struct {
 	DestinationAssetType   string      `json:"destination_asset_type"`
 	DestinationAssetCode   string      `json:"destination_asset_code"`
 	DestinationAssetIssuer string      `json:"destination_asset_issuer"`
+}
+
+// SourceAsset returns an AssetMinimal version of the source asset.
+func (f FullPath) SourceAsset() AssetMinimal {
+	return AssetMinimal{
+		AssetType:   f.SourceAssetType,
+		AssetCode:   f.SourceAssetCode,
+		AssetIssuer: f.SourceAssetIssuer,
+	}
+}
+
+// DestinationAsset returns an AssetMinimal version of the destination asset.
+func (f FullPath) DestinationAsset() AssetMinimal {
+	return AssetMinimal{
+		AssetType:   f.DestinationAssetType,
+		AssetCode:   f.DestinationAssetCode,
+		AssetIssuer: f.DestinationAssetIssuer,
+	}
 }
 
 // PathsPage is used to unmarshal the results from the /paths endpoint.

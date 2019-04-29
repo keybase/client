@@ -558,6 +558,14 @@ func (r *RemoteClientMock) ChangeTrustline(ctx context.Context, signedTx string)
 	return r.Backend.ChangeTrustline(ctx, r.Tc, signedTx)
 }
 
+func (r *RemoteClientMock) FindPaymentPath(_ libkb.MetaContext, _ stellar1.PaymentPathQuery) (stellar1.PaymentPath, error) {
+	return stellar1.PaymentPath{}, errors.New("not mocked")
+}
+
+func (r *RemoteClientMock) SubmitPathPayment(_ libkb.MetaContext, _ stellar1.PathPaymentPost) (stellar1.PaymentResult, error) {
+	return stellar1.PaymentResult{}, errors.New("not mocked")
+}
+
 var _ remote.Remoter = (*RemoteClientMock)(nil)
 
 const (

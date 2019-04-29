@@ -701,6 +701,24 @@ func (o AirdropStatus) DeepCopy() AirdropStatus {
 	}
 }
 
+type PaymentPathLocal struct {
+	SourceDisplay      string      `codec:"sourceDisplay" json:"sourceDisplay"`
+	SourceMaxDisplay   string      `codec:"sourceMaxDisplay" json:"sourceMaxDisplay"`
+	DestinationDisplay string      `codec:"destinationDisplay" json:"destinationDisplay"`
+	DestinationAccount AccountID   `codec:"destinationAccount" json:"destinationAccount"`
+	FullPath           PaymentPath `codec:"fullPath" json:"fullPath"`
+}
+
+func (o PaymentPathLocal) DeepCopy() PaymentPathLocal {
+	return PaymentPathLocal{
+		SourceDisplay:      o.SourceDisplay,
+		SourceMaxDisplay:   o.SourceMaxDisplay,
+		DestinationDisplay: o.DestinationDisplay,
+		DestinationAccount: o.DestinationAccount.DeepCopy(),
+		FullPath:           o.FullPath.DeepCopy(),
+	}
+}
+
 type SendResultCLILocal struct {
 	KbTxID KeybaseTransactionID `codec:"kbTxID" json:"kbTxID"`
 	TxID   TransactionID        `codec:"txID" json:"txID"`
@@ -1153,6 +1171,14 @@ type SendPaymentLocalArg struct {
 	QuickReturn   bool                 `codec:"quickReturn" json:"quickReturn"`
 }
 
+type SendPathLocalArg struct {
+	Source     AccountID   `codec:"source" json:"source"`
+	Recipient  string      `codec:"recipient" json:"recipient"`
+	Path       PaymentPath `codec:"path" json:"path"`
+	Note       string      `codec:"note" json:"note"`
+	PublicNote string      `codec:"publicNote" json:"publicNote"`
+}
+
 type BuildRequestLocalArg struct {
 	SessionID  int                  `codec:"sessionID" json:"sessionID"`
 	To         string               `codec:"to" json:"to"`
@@ -1254,6 +1280,14 @@ type GetTrustlinesLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
 
+type FindPaymentPathLocalArg struct {
+	From             AccountID `codec:"from" json:"from"`
+	To               string    `codec:"to" json:"to"`
+	SourceAsset      Asset     `codec:"sourceAsset" json:"sourceAsset"`
+	DestinationAsset Asset     `codec:"destinationAsset" json:"destinationAsset"`
+	Amount           string    `codec:"amount" json:"amount"`
+}
+
 type BalancesLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
@@ -1268,6 +1302,14 @@ type SendCLILocalArg struct {
 	ForceRelay      bool      `codec:"forceRelay" json:"forceRelay"`
 	PublicNote      string    `codec:"publicNote" json:"publicNote"`
 	FromAccountID   AccountID `codec:"fromAccountID" json:"fromAccountID"`
+}
+
+type SendPathCLILocalArg struct {
+	Source     AccountID   `codec:"source" json:"source"`
+	Recipient  string      `codec:"recipient" json:"recipient"`
+	Path       PaymentPath `codec:"path" json:"path"`
+	Note       string      `codec:"note" json:"note"`
+	PublicNote string      `codec:"publicNote" json:"publicNote"`
 }
 
 type ClaimCLILocalArg struct {
@@ -1372,6 +1414,7 @@ type LocalInterface interface {
 	BuildPaymentLocal(context.Context, BuildPaymentLocalArg) (BuildPaymentResLocal, error)
 	ReviewPaymentLocal(context.Context, ReviewPaymentLocalArg) error
 	SendPaymentLocal(context.Context, SendPaymentLocalArg) (SendPaymentResLocal, error)
+	SendPathLocal(context.Context, SendPathLocalArg) (SendPaymentResLocal, error)
 	BuildRequestLocal(context.Context, BuildRequestLocalArg) (BuildRequestResLocal, error)
 	GetRequestDetailsLocal(context.Context, GetRequestDetailsLocalArg) (RequestDetailsLocal, error)
 	CancelRequestLocal(context.Context, CancelRequestLocalArg) error
@@ -1390,8 +1433,10 @@ type LocalInterface interface {
 	DeleteTrustlineLocal(context.Context, DeleteTrustlineLocalArg) error
 	ChangeTrustlineLimitLocal(context.Context, ChangeTrustlineLimitLocalArg) error
 	GetTrustlinesLocal(context.Context, GetTrustlinesLocalArg) ([]Balance, error)
+	FindPaymentPathLocal(context.Context, FindPaymentPathLocalArg) (PaymentPathLocal, error)
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendCLILocal(context.Context, SendCLILocalArg) (SendResultCLILocal, error)
+	SendPathCLILocal(context.Context, SendPathCLILocalArg) (SendResultCLILocal, error)
 	ClaimCLILocal(context.Context, ClaimCLILocalArg) (RelayClaimResult, error)
 	RecentPaymentsCLILocal(context.Context, *AccountID) ([]PaymentOrErrorCLILocal, error)
 	PaymentDetailCLILocal(context.Context, string) (PaymentCLILocal, error)
@@ -1849,6 +1894,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"sendPathLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]SendPathLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SendPathLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SendPathLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.SendPathLocal(ctx, typedArgs[0])
+					return
+				},
+			},
 			"buildRequestLocal": {
 				MakeArg: func() interface{} {
 					var ret [1]BuildRequestLocalArg
@@ -2119,6 +2179,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"findPaymentPathLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]FindPaymentPathLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]FindPaymentPathLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]FindPaymentPathLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.FindPaymentPathLocal(ctx, typedArgs[0])
+					return
+				},
+			},
 			"balancesLocal": {
 				MakeArg: func() interface{} {
 					var ret [1]BalancesLocalArg
@@ -2146,6 +2221,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.SendCLILocal(ctx, typedArgs[0])
+					return
+				},
+			},
+			"sendPathCLILocal": {
+				MakeArg: func() interface{} {
+					var ret [1]SendPathCLILocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SendPathCLILocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SendPathCLILocalArg)(nil), args)
+						return
+					}
+					ret, err = i.SendPathCLILocal(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -2527,6 +2617,11 @@ func (c LocalClient) SendPaymentLocal(ctx context.Context, __arg SendPaymentLoca
 	return
 }
 
+func (c LocalClient) SendPathLocal(ctx context.Context, __arg SendPathLocalArg) (res SendPaymentResLocal, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.sendPathLocal", []interface{}{__arg}, &res)
+	return
+}
+
 func (c LocalClient) BuildRequestLocal(ctx context.Context, __arg BuildRequestLocalArg) (res BuildRequestResLocal, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.buildRequestLocal", []interface{}{__arg}, &res)
 	return
@@ -2620,6 +2715,11 @@ func (c LocalClient) GetTrustlinesLocal(ctx context.Context, __arg GetTrustlines
 	return
 }
 
+func (c LocalClient) FindPaymentPathLocal(ctx context.Context, __arg FindPaymentPathLocalArg) (res PaymentPathLocal, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.findPaymentPathLocal", []interface{}{__arg}, &res)
+	return
+}
+
 func (c LocalClient) BalancesLocal(ctx context.Context, accountID AccountID) (res []Balance, err error) {
 	__arg := BalancesLocalArg{AccountID: accountID}
 	err = c.Cli.Call(ctx, "stellar.1.local.balancesLocal", []interface{}{__arg}, &res)
@@ -2628,6 +2728,11 @@ func (c LocalClient) BalancesLocal(ctx context.Context, accountID AccountID) (re
 
 func (c LocalClient) SendCLILocal(ctx context.Context, __arg SendCLILocalArg) (res SendResultCLILocal, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.sendCLILocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) SendPathCLILocal(ctx context.Context, __arg SendPathCLILocalArg) (res SendResultCLILocal, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.sendPathCLILocal", []interface{}{__arg}, &res)
 	return
 }
 

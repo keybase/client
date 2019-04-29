@@ -3,6 +3,7 @@ package remote
 import (
 	"context"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 )
 
@@ -13,6 +14,7 @@ type Remoter interface {
 	SubmitPayment(ctx context.Context, post stellar1.PaymentDirectPost) (stellar1.PaymentResult, error)
 	SubmitRelayPayment(ctx context.Context, post stellar1.PaymentRelayPost) (stellar1.PaymentResult, error)
 	SubmitRelayClaim(context.Context, stellar1.RelayClaimPost) (stellar1.RelayClaimResult, error)
+	SubmitPathPayment(mctx libkb.MetaContext, post stellar1.PathPaymentPost) (stellar1.PaymentResult, error)
 	SubmitMultiPayment(ctx context.Context, post stellar1.PaymentMultiPost) (stellar1.SubmitMultiRes, error)
 	AcquireAutoClaimLock(context.Context) (string, error)
 	ReleaseAutoClaimLock(context.Context, string) error
@@ -36,4 +38,5 @@ type Remoter interface {
 	NetworkOptions(ctx context.Context) (stellar1.NetworkOptions, error)
 	DetailsPlusPayments(ctx context.Context, accountID stellar1.AccountID) (stellar1.DetailsPlusPayments, error)
 	ChangeTrustline(ctx context.Context, signedTx string) error
+	FindPaymentPath(mctx libkb.MetaContext, query stellar1.PaymentPathQuery) (stellar1.PaymentPath, error)
 }

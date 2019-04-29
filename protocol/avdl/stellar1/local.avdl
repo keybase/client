@@ -382,6 +382,8 @@ protocol local {
     boolean pending;
   }
 
+  SendPaymentResLocal sendPathLocal(AccountID source, string recipient, PaymentPath path, string note, string publicNote);
+
   // Check but do not send a request.
   //
   // Arguments are optional unless otherwise described.  However, a coherent
@@ -526,15 +528,21 @@ protocol local {
   void changeTrustlineLimitLocal(int sessionID, AccountID accountID, Trustline trustline, string limit);
   array<Balance> getTrustlinesLocal(int sessionID, AccountID accountID);
 
+  record PaymentPathLocal {
+    string sourceDisplay;               // for display purposes 
+    string sourceMaxDisplay;
+    string destinationDisplay;
+    AccountID destinationAccount;
+    PaymentPath fullPath;   // pass this back when submitting the payment
+  }
+
+  PaymentPathLocal findPaymentPathLocal(AccountID from, string to, Asset sourceAsset, Asset destinationAsset, string amount);
+
   // -------------------------------------------------------
   // CLI protocol
   // -------------------------------------------------------
 
   array<Balance> balancesLocal(AccountID accountID);
-
-  SendResultCLILocal sendCLILocal(string recipient, string amount, Asset asset, string note,
-                                  string displayAmount, string displayCurrency, boolean forceRelay,
-                                  string publicNote, AccountID fromAccountID);
 
   record SendResultCLILocal {
     KeybaseTransactionID kbTxID;
@@ -542,6 +550,12 @@ protocol local {
     // Relay : tx ID of the funding payment tx
     TransactionID txID;
   }
+
+  SendResultCLILocal sendCLILocal(string recipient, string amount, Asset asset, string note,
+                                  string displayAmount, string displayCurrency, boolean forceRelay,
+                                  string publicNote, AccountID fromAccountID);
+
+  SendResultCLILocal sendPathCLILocal(AccountID source, string recipient, PaymentPath path, string note, string publicNote);
 
   // Claim a relay payment
   // `txID` is the kbTxID of the relay payment. Can also be the txID of the funding tx.

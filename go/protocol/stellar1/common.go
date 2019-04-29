@@ -470,6 +470,36 @@ func (o Trustline) DeepCopy() Trustline {
 	}
 }
 
+type PaymentPath struct {
+	SourceAmount      string  `codec:"sourceAmount" json:"sourceAmount"`
+	SourceAmountMax   string  `codec:"sourceAmountMax" json:"sourceAmountMax"`
+	SourceAsset       Asset   `codec:"sourceAsset" json:"sourceAsset"`
+	Path              []Asset `codec:"path" json:"path"`
+	DestinationAmount string  `codec:"destinationAmount" json:"destinationAmount"`
+	DestinationAsset  Asset   `codec:"destinationAsset" json:"destinationAsset"`
+}
+
+func (o PaymentPath) DeepCopy() PaymentPath {
+	return PaymentPath{
+		SourceAmount:    o.SourceAmount,
+		SourceAmountMax: o.SourceAmountMax,
+		SourceAsset:     o.SourceAsset.DeepCopy(),
+		Path: (func(x []Asset) []Asset {
+			if x == nil {
+				return nil
+			}
+			ret := make([]Asset, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Path),
+		DestinationAmount: o.DestinationAmount,
+		DestinationAsset:  o.DestinationAsset.DeepCopy(),
+	}
+}
+
 type CommonInterface interface {
 }
 

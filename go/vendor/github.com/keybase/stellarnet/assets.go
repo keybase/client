@@ -7,6 +7,57 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
+// AssetBase is an interface that any of the various data
+// structures can implement.
+type AssetBase interface {
+	TypeString() string
+	CodeString() string
+	IssuerString() string
+}
+
+// AssetMinimal is a bare-bones representation of an asset.
+type AssetMinimal struct {
+	AssetType   string
+	AssetCode   string
+	AssetIssuer string
+}
+
+// NewAssetMinimal makes an AssetMinimal, inferring the asset
+// type from the length of the asset code.
+func NewAssetMinimal(code, issuer string) (AssetMinimal, error) {
+	a := AssetMinimal{
+		AssetCode:   code,
+		AssetIssuer: issuer,
+	}
+	if len(code) == 0 && len(issuer) == 0 {
+		a.AssetType = "native"
+		return a, nil
+	}
+
+	var err error
+	a.AssetType, err = assetCodeToType(code)
+	if err != nil {
+		return AssetMinimal{}, err
+	}
+
+	return a, nil
+}
+
+// TypeString implements AssetBase.
+func (a AssetMinimal) TypeString() string {
+	return a.AssetType
+}
+
+// CodeString implements AssetBase.
+func (a AssetMinimal) CodeString() string {
+	return a.AssetCode
+}
+
+// IssuerString implements AssetBase.
+func (a AssetMinimal) IssuerString() string {
+	return a.AssetIssuer
+}
+
 // AssetSummary summarizes the data returned by horizon for an asset.
 // UnverifiedWellKnownLink is a link supplied by the asset issuer that
 // needs verification.
@@ -17,6 +68,21 @@ type AssetSummary struct {
 	AssetIssuer             string
 	Amount                  string
 	NumAccounts             int
+}
+
+// TypeString implements AssetBase.
+func (a *AssetSummary) TypeString() string {
+	return a.AssetType
+}
+
+// CodeString implements AssetBase.
+func (a *AssetSummary) CodeString() string {
+	return a.AssetCode
+}
+
+// IssuerString implements AssetBase.
+func (a *AssetSummary) IssuerString() string {
+	return a.AssetIssuer
 }
 
 // Asset returns details about an asset that matches assetCode
@@ -156,4 +222,42 @@ func assetCodeToType(code string) (string, error) {
 	default:
 		return "", errors.New("invalid assetCode length")
 	}
+}
+
+func assetBaseType(a AssetBase) (string, error) {
+	return assetCodeToType(a.CodeString())
+}
+
+func assetBaseIssuer(a AssetBase) (AddressStr, error) {
+	return NewAddressStr(a.IssuerString())
+}
+
+func assetBaseToXDR(a AssetBase) (xdr.Asset, error) {
+	if len(a.CodeString()) == 0 && len(a.IssuerString()) == 0 {
+		return xdr.NewAsset(xdr.AssetTypeAssetTypeNative, nil)
+	}
+
+	issuerAddress, err := assetBaseIssuer(a)
+	if err != nil {
+		return xdr.Asset{}, err
+	}
+	issuerID, err := issuerAddress.AccountID()
+	if err != nil {
+		return xdr.Asset{}, err
+	}
+
+	x := len(a.CodeString())
+	switch {
+	case x >= 1 && x <= 4:
+		asset := xdr.AssetAlphaNum4{Issuer: issuerID}
+		copy(asset.AssetCode[:], []byte(a.CodeString()[0:x]))
+		return xdr.NewAsset(xdr.AssetTypeAssetTypeCreditAlphanum4, asset)
+	case x >= 5 && x <= 12:
+		asset := xdr.AssetAlphaNum12{Issuer: issuerID}
+		copy(asset.AssetCode[:], []byte(a.CodeString()[0:x]))
+		return xdr.NewAsset(xdr.AssetTypeAssetTypeCreditAlphanum12, asset)
+	default:
+		return xdr.Asset{}, errors.New("invalid asset code length")
+	}
+
 }
