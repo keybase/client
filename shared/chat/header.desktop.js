@@ -43,7 +43,13 @@ const descStyleOverride = {
 const Header = (p: Props) => {
   let description = !!p.desc && (
     // $FlowIssue not used on mobile
-    <Kb.Markdown preview={true} style={styles.desc} styleOverride={descStyleOverride} lineClamp={1} selectable={true}>
+    <Kb.Markdown
+      smallStandaloneEmoji={true}
+      style={styles.desc}
+      styleOverride={descStyleOverride}
+      lineClamp={1}
+      selectable={true}
+    >
       {p.desc}
     </Kb.Markdown>
   )
