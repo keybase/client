@@ -51,13 +51,11 @@ class Conversation extends React.PureComponent<Props, State> {
         <Kb.DragAndDrop onAttach={this.props.onAttach}>
           {this.props.threadLoadedOffline && <Offline />}
           <HeaderArea
-            isPending={this.props.isPending}
             onToggleInfoPanel={this.props.onToggleInfoPanel}
             conversationIDKey={this.props.conversationIDKey}
           />
           {this.props.showLoader && <Kb.LoadingLine />}
           <ListArea
-            isPending={this.props.isPending}
             onFocusInput={this.props.onFocusInput}
             scrollListDownCounter={this.props.scrollListDownCounter}
             scrollListToBottomCounter={this.props.scrollListToBottomCounter}
@@ -66,7 +64,6 @@ class Conversation extends React.PureComponent<Props, State> {
           />
           <Banner conversationIDKey={this.props.conversationIDKey} />
           <InputArea
-            isPending={this.props.isPending}
             focusInputCounter={this.props.focusInputCounter}
             jumpToRecent={this.props.jumpToRecent}
             onRequestScrollDown={this.props.onRequestScrollDown}

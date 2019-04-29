@@ -4,7 +4,7 @@ import Banner from '../bottom-banner/container'
 import HeaderArea from '../header-area/container'
 import InputArea from '../input-area/container'
 import ListArea from '../list-area/container'
-import {Box, LoadingLine, Text, HeaderHocHeader} from '../../../common-adapters'
+import {Box, LoadingLine, Text} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
 import type {Props} from './index.types'
 
@@ -30,23 +30,13 @@ class Conversation extends React.PureComponent<Props> {
   render() {
     return (
       <Box style={containerStyle}>
-        {this.props.isSearching && (
-          <HeaderHocHeader
-            title="New chat"
-            leftAction="cancel"
-            onLeftAction={this.props.onCancelSearch}
-            headerStyle={_headerStyle}
-          />
-        )}
         {this.props.threadLoadedOffline && <Offline />}
         <HeaderArea
-          isPending={this.props.isPending}
           onToggleInfoPanel={this.props.onToggleInfoPanel}
           conversationIDKey={this.props.conversationIDKey}
         />
         {this.props.showLoader && <LoadingLine />}
         <ListArea
-          isPending={this.props.isPending}
           scrollListDownCounter={this.props.scrollListDownCounter}
           scrollListToBottomCounter={this.props.scrollListToBottomCounter}
           scrollListUpCounter={this.props.scrollListUpCounter}
@@ -55,7 +45,6 @@ class Conversation extends React.PureComponent<Props> {
         />
         <Banner conversationIDKey={this.props.conversationIDKey} />
         <InputArea
-          isPending={this.props.isPending}
           focusInputCounter={this.props.focusInputCounter}
           jumpToRecent={this.props.jumpToRecent}
           onRequestScrollDown={this.props.onRequestScrollDown}
@@ -71,10 +60,6 @@ class Conversation extends React.PureComponent<Props> {
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
   ...globalStyles.fullHeight,
-}
-
-const _headerStyle = {
-  borderBottomWidth: 0,
 }
 
 export default Conversation

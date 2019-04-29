@@ -1,10 +1,8 @@
 // @flow
 import * as Types from '../../../constants/types/chat2'
 export type Props = {
-  isPending: boolean,
   conversationIDKey: Types.ConversationIDKey,
   focusInputCounter: number,
-  isSearching: boolean,
   jumpToRecent: () => void,
   scrollListDownCounter: number,
   scrollListToBottomCounter: number,

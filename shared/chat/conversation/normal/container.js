@@ -11,7 +11,6 @@ import {compose, connect, isMobile, withStateHandlers} from '../../../util/conta
 
 type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
-  isPending: boolean,
 |}
 
 let KeyHandler: any = c => c
@@ -19,14 +18,11 @@ if (!isMobile) {
   KeyHandler = require('../../../util/key-handler.desktop').default
 }
 
-const mapStateToProps = (state, {conversationIDKey, isPending}) => {
+const mapStateToProps = (state, {conversationIDKey}) => {
   const showLoader = WaitingConstants.anyWaiting(state, Constants.waitingKeyThreadLoad(conversationIDKey))
   const meta = Constants.getMeta(state, conversationIDKey)
-  const isSearching = state.chat2.pendingMode === 'searchingForUsers' && isPending
   return {
     conversationIDKey,
-    isPending,
-    isSearching,
     showLoader,
     threadLoadedOffline: meta.offline,
   }
@@ -66,8 +62,6 @@ const mergeProps = (stateProps, dispatchProps) => {
   return {
     conversationIDKey: stateProps.conversationIDKey,
     hotkeys,
-    isPending: stateProps.isPending,
-    isSearching: stateProps.isSearching,
     jumpToRecent: dispatchProps.jumpToRecent,
     onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
     onCancelSearch: dispatchProps.onCancelSearch,

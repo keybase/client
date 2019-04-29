@@ -1562,69 +1562,6 @@ const confirmScreenResponse = (_, action) => {
   storeStellarConfirmWindowResponse(action.payload.accept, null)
 }
 
-// function* previewConversationAfterFindExisting(state, action, results, users) {
-// // still looking for this result?
-// if (
-// // If action.type === Chat2Gen.setPendingConversationUsers, then
-// // we know that fromSearch is true and participants is non-empty
-// // (see previewConversationFindExisting).
-// action.type === Chat2Gen.setPendingConversationUsers &&
-// !Constants.getMeta(state, Constants.pendingConversationIDKey)
-// .participants.toSet()
-// .equals(I.Set(users))
-// ) {
-// console.log('Ignoring old preview find due to participant mismatch')
-// return
-// }
-
-// let existingConversationIDKey
-
-// const isTeam =
-// action.type === Chat2Gen.previewConversation && (action.payload.teamname || action.payload.channelname)
-// if (action.type === Chat2Gen.previewConversation && action.payload.conversationIDKey) {
-// existingConversationIDKey = action.payload.conversationIDKey
-// } else if (results.length > 0) {
-// // Even if we find an existing conversation lets put it into the pending state so its on top always, makes the UX simpler and better to see it selected
-// // and allows quoting privately to work nicely
-// existingConversationIDKey = results[0].conversationIDKey
-
-// // If we get a conversationIDKey we don't know about (maybe an empty convo) lets treat it as not being found so we can go through the create flow
-// // if it's a team avoid the flow and just preview & select the channel
-// if (
-// !isTeam &&
-// existingConversationIDKey &&
-// Constants.getMeta(state, existingConversationIDKey).conversationIDKey === Constants.noConversationIDKey
-// ) {
-// existingConversationIDKey = Constants.noConversationIDKey
-// }
-// }
-
-// // If we're previewing a team conversation we want to actually make an rpc call and add it to the inbox
-// if (isTeam) {
-// if (!existingConversationIDKey || existingConversationIDKey === Constants.noConversationIDKey) {
-// throw new Error('Tried to preview a non-existant channel?')
-// }
-// yield Saga.callUntyped(RPCChatTypes.localPreviewConversationByIDLocalRpcPromise, {
-// convID: Types.keyToConversationID(existingConversationIDKey),
-// })
-// yield Saga.put(
-// Chat2Gen.createSelectConversation({
-// conversationIDKey: existingConversationIDKey,
-// reason: 'previewResolved',
-// })
-// )
-// yield Saga.put(Chat2Gen.createNavigateToThread())
-// } else {
-// yield Saga.put(
-// Chat2Gen.createSetPendingConversationExistingConversationIDKey({
-// conversationIDKey: existingConversationIDKey || Constants.noConversationIDKey,
-// })
-// )
-// yield Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: false, users}))
-// yield Saga.put(Chat2Gen.createNavigateToThread())
-// }
-// }
-
 // We always make adhoc convos and never preview it
 const previewConversationPersonMakesAConversation = (state, action) =>
   !action.payload.teamname &&

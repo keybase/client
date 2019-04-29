@@ -17,14 +17,11 @@ type OwnProps = {||}
 
 type SwitchProps = {
   conversationIDKey: Types.ConversationIDKey,
-  isPending: boolean,
   isFocused?: boolean,
   selectConversation: () => void,
   deselectConversation: () => void,
   type: 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rekey',
 }
-
-const DONT_RENDER_CONVERSATION = __DEV__ && false
 
 let NavigationEvents
 if (flags.useNewRouter) {
@@ -41,30 +38,7 @@ class Conversation extends React.PureComponent<SwitchProps> {
     this.props.deselectConversation()
   }
 
-  // _handleSelectionChange = () => {
-  // if (this.props.isFocused) {
-  // this.props.selectConversation()
-  // } else {
-  // // need to defer this so we don't race if we're clicking between two chats on 2 tabs. TODO think of a better way to make this safe
-  // setTimeout(this.props.deselectConversation, 1000)
-  // }
-  // }
-  // componentWillMount() {
-  // this._handleSelectionChange()
-  // }
-  // componentDidUpdate(prevProps: SwitchProps) {
-  // if (
-  // this.props.isFocused !== prevProps.isFocused ||
-  // this.props.conversationIDKey !== prevProps.conversationIDKey
-  // ) {
-  // this._handleSelectionChange()
-  // }
-  // }
-
   render() {
-    if (DONT_RENDER_CONVERSATION) {
-      return <NoConversation />
-    }
     switch (this.props.type) {
       case 'error':
         return <Error conversationIDKey={this.props.conversationIDKey} />
@@ -84,7 +58,7 @@ class Conversation extends React.PureComponent<SwitchProps> {
         return (
           <>
             <NavigationEvents onDidFocus={this._onDidFocus} onWillBlur={this._onWillBlur} />
-            <Normal conversationIDKey={this.props.conversationIDKey} isPending={this.props.isPending} />
+            <Normal conversationIDKey={this.props.conversationIDKey} />
           </>
         )
       case 'youAreReset':
@@ -100,36 +74,15 @@ class Conversation extends React.PureComponent<SwitchProps> {
 
 const mapStateToProps = (state, ownProps) => {
   let _storeConvoIDKey = Constants.getSelectedConversation(state)
-  let conversationIDKey
-  if (flags.useNewRouter) {
-    conversationIDKey = getRouteProps(ownProps, 'conversationIDKey')
-  } else {
-    conversationIDKey = _storeConvoIDKey
-  }
+  const conversationIDKey = flags.useNewRouter
+    ? getRouteProps(ownProps, 'conversationIDKey')
+    : _storeConvoIDKey
   let _meta = Constants.getMeta(state, conversationIDKey)
-  let isPending = false
-
-  // If its a pending thats been resolved, treat it as the resolved one and pass down pending as a boolean
-  if (conversationIDKey === Constants.pendingConversationIDKey) {
-    isPending = true
-    const resolvedPendingConversationIDKey = Constants.getResolvedPendingConversationIDKey(state)
-    if (Constants.isValidConversationIDKey(resolvedPendingConversationIDKey)) {
-      conversationIDKey = resolvedPendingConversationIDKey
-      // update route props
-      if (flags.useNewRouter) {
-        setTimeout(() => {
-          // $FlowIssue
-          ownProps.navigation.setParams('conversationIDKey', conversationIDKey)
-        }, 1000)
-      }
-    }
-  }
 
   return {
     _meta,
     _storeConvoIDKey,
     conversationIDKey,
-    isPending,
   }
 }
 
@@ -159,9 +112,7 @@ const mergeProps = (stateProps, dispatchProps) => {
       type = 'normal'
       break
     default:
-      if (stateProps.isPending) {
-        type = 'normal'
-      } else if (stateProps._meta.membershipType === 'youAreReset') {
+      if (stateProps._meta.membershipType === 'youAreReset') {
         type = 'youAreReset'
       } else if (stateProps._meta.rekeyers.size > 0) {
         type = 'rekey'
@@ -178,7 +129,6 @@ const mergeProps = (stateProps, dispatchProps) => {
       !flags.useNewRouter || stateProps._storeConvoIDKey !== stateProps.conversationIDKey
         ? () => {}
         : () => dispatchProps._deselectConversation(stateProps.conversationIDKey),
-    isPending: stateProps.isPending,
     selectConversation:
       !flags.useNewRouter ||
       stateProps._storeConvoIDKey === stateProps.conversationIDKey ||
