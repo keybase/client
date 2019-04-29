@@ -84,8 +84,9 @@ func (p *proofServices) ListServicesThatAcceptNewProofs(mctx libkb.MetaContext) 
 	defer p.Unlock()
 	p.loadServiceConfigs()
 	var services []serviceAndPriority
+	experimentalGenericProofs := mctx.G().FeatureFlags.Enabled(mctx, libkb.ExperimentalGenericProofs)
 	for k, v := range p.externalServices {
-		if v.CanMakeNewProofs(mctx) {
+		if experimentalGenericProofs || v.CanMakeNewProofsSkipFeatureFlag(mctx) {
 			s := serviceAndPriority{name: k, priority: v.DisplayPriority()}
 			services = append(services, s)
 		}
