@@ -165,7 +165,7 @@ func (idx *Indexer) Add(ctx context.Context, convID chat1.ConversationID, uid gr
 	defer idx.Trace(ctx, func() error { return err },
 		fmt.Sprintf("Indexer.Add convID: %v, msgs: %d", convID.String(), len(msgs)))()
 	defer idx.consumeResultsForTest(convID, err)
-	return idx.store.add(ctx, uid, convID, msgs)
+	return idx.store.Add(ctx, uid, convID, msgs)
 }
 
 func (idx *Indexer) Remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
@@ -179,7 +179,7 @@ func (idx *Indexer) Remove(ctx context.Context, convID chat1.ConversationID, uid
 	defer idx.Trace(ctx, func() error { return err },
 		fmt.Sprintf("Indexer.Remove convID: %v, msgs: %d", convID.String(), len(msgs)))()
 	defer idx.consumeResultsForTest(convID, err)
-	return idx.store.remove(ctx, uid, convID, msgs)
+	return idx.store.Remove(ctx, uid, convID, msgs)
 }
 
 type reindexOpts struct {

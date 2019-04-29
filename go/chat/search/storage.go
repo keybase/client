@@ -16,7 +16,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-const indexVersion = 7
+const indexVersion = 8
 const tokenEntryVersion = 2
 const aliasEntryVersion = 1
 
@@ -54,11 +54,13 @@ type store struct {
 	globals.Contextified
 	keyFn      func(ctx context.Context) ([32]byte, error)
 	aliasCache *lru.Cache
+	tokenCache *lru.Cache
 	edb        *encrypteddb.EncryptedDB
 }
 
 func newStore(g *globals.Context) *store {
 	ac, _ := lru.New(10000)
+	tc, _ := lru.New(3000)
 	keyFn := func(ctx context.Context) ([32]byte, error) {
 		return storage.GetSecretBoxKey(ctx, g.ExternalG(), storage.DefaultSecretUI)
 	}
@@ -71,6 +73,7 @@ func newStore(g *globals.Context) *store {
 		lockTab:      &libkb.LockTable{},
 		keyFn:        keyFn,
 		aliasCache:   ac,
+		tokenCache:   tc,
 		edb:          encrypteddb.New(g.ExternalG(), dbFn, keyFn),
 	}
 }
@@ -82,21 +85,18 @@ func (s *store) metadataKey(uid gregor1.UID, convID chat1.ConversationID) libkb.
 	}
 }
 
-func (s *store) entryKey(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, dat, name string) (res libkb.DbKey, err error) {
+func (s *store) tokenKey(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, dat string) (res libkb.DbKey, err error) {
 	material, err := s.keyFn(ctx)
 	if err != nil {
 		return res, err
 	}
-	termPart := append(append([]byte(dat), material[:]...), convID.DbShortForm()...)
-	termPartBytes := hmac.New(sha256.New, termPart).Sum(nil)
+	hasher := hmac.New(sha256.New, material[:])
+	hasher.Write([]byte(dat))
+	hasher.Write(convID.DbShortForm())
 	return libkb.DbKey{
 		Typ: libkb.DBChatIndex,
-		Key: fmt.Sprintf("%s:%s:%s:%s", name, uid, convID, termPartBytes),
+		Key: fmt.Sprintf("tm:%s:%s:%s", uid, convID, hasher.Sum(nil)),
 	}, nil
-}
-
-func (s *store) termKey(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, dat string) (res libkb.DbKey, err error) {
-	return s.entryKey(ctx, uid, convID, dat, "term")
 }
 
 func (s *store) aliasKey(ctx context.Context, dat string) (res libkb.DbKey, err error) {
@@ -104,11 +104,11 @@ func (s *store) aliasKey(ctx context.Context, dat string) (res libkb.DbKey, err 
 	if err != nil {
 		return res, err
 	}
-	termPart := append([]byte(dat), material[:]...)
-	termPartBytes := hmac.New(sha256.New, termPart).Sum(nil)
+	hasher := hmac.New(sha256.New, material[:])
+	hasher.Write([]byte(dat))
 	return libkb.DbKey{
 		Typ: libkb.DBChatIndex,
-		Key: fmt.Sprintf("al:%s", termPartBytes),
+		Key: fmt.Sprintf("al:%s", hasher.Sum(nil)),
 	}, nil
 }
 
@@ -138,9 +138,21 @@ func (s *store) getHits(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 	return res, nil
 }
 
+func (s *store) tokenCacheKey(uid gregor1.UID, convID chat1.ConversationID, token string) string {
+	return fmt.Sprintf("%s:%s:%s", uid, convID, token)
+}
+
 func (s *store) getTokenEntry(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, token string) (res *tokenEntry, err error) {
+	if te, ok := s.tokenCache.Get(s.tokenCacheKey(uid, convID, token)); ok {
+		return te.(*tokenEntry), nil
+	}
+	defer func() {
+		if err == nil {
+			s.tokenCache.Add(s.tokenCacheKey(uid, convID, token), res)
+		}
+	}()
 	var te tokenEntry
-	key, err := s.termKey(ctx, uid, convID, token)
+	key, err := s.tokenKey(ctx, uid, convID, token)
 	if err != nil {
 		return nil, err
 	}
@@ -163,6 +175,11 @@ func (s *store) getAliasEntry(ctx context.Context, alias string) (res *aliasEntr
 	if dat, ok := s.aliasCache.Get(alias); ok {
 		return dat.(*aliasEntry), nil
 	}
+	defer func() {
+		if err == nil {
+			s.aliasCache.Add(alias, res)
+		}
+	}()
 	key, err := s.aliasKey(ctx, alias)
 	if err != nil {
 		return res, err
@@ -178,13 +195,17 @@ func (s *store) getAliasEntry(ctx context.Context, alias string) (res *aliasEntr
 	if res.Version != refAliasEntry.Version {
 		return newAliasEntry(), nil
 	}
-	s.aliasCache.Add(alias, res)
 	return res, nil
 }
 
 func (s *store) putTokenEntry(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	token string, te *tokenEntry) error {
-	key, err := s.termKey(ctx, uid, convID, token)
+	token string, te *tokenEntry) (err error) {
+	defer func() {
+		if err == nil {
+			s.tokenCache.Add(s.tokenCacheKey(uid, convID, token), te)
+		}
+	}()
+	key, err := s.tokenKey(ctx, uid, convID, token)
 	if err != nil {
 		return err
 	}
@@ -202,11 +223,12 @@ func (s *store) putAliasEntry(ctx context.Context, alias string, ae *aliasEntry)
 
 func (s *store) deleteTokenEntry(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	token string) {
-	key, err := s.termKey(ctx, uid, convID, token)
+	key, err := s.tokenKey(ctx, uid, convID, token)
 	if err != nil {
 		s.Debug(ctx, "deleteTokenEntry: failed to get token key: %s", err)
 		return
 	}
+	s.tokenCache.Remove(s.tokenCacheKey(uid, convID, token))
 	if err := s.G().LocalChatDb.Delete(key); err != nil {
 		s.Debug(ctx, "deleteTokenEntry: failed to delete key: %s", err)
 	}
@@ -282,7 +304,7 @@ func (s *store) getAliasEntryWithBatch(ctx context.Context, batch *addTokenBatch
 // addTokens add the given tokens to the index under the given message
 // id, when ingesting EDIT messages the msgID is of the superseded msg but the
 // tokens are from the EDIT itself.
-func (s *store) addTokensLocked(ctx context.Context, batch *addTokenBatch, uid gregor1.UID,
+func (s *store) addTokens(ctx context.Context, batch *addTokenBatch, uid gregor1.UID,
 	convID chat1.ConversationID, tokens tokenMap, msgID chat1.MessageID) error {
 	for token, aliases := range tokens {
 		// Update the token entry with the msg ID hit
@@ -304,13 +326,13 @@ func (s *store) addTokensLocked(ctx context.Context, batch *addTokenBatch, uid g
 	return nil
 }
 
-func (s *store) addMsgLocked(ctx context.Context, batch *addTokenBatch, uid gregor1.UID, convID chat1.ConversationID,
+func (s *store) addMsg(ctx context.Context, batch *addTokenBatch, uid gregor1.UID, convID chat1.ConversationID,
 	msg chat1.MessageUnboxed) error {
 	tokens := tokensFromMsg(msg)
-	return s.addTokensLocked(ctx, batch, uid, convID, tokens, msg.GetMessageID())
+	return s.addTokens(ctx, batch, uid, convID, tokens, msg.GetMessageID())
 }
 
-func (s *store) removeMsgLocked(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+func (s *store) removeMsg(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msg chat1.MessageUnboxed) error {
 	// find the msgID that the index stores
 	var msgID chat1.MessageID
@@ -379,9 +401,9 @@ func (s *store) putMetadata(ctx context.Context, uid gregor1.UID, convID chat1.C
 	return s.G().LocalChatDb.PutObjMsgpack(s.metadataKey(uid, convID), nil, md)
 }
 
-func (s *store) add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+func (s *store) Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgs []chat1.MessageUnboxed) (err error) {
-	defer s.Trace(ctx, func() error { return err }, "add")()
+	defer s.Trace(ctx, func() error { return err }, "Add")()
 	lock := s.lockTab.AcquireOnName(ctx, s.G(), convID.String())
 	defer lock.Release(ctx)
 
@@ -428,7 +450,7 @@ func (s *store) add(ctx context.Context, uid gregor1.UID, convID chat1.Conversat
 			supersededMsgs := fetchSupersededMsgs(msg)
 			for _, sm := range supersededMsgs {
 				seenIDs[sm.GetMessageID()] = chat1.EmptyStruct{}
-				s.addMsgLocked(ctx, batch, uid, convID, sm)
+				s.addMsg(ctx, batch, uid, convID, sm)
 			}
 		case chat1.MessageType_EDIT:
 			tokens := tokensFromMsg(msg)
@@ -437,19 +459,20 @@ func (s *store) add(ctx context.Context, uid gregor1.UID, convID chat1.Conversat
 			// contents (using the original id in the index)
 			for _, sm := range supersededMsgs {
 				seenIDs[sm.GetMessageID()] = chat1.EmptyStruct{}
-				s.removeMsgLocked(ctx, uid, convID, sm)
-				s.addTokensLocked(ctx, batch, uid, convID, tokens, sm.GetMessageID())
+				s.removeMsg(ctx, uid, convID, sm)
+				s.addTokens(ctx, batch, uid, convID, tokens, sm.GetMessageID())
 			}
 		default:
-			s.addMsgLocked(ctx, batch, uid, convID, msg)
+			s.addMsg(ctx, batch, uid, convID, msg)
 		}
 	}
 	return nil
 }
 
 // Remove tokenizes the message content and updates/removes index keys for each token.
-func (s *store) remove(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+func (s *store) Remove(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgs []chat1.MessageUnboxed) (err error) {
+	defer s.Trace(ctx, func() error { return err }, "Remove")()
 	lock := s.lockTab.AcquireOnName(ctx, s.G(), convID.String())
 	defer lock.Release(ctx)
 
@@ -465,7 +488,7 @@ func (s *store) remove(ctx context.Context, uid gregor1.UID, convID chat1.Conver
 			continue
 		}
 		seenIDs[msg.GetMessageID()] = chat1.EmptyStruct{}
-		s.removeMsgLocked(ctx, uid, convID, msg)
+		s.removeMsg(ctx, uid, convID, msg)
 	}
 	err = s.putMetadata(ctx, uid, convID, md)
 	return err
