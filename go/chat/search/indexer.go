@@ -490,8 +490,13 @@ func (idx *Indexer) indexConvWithProfile(ctx context.Context, conv types.RemoteC
 		return res, err
 	}
 	res.DurationMsec = gregor1.ToDurationMsec(time.Now().Sub(startT))
-	res.IndexSizeDisk = int(md.Size())
-	res.IndexSizeMem = 0
+	dbKey := idx.store.metadataKey(uid, conv.GetConvID())
+	b, _, err := idx.G().LocalChatDb.GetRaw(dbKey)
+	if err != nil {
+		return res, err
+	}
+	res.IndexSizeDisk = len(b)
+	res.IndexSizeMem = md.Size()
 	return res, nil
 }
 
