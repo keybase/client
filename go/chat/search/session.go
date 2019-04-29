@@ -187,11 +187,12 @@ func (s *searchSession) getMsgsAndIDSet(ctx context.Context, convID chat1.Conver
 // msg id.
 func (s *searchSession) searchHitsFromMsgIDs(ctx context.Context, conv types.RemoteConversation,
 	msgIDs []chat1.MessageID) (convHits *chat1.ChatSearchInboxHit, err error) {
+	convID := conv.GetConvID()
+	defer s.indexer.Trace(ctx, func() error { return err },
+		fmt.Sprintf("searchHitsFromMsgIDs convID: %s hits: %d", convID, len(msgIDs)))()
 	if msgIDs == nil {
 		return nil, nil
 	}
-
-	convID := conv.GetConvID()
 
 	idSet, msgs, err := s.getMsgsAndIDSet(ctx, convID, msgIDs)
 	if err != nil {
