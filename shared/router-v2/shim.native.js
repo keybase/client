@@ -13,8 +13,8 @@ const shimNewRoute = (Original: any) => {
     render() {
       const navigationOptions =
         typeof Original.navigationOptions === 'function'
-          ? Original.navigationOptions(this.props.navigation)
-          : Original.navigationOpptions
+          ? Original.navigationOptions({navigation: this.props.navigation})
+          : Original.navigationOptions
       const body = <Original {...this.props} />
       const keyboardBody = (
         <Kb.NativeKeyboardAvoidingView

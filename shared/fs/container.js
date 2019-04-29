@@ -140,10 +140,10 @@ const Connected = namedConnect<OwnProps, _, _, _, _>(
 
 // $FlowIssue lets fix this
 Connected.navigationOptions = ({navigation}: {navigation: any}) => {
-  const path = (navigation && navigation.getParam('path')) || Constants.defaultPath
+  const path = navigation.getParam('path') || Constants.defaultPath
   return isMobile
     ? {
-        header: <MobileHeader path={path} onBack={navigation && navigation.pop} />,
+        header: <MobileHeader path={path} onBack={navigation.pop} />,
         headerHeight: mobileHeaderHeight,
       }
     : {

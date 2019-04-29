@@ -7,7 +7,6 @@ import * as Types from '../../constants/types/fs'
 import {namedConnect} from '../../util/container'
 import Actions from './actions'
 import * as Kbfs from '../common'
-import {isIPhoneX} from '../../constants/platform'
 import flags from '../../util/feature-flags'
 
 type BannerType = 'none' | 'offline'
@@ -58,8 +57,7 @@ class MobileHeader extends React.PureComponent<Props, State> {
   }
 }
 
-const statusBarHeight = isIPhoneX ? 45 : 20
-export const height = statusBarHeight + 88
+export const height = Styles.statusBarHeight + 88
 
 const styles = Styles.styleSheetCreate({
   blue: {
@@ -70,7 +68,7 @@ const styles = Styles.styleSheetCreate({
     height,
     maxHeight: height,
     minHeight: height,
-    paddingTop: statusBarHeight,
+    paddingTop: Styles.statusBarHeight,
   },
   expandedTitleContainer: {
     backgroundColor: Styles.globalColors.white,
