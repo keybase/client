@@ -2738,7 +2738,7 @@ func (c ContactComponent) ValueString() string {
 }
 
 func (c ContactComponent) FormatDisplayLabel(addLabel bool) string {
-	if addLabel {
+	if addLabel && c.Label != "" {
 		return fmt.Sprintf("%s (%s)", c.ValueString(), c.Label)
 	}
 	return c.ValueString()

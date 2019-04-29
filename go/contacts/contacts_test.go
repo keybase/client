@@ -114,6 +114,14 @@ func stringifyResults(res []keybase1.ProcessedContact) (ret []string) {
 	return ret
 }
 
+func displayResults(res []keybase1.ProcessedContact) (ret []string) {
+	ret = make([]string, len(res))
+	for i, v := range res {
+		ret[i] = fmt.Sprintf("%q %q", v.DisplayName, v.DisplayLabel)
+	}
+	return ret
+}
+
 func TestLookupContacts(t *testing.T) {
 	tc := libkb.SetupTest(t, "TestLookupContacts", 1)
 	defer tc.Cleanup()
@@ -238,4 +246,52 @@ func TestLookupContactsMultipleUsers(t *testing.T) {
 		"Alice +199123 (Work)",
 	}
 	require.Equal(t, expected, stringifyResults(res))
+	expected = []string{
+		`"charlie" "Charlie"`,
+		`"bob" "Bob"`,
+		`"Alice" "+1111222 (Home)"`,
+		`"Alice" "+199123 (Work)"`,
+	}
+	require.Equal(t, expected, displayResults(res))
+}
+
+func TestEmptyComponentLabels(t *testing.T) {
+	tc := libkb.SetupTest(t, "TestLookupContacts", 1)
+	defer tc.Cleanup()
+
+	contactList := []keybase1.Contact{
+		keybase1.Contact{
+			Name: "Alice",
+			Components: []keybase1.ContactComponent{
+				makePhoneComponent("", "+1111222"),
+				makeEmailComponent("", "alice+test@keyba.se"),
+			},
+		},
+	}
+
+	provider := makeProvider()
+
+	res, err := ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
+	require.NoError(t, err)
+	expected := []string{
+		"Alice +1111222 ()",
+		"Alice alice+test@keyba.se ()",
+	}
+	require.Equal(t, expected, stringifyResults(res))
+	expected = []string{
+		`"Alice" "+1111222"`,
+		`"Alice" "alice+test@keyba.se"`,
+	}
+	require.Equal(t, expected, displayResults(res))
+
+	provider.emails["alice+test@keyba.se"] = mockLookupUser{UID: keybase1.UID("1111"), Username: "alice", Fullname: "A L I C E"}
+	res, err = ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
+	require.NoError(t, err)
+	require.Len(t, res, 1)
+	require.True(t, res[0].Resolved)
+	require.Equal(t, "alice", res[0].Username)
+	require.Equal(t, "A L I C E", res[0].FullName)
+	require.EqualValues(t, "1111", res[0].Uid)
+	require.Equal(t, "alice", res[0].DisplayName)
+	require.Equal(t, "A L I C E", res[0].DisplayLabel)
 }
