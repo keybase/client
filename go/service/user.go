@@ -443,7 +443,7 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext, tracer prof
 	if err != nil {
 		return ret, err
 	}
-	if user == nil {
+	if user == nil || user.IDTable() == nil {
 		return ret, fmt.Errorf("could not load logged-in user")
 	}
 
