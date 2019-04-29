@@ -13,7 +13,9 @@ import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
 import flags from '../../util/feature-flags'
 
-type OwnProps = {||}
+type OwnProps = {|
+  navigation?: any,
+|}
 
 type SwitchProps = {
   conversationIDKey: Types.ConversationIDKey,

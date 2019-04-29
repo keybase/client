@@ -5,8 +5,21 @@ import * as Styles from '../../styles'
 import * as Tabs from '../../constants/tabs'
 import KeyHandler from '../../util/key-handler.desktop'
 import {isDarwin} from '../../constants/platform'
-import type {Props} from '.'
 import './tab-bar.css'
+
+type Props = {|
+  badgeNumbers: {[key: string]: number},
+  fullname: string,
+  isWalletsNew?: boolean,
+  onHelp: () => void,
+  onProfileClick: () => void,
+  onQuit: () => void,
+  onSettings: () => void,
+  onSignOut: () => void,
+  onTabClick: (tab: Tabs.Tab) => void,
+  selectedTab: Tabs.Tab,
+  username: string,
+|}
 
 const data = {
   [Tabs.chatTab]: {icon: 'iconfont-nav-2-chat', label: 'Chat'},

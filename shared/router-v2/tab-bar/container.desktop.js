@@ -5,7 +5,7 @@ import * as ProfileGen from '../../actions/profile-gen'
 import * as PeopleGen from '../../actions/people-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as TrackerConstants from '../../constants/tracker2'
-import TabBar from '.'
+import TabBar from './index.desktop'
 import {connect} from '../../util/container'
 import {memoize} from '../../util/memoize'
 import {isLinux} from '../../constants/platform'
@@ -15,7 +15,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as SettingsGen from '../../actions/settings-gen'
 
 type OwnProps = {|
-  navigate: any,
+  navigation: any,
   selectedTab: Tabs.Tab,
 |}
 

@@ -2,7 +2,7 @@
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as React from 'react'
-import TabBar from './tab-bar/container'
+import TabBar from './tab-bar/container.desktop'
 import {
   createNavigator,
   StackRouter,

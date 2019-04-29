@@ -8,7 +8,9 @@ import Conversation from './conversation/container'
 import Header from './header.desktop'
 import {namedConnect} from '../util/container'
 
-type Props = {||}
+type Props = {|
+  navigation?: any,
+|}
 
 type InboxSwitchProps = Props & {|
   searchEnabled: boolean,

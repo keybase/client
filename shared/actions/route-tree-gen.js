@@ -23,7 +23,6 @@ export const setInitialRouteDef = 'route-tree:setInitialRouteDef'
 export const setRouteState = 'route-tree:setRouteState'
 export const switchRouteDef = 'route-tree:switchRouteDef'
 export const switchTo = 'route-tree:switchTo'
-export const tabSwitch = 'route-tree:tabSwitch'
 
 // Payload Types
 type _ClearModalsPayload = void
@@ -38,13 +37,8 @@ type _SetInitialRouteDefPayload = $ReadOnly<{|routeDef: RCConstants.RouteDefPara
 type _SetRouteStatePayload = $ReadOnly<{|path: RCConstants.Path, partialState: {} | ((oldState: I.Map<string, any>) => I.Map<string, any>)|}>
 type _SwitchRouteDefPayload = $ReadOnly<{|routeDef: RCConstants.RouteDefParams, path?: ?RCConstants.Path|}>
 type _SwitchToPayload = $ReadOnly<{|path: RCConstants.Path, parentPath?: ?RCConstants.Path|}>
-type _TabSwitchPayload = $ReadOnly<{|routeName: string|}>
 
 // Action Creators
-/**
- * Just a tab switch
- */
-export const createTabSwitch = (payload: _TabSwitchPayload) => ({payload, type: tabSwitch})
 /**
  * ONLY used by the new nav. Navigates up to this route if it already exists, noops otherwise.
  */
@@ -80,7 +74,6 @@ export type SetInitialRouteDefPayload = {|+payload: _SetInitialRouteDefPayload, 
 export type SetRouteStatePayload = {|+payload: _SetRouteStatePayload, +type: 'route-tree:setRouteState'|}
 export type SwitchRouteDefPayload = {|+payload: _SwitchRouteDefPayload, +type: 'route-tree:switchRouteDef'|}
 export type SwitchToPayload = {|+payload: _SwitchToPayload, +type: 'route-tree:switchTo'|}
-export type TabSwitchPayload = {|+payload: _TabSwitchPayload, +type: 'route-tree:tabSwitch'|}
 
 // All Actions
 // prettier-ignore
@@ -97,5 +90,4 @@ export type Actions =
   | SetRouteStatePayload
   | SwitchRouteDefPayload
   | SwitchToPayload
-  | TabSwitchPayload
   | {type: 'common:resetStore', payload: null}

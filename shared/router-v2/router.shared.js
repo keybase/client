@@ -47,11 +47,6 @@ export const tabRoots = {
 // actual routing actions (or make RouteTreeGen append/up the only action)
 export const oldActionToNewActions = (action: any, navigation: any) => {
   switch (action.type) {
-    case RouteTreeGen.tabSwitch:
-      if (!navigation) {
-        return
-      }
-      return [NavigationActions.navigate({params: undefined, routeName: action.payload.routeName})]
     case RouteTreeGen.navigateTo: // fallthrough
     case RouteTreeGen.switchTo: // fallthrough
     case RouteTreeGen.navigateAppend: {
