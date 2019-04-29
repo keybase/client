@@ -3823,6 +3823,12 @@ func newTestProvisionUISecretCh(ch chan kex2.Secret) *testProvisionUI {
 	return ui
 }
 
+func newTestProvisionUINoSecret() *testProvisionUI {
+	ui := newTestProvisionUI()
+	ui.chooseDevice = "desktop"
+	return ui
+}
+
 func newTestProvisionUIPassphrase() *testProvisionUI {
 	ui := newTestProvisionUI()
 	ui.method = keybase1.ProvisionMethod_PASSPHRASE
