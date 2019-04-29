@@ -289,6 +289,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	ictx := globals.CtxAddIdentifyMode(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil)
 	indexer.Start(ictx, uid)
 	indexer.SetPageSize(2)
+	indexer.SetStartSyncDelay(0)
 	g.Indexer = indexer
 	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
 	g.Unfurler = types.DummyUnfurler{}
