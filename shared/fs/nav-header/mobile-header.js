@@ -58,13 +58,19 @@ class MobileHeader extends React.PureComponent<Props, State> {
   }
 }
 
+const statusBarHeight = isIPhoneX ? 45 : 20
+export const height = statusBarHeight + 88
+
 const styles = Styles.styleSheetCreate({
   blue: {
     backgroundColor: Styles.globalColors.blue,
   },
   container: {
     backgroundColor: Styles.globalColors.white,
-    paddingTop: isIPhoneX ? 45 : 20,
+    height,
+    maxHeight: height,
+    minHeight: height,
+    paddingTop: statusBarHeight,
   },
   expandedTitleContainer: {
     backgroundColor: Styles.globalColors.white,

@@ -12,7 +12,7 @@ import {NormalPreview} from './filepreview'
 import Loading from './common/loading'
 import KbfsDaemonNotRunning from './common/kbfs-daemon-not-running'
 import LoadPathMetadataWhenNeeded from './common/load-path-metadata-when-needed'
-import {Actions, DesktopBanner, MobileHeader, Title} from './nav-header'
+import {Actions, DesktopBanner, MobileHeader, mobileHeaderHeight, Title} from './nav-header'
 import flags from '../util/feature-flags'
 
 const mapStateToProps = state => ({
@@ -140,10 +140,11 @@ const Connected = namedConnect<OwnProps, _, _, _, _>(
 
 // $FlowIssue lets fix this
 Connected.navigationOptions = ({navigation}: {navigation: any}) => {
-  const path = navigation.getParam('path') || Constants.defaultPath
+  const path = (navigation && navigation.getParam('path')) || Constants.defaultPath
   return isMobile
     ? {
-        header: <MobileHeader path={path} onBack={navigation.pop} />,
+        header: <MobileHeader path={path} onBack={navigation && navigation.pop} />,
+        headerHeight: mobileHeaderHeight,
       }
     : {
         header: undefined,
