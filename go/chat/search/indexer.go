@@ -483,7 +483,7 @@ func (idx *Indexer) indexConvWithProfile(ctx context.Context, conv types.RemoteC
 }
 
 func (idx *Indexer) FullyIndexed(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (res bool, err error) {
-	defer idx.Trace(ctx, func() error { return err }, "Indexer.fullyIndexed")()
+	defer idx.Trace(ctx, func() error { return err }, "Indexer.FullyIndexed")()
 	conv, err := utils.GetUnverifiedConv(ctx, idx.G(), uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		return false, err
