@@ -16,7 +16,7 @@ type DropdownButtonProps = {
   selectedBoxStyle?: Styles.StylesCrossPlatform,
   style?: Styles.StylesCrossPlatform,
   setAttachmentRef?: $PropertyType<OverlayParentProps, 'setAttachmentRef'>,
-  toggleOpen: () => void,
+  toggleOpen: (e: SyntheticEvent<>) => void,
   inline?: boolean,
 }
 export const DropdownButton = (props: DropdownButtonProps) => (
@@ -118,7 +118,10 @@ export const InlineDropdown = (props: InlineDropdownProps) => {
     <DropdownButton
       inline={true}
       style={styles.inlineDropdown}
-      toggleOpen={props.onPress}
+      toggleOpen={e => {
+        e.stopPropagation && e.stopPropagation()
+        props.onPress && props.onPress()
+      }}
       selectedBoxStyle={styles.inlineDropdownSelected}
       selected={selected}
     />
