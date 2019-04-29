@@ -1125,7 +1125,7 @@ const rootReducer = (
         return (info || Constants.makeInboxSearchInfo()).merge({
           nameResults: results,
           nameResultsUnread: action.payload.unread,
-          nameStatus: 'done',
+          nameStatus: 'success',
         })
       })
     }

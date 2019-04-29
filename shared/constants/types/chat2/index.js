@@ -57,7 +57,7 @@ export type _ThreadSearchInfo = {
 
 export type ThreadSearchInfo = I.RecordOf<_ThreadSearchInfo>
 
-export type InboxSearchStatus = 'initial' | 'inprogress' | 'done'
+export type InboxSearchStatus = 'initial' | 'inprogress' | 'success' | 'error'
 
 export type _InboxSearchTextHit = {
   conversationIDKey: Common.ConversationIDKey,

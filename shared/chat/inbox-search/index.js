@@ -95,12 +95,18 @@ class InboxSearch extends React.Component<Props, State> {
           onToggleCollapsed={section.onCollapse}
           showSpinner={section.status === 'inprogress'}
         />
-        {this.props.indexPercent > 0 && (
+        {this.props.textStatus === 'error' ? (
+          <Kb.Box2 direction="horizontal" style={styles.percentContainer} fullWidth={true}>
+            <Kb.Text type="BodyTiny" style={styles.errorText} center={true}>
+              Search failed, please try again, or contact Keybase describing the problem.
+            </Kb.Text>
+          </Kb.Box2>
+        ) : this.props.indexPercent > 0 && this.props.indexPercent < 100 ? (
           <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.percentContainer} fullWidth={true}>
             <Kb.Text type="BodyTiny">Indexing...</Kb.Text>
             <Kb.ProgressBar style={styles.progressBar} ratio={this.props.indexPercent / 100.0} />
           </Kb.Box2>
-        )}
+        ) : null}
       </Kb.Box2>
     )
   }
@@ -114,13 +120,16 @@ class InboxSearch extends React.Component<Props, State> {
   _textResults = () => {
     return this.state.textCollapsed ? [] : this.props.textResults
   }
+  _isStatusDone = status => {
+    return status === 'success' || status === 'error'
+  }
 
   render() {
     const textResults = this._textResults()
     const nameResults = this._nameResults()
     const noResults =
-      this.props.nameStatus === 'done' &&
-      this.props.textStatus === 'done' &&
+      this._isStatusDone(this.props.nameStatus) &&
+      this._isStatusDone(this.props.textStatus) &&
       this.props.nameResults.length === 0 &&
       this.props.textResults.length === 0 &&
       this.props.query.length > 0
@@ -178,6 +187,9 @@ const styles = Styles.styleSheetCreate({
       position: 'relative',
     },
   }),
+  errorText: {
+    color: Styles.globalColors.red,
+  },
   percentContainer: {
     padding: Styles.globalMargins.tiny,
   },

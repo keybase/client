@@ -117,6 +117,7 @@ func (s *store) aliasKey(ctx context.Context, dat string) (res libkb.DbKey, err 
 }
 
 func (s *store) GetHits(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, term string) (res map[chat1.MessageID]chat1.EmptyStruct, err error) {
+	defer s.Trace(ctx, func() error { return err }, "GetHits")()
 	s.RLock()
 	defer s.RUnlock()
 	res = make(map[chat1.MessageID]chat1.EmptyStruct)
