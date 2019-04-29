@@ -430,8 +430,16 @@ def testGo(prefix, packagesToTest) {
           timeout: '15m',
         ],
         'github.com/keybase/client/go/kbfs/libfuse': [
-          flags: '',
           timeout: '3m',
+        ],
+        'github.com/keybase/client/go/libkb': [
+          timeout: '1m',
+        ],
+        'github.com/keybase/client/go/install': [
+          timeout: '30s',
+        ],
+        'github.com/keybase/client/go/launchd': [
+          timeout: '30s',
         ],
       ],
       test_linux_go_: [
