@@ -82,11 +82,6 @@ class AppView extends React.PureComponent<any> {
     )
   }
 }
-// const MainNavigator = createNavigator(
-// AppView,
-// StackRouter(Shim.shim(routes), {initialRouteName: 'tabs.peopleTab'}),
-// {}
-// )
 
 class ModalView extends React.PureComponent<any> {
   render() {
