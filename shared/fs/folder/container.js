@@ -4,6 +4,7 @@ import {namedConnect} from '../../util/container'
 import Folder from '.'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
+import * as PlatformConstants from '../../constants/platform'
 import * as FsGen from '../../actions/fs-gen'
 
 const mapStateToProps = (state, {path}) => ({
@@ -11,7 +12,7 @@ const mapStateToProps = (state, {path}) => ({
   _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
   _username: state.config.username,
   resetBannerType: Constants.resetBannerType(state, path),
-  shouldShowSFMIBanner: state.fs.sfmi.showingBanner,
+  shouldShowSFMIBanner: state.fs.sfmi.showingBanner && !PlatformConstants.isLinux,
 })
 
 const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
