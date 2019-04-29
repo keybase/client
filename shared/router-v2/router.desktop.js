@@ -6,6 +6,7 @@ import TabBar from './tab-bar/container'
 import {
   createNavigator,
   StackRouter,
+  SwitchRouter,
   NavigationActions,
   getNavigation,
   NavigationProvider,
@@ -64,7 +65,6 @@ class AppView extends React.PureComponent<any> {
 
     return (
       <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
-        <TabBar selectedTab={selectedTab} />
         <Kb.Box2
           direction={direction}
           fullHeight={true}
@@ -82,11 +82,11 @@ class AppView extends React.PureComponent<any> {
     )
   }
 }
-const MainNavigator = createNavigator(
-  AppView,
-  StackRouter(Shim.shim(routes), {initialRouteName: 'tabs.peopleTab'}),
-  {}
-)
+// const MainNavigator = createNavigator(
+// AppView,
+// StackRouter(Shim.shim(routes), {initialRouteName: 'tabs.peopleTab'}),
+// {}
+// )
 
 class ModalView extends React.PureComponent<any> {
   render() {
@@ -127,11 +127,57 @@ class ModalView extends React.PureComponent<any> {
   }
 }
 
+class TabView extends React.PureComponent<any> {
+  render() {
+    const navigation = this.props.navigation
+    const index = navigation.state.index
+    const activeKey = navigation.state.routes[index].key
+    const descriptor = this.props.descriptors[activeKey]
+    const childNav = descriptor.navigation
+    const selectedTab = descriptor.state.routeName
+    const sceneView = (
+      <SceneView
+        navigation={childNav}
+        component={descriptor.getComponent()}
+        screenProps={this.props.screenProps}
+        options={descriptor.options}
+      />
+    )
+    return (
+      <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
+        <TabBar navigation={navigation} selectedTab={selectedTab} />
+        {sceneView}
+      </Kb.Box2>
+    )
+  }
+}
+
+const tabs = Shared.desktopTabs
+const tabRoots = Shared.tabRoots
+
+const TabNavigator = createNavigator(
+  TabView,
+  SwitchRouter(
+    tabs.reduce((map, tab) => {
+      map[tab] = createNavigator(
+        AppView,
+        StackRouter(Shim.shim(routes), {
+          initialRouteName: tabRoots[tab],
+          initialRouteParams: undefined,
+        }),
+        {}
+      )
+      return map
+    }, {})
+  ),
+  {}
+)
+
 const LoggedInStackNavigator = createNavigator(
   ModalView,
   StackRouter(
     {
-      Main: {screen: MainNavigator},
+      Main: {screen: TabNavigator},
       ...Shim.shim(modalRoutes),
     },
     {}

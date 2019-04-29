@@ -46,12 +46,7 @@ const defaultNavigationOptions = {
 const headerMode = 'float'
 
 const tabs = Shared.mobileTabs
-const tabRoots = {
-  [Tabs.peopleTab]: 'peopleRoot',
-  [Tabs.chatTab]: 'chatRoot',
-  [Tabs.fsTab]: 'fsRoot',
-  [Tabs.settingsTab]: 'settingsRoot',
-}
+const tabRoots = Shared.tabRoots
 const icons = {
   [Tabs.chatTab]: 'iconfont-nav-2-chat',
   [Tabs.fsTab]: 'iconfont-nav-2-files',

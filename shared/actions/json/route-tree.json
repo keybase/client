@@ -50,6 +50,10 @@
     "navUpToScreen": {
       "_description": "ONLY used by the new nav. Navigates up to this route if it already exists, noops otherwise.",
       "routeName": "string"
+    },
+    "tabSwitch": {
+      "_description": "Just a tab switch",
+      "routeName": "string"
     }
   }
 }

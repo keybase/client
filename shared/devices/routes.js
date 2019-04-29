@@ -48,7 +48,7 @@ export const newRoutes = {
   devicePage: {getScreen: () => require('./device-page/container').default, upgrade: true},
   deviceRevoke: {getScreen: () => require('./device-revoke/container').default, upgraded: true},
   'settingsTabs.devicesTab': {getScreen: () => require('./container').default, upgraded: true},
-  'tabs.devicesTab': {getScreen: () => require('./container').default, upgraded: true},
+  devicesRoot: {getScreen: () => require('./container').default, upgraded: true},
 }
 
 export const newModalRoutes = {

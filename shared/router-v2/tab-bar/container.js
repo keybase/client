@@ -15,6 +15,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as SettingsGen from '../../actions/settings-gen'
 
 type OwnProps = {|
+  navigate: any,
   selectedTab: Tabs.Tab,
 |}
 
@@ -31,7 +32,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     if (ownProps.selectedTab === Tabs.peopleTab && tab !== Tabs.peopleTab) {
       dispatch(PeopleGen.createMarkViewed())
     }
-    dispatch(RouteTreeGen.createNavigateAppend({path: [tab]}))
+    ownProps.navigation.navigate(tab)
   },
   onHelp: () => openURL('https://keybase.io/docs'),
   onQuit: () => {

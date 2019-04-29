@@ -74,9 +74,8 @@ class Conversation extends React.PureComponent<SwitchProps> {
 
 const mapStateToProps = (state, ownProps) => {
   let _storeConvoIDKey = Constants.getSelectedConversation(state)
-  const conversationIDKey = flags.useNewRouter
-    ? getRouteProps(ownProps, 'conversationIDKey')
-    : _storeConvoIDKey
+  const conversationIDKey =
+    flags.useNewRouter && isMobile ? getRouteProps(ownProps, 'conversationIDKey') : _storeConvoIDKey
   let _meta = Constants.getMeta(state, conversationIDKey)
 
   return {
