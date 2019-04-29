@@ -61,7 +61,7 @@ type store struct {
 }
 
 func newStore(g *globals.Context) *store {
-	ac, _ := lru.New(5000)
+	ac, _ := lru.New(10000)
 	tc, _ := lru.New(3000)
 	keyFn := func(ctx context.Context) ([32]byte, error) {
 		return storage.GetSecretBoxKey(ctx, g.ExternalG(), storage.DefaultSecretUI)
