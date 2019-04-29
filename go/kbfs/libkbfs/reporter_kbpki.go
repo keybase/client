@@ -88,6 +88,7 @@ type ReporterKBPKI struct {
 	notifyPathBuffer        chan string
 	notifySyncBuffer        chan *keybase1.FSPathSyncStatus
 	notifyOverallSyncBuffer chan keybase1.FolderSyncStatus
+	shutdownCh              chan struct{}
 	canceler                func()
 
 	lastNotifyPathLock sync.Mutex
@@ -252,7 +253,12 @@ func (r *ReporterKBPKI) NotifyPathUpdated(ctx context.Context, path string) {
 				ctx, libkb.VLog1,
 				"ReporterKBPKI: notify path buffer full, but path is "+
 					"different from last one, so send in a goroutine %s", path)
-			go func() { r.notifyPathBuffer <- path }()
+			go func() {
+				select {
+				case r.notifyPathBuffer <- path:
+				case <-r.shutdownCh:
+				}
+			}()
 		}
 	}
 }
@@ -283,7 +289,12 @@ func (r *ReporterKBPKI) NotifyOverallSyncStatus(
 		// Instead launch a goroutine to make sure it gets sent
 		// eventually.
 		if status.PrefetchStatus == keybase1.PrefetchStatus_COMPLETE {
-			go func() { r.notifyOverallSyncBuffer <- status }()
+			go func() {
+				select {
+				case r.notifyOverallSyncBuffer <- status:
+				case <-r.shutdownCh:
+				}
+			}()
 		} else {
 			r.vlog.CLogf(
 				ctx, libkb.VLog1,
@@ -296,6 +307,7 @@ func (r *ReporterKBPKI) NotifyOverallSyncStatus(
 // Shutdown implements the Reporter interface for ReporterKBPKI.
 func (r *ReporterKBPKI) Shutdown() {
 	r.canceler()
+	close(r.shutdownCh)
 	close(r.notifyBuffer)
 	close(r.onlineStatusBuffer)
 	close(r.notifySyncBuffer)
