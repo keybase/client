@@ -142,7 +142,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
   _input() {
     const hotkeyText =
       this.props.hotkey && !this.props.onClick && !Styles.isMobile
-        ? ` (${Platforms.shortcutSymbol}+${this.props.hotkey.toUpperCase()})`
+        ? ` (${Platforms.shortcutSymbol}${this.props.hotkey.toUpperCase()})`
         : ''
     return (
       <Kb.NewInput
