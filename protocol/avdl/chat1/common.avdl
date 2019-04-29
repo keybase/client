@@ -575,53 +575,6 @@
   // with a zero sized value.
   record EmptyStruct{}
 
-  record ConversationIndexMetadata {
-    @mpackkey("s") @jsonkey("s")
-    map<MessageID, EmptyStruct> seenIDs;
-    @mpackkey("v") @jsonkey("v")
-    int version;
-  }
-
-  record ConversationIndex {
-    // search token -> msgID
-    @mpackkey("i") @jsonkey("i")
-    map<string, map<MessageID, EmptyStruct>> index;
-    // token alias -> token
-    @mpackkey("a") @jsonkey("a")
-    map<string, map<string, EmptyStruct>> alias;
-    @mpackkey("m") @jsonkey("m")
-    ConversationIndexMetadata metadata;
-  }
-
-  record ConversationIndexMetadataDisk {
-    @mpackkey("s") @jsonkey("s")
-    array<MessageID> seenIDs;
-    @mpackkey("v") @jsonkey("v")
-    int version;
-  }
-
-  record TokenTuple {
-    @mpackkey("t") @jsonkey("t")
-    string token;
-    @mpackkey("m") @jsonkey("m")
-    array<MessageID> msgIDs;
-  }
-
-  record AliasTuple {
-    @mpackkey("a") @jsonkey("a")
-    string alias;
-    @mpackkey("t") @jsonkey("t")
-    array<string> tokens;
-  }
-
-  record ConversationIndexDisk {
-    @mpackkey("i") @jsonkey("i")
-    array<TokenTuple> index;
-    @mpackkey("a") @jsonkey("a")
-    array<AliasTuple> alias;
-    ConversationIndexMetadataDisk metadata;
-  }
-
   record ChatSearchMatch {
     int startIndex;
     int endIndex;

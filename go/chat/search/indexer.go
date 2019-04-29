@@ -116,7 +116,7 @@ func (idx *Indexer) Stop(ctx context.Context) chan struct{} {
 	defer idx.Trace(ctx, func() error { return nil }, "Stop")()
 	idx.Lock()
 	defer idx.Unlock()
-
+	idx.store.ClearMemory()
 	ch := make(chan struct{})
 	if idx.started {
 		close(idx.stopCh)
@@ -125,13 +125,6 @@ func (idx *Indexer) Stop(ctx context.Context) chan struct{} {
 	}
 	close(ch)
 	return ch
-}
-
-func (idx *Indexer) GetConvIndex(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (*chat1.ConversationIndex, error) {
-	idx.Lock()
-	defer idx.Unlock()
-
-	return idx.store.getConvIndex(ctx, convID, uid)
 }
 
 // validBatch verifies the topic type is CHAT
@@ -172,7 +165,7 @@ func (idx *Indexer) Add(ctx context.Context, convID chat1.ConversationID, uid gr
 	defer idx.Trace(ctx, func() error { return err },
 		fmt.Sprintf("Indexer.Add convID: %v, msgs: %d", convID.String(), len(msgs)))()
 	defer idx.consumeResultsForTest(convID, err)
-	return idx.store.add(ctx, convID, uid, msgs)
+	return idx.store.Add(ctx, uid, convID, msgs)
 }
 
 func (idx *Indexer) Remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
@@ -186,7 +179,7 @@ func (idx *Indexer) Remove(ctx context.Context, convID chat1.ConversationID, uid
 	defer idx.Trace(ctx, func() error { return err },
 		fmt.Sprintf("Indexer.Remove convID: %v, msgs: %d", convID.String(), len(msgs)))()
 	defer idx.consumeResultsForTest(convID, err)
-	return idx.store.remove(ctx, convID, uid, msgs)
+	return idx.store.Remove(ctx, uid, convID, msgs)
 }
 
 type reindexOpts struct {
@@ -201,17 +194,21 @@ type reindexOpts struct {
 // GetMessages api to fill in the holes. If our index is missing many messages,
 // we page through and add batches of missing messages.
 func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversation, uid gregor1.UID,
-	convIdx *chat1.ConversationIndex, opts reindexOpts) (completedJobs int, newIdx *chat1.ConversationIndex, err error) {
+	opts reindexOpts) (completedJobs int, err error) {
 
 	conv := rconv.Conv
-	missingIDs := convIdx.MissingIDForConv(conv)
+	convID := conv.GetConvID()
+	md, err := idx.store.GetMetadata(ctx, uid, convID)
+	if err != nil {
+		return 0, err
+	}
+	missingIDs := md.MissingIDForConv(conv)
 	if len(missingIDs) == 0 {
-		return 0, convIdx, nil
+		return 0, nil
 	}
 	minIdxID := missingIDs[0]
 	maxIdxID := missingIDs[len(missingIDs)-1]
 
-	convID := conv.GetConvID()
 	defer idx.Trace(ctx, func() error { return err },
 		fmt.Sprintf("Indexer.reindex: conv: %v, minID: %v, maxID: %v, numMissing: %v",
 			rconv.GetName(), minIdxID, maxIdxID, len(missingIDs)))()
@@ -230,7 +227,7 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 		}
 		if opts.forceReindex { // block on gathering results
 			if err := postHook(ctx); err != nil {
-				return 0, nil, err
+				return 0, err
 			}
 		} else { // queue up GetMessages in the background
 			job := types.NewConvLoaderJob(convID, nil /*query*/, nil /*pagination*/, types.ConvLoaderPriorityMedium,
@@ -259,12 +256,12 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 				tv, err := idx.G().ConvSource.Pull(ctx, convID, uid, reason, query, pagination)
 				if err != nil {
 					if utils.IsPermanentErr(err) {
-						return 0, nil, err
+						return 0, err
 					}
 					continue
 				}
 				if err := idx.Add(ctx, convID, uid, tv.Messages); err != nil {
-					return 0, nil, err
+					return 0, err
 				}
 			} else { // queue up results
 				job := types.NewConvLoaderJob(convID, query, pagination, types.ConvLoaderPriorityMedium,
@@ -286,14 +283,7 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 	if idx.reindexCh != nil {
 		idx.reindexCh <- convID
 	}
-	if opts.forceReindex { // refresh the index
-		var err error
-		convIdx, err = idx.GetConvIndex(ctx, convID, uid)
-		if err != nil {
-			return 0, nil, err
-		}
-	}
-	return completedJobs, convIdx, nil
+	return completedJobs, nil
 }
 
 func (idx *Indexer) SearchableConvs(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) (res []types.RemoteConversation, err error) {
@@ -323,7 +313,6 @@ func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID, convID *chat1
 		},
 		SkipBgLoads: true,
 	}
-	username := idx.G().Env.GetUsername().String()
 	// convID -> remoteConv
 	convMap := map[string]types.RemoteConversation{}
 	for !pagination.Last {
@@ -343,7 +332,7 @@ func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID, convID *chat1
 			pagination.Previous = nil
 		}
 		for _, conv := range inbox.ConvsUnverified {
-			if !conv.Conv.IsSelfFinalized(username) {
+			if conv.Conv.GetFinalizeInfo() == nil {
 				convID := conv.GetConvID()
 				convMap[convID.String()] = conv
 			}
@@ -416,17 +405,17 @@ func (idx *Indexer) SelectiveSync(ctx context.Context, uid gregor1.UID, forceRei
 	var totalCompletedJobs, fullyIndexedConvs int
 	for _, conv := range convs {
 		convID := conv.GetConvID()
-		convIdx, err := idx.GetConvIndex(ctx, convID, uid)
+		md, err := idx.store.GetMetadata(ctx, uid, convID)
 		if err != nil {
-			idx.Debug(ctx, "SelectiveSync: Unable to get idx for conv: %v, %v", convID, err)
+			idx.Debug(ctx, "SelectiveSync: Unable to get md for conv: %v, %v", convID, err)
 			continue
 		}
-		if convIdx.FullyIndexed(conv.Conv) {
+		if md.FullyIndexed(conv.Conv) {
 			fullyIndexedConvs++
 			continue
 		}
 
-		completedJobs, _, err := idx.reindexConv(ctx, conv, uid, convIdx, reindexOpts{
+		completedJobs, err := idx.reindexConv(ctx, conv, uid, reindexOpts{
 			forceReindex: forceReindex, // only true in tests
 			limitMaxJobs: true,
 			maxJobs:      maxJobs - totalCompletedJobs,
@@ -475,40 +464,69 @@ func (idx *Indexer) IndexInbox(ctx context.Context, uid gregor1.UID) (res map[st
 func (idx *Indexer) indexConvWithProfile(ctx context.Context, conv types.RemoteConversation,
 	uid gregor1.UID) (res chat1.ProfileSearchConvStats, err error) {
 	defer idx.Trace(ctx, func() error { return err }, "Indexer.indexConvWithProfile")()
-	var convIdx *chat1.ConversationIndex
+	md, err := idx.store.GetMetadata(ctx, uid, conv.GetConvID())
+	if err != nil {
+		return res, err
+	}
 	defer func() {
 		res.ConvName = conv.GetName()
-		if convIdx != nil {
-			min, max := convIdx.MinMaxIDs(conv.Conv)
+		if md != nil {
+			min, max := MinMaxIDs(conv.Conv)
 			res.MinConvID = min
 			res.MaxConvID = max
-			res.NumMissing = len(convIdx.MissingIDForConv(conv.Conv))
-			res.NumMessages = len(convIdx.Metadata.SeenIDs)
-			res.PercentIndexed = convIdx.PercentIndexed(conv.Conv)
+			res.NumMissing = len(md.MissingIDForConv(conv.Conv))
+			res.NumMessages = len(md.SeenIDs)
+			res.PercentIndexed = md.PercentIndexed(conv.Conv)
 		}
 		if err != nil {
+
 			res.Err = err.Error()
 		}
 	}()
 
-	convID := conv.GetConvID()
-	convIdx, err = idx.GetConvIndex(ctx, convID, uid)
-	if err != nil {
-		return res, err
-	}
-
 	startT := time.Now()
-	_, convIdx, err = idx.reindexConv(ctx, conv, uid, convIdx, reindexOpts{forceReindex: true})
+	_, err = idx.reindexConv(ctx, conv, uid, reindexOpts{forceReindex: true})
 	if err != nil {
 		return res, err
 	}
 	res.DurationMsec = gregor1.ToDurationMsec(time.Now().Sub(startT))
-	dbKey := idx.store.dbKey(convID, uid)
+	dbKey := idx.store.metadataKey(uid, conv.GetConvID())
 	b, _, err := idx.G().LocalChatDb.GetRaw(dbKey)
 	if err != nil {
 		return res, err
 	}
 	res.IndexSizeDisk = len(b)
-	res.IndexSizeMem = convIdx.Size()
+	res.IndexSizeMem = md.Size()
 	return res, nil
+}
+
+func (idx *Indexer) FullyIndexed(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (res bool, err error) {
+	defer idx.Trace(ctx, func() error { return err }, "Indexer.FullyIndexed")()
+	conv, err := utils.GetUnverifiedConv(ctx, idx.G(), uid, convID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return false, err
+	}
+	md, err := idx.store.GetMetadata(ctx, uid, convID)
+	if err != nil {
+		return false, err
+	}
+	return md.FullyIndexed(conv.Conv), nil
+}
+
+func (idx *Indexer) PercentIndexed(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (res int, err error) {
+	defer idx.Trace(ctx, func() error { return err }, "Indexer.PercentIndexed")()
+	conv, err := utils.GetUnverifiedConv(ctx, idx.G(), uid, convID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return 0, err
+	}
+	md, err := idx.store.GetMetadata(ctx, uid, convID)
+	if err != nil {
+		return 0, err
+	}
+	return md.PercentIndexed(conv.Conv), nil
+}
+
+func (idx *Indexer) OnDbNuke(mctx libkb.MetaContext) error {
+	idx.store.ClearMemory()
+	return nil
 }

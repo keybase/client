@@ -143,12 +143,9 @@ func TestTokenize(t *testing.T) {
 				"hello":  chat1.EmptyStruct{},
 			},
 			"约书亚和约翰屌爆": map[string]chat1.EmptyStruct{
-				"约":      chat1.EmptyStruct{},
-				"约书":     chat1.EmptyStruct{},
-				"约书亚":    chat1.EmptyStruct{},
-				"约书亚和":   chat1.EmptyStruct{},
-				"约书亚和约":  chat1.EmptyStruct{},
-				"约书亚和约翰": chat1.EmptyStruct{},
+				"约":   chat1.EmptyStruct{},
+				"约书":  chat1.EmptyStruct{},
+				"约书亚": chat1.EmptyStruct{},
 			},
 			"#hello6": map[string]chat1.EmptyStruct{
 				"hello6": chat1.EmptyStruct{},

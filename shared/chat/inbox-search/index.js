@@ -96,9 +96,10 @@ class InboxSearch extends React.Component<Props, State> {
           showSpinner={section.status === 'inprogress'}
         />
         {this.props.indexPercent > 0 && (
-          <Kb.Text type="BodySmall" style={styles.indexPercent}>
-            Indexing {this.props.indexPercent}% complete...
-          </Kb.Text>
+          <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.percentContainer} fullWidth={true}>
+            <Kb.Text type="BodyTiny">Indexing...</Kb.Text>
+            <Kb.ProgressBar style={styles.progressBar} ratio={this.props.indexPercent / 100.0} />
+          </Kb.Box2>
         )}
       </Kb.Box2>
     )
@@ -177,8 +178,12 @@ const styles = Styles.styleSheetCreate({
       position: 'relative',
     },
   }),
-  indexPercent: {
-    paddingLeft: Styles.globalMargins.small,
+  percentContainer: {
+    padding: Styles.globalMargins.tiny,
+  },
+  progressBar: {
+    alignSelf: 'center',
+    width: '100%',
   },
   textHeader: {
     backgroundColor: Styles.globalColors.blue5,
