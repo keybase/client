@@ -91,7 +91,9 @@ const spawnBuildPayment = (state, action) => {
 const openSendRequestForm = (state, action) => {
   if (!state.wallets.acceptedDisclaimer) {
     // redirect to disclaimer
-    return RouteTreeGen.createNavigateTo({path: Constants.rootWalletPath})
+    return flags.useNewRouter
+      ? RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']})
+      : RouteTreeGen.createNavigateTo({path: Constants.rootWalletPath})
   }
 
   // load accounts for default display currency
@@ -856,7 +858,7 @@ const maybeClearNewTxs = (state, action) => {
 const receivedBadgeState = (state, action) =>
   WalletsGen.createBadgesUpdated({accounts: action.payload.badgeState.unreadWalletAccounts || []})
 
-const acceptDisclaimer = (state, action) =>
+const acceptDisclaimer = state =>
   RPCStellarTypes.localAcceptDisclaimerLocalRpcPromise(undefined, Constants.acceptDisclaimerWaitingKey).catch(
     e => {
       // disclaimer screen handles showing error
@@ -867,7 +869,15 @@ const acceptDisclaimer = (state, action) =>
 
 const checkDisclaimer = state =>
   RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise()
-    .then(accepted => WalletsGen.createWalletDisclaimerReceived({accepted}))
+    .then(accepted => {
+      const actions = [WalletsGen.createWalletDisclaimerReceived({accepted})]
+      if (flags.useNewRouter && accepted) {
+        // in new nav we could be in a modal anywhere in the app right now
+        actions.push(RouteTreeGen.createClearModals())
+        actions.push(RouteTreeGen.createNavigateAppend({path: Constants.rootWalletPath}))
+      }
+      return actions
+    })
     .catch(err => logger.error(`Error checking wallet disclaimer: ${err.message}`))
 
 const maybeNavToLinkExisting = (state, action) =>
@@ -876,12 +886,16 @@ const maybeNavToLinkExisting = (state, action) =>
     path: [...Constants.rootWalletPath, ...(isMobile ? ['linkExisting'] : ['wallet', 'linkExisting'])],
   })
 
-const rejectDisclaimer = (state, action) =>
-  isMobile
+const rejectDisclaimer = (state, action) => {
+  if (flags.useNewRouter) {
+    return isMobile ? RouteTreeGen.createNavigateUp() : RouteTreeGen.createClearModals()
+  }
+  return isMobile
     ? RouteTreeGen.createNavigateTo({
         path: [{props: {}, selected: Tabs.settingsTab}, {props: {}, selected: null}],
       })
     : RouteTreeGen.createSwitchTo({path: [state.routeTree.get('previousTab') || Tabs.peopleTab]})
+}
 
 const loadMobileOnlyMode = (state, action) => {
   let accountID = action.payload.accountID
