@@ -494,3 +494,16 @@ func (idx *Indexer) FullyIndexed(ctx context.Context, convID chat1.ConversationI
 	}
 	return md.FullyIndexed(conv.Conv), nil
 }
+
+func (idx *Indexer) PercentIndexed(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (res int, err error) {
+	defer idx.Trace(ctx, func() error { return err }, "Indexer.percentIndexed")()
+	conv, err := utils.GetUnverifiedConv(ctx, idx.G(), uid, convID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return 0, err
+	}
+	md, err := idx.store.getMetadata(ctx, uid, convID)
+	if err != nil {
+		return 0, err
+	}
+	return md.PercentIndexed(conv.Conv), nil
+}

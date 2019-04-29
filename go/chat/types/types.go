@@ -375,6 +375,9 @@ func (d DummyIndexer) OnDbNuke(mctx libkb.MetaContext) error {
 func (d DummyIndexer) FullyIndexed(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (bool, error) {
 	return false, nil
 }
+func (d DummyIndexer) PercentIndexed(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (int, error) {
+	return 0, nil
+}
 
 type DummyNativeVideoHelper struct{}
 
