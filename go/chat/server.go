@@ -2468,7 +2468,7 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 		return res, err
 	}
 	chatUI := h.getChatUI(arg.SessionID)
-	ctx = h.getInboxSearchContext(ctx)
+
 	select {
 	case <-ctx.Done():
 		return res, ctx.Err()
@@ -2490,6 +2490,9 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 		if forceDelegate {
 			h.Debug(ctx, "SearchInbox: force delegating since not indexed")
 		}
+		ctx = h.getSearchContext(ctx)
+	} else {
+		ctx = h.getInboxSearchContext(ctx)
 	}
 	if opts.IsRegex || forceDelegate {
 		inboxRes, err := h.delegateInboxSearch(ctx, uid, query, arg.Query, opts, chatUI)
