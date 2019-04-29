@@ -293,6 +293,16 @@ function* loadStartupDetails() {
   const initialShare = yield Saga._fork(getStartupDetailsFromShare)
   const [routeState, link, push, share] = yield Saga.join(routeStateTask, linkTask, initialPush, initialShare)
 
+  // Clear last value to be extra safe bad things don't hose us forever
+  yield Saga._fork(() => {
+    RPCTypes.configSetValueRpcPromise({
+      path: 'ui.routeState2',
+      value: {isNull: false, s: ''},
+    })
+      .then(() => {})
+      .catch(() => {})
+  })
+
   // Top priority, push
   if (push) {
     startupWasFromPush = true

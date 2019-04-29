@@ -2457,8 +2457,6 @@ function* createConversation(state, action) {
   } catch (e) {
     logger.error(`Failed to create new conversation: ${e.message}`)
   }
-
-  // yield removePendingConversation()
 }
 
 const messageReplyPrivately = (state, action) => {
