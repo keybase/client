@@ -120,9 +120,6 @@ func (p *proofServices) SuggestionFoldPriority() int {
 func (p *proofServices) loadServiceConfigs() {
 	tracer := p.G().CTimeTracer(context.TODO(), "proofServices.loadServiceConfigs", false)
 	defer tracer.Finish()
-	if !p.G().ShouldUseParameterizedProofs() {
-		return
-	}
 
 	mctx := libkb.NewMetaContext(context.TODO(), p.G())
 	entry, err := p.G().GetParamProofStore().GetLatestEntryWithKnown(mctx, p.loadedHash)

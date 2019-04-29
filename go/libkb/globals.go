@@ -1371,9 +1371,3 @@ func (g *GlobalContext) GetMeUV(ctx context.Context) (res keybase1.UserVersion, 
 	}
 	return res, nil
 }
-
-// Whether to use parameterized proofs apparatus.
-// Affects non-parameterized proof listing too.
-func (g *GlobalContext) ShouldUseParameterizedProofs() bool {
-	return true
-}

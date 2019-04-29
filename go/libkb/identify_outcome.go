@@ -65,44 +65,7 @@ func (i *IdentifyOutcome) TrackSet() *TrackSet {
 }
 
 func (i *IdentifyOutcome) ProofChecksSorted() []*LinkCheckResult {
-	useDisplayPriority := i.G().ShouldUseParameterizedProofs()
-	if useDisplayPriority {
-		return i.proofChecksSortedByDisplayPriority()
-	}
-	return i.proofChecksSortedByProofType()
-
-}
-
-// remove when ShouldUseParameterizedProofs is removed
-func (i *IdentifyOutcome) proofChecksSortedByProofType() []*LinkCheckResult {
-	// Treat DNS and Web as the same type, and sort them together
-	// in the same bucket.
-	dnsToWeb := func(t keybase1.ProofType) keybase1.ProofType {
-		if t == keybase1.ProofType_DNS {
-			return keybase1.ProofType_GENERIC_WEB_SITE
-		}
-		return t
-	}
-
-	m := make(map[keybase1.ProofType][]*LinkCheckResult)
-	for _, p := range i.ProofChecks {
-		pt := dnsToWeb(p.link.GetProofType())
-		m[pt] = append(m[pt], p)
-	}
-
-	var res []*LinkCheckResult
-	for _, pt := range RemoteServiceOrder {
-		pc, ok := m[pt]
-		if !ok {
-			continue
-		}
-		sort.Sort(byDisplayString(pc))
-		res = append(res, pc...)
-	}
-	return res
-}
-
-func (i *IdentifyOutcome) proofChecksSortedByDisplayPriority() []*LinkCheckResult {
+	// Sort by display priority
 	pc := make([]*LinkCheckResult, len(i.ProofChecks))
 	copy(pc, i.ProofChecks)
 	proofServices := i.G().GetProofServices()
