@@ -351,6 +351,7 @@ func (o markOptionsV1) Check() error {
 
 type searchOptionsV1 struct {
 	SentBy        string `json:"sent_by"`
+	SentTo        string `json:"sent_to"`
 	SentBefore    string `json:"sent_before"`
 	SentAfter     string `json:"sent_after"`
 	MaxHits       int    `json:"max_hits"`

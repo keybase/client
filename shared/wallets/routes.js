@@ -183,6 +183,7 @@ export const newRoutes = {
 
         WalletsSubNavigator.navigationOptions = {
           header: undefined,
+          headerExpandable: true,
           headerRightActions: HeaderRightActions,
           headerTitle: HeaderTitle,
           title: 'Wallet',

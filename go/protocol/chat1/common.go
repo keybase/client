@@ -1951,6 +1951,7 @@ func (e ReIndexingMode) String() string {
 type SearchOpts struct {
 	IsRegex          bool            `codec:"isRegex" json:"isRegex"`
 	SentBy           string          `codec:"sentBy" json:"sentBy"`
+	SentTo           string          `codec:"sentTo" json:"sentTo"`
 	SentBefore       gregor1.Time    `codec:"sentBefore" json:"sentBefore"`
 	SentAfter        gregor1.Time    `codec:"sentAfter" json:"sentAfter"`
 	MaxHits          int             `codec:"maxHits" json:"maxHits"`
@@ -1968,6 +1969,7 @@ func (o SearchOpts) DeepCopy() SearchOpts {
 	return SearchOpts{
 		IsRegex:          o.IsRegex,
 		SentBy:           o.SentBy,
+		SentTo:           o.SentTo,
 		SentBefore:       o.SentBefore.DeepCopy(),
 		SentAfter:        o.SentAfter.DeepCopy(),
 		MaxHits:          o.MaxHits,

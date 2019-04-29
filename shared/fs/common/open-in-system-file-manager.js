@@ -25,7 +25,6 @@ const OpenInSystemFileManager = ({openInSystemFileManager}: Props) => (
     <Icon
       type="iconfont-finder"
       padding="tiny"
-      fontSize={16}
       onClick={openInSystemFileManager}
       color={Styles.globalColors.black_50}
       hoverColor={Styles.globalColors.black}

@@ -10,6 +10,7 @@ type HeaderTitleProps = {|
   accountID: Types.AccountID,
   accountName: string,
   isDefault: boolean,
+  loading: boolean,
   username: string,
 |}
 
@@ -19,13 +20,19 @@ export const HeaderTitle = (props: HeaderTitleProps) => (
       <AddAccount />
     </Kb.Box2>
     <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.accountInfo}>
-      <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" style={styles.accountNameContainer}>
-        {props.isDefault && <Kb.Avatar size={16} username={props.username} />}
-        <Kb.Text type="Header" lineClamp={1}>
-          {props.accountName}
-        </Kb.Text>
-      </Kb.Box2>
-      <SmallAccountID accountID={props.accountID} />
+      {props.loading ? (
+        <Kb.ProgressIndicator small={true} style={styles.loading} />
+      ) : (
+        <>
+          <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" style={styles.accountNameContainer}>
+            {props.isDefault && <Kb.Avatar size={16} username={props.username} />}
+            <Kb.Text selectable={true} type="Header" lineClamp={1}>
+              {props.accountName}
+            </Kb.Text>
+          </Kb.Box2>
+          <SmallAccountID accountID={props.accountID} style={styles.accountID} />
+        </>
+      )}
     </Kb.Box2>
   </Kb.Box2>
 )
@@ -43,23 +50,37 @@ export const HeaderRightActions = (props: HeaderRightActionsProps) => (
 )
 
 const styles = Styles.styleSheetCreate({
+  accountID: Styles.platformStyles({
+    isElectron: Styles.desktopStyles.windowDraggingClickable,
+  }),
   accountInfo: {
     paddingBottom: Styles.globalMargins.xtiny,
     paddingLeft: Styles.globalMargins.xsmall,
   },
-  accountNameContainer: {
-    alignSelf: 'flex-start',
+  accountNameContainer: Styles.platformStyles({
+    common: {
+      alignSelf: 'flex-start',
+    },
+    isElectron: Styles.desktopStyles.windowDraggingClickable,
+  }),
+  left: Styles.platformStyles({
+    common: {
+      minWidth: 240,
+      paddingLeft: Styles.globalMargins.xsmall,
+      paddingRight: Styles.globalMargins.xsmall,
+    },
+    isElectron: Styles.desktopStyles.windowDraggingClickable,
+  }),
+  loading: {
+    height: 16,
+    width: 16,
   },
-  left: {
-    alignSelf: 'stretch',
-    minWidth: 240,
-    paddingBottom: 6,
-    paddingLeft: Styles.globalMargins.xsmall,
-    paddingRight: Styles.globalMargins.xsmall,
-  },
-  rightActions: {
-    alignSelf: 'stretch',
-    paddingBottom: 6,
-    paddingRight: Styles.globalMargins.xsmall,
-  },
+  rightActions: Styles.platformStyles({
+    common: {
+      alignSelf: 'stretch',
+      paddingBottom: 6,
+      paddingRight: Styles.globalMargins.xsmall,
+    },
+    isElectron: Styles.desktopStyles.windowDraggingClickable,
+  }),
 })

@@ -30,6 +30,7 @@ func ServiceInit(g *libkb.GlobalContext, walletState *WalletState, badger *badge
 	s := NewStellar(g, walletState, badger)
 	g.SetStellar(s)
 	g.AddLogoutHook(s, "stellar")
+	g.AddDbNukeHook(s, "stellar")
 }
 
 type Stellar struct {
@@ -88,11 +89,20 @@ func (s *Stellar) Upkeep(ctx context.Context) error {
 }
 
 func (s *Stellar) OnLogout(mctx libkb.MetaContext) error {
+	s.Clear(mctx)
+	return nil
+}
+
+func (s *Stellar) OnDbNuke(mctx libkb.MetaContext) error {
+	s.Clear(mctx)
+	return nil
+}
+
+func (s *Stellar) Clear(mctx libkb.MetaContext) {
 	s.shutdownAutoClaimRunner()
 	s.deleteBpc()
 	s.deleteDisclaimer()
 	s.clearBids()
-	return nil
 }
 
 func (s *Stellar) shutdownAutoClaimRunner() {

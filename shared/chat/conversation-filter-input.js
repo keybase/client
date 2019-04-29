@@ -70,18 +70,12 @@ class ConversationFilterInput extends React.PureComponent<Props> {
             this.props.style,
           ])}
         >
-          <Kb.Icon
-            type="iconfont-search"
-            style={styles.icon}
-            color={Styles.globalColors.black_50}
-            fontSize={Styles.isMobile ? 20 : 16}
-          />
           <Kb.Input
             autoFocus={Styles.isMobile}
             hideUnderline={true}
             small={true}
             value={this.props.filter}
-            hintText="Search..."
+            hintText="Search your chats..."
             onChangeText={this.props.onSetFilter}
             onKeyDown={this._onKeyDown}
             onEnterKeyDown={this._onEnterKeyDown}
@@ -90,7 +84,7 @@ class ConversationFilterInput extends React.PureComponent<Props> {
           />
           <Kb.Icon
             type="iconfont-remove"
-            fontSize={16}
+            sizeType="Small"
             color={Styles.globalColors.black_50}
             onClick={this.props.onStopSearch}
             style={styles.icon}
@@ -113,7 +107,7 @@ class ConversationFilterInput extends React.PureComponent<Props> {
           gapEnd={true}
           fullWidth={true}
         >
-          <Kb.Box2 alignItems="center" direction="horizontal" style={styles.flexOne}>
+          <Kb.Box2 alignItems="center" direction="horizontal" style={styles.searchBox}>
             {flags.useNewRouter && Styles.isMobile && (
               <Kb.BackButton onClick={this.props.onBack} style={styles.backButton} />
             )}
@@ -122,10 +116,10 @@ class ConversationFilterInput extends React.PureComponent<Props> {
                 type="iconfont-search"
                 style={styles.icon}
                 color={Styles.globalColors.black_50}
-                fontSize={Styles.isMobile ? 20 : 16}
+                sizeType="Small"
               />
               <Kb.Text type="BodySemibold" style={styles.text}>
-                Search...
+                Search
               </Kb.Text>
               {!Styles.isMobile && !this.props.noShortcut && (
                 <Kb.Text type="BodySemibold" style={styles.textFaint}>
@@ -136,7 +130,7 @@ class ConversationFilterInput extends React.PureComponent<Props> {
           </Kb.Box2>
           {!!this.props.onNewChat && (
             <Kb.WithTooltip position="bottom center" text={`New chat (${Platforms.shortcutSymbol}N)`}>
-              <Kb.Button small={true} onClick={this.props.onNewChat}>
+              <Kb.Button small={true} onClick={this.props.onNewChat} style={styles.newChatButton}>
                 <Kb.Icon type="iconfont-compose" color={Styles.globalColors.white} style={styles.newIcon} />
               </Kb.Button>
             </Kb.WithTooltip>
@@ -163,16 +157,18 @@ const styles = Styles.styleSheetCreate({
   },
   containerFiltering: Styles.platformStyles({
     common: {
-      height: 48,
       position: 'relative',
     },
     isElectron: {
+      ...Styles.desktopStyles.windowDraggingClickable,
       ...Styles.padding(0, Styles.globalMargins.small),
       backgroundColor: Styles.globalColors.blueGrey,
+      height: 39,
     },
     isMobile: {
       ...Styles.padding(0, Styles.globalMargins.small, 0, Styles.globalMargins.xsmall),
       backgroundColor: Styles.globalColors.fastBlank,
+      height: 48,
     },
   }),
   containerNotFiltering: Styles.platformStyles({
@@ -214,10 +210,11 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   flexOne: {flex: 1},
-  icon: {
-    position: 'relative',
-    top: 1,
-  },
+  icon: Styles.platformStyles({
+    common: {position: 'relative'},
+    isElectron: {top: 1},
+    isMobile: {top: 0},
+  }),
   input: {
     color: Styles.globalColors.black_50,
     position: 'relative',
@@ -229,21 +226,32 @@ const styles = Styles.styleSheetCreate({
     position: 'absolute',
     right: 0,
   },
+  newChatButton: Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
   newIcon: {
     position: 'relative',
     top: 1,
   },
-  text: {
-    color: Styles.globalColors.black_50,
-    marginLeft: Styles.globalMargins.xtiny,
-    marginRight: Styles.globalMargins.xtiny,
-    position: 'relative',
-    top: 1,
-  },
+  searchBox: Styles.platformStyles({
+    common: {flex: 1},
+    isElectron: Styles.desktopStyles.windowDraggingClickable,
+  }),
+  text: Styles.platformStyles({
+    common: {
+      color: Styles.globalColors.black_50,
+      marginLeft: Styles.globalMargins.xtiny,
+      marginRight: Styles.globalMargins.xtiny,
+      position: 'relative',
+    },
+    isElectron: {
+      top: 0,
+    },
+    isMobile: {
+      top: 1,
+    },
+  }),
   textFaint: {
     color: Styles.globalColors.black_35,
     position: 'relative',
-    top: 1,
   },
   whiteBg: {
     backgroundColor: Styles.globalColors.white,

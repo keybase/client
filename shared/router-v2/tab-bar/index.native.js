@@ -7,7 +7,7 @@ import type {Props} from '.'
 
 const icons = {
   [Tabs.chatTab]: 'iconfont-nav-2-chat',
-  [Tabs.fsTab]: 'iconfont-nav-files',
+  [Tabs.fsTab]: 'iconfont-nav-2-files',
   [Tabs.teamsTab]: 'iconfont-nav-2-teams',
   [Tabs.peopleTab]: 'iconfont-nav-2-people',
   [Tabs.settingsTab]: 'iconfont-nav-2-more',

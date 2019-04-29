@@ -67,8 +67,13 @@ export const commonProvider = {
     openInSystemFileManager: Sb.action('openInSystemFileManager'),
   }),
   FolderViewFilter: (props: any) => ({
-    filter: '',
     onUpdate: Sb.action('onUpdate'),
+    pathItem: Constants.makeFolder(),
+    ...props,
+  }),
+  FolderViewFilterIcon: (props: any) => ({
+    onUpdate: Sb.action('onUpdate'),
+    pathItem: Constants.makeFolder(),
     ...props,
   }),
   LoadPathMetadataWhenNeeded: ({path}: {path: Types.Path}) => ({
@@ -78,6 +83,10 @@ export const commonProvider = {
   NewFolder: ({path}: {path: Types.Path}) => ({
     canCreateNewFolder: Types.getPathLevel(path) > 2,
     onNewFolder: Sb.action('onNewFolder'),
+  }),
+  OfflineFolder: ({path}: {path: Types.Path}) => ({
+    path,
+    syncEnabled: false,
   }),
   OpenChat: ({path}: {path: Types.Path}) => ({
     onChat: Constants.canChat(path) ? Sb.action('onChat') : null,
@@ -99,7 +108,6 @@ export const commonProvider = {
   RefreshDriverStatusOnMount: () => ({
     refresh: Sb.action('refresh'),
   }),
-  SendInAppAction: ({path}: {path: Types.Path}) => ({onClick: Sb.action('onClick'), path}),
   SyncStatus: () => ({
     folder: false,
     status: 'online-only',
@@ -118,10 +126,11 @@ export const commonProvider = {
     onEnabled: Sb.action('onEnabled'),
     refreshDriverStatus: Sb.action('refreshDriverStatus'),
   }),
-  UploadButton: ({path}: {path: Types.Path}) => ({
+  UploadButton: ({path, style}: {path: Types.Path, style?: ?Styles.StylesCrossPlatform}) => ({
     canUpload: Types.getPathLevel(path) > 2,
     openAndUpload: Sb.action('openAndUpload'),
     pickAndUpload: Sb.action('pickAndUpload'),
+    style,
   }),
 }
 
@@ -163,9 +172,18 @@ const load = () => {
         gapStart={true}
         style={{paddingLeft: Styles.globalMargins.medium}}
       >
+        <Kb.Text type="Body">Row mode</Kb.Text>
         <PathItemAction
           path={Types.stringToPath('/keybase/private/meatball/folder/treat')}
           routePath={I.List()}
+          mode="row"
+          {...pathItemActionCommonProps}
+        />
+        <Kb.Text type="Body">Screen mode</Kb.Text>
+        <PathItemAction
+          path={Types.stringToPath('/keybase/private/meatball/folder/treat')}
+          routePath={I.List()}
+          mode="screen"
           {...pathItemActionCommonProps}
         />
         <PathItemAction
@@ -173,6 +191,7 @@ const load = () => {
             '/keybase/private/meatball/treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat'
           )}
           routePath={I.List()}
+          mode="screen"
           {...pathItemActionCommonProps}
         />
         <PathItemAction
@@ -180,6 +199,7 @@ const load = () => {
             '/keybaes/private/meatball/foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar'
           )}
           routePath={I.List()}
+          mode="screen"
           {...pathItemActionCommonProps}
         />
       </Kb.Box2>

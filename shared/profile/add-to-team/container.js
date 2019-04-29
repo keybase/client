@@ -1,13 +1,16 @@
 // @flow
 import * as I from 'immutable'
-import Render from './index'
+import * as React from 'react'
+import AddToTeam, {type AddToTeamProps} from './index'
 import * as Container from '../../util/container'
+import {memoize} from '../../util/memoize'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Constants from '../../constants/teams'
 import * as WaitingConstants from '../../constants/waiting'
 import {HeaderOnMobile} from '../../common-adapters'
-import type {TeamRoleType} from '../../constants/types/teams'
+import {sendNotificationFooter} from '../../teams/role-picker'
+import type {TeamRoleType, MaybeTeamRoleType, Teamname} from '../../constants/types/teams'
 
 type OwnProps = Container.RouteProps<{username: string}, {}>
 
@@ -27,30 +30,6 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   _onAddToTeams: (role: TeamRoleType, teams: Array<string>, user: string) => {
     dispatch(TeamsGen.createAddUserToTeams({role, teams, user}))
   },
-  _onOpenRolePicker: (
-    role: TeamRoleType,
-    onComplete: (string, boolean) => void,
-    ownerDisabledExp: string,
-    styleCover?: Object
-  ) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {
-              onComplete,
-              ownerDisabledExp,
-              selectedRole: role,
-              sendNotificationChecked: true,
-              showNotificationCheckbox: false,
-              styleCover,
-            },
-            selected: 'teamControlledRolePicker',
-          },
-        ],
-      })
-    )
-  },
   clearAddUserToTeamsResults: () => dispatch(TeamsGen.createClearAddUserToTeamsResults()),
   loadTeamList: () =>
     dispatch(TeamsGen.createGetTeamProfileAddList({username: Container.getRouteProps(ownProps, 'username')})),
@@ -65,80 +44,114 @@ const mergeProps = (stateProps, dispatchProps) => {
   const title = `Add ${_them} to...`
 
   return {
-    ...stateProps,
-    ...dispatchProps,
+    _teamNameToRole: stateProps._teamNameToRole,
+    addUserToTeamsResults: stateProps.addUserToTeamsResults,
+    addUserToTeamsState: stateProps.addUserToTeamsState,
+    clearAddUserToTeamsResults: dispatchProps.clearAddUserToTeamsResults,
+    loadTeamList: dispatchProps.loadTeamList,
     onAddToTeams: (role: TeamRoleType, teams: Array<string>) =>
       dispatchProps._onAddToTeams(role, teams, stateProps._them),
     onBack: dispatchProps.onBack,
-    onOpenRolePicker: (
-      role: TeamRoleType,
-      onComplete: (string, boolean) => void,
-      selectedTeams: {[string]: boolean},
-      styleCover?: Object
-    ) => {
-      const selectedTeamsArr = Object.keys(selectedTeams).filter(st => selectedTeams[st])
-      const ownerDisabledExp = getOwnerDisabledExp(selectedTeamsArr, stateProps._teamNameToRole)
-      dispatchProps._onOpenRolePicker(role, onComplete, ownerDisabledExp, styleCover)
-    },
     teamProfileAddList: teamProfileAddList.toArray(),
     them: _them,
     title,
+    waiting: stateProps.waiting,
   }
 }
 
-const getOwnerDisabledExp = (selected, teamNameToRole) => {
-  for (let st of selected) {
-    // important for subteam check to come first
-    if (Constants.isSubteam(st)) {
-      return `${st} is a subteam which cannot have owners.`
-    } else if (teamNameToRole.get(st) !== 'owner') {
-      return `You are not an owner of ${st}.`
-    }
-  }
-  return ''
+const getOwnerDisabledReason = memoize((selected: I.Set<Teamname>, teamNameToRole) => {
+  return selected
+    .toSeq()
+    .map(teamName => {
+      if (Constants.isSubteam(teamName)) {
+        return `${teamName} is a subteam which cannot have owners.`
+      } else if (teamNameToRole.get(teamName) !== 'owner') {
+        return `You are not an owner of ${teamName}.`
+      }
+    })
+    .find(v => !!v)
+})
+
+type ExtraProps = {|
+  clearAddUserToTeamsResults: () => void,
+  loadTeamList: () => void,
+  onAddToTeams: (role: TeamRoleType, teams: Array<string>) => void,
+  _teamNameToRole: I.Map<Teamname, MaybeTeamRoleType>,
+|}
+
+type TeamName = string
+type SelectedTeamState = I.Set<TeamName>
+
+type State = {
+  rolePickerOpen: boolean,
+  selectedRole: TeamRoleType,
+  sendNotification: boolean,
+  selectedTeams: SelectedTeamState,
 }
 
-// The data flow in this component is confusing
-// TODO make the component a class and remove recompose
-export default Container.compose(
-  Container.connect<OwnProps, _, _, _, _>(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  Container.lifecycle({
-    componentDidMount() {
-      this.props.clearAddUserToTeamsResults()
-      this.props.loadTeamList()
-    },
-  }),
-  Container.withStateHandlers(
-    {role: 'writer', selectedTeams: {}, sendNotification: true},
-    {
-      onRoleChange: () => role => ({role}),
-      setSelectedTeams: ({role}, {_teamNameToRole}) => selectedTeams => {
-        const selectedTeamsArr = Object.keys(selectedTeams).filter(st => selectedTeams[st])
-        const shouldSetRole = role === 'owner' && !!getOwnerDisabledExp(selectedTeamsArr, _teamNameToRole)
-        return {role: shouldSetRole ? 'admin' : role, selectedTeams}
-      },
-      setSendNotification: () => sendNotification => ({sendNotification}),
-    }
-  ),
-  Container.withHandlers({
-    // Return rows set to true.
-    onSave: props => () => {
-      props.onAddToTeams(
-        props.role,
-        Object.keys(props.selectedTeams).filter(team => props.selectedTeams[team])
-      )
-      props.setSelectedTeams({})
-    },
-    onToggle: props => (teamname: string) => {
-      props.clearAddUserToTeamsResults()
-      props.setSelectedTeams({
-        ...props.selectedTeams,
-        [teamname]: !props.selectedTeams[teamname],
-      })
-    },
-  })
-)(HeaderOnMobile(Render))
+class AddToTeamStateWrapper extends React.Component<{|...ExtraProps, ...AddToTeamProps|}, State> {
+  state = {
+    rolePickerOpen: false,
+    selectedRole: 'writer',
+    selectedTeams: I.Set(),
+    sendNotification: true,
+  }
+
+  componentDidMount() {
+    this.props.clearAddUserToTeamsResults()
+    this.props.loadTeamList()
+  }
+
+  onSave = () => {
+    this.props.onAddToTeams(this.state.selectedRole, this.state.selectedTeams.toArray())
+  }
+
+  toggleTeamSelected = (teamName: string, selected: boolean) => {
+    this.setState(({selectedTeams, selectedRole}) => {
+      const nextSelectedTeams = selected ? selectedTeams.add(teamName) : selectedTeams.remove(teamName)
+      const canNotBeOwner = !!getOwnerDisabledReason(nextSelectedTeams, this.props._teamNameToRole)
+
+      return {
+        // If you selected them to be an owner, but they cannot be an owner,
+        // then fallback to admin
+        selectedRole: selectedRole === 'owner' && canNotBeOwner ? 'admin' : selectedRole,
+        selectedTeams: nextSelectedTeams,
+      }
+    })
+  }
+
+  render() {
+    const {_teamNameToRole, clearAddUserToTeamsResults, onAddToTeams, ...rest} = this.props
+    const ownerDisabledReason = getOwnerDisabledReason(this.state.selectedTeams, _teamNameToRole)
+    return (
+      <AddToTeam
+        {...rest}
+        disabledReasonsForRolePicker={ownerDisabledReason ? {owner: ownerDisabledReason} : undefined}
+        onOpenRolePicker={() => this.setState({rolePickerOpen: true})}
+        onConfirmRolePicker={() => {
+          this.setState({rolePickerOpen: false})
+        }}
+        footerComponent={sendNotificationFooter(
+          'Announce them in team chats',
+          this.state.sendNotification,
+          nextVal => this.setState({sendNotification: nextVal})
+        )}
+        isRolePickerOpen={this.state.rolePickerOpen}
+        onCancelRolePicker={() => {
+          this.setState({rolePickerOpen: false})
+        }}
+        selectedRole={this.state.selectedRole}
+        onToggle={this.toggleTeamSelected}
+        onSelectRole={selectedRole => this.setState({selectedRole})}
+        onSave={this.onSave}
+        selectedTeams={this.state.selectedTeams}
+      />
+    )
+  }
+}
+
+export default Container.connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(HeaderOnMobile(AddToTeamStateWrapper))

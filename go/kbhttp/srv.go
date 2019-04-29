@@ -127,13 +127,13 @@ func (h *Srv) Start() (err error) {
 		Handler: h.ServeMux,
 	}
 	h.doneCh = make(chan struct{})
-	go func(server *http.Server) {
+	go func(server *http.Server, doneCh chan struct{}) {
 		h.log.Debug("kbhttp.Srv: server starting on: %s", address)
 		if err := server.Serve(listener); err != nil {
 			h.log.Debug("kbhttp.Srv: server died: %s", err)
 		}
-		close(h.doneCh)
-	}(h.server)
+		close(doneCh)
+	}(h.server, h.doneCh)
 	return nil
 }
 

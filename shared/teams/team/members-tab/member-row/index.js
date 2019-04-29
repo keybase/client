@@ -11,7 +11,6 @@ import {
   Usernames,
 } from '../../../../common-adapters'
 import {globalMargins, globalStyles, globalColors, isMobile} from '../../../../styles'
-import {roleIconColorMap} from '../../../role-picker/index.meta'
 import {typeToLabel} from '../../../../constants/teams'
 import {isLargeScreen} from '../../../../constants/platform'
 import type {BoolTypeMap, MemberStatus, TeamRoleType} from '../../../../constants/types/teams'
@@ -56,7 +55,6 @@ export const TeamMemberRow = (props: Props) => {
           marginRight: globalMargins.xtiny,
         }}
         fontSize={10}
-        color={roleIconColorMap[props.roleType]}
       />
     )
   }

@@ -549,9 +549,14 @@
 
   record SearchOpts {
     boolean isRegex;
+
+    // message filters
     string sentBy;
+    string sentTo;
     gregor1.Time sentBefore;
     gregor1.Time sentAfter;
+
+    // search parameters
     int maxHits;
     // only used by regexp search
     int maxMessages;

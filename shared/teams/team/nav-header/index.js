@@ -10,7 +10,7 @@ import {pluralize} from '../../../util/string'
 const _AddPeopleButton = (props: {teamname: string} & Kb.OverlayParentProps) => (
   <>
     <Kb.Button
-      label="Add people..."
+      label="Add members"
       onClick={props.toggleShowingMenu}
       ref={props.setAttachmentRef}
       small={true}
@@ -29,11 +29,9 @@ const AddPeopleButton = Kb.OverlayParentHOC(_AddPeopleButton)
 
 type Props = {|
   ...$Exact<Kb.OverlayParentProps>,
-  onOpenFolder: () => void,
   onChat: () => void,
   canAddPeople: boolean,
   canChat: boolean,
-  canViewFolder: boolean,
   loading: boolean,
   teamname: string,
 |}
@@ -42,10 +40,9 @@ const _HeaderRightActions = (props: Props) => (
   <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.rightActionsContainer}>
     {props.canChat && <Kb.Button label="Chat" onClick={props.onChat} small={true} />}
     {props.canAddPeople && <AddPeopleButton teamname={props.teamname} />}
-    {!Styles.isMobile && props.canViewFolder && (
-      <Kb.Icon onClick={props.onOpenFolder} type="iconfont-folder-private" />
-    )}
-    <Kb.Icon ref={props.setAttachmentRef} onClick={props.toggleShowingMenu} type="iconfont-ellipsis" />
+    <Kb.Button mode="Secondary" small={true} ref={props.setAttachmentRef} onClick={props.toggleShowingMenu}>
+      <Kb.Icon type="iconfont-ellipsis" color={Styles.globalColors.blue} />
+    </Kb.Button>
     <TeamMenu
       attachTo={props.getAttachmentRef}
       onHidden={props.toggleShowingMenu}
@@ -72,7 +69,7 @@ export const HeaderTitle = (props: HeaderTitleProps) => (
       editable={!!props.onEditAvatar}
       onEditAvatarClick={props.onEditAvatar}
       teamname={props.teamname}
-      size={48}
+      size={64}
       style={Styles.collapseStyles([
         props.onEditAvatar && styles.marginRightTiny, // space for edit icon
         props.onEditAvatar && styles.clickable,
@@ -85,10 +82,6 @@ export const HeaderTitle = (props: HeaderTitleProps) => (
         </Kb.Text>
         {!!props.onRename && <Kb.Icon type="iconfont-edit" onClick={props.onRename} />}
       </Kb.Box2>
-      <Kb.Text type="BodySmall">
-        TEAM · {props.members} {pluralize('member', props.members)}
-        {!!props.role && ` · ${props.role === 'none' ? 'Not a member' : capitalize(props.role)}`}
-      </Kb.Text>
       <Kb.Text
         type={props.onEditDescription && !props.description ? 'BodySmallItalic' : 'BodySmall'}
         lineClamp={3}
@@ -97,6 +90,10 @@ export const HeaderTitle = (props: HeaderTitleProps) => (
         style={styles.clickable}
       >
         {props.description || (props.onEditDescription ? 'Write a brief description' : '')}
+      </Kb.Text>
+      <Kb.Text type="BodySmall">
+        {props.members} {pluralize('member', props.members)}
+        {!!props.role && ` · ${props.role === 'none' ? 'Not a member' : capitalize(props.role)}`}
       </Kb.Text>
     </Kb.Box2>
   </Kb.Box2>
@@ -137,6 +134,7 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       ...Styles.desktopStyles.windowDraggingClickable,
       alignSelf: 'flex-end',
+      paddingRight: Styles.globalMargins.tiny,
     },
   }),
 })

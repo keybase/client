@@ -941,6 +941,26 @@ export const isTeamPath = (path: Types.Path): boolean => {
   return parsedPath.kind !== 'root' && parsedPath.tlfType === 'team'
 }
 
+export const getChatTarget = (path: Types.Path, me: string): string => {
+  const parsedPath = parsePath(path)
+  if (parsedPath.kind !== 'root' && parsedPath.tlfType === 'team') {
+    return 'team conversation'
+  }
+  if (parsedPath.kind === 'group-tlf' || parsedPath.kind === 'in-group-tlf') {
+    if (parsedPath.writers.size === 1 && !parsedPath.readers && parsedPath.writers.first() === me) {
+      return 'myself'
+    }
+    if (parsedPath.writers.size + (parsedPath.readers ? parsedPath.readers.size : 0) === 2) {
+      const notMe = parsedPath.writers.concat(parsedPath.readers || []).filter(u => u !== me)
+      if (notMe.size === 1) {
+        return notMe.first()
+      }
+    }
+    return 'group conversation'
+  }
+  return 'conversation'
+}
+
 export const isEmptyFolder = (pathItems: Types.PathItems, path: Types.Path) => {
   const _pathItem = pathItems.get(path, unknownPathItem)
   return _pathItem.type === 'folder' && !_pathItem.children.size
@@ -1133,6 +1153,9 @@ export const makeActionsForShowSendAttachmentToChat = (
 
 export const splitFileNameAndExtension = (fileName: string) =>
   ((str, idx) => [str.slice(0, idx), str.slice(idx)])(fileName, fileName.lastIndexOf('.'))
+
+export const isFolder = (path: Types.Path, pathItem: Types.PathItem) =>
+  Types.getPathLevel(path) <= 3 || pathItem.type === 'folder'
 
 export const erroredActionToMessage = (action: FsGen.Actions, error: string): string => {
   const errorIsTimeout = error.includes('context deadline exceeded')

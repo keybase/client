@@ -34,6 +34,7 @@ type Props = {|
   waiting?: boolean,
 
   onBlur?: ?() => void,
+  onCancel?: ?() => void,
   // If onClick is provided, this component won't focus on click. User is
   // expected to handle actual filter/search in a separate component, perhaps
   // in a popup.
@@ -81,6 +82,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
   _cancel = e => {
     this._blur()
     this._clear()
+    this.props.onCancel && this.props.onCancel()
     e && e.stopPropagation()
   }
   _update = text => {
@@ -215,9 +217,9 @@ class SearchFilter extends React.PureComponent<Props, State> {
         onMouseLeave={this._mouseLeave}
         onClick={
           this.props.onClick ||
-          // Can't just make a null for Kb.ClickableBox here when focused, as
-          // that'd cause PlainInput to be re-constructed.
-          this._focus
+          // On mobile we can't just make a null for Kb.ClickableBox here when
+          // focused, as that'd cause PlainInput to be re-constructed.
+          (Styles.isMobile || !this.state.focused ? this._focus : null)
         }
         underlayColor={Styles.globalColors.transparent}
         hoverColor={Styles.globalColors.transparent}

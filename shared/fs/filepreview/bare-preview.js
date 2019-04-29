@@ -46,6 +46,7 @@ export default class extends React.PureComponent<Props, State> {
             clickable={{actionIconWhite: true, type: 'icon'}}
             routePath={this.props.routePath}
             initView="root"
+            mode="screen"
           />
         </Kb.Box>
         {this.state.loading && <Kb.ProgressIndicator style={styles.loading} white={true} />}

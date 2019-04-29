@@ -182,6 +182,18 @@ func TestUpgradeSearchOptsFromQuery(t *testing.T) {
 	sentByCase("hi mike from:karenm", "hi mike", "karenm")
 	sentByCase("from:me hi mike", "hi mike", "mikem")
 
+	sentToCase := func(query, resQuery, resSentTo string) {
+		query, opts := UpgradeSearchOptsFromQuery(query, chat1.SearchOpts{}, username)
+		require.Equal(t, resQuery, query)
+		require.Equal(t, resSentTo, opts.SentTo)
+	}
+	sentToCase("to:karenm hi mike", "hi mike", "karenm")
+	sentToCase("to:@karenm hi mike", "hi mike", "karenm")
+	sentToCase("to:@karenm          hi mike          ", "hi mike", "karenm")
+	sentToCase("to: hi mike", "to: hi mike", "")
+	sentToCase("hi mike to:karenm", "hi mike", "karenm")
+	sentToCase("to:me hi mike", "hi mike", "mikem")
+
 	regexpCase := func(query, resQuery string, isRegex bool) {
 		query, opts := UpgradeSearchOptsFromQuery(query, chat1.SearchOpts{}, username)
 		require.Equal(t, resQuery, query)
@@ -210,10 +222,11 @@ func TestUpgradeSearchOptsFromQuery(t *testing.T) {
 	dateFilterCase("before:2018 after:asdf hi mike", "before:2018 after:asdf hi mike", 0, 0)
 
 	// the whole shabang
-	query, opts := UpgradeSearchOptsFromQuery("from:karenm before:2018-03-16 after:3/16/18 /Lisa.*something/",
+	query, opts := UpgradeSearchOptsFromQuery("from:karenm to:mikem before:2018-03-16 after:3/16/18 /Lisa.*something/",
 		chat1.SearchOpts{}, username)
 	require.Equal(t, "Lisa.*something", query)
 	require.Equal(t, "karenm", opts.SentBy)
+	require.Equal(t, "mikem", opts.SentTo)
 	require.Equal(t, expectedTime, opts.SentBefore)
 	require.Equal(t, expectedTime, opts.SentBefore)
 	require.True(t, opts.IsRegex)
