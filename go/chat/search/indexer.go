@@ -101,17 +101,19 @@ func (idx *Indexer) Start(ctx context.Context, uid gregor1.UID) {
 	go idx.SyncLoop(ctx, uid)
 }
 
-func (idx *Indexer) CancelSync() {
-	idx.Debug(context.TODO(), "CancelSync")
+func (idx *Indexer) CancelSync(ctx context.Context) {
+	idx.Debug(ctx, "CancelSync")
 	select {
+	case <-ctx.Done():
 	case idx.cancelSyncCh <- struct{}{}:
 	default:
 	}
 }
 
-func (idx *Indexer) PokeSync() {
-	idx.Debug(context.TODO(), "PokeSync")
+func (idx *Indexer) PokeSync(ctx context.Context) {
+	idx.Debug(ctx, "PokeSync")
 	select {
+	case <-ctx.Done():
 	case idx.pokeSyncCh <- struct{}{}:
 	default:
 	}
@@ -419,7 +421,7 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query, origQuer
 	defer func() {
 		// get a selective sync to run after the search completes even if we
 		// errored.
-		idx.PokeSync()
+		idx.PokeSync(ctx)
 
 		if hitUICh != nil {
 			close(hitUICh)
@@ -432,7 +434,7 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query, origQuer
 		idx.Debug(ctx, "Search: Search indexer is disabled, results will be inaccurate.")
 	}
 
-	idx.CancelSync()
+	idx.CancelSync(ctx)
 	sess := newSearchSession(query, origQuery, uid, hitUICh, indexUICh, idx, opts)
 	return sess.run(ctx)
 }
