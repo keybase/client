@@ -627,6 +627,7 @@ type ServiceType interface {
 	MakeProofChecker(l RemoteProofChainLink) ProofChecker
 	SetDisplayConfig(*keybase1.ServiceDisplayConfig)
 	CanMakeNewProofs(mctx MetaContext) bool
+	CanMakeNewProofsSkipFeatureFlag(mctx MetaContext) bool
 	DisplayPriority() int
 	DisplayGroup() string
 	IsNew(MetaContext) bool

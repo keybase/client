@@ -185,6 +185,18 @@ func (t *BaseServiceType) CanMakeNewProofs(mctx MetaContext) bool {
 	return !t.displayConf.CreationDisabled
 }
 
+func (t *BaseServiceType) CanMakeNewProofsSkipFeatureFlag(mctx MetaContext) bool {
+	t.Lock()
+	defer t.Unlock()
+	if mctx.G().GetEnv().GetProveBypass() {
+		return true
+	}
+	if t.displayConf == nil {
+		return true
+	}
+	return !t.displayConf.CreationDisabled
+}
+
 func (t *BaseServiceType) IsNew(mctx MetaContext) bool {
 	if t.displayConf == nil {
 		return false
