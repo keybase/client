@@ -22,8 +22,7 @@ func TestSetDisableBackup(t *testing.T) {
 	key := "test-key"
 	value := "value"
 
-	err := s.Put(mctx, key, value)
-	require.NoError(t, err)
+	require.NoError(t, s.Put(mctx, key, value))
 
 	storageDir := getStorageDir(mctx, subDir)
 	// Check that we set noBackup on the key
