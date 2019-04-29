@@ -108,11 +108,9 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 		}
 
 		for i, k := range emailRes {
-			if !k.Found {
-				continue
+			if k.Found {
+				insertResult(k, emailComps[i])
 			}
-
-			insertResult(k, emailComps[i])
 		}
 	}
 
@@ -123,11 +121,9 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 		}
 
 		for i, k := range phoneRes {
-			if !k.Found {
-				continue
+			if k.Found {
+				insertResult(k, phoneComps[i])
 			}
-
-			insertResult(k, phoneComps[i])
 		}
 	}
 
