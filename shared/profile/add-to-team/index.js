@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as I from 'immutable'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
+import {InlineDropdown} from '../../common-adapters/dropdown'
 import * as Constants from '../../constants/teams'
 import {FloatingRolePicker} from '../../teams/role-picker'
 import * as Types from '../../constants/types/teams'
@@ -84,20 +85,6 @@ const TeamRow = (props: RowProps) => (
   </Kb.ClickableBox>
 )
 
-const DropdownItem = (item: string) => (
-  <Kb.Box2
-    direction="horizontal"
-    key={item}
-    style={{
-      alignItems: 'center',
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-    }}
-  >
-    <Kb.Text type="BodySmallSemibold">{item}</Kb.Text>
-  </Kb.Box2>
-)
-
 class AddToTeam extends React.Component<Props> {
   componentDidUpdate(prevProps: Props) {
     if (prevProps.addUserToTeamsState !== 'succeeded' && this.props.addUserToTeamsState === 'succeeded') {
@@ -172,7 +159,7 @@ class AddToTeam extends React.Component<Props> {
             )}
           </Kb.Box2>
         </Kb.ScrollView>
-        <Kb.Box2 direction={Styles.isMobile ? 'vertical' : 'horizontal'} style={styles.addToTeam}>
+        <Kb.Box2 direction={'horizontal'} style={styles.addToTeam}>
           <Kb.Text style={styles.addToTeamTitle} type="BodySmall">
             {this.props.them} will be added as a
           </Kb.Text>
@@ -187,10 +174,10 @@ class AddToTeam extends React.Component<Props> {
             open={this.props.isRolePickerOpen}
             disabledRoles={this.props.disabledReasonsForRolePicker}
           >
-            <Kb.DropdownButton
-              toggleOpen={this.props.onOpenRolePicker}
-              selected={DropdownItem(this.props.selectedRole)}
-              style={styles.rolePickerButton}
+            <InlineDropdown
+              type="BodySmall"
+              label={this.props.selectedRole}
+              onPress={this.props.onOpenRolePicker}
             />
           </FloatingRolePicker>
         </Kb.Box2>
@@ -220,6 +207,7 @@ const styles = Styles.styleSheetCreate({
     common: {
       alignItems: 'center',
       flexShrink: 0,
+      flexWrap: 'wrap',
       marginBottom: Styles.globalMargins.small,
       marginLeft: Styles.globalMargins.small,
       marginRight: Styles.globalMargins.small,
@@ -229,7 +217,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   addToTeamTitle: Styles.platformStyles({
-    isElectron: {
+    common: {
       marginRight: Styles.globalMargins.tiny,
     },
     isMobile: {
@@ -282,16 +270,6 @@ const styles = Styles.styleSheetCreate({
     marginLeft: Styles.globalMargins.xtiny,
     marginTop: 2,
   },
-  rolePickerButton: Styles.platformStyles({
-    isElectron: {
-      width: 100,
-    },
-    isMobile: {
-      marginBottom: Styles.globalMargins.small,
-      marginTop: Styles.globalMargins.tiny,
-      width: '100%',
-    },
-  }),
   teamRow: Styles.platformStyles({
     common: {
       alignItems: 'center',
