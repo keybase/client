@@ -1625,10 +1625,55 @@ const confirmScreenResponse = (_, action) => {
 // }
 // }
 
-// We always make a convo and never preview it
-const previewConversationNowMakesAConversation = (state, action) =>
+// We always make adhoc convos and never preview it
+const previewConversationPersonMakesAConversation = (state, action) =>
+  !action.payload.teamname &&
   action.payload.participants &&
   Chat2Gen.createCreateConversation({participants: action.payload.participants})
+
+// We preview channels
+const previewConversationTeam = (state, action) => {
+  if (!action.payload.teamname) {
+    return
+  }
+  let conversationIDKey
+
+  const teamname = action.payload.teamname
+  const channelname = action.payload.channelname || 'general'
+  conversationIDKey = action.payload.conversationIDKey
+
+  return RPCChatTypes.localFindConversationsLocalRpcPromise({
+    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+    membersType: RPCChatTypes.commonConversationMembersType.team,
+    oneChatPerTLF: true,
+    tlfName: teamname,
+    topicName: channelname,
+    topicType: RPCChatTypes.commonTopicType.chat,
+    visibility: RPCTypes.commonTLFVisibility.private,
+  }).then(results => {
+    const resultMetas = (results.uiConversations || [])
+      .map(row => Constants.inboxUIItemToConversationMeta(row))
+      .filter(Boolean)
+    if (!resultMetas.length) return
+
+    conversationIDKey = resultMetas[0].conversationIDKey
+    RPCChatTypes.localPreviewConversationByIDLocalRpcPromise({
+      convID: Types.keyToConversationID(conversationIDKey),
+    })
+    return Chat2Gen.createSelectConversation({
+      conversationIDKey,
+      reason: 'previewResolved',
+    })
+    // yield Saga.put(Chat2Gen.createNavigateToThread())
+  })
+}
+// yield Saga.put(Chat2Gen.createMetasReceived({metas: resultMetas}))
+// yield* previewConversationAfterFindExisting(state, action, resultMetas, users)
+// } else {
+// yield* previewConversationAfterFindExisting(state, action, [], [])
+// }
+// }
+
 // Start a conversation, or select an existing one
 // function* previewConversationFindExisting(state, action) {
 // let participants
@@ -3145,7 +3190,11 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
 
   yield* Saga.chainAction<Chat2Gen.PreviewConversationPayload>(
     Chat2Gen.previewConversation,
-    previewConversationNowMakesAConversation
+    previewConversationTeam
+  )
+  yield* Saga.chainAction<Chat2Gen.PreviewConversationPayload>(
+    Chat2Gen.previewConversation,
+    previewConversationPersonMakesAConversation
   )
   // yield* Saga.chainGenerator<
   // Chat2Gen.PreviewConversationPayload | Chat2Gen.SetPendingConversationUsersPayload
