@@ -3,6 +3,7 @@
 package libkb
 
 import (
+	"crypto/sha256"
 	"testing"
 
 	"github.com/pkg/xattr"
@@ -10,16 +11,18 @@ import (
 )
 
 func TestSetDisableBackup(t *testing.T) {
-	tc := libkb.SetupTest(t, "erasable kv store disable backup", 1)
+	tc := SetupTest(t, "erasable kv store disable backup", 1)
 	defer tc.Cleanup()
-	mctx := libkb.NewMetaContextForTest(tc)
+	mctx := NewMetaContextForTest(tc)
 
 	subDir := ""
-	s := NewFileErasableKVStore(mctx, subDir)
+	s := NewFileErasableKVStore(mctx, subDir, func(_ MetaContext, noise NoiseBytes) ([32]byte, error) {
+		return sha256.Sum256(noise[:]), nil
+	})
 	key := "test-key"
 	value := "value"
 
-	err = s.Put(mctx, key, value)
+	err := s.Put(mctx, key, value)
 	require.NoError(t, err)
 
 	storageDir := getStorageDir(mctx, subDir)
