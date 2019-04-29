@@ -37,11 +37,7 @@
       "fields": [
         {
           "type": "string",
-          "name": "firstName"
-        },
-        {
-          "type": "string",
-          "name": "lastName"
+          "name": "name"
         },
         {
           "type": {

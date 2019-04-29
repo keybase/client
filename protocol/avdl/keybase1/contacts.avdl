@@ -15,8 +15,7 @@ protocol contacts {
         union { null, EmailAddress } email;
     }
     record Contact {
-        string firstName; // "Bob"
-        string lastName; // "Goodman"
+        string name; // "Bob Goodman"
         array<ContactComponent> components;
     }
 

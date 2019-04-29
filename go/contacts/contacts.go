@@ -89,7 +89,7 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 
 		res = append(res, keybase1.ProcessedContact{
 			ContactIndex: toContact.contactIndex,
-			ContactName:  contact.FullName(),
+			ContactName:  contact.Name,
 			Component:    component,
 			Resolved:     true,
 			Uid:          lookupRes.UID,
@@ -165,15 +165,14 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 		// Add e.g. "(Work)" labels to display labels if there are multiple
 		// components in a contact.
 		var addLabel = len(c.Components) > 1
-		fullName := c.FullName()
 		for _, component := range c.Components {
 			res = append(res, keybase1.ProcessedContact{
 				ContactIndex: i,
-				ContactName:  fullName,
+				ContactName:  c.Name,
 				Component:    component,
 				Resolved:     false,
 
-				DisplayName:  fullName,
+				DisplayName:  c.Name,
 				DisplayLabel: component.FormatDisplayLabel(addLabel),
 			})
 		}
