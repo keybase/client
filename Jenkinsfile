@@ -432,6 +432,18 @@ def testGo(prefix, packagesToTest) {
           flags: '',
           timeout: '3m',
         ],
+        'github.com/keybase/client/go/libkb': [
+          flags: '',
+          timeout: '1m',
+        ],
+        'github.com/keybase/client/go/install': [
+          flags: '',
+          timeout: '30s',
+        ],
+        'github.com/keybase/client/go/launchd': [
+          flags: '',
+          timeout: '30s',
+        ],
       ],
       test_linux_go_: [
         '*': [],
