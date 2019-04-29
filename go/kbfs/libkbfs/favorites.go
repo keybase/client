@@ -370,7 +370,7 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 			if err == context.DeadlineExceeded {
 				newCtx, _ := context.WithTimeout(context.Background(),
 					favoritesBackgroundRefreshTimeout)
-				go f.RefreshCache(newCtx, FavoritesRefreshModeBackground)
+				go f.RefreshCache(newCtx, FavoritesRefreshModeBlocking)
 			}
 			f.log.CDebugf(req.ctx,
 				"Serving possibly stale favorites; new data could not be"+
@@ -660,14 +660,14 @@ const (
 	// in the main loop, blocking any favorites requests after until the refresh
 	// is done.
 	FavoritesRefreshModeInMainFavoritesLoop = iota
-	// FavoritesRefreshModeBackground means to refresh the favorites outside
+	// FavoritesRefreshModeBlocking means to refresh the favorites outside
 	// of the main loop.
-	FavoritesRefreshModeBackground
+	FavoritesRefreshModeBlocking
 )
 
 // RefreshCache refreshes the cached list of favorites.
 //
-// In FavoritesRefreshModeBackground, request the favorites in this function,
+// In FavoritesRefreshModeBlocking, request the favorites in this function,
 // then send them to the main goroutine to be processed. This should be called
 // in a separate goroutine from anything mission-critical, because it might wait
 // on network for up to 15 seconds.
@@ -700,7 +700,7 @@ func (f *Favorites) RefreshCache(ctx context.Context, mode FavoritesRefreshMode)
 	}
 	f.wg.Add(1)
 
-	if mode == FavoritesRefreshModeBackground {
+	if mode == FavoritesRefreshModeBlocking {
 		favResult, err := f.config.KBPKI().FavoriteList(ctx)
 		if err != nil {
 			f.log.CDebugf(ctx, "Failed to refresh cached Favorites: %+v", err)
