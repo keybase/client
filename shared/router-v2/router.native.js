@@ -77,6 +77,14 @@ const ConnectedTabBarIcon = connect<{|focused: boolean, routeName: Tabs.Tab|}, _
   })
 )(TabBarIcon)
 
+// The default container has some `hitSlop` set which messes up the clickable
+// area
+const TabBarIconContainer = props => (
+  <Kb.NativeTouchableWithoutFeedback style={props.style} onPress={props.onPress}>
+    <Kb.Box children={props.children} style={props.style} />
+  </Kb.NativeTouchableWithoutFeedback>
+)
+
 const TabNavigator = createBottomTabNavigator(
   tabs.reduce((map, tab) => {
     map[tab] = createStackNavigator(Shim.shim(routes), {
@@ -97,6 +105,7 @@ const TabNavigator = createBottomTabNavigator(
   }, {}),
   {
     defaultNavigationOptions: ({navigation}) => ({
+      tabBarButtonComponent: TabBarIconContainer,
       tabBarIcon: ({focused}) => (
         <ConnectedTabBarIcon focused={focused} routeName={navigation.state.routeName} />
       ),
@@ -120,7 +129,7 @@ const tabStyles = Styles.styleSheetCreate({
     top: 3,
   },
   container: {
-    position: 'relative',
+    justifyContent: 'center',
   },
   tab: {
     paddingBottom: 6,
