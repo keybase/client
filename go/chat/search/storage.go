@@ -112,7 +112,7 @@ func (s *store) aliasKey(ctx context.Context, dat string) (res libkb.DbKey, err 
 	}, nil
 }
 
-func (s *store) getHits(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, term string) (res map[chat1.MessageID]chat1.EmptyStruct, err error) {
+func (s *store) GetHits(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, term string) (res map[chat1.MessageID]chat1.EmptyStruct, err error) {
 	res = make(map[chat1.MessageID]chat1.EmptyStruct)
 	// Get all terms and aliases
 	terms := make(map[string]chat1.EmptyStruct)
@@ -143,12 +143,13 @@ func (s *store) tokenCacheKey(uid gregor1.UID, convID chat1.ConversationID, toke
 }
 
 func (s *store) getTokenEntry(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, token string) (res *tokenEntry, err error) {
-	if te, ok := s.tokenCache.Get(s.tokenCacheKey(uid, convID, token)); ok {
+	cacheKey := s.tokenCacheKey(uid, convID, token)
+	if te, ok := s.tokenCache.Get(cacheKey); ok {
 		return te.(*tokenEntry), nil
 	}
 	defer func() {
 		if err == nil {
-			s.tokenCache.Add(s.tokenCacheKey(uid, convID, token), res)
+			s.tokenCache.Add(cacheKey, res)
 		}
 	}()
 	var te tokenEntry
@@ -381,7 +382,7 @@ func (s *store) removeMsg(ctx context.Context, uid gregor1.UID, convID chat1.Con
 	return nil
 }
 
-func (s *store) getMetadata(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (res *indexMetadata, err error) {
+func (s *store) GetMetadata(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (res *indexMetadata, err error) {
 	var md indexMetadata
 	found, err := s.G().LocalChatDb.GetIntoMsgpack(&md, s.metadataKey(uid, convID))
 	if err != nil {
@@ -430,7 +431,7 @@ func (s *store) Add(ctx context.Context, uid gregor1.UID, convID chat1.Conversat
 		return supersededMsgs
 	}
 
-	md, err := s.getMetadata(ctx, uid, convID)
+	md, err := s.GetMetadata(ctx, uid, convID)
 	if err != nil {
 		return err
 	}
@@ -476,7 +477,7 @@ func (s *store) Remove(ctx context.Context, uid gregor1.UID, convID chat1.Conver
 	lock := s.lockTab.AcquireOnName(ctx, s.G(), convID.String())
 	defer lock.Release(ctx)
 
-	md, err := s.getMetadata(ctx, uid, convID)
+	md, err := s.GetMetadata(ctx, uid, convID)
 	if err != nil {
 		return err
 	}

@@ -198,7 +198,7 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 
 	conv := rconv.Conv
 	convID := conv.GetConvID()
-	md, err := idx.store.getMetadata(ctx, uid, convID)
+	md, err := idx.store.GetMetadata(ctx, uid, convID)
 	if err != nil {
 		return 0, err
 	}
@@ -405,7 +405,7 @@ func (idx *Indexer) SelectiveSync(ctx context.Context, uid gregor1.UID, forceRei
 	var totalCompletedJobs, fullyIndexedConvs int
 	for _, conv := range convs {
 		convID := conv.GetConvID()
-		md, err := idx.store.getMetadata(ctx, uid, convID)
+		md, err := idx.store.GetMetadata(ctx, uid, convID)
 		if err != nil {
 			idx.Debug(ctx, "SelectiveSync: Unable to get md for conv: %v, %v", convID, err)
 			continue
@@ -488,7 +488,7 @@ func (idx *Indexer) FullyIndexed(ctx context.Context, convID chat1.ConversationI
 	if err != nil {
 		return false, err
 	}
-	md, err := idx.store.getMetadata(ctx, uid, convID)
+	md, err := idx.store.GetMetadata(ctx, uid, convID)
 	if err != nil {
 		return false, err
 	}
@@ -501,7 +501,7 @@ func (idx *Indexer) PercentIndexed(ctx context.Context, convID chat1.Conversatio
 	if err != nil {
 		return 0, err
 	}
-	md, err := idx.store.getMetadata(ctx, uid, convID)
+	md, err := idx.store.GetMetadata(ctx, uid, convID)
 	if err != nil {
 		return 0, err
 	}

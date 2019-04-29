@@ -109,7 +109,7 @@ func (s *searchSession) searchConv(ctx context.Context, convID chat1.Conversatio
 	var allMsgIDs mapset.Set
 	for token := range s.tokens {
 		matchedIDs := mapset.NewThreadUnsafeSet()
-		idMap, err := s.indexer.store.getHits(ctx, s.uid, convID, token)
+		idMap, err := s.indexer.store.GetHits(ctx, s.uid, convID, token)
 		if err != nil {
 			return nil, err
 		}
@@ -244,7 +244,7 @@ func (s *searchSession) searchHitsFromMsgIDs(ctx context.Context, conv types.Rem
 }
 
 func (s *searchSession) convIndexPercent(ctx context.Context, conv chat1.Conversation) (int, error) {
-	md, err := s.indexer.store.getMetadata(ctx, s.uid, conv.GetConvID())
+	md, err := s.indexer.store.GetMetadata(ctx, s.uid, conv.GetConvID())
 	if err != nil {
 		return 0, err
 	}
@@ -252,7 +252,7 @@ func (s *searchSession) convIndexPercent(ctx context.Context, conv chat1.Convers
 }
 
 func (s *searchSession) convFullyIndexed(ctx context.Context, conv chat1.Conversation) (bool, error) {
-	md, err := s.indexer.store.getMetadata(ctx, s.uid, conv.GetConvID())
+	md, err := s.indexer.store.GetMetadata(ctx, s.uid, conv.GetConvID())
 	if err != nil {
 		return false, err
 	}
