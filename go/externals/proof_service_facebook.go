@@ -63,9 +63,6 @@ func (t *FacebookServiceType) GetPrompt() string {
 }
 
 func (t *FacebookServiceType) CanMakeNewProofs(mctx libkb.MetaContext) bool {
-	if !mctx.G().ShouldUseParameterizedProofs() {
-		return false
-	}
 	return t.BaseServiceType.CanMakeNewProofs(mctx)
 }
 

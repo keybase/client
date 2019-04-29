@@ -1367,8 +1367,6 @@ func isProofTypeDefunct(g *GlobalContext, typ keybase1.ProofType) bool {
 	switch typ {
 	case keybase1.ProofType_COINBASE:
 		return true
-	case keybase1.ProofType_GENERIC_SOCIAL:
-		return !g.ShouldUseParameterizedProofs()
 	default:
 		return false
 	}
