@@ -64,10 +64,11 @@ const styles = Styles.styleSheetCreate({
       width: '170%',
     },
   }),
-  scrollContent: {minHeight: '100%'},
   scroll: {
-    ...Styles.fillAbsolute,
+    backgroundColor: Styles.globalColors.white,
+    ...Styles.globalStyles.fillAbsolute,
   },
+  scrollContent: {minHeight: '100%'},
   spacer: {flexGrow: 1},
   text: {
     color: Styles.globalColors.black,
