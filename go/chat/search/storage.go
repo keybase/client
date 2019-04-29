@@ -16,7 +16,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-const indexVersion = 8
+const indexVersion = 9
 const tokenEntryVersion = 2
 const aliasEntryVersion = 1
 
