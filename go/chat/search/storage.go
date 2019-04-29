@@ -5,6 +5,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"fmt"
+	"sync"
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/chat/globals"
@@ -49,9 +50,10 @@ func newAliasEntry() *aliasEntry {
 var refAliasEntry = newAliasEntry()
 
 type store struct {
-	utils.DebugLabeler
-	lockTab *libkb.LockTable
 	globals.Contextified
+	utils.DebugLabeler
+	sync.RWMutex
+
 	keyFn      func(ctx context.Context) ([32]byte, error)
 	aliasCache *lru.Cache
 	tokenCache *lru.Cache
@@ -59,7 +61,7 @@ type store struct {
 }
 
 func newStore(g *globals.Context) *store {
-	ac, _ := lru.New(10000)
+	ac, _ := lru.New(5000)
 	tc, _ := lru.New(3000)
 	keyFn := func(ctx context.Context) ([32]byte, error) {
 		return storage.GetSecretBoxKey(ctx, g.ExternalG(), storage.DefaultSecretUI)
@@ -70,7 +72,6 @@ func newStore(g *globals.Context) *store {
 	return &store{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Search.store", false),
-		lockTab:      &libkb.LockTable{},
 		keyFn:        keyFn,
 		aliasCache:   ac,
 		tokenCache:   tc,
@@ -116,6 +117,8 @@ func (s *store) aliasKey(ctx context.Context, dat string) (res libkb.DbKey, err 
 }
 
 func (s *store) GetHits(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, term string) (res map[chat1.MessageID]chat1.EmptyStruct, err error) {
+	s.RLock()
+	defer s.RUnlock()
 	res = make(map[chat1.MessageID]chat1.EmptyStruct)
 	// Get all terms and aliases
 	terms := make(map[string]chat1.EmptyStruct)
@@ -412,8 +415,8 @@ func (s *store) putMetadata(ctx context.Context, uid gregor1.UID, convID chat1.C
 func (s *store) Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgs []chat1.MessageUnboxed) (err error) {
 	defer s.Trace(ctx, func() error { return err }, "Add")()
-	lock := s.lockTab.AcquireOnName(ctx, s.G(), convID.String())
-	defer lock.Release(ctx)
+	s.Lock()
+	defer s.Unlock()
 
 	batch := newAddTokenBatch()
 	defer func() {
@@ -481,8 +484,8 @@ func (s *store) Add(ctx context.Context, uid gregor1.UID, convID chat1.Conversat
 func (s *store) Remove(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgs []chat1.MessageUnboxed) (err error) {
 	defer s.Trace(ctx, func() error { return err }, "Remove")()
-	lock := s.lockTab.AcquireOnName(ctx, s.G(), convID.String())
-	defer lock.Release(ctx)
+	s.Lock()
+	defer s.Unlock()
 
 	md, err := s.GetMetadata(ctx, uid, convID)
 	if err != nil {
