@@ -372,6 +372,12 @@ protocol local {
     union { null, OutboxID } supersedesOutboxID;
   }
 
+  record TeamMention {
+    keybase1.TeamID teamID;
+    string teamName;
+    string channelName;
+  }
+
   record MessageUnboxedValid {
     MessageClientHeaderVerified clientHeader;
     MessageServerHeader serverHeader;
@@ -406,6 +412,7 @@ protocol local {
     array<string> atMentionUsernames;
     array<gregor1.UID> atMentions;
     ChannelMention channelMention;
+    array<TeamMention> teamMentions;
     array<ChannelNameMention> channelNameMentions;
     // reactionText -> [Reaction(username, reactionMsgID)...]
     ReactionMap reactions;

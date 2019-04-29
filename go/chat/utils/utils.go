@@ -16,6 +16,7 @@ import (
 
 	"github.com/keybase/client/go/chat/pager"
 	"github.com/keybase/client/go/chat/unfurl/display"
+	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 
 	"regexp"
@@ -594,7 +595,8 @@ func ParseChannelNameMentions(ctx context.Context, body string, uid gregor1.UID,
 	return res
 }
 
-var atMentionRegExp = regexp.MustCompile(ServiceDecorationPrefix + `@([a-z0-9][a-z0-9_]+)`)
+var atMentionRegExp = regexp.MustCompile(ServiceDecorationPrefix +
+	`@(?:[a-z0-9][a-z0-9_]+(?:#[a-z0-9][a-z0-9_]+)?)`)
 
 type nameMatch struct {
 	name     string
@@ -609,22 +611,22 @@ func parseRegexpNames(ctx context.Context, body string, re *regexp.Regexp) (res 
 	body = ReplaceQuotedSubstrings(body, true)
 	allIndexMatches := re.FindAllStringSubmatchIndex(body, -1)
 	for _, indexMatch := range allIndexMatches {
-		if len(indexMatch) >= 4 {
-			hit := body[indexMatch[2]:indexMatch[3]]
+		if len(indexMatch) >= 2 {
+			hit := body[indexMatch[0]:indexMatch[1]]
 			res = append(res, nameMatch{
 				name:     hit,
-				position: indexMatch[2:4],
+				position: indexMatch,
 			})
 		}
 	}
 	return res
 }
 
-func GetTextAtMentionedUIDs(ctx context.Context, msg chat1.MessageText, upak libkb.UPAKLoader,
-	debug *DebugLabeler) (atRes []gregor1.UID, chanRes chat1.ChannelMention) {
-	atRes, chanRes = ParseAtMentionedUIDs(ctx, msg.Body, upak, debug)
-	atRes = append(atRes, GetPaymentAtMentions(ctx, upak, msg.Payments, debug)...)
-	return atRes, chanRes
+func GetTextAtMentionedItems(ctx context.Context, g *globals.Context, msg chat1.MessageText,
+	debug *DebugLabeler) (atRes []gregor1.UID, teamRes []chat1.TeamMention, chanRes chat1.ChannelMention) {
+	atRes, teamRes, chanRes = ParseAtMentionedItems(ctx, g, msg.Body)
+	atRes = append(atRes, GetPaymentAtMentions(ctx, g.GetUPAKLoader(), msg.Payments, debug)...)
+	return atRes, teamRes, chanRes
 }
 
 func GetPaymentAtMentions(ctx context.Context, upak libkb.UPAKLoader, payments []chat1.TextPayment,
@@ -648,12 +650,39 @@ func ParseAtMentionsNames(ctx context.Context, body string) (res []string) {
 	return res
 }
 
-func ParseAtMentionedUIDs(ctx context.Context, body string, upak libkb.UPAKLoader, debug *DebugLabeler) (atRes []gregor1.UID, chanRes chat1.ChannelMention) {
+func parseItemAsUID(ctx context.Context, upak libkb.UPAKLoader, name string) (gregor1.UID, error) {
+	kuid, err := upak.LookupUID(ctx, libkb.NewNormalizedUsername(name))
+	if err != nil {
+		return nil, err
+	}
+	return gregor1.UID(kuid.ToBytes()), nil
+}
+
+func parseItemAsTeam(ctx context.Context, g *globals.Context, teamName, channel string) (res chat1.TeamMention, err error) {
+	team, err := teams.Load(ctx, g.ExternalG(), keybase1.LoadTeamArg{
+		Name: teamName,
+	})
+	if err != nil {
+		return res, err
+	}
+	return chat1.TeamMention{
+		TeamID:      team.ID,
+		TeamName:    team.Name().String(),
+		ChannelName: channel,
+	}, nil
+}
+
+func ParseAtMentionedItems(ctx context.Context, g *globals.Context, body string) (atRes []gregor1.UID, teamRes []chat1.TeamMention, chanRes chat1.ChannelMention) {
 	names := ParseAtMentionsNames(ctx, body)
 	chanRes = chat1.ChannelMention_NONE
 	for _, name := range names {
-
-		switch name {
+		var channel string
+		toks := strings.Split(name, "#")
+		baseName := toks[0]
+		if len(toks) > 1 {
+			channel = toks[1]
+		}
+		switch baseName {
 		case "channel", "everyone":
 			chanRes = chat1.ChannelMention_ALL
 			continue
@@ -665,17 +694,14 @@ func ParseAtMentionedUIDs(ctx context.Context, body string, upak libkb.UPAKLoade
 		default:
 		}
 
-		kuid, err := upak.LookupUID(ctx, libkb.NewNormalizedUsername(name))
-		if err != nil {
-			if debug != nil {
-				debug.Debug(ctx, "ParseAtMentionedUIDs: failed to lookup UID for: %s msg: %s",
-					name, err.Error())
-			}
-			continue
+		// Try UID first then team
+		if uid, err := parseItemAsUID(ctx, g.GetUPAKLoader(), baseName); err == nil {
+			atRes = append(atRes, uid)
+		} else if teamMention, err := parseItemAsTeam(ctx, g, baseName, channel); err == nil {
+			teamRes = append(teamRes, teamMention)
 		}
-		atRes = append(atRes, kuid.ToBytes())
 	}
-	return atRes, chanRes
+	return atRes, teamRes, chanRes
 }
 
 type SystemMessageUIDSource interface {

@@ -2483,6 +2483,20 @@ func (o MessagePlaintext) DeepCopy() MessagePlaintext {
 	}
 }
 
+type TeamMention struct {
+	TeamID      keybase1.TeamID `codec:"teamID" json:"teamID"`
+	TeamName    string          `codec:"teamName" json:"teamName"`
+	ChannelName string          `codec:"channelName" json:"channelName"`
+}
+
+func (o TeamMention) DeepCopy() TeamMention {
+	return TeamMention{
+		TeamID:      o.TeamID.DeepCopy(),
+		TeamName:    o.TeamName,
+		ChannelName: o.ChannelName,
+	}
+}
+
 type MessageUnboxedValid struct {
 	ClientHeader          MessageClientHeaderVerified `codec:"clientHeader" json:"clientHeader"`
 	ServerHeader          MessageServerHeader         `codec:"serverHeader" json:"serverHeader"`
@@ -2498,6 +2512,7 @@ type MessageUnboxedValid struct {
 	AtMentionUsernames    []string                    `codec:"atMentionUsernames" json:"atMentionUsernames"`
 	AtMentions            []gregor1.UID               `codec:"atMentions" json:"atMentions"`
 	ChannelMention        ChannelMention              `codec:"channelMention" json:"channelMention"`
+	TeamMentions          []TeamMention               `codec:"teamMentions" json:"teamMentions"`
 	ChannelNameMentions   []ChannelNameMention        `codec:"channelNameMentions" json:"channelNameMentions"`
 	Reactions             ReactionMap                 `codec:"reactions" json:"reactions"`
 	Unfurls               map[MessageID]UnfurlResult  `codec:"unfurls" json:"unfurls"`
@@ -2563,6 +2578,17 @@ func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
 			return ret
 		})(o.AtMentions),
 		ChannelMention: o.ChannelMention.DeepCopy(),
+		TeamMentions: (func(x []TeamMention) []TeamMention {
+			if x == nil {
+				return nil
+			}
+			ret := make([]TeamMention, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.TeamMentions),
 		ChannelNameMentions: (func(x []ChannelNameMention) []ChannelNameMention {
 			if x == nil {
 				return nil

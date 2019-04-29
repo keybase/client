@@ -1204,6 +1204,24 @@
     },
     {
       "type": "record",
+      "name": "TeamMention",
+      "fields": [
+        {
+          "type": "keybase1.TeamID",
+          "name": "teamID"
+        },
+        {
+          "type": "string",
+          "name": "teamName"
+        },
+        {
+          "type": "string",
+          "name": "channelName"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "MessageUnboxedValid",
       "fields": [
         {
@@ -1276,6 +1294,13 @@
         {
           "type": "ChannelMention",
           "name": "channelMention"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamMention"
+          },
+          "name": "teamMentions"
         },
         {
           "type": {

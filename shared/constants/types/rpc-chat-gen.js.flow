@@ -1117,7 +1117,7 @@ export type MessageUnboxedState =
   | 3 // OUTBOX_3
   | 4 // PLACEHOLDER_4
 
-export type MessageUnboxedValid = $ReadOnly<{clientHeader: MessageClientHeaderVerified, serverHeader: MessageServerHeader, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, bodyHash: Hash, headerHash: Hash, headerSignature?: ?SignatureInfo, verificationKey?: ?Bytes, senderDeviceRevokedAt?: ?Gregor1.Time, atMentionUsernames?: ?Array<String>, atMentions?: ?Array<Gregor1.UID>, channelMention: ChannelMention, channelNameMentions?: ?Array<ChannelNameMention>, reactions: ReactionMap, unfurls: {[key: string]: UnfurlResult}, replyTo?: ?MessageUnboxed}>
+export type MessageUnboxedValid = $ReadOnly<{clientHeader: MessageClientHeaderVerified, serverHeader: MessageServerHeader, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, bodyHash: Hash, headerHash: Hash, headerSignature?: ?SignatureInfo, verificationKey?: ?Bytes, senderDeviceRevokedAt?: ?Gregor1.Time, atMentionUsernames?: ?Array<String>, atMentions?: ?Array<Gregor1.UID>, channelMention: ChannelMention, teamMentions?: ?Array<TeamMention>, channelNameMentions?: ?Array<ChannelNameMention>, reactions: ReactionMap, unfurls: {[key: string]: UnfurlResult}, replyTo?: ?MessageUnboxed}>
 export type MessageUnfurl = $ReadOnly<{unfurl: UnfurlResult, messageID: MessageID}>
 export type MessagesUpdated = $ReadOnly<{convID: ConversationID, updates?: ?Array<UIMessage>}>
 export type MsgEphemeralMetadata = $ReadOnly<{l /* lifetime */: Gregor1.DurationSec, g /* generation */: Keybase1.EkGeneration, u /* explodedBy */?: ?String}>
@@ -1244,6 +1244,7 @@ export type TLFFinalizeUpdate = $ReadOnly<{finalizeInfo: ConversationFinalizeInf
 export type TLFID = Bytes
 export type TLFResolveUpdate = $ReadOnly<{convID: ConversationID, inboxVers: InboxVers}>
 export type TeamChannelUpdate = $ReadOnly<{teamID: TLFID}>
+export type TeamMention = $ReadOnly<{teamID: Keybase1.TeamID, teamName: String, channelName: String}>
 export type TeamType =
   | 0 // NONE_0
   | 1 // SIMPLE_1

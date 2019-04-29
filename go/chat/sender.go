@@ -642,20 +642,20 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 			if err = checkHeaderBodyTypeMatch(); err != nil {
 				return res, err
 			}
-			atMentions, chanMention = utils.GetTextAtMentionedUIDs(ctx,
-				plaintext.MessageBody.Text(), s.G().GetUPAKLoader(), &s.DebugLabeler)
+			atMentions, _, chanMention = utils.GetTextAtMentionedItems(ctx, s.G(),
+				plaintext.MessageBody.Text(), &s.DebugLabeler)
 		case chat1.MessageType_FLIP:
 			if err = checkHeaderBodyTypeMatch(); err != nil {
 				return res, err
 			}
-			atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx,
-				plaintext.MessageBody.Flip().Text, s.G().GetUPAKLoader(), &s.DebugLabeler)
+			atMentions, _, chanMention = utils.ParseAtMentionedItems(ctx, s.G(),
+				plaintext.MessageBody.Flip().Text)
 		case chat1.MessageType_EDIT:
 			if err = checkHeaderBodyTypeMatch(); err != nil {
 				return res, err
 			}
-			atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx,
-				plaintext.MessageBody.Edit().Body, s.G().GetUPAKLoader(), &s.DebugLabeler)
+			atMentions, _, chanMention = utils.ParseAtMentionedItems(ctx, s.G(),
+				plaintext.MessageBody.Edit().Body)
 		case chat1.MessageType_SYSTEM:
 			if err = checkHeaderBodyTypeMatch(); err != nil {
 				return res, err
