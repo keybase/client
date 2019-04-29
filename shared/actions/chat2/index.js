@@ -914,22 +914,6 @@ function* loadMoreMessages(state, action) {
       key = Constants.getSelectedConversation(state)
       reason = 'foregrounding'
       break
-    case Chat2Gen.setPendingConversationUsers:
-      if (Constants.getSelectedConversation(state) !== Constants.pendingConversationIDKey) {
-        return
-      }
-      reason = 'building a search'
-      // we stash the actual preview conversation id key in here
-      key = Constants.getResolvedPendingConversationIDKey(state)
-      break
-    case Chat2Gen.setPendingConversationExistingConversationIDKey:
-      if (Constants.getSelectedConversation(state) !== Constants.pendingConversationIDKey) {
-        // We're not looking at it so ignore
-        return
-      }
-      reason = 'got search preview conversationidkey'
-      key = Constants.getResolvedPendingConversationIDKey(state)
-      break
     case Chat2Gen.markConversationsStale:
       key = Constants.getSelectedConversation(state)
       // not mentioned?
@@ -941,10 +925,6 @@ function* loadMoreMessages(state, action) {
     case Chat2Gen.selectConversation:
       key = action.payload.conversationIDKey
       reason = action.payload.reason || 'selected'
-
-      if (key === Constants.pendingConversationIDKey) {
-        key = Constants.getResolvedPendingConversationIDKey(state)
-      }
       break
     case Chat2Gen.metasReceived:
       if (!action.payload.clearExistingMessages) {
@@ -955,9 +935,6 @@ function* loadMoreMessages(state, action) {
       break
     case Chat2Gen.loadOlderMessagesDueToScroll:
       key = action.payload.conversationIDKey
-      if (action.payload.conversationIDKey === Constants.pendingConversationIDKey) {
-        key = Constants.getResolvedPendingConversationIDKey(state)
-      }
       break
     case Chat2Gen.loadNewerMessagesDueToScroll:
       key = action.payload.conversationIDKey
@@ -1114,9 +1091,6 @@ function* getUnreadline(state, action) {
   switch (action.type) {
     case Chat2Gen.selectConversation:
       key = action.payload.conversationIDKey
-      if (key === Constants.pendingConversationIDKey) {
-        key = Constants.getResolvedPendingConversationIDKey(state)
-      }
       break
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action.type)
@@ -1608,40 +1582,6 @@ const startupInboxLoad = state =>
   state.config.username ? Chat2Gen.createInboxRefresh({reason: 'bootstrap'}) : undefined
 
 const changeSelectedConversation = (state, action) => {
-  const selected = Constants.getSelectedConversation(state)
-  switch (action.type) {
-    case Chat2Gen.setPendingMode: {
-      if (action.payload.pendingMode === 'newChat') {
-      } else if (action.payload.pendingMode !== 'none') {
-        return [
-          Chat2Gen.createSelectConversation({
-            conversationIDKey: Constants.pendingConversationIDKey,
-            reason: 'setPendingMode',
-          }),
-          navigateToThreadRoute(Constants.pendingConversationIDKey),
-        ]
-      } else if (action.payload.noneDestination === 'inbox') {
-        return Chat2Gen.createNavigateToInbox({findNewConversation: true})
-      } else if (action.payload.noneDestination === 'thread') {
-        // don't allow check of isValidConversationIDKey
-        return navigateToThreadRoute(state.chat2.selectedConversation)
-      }
-      break
-    }
-    case Chat2Gen.messageSend: // fallthrough
-    case Chat2Gen.attachmentsUpload:
-      // Sent into a resolved pending conversation? Select the resolved one
-      if (selected === Constants.pendingConversationIDKey) {
-        const resolvedPendingConversationIDKey = Constants.getResolvedPendingConversationIDKey(state)
-        if (resolvedPendingConversationIDKey !== Constants.noConversationIDKey) {
-          return Chat2Gen.createSelectConversation({
-            conversationIDKey: resolvedPendingConversationIDKey,
-            reason: 'sendingToPending',
-          })
-        }
-      }
-  }
-
   if (!isMobile) {
     return _maybeAutoselectNewestConversation(state, action)
   }
@@ -1672,20 +1612,11 @@ const _maybeAutoselectNewestConversation = (state, action) => {
     if (selected !== Constants.noConversationIDKey && selected !== action.payload.conversationIDKey) {
       return
     }
-    // only select something if we're leaving a pending conversation
-  } else if (action.type === Chat2Gen.setPendingMode) {
-    if (action.payload.pendingMode !== 'none') {
-      return
-    }
   }
 
   if (action.type === Chat2Gen.metasReceived) {
     // If we have new activity, don't switch to it unless no convo was selected
     if (selected !== Constants.noConversationIDKey) {
-      return
-    }
-  } else if (action.type === Chat2Gen.setPendingMode) {
-    if (Constants.isValidConversationIDKey(selected)) {
       return
     }
   } else if (
@@ -1756,20 +1687,6 @@ const openFolder = (state, action) => {
       : privateFolderWithUsers(meta.participants.toArray())
   )
   return FsConstants.makeActionForOpenPathInFilesTab(path)
-}
-
-const getRecommendations = (state, action) => {
-  if (
-    action.type === Chat2Gen.selectConversation &&
-    action.payload.conversationIDKey !== Constants.pendingConversationIDKey
-  ) {
-    return
-  }
-
-  const meta = Constants.getMeta(state, Constants.pendingConversationIDKey)
-  if (meta.participants.isEmpty()) {
-    return SearchGen.createSearchSuggestions({searchKey: 'chatSearch'})
-  }
 }
 
 const clearSearchResults = () => SearchGen.createClearSearchResults({searchKey: 'chatSearch'})
@@ -1986,10 +1903,6 @@ const markThreadAsRead = (state, action) => {
 
   if (!conversationIDKey) {
     logger.info('marking read bail on no selected conversation')
-    return
-  }
-  if (conversationIDKey === Constants.pendingConversationIDKey) {
-    logger.info('marking read bail on pending conversation')
     return
   }
 
@@ -2417,24 +2330,22 @@ const messageReplyPrivately = (state, action) => {
       topicType: RPCChatTypes.commonTopicType.chat,
     },
     Constants.waitingKeyCreating
-  )
-    .then(result => {
-      const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
-      if (!conversationIDKey) {
-        logger.warn("Couldn't make a new conversation?")
-        return
-      }
+  ).then(result => {
+    const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
+    if (!conversationIDKey) {
+      logger.warn("Couldn't make a new conversation?")
+      return
+    }
 
-      return [
-        Chat2Gen.createSelectConversation({conversationIDKey, reason: 'createdMessagePrivately'}),
-        Chat2Gen.createMessageSetQuoting({
-          ordinal: action.payload.ordinal,
-          sourceConversationIDKey: action.payload.sourceConversationIDKey,
-          targetConversationIDKey: conversationIDKey,
-        }),
-      ]
-    })
-    .catch(() => Chat2Gen.createSetPendingStatus({pendingStatus: 'failed'}))
+    return [
+      Chat2Gen.createSelectConversation({conversationIDKey, reason: 'createdMessagePrivately'}),
+      Chat2Gen.createMessageSetQuoting({
+        ordinal: action.payload.ordinal,
+        sourceConversationIDKey: action.payload.sourceConversationIDKey,
+        targetConversationIDKey: conversationIDKey,
+      }),
+    ]
+  })
 }
 
 // don't bug the users with black bars for network errors. chat isn't going to work in general
@@ -2858,7 +2769,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     | Chat2Gen.MetasReceivedPayload
     | Chat2Gen.LeaveConversationPayload
     | Chat2Gen.MetaDeletePayload
-    | Chat2Gen.SetPendingModePayload
     | Chat2Gen.MessageSendPayload
     | Chat2Gen.AttachmentsUploadPayload
     | Chat2Gen.BlockConversationPayload
@@ -2868,7 +2778,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.metasReceived,
       Chat2Gen.leaveConversation,
       Chat2Gen.metaDelete,
-      Chat2Gen.setPendingMode,
       Chat2Gen.messageSend,
       Chat2Gen.attachmentsUpload,
       Chat2Gen.blockConversation,
@@ -2907,24 +2816,20 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Load the selected thread
   yield* Saga.chainGenerator<
     | Chat2Gen.SelectConversationPayload
-    | Chat2Gen.SetPendingConversationExistingConversationIDKeyPayload
     | Chat2Gen.JumpToRecentPayload
     | Chat2Gen.LoadOlderMessagesDueToScrollPayload
     | Chat2Gen.LoadNewerMessagesDueToScrollPayload
     | Chat2Gen.LoadMessagesFromSearchHitPayload
-    | Chat2Gen.SetPendingConversationUsersPayload
     | Chat2Gen.MarkConversationsStalePayload
     | Chat2Gen.MetasReceivedPayload
     | ConfigGen.ChangedFocusPayload
   >(
     [
       Chat2Gen.selectConversation,
-      Chat2Gen.setPendingConversationExistingConversationIDKey,
       Chat2Gen.jumpToRecent,
       Chat2Gen.loadOlderMessagesDueToScroll,
       Chat2Gen.loadNewerMessagesDueToScroll,
       Chat2Gen.loadMessagesFromSearchHit,
-      Chat2Gen.setPendingConversationUsers,
       Chat2Gen.markConversationsStale,
       Chat2Gen.metasReceived,
       ConfigGen.changedFocus,
@@ -2984,11 +2889,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     SearchConstants.isUserInputItemsUpdated('chatSearch'),
     clearSearchResults
   )
-  yield* Saga.chainAction<Chat2Gen.SetPendingConversationUsersPayload | Chat2Gen.SelectConversationPayload>(
-    [Chat2Gen.setPendingConversationUsers, Chat2Gen.selectConversation],
-    getRecommendations
-  )
-
   yield* Saga.chainAction<Chat2Gen.AttachmentPreviewSelectPayload>(
     Chat2Gen.attachmentPreviewSelect,
     attachmentPreviewSelect

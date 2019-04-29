@@ -130,8 +130,7 @@ const mapStateToProps = (state, {searchKey, showServiceFilter}: OwnProps) => {
   )
   const userItems = getUserItems(state, searchKey)
   const clearSearchTextInput = Constants.getClearSearchTextInput(state, searchKey)
-  const showServiceFilterIfInputEmpty =
-    state.chat2.get('pendingMode') !== 'searchingForUsers' && showServiceFilter
+  const showServiceFilterIfInputEmpty = showServiceFilter
 
   return {
     _searchResultIds,

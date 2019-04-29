@@ -13,7 +13,6 @@ import BigTeamsDivider from './row/big-teams-divider/container'
 import TeamsDivider from './row/teams-divider/container'
 import {debounce} from 'lodash-es'
 import UnreadShortcut from './unread-shortcut'
-import NewConversation from './new-conversation/container'
 import type {Props, RowItem, RowItemSmall, RowItemBig, RouteState} from './index.types'
 import {virtualListMarks} from '../../local-debug'
 import {inboxWidth, getRowHeight} from './row/sizes'
@@ -185,7 +184,6 @@ class Inbox extends React.PureComponent<Props, State> {
     return (
       <ErrorBoundary>
         <div style={styles.container}>
-          <NewConversation />
           <div style={styles.list}>
             <AutoSizer>
               {({height, width}) => (

@@ -108,9 +108,6 @@ const mergeProps = (stateProps, dispatchProps) => {
     case Constants.noConversationIDKey:
       type = 'noConvo'
       break
-    case Constants.pendingConversationIDKey:
-      type = 'normal'
-      break
     default:
       if (stateProps._meta.membershipType === 'youAreReset') {
         type = 'youAreReset'
@@ -130,9 +127,7 @@ const mergeProps = (stateProps, dispatchProps) => {
         ? () => {}
         : () => dispatchProps._deselectConversation(stateProps.conversationIDKey),
     selectConversation:
-      !flags.useNewRouter ||
-      stateProps._storeConvoIDKey === stateProps.conversationIDKey ||
-      stateProps.conversationIDKey === Constants.pendingConversationIDKey
+      !flags.useNewRouter || stateProps._storeConvoIDKey === stateProps.conversationIDKey
         ? () => {} // ignore if already selected or pending
         : () => dispatchProps._selectConversation(stateProps.conversationIDKey),
     type,

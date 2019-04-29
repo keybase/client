@@ -10,13 +10,12 @@ import type {TypedState} from '../reducer'
 import {getPath} from '../../route-tree'
 import {isMobile} from '../platform'
 import {
-  pendingConversationIDKey,
   noConversationIDKey,
   pendingWaitingConversationIDKey,
   conversationIDKeyToString,
   isValidConversationIDKey,
 } from '../types/chat2/common'
-import {makeConversationMeta, getEffectiveRetentionPolicy, getMeta} from './meta'
+import {getEffectiveRetentionPolicy, getMeta} from './meta'
 import {formatTextForQuoting} from '../../util/chat'
 import * as Router2 from '../router2'
 import flags from '../../util/feature-flags'
@@ -41,9 +40,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   messageCenterOrdinals: I.Map(),
   messageMap: I.Map(),
   messageOrdinals: I.Map(),
-  metaMap: I.Map([
-    [pendingConversationIDKey, makeConversationMeta({conversationIDKey: noConversationIDKey})],
-  ]),
+  metaMap: I.Map(),
   moreToLoadMap: I.Map(),
   orangeLineMap: I.Map(),
   paymentConfirmInfo: null,
@@ -66,10 +63,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   // Team Building
   ...TeamBuildingConstants.makeSubState(),
 })
-
-// We stash the resolved pending conversation idkey into the meta itself
-export const getResolvedPendingConversationIDKey = (state: TypedState) =>
-  getMeta(state, pendingConversationIDKey).conversationIDKey
 
 export const makeQuoteInfo: I.RecordFactory<Types._QuoteInfo> = I.Record({
   counter: 0,
@@ -409,6 +402,5 @@ export {
   noConversationIDKey,
   numMessagesOnInitialLoad,
   numMessagesOnScrollback,
-  pendingConversationIDKey,
   pendingWaitingConversationIDKey,
 }

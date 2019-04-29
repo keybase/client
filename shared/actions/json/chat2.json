@@ -20,8 +20,6 @@
         "'focused'", // nav focus changed
         "'clearSelected'", // deselect
         "'desktopNotification'", // clicked notification
-        "'setPendingMode'", // set to pending
-        "'sendingToPending'", // select the pending we sent into
         "'createdMessagePrivately'", // messaging privately and maybe made it
         "'extension'", // from a notification from iOS share extension
         "'files'", // from the Files tab
@@ -37,7 +35,6 @@
         "'justCreated'", // just made it and select it
         "'manageView'", // clicked from manage screen
         "'previewResolved'", // did a preview and are now selecting it
-        "'pendingModeChange'", // pending mode changed so we select the pending conversation id key
         "'push'", // from a push
         "'savedLastState'", // last seen chat tab
         "'startFoundExisting'", // starting a conversation and found one already
@@ -163,10 +160,6 @@
       "reason": "string",
       "outboxID": "Types.OutboxID"
     },
-    "setPendingConversationExistingConversationIDKey": {
-      "_description": "When the search changes we need to find any existing conversations to stash into the metaMap",
-      "conversationIDKey": "Types.ConversationIDKey"
-    },
     // Start editing a message / or edit the last message / or clear editing
     "messageSetEditing": {
       "conversationIDKey": "Types.ConversationIDKey",
@@ -226,15 +219,6 @@
     // Deletes all messages
     "messageDeleteHistory": {
       "conversationIDKey": "Types.ConversationIDKey"
-    },
-    // Update why we have a pending conversation, either we're searching or we have a fixed set of users (you clicked a folder for example)
-    // Use `noneDestination` to specify where the user should end up after setting it to 'none'
-    "setPendingMode": {
-      "pendingMode": "Types.PendingMode",
-      "noneDestination?": ["'inbox'", "'thread'"]
-    },
-    "setPendingStatus": {
-      "pendingStatus": "Types.PendingStatus"
     },
     // Load some more messages for a conversation
     "loadOlderMessagesDueToScroll": {
@@ -303,11 +287,6 @@
     "resetLetThemIn": {
       "conversationIDKey": "Types.ConversationIDKey",
       "username": "string"
-    },
-    // Update the pending conversation users
-    "setPendingConversationUsers": {
-      "users": "Array<string>",
-      "fromSearch": "boolean"
     },
     // The user has selected an attachment with a preview
     "attachmentPreviewSelect": {

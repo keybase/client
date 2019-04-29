@@ -10,7 +10,6 @@ export type Props = {
   showLoader: boolean,
   onPaste: (data: Buffer) => void,
   onAttach: (paths: Array<string>) => void,
-  onCancelSearch: () => void,
   onFocusInput: () => void,
   onRequestScrollDown: () => void,
   onRequestScrollToBottom: () => void,

@@ -91,8 +91,6 @@ const actionTransformMap = {
       type: a.type,
     }
   },
-  [Chat2Gen.setPendingMode]: fullOutput,
-  [Chat2Gen.setPendingConversationUsers]: fullOutput,
   [GregorGen.updateReachable]: fullOutput,
 
   [Chat2Gen.messageSend]: a => ({

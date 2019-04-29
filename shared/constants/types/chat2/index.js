@@ -9,18 +9,6 @@ import * as Wallet from '../wallets'
 import * as TeamBuildingTypes from '../team-building'
 import HiddenString from '../../../util/hidden-string'
 
-export type PendingMode =
-  | 'none' // no pending
-  | 'searchingForUsers' // doing a search
-  | 'newChat' // doing a search
-  | 'newTeamBuilding' // Users picked via team-building, waiting now.
-  | 'fixedSetOfUsers' // selected a set of users externally
-  | 'startingFromAReset' // fixedSet but our intention is to restart a reset conversation
-
-export type PendingStatus =
-  | 'none' // no special status
-  | 'failed' // creating conversation failed
-
 export type _QuoteInfo = {
   // Always positive and monotonically increasing.
   counter: number,
@@ -125,8 +113,6 @@ export type _State = {
   giphyWindowMap: I.Map<Common.ConversationIDKey, boolean>,
   giphyResultMap: I.Map<Common.ConversationIDKey, ?RPCChatTypes.GiphySearchResults>,
   pendingOutboxToOrdinal: I.Map<Common.ConversationIDKey, I.Map<Message.OutboxID, Message.Ordinal>>, // messages waiting to be sent
-  pendingMode: PendingMode, // we're about to talk to people we're searching for or a set of users from somewhere else (folder)
-  pendingStatus: PendingStatus, // the status of creating a new conversation
   attachmentFullscreenMessage: ?Message.Message,
   paymentConfirmInfo: ?PaymentConfirmInfo, // chat payment confirm screen data
   paymentStatusMap: I.Map<Wallet.PaymentID, Message.ChatPaymentInfo>,

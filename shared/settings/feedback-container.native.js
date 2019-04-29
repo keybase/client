@@ -166,7 +166,6 @@ const extraChatLogs = state => {
         trustedState: metaMap.trustedState,
         wasFinalizedBy: metaMap.wasFinalizedBy,
       },
-      pendingMode: chat.pendingMode,
       pendingOutboxToOrdinal: chat.pendingOutboxToOrdinal.get(c),
       quote: chat.quote,
       unreadMap: chat.unreadMap.get(c),
