@@ -4928,7 +4928,6 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	require.NoError(t, err)
 
 	checkSyncCache(10, cNode)
-	checkStatus(bNode, FinishedPrefetch)
 	checkStatus(cNode, FinishedPrefetch)
 	checkStatus(eNode, FinishedPrefetch)
 	checkStatus(fNode, FinishedPrefetch)
@@ -4953,7 +4952,6 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	require.NoError(t, err)
 
 	checkSyncCache(8, cNode)
-	checkStatus(bNode, FinishedPrefetch)
 	checkStatus(cNode, FinishedPrefetch)
 	checkStatus(eNode, NoPrefetch)
 	checkStatus(fNode, NoPrefetch)
