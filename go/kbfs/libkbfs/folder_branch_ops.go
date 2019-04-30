@@ -1782,7 +1782,8 @@ func (fbo *folderBranchOps) setHeadLocked(
 	}
 
 	if ct == mdCommit {
-		fbo.goTracked(func() { fbo.commitFlushedMD(md, fbo.latestMergedUpdated) })
+		latestMergedUpdated := fbo.latestMergedUpdated
+		fbo.goTracked(func() { fbo.commitFlushedMD(md, latestMergedUpdated) })
 	}
 
 	// Make sure that any unembedded block changes have been swapped
@@ -8501,7 +8502,8 @@ func (fbo *folderBranchOps) Reset(
 		return err
 	}
 	oldHandle.SetFinalizedInfo(finalizedInfo)
-	// This can't be susceptible to the WaitGroup due to a potential deadlock.
+	// This can't be subject to the WaitGroup due to a potential deadlock,
+	// so we use a raw goroutine here instead of `goTracked`.
 	go fbo.observers.tlfHandleChange(ctx, oldHandle)
 	return nil
 }
