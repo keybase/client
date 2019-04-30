@@ -307,8 +307,7 @@ const routeToInitialScreen = state => {
       state.config.startupConversation !== ChatConstants.noConversationIDKey
     ) {
       return [
-        // $FlowIssue
-        RouteTreeGen.createSwitchRouteDef({path: ChatConstants.threadRoute, routeDef: appRouteTree}),
+        RouteTreeGen.createSwitchRouteDef({path: [Tabs.chatTab], routeDef: appRouteTree}),
         ChatGen.createSelectConversation({
           conversationIDKey: state.config.startupConversation,
           reason: state.config.startupWasFromPush ? 'push' : 'savedLastState',

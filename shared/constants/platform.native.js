@@ -1,6 +1,7 @@
 // @flow
 import {Dimensions, Platform, NativeModules} from 'react-native'
 import {cachesDirectoryPath} from '../util/file.native'
+import * as iPhoneXHelper from 'react-native-iphone-x-helper'
 
 const nativeBridge = NativeModules.KeybaseEngine || {
   isDeviceSecure: 'fallback',
@@ -30,8 +31,7 @@ export const isAndroidNewerThanM = isAndroid && parseInt(mobileOsVersion) > 22
 export const isAndroidNewerThanN = isAndroid && parseInt(mobileOsVersion, 10) >= 26
 export const shortcutSymbol = ''
 
-export const isIPhoneX =
-  Platform.OS === 'ios' && !Platform.isPad && !Platform.isTVOS && Dimensions.get('window').height >= 812
+export const isIPhoneX = iPhoneXHelper.isIphoneX()
 
 // isLargeScreen means you have at larger screen like iPhone 6,7 or Pixel
 // See https://material.io/devices/

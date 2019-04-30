@@ -1072,7 +1072,7 @@ export const makeActionForOpenPathInFilesTab = flags.useNewRouter
   ? (
       path: Types.Path, // TODO: remove the second arg when we are done with migrating to nav2
       routePath?: ?I.List<string>
-    ): TypedActions => RouteTreeGen.createNavigateAppend({path: [{props: {path}, selected: 'tabs.fsTab'}]})
+    ): TypedActions => RouteTreeGen.createNavigateAppend({path: [{props: {path}, selected: 'fsRoot'}]})
   : (path: Types.Path, routePath?: ?I.List<string>): TypedActions => {
       const finalRoute = {props: {path}, selected: 'main'}
       const routeChangeAction = isMobile
