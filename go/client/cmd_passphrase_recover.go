@@ -54,9 +54,18 @@ func (c *CmdPassphraseRecover) Run() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	if err := client.RecoverPassphrase(ctx, keybase1.RecoverPassphraseArg{
+	err = client.RecoverPassphrase(ctx, keybase1.RecoverPassphraseArg{
 		Username: c.Username,
-	}); err != nil {
+	})
+	switch err.(type) {
+	case libkb.NotProvisionedError:
+		return c.errNotProvisioned()
+	case libkb.NoPaperKeysError:
+		return c.errNoPaperKeys()
+	case libkb.InputCanceledError:
+		return c.errLockedKeys()
+	}
+	if err != nil {
 		return err
 	}
 
