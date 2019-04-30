@@ -8,8 +8,6 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/search"
-	"github.com/keybase/client/go/chat/types"
-	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -414,6 +412,7 @@ func TestChatSearchInbox(t *testing.T) {
 		reindexCh1 := make(chan chat1.ConversationID, 100)
 		indexer1.SetConsumeCh(consumeCh1)
 		indexer1.SetReindexCh(reindexCh1)
+		indexer1.SetStartSyncDelay(0)
 		// Stop the original
 		select {
 		case <-g1.Indexer.Stop(ctx):
@@ -427,6 +426,7 @@ func TestChatSearchInbox(t *testing.T) {
 		reindexCh2 := make(chan chat1.ConversationID, 100)
 		indexer2.SetConsumeCh(consumeCh2)
 		indexer2.SetReindexCh(reindexCh2)
+		indexer2.SetStartSyncDelay(0)
 		// Stop the original
 		select {
 		case <-g2.Indexer.Stop(ctx):
@@ -439,19 +439,20 @@ func TestChatSearchInbox(t *testing.T) {
 			mt, ctc.as(t, u2).user())
 		convID := conv.Id
 
-		rconv, err := utils.GetUnverifiedConv(ctx, g1, uid1, conv.Id,
-			types.InboxSourceDataSourceRemoteOnly)
-		require.NoError(t, err)
 		// verify zero messages case
-		convIdx, err := indexer1.GetConvIndex(ctx, convID, uid1)
+		fi, err := indexer1.FullyIndexed(ctx, conv.Id, uid1)
 		require.NoError(t, err)
-		require.True(t, convIdx.FullyIndexed(rconv.Conv))
-		require.Equal(t, 100, convIdx.PercentIndexed(rconv.Conv))
+		require.True(t, fi)
+		pi, err := indexer1.PercentIndexed(ctx, conv.Id, uid1)
+		require.NoError(t, err)
+		require.Equal(t, 100, pi)
 
-		convIdx, err = indexer2.GetConvIndex(ctx, convID, uid2)
+		fi, err = indexer2.FullyIndexed(ctx, conv.Id, uid2)
 		require.NoError(t, err)
-		require.True(t, convIdx.FullyIndexed(rconv.Conv))
-		require.Equal(t, 100, convIdx.PercentIndexed(rconv.Conv))
+		require.True(t, fi)
+		pi, err = indexer2.PercentIndexed(ctx, conv.Id, uid2)
+		require.NoError(t, err)
+		require.Equal(t, 100, pi)
 
 		sendMessage := func(msgBody chat1.MessageBody, user *kbtest.FakeUser) chat1.MessageID {
 			msgID := mustPostLocalForTest(t, ctc, user, conv, msgBody)
@@ -525,19 +526,11 @@ func TestChatSearchInbox(t *testing.T) {
 			}
 		}
 
-		verifyIndex := func(expectedIndex *chat1.ConversationIndex) {
+		verifyIndex := func() {
 			t.Logf("verify user 1 index")
-
 			verifyIndexConsumption(consumeCh1)
-			convIdx1, err := indexer1.GetConvIndex(ctx, convID, uid1)
-			require.NoError(t, err)
-			require.Equal(t, expectedIndex, convIdx1)
-
 			t.Logf("verify user 2 index")
 			verifyIndexConsumption(consumeCh2)
-			convIdx2, err := indexer2.GetConvIndex(ctx, convID, uid2)
-			require.NoError(t, err)
-			require.Equal(t, expectedIndex, convIdx2)
 		}
 
 		runSearch := func(query string, opts chat1.SearchOpts, expectedReindex bool) *chat1.ChatSearchInboxResults {
@@ -568,32 +561,7 @@ func TestChatSearchInbox(t *testing.T) {
 		msgID1 := sendMessage(chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: msgBody,
 		}), u1)
-		expectedIndex := &chat1.ConversationIndex{
-			Index: map[string]map[chat1.MessageID]chat1.EmptyStruct{
-				"hello": map[chat1.MessageID]chat1.EmptyStruct{
-					msgID1: chat1.EmptyStruct{},
-				},
-				"bye": map[chat1.MessageID]chat1.EmptyStruct{
-					msgID1: chat1.EmptyStruct{},
-				},
-			},
-			Alias: map[string]map[string]chat1.EmptyStruct{
-				"hel": map[string]chat1.EmptyStruct{
-					"hello": chat1.EmptyStruct{},
-				},
-				"hell": map[string]chat1.EmptyStruct{
-					"hello": chat1.EmptyStruct{},
-				},
-			},
-			Metadata: chat1.ConversationIndexMetadata{
-				SeenIDs: map[chat1.MessageID]chat1.EmptyStruct{
-					1:      chat1.EmptyStruct{}, // tlf name
-					msgID1: chat1.EmptyStruct{},
-				},
-				Version: search.IndexVersion,
-			},
-		}
-		verifyIndex(expectedIndex)
+
 		queries := []string{"hello", "hello, ByE"}
 		matches := []chat1.ChatSearchMatch{
 			chat1.ChatSearchMatch{
@@ -642,10 +610,7 @@ func TestChatSearchInbox(t *testing.T) {
 		msgID2 := sendMessage(chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: msgBody,
 		}), u1)
-		expectedIndex.Index["hello"][msgID2] = chat1.EmptyStruct{}
-		expectedIndex.Index["bye"][msgID2] = chat1.EmptyStruct{}
-		expectedIndex.Metadata.SeenIDs[msgID2] = chat1.EmptyStruct{}
-		verifyIndex(expectedIndex)
+		verifyIndex()
 
 		res = runSearch(query, opts, false /* expectedReindex*/)
 		require.Equal(t, 1, len(res.Hits))
@@ -668,10 +633,8 @@ func TestChatSearchInbox(t *testing.T) {
 		msgID3 := sendMessage(chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: msgBody,
 		}), u1)
-		expectedIndex.Index["hello"][msgID3] = chat1.EmptyStruct{}
-		expectedIndex.Index["bye"][msgID3] = chat1.EmptyStruct{}
-		expectedIndex.Metadata.SeenIDs[msgID3] = chat1.EmptyStruct{}
-		verifyIndex(expectedIndex)
+
+		verifyIndex()
 
 		res = runSearch(query, opts, false /* expectedReindex*/)
 		require.Equal(t, 1, len(res.Hits))
@@ -697,9 +660,7 @@ func TestChatSearchInbox(t *testing.T) {
 		msgID4 := sendMessage(chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: msgBody,
 		}), u2)
-		expectedIndex.Index["hello"][msgID4] = chat1.EmptyStruct{}
-		expectedIndex.Metadata.SeenIDs[msgID4] = chat1.EmptyStruct{}
-		verifyIndex(expectedIndex)
+		verifyIndex()
 
 		res = runSearch(query, opts, false /* expectedReindex*/)
 		require.Equal(t, 1, len(res.Hits))
@@ -754,16 +715,10 @@ func TestChatSearchInbox(t *testing.T) {
 			EndIndex:   len(msgBody),
 			Match:      msgBody,
 		}
-		msgID5 := mustEditMsg(tc2.startCtx, t, ctc, u2, conv, msgID4)
+		mustEditMsg(tc2.startCtx, t, ctc, u2, conv, msgID4)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_EDIT)
 		consumeNewMsgRemote(t, listener2, chat1.MessageType_EDIT)
-		delete(expectedIndex.Index["hello"], msgID4)
-		expectedIndex.Index["edited"] = map[chat1.MessageID]chat1.EmptyStruct{msgID4: chat1.EmptyStruct{}}
-		expectedIndex.Alias["edi"] = map[string]chat1.EmptyStruct{"edited": chat1.EmptyStruct{}}
-		expectedIndex.Alias["edit"] = map[string]chat1.EmptyStruct{"edited": chat1.EmptyStruct{}}
-		expectedIndex.Alias["edite"] = map[string]chat1.EmptyStruct{"edited": chat1.EmptyStruct{}}
-		expectedIndex.Metadata.SeenIDs[msgID5] = chat1.EmptyStruct{}
-		verifyIndex(expectedIndex)
+		verifyIndex()
 
 		res = runSearch(query, opts, false /* expectedReindex*/)
 		t.Logf("%+v", res)
@@ -775,16 +730,10 @@ func TestChatSearchInbox(t *testing.T) {
 		verifySearchDone(1)
 
 		// Test delete
-		msgID6 := mustDeleteMsg(tc2.startCtx, t, ctc, u2, conv, msgID4)
+		mustDeleteMsg(tc2.startCtx, t, ctc, u2, conv, msgID4)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_DELETE)
 		consumeNewMsgRemote(t, listener2, chat1.MessageType_DELETE)
-		delete(expectedIndex.Index["edited"], msgID4)
-		delete(expectedIndex.Index, "edited")
-		delete(expectedIndex.Alias, "edi")
-		delete(expectedIndex.Alias, "edit")
-		delete(expectedIndex.Alias, "edite")
-		expectedIndex.Metadata.SeenIDs[msgID6] = chat1.EmptyStruct{}
-		verifyIndex(expectedIndex)
+		verifyIndex()
 
 		res = runSearch(query, opts, false /* expectedReindex*/)
 		require.Equal(t, 0, len(res.Hits))
@@ -802,21 +751,7 @@ func TestChatSearchInbox(t *testing.T) {
 			RequestID: stellar1.KeybaseRequestID("dummy id"),
 			Note:      msgBody,
 		}), u1)
-		expectedIndex.Index["payment"] = map[chat1.MessageID]chat1.EmptyStruct{msgID7: chat1.EmptyStruct{}}
-		expectedIndex.Alias["pay"] = map[string]chat1.EmptyStruct{"payment": chat1.EmptyStruct{}}
-		expectedIndex.Alias["paym"] = map[string]chat1.EmptyStruct{"payment": chat1.EmptyStruct{}}
-		expectedIndex.Alias["payme"] = map[string]chat1.EmptyStruct{"payment": chat1.EmptyStruct{}}
-		expectedIndex.Alias["paymen"] = map[string]chat1.EmptyStruct{"payment": chat1.EmptyStruct{}}
-		expectedIndex.Index[":moneybag:"] = map[chat1.MessageID]chat1.EmptyStruct{msgID7: chat1.EmptyStruct{}}
-		expectedIndex.Alias[":mo"] = map[string]chat1.EmptyStruct{":moneybag:": chat1.EmptyStruct{}}
-		expectedIndex.Alias[":mon"] = map[string]chat1.EmptyStruct{":moneybag:": chat1.EmptyStruct{}}
-		expectedIndex.Alias[":mone"] = map[string]chat1.EmptyStruct{":moneybag:": chat1.EmptyStruct{}}
-		expectedIndex.Alias[":money"] = map[string]chat1.EmptyStruct{":moneybag:": chat1.EmptyStruct{}}
-		expectedIndex.Alias[":moneyb"] = map[string]chat1.EmptyStruct{":moneybag:": chat1.EmptyStruct{}}
-		expectedIndex.Alias[":moneyba"] = map[string]chat1.EmptyStruct{":moneybag:": chat1.EmptyStruct{}}
-		expectedIndex.Alias[":moneybag"] = map[string]chat1.EmptyStruct{":moneybag:": chat1.EmptyStruct{}}
-		expectedIndex.Metadata.SeenIDs[msgID7] = chat1.EmptyStruct{}
-		verifyIndex(expectedIndex)
+		verifyIndex()
 
 		res = runSearch(query, opts, false /* expectedReindex*/)
 		require.Equal(t, 1, len(res.Hits))
@@ -837,16 +772,8 @@ func TestChatSearchInbox(t *testing.T) {
 		msgID8 := sendMessage(chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: msgBody,
 		}), u1)
-		expectedIndex.Index[msgBody] = map[chat1.MessageID]chat1.EmptyStruct{msgID8: chat1.EmptyStruct{}}
-		expectedIndex.Alias[`约`] = map[string]chat1.EmptyStruct{msgBody: chat1.EmptyStruct{}}
-		expectedIndex.Alias[`约书`] = map[string]chat1.EmptyStruct{msgBody: chat1.EmptyStruct{}}
-		expectedIndex.Alias[`约书亚`] = map[string]chat1.EmptyStruct{msgBody: chat1.EmptyStruct{}}
-		expectedIndex.Alias[`约书亚和`] = map[string]chat1.EmptyStruct{msgBody: chat1.EmptyStruct{}}
-		expectedIndex.Alias[`约书亚和约`] = map[string]chat1.EmptyStruct{msgBody: chat1.EmptyStruct{}}
-		expectedIndex.Alias[`约书亚和约翰`] = map[string]chat1.EmptyStruct{msgBody: chat1.EmptyStruct{}}
 		// NOTE other prefixes are cut off since they exceed the max length
-		expectedIndex.Metadata.SeenIDs[msgID8] = chat1.EmptyStruct{}
-		verifyIndex(expectedIndex)
+		verifyIndex()
 		res = runSearch(query, opts, false /* expectedReindex*/)
 		require.Equal(t, 1, len(res.Hits))
 		convHit = res.Hits[0]
@@ -865,7 +792,7 @@ func TestChatSearchInbox(t *testing.T) {
 		require.Equal(t, 1, len(convHit.Hits))
 		verifyHit(convID, []chat1.MessageID{msgID3, msgID7}, msgID8, nil, []chat1.ChatSearchMatch{searchMatch}, convHit.Hits[0])
 		verifySearchDone(1)
-		verifyIndex(expectedIndex)
+		verifyIndex()
 
 		// since our index is full, we shouldn't fire off any calls to get messages
 		runSearch(query, opts, false /* expectedReindex*/)
@@ -874,7 +801,8 @@ func TestChatSearchInbox(t *testing.T) {
 		// Verify POSTSEARCH_SYNC
 		ictx := globals.CtxAddIdentifyMode(ctx, keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil)
 		g1.LocalChatDb.Nuke()
-		indexer1.SelectiveSync(ictx, uid1, true /* forceReindex */)
+		err = indexer1.SelectiveSync(ictx, uid1)
+		require.NoError(t, err)
 		opts.ReindexMode = chat1.ReIndexingMode_POSTSEARCH_SYNC
 		res = runSearch(query, opts, true /* expectedReindex*/)
 		require.Equal(t, 1, len(res.Hits))
@@ -883,7 +811,7 @@ func TestChatSearchInbox(t *testing.T) {
 		require.Equal(t, 1, len(convHit.Hits))
 		verifyHit(convID, []chat1.MessageID{msgID3, msgID7}, msgID8, nil, []chat1.ChatSearchMatch{searchMatch}, convHit.Hits[0])
 		verifySearchDone(1)
-		verifyIndex(expectedIndex)
+		verifyIndex()
 
 		// since our index is full, we shouldn't fire off any calls to get messages
 		runSearch(query, opts, false /* expectedReindex*/)
@@ -910,13 +838,10 @@ func TestChatSearchInbox(t *testing.T) {
 		verifySearchDone(0)
 
 		// Test deletehistory
-		msgID9 := mustDeleteHistory(tc2.startCtx, t, ctc, u2, conv, msgID8+1)
+		mustDeleteHistory(tc2.startCtx, t, ctc, u2, conv, msgID8+1)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_DELETEHISTORY)
 		consumeNewMsgRemote(t, listener2, chat1.MessageType_DELETEHISTORY)
-		expectedIndex.Index = map[string]map[chat1.MessageID]chat1.EmptyStruct{}
-		expectedIndex.Alias = map[string]map[string]chat1.EmptyStruct{}
-		expectedIndex.Metadata.SeenIDs[msgID9] = chat1.EmptyStruct{}
-		verifyIndex(expectedIndex)
+		verifyIndex()
 
 		// test sentTo
 		msgBody = "hello @" + u1.Username
@@ -945,5 +870,23 @@ func TestChatSearchInbox(t *testing.T) {
 		verifyHit(convID, []chat1.MessageID{}, msgID10, nil, []chat1.ChatSearchMatch{searchMatch}, convHit.Hits[0])
 		verifySearchDone(1)
 		opts.SentTo = ""
+
+		// Test canceling sync loop
+		syncLoopCh := make(chan struct{})
+		indexer1.SetSyncLoopCh(syncLoopCh)
+		go indexer1.SyncLoop(ctx, uid1)
+		indexer1.CancelSync(ctx)
+		select {
+		case <-time.After(5 * time.Second):
+			require.Fail(t, "indexer SyncLoop never finished")
+		case <-syncLoopCh:
+		}
+		indexer1.PokeSync(ctx)
+		indexer1.CancelSync(ctx)
+		select {
+		case <-time.After(5 * time.Second):
+			require.Fail(t, "indexer SyncLoop never finished")
+		case <-syncLoopCh:
+		}
 	})
 }

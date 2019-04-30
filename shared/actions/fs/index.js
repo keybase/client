@@ -810,7 +810,9 @@ const initSendLinkToChat = (state, action) => {
       : [
           FsGen.createSetSendLinkToChatChannels({
             channels: I.Map(
-              result.convs.map(conv => [ChatTypes.stringToConversationIDKey(conv.convID), conv.channel])
+              result.convs
+                .filter(conv => conv.memberStatus === RPCChatTypes.commonConversationMemberStatus.active)
+                .map(conv => [ChatTypes.stringToConversationIDKey(conv.convID), conv.channel])
             ),
           }),
 

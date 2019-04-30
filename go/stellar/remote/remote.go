@@ -1065,3 +1065,39 @@ func ChangeTrustline(ctx context.Context, g *libkb.GlobalContext, signedTx strin
 	_, err = mctx.G().API.Post(mctx, apiArg)
 	return err
 }
+
+type findPaymentPathResult struct {
+	libkb.AppStatusEmbed
+	Result stellar1.PaymentPath `json:"result"`
+}
+
+func FindPaymentPath(mctx libkb.MetaContext, query stellar1.PaymentPathQuery) (stellar1.PaymentPath, error) {
+	payload := make(libkb.JSONPayload)
+	payload["query"] = query
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/findpaymentpath",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		JSONPayload: payload,
+	}
+
+	var res findPaymentPathResult
+	if err := mctx.G().API.PostDecode(mctx, apiArg, &res); err != nil {
+		return stellar1.PaymentPath{}, err
+	}
+	return res.Result, nil
+}
+
+func SubmitPathPayment(mctx libkb.MetaContext, post stellar1.PathPaymentPost) (stellar1.PaymentResult, error) {
+	payload := make(libkb.JSONPayload)
+	payload["payment"] = post
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/submitpathpayment",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		JSONPayload: payload,
+	}
+	var res submitResult
+	if err := mctx.G().API.PostDecode(mctx, apiArg, &res); err != nil {
+		return stellar1.PaymentResult{}, err
+	}
+	return res.PaymentResult, nil
+}
