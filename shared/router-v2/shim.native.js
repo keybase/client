@@ -27,7 +27,7 @@ const shimNewRoute = (Original: any) => {
       )
 
       // don't make safe areas
-      if (navigationOptions && Original.navigationOptions.underNotch) {
+      if (navigationOptions && navigationOptions.underNotch) {
         return keyboardBody
       }
 
