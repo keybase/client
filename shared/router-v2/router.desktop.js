@@ -74,7 +74,7 @@ class AppView extends React.PureComponent<any> {
           <Header
             loggedIn={!!selectedTab}
             options={descriptor.options}
-            onPop={() => childNav.pop()}
+            onPop={() => childNav.goBack()}
             allowBack={index !== 0}
           />
         </Kb.Box2>
