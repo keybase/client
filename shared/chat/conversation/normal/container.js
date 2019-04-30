@@ -20,7 +20,11 @@ if (!isMobile) {
 }
 
 const mapStateToProps = (state, {conversationIDKey, isPending}) => {
-  const showLoader = WaitingConstants.anyWaiting(state, Constants.waitingKeyThreadLoad(conversationIDKey))
+  const showLoader = WaitingConstants.anyWaiting(
+    state,
+    Constants.waitingKeyThreadLoad(conversationIDKey),
+    Constants.waitingKeyInboxSyncStarted
+  )
   const meta = Constants.getMeta(state, conversationIDKey)
   const isSearching = state.chat2.pendingMode === 'searchingForUsers' && isPending
   return {
