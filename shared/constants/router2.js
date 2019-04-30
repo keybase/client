@@ -1,11 +1,10 @@
 // @flow
-import {isMobile} from './platform'
 let _navigator = null
 // Private API only used by config sagas
 export const _setNavigator = (navigator: any) => {
   _navigator = navigator
   if (__DEV__) {
-    if (isMobile) {
+    if (require('./platform').isMobile) {
       global.DEBUGNavigator = _navigator
     } else {
       window.DEBUGNavigator = _navigator
