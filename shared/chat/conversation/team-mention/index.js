@@ -1,7 +1,8 @@
 // @flow
 import React from 'react'
-import * as Kb from '../../../common-adapters'
+import Text from '../../../common-adapters/text'
 import * as Styles from '../../../styles'
+import {TeamInfo} from '../../../profile/user/teams'
 
 export type Props = {|
   allowFontScaling?: boolean,
@@ -21,18 +22,18 @@ const TeamMention = (props: Props) => {
     text += `#${props.channel}`
   }
   return props.resolved ? (
-    <Kb.Text
+    <Text
       type="BodySemibold"
       className={Styles.classNames({'hover-underline': !Styles.isMobile})}
       style={Styles.collapseStyles([props.style, styles.resolved, styles.text])}
       allowFontScaling={props.allowFontScaling}
     >
       {text}
-    </Kb.Text>
+    </Text>
   ) : (
-    <Kb.Text type="Body" style={props.style} allowFontScaling={props.allowFontScaling}>
+    <Text type="Body" style={props.style} allowFontScaling={props.allowFontScaling}>
       {text}
-    </Kb.Text>
+    </Text>
   )
 }
 
