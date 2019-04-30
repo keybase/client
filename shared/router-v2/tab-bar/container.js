@@ -4,6 +4,7 @@ import * as ConfigGen from '../../actions/config-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as PeopleGen from '../../actions/people-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as SettingsConstants from '../../constants/settings'
 import * as TrackerConstants from '../../constants/tracker2'
 import TabBar from '.'
 import {connect} from '../../util/container'
@@ -22,6 +23,7 @@ const mapStateToProps = state => ({
   _badgeNumbers: state.notifications.navBadges,
   fullname: TrackerConstants.getDetails(state, state.config.username).fullname || '',
   isWalletsNew: state.chat2.isWalletsNew,
+  uploading: state.fs.uploads.syncingPaths.count() > 0 || state.fs.uploads.writingToJournal.count() > 0,
   username: state.config.username,
 })
 
@@ -49,7 +51,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     }, 2000)
   },
   onSettings: () => dispatch(RouteTreeGen.createNavigateAppend({path: [Tabs.settingsTab]})),
-  onSignOut: () => dispatch(ConfigGen.createLogout()),
+  onSignOut: () => dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.logOutTab]})),
 })
 
 const getBadges = memoize(b => b.toObject())
@@ -65,6 +67,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onSignOut: dispatchProps.onSignOut,
   onTabClick: (tab: Tabs.Tab) => dispatchProps._onTabClick(tab),
   selectedTab: ownProps.selectedTab,
+  uploading: stateProps.uploading,
   username: stateProps.username,
 })
 
