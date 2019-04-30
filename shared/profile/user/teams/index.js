@@ -54,8 +54,9 @@ const TeamInfo = p => (
             <Kb.WaitingButton
               fullWidth={true}
               waitingKey={Constants.waitingKey}
-              label="Request to join"
+              label={p.isOpen ? 'Join team' : 'Request to join'}
               onClick={() => p.onJoinTeam(p.name)}
+              type={p.isOpen ? 'Success' : 'Default'}
             />
           )}
           {!!p.publicAdmins.length && (
