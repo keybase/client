@@ -56,6 +56,7 @@ const TeamInfo = p => (
               waitingKey={Constants.waitingKey}
               label={p.isOpen ? 'Join team' : 'Request to join'}
               onClick={() => p.onJoinTeam(p.name)}
+              type={p.isOpen ? 'Success' : 'Default'}
             />
           )}
           {!!p.publicAdmins.length && (
