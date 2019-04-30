@@ -53,3 +53,5 @@ const styles = Styles.styleSheetCreate({
     },
   }),
 })
+
+export default TeamMention

@@ -1025,6 +1025,9 @@ const rootReducer = (
         })
       })
     case Chat2Gen.inboxSearchSetIndexPercent:
+      if (!state.inboxSearch || state.inboxSearch.textStatus !== 'inprogress') {
+        return state
+      }
       return state.update('inboxSearch', info => {
         return (info || Constants.makeInboxSearchInfo()).merge({
           indexPercent: action.payload.percent,
@@ -1141,6 +1144,11 @@ const rootReducer = (
       )
       return nextState.update('paymentStatusMap', old => old.setIn([paymentInfo.paymentID], paymentInfo))
     }
+    case Chat2Gen.setTeamMentionInfo: {
+      const {name, info} = action.payload
+      // $FlowIssue complains about using name for setIn for unknown reason
+      return state.setIn(['teamMentionMap', name], info)
+    }
     case Chat2Gen.requestInfoReceived: {
       const {conversationIDKey, messageID, requestInfo} = action.payload
       return state.update('accountsInfoMap', old => old.setIn([conversationIDKey, messageID], requestInfo))
@@ -1149,8 +1157,6 @@ const rootReducer = (
       const {message} = action.payload
       return state.set('attachmentFullscreenMessage', message)
     }
-    case Chat2Gen.setTeamMentionInfo:
-      return state.setIn(['teamMentionMap', action.payload.name], action.payload.info)
     case Chat2Gen.handleSeeingWallets: // fallthrough
     case Chat2Gen.setWalletsOld:
       return state.isWalletsNew ? state.set('isWalletsNew', false) : state

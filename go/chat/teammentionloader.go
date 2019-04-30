@@ -61,8 +61,8 @@ func (l *TeamMentionLoader) Stop(ctx context.Context) chan struct{} {
 	return ch
 }
 
-func (l *TeamMentionLoader) Load(ctx context.Context, uid gregor1.UID, teamName string) (err error) {
-	defer l.Trace(ctx, func() error { return err }, "Load")()
+func (l *TeamMentionLoader) LoadTeamMention(ctx context.Context, uid gregor1.UID, teamName string) (err error) {
+	defer l.Trace(ctx, func() error { return err }, "LoadTeamMention")()
 	select {
 	case l.jobCh <- teamMentionJob{uid: uid, teamName: teamName}:
 	default:
@@ -72,7 +72,7 @@ func (l *TeamMentionLoader) Load(ctx context.Context, uid gregor1.UID, teamName 
 	return nil
 }
 
-type mentionApiResp struct {
+type mentionAPIResp struct {
 	Status       libkb.AppStatus `json:"status"`
 	Name         string
 	Open         bool
@@ -81,7 +81,7 @@ type mentionApiResp struct {
 	NumMembers   int      `json:"num_members"`
 }
 
-func (r *mentionApiResp) GetAppStatus() *libkb.AppStatus {
+func (r *mentionAPIResp) GetAppStatus() *libkb.AppStatus {
 	return &r.Status
 }
 
@@ -97,7 +97,7 @@ func (l *TeamMentionLoader) getChatUI(ctx context.Context) (libkb.ChatUI, error)
 	return ui, nil
 }
 
-func (l *TeamMentionLoader) loadTeamMention(ctx context.Context, uid gregor1.UID, teamName string) (err error) {
+func (l *TeamMentionLoader) loadMention(ctx context.Context, uid gregor1.UID, teamName string) (err error) {
 	defer l.Trace(ctx, func() error { return err }, "loadTeamMention: name: %s", teamName)()
 	ui, err := l.getChatUI(ctx)
 	if err != nil {
@@ -108,7 +108,7 @@ func (l *TeamMentionLoader) loadTeamMention(ctx context.Context, uid gregor1.UID
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args:        libkb.HTTPArgs{"name": libkb.S{Val: teamName}},
 	}
-	var resp mentionApiResp
+	var resp mentionAPIResp
 	if err = l.G().API.GetDecode(libkb.NewMetaContext(ctx, l.G().ExternalG()), arg, &resp); err != nil {
 		return err
 	}
@@ -131,7 +131,7 @@ func (l *TeamMentionLoader) loadLoop() {
 	for {
 		select {
 		case job := <-l.jobCh:
-			l.loadTeamMention(ctx, job.uid, job.teamName)
+			l.loadMention(ctx, job.uid, job.teamName)
 		case ch := <-l.shutdownCh:
 			close(ch)
 			return

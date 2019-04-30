@@ -65,8 +65,8 @@ const ServiceDecoration = (props: Props) => {
       <TeamMention
         allowFontScaling={props.allowFontScaling || false}
         style={props.styles.wrapStyle}
-        name={parsed.name}
-        channel={parsed.channel}
+        name={parsed.teammention.name}
+        channel={parsed.teammention.channel}
       />
     )
   } else if (

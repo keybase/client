@@ -1,6 +1,6 @@
 // @flow
-import * as React from 'react'
-import {namedConnect} from '../../util/container'
+import * as Styles from '../../../styles'
+import {namedConnect} from '../../../util/container'
 import TeamMention from '.'
 
 type OwnProps = {|
@@ -15,12 +15,12 @@ const mapStateToProps = (state, {allowFontScaling, name, channel, style}: OwnPro
   return {
     allowFontScaling,
     channel,
-    description: mentionInfo?.description,
-    isOpen: mentionInfo?.open,
+    description: mentionInfo?.description || '',
+    isOpen: mentionInfo?.open || false,
     name,
-    resolved: !!mentionInfo,
-    numMembers: mentionInfo?.numMembers,
+    numMembers: mentionInfo?.numMembers || 0,
     publicAdmins: mentionInfo?.publicAdmins ?? [],
+    resolved: !!mentionInfo,
     style,
   }
 }

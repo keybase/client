@@ -611,10 +611,12 @@ func parseRegexpNames(ctx context.Context, body string, re *regexp.Regexp) (res 
 	allIndexMatches := re.FindAllStringSubmatchIndex(body, -1)
 	for _, indexMatch := range allIndexMatches {
 		if len(indexMatch) >= 2 {
-			hit := body[indexMatch[0]:indexMatch[1]]
+			low := indexMatch[0] + 1
+			high := indexMatch[1]
+			hit := body[low:high]
 			res = append(res, nameMatch{
 				name:     hit,
-				position: indexMatch,
+				position: []int{low, high},
 			})
 		}
 	}
@@ -2023,7 +2025,7 @@ func DecorateWithMentions(ctx context.Context, body string, atMentions []string,
 	channelNameMentions []chat1.ChannelNameMention) string {
 	var added int
 	offset := 0
-	if len(atMentions) > 0 || chanMention != chat1.ChannelMention_NONE {
+	if len(atMentions) > 0 || len(teamMentions) > 0 || chanMention != chat1.ChannelMention_NONE {
 		inputBody := body
 		atMatches := parseRegexpNames(ctx, inputBody, atMentionRegExp)
 		atMap := make(map[string]bool)
