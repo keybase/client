@@ -14,7 +14,7 @@ const icons = {
   [Tabs.walletsTab]: 'iconfont-nav-2-wallets',
 }
 
-const tabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.fsTab, Tabs.settingsTab]
+const tabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.fsTab, Tabs.teamsTab, Tabs.settingsTab]
 
 // Immediately draw selected and don't wait for the store
 type State = {|justSelected: ?string|}
