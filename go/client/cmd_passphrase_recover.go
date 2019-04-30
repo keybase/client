@@ -62,15 +62,13 @@ func (c *CmdPassphraseRecover) Run() error {
 		return c.errNotProvisioned()
 	case libkb.NoPaperKeysError:
 		return c.errNoPaperKeys()
-	case libkb.InputCanceledError:
+	case libkb.InputCanceledError, libkb.RetryExhaustedError:
 		return c.errLockedKeys()
 	}
 	if err != nil {
 		return err
 	}
 
-	// BUG the user sometimes ends up recovered and unlocked, but logged out after all this.
-	// Running `keybase login` or restarting the service both effortlessly log them in.
 	return nil
 }
 
