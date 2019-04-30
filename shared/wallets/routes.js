@@ -194,11 +194,7 @@ export const newRoutes = {
     },
     upgraded: true,
   },
-  ...(isMobile
-    ? {
-        ...sharedRoutes,
-      }
-    : {}),
+  ...sharedRoutes, // these are valid inside AND outside the subnav
 }
 
 export const newModalRoutes = {
