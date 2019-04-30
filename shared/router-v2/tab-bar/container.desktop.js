@@ -12,6 +12,7 @@ import {memoize} from '../../util/memoize'
 import {isLinux} from '../../constants/platform'
 import openURL from '../../util/open-url'
 import {quit, hideWindow} from '../../util/quit-helper'
+import {tabRoots} from '../router.shared'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as SettingsGen from '../../actions/settings-gen'
 
@@ -33,7 +34,12 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     if (ownProps.selectedTab === Tabs.peopleTab && tab !== Tabs.peopleTab) {
       dispatch(PeopleGen.createMarkViewed())
     }
-    ownProps.navigation.navigate(tab)
+    if (ownProps.selectedTab === tab) {
+      // $FlowIssue this is a subset of `Tabs.Tab`
+      ownProps.navigation.navigate(tabRoots[tab])
+    } else {
+      ownProps.navigation.navigate(tab)
+    }
   },
   onHelp: () => openURL('https://keybase.io/docs'),
   onQuit: () => {
