@@ -106,7 +106,10 @@ export class HeaderHocHeader extends React.Component<Props, State> {
       </Box>
     )
 
-    return header
+    if (Styles.isAndroid) {
+      return header
+    }
+    return flags.useNewRouter && !this.props.underNotch ? <SafeAreaViewTop>{header}</SafeAreaViewTop> : header
   }
 }
 
