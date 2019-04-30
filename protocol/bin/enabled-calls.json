@@ -68,6 +68,7 @@
   "keybase.1.SimpleFS.simpleFSUserEditHistory": {"promise": true},
   "keybase.1.SimpleFS.simpleFSWait": {"promise": true},
   "keybase.1.SimpleFS.simpleFSAreWeConnectedToMDServer": {"promise": true},
+  "keybase.1.SimpleFS.simpleFSSyncConfigAndStatus": {"promise": true},
   "keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus": {"promise": true},
   "keybase.1.SimpleFS.simpleFSSetFolderSyncConfig": {"promise": true},
   "keybase.1.account.emailChange": {"promise": true},

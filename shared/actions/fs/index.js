@@ -54,32 +54,37 @@ const getSyncConfigFromRPC = (tlfName, tlfType, config: RPCTypes.FolderSyncConfi
   }
 }
 
-const tlfListToGetSyncConfigPromise = (state, tlfType) =>
-  Array.from(state.fs.tlfs.get(tlfType, I.Map()).keys()).map(tlfName =>
-    RPCTypes.SimpleFSSimpleFSFolderSyncConfigAndStatusRpcPromise({
-      path: Constants.pathToRPCPath(Constants.tlfTypeAndNameToPath(tlfType, tlfName)),
-    }).then(result => ({
-      syncConfig: getSyncConfigFromRPC(tlfName, tlfType, result.config),
-      tlfName,
-      tlfType,
-    }))
-  )
+const rpcFolderToTlfNameAndType = (folder: RPCTypes.Folder) => {
+  switch (folder.folderType) {
+    case RPCTypes.favoriteFolderType.private:
+      return {tlfName: folder.name, tlfType: 'private'}
+    case RPCTypes.favoriteFolderType.public:
+      return {tlfName: folder.name, tlfType: 'public'}
+    case RPCTypes.favoriteFolderType.team:
+      return {tlfName: folder.name, tlfType: 'team'}
+    default:
+      return null
+  }
+}
 
-// TODO (KBFS-4047): make a SimpleFS RPC for this case where we are asking for
-// all.
 const loadSyncConfigForAllTlfs = (state, action) =>
-  Promise.all(
-    // TODO: sometimes we get an error if a TLF is not backed by team.
-    [/* 'private', 'public', */ 'team']
-      .map(tlfType => tlfListToGetSyncConfigPromise(state, tlfType))
-      // $FlowIssue hasn't learnt about .flat yet.
-      .flat()
-  ).then(results => {
-    const payloadMutable = results.reduce(
-      (payload, {syncConfig, tlfType, tlfName}) => ({
-        ...payload,
-        [tlfType]: payload[tlfType].set(tlfName, syncConfig),
-      }),
+  RPCTypes.SimpleFSSimpleFSSyncConfigAndStatusRpcPromise().then(({folders}) => {
+    if (!folders) {
+      return null
+    }
+    const mutable = folders.reduce(
+      (mutable, {folder, config}) => {
+        const tlfNameAndType = rpcFolderToTlfNameAndType(folder)
+        return tlfNameAndType
+          ? {
+              ...mutable,
+              [tlfNameAndType.tlfType]: mutable[tlfNameAndType.tlfType].set(
+                tlfNameAndType.tlfName,
+                getSyncConfigFromRPC(tlfNameAndType.tlfName, tlfNameAndType.tlfType, config)
+              ),
+            }
+          : mutable
+      },
       {
         private: I.Map().asMutable(),
         public: I.Map().asMutable(),
@@ -87,19 +92,20 @@ const loadSyncConfigForAllTlfs = (state, action) =>
       }
     )
     return FsGen.createTlfSyncConfigsLoaded({
-      private: payloadMutable.private.asImmutable(),
-      public: payloadMutable.public.asImmutable(),
-      team: payloadMutable.team.asImmutable(),
+      private: mutable.private.asImmutable(),
+      public: mutable.public.asImmutable(),
+      team: mutable.team.asImmutable(),
     })
   })
 
 const loadTlfSyncConfig = (state, action) => {
-  const parsedPath = Constants.parsePath(action.payload.tlfPath)
-  if (parsedPath.kind === 'root' || parsedPath.kind === 'tlf-list') {
+  const tlfPath = action.type === FsGen.loadPathMetadata ? action.payload.path : action.payload.tlfPath
+  const parsedPath = Constants.parsePath(tlfPath)
+  if (parsedPath.kind !== 'group-tlf' && parsedPath.kind !== 'team-tlf') {
     return null
   }
   return RPCTypes.SimpleFSSimpleFSFolderSyncConfigAndStatusRpcPromise({
-    path: Constants.pathToRPCPath(action.payload.tlfPath),
+    path: Constants.pathToRPCPath(tlfPath),
   }).then(result =>
     FsGen.createTlfSyncConfigLoaded({
       syncConfig: getSyncConfigFromRPC(parsedPath.tlfName, parsedPath.tlfType, result.config),
@@ -910,11 +916,11 @@ const getKbfsDaemonOnlineStatus = (state, action) =>
 const onFSOnlineStatusChanged = (state, action) =>
   FsGen.createKbfsDaemonOnlineStatusChanged({online: action.payload.params.online})
 
-const onFSOverallSyncSyncStatusChanged = (state, action) => {
-  return FsGen.createOverallSyncStatusChanged({
+const onFSOverallSyncSyncStatusChanged = (state, action) =>
+  FsGen.createOverallSyncStatusChanged({
     progress: Constants.makeSyncingFoldersProgress(action.payload.params.status.prefetchProgress),
   })
-}
+
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<FsGen.RefreshLocalHTTPServerInfoPayload>(
     FsGen.refreshLocalHTTPServerInfo,
@@ -972,7 +978,10 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   if (flags.kbfsOfflineMode) {
     yield* Saga.chainAction<FsGen.FavoritesLoadedPayload>(FsGen.favoritesLoaded, loadSyncConfigForAllTlfs)
     yield* Saga.chainAction<FsGen.SetTlfSyncConfigPayload>(FsGen.setTlfSyncConfig, setTlfSyncConfig)
-    yield* Saga.chainAction<FsGen.LoadTlfSyncConfigPayload>(FsGen.loadTlfSyncConfig, loadTlfSyncConfig)
+    yield* Saga.chainAction<FsGen.LoadTlfSyncConfigPayload>(
+      [FsGen.loadTlfSyncConfig, FsGen.loadPathMetadata],
+      loadTlfSyncConfig
+    )
     yield* Saga.chainAction<FsGen.KbfsDaemonRpcStatusChangedPayload>(
       FsGen.kbfsDaemonRpcStatusChanged,
       getKbfsDaemonOnlineStatus

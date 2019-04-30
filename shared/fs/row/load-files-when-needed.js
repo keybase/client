@@ -9,44 +9,59 @@ type OwnProps = {|
   destinationPickerIndex?: number,
 |}
 
+const mapStateToProps = state => ({
+  syncingFoldersProgress: state.fs.syncingFoldersProgress,
+})
+
 const mapDispatchToProps = (dispatch, {path, destinationPickerIndex}) => ({
   loadFavorites: () => dispatch(FsGen.createFavoritesLoad()),
   loadFolderList: () =>
     dispatch(
       FsGen.createFolderListLoad({
         path,
-        refreshTag: typeof destinationPickerIndex === 'number' ? 'destination-picker' : 'main',
       })
     ),
 })
 
-const mergeProps = (stateProps, {loadFolderList, loadFavorites}, {path}) => ({
-  loadFavorites,
-  loadFolderList,
+const mergeProps = (s, d, {path}) => ({
+  ...s,
+  ...d,
   path,
 })
 
 type Props = {|
-  loadFolderList: () => void,
+  loadFolderList: (setRefreshTag: boolean) => void,
   loadFavorites: () => void,
   path: Types.Path,
+  syncingFoldersProgress: Types.SyncingFoldersProgress,
 |}
 
 class LoadFilesWhenNeeded extends React.PureComponent<Props> {
-  _load = () => {
+  _load = setRefreshTag => {
     const pathLevel = Types.getPathLevel(this.props.path)
     if (pathLevel < 2) {
       return
     }
-    pathLevel === 2 ? this.props.loadFavorites() : this.props.loadFolderList()
+    pathLevel === 2 ? this.props.loadFavorites() : this.props.loadFolderList(setRefreshTag)
   }
   componentDidMount() {
-    this._load()
+    this._load(true)
   }
   componentDidUpdate(prevProps) {
+    if (this.props.syncingFoldersProgress !== prevProps.syncingFoldersProgress) {
+      // If syncingFoldersProgress (i.e. the overall syncing progress) changes,
+      // refresh current one so we get updated prefetchStatus in case they
+      // change.
+      //
+      // We omit the refreshTag here because notifications don't get triggered
+      // for prefetchStatus changes and it take a few points to do that. If
+      // this turns out to cause performance issues, we can figure that out as
+      // an optimization.
+      this._load(false)
+    }
     // This gets called on route changes too, e.g. when user clicks the
     // action menu. So only load folder list when path changes.
-    this.props.path !== prevProps.path && this._load()
+    this.props.path !== prevProps.path && this._load(true)
   }
   render() {
     return null
@@ -54,7 +69,7 @@ class LoadFilesWhenNeeded extends React.PureComponent<Props> {
 }
 
 export default namedConnect<OwnProps, _, _, _, _>(
-  () => ({}),
+  mapStateToProps,
   mapDispatchToProps,
   mergeProps,
   'LoadFilesWhenNeeded'
