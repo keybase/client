@@ -2083,7 +2083,7 @@ func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 		ConvIDs: []chat1.ConversationID{convID},
 	}, nil)
 	if err != nil {
-		return res, fmt.Errorf("GetUnverifiedConv: %s", err.Error())
+		return res, err
 	}
 	if len(inbox.ConvsUnverified) == 0 {
 		return res, ErrGetUnverifiedConvNotFound
