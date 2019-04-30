@@ -215,6 +215,7 @@ type InboxUIItem struct {
 	Visibility        keybase1.TLFVisibility        `codec:"visibility" json:"visibility"`
 	Participants      []string                      `codec:"participants" json:"participants"`
 	FullNames         map[string]string             `codec:"fullNames" json:"fullNames"`
+	Bios              map[string]string             `codec:"bios" json:"bios"`
 	ResetParticipants []string                      `codec:"resetParticipants" json:"resetParticipants"`
 	Status            ConversationStatus            `codec:"status" json:"status"`
 	MembersType       ConversationMembersType       `codec:"membersType" json:"membersType"`
@@ -272,6 +273,18 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 			}
 			return ret
 		})(o.FullNames),
+		Bios: (func(x map[string]string) map[string]string {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]string, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Bios),
 		ResetParticipants: (func(x []string) []string {
 			if x == nil {
 				return nil

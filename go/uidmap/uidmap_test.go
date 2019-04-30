@@ -185,6 +185,7 @@ func TestRanOutOfTime(t *testing.T) {
 	require.True(t, hit)
 	require.Equal(t, results[0].NormalizedUsername, libkb.NewNormalizedUsername("t_kb"))
 	require.Equal(t, results[0].FullName.FullName, keybase1.FullName("Joe Keybaser"))
+	require.Equal(t, results[0].FullName.Bio, "I like crypto.")
 	require.Equal(t, results[0].FullName.EldestSeqno, keybase1.Seqno(1))
 	require.Equal(t, results[0].FullName.Status, keybase1.StatusCode_SCOk)
 	cachedAt = fakeClock.Now()
@@ -200,6 +201,7 @@ func TestRanOutOfTime(t *testing.T) {
 	require.True(t, hit)
 	require.Equal(t, results[0].NormalizedUsername, libkb.NewNormalizedUsername("t_kb"))
 	require.Equal(t, results[0].FullName.FullName, keybase1.FullName("Joe Keybaser"))
+	require.Equal(t, results[0].FullName.Bio, "I like crypto.")
 	require.Equal(t, results[0].FullName.EldestSeqno, keybase1.Seqno(1))
 	require.Equal(t, results[0].FullName.CachedAt, keybase1.ToTime(cachedAt))
 	require.Equal(t, results[0].FullName.Status, keybase1.StatusCode_SCOk)
@@ -243,6 +245,7 @@ func TestRanOutOfTime(t *testing.T) {
 	// But only t_kb has a fullname that's found
 	require.Nil(t, results[0].FullName)
 	require.Equal(t, results[1].FullName.FullName, keybase1.FullName("Joe Keybaser"))
+	require.Equal(t, results[1].FullName.Bio, "I like crypto.")
 	require.Equal(t, results[1].FullName.CachedAt, keybase1.ToTime(cachedAt))
 	require.Equal(t, results[1].FullName.EldestSeqno, keybase1.Seqno(1))
 	require.Equal(t, results[1].FullName.Status, keybase1.StatusCode_SCOk)

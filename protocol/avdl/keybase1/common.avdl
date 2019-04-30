@@ -328,6 +328,7 @@ protocol Common {
   record FullNamePackage {
     FullNamePackageVersion version;
     FullName fullName;
+    string bio;
     Seqno eldestSeqno;
     StatusCode status;
     Time cachedAt;

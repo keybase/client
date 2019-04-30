@@ -477,6 +477,7 @@ protocol local {
   record ConversationLocalParticipant {
     string username;
     union { null, string } fullname;
+    union { null, string } bio;
   }
 
   record ConversationInfoLocal {

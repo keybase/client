@@ -1089,10 +1089,14 @@ func PresentConversationErrorLocal(ctx context.Context, g *globals.Context, rawC
 func PresentConversationLocal(rawConv chat1.ConversationLocal, currentUsername string) (res chat1.InboxUIItem) {
 	var writerNames []string
 	fullNames := make(map[string]string)
+	bios := make(map[string]string)
 	for _, p := range rawConv.Info.Participants {
 		writerNames = append(writerNames, p.Username)
 		if p.Fullname != nil {
 			fullNames[p.Username] = *p.Fullname
+		}
+		if p.Bio != nil {
+			bios[p.Username] = *p.Bio
 		}
 	}
 	res.ConvID = rawConv.GetConvID().String()
@@ -1104,6 +1108,7 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal, currentUsername s
 	res.Headline = rawConv.Info.Headline
 	res.Participants = writerNames
 	res.FullNames = fullNames
+	res.Bios = bios
 	res.ResetParticipants = rawConv.Info.ResetNames
 	res.Status = rawConv.Info.Status
 	res.MembersType = rawConv.GetMembersType()
@@ -1667,14 +1672,16 @@ func SplitTLFName(tlfName string) []string {
 }
 
 func UsernamePackageToParticipant(p libkb.UsernamePackage) chat1.ConversationLocalParticipant {
-	var fullName *string
+	var bio, fullName *string
 	if p.FullName != nil {
 		s := string(p.FullName.FullName)
 		fullName = &s
+		bio = &p.FullName.Bio
 	}
 	return chat1.ConversationLocalParticipant{
 		Username: p.NormalizedUsername.String(),
 		Fullname: fullName,
+		Bio:      bio,
 	}
 }
 

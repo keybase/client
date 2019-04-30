@@ -913,6 +913,7 @@ func (e FullNamePackageVersion) String() string {
 type FullNamePackage struct {
 	Version     FullNamePackageVersion `codec:"version" json:"version"`
 	FullName    FullName               `codec:"fullName" json:"fullName"`
+	Bio         string                 `codec:"bio" json:"bio"`
 	EldestSeqno Seqno                  `codec:"eldestSeqno" json:"eldestSeqno"`
 	Status      StatusCode             `codec:"status" json:"status"`
 	CachedAt    Time                   `codec:"cachedAt" json:"cachedAt"`
@@ -922,6 +923,7 @@ func (o FullNamePackage) DeepCopy() FullNamePackage {
 	return FullNamePackage{
 		Version:     o.Version.DeepCopy(),
 		FullName:    o.FullName.DeepCopy(),
+		Bio:         o.Bio,
 		EldestSeqno: o.EldestSeqno.DeepCopy(),
 		Status:      o.Status.DeepCopy(),
 		CachedAt:    o.CachedAt.DeepCopy(),

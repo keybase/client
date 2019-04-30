@@ -720,6 +720,10 @@
           "name": "fullName"
         },
         {
+          "type": "string",
+          "name": "bio"
+        },
+        {
           "type": "Seqno",
           "name": "eldestSeqno"
         },

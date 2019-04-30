@@ -292,6 +292,14 @@
         },
         {
           "type": {
+            "type": "map",
+            "values": "string",
+            "keys": "string"
+          },
+          "name": "bios"
+        },
+        {
+          "type": {
             "type": "array",
             "items": "string"
           },

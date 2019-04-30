@@ -170,6 +170,7 @@ func (u *UIDMap) findUsernameLocally(ctx context.Context, g libkb.UIDMapperConte
 type apiRow struct {
 	Username    string              `json:"username"`
 	FullName    string              `json:"full_name,omitempty"`
+	Bio         string              `json:"bio,omitempty"`
 	EldestSeqno keybase1.Seqno      `json:"eldest_seqno"`
 	Status      keybase1.StatusCode `json:"status"`
 }
@@ -236,6 +237,7 @@ func (u *UIDMap) lookupFromServerBatch(ctx context.Context, g libkb.UIDMapperCon
 					FullName: &keybase1.FullNamePackage{
 						Version:     CurrentFullNamePackageVersion,
 						FullName:    keybase1.FullName(row.FullName),
+						Bio:         row.Bio,
 						EldestSeqno: row.EldestSeqno,
 						Status:      row.Status,
 						CachedAt:    cachedAt,

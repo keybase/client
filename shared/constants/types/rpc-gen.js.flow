@@ -2242,7 +2242,7 @@ export type ForkType =
   | 4 // SYSTEMD_4
 
 export type FullName = String
-export type FullNamePackage = $ReadOnly<{version: FullNamePackageVersion, fullName: FullName, eldestSeqno: Seqno, status: StatusCode, cachedAt: Time}>
+export type FullNamePackage = $ReadOnly<{version: FullNamePackageVersion, fullName: FullName, bio: String, eldestSeqno: Seqno, status: StatusCode, cachedAt: Time}>
 export type FullNamePackageVersion =
   | 0 // V0_0
   | 1 // V1_1

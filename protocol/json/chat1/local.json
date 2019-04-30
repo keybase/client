@@ -1470,6 +1470,13 @@
             "string"
           ],
           "name": "fullname"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "bio"
         }
       ]
     },
