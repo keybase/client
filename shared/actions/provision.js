@@ -6,6 +6,7 @@ import * as ProvisionGen from './provision-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as Tabs from '../constants/tabs'
+import * as Router2Constants from '../constants/router2'
 import logger from '../logger'
 import {isMobile} from '../constants/platform'
 import HiddenString from '../util/hidden-string'
@@ -351,7 +352,12 @@ class ProvisioningManager {
     })
 
   maybeCancelProvision = state => {
-    const root = state.routeTree.routeState && state.routeTree.routeState.selected
+    let root = state.routeTree.routeState && state.routeTree.routeState.selected
+    if (flags.useNewRouter) {
+      const path = Router2Constants.getFullRoute()
+      root = path[path.length - 1].routeName
+      debugger
+    }
 
     const doingDeviceAdd = this._addingANewDevice && root === devicesRoot[0]
     const doingProvision = !this._addingANewDevice && root === Tabs.loginTab
