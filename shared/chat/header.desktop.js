@@ -27,17 +27,18 @@ type Props = {|
   unMuteConversation: () => void,
 |}
 
+const descStyle = {fontSize: 13, lineHeight: '17px', wordBreak: 'break-all'}
 const descStyleOverride = {
-  del: {fontSize: 13, lineHeight: '17px', wordBreak: 'break-all'},
-  em: {fontSize: 13, lineHeight: '17px', wordBreak: 'break-all'},
-  fence: {fontSize: 13, lineHeight: '17px', wordBreak: 'break-all'},
-  inlineCode: {fontSize: 13, lineHeight: '17px', wordBreak: 'break-all'},
-  kbfsPath: {fontSize: 13, lineHeight: '17px', wordBreak: 'break-all'},
-  link: {fontSize: 13, lineHeight: '17px', wordBreak: 'break-all'},
-  mailto: {fontSize: 13, lineHeight: '17px', wordBreak: 'break-all'},
-  paragraph: {fontSize: 13, lineHeight: '17px', wordBreak: 'break-all'},
-  preview: {fontSize: 13, lineHeight: '17px', wordBreak: 'break-all'},
-  strong: {fontSize: 13, lineHeight: '17px', wordBreak: 'break-all'},
+  del: descStyle,
+  em: descStyle,
+  fence: descStyle,
+  inlineCode: descStyle,
+  kbfsPath: descStyle,
+  link: descStyle,
+  mailto: descStyle,
+  paragraph: descStyle,
+  preview: descStyle,
+  strong: descStyle,
 }
 
 const Header = (p: Props) => {
