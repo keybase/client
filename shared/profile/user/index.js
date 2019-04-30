@@ -53,27 +53,17 @@ export const colorTypeToStyle = (type: 'red' | 'green' | 'blue') => {
   }
 }
 
-const Header = p => (
-  <Kb.Box2
-    direction="horizontal"
-    fullWidth={true}
-    style={Styles.collapseStyles([
-      styles.header,
-      !flags.useNewRouter && colorTypeToStyle(p.backgroundColorType),
-    ])}
-  >
-    {!flags.useNewRouter && (
+const Header = p =>
+  flags.useNewRouter ? null : (
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
       <Kb.BackButton iconColor={Styles.globalColors.white} textStyle={styles.backButton} onClick={p.onBack} />
-    )}
-    {!flags.useNewRouter && (
       <Kb.Box2 direction="vertical" style={{flexGrow: 1, paddingRight: Styles.isMobile ? 16 : 0}}>
         <Kb.Box2 direction="vertical" alignSelf="flex-end">
           <PeopleSearch onSearch={p.onSearch} whiteText={true} />
         </Kb.Box2>
       </Kb.Box2>
-    )}
-  </Kb.Box2>
-)
+    </Kb.Box2>
+  )
 
 const BioLayout = p => (
   <Kb.Box2 direction="vertical" style={styles.bio}>
@@ -149,9 +139,11 @@ class FriendshipTabs extends React.Component<FriendshipTabsProps> {
 
   render() {
     return (
-      <Kb.Box2 direction="horizontal" style={styles.followTabContainer}>
-        {this._tab(false)}
-        {this._tab(true)}
+      <Kb.Box2 direction="vertical" style={styles.followTabContainer} fullWidth={true}>
+        <Kb.Box2 direction="horizontal" style={styles.followTabContainer2} fullWidth={true}>
+          {this._tab(false)}
+          {this._tab(true)}
+        </Kb.Box2>
       </Kb.Box2>
     )
   }
@@ -376,7 +368,12 @@ class User extends React.Component<Props, State> {
         onBack={this.props.onBack}
         waitingKeys={[Constants.profileLoadWaitingKey]}
       >
-        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
+          fullHeight={true}
+          style={Styles.collapseStyles([styles.container, colorTypeToStyle(this.props.backgroundColorType)])}
+        >
           <Kb.Box2 direction="vertical" style={styles.innerContainer}>
             {!Styles.isMobile && <Measure onMeasured={this._onMeasured} />}
             <Kb.SafeAreaViewTop
@@ -396,12 +393,7 @@ class User extends React.Component<Props, State> {
                     renderItem: this._renderOtherUsers,
                   },
                 ]}
-                style={Styles.collapseStyles([
-                  styles.sectionList,
-                  Styles.isMobile
-                    ? colorTypeToStyle(this.props.backgroundColorType)
-                    : {backgroundColor: Styles.globalColors.white},
-                ])}
+                style={styles.sectionList}
                 contentContainerStyle={styles.sectionListContentStyle}
               />
             )}
@@ -451,7 +443,7 @@ export const styles = Styles.styleSheetCreate({
     isMobile: {paddingBottom: Styles.globalMargins.small},
   }),
   container: {
-    position: 'relative',
+    paddingTop: headerHeight,
   },
   followTab: Styles.platformStyles({
     common: {
@@ -477,7 +469,6 @@ export const styles = Styles.styleSheetCreate({
       backgroundColor: Styles.globalColors.white,
       borderBottomColor: Styles.globalColors.black_10,
       borderBottomWidth: 1,
-      paddingTop: flags.useNewRouter ? Styles.globalMargins.small : 0,
     },
     isElectron: {
       alignSelf: 'stretch',
@@ -487,9 +478,12 @@ export const styles = Styles.styleSheetCreate({
       width: '100%',
     },
   }),
-  followTabNewRouter: {
-    marginTop: headerHeight,
-  },
+  followTabContainer2: Styles.platformStyles({
+    isElectron: {
+      backgroundColor: Styles.globalColors.white,
+    },
+  }),
+  followTabNewRouter: {},
   followTabSelected: {
     borderBottomColor: Styles.globalColors.blue,
   },
@@ -515,7 +509,10 @@ export const styles = Styles.styleSheetCreate({
     },
     isMobile: {},
   }),
-  innerContainer: {...Styles.globalStyles.fillAbsolute},
+  innerContainer: {
+    height: '100%',
+    width: '100%',
+  },
   invisible: {opacity: 0},
   label: {
     color: Styles.globalColors.black,
@@ -578,7 +575,10 @@ export const styles = Styles.styleSheetCreate({
     },
   }),
   searchLabel: {color: Styles.globalColors.white_75},
-  sectionList: Styles.platformStyles({common: {width: '100%'}, isElectron: {willChange: 'transform'}}),
+  sectionList: Styles.platformStyles({
+    common: {width: '100%'},
+    isElectron: {willChange: 'transform', position: 'relative', backgroundColor: Styles.globalColors.white},
+  }),
   sectionListContentStyle: Styles.platformStyles({
     common: {backgroundColor: Styles.globalColors.white, paddingBottom: Styles.globalMargins.xtiny},
     isMobile: {minHeight: '100%'},

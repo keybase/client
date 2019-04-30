@@ -80,11 +80,13 @@ class Header extends React.PureComponent<Props, State> {
       ...(this.props.allowBack ? styles.icon : styles.disabledIcon),
       ...(!this.props.loggedIn && Platform.isDarwin ? {position: 'relative', top: 30} : {}),
     }
-    const iconColor = this.props.allowBack
-      ? Styles.globalColors.black_50
-      : this.props.loggedIn
-      ? Styles.globalColors.black_10
-      : Styles.globalColors.transparent
+    const iconColor =
+      opt.headerBackIconColor ||
+      (this.props.allowBack
+        ? Styles.globalColors.black_50
+        : this.props.loggedIn
+        ? Styles.globalColors.black_10
+        : Styles.globalColors.transparent)
     return (
       <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true}>
         {!!opt.headerBanner && opt.headerBanner}

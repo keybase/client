@@ -8,7 +8,7 @@ import * as SearchGen from '../../actions/search-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
-import Profile2, {styles, colorTypeToStyle} from '.'
+import Profile2 from '.'
 import {memoize} from '../../util/memoize'
 import type {RouteProps} from '../../route-tree/render-route'
 import type {Response} from 'react-native-image-picker'
@@ -120,22 +120,12 @@ const connected = Container.namedConnect<OwnProps, _, _, _, _>(
 )(Profile2)
 
 const Header = ({onSearch, backgroundColorType}) => (
-  <Kb.Box2
-    direction="vertical"
-    fullWidth={true}
-    style={Styles.collapseStyles([colorTypeToStyle(backgroundColorType)])}
-  >
-    <ProfileSearch onSearch={onSearch} />
+  <Kb.Box2 direction="vertical" fullWidth={true}>
+    <ProfileSearch whiteText={true} onSearch={onSearch} />
   </Kb.Box2>
 )
-const ConnectedHeader = Container.connect<{|username: string|}, _, _, _, _>(
-  (state, {username}) => {
-    const d = Constants.getDetails(state, username)
-    const followThem = Constants.followThem(state, username)
-    return {
-      backgroundColorType: headerBackgroundColorType(d.state, followThem),
-    }
-  },
+const ConnectedHeader = Container.connect<{||}, _, _, _, _>(
+  () => ({}),
   dispatch => ({
     onSearch: () => dispatch(SearchGen.createSearchSuggestions({searchKey: 'profileSearch'})),
   }),
@@ -145,14 +135,15 @@ const ConnectedHeader = Container.connect<{|username: string|}, _, _, _, _>(
 // $FlowIssue lets fix this
 connected.navigationOptions = p => ({
   header: undefined,
+  headerBackIconColor: Styles.globalColors.white,
+  headerHideBorder: false,
   headerStyle: {
-    backgroundColor: 'green',
-    borderBottomColor: 'green',
+    backgroundColor: Styles.globalColors.transparent,
+    borderBottomColor: Styles.globalColors.transparent,
     borderBottomWidth: 1,
     borderStyle: 'solid',
   },
-  headerHideBorder: false,
-  headerTitle: () => <ConnectedHeader username={p.navigation.getParam('username')} />,
+  headerTitle: ConnectedHeader,
   headerTitleContainerStyle: {
     left: 60,
     right: 20,
