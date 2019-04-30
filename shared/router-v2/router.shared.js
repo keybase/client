@@ -20,7 +20,7 @@ const getNumModals = navigation => {
   return numModals
 }
 
-export const mobileTabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.fsTab, Tabs.settingsTab]
+export const mobileTabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.fsTab, Tabs.teamsTab, Tabs.settingsTab]
 export const desktopTabs = [
   Tabs.peopleTab,
   Tabs.chatTab,
