@@ -957,6 +957,7 @@ protocol local {
   void upgradeKBFSConversationToImpteam(ConversationID convID);
 
   record SearchRegexpRes {
+    boolean offline;
     array<ChatSearchHit> hits;
     array<RateLimit> rateLimits;
     array<keybase1.TLFIdentifyFailure> identifyFailures;
@@ -967,6 +968,7 @@ protocol local {
   void cancelActiveInboxSearch();
 
   record SearchInboxRes {
+    boolean offline;
     union { null, ChatSearchInboxResults } res;
     array<RateLimit> rateLimits;
     array<keybase1.TLFIdentifyFailure> identifyFailures;

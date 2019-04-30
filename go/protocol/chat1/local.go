@@ -4644,6 +4644,7 @@ func (o AppNotificationSettingLocal) DeepCopy() AppNotificationSettingLocal {
 }
 
 type SearchRegexpRes struct {
+	Offline          bool                          `codec:"offline" json:"offline"`
 	Hits             []ChatSearchHit               `codec:"hits" json:"hits"`
 	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
@@ -4651,6 +4652,7 @@ type SearchRegexpRes struct {
 
 func (o SearchRegexpRes) DeepCopy() SearchRegexpRes {
 	return SearchRegexpRes{
+		Offline: o.Offline,
 		Hits: (func(x []ChatSearchHit) []ChatSearchHit {
 			if x == nil {
 				return nil
@@ -4688,6 +4690,7 @@ func (o SearchRegexpRes) DeepCopy() SearchRegexpRes {
 }
 
 type SearchInboxRes struct {
+	Offline          bool                          `codec:"offline" json:"offline"`
 	Res              *ChatSearchInboxResults       `codec:"res,omitempty" json:"res,omitempty"`
 	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
@@ -4695,6 +4698,7 @@ type SearchInboxRes struct {
 
 func (o SearchInboxRes) DeepCopy() SearchInboxRes {
 	return SearchInboxRes{
+		Offline: o.Offline,
 		Res: (func(x *ChatSearchInboxResults) *ChatSearchInboxResults {
 			if x == nil {
 				return nil

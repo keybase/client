@@ -2814,6 +2814,10 @@
       "name": "SearchRegexpRes",
       "fields": [
         {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
           "type": {
             "type": "array",
             "items": "ChatSearchHit"
@@ -2840,6 +2844,10 @@
       "type": "record",
       "name": "SearchInboxRes",
       "fields": [
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
         {
           "type": [
             null,
