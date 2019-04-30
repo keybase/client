@@ -1074,7 +1074,7 @@ func (p *blockPrefetcher) handlePrefetchRequest(req *prefetchRequest) {
 		p.vlog.CLogf(ctx, libkb.VLog2,
 			"skipping prefetch for block %s, action %s",
 			req.ptr.ID, req.action)
-		if isPrefetchWaiting && !pre.req.action.Prefetch(b) {
+		if isPrefetchWaiting && !oldAction.Prefetch(b) {
 			// Cancel this prefetch if we're skipping it and
 			// there's not already another prefetch in
 			// progress.  It's not a tail block since that
