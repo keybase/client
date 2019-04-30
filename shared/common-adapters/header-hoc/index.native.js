@@ -236,6 +236,9 @@ function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
   return HeaderHocWrapper
 }
 
+// If layout is changed here, please make sure the Files header is updated as
+// well to match this. fs/nav-header/mobile-header.js
+
 const styles = Styles.styleSheetCreate({
   action: Styles.platformStyles({
     common: {

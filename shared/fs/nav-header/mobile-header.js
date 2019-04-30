@@ -43,7 +43,11 @@ class MobileHeader extends React.PureComponent<Props, State> {
         ) : (
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.expandedTopContainer}>
             {this.props.onBack && (
-              <Kb.BackButton badgeNumber={0 /* TODO KBFS-4109 */} onClick={this.props.onBack} />
+              <Kb.BackButton
+                badgeNumber={0 /* TODO KBFS-4109 */}
+                onClick={this.props.onBack}
+                style={styles.backButton}
+              />
             )}
             <Kb.Box style={styles.gap} />
             <Actions path={this.props.path} onTriggerFilterMobile={this._triggerFilterMobile} />
@@ -59,9 +63,21 @@ class MobileHeader extends React.PureComponent<Props, State> {
   }
 }
 
-export const height = Styles.statusBarHeight + 88
+export const height = Styles.statusBarHeight + 44 + (Styles.isAndroid ? 56 : 44)
 
 const styles = Styles.styleSheetCreate({
+  backButton: Styles.platformStyles({
+    common: {
+      opacity: 1,
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.tiny,
+    },
+    isAndroid: {
+      paddingRight: Styles.globalMargins.small,
+    },
+  }),
   blue: {
     backgroundColor: Styles.globalColors.blue,
   },
@@ -79,11 +95,18 @@ const styles = Styles.styleSheetCreate({
     paddingRight: Styles.globalMargins.small,
     paddingTop: Styles.globalMargins.tiny,
   },
-  expandedTopContainer: {
-    backgroundColor: Styles.globalColors.white,
-    height: 48,
-    paddingRight: Styles.globalMargins.tiny,
-  },
+  expandedTopContainer: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.white,
+      paddingRight: Styles.globalMargins.tiny,
+    },
+    isAndroid: {
+      height: 56,
+    },
+    isIOS: {
+      height: 44,
+    },
+  }),
   gap: {
     flex: 1,
   },
