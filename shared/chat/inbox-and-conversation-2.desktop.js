@@ -8,7 +8,9 @@ import Conversation from './conversation/container'
 import Header from './header.desktop'
 import {namedConnect} from '../util/container'
 
-type Props = {||}
+type Props = {|
+  navigation?: any,
+|}
 
 type InboxSwitchProps = Props & {|
   searchEnabled: boolean,
@@ -18,11 +20,9 @@ const InboxSwitch = (props: InboxSwitchProps) => {
   return props.searchEnabled ? <InboxSearch /> : <Inbox />
 }
 
-const mapStateToProps = state => {
-  return {
-    searchEnabled: !!state.chat2.inboxSearch,
-  }
-}
+const mapStateToProps = state => ({
+  searchEnabled: !!state.chat2.inboxSearch,
+})
 
 const InboxSwitchConnected = namedConnect<Props, _, _, _, _>(
   mapStateToProps,
@@ -40,7 +40,7 @@ class InboxAndConversation extends React.PureComponent<Props> {
     return (
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
         <InboxSwitchConnected />
-        <Conversation />
+        <Conversation navigation={this.props.navigation} />
       </Kb.Box2>
     )
   }

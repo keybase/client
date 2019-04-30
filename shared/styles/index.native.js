@@ -1,6 +1,7 @@
 // @flow
-import {StatusBar, StyleSheet, Dimensions} from 'react-native'
-import {isAndroid, isIOS} from '../constants/platform'
+import {StyleSheet, Dimensions} from 'react-native'
+import * as iPhoneXHelper from 'react-native-iphone-x-helper'
+import {isIOS} from '../constants/platform'
 import globalColors from './colors'
 import type {CollapsibleStyle} from './index.types'
 import * as Shared from './shared'
@@ -47,8 +48,7 @@ export const globalStyles = {
   ...util,
 }
 
-// FIXME: StatusBar.currentHeight returns undefined on iOS in RN 0.34
-export const statusBarHeight = isAndroid ? StatusBar.currentHeight : 20
+export const statusBarHeight = iPhoneXHelper.getStatusBarHeight()
 export const hairlineWidth = StyleSheet.hairlineWidth
 export const styleSheetCreate = (obj: Object) => StyleSheet.create(obj)
 export const collapseStyles = (
@@ -61,7 +61,13 @@ export const backgroundURL = (...path: Array<string>) => ({})
 export const styledKeyframes = () => null
 
 export {isMobile, fileUIName, isIPhoneX, isIOS, isAndroid} from '../constants/platform'
-export {globalMargins, backgroundModeToColor, backgroundModeToTextColor, platformStyles, padding} from './shared'
+export {
+  globalMargins,
+  backgroundModeToColor,
+  backgroundModeToTextColor,
+  platformStyles,
+  padding,
+} from './shared'
 export {default as glamorous} from '@emotion/native'
 export {default as styled, css as styledCss} from '@emotion/native'
 export {default as globalColors} from './colors'

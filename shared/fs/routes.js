@@ -105,9 +105,9 @@ const routeTree = () => {
 export default routeTree
 
 export const newRoutes = {
+  fsRoot: {getScreen: () => require('./container').default, upgraded: true},
   main: {getScreen: () => require('./container').default, upgraded: true},
   'settingsTabs.fsTab': {getScreen: () => require('./container').default, upgraded: true},
-  'tabs.fsTab': {getScreen: () => require('./container').default, upgraded: true},
 }
 
 export const newModalRoutes = {

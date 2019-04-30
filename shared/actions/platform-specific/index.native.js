@@ -178,16 +178,15 @@ const updateChangedFocus = (_, action) => {
 
 const getStartupDetailsFromShare = (): Promise<null | {|localPath: FsTypes.LocalPath|} | {|text: string|}> =>
   isAndroid
-    ? NativeModules.IntentHandler.getShareData()
-        .then(p => {
-          if (!p) return null
-          if (p.localPath) {
-            return {localPath: FsTypes.stringToLocalPath(p.localPath)}
-          }
-          if (p.text) {
-            return {text: p.text}
-          }
-        })
+    ? NativeModules.IntentHandler.getShareData().then(p => {
+        if (!p) return null
+        if (p.localPath) {
+          return {localPath: FsTypes.stringToLocalPath(p.localPath)}
+        }
+        if (p.text) {
+          return {text: p.text}
+        }
+      })
     : Promise.resolve(null)
 
 function* clearRouteState() {
@@ -203,20 +202,27 @@ function* persistRoute(state, action) {
   }
 
   const path = action.payload.path
-  const top = path[path.length - 1]
-  if (!top) return
+  const tab = path[2] // real top is the root of the tab (aka chatRoot) and not the tab itself
+  if (!tab) return
   let param = {}
   let routeName = ''
   // top level tab?
-  if (Tabs.isValidInitialTabString(top.routeName)) {
-    routeName = top.routeName
+  if (tab.routeName === 'tabs.chatTab') {
+    const convo = path[path.length - 1]
+    // a specific convo?
+    if (convo.routeName === 'chatConversation') {
+      routeName = convo.routeName
+      param = {selectedConversationIDKey: state.chat2.selectedConversation}
+    } else {
+      // just the inbox
+      routeName = tab.routeName
+    }
+  } else if (Tabs.isValidInitialTabString(tab.routeName)) {
+    routeName = tab.routeName
     if (routeName === _lastPersist) {
       // skip rewriting this
       return
     }
-  } else if (top.routeName === 'chatConversation') {
-    routeName = top.routeName
-    param = {selectedConversationIDKey: state.chat2.selectedConversation}
   } else {
     return // don't write, keep the last
   }
@@ -286,6 +292,16 @@ function* loadStartupDetails() {
   const initialPush = yield Saga._fork(getStartupDetailsFromInitialPush)
   const initialShare = yield Saga._fork(getStartupDetailsFromShare)
   const [routeState, link, push, share] = yield Saga.join(routeStateTask, linkTask, initialPush, initialShare)
+
+  // Clear last value to be extra safe bad things don't hose us forever
+  yield Saga._fork(() => {
+    RPCTypes.configSetValueRpcPromise({
+      path: 'ui.routeState2',
+      value: {isNull: false, s: ''},
+    })
+      .then(() => {})
+      .catch(() => {})
+  })
 
   // Top priority, push
   if (push) {

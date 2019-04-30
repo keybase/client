@@ -3,6 +3,7 @@ import {StackActions, NavigationActions} from '@react-navigation/core'
 import shallowEqual from 'shallowequal'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Constants from '../constants/router2'
+import * as Tabs from '../constants/tabs'
 import {modalRoutes, routes} from './routes'
 import logger from '../logger'
 
@@ -17,6 +18,29 @@ const getNumModals = navigation => {
     return true
   })
   return numModals
+}
+
+export const mobileTabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.fsTab, Tabs.teamsTab, Tabs.settingsTab]
+export const desktopTabs = [
+  Tabs.peopleTab,
+  Tabs.chatTab,
+  Tabs.fsTab,
+  Tabs.teamsTab,
+  Tabs.walletsTab,
+  Tabs.gitTab,
+  Tabs.devicesTab,
+  Tabs.settingsTab,
+]
+
+export const tabRoots = {
+  [Tabs.peopleTab]: 'peopleRoot',
+  [Tabs.chatTab]: 'chatRoot',
+  [Tabs.fsTab]: 'fsRoot',
+  [Tabs.teamsTab]: 'teamsRoot',
+  [Tabs.walletsTab]: 'walletsRoot',
+  [Tabs.gitTab]: 'gitRoot',
+  [Tabs.devicesTab]: 'devicesRoot',
+  [Tabs.settingsTab]: 'settingsRoot',
 }
 
 // Helper to convert old route tree actions to new actions. Likely goes away as we make
@@ -48,7 +72,7 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
       if (!routeName) {
         return
       }
-      // don't allow pushing a dupe
+
       const path = Constants._getVisiblePathForNavigator(navigation.state)
       const visible = path[path.length - 1]
       if (visible) {
@@ -67,49 +91,45 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
     case RouteTreeGen.switchRouteDef: {
       // used to tell if its the login one or app one. this will all change when we deprecate the old routing
       const routeName = action.payload.routeDef.defaultSelected === 'tabs.loginTab' ? 'loggedOut' : 'loggedIn'
-      const switchStack = NavigationActions.navigate({params: undefined, routeName})
 
       // You're logged out
       if (routeName === 'loggedOut') {
-        return [switchStack]
+        return [NavigationActions.navigate({params: undefined, routeName: 'loggedOut'})]
       }
 
       // When we restore state we want the following stacks
-      // [People, TheLastTabYouWereOn, MaybeAConversationIfTheLastTabYouWereOnIsChat]
-      let sa = [StackActions.push({params: undefined, routeName: 'tabs.peopleTab'})]
+      let sa = [NavigationActions.navigate({params: undefined, routeName: 'loggedIn'})]
 
       if (action.payload.path) {
         const p = action.payload.path.last
           ? action.payload.path.last()
           : action.payload.path[action.payload.path.length - 1]
 
-        // a chat, we want people/inbox/chat
+        // a chat, we want inbox/chat
         if (p === 'chatConversation') {
-          sa.push(StackActions.push({params: undefined, routeName: 'tabs.chatTab'}))
+          sa.push(NavigationActions.navigate({params: undefined, routeName: 'tabs.chatTab'}))
           sa.push(StackActions.push({params: undefined, routeName: 'chatConversation'}))
-        } else if (p !== 'tabs.peopleTab') {
-          sa.push(StackActions.push({params: undefined, routeName: p}))
+        } else {
+          sa.push(NavigationActions.navigate({params: undefined, routeName: p}))
         }
       }
 
       // validate sa
-      if (!sa.every(a => routes[a.routeName])) {
+      if (
+        !sa.every(a => a.routeName === 'loggedIn' || routes[a.routeName] || mobileTabs.includes(a.routeName))
+      ) {
         logger.error('Invalid route found, bailing on push', sa)
         sa = []
       }
 
-      // switch the switch and do a reset of the stack
-      // MUST pass undefined as key in reset else it won't work correctly
-      return sa.length
-        ? [switchStack, StackActions.reset({actions: sa, index: sa.length - 1, key: undefined})]
-        : [switchStack]
+      return sa
     }
     case RouteTreeGen.clearModals: {
       const numModals = getNumModals(navigation)
       return numModals ? [StackActions.pop({n: numModals})] : []
     }
     case RouteTreeGen.navigateUp:
-      return [StackActions.pop()]
+      return [NavigationActions.back()]
     case RouteTreeGen.navUpToScreen: {
       const fullPath = Constants._getFullRouteForNavigator(navigation.state)
       const popActions = []
