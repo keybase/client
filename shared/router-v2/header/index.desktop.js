@@ -106,7 +106,7 @@ class Header extends React.PureComponent<Props, State> {
               type="iconfont-arrow-left"
               style={backArrowStyle}
               color={iconColor}
-              onClick={this.props.allowBack || this.props.loggedIn ? this.props.onPop : null}
+              onClick={this.props.allowBack ? this.props.onPop : null}
             />
             {flags.kbfsOfflineMode && <SyncingFolders />}
             {!title && rightActions}

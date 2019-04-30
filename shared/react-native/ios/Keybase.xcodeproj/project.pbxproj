@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0044E59D1BCD7CEA008EF7EE /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */; };
+		0981A80D0E424B60B1DDAA41 /* libRNReanimated.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C02768C928243F4826E6242 /* libRNReanimated.a */; };
 		12F4B45D43FA443E93CC4D30 /* libRNScreens.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1EBD58D856E94E219F42802B /* libRNScreens.a */; };
 		2746CFFA1E9884BD00E579B0 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 274AFB721E972F5300615A64 /* libresolv.tbd */; };
 		279FB5A02139AB6A005E4864 /* ShareViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 279FB59F2139AB6A005E4864 /* ShareViewController.m */; };
@@ -321,6 +322,20 @@
 			remoteGlobalIDString = A15C300E1CD25C330074CB35;
 			remoteInfo = RNFetchBlob;
 		};
+		DB5F0735226E5FBE0089741B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F9F3DBE057644E129CA45B58 /* RNGestureHandler.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = B5C32A36220C603B000FFB8D;
+			remoteInfo = "RNGestureHandler-tvOS";
+		};
+		DB5F073C226E5FBE0089741B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8F260D03D76246ACABB94DCA /* RNReanimated.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 134814201AA4EA6300B7C361;
+			remoteInfo = RNReanimated;
+		};
 		DB6D0B791E5B9EB400410F3C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = DB6D0B731E5B9EB400410F3C /* RCTAnimation.xcodeproj */;
@@ -521,6 +536,7 @@
 		3791A87220C71DAA001C2E86 /* PushPrompt.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PushPrompt.h; sourceTree = "<group>"; };
 		3791A8A020C71DC0001C2E86 /* PushPrompt.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PushPrompt.m; sourceTree = "<group>"; };
 		3791A8A220C71FE6001C2E86 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
+		4C02768C928243F4826E6242 /* libRNReanimated.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNReanimated.a; sourceTree = "<group>"; };
 		6266E16BBFF8461CAF2DDCB9 /* RCTContacts.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RCTContacts.xcodeproj; path = "../../node_modules/react-native-contacts/ios/RCTContacts.xcodeproj"; sourceTree = "<group>"; };
 		661EA790223ADD1C00471C8C /* keybase-medium-italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-medium-italic.ttf"; sourceTree = "<group>"; };
 		661EA791223ADD1C00471C8C /* keybase-medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-medium.ttf"; sourceTree = "<group>"; };
@@ -532,6 +548,7 @@
 		664073E9220A0B70009B2ED7 /* SourceCodePro-Semibold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SourceCodePro-Semibold.ttf"; sourceTree = "<group>"; };
 		664073EA220A0B70009B2ED7 /* SourceCodePro-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SourceCodePro-Medium.ttf"; sourceTree = "<group>"; };
 		8D1F643AB3B646C08A6F2B7E /* RNScreens.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNScreens.xcodeproj; path = "../../node_modules/react-native-screens/ios/RNScreens.xcodeproj"; sourceTree = "<group>"; };
+		8F260D03D76246ACABB94DCA /* RNReanimated.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNReanimated.xcodeproj; path = "../../node_modules/react-native-reanimated/ios/RNReanimated.xcodeproj"; sourceTree = "<group>"; };
 		9B47606285394777AF241164 /* libRNGestureHandler.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNGestureHandler.a; sourceTree = "<group>"; };
 		A76C0DB4F73E4C83A1521058 /* FastImage.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = FastImage.xcodeproj; path = "../../node_modules/react-native-fast-image/ios/FastImage.xcodeproj"; sourceTree = "<group>"; };
 		A90CD4A61FCE1D0A00F97901 /* NativeLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NativeLogger.m; sourceTree = "<group>"; };
@@ -624,6 +641,7 @@
 				A9BB30DF1E6A274900E713E5 /* libRCTCameraRoll.a in Frameworks */,
 				8828A757521849ACB90150D0 /* libRNGestureHandler.a in Frameworks */,
 				12F4B45D43FA443E93CC4D30 /* libRNScreens.a in Frameworks */,
+				0981A80D0E424B60B1DDAA41 /* libRNReanimated.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -733,6 +751,7 @@
 				0F50E60CFE3C4C26BAB60DFC /* LottieReactNative.xcodeproj */,
 				F9F3DBE057644E129CA45B58 /* RNGestureHandler.xcodeproj */,
 				8D1F643AB3B646C08A6F2B7E /* RNScreens.xcodeproj */,
+				8F260D03D76246ACABB94DCA /* RNReanimated.xcodeproj */,
 			);
 			name = Libraries;
 			sourceTree = "<group>";
@@ -805,6 +824,7 @@
 			children = (
 				9B47606285394777AF241164 /* libRNGestureHandler.a */,
 				1EBD58D856E94E219F42802B /* libRNScreens.a */,
+				4C02768C928243F4826E6242 /* libRNReanimated.a */,
 			);
 			name = "Recovered References";
 			sourceTree = "<group>";
@@ -813,6 +833,7 @@
 			isa = PBXGroup;
 			children = (
 				DB276B3721EFE8F400D67DB1 /* libRNGestureHandler.a */,
+				DB5F0736226E5FBE0089741B /* libRNGestureHandler-tvOS.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -941,6 +962,14 @@
 			isa = PBXGroup;
 			children = (
 				DB5E9BB1212A0C9700F903B3 /* libRNFetchBlob.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		DB5F0739226E5FBE0089741B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				DB5F073D226E5FBE0089741B /* libRNReanimated.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1188,6 +1217,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 				Base,
 			);
@@ -1282,6 +1312,10 @@
 				{
 					ProductGroup = 27429AEA1E64A7A90058A4F9 /* Products */;
 					ProjectRef = FE98B29CDF6C4C4085FF2315 /* RNImagePicker.xcodeproj */;
+				},
+				{
+					ProductGroup = DB5F0739226E5FBE0089741B /* Products */;
+					ProjectRef = 8F260D03D76246ACABB94DCA /* RNReanimated.xcodeproj */;
 				},
 				{
 					ProductGroup = DBE9D1BF21FA5AB2006DFE48 /* Products */;
@@ -1527,6 +1561,20 @@
 			fileType = archive.ar;
 			path = libRNFetchBlob.a;
 			remoteRef = DB5E9BB0212A0C9700F903B3 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		DB5F0736226E5FBE0089741B /* libRNGestureHandler-tvOS.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libRNGestureHandler-tvOS.a";
+			remoteRef = DB5F0735226E5FBE0089741B /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		DB5F073D226E5FBE0089741B /* libRNReanimated.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libRNReanimated.a;
+			remoteRef = DB5F073C226E5FBE0089741B /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		DB6D0B7A1E5B9EB400410F3C /* libRCTAnimation.a */ = {
@@ -1889,6 +1937,7 @@
 					"$(SRCROOT)/../../node_modules/lottie-react-native/src/ios/LottieReactNative",
 					"$(SRCROOT)/../../node_modules/react-native-gesture-handler/ios/**",
 					"$(SRCROOT)/../../node_modules/react-native-screens/ios",
+					"$(SRCROOT)/../../node_modules/react-native-reanimated/ios/**",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
@@ -1897,6 +1946,7 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/Keybase\"",
 					"\"$(SRCROOT)/Keybase/System/Library/Frameworks\"",
+					"\"$(SRCROOT)/Keybase\"",
 					"\"$(SRCROOT)/Keybase\"",
 					"\"$(SRCROOT)/Keybase\"",
 				);
@@ -1950,6 +2000,7 @@
 					"$(SRCROOT)/../../node_modules/lottie-react-native/src/ios/LottieReactNative",
 					"$(SRCROOT)/../../node_modules/react-native-gesture-handler/ios/**",
 					"$(SRCROOT)/../../node_modules/react-native-screens/ios",
+					"$(SRCROOT)/../../node_modules/react-native-reanimated/ios/**",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
@@ -1958,6 +2009,7 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/Keybase\"",
 					"\"$(SRCROOT)/Keybase/System/Library/Frameworks\"",
+					"\"$(SRCROOT)/Keybase\"",
 					"\"$(SRCROOT)/Keybase\"",
 					"\"$(SRCROOT)/Keybase\"",
 				);
@@ -2183,6 +2235,7 @@
 					"$(SRCROOT)/../../node_modules/lottie-react-native/src/ios/LottieReactNative",
 					"$(SRCROOT)/../../node_modules/react-native-gesture-handler/ios/**",
 					"$(SRCROOT)/../../node_modules/react-native-screens/ios",
+					"$(SRCROOT)/../../node_modules/react-native-reanimated/ios/**",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
@@ -2235,6 +2288,7 @@
 					"$(SRCROOT)/../../node_modules/lottie-react-native/src/ios/LottieReactNative",
 					"$(SRCROOT)/../../node_modules/react-native-gesture-handler/ios/**",
 					"$(SRCROOT)/../../node_modules/react-native-screens/ios",
+					"$(SRCROOT)/../../node_modules/react-native-reanimated/ios/**",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;

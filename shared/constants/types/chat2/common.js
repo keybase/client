@@ -13,15 +13,10 @@ export const stringToConversationIDKey = __DEV__
 
 export const conversationIDKeyToString = (c: ConversationIDKey): string => c
 
-// A pending conversation
-export const pendingConversationIDKey = stringToConversationIDKey('PENDING')
 // No conversation
 export const noConversationIDKey = stringToConversationIDKey('EMPTY')
 // A pending conversation that we're looking for a real convo or noConvo but don't know yet
 export const pendingWaitingConversationIDKey = stringToConversationIDKey('PENDING-WAITING')
 
 export const isValidConversationIDKey = (id: ConversationIDKey): boolean =>
-  !!id &&
-  id !== pendingConversationIDKey &&
-  id !== noConversationIDKey &&
-  id !== pendingWaitingConversationIDKey
+  !!id && id !== noConversationIDKey && id !== pendingWaitingConversationIDKey

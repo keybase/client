@@ -168,7 +168,7 @@ class WalletsSubNav extends React.PureComponent<any> {
 }
 
 export const newRoutes = {
-  'tabs.walletsTab': {
+  walletsRoot: {
     getScreen: () => {
       if (isMobile) {
         return require('./wallet/container').default
@@ -194,11 +194,7 @@ export const newRoutes = {
     },
     upgraded: true,
   },
-  ...(isMobile
-    ? {
-        ...sharedRoutes,
-      }
-    : {}),
+  ...sharedRoutes, // these are valid inside AND outside the subnav
 }
 
 export const newModalRoutes = {
