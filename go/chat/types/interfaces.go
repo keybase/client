@@ -479,6 +479,11 @@ type CoinFlipManager interface {
 	IsFlipConversationCreated(ctx context.Context, outboxID chat1.OutboxID) (chat1.ConversationID, FlipSendStatus)
 }
 
+type TeamMentionLoader interface {
+	Resumable
+	LoadTeamMention(ctx context.Context, uid gregor1.UID, teamName string) error
+}
+
 type InternalError interface {
 	// verbose error info for debugging but not user display
 	InternalError() string

@@ -923,6 +923,37 @@
       ]
     },
     {
+      "type": "record",
+      "name": "UITeamMention",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "open"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "description"
+        },
+        {
+          "type": [
+            null,
+            "int"
+          ],
+          "name": "numMembers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "publicAdmins"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "UITextDecorationTyp",
       "symbols": [
@@ -966,7 +997,7 @@
             "name": "TEAMMENTION",
             "def": false
           },
-          "body": "TeamMention"
+          "body": "MaybeTeamMention"
         }
       ]
     },
@@ -1748,6 +1779,23 @@
             null,
             "UICommandMarkdown"
           ]
+        }
+      ],
+      "response": null
+    },
+    "chatTeamMentionUpdate": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamName",
+          "type": "string"
+        },
+        {
+          "name": "info",
+          "type": "UITeamMention"
         }
       ],
       "response": null

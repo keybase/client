@@ -16,7 +16,6 @@ import (
 
 	"github.com/keybase/client/go/chat/pager"
 	"github.com/keybase/client/go/chat/unfurl/display"
-	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 
 	"regexp"
@@ -623,7 +622,7 @@ func parseRegexpNames(ctx context.Context, body string, re *regexp.Regexp) (res 
 }
 
 func GetTextAtMentionedItems(ctx context.Context, g *globals.Context, msg chat1.MessageText,
-	debug *DebugLabeler) (atRes []gregor1.UID, teamRes []chat1.TeamMention, chanRes chat1.ChannelMention) {
+	debug *DebugLabeler) (atRes []gregor1.UID, teamRes []chat1.MaybeTeamMention, chanRes chat1.ChannelMention) {
 	atRes, teamRes, chanRes = ParseAtMentionedItems(ctx, g, msg.Body)
 	atRes = append(atRes, GetPaymentAtMentions(ctx, g.GetUPAKLoader(), msg.Payments, debug)...)
 	return atRes, teamRes, chanRes
@@ -658,21 +657,7 @@ func parseItemAsUID(ctx context.Context, upak libkb.UPAKLoader, name string) (gr
 	return gregor1.UID(kuid.ToBytes()), nil
 }
 
-func parseItemAsTeam(ctx context.Context, g *globals.Context, teamName, channel string) (res chat1.TeamMention, err error) {
-	team, err := teams.Load(ctx, g.ExternalG(), keybase1.LoadTeamArg{
-		Name: teamName,
-	})
-	if err != nil {
-		return res, err
-	}
-	return chat1.TeamMention{
-		TeamID:      team.ID,
-		TeamName:    team.Name().String(),
-		ChannelName: channel,
-	}, nil
-}
-
-func ParseAtMentionedItems(ctx context.Context, g *globals.Context, body string) (atRes []gregor1.UID, teamRes []chat1.TeamMention, chanRes chat1.ChannelMention) {
+func ParseAtMentionedItems(ctx context.Context, g *globals.Context, body string) (atRes []gregor1.UID, teamRes []chat1.MaybeTeamMention, chanRes chat1.ChannelMention) {
 	names := ParseAtMentionsNames(ctx, body)
 	chanRes = chat1.ChannelMention_NONE
 	for _, name := range names {
@@ -697,8 +682,12 @@ func ParseAtMentionedItems(ctx context.Context, g *globals.Context, body string)
 		// Try UID first then team
 		if uid, err := parseItemAsUID(ctx, g.GetUPAKLoader(), baseName); err == nil {
 			atRes = append(atRes, uid)
-		} else if teamMention, err := parseItemAsTeam(ctx, g, baseName, channel); err == nil {
-			teamRes = append(teamRes, teamMention)
+		} else {
+			// anything else is a possible team mention
+			teamRes = append(teamRes, chat1.MaybeTeamMention{
+				Name:    baseName,
+				Channel: channel,
+			})
 		}
 	}
 	return atRes, teamRes, chanRes
@@ -2019,7 +2008,7 @@ func DecorateBody(ctx context.Context, body string, offset, length int, decorati
 }
 
 func DecorateWithMentions(ctx context.Context, body string, atMentions []string,
-	teamMentions []chat1.TeamMention, chanMention chat1.ChannelMention,
+	teamMentions []chat1.MaybeTeamMention, chanMention chat1.ChannelMention,
 	channelNameMentions []chat1.ChannelNameMention) string {
 	var added int
 	offset := 0
@@ -2027,14 +2016,14 @@ func DecorateWithMentions(ctx context.Context, body string, atMentions []string,
 		inputBody := body
 		atMatches := parseRegexpNames(ctx, inputBody, atMentionRegExp)
 		atMap := make(map[string]bool)
-		teamMap := make(map[string]chat1.TeamMention)
+		teamMap := make(map[string]chat1.MaybeTeamMention)
 		for _, at := range atMentions {
 			atMap[at] = true
 		}
 		for _, tm := range teamMentions {
-			name := tm.TeamName
-			if len(tm.ChannelName) > 0 {
-				name += "#" + tm.ChannelName
+			name := tm.Name
+			if len(tm.Channel) > 0 {
+				name += "#" + tm.Channel
 			}
 			teamMap[name] = tm
 		}

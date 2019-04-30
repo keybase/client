@@ -1204,19 +1204,15 @@
     },
     {
       "type": "record",
-      "name": "TeamMention",
+      "name": "MaybeTeamMention",
       "fields": [
         {
-          "type": "keybase1.TeamID",
-          "name": "teamID"
+          "type": "string",
+          "name": "name"
         },
         {
           "type": "string",
-          "name": "teamName"
-        },
-        {
-          "type": "string",
-          "name": "channelName"
+          "name": "channel"
         }
       ]
     },
@@ -1298,7 +1294,7 @@
         {
           "type": {
             "type": "array",
-            "items": "TeamMention"
+            "items": "MaybeTeamMention"
           },
           "name": "teamMentions"
         },
