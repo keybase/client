@@ -92,7 +92,12 @@ class Header extends React.PureComponent<Props, State> {
           noShrink={true}
           direction="vertical"
           fullWidth={true}
-          style={Styles.collapseStyles([styles.headerContainer, showDivider && styles.headerBorder, style])}
+          style={Styles.collapseStyles([
+            styles.headerContainer,
+            showDivider && styles.headerBorder,
+            style,
+            opt.headerStyle,
+          ])}
         >
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerBack} alignItems="center">
             <Kb.Icon

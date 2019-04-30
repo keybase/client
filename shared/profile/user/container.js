@@ -6,8 +6,9 @@ import * as ProfileGen from '../../actions/profile-gen'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
 import * as SearchGen from '../../actions/search-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
-import Profile2 from '.'
+import Profile2, {styles, colorTypeToStyle} from '.'
 import {memoize} from '../../util/memoize'
 import type {RouteProps} from '../../route-tree/render-route'
 import type {Response} from 'react-native-image-picker'
@@ -118,13 +119,23 @@ const connected = Container.namedConnect<OwnProps, _, _, _, _>(
   'Profile2'
 )(Profile2)
 
-const Header = ({onSearch}) => (
-  <Kb.Box2 direction="vertical" fullWidth={true}>
+const Header = ({onSearch, backgroundColorType}) => (
+  <Kb.Box2
+    direction="vertical"
+    fullWidth={true}
+    style={Styles.collapseStyles([colorTypeToStyle(backgroundColorType)])}
+  >
     <ProfileSearch onSearch={onSearch} />
   </Kb.Box2>
 )
-const ConnectedHeader = Container.connect<{||}, _, _, _, _>(
-  () => ({}),
+const ConnectedHeader = Container.connect<{|username: string|}, _, _, _, _>(
+  (state, {username}) => {
+    const d = Constants.getDetails(state, username)
+    const followThem = Constants.followThem(state, username)
+    return {
+      backgroundColorType: headerBackgroundColorType(d.state, followThem),
+    }
+  },
   dispatch => ({
     onSearch: () => dispatch(SearchGen.createSearchSuggestions({searchKey: 'profileSearch'})),
   }),
@@ -132,16 +143,22 @@ const ConnectedHeader = Container.connect<{||}, _, _, _, _>(
 )(Header)
 
 // $FlowIssue lets fix this
-connected.navigationOptions = {
+connected.navigationOptions = p => ({
   header: undefined,
-  headerHideBorder: true,
-  headerTitle: ConnectedHeader,
+  headerStyle: {
+    backgroundColor: 'green',
+    borderBottomColor: 'green',
+    borderBottomWidth: 1,
+    borderStyle: 'solid',
+  },
+  headerHideBorder: false,
+  headerTitle: () => <ConnectedHeader username={p.navigation.getParam('username')} />,
   headerTitleContainerStyle: {
     left: 60,
     right: 20,
   },
   headerTransparent: true,
   underNotch: true,
-}
+})
 
 export default connected

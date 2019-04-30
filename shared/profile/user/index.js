@@ -39,7 +39,7 @@ export type Props = {|
   username: string,
 |}
 
-const colorTypeToStyle = type => {
+export const colorTypeToStyle = (type: 'red' | 'green' | 'blue') => {
   switch (type) {
     case 'red':
       return styles.typedBackgroundRed
@@ -57,7 +57,10 @@ const Header = p => (
   <Kb.Box2
     direction="horizontal"
     fullWidth={true}
-    style={Styles.collapseStyles([styles.header, colorTypeToStyle(p.backgroundColorType)])}
+    style={Styles.collapseStyles([
+      styles.header,
+      !flags.useNewRouter && colorTypeToStyle(p.backgroundColorType),
+    ])}
   >
     {!flags.useNewRouter && (
       <Kb.BackButton iconColor={Styles.globalColors.white} textStyle={styles.backButton} onClick={p.onBack} />
@@ -415,7 +418,7 @@ const usernameSelectedFollowing = {}
 const avatarSize = 128
 const headerHeight = Styles.isMobile ? 48 : 80
 
-const styles = Styles.styleSheetCreate({
+export const styles = Styles.styleSheetCreate({
   addIdentityButton: {
     marginBottom: Styles.globalMargins.xsmall,
     marginTop: Styles.globalMargins.xsmall,
