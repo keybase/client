@@ -239,7 +239,11 @@ func (d *Service) Run() (err error) {
 			close(d.startCh)
 		}
 		d.G().NotifyRouter.HandleServiceShutdown()
-		d.G().Log.Debug("From Service.Run(): exit with code %d\n", d.G().ExitCode)
+		if err != nil {
+			d.G().Log.Info("Service#Run() exiting with error %s (code %d)", err.Error(), d.G().ExitCode)
+		} else {
+			d.G().Log.Debug("Service#Run() clean exit with code %d", d.G().ExitCode)
+		}
 	}()
 
 	d.G().Log.Debug("+ service starting up; forkType=%v", d.ForkType)
