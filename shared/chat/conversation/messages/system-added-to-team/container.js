@@ -25,7 +25,15 @@ const mapStateToProps = (state, ownProps) => {
 
 const mapDispatchToProps = dispatch => ({
   _onManageChannels: (teamname: string) =>
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})),
+    dispatch(
+      RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
+    ),
+  _onManageNotifications: conversationIDKey =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {conversationIDKey: conversationIDKey}, selected: 'chatInfoPanel'}],
+      })
+    ),
   _onViewTeam: (teamname: string) => {
     dispatch(
       RouteTreeGen.createSetRouteState({partialState: {selectedTab: 'members'}, path: [teamsTab, 'team']})
@@ -39,6 +47,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   adder: stateProps.adder,
   isAdmin: stateProps.isAdmin,
   onManageChannels: () => dispatchProps._onManageChannels(stateProps.teamname),
+  onManageNotifications: () => dispatchProps._onManageNotifications(ownProps.message.conversationIDKey),
   onViewTeam: () => dispatchProps._onViewTeam(stateProps.teamname),
   teamname: stateProps.teamname,
   timestamp: stateProps.timestamp,

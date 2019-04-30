@@ -66,10 +66,6 @@ class ComplexTeamNotice extends React.PureComponent<Props> {
               <Text type="BodySmallSemibold" style={{marginRight: globalMargins.tiny}}>
                 {bullet}
               </Text>
-              <Text type="BodySmallSemibold">
-                Notifications will no longer happen for every message. Tap the info icon in the top right to
-                configure them.
-              </Text>
             </Box>
             <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.tiny}}>
               <Text type="BodySmallSemibold" style={{marginRight: globalMargins.tiny}}>
@@ -82,7 +78,7 @@ class ComplexTeamNotice extends React.PureComponent<Props> {
                   type="BodySmallSemiboldSecondaryLink"
                   style={{color: globalColors.blue}}
                 >
-                  Manage your channel subscriptions
+                  Browse other channels
                 </Text>
               </Text>
             </Box>
