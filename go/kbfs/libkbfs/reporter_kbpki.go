@@ -108,6 +108,7 @@ func NewReporterKBPKI(config Config, maxErrors, bufSize int) *ReporterKBPKI {
 		notifyPathBuffer:        make(chan string, 1),
 		notifySyncBuffer:        make(chan *keybase1.FSPathSyncStatus, 1),
 		notifyOverallSyncBuffer: make(chan keybase1.FolderSyncStatus, 1),
+		shutdownCh:              make(chan struct{}),
 	}
 	var ctx context.Context
 	ctx, r.canceler = context.WithCancel(context.Background())
