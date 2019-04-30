@@ -3282,8 +3282,7 @@ func TestKBFSOpsBackgroundFlush(t *testing.T) {
 
 	// start the background flusher
 	config.SetBGFlushPeriod(1 * time.Millisecond)
-	ops.doneWg.Add(1)
-	go ops.backgroundFlusher()
+	ops.goTracked(ops.backgroundFlusher)
 
 	// Wait for the stall to know the background work is done.
 	staller.WaitForStallMDOp(StallableMDAfterPut)
