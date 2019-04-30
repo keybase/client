@@ -137,7 +137,7 @@ func (e *PassphraseRecover) chooseDevice(mctx libkb.MetaContext, ckf *libkb.Comp
 	expDevices := make([]keybase1.Device, len(devices))
 	idMap := make(map[keybase1.DeviceID]*libkb.Device)
 	for i, d := range devices {
-		// Don't show paper keys if the device hasn't been configured
+		// Don't show paper keys if the user has not provisioned on this device
 		if !e.usernameFound && d.Type == libkb.DeviceTypePaper {
 			continue
 		}
