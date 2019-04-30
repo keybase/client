@@ -195,6 +195,7 @@ const styles = Styles.styleSheetCreate({
   },
   progressBar: {
     alignSelf: 'center',
+    flex: 1,
     width: '100%',
   },
   textHeader: {
