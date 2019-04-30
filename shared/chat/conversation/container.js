@@ -13,7 +13,9 @@ import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
 import flags from '../../util/feature-flags'
 
-type OwnProps = {||}
+type OwnProps = {|
+  navigation?: any,
+|}
 
 type SwitchProps = {
   conversationIDKey: Types.ConversationIDKey,
@@ -57,7 +59,7 @@ class Conversation extends React.PureComponent<SwitchProps> {
       case 'normal':
         return (
           <>
-            <NavigationEvents onDidFocus={this._onDidFocus} onWillBlur={this._onWillBlur} />
+            {isMobile && <NavigationEvents onDidFocus={this._onDidFocus} onWillBlur={this._onWillBlur} />}
             <Normal conversationIDKey={this.props.conversationIDKey} />
           </>
         )
@@ -74,9 +76,8 @@ class Conversation extends React.PureComponent<SwitchProps> {
 
 const mapStateToProps = (state, ownProps) => {
   let _storeConvoIDKey = Constants.getSelectedConversation(state)
-  const conversationIDKey = flags.useNewRouter
-    ? getRouteProps(ownProps, 'conversationIDKey')
-    : _storeConvoIDKey
+  const conversationIDKey =
+    flags.useNewRouter && isMobile ? getRouteProps(ownProps, 'conversationIDKey') : _storeConvoIDKey
   let _meta = Constants.getMeta(state, conversationIDKey)
 
   return {

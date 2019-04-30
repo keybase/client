@@ -6,16 +6,18 @@ import * as PeopleGen from '../../actions/people-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SettingsConstants from '../../constants/settings'
 import * as TrackerConstants from '../../constants/tracker2'
-import TabBar from '.'
+import TabBar from './index.desktop'
 import {connect} from '../../util/container'
 import {memoize} from '../../util/memoize'
 import {isLinux} from '../../constants/platform'
 import openURL from '../../util/open-url'
 import {quit, hideWindow} from '../../util/quit-helper'
+import {tabRoots} from '../router.shared'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as SettingsGen from '../../actions/settings-gen'
 
 type OwnProps = {|
+  navigation: any,
   selectedTab: Tabs.Tab,
 |}
 
@@ -32,7 +34,12 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     if (ownProps.selectedTab === Tabs.peopleTab && tab !== Tabs.peopleTab) {
       dispatch(PeopleGen.createMarkViewed())
     }
-    dispatch(RouteTreeGen.createNavigateAppend({path: [tab]}))
+    if (ownProps.selectedTab === tab) {
+      // $FlowIssue this is a subset of `Tabs.Tab`
+      ownProps.navigation.navigate(tabRoots[tab])
+    } else {
+      ownProps.navigation.navigate(tab)
+    }
   },
   onHelp: () => openURL('https://keybase.io/docs'),
   onQuit: () => {

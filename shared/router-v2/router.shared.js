@@ -20,7 +20,28 @@ const getNumModals = navigation => {
   return numModals
 }
 
-export const mobileTabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.fsTab, Tabs.settingsTab]
+export const mobileTabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.fsTab, Tabs.teamsTab, Tabs.settingsTab]
+export const desktopTabs = [
+  Tabs.peopleTab,
+  Tabs.chatTab,
+  Tabs.fsTab,
+  Tabs.teamsTab,
+  Tabs.walletsTab,
+  Tabs.gitTab,
+  Tabs.devicesTab,
+  Tabs.settingsTab,
+]
+
+export const tabRoots = {
+  [Tabs.peopleTab]: 'peopleRoot',
+  [Tabs.chatTab]: 'chatRoot',
+  [Tabs.fsTab]: 'fsRoot',
+  [Tabs.teamsTab]: 'teamsRoot',
+  [Tabs.walletsTab]: 'walletsRoot',
+  [Tabs.gitTab]: 'gitRoot',
+  [Tabs.devicesTab]: 'devicesRoot',
+  [Tabs.settingsTab]: 'settingsRoot',
+}
 
 // Helper to convert old route tree actions to new actions. Likely goes away as we make
 // actual routing actions (or make RouteTreeGen append/up the only action)

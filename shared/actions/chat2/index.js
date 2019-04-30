@@ -2097,7 +2097,7 @@ const navigateToThreadRoute = conversationIDKey => {
   }
 
   return RouteTreeGen.createNavigateAppend({
-    path: isMobile ? [{props: {conversationIDKey}, selected: 'chatConversation'}] : [Tabs.chatTab],
+    path: [{props: {conversationIDKey}, selected: isMobile ? 'chatConversation' : 'chatRoot'}],
   })
 }
 
@@ -2125,6 +2125,11 @@ const mobileNavigateOnSelect = (state, action) => {
     }
     return navigateToThreadRoute(state.chat2.selectedConversation)
   }
+}
+
+const desktopNavigateOnSelect = (state, action) => {
+  if (action.payload.reason === 'findNewestConversation') return
+  return navigateToThreadRoute(state.chat2.selectedConversation)
 }
 
 const mobileChangeSelection = state => {
@@ -2801,6 +2806,11 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     yield* Saga.chainGenerator<Chat2Gen.DesktopNotificationPayload>(
       Chat2Gen.desktopNotification,
       desktopNotify
+    )
+    // Switch to the chat tab
+    yield* Saga.chainAction<Chat2Gen.SelectConversationPayload>(
+      Chat2Gen.selectConversation,
+      desktopNavigateOnSelect
     )
   }
 
