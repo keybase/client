@@ -33,7 +33,7 @@ import {saveAttachmentToCameraRoll, showShareActionSheetFromFile} from '../platf
 import {downloadFilePath} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import flags from '../../util/feature-flags'
-import type {RPCError} from '../../util/errors'
+import {RPCError} from '../../util/errors'
 import HiddenString from '../../util/hidden-string'
 
 const onConnect = () => {
@@ -1348,7 +1348,7 @@ function* threadSearch(state, action) {
           isRegex: false,
           maxConvsHit: 0,
           maxConvsSearched: 0,
-          maxHits: Constants.inboxSearchMaxTextMessages,
+          maxHits: 1000,
           maxMessages: -1,
           maxNameConvs: 0,
           reindexMode: RPCChatTypes.commonReIndexingMode.postsearchSync,
@@ -1434,7 +1434,7 @@ function* inboxSearch(state, action) {
     return Saga.put(Chat2Gen.createInboxSearchStarted())
   }
   const onDone = () => {
-    return Saga.put(Chat2Gen.createInboxSearchSetTextStatus({status: 'done'}))
+    return Saga.put(Chat2Gen.createInboxSearchSetTextStatus({status: 'success'}))
   }
   const onIndexStatus = resp => {
     return Saga.put(Chat2Gen.createInboxSearchSetIndexPercent({percent: resp.status.percentIndexed}))
@@ -1473,7 +1473,10 @@ function* inboxSearch(state, action) {
       },
     })
   } catch (e) {
-    logger.error('search failed: ' + e.message)
+    if (!(e instanceof RPCError && e.code === RPCTypes.constantsStatusCode.sccanceled)) {
+      logger.error('search failed: ' + e.message)
+      yield Saga.put(Chat2Gen.createInboxSearchSetTextStatus({status: 'error'}))
+    }
   }
 }
 

@@ -118,7 +118,6 @@ type DevicesTab = 'settingsTabs.devicesTab'
 type FeedbackTab = 'settingsTabs.feedbackTab'
 type FoldersTab = 'settingsTabs.foldersTab'
 type FsTab = 'settingsTabs.fsTab'
-type TeamsTab = 'settingsTabs.teamsTab'
 type GitTab = 'settingsTabs.gitTab'
 type InvitationsTab = 'settingsTabs.invitationsTab'
 type LandingTab = 'settingsTabs.landingTab'
@@ -142,7 +141,6 @@ export type Tab =
   | GitTab
   | FoldersTab
   | FsTab
-  | TeamsTab
   | LogOutTab
   | ScreenprotectorTab
   | PasswordTab

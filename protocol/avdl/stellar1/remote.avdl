@@ -43,6 +43,19 @@ protocol remote {
     string signedTransaction; // Claim or yank tx
     union { null, string } autoClaimToken; // Optional. Filled if this is an autoclaim.
   }
+  
+  record PathPaymentPost {
+    keybase1.DeviceID fromDeviceID;
+    union { null, keybase1.UserVersion } to; // Nil for payments to stellar addresses
+    string noteB64; // b64-encoded EncryptedNote or empty string.
+    string signedTransaction;
+    // If quickReturn == true then the RPC can return success
+    //   while the payment is still pending on the stellar network.
+    boolean quickReturn;
+    // if not empty, stellard will inform gregord about this payment's
+    // status changes along with this conversation ID
+    union { null, ChatConversationID } chatConversationID;
+  }
 
   record DirectOp {
     string noteB64; // b64-encoded EncryptedNote or empty string.
@@ -209,6 +222,8 @@ protocol remote {
   PaymentResult submitRelayPayment(keybase1.UserVersion caller, PaymentRelayPost payment);
 
   RelayClaimResult submitRelayClaim(keybase1.UserVersion caller, RelayClaimPost claim);
+  
+  PaymentResult submitPathPayment(keybase1.UserVersion caller, PathPaymentPost payment);
 
   record SubmitMultiRes {
     TransactionID txID;
@@ -299,4 +314,14 @@ protocol remote {
   array<Asset> assetSearch(string assetCode, string issuerAccountID);
 
   void changeTrustline(keybase1.UserVersion caller, string signedTransaction);
+
+  record PaymentPathQuery {
+    AccountID source;
+    AccountID destination;
+    Asset sourceAsset;
+    Asset destinationAsset;
+    string amount;
+  }
+
+  PaymentPath findPaymentPath(keybase1.UserVersion caller, PaymentPathQuery query);
 }

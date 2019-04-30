@@ -42,6 +42,7 @@ func TestChatBackgroundIdentify(t *testing.T) {
 		},
 		MaxMsgs:         []chat1.MessageBoxed{msg},
 		MaxMsgSummaries: []chat1.MessageSummary{msg.Summary()},
+		ReaderInfo:      &chat1.ConversationReaderInfo{},
 	}
 	require.NoError(t, inbox.Merge(context.TODO(), u.User.GetUID().ToBytes(), 1, []chat1.Conversation{conv},
 		nil, nil))

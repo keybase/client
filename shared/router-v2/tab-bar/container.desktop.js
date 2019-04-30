@@ -4,6 +4,7 @@ import * as ConfigGen from '../../actions/config-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as PeopleGen from '../../actions/people-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as SettingsConstants from '../../constants/settings'
 import * as TrackerConstants from '../../constants/tracker2'
 import TabBar from './index.desktop'
 import {connect} from '../../util/container'
@@ -50,7 +51,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     }, 2000)
   },
   onSettings: () => dispatch(RouteTreeGen.createNavigateAppend({path: [Tabs.settingsTab]})),
-  onSignOut: () => dispatch(ConfigGen.createLogout()),
+  onSignOut: () => dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.logOutTab]})),
 })
 
 const getBadges = memoize(b => b.toObject())

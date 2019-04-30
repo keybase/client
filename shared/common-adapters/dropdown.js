@@ -16,7 +16,7 @@ type DropdownButtonProps = {
   selectedBoxStyle?: Styles.StylesCrossPlatform,
   style?: Styles.StylesCrossPlatform,
   setAttachmentRef?: $PropertyType<OverlayParentProps, 'setAttachmentRef'>,
-  toggleOpen: () => void,
+  toggleOpen: (e: SyntheticEvent<>) => void,
   inline?: boolean,
 }
 export const DropdownButton = (props: DropdownButtonProps) => (
@@ -27,7 +27,7 @@ export const DropdownButton = (props: DropdownButtonProps) => (
         type="iconfont-caret-down"
         inheritColor={true}
         sizeType="Tiny"
-        style={{marginTop: Styles.isMobile ? 4 : -8}}
+        style={{marginTop: Styles.isMobile ? 2 : -8}}
       />
     </ButtonBox>
   </ClickableBox>
@@ -118,7 +118,10 @@ export const InlineDropdown = (props: InlineDropdownProps) => {
     <DropdownButton
       inline={true}
       style={styles.inlineDropdown}
-      toggleOpen={props.onPress}
+      toggleOpen={e => {
+        e.stopPropagation && e.stopPropagation()
+        props.onPress && props.onPress()
+      }}
       selectedBoxStyle={styles.inlineDropdownSelected}
       selected={selected}
     />
@@ -199,7 +202,8 @@ const ItemBox = Styles.styled(Box)({
   width: '100%',
 })
 
-const ButtonBox = Styles.styled(Box)(props => ({
+// $FlowIssue styled can have more than one argument
+const ButtonBox = Styles.styled(Box, {shouldForwardProp: prop => prop !== 'inline'})(props => ({
   ...Styles.globalStyles.flexBoxRow,
   ...(!props.disabled && !Styles.isMobile
     ? {

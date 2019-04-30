@@ -19,7 +19,11 @@ if (!isMobile) {
 }
 
 const mapStateToProps = (state, {conversationIDKey}) => {
-  const showLoader = WaitingConstants.anyWaiting(state, Constants.waitingKeyThreadLoad(conversationIDKey))
+  const showLoader = WaitingConstants.anyWaiting(
+    state,
+    Constants.waitingKeyThreadLoad(conversationIDKey),
+    Constants.waitingKeyInboxSyncStarted
+  )
   const meta = Constants.getMeta(state, conversationIDKey)
   return {
     conversationIDKey,

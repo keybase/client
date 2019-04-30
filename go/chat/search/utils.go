@@ -39,15 +39,15 @@ var stripSeps = []string{
 var stripExpr = regexp.MustCompile(strings.Join(stripSeps, "|"))
 
 func prefixes(token string) (res []string) {
-	if len(token) <= 2 {
+	if len(token) < minTokenLength {
 		return nil
 	}
 	for i := range token {
-		if i <= 2 {
+		if i < minTokenLength {
 			continue
 		}
-		// Skip any prefixes longer than 20 to limit the index size.
-		if i >= 20 {
+		// Skip any prefixes longer than `maxPrefixLength` to limit the index size.
+		if i > maxPrefixLength {
 			break
 		}
 		res = append(res, token[:i])
@@ -68,7 +68,7 @@ func tokenize(msgText string) tokenMap {
 	tokens := splitExpr.Split(msgText, -1)
 	tokenMap := tokenMap{}
 	for _, token := range tokens {
-		if token == "" {
+		if len(token) < minTokenLength {
 			continue
 		}
 
@@ -218,4 +218,15 @@ func UpgradeSearchOptsFromQuery(query string, opts chat1.SearchOpts, username st
 		opts.IsRegex = true
 	}
 	return query, opts
+}
+
+func MinMaxIDs(conv chat1.Conversation) (min, max chat1.MessageID) {
+	// lowest msgID we care about
+	min = conv.GetMaxDeletedUpTo()
+	if min == 0 {
+		min = 1
+	}
+	// highest msgID we care about
+	max = conv.GetMaxMessageID()
+	return min, max
 }
