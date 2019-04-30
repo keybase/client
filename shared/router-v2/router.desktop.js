@@ -163,7 +163,8 @@ const TabNavigator = createNavigator(
         {}
       )
       return map
-    }, {})
+    }, {}),
+    {resetOnBlur: false}
   ),
   {}
 )
