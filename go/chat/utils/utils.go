@@ -1383,6 +1383,16 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msg chat1
 	return &body
 }
 
+func presentTeamMentions(ctx context.Context, g *globals.Context, uid gregor1.UID,
+	valid chat1.MessageUnboxedValid) (res []chat1.MaybeTeamMention) {
+	for _, tm := range valid.TeamMentions {
+		if err := g.TeamMentionLoader.LoadTeamMention(ctx, uid, tm.Name); err == nil {
+			res = append(res, tm)
+		}
+	}
+	return res
+}
+
 func presentFlipGameID(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msg chat1.MessageUnboxed) *string {
 	typ, err := msg.State()
@@ -1467,6 +1477,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			AtMentions:            valid.AtMentionUsernames,
 			ChannelMention:        valid.ChannelMention,
 			ChannelNameMentions:   PresentChannelNameMentions(ctx, valid.ChannelNameMentions),
+			TeamMentions:          presentTeamMentions(ctx, g, uid, valid),
 			AssetUrlInfo:          presentAttachmentAssetInfo(ctx, g, rawMsg, convID),
 			IsEphemeral:           valid.IsEphemeral(),
 			IsEphemeralExpired:    valid.IsEphemeralExpired(time.Now()),

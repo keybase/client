@@ -559,6 +559,7 @@ type UIMessageValid struct {
 	AtMentions            []string               `codec:"atMentions" json:"atMentions"`
 	ChannelMention        ChannelMention         `codec:"channelMention" json:"channelMention"`
 	ChannelNameMentions   []UIChannelNameMention `codec:"channelNameMentions" json:"channelNameMentions"`
+	TeamMentions          []MaybeTeamMention     `codec:"teamMentions" json:"teamMentions"`
 	IsEphemeral           bool                   `codec:"isEphemeral" json:"isEphemeral"`
 	IsEphemeralExpired    bool                   `codec:"isEphemeralExpired" json:"isEphemeralExpired"`
 	ExplodedBy            *string                `codec:"explodedBy,omitempty" json:"explodedBy,omitempty"`
@@ -638,6 +639,17 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 			}
 			return ret
 		})(o.ChannelNameMentions),
+		TeamMentions: (func(x []MaybeTeamMention) []MaybeTeamMention {
+			if x == nil {
+				return nil
+			}
+			ret := make([]MaybeTeamMention, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.TeamMentions),
 		IsEphemeral:        o.IsEphemeral,
 		IsEphemeralExpired: o.IsEphemeralExpired,
 		ExplodedBy: (func(x *string) *string {

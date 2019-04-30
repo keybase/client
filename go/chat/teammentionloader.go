@@ -1,0 +1,140 @@
+package chat
+
+import (
+	"context"
+	"errors"
+	"sync"
+
+	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
+)
+
+type teamMentionJob struct {
+	uid      gregor1.UID
+	teamName string
+}
+
+type TeamMentionLoader struct {
+	sync.Mutex
+	globals.Contextified
+	utils.DebugLabeler
+
+	started    bool
+	jobCh      chan teamMentionJob
+	shutdownCh chan chan struct{}
+}
+
+func NewTeamMentionLoader(g *globals.Context) *TeamMentionLoader {
+	return &TeamMentionLoader{
+		Contextified: globals.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "TeamMentionLoader", false),
+		jobCh:        make(chan teamMentionJob, 100),
+		shutdownCh:   make(chan chan struct{}, 5),
+	}
+}
+
+func (l *TeamMentionLoader) Start(ctx context.Context, uid gregor1.UID) {
+	defer l.Trace(ctx, func() error { return nil }, "Start")()
+	l.Lock()
+	defer l.Unlock()
+	if l.started {
+		return
+	}
+	l.started = true
+	go l.loadLoop()
+}
+
+func (l *TeamMentionLoader) Stop(ctx context.Context) chan struct{} {
+	defer l.Trace(ctx, func() error { return nil }, "Stop")()
+	l.Lock()
+	defer l.Unlock()
+	ch := make(chan struct{})
+	if l.started {
+		l.shutdownCh <- ch
+		l.started = false
+		return ch
+	}
+	close(ch)
+	return ch
+}
+
+func (l *TeamMentionLoader) Load(ctx context.Context, uid gregor1.UID, teamName string) (err error) {
+	defer l.Trace(ctx, func() error { return err }, "Load")()
+	select {
+	case l.jobCh <- teamMentionJob{uid: uid, teamName: teamName}:
+	default:
+		l.Debug(ctx, "Load: failed to queue job, full")
+		return errors.New("queue full")
+	}
+	return nil
+}
+
+type mentionApiResp struct {
+	Status       libkb.AppStatus `json:"status"`
+	Name         string
+	Open         bool
+	Description  string
+	PublicAdmins []string `json:"public_admins"`
+	NumMembers   int      `json:"num_members"`
+}
+
+func (r *mentionApiResp) GetAppStatus() *libkb.AppStatus {
+	return &r.Status
+}
+
+func (l *TeamMentionLoader) getChatUI(ctx context.Context) (libkb.ChatUI, error) {
+	ui, err := l.G().UIRouter.GetChatUI()
+	if err != nil || ui == nil {
+		l.Debug(ctx, "getChatUI: no chat UI found: err: %s", err)
+		if err == nil {
+			err = errors.New("no chat UI found")
+		}
+		return nil, err
+	}
+	return ui, nil
+}
+
+func (l *TeamMentionLoader) loadTeamMention(ctx context.Context, uid gregor1.UID, teamName string) (err error) {
+	defer l.Trace(ctx, func() error { return err }, "loadTeamMention: name: %s", teamName)()
+	ui, err := l.getChatUI(ctx)
+	if err != nil {
+		return err
+	}
+	arg := libkb.APIArg{
+		Endpoint:    "team/mentiondesc",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args:        libkb.HTTPArgs{"name": libkb.S{Val: teamName}},
+	}
+	var resp mentionApiResp
+	if err = l.G().API.GetDecode(libkb.NewMetaContext(ctx, l.G().ExternalG()), arg, &resp); err != nil {
+		return err
+	}
+	var info chat1.UITeamMention
+	info.Open = resp.Open
+	if len(resp.Description) > 0 {
+		info.Description = new(string)
+		*info.Description = resp.Description
+	}
+	if resp.NumMembers > 0 {
+		info.NumMembers = new(int)
+		*info.NumMembers = resp.NumMembers
+	}
+	info.PublicAdmins = resp.PublicAdmins
+	return ui.ChatTeamMentionUpdate(ctx, teamName, info)
+}
+
+func (l *TeamMentionLoader) loadLoop() {
+	ctx := context.Background()
+	for {
+		select {
+		case job := <-l.jobCh:
+			l.loadTeamMention(ctx, job.uid, job.teamName)
+		case ch := <-l.shutdownCh:
+			close(ch)
+			return
+		}
+	}
+}

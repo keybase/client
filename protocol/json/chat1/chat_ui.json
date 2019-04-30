@@ -709,6 +709,13 @@
           "name": "channelNameMentions"
         },
         {
+          "type": {
+            "type": "array",
+            "items": "MaybeTeamMention"
+          },
+          "name": "teamMentions"
+        },
+        {
           "type": "boolean",
           "name": "isEphemeral"
         },

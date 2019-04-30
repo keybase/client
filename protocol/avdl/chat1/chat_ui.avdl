@@ -176,6 +176,7 @@ protocol chatUi {
     array<string> atMentions;
     ChannelMention channelMention;
     array<UIChannelNameMention> channelNameMentions;
+    array<MaybeTeamMention> teamMentions;
     boolean isEphemeral;
     boolean isEphemeralExpired;
     union { null, string} explodedBy;

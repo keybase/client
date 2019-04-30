@@ -1190,6 +1190,8 @@ const rootReducer = (
       const {message} = action.payload
       return state.set('attachmentFullscreenMessage', message)
     }
+    case Chat2Gen.setTeamMentionInfo:
+      return state.setIn(['teamMentionMap', action.payload.name], action.payload.info)
     case Chat2Gen.handleSeeingWallets: // fallthrough
     case Chat2Gen.setWalletsOld:
       return state.isWalletsNew ? state.set('isWalletsNew', false) : state

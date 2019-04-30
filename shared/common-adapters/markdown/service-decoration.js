@@ -8,6 +8,7 @@ import {toByteArray} from 'base64-js'
 import PaymentStatus from '../../chat/payments/status/container'
 import Mention from '../mention-container'
 import Channel from '../channel-container'
+import TeamMention from '../../chat/conversation/team-mention/container'
 
 export type Props = {
   json: string,
@@ -57,6 +58,15 @@ const ServiceDecoration = (props: Props) => {
         allowFontScaling={props.allowFontScaling || false}
         style={props.styles.wrapStyle}
         username={parsed.atmention}
+      />
+    )
+  } else if (parsed.typ === RPCChatTypes.chatUiUITextDecorationTyp.teammention && parsed.teammention) {
+    return (
+      <TeamMention
+        allowFontScaling={props.allowFontScaling || false}
+        style={props.styles.wrapStyle}
+        name={parsed.name}
+        channel={parsed.channel}
       />
     )
   } else if (
