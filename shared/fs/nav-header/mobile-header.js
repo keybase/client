@@ -70,7 +70,7 @@ const styles = Styles.styleSheetCreate({
     height,
     maxHeight: height,
     minHeight: height,
-    paddingTop: Styles.statusBarHeight,
+    paddingTop: Styles.isAndroid ? undefined : Styles.statusBarHeight,
   },
   expandedTitleContainer: {
     backgroundColor: Styles.globalColors.white,
