@@ -70,7 +70,7 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 
 	mctx.Debug("Going to look up %d emails and %d phone numbers", len(emails), len(phoneNumbers))
 
-	// contactIndex -> true for all contacts that have at least one compoonent resolved.
+	// contactIndex -> true for all contacts that have at least one component resolved.
 	contactsFound := make(map[int]struct{})
 	usersFound := make(map[keybase1.UID]struct{})
 
