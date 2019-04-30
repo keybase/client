@@ -808,7 +808,11 @@ func ForceQuotaReclamationForTesting(config Config,
 // test if there's an error.
 func CheckConfigAndShutdown(
 	ctx context.Context, t logger.TestLogBackend, config Config) {
-	if err := config.Shutdown(ctx); err != nil {
+	err := config.Shutdown(ctx)
+	switch err.(type) {
+	case data.ShutdownHappenedError:
+	case nil:
+	default:
 		t.Errorf("err=%+v", err)
 	}
 }

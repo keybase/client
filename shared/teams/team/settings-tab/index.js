@@ -149,8 +149,14 @@ const OpenTeam = (props: {|...SettingProps, ...RolePickerProps|}) => {
             }}
           >
             <Text type="Body">Make this an open team</Text>
-            <Box2 direction="vertical" alignItems="flex-start" alignSelf="flex-start">
-              <Text type="BodySmall">Anyone will be able to join immediately. Users will join as </Text>
+            <Box2
+              direction={isMobile ? 'vertical' : 'horizontal'}
+              alignItems={isMobile ? 'flex-start' : 'center'}
+              alignSelf="flex-start"
+            >
+              <Text style={styles.joinAs} type="BodySmall">
+                Anyone will be able to join immediately. Users will join as{' '}
+              </Text>
               <FloatingRolePicker
                 confirmLabel={`Let in as ${pluralize(props.newOpenTeamRole)}`}
                 selectedRole={props.newOpenTeamRole}
@@ -363,6 +369,11 @@ const styles = styleSheetCreate({
     isElectron: {
       position: 'relative',
       top: -20,
+    },
+  }),
+  joinAs: platformStyles({
+    isElectron: {
+      paddingRight: 2,
     },
   }),
 })

@@ -199,7 +199,7 @@ func newBlockRetrievalQueue(
 func (brq *blockRetrievalQueue) sendWork(workerCh channels.Channel) {
 	select {
 	case <-brq.doneCh:
-		brq.shutdownRetrieval()
+		_ = brq.shutdownRetrievalLocked()
 	// Notify the next queued worker.
 	case workerCh.In() <- struct{}{}:
 	}
@@ -248,11 +248,18 @@ func (brq *blockRetrievalQueue) popIfNotEmpty() *blockRetrieval {
 	return brq.popIfNotEmptyLocked()
 }
 
-func (brq *blockRetrievalQueue) shutdownRetrieval() {
+func (brq *blockRetrievalQueue) shutdownRetrievalLocked() bool {
 	retrieval := brq.popIfNotEmptyLocked()
-	if retrieval != nil {
-		brq.FinalizeRequest(retrieval, nil, DiskBlockAnyCache, io.EOF)
+	if retrieval == nil {
+		return false
 	}
+
+	// TODO: try to infer the block type from the requests in the retrieval?
+	bpLookup := blockPtrLookup{retrieval.blockPtr, reflect.TypeOf(nil)}
+	delete(brq.ptrs, bpLookup)
+	brq.finalizeRequestAfterPtrDeletion(
+		retrieval, nil, DiskBlockAnyCache, io.EOF)
+	return true
 }
 
 // notifyWorker notifies workers that there is a new request for processing.
@@ -568,19 +575,9 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 	return brq.request(ctx, priority, kmd, ptr, block, lifetime, action)
 }
 
-// FinalizeRequest is the last step of a retrieval request once a block has
-// been obtained. It removes the request from the blockRetrievalQueue,
-// preventing more requests from mutating the retrieval, then notifies all
-// subscribed requests.
-func (brq *blockRetrievalQueue) FinalizeRequest(
+func (brq *blockRetrievalQueue) finalizeRequestAfterPtrDeletion(
 	retrieval *blockRetrieval, block data.Block, cacheType DiskBlockCacheType,
 	retrievalErr error) {
-	brq.mtx.Lock()
-	// This might have already been removed if the context has been canceled.
-	// That's okay, because this will then be a no-op.
-	bpLookup := blockPtrLookup{retrieval.blockPtr, reflect.TypeOf(block)}
-	delete(brq.ptrs, bpLookup)
-	brq.mtx.Unlock()
 	defer retrieval.cancelFunc()
 
 	// This is a lock that exists for the race detector, since there
@@ -655,12 +652,36 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 	retrieval.requests = nil
 }
 
+// FinalizeRequest is the last step of a retrieval request once a block has
+// been obtained. It removes the request from the blockRetrievalQueue,
+// preventing more requests from mutating the retrieval, then notifies all
+// subscribed requests.
+func (brq *blockRetrievalQueue) FinalizeRequest(
+	retrieval *blockRetrieval, block data.Block, cacheType DiskBlockCacheType,
+	retrievalErr error) {
+	brq.mtx.Lock()
+	// This might have already been removed if the context has been canceled.
+	// That's okay, because this will then be a no-op.
+	bpLookup := blockPtrLookup{retrieval.blockPtr, reflect.TypeOf(block)}
+	delete(brq.ptrs, bpLookup)
+	brq.mtx.Unlock()
+	brq.finalizeRequestAfterPtrDeletion(
+		retrieval, block, cacheType, retrievalErr)
+}
+
 func channelToWaitGroup(wg *sync.WaitGroup, ch <-chan struct{}) {
 	wg.Add(1)
 	go func() {
 		<-ch
 		wg.Done()
 	}()
+}
+
+func (brq *blockRetrievalQueue) finalizeAllRequests() {
+	brq.mtx.Lock()
+	defer brq.mtx.Unlock()
+	for brq.shutdownRetrievalLocked() {
+	}
 }
 
 // Shutdown is called when we are no longer accepting requests.
@@ -681,6 +702,8 @@ func (brq *blockRetrievalQueue) Shutdown() <-chan struct{} {
 	for _, w := range brq.workers {
 		channelToWaitGroup(&shutdownWaitGroup, w.Shutdown())
 	}
+	brq.finalizeAllRequests()
+
 	brq.prefetchMtx.Lock()
 	defer brq.prefetchMtx.Unlock()
 	channelToWaitGroup(&shutdownWaitGroup, brq.prefetcher.Shutdown())

@@ -393,7 +393,7 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
 
       output = this.props.preview
         ? previewOutput(parseTree)
-        : isAllEmoji(parseTree)
+        : isAllEmoji(parseTree) && !this.props.smallStandaloneEmoji
         ? bigEmojiOutput(parseTree, state)
         : reactOutput(parseTree, state)
     } catch (e) {
