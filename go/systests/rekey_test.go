@@ -530,6 +530,14 @@ func (u *rekeyBackupKeyUI) DisplayResetProgress(_ context.Context, arg keybase1.
 	return nil
 }
 
+func (u *rekeyBackupKeyUI) ExplainDeviceRecovery(_ context.Context, arg keybase1.ExplainDeviceRecoveryArg) error {
+	return nil
+}
+
+func (u *rekeyBackupKeyUI) PromptPassphraseRecovery(_ context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
+	return false, nil
+}
+
 func (rkt *rekeyTester) findNewBackupKey(newList []backupKey) (ret backupKey, found bool) {
 	for _, newBackup := range newList {
 		tmpFound := false
@@ -668,6 +676,12 @@ func (r *rekeyProvisionUI) PromptResetAccount(_ context.Context, arg keybase1.Pr
 }
 func (r *rekeyProvisionUI) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
 	return nil
+}
+func (r *rekeyProvisionUI) ExplainDeviceRecovery(_ context.Context, arg keybase1.ExplainDeviceRecoveryArg) error {
+	return nil
+}
+func (r *rekeyProvisionUI) PromptPassphraseRecovery(_ context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
+	return false, nil
 }
 
 func (rkt *rekeyTester) provisionNewDevice() *deviceWrapper {

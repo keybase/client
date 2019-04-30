@@ -290,6 +290,12 @@ func (r *testRecoverUIProvision) PromptResetAccount(_ context.Context, arg keyba
 func (r *testRecoverUIProvision) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
 	return nil
 }
+func (r *testRecoverUIProvision) PromptPassphraseRecovery(_ context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
+	return false, nil
+}
+func (r *testRecoverUIProvision) ExplainDeviceRecovery(_ context.Context, arg keybase1.ExplainDeviceRecoveryArg) error {
+	return nil
+}
 
 type testRecoverUIRecover struct {
 	libkb.Contextified
