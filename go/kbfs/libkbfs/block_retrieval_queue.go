@@ -380,8 +380,8 @@ func (brq *blockRetrievalQueue) PutInCaches(ctx context.Context,
 
 // checkCaches copies a block into `block` if it's in one of our caches.
 func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
-	kmd libkey.KeyMetadata, ptr data.BlockPointer, block data.Block, action BlockRequestAction) (
-	PrefetchStatus, error) {
+	kmd libkey.KeyMetadata, ptr data.BlockPointer, block data.Block,
+	action BlockRequestAction) (PrefetchStatus, error) {
 	dbc := brq.config.DiskBlockCache()
 	preferredCacheType := action.CacheType()
 
@@ -401,7 +401,7 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 		// If the prefetch status wasn't in the preferred cache, do a
 		// full `Get()` below in an attempt to move the full block
 		// into the preferred cache.
-	} else if dbc == nil {
+	} else if dbc == nil || action.DelayCacheCheck() {
 		return NoPrefetch, err
 	}
 

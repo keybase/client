@@ -446,6 +446,7 @@ const (
 	blockRequestSync
 	blockRequestStopIfFull
 	blockRequestDeepSync
+	blockRequestDelayCacheCheck
 
 	// BlockRequestSolo indicates that no action should take place
 	// after fetching the block.  However, a TLF that is configured to
@@ -505,6 +506,10 @@ func (bra BlockRequestAction) String() string {
 		attrs = append(attrs, "stop-if-full")
 	}
 
+	if bra.DelayCacheCheck() {
+		attrs = append(attrs, "delay-cache-check")
+	}
+
 	return strings.Join(attrs, "|")
 }
 
@@ -551,7 +556,8 @@ func (bra BlockRequestAction) Sync() bool {
 // DeepSync returns true if the action indicates a deep-syncing of the
 // block tree rooted at the given block.
 func (bra BlockRequestAction) DeepSync() bool {
-	return bra == BlockRequestWithDeepSync
+	// The delayed cache check doesn't affect deep-syncing.
+	return bra.WithoutDelayedCacheCheckAction() == BlockRequestWithDeepSync
 }
 
 // DeepPrefetch returns true if the prefetcher should continue
@@ -606,6 +612,26 @@ func (bra BlockRequestAction) CacheType() DiskBlockCacheType {
 // not get rescheduled) when the corresponding disk cache is full.
 func (bra BlockRequestAction) StopIfFull() bool {
 	return bra&blockRequestStopIfFull > 0
+}
+
+// DelayedCacheCheckAction returns a new action that adds the
+// delayed-cache-check feature to `bra`.
+func (bra BlockRequestAction) DelayedCacheCheckAction() BlockRequestAction {
+	return bra | blockRequestDelayCacheCheck
+}
+
+// WithoutDelayedCacheCheckAction returns a new action that strips the
+// delayed-cache-check feature from `bra`.
+func (bra BlockRequestAction) WithoutDelayedCacheCheckAction() BlockRequestAction {
+	return bra &^ blockRequestDelayCacheCheck
+}
+
+// DelayCacheCheck returns true if the disk cache check for a block
+// request should be delayed until the request is being serviced by a
+// block worker, in order to improve the performance of the inline
+// `Request` call.
+func (bra BlockRequestAction) DelayCacheCheck() bool {
+	return bra&blockRequestDelayCacheCheck > 0
 }
 
 // PrefetchProgress tracks the number of bytes fetched for the block
