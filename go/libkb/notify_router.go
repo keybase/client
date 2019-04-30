@@ -92,6 +92,7 @@ type NotifyListener interface {
 	CanUserPerformChanged(teamName string)
 	PhoneNumbersChanged(list []keybase1.UserPhoneNumber, category string, phoneNumber keybase1.PhoneNumber)
 	EmailAddressVerified(emailAddress keybase1.EmailAddress)
+	EmailsChanged(list []keybase1.Email, category string, email keybase1.EmailAddress)
 	PasswordChanged()
 	RootAuditError(msg string)
 	BoxAuditError(msg string)
@@ -193,9 +194,11 @@ func (n *NoopNotifyListener) CanUserPerformChanged(teamName string)     {}
 func (n *NoopNotifyListener) PhoneNumbersChanged(list []keybase1.UserPhoneNumber, category string, phoneNumber keybase1.PhoneNumber) {
 }
 func (n *NoopNotifyListener) EmailAddressVerified(emailAddress keybase1.EmailAddress) {}
-func (n *NoopNotifyListener) PasswordChanged()                                        {}
-func (n *NoopNotifyListener) RootAuditError(msg string)                               {}
-func (n *NoopNotifyListener) BoxAuditError(msg string)                                {}
+func (n *NoopNotifyListener) EmailsChanged(list []keybase1.Email, category string, email keybase1.EmailAddress) {
+}
+func (n *NoopNotifyListener) PasswordChanged()          {}
+func (n *NoopNotifyListener) RootAuditError(msg string) {}
+func (n *NoopNotifyListener) BoxAuditError(msg string)  {}
 
 type NotifyListenerID string
 
@@ -1985,6 +1988,30 @@ func (n *NotifyRouter) HandleEmailAddressVerified(ctx context.Context, emailAddr
 
 	n.runListeners(func(listener NotifyListener) {
 		listener.EmailAddressVerified(emailAddress)
+	})
+}
+
+func (n *NotifyRouter) HandleEmailAddressChanged(ctx context.Context, list []keybase1.Email, category string, emailAddress keybase1.EmailAddress) {
+	if n == nil {
+		return
+	}
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Team {
+			go func() {
+				(keybase1.NotifyEmailAddressClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).EmailsChanged(context.Background(), keybase1.EmailsChangedArg{
+					List:     list,
+					Category: category,
+					Email:    emailAddress,
+				})
+			}()
+		}
+		return true
+	})
+
+	n.runListeners(func(listener NotifyListener) {
+		listener.EmailsChanged(list, category, emailAddress)
 	})
 }
 

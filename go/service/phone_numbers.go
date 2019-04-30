@@ -158,5 +158,7 @@ func (r *phoneNumbersGregorHandler) handlePhoneMsg(ctx context.Context, cli greg
 	} else {
 		r.G().NotifyRouter.HandlePhoneNumbersChanged(ctx, phoneNumbers, category, msg.PhoneNumber)
 	}
-	return r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
+	// Do not dismiss these notifications so other devices can see it and
+	// update their state as well.
+	return nil
 }
