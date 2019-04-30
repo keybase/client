@@ -501,7 +501,9 @@ func (u *UIDMap) MapUIDsToUsernamePackagesOffline(ctx context.Context, g libkb.U
 	return res, nil
 }
 
-func MapUIDsReturnMap(ctx context.Context, u libkb.UIDMapper, g libkb.UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration, networkTimeBudget time.Duration, forceNetworkForFullNames bool) (res map[keybase1.UID]libkb.UsernamePackage, err error) {
+func MapUIDsReturnMap(ctx context.Context, u libkb.UIDMapper, g libkb.UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration,
+	networkTimeBudget time.Duration, forceNetworkForFullNames bool) (res map[keybase1.UID]libkb.UsernamePackage, err error) {
+
 	var uidList []keybase1.UID
 	uidSet := map[keybase1.UID]bool{}
 
@@ -523,6 +525,14 @@ func MapUIDsReturnMap(ctx context.Context, u libkb.UIDMapper, g libkb.UIDMapperC
 		res[uid] = resultList[i]
 	}
 	return res, err
+}
+
+func MapUIDsReturnMapMctx(mctx libkb.MetaContext, uids []keybase1.UID, fullNameFreshness time.Duration, networkTimeBudget time.Duration,
+	forceNetworkForFullNames bool) (res map[keybase1.UID]libkb.UsernamePackage, err error) {
+	// Same as MapUIDsReturnMap, but takes less arguments because of mctx,
+	// which encapsulates ctx, g, and u (g.UIDMapper).
+	g := mctx.G()
+	return MapUIDsReturnMap(mctx.Ctx(), g.UIDMapper, g, uids, fullNameFreshness, networkTimeBudget, forceNetworkForFullNames)
 }
 
 var _ libkb.UIDMapper = (*UIDMap)(nil)
