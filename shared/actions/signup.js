@@ -49,7 +49,10 @@ const showInviteSuccessOnNoErrors = (state: TypedState) =>
   noErrors(state) &&
   RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupRequestInviteSuccess']})
 
-const goToLoginRoot = () => RouteTreeGen.createNavigateTo({parentPath: [loginTab], path: []})
+const goToLoginRoot = () =>
+  flags.useNewRouter
+    ? RouteTreeGen.createNavigateUp()
+    : RouteTreeGen.createNavigateTo({parentPath: [loginTab], path: []})
 
 const showDeviceScreenOnNoErrors = (state: TypedState) =>
   noErrors(state) && RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupDeviceName']})
