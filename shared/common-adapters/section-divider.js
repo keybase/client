@@ -49,10 +49,10 @@ const styles = Styles.styleSheetCreate({
       backgroundColor: Styles.globalColors.blue5,
     },
     isElectron: {
-      height: 24,
+      height: 32,
     },
     isMobile: {
-      height: 32,
+      height: 40,
     },
   }),
   fullWidth: {
