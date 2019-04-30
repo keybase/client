@@ -120,7 +120,8 @@ func newPhoneNumbersGregorHandler(g *libkb.GlobalContext) *phoneNumbersGregorHan
 
 func (r *phoneNumbersGregorHandler) Create(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) (bool, error) {
 	switch category {
-	case "phone.added", "phone.verified", "phone.superseded":
+	case "phone.added", "phone.verified", "phone.superseded",
+		"phone.visibility_changed", "phone.deleted":
 		return true, r.handlePhoneMsg(ctx, cli, category, item)
 	default:
 		if strings.HasPrefix(category, "phone.") {
