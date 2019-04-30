@@ -849,10 +849,10 @@ func (l LoginUI) DisplayResetProgress(ctx context.Context, arg keybase1.DisplayR
 func (l LoginUI) ExplainDeviceRecovery(ctx context.Context, arg keybase1.ExplainDeviceRecoveryArg) error {
 	switch arg.Kind {
 	case keybase1.DeviceType_DESKTOP:
-		l.parent.Printf("On %s go to Settings > Your account, and change your password.\n", arg.Name)
+		l.parent.Printf("On %q, go to "Settings > Your account" to change your password.\n", arg.Name)
 		return nil
 	case keybase1.DeviceType_MOBILE:
-		l.parent.Printf("On %s go to the app menu (the last tab) > Change password, and proceed as instructed.\n", arg.Name)
+		l.parent.Printf("On %q, go to the "menu > Change password" to change your password.\n", arg.Name)
 		return nil
 	default:
 		return fmt.Errorf("Invalid device type passed: %v", arg.Kind)
