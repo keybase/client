@@ -549,7 +549,7 @@ func LoadUserFromServer(m MetaContext, uid keybase1.UID, body *jsonw.Wrapper) (u
 	if body == nil {
 		res, err := m.G().API.Get(m, APIArg{
 			Endpoint:    "user/lookup",
-			SessionType: APISessionTypeNONE,
+			SessionType: APISessionTypeOPTIONAL,
 			Args: HTTPArgs{
 				"uid":          UIDArg(uid),
 				"load_deleted": B{true},

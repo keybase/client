@@ -839,6 +839,14 @@ func TestTeamAfterDeleteUser(t *testing.T) {
 	kickTeamRekeyd(ann.getPrimaryGlobalContext(), t)
 	ann.delete()
 
+	{
+		// See if bob can still load ann after delete. They used to be in the
+		// same team, so he should be able to.
+		arg := libkb.NewLoadUserArg(bob.getPrimaryGlobalContext()).WithUID(ann.uid()).WithPublicKeyOptional().WithForcePoll(true)
+		_, _, err := bob.getPrimaryGlobalContext().GetUPAKLoader().LoadV2(arg)
+		require.NoError(t, err)
+	}
+
 	bob.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2), nil)
 
 	divDebug(ctx, "Deleted ann (%s)", ann.username)
