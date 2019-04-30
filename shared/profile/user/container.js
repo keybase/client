@@ -1,6 +1,5 @@
 // @flow
 import * as React from 'react'
-import * as I from 'immutable'
 import * as Constants from '../../constants/tracker2'
 import * as Container from '../../util/container'
 import * as ProfileGen from '../../actions/profile-gen'
@@ -16,7 +15,6 @@ import ProfileSearch from '../search/bar'
 import flags from '../../util/feature-flags'
 
 type OwnProps = RouteProps<{username: string}, {}>
-const emptySet = I.OrderedSet()
 
 const headerBackgroundColorType = (state, followThem) => {
   if (['broken', 'error'].includes(state)) {
@@ -41,9 +39,9 @@ const mapStateToProps = (state, ownProps) => {
     _suggestionKeys: userIsYou ? state.tracker2.proofSuggestions : null,
     backgroundColorType: headerBackgroundColorType(d.state, followThem),
     followThem,
-    followers: state.tracker2.usernameToDetails.getIn([username, 'followers']) || emptySet,
+    followers: state.tracker2.usernameToDetails.getIn([username, 'followers']),
     followersCount,
-    following: state.tracker2.usernameToDetails.getIn([username, 'following']) || emptySet,
+    following: state.tracker2.usernameToDetails.getIn([username, 'following']),
     followingCount,
     guiID: d.guiID,
     reason: d.reason,
@@ -69,8 +67,8 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
 })
 
 const followToArray = memoize((followers, following) => ({
-  followers: followers.toArray(),
-  following: following.toArray(),
+  followers: followers ? followers.toArray() : null,
+  following: following ? following.toArray() : null,
 }))
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {

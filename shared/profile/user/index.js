@@ -23,9 +23,9 @@ export type Props = {|
   assertionKeys: ?Array<string>, // in sorted order
   backgroundColorType: BackgroundColorType,
   followThem: boolean,
-  followers: Array<string>,
+  followers: ?Array<string>,
   followersCount: ?number,
-  following: Array<string>,
+  following: ?Array<string>,
   followingCount: ?number,
   onAddIdentity: ?() => void,
   onBack: () => void,
@@ -299,13 +299,13 @@ class User extends React.Component<Props, State> {
         />
       )
     }
-    const loading = this.props.followersCount == null || this.props.followingCount == null
+    const loading = !this.props.followers || !this.props.following
     return (
       <FriendshipTabs
         key="tabs"
         loading={loading}
-        numFollowers={this.props.followers.length}
-        numFollowing={this.props.following.length}
+        numFollowers={this.props.followersCount}
+        numFollowing={this.props.followingCount}
         onChangeFollowing={this._changeFollowing}
         selectedFollowing={this.state.selectedFollowing}
       />
@@ -313,7 +313,7 @@ class User extends React.Component<Props, State> {
   }
 
   _renderOtherUsers = ({item, section, index}) =>
-    item.type === 'noFriends' ? (
+    item.type === 'noFriends' || item.type === 'loading' ? (
       <Kb.Box2 direction="horizontal" style={styles.textEmpty} centerChildren={true}>
         <Kb.Text type="BodySmall">{item.text}</Kb.Text>
       </Kb.Box2>
@@ -350,13 +350,20 @@ class User extends React.Component<Props, State> {
     const {itemsInARow, itemWidth} = widthToDimentions(this.state.width)
     // TODO memoize?
     let chunks = this.state.width ? chunk(friends, itemsInARow) : []
-    if (chunks.length === 0 && this.props.followingCount !== null && this.props.followingCount !== null) {
-      chunks.push({
-        text: this.state.selectedFollowing
-          ? `${this.props.userIsYou ? 'You are' : `${this.props.username} is`} not following anyone.`
-          : `${this.props.userIsYou ? 'You have' : `${this.props.username} has`} no followers.`,
-        type: 'noFriends',
-      })
+    if (chunks.length === 0) {
+      if (this.props.following && this.props.following) {
+        chunks.push({
+          text: this.state.selectedFollowing
+            ? `${this.props.userIsYou ? 'You are' : `${this.props.username} is`} not following anyone.`
+            : `${this.props.userIsYou ? 'You have' : `${this.props.username} has`} no followers.`,
+          type: 'noFriends',
+        })
+      } else {
+        chunks.push({
+          text: 'Loading...',
+          type: 'loading',
+        })
+      }
     }
 
     return (
