@@ -143,6 +143,7 @@ connected.navigationOptions = p => ({
     borderBottomWidth: 1,
     borderStyle: 'solid',
   },
+  headerTintColor: Styles.globalColors.white,
   headerTitle: ConnectedHeader,
   headerTitleContainerStyle: {
     left: 60,

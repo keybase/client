@@ -204,14 +204,16 @@ export class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
     ) : null
     return Styles.isMobile ? (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.bioAndProofs}>
-        <Kb.Text
-          type="BodySmallSemibold"
-          negative={true}
-          center={true}
-          style={Styles.collapseStyles([styles.reason, colorTypeToStyle(this.props.backgroundColorType)])}
-        >
-          {this.props.reason}
-        </Kb.Text>
+        {!!this.props.reason && (
+          <Kb.Text
+            type="BodySmallSemibold"
+            negative={true}
+            center={true}
+            style={Styles.collapseStyles([styles.reason, colorTypeToStyle(this.props.backgroundColorType)])}
+          >
+            {this.props.reason}
+          </Kb.Text>
+        )}
         <Kb.Box2 direction="vertical" fullWidth={true} style={{position: 'relative'}}>
           <Kb.Box2
             direction="vertical"
@@ -408,7 +410,7 @@ class User extends React.Component<Props, State> {
 const usernameSelectedFollowing = {}
 
 const avatarSize = 128
-const headerHeight = Styles.isMobile ? 48 : 80
+const headerHeight = Styles.isMobile ? 66 : 80
 
 export const styles = Styles.styleSheetCreate({
   addIdentityButton: {

@@ -34,6 +34,7 @@ const defaultNavigationOptions = {
         leftAction="back"
         onLeftAction={hp.onPress}
         disabled={hp.scene.index === 0}
+        customIconColor={hp.tintColor}
       />
     )
   },
