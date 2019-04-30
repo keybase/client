@@ -189,17 +189,47 @@ func (s *searchSession) searchHitsFromMsgIDs(ctx context.Context, conv types.Rem
 	msgIDs []chat1.MessageID) (convHits *chat1.ChatSearchInboxHit, err error) {
 	convID := conv.GetConvID()
 	defer s.indexer.Trace(ctx, func() error { return err },
-		fmt.Sprintf("searchHitsFromMsgIDs convID: %s hits: %d", convID, len(msgIDs)))()
+		fmt.Sprintf("searchHitsFromMsgIDs convID: %s msgIDs: %d", convID, len(msgIDs)))()
 	if msgIDs == nil {
 		return nil, nil
 	}
 
+	// pull the messages in batches, short circuiting if we meet the search
+	// opts criteria.
+	var hits []chat1.ChatSearchHit
+	for i := 0; i < len(msgIDs); i += s.opts.MaxHits {
+		var batch []chat1.MessageID
+		if i+s.opts.MaxHits > len(msgIDs) {
+			batch = msgIDs[i:]
+		} else {
+			batch = msgIDs[i : i+s.opts.MaxHits]
+		}
+		hits, err = s.searchHitBatch(ctx, convID, batch, hits)
+		if err != nil {
+			return nil, err
+		}
+		if len(hits) >= s.opts.MaxHits {
+			break
+		}
+	}
+	if len(hits) == 0 {
+		return nil, nil
+	}
+	return &chat1.ChatSearchInboxHit{
+		ConvID:   convID,
+		TeamType: conv.GetTeamType(),
+		ConvName: conv.GetName(),
+		Hits:     hits,
+		Time:     hits[0].HitMessage.Valid().Ctime,
+	}, nil
+}
+
+func (s *searchSession) searchHitBatch(ctx context.Context, convID chat1.ConversationID, msgIDs []chat1.MessageID,
+	hits []chat1.ChatSearchHit) (res []chat1.ChatSearchHit, err error) {
 	idSet, msgs, err := s.getMsgsAndIDSet(ctx, convID, msgIDs)
 	if err != nil {
 		return nil, err
 	}
-
-	hits := []chat1.ChatSearchHit{}
 	for i, msg := range msgs {
 		if idSet.Contains(msg.GetMessageID()) && msg.IsValidFull() && s.opts.Matches(msg) {
 			var afterMessages, beforeMessages []chat1.UIMessage
@@ -232,16 +262,7 @@ func (s *searchSession) searchHitsFromMsgIDs(ctx context.Context, conv types.Rem
 			}
 		}
 	}
-	if len(hits) == 0 {
-		return nil, nil
-	}
-	return &chat1.ChatSearchInboxHit{
-		ConvID:   convID,
-		TeamType: conv.GetTeamType(),
-		ConvName: conv.GetName(),
-		Hits:     hits,
-		Time:     hits[0].HitMessage.Valid().Ctime,
-	}, nil
+	return hits, nil
 }
 
 func (s *searchSession) convIndexPercent(ctx context.Context, conv chat1.Conversation) (int, error) {
