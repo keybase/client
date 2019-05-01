@@ -47,7 +47,7 @@ const updateAppBadge = (_, action) => {
 const listenForNativeAndroidIntentNotifications = emitter => {
   const RNEmitter = new NativeEventEmitter(NativeModules.KeybaseEngine)
   // If android launched due to push
-  RNEmitter.addListener('androidIntentNotification', (evt) => {
+  RNEmitter.addListener('androidIntentNotification', evt => {
     logger.info('[PushAndroidIntent]', evt && evt.type)
     const notification = evt && Constants.normalizePush(evt)
     if (!notification) {
@@ -127,8 +127,9 @@ function* handleLoudMessage(notification) {
 
   const {conversationIDKey, unboxPayload, membersType} = notification
 
+  yield Saga.put(RouteTreeGen.createSwitchTab({tab: 'tabs.chatTab'}))
+  yield Saga.put(RouteTreeGen.createNavUpToScreen({routeName: 'chatRoot'}))
   yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'push'}))
-  yield Saga.put(Chat2Gen.createNavigateToThread())
   if (unboxPayload && membersType && !isIOS) {
     logger.info('[Push] unboxing message')
     try {
