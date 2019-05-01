@@ -62,7 +62,7 @@ func (s *Giphy) getLimit() int {
 }
 
 func (s *Giphy) Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	tlfName, text string) (err error) {
+	tlfName, text string, replyTo *chat1.MessageID) (err error) {
 	if !s.Match(ctx, text) {
 		return ErrInvalidCommand
 	}
@@ -77,7 +77,7 @@ func (s *Giphy) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 		return nil
 	}
 	res := results[libkb.RandIntn(len(results))]
-	_, err = s.G().ChatHelper.SendTextByIDNonblock(ctx, convID, tlfName, res.TargetUrl, nil)
+	_, err = s.G().ChatHelper.SendTextByIDNonblock(ctx, convID, tlfName, res.TargetUrl, nil, replyTo)
 	return err
 }
 

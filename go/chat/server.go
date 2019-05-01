@@ -1169,7 +1169,7 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 
 	// Check for any slash command hits for an execute
 	if handled, err := h.G().CommandsSource.AttemptBuiltinCommand(ctx, uid, arg.ConversationID,
-		arg.Msg.ClientHeader.TlfName, arg.Msg.MessageBody); handled {
+		arg.Msg.ClientHeader.TlfName, arg.Msg.MessageBody, arg.ReplyTo); handled {
 		h.Debug(ctx, "PostLocal: handled slash command with error: %s", err)
 		return res, nil
 	}
@@ -1475,7 +1475,7 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 
 	// Check for any slash command hits for an execute
 	if handled, err := h.G().CommandsSource.AttemptBuiltinCommand(ctx, uid, arg.ConversationID,
-		arg.Msg.ClientHeader.TlfName, arg.Msg.MessageBody); handled {
+		arg.Msg.ClientHeader.TlfName, arg.Msg.MessageBody, arg.ReplyTo); handled {
 		h.Debug(ctx, "PostLocalNonblock: handled slash command with error: %s", err)
 		return res, nil
 	}
