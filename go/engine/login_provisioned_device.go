@@ -5,6 +5,7 @@ package engine
 
 import (
 	"fmt"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -17,8 +18,6 @@ type LoginProvisionedDevice struct {
 	uid             keybase1.UID
 	deviceID        keybase1.DeviceID
 	SecretStoreOnly bool // this should only be set by the service on its startup login attempt
-
-	skippedLogin bool // if set to true, the login operation resulted in the user entering autoreset
 }
 
 // newLoginCurrentDevice creates a loginProvisionedDevice engine.
@@ -53,19 +52,12 @@ func (e *LoginProvisionedDevice) RequiredUIs() []libkb.UIKind {
 
 // SubConsumers returns the other UI consumers for this engine.
 func (e *LoginProvisionedDevice) SubConsumers() []libkb.UIConsumer {
-	return []libkb.UIConsumer{
-		&AccountReset{},
-	}
+	return []libkb.UIConsumer{}
 }
 
 func (e *LoginProvisionedDevice) Run(m libkb.MetaContext) error {
 	if err := e.run(m); err != nil {
 		return err
-	}
-
-	// User entered reset flow, so we haven't logged in.
-	if e.skippedLogin {
-		return nil
 	}
 
 	m.Debug("LoginProvisionedDevice success, sending login notification")
@@ -271,10 +263,6 @@ func (e *LoginProvisionedDevice) run(m libkb.MetaContext) (err error) {
 	m = m.WithNewProvisionalLoginContext()
 	err = e.tryPassphraseLogin(m)
 	if err != nil {
-		// Suggest autoreset if user failed to log in
-		if _, ok := err.(libkb.PassphraseError); ok {
-			return e.suggestRecovery(m)
-		}
 		return err
 	}
 
@@ -288,32 +276,6 @@ func (e *LoginProvisionedDevice) run(m libkb.MetaContext) (err error) {
 		return libkb.NewLoginRequiredError("login failed after passphrase verified")
 	}
 
-	return nil
-}
-
-func (e *LoginProvisionedDevice) suggestRecovery(mctx libkb.MetaContext) error {
-	// Whatever happens here won't result in a session, so we can mark this engine as a noop.
-	e.skippedLogin = true
-
-	enterReset, err := mctx.UIs().LoginUI.PromptResetAccount(mctx.Ctx(), keybase1.PromptResetAccountArg{
-		Kind: keybase1.ResetPromptType_ENTER_FORGOT_PW,
-	})
-	if err != nil {
-		return err
-	}
-	if !enterReset {
-		// Cancel the engine as it successfully resulted in the user entering the reset pipeline.
-		return nil
-	}
-
-	// We are certain the user will not know their password, so we can disable that prompt.
-	eng := NewAccountReset(mctx.G(), e.username.String())
-	eng.skipPasswordPrompt = true
-	if err := eng.Run(mctx); err != nil {
-		return err
-	}
-
-	// We're ignoring eng.ResetPending() as we've disabled reset completion
 	return nil
 }
 
