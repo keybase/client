@@ -126,7 +126,7 @@ const routeTree = () => {
 export default routeTree
 
 export const newRoutes = {
-  'settingsTabs.teamsTab': {getScreen: () => require('./container').default, upgraded: true},
+  'tabs.teamsTab': {getScreen: () => require('./container').default, upgraded: true},
   team: {getScreen: () => require('./team/container').default, upgraded: true},
   teamMember: {getScreen: () => require('./team/member/container').default, upgraded: true},
   teamsRoot: {getScreen: () => require('./container').default, upgraded: true},
