@@ -16,7 +16,7 @@ type Props = {|
   onQuit: () => void,
   onSettings: () => void,
   onSignOut: () => void,
-  onTabClick: (tab: Tabs.DesktopTab) => void,
+  onTabClick: (tab: Tabs.AppTab) => void,
   selectedTab: Tabs.Tab,
   uploading: boolean,
   username: string,

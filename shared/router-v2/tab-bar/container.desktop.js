@@ -18,7 +18,7 @@ import * as SettingsGen from '../../actions/settings-gen'
 
 type OwnProps = {|
   navigation: any,
-  selectedTab: Tabs.DesktopTab,
+  selectedTab: Tabs.AppTab,
 |}
 
 const mapStateToProps = state => ({
@@ -77,7 +77,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onQuit: dispatchProps.onQuit,
   onSettings: dispatchProps.onSettings,
   onSignOut: dispatchProps.onSignOut,
-  onTabClick: (tab: Tabs.DesktopTab) => dispatchProps._onTabClick(tab, stateProps._walletsAcceptedDisclaimer),
+  onTabClick: (tab: Tabs.AppTab) => dispatchProps._onTabClick(tab, stateProps._walletsAcceptedDisclaimer),
   selectedTab: ownProps.selectedTab,
   uploading: stateProps.uploading,
   username: stateProps.username,

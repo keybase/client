@@ -38,7 +38,7 @@ type _ResetRoutePayload = $ReadOnly<{|path: RCConstants.Path|}>
 type _SetInitialRouteDefPayload = $ReadOnly<{|routeDef: RCConstants.RouteDefParams|}>
 type _SetRouteStatePayload = $ReadOnly<{|path: RCConstants.Path, partialState: {} | ((oldState: I.Map<string, any>) => I.Map<string, any>)|}>
 type _SwitchRouteDefPayload = $ReadOnly<{|routeDef: RCConstants.RouteDefParams, path?: ?RCConstants.Path|}>
-type _SwitchTabPayload = $ReadOnly<{|tab: Tabs.DesktopTab|}>
+type _SwitchTabPayload = $ReadOnly<{|tab: Tabs.AppTab|}>
 type _SwitchToPayload = $ReadOnly<{|path: RCConstants.Path, parentPath?: ?RCConstants.Path|}>
 
 // Action Creators

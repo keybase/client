@@ -41,15 +41,7 @@ export type Tab =
   | FsTab
   | WalletsTab
 
-export type DesktopTab =
-  | PeopleTab
-  | ChatTab
-  | FsTab
-  | TeamsTab
-  | WalletsTab
-  | GitTab
-  | DevicesTab
-  | SettingsTab
+export type AppTab = PeopleTab | ChatTab | FsTab | TeamsTab | WalletsTab | GitTab | DevicesTab | SettingsTab
 
 // Canonical ordering for desktop tabs, used visually and for hotkeys
 const desktopTabOrder = [
