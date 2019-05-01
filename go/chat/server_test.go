@@ -665,7 +665,15 @@ func sweepPollForDeletion(t *testing.T, ctc *chatTestContext, asUser *kbtest.Fak
 			foundTaskCount++
 		}
 		if res.DeletedMessages {
-			expungeInfo := consumeExpunge(t, listener)
+			var expungeInfo chat1.ExpungeInfo
+			for {
+				expungeInfo = consumeExpunge(t, listener)
+				if expungeInfo.Expunge == res.Expunge {
+					break
+				}
+				t.Logf("sweepPollForDeletion %+v != %+v, trying consumeExpunge again",
+					expungeInfo.Expunge, res.Expunge)
+			}
 			require.Equal(t, convID, expungeInfo.ConvID, "accidentally consumed expunge info for other conv")
 			upto = res.Expunge.Upto
 			if upto >= uptoWant {
