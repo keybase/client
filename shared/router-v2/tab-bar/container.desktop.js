@@ -37,7 +37,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     if (ownProps.selectedTab === Tabs.peopleTab && tab !== Tabs.peopleTab) {
       dispatch(PeopleGen.createMarkViewed())
     }
-    if (ownProps.selectedTab === Tabs.chatTab && tab !== Tabs.chatTab) {
+    if (ownProps.selectedTab !== Tabs.chatTab && tab === Tabs.chatTab) {
       dispatch(Chat2Gen.createTabSelected())
     }
     if (ownProps.selectedTab !== Tabs.walletsTab && tab === Tabs.walletsTab && !walletsAcceptedDisclaimer) {
