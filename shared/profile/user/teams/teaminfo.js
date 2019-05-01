@@ -23,68 +23,73 @@ type Props = {|
   visible: boolean,
 |}
 
-const TeamInfo = (p: Props) => (
-  <FloatingMenu
-    attachTo={p.attachTo}
-    closeOnSelect={false}
-    onHidden={p.onHidden}
-    visible={p.visible}
-    header={{
-      title: 'header',
-      view: (
-        <Box2
-          centerChildren={true}
-          direction="vertical"
-          gap="tiny"
-          gapStart={true}
-          gapEnd={true}
-          style={styles.infoPopup}
-        >
-          <NameWithIcon
-            size="small"
-            teamname={p.name}
-            title={p.name}
-            metaOne={<OpenMeta isOpen={p.isOpen} />}
-            metaTwo={
-              <Text type="BodySmall">
-                {p.membersCount} member{p.membersCount > 1 ? 's' : ''}
-              </Text>
-            }
-          />
-          <Text type="Body" style={styles.description}>
-            {p.description}
-          </Text>
-          {!p.inTeam && (
-            <WaitingButton
-              fullWidth={true}
-              waitingKey={Constants.waitingKey}
-              label={p.isOpen ? 'Join team' : 'Request to join'}
-              onClick={() => p.onJoinTeam(p.name)}
-              type={p.isOpen ? 'Success' : 'Default'}
+const isPrivate = (p: Props) => {
+  return p.membersCount === 0 && p.description.length === 0
+}
+
+const TeamInfo = (p: Props) => {
+  const memberText = isPrivate(p)
+    ? 'This team is private. Admins will decide if they can let you in'
+    : `${p.membersCount} member${p.membersCount > 1 ? 's' : ''}`
+  return (
+    <FloatingMenu
+      attachTo={p.attachTo}
+      closeOnSelect={false}
+      onHidden={p.onHidden}
+      visible={p.visible}
+      header={{
+        title: 'header',
+        view: (
+          <Box2
+            centerChildren={true}
+            direction="vertical"
+            gap="tiny"
+            gapStart={true}
+            gapEnd={true}
+            style={styles.infoPopup}
+          >
+            <NameWithIcon
+              size="small"
+              teamname={p.name}
+              title={p.name}
+              metaOne={<OpenMeta isOpen={p.isOpen} />}
+              metaTwo={<Text type="BodySmall">{memberText}</Text>}
             />
-          )}
-          {!!p.publicAdmins.length && (
-            <Text center={true} type="BodySmall">
-              Public admins:{' '}
-              {
-                <ConnectedUsernames
-                  type="BodySmallSemibold"
-                  colorFollowing={true}
-                  colorBroken={true}
-                  onUsernameClicked="profile"
-                  usernames={p.publicAdmins}
-                  containerStyle={styles.publicAdmins}
-                />
-              }
+            <Text type="Body" style={styles.description}>
+              {p.description}
             </Text>
-          )}
-        </Box2>
-      ),
-    }}
-    position="bottom left"
-    items={[]}
-  />
-)
+            {!p.inTeam && (
+              <WaitingButton
+                fullWidth={true}
+                waitingKey={Constants.waitingKey}
+                label={p.isOpen ? 'Join team' : 'Request to join'}
+                onClick={() => p.onJoinTeam(p.name)}
+                type={p.isOpen ? 'Success' : 'Default'}
+              />
+            )}
+            {!!p.publicAdmins.length && (
+              <Text center={true} type="BodySmall">
+                Public admins:{' '}
+                {
+                  <ConnectedUsernames
+                    type="BodySmallSemibold"
+                    colorFollowing={true}
+                    colorBroken={true}
+                    onUsernameClicked="profile"
+                    usernames={p.publicAdmins}
+                    containerStyle={styles.publicAdmins}
+                  />
+                }
+              </Text>
+            )}
+          </Box2>
+        ),
+      }}
+      position="bottom left"
+      items={[]}
+    />
+  )
+}
 
 const styles = Styles.styleSheetCreate({
   description: {textAlign: 'center'},
