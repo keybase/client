@@ -46,18 +46,13 @@ const People = (props: Props) => (
 
 const styles = Styles.styleSheetCreate({
   container: {...Styles.globalStyles.fullHeight},
-  header: flags.useNewRouter
-    ? {
-        flexGrow: 1,
-        marginLeft: Styles.globalMargins.xsmall,
-      }
-    : {flexGrow: 1},
+  header: {flexGrow: 1},
   progress: {
-    height: 32,
-    left: 96,
+    height: 18,
+    left: 40,
     position: 'absolute',
-    top: 8,
-    width: 32,
+    top: 9,
+    width: 18,
     zIndex: 2,
   },
   searchContainer: {paddingBottom: Styles.globalMargins.xsmall},

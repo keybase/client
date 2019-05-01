@@ -48,7 +48,8 @@ class ProfileSearch extends React.PureComponent<Props, State> {
           visible={this.state.show}
           onHidden={this._onHide}
           attachTo={this._getAttachmentRef}
-          position="top center"
+          matchDimension={flags.useNewRouter}
+          position={flags.useNewRouter ? undefined : 'top center'}
           style={styles.overlay}
         >
           <Search onClose={this._onHide} />
@@ -58,24 +59,27 @@ class ProfileSearch extends React.PureComponent<Props, State> {
   }
 }
 
+const searchContainerHeight = flags.useNewRouter ? 32 : 24
 const styles = Styles.styleSheetCreate({
   colorWhite: {
     color: Styles.globalColors.white_75,
   },
   container: {
-    ...(flags.useNewRouter ? {alignSelf: 'flex-start', flexGrow: 1, width: '100%'} : {alignSelf: 'center'}),
+    ...(flags.useNewRouter ? {width: '100%'} : {alignSelf: 'center'}),
   },
   overlay: Styles.platformStyles({
     isElectron: {
-      ...Styles.desktopStyles.boxShadow,
-      ...Styles.globalStyles.flexBoxColumn,
-      ...Styles.desktopStyles.windowDraggingClickable,
-      ...(flags.useNewRouter ? {marginRight: 12} : {}),
-      ...(flags.useNewRouter ? {width: '100%'} : {}),
-      alignSelf: 'center',
+      ...(flags.useNewRouter
+        ? {
+            marginLeft: Styles.globalMargins.xsmall,
+            marginRight: Styles.globalMargins.xsmall,
+            marginTop: -(searchContainerHeight + 8),
+          }
+        : {
+            marginTop: -searchContainerHeight,
+            minWidth: 400,
+          }),
       borderRadius: 5,
-      marginTop: -24,
-      minWidth: 400,
     },
   }),
   searchContainer: Styles.platformStyles({
@@ -90,11 +94,17 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       ...Styles.desktopStyles.clickable,
       ...Styles.desktopStyles.windowDraggingClickable,
-      ...(flags.useNewRouter ? {width: '100%'} : {width: 240}),
-      height: 24,
+      ...(flags.useNewRouter
+        ? {
+            justifyContent: 'flex-start',
+            paddingLeft: Styles.globalMargins.xsmall,
+            width: '100%',
+          }
+        : {width: 240}),
+      height: searchContainerHeight,
       marginLeft: flags.useNewRouter ? Styles.globalMargins.xsmall : Styles.globalMargins.small,
       marginRight: flags.useNewRouter ? Styles.globalMargins.xsmall : Styles.globalMargins.small,
-      marginTop: flags.useNewRouter ? 0 : Styles.globalMargins.xsmall,
+      marginTop: flags.useNewRouter ? -Styles.globalMargins.xtiny : Styles.globalMargins.xsmall,
     },
     isMobile: {
       flexGrow: 1,
@@ -104,7 +114,7 @@ const styles = Styles.styleSheetCreate({
   searchIcon: {paddingRight: Styles.globalMargins.tiny},
   searchText: {
     color: Styles.globalColors.black_50,
-    // maxWidth: flags.useNewRouter ? 240 : undefined,
+    maxWidth: flags.useNewRouter ? 240 : undefined,
   },
 })
 
