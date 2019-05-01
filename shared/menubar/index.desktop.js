@@ -89,7 +89,7 @@ class MenubarRender extends React.Component<Props, State> {
           <Kb.Icon
             color={menuColor}
             hoverColor={menuColor}
-            type="iconfont-nav-2-more"
+            type="iconfont-nav-2-hamburger"
             sizeType="Big"
             onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
             ref={this.attachmentRef}
@@ -148,7 +148,7 @@ class MenubarRender extends React.Component<Props, State> {
           <Kb.Icon
             color={menuColor}
             hoverColor={menuColor}
-            type="iconfont-nav-2-more"
+            type="iconfont-nav-2-hamburger"
             sizeType="Big"
             onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
             ref={this.attachmentRef}
@@ -193,14 +193,14 @@ class MenubarRender extends React.Component<Props, State> {
 
   _menuView(title, iconType, count) {
     return (
-      <Kb.Box2 direction="horizontal" fullWidth={true}>
-        <Kb.Box style={{marginRight: Styles.globalMargins.xsmall, position: 'relative'}}>
-          <Kb.Icon type={iconType} color={Styles.globalColors.black_20} fontSize={20} />
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={{alignItems: 'center'}}>
+        <Kb.Box style={{marginRight: Styles.globalMargins.tiny, position: 'relative'}}>
+          <Kb.Icon type={iconType} color={Styles.globalColors.blue} sizeType="Big" />
           {!!count && (
             <Kb.Badge badgeNumber={count || 0} badgeStyle={{left: 14, position: 'absolute', top: -2}} />
           )}
         </Kb.Box>
-        <Kb.Text className="title" type="Body" style={Styles.collapseStyles([{color: undefined}])}>
+        <Kb.Text className="title" type="BodySemibold" style={Styles.collapseStyles([{color: undefined}])}>
           {title}
         </Kb.Text>
       </Kb.Box2>
@@ -219,22 +219,22 @@ class MenubarRender extends React.Component<Props, State> {
             {
               onClick: () => this.props.openApp(Tabs.walletsTab),
               title: 'Wallet',
-              view: this._menuView('Wallet', 'iconfont-nav-wallets', countMap[Tabs.walletsTab]),
+              view: this._menuView('Wallet', 'iconfont-nav-2-wallets', countMap[Tabs.walletsTab]),
             },
             {
               onClick: () => this.props.openApp(Tabs.gitTab),
               title: 'Git',
-              view: this._menuView('Git', 'iconfont-nav-git', countMap[Tabs.gitTab]),
+              view: this._menuView('Git', 'iconfont-nav-2-git', countMap[Tabs.gitTab]),
             },
             {
               onClick: () => this.props.openApp(Tabs.devicesTab),
               title: 'Devices',
-              view: this._menuView('Devices', 'iconfont-nav-devices', countMap[Tabs.devicesTab]),
+              view: this._menuView('Devices', 'iconfont-nav-2-devices', countMap[Tabs.devicesTab]),
             },
             {
               onClick: () => this.props.openApp(Tabs.settingsTab),
               title: 'Settings',
-              view: this._menuView('Settings', 'iconfont-nav-settings', countMap[Tabs.settingsTab]),
+              view: this._menuView('Settings', 'iconfont-nav-2-settings', countMap[Tabs.settingsTab]),
             },
             'Divider',
           ]
@@ -290,12 +290,12 @@ class MenubarRender extends React.Component<Props, State> {
                 position: 'relative',
               },
             ])}
-            onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
           >
             <Kb.Icon
               color={Styles.globalColors.darkBlue4}
               hoverColor={Styles.globalColors.white}
-              type="iconfont-nav-2-more"
+              onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
+              type="iconfont-nav-2-hamburger"
               sizeType="Big"
               ref={this.attachmentRef}
             />
