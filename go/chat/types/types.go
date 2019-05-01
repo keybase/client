@@ -366,6 +366,10 @@ func (d DummyIndexer) IndexInbox(ctx context.Context, uid gregor1.UID) (map[stri
 func (d DummyIndexer) ClearCache() {
 	return
 }
+func (d DummyIndexer) PokeSync(ctx context.Context) {
+}
+func (d DummyIndexer) CancelSync(ctx context.Context) {
+}
 func (d DummyIndexer) OnLogout(mctx libkb.MetaContext) error {
 	return nil
 }

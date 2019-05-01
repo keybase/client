@@ -606,6 +606,7 @@
     int numHits;
     int numConvs;
     int percentIndexed;
+    boolean delegated;
   }
 
   record ChatSearchIndexStatus {

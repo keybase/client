@@ -1606,6 +1606,10 @@
         {
           "type": "int",
           "name": "percentIndexed"
+        },
+        {
+          "type": "boolean",
+          "name": "delegated"
         }
       ]
     },

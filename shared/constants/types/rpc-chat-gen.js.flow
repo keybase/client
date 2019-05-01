@@ -836,7 +836,7 @@ export type ChatActivityType =
   | 12 // MESSAGES_UPDATED_12
 
 export type ChatSearchHit = $ReadOnly<{beforeMessages?: ?Array<UIMessage>, hitMessage: UIMessage, afterMessages?: ?Array<UIMessage>, matches?: ?Array<ChatSearchMatch>}>
-export type ChatSearchInboxDone = $ReadOnly<{numHits: Int, numConvs: Int, percentIndexed: Int}>
+export type ChatSearchInboxDone = $ReadOnly<{numHits: Int, numConvs: Int, percentIndexed: Int, delegated: Boolean}>
 export type ChatSearchInboxHit = $ReadOnly<{convID: ConversationID, teamType: TeamType, convName: String, query: String, time: Gregor1.Time, hits?: ?Array<ChatSearchHit>}>
 export type ChatSearchInboxResults = $ReadOnly<{hits?: ?Array<ChatSearchInboxHit>, percentIndexed: Int}>
 export type ChatSearchIndexStatus = $ReadOnly<{percentIndexed: Int}>

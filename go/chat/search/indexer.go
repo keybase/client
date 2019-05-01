@@ -432,10 +432,6 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query, origQuer
 	opts chat1.SearchOpts, hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus) (res *chat1.ChatSearchInboxResults, err error) {
 	defer idx.Trace(ctx, func() error { return err }, "Indexer.Search")()
 	defer func() {
-		// get a selective sync to run after the search completes even if we
-		// errored.
-		idx.PokeSync(ctx)
-
 		if hitUICh != nil {
 			close(hitUICh)
 		}
@@ -447,7 +443,6 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query, origQuer
 		idx.Debug(ctx, "Search: Search indexer is disabled, results will be inaccurate.")
 	}
 
-	idx.CancelSync(ctx)
 	sess := newSearchSession(query, origQuery, uid, hitUICh, indexUICh, idx, opts)
 	return sess.run(ctx)
 }

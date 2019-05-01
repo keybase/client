@@ -75,6 +75,8 @@ func newCmdChatSearchInbox(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
 
 func (c *CmdChatSearchInbox) Run() (err error) {
 	ui := NewChatCLIUI(c.G())
+	// hide duplicate output if we delegate the search to thread searcher.
+	ui.noThreadSearch = true
 	protocols := []rpc.Protocol{
 		chat1.ChatUiProtocol(ui),
 	}
