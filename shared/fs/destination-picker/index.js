@@ -35,7 +35,6 @@ const NewFolder = ({onNewFolder}) => (
 
 const DesktopHeaders = (props: Props) => (
   <>
-    <FsCommon.LoadPathMetadataWhenNeeded path={props.parentPath} refreshTag="destination-picker" />
     <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.desktopHeader} gap="xtiny">
       <Kb.Text type="Header" style={{flexShrink: 0}}>
         Move or Copy “
@@ -61,6 +60,7 @@ const DesktopHeaders = (props: Props) => (
 
 const DestinationPicker = (props: Props) => (
   <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
+    <FsCommon.LoadPathMetadataWhenNeeded path={props.parentPath} refreshTag="destination-picker" />
     {!Styles.isMobile && <DesktopHeaders {...props} />}
     <Kb.Divider key="dheader" />
     {!!props.onBackUp && (
