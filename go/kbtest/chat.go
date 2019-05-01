@@ -1171,6 +1171,10 @@ func (c *ChatUI) ChatCommandMarkdown(ctx context.Context, convID chat1.Conversat
 	return nil
 }
 
+func (c *ChatUI) ChatTeamMentionUpdate(ctx context.Context, teamName string, info chat1.UITeamMention) error {
+	return nil
+}
+
 type DummyAssetDeleter struct{}
 
 func NewDummyAssetDeleter() DummyAssetDeleter {

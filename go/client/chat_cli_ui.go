@@ -346,3 +346,7 @@ func (c *ChatCLIUI) ChatCoinFlipStatus(ctx context.Context, arg chat1.ChatCoinFl
 func (c *ChatCLIUI) ChatCommandMarkdown(ctx context.Context, arg chat1.ChatCommandMarkdownArg) error {
 	return nil
 }
+
+func (c *ChatCLIUI) ChatTeamMentionUpdate(ctx context.Context, arg chat1.ChatTeamMentionUpdateArg) error {
+	return nil
+}

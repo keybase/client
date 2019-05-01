@@ -246,7 +246,7 @@ func TestDecorateMentions(t *testing.T) {
 		},
 	}
 	for _, c := range cases {
-		res := DecorateWithMentions(context.TODO(), c.body, c.atMentions, c.chanMention,
+		res := DecorateWithMentions(context.TODO(), c.body, c.atMentions, nil, c.chanMention,
 			c.channelNameMentions)
 		require.Equal(t, c.result, res)
 	}

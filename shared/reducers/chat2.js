@@ -1025,6 +1025,9 @@ const rootReducer = (
         })
       })
     case Chat2Gen.inboxSearchSetIndexPercent:
+      if (!state.inboxSearch || state.inboxSearch.textStatus !== 'inprogress') {
+        return state
+      }
       return state.update('inboxSearch', info => {
         return (info || Constants.makeInboxSearchInfo()).merge({
           indexPercent: action.payload.percent,
@@ -1140,6 +1143,11 @@ const rootReducer = (
         old.setIn([conversationIDKey, messageID], paymentInfo)
       )
       return nextState.update('paymentStatusMap', old => old.setIn([paymentInfo.paymentID], paymentInfo))
+    }
+    case Chat2Gen.setTeamMentionInfo: {
+      const {name, info} = action.payload
+      // $FlowIssue complains about using name for setIn for unknown reason
+      return state.setIn(['teamMentionMap', name], info)
     }
     case Chat2Gen.requestInfoReceived: {
       const {conversationIDKey, messageID, requestInfo} = action.payload

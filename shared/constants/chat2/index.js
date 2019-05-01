@@ -53,6 +53,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   selectedConversation: noConversationIDKey,
   smallTeamsExpanded: false,
   staticConfig: null,
+  teamMentionMap: I.Map(),
   threadSearchInfoMap: I.Map(),
   threadSearchQueryMap: I.Map(),
   trustedInboxHasLoaded: false,

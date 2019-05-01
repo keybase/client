@@ -2,8 +2,9 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Types from '../../../constants/types/tracker2'
-import * as Constants from '../../../constants/tracker2'
 import * as Styles from '../../../styles'
+import OpenMeta from './openmeta'
+import TeamInfo from './teaminfo'
 
 type Props = {|
   teamShowcase: $ReadOnlyArray<Types._TeamShowcase>,
@@ -15,72 +16,6 @@ type Props = {|
   onJoinTeam: string => void,
   onEdit: ?() => void,
 |}
-
-const OpenMeta = ({isOpen}) =>
-  isOpen && <Kb.Meta backgroundColor={Styles.globalColors.green} title="open" style={styles.meta} />
-
-const TeamInfo = p => (
-  <Kb.FloatingMenu
-    attachTo={p.attachTo}
-    closeOnSelect={false}
-    onHidden={p.onHidden}
-    visible={p.visible}
-    header={{
-      title: 'header',
-      view: (
-        <Kb.Box2
-          centerChildren={true}
-          direction="vertical"
-          gap="tiny"
-          gapStart={true}
-          gapEnd={true}
-          style={styles.infoPopup}
-        >
-          <Kb.NameWithIcon
-            size="small"
-            teamname={p.name}
-            title={p.name}
-            metaOne={<OpenMeta isOpen={p.isOpen} />}
-            metaTwo={
-              <Kb.Text type="BodySmall">
-                {p.membersCount} member{p.membersCount > 1 ? 's' : ''}
-              </Kb.Text>
-            }
-          />
-          <Kb.Text type="Body" style={styles.description}>
-            {p.description}
-          </Kb.Text>
-          {!p.inTeam && (
-            <Kb.WaitingButton
-              fullWidth={true}
-              waitingKey={Constants.waitingKey}
-              label={p.isOpen ? 'Join team' : 'Request to join'}
-              onClick={() => p.onJoinTeam(p.name)}
-              type={p.isOpen ? 'Success' : 'Default'}
-            />
-          )}
-          {!!p.publicAdmins.length && (
-            <Kb.Text center={true} type="BodySmall">
-              Public admins:{' '}
-              {
-                <Kb.ConnectedUsernames
-                  type="BodySmallSemibold"
-                  colorFollowing={true}
-                  colorBroken={true}
-                  onUsernameClicked="profile"
-                  usernames={p.publicAdmins}
-                  containerStyle={styles.publicAdmins}
-                />
-              }
-            </Kb.Text>
-          )}
-        </Kb.Box2>
-      ),
-    }}
-    position="bottom left"
-    items={[]}
-  />
-)
 
 const _TeamShowcase = p => (
   <Kb.ClickableBox ref={p.setAttachmentRef} onClick={p.toggleShowingMenu}>
@@ -131,17 +66,8 @@ const Teams = (p: Props) =>
   ) : null
 
 const styles = Styles.styleSheetCreate({
-  description: {textAlign: 'center'},
-  infoPopup: {
-    maxWidth: 225,
-    padding: Styles.globalMargins.small,
-  },
   link: {color: Styles.globalColors.black},
-  meta: {alignSelf: 'center'},
   placeholderTeam: {borderRadius: Styles.borderRadius},
-  publicAdmins: Styles.platformStyles({
-    isElectron: {display: 'unset'},
-  }),
   showcase: {alignItems: 'center'},
   showcases: {
     alignItems: 'flex-start',

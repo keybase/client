@@ -2693,6 +2693,14 @@ const onChatCommandMarkdown = (status, action) => {
   })
 }
 
+const onChatTeamMentionUpdate = (state, action) => {
+  const {teamName, info} = action.payload.params
+  return Chat2Gen.createSetTeamMentionInfo({
+    info,
+    name: teamName,
+  })
+}
+
 const openChatFromWidget = (state, {payload: {conversationIDKey}}) => [
   ConfigGen.createShowMain(),
   RouteTreeGen.createSwitchTo({path: [Tabs.chatTab]}),
@@ -3145,6 +3153,10 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<EngineGen.Chat1ChatUiChatCommandMarkdownPayload>(
     EngineGen.chat1ChatUiChatCommandMarkdown,
     onChatCommandMarkdown
+  )
+  yield* Saga.chainAction<EngineGen.Chat1ChatUiChatTeamMentionUpdatePayload>(
+    EngineGen.chat1ChatUiChatTeamMentionUpdate,
+    onChatTeamMentionUpdate
   )
 
   yield* Saga.chainAction<Chat2Gen.ReplyJumpPayload>(Chat2Gen.replyJump, onReplyJump)

@@ -654,6 +654,11 @@
     "inboxSearchSetIndexPercent": {
       "_description": "Set index percent complete",
       "percent": "number"
+    },
+    "setTeamMentionInfo": {
+      "_description": "Set team mention info",
+      "name": "string",
+      "info": "RPCChatTypes.UITeamMention"
     }
   }
 }
