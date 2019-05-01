@@ -65,7 +65,7 @@ function* chainGenerator<Actions>(
   f: (state: TypedState, action: Actions) => Generator<any, void, any>
 ): Generator<any, void, any> {
   type Fn = Actions => RS.Saga<void>
-  return yield Effects.takeEvery<Actions, void, Fn>(pattern, function* chainActionHelper(
+  return yield Effects.takeEvery<Actions, void, Fn>(pattern, function* chainGeneratorHelper(
     action: Actions
   ): RS.Saga<void> {
     try {

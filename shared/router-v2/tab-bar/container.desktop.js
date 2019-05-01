@@ -18,11 +18,12 @@ import * as SettingsGen from '../../actions/settings-gen'
 
 type OwnProps = {|
   navigation: any,
-  selectedTab: Tabs.Tab,
+  selectedTab: Tabs.AppTab,
 |}
 
 const mapStateToProps = state => ({
   _badgeNumbers: state.notifications.navBadges,
+  _walletsAcceptedDisclaimer: state.wallets.acceptedDisclaimer,
   fullname: TrackerConstants.getDetails(state, state.config.username).fullname || '',
   isWalletsNew: state.chat2.isWalletsNew,
   uploading: state.fs.uploads.syncingPaths.count() > 0 || state.fs.uploads.writingToJournal.count() > 0,
@@ -31,12 +32,16 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
   _onProfileClick: username => dispatch(ProfileGen.createShowUserProfile({username})),
-  _onTabClick: tab => {
+  _onTabClick: (tab, walletsAcceptedDisclaimer) => {
     if (ownProps.selectedTab === Tabs.peopleTab && tab !== Tabs.peopleTab) {
       dispatch(PeopleGen.createMarkViewed())
     }
+    if (ownProps.selectedTab !== Tabs.walletsTab && tab === Tabs.walletsTab && !walletsAcceptedDisclaimer) {
+      // haven't accepted disclaimer, show onboarding and bail
+      dispatch(RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']}))
+      return
+    }
     if (ownProps.selectedTab === tab) {
-      // $FlowIssue this is a subset of `Tabs.Tab`
       ownProps.navigation.navigate(tabRoots[tab])
     } else {
       ownProps.navigation.navigate(tab)
@@ -72,7 +77,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onQuit: dispatchProps.onQuit,
   onSettings: dispatchProps.onSettings,
   onSignOut: dispatchProps.onSignOut,
-  onTabClick: (tab: Tabs.Tab) => dispatchProps._onTabClick(tab),
+  onTabClick: (tab: Tabs.AppTab) => dispatchProps._onTabClick(tab, stateProps._walletsAcceptedDisclaimer),
   selectedTab: ownProps.selectedTab,
   uploading: stateProps.uploading,
   username: stateProps.username,

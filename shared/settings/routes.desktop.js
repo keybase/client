@@ -109,7 +109,6 @@ const settingsSubRoutes = {
   [Constants.landingTab]: {getScreen: () => require('./landing/container').default},
   [Constants.notificationsTab]: {getScreen: () => require('./notifications/container').default},
   changeEmail: {getScreen: () => require('./email/container').default},
-  changePassword: {getScreen: () => require('./password/container').default},
   dbNukeConfirm: {getScreen: () => require('./db-nuke-confirm/container').default},
   deleteConfirm: {getScreen: () => require('./delete-confirm/container').default},
   inviteSent: {getScreen: () => require('./invite-generated/container').default},
@@ -162,4 +161,5 @@ export const newRoutes = {
 }
 export const newModalRoutes = {
   [Constants.logOutTab]: {getScreen: () => require('./logout/container').default},
+  changePassword: {getScreen: () => require('./password/container').default},
 }
