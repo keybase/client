@@ -2410,7 +2410,7 @@ func (h *Server) searchConvNames(ctx context.Context, uid gregor1.UID, query str
 	}
 	convHits, err := h.G().InboxSource.Search(ctx, uid, query, maxNameConvs)
 	if err != nil {
-		h.Debug(ctx, "SearchInbox: failed to get conv hits: %s", err)
+		h.Debug(ctx, "searchConvNames: failed to get conv hits: %s", err)
 	} else {
 		select {
 		case <-ctx.Done():
