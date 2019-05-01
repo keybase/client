@@ -8502,8 +8502,8 @@ func (fbo *folderBranchOps) Reset(
 		return err
 	}
 	oldHandle.SetFinalizedInfo(finalizedInfo)
-	// This can't be subject to the WaitGroup due to a potential deadlock,
-	// so we use a raw goroutine here instead of `goTracked`.
+	// FIXME: This can't be subject to the WaitGroup due to a potential
+	// deadlock, so we use a raw goroutine here instead of `goTracked`.
 	go fbo.observers.tlfHandleChange(ctx, oldHandle)
 	return nil
 }
