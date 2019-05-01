@@ -32,8 +32,8 @@ const mapStateToProps = (state, ownProps) => {
   const d = Constants.getDetails(state, username)
   const followThem = Constants.followThem(state, username)
   const userIsYou = username === state.config.username
-  const followersCount = state.tracker2.usernameToDetails.getIn([username, 'followersCount'])
-  const followingCount = state.tracker2.usernameToDetails.getIn([username, 'followingCount'])
+  const followersCount = state.tracker2.usernameToDetails.getIn([username, 'followersCount']) || 0
+  const followingCount = state.tracker2.usernameToDetails.getIn([username, 'followingCount']) || 0
 
   return {
     _assertions: d.assertions,

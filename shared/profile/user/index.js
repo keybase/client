@@ -24,9 +24,9 @@ export type Props = {|
   backgroundColorType: BackgroundColorType,
   followThem: boolean,
   followers: ?Array<string>,
-  followersCount: ?number,
+  followersCount: number,
   following: ?Array<string>,
-  followingCount: ?number,
+  followingCount: number,
   onAddIdentity: ?() => void,
   onBack: () => void,
   onReload: () => void,
@@ -39,7 +39,7 @@ export type Props = {|
   username: string,
 |}
 
-export const colorTypeToStyle = (type: 'red' | 'green' | 'blue') => {
+const colorTypeToStyle = type => {
   switch (type) {
     case 'red':
       return styles.typedBackgroundRed
