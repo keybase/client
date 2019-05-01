@@ -37,14 +37,19 @@ const findModalRoute = (arr, s) => {
 
 // this returns the full path as seen from a stack. So if you pop you'll go up
 // this path stack
+// TODO this depends on our specific nav setup, check for it somehow
 const _getStackPathHelper = (arr, s: any) => {
   if (!s) return arr
-  if (!s.routes) return s
+  if (!s.routes) return arr
   const route = s.routes[s.index]
   if (!route) return arr
-  // We have to slice here because on the stack navigator the stack is from 0 up
-  // to the current route.
-  if (route.routes) return _getStackPathHelper([...arr, ...s.routes.slice(0, s.index + 1)], route)
+  if (route.routes) return _getStackPathHelper([...arr, s.routes[s.index]], route)
+  if (s.routeName === 'loggedIn' && s.index === 1) {
+    // Modal stack is selected, make sure we get app routes too
+    return [...arr, ..._getStackPathHelper([], s.routes[0]), s.routes[1]]
+  }
+  // leaf router - this is a stack router within a tab
+  // start slice at 0 to also get the pages stacked below the current one
   return [...arr, ...s.routes.slice(0, s.index + 1)]
 }
 

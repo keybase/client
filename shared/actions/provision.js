@@ -6,6 +6,7 @@ import * as ProvisionGen from './provision-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as Tabs from '../constants/tabs'
+import * as Router2Constants from '../constants/router2'
 import logger from '../logger'
 import {isMobile} from '../constants/platform'
 import HiddenString from '../util/hidden-string'
@@ -13,7 +14,9 @@ import flags from '../util/feature-flags'
 import {type TypedState} from '../constants/reducer'
 import {devicesTab as settingsDevicesTab} from '../constants/settings'
 
-const devicesRoot = isMobile ? [Tabs.settingsTab, settingsDevicesTab] : [Tabs.devicesTab]
+const devicesRoot = isMobile
+  ? [Tabs.settingsTab, settingsDevicesTab]
+  : [Tabs.devicesTab, ...(flags.useNewRouter ? ['devicesRoot'] : [])]
 
 type ValidCallback =
   | 'keybase.1.gpgUi.selectKey'
@@ -351,10 +354,17 @@ class ProvisioningManager {
     })
 
   maybeCancelProvision = state => {
-    const root = state.routeTree.routeState && state.routeTree.routeState.selected
+    let root = state.routeTree.routeState && state.routeTree.routeState.selected
+    let onDevicesTab = root === devicesRoot[0]
+    let onLoginTab = root === Tabs.loginTab
+    if (flags.useNewRouter) {
+      const path = Router2Constants.getFullRoute().map(p => p.routeName)
+      onDevicesTab = path.includes(devicesRoot[0])
+      onLoginTab = path.includes('login')
+    }
 
-    const doingDeviceAdd = this._addingANewDevice && root === devicesRoot[0]
-    const doingProvision = !this._addingANewDevice && root === Tabs.loginTab
+    const doingDeviceAdd = this._addingANewDevice && onDevicesTab
+    const doingProvision = !this._addingANewDevice && onLoginTab
     if (doingDeviceAdd || doingProvision) {
       // cancel if we're waiting on anything
       const response = this._stashedResponse
