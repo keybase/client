@@ -7,8 +7,8 @@ import * as Styles from '../../styles'
 import type {Props} from '.'
 import {searchKey, placeholder} from './index.shared'
 
-const Search = (props: Props) => (
-  <Kb.SafeAreaViewTop>
+const Search = (props: Props) => {
+  const search = (
     <Kb.StandardScreen
       headerStyle={headerStyle}
       style={styleContainer}
@@ -24,8 +24,14 @@ const Search = (props: Props) => (
       />
       <ResultsList searchKey={searchKey} onClick={props.onClick} disableListBuilding={true} />
     </Kb.StandardScreen>
-  </Kb.SafeAreaViewTop>
-)
+  )
+
+  if (Styles.isAndroid) {
+    return search
+  }
+
+  return <Kb.SafeAreaViewTop>{search}</Kb.SafeAreaViewTop>
+}
 
 const headerStyle = {
   backgroundColor: Styles.globalColors.white,
