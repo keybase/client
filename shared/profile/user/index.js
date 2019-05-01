@@ -121,7 +121,6 @@ class FriendshipTabs extends React.Component<FriendshipTabsProps> {
       style={Styles.collapseStyles([
         styles.followTab,
         following === this.props.selectedFollowing && styles.followTabSelected,
-        flags.useNewRouter && styles.followTabNewRouter,
       ])}
     >
       <Kb.Text
@@ -139,11 +138,9 @@ class FriendshipTabs extends React.Component<FriendshipTabsProps> {
 
   render() {
     return (
-      <Kb.Box2 direction="vertical" style={styles.followTabContainer} fullWidth={true}>
-        <Kb.Box2 direction="horizontal" style={styles.followTabContainer2} fullWidth={true}>
-          {this._tab(false)}
-          {this._tab(true)}
-        </Kb.Box2>
+      <Kb.Box2 direction="horizontal" style={styles.followTabContainer} fullWidth={true}>
+        {this._tab(false)}
+        {this._tab(true)}
       </Kb.Box2>
     )
   }
@@ -480,12 +477,6 @@ export const styles = Styles.styleSheetCreate({
       width: '100%',
     },
   }),
-  followTabContainer2: Styles.platformStyles({
-    isElectron: {
-      backgroundColor: Styles.globalColors.white,
-    },
-  }),
-  followTabNewRouter: {},
   followTabSelected: {
     borderBottomColor: Styles.globalColors.blue,
   },
