@@ -18,7 +18,7 @@ type Props = {|
   membersCount: number,
   name: string,
   onHidden: () => void,
-  onJoinTeam: () => void,
+  onJoinTeam: string => void,
   publicAdmins: Array<string>,
   visible: boolean,
 |}
@@ -87,11 +87,11 @@ const TeamInfo = (p: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
+  description: {textAlign: 'center'},
   infoPopup: {
     maxWidth: 225,
     padding: Styles.globalMargins.small,
   },
-  description: {textAlign: 'center'},
   publicAdmins: Styles.platformStyles({
     isElectron: {display: 'unset'},
   }),

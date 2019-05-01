@@ -1,5 +1,6 @@
 // @flow
 import * as Styles from '../../../styles'
+import * as TeamsGen from '../../../actions/teams-gen'
 import {namedConnect} from '../../../util/container'
 import TeamMention from '.'
 
@@ -25,6 +26,13 @@ const mapStateToProps = (state, {allowFontScaling, name, channel, style}: OwnPro
   }
 }
 
-export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, d => ({}), s => s, 'TeamMention')(
-  TeamMention
-)
+const mapDispatchToProps = dispatch => ({
+  onJoinTeam: (teamname: string) => dispatch(TeamsGen.createJoinTeam({teamname})),
+})
+
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d) => ({...s, ...d}),
+  'TeamMention'
+)(TeamMention)

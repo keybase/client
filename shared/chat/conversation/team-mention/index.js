@@ -8,11 +8,12 @@ import TeamInfo from '../../../profile/user/teams/teaminfo'
 export type Props = {|
   allowFontScaling?: boolean,
   channel: string,
-  description?: string,
+  description: string,
   isOpen: boolean,
   name: string,
+  onJoinTeam: string => void,
   resolved: boolean,
-  numMembers?: number,
+  numMembers: number,
   publicAdmins: Array<string>,
   style?: Styles.StylesCrossPlatform,
 |}
@@ -54,10 +55,12 @@ class TeamMention extends React.Component<Props, State> {
       <TeamInfo
         attachTo={this._getAttachmentRef}
         description={this.props.description}
+        inTeam={false}
         isOpen={this.props.isOpen}
         name={this.props.name}
         membersCount={this.props.numMembers}
         onHidden={this._hidePopup}
+        onJoinTeam={this.props.onJoinTeam}
         publicAdmins={this.props.publicAdmins}
         visible={this.state.showPopup}
       />
