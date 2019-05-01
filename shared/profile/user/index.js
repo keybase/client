@@ -345,7 +345,7 @@ class User extends React.Component<Props, State> {
     // TODO memoize?
     let chunks = this.state.width ? chunk(friends, itemsInARow) : []
     if (chunks.length === 0) {
-      if (this.props.following && this.props.following) {
+      if (this.props.following && this.props.followers) {
         chunks.push({
           text: this.state.selectedFollowing
             ? `${this.props.userIsYou ? 'You are' : `${this.props.username} is`} not following anyone.`
