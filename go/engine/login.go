@@ -74,6 +74,7 @@ func (e *Login) SubConsumers() []libkb.UIConsumer {
 		&LoginProvisionedDevice{},
 		&loginLoadUser{},
 		&loginProvision{},
+		&AccountReset{},
 	}
 }
 
@@ -149,24 +150,6 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 	m.Debug("Login provisioning success, sending login notification")
 	e.sendNotification(m)
 	return nil
-}
-
-func (e *Login) suggestRecoveryForgotPassword(mctx libkb.MetaContext) error {
-	enterReset, err := mctx.UIs().LoginUI.PromptResetAccount(mctx.Ctx(), keybase1.PromptResetAccountArg{
-		Kind: keybase1.ResetPromptType_ENTER_FORGOT_PW,
-	})
-	if err != nil {
-		return err
-	}
-	if !enterReset {
-		// Cancel the engine as the user decided to end the flow early.
-		return nil
-	}
-
-	// We are certain the user will not know their password, so we can disable the prompt.
-	eng := NewAccountReset(mctx.G(), e.username)
-	eng.skipPasswordPrompt = true
-	return eng.Run(mctx)
 }
 
 func (e *Login) loginProvision(m libkb.MetaContext) (bool, error) {
@@ -299,4 +282,22 @@ func (e *Login) loginProvisionedDevice(m libkb.MetaContext, username string) (bo
 	m.Debug("loginProvisionedDevice error: %s (not fatal, can continue to provision this device)", err)
 
 	return false, nil
+}
+
+func (e *Login) suggestRecoveryForgotPassword(mctx libkb.MetaContext) error {
+	enterReset, err := mctx.UIs().LoginUI.PromptResetAccount(mctx.Ctx(), keybase1.PromptResetAccountArg{
+		Kind: keybase1.ResetPromptType_ENTER_FORGOT_PW,
+	})
+	if err != nil {
+		return err
+	}
+	if !enterReset {
+		// Cancel the engine as the user decided to end the flow early.
+		return nil
+	}
+
+	// We are certain the user will not know their password, so we can disable the prompt.
+	eng := NewAccountReset(mctx.G(), e.username)
+	eng.skipPasswordPrompt = true
+	return eng.Run(mctx)
 }
