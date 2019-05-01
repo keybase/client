@@ -1224,11 +1224,12 @@ func (m *MockChatHelper) SendMsgByID(ctx context.Context, convID chat1.Conversat
 	return nil
 }
 func (m *MockChatHelper) SendTextByIDNonblock(ctx context.Context, convID chat1.ConversationID,
-	tlfName string, text string, outboxID *chat1.OutboxID) (chat1.OutboxID, error) {
+	tlfName string, text string, outboxID *chat1.OutboxID, replyTo *chat1.MessageID) (chat1.OutboxID, error) {
 	return chat1.OutboxID{}, nil
 }
 func (m *MockChatHelper) SendMsgByIDNonblock(ctx context.Context, convID chat1.ConversationID,
-	tlfName string, body chat1.MessageBody, msgType chat1.MessageType, inOutboxID *chat1.OutboxID) (chat1.OutboxID, error) {
+	tlfName string, body chat1.MessageBody, msgType chat1.MessageType, inOutboxID *chat1.OutboxID,
+	replyTo *chat1.MessageID) (chat1.OutboxID, error) {
 	return chat1.OutboxID{}, nil
 }
 func (m *MockChatHelper) SendTextByName(ctx context.Context, name string, topicName *string,
