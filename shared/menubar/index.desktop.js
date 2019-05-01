@@ -73,8 +73,6 @@ class MenubarRender extends React.Component<Props, State> {
   }
 
   _renderLoggedOut() {
-    const menuColor = this.state.showingMenu ? Styles.globalColors.black_50 : Styles.globalColors.black_50
-
     return (
       <Kb.Box style={styles.widgetContainer}>
         {isDarwin && <style>{_realCSS}</style>}
@@ -87,10 +85,11 @@ class MenubarRender extends React.Component<Props, State> {
           ])}
         >
           <Kb.Icon
-            color={menuColor}
-            hoverColor={menuColor}
+            color={Styles.globalColors.darkBlue4}
+            hoverColor={Styles.globalColors.white}
             type="iconfont-nav-2-hamburger"
             sizeType="Big"
+            style={styles.hamburgerIcon}
             onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
             ref={this.attachmentRef}
           />
@@ -117,10 +116,10 @@ class MenubarRender extends React.Component<Props, State> {
             color={Styles.globalColors.yellow}
           />
           <Kb.Text type="Body" style={{alignSelf: 'center', marginTop: 6}}>
-            You're logged out of Keybase!
+            You are logged out of Keybase.
           </Kb.Text>
           <Kb.ButtonBar direction="row">
-            <Kb.Button label="Log In" onClick={this.props.logIn} />
+            <Kb.Button label="Log in" onClick={this.props.logIn} />
           </Kb.ButtonBar>
         </Kb.Box>
       </Kb.Box>
@@ -128,11 +127,10 @@ class MenubarRender extends React.Component<Props, State> {
   }
 
   _renderDaemonHandshakeWait() {
-    const menuColor = this.state.showingMenu ? Styles.globalColors.black_50 : Styles.globalColors.black_50
     const text =
       this.props.daemonHandshakeState === 'waitingForWaiters'
-        ? `Connecting UI services to crypto engine... This may take a few seconds`
-        : `Starting up Keybase`
+        ? `Connecting interface to crypto engine... This may take a few seconds.`
+        : `Starting up Keybase...`
 
     return (
       <Kb.Box style={styles.widgetContainer}>
@@ -146,10 +144,11 @@ class MenubarRender extends React.Component<Props, State> {
           ])}
         >
           <Kb.Icon
-            color={menuColor}
-            hoverColor={menuColor}
+            color={Styles.globalColors.darkBlue4}
+            hoverColor={Styles.globalColors.white}
             type="iconfont-nav-2-hamburger"
             sizeType="Big"
+            style={styles.hamburgerIcon}
             onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
             ref={this.attachmentRef}
           />
@@ -176,7 +175,7 @@ class MenubarRender extends React.Component<Props, State> {
             color={Styles.globalColors.yellow}
           />
           <Kb.Text
-            type="Body"
+            type="BodySmall"
             style={{
               alignSelf: 'center',
               marginTop: 6,
@@ -365,12 +364,13 @@ const BadgeIcon = ({tab, countMap, openApp}) => {
   }
 
   return (
-    <Kb.Box style={{...Styles.desktopStyles.clickable, marginLeft: 7, marginRight: 7, position: 'relative'}}>
+    <Kb.Box style={{...Styles.desktopStyles.clickable, position: 'relative'}}>
       <Kb.Icon
         color={Styles.globalColors.darkBlue4}
         hoverColor={Styles.globalColors.white}
         onClick={() => openApp(tab)}
         sizeType="Big"
+        style={styles.navIcons}
         type={iconType}
       />
       {!!count && <Kb.Badge badgeNumber={count} badgeStyle={{position: 'absolute', right: -8, top: -6}} />}
@@ -397,6 +397,9 @@ const styles = Styles.styleSheetCreate({
     width: 0,
   },
   footer: {width: 360},
+  hamburgerIcon: {
+    marginRight: Styles.globalMargins.tiny,
+  },
   headerBadgesContainer: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
@@ -408,6 +411,7 @@ const styles = Styles.styleSheetCreate({
     alignSelf: 'center',
     marginBottom: 12,
   },
+  navIcons: {paddingLeft: Styles.globalMargins.xtiny, paddingRight: Styles.globalMargins.xtiny},
   topRow: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
