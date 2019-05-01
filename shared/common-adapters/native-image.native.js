@@ -18,6 +18,6 @@ export class FastImage extends React.Component<ImageProps> {
     if (isArray(this.props.source)) {
       source = this.props.source[0] // TODO smarter choice?
     }
-    return <FastImageImpl {...this.props} source={source} />
+    return !!source && <FastImageImpl {...this.props} source={source} />
   }
 }
