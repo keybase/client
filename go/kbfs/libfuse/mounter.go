@@ -7,6 +7,7 @@
 package libfuse
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"os"
@@ -92,28 +93,36 @@ func fuseMountDir(dir string, platformParams PlatformParams) (*fuse.Conn, error)
 	return c, nil
 }
 
-func isFusermountMountNotFoundError(err error) bool {
+func isFusermountMountNotFoundError(output []byte, err error) bool {
 	if err == nil {
 		return false
 	}
-	return strings.Contains(err.Error(), "not found in /etc/mtab")
+	return bytes.Contains(output, []byte("not found in /etc/mtab"))
 }
 
 func (m *mounter) Unmount() (err error) {
+	m.log.Info("Unmounting.")
 	dir := m.options.MountPoint
 	// Try normal unmount
 	switch runtime.GOOS {
 	case "darwin":
 		_, err = exec.Command("/sbin/umount", dir).Output()
 	case "linux":
-		_, fusermountErr := exec.Command("fusermount", "-u", dir).Output()
+		fusermountOutput, fusermountErr := exec.Command("fusermount", "-u", dir).CombinedOutput()
 		// Only clean up mountdir on a clean unmount.
 		if fusermountErr == nil {
+			m.log.Info("Successfully unmounted.")
 			defer m.DeleteMountdirIfEmpty()
 		}
-		// Ignore errors where the mount was never mounted in the first place
-		if fusermountErr != nil && !isFusermountMountNotFoundError(fusermountErr) {
-			err = fusermountErr
+		if fusermountErr != nil {
+			// Ignore errors where the mount was never mounted in the first place
+			if isFusermountMountNotFoundError(fusermountOutput, fusermountErr) {
+				m.log.Info("Ignoring mount-not-found fusermount error")
+			} else {
+				returnErr := fmt.Errorf("fusermount unmount resulted in unknown error: output=%v; err=%s.", fusermountOutput, fusermountErr)
+				m.log.Warning(returnErr.Error())
+				err = returnErr
+			}
 		}
 	default:
 		err = fuse.Unmount(dir)
@@ -138,6 +147,7 @@ func (m *mounter) Unmount() (err error) {
 }
 
 func (m *mounter) DeleteMountdirIfEmpty() (err error) {
+	m.log.Info("Deleting mountdir.")
 	// os.Remove refuses to delete non-empty directories.
 	err = os.Remove(m.options.MountPoint)
 	if err != nil {
