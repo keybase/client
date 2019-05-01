@@ -2545,9 +2545,7 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 	query, opts := search.UpgradeSearchOptsFromQuery(arg.Query, arg.Opts, username)
 	doSearch := !arg.NamesOnly && len(query) > 0
 	forceDelegate := false
-	if len(query) < search.MinTokenLength {
-		forceDelegate = true
-	} else if arg.Opts.ConvID != nil {
+	if arg.Opts.ConvID != nil {
 		fullyIndexed, err := h.G().Indexer.FullyIndexed(ctx, *arg.Opts.ConvID, uid)
 		if err != nil {
 			h.Debug(ctx, "SearchInbox: failed to check fully indexed, delegating... err: %s", err)
@@ -2555,13 +2553,18 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 		} else {
 			forceDelegate = !fullyIndexed
 		}
+		if len(query) < search.MinTokenLength {
+			forceDelegate = true
+		}
 		if forceDelegate {
 			h.Debug(ctx, "SearchInbox: force delegating since not indexed")
 		}
+		ctx = h.getSearchContext(ctx)
+	} else {
+		ctx = h.getInboxSearchContext(ctx)
 	}
 
 	if doSearch && (opts.IsRegex || forceDelegate) {
-		ctx = h.getSearchContext(ctx)
 		inboxRes, err := h.delegateInboxSearch(ctx, uid, query, arg.Query, opts, chatUI)
 		if err != nil {
 			return res, err
@@ -2571,7 +2574,6 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 		return res, nil
 	}
 
-	ctx = h.getInboxSearchContext(ctx)
 	convUIDone := make(chan struct{})
 	go h.searchConvNames(ctx, uid, query, opts.MaxNameConvs, convUIDone, chatUI)
 
