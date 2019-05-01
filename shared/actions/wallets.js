@@ -874,7 +874,10 @@ const checkDisclaimer = state =>
       if (flags.useNewRouter && accepted) {
         // in new nav we could be in a modal anywhere in the app right now
         actions.push(RouteTreeGen.createClearModals())
-        actions.push(RouteTreeGen.createNavigateAppend({path: Constants.rootWalletPath}))
+        actions.push(RouteTreeGen.createSwitchTab({tab: isMobile ? Tabs.settingsTab : Tabs.walletsTab}))
+        if (isMobile) {
+          actions.push(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.walletsTab]}))
+        }
       }
       return actions
     })

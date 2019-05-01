@@ -511,6 +511,7 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
       | RouteTreeGen.SwitchRouteDefPayload
       | RouteTreeGen.ClearModalsPayload
       | RouteTreeGen.NavUpToScreenPayload
+      | RouteTreeGen.SwitchTabPayload
     >(
       [
         RouteTreeGen.navigateAppend,
@@ -520,6 +521,7 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
         RouteTreeGen.switchRouteDef,
         RouteTreeGen.clearModals,
         RouteTreeGen.navUpToScreen,
+        RouteTreeGen.switchTab,
       ],
       newNavigation
     )

@@ -16,7 +16,7 @@ type Props = {|
   onQuit: () => void,
   onSettings: () => void,
   onSignOut: () => void,
-  onTabClick: (tab: Tabs.Tab) => void,
+  onTabClick: (tab: Tabs.DesktopTab) => void,
   selectedTab: Tabs.Tab,
   uploading: boolean,
   username: string,
@@ -28,22 +28,12 @@ const data = {
   [Tabs.fsTab]: {icon: 'iconfont-nav-2-files', label: 'Files'},
   [Tabs.gitTab]: {icon: 'iconfont-nav-2-git', label: 'Git'},
   [Tabs.peopleTab]: {icon: 'iconfont-nav-2-people', label: 'People'},
-  [Tabs.profileTab]: {icon: 'iconfont-nav-2-people', label: 'People'},
   [Tabs.settingsTab]: {icon: 'iconfont-nav-2-settings', label: 'Settings'},
   [Tabs.teamsTab]: {icon: 'iconfont-nav-2-teams', label: 'Teams'},
   [Tabs.walletsTab]: {icon: 'iconfont-nav-2-wallets', label: 'Wallet'},
 }
 
-const tabs = [
-  Tabs.peopleTab,
-  Tabs.chatTab,
-  Tabs.fsTab,
-  Tabs.teamsTab,
-  Tabs.walletsTab,
-  Tabs.gitTab,
-  Tabs.devicesTab,
-  Tabs.settingsTab,
-]
+const tabs = Tabs.desktopTabOrder
 
 type State = {|
   showingMenu: boolean,

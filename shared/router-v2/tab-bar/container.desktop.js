@@ -18,7 +18,7 @@ import * as SettingsGen from '../../actions/settings-gen'
 
 type OwnProps = {|
   navigation: any,
-  selectedTab: Tabs.Tab,
+  selectedTab: Tabs.DesktopTab,
 |}
 
 const mapStateToProps = state => ({
@@ -42,7 +42,6 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
       return
     }
     if (ownProps.selectedTab === tab) {
-      // $FlowIssue this is a subset of `Tabs.Tab`
       ownProps.navigation.navigate(tabRoots[tab])
     } else {
       ownProps.navigation.navigate(tab)
@@ -78,7 +77,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onQuit: dispatchProps.onQuit,
   onSettings: dispatchProps.onSettings,
   onSignOut: dispatchProps.onSignOut,
-  onTabClick: (tab: Tabs.Tab) => dispatchProps._onTabClick(tab, stateProps._walletsAcceptedDisclaimer),
+  onTabClick: (tab: Tabs.DesktopTab) => dispatchProps._onTabClick(tab, stateProps._walletsAcceptedDisclaimer),
   selectedTab: ownProps.selectedTab,
   uploading: stateProps.uploading,
   username: stateProps.username,
