@@ -26,7 +26,19 @@ func printPayment(g *libkb.GlobalContext, p stellar1.PaymentCLILocal, verbose bo
 		timeStr += " *"
 	}
 	lineUnescaped("%v", ColorString(g, "bold", timeStr))
-	amount, err := stellar.FormatAmountDescriptionAssetEx(libkb.NewMetaContext(context.TODO(), g), p.Amount, p.Asset)
+
+	// if path payment, show the source asset amount
+	if p.SourceAmountActual != "" {
+		sourceAmount, err := stellar.FormatAmountDescriptionAssetEx(libkb.NewMetaContext(context.Background(), g), p.SourceAmountActual, p.SourceAsset)
+		if err != nil {
+			lineUnescaped("%v %s", ColorString(g, "red", "Error while formatting amount:"), err)
+		} else {
+			lineUnescaped("%v", ColorString(g, "purple", sourceAmount))
+		}
+	}
+
+	// destination amount, asset
+	amount, err := stellar.FormatAmountDescriptionAssetEx(libkb.NewMetaContext(context.Background(), g), p.Amount, p.Asset)
 	if err == nil {
 		if p.DisplayAmount != nil && p.DisplayCurrency != nil && len(*p.DisplayAmount) > 0 && len(*p.DisplayAmount) > 0 {
 			amount = fmt.Sprintf("%v %v (%v)", *p.DisplayAmount, *p.DisplayCurrency, amount)
@@ -35,6 +47,7 @@ func printPayment(g *libkb.GlobalContext, p stellar1.PaymentCLILocal, verbose bo
 		lineUnescaped("%v %s", ColorString(g, "red", "Error while formatting amount:"), err)
 	}
 	lineUnescaped("%v", ColorString(g, "green", amount))
+
 	// Show sender and recipient. Prefer keybase form, fall back to stellar abbreviations.
 	var showedAbbreviation bool
 	var from string

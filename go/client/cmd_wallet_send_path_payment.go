@@ -94,6 +94,7 @@ func (c *CmdWalletSendPathPayment) Run() (err error) {
 
 	ui := c.G().UI.GetTerminalUI()
 
+	ui.Printf(ColorString(c.G(), "yellow", "Searching for payment path for %s to %s...\n", c.SourceAsset, c.DestinationAsset))
 	findArg := stellar1.FindPaymentPathLocalArg{
 		From:             c.FromAccountID,
 		To:               c.Recipient,
@@ -114,6 +115,7 @@ func (c *CmdWalletSendPathPayment) Run() (err error) {
 		return err
 	}
 
+	ui.Printf(ColorString(c.G(), "yellow", "Submitting transaction to the Stellar network..."))
 	sendArg := stellar1.SendPathCLILocalArg{
 		Source:    c.FromAccountID,
 		Recipient: c.Recipient,
