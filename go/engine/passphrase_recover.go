@@ -40,7 +40,11 @@ func (e *PassphraseRecover) Prereqs() Prereqs {
 
 // RequiredUIs returns the required UIs.
 func (e *PassphraseRecover) RequiredUIs() []libkb.UIKind {
-	return []libkb.UIKind{}
+	return []libkb.UIKind{
+		libkb.LoginUIKind,
+		libkb.ProvisionUIKind,
+		libkb.SecretUIKind,
+	}
 }
 
 // SubConsumers requires the other UI consumers of this engine
