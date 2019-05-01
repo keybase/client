@@ -2116,6 +2116,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-hide': {
+    charCode: 0xe98a,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-identity-bitcoin': {
     charCode: 0xe92c,
     gridSize: 16,

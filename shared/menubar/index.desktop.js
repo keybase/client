@@ -89,7 +89,7 @@ class MenubarRender extends React.Component<Props, State> {
           <Kb.Icon
             color={menuColor}
             hoverColor={menuColor}
-            type="iconfont-nav-more"
+            type="iconfont-nav-2-more"
             sizeType="Big"
             onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
             ref={this.attachmentRef}
@@ -148,7 +148,7 @@ class MenubarRender extends React.Component<Props, State> {
           <Kb.Icon
             color={menuColor}
             hoverColor={menuColor}
-            type="iconfont-nav-more"
+            type="iconfont-nav-2-more"
             sizeType="Big"
             onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
             ref={this.attachmentRef}
@@ -295,8 +295,8 @@ class MenubarRender extends React.Component<Props, State> {
             <Kb.Icon
               color={Styles.globalColors.darkBlue4}
               hoverColor={Styles.globalColors.white}
-              type="iconfont-nav-more"
-              fontSize={20}
+              type="iconfont-nav-2-more"
+              sizeType="Big"
               ref={this.attachmentRef}
             />
             {!!badgeCountInMenu && (
@@ -350,11 +350,11 @@ body {
 `
 
 const iconMap = {
-  [Tabs.peopleTab]: 'iconfont-nav-people',
-  [Tabs.chatTab]: 'iconfont-nav-chat',
-  [Tabs.devicesTab]: 'iconfont-nav-devices',
-  [Tabs.fsTab]: 'iconfont-nav-files',
-  [Tabs.teamsTab]: 'iconfont-nav-teams',
+  [Tabs.peopleTab]: 'iconfont-nav-2-people',
+  [Tabs.chatTab]: 'iconfont-nav-2-chat',
+  [Tabs.devicesTab]: 'iconfont-nav-2-devices',
+  [Tabs.fsTab]: 'iconfont-nav-2-files',
+  [Tabs.teamsTab]: 'iconfont-nav-2-teams',
 }
 const BadgeIcon = ({tab, countMap, openApp}) => {
   const count = countMap[tab]
@@ -370,7 +370,7 @@ const BadgeIcon = ({tab, countMap, openApp}) => {
         color={Styles.globalColors.darkBlue4}
         hoverColor={Styles.globalColors.white}
         onClick={() => openApp(tab)}
-        fontSize={20}
+        sizeType="Big"
         type={iconType}
       />
       {!!count && <Kb.Badge badgeNumber={count} badgeStyle={{position: 'absolute', right: -8, top: -6}} />}

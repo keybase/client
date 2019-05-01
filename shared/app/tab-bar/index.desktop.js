@@ -7,15 +7,15 @@ import {globalStyles, globalColors, globalMargins} from '../../styles'
 import type {Props} from './index.types'
 
 const _icons = {
-  [Tabs.chatTab]: 'iconfont-nav-chat',
-  [Tabs.devicesTab]: 'iconfont-nav-devices',
-  [Tabs.fsTab]: 'iconfont-nav-files',
-  [Tabs.gitTab]: 'iconfont-nav-git',
-  [Tabs.peopleTab]: 'iconfont-nav-people',
-  [Tabs.profileTab]: 'iconfont-nav-people',
-  [Tabs.settingsTab]: 'iconfont-nav-settings',
-  [Tabs.teamsTab]: 'iconfont-nav-teams',
-  [Tabs.walletsTab]: 'iconfont-nav-wallets',
+  [Tabs.chatTab]: 'iconfont-nav-2-chat',
+  [Tabs.devicesTab]: 'iconfont-nav-2-devices',
+  [Tabs.fsTab]: 'iconfont-nav-2-files',
+  [Tabs.gitTab]: 'iconfont-nav-2-git',
+  [Tabs.peopleTab]: 'iconfont-nav-2-people',
+  [Tabs.profileTab]: 'iconfont-nav-2-people',
+  [Tabs.settingsTab]: 'iconfont-nav-2-settings',
+  [Tabs.teamsTab]: 'iconfont-nav-2-teams',
+  [Tabs.walletsTab]: 'iconfont-nav-2-wallets',
 }
 
 const _labels = {

@@ -7,11 +7,11 @@ import {globalStyles, globalColors} from '../../styles'
 import type {Props} from './index.types'
 
 const _icons = {
-  [Tabs.chatTab]: 'iconfont-nav-chat',
-  [Tabs.peopleTab]: 'iconfont-nav-people',
-  [Tabs.folderTab]: 'iconfont-nav-folders',
-  [Tabs.settingsTab]: 'iconfont-nav-more',
-  [Tabs.teamsTab]: 'iconfont-nav-teams',
+  [Tabs.chatTab]: 'iconfont-nav-2-chat',
+  [Tabs.peopleTab]: 'iconfont-nav-2-people',
+  [Tabs.folderTab]: 'iconfont-nav-2-folders',
+  [Tabs.settingsTab]: 'iconfont-nav-2-more',
+  [Tabs.teamsTab]: 'iconfont-nav-2-teams',
 }
 
 const _tabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.teamsTab, Tabs.settingsTab]
