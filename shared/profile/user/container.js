@@ -62,7 +62,8 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     }
   },
   onAddIdentity: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileProofsList']})),
-  onBack: () => dispatch(ownProps.navigateUp()),
+  onBack: () =>
+    flags.useNewRouter ? dispatch(RouteTreeGen.createNavigateUp()) : dispatch(ownProps.navigateUp()),
   onSearch: () => {
     dispatch(SearchGen.createSearchSuggestions({searchKey: 'profileSearch'}))
   },
