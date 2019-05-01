@@ -1157,6 +1157,21 @@ export const splitFileNameAndExtension = (fileName: string) =>
 export const isFolder = (path: Types.Path, pathItem: Types.PathItem) =>
   Types.getPathLevel(path) <= 3 || pathItem.type === 'folder'
 
+export const humanizeBytes = (n: number, d: number): string => {
+  const kb = 1024
+  const mb = kb * 1024
+  const gb = mb * 1024
+
+  if (d < kb) {
+    return `${n} of ${d} bytes`
+  } else if (d < mb) {
+    return `${(n / kb).toFixed(2)} of ${(d / kb).toFixed(2)} KB`
+  } else if (d < gb) {
+    return `${(n / mb).toFixed(2)} of ${(d / mb).toFixed(2)} MB`
+  }
+  return `${(n / gb).toFixed(2)} of ${(d / gb).toFixed(2)} GB`
+}
+
 export const erroredActionToMessage = (action: FsGen.Actions, error: string): string => {
   const errorIsTimeout = error.includes('context deadline exceeded')
   const timeoutExplain = 'An operation took too long to complete. Are you connected to the Internet?'
