@@ -104,11 +104,11 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 	// First see if this device is already provisioned and it is possible to log in.
 	loggedInOK, err = e.loginProvisionedDevice(m, e.username)
 	if err != nil {
+		m.Debug("loginProvisionedDevice error: %s", err)
 		// Suggest autoreset if user failed to log in and we're provisioned
 		if _, ok := err.(libkb.PassphraseError); ok {
 			return e.suggestRecoveryForgotPassword(m)
 		}
-		m.Debug("loginProvisionedDevice error: %s", err)
 		return err
 	}
 	if loggedInOK {
