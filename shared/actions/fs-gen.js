@@ -82,7 +82,7 @@ export const showMoveOrCopy = 'fs:showMoveOrCopy'
 export const showSystemFileManagerIntegrationBanner = 'fs:showSystemFileManagerIntegrationBanner'
 export const sortSetting = 'fs:sortSetting'
 export const tlfSyncConfigLoaded = 'fs:tlfSyncConfigLoaded'
-export const tlfSyncConfigsLoaded = 'fs:tlfSyncConfigsLoaded'
+export const tlfSyncConfigsForAllSyncEnabledTlfsLoaded = 'fs:tlfSyncConfigsForAllSyncEnabledTlfsLoaded'
 export const triggerSendLinkToChat = 'fs:triggerSendLinkToChat'
 export const uninstallKBFSConfirm = 'fs:uninstallKBFSConfirm'
 export const upload = 'fs:upload'
@@ -165,7 +165,7 @@ type _ShowMoveOrCopyPayload = $ReadOnly<{|initialDestinationParentPath: Types.Pa
 type _ShowSystemFileManagerIntegrationBannerPayload = void
 type _SortSettingPayload = $ReadOnly<{|path: Types.Path, sortSetting: Types.SortSetting|}>
 type _TlfSyncConfigLoadedPayload = $ReadOnly<{|tlfType: Types.TlfType, tlfName: string, syncConfig: Types.TlfSyncConfig|}>
-type _TlfSyncConfigsLoadedPayload = $ReadOnly<{|private: I.Map<string, Types.TlfSyncConfig>, public: I.Map<string, Types.TlfSyncConfig>, team: I.Map<string, Types.TlfSyncConfig>|}>
+type _TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload = $ReadOnly<{|private: I.Map<string, Types.TlfSyncConfig>, public: I.Map<string, Types.TlfSyncConfig>, team: I.Map<string, Types.TlfSyncConfig>|}>
 type _TriggerSendLinkToChatPayload = void
 type _UninstallKBFSConfirmPayload = void
 type _UploadPayload = $ReadOnly<{|parentPath: Types.Path, localPath: string|}>
@@ -248,7 +248,7 @@ export const createShowMoveOrCopy = (payload: _ShowMoveOrCopyPayload) => ({paylo
 export const createShowSystemFileManagerIntegrationBanner = (payload: _ShowSystemFileManagerIntegrationBannerPayload) => ({payload, type: showSystemFileManagerIntegrationBanner})
 export const createSortSetting = (payload: _SortSettingPayload) => ({payload, type: sortSetting})
 export const createTlfSyncConfigLoaded = (payload: _TlfSyncConfigLoadedPayload) => ({payload, type: tlfSyncConfigLoaded})
-export const createTlfSyncConfigsLoaded = (payload: _TlfSyncConfigsLoadedPayload) => ({payload, type: tlfSyncConfigsLoaded})
+export const createTlfSyncConfigsForAllSyncEnabledTlfsLoaded = (payload: _TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload) => ({payload, type: tlfSyncConfigsForAllSyncEnabledTlfsLoaded})
 export const createTriggerSendLinkToChat = (payload: _TriggerSendLinkToChatPayload) => ({payload, type: triggerSendLinkToChat})
 export const createUninstallKBFSConfirm = (payload: _UninstallKBFSConfirmPayload) => ({payload, type: uninstallKBFSConfirm})
 export const createUpload = (payload: _UploadPayload) => ({payload, type: upload})
@@ -331,7 +331,7 @@ export type ShowMoveOrCopyPayload = {|+payload: _ShowMoveOrCopyPayload, +type: '
 export type ShowSystemFileManagerIntegrationBannerPayload = {|+payload: _ShowSystemFileManagerIntegrationBannerPayload, +type: 'fs:showSystemFileManagerIntegrationBanner'|}
 export type SortSettingPayload = {|+payload: _SortSettingPayload, +type: 'fs:sortSetting'|}
 export type TlfSyncConfigLoadedPayload = {|+payload: _TlfSyncConfigLoadedPayload, +type: 'fs:tlfSyncConfigLoaded'|}
-export type TlfSyncConfigsLoadedPayload = {|+payload: _TlfSyncConfigsLoadedPayload, +type: 'fs:tlfSyncConfigsLoaded'|}
+export type TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload = {|+payload: _TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload, +type: 'fs:tlfSyncConfigsForAllSyncEnabledTlfsLoaded'|}
 export type TriggerSendLinkToChatPayload = {|+payload: _TriggerSendLinkToChatPayload, +type: 'fs:triggerSendLinkToChat'|}
 export type UninstallKBFSConfirmPayload = {|+payload: _UninstallKBFSConfirmPayload, +type: 'fs:uninstallKBFSConfirm'|}
 export type UploadPayload = {|+payload: _UploadPayload, +type: 'fs:upload'|}
@@ -416,7 +416,7 @@ export type Actions =
   | ShowSystemFileManagerIntegrationBannerPayload
   | SortSettingPayload
   | TlfSyncConfigLoadedPayload
-  | TlfSyncConfigsLoadedPayload
+  | TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload
   | TriggerSendLinkToChatPayload
   | UninstallKBFSConfirmPayload
   | UploadPayload

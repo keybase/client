@@ -256,20 +256,29 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           )
         )
       )
-    case FsGen.tlfSyncConfigsLoaded:
-      return ['private', 'public', 'team'].reduce(
-        (state, tlfType) =>
-          state.update('tlfs', tlfs =>
-            tlfs.update(tlfType, tlfList =>
-              tlfList.withMutations(tlfList =>
-                (action.payload[tlfType] || I.Map()).forEach((syncConfig, tlfName) =>
-                  tlfList.update(tlfName, tlf => tlf && tlf.set('syncConfig', syncConfig))
-                )
-              )
+    case FsGen.tlfSyncConfigsForAllSyncEnabledTlfsLoaded:
+      // This should come in after favorites are loaded. Go through existing
+      // TLFs, and update their syncConfig as needed based on the incoming
+      // payload. Note that if a TLF that we know of doesn't appear in the
+      // payload, we assume it's sync-disable.
+      return ['private', 'public', 'team'].reduce((state, tlfType) => {
+        const tlfsFromAction = action.payload[tlfType] || I.Map()
+        return state.update('tlfs', tlfs =>
+          tlfs.update(tlfType, tlfList =>
+            tlfList.withMutations(tlfList =>
+              tlfList.map((tlf, tlfName) => {
+                const syncConfigFromAction = tlfsFromAction.get(tlfName, Constants.tlfSyncDisabled)
+                // Can't just use equal as flow would freak out on different
+                // types. Enable/disable are constants, so no need to deep
+                // compare for them; can just set.
+                return syncConfigFromAction.mode === 'partial' && syncConfigFromAction.equals(tlf.syncConfig)
+                  ? tlf
+                  : tlf.set('syncConfig', syncConfigFromAction)
+              })
             )
-          ),
-        state
-      )
+          )
+        )
+      }, state)
     case FsGen.sortSetting:
       return state.update('pathUserSettings', pathUserSettings =>
         pathUserSettings.update(action.payload.path, setting =>

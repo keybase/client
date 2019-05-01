@@ -67,23 +67,25 @@ const rpcFolderToTlfNameAndType = (folder: RPCTypes.Folder) => {
   }
 }
 
+// TODO: perhaps favoritesLoad's response should just include these from the Go
+// side -- when we move it to a SimpleFS RPC.
 const loadSyncConfigForAllTlfs = (state, action) =>
   RPCTypes.SimpleFSSimpleFSSyncConfigAndStatusRpcPromise().then(({folders}) => {
     if (!folders) {
       return null
     }
-    const mutable = folders.reduce(
-      (mutable, {folder, config}) => {
+    const payloadMutable = folders.reduce(
+      (payloadMutable, {folder, config}) => {
         const tlfNameAndType = rpcFolderToTlfNameAndType(folder)
         return tlfNameAndType
           ? {
-              ...mutable,
-              [tlfNameAndType.tlfType]: mutable[tlfNameAndType.tlfType].set(
+              ...payloadMutable,
+              [tlfNameAndType.tlfType]: payloadMutable[tlfNameAndType.tlfType].set(
                 tlfNameAndType.tlfName,
                 getSyncConfigFromRPC(tlfNameAndType.tlfName, tlfNameAndType.tlfType, config)
               ),
             }
-          : mutable
+          : payloadMutable
       },
       {
         private: I.Map().asMutable(),
@@ -91,10 +93,10 @@ const loadSyncConfigForAllTlfs = (state, action) =>
         team: I.Map().asMutable(),
       }
     )
-    return FsGen.createTlfSyncConfigsLoaded({
-      private: mutable.private.asImmutable(),
-      public: mutable.public.asImmutable(),
-      team: mutable.team.asImmutable(),
+    return FsGen.createTlfSyncConfigsForAllSyncEnabledTlfsLoaded({
+      private: payloadMutable.private.asImmutable(),
+      public: payloadMutable.public.asImmutable(),
+      team: payloadMutable.team.asImmutable(),
     })
   })
 

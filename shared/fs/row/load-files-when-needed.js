@@ -4,6 +4,9 @@ import {namedConnect} from '../../util/container'
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 
+const setRefreshTag = true
+const doNotSetRefreshTag = false
+
 type OwnProps = {|
   path: Types.Path,
   destinationPickerIndex?: number,
@@ -45,7 +48,7 @@ class LoadFilesWhenNeeded extends React.PureComponent<Props> {
     pathLevel === 2 ? this.props.loadFavorites() : this.props.loadFolderList(setRefreshTag)
   }
   componentDidMount() {
-    this._load(true)
+    this._load(setRefreshTag)
   }
   componentDidUpdate(prevProps) {
     if (this.props.syncingFoldersProgress !== prevProps.syncingFoldersProgress) {
@@ -57,11 +60,11 @@ class LoadFilesWhenNeeded extends React.PureComponent<Props> {
       // for prefetchStatus changes and it take a few points to do that. If
       // this turns out to cause performance issues, we can figure that out as
       // an optimization.
-      this._load(false)
+      this._load(doNotSetRefreshTag)
     }
     // This gets called on route changes too, e.g. when user clicks the
     // action menu. So only load folder list when path changes.
-    this.props.path !== prevProps.path && this._load(true)
+    this.props.path !== prevProps.path && this._load(setRefreshTag)
   }
   render() {
     return null

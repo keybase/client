@@ -4,6 +4,9 @@ import {namedConnect} from '../../util/container'
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 
+const setRefreshTag = true
+const doNotSetRefreshTag = false
+
 type OwnProps = {|
   path: Types.Path,
   refreshTag?: ?Types.RefreshTag,
@@ -32,7 +35,7 @@ type Props = {|
 
 class LoadPathMetadataWhenNeeded extends React.PureComponent<Props> {
   componentDidMount() {
-    this.props.loadPathMetadata(true)
+    this.props.loadPathMetadata(setRefreshTag)
   }
   componentDidUpdate(prevProps) {
     if (this.props.syncingFoldersProgress !== prevProps.syncingFoldersProgress) {
@@ -44,9 +47,9 @@ class LoadPathMetadataWhenNeeded extends React.PureComponent<Props> {
       // for prefetchStatus changes and it take a few points to do that. If
       // this turns out to cause performance issues, we can figure that out as
       // an optimization.
-      this.props.loadPathMetadata(false)
+      this.props.loadPathMetadata(doNotSetRefreshTag)
     } else if (this.props.path !== prevProps.path) {
-      this.props.loadPathMetadata(true)
+      this.props.loadPathMetadata(setRefreshTag)
     }
   }
   render() {
