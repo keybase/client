@@ -1836,6 +1836,21 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-app-close': {
+    charCode: 0xe987,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-app-maximize': {
+    charCode: 0xe988,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-app-minimize': {
+    charCode: 0xe989,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-arrow-down': {
     charCode: 0xe901,
     gridSize: 16,
@@ -1956,13 +1971,13 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
-  'iconfont-contact-card': {
-    charCode: 0xe96d,
+  'iconfont-contact-book': {
+    charCode: 0xe96e,
     gridSize: 16,
     isFont: true,
   },
-  'iconfont-contact-card-2': {
-    charCode: 0xe96e,
+  'iconfont-contact-card': {
+    charCode: 0xe96d,
     gridSize: 16,
     isFont: true,
   },
@@ -2026,6 +2041,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-filter': {
+    charCode: 0xe986,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-finder': {
     charCode: 0xe91e,
     gridSize: 16,
@@ -2067,6 +2087,11 @@ const iconMeta_ = {
     isFont: true,
   },
   'iconfont-folder-public': {
+    charCode: 0xe926,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-folder-public-me': {
     charCode: 0xe927,
     gridSize: 16,
     isFont: true,
@@ -2091,13 +2116,13 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
-  'iconfont-heads': {
-    charCode: 0xe97a,
+  'iconfont-heart': {
+    charCode: 0xe978,
     gridSize: 16,
     isFont: true,
   },
-  'iconfont-heart': {
-    charCode: 0xe978,
+  'iconfont-hide': {
+    charCode: 0xe989,
     gridSize: 16,
     isFont: true,
   },
@@ -2311,6 +2336,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-phone-contact': {
+    charCode: 0xe97b,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-proof-broken': {
     charCode: 0xe94b,
     gridSize: 16,
@@ -2366,6 +2396,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-reload': {
+    charCode: 0xe97a,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-remove': {
     charCode: 0xe957,
     gridSize: 16,
@@ -2411,11 +2446,6 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
-  'iconfont-tails': {
-    charCode: 0xe97b,
-    gridSize: 16,
-    isFont: true,
-  },
   'iconfont-team-join': {
     charCode: 0xe95d,
     gridSize: 16,
@@ -2428,16 +2458,6 @@ const iconMeta_ = {
   },
   'iconfont-text-code': {
     charCode: 0xe95f,
-    gridSize: 16,
-    isFont: true,
-  },
-  'iconfont-thin-arrow-left': {
-    charCode: 0xe96b,
-    gridSize: 16,
-    isFont: true,
-  },
-  'iconfont-thin-arrow-right': {
-    charCode: 0xe96c,
     gridSize: 16,
     isFont: true,
   },
