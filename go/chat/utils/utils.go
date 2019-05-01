@@ -611,6 +611,7 @@ func parseRegexpNames(ctx context.Context, body string, re *regexp.Regexp) (res 
 	allIndexMatches := re.FindAllStringSubmatchIndex(body, -1)
 	for _, indexMatch := range allIndexMatches {
 		if len(indexMatch) >= 4 {
+			// do +1 so we don't include the @ in the hit.
 			low := indexMatch[2] + 1
 			high := indexMatch[3]
 			hit := body[low:high]
