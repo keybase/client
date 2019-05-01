@@ -1584,10 +1584,17 @@ const previewConversationPersonMakesAConversation = (state, action) =>
 
 // We preview channels
 const previewConversationTeam = (state, action) => {
+  let conversationIDKey = action.payload.conversationIDKey
+  if (conversationIDKey) {
+    return Chat2Gen.createSelectConversation({
+      conversationIDKey,
+      reason: 'previewResolved',
+    })
+  }
+
   if (!action.payload.teamname) {
     return
   }
-  let conversationIDKey
 
   const teamname = action.payload.teamname
   const channelname = action.payload.channelname || 'general'
