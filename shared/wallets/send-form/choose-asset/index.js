@@ -329,7 +329,7 @@ const styles = Styles.styleSheetCreate({
   sectionHeaderContainer: Styles.platformStyles({
     common: {
       alignItems: 'flex-start',
-      background: Styles.globalColors.blue5,
+      backgroundColor: Styles.globalColors.blue5,
       justifyContent: 'center',
       paddingBottom: Styles.globalMargins.tiny,
       paddingLeft: Styles.globalMargins.small,
