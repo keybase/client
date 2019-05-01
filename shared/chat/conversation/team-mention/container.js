@@ -25,6 +25,6 @@ const mapStateToProps = (state, {allowFontScaling, name, channel, style}: OwnPro
   }
 }
 
-export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, d => {}, s => s, 'TeamMention')(
+export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, d => ({}), s => s, 'TeamMention')(
   TeamMention
 )

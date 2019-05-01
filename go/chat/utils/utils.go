@@ -570,7 +570,7 @@ func GetSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, error) {
 // characters
 const ServiceDecorationPrefix = `(?:^|[\s([/{:;.,!?"'])`
 
-var chanNameMentionRegExp = regexp.MustCompile(ServiceDecorationPrefix + `#([0-9a-zA-Z_-]+)`)
+var chanNameMentionRegExp = regexp.MustCompile(ServiceDecorationPrefix + `(#(?:[0-9a-zA-Z_-]+))`)
 
 func ParseChannelNameMentions(ctx context.Context, body string, uid gregor1.UID, teamID chat1.TLFID,
 	ts types.TeamChannelSource) (res []chat1.ChannelNameMention) {
@@ -595,7 +595,7 @@ func ParseChannelNameMentions(ctx context.Context, body string, uid gregor1.UID,
 }
 
 var atMentionRegExp = regexp.MustCompile(ServiceDecorationPrefix +
-	`@(?:[a-z0-9][a-z0-9_]+(?:#[a-z0-9][a-z0-9_]+)?)`)
+	`(@(?:[a-z0-9][a-z0-9_.]+(?:#[a-z0-9A-Z_-]+)?))`)
 
 type nameMatch struct {
 	name     string
@@ -610,9 +610,9 @@ func parseRegexpNames(ctx context.Context, body string, re *regexp.Regexp) (res 
 	body = ReplaceQuotedSubstrings(body, true)
 	allIndexMatches := re.FindAllStringSubmatchIndex(body, -1)
 	for _, indexMatch := range allIndexMatches {
-		if len(indexMatch) >= 2 {
-			low := indexMatch[0] + 1
-			high := indexMatch[1]
+		if len(indexMatch) >= 4 {
+			low := indexMatch[2] + 1
+			high := indexMatch[3]
 			hit := body[low:high]
 			res = append(res, nameMatch{
 				name:     hit,
@@ -2041,13 +2041,17 @@ func DecorateWithMentions(ctx context.Context, body string, atMentions []string,
 			teamMap[name] = tm
 		}
 		for _, m := range atMatches {
-			switch m.name {
-			case "here", "channel", "everyone":
+			switch {
+			case m.name == "here":
+				fallthrough
+			case m.name == "channel":
+				fallthrough
+			case m.name == "everyone":
 				if chanMention == chat1.ChannelMention_NONE {
 					continue
 				}
-			}
-			if atMap[m.name] {
+				fallthrough
+			case atMap[m.name]:
 				body, added = DecorateBody(ctx, body, m.position[0]+offset-1, m.Len()+1,
 					chat1.NewUITextDecorationWithAtmention(m.name))
 				offset += added
