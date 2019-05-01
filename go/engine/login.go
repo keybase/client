@@ -103,6 +103,10 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 	// First see if this device is already provisioned and it is possible to log in.
 	loggedInOK, err = e.loginProvisionedDevice(m, e.username)
 	if err != nil {
+		// Suggest autoreset if user failed to log in and we're provisioned
+		if _, ok := err.(libkb.PassphraseError); ok {
+			return e.suggestRecoveryForgotPassword(m)
+		}
 		m.Debug("loginProvisionedDevice error: %s", err)
 		return err
 	}
@@ -145,6 +149,24 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 	m.Debug("Login provisioning success, sending login notification")
 	e.sendNotification(m)
 	return nil
+}
+
+func (e *Login) suggestRecoveryForgotPassword(mctx libkb.MetaContext) error {
+	enterReset, err := mctx.UIs().LoginUI.PromptResetAccount(mctx.Ctx(), keybase1.PromptResetAccountArg{
+		Kind: keybase1.ResetPromptType_ENTER_FORGOT_PW,
+	})
+	if err != nil {
+		return err
+	}
+	if !enterReset {
+		// Cancel the engine as the user decided to end the flow early.
+		return nil
+	}
+
+	// We are certain the user will not know their password, so we can disable the prompt.
+	eng := NewAccountReset(mctx.G(), e.username)
+	eng.skipPasswordPrompt = true
+	return eng.Run(mctx)
 }
 
 func (e *Login) loginProvision(m libkb.MetaContext) (bool, error) {
