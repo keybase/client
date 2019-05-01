@@ -2348,7 +2348,7 @@ func (h *Server) SearchRegexp(ctx context.Context, arg chat1.SearchRegexpArg) (r
 	}
 
 	chatUI := h.getChatUI(arg.SessionID)
-	uiCh := make(chan chat1.ChatSearchHit)
+	uiCh := make(chan chat1.ChatSearchHit, 10)
 	ch := make(chan struct{})
 	go func() {
 		for searchHit := range uiCh {
@@ -2506,7 +2506,7 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 		return res, nil
 	}
 	// stream hits back to client UI
-	hitUICh := make(chan chat1.ChatSearchInboxHit)
+	hitUICh := make(chan chat1.ChatSearchInboxHit, 10)
 	hitUIDone := make(chan struct{})
 	numHits := 0
 	doIndexSearch := !arg.NamesOnly && len(query) > 0
@@ -2528,7 +2528,7 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 		}
 	}()
 	// stream index status back to client UI
-	indexUICh := make(chan chat1.ChatSearchIndexStatus)
+	indexUICh := make(chan chat1.ChatSearchIndexStatus, 10)
 	indexUIDone := make(chan struct{})
 	go func() {
 		defer close(indexUIDone)

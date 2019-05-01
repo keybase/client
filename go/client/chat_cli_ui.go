@@ -19,9 +19,9 @@ import (
 type ChatCLINotifications struct {
 	libkb.Contextified
 	chat1.NotifyChatInterface
-	noOutput            bool
-	terminal            libkb.TerminalUI
-	lastPercentReported int
+	noOutput              bool
+	terminal              libkb.TerminalUI
+	lastAttachmentPercent int
 }
 
 func NewChatCLINotifications(g *libkb.GlobalContext) *ChatCLINotifications {
@@ -47,19 +47,19 @@ func (n *ChatCLINotifications) ChatAttachmentUploadProgress(ctx context.Context,
 		return nil
 	}
 	percent := int((100 * arg.BytesComplete) / arg.BytesTotal)
-	if n.lastPercentReported == 0 || percent == 100 || percent-n.lastPercentReported >= 10 {
+	if n.lastAttachmentPercent == 0 || percent == 100 || percent-n.lastAttachmentPercent >= 10 {
 		w := n.terminal.ErrorWriter()
 		fmt.Fprintf(w, "Attachment upload progress %d%% (%d of %d bytes uploaded)\n", percent, arg.BytesComplete, arg.BytesTotal)
-		n.lastPercentReported = percent
+		n.lastAttachmentPercent = percent
 	}
 	return nil
 }
 
 type ChatCLIUI struct {
 	libkb.Contextified
-	terminal            libkb.TerminalUI
-	noOutput            bool
-	lastPercentReported int
+	terminal                                libkb.TerminalUI
+	noOutput                                bool
+	lastAttachmentPercent, lastIndexPercent int
 }
 
 func NewChatCLIUI(g *libkb.GlobalContext) *ChatCLIUI {
@@ -83,10 +83,10 @@ func (c *ChatCLIUI) ChatAttachmentDownloadProgress(ctx context.Context, arg chat
 		return nil
 	}
 	percent := int((100 * arg.BytesComplete) / arg.BytesTotal)
-	if c.lastPercentReported == 0 || percent == 100 || percent-c.lastPercentReported >= 10 {
+	if c.lastAttachmentPercent == 0 || percent == 100 || percent-c.lastAttachmentPercent >= 10 {
 		w := c.terminal.ErrorWriter()
 		fmt.Fprintf(w, "Attachment download progress %d%% (%d of %d bytes downloaded)\n", percent, arg.BytesComplete, arg.BytesTotal)
-		c.lastPercentReported = percent
+		c.lastAttachmentPercent = percent
 	}
 	return nil
 }
@@ -271,7 +271,10 @@ func (c *ChatCLIUI) ChatSearchIndexStatus(ctx context.Context, arg chat1.ChatSea
 	if c.noOutput {
 		return nil
 	}
-	c.terminal.Output(fmt.Sprintf("Indexing: %d%%.\n", arg.Status.PercentIndexed))
+	if percentIndexed := arg.Status.PercentIndexed; percentIndexed > c.lastIndexPercent {
+		c.terminal.Output(fmt.Sprintf("Indexing: %d%%.\n", percentIndexed))
+		c.lastIndexPercent = percentIndexed
+	}
 	return nil
 }
 
