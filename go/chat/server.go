@@ -2496,7 +2496,8 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 	} else {
 		ctx = h.getInboxSearchContext(ctx)
 	}
-	if opts.IsRegex || forceDelegate {
+
+	if opts.IsRegex || forceDelegate || len(query) < search.MinTokenLength {
 		inboxRes, err := h.delegateInboxSearch(ctx, uid, query, arg.Query, opts, chatUI)
 		if err != nil {
 			return res, err

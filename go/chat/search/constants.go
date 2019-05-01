@@ -18,7 +18,7 @@ const (
 
 	// tokenizer
 	maxPrefixLength = 10
-	minTokenLength  = 3
+	MinTokenLength  = 3
 
 	// delay before starting SelectiveSync
 	startSyncDelayDesktop = 10 * time.Second
