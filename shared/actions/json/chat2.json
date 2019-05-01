@@ -10,7 +10,7 @@
     "toggleSmallTeamsExpanded": {},
     // Deselct if this is still selected, used in nav2 when you go away from a chat convo
     "deselectConversation": {
-      "ifConversationIDKey": "Types.ConversationIDKey",
+      "ifConversationIDKey": "Types.ConversationIDKey"
     },
     // Select a conversation (or leave nothing selected)
     "selectConversation": {
@@ -591,7 +591,8 @@
     "threadSearchResults": {
       "_description": "Record a new thread search result",
       "conversationIDKey": "Types.ConversationIDKey",
-      "messages": "Array<Types.Message>"
+      "messages": "Array<Types.Message>",
+      "clear": "boolean"
     },
     "setThreadSearchStatus": {
       "_description": "Set the status of a thread search",
