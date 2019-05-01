@@ -490,3 +490,16 @@ func (d DummyCoinFlipManager) HasActiveGames(ctx context.Context) bool {
 func (d DummyCoinFlipManager) IsFlipConversationCreated(ctx context.Context, outboxID chat1.OutboxID) (chat1.ConversationID, FlipSendStatus) {
 	return nil, FlipSendStatusError
 }
+
+type DummyTeamMentionLoader struct{}
+
+func (d DummyTeamMentionLoader) Start(ctx context.Context, uid gregor1.UID) {}
+func (d DummyTeamMentionLoader) Stop(ctx context.Context) chan struct{} {
+	ch := make(chan struct{})
+	close(ch)
+	return ch
+}
+
+func (d DummyTeamMentionLoader) LoadTeamMention(ctx context.Context, uid gregor1.UID, teamName string) error {
+	return nil
+}
