@@ -14,7 +14,7 @@ import flags from '../util/feature-flags'
 import {type TypedState} from '../constants/reducer'
 import {devicesTab as settingsDevicesTab} from '../constants/settings'
 
-const devicesRoot = isMobile ? [Tabs.settingsTab, settingsDevicesTab] : [Tabs.devicesTab]
+const devicesRoot = isMobile ? [Tabs.settingsTab, settingsDevicesTab] : [Tabs.devicesTab, 'devicesRoot']
 
 type ValidCallback =
   | 'keybase.1.gpgUi.selectKey'
@@ -353,14 +353,16 @@ class ProvisioningManager {
 
   maybeCancelProvision = state => {
     let root = state.routeTree.routeState && state.routeTree.routeState.selected
+    let onDevicesTab = root === devicesRoot[0]
+    let onLoginTab = root === Tabs.loginTab
     if (flags.useNewRouter) {
-      const path = Router2Constants.getFullRoute()
-      root = path[path.length - 1].routeName
-      debugger
+      const path = Router2Constants.getFullRoute().map(p => p.routeName)
+      onDevicesTab = path.includes(devicesRoot[0])
+      onLoginTab = path.includes('login')
     }
 
-    const doingDeviceAdd = this._addingANewDevice && root === devicesRoot[0]
-    const doingProvision = !this._addingANewDevice && root === Tabs.loginTab
+    const doingDeviceAdd = this._addingANewDevice && onDevicesTab
+    const doingProvision = !this._addingANewDevice && onLoginTab
     if (doingDeviceAdd || doingProvision) {
       // cancel if we're waiting on anything
       const response = this._stashedResponse
