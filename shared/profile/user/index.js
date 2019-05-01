@@ -570,7 +570,11 @@ export const styles = Styles.styleSheetCreate({
   searchLabel: {color: Styles.globalColors.white_75},
   sectionList: Styles.platformStyles({
     common: {width: '100%'},
-    isElectron: {willChange: 'transform', position: 'relative', backgroundColor: Styles.globalColors.white},
+    isElectron: {
+      backgroundColor: Styles.globalColors.white,
+      position: 'relative',
+      willChange: 'transform',
+    },
   }),
   sectionListContentStyle: Styles.platformStyles({
     common: {backgroundColor: Styles.globalColors.white, paddingBottom: Styles.globalMargins.xtiny},
