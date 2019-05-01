@@ -285,8 +285,12 @@ func (cc *crChain) identifyType(ctx context.Context, fbo *folderBlockOps,
 			"Can't find parent dir chain, unref=%s/ref=%s, for op %s (file=%s)",
 			lastSetAttr.Dir.Unref, lastSetAttr.Dir.Ref,
 			lastSetAttr, lastSetAttr.File)
-		// Fall through and hope we can still look up the parent's
-		// block and find the entry.
+
+		// If the parent still can't be found, then likely the whole
+		// directory was created and deleted within this update, so it
+		// should be treated as deleted.
+		chains.deletedOriginals[cc.original] = true
+		return nil
 	}
 
 	// We have to find the current parent directory block.  If the
