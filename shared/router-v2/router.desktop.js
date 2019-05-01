@@ -27,11 +27,22 @@ import OutOfDate from '../app/out-of-date'
  * Modal screens
  * Floating screens
  *
- * You have 2 nested routers, a normal stack and modal stack
+ * You have 2 nested routers, a tab router and modal stack
  * When the modal has a valid route ModalView is rendered, which renders AppView underneath
  * When there are no modals AppView is rendered
  * Floating is rendered to a portal on top
  */
+
+// We could have subnavigators, so traverse the routes so we can get the active
+// screen's index so we know when to enable the back button. Note this doesn't
+// support a subnavigator with a root you can hit back from.
+const getActiveIndex = navState => {
+  const route = navState.routes[navState.index]
+  if (route.routes) {
+    return getActiveIndex(route)
+  }
+  return navState.index
+}
 
 // The app with a tab bar on the left and content area on the right
 // A single content view and n-modals on top
@@ -45,6 +56,7 @@ class AppView extends React.PureComponent<any> {
     const selectedTab = nameToTab[descriptor.state.routeName]
     // transparent headers use position absolute and need to be rendered last so they go on top w/o zindex
     const direction = descriptor.options.headerTransparent ? 'vertical' : 'verticalReverse'
+    const activeIndex = getActiveIndex(navigation.state)
 
     const sceneView = (
       <SceneView
@@ -74,8 +86,8 @@ class AppView extends React.PureComponent<any> {
           <Header
             loggedIn={!!selectedTab}
             options={descriptor.options}
-            onPop={() => childNav.goBack()}
-            allowBack={index !== 0}
+            onPop={() => childNav.pop()}
+            allowBack={activeIndex !== 0}
           />
         </Kb.Box2>
       </Kb.Box2>

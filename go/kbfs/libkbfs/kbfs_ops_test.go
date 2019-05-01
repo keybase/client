@@ -137,10 +137,11 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	config.mockBops.EXPECT().Archive(gomock.Any(), gomock.Any(),
 		gomock.Any()).AnyTimes().Return(nil)
 	// Ignore BlockRetriever calls
+	clock := clocktest.NewTestClockNow()
 	brc := &testBlockRetrievalConfig{
 		nil, newTestLogMaker(t), config.BlockCache(), nil,
 		newTestDiskBlockCacheGetter(t, nil), newTestSyncedTlfGetterSetter(),
-		testInitModeGetter{InitDefault}, clocktest.NewTestClockNow()}
+		testInitModeGetter{InitDefault}, clock, NewReporterSimple(clock, 1)}
 	brq := newBlockRetrievalQueue(0, 0, 0, brc)
 	config.mockBops.EXPECT().BlockRetriever().AnyTimes().Return(brq)
 	config.mockBops.EXPECT().Prefetcher().AnyTimes().Return(brq.prefetcher)
@@ -3282,8 +3283,7 @@ func TestKBFSOpsBackgroundFlush(t *testing.T) {
 
 	// start the background flusher
 	config.SetBGFlushPeriod(1 * time.Millisecond)
-	ops.doneWg.Add(1)
-	go ops.backgroundFlusher()
+	ops.goTracked(ops.backgroundFlusher)
 
 	// Wait for the stall to know the background work is done.
 	staller.WaitForStallMDOp(StallableMDAfterPut)
@@ -4927,7 +4927,6 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	require.NoError(t, err)
 
 	checkSyncCache(10, cNode)
-	checkStatus(bNode, FinishedPrefetch)
 	checkStatus(cNode, FinishedPrefetch)
 	checkStatus(eNode, FinishedPrefetch)
 	checkStatus(fNode, FinishedPrefetch)
@@ -4952,7 +4951,6 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	require.NoError(t, err)
 
 	checkSyncCache(8, cNode)
-	checkStatus(bNode, FinishedPrefetch)
 	checkStatus(cNode, FinishedPrefetch)
 	checkStatus(eNode, NoPrefetch)
 	checkStatus(fNode, NoPrefetch)

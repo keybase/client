@@ -12,7 +12,7 @@ import flags from '../../util/feature-flags'
 type BannerType = 'none' | 'offline'
 type Props = {|
   bannerType: BannerType,
-  onBack: () => void,
+  onBack: ?() => void,
   path: Types.Path,
 |}
 type State = {|
@@ -42,7 +42,9 @@ class MobileHeader extends React.PureComponent<Props, State> {
           <Kbfs.FolderViewFilter path={this.props.path} onCancel={this._filterDone} />
         ) : (
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.expandedTopContainer}>
-            <Kb.BackButton badgeNumber={0 /* TODO KBFS-4109 */} onClick={this.props.onBack} />
+            {this.props.onBack && (
+              <Kb.BackButton badgeNumber={0 /* TODO KBFS-4109 */} onClick={this.props.onBack} />
+            )}
             <Kb.Box style={styles.gap} />
             <Actions path={this.props.path} onTriggerFilterMobile={this._triggerFilterMobile} />
           </Kb.Box2>
@@ -68,7 +70,7 @@ const styles = Styles.styleSheetCreate({
     height,
     maxHeight: height,
     minHeight: height,
-    paddingTop: Styles.statusBarHeight,
+    paddingTop: Styles.isAndroid ? undefined : Styles.statusBarHeight,
   },
   expandedTitleContainer: {
     backgroundColor: Styles.globalColors.white,
@@ -89,7 +91,7 @@ const styles = Styles.styleSheetCreate({
 
 type OwnProps = {|
   path: Types.Path,
-  onBack: () => void,
+  onBack: ?() => void,
 |}
 
 const mapStateToProps = (state, {path}: OwnProps) => ({

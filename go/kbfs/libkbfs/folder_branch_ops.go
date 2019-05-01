@@ -328,8 +328,8 @@ type folderBranchOps struct {
 
 	// Closed on shutdown
 	shutdownChan chan struct{}
-	// Closed once we're done shutting down. Any goroutine that logs must be
-	// registered with this WaitGroup, to avoid test races.
+	// Wait on this once we're done shutting down. Any goroutine that logs must
+	// be registered with this WaitGroup, to avoid test races.
 	doneWg sync.WaitGroup
 
 	// Can be used to turn off notifications for a while (e.g., for testing)
@@ -499,11 +499,18 @@ func newFolderBranchOps(
 	fbo.fbm = newFolderBlockManager(appStateUpdater, config, fb, bType, fbo)
 	fbo.rekeyFSM = NewRekeyFSM(fbo)
 	if config.DoBackgroundFlushes() && bType == standard {
-		fbo.doneWg.Add(1)
-		go fbo.backgroundFlusher()
+		fbo.goTracked(fbo.backgroundFlusher)
 	}
 
 	return fbo
+}
+
+func (fbo *folderBranchOps) goTracked(f func()) {
+	fbo.doneWg.Add(1)
+	go func() {
+		defer fbo.doneWg.Done()
+		f()
+	}()
 }
 
 // markForReIdentifyIfNeeded checks whether this tlf is identified and mark
@@ -661,12 +668,12 @@ func (fbo *folderBranchOps) commitHeadLocked(
 
 	id := fbo.id()
 	log := fbo.log
-	go func() {
+	fbo.goTracked(func() {
 		err := diskMDCache.Commit(context.Background(), id, rev)
 		if err != nil {
 			log.CDebugf(ctx, "Error commiting revision %d: %+v", rev, err)
 		}
-	}()
+	})
 }
 
 // getTrustedHead should not be called outside of folder_branch_ops.go.
@@ -839,8 +846,7 @@ func (fbo *folderBranchOps) startMonitorChat(tlfName tlf.CanonicalName) {
 		// monitoring hasn't been started yet.
 		fbo.editActivity.Add(1)
 		fbo.editChannels <- editChannelActivity{nil, "", ""}
-		fbo.doneWg.Add(1)
-		go fbo.monitorEditsChat(tlfName)
+		fbo.goTracked(func() { fbo.monitorEditsChat(tlfName) })
 	})
 }
 
@@ -1095,11 +1101,11 @@ func (fbo *folderBranchOps) kickOffPartialSync(
 		ctx, "Partial sync with a new context: FBOID=%s",
 		partialSyncCtx.Value(CtxFBOIDKey))
 	fbo.partialSyncs.Add(1)
-	go func() {
+	fbo.goTracked(func() {
 		defer cancel()
 		defer fbo.partialSyncs.Done()
 		_ = fbo.doPartialSync(partialSyncCtx, syncConfig, rmd)
-	}()
+	})
 
 	// Cancel the partial sync if the latest merged revision is updated.
 	updatedCh := func() <-chan struct{} {
@@ -1118,13 +1124,13 @@ func (fbo *folderBranchOps) kickOffPartialSync(
 	if updatedCh == nil {
 		cancel()
 	} else {
-		go func() {
+		fbo.goTracked(func() {
 			select {
 			case <-updatedCh:
 				cancel()
 			case <-partialSyncCtx.Done():
 			}
-		}()
+		})
 	}
 
 	if syncConfig.Mode != keybase1.FolderSyncMode_PARTIAL {
@@ -1137,8 +1143,7 @@ func (fbo *folderBranchOps) kickOffPartialSync(
 	if fbo.markAndSweepTrigger == nil {
 		trigger := make(chan struct{}, 1)
 		fbo.markAndSweepTrigger = trigger
-		fbo.doneWg.Add(1)
-		go fbo.partialMarkAndSweepLoop(trigger)
+		fbo.goTracked(func() { fbo.partialMarkAndSweepLoop(trigger) })
 	}
 }
 
@@ -1351,11 +1356,11 @@ func (fbo *folderBranchOps) kickOffPartialMarkAndSweep(
 		ctx, "Partial mark-and-sweep with a new context: FBOID=%s",
 		partialMSCtx.Value(CtxFBOIDKey))
 	fbo.partialSyncs.Add(1)
-	go func() {
+	fbo.goTracked(func() {
 		defer cancel()
 		defer fbo.partialSyncs.Done()
 		_ = fbo.doPartialMarkAndSweep(partialMSCtx, syncConfig, rmd)
-	}()
+	})
 
 	// Cancel the partial sync if the latest merged revision is updated.
 	updatedCh := func() <-chan struct{} {
@@ -1374,13 +1379,13 @@ func (fbo *folderBranchOps) kickOffPartialMarkAndSweep(
 	if updatedCh == nil {
 		cancel()
 	} else {
-		go func() {
+		fbo.goTracked(func() {
 			select {
 			case <-updatedCh:
 				cancel()
 			case <-partialMSCtx.Done():
 			}
-		}()
+		})
 	}
 	return partialMSCtx.Done(), cancel
 }
@@ -1428,7 +1433,6 @@ func (fbo *folderBranchOps) kickOffPartialMarkAndSweepIfNeeded(
 }
 
 func (fbo *folderBranchOps) partialMarkAndSweepLoop(trigger <-chan struct{}) {
-	defer fbo.doneWg.Done()
 	// For partially-synced TLFs, run this:
 	// * Once an hour-ish, only if the latest merged revision has changed.
 	// * When a path is removed from the config.
@@ -1542,7 +1546,6 @@ func (fbo *folderBranchOps) waitForRootBlockFetch(
 
 func (fbo *folderBranchOps) commitFlushedMD(
 	rmd ImmutableRootMetadata, updatedCh <-chan struct{}) {
-	defer fbo.doneWg.Done()
 	diskMDCache := fbo.config.DiskMDCache()
 	if diskMDCache == nil {
 		return
@@ -1628,7 +1631,7 @@ func (fbo *folderBranchOps) commitFlushedMD(
 		fbo.kickOffPartialSyncIfNeeded(ctx, lState, rmd)
 		ctx, cancel := context.WithCancel(ctx)
 		defer cancel()
-		go func() {
+		fbo.goTracked(func() {
 			select {
 			case <-updatedCh:
 				cancel()
@@ -1636,7 +1639,7 @@ func (fbo *folderBranchOps) commitFlushedMD(
 				cancel()
 			case <-ctx.Done():
 			}
-		}()
+		})
 		err := fbo.partialSyncs.Wait(ctx)
 		if err != nil {
 			fbo.log.CDebugf(ctx, "Error waiting for partial sync: %+v", err)
@@ -1779,8 +1782,8 @@ func (fbo *folderBranchOps) setHeadLocked(
 	}
 
 	if ct == mdCommit {
-		fbo.doneWg.Add(1)
-		go fbo.commitFlushedMD(md, fbo.latestMergedUpdated)
+		latestMergedUpdated := fbo.latestMergedUpdated
+		fbo.goTracked(func() { fbo.commitFlushedMD(md, latestMergedUpdated) })
 	}
 
 	// Make sure that any unembedded block changes have been swapped
@@ -1802,8 +1805,7 @@ func (fbo *folderBranchOps) setHeadLocked(
 		if fbo.bType == standard {
 			if fbo.config.Mode().TLFUpdatesEnabled() {
 				fbo.updateDoneChan = make(chan struct{})
-				fbo.doneWg.Add(1)
-				go fbo.registerAndWaitForUpdates()
+				fbo.goTracked(fbo.registerAndWaitForUpdates)
 			}
 			fbo.startMonitorChat(md.GetTlfHandle().GetCanonicalName())
 		}
@@ -3831,7 +3833,7 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 		fbo.vlog.CLogf(
 			ctx, libkb.VLog1, "Sending notifications for %v",
 			irmd.data.Changes.Ops)
-		go func() {
+		fbo.goTracked(func() {
 			defer fbo.editActivity.Done()
 			ctx, cancelFunc := fbo.newCtxWithFBOID()
 			defer cancelFunc()
@@ -3840,7 +3842,7 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 				fbo.log.CWarningf(ctx, "Couldn't send edit notifications for "+
 					"revision %d: %+v", irmd.Revision(), err)
 			}
-		}()
+		})
 		fbo.fbm.archiveUnrefBlocks(irmd.ReadOnly())
 	}
 
@@ -4410,13 +4412,13 @@ func (fbo *folderBranchOps) doMDWriteWithRetry(ctx context.Context,
 				newCtx := fbo.ctxWithFBOID(context.Background())
 				newCtx, cancel := context.WithCancel(newCtx)
 				defer cancel()
-				go func() {
+				fbo.goTracked(func() {
 					select {
 					case <-ctx.Done():
 						cancel()
 					case <-newCtx.Done():
 					}
-				}()
+				})
 				fbo.vlog.CLogf(
 					ctx, libkb.VLog1, "Got a revision conflict while unmerged "+
 						"(%v); forcing a sync", err)
@@ -6897,13 +6899,13 @@ func (fbo *folderBranchOps) UnstageForTesting(
 		freshCtx, cancel := fbo.newCtxWithFBOID()
 		defer cancel()
 		fbo.log.CDebugf(freshCtx, "Launching new context for UnstageForTesting")
-		go func() {
+		fbo.goTracked(func() {
 			lState := makeFBOLockState()
 			c <- fbo.doMDWriteWithRetry(ctx, lState,
 				func(lState *kbfssync.LockState) error {
 					return fbo.unstageLocked(freshCtx, lState, doPruneBranches)
 				})
-		}()
+		})
 
 		select {
 		case err := <-c:
@@ -7256,9 +7258,9 @@ func (fbo *folderBranchOps) runUnlessShutdown(fn func(ctx context.Context) error
 	ctx, cancelFunc := fbo.newCtxWithFBOID()
 	defer cancelFunc()
 	errChan := make(chan error, 1)
-	go func() {
+	fbo.goTracked(func() {
 		errChan <- fn(ctx)
-	}()
+	})
 
 	select {
 	case err := <-errChan:
@@ -7439,7 +7441,6 @@ func (fbo *folderBranchOps) locallyFinalizeTLF(ctx context.Context) {
 }
 
 func (fbo *folderBranchOps) registerAndWaitForUpdates() {
-	defer fbo.doneWg.Done()
 	defer close(fbo.updateDoneChan)
 	childDone := make(chan struct{})
 	var lastUpdate time.Time
@@ -7631,7 +7632,6 @@ func (fbo *folderBranchOps) getCachedDirOpsCount(
 }
 
 func (fbo *folderBranchOps) backgroundFlusher() {
-	defer fbo.doneWg.Done()
 	lState := makeFBOLockState()
 	var prevDirtyFileMap map[data.BlockRef]bool
 	sameDirtyFileCount := 0
@@ -7820,7 +7820,7 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 		// Send edit notifications and archive the old, unref'd blocks
 		// if journaling is off.
 		fbo.editActivity.Add(1)
-		go func() {
+		fbo.goTracked(func() {
 			defer fbo.editActivity.Done()
 			ctx, cancelFunc := fbo.newCtxWithFBOID()
 			defer cancelFunc()
@@ -7829,7 +7829,7 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 				fbo.log.CWarningf(ctx, "Couldn't send edit notifications for "+
 					"revision %d: %+v", irmd.Revision(), err)
 			}
-		}()
+		})
 		fbo.fbm.archiveUnrefBlocks(irmd.ReadOnly())
 	}
 
@@ -7928,7 +7928,7 @@ func (fbo *folderBranchOps) handleTLFBranchChange(ctx context.Context,
 func (fbo *folderBranchOps) onTLFBranchChange(newBID kbfsmd.BranchID) {
 	fbo.branchChanges.Add(1)
 
-	go func() {
+	fbo.goTracked(func() {
 		defer fbo.branchChanges.Done()
 		ctx, cancelFunc := fbo.newCtxWithFBOID()
 		defer cancelFunc()
@@ -7942,7 +7942,7 @@ func (fbo *folderBranchOps) onTLFBranchChange(newBID kbfsmd.BranchID) {
 		}
 
 		fbo.handleTLFBranchChange(ctx, newBID)
-	}()
+	})
 }
 
 func (fbo *folderBranchOps) handleMDFlush(
@@ -8001,15 +8001,14 @@ func (fbo *folderBranchOps) handleMDFlush(
 	}
 	fbo.fbm.archiveUnrefBlocks(rmd.ReadOnly())
 
-	fbo.doneWg.Add(1)
-	go fbo.commitFlushedMD(rmd, latestMergedUpdated)
+	fbo.goTracked(func() { fbo.commitFlushedMD(rmd, latestMergedUpdated) })
 }
 
 func (fbo *folderBranchOps) onMDFlush(
 	unmergedBID kbfsmd.BranchID, rev kbfsmd.Revision) {
 	fbo.mdFlushes.Add(1)
 
-	go func() {
+	fbo.goTracked(func() {
 		defer fbo.mdFlushes.Done()
 		ctx, cancelFunc := fbo.newCtxWithFBOID()
 		defer cancelFunc()
@@ -8022,7 +8021,7 @@ func (fbo *folderBranchOps) onMDFlush(
 		}
 
 		fbo.handleMDFlush(ctx, rev)
-	}()
+	})
 }
 
 // TeamNameChanged implements the KBFSOps interface for folderBranchOps
@@ -8390,7 +8389,7 @@ func (fbo *folderBranchOps) ForceFastForward(ctx context.Context) {
 	fbo.hasBeenCleared = false
 
 	fbo.forcedFastForwards.Add(1)
-	go func() {
+	fbo.goTracked(func() {
 		defer fbo.forcedFastForwards.Done()
 		ctx, cancelFunc := fbo.newCtxWithFBOID()
 		defer cancelFunc()
@@ -8453,7 +8452,7 @@ func (fbo *folderBranchOps) ForceFastForward(ctx context.Context) {
 		if err != nil {
 			fbo.log.CDebugf(ctx, "Fast-forward failed: %v", err)
 		}
-	}()
+	})
 }
 
 // Reset implements the KBFSOps interface for folderBranchOps.
@@ -8503,6 +8502,8 @@ func (fbo *folderBranchOps) Reset(
 		return err
 	}
 	oldHandle.SetFinalizedInfo(finalizedInfo)
+	// FIXME: This can't be subject to the WaitGroup due to a potential
+	// deadlock, so we use a raw goroutine here instead of `goTracked`.
 	go fbo.observers.tlfHandleChange(ctx, oldHandle)
 	return nil
 }
@@ -8851,11 +8852,11 @@ func (fbo *folderBranchOps) SetSyncConfig(
 		newConfig.Mode != keybase1.FolderSyncMode_DISABLED {
 		// Explicitly re-resolve and re-identify the handle, to make
 		// sure the service caches everything it's supposed to.
-		go func() {
+		fbo.goTracked(func() {
 			ctx, cancel := fbo.newCtxWithFBOID()
 			defer cancel()
 			fbo.reResolveAndIdentify(ctx, md.GetTlfHandle(), md.Revision())
-		}()
+		})
 	}
 
 	if config.Mode == keybase1.FolderSyncMode_ENABLED {
@@ -9170,7 +9171,6 @@ func (fbo *folderBranchOps) refreshEditHistory() {
 }
 
 func (fbo *folderBranchOps) monitorEditsChat(tlfName tlf.CanonicalName) {
-	defer fbo.doneWg.Done()
 	ctx, cancelFunc := fbo.newCtxWithFBOID()
 	defer cancelFunc()
 	fbo.log.CDebugf(ctx, "Starting kbfs-edits chat monitoring")
