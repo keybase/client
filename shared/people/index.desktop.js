@@ -10,9 +10,6 @@ import ProfileSearch from '../profile/search/bar'
 export const Header = flags.useNewRouter
   ? (props: Props) => (
       <Kb.Box2 direction="horizontal" style={styles.header}>
-        <Kb.Text type="Header" style={styles.sectionTitle}>
-          People
-        </Kb.Text>
         <ProfileSearch onSearch={props.onSearch} />
       </Kb.Box2>
     )

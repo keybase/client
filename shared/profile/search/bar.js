@@ -23,7 +23,10 @@ class ProfileSearch extends React.PureComponent<Props, State> {
       <Kb.Box2 style={styles.container} direction="horizontal" ref={this._ref}>
         <Kb.ClickableBox
           onClick={this._onShow}
-          style={Styles.collapseStyles([styles.searchContainer, this.state.show && {opacity: 0}])}
+          style={Styles.collapseStyles([
+            styles.searchContainer,
+            this.state.show && !flags.useNewRouter && {opacity: 0},
+          ])}
         >
           <Kb.Box2 direction="horizontal" alignItems="center">
             <Kb.Icon
@@ -45,7 +48,7 @@ class ProfileSearch extends React.PureComponent<Props, State> {
           visible={this.state.show}
           onHidden={this._onHide}
           attachTo={this._getAttachmentRef}
-          position={flags.useNewRouter ? 'top left' : 'top center'}
+          position="top center"
           style={styles.overlay}
         >
           <Search onClose={this._onHide} />
@@ -60,7 +63,7 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.white_75,
   },
   container: {
-    ...(flags.useNewRouter ? {alignSelf: 'flex-end', flexGrow: 1} : {alignSelf: 'center'}),
+    ...(flags.useNewRouter ? {alignSelf: 'flex-start', flexGrow: 1, width: '100%'} : {alignSelf: 'center'}),
   },
   overlay: Styles.platformStyles({
     isElectron: {
@@ -68,6 +71,7 @@ const styles = Styles.styleSheetCreate({
       ...Styles.globalStyles.flexBoxColumn,
       ...Styles.desktopStyles.windowDraggingClickable,
       ...(flags.useNewRouter ? {marginRight: 12} : {}),
+      ...(flags.useNewRouter ? {width: '100%'} : {}),
       alignSelf: 'center',
       borderRadius: 5,
       marginTop: -24,
@@ -86,11 +90,11 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       ...Styles.desktopStyles.clickable,
       ...Styles.desktopStyles.windowDraggingClickable,
+      ...(flags.useNewRouter ? {width: '100%'} : {width: 240}),
       height: 24,
-      marginLeft: flags.useNewRouter ? 'auto' : Styles.globalMargins.small,
+      marginLeft: flags.useNewRouter ? Styles.globalMargins.xsmall : Styles.globalMargins.small,
       marginRight: flags.useNewRouter ? Styles.globalMargins.xsmall : Styles.globalMargins.small,
       marginTop: flags.useNewRouter ? 0 : Styles.globalMargins.xsmall,
-      width: 240,
     },
     isMobile: {
       flexGrow: 1,
@@ -100,7 +104,7 @@ const styles = Styles.styleSheetCreate({
   searchIcon: {paddingRight: Styles.globalMargins.tiny},
   searchText: {
     color: Styles.globalColors.black_50,
-    maxWidth: flags.useNewRouter ? 240 : undefined,
+    // maxWidth: flags.useNewRouter ? 240 : undefined,
   },
 })
 
