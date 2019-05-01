@@ -1,6 +1,7 @@
 // @flow
 import React from 'react'
 import Text from '../../../common-adapters/text'
+import {Box2} from '../../../common-adapters/box'
 import * as Styles from '../../../styles'
 import TeamInfo from '../../../profile/user/teams/teaminfo'
 
@@ -37,29 +38,47 @@ class TeamMention extends React.Component<Props, State> {
     if (this.props.channel.length > 0) {
       text += `#${this.props.channel}`
     }
+    const content = (
+      <Text
+        ref={this._mentionRef}
+        type="BodySemibold"
+        className={Styles.classNames({'hover-underline': !Styles.isMobile})}
+        style={Styles.collapseStyles([this.props.style, styles.resolved, styles.text])}
+        allowFontScaling={this.props.allowFontScaling}
+        onClick={this._showPopup}
+      >
+        {text}
+      </Text>
+    )
+    const popups = (
+      <TeamInfo
+        attachTo={this._getAttachmentRef}
+        description={this.props.description}
+        isOpen={this.props.isOpen}
+        name={this.props.name}
+        membersCount={this.props.numMembers}
+        onHidden={this._hidePopup}
+        publicAdmins={this.props.publicAdmins}
+        visible={this.state.showPopup}
+      />
+    )
     return this.props.resolved ? (
-      <>
-        <Text
-          ref={this._mentionRef}
-          type="BodySemibold"
-          className={Styles.classNames({'hover-underline': !Styles.isMobile})}
-          style={Styles.collapseStyles([this.props.style, styles.resolved, styles.text])}
-          allowFontScaling={this.props.allowFontScaling}
-          onClick={this._showPopup}
+      Styles.isMobile ? (
+        <>
+          {content}
+          {popups}
+        </>
+      ) : (
+        <Box2
+          direction="horizontal"
+          style={styles.container}
+          onMouseOver={this._showPopup}
+          onMouseLeave={this._hidePopup}
         >
-          {text}
-        </Text>
-        <TeamInfo
-          attachTo={this._getAttachmentRef}
-          description={this.props.description}
-          isOpen={this.props.isOpen}
-          name={this.props.name}
-          membersCount={this.props.numMembers}
-          onHidden={this._hidePopup}
-          publicAdmins={this.props.publicAdmins}
-          visible={this.state.showPopup}
-        />
-      </>
+          {content}
+          {popups}
+        </Box2>
+      )
     ) : (
       <Text type="Body" style={this.props.style} allowFontScaling={this.props.allowFontScaling}>
         {text}
@@ -69,6 +88,11 @@ class TeamMention extends React.Component<Props, State> {
 }
 
 const styles = Styles.styleSheetCreate({
+  container: Styles.platformStyles({
+    isElectron: {
+      display: 'inline-block',
+    },
+  }),
   resolved: {
     backgroundColor: Styles.globalColors.blue,
     borderRadius: 2,
