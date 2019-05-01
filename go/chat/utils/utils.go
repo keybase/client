@@ -595,7 +595,7 @@ func ParseChannelNameMentions(ctx context.Context, body string, uid gregor1.UID,
 }
 
 var atMentionRegExp = regexp.MustCompile(ServiceDecorationPrefix +
-	`(@(?:[a-z0-9][a-z0-9_.]+(?:#[a-z0-9A-Z_-]+)?))`)
+	`(@(?:[a-z0-9][a-z0-9.]*[a-z0-9_]+(?:#[a-z0-9A-Z_-]+)?))`)
 
 type nameMatch struct {
 	name     string
