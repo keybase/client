@@ -47,7 +47,7 @@ const icons = {
   [Tabs.fsTab]: 'iconfont-nav-2-files',
   [Tabs.teamsTab]: 'iconfont-nav-2-teams',
   [Tabs.peopleTab]: 'iconfont-nav-2-people',
-  [Tabs.settingsTab]: 'iconfont-nav-2-more',
+  [Tabs.settingsTab]: 'iconfont-nav-2-hamburger',
   [Tabs.walletsTab]: 'iconfont-nav-2-wallets',
 }
 

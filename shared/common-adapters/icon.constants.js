@@ -2231,6 +2231,11 @@ const iconMeta_ = {
     gridSize: 24,
     isFont: true,
   },
+  'iconfont-nav-2-hamburger': {
+    charCode: 0xe98b,
+    gridSize: 24,
+    isFont: true,
+  },
   'iconfont-nav-2-more': {
     charCode: 0xe984,
     gridSize: 24,
