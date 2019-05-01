@@ -539,13 +539,14 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
             : driverStatus
         )
       )
-    case FsGen.driverDisable:
+    case FsGen.driverDisabling:
       return state.update('sfmi', sfmi =>
         sfmi.update('driverStatus', driverStatus =>
           driverStatus.type === 'enabled' ? driverStatus.set('isDisabling', true) : driverStatus
         )
       )
 
+    case FsGen.driverDisable:
     case FsGen.folderListLoad:
     case FsGen.placeholderAction:
     case FsGen.download:

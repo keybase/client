@@ -17,9 +17,9 @@ import {normalRowHeight} from './common'
 import {memoize} from '../../util/memoize'
 
 type Props = {
+  emptyMode: 'empty' | 'not-empty-but-no-match' | 'not-empty',
   destinationPickerIndex?: number,
   items: I.List<RowTypes.RowItem>,
-  isEmpty: boolean,
   path: Types.Path,
   routePath: I.List<string>,
 }
@@ -136,28 +136,33 @@ class Rows extends React.PureComponent<Props> {
   })
 
   render() {
-    const content = this.props.isEmpty ? (
-      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
-        {// The folder is empty so these should all be header rows.
-        this.props.items.map(item => item.rowType === 'header' && item.node)}
-        <Kb.Box2 direction="vertical" style={styles.emptyContainer} centerChildren={true}>
-          <Kb.Text type="BodySmall">This folder is empty.</Kb.Text>
+    const content =
+      this.props.emptyMode !== 'not-empty' ? (
+        <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
+          {// The folder is empty so these should all be header rows.
+          this.props.items.map(item => item.rowType === 'header' && item.node)}
+          <Kb.Box2 direction="vertical" style={styles.emptyContainer} centerChildren={true}>
+            <Kb.Text type="BodySmall">
+              {this.props.emptyMode === 'empty'
+                ? 'This folder is empty.'
+                : 'Sorry, no folder or file was found.'}
+            </Kb.Text>
+          </Kb.Box2>
         </Kb.Box2>
-      </Kb.Box2>
-    ) : (
-      <Kb.BoxGrow>
-        <Kb.List2
-          key={this._getListKey(this.props.items)}
-          items={this.props.items.toArray()}
-          bounces={true}
-          itemHeight={{
-            getItemLayout: this._getItemLayout,
-            type: 'variable',
-          }}
-          renderItem={this._rowRenderer}
-        />
-      </Kb.BoxGrow>
-    )
+      ) : (
+        <Kb.BoxGrow>
+          <Kb.List2
+            key={this._getListKey(this.props.items)}
+            items={this.props.items.toArray()}
+            bounces={true}
+            itemHeight={{
+              getItemLayout: this._getItemLayout,
+              type: 'variable',
+            }}
+            renderItem={this._rowRenderer}
+          />
+        </Kb.BoxGrow>
+      )
     return (
       <>
         <LoadFilesWhenNeeded

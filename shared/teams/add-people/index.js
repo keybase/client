@@ -5,7 +5,8 @@ import * as Styles from '../../styles'
 import UserInput from '../../search/user-input/container'
 import SearchResultsList from '../../search/results-list/container'
 import * as Constants from '../../constants/teams'
-import {type TeamRoleType} from '../../constants/types/teams'
+import {type TeamRoleType, type DisabledReasonsForRolePicker} from '../../constants/types/teams'
+import {FloatingRolePicker} from '../role-picker'
 import flags from '../../util/feature-flags'
 
 const MaybePopup = Styles.isMobile
@@ -21,23 +22,34 @@ const MaybePopup = Styles.isMobile
       />
     )
 
-type Props = {
+export type AddPeopleProps = {|
   addButtonLabel: string,
+  disabledReasonsForRolePicker: DisabledReasonsForRolePicker,
   errorText: string,
   numberOfUsersSelected: number,
-  onAddPeople: () => void,
   onClearSearch: () => void,
   onClose: () => void,
-  onLeave: () => void,
-  onOpenRolePicker: () => void,
-  onRoleChange: (role: TeamRoleType) => void,
   name: string,
-  role: TeamRoleType,
-  showSearchPending: boolean,
-  sendNotification: boolean,
-  setSendNotification: (sendNotification: boolean) => void,
   title: string,
-}
+  waiting: boolean,
+|}
+
+type RolePickerProps = {|
+  confirmLabel?: string,
+  footerComponent: React.Node,
+  isRolePickerOpen: boolean,
+  onCancelRolePicker: () => void,
+  onConfirmRolePicker: (role: TeamRoleType) => void,
+  onEditMembership: () => void,
+  onOpenRolePicker: () => void,
+  onSelectRole: (role: TeamRoleType) => void,
+  selectedRole: ?TeamRoleType,
+|}
+
+type Props = {|
+  ...AddPeopleProps,
+  ...RolePickerProps,
+|}
 
 const AddPeople = (props: Props) => (
   <MaybePopup onClose={props.onClose}>
@@ -46,7 +58,7 @@ const AddPeople = (props: Props) => (
         headerStyle={styles.header}
         onCancel={Styles.isMobile ? props.onClose : null}
         onRightAction={props.numberOfUsersSelected > 0 ? props.onOpenRolePicker : null}
-        rightActionLabel={props.addButtonLabel}
+        rightActionLabel={props.waiting ? 'Adding...' : props.addButtonLabel}
         title={props.title}
       />
       {!!props.errorText && (
@@ -71,47 +83,79 @@ const AddPeople = (props: Props) => (
         </Kb.Box>
       )}
 
-      <Kb.Box style={Styles.globalStyles.flexBoxColumn}>
-        <UserInput
-          autoFocus={true}
-          hideAddButton={true}
-          onExitSearch={props.onClearSearch}
-          placeholder="Add people"
-          searchKey={'addToTeamSearch'}
-          showServiceFilter={true}
-        />
-      </Kb.Box>
-      <Kb.Box style={{...Styles.desktopStyles.scrollable, flex: 1}}>
-        {props.showSearchPending ? (
-          <Kb.ProgressIndicator style={{width: 24}} />
-        ) : (
-          <SearchResultsList
-            searchKey={'addToTeamSearch'}
-            disableIfInTeamName={props.name}
-            style={
-              Styles.isMobile ? {bottom: 0, left: 0, position: 'absolute', right: 0, top: 0} : {height: 300}
-            }
-            keyboardDismissMode="on-drag"
-          />
-        )}
-      </Kb.Box>
-      {!Styles.isMobile && (
-        <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, padding: Styles.globalMargins.medium}}>
-          <Kb.Box style={{...Styles.globalStyles.flexBoxRow, justifyContent: 'center'}}>
-            <Kb.WaitingButton
-              disabled={!props.numberOfUsersSelected}
-              onClick={props.onOpenRolePicker}
-              label={props.addButtonLabel}
-              waitingKey={Constants.addPeopleToTeamWaitingKey(props.name)}
+      {props.waiting && Styles.isMobile ? (
+        <Kb.ProgressIndicator type="Large" style={{paddingTop: Styles.globalMargins.medium}} />
+      ) : (
+        <>
+          <Kb.Box style={Styles.globalStyles.flexBoxColumn}>
+            <UserInput
+              autoFocus={true}
+              hideAddButton={true}
+              onExitSearch={props.onClearSearch}
+              placeholder="Add people"
+              searchKey={'addToTeamSearch'}
+              showServiceFilter={true}
             />
           </Kb.Box>
+          <Kb.Box style={{...Styles.desktopStyles.scrollable, flex: 1}}>
+            <SearchResultsList
+              searchKey={'addToTeamSearch'}
+              disableIfInTeamName={props.name}
+              style={Styles.collapseStyles([styles.searchList, props.waiting ? {opacity: 0.4} : null])}
+              keyboardDismissMode="on-drag"
+            />
+          </Kb.Box>
+        </>
+      )}
+      {!Styles.isMobile ? (
+        <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, padding: Styles.globalMargins.medium}}>
+          <Kb.Box style={{...Styles.globalStyles.flexBoxRow, justifyContent: 'center'}}>
+            <FloatingRolePicker
+              confirmLabel={props.confirmLabel}
+              selectedRole={props.selectedRole}
+              onSelectRole={props.onSelectRole}
+              floatingContainerStyle={styles.floatingRolePicker}
+              footerComponent={props.footerComponent}
+              onConfirm={props.onConfirmRolePicker}
+              onCancel={props.onCancelRolePicker}
+              position={'top center'}
+              open={props.isRolePickerOpen}
+              disabledRoles={props.disabledReasonsForRolePicker}
+            >
+              <Kb.WaitingButton
+                disabled={!props.numberOfUsersSelected}
+                onClick={props.onOpenRolePicker}
+                label={props.addButtonLabel}
+                waitingKey={Constants.addPeopleToTeamWaitingKey(props.name)}
+              />
+            </FloatingRolePicker>
+          </Kb.Box>
         </Kb.Box>
+      ) : (
+        <FloatingRolePicker
+          confirmLabel={props.confirmLabel}
+          selectedRole={props.selectedRole}
+          onSelectRole={props.onSelectRole}
+          floatingContainerStyle={styles.floatingRolePicker}
+          footerComponent={props.footerComponent}
+          onConfirm={props.onConfirmRolePicker}
+          onCancel={props.onCancelRolePicker}
+          position={'top center'}
+          open={props.isRolePickerOpen}
+          disabledRoles={props.disabledReasonsForRolePicker}
+        />
       )}
     </Kb.Box>
   </MaybePopup>
 )
 
 const styles = Styles.styleSheetCreate({
+  floatingRolePicker: Styles.platformStyles({
+    isElectron: {
+      bottom: -32,
+      position: 'relative',
+    },
+  }),
   header: flags.useNewRouter ? {minHeight: 48} : {},
   outerBox: Styles.platformStyles({
     isElectron: {
@@ -137,6 +181,18 @@ const styles = Styles.styleSheetCreate({
   popupCover: {
     backgroundColor: Styles.globalColors.black,
   },
+  searchList: Styles.platformStyles({
+    isElectron: {
+      height: 300,
+    },
+    isMobile: {
+      bottom: 0,
+      left: 0,
+      position: 'absolute',
+      right: 0,
+      top: 0,
+    },
+  }),
 })
 
 export default AddPeople

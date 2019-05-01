@@ -438,8 +438,8 @@ func (g *PushHandler) presentUIItem(ctx context.Context, conv *chat1.Conversatio
 	return res
 }
 
-func (g *PushHandler) getSupersedesTarget(ctx context.Context, uid gregor1.UID, conv *chat1.ConversationLocal,
-	msg chat1.MessageUnboxed) (res *chat1.UIMessage) {
+func (g *PushHandler) getSupersedesTarget(ctx context.Context, uid gregor1.UID,
+	conv *chat1.ConversationLocal, msg chat1.MessageUnboxed) (res *chat1.UIMessage) {
 	if !msg.IsValid() || conv == nil {
 		return nil
 	}
@@ -456,10 +456,22 @@ func (g *PushHandler) getSupersedesTarget(ctx context.Context, uid gregor1.UID, 
 			g.Debug(ctx, "getSupersedesTarget: failed to get xform'd message: %v", err)
 			return nil
 		}
-		uiMsg := utils.PresentMessageUnboxed(ctx, g.G(), msgs[0], uid, conv.GetConvID())
+		filledMsg, err := NewReplyFiller(g.G()).FillSingle(ctx, uid, conv, msgs[0])
+		if err != nil {
+			g.Debug(ctx, "getSupersedesTarget: failed to fill reply: %v", err)
+		}
+		uiMsg := utils.PresentMessageUnboxed(ctx, g.G(), filledMsg, uid, conv.GetConvID())
 		return &uiMsg
 	}
 	return nil
+}
+
+func (g *PushHandler) getReplyMessage(ctx context.Context, uid gregor1.UID, conv *chat1.ConversationLocal,
+	msg chat1.MessageUnboxed) (chat1.MessageUnboxed, error) {
+	if conv == nil {
+		return msg, nil
+	}
+	return NewReplyFiller(g.G()).FillSingle(ctx, uid, conv, msg)
 }
 
 func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
@@ -541,7 +553,13 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				nm.Message, nm.MaxMsgs); err != nil {
 				g.Debug(ctx, "chat activity: unable to update inbox: %v", err)
 			}
-			// Check to see if this is a coin flip message
+			// Add on reply information if we have it
+			if pushErr == nil {
+				decmsg, pushErr = g.getReplyMessage(ctx, uid, conv, decmsg)
+				if pushErr != nil {
+					g.Debug(ctx, "chat activity: failed to get reply for push: %s", err)
+				}
+			}
 
 			// If we have no error on this message, then notify the frontend
 			if pushErr == nil {
@@ -561,10 +579,10 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				}
 				activity = new(chat1.ChatActivity)
 				*activity = chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
-					Message:         utils.PresentMessageUnboxed(ctx, g.G(), decmsg, uid, nm.ConvID),
-					ModifiedMessage: g.getSupersedesTarget(ctx, uid, conv, decmsg),
-					ConvID:          nm.ConvID,
-					Conv:            g.presentUIItem(ctx, conv, uid),
+					Message:                    utils.PresentMessageUnboxed(ctx, g.G(), decmsg, uid, nm.ConvID),
+					ModifiedMessage:            g.getSupersedesTarget(ctx, uid, conv, decmsg),
+					ConvID:                     nm.ConvID,
+					Conv:                       g.presentUIItem(ctx, conv, uid),
 					DisplayDesktopNotification: desktopNotification,
 					DesktopNotificationSnippet: notificationSnippet,
 					Pagination:                 utils.PresentPagination(page),

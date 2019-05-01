@@ -127,6 +127,7 @@
       "isRetry?": "?boolean"
     },
     "driverDisable": {},
+    "driverDisabling": {},
     "driverKextPermissionError": {},
 
     "notifyTlfUpdate": {

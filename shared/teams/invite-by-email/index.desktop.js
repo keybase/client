@@ -3,8 +3,10 @@ import * as React from 'react'
 import * as I from 'immutable'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import {FloatingRolePicker} from '../role-picker'
 import {capitalize} from 'lodash-es'
 import {type TeamRoleType} from '../../constants/types/teams'
+import {pluralize} from '../../util/string'
 import type {DesktopProps as Props} from '.'
 
 const _makeDropdownItem = (item: string) => (
@@ -25,9 +27,15 @@ type State = {
   invitees: string,
   malformedEmails: I.Set<string>,
   role: TeamRoleType,
+  isRolePickerOpen: boolean,
 }
 class InviteByEmailDesktop extends React.Component<Props, State> {
-  state = {invitees: '', malformedEmails: I.Set(), role: 'reader'}
+  state = {
+    invitees: '',
+    isRolePickerOpen: false,
+    malformedEmails: I.Set(),
+    role: 'reader',
+  }
   _input: ?Kb.Input
 
   componentDidUpdate(prevProps: Props, prevState: State) {
@@ -40,6 +48,22 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
         this.props.onClose()
       }
     }
+  }
+
+  onCancelRolePicker = () => {
+    this.setState({isRolePickerOpen: false})
+  }
+
+  onConfirmRolePicker = () => {
+    this.setState({isRolePickerOpen: false})
+  }
+
+  onOpenRolePicker = () => {
+    this.setState({isRolePickerOpen: true})
+  }
+
+  onSelectRole = (role: TeamRoleType) => {
+    this.setState({role})
   }
 
   componentWillUnmount() {
@@ -79,11 +103,23 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
               <Kb.Text style={{margin: Styles.globalMargins.tiny}} type="Body">
                 Add these team members to {props.name} as:
               </Kb.Text>
-              <Kb.DropdownButton
-                toggleOpen={() => props.onOpenRolePicker(this.state.role, this._setRole)}
-                selected={_makeDropdownItem(this.state.role)}
-                style={{width: 100}}
-              />
+              <FloatingRolePicker
+                confirmLabel={`Invite as ${pluralize(this.state.role)}`}
+                selectedRole={this.state.role}
+                onSelectRole={this.onSelectRole}
+                floatingContainerStyle={styles.floatingRolePicker}
+                onConfirm={this.onConfirmRolePicker}
+                onCancel={this.onCancelRolePicker}
+                position={'bottom center'}
+                open={this.state.isRolePickerOpen}
+                disabledRoles={{owner: 'Cannot invite an owner via email.'}}
+              >
+                <Kb.DropdownButton
+                  toggleOpen={this.onOpenRolePicker}
+                  selected={_makeDropdownItem(this.state.role)}
+                  style={{width: 100}}
+                />
+              </FloatingRolePicker>
             </Kb.Box>
             <Kb.Text type="BodySmallSemibold" style={{alignSelf: 'flex-start'}}>
               Enter multiple email addresses, separated by commas
@@ -152,5 +188,14 @@ const _styleContainer = {
   backgroundColor: Styles.globalColors.white,
   borderRadius: 5,
 }
+
+const styles = Styles.styleSheetCreate({
+  floatingRolePicker: Styles.platformStyles({
+    isElectron: {
+      position: 'relative',
+      top: -32,
+    },
+  }),
+})
 
 export {InviteByEmailDesktop}

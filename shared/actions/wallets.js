@@ -257,9 +257,9 @@ const clearBuilding = () => WalletsGen.createClearBuilding()
 const clearErrors = () => WalletsGen.createClearErrors()
 
 const loadWalletDisclaimer = () =>
-  RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise(undefined, Constants.checkOnlineWaitingKey).then(
-    accepted => WalletsGen.createWalletDisclaimerReceived({accepted})
-  )
+  RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise(undefined, Constants.checkOnlineWaitingKey)
+    .then(accepted => WalletsGen.createWalletDisclaimerReceived({accepted}))
+    .catch(() => {}) // handled by reloadable
 
 const loadAccounts = (state, action) => {
   if (!state.config.loggedIn) {
@@ -657,19 +657,11 @@ const navigateToTransaction = (state, action) => {
   const actions = [WalletsGen.createSelectAccount({accountID, reason: 'show-transaction'})]
   const path = [...Constants.walletPath, {props: {accountID, paymentID}, selected: 'transactionDetails'}]
   if (flags.useNewRouter) {
-    // Since the new wallet routes have nested stacks, we actually
-    // do want to navigate to each path component separately.
-    for (var i = 0; i < path.length; ++i) {
-      // Set replace for all but the first navigate so that hitting
-      // back once takes us back to the chat.
-      const replace = i > 0
-      actions.push(
-        RouteTreeGen.createNavigateTo({
-          path: [path[i]],
-          replace,
-        })
-      )
-    }
+    actions.push(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {accountID, paymentID}, selected: 'transactionDetails'}],
+      })
+    )
   } else {
     actions.push(RouteTreeGen.createNavigateTo({path}))
   }

@@ -8,6 +8,20 @@ protocol loginUi {
   void displayPaperKeyPhrase(int sessionID, string phrase);
   void displayPrimaryPaperKey(int sessionID, string phrase);
 
-  boolean promptResetAccount(int sessionID, string text);
+  enum ResetPromptType {
+    COMPLETE_0,         // reset completion if the countdown is done
+    ENTER_NO_DEVICES_1, // no devices available in provisioning, suggest entering
+    ENTER_FORGOT_PW_2   // forgot the password, suggest entering the pipeline w/o pw
+  }
+  /**
+   Called during login / provisioning flows to ask the user whether they
+   would like to either enter the autoreset pipeline or perform the reset
+   of the account.
+   */
+  boolean promptResetAccount(int sessionID, ResetPromptType kind);
+
+  /**
+   In some flows the user will get
+   */
   void displayResetProgress(int sessionID, string text);
 }

@@ -776,7 +776,7 @@ const initSendLinkToChat = (state, action) => {
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
       oneChatPerTLF: false,
-      tlfName: elems[2],
+      tlfName: elems[2].replace('#', ','),
       topicName: '',
       topicType: RPCChatTypes.commonTopicType.chat,
       visibility: RPCTypes.commonTLFVisibility.private,
@@ -810,7 +810,9 @@ const initSendLinkToChat = (state, action) => {
       : [
           FsGen.createSetSendLinkToChatChannels({
             channels: I.Map(
-              result.convs.map(conv => [ChatTypes.stringToConversationIDKey(conv.convID), conv.channel])
+              result.convs
+                .filter(conv => conv.memberStatus === RPCChatTypes.commonConversationMemberStatus.active)
+                .map(conv => [ChatTypes.stringToConversationIDKey(conv.convID), conv.channel])
             ),
           }),
 
@@ -842,7 +844,7 @@ const triggerSendLinkToChat = (state, action) => {
         // It's an impl team conversation. So first make sure it exists.
         identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
         membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
-        tlfName: elems[2],
+        tlfName: elems[2].replace('#', ','),
         tlfVisibility: RPCTypes.commonTLFVisibility.private,
         topicType: RPCChatTypes.commonTopicType.chat,
       }).then(result => ({
@@ -859,6 +861,7 @@ const triggerSendLinkToChat = (state, action) => {
         ephemeralLifetime: ChatConstants.getConversationExplodingMode(state, conversationIDKey) || undefined,
         identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
         outboxID: null,
+        replyTo: null,
         tlfName,
         tlfPublic: false,
       },

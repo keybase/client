@@ -29,7 +29,7 @@ func NewSaltpackUserKeyfinderAsInterface(Arg libkb.SaltpackRecipientKeyfinderArg
 
 func NewSaltpackUserKeyfinder(Arg libkb.SaltpackRecipientKeyfinderArg) *SaltpackUserKeyfinder {
 	return &SaltpackUserKeyfinder{
-		Arg: Arg,
+		Arg:                           Arg,
 		RecipientEntityKeyMap:         make(map[keybase1.UserOrTeamID]([]keybase1.KID)),
 		RecipientDeviceAndPaperKeyMap: make(map[keybase1.UID]([]keybase1.KID)),
 	}

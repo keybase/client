@@ -12,7 +12,7 @@ import {NormalPreview} from './filepreview'
 import Loading from './common/loading'
 import KbfsDaemonNotRunning from './common/kbfs-daemon-not-running'
 import LoadPathMetadataWhenNeeded from './common/load-path-metadata-when-needed'
-import {Actions, DesktopBanner, MobileHeader, Title} from './nav-header'
+import {Actions, DesktopBanner, MobileHeader, mobileHeaderHeight, Title} from './nav-header'
 import flags from '../util/feature-flags'
 
 const mapStateToProps = state => ({
@@ -143,12 +143,15 @@ Connected.navigationOptions = ({navigation}: {navigation: any}) => {
   const path = navigation.getParam('path') || Constants.defaultPath
   return isMobile
     ? {
-        header: <MobileHeader path={path} onBack={navigation.pop} />,
+        header: (
+          <MobileHeader path={path} onBack={navigation.isFirstRouteInParent() ? null : navigation.pop} />
+        ),
+        headerHeight: mobileHeaderHeight,
       }
     : {
         header: undefined,
         headerBanner: <DesktopBanner />,
-        headerRightActions: () => <Actions path={path} />,
+        headerRightActions: () => <Actions path={path} onTriggerFilterMobile={() => {}} />,
         headerTitle: () => <Title path={path} />,
         title: path === Constants.defaultPath ? 'Files' : Types.getPathName(path),
       }

@@ -6,35 +6,60 @@ import * as Constants from '../../constants/fs'
 import * as Types from '../../constants/types/fs'
 import {namedConnect} from '../../util/container'
 import Actions from './actions'
-import {isIPhoneX} from '../../constants/platform'
+import * as Kbfs from '../common'
 import flags from '../../util/feature-flags'
 
 type BannerType = 'none' | 'offline'
 type Props = {|
   bannerType: BannerType,
-  onBack: () => void,
+  onBack: ?() => void,
   path: Types.Path,
 |}
+type State = {|
+  filterExpanded: boolean,
+|}
 
-const MobileHeader = (props: Props) => (
-  <Kb.Box2
-    direction="vertical"
-    fullWidth={true}
-    style={Styles.collapseStyles([styles.container, props.bannerType === 'offline' && styles.blue])}
-  >
-    {props.bannerType === 'offline' && <Kb.Banner text="You are offline." color="blue" />}
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.expandedTopContainer}>
-      <Kb.BackButton badgeNumber={0 /* TODO */} onClick={props.onBack} />
-      <Kb.Box style={styles.gap} />
-      <Actions path={props.path} />
-    </Kb.Box2>
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.expandedTitleContainer}>
-      <Kb.Text type="Header" lineClamp={1}>
-        {props.path === Constants.defaultPath ? 'Files' : Types.getPathName(props.path)}
-      </Kb.Text>
-    </Kb.Box2>
-  </Kb.Box2>
-)
+class MobileHeader extends React.PureComponent<Props, State> {
+  state = {filterExpanded: false}
+  _triggerFilterMobile = () => {
+    this.setState({filterExpanded: true})
+  }
+  _filterDone = () => {
+    this.setState({filterExpanded: false})
+  }
+  componentDidUpdate(prevProps) {
+    prevProps.path !== this.props.path && this.setState({filterExpanded: false})
+  }
+  render() {
+    return (
+      <Kb.Box2
+        direction="vertical"
+        fullWidth={true}
+        style={Styles.collapseStyles([styles.container, this.props.bannerType === 'offline' && styles.blue])}
+      >
+        {this.props.bannerType === 'offline' && <Kb.Banner text="You are offline." color="blue" />}
+        {this.state.filterExpanded ? (
+          <Kbfs.FolderViewFilter path={this.props.path} onCancel={this._filterDone} />
+        ) : (
+          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.expandedTopContainer}>
+            {this.props.onBack && (
+              <Kb.BackButton badgeNumber={0 /* TODO KBFS-4109 */} onClick={this.props.onBack} />
+            )}
+            <Kb.Box style={styles.gap} />
+            <Actions path={this.props.path} onTriggerFilterMobile={this._triggerFilterMobile} />
+          </Kb.Box2>
+        )}
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.expandedTitleContainer}>
+          <Kb.Text type="Header" lineClamp={1}>
+            {this.props.path === Constants.defaultPath ? 'Files' : Types.getPathName(this.props.path)}
+          </Kb.Text>
+        </Kb.Box2>
+      </Kb.Box2>
+    )
+  }
+}
+
+export const height = Styles.statusBarHeight + 88
 
 const styles = Styles.styleSheetCreate({
   blue: {
@@ -42,7 +67,10 @@ const styles = Styles.styleSheetCreate({
   },
   container: {
     backgroundColor: Styles.globalColors.white,
-    paddingTop: isIPhoneX ? 45 : 20,
+    height,
+    maxHeight: height,
+    minHeight: height,
+    paddingTop: Styles.isAndroid ? undefined : Styles.statusBarHeight,
   },
   expandedTitleContainer: {
     backgroundColor: Styles.globalColors.white,
@@ -53,6 +81,7 @@ const styles = Styles.styleSheetCreate({
   },
   expandedTopContainer: {
     backgroundColor: Styles.globalColors.white,
+    height: 48,
     paddingRight: Styles.globalMargins.tiny,
   },
   gap: {
@@ -62,7 +91,7 @@ const styles = Styles.styleSheetCreate({
 
 type OwnProps = {|
   path: Types.Path,
-  onBack: () => void,
+  onBack: ?() => void,
 |}
 
 const mapStateToProps = (state, {path}: OwnProps) => ({

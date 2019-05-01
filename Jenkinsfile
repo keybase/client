@@ -129,6 +129,7 @@ helpers.rootLinuxNode(env, {
                     "PATH=${env.PATH}:${env.GOPATH}/bin",
                     "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
                     "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
+                    "GPG=/usr/bin/gpg.distrib",
                   ]) {
                     if (hasGoChanges) {
                       dir("go/keybase") {
@@ -429,8 +430,16 @@ def testGo(prefix, packagesToTest) {
           timeout: '15m',
         ],
         'github.com/keybase/client/go/kbfs/libfuse': [
-          flags: '',
           timeout: '3m',
+        ],
+        'github.com/keybase/client/go/libkb': [
+          timeout: '1m',
+        ],
+        'github.com/keybase/client/go/install': [
+          timeout: '30s',
+        ],
+        'github.com/keybase/client/go/launchd': [
+          timeout: '30s',
         ],
       ],
       test_linux_go_: [

@@ -548,9 +548,15 @@
   }
 
   record SearchOpts {
+    boolean isRegex;
+
+    // message filters
     string sentBy;
+    string sentTo;
     gregor1.Time sentBefore;
     gregor1.Time sentAfter;
+
+    // search parameters
     int maxHits;
     // only used by regexp search
     int maxMessages;
@@ -560,6 +566,7 @@
     ReIndexingMode reindexMode;
     int maxConvsSearched;
     int maxConvsHit;
+    union { null, ConversationID } convID;
     // only used by conversation name search
     int maxNameConvs;
   }
@@ -567,24 +574,6 @@
   // The search indexer uses the EmptyStruct to implement a set using a map
   // with a zero sized value.
   record EmptyStruct{}
-
-  record ConversationIndexMetadata {
-    @mpackkey("s") @jsonkey("s")
-    map<MessageID, EmptyStruct> seenIDs;
-    @mpackkey("v") @jsonkey("v")
-    int version;
-  }
-
-  record ConversationIndex {
-    // search token -> msgID
-    @mpackkey("i") @jsonkey("i")
-    map<string, map<MessageID, EmptyStruct>> index;
-    // token alias -> token
-    @mpackkey("a") @jsonkey("a")
-    map<string, map<string, EmptyStruct>> alias;
-    @mpackkey("m") @jsonkey("m")
-    ConversationIndexMetadata metadata;
-  }
 
   record ChatSearchMatch {
     int startIndex;

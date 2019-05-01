@@ -443,6 +443,27 @@ func (m MessageUnboxed) SearchableText() string {
 	return m.Valid().MessageBody.SearchableText()
 }
 
+func (m MessageUnboxed) SenderUsername() string {
+	if !m.IsValid() {
+		return ""
+	}
+	return m.Valid().SenderUsername
+}
+
+func (m MessageUnboxed) Ctime() gregor1.Time {
+	if !m.IsValid() {
+		return 0
+	}
+	return m.Valid().ServerHeader.Ctime
+}
+
+func (m MessageUnboxed) AtMentionUsernames() []string {
+	if !m.IsValid() {
+		return nil
+	}
+	return m.Valid().AtMentionUsernames
+}
+
 func (m *MessageUnboxed) DebugString() string {
 	if m == nil {
 		return "[nil]"
@@ -1450,6 +1471,14 @@ func (r *GetInboxUILocalRes) SetOffline() {
 	r.Offline = true
 }
 
+func (r *SearchRegexpRes) SetOffline() {
+	r.Offline = true
+}
+
+func (r *SearchInboxRes) SetOffline() {
+	r.Offline = true
+}
+
 func (t TyperInfo) String() string {
 	return fmt.Sprintf("typer(u:%s d:%s)", t.Username, t.DeviceName)
 }
@@ -2026,33 +2055,22 @@ func (s *ConversationSettings) IsNil() bool {
 	return s == nil || s.MinWriterRoleInfo == nil
 }
 
-type MsgMetadata interface {
-	GetSenderUsername() string
-	GetCtime() gregor1.Time
-}
-
-func (m MessageUnboxed) GetSenderUsername() string {
-	if !m.IsValid() {
-		return ""
-	}
-	return m.Valid().SenderUsername
-}
-
-func (m MessageUnboxed) GetCtime() gregor1.Time {
-	if !m.IsValid() {
-		return 0
-	}
-	return m.Valid().ServerHeader.Ctime
-}
-
-func (o SearchOpts) Matches(msgMetadata MsgMetadata) bool {
-	if o.SentBy != "" && msgMetadata.GetSenderUsername() != o.SentBy {
+func (o SearchOpts) Matches(msg MessageUnboxed) bool {
+	if o.SentAfter != 0 && msg.Ctime() < o.SentAfter {
 		return false
 	}
-	if o.SentAfter != 0 && msgMetadata.GetCtime() < o.SentAfter {
+	if o.SentBefore != 0 && msg.Ctime() > o.SentBefore {
 		return false
 	}
-	if o.SentBefore != 0 && msgMetadata.GetCtime() > o.SentBefore {
+	if o.SentBy != "" && msg.SenderUsername() != o.SentBy {
+		return false
+	}
+	if o.SentTo != "" {
+		for _, username := range msg.AtMentionUsernames() {
+			if o.SentTo == username {
+				return true
+			}
+		}
 		return false
 	}
 	return true
@@ -2088,55 +2106,6 @@ func (h *ChatSearchInboxHit) Size() int {
 		return 0
 	}
 	return len(h.Hits)
-}
-
-func (idx *ConversationIndex) minMaxIDs(conv Conversation) (min, max MessageID) {
-	// lowest msgID we care about
-	min = conv.GetMaxDeletedUpTo()
-	if min == 0 {
-		min = 1
-	}
-	// highest msgID we care about
-	max = conv.GetMaxMessageID()
-	return min, max
-}
-
-func (idx *ConversationIndex) MissingIDForConv(conv Conversation) (res []MessageID) {
-	min, max := idx.minMaxIDs(conv)
-	return idx.missingIDs(min, max)
-}
-
-func (idx *ConversationIndex) missingIDs(min, max MessageID) (res []MessageID) {
-	for i := min; i <= max; i++ {
-		if _, ok := idx.Metadata.SeenIDs[i]; !ok {
-			res = append(res, i)
-		}
-	}
-	return res
-}
-
-func (idx *ConversationIndex) PercentIndexed(conv Conversation) int {
-	if idx == nil {
-		return 0
-	}
-	min, max := idx.minMaxIDs(conv)
-	numMessages := int(max) - int(min)
-	if numMessages <= 0 {
-		return 100
-	}
-	missingIDs := idx.missingIDs(min, max)
-	return 100 * (1 - (len(missingIDs) / numMessages))
-}
-
-func (idx *ConversationIndex) FullyIndexed(conv Conversation) bool {
-	if idx == nil {
-		return false
-	}
-	min, max := idx.minMaxIDs(conv)
-	if max <= min {
-		return true
-	}
-	return len(idx.MissingIDForConv(conv)) == 0
 }
 
 func (u UnfurlRaw) GetUrl() string {
@@ -2345,3 +2314,10 @@ func (g FlipGameID) String() string               { return hex.EncodeToString(g)
 func (g FlipGameID) Eq(h FlipGameID) bool         { return hmac.Equal(g[:], h[:]) }
 func (g FlipGameID) IsZero() bool                 { return isZero(g[:]) }
 func (g FlipGameID) Check() bool                  { return g != nil && !g.IsZero() }
+
+func (o *SenderSendOptions) GetJoinMentionsAs() *ConversationMemberStatus {
+	if o == nil {
+		return nil
+	}
+	return o.JoinMentionsAs
+}

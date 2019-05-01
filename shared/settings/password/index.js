@@ -81,7 +81,7 @@ export class UpdatePassword extends Component<Props, State> {
             style={styleInput}
           />
           <Kb.Input
-            hintText="Confirm new password"
+            hintText="Confirm"
             type={inputType}
             value={this.state.passwordConfirm}
             errorText={this.state.errorSaving || this.props.newPasswordConfirmError}

@@ -1218,6 +1218,13 @@ func (k *KeybaseServiceBase) NotifySyncStatus(ctx context.Context,
 	return k.kbfsClient.FSSyncEvent(ctx, *status)
 }
 
+// NotifyOverallSyncStatus implements the KeybaseService interface for
+// KeybaseServiceBase.
+func (k *KeybaseServiceBase) NotifyOverallSyncStatus(
+	ctx context.Context, status keybase1.FolderSyncStatus) error {
+	return k.kbfsClient.FSOverallSyncEvent(ctx, status)
+}
+
 // FlushUserFromLocalCache implements the KeybaseService interface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) FlushUserFromLocalCache(ctx context.Context,

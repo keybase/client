@@ -99,7 +99,8 @@ func (s *Identify3Session) SetOutcome(o *IdentifyOutcome) {
 type Identify3State struct {
 	sync.Mutex
 
-	expireCh chan<- struct{}
+	expireCh   chan<- struct{}
+	shutdownCh chan chan struct{}
 
 	// Table of keybase1.Identify3GUIID -> *identify3Session's
 	cache           map[keybase1.Identify3GUIID](*Identify3Session)
@@ -126,24 +127,28 @@ func NewIdentify3StateForTest(g *GlobalContext) (*Identify3State, <-chan time.Ti
 }
 
 func newIdentify3State(g *GlobalContext, testCompletionCh chan<- time.Time) *Identify3State {
-	ch := make(chan struct{})
+	expireCh := make(chan struct{})
+	shutdownCh := make(chan chan struct{}, 10)
 	ret := &Identify3State{
-		expireCh:         ch,
+		expireCh:         expireCh,
+		shutdownCh:       shutdownCh,
 		cache:            make(map[keybase1.Identify3GUIID](*Identify3Session)),
 		defaultWaitTime:  time.Hour,
 		expireTime:       24 * time.Hour,
 		testCompletionCh: testCompletionCh,
 	}
 	ret.makeNewCache()
-	go ret.runExpireThread(g, ch)
+	go ret.runExpireThread(g, expireCh, shutdownCh)
 	ret.pokeExpireThread()
 	return ret
 }
 
-func (s *Identify3State) Shutdown() {
-	if s.markShutdown() {
-		close(s.expireCh)
+func (s *Identify3State) Shutdown() chan struct{} {
+	ch := make(chan struct{})
+	if !s.markShutdown(ch) {
+		close(ch)
 	}
+	return ch
 }
 
 func (s *Identify3State) isShutdown() bool {
@@ -154,12 +159,14 @@ func (s *Identify3State) isShutdown() bool {
 
 // markShutdown marks this state as having shutdown. Will return true the first
 // time through, and false every other time.
-func (s *Identify3State) markShutdown() bool {
+func (s *Identify3State) markShutdown(ch chan struct{}) bool {
 	s.shutdownMu.Lock()
 	defer s.shutdownMu.Unlock()
 	if s.shutdown {
 		return false
 	}
+	s.shutdownCh <- ch
+	s.shutdownCh = nil
 	s.shutdown = true
 	return true
 }
@@ -176,7 +183,8 @@ func (s *Identify3State) OnLogout() {
 	s.pokeExpireThread()
 }
 
-func (s *Identify3State) runExpireThread(g *GlobalContext, ch <-chan struct{}) {
+func (s *Identify3State) runExpireThread(g *GlobalContext, expireCh <-chan struct{},
+	shutdownCh chan chan struct{}) {
 
 	mctx := NewMetaContextBackground(g)
 	wait := s.defaultWaitTime
@@ -186,16 +194,14 @@ func (s *Identify3State) runExpireThread(g *GlobalContext, ch <-chan struct{}) {
 	wakeupTime := now.Add(wait)
 
 	for {
-
 		select {
-		case _, ok := <-ch:
-			if !ok {
-				mctx.Debug("identify3State#runExpireThread: exiting on shutdown")
-				return
-			}
+		case ch := <-shutdownCh:
+			close(ch)
+			mctx.Debug("identify3State#runExpireThread: exiting on shutdown")
+			return
+		case <-expireCh:
 		case <-mctx.G().Clock().AfterTime(wakeupTime):
 			mctx.Debug("identify3State#runExpireThread: wakeup after %v timeout (at %v)", wait, wakeupTime)
-
 		}
 
 		// Guard all time manipulation in a lock for the purposes of testing.

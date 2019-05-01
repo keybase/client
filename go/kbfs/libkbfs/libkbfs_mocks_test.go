@@ -168,15 +168,17 @@ func (mr *MockBlockOpsMockRecorder) Ready(arg0, arg1, arg2 interface{}) *gomock.
 }
 
 // Shutdown mocks base method
-func (m *MockBlockOps) Shutdown() {
+func (m *MockBlockOps) Shutdown(arg0 context.Context) error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Shutdown")
+	ret := m.ctrl.Call(m, "Shutdown", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // Shutdown indicates an expected call of Shutdown
-func (mr *MockBlockOpsMockRecorder) Shutdown() *gomock.Call {
+func (mr *MockBlockOpsMockRecorder) Shutdown(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shutdown", reflect.TypeOf((*MockBlockOps)(nil).Shutdown))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shutdown", reflect.TypeOf((*MockBlockOps)(nil).Shutdown), arg0)
 }
 
 // TogglePrefetcher mocks base method
@@ -2293,6 +2295,20 @@ func (mr *MockKeybaseServiceMockRecorder) NotifyOnlineStatusChanged(arg0, arg1 i
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyOnlineStatusChanged", reflect.TypeOf((*MockKeybaseService)(nil).NotifyOnlineStatusChanged), arg0, arg1)
 }
 
+// NotifyOverallSyncStatus mocks base method
+func (m *MockKeybaseService) NotifyOverallSyncStatus(arg0 context.Context, arg1 keybase1.FolderSyncStatus) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NotifyOverallSyncStatus", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// NotifyOverallSyncStatus indicates an expected call of NotifyOverallSyncStatus
+func (mr *MockKeybaseServiceMockRecorder) NotifyOverallSyncStatus(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyOverallSyncStatus", reflect.TypeOf((*MockKeybaseService)(nil).NotifyOverallSyncStatus), arg0, arg1)
+}
+
 // NotifyPathUpdated mocks base method
 func (m *MockKeybaseService) NotifyPathUpdated(arg0 context.Context, arg1 string) error {
 	m.ctrl.T.Helper()
@@ -3906,6 +3922,18 @@ func (m *MockReporter) Notify(arg0 context.Context, arg1 *keybase1.FSNotificatio
 func (mr *MockReporterMockRecorder) Notify(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Notify", reflect.TypeOf((*MockReporter)(nil).Notify), arg0, arg1)
+}
+
+// NotifyOverallSyncStatus mocks base method
+func (m *MockReporter) NotifyOverallSyncStatus(arg0 context.Context, arg1 keybase1.FolderSyncStatus) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "NotifyOverallSyncStatus", arg0, arg1)
+}
+
+// NotifyOverallSyncStatus indicates an expected call of NotifyOverallSyncStatus
+func (mr *MockReporterMockRecorder) NotifyOverallSyncStatus(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyOverallSyncStatus", reflect.TypeOf((*MockReporter)(nil).NotifyOverallSyncStatus), arg0, arg1)
 }
 
 // NotifyPathUpdated mocks base method

@@ -158,7 +158,7 @@ SettingsSubNavigator.navigationOptions = {
 }
 
 export const newRoutes = {
-  'tabs.settingsTab': {getScreen: () => SettingsSubNavigator, upgraded: true},
+  settingsRoot: {getScreen: () => SettingsSubNavigator, upgraded: true},
 }
 export const newModalRoutes = {
   [Constants.logOutTab]: {getScreen: () => require('./logout/container').default},

@@ -1,31 +1,46 @@
 // @flow
 import * as React from 'react'
 import * as Constants from '../../constants/chat2'
+import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Types from '../../constants/types/chat2'
 import * as Flow from '../../util/flow'
 import {isMobile} from '../../styles'
-import {connect} from '../../util/container'
+import {connect, getRouteProps} from '../../util/container'
 import Normal from './normal/container'
 import NoConversation from './no-conversation'
 import Error from './error/container'
 import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
+import flags from '../../util/feature-flags'
 
-type OwnProps = {||}
+type OwnProps = {|
+  navigation?: any,
+|}
 
 type SwitchProps = {
   conversationIDKey: Types.ConversationIDKey,
-  isPending: boolean,
+  isFocused?: boolean,
+  selectConversation: () => void,
+  deselectConversation: () => void,
   type: 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rekey',
 }
 
-const DONT_RENDER_CONVERSATION = __DEV__ && false
+let NavigationEvents
+if (flags.useNewRouter) {
+  NavigationEvents = require('@react-navigation/core').NavigationEvents
+} else {
+  NavigationEvents = () => null
+}
 
 class Conversation extends React.PureComponent<SwitchProps> {
+  _onDidFocus = () => {
+    this.props.selectConversation()
+  }
+  _onWillBlur = () => {
+    this.props.deselectConversation()
+  }
+
   render() {
-    if (DONT_RENDER_CONVERSATION) {
-      return <NoConversation />
-    }
     switch (this.props.type) {
       case 'error':
         return <Error conversationIDKey={this.props.conversationIDKey} />
@@ -42,7 +57,12 @@ class Conversation extends React.PureComponent<SwitchProps> {
         // To solve this we render a blank screen on mobile conversation views with "noConvo"
         return isMobile ? null : <NoConversation />
       case 'normal':
-        return <Normal conversationIDKey={this.props.conversationIDKey} isPending={this.props.isPending} />
+        return (
+          <>
+            {isMobile && <NavigationEvents onDidFocus={this._onDidFocus} onWillBlur={this._onWillBlur} />}
+            <Normal conversationIDKey={this.props.conversationIDKey} />
+          </>
+        )
       case 'youAreReset':
         return <YouAreReset />
       case 'rekey':
@@ -54,26 +74,34 @@ class Conversation extends React.PureComponent<SwitchProps> {
   }
 }
 
-const mapStateToProps = state => {
-  let conversationIDKey = Constants.getSelectedConversation(state)
+const mapStateToProps = (state, ownProps) => {
+  let _storeConvoIDKey = Constants.getSelectedConversation(state)
+  const conversationIDKey =
+    flags.useNewRouter && isMobile ? getRouteProps(ownProps, 'conversationIDKey') : _storeConvoIDKey
   let _meta = Constants.getMeta(state, conversationIDKey)
-  let isPending = false
-
-  // If its a pending thats been resolved, treat it as the resolved one and pass down pending as a boolean
-  if (conversationIDKey === Constants.pendingConversationIDKey) {
-    isPending = true
-    const resolvedPendingConversationIDKey = Constants.getResolvedPendingConversationIDKey(state)
-    if (Constants.isValidConversationIDKey(resolvedPendingConversationIDKey)) {
-      conversationIDKey = resolvedPendingConversationIDKey
-    }
-  }
 
   return {
     _meta,
+    _storeConvoIDKey,
     conversationIDKey,
-    isPending,
   }
 }
+
+const mapDispatchToProps = dispatch => ({
+  _deselectConversation: ifConversationIDKey =>
+    dispatch(
+      Chat2Gen.createDeselectConversation({
+        ifConversationIDKey,
+      })
+    ),
+  _selectConversation: conversationIDKey =>
+    dispatch(
+      Chat2Gen.createSelectConversation({
+        conversationIDKey,
+        reason: 'focused',
+      })
+    ),
+})
 
 const mergeProps = (stateProps, dispatchProps) => {
   let type
@@ -81,13 +109,8 @@ const mergeProps = (stateProps, dispatchProps) => {
     case Constants.noConversationIDKey:
       type = 'noConvo'
       break
-    case Constants.pendingConversationIDKey:
-      type = 'normal'
-      break
     default:
-      if (stateProps.isPending) {
-        type = 'normal'
-      } else if (stateProps._meta.membershipType === 'youAreReset') {
+      if (stateProps._meta.membershipType === 'youAreReset') {
         type = 'youAreReset'
       } else if (stateProps._meta.rekeyers.size > 0) {
         type = 'rekey'
@@ -100,13 +123,20 @@ const mergeProps = (stateProps, dispatchProps) => {
 
   return {
     conversationIDKey: stateProps.conversationIDKey, // we pass down conversationIDKey so this can be calculated once and also this lets us have chat things in other contexts so we can theoretically show multiple chats at the same time (like in a modal)
-    isPending: stateProps.isPending,
+    deselectConversation:
+      !flags.useNewRouter || stateProps._storeConvoIDKey !== stateProps.conversationIDKey
+        ? () => {}
+        : () => dispatchProps._deselectConversation(stateProps.conversationIDKey),
+    selectConversation:
+      !flags.useNewRouter || stateProps._storeConvoIDKey === stateProps.conversationIDKey
+        ? () => {} // ignore if already selected or pending
+        : () => dispatchProps._selectConversation(stateProps.conversationIDKey),
     type,
   }
 }
 
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
-  () => ({}),
+  mapDispatchToProps,
   mergeProps
 )(Conversation)

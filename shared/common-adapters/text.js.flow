@@ -31,6 +31,7 @@ type Props = {|
   plainText?: boolean,
   selectable?: boolean,
   style?: StylesCrossPlatform,
+  textBreakStrategy?: 'simple' | 'highQuality' | 'balanced', // android only
   title?: ?string,
   type: TextType,
   underline?: boolean,

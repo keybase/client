@@ -2,10 +2,11 @@
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as React from 'react'
-import TabBar from './tab-bar/container'
+import TabBar from './tab-bar/container.desktop'
 import {
   createNavigator,
   StackRouter,
+  SwitchRouter,
   NavigationActions,
   getNavigation,
   NavigationProvider,
@@ -26,11 +27,22 @@ import OutOfDate from '../app/out-of-date'
  * Modal screens
  * Floating screens
  *
- * You have 2 nested routers, a normal stack and modal stack
+ * You have 2 nested routers, a tab router and modal stack
  * When the modal has a valid route ModalView is rendered, which renders AppView underneath
  * When there are no modals AppView is rendered
  * Floating is rendered to a portal on top
  */
+
+// We could have subnavigators, so traverse the routes so we can get the active
+// screen's index so we know when to enable the back button. Note this doesn't
+// support a subnavigator with a root you can hit back from.
+const getActiveIndex = navState => {
+  const route = navState.routes[navState.index]
+  if (route.routes) {
+    return getActiveIndex(route)
+  }
+  return navState.index
+}
 
 // The app with a tab bar on the left and content area on the right
 // A single content view and n-modals on top
@@ -44,6 +56,7 @@ class AppView extends React.PureComponent<any> {
     const selectedTab = nameToTab[descriptor.state.routeName]
     // transparent headers use position absolute and need to be rendered last so they go on top w/o zindex
     const direction = descriptor.options.headerTransparent ? 'vertical' : 'verticalReverse'
+    const activeIndex = getActiveIndex(navigation.state)
 
     const sceneView = (
       <SceneView
@@ -64,24 +77,23 @@ class AppView extends React.PureComponent<any> {
 
     return (
       <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
-        <TabBar selectedTab={selectedTab} />
         <Kb.Box2
           direction={direction}
           fullHeight={true}
           style={selectedTab ? styles.contentArea : styles.contentAreaLogin}
         >
           {scene}
-          <Header options={descriptor.options} onPop={() => childNav.pop()} allowBack={index !== 0} />
+          <Header
+            loggedIn={!!selectedTab}
+            options={descriptor.options}
+            onPop={() => childNav.pop()}
+            allowBack={activeIndex !== 0}
+          />
         </Kb.Box2>
       </Kb.Box2>
     )
   }
 }
-const MainNavigator = createNavigator(
-  AppView,
-  StackRouter(Shim.shim(routes), {initialRouteName: 'tabs.peopleTab'}),
-  {}
-)
 
 class ModalView extends React.PureComponent<any> {
   render() {
@@ -122,11 +134,58 @@ class ModalView extends React.PureComponent<any> {
   }
 }
 
+class TabView extends React.PureComponent<any> {
+  render() {
+    const navigation = this.props.navigation
+    const index = navigation.state.index
+    const activeKey = navigation.state.routes[index].key
+    const descriptor = this.props.descriptors[activeKey]
+    const childNav = descriptor.navigation
+    const selectedTab = descriptor.state.routeName
+    const sceneView = (
+      <SceneView
+        navigation={childNav}
+        component={descriptor.getComponent()}
+        screenProps={this.props.screenProps}
+        options={descriptor.options}
+      />
+    )
+    return (
+      <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
+        <TabBar navigation={navigation} selectedTab={selectedTab} />
+        {sceneView}
+      </Kb.Box2>
+    )
+  }
+}
+
+const tabs = Shared.desktopTabs
+const tabRoots = Shared.tabRoots
+
+const TabNavigator = createNavigator(
+  TabView,
+  SwitchRouter(
+    tabs.reduce((map, tab) => {
+      map[tab] = createNavigator(
+        AppView,
+        StackRouter(Shim.shim(routes), {
+          initialRouteName: tabRoots[tab],
+          initialRouteParams: undefined,
+        }),
+        {}
+      )
+      return map
+    }, {}),
+    {resetOnBlur: false}
+  ),
+  {}
+)
+
 const LoggedInStackNavigator = createNavigator(
   ModalView,
   StackRouter(
     {
-      Main: {screen: MainNavigator},
+      Main: {screen: TabNavigator},
       ...Shim.shim(modalRoutes),
     },
     {}
@@ -286,7 +345,6 @@ const styles = Styles.styleSheetCreate({
   contentAreaLogin: Styles.platformStyles({
     isElectron: {
       flexGrow: 1,
-      paddingTop: 20, // don't cover system buttons
       position: 'relative',
     },
     isMobile: {

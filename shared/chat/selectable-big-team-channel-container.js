@@ -1,6 +1,5 @@
 // @flow
 import * as Constants from '../constants/chat2'
-import * as Styles from '../styles'
 import SelectableBigTeamChannel from './selectable-big-team-channel'
 import * as Types from '../constants/types/chat2'
 import {namedConnect} from '../util/container'
@@ -23,15 +22,14 @@ const mapStateToProps = (state, {conversationIDKey}) => {
 const mapDispatchToProps = () => ({})
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const isSelected = ownProps.isSelected && !Styles.isMobile
   return {
     channelname: stateProps.channelname,
-    isSelected,
+    isSelected: ownProps.isSelected,
     maxSearchHits: ownProps.maxSearchHits,
     numSearchHits: ownProps.numSearchHits,
     onSelectConversation: ownProps.onSelectConversation,
     showBadge: stateProps.showBadge,
-    showBold: stateProps.showBold && !isSelected,
+    showBold: stateProps.showBold && !ownProps.isSelected,
     teamname: stateProps.teamname,
   }
 }

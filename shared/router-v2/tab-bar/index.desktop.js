@@ -5,8 +5,22 @@ import * as Styles from '../../styles'
 import * as Tabs from '../../constants/tabs'
 import KeyHandler from '../../util/key-handler.desktop'
 import {isDarwin} from '../../constants/platform'
-import type {Props} from '.'
 import './tab-bar.css'
+
+type Props = {|
+  badgeNumbers: {[key: string]: number},
+  fullname: string,
+  isWalletsNew?: boolean,
+  onHelp: () => void,
+  onProfileClick: () => void,
+  onQuit: () => void,
+  onSettings: () => void,
+  onSignOut: () => void,
+  onTabClick: (tab: Tabs.Tab) => void,
+  selectedTab: Tabs.Tab,
+  uploading: boolean,
+  username: string,
+|}
 
 const data = {
   [Tabs.chatTab]: {icon: 'iconfont-nav-2-chat', label: 'Chat'},
@@ -112,7 +126,7 @@ class TabBar extends React.PureComponent<Props, State> {
                   style={styles.avatar}
                 />
                 <>
-                  <Kb.Text className="username" type="BodyTinySemibold" style={styles.username}>
+                  <Kb.Text className="username" lineClamp={1} type="BodyTinySemibold" style={styles.username}>
                     Hi {p.username}!
                   </Kb.Text>
                   <Kb.Icon
@@ -146,7 +160,16 @@ class TabBar extends React.PureComponent<Props, State> {
                   style={styles.tab}
                 >
                   <Kb.Box2 className="tab-highlight" direction="vertical" fullHeight={true} />
-                  <Kb.Icon className="tab-icon" type={data[t].icon} sizeType="Big" />
+                  <Kb.Box2 style={styles.iconBox} direction="horizontal">
+                    <Kb.Icon className="tab-icon" type={data[t].icon} sizeType="Big" />
+                    {p.uploading && t === Tabs.fsTab && (
+                      <Kb.Icon
+                        type={'icon-addon-file-uploading'}
+                        sizeType={'Default'}
+                        style={styles.badgeIcon}
+                      />
+                    )}
+                  </Kb.Box2>
                   <Kb.Text className="tab-label" type="BodySmallSemibold">
                     {data[t].label}
                   </Kb.Text>
@@ -163,9 +186,18 @@ class TabBar extends React.PureComponent<Props, State> {
 
 const styles = Styles.styleSheetCreate({
   avatar: {marginLeft: 14},
+  badgeIcon: {
+    bottom: -4,
+    position: 'absolute',
+    right: 8,
+  },
   caret: {marginRight: 12},
   divider: {marginTop: Styles.globalMargins.tiny},
   header: {height: 80, marginBottom: 20},
+  iconBox: {
+    justifyContent: 'flex-end',
+    position: 'relative',
+  },
   menu: {marginLeft: Styles.globalMargins.tiny},
   nameContainer: {height: 24},
   osButtons: Styles.platformStyles({
@@ -179,7 +211,9 @@ const styles = Styles.styleSheetCreate({
     paddingRight: 12,
     position: 'relative',
   },
-  username: {color: Styles.globalColors.blue3, flexGrow: 1},
+  username: Styles.platformStyles({
+    isElectron: {color: Styles.globalColors.blue3, flexGrow: 1, wordBreak: 'break-all'},
+  }),
 })
 
 const keysMap = Tabs.desktopTabOrder.reduce((map, tab, index) => {

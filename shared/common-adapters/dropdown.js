@@ -1,7 +1,8 @@
 // @flow
 import * as React from 'react'
-import Box from './box'
+import Box, {Box2} from './box'
 import ClickableBox from './clickable-box'
+import Text from './text'
 import Overlay from './overlay'
 import ScrollView from './scroll-view'
 import OverlayParentHOC, {type OverlayParentProps} from './overlay/parent-hoc'
@@ -15,17 +16,18 @@ type DropdownButtonProps = {
   selectedBoxStyle?: Styles.StylesCrossPlatform,
   style?: Styles.StylesCrossPlatform,
   setAttachmentRef?: $PropertyType<OverlayParentProps, 'setAttachmentRef'>,
-  toggleOpen: () => void,
+  toggleOpen: (e: SyntheticEvent<>) => void,
+  inline?: boolean,
 }
 export const DropdownButton = (props: DropdownButtonProps) => (
   <ClickableBox onClick={!props.disabled ? props.toggleOpen : null} style={props.style}>
-    <ButtonBox disabled={props.disabled} ref={props.setAttachmentRef}>
+    <ButtonBox inline={props.inline} disabled={props.disabled} ref={props.setAttachmentRef}>
       <Box style={Styles.collapseStyles([styles.selectedBox, props.selectedBoxStyle])}>{props.selected}</Box>
       <Icon
         type="iconfont-caret-down"
         inheritColor={true}
         sizeType="Tiny"
-        style={{marginTop: Styles.isMobile ? 4 : -8}}
+        style={{marginTop: Styles.isMobile ? 2 : -8}}
       />
     </ButtonBox>
   </ClickableBox>
@@ -100,7 +102,48 @@ class Dropdown<N: React.Node> extends React.Component<Props<N> & OverlayParentPr
   }
 }
 
+type InlineDropdownProps = {|
+  label: string,
+  onPress: () => void,
+  type: 'Body' | 'BodySmall',
+|}
+
+export const InlineDropdown = (props: InlineDropdownProps) => {
+  const selected = (
+    <Box2 direction="horizontal" key={props.label} style={styles.inlineSelected}>
+      <Text type={props.type}>{props.label}</Text>
+    </Box2>
+  )
+  return (
+    <DropdownButton
+      inline={true}
+      style={styles.inlineDropdown}
+      toggleOpen={e => {
+        e.stopPropagation && e.stopPropagation()
+        props.onPress && props.onPress()
+      }}
+      selectedBoxStyle={styles.inlineDropdownSelected}
+      selected={selected}
+    />
+  )
+}
+
 const styles = Styles.styleSheetCreate({
+  inlineDropdown: {
+    paddingRight: Styles.globalMargins.tiny,
+  },
+  inlineDropdownSelected: Styles.platformStyles({
+    isElectron: {minHeight: 22},
+    isMobile: {minHeight: 30, width: undefined},
+  }),
+  inlineSelected: Styles.platformStyles({
+    common: {
+      alignItems: 'center',
+      flexShrink: 0,
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
+    },
+  }),
   itemClickBox: Styles.platformStyles({
     common: {
       flexShrink: 0,
@@ -159,7 +202,8 @@ const ItemBox = Styles.styled(Box)({
   width: '100%',
 })
 
-const ButtonBox = Styles.styled(Box)(props => ({
+// $FlowIssue styled can have more than one argument
+const ButtonBox = Styles.styled(Box, {shouldForwardProp: prop => prop !== 'inline'})(props => ({
   ...Styles.globalStyles.flexBoxRow,
   ...(!props.disabled && !Styles.isMobile
     ? {
@@ -174,8 +218,12 @@ const ButtonBox = Styles.styled(Box)(props => ({
   borderStyle: 'solid',
   borderWidth: 1,
   color: Styles.globalColors.black_50,
-  paddingRight: Styles.isMobile ? Styles.globalMargins.large : Styles.globalMargins.small,
-  width: '100%',
+  paddingRight: props.inline
+    ? Styles.globalMargins.tiny
+    : Styles.isMobile
+    ? Styles.globalMargins.large
+    : Styles.globalMargins.small,
+  width: props.inline ? undefined : '100%',
 }))
 
 export default OverlayParentHOC(Dropdown)

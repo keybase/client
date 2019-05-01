@@ -322,6 +322,48 @@ const getTeamMemberCount = (state: TypedState, teamname: Types.Teamname): number
 const isLastOwner = (state: TypedState, teamname: Types.Teamname): boolean =>
   isOwner(getRole(state, teamname)) && !isMultiOwnerTeam(state, teamname)
 
+const getDisabledReasonsForRolePicker = (
+  state: TypedState,
+  teamname: Types.Teamname,
+  memberToModify: ?string
+): Types.DisabledReasonsForRolePicker => {
+  const members = getTeamMembers(state, teamname)
+  const member = memberToModify ? members.get(memberToModify) : null
+  const theyAreOwner = member ? member.type === 'owner' : false
+  const you = members.get(state.config.username)
+  // Fallback to the lowest role, although this shouldn't happen
+  const yourRole = you ? you.type : 'reader'
+
+  // We shouldn't get here, but in case we do this is correct.
+  if (yourRole !== 'owner' && yourRole !== 'admin') {
+    return {
+      admin: 'You must be at least an admin to make role changes.',
+      owner: 'You must be at least an admin to make role changes.',
+      reader: 'You must be at least an admin to make role changes.',
+      writer: 'You must be at least an admin to make role changes.',
+    }
+  }
+
+  // We shouldn't get here, but in case we do this is correct.
+  if (theyAreOwner && yourRole !== 'owner') {
+    return {
+      admin: `Only owners can change another owner's role`,
+      owner: `Only owners can change another owner's role`,
+      reader: `Only owners can change another owner's role`,
+      writer: `Only owners can change another owner's role`,
+    }
+  }
+
+  // We shouldn't get here, but in case we do this is correct.
+  if (yourRole !== 'owner') {
+    return {
+      owner: `Only owners can turn members into owners`,
+    }
+  }
+
+  return {}
+}
+
 const isMultiOwnerTeam = (state: TypedState, teamname: Types.Teamname): boolean => {
   let countOfOwners = 0
   const allTeamMembers = state.teams.teamNameToMembers.get(teamname, I.Map())
@@ -537,6 +579,7 @@ export {
   getNumberOfSubscribedChannels,
   getRole,
   getCanPerform,
+  getDisabledReasonsForRolePicker,
   hasCanPerform,
   hasChannelInfos,
   getEmailInviteError,

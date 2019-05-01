@@ -24,6 +24,7 @@ export const downloadProgress = 'fs:downloadProgress'
 export const downloadStarted = 'fs:downloadStarted'
 export const downloadSuccess = 'fs:downloadSuccess'
 export const driverDisable = 'fs:driverDisable'
+export const driverDisabling = 'fs:driverDisabling'
 export const driverEnable = 'fs:driverEnable'
 export const driverKextPermissionError = 'fs:driverKextPermissionError'
 export const editSuccess = 'fs:editSuccess'
@@ -106,6 +107,7 @@ type _DownloadProgressPayload = $ReadOnly<{|key: string, completePortion: number
 type _DownloadStartedPayload = $ReadOnly<{|entryType?: Types.PathType, key: string, path: Types.Path, localPath: Types.LocalPath, intent: Types.DownloadIntent, opID: RPCTypes.OpID|}>
 type _DownloadSuccessPayload = $ReadOnly<{|intent: Types.DownloadIntent, key: string, mimeType: string|}>
 type _DriverDisablePayload = void
+type _DriverDisablingPayload = void
 type _DriverEnablePayload = $ReadOnly<{|isRetry?: ?boolean|}>
 type _DriverKextPermissionErrorPayload = void
 type _EditSuccessPayload = $ReadOnly<{|editID: Types.EditID, parentPath: Types.Path|}>
@@ -188,6 +190,7 @@ export const createDownloadProgress = (payload: _DownloadProgressPayload) => ({p
 export const createDownloadStarted = (payload: _DownloadStartedPayload) => ({payload, type: downloadStarted})
 export const createDownloadSuccess = (payload: _DownloadSuccessPayload) => ({payload, type: downloadSuccess})
 export const createDriverDisable = (payload: _DriverDisablePayload) => ({payload, type: driverDisable})
+export const createDriverDisabling = (payload: _DriverDisablingPayload) => ({payload, type: driverDisabling})
 export const createDriverEnable = (payload: _DriverEnablePayload) => ({payload, type: driverEnable})
 export const createDriverKextPermissionError = (payload: _DriverKextPermissionErrorPayload) => ({payload, type: driverKextPermissionError})
 export const createEditSuccess = (payload: _EditSuccessPayload) => ({payload, type: editSuccess})
@@ -270,6 +273,7 @@ export type DownloadProgressPayload = {|+payload: _DownloadProgressPayload, +typ
 export type DownloadStartedPayload = {|+payload: _DownloadStartedPayload, +type: 'fs:downloadStarted'|}
 export type DownloadSuccessPayload = {|+payload: _DownloadSuccessPayload, +type: 'fs:downloadSuccess'|}
 export type DriverDisablePayload = {|+payload: _DriverDisablePayload, +type: 'fs:driverDisable'|}
+export type DriverDisablingPayload = {|+payload: _DriverDisablingPayload, +type: 'fs:driverDisabling'|}
 export type DriverEnablePayload = {|+payload: _DriverEnablePayload, +type: 'fs:driverEnable'|}
 export type DriverKextPermissionErrorPayload = {|+payload: _DriverKextPermissionErrorPayload, +type: 'fs:driverKextPermissionError'|}
 export type EditSuccessPayload = {|+payload: _EditSuccessPayload, +type: 'fs:editSuccess'|}
@@ -354,6 +358,7 @@ export type Actions =
   | DownloadStartedPayload
   | DownloadSuccessPayload
   | DriverDisablePayload
+  | DriverDisablingPayload
   | DriverEnablePayload
   | DriverKextPermissionErrorPayload
   | EditSuccessPayload

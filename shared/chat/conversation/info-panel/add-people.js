@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
+import * as Styles from '../../../styles'
 import {Box2, Button, FloatingMenu, OverlayParentHOC, type OverlayParentProps} from '../../../common-adapters'
 import {compose, connect} from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
@@ -36,19 +37,20 @@ const _AddPeople = (props: Props) => {
     )
   } else {
     directAction = props.onAddPeople
-    directLabel = 'Add to team'
+    directLabel = 'Add members to team'
   }
   if (!props.isAdmin) {
     directAction = props.onAddToChannel
-    directLabel = 'Add to channel'
+    directLabel = 'Add members to channel'
   }
   return (
-    <Box2 direction="horizontal" centerChildren={true}>
+    <Box2 direction="horizontal" centerChildren={true} style={styles.addButtonContainer}>
       {menu}
       <Button
         onClick={directAction || props.toggleShowingMenu}
         label={directLabel || 'Add someone...'}
         ref={props.setAttachmentRef}
+        fullWidth={true}
       />
     </Box2>
   )
@@ -96,5 +98,9 @@ const AddPeople = compose(
   ),
   OverlayParentHOC
 )(_AddPeople)
+
+const styles = Styles.styleSheetCreate({
+  addButtonContainer: {marginLeft: Styles.globalMargins.small, marginRight: Styles.globalMargins.small},
+})
 
 export default AddPeople

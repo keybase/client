@@ -1,286 +1,411 @@
 // @flow
-import React from 'react'
-import {
-  Avatar,
-  Box,
-  ClickableBox,
-  Button,
-  ButtonBar,
-  HeaderOrPopup,
-  Text,
-  Icon,
-  ScrollView,
-  Checkbox,
-} from '../../common-adapters/index'
-import {typeToLabel, isAdmin, isOwner} from '../../constants/teams'
-import {type TeamRoleType} from '../../constants/types/teams'
-import {globalColors, globalMargins, globalStyles, isMobile, styleSheetCreate} from '../../styles'
-import {roleIconMap, roleIconColorMap, roleDescMap, permissionMap} from './index.meta'
-import {pluralize} from '../../util/string'
+import * as React from 'react'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
+import * as Flow from '../../util/flow'
+import {map, capitalize} from 'lodash-es'
+import type {Position} from '../../common-adapters/relative-popup-hoc.types'
+import {type TeamRoleType as Role} from '../../constants/types/teams'
+import type {StylesCrossPlatform} from '../../styles/css'
+// Controls the ordering of the role picker
+const orderedRoles = ['owner', 'admin', 'writer', 'reader']
 
-export type RolePickerProps = {
-  addButtonLabel?: string,
-  confirm: boolean,
-  controlled?: boolean,
-  username: string,
-  selectedRole: TeamRoleType,
-  allowAdmin?: boolean,
-  allowOwner?: boolean,
-  headerTitle?: string,
-  ownerDisabledExp?: string,
-  pluralizeRoleName?: boolean,
-  sendNotification: boolean,
-  teamname: string,
-  sendNotificationChecked?: boolean,
-  showSendNotification: boolean,
-  setConfirm: (confirm: boolean) => void,
-  setSelectedRole: (r: TeamRoleType) => void,
-  setSendNotification: (send: boolean) => void,
-  onComplete: (r: TeamRoleType, showNotification: boolean) => void,
-  onCancel: () => void,
+type DisabledReason = string
+
+export type Props = {|
+  disabledRoles?: {[key: Role]: DisabledReason},
+  headerText?: string,
+  // If provided, a cancel button will appear
+  onCancel?: () => void,
+  onConfirm: (selectedRole: Role) => void,
+  // Defaults to "Make ${selectedRole}"
+  confirmLabel?: string,
+  onSelectRole: (role: Role) => void,
+  // The role they started with
+  footerComponent?: React.Node,
+  presetRole?: ?Role,
+  selectedRole?: ?Role,
+|}
+
+type RoleRowProps = {
+  body: React.Node,
+  disabledReason: ?React.Node,
+  icon: ?React.Node,
+  selected: boolean,
+  title: React.Node,
+  onSelect: ?() => void,
+}
+const RoleRow = (p: RoleRowProps) => (
+  <Kb.Box2 direction={'vertical'} fullWidth={true} alignItems={'flex-start'} style={styles.row}>
+    <Kb.Box2 direction={'vertical'} fullWidth={true} style={styles.rowChild}>
+      <Kb.Box2
+        direction={'horizontal'}
+        alignItems={'center'}
+        fullWidth={true}
+        style={p.disabledReason ? styles.disabledRow : undefined}
+      >
+        <Kb.RadioButton
+          label=""
+          style={styles.radioButton}
+          onSelect={p.onSelect || (() => {})}
+          selected={p.selected}
+        />
+        {p.icon}
+        {p.title}
+      </Kb.Box2>
+      <Kb.Box style={p.disabledReason ? undefined : styles.rowBody}>
+        {p.body}
+        {p.disabledReason}
+      </Kb.Box>
+    </Kb.Box2>
+  </Kb.Box2>
+)
+
+const rolesMetaInfo = (
+  infoForRole: Role,
+  selectedRole: ?Role
+): {cans: Array<string>, cants: Array<string>, icon: ?React.Node} => {
+  switch (infoForRole) {
+    case 'admin':
+      return {
+        cans: [
+          'Can manage team members roles',
+          'Can create subteams and channels',
+          'Can write and read in chats and folders',
+        ],
+        cants: [`Can't delete the team`],
+        icon: (
+          <Kb.Icon
+            boxStyle={{paddingBottom: 0}}
+            style={styles.roleIcon}
+            type={'iconfont-crown-admin'}
+            sizeType={'Small'}
+          />
+        ),
+      }
+    case 'owner':
+      return {
+        cans: [
+          'Can manage team members roles',
+          'Can create subteams and channels',
+          'Can write and read in chats and folders',
+          'Can delete team',
+        ],
+        cants: [],
+        extra: ['A team can have multiple owners'],
+        icon: (
+          <Kb.Icon
+            style={styles.roleIcon}
+            boxStyle={{paddingBottom: 0}}
+            type={'iconfont-crown-owner'}
+            sizeType={'Small'}
+          />
+        ),
+      }
+    case 'reader':
+      return {
+        cans: ['Can write in chats but read only in folders'],
+        cants: [
+          `Can't create channels`,
+          `Can't create subteams`,
+          `Can't add and remove members`,
+          `Can't manage team members' roles`,
+          `Can't delete the team`,
+        ],
+        icon: null,
+      }
+    case 'writer':
+      return {
+        cans: ['Can create channels', 'Can write and read in chats and folders'],
+        cants: [
+          `Can't create subteams`,
+          `Can't add and remove members`,
+          `Can't manage team members' roles`,
+          `Can't delete the team`,
+        ],
+        icon: null,
+      }
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(infoForRole)
+      return {}
+  }
 }
 
-// create row in rolepicker screen
-const makeRoleOption = (
-  role: TeamRoleType,
-  selected: TeamRoleType,
-  setSelected: TeamRoleType => void,
-  pluralizeRoleName: boolean = false,
-  disabledExp?: string
-) => {
-  const subtext = disabledExp ? (
-    <Text type="BodySmallError">{disabledExp}</Text>
-  ) : (
-    <Text negative={selected === role} type="BodySmall">
-      {role && roleDescMap[role]}
-    </Text>
-  )
-  const children = (
-    <Box style={styles.optionContainer}>
-      <Icon type="iconfont-check" style={{alignSelf: 'center'}} color={globalColors.white} />
-      <Box style={{...globalStyles.flexBoxColumn, paddingLeft: globalMargins.small}}>
-        <Box style={globalStyles.flexBoxRow}>
-          {!!roleIconMap[role] && (
-            <Icon
-              type={roleIconMap[role]}
-              style={{
-                marginRight: globalMargins.xtiny,
-              }}
-              color={selected === role ? globalColors.white : roleIconColorMap[role]}
-              fontSize={16}
-            />
-          )}
-          <Text style={{color: selected === role ? globalColors.white : globalColors.black}} type="BodyBig">
-            {pluralizeRoleName ? pluralize(typeToLabel[role]) : typeToLabel[role]}
-          </Text>
-        </Box>
-        {subtext}
-      </Box>
-    </Box>
-  )
-  return disabledExp ? (
-    <Box style={styles.disabledOption}>{children}</Box>
-  ) : (
-    <ClickableBox
-      style={{
-        backgroundColor: selected === role ? globalColors.blue : globalColors.white,
-        width: '100%',
-      }}
-      hoverColor={globalColors.black_05}
-      onClick={disabledExp ? null : () => setSelected(role)}
+const roleAbilities = (
+  abilities: Array<string>,
+  canDo: boolean,
+  addFinalPadding: boolean,
+  selected: boolean
+): Array<React.Node> => {
+  return abilities.map((ability, i) => (
+    <Kb.Box2
+      key={ability}
+      direction="horizontal"
+      alignItems="flex-start"
+      fullWidth={true}
+      style={
+        addFinalPadding && i === abilities.length - 1 ? {paddingBottom: Styles.globalMargins.tiny} : undefined
+      }
     >
-      {children}
-    </ClickableBox>
-  )
-}
-
-// 1. Display roles for user to pick from
-export const RoleOptions = ({
-  controlled,
-  username,
-  selectedRole,
-  setSelectedRole,
-  addButtonLabel,
-  allowAdmin = true,
-  allowOwner = true,
-  headerTitle,
-  ownerDisabledExp,
-  pluralizeRoleName = false,
-  setSendNotification,
-  sendNotification,
-  sendNotificationChecked,
-  setConfirm,
-  showSendNotification,
-}: RolePickerProps) => (
-  <Box style={styles.container}>
-    <Box style={styles.headerBox}>
-      <Text style={styles.headerTitle} type="BodySmallSemibold">
-        {headerTitle || (username ? `Select a role for ${username}:` : 'Select a role:')}
-      </Text>
-    </Box>
-    {allowOwner &&
-      makeRoleOption('owner', selectedRole, setSelectedRole, pluralizeRoleName, ownerDisabledExp)}
-    {allowAdmin && makeRoleOption('admin', selectedRole, setSelectedRole, pluralizeRoleName)}
-    {makeRoleOption('writer', selectedRole, setSelectedRole, pluralizeRoleName)}
-    {makeRoleOption('reader', selectedRole, setSelectedRole, pluralizeRoleName)}
-    {showSendNotification && (
-      <Box style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.small}}>
-        <Checkbox label="Send chat notification" onCheck={setSendNotification} checked={sendNotification} />
-      </Box>
-    )}
-    <Box style={{marginBottom: globalMargins.small, marginTop: globalMargins.tiny}}>
-      <Button
-        label={addButtonLabel || (controlled ? 'Select' : 'Continue')}
-        onClick={() => setConfirm(true)}
-        disabled={!selectedRole}
+      <Kb.Icon
+        type={canDo ? 'iconfont-check' : 'iconfont-close'}
+        sizeType="Tiny"
+        style={Styles.isMobile ? styles.abilityCheck : undefined}
+        boxStyle={!Styles.isMobile ? styles.abilityCheck : undefined}
+        color={canDo ? Styles.globalColors.green : Styles.globalColors.red}
       />
-    </Box>
-  </Box>
+      <Kb.Text type="BodySmall">{ability}</Kb.Text>
+    </Kb.Box2>
+  ))
+}
+
+const roleElementHelper = (selectedRole: ?Role) =>
+  orderedRoles
+    .map(role => [role, rolesMetaInfo(role, selectedRole)])
+    .map(([role, roleInfo]) => ({
+      body:
+        selectedRole === role
+          ? [
+              roleAbilities(roleInfo.cans, true, roleInfo.cants.length === 0, selectedRole === role),
+              roleAbilities(roleInfo.cants, false, true, selectedRole === role),
+            ]
+          : undefined,
+      icon: roleInfo.icon,
+      role,
+      title: (
+        <Kb.Text type="BodyBig" style={styles.text}>
+          {capitalize(role)}
+        </Kb.Text>
+      ),
+    }))
+
+const disabledTextHelper = (text: string) => (
+  <Kb.Text type="BodySmall" style={styles.text}>
+    {text}
+  </Kb.Text>
 )
 
-// 2. Confirm screen with role permission details
-// Permission renderer
-const PermissionRow = (props: {can: boolean, permission: string}) => (
-  <Box
-    style={{
-      ...globalStyles.flexBoxRow,
-      alignItems: 'center',
-      height: isMobile ? 32 : 24,
-      padding: globalMargins.tiny,
-    }}
-  >
-    <Icon
-      type={props.can ? 'iconfont-check' : 'iconfont-close'}
-      style={{alignSelf: 'center'}}
-      color={props.can ? globalColors.green : globalColors.red}
-    />
-    <Text type="Body" style={{marginLeft: globalMargins.tiny}}>
-      {props.permission}
-    </Text>
-  </Box>
+const headerTextHelper = (text: ?string) =>
+  !!text && (
+    <>
+      <Kb.Text type="BodySmall" style={styles.headerText}>
+        {text}
+      </Kb.Text>
+      <Kb.Divider />
+    </>
+  )
+
+const footerButtonsHelper = (onCancel, onConfirm, confirmLabel) => (
+  <Kb.ButtonBar direction="row" fullWidth={true} style={styles.footerButtonBar}>
+    {!!onCancel && <Kb.Button type="Dim" label="Cancel" onClick={onCancel} />}
+    <Kb.Button fullWidth={true} disabled={!onConfirm} label={confirmLabel} onClick={onConfirm} />
+  </Kb.ButtonBar>
 )
 
-export const RoleConfirm = ({
-  username,
-  onComplete,
-  selectedRole,
-  sendNotification,
-  setConfirm,
-  teamname,
-}: RolePickerProps) => {
-  const introText = selectedRole === 'owner' ? "They'll have full power on the team:" : "They'll be able to:"
-  const permissions = permissionMap[selectedRole]
+const confirmLabelHelper = (presetRole: ?Role, selectedRole: ?Role): string => {
+  let label = selectedRole && selectedRole.toLowerCase()
+  if (label && presetRole === selectedRole) {
+    return `Saved`
+  }
 
-  // Hard-code lists to make height sizing simpler
-  const cans = (permissions.can || []).map((perm, idx) => (
-    <PermissionRow key={idx} can={true} permission={perm} />
-  ))
-  const cannots = (permissions.cannot || []).map((perm, idx) => (
-    <PermissionRow key={idx} can={false} permission={perm} />
-  ))
+  return label ? `Make ${label}` : `Pick a role`
+}
 
-  // Handle a / an
-  const article = isOwner(selectedRole) || isAdmin(selectedRole) ? 'an' : 'a'
-  const prompt = `Make ${username} ${article} ${selectedRole} of ${teamname}?`
-
-  // Setup icon sizing
-  const avatarSize = isMobile ? 64 : 48
-
+const RolePicker = (props: Props) => {
+  let selectedRole = props.selectedRole || props.presetRole
   return (
-    <Box style={styles.confirmBox}>
-      <Box style={styles.avatarBox}>
-        <Avatar
-          style={{
-            alignSelf: 'center',
-            marginRight: globalMargins.tiny,
-          }}
-          username={username}
-          size={avatarSize}
-        />
-        <Avatar
-          style={{alignSelf: 'center', marginLeft: globalMargins.tiny}}
-          isTeam={true}
-          teamname={teamname}
-          size={avatarSize}
-        />
-      </Box>
-      <Box style={styles.promptBox}>
-        <Text type="BodyBig">{prompt}</Text>
-      </Box>
-      <Box style={{...globalStyles.flexBoxRow, margin: globalMargins.tiny}}>
-        <Text type="BodySemibold">{introText}</Text>
-      </Box>
-      <Box style={{...globalStyles.flexBoxColumn, width: 280}}>{cans}</Box>
-      {cannots.length > 0 && (
-        <Box style={{...globalStyles.flexBoxRow, margin: globalMargins.tiny}}>
-          <Text type="BodySemibold">They won't be able to:</Text>
-        </Box>
-      )}
-      {cannots.length > 0 && <Box style={{...globalStyles.flexBoxColumn, width: 280}}>{cannots}</Box>}
-      <ButtonBar>
-        <Button type="Dim" label="Back" onClick={() => setConfirm(false)} />
-        <Button
-          label="Confirm"
-          onClick={() => onComplete(selectedRole, sendNotification)}
-          disabled={!selectedRole}
-        />
-      </ButtonBar>
-    </Box>
+    <Kb.Box2 direction="vertical" alignItems={'stretch'} style={styles.container}>
+      {headerTextHelper(props.headerText)}
+      {map(
+        roleElementHelper(selectedRole),
+        // $FlowIssue, the library type for map is wrong
+        ({role, ...nodeMap}: {[key: string]: React.Node, role: Role}): React.Node => {
+          const onSelect =
+            props.disabledRoles && props.disabledRoles[role] ? undefined : () => props.onSelectRole(role)
+          return (
+            <Kb.ClickableBox key={role} onClick={onSelect}>
+              <RoleRow
+                selected={selectedRole === role}
+                title={nodeMap.title}
+                body={nodeMap.body}
+                icon={nodeMap.icon}
+                onSelect={onSelect}
+                disabledReason={
+                  props.disabledRoles &&
+                  props.disabledRoles[role] &&
+                  disabledTextHelper(props.disabledRoles[role])
+                }
+              />
+            </Kb.ClickableBox>
+          )
+        }
+      ).map((row, i, arr) => [row, i === arr.length - 1 ? null : <Kb.Divider key={i} />])}
+      <Kb.Box2 fullWidth={true} direction="vertical" style={styles.footer}>
+        {props.footerComponent}
+        {footerButtonsHelper(
+          props.onCancel,
+          selectedRole && props.selectedRole !== props.presetRole
+            ? () => props.onConfirm(selectedRole)
+            : undefined,
+          props.confirmLabel || confirmLabelHelper(props.presetRole, selectedRole)
+        )}
+      </Kb.Box2>
+    </Kb.Box2>
   )
 }
 
-const styles = styleSheetCreate({
-  avatarBox: {
-    ...globalStyles.flexBoxRow,
-    alignItems: 'center',
-    margin: globalMargins.small,
+const styles = Styles.styleSheetCreate({
+  abilityCheck: Styles.platformStyles({
+    common: {
+      paddingRight: Styles.globalMargins.tiny,
+    },
+    isElectron: {
+      paddingTop: 6,
+    },
+    isMobile: {paddingTop: 4},
+  }),
+  checkIcon: {
+    left: -24,
+    paddingTop: 2,
+    position: 'absolute',
   },
-  confirmBox: {
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    paddingBottom: globalMargins.xtiny,
-    paddingLeft: globalMargins.medium,
-    paddingRight: globalMargins.medium,
-    paddingTop: globalMargins.xtiny,
+  container: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.white,
+    },
+    isElectron: {
+      borderColor: Styles.globalColors.blue,
+      borderRadius: Styles.borderRadius,
+      borderStyle: 'solid',
+      borderWidth: 1,
+      boxShadow: `0 0 3px 0 rgba(0, 0, 0, 0.15), 0 0 5px 0 ${Styles.globalColors.black_20_on_white}`,
+      minHeight: 350,
+      width: 310,
+    },
+    isMobile: {
+      flex: 1,
+    },
+  }),
+  disabledRow: {
+    opacity: 0.4,
   },
-  container: {
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    maxWidth: 400,
-    paddingBottom: globalMargins.tiny,
-    paddingTop: globalMargins.small,
+  footer: {
+    flexGrow: 2,
+    justifyContent: 'flex-end',
+    paddingBottom: Styles.globalMargins.small,
+    paddingTop: Styles.globalMargins.tiny,
   },
-  disabledOption: {
-    opacity: 0.7,
-    width: '100%',
+  footerButtonBar: {
+    minHeight: undefined,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
   },
-  headerBox: {
-    marginBottom: globalMargins.small,
-    marginTop: globalMargins.small,
+  headerText: {
+    alignSelf: 'center',
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.tiny,
   },
-  headerTitle: {
-    color: globalColors.black_50,
+  radioButton: Styles.platformStyles({
+    isMobile: {paddingRight: Styles.globalMargins.tiny},
+  }),
+  roleIcon: {
+    paddingRight: Styles.globalMargins.xtiny,
   },
-  optionContainer: {
-    ...globalStyles.flexBoxRow,
-    alignItems: 'center',
-    borderRadius: 0,
-    padding: globalMargins.tiny,
-    paddingLeft: globalMargins.small,
-    paddingRight: globalMargins.large,
-    width: '100%',
+  row: {
+    position: 'relative',
   },
-  promptBox: {
-    margin: globalMargins.tiny,
-    marginLeft: globalMargins.small,
-    marginRight: globalMargins.small,
+  rowBody: Styles.platformStyles({
+    // Width of the radio button. Used to align text with title
+    isElectron: {
+      paddingLeft: 22,
+    },
+    isMobile: {
+      paddingLeft: 38,
+    },
+  }),
+  rowChild: Styles.platformStyles({
+    common: {
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+      paddingTop: Styles.globalMargins.tiny,
+    },
+
+    isMobile: {
+      paddingBottom: Styles.globalMargins.small,
+      paddingTop: Styles.globalMargins.small,
+    },
+  }),
+  text: {
+    textAlign: 'left',
   },
 })
 
-// Conglomerate role displays
-// $FlowIssue
-export const RolePicker = (props: RolePickerProps) => (
-  <ScrollView>{props.confirm ? <RoleConfirm {...props} /> : <RoleOptions {...props} />}</ScrollView>
+// Helper to use this as a floating box
+export type FloatingProps = {|
+  position?: Position,
+  children?: React.ChildrenArray<any>,
+  floatingContainerStyle?: StylesCrossPlatform,
+  open: boolean,
+  ...Props,
+|}
+
+type S = {|
+  ref: ?any,
+|}
+
+export class FloatingRolePicker extends React.Component<FloatingProps, S> {
+  state = {ref: null}
+  _returnRef = () => this.state.ref
+  _setRef = ref => this.setState({ref})
+  render() {
+    const {position, children, open, floatingContainerStyle, onCancel, ...props} = this.props
+    return (
+      <>
+        <Kb.Box ref={this._setRef}>{children}</Kb.Box>
+        {open && (
+          <Kb.FloatingBox
+            attachTo={this.state.ref && this._returnRef}
+            position={position || 'top center'}
+            onHidden={onCancel}
+          >
+            <Kb.Box2 direction={'vertical'} fullHeight={Styles.isMobile} style={floatingContainerStyle}>
+              {Styles.isMobile && (
+                <Kb.HeaderHocHeader onLeftAction={onCancel} leftAction={'cancel'} title="Pick a role" />
+              )}
+              <RolePicker {...props} onCancel={Styles.isMobile ? undefined : onCancel} />
+            </Kb.Box2>
+          </Kb.FloatingBox>
+        )}
+      </>
+    )
+  }
+}
+
+// Helper since it's common for some users to want this
+export const sendNotificationFooter = (
+  label: string,
+  checked: boolean,
+  onCheck: (nextVal: boolean) => void
+) => (
+  <Kb.Box2
+    direction="horizontal"
+    fullWidth={!Styles.isMobile}
+    centerChildren={true}
+    style={{
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.tiny,
+    }}
+  >
+    <Kb.Checkbox checked={checked} onCheck={onCheck} label={label} />
+  </Kb.Box2>
 )
 
-export default HeaderOrPopup(RolePicker)
+export const roleIconMap = {
+  admin: 'iconfont-crown-admin',
+  owner: 'iconfont-crown-owner',
+  reader: '',
+  writer: '',
+}
+
+export default RolePicker

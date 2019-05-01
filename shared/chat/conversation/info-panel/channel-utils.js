@@ -16,9 +16,9 @@ const CaptionedButton = (props: {
     gap="tiny"
   >
     {props.waitOnClick ? (
-      <Kb.WaitingButton small={true} label={props.label} onClick={props.onClick} waitingKey={null} />
+      <Kb.WaitingButton label={props.label} onClick={props.onClick} waitingKey={null} />
     ) : (
-      <Kb.Button small={true} label={props.label} onClick={props.onClick} />
+      <Kb.Button label={props.label} onClick={props.onClick} />
     )}
     <Kb.Text center={true} type="BodySmall">
       {props.caption}

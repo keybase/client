@@ -1949,22 +1949,27 @@ func (e ReIndexingMode) String() string {
 }
 
 type SearchOpts struct {
-	SentBy           string         `codec:"sentBy" json:"sentBy"`
-	SentBefore       gregor1.Time   `codec:"sentBefore" json:"sentBefore"`
-	SentAfter        gregor1.Time   `codec:"sentAfter" json:"sentAfter"`
-	MaxHits          int            `codec:"maxHits" json:"maxHits"`
-	MaxMessages      int            `codec:"maxMessages" json:"maxMessages"`
-	BeforeContext    int            `codec:"beforeContext" json:"beforeContext"`
-	AfterContext     int            `codec:"afterContext" json:"afterContext"`
-	ReindexMode      ReIndexingMode `codec:"reindexMode" json:"reindexMode"`
-	MaxConvsSearched int            `codec:"maxConvsSearched" json:"maxConvsSearched"`
-	MaxConvsHit      int            `codec:"maxConvsHit" json:"maxConvsHit"`
-	MaxNameConvs     int            `codec:"maxNameConvs" json:"maxNameConvs"`
+	IsRegex          bool            `codec:"isRegex" json:"isRegex"`
+	SentBy           string          `codec:"sentBy" json:"sentBy"`
+	SentTo           string          `codec:"sentTo" json:"sentTo"`
+	SentBefore       gregor1.Time    `codec:"sentBefore" json:"sentBefore"`
+	SentAfter        gregor1.Time    `codec:"sentAfter" json:"sentAfter"`
+	MaxHits          int             `codec:"maxHits" json:"maxHits"`
+	MaxMessages      int             `codec:"maxMessages" json:"maxMessages"`
+	BeforeContext    int             `codec:"beforeContext" json:"beforeContext"`
+	AfterContext     int             `codec:"afterContext" json:"afterContext"`
+	ReindexMode      ReIndexingMode  `codec:"reindexMode" json:"reindexMode"`
+	MaxConvsSearched int             `codec:"maxConvsSearched" json:"maxConvsSearched"`
+	MaxConvsHit      int             `codec:"maxConvsHit" json:"maxConvsHit"`
+	ConvID           *ConversationID `codec:"convID,omitempty" json:"convID,omitempty"`
+	MaxNameConvs     int             `codec:"maxNameConvs" json:"maxNameConvs"`
 }
 
 func (o SearchOpts) DeepCopy() SearchOpts {
 	return SearchOpts{
+		IsRegex:          o.IsRegex,
 		SentBy:           o.SentBy,
+		SentTo:           o.SentTo,
 		SentBefore:       o.SentBefore.DeepCopy(),
 		SentAfter:        o.SentAfter.DeepCopy(),
 		MaxHits:          o.MaxHits,
@@ -1974,7 +1979,14 @@ func (o SearchOpts) DeepCopy() SearchOpts {
 		ReindexMode:      o.ReindexMode.DeepCopy(),
 		MaxConvsSearched: o.MaxConvsSearched,
 		MaxConvsHit:      o.MaxConvsHit,
-		MaxNameConvs:     o.MaxNameConvs,
+		ConvID: (func(x *ConversationID) *ConversationID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ConvID),
+		MaxNameConvs: o.MaxNameConvs,
 	}
 }
 
@@ -1983,87 +1995,6 @@ type EmptyStruct struct {
 
 func (o EmptyStruct) DeepCopy() EmptyStruct {
 	return EmptyStruct{}
-}
-
-type ConversationIndexMetadata struct {
-	SeenIDs map[MessageID]EmptyStruct `codec:"s" json:"s"`
-	Version int                       `codec:"v" json:"v"`
-}
-
-func (o ConversationIndexMetadata) DeepCopy() ConversationIndexMetadata {
-	return ConversationIndexMetadata{
-		SeenIDs: (func(x map[MessageID]EmptyStruct) map[MessageID]EmptyStruct {
-			if x == nil {
-				return nil
-			}
-			ret := make(map[MessageID]EmptyStruct, len(x))
-			for k, v := range x {
-				kCopy := k.DeepCopy()
-				vCopy := v.DeepCopy()
-				ret[kCopy] = vCopy
-			}
-			return ret
-		})(o.SeenIDs),
-		Version: o.Version,
-	}
-}
-
-type ConversationIndex struct {
-	Index    map[string]map[MessageID]EmptyStruct `codec:"i" json:"i"`
-	Alias    map[string]map[string]EmptyStruct    `codec:"a" json:"a"`
-	Metadata ConversationIndexMetadata            `codec:"m" json:"m"`
-}
-
-func (o ConversationIndex) DeepCopy() ConversationIndex {
-	return ConversationIndex{
-		Index: (func(x map[string]map[MessageID]EmptyStruct) map[string]map[MessageID]EmptyStruct {
-			if x == nil {
-				return nil
-			}
-			ret := make(map[string]map[MessageID]EmptyStruct, len(x))
-			for k, v := range x {
-				kCopy := k
-				vCopy := (func(x map[MessageID]EmptyStruct) map[MessageID]EmptyStruct {
-					if x == nil {
-						return nil
-					}
-					ret := make(map[MessageID]EmptyStruct, len(x))
-					for k, v := range x {
-						kCopy := k.DeepCopy()
-						vCopy := v.DeepCopy()
-						ret[kCopy] = vCopy
-					}
-					return ret
-				})(v)
-				ret[kCopy] = vCopy
-			}
-			return ret
-		})(o.Index),
-		Alias: (func(x map[string]map[string]EmptyStruct) map[string]map[string]EmptyStruct {
-			if x == nil {
-				return nil
-			}
-			ret := make(map[string]map[string]EmptyStruct, len(x))
-			for k, v := range x {
-				kCopy := k
-				vCopy := (func(x map[string]EmptyStruct) map[string]EmptyStruct {
-					if x == nil {
-						return nil
-					}
-					ret := make(map[string]EmptyStruct, len(x))
-					for k, v := range x {
-						kCopy := k
-						vCopy := v.DeepCopy()
-						ret[kCopy] = vCopy
-					}
-					return ret
-				})(v)
-				ret[kCopy] = vCopy
-			}
-			return ret
-		})(o.Alias),
-		Metadata: o.Metadata.DeepCopy(),
-	}
 }
 
 type ChatSearchMatch struct {

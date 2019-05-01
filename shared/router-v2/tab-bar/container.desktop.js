@@ -4,17 +4,20 @@ import * as ConfigGen from '../../actions/config-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as PeopleGen from '../../actions/people-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as SettingsConstants from '../../constants/settings'
 import * as TrackerConstants from '../../constants/tracker2'
-import TabBar from '.'
+import TabBar from './index.desktop'
 import {connect} from '../../util/container'
 import {memoize} from '../../util/memoize'
 import {isLinux} from '../../constants/platform'
 import openURL from '../../util/open-url'
 import {quit, hideWindow} from '../../util/quit-helper'
+import {tabRoots} from '../router.shared'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as SettingsGen from '../../actions/settings-gen'
 
 type OwnProps = {|
+  navigation: any,
   selectedTab: Tabs.Tab,
 |}
 
@@ -22,6 +25,7 @@ const mapStateToProps = state => ({
   _badgeNumbers: state.notifications.navBadges,
   fullname: TrackerConstants.getDetails(state, state.config.username).fullname || '',
   isWalletsNew: state.chat2.isWalletsNew,
+  uploading: state.fs.uploads.syncingPaths.count() > 0 || state.fs.uploads.writingToJournal.count() > 0,
   username: state.config.username,
 })
 
@@ -31,7 +35,12 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     if (ownProps.selectedTab === Tabs.peopleTab && tab !== Tabs.peopleTab) {
       dispatch(PeopleGen.createMarkViewed())
     }
-    dispatch(RouteTreeGen.createNavigateAppend({path: [tab]}))
+    if (ownProps.selectedTab === tab) {
+      // $FlowIssue this is a subset of `Tabs.Tab`
+      ownProps.navigation.navigate(tabRoots[tab])
+    } else {
+      ownProps.navigation.navigate(tab)
+    }
   },
   onHelp: () => openURL('https://keybase.io/docs'),
   onQuit: () => {
@@ -49,7 +58,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     }, 2000)
   },
   onSettings: () => dispatch(RouteTreeGen.createNavigateAppend({path: [Tabs.settingsTab]})),
-  onSignOut: () => dispatch(ConfigGen.createLogout()),
+  onSignOut: () => dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.logOutTab]})),
 })
 
 const getBadges = memoize(b => b.toObject())
@@ -65,6 +74,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onSignOut: dispatchProps.onSignOut,
   onTabClick: (tab: Tabs.Tab) => dispatchProps._onTabClick(tab),
   selectedTab: ownProps.selectedTab,
+  uploading: stateProps.uploading,
   username: stateProps.username,
 })
 

@@ -54,7 +54,7 @@ func (s *DevConversationBackedStorage) Put(ctx context.Context, uid gregor1.UID,
 			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 				Body: string(dat),
 			}),
-		}, 0, nil, nil); err != nil {
+		}, 0, nil, nil, nil); err != nil {
 		return err
 	}
 	return nil

@@ -1427,8 +1427,16 @@
       "name": "SearchOpts",
       "fields": [
         {
+          "type": "boolean",
+          "name": "isRegex"
+        },
+        {
           "type": "string",
           "name": "sentBy"
+        },
+        {
+          "type": "string",
+          "name": "sentTo"
         },
         {
           "type": "gregor1.Time",
@@ -1467,6 +1475,13 @@
           "name": "maxConvsHit"
         },
         {
+          "type": [
+            null,
+            "ConversationID"
+          ],
+          "name": "convID"
+        },
+        {
           "type": "int",
           "name": "maxNameConvs"
         }
@@ -1476,68 +1491,6 @@
       "type": "record",
       "name": "EmptyStruct",
       "fields": []
-    },
-    {
-      "type": "record",
-      "name": "ConversationIndexMetadata",
-      "fields": [
-        {
-          "type": {
-            "type": "map",
-            "values": "EmptyStruct",
-            "keys": "MessageID"
-          },
-          "name": "seenIDs",
-          "mpackkey": "s",
-          "jsonkey": "s"
-        },
-        {
-          "type": "int",
-          "name": "version",
-          "mpackkey": "v",
-          "jsonkey": "v"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "ConversationIndex",
-      "fields": [
-        {
-          "type": {
-            "type": "map",
-            "values": {
-              "type": "map",
-              "values": "EmptyStruct",
-              "keys": "MessageID"
-            },
-            "keys": "string"
-          },
-          "name": "index",
-          "mpackkey": "i",
-          "jsonkey": "i"
-        },
-        {
-          "type": {
-            "type": "map",
-            "values": {
-              "type": "map",
-              "values": "EmptyStruct",
-              "keys": "string"
-            },
-            "keys": "string"
-          },
-          "name": "alias",
-          "mpackkey": "a",
-          "jsonkey": "a"
-        },
-        {
-          "type": "ConversationIndexMetadata",
-          "name": "metadata",
-          "mpackkey": "m",
-          "jsonkey": "m"
-        }
-      ]
     },
     {
       "type": "record",

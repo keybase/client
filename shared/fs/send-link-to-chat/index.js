@@ -163,7 +163,9 @@ const HeaderContent = (props: Props) =>
       Send link to{' '}
       {props.conversation.type === 'small-team' || props.conversation.type === 'big-team'
         ? 'team chat'
-        : 'group chat'}
+        : props.conversation.type === 'group'
+        ? 'group chat'
+        : props.conversation.name}
     </Kb.Text>
   )
 

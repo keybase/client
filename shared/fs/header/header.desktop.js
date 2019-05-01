@@ -6,7 +6,7 @@ import * as Kb from '../../common-adapters'
 import AddNew from './add-new-container'
 import Breadcrumb from './breadcrumb-container.desktop'
 import {type FolderHeaderProps} from './header'
-import {FolderViewFilter, OpenInSystemFileManager, PathItemAction, SendInAppAction} from '../common'
+import {FolderViewFilter, OpenInSystemFileManager, PathItemAction} from '../common'
 
 const FolderHeader = ({path, onChat, routePath}: FolderHeaderProps) => (
   <Kb.Box style={styles.headerContainer}>
@@ -24,26 +24,14 @@ const FolderHeader = ({path, onChat, routePath}: FolderHeaderProps) => (
         <Kb.Box style={styles.folderHeaderContainer}>
           <Breadcrumb path={path} routePath={routePath} />
           <Kb.Box style={styles.folderHeaderEnd}>
-            <FolderViewFilter path={path} style={styles.folderViewFilter} />
             <AddNew path={path} />
+            <FolderViewFilter path={path} style={styles.folderViewFilter} />
             <OpenInSystemFileManager path={path} />
-            {onChat && (
-              <Kb.WithTooltip text="Chat with users in this folder">
-                <Kb.Icon
-                  type="iconfont-chat"
-                  color={Styles.globalColors.black_50}
-                  fontSize={16}
-                  onClick={onChat}
-                  padding="tiny"
-                />
-              </Kb.WithTooltip>
-            )}
-            <SendInAppAction path={path} sendIconClassName="" />
             <PathItemAction
               path={path}
               clickable={{type: 'icon'}}
+              mode="screen"
               routePath={routePath}
-              position="header"
               initView="root"
             />
           </Kb.Box>

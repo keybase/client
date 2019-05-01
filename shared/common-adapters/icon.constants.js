@@ -1836,6 +1836,21 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-app-close': {
+    charCode: 0xe987,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-app-maximize': {
+    charCode: 0xe988,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-app-minimize': {
+    charCode: 0xe989,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-arrow-down': {
     charCode: 0xe901,
     gridSize: 16,

@@ -98,6 +98,10 @@ export default function makeMenu(window: any) {
     // $FlowIssue not sure yet
     const menu = SafeElectron.Menu.buildFromTemplate(template)
     SafeElectron.Menu.setApplicationMenu(menu)
+    if (!isDarwin) {
+      window.setAutoHideMenuBar(true)
+      window.setMenuBarVisibility(false)
+    }
   } else {
     const template = [
       {

@@ -100,7 +100,14 @@ function UsernameText(props: Props) {
               negative={backgroundModeIsNegative(props.backgroundMode)}
               className={Styles.classNames({'hover-underline': props.underline})}
               selectable={props.selectable}
-              onClick={_onUsernameClicked ? () => _onUsernameClicked(u.username) : undefined}
+              onClick={
+                _onUsernameClicked
+                  ? evt => {
+                      evt && evt.stopPropagation()
+                      _onUsernameClicked(u.username)
+                    }
+                  : undefined
+              }
               style={userStyle}
             >
               {u.username}

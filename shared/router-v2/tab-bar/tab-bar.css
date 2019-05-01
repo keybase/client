@@ -1,5 +1,5 @@
 .tab-container {
-  background-color: #1036ac;
+  background-color: #3663ea;
   flex-shrink: 0;
   width: 160px;
 }
@@ -14,7 +14,7 @@
   transition-property: background-color;
 }
 .tab .tab-icon {
-  color: #3663ea;
+  color: #1036ac;
   margin-left: 24px;
   margin-right: 12px;
 }

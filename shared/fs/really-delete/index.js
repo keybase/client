@@ -11,7 +11,6 @@ export type Props = {
   onBack: () => void,
   onDelete: () => void,
   path: Types.Path,
-  position?: 'row' | 'header',
   title: string,
 }
 

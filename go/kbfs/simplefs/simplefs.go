@@ -387,24 +387,6 @@ func (k *SimpleFS) favoriteList(ctx context.Context, path keybase1.Path, t tlf.T
 	return res, nil
 }
 
-func (k *SimpleFS) prefetchProgressFromByteStatus(
-	status libkbfs.PrefetchProgress) (p keybase1.PrefetchProgress) {
-	p.BytesFetched = int64(status.SubtreeBytesFetched)
-	p.BytesTotal = int64(status.SubtreeBytesTotal)
-	p.Start = keybase1.ToTime(status.Start)
-
-	if p.BytesTotal == 0 || p.Start == 0 {
-		return p
-	}
-
-	timeRunning := k.config.Clock().Now().Sub(status.Start)
-	fracDone := float64(p.BytesFetched) / float64(p.BytesTotal)
-	totalTimeEstimate := time.Duration(float64(timeRunning) / fracDone)
-	endEstimate := status.Start.Add(totalTimeEstimate)
-	p.EndEstimate = keybase1.ToTime(endEstimate)
-	return p
-}
-
 func (k *SimpleFS) setStat(de *keybase1.Dirent, fi os.FileInfo) error {
 	de.Time = keybase1.ToTime(fi.ModTime())
 	de.Size = int(fi.Size()) // TODO: FIX protocol
@@ -427,8 +409,8 @@ func (k *SimpleFS) setStat(de *keybase1.Dirent, fi os.FileInfo) error {
 		}
 		de.LastWriterUnverified = md.LastWriter
 		de.PrefetchStatus = md.PrefetchStatus
-		de.PrefetchProgress = k.prefetchProgressFromByteStatus(
-			md.PrefetchProgress)
+		de.PrefetchProgress = md.PrefetchProgress.ToProtocolProgress(
+			k.config.Clock())
 	}
 	de.Name = fi.Name()
 	return nil
@@ -2295,8 +2277,8 @@ func (k *SimpleFS) SimpleFSFolderSyncConfigAndStatus(
 				return keybase1.FolderSyncConfigAndStatus{}, err
 			}
 			res.Status.PrefetchStatus = metadata.PrefetchStatus
-			res.Status.PrefetchProgress = k.prefetchProgressFromByteStatus(
-				metadata.PrefetchProgress)
+			res.Status.PrefetchProgress =
+				metadata.PrefetchProgress.ToProtocolProgress(k.config.Clock())
 
 			dbc := k.config.DiskBlockCache()
 			libfs, ok := fs.(*libfs.FS)
@@ -2309,7 +2291,6 @@ func (k *SimpleFS) SimpleFSFolderSyncConfigAndStatus(
 				}
 				res.Status.StoredBytesTotal = int64(size)
 			}
-
 		} else {
 			k.log.CDebugf(ctx,
 				"Could not get prefetch status from filesys: %T", fi.Sys())
@@ -2349,6 +2330,7 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(
 		[]keybase1.FolderSyncConfigAndStatusWithFolder, len(tlfIDs))
 
 	dbc := k.config.DiskBlockCache()
+	allNotStarted := true
 	for i, tlfID := range tlfIDs {
 		config, err := k.config.KBFSOps().GetSyncConfig(ctx, tlfID)
 		if err != nil {
@@ -2374,11 +2356,14 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(
 
 		res.Folders[i].Folder = f
 		res.Folders[i].Config = config
-		res.Folders[i].Status.PrefetchStatus =
-			md.PrefetchStatus.ToProtocolStatus()
+		status := md.PrefetchStatus.ToProtocolStatus()
+		res.Folders[i].Status.PrefetchStatus = status
+		if status != keybase1.PrefetchStatus_NOT_STARTED {
+			allNotStarted = false
+		}
 		if md.PrefetchProgress != nil {
 			res.Folders[i].Status.PrefetchProgress =
-				k.prefetchProgressFromByteStatus(*md.PrefetchProgress)
+				md.PrefetchProgress.ToProtocolProgress(k.config.Clock())
 		}
 		res.Folders[i].Status.LocalDiskBytesAvailable = bytesAvail
 		res.Folders[i].Status.LocalDiskBytesTotal = bytesTotal
@@ -2397,6 +2382,18 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(
 		return res.Folders[i].Folder.ToString() <
 			res.Folders[j].Folder.ToString()
 	})
+
+	if len(tlfIDs) > 0 {
+		p := k.config.BlockOps().Prefetcher().OverallSyncStatus()
+		res.OverallStatus.PrefetchProgress = p.ToProtocolProgress(
+			k.config.Clock())
+		if allNotStarted {
+			res.OverallStatus.PrefetchStatus =
+				keybase1.PrefetchStatus_NOT_STARTED
+		} else {
+			res.OverallStatus.PrefetchStatus = p.ToProtocolStatus()
+		}
+	}
 
 	res.OverallStatus.LocalDiskBytesAvailable = bytesAvail
 	res.OverallStatus.LocalDiskBytesTotal = bytesTotal

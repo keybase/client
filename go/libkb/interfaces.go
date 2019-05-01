@@ -627,6 +627,7 @@ type ServiceType interface {
 	MakeProofChecker(l RemoteProofChainLink) ProofChecker
 	SetDisplayConfig(*keybase1.ServiceDisplayConfig)
 	CanMakeNewProofs(mctx MetaContext) bool
+	CanMakeNewProofsSkipFeatureFlag(mctx MetaContext) bool
 	DisplayPriority() int
 	DisplayGroup() string
 	IsNew(MetaContext) bool
@@ -644,6 +645,7 @@ type ExternalServicesCollector interface {
 // parameterized proofs.
 type MerkleStore interface {
 	GetLatestEntry(m MetaContext) (keybase1.MerkleStoreEntry, error)
+	GetLatestEntryWithKnown(MetaContext, *keybase1.MerkleStoreKitHash) (*keybase1.MerkleStoreEntry, error)
 }
 
 // UserChangedHandler is a generic interface for handling user changed events.

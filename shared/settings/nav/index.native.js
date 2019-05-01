@@ -30,12 +30,18 @@ function SettingsNav(props: Props) {
       sections={[
         {
           data: [
-            {
-              badgeNumber: props.badgeNumbers[TabConstants.fsTab],
-              icon: 'iconfont-nav-files',
-              onClick: () => props.onTabChange(Constants.fsTab),
-              text: 'Files',
-            },
+            ...[
+              flags.useNewRouter
+                ? []
+                : [
+                    {
+                      badgeNumber: props.badgeNumbers[TabConstants.fsTab],
+                      icon: 'iconfont-nav-files',
+                      onClick: () => props.onTabChange(Constants.fsTab),
+                      text: 'Files',
+                    },
+                  ],
+            ],
             {
               badgeNumber: props.badgeNumbers[TabConstants.gitTab],
               icon: 'iconfont-nav-git',

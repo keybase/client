@@ -110,6 +110,11 @@ var chatSearchFlags = []cli.Flag{
 		Usage: fmt.Sprintf("Specify the maximum number of search hits to get. Maximum value is %d.", search.MaxAllowedSearchHits),
 	},
 	cli.StringFlag{
+		Name:  "sent-to",
+		Value: "",
+		Usage: "Filter search results to @ mentions of the given username",
+	},
+	cli.StringFlag{
 		Name:  "sent-by",
 		Value: "",
 		Usage: "Filter search results by the username of the sender.",

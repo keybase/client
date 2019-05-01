@@ -366,6 +366,7 @@ type MergeResult struct {
 	Exploded        []chat1.MessageUnboxed
 	ReactionTargets []chat1.MessageUnboxed
 	UnfurlTargets   []chat1.MessageUnboxed
+	RepliesAffected []chat1.MessageUnboxed
 }
 
 type FetchResult struct {
@@ -420,6 +421,7 @@ func (s *Storage) MergeHelper(ctx context.Context,
 	}
 	res.ReactionTargets = updateRes.reactionTargets
 	res.UnfurlTargets = updateRes.unfurlTargets
+	res.RepliesAffected = updateRes.repliesAffected
 
 	if err = s.updateMinDeletableMessage(ctx, convID, uid, msgs); err != nil {
 		return res, s.maybeNukeLocked(ctx, false, err, convID, uid)
@@ -454,6 +456,18 @@ func (s *Storage) MergeHelper(ctx context.Context,
 type updateAllSupersededByRes struct {
 	reactionTargets []chat1.MessageUnboxed
 	unfurlTargets   []chat1.MessageUnboxed
+	repliesAffected []chat1.MessageUnboxed
+}
+
+func (s *Storage) isReply(msg chat1.MessageUnboxed) *chat1.MessageID {
+	if !msg.IsValid() {
+		return nil
+	}
+	body := msg.Valid().MessageBody
+	if body.IsType(chat1.MessageType_TEXT) && body.Text().ReplyTo != nil && *body.Text().ReplyTo > 0 {
+		return body.Text().ReplyTo
+	}
+	return nil
 }
 
 func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.ConversationID,
@@ -467,6 +481,7 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 	updatedReactionTargets := map[chat1.MessageID]chat1.MessageUnboxed{}
 	// Unfurl targets
 	updatedUnfurlTargets := map[chat1.MessageID]chat1.MessageUnboxed{}
+	repliesAffected := map[chat1.MessageID]chat1.MessageUnboxed{}
 
 	// Sort in reverse order so this playback works as it would have if we received these
 	// in real-time
@@ -485,6 +500,9 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 		supersededIDs, ierr := utils.GetSupersedes(msg)
 		if ierr != nil {
 			continue
+		}
+		if replyID := s.isReply(msg); replyID != nil {
+			supersededIDs = append(supersededIDs, *replyID)
 		}
 		// Set all supersedes targets
 		for _, supersededID := range supersededIDs {
@@ -513,6 +531,10 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 
 				newMsgs := []chat1.MessageUnboxed{}
 				switch msg.GetMessageType() {
+				case chat1.MessageType_TEXT:
+					mvalid.ServerHeader.Replies = append(mvalid.ServerHeader.Replies, msg.GetMessageID())
+					newMsg := chat1.NewMessageUnboxedWithValid(mvalid)
+					newMsgs = append(newMsgs, newMsg)
 				case chat1.MessageType_UNFURL:
 					unfurl := msg.Valid().MessageBody.Unfurl()
 					utils.SetUnfurl(&mvalid, msg.GetMessageID(), unfurl.Unfurl)
@@ -534,6 +556,7 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 					}
 				case chat1.MessageType_DELETE:
 					mvalid.ServerHeader.SupersededBy = msgid
+					s.updateRepliesAffected(ctx, convID, uid, mvalid.ServerHeader.Replies, repliesAffected)
 					switch superMsg.GetMessageType() {
 					case chat1.MessageType_UNFURL:
 						updatedTarget, err := s.updateUnfurlTargetOnDelete(ctx, convID, uid, *superMsg)
@@ -561,6 +584,9 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 					allPurged = append(allPurged, *superMsg)
 					allAssets = append(allAssets, assets...)
 					newMsgs = append(newMsgs, msgPurged)
+				case chat1.MessageType_EDIT:
+					s.updateRepliesAffected(ctx, convID, uid, mvalid.ServerHeader.Replies, repliesAffected)
+					fallthrough
 				default:
 					mvalid.ServerHeader.SupersededBy = msgid
 					newMsg := chat1.NewMessageUnboxedWithValid(mvalid)
@@ -581,16 +607,18 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 	// queue search index update in the background
 	go s.G().Indexer.Remove(ctx, convID, uid, allPurged)
 
-	flatten := func(m map[chat1.MessageID]chat1.MessageUnboxed) (res []chat1.MessageUnboxed) {
-		for _, msg := range m {
-			res = append(res, msg)
-		}
-		return res
-	}
 	return updateAllSupersededByRes{
-		reactionTargets: flatten(updatedReactionTargets),
-		unfurlTargets:   flatten(updatedUnfurlTargets),
+		reactionTargets: s.flatten(updatedReactionTargets),
+		unfurlTargets:   s.flatten(updatedUnfurlTargets),
+		repliesAffected: s.flatten(repliesAffected),
 	}, nil
+}
+
+func (s *Storage) flatten(m map[chat1.MessageID]chat1.MessageUnboxed) (res []chat1.MessageUnboxed) {
+	for _, msg := range m {
+		res = append(res, msg)
+	}
+	return res
 }
 
 func (s *Storage) updateMinDeletableMessage(ctx context.Context, convID chat1.ConversationID,
@@ -1112,6 +1140,43 @@ func (s *Storage) updateUnfurlTargetOnDelete(ctx context.Context, convID chat1.C
 	mvalid := targetMsg.Valid()
 	utils.RemoveUnfurl(&mvalid, unfurlMsg.GetMessageID())
 	return chat1.NewMessageUnboxedWithValid(mvalid), nil
+}
+
+func (s *Storage) updateRepliesAffected(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+	replies []chat1.MessageID, replyMap map[chat1.MessageID]chat1.MessageUnboxed) {
+	if len(replies) == 0 {
+		return
+	}
+	defer s.Trace(ctx, func() error { return nil }, "updateRepliesAffected: num: %d", len(replies))()
+	for _, reply := range replies {
+		if _, ok := replyMap[reply]; ok {
+			continue
+		}
+		replyMsg, err := s.getMessage(ctx, convID, uid, reply)
+		if err != nil || replyMsg == nil {
+			s.Debug(ctx, "updateRepliesAffected: failed to get message: err: %s", err)
+			continue
+		}
+		replyMap[reply] = *replyMsg
+	}
+}
+
+func (s *Storage) GetExplodedReplies(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+	exploded []chat1.MessageUnboxed) []chat1.MessageUnboxed {
+	if len(exploded) == 0 {
+		return nil
+	}
+	defer s.Trace(ctx, func() error { return nil }, "getExplodedReplies: num: %d", len(exploded))()
+	var replies []chat1.MessageID
+	for _, msg := range exploded {
+		if !msg.IsValid() {
+			continue
+		}
+		replies = append(replies, msg.Valid().ServerHeader.Replies...)
+	}
+	replyMap := make(map[chat1.MessageID]chat1.MessageUnboxed)
+	s.updateRepliesAffected(ctx, convID, uid, replies, replyMap)
+	return s.flatten(replyMap)
 }
 
 // updateReactionIDs appends `msgid` to `reactionIDs` if it is not already

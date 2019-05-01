@@ -46,7 +46,7 @@ func sendSimple(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext, p
 			Body: "hi",
 		}),
 	}
-	_, boxed, err := sender.Send(ctx, convID, pt, 0, nil, nil)
+	_, boxed, err := sender.Send(ctx, convID, pt, 0, nil, nil, nil)
 	require.NoError(t, err)
 
 	ibox := storage.NewInbox(tc.Context())

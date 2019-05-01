@@ -103,7 +103,7 @@ const Unreachable = props => (
       style={Styles.collapseStyles([styles.opacity75, styles.inlineIcon])}
     />
     <Kb.Box2 direction="vertical" style={styles.flexOne}>
-      <Kb.Text type="BodySemibold" style={styles.placeholder}>
+      <Kb.Text type="BodySemibold" style={styles.unreachablePlaceholder}>
         <Kb.Text type="BodySemibold" style={styles.colorRed}>
           {props.username}
         </Kb.Text>
@@ -335,6 +335,12 @@ const styles = Styles.styleSheetCreate({
   unreachableBox: Styles.platformStyles({
     common: {...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall)},
     isElectron: {width: 360},
+  }),
+  unreachablePlaceholder: Styles.platformStyles({
+    common: {color: Styles.globalColors.black_40},
+    isElectron: {
+      wordBreak: 'break-all',
+    },
   }),
   warningText: {color: Styles.globalColors.brown_75, marginTop: Styles.globalMargins.small},
 })

@@ -13,8 +13,9 @@ import {newRoutes as walletsNewRoutes, newModalRoutes as walletsNewModalRoutes} 
 import {isMobile} from '../constants/platform'
 import * as Tabs from '../constants/tabs'
 
-// We have normal routes, modal routes, and logged out routes
-
+// We have normal routes, modal routes, and logged out routes.
+// We also end up using existence of a nameToTab value for a route as a test
+// of whether we're on a loggedIn route: loggedOut routes have no selected tab.
 export const nameToTab = {}
 // TODO could make a stronger type
 export type Route = {

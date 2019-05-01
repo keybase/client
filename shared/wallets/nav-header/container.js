@@ -14,6 +14,7 @@ const mergePropsHeaderTitle = s => ({
   accountID: s._account.accountID,
   accountName: s._account.name,
   isDefault: s._account.isDefault,
+  loading: s._account.accountID === Types.noAccountID,
   username: s.username,
 })
 
