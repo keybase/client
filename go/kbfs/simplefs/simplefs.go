@@ -2165,6 +2165,7 @@ func (k *SimpleFS) TlfHandleChange(_ context.Context, _ *tlfhandle.Handle) {
 // the logged-in user.
 func (k *SimpleFS) SimpleFSGetUserQuotaUsage(ctx context.Context) (
 	res keybase1.SimpleFSQuotaUsage, err error) {
+	ctx = k.makeContext(ctx)
 	status, _, err := k.config.KBFSOps().Status(ctx)
 	if err != nil {
 		return keybase1.SimpleFSQuotaUsage{}, err
@@ -2254,6 +2255,7 @@ func (k *SimpleFS) getLocalDiskStats(ctx context.Context) (
 func (k *SimpleFS) SimpleFSFolderSyncConfigAndStatus(
 	ctx context.Context, path keybase1.Path) (
 	keybase1.FolderSyncConfigAndStatus, error) {
+	ctx = k.makeContext(ctx)
 	_, config, err := k.getSyncConfig(ctx, path)
 	if err != nil {
 		return keybase1.FolderSyncConfigAndStatus{}, err
@@ -2305,6 +2307,7 @@ func (k *SimpleFS) SimpleFSFolderSyncConfigAndStatus(
 // SimpleFSSetFolderSyncConfig implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSSetFolderSyncConfig(
 	ctx context.Context, arg keybase1.SimpleFSSetFolderSyncConfigArg) error {
+	ctx = k.makeContext(ctx)
 	tlfID, _, err := k.getSyncConfig(ctx, arg.Path)
 	if err != nil {
 		return err
@@ -2317,6 +2320,7 @@ func (k *SimpleFS) SimpleFSSetFolderSyncConfig(
 // SimpleFSSyncConfigAndStatus implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSSyncConfigAndStatus(
 	ctx context.Context) (res keybase1.SyncConfigAndStatusRes, err error) {
+	ctx = k.makeContext(ctx)
 	bytesAvail, bytesTotal := k.getLocalDiskStats(ctx)
 	tlfIDs := k.config.GetAllSyncedTlfs()
 
@@ -2412,6 +2416,7 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(
 // SimpleFSClearConflictState implements the SimpleFS interface.
 func (k *SimpleFS) SimpleFSClearConflictState(ctx context.Context,
 	path keybase1.Path) error {
+	ctx = k.makeContext(ctx)
 	t, tlfName, _, _, err := remoteTlfAndPath(path)
 	if err != nil {
 		return err
@@ -2427,6 +2432,7 @@ func (k *SimpleFS) SimpleFSClearConflictState(ctx context.Context,
 
 // SimpleFSAreWeConnectedToMDServer implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSAreWeConnectedToMDServer(ctx context.Context) (bool, error) {
+	ctx = k.makeContext(ctx)
 	// This is kind of expensive, but we are only calling this from GUI right
 	// after KBFS daemon is connected. After that we rely on notifications. We
 	// can change this to directly get from currentStatus in KBFSOps if that

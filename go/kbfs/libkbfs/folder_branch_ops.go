@@ -8768,8 +8768,14 @@ func (fbo *folderBranchOps) SetSyncConfig(
 	fbo.syncLock.Lock(lState)
 	defer fbo.syncLock.Unlock(lState)
 
-	fbo.log.CDebugf(ctx, "Setting sync config for %s, mode=%s",
-		tlfID, config.Mode)
+	startTime, timer := fbo.startOp(
+		ctx, "Setting sync config for %s, mode=%s", tlfID, config.Mode)
+	defer func() {
+		fbo.endOp(
+			ctx, startTime, timer,
+			"Done setting sync config for %s, mode=%s: %+v",
+			tlfID, config.Mode, err)
+	}()
 
 	if config.Mode == keybase1.FolderSyncMode_PARTIAL &&
 		len(config.Paths) == 0 {
