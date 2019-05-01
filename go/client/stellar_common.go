@@ -33,7 +33,7 @@ func printPayment(g *libkb.GlobalContext, p stellar1.PaymentCLILocal, verbose bo
 		if err != nil {
 			lineUnescaped("%v %s", ColorString(g, "red", "Error while formatting amount:"), err)
 		} else {
-			lineUnescaped("%v", ColorString(g, "purple", sourceAmount))
+			lineUnescaped("%v", ColorString(g, "yellow", sourceAmount))
 		}
 	}
 
