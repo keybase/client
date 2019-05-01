@@ -21,7 +21,6 @@ type searchSession struct {
 	query, origQuery string
 	uid              gregor1.UID
 	hitUICh          chan chat1.ChatSearchInboxHit
-	indexUICh        chan chat1.ChatSearchIndexStatus
 	indexer          *Indexer
 	opts             chat1.SearchOpts
 
@@ -53,10 +52,9 @@ func newSearchSession(query, origQuery string, uid gregor1.UID,
 		origQuery:        origQuery,
 		uid:              uid,
 		hitUICh:          hitUICh,
-		indexUICh:        indexUICh,
 		indexer:          indexer,
 		opts:             opts,
-		inboxIndexStatus: newInboxIndexStatus(),
+		inboxIndexStatus: newInboxIndexStatus(indexUICh),
 		hitMap:           make(map[string]chat1.ChatSearchInboxHit),
 	}
 }
@@ -265,25 +263,12 @@ func (s *searchSession) percentIndexed() int {
 
 func (s *searchSession) reindexConvWithUIUpdate(ctx context.Context, rconv types.RemoteConversation) error {
 	conv := rconv.Conv
-	oldPercentIndexed := s.percentIndexed()
-	if _, err := s.indexer.reindexConv(ctx, rconv, s.uid, 0); err != nil {
+	if _, err := s.indexer.reindexConv(ctx, rconv, s.uid, 0, s.inboxIndexStatus); err != nil {
 		return err
 	}
 	s.updateInboxIndex(ctx, conv)
-	percentIndexed := s.percentIndexed()
-	if oldPercentIndexed != percentIndexed { // only write out updates..
-		s.indexer.Debug(ctx, "reindexConvWithUIUpdate: %s %d%% -> %d%% indexed",
-			rconv.GetName(), oldPercentIndexed, percentIndexed)
-		if s.indexUICh != nil { // stream back index percentage as we update it
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			default:
-			}
-			s.indexUICh <- chat1.ChatSearchIndexStatus{
-				PercentIndexed: percentIndexed,
-			}
-		}
+	if _, err := s.inboxIndexStatus.updateUI(ctx); err != nil {
+		s.indexer.Debug(ctx, "unable to update ui %v", err)
 	}
 	return nil
 }
@@ -363,18 +348,11 @@ func (s *searchSession) preSearch(ctx context.Context) (err error) {
 		}
 	}
 
-	percentIndexed := s.percentIndexed()
-	s.indexer.Debug(ctx, "Search: percent: %d", percentIndexed)
-	if s.indexUICh != nil {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		default:
-		}
-		s.indexUICh <- chat1.ChatSearchIndexStatus{
-			PercentIndexed: percentIndexed,
-		}
+	percentIndexed, err := s.inboxIndexStatus.updateUI(ctx)
+	if err != nil {
+		return err
 	}
+	s.indexer.Debug(ctx, "Search: percent: %d", percentIndexed)
 
 	for _, conv := range s.convList {
 		select {
@@ -483,7 +461,7 @@ func (s *searchSession) run(ctx context.Context) (res *chat1.ChatSearchInboxResu
 	defer func() {
 		if err != nil {
 			s.Lock()
-			s.indexer.Debug(ctx, "search aborted, %v %d hits, %d percentIndexed, %d indexableConvs, %d convs searched, opts: %+v",
+			s.indexer.Debug(ctx, "search aborted, %v %d hits, %d%% percentIndexed, %d indexableConvs, %d convs searched, opts: %+v",
 				err, len(s.hitMap), s.percentIndexed(), s.inboxIndexStatus.numConvs(), s.numConvsSearched, s.opts)
 			s.Unlock()
 		}
@@ -515,7 +493,7 @@ func (s *searchSession) run(ctx context.Context) (res *chat1.ChatSearchInboxResu
 		Hits:           hits,
 		PercentIndexed: percentIndexed,
 	}
-	s.indexer.Debug(ctx, "search completed, %d hits, %d percentIndexed, %d indexableConvs, %d convs searched, opts: %+v",
+	s.indexer.Debug(ctx, "search completed, %d hits, %d%% percentIndexed, %d indexableConvs, %d convs searched, opts: %+v",
 		len(hits), percentIndexed, s.inboxIndexStatus.numConvs(), s.numConvsSearched, s.opts)
 	return res, nil
 }

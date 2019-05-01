@@ -263,8 +263,7 @@ func (idx *Indexer) Remove(ctx context.Context, convID chat1.ConversationID, uid
 // our index is missing many messages, we page through and add batches of
 // missing messages.
 func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversation, uid gregor1.UID,
-	numJobs int) (completedJobs int, err error) {
-
+	numJobs int, inboxIndexStatus *inboxIndexStatus) (completedJobs int, err error) {
 	conv := rconv.Conv
 	convID := conv.GetConvID()
 	md, err := idx.store.GetMetadata(ctx, uid, convID)
@@ -324,6 +323,20 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 			completedJobs++
 			if numJobs > 0 && completedJobs >= numJobs {
 				break
+			}
+			if inboxIndexStatus != nil {
+				md, err := idx.store.GetMetadata(ctx, uid, conv.GetConvID())
+				if err != nil {
+					idx.Debug(ctx, "updateInboxIndex: unable to GetMetadata %v", err)
+					continue
+				}
+				inboxIndexStatus.addConv(md, conv)
+				percentIndexed, err := inboxIndexStatus.updateUI(ctx)
+				if err != nil {
+					idx.Debug(ctx, "unable to update ui %v", err)
+				} else {
+					idx.Debug(ctx, "%v is %d%% indexed", rconv.GetName(), percentIndexed)
+				}
 			}
 		}
 	}
@@ -470,7 +483,7 @@ func (idx *Indexer) SelectiveSync(ctx context.Context, uid gregor1.UID) (err err
 			continue
 		}
 
-		completedJobs, err := idx.reindexConv(ctx, conv, uid, numJobs)
+		completedJobs, err := idx.reindexConv(ctx, conv, uid, numJobs, nil)
 		if err != nil {
 			idx.Debug(ctx, "Unable to reindex conv: %v, %v", convID, err)
 			continue
@@ -534,7 +547,7 @@ func (idx *Indexer) indexConvWithProfile(ctx context.Context, conv types.RemoteC
 	}()
 
 	startT := time.Now()
-	_, err = idx.reindexConv(ctx, conv, uid, 0)
+	_, err = idx.reindexConv(ctx, conv, uid, 0, nil)
 	if err != nil {
 		return res, err
 	}

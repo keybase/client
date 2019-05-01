@@ -1,6 +1,7 @@
 package search
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"unsafe"
@@ -83,13 +84,35 @@ type indexStatus struct {
 type inboxIndexStatus struct {
 	sync.Mutex
 	// convID -> indexStatus
-	inbox map[string]indexStatus
+	inbox         map[string]indexStatus
+	uiCh          chan chat1.ChatSearchIndexStatus
+	dirty         bool
+	cachedPercent int
 }
 
-func newInboxIndexStatus() *inboxIndexStatus {
+func newInboxIndexStatus(uiCh chan chat1.ChatSearchIndexStatus) *inboxIndexStatus {
 	return &inboxIndexStatus{
 		inbox: make(map[string]indexStatus),
+		uiCh:  uiCh,
 	}
+}
+
+func (p *inboxIndexStatus) updateUI(ctx context.Context) (int, error) {
+	p.Lock()
+	defer p.Unlock()
+	percentIndexed := p.percentIndexedLocked()
+	if p.uiCh != nil {
+		status := chat1.ChatSearchIndexStatus{
+			PercentIndexed: percentIndexed,
+		}
+		select {
+		case <-ctx.Done():
+			return 0, ctx.Err()
+		case p.uiCh <- status:
+		default:
+		}
+	}
+	return percentIndexed, nil
 }
 
 func (p *inboxIndexStatus) numConvs() int {
@@ -101,25 +124,36 @@ func (p *inboxIndexStatus) numConvs() int {
 func (p *inboxIndexStatus) addConv(m *indexMetadata, conv chat1.Conversation) {
 	p.Lock()
 	defer p.Unlock()
+	p.dirty = true
 	p.inbox[conv.GetConvID().String()] = m.indexStatus(conv)
 }
 
 func (p *inboxIndexStatus) rmConv(conv chat1.Conversation) {
 	p.Lock()
 	defer p.Unlock()
+	p.dirty = true
 	delete(p.inbox, conv.GetConvID().String())
 }
 
 func (p *inboxIndexStatus) percentIndexed() int {
 	p.Lock()
 	defer p.Unlock()
-	var numMissing, numMsgs int
-	for _, status := range p.inbox {
-		numMissing += status.numMissing
-		numMsgs += status.numMsgs
+	return p.percentIndexedLocked()
+}
+
+func (p *inboxIndexStatus) percentIndexedLocked() int {
+	if p.dirty {
+		var numMissing, numMsgs int
+		for _, status := range p.inbox {
+			numMissing += status.numMissing
+			numMsgs += status.numMsgs
+		}
+		if numMsgs == 0 {
+			p.cachedPercent = 100
+		} else {
+			p.cachedPercent = int(100 * (1 - (float64(numMissing) / float64(numMsgs))))
+		}
+		p.dirty = false
 	}
-	if numMsgs == 0 {
-		return 100
-	}
-	return int(100 * (1 - (float64(numMissing) / float64(numMsgs))))
+	return p.cachedPercent
 }
