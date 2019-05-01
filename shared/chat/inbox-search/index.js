@@ -87,6 +87,7 @@ class InboxSearch extends React.Component<Props, State> {
     )
   }
   _renderTextHeader = section => {
+    const ratio = this.props.indexPercent / 100.0
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.textHeader}>
         <Kb.SectionDivider
@@ -104,7 +105,17 @@ class InboxSearch extends React.Component<Props, State> {
         ) : this.props.indexPercent > 0 && this.props.indexPercent < 100 ? (
           <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.percentContainer} fullWidth={true}>
             <Kb.Text type="BodyTiny">Indexing...</Kb.Text>
-            <Kb.ProgressBar style={styles.progressBar} ratio={this.props.indexPercent / 100.0} />
+            {Styles.isMobile ? (
+              <Kb.ProgressBar style={styles.progressBar} ratio={ratio} />
+            ) : (
+              <Kb.WithTooltip
+                containerStyle={styles.progressBar}
+                position="bottom center"
+                text={`${this.props.indexPercent}% complete`}
+              >
+                <Kb.ProgressBar style={styles.progressBar} ratio={ratio} />
+              </Kb.WithTooltip>
+            )}
           </Kb.Box2>
         ) : null}
       </Kb.Box2>
