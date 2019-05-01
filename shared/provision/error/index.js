@@ -4,7 +4,7 @@ import Container from '../../login/forms/container'
 import * as React from 'react'
 import {RPCError} from '../../util/errors'
 import {constantsStatusCode} from '../../constants/types/rpc-gen'
-import {Box2, Text, Markdown} from '../../common-adapters'
+import {Box2, HeaderOnMobile, Text, Markdown} from '../../common-adapters'
 import {styleSheetCreate, globalStyles, globalMargins, isMobile} from '../../styles'
 
 type Props = {
@@ -111,9 +111,7 @@ const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Prop
       } else {
         return (
           <Wrapper onBack={onBack}>
-            <Text type="Body">
-              You can't provision using a password, since you've established a PGP key.
-            </Text>
+            <Text type="Body">You can't provision using a password, since you've established a PGP key.</Text>
             <Text type="BodySemibold" style={{textAlign: 'left'}}>
               You have options:
             </Text>
@@ -263,4 +261,4 @@ const styles = styleSheetCreate({
   },
 })
 
-export default Render
+export default HeaderOnMobile(Render)

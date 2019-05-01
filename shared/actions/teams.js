@@ -157,7 +157,7 @@ const leaveTeam = (state, action) => {
 
 const leftTeam = (state, action) => {
   if (flags.useNewRouter) {
-    return RouteTreeGen.createNavUpToScreen({routeName: teamsTab})
+    return RouteTreeGen.createNavUpToScreen({routeName: 'teamsRoot'})
   }
   const selectedTeamnames = Constants.getSelectedTeamNames(state)
   if (selectedTeamnames.includes(action.payload.teamname)) {
