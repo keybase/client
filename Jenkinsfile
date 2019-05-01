@@ -129,7 +129,7 @@ helpers.rootLinuxNode(env, {
                     "PATH=${env.PATH}:${env.GOPATH}/bin",
                     "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
                     "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
-                    "GPG=gpgv2",
+                    "GPG=/usr/bin/gpg.distrib",
                   ]) {
                     if (hasGoChanges) {
                       dir("go/keybase") {

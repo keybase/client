@@ -99,7 +99,6 @@ class ConversationFilterInput extends React.PureComponent<Props> {
           gap="tiny"
           style={Styles.collapseStyles([
             styles.containerNotFiltering,
-            flags.useNewRouter && Styles.isMobile && styles.containerWithBackButton,
             flags.useNewRouter && !Styles.isMobile && styles.whiteBg,
             this.props.style,
           ])}
@@ -108,9 +107,6 @@ class ConversationFilterInput extends React.PureComponent<Props> {
           fullWidth={true}
         >
           <Kb.Box2 alignItems="center" direction="horizontal" style={styles.searchBox}>
-            {flags.useNewRouter && Styles.isMobile && (
-              <Kb.BackButton onClick={this.props.onBack} style={styles.backButton} />
-            )}
             <Kb.ClickableBox style={styles.filterContainer} onClick={this.props.onStartSearch}>
               <Kb.Icon
                 type="iconfont-search"
@@ -152,9 +148,6 @@ class ConversationFilterInput extends React.PureComponent<Props> {
 }
 
 const styles = Styles.styleSheetCreate({
-  backButton: {
-    ...Styles.padding(Styles.globalMargins.tiny, 0),
-  },
   containerFiltering: Styles.platformStyles({
     common: {
       position: 'relative',
@@ -187,9 +180,6 @@ const styles = Styles.styleSheetCreate({
       backgroundColor: Styles.globalColors.fastBlank,
     },
   }),
-  containerWithBackButton: {
-    ...Styles.padding(0, Styles.globalMargins.tiny, 0, 0), // back button adds the left space
-  },
   filterContainer: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxRow,
@@ -234,6 +224,7 @@ const styles = Styles.styleSheetCreate({
   searchBox: Styles.platformStyles({
     common: {flex: 1},
     isElectron: Styles.desktopStyles.windowDraggingClickable,
+    isMobile: {...Styles.padding(6, 0)},
   }),
   text: Styles.platformStyles({
     common: {

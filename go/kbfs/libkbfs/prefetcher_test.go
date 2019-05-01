@@ -103,8 +103,19 @@ func initPrefetcherTest(t *testing.T) (*blockRetrievalQueue,
 	return initPrefetcherTestWithDiskCache(t, nil)
 }
 
-func shutdownPrefetcherTest(q *blockRetrievalQueue) {
-	q.Shutdown()
+func shutdownPrefetcherTest(t *testing.T, q *blockRetrievalQueue, syncCh chan struct{}) {
+	ch := q.Shutdown()
+	if syncCh != nil {
+		select {
+		case _, isOpen := <-syncCh:
+			if isOpen {
+				close(syncCh)
+			}
+		default:
+			close(syncCh)
+		}
+	}
+	<-ch
 }
 
 func testPrefetcherCheckGet(
@@ -173,7 +184,7 @@ func notifyContinueChOrBust(t *testing.T, ch chan<- error, err error) {
 func TestPrefetcherIndirectFileBlock(t *testing.T) {
 	t.Log("Test indirect file block prefetching.")
 	q, bg, config := initPrefetcherTest(t)
-	defer shutdownPrefetcherTest(q)
+	defer shutdownPrefetcherTest(t, q, nil)
 
 	t.Log("Initialize an indirect file block pointing to 2 file data blocks.")
 	ptrs := []data.IndirectFilePtr{
@@ -226,7 +237,7 @@ func TestPrefetcherIndirectFileBlock(t *testing.T) {
 func TestPrefetcherIndirectDirBlock(t *testing.T) {
 	t.Log("Test indirect dir block prefetching.")
 	q, bg, config := initPrefetcherTest(t)
-	defer shutdownPrefetcherTest(q)
+	defer shutdownPrefetcherTest(t, q, nil)
 
 	t.Log("Initialize an indirect dir block pointing to 2 dir data blocks.")
 	ptrs := []data.IndirectDirPtr{
@@ -340,7 +351,7 @@ func testPrefetcherIndirectDirBlockTail(
 func TestPrefetcherIndirectDirBlockTail(t *testing.T) {
 	t.Log("Test indirect dir block tail prefetching.")
 	q, bg, config := initPrefetcherTest(t)
-	defer shutdownPrefetcherTest(q)
+	defer shutdownPrefetcherTest(t, q, nil)
 
 	testPrefetcherIndirectDirBlockTail(t, q, bg, config, false)
 }
@@ -348,7 +359,7 @@ func TestPrefetcherIndirectDirBlockTail(t *testing.T) {
 func TestPrefetcherIndirectDirBlockTailWithSync(t *testing.T) {
 	t.Log("Test indirect dir block tail prefetching with sync.")
 	q, bg, config := initPrefetcherTest(t)
-	defer shutdownPrefetcherTest(q)
+	defer shutdownPrefetcherTest(t, q, nil)
 
 	testPrefetcherIndirectDirBlockTail(t, q, bg, config, true)
 }
@@ -356,7 +367,7 @@ func TestPrefetcherIndirectDirBlockTailWithSync(t *testing.T) {
 func TestPrefetcherDirectDirBlock(t *testing.T) {
 	t.Log("Test direct dir block prefetching.")
 	q, bg, config := initPrefetcherTest(t)
-	defer shutdownPrefetcherTest(q)
+	defer shutdownPrefetcherTest(t, q, nil)
 
 	t.Log("Initialize a direct dir block with entries pointing to 3 files.")
 	fileA := makeFakeFileBlock(t, true)
@@ -430,7 +441,7 @@ func TestPrefetcherAlreadyCached(t *testing.T) {
 	t.Log("Test direct dir block prefetching when the dir block is cached.")
 	q, bg, config := initPrefetcherTest(t)
 	cache := config.BlockCache()
-	defer shutdownPrefetcherTest(q)
+	defer shutdownPrefetcherTest(t, q, nil)
 
 	t.Log("Initialize a direct dir block with an entry pointing to 1 " +
 		"folder, which in turn points to 1 file.")
@@ -528,7 +539,7 @@ func TestPrefetcherNoRepeatedPrefetch(t *testing.T) {
 	t.Log("Test that prefetches are only triggered once for a given block.")
 	q, bg, config := initPrefetcherTest(t)
 	cache := config.BlockCache().(*data.BlockCacheStandard)
-	defer shutdownPrefetcherTest(q)
+	defer shutdownPrefetcherTest(t, q, nil)
 
 	t.Log("Initialize a direct dir block with an entry pointing to 1 file.")
 	fileA := makeFakeFileBlock(t, true)
@@ -589,8 +600,8 @@ func TestPrefetcherNoRepeatedPrefetch(t *testing.T) {
 func TestPrefetcherEmptyDirectDirBlock(t *testing.T) {
 	t.Log("Test empty direct dir block prefetching.")
 	q, bg, config := initPrefetcherTest(t)
-	defer shutdownPrefetcherTest(q)
 	prefetchSyncCh := make(chan struct{})
+	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
 	q.TogglePrefetcher(true, prefetchSyncCh, nil)
 	notifySyncCh(t, prefetchSyncCh)
 
@@ -729,10 +740,12 @@ func testPrefetcherForSyncedTLF(
 	}
 	select {
 	case overallStatus := <-statusCh:
-		// The root block _does_ count in the overall total.
+		// The root block _does_ count in the overall total, and has
+		// already been fetched.
 		require.Equal(
 			t, uint64(4*testFakeBlockSize), overallStatus.SubtreeBytesTotal)
-		require.Equal(t, uint64(0), overallStatus.SubtreeBytesFetched)
+		require.Equal(
+			t, uint64(1*testFakeBlockSize), overallStatus.SubtreeBytesFetched)
 		require.Equal(t, config.Clock().Now(), overallStatus.Start)
 	case <-ctx.Done():
 		t.Fatal(ctx.Err())
@@ -791,6 +804,7 @@ func testPrefetcherForSyncedTLF(
 
 	notifySyncCh(t, prefetchSyncCh)
 	t.Log("Wait for prefetching to complete. This shouldn't hang.")
+	// FIXME: this sometimes fails in TestPrefetcherForSyncedTLF.
 	waitForPrefetchOrBust(t, ctx, q.Prefetcher(), rootPtr)
 
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, rootDir,
@@ -800,8 +814,8 @@ func testPrefetcherForSyncedTLF(
 func TestPrefetcherForSyncedTLF(t *testing.T) {
 	t.Log("Test synced TLF prefetching.")
 	q, bg, config := initPrefetcherTest(t)
-	defer shutdownPrefetcherTest(q)
 	prefetchSyncCh := make(chan struct{})
+	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
 	q.TogglePrefetcher(true, prefetchSyncCh, nil)
 	notifySyncCh(t, prefetchSyncCh)
 
@@ -815,8 +829,8 @@ func TestPrefetcherForSyncedTLF(t *testing.T) {
 func TestPrefetcherForRequestedSync(t *testing.T) {
 	t.Log("Test explicitly-requested synced prefetching.")
 	q, bg, config := initPrefetcherTest(t)
-	defer shutdownPrefetcherTest(q)
 	prefetchSyncCh := make(chan struct{})
+	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
 	q.TogglePrefetcher(true, prefetchSyncCh, nil)
 	notifySyncCh(t, prefetchSyncCh)
 
@@ -827,8 +841,8 @@ func TestPrefetcherForRequestedSync(t *testing.T) {
 func TestPrefetcherMultiLevelIndirectFile(t *testing.T) {
 	t.Log("Test multi-level indirect file block prefetching.")
 	q, bg, config := initPrefetcherTest(t)
-	defer shutdownPrefetcherTest(q)
 	prefetchSyncCh := make(chan struct{})
+	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
 	q.TogglePrefetcher(true, prefetchSyncCh, nil)
 	notifySyncCh(t, prefetchSyncCh)
 	ctx, cancel := context.WithTimeout(
@@ -977,9 +991,9 @@ func TestPrefetcherMultiLevelIndirectFile(t *testing.T) {
 func TestPrefetcherBackwardPrefetch(t *testing.T) {
 	t.Log("Test synced TLF prefetching in a more complex fetch order.")
 	q, bg, config := initPrefetcherTest(t)
-	defer shutdownPrefetcherTest(q)
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
+	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
 	q.TogglePrefetcher(true, prefetchSyncCh, nil)
 	notifySyncCh(t, prefetchSyncCh)
 
@@ -1127,9 +1141,9 @@ func TestPrefetcherBackwardPrefetch(t *testing.T) {
 func TestPrefetcherUnsyncedThenSyncedPrefetch(t *testing.T) {
 	t.Log("Test synced TLF prefetching in a more complex fetch order.")
 	q, bg, config := initPrefetcherTest(t)
-	defer shutdownPrefetcherTest(q)
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
+	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
 	q.TogglePrefetcher(true, prefetchSyncCh, nil)
 	notifySyncCh(t, prefetchSyncCh)
 
@@ -1274,13 +1288,13 @@ func TestSyncBlockCacheWithPrefetcher(t *testing.T) {
 	t.Log("Test synced TLF prefetching with the disk cache.")
 	cache, dbcConfig := initDiskBlockCacheTest(t)
 	q, bg, config := initPrefetcherTestWithDiskCache(t, cache)
-	defer shutdownPrefetcherTest(q)
 	ctx, cancel := context.WithTimeout(
 		context.Background(), individualTestTimeout)
 	defer cancel()
 	defer cache.Shutdown(ctx)
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
+	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
 	q.TogglePrefetcher(true, prefetchSyncCh, nil)
 	notifySyncCh(t, prefetchSyncCh)
 
@@ -1369,9 +1383,9 @@ func TestSyncBlockCacheWithPrefetcher(t *testing.T) {
 func TestPrefetcherBasicUnsyncedPrefetch(t *testing.T) {
 	t.Log("Test basic unsynced prefetching with only 2 blocks.")
 	q, bg, config := initPrefetcherTest(t)
-	defer shutdownPrefetcherTest(q)
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
+	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
 	q.TogglePrefetcher(true, prefetchSyncCh, nil)
 	notifySyncCh(t, prefetchSyncCh)
 
@@ -1424,9 +1438,9 @@ func TestPrefetcherBasicUnsyncedBackwardPrefetch(t *testing.T) {
 	t.Log("Test basic unsynced prefetching with only 2 blocks fetched " +
 		"in reverse.")
 	q, bg, config := initPrefetcherTest(t)
-	defer shutdownPrefetcherTest(q)
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
+	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
 	q.TogglePrefetcher(true, prefetchSyncCh, nil)
 	notifySyncCh(t, prefetchSyncCh)
 
@@ -1484,12 +1498,12 @@ func TestPrefetcherUnsyncedPrefetchEvicted(t *testing.T) {
 	q, bg, config := initPrefetcherTestWithDiskCache(t, dbc)
 	// We don't want any of these blocks cached in memory.
 	bcache := config.testCache
-	defer shutdownPrefetcherTest(q)
 	ctx, cancel := context.WithTimeout(
 		context.Background(), individualTestTimeout)
 	defer cancel()
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
+	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
 	q.TogglePrefetcher(true, prefetchSyncCh, nil)
 	notifySyncCh(t, prefetchSyncCh)
 
@@ -1578,12 +1592,12 @@ func TestPrefetcherUnsyncedPrefetchChildCanceled(t *testing.T) {
 	dbc, dbcConfig := initDiskBlockCacheTest(t)
 	q, bg, config := initPrefetcherTestWithDiskCache(t, dbc)
 	bcache := config.testCache
-	defer shutdownPrefetcherTest(q)
 	ctx, cancel := context.WithTimeout(
 		context.Background(), individualTestTimeout)
 	defer cancel()
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
+	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
 	q.TogglePrefetcher(true, prefetchSyncCh, nil)
 	notifySyncCh(t, prefetchSyncCh)
 
@@ -1695,12 +1709,12 @@ func TestPrefetcherUnsyncedPrefetchParentCanceled(t *testing.T) {
 	dbc, dbcConfig := initDiskBlockCacheTest(t)
 	q, bg, config := initPrefetcherTestWithDiskCache(t, dbc)
 	bcache := config.testCache
-	defer shutdownPrefetcherTest(q)
 	ctx, cancel := context.WithTimeout(
 		context.Background(), individualTestTimeout)
 	defer cancel()
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
+	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
 	q.TogglePrefetcher(true, prefetchSyncCh, nil)
 	notifySyncCh(t, prefetchSyncCh)
 
@@ -1818,12 +1832,12 @@ func TestPrefetcherReschedules(t *testing.T) {
 	t.Log("Test synced TLF prefetch rescheduling.")
 	cache, dbcConfig := initDiskBlockCacheTest(t)
 	q, bg, config := initPrefetcherTestWithDiskCache(t, cache)
-	defer shutdownPrefetcherTest(q)
 	ctx, cancel := context.WithTimeout(
 		context.Background(), individualTestTimeout)
 	defer cancel()
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
+	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
 	q.TogglePrefetcher(true, prefetchSyncCh, nil)
 	notifySyncCh(t, prefetchSyncCh)
 
@@ -1990,12 +2004,12 @@ func TestPrefetcherWithDedupBlocks(t *testing.T) {
 
 	cache, dbcConfig := initDiskBlockCacheTest(t)
 	q, bg, config := initPrefetcherTestWithDiskCache(t, cache)
-	defer shutdownPrefetcherTest(q)
 	ctx, cancel := context.WithTimeout(
 		context.Background(), individualTestTimeout)
 	defer cancel()
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
+	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
 	q.TogglePrefetcher(true, prefetchSyncCh, nil)
 	notifySyncCh(t, prefetchSyncCh)
 
@@ -2058,12 +2072,12 @@ func TestPrefetcherWithCanceledDedupBlocks(t *testing.T) {
 
 	cache, dbcConfig := initDiskBlockCacheTest(t)
 	q, bg, config := initPrefetcherTestWithDiskCache(t, cache)
-	defer shutdownPrefetcherTest(q)
 	ctx, cancel := context.WithTimeout(
 		context.Background(), individualTestTimeout)
 	defer cancel()
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
+	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
 	q.TogglePrefetcher(true, prefetchSyncCh, nil)
 	notifySyncCh(t, prefetchSyncCh)
 
@@ -2181,11 +2195,11 @@ func TestPrefetcherCancelTlfPrefetches(t *testing.T) {
 
 	cache, dbcConfig := initDiskBlockCacheTest(t)
 	q, bg, _ := initPrefetcherTestWithDiskCache(t, cache)
-	defer shutdownPrefetcherTest(q)
 	ctx, cancel := context.WithTimeout(
 		context.Background(), individualTestTimeout)
 	defer cancel()
 	prefetchSyncCh := make(chan struct{})
+	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
 	q.TogglePrefetcher(true, prefetchSyncCh, nil)
 	notifySyncCh(t, prefetchSyncCh)
 
@@ -2263,8 +2277,13 @@ func TestPrefetcherCancelTlfPrefetches(t *testing.T) {
 	}
 
 	t.Log("Cancel the first TLF's prefetches")
-	go notifySyncCh(t, prefetchSyncCh)
+	ch := make(chan struct{})
+	go func() {
+		notifySyncCh(t, prefetchSyncCh)
+		close(ch)
+	}()
 	err = q.Prefetcher().CancelTlfPrefetches(ctx, kmd1.TlfID())
+	<-ch
 	require.NoError(t, err)
 
 	// Handle another CancelPrefetch call from the a1's request

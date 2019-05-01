@@ -27,17 +27,15 @@ useScreens()
 const defaultNavigationOptions = {
   backBehavior: 'none',
   header: null,
-  headerLeft: hp => {
-    return (
+  headerLeft: hp =>
+    hp.scene.index === 0 ? null : (
       <LeftAction
         badgeNumber={0}
         leftAction="back"
         onLeftAction={hp.onPress}
-        disabled={hp.scene.index === 0}
         customIconColor={hp.tintColor}
       />
-    )
-  },
+    ),
   headerTitle: hp => (
     <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1}>
       {hp.children}
