@@ -110,6 +110,7 @@ export const setThreadSearchStatus = 'chat2:setThreadSearchStatus'
 export const setUnsentText = 'chat2:setUnsentText'
 export const setWalletsOld = 'chat2:setWalletsOld'
 export const staticConfigLoaded = 'chat2:staticConfigLoaded'
+export const tabSelected = 'chat2:tabSelected'
 export const threadSearch = 'chat2:threadSearch'
 export const threadSearchResults = 'chat2:threadSearchResults'
 export const toggleInboxSearch = 'chat2:toggleInboxSearch'
@@ -238,6 +239,7 @@ type _SetThreadSearchStatusPayload = $ReadOnly<{|conversationIDKey: Types.Conver
 type _SetUnsentTextPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, text: ?HiddenString|}>
 type _SetWalletsOldPayload = void
 type _StaticConfigLoadedPayload = $ReadOnly<{|staticConfig: Types.StaticConfig|}>
+type _TabSelectedPayload = void
 type _ThreadSearchPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, query: HiddenString|}>
 type _ThreadSearchResultsPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messages: Array<Types.Message>|}>
 type _ToggleInboxSearchPayload = $ReadOnly<{|enabled: boolean|}>
@@ -292,6 +294,10 @@ export const createUpdateConvRetentionPolicy = (payload: _UpdateConvRetentionPol
  * Consume a service notification that a team retention policy was updated
  */
 export const createUpdateTeamRetentionPolicy = (payload: _UpdateTeamRetentionPolicyPayload) => ({payload, type: updateTeamRetentionPolicy})
+/**
+ * Desktop changed tab to chat
+ */
+export const createTabSelected = (payload: _TabSelectedPayload) => ({payload, type: tabSelected})
 /**
  * Explicitly set whether a thread is loaded to the most recent message
  */
@@ -656,6 +662,7 @@ export type SetThreadSearchStatusPayload = {|+payload: _SetThreadSearchStatusPay
 export type SetUnsentTextPayload = {|+payload: _SetUnsentTextPayload, +type: 'chat2:setUnsentText'|}
 export type SetWalletsOldPayload = {|+payload: _SetWalletsOldPayload, +type: 'chat2:setWalletsOld'|}
 export type StaticConfigLoadedPayload = {|+payload: _StaticConfigLoadedPayload, +type: 'chat2:staticConfigLoaded'|}
+export type TabSelectedPayload = {|+payload: _TabSelectedPayload, +type: 'chat2:tabSelected'|}
 export type ThreadSearchPayload = {|+payload: _ThreadSearchPayload, +type: 'chat2:threadSearch'|}
 export type ThreadSearchResultsPayload = {|+payload: _ThreadSearchResultsPayload, +type: 'chat2:threadSearchResults'|}
 export type ToggleInboxSearchPayload = {|+payload: _ToggleInboxSearchPayload, +type: 'chat2:toggleInboxSearch'|}
@@ -783,6 +790,7 @@ export type Actions =
   | SetUnsentTextPayload
   | SetWalletsOldPayload
   | StaticConfigLoadedPayload
+  | TabSelectedPayload
   | ThreadSearchPayload
   | ThreadSearchResultsPayload
   | ToggleInboxSearchPayload

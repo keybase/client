@@ -37,8 +37,12 @@ const mapStateToProps = state => {
 }
 
 const mapDispatchToProps = dispatch => ({
+  // a hack to have it check for marked as read when we mount as the focus events don't fire always
   _onInitialLoad: (conversationIDKeys: Array<Types.ConversationIDKey>) =>
     dispatch(Chat2Gen.createMetaNeedsUpdating({conversationIDKeys, reason: 'initialTrustedLoad'})),
+  _onMountedDesktop: () => {
+    dispatch(Chat2Gen.createTabSelected())
+  },
   _onSelect: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxFilterChanged'})),
   _onSelectNext: (rows, selectedConversationIDKey, direction) => {
@@ -93,6 +97,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     _canRefreshOnMount: stateProps._canRefreshOnMount,
     _hasLoadedTrusted: stateProps._hasLoadedTrusted,
     _onInitialLoad: dispatchProps._onInitialLoad,
+    _onMountedDesktop: dispatchProps._onMountedDesktop,
     _refreshInbox: dispatchProps._refreshInbox,
     allowShowFloatingButton: stateProps.allowShowFloatingButton,
     isSearching: stateProps.isSearching,
@@ -128,6 +133,7 @@ type Props = {|
   _onInitialLoad: (Array<Types.ConversationIDKey>) => void,
   _refreshInbox: () => void,
   _canRefreshOnMount: boolean,
+  _onMountedDesktop: () => void,
 |}
 
 class InboxWrapper extends React.PureComponent<Props> {
@@ -135,6 +141,9 @@ class InboxWrapper extends React.PureComponent<Props> {
   _onSelectDown = () => this.props.onSelectDown()
 
   componentDidMount() {
+    if (!isMobile) {
+      this.props._onMountedDesktop()
+    }
     if (this.props._canRefreshOnMount) {
       this.props._refreshInbox()
     }
@@ -152,7 +161,14 @@ class InboxWrapper extends React.PureComponent<Props> {
   }
 
   render() {
-    const {_hasLoadedTrusted, _refreshInbox, _onInitialLoad, _canRefreshOnMount, ...rest} = this.props
+    const {
+      _hasLoadedTrusted,
+      _refreshInbox,
+      _onInitialLoad,
+      _canRefreshOnMount,
+      _onMountedDesktop,
+      ...rest
+    } = this.props
     return <Inbox {...rest} onSelectUp={this._onSelectUp} onSelectDown={this._onSelectDown} />
   }
 }

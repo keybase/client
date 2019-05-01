@@ -659,6 +659,9 @@
       "_description": "Set team mention info",
       "name": "string",
       "info": "RPCChatTypes.UITeamMention"
+    },
+    "tabSelected": {
+      "_description": "Desktop changed tab to chat",
     }
   }
 }
