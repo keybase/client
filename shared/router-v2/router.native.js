@@ -28,13 +28,8 @@ const defaultNavigationOptions = {
   backBehavior: 'none',
   header: null,
   headerLeft: hp => {
-    return (
-      <LeftAction
-        badgeNumber={0}
-        leftAction="back"
-        onLeftAction={hp.onPress}
-        disabled={hp.scene.index === 0}
-      />
+    return hp.scene.index === 0 ? null : (
+      <LeftAction badgeNumber={0} leftAction="back" onLeftAction={hp.onPress} />
     )
   },
   headerTitle: hp => (

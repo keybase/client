@@ -169,7 +169,6 @@ const paperKeyNudgeStyles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     common: {
       padding: Styles.globalMargins.small,
-      paddingTop: 0,
     },
     isMobile: {
       padding: Styles.globalMargins.tiny,
