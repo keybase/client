@@ -71,7 +71,7 @@ func (c testBlockRetrievalConfig) blockGetter() blockGetter {
 }
 
 func makeRandomBlockPointer(t *testing.T) data.BlockPointer {
-	id, err := kbfsblock.MakeTemporaryID()
+	id, err := kbfsblock.MakeFakeID()
 	require.NoError(t, err)
 	return data.BlockPointer{
 		ID:         id,
