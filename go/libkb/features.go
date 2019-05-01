@@ -156,6 +156,14 @@ func (s *FeatureFlagSet) EnabledWithError(m MetaContext, f Feature) (on bool, er
 		"features": S{Val: string(f)},
 	}
 	err = m.G().API.GetDecode(m, arg, &raw)
+	switch err.(type) {
+	case nil:
+	case LoginRequiredError:
+		// No features for logged-out users
+		return false, nil
+	default:
+		return false, err
+	}
 	if err != nil {
 		return false, err
 	}
