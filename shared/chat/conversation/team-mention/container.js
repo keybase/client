@@ -17,6 +17,7 @@ const mapStateToProps = (state, {allowFontScaling, name, channel, style}: OwnPro
     allowFontScaling,
     channel,
     description: mentionInfo?.description || '',
+    inTeam: mentionInfo?.inTeam ?? false,
     isOpen: mentionInfo?.open || false,
     name,
     numMembers: mentionInfo?.numMembers || 0,

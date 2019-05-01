@@ -935,6 +935,10 @@
       "fields": [
         {
           "type": "boolean",
+          "name": "inTeam"
+        },
+        {
+          "type": "boolean",
           "name": "open"
         },
         {

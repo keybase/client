@@ -232,6 +232,7 @@ protocol chatUi {
   }
 
   record UITeamMention {
+    boolean inTeam;
     boolean open;
     union { null, string } description;
     union { null, int } numMembers;

@@ -75,6 +75,7 @@ func (l *TeamMentionLoader) LoadTeamMention(ctx context.Context, uid gregor1.UID
 type mentionAPIResp struct {
 	Status       libkb.AppStatus `json:"status"`
 	Name         string
+	InTeam       bool `json:"in_team"`
 	Open         bool
 	Description  string
 	PublicAdmins []string `json:"public_admins"`
@@ -114,6 +115,7 @@ func (l *TeamMentionLoader) loadMention(ctx context.Context, uid gregor1.UID, te
 	}
 	var info chat1.UITeamMention
 	info.Open = resp.Open
+	info.InTeam = resp.InTeam
 	if len(resp.Description) > 0 {
 		info.Description = new(string)
 		*info.Description = resp.Description

@@ -966,6 +966,7 @@ func (o UIMessages) DeepCopy() UIMessages {
 }
 
 type UITeamMention struct {
+	InTeam       bool     `codec:"inTeam" json:"inTeam"`
 	Open         bool     `codec:"open" json:"open"`
 	Description  *string  `codec:"description,omitempty" json:"description,omitempty"`
 	NumMembers   *int     `codec:"numMembers,omitempty" json:"numMembers,omitempty"`
@@ -974,7 +975,8 @@ type UITeamMention struct {
 
 func (o UITeamMention) DeepCopy() UITeamMention {
 	return UITeamMention{
-		Open: o.Open,
+		InTeam: o.InTeam,
+		Open:   o.Open,
 		Description: (func(x *string) *string {
 			if x == nil {
 				return nil

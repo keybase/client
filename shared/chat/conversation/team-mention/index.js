@@ -9,6 +9,7 @@ export type Props = {|
   allowFontScaling?: boolean,
   channel: string,
   description: string,
+  inTeam: boolean,
   isOpen: boolean,
   name: string,
   onJoinTeam: string => void,
@@ -55,7 +56,7 @@ class TeamMention extends React.Component<Props, State> {
       <TeamInfo
         attachTo={this._getAttachmentRef}
         description={this.props.description}
-        inTeam={false}
+        inTeam={this.props.inTeam}
         isOpen={this.props.isOpen}
         name={this.props.name}
         membersCount={this.props.numMembers}
