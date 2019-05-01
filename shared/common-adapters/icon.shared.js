@@ -86,7 +86,7 @@ export function typeToFontSize(sizeType: SizeType) {
     case 'Big':
       return Styles.isMobile ? 32 : 24
     case 'Default':
-      return Styles.isMobile ? 22 : 16
+      return Styles.isMobile ? 20 : 16
     case 'Small':
       return Styles.isMobile ? 16 : 12
     case 'Tiny':
