@@ -64,7 +64,7 @@ const styles = Styles.styleSheetCreate({
   },
   container: {
     backgroundColor: Styles.globalColors.white,
-    paddingTop: isIPhoneX ? 45 : 20,
+    paddingTop: isIPhoneX ? 45 : Styles.isAndroid ? undefined : 20,
   },
   expandedTitleContainer: {
     backgroundColor: Styles.globalColors.white,
