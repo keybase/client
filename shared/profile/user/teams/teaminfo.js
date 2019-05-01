@@ -29,7 +29,7 @@ const isPrivate = (p: Props) => {
 
 const TeamInfo = (p: Props) => {
   const memberText = isPrivate(p)
-    ? 'This team is private. Admins will decide if they can let you in'
+    ? 'This team is private. Admins will decide if they can let you in.'
     : `${p.membersCount} member${p.membersCount > 1 ? 's' : ''}`
   return (
     <FloatingMenu
