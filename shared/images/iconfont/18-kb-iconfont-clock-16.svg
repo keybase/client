@@ -1,3 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-    <path fill="#000" fill-rule="nonzero" d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0zm1.167 3c-.46 0-.834.392-.834.875V8.25h-2.5c-.46 0-.833.392-.833.875s.373.875.833.875H10V3.875C10 3.392 9.627 3 9.167 3z"/>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: sketchtool 54.1 (76490) - https://sketchapp.com -->
+    <title>C5083B3C-DBF9-4537-9F7A-E61EB026F3E2</title>
+    <desc>Created with sketchtool.</desc>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="18-kb-iconfont-clock-16">
+            <g>
+                <rect id="icon-area" opacity="0" x="0" y="0" width="16" height="16"></rect>
+                <path d="M8,0 C12.418278,0 16,3.581722 16,8 C16,12.418278 12.418278,16 8,16 C3.581722,16 0,12.418278 0,8 C0,3.581722 3.581722,0 8,0 Z M9.16666667,3 C8.70643891,3.00002416 8.33335634,3.39176085 8.33333333,3.875 L8.33333333,8.25 L5.83333333,8.25 C5.37309604,8.25 5,8.64175084 5,9.125 C5,9.60824916 5.37309604,10 5.83333333,10 L10,10 L10,3.875 C9.99997239,3.39176285 9.62689252,3.00002899 9.16666667,3 Z" id="clock" fill="#000000"></path>
+            </g>
+        </g>
+    </g>
 </svg>

@@ -1,3 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-    <path fill="#000" fill-rule="nonzero" d="M3 2a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V2zm3.5 5a1 1 0 1 0 0 2h3a1 1 0 0 0 0-2h-3z"/>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: sketchtool 54.1 (76490) - https://sketchapp.com -->
+    <title>961E8129-ECC5-4E5C-9255-7C285D3F8175</title>
+    <desc>Created with sketchtool.</desc>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="73-kb-iconfont-notifications-mobile-16">
+            <g>
+                <rect id="icon-area" opacity="0" x="0" y="0" width="16" height="16"></rect>
+                <path d="M3,2 C3,0.8954305 3.8954305,2.02906125e-16 5,0 L11,0 C12.1045695,-2.02906125e-16 13,0.8954305 13,2 L13,14 C13,15.1045695 12.1045695,16 11,16 L5,16 C3.8954305,16 3,15.1045695 3,14 L3,2 Z M6.5,7 C5.94771525,7 5.5,7.44771525 5.5,8 C5.5,8.55228475 5.94771525,9 6.5,9 L9.5,9 C10.0522847,9 10.5,8.55228475 10.5,8 C10.5,7.44771525 10.0522847,7 9.5,7 L6.5,7 Z" id="iphone" fill="#000000"></path>
+            </g>
+        </g>
+    </g>
 </svg>

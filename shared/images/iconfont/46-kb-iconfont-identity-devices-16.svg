@@ -1,3 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-    <path fill="#000" fill-rule="nonzero" d="M11.889 0H4.11C3.497 0 3 .597 3 1.333v13.334C3 15.403 3.497 16 4.111 16h7.778c.614 0 1.111-.597 1.111-1.333V1.333C13 .597 12.503 0 11.889 0zM8 14.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm3-3.5H5V2h6v9z"/>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: sketchtool 54.1 (76490) - https://sketchapp.com -->
+    <title>89600FD5-6E6A-4D87-939C-4107CED51D05</title>
+    <desc>Created with sketchtool.</desc>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="46-kb-iconfont-identity-devices-16">
+            <g>
+                <rect id="icon-area" opacity="0" x="0" y="0" width="16" height="16"></rect>
+                <path d="M11.3333333,0 L4.66666667,0 C3.194,0 2,1.194 2,2.66666667 L2,13.3333333 C2,14.806 3.194,16 4.66666667,16 L11.3333333,16 C12.806,16 14,14.806 14,13.3333333 L14,2.66666667 C14,1.194 12.806,0 11.3333333,0 Z M9.33333333,14.6666667 L6.66666667,14.6666667 C6.3,14.6666667 6,14.3666667 6,14 C6,13.6333333 6.3,13.3333333 6.66666667,13.3333333 L9.33333333,13.3333333 C9.7,13.3333333 10,13.6333333 10,14 C10,14.3666667 9.7,14.6666667 9.33333333,14.6666667 Z M12,12 L4,12 L4,3 L12,3 L12,12 Z" id="phone" fill="#000000"></path>
+            </g>
+        </g>
+    </g>
 </svg>

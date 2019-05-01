@@ -1,3 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-    <path fill="#000" fill-rule="nonzero" d="M8 8.438l3.44-3.05c.587-.518 1.535-.517 2.12.002.586.518.587 1.36.003 1.879L8 12.2 2.437 7.269c-.584-.52-.583-1.36.002-1.88.586-.518 1.534-.519 2.12-.001L8 8.438z"/>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: sketchtool 54.1 (76490) - https://sketchapp.com -->
+    <title>6DA0F012-3775-42FC-9C12-A48886D987A4</title>
+    <desc>Created with sketchtool.</desc>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="2-kb-iconfont-arrow-down-16">
+            <g>
+                <rect id="icon-area" opacity="0" x="0" y="0" width="16" height="16"></rect>
+                <path d="M8,8.43795142 L11.4407048,5.38778054 C12.0269684,4.87004003 12.9754016,4.870843 13.5605485,5.38957526 C14.1456955,5.90830752 14.146598,6.74908969 13.5625656,7.26880815 L8,12.2 L2.43743443,7.26880815 C1.85340205,6.74908969 1.85430448,5.90830752 2.43945145,5.38957526 C3.02459843,4.870843 3.97303161,4.87004003 4.55929519,5.38778054 L8,8.43795142 Z" id="caret-left" fill="#000000"></path>
+            </g>
+        </g>
+    </g>
 </svg>

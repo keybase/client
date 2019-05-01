@@ -1,3 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-    <path fill="#000" fill-rule="nonzero" d="M12 5h1.6c.773 0 1.4.93 1.4 1.667V14a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V6.667C1 5.93 1.627 5 2.4 5H4V4c0-2.21 1.68-4 4-4 2.32 0 4 1.79 4 4v1zm-2 0V3.8C10 2.887 9 2 8.042 2S6 2.887 6 3.8V5h4zM8 8a1 1 0 0 0-1 1v3a1 1 0 0 0 2 0V9a1 1 0 0 0-1-1z"/>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: sketchtool 54.1 (76490) - https://sketchapp.com -->
+    <title>C26206EE-0A90-4A57-960F-CC2619565D9F</title>
+    <desc>Created with sketchtool.</desc>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="59-kb-iconfont-lock-16">
+            <g>
+                <rect id="icon-area" opacity="0" x="0" y="1" width="16" height="16"></rect>
+                <path d="M12,5 L13.6,5 C14.3731826,5.00003682 14.9999613,5.93030225 15,6.66666667 L15,14 C15,15.1045695 14.1045695,16 13,16 L3,16 C1.8954305,16 1,15.1045695 1,14 L1,6.66666667 C1.00003866,5.93030225 1.62681736,5.00003682 2.4,5 L4,5 L4,4 C4,1.790861 5.68040405,0 8,0 C10.3195959,0 12,1.790861 12,4 L12,5 Z M10,5 L10,3.79998779 C10,2.8874982 9.00019057,2 8.0420765,2 C7.08396243,2 6,2.8874982 6,3.79998779 L6,5 L10,5 Z M8,8 C7.44771525,8 7,8.44771525 7,9 L7,12 C7,12.5522847 7.44771525,13 8,13 C8.55228475,13 9,12.5522847 9,12 L9,9 C9,8.44771525 8.55228475,8 8,8 Z" id="Combined-Shape" fill="#000000"></path>
+            </g>
+        </g>
+    </g>
 </svg>
