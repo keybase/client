@@ -57,6 +57,7 @@ const Connected = compose(
 // $FlowIssue lets fix this
 Connected.navigationOptions = {
   header: undefined,
+  // Intentional, no title on mobile
   title: '',
 }
 
