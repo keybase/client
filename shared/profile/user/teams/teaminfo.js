@@ -10,6 +10,15 @@ import Text from '../../../common-adapters/text'
 import {Box2} from '../../../common-adapters/box'
 import WaitingButton from '../../../common-adapters/waiting-button'
 
+const Kb = {
+  Box2,
+  ConnectedUsernames,
+  FloatingMenu,
+  NameWithIcon,
+  Text,
+  WaitingButton,
+}
+
 type Props = {|
   attachTo: () => ?React.Component<any>,
   description: string,
@@ -32,7 +41,7 @@ const TeamInfo = (p: Props) => {
     ? 'This team is private. Admins will decide if they can let you in.'
     : `${p.membersCount} member${p.membersCount > 1 ? 's' : ''}`
   return (
-    <FloatingMenu
+    <Kb.FloatingMenu
       attachTo={p.attachTo}
       closeOnSelect={false}
       onHidden={p.onHidden}
@@ -40,7 +49,7 @@ const TeamInfo = (p: Props) => {
       header={{
         title: 'header',
         view: (
-          <Box2
+          <Kb.Box2
             centerChildren={true}
             direction="vertical"
             gap="tiny"
@@ -48,18 +57,18 @@ const TeamInfo = (p: Props) => {
             gapEnd={true}
             style={styles.infoPopup}
           >
-            <NameWithIcon
+            <Kb.NameWithIcon
               size="small"
               teamname={p.name}
               title={p.name}
               metaOne={<OpenMeta isOpen={p.isOpen} />}
-              metaTwo={<Text type="BodySmall">{memberText}</Text>}
+              metaTwo={<Kb.Text type="BodySmall">{memberText}</Kb.Text>}
             />
-            <Text type="Body" style={styles.description}>
+            <Kb.Text type="Body" style={styles.description}>
               {p.description}
-            </Text>
+            </Kb.Text>
             {!p.inTeam && (
-              <WaitingButton
+              <Kb.WaitingButton
                 waitingKey={Constants.waitingKey}
                 label={p.isOpen ? 'Join team' : 'Request to join'}
                 onClick={() => p.onJoinTeam(p.name)}
@@ -67,10 +76,10 @@ const TeamInfo = (p: Props) => {
               />
             )}
             {!!p.publicAdmins.length && (
-              <Text center={true} type="BodySmall">
+              <Kb.Text center={true} type="BodySmall">
                 Public admins:{' '}
                 {
-                  <ConnectedUsernames
+                  <Kb.ConnectedUsernames
                     type="BodySmallSemibold"
                     colorFollowing={true}
                     colorBroken={true}
@@ -79,9 +88,9 @@ const TeamInfo = (p: Props) => {
                     containerStyle={styles.publicAdmins}
                   />
                 }
-              </Text>
+              </Kb.Text>
             )}
-          </Box2>
+          </Kb.Box2>
         ),
       }}
       position="bottom left"

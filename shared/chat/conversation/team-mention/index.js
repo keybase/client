@@ -5,6 +5,8 @@ import {Box2} from '../../../common-adapters/box'
 import * as Styles from '../../../styles'
 import TeamInfo from '../../../profile/user/teams/teaminfo'
 
+const Kb = {Box2, Text}
+
 export type Props = {|
   allowFontScaling?: boolean,
   channel: string,
@@ -19,9 +21,9 @@ export type Props = {|
   style?: Styles.StylesCrossPlatform,
 |}
 
-type State = {
+type State = {|
   showPopup: boolean,
-}
+|}
 
 class TeamMention extends React.Component<Props, State> {
   state = {showPopup: false}
@@ -41,7 +43,7 @@ class TeamMention extends React.Component<Props, State> {
       text += `#${this.props.channel}`
     }
     const content = (
-      <Text
+      <Kb.Text
         ref={this._mentionRef}
         type="BodySemibold"
         className={Styles.classNames({'hover-underline': !Styles.isMobile})}
@@ -50,7 +52,7 @@ class TeamMention extends React.Component<Props, State> {
         onClick={this._showPopup}
       >
         {text}
-      </Text>
+      </Kb.Text>
     )
     const popups = (
       <TeamInfo
@@ -73,7 +75,7 @@ class TeamMention extends React.Component<Props, State> {
           {popups}
         </>
       ) : (
-        <Box2
+        <Kb.Box2
           direction="horizontal"
           style={styles.container}
           onMouseOver={this._showPopup}
@@ -81,12 +83,12 @@ class TeamMention extends React.Component<Props, State> {
         >
           {content}
           {popups}
-        </Box2>
+        </Kb.Box2>
       )
     ) : (
-      <Text type="Body" style={this.props.style} allowFontScaling={this.props.allowFontScaling}>
+      <Kb.Text type="Body" style={this.props.style} allowFontScaling={this.props.allowFontScaling}>
         {text}
-      </Text>
+      </Kb.Text>
     )
   }
 }

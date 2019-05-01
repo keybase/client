@@ -11,7 +11,7 @@ type OwnProps = {|
   style?: Styles.StylesCrossPlatform,
 |}
 
-const mapStateToProps = (state, {allowFontScaling, name, channel, style}: OwnProps) => {
+const mapStateToProps = (state, {allowFontScaling, name, channel, style}) => {
   const mentionInfo = state.chat2.teamMentionMap.get(name)
   return {
     allowFontScaling,
