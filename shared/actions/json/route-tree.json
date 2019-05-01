@@ -51,5 +51,9 @@
       "_description": "ONLY used by the new nav. Navigates up to this route if it already exists, noops otherwise.",
       "routeName": "string"
     },
+    "switchTab": {
+      "_description": "Used rarely",
+      "tab": "'tabs.chatTab' | 'tabs.devicesTab' | 'tabs.fsTab' | 'tabs.gitTab' | 'tabs.peopleTab' | 'tabs.settingsTab' | 'tabs.teamsTab' | 'tabs.walletsTab'"
+    }
   }
 }

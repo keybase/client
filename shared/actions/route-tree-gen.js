@@ -22,6 +22,7 @@ export const resetRoute = 'route-tree:resetRoute'
 export const setInitialRouteDef = 'route-tree:setInitialRouteDef'
 export const setRouteState = 'route-tree:setRouteState'
 export const switchRouteDef = 'route-tree:switchRouteDef'
+export const switchTab = 'route-tree:switchTab'
 export const switchTo = 'route-tree:switchTo'
 
 // Payload Types
@@ -36,6 +37,7 @@ type _ResetRoutePayload = $ReadOnly<{|path: RCConstants.Path|}>
 type _SetInitialRouteDefPayload = $ReadOnly<{|routeDef: RCConstants.RouteDefParams|}>
 type _SetRouteStatePayload = $ReadOnly<{|path: RCConstants.Path, partialState: {} | ((oldState: I.Map<string, any>) => I.Map<string, any>)|}>
 type _SwitchRouteDefPayload = $ReadOnly<{|routeDef: RCConstants.RouteDefParams, path?: ?RCConstants.Path|}>
+type _SwitchTabPayload = $ReadOnly<{|tab: 'tabs.chatTab' | 'tabs.devicesTab' | 'tabs.fsTab' | 'tabs.gitTab' | 'tabs.peopleTab' | 'tabs.settingsTab' | 'tabs.teamsTab' | 'tabs.walletsTab'|}>
 type _SwitchToPayload = $ReadOnly<{|path: RCConstants.Path, parentPath?: ?RCConstants.Path|}>
 
 // Action Creators
@@ -51,6 +53,10 @@ export const createClearModals = (payload: _ClearModalsPayload) => ({payload, ty
  * Set the tree of route definitions. Dispatched at initialization time.
  */
 export const createSetInitialRouteDef = (payload: _SetInitialRouteDefPayload) => ({payload, type: setInitialRouteDef})
+/**
+ * Used rarely
+ */
+export const createSwitchTab = (payload: _SwitchTabPayload) => ({payload, type: switchTab})
 export const createNavigateAppend = (payload: _NavigateAppendPayload) => ({payload, type: navigateAppend})
 export const createNavigateTo = (payload: _NavigateToPayload) => ({payload, type: navigateTo})
 export const createNavigateUp = (payload: _NavigateUpPayload) => ({payload, type: navigateUp})
@@ -73,6 +79,7 @@ export type ResetRoutePayload = {|+payload: _ResetRoutePayload, +type: 'route-tr
 export type SetInitialRouteDefPayload = {|+payload: _SetInitialRouteDefPayload, +type: 'route-tree:setInitialRouteDef'|}
 export type SetRouteStatePayload = {|+payload: _SetRouteStatePayload, +type: 'route-tree:setRouteState'|}
 export type SwitchRouteDefPayload = {|+payload: _SwitchRouteDefPayload, +type: 'route-tree:switchRouteDef'|}
+export type SwitchTabPayload = {|+payload: _SwitchTabPayload, +type: 'route-tree:switchTab'|}
 export type SwitchToPayload = {|+payload: _SwitchToPayload, +type: 'route-tree:switchTo'|}
 
 // All Actions
@@ -89,5 +96,6 @@ export type Actions =
   | SetInitialRouteDefPayload
   | SetRouteStatePayload
   | SwitchRouteDefPayload
+  | SwitchTabPayload
   | SwitchToPayload
   | {type: 'common:resetStore', payload: null}

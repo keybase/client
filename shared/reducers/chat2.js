@@ -1267,6 +1267,7 @@ const rootReducer = (
     case Chat2Gen.deselectConversation:
     case Chat2Gen.createConversation:
     case Chat2Gen.loadMessagesCentered:
+    case Chat2Gen.tabSelected:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

@@ -1153,13 +1153,14 @@ function* desktopNotify(state, action) {
         const onClick = () => {
           resolve(
             Saga.sequentially([
+              Saga.put(RouteTreeGen.createSwitchTab({tab: 'tabs.chatTab'})),
+              Saga.put(RouteTreeGen.createNavUpToScreen({routeName: 'chatRoot'})),
               Saga.put(
                 Chat2Gen.createSelectConversation({
                   conversationIDKey,
                   reason: 'desktopNotification',
                 })
               ),
-              Saga.put(RouteTreeGen.createSwitchTo({path: [Tabs.chatTab]})),
               Saga.put(ConfigGen.createShowMain()),
             ])
           )
@@ -2983,7 +2984,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     | Chat2Gen.UpdateReactionsPayload
     | ConfigGen.ChangedFocusPayload
     | ConfigGen.ChangedActivePayload
-    | RouteTreeGen.Actions
+    | Chat2Gen.TabSelectedPayload
   >(
     [
       Chat2Gen.messagesAdd,
@@ -2992,7 +2993,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.updateReactions,
       ConfigGen.changedFocus,
       ConfigGen.changedActive,
-      a => typeof a.type === 'string' && a.type.startsWith(RouteTreeGen.typePrefix),
+      Chat2Gen.tabSelected,
     ],
     markThreadAsRead
   )

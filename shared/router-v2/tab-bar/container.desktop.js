@@ -1,5 +1,6 @@
 // @flow
 import * as Tabs from '../../constants/tabs'
+import * as Chat2Gen from '../../actions/chat2-gen'
 import * as ConfigGen from '../../actions/config-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as PeopleGen from '../../actions/people-gen'
@@ -34,6 +35,9 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   _onTabClick: tab => {
     if (ownProps.selectedTab === Tabs.peopleTab && tab !== Tabs.peopleTab) {
       dispatch(PeopleGen.createMarkViewed())
+    }
+    if (ownProps.selectedTab === Tabs.chatTab && tab !== Tabs.chatTab) {
+      dispatch(Chat2Gen.createTabSelected())
     }
     if (ownProps.selectedTab === tab) {
       // $FlowIssue this is a subset of `Tabs.Tab`
