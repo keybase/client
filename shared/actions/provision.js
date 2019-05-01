@@ -14,7 +14,9 @@ import flags from '../util/feature-flags'
 import {type TypedState} from '../constants/reducer'
 import {devicesTab as settingsDevicesTab} from '../constants/settings'
 
-const devicesRoot = isMobile ? [Tabs.settingsTab, settingsDevicesTab] : [Tabs.devicesTab, 'devicesRoot']
+const devicesRoot = isMobile
+  ? [Tabs.settingsTab, settingsDevicesTab]
+  : [Tabs.devicesTab, ...(flags.useNewRouter ? ['devicesRoot'] : [])]
 
 type ValidCallback =
   | 'keybase.1.gpgUi.selectKey'
