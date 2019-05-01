@@ -104,7 +104,7 @@ func newEmailsGregorHandler(g *libkb.GlobalContext) *emailsGregorHandler {
 
 func (r *emailsGregorHandler) Create(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) (bool, error) {
 	switch category {
-	case "email.added", "email.primary_changed", "email.deleted", "email.visibility_changed":
+	case "email.added", "email.edited", "email.primary_changed", "email.deleted", "email.visibility_changed":
 		return true, r.handleEmailChangedMsg(ctx, cli, category, item)
 	case "email.verified":
 		return true, r.handleVerifiedMsg(ctx, cli, item)
