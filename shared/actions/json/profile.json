@@ -56,6 +56,7 @@
     },
     "updatePgpPublicKey": {"publicKey": "string"},
     "updatePlatform": {"platform": "More.PlatformsExpandedType"},
+    "updatePromptShouldStoreKeyOnServer": {"promptShouldStoreKeyOnServer": "boolean"},
     "updateProofStatus": {
       "found": "boolean",
       "status": "RPCTypes.ProofStatus"

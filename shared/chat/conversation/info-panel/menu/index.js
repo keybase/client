@@ -3,10 +3,14 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as ChatTypes from '../../../../constants/types/chat2'
+import {Avatars, TeamAvatar} from '../../../avatars'
 
 export type ConvProps = {
+  fullname: string,
   teamType: ChatTypes.TeamType,
   ignored: boolean,
+  muted: boolean,
+  participants: Array<string>,
 }
 
 export type Props = {
@@ -27,25 +31,59 @@ export type Props = {
   onInvite: () => void,
   onLeaveTeam: () => void,
   onHideConv: () => void,
+  onMuteConv: (muted: boolean) => void,
   onUnhideConv: () => void,
   onManageChannels: () => void,
   onViewTeam: () => void,
 }
 
-const Header = ({teamname, memberCount}: {teamname: string, memberCount: number}) => (
-  <Kb.Box style={styles.headerContainer}>
-    <Kb.Avatar
-      size={Styles.isMobile ? 64 : 48}
-      teamname={teamname}
-      style={Kb.avatarCastPlatformStyles(styles.headerAvatar)}
+type AdhocHeaderProps = {
+  fullname: string,
+  isMuted: boolean,
+  participants: Array<string>,
+}
+const AdhocHeader = (props: AdhocHeaderProps) => (
+  <Kb.Box2 direction="vertical" gap="tiny" gapStart={false} gapEnd={true} style={styles.headerContainer}>
+    <Avatars
+      backgroundColor={Styles.globalColors.white}
+      isHovered={false}
+      isLocked={false}
+      isMuted={props.isMuted}
+      isSelected={false}
+      participants={props.participants}
     />
-    <Kb.Text type="BodySemibold">{teamname}</Kb.Text>
-    <Kb.Text type="BodySmall">{`${memberCount} member${memberCount !== 1 ? 's' : ''}`}</Kb.Text>
-  </Kb.Box>
+    <Kb.Box2 direction="vertical" centerChildren={true}>
+      <Kb.ConnectedUsernames
+        colorFollowing={true}
+        commaColor={Styles.globalColors.black_50}
+        inline={false}
+        skipSelf={props.participants.length > 1}
+        type="BodyBig"
+        underline={false}
+        usernames={props.participants}
+      />
+      {!!props.fullname && <Kb.Text type="BodySmall">{props.fullname}</Kb.Text>}
+    </Kb.Box2>
+  </Kb.Box2>
+)
+
+type TeamHeaderProps = {
+  isMuted: boolean,
+  memberCount: number,
+  teamname: string,
+}
+const TeamHeader = (props: TeamHeaderProps) => (
+  <Kb.Box2 direction="vertical" gap="tiny" gapStart={false} gapEnd={true} style={styles.headerContainer}>
+    <TeamAvatar teamname={props.teamname} isMuted={props.isMuted} isSelected={false} isHovered={false} />
+    <Kb.Box2 direction="vertical" centerChildren={true}>
+      <Kb.Text type="BodySemibold">{props.teamname}</Kb.Text>
+      <Kb.Text type="BodySmall">{`${props.memberCount} member${props.memberCount !== 1 ? 's' : ''}`}</Kb.Text>
+    </Kb.Box2>
+  </Kb.Box2>
 )
 
 class InfoPanelMenu extends React.Component<Props> {
-  componentDidDUpdate(prevProps: Props) {
+  componentDidUpdate(prevProps: Props) {
     if (this.props.hasCanPerform && this.props.visible !== prevProps.visible) {
       this.props.loadOperations()
     }
@@ -84,24 +122,40 @@ class InfoPanelMenu extends React.Component<Props> {
           ),
         }
 
-    const items = [
+    const isAdhoc = !!(props.convProps && props.convProps.teamType === 'adhoc')
+    const adhocItems = [this.hideItem(), this.muteItem()]
+    const teamItems = [
       ...(props.canAddPeople ? addPeopleItems : []),
       {onClick: props.onViewTeam, style: {borderTopWidth: 0}, title: 'View team'},
       this.hideItem(),
+      this.muteItem(),
       channelItem,
       {danger: true, onClick: props.onLeaveTeam, title: 'Leave team'},
     ].filter(item => item !== null)
 
     const header = {
       title: 'header',
-      view: <Header teamname={props.teamname} memberCount={props.memberCount} />,
+      view:
+        isAdhoc && props.convProps ? (
+          <AdhocHeader
+            isMuted={props.convProps.muted}
+            fullname={props.convProps.fullname}
+            participants={props.convProps.participants}
+          />
+        ) : (
+          <TeamHeader
+            isMuted={!!props.convProps?.muted}
+            teamname={props.teamname}
+            memberCount={props.memberCount}
+          />
+        ),
     }
 
     return (
       <Kb.FloatingMenu
         attachTo={props.attachTo}
         visible={props.visible}
-        items={items}
+        items={isAdhoc ? adhocItems : teamItems}
         header={header}
         onHidden={props.onHidden}
         position="bottom left"
@@ -128,6 +182,28 @@ class InfoPanelMenu extends React.Component<Props> {
       }
     } else {
       return null
+    }
+  }
+
+  muteItem() {
+    if (this.props.convProps == null) {
+      return null
+    }
+    const convProps = this.props.convProps
+    const title = `${convProps.muted ? 'Unmute' : 'Mute all'} notifications`
+    return {
+      onClick: () => this.props.onMuteConv(!convProps.muted),
+      title,
+      view: (
+        <Kb.Box style={styles.muteAction}>
+          <Kb.Text style={styles.text} type={Styles.isMobile ? 'BodyBig' : 'Body'}>
+            {title}
+          </Kb.Text>
+          {!convProps.muted && (
+            <Kb.Icon color={Styles.globalColors.black_20} style={styles.icon} type="iconfont-shh" />
+          )}
+        </Kb.Box>
+      ),
     }
   }
 }
@@ -166,6 +242,13 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {paddingBottom: 24, paddingTop: 40},
   }),
+  icon: {
+    marginLeft: Styles.globalMargins.tiny,
+  },
+  muteAction: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+  },
   noTopborder: {
     borderTopWidth: 0,
   },

@@ -7,22 +7,32 @@ import {namedConnect} from '../util/container'
 type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
   isSelected: boolean,
+  maxSearchHits?: number,
+  numSearchHits?: number,
   onSelectConversation: () => void,
 |}
 
 const mapStateToProps = (state, {conversationIDKey}) => {
+  const showBold = Constants.getHasUnread(state, conversationIDKey)
+  const showBadge = Constants.getHasBadge(state, conversationIDKey)
   const {channelname, teamname} = Constants.getMeta(state, conversationIDKey)
-  return {channelname, teamname}
+  return {channelname, showBadge, showBold, teamname}
 }
 
 const mapDispatchToProps = () => ({})
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  channelname: stateProps.channelname,
-  isSelected: ownProps.isSelected,
-  onSelectConversation: ownProps.onSelectConversation,
-  teamname: stateProps.teamname,
-})
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  return {
+    channelname: stateProps.channelname,
+    isSelected: ownProps.isSelected,
+    maxSearchHits: ownProps.maxSearchHits,
+    numSearchHits: ownProps.numSearchHits,
+    onSelectConversation: ownProps.onSelectConversation,
+    showBadge: stateProps.showBadge,
+    showBold: stateProps.showBold && !ownProps.isSelected,
+    teamname: stateProps.teamname,
+  }
+}
 
 export default namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,

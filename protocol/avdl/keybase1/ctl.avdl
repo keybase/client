@@ -23,8 +23,8 @@ protocol ctl {
 
   @typedef("bytes") record DbValue {}
 
-
   void stop(int sessionID, ExitCode exitCode);
+  void stopService(int sessionID, ExitCode exitCode);
   void logRotate(int sessionID);
   void reload(int sessionID);
   void dbNuke(int sessionID);

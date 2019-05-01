@@ -6,7 +6,6 @@ import * as FsConstants from '../constants/fs'
 import * as FsTypes from '../constants/types/fs'
 import * as GregorGen from '../actions/gregor-gen'
 import * as TeamsGen from '../actions/teams-gen'
-import * as Styles from '../styles'
 import Teams from './main'
 import {HeaderRightActions} from './main/header'
 import openURL from '../util/open-url'
@@ -47,7 +46,7 @@ const headerActions = dispatch => ({
 })
 const mapDispatchToProps = (dispatch, {routePath}) => ({
   ...headerActions(dispatch),
-  _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
+  _loadTeams: () => dispatch(TeamsGen.createGetTeams({clearNavBadges: true})),
   onHideChatBanner: () => dispatch(GregorGen.createUpdateCategory({body: 'true', category: 'sawChatBanner'})),
   onManageChat: (teamname: Teamname) =>
     dispatch(
@@ -132,11 +131,7 @@ const ConnectedHeaderRightActions = connect<{}, _, _, _, _>(
 Connected.navigationOptions = {
   header: undefined,
   headerRightActions: () => <ConnectedHeaderRightActions />,
-  headerTitle: () => (
-    <Kb.Text type="Header" style={{marginLeft: Styles.globalMargins.xsmall}}>
-      Teams
-    </Kb.Text>
-  ),
+  headerTitle: 'Teams',
   title: 'Teams',
 }
 

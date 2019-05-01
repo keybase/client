@@ -10,6 +10,7 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/kbfssync"
@@ -37,7 +38,7 @@ func NewStateChecker(config Config) *StateChecker {
 // the blockSizes map, if the given path represents an indirect block.
 func (sc *StateChecker) findAllFileBlocks(ctx context.Context,
 	lState *kbfssync.LockState, ops *folderBranchOps, kmd libkey.KeyMetadata,
-	file path, blockSizes map[BlockPointer]uint32) error {
+	file data.Path, blockSizes map[data.BlockPointer]uint32) error {
 	infos, err := ops.blocks.GetIndirectFileBlockInfos(ctx, lState, kmd, file)
 	if err != nil {
 		return err
@@ -53,7 +54,7 @@ func (sc *StateChecker) findAllFileBlocks(ctx context.Context,
 // blockSizes map, if the given path represents an indirect block.
 func (sc *StateChecker) findAllDirBlocks(ctx context.Context,
 	lState *kbfssync.LockState, ops *folderBranchOps, kmd libkey.KeyMetadata,
-	dir path, blockSizes map[BlockPointer]uint32) error {
+	dir data.Path, blockSizes map[data.BlockPointer]uint32) error {
 	infos, err := ops.blocks.GetIndirectDirBlockInfos(ctx, lState, kmd, dir)
 	if err != nil {
 		return err
@@ -70,7 +71,7 @@ func (sc *StateChecker) findAllDirBlocks(ctx context.Context,
 // subdirectories.
 func (sc *StateChecker) findAllBlocksInPath(ctx context.Context,
 	lState *kbfssync.LockState, ops *folderBranchOps, kmd libkey.KeyMetadata,
-	dir path, blockSizes map[BlockPointer]uint32) error {
+	dir data.Path, blockSizes map[data.BlockPointer]uint32) error {
 	children, err := ops.blocks.GetEntries(ctx, lState, kmd, dir)
 	if err != nil {
 		return err
@@ -82,14 +83,14 @@ func (sc *StateChecker) findAllBlocksInPath(ctx context.Context,
 	}
 
 	for name, de := range children {
-		if de.Type == Sym {
+		if de.Type == data.Sym {
 			continue
 		}
 
 		blockSizes[de.BlockPointer] = de.EncodedSize
 		p := dir.ChildPath(name, de.BlockPointer)
 
-		if de.Type == Dir {
+		if de.Type == data.Dir {
 			err := sc.findAllBlocksInPath(ctx, lState, ops, kmd, p, blockSizes)
 			if err != nil {
 				return err
@@ -116,7 +117,8 @@ func (sc *StateChecker) getLastGCData(ctx context.Context,
 	var latestRev kbfsmd.Revision
 	for _, c := range *config.allKnownConfigsForTesting {
 		ops := c.KBFSOps().(*KBFSOpsStandard).getOpsIfExists(
-			context.Background(), FolderBranch{tlfID, MasterBranch})
+			context.Background(),
+			data.FolderBranch{Tlf: tlfID, Branch: data.MasterBranch})
 		if ops == nil {
 			continue
 		}
@@ -163,16 +165,16 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlfID tlf.ID) erro
 		return errors.New("Unexpected KBFSOps type")
 	}
 
-	fb := FolderBranch{tlfID, MasterBranch}
+	fb := data.FolderBranch{Tlf: tlfID, Branch: data.MasterBranch}
 	ops := kbfsOps.getOps(context.Background(), fb, FavoritesOpNoChange)
 	lastGCRevisionTime, lastGCRev := sc.getLastGCData(ctx, tlfID)
 
 	// Build the expected block list.
-	expectedLiveBlocks := make(map[BlockPointer]bool)
+	expectedLiveBlocks := make(map[data.BlockPointer]bool)
 	expectedRef := uint64(0)
 	expectedMDRef := uint64(0)
-	archivedBlocks := make(map[BlockPointer]bool)
-	actualLiveBlocks := make(map[BlockPointer]uint32)
+	archivedBlocks := make(map[data.BlockPointer]bool)
+	actualLiveBlocks := make(map[data.BlockPointer]uint32)
 
 	// See what the last GC op revision is.  All unref'd pointers from
 	// that revision or earlier should be deleted from the block
@@ -199,16 +201,20 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlfID tlf.ID) erro
 			continue
 		}
 		// Unembedded block changes count towards the MD size.
-		if info := rmd.data.cachedChanges.Info; info.BlockPointer != zeroPtr {
+		if info := rmd.data.cachedChanges.Info; info.BlockPointer != data.ZeroPtr {
 			sc.log.CDebugf(ctx, "Unembedded block change: %v, %d",
 				info.BlockPointer, info.EncodedSize)
 			actualLiveBlocks[info.BlockPointer] = info.EncodedSize
 
 			// Any child block change pointers?
-			file := path{FolderBranch{tlfID, MasterBranch},
-				[]pathNode{{
-					info.BlockPointer,
-					fmt.Sprintf("<MD with revision %d>", rmd.Revision())}}}
+			file := data.Path{
+				FolderBranch: data.FolderBranch{
+					Tlf: tlfID, Branch: data.MasterBranch},
+				Path: []data.PathNode{{
+					BlockPointer: info.BlockPointer,
+					Name: fmt.Sprintf(
+						"<MD with revision %d>", rmd.Revision()),
+				}}}
 			err := sc.findAllFileBlocks(ctx, lState, ops, rmd.ReadOnly(),
 				file, actualLiveBlocks)
 			if err != nil {
@@ -217,14 +223,14 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlfID tlf.ID) erro
 		}
 
 		var hasGCOp bool
-		updated := make(map[BlockPointer]bool)
+		updated := make(map[data.BlockPointer]bool)
 		for _, op := range rmd.data.Changes.Ops {
 			_, isGCOp := op.(*GCOp)
 			hasGCOp = hasGCOp || isGCOp
 
-			opRefs := make(map[BlockPointer]bool)
+			opRefs := make(map[data.BlockPointer]bool)
 			for _, ptr := range op.Refs() {
-				if ptr != zeroPtr {
+				if ptr != data.ZeroPtr {
 					expectedLiveBlocks[ptr] = true
 					opRefs[ptr] = true
 				}
@@ -237,7 +243,7 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlfID tlf.ID) erro
 							ptr, rmd.Revision())
 					}
 					delete(expectedLiveBlocks, ptr)
-					if ptr != zeroPtr {
+					if ptr != data.ZeroPtr {
 						// If the revision has been garbage-collected,
 						// or if the pointer has been referenced and
 						// unreferenced within the same op (which
@@ -257,14 +263,14 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlfID tlf.ID) erro
 					updated[update.Unref] = true
 					delete(expectedLiveBlocks, update.Unref)
 				}
-				if update.Unref != zeroPtr && update.Ref != update.Unref {
+				if update.Unref != data.ZeroPtr && update.Ref != update.Unref {
 					if rmd.Revision() <= gcRevision {
 						delete(archivedBlocks, update.Unref)
 					} else {
 						archivedBlocks[update.Unref] = true
 					}
 				}
-				if update.Ref != zeroPtr && update.Ref != update.Unref {
+				if update.Ref != data.ZeroPtr && update.Ref != update.Unref {
 					expectedLiveBlocks[update.Ref] = true
 				}
 			}
@@ -315,11 +321,11 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlfID tlf.ID) erro
 		return err
 	}
 	rootPath := ops.nodeCache.PathFromNode(rootNode)
-	if g, e := rootPath.tailPointer(), currMD.data.Dir.BlockPointer; g != e {
+	if g, e := rootPath.TailPointer(), currMD.data.Dir.BlockPointer; g != e {
 		return fmt.Errorf("Current MD root pointer %v doesn't match root "+
 			"node pointer %v", e, g)
 	}
-	actualLiveBlocks[rootPath.tailPointer()] = currMD.data.Dir.EncodedSize
+	actualLiveBlocks[rootPath.TailPointer()] = currMD.data.Dir.EncodedSize
 	if err := sc.findAllBlocksInPath(ctx, lState, ops, currMD.ReadOnly(),
 		rootPath, actualLiveBlocks); err != nil {
 		return err
@@ -329,7 +335,7 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlfID tlf.ID) erro
 
 	// Compare the two and see if there are any differences. Don't use
 	// reflect.DeepEqual so we can print out exactly what's wrong.
-	var extraBlocks []BlockPointer
+	var extraBlocks []data.BlockPointer
 	actualSize := uint64(0)
 	actualMDSize := uint64(0)
 	for ptr, size := range actualLiveBlocks {
@@ -347,7 +353,7 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlfID tlf.ID) erro
 			tlfID, extraBlocks)
 		return fmt.Errorf("Folder %v has inconsistent state", tlfID)
 	}
-	var missingBlocks []BlockPointer
+	var missingBlocks []data.BlockPointer
 	for ptr := range expectedLiveBlocks {
 		if _, ok := actualLiveBlocks[ptr]; !ok {
 			missingBlocks = append(missingBlocks, ptr)

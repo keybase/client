@@ -49,6 +49,18 @@ protocol kbfs {
   @lint("ignore")
   void FSSyncEvent(FSPathSyncStatus event);
 
+  /**
+    FSOverallSyncEvent is called by KBFS when the overall sync status
+    changes.
+        */
+  @lint("ignore")
+  void FSOverallSyncEvent(FolderSyncStatus status);
+
+  /**
+    FSOnlineStatusChangedEvent is called by KBFS when the online status changes.
+        */
+  @lint("ignore")
+  void FSOnlineStatusChangedEvent(boolean online);
 
   /**
     createTLF is called by KBFS to associate the tlfID with the given teamID,

@@ -92,7 +92,6 @@ export const newRoutes = {
   [Constants.feedbackTab]: {getScreen: () => require('./feedback-container').default},
   [Constants.invitationsTab]: {getScreen: () => require('./invites/container').default},
   [Constants.landingTab]: {getScreen: () => require('./about-container').default},
-  [Constants.logOutTab]: {getScreen: () => require('./logout/container').default},
   [Constants.notificationsTab]: {getScreen: () => require('./notifications/container').default},
   [Constants.passwordTab]: {getScreen: () => require('./password/container').default},
   [Constants.screenprotectorTab]: {getScreen: () => require('./screenprotector-container.native').default},
@@ -101,7 +100,9 @@ export const newRoutes = {
   inviteSent: {getScreen: () => require('./invite-generated/container').default},
   privacyPolicy: {getScreen: () => require('./web-links.native').default},
   removeDevice: {getScreen: () => require('../devices/device-revoke/container').default},
-  'tabs.settingsTab': {getScreen: () => require('./').default},
+  settingsRoot: {getScreen: () => require('./').default},
   terms: {getScreen: () => require('./web-links.native').default},
 }
-export const newModalRoutes = {}
+export const newModalRoutes = {
+  [Constants.logOutTab]: {getScreen: () => require('./logout/container').default},
+}

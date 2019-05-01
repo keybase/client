@@ -15,7 +15,7 @@ const actions = {
 const load = () => {
   storiesOf('Wallets/Onboarding', module)
     .addDecorator(story => (
-      <Box style={platformStyles({common: {maxWidth: 360, minHeight: 525}, isElectron: {height: 525}})}>
+      <Box style={platformStyles({common: {maxWidth: 400, minHeight: 560}, isElectron: {height: 560}})}>
         {story()}
       </Box>
     ))

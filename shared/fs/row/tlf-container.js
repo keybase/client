@@ -1,16 +1,19 @@
 // @flow
 import * as React from 'react'
 import * as I from 'immutable'
-import * as RowTypes from './types'
+import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import {namedConnect} from '../../util/container'
 import OpenHOC from '../common/open-hoc'
 import Tlf from './tlf'
+import flags from '../../util/feature-flags'
 
-type OwnProps = $Diff<RowTypes.TlfRowItem, {rowType: 'tlf'}> & {
-  routePath: I.List<string>,
+type OwnProps = {|
   destinationPickerIndex?: number,
-}
+  name: string,
+  routePath: I.List<string>,
+  tlfType: Types.TlfType,
+|}
 
 const mapStateToProps = (state, {tlfType, name}: OwnProps) => ({
   _tlf: Constants.getTlfFromTlfs(state.fs.tlfs, tlfType, name),
@@ -24,6 +27,8 @@ const mergeProps = (stateProps, dispatchProps, {tlfType, name, routePath, destin
     destinationPickerIndex,
     isIgnored: stateProps._tlf.isIgnored,
     isNew: shouldBadge && stateProps._tlf.isNew,
+    loadPathMetadata:
+      flags.kbfsOfflineMode && stateProps._tlf.syncConfig && stateProps._tlf.syncConfig.mode !== 'disabled',
     name,
     needsRekey: shouldBadge && stateProps._tlf.needsRekey,
     path,

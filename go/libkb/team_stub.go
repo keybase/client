@@ -31,6 +31,10 @@ func (n nullTeamLoader) ImplicitAdmins(ctx context.Context, teamID keybase1.Team
 	return nil, fmt.Errorf("null team loader")
 }
 
+func (n nullTeamLoader) MapTeamAncestors(ctx context.Context, f func(t keybase1.TeamSigChainState) error, teamID keybase1.TeamID, reason string, forceFullReloadOnceToAssert func(t keybase1.TeamSigChainState) bool) error {
+	return fmt.Errorf("null team loader")
+}
+
 // MapIDToName maps the team ID to the corresponding name, and can be serviced
 // from the team cache. If no entry is available in the cache, it is OK to return
 // an empty/nil TeamName, and callers are free to try again with a server access
@@ -63,8 +67,6 @@ func (n *nullTeamLoader) ForceRepollUntil(ctx context.Context, t gregor.TimeOrOf
 	return nil
 }
 
-func (n nullTeamLoader) OnLogout() {}
-
 func (n nullTeamLoader) ClearMem() {}
 
 type nullFastTeamLoader struct{}
@@ -87,8 +89,6 @@ func (n nullFastTeamLoader) ForceRepollUntil(_ MetaContext, _ gregor.TimeOrOffse
 	return nil
 }
 
-func (n nullFastTeamLoader) OnLogout() {}
-
 func newNullFastTeamLoader() nullFastTeamLoader { return nullFastTeamLoader{} }
 
 type nullTeamAuditor struct{}
@@ -98,8 +98,6 @@ var _ TeamAuditor = nullTeamAuditor{}
 func (n nullTeamAuditor) AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno) (err error) {
 	return fmt.Errorf("null team auditor")
 }
-
-func (n nullTeamAuditor) OnLogout(m MetaContext) {}
 
 func newNullTeamAuditor() nullTeamAuditor { return nullTeamAuditor{} }
 
@@ -112,3 +110,35 @@ type TeamAuditParams struct {
 	Parallelism           int
 	LRUSize               int
 }
+
+type nullTeamBoxAuditor struct{}
+
+var errNullBoxAuditor = fmt.Errorf("No team box auditor configured.")
+
+func attemptNullBoxAuditor() *keybase1.BoxAuditAttempt {
+	msg := errNullBoxAuditor.Error()
+	return &keybase1.BoxAuditAttempt{Error: &msg}
+}
+
+var _ TeamBoxAuditor = nullTeamBoxAuditor{}
+
+func (n nullTeamBoxAuditor) AssertUnjailedOrReaudit(m MetaContext, id keybase1.TeamID) (bool, error) {
+	return false, errNullBoxAuditor
+}
+
+func (n nullTeamBoxAuditor) IsInJail(m MetaContext, id keybase1.TeamID) (bool, error) {
+	return false, errNullBoxAuditor
+}
+func (n nullTeamBoxAuditor) RetryNextBoxAudit(m MetaContext) (*keybase1.BoxAuditAttempt, error) {
+	return attemptNullBoxAuditor(), errNullBoxAuditor
+}
+func (n nullTeamBoxAuditor) BoxAuditRandomTeam(m MetaContext) (*keybase1.BoxAuditAttempt, error) {
+	return attemptNullBoxAuditor(), errNullBoxAuditor
+}
+func (n nullTeamBoxAuditor) BoxAuditTeam(m MetaContext, id keybase1.TeamID) (*keybase1.BoxAuditAttempt, error) {
+	return attemptNullBoxAuditor(), errNullBoxAuditor
+}
+func (n nullTeamBoxAuditor) Attempt(m MetaContext, id keybase1.TeamID, rotateBeforeAudit bool) keybase1.BoxAuditAttempt {
+	return *attemptNullBoxAuditor()
+}
+func newNullTeamBoxAuditor() nullTeamBoxAuditor { return nullTeamBoxAuditor{} }

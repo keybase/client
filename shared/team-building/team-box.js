@@ -52,7 +52,7 @@ const TeamInput = (props: Props) => (
     placeholder={
       props.teamSoFar.length
         ? 'Add another username or enter to chat'
-        : 'Enter any phone number, email address, or username'
+        : 'Enter a username'
     }
     searchString={props.searchString}
   />

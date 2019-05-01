@@ -9,12 +9,14 @@ import (
 	"os"
 	"testing"
 
+	kbfsdata "github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
@@ -118,7 +120,7 @@ func setupBlockJournalTest(t *testing.T) (
 		}
 	}()
 
-	j, err = makeBlockJournal(ctx, codec, tempdir, log)
+	j, err = makeBlockJournal(ctx, codec, tempdir, log, libkb.NewVDebugLog(log))
 	require.NoError(t, err)
 	require.Equal(t, uint64(0), j.length())
 
@@ -211,7 +213,7 @@ func TestBlockJournalBasic(t *testing.T) {
 	// Shutdown and restart.
 	err := j.checkInSyncForTest()
 	require.NoError(t, err)
-	j, err = makeBlockJournal(ctx, j.codec, tempdir, j.log)
+	j, err = makeBlockJournal(ctx, j.codec, tempdir, j.log, j.vlog)
 	require.NoError(t, err)
 
 	require.Equal(t, uint64(2), j.length())
@@ -449,7 +451,7 @@ func TestBlockJournalFlush(t *testing.T) {
 
 	tlfID := tlf.FakeID(1, tlf.Private)
 
-	bcache := NewBlockCacheStandard(0, 0)
+	bcache := kbfsdata.NewBlockCacheStandard(0, 0)
 	reporter := NewReporterSimple(nil, 0)
 
 	flush := func() (flushedBytes, removedBytes, removedFiles int64) {
@@ -544,7 +546,7 @@ func TestBlockJournalFlush(t *testing.T) {
 
 func flushBlockJournalOne(ctx context.Context, t *testing.T,
 	j *blockJournal, blockServer BlockServer,
-	bcache BlockCache, reporter Reporter, tlfID tlf.ID) (
+	bcache kbfsdata.BlockCache, reporter Reporter, tlfID tlf.ID) (
 	flushedBytes, removedFiles, removedBytes int64) {
 	first, err := j.j.readEarliestOrdinal()
 	require.NoError(t, err)
@@ -590,7 +592,7 @@ func TestBlockJournalFlushInterleaved(t *testing.T) {
 
 	tlfID := tlf.FakeID(1, tlf.Private)
 
-	bcache := NewBlockCacheStandard(0, 0)
+	bcache := kbfsdata.NewBlockCacheStandard(0, 0)
 	reporter := NewReporterSimple(nil, 0)
 
 	flushOne := func() (int64, int64, int64) {
@@ -721,7 +723,7 @@ func TestBlockJournalFlushMDRevMarker(t *testing.T) {
 
 	blockServer := NewBlockServerMemory(log)
 	tlfID := tlf.FakeID(1, tlf.Private)
-	bcache := NewBlockCacheStandard(0, 0)
+	bcache := kbfsdata.NewBlockCacheStandard(0, 0)
 	reporter := NewReporterSimple(nil, 0)
 
 	// Make sure the block journal reports that entries up to `rev`
@@ -782,7 +784,7 @@ func TestBlockJournalFlushMDRevMarkerForPendingLocalSquash(t *testing.T) {
 
 	blockServer := NewBlockServerMemory(log)
 	tlfID := tlf.FakeID(1, tlf.Private)
-	bcache := NewBlockCacheStandard(0, 0)
+	bcache := kbfsdata.NewBlockCacheStandard(0, 0)
 	reporter := NewReporterSimple(nil, 0)
 
 	// Make sure the block journal reports that entries up to 10 can
@@ -859,7 +861,7 @@ func TestBlockJournalIgnoreBlocks(t *testing.T) {
 
 	blockServer := NewBlockServerMemory(log)
 	tlfID := tlf.FakeID(1, tlf.Private)
-	bcache := NewBlockCacheStandard(0, 0)
+	bcache := kbfsdata.NewBlockCacheStandard(0, 0)
 	reporter := NewReporterSimple(nil, 0)
 
 	// Flush and make sure we only flush the non-ignored blocks.
@@ -930,7 +932,7 @@ func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
 
 	blockServer := NewBlockServerMemory(log)
 	tlfID := tlf.FakeID(1, tlf.Private)
-	bcache := NewBlockCacheStandard(0, 0)
+	bcache := kbfsdata.NewBlockCacheStandard(0, 0)
 	reporter := NewReporterSimple(nil, 0)
 
 	// Flush all the entries, but they should still remain accessible.
@@ -1088,7 +1090,7 @@ func TestBlockJournalByteCounters(t *testing.T) {
 
 	blockServer := NewBlockServerMemory(log)
 	tlfID := tlf.FakeID(1, tlf.Private)
-	bcache := NewBlockCacheStandard(0, 0)
+	bcache := kbfsdata.NewBlockCacheStandard(0, 0)
 	reporter := NewReporterSimple(nil, 0)
 	flushOne := func() (int64, int64, int64) {
 		return flushBlockJournalOne(

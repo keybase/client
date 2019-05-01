@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
@@ -26,9 +27,9 @@ func mdResetOne(
 	if checkValid {
 		rootPtr := irmd.Data().Dir.BlockPointer
 		if rootPtr.Ref().IsValid() {
-			var dirBlock libkbfs.DirBlock
+			var dirBlock data.DirBlock
 			err = config.BlockOps().Get(
-				ctx, irmd, rootPtr, &dirBlock, libkbfs.NoCacheEntry)
+				ctx, irmd, rootPtr, &dirBlock, data.NoCacheEntry)
 			if err == nil {
 				fmt.Printf("Got no error when getting root block %s; not doing anything\n", rootPtr)
 				return nil

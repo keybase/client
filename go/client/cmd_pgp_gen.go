@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -49,6 +50,11 @@ func (v *CmdPGPGen) Run() (err error) {
 	if err != nil {
 		return err
 	}
+	user, err := GetUserClient(v.G())
+	if err != nil {
+		return err
+	}
+
 	if err = RegisterProtocolsWithContext(protocols, v.G()); err != nil {
 		return err
 	}
@@ -61,9 +67,16 @@ func (v *CmdPGPGen) Run() (err error) {
 	} else if err = v.arg.Gen.CreatePGPIDs(); err != nil {
 		return err
 	}
-	v.arg.PushSecret, err = v.G().UI.GetTerminalUI().PromptYesNo(PromptDescriptorPGPGenPushSecret, "Push an encrypted copy of your new secret key to the Keybase.io server?", libkb.PromptDefaultYes)
+
+	hasRandomPw, err := user.LoadHasRandomPw(context.TODO(), keybase1.LoadHasRandomPwArg{})
 	if err != nil {
 		return err
+	}
+	if !hasRandomPw {
+		v.arg.PushSecret, err = v.G().UI.GetTerminalUI().PromptYesNo(PromptDescriptorPGPGenPushSecret, "Push an encrypted copy of your new secret key to the Keybase.io server?", libkb.PromptDefaultYes)
+		if err != nil {
+			return err
+		}
 	}
 	if v.arg.DoExport {
 		v.arg.ExportEncrypted, err = v.G().UI.GetTerminalUI().PromptYesNo(PromptDescriptorPGPGenEncryptSecret, "When exporting to the GnuPG keychain, encrypt private keys with a passphrase?", libkb.PromptDefaultYes)

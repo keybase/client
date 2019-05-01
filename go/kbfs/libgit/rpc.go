@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
@@ -49,7 +50,7 @@ func (rh *RPCHandler) waitForJournal(
 	}
 
 	rootNode, _, err := gitConfig.KBFSOps().GetOrCreateRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, h, data.MasterBranch)
 	if err != nil {
 		return err
 	}

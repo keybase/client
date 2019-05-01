@@ -12,6 +12,16 @@
       ],
       "response": null,
       "notify": ""
+    },
+    "boxAuditError": {
+      "request": [
+        {
+          "name": "message",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "notify": ""
     }
   },
   "namespace": "keybase.1"

@@ -12,6 +12,7 @@ import {debounce, throttle} from 'lodash-es'
 import {memoize} from '../../../../util/memoize'
 import CommandMarkdown from '../../command-markdown/container'
 import Giphy from '../../giphy/container'
+import ReplyPreview from '../../reply-preview/container'
 
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
 const throttled = throttle((f, param) => f(param), 2000)
@@ -251,7 +252,9 @@ class Input extends React.Component<InputProps, InputState> {
       const text = this.props.getUnsentText()
       this._setText(text, true)
       // TODO: Ideally, we'd also stash and restore the selection.
-      this._inputFocus()
+      if (!this.props.isSearching) {
+        this._inputFocus()
+      }
     }
   }
 
@@ -374,6 +377,7 @@ class Input extends React.Component<InputProps, InputState> {
     } = this.props
     return (
       <Kb.Box2 direction="vertical" fullWidth={true}>
+        {this.props.showReplyPreview && <ReplyPreview conversationIDKey={this.props.conversationIDKey} />}
         {this.props.showCommandMarkdown && (
           <CommandMarkdown conversationIDKey={this.props.conversationIDKey} />
         )}

@@ -251,6 +251,7 @@ const paragraphOverrides = {
     // These are Header's styles.
     fontSize: Styles.isMobile ? 20 : 18,
     fontWeight: '700',
+    lineHeight: Styles.isMobile ? 24 : undefined,
   },
 }
 

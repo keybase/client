@@ -381,6 +381,12 @@ func (r *testProvisionUI) GetPassphrase(context.Context, keybase1.GetPassphraseA
 	ret.Passphrase = r.backupKey.secret
 	return ret, nil
 }
+func (r *testProvisionUI) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (bool, error) {
+	return false, nil
+}
+func (r *testProvisionUI) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
+	return nil
+}
 
 func (s *testDeviceSet) findNewKIDs(newList []keybase1.KID) []keybase1.KID {
 	var ret []keybase1.KID

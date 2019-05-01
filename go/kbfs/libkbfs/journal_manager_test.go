@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/test/clocktest"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
@@ -161,7 +162,7 @@ func TestJournalManagerOverQuotaError(t *testing.T) {
 	qbs := &quotaBlockServer{BlockServer: config.BlockServer()}
 	config.SetBlockServer(qbs)
 
-	clock := newTestClockNow()
+	clock := clocktest.NewTestClockNow()
 	config.SetClock(clock)
 
 	// Set initial quota usage and refresh quotaUsage's cache.
@@ -283,7 +284,7 @@ func TestJournalManagerOverDiskLimitError(t *testing.T) {
 	qbs := &quotaBlockServer{BlockServer: config.BlockServer()}
 	config.SetBlockServer(qbs)
 
-	clock := newTestClockNow()
+	clock := clocktest.NewTestClockNow()
 	config.SetClock(clock)
 
 	// Set initial quota usage and refresh quotaUsage's cache.

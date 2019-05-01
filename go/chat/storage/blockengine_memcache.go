@@ -45,4 +45,9 @@ func (b *blockEngineMemCacheImpl) OnLogout(m libkb.MetaContext) error {
 	return nil
 }
 
+func (b *blockEngineMemCacheImpl) OnDbNuke(m libkb.MetaContext) error {
+	b.blockCache.Purge()
+	return nil
+}
+
 var blockEngineMemCache = newBlockEngineMemCache()

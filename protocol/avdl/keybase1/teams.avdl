@@ -474,7 +474,13 @@ protocol teams {
     // of TeamSigChainState. Thus, if you need it, you should check if it's there,
     // and if not, fetch the chainlink from the server and check against linksIDs[1].
     union { null, MerkleRootV2 } headMerkle;
+
+    // Merkle roots at each seqno
+    map<Seqno, MerkleRootV2> merkleRoots;
   }
+
+  @typedef("string")
+  record BoxSummaryHash {}
 
   // The team got this name at this point in time.
   record TeamNameLogPoint {

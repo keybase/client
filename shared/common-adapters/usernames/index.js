@@ -74,7 +74,11 @@ function UsernameText(props: Props) {
             ? {color: typeof props.colorYou === 'string' ? props.colorYou : Styles.globalColors.black}
             : null),
         }
-        userStyle = Styles.collapseStyles([props.style, userStyle])
+        userStyle = Styles.collapseStyles([
+          props.style,
+          userStyle,
+          props.type.startsWith('Body') && styles.kerning,
+        ])
 
         // Make sure onClick is undefined when _onUsernameClicked is, so
         // as to not override any existing onClick handler from containers
@@ -96,7 +100,14 @@ function UsernameText(props: Props) {
               negative={backgroundModeIsNegative(props.backgroundMode)}
               className={Styles.classNames({'hover-underline': props.underline})}
               selectable={props.selectable}
-              onClick={_onUsernameClicked ? () => _onUsernameClicked(u.username) : undefined}
+              onClick={
+                _onUsernameClicked
+                  ? evt => {
+                      evt && evt.stopPropagation()
+                      _onUsernameClicked(u.username)
+                    }
+                  : undefined
+              }
               style={userStyle}
             >
               {u.username}
@@ -206,7 +217,7 @@ class PlaintextUsernames extends React.Component<PlaintextProps> {
       <Text
         type={this.props.type}
         negative={backgroundModeIsNegative(this.props.backgroundMode)}
-        style={Styles.collapseStyles([containerStyle, this.props.containerStyle])}
+        style={Styles.collapseStyles([containerStyle, this.props.containerStyle, styles.kerning])}
         title={this.props.title}
         {...inlineProps}
       >
@@ -230,6 +241,9 @@ const styles = Styles.styleSheetCreate({
       textDecoration: 'none',
     },
   }),
+  kerning: {
+    letterSpacing: 0.2,
+  },
   nonInlineStyle: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxRow,

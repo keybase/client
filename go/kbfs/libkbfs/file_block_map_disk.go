@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"context"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/pkg/errors"
@@ -17,7 +18,7 @@ import (
 type fileBlockMapDisk struct {
 	dirtyBcache *DirtyBlockCacheDisk
 	kmd         libkey.KeyMetadata
-	ptrs        map[BlockPointer]map[string]BlockPointer
+	ptrs        map[data.BlockPointer]map[string]data.BlockPointer
 }
 
 var _ fileBlockMap = (*fileBlockMapDisk)(nil)
@@ -27,30 +28,30 @@ func newFileBlockMapDisk(
 	return &fileBlockMapDisk{
 		dirtyBcache: dirtyBcache,
 		kmd:         kmd,
-		ptrs:        make(map[BlockPointer]map[string]BlockPointer),
+		ptrs:        make(map[data.BlockPointer]map[string]data.BlockPointer),
 	}
 }
 
 func (fbmd *fileBlockMapDisk) putTopBlock(
-	ctx context.Context, parentPtr BlockPointer, childName string,
-	topBlock *FileBlock) error {
+	ctx context.Context, parentPtr data.BlockPointer, childName string,
+	topBlock *data.FileBlock) error {
 	// To reuse the DirtyBlockCacheDisk code, we need to assign a
 	// random BlockPointer to this block.
 	id, err := kbfsblock.MakeTemporaryID()
 	if err != nil {
 		return err
 	}
-	ptr := BlockPointer{ID: id}
+	ptr := data.BlockPointer{ID: id}
 
 	err = fbmd.dirtyBcache.Put(
-		ctx, fbmd.kmd.TlfID(), ptr, MasterBranch, topBlock)
+		ctx, fbmd.kmd.TlfID(), ptr, data.MasterBranch, topBlock)
 	if err != nil {
 		return err
 	}
 
 	ptrMap, ok := fbmd.ptrs[parentPtr]
 	if !ok {
-		ptrMap = make(map[string]BlockPointer)
+		ptrMap = make(map[string]data.BlockPointer)
 		fbmd.ptrs[parentPtr] = ptrMap
 	}
 
@@ -58,9 +59,9 @@ func (fbmd *fileBlockMapDisk) putTopBlock(
 	return nil
 }
 
-func (fbmd *fileBlockMapDisk) getTopBlock(
-	ctx context.Context, parentPtr BlockPointer, childName string) (
-	*FileBlock, error) {
+func (fbmd *fileBlockMapDisk) GetTopBlock(
+	ctx context.Context, parentPtr data.BlockPointer, childName string) (
+	*data.FileBlock, error) {
 	ptrMap, ok := fbmd.ptrs[parentPtr]
 	if !ok {
 		return nil, errors.Errorf("No such parent %s", parentPtr)
@@ -70,11 +71,11 @@ func (fbmd *fileBlockMapDisk) getTopBlock(
 		return nil, errors.Errorf(
 			"No such name %s in parent %s", childName, parentPtr)
 	}
-	block, err := fbmd.dirtyBcache.Get(ctx, fbmd.kmd.TlfID(), ptr, MasterBranch)
+	block, err := fbmd.dirtyBcache.Get(ctx, fbmd.kmd.TlfID(), ptr, data.MasterBranch)
 	if err != nil {
 		return nil, err
 	}
-	fblock, ok := block.(*FileBlock)
+	fblock, ok := block.(*data.FileBlock)
 	if !ok {
 		return nil, errors.Errorf(
 			"Unexpected block type for file block: %T", block)
@@ -83,7 +84,7 @@ func (fbmd *fileBlockMapDisk) getTopBlock(
 }
 
 func (fbmd *fileBlockMapDisk) getFilenames(
-	_ context.Context, parentPtr BlockPointer) (names []string, err error) {
+	_ context.Context, parentPtr data.BlockPointer) (names []string, err error) {
 	ptrMap, ok := fbmd.ptrs[parentPtr]
 	if !ok {
 		return nil, nil

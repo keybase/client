@@ -263,11 +263,25 @@ func (c *ChatCLIUI) ChatSearchInboxDone(ctx context.Context, arg chat1.ChatSearc
 	return nil
 }
 
+func (c *ChatCLIUI) ChatSearchInboxStart(ctx context.Context, sessionID int) error {
+	return nil
+}
+
 func (c *ChatCLIUI) ChatSearchIndexStatus(ctx context.Context, arg chat1.ChatSearchIndexStatusArg) error {
 	if c.noOutput {
 		return nil
 	}
 	c.terminal.Output(fmt.Sprintf("Indexing: %d%%.\n", arg.Status.PercentIndexed))
+	return nil
+}
+
+func (c *ChatCLIUI) ChatSearchConvHits(ctx context.Context, arg chat1.ChatSearchConvHitsArg) error {
+	if c.noOutput {
+		return nil
+	}
+	for _, hit := range arg.Hits.Hits {
+		c.terminal.Output(fmt.Sprintf("Conversation: %s found with matching name\n", hit.Name))
+	}
 	return nil
 }
 

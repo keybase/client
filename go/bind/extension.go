@@ -185,6 +185,7 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 		OutboxStorageEngine:            "files",
 		DisableTeamAuditor:             true,
 		DisableMerkleAuditor:           true,
+		DisableTeamBoxAuditor:          true,
 	}
 	if err = kbCtx.Configure(config, usage); err != nil {
 		return err
@@ -457,7 +458,7 @@ func ExtensionPostText(strConvID, name string, public bool, membersType int, bod
 			Body: body,
 		}),
 	}
-	if _, _, err = extensionNewSender(gc).Send(ctx, convID, msg, 0, &outboxID, nil); err != nil {
+	if _, _, err = extensionNewSender(gc).Send(ctx, convID, msg, 0, &outboxID, nil, nil); err != nil {
 		return err
 	}
 	extensionRegisterSendNonblock(ctx, gc, convID, outboxID)

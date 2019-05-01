@@ -163,7 +163,9 @@ const HeaderContent = (props: Props) =>
       Send link to{' '}
       {props.conversation.type === 'small-team' || props.conversation.type === 'big-team'
         ? 'team chat'
-        : 'group chat'}
+        : props.conversation.type === 'group'
+        ? 'group chat'
+        : props.conversation.name}
     </Kb.Text>
   )
 
@@ -175,10 +177,9 @@ const DesktopHeader = (props: Props) => (
 
 const Footer = (props: Props) => (
   <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.footer} gap="tiny">
-    {!Styles.isMobile && <Kb.Button type="Secondary" label="Cancel" onClick={props.onCancel} />}
+    {!Styles.isMobile && <Kb.Button type="Dim" label="Cancel" onClick={props.onCancel} />}
     {props.conversation.type !== 'none' && (
       <Kb.Button
-        type="Primary"
         label="Send in conversation"
         disabled={props.sendLinkToChatState !== 'ready-to-send'}
         waiting={['locating-conversation', 'sending'].includes(props.sendLinkToChatState)}

@@ -103,7 +103,7 @@ const Unreachable = props => (
       style={Styles.collapseStyles([styles.opacity75, styles.inlineIcon])}
     />
     <Kb.Box2 direction="vertical" style={styles.flexOne}>
-      <Kb.Text type="BodySemibold" style={styles.placeholder}>
+      <Kb.Text type="BodySemibold" style={styles.unreachablePlaceholder}>
         <Kb.Text type="BodySemibold" style={styles.colorRed}>
           {props.username}
         </Kb.Text>
@@ -139,9 +139,16 @@ type Props = {|
 |}
 
 class _EnterUsername extends React.Component<Props> {
+  _waitingButtonKey = 0
   componentDidUpdate(prevProps: Props) {
     if (!this.props.waiting && prevProps.waiting) {
       this.props.onContinue()
+    }
+    if (this.props.error && !prevProps.error) {
+      // We just tried an invalid username
+      // increment waiting button key so it
+      // remounts and we avoid a perma-spinner
+      this._waitingButtonKey++
     }
   }
   render() {
@@ -164,9 +171,11 @@ class _EnterUsername extends React.Component<Props> {
               style={styles.serviceProofIcon}
             />
           </Kb.Box2>
-          <Kb.Box2 direction="vertical" alignItems="center">
+          <Kb.Box2 direction="vertical" alignItems="center" style={styles.serviceMeta}>
             <Kb.Text type="BodySemibold">{props.serviceName}</Kb.Text>
-            <Kb.Text type="BodySmall">{props.serviceSub}</Kb.Text>
+            <Kb.Text type="BodySmall" center={true}>
+              {props.serviceSub}
+            </Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
         <Kb.Box2
@@ -207,22 +216,23 @@ class _EnterUsername extends React.Component<Props> {
           )}
           <Kb.ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
             {!Styles.isMobile && !props.unreachable && (
-              <Kb.Button type="Secondary" onClick={props.onBack} label="Cancel" style={styles.buttonSmall} />
+              <Kb.Button type="Dim" onClick={props.onBack} label="Cancel" style={styles.buttonSmall} />
             )}
             {props.unreachable ? (
               <Kb.Button
-                type="PrimaryGreen"
+                type="Success"
                 onClick={props.onSubmit}
                 label={props.submitButtonLabel}
                 style={styles.buttonBig}
               />
             ) : (
               <Kb.WaitingButton
-                type="PrimaryGreen"
+                type="Success"
                 onClick={props.onSubmit}
                 label={props.submitButtonLabel}
                 style={styles.buttonBig}
                 waitingKey={null}
+                key={this._waitingButtonKey}
               />
             )}
           </Kb.ButtonBar>
@@ -253,11 +263,11 @@ const styles = Styles.styleSheetCreate({
   },
   input: Styles.platformStyles({
     common: {marginRight: Styles.globalMargins.medium},
+    isAndroid: {
+      top: 1,
+    },
     isElectron: {
       marginTop: -1,
-    },
-    isMobile: {
-      top: 3,
     },
   }),
   inputBox: {
@@ -283,7 +293,9 @@ const styles = Styles.styleSheetCreate({
     top: 1,
   },
   invisible: {
-    opacity: 0,
+    // opacity doesn't work in nested Text on android
+    // see here: https://github.com/facebook/react-native/issues/18057
+    color: Styles.globalColors.transparent,
   },
   marginLeftAuto: {marginLeft: 'auto'},
   opacity40: {
@@ -309,10 +321,26 @@ const styles = Styles.styleSheetCreate({
   serviceIconHeaderContainer: {
     paddingTop: Styles.globalMargins.medium,
   },
+  serviceMeta: Styles.platformStyles({
+    isElectron: {
+      paddingLeft: Styles.globalMargins.medium,
+      paddingRight: Styles.globalMargins.medium,
+    },
+    isMobile: {
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+    },
+  }),
   serviceProofIcon: {bottom: 0, position: 'absolute', right: 0},
   unreachableBox: Styles.platformStyles({
     common: {...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall)},
     isElectron: {width: 360},
+  }),
+  unreachablePlaceholder: Styles.platformStyles({
+    common: {color: Styles.globalColors.black_40},
+    isElectron: {
+      wordBreak: 'break-all',
+    },
   }),
   warningText: {color: Styles.globalColors.brown_75, marginTop: Styles.globalMargins.small},
 })

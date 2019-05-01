@@ -12,7 +12,7 @@ import {NormalPreview} from './filepreview'
 import Loading from './common/loading'
 import KbfsDaemonNotRunning from './common/kbfs-daemon-not-running'
 import LoadPathMetadataWhenNeeded from './common/load-path-metadata-when-needed'
-import {Actions, MobileHeader, Title} from './nav-header'
+import {Actions, DesktopBanner, MobileHeader, mobileHeaderHeight, Title} from './nav-header'
 import flags from '../util/feature-flags'
 
 const mapStateToProps = state => ({
@@ -78,7 +78,7 @@ const useBare = isMobile
 
 class ChooseComponent extends React.PureComponent<ChooseComponentProps> {
   waitForKbfsDaemonIfNeeded() {
-    if (this.props.kbfsDaemonStatus !== 'connected') {
+    if (this.props.kbfsDaemonStatus.rpcStatus !== 'connected') {
       // Always triggers whenever something changes if we are not connected.
       // Saga deduplicates redundant checks.
       this.props.waitForKbfsDaemon()
@@ -117,7 +117,7 @@ class ChooseComponent extends React.PureComponent<ChooseComponentProps> {
     }
   }
   render() {
-    if (this.props.kbfsDaemonStatus !== 'connected') {
+    if (this.props.kbfsDaemonStatus.rpcStatus !== 'connected') {
       return <KbfsDaemonNotRunning />
     }
     return (
@@ -143,11 +143,15 @@ Connected.navigationOptions = ({navigation}: {navigation: any}) => {
   const path = navigation.getParam('path') || Constants.defaultPath
   return isMobile
     ? {
-        header: <MobileHeader path={path} onBack={navigation.pop} />,
+        header: (
+          <MobileHeader path={path} onBack={navigation.isFirstRouteInParent() ? null : navigation.pop} />
+        ),
+        headerHeight: mobileHeaderHeight,
       }
     : {
         header: undefined,
-        headerRightActions: () => <Actions path={path} />,
+        headerBanner: <DesktopBanner />,
+        headerRightActions: () => <Actions path={path} onTriggerFilterMobile={() => {}} />,
         headerTitle: () => <Title path={path} />,
         title: path === Constants.defaultPath ? 'Files' : Types.getPathName(path),
       }

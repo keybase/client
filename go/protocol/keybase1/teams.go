@@ -1220,6 +1220,7 @@ type TeamSigChainState struct {
 	TlfIDs           []TLFID                                           `codec:"tlfIDs" json:"tlfIDs"`
 	TlfLegacyUpgrade map[TeamApplication]TeamLegacyTLFUpgradeChainInfo `codec:"tlfLegacyUpgrade" json:"tlfLegacyUpgrade"`
 	HeadMerkle       *MerkleRootV2                                     `codec:"headMerkle,omitempty" json:"headMerkle,omitempty"`
+	MerkleRoots      map[Seqno]MerkleRootV2                            `codec:"merkleRoots" json:"merkleRoots"`
 }
 
 func (o TeamSigChainState) DeepCopy() TeamSigChainState {
@@ -1389,7 +1390,25 @@ func (o TeamSigChainState) DeepCopy() TeamSigChainState {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.HeadMerkle),
+		MerkleRoots: (func(x map[Seqno]MerkleRootV2) map[Seqno]MerkleRootV2 {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[Seqno]MerkleRootV2, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.MerkleRoots),
 	}
+}
+
+type BoxSummaryHash string
+
+func (o BoxSummaryHash) DeepCopy() BoxSummaryHash {
+	return o
 }
 
 type TeamNameLogPoint struct {

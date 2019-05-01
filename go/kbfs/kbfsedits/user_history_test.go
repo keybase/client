@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
@@ -94,7 +95,8 @@ func TestUserHistorySimple(t *testing.T) {
 	_, err = publicTH.AddNotifications(aliceName, publicAlice)
 	require.NoError(t, err)
 
-	uh := NewUserHistory(logger.New("UH"))
+	log := logger.New("UH")
+	uh := NewUserHistory(log, libkb.NewVDebugLog(log))
 	uh.UpdateHistory(privSharedName, tlf.Private, privSharedTH, aliceName)
 	uh.UpdateHistory(privHomeName, tlf.Private, privHomeTH, aliceName)
 	uh.UpdateHistory(publicName, tlf.Public, publicTH, aliceName)

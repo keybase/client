@@ -19,6 +19,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libcontext"
@@ -598,12 +599,12 @@ func (*fsEngine) GetMtime(u User, file Node) (mtime time.Time, err error) {
 }
 
 type prevRevisions struct {
-	PrevRevisions libkbfs.PrevRevisions
+	PrevRevisions data.PrevRevisions
 }
 
 // GetPrevRevisions implements the Engine interface.
 func (*fsEngine) GetPrevRevisions(u User, file Node) (
-	revs libkbfs.PrevRevisions, err error) {
+	revs data.PrevRevisions, err error) {
 	n := file.(fsNode)
 	d, f := filepath.Split(n.path)
 	fullPath := filepath.Join(d, libfs.FileInfoPrefix+f)

@@ -1,0 +1,120 @@
+{
+  "protocol": "audit",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    },
+    {
+      "path": "teams.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "enum",
+      "name": "BoxAuditAttemptResult",
+      "symbols": [
+        "FAILURE_RETRYABLE_0",
+        "FAILURE_MALICIOUS_SERVER_1",
+        "OK_VERIFIED_2",
+        "OK_NOT_ATTEMPTED_ROLE_3",
+        "OK_NOT_ATTEMPTED_OPENTEAM_4",
+        "OK_NOT_ATTEMPTED_SUBTEAM_5"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "BoxAuditAttempt",
+      "fields": [
+        {
+          "type": "UnixTime",
+          "name": "ctime"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "error"
+        },
+        {
+          "type": "BoxAuditAttemptResult",
+          "name": "result"
+        },
+        {
+          "type": [
+            null,
+            "PerTeamKeyGeneration"
+          ],
+          "name": "generation"
+        },
+        {
+          "type": "boolean",
+          "name": "rotated"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "isInJail": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        }
+      ],
+      "response": "boolean"
+    },
+    "boxAuditTeam": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        }
+      ],
+      "response": [
+        null,
+        "BoxAuditAttempt"
+      ]
+    },
+    "attemptBoxAudit": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        },
+        {
+          "name": "rotateBeforeAudit",
+          "type": "boolean"
+        }
+      ],
+      "response": "BoxAuditAttempt"
+    },
+    "knownTeamIDs": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "TeamID"
+      }
+    }
+  },
+  "namespace": "keybase.1"
+}

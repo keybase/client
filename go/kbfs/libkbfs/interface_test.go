@@ -5,9 +5,11 @@
 package libkbfs
 
 import (
+	"context"
 	"testing"
 
 	"github.com/keybase/client/go/kbfs/kbfscodec"
+	"github.com/keybase/client/go/kbfs/test/clocktest"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -44,27 +46,27 @@ func (lm testLogMaker) MakeLogger(_ string) logger.Logger {
 	return lm.log
 }
 
-func (lm testLogMaker) MakeVLogger(_ string) *libkb.VDebugLog {
-	vlog := libkb.NewVDebugLog(lm.log)
+func (lm testLogMaker) MakeVLogger(log logger.Logger) *libkb.VDebugLog {
+	vlog := libkb.NewVDebugLog(log)
 	vlog.Configure(lm.vdebugSetting)
 	return vlog
 }
 
 type testClockGetter struct {
-	clock *TestClock
+	clock *clocktest.TestClock
 }
 
 var _ clockGetter = (*testClockGetter)(nil)
 
 func newTestClockGetter() *testClockGetter {
-	return &testClockGetter{newTestClockNow()}
+	return &testClockGetter{clocktest.NewTestClockNow()}
 }
 
 func (cg *testClockGetter) Clock() Clock {
 	return cg.clock
 }
 
-func (cg *testClockGetter) TestClock() *TestClock {
+func (cg *testClockGetter) TestClock() *clocktest.TestClock {
 	return cg.clock
 }
 
@@ -98,7 +100,8 @@ func (t *testSyncedTlfGetterSetter) IsSyncedTlfPath(tlfPath string) bool {
 	return false
 }
 
-func (t *testSyncedTlfGetterSetter) SetTlfSyncState(tlfID tlf.ID,
+func (t *testSyncedTlfGetterSetter) SetTlfSyncState(
+	_ context.Context, tlfID tlf.ID,
 	config FolderSyncConfig) (<-chan error, error) {
 	t.syncedTlfs[tlfID] = config
 	return nil, nil

@@ -12,7 +12,7 @@ import topBarStories from './top-bar/index.stories'
 import rowStories from './row/index.stories'
 import sendAttachmentToChatStories from './send-attachment-to-chat/index.stories'
 import sendLinkToChatStories from './send-link-to-chat/index.stories'
-
+import reallyDeleteStories from './really-delete/index.stories'
 export default () =>
   [
     bannerStories,
@@ -24,6 +24,7 @@ export default () =>
     headerStories,
     navHeaderStories,
     oopsStories,
+    reallyDeleteStories,
     topBarStories,
     rowStories,
     sendAttachmentToChatStories,

@@ -203,7 +203,6 @@ class ConversationList extends React.PureComponent<Props> {
             keyExtractor={this._keyExtractor}
             // Limit the number of pages rendered ahead of time (which also limits attachment previews loaded)
             windowSize={5}
-            removeClippedSubviews={true}
             forwardedRef={this._listRef}
             onScrollToIndexFailed={this._onScrollToIndexFailed}
           />

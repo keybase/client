@@ -15,8 +15,6 @@ import (
 	"syscall"
 	"time"
 
-	"golang.org/x/net/context"
-
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/install"
@@ -27,6 +25,7 @@ import (
 	"github.com/keybase/client/go/service"
 	"github.com/keybase/client/go/uidmap"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"golang.org/x/net/context"
 )
 
 var cmd libcmdline.Command

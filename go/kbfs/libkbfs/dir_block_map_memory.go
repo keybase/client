@@ -7,29 +7,30 @@ package libkbfs
 import (
 	"context"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/pkg/errors"
 )
 
 // dirBlockMapMemory is an internal structure to track file block
 // data in memory when putting blocks.
 type dirBlockMapMemory struct {
-	blocks map[BlockPointer]*DirBlock
+	blocks map[data.BlockPointer]*data.DirBlock
 }
 
 var _ dirBlockMap = (*dirBlockMapMemory)(nil)
 
 func newDirBlockMapMemory() *dirBlockMapMemory {
-	return &dirBlockMapMemory{make(map[BlockPointer]*DirBlock)}
+	return &dirBlockMapMemory{make(map[data.BlockPointer]*data.DirBlock)}
 }
 
 func (dbmm *dirBlockMapMemory) putBlock(
-	_ context.Context, ptr BlockPointer, block *DirBlock) error {
+	_ context.Context, ptr data.BlockPointer, block *data.DirBlock) error {
 	dbmm.blocks[ptr] = block
 	return nil
 }
 
 func (dbmm *dirBlockMapMemory) getBlock(
-	_ context.Context, ptr BlockPointer) (*DirBlock, error) {
+	_ context.Context, ptr data.BlockPointer) (*data.DirBlock, error) {
 	block, ok := dbmm.blocks[ptr]
 	if !ok {
 		return nil, errors.Errorf("No such block for %s", ptr)
@@ -38,13 +39,13 @@ func (dbmm *dirBlockMapMemory) getBlock(
 }
 
 func (dbmm *dirBlockMapMemory) hasBlock(
-	_ context.Context, ptr BlockPointer) (bool, error) {
+	_ context.Context, ptr data.BlockPointer) (bool, error) {
 	_, ok := dbmm.blocks[ptr]
 	return ok, nil
 }
 
 func (dbmm *dirBlockMapMemory) deleteBlock(
-	_ context.Context, ptr BlockPointer) error {
+	_ context.Context, ptr data.BlockPointer) error {
 	delete(dbmm.blocks, ptr)
 	return nil
 }

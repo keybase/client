@@ -41,7 +41,8 @@ const _ReallyLeaveTeam = (props: Props) => (
       </Text>
       <Text
         type="Body"
-        center={true} style={{
+        center={true}
+        style={{
           margin: globalMargins.medium,
           marginBottom: globalMargins.small,
           marginTop: 0,
@@ -51,7 +52,7 @@ const _ReallyLeaveTeam = (props: Props) => (
         You'll have to add another user as an owner before you can leave {props.name}.
       </Text>
       <ButtonBar>
-        <Button type="Primary" onClick={props.onBack} label="Got it" />
+        <Button onClick={props.onBack} label="Got it" />
       </ButtonBar>
     </Box>
   </MaybePopup>

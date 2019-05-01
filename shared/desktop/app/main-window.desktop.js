@@ -5,7 +5,7 @@ import Window from './window.desktop'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {showDevTools} from '../../local-debug.desktop'
 import {hideDockIcon} from './dock-icon.desktop'
-import {isWindows} from '../../constants/platform'
+import {isDarwin, isWindows} from '../../constants/platform'
 import logger from '../../logger'
 import {resolveRootAsURL} from './resolve-root.desktop'
 import flags from '../../util/feature-flags'
@@ -38,6 +38,7 @@ export default function() {
 
   const mainWindow = new Window(htmlFile, {
     backgroundThrottling: false,
+    frame: isDarwin,
     height: appState.state.height,
     minHeight: 600,
     minWidth: 400,
@@ -50,7 +51,7 @@ export default function() {
     width: appState.state.width,
     x: appState.state.x,
     y: appState.state.y,
-    ...(flags.useNewRouter
+    ...(flags.useNewRouter && isDarwin
       ? {
           titleBarStyle: 'hiddenInset',
         }

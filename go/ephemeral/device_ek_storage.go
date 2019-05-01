@@ -9,7 +9,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keybase/client/go/erasablekv"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -31,7 +30,7 @@ type DeviceEKMap map[keybase1.EkGeneration]keybase1.DeviceEk
 
 type DeviceEKStorage struct {
 	sync.Mutex
-	storage erasablekv.ErasableKVStore
+	storage libkb.ErasableKVStore
 	cache   deviceEKCache
 	indexed bool
 	logger  *log.Logger
@@ -65,9 +64,44 @@ func getLogPrefix(mctx libkb.MetaContext) string {
 	return fmt.Sprintf("[username=%v] ", mctx.G().Env.GetUsername())
 }
 
+func getLocalStorageSecretBoxKey(mctx libkb.MetaContext) (fkey [32]byte, err error) {
+	// Get secret device key
+	encKey, err := mctx.ActiveDevice().EncryptionKey()
+	if err != nil {
+		return fkey, err
+	}
+	kp, ok := encKey.(libkb.NaclDHKeyPair)
+	if !ok || kp.Private == nil {
+		return fkey, libkb.KeyCannotDecryptError{}
+	}
+
+	// Derive symmetric key from device key
+	skey, err := encKey.SecretSymmetricKey(libkb.EncryptionReasonErasableKVLocalStorage)
+	if err != nil {
+		return fkey, err
+	}
+
+	copy(fkey[:], skey[:])
+	return fkey, nil
+}
+
+func deviceEKKeygen(mctx libkb.MetaContext, noiseBytes libkb.NoiseBytes) (fkey [32]byte, err error) {
+	enckey, err := getLocalStorageSecretBoxKey(mctx)
+	if err != nil {
+		return fkey, err
+	}
+
+	xor, err := libkb.NoiseXOR(enckey, noiseBytes)
+	if err != nil {
+		return fkey, err
+	}
+	copy(fkey[:], xor)
+	return fkey, nil
+}
+
 func NewDeviceEKStorage(mctx libkb.MetaContext) *DeviceEKStorage {
 	return &DeviceEKStorage{
-		storage: erasablekv.NewFileErasableKVStore(mctx, deviceEKSubDir),
+		storage: libkb.NewFileErasableKVStore(mctx, deviceEKSubDir, deviceEKKeygen),
 		cache:   make(deviceEKCache),
 		logger:  getLogger(mctx),
 	}
@@ -219,7 +253,7 @@ func (s *DeviceEKStorage) Get(mctx libkb.MetaContext, generation keybase1.EkGene
 	// Try persistent storage.
 	deviceEK, err = s.get(mctx, generation)
 	switch err.(type) {
-	case nil, erasablekv.UnboxError:
+	case nil, libkb.UnboxError:
 		// cache the result
 		cache[generation] = deviceEKCacheItem{
 			DeviceEK: deviceEK,
@@ -241,7 +275,7 @@ func (s *DeviceEKStorage) get(mctx libkb.MetaContext, generation keybase1.EkGene
 
 	if err = s.storage.Get(mctx, key, &deviceEK); err != nil {
 		switch err.(type) {
-		case erasablekv.UnboxError:
+		case libkb.UnboxError:
 			s.ekLogf(mctx, "DeviceEKStorage#get: corrupted generation: %v -> %v: %v", key, generation, err)
 			if ierr := s.storage.Erase(mctx, key); ierr != nil {
 				s.ekLogf(mctx, "DeviceEKStorage#get: unable to delete corrupted generation: %v", ierr)
@@ -295,7 +329,7 @@ func (s *DeviceEKStorage) getCache(mctx libkb.MetaContext) (cache deviceEKCache,
 			}
 			deviceEK, err := s.get(mctx, generation)
 			switch err.(type) {
-			case nil, erasablekv.UnboxError:
+			case nil, libkb.UnboxError:
 				s.cache[generation] = deviceEKCacheItem{
 					DeviceEK: deviceEK,
 					Err:      err,

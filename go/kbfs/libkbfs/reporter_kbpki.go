@@ -10,10 +10,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -78,12 +80,16 @@ var noErrorNames = map[string]bool{
 // tracking.  Notify will make RPCs to the keybase daemon.
 type ReporterKBPKI struct {
 	*ReporterSimple
-	config           Config
-	log              logger.Logger
-	notifyBuffer     chan *keybase1.FSNotification
-	notifyPathBuffer chan string
-	notifySyncBuffer chan *keybase1.FSPathSyncStatus
-	canceler         func()
+	config                  Config
+	log                     logger.Logger
+	vlog                    *libkb.VDebugLog
+	notifyBuffer            chan *keybase1.FSNotification
+	onlineStatusBuffer      chan bool
+	notifyPathBuffer        chan string
+	notifySyncBuffer        chan *keybase1.FSPathSyncStatus
+	notifyOverallSyncBuffer chan keybase1.FolderSyncStatus
+	shutdownCh              chan struct{}
+	canceler                func()
 
 	lastNotifyPathLock sync.Mutex
 	lastNotifyPath     string
@@ -91,13 +97,18 @@ type ReporterKBPKI struct {
 
 // NewReporterKBPKI creates a new ReporterKBPKI.
 func NewReporterKBPKI(config Config, maxErrors, bufSize int) *ReporterKBPKI {
+	log := config.MakeLogger("")
 	r := &ReporterKBPKI{
-		ReporterSimple:   NewReporterSimple(config.Clock(), maxErrors),
-		config:           config,
-		log:              config.MakeLogger(""),
-		notifyBuffer:     make(chan *keybase1.FSNotification, bufSize),
-		notifyPathBuffer: make(chan string, 1),
-		notifySyncBuffer: make(chan *keybase1.FSPathSyncStatus, 1),
+		ReporterSimple:          NewReporterSimple(config.Clock(), maxErrors),
+		config:                  config,
+		log:                     log,
+		vlog:                    config.MakeVLogger(log),
+		notifyBuffer:            make(chan *keybase1.FSNotification, bufSize),
+		onlineStatusBuffer:      make(chan bool, bufSize),
+		notifyPathBuffer:        make(chan string, 1),
+		notifySyncBuffer:        make(chan *keybase1.FSPathSyncStatus, 1),
+		notifyOverallSyncBuffer: make(chan keybase1.FolderSyncStatus, 1),
+		shutdownCh:              make(chan struct{}),
 	}
 	var ctx context.Context
 	ctx, r.canceler = context.WithCancel(context.Background())
@@ -201,9 +212,16 @@ func (r *ReporterKBPKI) Notify(ctx context.Context, notification *keybase1.FSNot
 	select {
 	case r.notifyBuffer <- notification:
 	default:
-		r.log.CDebugf(ctx, "ReporterKBPKI: notify buffer full, dropping %+v",
+		r.vlog.CLogf(
+			ctx, libkb.VLog1, "ReporterKBPKI: notify buffer full, dropping %+v",
 			notification)
 	}
+}
+
+// OnlineStatusChanged notifies the service (and eventually GUI) when we
+// detected we are connected to or disconnected from mdserver.
+func (r *ReporterKBPKI) OnlineStatusChanged(ctx context.Context, online bool) {
+	r.onlineStatusBuffer <- online
 }
 
 func (r *ReporterKBPKI) setLastNotifyPath(p string) (same bool) {
@@ -225,16 +243,23 @@ func (r *ReporterKBPKI) NotifyPathUpdated(ctx context.Context, path string) {
 	case r.notifyPathBuffer <- path:
 	default:
 		if sameAsLast {
-			r.log.CDebugf(ctx,
+			r.vlog.CLogf(
+				ctx, libkb.VLog1,
 				"ReporterKBPKI: notify path buffer full, dropping %s", path)
 		} else {
 			// This should be rare; it only happens when user switches from one
 			// TLF to another, and we happen to have an update from the old TLF
 			// in the buffer before switching subscribed TLF.
-			r.log.CDebugf(ctx,
+			r.vlog.CLogf(
+				ctx, libkb.VLog1,
 				"ReporterKBPKI: notify path buffer full, but path is "+
 					"different from last one, so send in a goroutine %s", path)
-			go func() { r.notifyPathBuffer <- path }()
+			go func() {
+				select {
+				case r.notifyPathBuffer <- path:
+				case <-r.shutdownCh:
+				}
+			}()
 		}
 	}
 }
@@ -249,16 +274,45 @@ func (r *ReporterKBPKI) NotifySyncStatus(ctx context.Context,
 	select {
 	case r.notifySyncBuffer <- status:
 	default:
-		r.log.CDebugf(ctx, "ReporterKBPKI: notify sync buffer full, "+
-			"dropping %+v", status)
+		r.vlog.CLogf(
+			ctx, libkb.VLog1, "ReporterKBPKI: notify sync buffer full, "+
+				"dropping %+v", status)
+	}
+}
+
+// NotifyOverallSyncStatus implements the Reporter interface for ReporterKBPKI.
+func (r *ReporterKBPKI) NotifyOverallSyncStatus(
+	ctx context.Context, status keybase1.FolderSyncStatus) {
+	select {
+	case r.notifyOverallSyncBuffer <- status:
+	default:
+		// If this represents a "complete" status, we can't drop it.
+		// Instead launch a goroutine to make sure it gets sent
+		// eventually.
+		if status.PrefetchStatus == keybase1.PrefetchStatus_COMPLETE {
+			go func() {
+				select {
+				case r.notifyOverallSyncBuffer <- status:
+				case <-r.shutdownCh:
+				}
+			}()
+		} else {
+			r.vlog.CLogf(
+				ctx, libkb.VLog1,
+				"ReporterKBPKI: notify overall sync buffer dropping %+v",
+				status)
+		}
 	}
 }
 
 // Shutdown implements the Reporter interface for ReporterKBPKI.
 func (r *ReporterKBPKI) Shutdown() {
 	r.canceler()
+	close(r.shutdownCh)
 	close(r.notifyBuffer)
+	close(r.onlineStatusBuffer)
 	close(r.notifySyncBuffer)
+	close(r.notifyOverallSyncBuffer)
 }
 
 const reporterSendInterval = time.Second
@@ -292,6 +346,14 @@ func (r *ReporterKBPKI) send(ctx context.Context) {
 				r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
 					"notification: %s", err)
 			}
+		case online, ok := <-r.onlineStatusBuffer:
+			if !ok {
+				return
+			}
+			if err := r.config.KeybaseService().NotifyOnlineStatusChanged(ctx, online); err != nil {
+				r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
+					"NotifyOnlineStatusChanged: %s", err)
+			}
 		case <-sendTicker.C:
 			select {
 			case path, ok := <-r.notifyPathBuffer:
@@ -318,6 +380,19 @@ func (r *ReporterKBPKI) send(ctx context.Context) {
 				}
 			default:
 			}
+
+			select {
+			case status, ok := <-r.notifyOverallSyncBuffer:
+				if !ok {
+					return
+				}
+				if err := r.config.KeybaseService().NotifyOverallSyncStatus(
+					ctx, status); err != nil {
+					r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
+						"overall sync status: %s", err)
+				}
+			default:
+			}
 		case <-ctx.Done():
 			return
 		}
@@ -326,7 +401,7 @@ func (r *ReporterKBPKI) send(ctx context.Context) {
 
 // writeNotification creates FSNotifications from paths for file
 // write events.
-func writeNotification(file path, finish bool) *keybase1.FSNotification {
+func writeNotification(file data.Path, finish bool) *keybase1.FSNotification {
 	n := baseNotification(file, finish)
 	if file.Tlf.Type() == tlf.Public {
 		n.NotificationType = keybase1.FSNotificationType_SIGNING
@@ -338,7 +413,7 @@ func writeNotification(file path, finish bool) *keybase1.FSNotification {
 
 // readNotification creates FSNotifications from paths for file
 // read events.
-func readNotification(file path, finish bool) *keybase1.FSNotification {
+func readNotification(file data.Path, finish bool) *keybase1.FSNotification {
 	n := baseNotification(file, finish)
 	if file.Tlf.Type() == tlf.Public {
 		n.NotificationType = keybase1.FSNotificationType_VERIFYING
@@ -364,7 +439,7 @@ func rekeyNotification(ctx context.Context, config Config, handle *tlfhandle.Han
 	}
 }
 
-func baseFileEditNotification(file path, writer keybase1.UID,
+func baseFileEditNotification(file data.Path, writer keybase1.UID,
 	localTime time.Time) *keybase1.FSNotification {
 	n := baseNotification(file, true)
 	n.WriterUid = writer
@@ -374,7 +449,7 @@ func baseFileEditNotification(file path, writer keybase1.UID,
 
 // fileCreateNotification creates FSNotifications from paths for file
 // create events.
-func fileCreateNotification(file path, writer keybase1.UID,
+func fileCreateNotification(file data.Path, writer keybase1.UID,
 	localTime time.Time) *keybase1.FSNotification {
 	n := baseFileEditNotification(file, writer, localTime)
 	n.NotificationType = keybase1.FSNotificationType_FILE_CREATED
@@ -383,7 +458,7 @@ func fileCreateNotification(file path, writer keybase1.UID,
 
 // fileModifyNotification creates FSNotifications from paths for file
 // modification events.
-func fileModifyNotification(file path, writer keybase1.UID,
+func fileModifyNotification(file data.Path, writer keybase1.UID,
 	localTime time.Time) *keybase1.FSNotification {
 	n := baseFileEditNotification(file, writer, localTime)
 	n.NotificationType = keybase1.FSNotificationType_FILE_MODIFIED
@@ -392,7 +467,7 @@ func fileModifyNotification(file path, writer keybase1.UID,
 
 // fileDeleteNotification creates FSNotifications from paths for file
 // delete events.
-func fileDeleteNotification(file path, writer keybase1.UID,
+func fileDeleteNotification(file data.Path, writer keybase1.UID,
 	localTime time.Time) *keybase1.FSNotification {
 	n := baseFileEditNotification(file, writer, localTime)
 	n.NotificationType = keybase1.FSNotificationType_FILE_DELETED
@@ -401,7 +476,7 @@ func fileDeleteNotification(file path, writer keybase1.UID,
 
 // fileRenameNotification creates FSNotifications from paths for file
 // rename events.
-func fileRenameNotification(oldFile path, newFile path, writer keybase1.UID,
+func fileRenameNotification(oldFile data.Path, newFile data.Path, writer keybase1.UID,
 	localTime time.Time) *keybase1.FSNotification {
 	n := baseFileEditNotification(newFile, writer, localTime)
 	n.NotificationType = keybase1.FSNotificationType_FILE_RENAMED
@@ -421,7 +496,7 @@ func connectionNotification(status keybase1.FSStatusCode) *keybase1.FSNotificati
 
 // baseNotification creates a basic FSNotification without a
 // NotificationType from a path.
-func baseNotification(file path, finish bool) *keybase1.FSNotification {
+func baseNotification(file data.Path, finish bool) *keybase1.FSNotification {
 	code := keybase1.FSStatusCode_START
 	if finish {
 		code = keybase1.FSStatusCode_FINISH

@@ -17,11 +17,13 @@ const mapStateToProps = (state, ownProps) => {
   const username = ownProps.username
   const d = Constants.getDetails(state, username)
   const followThem = Constants.followThem(state, username)
+  const followsYou = Constants.followsYou(state, username)
 
   return {
     _guiID: d.guiID,
     _you: state.config.username,
     followThem,
+    followsYou,
     state: d.state,
     username,
   }
@@ -58,6 +60,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
 })
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   followThem: stateProps.followThem,
+  followsYou: stateProps.followsYou,
   onAccept: () => dispatchProps._onFollow(stateProps._guiID, true),
   onAddToTeam: () => dispatchProps._onAddToTeam(stateProps.username),
   onBrowsePublicFolder: () => dispatchProps._onBrowsePublicFolder(stateProps.username),

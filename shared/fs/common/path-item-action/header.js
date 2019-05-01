@@ -6,7 +6,6 @@ import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import TlfOrPathItemInfo from '../tlf-or-path-item-info'
 import PathItemIcon from '../path-item-icon-container'
-import StaticBreadcrumb from '../static-breadcrumb'
 import CommaSeparatedName from '../comma-separated-name'
 
 type Props = {|
@@ -31,38 +30,55 @@ class Header extends React.PureComponent<Props> {
   componentDidUpdate(prevProps: Props) {
     this.props.path !== prevProps.path && this.refresh()
   }
+  _filesAndFoldersCount() {
+    return (
+      this.props.type === 'folder' && (
+        <Kb.Text type="BodySmall">
+          {this.props.childrenFolders
+            ? `${this.props.childrenFolders} Folder${this.props.childrenFolders > 1 ? 's' : ''}${
+                this.props.childrenFiles ? ', ' : ''
+              }`
+            : undefined}
+          {this.props.childrenFiles
+            ? `${this.props.childrenFiles} File${this.props.childrenFiles > 1 ? 's' : ''}`
+            : undefined}
+        </Kb.Text>
+      )
+    )
+  }
   render() {
     return (
-      <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.container}>
-        <PathItemIcon path={this.props.path} size={32} style={styles.pathItemIcon} />
-        <StaticBreadcrumb pathElements={Types.getPathElements(this.props.path)} />
-        <Kb.Box2 direction="horizontal" style={styles.nameTextBox}>
-          <CommaSeparatedName
-            type="BodySmallSemibold"
-            name={Types.getPathName(this.props.path)}
-            elementStyle={Styles.collapseStyles([
-              styles.stylesNameText,
-              {color: Constants.getPathTextColor(this.props.path)},
-            ])}
-          />
+      <Kb.Box
+        onClick={
+          // This box is necessary as otherwise the click event propagates into
+          // the ListItem2 backed row.
+          event => event.stopPropagation()
+        }
+      >
+        <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.container}>
+          <PathItemIcon path={this.props.path} size={48} style={styles.pathItemIcon} />
+          <Kb.WithTooltip
+            containerStyle={styles.nameTextBox}
+            text={Types.pathToString(this.props.path)}
+            multiline={true}
+            showOnPressMobile={true}
+          >
+            <CommaSeparatedName
+              type="BodySmallSemibold"
+              name={Types.getPathName(this.props.path)}
+              elementStyle={Styles.collapseStyles([
+                styles.stylesNameText,
+                {color: Constants.getPathTextColor(this.props.path)},
+              ])}
+            />
+          </Kb.WithTooltip>
+          {this.props.type === 'file' && (
+            <Kb.Text type="BodySmall">{Constants.humanReadableFileSize(this.props.size)}</Kb.Text>
+          )}
+          {this._filesAndFoldersCount()}
+          <TlfOrPathItemInfo path={this.props.path} mode="menu" />
         </Kb.Box2>
-        {this.props.type === 'file' && (
-          <Kb.Text type="BodySmall">{Constants.humanReadableFileSize(this.props.size)}</Kb.Text>
-        )}
-        {this.props.type === 'folder' && (
-          <Kb.Text type="BodySmall">
-            {this.props.childrenFolders
-              ? `${this.props.childrenFolders} Folder${this.props.childrenFolders > 1 ? 's' : ''}${
-                  this.props.childrenFiles ? ', ' : ''
-                }`
-              : undefined}
-            {this.props.childrenFiles
-              ? `${this.props.childrenFiles} File${this.props.childrenFiles > 1 ? 's' : ''}`
-              : undefined}
-          </Kb.Text>
-        )}
-        <TlfOrPathItemInfo path={this.props.path} mode="default" />
-      </Kb.Box2>
+      </Kb.Box>
     )
   }
 }
@@ -83,6 +99,7 @@ const styles = Styles.styleSheetCreate({
   }),
   nameTextBox: Styles.platformStyles({
     common: {
+      ...Styles.globalStyles.flexBoxRow,
       flexWrap: 'wrap',
     },
     isElectron: {

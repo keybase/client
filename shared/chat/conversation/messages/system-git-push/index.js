@@ -12,6 +12,7 @@ const branchRefPrefix = 'refs/heads/'
 
 type Props = {
   message: Types.MessageSystemGitPush,
+  onClickCommit: (commitHash: string) => void,
   onClickUserAvatar: (username: string) => void,
   onViewGitRepo: (repoID: string, teamname: string) => void,
 }
@@ -46,7 +47,16 @@ const GitPushCreate = ({pusher, repo, repoID, team, onViewGitRepo}) => {
   )
 }
 
-const GitPushDefault = ({pusher, commitRef, repo, repoID, team, branchName, onViewGitRepo}) => {
+const GitPushDefault = ({
+  pusher,
+  commitRef,
+  repo,
+  repoID,
+  team,
+  branchName,
+  onViewGitRepo,
+  onClickCommit,
+}) => {
   return (
     <Box style={globalStyles.flexBoxColumn}>
       <Text center={true} type="BodySmallSemibold" style={{marginBottom: globalMargins.xtiny}}>
@@ -82,7 +92,6 @@ const GitPushDefault = ({pusher, commitRef, repo, repoID, team, branchName, onVi
               >
                 <Text
                   type="Terminal"
-                  selectable={true}
                   style={platformStyles({
                     common: {
                       color: globalColors.blue,
@@ -90,6 +99,7 @@ const GitPushDefault = ({pusher, commitRef, repo, repoID, team, branchName, onVi
                       lineHeight: 16,
                     },
                   })}
+                  onClick={() => onClickCommit(commit.commitHash)}
                 >
                   {commit.commitHash.substr(0, 8)}
                 </Text>
@@ -159,6 +169,7 @@ class GitPush extends React.PureComponent<Props> {
                     repoID={repoID}
                     team={team}
                     onViewGitRepo={this.props.onViewGitRepo}
+                    onClickCommit={this.props.onClickCommit}
                   />
                 </GitPushCommon>
               )

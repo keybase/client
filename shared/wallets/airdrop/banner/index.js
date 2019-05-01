@@ -14,13 +14,7 @@ const Banner = (p: Props) => {
   if (!p.show) return null
 
   const join = (
-    <Kb.Button
-      type="PrimaryColoredBackground"
-      backgroundMode="Purple"
-      label="Join the airdrop"
-      onClick={p.onCheckQualify}
-      small={true}
-    />
+    <Kb.Button backgroundColor="purple" label="Join the airdrop" onClick={p.onCheckQualify} small={true} />
   )
 
   const textAndButtons = Styles.isMobile ? (
@@ -32,8 +26,8 @@ const Banner = (p: Props) => {
         <Kb.Box2 direction="horizontal" gap="tiny" style={styles.buttonContainer}>
           {join}
           <Kb.Button
-            type="SecondaryColoredBackground"
-            backgroundMode="Purple"
+            mode="Secondary"
+            backgroundColor="purple"
             label="Later"
             onClick={p.onCancel}
             small={true}

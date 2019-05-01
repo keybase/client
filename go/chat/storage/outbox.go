@@ -131,6 +131,7 @@ func (o *Outbox) SetClock(cl clockwork.Clock) {
 
 func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
 	msg chat1.MessagePlaintext, suppliedOutboxID *chat1.OutboxID,
+	sendOpts *chat1.SenderSendOptions, prepareOpts *chat1.SenderPrepareOptions,
 	identifyBehavior keybase1.TLFIdentifyBehavior) (rec chat1.OutboxRecord, err Error) {
 	locks.Outbox.Lock()
 	defer locks.Outbox.Unlock()
@@ -178,6 +179,8 @@ func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
 		OutboxID:         outboxID,
 		IdentifyBehavior: identifyBehavior,
 		Ordinal:          prevOrdinal,
+		SendOpts:         sendOpts,
+		PrepareOpts:      prepareOpts,
 	}
 	obox.Records = append(obox.Records, rec)
 

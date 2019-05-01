@@ -5,19 +5,33 @@ import * as Styles from '../../styles'
 import * as Tabs from '../../constants/tabs'
 import KeyHandler from '../../util/key-handler.desktop'
 import {isDarwin} from '../../constants/platform'
-import type {Props} from '.'
 import './tab-bar.css'
 
+type Props = {|
+  badgeNumbers: {[key: string]: number},
+  fullname: string,
+  isWalletsNew?: boolean,
+  onHelp: () => void,
+  onProfileClick: () => void,
+  onQuit: () => void,
+  onSettings: () => void,
+  onSignOut: () => void,
+  onTabClick: (tab: Tabs.Tab) => void,
+  selectedTab: Tabs.Tab,
+  uploading: boolean,
+  username: string,
+|}
+
 const data = {
-  [Tabs.chatTab]: {icon: 'iconfont-nav-chat', label: 'Chat'},
-  [Tabs.devicesTab]: {icon: 'iconfont-nav-devices', label: 'Devices'},
-  [Tabs.fsTab]: {icon: 'iconfont-nav-files', label: 'Files'},
-  [Tabs.gitTab]: {icon: 'iconfont-nav-git', label: 'Git'},
-  [Tabs.peopleTab]: {icon: 'iconfont-nav-people', label: 'People'},
-  [Tabs.profileTab]: {icon: 'iconfont-nav-people', label: 'People'},
-  [Tabs.settingsTab]: {icon: 'iconfont-nav-settings', label: 'Settings'},
-  [Tabs.teamsTab]: {icon: 'iconfont-nav-teams', label: 'Teams'},
-  [Tabs.walletsTab]: {icon: 'iconfont-nav-wallets', label: 'Wallet'},
+  [Tabs.chatTab]: {icon: 'iconfont-nav-2-chat', label: 'Chat'},
+  [Tabs.devicesTab]: {icon: 'iconfont-nav-2-devices', label: 'Devices'},
+  [Tabs.fsTab]: {icon: 'iconfont-nav-2-files', label: 'Files'},
+  [Tabs.gitTab]: {icon: 'iconfont-nav-2-git', label: 'Git'},
+  [Tabs.peopleTab]: {icon: 'iconfont-nav-2-people', label: 'People'},
+  [Tabs.profileTab]: {icon: 'iconfont-nav-2-people', label: 'People'},
+  [Tabs.settingsTab]: {icon: 'iconfont-nav-2-settings', label: 'Settings'},
+  [Tabs.teamsTab]: {icon: 'iconfont-nav-2-teams', label: 'Teams'},
+  [Tabs.walletsTab]: {icon: 'iconfont-nav-2-wallets', label: 'Wallet'},
 }
 
 const tabs = [
@@ -65,7 +79,7 @@ class TabBar extends React.PureComponent<Props, State> {
   _menuItems = () => [
     {
       onClick: this.props.onProfileClick,
-      title: 'View Profile',
+      title: 'View profile',
     },
     'Divider',
     {
@@ -80,6 +94,11 @@ class TabBar extends React.PureComponent<Props, State> {
       danger: true,
       onClick: this.props.onSignOut,
       title: 'Sign out',
+    },
+    {
+      danger: true,
+      onClick: this.props.onQuit,
+      title: 'Quit Keybase',
     },
   ]
 
@@ -107,7 +126,7 @@ class TabBar extends React.PureComponent<Props, State> {
                   style={styles.avatar}
                 />
                 <>
-                  <Kb.Text className="username" type="BodyTinySemibold" style={styles.username}>
+                  <Kb.Text className="username" lineClamp={1} type="BodyTinySemibold" style={styles.username}>
                     Hi {p.username}!
                   </Kb.Text>
                   <Kb.Icon
@@ -141,7 +160,16 @@ class TabBar extends React.PureComponent<Props, State> {
                   style={styles.tab}
                 >
                   <Kb.Box2 className="tab-highlight" direction="vertical" fullHeight={true} />
-                  <Kb.Icon className="tab-icon" type={data[t].icon} sizeType="Big" />
+                  <Kb.Box2 style={styles.iconBox} direction="horizontal">
+                    <Kb.Icon className="tab-icon" type={data[t].icon} sizeType="Big" />
+                    {p.uploading && t === Tabs.fsTab && (
+                      <Kb.Icon
+                        type={'icon-addon-file-uploading'}
+                        sizeType={'Default'}
+                        style={styles.badgeIcon}
+                      />
+                    )}
+                  </Kb.Box2>
                   <Kb.Text className="tab-label" type="BodySmallSemibold">
                     {data[t].label}
                   </Kb.Text>
@@ -158,9 +186,18 @@ class TabBar extends React.PureComponent<Props, State> {
 
 const styles = Styles.styleSheetCreate({
   avatar: {marginLeft: 14},
+  badgeIcon: {
+    bottom: -4,
+    position: 'absolute',
+    right: 8,
+  },
   caret: {marginRight: 12},
   divider: {marginTop: Styles.globalMargins.tiny},
   header: {height: 80, marginBottom: 20},
+  iconBox: {
+    justifyContent: 'flex-end',
+    position: 'relative',
+  },
   menu: {marginLeft: Styles.globalMargins.tiny},
   nameContainer: {height: 24},
   osButtons: Styles.platformStyles({
@@ -174,7 +211,9 @@ const styles = Styles.styleSheetCreate({
     paddingRight: 12,
     position: 'relative',
   },
-  username: {color: Styles.globalColors.blue3, flexGrow: 1},
+  username: Styles.platformStyles({
+    isElectron: {color: Styles.globalColors.blue3, flexGrow: 1, wordBreak: 'break-all'},
+  }),
 })
 
 const keysMap = Tabs.desktopTabOrder.reduce((map, tab, index) => {

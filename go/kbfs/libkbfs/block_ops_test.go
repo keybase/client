@@ -10,12 +10,14 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfshash"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libkey"
+	"github.com/keybase/client/go/kbfs/test/clocktest"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -67,7 +69,7 @@ func (kg fakeBlockKeyGetter) GetTLFCryptKeyForEncryption(
 }
 
 func (kg fakeBlockKeyGetter) GetTLFCryptKeyForBlockDecryption(
-	ctx context.Context, kmd libkey.KeyMetadata, blockPtr BlockPointer) (
+	ctx context.Context, kmd libkey.KeyMetadata, blockPtr data.BlockPointer) (
 	kbfscrypto.TLFCryptKey, error) {
 	fkmd := kmd.(fakeKeyMetadata)
 	i := int(blockPtr.KeyGen - kbfsmd.FirstValidKeyGen)
@@ -84,11 +86,12 @@ type testBlockOpsConfig struct {
 	logMaker
 	bserver BlockServer
 	cp      cryptoPure
-	cache   BlockCache
+	cache   data.BlockCache
 	diskBlockCacheGetter
 	*testSyncedTlfGetterSetter
 	initModeGetter
-	clock Clock
+	clock    Clock
+	reporter Reporter
 }
 
 var _ blockOpsConfig = (*testBlockOpsConfig)(nil)
@@ -105,12 +108,12 @@ func (config testBlockOpsConfig) keyGetter() blockKeyGetter {
 	return fakeBlockKeyGetter{}
 }
 
-func (config testBlockOpsConfig) BlockCache() BlockCache {
+func (config testBlockOpsConfig) BlockCache() data.BlockCache {
 	return config.cache
 }
 
-func (config testBlockOpsConfig) DataVersion() DataVer {
-	return ChildHolesDataVer
+func (config testBlockOpsConfig) DataVersion() data.Ver {
+	return data.ChildHolesVer
 }
 
 func (config testBlockOpsConfig) BlockCryptVersion() kbfscrypto.EncryptionVer {
@@ -121,55 +124,61 @@ func (config testBlockOpsConfig) Clock() Clock {
 	return config.clock
 }
 
+func (config testBlockOpsConfig) Reporter() Reporter {
+	return config.reporter
+}
+
 func makeTestBlockOpsConfig(t *testing.T) testBlockOpsConfig {
 	lm := newTestLogMaker(t)
 	codecGetter := newTestCodecGetter()
 	bserver := NewBlockServerMemory(lm.MakeLogger(""))
 	crypto := MakeCryptoCommon(codecGetter.Codec(), makeBlockCryptV1())
-	cache := NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity(NewInitModeFromType(InitDefault)))
+	cache := data.NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity(NewInitModeFromType(InitDefault)))
 	dbcg := newTestDiskBlockCacheGetter(t, nil)
 	stgs := newTestSyncedTlfGetterSetter()
+	clock := clocktest.NewTestClockNow()
 	return testBlockOpsConfig{codecGetter, lm, bserver, crypto, cache, dbcg,
-		stgs, testInitModeGetter{InitDefault}, newTestClockNow()}
+		stgs, testInitModeGetter{InitDefault}, clock,
+		NewReporterSimple(clock, 1)}
 }
 
 // TestBlockOpsReadySuccess checks that BlockOpsStandard.Ready()
 // encrypts its given block properly.
 func TestBlockOpsReadySuccess(t *testing.T) {
+	ctx := context.Background()
 	config := makeTestBlockOpsConfig(t)
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
 		0)
-	defer bops.Shutdown()
+	defer bops.Shutdown(ctx)
 
 	tlfID := tlf.FakeID(0, tlf.Private)
 	var latestKeyGen kbfsmd.KeyGen = 5
 	kmd := makeFakeKeyMetadata(tlfID, latestKeyGen)
 
-	block := &FileBlock{
+	block := &data.FileBlock{
 		Contents: []byte{1, 2, 3, 4, 5},
 	}
 
 	encodedBlock, err := config.Codec().Encode(block)
 	require.NoError(t, err)
 
-	ctx := context.Background()
 	id, plainSize, readyBlockData, err := bops.Ready(ctx, kmd, block)
 	require.NoError(t, err)
 
 	require.Equal(t, len(encodedBlock), plainSize)
 
-	err = kbfsblock.VerifyID(readyBlockData.buf, id)
+	err = kbfsblock.VerifyID(readyBlockData.Buf, id)
 	require.NoError(t, err)
 
 	var encryptedBlock kbfscrypto.EncryptedBlock
-	err = config.Codec().Decode(readyBlockData.buf, &encryptedBlock)
+	err = config.Codec().Decode(readyBlockData.Buf, &encryptedBlock)
 	require.NoError(t, err)
 
-	decryptedBlock := &FileBlock{}
+	decryptedBlock := &data.FileBlock{}
 	err = config.cryptoPure().DecryptBlock(
 		encryptedBlock, kmd.keys[latestKeyGen-kbfsmd.FirstValidKeyGen],
-		readyBlockData.serverHalf, decryptedBlock)
+		readyBlockData.ServerHalf, decryptedBlock)
 	require.NoError(t, err)
 	decryptedBlock.SetEncodedSize(uint32(readyBlockData.GetEncodedSize()))
 	require.Equal(t, block, decryptedBlock)
@@ -178,17 +187,17 @@ func TestBlockOpsReadySuccess(t *testing.T) {
 // TestBlockOpsReadyFailKeyGet checks that BlockOpsStandard.Ready()
 // fails properly if we fail to retrieve the key.
 func TestBlockOpsReadyFailKeyGet(t *testing.T) {
+	ctx := context.Background()
 	config := makeTestBlockOpsConfig(t)
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
 		0)
-	defer bops.Shutdown()
+	defer bops.Shutdown(ctx)
 
 	tlfID := tlf.FakeID(0, tlf.Private)
 	kmd := makeFakeKeyMetadata(tlfID, 0)
 
-	ctx := context.Background()
-	_, _, _, err := bops.Ready(ctx, kmd, &FileBlock{})
+	_, _, _, err := bops.Ready(ctx, kmd, &data.FileBlock{})
 	require.EqualError(t, err, "no keys for encryption")
 }
 
@@ -205,18 +214,18 @@ func (c badServerHalfMaker) MakeRandomBlockCryptKeyServerHalf() (
 // TestBlockOpsReadyFailServerHalfGet checks that BlockOpsStandard.Ready()
 // fails properly if we fail to generate a  server half.
 func TestBlockOpsReadyFailServerHalfGet(t *testing.T) {
+	ctx := context.Background()
 	config := makeTestBlockOpsConfig(t)
 	config.cp = badServerHalfMaker{config.cryptoPure()}
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
 		0)
-	defer bops.Shutdown()
+	defer bops.Shutdown(ctx)
 
 	tlfID := tlf.FakeID(0, tlf.Private)
 	kmd := makeFakeKeyMetadata(tlfID, kbfsmd.FirstValidKeyGen)
 
-	ctx := context.Background()
-	_, _, _, err := bops.Ready(ctx, kmd, &FileBlock{})
+	_, _, _, err := bops.Ready(ctx, kmd, &data.FileBlock{})
 	require.EqualError(t, err, "could not make server half")
 }
 
@@ -225,7 +234,7 @@ type badBlockEncryptor struct {
 }
 
 func (c badBlockEncryptor) EncryptBlock(
-	block Block, tlfCryptKey kbfscrypto.TLFCryptKey,
+	block data.Block, tlfCryptKey kbfscrypto.TLFCryptKey,
 	blockServerHalf kbfscrypto.BlockCryptKeyServerHalf) (
 	plainSize int, encryptedBlock kbfscrypto.EncryptedBlock, err error) {
 	return 0, kbfscrypto.EncryptedBlock{}, errors.New("could not encrypt block")
@@ -234,18 +243,18 @@ func (c badBlockEncryptor) EncryptBlock(
 // TestBlockOpsReadyFailEncryption checks that BlockOpsStandard.Ready()
 // fails properly if we fail to encrypt the block.
 func TestBlockOpsReadyFailEncryption(t *testing.T) {
+	ctx := context.Background()
 	config := makeTestBlockOpsConfig(t)
 	config.cp = badBlockEncryptor{config.cryptoPure()}
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
 		0)
-	defer bops.Shutdown()
+	defer bops.Shutdown(ctx)
 
 	tlfID := tlf.FakeID(0, tlf.Private)
 	kmd := makeFakeKeyMetadata(tlfID, kbfsmd.FirstValidKeyGen)
 
-	ctx := context.Background()
-	_, _, _, err := bops.Ready(ctx, kmd, &FileBlock{})
+	_, _, _, err := bops.Ready(ctx, kmd, &data.FileBlock{})
 	require.EqualError(t, err, "could not encrypt block")
 }
 
@@ -254,7 +263,7 @@ type tooSmallBlockEncryptor struct {
 }
 
 func (c tooSmallBlockEncryptor) EncryptBlock(
-	block Block, tlfCryptKey kbfscrypto.TLFCryptKey,
+	block data.Block, tlfCryptKey kbfscrypto.TLFCryptKey,
 	blockServerHalf kbfscrypto.BlockCryptKeyServerHalf) (
 	plainSize int, encryptedBlock kbfscrypto.EncryptedBlock, err error) {
 	plainSize, encryptedBlock, err = c.CryptoCommon.EncryptBlock(
@@ -277,18 +286,18 @@ func (c badEncoder) Encode(o interface{}) ([]byte, error) {
 // TestBlockOpsReadyFailEncode checks that BlockOpsStandard.Ready()
 // fails properly if we fail to encode the encrypted block.
 func TestBlockOpsReadyFailEncode(t *testing.T) {
+	ctx := context.Background()
 	config := makeTestBlockOpsConfig(t)
 	config.testCodecGetter.codec = badEncoder{config.codec}
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
 		0)
-	defer bops.Shutdown()
+	defer bops.Shutdown(ctx)
 
 	tlfID := tlf.FakeID(0, tlf.Private)
 	kmd := makeFakeKeyMetadata(tlfID, kbfsmd.FirstValidKeyGen)
 
-	ctx := context.Background()
-	_, _, _, err := bops.Ready(ctx, kmd, &FileBlock{})
+	_, _, _, err := bops.Ready(ctx, kmd, &data.FileBlock{})
 	require.EqualError(t, err, "could not encode")
 }
 
@@ -304,18 +313,18 @@ func (c tooSmallEncoder) Encode(o interface{}) ([]byte, error) {
 // BlockOpsStandard.Ready() fails properly if the encrypted block
 // encodes to a too-small buffer.
 func TestBlockOpsReadyTooSmallEncode(t *testing.T) {
+	ctx := context.Background()
 	config := makeTestBlockOpsConfig(t)
 	config.codec = tooSmallEncoder{config.codec}
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
 		0)
-	defer bops.Shutdown()
+	defer bops.Shutdown(ctx)
 
 	tlfID := tlf.FakeID(0, tlf.Private)
 	kmd := makeFakeKeyMetadata(tlfID, kbfsmd.FirstValidKeyGen)
 
-	ctx := context.Background()
-	_, _, _, err := bops.Ready(ctx, kmd, &FileBlock{})
+	_, _, _, err := bops.Ready(ctx, kmd, &data.FileBlock{})
 	require.IsType(t, TooLowByteCountError{}, err)
 }
 
@@ -323,37 +332,37 @@ func TestBlockOpsReadyTooSmallEncode(t *testing.T) {
 // retrieves a block properly, even if that block was encoded for a
 // previous key generation.
 func TestBlockOpsGetSuccess(t *testing.T) {
+	ctx := context.Background()
 	config := makeTestBlockOpsConfig(t)
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
 		0)
-	defer bops.Shutdown()
+	defer bops.Shutdown(ctx)
 
 	tlfID := tlf.FakeID(0, tlf.Private)
 	var keyGen kbfsmd.KeyGen = 3
 	kmd1 := makeFakeKeyMetadata(tlfID, keyGen)
 
-	block := &FileBlock{
+	block := &data.FileBlock{
 		Contents: []byte{1, 2, 3, 4, 5},
 	}
 
-	ctx := context.Background()
 	id, _, readyBlockData, err := bops.Ready(ctx, kmd1, block)
 	require.NoError(t, err)
 
 	bCtx := kbfsblock.MakeFirstContext(
 		keybase1.MakeTestUID(1).AsUserOrTeam(), keybase1.BlockType_DATA)
 	err = config.bserver.Put(
-		ctx, tlfID, id, bCtx, readyBlockData.buf, readyBlockData.serverHalf,
+		ctx, tlfID, id, bCtx, readyBlockData.Buf, readyBlockData.ServerHalf,
 		DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	kmd2 := makeFakeKeyMetadata(tlfID, keyGen+3)
-	decryptedBlock := &FileBlock{}
+	decryptedBlock := &data.FileBlock{}
 	err = bops.Get(ctx, kmd2,
-		BlockPointer{ID: id, DataVer: FirstValidDataVer,
+		data.BlockPointer{ID: id, DataVer: data.FirstValidVer,
 			KeyGen: keyGen, Context: bCtx},
-		decryptedBlock, NoCacheEntry)
+		decryptedBlock, data.NoCacheEntry)
 	require.NoError(t, err)
 	require.Equal(t, block, decryptedBlock)
 }
@@ -361,27 +370,27 @@ func TestBlockOpsGetSuccess(t *testing.T) {
 // TestBlockOpsReadySuccess checks that BlockOpsStandard.Get() fails
 // if it can't retrieve the block from the server.
 func TestBlockOpsGetFailServerGet(t *testing.T) {
+	ctx := context.Background()
 	config := makeTestBlockOpsConfig(t)
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
 		0)
-	defer bops.Shutdown()
+	defer bops.Shutdown(ctx)
 
 	tlfID := tlf.FakeID(0, tlf.Private)
 	var latestKeyGen kbfsmd.KeyGen = 5
 	kmd := makeFakeKeyMetadata(tlfID, latestKeyGen)
 
-	ctx := context.Background()
-	id, _, _, err := bops.Ready(ctx, kmd, &FileBlock{})
+	id, _, _, err := bops.Ready(ctx, kmd, &data.FileBlock{})
 	require.NoError(t, err)
 
 	bCtx := kbfsblock.MakeFirstContext(
 		keybase1.MakeTestUID(1).AsUserOrTeam(), keybase1.BlockType_DATA)
-	var decryptedBlock FileBlock
+	var decryptedBlock data.FileBlock
 	err = bops.Get(ctx, kmd,
-		BlockPointer{ID: id, DataVer: FirstValidDataVer,
+		data.BlockPointer{ID: id, DataVer: data.FirstValidVer,
 			KeyGen: latestKeyGen, Context: bCtx},
-		&decryptedBlock, NoCacheEntry)
+		&decryptedBlock, data.NoCacheEntry)
 	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
 }
 
@@ -405,65 +414,65 @@ func (bserver badGetBlockServer) Get(
 // TestBlockOpsReadyFailVerify checks that BlockOpsStandard.Get()
 // fails if it can't verify the block retrieved from the server.
 func TestBlockOpsGetFailVerify(t *testing.T) {
+	ctx := context.Background()
 	config := makeTestBlockOpsConfig(t)
 	config.bserver = badGetBlockServer{config.bserver}
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
 		0)
-	defer bops.Shutdown()
+	defer bops.Shutdown(ctx)
 
 	tlfID := tlf.FakeID(0, tlf.Private)
 	var latestKeyGen kbfsmd.KeyGen = 5
 	kmd := makeFakeKeyMetadata(tlfID, latestKeyGen)
 
-	ctx := context.Background()
-	id, _, readyBlockData, err := bops.Ready(ctx, kmd, &FileBlock{})
+	id, _, readyBlockData, err := bops.Ready(ctx, kmd, &data.FileBlock{})
 	require.NoError(t, err)
 
 	bCtx := kbfsblock.MakeFirstContext(
 		keybase1.MakeTestUID(1).AsUserOrTeam(), keybase1.BlockType_DATA)
 	err = config.bserver.Put(
-		ctx, tlfID, id, bCtx, readyBlockData.buf, readyBlockData.serverHalf,
+		ctx, tlfID, id, bCtx, readyBlockData.Buf, readyBlockData.ServerHalf,
 		DiskBlockAnyCache)
 	require.NoError(t, err)
 
-	var decryptedBlock FileBlock
+	var decryptedBlock data.FileBlock
 	err = bops.Get(ctx, kmd,
-		BlockPointer{ID: id, DataVer: FirstValidDataVer,
+		data.BlockPointer{ID: id, DataVer: data.FirstValidVer,
 			KeyGen: latestKeyGen, Context: bCtx},
-		&decryptedBlock, NoCacheEntry)
+		&decryptedBlock, data.NoCacheEntry)
 	require.IsType(t, kbfshash.HashMismatchError{}, errors.Cause(err))
 }
 
 // TestBlockOpsReadyFailKeyGet checks that BlockOpsStandard.Get()
 // fails if it can't get the decryption key.
 func TestBlockOpsGetFailKeyGet(t *testing.T) {
+	ctx := context.Background()
 	config := makeTestBlockOpsConfig(t)
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
 		0)
-	defer bops.Shutdown()
+	defer bops.Shutdown(ctx)
 
 	tlfID := tlf.FakeID(0, tlf.Private)
 	var latestKeyGen kbfsmd.KeyGen = 5
 	kmd := makeFakeKeyMetadata(tlfID, latestKeyGen)
 
-	ctx := context.Background()
-	id, _, readyBlockData, err := bops.Ready(ctx, kmd, &FileBlock{})
+	id, _, readyBlockData, err := bops.Ready(ctx, kmd, &data.FileBlock{})
 	require.NoError(t, err)
 
 	bCtx := kbfsblock.MakeFirstContext(
 		keybase1.MakeTestUID(1).AsUserOrTeam(), keybase1.BlockType_DATA)
 	err = config.bserver.Put(
-		ctx, tlfID, id, bCtx, readyBlockData.buf, readyBlockData.serverHalf,
+		ctx, tlfID, id, bCtx, readyBlockData.Buf, readyBlockData.ServerHalf,
 		DiskBlockAnyCache)
 	require.NoError(t, err)
 
-	var decryptedBlock FileBlock
+	var decryptedBlock data.FileBlock
 	err = bops.Get(ctx, kmd,
-		BlockPointer{ID: id, DataVer: FirstValidDataVer,
+		data.BlockPointer{ID: id, DataVer: data.FirstValidVer,
 			KeyGen: latestKeyGen + 1, Context: bCtx},
-		&decryptedBlock, NoCacheEntry)
+		&decryptedBlock, data.NoCacheEntry)
 	require.EqualError(t, err, fmt.Sprintf(
 		"no key for block decryption (keygen=%d)", latestKeyGen+1))
 }
@@ -503,6 +512,7 @@ func (c *badDecoder) Decode(buf []byte, o interface{}) error {
 // TestBlockOpsReadyFailDecode checks that BlockOpsStandard.Get()
 // fails if it can't decode the encrypted block.
 func TestBlockOpsGetFailDecode(t *testing.T) {
+	ctx := context.Background()
 	config := makeTestBlockOpsConfig(t)
 	badDecoder := badDecoder{
 		Codec:  config.Codec(),
@@ -512,31 +522,30 @@ func TestBlockOpsGetFailDecode(t *testing.T) {
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
 		0)
-	defer bops.Shutdown()
+	defer bops.Shutdown(ctx)
 
 	tlfID := tlf.FakeID(0, tlf.Private)
 	var latestKeyGen kbfsmd.KeyGen = 5
 	kmd := makeFakeKeyMetadata(tlfID, latestKeyGen)
 
-	ctx := context.Background()
-	id, _, readyBlockData, err := bops.Ready(ctx, kmd, &FileBlock{})
+	id, _, readyBlockData, err := bops.Ready(ctx, kmd, &data.FileBlock{})
 	require.NoError(t, err)
 
 	decodeErr := errors.New("could not decode")
-	badDecoder.putError(readyBlockData.buf, decodeErr)
+	badDecoder.putError(readyBlockData.Buf, decodeErr)
 
 	bCtx := kbfsblock.MakeFirstContext(
 		keybase1.MakeTestUID(1).AsUserOrTeam(), keybase1.BlockType_DATA)
 	err = config.bserver.Put(
-		ctx, tlfID, id, bCtx, readyBlockData.buf, readyBlockData.serverHalf,
+		ctx, tlfID, id, bCtx, readyBlockData.Buf, readyBlockData.ServerHalf,
 		DiskBlockAnyCache)
 	require.NoError(t, err)
 
-	var decryptedBlock FileBlock
+	var decryptedBlock data.FileBlock
 	err = bops.Get(ctx, kmd,
-		BlockPointer{ID: id, DataVer: FirstValidDataVer,
+		data.BlockPointer{ID: id, DataVer: data.FirstValidVer,
 			KeyGen: latestKeyGen, Context: bCtx},
-		&decryptedBlock, NoCacheEntry)
+		&decryptedBlock, data.NoCacheEntry)
 	require.Equal(t, decodeErr, err)
 }
 
@@ -546,44 +555,45 @@ type badBlockDecryptor struct {
 
 func (c badBlockDecryptor) DecryptBlock(
 	_ kbfscrypto.EncryptedBlock, _ kbfscrypto.TLFCryptKey,
-	_ kbfscrypto.BlockCryptKeyServerHalf, _ Block) error {
+	_ kbfscrypto.BlockCryptKeyServerHalf, _ data.Block) error {
 	return errors.New("could not decrypt block")
 }
 
 // TestBlockOpsReadyFailDecrypt checks that BlockOpsStandard.Get()
 // fails if it can't decrypt the encrypted block.
 func TestBlockOpsGetFailDecrypt(t *testing.T) {
+	ctx := context.Background()
 	config := makeTestBlockOpsConfig(t)
 	config.cp = badBlockDecryptor{config.cryptoPure()}
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
 		0)
-	defer bops.Shutdown()
+	defer bops.Shutdown(ctx)
 
 	tlfID := tlf.FakeID(0, tlf.Private)
 	var latestKeyGen kbfsmd.KeyGen = 5
 	kmd := makeFakeKeyMetadata(tlfID, latestKeyGen)
 
-	ctx := context.Background()
-	id, _, readyBlockData, err := bops.Ready(ctx, kmd, &FileBlock{})
+	id, _, readyBlockData, err := bops.Ready(ctx, kmd, &data.FileBlock{})
 	require.NoError(t, err)
 
 	bCtx := kbfsblock.MakeFirstContext(
 		keybase1.MakeTestUID(1).AsUserOrTeam(), keybase1.BlockType_DATA)
 	err = config.bserver.Put(
-		ctx, tlfID, id, bCtx, readyBlockData.buf, readyBlockData.serverHalf,
+		ctx, tlfID, id, bCtx, readyBlockData.Buf, readyBlockData.ServerHalf,
 		DiskBlockAnyCache)
 	require.NoError(t, err)
 
-	var decryptedBlock FileBlock
+	var decryptedBlock data.FileBlock
 	err = bops.Get(ctx, kmd,
-		BlockPointer{ID: id, DataVer: FirstValidDataVer,
+		data.BlockPointer{ID: id, DataVer: data.FirstValidVer,
 			KeyGen: latestKeyGen, Context: bCtx},
-		&decryptedBlock, NoCacheEntry)
+		&decryptedBlock, data.NoCacheEntry)
 	require.EqualError(t, err, "could not decrypt block")
 }
 
 func TestBlockOpsDeleteSuccess(t *testing.T) {
+	ctx := context.Background()
 	ctr := NewSafeTestReporter(t)
 	mockCtrl := gomock.NewController(ctr)
 	defer mockCtrl.Finish()
@@ -594,12 +604,12 @@ func TestBlockOpsDeleteSuccess(t *testing.T) {
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
 		0)
-	defer bops.Shutdown()
+	defer bops.Shutdown(ctx)
 
 	// Expect one call to delete several blocks.
 
-	b1 := BlockPointer{ID: kbfsblock.FakeID(1)}
-	b2 := BlockPointer{ID: kbfsblock.FakeID(2)}
+	b1 := data.BlockPointer{ID: kbfsblock.FakeID(1)}
+	b2 := data.BlockPointer{ID: kbfsblock.FakeID(2)}
 
 	contexts := kbfsblock.ContextMap{
 		b1.ID: {b1.Context},
@@ -611,17 +621,17 @@ func TestBlockOpsDeleteSuccess(t *testing.T) {
 		b2.ID: 3,
 	}
 
-	ctx := context.Background()
 	tlfID := tlf.FakeID(1, tlf.Private)
 	bserver.EXPECT().RemoveBlockReferences(ctx, tlfID, contexts).
 		Return(expectedLiveCounts, nil)
 
-	liveCounts, err := bops.Delete(ctx, tlfID, []BlockPointer{b1, b2})
+	liveCounts, err := bops.Delete(ctx, tlfID, []data.BlockPointer{b1, b2})
 	require.NoError(t, err)
 	require.Equal(t, expectedLiveCounts, liveCounts)
 }
 
 func TestBlockOpsDeleteFail(t *testing.T) {
+	ctx := context.Background()
 	ctr := NewSafeTestReporter(t)
 	mockCtrl := gomock.NewController(ctr)
 	defer mockCtrl.Finish()
@@ -632,10 +642,10 @@ func TestBlockOpsDeleteFail(t *testing.T) {
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
 		0)
-	defer bops.Shutdown()
+	defer bops.Shutdown(ctx)
 
-	b1 := BlockPointer{ID: kbfsblock.FakeID(1)}
-	b2 := BlockPointer{ID: kbfsblock.FakeID(2)}
+	b1 := data.BlockPointer{ID: kbfsblock.FakeID(1)}
+	b2 := data.BlockPointer{ID: kbfsblock.FakeID(2)}
 
 	contexts := kbfsblock.ContextMap{
 		b1.ID: {b1.Context},
@@ -644,17 +654,17 @@ func TestBlockOpsDeleteFail(t *testing.T) {
 
 	// Fail the delete call.
 
-	ctx := context.Background()
 	tlfID := tlf.FakeID(1, tlf.Private)
 	expectedErr := errors.New("Fake fail")
 	bserver.EXPECT().RemoveBlockReferences(ctx, tlfID, contexts).
 		Return(nil, expectedErr)
 
-	_, err := bops.Delete(ctx, tlfID, []BlockPointer{b1, b2})
+	_, err := bops.Delete(ctx, tlfID, []data.BlockPointer{b1, b2})
 	require.Equal(t, expectedErr, err)
 }
 
 func TestBlockOpsArchiveSuccess(t *testing.T) {
+	ctx := context.Background()
 	ctr := NewSafeTestReporter(t)
 	mockCtrl := gomock.NewController(ctr)
 	defer func() {
@@ -668,28 +678,28 @@ func TestBlockOpsArchiveSuccess(t *testing.T) {
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
 		0)
-	defer bops.Shutdown()
+	defer bops.Shutdown(ctx)
 
 	// Expect one call to archive several blocks.
 
-	b1 := BlockPointer{ID: kbfsblock.FakeID(1)}
-	b2 := BlockPointer{ID: kbfsblock.FakeID(2)}
+	b1 := data.BlockPointer{ID: kbfsblock.FakeID(1)}
+	b2 := data.BlockPointer{ID: kbfsblock.FakeID(2)}
 
 	contexts := kbfsblock.ContextMap{
 		b1.ID: {b1.Context},
 		b2.ID: {b2.Context},
 	}
 
-	ctx := context.Background()
 	tlfID := tlf.FakeID(1, tlf.Private)
 	bserver.EXPECT().ArchiveBlockReferences(ctx, tlfID, contexts).
 		Return(nil)
 
-	err := bops.Archive(ctx, tlfID, []BlockPointer{b1, b2})
+	err := bops.Archive(ctx, tlfID, []data.BlockPointer{b1, b2})
 	require.NoError(t, err)
 }
 
 func TestBlockOpsArchiveFail(t *testing.T) {
+	ctx := context.Background()
 	ctr := NewSafeTestReporter(t)
 	mockCtrl := gomock.NewController(ctr)
 	defer func() {
@@ -703,10 +713,10 @@ func TestBlockOpsArchiveFail(t *testing.T) {
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
 		0)
-	defer bops.Shutdown()
+	defer bops.Shutdown(ctx)
 
-	b1 := BlockPointer{ID: kbfsblock.FakeID(1)}
-	b2 := BlockPointer{ID: kbfsblock.FakeID(2)}
+	b1 := data.BlockPointer{ID: kbfsblock.FakeID(1)}
+	b2 := data.BlockPointer{ID: kbfsblock.FakeID(2)}
 
 	contexts := kbfsblock.ContextMap{
 		b1.ID: {b1.Context},
@@ -715,12 +725,11 @@ func TestBlockOpsArchiveFail(t *testing.T) {
 
 	// Fail the archive call.
 
-	ctx := context.Background()
 	tlfID := tlf.FakeID(1, tlf.Private)
 	expectedErr := errors.New("Fake fail")
 	bserver.EXPECT().ArchiveBlockReferences(ctx, tlfID, contexts).
 		Return(expectedErr)
 
-	err := bops.Archive(ctx, tlfID, []BlockPointer{b1, b2})
+	err := bops.Archive(ctx, tlfID, []data.BlockPointer{b1, b2})
 	require.Equal(t, expectedErr, err)
 }

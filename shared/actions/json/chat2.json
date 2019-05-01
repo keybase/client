@@ -8,15 +8,18 @@
   ],
   "actions": {
     "toggleSmallTeamsExpanded": {},
+    // Deselct if this is still selected, used in nav2 when you go away from a chat convo
+    "deselectConversation": {
+      "ifConversationIDKey": "Types.ConversationIDKey",
+    },
     // Select a conversation (or leave nothing selected)
     "selectConversation": {
       "conversationIDKey": "Types.ConversationIDKey",
       // why this happened, sometimes there's different side effects
       "reason": [
+        "'focused'", // nav focus changed
         "'clearSelected'", // deselect
         "'desktopNotification'", // clicked notification
-        "'setPendingMode'", // set to pending
-        "'sendingToPending'", // select the pending we sent into
         "'createdMessagePrivately'", // messaging privately and maybe made it
         "'extension'", // from a notification from iOS share extension
         "'files'", // from the Files tab
@@ -26,12 +29,12 @@
         "'inboxFilterChanged'", // inbox filter made first one selected
         "'inboxSmall'", // inbox row
         "'inboxNewConversation'", // new conversation row
+        "'inboxSearch'", // selected from inbox seaech
         "'jumpFromReset'", // from older reset convo
         "'jumpToReset'", // going to an older reset convo
         "'justCreated'", // just made it and select it
         "'manageView'", // clicked from manage screen
         "'previewResolved'", // did a preview and are now selecting it
-        "'pendingModeChange'", // pending mode changed so we select the pending conversation id key
         "'push'", // from a push
         "'savedLastState'", // last seen chat tab
         "'startFoundExisting'", // starting a conversation and found one already
@@ -92,10 +95,6 @@
         "'teamTypeChanged'"
       ]
     },
-    // Update the 'jump to conversation' filter
-    "setInboxFilter": {
-      "filter": "string"
-    },
     // We want to unbox an inbox row
     "metaNeedsUpdating": {
       "conversationIDKeys": "Array<Types.ConversationIDKey>",
@@ -152,7 +151,7 @@
       "messages": "Array<Types.Message>",
       // true if these should be the only messages we know about
       "shouldClearOthers?": "boolean",
-      "centeredMessageIDs?": "Array<{conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID}>",
+      "centeredMessageIDs?": "Array<{conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, highlightMode: Types.CenterOrdinalHighlightMode}>",
       "forceContainsLatestCalc?": "boolean"
     },
     // Got an error sending a message
@@ -160,10 +159,6 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "reason": "string",
       "outboxID": "Types.OutboxID"
-    },
-    "setPendingConversationExistingConversationIDKey": {
-      "_description": "When the search changes we need to find any existing conversations to stash into the metaMap",
-      "conversationIDKey": "Types.ConversationIDKey"
     },
     // Start editing a message / or edit the last message / or clear editing
     "messageSetEditing": {
@@ -225,15 +220,6 @@
     "messageDeleteHistory": {
       "conversationIDKey": "Types.ConversationIDKey"
     },
-    // Update why we have a pending conversation, either we're searching or we have a fixed set of users (you clicked a folder for example)
-    // Use `noneDestination` to specify where the user should end up after setting it to 'none'
-    "setPendingMode": {
-      "pendingMode": "Types.PendingMode",
-      "noneDestination?": ["'inbox'", "'thread'"]
-    },
-    "setPendingStatus": {
-      "pendingStatus": "Types.PendingStatus"
-    },
     // Load some more messages for a conversation
     "loadOlderMessagesDueToScroll": {
       "conversationIDKey": "Types.ConversationIDKey"
@@ -241,9 +227,10 @@
     "loadNewerMessagesDueToScroll": {
       "conversationIDKey": "Types.ConversationIDKey"
     },
-    "loadMessagesFromSearchHit": {
+    "loadMessagesCentered": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "messageID": "Types.MessageID"
+      "messageID": "Types.MessageID",
+      "highlightMode": "Types.CenterOrdinalHighlightMode"
     },
     // Show a desktop notification
     "desktopNotification": {
@@ -254,7 +241,8 @@
     // Send a text message
     "messageSend": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "text": "HiddenString"
+      "text": "HiddenString",
+      "replyTo?": "Types.MessageID"
     },
     "toggleLocalReaction": {
       "_description": "Toggle a reaction in the store.",
@@ -301,11 +289,6 @@
     "resetLetThemIn": {
       "conversationIDKey": "Types.ConversationIDKey",
       "username": "string"
-    },
-    // Update the pending conversation users
-    "setPendingConversationUsers": {
-      "users": "Array<string>",
-      "fromSearch": "boolean"
     },
     // The user has selected an attachment with a preview
     "attachmentPreviewSelect": {
@@ -605,10 +588,10 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "query": "HiddenString"
     },
-    "threadSearchResult": {
+    "threadSearchResults": {
       "_description": "Record a new thread search result",
       "conversationIDKey": "Types.ConversationIDKey",
-      "message": "Types.Message"
+      "messages": "Array<Types.Message>"
     },
     "setThreadSearchStatus": {
       "_description": "Set the status of a thread search",
@@ -618,6 +601,59 @@
     "toggleThreadSearch": {
       "_description": "Toggle the display of the thread search window",
       "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "toggleReplyToMessage": {
+      "_description": "Reply to a message publicly",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal?": "Types.Ordinal"
+    },
+    "replyJump": {
+      "_description": "Jump to a replied to message",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "Types.MessageID"
+    },
+    "setThreadSearchQuery": {
+      "_description": "Set thread search query (used from inbox search to initialize it)",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "query": "HiddenString"
+    },
+    "inboxSearch": {
+      "_description": "Perform an inbox search",
+      "query": "HiddenString"
+    },
+    "inboxSearchStarted": {
+      "_description": "Inbox search has started"
+    },
+    "toggleInboxSearch": {
+      "_description": "Toggle inbox search view",
+      "enabled": "boolean"
+    },
+    "inboxSearchNameResults": {
+      "_description": "Inbox search name results received",
+      "results": "I.List<Types.InboxSearchConvHit>",
+      "unread": "boolean"
+    },
+    "inboxSearchTextResult": {
+      "_description": "Inbox text result has arrived",
+      "result": "Types.InboxSearchTextHit"
+    },
+    "inboxSearchMoveSelectedIndex": {
+      "_description": "Change selected index of inbox search",
+      "increment": "boolean"
+    },
+    "inboxSearchSelect": {
+      "_description": "Select an inbox search item",
+      "conversationIDKey?": "Types.ConversationIDKey",
+      "query?": "HiddenString",
+      "selectedIndex?": "number"
+    },
+    "inboxSearchSetTextStatus": {
+      "_description": "Set the status of the inbox text search",
+      "status": "Types.InboxSearchStatus"
+    },
+    "inboxSearchSetIndexPercent": {
+      "_description": "Set index percent complete",
+      "percent": "number"
     }
   }
 }

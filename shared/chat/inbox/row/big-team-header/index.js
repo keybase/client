@@ -87,10 +87,10 @@ const styles = Styles.styleSheetCreate({
   team: Styles.platformStyles({
     common: {
       color: Styles.globalColors.black_50,
+      letterSpacing: 0.2,
       marginLeft: Styles.globalMargins.tiny,
       marginRight: Styles.globalMargins.tiny,
     },
-    isElectron: {display: 'inline'},
     isMobile: {backgroundColor: Styles.globalColors.fastBlank},
   }),
   teamRowContainer: Styles.platformStyles({

@@ -370,6 +370,11 @@ func (k *KeybaseDaemonLocal) DecryptFavorites(ctx context.Context,
 	return nil, checkContext(ctx)
 }
 
+// NotifyOnlineStatusChanged implements KeybaseDaemon for KeybaseDeamonLocal.
+func (k *KeybaseDaemonLocal) NotifyOnlineStatusChanged(ctx context.Context, online bool) error {
+	return checkContext(ctx)
+}
+
 // Notify implements KeybaseDaemon for KeybaseDeamonLocal.
 func (k *KeybaseDaemonLocal) Notify(ctx context.Context, notification *keybase1.FSNotification) error {
 	return checkContext(ctx)
@@ -384,6 +389,12 @@ func (k *KeybaseDaemonLocal) NotifyPathUpdated(
 // NotifySyncStatus implements KeybaseDaemon for KeybaseDeamonLocal.
 func (k *KeybaseDaemonLocal) NotifySyncStatus(ctx context.Context,
 	_ *keybase1.FSPathSyncStatus) error {
+	return checkContext(ctx)
+}
+
+// NotifyOverallSyncStatus implements KeybaseDaemon for KeybaseDeamonLocal.
+func (k *KeybaseDaemonLocal) NotifyOverallSyncStatus(
+	ctx context.Context, _ keybase1.FolderSyncStatus) error {
 	return checkContext(ctx)
 }
 

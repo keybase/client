@@ -2,6 +2,7 @@ package teams
 
 import (
 	"fmt"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -44,11 +45,7 @@ func (d *DiskStorageItem) setValue(v teamDataGeneric) error {
 }
 
 func NewStorage(g *libkb.GlobalContext) *Storage {
-	// Note(maxtaco) 2018.10.08 --- Note a bug here, that we used the `libkb.DBChatInbox` type here.
-	// That's a copy-paste bug, but we get away with it since we have a `tid:` prefix that
-	// disambiguates these entries from true Chat entries. We're not going to fix it now
-	// since it would kill the team cache, but sometime in the future we should fix it.
-	s := newStorageGeneric(g, memCacheLRUSize, diskStorageVersion, libkb.DBChatInbox, libkb.EncryptionReasonTeamsLocalStorage, "slow", func() diskItemGeneric { return &DiskStorageItem{} })
+	s := newStorageGeneric(g, memCacheLRUSize, diskStorageVersion, libkb.DBSlowTeamsAlias, libkb.EncryptionReasonTeamsLocalStorage, "slow", func() diskItemGeneric { return &DiskStorageItem{} })
 	return &Storage{s}
 }
 

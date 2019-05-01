@@ -13,9 +13,10 @@ import {
   Text,
   NativeImage,
 } from '../../common-adapters/mobile.native'
+import {FloatingRolePicker} from '../role-picker'
 import {globalStyles, globalMargins, globalColors, hairlineWidth} from '../../styles'
 import type {MobileProps, ContactRowProps} from './index'
-import {type TeamRoleType} from '../../constants/types/teams'
+import {pluralize} from '../../util/string'
 
 const AccessDenied = ({openAppSettings}) => (
   <Box
@@ -43,7 +44,7 @@ const AccessDenied = ({openAppSettings}) => (
         To fix this, please open Settings > Keybase and check off 'Allow Keybase to access Contacts'.
       </Text>
       <ButtonBar>
-        <Button type="Primary" label="Open settings" onClick={openAppSettings} />
+        <Button label="Open settings" onClick={openAppSettings} />
       </ButtonBar>
     </Box>
   </Box>
@@ -82,7 +83,8 @@ const contactRow = (i: number, props: ContactRowProps) => {
         </Box>
         <Box>
           <Button
-            type={props.selected ? 'PrimaryGreenActive' : 'Primary'}
+            type="Success"
+            mode={props.selected ? 'Secondary' : 'Primary'}
             label={props.selected ? 'Invited!' : 'Invite'}
             waiting={props.loading}
             small={true}
@@ -97,12 +99,14 @@ const contactRow = (i: number, props: ContactRowProps) => {
 
 type State = {
   filter: string,
+  isRolePickerOpen: boolean,
 }
 
 // Container handles all the props, this just handles filtering
 class InviteByEmailMobile extends React.Component<MobileProps, State> {
   state = {
     filter: '',
+    isRolePickerOpen: false,
   }
 
   _trim(s: ?string): string {
@@ -111,6 +115,18 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
 
   componentWillUnmount() {
     this.props.onClearError()
+  }
+
+  onCancelRolePicker = () => {
+    this.setState({isRolePickerOpen: false})
+  }
+
+  onConfirmRolePicker = () => {
+    this.setState({isRolePickerOpen: false})
+  }
+
+  onOpenRolePicker = () => {
+    this.setState({isRolePickerOpen: true})
   }
 
   render() {
@@ -170,27 +186,34 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
               }}
             />
           </Box>
-          <ClickableBox
-            onClick={() =>
-              this.props.onOpenRolePicker(this.props.role, (selectedRole: TeamRoleType) =>
-                this.props.onRoleChange(selectedRole)
-              )
-            }
-            style={{
-              ...globalStyles.flexBoxColumn,
-              alignItems: 'center',
-              borderBottomColor: globalColors.black_10,
-              borderBottomWidth: hairlineWidth,
-              justifyContent: 'center',
-              marginBottom: globalMargins.xtiny,
-              padding: globalMargins.small,
-            }}
+          <FloatingRolePicker
+            confirmLabel={`Invite as ${pluralize(this.props.role)}`}
+            selectedRole={this.props.role}
+            onSelectRole={this.props.onRoleChange}
+            onConfirm={this.onConfirmRolePicker}
+            onCancel={this.onCancelRolePicker}
+            position={'bottom center'}
+            open={this.state.isRolePickerOpen}
+            disabledRoles={{owner: 'Cannot invite an owner via email.'}}
           >
-            <Text center={true} type="BodySmall">
-              Users will be invited to {this.props.name} as
-              <Text type="BodySmallPrimaryLink">{' ' + this.props.role + 's'}</Text>.
-            </Text>
-          </ClickableBox>
+            <ClickableBox
+              onClick={() => this.onOpenRolePicker()}
+              style={{
+                ...globalStyles.flexBoxColumn,
+                alignItems: 'center',
+                borderBottomColor: globalColors.black_10,
+                borderBottomWidth: hairlineWidth,
+                justifyContent: 'center',
+                marginBottom: globalMargins.xtiny,
+                padding: globalMargins.small,
+              }}
+            >
+              <Text center={true} type="BodySmall">
+                Users will be invited to {this.props.name} as
+                <Text type="BodySmallPrimaryLink">{' ' + this.props.role + 's'}</Text>.
+              </Text>
+            </ClickableBox>
+          </FloatingRolePicker>
           <List
             keyProperty="id"
             items={filteredContactRows}

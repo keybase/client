@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../../../constants/tracker2'
+import * as ChatConstants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
@@ -8,6 +9,7 @@ import FollowButton from './follow-button'
 
 type Props = {|
   followThem: boolean,
+  followsYou: boolean,
   onAccept: () => void,
   onAddToTeam: () => void,
   onBrowsePublicFolder: () => void,
@@ -39,10 +41,9 @@ const Actions = (p: Props) => {
 
   const chatButton = (
     <Kb.WaitingButton
-      type="Primary"
       key="Chat"
       label="Chat"
-      waitingKey={Constants.waitingKey}
+      waitingKey={ChatConstants.waitingKeyCreating}
       onClick={p.onChat}
     >
       <Kb.Icon type="iconfont-chat" color={Styles.globalColors.white} style={styles.chatIcon} />
@@ -51,12 +52,7 @@ const Actions = (p: Props) => {
 
   if (p.onEditProfile) {
     buttons = [
-      <Kb.Button
-        key="Edit profile"
-        type={Styles.isMobile ? 'Primary' : 'Secondary'}
-        label="Edit profile"
-        onClick={p.onEditProfile}
-      />,
+      <Kb.Button key="Edit profile" mode="Secondary" label="Edit profile" onClick={p.onEditProfile} />,
     ]
   } else if (p.followThem) {
     if (p.state === 'valid') {
@@ -73,14 +69,13 @@ const Actions = (p: Props) => {
     } else {
       buttons = [
         <Kb.WaitingButton
-          type="Primary"
           key="Reload"
           label="Reload"
           waitingKey={Constants.waitingKey}
           onClick={p.onReload}
         />,
         <Kb.WaitingButton
-          type="PrimaryGreen"
+          type="Success"
           key="Accept"
           label="Accept"
           waitingKey={Constants.waitingKey}
@@ -93,7 +88,6 @@ const Actions = (p: Props) => {
     if (p.state === 'error') {
       buttons = [
         <Kb.WaitingButton
-          type="Primary"
           key="Reload"
           label="Reload"
           waitingKey={Constants.waitingKey}
@@ -107,6 +101,7 @@ const Actions = (p: Props) => {
         <FollowButton
           key="follow"
           following={false}
+          followsYou={p.followsYou}
           onFollow={p.onFollow}
           waitingKey={Constants.waitingKey}
         />,
@@ -136,12 +131,8 @@ const DropdownButton = Kb.OverlayParentHOC(p => {
   return (
     <Kb.ClickableBox onClick={p.toggleShowingMenu} ref={p.setAttachmentRef}>
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
-        <Kb.Button onClick={null} type="Secondary" style={styles.dropdownButton}>
-          <Kb.Icon
-            color={Styles.globalColors.black}
-            fontSize={Styles.isMobile ? 21 : 16}
-            type="iconfont-ellipsis"
-          />
+        <Kb.Button onClick={null} mode="Secondary" style={styles.dropdownButton}>
+          <Kb.Icon color={Styles.globalColors.blue} type="iconfont-ellipsis" />
         </Kb.Button>
       </Kb.Box2>
       <Kb.FloatingMenu
@@ -158,7 +149,7 @@ const DropdownButton = Kb.OverlayParentHOC(p => {
 
 const styles = Styles.styleSheetCreate({
   chatIcon: {marginRight: Styles.globalMargins.tiny},
-  dropdownButton: {paddingLeft: Styles.globalMargins.small, paddingRight: Styles.globalMargins.small},
+  dropdownButton: {minWidth: undefined},
 })
 
 export default Actions

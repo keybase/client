@@ -12,12 +12,14 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/externals"
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
-	"github.com/keybase/client/go/kbfs/libkey"
+	libkeytest "github.com/keybase/client/go/kbfs/libkey/test"
+	"github.com/keybase/client/go/kbfs/test/clocktest"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
@@ -150,67 +152,12 @@ func expectRekey(config *ConfigMock, bh tlf.Handle, numDevices int,
 		gomock.Any()).AnyTimes()
 }
 
-type emptyKeyMetadata struct {
-	tlfID  tlf.ID
-	keyGen kbfsmd.KeyGen
-}
-
-var _ libkey.KeyMetadata = emptyKeyMetadata{}
-
-func (kmd emptyKeyMetadata) TlfID() tlf.ID {
-	return kmd.tlfID
-}
-
-func (kmd emptyKeyMetadata) TypeForKeying() tlf.KeyingType {
-	return kmd.TlfID().Type().ToKeyingType()
-}
-
-// GetTlfHandle just returns nil. This contradicts the requirements
-// for KeyMetadata, but emptyKeyMetadata shouldn't be used in contexts
-// that actually use GetTlfHandle().
-func (kmd emptyKeyMetadata) GetTlfHandle() *tlfhandle.Handle {
-	return nil
-}
-
-func (kmd emptyKeyMetadata) IsWriter(
-	_ context.Context, _ kbfsmd.TeamMembershipChecker, _ idutil.OfflineStatusGetter,
-	_ keybase1.UID, _ kbfscrypto.VerifyingKey) (bool, error) {
-	return false, nil
-}
-
-func (kmd emptyKeyMetadata) LatestKeyGeneration() kbfsmd.KeyGen {
-	return kmd.keyGen
-}
-
-func (kmd emptyKeyMetadata) HasKeyForUser(user keybase1.UID) (bool, error) {
-	return false, nil
-}
-
-func (kmd emptyKeyMetadata) GetTLFCryptKeyParams(
-	keyGen kbfsmd.KeyGen, user keybase1.UID, key kbfscrypto.CryptPublicKey) (
-	kbfscrypto.TLFEphemeralPublicKey, kbfscrypto.EncryptedTLFCryptKeyClientHalf,
-	kbfscrypto.TLFCryptKeyServerHalfID, bool, error) {
-	return kbfscrypto.TLFEphemeralPublicKey{},
-		kbfscrypto.EncryptedTLFCryptKeyClientHalf{},
-		kbfscrypto.TLFCryptKeyServerHalfID{}, false, nil
-}
-
-func (kmd emptyKeyMetadata) StoresHistoricTLFCryptKeys() bool {
-	return false
-}
-
-func (kmd emptyKeyMetadata) GetHistoricTLFCryptKey(
-	codec kbfscodec.Codec, keyGen kbfsmd.KeyGen, key kbfscrypto.TLFCryptKey) (
-	kbfscrypto.TLFCryptKey, error) {
-	return kbfscrypto.TLFCryptKey{}, nil
-}
-
 func testKeyManagerPublicTLFCryptKey(t *testing.T, ver kbfsmd.MetadataVer) {
 	mockCtrl, config, ctx := keyManagerInit(t, ver)
 	defer keyManagerShutdown(mockCtrl, config)
 
 	id := tlf.FakeID(1, tlf.Public)
-	kmd := emptyKeyMetadata{id, 1}
+	kmd := libkeytest.NewEmptyKeyMetadata(id, 1)
 
 	tlfCryptKey, err := config.KeyManager().
 		GetTLFCryptKeyForEncryption(ctx, kmd)
@@ -235,7 +182,7 @@ func testKeyManagerPublicTLFCryptKey(t *testing.T, ver kbfsmd.MetadataVer) {
 	}
 
 	tlfCryptKey, err = config.KeyManager().
-		GetTLFCryptKeyForBlockDecryption(ctx, kmd, BlockPointer{})
+		GetTLFCryptKeyForBlockDecryption(ctx, kmd, data.BlockPointer{})
 	if err != nil {
 		t.Error(err)
 	}
@@ -251,7 +198,7 @@ func testKeyManagerCachedSecretKeyForEncryptionSuccess(t *testing.T, ver kbfsmd.
 	defer keyManagerShutdown(mockCtrl, config)
 
 	id := tlf.FakeID(1, tlf.Private)
-	kmd := emptyKeyMetadata{id, 1}
+	kmd := libkeytest.NewEmptyKeyMetadata(id, 1)
 
 	cachedTLFCryptKey := kbfscrypto.MakeTLFCryptKey([32]byte{0x1})
 	config.KeyCache().PutTLFCryptKey(id, 1, cachedTLFCryptKey)
@@ -267,7 +214,7 @@ func testKeyManagerCachedSecretKeyForMDDecryptionSuccess(t *testing.T, ver kbfsm
 	defer keyManagerShutdown(mockCtrl, config)
 
 	id := tlf.FakeID(1, tlf.Private)
-	kmd := emptyKeyMetadata{id, 1}
+	kmd := libkeytest.NewEmptyKeyMetadata(id, 1)
 
 	cachedTLFCryptKey := kbfscrypto.MakeTLFCryptKey([32]byte{0x1})
 	config.KeyCache().PutTLFCryptKey(id, 1, cachedTLFCryptKey)
@@ -283,13 +230,13 @@ func testKeyManagerCachedSecretKeyForBlockDecryptionSuccess(t *testing.T, ver kb
 	defer keyManagerShutdown(mockCtrl, config)
 
 	id := tlf.FakeID(1, tlf.Private)
-	kmd := emptyKeyMetadata{id, 2}
+	kmd := libkeytest.NewEmptyKeyMetadata(id, 2)
 
 	cachedTLFCryptKey := kbfscrypto.MakeTLFCryptKey([32]byte{0x1})
 	config.KeyCache().PutTLFCryptKey(id, 1, cachedTLFCryptKey)
 
 	tlfCryptKey, err := config.KeyManager().GetTLFCryptKeyForBlockDecryption(
-		ctx, kmd, BlockPointer{KeyGen: 1})
+		ctx, kmd, data.BlockPointer{KeyGen: 1})
 	require.NoError(t, err)
 	require.Equal(t, cachedTLFCryptKey, tlfCryptKey)
 }
@@ -412,7 +359,7 @@ func testKeyManagerUncachedSecretKeyForBlockDecryptionSuccess(t *testing.T, ver 
 		storedTLFCryptKey2)
 
 	tlfCryptKey, err := config.KeyManager().GetTLFCryptKeyForBlockDecryption(
-		ctx, rmd, BlockPointer{KeyGen: 1})
+		ctx, rmd, data.BlockPointer{KeyGen: 1})
 	require.NoError(t, err)
 	require.Equal(t, storedTLFCryptKey1, tlfCryptKey)
 }
@@ -908,7 +855,7 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver kbfsmd.MetadataVer)
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
-	clock := newTestClockNow()
+	clock := clocktest.NewTestClockNow()
 	config1.SetClock(clock)
 
 	config1.SetMetadataVersion(ver)
@@ -1458,7 +1405,7 @@ func testKeyManagerReaderRekeyAndRevoke(t *testing.T, ver kbfsmd.MetadataVer) {
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
-	clock := newTestClockNow()
+	clock := clocktest.NewTestClockNow()
 	config1.SetClock(clock)
 
 	config1.SetMetadataVersion(ver)
@@ -1778,7 +1725,7 @@ func testKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T, ver kbfsmd.
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
-	clock := newTestClockNow()
+	clock := clocktest.NewTestClockNow()
 	config1.SetClock(clock)
 
 	config1.SetMetadataVersion(ver)
@@ -2049,7 +1996,7 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver kbfsmd
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, uid1, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
-	clock := newTestClockNow()
+	clock := clocktest.NewTestClockNow()
 	config1.SetClock(clock)
 
 	config1.SetMetadataVersion(ver)
@@ -2288,7 +2235,7 @@ func testKeyManagerRekeyMinimal(t *testing.T, ver kbfsmd.MetadataVer) {
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
-	clock := newTestClockNow()
+	clock := clocktest.NewTestClockNow()
 	config1.SetClock(clock)
 
 	config1.SetMetadataVersion(ver)
@@ -2414,7 +2361,7 @@ func TestKeyManagerGetTeamTLFCryptKey(t *testing.T) {
 	require.NoError(t, err)
 	rmd.bareMd.SetLatestKeyGenerationForTeamTLF(teamInfos[0].LatestKeyGen)
 	// Make sure the MD looks readable.
-	rmd.data.Dir.BlockPointer = BlockPointer{ID: kbfsblock.FakeID(1)}
+	rmd.data.Dir.BlockPointer = data.BlockPointer{ID: kbfsblock.FakeID(1)}
 
 	// Both users should see the same key.
 	key1, err := config1.KeyManager().GetTLFCryptKeyForEncryption(ctx, rmd)
@@ -2472,7 +2419,7 @@ func testKeyManagerGetImplicitTeamTLFCryptKey(t *testing.T, ty tlf.Type) {
 	require.NoError(t, err)
 	rmd.bareMd.SetLatestKeyGenerationForTeamTLF(latestKeyGen)
 	// Make sure the MD looks readable.
-	rmd.data.Dir.BlockPointer = BlockPointer{ID: kbfsblock.FakeID(1)}
+	rmd.data.Dir.BlockPointer = data.BlockPointer{ID: kbfsblock.FakeID(1)}
 
 	// Both users should see the same key.
 	key1, err := config1.KeyManager().GetTLFCryptKeyForEncryption(ctx, rmd)

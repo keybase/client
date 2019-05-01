@@ -102,11 +102,14 @@ type configGetter interface {
 	GetAttachmentDisableMulti() (bool, bool)
 	GetChatOutboxStorageEngine() string
 	GetDisableTeamAuditor() (bool, bool)
+	GetDisableTeamBoxAuditor() (bool, bool)
 	GetDisableMerkleAuditor() (bool, bool)
 	GetDisableSearchIndexer() (bool, bool)
 	GetDisableBgConvLoader() (bool, bool)
 	GetEnableBotLiteMode() (bool, bool)
 	GetExtraNetLogging() (bool, bool)
+	GetForceLinuxKeyring() (bool, bool)
+	GetForceSecretStoreFile() (bool, bool)
 }
 
 type CommandLine interface {
@@ -124,6 +127,8 @@ type CommandLine interface {
 
 type Server interface {
 }
+
+type DBKeySet map[DbKey]bool
 
 type LocalDbOps interface {
 	Put(id DbKey, aliases []DbKey, value []byte) error
@@ -147,12 +152,14 @@ type LocalDb interface {
 	Nuke() (string, error)
 	Clean(force bool) error
 	OpenTransaction() (LocalDbTransaction, error)
+	KeysWithPrefixes(prefixes ...[]byte) (DBKeySet, error)
 }
 
 type KVStorer interface {
 	GetInto(obj interface{}, id DbKey) (found bool, err error)
 	PutObj(id DbKey, aliases []DbKey, obj interface{}) (err error)
 	Delete(id DbKey) error
+	KeysWithPrefixes(prefixes ...[]byte) (DBKeySet, error)
 }
 
 type JSONReader interface {
@@ -403,8 +410,10 @@ type ChatUI interface {
 	ChatSearchHit(context.Context, chat1.ChatSearchHitArg) error
 	ChatSearchDone(context.Context, chat1.ChatSearchDoneArg) error
 	ChatSearchInboxHit(context.Context, chat1.ChatSearchInboxHitArg) error
+	ChatSearchInboxStart(context.Context) error
 	ChatSearchInboxDone(context.Context, chat1.ChatSearchInboxDoneArg) error
 	ChatSearchIndexStatus(context.Context, chat1.ChatSearchIndexStatusArg) error
+	ChatSearchConvHits(context.Context, chat1.UIChatSearchConvHits) error
 	ChatStellarShowConfirm(context.Context) error
 	ChatStellarDataConfirm(context.Context, chat1.UIChatPaymentSummary) (bool, error)
 	ChatStellarDataError(context.Context, keybase1.Status) (bool, error)
@@ -613,10 +622,12 @@ type ServiceType interface {
 		kbUsername, remoteUsername string, sigID keybase1.SigID) (string, error)
 	GetAPIArgKey() string
 	IsDevelOnly() bool
+	GetLogoKey() string
 
 	MakeProofChecker(l RemoteProofChainLink) ProofChecker
 	SetDisplayConfig(*keybase1.ServiceDisplayConfig)
 	CanMakeNewProofs(mctx MetaContext) bool
+	CanMakeNewProofsSkipFeatureFlag(mctx MetaContext) bool
 	DisplayPriority() int
 	DisplayGroup() string
 	IsNew(MetaContext) bool
@@ -634,6 +645,7 @@ type ExternalServicesCollector interface {
 // parameterized proofs.
 type MerkleStore interface {
 	GetLatestEntry(m MetaContext) (keybase1.MerkleStoreEntry, error)
+	GetLatestEntryWithKnown(MetaContext, *keybase1.MerkleStoreKitHash) (*keybase1.MerkleStoreEntry, error)
 }
 
 // UserChangedHandler is a generic interface for handling user changed events.
@@ -661,6 +673,7 @@ type ConnectivityMonitor interface {
 type TeamLoader interface {
 	VerifyTeamName(ctx context.Context, id keybase1.TeamID, name keybase1.TeamName) error
 	ImplicitAdmins(ctx context.Context, teamID keybase1.TeamID) (impAdmins []keybase1.UserVersion, err error)
+	MapTeamAncestors(ctx context.Context, f func(t keybase1.TeamSigChainState) error, teamID keybase1.TeamID, reason string, forceFullReloadOnceToAssert func(t keybase1.TeamSigChainState) bool) error
 	NotifyTeamRename(ctx context.Context, id keybase1.TeamID, newName string) error
 	Load(context.Context, keybase1.LoadTeamArg) (*keybase1.TeamData, error)
 	// Delete the cache entry. Does not error if there is no cache entry.
@@ -669,7 +682,6 @@ type TeamLoader interface {
 	HintLatestSeqno(ctx context.Context, id keybase1.TeamID, seqno keybase1.Seqno) error
 	ResolveNameToIDUntrusted(ctx context.Context, teamName keybase1.TeamName, public bool, allowCache bool) (id keybase1.TeamID, err error)
 	ForceRepollUntil(ctx context.Context, t gregor.TimeOrOffset) error
-	OnLogout()
 	// Clear the in-memory cache. Does not affect the disk cache.
 	ClearMem()
 }
@@ -680,12 +692,19 @@ type FastTeamLoader interface {
 	HintLatestSeqno(m MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) error
 	VerifyTeamName(m MetaContext, id keybase1.TeamID, name keybase1.TeamName, forceRefresh bool) error
 	ForceRepollUntil(m MetaContext, t gregor.TimeOrOffset) error
-	OnLogout()
 }
 
 type TeamAuditor interface {
 	AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno) (err error)
-	OnLogout(m MetaContext)
+}
+
+type TeamBoxAuditor interface {
+	AssertUnjailedOrReaudit(m MetaContext, id keybase1.TeamID) (didReaudit bool, err error)
+	IsInJail(m MetaContext, id keybase1.TeamID) (bool, error)
+	RetryNextBoxAudit(m MetaContext) (attempt *keybase1.BoxAuditAttempt, err error)
+	BoxAuditRandomTeam(m MetaContext) (attempt *keybase1.BoxAuditAttempt, err error)
+	BoxAuditTeam(m MetaContext, id keybase1.TeamID) (attempt *keybase1.BoxAuditAttempt, err error)
+	Attempt(m MetaContext, id keybase1.TeamID, rotateBeforeAudit bool) keybase1.BoxAuditAttempt
 }
 
 // MiniChatPayment is the argument for sending an in-chat payment.
@@ -720,7 +739,6 @@ type MiniChatPaymentSummary struct {
 }
 
 type Stellar interface {
-	OnLogout()
 	CreateWalletSoft(context.Context)
 	Upkeep(context.Context) error
 	GetServerDefinitions(context.Context) (stellar1.StellarServerDefinitions, error)
@@ -808,11 +826,15 @@ type LRUKeyer interface {
 type LRUer interface {
 	Get(context.Context, LRUContext, LRUKeyer) (interface{}, error)
 	Put(context.Context, LRUContext, LRUKeyer, interface{}) error
+	OnLogout(mctx MetaContext) error
+	OnDbNuke(mctx MetaContext) error
 }
 
 type MemLRUer interface {
 	Get(key interface{}) (interface{}, bool)
 	Put(key, value interface{}) bool
+	OnLogout(mctx MetaContext) error
+	OnDbNuke(mctx MetaContext) error
 }
 
 type ClockContext interface {
@@ -926,7 +948,7 @@ type ChatHelper interface {
 	GetMessage(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		msgID chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) (chat1.MessageUnboxed, error)
 	UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID chat1.TLFID, public bool) error
-	TopReacjis(ctx context.Context, uid gregor1.UID) []string
+	UserReacjis(ctx context.Context, uid gregor1.UID) keybase1.UserReacjis
 }
 
 // Resolver resolves human-readable usernames (joe) and user asssertions (joe+joe@github)

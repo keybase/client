@@ -6,10 +6,10 @@ import * as Constants from '../../constants/fs'
 import {namedConnect} from '../../util/container'
 import Editing from './editing'
 
-type OwnProps = {
+type OwnProps = {|
   editID: Types.EditID,
   routePath: I.List<string>,
-}
+|}
 
 const mapStateToProps = (state, {editID}: OwnProps) => ({
   _edit: state.fs.edits.get(editID, Constants.emptyFolder),

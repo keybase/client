@@ -393,6 +393,10 @@ func (p CommandLine) GetDisableTeamAuditor() (bool, bool) {
 	return p.GetBool("disable-team-auditor", true)
 }
 
+func (p CommandLine) GetDisableTeamBoxAuditor() (bool, bool) {
+	return p.GetBool("disable-team-box-auditor", true)
+}
+
 func (p CommandLine) GetDisableMerkleAuditor() (bool, bool) {
 	return p.GetBool("disable-merkle-auditor", true)
 }
@@ -411,6 +415,14 @@ func (p CommandLine) GetEnableBotLiteMode() (bool, bool) {
 
 func (p CommandLine) GetExtraNetLogging() (bool, bool) {
 	return p.GetBool("extra-net-logging", true)
+}
+
+func (p CommandLine) GetForceLinuxKeyring() (bool, bool) {
+	return p.GetBool("force-linux-keyring", true)
+}
+
+func (p CommandLine) GetForceSecretStoreFile() (bool, bool) {
+	return false, false // not configurable via command line flags
 }
 
 func (p CommandLine) GetAttachmentHTTPStartPort() (int, bool) {
@@ -701,6 +713,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Usage: "Disable auditing of teams",
 		},
 		cli.BoolFlag{
+			Name:  "disable-team-box-auditor",
+			Usage: "Disable box auditing of teams",
+		},
+		cli.BoolFlag{
 			Name:  "disable-merkle-auditor",
 			Usage: "Disable background probabilistic merkle audit",
 		},
@@ -715,6 +731,14 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.BoolFlag{
 			Name:  "enable-bot-lite-mode",
 			Usage: "Enable bot lite mode. Disables non-critical background services for bot performance.",
+		},
+		cli.BoolFlag{
+			Name:  "force-linux-keyring",
+			Usage: "Require the use of the OS keyring (Gnome Keyring or KWallet) and fail if not available rather than falling back to file-based secret store.",
+		},
+		cli.BoolFlag{
+			Name:  "extra-net-logging",
+			Usage: "Do additional debug logging during network requests.",
 		},
 	}
 	if extraFlags != nil {

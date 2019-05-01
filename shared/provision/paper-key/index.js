@@ -52,7 +52,6 @@ class PaperKey extends React.Component<Props, {paperKey: string}> {
           <Kb.ButtonBar fullWidth={true}>
             <Kb.WaitingButton
               label="Continue"
-              type="Primary"
               fullWidth={true}
               onClick={this._onSubmit}
               disabled={!this.state.paperKey}

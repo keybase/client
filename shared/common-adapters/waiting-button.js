@@ -1,8 +1,10 @@
 // @flow
 import * as React from 'react'
-import Button, {type Props as ButtonProps} from './button'
+import Button from './button'
 import {namedConnect} from '../util/container'
 import * as WaitingConstants from '../constants/waiting'
+
+type ButtonProps = React.ElementConfig<typeof Button>
 
 export type OwnProps = {|
   ...ButtonProps,

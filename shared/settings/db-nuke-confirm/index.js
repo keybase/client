@@ -23,7 +23,7 @@ function DBNukeConfirm(props: Props) {
         Are you sure you want to blast away your local database?
       </Text>
       <ButtonBar>
-        <Button type="Secondary" label="Cancel" onClick={props.onCancel} />
+        <Button type="Dim" label="Cancel" onClick={props.onCancel} />
         <Button type="Danger" label="Yes, blow it away" onClick={props.onDBNuke} />
       </ButtonBar>
     </Box>

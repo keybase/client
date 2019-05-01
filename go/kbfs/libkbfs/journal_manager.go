@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
@@ -115,8 +116,8 @@ type JournalManager struct {
 
 	dir string
 
-	delegateBlockCache      BlockCache
-	delegateDirtyBlockCache DirtyBlockCache
+	delegateBlockCache      data.BlockCache
+	delegateDirtyBlockCache data.DirtyBlockCache
 	delegateBlockServer     BlockServer
 	delegateMDOps           MDOps
 	onBranchChange          branchChangeListener
@@ -142,7 +143,7 @@ type JournalManager struct {
 
 func makeJournalManager(
 	config Config, log logger.Logger, dir string,
-	bcache BlockCache, dirtyBcache DirtyBlockCache, bserver BlockServer,
+	bcache data.BlockCache, dirtyBcache data.DirtyBlockCache, bserver BlockServer,
 	mdOps MDOps, onBranchChange branchChangeListener,
 	onMDFlush mdFlushListener) *JournalManager {
 	if len(dir) == 0 {
@@ -308,7 +309,7 @@ func (j *JournalManager) makeFBOForJournal(
 		return err
 	}
 
-	_, _, err = j.config.KBFSOps().GetRootNode(ctx, handle, MasterBranch)
+	_, _, err = j.config.KBFSOps().GetRootNode(ctx, handle, data.MasterBranch)
 	return err
 }
 
@@ -844,7 +845,7 @@ func (j *JournalManager) blockCache() journalBlockCache {
 }
 
 func (j *JournalManager) dirtyBlockCache(
-	journalCache DirtyBlockCache) journalDirtyBlockCache {
+	journalCache data.DirtyBlockCache) journalDirtyBlockCache {
 	return journalDirtyBlockCache{j, j.delegateDirtyBlockCache, journalCache}
 }
 

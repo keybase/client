@@ -81,7 +81,7 @@ export class UpdatePassword extends Component<Props, State> {
             style={styleInput}
           />
           <Kb.Input
-            hintText="Confirm new password"
+            hintText="Confirm"
             type={inputType}
             value={this.state.passwordConfirm}
             errorText={this.state.errorSaving || this.props.newPasswordConfirmError}
@@ -100,7 +100,6 @@ export class UpdatePassword extends Component<Props, State> {
           <Kb.ButtonBar align="center" direction="row" fullWidth={true}>
             <Kb.Button
               fullWidth={true}
-              type="Primary"
               label={this.props.saveLabel || 'Save'}
               disabled={!!this.state.errorSaving || this.state.password.length < 8}
               onClick={() => this.props.onSave(this.state.password, this.state.passwordConfirm)}

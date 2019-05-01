@@ -13,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
@@ -113,13 +114,12 @@ func runBenchmarkOverMetadataVers(
 
 type privateMetadataFuture struct {
 	PrivateMetadata
-	Dir dirEntryFuture
 	kbfscodec.Extra
 }
 
 func (pmf privateMetadataFuture) toCurrent() PrivateMetadata {
 	pm := pmf.PrivateMetadata
-	pm.Dir = DirEntry(pmf.Dir.toCurrent())
+	pm.Dir = pmf.Dir
 	pm.Changes.Ops = make(opsList, len(pmf.Changes.Ops))
 	for i, opFuture := range pmf.Changes.Ops {
 		currentOp := opFuture.(kbfscodec.FutureStruct).ToCurrentStruct()
@@ -147,7 +147,7 @@ func makeFakePrivateMetadataFuture(t *testing.T) privateMetadataFuture {
 
 	pmf := privateMetadataFuture{
 		PrivateMetadata{
-			DirEntry{},
+			data.DirEntry{},
 			kbfscrypto.MakeTLFPrivateKey([32]byte{0xb}),
 			BlockChanges{
 				makeFakeBlockInfo(t),
@@ -167,7 +167,6 @@ func makeFakePrivateMetadataFuture(t *testing.T) privateMetadataFuture {
 			codec.UnknownFieldSetHandler{},
 			BlockChanges{},
 		},
-		makeFakeDirEntryFuture(t),
 		kbfscodec.MakeExtraOrBust("PrivateMetadata", t),
 	}
 	return pmf
@@ -409,7 +408,7 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	rmd.SetRefBytes(refBytes)
 	rmd.SetUnrefBytes(unrefBytes)
 	// Make sure the MD looks readable.
-	rmd.data.Dir.BlockPointer = BlockPointer{ID: kbfsblock.FakeID(1)}
+	rmd.data.Dir.BlockPointer = data.BlockPointer{ID: kbfsblock.FakeID(1)}
 
 	// key it once
 	done, _, err := config.KeyManager().Rekey(context.Background(), rmd, false)
@@ -626,7 +625,7 @@ func TestRootMetadataUpconversionPrivateConflict(t *testing.T) {
 	rmd.SetRefBytes(refBytes)
 	rmd.SetUnrefBytes(unrefBytes)
 	// Make sure the MD looks readable.
-	rmd.data.Dir.BlockPointer = BlockPointer{ID: kbfsblock.FakeID(1)}
+	rmd.data.Dir.BlockPointer = data.BlockPointer{ID: kbfsblock.FakeID(1)}
 
 	// key it once
 	done, _, err := config.KeyManager().Rekey(context.Background(), rmd, false)
@@ -898,7 +897,7 @@ func TestRootMetadataTeamMakeSuccessor(t *testing.T) {
 	require.NoError(t, err)
 	rmd.bareMd.SetLatestKeyGenerationForTeamTLF(teamInfos[0].LatestKeyGen)
 	// Make sure the MD looks readable.
-	rmd.data.Dir.BlockPointer = BlockPointer{ID: kbfsblock.FakeID(1)}
+	rmd.data.Dir.BlockPointer = data.BlockPointer{ID: kbfsblock.FakeID(1)}
 
 	firstKeyGen := rmd.LatestKeyGeneration()
 	require.Equal(t, kbfsmd.FirstValidKeyGen, firstKeyGen)

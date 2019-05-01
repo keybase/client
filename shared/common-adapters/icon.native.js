@@ -2,158 +2,187 @@
 import * as React from 'react'
 import * as Shared from './icon.shared'
 import * as Styles from '../styles'
-import ClickableBox from './clickable-box'
 import logger from '../logger'
-import type {IconType, Props} from './icon'
-import {NativeImage} from './native-image.native'
-import {NativeStyleSheet, NativeText} from './native-wrappers.native'
+import type {IconType, Props, DisallowedStyles, SizeType} from './icon'
+import {NativeImage, NativeText, NativeTouchableOpacity} from './native-wrappers.native'
 import {iconMeta} from './icon.constants'
 
-// In order to optimize this commonly used component we use StyleSheet on all the default variants
-// so we can pass IDs around instead of full objects
-// $FlowIssue
-const fontSizes = Object.keys(iconMeta).reduce((map: any, type: IconType) => {
-  const meta = iconMeta[type]
-  if (meta.gridSize) {
-    map[meta.gridSize] = {
-      fontSize: meta.gridSize,
+const Kb = {
+  NativeImage,
+  NativeText,
+  NativeTouchableOpacity,
+}
+
+type TextProps = {|
+  children: React.Node,
+  color?: Styles.Color,
+  fontSize?: number,
+  onClick?: ?(event: SyntheticEvent<Element>) => void,
+  opacity?: boolean,
+  sizeType: SizeType,
+  style?: Styles.StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>,
+  type: IconType,
+|}
+
+let Text = (p: TextProps, ref) => {
+  const style = {}
+
+  // we really should disallow reaching into style like this but this is what the old code does.
+  // TODO change this
+  // $FlowIssue
+  const pStyle: any = p.style
+
+  const color =
+    p.color ||
+    // $FlowIssue flow is correct but we do actually pass in this color sometimes. TODO remove this
+    (pStyle && p.style.color) ||
+    Shared.defaultColor(p.type) ||
+    (p.opacity && Styles.globalColors.lightGrey)
+  if (color) {
+    style.color = color
+  }
+
+  if (pStyle) {
+    if (pStyle.width !== undefined) {
+      style.width = pStyle.width
+    }
+    if (pStyle.backgroundColor) {
+      style.backgroundColor = pStyle.backgroundColor
     }
   }
-  return map
-}, {})
 
-const styles = NativeStyleSheet.create(fontSizes)
+  // $FlowIssue isn't in the type, but keeping this for now. TODO remove this
+  if (p.textAlign !== undefined) {
+    style.textAlign = p.textAlign
+  }
 
-const Text = Styles.styled(NativeText)(
-  // static styles
-  {
-    color: Styles.globalColors.black_50, // MUST set this or it can be inherited from outside text
-    fontFamily: 'kb',
-    fontWeight: 'normal', // MUST set this or it can be inherited from outside text
-  },
-  // dynamic styles. check for undefined and send null
-  props =>
-    props.style && props.style.width !== undefined
-      ? {
-          width: props.style.width,
-        }
-      : null,
-  props => {
-    const color =
-      props.colorOverride ||
-      props.color ||
-      Shared.defaultColor(props.type) ||
-      (props.opacity && Styles.globalColors.lightGrey)
-    if (color) {
-      return {color}
-    } else return null
-  },
-  props =>
-    props.textAlign !== undefined
-      ? {
-          textAlign: props.textAlign,
-        }
-      : null,
-  props => {
-    if (props.fontSize !== undefined || (props.style && props.style.width !== undefined)) {
-      return {fontSize: props.fontSize || props.style.width}
+  if (p.fontSize !== undefined || (pStyle && pStyle.width !== undefined)) {
+    style.fontSize = p.fontSize || pStyle.width
+  }
+
+  const temp = Shared.fontSize(Shared.typeToIconMapper(p.type))
+  if (temp) {
+    style.fontSize = temp.fontSize
+  }
+
+  // explicit
+  const fontSizeStyle = {fontSize: p.fontSize || Shared.typeToFontSize(p.sizeType)}
+
+  return (
+    <Kb.NativeText
+      style={[styles.text, style, fontSizeStyle, p.style]}
+      allowFontScaling={false}
+      type={p.type}
+      ref={ref}
+      onPress={p.onClick}
+      suppressHighlighting={true}
+    >
+      {p.children}
+    </Kb.NativeText>
+  )
+}
+
+Text = React.forwardRef(Text)
+Text.displayName = 'IconText'
+
+type ImageProps = {|
+  style?: Styles.StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>,
+  source: any,
+|}
+
+let Image = (p: ImageProps, ref) => {
+  let style
+
+  // we really should disallow reaching into style like this but this is what the old code does.
+  // TODO change this
+  // $FlowIssue
+  const pStyle: any = p.style
+
+  if (pStyle) {
+    style = {}
+    if (pStyle.width !== undefined) {
+      style.width = pStyle.width
     }
-
-    const temp = Shared.fontSize(Shared.typeToIconMapper(props.type))
-    if (temp) {
-      return styles[temp.fontSize]
+    if (pStyle.height !== undefined) {
+      style.height = pStyle.height
     }
+    if (pStyle.backgroundColor) {
+      style.backgroundColor = pStyle.backgroundColor
+    }
+  }
+
+  return <Kb.NativeImage ref={ref} style={[style, pStyle]} source={p.source} resizeMode="contain" />
+}
+Image = React.forwardRef(Image)
+Image.displayName = 'IconImage'
+
+const _Icon = (p: Props, ref: any) => {
+  // let Icon = React.memo<Props>((p, forwardedRef: ?React.Ref<any>) => {
+  const sizeType = p.sizeType || 'Default'
+  // Only apply props.style to icon if there is no onClick
+  const hasContainer = p.onClick && p.style
+  let iconType = Shared.typeToIconMapper(p.type)
+
+  if (!iconType) {
+    logger.warn('Null iconType passed')
     return null
-  },
-  props =>
-    props.style && props.style.backgroundColor ? {backgroundColor: props.style.backgroundColor} : null
-)
-
-const Image = Styles.styled(NativeImage)(
-  props =>
-    props.style && props.style.width !== undefined
-      ? {
-          width: props.style.width,
-        }
-      : null,
-  props =>
-    props.style && props.style.height !== undefined
-      ? {
-          height: props.style.height,
-        }
-      : null,
-  props =>
-    props.style && props.style.backgroundColor ? {backgroundColor: props.style.backgroundColor} : null
-)
-
-class Icon extends React.PureComponent<Props> {
-  static defaultProps = {
-    sizeType: 'Default',
   }
-  render() {
-    const props = this.props
-    // Only apply props.style to icon if there is no onClick
-    const hasContainer = props.onClick && props.style
-    let iconStyle = hasContainer ? null : props.style
-    let iconType = Shared.typeToIconMapper(props.type)
+  if (!iconMeta[iconType]) {
+    logger.warn(`Invalid icon type passed in: ${iconType}`)
+    return null
+  }
 
-    if (!iconType) {
-      logger.warn('Null iconType passed')
-      return null
-    }
-    if (!iconMeta[iconType]) {
-      logger.warn(`Invalid icon type passed in: ${iconType}`)
-      return null
-    }
+  const wrap = !p.noContainer && p.onClick
+  let icon
 
-    let icon
-
-    if (iconMeta[iconType].isFont) {
-      const code = String.fromCharCode(iconMeta[iconType].charCode || 0)
-      if (props.colorOverride || props.color) {
-        iconStyle = Styles.collapseStyles([iconStyle, {color: props.colorOverride || props.color}])
-      }
-
-      // explicit
-      let fontSize
-      if (this.props.fontSize) {
-        fontSize = this.props.fontSize
-      } else {
-        fontSize = Shared.typeToFontSize(this.props.sizeType)
-      }
-
-      icon = (
-        <Text
-          allowFontScaling={false}
-          style={iconStyle}
-          type={props.type}
-          fontSize={fontSize}
-          onPress={props.onClick}
-        >
-          {code}
-        </Text>
-      )
-    } else {
-      icon = <Image source={iconMeta[iconType].require} style={iconStyle} resizeMode="contain" />
+  if (iconMeta[iconType].isFont) {
+    const code = String.fromCharCode(iconMeta[iconType].charCode || 0)
+    let color
+    if (p.colorOverride || p.color) {
+      color = p.colorOverride || p.color
     }
 
-    return !props.noContainer && props.onClick ? (
-      <ClickableBox
-        activeOpacity={0.8}
-        underlayColor={props.underlayColor || Styles.globalColors.white}
-        onClick={props.onClick}
-        style={Styles.collapseStyles([
-          props.style,
-          this.props.padding && Shared.paddingStyles[this.props.padding],
-        ])}
+    icon = (
+      <Text
+        style={hasContainer ? null : p.style}
+        color={color}
+        type={p.type}
+        ref={wrap ? undefined : ref}
+        fontSize={p.fontSize}
+        sizeType={sizeType}
+        onClick={p.onClick}
       >
-        {icon}
-      </ClickableBox>
-    ) : (
-      icon
+        {code}
+      </Text>
+    )
+  } else {
+    icon = (
+      <Image
+        source={iconMeta[iconType].require}
+        style={hasContainer ? null : p.style}
+        ref={wrap ? undefined : ref}
+      />
     )
   }
+
+  return wrap ? (
+    <Kb.NativeTouchableOpacity
+      onPress={p.onClick}
+      activeOpacity={0.8}
+      underlayColor={p.underlayColor || Styles.globalColors.white}
+      ref={ref}
+      style={Styles.collapseStyles([p.style, p.padding && Shared.paddingStyles[p.padding]])}
+    >
+      {icon}
+    </Kb.NativeTouchableOpacity>
+  ) : (
+    icon
+  )
 }
+
+// $FlowIssue we use a js.flow file anyways but the typing of this is confusing. TODO fix this
+const Icon = React.memo<Props>(React.forwardRef(_Icon))
+Icon.displayName = 'Icon'
 
 export function iconTypeToImgSet(imgMap: {[size: string]: IconType}, targetSize: number): any {
   const multsMap = Shared.getMultsMap(imgMap, targetSize)
@@ -194,5 +223,13 @@ export function urlsToImgSet(imgMap: {[size: string]: string}, targetSize: numbe
 export function castPlatformStyles(styles: any) {
   return Shared.castPlatformStyles(styles)
 }
+
+const styles = Styles.styleSheetCreate({
+  text: {
+    color: Styles.globalColors.black_50, // MUST set this or it can be inherited from outside text
+    fontFamily: 'kb',
+    fontWeight: 'normal', // MUST set this or it can be inherited from outside text
+  },
+})
 
 export default Icon

@@ -7,11 +7,13 @@ import DestinationPicker from '.'
 import {makeBreadcrumbProps} from '../header/breadcrumb-container.desktop'
 import {rowsProvider} from '../row/index.stories'
 import {commonProvider} from '../common/index.stories'
+import {topBarProvider} from '../top-bar/index.stories'
 import {isMobile} from '../../constants/platform'
 
 export const provider = Sb.createPropProviderWithCommon({
   ...commonProvider,
   ...rowsProvider,
+  ...topBarProvider,
   ConnectedBreadcrumb: ({path}) =>
     makeBreadcrumbProps('meatball', path => Sb.action(`navigate to ${Types.pathToString(path)}`)(), path),
 })

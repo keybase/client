@@ -7,6 +7,7 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/config'
 import * as Tabs from '../constants/tabs'
 import * as ChatTypes from '../constants/types/chat2'
+import * as FsTypes from '../constants/types/fs'
 import {RPCError} from '../util/errors'
 
 // Constants
@@ -88,7 +89,7 @@ type _SetDeletedSelfPayload = $ReadOnly<{|deletedUsername: string|}>
 type _SetNavigatorPayload = $ReadOnly<{|navigator: any|}>
 type _SetNotifySoundPayload = $ReadOnly<{|sound: boolean, writeFile: boolean|}>
 type _SetOpenAtLoginPayload = $ReadOnly<{|open: boolean, writeFile: boolean|}>
-type _SetStartupDetailsPayload = $ReadOnly<{|startupWasFromPush: boolean, startupConversation: ?ChatTypes.ConversationIDKey, startupLink: string, startupTab: ?Tabs.Tab, startupFollowUser: string|}>
+type _SetStartupDetailsPayload = $ReadOnly<{|startupWasFromPush: boolean, startupConversation: ?ChatTypes.ConversationIDKey, startupLink: string, startupTab: ?Tabs.Tab, startupFollowUser: string, startupSharePath: ?FsTypes.LocalPath|}>
 type _ShowMainPayload = void
 type _StartHandshakePayload = void
 type _SwapRouterPayload = $ReadOnly<{|useNewRouter: boolean|}>

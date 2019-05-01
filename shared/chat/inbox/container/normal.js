@@ -61,8 +61,8 @@ const getSmallRows = memoize(
 
 const sortByTeamChannel = (a, b) =>
   a.teamname === b.teamname
-    ? a.channelname.localeCompare(b.channelname)
-    : a.teamname.localeCompare(b.teamname)
+    ? a.channelname.localeCompare(b.channelname, undefined, {sensitivity: 'base'})
+    : a.teamname.localeCompare(b.teamname) // team names are normalized to lowercase
 const getBigRows = memoize(
   bigMetas => {
     let lastTeam: ?string

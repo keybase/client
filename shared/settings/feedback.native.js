@@ -130,7 +130,7 @@ class Feedback extends Component<Props> {
             </Box>
           </Box>
           <ButtonBar style={{paddingTop: globalMargins.small}}>
-            <Button fullWidth={true} label="Send" onClick={this._onSubmit} type="Primary" waiting={sending} />
+            <Button fullWidth={true} label="Send" onClick={this._onSubmit} waiting={sending} />
           </ButtonBar>
           {sendError && (
             <Box style={{...globalStyles.flexBoxColumn, marginTop: globalMargins.small}}>

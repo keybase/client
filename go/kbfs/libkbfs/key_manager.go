@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libkey"
@@ -53,7 +54,7 @@ func (km *KeyManagerStandard) GetTLFCryptKeyForMDDecryption(
 // GetTLFCryptKeyForBlockDecryption implements the KeyManager interface for
 // KeyManagerStandard.
 func (km *KeyManagerStandard) GetTLFCryptKeyForBlockDecryption(
-	ctx context.Context, kmd libkey.KeyMetadata, blockPtr BlockPointer) (
+	ctx context.Context, kmd libkey.KeyMetadata, blockPtr data.BlockPointer) (
 	tlfCryptKey kbfscrypto.TLFCryptKey, err error) {
 	return km.getTLFCryptKeyUsingCurrentDevice(ctx, kmd, blockPtr.KeyGen, true)
 }

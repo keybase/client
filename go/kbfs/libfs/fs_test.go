@@ -12,10 +12,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/test/clocktest"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -24,7 +26,7 @@ import (
 	billy "gopkg.in/src-d/go-billy.v4"
 )
 
-func makeFSWithBranch(t *testing.T, branch libkbfs.BranchName, subdir string) (
+func makeFSWithBranch(t *testing.T, branch data.BranchName, subdir string) (
 	context.Context, *tlfhandle.Handle, *FS) {
 	ctx := libcontext.BackgroundContextWithCancellationDelayer()
 	config := libkbfs.MakeTestConfigOrBust(t, "user1", "user2")
@@ -39,7 +41,7 @@ func makeFSWithBranch(t *testing.T, branch libkbfs.BranchName, subdir string) (
 
 func makeFS(t *testing.T, subdir string) (
 	context.Context, *tlfhandle.Handle, *FS) {
-	return makeFSWithBranch(t, libkbfs.MasterBranch, subdir)
+	return makeFSWithBranch(t, data.MasterBranch, subdir)
 }
 
 func makeFSWithJournal(t *testing.T, subdir string) (
@@ -70,7 +72,7 @@ func makeFSWithJournal(t *testing.T, subdir string) (
 		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Private)
 	require.NoError(t, err)
 	fs, err := NewFS(
-		ctx, config, h, libkbfs.MasterBranch, subdir, "",
+		ctx, config, h, data.MasterBranch, subdir, "",
 		keybase1.MDPriorityNormal)
 	require.NoError(t, err)
 
@@ -122,7 +124,7 @@ func TestCreateFileInRoot(t *testing.T) {
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, fs.config)
 
 	rootNode, _, err := fs.config.KBFSOps().GetRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 
 	testCreateFile(t, ctx, fs, "foo", rootNode)
@@ -134,7 +136,7 @@ func TestCreateFileInSubdir(t *testing.T) {
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, fs.config)
 
 	rootNode, _, err := fs.config.KBFSOps().GetRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 	aNode, _, err := fs.config.KBFSOps().CreateDir(ctx, rootNode, "a")
 	require.NoError(t, err)
@@ -163,7 +165,7 @@ func TestAppendFile(t *testing.T) {
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, fs.config)
 
 	rootNode, _, err := fs.config.KBFSOps().GetRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 
 	testCreateFile(t, ctx, fs, "foo", rootNode)
@@ -199,7 +201,7 @@ func TestRecreateAndExcl(t *testing.T) {
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, fs.config)
 
 	rootNode, _, err := fs.config.KBFSOps().GetRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 
 	testCreateFile(t, ctx, fs, "foo", rootNode)
@@ -227,12 +229,12 @@ func TestStat(t *testing.T) {
 	ctx, h, fs := makeFS(t, "")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, fs.config)
 
-	clock := &libkbfs.TestClock{}
+	clock := &clocktest.TestClock{}
 	clock.Set(time.Now())
 	fs.config.SetClock(clock)
 
 	rootNode, _, err := fs.config.KBFSOps().GetRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 	aNode, _, err := fs.config.KBFSOps().CreateDir(ctx, rootNode, "a")
 	require.NoError(t, err)
@@ -280,11 +282,11 @@ func TestStat(t *testing.T) {
 		ctx, config2.KBPKI(), config2.MDOps(), nil, "user2#user1", tlf.Private)
 	require.NoError(t, err)
 	fs2U2, err := NewFS(
-		ctx, config2, h2, libkbfs.MasterBranch, "", "",
+		ctx, config2, h2, data.MasterBranch, "", "",
 		keybase1.MDPriorityNormal)
 	require.NoError(t, err)
 	rootNode2, _, err := fs2U2.config.KBFSOps().GetRootNode(
-		ctx, h2, libkbfs.MasterBranch)
+		ctx, h2, data.MasterBranch)
 	require.NoError(t, err)
 	aNode2, _, err := fs2U2.config.KBFSOps().CreateDir(ctx, rootNode2, "a")
 	require.NoError(t, err)
@@ -292,7 +294,7 @@ func TestStat(t *testing.T) {
 
 	// Read as the reader.
 	fs2U1, err := NewFS(
-		ctx, fs.config, h2, libkbfs.MasterBranch, "", "",
+		ctx, fs.config, h2, data.MasterBranch, "", "",
 		keybase1.MDPriorityNormal)
 	require.NoError(t, err)
 
@@ -310,7 +312,7 @@ func TestRename(t *testing.T) {
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, fs.config)
 
 	rootNode, _, err := fs.config.KBFSOps().GetRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 	testCreateFile(t, ctx, fs, "foo", rootNode)
 	err = fs.MkdirAll("a/b", os.FileMode(0600))
@@ -348,7 +350,7 @@ func TestRemove(t *testing.T) {
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, fs.config)
 
 	rootNode, _, err := fs.config.KBFSOps().GetRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 	testCreateFile(t, ctx, fs, "foo", rootNode)
 	err = fs.MkdirAll("a/b", os.FileMode(0600))
@@ -379,7 +381,7 @@ func TestReadDir(t *testing.T) {
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, fs.config)
 
 	rootNode, _, err := fs.config.KBFSOps().GetRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 	aNode, _, err := fs.config.KBFSOps().CreateDir(ctx, rootNode, "a")
 	require.NoError(t, err)
@@ -547,7 +549,7 @@ func TestChtimes(t *testing.T) {
 	ctx, _, fs := makeFS(t, "")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, fs.config)
 
-	clock := &libkbfs.TestClock{}
+	clock := &clocktest.TestClock{}
 	clock.Set(time.Now())
 	fs.config.SetClock(clock)
 
@@ -660,7 +662,7 @@ func TestFileLockingExpiration(t *testing.T) {
 	_, _, fs, shutdown := makeFSWithJournal(t, "")
 	defer shutdown()
 
-	clock := &libkbfs.TestClock{}
+	clock := &clocktest.TestClock{}
 	clock.Set(time.Now())
 	fs.config.SetClock(clock)
 
@@ -689,7 +691,7 @@ func TestArchivedByRevision(t *testing.T) {
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, fs.config)
 
 	rootNode, _, err := fs.config.KBFSOps().GetRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 
 	testCreateFile(t, ctx, fs, "foo", rootNode)
@@ -698,7 +700,7 @@ func TestArchivedByRevision(t *testing.T) {
 	require.Len(t, fis, 1)
 
 	_, _, fsArchived := makeFSWithBranch(
-		t, libkbfs.MakeRevBranchName(kbfsmd.Revision(1)), "")
+		t, data.MakeRevBranchName(kbfsmd.Revision(1)), "")
 	fis, err = fsArchived.ReadDir("")
 	require.NoError(t, err)
 	require.Len(t, fis, 0)
@@ -713,7 +715,7 @@ func TestEmptyFS(t *testing.T) {
 		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Private)
 	require.NoError(t, err)
 	fs, err := NewFSIfExists(
-		ctx, config, h, libkbfs.MasterBranch, "", "", keybase1.MDPriorityNormal)
+		ctx, config, h, data.MasterBranch, "", "", keybase1.MDPriorityNormal)
 	require.NoError(t, err)
 
 	require.True(t, fs.IsEmpty())

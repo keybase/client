@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/kbconst"
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libkey"
@@ -227,7 +228,7 @@ func DefaultInitParams(ctx Context) InitParams {
 		DiskCacheMode:                  DiskCacheModeLocal,
 		DiskBlockCacheFraction:         0.10,
 		SyncBlockCacheFraction:         1.00,
-		Mode: InitDefaultString,
+		Mode:                           InitDefaultString,
 	}
 }
 
@@ -564,6 +565,7 @@ func InitWithLogPrefix(
 			case SIGINT:
 			default:
 				if interruptErr != nil {
+					log.Info("Failed to unmount before exit: %s", interruptErr)
 					os.Exit(1)
 				} else {
 					// Do not return 128 + signal since kbfsfuse is not a shell command
@@ -657,7 +659,12 @@ func doInit(
 			}
 			return lg
 		}, params.StorageRoot, params.DiskCacheMode, kbCtx)
-	config.vdebugSetting = kbCtx.GetVDebugSetting()
+	config.SetVLogLevel(kbCtx.GetVDebugSetting())
+	if mode == InitConstrained {
+		// Until we have a way to turn on debug logging for mobile,
+		// log everything.
+		config.SetVLogLevel(libkb.VLog1String)
+	}
 
 	if params.CleanBlockCacheCapacity > 0 {
 		log.CDebugf(
@@ -674,8 +681,8 @@ func doInit(
 	config.SetBlockOps(NewBlockOpsStandard(
 		config, workers, prefetchWorkers, throttledPrefetchPeriod))
 
-	bsplitter, err := NewBlockSplitterSimple(MaxBlockSizeBytesDefault, 8*1024,
-		config.Codec())
+	bsplitter, err := data.NewBlockSplitterSimple(
+		data.MaxBlockSizeBytesDefault, 8*1024, config.Codec())
 	if err != nil {
 		return nil, err
 	}

@@ -25,7 +25,7 @@ const NameWithIconWrapper = (props: Props) => {
       onEditIcon={_onEditIcon}
       size="big"
       teamname={props.teamname}
-      title={props.teamname}
+      title={props.title}
       metaOne={props.metaOne}
       metaTwo={props.metaTwo}
     />

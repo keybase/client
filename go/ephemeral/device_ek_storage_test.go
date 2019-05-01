@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/erasablekv"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
@@ -105,13 +104,13 @@ func TestDeviceEKStorage(t *testing.T) {
 
 	deviceEK, err := s.Get(mctx, 2)
 	require.Error(t, err)
-	require.IsType(t, erasablekv.UnboxError{}, err)
+	require.IsType(t, libkb.UnboxError{}, err)
 	require.Equal(t, keybase1.DeviceEk{}, deviceEK)
 
 	// Test Get nonexistent
 	nonexistent, err := s.Get(mctx, keybase1.EkGeneration(len(testKeys)+1))
 	require.Error(t, err)
-	require.IsType(t, erasablekv.UnboxError{}, err)
+	require.IsType(t, libkb.UnboxError{}, err)
 	require.Equal(t, keybase1.DeviceEk{}, nonexistent)
 
 	// include the cached error in the max
@@ -135,7 +134,7 @@ func TestDeviceEKStorage(t *testing.T) {
 	// deletion correctly.
 	uv, err := tc.G.GetMeUV(context.TODO())
 	require.NoError(t, err)
-	erasableStorage := erasablekv.NewFileErasableKVStore(mctx, deviceEKSubDir)
+	erasableStorage := libkb.NewFileErasableKVStore(mctx, deviceEKSubDir, deviceEKKeygen)
 
 	// First, let's drop a deviceEK for a different user, this shouldn't be deleted
 	badUserKey := fmt.Sprintf("%s-%s-%s-0.ek", deviceEKPrefix, mctx.G().Env.GetUsername()+"x", uv.EldestSeqno)
@@ -165,14 +164,14 @@ func TestDeviceEKStorage(t *testing.T) {
 	var badEldestSeqnoDeviceEK keybase1.DeviceEk
 	err = erasableStorage.Get(mctx, badEldestSeqnoKey, &badEldestSeqnoDeviceEK)
 	require.Error(t, err)
-	require.IsType(t, erasablekv.UnboxError{}, err)
+	require.IsType(t, libkb.UnboxError{}, err)
 	require.Equal(t, badEldestSeqnoDeviceEK, keybase1.DeviceEk{})
 
 	// Verify we store failures in the cache
 	t.Logf("cache failures")
 	nonexistent, err = s.Get(mctx, maxGeneration+1)
 	require.Error(t, err)
-	require.IsType(t, erasablekv.UnboxError{}, err)
+	require.IsType(t, libkb.UnboxError{}, err)
 	require.Equal(t, keybase1.DeviceEk{}, nonexistent)
 
 	cache, err := s.getCache(mctx)
@@ -182,7 +181,7 @@ func TestDeviceEKStorage(t *testing.T) {
 	cacheItem, ok := cache[maxGeneration+1]
 	require.True(t, ok)
 	require.Error(t, cacheItem.Err)
-	require.IsType(t, erasablekv.UnboxError{}, cacheItem.Err)
+	require.IsType(t, libkb.UnboxError{}, cacheItem.Err)
 }
 
 // If we change the key format intentionally, we have to introduce some form of

@@ -95,7 +95,7 @@ function SpaceInfo({
 const UpgradeButton = ({onClick, type}: {onClick: () => void, type: 'upgrade' | 'change'}) => (
   <Button
     style={{marginRight: 0}}
-    type="PrimaryGreen"
+    type="Success"
     label={{change: 'Change', upgrade: 'Upgrade'}[type]}
     onClick={e => {
       onClick()
@@ -285,7 +285,7 @@ function AccountFirstEmail({onChangeEmail}: {onChangeEmail: () => void}) {
     >
       <Text type="Body">
         Email address:
-        <Button label="Add an email address" type="Secondary" small={true} onClick={onChangeEmail} />
+        <Button label="Add an email address" type="Dim" small={true} onClick={onChangeEmail} />
       </Text>
     </Box>
   )
@@ -313,7 +313,7 @@ function AccountFirstPassword({onChangePassword}: {onChangePassword: () => void}
       <Text type="Body" style={{marginRight: globalMargins.xtiny}}>
         Password:
       </Text>
-      <Button label="Set a password" type="Secondary" small={true} onClick={onChangePassword} />
+      <Button label="Set a password" type="Dim" small={true} onClick={onChangePassword} />
     </Box>
   )
 }

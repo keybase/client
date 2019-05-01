@@ -1048,6 +1048,33 @@ func PresentRemoteConversations(ctx context.Context, g *globals.Context, rcs []t
 	return res
 }
 
+func SearchableRemoteConversationName(conv types.RemoteConversation, username string) string {
+	name := conv.GetName()
+	// Check for self conv or big team conv
+	if name == username || strings.Contains(name, "#") {
+		return name
+	}
+	name = strings.Replace(name, fmt.Sprintf(",%s", username), "", -1)
+	name = strings.Replace(name, fmt.Sprintf("%s,", username), "", -1)
+	return name
+}
+
+func PresentRemoteConversationAsSearchHit(conv types.RemoteConversation, username string) chat1.UIChatSearchConvHit {
+	return chat1.UIChatSearchConvHit{
+		ConvID:   conv.GetConvID().String(),
+		TeamType: conv.GetTeamType(),
+		Name:     SearchableRemoteConversationName(conv, username),
+		Mtime:    conv.GetMtime(),
+	}
+}
+
+func PresentRemoteConversationsAsSearchHits(convs []types.RemoteConversation, username string) (res []chat1.UIChatSearchConvHit) {
+	for _, c := range convs {
+		res = append(res, PresentRemoteConversationAsSearchHit(c, username))
+	}
+	return res
+}
+
 func PresentConversationErrorLocal(ctx context.Context, g *globals.Context, rawConv chat1.ConversationErrorLocal) (res chat1.InboxUIItemError) {
 	res.Message = rawConv.Message
 	res.RekeyInfo = rawConv.RekeyInfo
@@ -1403,6 +1430,11 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			so := valid.ClientHeader.OutboxID.String()
 			strOutboxID = &so
 		}
+		var replyTo *chat1.UIMessage
+		if valid.ReplyTo != nil {
+			replyTo = new(chat1.UIMessage)
+			*replyTo = PresentMessageUnboxed(ctx, g, *valid.ReplyTo, uid, convID)
+		}
 		res = chat1.NewUIMessageWithValid(chat1.UIMessageValid{
 			MessageID:             rawMsg.GetMessageID(),
 			Ctime:                 valid.ServerHeader.Ctime,
@@ -1433,6 +1465,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Unfurls:               PresentUnfurls(ctx, g, uid, convID, valid.Unfurls),
 			IsDeleteable:          IsDeleteableByDeleteMessageType(rawMsg.GetMessageType()),
 			IsEditable:            IsEditableByEditMessageType(rawMsg.GetMessageType()),
+			ReplyTo:               replyTo,
 			IsCollapsed: collapses.IsCollapsed(ctx, uid, convID, rawMsg.GetMessageID(),
 				rawMsg.GetMessageType()),
 		})
@@ -1461,6 +1494,11 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 				filename = msgBody.Attachment().Object.Filename
 			}
 		}
+		var replyTo *chat1.UIMessage
+		if rawMsg.Outbox().ReplyTo != nil {
+			replyTo = new(chat1.UIMessage)
+			*replyTo = PresentMessageUnboxed(ctx, g, *rawMsg.Outbox().ReplyTo, uid, convID)
+		}
 		res = chat1.NewUIMessageWithOutbox(chat1.UIMessageOutbox{
 			State:             rawMsg.Outbox().State,
 			OutboxID:          rawMsg.Outbox().OutboxID.String(),
@@ -1474,6 +1512,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Filename:          filename,
 			IsEphemeral:       rawMsg.Outbox().Msg.IsEphemeral(),
 			FlipGameID:        presentFlipGameID(ctx, g, uid, convID, rawMsg),
+			ReplyTo:           replyTo,
 		})
 	case chat1.MessageUnboxedState_ERROR:
 		res = chat1.NewUIMessageWithError(rawMsg.Error())
@@ -2044,7 +2083,7 @@ func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 		ConvIDs: []chat1.ConversationID{convID},
 	}, nil)
 	if err != nil {
-		return res, fmt.Errorf("GetUnverifiedConv: %s", err.Error())
+		return res, err
 	}
 	if len(inbox.ConvsUnverified) == 0 {
 		return res, ErrGetUnverifiedConvNotFound

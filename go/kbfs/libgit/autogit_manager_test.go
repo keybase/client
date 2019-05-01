@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
@@ -101,7 +102,7 @@ func commitWorktree(
 	jManager, err := libkbfs.GetJournalManager(config)
 	require.NoError(t, err)
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 	err = jManager.FinishSingleOp(ctx,
 		rootNode.GetFolderBranch().Tlf, nil, keybase1.MDPriorityNormal)

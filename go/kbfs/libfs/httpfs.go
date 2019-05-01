@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/pkg/errors"
 )
@@ -30,7 +31,7 @@ func (d *dir) Readdir(count int) (fis []os.FileInfo, err error) {
 type fileOrDir struct {
 	file *File
 	dir  *dir
-	ei   libkbfs.EntryInfo
+	ei   data.EntryInfo
 }
 
 var _ http.File = fileOrDir{}

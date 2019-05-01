@@ -64,14 +64,13 @@ class EnterUsername extends React.Component<Props, State> {
             <Kb.WaitingButton
               waitingKey={Constants.waitingKey}
               onlyDisable={true}
-              type="Secondary"
+              type="Dim"
               onClick={this.props.onCancel}
               label="Cancel"
             />
             <Kb.WaitingButton
               waitingKey={Constants.waitingKey}
               disabled={!this.state.canSubmit}
-              type="Primary"
               onClick={this._submit}
               label="Continue"
             />

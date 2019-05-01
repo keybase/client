@@ -4,6 +4,7 @@ import (
 	"encoding/base32"
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 
 	stellar1 "github.com/keybase/client/go/protocol/stellar1"
@@ -107,4 +108,17 @@ func StellarSimplifyAmount(amount string) string {
 		return sides[0]
 	}
 	return sides[0] + "." + simpleRight
+}
+
+var assetCodePattern = regexp.MustCompile(`^[a-zA-Z0-9]{1,12}$`)
+
+func ParseStellarAssetCode(codeStr string) (res stellar1.AssetCode, err error) {
+	if len(codeStr) < 1 && len(codeStr) > 12 {
+		return res, fmt.Errorf("asset code must be between 1 and 12 characters long")
+	}
+	if !assetCodePattern.MatchString(codeStr) {
+		return res, fmt.Errorf("asset code must contain alphanumeric characters only")
+	}
+	fmt.Printf("%s parsed\n", codeStr)
+	return stellar1.AssetCode(codeStr), nil
 }

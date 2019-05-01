@@ -25,6 +25,7 @@ func NewCmdAccountResetTimeTravel(cl *libcmdline.CommandLine, g *libkb.GlobalCon
 		Action: func(c *cli.Context) {
 			cmd := NewCmdAccountResetTimeTravelRunner(g)
 			cl.ChooseCommand(cmd, "reset-time-travel", c)
+			cl.SetSkipAccountResetCheck()
 		},
 	}
 }

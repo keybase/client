@@ -6,6 +6,7 @@ package simplefs
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -16,10 +17,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/test/clocktest"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/libkb"
@@ -200,7 +203,7 @@ func TestStatNonExistent(t *testing.T) {
 func TestList(t *testing.T) {
 	ctx := context.Background()
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	clock := &libkbfs.TestClock{}
+	clock := &clocktest.TestClock{}
 	clock.Set(time.Now())
 	config.SetClock(clock)
 	sfs := newSimpleFS(env.EmptyAppStateUpdater{}, config)
@@ -225,7 +228,7 @@ func TestList(t *testing.T) {
 		ctx, config.KBPKI(), config.MDOps(), config, "jdoe", tlf.Private)
 	require.NoError(t, err)
 	rootNode, _, err := config.KBFSOps().GetRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 	require.Nil(t, rootNode)
 
@@ -715,6 +718,14 @@ func (fs *fsBlocker) ReadDir(p string) (fis []os.FileInfo, err error) {
 	return fs.FS.ReadDir(p)
 }
 
+func (fs *fsBlocker) Chroot(p string) (newFS billy.Filesystem, err error) {
+	chrootFS, err := fs.FS.ChrootAsLibFS(p)
+	if err != nil {
+		return nil, err
+	}
+	return &fsBlocker{chrootFS, fs.signalCh, fs.unblockCh}, nil
+}
+
 type fsBlockerMaker struct {
 	signalCh  chan<- struct{}
 	unblockCh <-chan struct{}
@@ -722,7 +733,7 @@ type fsBlockerMaker struct {
 
 func (maker fsBlockerMaker) makeNewBlocker(
 	ctx context.Context, config libkbfs.Config,
-	tlfHandle *tlfhandle.Handle, branch libkbfs.BranchName, subdir string,
+	tlfHandle *tlfhandle.Handle, branch data.BranchName, subdir string,
 	create bool) (billy.Filesystem, error) {
 	fsMaker := libfs.NewFS
 	if !create {
@@ -742,7 +753,7 @@ func TestCopyProgress(t *testing.T) {
 	defer cancel()
 
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	clock := &libkbfs.TestClock{}
+	clock := &clocktest.TestClock{}
 	start := time.Now()
 	clock.Set(start)
 	config.SetClock(clock)
@@ -1261,7 +1272,7 @@ func TestGetRevisions(t *testing.T) {
 	defer cancel()
 
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	clock := &libkbfs.TestClock{}
+	clock := &clocktest.TestClock{}
 	start := time.Now()
 	clock.Set(start)
 	config.SetClock(clock)
@@ -1349,4 +1360,17 @@ func TestGetRevisions(t *testing.T) {
 	newestRev := 9 /* Last file revision was at 7, plus one for GC */
 	checkRevisions(2, newestRev, keybase1.RevisionSpanType_DEFAULT)
 	checkRevisions(2, newestRev, keybase1.RevisionSpanType_LAST_FIVE)
+}
+
+func TestOverallStatusFile(t *testing.T) {
+	ctx := context.Background()
+	sfs := newSimpleFS(
+		env.EmptyAppStateUpdater{}, libkbfs.MakeTestConfigOrBust(t, "jdoe"))
+	defer closeSimpleFS(ctx, t, sfs)
+
+	path := keybase1.NewPathWithKbfs("/" + libfs.StatusFileName)
+	buf := readRemoteFile(ctx, t, sfs, path)
+	var status libkbfs.KBFSStatus
+	json.Unmarshal(buf, &status)
+	require.Equal(t, "jdoe", status.CurrentUser)
 }

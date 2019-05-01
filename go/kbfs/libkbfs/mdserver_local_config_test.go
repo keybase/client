@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/test/clocktest"
 	"golang.org/x/net/context"
 )
 
@@ -35,7 +36,7 @@ func newTestMDServerLocalConfig(
 	return testMDServerLocalConfig{
 		codecGetter: cg,
 		logMaker:    newTestLogMaker(t),
-		clock:       newTestClockNow(),
+		clock:       clocktest.NewTestClockNow(),
 		crypto:      MakeCryptoCommon(cg.Codec(), makeBlockCryptV1()),
 		csg:         csg,
 	}

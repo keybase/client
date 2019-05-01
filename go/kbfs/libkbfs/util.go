@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
@@ -117,8 +118,9 @@ func CtxWithRandomIDReplayable(ctx context.Context, tagKey interface{},
 
 // checkDataVersion validates that the data version for a
 // block pointer is valid for the given version validator
-func checkDataVersion(versioner dataVersioner, p path, ptr BlockPointer) error {
-	if ptr.DataVer < FirstValidDataVer {
+func checkDataVersion(
+	versioner data.Versioner, p data.Path, ptr data.BlockPointer) error {
+	if ptr.DataVer < data.FirstValidVer {
 		return errors.WithStack(InvalidDataVersionError{ptr.DataVer})
 	}
 	if versioner != nil && ptr.DataVer > versioner.DataVersion() {

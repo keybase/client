@@ -201,7 +201,7 @@ func addUnflushedPaths(ctx context.Context,
 	populatePaths := false
 	for _, chain := range chains.byOriginal {
 		if len(chain.ops) > 0 &&
-			!chain.ops[len(chain.ops)-1].getFinalPath().isValid() {
+			!chain.ops[len(chain.ops)-1].getFinalPath().IsValid() {
 			populatePaths = true
 			break
 		}

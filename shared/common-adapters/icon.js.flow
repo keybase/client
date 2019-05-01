@@ -8,10 +8,10 @@ import {
   globalMargins,
 } from '../styles'
 
-export type SizeType = 'Bigger' | 'Big' | 'Default' | 'Small' | 'Tiny'
+export type SizeType = 'Huge' | 'Bigger' | 'Big' | 'Default' | 'Small' | 'Tiny'
 
 // These must be passed as props
-type DisallowedStyles = {
+export type DisallowedStyles = {
   color?: empty,
   hoverColor?: empty,
   fontSize?: empty,

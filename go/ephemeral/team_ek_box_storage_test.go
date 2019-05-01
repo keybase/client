@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/keybase/client/go/erasablekv"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
@@ -111,7 +110,7 @@ func TestTeamEKBoxStorage(t *testing.T) {
 	deviceEKStorage.ClearCache()
 	deviceEK, err := deviceEKStorage.Get(mctx, deviceEKMaxGen)
 	require.Error(t, err)
-	_, ok = err.(erasablekv.UnboxError)
+	_, ok = err.(libkb.UnboxError)
 	require.True(t, ok)
 	require.Equal(t, keybase1.DeviceEk{}, deviceEK)
 

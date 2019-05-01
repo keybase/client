@@ -475,16 +475,16 @@ func (o UpdateInfo) DeepCopy() UpdateInfo {
 }
 
 type BootstrapStatus struct {
-	Registered bool     `codec:"registered" json:"registered"`
-	LoggedIn   bool     `codec:"loggedIn" json:"loggedIn"`
-	Uid        UID      `codec:"uid" json:"uid"`
-	Username   string   `codec:"username" json:"username"`
-	DeviceID   DeviceID `codec:"deviceID" json:"deviceID"`
-	DeviceName string   `codec:"deviceName" json:"deviceName"`
-	Fullname   FullName `codec:"fullname" json:"fullname"`
-	Following  []string `codec:"following" json:"following"`
-	Followers  []string `codec:"followers" json:"followers"`
-	TopReacjis []string `codec:"topReacjis" json:"topReacjis"`
+	Registered  bool        `codec:"registered" json:"registered"`
+	LoggedIn    bool        `codec:"loggedIn" json:"loggedIn"`
+	Uid         UID         `codec:"uid" json:"uid"`
+	Username    string      `codec:"username" json:"username"`
+	DeviceID    DeviceID    `codec:"deviceID" json:"deviceID"`
+	DeviceName  string      `codec:"deviceName" json:"deviceName"`
+	Fullname    FullName    `codec:"fullname" json:"fullname"`
+	Following   []string    `codec:"following" json:"following"`
+	Followers   []string    `codec:"followers" json:"followers"`
+	UserReacjis UserReacjis `codec:"userReacjis" json:"userReacjis"`
 }
 
 func (o BootstrapStatus) DeepCopy() BootstrapStatus {
@@ -518,17 +518,7 @@ func (o BootstrapStatus) DeepCopy() BootstrapStatus {
 			}
 			return ret
 		})(o.Followers),
-		TopReacjis: (func(x []string) []string {
-			if x == nil {
-				return nil
-			}
-			ret := make([]string, len(x))
-			for i, v := range x {
-				vCopy := v
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.TopReacjis),
+		UserReacjis: o.UserReacjis.DeepCopy(),
 	}
 }
 

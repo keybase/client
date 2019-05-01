@@ -34,6 +34,7 @@ const styles = styleSheetCreate({
   spinner: {
     height: 13,
     marginLeft: 0,
+    width: 13,
   },
 })
 

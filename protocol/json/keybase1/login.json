@@ -58,6 +58,14 @@
           "name": "doUserSwitch",
           "type": "boolean",
           "default": false
+        },
+        {
+          "name": "paperKey",
+          "type": "string"
+        },
+        {
+          "name": "deviceName",
+          "type": "string"
         }
       ],
       "response": null,

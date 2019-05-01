@@ -47,8 +47,7 @@ const Banner = (props: Props) => (
                 key={`action-${index}`}
                 type="BodySmallSemibold"
                 onClick={onClick}
-                style={colorToTextColorStyles[props.color]}
-                underline={true}
+                style={Styles.collapseStyles([colorToTextColorStyles[props.color], styles.underline])}
               >
                 {title}
               </Text>,
@@ -117,6 +116,9 @@ const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.medium,
     },
   }),
+  underline: {
+    textDecorationLine: 'underline',
+  },
 })
 
 const colorToBackgroundColorStyles = Styles.styleSheetCreate({

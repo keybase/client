@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	lru "github.com/hashicorp/golang-lru"
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
@@ -57,7 +58,7 @@ type AutogitManager struct {
 	deferLog logger.Logger
 
 	registryLock           sync.RWMutex
-	registeredFBs          map[libkbfs.FolderBranch]bool
+	registeredFBs          map[data.FolderBranch]bool
 	repoNodesForWatchedIDs map[libkbfs.NodeID]*repoDirNode
 	watchedNodes           []libkbfs.Node // preventing GC on the watched nodes
 	deleteCancels          map[string]context.CancelFunc
@@ -88,7 +89,7 @@ func NewAutogitManager(
 		config:                 config,
 		log:                    log,
 		deferLog:               log.CloneWithAddedDepth(1),
-		registeredFBs:          make(map[libkbfs.FolderBranch]bool),
+		registeredFBs:          make(map[data.FolderBranch]bool),
 		repoNodesForWatchedIDs: make(map[libkbfs.NodeID]*repoDirNode),
 		deleteCancels:          make(map[string]context.CancelFunc),
 		browserCache:           browserCache,
@@ -107,7 +108,7 @@ func (am *AutogitManager) Shutdown() {
 }
 
 func (am *AutogitManager) removeOldCheckoutsForHandle(
-	ctx context.Context, h *tlfhandle.Handle, branch libkbfs.BranchName) {
+	ctx context.Context, h *tlfhandle.Handle, branch data.BranchName) {
 	// Make an "unwrapped" FS, so we don't end up recursively entering
 	// the virtual autogit nodes again.
 	fs, err := libfs.NewUnwrappedFS(
@@ -193,7 +194,7 @@ func (am *AutogitManager) removeSelfCheckouts() {
 		return
 	}
 
-	am.removeOldCheckoutsForHandle(ctx, h, libkbfs.MasterBranch)
+	am.removeOldCheckoutsForHandle(ctx, h, data.MasterBranch)
 }
 
 func (am *AutogitManager) registerRepoNode(
@@ -210,7 +211,7 @@ func (am *AutogitManager) registerRepoNode(
 	am.doRemoveSelfCheckouts.Do(func() { go am.removeSelfCheckouts() })
 	am.watchedNodes = append(am.watchedNodes, nodeToWatch)
 	err := am.config.Notifier().RegisterForChanges(
-		[]libkbfs.FolderBranch{fb}, am)
+		[]data.FolderBranch{fb}, am)
 	if err != nil {
 		am.log.CWarningf(nil, "Error registering %s: +%v", fb.Tlf, err)
 		return

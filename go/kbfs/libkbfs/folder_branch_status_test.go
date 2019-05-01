@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
@@ -60,7 +61,7 @@ func TestFBStatusSignal(t *testing.T) {
 	}
 
 	n := newMockNode(mockCtrl)
-	p1 := path{path: []pathNode{{Name: "a1"}, {Name: "b1"}}}
+	p1 := data.Path{Path: []data.PathNode{{Name: "a1"}, {Name: "b1"}}}
 	nodeCache.EXPECT().PathFromNode(mockNodeMatcher{n}).AnyTimes().Return(p1)
 
 	fbsk.addDirtyNode(n)
@@ -128,10 +129,10 @@ func TestFBStatusAllFields(t *testing.T) {
 
 	// make two nodes with expected PathFromNode calls
 	n1 := newMockNode(mockCtrl)
-	p1 := path{path: []pathNode{{Name: "a1"}, {Name: "b1"}}}
+	p1 := data.Path{Path: []data.PathNode{{Name: "a1"}, {Name: "b1"}}}
 	nodeCache.EXPECT().PathFromNode(mockNodeMatcher{n1}).AnyTimes().Return(p1)
 	n2 := newMockNode(mockCtrl)
-	p2 := path{path: []pathNode{{Name: "a2"}, {Name: "b2"}}}
+	p2 := data.Path{Path: []data.PathNode{{Name: "a2"}, {Name: "b2"}}}
 	nodeCache.EXPECT().PathFromNode(mockNodeMatcher{n2}).AnyTimes().Return(p2)
 
 	fbsk.setRootMetadata(

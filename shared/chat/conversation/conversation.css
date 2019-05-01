@@ -62,3 +62,6 @@
 .WrapperMessage-centered {
   background-color: #fff75a;
 }
+.ReplyBox:hover {
+  background-color: white;
+}

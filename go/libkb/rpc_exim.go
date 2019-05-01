@@ -23,7 +23,6 @@ import (
 	"github.com/keybase/go-crypto/openpgp"
 	pgpErrors "github.com/keybase/go-crypto/openpgp/errors"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	pkgErrors "github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -176,7 +175,7 @@ func ExportErrorAsStatus(g *GlobalContext, e error) (ret *keybase1.Status) {
 	// Before checking to see if an error implements ExportableError, peel off
 	// any wrappers from the `errors` package (KBFS uses these). This is a
 	// no-op for other types.
-	e = pkgErrors.Cause(e)
+	e = HumanError(e)
 	if ee, ok := e.(ExportableError); ok {
 		tmp := ee.ToStatus()
 		return &tmp
@@ -1481,10 +1480,11 @@ func (u *User) ExportToUPKV2AllIncarnations() (*keybase1.UserPlusKeysV2AllIncarn
 	// Then assemble the current version. This one gets a couple extra fields, Uvv and RemoteTracks.
 	current := u.GetComputedKeyInfos().exportUPKV2Incarnation(uid, name, u.GetCurrentEldestSeqno(), kf, status, nil)
 	current.RemoteTracks = make(map[keybase1.UID]keybase1.RemoteTrack)
-	if u.IDTable() != nil {
-		for _, track := range u.IDTable().GetTrackList() {
+	if tab := u.IDTable(); tab != nil {
+		for _, track := range tab.GetTrackList() {
 			current.RemoteTracks[track.whomUID] = track.Export()
 		}
+		current.Unstubbed = !tab.HasStubs()
 	}
 	if accountID := u.StellarAccountID(); accountID != nil {
 		tmp := accountID.String()

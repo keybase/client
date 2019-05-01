@@ -13,6 +13,7 @@ import (
 	"github.com/pkg/errors"
 
 	"bazil.org/fuse"
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
@@ -79,7 +80,7 @@ func filterError(err error) error {
 		return errorWithErrno{err, syscall.ENOENT}
 	case idutil.NoSuchNameError:
 		return errorWithErrno{err, syscall.ENOENT}
-	case libkbfs.NameExistsError:
+	case data.NameExistsError:
 		return errorWithErrno{err, syscall.EEXIST}
 	}
 

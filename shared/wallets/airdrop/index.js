@@ -103,8 +103,7 @@ class Airdrop extends React.Component<Props> {
                 <Kb.Markdown styleOverride={headerOverride}>{p.headerTitle}</Kb.Markdown>
                 <Kb.Markdown styleOverride={bodyOverride}>{p.headerBody}</Kb.Markdown>
                 <Kb.Button
-                  backgroundMode="Purple"
-                  type="PrimaryColoredBackground"
+                  backgroundColor="purple"
                   label="See if you qualify"
                   onClick={this._onCheckQualify}
                   style={styles.bannerButton}
@@ -144,7 +143,7 @@ class Airdrop extends React.Component<Props> {
             ))}
           </Kb.Box2>
           {!p.signedUp && (
-            <Kb.Button type="PrimaryGreen" label="See if you qualify" onClick={this._onCheckQualify} />
+            <Kb.Button type="Success" label="See if you qualify" onClick={this._onCheckQualify} />
           )}
           <Kb.Box2 direction="vertical" style={styles.grow} />
           <Kb.Box2

@@ -291,6 +291,13 @@ type BoxingCryptKeysError struct {
 	Err error
 }
 
+// Cause implements the pkg/errors Cause() method, also cloned in libkb via HumanError,
+// so that we know which error to show to the human being using keybase (rather than
+// for our own internal uses).
+func (e BoxingCryptKeysError) Cause() error {
+	return e.Err
+}
+
 func NewBoxingCryptKeysError(err error) BoxingCryptKeysError {
 	return BoxingCryptKeysError{
 		Err: err,
@@ -535,6 +542,15 @@ func IsOfflineError(err error) OfflineErrorKind {
 		return OfflineErrorKindOfflineReconnect
 	case ErrDuplicateConnection:
 		return OfflineErrorKindOfflineBasic
+	}
+
+	// Unfortunately, Go throws these without a type and they can occasionally
+	// propagate up. The strings were copied from
+	// https://golang.org/src/crypto/tls/conn.go
+	switch err.Error() {
+	case "tls: use of closed connection",
+		"tls: protocol is shutdown":
+		return OfflineErrorKindOfflineReconnect
 	}
 	return OfflineErrorKindOnline
 }

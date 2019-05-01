@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
@@ -35,7 +36,7 @@ func TestAutogitNodeWrappersNoRepos(t *testing.T) {
 		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Private)
 	require.NoError(t, err)
 	rootFS, err := libfs.NewFS(
-		ctx, config, h, libkbfs.MasterBranch, "", "", keybase1.MDPriorityNormal)
+		ctx, config, h, data.MasterBranch, "", "", keybase1.MDPriorityNormal)
 	require.NoError(t, err)
 
 	t.Log("Looking at user1's autogit directory should fail if no git repos")
@@ -91,7 +92,7 @@ func TestAutogitRepoNode(t *testing.T) {
 		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Private)
 	require.NoError(t, err)
 	rootFS, err := libfs.NewFS(
-		ctx, config, h, libkbfs.MasterBranch, "", "", keybase1.MDPriorityNormal)
+		ctx, config, h, data.MasterBranch, "", "", keybase1.MDPriorityNormal)
 	require.NoError(t, err)
 
 	t.Log("Init a new repo directly into KBFS.")
@@ -117,7 +118,7 @@ func TestAutogitRepoNode(t *testing.T) {
 
 	t.Log("Force the source repo to update for the user")
 	srcRootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 	err = config.KBFSOps().SyncFromServer(
 		ctx, srcRootNode.GetFolderBranch(), nil)
@@ -125,7 +126,7 @@ func TestAutogitRepoNode(t *testing.T) {
 
 	t.Log("Update the dest repo")
 	dstRootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 	err = config.KBFSOps().SyncFromServer(
 		ctx, dstRootNode.GetFolderBranch(), nil)
@@ -193,7 +194,7 @@ func TestAutogitRepoNodeReadonly(t *testing.T) {
 		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Public)
 	require.NoError(t, err)
 	rootFS, err := libfs.NewFS(
-		ctx, config, h, libkbfs.MasterBranch, "", "", keybase1.MDPriorityNormal)
+		ctx, config, h, data.MasterBranch, "", "", keybase1.MDPriorityNormal)
 	require.NoError(t, err)
 
 	t.Log("Init a new repo directly into KBFS.")
@@ -218,7 +219,7 @@ func TestAutogitRepoNodeReadonly(t *testing.T) {
 	rw2 := rootWrapper{am2}
 	config2.AddRootNodeWrapper(rw2.wrap)
 	rootFS2, err := libfs.NewFS(
-		ctx, config2, h, libkbfs.MasterBranch, "", "",
+		ctx, config2, h, data.MasterBranch, "", "",
 		keybase1.MDPriorityNormal)
 	require.NoError(t, err)
 	checkAutogitOneFile(t, rootFS2)
@@ -243,7 +244,7 @@ func TestAutogitRepoNodeReadonly(t *testing.T) {
 
 	t.Log("Force the source repo to update for the second user")
 	srcRootNode2, _, err := config2.KBFSOps().GetOrCreateRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 	err = config2.KBFSOps().SyncFromServer(
 		ctx, srcRootNode2.GetFolderBranch(), nil)
@@ -251,7 +252,7 @@ func TestAutogitRepoNodeReadonly(t *testing.T) {
 
 	t.Log("Update the dest repo")
 	dstRootNode2, _, err := config2.KBFSOps().GetOrCreateRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 	err = config2.KBFSOps().SyncFromServer(
 		ctx, dstRootNode2.GetFolderBranch(), nil)
@@ -275,7 +276,7 @@ func TestAutogitCommitFile(t *testing.T) {
 		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Private)
 	require.NoError(t, err)
 	rootFS, err := libfs.NewFS(
-		ctx, config, h, libkbfs.MasterBranch, "", "", keybase1.MDPriorityNormal)
+		ctx, config, h, data.MasterBranch, "", "", keybase1.MDPriorityNormal)
 	require.NoError(t, err)
 
 	t.Log("Init a new repo directly into KBFS.")

@@ -1068,6 +1068,80 @@ func TestLoaderKBFSWriter(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestLoaderCORE_10487(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	t.Logf("U0 creates A")
+	rootName, _ := createTeam2(*tcs[0])
+
+	t.Logf("U0 adds U1 to A")
+	_, err := AddMember(context.Background(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_OWNER)
+	require.NoError(t, err, "add member")
+
+	t.Logf("U0 creates A.B")
+	subBName, subBID := createSubteam(tcs[0], rootName, "bbb")
+
+	t.Logf("U0 creates A.B.C")
+	subsubCName, subsubCID := createSubteam(tcs[0], subBName, "ccc")
+
+	t.Logf("U1 loads A.B.C (to cache A.B)")
+	_, err = Load(context.Background(), tcs[1].G, keybase1.LoadTeamArg{
+		ID:          subsubCID,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+
+	t.Logf("U1 loads A.B (to check cache)")
+	team, err := Load(context.Background(), tcs[1].G, keybase1.LoadTeamArg{
+		ID: subBID,
+	})
+	require.NoError(t, err)
+	t.Logf("Expect missing KBFS RKMs (1)")
+	require.NoError(t, err)
+	require.NotNil(t, team.Data)
+	require.False(t, team.Data.Secretless)
+	require.NotNil(t, team.Data.PerTeamKeySeedsUnverified)
+	_, ok := team.Data.PerTeamKeySeedsUnverified[1]
+	require.True(t, ok)
+	require.NotNil(t, team.Data.ReaderKeyMasks)
+	require.Len(t, team.Data.ReaderKeyMasks[keybase1.TeamApplication_KBFS], 0, "missing rkms")
+
+	t.Logf("U1 self-promotes in A.B")
+	_, err = AddMember(context.Background(), tcs[1].G, subBName.String(), fus[1].Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+
+	t.Logf("U1 self-promotes in A.B.C")
+	_, err = AddMember(context.Background(), tcs[1].G, subsubCName.String(), fus[1].Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+
+	t.Logf("U1 loads A.B")
+	team, err = Load(context.TODO(), tcs[1].G, keybase1.LoadTeamArg{
+		ID: subBID,
+	})
+	t.Logf("Expect missing KBFS RKMs (2)")
+	require.NoError(t, err)
+	require.NotNil(t, team.Data)
+	require.False(t, team.Data.Secretless)
+	require.NotNil(t, team.Data.PerTeamKeySeedsUnverified)
+	_, ok = team.Data.PerTeamKeySeedsUnverified[1]
+	require.True(t, ok)
+	require.NotNil(t, team.Data.ReaderKeyMasks)
+	require.Len(t, team.Data.ReaderKeyMasks[keybase1.TeamApplication_KBFS], 0, "missing rkms")
+
+	t.Logf("U1 loads A.B like KBFS")
+	_, err = LoadTeamPlusApplicationKeys(context.Background(), tcs[1].G, subBID,
+		keybase1.TeamApplication_KBFS, keybase1.TeamRefreshers{
+			NeedApplicationsAtGenerationsWithKBFS: map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication{
+				keybase1.PerTeamKeyGeneration(1): []keybase1.TeamApplication{
+					keybase1.TeamApplication_KBFS,
+				},
+			}}, true)
+	// When the bug was in place, this produced:
+	// "You don't have access to KBFS for this team libkb.KeyMaskNotFoundError"
+	require.NoError(t, err)
+}
+
 func randomTlfID(t *testing.T) keybase1.TLFID {
 	suffix := byte(0x29)
 	idBytes, err := libkb.RandBytesWithSuffix(16, suffix)

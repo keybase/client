@@ -194,6 +194,19 @@ export type BioTeamProofsProps = {|
 |}
 export class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
   render() {
+    const addIdentity = this.props.onAddIdentity ? (
+      <Kb.ButtonBar style={styles.addIdentityContainer}>
+        <Kb.Button
+          fullWidth={true}
+          onClick={this.props.onAddIdentity}
+          style={styles.addIdentityButton}
+          mode="Secondary"
+          label="Add more identities"
+        >
+          <Kb.Meta backgroundColor={Styles.globalColors.blue} title="NEW" style={styles.newMeta} />
+        </Kb.Button>
+      </Kb.ButtonBar>
+    ) : null
     return Styles.isMobile ? (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.bioAndProofs}>
         <Kb.Text
@@ -218,17 +231,7 @@ export class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.proofsArea}>
           <Teams username={this.props.username} />
           <Proofs {...this.props} />
-          {this.props.onAddIdentity && (
-            <Kb.Box2 direction="horizontal" style={styles.addIdentityContainer}>
-              <Kb.Button
-                label="Add other identities"
-                labelStyle={styles.label}
-                onClick={this.props.onAddIdentity}
-                style={styles.addIdentityButton}
-                type="Secondary"
-              />
-            </Kb.Box2>
-          )}
+          {addIdentity}
           <Folders profileUsername={this.props.username} />
         </Kb.Box2>
       </Kb.Box2>
@@ -250,17 +253,7 @@ export class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
             </Kb.Text>
             <Teams username={this.props.username} />
             <Proofs {...this.props} />
-            {this.props.onAddIdentity && (
-              <Kb.Box2 direction="horizontal" style={styles.addIdentityContainer}>
-                <Kb.Button
-                  label="Add other identities"
-                  labelStyle={styles.label}
-                  onClick={this.props.onAddIdentity}
-                  style={styles.addIdentityButton}
-                  type="Secondary"
-                />
-              </Kb.Box2>
-            )}
+            {addIdentity}
             <Folders profileUsername={this.props.username} />
           </Kb.Box2>
         </Kb.Box2>
@@ -420,9 +413,15 @@ const styles = Styles.styleSheetCreate({
     marginBottom: Styles.globalMargins.xsmall,
     marginTop: Styles.globalMargins.xsmall,
   },
-  addIdentityContainer: {
-    justifyContent: 'center',
-  },
+  addIdentityContainer: Styles.platformStyles({
+    common: {
+      justifyContent: 'center',
+    },
+    isElectron: {
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
+    },
+  }),
   backButton: {color: Styles.globalColors.white},
   backgroundColor: {
     ...Styles.globalStyles.fillAbsolute,
@@ -468,7 +467,7 @@ const styles = Styles.styleSheetCreate({
       backgroundColor: Styles.globalColors.white,
       borderBottomColor: Styles.globalColors.black_10,
       borderBottomWidth: 1,
-      marginTop: flags.useNewRouter ? Styles.globalMargins.small : 0,
+      paddingTop: flags.useNewRouter ? Styles.globalMargins.small : 0,
     },
     isElectron: {
       alignSelf: 'stretch',
@@ -488,9 +487,9 @@ const styles = Styles.styleSheetCreate({
   followTabTextSelected: {color: Styles.globalColors.black},
   friendRow: Styles.platformStyles({
     common: {
-      marginTop: Styles.globalMargins.tiny,
       maxWidth: '100%',
       minWidth: 0,
+      paddingTop: Styles.globalMargins.tiny,
     },
     isElectron: {justifyContent: 'flex-start'},
     isMobile: {justifyContent: 'center'},
@@ -511,6 +510,16 @@ const styles = Styles.styleSheetCreate({
   label: {
     color: Styles.globalColors.black,
   },
+  newMeta: Styles.platformStyles({
+    common: {
+      alignSelf: 'center',
+      marginRight: Styles.globalMargins.tiny,
+    },
+    isMobile: {
+      position: 'relative',
+      top: -1,
+    },
+  }),
   noGrow: {flexGrow: 0},
   proofs: Styles.platformStyles({
     isElectron: {

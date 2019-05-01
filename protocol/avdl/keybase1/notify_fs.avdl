@@ -19,4 +19,10 @@ protocol NotifyFS {
 
   @lint("ignore")
   void FSSyncStatusResponse(FSSyncStatus status, int requestID) oneway;
+
+  @lint("ignore")
+  void FSOverallSyncStatusChanged(FolderSyncStatus status) oneway;
+
+  @lint("ignore")
+  void FSOnlineStatusChanged(boolean online) oneway;
 }

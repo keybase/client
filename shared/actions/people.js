@@ -12,6 +12,9 @@ import {peopleTab} from '../constants/tabs'
 import {getPath} from '../route-tree'
 import flags from '../util/feature-flags'
 
+// set this to true to have all todo items show up all the time
+const debugTodo = false
+
 const getPeopleData = (state, action) => {
   // more logging to understand why this fails so much
   logger.info(
@@ -41,6 +44,27 @@ const getPeopleData = (state, action) => {
       let newItems: I.List<Types.PeopleScreenItem> = (data.items || [])
         .filter(item => item.badged || item.data.t === RPCTypes.homeHomeScreenItemType.todo)
         .reduce(Constants.reduceRPCItemToPeopleItem, I.List())
+
+      if (debugTodo) {
+        // $FlowIssue this is true
+        const allTodos: Array<Types.TodoType> = Object.values(Constants.todoTypeEnumToType)
+        allTodos.forEach(todoType => {
+          if (newItems.some(t => t.type === 'todo' && t.todoType === todoType)) {
+            return
+          }
+          newItems = newItems.push(
+            Constants.makeTodo({
+              badged: true,
+              confirmLabel: Constants.todoTypeToConfirmLabel[todoType],
+              dismissable: Constants.todoTypeToDismissable[todoType],
+              icon: Constants.todoTypeToIcon[todoType],
+              instructions: Constants.todoTypeToInstructions[todoType],
+              todoType,
+              type: 'todo',
+            })
+          )
+        })
+      }
 
       const followSuggestions: I.List<Types.FollowSuggestion> = (data.followSuggestions || []).reduce(
         (list, suggestion) => {

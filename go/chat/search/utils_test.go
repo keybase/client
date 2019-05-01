@@ -1,12 +1,13 @@
 package search
 
 import (
-	"sort"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -26,21 +27,21 @@ func TestTokenize(t *testing.T) {
 	for _, sep := range supportedSplit {
 		msgText := strings.Join([]string{
 			// groupings
-			"(hi1)",
-			"[hi2]",
-			"<hi3>",
-			"{hi4}",
+			"(hello1)",
+			"[hello2]",
+			"<hello3>",
+			"{hello4}",
 			// mentions
-			"@hi5",
-			"#hi6",
+			"@hello5",
+			"#hello6",
 			// usernames
 			"blumua@twitter",
 			// markdown
-			"*hi7*",
-			"~hi8~",
-			"_hi9_",
-			"\"hi10\"",
-			"'hi11'",
+			"*hello7*",
+			"~hello8~",
+			"_hello9_",
+			`"hello10"`,
+			"'hello11'",
 			//stem
 			"wanted",
 			"italy's",
@@ -52,80 +53,179 @@ func TestTokenize(t *testing.T) {
 		}, sep)
 		tokens := tokenize(msgText)
 		t.Logf("msgText: %v, tokens: %v", msgText, tokens)
-		sort.Strings(tokens)
-		require.Equal(t, []string{
-			"\"hi10\"",
-			"#hi6",
-			"'hi11'",
-			"(hi1)",
-			"*hi7*",
-			":+1:",
-			"<hi3>",
-			"@hi5",
-			"[hi2]",
-			"_hi9_",
-			"blumua",
-			"blumua@twitter",
-			"hi1",
-			"hi10",
-			"hi11",
-			"hi2",
-			"hi3",
-			"hi4",
-			"hi5",
-			"hi6",
-			"hi7",
-			"hi8",
-			"hi9",
-			"itali",
-			"italy",
-			"italy's",
-			"look",
-			"looking",
-			"s",
-			"twitter",
-			"want",
-			"wanted",
-			"{hi4}",
-			"~hi8~",
-			"约书亚和约翰屌爆",
+		require.Equal(t, tokenMap{
+			`"hello10"`: map[string]chat1.EmptyStruct{
+				"hello10": chat1.EmptyStruct{},
+				"hel":     chat1.EmptyStruct{},
+				"hell":    chat1.EmptyStruct{},
+				"hello":   chat1.EmptyStruct{},
+				"hello1":  chat1.EmptyStruct{},
+			},
+			"'hello11'": map[string]chat1.EmptyStruct{
+				"hello11": chat1.EmptyStruct{},
+				"hel":     chat1.EmptyStruct{},
+				"hell":    chat1.EmptyStruct{},
+				"hello":   chat1.EmptyStruct{},
+				"hello1":  chat1.EmptyStruct{},
+			},
+			"{hello4}": map[string]chat1.EmptyStruct{
+				"hel":    chat1.EmptyStruct{},
+				"hell":   chat1.EmptyStruct{},
+				"hello":  chat1.EmptyStruct{},
+				"hello4": chat1.EmptyStruct{},
+			},
+			"blumua@twitter": map[string]chat1.EmptyStruct{
+				"blumua":  chat1.EmptyStruct{},
+				"blu":     chat1.EmptyStruct{},
+				"blumu":   chat1.EmptyStruct{},
+				"twitter": chat1.EmptyStruct{},
+				"twit":    chat1.EmptyStruct{},
+				"twitt":   chat1.EmptyStruct{},
+				"blum":    chat1.EmptyStruct{},
+				"twi":     chat1.EmptyStruct{},
+				"twitte":  chat1.EmptyStruct{},
+			},
+			"~hello8~": map[string]chat1.EmptyStruct{
+				"hello8": chat1.EmptyStruct{},
+				"hel":    chat1.EmptyStruct{},
+				"hell":   chat1.EmptyStruct{},
+				"hello":  chat1.EmptyStruct{},
+			},
+			"_hello9_": map[string]chat1.EmptyStruct{
+				"hello9": chat1.EmptyStruct{},
+				"hel":    chat1.EmptyStruct{},
+				"hell":   chat1.EmptyStruct{},
+				"hello":  chat1.EmptyStruct{},
+			},
+			"wanted": map[string]chat1.EmptyStruct{
+				"want":  chat1.EmptyStruct{},
+				"wan":   chat1.EmptyStruct{},
+				"wante": chat1.EmptyStruct{},
+			},
+			":+1:": map[string]chat1.EmptyStruct{
+				":+1": chat1.EmptyStruct{},
+			},
+			"<hello3>": map[string]chat1.EmptyStruct{
+				"hello":  chat1.EmptyStruct{},
+				"hello3": chat1.EmptyStruct{},
+				"hel":    chat1.EmptyStruct{},
+				"hell":   chat1.EmptyStruct{},
+			},
+			"@hello5": map[string]chat1.EmptyStruct{
+				"hello5": chat1.EmptyStruct{},
+				"hel":    chat1.EmptyStruct{},
+				"hell":   chat1.EmptyStruct{},
+				"hello":  chat1.EmptyStruct{},
+			},
+			"*hello7*": map[string]chat1.EmptyStruct{
+				"hello":  chat1.EmptyStruct{},
+				"hello7": chat1.EmptyStruct{},
+				"hel":    chat1.EmptyStruct{},
+				"hell":   chat1.EmptyStruct{},
+			},
+			"italy's": map[string]chat1.EmptyStruct{
+				"ital":  chat1.EmptyStruct{},
+				"s":     chat1.EmptyStruct{},
+				"italy": chat1.EmptyStruct{},
+				"itali": chat1.EmptyStruct{},
+				"ita":   chat1.EmptyStruct{},
+			},
+			"(hello1)": map[string]chat1.EmptyStruct{
+				"hello1": chat1.EmptyStruct{},
+				"hel":    chat1.EmptyStruct{},
+				"hell":   chat1.EmptyStruct{},
+				"hello":  chat1.EmptyStruct{},
+			},
+			"[hello2]": map[string]chat1.EmptyStruct{
+				"hello2": chat1.EmptyStruct{},
+				"hel":    chat1.EmptyStruct{},
+				"hell":   chat1.EmptyStruct{},
+				"hello":  chat1.EmptyStruct{},
+			},
+			"约书亚和约翰屌爆": map[string]chat1.EmptyStruct{
+				"约":   chat1.EmptyStruct{},
+				"约书":  chat1.EmptyStruct{},
+				"约书亚": chat1.EmptyStruct{},
+			},
+			"#hello6": map[string]chat1.EmptyStruct{
+				"hello6": chat1.EmptyStruct{},
+				"hel":    chat1.EmptyStruct{},
+				"hell":   chat1.EmptyStruct{},
+				"hello":  chat1.EmptyStruct{},
+			},
+			"looking": map[string]chat1.EmptyStruct{
+				"looki":  chat1.EmptyStruct{},
+				"lookin": chat1.EmptyStruct{},
+				"look":   chat1.EmptyStruct{},
+				"loo":    chat1.EmptyStruct{},
+			},
 		}, tokens)
 	}
 	// empty case
 	require.Nil(t, tokenize(""))
 }
 
-func TestUpgradeRegexpArg(t *testing.T) {
+func TestUpgradeSearchOptsFromQuery(t *testing.T) {
+	username := "mikem"
 	sentByCase := func(query, resQuery, resSentBy string) {
-		arg := chat1.SearchRegexpArg{
-			Query: query,
-		}
-		res := UpgradeRegexpArgFromQuery(arg)
-		require.Equal(t, resQuery, res.Query)
-		require.Equal(t, resSentBy, res.Opts.SentBy)
+		query, opts := UpgradeSearchOptsFromQuery(query, chat1.SearchOpts{}, username)
+		require.Equal(t, resQuery, query)
+		require.Equal(t, resSentBy, opts.SentBy)
 	}
 	sentByCase("from:karenm hi mike", "hi mike", "karenm")
 	sentByCase("from:@karenm hi mike", "hi mike", "karenm")
 	sentByCase("from:@karenm          hi mike          ", "hi mike", "karenm")
 	sentByCase("from: hi mike", "from: hi mike", "")
-	sentByCase("hi mike from:karenm", "hi mike from:karenm", "")
+	sentByCase("hi mike from:karenm", "hi mike", "karenm")
+	sentByCase("from:me hi mike", "hi mike", "mikem")
+
+	sentToCase := func(query, resQuery, resSentTo string) {
+		query, opts := UpgradeSearchOptsFromQuery(query, chat1.SearchOpts{}, username)
+		require.Equal(t, resQuery, query)
+		require.Equal(t, resSentTo, opts.SentTo)
+	}
+	sentToCase("to:karenm hi mike", "hi mike", "karenm")
+	sentToCase("to:@karenm hi mike", "hi mike", "karenm")
+	sentToCase("to:@karenm          hi mike          ", "hi mike", "karenm")
+	sentToCase("to: hi mike", "to: hi mike", "")
+	sentToCase("hi mike to:karenm", "hi mike", "karenm")
+	sentToCase("to:me hi mike", "hi mike", "mikem")
 
 	regexpCase := func(query, resQuery string, isRegex bool) {
-		arg := chat1.SearchRegexpArg{
-			Query: query,
-		}
-		res := UpgradeRegexpArgFromQuery(arg)
-		require.Equal(t, resQuery, res.Query)
-		require.Equal(t, isRegex, res.IsRegex)
+		query, opts := UpgradeSearchOptsFromQuery(query, chat1.SearchOpts{}, username)
+		require.Equal(t, resQuery, query)
+		require.Equal(t, isRegex, opts.IsRegex)
 	}
+	regexpCase("/", "/", false)
+	regexpCase("//", "//", false)
 	regexpCase("/mike.*always/", "mike.*always", true)
 	regexpCase("X/mike.*always/", "X/mike.*always/", false)
 
-	arg := chat1.SearchRegexpArg{
-		Query: "from:karenm /Lisa.*something/",
+	dateFilterCase := func(query, resQuery string, sentBefore, sentAfter gregor1.Time) {
+		query, opts := UpgradeSearchOptsFromQuery(query, chat1.SearchOpts{}, username)
+		require.Equal(t, resQuery, query)
+		require.Equal(t, sentBefore, opts.SentBefore)
+		require.Equal(t, sentAfter, opts.SentAfter)
 	}
-	res := UpgradeRegexpArgFromQuery(arg)
-	require.Equal(t, "Lisa.*something", res.Query)
-	require.Equal(t, "karenm", res.Opts.SentBy)
-	require.True(t, res.IsRegex)
+	parsed, err := time.Parse(time.RFC822, "16 Mar 18 00:00 UTC")
+	require.NoError(t, err)
+	expectedTime := gregor1.ToTime(parsed)
+	dateFilterCase("before:2018-03-16 hi mike", "hi mike", expectedTime, 0)
+	dateFilterCase("before:3/16/18 hi mike", "hi mike", expectedTime, 0)
+	dateFilterCase("before:3.16.18 hi mike", "hi mike", expectedTime, 0)
+	dateFilterCase("before:03/16/2018 hi mike", "hi mike", expectedTime, 0)
+	dateFilterCase("after:2018-03-16 hi mike", "hi mike", 0, expectedTime)
+	dateFilterCase("before:2018-03-16 after:2018-03-16 hi mike", "hi mike", expectedTime, expectedTime)
+	dateFilterCase("before:2018 after:asdf hi mike", "before:2018 after:asdf hi mike", 0, 0)
+
+	// the whole shabang
+	query, opts := UpgradeSearchOptsFromQuery("from:karenm to:mikem before:2018-03-16 after:3/16/18 /Lisa.*something/",
+		chat1.SearchOpts{}, username)
+	require.Equal(t, "Lisa.*something", query)
+	require.Equal(t, "karenm", opts.SentBy)
+	require.Equal(t, "mikem", opts.SentTo)
+	require.Equal(t, expectedTime, opts.SentBefore)
+	require.Equal(t, expectedTime, opts.SentBefore)
+	require.True(t, opts.IsRegex)
+
 }

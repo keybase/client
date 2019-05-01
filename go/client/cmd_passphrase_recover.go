@@ -70,14 +70,11 @@ func (c *CmdPassphraseRecover) Run() error {
 	}
 
 	// Confirm with the user.
-	ui.Printf("Password recovery will put your account on probation for 5 days.\n")
-	ui.Printf("You won't be able to perform certain actions, like revoking devices.\n")
 	if hsk.HasServerKeys {
 		ui.Printf("You have uploaded an encrypted PGP private key, it will be lost.\n")
-	}
-	err = ui.PromptForConfirmation("Continue with password recovery?")
-	if err != nil {
-		return err
+		if err = ui.PromptForConfirmation("Continue with password recovery?"); err != nil {
+			return err
+		}
 	}
 
 	// Ask for the new passphase.

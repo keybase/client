@@ -54,7 +54,7 @@ const ReceiveModal = (props: Props) => {
           >
             <Kb.Icon
               type="iconfont-stellar-request"
-              fontSize={Styles.isMobile ? 22 : 16}
+              sizeType="Small"
               color={Styles.globalColors.white}
               style={Kb.iconCastPlatformStyles(styles.requestIcon)}
             />
@@ -76,7 +76,9 @@ const ReceiveModal = (props: Props) => {
         </Kb.Text>
         <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.stellarAddressesContainer}>
           <Addresses federatedAddress={props.federatedAddress} stellarAddress={props.stellarAddress} />
-          {!Styles.isMobile && <Kb.Button label="Close" onClick={props.onClose} type="Secondary" />}
+          {!Styles.isMobile && (
+            <Kb.Button label="Close" onClick={props.onClose} type="Dim" style={styles.closeButton} />
+          )}
         </Kb.Box2>
       </Kb.Box2>
     </WalletPopup>
@@ -115,6 +117,9 @@ const QrImage = ({address}) => {
 }
 
 const styles = Styles.styleSheetCreate({
+  closeButton: {
+    alignSelf: 'center',
+  },
   container: Styles.platformStyles({
     common: {
       paddingLeft: 0,
@@ -142,7 +147,7 @@ const styles = Styles.styleSheetCreate({
   }),
   icon: Styles.platformStyles({
     isElectron: {
-      marginBottom: Styles.globalMargins.tiny,
+      marginBottom: Styles.globalMargins.xtiny,
     },
     isMobile: {
       marginBottom: Styles.globalMargins.medium,

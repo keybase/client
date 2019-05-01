@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
@@ -277,10 +278,10 @@ outer:
 }
 
 // GetNode returns a node
-func (p Path) GetNode(ctx context.Context, config libkbfs.Config) (libkbfs.Node, libkbfs.EntryInfo, error) {
+func (p Path) GetNode(ctx context.Context, config libkbfs.Config) (libkbfs.Node, data.EntryInfo, error) {
 	if p.PathType != TLFPathType {
-		entryInfo := libkbfs.EntryInfo{
-			Type: libkbfs.Dir,
+		entryInfo := data.EntryInfo{
+			Type: data.Dir,
 		}
 		return nil, entryInfo, nil
 	}
@@ -288,18 +289,18 @@ func (p Path) GetNode(ctx context.Context, config libkbfs.Config) (libkbfs.Node,
 	tlfHandle, err := ParseTlfHandle(
 		ctx, config.KBPKI(), config.MDOps(), config, p.TLFName, p.TLFType)
 	if err != nil {
-		return nil, libkbfs.EntryInfo{}, err
+		return nil, data.EntryInfo{}, err
 	}
 
-	node, entryInfo, err := config.KBFSOps().GetOrCreateRootNode(ctx, tlfHandle, libkbfs.MasterBranch)
+	node, entryInfo, err := config.KBFSOps().GetOrCreateRootNode(ctx, tlfHandle, data.MasterBranch)
 	if err != nil {
-		return nil, libkbfs.EntryInfo{}, err
+		return nil, data.EntryInfo{}, err
 	}
 
 	for _, component := range p.TLFComponents {
 		lookupNode, lookupEntryInfo, lookupErr := config.KBFSOps().Lookup(ctx, node, component)
 		if lookupErr != nil {
-			return nil, libkbfs.EntryInfo{}, lookupErr
+			return nil, data.EntryInfo{}, lookupErr
 		}
 		node = lookupNode
 		entryInfo = lookupEntryInfo
@@ -317,7 +318,7 @@ func (p Path) GetFileNode(ctx context.Context, config libkbfs.Config) (libkbfs.N
 
 	// TODO: What to do with symlinks?
 
-	if de.Type != libkbfs.File && de.Type != libkbfs.Exec {
+	if de.Type != data.File && de.Type != data.Exec {
 		return nil, fmt.Errorf("openFile: %s is not a file, but a %s", p, de.Type)
 	}
 
@@ -335,7 +336,7 @@ func (p Path) GetDirNode(ctx context.Context, config libkbfs.Config) (libkbfs.No
 
 	// TODO: What to do with symlinks?
 
-	if de.Type != libkbfs.Dir {
+	if de.Type != data.Dir {
 		return nil, fmt.Errorf("openDir: %s is not a dir, but a %s", p, de.Type)
 	}
 

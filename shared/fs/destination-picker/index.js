@@ -106,7 +106,7 @@ const DestinationPicker = (props: Props) => (
       {Styles.isMobile ? (
         <NewFolder onNewFolder={props.onNewFolder} />
       ) : (
-        <Kb.Button type="Secondary" label="Cancel" onClick={props.onCancel} />
+        <Kb.Button type="Dim" label="Cancel" onClick={props.onCancel} />
       )}
     </Kb.Box2>
   </Kb.Box2>

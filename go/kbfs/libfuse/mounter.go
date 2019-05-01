@@ -92,6 +92,13 @@ func fuseMountDir(dir string, platformParams PlatformParams) (*fuse.Conn, error)
 	return c, nil
 }
 
+func isFusermountMountNotFoundError(err error) bool {
+	if err == nil {
+		return false
+	}
+	return strings.Contains(err.Error(), "not found in /etc/mtab")
+}
+
 func (m *mounter) Unmount() (err error) {
 	dir := m.options.MountPoint
 	// Try normal unmount
@@ -99,10 +106,14 @@ func (m *mounter) Unmount() (err error) {
 	case "darwin":
 		_, err = exec.Command("/sbin/umount", dir).Output()
 	case "linux":
-		_, err = exec.Command("fusermount", "-u", dir).Output()
+		_, fusermountErr := exec.Command("fusermount", "-u", dir).Output()
 		// Only clean up mountdir on a clean unmount.
-		if err == nil {
+		if fusermountErr == nil {
 			defer m.DeleteMountdirIfEmpty()
+		}
+		// Ignore errors where the mount was never mounted in the first place
+		if fusermountErr != nil && !isFusermountMountNotFoundError(fusermountErr) {
+			err = fusermountErr
 		}
 	default:
 		err = fuse.Unmount(dir)

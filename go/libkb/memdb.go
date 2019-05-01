@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"errors"
+	"fmt"
 	"sync"
 
 	lru "github.com/hashicorp/golang-lru"
@@ -68,4 +69,8 @@ func (m *MemDb) Get(id DbKey) ([]byte, bool, error) {
 
 func (m *MemDb) Lookup(alias DbKey) ([]byte, bool, error) {
 	return m.Get(alias)
+}
+
+func (m *MemDb) KeysWithPrefixes(prefixes ...[]byte) (DBKeySet, error) {
+	return nil, fmt.Errorf("unimplemented on memdb")
 }

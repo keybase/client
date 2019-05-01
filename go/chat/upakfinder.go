@@ -85,7 +85,6 @@ func (u *CachingUPAKFinder) writeCheckKidKey(key string, found bool, revokedAt *
 }
 
 func (u *CachingUPAKFinder) LookupUsernameAndDevice(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (username libkb.NormalizedUsername, deviceName string, deviceType string, err error) {
-	defer u.Trace(ctx, func() error { return err }, "LookupUsernameAndDevice(%s,%s)", uid, deviceID)()
 	key := u.udKey(uid, deviceID)
 	existing, ok := u.lookupUDKey(key)
 	if ok {
@@ -100,7 +99,6 @@ func (u *CachingUPAKFinder) LookupUsernameAndDevice(ctx context.Context, uid key
 }
 
 func (u *CachingUPAKFinder) CheckKIDForUID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool, err error) {
-	defer u.Trace(ctx, func() error { return err }, "CheckKIDForUID(%s,%s)", uid, kid)()
 	key := u.checkKidKey(uid, kid)
 	existing, ok := u.lookupCheckKidKey(key)
 	if ok {

@@ -52,7 +52,6 @@ const TeamInfo = (props: Props) => (
     <Text type="Header">{props.teamname}</Text>
 
     <Box style={globalStyles.flexBoxRow}>
-      <Text type="BodySmall">TEAM</Text>
       {props.openTeam && <Meta title="open" style={styleMeta} backgroundColor={globalColors.green} />}
     </Box>
 
@@ -71,6 +70,7 @@ const TeamInfo = (props: Props) => (
     {!props.youAreInTeam && (
       <Box style={styleDivider}>
         <Button
+          fullWidth={true}
           onClick={() => props.onJoinTeam(props.teamname)}
           disabled={props.teamJoinSuccess || props.youHaveRequestedAccess}
           label={
@@ -87,11 +87,11 @@ const TeamInfo = (props: Props) => (
           type={
             props.teamJoinSuccess || props.youHaveRequestedAccess
               ? props.openTeam
-                ? 'PrimaryGreen'
-                : 'Secondary'
+                ? 'Success'
+                : 'Dim'
               : props.openTeam
-              ? 'PrimaryGreen'
-              : 'Primary'
+              ? 'Success'
+              : 'Default'
           }
         />
       </Box>

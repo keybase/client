@@ -47,7 +47,9 @@ class MenubarRender extends React.Component<Props, State> {
   attachmentRef = React.createRef<Kb.Icon>()
 
   _refreshUserFileEditsIfPossible = () =>
-    this.props.loggedIn && this.props.kbfsDaemonStatus === 'connected' && this.props.refreshUserFileEdits()
+    this.props.loggedIn &&
+    this.props.kbfsDaemonStatus.rpcStatus === 'connected' &&
+    this.props.refreshUserFileEdits()
 
   componentDidMount() {
     this._refreshUserFileEditsIfPossible()
@@ -118,7 +120,7 @@ class MenubarRender extends React.Component<Props, State> {
             You're logged out of Keybase!
           </Kb.Text>
           <Kb.ButtonBar direction="row">
-            <Kb.Button type="Primary" label="Log In" onClick={this.props.logIn} />
+            <Kb.Button label="Log In" onClick={this.props.logIn} />
           </Kb.ButtonBar>
         </Kb.Box>
       </Kb.Box>
@@ -255,7 +257,7 @@ class MenubarRender extends React.Component<Props, State> {
       ...webLink,
       {onClick: this.props.showBug, title: 'Report a bug'},
       {onClick: this.props.showHelp, title: 'Help'},
-      {onClick: this.props.quit, title: 'Quit app'},
+      {onClick: this.props.quit, title: 'Quit Keybase'},
     ]
   }
 
@@ -292,9 +294,9 @@ class MenubarRender extends React.Component<Props, State> {
           >
             <Kb.Icon
               color={Styles.globalColors.darkBlue4}
-              hoverColor={Styles.globalColors.black}
+              hoverColor={Styles.globalColors.white}
               type="iconfont-nav-more"
-              sizeType="Big"
+              fontSize={20}
               ref={this.attachmentRef}
             />
             {!!badgeCountInMenu && (
@@ -320,7 +322,7 @@ class MenubarRender extends React.Component<Props, State> {
         <OutOfDate outOfDate={this.props.outOfDate} updateNow={this.props.updateNow} />
         <Kb.ScrollView>
           <ChatContainer convLimit={3} />
-          {this.props.kbfsDaemonStatus === 'connected' ? (
+          {this.props.kbfsDaemonStatus.rpcStatus === 'connected' ? (
             <FilesPreview />
           ) : (
             <Kb.Box2 direction="vertical" fullWidth={true} style={{height: 200}}>
@@ -368,7 +370,7 @@ const BadgeIcon = ({tab, countMap, openApp}) => {
         color={Styles.globalColors.darkBlue4}
         hoverColor={Styles.globalColors.white}
         onClick={() => openApp(tab)}
-        sizeType="Big"
+        fontSize={20}
         type={iconType}
       />
       {!!count && <Kb.Badge badgeNumber={count} badgeStyle={{position: 'absolute', right: -8, top: -6}} />}

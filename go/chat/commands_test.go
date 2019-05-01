@@ -127,7 +127,7 @@ func TestChatCommands(t *testing.T) {
 	mustPostLocalForTest(t, ctc, users[0], impConv, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: "/topic chat about some pointless stuff",
 	}))
-	checkMsgText(listener0, "/topic chat about some pointless stuff")
+	checkHeadline(listener0, "/topic chat about some pointless stuff")
 	mustPostLocalForTest(t, ctc, users[0], teamConv, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: "/topic chat about some pointless stuff",
 	}))

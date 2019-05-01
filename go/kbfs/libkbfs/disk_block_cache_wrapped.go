@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
@@ -187,7 +188,7 @@ func (cache *diskBlockCacheWrapped) Get(
 	primaryCache, secondaryCache := cache.rankCachesLocked(preferredCacheType)
 	// Check both caches if the primary cache doesn't have the block.
 	buf, serverHalf, prefetchStatus, err = primaryCache.Get(ctx, tlfID, blockID)
-	if _, isNoSuchBlockError := errors.Cause(err).(NoSuchBlockError); isNoSuchBlockError &&
+	if _, isNoSuchBlockError := errors.Cause(err).(data.NoSuchBlockError); isNoSuchBlockError &&
 		secondaryCache != nil {
 		buf, serverHalf, prefetchStatus, err = secondaryCache.Get(
 			ctx, tlfID, blockID)
@@ -349,7 +350,7 @@ func (cache *diskBlockCacheWrapped) UpdateMetadata(
 	primaryCache, secondaryCache := cache.rankCachesLocked(cacheType)
 
 	err := primaryCache.UpdateMetadata(ctx, blockID, prefetchStatus)
-	_, isNoSuchBlockError := errors.Cause(err).(NoSuchBlockError)
+	_, isNoSuchBlockError := errors.Cause(err).(data.NoSuchBlockError)
 	if !isNoSuchBlockError {
 		return err
 	}
@@ -363,7 +364,7 @@ func (cache *diskBlockCacheWrapped) UpdateMetadata(
 		return err
 	}
 	err = secondaryCache.UpdateMetadata(ctx, blockID, prefetchStatus)
-	_, isNoSuchBlockError = errors.Cause(err).(NoSuchBlockError)
+	_, isNoSuchBlockError = errors.Cause(err).(data.NoSuchBlockError)
 	if !isNoSuchBlockError {
 		return err
 	}
@@ -491,6 +492,103 @@ func (cache *diskBlockCacheWrapped) ClearHomeTLFs(ctx context.Context) error {
 		return errors.New("Sync cache not enabled")
 	}
 	return cache.syncCache.ClearHomeTLFs(ctx)
+}
+
+// GetTlfSize implements the DiskBlockCache interface for
+// diskBlockCacheWrapped.
+func (cache *diskBlockCacheWrapped) GetTlfSize(
+	ctx context.Context, tlfID tlf.ID, cacheType DiskBlockCacheType) (
+	size uint64, err error) {
+	cache.mtx.RLock()
+	defer cache.mtx.RUnlock()
+
+	if cacheType != DiskBlockWorkingSetCache {
+		// Either sync cache only, or both.
+		syncSize, err := cache.syncCache.GetTlfSize(ctx, tlfID)
+		if err != nil {
+			return 0, err
+		}
+		size += syncSize
+	}
+
+	if cacheType != DiskBlockSyncCache {
+		// Either working set cache only, or both.
+		workingSetSize, err := cache.workingSetCache.GetTlfSize(ctx, tlfID)
+		if err != nil {
+			return 0, err
+		}
+		size += workingSetSize
+	}
+
+	return size, nil
+}
+
+// GetTlfSize implements the DiskBlockCache interface for
+// diskBlockCacheWrapped.
+func (cache *diskBlockCacheWrapped) GetTlfIDs(
+	ctx context.Context, cacheType DiskBlockCacheType) (
+	tlfIDs []tlf.ID, err error) {
+	cache.mtx.RLock()
+	defer cache.mtx.RUnlock()
+
+	if cacheType != DiskBlockWorkingSetCache {
+		// Either sync cache only, or both.
+		tlfIDs, err = cache.syncCache.GetTlfIDs(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if cacheType != DiskBlockSyncCache {
+		// Either working set cache only, or both.
+		wsTlfIDs, err := cache.workingSetCache.GetTlfIDs(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		// Uniquify them if needed.
+		if len(tlfIDs) == 0 {
+			tlfIDs = wsTlfIDs
+		} else {
+			s := make(map[tlf.ID]bool, len(tlfIDs)+len(wsTlfIDs))
+			for _, id := range tlfIDs {
+				s[id] = true
+			}
+			for _, id := range wsTlfIDs {
+				s[id] = true
+			}
+			tlfIDs = make([]tlf.ID, 0, len(s))
+			for id := range s {
+				tlfIDs = append(tlfIDs, id)
+			}
+		}
+	}
+
+	return tlfIDs, nil
+}
+
+// WaitUntilStarted implements the DiskBlockCache interface for
+// diskBlockCacheWrapped.
+func (cache *diskBlockCacheWrapped) WaitUntilStarted(
+	cacheType DiskBlockCacheType) (err error) {
+	cache.mtx.RLock()
+	defer cache.mtx.RUnlock()
+
+	if cacheType != DiskBlockWorkingSetCache {
+		err = cache.syncCache.WaitUntilStarted()
+		if err != nil {
+			return err
+		}
+	}
+
+	if cacheType != DiskBlockSyncCache {
+		err = cache.workingSetCache.WaitUntilStarted()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // Shutdown implements the DiskBlockCache interface for diskBlockCacheWrapped.

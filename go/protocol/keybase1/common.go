@@ -1022,6 +1022,34 @@ func (e OfflineAvailability) String() string {
 	return ""
 }
 
+type ReacjiSkinTone int
+
+func (o ReacjiSkinTone) DeepCopy() ReacjiSkinTone {
+	return o
+}
+
+type UserReacjis struct {
+	TopReacjis []string       `codec:"topReacjis" json:"topReacjis"`
+	SkinTone   ReacjiSkinTone `codec:"skinTone" json:"skinTone"`
+}
+
+func (o UserReacjis) DeepCopy() UserReacjis {
+	return UserReacjis{
+		TopReacjis: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.TopReacjis),
+		SkinTone: o.SkinTone.DeepCopy(),
+	}
+}
+
 type CommonInterface interface {
 }
 

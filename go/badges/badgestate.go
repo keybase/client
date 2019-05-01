@@ -135,6 +135,14 @@ func homeStateLessThan(a *homeStateBody, b homeStateBody) bool {
 	return false
 }
 
+func (b *BadgeState) ConversationBadge(ctx context.Context, convID chat1.ConversationID,
+	deviceType keybase1.DeviceType) int {
+	if info, ok := b.chatUnreadMap[convID.String()]; ok {
+		return info.BadgeCounts[deviceType]
+	}
+	return 0
+}
+
 // UpdateWithGregor updates the badge state from a gregor state.
 func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) error {
 	b.Lock()

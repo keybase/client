@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"sync"
 	"time"
 
 	"github.com/keybase/client/go/externals"
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
@@ -20,6 +20,7 @@ import (
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -49,19 +50,18 @@ const (
 func newConfigForTest(modeType InitModeType, loggerFn func(module string) logger.Logger) *ConfigLocal {
 	mode := modeTest{NewInitModeFromType(modeType)}
 	config := NewConfigLocal(mode, loggerFn, "", DiskCacheModeOff, &env.KBFSContext{})
+	config.SetVLogLevel(libkb.VLog1String)
 
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
 		0)
 	config.SetBlockOps(bops)
 
-	maxDirEntriesPerBlock, err := getMaxDirEntriesPerBlock()
+	bsplit, err := data.NewBlockSplitterSimpleExact(
+		64*1024, 64*1024/int(data.BPSize), 8*1024)
 	if err != nil {
 		panic(err)
 	}
-
-	bsplit := &BlockSplitterSimple{
-		64 * 1024, 64 * 1024 / int(bpSize), 8 * 1024, maxDirEntriesPerBlock}
 	err = bsplit.SetMaxDirEntriesByBlockSize(config.Codec())
 	if err != nil {
 		panic(err)
@@ -729,7 +729,7 @@ func testRPCWithCanceledContext(t logger.TestLogBackend,
 // DisableUpdatesForTesting stops the given folder from acting on new
 // updates.  Send a struct{}{} down the returned channel to restart
 // notifications
-func DisableUpdatesForTesting(config Config, folderBranch FolderBranch) (
+func DisableUpdatesForTesting(config Config, folderBranch data.FolderBranch) (
 	chan<- struct{}, error) {
 	kbfsOps, ok := config.KBFSOps().(*KBFSOpsStandard)
 	if !ok {
@@ -744,7 +744,7 @@ func DisableUpdatesForTesting(config Config, folderBranch FolderBranch) (
 
 // DisableCRForTesting stops conflict resolution for the given folder.
 // RestartCRForTesting should be called to restart it.
-func DisableCRForTesting(config Config, folderBranch FolderBranch) error {
+func DisableCRForTesting(config Config, folderBranch data.FolderBranch) error {
 	kbfsOps, ok := config.KBFSOps().(*KBFSOpsStandard)
 	if !ok {
 		return errors.New("Unexpected KBFSOps type")
@@ -758,7 +758,7 @@ func DisableCRForTesting(config Config, folderBranch FolderBranch) error {
 // RestartCRForTesting re-enables conflict resolution for the given
 // folder.  baseCtx must have a cancellation delayer.
 func RestartCRForTesting(baseCtx context.Context, config Config,
-	folderBranch FolderBranch) error {
+	folderBranch data.FolderBranch) error {
 	kbfsOps, ok := config.KBFSOps().(*KBFSOpsStandard)
 	if !ok {
 		return errors.New("Unexpected KBFSOps type")
@@ -779,7 +779,7 @@ func RestartCRForTesting(baseCtx context.Context, config Config,
 // SetCRFailureForTesting sets whether CR should always fail on the folder
 // branch.
 func SetCRFailureForTesting(ctx context.Context, config Config,
-	folderBranch FolderBranch, fail failModeForTest) error {
+	folderBranch data.FolderBranch, fail failModeForTest) error {
 	kbfsOps, ok := config.KBFSOps().(*KBFSOpsStandard)
 	if !ok {
 		return errors.New("Unexpected KBFSOps type")
@@ -793,7 +793,7 @@ func SetCRFailureForTesting(ctx context.Context, config Config,
 // ForceQuotaReclamationForTesting kicks off quota reclamation under
 // the given config, for the given folder-branch.
 func ForceQuotaReclamationForTesting(config Config,
-	folderBranch FolderBranch) error {
+	folderBranch data.FolderBranch) error {
 	kbfsOps, ok := config.KBFSOps().(*KBFSOpsStandard)
 	if !ok {
 		return errors.New("Unexpected KBFSOps type")
@@ -804,47 +804,15 @@ func ForceQuotaReclamationForTesting(config Config,
 	return nil
 }
 
-// TestClock returns a set time as the current time.
-type TestClock struct {
-	l sync.Mutex
-	t time.Time
-}
-
-func newTestClockNow() *TestClock {
-	return &TestClock{t: time.Now()}
-}
-
-func newTestClockAndTimeNow() (*TestClock, time.Time) {
-	t0 := time.Now()
-	return &TestClock{t: t0}, t0
-}
-
-// Now implements the Clock interface for TestClock.
-func (tc *TestClock) Now() time.Time {
-	tc.l.Lock()
-	defer tc.l.Unlock()
-	return tc.t
-}
-
-// Set sets the test clock time.
-func (tc *TestClock) Set(t time.Time) {
-	tc.l.Lock()
-	defer tc.l.Unlock()
-	tc.t = t
-}
-
-// Add adds to the test clock time.
-func (tc *TestClock) Add(d time.Duration) {
-	tc.l.Lock()
-	defer tc.l.Unlock()
-	tc.t = tc.t.Add(d)
-}
-
 // CheckConfigAndShutdown shuts down the given config, but fails the
 // test if there's an error.
 func CheckConfigAndShutdown(
 	ctx context.Context, t logger.TestLogBackend, config Config) {
-	if err := config.Shutdown(ctx); err != nil {
+	err := config.Shutdown(ctx)
+	switch errors.Cause(err).(type) {
+	case data.ShutdownHappenedError:
+	case nil:
+	default:
 		t.Errorf("err=%+v", err)
 	}
 }
@@ -860,7 +828,7 @@ func GetRootNodeForTest(
 		return nil, err
 	}
 
-	n, _, err := config.KBFSOps().GetOrCreateRootNode(ctx, h, MasterBranch)
+	n, _, err := config.KBFSOps().GetOrCreateRootNode(ctx, h, data.MasterBranch)
 	if err != nil {
 		return nil, err
 	}

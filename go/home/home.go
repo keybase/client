@@ -46,6 +46,7 @@ func (r *rawGetHome) GetAppStatus() *libkb.AppStatus {
 func NewHome(g *libkb.GlobalContext) *Home {
 	home := &Home{Contextified: libkb.NewContextified(g)}
 	g.AddLogoutHook(home, "home")
+	g.AddDbNukeHook(home, "home")
 	return home
 }
 
@@ -317,6 +318,11 @@ func (h *Home) ActionTaken(ctx context.Context) (err error) {
 }
 
 func (h *Home) OnLogout(m libkb.MetaContext) error {
+	h.bustCache(m.Ctx(), true)
+	return nil
+}
+
+func (h *Home) OnDbNuke(m libkb.MetaContext) error {
 	h.bustCache(m.Ctx(), true)
 	return nil
 }

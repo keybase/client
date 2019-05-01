@@ -11,11 +11,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/test/clocktest"
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
@@ -35,7 +38,7 @@ func totalBlockRefs(m map[kbfsblock.ID]blockRefMap) int {
 func testQuotaReclamation(t *testing.T, ctx context.Context, config Config,
 	userName kbname.NormalizedUsername) (
 	ops *folderBranchOps, preBlocks map[kbfsblock.ID]blockRefMap) {
-	clock, now := newTestClockAndTimeNow()
+	clock, now := clocktest.NewTestClockAndTimeNow()
 	config.SetClock(clock)
 
 	rootNode := GetRootNodeOrBust(
@@ -159,7 +162,8 @@ func TestQuotaReclamationUnembedded(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, userName)
 	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
 
-	config.bsplit.(*BlockSplitterSimple).blockChangeEmbedMaxSize = 32
+	config.bsplit.(*data.BlockSplitterSimple).
+		SetBlockChangeEmbedMaxSizeForTesting(32)
 
 	ops, preBlocks := testQuotaReclamation(t, ctx, config, userName)
 	ensureFewerBlocksPostQR(t, ctx, config, ops, preBlocks)
@@ -167,7 +171,7 @@ func TestQuotaReclamationUnembedded(t *testing.T) {
 	// Make sure the MD has an unembedded change block.
 	md, err := config.MDOps().GetForTLF(ctx, ops.id(), nil)
 	require.NoError(t, err, "Couldn't get MD: %+v", err)
-	if md.data.cachedChanges.Info.BlockPointer == zeroPtr {
+	if md.data.cachedChanges.Info.BlockPointer == data.ZeroPtr {
 		t.Fatalf("No unembedded changes for ops %v", md.data.Changes.Ops)
 	}
 }
@@ -180,13 +184,14 @@ func TestQuotaReclamationIncrementalReclamation(t *testing.T) {
 	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
 
 	now := time.Now()
-	var clock TestClock
+	var clock clocktest.TestClock
 	clock.Set(now)
 	config.SetClock(&clock)
 
 	// Allow for big embedded block changes, so they don't confuse our
 	// block-checking logic.
-	config.bsplit.(*BlockSplitterSimple).blockChangeEmbedMaxSize = 16 << 20
+	config.bsplit.(*data.BlockSplitterSimple).
+		SetBlockChangeEmbedMaxSizeForTesting(16 << 20)
 
 	rootNode := GetRootNodeOrBust(
 		ctx, t, config, userName.String(), tlf.Private)
@@ -252,7 +257,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	config1, _, ctx, cancel := kbfsOpsInitNoMocks(t, u1, u2)
 	defer kbfsTestShutdownNoMocks(t, config1, ctx, cancel)
 
-	clock, now := newTestClockAndTimeNow()
+	clock, now := clocktest.NewTestClockAndTimeNow()
 	config1.SetClock(clock)
 
 	// Initialize the MD using a different config
@@ -451,7 +456,7 @@ func TestQuotaReclamationFailAfterRekeyRequest(t *testing.T) {
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
-	clock := newTestClockNow()
+	clock := clocktest.NewTestClockNow()
 	config1.SetClock(clock)
 
 	config2 := ConfigAsUser(config1, u2)
@@ -531,7 +536,7 @@ func TestQuotaReclamationMinHeadAge(t *testing.T) {
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
-	clock := newTestClockNow()
+	clock := clocktest.NewTestClockNow()
 	config1.SetClock(clock)
 	// Re-enable QR in test mode.
 	config1.SetMode(modeTestWithQR{NewInitModeFromType(InitDefault)})
@@ -644,7 +649,7 @@ func TestQuotaReclamationGCOpsForGCOps(t *testing.T) {
 	var userName kbname.NormalizedUsername = "test_user"
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, userName)
 	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
-	clock := newTestClockNow()
+	clock := clocktest.NewTestClockNow()
 	config.SetClock(clock)
 
 	rootNode := GetRootNodeOrBust(
@@ -724,7 +729,7 @@ func TestFolderBlockManagerCleanSyncCache(t *testing.T) {
 	var userName kbname.NormalizedUsername = "test_user"
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, userName)
 	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
-	config.vdebugSetting = "vlog2"
+	config.SetVLogLevel(libkb.VLog2String)
 
 	// Test the pointer-constraint logic.
 	config.SetMode(modeTestWithMaxPtrsLimit{config.Mode()})
@@ -744,7 +749,7 @@ func TestFolderBlockManagerCleanSyncCache(t *testing.T) {
 		ctx, t, config, userName.String(), tlf.Private)
 	kbfsOps := config.KBFSOps()
 	_, err = config.SetTlfSyncState(
-		rootNode.GetFolderBranch().Tlf, FolderSyncConfig{
+		ctx, rootNode.GetFolderBranch().Tlf, FolderSyncConfig{
 			Mode: keybase1.FolderSyncMode_ENABLED,
 		})
 	require.NoError(t, err)
@@ -810,7 +815,7 @@ func TestFolderBlockManagerCleanSyncCache(t *testing.T) {
 
 	t.Log("Set new TLF to syncing, and add a new revision")
 	_, err = config.SetTlfSyncState(
-		rootNode.GetFolderBranch().Tlf, FolderSyncConfig{
+		ctx, rootNode.GetFolderBranch().Tlf, FolderSyncConfig{
 			Mode: keybase1.FolderSyncMode_ENABLED,
 		})
 	require.NoError(t, err)

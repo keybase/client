@@ -7,6 +7,7 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import SettingsContainer from './render'
 import {compose} from 'recompose'
 import {connect, lifecycle} from '../util/container'
+import {requestIdleCallback} from '../util/idle-callback'
 import {type RouteProps} from '../route-tree/render-route'
 
 type OwnProps = {|children: React.Node, ...$Exact<RouteProps<{}, {}>>|}
@@ -47,7 +48,8 @@ const Connected = compose(
   ),
   lifecycle({
     componentDidMount() {
-      this.props._loadHasRandomPW()
+      const loadHasRandomPW = this.props._loadHasRandomPW
+      requestIdleCallback(loadHasRandomPW)
     },
   })
 )(SettingsContainer)

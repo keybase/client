@@ -83,6 +83,7 @@ func (e *ResolveThenIdentify2) resolveUID(m libkb.MetaContext) (err error) {
 
 	rres := m.G().Resolver.ResolveFullExpressionWithBody(m, e.arg.UserAssertion)
 	if err = rres.GetError(); err != nil {
+		m.Debug("ResolveThenIdentify2#resolveUID: failing assertion for arg %+v", e.arg)
 		return err
 	}
 	e.arg.Uid = rres.GetUID()

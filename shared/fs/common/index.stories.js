@@ -17,6 +17,8 @@ import Errs from './errs'
 import OpenInSystemFileManager from './open-in-system-file-manager'
 import {type OwnProps as PathItemIconOwnProps} from './path-item-icon-container'
 import {type OwnProps as PathItemInfoOwnProps} from './path-item-info-container'
+import SyncStatus from './sync-status'
+import PieSlice from './pie-slice'
 
 const PathItemActionMenuHeaderProps = (props: any) => ({
   childrenFiles: 0,
@@ -65,8 +67,13 @@ export const commonProvider = {
     openInSystemFileManager: Sb.action('openInSystemFileManager'),
   }),
   FolderViewFilter: (props: any) => ({
-    filter: '',
     onUpdate: Sb.action('onUpdate'),
+    pathItem: Constants.makeFolder(),
+    ...props,
+  }),
+  FolderViewFilterIcon: (props: any) => ({
+    onUpdate: Sb.action('onUpdate'),
+    pathItem: Constants.makeFolder(),
     ...props,
   }),
   LoadPathMetadataWhenNeeded: ({path}: {path: Types.Path}) => ({
@@ -76,6 +83,10 @@ export const commonProvider = {
   NewFolder: ({path}: {path: Types.Path}) => ({
     canCreateNewFolder: Types.getPathLevel(path) > 2,
     onNewFolder: Sb.action('onNewFolder'),
+  }),
+  OfflineFolder: ({path}: {path: Types.Path}) => ({
+    path,
+    syncEnabled: false,
   }),
   OpenChat: ({path}: {path: Types.Path}) => ({
     onChat: Constants.canChat(path) ? Sb.action('onChat') : null,
@@ -97,7 +108,14 @@ export const commonProvider = {
   RefreshDriverStatusOnMount: () => ({
     refresh: Sb.action('refresh'),
   }),
-  SendInAppAction: ({path}: {path: Types.Path}) => ({onClick: Sb.action('onClick'), path}),
+  SyncStatus: () => ({
+    folder: false,
+    status: 'online-only',
+  }),
+  SyncingFolders: () => ({
+    progress: 0.67,
+    show: true,
+  }),
   TlfInfo: ({path, mode}: PathItemInfoOwnProps) => ({
     mode,
     reset: ['foo', 'bar', 'cue'],
@@ -108,10 +126,11 @@ export const commonProvider = {
     onEnabled: Sb.action('onEnabled'),
     refreshDriverStatus: Sb.action('refreshDriverStatus'),
   }),
-  UploadButton: ({path}: {path: Types.Path}) => ({
+  UploadButton: ({path, style}: {path: Types.Path, style?: ?Styles.StylesCrossPlatform}) => ({
     canUpload: Types.getPathLevel(path) > 2,
     openAndUpload: Sb.action('openAndUpload'),
     pickAndUpload: Sb.action('pickAndUpload'),
+    style,
   }),
 }
 
@@ -123,6 +142,26 @@ const pathItemActionCommonProps = {
   onHidden: Sb.action('onHidden'),
 }
 
+const pieSlices = [0, 20, 90, 179, 180, 181, 270, 359, 360]
+
+class PieSliceWrapper extends React.PureComponent<
+  {
+    initialDegrees: number,
+  },
+  {degrees: number}
+> {
+  state = {degrees: this.props.initialDegrees}
+  _onClick = () => this.setState(({degrees}) => ({degrees: (degrees + 72) % 361}))
+  render() {
+    return (
+      <Kb.Box2 direction="horizontal" gap="small">
+        <Kb.Text type="Header">{this.state.degrees} degrees: </Kb.Text>
+        <PieSlice degrees={this.state.degrees} animated={true} />
+        <Kb.Button onClick={this._onClick} label="Add progress" />
+      </Kb.Box2>
+    )
+  }
+}
 const load = () => {
   Sb.storiesOf('Files', module)
     .addDecorator(provider)
@@ -133,9 +172,18 @@ const load = () => {
         gapStart={true}
         style={{paddingLeft: Styles.globalMargins.medium}}
       >
+        <Kb.Text type="Body">Row mode</Kb.Text>
         <PathItemAction
           path={Types.stringToPath('/keybase/private/meatball/folder/treat')}
           routePath={I.List()}
+          mode="row"
+          {...pathItemActionCommonProps}
+        />
+        <Kb.Text type="Body">Screen mode</Kb.Text>
+        <PathItemAction
+          path={Types.stringToPath('/keybase/private/meatball/folder/treat')}
+          routePath={I.List()}
+          mode="screen"
           {...pathItemActionCommonProps}
         />
         <PathItemAction
@@ -143,6 +191,7 @@ const load = () => {
             '/keybase/private/meatball/treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat'
           )}
           routePath={I.List()}
+          mode="screen"
           {...pathItemActionCommonProps}
         />
         <PathItemAction
@@ -150,6 +199,7 @@ const load = () => {
             '/keybaes/private/meatball/foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar'
           )}
           routePath={I.List()}
+          mode="screen"
           {...pathItemActionCommonProps}
         />
       </Kb.Box2>
@@ -229,6 +279,8 @@ const load = () => {
         <PathItemInfo mode="default" lastModifiedTimestamp={1545110765} lastWriter="songgao_test" />
         <Kb.Text type="Body">mode=row</Kb.Text>
         <PathItemInfo mode="row" lastModifiedTimestamp={1545110765} lastWriter="songgao_test" />
+        <Kb.Text type="Body">mode=menu</Kb.Text>
+        <PathItemInfo mode="menu" lastModifiedTimestamp={1545110765} lastWriter="songgao_test" />
       </Kb.Box2>
     ))
     .add('KbfsDaemonNotRunning', () => <KbfsDaemonNotRunning />)
@@ -246,6 +298,24 @@ const load = () => {
           openInSystemFileManager={Sb.action('openInSystemFileManager')}
           enableDriver={Sb.action('enableDriver')}
         />
+      </Kb.Box2>
+    ))
+    .add('Sync Status', () => (
+      <Kb.Box2 direction="vertical" gap="large" gapStart={true} fullWidth={false} alignItems={'center'}>
+        <SyncStatus status={'awaiting-to-sync'} folder={false} />
+        <SyncStatus status={'awaiting-to-upload'} folder={false} />
+        <SyncStatus status={'online-only'} folder={false} />
+        <SyncStatus status={'synced'} folder={false} />
+        <SyncStatus status={'sync-error'} folder={true} />
+        <SyncStatus status={'uploading'} folder={false} />
+        <SyncStatus status={0.3} folder={false} />
+      </Kb.Box2>
+    ))
+    .add('Pie Loaders', () => (
+      <Kb.Box2 direction="vertical" gap="large" gapStart={true} fullWidth={false} alignItems={'center'}>
+        {pieSlices.map(deg => (
+          <PieSliceWrapper initialDegrees={deg} key={deg} />
+        ))}
       </Kb.Box2>
     ))
 

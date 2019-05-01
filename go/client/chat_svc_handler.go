@@ -473,6 +473,7 @@ func (c *chatServiceHandler) SendV1(ctx context.Context, opts sendOptionsV1, ui 
 		response:          "message sent",
 		nonblock:          opts.Nonblock,
 		ephemeralLifetime: opts.EphemeralLifetime,
+		replyTo:           opts.ReplyTo,
 	}
 	return c.sendV1(ctx, arg, ui)
 }
@@ -790,8 +791,12 @@ func (c *chatServiceHandler) SearchInboxV1(ctx context.Context, opts searchInbox
 		opts.MaxHits = 10
 	}
 
+	reindexMode := chat1.ReIndexingMode_NONE
+	if opts.ForceReindex {
+		reindexMode = chat1.ReIndexingMode_PRESEARCH_SYNC
+	}
 	searchOpts := chat1.SearchOpts{
-		ForceReindex:  opts.ForceReindex,
+		ReindexMode:   reindexMode,
 		SentBy:        opts.SentBy,
 		MaxHits:       opts.MaxHits,
 		BeforeContext: opts.BeforeContext,
@@ -884,12 +889,12 @@ func (c *chatServiceHandler) SearchRegexpV1(ctx context.Context, opts searchRege
 		}
 		searchOpts.SentAfter = gregor1.ToTime(sentAfter)
 	}
+	searchOpts.IsRegex = opts.IsRegex
 
 	arg := chat1.SearchRegexpArg{
 		ConvID:           convID,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		Query:            opts.Query,
-		IsRegex:          opts.IsRegex,
 		Opts:             searchOpts,
 	}
 
@@ -958,6 +963,7 @@ type sendArgV1 struct {
 	response          string
 	nonblock          bool
 	ephemeralLifetime ephemeralLifetime
+	replyTo           *chat1.MessageID
 }
 
 func (c *chatServiceHandler) sendV1(ctx context.Context, arg sendArgV1, chatUI chat1.ChatUiInterface) Reply {
@@ -991,6 +997,7 @@ func (c *chatServiceHandler) sendV1(ctx context.Context, arg sendArgV1, chatUI c
 			ClientHeader: header.clientHeader,
 			MessageBody:  arg.body,
 		},
+		ReplyTo:          arg.replyTo,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	}
 	var idFails []keybase1.TLFIdentifyFailure

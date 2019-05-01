@@ -27,7 +27,9 @@ const updateUsername = state => {
       break
     case 'btc':
       // A simple check, the server does a fuller check
-      usernameValid = !!username.match(/^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/)
+      const legacyFormat = !!username.match(/^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/)
+      const segwitFormat = !!username.toLowerCase().match(/^(bc1)[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{11,71}$/)
+      usernameValid = legacyFormat || segwitFormat
       break
   }
 
@@ -73,6 +75,8 @@ export default function(state: Types.State = initialState, action: ProfileGen.Ac
       })
     case ProfileGen.updatePgpPublicKey:
       return state.merge({pgpPublicKey: action.payload.publicKey})
+    case ProfileGen.updatePromptShouldStoreKeyOnServer:
+      return state.merge({promptShouldStoreKeyOnServer: action.payload.promptShouldStoreKeyOnServer})
     case ProfileGen.addProof: {
       const platform = action.payload.platform
       const maybeNotGeneric = More.isPlatformsExpandedType(platform)

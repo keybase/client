@@ -1,7 +1,5 @@
 // @flow
 import * as Constants from '../../../constants/teams'
-import * as FsConstants from '../../../constants/fs'
-import * as FsTypes from '../../../constants/types/fs'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as SearchGen from '../../../actions/search-gen'
@@ -20,24 +18,19 @@ const mapStateToProps = (state, {teamname}) => {
   return {
     canAddPeople: yourOperations.manageMembers,
     canChat: !yourOperations.joinTeam,
-    canViewFolder: !yourOperations.joinTeam,
     loading: anyWaiting(state, Constants.teamWaitingKey(teamname)),
   }
 }
 
 const mapDispatchToProps = (dispatch, {teamname}) => ({
   onChat: () => dispatch(Chat2Gen.createPreviewConversation({reason: 'teamHeader', teamname})),
-  onOpenFolder: () =>
-    dispatch(FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`))),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   canAddPeople: stateProps.canAddPeople,
   canChat: stateProps.canChat,
-  canViewFolder: stateProps.canViewFolder,
   loading: stateProps.loading,
   onChat: dispatchProps.onChat,
-  onOpenFolder: dispatchProps.onOpenFolder,
   teamname: ownProps.teamname,
 })
 
@@ -52,8 +45,10 @@ const mapStateToPropsTitle = (state, {teamname}) => {
   const role = Constants.getRole(state, teamname)
   const description = Constants.getTeamPublicitySettings(state, teamname).description
   const members = Constants.getTeamMemberCount(state, teamname)
+  const yourOperations = Constants.getCanPerform(state, teamname)
   return {
-    _canEditDescAvatar: Constants.getCanPerform(state, teamname).editTeamDescription,
+    _canEditDescAvatar: yourOperations.editTeamDescription,
+    _canRenameTeam: yourOperations.manageSubteams && teamname.includes('.'),
     description,
     members,
     role,
@@ -74,12 +69,15 @@ const mapDispatchToPropsTitle = (dispatch, {teamname}) => ({
     dispatch(
       RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamEditTeamDescription'}]})
     ),
+  onRename: () =>
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamRename'}]})),
 })
 const mergePropsTitle = (stateProps, dispatchProps) => ({
   description: stateProps.description,
   members: stateProps.members,
   onEditAvatar: stateProps._canEditDescAvatar ? dispatchProps.onEditAvatar : null,
   onEditDescription: stateProps._canEditDescAvatar ? dispatchProps.onEditDescription : null,
+  onRename: stateProps._canRenameTeam ? dispatchProps.onRename : null,
   role: stateProps.role,
   teamname: stateProps.teamname,
 })

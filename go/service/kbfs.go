@@ -40,8 +40,12 @@ func NewKBFSHandler(xp rpc.Transporter, g *libkb.GlobalContext, cg *globals.Chat
 	}
 }
 
-func (h *KBFSHandler) FSEvent(_ context.Context, arg keybase1.FSNotification) error {
+func (h *KBFSHandler) FSOnlineStatusChangedEvent(_ context.Context, online bool) error {
+	h.G().NotifyRouter.HandleFSOnlineStatusChanged(online)
+	return nil
+}
 
+func (h *KBFSHandler) FSEvent(_ context.Context, arg keybase1.FSNotification) error {
 	h.G().NotifyRouter.HandleFSActivity(arg)
 
 	h.checkConversationRekey(arg)
@@ -71,6 +75,12 @@ func (h *KBFSHandler) FSSyncStatus(ctx context.Context, arg keybase1.FSSyncStatu
 
 func (h *KBFSHandler) FSSyncEvent(ctx context.Context, arg keybase1.FSPathSyncStatus) (err error) {
 	h.G().NotifyRouter.HandleFSSyncEvent(ctx, arg)
+	return nil
+}
+
+func (h *KBFSHandler) FSOverallSyncEvent(
+	_ context.Context, arg keybase1.FolderSyncStatus) (err error) {
+	h.G().NotifyRouter.HandleFSOverallSyncStatusChanged(arg)
 	return nil
 }
 

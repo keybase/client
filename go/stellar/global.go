@@ -27,7 +27,10 @@ func ServiceInit(g *libkb.GlobalContext, walletState *WalletState, badger *badge
 	if g.Env.GetRunMode() != libkb.ProductionRunMode {
 		stellarnet.SetClientAndNetwork(horizon.DefaultTestNetClient, build.TestNetwork)
 	}
-	g.SetStellar(NewStellar(g, walletState, badger))
+	s := NewStellar(g, walletState, badger)
+	g.SetStellar(s)
+	g.AddLogoutHook(s, "stellar")
+	g.AddDbNukeHook(s, "stellar")
 }
 
 type Stellar struct {
@@ -85,7 +88,17 @@ func (s *Stellar) Upkeep(ctx context.Context) error {
 	return Upkeep(libkb.NewMetaContext(ctx, s.G()))
 }
 
-func (s *Stellar) OnLogout() {
+func (s *Stellar) OnLogout(mctx libkb.MetaContext) error {
+	s.Clear(mctx)
+	return nil
+}
+
+func (s *Stellar) OnDbNuke(mctx libkb.MetaContext) error {
+	s.Clear(mctx)
+	return nil
+}
+
+func (s *Stellar) Clear(mctx libkb.MetaContext) {
 	s.shutdownAutoClaimRunner()
 	s.deleteBpc()
 	s.deleteDisclaimer()

@@ -30,12 +30,22 @@ type FSSyncStatusResponseArg struct {
 	RequestID int          `codec:"requestID" json:"requestID"`
 }
 
+type FSOverallSyncStatusChangedArg struct {
+	Status FolderSyncStatus `codec:"status" json:"status"`
+}
+
+type FSOnlineStatusChangedArg struct {
+	Online bool `codec:"online" json:"online"`
+}
+
 type NotifyFSInterface interface {
 	FSActivity(context.Context, FSNotification) error
 	FSPathUpdated(context.Context, string) error
 	FSSyncActivity(context.Context, FSPathSyncStatus) error
 	FSEditListResponse(context.Context, FSEditListResponseArg) error
 	FSSyncStatusResponse(context.Context, FSSyncStatusResponseArg) error
+	FSOverallSyncStatusChanged(context.Context, FolderSyncStatus) error
+	FSOnlineStatusChanged(context.Context, bool) error
 }
 
 func NotifyFSProtocol(i NotifyFSInterface) rpc.Protocol {
@@ -117,6 +127,36 @@ func NotifyFSProtocol(i NotifyFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"FSOverallSyncStatusChanged": {
+				MakeArg: func() interface{} {
+					var ret [1]FSOverallSyncStatusChangedArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]FSOverallSyncStatusChangedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]FSOverallSyncStatusChangedArg)(nil), args)
+						return
+					}
+					err = i.FSOverallSyncStatusChanged(ctx, typedArgs[0].Status)
+					return
+				},
+			},
+			"FSOnlineStatusChanged": {
+				MakeArg: func() interface{} {
+					var ret [1]FSOnlineStatusChangedArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]FSOnlineStatusChangedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]FSOnlineStatusChangedArg)(nil), args)
+						return
+					}
+					err = i.FSOnlineStatusChanged(ctx, typedArgs[0].Online)
+					return
+				},
+			},
 		},
 	}
 }
@@ -150,5 +190,17 @@ func (c NotifyFSClient) FSEditListResponse(ctx context.Context, __arg FSEditList
 
 func (c NotifyFSClient) FSSyncStatusResponse(ctx context.Context, __arg FSSyncStatusResponseArg) (err error) {
 	err = c.Cli.Notify(ctx, "keybase.1.NotifyFS.FSSyncStatusResponse", []interface{}{__arg})
+	return
+}
+
+func (c NotifyFSClient) FSOverallSyncStatusChanged(ctx context.Context, status FolderSyncStatus) (err error) {
+	__arg := FSOverallSyncStatusChangedArg{Status: status}
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyFS.FSOverallSyncStatusChanged", []interface{}{__arg})
+	return
+}
+
+func (c NotifyFSClient) FSOnlineStatusChanged(ctx context.Context, online bool) (err error) {
+	__arg := FSOnlineStatusChangedArg{Online: online}
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyFS.FSOnlineStatusChanged", []interface{}{__arg})
 	return
 }

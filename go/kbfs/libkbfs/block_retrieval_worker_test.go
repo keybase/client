@@ -4,12 +4,12 @@
 package libkbfs
 
 import (
-	"crypto/rand"
 	"errors"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/libkey"
@@ -20,7 +20,7 @@ import (
 // blockReturner contains a block value to copy into requested blocks, and a
 // channel to synchronize on with the worker.
 type blockReturner struct {
-	block      Block
+	block      data.Block
 	continueCh chan error
 	startCh    chan struct{}
 }
@@ -28,7 +28,7 @@ type blockReturner struct {
 // fakeBlockGetter allows specifying and obtaining fake blocks.
 type fakeBlockGetter struct {
 	mtx           sync.RWMutex
-	blockMap      map[BlockPointer]blockReturner
+	blockMap      map[data.BlockPointer]blockReturner
 	codec         kbfscodec.Codec
 	respectCancel bool
 }
@@ -36,7 +36,7 @@ type fakeBlockGetter struct {
 // newFakeBlockGetter returns a fakeBlockGetter.
 func newFakeBlockGetter(respectCancel bool) *fakeBlockGetter {
 	return &fakeBlockGetter{
-		blockMap:      make(map[BlockPointer]blockReturner),
+		blockMap:      make(map[data.BlockPointer]blockReturner),
 		codec:         kbfscodec.NewMsgpack(),
 		respectCancel: respectCancel,
 	}
@@ -45,8 +45,8 @@ func newFakeBlockGetter(respectCancel bool) *fakeBlockGetter {
 // setBlockToReturn sets the block that will be returned for a given
 // BlockPointer. Returns a writeable channel that getBlock will wait on, to
 // allow synchronization of tests.
-func (bg *fakeBlockGetter) setBlockToReturn(blockPtr BlockPointer,
-	block Block) (startCh <-chan struct{}, continueCh chan<- error) {
+func (bg *fakeBlockGetter) setBlockToReturn(blockPtr data.BlockPointer,
+	block data.Block) (startCh <-chan struct{}, continueCh chan<- error) {
 	bg.mtx.Lock()
 	defer bg.mtx.Unlock()
 	sCh, cCh := make(chan struct{}), make(chan error)
@@ -60,8 +60,8 @@ func (bg *fakeBlockGetter) setBlockToReturn(blockPtr BlockPointer,
 
 // getBlock implements the interface for realBlockGetter.
 func (bg *fakeBlockGetter) getBlock(
-	ctx context.Context, kmd libkey.KeyMetadata, blockPtr BlockPointer,
-	block Block, _ DiskBlockCacheType) error {
+	ctx context.Context, kmd libkey.KeyMetadata, blockPtr data.BlockPointer,
+	block data.Block, _ DiskBlockCacheType) error {
 	bg.mtx.RLock()
 	defer bg.mtx.RUnlock()
 	source, ok := bg.blockMap[blockPtr]
@@ -92,7 +92,7 @@ func (bg *fakeBlockGetter) getBlock(
 }
 
 func (bg *fakeBlockGetter) assembleBlock(ctx context.Context,
-	kmd libkey.KeyMetadata, ptr BlockPointer, block Block, buf []byte,
+	kmd libkey.KeyMetadata, ptr data.BlockPointer, block data.Block, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
 	bg.mtx.RLock()
 	defer bg.mtx.RUnlock()
@@ -104,50 +104,22 @@ func (bg *fakeBlockGetter) assembleBlock(ctx context.Context,
 	return nil
 }
 
-const testFakeBlockSize = uint32(150)
-
-func makeFakeFileBlock(t *testing.T, doHash bool) *FileBlock {
-	buf := make([]byte, 16)
-	_, err := rand.Read(buf)
-	require.NoError(t, err)
-	block := &FileBlock{
-		CommonBlock: CommonBlock{
-			cachedEncodedSize: testFakeBlockSize,
-		},
-		Contents: buf,
-	}
-	if doHash {
-		_ = block.GetHash()
-	}
-	return block
-}
-
-func makeFakeFileBlockWithIPtrs(iptrs []IndirectFilePtr) *FileBlock {
-	return &FileBlock{
-		CommonBlock: CommonBlock{
-			IsInd:             true,
-			cachedEncodedSize: testFakeBlockSize,
-		},
-		IPtrs: iptrs,
-	}
-}
-
 func TestBlockRetrievalWorkerBasic(t *testing.T) {
 	t.Log("Test the basic ability of a worker to return a block.")
 	bg := newFakeBlockGetter(false)
 	q := newBlockRetrievalQueue(
 		0, 1, 0, newTestBlockRetrievalConfig(t, bg, nil))
 	require.NotNil(t, q)
-	defer q.Shutdown()
+	defer endBlockRetrievalQueueTest(t, q)
 
 	ptr1 := makeRandomBlockPointer(t)
 	block1 := makeFakeFileBlock(t, false)
 	_, continueCh1 := bg.setBlockToReturn(ptr1, block1)
 
-	block := &FileBlock{}
+	block := &data.FileBlock{}
 	ch := q.Request(
 		context.Background(), 1, makeKMD(), ptr1, block,
-		NoCacheEntry, BlockRequestWithPrefetch)
+		data.NoCacheEntry, BlockRequestSolo)
 	continueCh1 <- nil
 	err := <-ch
 	require.NoError(t, err)
@@ -160,15 +132,15 @@ func TestBlockRetrievalWorkerBasicSoloCached(t *testing.T) {
 	q := newBlockRetrievalQueue(
 		0, 1, 0, newTestBlockRetrievalConfig(t, bg, nil))
 	require.NotNil(t, q)
-	defer q.Shutdown()
+	defer endBlockRetrievalQueueTest(t, q)
 
 	ptr1 := makeRandomBlockPointer(t)
 	block1 := makeFakeFileBlock(t, false)
 	_, continueCh1 := bg.setBlockToReturn(ptr1, block1)
 
-	block := &FileBlock{}
+	block := &data.FileBlock{}
 	ch := q.Request(
-		context.Background(), 1, makeKMD(), ptr1, block, TransientEntry,
+		context.Background(), 1, makeKMD(), ptr1, block, data.TransientEntry,
 		BlockRequestSolo)
 	continueCh1 <- nil
 	err := <-ch
@@ -184,7 +156,7 @@ func TestBlockRetrievalWorkerMultipleWorkers(t *testing.T) {
 	q := newBlockRetrievalQueue(
 		2, 0, 0, newTestBlockRetrievalConfig(t, bg, nil))
 	require.NotNil(t, q)
-	defer q.Shutdown()
+	defer endBlockRetrievalQueueTest(t, q)
 
 	ptr1, ptr2 := makeRandomBlockPointer(t), makeRandomBlockPointer(t)
 	block1, block2 := makeFakeFileBlock(t, false), makeFakeFileBlock(t, false)
@@ -192,17 +164,17 @@ func TestBlockRetrievalWorkerMultipleWorkers(t *testing.T) {
 	_, continueCh2 := bg.setBlockToReturn(ptr2, block2)
 
 	t.Log("Make 2 requests for 2 different blocks")
-	block := &FileBlock{}
+	block := &data.FileBlock{}
 	// Set the base priority to be above the default on-demand
 	// fetching, so that the pre-prefetch request for a block doesn't
 	// override the other blocks' requests.
 	basePriority := defaultOnDemandRequestPriority + 1
 	req1Ch := q.Request(
 		context.Background(), basePriority, makeKMD(), ptr1, block,
-		NoCacheEntry, BlockRequestWithPrefetch)
+		data.NoCacheEntry, BlockRequestSolo)
 	req2Ch := q.Request(
 		context.Background(), basePriority, makeKMD(), ptr2, block,
-		NoCacheEntry, BlockRequestWithPrefetch)
+		data.NoCacheEntry, BlockRequestSolo)
 
 	t.Log("Allow the second request to complete before the first")
 	continueCh2 <- nil
@@ -213,7 +185,7 @@ func TestBlockRetrievalWorkerMultipleWorkers(t *testing.T) {
 	t.Log("Make another request for ptr2")
 	req2Ch = q.Request(
 		context.Background(), basePriority, makeKMD(), ptr2, block,
-		NoCacheEntry, BlockRequestWithPrefetch)
+		data.NoCacheEntry, BlockRequestSolo)
 	continueCh2 <- nil
 	err = <-req2Ch
 	require.NoError(t, err)
@@ -232,7 +204,7 @@ func TestBlockRetrievalWorkerWithQueue(t *testing.T) {
 	q := newBlockRetrievalQueue(
 		1, 0, 0, newTestBlockRetrievalConfig(t, bg, nil))
 	require.NotNil(t, q)
-	defer q.Shutdown()
+	defer endBlockRetrievalQueueTest(t, q)
 
 	ptr1, ptr2, ptr3 := makeRandomBlockPointer(t), makeRandomBlockPointer(t),
 		makeRandomBlockPointer(t)
@@ -244,29 +216,29 @@ func TestBlockRetrievalWorkerWithQueue(t *testing.T) {
 
 	t.Log("Make 3 retrievals for 3 different blocks. All retrievals after " +
 		"the first should be queued.")
-	block := &FileBlock{}
-	testBlock1 := &FileBlock{}
-	testBlock2 := &FileBlock{}
+	block := &data.FileBlock{}
+	testBlock1 := &data.FileBlock{}
+	testBlock2 := &data.FileBlock{}
 	// Set the base priority to be above the default on-demand
 	// fetching, so that the pre-prefetch request for a block doesn't
 	// override the other blocks' requests.
 	basePriority := defaultOnDemandRequestPriority + 1
 	req1Ch := q.Request(
 		context.Background(), basePriority, makeKMD(), ptr1,
-		block, NoCacheEntry, BlockRequestWithPrefetch)
+		block, data.NoCacheEntry, BlockRequestSolo)
 	req2Ch := q.Request(
 		context.Background(), basePriority, makeKMD(), ptr2,
-		block, NoCacheEntry, BlockRequestWithPrefetch)
+		block, data.NoCacheEntry, BlockRequestSolo)
 	req3Ch := q.Request(
 		context.Background(), basePriority, makeKMD(), ptr3, testBlock1,
-		NoCacheEntry, BlockRequestWithPrefetch)
+		data.NoCacheEntry, BlockRequestSolo)
 	// Ensure the worker picks up the first request
 	<-startCh1
 	t.Log("Make a high priority request for the third block, which should " +
 		"complete next.")
 	req4Ch := q.Request(
 		context.Background(), basePriority+1, makeKMD(), ptr3, testBlock2,
-		NoCacheEntry, BlockRequestWithPrefetch)
+		data.NoCacheEntry, BlockRequestSolo)
 
 	t.Log("Allow the ptr1 retrieval to complete.")
 	continueCh1 <- nil
@@ -297,17 +269,18 @@ func TestBlockRetrievalWorkerCancel(t *testing.T) {
 	q := newBlockRetrievalQueue(
 		0, 1, 0, newTestBlockRetrievalConfig(t, bg, nil))
 	require.NotNil(t, q)
-	defer q.Shutdown()
+	defer endBlockRetrievalQueueTest(t, q)
 
 	ptr1 := makeRandomBlockPointer(t)
 	block1 := makeFakeFileBlock(t, false)
+	// Don't need continueCh here.
 	_, _ = bg.setBlockToReturn(ptr1, block1)
 
-	block := &FileBlock{}
+	block := &data.FileBlock{}
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 	ch := q.Request(
-		ctx, 1, makeKMD(), ptr1, block, NoCacheEntry, BlockRequestWithPrefetch)
+		ctx, 1, makeKMD(), ptr1, block, data.NoCacheEntry, BlockRequestSolo)
 	err := <-ch
 	require.EqualError(t, err, context.Canceled.Error())
 }
@@ -318,7 +291,7 @@ func TestBlockRetrievalWorkerShutdown(t *testing.T) {
 	q := newBlockRetrievalQueue(
 		1, 0, 0, newTestBlockRetrievalConfig(t, bg, nil))
 	require.NotNil(t, q)
-	defer q.Shutdown()
+	defer endBlockRetrievalQueueTest(t, q)
 
 	w := q.workers[0]
 	require.NotNil(t, w)
@@ -328,12 +301,12 @@ func TestBlockRetrievalWorkerShutdown(t *testing.T) {
 	_, continueCh := bg.setBlockToReturn(ptr1, block1)
 
 	w.Shutdown()
-	block := &FileBlock{}
+	block := &data.FileBlock{}
 	ctx, cancel := context.WithCancel(context.Background())
 	// Ensure the context loop is stopped so the test doesn't leak goroutines
 	defer cancel()
 	ch := q.Request(
-		ctx, 1, makeKMD(), ptr1, block, NoCacheEntry, BlockRequestWithPrefetch)
+		ctx, 1, makeKMD(), ptr1, block, data.NoCacheEntry, BlockRequestSolo)
 	shutdown := false
 	select {
 	case <-ch:
@@ -366,7 +339,7 @@ func TestBlockRetrievalWorkerPrefetchedPriorityElevation(t *testing.T) {
 	q := newBlockRetrievalQueue(
 		1, 1, 0, newTestBlockRetrievalConfig(t, bg, nil))
 	require.NotNil(t, q)
-	defer q.Shutdown()
+	defer endBlockRetrievalQueueTest(t, q)
 
 	t.Log("Setup source blocks")
 	ptr1, ptr2 := makeRandomBlockPointer(t), makeRandomBlockPointer(t)
@@ -375,23 +348,23 @@ func TestBlockRetrievalWorkerPrefetchedPriorityElevation(t *testing.T) {
 	_, continueCh2 := bg.setBlockToReturn(ptr2, block2)
 
 	t.Log("Make a low-priority request. This will get to the worker.")
-	testBlock1 := &FileBlock{}
+	testBlock1 := &data.FileBlock{}
 	req1Ch := q.Request(
 		context.Background(), 1, makeKMD(), ptr1, testBlock1,
-		NoCacheEntry, BlockRequestWithPrefetch)
+		data.NoCacheEntry, BlockRequestSolo)
 
 	t.Log("Make another low-priority request. This will block.")
-	testBlock2 := &FileBlock{}
+	testBlock2 := &data.FileBlock{}
 	req2Ch := q.Request(
 		context.Background(), 1, makeKMD(), ptr2, testBlock2,
-		NoCacheEntry, BlockRequestWithPrefetch)
+		data.NoCacheEntry, BlockRequestSolo)
 
 	t.Log("Make an on-demand request for the same block as the blocked " +
 		"request.")
-	testBlock3 := &FileBlock{}
+	testBlock3 := &data.FileBlock{}
 	req3Ch := q.Request(
 		context.Background(), defaultOnDemandRequestPriority,
-		makeKMD(), ptr2, testBlock3, NoCacheEntry, BlockRequestWithPrefetch)
+		makeKMD(), ptr2, testBlock3, data.NoCacheEntry, BlockRequestSolo)
 
 	t.Log("Release the requests for the second block first. " +
 		"Since the prefetch worker is still blocked, this confirms that the " +
@@ -423,7 +396,7 @@ func TestBlockRetrievalWorkerStopIfFull(t *testing.T) {
 		1, 1, 0, newTestBlockRetrievalConfig(t, bg, dbc))
 	require.NotNil(t, q)
 	<-q.TogglePrefetcher(false, nil, nil)
-	defer q.Shutdown()
+	defer endBlockRetrievalQueueTest(t, q)
 
 	ptr := makeRandomBlockPointer(t)
 	syncCache := dbc.syncCache
@@ -435,9 +408,9 @@ func TestBlockRetrievalWorkerStopIfFull(t *testing.T) {
 	setLimiterLimits(limiter, syncBytes, workingBytes)
 
 	t.Log("Request with stop-if-full, when full")
-	testBlock := &FileBlock{}
+	testBlock := &data.FileBlock{}
 	req := q.Request(
-		ctx, 1, makeKMD(), ptr, testBlock, NoCacheEntry,
+		ctx, 1, makeKMD(), ptr, testBlock, data.NoCacheEntry,
 		BlockRequestPrefetchUntilFull)
 	select {
 	case err := <-req:
@@ -450,8 +423,8 @@ func TestBlockRetrievalWorkerStopIfFull(t *testing.T) {
 	block := makeFakeFileBlock(t, false)
 	startCh, continueCh := bg.setBlockToReturn(ptr, block)
 	req = q.Request(
-		ctx, 1, makeKMD(), ptr, testBlock, NoCacheEntry,
-		BlockRequestWithPrefetch)
+		ctx, 1, makeKMD(), ptr, testBlock, data.NoCacheEntry,
+		BlockRequestSolo)
 	<-startCh
 	continueCh <- nil
 	select {

@@ -14,6 +14,8 @@ const yesterday = moment(now)
 const memo =
   'Stellar deal!! You guys rock. This is to show a very long private note. Blah blah blah blah. Plus, emojis. 🍺'
 
+const tallMemo = 'x\nx\nx\nx\nx\nx\nx\nx\nx\nx\nx\nx\nx\nx\nx\nx\nx\nx\nx\nx\n'
+
 const props = {
   amountUser: '',
   amountXLM: '',
@@ -56,6 +58,16 @@ const load = () => {
     .add('Sending to Keybase user', () => (
       <TransactionDetails
         {...props}
+        counterpartyMeta="Addie Stokes"
+        counterpartyType="keybaseUser"
+        amountUser="$12.50"
+        amountXLM="53.1688643 XLM"
+      />
+    ))
+    .add('Sending to Keybase user (tall)', () => (
+      <TransactionDetails
+        {...props}
+        memo={tallMemo}
         counterpartyMeta="Addie Stokes"
         counterpartyType="keybaseUser"
         amountUser="$12.50"

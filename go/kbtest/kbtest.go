@@ -160,6 +160,47 @@ func Logout(tc libkb.TestContext) {
 	}
 }
 
+// summarized from engine/revoke_test.go
+func RotatePaper(tc libkb.TestContext, u *FakeUser) {
+	uis := libkb.UIs{
+		LogUI:    tc.G.UI.GetLogUI(),
+		LoginUI:  &libkb.TestLoginUI{},
+		SecretUI: &libkb.TestSecretUI{},
+	}
+	eng := engine.NewPaperKey(tc.G)
+	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
+	err := engine.RunEngine2(m, eng)
+	require.NoError(tc.T, err)
+
+	arg := libkb.NewLoadUserByNameArg(tc.G, u.Username).WithPublicKeyOptional()
+	user, err := libkb.LoadUser(arg)
+	require.NoError(tc.T, err)
+
+	activeDevices := []*libkb.Device{}
+	for _, device := range user.GetComputedKeyFamily().GetAllDevices() {
+		if device.Status != nil && *device.Status == libkb.DeviceStatusActive {
+			activeDevices = append(activeDevices, device)
+		}
+	}
+
+	var revokeDevice *libkb.Device
+	for _, device := range activeDevices {
+		if device.Type == libkb.DeviceTypePaper {
+			revokeDevice = device
+		}
+	}
+	require.NotNil(tc.T, revokeDevice, "no paper key found to revoke")
+
+	revokeEngine := engine.NewRevokeDeviceEngine(tc.G, engine.RevokeDeviceEngineArgs{ID: revokeDevice.ID})
+	uis = libkb.UIs{
+		LogUI:    tc.G.UI.GetLogUI(),
+		SecretUI: u.NewSecretUI(),
+	}
+	m = libkb.NewMetaContextForTest(tc).WithUIs(uis)
+	err = engine.RunEngine2(m, revokeEngine)
+	require.NoError(tc.T, err)
+}
+
 func AssertProvisioned(tc libkb.TestContext) error {
 	if !tc.G.ActiveDevice.Valid() {
 		return libkb.LoginRequiredError{}

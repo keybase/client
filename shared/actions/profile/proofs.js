@@ -80,7 +80,7 @@ function* addProof(state, action) {
       )
       return
     case 'pgp':
-      yield Saga.put(RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['profilePgp']}))
+      yield Saga.put(RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profilePgp']}))
       return
   }
 
@@ -253,7 +253,7 @@ function* addProof(state, action) {
     assertion: state.config.username,
     guiID: Tracker2Constants.generateGUIID(),
     inTracker: false,
-    reason: 'startProof finished',
+    reason: '',
   })
   try {
     const {sigID} = yield RPCTypes.proveStartProofRpcSaga({
@@ -281,6 +281,9 @@ function* addProof(state, action) {
     })
     yield Saga.put(ProfileGen.createUpdateSigID({sigID}))
     logger.info('Start Proof done: ', sigID)
+    if (!genericService) {
+      yield Saga.put(ProfileGen.createCheckProof())
+    }
     yield Saga.put(loadAfter)
     if (genericService) {
       yield Saga.put(ProfileGen.createUpdatePlatformGenericChecking({checking: false}))

@@ -26,7 +26,7 @@ const EnterUsername = (props: Props) => (
           ]
         : null
     }
-    buttons={[{label: 'Continue', onClick: props.onContinue, type: 'PrimaryGreen'}]}
+    buttons={[{label: 'Continue', onClick: props.onContinue, type: 'Success'}]}
     onBack={props.onBack}
     title={Styles.isMobile ? 'Create account' : 'Create an account'}
   >

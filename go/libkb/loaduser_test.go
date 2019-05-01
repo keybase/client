@@ -86,7 +86,7 @@ func BenchmarkLoadSigChains(b *testing.B) {
 	u.sigChainMem = nil
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		if err = u.LoadSigChains(NewMetaContextForTest(tc), &u.leaf, false, false); err != nil {
+		if err = u.LoadSigChains(NewMetaContextForTest(tc), &u.leaf, false, StubModeStubbed); err != nil {
 			b.Fatal(err)
 		}
 		u.sigChainMem = nil

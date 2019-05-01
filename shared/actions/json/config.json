@@ -3,6 +3,7 @@
     "import * as Types from '../constants/types/config'",
     "import * as Tabs from '../constants/tabs'",
     "import * as ChatTypes from '../constants/types/chat2'",
+    "import * as FsTypes from '../constants/types/fs'",
     "import {RPCError} from '../util/errors'",
   ],
   "actions": {
@@ -83,7 +84,8 @@
       "startupConversation": "?ChatTypes.ConversationIDKey",
       "startupLink": "string",
       "startupTab": "?Tabs.Tab",
-      "startupFollowUser": "string"
+      "startupFollowUser": "string",
+      "startupSharePath": "?FsTypes.LocalPath"
     },
     "setOpenAtLogin": {
       "open": "boolean",

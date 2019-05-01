@@ -147,8 +147,33 @@ func (e *PGPKeyImportEngine) checkPregenPrivate() error {
 	return libkb.NoSecretKeyError{}
 }
 
-func (e *PGPKeyImportEngine) Run(m libkb.MetaContext) (err error) {
+func (e *PGPKeyImportEngine) checkExistingKey(m libkb.MetaContext) error {
+	// Check if the secret key already exists
+	if _, err := m.G().Keyrings.GetSecretKeyLocked(m, libkb.SecretKeyArg{
+		Me:       e.me,
+		KeyType:  libkb.PGPKeyType,
+		KeyQuery: e.GetKID().String(),
+	}); err == nil {
+		// There's a secret key, so let the engine return an error later
+		return nil
+	}
 
+	// Check if we have a public key that matches
+	pgps := e.me.GetActivePGPKeys(false)
+	for _, key := range pgps {
+		if e.GetKID() != key.GetKID() {
+			continue
+		}
+
+		e.G().Log.Info("Key %s already exists. Only importing the private key.", e.GetKID())
+		e.arg.OnlySave = true
+		break
+	}
+
+	return nil
+}
+
+func (e *PGPKeyImportEngine) Run(m libkb.MetaContext) (err error) {
 	defer m.Trace("PGPKeyImportEngine::Run", func() error { return err })()
 
 	if err = e.init(); err != nil {
@@ -163,6 +188,12 @@ func (e *PGPKeyImportEngine) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
+	if e.arg.PushSecret {
+		if err = e.checkRandomPassword(m); err != nil {
+			return err
+		}
+	}
+
 	if err = e.checkPregenPrivate(); err != nil {
 		return err
 	}
@@ -171,6 +202,7 @@ func (e *PGPKeyImportEngine) Run(m libkb.MetaContext) (err error) {
 		if err = e.testExisting(); err != nil {
 			return err
 		}
+
 		if err = e.loadDelegator(m); err != nil {
 			switch err.(type) {
 			case libkb.NoUsernameError:
@@ -180,11 +212,19 @@ func (e *PGPKeyImportEngine) Run(m libkb.MetaContext) (err error) {
 		}
 	}
 
+	if err = e.generate(m); err != nil {
+		return err
+	}
+
 	if err = e.unlock(m); err != nil {
 		return err
 	}
 
-	if err = e.generate(m); err != nil {
+	if err := e.checkExistingKey(m); err != nil {
+		return err
+	}
+
+	if err = e.saveKey(m); err != nil {
 		return err
 	}
 
@@ -197,6 +237,17 @@ func (e *PGPKeyImportEngine) Run(m libkb.MetaContext) (err error) {
 		}
 	}
 
+	return nil
+}
+
+func (e *PGPKeyImportEngine) checkRandomPassword(mctx libkb.MetaContext) error {
+	random, err := libkb.LoadHasRandomPw(mctx, keybase1.LoadHasRandomPwArg{})
+	if err != nil {
+		return err
+	}
+	if random {
+		return libkb.NewPushSecretWithoutPasswordError("You need to set your password first before uploading secret keys")
+	}
 	return nil
 }
 
@@ -287,7 +338,6 @@ func (e *PGPKeyImportEngine) loadDelegator(m libkb.MetaContext) (err error) {
 }
 
 func (e *PGPKeyImportEngine) generate(m libkb.MetaContext) (err error) {
-
 	defer m.Trace("PGP::Generate", func() error { return err })()
 
 	m.Debug("| GenerateKey")
@@ -299,6 +349,11 @@ func (e *PGPKeyImportEngine) generate(m libkb.MetaContext) (err error) {
 	} else if err = e.generateKey(m); err != nil {
 		return
 	}
+	return
+}
+
+func (e *PGPKeyImportEngine) saveKey(m libkb.MetaContext) (err error) {
+	defer m.Trace("PGP::saveKey", func() error { return err })()
 
 	m.Debug("| WriteKey (hasSecret = %v)", e.bundle.HasSecretKey())
 	if !e.arg.NoSave && e.bundle.HasSecretKey() {
@@ -313,7 +368,6 @@ func (e *PGPKeyImportEngine) generate(m libkb.MetaContext) (err error) {
 		}
 	}
 	return
-
 }
 
 func (e *PGPKeyImportEngine) prepareSecretPush(m libkb.MetaContext) error {

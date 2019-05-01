@@ -51,6 +51,6 @@ public class KBPushNotifier implements PushNotifier {
             .setGroupSummary(true)
             .setAutoCancel(true);
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this.context);
-        notificationManager.notify(ident, Integer.parseInt(convID.substring(0, 7), 16), mBuilder.build());
+        notificationManager.notify(ident, 0, mBuilder.build());
     }
 }

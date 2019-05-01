@@ -567,6 +567,10 @@ func (t *TeamSigChainState) FindActiveKeybaseInvite(uid keybase1.UID) (keybase1.
 	return keybase1.TeamInvite{}, keybase1.UserVersion{}, false
 }
 
+func (t *TeamSigChainState) GetMerkleRoots() map[keybase1.Seqno]keybase1.MerkleRootV2 {
+	return t.inner.MerkleRoots
+}
+
 // --------------------------------------------------
 
 // AppendChainLink process a chain link.
@@ -685,6 +689,10 @@ func (t *teamSigchainPlayer) appendChainLinkHelper(
 	if link.Seqno() == keybase1.Seqno(1) && !link.isStubbed() && !t.G().Env.Test.TeamNoHeadMerkleStore {
 		tmp := link.inner.Body.MerkleRoot.ToMerkleRootV2()
 		newState.inner.HeadMerkle = &tmp
+	}
+
+	if !link.isStubbed() && newState.inner.MerkleRoots != nil {
+		newState.inner.MerkleRoots[link.Seqno()] = link.inner.Body.MerkleRoot.ToMerkleRootV2()
 	}
 
 	return *newState, nil
@@ -848,6 +856,7 @@ func (t *teamSigchainPlayer) addInnerLink(
 			enforceGeneric("completed-invites", rules.CompletedInvites, team.CompletedInvites != nil),
 			enforceGeneric("settings", rules.Settings, team.Settings != nil),
 			enforceGeneric("kbfs", rules.KBFS, team.KBFS != nil),
+			enforceGeneric("box-summary-hash", rules.BoxSummaryHash, team.BoxSummaryHash != nil),
 			allowInImplicitTeam(rules.AllowInImplicitTeam),
 			allowInflate(rules.AllowInflate),
 			enforceFirstInChain(rules.FirstInChain),
@@ -892,6 +901,7 @@ func (t *teamSigchainPlayer) addInnerLink(
 			Name:                TristateRequire,
 			Members:             TristateRequire,
 			PerTeamKey:          TristateRequire,
+			BoxSummaryHash:      TristateOptional,
 			Invites:             TristateOptional,
 			Settings:            TristateOptional,
 			AllowInImplicitTeam: true,
@@ -968,6 +978,7 @@ func (t *teamSigchainPlayer) addInnerLink(
 				ActiveInvites:    make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
 				ObsoleteInvites:  make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
 				TlfLegacyUpgrade: make(map[keybase1.TeamApplication]keybase1.TeamLegacyTLFUpgradeChainInfo),
+				MerkleRoots:      make(map[keybase1.Seqno]keybase1.MerkleRootV2),
 			}}
 
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
@@ -1006,6 +1017,7 @@ func (t *teamSigchainPlayer) addInnerLink(
 			PerTeamKey:          TristateOptional,
 			Admin:               TristateOptional,
 			CompletedInvites:    TristateOptional,
+			BoxSummaryHash:      TristateOptional,
 			AllowInImplicitTeam: true,
 		})
 		if err != nil {
@@ -1163,6 +1175,7 @@ func (t *teamSigchainPlayer) addInnerLink(
 		err = enforce(LinkRules{
 			PerTeamKey:          TristateRequire,
 			Admin:               TristateOptional,
+			BoxSummaryHash:      TristateOptional,
 			AllowInImplicitTeam: true,
 		})
 		if err != nil {
@@ -1259,13 +1272,14 @@ func (t *teamSigchainPlayer) addInnerLink(
 		isHighLink = true
 
 		err = enforce(LinkRules{
-			Name:         TristateRequire,
-			Members:      TristateRequire,
-			Parent:       TristateRequire,
-			PerTeamKey:   TristateRequire,
-			Admin:        TristateOptional,
-			Settings:     TristateOptional,
-			FirstInChain: true,
+			Name:           TristateRequire,
+			Members:        TristateRequire,
+			Parent:         TristateRequire,
+			PerTeamKey:     TristateRequire,
+			Admin:          TristateOptional,
+			Settings:       TristateOptional,
+			BoxSummaryHash: TristateOptional,
+			FirstInChain:   true,
 		})
 		if err != nil {
 			return res, err
@@ -1337,6 +1351,7 @@ func (t *teamSigchainPlayer) addInnerLink(
 				StubbedLinks:    make(map[keybase1.Seqno]bool),
 				ActiveInvites:   make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
 				ObsoleteInvites: make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
+				MerkleRoots:     make(map[keybase1.Seqno]keybase1.MerkleRootV2),
 			}}
 
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
@@ -1625,6 +1640,7 @@ func (t *teamSigchainPlayer) addInnerLink(
 			return res, fmt.Errorf("unsupported link type: %s", payload.Body.Type)
 		}
 	}
+
 	if isHighLink {
 		res.newState.inner.LastHighLinkID = link.LinkID().Export()
 		res.newState.inner.LastHighSeqno = link.Seqno()
@@ -2175,6 +2191,7 @@ type LinkRules struct {
 	CompletedInvites Tristate
 	Settings         Tristate
 	KBFS             Tristate
+	BoxSummaryHash   Tristate
 
 	AllowInImplicitTeam bool // whether this link is allowed in implicit team chains
 	AllowInflate        bool // whether this link is allowed to be filled later

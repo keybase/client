@@ -21,8 +21,6 @@ func newNullStellar(g *GlobalContext) *nullStellar {
 	return &nullStellar{NewContextified(g)}
 }
 
-func (n *nullStellar) OnLogout() {}
-
 func (n *nullStellar) CreateWalletSoft(ctx context.Context) {
 	n.G().Log.CErrorf(ctx, "null stellar impl")
 }

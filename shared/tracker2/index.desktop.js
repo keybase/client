@@ -33,7 +33,7 @@ type Props = {|
 const getButtons = (props: Props) => {
   const buttonClose = (
     <Kb.WaitingButton
-      type="Secondary"
+      type="Dim"
       key="Close"
       label="Close"
       waitingKey={Constants.waitingKey}
@@ -42,7 +42,7 @@ const getButtons = (props: Props) => {
   )
   const buttonAccept = (
     <Kb.WaitingButton
-      type="PrimaryGreen"
+      type="Success"
       key="Accept"
       label="Accept"
       waitingKey={Constants.waitingKey}
@@ -50,13 +50,7 @@ const getButtons = (props: Props) => {
     />
   )
   const buttonChat = (
-    <Kb.WaitingButton
-      type="Primary"
-      key="Chat"
-      label="Chat"
-      waitingKey={Constants.waitingKey}
-      onClick={props.onChat}
-    >
+    <Kb.WaitingButton key="Chat" label="Chat" waitingKey={Constants.waitingKey} onClick={props.onChat}>
       <Kb.Icon type="iconfont-chat" color={Styles.globalColors.white} style={styles.chatIcon} />
     </Kb.WaitingButton>
   )
@@ -74,7 +68,7 @@ const getButtons = (props: Props) => {
         : [
             buttonChat,
             <Kb.WaitingButton
-              type="PrimaryGreen"
+              type="Success"
               key="Follow"
               label="Follow"
               waitingKey={Constants.waitingKey}
@@ -84,7 +78,7 @@ const getButtons = (props: Props) => {
     case 'broken':
       return [
         <Kb.WaitingButton
-          type="Secondary"
+          type="Dim"
           key="Ignore for 24 hours"
           label="Ignore for 24 hours"
           waitingKey={Constants.waitingKey}
@@ -97,7 +91,6 @@ const getButtons = (props: Props) => {
     case 'error':
       return [
         <Kb.WaitingButton
-          type="Primary"
           key="Reload"
           label="Reload"
           waitingKey={Constants.waitingKey}

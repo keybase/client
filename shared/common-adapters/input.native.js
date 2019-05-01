@@ -317,6 +317,7 @@ class Input extends Component<Props, State> {
       returnKeyType: this.props.returnKeyType,
       secureTextEntry: this.props.type === 'password',
       selectTextOnFocus: this.props.selectTextOnFocus,
+      textContentType: this.props.textContentType,
       underlineColorAndroid: 'transparent',
       ...(this.props.maxLength ? {maxlength: this.props.maxLength} : null),
     }

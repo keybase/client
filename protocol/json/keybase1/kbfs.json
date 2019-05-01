@@ -83,6 +83,28 @@
       "doc": "FSSyncEvent is called by KBFS when the sync status of an individual path\n    changes.",
       "lint": "ignore"
     },
+    "FSOverallSyncEvent": {
+      "request": [
+        {
+          "name": "status",
+          "type": "FolderSyncStatus"
+        }
+      ],
+      "response": null,
+      "doc": "FSOverallSyncEvent is called by KBFS when the overall sync status\n    changes.",
+      "lint": "ignore"
+    },
+    "FSOnlineStatusChangedEvent": {
+      "request": [
+        {
+          "name": "online",
+          "type": "boolean"
+        }
+      ],
+      "response": null,
+      "doc": "FSOnlineStatusChangedEvent is called by KBFS when the online status changes.",
+      "lint": "ignore"
+    },
     "createTLF": {
       "request": [
         {

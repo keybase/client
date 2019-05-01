@@ -68,7 +68,7 @@ func (h *Helper) SendMsgByID(ctx context.Context, convID chat1.ConversationID, t
 		},
 		MessageBody: body,
 	}
-	_, _, err := sender.Send(ctx, convID, msg, 0, nil, nil)
+	_, _, err := sender.Send(ctx, convID, msg, 0, nil, nil, nil)
 	return err
 }
 
@@ -91,7 +91,7 @@ func (h *Helper) SendMsgByIDNonblock(ctx context.Context, convID chat1.Conversat
 		},
 		MessageBody: body,
 	}
-	outboxID, _, err := sender.Send(ctx, convID, msg, 0, inOutboxID, nil)
+	outboxID, _, err := sender.Send(ctx, convID, msg, 0, inOutboxID, nil, nil)
 	return outboxID, err
 }
 
@@ -245,8 +245,8 @@ func (h *Helper) GetMessage(ctx context.Context, uid gregor1.UID, convID chat1.C
 	return GetMessage(ctx, h.G(), uid, convID, msgID, resolveSupersedes, reason)
 }
 
-func (h *Helper) TopReacjis(ctx context.Context, uid gregor1.UID) []string {
-	return storage.NewReacjiStore(h.G()).TopReacjis(ctx, uid)
+func (h *Helper) UserReacjis(ctx context.Context, uid gregor1.UID) keybase1.UserReacjis {
+	return storage.NewReacjiStore(h.G()).UserReacjis(ctx, uid)
 }
 
 func GetMessage(ctx context.Context, g *globals.Context, uid gregor1.UID, convID chat1.ConversationID,
@@ -357,7 +357,7 @@ func (s *sendHelper) deliver(ctx context.Context, body chat1.MessageBody, mtype 
 		},
 		MessageBody: body,
 	}
-	return s.sender.Send(ctx, s.convID, msg, 0, outboxID, nil)
+	return s.sender.Send(ctx, s.convID, msg, 0, outboxID, nil, nil)
 }
 
 func (s *sendHelper) remoteInterface() chat1.RemoteInterface {
@@ -727,7 +727,7 @@ func postJoinLeave(ctx context.Context, g *globals.Context, ri func() chat1.Remo
 
 	// Send with a blocking sender
 	sender := NewBlockingSender(g, NewBoxer(g), ri)
-	_, _, err = sender.Send(ctx, convID, plaintext, 0, nil, nil)
+	_, _, err = sender.Send(ctx, convID, plaintext, 0, nil, nil, nil)
 	return err
 }
 
@@ -1113,6 +1113,15 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 				} else {
 					return res, reserr
 				}
+			case libkb.ChatNotInTeamError:
+				if n.membersType == chat1.ConversationMembersType_TEAM {
+					teamID, tmpErr := TLFIDToTeamID(triple.Tlfid)
+					if tmpErr == nil && teamID.IsSubTeam() {
+						n.Debug(ctx, "For tlf ID %s, inferring NotExplicitMemberOfSubteamError, from error: %s", triple.Tlfid, reserr.Error())
+						return res, teams.NewNotExplicitMemberOfSubteamError()
+					}
+				}
+				return res, fmt.Errorf("error creating conversation: %s", reserr)
 			default:
 				return res, fmt.Errorf("error creating conversation: %s", reserr)
 			}
@@ -1215,7 +1224,7 @@ func (n *newConversationHelper) makeFirstMessage(ctx context.Context, triple cha
 			},
 		}
 	}
-	opts := types.SenderPrepareOptions{
+	opts := chat1.SenderPrepareOptions{
 		SkipTopicNameState: n.findExistingMode == NewConvFindExistingSkip,
 	}
 	sender := NewBlockingSender(n.G(), NewBoxer(n.G()), n.ri)

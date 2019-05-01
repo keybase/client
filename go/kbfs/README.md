@@ -22,6 +22,7 @@ servers).
 The code is organized as follows:
 
 * [cache](cache/): Generic cache data structures.
+* [data](data/): Data structures and logic for KBFS file and directory data.
 * [dokan](dokan/): Helper code for running Dokan filesystems on Windows.
 * [env](env/): Code to implement libkbfs.Context in terms of libkb.
 * [favorites](favorites/): Data structures for the favorited lists of

@@ -124,7 +124,15 @@ const createNewAccount = (state, action) => {
     })
 }
 
-const emptyAsset = {code: '', issuer: '', issuerName: '', type: 'native', verifiedDomain: ''}
+const emptyAsset = {
+  code: '',
+  desc: '',
+  infoUrl: '',
+  issuer: '',
+  issuerName: '',
+  type: 'native',
+  verifiedDomain: '',
+}
 
 const sendPayment = state => {
   const notXLM = state.wallets.building.currency !== '' && state.wallets.building.currency !== 'XLM'
@@ -249,9 +257,9 @@ const clearBuilding = () => WalletsGen.createClearBuilding()
 const clearErrors = () => WalletsGen.createClearErrors()
 
 const loadWalletDisclaimer = () =>
-  RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise(undefined, Constants.checkOnlineWaitingKey).then(
-    accepted => WalletsGen.createWalletDisclaimerReceived({accepted})
-  )
+  RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise(undefined, Constants.checkOnlineWaitingKey)
+    .then(accepted => WalletsGen.createWalletDisclaimerReceived({accepted}))
+    .catch(() => {}) // handled by reloadable
 
 const loadAccounts = (state, action) => {
   if (!state.config.loggedIn) {
@@ -644,6 +652,22 @@ const navigateToAccount = (state, action) => {
   return RouteTreeGen.createNavigateTo({path: wallet})
 }
 
+const navigateToTransaction = (state, action) => {
+  const {accountID, paymentID} = action.payload
+  const actions = [WalletsGen.createSelectAccount({accountID, reason: 'show-transaction'})]
+  const path = [...Constants.walletPath, {props: {accountID, paymentID}, selected: 'transactionDetails'}]
+  if (flags.useNewRouter) {
+    actions.push(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {accountID, paymentID}, selected: 'transactionDetails'}],
+      })
+    )
+  } else {
+    actions.push(RouteTreeGen.createNavigateTo({path}))
+  }
+  return actions
+}
+
 const exportSecretKey = (state, action) =>
   RPCStellarTypes.localGetWalletAccountSecretKeyLocalRpcPromise({accountID: action.payload.accountID}).then(
     res =>
@@ -842,9 +866,9 @@ const acceptDisclaimer = (state, action) =>
   )
 
 const checkDisclaimer = state =>
-  RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise().then(accepted =>
-    WalletsGen.createWalletDisclaimerReceived({accepted})
-  ).catch(err => logger.error(`Error checking wallet disclaimer: ${err.message}`))
+  RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise()
+    .then(accepted => WalletsGen.createWalletDisclaimerReceived({accepted}))
+    .catch(err => logger.error(`Error checking wallet disclaimer: ${err.message}`))
 
 const maybeNavToLinkExisting = (state, action) =>
   action.payload.nextScreen === 'linkExisting' &&
@@ -1101,6 +1125,10 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     changeAccountName
   )
   yield* Saga.chainAction<WalletsGen.SelectAccountPayload>(WalletsGen.selectAccount, navigateToAccount)
+  yield* Saga.chainAction<WalletsGen.ShowTransactionPayload>(
+    WalletsGen.showTransaction,
+    navigateToTransaction
+  )
   yield* Saga.chainAction<WalletsGen.DidSetAccountAsDefaultPayload, WalletsGen.ChangedAccountNamePayload>(
     [WalletsGen.didSetAccountAsDefault, WalletsGen.changedAccountName],
     navigateUp

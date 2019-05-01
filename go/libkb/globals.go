@@ -41,6 +41,10 @@ type LogoutHook interface {
 	OnLogout(mctx MetaContext) error
 }
 
+type DbNukeHook interface {
+	OnDbNuke(mctx MetaContext) error
+}
+
 type StandaloneChatConnector interface {
 	StartStandaloneChat(g *GlobalContext) error
 }
@@ -76,7 +80,10 @@ type GlobalContext struct {
 	upakLoader       UPAKLoader      // Load flat users with the ability to hit the cache
 	teamLoader       TeamLoader      // Play back teams for id/name properties
 	fastTeamLoader   FastTeamLoader  // Play back team in "fast" mode for keys and names only
+	IDLocktab        LockTable
+	loadUserLockTab  LockTable
 	teamAuditor      TeamAuditor
+	teamBoxAuditor   TeamBoxAuditor
 	stellar          Stellar          // Stellar related ops
 	deviceEKStorage  DeviceEKStorage  // Store device ephemeral keys
 	userEKBoxStorage UserEKBoxStorage // Store user ephemeral key boxes
@@ -119,6 +126,7 @@ type GlobalContext struct {
 	hookMu             *sync.RWMutex             // protects loginHooks, logoutHooks
 	loginHooks         []LoginHook               // call these on login
 	logoutHooks        []NamedLogoutHook         // call these on logout
+	dbNukeHooks        []NamedDbNukeHook         // call these on dbnuke
 	GregorState        GregorState               // for dismissing gregor items that we've handled
 	GregorListener     GregorListener            // for alerting about clients connecting and registering UI protocols
 	oodiMu             *sync.RWMutex             // For manipulating the OutOfDateInfo
@@ -148,7 +156,8 @@ type GlobalContext struct {
 }
 
 type GlobalTestOptions struct {
-	NoBug3964Repair bool
+	NoBug3964Repair             bool
+	NoAutorotateOnBoxAuditRetry bool
 }
 
 func (g *GlobalContext) GetLog() logger.Logger                         { return g.Log }
@@ -212,6 +221,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.teamLoader = newNullTeamLoader(g)
 	g.fastTeamLoader = newNullFastTeamLoader()
 	g.teamAuditor = newNullTeamAuditor()
+	g.teamBoxAuditor = newNullTeamBoxAuditor()
 	g.stellar = newNullStellar(g)
 	g.fullSelfer = NewUncachedFullSelf(g)
 	g.ConnectivityMonitor = NullConnectivityMonitor{}
@@ -316,26 +326,6 @@ func (g *GlobalContext) LogoutWithSecretKill(mctx MetaContext, killSecrets bool)
 	// sure nothing holding a cacheMu ever looks for the switchUserMu lock.
 	g.FlushCaches()
 
-	tl := g.teamLoader
-	if tl != nil {
-		tl.OnLogout()
-	}
-
-	ftl := g.fastTeamLoader
-	if ftl != nil {
-		ftl.OnLogout()
-	}
-
-	auditor := g.teamAuditor
-	if auditor != nil {
-		auditor.OnLogout(mctx)
-	}
-
-	st := g.stellar
-	if st != nil {
-		st.OnLogout()
-	}
-
 	g.logoutSecretStore(mctx, username, killSecrets)
 
 	// reload config to clear anything in memory
@@ -351,6 +341,8 @@ func (g *GlobalContext) LogoutWithSecretKill(mctx MetaContext, killSecrets bool)
 	g.IdentifyDispatch.OnLogout()
 
 	g.Identify3State.OnLogout()
+
+	g.GetUPAKLoader().OnLogout()
 
 	return nil
 }
@@ -573,6 +565,12 @@ func (g *GlobalContext) GetTeamAuditor() TeamAuditor {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
 	return g.teamAuditor
+}
+
+func (g *GlobalContext) GetTeamBoxAuditor() TeamBoxAuditor {
+	g.cacheMu.RLock()
+	defer g.cacheMu.RUnlock()
+	return g.teamBoxAuditor
 }
 
 func (g *GlobalContext) GetStellar() Stellar {
@@ -962,12 +960,13 @@ func (g *GlobalContext) AddLoginHook(hook LoginHook) {
 	g.loginHooks = append(g.loginHooks, hook)
 }
 
-func (g *GlobalContext) CallLoginHooks() {
-	mctx := NewMetaContextTODO(g)
-	g.Log.Debug("G#CallLoginHooks")
+func (g *GlobalContext) CallLoginHooks(mctx MetaContext) {
+	mctx.Debug("G#CallLoginHooks")
 
 	// Trigger the creation of a per-user-keyring
-	_, _ = g.GetPerUserKeyring(context.TODO())
+	_, _ = g.GetPerUserKeyring(mctx.Ctx())
+
+	g.GetUPAKLoader().LoginAs(mctx.CurrentUID())
 
 	// Do so outside the lock below
 	g.GetFullSelfer().OnLogin(mctx)
@@ -976,10 +975,9 @@ func (g *GlobalContext) CallLoginHooks() {
 	defer g.hookMu.RUnlock()
 	for _, h := range g.loginHooks {
 		if err := h.OnLogin(mctx); err != nil {
-			g.Log.Warning("OnLogin hook error: %s", err)
+			mctx.Warning("OnLogin hook error: %s", err)
 		}
 	}
-
 }
 
 type NamedLogoutHook struct {
@@ -1006,6 +1004,33 @@ func (g *GlobalContext) CallLogoutHooks(mctx MetaContext) {
 			mctx.Warning("| Logout hook [%v] : %s", h.name, err)
 		}
 		mctx.Debug("- Logout hook [%v]", h.name)
+	}
+}
+
+type NamedDbNukeHook struct {
+	DbNukeHook
+	name string
+}
+
+func (g *GlobalContext) AddDbNukeHook(hook DbNukeHook, name string) {
+	g.hookMu.Lock()
+	defer g.hookMu.Unlock()
+	g.dbNukeHooks = append(g.dbNukeHooks, NamedDbNukeHook{
+		DbNukeHook: hook,
+		name:       name,
+	})
+}
+
+func (g *GlobalContext) CallDbNukeHooks(mctx MetaContext) {
+	defer mctx.TraceTimed("GlobalContext.CallDbNukeHook", func() error { return nil })()
+	g.hookMu.RLock()
+	defer g.hookMu.RUnlock()
+	for _, h := range g.dbNukeHooks {
+		mctx.Debug("+ DbNukeHook hook [%v]", h.name)
+		if err := h.OnDbNuke(mctx); err != nil {
+			mctx.Warning("| DbNukeHook hook [%v] : %s", h.name, err)
+		}
+		mctx.Debug("- DbNukeHook hook [%v]", h.name)
 	}
 }
 
@@ -1126,6 +1151,12 @@ func (g *GlobalContext) SetTeamAuditor(a TeamAuditor) {
 	g.teamAuditor = a
 }
 
+func (g *GlobalContext) SetTeamBoxAuditor(a TeamBoxAuditor) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.teamBoxAuditor = a
+}
+
 func (g *GlobalContext) SetStellar(s Stellar) {
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
@@ -1187,7 +1218,7 @@ func (g *GlobalContext) KeyfamilyChanged(ctx context.Context, u keybase1.UID) {
 	if g.NotifyRouter != nil {
 		g.NotifyRouter.HandleKeyfamilyChanged(u)
 		// TODO: remove this when KBFS handles KeyfamilyChanged
-		g.NotifyRouter.HandleUserChanged(u)
+		g.NotifyRouter.HandleUserChanged(NewMetaContext(ctx, g), u, "KeyfamilyChanged")
 	}
 }
 
@@ -1199,7 +1230,7 @@ func (g *GlobalContext) UserChanged(ctx context.Context, u keybase1.UID) {
 
 	g.BustLocalUserCache(ctx, u)
 	if g.NotifyRouter != nil {
-		g.NotifyRouter.HandleUserChanged(u)
+		g.NotifyRouter.HandleUserChanged(NewMetaContext(ctx, g), u, "G.UserChanged")
 	}
 
 	g.uchMu.Lock()
@@ -1339,10 +1370,4 @@ func (g *GlobalContext) GetMeUV(ctx context.Context) (res keybase1.UserVersion, 
 		return keybase1.UserVersion{}, LoginRequiredError{}
 	}
 	return res, nil
-}
-
-// Whether to use parameterized proofs apparatus.
-// Affects non-parameterized proof listing too.
-func (g *GlobalContext) ShouldUseParameterizedProofs() bool {
-	return true
 }

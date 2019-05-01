@@ -172,9 +172,9 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       borderBottomLeftRadius: 4,
       borderBottomRightRadius: 4,
-      height: 429,
+      height: 560 - 96,
       overflow: 'hidden',
-      width: 360,
+      width: 400,
     },
     isMobile: {
       flexGrow: 1,

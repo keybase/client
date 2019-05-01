@@ -25,6 +25,7 @@ export const makeInitialState: I.RecordFactory<Types._State> = I.Record({
   platformGenericChecking: false,
   platformGenericParams: null,
   platformGenericURL: null,
+  promptShouldStoreKeyOnServer: false,
   proofFound: false,
   proofStatus: null,
   proofText: '',

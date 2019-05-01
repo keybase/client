@@ -249,6 +249,27 @@ func (dbcr *DiskBlockCacheRemote) ClearHomeTLFs(ctx context.Context) error {
 	return nil
 }
 
+// GetTlfSize implements the DiskBlockCache interface for
+// DiskBlockCacheRemote.
+func (dbcr *DiskBlockCacheRemote) GetTlfSize(
+	_ context.Context, _ tlf.ID, _ DiskBlockCacheType) (uint64, error) {
+	panic("GetTlfSize() not implemented in DiskBlockCacheRemote")
+}
+
+// GetTlfIDs implements the DiskBlockCache interface for
+// DiskBlockCacheRemote.
+func (dbcr *DiskBlockCacheRemote) GetTlfIDs(
+	_ context.Context, _ DiskBlockCacheType) ([]tlf.ID, error) {
+	panic("GetTlfIDs() not implemented in DiskBlockCacheRemote")
+}
+
+// WaitUntilStarted implements the DiskBlockCache interface for
+// DiskBlockCacheRemote.
+func (dbcr *DiskBlockCacheRemote) WaitUntilStarted(
+	_ DiskBlockCacheType) error {
+	panic("WaitUntilStarted() not implemented in DiskBlockCacheRemote")
+}
+
 // Shutdown implements the DiskBlockCache interface for DiskBlockCacheRemote.
 func (dbcr *DiskBlockCacheRemote) Shutdown(ctx context.Context) {
 	dbcr.conn.Close()

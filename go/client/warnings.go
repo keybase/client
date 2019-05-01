@@ -5,8 +5,10 @@ package client
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
+	humanize "github.com/dustin/go-humanize"
 	"github.com/keybase/client/go/libkb"
 	context "golang.org/x/net/context"
 )
@@ -30,10 +32,19 @@ func PrintAccountResetWarning(g *libkb.GlobalContext) {
 		return
 	}
 	resetState := badgeState.ResetState
-	if resetState.EndTime > 0 {
-		g.Log.Warning(resetState.Msg)
-		g.Log.Warning("To cancel the process run `keybase account reset-cancel`")
+	if !resetState.Active {
+		return
 	}
+
+	var msg string
+	switch resetState.EndTime {
+	case 0:
+		msg = "Your account is ready to be reset."
+	default:
+		msg = fmt.Sprintf("Your account is scheduled to be reset in %v.", humanize.Time(resetState.EndTime.Time()))
+	}
+	g.Log.Warning(msg)
+	g.Log.Warning("To cancel the process run `keybase account reset-cancel`")
 }
 
 func PrintOutOfDateWarnings(g *libkb.GlobalContext) {

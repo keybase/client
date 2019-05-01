@@ -16,14 +16,13 @@ const ff: FeatureFlags = {
   chatIndexProfilingEnabled: false,
   dbCleanEnabled: false,
   enableDeleteFolder: false,
-  folderViewFilter: false,
   foldersInProfileTab: false,
+  kbfsOfflineMode: false,
   moveOrCopy: false,
   newTeamBuildingForChatAllowMakeTeam: false,
   outOfDateBanner: false,
   plansEnabled: false,
-  proofProviders: __DEV__,
-  sendAttachmentToChat: false,
+  proofProviders: true,
   useNewRouter: false,
 }
 
@@ -33,7 +32,6 @@ const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
   moveOrCopy: true,
   outOfDateBanner: true,
   proofProviders: true,
-  sendAttachmentToChat: true,
   useNewRouter: true,
 }
 

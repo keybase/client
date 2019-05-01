@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"github.com/golang/mock/gomock"
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfsedits"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
@@ -124,13 +125,15 @@ func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
 	config.SetClock(config.mockClock)
 	config.mockRekeyQueue = NewMockRekeyQueue(c)
 	config.SetRekeyQueue(config.mockRekeyQueue)
-	config.SetUserHistory(kbfsedits.NewUserHistory(config.MakeLogger("HIS")))
+	uhLog := config.MakeLogger("HIS")
+	config.SetUserHistory(kbfsedits.NewUserHistory(
+		uhLog, config.MakeVLogger(uhLog)))
 	config.observer = &FakeObserver{}
 	config.ctr = ctr
 	// turn off background flushing by default during tests
 	config.noBGFlush = true
 
-	config.maxNameBytes = maxNameBytesDefault
+	config.maxNameBytes = data.MaxNameBytesDefault
 	config.rwpWaitTime = rekeyWithPromptWaitTimeDefault
 
 	config.SetMetadataVersion(defaultClientMetadataVer)

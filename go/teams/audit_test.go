@@ -1,11 +1,12 @@
 package teams
 
 import (
+	"testing"
+	"time"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
-	"testing"
-	"time"
 )
 
 // See CORE-8860. We should be able to audit a stale team. That is, ever the merkle tree

@@ -18,6 +18,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libfs"
@@ -536,7 +537,7 @@ func (r *runner) waitForJournal(ctx context.Context) error {
 	}
 
 	rootNode, _, err := r.config.KBFSOps().GetOrCreateRootNode(
-		ctx, r.h, libkbfs.MasterBranch)
+		ctx, r.h, data.MasterBranch)
 	if err != nil {
 		return err
 	}
@@ -714,7 +715,7 @@ func humanizeObjects(n int, d int) string {
 func (r *runner) printJournalStatusUntilFlushed(
 	ctx context.Context, doneCh <-chan struct{}) {
 	rootNode, _, err := r.config.KBFSOps().GetOrCreateRootNode(
-		ctx, r.h, libkbfs.MasterBranch)
+		ctx, r.h, data.MasterBranch)
 	if err != nil {
 		r.log.CDebugf(ctx, "GetOrCreateRootNode error: %+v", err)
 		return

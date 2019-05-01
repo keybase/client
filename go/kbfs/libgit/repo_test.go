@@ -11,8 +11,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/test/clocktest"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/libkb"
@@ -95,7 +97,7 @@ func TestGetOrCreateRepoAndID(t *testing.T) {
 	fs.SyncAll()
 
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 	jManager, err := libkbfs.GetJournalManager(config)
 	require.NoError(t, err)
@@ -131,7 +133,7 @@ func TestCreateRepoAndID(t *testing.T) {
 	require.IsType(t, libkb.RepoAlreadyExistsError{}, err)
 
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 	jManager, err := libkbfs.GetJournalManager(config)
 	require.NoError(t, err)
@@ -164,7 +166,7 @@ func TestCreateDuplicateRepo(t *testing.T) {
 	require.NoError(t, err)
 
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 
 	t.Log("Start one create and wait for it to get the lock")
@@ -184,7 +186,7 @@ func TestCreateDuplicateRepo(t *testing.T) {
 
 	t.Log("Start 2nd create and wait for it to try to get the lock")
 	_, _, err = config2.KBFSOps().GetOrCreateRootNode(
-		ctx2, h, libkbfs.MasterBranch)
+		ctx2, h, data.MasterBranch)
 	require.NoError(t, err)
 	onStalled2, unstall2, getCtx2 := libkbfs.StallMDOp(
 		ctx2, config2, libkbfs.StallableMDGetRange, 1)
@@ -248,7 +250,7 @@ func TestGetRepoAndID(t *testing.T) {
 	require.Equal(t, id1, id3)
 
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 	jManager, err := libkbfs.GetJournalManager(config)
 	require.NoError(t, err)
@@ -262,7 +264,7 @@ func TestDeleteRepo(t *testing.T) {
 	defer cancel()
 	defer os.RemoveAll(tempdir)
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	clock := &libkbfs.TestClock{}
+	clock := &clocktest.TestClock{}
 	clock.Set(time.Now())
 	config.SetClock(clock)
 
@@ -273,7 +275,7 @@ func TestDeleteRepo(t *testing.T) {
 	_, err = CreateRepoAndID(ctx, config, h, "Repo1")
 	require.NoError(t, err)
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 	jManager, err := libkbfs.GetJournalManager(config)
 	require.NoError(t, err)

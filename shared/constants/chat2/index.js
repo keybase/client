@@ -10,16 +10,16 @@ import type {TypedState} from '../reducer'
 import {getPath} from '../../route-tree'
 import {isMobile} from '../platform'
 import {
-  pendingConversationIDKey,
   noConversationIDKey,
   pendingWaitingConversationIDKey,
   conversationIDKeyToString,
   isValidConversationIDKey,
 } from '../types/chat2/common'
-import {makeConversationMeta, getEffectiveRetentionPolicy, getMeta} from './meta'
+import {getEffectiveRetentionPolicy, getMeta} from './meta'
 import {formatTextForQuoting} from '../../util/chat'
 import * as Router2 from '../router2'
 import flags from '../../util/feature-flags'
+import HiddenString from '../../util/hidden-string'
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   accountsInfoMap: I.Map(),
@@ -34,15 +34,13 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   focus: null,
   giphyResultMap: I.Map(),
   giphyWindowMap: I.Map(),
-  inboxFilter: '',
   inboxHasLoaded: false,
+  inboxSearch: null,
   isWalletsNew: true,
   messageCenterOrdinals: I.Map(),
   messageMap: I.Map(),
   messageOrdinals: I.Map(),
-  metaMap: I.Map([
-    [pendingConversationIDKey, makeConversationMeta({conversationIDKey: noConversationIDKey})],
-  ]),
+  metaMap: I.Map(),
   moreToLoadMap: I.Map(),
   orangeLineMap: I.Map(),
   paymentConfirmInfo: null,
@@ -51,10 +49,12 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   pendingOutboxToOrdinal: I.Map(),
   pendingStatus: 'none',
   quote: null,
+  replyToMap: I.Map(),
   selectedConversation: noConversationIDKey,
   smallTeamsExpanded: false,
   staticConfig: null,
   threadSearchInfoMap: I.Map(),
+  threadSearchQueryMap: I.Map(),
   trustedInboxHasLoaded: false,
   typingMap: I.Map(),
   unfurlPromptMap: I.Map(),
@@ -64,10 +64,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   // Team Building
   ...TeamBuildingConstants.makeSubState(),
 })
-
-// We stash the resolved pending conversation idkey into the meta itself
-export const getResolvedPendingConversationIDKey = (state: TypedState) =>
-  getMeta(state, pendingConversationIDKey).conversationIDKey
 
 export const makeQuoteInfo: I.RecordFactory<Types._QuoteInfo> = I.Record({
   counter: 0,
@@ -86,6 +82,56 @@ export const makeThreadSearchInfo: I.RecordFactory<Types._ThreadSearchInfo> = I.
   status: 'initial',
   visible: false,
 })
+
+export const inboxSearchMaxTextMessages = 25
+export const inboxSearchMaxTextResults = 50
+export const inboxSearchMaxNameResults = 7
+export const inboxSearchMaxUnreadNameResults = isMobile ? 5 : 10
+
+export const makeInboxSearchInfo: I.RecordFactory<Types._InboxSearchInfo> = I.Record({
+  indexPercent: 0,
+  nameResults: I.List(),
+  nameResultsUnread: false,
+  nameStatus: 'initial',
+  query: new HiddenString(''),
+  selectedIndex: 0,
+  textResults: I.List(),
+  textStatus: 'initial',
+})
+
+export const makeInboxSearchConvHit: I.RecordFactory<Types._InboxSearchConvHit> = I.Record({
+  conversationIDKey: noConversationIDKey,
+  teamType: 'small',
+})
+
+export const makeInboxSearchTextHit: I.RecordFactory<Types._InboxSearchTextHit> = I.Record({
+  conversationIDKey: noConversationIDKey,
+  numHits: 0,
+  query: '',
+  teamType: 'small',
+  time: 0,
+})
+
+export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
+  if (inboxSearch.selectedIndex < inboxSearch.nameResults.size) {
+    const conversationIDKey = inboxSearch.nameResults.get(inboxSearch.selectedIndex)?.conversationIDKey
+    if (conversationIDKey) {
+      return {
+        conversationIDKey,
+        query: undefined,
+      }
+    }
+  } else if (inboxSearch.selectedIndex < inboxSearch.nameResults.size + inboxSearch.textResults.size) {
+    const result = inboxSearch.textResults.get(inboxSearch.selectedIndex - inboxSearch.nameResults.size)
+    if (result) {
+      return {
+        conversationIDKey: result.conversationIDKey,
+        query: new HiddenString(result.query),
+      }
+    }
+  }
+  return null
+}
 
 export const getThreadSearchInfo = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
   state.chat2.threadSearchInfoMap.get(conversationIDKey, makeThreadSearchInfo())
@@ -106,6 +152,13 @@ export const getHasBadge = (state: TypedState, id: Types.ConversationIDKey) =>
 export const getHasUnread = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.unreadMap.get(id, 0) > 0
 export const getSelectedConversation = (state: TypedState) => state.chat2.selectedConversation
+export const getReplyToOrdinal = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
+  return state.chat2.replyToMap.get(conversationIDKey, null)
+}
+export const getReplyToMessageID = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
+  const ordinal = getReplyToOrdinal(state, conversationIDKey)
+  return ordinal ? getMessage(state, conversationIDKey, ordinal)?.id : null
+}
 
 export const getEditInfo = (state: TypedState, id: Types.ConversationIDKey) => {
   const ordinal = state.chat2.editingMap.get(id)
@@ -147,9 +200,8 @@ export const isUserActivelyLookingAtThisThread = (
 
   let chatThreadSelected = false
   if (flags.useNewRouter) {
-    const routePath = Router2.getVisiblePath()
-    chatThreadSelected =
-      routePath[routePath.length - 1]?.routeName === (isMobile ? 'chatConversation' : 'tabs.chatTab')
+    chatThreadSelected = true // conversationIDKey === selectedConversationIDKey is the only thing that matters in the new router
+    // TODO remove this var when we switch entirely
   } else {
     const routePath = getPath(state.routeTree.routeState)
     if (isMobile) {
@@ -356,6 +408,5 @@ export {
   noConversationIDKey,
   numMessagesOnInitialLoad,
   numMessagesOnScrollback,
-  pendingConversationIDKey,
   pendingWaitingConversationIDKey,
 }

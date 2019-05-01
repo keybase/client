@@ -9,18 +9,6 @@ import * as Wallet from '../wallets'
 import * as TeamBuildingTypes from '../team-building'
 import HiddenString from '../../../util/hidden-string'
 
-export type PendingMode =
-  | 'none' // no pending
-  | 'searchingForUsers' // doing a search
-  | 'newChat' // doing a search
-  | 'newTeamBuilding' // Users picked via team-building, waiting now.
-  | 'fixedSetOfUsers' // selected a set of users externally
-  | 'startingFromAReset' // fixedSet but our intention is to restart a reset conversation
-
-export type PendingStatus =
-  | 'none' // no special status
-  | 'failed' // creating conversation failed
-
 export type _QuoteInfo = {
   // Always positive and monotonically increasing.
   counter: number,
@@ -57,11 +45,50 @@ export type _ThreadSearchInfo = {
 
 export type ThreadSearchInfo = I.RecordOf<_ThreadSearchInfo>
 
+export type InboxSearchStatus = 'initial' | 'inprogress' | 'success' | 'error'
+
+export type _InboxSearchTextHit = {
+  conversationIDKey: Common.ConversationIDKey,
+  numHits: number,
+  query: string,
+  teamType: 'big' | 'small',
+  time: number,
+}
+
+export type InboxSearchTextHit = I.RecordOf<_InboxSearchTextHit>
+
+export type _InboxSearchConvHit = {
+  conversationIDKey: Common.ConversationIDKey,
+  teamType: 'big' | 'small',
+}
+
+export type InboxSearchConvHit = I.RecordOf<_InboxSearchConvHit>
+
+export type _InboxSearchInfo = {
+  indexPercent: number,
+  nameResults: I.List<InboxSearchConvHit>,
+  nameStatus: InboxSearchStatus,
+  nameResultsUnread: boolean,
+  query: HiddenString,
+  selectedIndex: number,
+  textResults: I.List<InboxSearchTextHit>,
+  textStatus: InboxSearchStatus,
+}
+
+export type InboxSearchInfo = I.RecordOf<_InboxSearchInfo>
+
 // Where focus should be going to.
 // Null represents the default chat input.
 // This is very simple for now, but we can make
 // it fancier by using a stack and more types
 export type Focus = 'filter' | null
+
+export type CenterOrdinalHighlightMode = 'none' | 'flash' | 'always'
+
+export type CenterOrdinal = {
+  ordinal: Message.Ordinal,
+  highlightMode: CenterOrdinalHighlightMode,
+}
 
 export type _State = {
   accountsInfoMap: I.Map<
@@ -71,12 +98,12 @@ export type _State = {
   badgeMap: ConversationCountMap, // id to the badge count
   editingMap: I.Map<Common.ConversationIDKey, Message.Ordinal>, // current message being edited
   focus: Focus,
-  inboxFilter: string, // filters 'jump to chat'
   inboxHasLoaded: boolean, // if we've ever loaded
+  inboxSearch: ?InboxSearchInfo,
   trustedInboxHasLoaded: boolean, // if we've done initial trusted inbox load
   smallTeamsExpanded: boolean, // if we're showing all small teams
   isWalletsNew: boolean, // controls new-ness of wallets in chat UI
-  messageCenterOrdinals: I.Map<Common.ConversationIDKey, Message.Ordinal>, // ordinals to center threads on
+  messageCenterOrdinals: I.Map<Common.ConversationIDKey, CenterOrdinal>, // ordinals to center threads on
   messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.Ordinal, Message.Message>>, // messages in a thread
   messageOrdinals: I.Map<Common.ConversationIDKey, I.OrderedSet<Message.Ordinal>>, // ordered ordinals in a thread
   metaMap: MetaMap, // metadata about a thread, There is a special node for the pending conversation
@@ -93,8 +120,6 @@ export type _State = {
   giphyWindowMap: I.Map<Common.ConversationIDKey, boolean>,
   giphyResultMap: I.Map<Common.ConversationIDKey, ?RPCChatTypes.GiphySearchResults>,
   pendingOutboxToOrdinal: I.Map<Common.ConversationIDKey, I.Map<Message.OutboxID, Message.Ordinal>>, // messages waiting to be sent
-  pendingMode: PendingMode, // we're about to talk to people we're searching for or a set of users from somewhere else (folder)
-  pendingStatus: PendingStatus, // the status of creating a new conversation
   attachmentFullscreenMessage: ?Message.Message,
   paymentConfirmInfo: ?PaymentConfirmInfo, // chat payment confirm screen data
   paymentStatusMap: I.Map<Wallet.PaymentID, Message.ChatPaymentInfo>,
@@ -103,6 +128,8 @@ export type _State = {
   commandMarkdownMap: I.Map<Common.ConversationIDKey, RPCChatTypes.UICommandMarkdown>,
   containsLatestMessageMap: I.Map<Common.ConversationIDKey, boolean>,
   threadSearchInfoMap: I.Map<Common.ConversationIDKey, ThreadSearchInfo>,
+  threadSearchQueryMap: I.Map<Common.ConversationIDKey, ?HiddenString>,
+  replyToMap: I.Map<Common.ConversationIDKey, Message.Ordinal>,
 } & TeamBuildingTypes.TeamBuildingSubState
 
 export type State = I.RecordOf<_State>
