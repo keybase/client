@@ -7,6 +7,7 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/route-tree'
 import * as Constants from '../constants/route-tree'
 import * as RCConstants from '../route-tree'
+import * as Tabs from '../constants/tabs'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of route-tree but is handled by every reducer. NEVER dispatch this
@@ -37,7 +38,7 @@ type _ResetRoutePayload = $ReadOnly<{|path: RCConstants.Path|}>
 type _SetInitialRouteDefPayload = $ReadOnly<{|routeDef: RCConstants.RouteDefParams|}>
 type _SetRouteStatePayload = $ReadOnly<{|path: RCConstants.Path, partialState: {} | ((oldState: I.Map<string, any>) => I.Map<string, any>)|}>
 type _SwitchRouteDefPayload = $ReadOnly<{|routeDef: RCConstants.RouteDefParams, path?: ?RCConstants.Path|}>
-type _SwitchTabPayload = $ReadOnly<{|tab: 'tabs.chatTab' | 'tabs.devicesTab' | 'tabs.fsTab' | 'tabs.gitTab' | 'tabs.peopleTab' | 'tabs.settingsTab' | 'tabs.teamsTab' | 'tabs.walletsTab'|}>
+type _SwitchTabPayload = $ReadOnly<{|tab: Tabs.AppTab|}>
 type _SwitchToPayload = $ReadOnly<{|path: RCConstants.Path, parentPath?: ?RCConstants.Path|}>
 
 // Action Creators
@@ -46,6 +47,10 @@ type _SwitchToPayload = $ReadOnly<{|path: RCConstants.Path, parentPath?: ?RCCons
  */
 export const createNavUpToScreen = (payload: _NavUpToScreenPayload) => ({payload, type: navUpToScreen})
 /**
+ * ONLY used by the new nav. Switch to a different tab.
+ */
+export const createSwitchTab = (payload: _SwitchTabPayload) => ({payload, type: switchTab})
+/**
  * ONLY used by the new nav. use this to clear any modal routes
  */
 export const createClearModals = (payload: _ClearModalsPayload) => ({payload, type: clearModals})
@@ -53,10 +58,6 @@ export const createClearModals = (payload: _ClearModalsPayload) => ({payload, ty
  * Set the tree of route definitions. Dispatched at initialization time.
  */
 export const createSetInitialRouteDef = (payload: _SetInitialRouteDefPayload) => ({payload, type: setInitialRouteDef})
-/**
- * Used rarely
- */
-export const createSwitchTab = (payload: _SwitchTabPayload) => ({payload, type: switchTab})
 export const createNavigateAppend = (payload: _NavigateAppendPayload) => ({payload, type: navigateAppend})
 export const createNavigateTo = (payload: _NavigateToPayload) => ({payload, type: navigateTo})
 export const createNavigateUp = (payload: _NavigateUpPayload) => ({payload, type: navigateUp})

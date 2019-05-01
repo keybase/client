@@ -123,6 +123,7 @@ export const LeftAction = ({
   leftActionText,
   onLeftAction,
   theme,
+  customIconColor,
 }: LeftActionProps): React.Node => (
   <Box style={Styles.collapseStyles([styles.leftAction, hasTextTitle && styles.grow])}>
     {onLeftAction &&
@@ -135,11 +136,12 @@ export const LeftAction = ({
           badgeNumber={badgeNumber}
           hideBackLabel={hideBackLabel}
           iconColor={
-            disabled
+            customIconColor ||
+            (disabled
               ? Styles.globalColors.black_10
               : theme === 'dark'
               ? Styles.globalColors.white
-              : Styles.globalColors.black_50
+              : Styles.globalColors.black_50)
           }
           style={styles.action}
           onClick={onLeftAction}

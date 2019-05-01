@@ -45,4 +45,5 @@ export type LeftActionProps = {
   leftActionText?: string,
   theme?: 'light' | 'dark', // defaults to 'light'
   onLeftAction: ?() => void,
+  customIconColor?: string,
 }

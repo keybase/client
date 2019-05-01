@@ -2,7 +2,8 @@
   "prelude": [
     "import * as Types from '../constants/types/route-tree'",
     "import * as Constants from '../constants/route-tree'",
-    "import * as RCConstants from '../route-tree'"
+    "import * as RCConstants from '../route-tree'",
+    "import * as Tabs from '../constants/tabs'"
   ],
   "actions": {
     "setInitialRouteDef": {
@@ -52,8 +53,8 @@
       "routeName": "string"
     },
     "switchTab": {
-      "_description": "Used rarely",
-      "tab": "'tabs.chatTab' | 'tabs.devicesTab' | 'tabs.fsTab' | 'tabs.gitTab' | 'tabs.peopleTab' | 'tabs.settingsTab' | 'tabs.teamsTab' | 'tabs.walletsTab'"
+      "_description": "ONLY used by the new nav. Switch to a different tab.",
+      "tab": "Tabs.AppTab"
     }
   }
 }
