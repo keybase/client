@@ -60,7 +60,6 @@ const TeamInfo = (p: Props) => {
             </Text>
             {!p.inTeam && (
               <WaitingButton
-                fullWidth={true}
                 waitingKey={Constants.waitingKey}
                 label={p.isOpen ? 'Join team' : 'Request to join'}
                 onClick={() => p.onJoinTeam(p.name)}
