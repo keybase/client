@@ -2711,7 +2711,9 @@ const onChatTeamMentionUpdate = (state, action) => {
 
 const openChatFromWidget = (state, {payload: {conversationIDKey}}) => [
   ConfigGen.createShowMain(),
-  RouteTreeGen.createSwitchTo({path: [Tabs.chatTab]}),
+  flags.useNewRouter
+    ? RouteTreeGen.createSwitchTab({tab: Tabs.chatTab})
+    : RouteTreeGen.createSwitchTo({path: [Tabs.chatTab]}),
   ...(conversationIDKey
     ? [Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSmall'})]
     : []),
