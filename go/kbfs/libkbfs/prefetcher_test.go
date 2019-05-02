@@ -805,13 +805,9 @@ func testPrefetcherForSyncedTLF(
 	notifySyncCh(t, prefetchSyncCh)
 	t.Log("Wait for prefetching to complete.")
 
-	// `q.Request` above will have triggered a prefetch request.
-	// `notifySyncCh` above allows that request to continue.
-	// In the meantime, we `waitForPrefetchOrBust`, which creates another
-	// request for the same block. But if the prefetcher manages to handle the
-	// initial prefetch request, then the additional one from
-	// `waitForPrefetchOrBust` will be stuck.
-	// So, we close the `prefetchSyncCh` to unblock all prefetches.
+	// FIXME: Unknown synchronization flake coming from the prefetches above.
+	// To make CI work again, we close the `prefetchSyncCh` which unblocks all
+	// prefetches.
 	close(prefetchSyncCh)
 	waitForPrefetchOrBust(t, ctx, q.Prefetcher(), rootPtr)
 
