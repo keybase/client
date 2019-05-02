@@ -606,10 +606,10 @@ func TestProvisionAutoreset(t *testing.T) {
 	require.NoError(t, RunEngine2(m, eng), "expected login engine to succeed")
 	require.NotNil(t, AssertLoggedIn(tcY), "should not be logged in")
 
-	// Travel 3 days into future + 60s to make sure that it all runs
+	// Travel 3 days into future + 1h to make sure that it all runs
 	require.NoError(t, accelerateReset(tcX))
-	require.NoError(t, timeTravelReset(tcX, time.Hour*72))
-	time.Sleep(time.Second)
+	require.NoError(t, timeTravelReset(tcX, time.Hour*73))
+	time.Sleep(1500 * time.Millisecond)
 
 	// Second iteration on device Y should result in a reset + provision
 	uis = libkb.UIs{
