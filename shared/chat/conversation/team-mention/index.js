@@ -52,7 +52,8 @@ class TeamMention extends React.Component<Props, State> {
         allowFontScaling={this.props.allowFontScaling}
         onClick={this._showPopup}
       >
-        {text}
+        {' '}
+        {text}{' '}
       </Kb.Text>
     )
     const popups = (
@@ -109,8 +110,6 @@ const styles = Styles.styleSheetCreate({
   text: Styles.platformStyles({
     common: {
       letterSpacing: 0.3,
-      paddingLeft: 2,
-      paddingRight: 2,
     },
     isElectron: {
       display: 'inline-block',
