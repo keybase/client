@@ -2236,21 +2236,6 @@ func (k *SimpleFS) getSyncConfig(ctx context.Context, path keybase1.Path) (
 	return tlfHandle.TlfID(), config, nil
 }
 
-func (k *SimpleFS) getLocalDiskStats(ctx context.Context) (
-	bytesAvail, bytesTotal int64) {
-	dbc := k.config.DiskBlockCache()
-	if dbc == nil {
-		return 0, 0
-	}
-
-	dbcStatus := dbc.Status(ctx)
-	if status, ok := dbcStatus["SyncBlockCache"]; ok {
-		return int64(status.LocalDiskBytesAvailable),
-			int64(status.LocalDiskBytesTotal)
-	}
-	return 0, 0
-}
-
 // SimpleFSFolderSyncConfigAndStatus gets the given folder's sync config.
 func (k *SimpleFS) SimpleFSFolderSyncConfigAndStatus(
 	ctx context.Context, path keybase1.Path) (
@@ -2262,6 +2247,7 @@ func (k *SimpleFS) SimpleFSFolderSyncConfigAndStatus(
 	}
 	res := keybase1.FolderSyncConfigAndStatus{Config: config}
 
+	dbc := k.config.DiskBlockCache()
 	if config.Mode != keybase1.FolderSyncMode_DISABLED {
 		fs, finalElem, err := k.getFSIfExists(ctx, path)
 		if err != nil {
@@ -2282,7 +2268,6 @@ func (k *SimpleFS) SimpleFSFolderSyncConfigAndStatus(
 			res.Status.PrefetchProgress =
 				metadata.PrefetchProgress.ToProtocolProgress(k.config.Clock())
 
-			dbc := k.config.DiskBlockCache()
 			libfs, ok := fs.(*libfs.FS)
 			if dbc != nil && ok {
 				size, err := dbc.GetTlfSize(
@@ -2299,8 +2284,7 @@ func (k *SimpleFS) SimpleFSFolderSyncConfigAndStatus(
 		}
 	}
 
-	res.Status.LocalDiskBytesAvailable, res.Status.LocalDiskBytesTotal =
-		k.getLocalDiskStats(ctx)
+	libkbfs.FillInDiskSpaceStatus(ctx, &res.Status, dbc)
 	return res, err
 }
 
@@ -2321,7 +2305,17 @@ func (k *SimpleFS) SimpleFSSetFolderSyncConfig(
 func (k *SimpleFS) SimpleFSSyncConfigAndStatus(
 	ctx context.Context) (res keybase1.SyncConfigAndStatusRes, err error) {
 	ctx = k.makeContext(ctx)
-	bytesAvail, bytesTotal := k.getLocalDiskStats(ctx)
+	dbc := k.config.DiskBlockCache()
+	bytesAvail, bytesTotal := libkbfs.GetLocalDiskStats(ctx, dbc)
+
+	hasRoom := true
+	if dbc != nil {
+		hasRoom, err = dbc.DoesCacheHaveSpace(ctx, libkbfs.DiskBlockSyncCache)
+		if err != nil {
+			return keybase1.SyncConfigAndStatusRes{}, err
+		}
+	}
+
 	tlfIDs := k.config.GetAllSyncedTlfs()
 
 	session, err := idutil.GetCurrentSessionIfPossible(
@@ -2332,8 +2326,6 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(
 
 	res.Folders = make(
 		[]keybase1.FolderSyncConfigAndStatusWithFolder, len(tlfIDs))
-
-	dbc := k.config.DiskBlockCache()
 	allNotStarted := true
 	for i, tlfID := range tlfIDs {
 		config, err := k.config.KBFSOps().GetSyncConfig(ctx, tlfID)
@@ -2371,6 +2363,10 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(
 		}
 		res.Folders[i].Status.LocalDiskBytesAvailable = bytesAvail
 		res.Folders[i].Status.LocalDiskBytesTotal = bytesTotal
+		if res.Folders[i].Status.PrefetchStatus !=
+			keybase1.PrefetchStatus_COMPLETE {
+			res.Folders[i].Status.OutOfSyncSpace = !hasRoom
+		}
 
 		if dbc != nil {
 			size, err := dbc.GetTlfSize(ctx, tlfID, libkbfs.DiskBlockSyncCache)
@@ -2401,6 +2397,10 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(
 
 	res.OverallStatus.LocalDiskBytesAvailable = bytesAvail
 	res.OverallStatus.LocalDiskBytesTotal = bytesTotal
+	if res.OverallStatus.PrefetchStatus !=
+		keybase1.PrefetchStatus_COMPLETE {
+		res.OverallStatus.OutOfSyncSpace = !hasRoom
+	}
 
 	if dbc != nil {
 		statusMap := dbc.Status(ctx)

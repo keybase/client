@@ -212,6 +212,20 @@ func newBlockPrefetcher(retriever BlockRetriever,
 	return p
 }
 
+func (p *blockPrefetcher) sendOverallSyncStatusHelperLocked() {
+	var status keybase1.FolderSyncStatus
+	status.PrefetchProgress = p.overallSyncStatus.ToProtocolProgress(
+		p.config.Clock())
+	status.PrefetchStatus = p.overallSyncStatus.ToProtocolStatus()
+
+	FillInDiskSpaceStatus(
+		context.Background(), &status, p.config.DiskBlockCache())
+
+	p.config.Reporter().NotifyOverallSyncStatus(context.Background(), status)
+	p.lastOverallSyncStatusSent = p.config.Clock().Now()
+
+}
+
 func (p *blockPrefetcher) sendOverallSyncStatusLocked() {
 	// Don't send a new status notification if we aren't complete, and
 	// if we have sent one within the last interval.
@@ -222,16 +236,7 @@ func (p *blockPrefetcher) sendOverallSyncStatusLocked() {
 		return
 	}
 
-	var status keybase1.FolderSyncStatus
-	status.PrefetchProgress = p.overallSyncStatus.ToProtocolProgress(
-		p.config.Clock())
-	status.PrefetchStatus = p.overallSyncStatus.ToProtocolStatus()
-
-	// Don't fill in the local disk stats for now; add this later if
-	// needed.
-
-	p.config.Reporter().NotifyOverallSyncStatus(context.Background(), status)
-	p.lastOverallSyncStatusSent = p.config.Clock().Now()
+	p.sendOverallSyncStatusHelperLocked()
 }
 
 func (p *blockPrefetcher) incOverallSyncTotalBytes(req *prefetchRequest) {
@@ -894,6 +899,12 @@ func (p *blockPrefetcher) reschedulePrefetch(req *prefetchRequest) {
 	}
 }
 
+func (p *blockPrefetcher) sendOutOfSpaceNotification() {
+	p.overallSyncStatusLock.Lock()
+	defer p.overallSyncStatusLock.Unlock()
+	p.sendOverallSyncStatusHelperLocked()
+}
+
 func (p *blockPrefetcher) stopIfNeeded(
 	ctx context.Context, req *prefetchRequest) (doStop, doCancel bool) {
 	dbc := p.config.DiskBlockCache()
@@ -920,6 +931,7 @@ func (p *blockPrefetcher) stopIfNeeded(
 	if req.action.Sync() {
 		// If the sync cache is close to full, reschedule the prefetch.
 		p.reschedulePrefetch(req)
+		p.sendOutOfSpaceNotification()
 		return true, false
 	}
 
