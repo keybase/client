@@ -118,9 +118,9 @@ const handleCrashes = () => {
       if (win.webContents) {
         win.webContents.on('crashed', (e, killed) => {
           if (killed) {
-            console.log('!! browser window killed')
+            console.log('browser window killed')
           } else {
-            console.log('!! browser window crashed')
+            console.log('browser window crashed')
           }
           win.reload()
         })
