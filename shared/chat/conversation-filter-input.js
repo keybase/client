@@ -109,6 +109,7 @@ class ConversationFilterInput extends React.PureComponent<Props> {
         >
           <Kb.Box2 alignItems="center" direction="horizontal" style={styles.searchBox}>
             <Kb.WithTooltip
+              disabled={!this.props.showNewTag}
               containerStyle={{flexGrow: 1}}
               position="top center"
               text="NEW! Search all your chats."

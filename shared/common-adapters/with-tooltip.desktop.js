@@ -48,7 +48,7 @@ class WithTooltip extends React.Component<Props, State> {
         >
           {this.props.children}
         </Box>
-        {this.state.mouseIn && (
+        {!this.props.disabled && this.state.mouseIn && (
           <Toast
             containerStyle={Styles.collapseStyles([
               styles.container,
