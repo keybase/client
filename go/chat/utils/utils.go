@@ -2052,20 +2052,20 @@ func DecorateWithMentions(ctx context.Context, body string, atMentions []string,
 	channelNameMentions []chat1.ChannelNameMention) string {
 	var added int
 	offset := 0
-	if len(atMentions) > 0 || len(teamMentions) > 0 || chanMention != chat1.ChannelMention_NONE {
+	if len(atMentions) > 0 || len(maybeMentions) > 0 || chanMention != chat1.ChannelMention_NONE {
 		inputBody := body
 		atMatches := parseRegexpNames(ctx, inputBody, atMentionRegExp)
 		atMap := make(map[string]bool)
-		teamMap := make(map[string]chat1.MaybeTeamMention)
+		maybeMap := make(map[string]chat1.MaybeMention)
 		for _, at := range atMentions {
 			atMap[at] = true
 		}
-		for _, tm := range teamMentions {
+		for _, tm := range maybeMentions {
 			name := tm.Name
 			if len(tm.Channel) > 0 {
 				name += "#" + tm.Channel
 			}
-			teamMap[name] = tm
+			maybeMap[name] = tm
 		}
 		for _, m := range atMatches {
 			switch {
@@ -2083,9 +2083,9 @@ func DecorateWithMentions(ctx context.Context, body string, atMentions []string,
 					chat1.NewUITextDecorationWithAtmention(m.name))
 				offset += added
 			}
-			if tm, ok := teamMap[m.name]; ok {
+			if tm, ok := maybeMap[m.name]; ok {
 				body, added = DecorateBody(ctx, body, m.position[0]+offset-1, m.Len()+1,
-					chat1.NewUITextDecorationWithTeammention(tm))
+					chat1.NewUITextDecorationWithMaybemention(tm))
 				offset += added
 			}
 		}
