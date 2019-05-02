@@ -118,10 +118,17 @@ func (b *Boxer) detectPermanentError(err error, tlfName string) types.UnboxingEr
 			return NewPermanentUnboxingError(err)
 		}
 	}
-	// All team read errors get marked as transient errors, since we are going to make them rekey errors
-	// later
+	// Check if we have a permanent or tranissent team read error. Transient
+	// errors, are converted to rekey errors later.
 	if teams.IsTeamReadError(err) {
-		return NewTransientUnboxingError(err)
+		switch err.Error() {
+		case "Root team has been deleted",
+			"Root team has been abandoned: All members have left or reset",
+			"Root team is not active":
+			return NewPermanentUnboxingError(err)
+		default:
+			return NewTransientUnboxingError(err)
+		}
 	}
 	switch err := err.(type) {
 	case libkb.UserDeletedError:
