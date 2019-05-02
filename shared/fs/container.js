@@ -142,12 +142,17 @@ const Connected = namedConnect<OwnProps, _, _, _, _>(
 Connected.navigationOptions = ({navigation}: {navigation: any}) => {
   const path = navigation.getParam('path') || Constants.defaultPath
   return isMobile
-    ? {
-        header: (
-          <MobileHeader path={path} onBack={navigation.isFirstRouteInParent() ? null : navigation.pop} />
-        ),
-        headerHeight: mobileHeaderHeight,
-      }
+    ? path === Constants.defaultPath
+      ? {
+          header: undefined,
+          headerTitle: 'Files',
+        }
+      : {
+          header: (
+            <MobileHeader path={path} onBack={navigation.isFirstRouteInParent() ? null : navigation.pop} />
+          ),
+          headerHeight: mobileHeaderHeight,
+        }
     : {
         header: undefined,
         headerBanner: <DesktopBanner />,
