@@ -83,6 +83,9 @@ const styles = Styles.styleSheetCreate({
   },
   container: {
     backgroundColor: Styles.globalColors.white,
+    borderBottomColor: Styles.globalColors.black_10,
+    borderBottomWidth: 1,
+    borderStyle: 'solid',
     height,
     maxHeight: height,
     minHeight: height,
