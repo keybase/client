@@ -1588,7 +1588,7 @@ const previewConversationTeam = (state, action) => {
   if (action.payload.conversationIDKey) {
     const conversationIDKey = action.payload.conversationIDKey
 
-    if (action.payload.reason === 'messageLink') {
+    if (action.payload.reason === 'messageLink' || action.payload.reason === 'teamMention') {
       // Add preview channel to inbox
       return RPCChatTypes.localPreviewConversationByIDLocalRpcPromise({
         convID: Types.keyToConversationID(conversationIDKey),
