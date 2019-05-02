@@ -130,10 +130,10 @@ safe_restart_systemd_services() {
         echo "Autorestarting Keybase via systemd for $user."
         # Reload possibly-new systemd unit files first
         systemd_exec_as "$user" "systemctl --user daemon-reload"
-        systemd_restart_if_active "$user" "keybase.service"
-        systemd_restart_if_active "$user" "kbfs.service"
-        systemd_restart_if_active "$user" "keybase.gui.service"
         systemd_restart_if_active "$user" "keybase-redirector.service"
+        systemd_restart_if_active "$user" "keybase.gui.service"
+        systemd_restart_if_active "$user" "kbfs.service"
+        systemd_restart_if_active "$user" "keybase.service"
     done <<< "$(pidof /usr/bin/keybase | tr ' ' '\n')"
 }
 
