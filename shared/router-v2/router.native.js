@@ -155,16 +155,8 @@ const LoggedOutStackNavigator = createStackNavigator(
   {
     defaultNavigationOptions: {
       ...defaultNavigationOptions,
+      // show the header
       header: undefined,
-      headerLeft: hp =>
-        hp.scene.index === 0 ? null : (
-          <LeftAction
-            badgeNumber={0}
-            leftAction="cancel"
-            onLeftAction={hp.onPress}
-            customIconColor={hp.tintColor}
-          />
-        ),
     },
 
     headerMode,
