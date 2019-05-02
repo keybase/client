@@ -511,6 +511,6 @@ func (d DummyTeamMentionLoader) Stop(ctx context.Context) chan struct{} {
 }
 
 func (d DummyTeamMentionLoader) LoadTeamMention(ctx context.Context, uid gregor1.UID,
-	teamName, channel string) error {
+	teamName, channel string, knownTeamMentions []chat1.KnownTeamMention) error {
 	return nil
 }

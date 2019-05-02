@@ -709,13 +709,6 @@
           "name": "channelNameMentions"
         },
         {
-          "type": {
-            "type": "array",
-            "items": "MaybeTeamMention"
-          },
-          "name": "teamMentions"
-        },
-        {
           "type": "boolean",
           "name": "isEphemeral"
         },
@@ -978,7 +971,7 @@
         "PAYMENT_0",
         "ATMENTION_1",
         "CHANNELNAMEMENTION_2",
-        "TEAMMENTION_3"
+        "MAYBEMENTION_3"
       ]
     },
     {
@@ -1012,10 +1005,10 @@
         },
         {
           "label": {
-            "name": "TEAMMENTION",
+            "name": "MAYBEMENTION",
             "def": false
           },
-          "body": "MaybeTeamMention"
+          "body": "MaybeMention"
         }
       ]
     },

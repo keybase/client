@@ -27,21 +27,27 @@ protocol local {
     TextPaymentResult result;
   }
 
-  enum MentionType {
-    USER_0,
-    TEAM_1
+
+  record KnownUserMention {
+    string text;
+    gregor1.UID uid;
   }
 
-  record Mention {
-    MentionType typ;
-    string mention;
+  record KnownTeamMention {
+    string text;
+  }
+
+  record MaybeMention {
+    string name;
+    string channel;
   }
 
   record MessageText {
     string body;
     array<TextPayment> payments;
     union { null, MessageID } replyTo;
-    array<Mention> mentions;
+    array<KnownUserMention> userMentions;
+    array<KnownTeamMention> teamMentions;
   }
 
   record MessageConversationMetadata {
@@ -51,7 +57,8 @@ protocol local {
   record MessageEdit {
     MessageID messageID;
     string body;
-    array<Mention> mentions;
+    array<KnownUserMention> userMentions;
+    array<KnownTeamMention> teamMentions;
   }
 
   record MessageDelete {
@@ -66,7 +73,8 @@ protocol local {
     string text;
     FlipGameID gameID;
     ConversationID flipConvID;
-    array<Mention> mentions;
+    array<KnownUserMention> userMentions;
+    array<KnownTeamMention> teamMentions;
   }
 
   enum MessageSystemType {
@@ -385,11 +393,6 @@ protocol local {
     union { null, OutboxID } supersedesOutboxID;
   }
 
-  record MaybeTeamMention {
-    string name;
-    string channel;
-  }
-
   record MessageUnboxedValid {
     MessageClientHeaderVerified clientHeader;
     MessageServerHeader serverHeader;
@@ -424,7 +427,7 @@ protocol local {
     array<string> atMentionUsernames;
     array<gregor1.UID> atMentions;
     ChannelMention channelMention;
-    array<MaybeTeamMention> teamMentions;
+    array<MaybeMention> maybeMentions;
     array<ChannelNameMention> channelNameMentions;
     // reactionText -> [Reaction(username, reactionMsgID)...]
     ReactionMap reactions;

@@ -559,7 +559,6 @@ type UIMessageValid struct {
 	AtMentions            []string               `codec:"atMentions" json:"atMentions"`
 	ChannelMention        ChannelMention         `codec:"channelMention" json:"channelMention"`
 	ChannelNameMentions   []UIChannelNameMention `codec:"channelNameMentions" json:"channelNameMentions"`
-	TeamMentions          []MaybeTeamMention     `codec:"teamMentions" json:"teamMentions"`
 	IsEphemeral           bool                   `codec:"isEphemeral" json:"isEphemeral"`
 	IsEphemeralExpired    bool                   `codec:"isEphemeralExpired" json:"isEphemeralExpired"`
 	ExplodedBy            *string                `codec:"explodedBy,omitempty" json:"explodedBy,omitempty"`
@@ -639,17 +638,6 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 			}
 			return ret
 		})(o.ChannelNameMentions),
-		TeamMentions: (func(x []MaybeTeamMention) []MaybeTeamMention {
-			if x == nil {
-				return nil
-			}
-			ret := make([]MaybeTeamMention, len(x))
-			for i, v := range x {
-				vCopy := v.DeepCopy()
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.TeamMentions),
 		IsEphemeral:        o.IsEphemeral,
 		IsEphemeralExpired: o.IsEphemeralExpired,
 		ExplodedBy: (func(x *string) *string {
@@ -1019,7 +1007,7 @@ const (
 	UITextDecorationTyp_PAYMENT            UITextDecorationTyp = 0
 	UITextDecorationTyp_ATMENTION          UITextDecorationTyp = 1
 	UITextDecorationTyp_CHANNELNAMEMENTION UITextDecorationTyp = 2
-	UITextDecorationTyp_TEAMMENTION        UITextDecorationTyp = 3
+	UITextDecorationTyp_MAYBEMENTION       UITextDecorationTyp = 3
 )
 
 func (o UITextDecorationTyp) DeepCopy() UITextDecorationTyp { return o }
@@ -1028,14 +1016,14 @@ var UITextDecorationTypMap = map[string]UITextDecorationTyp{
 	"PAYMENT":            0,
 	"ATMENTION":          1,
 	"CHANNELNAMEMENTION": 2,
-	"TEAMMENTION":        3,
+	"MAYBEMENTION":       3,
 }
 
 var UITextDecorationTypRevMap = map[UITextDecorationTyp]string{
 	0: "PAYMENT",
 	1: "ATMENTION",
 	2: "CHANNELNAMEMENTION",
-	3: "TEAMMENTION",
+	3: "MAYBEMENTION",
 }
 
 func (e UITextDecorationTyp) String() string {
@@ -1050,7 +1038,7 @@ type UITextDecoration struct {
 	Payment__            *TextPayment          `codec:"payment,omitempty" json:"payment,omitempty"`
 	Atmention__          *string               `codec:"atmention,omitempty" json:"atmention,omitempty"`
 	Channelnamemention__ *UIChannelNameMention `codec:"channelnamemention,omitempty" json:"channelnamemention,omitempty"`
-	Teammention__        *MaybeTeamMention     `codec:"teammention,omitempty" json:"teammention,omitempty"`
+	Maybemention__       *MaybeMention         `codec:"maybemention,omitempty" json:"maybemention,omitempty"`
 }
 
 func (o *UITextDecoration) Typ() (ret UITextDecorationTyp, err error) {
@@ -1070,9 +1058,9 @@ func (o *UITextDecoration) Typ() (ret UITextDecorationTyp, err error) {
 			err = errors.New("unexpected nil value for Channelnamemention__")
 			return ret, err
 		}
-	case UITextDecorationTyp_TEAMMENTION:
-		if o.Teammention__ == nil {
-			err = errors.New("unexpected nil value for Teammention__")
+	case UITextDecorationTyp_MAYBEMENTION:
+		if o.Maybemention__ == nil {
+			err = errors.New("unexpected nil value for Maybemention__")
 			return ret, err
 		}
 	}
@@ -1109,14 +1097,14 @@ func (o UITextDecoration) Channelnamemention() (res UIChannelNameMention) {
 	return *o.Channelnamemention__
 }
 
-func (o UITextDecoration) Teammention() (res MaybeTeamMention) {
-	if o.Typ__ != UITextDecorationTyp_TEAMMENTION {
+func (o UITextDecoration) Maybemention() (res MaybeMention) {
+	if o.Typ__ != UITextDecorationTyp_MAYBEMENTION {
 		panic("wrong case accessed")
 	}
-	if o.Teammention__ == nil {
+	if o.Maybemention__ == nil {
 		return
 	}
-	return *o.Teammention__
+	return *o.Maybemention__
 }
 
 func NewUITextDecorationWithPayment(v TextPayment) UITextDecoration {
@@ -1140,10 +1128,10 @@ func NewUITextDecorationWithChannelnamemention(v UIChannelNameMention) UITextDec
 	}
 }
 
-func NewUITextDecorationWithTeammention(v MaybeTeamMention) UITextDecoration {
+func NewUITextDecorationWithMaybemention(v MaybeMention) UITextDecoration {
 	return UITextDecoration{
-		Typ__:         UITextDecorationTyp_TEAMMENTION,
-		Teammention__: &v,
+		Typ__:          UITextDecorationTyp_MAYBEMENTION,
+		Maybemention__: &v,
 	}
 }
 
@@ -1171,13 +1159,13 @@ func (o UITextDecoration) DeepCopy() UITextDecoration {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Channelnamemention__),
-		Teammention__: (func(x *MaybeTeamMention) *MaybeTeamMention {
+		Maybemention__: (func(x *MaybeMention) *MaybeMention {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x).DeepCopy()
 			return &tmp
-		})(o.Teammention__),
+		})(o.Maybemention__),
 	}
 }
 

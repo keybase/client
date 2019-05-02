@@ -176,7 +176,6 @@ protocol chatUi {
     array<string> atMentions;
     ChannelMention channelMention;
     array<UIChannelNameMention> channelNameMentions;
-    array<MaybeTeamMention> teamMentions;
     boolean isEphemeral;
     boolean isEphemeralExpired;
     union { null, string} explodedBy;
@@ -244,14 +243,14 @@ protocol chatUi {
     PAYMENT_0,
     ATMENTION_1,
     CHANNELNAMEMENTION_2,
-    TEAMMENTION_3
+    MAYBEMENTION_3
   }
 
   variant UITextDecoration switch (UITextDecorationTyp typ) {
     case PAYMENT: TextPayment;
     case ATMENTION: string;
     case CHANNELNAMEMENTION: UIChannelNameMention;
-    case TEAMMENTION: MaybeTeamMention;
+    case MAYBEMENTION: MaybeMention;
   }
 
   void chatAttachmentDownloadStart(int sessionID);

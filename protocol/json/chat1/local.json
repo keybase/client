@@ -91,24 +91,40 @@
       ]
     },
     {
-      "type": "enum",
-      "name": "MentionType",
-      "symbols": [
-        "USER_0",
-        "TEAM_1"
+      "type": "record",
+      "name": "KnownUserMention",
+      "fields": [
+        {
+          "type": "string",
+          "name": "text"
+        },
+        {
+          "type": "gregor1.UID",
+          "name": "uid"
+        }
       ]
     },
     {
       "type": "record",
-      "name": "Mention",
+      "name": "KnownTeamMention",
       "fields": [
         {
-          "type": "MentionType",
-          "name": "typ"
+          "type": "string",
+          "name": "text"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MaybeMention",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
         },
         {
           "type": "string",
-          "name": "mention"
+          "name": "channel"
         }
       ]
     },
@@ -137,9 +153,16 @@
         {
           "type": {
             "type": "array",
-            "items": "Mention"
+            "items": "KnownUserMention"
           },
-          "name": "mentions"
+          "name": "userMentions"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "KnownTeamMention"
+          },
+          "name": "teamMentions"
         }
       ]
     },
@@ -168,9 +191,16 @@
         {
           "type": {
             "type": "array",
-            "items": "Mention"
+            "items": "KnownUserMention"
           },
-          "name": "mentions"
+          "name": "userMentions"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "KnownTeamMention"
+          },
+          "name": "teamMentions"
         }
       ]
     },
@@ -216,9 +246,16 @@
         {
           "type": {
             "type": "array",
-            "items": "Mention"
+            "items": "KnownUserMention"
           },
-          "name": "mentions"
+          "name": "userMentions"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "KnownTeamMention"
+          },
+          "name": "teamMentions"
         }
       ]
     },
@@ -1247,20 +1284,6 @@
     },
     {
       "type": "record",
-      "name": "MaybeTeamMention",
-      "fields": [
-        {
-          "type": "string",
-          "name": "name"
-        },
-        {
-          "type": "string",
-          "name": "channel"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "MessageUnboxedValid",
       "fields": [
         {
@@ -1337,9 +1360,9 @@
         {
           "type": {
             "type": "array",
-            "items": "MaybeTeamMention"
+            "items": "MaybeMention"
           },
-          "name": "teamMentions"
+          "name": "maybeMentions"
         },
         {
           "type": {

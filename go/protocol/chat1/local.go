@@ -134,49 +134,46 @@ func (o TextPayment) DeepCopy() TextPayment {
 	}
 }
 
-type MentionType int
-
-const (
-	MentionType_USER MentionType = 0
-	MentionType_TEAM MentionType = 1
-)
-
-func (o MentionType) DeepCopy() MentionType { return o }
-
-var MentionTypeMap = map[string]MentionType{
-	"USER": 0,
-	"TEAM": 1,
+type KnownUserMention struct {
+	Text string      `codec:"text" json:"text"`
+	Uid  gregor1.UID `codec:"uid" json:"uid"`
 }
 
-var MentionTypeRevMap = map[MentionType]string{
-	0: "USER",
-	1: "TEAM",
-}
-
-func (e MentionType) String() string {
-	if v, ok := MentionTypeRevMap[e]; ok {
-		return v
+func (o KnownUserMention) DeepCopy() KnownUserMention {
+	return KnownUserMention{
+		Text: o.Text,
+		Uid:  o.Uid.DeepCopy(),
 	}
-	return ""
 }
 
-type Mention struct {
-	Typ     MentionType `codec:"typ" json:"typ"`
-	Mention string      `codec:"mention" json:"mention"`
+type KnownTeamMention struct {
+	Text string `codec:"text" json:"text"`
 }
 
-func (o Mention) DeepCopy() Mention {
-	return Mention{
-		Typ:     o.Typ.DeepCopy(),
-		Mention: o.Mention,
+func (o KnownTeamMention) DeepCopy() KnownTeamMention {
+	return KnownTeamMention{
+		Text: o.Text,
+	}
+}
+
+type MaybeMention struct {
+	Name    string `codec:"name" json:"name"`
+	Channel string `codec:"channel" json:"channel"`
+}
+
+func (o MaybeMention) DeepCopy() MaybeMention {
+	return MaybeMention{
+		Name:    o.Name,
+		Channel: o.Channel,
 	}
 }
 
 type MessageText struct {
-	Body     string        `codec:"body" json:"body"`
-	Payments []TextPayment `codec:"payments" json:"payments"`
-	ReplyTo  *MessageID    `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
-	Mentions []Mention     `codec:"mentions" json:"mentions"`
+	Body         string             `codec:"body" json:"body"`
+	Payments     []TextPayment      `codec:"payments" json:"payments"`
+	ReplyTo      *MessageID         `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
+	UserMentions []KnownUserMention `codec:"userMentions" json:"userMentions"`
+	TeamMentions []KnownTeamMention `codec:"teamMentions" json:"teamMentions"`
 }
 
 func (o MessageText) DeepCopy() MessageText {
@@ -200,17 +197,28 @@ func (o MessageText) DeepCopy() MessageText {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ReplyTo),
-		Mentions: (func(x []Mention) []Mention {
+		UserMentions: (func(x []KnownUserMention) []KnownUserMention {
 			if x == nil {
 				return nil
 			}
-			ret := make([]Mention, len(x))
+			ret := make([]KnownUserMention, len(x))
 			for i, v := range x {
 				vCopy := v.DeepCopy()
 				ret[i] = vCopy
 			}
 			return ret
-		})(o.Mentions),
+		})(o.UserMentions),
+		TeamMentions: (func(x []KnownTeamMention) []KnownTeamMention {
+			if x == nil {
+				return nil
+			}
+			ret := make([]KnownTeamMention, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.TeamMentions),
 	}
 }
 
@@ -225,26 +233,38 @@ func (o MessageConversationMetadata) DeepCopy() MessageConversationMetadata {
 }
 
 type MessageEdit struct {
-	MessageID MessageID `codec:"messageID" json:"messageID"`
-	Body      string    `codec:"body" json:"body"`
-	Mentions  []Mention `codec:"mentions" json:"mentions"`
+	MessageID    MessageID          `codec:"messageID" json:"messageID"`
+	Body         string             `codec:"body" json:"body"`
+	UserMentions []KnownUserMention `codec:"userMentions" json:"userMentions"`
+	TeamMentions []KnownTeamMention `codec:"teamMentions" json:"teamMentions"`
 }
 
 func (o MessageEdit) DeepCopy() MessageEdit {
 	return MessageEdit{
 		MessageID: o.MessageID.DeepCopy(),
 		Body:      o.Body,
-		Mentions: (func(x []Mention) []Mention {
+		UserMentions: (func(x []KnownUserMention) []KnownUserMention {
 			if x == nil {
 				return nil
 			}
-			ret := make([]Mention, len(x))
+			ret := make([]KnownUserMention, len(x))
 			for i, v := range x {
 				vCopy := v.DeepCopy()
 				ret[i] = vCopy
 			}
 			return ret
-		})(o.Mentions),
+		})(o.UserMentions),
+		TeamMentions: (func(x []KnownTeamMention) []KnownTeamMention {
+			if x == nil {
+				return nil
+			}
+			ret := make([]KnownTeamMention, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.TeamMentions),
 	}
 }
 
@@ -279,10 +299,11 @@ func (o MessageHeadline) DeepCopy() MessageHeadline {
 }
 
 type MessageFlip struct {
-	Text       string         `codec:"text" json:"text"`
-	GameID     FlipGameID     `codec:"gameID" json:"gameID"`
-	FlipConvID ConversationID `codec:"flipConvID" json:"flipConvID"`
-	Mentions   []Mention      `codec:"mentions" json:"mentions"`
+	Text         string             `codec:"text" json:"text"`
+	GameID       FlipGameID         `codec:"gameID" json:"gameID"`
+	FlipConvID   ConversationID     `codec:"flipConvID" json:"flipConvID"`
+	UserMentions []KnownUserMention `codec:"userMentions" json:"userMentions"`
+	TeamMentions []KnownTeamMention `codec:"teamMentions" json:"teamMentions"`
 }
 
 func (o MessageFlip) DeepCopy() MessageFlip {
@@ -290,17 +311,28 @@ func (o MessageFlip) DeepCopy() MessageFlip {
 		Text:       o.Text,
 		GameID:     o.GameID.DeepCopy(),
 		FlipConvID: o.FlipConvID.DeepCopy(),
-		Mentions: (func(x []Mention) []Mention {
+		UserMentions: (func(x []KnownUserMention) []KnownUserMention {
 			if x == nil {
 				return nil
 			}
-			ret := make([]Mention, len(x))
+			ret := make([]KnownUserMention, len(x))
 			for i, v := range x {
 				vCopy := v.DeepCopy()
 				ret[i] = vCopy
 			}
 			return ret
-		})(o.Mentions),
+		})(o.UserMentions),
+		TeamMentions: (func(x []KnownTeamMention) []KnownTeamMention {
+			if x == nil {
+				return nil
+			}
+			ret := make([]KnownTeamMention, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.TeamMentions),
 	}
 }
 
@@ -2557,18 +2589,6 @@ func (o MessagePlaintext) DeepCopy() MessagePlaintext {
 	}
 }
 
-type MaybeTeamMention struct {
-	Name    string `codec:"name" json:"name"`
-	Channel string `codec:"channel" json:"channel"`
-}
-
-func (o MaybeTeamMention) DeepCopy() MaybeTeamMention {
-	return MaybeTeamMention{
-		Name:    o.Name,
-		Channel: o.Channel,
-	}
-}
-
 type MessageUnboxedValid struct {
 	ClientHeader          MessageClientHeaderVerified `codec:"clientHeader" json:"clientHeader"`
 	ServerHeader          MessageServerHeader         `codec:"serverHeader" json:"serverHeader"`
@@ -2584,7 +2604,7 @@ type MessageUnboxedValid struct {
 	AtMentionUsernames    []string                    `codec:"atMentionUsernames" json:"atMentionUsernames"`
 	AtMentions            []gregor1.UID               `codec:"atMentions" json:"atMentions"`
 	ChannelMention        ChannelMention              `codec:"channelMention" json:"channelMention"`
-	TeamMentions          []MaybeTeamMention          `codec:"teamMentions" json:"teamMentions"`
+	MaybeMentions         []MaybeMention              `codec:"maybeMentions" json:"maybeMentions"`
 	ChannelNameMentions   []ChannelNameMention        `codec:"channelNameMentions" json:"channelNameMentions"`
 	Reactions             ReactionMap                 `codec:"reactions" json:"reactions"`
 	Unfurls               map[MessageID]UnfurlResult  `codec:"unfurls" json:"unfurls"`
@@ -2650,17 +2670,17 @@ func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
 			return ret
 		})(o.AtMentions),
 		ChannelMention: o.ChannelMention.DeepCopy(),
-		TeamMentions: (func(x []MaybeTeamMention) []MaybeTeamMention {
+		MaybeMentions: (func(x []MaybeMention) []MaybeMention {
 			if x == nil {
 				return nil
 			}
-			ret := make([]MaybeTeamMention, len(x))
+			ret := make([]MaybeMention, len(x))
 			for i, v := range x {
 				vCopy := v.DeepCopy()
 				ret[i] = vCopy
 			}
 			return ret
-		})(o.TeamMentions),
+		})(o.MaybeMentions),
 		ChannelNameMentions: (func(x []ChannelNameMention) []ChannelNameMention {
 			if x == nil {
 				return nil

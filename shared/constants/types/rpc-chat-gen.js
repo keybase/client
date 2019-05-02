@@ -43,7 +43,7 @@ export const chatUiUITextDecorationTyp = {
   payment: 0,
   atmention: 1,
   channelnamemention: 2,
-  teammention: 3,
+  maybemention: 3,
 }
 
 export const commandsConversationBuiltinCommandTyp = {
@@ -231,11 +231,6 @@ export const localHeaderPlaintextVersion = {
   v8: 8,
   v9: 9,
   v10: 10,
-}
-
-export const localMentionType = {
-  user: 0,
-  team: 1,
 }
 
 export const localMessageIDControlMode = {

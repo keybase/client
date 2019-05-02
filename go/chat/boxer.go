@@ -1168,7 +1168,7 @@ func (b *Boxer) getSenderInfoLocal(ctx context.Context, uid1 gregor1.UID, device
 }
 
 func (b *Boxer) getAtMentionInfo(ctx context.Context, tlfID chat1.TLFID, topicType chat1.TopicType,
-	membersType chat1.ConversationMembersType, body chat1.MessageBody) (atMentions []gregor1.UID, atMentionUsernames []string, teamRes []chat1.MaybeTeamMention, chanMention chat1.ChannelMention, channelNameMentions []chat1.ChannelNameMention) {
+	membersType chat1.ConversationMembersType, body chat1.MessageBody) (atMentions []chat1.KnownUserMention, atMentionUsernames []string, teamRes []chat1.MaybeTeamMention, chanMention chat1.ChannelMention, channelNameMentions []chat1.ChannelNameMention) {
 	if topicType != chat1.TopicType_CHAT {
 		// only care about chat conversations for these mentions
 		return atMentions, atMentionUsernames, teamRes, chanMention, channelNameMentions
@@ -1190,11 +1190,11 @@ func (b *Boxer) getAtMentionInfo(ctx context.Context, tlfID chat1.TLFID, topicTy
 	case chat1.MessageType_FLIP:
 		if topicType == chat1.TopicType_CHAT {
 			atMentions, teamRes, chanMention = utils.ParseAtMentionedItems(ctx, b.G(), body.Flip().Text,
-				body.Flip().Mentions)
+				body.Flip().UserMentions)
 		}
 	case chat1.MessageType_EDIT:
 		atMentions, teamRes, chanMention = utils.ParseAtMentionedItems(ctx, b.G(), body.Edit().Body,
-			body.Edit().Mentions)
+			body.Edit().UserMentions)
 		if membersType == chat1.ConversationMembersType_TEAM {
 			channelNameMentions = utils.ParseChannelNameMentions(ctx, body.Edit().Body, uid, tlfID, tcs)
 		}
