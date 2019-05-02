@@ -1851,7 +1851,7 @@ func CreateHiddenPlaceholder(msgID chat1.MessageID) chat1.MessageUnboxed {
 func GetGregorConn(ctx context.Context, g *globals.Context, log DebugLabeler,
 	handler func(nist *libkb.NIST) rpc.ConnectionHandler) (conn *rpc.Connection, token gregor1.SessionToken, err error) {
 	// Get session token
-	nist, _, err := g.ActiveDevice.NISTAndUID(ctx)
+	nist, _, _, err := g.ActiveDevice.NISTAndUIDDeviceID(ctx)
 	if nist == nil {
 		log.Debug(ctx, "GetGregorConn: got a nil NIST, is the user logged out?")
 		return conn, token, libkb.LoggedInError{}

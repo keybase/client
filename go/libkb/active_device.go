@@ -431,11 +431,11 @@ func (a *ActiveDevice) nistLocked(ctx context.Context) (*NIST, error) {
 	return nist, nil
 }
 
-func (a *ActiveDevice) NISTAndUID(ctx context.Context) (*NIST, keybase1.UID, error) {
+func (a *ActiveDevice) NISTAndUIDDeviceID(ctx context.Context) (*NIST, keybase1.UID, keybase1.DeviceID, error) {
 	a.RLock()
 	defer a.RUnlock()
 	nist, err := a.nistLocked(ctx)
-	return nist, a.uv.Uid, err
+	return nist, a.uv.Uid, a.DeviceID(), err
 }
 
 func (a *ActiveDevice) SyncSecretsForUID(m MetaContext, u keybase1.UID, force bool) (ret *SecretSyncer, err error) {
