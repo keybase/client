@@ -35,7 +35,7 @@ ExecStartPost=/usr/bin/env systemctl --user unset-environment KEYBASE_AUTOSTART
 
 # Only kill main Electron process, which kills the others. But if that fails,
 # systemd will send a SIGKILL to all Electron processes.
-KillMode=mixed
+KillMode=process
 
 # We don't have an [Install] section, since the app is intended to be started
 # from ~/.config/autostart (or the user's window manager's autostart
