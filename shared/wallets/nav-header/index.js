@@ -70,7 +70,10 @@ const styles = Styles.styleSheetCreate({
     common: {
       alignSelf: 'flex-start',
     },
-    isElectron: Styles.desktopStyles.windowDraggingClickable,
+    isElectron: {
+      ...Styles.desktopStyles.windowDraggingClickable,
+      marginTop: -Styles.globalMargins.xtiny,
+    },
   }),
   left: Styles.platformStyles({
     common: {
