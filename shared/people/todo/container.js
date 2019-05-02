@@ -7,7 +7,7 @@ import * as Tabs from '../../constants/tabs'
 import * as SettingsTabs from '../../constants/settings'
 import type {IconType} from '../../common-adapters/icon.constants'
 import {todoTypes} from '../../constants/people'
-import {connect, isMobile} from '../../util/container'
+import {connect, compose, isMobile, withNavigation} from '../../util/container'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ProfileGen from '../../actions/profile-gen'
@@ -99,14 +99,19 @@ const DeviceConnector = connect<TodoOwnProps, _, _, _, _>(
   (s, d, o) => ({...o, ...s, ...d})
 )(Task)
 
-const FollowConnector = connect<TodoOwnProps, _, _, _, _>(
-  () => ({}),
-  dispatch => ({
-    onConfirm: () =>
-      dispatch(RouteTreeGen.createNavigateAppend({parentPath: [Tabs.peopleTab], path: ['profileSearch']})),
-    onDismiss: onSkipTodo('follow', dispatch),
-  }),
-  (s, d, o) => ({...o, ...s, ...d})
+const FollowConnector = compose(
+  withNavigation,
+  connect<{|...TodoOwnProps, navigation: any|}, _, _, _, _>(
+    () => ({}),
+    (dispatch, {navigation}) => ({
+      onConfirm: () => {
+        const searchCounter = navigation.getParam('searchCounter', 0)
+        navigation.setParams({searchCounter: searchCounter + 1})
+      },
+      onDismiss: onSkipTodo('follow', dispatch),
+    }),
+    (s, d, o) => ({...o, ...s, ...d})
+  )
 )(Task)
 
 const ChatConnector = connect<TodoOwnProps, _, _, _, _>(

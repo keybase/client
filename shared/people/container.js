@@ -24,11 +24,12 @@ const mapDispatchToPropsHeader = dispatch => ({
   },
 })
 
-const mergePropsHeader = (stateProps, dispatchProps) => ({
+const mergePropsHeader = (stateProps, dispatchProps, ownProps) => ({
   myUsername: stateProps.myUsername,
   ...dispatchProps,
+  searchCounter: ownProps.searchCounter,
 })
-const ConnectedHeader = connect<OwnProps, _, _, _, _>(
+const ConnectedHeader = connect<{|searchCounter: number|}, _, _, _, _>(
   mapStateToPropsHeader,
   mapDispatchToPropsHeader,
   mergePropsHeader
@@ -111,14 +112,13 @@ const connected = connect<OwnProps, _, _, _, _>(
 )(LoadOnMount)
 
 // $FlowIssue lets fix this
-connected.navigationOptions = {
+connected.navigationOptions = ({navigation}) => ({
   header: undefined,
-  // $FlowIssue lets fix this
-  headerTitle: hp => <ConnectedHeader />,
+  headerTitle: hp => <ConnectedHeader searchCounter={navigation.getParam('searchCounter', 0)} />,
   headerTitleContainerStyle: {
     left: 40,
     right: 0,
   },
   underNotch: true,
-}
+})
 export default connected

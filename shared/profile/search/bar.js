@@ -5,11 +5,17 @@ import * as Styles from '../../styles'
 import flags from '../../util/feature-flags'
 import Search from './container'
 
-type Props = {|onSearch: () => void, whiteText?: boolean|}
+type Props = {|onSearch: () => void, searchCounter?: number, whiteText?: boolean|}
 type State = {|show: boolean|}
 
 class ProfileSearch extends React.PureComponent<Props, State> {
   state = {show: false}
+
+  componentDidUpdate(prevProps: Props, prevState: State) {
+    if (prevProps.searchCounter !== this.props.searchCounter) {
+      this._onShow()
+    }
+  }
 
   _ref = React.createRef()
   _onShow = () => {
@@ -21,6 +27,7 @@ class ProfileSearch extends React.PureComponent<Props, State> {
   render() {
     return (
       <Kb.Box2 style={styles.container} direction="horizontal" ref={this._ref}>
+        <Kb.Text type="BodySmall">{this.props.searchCounter || 0}</Kb.Text>
         <Kb.ClickableBox
           onClick={this._onShow}
           style={Styles.collapseStyles([styles.searchContainer, this.state.show && {opacity: 0}])}

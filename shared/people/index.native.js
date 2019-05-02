@@ -2,13 +2,13 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters/mobile.native'
 import {PeoplePageList} from './index.shared'
-import {type Props} from '.'
+import {type Props, type HeaderProps} from '.'
 import {globalStyles, styleSheetCreate} from '../styles'
 import {isIOS} from '../constants/platform'
 import flags from '../util/feature-flags'
 import ProfileSearch from '../profile/search/bar'
 
-export const Header = (props: Props) => (
+export const Header = (props: HeaderProps) => (
   <Kb.HeaderHocHeader
     borderless={true}
     underNotch={flags.useNewRouter}
@@ -24,12 +24,13 @@ export const Header = (props: Props) => (
         label: 'Avatar',
       },
     ]}
-    titleComponent={<ProfileSearch onSearch={props.onSearch} />}
+    titleComponent={<ProfileSearch onSearch={props.onSearch} searchCounter={props.searchCounter} />}
   />
 )
 
 const People = (props: Props) => (
   <>
+    {/* $FlowIssue */}
     {!flags.useNewRouter && <Header {...props} />}
     <Kb.ScrollView
       style={styles.scrollView}

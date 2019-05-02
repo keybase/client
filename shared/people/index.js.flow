@@ -14,9 +14,12 @@ export type Props = {
   waiting: boolean,
 }
 
-export default class People extends React.Component<Props> {}
-export class Header extends React.Component<{
+export type HeaderProps = {|
   onClickUser: string => void,
   onSearch: () => void,
   myUsername: string,
-}> {}
+  searchCounter: number,
+|}
+
+export default class People extends React.Component<Props> {}
+export class Header extends React.Component<HeaderProps> {}

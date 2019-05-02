@@ -41,4 +41,5 @@ export {default as remoteConnect} from './typed-remote-connect'
 export {isMobile} from '../constants/platform'
 export {anyWaiting, anyErrors} from '../constants/waiting'
 export {safeSubmit, safeSubmitPerMount} from './safe-submit'
+export {withNavigation} from '@react-navigation/core'
 export type {RouteProps, TypedActions, TypedState, TypedDispatch, Dispatch}

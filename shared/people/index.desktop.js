@@ -3,20 +3,20 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import {PeoplePageList} from './index.shared'
-import {type Props} from '.'
+import {type Props, type HeaderProps} from '.'
 import flags from '../util/feature-flags'
 import ProfileSearch from '../profile/search/bar'
 
 export const Header = flags.useNewRouter
-  ? (props: Props) => (
+  ? (props: HeaderProps) => (
       <Kb.Box2 direction="horizontal" style={styles.header}>
         <Kb.Text type="Header" style={styles.sectionTitle}>
           People
         </Kb.Text>
-        <ProfileSearch onSearch={props.onSearch} />
+        <ProfileSearch onSearch={props.onSearch} searchCounter={props.searchCounter} />
       </Kb.Box2>
     )
-  : (props: Props) => (
+  : (props: HeaderProps) => (
       <Kb.HeaderHocHeader
         headerStyle={styles.header}
         rightActions={[
