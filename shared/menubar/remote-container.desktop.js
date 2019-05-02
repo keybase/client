@@ -6,7 +6,7 @@ import openUrl from '../util/open-url'
 import {remoteConnect} from '../util/container'
 import {createOpenPopup as createOpenRekeyPopup} from '../actions/unlock-folders-gen'
 import {quit, hideWindow} from '../util/quit-helper.desktop'
-import {loginTab, type Tab} from '../constants/tabs'
+import {loginTab, type AppTab} from '../constants/tabs'
 import {throttle} from 'lodash-es'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as SafeElectron from '../util/safe-electron.desktop'
@@ -15,6 +15,7 @@ import {urlHelper} from '../util/url-helper'
 import {isWindows, isDarwin, isLinux} from '../constants/platform'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as SettingsGen from '../actions/settings-gen'
+import flags from '../util/feature-flags'
 
 // Props are handled by remote-proxy.desktop.js
 const mapDispatchToProps = dispatch => ({
@@ -30,9 +31,12 @@ const mapDispatchToProps = dispatch => ({
     dispatch(createOpenRekeyPopup())
     hideWindow()
   },
-  openApp: (tab?: Tab) => {
+  openApp: (tab?: AppTab) => {
     dispatch(ConfigGen.createShowMain())
-    tab && dispatch(RouteTreeGen.createSwitchTo({path: [tab]}))
+    tab &&
+      dispatch(
+        flags.useNewRouter ? RouteTreeGen.createSwitchTab({tab}) : RouteTreeGen.createSwitchTo({path: [tab]})
+      )
   },
   quit: () => {
     if (!__DEV__) {
