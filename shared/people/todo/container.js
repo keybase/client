@@ -106,7 +106,7 @@ const FollowConnector = connect<TodoOwnProps, _, _, _, _>(
       dispatch(RouteTreeGen.createNavigateAppend({parentPath: [Tabs.peopleTab], path: ['profileSearch']})),
     onDismiss: onSkipTodo('follow', dispatch),
   }),
-  (s, d, o) => ({...o, ...s, ...d})
+  (s, d, o) => ({...o, ...s, ...d, showSearchBar: true})
 )(Task)
 
 const ChatConnector = connect<TodoOwnProps, _, _, _, _>(
