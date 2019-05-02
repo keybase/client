@@ -78,7 +78,6 @@ class TeamInfo extends React.Component<Props> {
               </Kb.Text>
               {this.props.inTeam ? (
                 <Kb.WaitingButton
-                  fullWidth={true}
                   waitingKey={Constants.waitingKey}
                   label="View team"
                   onClick={this._onViewTeam}
@@ -86,7 +85,6 @@ class TeamInfo extends React.Component<Props> {
                 />
               ) : (
                 <Kb.WaitingButton
-                  fullWidth={true}
                   waitingKey={Constants.waitingKey}
                   label={this.props.isOpen ? 'Join team' : 'Request to join'}
                   onClick={this._onJoinTeam}
