@@ -12,6 +12,7 @@ function quitOnContext(context: Context): Array<Action> {
     case 'uiWindow':
       return ['closePopups', 'quitMainWindow']
     case 'mainThread':
+    case 'beforeQuit':
     case 'quitButton':
       return ['quitApp']
   }
