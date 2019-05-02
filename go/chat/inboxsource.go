@@ -359,6 +359,10 @@ func (s *RemoteInboxSource) Search(ctx context.Context, uid gregor1.UID, query s
 	return nil, errors.New("not implemented")
 }
 
+func (s *RemoteInboxSource) IsTeam(ctx context.Context, uid gregor1.UID, item string) (bool, error) {
+	return false, errors.New("not implemented")
+}
+
 func (s *RemoteInboxSource) NewConversation(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	conv chat1.Conversation) error {
 	return nil
@@ -843,6 +847,20 @@ func (s *HybridInboxSource) Search(ctx context.Context, uid gregor1.UID, query s
 		return res[:limit], nil
 	}
 	return res, nil
+}
+
+func (s *HybridInboxSource) IsTeam(ctx context.Context, uid gregor1.UID, item string) (res bool, err error) {
+	defer s.Trace(ctx, func() error { return err }, "IsTeam")()
+	_, convs, err := s.createInbox().ReadAll(ctx, uid, true)
+	if err != nil {
+		return res, err
+	}
+	for _, conv := range convs {
+		if conv.GetTeamName() == item {
+			return true
+		}
+	}
+	return false
 }
 
 func (s *HybridInboxSource) handleInboxError(ctx context.Context, err error, uid gregor1.UID) (ferr error) {

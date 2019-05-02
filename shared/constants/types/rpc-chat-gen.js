@@ -233,6 +233,11 @@ export const localHeaderPlaintextVersion = {
   v10: 10,
 }
 
+export const localMentionType = {
+  user: 0,
+  team: 1,
+}
+
 export const localMessageIDControlMode = {
   oldermessages: 0,
   newermessages: 1,

@@ -115,6 +115,16 @@ func (rc RemoteConversation) GetTopicName() string {
 	return ""
 }
 
+func (rc RemoteConversation) GetTeamName() string {
+	if rc.GetMembersType() != chat1.ConversationMembersType_TEAM {
+		return ""
+	}
+	if len(rc.Conv.MaxMsgSummaries) == 0 {
+		return ""
+	}
+	return rc.Conv.MaxMsgSummaries[0].TlfName
+}
+
 func (rc RemoteConversation) GetName() string {
 	switch rc.Conv.Metadata.TeamType {
 	case chat1.TeamType_COMPLEX:

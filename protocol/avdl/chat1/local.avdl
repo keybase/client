@@ -27,10 +27,21 @@ protocol local {
     TextPaymentResult result;
   }
 
+  enum MentionType {
+    USER_0,
+    TEAM_1
+  }
+
+  record Mention {
+    MentionType typ;
+    string mention;
+  }
+
   record MessageText {
     string body;
     array<TextPayment> payments;
     union { null, MessageID } replyTo;
+    array<Mention> mentions;
   }
 
   record MessageConversationMetadata {
@@ -40,6 +51,7 @@ protocol local {
   record MessageEdit {
     MessageID messageID;
     string body;
+    array<Mention> mentions;
   }
 
   record MessageDelete {
@@ -54,6 +66,7 @@ protocol local {
     string text;
     FlipGameID gameID;
     ConversationID flipConvID;
+    array<Mention> mentions;
   }
 
   enum MessageSystemType {

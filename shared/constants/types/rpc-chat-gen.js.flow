@@ -653,6 +653,11 @@ export const localHeaderPlaintextVersion = {
   v10: 10,
 }
 
+export const localMentionType = {
+  user: 0,
+  team: 1,
+}
+
 export const localMessageIDControlMode = {
   oldermessages: 0,
   newermessages: 1,
@@ -1029,6 +1034,11 @@ export type MarkAsReadRes = $ReadOnly<{rateLimit?: ?RateLimit}>
 export type MaybeTeamMention = $ReadOnly<{name: String, channel: String}>
 export type MemberInfo = $ReadOnly<{member: String, status: ConversationMemberStatus}>
 export type MembersUpdateInfo = $ReadOnly<{convID: ConversationID, members?: ?Array<MemberInfo>}>
+export type Mention = $ReadOnly<{typ: MentionType, mention: String}>
+export type MentionType =
+  | 0 // USER_0
+  | 1 // TEAM_1
+
 export type MerkleRoot = $ReadOnly<{seqno: Long, hash: Bytes}>
 export type MessageAttachment = $ReadOnly<{object: Asset, preview?: ?Asset, previews?: ?Array<Asset>, metadata: Bytes, uploaded: Boolean}>
 export type MessageAttachmentUploaded = $ReadOnly<{messageID: MessageID, object: Asset, previews?: ?Array<Asset>, metadata: Bytes}>
@@ -1046,8 +1056,8 @@ export type MessageClientHeaderVerified = $ReadOnly<{conv: ConversationIDTriple,
 export type MessageConversationMetadata = $ReadOnly<{conversationTitle: String}>
 export type MessageDelete = $ReadOnly<{messageIDs?: ?Array<MessageID>}>
 export type MessageDeleteHistory = $ReadOnly<{upto: MessageID}>
-export type MessageEdit = $ReadOnly<{messageID: MessageID, body: String}>
-export type MessageFlip = $ReadOnly<{text: String, gameID: FlipGameID, flipConvID: ConversationID}>
+export type MessageEdit = $ReadOnly<{messageID: MessageID, body: String, mentions?: ?Array<Mention>}>
+export type MessageFlip = $ReadOnly<{text: String, gameID: FlipGameID, flipConvID: ConversationID, mentions?: ?Array<Mention>}>
 export type MessageHeadline = $ReadOnly<{headline: String}>
 export type MessageID = Uint
 export type MessageIDControl = $ReadOnly<{pivot?: ?MessageID, mode: MessageIDControlMode, num: Int}>
@@ -1085,7 +1095,7 @@ export type MessageSystemType =
   | 6 // CHANGERETENTION_6
   | 7 // BULKADDTOCONV_7
 
-export type MessageText = $ReadOnly<{body: String, payments?: ?Array<TextPayment>, replyTo?: ?MessageID}>
+export type MessageText = $ReadOnly<{body: String, payments?: ?Array<TextPayment>, replyTo?: ?MessageID, mentions?: ?Array<Mention>}>
 export type MessageType =
   | 0 // NONE_0
   | 1 // TEXT_1

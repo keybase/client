@@ -64,6 +64,49 @@ func (l *TeamMentionLoader) Stop(ctx context.Context) chan struct{} {
 	return ch
 }
 
+func (l *TeamMentionLoader) GetUsersAndTeams(ctx context.Context, uid gregor1.UID, text string,
+	knownMentions []chat1.Mention) (res []chat1.Mention) {
+	defer l.Trace(ctx, func() error { return nil }, "GetUsersAndTeams")()
+	names := utils.ParseAtMentionsNames(ctx, text)
+	knownMap := make(map[string]chat1.Mention)
+	resMap := make(map[string]chat1.Mention)
+	for _, name := range names {
+		if known, ok := knownMap[name]; ok {
+			resMap[name] = known
+		} else {
+			switch {
+			case l.isUser(ctx, name):
+				resMap[name] = chat1.Mention{
+					Typ:     chat1.MentionType_USER,
+					Mention: name,
+				}
+			case l.isTeam(ctx, uid, name):
+				resMap[name] = chat1.Mention{
+					Typ:     chat1.MentionType_TEAM,
+					Mention: name,
+				}
+			}
+		}
+	}
+	for _, mention := range resMap {
+		res = append(res, mention)
+	}
+	return res
+}
+
+func (l *TeamMentionLoader) isUser(ctx context.Context, item string) bool {
+	return false
+}
+
+func (l *TeamMentionLoader) isTeam(ctx context.Context, uid gregor1.UID, item string) bool {
+	res, err := l.G().InboxSource.IsTeam(ctx, uid, item)
+	if err != nil {
+		l.Debug(ctx, "isTeam: failed to check if team: %s", err)
+		return false
+	}
+	return true
+}
+
 func (l *TeamMentionLoader) LoadTeamMention(ctx context.Context, uid gregor1.UID,
 	teamName, channel string) (err error) {
 	defer l.Trace(ctx, func() error { return err }, "LoadTeamMention")()

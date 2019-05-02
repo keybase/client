@@ -91,6 +91,28 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "MentionType",
+      "symbols": [
+        "USER_0",
+        "TEAM_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Mention",
+      "fields": [
+        {
+          "type": "MentionType",
+          "name": "typ"
+        },
+        {
+          "type": "string",
+          "name": "mention"
+        }
+      ]
+    },
+    {
       "type": "record",
       "name": "MessageText",
       "fields": [
@@ -111,6 +133,13 @@
             "MessageID"
           ],
           "name": "replyTo"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Mention"
+          },
+          "name": "mentions"
         }
       ]
     },
@@ -135,6 +164,13 @@
         {
           "type": "string",
           "name": "body"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Mention"
+          },
+          "name": "mentions"
         }
       ]
     },
@@ -176,6 +212,13 @@
         {
           "type": "ConversationID",
           "name": "flipConvID"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Mention"
+          },
+          "name": "mentions"
         }
       ]
     },
