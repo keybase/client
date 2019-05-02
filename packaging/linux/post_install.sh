@@ -9,7 +9,7 @@
 # To disable this behavior, create /etc/keybase/config.json if it doesn't exist
 # and add the key value pair { "disable-autorestart": true }.
 
-set -u
+set -u -x
 
 rootmount="/keybase"
 krbin="/usr/bin/keybase-redirector"
