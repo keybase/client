@@ -101,7 +101,7 @@ func isFusermountMountNotFoundError(output []byte, err error) bool {
 }
 
 func (m *mounter) Unmount() (err error) {
-	m.log.Info("Unmounting.")
+	m.log.Info("Unmounting")
 	dir := m.options.MountPoint
 	// Try normal unmount
 	switch runtime.GOOS {
@@ -111,7 +111,7 @@ func (m *mounter) Unmount() (err error) {
 		fusermountOutput, fusermountErr := exec.Command("fusermount", "-u", dir).CombinedOutput()
 		// Only clean up mountdir on a clean unmount.
 		if fusermountErr == nil {
-			m.log.Info("Successfully unmounted.")
+			m.log.Info("Successfully unmounted")
 			defer m.DeleteMountdirIfEmpty()
 		}
 		if fusermountErr != nil {
@@ -119,7 +119,7 @@ func (m *mounter) Unmount() (err error) {
 			if isFusermountMountNotFoundError(fusermountOutput, fusermountErr) {
 				m.log.Info("Ignoring mount-not-found fusermount error")
 			} else {
-				returnErr := fmt.Errorf("fusermount unmount resulted in unknown error: output=%v; err=%s.", fusermountOutput, fusermountErr)
+				returnErr := fmt.Errorf("fusermount unmount resulted in unknown error: output=%v; err=%s", fusermountOutput, fusermountErr)
 				m.log.Warning(returnErr.Error())
 				err = returnErr
 			}
@@ -147,11 +147,11 @@ func (m *mounter) Unmount() (err error) {
 }
 
 func (m *mounter) DeleteMountdirIfEmpty() (err error) {
-	m.log.Info("Deleting mountdir.")
+	m.log.Info("Deleting mountdir")
 	// os.Remove refuses to delete non-empty directories.
 	err = os.Remove(m.options.MountPoint)
 	if err != nil {
-		m.log.Errorf("Unable to delete mountdir: %s.", err)
+		m.log.Errorf("Unable to delete mountdir: %s", err)
 	}
 	return
 }
