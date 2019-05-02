@@ -68,7 +68,8 @@
         "'memberView'",
         "'newChannel'",
         "'transaction'",
-        "'requestedPayment'"
+        "'requestedPayment'",
+        "'teamMention'"
       ]
     },
     "createConversation": {

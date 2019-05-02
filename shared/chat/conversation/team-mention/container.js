@@ -34,7 +34,7 @@ const mapStateToProps = (state, {allowFontScaling, name, channel, style}) => {
 
 const mapDispatchToProps = dispatch => ({
   _onChat: conversationIDKey =>
-    dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'teamMention'})),
+    dispatch(Chat2Gen.createPreviewConversation({conversationIDKey, reason: 'teamMention'})),
   onJoinTeam: (teamname: string) => dispatch(TeamsGen.createJoinTeam({teamname})),
   onViewTeam: (teamname: string) => {
     dispatch(RouteTreeGen.createClearModals())
