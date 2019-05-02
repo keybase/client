@@ -93,7 +93,6 @@ class ChooseAsset extends React.Component<Props, State> {
             <Kb.Text key="choices" type="BodySmallSemibold">
               Lumens (XLM)
             </Kb.Text>
-            <Kb.Text type="BodySmall">Pick your display currency for this transaction:</Kb.Text>
           </Kb.Box2>
         )
       case 'other choices':
@@ -193,7 +192,7 @@ const DisplayChoice = (props: DisplayChoiceProps) => (
           >
             {props.symbol === 'XLM' ? 'Purely strictly ' : 'Lumens displayed as '}
             <Kb.Text type="BodyExtrabold" style={props.selected ? styles.blue : undefined}>
-              {props.currencyCode} ({props.symbol}){' '}
+              {props.symbol === 'XLM' ? 'Lumens' : props.currencyCode} ({props.symbol})
             </Kb.Text>
           </Kb.Text>
         </Kb.Box2>
@@ -330,6 +329,7 @@ const styles = Styles.styleSheetCreate({
   sectionHeaderContainer: Styles.platformStyles({
     common: {
       alignItems: 'flex-start',
+      backgroundColor: Styles.globalColors.blue5,
       justifyContent: 'center',
       paddingBottom: Styles.globalMargins.tiny,
       paddingLeft: Styles.globalMargins.small,
@@ -337,13 +337,9 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.tiny,
     },
     isElectron: {
-      backgroundColor: Styles.globalColors.white,
       // must be uniform height with current SectionList implementation
       // so first doesn't peek out from under the second
-      height: 40,
-    },
-    isMobile: {
-      backgroundColor: Styles.globalColors.blue5,
+      height: 32,
     },
   }),
   sectionList: {
