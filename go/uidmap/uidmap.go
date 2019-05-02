@@ -455,6 +455,10 @@ func (u *UIDMap) CheckUIDAgainstUsername(uid keybase1.UID, un libkb.NormalizedUs
 	return checkUIDAgainstUsername(uid, un)
 }
 
+func (u *UIDMap) MapHardcodedUsernameToUID(un libkb.NormalizedUsername) keybase1.UID {
+	return findHardcodedUsername(un)
+}
+
 func (u *UIDMap) ClearUIDAtEldestSeqno(ctx context.Context, g libkb.UIDMapperContext, uid keybase1.UID, s keybase1.Seqno) error {
 	u.Lock()
 	defer u.Unlock()
@@ -541,6 +545,10 @@ type OfflineUIDMap struct{}
 
 func (o *OfflineUIDMap) CheckUIDAgainstUsername(uid keybase1.UID, un libkb.NormalizedUsername) bool {
 	return true
+}
+
+func (o *OfflineUIDMap) MapHardcodedUsernameToUID(un libkb.NormalizedUsername) keybase1.UID {
+	return findHardcodedUsername(un)
 }
 
 func (o *OfflineUIDMap) MapUIDsToUsernamePackages(ctx context.Context, g libkb.UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration, networktimeBudget time.Duration, forceNetworkForFullNames bool) ([]libkb.UsernamePackage, error) {
