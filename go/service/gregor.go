@@ -693,6 +693,7 @@ func (g *gregorHandler) authParams(ctx context.Context) (uid gregor1.UID, token 
 		return uid, token, nil,
 			newConnectionAuthError("failed to check logged in status", res == loggedInMaybe)
 	}
+	g.chatLog.Debug(ctx, "generated NIST for UID %s", kuid)
 	return kuid.ToBytes(), gregor1.SessionToken(stoken), nist, nil
 }
 
@@ -721,6 +722,9 @@ func (g *gregorHandler) notificationParams(ctx context.Context, gcli *grclient.C
 // gregord
 func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	cli rpc.GenericClient, srv *rpc.Server) (err error) {
+
+	ctx = libkb.WithLogTag(ctx, "GRGRONCONN")
+
 	defer g.chatLog.Trace(ctx, func() error { return err }, "OnConnect")()
 
 	// If we get a random OnConnect on some other connection that is not g.conn, then

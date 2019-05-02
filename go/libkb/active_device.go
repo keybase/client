@@ -412,13 +412,29 @@ func (a *ActiveDevice) IsValidFor(uid keybase1.UID, deviceID keybase1.DeviceID) 
 func (a *ActiveDevice) NIST(ctx context.Context) (*NIST, error) {
 	a.RLock()
 	defer a.RUnlock()
-	return a.nistFactory.NIST(ctx)
+	return a.nistLocked(ctx)
+}
+
+func (a *ActiveDevice) nistLocked(ctx context.Context) (*NIST, error) {
+	nist, err := a.nistFactory.NIST(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if nist == nil {
+		return nil, nil
+	}
+	uid := a.nistFactory.UID()
+	if !uid.Equal(a.uv.Uid) {
+		return nil, NewUIDMismatchError(fmt.Sprintf("NIST generation error, UIDs didn't match; ActiveDevice said %s, but NIST factory said %s", a.uv.Uid, uid))
+	}
+
+	return nist, nil
 }
 
 func (a *ActiveDevice) NISTAndUID(ctx context.Context) (*NIST, keybase1.UID, error) {
 	a.RLock()
 	defer a.RUnlock()
-	nist, err := a.nistFactory.NIST(ctx)
+	nist, err := a.nistLocked(ctx)
 	return nist, a.uv.Uid, err
 }
 
