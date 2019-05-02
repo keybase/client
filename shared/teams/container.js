@@ -131,7 +131,6 @@ const ConnectedHeaderRightActions = connect<{}, _, _, _, _>(
 Connected.navigationOptions = {
   header: undefined,
   headerRightActions: () => <ConnectedHeaderRightActions />,
-  headerTitle: 'Teams',
   title: 'Teams',
 }
 

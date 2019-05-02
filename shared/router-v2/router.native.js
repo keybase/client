@@ -36,13 +36,17 @@ const defaultNavigationOptions = {
         customIconColor={hp.tintColor}
       />
     ),
+  headerStyle: {
+    elevation: undefined, // since we use screen on android turn off drop shadow
+  },
   headerTitle: hp => (
     <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1}>
       {hp.children}
     </Kb.Text>
   ),
 }
-const headerMode = 'float'
+// workaround for https://github.com/react-navigation/react-navigation/issues/4872 else android will eat clicks
+const headerMode = Styles.isAndroid ? 'screen' : 'float'
 
 const tabs = Shared.mobileTabs
 const tabRoots = Shared.tabRoots

@@ -145,7 +145,7 @@ Connected.navigationOptions = ({navigation}: {navigation: any}) => {
     ? path === Constants.defaultPath
       ? {
           header: undefined,
-          headerTitle: 'Files',
+          title: 'Files',
         }
       : {
           header: (
