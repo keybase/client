@@ -44,9 +44,10 @@ const _getStackPathHelper = (arr, s: any) => {
   const route = s.routes[s.index]
   if (!route) return arr
   if (route.routes) return _getStackPathHelper([...arr, s.routes[s.index]], route)
-  if (s.routeName === 'loggedIn' && s.index === 1) {
+  if (s.routeName === 'loggedIn' && s.index !== 0) {
     // Modal stack is selected, make sure we get app routes too
-    return [...arr, ..._getStackPathHelper([], s.routes[0]), s.routes[1]]
+    // modals are at indices >= 1
+    return [...arr, ..._getStackPathHelper([], s.routes[0]), ...s.routes.slice(1)]
   }
   // leaf router - this is a stack router within a tab
   // start slice at 0 to also get the pages stacked below the current one
@@ -60,7 +61,6 @@ const findFullRoute = s => {
   }
   return loggedInOut.routes
 }
-
 // Private API used by navigator itself
 export const _getVisiblePathForNavigator = (navState: any) => {
   if (!navState) return []
