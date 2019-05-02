@@ -26,6 +26,7 @@ type Props = {|
   isOpen: boolean,
   membersCount: number,
   name: string,
+  onChat?: () => void,
   onHidden: () => void,
   onJoinTeam: string => void,
   onViewTeam: string => void,
@@ -44,6 +45,12 @@ class TeamInfo extends React.Component<Props> {
   _onViewTeam = () => {
     this.props.onViewTeam(this.props.name)
     this.props.onHidden()
+  }
+  _onChat = () => {
+    if (this.props.onChat) {
+      this.props.onChat()
+      this.props.onHidden()
+    }
   }
   render() {
     const memberText = this._isPrivate()
@@ -76,6 +83,14 @@ class TeamInfo extends React.Component<Props> {
               <Kb.Text type="Body" style={styles.description}>
                 {this.props.description}
               </Kb.Text>
+              {this.props.onChat && (
+                <Kb.WaitingButton
+                  waitingKey={Constants.waitingKey}
+                  label="Chat"
+                  onClick={this._onChat}
+                  mode="Secondary"
+                />
+              )}
               {this.props.inTeam ? (
                 <Kb.WaitingButton
                   waitingKey={Constants.waitingKey}

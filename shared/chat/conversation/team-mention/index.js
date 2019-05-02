@@ -14,6 +14,7 @@ export type Props = {|
   inTeam: boolean,
   isOpen: boolean,
   name: string,
+  onChat?: () => void,
   onJoinTeam: string => void,
   onViewTeam: string => void,
   resolved: boolean,
@@ -65,6 +66,7 @@ class TeamMention extends React.Component<Props, State> {
         isOpen={this.props.isOpen}
         name={this.props.name}
         membersCount={this.props.numMembers}
+        onChat={this.props.onChat}
         onHidden={this._hidePopup}
         onJoinTeam={this.props.onJoinTeam}
         onViewTeam={this.props.onViewTeam}

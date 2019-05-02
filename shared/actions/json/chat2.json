@@ -10,7 +10,7 @@
     "toggleSmallTeamsExpanded": {},
     // Deselct if this is still selected, used in nav2 when you go away from a chat convo
     "deselectConversation": {
-      "ifConversationIDKey": "Types.ConversationIDKey",
+      "ifConversationIDKey": "Types.ConversationIDKey"
     },
     // Select a conversation (or leave nothing selected)
     "selectConversation": {
@@ -39,7 +39,8 @@
         "'savedLastState'", // last seen chat tab
         "'startFoundExisting'", // starting a conversation and found one already
         "'teamChat'", // from team
-        "'addedToChannel'" // just added people to this channel
+        "'addedToChannel'", // just added people to this channel
+        "'teamMention'" // from team mention
       ]
     },
     // Select an existing conversation or setup an empty one. Can either be adhoc or a tlf (adhoc or team)
@@ -661,7 +662,7 @@
       "info": "RPCChatTypes.UITeamMention"
     },
     "tabSelected": {
-      "_description": "Desktop changed tab to chat",
+      "_description": "Desktop changed tab to chat"
     }
   }
 }
