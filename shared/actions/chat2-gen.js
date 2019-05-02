@@ -102,6 +102,7 @@ export const setConvExplodingMode = 'chat2:setConvExplodingMode'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
 export const setExplodingModeLock = 'chat2:setExplodingModeLock'
+export const setInboxShowIsNew = 'chat2:setInboxShowIsNew'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const setPaymentConfirmInfo = 'chat2:setPaymentConfirmInfo'
 export const setTeamMentionInfo = 'chat2:setTeamMentionInfo'
@@ -230,6 +231,7 @@ type _SetConvExplodingModePayload = $ReadOnly<{|conversationIDKey: Types.Convers
 type _SetConvRetentionPolicyPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, policy: RetentionPolicy|}>
 type _SetConversationOfflinePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, offline: boolean|}>
 type _SetExplodingModeLockPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, unset?: boolean|}>
+type _SetInboxShowIsNewPayload = $ReadOnly<{|isNew: boolean|}>
 type _SetMinWriterRolePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, role: TeamsTypes.TeamRoleType|}>
 type _SetPaymentConfirmInfoPayload = $ReadOnly<{|summary: RPCChatTypes.UIChatPaymentSummary|}>
 type _SetPaymentConfirmInfoPayloadError = $ReadOnly<{|error: RPCTypes.Status|}>
@@ -488,6 +490,10 @@ export const createPaymentInfoReceived = (payload: _PaymentInfoReceivedPayload) 
  */
 export const createRequestInfoReceived = (payload: _RequestInfoReceivedPayload) => ({payload, type: requestInfoReceived})
 /**
+ * We've seen chat search before
+ */
+export const createSetInboxShowIsNew = (payload: _SetInboxShowIsNewPayload) => ({payload, type: setInboxShowIsNew})
+/**
  * Where we want our focus for keypresses
  */
 export const createChangeFocus = (payload: _ChangeFocusPayload) => ({payload, type: changeFocus})
@@ -653,6 +659,7 @@ export type SetConvExplodingModePayload = {|+payload: _SetConvExplodingModePaylo
 export type SetConvRetentionPolicyPayload = {|+payload: _SetConvRetentionPolicyPayload, +type: 'chat2:setConvRetentionPolicy'|}
 export type SetConversationOfflinePayload = {|+payload: _SetConversationOfflinePayload, +type: 'chat2:setConversationOffline'|}
 export type SetExplodingModeLockPayload = {|+payload: _SetExplodingModeLockPayload, +type: 'chat2:setExplodingModeLock'|}
+export type SetInboxShowIsNewPayload = {|+payload: _SetInboxShowIsNewPayload, +type: 'chat2:setInboxShowIsNew'|}
 export type SetMinWriterRolePayload = {|+payload: _SetMinWriterRolePayload, +type: 'chat2:setMinWriterRole'|}
 export type SetPaymentConfirmInfoPayload = {|+payload: _SetPaymentConfirmInfoPayload, +type: 'chat2:setPaymentConfirmInfo'|}
 export type SetPaymentConfirmInfoPayloadError = {|+error: true, +payload: _SetPaymentConfirmInfoPayloadError, +type: 'chat2:setPaymentConfirmInfo'|}
@@ -781,6 +788,7 @@ export type Actions =
   | SetConvRetentionPolicyPayload
   | SetConversationOfflinePayload
   | SetExplodingModeLockPayload
+  | SetInboxShowIsNewPayload
   | SetMinWriterRolePayload
   | SetPaymentConfirmInfoPayload
   | SetPaymentConfirmInfoPayloadError

@@ -36,6 +36,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   giphyWindowMap: I.Map(),
   inboxHasLoaded: false,
   inboxSearch: null,
+  inboxShowNew: false,
   isWalletsNew: true,
   messageCenterOrdinals: I.Map(),
   messageMap: I.Map(),
@@ -237,6 +238,7 @@ export const isInfoPanelOpen = (state: TypedState) => {
   }
 }
 
+export const inboxSearchNewKey = 'chat:inboxSearchNew'
 export const waitingKeyJoinConversation = 'chat:joinConversation'
 export const waitingKeyDeleteHistory = 'chat:deleteHistory'
 export const waitingKeyPost = 'chat:post'
