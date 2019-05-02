@@ -132,6 +132,9 @@ protocol remote {
     boolean fromPrimary;
     string batchID;
     boolean fromAirdrop;
+    string sourceAmountMax;
+    string sourceAmountActual;
+    Asset sourceAsset;
   }
 
   record PaymentSummaryRelay {

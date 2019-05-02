@@ -1308,7 +1308,7 @@ function* threadSearch(state, action) {
   const onHit = hit => {
     const message = Constants.uiMessageToMessage(state, conversationIDKey, hit.searchHit.hitMessage)
     return message
-      ? Saga.put(Chat2Gen.createThreadSearchResults({conversationIDKey, messages: [message]}))
+      ? Saga.put(Chat2Gen.createThreadSearchResults({clear: false, conversationIDKey, messages: [message]}))
       : []
   }
   const onInboxHit = resp => {
@@ -1320,7 +1320,7 @@ function* threadSearch(state, action) {
       return l
     }, [])
     return messages.length > 0
-      ? Saga.put(Chat2Gen.createThreadSearchResults({conversationIDKey, messages}))
+      ? Saga.put(Chat2Gen.createThreadSearchResults({clear: true, conversationIDKey, messages}))
       : []
   }
   const onDone = () => {

@@ -427,6 +427,9 @@ type PaymentSummaryDirect struct {
 	FromPrimary         bool                  `codec:"fromPrimary" json:"fromPrimary"`
 	BatchID             string                `codec:"batchID" json:"batchID"`
 	FromAirdrop         bool                  `codec:"fromAirdrop" json:"fromAirdrop"`
+	SourceAmountMax     string                `codec:"sourceAmountMax" json:"sourceAmountMax"`
+	SourceAmountActual  string                `codec:"sourceAmountActual" json:"sourceAmountActual"`
+	SourceAsset         Asset                 `codec:"sourceAsset" json:"sourceAsset"`
 }
 
 func (o PaymentSummaryDirect) DeepCopy() PaymentSummaryDirect {
@@ -473,6 +476,9 @@ func (o PaymentSummaryDirect) DeepCopy() PaymentSummaryDirect {
 		FromPrimary:         o.FromPrimary,
 		BatchID:             o.BatchID,
 		FromAirdrop:         o.FromAirdrop,
+		SourceAmountMax:     o.SourceAmountMax,
+		SourceAmountActual:  o.SourceAmountActual,
+		SourceAsset:         o.SourceAsset.DeepCopy(),
 	}
 }
 

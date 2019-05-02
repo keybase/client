@@ -206,6 +206,9 @@ type PaymentLocal struct {
 	OriginalToAssertion string          `codec:"originalToAssertion" json:"originalToAssertion"`
 	Note                string          `codec:"note" json:"note"`
 	NoteErr             string          `codec:"noteErr" json:"noteErr"`
+	SourceAmountMax     string          `codec:"sourceAmountMax" json:"sourceAmountMax"`
+	SourceAmountActual  string          `codec:"sourceAmountActual" json:"sourceAmountActual"`
+	SourceAsset         Asset           `codec:"sourceAsset" json:"sourceAsset"`
 	Unread              bool            `codec:"unread" json:"unread"`
 	BatchID             string          `codec:"batchID" json:"batchID"`
 	FromAirdrop         bool            `codec:"fromAirdrop" json:"fromAirdrop"`
@@ -251,6 +254,9 @@ func (o PaymentLocal) DeepCopy() PaymentLocal {
 		OriginalToAssertion: o.OriginalToAssertion,
 		Note:                o.Note,
 		NoteErr:             o.NoteErr,
+		SourceAmountMax:     o.SourceAmountMax,
+		SourceAmountActual:  o.SourceAmountActual,
+		SourceAsset:         o.SourceAsset.DeepCopy(),
 		Unread:              o.Unread,
 		BatchID:             o.BatchID,
 		FromAirdrop:         o.FromAirdrop,
@@ -351,6 +357,9 @@ type PaymentDetailsLocal struct {
 	OriginalToAssertion string          `codec:"originalToAssertion" json:"originalToAssertion"`
 	Note                string          `codec:"note" json:"note"`
 	NoteErr             string          `codec:"noteErr" json:"noteErr"`
+	SourceAmountMax     string          `codec:"sourceAmountMax" json:"sourceAmountMax"`
+	SourceAmountActual  string          `codec:"sourceAmountActual" json:"sourceAmountActual"`
+	SourceAsset         Asset           `codec:"sourceAsset" json:"sourceAsset"`
 	PublicNote          string          `codec:"publicNote" json:"publicNote"`
 	PublicNoteType      string          `codec:"publicNoteType" json:"publicNoteType"`
 	ExternalTxURL       string          `codec:"externalTxURL" json:"externalTxURL"`
@@ -399,6 +408,9 @@ func (o PaymentDetailsLocal) DeepCopy() PaymentDetailsLocal {
 		OriginalToAssertion: o.OriginalToAssertion,
 		Note:                o.Note,
 		NoteErr:             o.NoteErr,
+		SourceAmountMax:     o.SourceAmountMax,
+		SourceAmountActual:  o.SourceAmountActual,
+		SourceAsset:         o.SourceAsset.DeepCopy(),
 		PublicNote:          o.PublicNote,
 		PublicNoteType:      o.PublicNoteType,
 		ExternalTxURL:       o.ExternalTxURL,
@@ -756,22 +768,25 @@ func (o PaymentOrErrorCLILocal) DeepCopy() PaymentOrErrorCLILocal {
 }
 
 type PaymentCLILocal struct {
-	TxID            TransactionID `codec:"txID" json:"txID"`
-	Time            TimeMs        `codec:"time" json:"time"`
-	Status          string        `codec:"status" json:"status"`
-	StatusDetail    string        `codec:"statusDetail" json:"statusDetail"`
-	Amount          string        `codec:"amount" json:"amount"`
-	Asset           Asset         `codec:"asset" json:"asset"`
-	DisplayAmount   *string       `codec:"displayAmount,omitempty" json:"displayAmount,omitempty"`
-	DisplayCurrency *string       `codec:"displayCurrency,omitempty" json:"displayCurrency,omitempty"`
-	FromStellar     AccountID     `codec:"fromStellar" json:"fromStellar"`
-	ToStellar       *AccountID    `codec:"toStellar,omitempty" json:"toStellar,omitempty"`
-	FromUsername    *string       `codec:"fromUsername,omitempty" json:"fromUsername,omitempty"`
-	ToUsername      *string       `codec:"toUsername,omitempty" json:"toUsername,omitempty"`
-	ToAssertion     *string       `codec:"toAssertion,omitempty" json:"toAssertion,omitempty"`
-	Note            string        `codec:"note" json:"note"`
-	NoteErr         string        `codec:"noteErr" json:"noteErr"`
-	Unread          bool          `codec:"unread" json:"unread"`
+	TxID               TransactionID `codec:"txID" json:"txID"`
+	Time               TimeMs        `codec:"time" json:"time"`
+	Status             string        `codec:"status" json:"status"`
+	StatusDetail       string        `codec:"statusDetail" json:"statusDetail"`
+	Amount             string        `codec:"amount" json:"amount"`
+	Asset              Asset         `codec:"asset" json:"asset"`
+	DisplayAmount      *string       `codec:"displayAmount,omitempty" json:"displayAmount,omitempty"`
+	DisplayCurrency    *string       `codec:"displayCurrency,omitempty" json:"displayCurrency,omitempty"`
+	SourceAmountMax    string        `codec:"sourceAmountMax" json:"sourceAmountMax"`
+	SourceAmountActual string        `codec:"sourceAmountActual" json:"sourceAmountActual"`
+	SourceAsset        Asset         `codec:"sourceAsset" json:"sourceAsset"`
+	FromStellar        AccountID     `codec:"fromStellar" json:"fromStellar"`
+	ToStellar          *AccountID    `codec:"toStellar,omitempty" json:"toStellar,omitempty"`
+	FromUsername       *string       `codec:"fromUsername,omitempty" json:"fromUsername,omitempty"`
+	ToUsername         *string       `codec:"toUsername,omitempty" json:"toUsername,omitempty"`
+	ToAssertion        *string       `codec:"toAssertion,omitempty" json:"toAssertion,omitempty"`
+	Note               string        `codec:"note" json:"note"`
+	NoteErr            string        `codec:"noteErr" json:"noteErr"`
+	Unread             bool          `codec:"unread" json:"unread"`
 }
 
 func (o PaymentCLILocal) DeepCopy() PaymentCLILocal {
@@ -796,7 +811,10 @@ func (o PaymentCLILocal) DeepCopy() PaymentCLILocal {
 			tmp := (*x)
 			return &tmp
 		})(o.DisplayCurrency),
-		FromStellar: o.FromStellar.DeepCopy(),
+		SourceAmountMax:    o.SourceAmountMax,
+		SourceAmountActual: o.SourceAmountActual,
+		SourceAsset:        o.SourceAsset.DeepCopy(),
+		FromStellar:        o.FromStellar.DeepCopy(),
 		ToStellar: (func(x *AccountID) *AccountID {
 			if x == nil {
 				return nil

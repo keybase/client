@@ -104,6 +104,11 @@ protocol local {
     string note;                    // secret note
     string noteErr;
 
+    // for path payments:
+    string sourceAmountMax;
+    string sourceAmountActual;
+    Asset sourceAsset;
+
     boolean unread;                 // true if user hasn't seen the payment yet (sourceType STELLAR only)
 
     string batchID;                 // if payment sent via batch, will contain the batch id
@@ -167,6 +172,11 @@ protocol local {
 
     string note;                    // secret note
     string noteErr;
+
+    // for path payments:
+    string sourceAmountMax;
+    string sourceAmountActual;
+    Asset sourceAsset;
 
     string publicNote;              // public memo for the payment
     string publicNoteType;          // public memo type: "text", "id", "hash", "return"
@@ -576,6 +586,10 @@ protocol local {
     Asset asset;
     union { null, string } displayAmount;
     union { null, string } displayCurrency;
+
+    string sourceAmountMax;
+    string sourceAmountActual;
+    Asset sourceAsset;
 
     AccountID fromStellar;
     union { null, AccountID } toStellar;

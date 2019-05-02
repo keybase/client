@@ -1439,14 +1439,17 @@ func localizePayment(mctx libkb.MetaContext, p stellar1.PaymentSummary) (res ste
 	case stellar1.PaymentSummaryType_DIRECT:
 		p := p.Direct()
 		res = stellar1.PaymentCLILocal{
-			TxID:            p.TxID,
-			Time:            p.Ctime,
-			Amount:          p.Amount,
-			Asset:           p.Asset,
-			DisplayAmount:   p.DisplayAmount,
-			DisplayCurrency: p.DisplayCurrency,
-			FromStellar:     p.FromStellar,
-			ToStellar:       &p.ToStellar,
+			TxID:               p.TxID,
+			Time:               p.Ctime,
+			Amount:             p.Amount,
+			Asset:              p.Asset,
+			DisplayAmount:      p.DisplayAmount,
+			DisplayCurrency:    p.DisplayCurrency,
+			FromStellar:        p.FromStellar,
+			ToStellar:          &p.ToStellar,
+			SourceAsset:        p.SourceAsset,
+			SourceAmountMax:    p.SourceAmountMax,
+			SourceAmountActual: p.SourceAmountActual,
 		}
 		res.Status, res.StatusDetail = p.TxStatus.Details(p.TxErrMsg)
 		res.FromUsername, err = username(p.From.Uid)

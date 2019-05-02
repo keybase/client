@@ -2352,10 +2352,14 @@ func (h *Server) SearchRegexp(ctx context.Context, arg chat1.SearchRegexpArg) (r
 	ch := make(chan struct{})
 	go func() {
 		for searchHit := range uiCh {
-			chatUI.ChatSearchHit(ctx, chat1.ChatSearchHitArg{
-				SessionID: arg.SessionID,
-				SearchHit: searchHit,
-			})
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				chatUI.ChatSearchHit(ctx, chat1.ChatSearchHitArg{
+					SearchHit: searchHit,
+				})
+			}
 		}
 		close(ch)
 	}()
@@ -2366,8 +2370,7 @@ func (h *Server) SearchRegexp(ctx context.Context, arg chat1.SearchRegexpArg) (r
 
 	<-ch
 	chatUI.ChatSearchDone(ctx, chat1.ChatSearchDoneArg{
-		SessionID: arg.SessionID,
-		NumHits:   len(hits),
+		NumHits: len(hits),
 	})
 	return chat1.SearchRegexpRes{
 		Hits:             hits,
@@ -2416,15 +2419,34 @@ func (h *Server) delegateInboxSearch(ctx context.Context, uid gregor1.UID, query
 	default:
 		ui.ChatSearchConvHits(ctx, chat1.UIChatSearchConvHits{})
 	}
+	var numHits, numConvs int
 	for index, conv := range convs {
-		hits, err := h.G().RegexpSearcher.Search(ctx, uid, conv.GetConvID(), re, nil, opts)
+		uiCh := make(chan chat1.ChatSearchHit, 10)
+		ch := make(chan struct{})
+		go func() {
+			for searchHit := range uiCh {
+				select {
+				case <-ctx.Done():
+					return
+				default:
+					ui.ChatSearchHit(ctx, chat1.ChatSearchHitArg{
+						SearchHit: searchHit,
+					})
+				}
+			}
+			close(ch)
+		}()
+		hits, err := h.G().RegexpSearcher.Search(ctx, uid, conv.GetConvID(), re, uiCh, opts)
 		if err != nil {
 			h.Debug(ctx, "delegateInboxSearch: failed to search conv: %s", err)
 			continue
 		}
+		<-ch
 		if len(hits) == 0 {
 			continue
 		}
+		numHits += len(hits)
+		numConvs++
 		inboxHit := chat1.ChatSearchInboxHit{
 			ConvID:   conv.GetConvID(),
 			TeamType: conv.GetTeamType(),
@@ -2449,11 +2471,18 @@ func (h *Server) delegateInboxSearch(ctx context.Context, uid gregor1.UID, query
 			break
 		}
 	}
+
 	select {
 	case <-ctx.Done():
 		return res, ctx.Err()
 	default:
-		ui.ChatSearchInboxDone(ctx, chat1.ChatSearchInboxDoneArg{})
+		ui.ChatSearchInboxDone(ctx, chat1.ChatSearchInboxDoneArg{
+			Res: chat1.ChatSearchInboxDone{
+				NumHits:   numHits,
+				NumConvs:  numConvs,
+				Delegated: true,
+			},
+		})
 	}
 	return res, nil
 }
@@ -2469,8 +2498,8 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 	if err != nil {
 		return res, err
 	}
-	chatUI := h.getChatUI(arg.SessionID)
 
+	chatUI := h.getChatUI(arg.SessionID)
 	select {
 	case <-ctx.Done():
 		return res, ctx.Err()
@@ -2480,6 +2509,7 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 
 	username := h.G().GetEnv().GetUsernameForUID(keybase1.UID(uid.String())).String()
 	query, opts := search.UpgradeSearchOptsFromQuery(arg.Query, arg.Opts, username)
+	doSearch := !arg.NamesOnly && len(query) > 0
 	forceDelegate := false
 	if arg.Opts.ConvID != nil {
 		fullyIndexed, err := h.G().Indexer.FullyIndexed(ctx, *arg.Opts.ConvID, uid)
@@ -2489,6 +2519,9 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 		} else {
 			forceDelegate = !fullyIndexed
 		}
+		if len(query) < search.MinTokenLength {
+			forceDelegate = true
+		}
 		if forceDelegate {
 			h.Debug(ctx, "SearchInbox: force delegating since not indexed")
 		}
@@ -2496,7 +2529,8 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 	} else {
 		ctx = h.getInboxSearchContext(ctx)
 	}
-	if opts.IsRegex || forceDelegate {
+
+	if doSearch && (opts.IsRegex || forceDelegate) {
 		inboxRes, err := h.delegateInboxSearch(ctx, uid, query, arg.Query, opts, chatUI)
 		if err != nil {
 			return res, err
@@ -2505,14 +2539,14 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 		res.IdentifyFailures = identBreaks
 		return res, nil
 	}
+
 	// stream hits back to client UI
 	hitUICh := make(chan chat1.ChatSearchInboxHit, 10)
 	hitUIDone := make(chan struct{})
 	numHits := 0
-	doIndexSearch := !arg.NamesOnly && len(query) > 0
 	go func() {
 		defer close(hitUIDone)
-		if !doIndexSearch {
+		if !doSearch {
 			return
 		}
 		for searchHit := range hitUICh {
@@ -2532,7 +2566,7 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 	indexUIDone := make(chan struct{})
 	go func() {
 		defer close(indexUIDone)
-		if !doIndexSearch {
+		if !doSearch {
 			return
 		}
 		for status := range indexUICh {
@@ -2546,6 +2580,7 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 			}
 		}
 	}()
+
 	// send up conversation name matches
 	convUIDone := make(chan struct{})
 	go func() {
@@ -2570,7 +2605,7 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 	}()
 
 	var searchRes *chat1.ChatSearchInboxResults
-	if doIndexSearch {
+	if doSearch {
 		select {
 		case <-time.After(50 * time.Millisecond):
 		case <-ctx.Done():

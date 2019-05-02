@@ -593,7 +593,8 @@
     "threadSearchResults": {
       "_description": "Record a new thread search result",
       "conversationIDKey": "Types.ConversationIDKey",
-      "messages": "Array<Types.Message>"
+      "messages": "Array<Types.Message>",
+      "clear": "boolean"
     },
     "setThreadSearchStatus": {
       "_description": "Set the status of a thread search",
