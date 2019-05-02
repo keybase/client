@@ -1110,8 +1110,10 @@ func (c *ConfigLocal) Shutdown(ctx context.Context) error {
 	if bms != nil {
 		bms.Shutdown()
 	}
-	if err := c.conflictResolutionDB.Close(); err != nil {
-		errorList = append(errorList, err)
+	if c.conflictResolutionDB != nil {
+		if err := c.conflictResolutionDB.Close(); err != nil {
+			errorList = append(errorList, err)
+		}
 	}
 	kbfsServ := c.kbfsService
 	if kbfsServ != nil {
@@ -1423,7 +1425,9 @@ func (c *ConfigLocal) MakeBlockMetadataStoreIfNotExists() (err error) {
 	}
 	c.blockMetadataStore, err = newDiskBlockMetadataStore(c)
 	if err != nil {
-		// TODO: open read-only instead KBFS-3659
+		// TODO (KBFS-3659): when we can open levelDB read-only,
+		//  do that instead of returning a Noop version.
+		c.blockMetadataStore = &NoopBlockMetadataStore{}
 		return err
 	}
 	return nil
