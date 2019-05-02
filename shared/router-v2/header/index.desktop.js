@@ -194,6 +194,7 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       cursor: 'default',
       marginRight: 6,
+      padding: Styles.globalMargins.xtiny,
     },
   }),
   flexOne: {
@@ -204,7 +205,7 @@ const styles = Styles.styleSheetCreate({
       alignItems: 'center',
       height: 40,
       justifyContent: 'space-between',
-      padding: 12,
+      padding: Styles.globalMargins.tiny,
     },
   }),
   headerBorder: {
@@ -222,6 +223,7 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       ...Styles.desktopStyles.windowDraggingClickable,
       marginRight: 6,
+      padding: Styles.globalMargins.xtiny,
     },
   }),
 })

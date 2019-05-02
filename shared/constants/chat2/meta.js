@@ -452,3 +452,12 @@ export const getConversationRetentionPolicy = (
 
 export const isDecryptingSnippet = (meta: Types.ConversationMeta) =>
   meta.trustedState === 'requesting' || meta.trustedState === 'untrusted'
+
+export const getTeams = (metaMap: Types.MetaMap) => {
+  return metaMap.reduce((l, meta) => {
+    if (meta.teamname && meta.channelname === 'general') {
+      l.push(meta.teamname)
+    }
+    return l
+  }, [])
+}

@@ -1,6 +1,7 @@
 // @flow
 import * as Styles from '../../../styles'
 import * as TeamsGen from '../../../actions/teams-gen'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {namedConnect} from '../../../util/container'
 import TeamMention from '.'
 
@@ -29,6 +30,10 @@ const mapStateToProps = (state, {allowFontScaling, name, channel, style}) => {
 
 const mapDispatchToProps = dispatch => ({
   onJoinTeam: (teamname: string) => dispatch(TeamsGen.createJoinTeam({teamname})),
+  onViewTeam: (teamname: string) => {
+    dispatch(RouteTreeGen.createClearModals())
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'team'}]}))
+  },
 })
 
 export default namedConnect<OwnProps, _, _, _, _>(

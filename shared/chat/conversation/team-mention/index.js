@@ -15,6 +15,7 @@ export type Props = {|
   isOpen: boolean,
   name: string,
   onJoinTeam: string => void,
+  onViewTeam: string => void,
   resolved: boolean,
   numMembers: number,
   publicAdmins: Array<string>,
@@ -51,7 +52,9 @@ class TeamMention extends React.Component<Props, State> {
         allowFontScaling={this.props.allowFontScaling}
         onClick={this._showPopup}
       >
+        {Styles.isMobile && ' '}
         {text}
+        {Styles.isMobile && ' '}
       </Kb.Text>
     )
     const popups = (
@@ -64,6 +67,7 @@ class TeamMention extends React.Component<Props, State> {
         membersCount={this.props.numMembers}
         onHidden={this._hidePopup}
         onJoinTeam={this.props.onJoinTeam}
+        onViewTeam={this.props.onViewTeam}
         publicAdmins={this.props.publicAdmins}
         visible={this.state.showPopup}
       />

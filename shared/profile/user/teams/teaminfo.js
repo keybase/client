@@ -28,75 +28,92 @@ type Props = {|
   name: string,
   onHidden: () => void,
   onJoinTeam: string => void,
+  onViewTeam: string => void,
   publicAdmins: Array<string>,
   visible: boolean,
 |}
 
-const isPrivate = (p: Props) => {
-  return p.membersCount === 0 && p.description.length === 0
-}
-
-const TeamInfo = (p: Props) => {
-  const memberText = isPrivate(p)
-    ? 'This team is private. Admins will decide if they can let you in.'
-    : `${p.membersCount} member${p.membersCount > 1 ? 's' : ''}`
-  return (
-    <Kb.FloatingMenu
-      attachTo={p.attachTo}
-      closeOnSelect={false}
-      onHidden={p.onHidden}
-      visible={p.visible}
-      header={{
-        title: 'header',
-        view: (
-          <Kb.Box2
-            centerChildren={true}
-            direction="vertical"
-            gap="tiny"
-            gapStart={true}
-            gapEnd={true}
-            style={styles.infoPopup}
-          >
-            <Kb.NameWithIcon
-              size="small"
-              teamname={p.name}
-              title={p.name}
-              metaOne={<OpenMeta isOpen={p.isOpen} />}
-              metaTwo={<Kb.Text type="BodySmall">{memberText}</Kb.Text>}
-            />
-            <Kb.Text type="Body" style={styles.description}>
-              {p.description}
-            </Kb.Text>
-            {!p.inTeam && (
-              <Kb.WaitingButton
-                waitingKey={Constants.waitingKey}
-                label={p.isOpen ? 'Join team' : 'Request to join'}
-                onClick={() => p.onJoinTeam(p.name)}
-                type={p.isOpen ? 'Success' : 'Default'}
+class TeamInfo extends React.Component<Props> {
+  _isPrivate = () => {
+    return this.props.membersCount === 0 && this.props.description.length === 0
+  }
+  _onJoinTeam = () => {
+    this.props.onJoinTeam(this.props.name)
+    this.props.onHidden()
+  }
+  _onViewTeam = () => {
+    this.props.onViewTeam(this.props.name)
+    this.props.onHidden()
+  }
+  render() {
+    const memberText = this._isPrivate()
+      ? 'This team is private. Admins will decide if they can let you in.'
+      : `${this.props.membersCount} member${this.props.membersCount > 1 ? 's' : ''}`
+    return (
+      <Kb.FloatingMenu
+        attachTo={this.props.attachTo}
+        closeOnSelect={false}
+        onHidden={this.props.onHidden}
+        visible={this.props.visible}
+        header={{
+          title: 'header',
+          view: (
+            <Kb.Box2
+              centerChildren={true}
+              direction="vertical"
+              gap="tiny"
+              gapStart={true}
+              gapEnd={true}
+              style={styles.infoPopup}
+            >
+              <Kb.NameWithIcon
+                size="small"
+                teamname={this.props.name}
+                title={this.props.name}
+                metaOne={<OpenMeta isOpen={this.props.isOpen} />}
+                metaTwo={<Kb.Text type="BodySmall">{memberText}</Kb.Text>}
               />
-            )}
-            {!!p.publicAdmins.length && (
-              <Kb.Text center={true} type="BodySmall">
-                Public admins:{' '}
-                {
-                  <Kb.ConnectedUsernames
-                    type="BodySmallSemibold"
-                    colorFollowing={true}
-                    colorBroken={true}
-                    onUsernameClicked="profile"
-                    usernames={p.publicAdmins}
-                    containerStyle={styles.publicAdmins}
-                  />
-                }
+              <Kb.Text type="Body" style={styles.description}>
+                {this.props.description}
               </Kb.Text>
-            )}
-          </Kb.Box2>
-        ),
-      }}
-      position="bottom left"
-      items={[]}
-    />
-  )
+              {this.props.inTeam ? (
+                <Kb.WaitingButton
+                  waitingKey={Constants.waitingKey}
+                  label="View team"
+                  onClick={this._onViewTeam}
+                  mode="Secondary"
+                />
+              ) : (
+                <Kb.WaitingButton
+                  waitingKey={Constants.waitingKey}
+                  label={this.props.isOpen ? 'Join team' : 'Request to join'}
+                  onClick={this._onJoinTeam}
+                  type={this.props.isOpen ? 'Success' : 'Default'}
+                />
+              )}
+              {!!this.props.publicAdmins.length && (
+                <Kb.Text center={true} type="BodySmall">
+                  Public admins:{' '}
+                  {
+                    <Kb.ConnectedUsernames
+                      type="BodySmallSemibold"
+                      colorFollowing={true}
+                      colorBroken={true}
+                      onUsernameClicked="profile"
+                      usernames={this.props.publicAdmins}
+                      containerStyle={styles.publicAdmins}
+                    />
+                  }
+                </Kb.Text>
+              )}
+            </Kb.Box2>
+          ),
+        }}
+        position="bottom left"
+        items={[]}
+      />
+    )
+  }
 }
 
 const styles = Styles.styleSheetCreate({
