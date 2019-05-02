@@ -437,6 +437,7 @@ export const styles = Styles.styleSheetCreate({
   bioAndProofs: Styles.platformStyles({
     common: {
       justifyContent: 'space-around',
+      paddingBottom: Styles.globalMargins.medium,
       position: 'relative',
     },
     isMobile: {paddingBottom: Styles.globalMargins.small},
