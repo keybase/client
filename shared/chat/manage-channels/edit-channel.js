@@ -107,7 +107,7 @@ class _EditChannel extends React.Component<Props, State> {
           />
         </Box>
         <Box style={_bottomRowStyle}>
-          {!isMobile && this.props.showDelete && (
+          {!isMobile && this.props.showDelete && !this.props.deleteRenameDisabled && (
             <DeleteChannel
               channelName={this.props.channelName}
               onConfirmedDelete={this.props.onConfirmedDelete}
