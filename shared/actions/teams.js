@@ -28,7 +28,6 @@ import {isMobile} from '../constants/platform'
 import {chatTab, teamsTab} from '../constants/tabs'
 import openSMS from '../util/sms'
 import {convertToError, logError} from '../util/errors'
-import {getPath} from '../route-tree'
 import flags from '../util/feature-flags'
 
 function* createNewTeam(_, action) {
@@ -1201,10 +1200,7 @@ const teamChangedByName = (state, action) => {
   const {teamName} = action.payload.params
   logger.info(`Got teamChanged for ${teamName} from service`)
   const selectedTeamNames = Constants.getSelectedTeamNames(state)
-  if (
-    selectedTeamNames.includes(teamName) &&
-    (flags.useNewRouter || getPath(state.routeTree.routeState).first() === teamsTab)
-  ) {
+  if (selectedTeamNames.includes(teamName) && _wasOnTeamsTab()) {
     // only reload if that team is selected
     return [TeamsGen.createGetTeams({clearNavBadges: false}), TeamsGen.createGetDetails({teamname: teamName})]
   }
@@ -1215,13 +1211,18 @@ const teamDeletedOrExit = (state, action) => {
   const {teamID} = action.payload.params
   const selectedTeamNames = Constants.getSelectedTeamNames(state)
   if (selectedTeamNames.includes(Constants.getTeamNameFromID(state, teamID))) {
-    return [RouteTreeGen.createNavigateTo({parentPath: [teamsTab], path: []}), ...getLoadCalls()]
+    return [
+      flags.useNewRouter
+        ? RouteTreeGen.createNavUpToScreen({routeName: 'teamsRoot'})
+        : RouteTreeGen.createNavigateTo({parentPath: [teamsTab], path: []}),
+      ...getLoadCalls(),
+    ]
   }
   return getLoadCalls()
 }
 
 const getLoadCalls = (teamname?: string) => [
-  ...(_wasOnTeamsTab || flags.useNewRouter ? [TeamsGen.createGetTeams({clearNavBadges: false})] : []),
+  ...(_wasOnTeamsTab() ? [TeamsGen.createGetTeams({clearNavBadges: false})] : []),
   ...(teamname ? [TeamsGen.createGetDetails({teamname})] : []),
 ]
 
@@ -1377,7 +1378,7 @@ const badgeAppForTeams = (state, action) => {
     return res
   }, {})
 
-  if (_wasOnTeamsTab && (newTeams.size > 0 || newTeamRequests.size > 0)) {
+  if (_wasOnTeamsTab() && (newTeams.size > 0 || newTeamRequests.size > 0)) {
     // Call getTeams if new teams come in.
     // Covers the case when we're staring at the teams page so
     // we don't miss a notification we clear when we tab away
@@ -1409,15 +1410,16 @@ const badgeAppForTeams = (state, action) => {
   return actions
 }
 
-let _wasOnTeamsTab = false
+let _oldNavOnTeamsTab = false
+let _wasOnTeamsTab = () => (flags.useNewRouter ? Constants.isOnTeamsTab() : _oldNavOnTeamsTab)
 const onTabChange = (_, action) => {
   const list = I.List(action.payload.path)
   const root = list.first()
 
   if (root === teamsTab) {
-    _wasOnTeamsTab = true
-  } else if (_wasOnTeamsTab) {
-    _wasOnTeamsTab = false
+    _oldNavOnTeamsTab = true
+  } else if (_oldNavOnTeamsTab) {
+    _oldNavOnTeamsTab = false
     return TeamsGen.createClearNavBadges()
   }
 }
