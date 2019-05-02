@@ -987,7 +987,10 @@ const rootReducer = (
       return state.deleteIn(['messageCenterOrdinals', action.payload.conversationIDKey])
     case Chat2Gen.threadSearchResults:
       return state.updateIn(['threadSearchInfoMap', action.payload.conversationIDKey], info =>
-        info.set('hits', info.hits.concat(action.payload.messages))
+        info.set(
+          'hits',
+          action.payload.clear ? I.List(action.payload.messages) : info.hits.concat(action.payload.messages)
+        )
       )
     case Chat2Gen.setThreadSearchStatus:
       return state.updateIn(
@@ -1025,6 +1028,9 @@ const rootReducer = (
         })
       })
     case Chat2Gen.inboxSearchSetIndexPercent:
+      if (!state.inboxSearch || state.inboxSearch.textStatus !== 'inprogress') {
+        return state
+      }
       return state.update('inboxSearch', info => {
         return (info || Constants.makeInboxSearchInfo()).merge({
           indexPercent: action.payload.percent,
@@ -1140,6 +1146,11 @@ const rootReducer = (
         old.setIn([conversationIDKey, messageID], paymentInfo)
       )
       return nextState.update('paymentStatusMap', old => old.setIn([paymentInfo.paymentID], paymentInfo))
+    }
+    case Chat2Gen.setTeamMentionInfo: {
+      const {name, info} = action.payload
+      // $FlowIssue complains about using name for setIn for unknown reason
+      return state.setIn(['teamMentionMap', name], info)
     }
     case Chat2Gen.requestInfoReceived: {
       const {conversationIDKey, messageID, requestInfo} = action.payload
@@ -1259,6 +1270,7 @@ const rootReducer = (
     case Chat2Gen.deselectConversation:
     case Chat2Gen.createConversation:
     case Chat2Gen.loadMessagesCentered:
+    case Chat2Gen.tabSelected:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

@@ -559,6 +559,7 @@ type UIMessageValid struct {
 	AtMentions            []string               `codec:"atMentions" json:"atMentions"`
 	ChannelMention        ChannelMention         `codec:"channelMention" json:"channelMention"`
 	ChannelNameMentions   []UIChannelNameMention `codec:"channelNameMentions" json:"channelNameMentions"`
+	TeamMentions          []MaybeTeamMention     `codec:"teamMentions" json:"teamMentions"`
 	IsEphemeral           bool                   `codec:"isEphemeral" json:"isEphemeral"`
 	IsEphemeralExpired    bool                   `codec:"isEphemeralExpired" json:"isEphemeralExpired"`
 	ExplodedBy            *string                `codec:"explodedBy,omitempty" json:"explodedBy,omitempty"`
@@ -638,6 +639,17 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 			}
 			return ret
 		})(o.ChannelNameMentions),
+		TeamMentions: (func(x []MaybeTeamMention) []MaybeTeamMention {
+			if x == nil {
+				return nil
+			}
+			ret := make([]MaybeTeamMention, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.TeamMentions),
 		IsEphemeral:        o.IsEphemeral,
 		IsEphemeralExpired: o.IsEphemeralExpired,
 		ExplodedBy: (func(x *string) *string {
@@ -953,12 +965,53 @@ func (o UIMessages) DeepCopy() UIMessages {
 	}
 }
 
+type UITeamMention struct {
+	InTeam       bool     `codec:"inTeam" json:"inTeam"`
+	Open         bool     `codec:"open" json:"open"`
+	Description  *string  `codec:"description,omitempty" json:"description,omitempty"`
+	NumMembers   *int     `codec:"numMembers,omitempty" json:"numMembers,omitempty"`
+	PublicAdmins []string `codec:"publicAdmins" json:"publicAdmins"`
+}
+
+func (o UITeamMention) DeepCopy() UITeamMention {
+	return UITeamMention{
+		InTeam: o.InTeam,
+		Open:   o.Open,
+		Description: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Description),
+		NumMembers: (func(x *int) *int {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.NumMembers),
+		PublicAdmins: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.PublicAdmins),
+	}
+}
+
 type UITextDecorationTyp int
 
 const (
 	UITextDecorationTyp_PAYMENT            UITextDecorationTyp = 0
 	UITextDecorationTyp_ATMENTION          UITextDecorationTyp = 1
 	UITextDecorationTyp_CHANNELNAMEMENTION UITextDecorationTyp = 2
+	UITextDecorationTyp_TEAMMENTION        UITextDecorationTyp = 3
 )
 
 func (o UITextDecorationTyp) DeepCopy() UITextDecorationTyp { return o }
@@ -967,12 +1020,14 @@ var UITextDecorationTypMap = map[string]UITextDecorationTyp{
 	"PAYMENT":            0,
 	"ATMENTION":          1,
 	"CHANNELNAMEMENTION": 2,
+	"TEAMMENTION":        3,
 }
 
 var UITextDecorationTypRevMap = map[UITextDecorationTyp]string{
 	0: "PAYMENT",
 	1: "ATMENTION",
 	2: "CHANNELNAMEMENTION",
+	3: "TEAMMENTION",
 }
 
 func (e UITextDecorationTyp) String() string {
@@ -987,6 +1042,7 @@ type UITextDecoration struct {
 	Payment__            *TextPayment          `codec:"payment,omitempty" json:"payment,omitempty"`
 	Atmention__          *string               `codec:"atmention,omitempty" json:"atmention,omitempty"`
 	Channelnamemention__ *UIChannelNameMention `codec:"channelnamemention,omitempty" json:"channelnamemention,omitempty"`
+	Teammention__        *MaybeTeamMention     `codec:"teammention,omitempty" json:"teammention,omitempty"`
 }
 
 func (o *UITextDecoration) Typ() (ret UITextDecorationTyp, err error) {
@@ -1004,6 +1060,11 @@ func (o *UITextDecoration) Typ() (ret UITextDecorationTyp, err error) {
 	case UITextDecorationTyp_CHANNELNAMEMENTION:
 		if o.Channelnamemention__ == nil {
 			err = errors.New("unexpected nil value for Channelnamemention__")
+			return ret, err
+		}
+	case UITextDecorationTyp_TEAMMENTION:
+		if o.Teammention__ == nil {
+			err = errors.New("unexpected nil value for Teammention__")
 			return ret, err
 		}
 	}
@@ -1040,6 +1101,16 @@ func (o UITextDecoration) Channelnamemention() (res UIChannelNameMention) {
 	return *o.Channelnamemention__
 }
 
+func (o UITextDecoration) Teammention() (res MaybeTeamMention) {
+	if o.Typ__ != UITextDecorationTyp_TEAMMENTION {
+		panic("wrong case accessed")
+	}
+	if o.Teammention__ == nil {
+		return
+	}
+	return *o.Teammention__
+}
+
 func NewUITextDecorationWithPayment(v TextPayment) UITextDecoration {
 	return UITextDecoration{
 		Typ__:     UITextDecorationTyp_PAYMENT,
@@ -1058,6 +1129,13 @@ func NewUITextDecorationWithChannelnamemention(v UIChannelNameMention) UITextDec
 	return UITextDecoration{
 		Typ__:                UITextDecorationTyp_CHANNELNAMEMENTION,
 		Channelnamemention__: &v,
+	}
+}
+
+func NewUITextDecorationWithTeammention(v MaybeTeamMention) UITextDecoration {
+	return UITextDecoration{
+		Typ__:         UITextDecorationTyp_TEAMMENTION,
+		Teammention__: &v,
 	}
 }
 
@@ -1085,6 +1163,13 @@ func (o UITextDecoration) DeepCopy() UITextDecoration {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Channelnamemention__),
+		Teammention__: (func(x *MaybeTeamMention) *MaybeTeamMention {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Teammention__),
 	}
 }
 
@@ -2008,6 +2093,12 @@ type ChatCommandMarkdownArg struct {
 	Md        *UICommandMarkdown `codec:"md,omitempty" json:"md,omitempty"`
 }
 
+type ChatTeamMentionUpdateArg struct {
+	SessionID int           `codec:"sessionID" json:"sessionID"`
+	TeamName  string        `codec:"teamName" json:"teamName"`
+	Info      UITeamMention `codec:"info" json:"info"`
+}
+
 type ChatUiInterface interface {
 	ChatAttachmentDownloadStart(context.Context, int) error
 	ChatAttachmentDownloadProgress(context.Context, ChatAttachmentDownloadProgressArg) error
@@ -2034,6 +2125,7 @@ type ChatUiInterface interface {
 	ChatShowManageChannels(context.Context, ChatShowManageChannelsArg) error
 	ChatCoinFlipStatus(context.Context, ChatCoinFlipStatusArg) error
 	ChatCommandMarkdown(context.Context, ChatCommandMarkdownArg) error
+	ChatTeamMentionUpdate(context.Context, ChatTeamMentionUpdateArg) error
 }
 
 func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
@@ -2415,6 +2507,21 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					return
 				},
 			},
+			"chatTeamMentionUpdate": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatTeamMentionUpdateArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatTeamMentionUpdateArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatTeamMentionUpdateArg)(nil), args)
+						return
+					}
+					err = i.ChatTeamMentionUpdate(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -2549,5 +2656,10 @@ func (c ChatUiClient) ChatCoinFlipStatus(ctx context.Context, __arg ChatCoinFlip
 
 func (c ChatUiClient) ChatCommandMarkdown(ctx context.Context, __arg ChatCommandMarkdownArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatCommandMarkdown", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ChatUiClient) ChatTeamMentionUpdate(ctx context.Context, __arg ChatTeamMentionUpdateArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatTeamMentionUpdate", []interface{}{__arg}, nil)
 	return
 }

@@ -57,8 +57,11 @@ func (n *ChatCLINotifications) ChatAttachmentUploadProgress(ctx context.Context,
 
 type ChatCLIUI struct {
 	libkb.Contextified
-	terminal                                libkb.TerminalUI
-	noOutput                                bool
+	terminal libkb.TerminalUI
+	noOutput bool
+	// if we delegate the inbox search to the thread searcher, we don't want to
+	// duplicate output.
+	noThreadSearch                          bool
 	lastAttachmentPercent, lastIndexPercent int
 }
 
@@ -188,7 +191,7 @@ func (c *ChatCLIUI) renderSearchHit(ctx context.Context, searchHit chat1.ChatSea
 }
 
 func (c *ChatCLIUI) ChatSearchHit(ctx context.Context, arg chat1.ChatSearchHitArg) error {
-	if c.noOutput {
+	if c.noOutput || c.noThreadSearch {
 		return nil
 	}
 	return c.renderSearchHit(ctx, arg.SearchHit)
@@ -202,7 +205,7 @@ func (c *ChatCLIUI) simplePlural(count int, prefix string) string {
 }
 
 func (c *ChatCLIUI) ChatSearchDone(ctx context.Context, arg chat1.ChatSearchDoneArg) error {
-	if c.noOutput {
+	if c.noOutput || c.noThreadSearch {
 		return nil
 	}
 	w := c.terminal.ErrorWriter()
@@ -254,12 +257,14 @@ func (c *ChatCLIUI) ChatSearchInboxDone(ctx context.Context, arg chat1.ChatSearc
 		searchText = fmt.Sprintf("%s in %d %s.\n", searchText, numConvs, c.simplePlural(numConvs, "conversation"))
 		fmt.Fprintf(w, searchText)
 	}
-	percentIndexed := arg.Res.PercentIndexed
-	helpText := ""
-	if percentIndexed < 70 {
-		helpText = "Rerun with --force-reindex for more complete results."
+	if !arg.Res.Delegated {
+		percentIndexed := arg.Res.PercentIndexed
+		helpText := ""
+		if percentIndexed < 70 {
+			helpText = "Rerun with --force-reindex for more complete results."
+		}
+		fmt.Fprintf(w, "Indexing was %d%% complete. %s\n", percentIndexed, helpText)
 	}
-	fmt.Fprintf(w, "Indexing was %d%% complete. %s\n", percentIndexed, helpText)
 	return nil
 }
 
@@ -344,5 +349,9 @@ func (c *ChatCLIUI) ChatCoinFlipStatus(ctx context.Context, arg chat1.ChatCoinFl
 }
 
 func (c *ChatCLIUI) ChatCommandMarkdown(ctx context.Context, arg chat1.ChatCommandMarkdownArg) error {
+	return nil
+}
+
+func (c *ChatCLIUI) ChatTeamMentionUpdate(ctx context.Context, arg chat1.ChatTeamMentionUpdateArg) error {
 	return nil
 }

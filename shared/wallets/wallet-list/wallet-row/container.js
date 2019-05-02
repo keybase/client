@@ -3,6 +3,7 @@ import {WalletRow, type Props} from '.'
 import {connect, isMobile} from '../../../util/container'
 import {getAccount, getSelectedAccount} from '../../../constants/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as RouteTree from '../../../route-tree'
 import {type AccountID} from '../../../constants/types/wallets'
 
@@ -31,8 +32,12 @@ const mapStateToProps = (state, ownProps: {accountID: AccountID}) => {
 
 const mapDispatchToProps = dispatch => ({
   _onClearNewPayments: (accountID: AccountID) => dispatch(WalletsGen.createClearNewPayments({accountID})),
-  _onSelectAccount: (accountID: AccountID) =>
-    dispatch(WalletsGen.createSelectAccount({accountID, reason: 'user-selected', show: true})),
+  _onSelectAccount: (accountID: AccountID) => {
+    if (!isMobile) {
+      dispatch(RouteTreeGen.createNavUpToScreen({routeName: 'wallet'}))
+    }
+    dispatch(WalletsGen.createSelectAccount({accountID, reason: 'user-selected', show: true}))
+  },
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({

@@ -2116,6 +2116,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-hide': {
+    charCode: 0xe98a,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-identity-bitcoin': {
     charCode: 0xe92c,
     gridSize: 16,
@@ -2223,6 +2228,11 @@ const iconMeta_ = {
   },
   'iconfont-nav-2-git': {
     charCode: 0xe981,
+    gridSize: 24,
+    isFont: true,
+  },
+  'iconfont-nav-2-hamburger': {
+    charCode: 0xe98b,
     gridSize: 24,
     isFont: true,
   },

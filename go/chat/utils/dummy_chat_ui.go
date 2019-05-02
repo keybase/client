@@ -111,6 +111,10 @@ func (r DummyChatUI) ChatCommandMarkdown(ctx context.Context, arg chat1.ChatComm
 	return nil
 }
 
+func (r DummyChatUI) ChatTeamMentionUpdate(ctx context.Context, arg chat1.ChatTeamMentionUpdateArg) error {
+	return nil
+}
+
 type DummyChatNotifications struct{}
 
 func (d DummyChatNotifications) NewChatActivity(ctx context.Context, arg chat1.NewChatActivityArg) error {

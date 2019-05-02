@@ -1204,6 +1204,20 @@
     },
     {
       "type": "record",
+      "name": "MaybeTeamMention",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "channel"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "MessageUnboxedValid",
       "fields": [
         {
@@ -1276,6 +1290,13 @@
         {
           "type": "ChannelMention",
           "name": "channelMention"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "MaybeTeamMention"
+          },
+          "name": "teamMentions"
         },
         {
           "type": {

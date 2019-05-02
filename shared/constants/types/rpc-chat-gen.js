@@ -43,6 +43,7 @@ export const chatUiUITextDecorationTyp = {
   payment: 0,
   atmention: 1,
   channelnamemention: 2,
+  teammention: 3,
 }
 
 export const commandsConversationBuiltinCommandTyp = {

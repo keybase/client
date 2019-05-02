@@ -1153,13 +1153,14 @@ function* desktopNotify(state, action) {
         const onClick = () => {
           resolve(
             Saga.sequentially([
+              Saga.put(RouteTreeGen.createSwitchTab({tab: 'tabs.chatTab'})),
+              Saga.put(RouteTreeGen.createNavUpToScreen({routeName: 'chatRoot'})),
               Saga.put(
                 Chat2Gen.createSelectConversation({
                   conversationIDKey,
                   reason: 'desktopNotification',
                 })
               ),
-              Saga.put(RouteTreeGen.createSwitchTo({path: [Tabs.chatTab]})),
               Saga.put(ConfigGen.createShowMain()),
             ])
           )
@@ -1307,7 +1308,7 @@ function* threadSearch(state, action) {
   const onHit = hit => {
     const message = Constants.uiMessageToMessage(state, conversationIDKey, hit.searchHit.hitMessage)
     return message
-      ? Saga.put(Chat2Gen.createThreadSearchResults({conversationIDKey, messages: [message]}))
+      ? Saga.put(Chat2Gen.createThreadSearchResults({clear: false, conversationIDKey, messages: [message]}))
       : []
   }
   const onInboxHit = resp => {
@@ -1319,7 +1320,7 @@ function* threadSearch(state, action) {
       return l
     }, [])
     return messages.length > 0
-      ? Saga.put(Chat2Gen.createThreadSearchResults({conversationIDKey, messages}))
+      ? Saga.put(Chat2Gen.createThreadSearchResults({clear: true, conversationIDKey, messages}))
       : []
   }
   const onDone = () => {
@@ -2693,6 +2694,14 @@ const onChatCommandMarkdown = (status, action) => {
   })
 }
 
+const onChatTeamMentionUpdate = (state, action) => {
+  const {teamName, info} = action.payload.params
+  return Chat2Gen.createSetTeamMentionInfo({
+    info,
+    name: teamName,
+  })
+}
+
 const openChatFromWidget = (state, {payload: {conversationIDKey}}) => [
   ConfigGen.createShowMain(),
   RouteTreeGen.createSwitchTo({path: [Tabs.chatTab]}),
@@ -2975,7 +2984,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     | Chat2Gen.UpdateReactionsPayload
     | ConfigGen.ChangedFocusPayload
     | ConfigGen.ChangedActivePayload
-    | RouteTreeGen.Actions
+    | Chat2Gen.TabSelectedPayload
   >(
     [
       Chat2Gen.messagesAdd,
@@ -2984,7 +2993,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.updateReactions,
       ConfigGen.changedFocus,
       ConfigGen.changedActive,
-      a => typeof a.type === 'string' && a.type.startsWith(RouteTreeGen.typePrefix),
+      Chat2Gen.tabSelected,
     ],
     markThreadAsRead
   )
@@ -3145,6 +3154,10 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<EngineGen.Chat1ChatUiChatCommandMarkdownPayload>(
     EngineGen.chat1ChatUiChatCommandMarkdown,
     onChatCommandMarkdown
+  )
+  yield* Saga.chainAction<EngineGen.Chat1ChatUiChatTeamMentionUpdatePayload>(
+    EngineGen.chat1ChatUiChatTeamMentionUpdate,
+    onChatTeamMentionUpdate
   )
 
   yield* Saga.chainAction<Chat2Gen.ReplyJumpPayload>(Chat2Gen.replyJump, onReplyJump)

@@ -209,4 +209,5 @@ export const newModalRoutes = {
   renameAccount: {getScreen: () => require('./wallet/settings/popups').RenameAccountPopup},
   setDefaultAccount: {getScreen: () => require('./wallet/settings/popups').SetDefaultAccountPopup},
   setInflation: {getScreen: () => require('./wallet/settings/popups').InflationDestination},
+  walletOnboarding: {getScreen: () => require('./onboarding/container').default},
 }

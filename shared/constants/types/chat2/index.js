@@ -130,6 +130,7 @@ export type _State = {
   threadSearchInfoMap: I.Map<Common.ConversationIDKey, ThreadSearchInfo>,
   threadSearchQueryMap: I.Map<Common.ConversationIDKey, ?HiddenString>,
   replyToMap: I.Map<Common.ConversationIDKey, Message.Ordinal>,
+  teamMentionMap: I.Map<string, RPCChatTypes.UITeamMention>,
 } & TeamBuildingTypes.TeamBuildingSubState
 
 export type State = I.RecordOf<_State>

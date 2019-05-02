@@ -176,6 +176,7 @@ protocol chatUi {
     array<string> atMentions;
     ChannelMention channelMention;
     array<UIChannelNameMention> channelNameMentions;
+    array<MaybeTeamMention> teamMentions;
     boolean isEphemeral;
     boolean isEphemeralExpired;
     union { null, string} explodedBy;
@@ -230,16 +231,26 @@ protocol chatUi {
     union { null, UIPagination } pagination;
   }
 
+  record UITeamMention {
+    boolean inTeam;
+    boolean open;
+    union { null, string } description;
+    union { null, int } numMembers;
+    array<string> publicAdmins;
+  }
+
   enum UITextDecorationTyp {
     PAYMENT_0,
     ATMENTION_1,
-    CHANNELNAMEMENTION_2
+    CHANNELNAMEMENTION_2,
+    TEAMMENTION_3
   }
 
   variant UITextDecoration switch (UITextDecorationTyp typ) {
     case PAYMENT: TextPayment;
     case ATMENTION: string;
     case CHANNELNAMEMENTION: UIChannelNameMention;
+    case TEAMMENTION: MaybeTeamMention;
   }
 
   void chatAttachmentDownloadStart(int sessionID);
@@ -385,4 +396,6 @@ protocol chatUi {
     union { null, string} title;
   }
   void chatCommandMarkdown(int sessionID, string convID, union { null, UICommandMarkdown } md);
+
+  void chatTeamMentionUpdate(int sessionID, string teamName, UITeamMention info);
 }

@@ -143,10 +143,6 @@ const routeTree = () => {
 }
 
 export const newRoutes = {
-  chatChooseEmoji: {
-    getScreen: () => require('./conversation/messages/react-button/emoji-picker/container').default,
-    upgraded: true,
-  },
   chatConversation: {getScreen: () => require('./conversation/container').default, upgraded: true},
   chatEnterPaperkey: {
     getScreen: () => require('./conversation/rekey/enter-paper-key').default,
@@ -175,6 +171,10 @@ export const newModalRoutes = {
   },
   chatAttachmentVideoFullscreen: {
     getScreen: () => require('./conversation/attachment-video-fullscreen/container').default,
+    upgraded: true,
+  },
+  chatChooseEmoji: {
+    getScreen: () => require('./conversation/messages/react-button/emoji-picker/container').default,
     upgraded: true,
   },
   chatCreateChannel: {getScreen: () => require('./create-channel/container').default, upgraded: true},

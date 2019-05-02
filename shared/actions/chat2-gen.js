@@ -104,11 +104,13 @@ export const setConversationOffline = 'chat2:setConversationOffline'
 export const setExplodingModeLock = 'chat2:setExplodingModeLock'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const setPaymentConfirmInfo = 'chat2:setPaymentConfirmInfo'
+export const setTeamMentionInfo = 'chat2:setTeamMentionInfo'
 export const setThreadSearchQuery = 'chat2:setThreadSearchQuery'
 export const setThreadSearchStatus = 'chat2:setThreadSearchStatus'
 export const setUnsentText = 'chat2:setUnsentText'
 export const setWalletsOld = 'chat2:setWalletsOld'
 export const staticConfigLoaded = 'chat2:staticConfigLoaded'
+export const tabSelected = 'chat2:tabSelected'
 export const threadSearch = 'chat2:threadSearch'
 export const threadSearchResults = 'chat2:threadSearchResults'
 export const toggleInboxSearch = 'chat2:toggleInboxSearch'
@@ -231,13 +233,15 @@ type _SetExplodingModeLockPayload = $ReadOnly<{|conversationIDKey: Types.Convers
 type _SetMinWriterRolePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, role: TeamsTypes.TeamRoleType|}>
 type _SetPaymentConfirmInfoPayload = $ReadOnly<{|summary: RPCChatTypes.UIChatPaymentSummary|}>
 type _SetPaymentConfirmInfoPayloadError = $ReadOnly<{|error: RPCTypes.Status|}>
+type _SetTeamMentionInfoPayload = $ReadOnly<{|name: string, info: RPCChatTypes.UITeamMention|}>
 type _SetThreadSearchQueryPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, query: HiddenString|}>
 type _SetThreadSearchStatusPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, status: Types.ThreadSearchStatus|}>
 type _SetUnsentTextPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, text: ?HiddenString|}>
 type _SetWalletsOldPayload = void
 type _StaticConfigLoadedPayload = $ReadOnly<{|staticConfig: Types.StaticConfig|}>
+type _TabSelectedPayload = void
 type _ThreadSearchPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, query: HiddenString|}>
-type _ThreadSearchResultsPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messages: Array<Types.Message>|}>
+type _ThreadSearchResultsPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messages: Array<Types.Message>, clear: boolean|}>
 type _ToggleInboxSearchPayload = $ReadOnly<{|enabled: boolean|}>
 type _ToggleInfoPanelPayload = void
 type _ToggleLocalReactionPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, emoji: string, targetOrdinal: Types.Ordinal, username: string|}>
@@ -290,6 +294,10 @@ export const createUpdateConvRetentionPolicy = (payload: _UpdateConvRetentionPol
  * Consume a service notification that a team retention policy was updated
  */
 export const createUpdateTeamRetentionPolicy = (payload: _UpdateTeamRetentionPolicyPayload) => ({payload, type: updateTeamRetentionPolicy})
+/**
+ * Desktop changed tab to chat
+ */
+export const createTabSelected = (payload: _TabSelectedPayload) => ({payload, type: tabSelected})
 /**
  * Explicitly set whether a thread is loaded to the most recent message
  */
@@ -370,6 +378,10 @@ export const createSetCommandMarkdown = (payload: _SetCommandMarkdownPayload) =>
  * Set index percent complete
  */
 export const createInboxSearchSetIndexPercent = (payload: _InboxSearchSetIndexPercentPayload) => ({payload, type: inboxSearchSetIndexPercent})
+/**
+ * Set team mention info
+ */
+export const createSetTeamMentionInfo = (payload: _SetTeamMentionInfoPayload) => ({payload, type: setTeamMentionInfo})
 /**
  * Set that wallets in chat is not new.
  */
@@ -644,11 +656,13 @@ export type SetExplodingModeLockPayload = {|+payload: _SetExplodingModeLockPaylo
 export type SetMinWriterRolePayload = {|+payload: _SetMinWriterRolePayload, +type: 'chat2:setMinWriterRole'|}
 export type SetPaymentConfirmInfoPayload = {|+payload: _SetPaymentConfirmInfoPayload, +type: 'chat2:setPaymentConfirmInfo'|}
 export type SetPaymentConfirmInfoPayloadError = {|+error: true, +payload: _SetPaymentConfirmInfoPayloadError, +type: 'chat2:setPaymentConfirmInfo'|}
+export type SetTeamMentionInfoPayload = {|+payload: _SetTeamMentionInfoPayload, +type: 'chat2:setTeamMentionInfo'|}
 export type SetThreadSearchQueryPayload = {|+payload: _SetThreadSearchQueryPayload, +type: 'chat2:setThreadSearchQuery'|}
 export type SetThreadSearchStatusPayload = {|+payload: _SetThreadSearchStatusPayload, +type: 'chat2:setThreadSearchStatus'|}
 export type SetUnsentTextPayload = {|+payload: _SetUnsentTextPayload, +type: 'chat2:setUnsentText'|}
 export type SetWalletsOldPayload = {|+payload: _SetWalletsOldPayload, +type: 'chat2:setWalletsOld'|}
 export type StaticConfigLoadedPayload = {|+payload: _StaticConfigLoadedPayload, +type: 'chat2:staticConfigLoaded'|}
+export type TabSelectedPayload = {|+payload: _TabSelectedPayload, +type: 'chat2:tabSelected'|}
 export type ThreadSearchPayload = {|+payload: _ThreadSearchPayload, +type: 'chat2:threadSearch'|}
 export type ThreadSearchResultsPayload = {|+payload: _ThreadSearchResultsPayload, +type: 'chat2:threadSearchResults'|}
 export type ToggleInboxSearchPayload = {|+payload: _ToggleInboxSearchPayload, +type: 'chat2:toggleInboxSearch'|}
@@ -770,11 +784,13 @@ export type Actions =
   | SetMinWriterRolePayload
   | SetPaymentConfirmInfoPayload
   | SetPaymentConfirmInfoPayloadError
+  | SetTeamMentionInfoPayload
   | SetThreadSearchQueryPayload
   | SetThreadSearchStatusPayload
   | SetUnsentTextPayload
   | SetWalletsOldPayload
   | StaticConfigLoadedPayload
+  | TabSelectedPayload
   | ThreadSearchPayload
   | ThreadSearchResultsPayload
   | ToggleInboxSearchPayload

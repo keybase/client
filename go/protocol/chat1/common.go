@@ -2110,9 +2110,10 @@ func (o ChatSearchInboxResults) DeepCopy() ChatSearchInboxResults {
 }
 
 type ChatSearchInboxDone struct {
-	NumHits        int `codec:"numHits" json:"numHits"`
-	NumConvs       int `codec:"numConvs" json:"numConvs"`
-	PercentIndexed int `codec:"percentIndexed" json:"percentIndexed"`
+	NumHits        int  `codec:"numHits" json:"numHits"`
+	NumConvs       int  `codec:"numConvs" json:"numConvs"`
+	PercentIndexed int  `codec:"percentIndexed" json:"percentIndexed"`
+	Delegated      bool `codec:"delegated" json:"delegated"`
 }
 
 func (o ChatSearchInboxDone) DeepCopy() ChatSearchInboxDone {
@@ -2120,6 +2121,7 @@ func (o ChatSearchInboxDone) DeepCopy() ChatSearchInboxDone {
 		NumHits:        o.NumHits,
 		NumConvs:       o.NumConvs,
 		PercentIndexed: o.PercentIndexed,
+		Delegated:      o.Delegated,
 	}
 }
 

@@ -107,25 +107,38 @@ class ConversationFilterInput extends React.PureComponent<Props> {
           fullWidth={true}
         >
           <Kb.Box2 alignItems="center" direction="horizontal" style={styles.searchBox}>
-            <Kb.ClickableBox style={styles.filterContainer} onClick={this.props.onStartSearch}>
-              <Kb.Icon
-                type="iconfont-search"
-                style={styles.icon}
-                color={Styles.globalColors.black_50}
-                sizeType="Small"
-              />
-              <Kb.Text type="BodySemibold" style={styles.text}>
-                Search
-              </Kb.Text>
-              {!Styles.isMobile && !this.props.noShortcut && (
-                <Kb.Text type="BodySemibold" style={styles.textFaint}>
-                  ({Platforms.shortcutSymbol}K)
+            <Kb.WithTooltip
+              containerStyle={{flexGrow: 1}}
+              position="top center"
+              text="NEW! Search all your chats."
+            >
+              <Kb.ClickableBox style={styles.filterContainer} onClick={this.props.onStartSearch}>
+                <Kb.Icon
+                  type="iconfont-search"
+                  style={styles.icon}
+                  color={Styles.globalColors.black_50}
+                  sizeType="Small"
+                />
+                <Kb.Text type="BodySemibold" style={styles.text}>
+                  Search
                 </Kb.Text>
-              )}
-            </Kb.ClickableBox>
+                {!Styles.isMobile && !this.props.noShortcut && (
+                  <Kb.Text type="BodySemibold" style={styles.textFaint}>
+                    ({Platforms.shortcutSymbol}K)
+                  </Kb.Text>
+                )}
+                <Kb.Box2
+                  direction="horizontal"
+                  alignItems="center"
+                  style={{flexGrow: 1, justifyContent: 'flex-end', paddingRight: Styles.globalMargins.tiny}}
+                >
+                  <Kb.Meta backgroundColor={Styles.globalColors.blue} title="New" />
+                </Kb.Box2>
+              </Kb.ClickableBox>
+            </Kb.WithTooltip>
           </Kb.Box2>
           {!!this.props.onNewChat && (
-            <Kb.WithTooltip position="bottom center" text={`New chat (${Platforms.shortcutSymbol}N)`}>
+            <Kb.WithTooltip position="top center" text={`New chat (${Platforms.shortcutSymbol}N)`}>
               <Kb.Button small={true} onClick={this.props.onNewChat} style={styles.newChatButton}>
                 <Kb.Icon type="iconfont-compose" color={Styles.globalColors.white} style={styles.newIcon} />
               </Kb.Button>

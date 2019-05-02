@@ -88,6 +88,9 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
 
       return [StackActions.push({params, routeName})]
     }
+    case RouteTreeGen.switchTab: {
+      return [NavigationActions.navigate({routeName: action.payload.tab})]
+    }
     case RouteTreeGen.switchRouteDef: {
       // used to tell if its the login one or app one. this will all change when we deprecate the old routing
       const routeName = action.payload.routeDef.defaultSelected === 'tabs.loginTab' ? 'loggedOut' : 'loggedIn'

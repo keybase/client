@@ -9,6 +9,7 @@ import * as SettingsTabs from '../../../../constants/settings'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as WalletsGen from '../../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import flags from '../../../../util/feature-flags'
 import AccountPayment from '.'
 
 // Props for rendering the loading indicator
@@ -140,9 +141,11 @@ const mapDispatchToProps = (dispatch, {message: {conversationIDKey, ordinal}}) =
   },
   onClaim: () =>
     dispatch(
-      RouteTreeGen.createNavigateTo({
-        path: Container.isMobile ? [Tabs.settingsTab, SettingsTabs.walletsTab] : [Tabs.walletsTab],
-      })
+      flags.useNewRouter
+        ? RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']})
+        : RouteTreeGen.createNavigateTo({
+            path: Container.isMobile ? [Tabs.settingsTab, SettingsTabs.walletsTab] : [Tabs.walletsTab],
+          })
     ),
   onSend: () => dispatch(Chat2Gen.createPrepareFulfillRequestForm({conversationIDKey, ordinal})),
 })

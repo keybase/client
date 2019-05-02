@@ -246,6 +246,18 @@
           "name": "noteErr"
         },
         {
+          "type": "string",
+          "name": "sourceAmountMax"
+        },
+        {
+          "type": "string",
+          "name": "sourceAmountActual"
+        },
+        {
+          "type": "Asset",
+          "name": "sourceAsset"
+        },
+        {
           "type": "boolean",
           "name": "unread"
         },
@@ -426,6 +438,18 @@
         {
           "type": "string",
           "name": "noteErr"
+        },
+        {
+          "type": "string",
+          "name": "sourceAmountMax"
+        },
+        {
+          "type": "string",
+          "name": "sourceAmountActual"
+        },
+        {
+          "type": "Asset",
+          "name": "sourceAsset"
         },
         {
           "type": "string",
@@ -923,6 +947,18 @@
             "string"
           ],
           "name": "displayCurrency"
+        },
+        {
+          "type": "string",
+          "name": "sourceAmountMax"
+        },
+        {
+          "type": "string",
+          "name": "sourceAmountActual"
+        },
+        {
+          "type": "Asset",
+          "name": "sourceAsset"
         },
         {
           "type": "AccountID",

@@ -27,11 +27,15 @@ useScreens()
 const defaultNavigationOptions = {
   backBehavior: 'none',
   header: null,
-  headerLeft: hp => {
-    return hp.scene.index === 0 ? null : (
-      <LeftAction badgeNumber={0} leftAction="back" onLeftAction={hp.onPress} />
-    )
-  },
+  headerLeft: hp =>
+    hp.scene.index === 0 ? null : (
+      <LeftAction
+        badgeNumber={0}
+        leftAction="back"
+        onLeftAction={hp.onPress}
+        customIconColor={hp.tintColor}
+      />
+    ),
   headerTitle: hp => (
     <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1}>
       {hp.children}
@@ -47,7 +51,7 @@ const icons = {
   [Tabs.fsTab]: 'iconfont-nav-2-files',
   [Tabs.teamsTab]: 'iconfont-nav-2-teams',
   [Tabs.peopleTab]: 'iconfont-nav-2-people',
-  [Tabs.settingsTab]: 'iconfont-nav-2-more',
+  [Tabs.settingsTab]: 'iconfont-nav-2-hamburger',
   [Tabs.walletsTab]: 'iconfont-nav-2-wallets',
 }
 

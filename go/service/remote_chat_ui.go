@@ -159,3 +159,11 @@ func (r *RemoteChatUI) ChatCommandMarkdown(ctx context.Context, convID chat1.Con
 		Md:        md,
 	})
 }
+
+func (r *RemoteChatUI) ChatTeamMentionUpdate(ctx context.Context, teamName string, info chat1.UITeamMention) error {
+	return r.cli.ChatTeamMentionUpdate(ctx, chat1.ChatTeamMentionUpdateArg{
+		SessionID: r.sessionID,
+		TeamName:  teamName,
+		Info:      info,
+	})
+}
