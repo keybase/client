@@ -577,8 +577,6 @@ func TestProvisionWithRevoke(t *testing.T) {
 // If a user has device keys and no pgp keys, not selecting a device
 // should trigger the autoreset flow.
 func TestProvisionAutoreset(t *testing.T) {
-	// TODO CORE-10774
-	t.Skip()
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "provision_x")
 	defer tcX.Cleanup()
@@ -595,10 +593,13 @@ func TestProvisionAutoreset(t *testing.T) {
 
 	uis := libkb.UIs{
 		ProvisionUI: newTestProvisionUIChooseNoDevice(),
-		LoginUI:     &libkb.TestLoginUI{Username: userX.Username},
-		LogUI:       tcY.G.UI.GetLogUI(),
-		SecretUI:    &libkb.TestSecretUI{Passphrase: userX.Passphrase},
-		GPGUI:       &gpgtestui{},
+		LoginUI: &libkb.TestLoginUI{
+			Username:     userX.Username,
+			ResetAccount: true,
+		},
+		LogUI:    tcY.G.UI.GetLogUI(),
+		SecretUI: &libkb.TestSecretUI{Passphrase: userX.Passphrase},
+		GPGUI:    &gpgtestui{},
 	}
 	m := NewMetaContextForTest(tcY).WithUIs(uis)
 	eng := NewLogin(tcY.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
