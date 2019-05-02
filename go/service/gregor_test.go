@@ -427,7 +427,7 @@ func checkMessages(t *testing.T, source string, msgs []gregor.InBandMessage,
 }
 
 func doServerSync(t *testing.T, h *gregorHandler, srv mockGregord) ([]gregor.InBandMessage, []gregor.InBandMessage) {
-	_, token, _, _ := h.loggedIn(context.TODO())
+	_, token, _, _, _ := h.loggedIn(context.TODO())
 	pctime := h.gregorCli.StateMachineLatestCTime(context.TODO())
 	ctime := gregor1.Time(0)
 	if pctime != nil {
