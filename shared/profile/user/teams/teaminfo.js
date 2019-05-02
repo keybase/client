@@ -26,6 +26,7 @@ type Props = {|
   isOpen: boolean,
   membersCount: number,
   name: string,
+  onChat?: () => void,
   onHidden: () => void,
   onJoinTeam: string => void,
   onViewTeam: string => void,
@@ -45,6 +46,12 @@ class TeamInfo extends React.Component<Props> {
     this.props.onViewTeam(this.props.name)
     this.props.onHidden()
   }
+  _onChat = () => {
+    if (this.props.onChat) {
+      this.props.onChat()
+      this.props.onHidden()
+    }
+  }
   render() {
     const memberText = this._isPrivate()
       ? 'This team is private. Admins will decide if they can let you in.'
@@ -55,6 +62,7 @@ class TeamInfo extends React.Component<Props> {
         closeOnSelect={false}
         onHidden={this.props.onHidden}
         visible={this.props.visible}
+        propagateOutsideClicks={true}
         header={{
           title: 'header',
           view: (
@@ -76,6 +84,14 @@ class TeamInfo extends React.Component<Props> {
               <Kb.Text type="Body" style={styles.description}>
                 {this.props.description}
               </Kb.Text>
+              {this.props.onChat && (
+                <Kb.WaitingButton
+                  waitingKey={Constants.waitingKey}
+                  label="Chat"
+                  onClick={this._onChat}
+                  mode="Secondary"
+                />
+              )}
               {this.props.inTeam ? (
                 <Kb.WaitingButton
                   waitingKey={Constants.waitingKey}

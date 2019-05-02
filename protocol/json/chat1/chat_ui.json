@@ -961,6 +961,13 @@
             "items": "string"
           },
           "name": "publicAdmins"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "convID"
         }
       ]
     },
@@ -1802,6 +1809,10 @@
         },
         {
           "name": "teamName",
+          "type": "string"
+        },
+        {
+          "name": "channel",
           "type": "string"
         },
         {

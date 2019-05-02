@@ -1389,7 +1389,7 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msg chat1
 func presentTeamMentions(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	valid chat1.MessageUnboxedValid) (res []chat1.MaybeTeamMention) {
 	for _, tm := range valid.TeamMentions {
-		if err := g.TeamMentionLoader.LoadTeamMention(ctx, uid, tm.Name); err == nil {
+		if err := g.TeamMentionLoader.LoadTeamMention(ctx, uid, tm.Name, tm.Channel); err == nil {
 			res = append(res, tm)
 		}
 	}

@@ -424,7 +424,7 @@ type ChatUI interface {
 	ChatShowManageChannels(context.Context, string) error
 	ChatCoinFlipStatus(context.Context, []chat1.UICoinFlipStatus) error
 	ChatCommandMarkdown(context.Context, chat1.ConversationID, *chat1.UICommandMarkdown) error
-	ChatTeamMentionUpdate(context.Context, string, chat1.UITeamMention) error
+	ChatTeamMentionUpdate(context.Context, string, string, chat1.UITeamMention) error
 }
 
 type PromptDefault int

@@ -282,6 +282,10 @@ export const getConversationExplodingMode = (state: TypedState, c: Types.Convers
 export const isExplodingModeLocked = (state: TypedState, c: Types.ConversationIDKey) =>
   state.chat2.getIn(['explodingModeLocks', c], null) !== null
 
+export const getTeamMentionName = (name: string, channel: string) => {
+  return name + (channel ? `#${channel}` : '')
+}
+
 // When user clicks wallets icon in chat input, set seenWalletsGregorKey with
 // body of 'true'
 export const seenWalletsGregorKey = 'chat.seenWallets'

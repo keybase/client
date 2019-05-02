@@ -500,6 +500,7 @@ func (d DummyTeamMentionLoader) Stop(ctx context.Context) chan struct{} {
 	return ch
 }
 
-func (d DummyTeamMentionLoader) LoadTeamMention(ctx context.Context, uid gregor1.UID, teamName string) error {
+func (d DummyTeamMentionLoader) LoadTeamMention(ctx context.Context, uid gregor1.UID,
+	teamName, channel string) error {
 	return nil
 }

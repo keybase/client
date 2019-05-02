@@ -971,6 +971,7 @@ type UITeamMention struct {
 	Description  *string  `codec:"description,omitempty" json:"description,omitempty"`
 	NumMembers   *int     `codec:"numMembers,omitempty" json:"numMembers,omitempty"`
 	PublicAdmins []string `codec:"publicAdmins" json:"publicAdmins"`
+	ConvID       *string  `codec:"convID,omitempty" json:"convID,omitempty"`
 }
 
 func (o UITeamMention) DeepCopy() UITeamMention {
@@ -1002,6 +1003,13 @@ func (o UITeamMention) DeepCopy() UITeamMention {
 			}
 			return ret
 		})(o.PublicAdmins),
+		ConvID: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.ConvID),
 	}
 }
 
@@ -2096,6 +2104,7 @@ type ChatCommandMarkdownArg struct {
 type ChatTeamMentionUpdateArg struct {
 	SessionID int           `codec:"sessionID" json:"sessionID"`
 	TeamName  string        `codec:"teamName" json:"teamName"`
+	Channel   string        `codec:"channel" json:"channel"`
 	Info      UITeamMention `codec:"info" json:"info"`
 }
 

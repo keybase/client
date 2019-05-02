@@ -237,6 +237,7 @@ protocol chatUi {
     union { null, string } description;
     union { null, int } numMembers;
     array<string> publicAdmins;
+    union { null, string } convID;
   }
 
   enum UITextDecorationTyp {
@@ -397,5 +398,5 @@ protocol chatUi {
   }
   void chatCommandMarkdown(int sessionID, string convID, union { null, UICommandMarkdown } md);
 
-  void chatTeamMentionUpdate(int sessionID, string teamName, UITeamMention info);
+  void chatTeamMentionUpdate(int sessionID, string teamName, string channel, UITeamMention info);
 }

@@ -2702,10 +2702,10 @@ const onChatCommandMarkdown = (status, action) => {
 }
 
 const onChatTeamMentionUpdate = (state, action) => {
-  const {teamName, info} = action.payload.params
+  const {teamName, channel, info} = action.payload.params
   return Chat2Gen.createSetTeamMentionInfo({
     info,
-    name: teamName,
+    name: Constants.getTeamMentionName(teamName, channel),
   })
 }
 
