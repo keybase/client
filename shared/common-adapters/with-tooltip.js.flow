@@ -4,6 +4,7 @@ import {type StylesCrossPlatform} from '../styles'
 import {type Position} from './relative-popup-hoc.types'
 
 export type Props = {
+  disabled?: boolean,
   text: string,
   multiline?: boolean,
   containerStyle?: StylesCrossPlatform,
