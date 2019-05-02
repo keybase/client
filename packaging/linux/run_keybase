@@ -56,12 +56,12 @@ start_systemd() {
   # systemctl calls don't have it set.
   systemctl --user import-environment "KEYBASE_AUTOSTART"
 
-  # The keybase.gui.service unit has keybase.service and kbfs.service as
-  # dependencies, so we don't have to list them here. But including them lets
-  # us report an error if they fail to start. Also prefer `restart` to `start`
-  # so that we don't race against the service shutting down.
-  # kbfs.service will attempt to start the redirector, but it isn't an error if
-  # it fails to start, which happens if it is disabled.
+  # The keybase.gui.service unit has keybase.service as dependencies, so we
+  # don't have to list them here. But including them lets us report an error if
+  # they fail to start. Also prefer `restart` to `start` so that we don't race
+  # against the service shutting down.  kbfs.service will attempt to start the
+  # redirector, but it isn't an error if it fails to start, which happens if it
+  # is disabled.
   systemctl --user restart keybase.service
 
   [ "$KEYBASE_NO_KBFS" == "1" ] || systemctl --user restart kbfs.service
@@ -199,11 +199,11 @@ usage() {
   echo "If services are already running, they will be restarted."
   echo ""
   echo "Options can also be controlled by setting related environment variables to 1"
-  echo "  -a  keep the GUI minimized in system tray after startup (KEYBASE_AUTOSTART)"
-  echo "  -f  do not start KBFS (only effective with -g, KEYBASE_NO_KBFS)"
-  echo "  -g  do not start the gui (KEYBASE_NO_GUI)"
+  echo "  -a  keep the GUI minimized in system tray after startup (env KEYBASE_AUTOSTART=1)"
+  echo "  -f  do not start KBFS (env KEYBASE_NO_KBFS=1)"
+  echo "  -g  do not start the gui (env KEYBASE_NO_GUI=1)"
   echo "  -h  print this help text"
-  echo "  -k  shut down all Keybase services (KEYBASE_KILL)"
+  echo "  -k  shut down all Keybase services (env KEYBASE_KILL=1)"
 }
 
 KEYBASE_NO_GUI="${KEYBASE_NO_GUI:-0}"
