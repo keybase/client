@@ -1275,7 +1275,11 @@ func (cache *DiskBlockCacheLocal) DoesCacheHaveSpace(
 		ctx, keybase1.UserOrTeamID("")).(backpressureDiskLimiterStatus)
 	switch cache.cacheType {
 	case syncCacheLimitTrackerType:
-		return limiterStatus.SyncCacheByteStatus.UsedFrac <= .99
+		// The tracker doesn't track sync cache usage because we never
+		// want to throttle it, so rely on our local byte usage count
+		// instead of the fraction returned by the tracker.
+		limit := float64(limiterStatus.SyncCacheByteStatus.Max)
+		return float64(cache.getCurrBytes())/limit <= .99
 	case workingSetCacheLimitTrackerType:
 		return limiterStatus.DiskCacheByteStatus.UsedFrac <= .99
 	case crDirtyBlockCacheLimitTrackerType:

@@ -1278,7 +1278,9 @@ func setLimiterLimits(
 	limiter.lock.Lock()
 	defer limiter.lock.Unlock()
 	limiter.syncCacheByteTracker.limit = syncLimit
+	limiter.syncCacheByteTracker.updateSemaphoreMax()
 	limiter.diskCacheByteTracker.limit = workingLimit
+	limiter.diskCacheByteTracker.updateSemaphoreMax()
 }
 
 func testGetDiskCacheBytes(syncCache, workingCache *DiskBlockCacheLocal) (
