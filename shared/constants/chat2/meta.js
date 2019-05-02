@@ -452,3 +452,10 @@ export const getConversationRetentionPolicy = (
 
 export const isDecryptingSnippet = (meta: Types.ConversationMeta) =>
   meta.trustedState === 'requesting' || meta.trustedState === 'untrusted'
+
+export const getTeams = (state: TypedState): Array<string> => {
+  const teamMap = state.chat2.metaMap.reduce((m, meta) => {
+    return meta.teamname ? m.set(meta.teamname, true) : m
+  }, I.Map())
+  return Array.from(teamMap.keys())
+}

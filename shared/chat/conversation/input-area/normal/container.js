@@ -67,6 +67,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     showWalletsIcon: Constants.shouldShowWalletsIcon(state, conversationIDKey),
     suggestChannels: Constants.getChannelSuggestions(state, teamname),
     suggestCommands: Constants.getCommands(state, conversationIDKey),
+    suggestTeams: Constants.getTeams(state),
     suggestUsers: Constants.getParticipantSuggestions(state, conversationIDKey),
     typing: Constants.getTyping(state, conversationIDKey),
     unsentText,
@@ -180,6 +181,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   showWalletsIcon: stateProps.showWalletsIcon,
   suggestChannels: stateProps.suggestChannels,
   suggestCommands: stateProps.suggestCommands,
+  suggestTeams: stateProps.suggestTeams
+    .map(t => ({fullName: '', teamname: t, username: ''}))
+    .sort((a, b) => a.teamname.localeCompare(b.teamname)),
   suggestUsers: stateProps.suggestUsers,
   unsentTextChanged: (text: string) => {
     dispatchProps._unsentTextChanged(stateProps.conversationIDKey, text)

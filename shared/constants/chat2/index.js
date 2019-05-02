@@ -362,6 +362,7 @@ export {
   getParticipantSuggestions,
   getRowParticipants,
   getRowStyles,
+  getTeams,
   inboxUIItemToConversationMeta,
   isDecryptingSnippet,
   makeConversationMeta,
