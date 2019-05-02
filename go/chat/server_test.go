@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -136,6 +137,28 @@ func (g *gregorTestConnection) State(ctx context.Context) (gregor.State, error) 
 	return gregor1.IncomingClient{Cli: g.cli}.State(ctx, gregor1.StateArg{
 		Uid: g.uid,
 	})
+}
+
+func (g *gregorTestConnection) UpdateCategory(ctx context.Context, cat string, body []byte,
+	dtime gregor1.TimeOrOffset) (gregor1.MsgID, error) {
+	msg, err := grutils.TemplateMessage(g.uid)
+	if err != nil {
+		return nil, err
+	}
+	msgID := msg.Ibm_.StateUpdate_.Md_.MsgID_
+	msg.Ibm_.StateUpdate_.Creation_ = &gregor1.Item{
+		Category_: gregor1.Category(cat),
+		Body_:     gregor1.Body(body),
+		Dtime_:    dtime,
+	}
+	msg.Ibm_.StateUpdate_.Dismissal_ = &gregor1.Dismissal{
+		Ranges_: []gregor1.MsgRange{
+			gregor1.MsgRange{
+				Category_:   gregor1.Category(cat),
+				SkipMsgIDs_: []gregor1.MsgID{msgID},
+			}},
+	}
+	return msgID, gregor1.IncomingClient{Cli: g.cli}.ConsumeMessage(ctx, msg)
 }
 
 func (g *gregorTestConnection) DismissItem(ctx context.Context, cli gregor1.IncomingInterface, id gregor.MsgID) error {
@@ -6512,5 +6535,53 @@ func TestReacjiStore(t *testing.T) {
 		expected.SkinTone = expectedSkinTone
 		expectedData.SkinTone = expectedSkinTone
 		assertReacjiStore(userReacjis, expected, expectedData)
+	})
+}
+
+func TestGlobalAppNotificationSettings(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_IMPTEAMNATIVE:
+		default:
+			return
+		}
+		ctc := makeChatTestContext(t, "GlobalAppNotificationSettings", 1)
+		defer ctc.cleanup()
+
+		user := ctc.users()[0]
+		//tc := ctc.world.Tcs[user.Username]
+		ctx := ctc.as(t, user).startCtx
+		expectedSettings := map[chat1.GlobalAppNotificationSetting]bool{
+			chat1.GlobalAppNotificationSetting_NEWMESSAGES:      true,
+			chat1.GlobalAppNotificationSetting_PLAINTEXTDESKTOP: true,
+			chat1.GlobalAppNotificationSetting_PLAINTEXTMOBILE:  false,
+			chat1.GlobalAppNotificationSetting_DISABLETYPING:    false,
+		}
+
+		// convert the expectedSettings to the RPC format
+		strSettings := func() map[string]bool {
+			s := make(map[string]bool)
+			for k, v := range expectedSettings {
+				s[strconv.Itoa(int(k))] = v
+			}
+			return s
+		}
+
+		// Test default settings
+		s, err := ctc.as(t, user).chatLocalHandler().GetGlobalAppNotificationSettingsLocal(ctx)
+		require.NoError(t, err)
+		for k, v := range expectedSettings {
+			require.Equal(t, v, s.Settings[k], fmt.Sprintf("Not equal %v", k))
+			// flip all the defaults for the next test
+			expectedSettings[k] = !v
+		}
+
+		err = ctc.as(t, user).chatLocalHandler().SetGlobalAppNotificationSettingsLocal(ctx, strSettings())
+		require.NoError(t, err)
+		s, err = ctc.as(t, user).chatLocalHandler().GetGlobalAppNotificationSettingsLocal(ctx)
+		require.NoError(t, err)
+		for k, v := range expectedSettings {
+			require.Equal(t, v, s.Settings[k], fmt.Sprintf("Not equal %v", k))
+		}
 	})
 }

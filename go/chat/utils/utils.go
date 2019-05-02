@@ -967,7 +967,7 @@ func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, curre
 
 // We don't want to display the contents of an exploding message in notifications
 func GetDesktopNotificationSnippet(conv *chat1.ConversationLocal, currentUsername string,
-	fromMsg *chat1.MessageUnboxed) string {
+	fromMsg *chat1.MessageUnboxed, plaintextDesktopDisabled bool) string {
 	if conv == nil {
 		return ""
 	}
@@ -982,37 +982,40 @@ func GetDesktopNotificationSnippet(conv *chat1.ConversationLocal, currentUsernam
 	if !msg.IsValid() {
 		return ""
 	}
+
 	mvalid := msg.Valid()
-	var snippet string
-	if !mvalid.IsEphemeral() {
-		switch msg.GetMessageType() {
-		case chat1.MessageType_REACTION:
-			reaction, err := GetReaction(msg)
-			if err != nil {
-				snippet = ""
-			} else {
-				var prefix string
-				if showSenderPrefix(mvalid, *conv) {
-					prefix = mvalid.SenderUsername + " "
-				}
-				snippet = emoji.Sprintf("%sreacted to your message with %v", prefix, reaction)
-			}
-		default:
-			snippet, _ = GetMsgSnippet(msg, *conv, currentUsername)
+	if mvalid.IsEphemeral() {
+		// If the message is already exploded, nothing to see here.
+		if !msg.IsValidFull() {
+			return ""
 		}
-		return snippet
+		switch msg.GetMessageType() {
+		case chat1.MessageType_TEXT, chat1.MessageType_ATTACHMENT:
+			return "💣 exploding message."
+		default:
+			return ""
+		}
+	} else if plaintextDesktopDisabled {
+		return "New message"
 	}
 
-	// If the message is already exploded, nothing to see here.
-	if !msg.IsValidFull() {
-		return ""
-	}
+	var snippet string
 	switch msg.GetMessageType() {
-	case chat1.MessageType_TEXT, chat1.MessageType_ATTACHMENT:
-		return "💣 exploding message."
+	case chat1.MessageType_REACTION:
+		reaction, err := GetReaction(msg)
+		if err != nil {
+			snippet = ""
+		} else {
+			var prefix string
+			if showSenderPrefix(mvalid, *conv) {
+				prefix = mvalid.SenderUsername + " "
+			}
+			snippet = emoji.Sprintf("%sreacted to your message with %v", prefix, reaction)
+		}
 	default:
-		return ""
+		snippet, _ = GetMsgSnippet(msg, *conv, currentUsername)
 	}
+	return snippet
 }
 
 func PresentRemoteConversation(ctx context.Context, g *globals.Context, rc types.RemoteConversation) (res chat1.UnverifiedInboxUIItem) {

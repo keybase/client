@@ -10,7 +10,6 @@ import (
 	"os"
 	"regexp"
 	"sort"
-	"strconv"
 	"sync"
 	"time"
 
@@ -2076,21 +2075,7 @@ func (h *Server) SetGlobalAppNotificationSettingsLocal(ctx context.Context,
 	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
 		return err
 	}
-	var settings chat1.GlobalAppNotificationSettings
-	settings.Settings = make(map[chat1.GlobalAppNotificationSetting]bool)
-	for k, v := range strSettings {
-		key, err := strconv.Atoi(k)
-		if err != nil {
-			h.Debug(ctx, "SetGlobalAppNotificationSettings: failed to convert key: %s", err.Error())
-			continue
-		}
-		gkey := chat1.GlobalAppNotificationSetting(key)
-		h.Debug(ctx, "SetGlobalAppNotificationSettings: setting typ: %s enabled: %v",
-			chat1.GlobalAppNotificationSettingRevMap[gkey], v)
-		settings.Settings[gkey] = v
-	}
-
-	return h.remoteClient().SetGlobalAppNotificationSettings(ctx, settings)
+	return setGlobalAppNotificationSettings(ctx, h.G(), h.remoteClient, strSettings)
 }
 
 func (h *Server) GetGlobalAppNotificationSettingsLocal(ctx context.Context) (res chat1.GlobalAppNotificationSettings, err error) {
@@ -2099,7 +2084,7 @@ func (h *Server) GetGlobalAppNotificationSettingsLocal(ctx context.Context) (res
 	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
 		return res, err
 	}
-	return h.remoteClient().GetGlobalAppNotificationSettings(ctx)
+	return getGlobalAppNotificationSettings(ctx, h.G(), h.remoteClient)
 }
 
 func (h *Server) AddTeamMemberAfterReset(ctx context.Context,

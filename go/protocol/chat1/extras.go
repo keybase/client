@@ -2226,6 +2226,8 @@ func (g GlobalAppNotificationSetting) Usage() string {
 	switch g {
 	case GlobalAppNotificationSetting_NEWMESSAGES:
 		return "Show notifications for new messages"
+	case GlobalAppNotificationSetting_PLAINTEXTDESKTOP:
+		return "Show plaintext notifications on desktop devices"
 	case GlobalAppNotificationSetting_PLAINTEXTMOBILE:
 		return "Show plaintext notifications on mobile devices"
 	case GlobalAppNotificationSetting_DEFAULTSOUNDMOBILE:
@@ -2241,6 +2243,8 @@ func (g GlobalAppNotificationSetting) FlagName() string {
 	switch g {
 	case GlobalAppNotificationSetting_NEWMESSAGES:
 		return "new-messages"
+	case GlobalAppNotificationSetting_PLAINTEXTDESKTOP:
+		return "plaintext-desktop"
 	case GlobalAppNotificationSetting_PLAINTEXTMOBILE:
 		return "plaintext-mobile"
 	case GlobalAppNotificationSetting_DEFAULTSOUNDMOBILE:
