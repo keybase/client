@@ -626,7 +626,7 @@ func parseRegexpNames(ctx context.Context, body string, re *regexp.Regexp) (res 
 
 func GetTextAtMentionedItems(ctx context.Context, g *globals.Context, msg chat1.MessageText,
 	debug *DebugLabeler) (atRes []gregor1.UID, teamRes []chat1.MaybeTeamMention, chanRes chat1.ChannelMention) {
-	atRes, teamRes, chanRes = ParseAtMentionedItems(ctx, g, msg.Body)
+	atRes, teamRes, chanRes = ParseAtMentionedItems(ctx, g, msg.Body, msg.Mentions)
 	atRes = append(atRes, GetPaymentAtMentions(ctx, g.GetUPAKLoader(), msg.Payments, debug)...)
 	return atRes, teamRes, chanRes
 }
@@ -652,15 +652,27 @@ func ParseAtMentionsNames(ctx context.Context, body string) (res []string) {
 	return res
 }
 
-func parseItemAsUID(ctx context.Context, upak libkb.UPAKLoader, name string) (gregor1.UID, error) {
-	kuid, err := upak.LookupUID(ctx, libkb.NewNormalizedUsername(name))
-	if err != nil {
-		return nil, err
+func parseItemAsUID(ctx context.Context, upak libkb.UPAKLoader, name string, knownMentions []chat1.Mention) (gregor1.UID, error) {
+	isKnownMention := false
+	for _, known := range knownMentions {
+		if known.Typ == chat1.MentionType_USER && known.Mention == name {
+			isKnownMention = true
+			break
+		}
 	}
-	return gregor1.UID(kuid.ToBytes()), nil
+	if isKnownMention {
+		kuid, err := upak.LookupUID(ctx, libkb.NewNormalizedUsername(name))
+		if err != nil {
+			return nil, err
+		}
+		return gregor1.UID(kuid.ToBytes()), nil
+	}
+	// TODO: FIX ME: integrate new Max local only UID lookup
+	return nil, errors.New("not implemented")
 }
 
-func ParseAtMentionedItems(ctx context.Context, g *globals.Context, body string) (atRes []gregor1.UID, teamRes []chat1.MaybeTeamMention, chanRes chat1.ChannelMention) {
+func ParseAtMentionedItems(ctx context.Context, g *globals.Context, body string,
+	knownMentions []chat1.Mention) (atRes []gregor1.UID, teamRes []chat1.MaybeTeamMention, chanRes chat1.ChannelMention) {
 	names := ParseAtMentionsNames(ctx, body)
 	chanRes = chat1.ChannelMention_NONE
 	for _, name := range names {
@@ -683,7 +695,7 @@ func ParseAtMentionedItems(ctx context.Context, g *globals.Context, body string)
 		}
 
 		// Try UID first then team
-		if uid, err := parseItemAsUID(ctx, g.GetUPAKLoader(), baseName); err == nil {
+		if uid, err := parseItemAsUID(ctx, g.GetUPAKLoader(), baseName, knownMentions); err == nil {
 			atRes = append(atRes, uid)
 		} else {
 			// anything else is a possible team mention

@@ -1189,10 +1189,12 @@ func (b *Boxer) getAtMentionInfo(ctx context.Context, tlfID chat1.TLFID, topicTy
 		}
 	case chat1.MessageType_FLIP:
 		if topicType == chat1.TopicType_CHAT {
-			atMentions, teamRes, chanMention = utils.ParseAtMentionedItems(ctx, b.G(), body.Flip().Text)
+			atMentions, teamRes, chanMention = utils.ParseAtMentionedItems(ctx, b.G(), body.Flip().Text,
+				body.Flip().Mentions)
 		}
 	case chat1.MessageType_EDIT:
-		atMentions, teamRes, chanMention = utils.ParseAtMentionedItems(ctx, b.G(), body.Edit().Body)
+		atMentions, teamRes, chanMention = utils.ParseAtMentionedItems(ctx, b.G(), body.Edit().Body,
+			body.Edit().Mentions)
 		if membersType == chat1.ConversationMembersType_TEAM {
 			channelNameMentions = utils.ParseChannelNameMentions(ctx, body.Edit().Body, uid, tlfID, tcs)
 		}

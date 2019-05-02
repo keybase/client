@@ -857,10 +857,10 @@ func (s *HybridInboxSource) IsTeam(ctx context.Context, uid gregor1.UID, item st
 	}
 	for _, conv := range convs {
 		if conv.GetTeamName() == item {
-			return true
+			return true, nil
 		}
 	}
-	return false
+	return false, nil
 }
 
 func (s *HybridInboxSource) handleInboxError(ctx context.Context, err error, uid gregor1.UID) (ferr error) {

@@ -649,13 +649,13 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 				return res, err
 			}
 			atMentions, _, chanMention = utils.ParseAtMentionedItems(ctx, s.G(),
-				plaintext.MessageBody.Flip().Text)
+				plaintext.MessageBody.Flip().Text, nil)
 		case chat1.MessageType_EDIT:
 			if err = checkHeaderBodyTypeMatch(); err != nil {
 				return res, err
 			}
 			atMentions, _, chanMention = utils.ParseAtMentionedItems(ctx, s.G(),
-				plaintext.MessageBody.Edit().Body)
+				plaintext.MessageBody.Edit().Body, nil)
 		case chat1.MessageType_SYSTEM:
 			if err = checkHeaderBodyTypeMatch(); err != nil {
 				return res, err
