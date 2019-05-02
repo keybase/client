@@ -173,18 +173,33 @@ func (ss *SecretSyncer) store(m MetaContext, uid keybase1.UID) (err error) {
 // FindActiveKey examines the synced keys, looking for one that's currently active.
 // Returns ret=nil if none was found.
 func (ss *SecretSyncer) FindActiveKey(ckf *ComputedKeyFamily) (ret *SKB, err error) {
+	keys, err := ss.FindActiveKeys(ckf)
+	if err != nil {
+		return nil, err
+	}
+	if len(keys) == 0 {
+		return nil, nil
+	}
+	ss.G().Log.Debug("NOTE: calling SecretSyncer.FindActiveKey: returning first secret key from randomly ordered map", err)
+	return keys[0], nil
+}
+
+func (ss *SecretSyncer) FindActiveKeys(ckf *ComputedKeyFamily) (ret []*SKB, err error) {
 	ss.Lock()
 	defer ss.Unlock()
 
 	if ss.keys == nil {
-		return nil, nil
+		return ret, nil
 	}
 	for _, key := range ss.keys.PrivateKeys {
-		if ret, _ = key.FindActiveKey(ss.G(), ckf); ret != nil {
-			return
+		keyRet, err := key.FindActiveKey(ss.G(), ckf)
+		if err != nil {
+			ss.G().Log.Debug("SecretSyncer.FindActiveKeys: error from key.FindActiveKey, skipping key: %s", err)
+		} else {
+			ret = append(ret, keyRet)
 		}
 	}
-	return
+	return ret, nil
 }
 
 // AllActiveKeys returns all the active synced PGP keys.
