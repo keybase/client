@@ -14,6 +14,7 @@ type Props = {|
     },
   },
   onJoinTeam: string => void,
+  onViewTeam: string => void,
   onEdit: ?() => void,
 |}
 
@@ -60,7 +61,13 @@ const Teams = (p: Props) =>
       </Kb.Box2>
       {!!p.onEdit && !p.teamShowcase.length && <ShowcaseTeamsOffer onEdit={p.onEdit} />}
       {p.teamShowcase.map(t => (
-        <TeamShowcase key={t.name} {...t} onJoinTeam={p.onJoinTeam} inTeam={p.teamMeta[t.name].inTeam} />
+        <TeamShowcase
+          key={t.name}
+          {...t}
+          onJoinTeam={p.onJoinTeam}
+          onViewTeam={p.onViewTeam}
+          inTeam={p.teamMeta[t.name].inTeam}
+        />
       ))}
     </Kb.Box2>
   ) : null
