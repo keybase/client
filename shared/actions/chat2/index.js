@@ -1585,8 +1585,16 @@ const previewConversationPersonMakesAConversation = (state, action) =>
 
 // We preview channels
 const previewConversationTeam = (state, action) => {
-  let conversationIDKey = action.payload.conversationIDKey
-  if (conversationIDKey) {
+  if (action.payload.conversationIDKey) {
+    const conversationIDKey = action.payload.conversationIDKey
+
+    if (action.payload.reason === 'messageLink') {
+      // Add preview channel to inbox
+      return RPCChatTypes.localPreviewConversationByIDLocalRpcPromise({
+        convID: Types.keyToConversationID(conversationIDKey),
+      }).then(() => Chat2Gen.createSelectConversation({conversationIDKey, reason: 'previewResolved'}))
+    }
+
     return Chat2Gen.createSelectConversation({
       conversationIDKey,
       reason: 'previewResolved',
@@ -1599,7 +1607,6 @@ const previewConversationTeam = (state, action) => {
 
   const teamname = action.payload.teamname
   const channelname = action.payload.channelname || 'general'
-  conversationIDKey = action.payload.conversationIDKey
 
   return RPCChatTypes.localFindConversationsLocalRpcPromise({
     identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
@@ -1615,7 +1622,7 @@ const previewConversationTeam = (state, action) => {
       .filter(Boolean)
     if (!resultMetas.length) return
 
-    conversationIDKey = resultMetas[0].conversationIDKey
+    const conversationIDKey = resultMetas[0].conversationIDKey
     RPCChatTypes.localPreviewConversationByIDLocalRpcPromise({
       convID: Types.keyToConversationID(conversationIDKey),
     })
