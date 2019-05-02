@@ -70,12 +70,9 @@ class Providers extends React.Component<ProvidersProps> {
     const items = this.props.providers.filter(p => filterProvider(p, filterRegexp))
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        <Kb.List2
-          items={items}
-          renderItem={this._renderItem}
-          itemHeight={Providers._itemHeight}
-          style={{height: '100%'}}
-        />
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.flexOne}>
+          <Kb.List2 items={items} renderItem={this._renderItem} itemHeight={Providers._itemHeight} />
+        </Kb.Box2>
       </Kb.Box2>
     )
   }
@@ -167,6 +164,9 @@ const styles = Styles.styleSheetCreate({
   },
   description: {
     ...rightColumnStyle,
+  },
+  flexOne: {
+    flex: 1,
   },
   footer: {
     alignItems: 'center',
