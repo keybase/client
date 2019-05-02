@@ -339,7 +339,7 @@ func (g *gregorHandler) resetGregorClient(ctx context.Context) (err error) {
 	var gdid gregor.DeviceID
 	var b []byte
 
-	uid := g.G().Env.GetUID()
+	uid := g.G().ActiveDevice.UID()
 	if !uid.Exists() {
 		err = errors.New("no UID; probably not logged in")
 		return err
