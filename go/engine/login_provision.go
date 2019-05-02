@@ -786,7 +786,7 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 		}
 
 		if !enterReset {
-			m.Debug("skipped login")
+			m.Debug("User decided not to enter the reset pipeline")
 			// User had to explicitly decline entering the pipeline so in order to prevent
 			// confusion prevent further prompts by completing a noop login flow.
 			e.skippedLogin = true
