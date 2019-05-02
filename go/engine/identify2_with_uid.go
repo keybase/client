@@ -449,7 +449,7 @@ func (e *Identify2WithUID) runReturnError(m libkb.MetaContext) (err error) {
 		m.Debug("- Released singleflight lock")
 	}()
 
-	if err = e.loadAssertion(); err != nil {
+	if err = e.loadAssertion(m); err != nil {
 		return err
 	}
 
@@ -709,11 +709,11 @@ func (e *Identify2WithUID) checkRemoteAssertions(okStates []keybase1.ProofState)
 	return nil
 }
 
-func (e *Identify2WithUID) loadAssertion() (err error) {
+func (e *Identify2WithUID) loadAssertion(mctx libkb.MetaContext) (err error) {
 	if len(e.arg.UserAssertion) == 0 {
 		return nil
 	}
-	e.themAssertion, err = libkb.AssertionParseAndOnly(e.G().MakeAssertionContext(), e.arg.UserAssertion)
+	e.themAssertion, err = libkb.AssertionParseAndOnly(e.G().MakeAssertionContext(mctx), e.arg.UserAssertion)
 	if err == nil {
 		e.remoteAssertion, e.localAssertion = libkb.CollectAssertions(e.themAssertion)
 	}
@@ -811,7 +811,7 @@ func (e *Identify2WithUID) runIdentifyUI(m libkb.MetaContext) (err error) {
 		return err
 	}
 	m.Debug("| IdentifyUI.LaunchNetworkChecks(%s)", e.them.GetName())
-	if err = iui.LaunchNetworkChecks(m, e.state.ExportToUncheckedIdentity(e.G()), e.them.Export()); err != nil {
+	if err = iui.LaunchNetworkChecks(m, e.state.ExportToUncheckedIdentity(m), e.them.Export()); err != nil {
 		return err
 	}
 
