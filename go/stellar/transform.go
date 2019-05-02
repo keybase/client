@@ -206,6 +206,10 @@ func transformPaymentDirect(mctx libkb.MetaContext, acctID stellar1.AccountID, p
 
 	loc.Note, loc.NoteErr = decryptNote(mctx, p.TxID, p.NoteB64)
 
+	loc.SourceAmountMax = p.SourceAmountMax
+	loc.SourceAmountActual = p.SourceAmountActual
+	loc.SourceAsset = p.SourceAsset
+
 	return loc, nil
 }
 
