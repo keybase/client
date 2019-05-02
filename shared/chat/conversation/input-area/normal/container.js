@@ -6,6 +6,7 @@ import * as ConfigGen from '../../../../actions/config-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import HiddenString from '../../../../util/hidden-string'
 import {connect} from '../../../../util/container'
+import {memoize} from '../../../../util/memoize'
 import Input, {type Props} from '.'
 
 type OwnProps = {
@@ -49,6 +50,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     _containsLatestMessage,
     _editOrdinal: editInfo ? editInfo.ordinal : null,
     _isExplodingModeLocked: Constants.isExplodingModeLocked(state, conversationIDKey),
+    _metaMap: state.chat2.metaMap,
     _replyTo,
     _you,
     conversationIDKey,
@@ -67,7 +69,6 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     showWalletsIcon: Constants.shouldShowWalletsIcon(state, conversationIDKey),
     suggestChannels: Constants.getChannelSuggestions(state, teamname),
     suggestCommands: Constants.getCommands(state, conversationIDKey),
-    suggestTeams: Constants.getTeams(state),
     suggestUsers: Constants.getParticipantSuggestions(state, conversationIDKey),
     typing: Constants.getTyping(state, conversationIDKey),
     unsentText,
@@ -126,6 +127,12 @@ const mapDispatchToProps = dispatch => ({
     dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset})),
 })
 
+const getTeams = memoize(metaMap =>
+  Constants.getTeams(metaMap)
+    .map(t => ({fullName: '', teamname: t, username: ''}))
+    .sort((a, b) => a.teamname.localeCompare(b.teamname))
+)
+
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   clearInboxFilter: dispatchProps.clearInboxFilter,
   conversationIDKey: stateProps.conversationIDKey,
@@ -181,9 +188,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   showWalletsIcon: stateProps.showWalletsIcon,
   suggestChannels: stateProps.suggestChannels,
   suggestCommands: stateProps.suggestCommands,
-  suggestTeams: stateProps.suggestTeams
-    .map(t => ({fullName: '', teamname: t, username: ''}))
-    .sort((a, b) => a.teamname.localeCompare(b.teamname)),
+  suggestTeams: getTeams(stateProps._metaMap),
   suggestUsers: stateProps.suggestUsers,
   unsentTextChanged: (text: string) => {
     dispatchProps._unsentTextChanged(stateProps.conversationIDKey, text)
