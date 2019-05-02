@@ -165,14 +165,14 @@ class AccountSettings extends React.Component<SettingsProps> {
             </Kb.Box2>
             <Divider />
             <Kb.Box2 direction="vertical" gap="tiny" style={styles.section} fullWidth={true}>
-              <Kb.Box2 direction="horizontal" style={styles.alignSelfFlexStart} gap="tiny" fullWidth={true}>
+              <Kb.Box2 direction="horizontal" style={styles.alignSelfFlexStart} gap="xtiny" fullWidth={true}>
                 <Kb.Text type="BodySmallSemibold">Inflation destination</Kb.Text>
                 {!Styles.isMobile && (
                   <Kb.WithTooltip
                     text="Every year, the total Lumens grows by 1% due to inflation, and you can cast a vote for who gets it."
                     multiline={true}
                   >
-                    <Kb.Icon type="iconfont-question-mark" />
+                    <Kb.Icon type="iconfont-question-mark" sizeType="Small" />
                   </Kb.WithTooltip>
                 )}
               </Kb.Box2>
