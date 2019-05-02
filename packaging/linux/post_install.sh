@@ -106,9 +106,6 @@ safe_restart_systemd_services() {
         fi
 
         if systemd_unit_active_for "$user" "kbfs.service"; then
-            # TODO: CORE-9789
-            # We don't pass --direct to keybase config get because it doesn't work on non-root users
-            # It should still work because the service should be running
             if ! mount="$(systemd_exec_as "$user" "/usr/bin/keybase config get --direct --bare mountdir")" || [ -z "$mount" ]; then
                 echo "Could not find mountdir for $user via systemd."
                 echo "$abort_instructions"
