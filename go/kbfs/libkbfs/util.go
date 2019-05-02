@@ -336,3 +336,44 @@ func cleanOldTempStorageRoots(config Config) {
 		log.CDebugf(ctx, "Done cleaning old storage roots")
 	}
 }
+
+// GetLocalDiskStats returns the local disk stats, according to the
+// disk block cache.
+func GetLocalDiskStats(ctx context.Context, dbc DiskBlockCache) (
+	bytesAvail, bytesTotal int64) {
+	if dbc == nil {
+		return 0, 0
+	}
+
+	dbcStatus := dbc.Status(ctx)
+	if status, ok := dbcStatus["SyncBlockCache"]; ok {
+		return int64(status.LocalDiskBytesAvailable),
+			int64(status.LocalDiskBytesTotal)
+	}
+	return 0, 0
+}
+
+// FillInDiskSpaceStatus fills in the `OutOfSyncSpace` and local disk
+// space fields of the given status.  `status.PrefetchStatus` should
+// be populated before this function is called.
+func FillInDiskSpaceStatus(
+	ctx context.Context, status *keybase1.FolderSyncStatus,
+	dbc DiskBlockCache) {
+	if dbc == nil {
+		return
+	}
+
+	status.LocalDiskBytesAvailable, status.LocalDiskBytesTotal =
+		GetLocalDiskStats(ctx, dbc)
+
+	if status.PrefetchStatus == keybase1.PrefetchStatus_COMPLETE {
+		return
+	}
+
+	hasRoom, err := dbc.DoesCacheHaveSpace(
+		context.Background(), DiskBlockSyncCache)
+	if err != nil {
+		return
+	}
+	status.OutOfSyncSpace = !hasRoom
+}
