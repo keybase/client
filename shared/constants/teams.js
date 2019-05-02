@@ -575,6 +575,14 @@ export const makeResetUser: I.RecordFactory<Types._ResetUser> = I.Record({
 
 export const chosenChannelsGregorKey = 'chosenChannelsForTeam'
 
+export const isOnTeamsTab = () => {
+  if (!flags.useNewRouter) {
+    return false
+  }
+  const path = getFullRoute()
+  return Array.isArray(path) ? path.some(p => p.routeName === teamsTab) : false
+}
+
 export {
   getNumberOfSubscribedChannels,
   getRole,
