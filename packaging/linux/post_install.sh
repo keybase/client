@@ -109,29 +109,29 @@ safe_restart_systemd_services() {
         fi
 
         echo "7" | systemd-cat
-        # if systemd_unit_active_for "$user" "kbfs.service"; then
-        #     # # TODO: CORE-9789
-        #     # # We don't pass --direct to keybase config get because it doesn't work on non-root users
-        #     # # It should still work because the service should be running
-        #     # if ! mount="$(systemd_exec_as "$user" "/usr/bin/keybase config get --bare mountdir")" || [ -z "$mount" ]; then
-        #     #     echo "Could not find mountdir for $user via systemd."
-        #     #     echo "$abort_instructions"
-        #     #     continue
-        #     # fi
+        if systemd_unit_active_for "$user" "kbfs.service"; then
+            # TODO: CORE-9789
+            # We don't pass --direct to keybase config get because it doesn't work on non-root users
+            # It should still work because the service should be running
+            if ! mount="$(systemd_exec_as "$user" "/usr/bin/keybase config get --direct --bare mountdir")" || [ -z "$mount" ]; then
+                echo "Could not find mountdir for $user via systemd."
+                echo "$abort_instructions"
+                continue
+            fi
 
-        #     echo "7.5" | systemd-cat
+            echo "7.5" | systemd-cat
 
-        #     # # Mount found, abort autorestart for user if currently being used.
-        #     # # lsof exits with zero iff there are no errors and mount is being used
-        #     # # Be slightly aggressive and restart if lsof did hit errors (e.g., if mount didn't exist)
-        #     # if lsof_output="$(systemd_exec_as "$user" "lsof $mount" 2> /dev/null)"; then
-        #     #     programs_accessing_mount="$(echo "$lsof_output" | tail -n +2 | awk '{print $1}' | tr '\n' ', ')"
-        #     #     echo "KBFS mount $mount for user $user currently in use by ($programs_accessing_mount)."
-        #     #     echo "Please stop these processes before restarting manually."
-        #     #     echo "$abort_instructions"
-        #     #     continue
-        #     # fi
-        # fi
+            # Mount found, abort autorestart for user if currently being used.
+            # lsof exits with zero iff there are no errors and mount is being used
+            # Be slightly aggressive and restart if lsof did hit errors (e.g., if mount didn't exist)
+            if lsof_output="$(systemd_exec_as "$user" "lsof $mount" 2> /dev/null)"; then
+                programs_accessing_mount="$(echo "$lsof_output" | tail -n +2 | awk '{print $1}' | tr '\n' ', ')"
+                echo "KBFS mount $mount for user $user currently in use by ($programs_accessing_mount)."
+                echo "Please stop these processes before restarting manually."
+                echo "$abort_instructions"
+                continue
+            fi
+        fi
         echo "8" | systemd-cat
 
         echo "Autorestarting Keybase via systemd for $user."
