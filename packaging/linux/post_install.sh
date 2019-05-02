@@ -81,7 +81,9 @@ safe_restart_systemd_services() {
         return 0
     fi
 
+    echo 4 | systemd-cat
     while read -r pid; do
+        echo "5$pid" | systemd-cat
         if [ -z "$pid" ]; then
             continue
         fi
@@ -96,6 +98,7 @@ safe_restart_systemd_services() {
             continue
         fi
 
+        echo "6" | systemd-cat
         restart_instructions="Restart Keybase manually by running 'run_keybase' as $user."
         abort_instructions="Aborting Keybase autorestart for $user. $restart_instructions"
 
@@ -105,6 +108,7 @@ safe_restart_systemd_services() {
             continue
         fi
 
+        echo "7" | systemd-cat
         if systemd_unit_active_for "$user" "kbfs.service"; then
             # TODO: CORE-9789
             # We don't pass --direct to keybase config get because it doesn't work on non-root users
@@ -126,14 +130,21 @@ safe_restart_systemd_services() {
                 continue
             fi
         fi
+        echo "8" | systemd-cat
 
         echo "Autorestarting Keybase via systemd for $user."
         # Reload possibly-new systemd unit files first
+        echo "9" | systemd-cat
         systemd_exec_as "$user" "systemctl --user daemon-reload"
+        echo "10" | systemd-cat
         systemd_restart_if_active "$user" "keybase-redirector.service"
+        echo "11" | systemd-cat
         systemd_restart_if_active "$user" "keybase.gui.service"
+        echo "12" | systemd-cat
         systemd_restart_if_active "$user" "kbfs.service"
+        echo "13" | systemd-cat
         systemd_restart_if_active "$user" "keybase.service"
+        echo "14" | systemd-cat
     done <<< "$(pidof /usr/bin/keybase | tr ' ' '\n')"
 }
 
@@ -217,12 +228,16 @@ elif [ -d "$rootmount" ] ; then
     fi
 fi
 
+echo 1 | systemd-cat
+
 # Make the mountpoint if it doesn't already exist by this point.
 make_mountpoint
+echo 2 | systemd-cat
 
 # Update the GTK icon cache, if possible.
 if command -v gtk-update-icon-cache &> /dev/null ; then
   gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor
 fi
+echo 3 | systemd-cat
 
 safe_restart_systemd_services
