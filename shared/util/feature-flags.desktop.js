@@ -23,7 +23,7 @@ const ff: FeatureFlags = {
   outOfDateBanner: false,
   plansEnabled: false,
   proofProviders: true,
-  useNewRouter: false,
+  useNewRouter: true,
 }
 
 const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
@@ -32,7 +32,6 @@ const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
   moveOrCopy: true,
   outOfDateBanner: true,
   proofProviders: true,
-  useNewRouter: true,
 }
 
 // load overrides
