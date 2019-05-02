@@ -170,7 +170,9 @@ func (ss *SecretSyncer) store(m MetaContext, uid keybase1.UID) (err error) {
 	return
 }
 
-// FindActiveKey examines the synced keys, looking for one that's currently active.
+// FindActiveKey examines the synced keys, looking for one that's currently
+// active. The key will be chosen at random due to non-deterministic order of
+// FindActiveKeys output.
 // Returns ret=nil if none was found.
 func (ss *SecretSyncer) FindActiveKey(ckf *ComputedKeyFamily) (ret *SKB, err error) {
 	keys, err := ss.FindActiveKeys(ckf)
@@ -184,6 +186,8 @@ func (ss *SecretSyncer) FindActiveKey(ckf *ComputedKeyFamily) (ret *SKB, err err
 	return keys[0], nil
 }
 
+// FindActiveKey examines the synced keys, and returns keys that are currently
+// active.
 func (ss *SecretSyncer) FindActiveKeys(ckf *ComputedKeyFamily) (ret []*SKB, err error) {
 	ss.Lock()
 	defer ss.Unlock()
