@@ -4,7 +4,7 @@ import Container from '../../login/forms/container'
 import * as React from 'react'
 import {RPCError} from '../../util/errors'
 import {constantsStatusCode} from '../../constants/types/rpc-gen'
-import {Box2, HeaderOnMobile, Text, Markdown} from '../../common-adapters'
+import {Box2, Text, Markdown} from '../../common-adapters'
 import {styleSheetCreate, globalStyles, globalMargins, isMobile} from '../../styles'
 
 type Props = {
@@ -261,4 +261,4 @@ const styles = styleSheetCreate({
   },
 })
 
-export default HeaderOnMobile(Render)
+export default Render

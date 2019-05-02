@@ -2,7 +2,6 @@
 import * as React from 'react'
 import * as Constants from '../../constants/signup'
 import {
-  Box,
   Box2,
   HeaderHocHeader,
   Avatar,
@@ -31,13 +30,7 @@ export const Wrapper = (props: Props) => (
     >
       {props.children}
     </Box2>
-    {flags.useNewRouter ? (
-      <Box style={styles.header}>
-        <HeaderHocHeader onBack={props.onBack} headerStyle={styles.header} />
-      </Box>
-    ) : (
-      <HeaderHocHeader onBack={props.onBack} headerStyle={styles.header} />
-    )}
+    {!flags.useNewRouter && <HeaderHocHeader onBack={props.onBack} headerStyle={styles.header} />}
   </Box2>
 )
 
