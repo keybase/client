@@ -153,7 +153,20 @@ const LoggedInStackNavigator = createStackNavigator(
 const LoggedOutStackNavigator = createStackNavigator(
   {...Shim.shim(loggedOutRoutes)},
   {
-    defaultNavigationOptions,
+    defaultNavigationOptions: {
+      ...defaultNavigationOptions,
+      header: undefined,
+      headerLeft: hp =>
+        hp.scene.index === 0 ? null : (
+          <LeftAction
+            badgeNumber={0}
+            leftAction="cancel"
+            onLeftAction={hp.onPress}
+            customIconColor={hp.tintColor}
+          />
+        ),
+    },
+
     headerMode,
     initialRouteName: 'login',
     initialRouteParams: undefined,
