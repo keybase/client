@@ -204,24 +204,14 @@ class AccountSettings extends React.Component<SettingsProps> {
               style={styles.removeContainer}
             >
               <Kb.Divider />
-              <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
-                <Kb.ClickableBox style={styles.remove} onClick={props.isDefault ? null : props.onDelete}>
-                  <Kb.Icon
-                    type="iconfont-trash"
-                    style={Styles.collapseStyles([
-                      styles.rightMargin,
-                      props.isDefault && styles.deleteOpacity,
-                    ])}
-                    color={Styles.globalColors.red}
-                  />
-                  <Kb.Text
-                    type="BodySemibold"
-                    style={Styles.collapseStyles([styles.red, props.isDefault && styles.deleteOpacity])}
-                    className={Styles.classNames({'hover-underline': !props.isDefault})}
-                  >
-                    Remove account
-                  </Kb.Text>
-                </Kb.ClickableBox>
+              <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} gap="tiny">
+                <Kb.Button
+                  disabled={props.isDefault}
+                  label="Remove account"
+                  fullWidth={true}
+                  type="Danger"
+                  onClick={props.isDefault ? null : props.onDelete}
+                />
                 {props.isDefault && (
                   <Kb.Text center={true} type="BodySmall">
                     You can’t remove your default account.
