@@ -62,6 +62,7 @@ class TeamInfo extends React.Component<Props> {
         closeOnSelect={false}
         onHidden={this.props.onHidden}
         visible={this.props.visible}
+        propagateOutsideClicks={true}
         header={{
           title: 'header',
           view: (
