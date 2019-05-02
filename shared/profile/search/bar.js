@@ -27,7 +27,6 @@ class ProfileSearch extends React.PureComponent<Props, State> {
   render() {
     return (
       <Kb.Box2 style={styles.container} direction="horizontal" ref={this._ref}>
-        <Kb.Text type="BodySmall">{this.props.searchCounter || 0}</Kb.Text>
         <Kb.ClickableBox
           onClick={this._onShow}
           style={Styles.collapseStyles([styles.searchContainer, this.state.show && {opacity: 0}])}

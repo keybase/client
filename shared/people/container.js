@@ -6,7 +6,7 @@ import * as Types from '../constants/types/people'
 import * as Kb from '../common-adapters'
 import People, {Header} from '.'
 import * as PeopleGen from '../actions/people-gen'
-import {connect, type RouteProps, isMobile} from '../util/container'
+import {connect, compose, type RouteProps, isMobile, withNavigation} from '../util/container'
 import {createSearchSuggestions} from '../actions/search-gen'
 import {createShowUserProfile} from '../actions/profile-gen'
 import * as WaitingConstants from '../constants/waiting'
@@ -24,15 +24,24 @@ const mapDispatchToPropsHeader = dispatch => ({
   },
 })
 
-const mergePropsHeader = (stateProps, dispatchProps, ownProps) => ({
-  myUsername: stateProps.myUsername,
-  ...dispatchProps,
-  searchCounter: ownProps.searchCounter,
-})
-const ConnectedHeader = connect<{|searchCounter: number|}, _, _, _, _>(
-  mapStateToPropsHeader,
-  mapDispatchToPropsHeader,
-  mergePropsHeader
+const mergePropsHeader = (stateProps, dispatchProps, ownProps) => {
+  let searchCounter = 0
+  if (ownProps.navigation.state.routes) {
+    searchCounter = ownProps.navigation.state.routes[ownProps.navigation.state.index].params?.searchCounter
+  }
+  return {
+    myUsername: stateProps.myUsername,
+    ...dispatchProps,
+    searchCounter,
+  }
+}
+const ConnectedHeader = compose(
+  withNavigation,
+  connect<{|navigation: any|}, _, _, _, _>(
+    mapStateToPropsHeader,
+    mapDispatchToPropsHeader,
+    mergePropsHeader
+  )
 )(Header)
 
 type Props = {
@@ -112,13 +121,13 @@ const connected = connect<OwnProps, _, _, _, _>(
 )(LoadOnMount)
 
 // $FlowIssue lets fix this
-connected.navigationOptions = ({navigation}) => ({
+connected.navigationOptions = {
   header: undefined,
-  headerTitle: hp => <ConnectedHeader searchCounter={navigation.getParam('searchCounter', 0)} />,
+  headerTitle: hp => <ConnectedHeader />,
   headerTitleContainerStyle: {
     left: 40,
     right: 0,
   },
   underNotch: true,
-})
+}
 export default connected
