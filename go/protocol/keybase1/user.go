@@ -468,6 +468,12 @@ type CanLogoutArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type UserCardArg struct {
+	SessionID  int  `codec:"sessionID" json:"sessionID"`
+	Uid        UID  `codec:"uid" json:"uid"`
+	UseSession bool `codec:"useSession" json:"useSession"`
+}
+
 type UserInterface interface {
 	ListTrackers(context.Context, ListTrackersArg) ([]Tracker, error)
 	ListTrackersByName(context.Context, ListTrackersByNameArg) ([]Tracker, error)
@@ -517,6 +523,7 @@ type UserInterface interface {
 	FindNextMerkleRootAfterReset(context.Context, FindNextMerkleRootAfterResetArg) (NextMerkleRootRes, error)
 	LoadHasRandomPw(context.Context, LoadHasRandomPwArg) (bool, error)
 	CanLogout(context.Context, int) (CanLogoutRes, error)
+	UserCard(context.Context, UserCardArg) (*UserCard, error)
 }
 
 func UserProtocol(i UserInterface) rpc.Protocol {
@@ -913,6 +920,21 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 					return
 				},
 			},
+			"userCard": {
+				MakeArg: func() interface{} {
+					var ret [1]UserCardArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]UserCardArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]UserCardArg)(nil), args)
+						return
+					}
+					ret, err = i.UserCard(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -1078,5 +1100,10 @@ func (c UserClient) LoadHasRandomPw(ctx context.Context, __arg LoadHasRandomPwAr
 func (c UserClient) CanLogout(ctx context.Context, sessionID int) (res CanLogoutRes, err error) {
 	__arg := CanLogoutArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.user.canLogout", []interface{}{__arg}, &res)
+	return
+}
+
+func (c UserClient) UserCard(ctx context.Context, __arg UserCardArg) (res *UserCard, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.userCard", []interface{}{__arg}, &res)
 	return
 }

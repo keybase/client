@@ -6,7 +6,6 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/uidmap"
@@ -145,7 +144,7 @@ func getUsernameAndFullName(ctx context.Context, g *libkb.GlobalContext,
 	if err != nil {
 		return "", "", err
 	}
-	fullName, err = engine.GetFullName(libkb.NewMetaContext(ctx, g), uid)
+	fullName, err = libkb.GetFullName(libkb.NewMetaContext(ctx, g), uid)
 	if err != nil {
 		return "", "", err
 	}

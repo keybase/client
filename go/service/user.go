@@ -644,3 +644,9 @@ func (h *UserHandler) CanLogout(ctx context.Context, sessionID int) (res keybase
 	res.CanLogout = true
 	return res, nil
 }
+
+func (h *UserHandler) UserCard(ctx context.Context, arg keybase1.UserCardArg) (res *keybase1.UserCard, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("UserHandler#UserCard", func() error { return err })()
+	return libkb.UserCard(mctx, arg.Uid, arg.UseSession)
+}

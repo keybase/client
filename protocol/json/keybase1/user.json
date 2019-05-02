@@ -736,6 +736,26 @@
         }
       ],
       "response": "CanLogoutRes"
+    },
+    "userCard": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "uid",
+          "type": "UID"
+        },
+        {
+          "name": "useSession",
+          "type": "boolean"
+        }
+      ],
+      "response": [
+        null,
+        "UserCard"
+      ]
     }
   },
   "namespace": "keybase.1"
