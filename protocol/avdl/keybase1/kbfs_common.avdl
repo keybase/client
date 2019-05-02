@@ -109,5 +109,6 @@ protocol kbfsCommon {
     PrefetchStatus prefetchStatus;
     PrefetchProgress prefetchProgress;
     int64 storedBytesTotal;
+    boolean outOfSyncSpace;
   }
 }
