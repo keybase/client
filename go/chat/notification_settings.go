@@ -9,10 +9,10 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-const disablePlaintextDestkopKey = "disableplaintextdestkop"
+const disablePlaintextDesktopKey = "disableplaintextdesktop"
 
 func setPlaintextDesktopDisabled(ctx context.Context, g *globals.Context, disabled bool) error {
-	_, err := g.GregorState.UpdateCategory(ctx, disablePlaintextDestkopKey,
+	_, err := g.GregorState.UpdateCategory(ctx, disablePlaintextDesktopKey,
 		[]byte(strconv.FormatBool(disabled)), gregor1.TimeOrOffset{})
 	return err
 }
@@ -22,7 +22,7 @@ func getPlaintextDesktopDisabled(ctx context.Context, g *globals.Context) (bool,
 	if err != nil {
 		return false, err
 	}
-	cat, err := gregor1.ObjFactory{}.MakeCategory(disablePlaintextDestkopKey)
+	cat, err := gregor1.ObjFactory{}.MakeCategory(disablePlaintextDesktopKey)
 	if err != nil {
 		return false, err
 	}
@@ -40,15 +40,15 @@ func getPlaintextDesktopDisabled(ctx context.Context, g *globals.Context) (bool,
 
 func getGlobalAppNotificationSettings(ctx context.Context, g *globals.Context, ri func() chat1.RemoteInterface) (
 	res chat1.GlobalAppNotificationSettings, err error) {
+	settings, err := ri().GetGlobalAppNotificationSettings(ctx)
+	if err != nil {
+		return res, err
+	}
 	plaintextDesktopDisabled, err := getPlaintextDesktopDisabled(ctx, g)
 	if err != nil {
 		return res, err
 	}
 
-	settings, err := ri().GetGlobalAppNotificationSettings(ctx)
-	if err != nil {
-		return res, err
-	}
 	settings.Settings[chat1.GlobalAppNotificationSetting_PLAINTEXTDESKTOP] = !plaintextDesktopDisabled
 	return settings, nil
 }
@@ -75,6 +75,9 @@ func setGlobalAppNotificationSettings(ctx context.Context, g *globals.Context, r
 		default:
 			settings.Settings[gkey] = v
 		}
+	}
+	if len(settings.Settings) == 0 {
+		return nil
 	}
 	return ri().SetGlobalAppNotificationSettings(ctx, settings)
 }
