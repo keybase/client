@@ -327,6 +327,11 @@ const getDisabledReasonsForRolePicker = (
   teamname: Types.Teamname,
   memberToModify: ?string
 ): Types.DisabledReasonsForRolePicker => {
+  const canManageMembers = getCanPerform(state, teamname).manageMembers
+  if (canManageMembers) {
+    // If you're an implicit admin, the tests below will fail for you, but you can still change roles.
+    return {}
+  }
   const members = getTeamMembers(state, teamname)
   const member = memberToModify ? members.get(memberToModify) : null
   const theyAreOwner = member ? member.type === 'owner' : false
