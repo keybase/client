@@ -893,8 +893,30 @@ func TestChatSearchInbox(t *testing.T) {
 		case <-syncLoopCh:
 		}
 
-		// test search delegation
+		// test search delegation with a specific conv
 		// delegate on queries shorter than search.MinTokenLength
+		opts.ConvID = &convID
+		// delegate if a single conv is not fully indexed
+		query = "hello"
+		g1.LocalChatDb.Nuke()
+		res = runSearch(query, opts, false /* expectedReindex*/)
+		require.Equal(t, 1, len(res.Hits))
+		convHit = res.Hits[0]
+		require.Equal(t, convID, convHit.ConvID)
+		require.Equal(t, 1, len(convHit.Hits))
+		verifyHit(convID, []chat1.MessageID{}, msgID10, nil, []chat1.ChatSearchMatch{searchMatch}, convHit.Hits[0])
+		verifySearchDone(1, true)
+
+		// delegate on regexp searches
+		query = "/hello/"
+		res = runSearch(query, opts, false /* expectedReindex*/)
+		require.Equal(t, 1, len(res.Hits))
+		convHit = res.Hits[0]
+		require.Equal(t, convID, convHit.ConvID)
+		require.Equal(t, 1, len(convHit.Hits))
+		verifyHit(convID, []chat1.MessageID{}, msgID10, nil, []chat1.ChatSearchMatch{searchMatch}, convHit.Hits[0])
+		verifySearchDone(1, true)
+
 		query = "hi"
 		searchMatch = chat1.ChatSearchMatch{
 			StartIndex: 0,
@@ -913,24 +935,5 @@ func TestChatSearchInbox(t *testing.T) {
 		verifyHit(convID, []chat1.MessageID{msgID10}, msgID11, nil, []chat1.ChatSearchMatch{searchMatch}, convHit.Hits[0])
 		verifySearchDone(1, true)
 
-		// delegate if a single conv is not fully indexed
-		g1.LocalChatDb.Nuke()
-		res = runSearch(query, opts, false /* expectedReindex*/)
-		require.Equal(t, 1, len(res.Hits))
-		convHit = res.Hits[0]
-		require.Equal(t, convID, convHit.ConvID)
-		require.Equal(t, 1, len(convHit.Hits))
-		verifyHit(convID, []chat1.MessageID{msgID10}, msgID11, nil, []chat1.ChatSearchMatch{searchMatch}, convHit.Hits[0])
-		verifySearchDone(1, true)
-
-		// delegate on regexp searches
-		query = "/hi/"
-		res = runSearch(query, opts, false /* expectedReindex*/)
-		require.Equal(t, 1, len(res.Hits))
-		convHit = res.Hits[0]
-		require.Equal(t, convID, convHit.ConvID)
-		require.Equal(t, 1, len(convHit.Hits))
-		verifyHit(convID, []chat1.MessageID{msgID10}, msgID11, nil, []chat1.ChatSearchMatch{searchMatch}, convHit.Hits[0])
-		verifySearchDone(1, true)
 	})
 }

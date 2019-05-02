@@ -2402,29 +2402,6 @@ func (h *Server) CancelActiveInboxSearch(ctx context.Context) (err error) {
 	return nil
 }
 
-func (h *Server) searchConvNames(ctx context.Context, uid gregor1.UID, query string, maxNameConvs int,
-	doneCh chan struct{}, chatUI libkb.ChatUI) {
-	defer close(doneCh)
-	if maxNameConvs == 0 {
-		return
-	}
-	convHits, err := h.G().InboxSource.Search(ctx, uid, query, maxNameConvs)
-	if err != nil {
-		h.Debug(ctx, "searchConvNames: failed to get conv hits: %s", err)
-	} else {
-		select {
-		case <-ctx.Done():
-			return
-		default:
-			username := h.G().GetEnv().GetUsernameForUID(keybase1.UID(uid.String())).String()
-			chatUI.ChatSearchConvHits(ctx, chat1.UIChatSearchConvHits{
-				Hits:          utils.PresentRemoteConversationsAsSearchHits(convHits, username),
-				UnreadMatches: len(query) == 0,
-			})
-		}
-	}
-}
-
 func (h *Server) delegateInboxSearch(ctx context.Context, uid gregor1.UID, query, origQuery string,
 	opts chat1.SearchOpts, ui libkb.ChatUI) (res chat1.ChatSearchInboxResults, err error) {
 	defer h.Trace(ctx, func() error { return err }, "delegateInboxSearch")()
@@ -2442,8 +2419,6 @@ func (h *Server) delegateInboxSearch(ctx context.Context, uid gregor1.UID, query
 	default:
 		ui.ChatSearchConvHits(ctx, chat1.UIChatSearchConvHits{})
 	}
-	convUIDone := make(chan struct{})
-	go h.searchConvNames(ctx, uid, query, opts.MaxNameConvs, convUIDone, ui)
 	var numHits, numConvs int
 	for index, conv := range convs {
 		uiCh := make(chan chat1.ChatSearchHit, 10)
@@ -2496,7 +2471,6 @@ func (h *Server) delegateInboxSearch(ctx context.Context, uid gregor1.UID, query
 			break
 		}
 	}
-	<-convUIDone
 
 	select {
 	case <-ctx.Done():
@@ -2533,14 +2507,6 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 		chatUI.ChatSearchInboxStart(ctx)
 	}
 
-	defer func() {
-		// get a selective sync to run after the search completes even if we
-		// errored.
-		h.G().Indexer.PokeSync(ctx)
-	}()
-	// cancel any outstanding indexer runs.
-	h.G().Indexer.CancelSync(ctx)
-
 	username := h.G().GetEnv().GetUsernameForUID(keybase1.UID(uid.String())).String()
 	query, opts := search.UpgradeSearchOptsFromQuery(arg.Query, arg.Opts, username)
 	doSearch := !arg.NamesOnly && len(query) > 0
@@ -2573,9 +2539,6 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 		res.IdentifyFailures = identBreaks
 		return res, nil
 	}
-
-	convUIDone := make(chan struct{})
-	go h.searchConvNames(ctx, uid, query, opts.MaxNameConvs, convUIDone, chatUI)
 
 	// stream hits back to client UI
 	hitUICh := make(chan chat1.ChatSearchInboxHit, 10)
@@ -2613,6 +2576,29 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 			default:
 				chatUI.ChatSearchIndexStatus(ctx, chat1.ChatSearchIndexStatusArg{
 					Status: status,
+				})
+			}
+		}
+	}()
+
+	// send up conversation name matches
+	convUIDone := make(chan struct{})
+	go func() {
+		defer close(convUIDone)
+		if opts.MaxNameConvs == 0 {
+			return
+		}
+		convHits, err := h.G().InboxSource.Search(ctx, uid, query, opts.MaxNameConvs)
+		if err != nil {
+			h.Debug(ctx, "SearchInbox: failed to get conv hits: %s", err)
+		} else {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				chatUI.ChatSearchConvHits(ctx, chat1.UIChatSearchConvHits{
+					Hits:          utils.PresentRemoteConversationsAsSearchHits(convHits, username),
+					UnreadMatches: len(query) == 0,
 				})
 			}
 		}
