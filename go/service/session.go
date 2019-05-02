@@ -36,7 +36,7 @@ func NewSessionHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SessionHandl
 func (h *SessionHandler) CurrentSession(ctx context.Context, sessionID int) (keybase1.Session, error) {
 	var s keybase1.Session
 
-	nist, uid, err := h.G().ActiveDevice.NISTAndUID(ctx)
+	nist, uid, _, err := h.G().ActiveDevice.NISTAndUIDDeviceID(ctx)
 	if nist == nil {
 		return s, libkb.NoSessionError{}
 	}
