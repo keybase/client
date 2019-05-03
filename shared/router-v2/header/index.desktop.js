@@ -103,7 +103,8 @@ class Header extends React.PureComponent<Props, State> {
           ])}
         >
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerBack} alignItems="center">
-            {!opt.noBackButton && (
+            {/* TODO have headerLeft be the back button */}
+            {opt.headerLeft !== null && (
               <Kb.Icon
                 type="iconfont-arrow-left"
                 style={backArrowStyle}

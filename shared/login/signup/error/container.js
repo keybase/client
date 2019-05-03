@@ -23,7 +23,6 @@ const ConnectedSignupError = connect<OwnProps, _, _, _, _>(
 ConnectedSignupError.navigationOptions = {
   gesturesEnabled: false,
   headerLeft: null,
-  noBackButton: true,
 }
 
 export default ConnectedSignupError
