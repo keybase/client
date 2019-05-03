@@ -3,7 +3,7 @@ import logger from '../logger'
 import * as I from 'immutable'
 import * as ChatConstants from '../constants/chat2'
 import * as React from 'react'
-import {HeaderHoc, HOCTimers, type PropsWithTimer} from '../common-adapters'
+import {HOCTimers, type PropsWithTimer} from '../common-adapters'
 import Feedback from './feedback.native'
 import logSend from '../native/log-send'
 import {compose, connect, type RouteProps} from '../util/container'
@@ -196,12 +196,20 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   title: 'Feedback',
 })
 
-export default compose(
+const connected = compose(
   connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...s, ...d})
   ),
-  HeaderHoc,
   HOCTimers
 )(FeedbackContainer)
+
+// $FlowIssue
+connected.navigationOptions = {
+  header: undefined,
+  headerHeight: 60,
+  title: 'Feedback',
+}
+
+export default connected

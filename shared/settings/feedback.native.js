@@ -64,7 +64,7 @@ class Feedback extends Component<Props> {
       sendError,
     } = this.props
     return (
-      <NativeScrollView style={{...globalStyles.flexBoxColumn, flexGrow: 1}} ref={this._setScrollRef}>
+      <NativeScrollView style={{...globalStyles.flexBoxColumn, height: '100%'}} ref={this._setScrollRef}>
         {showSuccessBanner && (
           <Box
             style={{
