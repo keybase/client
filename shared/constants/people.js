@@ -82,7 +82,7 @@ export const todoTypeToDismissable: {[key: Types.TodoType]: boolean} = {
   teamShowcase: true,
 }
 export const todoTypeToIcon: {[key: Types.TodoType]: IconType} = {
-  addEmail: isMobile ? 'icon-onboarding-user-info-48' : 'icon-onboarding-user-info-32',
+  addEmail: isMobile ? 'icon-onboarding-email-add-48' : 'icon-onboarding-email-add-32',
   avatarTeam: isMobile ? 'icon-onboarding-team-avatar-48' : 'icon-onboarding-team-avatar-32',
   avatarUser: isMobile ? 'icon-onboarding-user-avatar-48' : 'icon-onboarding-user-avatar-32',
   bio: isMobile ? 'icon-onboarding-user-info-48' : 'icon-onboarding-user-info-32',
