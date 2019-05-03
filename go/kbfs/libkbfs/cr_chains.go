@@ -286,9 +286,9 @@ func (cc *crChain) identifyType(ctx context.Context, fbo *folderBlockOps,
 			lastSetAttr.Dir.Unref, lastSetAttr.Dir.Ref,
 			lastSetAttr, lastSetAttr.File)
 
-		// If the parent still can't be found, then likely the whole
-		// directory was created and deleted within this update, so it
-		// should be treated as deleted.
+		// If the parent still can't be found, then barring bugs the
+		// whole directory was created and deleted within this update,
+		// so it should be treated as deleted.
 		chains.deletedOriginals[cc.original] = true
 		return nil
 	}
