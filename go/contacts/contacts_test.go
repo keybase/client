@@ -73,6 +73,12 @@ func (c *MockContactsProvider) FillUsernames(mctx libkb.MetaContext, res []keyba
 	}
 }
 
+func (c *MockContactsProvider) FillFollowing(mctx libkb.MetaContext, res []keybase1.ProcessedContact) {
+	for i := range res {
+		res[i].Following = true
+	}
+}
+
 func makePhoneComponent(label string, phone string) keybase1.ContactComponent {
 	num := keybase1.RawPhoneNumber(phone)
 	return keybase1.ContactComponent{

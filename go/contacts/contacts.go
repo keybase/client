@@ -105,12 +105,9 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 
 	if len(res) > 0 {
 		// Uidmap everything to get Keybase usernames and full names.
-
-		// TODO: The uidmapper part might not be needed if we change the lookup
-		// endpoints to return usernames and full names. This is fine since
-		// phone/email is server trust, and also UIDMapper trusts sever for
-		// full names anyway. Also might need to return follow information.
 		provider.FillUsernames(mctx, res)
+		// Get tracking info and set "Following" field for contacts.
+		provider.FillFollowing(mctx, res)
 
 		// And now that we have Keybase names and following information, make a
 		// decision about displayName and displayLabel.
