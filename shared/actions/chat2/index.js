@@ -380,7 +380,7 @@ const onIncomingMessage = (state, incoming) => {
 }
 
 // Helper to handle incoming inbox updates that piggy back on various calls
-const chatActivityToMetasAction = (payload: ?{+conv?: ?RPCChatTypes.InboxUIItem}) => {
+const chatActivityToMetasAction = (payload: ?{+conv?: ?RPCChatTypes.InboxUIItem}, ignoreDelete) => {
   const conv = payload ? payload.conv : null
   const meta = conv && Constants.inboxUIItemToConversationMeta(conv)
   const conversationIDKey = meta
@@ -389,6 +389,7 @@ const chatActivityToMetasAction = (payload: ?{+conv?: ?RPCChatTypes.InboxUIItem}
   const usernameToFullname = (conv && conv.fullNames) || {}
   // We ignore inbox rows that are blocked/reported or have no content
   const isADelete =
+    !ignoreDelete &&
     conv &&
     ([RPCChatTypes.commonConversationStatus.blocked, RPCChatTypes.commonConversationStatus.reported].includes(
       conv.status
@@ -779,7 +780,7 @@ const onNewChatActivity = (state, action) => {
       actions = chatActivityToMetasAction(activity.readMessage)
       break
     case RPCChatTypes.notifyChatChatActivityType.newConversation:
-      actions = chatActivityToMetasAction(activity.newConversation)
+      actions = chatActivityToMetasAction(activity.newConversation, true)
       break
     case RPCChatTypes.notifyChatChatActivityType.failedMessage: {
       const failedMessage: ?RPCChatTypes.FailedMessageInfo = activity.failedMessage
