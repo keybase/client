@@ -4,13 +4,21 @@ import Box from '../box'
 import {Gateway} from 'react-gateway'
 import type {Props} from './index.types'
 import {globalStyles} from '../../styles'
+import {NativeKeyboard} from '../native-wrappers.native'
 
-export default (props: Props) => {
-  return (
-    <Gateway into={props.dest || 'popup-root'}>
-      <Box pointerEvents="box-none" style={[globalStyles.fillAbsolute, props.containerStyle]}>
-        {props.children}
-      </Box>
-    </Gateway>
-  )
+class FloatingBox extends React.Component<Props> {
+  componentWillMount() {
+    NativeKeyboard.dismiss()
+  }
+
+  render() {
+    return (
+      <Gateway into={this.props.dest || 'popup-root'}>
+        <Box pointerEvents="box-none" style={[globalStyles.fillAbsolute, this.props.containerStyle]}>
+          {this.props.children}
+        </Box>
+      </Gateway>
+    )
+  }
 }
+export default FloatingBox
