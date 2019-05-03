@@ -486,7 +486,7 @@ func (s *HybridInboxSource) Start(ctx context.Context, uid gregor1.UID) {
 	if s.started {
 		return
 	}
-	s.stopCh = make(chan chan struct{})
+	s.stopCh = make(chan chan struct{}, 10)
 	s.started = true
 	go s.inboxFlushLoop(uid, s.stopCh)
 }
