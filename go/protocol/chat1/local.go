@@ -3916,13 +3916,15 @@ func (o SetConversationStatusLocalRes) DeepCopy() SetConversationStatusLocalRes 
 
 type NewConversationLocalRes struct {
 	Conv             ConversationLocal             `codec:"conv" json:"conv"`
+	UiConv           InboxUIItem                   `codec:"uiConv" json:"uiConv"`
 	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
 
 func (o NewConversationLocalRes) DeepCopy() NewConversationLocalRes {
 	return NewConversationLocalRes{
-		Conv: o.Conv.DeepCopy(),
+		Conv:   o.Conv.DeepCopy(),
+		UiConv: o.UiConv.DeepCopy(),
 		RateLimits: (func(x []RateLimit) []RateLimit {
 			if x == nil {
 				return nil

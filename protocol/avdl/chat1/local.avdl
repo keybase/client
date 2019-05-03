@@ -760,6 +760,7 @@ protocol local {
   NewConversationLocalRes newConversationLocal(string tlfName, TopicType topicType, keybase1.TLFVisibility tlfVisibility, union { null, string } topicName, ConversationMembersType membersType, keybase1.TLFIdentifyBehavior identifyBehavior);
   record NewConversationLocalRes {
     ConversationLocal conv;
+    InboxUIItem uiConv;
     array<RateLimit> rateLimits;
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }

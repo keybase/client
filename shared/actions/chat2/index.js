@@ -2357,11 +2357,14 @@ function* createConversation(state, action) {
       },
       Constants.waitingKeyCreating
     )
-
     const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
     if (!conversationIDKey) {
       logger.warn("Couldn't make a new conversation?")
     } else {
+      const meta = Constants.inboxUIItemToConversationMeta(result.uiConv, true)
+      if (meta) {
+        yield Saga.put(Chat2Gen.createMetasReceived({metas: [meta]}))
+      }
       yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'justCreated'}))
     }
   } catch (e) {

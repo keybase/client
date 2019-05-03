@@ -904,6 +904,7 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 	}
 
 	res.Conv = conv
+	res.UiConv = utils.PresentConversationLocal(conv, h.G().GetEnv().GetUsername().String())
 	res.IdentifyFailures = identBreaks
 	return res, nil
 }
