@@ -49,7 +49,8 @@ class ProfileSearch extends React.PureComponent<Props, State> {
           visible={this.state.show}
           onHidden={this._onHide}
           attachTo={this._getAttachmentRef}
-          position={flags.useNewRouter ? 'top left' : 'top center'}
+          position={flags.useNewRouter ? 'bottom left' : 'bottom center'}
+          positionFallbacks={[]}
           style={styles.overlay}
         >
           <Search onClose={this._onHide} />
