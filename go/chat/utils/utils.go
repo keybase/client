@@ -686,11 +686,13 @@ func ParseAtMentionedItems(ctx context.Context, g *globals.Context, body string)
 		if uid, err := parseItemAsUID(ctx, g.GetUPAKLoader(), baseName); err == nil {
 			atRes = append(atRes, uid)
 		} else {
-			// anything else is a possible team mention
-			teamRes = append(teamRes, chat1.MaybeTeamMention{
-				Name:    baseName,
-				Channel: channel,
-			})
+			_, err := keybase1.TeamNameFromString(baseName)
+			if err == nil {
+				teamRes = append(teamRes, chat1.MaybeTeamMention{
+					Name:    baseName,
+					Channel: channel,
+				})
+			}
 		}
 	}
 	return atRes, teamRes, chanRes
