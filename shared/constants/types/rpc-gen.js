@@ -407,7 +407,7 @@ export const homeHomeScreenTodoType = {
   teamShowcase: 10,
   avatarUser: 11,
   avatarTeam: 12,
-  addEmail: 16,
+  addEmail: 17,
   annoncementPlaceholder: 10000,
 }
 

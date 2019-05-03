@@ -255,7 +255,7 @@ const (
 	HomeScreenTodoType_TEAM_SHOWCASE           HomeScreenTodoType = 10
 	HomeScreenTodoType_AVATAR_USER             HomeScreenTodoType = 11
 	HomeScreenTodoType_AVATAR_TEAM             HomeScreenTodoType = 12
-	HomeScreenTodoType_ADD_EMAIL               HomeScreenTodoType = 16
+	HomeScreenTodoType_ADD_EMAIL               HomeScreenTodoType = 17
 	HomeScreenTodoType_ANNONCEMENT_PLACEHOLDER HomeScreenTodoType = 10000
 )
 
@@ -275,7 +275,7 @@ var HomeScreenTodoTypeMap = map[string]HomeScreenTodoType{
 	"TEAM_SHOWCASE":           10,
 	"AVATAR_USER":             11,
 	"AVATAR_TEAM":             12,
-	"ADD_EMAIL":               16,
+	"ADD_EMAIL":               17,
 	"ANNONCEMENT_PLACEHOLDER": 10000,
 }
 
@@ -293,7 +293,7 @@ var HomeScreenTodoTypeRevMap = map[HomeScreenTodoType]string{
 	10:    "TEAM_SHOWCASE",
 	11:    "AVATAR_USER",
 	12:    "AVATAR_TEAM",
-	16:    "ADD_EMAIL",
+	17:    "ADD_EMAIL",
 	10000: "ANNONCEMENT_PLACEHOLDER",
 }
 
