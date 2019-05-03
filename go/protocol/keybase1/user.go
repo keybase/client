@@ -469,9 +469,9 @@ type CanLogoutArg struct {
 }
 
 type UserCardArg struct {
-	SessionID  int  `codec:"sessionID" json:"sessionID"`
-	Uid        UID  `codec:"uid" json:"uid"`
-	UseSession bool `codec:"useSession" json:"useSession"`
+	SessionID  int    `codec:"sessionID" json:"sessionID"`
+	Username   string `codec:"username" json:"username"`
+	UseSession bool   `codec:"useSession" json:"useSession"`
 }
 
 type UserInterface interface {

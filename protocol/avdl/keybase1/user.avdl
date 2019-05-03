@@ -196,5 +196,5 @@ protocol user {
   }
   CanLogoutRes canLogout(int sessionID);
 
-  union { null, UserCard } userCard(int sessionID, UID uid, boolean useSession);
+  union { null, UserCard } userCard(int sessionID, string username, boolean useSession);
 }
