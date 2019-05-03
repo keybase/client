@@ -18,7 +18,7 @@ export type Props = {
 
 export const Task = (props: Props) => (
   <PeopleItem format="multi" badged={props.badged} icon={<Icon type={props.icon} />}>
-    <Text type="Body" style={{marginRight: Styles.isMobile ? 112 : 80, marginTop: 2}}>
+    <Text type="Body" style={styles.instructions}>
       {props.instructions}
     </Text>
     <Box style={styles.actionContainer}>
@@ -47,7 +47,10 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'center',
     flexWrap: 'wrap',
     justifyContent: 'flex-start',
+    marginRight: Styles.isMobile ? 112 : 80,
+    width: 'auto',
   },
+  instructions: {marginRight: Styles.isMobile ? 112 : 80, marginTop: 2},
   search: {
     alignSelf: undefined,
     flexGrow: 0,
