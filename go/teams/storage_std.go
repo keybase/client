@@ -15,7 +15,7 @@ type Storage struct {
 }
 
 // Increment to invalidate the disk cache.
-const diskStorageVersion = 11
+const diskStorageVersion = 10
 const memCacheLRUSize = 200
 
 type DiskStorageItem struct {
