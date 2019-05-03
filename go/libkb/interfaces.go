@@ -867,6 +867,10 @@ type UIDMapper interface {
 	// hardcoded map.
 	CheckUIDAgainstUsername(uid keybase1.UID, un NormalizedUsername) bool
 
+	// MapHardcodedUsernameToUID will map the given legacy username to a UID if it exists
+	// in the hardcoded map. If not, it will return the nil UID.
+	MapHardcodedUsernameToUID(un NormalizedUsername) keybase1.UID
+
 	// MapUIDToUsernamePackages maps the given set of UIDs to the username
 	// packages, which include a username and a fullname, and when the mapping
 	// was loaded from the server. It blocks on the network until all usernames
