@@ -30,7 +30,7 @@ const getLinuxPaths = () => {
   // If XDG_RUNTIME_DIR is defined use that, else use $HOME/.config.
   const homeConfigDir = path.join(homeEnv, '.config')
   const runtimeDir = process.env['XDG_RUNTIME_DIR'] || ''
-  const cacheDir = homeConfigDir
+  const cacheDir = runtimeDir || homeConfigDir
   const appName = `keybase${runMode === 'prod' ? '' : `.${runMode}`}`
 
   if (!runtimeDir && !homeEnv) {
