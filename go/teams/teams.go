@@ -2102,13 +2102,17 @@ func TeamInviteTypeFromString(mctx libkb.MetaContext, inviteTypeStr string) (key
 		return keybase1.NewTeamInviteTypeDefault(keybase1.TeamInviteCategory_KEYBASE), nil
 	case "email":
 		return keybase1.NewTeamInviteTypeDefault(keybase1.TeamInviteCategory_EMAIL), nil
-	case "twitter", "github", "facebook", "reddit", "hackernews", "pgp", "http", "https", "dns":
-		return keybase1.NewTeamInviteTypeWithSbs(keybase1.TeamInviteSocialNetwork(inviteTypeStr)), nil
 	case "seitan_invite_token":
 		return keybase1.NewTeamInviteTypeDefault(keybase1.TeamInviteCategory_SEITAN), nil
 	case "phone":
 		return NewTeamInviteTypeDefault(TeamInviteCategory_PHONE), nil
+	case "twitter", "github", "facebook", "reddit", "hackernews", "pgp", "http", "https", "dns":
+		return keybase1.NewTeamInviteTypeWithSbs(keybase1.TeamInviteSocialNetwork(inviteTypeStr)), nil
 	default:
+		if mctx.G().GetProofServices().GetServiceType(inviteTypeStr) != nil {
+			return keybase1.NewTeamInviteTypeWithSbs(keybase1.TeamInviteSocialNetwork(inviteTypeStr)), nil
+		}
+
 		isDev := mctx.G().Env.GetRunMode() == libkb.DevelRunMode
 		if isDev && inviteTypeStr == "rooter" {
 			return keybase1.NewTeamInviteTypeWithSbs(keybase1.TeamInviteSocialNetwork(inviteTypeStr)), nil
