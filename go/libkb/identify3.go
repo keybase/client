@@ -128,7 +128,7 @@ func NewIdentify3StateForTest(g *GlobalContext) (*Identify3State, <-chan time.Ti
 
 func newIdentify3State(g *GlobalContext, testCompletionCh chan<- time.Time) *Identify3State {
 	expireCh := make(chan struct{})
-	shutdownCh := make(chan chan struct{}, 10)
+	shutdownCh := make(chan chan struct{}, ShutdownChanDefaultSize)
 	ret := &Identify3State{
 		expireCh:         expireCh,
 		shutdownCh:       shutdownCh,

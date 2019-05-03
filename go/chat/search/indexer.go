@@ -45,7 +45,7 @@ func NewIndexer(g *globals.Context) *Indexer {
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Search.Indexer", false),
 		store:        newStore(g),
 		pageSize:     defaultPageSize,
-		stopCh:       make(chan chan struct{}, 10),
+		stopCh:       make(chan chan struct{}, libkb.ShutdownChanDefaultSize),
 		cancelSyncCh: make(chan struct{}, 100),
 		pokeSyncCh:   make(chan struct{}, 100),
 	}

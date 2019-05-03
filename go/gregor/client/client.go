@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/clockwork"
 
@@ -57,7 +58,7 @@ func NewClient(user gregor.UID, device gregor.DeviceID, createSm func() gregor.S
 		Log:            log,
 		clock:          clock,
 		outboxSendCh:   make(chan struct{}, 100),
-		stopCh:         make(chan chan struct{}, 10),
+		stopCh:         make(chan chan struct{}, libkb.ShutdownChanDefaultSize),
 		incomingClient: incomingClient,
 		createSm:       createSm,
 	}

@@ -989,7 +989,7 @@ func NewDeliverer(g *globals.Context, sender types.Sender) *Deliverer {
 	d := &Deliverer{
 		Contextified:     globals.NewContextified(g),
 		DebugLabeler:     utils.NewDebugLabeler(g.GetLog(), "Deliverer", false),
-		shutdownCh:       make(chan chan struct{}, 1),
+		shutdownCh:       make(chan chan struct{}, libkb.ShutdownChanDefaultSize),
 		msgSentCh:        make(chan struct{}, 100),
 		reconnectCh:      make(chan struct{}, 100),
 		sender:           sender,
