@@ -543,7 +543,11 @@ function* createNewTeamFromConversation(state, action) {
           )
         }
       }
-      yield Saga.put(Chat2Gen.createPreviewConversation({reason: 'convertAdHoc', teamname}))
+      yield Saga.put(RouteTreeGen.createClearModals())
+      yield Saga.put(Chat2Gen.createNavigateToInbox({findNewConversation: false}))
+      yield Saga.put(
+        Chat2Gen.createPreviewConversation({channelname: 'general', reason: 'convertAdHoc', teamname})
+      )
     } catch (error) {
       yield Saga.put(TeamsGen.createSetTeamCreationError({error: error.desc}))
     }
