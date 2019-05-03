@@ -13,7 +13,7 @@ import {
   SceneView,
   createSwitchNavigator,
 } from '@react-navigation/core'
-import {modalRoutes, routes, nameToTab, loggedOutRoutes} from './routes'
+import {modalRoutes, routes, nameToTab, loggedOutRoutes, tabRoots} from './routes'
 import * as Shared from './router.shared'
 import Header from './header/index.desktop'
 import * as Shim from './shim.desktop'
@@ -160,7 +160,6 @@ class TabView extends React.PureComponent<any> {
 }
 
 const tabs = Shared.desktopTabs
-const tabRoots = Shared.tabRoots
 
 const TabNavigator = createNavigator(
   TabView,
