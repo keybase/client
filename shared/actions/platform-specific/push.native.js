@@ -131,6 +131,7 @@ function* handleLoudMessage(notification) {
   const actions = [
     RouteTreeGen.createNavigateAppend({path: [{props: {conversationIDKey}, selected: 'chatConversation'}]}),
   ]
+  yield Saga.put(RouteTreeGen.createClearModals())
   yield Saga.put(RouteTreeGen.createResetStack({actions, index: 1, tab: 'tabs.chatTab'}))
   yield Saga.put(RouteTreeGen.createSwitchTab({tab: 'tabs.chatTab'}))
   yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'push'}))
