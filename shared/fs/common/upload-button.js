@@ -77,9 +77,9 @@ const mapStateToProps = (state, {path}) => ({
 })
 
 const mapDispatchToProps = (dispatch, {path}) => ({
-  openAndUpload: (type: Types.OpenDialogType) => () =>
+  openAndUpload: (type: Types.OpenDialogType) =>
     dispatch(FsGen.createOpenAndUpload({parentPath: path, type})),
-  pickAndUpload: (type: Types.MobilePickType) => () =>
+  pickAndUpload: (type: Types.MobilePickType) =>
     dispatch(FsGen.createPickAndUpload({parentPath: path, type})),
 })
 
