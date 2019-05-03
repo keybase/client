@@ -51,7 +51,7 @@ const showInviteSuccessOnNoErrors = (state: TypedState) =>
 
 const goToLoginRoot = () =>
   flags.useNewRouter
-    ? RouteTreeGen.createNavigateUp()
+    ? [RouteTreeGen.createClearModals(), RouteTreeGen.createNavUpToScreen({routeName: loginTab})]
     : RouteTreeGen.createNavigateTo({parentPath: [loginTab], path: []})
 
 const showDeviceScreenOnNoErrors = (state: TypedState) =>
@@ -138,13 +138,7 @@ function* reallySignupOnNoErrors(state: TypedState): Saga.SagaGenerator<any, any
   const {email, username, inviteCode, devicename} = state.signup
 
   if (!email || !username || !inviteCode || !devicename) {
-    logger.warn(
-      'Missing data during signup phase',
-      email,
-      username,
-      inviteCode,
-      devicename,
-    )
+    logger.warn('Missing data during signup phase', email, username, inviteCode, devicename)
     throw new Error('Missing data for signup')
   }
 

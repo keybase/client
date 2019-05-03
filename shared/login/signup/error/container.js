@@ -11,11 +11,19 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(SignupGen.createGoBackAndClearErrors()),
-  onRestart: () => dispatch(SignupGen.createRestartSignup()),
 })
 
-export default connect<OwnProps, _, _, _, _>(
+const ConnectedSignupError = connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d})
 )(Error)
+
+// $FlowIssue lets fix this
+ConnectedSignupError.navigationOptions = {
+  gesturesEnabled: false,
+  headerLeft: null,
+  noBackButton: true,
+}
+
+export default ConnectedSignupError

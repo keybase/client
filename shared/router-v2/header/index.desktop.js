@@ -103,12 +103,14 @@ class Header extends React.PureComponent<Props, State> {
           ])}
         >
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerBack} alignItems="center">
-            <Kb.Icon
-              type="iconfont-arrow-left"
-              style={backArrowStyle}
-              color={iconColor}
-              onClick={this.props.allowBack ? this.props.onPop : null}
-            />
+            {!opt.noBackButton && (
+              <Kb.Icon
+                type="iconfont-arrow-left"
+                style={backArrowStyle}
+                color={iconColor}
+                onClick={this.props.allowBack ? this.props.onPop : null}
+              />
+            )}
             {flags.kbfsOfflineMode && <SyncingFolders />}
             {!title && rightActions}
 
