@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/contacts"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -46,7 +45,6 @@ func (c *bulkLookupContactsProvider) FillUsernames(mctx libkb.MetaContext, res [
 	if err != nil {
 		mctx.Debug("UIDMapper returned %q, continuing...")
 	}
-	spew.Dump(nameMap)
 	for i, v := range res {
 		if namePkg, found := nameMap[v.Uid]; found {
 			res[i].Username = namePkg.NormalizedUsername.String()
