@@ -6,7 +6,7 @@ import {type Props} from '.'
 import {globalStyles, styleSheetCreate} from '../styles'
 import {isIOS} from '../constants/platform'
 import flags from '../util/feature-flags'
-import ProfileSearch from '../profile/search/bar'
+import ProfileSearch from '../profile/search/bar-container'
 
 export const Header = (props: Props) => (
   <Kb.HeaderHocHeader
@@ -24,7 +24,7 @@ export const Header = (props: Props) => (
         label: 'Avatar',
       },
     ]}
-    titleComponent={<ProfileSearch onSearch={props.onSearch} />}
+    titleComponent={<ProfileSearch />}
   />
 )
 

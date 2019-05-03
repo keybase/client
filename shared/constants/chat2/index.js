@@ -36,6 +36,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   giphyWindowMap: I.Map(),
   inboxHasLoaded: false,
   inboxSearch: null,
+  inboxShowNew: false,
   isWalletsNew: true,
   messageCenterOrdinals: I.Map(),
   messageMap: I.Map(),
@@ -237,6 +238,7 @@ export const isInfoPanelOpen = (state: TypedState) => {
   }
 }
 
+export const inboxSearchNewKey = 'chat:inboxSearchNew'
 export const waitingKeyJoinConversation = 'chat:joinConversation'
 export const waitingKeyDeleteHistory = 'chat:deleteHistory'
 export const waitingKeyPost = 'chat:post'
@@ -281,6 +283,10 @@ export const getConversationExplodingMode = (state: TypedState, c: Types.Convers
 }
 export const isExplodingModeLocked = (state: TypedState, c: Types.ConversationIDKey) =>
   state.chat2.getIn(['explodingModeLocks', c], null) !== null
+
+export const getTeamMentionName = (name: string, channel: string) => {
+  return name + (channel ? `#${channel}` : '')
+}
 
 // When user clicks wallets icon in chat input, set seenWalletsGregorKey with
 // body of 'true'

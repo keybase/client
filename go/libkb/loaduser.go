@@ -618,3 +618,32 @@ func lookupSigHintsAndMerkleLeaf(m MetaContext, uid keybase1.UID, localExists bo
 func LoadUserPlusKeys(ctx context.Context, g *GlobalContext, uid keybase1.UID, pollForKID keybase1.KID) (keybase1.UserPlusKeys, error) {
 	return g.GetUPAKLoader().LoadUserPlusKeys(ctx, uid, pollForKID)
 }
+
+// IsUserByUsernameOffline checks to see if the given username is a legit Keybase username,
+// using only our offline cache and materials. Useful if you don't mean to share info
+// with the server, as in chat @-mentions. Will return true if it's known to be a legit
+// user, and false if it can't say for sure. "Legit" users in this context might
+// be deleted or reset; they just once existing as a user.
+func IsUserByUsernameOffline(m MetaContext, un NormalizedUsername) bool {
+	if m.G().UIDMapper.MapHardcodedUsernameToUID(un).Exists() {
+		return true
+	}
+
+	// We already took care of the bad username casing in the harcoded exception list above,
+	// so it's ok to treat the NormalizedUsername as a cased string.
+	uid := UsernameToUIDPreserveCase(un.String())
+
+	// use the UPAKLoader with StaleOK, CachedOnly in order to get cached upak
+	arg := NewLoadUserArgWithMetaContext(m).WithUID(uid).WithPublicKeyOptional().WithStaleOK(true).WithCachedOnly()
+	_, _, err := m.G().GetUPAKLoader().LoadV2(arg)
+
+	if err == nil {
+		return true
+	}
+
+	if _, ok := err.(UserNotFoundError); !ok {
+		m.Debug("IsUserByUsernameOffline(%s) squashing error: %s", un.String(), err)
+	}
+
+	return false
+}

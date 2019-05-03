@@ -39,7 +39,8 @@
         "'savedLastState'", // last seen chat tab
         "'startFoundExisting'", // starting a conversation and found one already
         "'teamChat'", // from team
-        "'addedToChannel'" // just added people to this channel
+        "'addedToChannel'", // just added people to this channel
+        "'teamMention'" // from team mention
       ]
     },
     // Select an existing conversation or setup an empty one. Can either be adhoc or a tlf (adhoc or team)
@@ -67,7 +68,8 @@
         "'memberView'",
         "'newChannel'",
         "'transaction'",
-        "'requestedPayment'"
+        "'requestedPayment'",
+        "'teamMention'"
       ]
     },
     "createConversation": {
@@ -662,7 +664,11 @@
       "info": "RPCChatTypes.UITeamMention"
     },
     "tabSelected": {
-      "_description": "Desktop changed tab to chat",
+      "_description": "Desktop changed tab to chat"
+    },
+    "setInboxShowIsNew": {
+      "_description": "We've seen chat search before",
+      "isNew": "boolean"
     }
   }
 }

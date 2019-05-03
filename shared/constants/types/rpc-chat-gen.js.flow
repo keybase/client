@@ -205,7 +205,7 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'chat.1.chatUi.chatTeamMentionUpdate': {|
-    inParam: $ReadOnly<{|teamName: String, info: UITeamMention|}>,
+    inParam: $ReadOnly<{|teamName: String, channel: String, info: UITeamMention|}>,
     outParam: void,
   |},
   'chat.1.chatUi.chatThreadCached': {|
@@ -1129,7 +1129,7 @@ export type MessagesUpdated = $ReadOnly<{convID: ConversationID, updates?: ?Arra
 export type MsgEphemeralMetadata = $ReadOnly<{l /* lifetime */: Gregor1.DurationSec, g /* generation */: Keybase1.EkGeneration, u /* explodedBy */?: ?String}>
 export type NameQuery = $ReadOnly<{name: String, tlfID?: ?TLFID, membersType: ConversationMembersType}>
 export type NewConversationInfo = $ReadOnly<{convID: ConversationID, conv?: ?InboxUIItem}>
-export type NewConversationLocalRes = $ReadOnly<{conv: ConversationLocal, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
+export type NewConversationLocalRes = $ReadOnly<{conv: ConversationLocal, uiConv: InboxUIItem, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 export type NewConversationPayload = $ReadOnly<{Action: String, convID: ConversationID, inboxVers: InboxVers, topicType: TopicType, unreadUpdate?: ?UnreadUpdate}>
 export type NewConversationRemoteRes = $ReadOnly<{convID: ConversationID, createdComplexTeam: Boolean, rateLimit?: ?RateLimit}>
 export type NewMessagePayload = $ReadOnly<{Action: String, convID: ConversationID, message: MessageBoxed, inboxVers: InboxVers, topicType: TopicType, unreadUpdate?: ?UnreadUpdate, maxMsgs?: ?Array<MessageSummary>}>
@@ -1320,7 +1320,7 @@ export type UIMessages = $ReadOnly<{messages?: ?Array<UIMessage>, pagination?: ?
 export type UIPagination = $ReadOnly<{next: String, previous: String, num: Int, last: Boolean}>
 export type UIPaymentInfo = $ReadOnly<{accountID?: ?Stellar1.AccountID, amountDescription: String, worth: String, worthAtSendTime: String, delta: Stellar1.BalanceDelta, note: String, paymentID: Stellar1.PaymentID, status: Stellar1.PaymentStatus, statusDescription: String, statusDetail: String, showCancel: Boolean, fromUsername: String, toUsername: String}>
 export type UIRequestInfo = $ReadOnly<{amount: String, amountDescription: String, asset?: ?Stellar1.Asset, currency?: ?Stellar1.OutsideCurrencyCode, worthAtRequestTime: String, status: Stellar1.RequestStatus}>
-export type UITeamMention = $ReadOnly<{inTeam: Boolean, open: Boolean, description?: ?String, numMembers?: ?Int, publicAdmins?: ?Array<String>}>
+export type UITeamMention = $ReadOnly<{inTeam: Boolean, open: Boolean, description?: ?String, numMembers?: ?Int, publicAdmins?: ?Array<String>, convID?: ?String}>
 export type UITextDecoration = {typ: 0, payment: ?TextPayment} | {typ: 1, atmention: ?String} | {typ: 2, channelnamemention: ?UIChannelNameMention} | {typ: 3, teammention: ?MaybeTeamMention}
 export type UITextDecorationTyp =
   | 0 // PAYMENT_0

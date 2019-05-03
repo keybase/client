@@ -14,6 +14,7 @@ export type Props = {|
   inTeam: boolean,
   isOpen: boolean,
   name: string,
+  onChat?: () => void,
   onJoinTeam: string => void,
   onViewTeam: string => void,
   resolved: boolean,
@@ -32,10 +33,18 @@ class TeamMention extends React.Component<Props, State> {
   _getAttachmentRef = () => {
     return this._mentionRef.current
   }
-  _showPopup = () => {
+
+  _onClick = () => {
+    if (!Styles.isMobile && this.props.onChat) {
+      this.props.onChat()
+    } else {
+      this.setState({showPopup: true})
+    }
+  }
+  _onMouseOver = () => {
     this.setState({showPopup: true})
   }
-  _hidePopup = () => {
+  _onMouseLeave = () => {
     this.setState({showPopup: false})
   }
   render() {
@@ -50,7 +59,7 @@ class TeamMention extends React.Component<Props, State> {
         className={Styles.classNames({'hover-underline': !Styles.isMobile})}
         style={Styles.collapseStyles([this.props.style, styles.resolved, styles.text])}
         allowFontScaling={this.props.allowFontScaling}
-        onClick={this._showPopup}
+        onClick={this._onClick}
       >
         {Styles.isMobile && ' '}
         {text}
@@ -65,7 +74,8 @@ class TeamMention extends React.Component<Props, State> {
         isOpen={this.props.isOpen}
         name={this.props.name}
         membersCount={this.props.numMembers}
-        onHidden={this._hidePopup}
+        onChat={this.props.onChat}
+        onHidden={this._onMouseLeave}
         onJoinTeam={this.props.onJoinTeam}
         onViewTeam={this.props.onViewTeam}
         publicAdmins={this.props.publicAdmins}
@@ -82,8 +92,8 @@ class TeamMention extends React.Component<Props, State> {
         <Kb.Box2
           direction="horizontal"
           style={styles.container}
-          onMouseOver={this._showPopup}
-          onMouseLeave={this._hidePopup}
+          onMouseOver={this._onMouseOver}
+          onMouseLeave={this._onMouseLeave}
         >
           {content}
           {popups}

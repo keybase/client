@@ -348,7 +348,8 @@ const styles = Styles.styleSheetCreate({
     width: '100%',
   },
   send: {
-    padding: 6,
+    ...Styles.padding(2, 6, 0, 6),
+    marginRight: -6,
   },
   smallGap: {
     height: Styles.globalMargins.small,

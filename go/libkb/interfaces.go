@@ -424,7 +424,7 @@ type ChatUI interface {
 	ChatShowManageChannels(context.Context, string) error
 	ChatCoinFlipStatus(context.Context, []chat1.UICoinFlipStatus) error
 	ChatCommandMarkdown(context.Context, chat1.ConversationID, *chat1.UICommandMarkdown) error
-	ChatTeamMentionUpdate(context.Context, string, chat1.UITeamMention) error
+	ChatTeamMentionUpdate(context.Context, string, string, chat1.UITeamMention) error
 }
 
 type PromptDefault int
@@ -866,6 +866,10 @@ type UIDMapper interface {
 	// For new UIDs, it's a question of just SHA2'ing. For legacy usernames, we check the
 	// hardcoded map.
 	CheckUIDAgainstUsername(uid keybase1.UID, un NormalizedUsername) bool
+
+	// MapHardcodedUsernameToUID will map the given legacy username to a UID if it exists
+	// in the hardcoded map. If not, it will return the nil UID.
+	MapHardcodedUsernameToUID(un NormalizedUsername) keybase1.UID
 
 	// MapUIDToUsernamePackages maps the given set of UIDs to the username
 	// packages, which include a username and a fullname, and when the mapping

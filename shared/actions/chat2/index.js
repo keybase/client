@@ -1585,8 +1585,16 @@ const previewConversationPersonMakesAConversation = (state, action) =>
 
 // We preview channels
 const previewConversationTeam = (state, action) => {
-  let conversationIDKey = action.payload.conversationIDKey
-  if (conversationIDKey) {
+  if (action.payload.conversationIDKey) {
+    const conversationIDKey = action.payload.conversationIDKey
+
+    if (action.payload.reason === 'messageLink' || action.payload.reason === 'teamMention') {
+      // Add preview channel to inbox
+      return RPCChatTypes.localPreviewConversationByIDLocalRpcPromise({
+        convID: Types.keyToConversationID(conversationIDKey),
+      }).then(() => Chat2Gen.createSelectConversation({conversationIDKey, reason: 'previewResolved'}))
+    }
+
     return Chat2Gen.createSelectConversation({
       conversationIDKey,
       reason: 'previewResolved',
@@ -1599,7 +1607,6 @@ const previewConversationTeam = (state, action) => {
 
   const teamname = action.payload.teamname
   const channelname = action.payload.channelname || 'general'
-  conversationIDKey = action.payload.conversationIDKey
 
   return RPCChatTypes.localFindConversationsLocalRpcPromise({
     identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
@@ -1615,7 +1622,7 @@ const previewConversationTeam = (state, action) => {
       .filter(Boolean)
     if (!resultMetas.length) return
 
-    conversationIDKey = resultMetas[0].conversationIDKey
+    const conversationIDKey = resultMetas[0].conversationIDKey
     RPCChatTypes.localPreviewConversationByIDLocalRpcPromise({
       convID: Types.keyToConversationID(conversationIDKey),
     })
@@ -2350,11 +2357,14 @@ function* createConversation(state, action) {
       },
       Constants.waitingKeyCreating
     )
-
     const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
     if (!conversationIDKey) {
       logger.warn("Couldn't make a new conversation?")
     } else {
+      const meta = Constants.inboxUIItemToConversationMeta(result.uiConv, true)
+      if (meta) {
+        yield Saga.put(Chat2Gen.createMetasReceived({metas: [meta]}))
+      }
       yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'justCreated'}))
     }
   } catch (e) {
@@ -2695,16 +2705,18 @@ const onChatCommandMarkdown = (status, action) => {
 }
 
 const onChatTeamMentionUpdate = (state, action) => {
-  const {teamName, info} = action.payload.params
+  const {teamName, channel, info} = action.payload.params
   return Chat2Gen.createSetTeamMentionInfo({
     info,
-    name: teamName,
+    name: Constants.getTeamMentionName(teamName, channel),
   })
 }
 
 const openChatFromWidget = (state, {payload: {conversationIDKey}}) => [
   ConfigGen.createShowMain(),
-  RouteTreeGen.createSwitchTo({path: [Tabs.chatTab]}),
+  flags.useNewRouter
+    ? RouteTreeGen.createSwitchTab({tab: Tabs.chatTab})
+    : RouteTreeGen.createSwitchTo({path: [Tabs.chatTab]}),
   ...(conversationIDKey
     ? [Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSmall'})]
     : []),
@@ -2741,6 +2753,9 @@ const gregorPushState = (state, action) => {
     logger.info('chat.gregorPushState: got seenWallets and we thought they were new, updating store.')
     actions.push(Chat2Gen.createSetWalletsOld())
   }
+
+  const isSearchNew = !items.some(i => i.item.category === Constants.inboxSearchNewKey)
+  actions.push(Chat2Gen.createSetInboxShowIsNew({isNew: isSearchNew}))
 
   return actions
 }
@@ -2796,6 +2811,10 @@ const addUsersToChannel = (_, action) => {
     ])
     .catch(err => logger.error(`addUsersToChannel: ${err.message}`)) // surfaced in UI via waiting key
 }
+
+const onMarkInboxSearchOld = state =>
+  state.chat2.inboxShowNew &&
+  GregorGen.createUpdateCategory({body: 'true', category: Constants.inboxSearchNewKey})
 
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
@@ -3164,6 +3183,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
 
   yield* Saga.chainGenerator<Chat2Gen.InboxSearchPayload>(Chat2Gen.inboxSearch, inboxSearch)
   yield* Saga.chainAction<Chat2Gen.ToggleInboxSearchPayload>(Chat2Gen.toggleInboxSearch, onToggleInboxSearch)
+  yield* Saga.chainAction<Chat2Gen.ToggleInboxSearchPayload>(Chat2Gen.toggleInboxSearch, onMarkInboxSearchOld)
   yield* Saga.chainAction<Chat2Gen.InboxSearchSelectPayload>(Chat2Gen.inboxSearchSelect, onInboxSearchSelect)
   yield* Saga.chainGenerator<Chat2Gen.ThreadSearchPayload>(Chat2Gen.threadSearch, threadSearch)
   yield* Saga.chainAction<Chat2Gen.ToggleThreadSearchPayload>(

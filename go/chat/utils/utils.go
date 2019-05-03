@@ -1389,7 +1389,7 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msg chat1
 func presentTeamMentions(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	valid chat1.MessageUnboxedValid) (res []chat1.MaybeTeamMention) {
 	for _, tm := range valid.TeamMentions {
-		if err := g.TeamMentionLoader.LoadTeamMention(ctx, uid, tm.Name); err == nil {
+		if err := g.TeamMentionLoader.LoadTeamMention(ctx, uid, tm.Name, tm.Channel); err == nil {
 			res = append(res, tm)
 		}
 	}
@@ -1851,7 +1851,7 @@ func CreateHiddenPlaceholder(msgID chat1.MessageID) chat1.MessageUnboxed {
 func GetGregorConn(ctx context.Context, g *globals.Context, log DebugLabeler,
 	handler func(nist *libkb.NIST) rpc.ConnectionHandler) (conn *rpc.Connection, token gregor1.SessionToken, err error) {
 	// Get session token
-	nist, _, err := g.ActiveDevice.NISTAndUID(ctx)
+	nist, _, _, err := g.ActiveDevice.NISTAndUIDDeviceID(ctx)
 	if nist == nil {
 		log.Debug(ctx, "GetGregorConn: got a nil NIST, is the user logged out?")
 		return conn, token, libkb.LoggedInError{}

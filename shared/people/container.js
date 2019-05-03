@@ -19,9 +19,6 @@ const mapStateToPropsHeader = state => ({
 
 const mapDispatchToPropsHeader = dispatch => ({
   onClickUser: (username: string) => dispatch(createShowUserProfile({username})),
-  onSearch: () => {
-    dispatch(createSearchSuggestions({searchKey: 'profileSearch'}))
-  },
 })
 
 const mergePropsHeader = (stateProps, dispatchProps) => ({
@@ -39,7 +36,6 @@ type Props = {
   newItems: I.List<Types.PeopleScreenItem>,
   followSuggestions: I.List<Types.FollowSuggestion>,
   getData: (markViewed?: boolean) => void,
-  onSearch: () => void,
   onClickUser: (username: string) => void,
   showAirdrop: boolean,
   myUsername: string,
@@ -47,7 +43,6 @@ type Props = {
 }
 
 class LoadOnMount extends React.PureComponent<Props> {
-  _onSearch = () => this.props.onSearch()
   _onReload = () => this.props.getData(false)
   _getData = (markViewed?: boolean) => this.props.getData(markViewed)
   _onClickUser = (username: string) => this.props.onClickUser(username)
@@ -65,7 +60,6 @@ class LoadOnMount extends React.PureComponent<Props> {
           myUsername={this.props.myUsername}
           waiting={this.props.waiting}
           getData={this._getData}
-          onSearch={this._onSearch}
           onClickUser={this._onClickUser}
           showAirdrop={this.props.showAirdrop}
         />

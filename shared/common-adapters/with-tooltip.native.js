@@ -87,7 +87,7 @@ class WithTooltip extends React.PureComponent<PropsWithTimer<Props>, State> {
   }
 
   render() {
-    if (!this.props.showOnPressMobile) {
+    if (!this.props.showOnPressMobile || this.props.disabled) {
       return <View style={this.props.containerStyle}>{this.props.children}</View>
     }
 

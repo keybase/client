@@ -151,8 +151,6 @@ const SettingsSubNavigator = createNavigator(
 )
 
 SettingsSubNavigator.navigationOptions = {
-  header: undefined,
-  headerTitle: 'Settings',
   title: 'Settings',
 }
 

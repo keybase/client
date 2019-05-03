@@ -651,6 +651,14 @@ const navigateToAccount = (state, action) => {
     ? [Tabs.settingsTab, SettingsConstants.walletsTab]
     : [{props: {}, selected: Tabs.walletsTab}]
 
+  if (flags.useNewRouter) {
+    return [
+      RouteTreeGen.createClearModals(),
+      RouteTreeGen.createSwitchTab({tab: isMobile ? Tabs.settingsTab : Tabs.walletsTab}),
+      ...(isMobile ? [RouteTreeGen.createNavigateAppend({path: [SettingsConstants.walletsTab]})] : []),
+    ]
+  }
+
   return RouteTreeGen.createNavigateTo({path: wallet})
 }
 

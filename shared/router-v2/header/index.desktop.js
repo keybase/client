@@ -37,15 +37,16 @@ class Header extends React.PureComponent<Props, State> {
     }
 
     let title = null
-    if (typeof opt.headerTitle === 'string') {
+    if (opt.title) {
       title = (
         <Kb.Box2 direction="horizontal" style={{flexGrow: 1, marginLeft: Styles.globalMargins.xsmall}}>
           <Kb.Text style={{flexGrow: 1}} type="Header">
-            {opt.headerTitle}
+            {opt.title}
           </Kb.Text>
         </Kb.Box2>
       )
-    } else if (typeof opt.headerTitle === 'function') {
+    }
+    if (typeof opt.headerTitle === 'function') {
       const CustomTitle = opt.headerTitle
       title = <CustomTitle>{opt.title}</CustomTitle>
     }

@@ -5,12 +5,12 @@ import * as Styles from '../styles'
 import {PeoplePageList} from './index.shared'
 import {type Props} from '.'
 import flags from '../util/feature-flags'
-import ProfileSearch from '../profile/search/bar'
+import ProfileSearch from '../profile/search/bar-container'
 
 export const Header = flags.useNewRouter
   ? (props: Props) => (
       <Kb.Box2 direction="horizontal" style={styles.header}>
-        <ProfileSearch onSearch={props.onSearch} />
+        <ProfileSearch />
       </Kb.Box2>
     )
   : (props: Props) => (
@@ -29,7 +29,7 @@ export const Header = flags.useNewRouter
             label: 'Avatar',
           },
         ]}
-        titleComponent={<ProfileSearch onSearch={props.onSearch} />}
+        titleComponent={<ProfileSearch />}
       />
     )
 const People = (props: Props) => (
@@ -37,7 +37,7 @@ const People = (props: Props) => (
     {props.waiting && <Kb.ProgressIndicator style={styles.progress} />}
     {!flags.useNewRouter && (
       <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.searchContainer}>
-        <ProfileSearch onSearch={props.onSearch} />
+        <ProfileSearch />
       </Kb.Box2>
     )}
     <PeoplePageList {...props} />

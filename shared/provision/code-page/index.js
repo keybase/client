@@ -125,7 +125,7 @@ class CodePage2 extends React.Component<Props, State> {
               }
             />
           </Kb.Box2>
-          {(!flags.useNewRouter || Styles.isMobile) && (
+          {(!flags.useNewRouter || this.props.currentDeviceAlreadyProvisioned) && (
             <Kb.BackButton
               onClick={this.props.onBack}
               iconColor={Styles.globalColors.white}

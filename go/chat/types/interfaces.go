@@ -483,7 +483,7 @@ type CoinFlipManager interface {
 
 type TeamMentionLoader interface {
 	Resumable
-	LoadTeamMention(ctx context.Context, uid gregor1.UID, teamName string) error
+	LoadTeamMention(ctx context.Context, uid gregor1.UID, teamName, channel string) error
 }
 
 type InternalError interface {

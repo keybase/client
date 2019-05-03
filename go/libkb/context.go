@@ -119,7 +119,7 @@ func (m MetaContext) ActiveDevice() *ActiveDevice {
 }
 
 func (m MetaContext) NIST() (*NIST, error) {
-	nist, uid, err := m.ActiveDevice().NISTAndUID(m.Ctx())
+	nist, uid, _, err := m.ActiveDevice().NISTAndUIDDeviceID(m.Ctx())
 	if err != nil {
 		return nil, err
 	}

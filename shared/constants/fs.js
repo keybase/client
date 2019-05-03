@@ -1010,7 +1010,7 @@ export const getSyncStatusInMergeProps = (
   uploadingPaths: I.Set<Types.Path>,
   path: Types.Path
 ): Types.SyncStatus => {
-  if (!tlf.syncConfig || pathItem === unknownPathItem) {
+  if (!tlf.syncConfig || (pathItem === unknownPathItem && tlf.syncConfig.mode !== 'disabled')) {
     return 'unknown'
   }
   const tlfSyncConfig: Types.TlfSyncConfig = tlf.syncConfig

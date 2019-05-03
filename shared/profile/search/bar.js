@@ -5,7 +5,7 @@ import * as Styles from '../../styles'
 import flags from '../../util/feature-flags'
 import Search from './container'
 
-type Props = {|onSearch: () => void, whiteText?: boolean|}
+type Props = {|onSearch: () => void, style?: Styles.StylesCrossPlatform, whiteText?: boolean|}
 type State = {|show: boolean|}
 
 class ProfileSearch extends React.PureComponent<Props, State> {
@@ -20,7 +20,11 @@ class ProfileSearch extends React.PureComponent<Props, State> {
   _getAttachmentRef = () => this._ref.current
   render() {
     return (
-      <Kb.Box2 style={styles.container} direction="horizontal" ref={this._ref}>
+      <Kb.Box2
+        style={Styles.collapseStyles([styles.container, this.props.style])}
+        direction="horizontal"
+        ref={this._ref}
+      >
         <Kb.ClickableBox
           onClick={this._onShow}
           style={Styles.collapseStyles([
@@ -50,6 +54,7 @@ class ProfileSearch extends React.PureComponent<Props, State> {
           attachTo={this._getAttachmentRef}
           matchDimension={flags.useNewRouter}
           position={flags.useNewRouter ? undefined : 'top center'}
+          positionFallbacks={[]}
           style={styles.overlay}
         >
           <Search onClose={this._onHide} />
