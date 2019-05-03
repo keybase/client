@@ -23,9 +23,6 @@ const StartNewChat = (props: Props) => {
             Start a new chat
           </Kb.Text>
         </Kb.ClickableBox>
-        {flags.useNewRouter && Styles.isMobile && (
-          <Kb.BackButton onClick={props.onBack} style={styles.backButton} />
-        )}
       </Kb.Box>
     )
   }
