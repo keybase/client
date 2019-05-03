@@ -197,6 +197,8 @@ func (tc TestContext) ClearAllStoredSecrets() error {
 	return nil
 }
 
+func (tc TestContext) MetaContext() MetaContext { return NewMetaContextForTest(tc) }
+
 var setupTestMu sync.Mutex
 
 func setupTestContext(tb TestingTB, name string, tcPrev *TestContext) (tc TestContext, err error) {
