@@ -33,6 +33,10 @@ ExecStartPost=/usr/bin/env systemctl --user unset-environment KEYBASE_AUTOSTART
 
 # We don't set Restart=, since a GUI crash is probably visible to the user.
 
+# Only kill main Electron process, which kills the others. But if that fails,
+# systemd will send a SIGKILL to all Electron processes.
+KillMode=process
+
 # We don't have an [Install] section, since the app is intended to be started
 # from ~/.config/autostart (or the user's window manager's autostart
 # configuration). Enabling it in e.g. an SSH session is unlikely to be correct.

@@ -9,6 +9,7 @@ export type Props = {|
   filter: string,
   isLoading: boolean,
   isSearching: boolean,
+  showNewTag: boolean,
   onBack: () => void,
   noShortcut: ?boolean,
   onEnsureSelection: () => void,
@@ -108,6 +109,7 @@ class ConversationFilterInput extends React.PureComponent<Props> {
         >
           <Kb.Box2 alignItems="center" direction="horizontal" style={styles.searchBox}>
             <Kb.WithTooltip
+              disabled={!this.props.showNewTag}
               containerStyle={{flexGrow: 1}}
               position="top center"
               text="NEW! Search all your chats."
@@ -127,13 +129,15 @@ class ConversationFilterInput extends React.PureComponent<Props> {
                     ({Platforms.shortcutSymbol}K)
                   </Kb.Text>
                 )}
-                <Kb.Box2
-                  direction="horizontal"
-                  alignItems="center"
-                  style={{flexGrow: 1, justifyContent: 'flex-end', paddingRight: Styles.globalMargins.tiny}}
-                >
-                  <Kb.Meta backgroundColor={Styles.globalColors.blue} title="New" />
-                </Kb.Box2>
+                {this.props.showNewTag && (
+                  <Kb.Box2
+                    direction="horizontal"
+                    alignItems="center"
+                    style={{flexGrow: 1, justifyContent: 'flex-end', paddingRight: Styles.globalMargins.tiny}}
+                  >
+                    <Kb.Meta backgroundColor={Styles.globalColors.blue} title="New" />
+                  </Kb.Box2>
+                )}
               </Kb.ClickableBox>
             </Kb.WithTooltip>
           </Kb.Box2>

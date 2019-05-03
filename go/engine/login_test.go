@@ -577,8 +577,6 @@ func TestProvisionWithRevoke(t *testing.T) {
 // If a user has device keys and no pgp keys, not selecting a device
 // should trigger the autoreset flow.
 func TestProvisionAutoreset(t *testing.T) {
-	// TODO CORE-10774
-	t.Skip()
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "provision_x")
 	defer tcX.Cleanup()
@@ -595,20 +593,23 @@ func TestProvisionAutoreset(t *testing.T) {
 
 	uis := libkb.UIs{
 		ProvisionUI: newTestProvisionUIChooseNoDevice(),
-		LoginUI:     &libkb.TestLoginUI{Username: userX.Username},
-		LogUI:       tcY.G.UI.GetLogUI(),
-		SecretUI:    &libkb.TestSecretUI{Passphrase: userX.Passphrase},
-		GPGUI:       &gpgtestui{},
+		LoginUI: &libkb.TestLoginUI{
+			Username:     userX.Username,
+			ResetAccount: true,
+		},
+		LogUI:    tcY.G.UI.GetLogUI(),
+		SecretUI: &libkb.TestSecretUI{Passphrase: userX.Passphrase},
+		GPGUI:    &gpgtestui{},
 	}
 	m := NewMetaContextForTest(tcY).WithUIs(uis)
 	eng := NewLogin(tcY.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	require.NoError(t, RunEngine2(m, eng), "expected login engine to succeed")
 	require.NotNil(t, AssertLoggedIn(tcY), "should not be logged in")
 
-	// Travel 3 days into future + 60s to make sure that it all runs
+	// Travel 3 days into future + 1h to make sure that it all runs
 	require.NoError(t, accelerateReset(tcX))
-	require.NoError(t, timeTravelReset(tcX, time.Hour*72))
-	time.Sleep(time.Second)
+	require.NoError(t, timeTravelReset(tcX, time.Hour*73))
+	time.Sleep(1500 * time.Millisecond)
 
 	// Second iteration on device Y should result in a reset + provision
 	uis = libkb.UIs{

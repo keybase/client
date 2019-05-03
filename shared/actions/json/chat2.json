@@ -665,6 +665,10 @@
     },
     "tabSelected": {
       "_description": "Desktop changed tab to chat"
+    },
+    "setInboxShowIsNew": {
+      "_description": "We've seen chat search before",
+      "isNew": "boolean"
     }
   }
 }

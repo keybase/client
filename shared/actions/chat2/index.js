@@ -2751,6 +2751,9 @@ const gregorPushState = (state, action) => {
     actions.push(Chat2Gen.createSetWalletsOld())
   }
 
+  const isSearchNew = !items.some(i => i.item.category === Constants.inboxSearchNewKey)
+  actions.push(Chat2Gen.createSetInboxShowIsNew({isNew: isSearchNew}))
+
   return actions
 }
 
@@ -2805,6 +2808,10 @@ const addUsersToChannel = (_, action) => {
     ])
     .catch(err => logger.error(`addUsersToChannel: ${err.message}`)) // surfaced in UI via waiting key
 }
+
+const onMarkInboxSearchOld = state =>
+  state.chat2.inboxShowNew &&
+  GregorGen.createUpdateCategory({body: 'true', category: Constants.inboxSearchNewKey})
 
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
@@ -3173,6 +3180,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
 
   yield* Saga.chainGenerator<Chat2Gen.InboxSearchPayload>(Chat2Gen.inboxSearch, inboxSearch)
   yield* Saga.chainAction<Chat2Gen.ToggleInboxSearchPayload>(Chat2Gen.toggleInboxSearch, onToggleInboxSearch)
+  yield* Saga.chainAction<Chat2Gen.ToggleInboxSearchPayload>(Chat2Gen.toggleInboxSearch, onMarkInboxSearchOld)
   yield* Saga.chainAction<Chat2Gen.InboxSearchSelectPayload>(Chat2Gen.inboxSearchSelect, onInboxSearchSelect)
   yield* Saga.chainGenerator<Chat2Gen.ThreadSearchPayload>(Chat2Gen.threadSearch, threadSearch)
   yield* Saga.chainAction<Chat2Gen.ToggleThreadSearchPayload>(

@@ -157,7 +157,12 @@ const LoggedInStackNavigator = createStackNavigator(
 const LoggedOutStackNavigator = createStackNavigator(
   {...Shim.shim(loggedOutRoutes)},
   {
-    defaultNavigationOptions,
+    defaultNavigationOptions: {
+      ...defaultNavigationOptions,
+      // show the header
+      header: undefined,
+    },
+
     headerMode,
     initialRouteName: 'login',
     initialRouteParams: undefined,

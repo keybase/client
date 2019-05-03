@@ -100,6 +100,7 @@ export type _State = {
   focus: Focus,
   inboxHasLoaded: boolean, // if we've ever loaded
   inboxSearch: ?InboxSearchInfo,
+  inboxShowNew: boolean, // mark search as new
   trustedInboxHasLoaded: boolean, // if we've done initial trusted inbox load
   smallTeamsExpanded: boolean, // if we're showing all small teams
   isWalletsNew: boolean, // controls new-ness of wallets in chat UI

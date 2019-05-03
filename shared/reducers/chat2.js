@@ -376,6 +376,8 @@ const rootReducer = (
   switch (action.type) {
     case Chat2Gen.resetStore:
       return initialState
+    case Chat2Gen.setInboxShowIsNew:
+      return state.merge({inboxShowNew: action.payload.isNew})
     case Chat2Gen.toggleSmallTeamsExpanded:
       return state.set('smallTeamsExpanded', !state.smallTeamsExpanded)
     case Chat2Gen.changeFocus:
