@@ -196,12 +196,20 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   title: 'Feedback',
 })
 
-export default compose(
+const connected = compose(
   connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...s, ...d})
   ),
-  HeaderHoc,
   HOCTimers
 )(FeedbackContainer)
+
+// $FlowIssue
+connected.navigationOptions = {
+  header: undefined,
+  headerHeight: 60,
+  title: 'Feedback',
+}
+
+export default connected
