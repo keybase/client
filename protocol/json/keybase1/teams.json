@@ -398,6 +398,12 @@
       "name": "TeamData",
       "fields": [
         {
+          "type": "int",
+          "name": "subversion",
+          "mpackkey": "v",
+          "jsonkey": "v"
+        },
+        {
           "type": "boolean",
           "name": "secretless"
         },

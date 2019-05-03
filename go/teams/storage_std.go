@@ -63,5 +63,30 @@ func (s *Storage) Get(mctx libkb.MetaContext, teamID keybase1.TeamID, public boo
 	if !ok {
 		mctx.Debug("teams.Storage#Get cast error: %T is wrong type", vp)
 	}
+	if ret != nil && diskStorageVersion == 10 && ret.Subversion == 0 {
+		migrateInvites(mctx, ret.ID(), ret.Chain.ActiveInvites)
+		migrateInvites(mctx, ret.ID(), ret.Chain.ObsoleteInvites)
+		ret.Subversion = 1
+	}
 	return ret
+}
+
+// migrateInvites converts old 'category unknown' invites into social invites for paramproofs.
+func migrateInvites(mctx libkb.MetaContext, teamID keybase1.TeamID, invites map[keybase1.TeamInviteID]keybase1.TeamInvite) {
+	for key, invite := range invites {
+		category, err := invite.Type.C()
+		if err != nil {
+			continue
+		}
+		if category != keybase1.TeamInviteCategory_UNKNOWN {
+			continue
+		}
+		categoryStr := invite.Type.Unknown()
+		if mctx.G().GetProofServices().GetServiceType(categoryStr) == nil {
+			continue
+		}
+		mctx.Debug("migrateInvites repairing teamID:%v inviteID:%v cat:%v", teamID, invite.Id, categoryStr)
+		invite.Type = keybase1.NewTeamInviteTypeWithSbs(keybase1.TeamInviteSocialNetwork(categoryStr))
+		invites[key] = invite
+	}
 }
