@@ -450,7 +450,7 @@ type HybridInboxSource struct {
 
 	badger      *badges.Badger
 	started     bool
-	stopCh      chan struct{}
+	stopCh      chan chan struct{}
 	flushDelay  time.Duration
 	testFlushCh chan struct{} // testing only
 }
@@ -479,33 +479,34 @@ func (s *HybridInboxSource) Clear(ctx context.Context, uid gregor1.UID) error {
 }
 
 func (s *HybridInboxSource) Start(ctx context.Context, uid gregor1.UID) {
+	defer s.Trace(ctx, func() error { return nil }, "Start")()
 	s.baseInboxSource.Start(ctx, uid)
 	s.Lock()
 	defer s.Unlock()
-	s.Debug(ctx, "Start")
 	if s.started {
 		return
 	}
-	s.stopCh = make(chan struct{})
+	s.stopCh = make(chan chan struct{})
 	s.started = true
 	go s.inboxFlushLoop(uid, s.stopCh)
 }
 
 func (s *HybridInboxSource) Stop(ctx context.Context) chan struct{} {
+	defer s.Trace(ctx, func() error { return nil }, "Stop")()
 	<-s.baseInboxSource.Stop(ctx)
 	s.Lock()
 	defer s.Unlock()
-	s.Debug(ctx, "Stop")
-	if s.started {
-		close(s.stopCh)
-		s.started = false
-	}
 	ch := make(chan struct{})
-	close(ch)
+	if s.started {
+		s.stopCh <- ch
+		s.started = false
+	} else {
+		close(ch)
+	}
 	return ch
 }
 
-func (s *HybridInboxSource) inboxFlushLoop(uid gregor1.UID, stopCh chan struct{}) {
+func (s *HybridInboxSource) inboxFlushLoop(uid gregor1.UID, stopCh chan chan struct{}) {
 	ctx := globals.ChatCtx(context.Background(), s.G(),
 		keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil)
 	appState := s.G().MobileAppState.State()
@@ -524,8 +525,9 @@ func (s *HybridInboxSource) inboxFlushLoop(uid gregor1.UID, stopCh chan struct{}
 			case keybase1.MobileAppState_BACKGROUND:
 				doFlush()
 			}
-		case <-stopCh:
+		case ch := <-stopCh:
 			doFlush()
+			close(ch)
 			return
 		}
 	}
