@@ -2,6 +2,7 @@
 import React from 'react'
 import PeopleItem from '../item'
 import {Box, Button, Icon, Text, type IconType} from '../../common-adapters'
+import PeopleSearch from '../../profile/search/bar-container'
 import * as Styles from '../../styles'
 
 export type Props = {
@@ -12,20 +13,25 @@ export type Props = {
   dismissable: boolean,
   onConfirm: () => void,
   onDismiss: () => void,
+  showSearchBar?: boolean,
 }
 
 export const Task = (props: Props) => (
   <PeopleItem format="multi" badged={props.badged} icon={<Icon type={props.icon} />}>
-    <Text type="Body" style={{marginRight: Styles.isMobile ? 112 : 80, marginTop: 2}}>
+    <Text type="Body" style={styles.instructions}>
       {props.instructions}
     </Text>
-    <Box style={actionContainerStyle}>
-      <Button
-        small={true}
-        label={props.confirmLabel}
-        onClick={props.onConfirm}
-        style={{marginRight: Styles.globalMargins.small}}
-      />
+    <Box style={styles.actionContainer}>
+      {props.showSearchBar ? (
+        <PeopleSearch style={styles.search} />
+      ) : (
+        <Button
+          small={true}
+          label={props.confirmLabel}
+          onClick={props.onConfirm}
+          style={{marginRight: Styles.globalMargins.small}}
+        />
+      )}
       {props.dismissable && (
         <Text type="BodyPrimaryLink" onClick={props.onDismiss}>
           Later
@@ -35,9 +41,18 @@ export const Task = (props: Props) => (
   </PeopleItem>
 )
 
-const actionContainerStyle = {
-  ...Styles.globalStyles.flexBoxRow,
-  alignItems: 'center',
-  flexWrap: 'wrap',
-  justifyContent: 'flex-start',
-}
+const styles = Styles.styleSheetCreate({
+  actionContainer: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
+    marginRight: Styles.isMobile ? 112 : 80,
+    width: 'auto',
+  },
+  instructions: {marginRight: Styles.isMobile ? 112 : 80, marginTop: 2},
+  search: {
+    alignSelf: undefined,
+    flexGrow: 0,
+  },
+})
