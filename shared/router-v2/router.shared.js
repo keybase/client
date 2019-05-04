@@ -34,7 +34,7 @@ export const desktopTabs = [
 
 // Helper to convert old route tree actions to new actions. Likely goes away as we make
 // actual routing actions (or make RouteTreeGen append/up the only action)
-export const oldActionToNewActions = (action: any, navigation: any) => {
+export const oldActionToNewActions = (action: any, navigation: any, allowAppendDupe?: boolean) => {
   switch (action.type) {
     case RouteTreeGen.navigateTo: // fallthrough
     case RouteTreeGen.switchTo: // fallthrough
@@ -65,7 +65,7 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
       const path = Constants._getVisiblePathForNavigator(navigation.state)
       const visible = path[path.length - 1]
       if (visible) {
-        if (routeName === visible.routeName && shallowEqual(visible.params, params)) {
+        if (!allowAppendDupe && routeName === visible.routeName && shallowEqual(visible.params, params)) {
           console.log('Skipping append dupe')
           return
         }
@@ -130,7 +130,7 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
     }
     case RouteTreeGen.resetStack: {
       const actions = action.payload.actions.reduce(
-        (arr, a) => [...arr, ...(oldActionToNewActions(a, navigation) || [])],
+        (arr, a) => [...arr, ...(oldActionToNewActions(a, navigation, true) || [])],
         [StackActions.push({routeName: tabRoots[action.payload.tab]})]
       )
       return [
