@@ -27,6 +27,8 @@ var stripSeps = []string{
 	"\\{", "\\}",
 	"\"",
 	"'",
+	// phone number delimiter
+	"-",
 	// mentions
 	"@",
 	"#",
