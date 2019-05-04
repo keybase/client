@@ -72,7 +72,7 @@ const TabBarIcon = ({badgeNumber, focused, routeName}) => (
 )
 
 const settingsTabChildren = [Tabs.gitTab, Tabs.devicesTab, Tabs.walletsTab]
-const getBadgeNumber = (navBadges, routeName: Tabs.Tab) =>
+const getBadgeNumber = (navBadges, routeName) =>
   routeName === Tabs.settingsTab
     ? settingsTabChildren.reduce((res, tab) => res + (navBadges.get(tab) || 0), 0)
     : navBadges.get(routeName)
