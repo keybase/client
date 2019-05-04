@@ -71,8 +71,17 @@ const TabBarIcon = ({badgeNumber, focused, routeName}) => (
   </Kb.NativeView>
 )
 
+const settingsTabChildren = [Tabs.gitTab, Tabs.devicesTab, Tabs.walletsTab]
+const getBadgeNumber = (navBadges, routeName: Tabs.Tab) => {
+  if (routeName === 'tabs.settingsTab') {
+    return settingsTabChildren.reduce((res, tab) => res + (navBadges.get(tab) || 0), 0)
+  } else {
+    return navBadges.get(routeName)
+  }
+}
+
 const ConnectedTabBarIcon = connect<{|focused: boolean, routeName: Tabs.Tab|}, _, _, _, _>(
-  (state, {routeName}) => ({badgeNumber: state.notifications.navBadges.get(routeName)}),
+  (state, {routeName}) => ({badgeNumber: getBadgeNumber(state.notifications.navBadges, routeName)}),
   () => ({}),
   (s, _, o) => ({
     badgeNumber: s.badgeNumber,
