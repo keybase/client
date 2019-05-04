@@ -34,7 +34,8 @@ protocol local {
   }
 
   record KnownTeamMention {
-    string text;
+    string name;
+    string channel;
   }
 
   record MaybeMention {

@@ -514,6 +514,98 @@ func (s *BlockingSender) handleReplyTo(ctx context.Context, msg chat1.MessagePla
 	return msg
 }
 
+func (s *BlockingSender) handleMentions(ctx context.Context, uid gregor1.UID, msg chat1.MessagePlaintext) (res chat1.MessagePlaintext, atMentions []gregor1.UID, chanMention chat1.ChannelMention, err error) {
+	if msg.ClientHeader.Conv.TopicType != chat1.TopicType_CHAT {
+		return msg, atMentions, chanMention, nil
+	}
+	// Function to check that the header and body types match.
+	// Call this before accessing the body.
+	// Do not call this for TLFNAME which has no body.
+	checkHeaderBodyTypeMatch := func() error {
+		bodyType, err := msg.MessageBody.MessageType()
+		if err != nil {
+			return err
+		}
+		if msg.ClientHeader.MessageType != bodyType {
+			return fmt.Errorf("cannot send message with mismatched header/body types: %v != %v",
+				msg.ClientHeader.MessageType, bodyType)
+		}
+		return nil
+	}
+	atFromKnown := func(knowns []chat1.KnownUserMention) (res []gregor1.UID) {
+		for _, known := range knowns {
+			res = append(res, known.Uid)
+		}
+		return res
+	}
+	maybeToTeam := func(maybeMentions []chat1.MaybeMention) (res []chat1.KnownTeamMention) {
+		for _, maybe := range maybeMentions {
+			if s.G().TeamMentionLoader.IsTeamMention(ctx, uid, maybe, nil) {
+				res = append(res, chat1.KnownTeamMention{
+					Name:    maybe.Name,
+					Channel: maybe.Channel,
+				})
+			}
+		}
+		return res
+	}
+
+	// find @ mentions
+	var knownUserMentions []chat1.KnownUserMention
+	var maybeMentions []chat1.MaybeMention
+	switch msg.ClientHeader.MessageType {
+	case chat1.MessageType_TEXT:
+		if err = checkHeaderBodyTypeMatch(); err != nil {
+			return res, atMentions, chanMention, err
+		}
+		knownUserMentions, maybeMentions, chanMention = utils.GetTextAtMentionedItems(ctx, s.G(),
+			msg.MessageBody.Text(), &s.DebugLabeler)
+		atMentions = atFromKnown(knownUserMentions)
+		newBody := msg.MessageBody.Text().DeepCopy()
+		newBody.TeamMentions = maybeToTeam(maybeMentions)
+		res = chat1.MessagePlaintext{
+			ClientHeader:       msg.ClientHeader,
+			MessageBody:        chat1.NewMessageBodyWithText(newBody),
+			SupersedesOutboxID: msg.SupersedesOutboxID,
+		}
+	case chat1.MessageType_FLIP:
+		if err = checkHeaderBodyTypeMatch(); err != nil {
+			return res, atMentions, chanMention, err
+		}
+		knownUserMentions, maybeMentions, chanMention = utils.ParseAtMentionedItems(ctx, s.G(),
+			msg.MessageBody.Flip().Text, nil)
+		atMentions = atFromKnown(knownUserMentions)
+		newBody := msg.MessageBody.Flip().DeepCopy()
+		newBody.TeamMentions = maybeToTeam(maybeMentions)
+		res = chat1.MessagePlaintext{
+			ClientHeader:       msg.ClientHeader,
+			MessageBody:        chat1.NewMessageBodyWithFlip(newBody),
+			SupersedesOutboxID: msg.SupersedesOutboxID,
+		}
+	case chat1.MessageType_EDIT:
+		if err = checkHeaderBodyTypeMatch(); err != nil {
+			return res, atMentions, chanMention, err
+		}
+		knownUserMentions, maybeMentions, chanMention = utils.ParseAtMentionedItems(ctx, s.G(),
+			msg.MessageBody.Edit().Body, nil)
+		atMentions = atFromKnown(knownUserMentions)
+		newBody := msg.MessageBody.Edit().DeepCopy()
+		newBody.TeamMentions = maybeToTeam(maybeMentions)
+		res = chat1.MessagePlaintext{
+			ClientHeader:       msg.ClientHeader,
+			MessageBody:        chat1.NewMessageBodyWithEdit(newBody),
+			SupersedesOutboxID: msg.SupersedesOutboxID,
+		}
+	case chat1.MessageType_SYSTEM:
+		if err = checkHeaderBodyTypeMatch(); err != nil {
+			return res, atMentions, chanMention, err
+		}
+		atMentions, chanMention = utils.SystemMessageMentions(ctx, msg.MessageBody.System(),
+			s.G().GetUPAKLoader())
+	}
+	return res, atMentions, chanMention, nil
+}
+
 // Prepare a message to be sent.
 // Returns (boxedMessage, pendingAssetDeletes, error)
 func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePlaintext,
@@ -611,58 +703,18 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		}
 	}
 
+	// handle mentions
+	var atMentions []gregor1.UID
+	var chanMention chat1.ChannelMention
+	if msg, atMentions, chanMention, err = s.handleMentions(ctx, uid, msg); err != nil {
+		return res, err
+	}
+
 	// encrypt the message
 	skp, err := s.getSigningKeyPair(ctx)
 	if err != nil {
 		s.Debug(ctx, "Prepare: error getting signing key pair: %s", err)
 		return res, err
-	}
-
-	// Function to check that the header and body types match.
-	// Call this before accessing the body.
-	// Do not call this for TLFNAME which has no body.
-	checkHeaderBodyTypeMatch := func() error {
-		bodyType, err := plaintext.MessageBody.MessageType()
-		if err != nil {
-			return err
-		}
-		if plaintext.ClientHeader.MessageType != bodyType {
-			return fmt.Errorf("cannot send message with mismatched header/body types: %v != %v",
-				plaintext.ClientHeader.MessageType, bodyType)
-		}
-		return nil
-	}
-
-	// find @ mentions
-	var atMentions []gregor1.UID
-	chanMention := chat1.ChannelMention_NONE
-	if msg.ClientHeader.Conv.TopicType == chat1.TopicType_CHAT {
-		switch plaintext.ClientHeader.MessageType {
-		case chat1.MessageType_TEXT:
-			if err = checkHeaderBodyTypeMatch(); err != nil {
-				return res, err
-			}
-			atMentions, _, chanMention = utils.GetTextAtMentionedItems(ctx, s.G(),
-				plaintext.MessageBody.Text(), &s.DebugLabeler)
-		case chat1.MessageType_FLIP:
-			if err = checkHeaderBodyTypeMatch(); err != nil {
-				return res, err
-			}
-			atMentions, _, chanMention = utils.ParseAtMentionedItems(ctx, s.G(),
-				plaintext.MessageBody.Flip().Text, nil)
-		case chat1.MessageType_EDIT:
-			if err = checkHeaderBodyTypeMatch(); err != nil {
-				return res, err
-			}
-			atMentions, _, chanMention = utils.ParseAtMentionedItems(ctx, s.G(),
-				plaintext.MessageBody.Edit().Body, nil)
-		case chat1.MessageType_SYSTEM:
-			if err = checkHeaderBodyTypeMatch(); err != nil {
-				return res, err
-			}
-			atMentions, chanMention = utils.SystemMessageMentions(ctx, plaintext.MessageBody.System(),
-				s.G().GetUPAKLoader())
-		}
 	}
 
 	// If we are sending a message, and we think the conversation is a KBFS conversation, then set a label

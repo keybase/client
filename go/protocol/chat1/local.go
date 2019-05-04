@@ -147,12 +147,14 @@ func (o KnownUserMention) DeepCopy() KnownUserMention {
 }
 
 type KnownTeamMention struct {
-	Text string `codec:"text" json:"text"`
+	Name    string `codec:"name" json:"name"`
+	Channel string `codec:"channel" json:"channel"`
 }
 
 func (o KnownTeamMention) DeepCopy() KnownTeamMention {
 	return KnownTeamMention{
-		Text: o.Text,
+		Name:    o.Name,
+		Channel: o.Channel,
 	}
 }
 

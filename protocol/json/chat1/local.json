@@ -110,7 +110,11 @@
       "fields": [
         {
           "type": "string",
-          "name": "text"
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "channel"
         }
       ]
     },
