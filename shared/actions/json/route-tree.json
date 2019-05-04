@@ -55,6 +55,12 @@
     "switchTab": {
       "_description": "ONLY used by the new nav. Switch to a different tab.",
       "tab": "Tabs.AppTab"
+    },
+    "resetStack": {
+      "_description": "Reset a specific stack. actions is route tree actions TODO better typing",
+      "tab": "Tabs.AppTab",
+      "actions": "Array<any>",
+      "index": "number"
     }
   }
 }
