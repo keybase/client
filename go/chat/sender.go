@@ -605,6 +605,8 @@ func (s *BlockingSender) handleMentions(ctx context.Context, uid gregor1.UID, ms
 		}
 		atMentions, chanMention = utils.SystemMessageMentions(ctx, msg.MessageBody.System(),
 			s.G().GetUPAKLoader())
+	default:
+		res = msg
 	}
 	return res, atMentions, chanMention, nil
 }
