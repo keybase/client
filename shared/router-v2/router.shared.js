@@ -129,6 +129,7 @@ export const oldActionToNewActions = (action: any, navigation: any, allowAppendD
       return isInStack ? popActions : []
     }
     case RouteTreeGen.resetStack: {
+      // TODO check for append dupes within these
       const actions = action.payload.actions.reduce(
         (arr, a) => [...arr, ...(oldActionToNewActions(a, navigation, true) || [])],
         [StackActions.push({routeName: tabRoots[action.payload.tab]})]
