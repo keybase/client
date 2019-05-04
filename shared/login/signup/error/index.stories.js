@@ -5,7 +5,7 @@ import Error from '.'
 
 const load = () => {
   Sb.storiesOf('Signup', module).add('Error', () => (
-    <Error error="This is an error" onBack={Sb.action('onBack')} onRestart={Sb.action('onRestart')} />
+    <Error error="This is an error" onBack={Sb.action('onBack')} />
   ))
 }
 

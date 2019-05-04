@@ -2366,6 +2366,10 @@
           "name": "conv"
         },
         {
+          "type": "InboxUIItem",
+          "name": "uiConv"
+        },
+        {
           "type": {
             "type": "array",
             "items": "RateLimit"

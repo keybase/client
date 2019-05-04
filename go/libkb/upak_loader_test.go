@@ -66,6 +66,11 @@ func TestCachedUserLoad(t *testing.T) {
 	if !info.InCache || !info.TimedOut || info.StaleVersion || !info.LoadedLeaf || info.LoadedUser {
 		t.Fatalf("wrong info: %+v", info)
 	}
+
+	require.True(t, IsUserByUsernameOffline(NewMetaContextForTest(tc), "t_alice"))
+	require.False(t, IsUserByUsernameOffline(NewMetaContextForTest(tc), "t_alice_xxx"))
+	// This hardcoded user was put into the TestUIDMapper, so it should return a result
+	require.True(t, IsUserByUsernameOffline(NewMetaContextForTest(tc), "max"))
 }
 
 func TestCheckKIDForUID(t *testing.T) {
