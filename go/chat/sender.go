@@ -563,6 +563,7 @@ func (s *BlockingSender) handleMentions(ctx context.Context, uid gregor1.UID, ms
 		atMentions = atFromKnown(knownUserMentions)
 		newBody := msg.MessageBody.Text().DeepCopy()
 		newBody.TeamMentions = maybeToTeam(maybeMentions)
+		newBody.UserMentions = knownUserMentions
 		res = chat1.MessagePlaintext{
 			ClientHeader:       msg.ClientHeader,
 			MessageBody:        chat1.NewMessageBodyWithText(newBody),
@@ -577,6 +578,7 @@ func (s *BlockingSender) handleMentions(ctx context.Context, uid gregor1.UID, ms
 		atMentions = atFromKnown(knownUserMentions)
 		newBody := msg.MessageBody.Flip().DeepCopy()
 		newBody.TeamMentions = maybeToTeam(maybeMentions)
+		newBody.UserMentions = knownUserMentions
 		res = chat1.MessagePlaintext{
 			ClientHeader:       msg.ClientHeader,
 			MessageBody:        chat1.NewMessageBodyWithFlip(newBody),
@@ -591,6 +593,7 @@ func (s *BlockingSender) handleMentions(ctx context.Context, uid gregor1.UID, ms
 		atMentions = atFromKnown(knownUserMentions)
 		newBody := msg.MessageBody.Edit().DeepCopy()
 		newBody.TeamMentions = maybeToTeam(maybeMentions)
+		newBody.UserMentions = knownUserMentions
 		res = chat1.MessagePlaintext{
 			ClientHeader:       msg.ClientHeader,
 			MessageBody:        chat1.NewMessageBodyWithEdit(newBody),

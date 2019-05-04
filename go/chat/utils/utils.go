@@ -655,7 +655,7 @@ func ParseAtMentionsNames(ctx context.Context, body string) (res []string) {
 	return res
 }
 
-func parseItemAsUID(ctx context.Context, upak libkb.UPAKLoader, name string,
+func parseItemAsUID(ctx context.Context, g *globals.Context, name string,
 	knownMentions []chat1.KnownUserMention) (gregor1.UID, error) {
 	var knownMention *gregor1.UID
 	for _, known := range knownMentions {
@@ -668,8 +668,16 @@ func parseItemAsUID(ctx context.Context, upak libkb.UPAKLoader, name string,
 	if knownMention != nil {
 		return *knownMention, nil
 	}
-	// TODO: FIX ME: integrate new Max local only UID lookup
-	return nil, errors.New("not implemented")
+	nname := libkb.NewNormalizedUsername(name)
+	// TODO: FIXME:  check with Max new function
+	//	if libkb.IsUserByUsernameOffline(libkb.NewMetaContext(ctx, g.ExternalG()), nname) {
+	kuid, err := g.GetUPAKLoader().LookupUID(ctx, nname)
+	if err != nil {
+		return nil, err
+	}
+	return kuid.ToBytes(), nil
+	//	}
+	//	return nil, errors.New("not a username")
 }
 
 func ParseAtMentionedItems(ctx context.Context, g *globals.Context, body string,
@@ -696,7 +704,7 @@ func ParseAtMentionedItems(ctx context.Context, g *globals.Context, body string,
 		}
 
 		// Try UID first then team
-		if uid, err := parseItemAsUID(ctx, g.GetUPAKLoader(), baseName, knownMentions); err == nil {
+		if uid, err := parseItemAsUID(ctx, g, baseName, knownMentions); err == nil {
 			atRes = append(atRes, chat1.KnownUserMention{
 				Text: baseName,
 				Uid:  uid,
