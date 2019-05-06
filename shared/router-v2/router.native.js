@@ -9,7 +9,7 @@ import {createSwitchNavigator, StackActions} from '@react-navigation/core'
 import {createBottomTabNavigator} from 'react-navigation-tabs'
 import {createStackNavigator} from 'react-navigation-stack'
 import * as Tabs from '../constants/tabs'
-import {modalRoutes, routes, loggedOutRoutes} from './routes'
+import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {LeftAction} from '../common-adapters/header-hoc'
 import * as Constants from '../constants/router2'
 import * as Shared from './router.shared'
@@ -49,7 +49,6 @@ const defaultNavigationOptions = {
 const headerMode = Styles.isAndroid ? 'screen' : 'float'
 
 const tabs = Shared.mobileTabs
-const tabRoots = Shared.tabRoots
 const icons = {
   [Tabs.chatTab]: 'iconfont-nav-2-chat',
   [Tabs.fsTab]: 'iconfont-nav-2-files',
@@ -71,8 +70,14 @@ const TabBarIcon = ({badgeNumber, focused, routeName}) => (
   </Kb.NativeView>
 )
 
+const settingsTabChildren = [Tabs.gitTab, Tabs.devicesTab, Tabs.walletsTab]
+const getBadgeNumber = (navBadges, routeName) =>
+  routeName === Tabs.settingsTab
+    ? settingsTabChildren.reduce((res, tab) => res + (navBadges.get(tab) || 0), 0)
+    : navBadges.get(routeName)
+
 const ConnectedTabBarIcon = connect<{|focused: boolean, routeName: Tabs.Tab|}, _, _, _, _>(
-  (state, {routeName}) => ({badgeNumber: state.notifications.navBadges.get(routeName)}),
+  (state, {routeName}) => ({badgeNumber: getBadgeNumber(state.notifications.navBadges, routeName)}),
   () => ({}),
   (s, _, o) => ({
     badgeNumber: s.badgeNumber,

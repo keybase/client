@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	indexVersion      = 9
+	indexVersion      = 10
 	tokenEntryVersion = 2
 	aliasEntryVersion = 1
 

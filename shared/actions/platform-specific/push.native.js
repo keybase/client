@@ -127,8 +127,13 @@ function* handleLoudMessage(notification) {
 
   const {conversationIDKey, unboxPayload, membersType} = notification
 
+  // immediately show the thread on top of the inbox w/o a nav
+  const actions = [
+    RouteTreeGen.createNavigateAppend({path: [{props: {conversationIDKey}, selected: 'chatConversation'}]}),
+  ]
+  yield Saga.put(RouteTreeGen.createClearModals())
+  yield Saga.put(RouteTreeGen.createResetStack({actions, index: 1, tab: 'tabs.chatTab'}))
   yield Saga.put(RouteTreeGen.createSwitchTab({tab: 'tabs.chatTab'}))
-  yield Saga.put(RouteTreeGen.createNavUpToScreen({routeName: 'chatRoot'}))
   yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'push'}))
   if (unboxPayload && membersType && !isIOS) {
     logger.info('[Push] unboxing message')

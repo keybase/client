@@ -13,7 +13,7 @@ import {memoize} from '../../util/memoize'
 import {isLinux} from '../../constants/platform'
 import openURL from '../../util/open-url'
 import {quit, hideWindow} from '../../util/quit-helper'
-import {tabRoots} from '../router.shared'
+import {tabRoots} from '../routes'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as SettingsGen from '../../actions/settings-gen'
 

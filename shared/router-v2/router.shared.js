@@ -4,7 +4,7 @@ import shallowEqual from 'shallowequal'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Constants from '../constants/router2'
 import * as Tabs from '../constants/tabs'
-import {modalRoutes, routes} from './routes'
+import {modalRoutes, routes, tabRoots} from './routes'
 import logger from '../logger'
 
 const getNumModals = navigation => {
@@ -32,20 +32,9 @@ export const desktopTabs = [
   Tabs.settingsTab,
 ]
 
-export const tabRoots = {
-  [Tabs.peopleTab]: 'peopleRoot',
-  [Tabs.chatTab]: 'chatRoot',
-  [Tabs.fsTab]: 'fsRoot',
-  [Tabs.teamsTab]: 'teamsRoot',
-  [Tabs.walletsTab]: 'walletsRoot',
-  [Tabs.gitTab]: 'gitRoot',
-  [Tabs.devicesTab]: 'devicesRoot',
-  [Tabs.settingsTab]: 'settingsRoot',
-}
-
 // Helper to convert old route tree actions to new actions. Likely goes away as we make
 // actual routing actions (or make RouteTreeGen append/up the only action)
-export const oldActionToNewActions = (action: any, navigation: any) => {
+export const oldActionToNewActions = (action: any, navigation: any, allowAppendDupe?: boolean) => {
   switch (action.type) {
     case RouteTreeGen.navigateTo: // fallthrough
     case RouteTreeGen.switchTo: // fallthrough
@@ -76,7 +65,7 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
       const path = Constants._getVisiblePathForNavigator(navigation.state)
       const visible = path[path.length - 1]
       if (visible) {
-        if (routeName === visible.routeName && shallowEqual(visible.params, params)) {
+        if (!allowAppendDupe && routeName === visible.routeName && shallowEqual(visible.params, params)) {
           console.log('Skipping append dupe')
           return
         }
@@ -108,13 +97,7 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
           ? action.payload.path.last()
           : action.payload.path[action.payload.path.length - 1]
 
-        // a chat, we want inbox/chat
-        if (p === 'chatConversation') {
-          sa.push(NavigationActions.navigate({params: undefined, routeName: 'tabs.chatTab'}))
-          sa.push(StackActions.push({params: undefined, routeName: 'chatConversation'}))
-        } else {
-          sa.push(NavigationActions.navigate({params: undefined, routeName: p}))
-        }
+        sa.push(NavigationActions.navigate({params: undefined, routeName: p}))
       }
 
       // validate sa
@@ -144,6 +127,20 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
         return false
       })
       return isInStack ? popActions : []
+    }
+    case RouteTreeGen.resetStack: {
+      // TODO check for append dupes within these
+      const actions = action.payload.actions.reduce(
+        (arr, a) => [...arr, ...(oldActionToNewActions(a, navigation, true) || [])],
+        [StackActions.push({routeName: tabRoots[action.payload.tab]})]
+      )
+      return [
+        StackActions.reset({
+          actions,
+          index: action.payload.index,
+          key: action.payload.tab,
+        }),
+      ]
     }
   }
 }
