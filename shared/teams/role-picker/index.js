@@ -377,6 +377,7 @@ export class FloatingRolePicker extends React.Component<FloatingProps, S> {
             attachTo={this.state.ref && this._returnRef}
             position={position || 'top center'}
             onHidden={onCancel}
+            hideKeyboard={true}
           >
             <Kb.Box2 direction={'vertical'} fullHeight={Styles.isMobile} style={floatingContainerStyle}>
               {Styles.isMobile && (
