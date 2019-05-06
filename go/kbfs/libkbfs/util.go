@@ -353,12 +353,12 @@ func GetLocalDiskStats(ctx context.Context, dbc DiskBlockCache) (
 	return 0, 0
 }
 
-// FillInDiskSpaceStatus fills in the `OutOfSyncSpace` and local disk
-// space fields of the given status.  `status.PrefetchStatus` should
-// be populated before this function is called.
+// FillInDiskSpaceStatus fills in the `OutOfSyncSpace`,
+// prefetchStatus, and local disk space fields of the given status.
 func FillInDiskSpaceStatus(
 	ctx context.Context, status *keybase1.FolderSyncStatus,
-	dbc DiskBlockCache) {
+	prefetchStatus keybase1.PrefetchStatus, dbc DiskBlockCache) {
+	status.PrefetchStatus = prefetchStatus
 	if dbc == nil {
 		return
 	}
@@ -366,7 +366,7 @@ func FillInDiskSpaceStatus(
 	status.LocalDiskBytesAvailable, status.LocalDiskBytesTotal =
 		GetLocalDiskStats(ctx, dbc)
 
-	if status.PrefetchStatus == keybase1.PrefetchStatus_COMPLETE {
+	if prefetchStatus == keybase1.PrefetchStatus_COMPLETE {
 		return
 	}
 

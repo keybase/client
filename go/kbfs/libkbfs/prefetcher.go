@@ -216,10 +216,10 @@ func (p *blockPrefetcher) sendOverallSyncStatusHelperLocked() {
 	var status keybase1.FolderSyncStatus
 	status.PrefetchProgress = p.overallSyncStatus.ToProtocolProgress(
 		p.config.Clock())
-	status.PrefetchStatus = p.overallSyncStatus.ToProtocolStatus()
 
 	FillInDiskSpaceStatus(
-		context.Background(), &status, p.config.DiskBlockCache())
+		context.Background(), &status, p.overallSyncStatus.ToProtocolStatus(),
+		p.config.DiskBlockCache())
 
 	p.config.Reporter().NotifyOverallSyncStatus(context.Background(), status)
 	p.lastOverallSyncStatusSent = p.config.Clock().Now()

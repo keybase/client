@@ -2335,7 +2335,8 @@ func (k *SimpleFS) SimpleFSFolderSyncConfigAndStatus(
 		}
 	}
 
-	libkbfs.FillInDiskSpaceStatus(ctx, &res.Status, dbc)
+	libkbfs.FillInDiskSpaceStatus(
+		ctx, &res.Status, res.Status.PrefetchStatus, dbc)
 	return res, err
 }
 
