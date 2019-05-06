@@ -759,6 +759,120 @@ func (fbo *folderBranchOps) clearConflictView(ctx context.Context) (
 	return fbo.cr.clearConflictRecords()
 }
 
+// forceStuckConflictForTesting forces the TLF into a stuck conflict
+// view, for testing.
+func (fbo *folderBranchOps) forceStuckConflictForTesting(
+	ctx context.Context) (err error) {
+	startTime, timer := fbo.startOp(ctx, "Forcing a stuck conflict")
+	defer func() {
+		fbo.endOp(
+			ctx, startTime, timer, "Forcing a stuck conflict done: %+v", err)
+	}()
+
+	lState := makeFBOLockState()
+	fbo.mdWriterLock.Lock(lState)
+	defer fbo.mdWriterLock.Unlock(lState)
+
+	if fbo.isUnmergedLocked(lState) {
+		return errors.New("Cannot force conflict when already unmerged")
+	}
+
+	// Disable updates.
+	unpauseUpdatesCh := make(chan struct{})
+	fbo.updatePauseChan <- unpauseUpdatesCh
+	defer func() { unpauseUpdatesCh <- struct{}{} }()
+
+	// Make a no-op revision with an empty resolutionOp. Wait for it
+	// to flush to the server.
+	origHead, _ := fbo.getHead(ctx, lState, mdNoCommit)
+	mergedGCOp := newGCOp(origHead.data.LastGCRevision)
+	err = fbo.finalizeGCOpLocked(ctx, lState, mergedGCOp)
+	if err != nil {
+		return err
+	}
+
+	jManager, _ := GetJournalManager(fbo.config)
+	if jManager != nil {
+		err := fbo.waitForJournalLocked(ctx, lState, jManager)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Roll back the local view to the original revision.
+	err = func() error {
+		fbo.headLock.Lock(lState)
+		defer fbo.headLock.Unlock(lState)
+		err = fbo.setHeadLocked(ctx, lState, origHead, headTrusted, mdNoCommit)
+		if err != nil {
+			return err
+		}
+		fbo.setLatestMergedRevisionLocked(
+			ctx, lState, origHead.Revision(), true)
+		return nil
+	}()
+	if err != nil {
+		return err
+	}
+
+	// Set CR to always fail.
+	oldMode := fbo.cr.getFailModeForTest()
+	fbo.cr.setFailModeForTest(alwaysFailCR)
+	defer func() { fbo.cr.setFailModeForTest(oldMode) }()
+
+	// Make fake conflicting files to trigger CR. Make one for each
+	// attempt needed to result in stuck CR.
+	handle := origHead.GetTlfHandle()
+	rootNode, err := fbo.nodeCache.GetOrCreate(
+		origHead.data.Dir.BlockPointer, string(handle.GetCanonicalName()),
+		nil, data.Dir)
+	if err != nil {
+		return err
+	}
+
+	for i := 0; i < maxConflictResolutionAttempts+1; i++ {
+		filename := fmt.Sprintf("FILE_FOR_STUCK_CONFLICT_%02d", i)
+		_, _, err := fbo.createEntryLocked(
+			ctx, lState, rootNode, filename, data.File, NoExcl)
+		if err != nil {
+			return err
+		}
+
+		err = fbo.syncAllLocked(ctx, lState, NoExcl)
+		if err != nil {
+			return err
+		}
+
+		if jManager != nil && TLFJournalEnabled(fbo.config, fbo.id()) {
+			// Can't use fbo.waitForJournalLocked here, since the
+			// flushing won't actually complete.
+			err := jManager.Wait(ctx, fbo.id())
+			if err != nil {
+				return err
+			}
+			newHead, _ := fbo.getHead(ctx, lState, mdNoCommit)
+			fbo.cr.Resolve(
+				ctx, newHead.Revision(), kbfsmd.RevisionUninitialized)
+		}
+
+		err = fbo.cr.Wait(ctx)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Make sure we're stuck.
+	isStuck, err := fbo.cr.isStuck()
+	if err != nil {
+		return err
+	}
+	if !isStuck {
+		return errors.New("CR not stuck after trying to force conflict")
+	}
+
+	return nil
+}
+
 func (fbo *folderBranchOps) setBranchIDLocked(
 	lState *kbfssync.LockState, unmergedBID kbfsmd.BranchID) {
 	fbo.mdWriterLock.AssertLocked(lState)
@@ -3972,13 +4086,9 @@ func (fbo *folderBranchOps) finalizeMDRekeyWriteLocked(ctx context.Context,
 	return nil
 }
 
-func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *GCOp) (
-	err error) {
-	lState := makeFBOLockState()
-	// Lock the folder so we can get an internally-consistent MD
-	// revision number.
-	fbo.mdWriterLock.Lock(lState)
-	defer fbo.mdWriterLock.Unlock(lState)
+func (fbo *folderBranchOps) finalizeGCOpLocked(
+	ctx context.Context, lState *kbfssync.LockState, gco *GCOp) (err error) {
+	fbo.mdWriterLock.AssertLocked(lState)
 
 	md, err := fbo.getSuccessorMDForWriteLocked(ctx, lState)
 	if err != nil {
@@ -4043,6 +4153,16 @@ func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *GCOp) (
 	}
 
 	return fbo.notifyBatchLocked(ctx, lState, irmd)
+}
+
+func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *GCOp) (
+	err error) {
+	lState := makeFBOLockState()
+	// Lock the folder so we can get an internally-consistent MD
+	// revision number.
+	fbo.mdWriterLock.Lock(lState)
+	defer fbo.mdWriterLock.Unlock(lState)
+	return fbo.finalizeGCOpLocked(ctx, lState, gco)
 }
 
 // CtxAllowNameKeyType is the type for a context allowable name override key.
@@ -6828,6 +6948,10 @@ func (fbo *folderBranchOps) unstageLocked(ctx context.Context,
 		}
 
 		if tlfJournal, ok := jManager.getTLFJournal(fbo.id(), nil); ok {
+			err = tlfJournal.wait(ctx)
+			if err != nil {
+				return err
+			}
 			err = tlfJournal.moveAway(ctx)
 			if err != nil {
 				return err

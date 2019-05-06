@@ -1411,6 +1411,17 @@ func (fs *KBFSOpsStandard) ClearConflictView(ctx context.Context,
 	return fbo.clearConflictView(ctx)
 }
 
+// ForceStuckConflictForTesting implements the KBFSOps interface for
+// KBFSOpsStandard.
+func (fs *KBFSOpsStandard) ForceStuckConflictForTesting(
+	ctx context.Context, tlfID tlf.ID) error {
+	fbo := fs.getOpsNoAdd(ctx, data.FolderBranch{
+		Tlf:    tlfID,
+		Branch: data.MasterBranch,
+	})
+	return fbo.forceStuckConflictForTesting(ctx)
+}
+
 // GetSyncConfig implements the KBFSOps interface for KBFSOpsStandard.
 func (fs *KBFSOpsStandard) GetSyncConfig(
 	ctx context.Context, tlfID tlf.ID) (keybase1.FolderSyncConfig, error) {

@@ -109,6 +109,7 @@ type ConflictResolver struct {
 	lockNextTime  bool
 	canceledCount int
 
+	failModeLock    sync.RWMutex
 	failModeForTest failModeForTest
 }
 
@@ -3248,6 +3249,20 @@ func serializeAndPutConflicts(config Config, db *LevelDb,
 	return db.Put(key, conflictsSerialized, nil)
 }
 
+func (cr *ConflictResolver) isStuck() (bool, error) {
+	db := cr.config.GetConflictResolutionDB()
+	if db == nil {
+		return false, errNoCRDB
+	}
+	key := cr.fbo.id().Bytes()
+	conflictsSoFar, err := getAndDeserializeConflicts(cr.config, db, key)
+	if err != nil {
+		return false, err
+	}
+
+	return len(conflictsSoFar) > maxConflictResolutionAttempts, nil
+}
+
 func (cr *ConflictResolver) recordStartResolve(ci conflictInput) error {
 	db := cr.config.GetConflictResolutionDB()
 	if db == nil {
@@ -3381,6 +3396,18 @@ func (cr *ConflictResolver) makeDiskBlockCache(ctx context.Context) (
 	return dbc, cleanupFn, nil
 }
 
+func (cr *ConflictResolver) getFailModeForTest() failModeForTest {
+	cr.failModeLock.RLock()
+	defer cr.failModeLock.RUnlock()
+	return cr.failModeForTest
+}
+
+func (cr *ConflictResolver) setFailModeForTest(mode failModeForTest) {
+	cr.failModeLock.Lock()
+	defer cr.failModeLock.Unlock()
+	cr.failModeForTest = mode
+}
+
 // CRWrapError wraps an error that happens during conflict resolution.
 type CRWrapError struct {
 	err error
@@ -3450,7 +3477,7 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		return
 	}
 
-	if cr.failModeForTest == alwaysFailCR {
+	if cr.getFailModeForTest() == alwaysFailCR {
 		err = ErrCRFailForTest
 		return
 	}
