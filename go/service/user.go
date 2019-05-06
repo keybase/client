@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externals"
+	"github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/offline"
 	"github.com/keybase/client/go/profiling"
@@ -643,4 +644,15 @@ func (h *UserHandler) CanLogout(ctx context.Context, sessionID int) (res keybase
 
 	res.CanLogout = true
 	return res, nil
+}
+
+func (h *UserHandler) UserCard(ctx context.Context, arg keybase1.UserCardArg) (res *keybase1.UserCard, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("UserHandler#UserCard", func() error { return err })()
+
+	uid := mctx.G().UIDMapper.MapHardcodedUsernameToUID(kbun.NewNormalizedUsername(arg.Username))
+	if !uid.Exists() {
+		uid = libkb.UsernameToUIDPreserveCase(arg.Username)
+	}
+	return libkb.UserCard(mctx, uid, arg.UseSession)
 }
