@@ -89,6 +89,12 @@ func (c *CachedContactsProvider) LookupEmails(mctx libkb.MetaContext, emails []k
 	return c.Provider.LookupEmails(mctx, emails)
 }
 
+func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
+	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (ContactLookupMap, error) {
+
+	return c.Provider.LookupAll(mctx, emails, numbers, userRegion)
+}
+
 func (c *CachedContactsProvider) FillUsernames(mctx libkb.MetaContext, res []keybase1.ProcessedContact) {
 	c.Provider.FillUsernames(mctx, res)
 }

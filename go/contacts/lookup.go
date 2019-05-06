@@ -14,16 +14,20 @@ type lookupArg struct {
 	PhoneNumber string `json:"p,omitempty"`
 }
 
-type lookupRes struct {
-	libkb.AppStatusEmbed
-	Resolutions map[string]struct {
-		UID     keybase1.UID `json:"uid,omitempty"`
-		Coerced bool         `json:"coerced,omitempty"`
-	} `json:"resolutions"`
+type ContactLookupAPIResult struct {
+	UID     keybase1.UID `json:"uid,omitempty"`
+	Coerced bool         `json:"coerced,omitempty"`
 }
 
-func BulkLookupContacts(mctx libkb.MetaContext, phoneNumberContacts []keybase1.RawPhoneNumber, userRegionCode *keybase1.RegionCode,
-	emailsContacts []keybase1.EmailAddress) ([]keybase1.PhoneNumberLookupResult, error) {
+type ContactLookupMap map[string]ContactLookupAPIResult
+
+type lookupRes struct {
+	libkb.AppStatusEmbed
+	Resolutions ContactLookupMap `json:"resolutions"`
+}
+
+func BulkLookupContacts(mctx libkb.MetaContext, emailsContacts []keybase1.EmailAddress,
+	phoneNumberContacts []keybase1.RawPhoneNumber, userRegionCode keybase1.RegionCode) (ContactLookupMap, error) {
 
 	lookups := make([]lookupArg, 0, len(phoneNumberContacts)+len(emailsContacts))
 	for _, v := range phoneNumberContacts {
@@ -35,7 +39,9 @@ func BulkLookupContacts(mctx libkb.MetaContext, phoneNumberContacts []keybase1.R
 
 	payload := make(libkb.JSONPayload)
 	payload["contacts"] = lookups
-	payload["user_region_code"] = userRegionCode
+	if !userRegionCode.IsNil() {
+		payload["user_region_code"] = userRegionCode
+	}
 
 	arg := libkb.APIArg{
 		Endpoint:    "contacts/lookup",
@@ -48,5 +54,5 @@ func BulkLookupContacts(mctx libkb.MetaContext, phoneNumberContacts []keybase1.R
 		return nil, err
 	}
 	spew.Dump(resp)
-	return []keybase1.PhoneNumberLookupResult{}, nil
+	return resp.Resolutions, nil
 }

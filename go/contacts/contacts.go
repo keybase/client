@@ -18,6 +18,7 @@ type ContactLookupResult struct {
 type ContactsProvider interface {
 	LookupPhoneNumbers(libkb.MetaContext, []keybase1.RawPhoneNumber, keybase1.RegionCode) ([]ContactLookupResult, error)
 	LookupEmails(libkb.MetaContext, []keybase1.EmailAddress) ([]ContactLookupResult, error)
+	LookupAll(libkb.MetaContext, []keybase1.EmailAddress, []keybase1.RawPhoneNumber, keybase1.RegionCode) (ContactLookupMap, error)
 	FillUsernames(libkb.MetaContext, []keybase1.ProcessedContact)
 }
 
@@ -101,28 +102,21 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 		})
 	}
 
-	if len(emails) > 0 {
-		emailRes, err := provider.LookupEmails(mctx, emails)
+	if len(emails) > 0 || len(phoneNumbers) > 0 {
+		providerRes, err := provider.LookupAll(mctx, emails, phoneNumbers, regionCode)
 		if err != nil {
 			return res, err
 		}
 
-		for i, k := range emailRes {
-			if k.Found {
-				insertResult(k, emailComps[i])
+		for i, v := range emails {
+			if emailRes, found := providerRes[string(v)]; found {
+				insertResult(ContactLookupResult{UID: emailRes.UID}, emailComps[i])
 			}
 		}
-	}
 
-	if len(phoneNumbers) > 0 {
-		phoneRes, err := provider.LookupPhoneNumbers(mctx, phoneNumbers, regionCode)
-		if err != nil {
-			return res, err
-		}
-
-		for i, k := range phoneRes {
-			if k.Found {
-				insertResult(k, phoneComps[i])
+		for i, v := range phoneNumbers {
+			if phoneRes, found := providerRes[string(v)]; found {
+				insertResult(ContactLookupResult{UID: phoneRes.UID}, phoneComps[i])
 			}
 		}
 	}

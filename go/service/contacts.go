@@ -68,6 +68,12 @@ func (c *bulkLookupContactsProvider) LookupEmails(mctx libkb.MetaContext, emailL
 	return res, nil
 }
 
+func (c *bulkLookupContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
+	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (contacts.ContactLookupMap, error) {
+
+	return contacts.BulkLookupContacts(mctx, emails, numbers, userRegion)
+}
+
 func (c *bulkLookupContactsProvider) FillUsernames(mctx libkb.MetaContext, res []keybase1.ProcessedContact) {
 	defer mctx.TraceTimed(fmt.Sprintf("bulkLookupContactsProvider#FillUsernames(len=%d)", len(res)),
 		func() error { return nil })()
