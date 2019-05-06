@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
+	"golang.org/x/sync/errgroup"
 )
 
 func filterConvLocals(convLocals []chat1.ConversationLocal, rquery *chat1.GetInboxQuery,
@@ -450,7 +451,8 @@ type HybridInboxSource struct {
 
 	badger      *badges.Badger
 	started     bool
-	stopCh      chan chan struct{}
+	stopCh      chan struct{}
+	eg          errgroup.Group
 	flushDelay  time.Duration
 	testFlushCh chan struct{} // testing only
 }
@@ -486,9 +488,9 @@ func (s *HybridInboxSource) Start(ctx context.Context, uid gregor1.UID) {
 	if s.started {
 		return
 	}
-	s.stopCh = make(chan chan struct{}, libkb.ShutdownChanDefaultSize)
+	s.stopCh = make(chan struct{})
 	s.started = true
-	go s.inboxFlushLoop(uid, s.stopCh)
+	s.eg.Go(func() error { return s.inboxFlushLoop(uid, s.stopCh) })
 }
 
 func (s *HybridInboxSource) Stop(ctx context.Context) chan struct{} {
@@ -498,15 +500,19 @@ func (s *HybridInboxSource) Stop(ctx context.Context) chan struct{} {
 	defer s.Unlock()
 	ch := make(chan struct{})
 	if s.started {
-		s.stopCh <- ch
+		close(s.stopCh)
 		s.started = false
+		go func() {
+			s.eg.Wait()
+			close(ch)
+		}()
 	} else {
 		close(ch)
 	}
 	return ch
 }
 
-func (s *HybridInboxSource) inboxFlushLoop(uid gregor1.UID, stopCh chan chan struct{}) {
+func (s *HybridInboxSource) inboxFlushLoop(uid gregor1.UID, stopCh chan struct{}) error {
 	ctx := globals.ChatCtx(context.Background(), s.G(),
 		keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil)
 	appState := s.G().MobileAppState.State()
@@ -525,10 +531,9 @@ func (s *HybridInboxSource) inboxFlushLoop(uid gregor1.UID, stopCh chan chan str
 			case keybase1.MobileAppState_BACKGROUND:
 				doFlush()
 			}
-		case ch := <-stopCh:
+		case <-stopCh:
 			doFlush()
-			close(ch)
-			return
+			return nil
 		}
 	}
 }

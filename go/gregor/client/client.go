@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/clockwork"
 
@@ -14,6 +13,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"golang.org/x/net/context"
+	"golang.org/x/sync/errgroup"
 )
 
 type LocalStorageEngine interface {
@@ -41,7 +41,8 @@ type Client struct {
 
 	incomingClient func() gregor1.IncomingInterface
 	outboxSendCh   chan struct{}
-	stopCh         chan chan struct{}
+	stopCh         chan struct{}
+	eg             errgroup.Group
 	createSm       func() gregor.StateMachine
 
 	// testing events
@@ -58,11 +59,11 @@ func NewClient(user gregor.UID, device gregor.DeviceID, createSm func() gregor.S
 		Log:            log,
 		clock:          clock,
 		outboxSendCh:   make(chan struct{}, 100),
-		stopCh:         make(chan chan struct{}, libkb.ShutdownChanDefaultSize),
+		stopCh:         make(chan struct{}),
 		incomingClient: incomingClient,
 		createSm:       createSm,
 	}
-	go c.outboxSendLoop()
+	c.eg.Go(c.outboxSendLoop)
 	return c
 }
 
@@ -162,7 +163,11 @@ func (c *Client) Restore(ctx context.Context) error {
 
 func (c *Client) Stop() chan struct{} {
 	ch := make(chan struct{})
-	c.stopCh <- ch
+	close(c.stopCh)
+	go func() {
+		c.eg.Wait()
+		close(ch)
+	}()
 	return ch
 }
 
@@ -500,7 +505,7 @@ func (c *Client) outboxSend() {
 	}
 }
 
-func (c *Client) outboxSendLoop() {
+func (c *Client) outboxSendLoop() error {
 	deadline := c.clock.Now().Add(time.Minute)
 	for {
 		var now time.Time
@@ -509,9 +514,8 @@ func (c *Client) outboxSendLoop() {
 			c.outboxSend()
 		case <-c.outboxSendCh:
 			c.outboxSend()
-		case ch := <-c.stopCh:
-			close(ch)
-			return
+		case <-c.stopCh:
+			return nil
 		}
 		deadline = now.Add(time.Minute)
 	}

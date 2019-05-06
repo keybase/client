@@ -721,5 +721,3 @@ const (
 )
 
 const ProfileProofSuggestions = true
-
-const ShutdownChanDefaultSize = 10

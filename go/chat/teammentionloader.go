@@ -35,7 +35,7 @@ func NewTeamMentionLoader(g *globals.Context) *TeamMentionLoader {
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "TeamMentionLoader", false),
 		jobCh:        make(chan teamMentionJob, 100),
-		shutdownCh:   make(chan chan struct{}, libkb.ShutdownChanDefaultSize),
+		shutdownCh:   make(chan chan struct{}, 5),
 	}
 }
 
