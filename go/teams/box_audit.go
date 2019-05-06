@@ -18,9 +18,15 @@ import (
 
 func ShouldRunBoxAudit(mctx libkb.MetaContext) bool {
 	validSession := mctx.G().ActiveDevice.Valid()
+	if !validSession {
+		mctx.Debug("ShouldRunBoxAudit: not logged in")
+	}
 	shouldRun := mctx.G().Env.GetRunMode() == libkb.DevelRunMode ||
 		mctx.G().Env.RunningInCI() ||
 		mctx.G().FeatureFlags.Enabled(mctx, libkb.FeatureBoxAuditor)
+	if !shouldRun {
+		mctx.Debug("ShouldRunBoxAudit: determined should not run")
+	}
 	return validSession && shouldRun
 }
 
@@ -173,7 +179,7 @@ func (a *BoxAuditor) BoxAuditTeam(mctx libkb.MetaContext, teamID keybase1.TeamID
 	defer mctx.TraceTimed(fmt.Sprintf("BoxAuditTeam(%s)", teamID), func() error { return err })()
 
 	if !ShouldRunBoxAudit(mctx) {
-		mctx.Debug("Box auditor feature flagged off; not auditing...")
+		mctx.Debug("Box auditor feature flagged off or not logged in; not auditing...")
 		return nil, nil
 	}
 
@@ -280,7 +286,7 @@ func (a *BoxAuditor) AssertUnjailedOrReaudit(mctx libkb.MetaContext, teamID keyb
 	defer mctx.TraceTimed("AssertUnjailedOrReaudit", func() error { return err })()
 
 	if !ShouldRunBoxAudit(mctx) {
-		mctx.Debug("Box auditor feature flagged off; not AssertUnjailedOrReauditing...")
+		mctx.Debug("Box auditor feature flagged off or not logged in; not AssertUnjailedOrReauditing...")
 		return false, nil
 	}
 
@@ -306,7 +312,7 @@ func (a *BoxAuditor) RetryNextBoxAudit(mctx libkb.MetaContext) (attempt *keybase
 	defer mctx.TraceTimed("RetryNextBoxAudit", func() error { return err })()
 
 	if !ShouldRunBoxAudit(mctx) {
-		mctx.Debug("Box auditor feature flagged off; not RetryNextBoxAuditing...")
+		mctx.Debug("Box auditor feature flagged off or not logged in; not RetryNextBoxAuditing...")
 		return nil, nil
 	}
 
@@ -330,7 +336,7 @@ func (a *BoxAuditor) BoxAuditRandomTeam(mctx libkb.MetaContext) (attempt *keybas
 	defer mctx.TraceTimed("BoxAuditRandomTeam", func() error { return err })()
 
 	if !ShouldRunBoxAudit(mctx) {
-		mctx.Debug("Box auditor feature flagged off; not BoxAuditRandomTeaming...")
+		mctx.Debug("Box auditor feature flagged off or not logged in; not BoxAuditRandomTeaming...")
 		return nil, nil
 	}
 
@@ -351,7 +357,7 @@ func (a *BoxAuditor) IsInJail(mctx libkb.MetaContext, teamID keybase1.TeamID) (i
 	defer mctx.TraceTimed(fmt.Sprintf("IsInJail(%s)", teamID), func() error { return err })()
 
 	if !ShouldRunBoxAudit(mctx) {
-		mctx.Debug("Box auditor feature flagged off; not IsInJailing...")
+		mctx.Debug("Box auditor feature flagged off or not logged in; not IsInJailing...")
 		return false, nil
 	}
 
