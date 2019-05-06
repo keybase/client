@@ -1,5 +1,6 @@
 // @flow
 import logger from '../logger'
+import type {LogFn} from '../logger/types'
 import * as RS from 'redux-saga'
 import * as Effects from 'redux-saga/effects'
 import {convertToError} from '../util/errors'
@@ -10,6 +11,27 @@ import put from './typed-put'
 import {isArray} from 'lodash-es'
 
 export type SagaGenerator<Yield, Actions> = Generator<Yield, void, Actions>
+
+class SagaLogger {
+  error: LogFn
+  warn: LogFn
+  info: LogFn
+  debug: LogFn
+  isTagged = false
+  constructor(actionType, fcnTag) {
+    const prefix = `${fcnTag} [${actionType}]:`
+    this.debug = (...args) => logger.debug(prefix, ...args)
+    this.error = (...args) => logger.error(prefix, ...args)
+    this.info = (...args) => logger.info(prefix, ...args)
+    this.warn = (...args) => logger.warn(prefix, ...args)
+  }
+  // call this first in your saga if you want chainAction / chainGenerator to log
+  // before and after you run
+  tag = () => {
+    this.info('->')
+    this.isTagged = true
+  }
+}
 
 // Useful in safeTakeEveryPure when you have an array of effects you want to run in order
 function* sequentially(effects: Array<any>): Generator<any, Array<any>, any> {
@@ -23,20 +45,23 @@ function* sequentially(effects: Array<any>): Generator<any, Array<any>, any> {
 // TODO I couldn't get flow to figure out how to infer this, or even force you to explicitly do it
 // maybe flow-strict fixes this
 type MaybeAction = void | boolean | TypedActions | null
-function* chainAction<Actions>(
+function* chainAction<Actions: {+type: string}>(
   pattern: RS.Pattern,
   f: (
     state: TypedState,
-    action: Actions
-  ) => MaybeAction | $ReadOnlyArray<MaybeAction> | Promise<MaybeAction | $ReadOnlyArray<MaybeAction>>
+    action: Actions,
+    logger: SagaLogger
+  ) => MaybeAction | $ReadOnlyArray<MaybeAction> | Promise<MaybeAction | $ReadOnlyArray<MaybeAction>>,
+  fcnTag?: string // tag for logger
 ): Generator<any, void, any> {
   type Fn = Actions => RS.Saga<void>
   return yield Effects.takeEvery<Actions, void, Fn>(pattern, function* chainActionHelper(
     action: Actions
   ): RS.Saga<void> {
+    const sl = new SagaLogger(action.type, fcnTag || 'unknown')
     try {
       const state = yield* selectState()
-      let toPut = yield Effects.call(f, state, action)
+      let toPut = yield Effects.call(f, state, action, sl)
       if (toPut) {
         const outActions: Array<TypedActions> = isArray(toPut) ? toPut : [toPut]
         for (var out of outActions) {
@@ -45,7 +70,11 @@ function* chainAction<Actions>(
           }
         }
       }
+      if (sl.isTagged) {
+        sl.info('-> ok')
+      }
     } catch (error) {
+      sl.warn(error.message)
       // Convert to global error so we don't kill the takeEvery loop
       yield Effects.put(
         ConfigGen.createGlobalError({
@@ -54,24 +83,30 @@ function* chainAction<Actions>(
       )
     } finally {
       if (yield Effects.cancelled()) {
-        logger.info('chainAction cancelled')
+        sl.info('chainAction cancelled')
       }
     }
   })
 }
 
-function* chainGenerator<Actions>(
+function* chainGenerator<Actions: {+type: string}>(
   pattern: RS.Pattern,
-  f: (state: TypedState, action: Actions) => Generator<any, void, any>
+  f: (state: TypedState, action: Actions, logger: SagaLogger) => Generator<any, void, any>,
+  fcnTag?: string // tag for logger
 ): Generator<any, void, any> {
   type Fn = Actions => RS.Saga<void>
   return yield Effects.takeEvery<Actions, void, Fn>(pattern, function* chainGeneratorHelper(
     action: Actions
   ): RS.Saga<void> {
+    const sl = new SagaLogger(action.type, fcnTag || 'unknown')
     try {
       const state = yield* selectState()
-      yield* f(state, action)
+      yield* f(state, action, sl)
+      if (sl.isTagged) {
+        sl.info('-> ok')
+      }
     } catch (error) {
+      sl.warn(error.message)
       // Convert to global error so we don't kill the takeEvery loop
       yield Effects.put(
         ConfigGen.createGlobalError({
@@ -80,7 +115,7 @@ function* chainGenerator<Actions>(
       )
     } finally {
       if (yield Effects.cancelled()) {
-        logger.info('chainGenerator cancelled')
+        sl.info('chainGenerator cancelled')
       }
     }
   })
