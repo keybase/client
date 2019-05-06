@@ -654,7 +654,8 @@ func (s *localizerPipeline) getConvSettingsLocal(ctx context.Context, uid gregor
 	return res, nil
 }
 
-func (s *localizerPipeline) getResetUserNames(ctx context.Context, uidMapper libkb.UIDMapper,
+// returns an incomplete list in case of error
+func (s *localizerPipeline) getResetUsernamesMetadata(ctx context.Context, uidMapper libkb.UIDMapper,
 	conv chat1.Conversation) (res []string) {
 	if len(conv.Metadata.ResetList) == 0 {
 		return res
@@ -666,13 +667,48 @@ func (s *localizerPipeline) getResetUserNames(ctx context.Context, uidMapper lib
 	}
 	rows, err := uidMapper.MapUIDsToUsernamePackages(ctx, s.G(), kuids, 0, 0, false)
 	if err != nil {
-		s.Debug(ctx, "getResetUserNames: failed to run uid mapper: %s", err)
+		s.Debug(ctx, "getResetUsernamesMetadata: failed to run uid mapper: %s", err)
 		return res
 	}
 	for _, row := range rows {
 		res = append(res, row.NormalizedUsername.String())
 	}
+
 	return res
+}
+
+// returns an incomplete list in case of error
+func (s *localizerPipeline) getResetUsernamesPegboard(ctx context.Context, uidMapper libkb.UIDMapper,
+	teamIDasTLFID chat1.TLFID, public bool) (res []string, err error) {
+	// NOTE: If this is too slow, it could be cached on local metadata.
+	teamID, err := keybase1.TeamIDFromString(teamIDasTLFID.String())
+	if err != nil {
+		return nil, err
+	}
+	team, err := teams.Load(ctx, s.G().ExternalG(), keybase1.LoadTeamArg{
+		ID:     teamID,
+		Public: public,
+	})
+	if err != nil {
+		return nil, err
+	}
+	var resetUIDs []keybase1.UID
+	for _, uv := range team.AllUserVersions(ctx) {
+		err = s.G().Pegboard.CheckUV(s.MetaContext(ctx), uv)
+		if err != nil {
+			// Turn peg failures into reset usernames.
+			s.Debug(ctx, "pegboard rejected %v: %v", uv, err)
+			resetUIDs = append(resetUIDs, uv.Uid)
+		}
+	}
+	rows, err := uidMapper.MapUIDsToUsernamePackages(ctx, s.G(), resetUIDs, 0, 0, false)
+	if err != nil {
+		return nil, err
+	}
+	for _, row := range rows {
+		res = append(res, row.NormalizedUsername.String())
+	}
+	return res, nil
 }
 
 func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor1.UID,
@@ -908,7 +944,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		for _, uid := range conversationRemote.Metadata.AllList {
 			kuids = append(kuids, keybase1.UID(uid.String()))
 		}
-		conversationLocal.Info.ResetNames = s.getResetUserNames(ctx, umapper, conversationRemote)
+		conversationLocal.Info.ResetNames = s.getResetUsernamesMetadata(ctx, umapper, conversationRemote)
 		rows, err := umapper.MapUIDsToUsernamePackages(ctx, s.G(), kuids, time.Hour*24,
 			10*time.Second, true)
 		if err != nil {
@@ -924,7 +960,16 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 				conversationLocal.Info.Participants[j].Username
 		})
 	case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE:
-		conversationLocal.Info.ResetNames = s.getResetUserNames(ctx, umapper, conversationRemote)
+		resetUsernamesPegboard, err := s.getResetUsernamesPegboard(ctx, umapper, info.ID,
+			conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC)
+		if err != nil {
+			s.Debug(ctx, "getResetUsernamesPegboard error: %v", err)
+			resetUsernamesPegboard = nil
+		}
+		conversationLocal.Info.ResetNames = utils.DedupStringLists(
+			s.getResetUsernamesMetadata(ctx, umapper, conversationRemote),
+			resetUsernamesPegboard,
+		)
 		fallthrough
 	case chat1.ConversationMembersType_KBFS:
 		conversationLocal.Info.Participants, err = utils.ReorderParticipants(

@@ -2301,3 +2301,16 @@ func GetVerifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	}
 	return inbox.Convs[0], nil
 }
+
+func DedupStringLists(lists ...[]string) (res []string) {
+	seen := make(map[string]struct{})
+	for _, list := range lists {
+		for _, x := range list {
+			if _, ok := seen[x]; !ok {
+				seen[x] = struct{}{}
+				res = append(res, x)
+			}
+		}
+	}
+	return res
+}

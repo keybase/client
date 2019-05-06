@@ -526,41 +526,72 @@ func NewImplicitTeamsNameInfoSource(g *globals.Context, lookupUpgraded bool) *Im
 	}
 }
 
-func (t *ImplicitTeamsNameInfoSource) identify(ctx context.Context, tlfID chat1.TLFID,
-	impTeamName keybase1.ImplicitTeamDisplayName) (res []keybase1.TLFIdentifyFailure, err error) {
+type identifyFailure struct {
+	Msg string
+}
 
+// Identify participants of a conv.
+// Returns as if all IDs succeeded if ctx is in TLFIdentifyBehavior_CHAT_GUI mode.
+// Returns (!nil, nil) if there are track breaks.
+func (t *ImplicitTeamsNameInfoSource) identify(ctx context.Context, team *teams.Team, impTeamName keybase1.ImplicitTeamDisplayName) (idFail *identifyFailure, err error) {
 	var names []string
 	names = append(names, impTeamName.Writers.KeybaseUsers...)
 	names = append(names, impTeamName.Readers.KeybaseUsers...)
 
 	// identify the members in the conversation
 	identBehavior, _, ok := globals.CtxIdentifyMode(ctx)
+	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("identify(%s, %v)", impTeamName.String(), identBehavior))()
 	if !ok {
-		return res, errors.New("invalid context with no chat metadata")
+		return nil, errors.New("invalid context with no chat metadata")
 	}
 	cb := make(chan struct{})
 	go func(ctx context.Context) {
-		res, err = t.Identify(ctx, names, true,
+		var idFails []keybase1.TLFIdentifyFailure
+		idFails, err = t.Identify(ctx, names, true,
 			func() keybase1.TLFID {
-				return keybase1.TLFID(tlfID.String())
+				return keybase1.TLFID(team.ID.String())
 			},
 			func() keybase1.CanonicalTlfName {
 				return keybase1.CanonicalTlfName(impTeamName.String())
 			})
+		if err != nil || len(idFails) > 0 {
+			t.Debug(ctx, "identify failed err=%v fails=%+v", err, idFails)
+		}
+		if err != nil {
+			idFail = &identifyFailure{Msg: err.Error()}
+		} else if len(idFails) > 0 {
+			var suffix string
+			if len(idFails) > 1 {
+				suffix = fmt.Sprintf(" (and %v other users)", len(idFails)-1)
+			}
+			idFail = &identifyFailure{Msg: fmt.Sprintf("Failed to identify %v%v", idFails[0].User.Username, suffix)}
+		}
 		close(cb)
 	}(globals.BackgroundChatCtx(ctx, t.G()))
 	switch identBehavior {
 	case keybase1.TLFIdentifyBehavior_CHAT_GUI:
-		// For GUI mode, let's just let this identify roll in the background. We will be sending up
+		// For GUI mode, let the full IDs roll in the background. We will be sending up
 		// tracker breaks to the UI out of band with whatever chat operation has invoked us here.
+
+		// CORE-10522 peg breaks will need to block sending for non-gui mode too.
+		//            Peg breaks could count as track breaks for real Identify.
+		//            That could nicely cover other applications besides chat. But the UI
+		//            for fixing track breaks doesn't quite make sense for peg breaks.
+
+		// But check reset-pegs on the critical path.
+		for _, uv := range team.AllUserVersions(ctx) {
+			err = t.G().Pegboard.CheckUV(t.MetaContext(ctx), uv)
+			if err != nil {
+				// Turn peg failures into identify failures
+				t.Debug(ctx, "pegboard rejected %v: %v", uv, err)
+				return &identifyFailure{Msg: fmt.Sprintf("A user may have reset: %v", err)}, nil
+			}
+		}
 		return nil, nil
 	default:
 		<-cb
-		if err != nil {
-			return res, err
-		}
+		return idFail, err
 	}
-	return res, nil
 }
 
 func (t *ImplicitTeamsNameInfoSource) transformTeamDoesNotExist(ctx context.Context, err error, name string) error {
@@ -656,8 +687,12 @@ func (t *ImplicitTeamsNameInfoSource) EncryptionKey(ctx context.Context, name st
 	if err != nil {
 		return res, ni, err
 	}
-	if _, err := t.identify(ctx, teamID, impTeamName); err != nil {
+	idFail, err := t.identify(ctx, team, impTeamName)
+	if err != nil {
 		return res, ni, err
+	}
+	if idFail != nil {
+		return res, ni, errors.New(idFail.Msg)
 	}
 	if res, err = getTeamCryptKey(ctx, team, team.Generation(), public, false); err != nil {
 		return res, ni, err
@@ -682,14 +717,15 @@ func (t *ImplicitTeamsNameInfoSource) DecryptionKey(ctx context.Context, name st
 	if err != nil {
 		return res, err
 	}
-	if _, err = t.identify(ctx, teamID, impTeamName); err != nil {
+	// identify but ignore fails
+	if _, err = t.identify(ctx, team, impTeamName); err != nil {
 		return res, err
 	}
 	return getTeamCryptKey(ctx, team, keybase1.PerTeamKeyGeneration(keyGeneration), public,
 		kbfsEncrypted)
 }
 
-func (t *ImplicitTeamsNameInfoSource) ephemeralLoadAndIdentify(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+func (t *ImplicitTeamsNameInfoSource) ephemeralLoadAndIdentify(ctx context.Context, encrypting bool, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool) (teamID keybase1.TeamID, err error) {
 	if public {
 		return teamID, NewPublicTeamEphemeralKeyError()
@@ -702,15 +738,22 @@ func (t *ImplicitTeamsNameInfoSource) ephemeralLoadAndIdentify(ctx context.Conte
 	if err != nil {
 		return teamID, err
 	}
-	if _, err := t.identify(ctx, tlfID, impTeamName); err != nil {
+	idFail, err := t.identify(ctx, team, impTeamName)
+	if err != nil {
 		return teamID, err
 	}
+	if encrypting {
+		if idFail != nil {
+			return teamID, errors.New(idFail.Msg)
+		}
+	}
+	// identify but ignore fails when decrypting
 	return team.ID, nil
 }
 
 func (t *ImplicitTeamsNameInfoSource) EphemeralEncryptionKey(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool) (teamEK keybase1.TeamEk, err error) {
-	teamID, err := t.ephemeralLoadAndIdentify(mctx.Ctx(), tlfName, tlfID, membersType, public)
+	teamID, err := t.ephemeralLoadAndIdentify(mctx.Ctx(), true, tlfName, tlfID, membersType, public)
 	if err != nil {
 		return teamEK, err
 	}
@@ -721,7 +764,7 @@ func (t *ImplicitTeamsNameInfoSource) EphemeralEncryptionKey(mctx libkb.MetaCont
 func (t *ImplicitTeamsNameInfoSource) EphemeralDecryptionKey(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
 	generation keybase1.EkGeneration, contentCtime *gregor1.Time) (teamEK keybase1.TeamEk, err error) {
-	teamID, err := t.ephemeralLoadAndIdentify(mctx.Ctx(), tlfName, tlfID, membersType, public)
+	teamID, err := t.ephemeralLoadAndIdentify(mctx.Ctx(), false, tlfName, tlfID, membersType, public)
 	if err != nil {
 		return teamEK, err
 	}
