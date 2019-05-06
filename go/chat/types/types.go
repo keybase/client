@@ -115,10 +115,7 @@ func (rc RemoteConversation) GetTopicName() string {
 	return ""
 }
 
-func (rc RemoteConversation) GetTeamName() string {
-	if rc.GetMembersType() != chat1.ConversationMembersType_TEAM {
-		return ""
-	}
+func (rc RemoteConversation) GetTLFName() string {
 	if len(rc.Conv.MaxMsgSummaries) == 0 {
 		return ""
 	}
@@ -138,6 +135,10 @@ func (rc RemoteConversation) GetName() string {
 		}
 		return rc.Conv.MaxMsgSummaries[0].TlfName
 	}
+}
+
+func (rc RemoteConversation) GetTopicType() chat1.TopicType {
+	return rc.Conv.GetTopicType()
 }
 
 type Inbox struct {

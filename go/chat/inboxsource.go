@@ -131,6 +131,7 @@ func (b *baseInboxSource) GetInboxQueryLocalToRemote(ctx context.Context,
 		rquery.MembersTypes = []chat1.ConversationMembersType{lquery.Name.MembersType}
 		b.Debug(ctx, "GetInboxQueryLocalToRemote: mapped name %q to TLFID %v", tlfName, info.ID)
 	}
+	rquery.TopicName = lquery.TopicName
 	rquery.After = lquery.After
 	rquery.Before = lquery.Before
 	rquery.TlfVisibility = lquery.TlfVisibility
@@ -856,7 +857,7 @@ func (s *HybridInboxSource) IsTeam(ctx context.Context, uid gregor1.UID, item st
 		return res, err
 	}
 	for _, conv := range convs {
-		if conv.GetTeamName() == item {
+		if conv.GetMembersType() == chat1.ConversationMembersType_TEAM && conv.GetTLFName() == item {
 			return true, nil
 		}
 	}

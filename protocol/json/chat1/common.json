@@ -403,6 +403,13 @@
           "name": "oneChatTypePerTLF"
         },
         {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "topicName"
+        },
+        {
           "type": {
             "type": "array",
             "items": "ConversationStatus"
