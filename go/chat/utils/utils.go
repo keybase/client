@@ -658,26 +658,23 @@ func ParseAtMentionsNames(ctx context.Context, body string) (res []string) {
 
 func parseItemAsUID(ctx context.Context, g *globals.Context, name string,
 	knownMentions []chat1.KnownUserMention, convMembs []chat1.ConversationLocalParticipant) (gregor1.UID, error) {
-	var knownMention *gregor1.UID
+	shouldLookup := false
 	for _, known := range knownMentions {
 		if known.Text == name {
-			knownMention = new(gregor1.UID)
-			*knownMention = known.Uid
+			shouldLookup = true
 			break
 		}
 	}
-	if knownMention != nil {
-		return *knownMention, nil
-	}
-	isConvMember := false
-	for _, memb := range convMembs {
-		if memb.Username == name {
-			isConvMember = true
-			break
+	if !shouldLookup {
+		for _, memb := range convMembs {
+			if memb.Username == name {
+				shouldLookup = true
+				break
+			}
 		}
 	}
 	nname := libkb.NewNormalizedUsername(name)
-	if isConvMember || libkb.IsUserByUsernameOffline(libkb.NewMetaContext(ctx, g.ExternalG()), nname) {
+	if shouldLookup || libkb.IsUserByUsernameOffline(libkb.NewMetaContext(ctx, g.ExternalG()), nname) {
 		kuid, err := g.GetUPAKLoader().LookupUID(ctx, nname)
 		if err != nil {
 			return nil, err
