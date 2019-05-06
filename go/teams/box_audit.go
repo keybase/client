@@ -17,9 +17,11 @@ import (
 )
 
 func ShouldRunBoxAudit(mctx libkb.MetaContext) bool {
-	return mctx.G().Env.GetRunMode() == libkb.DevelRunMode ||
+	validSession := mctx.G().ActiveDevice.Valid()
+	shouldRun := mctx.G().Env.GetRunMode() == libkb.DevelRunMode ||
 		mctx.G().Env.RunningInCI() ||
 		mctx.G().FeatureFlags.Enabled(mctx, libkb.FeatureBoxAuditor)
+	return validSession && shouldRun
 }
 
 const CurrentBoxAuditVersion Version = 5
