@@ -654,8 +654,11 @@ const navigateToAccount = (state, action) => {
   if (flags.useNewRouter) {
     return [
       RouteTreeGen.createClearModals(),
-      RouteTreeGen.createSwitchTab({tab: isMobile ? Tabs.settingsTab : Tabs.walletsTab}),
-      ...(isMobile ? [RouteTreeGen.createNavigateAppend({path: [SettingsConstants.walletsTab]})] : []),
+      RouteTreeGen.createResetStack({
+        actions: isMobile ? [RouteTreeGen.createNavigateAppend({path: [SettingsConstants.walletsTab]})] : [],
+        index: isMobile ? 1 : 0,
+        tab: isMobile ? Tabs.settingsTab : Tabs.walletsTab,
+      }),
     ]
   }
 
