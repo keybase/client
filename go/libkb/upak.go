@@ -111,7 +111,7 @@ func GetRemoteChainLinkFor(m MetaContext, follower *keybase1.UserPlusKeysV2AllIn
 
 func TrackChainLinkFromUPK2AI(m MetaContext, follower *keybase1.UserPlusKeysV2AllIncarnations, followeeUsername NormalizedUsername, followeeUID keybase1.UID) (*TrackChainLink, error) {
 	tcl, err := GetRemoteChainLinkFor(m, follower, followeeUsername, followeeUID)
-	if _, ok := err.(InconsistentCacheStateError); ok {
+	if err != nil {
 		return nil, err
 	}
 	tcl, err = TrackChainLinkFor(m, follower.Current.Uid, followeeUID, tcl, err)

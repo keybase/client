@@ -6,7 +6,9 @@ import EnterUsername from '.'
 const props = {
   error: '',
   onBack: Sb.action('onBack'),
+  onCancel: Sb.action('onCancel'),
   onChangeUsername: Sb.action('onChangeUsername'),
+  onContinue: Sb.action('onContinue'),
   onSubmit: Sb.action('onSubmit'),
   serviceIcon: [
     {path: 'https://keybase.io/images/paramproofs/services/twitter/logo_black_16.png', width: 16},
@@ -18,8 +20,11 @@ const props = {
   ],
   serviceName: 'boardgames.social',
   serviceSub: 'Mastodon instance',
+  serviceSuffix: '@boardgames.social',
+  submitButtonLabel: 'Authorize on boardgames.social',
   unreachable: false,
   username: '',
+  waiting: false,
 }
 
 const load = () => {

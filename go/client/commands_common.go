@@ -70,6 +70,8 @@ func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Comma
 		newCmdWallet(cl, g),
 		NewCmdPhoneNumber(cl, g),
 		NewCmdEmail(cl, g),
+		newCmdUploadAvatar(cl, g),
+		NewCmdAudit(cl, g),
 	}
 	ret = append(ret, getBuildSpecificCommands(cl, g)...)
 	ret = append(ret, getPlatformSpecificCommands(cl, g)...)

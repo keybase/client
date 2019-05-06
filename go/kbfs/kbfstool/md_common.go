@@ -7,9 +7,11 @@ import (
 	"strings"
 
 	"github.com/keybase/client/go/kbfs/fsrpc"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
@@ -77,8 +79,8 @@ func mdParseInput(ctx context.Context, config libkbfs.Config,
 }
 
 func parseTLFPath(ctx context.Context, kbpki libkbfs.KBPKI,
-	mdOps libkbfs.MDOps, osg libkbfs.OfflineStatusGetter, tlfStr string) (
-	*libkbfs.TlfHandle, error) {
+	mdOps libkbfs.MDOps, osg idutil.OfflineStatusGetter, tlfStr string) (
+	*tlfhandle.Handle, error) {
 	p, err := fsrpc.NewPath(tlfStr)
 	if err != nil {
 		return nil, err
@@ -251,7 +253,7 @@ func mdGetMergedHeadForWriter(ctx context.Context, config libkbfs.Config,
 	}
 	if !isWriter {
 		return libkbfs.ImmutableRootMetadata{},
-			libkbfs.NewWriteAccessError(
+			tlfhandle.NewWriteAccessError(
 				handle, session.Name, handle.GetCanonicalPath())
 	}
 

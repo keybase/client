@@ -103,14 +103,14 @@ const styles = Styles.styleSheetCreate({
   outerContainer: Styles.platformStyles({
     isElectron: {
       borderRadius: 4,
-      height: 525,
-      width: 360,
+      height: 560,
+      width: 400,
     },
     isMobile: {
       width: '100%',
     },
   }),
-  popup: Styles.platformStyles({isElectron: {height: '525px', overflow: 'hidden'}}),
+  popup: Styles.platformStyles({isElectron: {height: '560px', overflow: 'hidden'}}),
   scrollView: {
     ...Styles.globalStyles.flexBoxColumn,
     flexGrow: 1,

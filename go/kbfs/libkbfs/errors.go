@@ -8,10 +8,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -31,72 +34,10 @@ func (e WrapError) String() string {
 	return e.Err.Error()
 }
 
-// NameExistsError indicates that the user tried to create an entry
-// for a name that already existed in a subdirectory.
-type NameExistsError struct {
-	Name string
-}
-
-// Error implements the error interface for NameExistsError
-func (e NameExistsError) Error() string {
-	return fmt.Sprintf("%s already exists", e.Name)
-}
-
-// NoSuchNameError indicates that the user tried to access a
-// subdirectory entry that doesn't exist.
-type NoSuchNameError struct {
-	Name string
-}
-
-// Error implements the error interface for NoSuchNameError
-func (e NoSuchNameError) Error() string {
-	return fmt.Sprintf("%s doesn't exist", e.Name)
-}
-
-// NoSuchUserError indicates that the given user couldn't be resolved.
-type NoSuchUserError struct {
-	Input string
-}
-
-// Error implements the error interface for NoSuchUserError
-func (e NoSuchUserError) Error() string {
-	return fmt.Sprintf("%s is not a Keybase user", e.Input)
-}
-
-// ToStatus implements the keybase1.ToStatusAble interface for NoSuchUserError
-func (e NoSuchUserError) ToStatus() keybase1.Status {
-	return keybase1.Status{
-		Name: "NotFound",
-		Code: int(keybase1.StatusCode_SCNotFound),
-		Desc: e.Error(),
-	}
-}
-
-// NoSuchTeamError indicates that the given team couldn't be resolved.
-type NoSuchTeamError struct {
-	Input string
-}
-
-// Error implements the error interface for NoSuchTeamError
-func (e NoSuchTeamError) Error() string {
-	return fmt.Sprintf("%s is not a Keybase team", e.Input)
-}
-
-// BadTLFNameError indicates a top-level folder name that has an
-// incorrect format.
-type BadTLFNameError struct {
-	Name string
-}
-
-// Error implements the error interface for BadTLFNameError.
-func (e BadTLFNameError) Error() string {
-	return fmt.Sprintf("TLF name %s is in an incorrect format", e.Name)
-}
-
 // InvalidBlockRefError indicates an invalid block reference was
 // encountered.
 type InvalidBlockRefError struct {
-	ref BlockRef
+	ref data.BlockRef
 }
 
 func (e InvalidBlockRefError) Error() string {
@@ -105,7 +46,7 @@ func (e InvalidBlockRefError) Error() string {
 
 // InvalidPathError indicates an invalid path was encountered.
 type InvalidPathError struct {
-	p path
+	p data.Path
 }
 
 // Error implements the error interface for InvalidPathError.
@@ -116,7 +57,7 @@ func (e InvalidPathError) Error() string {
 // InvalidParentPathError indicates a path without a valid parent was
 // encountered.
 type InvalidParentPathError struct {
-	p path
+	p data.Path
 }
 
 // Error implements the error interface for InvalidParentPathError.
@@ -169,38 +110,6 @@ func (e ErrorFileAccessError) Error() string {
 	return fmt.Sprintf("Operation not allowed on file %s", ErrorFile)
 }
 
-// ReadAccessError indicates that the user tried to read from a
-// top-level folder without read permission.
-type ReadAccessError struct {
-	User     kbname.NormalizedUsername
-	Filename string
-	Tlf      tlf.CanonicalName
-	Type     tlf.Type
-}
-
-// Error implements the error interface for ReadAccessError
-func (e ReadAccessError) Error() string {
-	return fmt.Sprintf("%s does not have read access to directory %s",
-		e.User, buildCanonicalPathForTlfName(e.Type, e.Tlf))
-}
-
-// WriteAccessError indicates an error when trying to write a file
-type WriteAccessError struct {
-	User     kbname.NormalizedUsername
-	Filename string
-	Tlf      tlf.CanonicalName
-	Type     tlf.Type
-}
-
-// Error implements the error interface for WriteAccessError
-func (e WriteAccessError) Error() string {
-	if e.Tlf != "" {
-		return fmt.Sprintf("%s does not have write access to directory %s",
-			e.User, buildCanonicalPathForTlfName(e.Type, e.Tlf))
-	}
-	return fmt.Sprintf("%s does not have write access to %s", e.User, e.Filename)
-}
-
 // WriteUnsupportedError indicates an error when trying to write a file
 type WriteUnsupportedError struct {
 	Filename string
@@ -234,34 +143,6 @@ func (e UnsupportedOpInUnlinkedDirError) Error() string {
 		"Operation is unsupported in unlinked directory %s", e.Dirpath)
 }
 
-// NewReadAccessError constructs a ReadAccessError for the given
-// directory and user.
-func NewReadAccessError(h *TlfHandle, username kbname.NormalizedUsername, filename string) error {
-	tlfname := h.GetCanonicalName()
-	return ReadAccessError{
-		User:     username,
-		Filename: filename,
-		Tlf:      tlfname,
-		Type:     h.Type(),
-	}
-}
-
-// NewWriteAccessError is an access error trying to write a file
-func NewWriteAccessError(h *TlfHandle, username kbname.NormalizedUsername, filename string) error {
-	tlfName := tlf.CanonicalName("")
-	t := tlf.Private
-	if h != nil {
-		tlfName = h.GetCanonicalName()
-		t = h.Type()
-	}
-	return WriteAccessError{
-		User:     username,
-		Filename: filename,
-		Tlf:      tlfName,
-		Type:     t,
-	}
-}
-
 // NewWriteUnsupportedError returns unsupported error trying to write a file
 func NewWriteUnsupportedError(filename string) error {
 	return WriteUnsupportedError{
@@ -281,7 +162,8 @@ type NeedSelfRekeyError struct {
 func (e NeedSelfRekeyError) Error() string {
 	return fmt.Sprintf("This device does not yet have read access to "+
 		"directory %s, log into Keybase from one of your other "+
-		"devices to grant access: %+v", buildCanonicalPathForTlfName(tlf.Private, e.Tlf), e.Err)
+		"devices to grant access: %+v",
+		tlfhandle.BuildCanonicalPathForTlfName(tlf.Private, e.Tlf), e.Err)
 }
 
 // ToStatus exports error to status
@@ -311,7 +193,7 @@ func (e NeedOtherRekeyError) Error() string {
 	return fmt.Sprintf("This device does not yet have read access to "+
 		"directory %s, ask one of the other directory participants to "+
 		"log into Keybase to grant you access automatically: %+v",
-		buildCanonicalPathForTlfName(tlf.Private, e.Tlf), e.Err)
+		tlfhandle.BuildCanonicalPathForTlfName(tlf.Private, e.Tlf), e.Err)
 }
 
 // ToStatus exports error to status
@@ -333,9 +215,9 @@ func (e NeedOtherRekeyError) ToStatus() keybase1.Status {
 //
 // ptr and branch should be filled in, but p may be empty.
 type NotFileBlockError struct {
-	ptr    BlockPointer
-	branch BranchName
-	p      path
+	ptr    data.BlockPointer
+	branch data.BranchName
+	p      data.Path
 }
 
 func (e NotFileBlockError) Error() string {
@@ -347,9 +229,9 @@ func (e NotFileBlockError) Error() string {
 //
 // ptr and branch should be filled in, but p may be empty.
 type NotDirBlockError struct {
-	ptr    BlockPointer
-	branch BranchName
-	p      path
+	ptr    data.BlockPointer
+	branch data.BranchName
+	p      data.Path
 }
 
 func (e NotDirBlockError) Error() string {
@@ -359,7 +241,7 @@ func (e NotDirBlockError) Error() string {
 // NotFileError indicates that the user tried to perform a
 // file-specific operation on something that isn't a file.
 type NotFileError struct {
-	path path
+	path data.Path
 }
 
 // Error implements the error interface for NotFileError
@@ -370,7 +252,7 @@ func (e NotFileError) Error() string {
 // NotDirError indicates that the user tried to perform a
 // dir-specific operation on something that isn't a directory.
 type NotDirError struct {
-	path path
+	path data.Path
 }
 
 // Error implements the error interface for NotDirError
@@ -387,26 +269,6 @@ type BlockDecodeError struct {
 // Error implements the error interface for BlockDecodeError
 func (e BlockDecodeError) Error() string {
 	return fmt.Sprintf("Decode error for a block: %v", e.decodeErr)
-}
-
-// BadDataError indicates that KBFS is storing corrupt data for a block.
-type BadDataError struct {
-	ID kbfsblock.ID
-}
-
-// Error implements the error interface for BadDataError
-func (e BadDataError) Error() string {
-	return fmt.Sprintf("Bad data for block %v", e.ID)
-}
-
-// NoSuchBlockError indicates that a block for the associated ID doesn't exist.
-type NoSuchBlockError struct {
-	ID kbfsblock.ID
-}
-
-// Error implements the error interface for NoSuchBlockError
-func (e NoSuchBlockError) Error() string {
-	return fmt.Sprintf("Couldn't get block %v", e.ID)
 }
 
 // BadCryptoError indicates that KBFS performed a bad crypto operation.
@@ -473,7 +335,7 @@ func (e NoSuchMDError) Error() string {
 // InvalidDataVersionError indicates that an invalid data version was
 // used.
 type InvalidDataVersionError struct {
-	DataVer DataVer
+	DataVer data.Ver
 }
 
 // Error implements the error interface for InvalidDataVersionError.
@@ -485,8 +347,8 @@ func (e InvalidDataVersionError) Error() string {
 // been written using a new data version that our client doesn't
 // understand.
 type NewDataVersionError struct {
-	path    path
-	DataVer DataVer
+	path    data.Path
+	DataVer data.Ver
 }
 
 // Error implements the error interface for NewDataVersionError.
@@ -523,15 +385,6 @@ func (e InvalidVersionError) Error() string {
 	return "The version provided is not valid."
 }
 
-// BadSplitError indicates that the BlockSplitter has an error.
-type BadSplitError struct {
-}
-
-// Error implements the error interface for BadSplitError
-func (e BadSplitError) Error() string {
-	return "Unexpected bad block split"
-}
-
 // TooLowByteCountError indicates that size of a block is smaller than
 // the expected size.
 type TooLowByteCountError struct {
@@ -548,7 +401,7 @@ func (e TooLowByteCountError) Error() string {
 // InconsistentEncodedSizeError is raised when a dirty block has a
 // non-zero encoded size.
 type InconsistentEncodedSizeError struct {
-	info BlockInfo
+	info data.BlockInfo
 }
 
 // Error implements the error interface for InconsistentEncodedSizeError
@@ -629,8 +482,8 @@ func (e NoKeysError) Error() string {
 // WrongOpsError indicates that an unexpected path got passed into a
 // FolderBranchOps instance
 type WrongOpsError struct {
-	nodeFB FolderBranch
-	opsFB  FolderBranch
+	nodeFB data.FolderBranch
+	opsFB  data.FolderBranch
 }
 
 // Error implements the error interface for WrongOpsError.
@@ -642,7 +495,7 @@ func (e WrongOpsError) Error() string {
 // NodeNotFoundError indicates that we tried to find a node for the
 // given BlockPointer and failed.
 type NodeNotFoundError struct {
-	ptr BlockPointer
+	ptr data.BlockPointer
 }
 
 // Error implements the error interface for NodeNotFoundError.
@@ -653,7 +506,7 @@ func (e NodeNotFoundError) Error() string {
 // ParentNodeNotFoundError indicates that we tried to update a Node's
 // parent with a BlockPointer that we don't yet know about.
 type ParentNodeNotFoundError struct {
-	parent BlockRef
+	parent data.BlockRef
 }
 
 // Error implements the error interface for ParentNodeNotFoundError.
@@ -664,35 +517,12 @@ func (e ParentNodeNotFoundError) Error() string {
 // EmptyNameError indicates that the user tried to use an empty name
 // for the given BlockRef.
 type EmptyNameError struct {
-	ref BlockRef
+	ref data.BlockRef
 }
 
 // Error implements the error interface for EmptyNameError.
 func (e EmptyNameError) Error() string {
 	return fmt.Sprintf("Cannot use empty name for %v", e.ref)
-}
-
-// PaddedBlockReadError occurs if the number of bytes read do not
-// equal the number of bytes specified.
-type PaddedBlockReadError struct {
-	ActualLen   int
-	ExpectedLen int
-}
-
-// Error implements the error interface of PaddedBlockReadError.
-func (e PaddedBlockReadError) Error() string {
-	return fmt.Sprintf("Reading block data out of padded block resulted in %d bytes, expected %d",
-		e.ActualLen, e.ExpectedLen)
-}
-
-// NotDirectFileBlockError indicates that a direct file block was
-// expected, but something else (e.g., an indirect file block) was
-// given instead.
-type NotDirectFileBlockError struct {
-}
-
-func (e NotDirectFileBlockError) Error() string {
-	return fmt.Sprintf("Unexpected block type; expected a direct file block")
 }
 
 // KeyHalfMismatchError is returned when the key server doesn't return the expected key half.
@@ -743,7 +573,7 @@ func (e NotPermittedWhileDirtyError) Error() string {
 // NoChainFoundError indicates that a conflict resolution chain
 // corresponding to the given pointer could not be found.
 type NoChainFoundError struct {
-	ptr BlockPointer
+	ptr data.BlockPointer
 }
 
 // Error implements the error interface for NoChainFoundError.
@@ -777,28 +607,6 @@ func (e NameTooLongError) Error() string {
 		"allowed number of bytes (%d)", e.name, e.maxAllowedBytes)
 }
 
-// TlfNameNotCanonical indicates that a name isn't a canonical, and
-// that another (not necessarily canonical) name should be tried.
-type TlfNameNotCanonical struct {
-	Name, NameToTry string
-}
-
-func (e TlfNameNotCanonical) Error() string {
-	return fmt.Sprintf("TLF name %s isn't canonical: try %s instead",
-		e.Name, e.NameToTry)
-}
-
-// NoCurrentSessionError indicates that the daemon has no current
-// session.  This is basically a wrapper for session.ErrNoSession,
-// needed to give the correct return error code to the OS.
-type NoCurrentSessionError struct {
-}
-
-// Error implements the error interface for NoCurrentSessionError.
-func (e NoCurrentSessionError) Error() string {
-	return "You are not logged into Keybase.  Try `keybase login`."
-}
-
 // NoCurrentSessionExpectedError is the error text that will get
 // converted into a NoCurrentSessionError.
 var NoCurrentSessionExpectedError = "no current session"
@@ -819,7 +627,7 @@ func (e RekeyPermissionError) Error() string {
 // NewRekeyPermissionError constructs a RekeyPermissionError for the given
 // directory and user.
 func NewRekeyPermissionError(
-	dir *TlfHandle, username kbname.NormalizedUsername) error {
+	dir *tlfhandle.Handle, username kbname.NormalizedUsername) error {
 	dirname := dir.GetCanonicalPath()
 	return RekeyPermissionError{username, dirname}
 }
@@ -849,18 +657,6 @@ type InvalidOpError struct {
 
 func (e InvalidOpError) Error() string {
 	return fmt.Sprintf("Invalid operation: %s", e.op)
-}
-
-// CRAbandonStagedBranchError indicates that conflict resolution had to
-// abandon a staged branch due to an unresolvable error.
-type CRAbandonStagedBranchError struct {
-	Err error
-	Bid kbfsmd.BranchID
-}
-
-func (e CRAbandonStagedBranchError) Error() string {
-	return fmt.Sprintf("Abandoning staged branch %s due to an error: %v",
-		e.Bid, e.Err)
 }
 
 // NoSuchFolderListError indicates that the user tried to access a
@@ -902,7 +698,7 @@ func (e NoSuchTlfHandleError) Error() string {
 // NoSuchTlfIDError indicates we were unable to resolve a folder
 // handle to a folder ID.
 type NoSuchTlfIDError struct {
-	handle *TlfHandle
+	handle *tlfhandle.Handle
 }
 
 // Error implements the error interface for NoSuchTlfIDError
@@ -923,15 +719,6 @@ func (e IncompatibleHandleError) Error() string {
 	return fmt.Sprintf(
 		"old head %q resolves to %q instead of new head %q",
 		e.oldName, e.partiallyResolvedOldName, e.newName)
-}
-
-// ShutdownHappenedError indicates that shutdown has happened.
-type ShutdownHappenedError struct {
-}
-
-// Error implements the error interface for ShutdownHappenedError.
-func (e ShutdownHappenedError) Error() string {
-	return "Shutdown happened"
 }
 
 // UnmergedError indicates that fbo is on an unmerged local revision
@@ -977,28 +764,6 @@ func (e OpsCantHandleFavorite) Error() string {
 	return fmt.Sprintf("Couldn't handle the favorite operation: %s", e.Msg)
 }
 
-// TlfHandleFinalizedError is returned when something attempts to modify
-// a finalized TLF handle.
-type TlfHandleFinalizedError struct {
-}
-
-// Error implements the error interface for TlfHandleFinalizedError.
-func (e TlfHandleFinalizedError) Error() string {
-	return "Attempt to modify finalized TLF handle"
-}
-
-// NoSigChainError means that a user we were trying to identify does
-// not have a sigchain.
-type NoSigChainError struct {
-	User kbname.NormalizedUsername
-}
-
-// Error implements the error interface for NoSigChainError.
-func (e NoSigChainError) Error() string {
-	return fmt.Sprintf("%s has not yet installed Keybase and set up the "+
-		"Keybase filesystem. Please ask them to.", e.User)
-}
-
 // RekeyConflictError indicates a conflict happened while trying to rekey.
 type RekeyConflictError struct {
 	Err error
@@ -1030,15 +795,6 @@ type blockNonExistentError struct {
 
 func (e blockNonExistentError) Error() string {
 	return fmt.Sprintf("block %s does not exist", e.id)
-}
-
-type cachePutCacheFullError struct {
-	blockID kbfsblock.ID
-}
-
-func (e cachePutCacheFullError) Error() string {
-	return fmt.Sprintf("failed to put block due to full cache. Block: %s",
-		e.blockID)
 }
 
 // NoMergedMDError indicates that no MDs for this folder have been
@@ -1174,7 +930,7 @@ func (e DiskQuotaCacheError) Error() string {
 // about the revocation, so the code receiving the error can check if
 // the device was valid at the time of the data being checked.
 type RevokedDeviceVerificationError struct {
-	info revokedKeyInfo
+	info idutil.RevokedKeyInfo
 }
 
 // Error implements the Error interface for RevokedDeviceVerificationError.
@@ -1216,7 +972,7 @@ func (e RevGarbageCollectedError) Error() string {
 // FolderNotResetOnServer indicates that a folder can't be reset by
 // the user, because it hasn't yet been reset on the mdserver.
 type FolderNotResetOnServer struct {
-	h *TlfHandle
+	h *tlfhandle.Handle
 }
 
 // Error implements the Error interface for FolderNotResetOnServer.
@@ -1228,7 +984,7 @@ func (e FolderNotResetOnServer) Error() string {
 // OfflineArchivedError indicates trying to access archived data while
 // offline.
 type OfflineArchivedError struct {
-	h *TlfHandle
+	h *tlfhandle.Handle
 }
 
 // Error implements the Error interface for OfflineArchivedError.
@@ -1240,7 +996,7 @@ func (e OfflineArchivedError) Error() string {
 // OfflineUnsyncedError indicates trying to access unsynced data while
 // offline.
 type OfflineUnsyncedError struct {
-	h *TlfHandle
+	h *tlfhandle.Handle
 }
 
 // Error implements the Error interface for OfflineUnsyncedError.
@@ -1265,7 +1021,7 @@ func (e NextMDNotCachedError) Error() string {
 // DiskCacheTooFullForBlockError indicates that the disk cache is too
 // full to fetch a block requested with the `StopIfFull` action type.
 type DiskCacheTooFullForBlockError struct {
-	Ptr    BlockPointer
+	Ptr    data.BlockPointer
 	Action BlockRequestAction
 }
 
@@ -1280,7 +1036,7 @@ func (e DiskCacheTooFullForBlockError) Error() string {
 // a TLF for a handle that has no corresponding implicit team yet.
 // Likely a writer needs to create the implicit team first.
 type NonExistentTeamForHandleError struct {
-	h *TlfHandle
+	h *tlfhandle.Handle
 }
 
 // Error implements the Error interface for NonExistentTeamForHandleError.

@@ -245,7 +245,7 @@ const onConnected = () => {
       argv: process.argv,
       clientType: RPCTypes.commonClientType.guiMain,
       desc: 'Main Renderer',
-      pid: process.pid,
+      pid: SafeElectron.getRemote().process.pid,
       version: __VERSION__, // eslint-disable-line no-undef
     },
   }).catch(_ => {})
@@ -331,7 +331,9 @@ function* startPowerMonitor() {
   while (true) {
     const type = yield Saga.take(channel)
     logger.info('Got power change: ', type)
-    // RPCTypes.configSomethingSomethingTODOCORE()
+    RPCTypes.appStatePowerMonitorEventRpcPromise({event: type}).catch(err => {
+      console.warn('Error sending powerMonitorEvent', err)
+    })
   }
 }
 
@@ -346,23 +348,6 @@ export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainAction<ConfigGen.ShowMainPayload>(ConfigGen.showMain, showMainWindow)
   yield* Saga.chainAction<ConfigGen.DumpLogsPayload>(ConfigGen.dumpLogs, dumpLogs)
-  yield* Saga.chainAction<EngineGen.Keybase1NotifyAppExitPayload>(EngineGen.keybase1NotifyAppExit, onExit)
-  yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSActivityPayload>(
-    EngineGen.keybase1NotifyFSFSActivity,
-    onFSActivity
-  )
-  yield* Saga.chainAction<EngineGen.Keybase1NotifyPGPPgpKeyInSecretStoreFilePayload>(
-    EngineGen.keybase1NotifyPGPPgpKeyInSecretStoreFile,
-    onPgpgKeySecret
-  )
-  yield* Saga.chainAction<EngineGen.Keybase1NotifyServiceShutdownPayload>(
-    EngineGen.keybase1NotifyServiceShutdown,
-    onShutdown
-  )
-  yield* Saga.chainAction<EngineGen.Keybase1NotifySessionClientOutOfDatePayload>(
-    EngineGen.keybase1NotifySessionClientOutOfDate,
-    onOutOfDate
-  )
   getEngine().registerCustomResponse('keybase.1.logsend.prepareLogsend')
   yield* Saga.chainAction<EngineGen.Keybase1LogsendPrepareLogsendPayload>(
     EngineGen.keybase1LogsendPrepareLogsend,
@@ -386,7 +371,6 @@ export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
     EngineGen.keybase1NotifySessionClientOutOfDate,
     onOutOfDate
   )
-  yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnected)
   yield* Saga.chainAction<ConfigGen.CopyToClipboardPayload>(ConfigGen.copyToClipboard, copyToClipboard)
   yield* Saga.chainAction<ConfigGen.UpdateNowPayload>(ConfigGen.updateNow, updateNow)
   yield* Saga.chainAction<ConfigGen.CheckForUpdatePayload>(ConfigGen.checkForUpdate, checkForUpdate)

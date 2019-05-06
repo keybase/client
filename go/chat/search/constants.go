@@ -1,5 +1,7 @@
 package search
 
+import "time"
+
 const defaultPageSize = 300
 const MaxAllowedSearchHits = 10000
 
@@ -10,18 +12,15 @@ const MaxAllowedSearchMessages = 100000
 const MaxContext = 15
 
 const (
-	// max number of conversations to use regexp searcher to boost the search
-	// results on misses
-	maxBoostConvsDesktop = 500
-	maxBoostConvsMobile  = 250
-	// max number of messages the boost can use
-	maxBoostMsgsDesktop = 1000
-	maxBoostMsgsMobile  = 500
 	// max convs to sync in the background
-	maxSyncConvsDesktop = 10
+	maxSyncConvsDesktop = 50
 	maxSyncConvsMobile  = 5
-)
 
-// Bumped whenever there are tokenization or structural changes to building the
-// index
-const IndexVersion = 3
+	// tokenizer
+	maxPrefixLength = 10
+	MinTokenLength  = 3
+
+	// delay before starting SelectiveSync
+	startSyncDelayDesktop = 10 * time.Second
+	startSyncDelayMobile  = 30 * time.Second
+)

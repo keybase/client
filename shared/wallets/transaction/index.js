@@ -17,6 +17,7 @@ import {formatTimeForMessages, formatTimeForStellarTooltip} from '../../util/tim
 import {MarkdownMemo} from '../common'
 
 type CounterpartyIconProps = {|
+  detailView?: boolean,
   large: boolean,
   onShowProfile: string => void,
   counterparty: string,
@@ -37,7 +38,20 @@ const CounterpartyIcon = (props: CounterpartyIconProps) => {
     case 'stellarPublicKey':
       return <Icon type="icon-placeholder-secret-user-48" style={{height: size, width: size}} />
     case 'otherAccount':
-      return <Icon type="icon-wallet-to-wallet-48" style={{height: size, width: size}} />
+      return (
+        <Box2
+          alignSelf="flex-start"
+          direction="horizontal"
+          style={collapseStyles([styles.transferIconContainer, {width: size}])}
+        >
+          <Icon
+            color={globalColors.purple2}
+            sizeType={props.detailView ? 'Bigger' : 'Big'}
+            style={collapseStyles([!props.detailView && styles.transferIcon])}
+            type="iconfont-wallet-transfer"
+          />
+        </Box2>
+      )
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.counterpartyType)
       return null
@@ -49,6 +63,7 @@ type CounterpartyTextProps = {|
   counterpartyType: Types.CounterpartyType,
   onShowProfile: string => void,
   textType: 'Body' | 'BodySmall',
+  textTypeSemibold: 'BodySemibold' | 'BodySmallSemibold',
   textTypeItalic: 'BodyItalic' | 'BodySmallItalic',
 |}
 
@@ -61,7 +76,7 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
           colorBroken={true}
           inline={true}
           onUsernameClicked={props.onShowProfile}
-          type={props.textType}
+          type={props.textTypeSemibold}
           underline={true}
           usernames={[props.counterparty]}
         />
@@ -102,6 +117,7 @@ type DetailProps = {|
 const Detail = (props: DetailProps) => {
   const textType = props.large ? 'Body' : 'BodySmall'
   const textTypeItalic = props.large ? 'BodyItalic' : 'BodySmallItalic'
+  const textTypeSemibold = props.large ? 'BodySemibold' : 'BodySmallSemibold'
   const textTypeExtrabold = props.large ? 'BodyExtrabold' : 'BodySmallExtrabold'
   // u2026 is an ellipsis
   const textSentenceEnd = props.detailView && props.pending ? '\u2026' : '.'
@@ -146,6 +162,7 @@ const Detail = (props: DetailProps) => {
       counterpartyType={props.counterpartyType}
       onShowProfile={props.onShowProfile}
       textType={textType}
+      textTypeSemibold={textTypeSemibold}
       textTypeItalic={textTypeItalic}
     />
   )
@@ -392,6 +409,7 @@ export const Transaction = (props: Props) => {
           <CounterpartyIcon
             counterparty={props.counterparty}
             counterpartyType={props.counterpartyType}
+            detailView={props.detailView}
             large={large}
             onShowProfile={props.onShowProfile}
           />
@@ -428,6 +446,7 @@ export const Transaction = (props: Props) => {
                   </Text>
                   <WaitingButton
                     type="Danger"
+                    mode="Secondary"
                     label="Cancel"
                     small={true}
                     style={styles.cancelButton}
@@ -480,6 +499,13 @@ const styles = styleSheetCreate({
   rightContainer: {
     flex: 1,
     marginLeft: globalMargins.tiny,
+  },
+  transferIcon: {
+    position: 'relative',
+    top: globalMargins.xtiny,
+  },
+  transferIconContainer: {
+    justifyContent: 'center',
   },
 })
 

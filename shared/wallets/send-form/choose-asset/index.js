@@ -26,6 +26,7 @@ export type Props = {|
   onChoose: (item: DisplayItem | OtherItem) => void,
   onRefresh: () => void,
   otherChoices: Array<OtherItem>,
+  isRequest: boolean,
   selected: string,
 |}
 
@@ -92,7 +93,6 @@ class ChooseAsset extends React.Component<Props, State> {
             <Kb.Text key="choices" type="BodySmallSemibold">
               Lumens (XLM)
             </Kb.Text>
-            <Kb.Text type="BodySmall">Pick your display currency for this transaction:</Kb.Text>
           </Kb.Box2>
         )
       case 'other choices':
@@ -155,7 +155,7 @@ class ChooseAsset extends React.Component<Props, State> {
     return (
       <Kb.MaybePopup onClose={this.props.onBack} style={styles.mobileFlex}>
         <Kb.Box2 direction="vertical" style={styles.container}>
-          <Header onBack={this.props.onBack} whiteBackground={true} />
+          <Header isRequest={this.props.isRequest} onBack={this.props.onBack} whiteBackground={true} />
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
             <Kb.SectionList
               sections={sections}
@@ -192,7 +192,7 @@ const DisplayChoice = (props: DisplayChoiceProps) => (
           >
             {props.symbol === 'XLM' ? 'Purely strictly ' : 'Lumens displayed as '}
             <Kb.Text type="BodyExtrabold" style={props.selected ? styles.blue : undefined}>
-              {props.currencyCode} ({props.symbol}){' '}
+              {props.symbol === 'XLM' ? 'Lumens' : props.currencyCode} ({props.symbol})
             </Kb.Text>
           </Kb.Text>
         </Kb.Box2>
@@ -291,8 +291,8 @@ const styles = Styles.styleSheetCreate({
   }),
   container: Styles.platformStyles({
     isElectron: {
-      height: 525,
-      width: 360,
+      height: 560,
+      width: 400,
     },
     isMobile: {
       flex: 1,
@@ -317,7 +317,7 @@ const styles = Styles.styleSheetCreate({
   },
   listContainer: Styles.platformStyles({
     isElectron: {
-      maxHeight: 525 - 48,
+      maxHeight: 560 - 48,
     },
     isMobile: {
       flex: 1,
@@ -329,6 +329,7 @@ const styles = Styles.styleSheetCreate({
   sectionHeaderContainer: Styles.platformStyles({
     common: {
       alignItems: 'flex-start',
+      backgroundColor: Styles.globalColors.blue5,
       justifyContent: 'center',
       paddingBottom: Styles.globalMargins.tiny,
       paddingLeft: Styles.globalMargins.small,
@@ -336,13 +337,9 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.tiny,
     },
     isElectron: {
-      backgroundColor: Styles.globalColors.white,
       // must be uniform height with current SectionList implementation
       // so first doesn't peek out from under the second
-      height: 40,
-    },
-    isMobile: {
-      backgroundColor: Styles.globalColors.blue5,
+      height: 32,
     },
   }),
   sectionList: {

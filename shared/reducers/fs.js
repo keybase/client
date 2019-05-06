@@ -3,23 +3,160 @@ import logger from '../logger'
 import * as I from 'immutable'
 import * as FsGen from '../actions/fs-gen'
 import * as Constants from '../constants/fs'
+import * as ChatConstants from '../constants/chat2'
 import * as Flow from '../util/flow'
 import * as Types from '../constants/types/fs'
 
 const initialState = Constants.makeState()
 
-const coalesceFolderUpdate = (
-  original: Types.FolderPathItem,
-  updated: Types.FolderPathItem
-): Types.FolderPathItem =>
-  // We don't want to override a loaded folder into pending, because otherwise
-  // next time user goes into that folder we'd show placeholders. We also don't
-  // want to simply use the original PathItem, since it's possible some
-  // metadata has updated. So use the new item, but reuse children and
-  // progress.
-  original.progress === 'loaded' && updated.progress === 'pending'
-    ? updated.withMutations(u => u.set('children', original.children).set('progress', 'loaded'))
-    : updated
+const updatePathItem = (
+  oldPathItem?: ?Types.PathItem,
+  newPathItemFromAction: Types.PathItem
+): Types.PathItem => {
+  if (!oldPathItem || oldPathItem.type !== newPathItemFromAction.type) {
+    return newPathItemFromAction
+  }
+  // Reuse prefetchStatus if they equal in value. Note that `update` and
+  // `merge` don't actually make a new record unless we do give it a new value.
+  // So re-using the old prefetchStatus reference here makes it possible to
+  // reuse the oldPathItem as long as other fields are identical. For
+  // prefetchComplete and prefetchNotStarted this may not matter, since we are
+  // using the same references anyway. But for PrefetchInProgress it's a
+  // different record everytime, and this becomes useful.
+  // $FlowIssue
+  const newPathItem = newPathItemFromAction.update('prefetchStatus', newPrefetchStatus =>
+    newPrefetchStatus.equals(oldPathItem.prefetchStatus) ? oldPathItem.prefetchStatus : newPrefetchStatus
+  )
+  switch (newPathItem.type) {
+    case 'unknown':
+      return newPathItem
+    case 'symlink':
+      // $FlowIssue
+      const oldSymlinkPathItem: Types.SymlinkPathItem = oldPathItem
+      const newSymlinkPathItem: Types.SymlinkPathItem = newPathItem
+      // This returns oldPathItem if oldPathItem.equals(newPathItem), which is
+      // what we want here.
+      return oldSymlinkPathItem.merge(newSymlinkPathItem)
+    case 'file':
+      // $FlowIssue
+      const oldFilePathItem: Types.FilePathItem = oldPathItem
+      const newFilePathItem: Types.FilePathItem = newPathItem
+      // There are two complications in this case:
+      // 1) Most of the fields in FilePathItem are primitive types, and would
+      //    work with merge fine. The only exception is `mimeType: ?Mime` which
+      //    is a record, so we need to compare it separately.
+      // 2) Additionally, we don't always get a oldFilePathItem with the
+      //    mimeType set. The most performant way is to never over a known
+      //    mimeType into null, but if the file content changes, mimeType can
+      //    change too. So instead we compare other fields as well in this
+      //    case.
+      if (oldFilePathItem.mimeType && !newFilePathItem.mimeType) {
+        // The new one doesn't have mimeType but the old one has it. So compare
+        // other fields, and return the old one if they all match, or new one
+        // (i.e. unset known mimeType) if anything has changed.
+        return oldFilePathItem.set('mimeType', newFilePathItem.mimeType).equals(newFilePathItem)
+          ? oldFilePathItem
+          : newFilePathItem
+      }
+      if (oldFilePathItem.mimeType && newFilePathItem.mimeType) {
+        // The new one comes with mimeType, and we already know one. So compare
+        // the mimeType from both first. If they are equal in value, make sure
+        // they have the same reference before calling merge, so we can reuse
+        // the old oldFilePathItem when possible.
+        return oldFilePathItem.mimeType.equals(newFilePathItem.mimeType)
+          ? oldFilePathItem.merge(newFilePathItem.set('mimeType', oldFilePathItem.mimeType))
+          : newFilePathItem
+      }
+      // Now there are two possibilities:
+      // 1) We have mimeType in the new one but not the old one. In this case
+      //    we simply want to take it from the new one.
+      // 2) We don't have it in either of them. In this case we'll want to get
+      //    other fields from the new one if they change.
+      // Either way, this can be done with a simple merge.
+      return oldFilePathItem.merge(newFilePathItem)
+    case 'folder':
+      // $FlowIssue
+      const oldFolderPathItem: Types.FolderPathItem = oldPathItem
+      const newFolderPathItem: Types.FolderPathItem = newPathItem
+      if (oldFolderPathItem.progress === 'pending' && newFolderPathItem.progress === 'loaded') {
+        // The new one has children loaded and the old one doesn't. There's no
+        // way to reuse the old one so just return newFolderPathItem.
+        return newFolderPathItem
+      }
+      if (oldFolderPathItem.progress === 'loaded' && newFolderPathItem.progress === 'pending') {
+        // The new one doesn't have children, but the old one has. We don't
+        // want to override a loaded folder into pending, because otherwise
+        // next time user goes into that folder we'd show placeholders.  So
+        // first set the children in new one using what we already have, then
+        // merge it into the old one. We'll end up reusing the
+        // oldFolderPathItem if nothing (not considering children of course)
+        // has changed.
+        return oldFolderPathItem.merge(
+          newFolderPathItem.withMutations(p =>
+            p.set('children', oldFolderPathItem.children).set('progress', 'loaded')
+          )
+        )
+      }
+      if (oldFolderPathItem.progress === 'pending' && newFolderPathItem.progress === 'pending') {
+        // Neither one has children, so just do a simple merge like simple
+        // cases above for symlink/unknown types.
+        return oldFolderPathItem.merge(newFolderPathItem)
+      }
+      // Both of them have children loaded. So merge the children field
+      // separately before merging the whole thing. This reuses
+      // oldFolderPathItem when possible as well.
+      return oldFolderPathItem.merge(
+        newFolderPathItem.update('children', newChildren =>
+          newChildren.equals(oldFolderPathItem.children) ? oldFolderPathItem.children : newChildren
+        )
+      )
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(newPathItem.type)
+      return newPathItem
+  }
+}
+
+const haveSamePartialSyncConfig = (tlf1: Types.Tlf, tlf2: Types.Tlf) =>
+  tlf2.syncConfig &&
+  tlf1.syncConfig &&
+  tlf2.syncConfig.mode === 'partial' &&
+  tlf1.syncConfig.mode === 'partial' &&
+  tlf2.syncConfig.enabledPaths.equals(tlf1.syncConfig.enabledPaths)
+
+const updateTlf = (oldTlf?: ?Types.Tlf, newTlf: Types.Tlf): Types.Tlf => {
+  if (!oldTlf) {
+    return newTlf
+  }
+  // TODO: Ideally this should come in with other data from the same RPC.
+  const newTlfDontClearSyncConfig = newTlf.syncConfig ? newTlf : newTlf.set('syncConfig', oldTlf.syncConfig)
+  if (!newTlf.resetParticipants.equals(oldTlf.resetParticipants)) {
+    return newTlfDontClearSyncConfig
+  }
+  if (!I.is(newTlfDontClearSyncConfig.waitingForParticipantUnlock, oldTlf.waitingForParticipantUnlock)) {
+    return newTlfDontClearSyncConfig
+  }
+  if (!I.is(newTlfDontClearSyncConfig.youCanUnlock, oldTlf.youCanUnlock)) {
+    return newTlfDontClearSyncConfig
+  }
+  if (
+    !I.is(newTlfDontClearSyncConfig.syncConfig, oldTlf.syncConfig) &&
+    !haveSamePartialSyncConfig(oldTlf, newTlfDontClearSyncConfig)
+  ) {
+    return newTlfDontClearSyncConfig
+  }
+  return oldTlf.merge(
+    newTlfDontClearSyncConfig.withMutations(n =>
+      n
+        .set('resetParticipants', oldTlf.resetParticipants)
+        .set('waitingForParticipantUnlock', oldTlf.waitingForParticipantUnlock)
+        .set('youCanUnlock', oldTlf.youCanUnlock)
+        .set('syncConfig', oldTlf.syncConfig)
+    )
+  )
+}
+
+const updateTlfList = (oldTlfList: Types.TlfList, newTlfList: Types.TlfList): Types.TlfList =>
+  newTlfList.map((tlf, name) => updateTlf(oldTlfList.get(name), tlf))
 
 const withFsErrorBar = (state: Types.State, action: FsGen.FsErrorPayload): Types.State => {
   const fsError = action.payload.error
@@ -71,49 +208,24 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.resetStore:
       return initialState
     case FsGen.pathItemLoaded:
-      return state.updateIn(['pathItems', action.payload.path], (original: Types.PathItem) => {
-        const {meta} = action.payload
-
-        // Since updateIn passes `original` in as `any`, it may not be an
-        // actual PathItem.
-        if (!original) {
-          return meta
-        }
-
-        if (original.type === 'folder' && meta.type === 'folder') {
-          return coalesceFolderUpdate(original, meta)
-        } else if (original.type !== 'file' || meta.type !== 'file') {
-          return meta
-        }
-
-        return Constants.shouldUseOldMimeType(original, meta) ? meta.set('mimeType', original.mimeType) : meta
-      })
+      return state.update('pathItems', pathItems =>
+        pathItems.update(action.payload.path, original => updatePathItem(original, action.payload.pathItem))
+      )
     case FsGen.folderListLoaded: {
-      let toRemove = new Set()
-      const toMerge = action.payload.pathItems.map((item, path) => {
-        const original = state.pathItems.get(path, Constants.unknownPathItem)
+      const toRemove = new Set()
+      const toMerge = action.payload.pathItems.map((newPathItem, path) => {
+        const oldPathItem = state.pathItems.get(path, Constants.unknownPathItem)
+        const toSet =
+          oldPathItem === Constants.unknownPathItem ? newPathItem : updatePathItem(oldPathItem, newPathItem)
 
-        if (original.type === 'file' && item.type === 'file') {
-          return Constants.shouldUseOldMimeType(original, item)
-            ? item.set('mimeType', original.mimeType)
-            : item
-        }
+        oldPathItem.type === 'folder' &&
+          oldPathItem.children.forEach(
+            name =>
+              (toSet.type !== 'folder' || !toSet.children.includes(name)) &&
+              toRemove.add(Types.pathConcat(path, name))
+          )
 
-        if (item.type !== 'folder') return item
-        if (original.type !== 'folder') return item
-
-        // Make flow happy by referencing them with a new name that's
-        // explicitly typed.
-        const originalFolder: Types.FolderPathItem = original
-        let newItem: Types.FolderPathItem = item
-
-        newItem = coalesceFolderUpdate(originalFolder, newItem)
-
-        originalFolder.children.forEach(
-          name => !newItem.children.includes(name) && toRemove.add(Types.pathConcat(path, name))
-        )
-
-        return newItem
+        return toSet
       })
       return state.set(
         'pathItems',
@@ -125,17 +237,45 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         action.payload.done ? set && set.delete(action.payload.id) : (set || I.Set()).add(action.payload.id)
       )
     case FsGen.favoritesLoaded:
-      return state.set(
-        'tlfs',
-        Constants.makeTlfs({
-          private: action.payload.private,
-          public: action.payload.public,
-          team: action.payload.team,
-        })
+      return state.update('tlfs', tlfs =>
+        tlfs.withMutations(tlfsMutable =>
+          tlfsMutable
+            .update('private', privateTlfs => updateTlfList(privateTlfs, action.payload.private))
+            .update('public', publicTlfs => updateTlfList(publicTlfs, action.payload.public))
+            .update('team', team => updateTlfList(team, action.payload.team))
+        )
+      )
+    case FsGen.setFolderViewFilter:
+      return state.set('folderViewFilter', action.payload.filter)
+    case FsGen.tlfSyncConfigLoaded:
+      return state.update('tlfs', tlfs =>
+        tlfs.update(action.payload.tlfType, tlfList =>
+          tlfList.update(
+            action.payload.tlfName,
+            tlf => tlf && tlf.set('syncConfig', action.payload.syncConfig)
+          )
+        )
+      )
+    case FsGen.tlfSyncConfigsLoaded:
+      return ['private', 'public', 'team'].reduce(
+        (state, tlfType) =>
+          state.update('tlfs', tlfs =>
+            tlfs.update(tlfType, tlfList =>
+              tlfList.withMutations(tlfList =>
+                (action.payload[tlfType] || I.Map()).forEach((syncConfig, tlfName) =>
+                  tlfList.update(tlfName, tlf => tlf && tlf.set('syncConfig', syncConfig))
+                )
+              )
+            )
+          ),
+        state
       )
     case FsGen.sortSetting:
-      const {path, sortSetting} = action.payload
-      return state.setIn(['pathUserSettings', path, 'sort'], sortSetting)
+      return state.update('pathUserSettings', pathUserSettings =>
+        pathUserSettings.update(action.payload.path, setting =>
+          (setting || Constants.defaultPathUserSetting).set('sort', action.payload.sortSetting)
+        )
+      )
     case FsGen.downloadStarted: {
       const {key, path, localPath, intent, opID} = action.payload
       const entryType = action.payload.entryType || state.pathItems.get(path, Constants.unknownPathItem).type
@@ -216,19 +356,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.mergeIn(['tlfs', visibility, elems[2]], {
         isIgnored: action.type === FsGen.favoriteIgnore,
       })
-    case FsGen.mimeTypeLoaded:
-      return state.update('pathItems', pis =>
-        pis.update(action.payload.path, pathItem =>
-          pathItem
-            ? pathItem.type === 'file'
-              ? pathItem.set('mimeType', action.payload.mimeType)
-              : pathItem
-            : Constants.makeFile({
-                mimeType: action.payload.mimeType,
-                name: Types.getPathName(action.payload.path),
-              })
-        )
-      )
     case FsGen.newFolderRow:
       const {parentPath} = action.payload
       const parentPathItem = state.pathItems.get(parentPath, Constants.unknownPathItem)
@@ -309,16 +436,66 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.update('destinationPicker', dp =>
         dp.set('source', Constants.makeIncomingShareSource({localPath: action.payload.localPath}))
       )
-    case FsGen.showSendAttachmentToChat:
+    case FsGen.initSendAttachmentToChat:
       return state.set(
         'sendAttachmentToChat',
-        Constants.makeSendAttachmentToChat({path: action.payload.path})
+        Constants.makeSendAttachmentToChat({
+          path: action.payload.path,
+          state: 'pending-select-conversation',
+        })
       )
-    case FsGen.showSendLinkToChat:
-      return state.set('sendLinkToChat', Constants.makeSendLinkToChat({path: action.payload.path}))
+    case FsGen.setSendAttachmentToChatConvID:
+      return state.update('sendAttachmentToChat', sendAttachmentToChat =>
+        sendAttachmentToChat
+          .set('convID', action.payload.convID)
+          .set(
+            'state',
+            ChatConstants.isValidConversationIDKey(action.payload.convID)
+              ? 'ready-to-send'
+              : 'pending-select-conversation'
+          )
+      )
+    case FsGen.setSendAttachmentToChatFilter:
+      return state.update('sendAttachmentToChat', sendAttachmentToChat =>
+        sendAttachmentToChat.set('filter', action.payload.filter)
+      )
+    case FsGen.sentAttachmentToChat:
+      return state.update('sendAttachmentToChat', sendLinkToChat => sendLinkToChat.set('state', 'sent'))
+    case FsGen.initSendLinkToChat:
+      return state.set(
+        'sendLinkToChat',
+        Constants.makeSendLinkToChat({
+          path: action.payload.path,
+          state: 'locating-conversation',
+        })
+      )
     case FsGen.setSendLinkToChatConvID:
       return state.update('sendLinkToChat', sendLinkToChat =>
-        sendLinkToChat.set('convID', action.payload.convID)
+        sendLinkToChat
+          .set('convID', action.payload.convID)
+          // Notably missing check on if convID is noConversationIDKey,
+          // because it's possible we need to create such conversation. So
+          // always treat this action as a transition to 'ready-to-send'.
+          .set('state', 'ready-to-send')
+      )
+    case FsGen.setSendLinkToChatChannels:
+      return state.update('sendLinkToChat', sendLinkToChat =>
+        sendLinkToChat
+          .set('channels', action.payload.channels)
+          .set(
+            'state',
+            ChatConstants.isValidConversationIDKey(sendLinkToChat.convID)
+              ? 'ready-to-send'
+              : 'pending-select-conversation'
+          )
+      )
+    case FsGen.triggerSendLinkToChat:
+      return state.update('sendLinkToChat', sendLinkToChat => sendLinkToChat.set('state', 'sending'))
+    case FsGen.sentLinkToChat:
+      return state.update('sendLinkToChat', sendLinkToChat =>
+        // We need to set convID here so component can navigate to the
+        // conversation thread correctly.
+        sendLinkToChat.set('state', 'sent').set('convID', action.payload.convID)
       )
     case FsGen.setPathItemActionMenuView:
       return state.update('pathItemActionMenu', pathItemActionMenu =>
@@ -329,9 +506,19 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         pathItemActionMenu.set('downloadKey', action.payload.key)
       )
     case FsGen.waitForKbfsDaemon:
-      return state.set('kbfsDaemonStatus', 'waiting')
-    case FsGen.kbfsDaemonStatusChanged:
-      return state.set('kbfsDaemonStatus', action.payload.kbfsDaemonStatus)
+      return state.update('kbfsDaemonStatus', kbfsDaemonStatus =>
+        kbfsDaemonStatus.set('rpcStatus', 'waiting')
+      )
+    case FsGen.kbfsDaemonRpcStatusChanged:
+      return state.update('kbfsDaemonStatus', kbfsDaemonStatus =>
+        kbfsDaemonStatus.set('rpcStatus', action.payload.rpcStatus)
+      )
+    case FsGen.kbfsDaemonOnlineStatusChanged:
+      return state.update('kbfsDaemonStatus', kbfsDaemonStatus =>
+        kbfsDaemonStatus.set('online', action.payload.online)
+      )
+    case FsGen.overallSyncStatusChanged:
+      return state.set('syncingFoldersProgress', action.payload.progress)
     case FsGen.setDriverStatus:
       return state.update('sfmi', sfmi => sfmi.set('driverStatus', action.payload.driverStatus))
     case FsGen.showSystemFileManagerIntegrationBanner:
@@ -352,40 +539,24 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
             : driverStatus
         )
       )
-    case FsGen.driverDisable:
+    case FsGen.driverDisabling:
       return state.update('sfmi', sfmi =>
         sfmi.update('driverStatus', driverStatus =>
           driverStatus.type === 'enabled' ? driverStatus.set('isDisabling', true) : driverStatus
         )
       )
-    case FsGen.setSendLinkToChatChannels:
-      return state.update('sendLinkToChat', sendLinkToChat =>
-        sendLinkToChat.set('channels', action.payload.channels)
-      )
-    case FsGen.setSendAttachmentToChatConvID:
-      return state.update('sendAttachmentToChat', sendAttachmentToChat =>
-        sendAttachmentToChat.set('convID', action.payload.convID)
-      )
-    case FsGen.setSendAttachmentToChatFilter:
-      return state.update('sendAttachmentToChat', sendAttachmentToChat =>
-        sendAttachmentToChat.set('filter', action.payload.filter)
-      )
 
+    case FsGen.driverDisable:
     case FsGen.folderListLoad:
     case FsGen.placeholderAction:
-    case FsGen.pathItemLoad:
     case FsGen.download:
     case FsGen.favoritesLoad:
     case FsGen.uninstallKBFSConfirm:
-    case FsGen.notifySyncActivity:
     case FsGen.notifyTlfUpdate:
     case FsGen.openSecurityPreferences:
     case FsGen.refreshLocalHTTPServerInfo:
     case FsGen.shareNative:
     case FsGen.saveMedia:
-    case FsGen.mimeTypeLoad:
-    case FsGen.openPathItem:
-    case FsGen.openPathInFilesTab:
     case FsGen.openPathInSystemFileManager:
     case FsGen.openLocalPathInSystemFileManager:
     case FsGen.editSuccess:
@@ -398,11 +569,12 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.deleteFile:
     case FsGen.move:
     case FsGen.copy:
-    case FsGen.destinationPickerOpen:
     case FsGen.closeDestinationPicker:
     case FsGen.clearRefreshTag:
     case FsGen.loadPathMetadata:
     case FsGen.refreshDriverStatus:
+    case FsGen.loadTlfSyncConfig:
+    case FsGen.setTlfSyncConfig:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

@@ -7,7 +7,7 @@ import {formatTimeForFS} from '../../util/timestamp'
 export type PathItemInfoProps = {
   lastModifiedTimestamp?: number,
   lastWriter?: string,
-  mode: 'row' | 'default',
+  mode: 'row' | 'default' | 'menu',
 }
 
 const Username = ({mode, lastWriter}) =>
@@ -24,15 +24,15 @@ const Username = ({mode, lastWriter}) =>
   )
 
 const PathItemInfo = (props: PathItemInfoProps) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={props.mode === 'default'}>
+  <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={props.mode !== 'row'}>
     <Kb.Text
-      type="BodySmall"
-      style={props.mode === 'default' ? styles.textDefault : styles.textRow}
+      type={props.mode === 'menu' ? 'BodyTiny' : 'BodySmall'}
+      style={props.mode === 'row' ? styles.textRow : styles.textDefault}
       lineClamp={props.mode === 'row' && Styles.isMobile ? 1 : undefined}
     >
       {!!props.lastModifiedTimestamp &&
-        (props.mode === 'default' ? 'Last modified ' : '') +
-          formatTimeForFS(props.lastModifiedTimestamp, props.mode === 'default')}
+        (props.mode === 'row' ? '' : 'Last modified ') +
+          formatTimeForFS(props.lastModifiedTimestamp, props.mode !== 'row')}
       {!!props.lastWriter && (
         <>
           &nbsp;by&nbsp;

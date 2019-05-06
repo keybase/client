@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -181,6 +182,15 @@ func (pc *ProofCache) memPut(sid keybase1.SigID, cr CheckResult) {
 	pc.lru.Add(sid, cr)
 }
 
+func (pc *ProofCache) memDelete(sid keybase1.SigID) {
+	if err := pc.setup(); err != nil {
+		return
+	}
+	pc.RLock()
+	defer pc.RUnlock()
+	pc.lru.Remove(sid)
+}
+
 func (pc *ProofCache) Get(sid keybase1.SigID, pvlHash keybase1.MerkleStoreKitHash) *CheckResult {
 	if pc == nil {
 		return nil
@@ -262,6 +272,14 @@ func (pc *ProofCache) dbPut(sid keybase1.SigID, cr CheckResult) error {
 	return pc.G().LocalDb.Put(dbkey, []DbKey{}, jw)
 }
 
+func (pc *ProofCache) dbDelete(sid keybase1.SigID) error {
+	if pc.noDisk {
+		return nil
+	}
+	dbkey, _ := pc.dbKey(sid)
+	return pc.G().LocalDb.Delete(dbkey)
+}
+
 func (pc *ProofCache) Put(sid keybase1.SigID, lcr *LinkCheckResult, pvlHash keybase1.MerkleStoreKitHash) error {
 	if pc == nil {
 		return nil
@@ -275,4 +293,12 @@ func (pc *ProofCache) Put(sid keybase1.SigID, lcr *LinkCheckResult, pvlHash keyb
 	}
 	pc.memPut(sid, cr)
 	return pc.dbPut(sid, cr)
+}
+
+func (pc *ProofCache) Delete(sid keybase1.SigID) error {
+	if pc == nil {
+		return fmt.Errorf("nil ProofCache")
+	}
+	pc.memDelete(sid)
+	return pc.dbDelete(sid)
 }

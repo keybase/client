@@ -27,9 +27,9 @@ func TestParserFail1(t *testing.T) {
 	tc := setupTest(t, "ParserFail1", 1)
 	defer tc.Cleanup()
 	bads := []Pair{
-		{"", "Unexpected EOF"},
-		{"aa ||", "Unexpected EOF"},
-		{"aa &&", "Unexpected EOF"},
+		{"", "Unexpected EOF parsing assertion"},
+		{"aa ||", "Unexpected EOF parsing assertion"},
+		{"aa &&", "Unexpected EOF parsing assertion"},
 		{"(aa", "Unbalanced parentheses"},
 		{"aa && dns:", "Bad assertion, no value given (key=dns)"},
 		{"bb && foo:a", "Unknown social network: foo"},

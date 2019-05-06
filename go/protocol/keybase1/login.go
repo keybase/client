@@ -25,10 +25,13 @@ type GetConfiguredAccountsArg struct {
 }
 
 type LoginArg struct {
-	SessionID       int        `codec:"sessionID" json:"sessionID"`
-	DeviceType      string     `codec:"deviceType" json:"deviceType"`
-	UsernameOrEmail string     `codec:"usernameOrEmail" json:"usernameOrEmail"`
-	ClientType      ClientType `codec:"clientType" json:"clientType"`
+	SessionID    int        `codec:"sessionID" json:"sessionID"`
+	DeviceType   string     `codec:"deviceType" json:"deviceType"`
+	Username     string     `codec:"username" json:"username"`
+	ClientType   ClientType `codec:"clientType" json:"clientType"`
+	DoUserSwitch bool       `codec:"doUserSwitch" json:"doUserSwitch"`
+	PaperKey     string     `codec:"paperKey" json:"paperKey"`
+	DeviceName   string     `codec:"deviceName" json:"deviceName"`
 }
 
 type LoginProvisionedDeviceArg struct {
@@ -94,15 +97,10 @@ type LoginInterface interface {
 	// secrets, but this definition may be expanded in the future.
 	GetConfiguredAccounts(context.Context, int) ([]ConfiguredAccount, error)
 	// Performs login.  deviceType should be libkb.DeviceTypeDesktop
-	// or libkb.DeviceTypeMobile.  usernameOrEmail is optional.
-	// If the current device isn't provisioned, this function will
-	// provision it.
-	//
-	// Note that if usernameOrEmail is an email address, only provisioning
-	// will be attempted.  If the device is already provisioned, login
-	// via email address does not work.
+	// or libkb.DeviceTypeMobile. username is optional. If the current
+	// device isn't provisioned, this function will provision it.
 	Login(context.Context, LoginArg) error
-	// Login a user only if the user is on a provisioned device.  Username is optional.
+	// Login a user only if the user is on a provisioned device. Username is optional.
 	// If noPassphrasePrompt is set, then only a stored secret will be used to unlock
 	// the device keys.
 	LoginProvisionedDevice(context.Context, LoginProvisionedDeviceArg) error
@@ -365,19 +363,14 @@ func (c LoginClient) GetConfiguredAccounts(ctx context.Context, sessionID int) (
 }
 
 // Performs login.  deviceType should be libkb.DeviceTypeDesktop
-// or libkb.DeviceTypeMobile.  usernameOrEmail is optional.
-// If the current device isn't provisioned, this function will
-// provision it.
-//
-// Note that if usernameOrEmail is an email address, only provisioning
-// will be attempted.  If the device is already provisioned, login
-// via email address does not work.
+// or libkb.DeviceTypeMobile. username is optional. If the current
+// device isn't provisioned, this function will provision it.
 func (c LoginClient) Login(ctx context.Context, __arg LoginArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.login.login", []interface{}{__arg}, nil)
 	return
 }
 
-// Login a user only if the user is on a provisioned device.  Username is optional.
+// Login a user only if the user is on a provisioned device. Username is optional.
 // If noPassphrasePrompt is set, then only a stored secret will be used to unlock
 // the device keys.
 func (c LoginClient) LoginProvisionedDevice(ctx context.Context, __arg LoginProvisionedDeviceArg) (err error) {

@@ -28,14 +28,17 @@ type ErrsProps = {
 }
 
 const Errs = (props: ErrsProps) => (
-  <Kb.Box2 fullWidth={true} direction="vertical">
-    {props.errs.map(({key, ...errProps}, index) => (
-      <React.Fragment key={key}>
-        <Err {...errProps} />
-        {props.errs.length > 1 && index !== props.errs.length && <Kb.Divider />}
-      </React.Fragment>
-    ))}
-  </Kb.Box2>
+  <>
+    <Kb.Box2 fullWidth={true} direction="vertical">
+      {props.errs.map(({key, ...errProps}, index) => (
+        <React.Fragment key={key}>
+          <Err {...errProps} />
+          {props.errs.length > 1 && index !== props.errs.length && <Kb.Divider />}
+        </React.Fragment>
+      ))}
+    </Kb.Box2>
+    {!!props.errs.length && <Kb.Divider />}
+  </>
 )
 
 export default Errs

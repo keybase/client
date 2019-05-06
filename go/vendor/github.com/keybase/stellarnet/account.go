@@ -13,6 +13,7 @@ import (
 	perrors "github.com/pkg/errors"
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/clients/horizon"
+	"github.com/stellar/go/keypair"
 	snetwork "github.com/stellar/go/network"
 	"github.com/stellar/go/xdr"
 )
@@ -93,6 +94,13 @@ func Network() build.Network {
 	return gnetwork
 }
 
+// NetworkPassphrase returns the horizon network "passphrase"
+func NetworkPassphrase() string {
+	configLock.Lock()
+	defer configLock.Unlock()
+	return gnetwork.Passphrase
+}
+
 // Account represents a Stellar account.
 type Account struct {
 	address  AddressStr
@@ -152,6 +160,28 @@ func (a *Account) Balances() ([]horizon.Balance, error) {
 	}
 
 	return a.internal.Balances, nil
+}
+
+// Trustline describes a stellar trustline.  It contains an asset and a limit.
+type Trustline struct {
+	horizon.Asset
+	Limit string
+}
+
+// Trustlines returns all the trustlines for an account.
+func (a *Account) Trustlines() ([]Trustline, error) {
+	balances, err := a.Balances()
+	if err != nil {
+		return nil, err
+	}
+	tlines := make([]Trustline, len(balances))
+	for i, b := range balances {
+		tlines[i] = Trustline{
+			Asset: b.Asset,
+			Limit: b.Limit,
+		}
+	}
+	return tlines, nil
 }
 
 // SubentryCount returns the number of subentries in the account's ledger.
@@ -253,7 +283,7 @@ func IsMasterKeyActive(accountID AddressStr) (bool, error) {
 	var masterWeight int32
 	var availableWeight int32
 	for _, signer := range a.internal.Signers {
-		if a.internal.AccountID == signer.PublicKey {
+		if a.internal.AccountID == signer.Key {
 			masterWeight = signer.Weight
 			foundMaster = true
 		}
@@ -497,28 +527,63 @@ func paymentXLM(from SeedStr, to AddressStr, amount, memoText string) (ledger in
 // PaymentXLMTransaction creates a signed transaction to send a payment from 'from' to 'to' for 'amount' lumens.
 func PaymentXLMTransaction(from SeedStr, to AddressStr, amount, memoText string,
 	seqnoProvider build.SequenceProvider, timeBounds *build.Timebounds, baseFee uint64) (res SignResult, err error) {
-	if baseFee < build.DefaultBaseFee {
-		baseFee = build.DefaultBaseFee
-	}
-	muts := []build.TransactionMutator{
-		build.SourceAccount{AddressOrSeed: from.SecureNoLogString()},
-		Network(),
-		build.AutoSequence{SequenceProvider: seqnoProvider},
-		build.Payment(
-			build.Destination{AddressOrSeed: to.String()},
-			build.NativeAmount{Amount: amount},
-		),
-		build.MemoText{Value: memoText},
-		build.BaseFee{Amount: baseFee},
-	}
-	if timeBounds != nil {
-		muts = append(muts, timeBounds)
-	}
-	tx, err := build.Transaction(muts...)
+	t, err := newBaseTxSeed(from, seqnoProvider, baseFee)
 	if err != nil {
-		return res, errMap(err)
+		return res, err
 	}
-	return sign(from, tx)
+	t.AddPaymentOp(to, amount)
+	t.AddMemoText(memoText)
+	t.AddBuiltTimeBounds(timeBounds)
+	return t.Sign(from)
+}
+
+// payment creates a payment transaction for a custom asset and sends it to the network.
+func payment(from SeedStr, to AddressStr, asset AssetBase, amount, memoText string) (ledger int32, txid string, attempt int, err error) {
+	sig, err := PaymentTransaction(from, to, asset, amount, memoText, Client(), nil /* timeBounds */, build.DefaultBaseFee)
+	if err != nil {
+		return 0, "", 0, errMap(err)
+	}
+	return Submit(sig.Signed)
+}
+
+// PaymentTransaction creates a signed transaction to send a payment from 'from' to 'to' for a custom asset.
+func PaymentTransaction(from SeedStr, to AddressStr, asset AssetBase, amount, memoText string,
+	seqnoProvider build.SequenceProvider, timeBounds *build.Timebounds, baseFee uint64) (res SignResult, err error) {
+	t, err := newBaseTxSeed(from, seqnoProvider, baseFee)
+	if err != nil {
+		return res, err
+	}
+	assetXDR, err := assetBaseToXDR(asset)
+	if err != nil {
+		return res, err
+	}
+	t.AddAssetPaymentOp(to, assetXDR, amount)
+	t.AddMemoText(memoText)
+	t.AddBuiltTimeBounds(timeBounds)
+	return t.Sign(from)
+}
+
+// pathPayment creates a transaction with a path payment operation in it and submits it to the network.
+func pathPayment(from SeedStr, to AddressStr, sendAsset AssetBase, sendAmountMax string, destAsset AssetBase, destAmount string, path []AssetBase, memoText string) (ledger int32, txid string, attempt int, err error) {
+	sig, err := PathPaymentTransaction(from, to, sendAsset, sendAmountMax, destAsset, destAmount, path, memoText, Client(), nil /* timeBounds */, build.DefaultBaseFee)
+	if err != nil {
+		return 0, "", 0, errMap(err)
+	}
+	return Submit(sig.Signed)
+}
+
+// PathPaymentTransaction creates a signed transaction for a path payment.
+func PathPaymentTransaction(from SeedStr, to AddressStr, sendAsset AssetBase, sendAmountMax string, destAsset AssetBase, destAmount string, path []AssetBase, memoText string, seqnoProvider build.SequenceProvider, timeBounds *build.Timebounds, baseFee uint64) (SignResult, error) {
+	t, err := newBaseTxSeed(from, seqnoProvider, baseFee)
+	if err != nil {
+		return SignResult{}, err
+	}
+
+	t.AddPathPaymentOp(to, sendAsset, sendAmountMax, destAsset, destAmount, path)
+	t.AddMemoText(memoText)
+	t.AddBuiltTimeBounds(timeBounds)
+
+	return t.Sign(from)
 }
 
 // createAccountXLM funds an new account 'to' from 'from' with a starting balance of 'amount'.
@@ -535,77 +600,86 @@ func createAccountXLM(from SeedStr, to AddressStr, amount, memoText string) (led
 // with a starting balance of 'amount'.
 func CreateAccountXLMTransaction(from SeedStr, to AddressStr, amount, memoText string,
 	seqnoProvider build.SequenceProvider, timeBounds *build.Timebounds, baseFee uint64) (res SignResult, err error) {
-	if baseFee < build.DefaultBaseFee {
-		baseFee = build.DefaultBaseFee
-	}
-	muts := []build.TransactionMutator{
-		build.SourceAccount{AddressOrSeed: from.SecureNoLogString()},
-		Network(),
-		build.AutoSequence{SequenceProvider: seqnoProvider},
-		build.CreateAccount(
-			build.Destination{AddressOrSeed: to.String()},
-			build.NativeAmount{Amount: amount},
-		),
-		build.MemoText{Value: memoText},
-		build.BaseFee{Amount: baseFee},
-	}
-	if timeBounds != nil {
-		muts = append(muts, timeBounds)
-	}
-	tx, err := build.Transaction(muts...)
+	t, err := newBaseTxSeed(from, seqnoProvider, baseFee)
 	if err != nil {
-		return res, errMap(err)
+		return res, err
 	}
-	return sign(from, tx)
+	t.AddCreateAccountOp(to, amount)
+	t.AddMemoText(memoText)
+	t.AddBuiltTimeBounds(timeBounds)
+	return t.Sign(from)
 }
 
 // AccountMergeTransaction creates a signed transaction to merge the account `from` into `to`.
 func AccountMergeTransaction(from SeedStr, to AddressStr,
 	seqnoProvider build.SequenceProvider, baseFee uint64) (res SignResult, err error) {
-	if baseFee < build.DefaultBaseFee {
-		baseFee = build.DefaultBaseFee
-	}
-	tx, err := build.Transaction(
-		build.SourceAccount{AddressOrSeed: from.SecureNoLogString()},
-		Network(),
-		build.AutoSequence{SequenceProvider: seqnoProvider},
-		build.AccountMerge(
-			build.Destination{AddressOrSeed: to.String()},
-		),
-		build.MemoText{Value: defaultMemo},
-		build.BaseFee{Amount: baseFee},
-	)
+	t, err := newBaseTxSeed(from, seqnoProvider, baseFee)
 	if err != nil {
-		return res, errMap(err)
+		return res, err
 	}
-	return sign(from, tx)
+	t.AddAccountMergeOp(to)
+	t.AddMemoText(defaultMemo)
+
+	return t.Sign(from)
 }
 
 // SetInflationDestinationTransaction creates a "set options" transaction that will set the
 // inflation destination for the `from` account to the `to` account.
 func SetInflationDestinationTransaction(from SeedStr, to AddressStr, seqnoProvider build.SequenceProvider,
 	timeBounds *build.Timebounds, baseFee uint64) (SignResult, error) {
-	muts := []build.TransactionMutator{
-		build.SourceAccount{AddressOrSeed: from.SecureNoLogString()},
-		Network(),
-		build.AutoSequence{SequenceProvider: seqnoProvider},
-		build.SetOptions(
-			build.InflationDest(to.String()),
-		),
-		build.BaseFee{Amount: baseFee},
-	}
-	if timeBounds != nil {
-		muts = append(muts, timeBounds)
-	}
-	tx, err := build.Transaction(muts...)
+	t, err := newBaseTxSeed(from, seqnoProvider, baseFee)
 	if err != nil {
-		return SignResult{}, errMap(err)
+		return SignResult{}, err
 	}
-	return sign(from, tx)
+	t.AddInflationDestinationOp(to)
+	t.AddBuiltTimeBounds(timeBounds)
+
+	return t.Sign(from)
 }
 
 func setInflationDestination(from SeedStr, to AddressStr) (ledger int32, txid string, attempt int, err error) {
 	sig, err := SetInflationDestinationTransaction(from, to, Client(), nil /* timeBounds */, build.DefaultBaseFee)
+	if err != nil {
+		return 0, "", 0, errMap(err)
+	}
+	return Submit(sig.Signed)
+}
+
+// SetHomeDomainTransaction creates a "set options" transaction that will set the
+// home domain for the `from` account.
+func SetHomeDomainTransaction(from SeedStr, domain string, seqnoProvider build.SequenceProvider, timeBounds *build.Timebounds, baseFee uint64) (SignResult, error) {
+	t, err := newBaseTxSeed(from, seqnoProvider, baseFee)
+	if err != nil {
+		return SignResult{}, err
+	}
+	t.AddHomeDomainOp(domain)
+	t.AddBuiltTimeBounds(timeBounds)
+
+	return t.Sign(from)
+}
+
+func setHomeDomain(from SeedStr, domain string) (ledger int32, txid string, attempt int, err error) {
+	sig, err := SetHomeDomainTransaction(from, domain, Client(), nil /* timeBounds */, build.DefaultBaseFee)
+	if err != nil {
+		return 0, "", 0, errMap(err)
+	}
+	return Submit(sig.Signed)
+}
+
+// MakeOfferTransaction creates a new offer transaction.
+func MakeOfferTransaction(from SeedStr, selling, buying xdr.Asset, amountToSell, price string, seqnoProvider build.SequenceProvider, timeBounds *build.Timebounds, baseFee uint64) (SignResult, error) {
+	t, err := newBaseTxSeed(from, seqnoProvider, baseFee)
+	if err != nil {
+		return SignResult{}, err
+	}
+	t.AddOfferOp(selling, buying, amountToSell, price)
+	t.AddBuiltTimeBounds(timeBounds)
+
+	return t.Sign(from)
+}
+
+func makeOffer(from SeedStr, selling, buying xdr.Asset, amountToSell, price string) (ledger int32, txid string, attempt int, err error) {
+	sig, err := MakeOfferTransaction(from, selling, buying, amountToSell, price, Client(), nil /* timeBounds */, build.DefaultBaseFee)
 	if err != nil {
 		return 0, "", 0, errMap(err)
 	}
@@ -618,64 +692,61 @@ func setInflationDestination(from SeedStr, to AddressStr) (ledger int32, txid st
 // Otherwise the transaction is two operations: [create_account, account_merge].
 func RelocateTransaction(from SeedStr, to AddressStr, toIsFunded bool,
 	memoID *uint64, seqnoProvider build.SequenceProvider, timeBounds *build.Timebounds, baseFee uint64) (res SignResult, err error) {
-	if baseFee < build.DefaultBaseFee {
-		baseFee = build.DefaultBaseFee
-	}
-	muts := []build.TransactionMutator{
-		build.SourceAccount{AddressOrSeed: from.SecureNoLogString()},
-		Network(),
-		build.AutoSequence{SequenceProvider: seqnoProvider},
-		build.BaseFee{Amount: baseFee},
+	t, err := newBaseTxSeed(from, seqnoProvider, baseFee)
+	if err != nil {
+		return SignResult{}, err
 	}
 	if !toIsFunded {
-		muts = append(muts, build.CreateAccount(
-			build.Destination{AddressOrSeed: to.String()},
-			build.NativeAmount{Amount: "1"},
-		))
+		t.AddCreateAccountOp(to, "1")
 	}
-	muts = append(muts, build.AccountMerge(
-		build.Destination{AddressOrSeed: to.String()},
-	))
-	if memoID != nil {
-		muts = append(muts, build.MemoID{Value: *memoID})
-	}
-	if timeBounds != nil {
-		muts = append(muts, timeBounds)
-	}
-	tx, err := build.Transaction(muts...)
-	if err != nil {
-		return res, errMap(err)
-	}
-	return sign(from, tx)
+	t.AddAccountMergeOp(to)
+	t.AddMemoID(memoID)
+	t.AddBuiltTimeBounds(timeBounds)
+	return t.Sign(from)
 }
 
-// SignResult contains the result of signing a transaction.
-type SignResult struct {
-	Seqno  uint64
-	Signed string // signed transaction (base64)
-	TxHash string // transaction hash (hex)
+// CreateTrustline submits a transaction to the stellar network to establish a trustline
+// from an account to an asset.
+func CreateTrustline(from SeedStr, assetCode string, assetIssuer AddressStr, limit string, baseFee uint64) (txID string, err error) {
+	sig, err := CreateTrustlineTransaction(from, assetCode, assetIssuer, limit, Client(), nil /* timeBounds */, baseFee)
+	if err != nil {
+		return "", err
+	}
+	_, txID, _, err = Submit(sig.Signed)
+	return txID, err
 }
 
-// sign signs and base64-encodes a transaction.
-func sign(from SeedStr, tx *build.TransactionBuilder) (res SignResult, err error) {
-	txe, err := tx.Sign(from.SecureNoLogString())
+// CreateTrustlineTransaction create a signed transaction to establish a trustline from
+// the `from` account to assetCode/assetIssuer.
+func CreateTrustlineTransaction(from SeedStr, assetCode string, assetIssuer AddressStr, limit string, seqnoProvider build.SequenceProvider, timeBounds *build.Timebounds, baseFee uint64) (SignResult, error) {
+	t, err := newBaseTxSeed(from, seqnoProvider, baseFee)
 	if err != nil {
-		return res, errMap(err)
+		return SignResult{}, err
 	}
-	seqno := uint64(txe.E.Tx.SeqNum)
-	signed, err := txe.Base64()
+	t.AddCreateTrustlineOp(assetCode, assetIssuer, limit)
+	return t.Sign(from)
+}
+
+// DeleteTrustline submits a transaction to the stellar network to remove a trustline
+// from an account.
+func DeleteTrustline(from SeedStr, assetCode string, assetIssuer AddressStr, baseFee uint64) (txID string, err error) {
+	sig, err := DeleteTrustlineTransaction(from, assetCode, assetIssuer, Client(), nil /* timeBounds */, baseFee)
 	if err != nil {
-		return res, errMap(err)
+		return "", err
 	}
-	txHashHex, err := tx.HashHex()
+	_, txID, _, err = Submit(sig.Signed)
+	return txID, err
+}
+
+// DeleteTrustlineTransaction create a signed transaction to remove a trustline from
+// the `from` account to assetCode/assetIssuer.
+func DeleteTrustlineTransaction(from SeedStr, assetCode string, assetIssuer AddressStr, seqnoProvider build.SequenceProvider, timeBounds *build.Timebounds, baseFee uint64) (SignResult, error) {
+	t, err := newBaseTxSeed(from, seqnoProvider, baseFee)
 	if err != nil {
-		return res, errMap(err)
+		return SignResult{}, err
 	}
-	return SignResult{
-		Seqno:  seqno,
-		Signed: signed,
-		TxHash: txHashHex,
-	}, nil
+	t.AddDeleteTrustlineOp(assetCode, assetIssuer)
+	return t.Sign(from)
 }
 
 // Submit submits a signed transaction to horizon.
@@ -709,6 +780,119 @@ func Submit(signed string) (ledger int32, txid string, attempt int, err error) {
 	}
 
 	return 0, "", submitAttempts, errMap(err)
+}
+
+// FindPaymentPaths searches for path payments from the account object ownere and `to`, for a specific
+// destination asset.
+// It will return an error if the `to` recipient does not have a trustline for the destination asset.
+// It will return paths using any of the `from` account's assets as the source asset.
+func (a *Account) FindPaymentPaths(to AddressStr, assetCode string, assetIssuer AddressStr, amount string) ([]FullPath, error) {
+	assetType, err := assetCodeToType(assetCode)
+	if err != nil {
+		return nil, err
+	}
+	values := fmt.Sprintf("source_account=%s&destination_account=%s&destination_asset_type=%s&destination_asset_code=%s&destination_asset_issuer=%s&destination_amount=%s", a.address, to, assetType, assetCode, assetIssuer, amount)
+	link := Client().URL + "/paths?" + values
+
+	var page PathsPage
+	if err := getDecodeJSONStrict(link, Client().HTTP.Get, &page); err != nil {
+		return nil, errMap(err)
+	}
+	return page.Embedded.Records, nil
+}
+
+// CreateCustomAsset will create a new asset on the network.  It will
+// return two new account seeds:  one for the issuing account, one for
+// the distribution account.
+//
+// If an error occurs after the issuer and distributor are funded,
+// the issuer and distributor seeds will be returned along with any
+// error so you can reclaim your funds.
+func CreateCustomAsset(source SeedStr, assetCode, limit, homeDomain string, xlmPrice string, baseFee uint64) (issuer, distributor SeedStr, err error) {
+	issuerPair, err := NewKeyPair()
+	if err != nil {
+		return "", "", err
+	}
+	distPair, err := NewKeyPair()
+	if err != nil {
+		return "", "", err
+	}
+
+	return CreateCustomAssetWithKPs(source, issuerPair, distPair, assetCode, limit, homeDomain, xlmPrice, baseFee)
+}
+
+// CreateCustomAssetWithKPs will create a new asset on the network using the specified
+// issuerPair as the issuing account and distPair as the distribution account.
+//
+// You should probably use CreateCustomAsset as it will make new issuer, dist for you,
+// but this one can be handy in tests where you want to specify the issuer, dist keys.
+func CreateCustomAssetWithKPs(source SeedStr, issuerPair, distPair *keypair.Full, assetCode, limit, homeDomain string, xlmPrice string, baseFee uint64) (issuer, distributor SeedStr, err error) {
+	// 1. create issuer
+	issuer, err = NewSeedStr(issuerPair.Seed())
+	if err != nil {
+		return "", "", err
+	}
+	issuerAddr, err := NewAddressStr(issuerPair.Address())
+	if err != nil {
+		return "", "", err
+	}
+	_, _, _, err = createAccountXLM(source, issuerAddr, "5", "")
+	if err != nil {
+		return "", "", err
+	}
+
+	// 2. create distributor
+	distributor, err = NewSeedStr(distPair.Seed())
+	if err != nil {
+		return issuer, "", err
+	}
+	distributorAddr, err := NewAddressStr(distPair.Address())
+	if err != nil {
+		return issuer, "", err
+	}
+	_, _, _, err = createAccountXLM(source, distributorAddr, "5", "")
+	if err != nil {
+		return issuer, "", err
+	}
+
+	// 3. create distributor trustline
+	_, err = CreateTrustline(distributor, assetCode, issuerAddr, limit, baseFee)
+	if err != nil {
+		return issuer, distributor, err
+	}
+
+	// 4. create the asset by paying the distributor
+	asset, err := NewAssetMinimal(assetCode, issuerAddr.String())
+	if err != nil {
+		return issuer, distributor, err
+	}
+	_, _, _, err = payment(issuer, distributorAddr, asset, limit, "")
+	if err != nil {
+		return issuer, distributor, err
+	}
+
+	// 5. set the home domain
+	_, _, _, err = setHomeDomain(issuer, homeDomain)
+	if err != nil {
+		return issuer, distributor, err
+	}
+
+	// 6. make an offer to sell the new asset
+	selling, err := makeXDRAsset(assetCode, issuerAddr)
+	if err != nil {
+		return issuer, distributor, err
+	}
+	buying := xdr.Asset{
+		Type: xdr.AssetTypeAssetTypeNative,
+	}
+	_, _, _, err = makeOffer(distributor, selling, buying, limit, xlmPrice)
+	if err != nil {
+		return issuer, distributor, err
+	}
+
+	// 7. everything good...asset created.
+
+	return issuer, distributor, nil
 }
 
 // paymentsLink returns the horizon endpoint to get payment information.

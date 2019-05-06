@@ -102,11 +102,14 @@ func SetTeamRepoSettings(ctx context.Context, g *libkb.GlobalContext, arg keybas
 	}
 
 	apiRes, err := g.GetAPI().Post(mctx, *apiArg)
+	if err != nil {
+		return err
+	}
 	switch apiRes.AppStatus.Code {
 	case libkb.SCTeamWritePermDenied:
 		return libkb.TeamWritePermDeniedError{}
 	}
-	return err
+	return nil
 }
 
 func settingsArg(ctx context.Context, g *libkb.GlobalContext,

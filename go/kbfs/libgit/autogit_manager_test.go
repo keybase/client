@@ -12,9 +12,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 	billy "gopkg.in/src-d/go-billy.v4"
@@ -86,7 +88,7 @@ func addFileToWorktree(
 
 func addFileToWorktreeAndCommit(
 	t *testing.T, ctx context.Context, config libkbfs.Config,
-	h *libkbfs.TlfHandle, repo *gogit.Repository, worktreeFS billy.Filesystem,
+	h *tlfhandle.Handle, repo *gogit.Repository, worktreeFS billy.Filesystem,
 	name, data string) {
 	addFileToWorktree(t, repo, worktreeFS, name, data)
 	commitWorktree(t, ctx, config, h, worktreeFS)
@@ -94,13 +96,13 @@ func addFileToWorktreeAndCommit(
 
 func commitWorktree(
 	t *testing.T, ctx context.Context, config libkbfs.Config,
-	h *libkbfs.TlfHandle, worktreeFS billy.Filesystem) {
+	h *tlfhandle.Handle, worktreeFS billy.Filesystem) {
 	err := worktreeFS.(*libfs.FS).SyncAll()
 	require.NoError(t, err)
 	jManager, err := libkbfs.GetJournalManager(config)
 	require.NoError(t, err)
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 	err = jManager.FinishSingleOp(ctx,
 		rootNode.GetFolderBranch().Tlf, nil, keybase1.MDPriorityNormal)

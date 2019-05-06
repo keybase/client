@@ -16,13 +16,11 @@ const Intro = (props: IntroProps) => {
       style={Styles.collapseStyles([styles.buttonStyle, {backgroundColor: Styles.globalColors.white}])}
       fullWidth={true}
       key={0}
-      type="Secondary"
+      type="Dim"
       onClick={() => props.setNextScreen('openWallet')}
       label="Open your wallet"
       labelStyle={styles.labelStyle}
-    >
-      <Kb.Icon style={Kb.iconCastPlatformStyles(styles.icon)} type="icon-wallet-open-48" />
-    </Kb.Button>,
+    />,
   ]
   return (
     <WalletPopup

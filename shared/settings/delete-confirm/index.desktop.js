@@ -29,7 +29,7 @@ function DeleteConfirm(props: Props) {
         Are you sure you want to permanently delete your account?
       </Text>
       <ButtonBar>
-        <Button type="Secondary" label="Cancel" onClick={props.onCancel} />
+        <Button type="Dim" label="Cancel" onClick={props.onCancel} />
         <Button
           disabled={!props.allowDeleteForever}
           type="Danger"

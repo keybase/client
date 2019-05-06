@@ -18,8 +18,10 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/kbconst"
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -226,7 +228,7 @@ func DefaultInitParams(ctx Context) InitParams {
 		DiskCacheMode:                  DiskCacheModeLocal,
 		DiskBlockCacheFraction:         0.10,
 		SyncBlockCacheFraction:         1.00,
-		Mode: InitDefaultString,
+		Mode:                           InitDefaultString,
 	}
 }
 
@@ -405,12 +407,14 @@ func makeMDServer(config Config, mdserverAddr string,
 	return mdServer, nil
 }
 
-func makeKeyServer(config Config, keyserverAddr string,
-	log logger.Logger) (KeyServer, error) {
+func makeKeyServer(
+	config Config, keyserverAddr string, log logger.Logger) (
+	libkey.KeyServer, error) {
+	kConfig := keyOpsConfigWrapper{config}
 	if keyserverAddr == memoryAddr {
 		log.Debug("Using in-memory keyserver")
 		// local in-memory key server
-		return NewKeyServerMemory(config)
+		return libkey.NewKeyServerMemory(kConfig, log)
 	}
 
 	if len(keyserverAddr) == 0 {
@@ -421,12 +425,12 @@ func makeKeyServer(config Config, keyserverAddr string,
 		log.Debug("Using on-disk keyserver at %s", serverRootDir)
 		// local persistent key server
 		keyPath := filepath.Join(serverRootDir, "kbfs_key")
-		return NewKeyServerDir(config, keyPath)
+		return libkey.NewKeyServerDir(kConfig, log, keyPath)
 	}
 
 	log.Debug("Using remote keyserver %s (same as mdserver)", keyserverAddr)
 	// currently the MD server also acts as the key server.
-	keyServer, ok := config.MDServer().(KeyServer)
+	keyServer, ok := config.MDServer().(libkey.KeyServer)
 	if !ok {
 		return nil, errors.New("MD server is not a key server")
 	}
@@ -561,6 +565,7 @@ func InitWithLogPrefix(
 			case SIGINT:
 			default:
 				if interruptErr != nil {
+					log.Info("Failed to unmount before exit: %s", interruptErr)
 					os.Exit(1)
 				} else {
 					// Do not return 128 + signal since kbfsfuse is not a shell command
@@ -654,7 +659,12 @@ func doInit(
 			}
 			return lg
 		}, params.StorageRoot, params.DiskCacheMode, kbCtx)
-	config.vdebugSetting = kbCtx.GetVDebugSetting()
+	config.SetVLogLevel(kbCtx.GetVDebugSetting())
+	if mode == InitConstrained {
+		// Until we have a way to turn on debug logging for mobile,
+		// log everything.
+		config.SetVLogLevel(libkb.VLog1String)
+	}
 
 	if params.CleanBlockCacheCapacity > 0 {
 		log.CDebugf(
@@ -671,8 +681,8 @@ func doInit(
 	config.SetBlockOps(NewBlockOpsStandard(
 		config, workers, prefetchWorkers, throttledPrefetchPeriod))
 
-	bsplitter, err := NewBlockSplitterSimple(MaxBlockSizeBytesDefault, 8*1024,
-		config.Codec())
+	bsplitter, err := data.NewBlockSplitterSimple(
+		data.MaxBlockSizeBytesDefault, 8*1024, config.Codec())
 	if err != nil {
 		return nil, err
 	}
@@ -688,7 +698,8 @@ func doInit(
 		config.SetKeyCache(keyCache)
 
 		keyBundleCache := config.KeyBundleCache()
-		keyBundleCache = NewKeyBundleCacheMeasured(keyBundleCache, registry)
+		keyBundleCache = libkey.NewKeyBundleCacheMeasured(
+			keyBundleCache, registry)
 		config.SetKeyBundleCache(keyBundleCache)
 	}
 
@@ -762,7 +773,7 @@ func doInit(
 		return nil, fmt.Errorf("problem creating key server: %+v", err)
 	}
 	if registry := config.MetricsRegistry(); registry != nil {
-		keyServer = NewKeyServerMeasured(keyServer, registry)
+		keyServer = libkey.NewKeyServerMeasured(keyServer, registry)
 	}
 	config.SetKeyServer(keyServer)
 
@@ -824,9 +835,6 @@ func doInit(
 	if err != nil {
 		log.CWarningf(ctx,
 			"Could not initialize block metadata store: %+v", err)
-		return nil, err
-		// TODO (KBFS-3659): when we can open levelDB read-only, re-enable
-		//                   this, instead of failing the init.
 		/*
 			notification := &keybase1.FSNotification{
 				StatusCode:       keybase1.FSStatusCode_ERROR,

@@ -59,6 +59,7 @@ export type PathAndOutboxID = {
 
 export type _MessagePlaceholder = {
   author: string,
+  bodySummary: HiddenString,
   conversationIDKey: Common.ConversationIDKey,
   id: MessageID,
   ordinal: Ordinal,
@@ -71,6 +72,7 @@ export type MessagePlaceholder = I.RecordOf<_MessagePlaceholder>
 // We keep deleted messages around so the bookkeeping is simpler
 export type _MessageDeleted = {
   author: string,
+  bodySummary: HiddenString,
   conversationIDKey: Common.ConversationIDKey,
   deviceName: string,
   deviceRevokedAt: ?number,
@@ -89,6 +91,7 @@ export type _MessageText = {
   author: string,
   conversationIDKey: Common.ConversationIDKey,
   decoratedText: ?HiddenString,
+  bodySummary: HiddenString,
   deviceName: string,
   deviceRevokedAt: ?number,
   deviceType: DeviceType,
@@ -112,6 +115,8 @@ export type _MessageText = {
   mentionsChannelName: MentionsChannelName,
   ordinal: Ordinal,
   outboxID: ?OutboxID,
+  // eslint-disable-next-line no-use-before-define
+  replyTo: ?Message,
   text: HiddenString,
   timestamp: number,
   unfurls: UnfurlMap,
@@ -132,6 +137,7 @@ export type _MessageAttachment = {
   attachmentType: AttachmentType,
   showPlayButton: boolean,
   author: string,
+  bodySummary: HiddenString,
   conversationIDKey: Common.ConversationIDKey,
   fileURL: string,
   fileURLCached: boolean,
@@ -186,6 +192,7 @@ export type ChatRequestInfo = I.RecordOf<_ChatRequestInfo>
 
 export type _MessageRequestPayment = {
   author: string,
+  bodySummary: HiddenString,
   conversationIDKey: Common.ConversationIDKey,
   deviceName: string,
   deviceRevokedAt: ?number,
@@ -224,6 +231,7 @@ export type ChatPaymentInfo = I.RecordOf<_ChatPaymentInfo>
 
 export type _MessageSendPayment = {
   author: string,
+  bodySummary: HiddenString,
   conversationIDKey: Common.ConversationIDKey,
   deviceName: string,
   deviceRevokedAt: ?number,
@@ -246,6 +254,7 @@ export type MessageSendPayment = I.RecordOf<_MessageSendPayment>
 // other places in the store to get that information when possible.
 export type _MessageSystemInviteAccepted = {
   adder: string,
+  bodySummary: HiddenString,
   author: string,
   conversationIDKey: Common.ConversationIDKey,
   id: MessageID,
@@ -262,6 +271,7 @@ export type MessageSystemInviteAccepted = I.RecordOf<_MessageSystemInviteAccepte
 
 export type _MessageSystemSimpleToComplex = {
   author: string,
+  bodySummary: HiddenString,
   conversationIDKey: Common.ConversationIDKey,
   id: MessageID,
   ordinal: Ordinal,
@@ -274,6 +284,7 @@ export type MessageSystemSimpleToComplex = I.RecordOf<_MessageSystemSimpleToComp
 
 export type _MessageSystemGitPush = {
   author: string,
+  bodySummary: HiddenString,
   conversationIDKey: Common.ConversationIDKey,
   id: MessageID,
   ordinal: Ordinal,
@@ -293,6 +304,7 @@ export type _MessageSystemAddedToTeam = {
   addee: string,
   adder: string,
   author: string,
+  bodySummary: HiddenString,
   conversationIDKey: Common.ConversationIDKey,
   id: MessageID,
   isAdmin: boolean,
@@ -306,6 +318,7 @@ export type MessageSystemAddedToTeam = I.RecordOf<_MessageSystemAddedToTeam>
 
 export type _MessageSystemJoined = {
   author: string,
+  bodySummary: HiddenString,
   conversationIDKey: Common.ConversationIDKey,
   id: MessageID,
   ordinal: Ordinal,
@@ -317,6 +330,7 @@ export type MessageSystemJoined = I.RecordOf<_MessageSystemJoined>
 
 export type _MessageSystemLeft = {
   author: string,
+  bodySummary: HiddenString,
   conversationIDKey: Common.ConversationIDKey,
   id: MessageID,
   ordinal: Ordinal,
@@ -328,6 +342,7 @@ export type MessageSystemLeft = I.RecordOf<_MessageSystemLeft>
 
 export type _MessageSystemText = {
   author: string,
+  bodySummary: HiddenString,
   conversationIDKey: Common.ConversationIDKey,
   id: MessageID,
   ordinal: Ordinal,
@@ -340,6 +355,7 @@ export type MessageSystemText = I.RecordOf<_MessageSystemText>
 
 export type _MessageSetDescription = {
   author: string,
+  bodySummary: HiddenString,
   conversationIDKey: Common.ConversationIDKey,
   id: MessageID,
   ordinal: Ordinal,
@@ -352,6 +368,7 @@ export type MessageSetDescription = I.RecordOf<_MessageSetDescription>
 
 export type _MessageSetChannelname = {
   author: string,
+  bodySummary: HiddenString,
   conversationIDKey: Common.ConversationIDKey,
   id: MessageID,
   ordinal: Ordinal,
@@ -364,6 +381,7 @@ export type MessageSetChannelname = I.RecordOf<_MessageSetChannelname>
 
 export type _MessageSystemChangeRetention = {
   author: string,
+  bodySummary: HiddenString,
   conversationIDKey: Common.ConversationIDKey,
   id: MessageID,
   isInherit: boolean,
@@ -380,6 +398,7 @@ export type MessageSystemChangeRetention = I.RecordOf<_MessageSystemChangeRetent
 
 export type _MessageSystemUsersAddedToConversation = {
   author: string,
+  bodySummary: HiddenString,
   conversationIDKey: Common.ConversationIDKey,
   id: MessageID,
   ordinal: Ordinal,

@@ -15,6 +15,7 @@ const mapStateToProps = state => {
   return {
     accountID,
     currencies: Constants.getDisplayCurrencies(state).toArray(),
+    isRequest: state.wallets.building.isRequest,
     selected,
     sendAssets: state.wallets.building.sendAssetChoices,
     to,
@@ -40,6 +41,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
     symbol: c.symbol,
     type: 'display choice',
   })),
+  isRequest: stateProps.isRequest,
   onBack: dispatchProps.onBack,
   onChoose: (item: DisplayItem | OtherItem) => dispatchProps._onChoose(item.currencyCode),
   onRefresh: () => dispatchProps._onRefresh(stateProps.accountID, stateProps.to),

@@ -33,11 +33,11 @@ const Advanced = (props: Props) => {
       </Kb.Box>
       <Kb.Box style={styles.checkboxContainer}>
         <Kb.Checkbox
-          checked={!!props.lockdownModeEnabled}
+          checked={props.hasRandomPW || !!props.lockdownModeEnabled}
           disabled={disabled}
           label={
             'Forbid account changes from the website' +
-            (props.hasRandomPW ? ' (you need to set a passphrase first)' : '')
+            (props.hasRandomPW ? ' (you need to set a password first)' : '')
           }
           onCheck={props.onChangeLockdownMode}
           style={styles.checkbox}
@@ -148,7 +148,6 @@ class Developer extends React.Component<Props, State> {
         )}
         {flags.chatIndexProfilingEnabled && (
           <Kb.Button
-            type="Primary"
             label={`Chat Index: ${this.state.indexTook}ms`}
             onClick={() => {
               this.setState({indexTook: -1})
@@ -161,7 +160,6 @@ class Developer extends React.Component<Props, State> {
         )}
         {flags.dbCleanEnabled && (
           <Kb.Button
-            type="Primary"
             label={`DB clean: ${this.state.cleanTook}ms`}
             onClick={() => {
               this.setState({cleanTook: -1})

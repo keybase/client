@@ -62,6 +62,10 @@ func (t *RooterServiceType) GetPrompt() string {
 	return "Your username on Rooter"
 }
 
+func (t *RooterServiceType) CanMakeNewProofs(mctx libkb.MetaContext) bool {
+	return mctx.G().GetRunMode() != libkb.ProductionRunMode
+}
+
 func (t *RooterServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	return t.BaseToServiceJSON(t, un)
 }

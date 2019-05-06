@@ -1099,8 +1099,22 @@
             "MerkleRootV2"
           ],
           "name": "headMerkle"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "MerkleRootV2",
+            "keys": "Seqno"
+          },
+          "name": "merkleRoots"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "BoxSummaryHash",
+      "fields": [],
+      "typedef": "string"
     },
     {
       "type": "record",
@@ -2473,6 +2487,19 @@
         }
       ],
       "response": "TeamDetails"
+    },
+    "teamGetMembers": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": "TeamMembersDetails"
     },
     "teamImplicitAdmins": {
       "request": [

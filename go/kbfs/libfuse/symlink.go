@@ -12,7 +12,10 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
+	"github.com/keybase/client/go/kbfs/data"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/libkb"
 	"golang.org/x/net/context"
 )
 
@@ -33,12 +36,12 @@ var _ fs.Node = (*Symlink)(nil)
 
 // Attr implements the fs.Node interface for Symlink
 func (s *Symlink) Attr(ctx context.Context, a *fuse.Attr) (err error) {
-	s.parent.folder.fs.log.CDebugf(ctx, "Symlink Attr")
+	s.parent.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "Symlink Attr")
 	defer func() { err = s.parent.folder.processError(ctx, libkbfs.ReadMode, err) }()
 
 	_, de, err := s.parent.folder.fs.config.KBFSOps().Lookup(ctx, s.parent.node, s.name)
 	if err != nil {
-		if _, ok := err.(libkbfs.NoSuchNameError); ok {
+		if _, ok := err.(idutil.NoSuchNameError); ok {
 			return fuse.ESTALE
 		}
 		return err
@@ -54,7 +57,7 @@ var _ fs.NodeReadlinker = (*Symlink)(nil)
 
 // Readlink implements the fs.NodeReadlinker interface for Symlink
 func (s *Symlink) Readlink(ctx context.Context, req *fuse.ReadlinkRequest) (link string, err error) {
-	s.parent.folder.fs.log.CDebugf(ctx, "Symlink Readlink")
+	s.parent.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "Symlink Readlink")
 	defer func() { err = s.parent.folder.processError(ctx, libkbfs.ReadMode, err) }()
 
 	_, de, err := s.parent.folder.fs.config.KBFSOps().Lookup(ctx, s.parent.node, s.name)
@@ -62,7 +65,7 @@ func (s *Symlink) Readlink(ctx context.Context, req *fuse.ReadlinkRequest) (link
 		return "", err
 	}
 
-	if de.Type != libkbfs.Sym {
+	if de.Type != data.Sym {
 		return "", fuse.Errno(syscall.EINVAL)
 	}
 	return de.SymPath, nil

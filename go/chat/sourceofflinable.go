@@ -58,6 +58,12 @@ func (s *sourceOfflinable) Disconnected(ctx context.Context) {
 	s.connected = makeConnectedChan()
 }
 
+func (s *sourceOfflinable) getOfflineInfo() (offline bool, connectedCh chan bool) {
+	s.Lock()
+	defer s.Unlock()
+	return s.offline, s.connected
+}
+
 func (s *sourceOfflinable) IsOffline(ctx context.Context) bool {
 	s.Lock()
 	offline := s.offline
@@ -70,7 +76,7 @@ func (s *sourceOfflinable) IsOffline(ctx context.Context) bool {
 			s.Debug(ctx, "IsOffline: offline, but skipping delay since we already did it")
 			return offline
 		}
-		if s.G().AppState.State() != keybase1.AppState_FOREGROUND {
+		if s.G().MobileAppState.State() != keybase1.MobileAppState_FOREGROUND {
 			s.Debug(ctx, "IsOffline: offline, but not waiting for anything since not in foreground")
 			return offline
 		}

@@ -8,16 +8,18 @@ import (
 	"context"
 	"os"
 
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 // IsWriter returns whether or not the currently logged-in user is a
 // valid writer for the folder described by `h`.
 func IsWriter(ctx context.Context, kbpki libkbfs.KBPKI,
-	osg libkbfs.OfflineStatusGetter, h *libkbfs.TlfHandle) (bool, error) {
-	session, err := libkbfs.GetCurrentSessionIfPossible(
+	osg idutil.OfflineStatusGetter, h *tlfhandle.Handle) (bool, error) {
+	session, err := idutil.GetCurrentSessionIfPossible(
 		ctx, kbpki, h.Type() == tlf.Public)
 	// We are using GetCurrentUserInfoIfPossible here so err is only non-nil if
 	// a real problem happened. If the user is logged out, we will get an empty
@@ -49,8 +51,8 @@ func IsWriter(ctx context.Context, kbpki libkbfs.KBPKI,
 // by `h`.
 func WritePermMode(
 	ctx context.Context, node libkbfs.Node, original os.FileMode,
-	kbpki libkbfs.KBPKI, osg libkbfs.OfflineStatusGetter,
-	h *libkbfs.TlfHandle) (os.FileMode, error) {
+	kbpki libkbfs.KBPKI, osg idutil.OfflineStatusGetter,
+	h *tlfhandle.Handle) (os.FileMode, error) {
 	original &^= os.FileMode(0222) // clear write perm bits
 
 	if node != nil && node.Readonly(ctx) {

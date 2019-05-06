@@ -5,6 +5,8 @@ import * as RPCTypes from './types/rpc-gen'
 import * as ChatConstants from './chat2'
 import * as FsGen from '../actions/fs-gen'
 import * as Flow from '../util/flow'
+import * as Tabs from './tabs'
+import * as SettingsConstants from './settings'
 import {type TypedState} from '../util/container'
 import {isLinux, isMobile} from './platform'
 import uuidv1 from 'uuid/v1'
@@ -14,6 +16,13 @@ import {downloadFilePath, downloadFilePathNoSearch} from '../util/file'
 import {tlfToPreferredOrder} from '../util/kbfs'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import {findKey} from 'lodash-es'
+import {type TypedActions} from '../actions/typed-actions-gen'
+import flags from '../util/feature-flags'
+
+export const syncToggleWaitingKey = 'fs:syncToggle'
+export const sendLinkToChatFindConversationWaitingKey = 'fs:sendLinkToChatFindConversation'
+export const sendLinkToChatSendWaitingKey = 'fs:sendLinkToChatSend'
+export const deleteWaitingKey = 'fs:delete'
 
 export const defaultPath = Types.stringToPath('/keybase')
 
@@ -33,13 +42,24 @@ export const makeNewFolder: I.RecordFactory<Types._NewFolder> = I.Record({
 })
 export const emptyFolder = makeNewFolder()
 
+export const prefetchNotStarted: Types.PrefetchNotStarted = I.Record({state: 'not-started'})()
+
+export const prefetchComplete: Types.PrefetchComplete = I.Record({state: 'complete'})()
+
+export const makePrefetchInProgress: I.RecordFactory<Types._PrefetchInProgress> = I.Record({
+  bytesFetched: 0,
+  bytesTotal: 0,
+  endEstimate: 0,
+  startTime: 0,
+  state: 'in-progress',
+})
+
 const pathItemMetadataDefault = {
-  badgeCount: 0,
   lastModifiedTimestamp: 0,
-  lastWriter: {uid: '', username: ''},
+  lastWriter: '',
   name: 'unknown',
+  prefetchStatus: prefetchNotStarted,
   size: 0,
-  tlfMeta: undefined,
   writable: false,
 }
 
@@ -74,6 +94,15 @@ export const makeUnknownPathItem: I.RecordFactory<Types._UnknownPathItem> = I.Re
 
 export const unknownPathItem = makeUnknownPathItem()
 
+export const tlfSyncEnabled: Types.TlfSyncEnabled = I.Record({mode: 'enabled'})()
+
+export const tlfSyncDisabled: Types.TlfSyncDisabled = I.Record({mode: 'disabled'})()
+
+export const makeTlfSyncPartial: I.RecordFactory<Types._TlfSyncPartial> = I.Record({
+  enabledPaths: I.List(),
+  mode: 'partial',
+})
+
 export const makeTlf: I.RecordFactory<Types._Tlf> = I.Record({
   isFavorite: false,
   isIgnored: false,
@@ -81,22 +110,26 @@ export const makeTlf: I.RecordFactory<Types._Tlf> = I.Record({
   name: '',
   needsRekey: false,
   resetParticipants: I.List(),
+  syncConfig: null,
   teamId: '',
-  tlfType: 'private',
   waitingForParticipantUnlock: I.List(),
   youCanUnlock: I.List(),
 })
 
-export const makeSortSetting: I.RecordFactory<Types._SortSetting> = I.Record({
-  sortBy: 'name',
-  sortOrder: 'asc',
+export const makeSyncingFoldersProgress: I.RecordFactory<Types._SyncingFoldersProgress> = I.Record({
+  bytesFetched: 0,
+  bytesTotal: 0,
+  endEstimate: 0,
+  start: 0,
 })
 
-export const defaultSortSetting = makeSortSetting({})
+export const defaultSortSetting = 'name-asc'
 
 export const makePathUserSetting: I.RecordFactory<Types._PathUserSetting> = I.Record({
-  sort: makeSortSetting(),
+  sort: defaultSortSetting,
 })
+
+export const defaultPathUserSetting = makePathUserSetting()
 
 export const makeDownloadMeta: I.RecordFactory<Types._DownloadMeta> = I.Record({
   entryType: 'unknown',
@@ -189,12 +222,14 @@ export const makeSendAttachmentToChat: I.RecordFactory<Types._SendAttachmentToCh
   convID: ChatConstants.noConversationIDKey,
   filter: '',
   path: Types.stringToPath('/keybase'),
+  state: 'none',
 })
 
 export const makeSendLinkToChat: I.RecordFactory<Types._SendLinkToChat> = I.Record({
   channels: I.Map(),
   convID: ChatConstants.noConversationIDKey,
   path: Types.stringToPath('/keybase'),
+  state: 'none',
 })
 
 export const makePathItemActionMenu: I.RecordFactory<Types._PathItemActionMenu> = I.Record({
@@ -231,20 +266,27 @@ export const makeSystemFileManagerIntegration: I.RecordFactory<Types._SystemFile
   }
 )
 
+export const makeKbfsDaemonStatus: I.RecordFactory<Types._KbfsDaemonStatus> = I.Record({
+  online: false,
+  rpcStatus: 'unknown',
+})
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   destinationPicker: makeDestinationPicker(),
   downloads: I.Map(),
   edits: I.Map(),
   errors: I.Map(),
-  kbfsDaemonStatus: 'unknown',
+  folderViewFilter: '',
+  kbfsDaemonStatus: makeKbfsDaemonStatus(),
   loadingPaths: I.Map(),
   localHTTPServerInfo: makeLocalHTTPServer(),
   pathItemActionMenu: makePathItemActionMenu(),
   pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
-  pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
+  pathUserSettings: I.Map(),
   sendAttachmentToChat: makeSendAttachmentToChat(),
   sendLinkToChat: makeSendLinkToChat(),
   sfmi: makeSystemFileManagerIntegration(),
+  syncingFoldersProgress: makeSyncingFoldersProgress(),
   tlfUpdates: I.List(),
   tlfs: makeTlfs(),
   uploads: makeUploads(),
@@ -252,8 +294,10 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
 
 export const makeUUID = () => uuidv1({}, Buffer.alloc(16), 0)
 
-export const fsPathToRpcPathString = (p: Types.Path): string =>
-  Types.pathToString(p).substring('/keybase'.length) || '/'
+export const pathToRPCPath = (path: Types.Path): RPCTypes.Path => ({
+  PathType: RPCTypes.simpleFSPathType.kbfs,
+  kbfs: Types.pathToString(path).substring('/keybase'.length) || '/',
+})
 
 export const getPathTextColor = (path: Types.Path) => {
   const elems = Types.getPathElements(path)
@@ -499,13 +543,14 @@ export const userTlfHistoryRPCToState = (
   return I.List(updates)
 }
 
+const supportedImgMimeTypes = new Set(['image/png', 'image/jpeg', 'image/gif', 'image/webp'])
 export const viewTypeFromMimeType = (mime: ?Types.Mime): Types.FileViewType => {
   if (mime && mime.displayPreview) {
     const mimeType = mime.mimeType
     if (mimeType === 'text/plain') {
       return 'text'
     }
-    if (mimeType.startsWith('image/')) {
+    if (supportedImgMimeTypes.has(mimeType)) {
       return 'image'
     }
     if (mimeType.startsWith('audio/') || mimeType.startsWith('video/')) {
@@ -518,8 +563,18 @@ export const viewTypeFromMimeType = (mime: ?Types.Mime): Types.FileViewType => {
   return 'default'
 }
 
-export const isMedia = (pathItem: Types.PathItem): boolean =>
-  pathItem.type === 'file' && ['image', 'av'].includes(viewTypeFromMimeType(pathItem.mimeType))
+export const canSaveMedia = (pathItem: Types.PathItem): boolean => {
+  if (pathItem.type !== 'file' || !pathItem.mimeType) {
+    return false
+  }
+  const mime = pathItem.mimeType
+  return (
+    viewTypeFromMimeType(mime) === 'image' ||
+    // Can't rely on viewType === av here because audios can't be saved to
+    // the camera roll.
+    mime.mimeType.startsWith('video/')
+  )
+}
 
 const encodePathForURL = (path: Types.Path) =>
   encodeURIComponent(Types.pathToString(path).slice(slashKeybaseSlashLength))
@@ -590,22 +645,6 @@ export const showIgnoreFolder = (path: Types.Path, username?: string): boolean =
 export const syntheticEventToTargetRect = (evt?: SyntheticEvent<>): ?ClientRect =>
   isMobile ? null : evt ? (evt.target: window.HTMLElement).getBoundingClientRect() : null
 
-// shouldUseOldMimeType determines if mimeType from newItem should reuse
-// what's in oldItem.
-export const shouldUseOldMimeType = (oldItem: Types.FilePathItem, newItem: Types.FilePathItem): boolean => {
-  if (!oldItem.mimeType || newItem.mimeType) {
-    return false
-  }
-
-  return (
-    oldItem.type === newItem.type &&
-    oldItem.lastModifiedTimestamp === newItem.lastModifiedTimestamp &&
-    oldItem.lastWriter.uid === newItem.lastWriter.uid &&
-    oldItem.name === newItem.name &&
-    oldItem.size === newItem.size
-  )
-}
-
 export const invalidTokenError = new Error('invalid token')
 export const notFoundError = new Error('not found')
 
@@ -655,7 +694,7 @@ export const getTlfListAndTypeFromPath = (
 export const unknownTlf = makeTlf()
 export const getTlfFromPath = (tlfs: Types.Tlfs, path: Types.Path): Types.Tlf => {
   const elems = Types.getPathElements(path)
-  if (elems.length !== 3) {
+  if (elems.length < 3) {
     return unknownTlf
   }
   const {tlfList} = getTlfListAndTypeFromPath(tlfs, path)
@@ -700,6 +739,16 @@ export const usernameInPath = (username: string, path: Types.Path) => {
   const elems = Types.getPathElements(path)
   return elems.length >= 3 && elems[2].split(',').includes(username)
 }
+
+export const isOfflineUnsynced = (
+  daemonStatus: Types.KbfsDaemonStatus,
+  pathItem: Types.PathItem,
+  path: Types.Path
+) =>
+  flags.kbfsOfflineMode &&
+  !daemonStatus.online &&
+  Types.getPathLevel(path) > 2 &&
+  pathItem.prefetchStatus !== prefetchComplete
 
 // To make sure we have consistent badging, all badging related stuff should go
 // through this function. That is:
@@ -747,6 +796,7 @@ export const parsedPathTeamList: Types.ParsedPathTlfList = I.Record({kind: 'tlf-
 const makeParsedPathGroupTlf: I.RecordFactory<Types._ParsedPathGroupTlf> = I.Record({
   kind: 'group-tlf',
   readers: null,
+  tlfName: '',
   tlfType: 'private',
   writers: I.List(),
 })
@@ -754,6 +804,7 @@ const makeParsedPathGroupTlf: I.RecordFactory<Types._ParsedPathGroupTlf> = I.Rec
 const makeParsedPathTeamTlf: I.RecordFactory<Types._ParsedPathTeamTlf> = I.Record({
   kind: 'team-tlf',
   team: '',
+  tlfName: '',
   tlfType: 'team',
 })
 
@@ -761,6 +812,7 @@ const makeParsedPathInGroupTlf: I.RecordFactory<Types._ParsedPathInGroupTlf> = I
   kind: 'in-group-tlf',
   readers: null,
   rest: I.List(),
+  tlfName: '',
   tlfType: 'private',
   writers: I.List(),
 })
@@ -769,6 +821,7 @@ const makeParsedPathInTeamTlf: I.RecordFactory<Types._ParsedPathInTeamTlf> = I.R
   kind: 'in-team-tlf',
   rest: I.List(),
   team: '',
+  tlfName: '',
   tlfType: 'team',
 })
 
@@ -796,12 +849,14 @@ export const parsePath = (path: Types.Path): Types.ParsedPath => {
         case 3:
           return makeParsedPathGroupTlf({
             ...splitTlfIntoReadersAndWriters(elems[2]),
+            tlfName: elems[2],
             tlfType: 'private',
           })
         default:
           return makeParsedPathInGroupTlf({
             ...splitTlfIntoReadersAndWriters(elems[2]),
             rest: I.List(elems.slice(3)),
+            tlfName: elems[2],
             tlfType: 'private',
           })
       }
@@ -812,12 +867,14 @@ export const parsePath = (path: Types.Path): Types.ParsedPath => {
         case 3:
           return makeParsedPathGroupTlf({
             ...splitTlfIntoReadersAndWriters(elems[2]),
+            tlfName: elems[2],
             tlfType: 'public',
           })
         default:
           return makeParsedPathInGroupTlf({
             ...splitTlfIntoReadersAndWriters(elems[2]),
             rest: I.List(elems.slice(3)),
+            tlfName: elems[2],
             tlfType: 'public',
           })
       }
@@ -828,12 +885,14 @@ export const parsePath = (path: Types.Path): Types.ParsedPath => {
         case 3:
           return makeParsedPathTeamTlf({
             team: elems[2],
+            tlfName: elems[2],
             tlfType: 'team',
           })
         default:
           return makeParsedPathInTeamTlf({
             rest: I.List(elems.slice(3)),
             team: elems[2],
+            tlfName: elems[2],
             tlfType: 'team',
           })
       }
@@ -859,6 +918,54 @@ export const canSendLinkToChat = (parsedPath: Types.ParsedPath) => {
   }
 }
 
+export const canChat = (path: Types.Path) => {
+  const parsedPath = parsePath(path)
+  switch (parsedPath.kind) {
+    case 'root':
+    case 'tlf-list':
+      return false
+    case 'group-tlf':
+    case 'team-tlf':
+      return true
+    case 'in-group-tlf':
+    case 'in-team-tlf':
+      return true
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(parsedPath)
+      return false
+  }
+}
+
+export const isTeamPath = (path: Types.Path): boolean => {
+  const parsedPath = parsePath(path)
+  return parsedPath.kind !== 'root' && parsedPath.tlfType === 'team'
+}
+
+export const getChatTarget = (path: Types.Path, me: string): string => {
+  const parsedPath = parsePath(path)
+  if (parsedPath.kind !== 'root' && parsedPath.tlfType === 'team') {
+    return 'team conversation'
+  }
+  if (parsedPath.kind === 'group-tlf' || parsedPath.kind === 'in-group-tlf') {
+    if (parsedPath.writers.size === 1 && !parsedPath.readers && parsedPath.writers.first() === me) {
+      return 'myself'
+    }
+    if (parsedPath.writers.size + (parsedPath.readers ? parsedPath.readers.size : 0) === 2) {
+      const notMe = parsedPath.writers.concat(parsedPath.readers || []).filter(u => u !== me)
+      if (notMe.size === 1) {
+        return notMe.first()
+      }
+    }
+    return 'group conversation'
+  }
+  return 'conversation'
+}
+
+export const isEmptyFolder = (pathItems: Types.PathItems, path: Types.Path) => {
+  const _pathItem = pathItems.get(path, unknownPathItem)
+  return _pathItem.type === 'folder' && !_pathItem.children.size
+}
+
 const humanizeDownloadIntent = (intent: Types.DownloadIntent) => {
   switch (intent) {
     case 'camera-roll':
@@ -880,16 +987,196 @@ export const getDestinationPickerPathName = (picker: Types.DestinationPicker): s
     ? Types.getLocalPathName(picker.source.localPath)
     : ''
 
+const isPathEnabledForSync = (syncConfig: Types.TlfSyncConfig, path: Types.Path): boolean => {
+  switch (syncConfig.mode) {
+    case 'disabled':
+      return false
+    case 'enabled':
+      return true
+    case 'partial':
+      // TODO: when we enable partial sync lookup, remember to deal with
+      // potential ".." traversal as well.
+      return syncConfig.enabledPaths.includes(path)
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(syncConfig.mode)
+      return false
+  }
+}
+
+export const getSyncStatusInMergeProps = (
+  kbfsDaemonStatus: Types.KbfsDaemonStatus,
+  tlf: Types.Tlf,
+  pathItem: Types.PathItem,
+  uploadingPaths: I.Set<Types.Path>,
+  path: Types.Path
+): Types.SyncStatus => {
+  if (!tlf.syncConfig || (pathItem === unknownPathItem && tlf.syncConfig.mode !== 'disabled')) {
+    return 'unknown'
+  }
+  const tlfSyncConfig: Types.TlfSyncConfig = tlf.syncConfig
+  // uploading state has higher priority
+  if (uploadingPaths.has(path)) {
+    return kbfsDaemonStatus.online ? 'uploading' : 'awaiting-to-upload'
+  }
+  if (!isPathEnabledForSync(tlfSyncConfig, path)) {
+    return 'online-only'
+  }
+
+  // TODO: what about 'sync-error'?
+
+  // We don't have an upload state, and sync is enabled for this path.
+  switch (pathItem.prefetchStatus.state) {
+    case 'not-started':
+      return 'awaiting-to-sync'
+    case 'complete':
+      return 'synced'
+    case 'in-progress':
+      if (!kbfsDaemonStatus.online) {
+        return 'awaiting-to-sync'
+      }
+      const inProgress: Types.PrefetchInProgress = pathItem.prefetchStatus
+      if (inProgress.bytesTotal === 0) {
+        return 'sync-error'
+      }
+      return inProgress.bytesFetched / inProgress.bytesTotal
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(pathItem.prefetchStatus.state)
+      return 'unknown'
+  }
+}
+
+export const makeActionsForDestinationPickerOpen = (
+  index: number,
+  path: Types.Path,
+  routePath?: ?I.List<string>
+): Array<TypedActions> => [
+  FsGen.createSetDestinationPickerParentPath({
+    index,
+    path,
+  }),
+  flags.useNewRouter || !routePath
+    ? RouteTreeGen.createNavigateAppend({
+        path: [{props: {index}, selected: 'destinationPicker'}],
+      })
+    : RouteTreeGen.createPutActionIfOnPath({
+        expectedPath: routePath,
+        otherAction: RouteTreeGen.createNavigateAppend({
+          path: [{props: {index}, selected: 'destinationPicker'}],
+        }),
+      }),
+]
+
+export const fsRootRouteForNav1 = isMobile ? [Tabs.settingsTab, SettingsConstants.fsTab] : [Tabs.fsTab]
+
+export const makeActionForOpenPathInFilesTab = flags.useNewRouter
+  ? (
+      path: Types.Path, // TODO: remove the second arg when we are done with migrating to nav2
+      routePath?: ?I.List<string>
+    ): TypedActions => RouteTreeGen.createNavigateAppend({path: [{props: {path}, selected: 'fsRoot'}]})
+  : (path: Types.Path, routePath?: ?I.List<string>): TypedActions => {
+      const finalRoute = {props: {path}, selected: 'main'}
+      const routeChangeAction = isMobile
+        ? RouteTreeGen.createNavigateTo({
+            path:
+              path === defaultPath
+                ? fsRootRouteForNav1
+                : [
+                    ...fsRootRouteForNav1,
+                    // Construct all parent folders so back button works all the way back
+                    // to /keybase
+                    ...Types.getPathElements(path)
+                      .slice(1, -1) // fsTab default to /keybase, so we skip one here
+                      .reduce(
+                        (routes, elem) => [
+                          ...routes,
+                          {
+                            props: {
+                              path: routes.length
+                                ? Types.pathConcat(routes[routes.length - 1].props.path, elem)
+                                : Types.stringToPath(`/keybase/${elem}`),
+                            },
+                            selected: 'main',
+                          },
+                        ],
+                        []
+                      ),
+                    finalRoute,
+                  ],
+          })
+        : RouteTreeGen.createNavigateTo({
+            path: [
+              Tabs.fsTab,
+              // Prepend the parent folder so when user clicks the back button they'd
+              // go back to the parent folder.
+              {props: {path: Types.getPathParent(path)}, selected: 'main'},
+              finalRoute,
+            ],
+          })
+      return routePath
+        ? RouteTreeGen.createPutActionIfOnPath({expectedPath: routePath, otherAction: routeChangeAction})
+        : routeChangeAction
+    }
+
+export const putActionIfOnPathForNav1 = (action: TypedActions, routePath?: ?I.List<string>) =>
+  !flags.useNewRouter && routePath
+    ? RouteTreeGen.createPutActionIfOnPath({
+        expectedPath: routePath,
+        otherAction: action,
+      })
+    : action
+
+export const makeActionsForShowSendLinkToChat = (
+  path: Types.Path,
+  routePath?: ?I.List<string>
+): Array<TypedActions> => [
+  FsGen.createInitSendLinkToChat({path}),
+  putActionIfOnPathForNav1(
+    RouteTreeGen.createNavigateAppend({
+      path: [{props: {path}, selected: 'sendLinkToChat'}],
+    }),
+    routePath
+  ),
+]
+
+export const makeActionsForShowSendAttachmentToChat = (
+  path: Types.Path,
+  routePath?: ?I.List<string>
+): Array<TypedActions> => [
+  FsGen.createInitSendAttachmentToChat({path}),
+  putActionIfOnPathForNav1(
+    RouteTreeGen.createNavigateAppend({
+      path: [{props: {path}, selected: 'sendAttachmentToChat'}],
+    }),
+    routePath
+  ),
+]
+
 export const splitFileNameAndExtension = (fileName: string) =>
   ((str, idx) => [str.slice(0, idx), str.slice(idx)])(fileName, fileName.lastIndexOf('.'))
+
+export const isFolder = (path: Types.Path, pathItem: Types.PathItem) =>
+  Types.getPathLevel(path) <= 3 || pathItem.type === 'folder'
+
+export const humanizeBytes = (n: number, d: number): string => {
+  const kb = 1024
+  const mb = kb * 1024
+  const gb = mb * 1024
+
+  if (d < kb) {
+    return `${n} of ${d} bytes`
+  } else if (d < mb) {
+    return `${(n / kb).toFixed(2)} of ${(d / kb).toFixed(2)} KB`
+  } else if (d < gb) {
+    return `${(n / mb).toFixed(2)} of ${(d / mb).toFixed(2)} MB`
+  }
+  return `${(n / gb).toFixed(2)} of ${(d / gb).toFixed(2)} GB`
+}
 
 export const erroredActionToMessage = (action: FsGen.Actions, error: string): string => {
   const errorIsTimeout = error.includes('context deadline exceeded')
   const timeoutExplain = 'An operation took too long to complete. Are you connected to the Internet?'
   const suffix = errorIsTimeout ? ` ${timeoutExplain}` : ''
   switch (action.type) {
-    case FsGen.notifySyncActivity:
-      return 'Failed to gather information about KBFS uploading activities.' + suffix
     case FsGen.move:
       return 'Failed to move file(s).' + suffix
     case FsGen.copy:
@@ -898,7 +1185,7 @@ export const erroredActionToMessage = (action: FsGen.Actions, error: string): st
       return 'Failed to load TLF lists.' + suffix
     case FsGen.refreshLocalHTTPServerInfo:
       return 'Failed to get information about internal HTTP server.' + suffix
-    case FsGen.pathItemLoad:
+    case FsGen.loadPathMetadata:
       return `Failed to load file metadata: ${Types.getPathName(action.payload.path)}.` + suffix
     case FsGen.folderListLoad:
       return `Failed to list folder: ${Types.getPathName(action.payload.path)}.` + suffix
@@ -910,8 +1197,6 @@ export const erroredActionToMessage = (action: FsGen.Actions, error: string): st
       return `Failed to save: ${Types.getPathName(action.payload.path)}.` + suffix
     case FsGen.upload:
       return `Failed to upload: ${Types.getLocalPathName(action.payload.localPath)}.` + suffix
-    case FsGen.mimeTypeLoad:
-      return `Failed to load mime type: ${Types.pathToString(action.payload.path)}.` + suffix
     case FsGen.favoriteIgnore:
       return `Failed to ignore: ${Types.pathToString(action.payload.path)}.` + suffix
     case FsGen.openPathInSystemFileManager:
@@ -920,10 +1205,6 @@ export const erroredActionToMessage = (action: FsGen.Actions, error: string): st
       return `Failed to open path: ${action.payload.localPath}.` + suffix
     case FsGen.deleteFile:
       return `Failed to delete file: ${Types.pathToString(action.payload.path)}.` + suffix
-    case FsGen.openPathItem:
-      return `Failed to open path: ${Types.pathToString(action.payload.path)}.` + suffix
-    case FsGen.openPathInFilesTab:
-      return `Failed to open path: ${Types.pathToString(action.payload.path)}.` + suffix
     case FsGen.downloadSuccess:
       return (
         `Failed to ${humanizeDownloadIntent(action.payload.intent)}. ` +

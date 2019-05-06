@@ -2,6 +2,7 @@
 import logger from '../../logger'
 import * as ConfigGen from '../../actions/config-gen'
 import * as TeamsGen from '../../actions/teams-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/teams'
 import * as I from 'immutable'
 import {InviteByEmailMobile, type ContactDisplayProps} from '.'
@@ -9,6 +10,7 @@ import {HeaderHoc} from '../../common-adapters'
 import {
   connect,
   compose,
+  getRouteProps,
   withHandlers,
   withPropsOnChange,
   withProps,
@@ -18,6 +20,7 @@ import {
 } from '../../util/container'
 import {isAndroid} from '../../constants/platform'
 import {getContacts} from './permissions'
+import flags from '../../util/feature-flags'
 
 type OwnProps = RouteProps<{teamname: string}, {}>
 
@@ -31,8 +34,8 @@ const extractPhoneNumber: string => ?string = (name: string) => {
   return (matches && matches[1] && cleanPhoneNumber(matches[1])) || ''
 }
 
-const mapStateToProps = (state, {routeProps}: OwnProps) => {
-  const teamname = routeProps.get('teamname')
+const mapStateToProps = (state, ownProps: OwnProps) => {
+  const teamname = getRouteProps(ownProps, 'teamname')
   const inviteError = Constants.getEmailInviteError(state)
   return {
     _pendingInvites: teamname ? Constants.getTeamInvites(state, teamname) : I.Set(),
@@ -42,29 +45,39 @@ const mapStateToProps = (state, {routeProps}: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateAppend, navigateUp, routePath, routeProps}) => ({
+const mapDispatchToProps = (dispatch, ownProps) => ({
   onClearError: () => dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''})),
   onClose: () => {
-    dispatch(navigateUp())
+    dispatch(RouteTreeGen.createNavigateUp())
     dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
   },
   onInviteEmail: ({invitee, role}) => {
-    const teamname = routeProps.get('teamname')
-    const rootPath = routePath.take(1)
-    const sourceSubPath = routePath.rest()
-    const destSubPath = sourceSubPath.butLast()
+    const teamname = getRouteProps(ownProps, 'teamname')
     dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
-    dispatch(
-      TeamsGen.createInviteToTeamByEmail({
-        destSubPath,
-        invitees: invitee,
-        role,
-        rootPath,
-        sourceSubPath,
-        teamname,
-      })
-    )
-    dispatch(TeamsGen.createGetTeams())
+    if (flags.useNewRouter) {
+      dispatch(
+        TeamsGen.createInviteToTeamByEmail({
+          invitees: invitee,
+          role,
+          teamname,
+        })
+      )
+    } else {
+      const rootPath = ownProps.routePath.take(1)
+      const sourceSubPath = ownProps.routePath.rest()
+      const destSubPath = sourceSubPath.butLast()
+      dispatch(
+        TeamsGen.createInviteToTeamByEmail({
+          destSubPath,
+          invitees: invitee,
+          role,
+          rootPath,
+          sourceSubPath,
+          teamname,
+        })
+      )
+    }
+    dispatch(TeamsGen.createGetTeams({clearNavBadges: false}))
   },
   onInvitePhone: ({invitee, role, fullName = ''}) => {
     dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
@@ -73,25 +86,10 @@ const mapDispatchToProps = (dispatch, {navigateAppend, navigateUp, routePath, ro
         fullName,
         phoneNumber: invitee,
         role,
-        teamname: routeProps.get('teamname'),
+        teamname: getRouteProps(ownProps, 'teamname'),
       })
     )
-    dispatch(TeamsGen.createGetTeams())
-  },
-  onOpenRolePicker: (role: string, onComplete: string => void) => {
-    dispatch(
-      navigateAppend([
-        {
-          props: {
-            allowAdmin: false,
-            allowOwner: false,
-            onComplete,
-            selectedRole: role,
-          },
-          selected: 'controlledRolePicker',
-        },
-      ])
-    )
+    dispatch(TeamsGen.createGetTeams({clearNavBadges: false}))
   },
   onUninvite: (invitee: string, id?: string) => {
     dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
@@ -99,7 +97,7 @@ const mapDispatchToProps = (dispatch, {navigateAppend, navigateUp, routePath, ro
       TeamsGen.createRemoveMemberOrPendingInvite({
         email: invitee,
         inviteID: id || '',
-        teamname: routeProps.get('teamname'),
+        teamname: getRouteProps(ownProps, 'teamname'),
         username: '',
       })
     )

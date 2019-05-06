@@ -26,7 +26,7 @@ func TestFlipPreview(t *testing.T) {
 	convID := chat1.ConversationID{1, 2, 3, 4}
 	timeout := 20 * time.Second
 
-	flip.Preview(ctx, uid, convID, "/flip")
+	flip.Preview(ctx, uid, convID, "", "/flip")
 	select {
 	case s := <-ui.CommandMarkdown:
 		require.NotNil(t, s)
@@ -34,7 +34,7 @@ func TestFlipPreview(t *testing.T) {
 		require.Fail(t, "no text")
 	}
 
-	flip.Preview(ctx, uid, convID, "/flip 6")
+	flip.Preview(ctx, uid, convID, "", "/flip 6")
 	select {
 	case s := <-ui.CommandMarkdown:
 		require.NotNil(t, s)
@@ -42,7 +42,7 @@ func TestFlipPreview(t *testing.T) {
 		require.Fail(t, "no text")
 	}
 
-	flip.Preview(ctx, uid, convID, "/flip ")
+	flip.Preview(ctx, uid, convID, "", "/flip ")
 	select {
 	case s := <-ui.CommandMarkdown:
 		require.NotNil(t, s)
@@ -50,7 +50,7 @@ func TestFlipPreview(t *testing.T) {
 		require.Fail(t, "no text")
 	}
 
-	flip.Preview(ctx, uid, convID, "/fli")
+	flip.Preview(ctx, uid, convID, "", "/fli")
 	select {
 	case s := <-ui.CommandMarkdown:
 		require.Nil(t, s)
@@ -58,7 +58,7 @@ func TestFlipPreview(t *testing.T) {
 		require.Fail(t, "no text")
 	}
 
-	flip.Preview(ctx, uid, convID, "/fli")
+	flip.Preview(ctx, uid, convID, "", "/fli")
 	select {
 	case <-ui.CommandMarkdown:
 		require.Fail(t, "no text expected")

@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/kbfs/libfs"
-	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"golang.org/x/net/context"
 )
 
@@ -16,7 +16,7 @@ import (
 // by-revision directory name that corresponds to the given relative
 // time string for the given folder.
 func NewArchiveRelTimeFile(
-	fs *FS, handle *libkbfs.TlfHandle, filename string) *SpecialReadFile {
+	fs *FS, handle *tlfhandle.Handle, filename string) *SpecialReadFile {
 	return &SpecialReadFile{
 		read: func(ctx context.Context) ([]byte, time.Time, error) {
 			data, isRel, err := libfs.FileDataFromRelativeTimeString(

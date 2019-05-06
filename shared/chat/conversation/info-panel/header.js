@@ -3,9 +3,11 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import InfoPanelMenu from './menu/container'
+import * as ChatTypes from '../../../constants/types/chat2'
 
 type SmallProps = {
   teamname: string,
+  conversationIDKey: ChatTypes.ConversationIDKey,
   participantCount: number,
   isSmallTeam: boolean,
 } & Kb.OverlayParentProps
@@ -20,6 +22,7 @@ const _SmallTeamHeader = (props: SmallProps) => {
         onHidden={props.toggleShowingMenu}
         isSmallTeam={props.isSmallTeam}
         teamname={props.teamname}
+        conversationIDKey={props.conversationIDKey}
         visible={props.showingMenu}
       />
       <Kb.ConnectedNameWithIcon

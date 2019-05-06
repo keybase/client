@@ -106,10 +106,11 @@ class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps, ToStel
       <Kb.Box2 direction="vertical" fullWidth={!Styles.isMobile} style={styles.inputBox}>
         <Kb.Box2 direction="horizontal" gap="xxtiny" fullWidth={!Styles.isMobile} style={styles.inputInner}>
           <Kb.Icon
+            sizeType={Styles.isMobile ? 'Small' : 'Default'}
             type="iconfont-identity-stellar"
             color={
               this.state.recipientPublicKey.length === 0 || this.props.errorMessage
-                ? Styles.globalColors.black_50
+                ? Styles.globalColors.black_20
                 : Styles.globalColors.black
             }
           />

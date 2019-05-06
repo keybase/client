@@ -47,3 +47,7 @@ func (p *ProveRooterUI) OkToCheck(_ context.Context, _ keybase1.OkToCheckArg) (b
 func (p *ProveRooterUI) Checking(_ context.Context, _ keybase1.CheckingArg) error {
 	return nil
 }
+
+func (p *ProveRooterUI) ContinueChecking(_ context.Context, _ int) (bool, error) {
+	return true, nil
+}

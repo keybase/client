@@ -54,19 +54,12 @@ const _PaymentsConfirmErrorNoWallet = (props: ErrorProps) => (
       style={styles.fullErrorContainer}
     >
       <Kb.Box2 direction="vertical" style={styles.pushDown} fullWidth={true} centerChildren={true}>
-        <Kb.Text type="BodyExtrabold">
-          {props.error}
-        </Kb.Text>
+        <Kb.Text type="BodyExtrabold">{props.error}</Kb.Text>
       </Kb.Box2>
       <Kb.Box2 direction="vertical" style={styles.pushDown} fullWidth={true}>
         <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
-          <Kb.Button type="Secondary" onClick={props.onCancel} style={styles.cancelButton} label="Cancel" />
-          <Kb.Button
-            style={styles.submitButton}
-            type="Primary"
-            onClick={props.onWallet}
-            label="Set up wallet"
-          />
+          <Kb.Button type="Dim" onClick={props.onCancel} style={styles.cancelButton} label="Cancel" />
+          <Kb.Button style={styles.submitButton} onClick={props.onWallet} label="Set up wallet" />
         </Kb.ButtonBar>
       </Kb.Box2>
     </Kb.Box2>
@@ -118,7 +111,12 @@ const PaymentsConfirm = (props: Props) => (
     {props.loading ? (
       <PaymentsConfirmLoading />
     ) : props.error ? (
-      <PaymentsConfirmError error={props.error} errorIsNoWallet={props.errorIsNoWallet || false} onCancel={props.onCancel} onWallet={props.onWallet} />
+      <PaymentsConfirmError
+        error={props.error}
+        errorIsNoWallet={props.errorIsNoWallet || false}
+        onCancel={props.onCancel}
+        onWallet={props.onWallet}
+      />
     ) : (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.totalContainer}>
@@ -148,10 +146,10 @@ const PaymentsConfirm = (props: Props) => (
           ))}
         </Kb.ScrollView>
         <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
-          <Kb.Button type="Secondary" onClick={props.onCancel} style={styles.cancelButton} label="Cancel" />
+          <Kb.Button type="Dim" onClick={props.onCancel} style={styles.cancelButton} label="Cancel" />
           <Kb.WaitingButton
             style={styles.submitButton}
-            type="PrimaryGreen"
+            type="Success"
             onClick={props.onAccept}
             waitingKey={null}
             children={

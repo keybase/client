@@ -25,11 +25,11 @@ const listStyle = {
     : {
         backgroundColor: globalColors.white,
         borderLeft: border,
-        marginTop: -4 /* Necessary fix: adds 1px at the top so we hide the gray divider */,
       }),
 }
 const styleTurnIntoTeam = {
-  padding: globalMargins.small,
+  paddingLeft: globalMargins.small,
+  paddingRight: globalMargins.small,
 }
 const Spacer = ({height}: {height: number}) => <Box style={{height, width: 1}} />
 
@@ -38,12 +38,16 @@ type InfoPanelProps = {|
   participants: Array<{
     username: string,
     fullname: string,
+    isAdmin: boolean,
+    isOwner: boolean,
   }>,
   isPreview: boolean,
   teamname: ?string,
   channelname: ?string,
   smallTeam: boolean,
   admin: boolean,
+  ignored: boolean,
+  spinnerForHide: boolean,
 
   // Used by HeaderHoc.
   onBack: () => void,
@@ -55,6 +59,8 @@ type InfoPanelProps = {|
   onShowBlockConversationDialog: () => void,
   onShowClearConversationDialog: () => void,
   onShowNewTeamDialog: () => void,
+  onHideConv: () => void,
+  onUnhideConv: () => void,
 
   // Used for small and big teams.
   canSetMinWriterRole: boolean,
@@ -86,6 +92,8 @@ type ParticipantRow = {|
   key: string,
   username: string,
   fullname: string,
+  isAdmin: boolean,
+  isOwner: boolean,
   onShowProfile: string => void,
 |}
 
@@ -161,6 +169,18 @@ type ClearThisConversationRow = {
   onShowClearConversationDialog: () => void,
 }
 
+type HideThisConversationRow = {
+  type: 'hide this conversation',
+  key: 'hide this conversation',
+  onHideConv: () => void,
+}
+
+type UnhideThisConversationRow = {
+  type: 'unhide this conversation',
+  key: 'unhide this conversation',
+  onUnhideConv: () => void,
+}
+
 type ParticipantCountRow = {
   type: 'participant count',
   key: 'participant count',
@@ -214,6 +234,8 @@ type TeamHeaderRow =
   | ParticipantCountRow
   | RetentionRow
   | ClearThisConversationRow
+  | HideThisConversationRow
+  | UnhideThisConversationRow
   | SmallTeamHeaderRow
   | BigTeamHeaderRow
   | JoinChannelRow
@@ -229,6 +251,8 @@ type Row =
   | TurnIntoTeamRow
   | ClearThisConversationRow
   | BlockThisConversationRow
+  | HideThisConversationRow
+  | UnhideThisConversationRow
   | TeamHeaderRow
 
 const typeSizeEstimator = (row: Row): number => {
@@ -304,6 +328,29 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           />
         )
 
+      case 'hide this conversation':
+        return (
+          <CaptionedDangerIcon
+            key="hide this conversation"
+            caption="Hide this conversation"
+            onClick={row.onHideConv}
+            noDanger={true}
+            icon="iconfont-hide"
+            spinner={this.props.spinnerForHide}
+          />
+        )
+
+      case 'unhide this conversation':
+        return (
+          <CaptionedDangerIcon
+            key="unhide this conversation"
+            caption="Unhide this conversation"
+            onClick={row.onUnhideConv}
+            noDanger={true}
+            spinner={this.props.spinnerForHide}
+          />
+        )
+
       case 'participant count':
         return (
           <ParticipantCount
@@ -318,6 +365,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           <SmallTeamHeader
             key="small team header"
             teamname={row.teamname}
+            conversationIDKey={this.props.selectedConversationIDKey}
             isSmallTeam={row.isSmallTeam}
             participantCount={row.participantCount}
           />
@@ -400,6 +448,8 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
     const props = this.props
     const participants: Array<ParticipantRow> = props.participants.map(p => ({
       fullname: p.fullname,
+      isAdmin: p.isAdmin,
+      isOwner: p.isOwner,
       key: p.username,
       onShowProfile: props.onShowProfile,
       type: 'participant',
@@ -497,6 +547,22 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
                 },
               ]
             : []),
+          {
+            key: nextKey(),
+            marginTop: 8,
+            type: 'divider',
+          },
+          props.ignored
+            ? {
+                key: 'unhide this conversation',
+                onUnhideConv: props.onUnhideConv,
+                type: 'unhide this conversation',
+              }
+            : {
+                key: 'hide this conversation',
+                onHideConv: props.onHideConv,
+                type: 'hide this conversation',
+              },
           {
             key: nextKey(),
             marginTop: 8,
@@ -695,6 +761,22 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           onShowBlockConversationDialog: props.onShowBlockConversationDialog,
           type: 'block this conversation',
         },
+        {
+          key: nextKey(),
+          marginTop: 8,
+          type: 'divider',
+        },
+        props.ignored
+          ? {
+              key: 'unhide this conversation',
+              onUnhideConv: props.onUnhideConv,
+              type: 'unhide this conversation',
+            }
+          : {
+              key: 'hide this conversation',
+              onHideConv: props.onHideConv,
+              type: 'hide this conversation',
+            },
         {
           height: globalMargins.small,
           key: nextKey(),

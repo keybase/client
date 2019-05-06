@@ -61,7 +61,7 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, msg keybas
 		// and then bail out.
 	}
 
-	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		if needTeamReload {
 			team2, err := Load(ctx, g, loadTeamArg)
 			if err != nil {
@@ -155,7 +155,7 @@ func sweepOpenTeamResetAndDeletedMembers(ctx context.Context, g *libkb.GlobalCon
 		}
 	}
 
-	err = RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, attempt int) error {
+	err = RetryIfPossible(ctx, g, func(ctx context.Context, attempt int) error {
 		if attempt > 0 {
 			var err error
 			team, err = Load(ctx, g, keybase1.LoadTeamArg{
@@ -293,37 +293,39 @@ func HandleDeleteNotification(ctx context.Context, g *libkb.GlobalContext, rows 
 }
 
 func HandleExitNotification(ctx context.Context, g *libkb.GlobalContext, rows []keybase1.TeamExitRow) (err error) {
-	defer g.CTrace(ctx, fmt.Sprintf("team.HandleExitNotification(%v)", len(rows)), func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, g)
+	defer mctx.Trace(fmt.Sprintf("team.HandleExitNotification(%v)", len(rows)), func() error { return err })()
 
 	for _, row := range rows {
-		g.Log.CDebugf(ctx, "team.HandleExitNotification: (%+v)", row)
-		if err := g.GetTeamLoader().Delete(ctx, row.Id); err != nil {
-			g.Log.CDebugf(ctx, "team.HandleExitNotification: error deleting team cache: %v", err)
+		mctx.Debug("team.HandleExitNotification: (%+v)", row)
+		if err := mctx.G().GetTeamLoader().Delete(ctx, row.Id); err != nil {
+			mctx.Debug("team.HandleExitNotification: error deleting team cache: %v", err)
 		}
-		if ekLib := g.GetEKLib(); ekLib != nil {
-			ekLib.PurgeCachesForTeamID(ctx, row.Id)
+		if ekLib := mctx.G().GetEKLib(); ekLib != nil {
+			ekLib.PurgeCachesForTeamID(mctx, row.Id)
 		}
-		g.NotifyRouter.HandleTeamExit(ctx, row.Id)
+		mctx.G().NotifyRouter.HandleTeamExit(ctx, row.Id)
 
 		// refresh the KBFS Favorites cache since it no longer should contain
 		// this team.
-		refreshKBFSFavoritesCache(g)
+		refreshKBFSFavoritesCache(mctx.G())
 	}
 	return nil
 }
 
 func HandleNewlyAddedToTeamNotification(ctx context.Context, g *libkb.GlobalContext, rows []keybase1.TeamNewlyAddedRow) (err error) {
-	defer g.CTrace(ctx, fmt.Sprintf("team.HandleNewlyAddedToTeamNotification(%v)", len(rows)), func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, g)
+	defer mctx.Trace(fmt.Sprintf("team.HandleNewlyAddedToTeamNotification(%v)", len(rows)), func() error { return err })()
 	for _, row := range rows {
-		g.Log.CDebugf(ctx, "team.HandleNewlyAddedToTeamNotification: (%+v)", row)
-		if ekLib := g.GetEKLib(); ekLib != nil {
-			ekLib.PurgeCachesForTeamID(ctx, row.Id)
+		mctx.Debug("team.HandleNewlyAddedToTeamNotification: (%+v)", row)
+		if ekLib := mctx.G().GetEKLib(); ekLib != nil {
+			ekLib.PurgeCachesForTeamID(mctx, row.Id)
 		}
-		g.NotifyRouter.HandleNewlyAddedToTeam(ctx, row.Id)
+		mctx.G().NotifyRouter.HandleNewlyAddedToTeam(mctx.Ctx(), row.Id)
 
 		// refresh the KBFS Favorites cache since it now should contain
 		// this team.
-		refreshKBFSFavoritesCache(g)
+		refreshKBFSFavoritesCache(mctx.G())
 
 	}
 	return nil
@@ -343,7 +345,7 @@ func HandleSBSRequest(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, untrustedInviteeFromGregor keybase1.TeamInvitee) (err error) {
 	defer g.CTrace(ctx, fmt.Sprintf("team.handleSBSSingle(teamID: %v, invitee: %+v)", teamID, untrustedInviteeFromGregor), func() error { return err })()
 
-	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		team, err := Load(ctx, g, keybase1.LoadTeamArg{
 			ID:          teamID,
 			Public:      teamID.IsPublic(),
@@ -471,7 +473,7 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 	ctx = libkb.WithLogTag(ctx, "CLKR")
 	defer g.CTrace(ctx, "HandleOpenTeamAccessRequest", func() error { return err })()
 
-	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		team, err := Load(ctx, g, keybase1.LoadTeamArg{
 			ID:          msg.TeamID,
 			Public:      msg.TeamID.IsPublic(),

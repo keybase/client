@@ -7,6 +7,7 @@ export type Props = {
   onEditIcon: (image?: Response) => void,
   onFilePickerError: (error: Error) => void,
   teamname: string,
+  title: string | React.Node,
   metaOne: React.Node,
   metaTwo: string,
 }

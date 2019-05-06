@@ -70,7 +70,7 @@ class InflationDestinationPopup extends React.Component<Props, State> {
           key="Cancel"
           label="Cancel"
           onClick={props.onClose}
-          type="Secondary"
+          type="Dim"
           waitingKey={Constants.inflationDestinationWaitingKey}
           onlyDisable={true}
         />

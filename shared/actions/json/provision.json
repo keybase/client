@@ -7,8 +7,8 @@
   "actions": {
     "startProvision": {},
     "provisionError": {"error": "?HiddenString"},
-    "submitUsernameOrEmail": {"usernameOrEmail": "string"},
-    "submitPassphrase": {"passphrase": "HiddenString"},
+    "submitUsername": {"username": "string"},
+    "submitPassword": {"password": "HiddenString"},
     "submitPaperkey": {"paperkey": "HiddenString"},
     "submitTextCode": {"phrase": "HiddenString"},
     "submitDeviceSelect": {"name": "string"},
@@ -37,12 +37,18 @@
     "showInlineError": {
       "inlineError": "RPCError"
     },
-    "showPassphrasePage": {
+    "showPasswordPage": {
       "error": "?HiddenString"
     },
     "showPaperkeyPage": {
       "error": "?HiddenString"
     },
-    "addNewDevice": {"otherDeviceType": ["'desktop'", "'mobile'"]}
+    "addNewDevice": {"otherDeviceType": ["'desktop'", "'mobile'"]},
+    "forgotUsername": {
+      "email": "string"
+    },
+    "forgotUsernameResult": {
+      "result": "string"
+    }
   }
 }

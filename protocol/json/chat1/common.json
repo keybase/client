@@ -320,6 +320,10 @@
         {
           "type": "boolean",
           "name": "last"
+        },
+        {
+          "type": "boolean",
+          "name": "forceFirstPage"
         }
       ]
     },
@@ -868,6 +872,13 @@
           "jsonkey": "u"
         },
         {
+          "type": {
+            "type": "array",
+            "items": "MessageID"
+          },
+          "name": "replies"
+        },
+        {
           "type": "gregor1.Time",
           "name": "ctime"
         },
@@ -1403,12 +1414,29 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "ReIndexingMode",
+      "symbols": [
+        "NONE_0",
+        "PRESEARCH_SYNC_1",
+        "POSTSEARCH_SYNC_2"
+      ]
+    },
+    {
       "type": "record",
       "name": "SearchOpts",
       "fields": [
         {
+          "type": "boolean",
+          "name": "isRegex"
+        },
+        {
           "type": "string",
           "name": "sentBy"
+        },
+        {
+          "type": "string",
+          "name": "sentTo"
         },
         {
           "type": "gregor1.Time",
@@ -1435,62 +1463,34 @@
           "name": "afterContext"
         },
         {
-          "type": "boolean",
-          "name": "forceReindex"
+          "type": "ReIndexingMode",
+          "name": "reindexMode"
         },
         {
           "type": "int",
-          "name": "maxConvs"
+          "name": "maxConvsSearched"
+        },
+        {
+          "type": "int",
+          "name": "maxConvsHit"
+        },
+        {
+          "type": [
+            null,
+            "ConversationID"
+          ],
+          "name": "convID"
+        },
+        {
+          "type": "int",
+          "name": "maxNameConvs"
         }
       ]
     },
     {
       "type": "record",
-      "name": "ConversationIndexMetadata",
-      "fields": [
-        {
-          "type": {
-            "type": "map",
-            "values": "boolean",
-            "keys": "MessageID"
-          },
-          "name": "seenIDs",
-          "mpackkey": "s",
-          "jsonkey": "s"
-        },
-        {
-          "type": "int",
-          "name": "version",
-          "mpackkey": "v",
-          "jsonkey": "v"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "ConversationIndex",
-      "fields": [
-        {
-          "type": {
-            "type": "map",
-            "values": {
-              "type": "map",
-              "values": "boolean",
-              "keys": "MessageID"
-            },
-            "keys": "string"
-          },
-          "name": "index",
-          "mpackkey": "i",
-          "jsonkey": "i"
-        },
-        {
-          "type": "ConversationIndexMetadata",
-          "name": "metadata",
-          "mpackkey": "m",
-          "jsonkey": "m"
-        }
-      ]
+      "name": "EmptyStruct",
+      "fields": []
     },
     {
       "type": "record",
@@ -1550,8 +1550,20 @@
           "name": "convID"
         },
         {
+          "type": "TeamType",
+          "name": "teamType"
+        },
+        {
           "type": "string",
           "name": "convName"
+        },
+        {
+          "type": "string",
+          "name": "query"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "time"
         },
         {
           "type": {
@@ -1594,6 +1606,10 @@
         {
           "type": "int",
           "name": "percentIndexed"
+        },
+        {
+          "type": "boolean",
+          "name": "delegated"
         }
       ]
     },

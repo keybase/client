@@ -18,9 +18,9 @@ export type AccountProps = {
   email: string,
   isVerified: boolean,
   onChangeEmail: () => void,
-  onChangePassphrase: () => void,
-  onChangeRememberPassphrase: (remember: boolean) => void,
-  rememberPassphrase: boolean,
+  onChangePassword: () => void,
+  onChangeRememberPassword: (remember: boolean) => void,
+  rememberPassword: boolean,
   hasRandomPW: ?boolean,
 }
 

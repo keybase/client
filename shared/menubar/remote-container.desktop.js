@@ -5,20 +5,17 @@ import Menubar from './index.desktop'
 import openUrl from '../util/open-url'
 import {remoteConnect} from '../util/container'
 import {createOpenPopup as createOpenRekeyPopup} from '../actions/unlock-folders-gen'
-import {executeActionsForContext} from '../util/quit-helper.desktop'
-import {loginTab, type Tab} from '../constants/tabs'
+import {quit, hideWindow} from '../util/quit-helper.desktop'
+import {loginTab, type AppTab} from '../constants/tabs'
 import {throttle} from 'lodash-es'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import * as FsConstants from '../constants/fs'
 import {urlHelper} from '../util/url-helper'
-import {isWindows, isDarwin} from '../constants/platform'
-
-const closeWindow = () => {
-  SafeElectron.getRemote()
-    .getCurrentWindow()
-    .hide()
-}
+import {isWindows, isDarwin, isLinux} from '../constants/platform'
+import * as RPCTypes from '../constants/types/rpc-gen'
+import * as SettingsGen from '../actions/settings-gen'
+import flags from '../util/feature-flags'
 
 // Props are handled by remote-proxy.desktop.js
 const mapDispatchToProps = dispatch => ({
@@ -32,18 +29,27 @@ const mapDispatchToProps = dispatch => ({
   },
   onRekey: () => {
     dispatch(createOpenRekeyPopup())
-    closeWindow()
+    hideWindow()
   },
-  openApp: (tab?: Tab) => {
+  openApp: (tab?: AppTab) => {
     dispatch(ConfigGen.createShowMain())
-    tab && dispatch(RouteTreeGen.createSwitchTo({path: [tab]}))
+    tab &&
+      dispatch(
+        flags.useNewRouter ? RouteTreeGen.createSwitchTab({tab}) : RouteTreeGen.createSwitchTo({path: [tab]})
+      )
   },
   quit: () => {
-    closeWindow()
-    dispatch(ConfigGen.createDumpLogs({reason: 'quitting through menu'}))
-    // In case dump log doens't exit for us
+    if (!__DEV__) {
+      if (isLinux) {
+        dispatch(SettingsGen.createStop({exitCode: RPCTypes.ctlExitCode.ok}))
+      } else {
+        dispatch(ConfigGen.createDumpLogs({reason: 'quitting through menu'}))
+      }
+    }
+    // In case dump log doesn't exit for us
+    hideWindow()
     setTimeout(() => {
-      executeActionsForContext('quitButton')
+      quit('quitButton')
     }, 2000)
   },
   refreshUserFileEdits: throttle(() => dispatch(FsGen.createUserFileEditsLoad()), 1000 * 5),
@@ -58,7 +64,7 @@ const mapDispatchToProps = dispatch => ({
   showHelp: () => {
     const link = urlHelper('help')
     link && openUrl(link)
-    closeWindow()
+    hideWindow()
   },
   showInFinder: () => dispatch(FsGen.createOpenPathInSystemFileManager({path: FsConstants.defaultPath})),
   updateNow: isWindows || isDarwin ? () => dispatch(ConfigGen.createUpdateNow()) : undefined,

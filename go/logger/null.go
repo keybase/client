@@ -31,7 +31,6 @@ func (l *Null) CWarningf(ctx context.Context, fmt string, arg ...interface{})  {
 func (l *Null) CErrorf(ctx context.Context, fmt string, arg ...interface{})    {}
 func (l *Null) Error(fmt string, arg ...interface{})                           {}
 func (l *Null) Configure(style string, debug bool, filename string)            {}
-func (l *Null) RotateLogFile() error                                           { return nil }
 
 func (l *Null) CloneWithAddedDepth(depth int) Logger { return l }
 

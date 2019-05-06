@@ -21,6 +21,7 @@ import (
 
 	"encoding/base64"
 
+	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat/commands"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/msgchecker"
@@ -181,13 +182,17 @@ func (g *gregorTestConnection) HandlerName() string {
 }
 
 func newTestContext(tc *kbtest.ChatTestContext) context.Context {
-	return Context(context.Background(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI,
+	if tc.ChatG.CtxFactory == nil {
+		g := globals.NewContext(tc.G, tc.ChatG)
+		g.CtxFactory = NewCtxFactory(g)
+	}
+	return globals.ChatCtx(context.Background(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		nil, NewCachingIdentifyNotifier(tc.Context()))
 }
 
 func newTestContextWithTlfMock(tc *kbtest.ChatTestContext, tlfMock types.NameInfoSource) context.Context {
 	ctx := newTestContext(tc)
-	return CtxAddTestingNameInfoSource(ctx, tlfMock)
+	return globals.CtxAddOverrideNameInfoSource(ctx, tlfMock)
 }
 
 type testUISource struct {
@@ -350,10 +355,12 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 
 	chatStorage := storage.New(g, nil)
 	chatStorage.SetClock(c.world.Fc)
+	g.CtxFactory = NewCtxFactory(g)
 	g.ConvSource = NewHybridConversationSource(g, h.boxer, chatStorage,
 		func() chat1.RemoteInterface { return ri })
 	chatStorage.SetAssetDeleter(g.ConvSource)
-	g.InboxSource = NewHybridInboxSource(g, func() chat1.RemoteInterface { return ri })
+	g.InboxSource = NewHybridInboxSource(g, badges.NewBadger(g.ExternalG()),
+		func() chat1.RemoteInterface { return ri })
 	g.InboxSource.Start(context.TODO(), uid)
 	g.InboxSource.Connected(context.TODO())
 	g.ServerCacheVersions = storage.NewServerVersions(g)
@@ -365,9 +372,10 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	searcher.SetPageSize(2)
 	g.RegexpSearcher = searcher
 	indexer := search.NewIndexer(g)
-	ictx := IdentifyModeCtx(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil)
+	ictx := globals.CtxAddIdentifyMode(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil)
 	indexer.Start(ictx, uid)
 	indexer.SetPageSize(2)
+	indexer.SetStartSyncDelay(0)
 	g.Indexer = indexer
 
 	h.setTestRemoteClient(ri)
@@ -401,6 +409,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.Unfurler = types.DummyUnfurler{}
 	g.StellarLoader = types.DummyStellarLoader{}
 	g.StellarSender = types.DummyStellarSender{}
+	g.TeamMentionLoader = types.DummyTeamMentionLoader{}
 	g.CoinFlipManager = NewFlipManager(g, func() chat1.RemoteInterface { return ri })
 	g.CoinFlipManager.Start(context.TODO(), uid)
 
@@ -647,8 +656,8 @@ func sweepPollForDeletion(t *testing.T, ctc *chatTestContext, asUser *kbtest.Fak
 	var foundTaskCount int
 	var upto chat1.MessageID
 	for i := 0; ; i++ {
-		ctx := Context(context.Background(), tc.h.G(), keybase1.TLFIdentifyBehavior_CLI, nil, nil)
-		trace, _ := CtxTrace(ctx)
+		ctx := globals.ChatCtx(context.Background(), tc.h.G(), keybase1.TLFIdentifyBehavior_CLI, nil, nil)
+		trace, _ := globals.CtxTrace(ctx)
 		t.Logf("+ RetentionSweepConv(%v) (uptoWant %v) [chat-trace=%v]", convID.String(), uptoWant, trace)
 		res, err := tc.ri.RetentionSweepConv(ctx, convID)
 		t.Logf("- RetentionSweepConv res: %+v", res)
@@ -657,7 +666,15 @@ func sweepPollForDeletion(t *testing.T, ctc *chatTestContext, asUser *kbtest.Fak
 			foundTaskCount++
 		}
 		if res.DeletedMessages {
-			expungeInfo := consumeExpunge(t, listener)
+			var expungeInfo chat1.ExpungeInfo
+			for {
+				expungeInfo = consumeExpunge(t, listener)
+				if expungeInfo.Expunge == res.Expunge {
+					break
+				}
+				t.Logf("sweepPollForDeletion %+v != %+v, trying consumeExpunge again",
+					expungeInfo.Expunge, res.Expunge)
+			}
 			require.Equal(t, convID, expungeInfo.ConvID, "accidentally consumed expunge info for other conv")
 			upto = res.Expunge.Upto
 			if upto >= uptoWant {
@@ -1855,7 +1872,7 @@ func TestChatSrvGetOutbox(t *testing.T) {
 					Prev: 10,
 				},
 			},
-		}, nil, keybase1.TLFIdentifyBehavior_CHAT_CLI)
+		}, nil, nil, nil, keybase1.TLFIdentifyBehavior_CHAT_CLI)
 		require.NoError(t, err)
 
 		thread, err := h.GetThreadLocal(ctx, chat1.GetThreadLocalArg{
@@ -3655,7 +3672,6 @@ func TestChatSrvGetThreadNonblockError(t *testing.T) {
 }
 
 func TestChatSrvGetInboxNonblockError(t *testing.T) {
-	t.Skip()
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		ctc := makeChatTestContext(t, "GetInboxNonblockLocal", 1)
 		defer ctc.cleanup()
@@ -5100,11 +5116,11 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		})
 		sender := NewBlockingSender(tc.Context(), NewBoxer(tc.Context()),
 			func() chat1.RemoteInterface { return ri })
-		prepareRes, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote.Conv)
+		prepareRes, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote.Conv, nil)
 		require.NoError(t, err)
 		msg1 := prepareRes.Boxed
 		ts1 := prepareRes.TopicNameState
-		prepareRes, err = sender.Prepare(ctx, plarg.Msg, mt, &convRemote.Conv)
+		prepareRes, err = sender.Prepare(ctx, plarg.Msg, mt, &convRemote.Conv, nil)
 		require.NoError(t, err)
 		msg2 := prepareRes.Boxed
 		ts2 := prepareRes.TopicNameState
@@ -5166,7 +5182,7 @@ func TestChatSrvUnboxMobilePushNotification(t *testing.T) {
 		ri := ctc.as(t, users[0]).ri
 		sender := NewBlockingSender(tc.Context(), NewBoxer(tc.Context()),
 			func() chat1.RemoteInterface { return ri })
-		prepareRes, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote.Conv)
+		prepareRes, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote.Conv, nil)
 		require.NoError(t, err)
 		msg := prepareRes.Boxed
 		msg.ServerHeader = &chat1.MessageServerHeader{
@@ -5218,12 +5234,12 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 				require.Fail(t, "no identify")
 			}
 			require.Empty(t, update.Breaks.Breaks)
-			CtxIdentifyNotifier(ctx).Reset()
-			CtxKeyFinder(ctx, tc.Context()).Reset()
+			globals.CtxIdentifyNotifier(ctx).Reset()
+			globals.CtxKeyFinder(ctx, tc.Context()).Reset()
 		}
 
 		ctx := ctc.as(t, users[0]).startCtx
-		ctx = CtxModifyIdentifyNotifier(ctx, NewSimpleIdentifyNotifier(tc.Context()))
+		ctx = globals.CtxModifyIdentifyNotifier(ctx, NewSimpleIdentifyNotifier(tc.Context()))
 		tc.Context().PushHandler.(*PushHandler).identNotifier = DummyIdentifyNotifier{}
 		tc1.Context().PushHandler.(*PushHandler).identNotifier = DummyIdentifyNotifier{}
 
@@ -5281,7 +5297,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 
 		// user 1 sends a message to conv
 		ctx = ctc.as(t, users[1]).startCtx
-		ctx = CtxModifyIdentifyNotifier(ctx, NewSimpleIdentifyNotifier(tc1.Context()))
+		ctx = globals.CtxModifyIdentifyNotifier(ctx, NewSimpleIdentifyNotifier(tc1.Context()))
 		_, err = ctc.as(t, users[1]).chatLocalHandler().PostLocal(ctx, chat1.PostLocalArg{
 			ConversationID: ncres.Conv.Info.Id,
 			Msg: chat1.MessagePlaintext{
@@ -6448,35 +6464,36 @@ func TestReacjiStore(t *testing.T) {
 		ctc.as(t, user).h.G().NotifyRouter.AddListener(listener)
 		tc.ChatG.Syncer.(*Syncer).isConnected = true
 		reacjiStore := storage.NewReacjiStore(ctc.as(t, user).h.G())
-		assertTopReacjis := func(actual, expected []string, expectedMap storage.ReacjiMap) {
-			require.Len(t, actual, 5)
+		assertReacjiStore := func(actual, expected keybase1.UserReacjis, expectedData *storage.ReacjiInternalStorage) {
 			require.Equal(t, expected, actual)
-			require.Equal(t, expectedMap, reacjiStore.Get(ctx, uid))
-
+			data := reacjiStore.GetInternalStore(ctx, uid)
+			require.Equal(t, expectedData, data)
 		}
 
-		expectedMap := make(storage.ReacjiMap)
+		expectedData := storage.NewReacjiInternalStorage()
 		conv := mustCreateConversationForTest(t, ctc, user, chat1.TopicType_CHAT, mt)
 		// if the user has no history we return the default list
-		top5 := tc.G.ChatHelper.TopReacjis(ctx, uid)
-		assertTopReacjis(top5, storage.DefaultTopReacjis, expectedMap)
+		userReacjis := tc.G.ChatHelper.UserReacjis(ctx, uid)
+		assertReacjiStore(userReacjis, keybase1.UserReacjis{TopReacjis: storage.DefaultTopReacjis}, expectedData)
 
 		// post a bunch of reactions, we should end up with these reactions
 		// replacing the defaults sorted alphabetically (since they tie on
 		// being used once each)
-		reactionKeys := []string{"e", "d", "c", "b", "a"}
-		expected := make([]string, len(storage.DefaultTopReacjis))
-		copy(expected, storage.DefaultTopReacjis)
+		reactionKeys := []string{"g", "f", "e", "d", "c", "b", "a"}
 		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
 		textID := mustPostLocalForTest(t, ctc, user, conv, msg)
 		consumeNewMsgRemote(t, listener, chat1.MessageType_TEXT)
-		for _, reaction := range reactionKeys {
-			expectedMap[reaction]++
+		expected := keybase1.UserReacjis{}
+		for i, reaction := range reactionKeys {
+			expectedData.FrequencyMap[reaction]++
 			mustReactToMsg(ctx, t, ctc, user, conv, textID, reaction)
 			consumeNewMsgRemote(t, listener, chat1.MessageType_REACTION)
-			expected = append([]string{reaction}, expected...)[:len(storage.DefaultTopReacjis)]
 			info := consumeReactionUpdate(t, listener)
-			assertTopReacjis(info.TopReacjis, expected, expectedMap)
+			expected.TopReacjis = append([]string{reaction}, expected.TopReacjis...)
+			if i < 5 {
+				expected.TopReacjis = append(expected.TopReacjis, storage.DefaultTopReacjis...)[:len(storage.DefaultTopReacjis)]
+			}
+			assertReacjiStore(info.UserReacjis, expected, expectedData)
 		}
 		// bump "a" to the most frequent
 		msg = chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
@@ -6484,8 +6501,16 @@ func TestReacjiStore(t *testing.T) {
 		consumeNewMsgRemote(t, listener, chat1.MessageType_TEXT)
 		mustReactToMsg(ctx, t, ctc, user, conv, textID2, "a")
 		consumeNewMsgRemote(t, listener, chat1.MessageType_REACTION)
-		expectedMap["a"]++
+		expectedData.FrequencyMap["a"]++
 		info := consumeReactionUpdate(t, listener)
-		assertTopReacjis(info.TopReacjis, expected, expectedMap)
+		assertReacjiStore(info.UserReacjis, expected, expectedData)
+
+		// putSkinTone
+		expectedSkinTone := keybase1.ReacjiSkinTone(4)
+		userReacjis, err := ctc.as(t, user).chatLocalHandler().PutReacjiSkinTone(ctx, expectedSkinTone)
+		require.NoError(t, err)
+		expected.SkinTone = expectedSkinTone
+		expectedData.SkinTone = expectedSkinTone
+		assertReacjiStore(userReacjis, expected, expectedData)
 	})
 }

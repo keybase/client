@@ -10,7 +10,9 @@ import (
 
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/service"
+	context "golang.org/x/net/context"
 )
 
 func (v *versionUI) GetDumbOutputUI() libkb.DumbOutputUI {
@@ -88,7 +90,7 @@ func TestVersionAndStop(t *testing.T) {
 
 	vui.checkVersionOutput(t)
 
-	if err := client.CtlServiceStop(tc2.G); err != nil {
+	if err := CtlStop(tc2.G); err != nil {
 		t.Fatal(err)
 	}
 
@@ -96,4 +98,12 @@ func TestVersionAndStop(t *testing.T) {
 	if err := <-stopCh; err != nil {
 		t.Fatal(err)
 	}
+}
+
+func CtlStop(g *libkb.GlobalContext) error {
+	cli, err := client.GetCtlClient(g)
+	if err != nil {
+		return err
+	}
+	return cli.StopService(context.TODO(), keybase1.StopServiceArg{ExitCode: keybase1.ExitCode_OK})
 }

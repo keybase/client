@@ -38,7 +38,7 @@ func TestInboxSourceUpdateRace(t *testing.T) {
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "HIHI",
 		}),
-	}, 0, nil, nil)
+	}, 0, nil, nil, nil)
 	require.NoError(t, err)
 
 	ib, _, err := tc.ChatG.InboxSource.Read(ctx, u.User.GetUID().ToBytes(),
@@ -123,7 +123,7 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "HIHI",
 		}),
-	}, chat1.ConversationMembersType_KBFS, &conv)
+	}, chat1.ConversationMembersType_KBFS, &conv, nil)
 	require.NoError(t, err)
 	boxed := prepareRes.Boxed
 
@@ -211,7 +211,7 @@ func TestInboxSourceFlushLoop(t *testing.T) {
 	_, rc, err = inbox.ReadAll(ctx, uid, true)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(rc))
-	tc.Context().AppState.Update(keybase1.AppState_BACKGROUND)
+	tc.Context().MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
 	select {
 	case <-flushCh:
 	case <-time.After(20 * time.Second):

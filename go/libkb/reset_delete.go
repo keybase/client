@@ -4,30 +4,42 @@ import (
 	"errors"
 )
 
-func ResetAccount(m MetaContext, username NormalizedUsername, passphrase string) (err error) {
-	defer m.Trace("ResetAccount", func() error { return err })()
-	return resetOrDeleteAccount(m, username, passphrase, "nuke")
+func CancelResetPipeline(mctx MetaContext) (err error) {
+	defer mctx.TraceTimed("CancelResetPipeline", func() error { return err })()
+	_, err = mctx.G().API.Post(mctx, APIArg{
+		Endpoint:    "autoreset/cancel",
+		SessionType: APISessionTypeREQUIRED,
+		Args: HTTPArgs{
+			"src": S{Val: "app"},
+		},
+	})
+	return err
 }
 
-func DeleteAccount(m MetaContext, username NormalizedUsername, passphrase string) (err error) {
-	defer m.Trace("DeleteAccount", func() error { return err })()
-	return resetOrDeleteAccount(m, username, passphrase, "delete")
+func ResetAccount(mctx MetaContext, username NormalizedUsername, passphrase string) (err error) {
+	defer mctx.Trace("ResetAccount", func() error { return err })()
+	return resetOrDeleteAccount(mctx, username, passphrase, "nuke")
 }
 
-func resetOrDeleteAccount(m MetaContext, username NormalizedUsername, passphrase string, endpoint string) (err error) {
-	defer m.Trace("resetOrDeleteAccount", func() error { return err })()
+func DeleteAccount(mctx MetaContext, username NormalizedUsername, passphrase string) (err error) {
+	defer mctx.Trace("DeleteAccount", func() error { return err })()
+	return resetOrDeleteAccount(mctx, username, passphrase, "delete")
+}
 
-	m = m.WithNewProvisionalLoginContext()
-	err = PassphraseLoginNoPrompt(m, username.String(), passphrase)
+func resetOrDeleteAccount(mctx MetaContext, username NormalizedUsername, passphrase string, endpoint string) (err error) {
+	defer mctx.Trace("resetOrDeleteAccount", func() error { return err })()
+
+	mctx = mctx.WithNewProvisionalLoginContext()
+	err = PassphraseLoginNoPrompt(mctx, username.String(), passphrase)
 	if err != nil {
 		return err
 	}
-	pps := m.PassphraseStream()
+	pps := mctx.PassphraseStream()
 	if pps == nil {
 		return errors.New("unexpected nil passphrase stream")
 	}
 
-	pdpka, err := ComputeLoginPackage2(m, pps)
+	pdpka, err := ComputeLoginPackage2(mctx, pps)
 	if err != nil {
 		return err
 	}
@@ -38,6 +50,6 @@ func resetOrDeleteAccount(m MetaContext, username NormalizedUsername, passphrase
 		Args:        NewHTTPArgs(),
 	}
 	pdpka.PopulateArgs(&arg.Args)
-	_, err = m.G().API.Post(m, arg)
+	_, err = mctx.G().API.Post(mctx, arg)
 	return err
 }

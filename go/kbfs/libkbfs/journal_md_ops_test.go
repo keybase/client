@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -81,7 +82,7 @@ func teardownJournalMDOpsTest(t *testing.T, tempdir string, ctx context.Context,
 }
 
 func makeMDForJournalMDOpsTest(
-	t *testing.T, config Config, tlfID tlf.ID, h *TlfHandle,
+	t *testing.T, config Config, tlfID tlf.ID, h *tlfhandle.Handle,
 	revision kbfsmd.Revision) *RootMetadata {
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), tlfID, h)
 	require.NoError(t, err)
@@ -107,7 +108,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 		[]keybase1.UserOrTeamID{session.UID.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
-	h, err := MakeTlfHandle(
+	h, err := tlfhandle.MakeHandle(
 		ctx, bh, bh.Type(), config.KBPKI(), config.KBPKI(), nil,
 		keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
@@ -120,7 +121,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	irmd, err := mdOps.GetForTLF(ctx, id, nil)
 	require.NoError(t, err)
 	require.Equal(t, ImmutableRootMetadata{}, irmd)
-	h.tlfID = id
+	h.SetTlfID(id)
 
 	err = jManager.Enable(ctx, id, nil, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
@@ -285,7 +286,7 @@ func TestJournalMDOpsPutUnmerged(t *testing.T) {
 		[]keybase1.UserOrTeamID{session.UID.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
-	h, err := MakeTlfHandle(
+	h, err := tlfhandle.MakeHandle(
 		ctx, bh, bh.Type(), config.KBPKI(), config.KBPKI(), nil,
 		keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
@@ -321,7 +322,7 @@ func TestJournalMDOpsPutUnmergedError(t *testing.T) {
 		[]keybase1.UserOrTeamID{session.UID.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
-	h, err := MakeTlfHandle(
+	h, err := tlfhandle.MakeHandle(
 		ctx, bh, bh.Type(), config.KBPKI(), config.KBPKI(), nil,
 		keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
@@ -355,7 +356,7 @@ func TestJournalMDOpsLocalSquashBranch(t *testing.T) {
 		[]keybase1.UserOrTeamID{session.UID.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
-	h, err := MakeTlfHandle(
+	h, err := tlfhandle.MakeHandle(
 		ctx, bh, bh.Type(), config.KBPKI(), config.KBPKI(), nil,
 		keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)

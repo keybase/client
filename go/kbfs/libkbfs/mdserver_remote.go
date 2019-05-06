@@ -11,8 +11,10 @@ import (
 	"time"
 
 	"github.com/keybase/backoff"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -83,7 +85,7 @@ type MDServerRemote struct {
 var _ MDServer = (*MDServerRemote)(nil)
 
 // Test that MDServerRemote fully implements the KeyServer interface.
-var _ KeyServer = (*MDServerRemote)(nil)
+var _ libkey.KeyServer = (*MDServerRemote)(nil)
 
 // Test that MDServerRemote fully implements the AuthTokenRefreshHandler interface.
 var _ kbfscrypto.AuthTokenRefreshHandler = (*MDServerRemote)(nil)
@@ -198,6 +200,7 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 	server *rpc.Server) (err error) {
 
 	defer func() {
+		md.config.Reporter().OnlineStatusChanged(ctx, err == nil)
 		if err == nil {
 			md.config.Reporter().Notify(ctx,
 				connectionNotification(connectionStatusConnected))
@@ -220,7 +223,7 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 	pingIntervalSeconds, err := md.resetAuth(ctx, c)
 	switch err.(type) {
 	case nil:
-	case NoCurrentSessionError:
+	case idutil.NoCurrentSessionError:
 		md.log.CInfof(ctx, "Logged-out user")
 	default:
 		return err
@@ -242,8 +245,9 @@ const (
 )
 
 // resetAuth is called to reset the authorization on an MDServer
-// connection.  If this function returns NoCurrentSessionError, the
-// caller should treat this as a logged-out user.
+// connection.  If this function returns
+// idutil.NoCurrentSessionError, the caller should treat this as a
+// logged-out user.
 func (md *MDServerRemote) resetAuth(
 	ctx context.Context, c keybase1.MetadataClient) (int, error) {
 	ctx = context.WithValue(ctx, ctxMDServerResetKey, "1")
@@ -324,7 +328,7 @@ func (md *MDServerRemote) RefreshAuthToken(ctx context.Context) {
 	switch err.(type) {
 	case nil:
 		md.log.CInfof(ctx, "MDServerRemote: auth token refreshed")
-	case NoCurrentSessionError:
+	case idutil.NoCurrentSessionError:
 		md.log.CInfof(ctx,
 			"MDServerRemote: no session available, connection remains anonymous")
 	default:
@@ -392,6 +396,7 @@ func (md *MDServerRemote) OnConnectError(err error, wait time.Duration) {
 	}
 
 	md.config.KBFSOps().PushConnectionStatusChange(MDServiceName, err)
+	md.config.Reporter().OnlineStatusChanged(context.Background(), false)
 }
 
 // OnDoCommandError implements the ConnectionHandler interface.
@@ -401,6 +406,7 @@ func (md *MDServerRemote) OnDoCommandError(err error, wait time.Duration) {
 	// Only push errors that should not be retried as connection status changes.
 	if !md.ShouldRetry("", err) {
 		md.config.KBFSOps().PushConnectionStatusChange(MDServiceName, err)
+		md.config.Reporter().OnlineStatusChanged(context.Background(), false)
 	}
 }
 
@@ -411,6 +417,7 @@ func (md *MDServerRemote) OnDisconnected(ctx context.Context,
 		md.log.CWarningf(ctx, "MDServerRemote is disconnected")
 		md.config.Reporter().Notify(ctx,
 			connectionNotification(connectionStatusDisconnected))
+		md.config.Reporter().OnlineStatusChanged(ctx, false)
 	}
 
 	func() {
@@ -435,6 +442,7 @@ func (md *MDServerRemote) OnDisconnected(ctx context.Context,
 
 	if status == rpc.StartingNonFirstConnection {
 		md.config.KBFSOps().PushConnectionStatusChange(MDServiceName, errDisconnected{})
+		md.config.Reporter().OnlineStatusChanged(ctx, false)
 	}
 }
 
@@ -693,8 +701,9 @@ func (md *MDServerRemote) GetForTLFByTime(
 
 // GetRange implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) GetRange(ctx context.Context, id tlf.ID,
-	bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus, start, stop kbfsmd.Revision,
-	lockBeforeGet *keybase1.LockID) (rmdses []*RootMetadataSigned, err error) {
+	bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus,
+	start, stop kbfsmd.Revision, lockBeforeGet *keybase1.LockID) (
+	rmdses []*RootMetadataSigned, err error) {
 	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "MDServer: GetRange %s %s %s %d-%d", id, bid, mStatus, start, stop)
 	defer func() {

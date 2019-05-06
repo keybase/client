@@ -4,6 +4,7 @@ import * as Container from '../../util/container'
 import * as Constants from '../../constants/devices'
 import PaperKey from '.'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import flags from '../../util/feature-flags'
 
 type OwnProps = {||}
 
@@ -13,7 +14,11 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onBack: () => {
+    flags.useNewRouter
+      ? dispatch(RouteTreeGen.createClearModals())
+      : dispatch(RouteTreeGen.createNavigateUp())
+  },
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({

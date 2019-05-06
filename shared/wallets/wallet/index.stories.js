@@ -13,12 +13,21 @@ const provider = Sb.createPropProviderWithCommon({
     isDefaultWallet: true,
     keybaseUser: 'cecileb',
     onReceive: Sb.action('onReceive'),
+    walletName: "cecileb's account",
+  }),
+  WalletDropdownButton: props => ({
+    disabled: false,
+    onSettings: Sb.action('onSettings'),
+    onShowSecretKey: Sb.action('onShowSecretKey'),
+    small: props.small,
+  }),
+  WalletSendButton: props => ({
+    disabled: false,
+    disabledDueToMobileOnly: false,
     onSendToAnotherAccount: Sb.action('onSendToAnotherAccount'),
     onSendToKeybaseUser: Sb.action('onSendToKeybaseUser'),
     onSendToStellarAddress: Sb.action('onSendToStellarAddress'),
-    onSettings: Sb.action('onSettings'),
-    onShowSecretKey: Sb.action('onShowSecretKey'),
-    walletName: "cecileb's account",
+    small: props.small,
   }),
 })
 

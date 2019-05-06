@@ -44,14 +44,14 @@ func (r *userHandler) Create(ctx context.Context, cli gregor1.IncomingInterface,
 }
 
 func (r *userHandler) keyChange(m libkb.MetaContext) error {
-	m.G().KeyfamilyChanged(m.G().Env.GetUID())
+	m.G().KeyfamilyChanged(m.Ctx(), m.G().Env.GetUID())
 
 	// check if this device was just revoked and if so, log out
 	return m.LogoutAndDeprovisionIfRevoked()
 }
 
 func (r *userHandler) identityChange(m libkb.MetaContext) error {
-	m.G().UserChanged(m.G().Env.GetUID())
+	m.G().UserChanged(m.Ctx(), m.G().Env.GetUID())
 	return nil
 }
 

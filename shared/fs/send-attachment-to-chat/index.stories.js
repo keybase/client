@@ -22,7 +22,8 @@ export const provider = Sb.createPropProviderWithCommon({
 
 const common = {
   onCancel: Sb.action('onCancel'),
-  onSend: Sb.action('onSend'),
+  send: Sb.action('send'),
+  sendAttachmentToChatState: 'ready-to-send',
 }
 
 const load = () =>

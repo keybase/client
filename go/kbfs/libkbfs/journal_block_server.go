@@ -21,7 +21,7 @@ type journalBlockServer struct {
 var _ BlockServer = journalBlockServer{}
 
 func (j journalBlockServer) getBlockFromJournal(
-	tlfID tlf.ID, id kbfsblock.ID) (
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID) (
 	data []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
 	found bool, err error) {
 	tlfJournal, ok := j.jManager.getTLFJournal(tlfID, nil)
@@ -32,7 +32,7 @@ func (j journalBlockServer) getBlockFromJournal(
 	defer func() {
 		err = translateToBlockServerError(err)
 	}()
-	data, serverHalf, err = tlfJournal.getBlockData(id)
+	data, serverHalf, err = tlfJournal.getBlockData(ctx, id)
 	switch errors.Cause(err).(type) {
 	case nil:
 		return data, serverHalf, true, nil
@@ -46,7 +46,7 @@ func (j journalBlockServer) getBlockFromJournal(
 }
 
 func (j journalBlockServer) getBlockSizeFromJournal(
-	tlfID tlf.ID, id kbfsblock.ID) (
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID) (
 	size uint32, found bool, err error) {
 	tlfJournal, ok := j.jManager.getTLFJournal(tlfID, nil)
 	if !ok {
@@ -56,7 +56,7 @@ func (j journalBlockServer) getBlockSizeFromJournal(
 	defer func() {
 		err = translateToBlockServerError(err)
 	}()
-	size, err = tlfJournal.getBlockSize(id)
+	size, err = tlfJournal.getBlockSize(ctx, id)
 	switch errors.Cause(err).(type) {
 	case nil:
 		return size, true, nil
@@ -78,7 +78,7 @@ func (j journalBlockServer) Get(
 		j.jManager.deferLog.LazyTrace(ctx, "jBServer: Get %s done (err=%v)", id, err)
 	}()
 
-	data, serverHalf, found, err := j.getBlockFromJournal(tlfID, id)
+	data, serverHalf, found, err := j.getBlockFromJournal(ctx, tlfID, id)
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
@@ -200,7 +200,7 @@ func (j journalBlockServer) IsUnflushed(ctx context.Context, tlfID tlf.ID,
 		defer func() {
 			err = translateToBlockServerError(err)
 		}()
-		return tlfJournal.isBlockUnflushed(id)
+		return tlfJournal.isBlockUnflushed(ctx, id)
 	}
 
 	return j.BlockServer.IsUnflushed(ctx, tlfID, id)

@@ -4,7 +4,7 @@
   "types": [
     {
       "type": "enum",
-      "name": "AppState",
+      "name": "MobileAppState",
       "symbols": [
         "FOREGROUND_0",
         "BACKGROUND_1",
@@ -14,11 +14,11 @@
     }
   ],
   "messages": {
-    "updateAppState": {
+    "powerMonitorEvent": {
       "request": [
         {
-          "name": "state",
-          "type": "AppState"
+          "name": "event",
+          "type": "string"
         }
       ],
       "response": null

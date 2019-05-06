@@ -30,6 +30,14 @@ export function formatTimeForAssertionPopup(time: number): string {
   return '[mocked]'
 }
 
+export function formatTimeForDeviceTimeline(time: number): string {
+  return '[mocked]'
+}
+
+export function formatTimeRelativeToNow(time: number): string {
+  return '[mocked]'
+}
+
 export function daysToLabel(days: number): string {
   return '[mocked]'
 }

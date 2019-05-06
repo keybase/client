@@ -64,6 +64,8 @@ func NewFastTeamLoader(g *libkb.GlobalContext) *FastTeamChainLoader {
 func NewFastTeamLoaderAndInstall(g *libkb.GlobalContext) *FastTeamChainLoader {
 	l := NewFastTeamLoader(g)
 	g.SetFastTeamLoader(l)
+	g.AddLogoutHook(l, "fastTeamLoader")
+	g.AddDbNukeHook(l, "fastTeamLoader")
 	return l
 }
 
@@ -83,6 +85,7 @@ func FTL(m libkb.MetaContext, arg keybase1.FastTeamLoadArg) (res keybase1.FastTe
 func (f *FastTeamChainLoader) Load(m libkb.MetaContext, arg keybase1.FastTeamLoadArg) (res keybase1.FastTeamLoadRes, err error) {
 	m = ftlLogTag(m)
 	defer m.TraceTimed(fmt.Sprintf("FastTeamChainLoader#Load(%+v)", arg), func() error { return err })()
+	originalArg := arg.DeepCopy()
 
 	err = f.featureFlagGate.ErrorIfFlagged(m)
 	if err != nil {
@@ -90,19 +93,31 @@ func (f *FastTeamChainLoader) Load(m libkb.MetaContext, arg keybase1.FastTeamLoa
 	}
 
 	res, err = f.loadOneAttempt(m, arg)
-	if err != nil || arg.AssertTeamName == nil || arg.AssertTeamName.Eq(res.Name) {
-		return res, err
-	}
-
-	m.Debug("Did not get expected subteam name; will reattempt with forceRefresh (%s != %s)", arg.AssertTeamName.String(), res.Name.String())
-	arg.ForceRefresh = true
-	res, err = f.loadOneAttempt(m, arg)
 	if err != nil {
 		return res, err
 	}
-	if !arg.AssertTeamName.Eq(res.Name) {
-		return res, NewBadNameError(fmt.Sprintf("After force-refresh, still bad team name: wanted %s, but got %s", arg.AssertTeamName.String(), res.Name.String()))
+
+	if arg.AssertTeamName != nil && !arg.AssertTeamName.Eq(res.Name) {
+		m.Debug("Did not get expected subteam name; will reattempt with forceRefresh (%s != %s)", arg.AssertTeamName.String(), res.Name.String())
+		arg.ForceRefresh = true
+		res, err = f.loadOneAttempt(m, arg)
+		if err != nil {
+			return res, err
+		}
+		if !arg.AssertTeamName.Eq(res.Name) {
+			return res, NewBadNameError(fmt.Sprintf("After force-refresh, still bad team name: wanted %s, but got %s", arg.AssertTeamName.String(), res.Name.String()))
+		}
 	}
+
+	if ShouldRunBoxAudit(m) {
+		newM, shouldReload := VerifyBoxAudit(m, res.Name.ToTeamID(arg.Public))
+		if shouldReload {
+			return f.Load(newM, originalArg)
+		}
+	} else {
+		m.Debug("Box auditor feature flagged off; not checking jail during ftl team load...")
+	}
+
 	return res, nil
 }
 
@@ -314,7 +329,12 @@ func (f *FastTeamChainLoader) deriveKeyForApplicationAtGeneration(m libkb.MetaCo
 		}
 	}
 	if mask == nil {
-		return key, NewFastLoadError(fmt.Sprintf("Could not get reader key mask for <%d,%d>", app, gen))
+		m.Debug("Could not get reader key mask for <%s,%d>", app, gen)
+		if state.ID().IsSubTeam() {
+			m.Debug("guessing lack of RKM is due to not being an explicit member of the subteam")
+			return key, NewNotExplicitMemberOfSubteamError()
+		}
+		return key, NewFastLoadError("Could not load application keys")
 	}
 
 	rkm := keybase1.ReaderKeyMask{
@@ -1236,10 +1256,18 @@ func (f *FastTeamChainLoader) loadLocked(m libkb.MetaContext, arg fastLoadArg) (
 	return f.toResult(m, arg, state)
 }
 
-// OnLogout is called when the user logs out, which pruges the LRU.
-func (f *FastTeamChainLoader) OnLogout() {
+// OnLogout is called when the user logs out, which purges the LRU.
+func (f *FastTeamChainLoader) OnLogout(mctx libkb.MetaContext) error {
 	f.storage.clearMem()
 	f.featureFlagGate.Clear()
+	return nil
+}
+
+// OnDbNuke is called when the disk cache is cleared, which purges the LRU.
+func (f *FastTeamChainLoader) OnDbNuke(mctx libkb.MetaContext) error {
+	f.storage.clearMem()
+	f.featureFlagGate.Clear()
+	return nil
 }
 
 func (f *FastTeamChainLoader) HintLatestSeqno(m libkb.MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) (err error) {

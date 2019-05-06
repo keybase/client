@@ -9,7 +9,11 @@ const mapStateToProps = () => ({})
 
 const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
   onCreateSubteam: () =>
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {makeSubteam: true, name: teamname}, selected: 'showNewTeamDialog'}]})),
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {makeSubteam: true, name: teamname}, selected: 'teamNewTeamDialog'}],
+      })
+    ),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({

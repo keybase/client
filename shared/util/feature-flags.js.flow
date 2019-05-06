@@ -4,14 +4,15 @@ export type FeatureFlags = {|
   airdrop: boolean,
   chatIndexProfilingEnabled: boolean,
   dbCleanEnabled: boolean,
+  enableDeleteFolder: boolean,
   foldersInProfileTab: boolean,
+  kbfsOfflineMode: boolean,
   moveOrCopy: boolean,
   // Enables the "Add up to 14 more people. Need more? Make it a team." feature
   newTeamBuildingForChatAllowMakeTeam: boolean,
   outOfDateBanner: boolean,
   plansEnabled: boolean,
   proofProviders: boolean,
-  sendAttachmentToChat: boolean,
   useNewRouter: boolean,
 |}
 

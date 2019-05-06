@@ -129,10 +129,21 @@ class Icon extends Component<Props, void> {
       ])
 
       return (
-        <div style={this.props.boxStyle}>
+        <div
+          style={Styles.collapseStyles([
+            // This breaks a couple existing uses. So only apply it when padding
+            // is provided for now. Eventually after we know all uses are fine,
+            // we can remove the padding guard.
+            this.props.padding && styles.flex,
+            this.props.boxStyle,
+          ])}
+        >
           <span
             alt={this.props.hint}
-            style={style}
+            style={Styles.collapseStyles([
+              style,
+              this.props.padding && Shared.paddingStyles[this.props.padding],
+            ])}
             className={Styles.classNames(
               'icon',
               colorStyleName,
@@ -195,5 +206,11 @@ export function urlsToImgSet(imgMap: {[size: string]: string}, targetSize: numbe
 export function castPlatformStyles(styles: any) {
   return Shared.castPlatformStyles(styles)
 }
+
+const styles = Styles.styleSheetCreate({
+  // Needed because otherwise the containing box doesn't calculate the size of
+  // the inner span (incl padding) properly
+  flex: {display: 'flex'},
+})
 
 export default Icon

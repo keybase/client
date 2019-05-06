@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Constants from '../../constants/devices'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import flags from '../../util/feature-flags'
 
 type Props = {
   paperkey: string,
@@ -20,7 +21,7 @@ class PaperKey extends React.Component<Props, State> {
   render() {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        <Kb.HeaderHocHeader onBack={this.props.onBack} headerStyle={styles.header} />
+        {!flags.useNewRouter && <Kb.HeaderHocHeader onBack={this.props.onBack} headerStyle={styles.header} />}
         <Kb.Box2
           direction="vertical"
           fullWidth={true}
@@ -36,7 +37,13 @@ class PaperKey extends React.Component<Props, State> {
           </Kb.Text>
           <Kb.Box2 direction="vertical" style={styles.keyBox} centerChildren={true} fullWidth={true}>
             {this.props.paperkey ? (
-              <Kb.Text center={true} type="Header" selectable={true} style={styles.text}>
+              <Kb.Text
+                center={true}
+                type="Header"
+                selectable={true}
+                style={styles.text}
+                textBreakStrategy="simple"
+              >
                 {this.props.paperkey}
               </Kb.Text>
             ) : (
@@ -51,7 +58,6 @@ class PaperKey extends React.Component<Props, State> {
             onCheck={wroteItDown => this.setState({wroteItDown})}
           />
           <Kb.WaitingButton
-            type="Primary"
             label="Done"
             onClick={this.props.onBack}
             disabled={!this.state.wroteItDown}

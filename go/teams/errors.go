@@ -289,6 +289,18 @@ func (e ImplicitAdminCannotLeaveError) Error() string {
 	return "You cannot leave this team. You are an implicit admin (admin of a parent team) but not an explicit member."
 }
 
+type NotExplicitMemberOfSubteamError struct{}
+
+func NewNotExplicitMemberOfSubteamError() error { return NotExplicitMemberOfSubteamError{} }
+
+func (e NotExplicitMemberOfSubteamError) Error() string {
+	return "You are not an explicit member of this subteam, so you can't access chats or files; try adding yourself (if you're an admin of the parent team)"
+}
+
+func (e NotExplicitMemberOfSubteamError) HumanError() error {
+	return e
+}
+
 type TeamDeletedError struct{}
 
 func NewTeamDeletedError() error { return &TeamDeletedError{} }
@@ -489,4 +501,26 @@ func NewCompoundInviteError(s string) error {
 
 func (e CompoundInviteError) Error() string {
 	return fmt.Sprintf("cannot pair an invitation with a compound assertion (%s)", e.Assertion)
+}
+
+type StaleBoxError interface {
+	IsStaleBoxError()
+}
+
+type BoxRaceError struct {
+	inner error
+}
+
+func (e BoxRaceError) Error() string {
+	return e.inner.Error()
+}
+
+func (e BoxRaceError) IsStaleBoxError() {}
+
+func isStaleBoxError(err error) bool {
+	if err == nil {
+		return false
+	}
+	_, ok := err.(StaleBoxError)
+	return ok
 }

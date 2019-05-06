@@ -2195,6 +2195,28 @@ func (u UserPlusKeysV2AllIncarnations) ToUserVersion() UserVersion {
 	return u.Current.ToUserVersion()
 }
 
+func (u UserPlusKeysV2AllIncarnations) GetPerUserKeyAtSeqno(uv UserVersion, seqno Seqno, merkleSeqno Seqno) (*PerUserKey, error) {
+	incarnations := u.AllIncarnations()
+	for _, incarnation := range incarnations {
+		if incarnation.EldestSeqno == uv.EldestSeqno {
+			if incarnation.Reset != nil && incarnation.Reset.MerkleRoot.Seqno <= merkleSeqno {
+				return nil, nil
+			}
+			if len(incarnation.PerUserKeys) == 0 {
+				return nil, nil
+			}
+			for i := range incarnation.PerUserKeys {
+				perUserKey := incarnation.PerUserKeys[len(incarnation.PerUserKeys)-1-i]
+				if perUserKey.Seqno <= seqno {
+					return &perUserKey, nil
+				}
+			}
+			return nil, fmt.Errorf("didn't find per user key at seqno %d for uv %v", seqno, uv)
+		}
+	}
+	return nil, fmt.Errorf("didn't find uv %v in upak", uv)
+}
+
 // Can return nil.
 func (u UserPlusKeysV2) GetLatestPerUserKey() *PerUserKey {
 	if len(u.PerUserKeys) > 0 {
@@ -2674,4 +2696,50 @@ func (d FastTeamData) IsPublic() bool {
 
 func (f FullName) String() string {
 	return string(f)
+}
+
+func (h BoxSummaryHash) String() string {
+	return string(h)
+}
+
+func (r BoxAuditAttemptResult) IsOK() bool {
+	switch r {
+	case BoxAuditAttemptResult_OK_VERIFIED, BoxAuditAttemptResult_OK_NOT_ATTEMPTED_ROLE, BoxAuditAttemptResult_OK_NOT_ATTEMPTED_OPENTEAM, BoxAuditAttemptResult_OK_NOT_ATTEMPTED_SUBTEAM:
+		return true
+	default:
+		return false
+	}
+}
+
+func (a BoxAuditAttempt) String() string {
+	ret := fmt.Sprintf("%s", a.Result)
+	if a.Error != nil {
+		ret += fmt.Sprintf("\t(error: %s)", *a.Error)
+	}
+	if a.Rotated {
+		ret += "\t(team rotated)"
+	}
+	return ret
+}
+
+func (r RegionCode) IsNil() bool {
+	return len(r) == 0
+}
+
+func (c ContactComponent) ValueString() string {
+	switch {
+	case c.Email != nil:
+		return string(*c.Email)
+	case c.PhoneNumber != nil:
+		return string(*c.PhoneNumber)
+	default:
+		return ""
+	}
+}
+
+func (c ContactComponent) FormatDisplayLabel(addLabel bool) string {
+	if addLabel && c.Label != "" {
+		return fmt.Sprintf("%s (%s)", c.ValueString(), c.Label)
+	}
+	return c.ValueString()
 }

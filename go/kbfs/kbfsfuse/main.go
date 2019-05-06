@@ -91,11 +91,15 @@ func start() *libfs.Error {
 	}
 
 	if kbfsParams.Debug {
+		// Temporary, until we make a config and can make a vlogger.
 		fuseLog := logger.NewWithCallDepth("FUSE", 1)
 		fuseLog.Configure("", true, "")
 		fuse.Debug = libfuse.MakeFuseDebugFn(
 			fuseLog, false /* superVerbose */)
 	}
+
+	logger.EnableBufferedLogging()
+	defer logger.Shutdown()
 
 	options := libfuse.StartOptions{
 		KbfsParams:        *kbfsParams,

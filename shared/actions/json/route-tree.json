@@ -2,7 +2,8 @@
   "prelude": [
     "import * as Types from '../constants/types/route-tree'",
     "import * as Constants from '../constants/route-tree'",
-    "import * as RCConstants from '../route-tree'"
+    "import * as RCConstants from '../route-tree'",
+    "import * as Tabs from '../constants/tabs'"
   ],
   "actions": {
     "setInitialRouteDef": {
@@ -23,11 +24,13 @@
     },
     "navigateTo": {
       "path": "RCConstants.PropsPath<any>",
-      "parentPath?": "?RCConstants.Path"
+      "parentPath?": "?RCConstants.Path",
+      "replace?": "boolean"
     },
     "navigateAppend": {
       "path": "RCConstants.PropsPath<any>",
-      "parentPath?": "?RCConstants.Path"
+      "parentPath?": "?RCConstants.Path",
+      "replace?": "boolean"
     },
     "navigateUp": {},
     "putActionIfOnPath": {
@@ -48,6 +51,16 @@
     "navUpToScreen": {
       "_description": "ONLY used by the new nav. Navigates up to this route if it already exists, noops otherwise.",
       "routeName": "string"
+    },
+    "switchTab": {
+      "_description": "ONLY used by the new nav. Switch to a different tab.",
+      "tab": "Tabs.AppTab"
+    },
+    "resetStack": {
+      "_description": "Reset a specific stack. actions is route tree actions TODO better typing",
+      "tab": "Tabs.AppTab",
+      "actions": "Array<any>",
+      "index": "number"
     }
   }
 }

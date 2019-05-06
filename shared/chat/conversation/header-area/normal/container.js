@@ -10,19 +10,12 @@ import {createShowUserProfile} from '../../../../actions/profile-gen'
 
 type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
-  isPending: boolean,
   infoPanelOpen: boolean,
   onToggleInfoPanel: () => void,
 |}
 
-const mapStateToProps = (state, {infoPanelOpen, conversationIDKey, isPending}) => {
-  let meta = Constants.getMeta(state, conversationIDKey)
-  if (isPending) {
-    const resolved = Constants.getResolvedPendingConversationIDKey(state)
-    if (Constants.isValidConversationIDKey(resolved)) {
-      meta = Constants.getMeta(state, resolved)
-    }
-  }
+const mapStateToProps = (state, {infoPanelOpen, conversationIDKey}) => {
+  const meta = Constants.getMeta(state, conversationIDKey)
   const _participants = meta.teamname ? I.Set() : meta.participants
 
   return {
@@ -31,20 +24,19 @@ const mapStateToProps = (state, {infoPanelOpen, conversationIDKey, isPending}) =
     _participants,
     channelName: meta.channelname,
     infoPanelOpen,
-    isPending,
     muted: meta.isMuted,
     smallTeam: meta.teamType !== 'big',
     teamName: meta.teamname,
   }
 }
 
-const mapDispatchToProps = (dispatch, {onToggleInfoPanel, conversationIDKey}) => ({
-  _onCancel: () => dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
+const mapDispatchToProps = (dispatch, {onToggleInfoPanel, onToggleThreadSearch, conversationIDKey}) => ({
   _onOpenFolder: () => dispatch(Chat2Gen.createOpenFolder({conversationIDKey})),
   _onUnMuteConversation: () => dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: false})),
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
   onToggleInfoPanel,
+  onToggleThreadSearch: () => dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({
@@ -54,15 +46,14 @@ const mergeProps = (stateProps, dispatchProps) => ({
       currentConvID !== stateProps._conversationIDKey ? res + currentValue : res,
     0
   ),
-  canOpenInfoPanel: !stateProps.isPending,
   channelName: stateProps.channelName,
   infoPanelOpen: stateProps.infoPanelOpen,
   muted: stateProps.muted,
   onBack: dispatchProps.onBack,
-  onCancelPending: stateProps.isPending ? dispatchProps._onCancel : null,
-  onOpenFolder: stateProps.isPending ? null : dispatchProps._onOpenFolder,
+  onOpenFolder: dispatchProps._onOpenFolder,
   onShowProfile: dispatchProps.onShowProfile,
   onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
+  onToggleThreadSearch: dispatchProps.onToggleThreadSearch,
   participants: stateProps._participants.toArray(),
   smallTeam: stateProps.smallTeam,
   teamName: stateProps.teamName,

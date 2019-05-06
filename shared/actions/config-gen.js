@@ -7,6 +7,7 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/config'
 import * as Tabs from '../constants/tabs'
 import * as ChatTypes from '../constants/types/chat2'
+import * as FsTypes from '../constants/types/fs'
 import {RPCError} from '../util/errors'
 
 // Constants
@@ -55,7 +56,7 @@ export const updateMenubarWindowID = 'config:updateMenubarWindowID'
 export const updateNow = 'config:updateNow'
 
 // Payload Types
-type _BootstrapStatusLoadedPayload = $ReadOnly<{|deviceID: string, deviceName: string, followers: Array<string>, following: Array<string>, loggedIn: boolean, registered: boolean, uid: string, username: string|}>
+type _BootstrapStatusLoadedPayload = $ReadOnly<{|deviceID: string, deviceName: string, followers: Array<string>, following: Array<string>, fullname: string, loggedIn: boolean, registered: boolean, uid: string, username: string|}>
 type _ChangedActivePayload = $ReadOnly<{|userActive: boolean|}>
 type _ChangedFocusPayload = $ReadOnly<{|appFocused: boolean|}>
 type _CheckForUpdatePayload = void
@@ -88,7 +89,7 @@ type _SetDeletedSelfPayload = $ReadOnly<{|deletedUsername: string|}>
 type _SetNavigatorPayload = $ReadOnly<{|navigator: any|}>
 type _SetNotifySoundPayload = $ReadOnly<{|sound: boolean, writeFile: boolean|}>
 type _SetOpenAtLoginPayload = $ReadOnly<{|open: boolean, writeFile: boolean|}>
-type _SetStartupDetailsPayload = $ReadOnly<{|startupWasFromPush: boolean, startupConversation: ?ChatTypes.ConversationIDKey, startupLink: string, startupTab: ?Tabs.Tab, startupFollowUser: string|}>
+type _SetStartupDetailsPayload = $ReadOnly<{|startupWasFromPush: boolean, startupConversation: ?ChatTypes.ConversationIDKey, startupLink: string, startupTab: ?Tabs.Tab, startupFollowUser: string, startupSharePath: ?FsTypes.LocalPath|}>
 type _ShowMainPayload = void
 type _StartHandshakePayload = void
 type _SwapRouterPayload = $ReadOnly<{|useNewRouter: boolean|}>

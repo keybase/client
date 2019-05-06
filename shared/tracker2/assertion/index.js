@@ -416,6 +416,7 @@ const styles = Styles.styleSheetCreate({
   textContainer: {flexGrow: 1, flexShrink: 1, marginTop: -1},
   tooltip: Styles.platformStyles({isElectron: {display: 'inline-flex'}}),
   username: Styles.platformStyles({
+    common: {letterSpacing: 0.2},
     isElectron: {wordBreak: 'break-all'},
   }),
 })

@@ -16,7 +16,7 @@ func getUsernameIfProvisioned(m MetaContext, uc UserConfig) (ret NormalizedUsern
 		m.Debug("- user was likely reset (%s)", err)
 		return ret, nil
 	case KeyRevokedError:
-		m.Debug("- device was revoked (s)", err)
+		m.Debug("- device was revoked (%s)", err)
 		return ret, nil
 	case UserDeletedError:
 		m.Debug(" - user was deleted (%s)", err)
@@ -53,10 +53,10 @@ func GetAllProvisionedUsernames(m MetaContext) (current NormalizedUsername, all 
 		}
 	}
 
-	for _, u := range allUCs {
-		tmp, err := getUsernameIfProvisioned(m, u)
+	for _, uc := range allUCs {
+		tmp, err := getUsernameIfProvisioned(m, uc)
 		if err != nil {
-			m.Error("Error while checking user %q uid=%q, skipping", currentUC.GetUsername(), currentUC.GetUID())
+			m.Error("Error while checking user %q uid=%q, skipping", uc.GetUsername(), uc.GetUID())
 			continue
 		}
 		if !tmp.IsNil() {

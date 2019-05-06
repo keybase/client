@@ -64,7 +64,7 @@ class Feedback extends Component<Props> {
       sendError,
     } = this.props
     return (
-      <NativeScrollView style={{...globalStyles.flexBoxColumn, flexGrow: 1}} ref={this._setScrollRef}>
+      <NativeScrollView style={{...globalStyles.flexBoxColumn, height: '100%'}} ref={this._setScrollRef}>
         {showSuccessBanner && (
           <Box
             style={{
@@ -130,7 +130,7 @@ class Feedback extends Component<Props> {
             </Box>
           </Box>
           <ButtonBar style={{paddingTop: globalMargins.small}}>
-            <Button fullWidth={true} label="Send" onClick={this._onSubmit} type="Primary" waiting={sending} />
+            <Button fullWidth={true} label="Send" onClick={this._onSubmit} waiting={sending} />
           </ButtonBar>
           {sendError && (
             <Box style={{...globalStyles.flexBoxColumn, marginTop: globalMargins.small}}>

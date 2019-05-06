@@ -11,7 +11,7 @@ export const resetStore = 'common:resetStore' // not a part of signup but is han
 export const typePrefix = 'signup:'
 export const checkDevicename = 'signup:checkDevicename'
 export const checkInviteCode = 'signup:checkInviteCode'
-export const checkPassphrase = 'signup:checkPassphrase'
+export const checkPassword = 'signup:checkPassword'
 export const checkUsernameEmail = 'signup:checkUsernameEmail'
 export const checkedDevicename = 'signup:checkedDevicename'
 export const checkedInviteCode = 'signup:checkedInviteCode'
@@ -27,7 +27,7 @@ export const signedup = 'signup:signedup'
 // Payload Types
 type _CheckDevicenamePayload = $ReadOnly<{|devicename: string|}>
 type _CheckInviteCodePayload = $ReadOnly<{|inviteCode: string|}>
-type _CheckPassphrasePayload = $ReadOnly<{|pass1: HiddenString, pass2: HiddenString|}>
+type _CheckPasswordPayload = $ReadOnly<{|pass1: HiddenString, pass2: HiddenString|}>
 type _CheckUsernameEmailPayload = $ReadOnly<{|username: string, email: string|}>
 type _CheckedDevicenamePayload = $ReadOnly<{|devicename: string|}>
 type _CheckedDevicenamePayloadError = $ReadOnly<{|devicename: string, error: string|}>
@@ -49,7 +49,7 @@ type _SignedupPayloadError = $ReadOnly<{|error: HiddenString|}>
 // Action Creators
 export const createCheckDevicename = (payload: _CheckDevicenamePayload) => ({payload, type: checkDevicename})
 export const createCheckInviteCode = (payload: _CheckInviteCodePayload) => ({payload, type: checkInviteCode})
-export const createCheckPassphrase = (payload: _CheckPassphrasePayload) => ({payload, type: checkPassphrase})
+export const createCheckPassword = (payload: _CheckPasswordPayload) => ({payload, type: checkPassword})
 export const createCheckUsernameEmail = (payload: _CheckUsernameEmailPayload) => ({payload, type: checkUsernameEmail})
 export const createCheckedDevicename = (payload: _CheckedDevicenamePayload) => ({payload, type: checkedDevicename})
 export const createCheckedDevicenameError = (payload: _CheckedDevicenamePayloadError) => ({error: true, payload, type: checkedDevicename})
@@ -71,7 +71,7 @@ export const createSignedupError = (payload: _SignedupPayloadError) => ({error: 
 // Action Payloads
 export type CheckDevicenamePayload = {|+payload: _CheckDevicenamePayload, +type: 'signup:checkDevicename'|}
 export type CheckInviteCodePayload = {|+payload: _CheckInviteCodePayload, +type: 'signup:checkInviteCode'|}
-export type CheckPassphrasePayload = {|+payload: _CheckPassphrasePayload, +type: 'signup:checkPassphrase'|}
+export type CheckPasswordPayload = {|+payload: _CheckPasswordPayload, +type: 'signup:checkPassword'|}
 export type CheckUsernameEmailPayload = {|+payload: _CheckUsernameEmailPayload, +type: 'signup:checkUsernameEmail'|}
 export type CheckedDevicenamePayload = {|+payload: _CheckedDevicenamePayload, +type: 'signup:checkedDevicename'|}
 export type CheckedDevicenamePayloadError = {|+error: true, +payload: _CheckedDevicenamePayloadError, +type: 'signup:checkedDevicename'|}
@@ -95,7 +95,7 @@ export type SignedupPayloadError = {|+error: true, +payload: _SignedupPayloadErr
 export type Actions =
   | CheckDevicenamePayload
   | CheckInviteCodePayload
-  | CheckPassphrasePayload
+  | CheckPasswordPayload
   | CheckUsernameEmailPayload
   | CheckedDevicenamePayload
   | CheckedDevicenamePayloadError

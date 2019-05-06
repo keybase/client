@@ -110,11 +110,10 @@ const metaMapReducer = (metaMap, action) => {
     case Chat2Gen.metasReceived:
       return metaMap.withMutations(map => {
         if (action.payload.clearExistingMetas) {
-          // keep pending conversation
-          const pending = map.get(Constants.pendingConversationIDKey)
-          map.clear().set(Constants.pendingConversationIDKey, pending)
+          map.clear()
         }
         const neverCreate = !!action.payload.neverCreate
+        map.deleteAll(action.payload.removals || [])
         action.payload.metas.forEach(meta => {
           map.update(meta.conversationIDKey, old => {
             if (old) {
@@ -239,9 +238,10 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         }
         return action.payload.isPreview
           ? message.set('previewTransferState', 'downloading')
-          : message.set('transferProgress', action.payload.ratio)
-                   .set('transferState', 'downloading')
-                   .set('transferErrMsg', null)
+          : message
+              .set('transferProgress', action.payload.ratio)
+              .set('transferState', 'downloading')
+              .set('transferErrMsg', null)
       })
     case Chat2Gen.attachmentUploaded:
       return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
@@ -286,16 +286,16 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
             .set('downloadPath', path)
             .set('transferProgress', 0)
             .set('transferState', null)
-            .set('transferErrMsg', actionHasError(action) ? (action.payload.error || 'Error downloading attachment') : null)
+            .set(
+              'transferErrMsg',
+              actionHasError(action) ? action.payload.error || 'Error downloading attachment' : null
+            )
             .set('fileURLCached', true) // assume we have this on the service now
         }
       )
     case Chat2Gen.metasReceived:
-      const existingPending = messageMap.get(Constants.pendingConversationIDKey)
       if (action.payload.clearExistingMessages) {
-        return existingPending
-          ? messageMap.clear().set(Constants.pendingConversationIDKey, existingPending)
-          : messageMap.clear()
+        return messageMap.clear()
       }
       return messageMap
     case Chat2Gen.updateMessages:
@@ -361,13 +361,7 @@ const messageOrdinalsReducer = (messageOrdinals, action) => {
         ? messageOrdinals.deleteAll(action.payload.conversationIDKeys)
         : messageOrdinals
     case Chat2Gen.metasReceived:
-      const existingPending = messageOrdinals.get(Constants.pendingConversationIDKey)
-      if (action.payload.clearExistingMessages) {
-        return existingPending
-          ? messageOrdinals.clear().set(Constants.pendingConversationIDKey, existingPending)
-          : messageOrdinals.clear()
-      }
-      return messageOrdinals
+      return action.payload.clearExistingMessages ? messageOrdinals.clear() : messageOrdinals
     default:
       return messageOrdinals
   }
@@ -382,6 +376,8 @@ const rootReducer = (
   switch (action.type) {
     case Chat2Gen.resetStore:
       return initialState
+    case Chat2Gen.setInboxShowIsNew:
+      return state.merge({inboxShowNew: action.payload.isNew})
     case Chat2Gen.toggleSmallTeamsExpanded:
       return state.set('smallTeamsExpanded', !state.smallTeamsExpanded)
     case Chat2Gen.changeFocus:
@@ -425,6 +421,8 @@ const rootReducer = (
             s.deleteIn(['orangeLineMap', conversationIDKey])
           }
         }
+        s.deleteIn(['messageCenterOrdinals', conversationIDKey])
+        s.setIn(['containsLatestMessageMap', conversationIDKey], true)
         s.set('selectedConversation', conversationIDKey)
       })
     case Chat2Gen.updateUnreadline:
@@ -450,7 +448,9 @@ const rootReducer = (
       return state.set('flipStatusMap', fm)
     }
     case Chat2Gen.messageSend:
-      return state.deleteIn(['commandMarkdownMap', action.payload.conversationIDKey])
+      return state
+        .deleteIn(['commandMarkdownMap', action.payload.conversationIDKey])
+        .deleteIn(['replyToMap', action.payload.conversationIDKey])
     case Chat2Gen.setCommandMarkdown: {
       const {conversationIDKey, md} = action.payload
       return md
@@ -458,52 +458,24 @@ const rootReducer = (
         : state.deleteIn(['commandMarkdownMap', conversationIDKey])
     }
     case Chat2Gen.giphyToggleWindow: {
-      let nextState = state.setIn(['giphyWindowMap', action.payload.conversationIDKey], action.payload.show)
+      const conversationIDKey = action.payload.conversationIDKey
+      let nextState = state.setIn(['giphyWindowMap', conversationIDKey], action.payload.show)
       if (!action.payload.show) {
-        nextState = nextState.setIn(['giphyResultMap', action.payload.conversationIDKey], null)
+        nextState = nextState.setIn(['giphyResultMap', conversationIDKey], null)
+      }
+      if (action.payload.clearInput) {
+        nextState = nextState.setIn(['unsentTextMap', conversationIDKey], new HiddenString(''))
       }
       return nextState
     }
     case Chat2Gen.giphyGotSearchResult:
       return state.setIn(['giphyResultMap', action.payload.conversationIDKey], action.payload.results)
-    case Chat2Gen.setInboxFilter:
-      return state.set('inboxFilter', action.payload.filter)
-    case Chat2Gen.setPendingMode:
-      return state.withMutations(_s => {
-        const s = (_s: Types.State)
-        s.set('pendingMode', action.payload.pendingMode)
-        s.set('pendingStatus', 'none')
-        if (action.payload.pendingMode === 'none') {
-          s.setIn(['metaMap', Constants.pendingConversationIDKey, 'participants'], I.List())
-          s.setIn(
-            ['metaMap', Constants.pendingConversationIDKey, 'conversationIDKey'],
-            Constants.noConversationIDKey
-          )
-          s.deleteIn(['messageOrdinals', Constants.pendingConversationIDKey])
-          s.deleteIn(['pendingOutboxToOrdinal', Constants.pendingConversationIDKey])
-          s.deleteIn(['messageMap', Constants.pendingConversationIDKey])
-        }
-      })
     case Chat2Gen.setPaymentConfirmInfo:
       return action.error
         ? state.set('paymentConfirmInfo', {error: action.payload.error})
         : state.set('paymentConfirmInfo', {summary: action.payload.summary})
     case Chat2Gen.clearPaymentConfirmInfo:
       return state.set('paymentConfirmInfo', null)
-    case Chat2Gen.setPendingStatus:
-      return state.set('pendingStatus', action.payload.pendingStatus)
-    case Chat2Gen.createConversation:
-      return state.set('pendingStatus', 'none')
-    case Chat2Gen.setPendingConversationUsers:
-      return state.setIn(
-        ['metaMap', Constants.pendingConversationIDKey, 'participants'],
-        I.List(action.payload.users)
-      )
-    case Chat2Gen.setPendingConversationExistingConversationIDKey:
-      return state.setIn(
-        ['metaMap', Constants.pendingConversationIDKey, 'conversationIDKey'],
-        action.payload.conversationIDKey
-      )
     case Chat2Gen.badgesUpdated: {
       const badgeMap = I.Map(
         action.payload.conversations.map(({convID, badgeCounts}) => [
@@ -735,8 +707,55 @@ const rootReducer = (
         }
       )
 
+      let containsLatestMessageMap = state.containsLatestMessageMap.withMutations(map => {
+        Object.keys(convoToMessages).forEach(cid => {
+          const conversationIDKey = Types.stringToConversationIDKey(cid)
+          if (!action.payload.forceContainsLatestCalc && map.get(conversationIDKey, false)) {
+            return
+          }
+          const meta = state.metaMap.get(conversationIDKey, null)
+          const ordinals = messageOrdinals.get(conversationIDKey, I.OrderedSet()).toArray()
+          let maxMsgID = 0
+          const convMsgMap = messageMap.get(conversationIDKey, I.Map())
+          for (let i = ordinals.length - 1; i >= 0; i--) {
+            const ordinal = ordinals[i]
+            const message = convMsgMap.get(ordinal)
+            if (message && message.id > 0) {
+              maxMsgID = message.id
+              break
+            }
+          }
+          if (meta && maxMsgID >= meta.maxVisibleMsgID) {
+            map.set(conversationIDKey, true)
+          } else if (action.payload.forceContainsLatestCalc) {
+            map.set(conversationIDKey, false)
+          }
+        })
+      })
+
+      let messageCenterOrdinals = state.messageCenterOrdinals
+      let centeredMessageIDs = action.payload.centeredMessageIDs || []
+      centeredMessageIDs.forEach(cm => {
+        let ordinal = messageIDToOrdinal(
+          state.messageMap,
+          state.pendingOutboxToOrdinal,
+          cm.conversationIDKey,
+          cm.messageID
+        )
+        if (!ordinal) {
+          ordinal = Types.numberToOrdinal(Types.messageIDToNumber(cm.messageID))
+        }
+        messageCenterOrdinals = messageCenterOrdinals.set(cm.conversationIDKey, {
+          highlightMode: cm.highlightMode,
+          ordinal,
+        })
+      })
       return state.withMutations(s => {
         s.set('messageMap', messageMap)
+        if (centeredMessageIDs.length > 0) {
+          s.set('messageCenterOrdinals', messageCenterOrdinals)
+        }
+        s.set('containsLatestMessageMap', containsLatestMessageMap)
         // only if different
         if (!state.messageOrdinals.equals(messageOrdinals)) {
           s.set('messageOrdinals', messageOrdinals)
@@ -744,6 +763,13 @@ const rootReducer = (
         s.set('pendingOutboxToOrdinal', pendingOutboxToOrdinal)
       })
     }
+    case Chat2Gen.jumpToRecent:
+      return state.deleteIn(['messageCenterOrdinals', action.payload.conversationIDKey])
+    case Chat2Gen.setContainsLastMessage:
+      return state.setIn(
+        ['containsLatestMessageMap', action.payload.conversationIDKey],
+        action.payload.contains
+      )
     case Chat2Gen.messageRetry: {
       const {conversationIDKey, outboxID} = action.payload
       const ordinal = state.pendingOutboxToOrdinal.getIn([conversationIDKey, outboxID])
@@ -955,6 +981,156 @@ const rootReducer = (
       return state.update('unsentTextMap', old =>
         old.setIn([action.payload.conversationIDKey], action.payload.text)
       )
+    case Chat2Gen.toggleReplyToMessage:
+      return action.payload.ordinal
+        ? state.setIn(['replyToMap', action.payload.conversationIDKey], action.payload.ordinal)
+        : state.deleteIn(['replyToMap', action.payload.conversationIDKey])
+    case Chat2Gen.replyJump:
+      return state.deleteIn(['messageCenterOrdinals', action.payload.conversationIDKey])
+    case Chat2Gen.threadSearchResults:
+      return state.updateIn(['threadSearchInfoMap', action.payload.conversationIDKey], info =>
+        info.set(
+          'hits',
+          action.payload.clear ? I.List(action.payload.messages) : info.hits.concat(action.payload.messages)
+        )
+      )
+    case Chat2Gen.setThreadSearchStatus:
+      return state.updateIn(
+        ['threadSearchInfoMap', action.payload.conversationIDKey],
+        (info = Constants.makeThreadSearchInfo()) => {
+          return info.set('status', action.payload.status)
+        }
+      )
+    case Chat2Gen.toggleThreadSearch:
+      return state
+        .updateIn(
+          ['threadSearchInfoMap', action.payload.conversationIDKey],
+          (old = Constants.makeThreadSearchInfo()) => {
+            return old.merge({
+              hits: I.List(),
+              status: 'initial',
+              visible: !old.visible,
+            })
+          }
+        )
+        .deleteIn(['messageCenterOrdinals', action.payload.conversationIDKey])
+    case Chat2Gen.threadSearch:
+      return state.updateIn(
+        ['threadSearchInfoMap', action.payload.conversationIDKey],
+        (info = Constants.makeThreadSearchInfo()) => {
+          return info.set('hits', I.List())
+        }
+      )
+    case Chat2Gen.setThreadSearchQuery:
+      return state.setIn(['threadSearchQueryMap', action.payload.conversationIDKey], action.payload.query)
+    case Chat2Gen.inboxSearchSetTextStatus:
+      return state.update('inboxSearch', info => {
+        return (info || Constants.makeInboxSearchInfo()).merge({
+          textStatus: action.payload.status,
+        })
+      })
+    case Chat2Gen.inboxSearchSetIndexPercent:
+      if (!state.inboxSearch || state.inboxSearch.textStatus !== 'inprogress') {
+        return state
+      }
+      return state.update('inboxSearch', info => {
+        return (info || Constants.makeInboxSearchInfo()).merge({
+          indexPercent: action.payload.percent,
+        })
+      })
+    case Chat2Gen.toggleInboxSearch: {
+      let nextState = state
+      if (action.payload.enabled && !state.inboxSearch) {
+        nextState = state.set('inboxSearch', Constants.makeInboxSearchInfo())
+      } else if (!action.payload.enabled && state.inboxSearch) {
+        nextState = state.set('inboxSearch', null)
+      }
+      return nextState
+    }
+    case Chat2Gen.inboxSearchTextResult:
+      if (!state.inboxSearch || state.inboxSearch.textStatus !== 'inprogress') {
+        return state
+      }
+      if (!state.metaMap.get(action.payload.result.conversationIDKey)) {
+        return state
+      }
+      return state.update('inboxSearch', info => {
+        const old = info || Constants.makeInboxSearchInfo()
+        const textResults = old.textResults
+          .filter(r => r.conversationIDKey !== action.payload.result.conversationIDKey)
+          .push(action.payload.result)
+          .sort((l: Types.InboxSearchTextHit, r: Types.InboxSearchTextHit) => {
+            return r.time - l.time
+          })
+        return old.merge({
+          textResults,
+        })
+      })
+    case Chat2Gen.inboxSearchStarted:
+      if (!state.inboxSearch) {
+        return state
+      }
+      return state.update('inboxSearch', info => {
+        return (info || Constants.makeInboxSearchInfo()).merge({
+          nameStatus: 'inprogress',
+          selectedIndex: 0,
+          textResults: I.List(),
+          textStatus: 'inprogress',
+        })
+      })
+    case Chat2Gen.inboxSearchNameResults: {
+      if (!state.inboxSearch || state.inboxSearch.nameStatus !== 'inprogress') {
+        return state
+      }
+      const results = action.payload.results.reduce((l, r) => {
+        if (state.metaMap.get(r.conversationIDKey)) {
+          return l.push(r)
+        }
+        return l
+      }, I.List())
+      return state.update('inboxSearch', info => {
+        return (info || Constants.makeInboxSearchInfo()).merge({
+          nameResults: results,
+          nameResultsUnread: action.payload.unread,
+          nameStatus: 'success',
+        })
+      })
+    }
+    case Chat2Gen.inboxSearchMoveSelectedIndex: {
+      if (!state.inboxSearch) {
+        return state
+      }
+      let selectedIndex = state.inboxSearch.selectedIndex
+      const totalResults = state.inboxSearch.nameResults.size + state.inboxSearch.textResults.size
+      if (action.payload.increment && selectedIndex < totalResults - 1) {
+        selectedIndex++
+      } else if (!action.payload.increment && selectedIndex > 0) {
+        selectedIndex--
+      }
+      return state.update('inboxSearch', info => {
+        return (info || Constants.makeInboxSearchInfo()).merge({
+          selectedIndex,
+        })
+      })
+    }
+    case Chat2Gen.inboxSearchSelect:
+      if (!state.inboxSearch || action.payload.selectedIndex == null) {
+        return state
+      }
+      return state.update('inboxSearch', info => {
+        return (info || Constants.makeInboxSearchInfo()).merge({
+          selectedIndex: action.payload.selectedIndex,
+        })
+      })
+    case Chat2Gen.inboxSearch:
+      if (!state.inboxSearch) {
+        return state
+      }
+      return state.update('inboxSearch', info => {
+        return (info || Constants.makeInboxSearchInfo()).merge({
+          query: action.payload.query,
+        })
+      })
     case Chat2Gen.staticConfigLoaded:
       return state.set('staticConfig', action.payload.staticConfig)
     case Chat2Gen.metasReceived: {
@@ -972,6 +1148,11 @@ const rootReducer = (
         old.setIn([conversationIDKey, messageID], paymentInfo)
       )
       return nextState.update('paymentStatusMap', old => old.setIn([paymentInfo.paymentID], paymentInfo))
+    }
+    case Chat2Gen.setTeamMentionInfo: {
+      const {name, info} = action.payload
+      // $FlowIssue complains about using name for setIn for unknown reason
+      return state.setIn(['teamMentionMap', name], info)
     }
     case Chat2Gen.requestInfoReceived: {
       const {conversationIDKey, messageID, requestInfo} = action.payload
@@ -995,7 +1176,10 @@ const rootReducer = (
         state.attachmentFullscreenMessage.id === message.id &&
         message.type === 'attachment'
       ) {
-        nextState = nextState.set('attachmentFullscreenMessage', message.set('downloadPath', action.payload.path))
+        nextState = nextState.set(
+          'attachmentFullscreenMessage',
+          message.set('downloadPath', action.payload.path)
+        )
       }
       return nextState.withMutations(s => {
         s.set('metaMap', metaMapReducer(state.metaMap, action))
@@ -1051,6 +1235,7 @@ const rootReducer = (
     case Chat2Gen.joinConversation:
     case Chat2Gen.leaveConversation:
     case Chat2Gen.loadOlderMessagesDueToScroll:
+    case Chat2Gen.loadNewerMessagesDueToScroll:
     case Chat2Gen.markInitiallyLoadedThreadAsRead:
     case Chat2Gen.messageDeleteHistory:
     case Chat2Gen.messageReplyPrivately:
@@ -1069,6 +1254,8 @@ const rootReducer = (
     case Chat2Gen.messageAttachmentNativeSave:
     case Chat2Gen.updateNotificationSettings:
     case Chat2Gen.blockConversation:
+    case Chat2Gen.hideConversation:
+    case Chat2Gen.unhideConversation:
     case Chat2Gen.previewConversation:
     case Chat2Gen.setConvExplodingMode:
     case Chat2Gen.toggleMessageReaction:
@@ -1082,6 +1269,10 @@ const rootReducer = (
     case Chat2Gen.toggleMessageCollapse:
     case Chat2Gen.toggleInfoPanel:
     case Chat2Gen.addUsersToChannel:
+    case Chat2Gen.deselectConversation:
+    case Chat2Gen.createConversation:
+    case Chat2Gen.loadMessagesCentered:
+    case Chat2Gen.tabSelected:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

@@ -27,6 +27,7 @@ export type Props = {|
   showsVerticalScrollIndicator?: boolean,
   showsHorizontalScrollIndicator?: boolean,
   horizontal?: boolean,
+  snapToInterval?: number,
   refreshControl?: React.Element<any>,
 |}
 

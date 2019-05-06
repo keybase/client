@@ -1,12 +1,17 @@
 // @flow
 import * as React from 'react'
 import type {IconType} from './icon.constants'
-import {type StylesCrossPlatform, type StylesCrossPlatformWithSomeDisallowed, type Color} from '../styles'
+import {
+  type StylesCrossPlatform,
+  type StylesCrossPlatformWithSomeDisallowed,
+  type Color,
+  globalMargins,
+} from '../styles'
 
-export type SizeType = 'Big' | 'Default' | 'Small' | 'Tiny'
+export type SizeType = 'Huge' | 'Bigger' | 'Big' | 'Default' | 'Small' | 'Tiny'
 
 // These must be passed as props
-type DisallowedStyles = {
+export type DisallowedStyles = {
   color?: empty,
   hoverColor?: empty,
   fontSize?: empty,
@@ -34,6 +39,7 @@ export type Props = {
   boxStyle?: StylesCrossPlatform,
   // only applies to icon fonts
   sizeType: SizeType,
+  padding?: $Keys<typeof globalMargins>,
 }
 
 declare export default class Icon extends React.Component<Props> {

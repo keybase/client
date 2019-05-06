@@ -7,6 +7,7 @@ import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
 
 const mapStateToProps = (state, {path}) => ({
+  _kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
   _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
   _username: state.config.username,
   resetBannerType: Constants.resetBannerType(state, path),
@@ -20,6 +21,7 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, {path, routePath}) => ({
+  offline: Constants.isOfflineUnsynced(stateProps._kbfsDaemonStatus, stateProps._pathItem, path),
   onAttach: stateProps._pathItem.writable ? dispatchProps.onAttach : null,
   path,
   resetBannerType: stateProps.resetBannerType,

@@ -13,14 +13,17 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libgit"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 	gogitcfg "gopkg.in/src-d/go-git.v4/config"
@@ -94,7 +97,7 @@ func testRunnerInitRepo(t *testing.T, tlfType tlf.Type, typeString string) {
 		inputWriter.Write([]byte("list\n\n"))
 	}()
 
-	h, err := libkbfs.ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), config, "user1", tlfType)
 	require.NoError(t, err)
 	if tlfType != tlf.Public {
@@ -115,7 +118,7 @@ func testRunnerInitRepo(t *testing.T, tlfType tlf.Type, typeString string) {
 	// Now there should be a valid git repo stored in KBFS.  Check the
 	// existence of the HEAD file to be sure.
 	fs, err := libfs.NewFS(
-		ctx, config, h, libkbfs.MasterBranch, ".kbfs_git/test", "",
+		ctx, config, h, data.MasterBranch, ".kbfs_git/test", "",
 		keybase1.MDPriorityGit)
 	require.NoError(t, err)
 	head, err := fs.Open("HEAD")
@@ -137,8 +140,8 @@ func gitExec(t *testing.T, gitDir, workTree string, command ...string) {
 	cmd := exec.Command("git",
 		append([]string{"--git-dir", gitDir, "--work-tree", workTree},
 			command...)...)
-	err := cmd.Run()
-	require.NoError(t, err)
+	output, err := cmd.CombinedOutput()
+	require.NoError(t, err, string(output))
 }
 
 func makeLocalRepoWithOneFileCustomCommitMsg(t *testing.T,
@@ -297,7 +300,7 @@ func testRunnerPushFetch(t *testing.T, cloning bool, secondRepoHasBranch bool) {
 
 	makeLocalRepoWithOneFile(t, git1, "foo", "hello", "")
 
-	h, err := libkbfs.ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), config, "user1", tlf.Private)
 	require.NoError(t, err)
 	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
@@ -378,7 +381,7 @@ func TestRunnerDeleteBranch(t *testing.T) {
 
 	makeLocalRepoWithOneFile(t, git, "foo", "hello", "")
 
-	h, err := libkbfs.ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), config, "user1", tlf.Private)
 	require.NoError(t, err)
 	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
@@ -408,11 +411,11 @@ func TestRunnerExitEarlyOnEOF(t *testing.T) {
 
 	makeLocalRepoWithOneFile(t, git, "foo", "hello", "")
 
-	h, err := libkbfs.ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), config, "user1", tlf.Private)
 	require.NoError(t, err)
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
 	require.NoError(t, err)
@@ -447,7 +450,7 @@ func TestForcePush(t *testing.T) {
 
 	makeLocalRepoWithOneFile(t, git, "foo", "hello", "")
 
-	h, err := libkbfs.ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), config, "user1", tlf.Private)
 	require.NoError(t, err)
 	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
@@ -486,7 +489,7 @@ func TestPushAllWithPackedRefs(t *testing.T) {
 	dotgit := filepath.Join(git, ".git")
 	gitExec(t, dotgit, git, "pack-refs", "--all")
 
-	h, err := libkbfs.ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), config, "user1", tlf.Private)
 	require.NoError(t, err)
 	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
@@ -509,7 +512,7 @@ func TestPushSomeWithPackedRefs(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(git)
 
-	h, err := libkbfs.ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), config, "user1", tlf.Private)
 	require.NoError(t, err)
 	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
@@ -648,7 +651,7 @@ func TestRunnerDeletePackedRef(t *testing.T) {
 
 	gitExec(t, dotgit1, git1, "pack-refs", "--all")
 
-	h, err := libkbfs.ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), config, "user1", tlf.Private)
 	require.NoError(t, err)
 	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
@@ -751,7 +754,7 @@ func TestPackRefsAndOverwritePackedRef(t *testing.T) {
 	packOnStalled, packUnstall, packCtx := libkbfs.StallMDOp(
 		ctx, config2, libkbfs.StallableMDAfterGetRange, 1)
 	packErrCh := make(chan error)
-	h, err := libkbfs.ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config2.KBPKI(), config.MDOps(), config, "user1,user2",
 		tlf.Private)
 	require.NoError(t, err)
@@ -784,7 +787,7 @@ func TestPackRefsAndOverwritePackedRef(t *testing.T) {
 	}
 
 	rootNode, _, err := config2.KBFSOps().GetOrCreateRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 	err = config2.KBFSOps().SyncFromServer(
 		ctx, rootNode.GetFolderBranch(), nil)
@@ -839,7 +842,7 @@ func TestPackRefsAndDeletePackedRef(t *testing.T) {
 	packOnStalled, packUnstall, packCtx := libkbfs.StallMDOp(
 		ctx, config2, libkbfs.StallableMDAfterGetRange, 1)
 	packErrCh := make(chan error)
-	h, err := libkbfs.ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config2.KBPKI(), config.MDOps(), config, "user1,user2",
 		tlf.Private)
 	require.NoError(t, err)
@@ -903,7 +906,7 @@ func TestPackRefsAndDeletePackedRef(t *testing.T) {
 	}
 
 	rootNode, _, err := config2.KBFSOps().GetOrCreateRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 	err = config2.KBFSOps().SyncFromServer(
 		ctx, rootNode.GetFolderBranch(), nil)
@@ -921,7 +924,7 @@ func TestRepackObjects(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(git)
 
-	h, err := libkbfs.ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), config, "user1", tlf.Private)
 	require.NoError(t, err)
 	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
@@ -975,57 +978,6 @@ func TestRepackObjects(t *testing.T) {
 	checkFile("foo4", "hello4")
 }
 
-func TestRunnerWithKBFSReset(t *testing.T) {
-	ctx, config, tempdir := initConfigForRunner(t)
-	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	defer os.RemoveAll(tempdir)
-
-	git1, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
-	require.NoError(t, err)
-	defer os.RemoveAll(git1)
-
-	makeLocalRepoWithOneFile(t, git1, "foo", "hello", "")
-
-	h, err := libkbfs.ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), config, "user1", tlf.Private)
-	require.NoError(t, err)
-	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
-	require.NoError(t, err)
-
-	testPush(t, ctx, config, git1, "refs/heads/master:refs/heads/master")
-
-	// Reset using worktree.
-	repoFS, _, err := libgit.GetRepoAndID(ctx, config, h, "test", "")
-	require.NoError(t, err)
-	rootFS, err := libfs.NewFS(ctx, config, h, libkbfs.MasterBranch, "", "", 0)
-	require.NoError(t, err)
-	err = rootFS.MkdirAll("test-checkout", 0600)
-	require.NoError(t, err)
-	wtFS, err := rootFS.Chroot("test-checkout")
-	require.NoError(t, err)
-	err = libgit.Reset(ctx, repoFS, wtFS.(*libfs.FS), "refs/heads/master")
-	require.NoError(t, err)
-
-	f, err := wtFS.Open("foo")
-	require.NoError(t, err)
-	defer f.Close()
-	data, err := ioutil.ReadAll(f)
-	require.NoError(t, err)
-	require.Equal(t, "hello", string(data))
-
-	// Sync data and flush journal.
-	err = rootFS.SyncAll()
-	require.NoError(t, err)
-	jManager, err := libkbfs.GetJournalManager(config)
-	require.NoError(t, err)
-	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
-		ctx, h, libkbfs.MasterBranch)
-	require.NoError(t, err)
-	err = jManager.FinishSingleOp(ctx,
-		rootNode.GetFolderBranch().Tlf, nil, keybase1.MDPriorityGit)
-	require.NoError(t, err)
-}
-
 func testHandlePushBatch(t *testing.T, ctx context.Context,
 	config libkbfs.Config, git, refspec, tlfName string) libgit.RefDataByName {
 	var input bytes.Buffer
@@ -1052,7 +1004,7 @@ func TestRunnerHandlePushBatch(t *testing.T) {
 	defer os.RemoveAll(git)
 
 	t.Log("Setup the repository.")
-	h, err := libkbfs.ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), config, "user1", tlf.Private)
 	require.NoError(t, err)
 	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
@@ -1124,4 +1076,61 @@ func TestRunnerHandlePushBatch(t *testing.T) {
 	master = refDataByName["refs/heads/master"]
 	require.True(t, master.IsDelete)
 	require.Len(t, master.Commits, 0)
+}
+
+func TestRunnerSubmodule(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("submodule add doesn't work well on Windows")
+	}
+
+	ctx, config, tempdir := initConfigForRunner(t)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
+	defer os.RemoveAll(tempdir)
+
+	shutdown := libgit.StartAutogit(config, 25)
+	defer shutdown()
+
+	t.Log("Make a local repo that will become a KBFS repo")
+	git1, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
+	require.NoError(t, err)
+	defer os.RemoveAll(git1)
+	makeLocalRepoWithOneFile(t, git1, "foo", "hello", "")
+	dotgit1 := filepath.Join(git1, ".git")
+
+	t.Log("Make a second local repo that will be a submodule")
+	git2, err := ioutil.TempDir(os.TempDir(), "kbfsgittest2")
+	require.NoError(t, err)
+	defer os.RemoveAll(git2)
+	makeLocalRepoWithOneFile(t, git2, "foo2", "hello2", "")
+	dotgit2 := filepath.Join(git2, ".git")
+
+	t.Log("Add the submodule to the first local repo")
+	// git-submodules requires a real working directory for some reason.
+	err = os.Chdir(git1)
+	require.NoError(t, err)
+	gitExec(t, dotgit1, git1, "submodule", "add", "-f", dotgit2)
+	gitExec(t, dotgit1, git1, "-c", "user.name=Foo",
+		"-c", "user.email=foo@foo.com", "commit", "-a", "-m", "submodule")
+
+	t.Log("Push the first local repo into KBFS")
+	h, err := tlfhandle.ParseHandle(
+		ctx, config.KBPKI(), config.MDOps(), config, "user1", tlf.Private)
+	require.NoError(t, err)
+	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
+	require.NoError(t, err)
+	testPush(t, ctx, config, git1, "refs/heads/master:refs/heads/master")
+
+	t.Log("Use autogit to browse it")
+	rootFS, err := libfs.NewFS(
+		ctx, config, h, data.MasterBranch, "", "", keybase1.MDPriorityNormal)
+	require.NoError(t, err)
+	fis, err := rootFS.ReadDir(".kbfs_autogit/test")
+	require.NoError(t, err)
+	require.Len(t, fis, 3 /* foo, kbfsgittest2, and .gitmodules */)
+	f, err := rootFS.Open(".kbfs_autogit/test/" + filepath.Base(git2))
+	require.NoError(t, err)
+	defer f.Close()
+	data, err := ioutil.ReadAll(f)
+	require.NoError(t, err)
+	require.True(t, strings.HasPrefix(string(data), "git submodule"))
 }

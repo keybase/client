@@ -164,6 +164,7 @@ protocol chatUi {
     union { null, string } outboxID;
     MessageBody messageBody;
     union { null, string } decoratedTextBody;
+    string bodySummary;
     string senderUsername;
     string senderDeviceName;
     string senderDeviceType;
@@ -175,6 +176,7 @@ protocol chatUi {
     array<string> atMentions;
     ChannelMention channelMention;
     array<UIChannelNameMention> channelNameMentions;
+    array<MaybeTeamMention> teamMentions;
     boolean isEphemeral;
     boolean isEphemeralExpired;
     union { null, string} explodedBy;
@@ -189,6 +191,7 @@ protocol chatUi {
     union { null, string } flipGameID;
     boolean isDeleteable;
     boolean isEditable;
+    union { null, UIMessage } replyTo;
   }
 
   record UIMessageOutbox {
@@ -201,6 +204,7 @@ protocol chatUi {
     double ordinal;
     boolean isEphemeral;
     union { null, string} flipGameID;
+    union { null, UIMessage } replyTo;
 
     // For attachments
     string filename;
@@ -227,16 +231,27 @@ protocol chatUi {
     union { null, UIPagination } pagination;
   }
 
+  record UITeamMention {
+    boolean inTeam;
+    boolean open;
+    union { null, string } description;
+    union { null, int } numMembers;
+    array<string> publicAdmins;
+    union { null, string } convID;
+  }
+
   enum UITextDecorationTyp {
     PAYMENT_0,
     ATMENTION_1,
-    CHANNELNAMEMENTION_2
+    CHANNELNAMEMENTION_2,
+    TEAMMENTION_3
   }
 
   variant UITextDecoration switch (UITextDecorationTyp typ) {
     case PAYMENT: TextPayment;
     case ATMENTION: string;
     case CHANNELNAMEMENTION: UIChannelNameMention;
+    case TEAMMENTION: MaybeTeamMention;
   }
 
   void chatAttachmentDownloadStart(int sessionID);
@@ -253,9 +268,21 @@ protocol chatUi {
   void chatSearchHit(int sessionID, ChatSearchHit searchHit);
   void chatSearchDone(int sessionID, int numHits);
 
+  record UIChatSearchConvHit {
+    string convID;
+    TeamType teamType;
+    string name;
+    gregor1.Time mtime;
+  }
+  record UIChatSearchConvHits {
+    array<UIChatSearchConvHit> hits;
+    boolean unreadMatches;
+  }
+  void chatSearchInboxStart(int sessionID);
   void chatSearchInboxHit(int sessionID, ChatSearchInboxHit searchHit);
   void chatSearchInboxDone(int sessionID, ChatSearchInboxDone res);
   void chatSearchIndexStatus(int sessionID, ChatSearchIndexStatus status);
+  void chatSearchConvHits(int sessionID, UIChatSearchConvHits hits);
 
   boolean chatConfirmChannelDelete(int sessionID, string channel);
 
@@ -284,8 +311,12 @@ protocol chatUi {
     int previewHeight;
     boolean previewIsVideo;
   }
-  void chatGiphySearchResults(int sessionID, string convID, array<GiphySearchResult> results);
-  void chatGiphyToggleResultWindow(int sessionID, string convID, boolean show);
+  record GiphySearchResults {
+    array<GiphySearchResult> results;
+    string galleryUrl;
+  }
+  void chatGiphySearchResults(int sessionID, string convID, GiphySearchResults results);
+  void chatGiphyToggleResultWindow(int sessionID, string convID, boolean show, boolean clearInput);
 
   void chatShowManageChannels(int sessionID, string teamname);
 
@@ -366,4 +397,6 @@ protocol chatUi {
     union { null, string} title;
   }
   void chatCommandMarkdown(int sessionID, string convID, union { null, UICommandMarkdown } md);
+
+  void chatTeamMentionUpdate(int sessionID, string teamName, string channel, UITeamMention info);
 }

@@ -11,6 +11,6 @@ protocol pgpUi {
 
   // pgpKeyGenDefault calls these:
   void keyGenerated(int sessionID, KID kid, KeyInfo key);
-  boolean shouldPushPrivate(int sessionID);
+  boolean shouldPushPrivate(int sessionID, boolean prompt);
   void finished(int sessionID);
 }

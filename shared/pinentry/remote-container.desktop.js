@@ -17,14 +17,14 @@ type State = {|
 // Props are handled by remote-proxy.desktop.js
 const mapDispatchToProps = dispatch => ({
   _onCancel: (sessionID: number) => dispatch(PinentryGen.createOnCancel({sessionID})),
-  _onSubmit: (passphrase: string, sessionID: number) =>
-    dispatch(PinentryGen.createOnSubmit({passphrase, sessionID})),
+  _onSubmit: (password: string, sessionID: number) =>
+    dispatch(PinentryGen.createOnSubmit({password, sessionID})),
 })
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...stateProps,
   ...dispatchProps,
   onCancel: () => dispatchProps._onCancel(stateProps.sessionID),
-  onSubmit: (passphrase: string) => dispatchProps._onSubmit(passphrase, stateProps.sessionID),
+  onSubmit: (password: string) => dispatchProps._onSubmit(password, stateProps.sessionID),
   ...ownProps,
 })
 export default compose(

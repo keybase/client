@@ -8,62 +8,62 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type AppState int
+type MobileAppState int
 
 const (
-	AppState_FOREGROUND       AppState = 0
-	AppState_BACKGROUND       AppState = 1
-	AppState_INACTIVE         AppState = 2
-	AppState_BACKGROUNDACTIVE AppState = 3
+	MobileAppState_FOREGROUND       MobileAppState = 0
+	MobileAppState_BACKGROUND       MobileAppState = 1
+	MobileAppState_INACTIVE         MobileAppState = 2
+	MobileAppState_BACKGROUNDACTIVE MobileAppState = 3
 )
 
-func (o AppState) DeepCopy() AppState { return o }
+func (o MobileAppState) DeepCopy() MobileAppState { return o }
 
-var AppStateMap = map[string]AppState{
+var MobileAppStateMap = map[string]MobileAppState{
 	"FOREGROUND":       0,
 	"BACKGROUND":       1,
 	"INACTIVE":         2,
 	"BACKGROUNDACTIVE": 3,
 }
 
-var AppStateRevMap = map[AppState]string{
+var MobileAppStateRevMap = map[MobileAppState]string{
 	0: "FOREGROUND",
 	1: "BACKGROUND",
 	2: "INACTIVE",
 	3: "BACKGROUNDACTIVE",
 }
 
-func (e AppState) String() string {
-	if v, ok := AppStateRevMap[e]; ok {
+func (e MobileAppState) String() string {
+	if v, ok := MobileAppStateRevMap[e]; ok {
 		return v
 	}
 	return ""
 }
 
-type UpdateAppStateArg struct {
-	State AppState `codec:"state" json:"state"`
+type PowerMonitorEventArg struct {
+	Event string `codec:"event" json:"event"`
 }
 
 type AppStateInterface interface {
-	UpdateAppState(context.Context, AppState) error
+	PowerMonitorEvent(context.Context, string) error
 }
 
 func AppStateProtocol(i AppStateInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.appState",
 		Methods: map[string]rpc.ServeHandlerDescription{
-			"updateAppState": {
+			"powerMonitorEvent": {
 				MakeArg: func() interface{} {
-					var ret [1]UpdateAppStateArg
+					var ret [1]PowerMonitorEventArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]UpdateAppStateArg)
+					typedArgs, ok := args.(*[1]PowerMonitorEventArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]UpdateAppStateArg)(nil), args)
+						err = rpc.NewTypeError((*[1]PowerMonitorEventArg)(nil), args)
 						return
 					}
-					err = i.UpdateAppState(ctx, typedArgs[0].State)
+					err = i.PowerMonitorEvent(ctx, typedArgs[0].Event)
 					return
 				},
 			},
@@ -75,8 +75,8 @@ type AppStateClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c AppStateClient) UpdateAppState(ctx context.Context, state AppState) (err error) {
-	__arg := UpdateAppStateArg{State: state}
-	err = c.Cli.Call(ctx, "keybase.1.appState.updateAppState", []interface{}{__arg}, nil)
+func (c AppStateClient) PowerMonitorEvent(ctx context.Context, event string) (err error) {
+	__arg := PowerMonitorEventArg{Event: event}
+	err = c.Cli.Call(ctx, "keybase.1.appState.powerMonitorEvent", []interface{}{__arg}, nil)
 	return
 }

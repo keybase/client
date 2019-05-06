@@ -179,10 +179,12 @@ func (e *Kex2Provisioner) GetHelloArg() (arg keybase1.HelloArg, err error) {
 	m.UIs().ProvisionUI.DisplaySecretExchanged(context.Background(), 0)
 
 	// get a session token that device Y can use
-	token, csrf, err := e.sessionForY()
+	mctx := libkb.NewMetaContextBackground(e.G())
+	tokener, err := libkb.NewSessionTokener(mctx)
 	if err != nil {
 		return arg, err
 	}
+	token, csrf := tokener.Tokens()
 
 	// generate a skeleton key proof
 	sigBody, err := e.skeletonProof(m)
@@ -308,29 +310,6 @@ func (e *Kex2Provisioner) CounterSign2(input keybase1.Hello2Res) (output keybase
 	}
 
 	return output, nil
-}
-
-// sessionForY gets session tokens that Y can use to interact with
-// API server.
-func (e *Kex2Provisioner) sessionForY() (token, csrf string, err error) {
-	mctx := libkb.NewMetaContextBackground(e.G())
-	resp, err := mctx.G().API.Post(mctx, libkb.APIArg{
-		Endpoint:    "new_session",
-		SessionType: libkb.APISessionTypeREQUIRED,
-	})
-	if err != nil {
-		return "", "", err
-	}
-	token, err = resp.Body.AtKey("session").GetString()
-	if err != nil {
-		return "", "", err
-	}
-	csrf, err = resp.Body.AtKey("csrf_token").GetString()
-	if err != nil {
-		return "", "", err
-	}
-
-	return token, csrf, nil
 }
 
 // skeletonProof generates a partial key proof structure that device Y can

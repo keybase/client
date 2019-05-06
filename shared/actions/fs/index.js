@@ -7,6 +7,7 @@ import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as ChatTypes from '../../constants/types/chat2'
+import * as ChatConstants from '../../constants/chat2'
 import * as Saga from '../../util/saga'
 import * as Flow from '../../util/flow'
 import * as Tabs from '../../constants/tabs'
@@ -15,10 +16,10 @@ import * as Types from '../../constants/types/fs'
 import logger from '../../logger'
 import platformSpecificSaga from './platform-specific'
 import {getContentTypeFromURL} from '../platform-specific'
-import {isMobile} from '../../constants/platform'
 import * as RouteTreeGen from '../route-tree-gen'
 import {getPathProps} from '../../route-tree'
-import {fsRootRoute, makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
+import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
+import flags from '../../util/feature-flags'
 
 const loadFavorites = (state, action) =>
   RPCTypes.apiserverGetWithSessionRpcPromise({
@@ -34,10 +35,125 @@ const loadFavorites = (state, action) =>
     )
     .catch(makeRetriableErrorHandler(action))
 
+const getSyncConfigFromRPC = (tlfName, tlfType, config: RPCTypes.FolderSyncConfig): Types.TlfSyncConfig => {
+  switch (config.mode) {
+    case RPCTypes.simpleFSFolderSyncMode.disabled:
+      return Constants.tlfSyncDisabled
+    case RPCTypes.simpleFSFolderSyncMode.enabled:
+      return Constants.tlfSyncEnabled
+    case RPCTypes.simpleFSFolderSyncMode.partial:
+      return Constants.makeTlfSyncPartial({
+        enabledPaths: config.paths
+          ? I.List(config.paths.map(str => Types.getPathFromRelative(tlfName, tlfType, str)))
+          : I.List(),
+      })
+    default:
+      // $FlowIssue the const objects aren't flow-friendly.
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(config.mode)
+      return Constants.tlfSyncDisabled
+  }
+}
+
+const tlfListToGetSyncConfigPromise = (state, tlfType) =>
+  Array.from(state.fs.tlfs.get(tlfType, I.Map()).keys()).map(tlfName =>
+    RPCTypes.SimpleFSSimpleFSFolderSyncConfigAndStatusRpcPromise({
+      path: Constants.pathToRPCPath(Constants.tlfTypeAndNameToPath(tlfType, tlfName)),
+    }).then(result => ({
+      syncConfig: getSyncConfigFromRPC(tlfName, tlfType, result.config),
+      tlfName,
+      tlfType,
+    }))
+  )
+
+// TODO (KBFS-4047): make a SimpleFS RPC for this case where we are asking for
+// all.
+const loadSyncConfigForAllTlfs = (state, action) =>
+  Promise.all(
+    // TODO: sometimes we get an error if a TLF is not backed by team.
+    [/* 'private', 'public', */ 'team']
+      .map(tlfType => tlfListToGetSyncConfigPromise(state, tlfType))
+      // $FlowIssue hasn't learnt about .flat yet.
+      .flat()
+  ).then(results => {
+    const payloadMutable = results.reduce(
+      (payload, {syncConfig, tlfType, tlfName}) => ({
+        ...payload,
+        [tlfType]: payload[tlfType].set(tlfName, syncConfig),
+      }),
+      {
+        private: I.Map().asMutable(),
+        public: I.Map().asMutable(),
+        team: I.Map().asMutable(),
+      }
+    )
+    return FsGen.createTlfSyncConfigsLoaded({
+      private: payloadMutable.private.asImmutable(),
+      public: payloadMutable.public.asImmutable(),
+      team: payloadMutable.team.asImmutable(),
+    })
+  })
+
+const loadTlfSyncConfig = (state, action) => {
+  const parsedPath = Constants.parsePath(action.payload.tlfPath)
+  if (parsedPath.kind === 'root' || parsedPath.kind === 'tlf-list') {
+    return null
+  }
+  return RPCTypes.SimpleFSSimpleFSFolderSyncConfigAndStatusRpcPromise({
+    path: Constants.pathToRPCPath(action.payload.tlfPath),
+  }).then(result =>
+    FsGen.createTlfSyncConfigLoaded({
+      syncConfig: getSyncConfigFromRPC(parsedPath.tlfName, parsedPath.tlfType, result.config),
+      tlfName: parsedPath.tlfName,
+      tlfType: parsedPath.tlfType,
+    })
+  )
+}
+
+const setTlfSyncConfig = (state, action) =>
+  RPCTypes.SimpleFSSimpleFSSetFolderSyncConfigRpcPromise(
+    {
+      config: {
+        mode: action.payload.enabled
+          ? RPCTypes.simpleFSFolderSyncMode.enabled
+          : RPCTypes.simpleFSFolderSyncMode.disabled,
+      },
+      path: Constants.pathToRPCPath(action.payload.tlfPath),
+    },
+    Constants.syncToggleWaitingKey
+  ).then(() =>
+    FsGen.createLoadTlfSyncConfig({
+      tlfPath: action.payload.tlfPath,
+    })
+  )
+
+const getPrefetchStatusFromRPC = (
+  prefetchStatus: RPCTypes.PrefetchStatus,
+  prefetchProgress: RPCTypes.PrefetchProgress
+) => {
+  switch (prefetchStatus) {
+    case RPCTypes.simpleFSPrefetchStatus.notStarted:
+      return Constants.prefetchNotStarted
+    case RPCTypes.simpleFSPrefetchStatus.inProgress:
+      return Constants.makePrefetchInProgress({
+        bytesFetched: prefetchProgress.bytesFetched,
+        bytesTotal: prefetchProgress.bytesTotal,
+        endEstimate: prefetchProgress.endEstimate,
+        startTime: prefetchProgress.start,
+      })
+    case RPCTypes.simpleFSPrefetchStatus.complete:
+      return Constants.prefetchComplete
+    default:
+      // $FlowIssue the const objects aren't flow-friendly.
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(prefetchStatus)
+      return Constants.prefetchNotStarted
+  }
+}
+
 const direntToMetadata = (d: RPCTypes.Dirent) => ({
   lastModifiedTimestamp: d.time,
-  lastWriter: d.lastWriterUnverified,
+  lastWriter: d.lastWriterUnverified.username,
   name: d.name.split('/').pop(),
+  prefetchStatus: getPrefetchStatusFromRPC(d.prefetchStatus, d.prefetchProgress),
   size: d.size,
   writable: d.writable,
 })
@@ -63,32 +179,14 @@ const makeEntry = (d: RPCTypes.Dirent, children?: Set<string>) => {
   }
 }
 
-const silenceErrorHandler = () => {}
-
-const pathItemLoad = (state, action) =>
-  RPCTypes.SimpleFSSimpleFSStatRpcPromise({
-    path: {
-      PathType: RPCTypes.simpleFSPathType.kbfs,
-      kbfs: Constants.fsPathToRpcPathString(action.payload.path),
-    },
-    ...(action.payload.identifyBehavior ? {identifyBehavior: action.payload.identifyBehavior} : {}),
-  })
-    .then(dirent =>
-      FsGen.createPathItemLoaded({
-        meta: makeEntry(dirent),
-        path: action.payload.path,
-      })
-    )
-    .catch(action.payload.silenceErrors ? silenceErrorHandler : makeRetriableErrorHandler(action))
-
 // See constants/types/fs.js on what this is for.
 // We intentionally keep this here rather than in the redux store.
 const folderListRefreshTags: Map<Types.RefreshTag, Types.Path> = new Map()
-const mimeTypeRefreshTags: Map<Types.RefreshTag, Types.Path> = new Map()
+const pathMetadataRefreshTags: Map<Types.RefreshTag, Types.Path> = new Map()
 
 const clearRefreshTags = () => {
   folderListRefreshTags.clear()
-  mimeTypeRefreshTags.clear()
+  pathMetadataRefreshTags.clear()
 }
 
 function* folderList(_, action) {
@@ -116,10 +214,7 @@ function* folderList(_, action) {
       yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSListRpcPromise, {
         filter: RPCTypes.simpleFSListFilter.filterSystemHidden,
         opID,
-        path: {
-          PathType: RPCTypes.simpleFSPathType.kbfs,
-          kbfs: Constants.fsPathToRpcPathString(rootPath),
-        },
+        path: Constants.pathToRPCPath(rootPath),
         refreshSubscription: !!refreshTag,
       })
     } else {
@@ -127,10 +222,7 @@ function* folderList(_, action) {
         depth: 1,
         filter: RPCTypes.simpleFSListFilter.filterSystemHidden,
         opID,
-        path: {
-          PathType: RPCTypes.simpleFSPathType.kbfs,
-          kbfs: Constants.fsPathToRpcPathString(rootPath),
-        },
+        path: Constants.pathToRPCPath(rootPath),
         refreshSubscription: !!refreshTag,
       })
     }
@@ -175,28 +267,14 @@ function* folderList(_, action) {
     // Get metadata fields of the directory that we just loaded from state to
     // avoid overriding them.
     const state = yield* Saga.selectState()
-    const {lastModifiedTimestamp, lastWriter, size, writable} = state.fs.pathItems.get(
-      rootPath,
-      Constants.makeFolder({name: Types.getPathName(rootPath)})
-    )
+    const rootPathItem = state.fs.pathItems.get(rootPath, Constants.unknownPathItem)
+    const rootFolder: Types.FolderPathItem = (rootPathItem.type === 'folder'
+      ? rootPathItem
+      : Constants.makeFolder({name: Types.getPathName(rootPath)})
+    ).withMutations(f => f.set('children', I.Set(childMap.get(rootPath))).set('progress', 'loaded'))
 
     const pathItems = [
-      ...(Types.getPathLevel(rootPath) > 2
-        ? [
-            [
-              rootPath,
-              Constants.makeFolder({
-                children: I.Set(childMap.get(rootPath)),
-                lastModifiedTimestamp,
-                lastWriter,
-                name: Types.getPathName(rootPath),
-                progress: 'loaded',
-                size,
-                writable,
-              }),
-            ],
-          ]
-        : []),
+      ...(Types.getPathLevel(rootPath) > 2 ? [[rootPath, rootFolder]] : []),
       ...entries.map(direntToPathAndPathItem),
     ]
     yield Saga.put(FsGen.createFolderListLoaded({path: rootPath, pathItems: I.Map(pathItems)}))
@@ -281,10 +359,7 @@ function* download(state, action) {
       local: localPath,
     },
     opID,
-    src: {
-      PathType: RPCTypes.simpleFSPathType.kbfs,
-      kbfs: Constants.fsPathToRpcPathString(path),
-    },
+    src: Constants.pathToRPCPath(path),
   })
 
   try {
@@ -323,10 +398,7 @@ function* upload(_, action) {
   // TODO: confirm overwrites?
   // TODO: what about directory merges?
   yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise, {
-    dest: {
-      PathType: RPCTypes.simpleFSPathType.kbfs,
-      kbfs: Constants.fsPathToRpcPathString(path),
-    },
+    dest: Constants.pathToRPCPath(path),
     opID,
     src: {
       PathType: RPCTypes.simpleFSPathType.local,
@@ -363,7 +435,7 @@ const getWaitDuration = (endEstimate: ?number, lower: number, upper: number): nu
 }
 
 let polling = false
-function* pollSyncStatusUntilDone(_, action) {
+function* pollJournalFlushStatusUntilDone(_, action) {
   if (polling) {
     return
   }
@@ -397,8 +469,6 @@ function* pollSyncStatusUntilDone(_, action) {
         Saga.delay(getWaitDuration(endEstimate, 100, 4000)), // 0.1s to 4s
       ])
     }
-  } catch (error) {
-    yield makeUnretriableErrorHandler(action)(error).map(action => Saga.put(action))
   } finally {
     polling = false
     yield Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false}))
@@ -406,7 +476,7 @@ function* pollSyncStatusUntilDone(_, action) {
 }
 
 const onTlfUpdate = (state, action) => {
-  // Trigger folderListLoad and mimeTypeLoad for paths that the user might be
+  // Trigger folderListLoad and pathMetadata for paths that the user might be
   // looking at. Note that we don't have the actual path here, So instead just
   // always re-load them as long as the TLF path matches.
   //
@@ -422,14 +492,14 @@ const onTlfUpdate = (state, action) => {
   // folderList`).
   const actions = []
   folderListRefreshTags.forEach((path, refreshTag) =>
-    Types.pathIsInTlfPath(path, action.payload.tlfPath)
+    Types.pathsAreInSameTlf(path, action.payload.tlfPath)
       ? actions.push(FsGen.createFolderListLoad({path}))
       : folderListRefreshTags.delete(refreshTag)
   )
-  mimeTypeRefreshTags.forEach((path, refreshTag) =>
-    Types.pathIsInTlfPath(path, action.payload.tlfPath)
-      ? actions.push(FsGen.createMimeTypeLoad({path}))
-      : mimeTypeRefreshTags.delete(refreshTag)
+  pathMetadataRefreshTags.forEach((path, refreshTag) =>
+    Types.pathsAreInSameTlf(path, action.payload.tlfPath)
+      ? actions.push(FsGen.createLoadPathMetadata({path}))
+      : pathMetadataRefreshTags.delete(refreshTag)
   )
   return actions
 }
@@ -437,7 +507,6 @@ const onTlfUpdate = (state, action) => {
 // FSPathUpdate just subscribes on TLF level and sends over TLF path as of now.
 const onFSPathUpdated = (_, action) =>
   FsGen.createNotifyTlfUpdate({tlfPath: Types.stringToPath(action.payload.params.path)})
-const onFSSyncActivity = () => FsGen.createNotifySyncActivity()
 
 function* ignoreFavoriteSaga(_, action) {
   const folder = Constants.folderRPCFromPath(action.payload.path)
@@ -516,19 +585,8 @@ const refreshLocalHTTPServerInfo = (state, action) =>
 // If the server address/token are not populated yet, or if the token turns out
 // to be invalid, it automatically uses
 // SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise to refresh that. The
-// generator function returns the loaded mime type for the given path, and in
-// addition triggers a mimeTypeLoaded so the loaded mime type for given path is
-// populated in the store.
-function* _loadMimeType(path: Types.Path, refreshTag?: Types.RefreshTag) {
-  if (refreshTag) {
-    if (mimeTypeRefreshTags.get(refreshTag) === path) {
-      // We are already subscribed; so don't fire RPC.
-      return
-    }
-
-    mimeTypeRefreshTags.set(refreshTag, path)
-  }
-
+// generator function returns the loaded mime type for the given path.
+function* _loadMimeType(path: Types.Path) {
   const state = yield* Saga.selectState()
   let localHTTPServerInfo = state.fs.localHTTPServerInfo
   // This should finish within 2 iterations at most. But just in case we bound
@@ -548,7 +606,6 @@ function* _loadMimeType(path: Types.Path, refreshTag?: Types.RefreshTag) {
     }
     try {
       const mimeType: Types.Mime = yield Saga.callUntyped(getMimeTypePromise, localHTTPServerInfo, path)
-      yield Saga.put(FsGen.createMimeTypeLoaded({mimeType, path}))
       return mimeType
     } catch (err) {
       if (err === Constants.notFoundError) {
@@ -565,14 +622,6 @@ function* _loadMimeType(path: Types.Path, refreshTag?: Types.RefreshTag) {
   throw new Error('exceeded max retries')
 }
 
-function* loadMimeType(_, action) {
-  try {
-    yield* _loadMimeType(action.payload.path, action.payload.refreshTag)
-  } catch (error) {
-    yield makeUnretriableErrorHandler(action)(error).map(action => Saga.put(action))
-  }
-}
-
 const commitEdit = (state, action) => {
   const {editID} = action.payload
   const edit = state.fs.edits.get(editID)
@@ -583,10 +632,7 @@ const commitEdit = (state, action) => {
   switch (type) {
     case 'new-folder':
       return RPCTypes.SimpleFSSimpleFSOpenRpcPromise({
-        dest: {
-          PathType: RPCTypes.simpleFSPathType.kbfs,
-          kbfs: Constants.fsPathToRpcPathString(Types.pathConcat(parentPath, name)),
-        },
+        dest: Constants.pathToRPCPath(Types.pathConcat(parentPath, name)),
         flags: RPCTypes.simpleFSOpenFlags.directory,
         opID: Constants.makeUUID(),
       })
@@ -598,89 +644,40 @@ const commitEdit = (state, action) => {
   }
 }
 
-const _getRouteChangeForOpenPathInFilesTab = (action: FsGen.OpenPathInFilesTabPayload, finalRoute: any) =>
-  isMobile
-    ? RouteTreeGen.createNavigateTo({
-        path:
-          action.payload.path === Constants.defaultPath
-            ? fsRootRoute
-            : [
-                ...fsRootRoute,
-                // Construct all parent folders so back button works all the way back
-                // to /keybase
-                ...Types.getPathElements(action.payload.path)
-                  .slice(1, -1) // fsTab default to /keybase, so we skip one here
-                  .reduce(
-                    (routes, elem) => [
-                      ...routes,
-                      {
-                        props: {
-                          path: routes.length
-                            ? Types.pathConcat(routes[routes.length - 1].props.path, elem)
-                            : Types.stringToPath(`/keybase/${elem}`),
-                        },
-                        selected: 'main',
-                      },
-                    ],
-                    []
-                  ),
-                finalRoute,
-              ],
-      })
-    : RouteTreeGen.createNavigateTo({
-        path: [
-          Tabs.fsTab,
-          // Prepend the parent folder so when user clicks the back button they'd
-          // go back to the parent folder.
-          {props: {path: Types.getPathParent(action.payload.path)}, selected: 'main'},
-          finalRoute,
-        ],
-      })
-
-const _getRouteChangeActionForOpen = (
-  action: FsGen.OpenPathItemPayload | FsGen.OpenPathInFilesTabPayload,
-  finalRoute: any
-) => {
-  const routeChange =
-    action.type === FsGen.openPathItem
-      ? RouteTreeGen.createNavigateAppend({path: [finalRoute]})
-      : _getRouteChangeForOpenPathInFilesTab(action, finalRoute)
-  return action.payload.routePath
-    ? RouteTreeGen.createPutActionIfOnPath({expectedPath: action.payload.routePath, otherAction: routeChange})
-    : routeChange
-}
-
-const openPathItem = (state, action) =>
-  _getRouteChangeActionForOpen(action, {props: {path: action.payload.path}, selected: 'main'})
-
 function* loadPathMetadata(state, action) {
-  const {path} = action.payload
+  const {path, refreshTag} = action.payload
 
   if (Types.getPathLevel(path) < 3) {
     return
   }
 
-  let pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
+  if (refreshTag) {
+    if (pathMetadataRefreshTags.get(refreshTag) === path) {
+      // We are already subscribed; so don't fire RPC.
+      return
+    }
+
+    pathMetadataRefreshTags.set(refreshTag, path)
+  }
+
   try {
     const dirent = yield RPCTypes.SimpleFSSimpleFSStatRpcPromise({
-      path: {
-        PathType: RPCTypes.simpleFSPathType.kbfs,
-        kbfs: Constants.fsPathToRpcPathString(path),
-      },
+      path: Constants.pathToRPCPath(path),
+      refreshSubscription: !!refreshTag,
     })
-    pathItem = makeEntry(dirent)
+    let pathItem = makeEntry(dirent)
+    if (pathItem.type === 'file') {
+      const mimeType = yield* _loadMimeType(path)
+      pathItem = pathItem.set('mimeType', mimeType)
+    }
     yield Saga.put(
       FsGen.createPathItemLoaded({
-        meta: pathItem,
         path,
+        pathItem,
       })
     )
   } catch (err) {
     yield makeRetriableErrorHandler(action)(err).map(action => Saga.put(action))
-    return
-  }
-  if (pathItem.type === 'file') {
-    yield Saga.put(FsGen.createMimeTypeLoad({path}))
   }
 }
 
@@ -698,13 +695,10 @@ const deleteFile = (state, action) => {
   const opID = Constants.makeUUID()
   return RPCTypes.SimpleFSSimpleFSRemoveRpcPromise({
     opID,
-    path: {
-      PathType: RPCTypes.simpleFSPathType.kbfs,
-      kbfs: Constants.fsPathToRpcPathString(action.payload.path),
-    },
-    recursive: false,
+    path: Constants.pathToRPCPath(action.payload.path),
+    recursive: true,
   })
-    .then(() => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}))
+    .then(() => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}, Constants.deleteWaitingKey))
     .catch(makeRetriableErrorHandler(action))
 }
 
@@ -713,25 +707,19 @@ const moveOrCopy = (state, action) => {
     return
   }
   const params = {
-    dest: {
-      PathType: RPCTypes.simpleFSPathType.kbfs,
-      kbfs: Constants.fsPathToRpcPathString(
-        Types.pathConcat(
-          action.payload.destinationParentPath,
-          state.fs.destinationPicker.source.type === 'move-or-copy'
-            ? Types.getPathName(state.fs.destinationPicker.source.path)
-            : Types.getLocalPathName(state.fs.destinationPicker.source.localPath)
-          // We use the local path name here since we only care about file name.
-        )
-      ),
-    },
+    dest: Constants.pathToRPCPath(
+      Types.pathConcat(
+        action.payload.destinationParentPath,
+        state.fs.destinationPicker.source.type === 'move-or-copy'
+          ? Types.getPathName(state.fs.destinationPicker.source.path)
+          : Types.getLocalPathName(state.fs.destinationPicker.source.localPath)
+        // We use the local path name here since we only care about file name.
+      )
+    ),
     opID: Constants.makeUUID(),
     src:
       state.fs.destinationPicker.source.type === 'move-or-copy'
-        ? {
-            PathType: RPCTypes.simpleFSPathType.kbfs,
-            kbfs: Constants.fsPathToRpcPathString(state.fs.destinationPicker.source.path),
-          }
+        ? Constants.pathToRPCPath(state.fs.destinationPicker.source.path)
         : state.fs.destinationPicker.source.type === 'incoming-share'
         ? {
             PathType: RPCTypes.simpleFSPathType.local,
@@ -757,19 +745,6 @@ const moveOrCopy = (state, action) => {
   )
 }
 
-const destinationPickerOpen = (state, action) => [
-  FsGen.createSetDestinationPickerParentPath({
-    index: action.payload.currentIndex + 1,
-    path: action.payload.path,
-  }),
-  RouteTreeGen.createPutActionIfOnPath({
-    expectedPath: action.payload.routePath,
-    otherAction: RouteTreeGen.createNavigateAppend({
-      path: [{props: {index: action.payload.currentIndex + 1}, selected: 'destinationPicker'}],
-    }),
-  }),
-]
-
 const showMoveOrCopy = (state, action) =>
   RouteTreeGen.createNavigateAppend({path: [{props: {index: 0}, selected: 'destinationPicker'}]})
 
@@ -788,105 +763,120 @@ const closeDestinationPicker = (state, action) => {
   ]
 }
 
-const showSendAttachmentToChat = (state, action) =>
-  action.payload.routePath
-    ? RouteTreeGen.createPutActionIfOnPath({
-        expectedPath: action.payload.routePath,
-        otherAction: RouteTreeGen.createNavigateAppend({path: ['sendAttachmentToChat']}),
-      })
-    : RouteTreeGen.createNavigateAppend({path: ['sendAttachmentToChat']})
-
-function* showSendLinkToChat(state, action) {
+const initSendLinkToChat = (state, action) => {
   const elems = Types.getPathElements(state.fs.sendLinkToChat.path)
-  const routeChange = Saga.put(
-    action.payload.routePath
-      ? RouteTreeGen.createPutActionIfOnPath({
-          expectedPath: action.payload.routePath,
-          otherAction: RouteTreeGen.createNavigateAppend({path: ['sendLinkToChat']}),
-        })
-      : RouteTreeGen.createNavigateAppend({path: ['sendLinkToChat']})
-  )
   if (elems.length < 3 || elems[1] === 'public') {
-    // Not a TLF, or a public TLF; just show the modal and let user copy the path.
-    yield routeChange
+    // Not a TLF, or a public TLF; just let user copy the path.
     return
   }
 
-  const actions = [routeChange]
-
   if (elems[1] !== 'team') {
     // It's an impl team conversation. So resolve to a convID directly.
-    actions.push(
-      Saga.callUntyped(function*() {
-        const result = yield Saga.callPromise(RPCChatTypes.localFindConversationsLocalRpcPromise, {
-          identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-          membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
-          oneChatPerTLF: false,
-          tlfName: elems[2],
-          topicName: '',
-          topicType: RPCChatTypes.commonTopicType.chat,
-          visibility: RPCTypes.commonTLFVisibility.private,
-        })
-
-        if (!result.conversations || !result.conversations.length) {
-          // TODO: error?
-          return
-        }
-
-        yield Saga.put(
-          FsGen.createSetSendLinkToChatConvID({
-            convID: ChatTypes.conversationIDToKey(result.conversations[0].info.id),
-          })
-        )
-      })
-    )
-  } else {
-    // It's a real team, but we don't know if it's a small team or big team. So
-    // call RPCChatTypes.localGetTLFConversationsLocalRpcPromise to get all
-    // channels. We could have used the Teams store, but then we are doing
-    // cross-store stuff and are depending on the Teams store. If this turns
-    // out to feel slow, we can probably cahce the results.
-    actions.push(
-      Saga.callUntyped(function*() {
-        const result = yield Saga.callPromise(RPCChatTypes.localGetTLFConversationsLocalRpcPromise, {
-          membersType: RPCChatTypes.commonConversationMembersType.team,
-          tlfName: elems[2],
-          topicType: RPCChatTypes.commonTopicType.chat,
-        })
-
-        if (!result.convs || !result.convs.length) {
-          // TODO: error?
-          return
-        }
-
-        yield Saga.put(
-          FsGen.createSetSendLinkToChatChannels({
-            channels: I.Map(result.convs.map(conv => [conv.convID, conv.channel])),
-          })
-        )
-
-        if (result.convs.length === 1) {
-          // Auto-select channel if it's the only one.
-          yield Saga.put(
-            FsGen.createSetSendLinkToChatConvID({
-              convID: ChatTypes.stringToConversationIDKey(result.convs[0].convID),
-            })
-          )
-        }
+    return RPCChatTypes.localFindConversationsLocalRpcPromise({
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+      membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
+      oneChatPerTLF: false,
+      tlfName: elems[2].replace('#', ','),
+      topicName: '',
+      topicType: RPCChatTypes.commonTopicType.chat,
+      visibility: RPCTypes.commonTLFVisibility.private,
+    }).then(result =>
+      // This action, no matter setting a real idKey or
+      // noConversationIDKey, causes a transition into 'read-to-send'
+      // state, which is what we want here. If we don't have a
+      // conversation we should create it when user tries to send.
+      FsGen.createSetSendLinkToChatConvID({
+        convID:
+          result.conversations && result.conversations.length
+            ? ChatTypes.conversationIDToKey(result.conversations[0].info.id)
+            : ChatConstants.noConversationIDKey,
       })
     )
   }
 
-  yield Saga.all(actions)
+  // It's a real team, but we don't know if it's a small team or big team. So
+  // call RPCChatTypes.localGetTLFConversationsLocalRpcPromise to get all
+  // channels. We could have used the Teams store, but then we are doing
+  // cross-store stuff and are depending on the Teams store. If this turns
+  // out to feel slow, we can probably cahce the results.
+
+  return RPCChatTypes.localGetTLFConversationsLocalRpcPromise({
+    membersType: RPCChatTypes.commonConversationMembersType.team,
+    tlfName: elems[2],
+    topicType: RPCChatTypes.commonTopicType.chat,
+  }).then(result =>
+    !result.convs || !result.convs.length
+      ? null // TODO: is this possible for teams at all?
+      : [
+          FsGen.createSetSendLinkToChatChannels({
+            channels: I.Map(
+              result.convs
+                .filter(conv => conv.memberStatus === RPCChatTypes.commonConversationMemberStatus.active)
+                .map(conv => [ChatTypes.stringToConversationIDKey(conv.convID), conv.channel])
+            ),
+          }),
+
+          ...(result.convs && result.convs.length === 1
+            ? [
+                // Auto-select channel if it's the only one.
+                FsGen.createSetSendLinkToChatConvID({
+                  convID: ChatTypes.stringToConversationIDKey(result.convs[0].convID),
+                }),
+              ]
+            : []),
+        ]
+  )
+}
+
+const triggerSendLinkToChat = (state, action) => {
+  const elems = Types.getPathElements(state.fs.sendLinkToChat.path)
+  if (elems.length < 3 || elems[1] === 'public') {
+    // Not a TLF, or a public TLF; no-op
+    return
+  }
+
+  return (elems[1] === 'team'
+    ? Promise.resolve({
+        conversationIDKey: state.fs.sendLinkToChat.convID,
+        tlfName: elems[2],
+      })
+    : RPCChatTypes.localNewConversationLocalRpcPromise({
+        // It's an impl team conversation. So first make sure it exists.
+        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+        membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
+        tlfName: elems[2].replace('#', ','),
+        tlfVisibility: RPCTypes.commonTLFVisibility.private,
+        topicType: RPCChatTypes.commonTopicType.chat,
+      }).then(result => ({
+        conversationIDKey: ChatTypes.conversationIDToKey(result.conv.info.id),
+        tlfName: result.conv.info.tlfName,
+      }))
+  ).then(({conversationIDKey, tlfName}) =>
+    RPCChatTypes.localPostTextNonblockRpcPromise(
+      {
+        // intentional space in the end
+        body: `${Constants.escapePath(state.fs.sendLinkToChat.path)} `,
+        clientPrev: ChatConstants.getClientPrev(state, conversationIDKey),
+        conversationID: ChatTypes.keyToConversationID(conversationIDKey),
+        ephemeralLifetime: ChatConstants.getConversationExplodingMode(state, conversationIDKey) || undefined,
+        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+        outboxID: null,
+        replyTo: null,
+        tlfName,
+        tlfPublic: false,
+      },
+      ChatConstants.waitingKeyPost
+    ).then(result => FsGen.createSentLinkToChat({convID: conversationIDKey}))
+  )
 }
 
 const clearRefreshTag = (state, action) => {
   folderListRefreshTags.delete(action.payload.refreshTag)
-  mimeTypeRefreshTags.delete(action.payload.refreshTag)
+  pathMetadataRefreshTags.delete(action.payload.refreshTag)
 }
 
-// Can't rely on kbfsDaemonStatus === 'waiting' as that's set by reducre and
-// happens before this.
+// Can't rely on kbfsDaemonStatus.rpcStatus === 'waiting' as that's set by
+// reducer and happens before this.
 let waitForKbfsDaemonOnFly = false
 const waitForKbfsDaemon = (state, action) => {
   if (waitForKbfsDaemonOnFly) {
@@ -899,18 +889,32 @@ const waitForKbfsDaemon = (state, action) => {
   })
     .then(connected => {
       waitForKbfsDaemonOnFly = false
-      return FsGen.createKbfsDaemonStatusChanged({
-        kbfsDaemonStatus: connected ? 'connected' : 'wait-timeout',
+      return FsGen.createKbfsDaemonRpcStatusChanged({
+        rpcStatus: connected ? 'connected' : 'wait-timeout',
       })
     })
     .catch(() => {
       waitForKbfsDaemonOnFly = false
-      return FsGen.createKbfsDaemonStatusChanged({
-        kbfsDaemonStatus: 'wait-timeout',
+      return FsGen.createKbfsDaemonRpcStatusChanged({
+        rpcStatus: 'wait-timeout',
       })
     })
 }
 
+const getKbfsDaemonOnlineStatus = (state, action) =>
+  action.payload.rpcStatus === 'connected' &&
+  RPCTypes.SimpleFSSimpleFSAreWeConnectedToMDServerRpcPromise().then(connectedToMDServer =>
+    FsGen.createKbfsDaemonOnlineStatusChanged({online: connectedToMDServer})
+  )
+
+const onFSOnlineStatusChanged = (state, action) =>
+  FsGen.createKbfsDaemonOnlineStatusChanged({online: action.payload.params.online})
+
+const onFSOverallSyncSyncStatusChanged = (state, action) => {
+  return FsGen.createOverallSyncStatusChanged({
+    progress: Constants.makeSyncingFoldersProgress(action.payload.params.status.prefetchProgress),
+  })
+}
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<FsGen.RefreshLocalHTTPServerInfoPayload>(
     FsGen.refreshLocalHTTPServerInfo,
@@ -926,37 +930,23 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     [FsGen.folderListLoad, FsGen.editSuccess],
     folderList
   )
-  yield* Saga.chainAction<FsGen.PathItemLoadPayload>(FsGen.pathItemLoad, pathItemLoad)
   yield* Saga.chainAction<FsGen.FavoritesLoadPayload>(FsGen.favoritesLoad, loadFavorites)
   yield* Saga.chainGenerator<FsGen.FavoriteIgnorePayload>(FsGen.favoriteIgnore, ignoreFavoriteSaga)
   yield* Saga.chainAction<FsGen.FavoritesLoadedPayload>(FsGen.favoritesLoaded, updateFsBadge)
-  yield* Saga.chainGenerator<FsGen.MimeTypeLoadPayload>(FsGen.mimeTypeLoad, loadMimeType)
   yield* Saga.chainAction<FsGen.LetResetUserBackInPayload>(FsGen.letResetUserBackIn, letResetUserBackIn)
   yield* Saga.chainAction<FsGen.CommitEditPayload>(FsGen.commitEdit, commitEdit)
-  yield* Saga.chainGenerator<FsGen.NotifySyncActivityPayload>(
-    FsGen.notifySyncActivity,
-    pollSyncStatusUntilDone
-  )
   yield* Saga.chainAction<FsGen.NotifyTlfUpdatePayload>(FsGen.notifyTlfUpdate, onTlfUpdate)
   yield* Saga.chainAction<FsGen.DeleteFilePayload>(FsGen.deleteFile, deleteFile)
-  yield* Saga.chainAction<FsGen.OpenPathItemPayload | FsGen.OpenPathInFilesTabPayload>(
-    [FsGen.openPathItem, FsGen.openPathInFilesTab],
-    openPathItem
-  )
   yield* Saga.chainGenerator<FsGen.LoadPathMetadataPayload>(FsGen.loadPathMetadata, loadPathMetadata)
   yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSPathUpdatedPayload>(
     EngineGen.keybase1NotifyFSFSPathUpdated,
     onFSPathUpdated
   )
-  yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSSyncActivityPayload>(
+  yield* Saga.chainGenerator<EngineGen.Keybase1NotifyFSFSSyncActivityPayload>(
     EngineGen.keybase1NotifyFSFSSyncActivity,
-    onFSSyncActivity
+    pollJournalFlushStatusUntilDone
   )
   yield* Saga.chainAction<FsGen.MovePayload | FsGen.CopyPayload>([FsGen.move, FsGen.copy], moveOrCopy)
-  yield* Saga.chainAction<FsGen.DestinationPickerOpenPayload>(
-    FsGen.destinationPickerOpen,
-    destinationPickerOpen
-  )
   yield* Saga.chainAction<FsGen.ShowMoveOrCopyPayload | FsGen.ShowIncomingSharePayload>(
     [FsGen.showMoveOrCopy, FsGen.showIncomingShare],
     showMoveOrCopy
@@ -965,20 +955,37 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     FsGen.closeDestinationPicker,
     closeDestinationPicker
   )
-  yield* Saga.chainGenerator<FsGen.ShowSendLinkToChatPayload>(FsGen.showSendLinkToChat, showSendLinkToChat)
-  yield* Saga.chainAction<FsGen.ShowSendLinkToChatPayload>(
-    FsGen.showSendAttachmentToChat,
-    showSendAttachmentToChat
+  yield* Saga.chainAction<FsGen.InitSendLinkToChatPayload>(FsGen.initSendLinkToChat, initSendLinkToChat)
+  yield* Saga.chainAction<FsGen.TriggerSendLinkToChatPayload>(
+    FsGen.triggerSendLinkToChat,
+    triggerSendLinkToChat
   )
   yield* Saga.chainAction<FsGen.ClearRefreshTagPayload>(FsGen.clearRefreshTag, clearRefreshTag)
-  yield* Saga.chainAction<FsGen.KbfsDaemonStatusChangedPayload>(
-    FsGen.kbfsDaemonStatusChanged,
+  yield* Saga.chainAction<FsGen.KbfsDaemonRpcStatusChangedPayload>(
+    FsGen.kbfsDaemonRpcStatusChanged,
     clearRefreshTags
   )
   yield* Saga.chainAction<ConfigGen.InstallerRanPayload | FsGen.WaitForKbfsDaemonPayload>(
     [ConfigGen.installerRan, FsGen.waitForKbfsDaemon],
     waitForKbfsDaemon
   )
+  if (flags.kbfsOfflineMode) {
+    yield* Saga.chainAction<FsGen.FavoritesLoadedPayload>(FsGen.favoritesLoaded, loadSyncConfigForAllTlfs)
+    yield* Saga.chainAction<FsGen.SetTlfSyncConfigPayload>(FsGen.setTlfSyncConfig, setTlfSyncConfig)
+    yield* Saga.chainAction<FsGen.LoadTlfSyncConfigPayload>(FsGen.loadTlfSyncConfig, loadTlfSyncConfig)
+    yield* Saga.chainAction<FsGen.KbfsDaemonRpcStatusChangedPayload>(
+      FsGen.kbfsDaemonRpcStatusChanged,
+      getKbfsDaemonOnlineStatus
+    )
+    yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSOnlineStatusChangedPayload>(
+      EngineGen.keybase1NotifyFSFSOnlineStatusChanged,
+      onFSOnlineStatusChanged
+    )
+    yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSOverallSyncStatusChangedPayload>(
+      EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged,
+      onFSOverallSyncSyncStatusChanged
+    )
+  }
 
   yield Saga.spawn(platformSpecificSaga)
 }

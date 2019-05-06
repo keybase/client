@@ -212,6 +212,11 @@ func (s SimpleFSMock) SimpleFSReset(_ context.Context, _ keybase1.Path) error {
 	return nil
 }
 
+func (s SimpleFSMock) SimpleFSClearConflictState(_ context.Context,
+	_ keybase1.Path) error {
+	return nil
+}
+
 func (s SimpleFSMock) SimpleFSListFavorites(_ context.Context) (
 	keybase1.FavoritesResult, error) {
 	return keybase1.FavoritesResult{}, nil
@@ -243,8 +248,20 @@ func (s SimpleFSMock) SimpleFSSetFolderSyncConfig(
 	return nil
 }
 
-// SimpleFSPing implements the SimpleFSInterface.
-func (s SimpleFSMock) SimpleFSPing(_ context.Context) error {
+// SimpleFSSyncConfigAndStatus implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSSyncConfigAndStatus(
+	_ context.Context) (keybase1.SyncConfigAndStatusRes, error) {
+	return keybase1.SyncConfigAndStatusRes{}, nil
+}
+
+// SimpleFSAreWeConnectedToMDServer implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSAreWeConnectedToMDServer(
+	_ context.Context) (bool, error) {
+	return true, nil
+}
+
+// SimpleFSSetDebugLevel implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSSetDebugLevel(_ context.Context, _ string) error {
 	return nil
 }
 

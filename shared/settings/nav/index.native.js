@@ -30,12 +30,18 @@ function SettingsNav(props: Props) {
       sections={[
         {
           data: [
-            {
-              badgeNumber: props.badgeNumbers[TabConstants.fsTab],
-              icon: 'iconfont-nav-files',
-              onClick: () => props.onTabChange(Constants.fsTab),
-              text: 'Files',
-            },
+            ...[
+              flags.useNewRouter
+                ? []
+                : [
+                    {
+                      badgeNumber: props.badgeNumbers[TabConstants.fsTab],
+                      icon: 'iconfont-nav-files',
+                      onClick: () => props.onTabChange(Constants.fsTab),
+                      text: 'Files',
+                    },
+                  ],
+            ],
             {
               badgeNumber: props.badgeNumbers[TabConstants.gitTab],
               icon: 'iconfont-nav-git',
@@ -69,9 +75,8 @@ function SettingsNav(props: Props) {
               text: 'Notifications',
             },
             {
-              onClick: () => props.onTabChange(Constants.passphraseTab),
-              text: props.hasRandomPW ? 'Set a passphrase' : 'Change passphrase',
-              textColor: props.hasRandomPW ? globalColors.red : undefined,
+              onClick: () => props.onTabChange(Constants.passwordTab),
+              text: props.hasRandomPW ? 'Set a password' : 'Change password',
             },
             {
               ...(isAndroid
@@ -90,8 +95,7 @@ function SettingsNav(props: Props) {
             {onClick: () => props.onTabChange(Constants.feedbackTab), text: 'Feedback'},
             {onClick: () => props.onTabChange(Constants.advancedTab), text: 'Advanced'},
             {
-              inProgress: props.logoutInProgress,
-              onClick: props.onLogout,
+              onClick: () => props.onTabChange(Constants.logOutTab),
               text: 'Sign out',
               textColor: globalColors.red,
             },

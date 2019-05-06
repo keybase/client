@@ -418,7 +418,7 @@ func (a AssertionFingerprint) ToLookup() (key, value string, err error) {
 
 var assertionBracketNameRxx = regexp.MustCompile(`^\[[-_a-zA-Z0-9.@+]+\]$`)
 var assertionNameRxx = regexp.MustCompile(`^[-_a-zA-Z0-9.]+$`)
-var assertionServiceRxx = regexp.MustCompile(`^[a-zA-Z.]+$`)
+var assertionServiceRxx = regexp.MustCompile(`^[a-zA-Z.-]+$`)
 
 func parseToKVPair(s string) (key string, value string, err error) {
 	// matchNameAndService runs regexp against potential name and service
@@ -582,7 +582,7 @@ func (a AssertionSocial) CheckAndNormalize(ctx AssertionContext) (AssertionURL, 
 }
 
 func (a AssertionPhoneNumber) CheckAndNormalize(ctx AssertionContext) (AssertionURL, error) {
-	if !IsPossiblePhoneNumber(a.Value) {
+	if !IsPossiblePhoneNumberAssertion(a.Value) {
 		return nil, NewAssertionCheckError("Invalid phone number: %s", a.Value)
 	}
 	return a, nil

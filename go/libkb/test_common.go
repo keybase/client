@@ -430,6 +430,7 @@ type TestLoginUI struct {
 	Username                 string
 	RevokeBackup             bool
 	CalledGetEmailOrUsername int
+	ResetAccount             bool
 }
 
 func (t *TestLoginUI) GetEmailOrUsername(_ context.Context, _ int) (string, error) {
@@ -446,6 +447,14 @@ func (t *TestLoginUI) DisplayPaperKeyPhrase(_ context.Context, arg keybase1.Disp
 }
 
 func (t *TestLoginUI) DisplayPrimaryPaperKey(_ context.Context, arg keybase1.DisplayPrimaryPaperKeyArg) error {
+	return nil
+}
+
+func (t *TestLoginUI) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (bool, error) {
+	return t.ResetAccount, nil
+}
+
+func (t *TestLoginUI) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
 	return nil
 }
 
@@ -500,6 +509,13 @@ func (t TestUIDMapper) ClearUIDAtEldestSeqno(_ context.Context, _ UIDMapperConte
 
 func (t TestUIDMapper) CheckUIDAgainstUsername(uid keybase1.UID, un NormalizedUsername) bool {
 	return true
+}
+
+func (t TestUIDMapper) MapHardcodedUsernameToUID(un NormalizedUsername) keybase1.UID {
+	if un.String() == "max" {
+		return keybase1.UID("dbb165b7879fe7b1174df73bed0b9500")
+	}
+	return keybase1.UID("")
 }
 
 func (t TestUIDMapper) InformOfEldestSeqno(ctx context.Context, g UIDMapperContext, uv keybase1.UserVersion) (bool, error) {
@@ -565,4 +581,51 @@ func ModifyFeatureForTest(m MetaContext, feature Feature, on bool, cacheSec int)
 
 func AddEnvironmentFeatureForTest(tc TestContext, feature Feature) {
 	tc.Tp.EnvironmentFeatureFlags = append(tc.Tp.EnvironmentFeatureFlags, feature)
+}
+
+// newSecretStoreLockedForTests is a simple function to create
+// SecretStoreLocked for the purposes of unit tests outside of libkb package
+// which need finer control over how secret store is configured.
+//
+// Omitting dataDir argument will create memory-only secret store, similar to
+// how disabling "remember passphrase" would work.
+func newSecretStoreLockedForTests(m MetaContext, dataDir string) *SecretStoreLocked {
+	var disk SecretStoreAll
+	mem := NewSecretStoreMem()
+	if dataDir != "" {
+		disk = NewSecretStoreFile(dataDir)
+	}
+
+	return &SecretStoreLocked{
+		mem:  mem,
+		disk: disk,
+	}
+}
+
+func ReplaceSecretStoreForTests(tc TestContext, dataDir string) {
+	g := tc.G
+	g.secretStoreMu.Lock()
+	g.secretStore = newSecretStoreLockedForTests(NewMetaContextForTest(tc), dataDir)
+	g.secretStoreMu.Unlock()
+}
+
+func CreateReadOnlySecretStoreDir(tc TestContext) (string, func()) {
+	td, err := ioutil.TempDir("", "ss")
+	require.NoError(tc.T, err)
+
+	// Change mode of test dir to read-only so secret store on this dir can
+	// fail.
+	fi, err := os.Stat(td)
+	require.NoError(tc.T, err)
+	oldMode := fi.Mode()
+	os.Chmod(td, 0400)
+
+	cleanup := func() {
+		os.Chmod(td, oldMode)
+		if err := os.RemoveAll(td); err != nil {
+			tc.T.Log(err)
+		}
+	}
+
+	return td, cleanup
 }

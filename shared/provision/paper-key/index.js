@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Constants from '../../constants/provision'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import flags from '../../util/feature-flags'
 
 type Props = {
   onBack: () => void,
@@ -21,7 +22,7 @@ class PaperKey extends React.Component<Props, {paperKey: string}> {
 
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="medium">
-        <Kb.BackButton onClick={props.onBack} style={styles.backButton} />
+        {!flags.useNewRouter && <Kb.BackButton onClick={props.onBack} style={styles.backButton} />}
         <Kb.Box2
           direction="vertical"
           style={styles.contents}
@@ -51,7 +52,6 @@ class PaperKey extends React.Component<Props, {paperKey: string}> {
           <Kb.ButtonBar fullWidth={true}>
             <Kb.WaitingButton
               label="Continue"
-              type="Primary"
               fullWidth={true}
               onClick={this._onSubmit}
               disabled={!this.state.paperKey}

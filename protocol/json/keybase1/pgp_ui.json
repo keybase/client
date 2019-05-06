@@ -68,6 +68,10 @@
         {
           "name": "sessionID",
           "type": "int"
+        },
+        {
+          "name": "prompt",
+          "type": "boolean"
         }
       ],
       "response": "boolean"

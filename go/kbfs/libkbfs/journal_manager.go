@@ -11,11 +11,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -114,8 +116,8 @@ type JournalManager struct {
 
 	dir string
 
-	delegateBlockCache      BlockCache
-	delegateDirtyBlockCache DirtyBlockCache
+	delegateBlockCache      data.BlockCache
+	delegateDirtyBlockCache data.DirtyBlockCache
 	delegateBlockServer     BlockServer
 	delegateMDOps           MDOps
 	onBranchChange          branchChangeListener
@@ -141,7 +143,7 @@ type JournalManager struct {
 
 func makeJournalManager(
 	config Config, log logger.Logger, dir string,
-	bcache BlockCache, dirtyBcache DirtyBlockCache, bserver BlockServer,
+	bcache data.BlockCache, dirtyBcache data.DirtyBlockCache, bserver BlockServer,
 	mdOps MDOps, onBranchChange branchChangeListener,
 	onMDFlush mdFlushListener) *JournalManager {
 	if len(dir) == 0 {
@@ -216,7 +218,7 @@ func (j *JournalManager) getEnableAutoLocked() (
 }
 
 func (j *JournalManager) getTLFJournal(
-	tlfID tlf.ID, h *TlfHandle) (*tlfJournal, bool) {
+	tlfID tlf.ID, h *tlfhandle.Handle) (*tlfJournal, bool) {
 	getJournalFn := func() (*tlfJournal, bool, bool, bool) {
 		j.lock.RLock()
 		defer j.lock.RUnlock()
@@ -299,15 +301,15 @@ func (j *JournalManager) makeFBOForJournal(
 		return err
 	}
 
-	handle, err := MakeTlfHandle(
+	handle, err := tlfhandle.MakeHandle(
 		ctx, headBareHandle, tlfID.Type(), j.config.KBPKI(),
-		j.config.KBPKI(), constIDGetter{tlfID},
+		j.config.KBPKI(), tlfhandle.ConstIDGetter{ID: tlfID},
 		j.config.OfflineAvailabilityForID(tlfID))
 	if err != nil {
 		return err
 	}
 
-	_, _, err = j.config.KBFSOps().GetRootNode(ctx, handle, MasterBranch)
+	_, _, err = j.config.KBFSOps().GetRootNode(ctx, handle, data.MasterBranch)
 	return err
 }
 
@@ -333,7 +335,7 @@ func (j *JournalManager) MakeFBOsForExistingJournals(
 				context.Background(), CtxFBOIDKey, CtxFBOOpID, j.log)
 
 			// Turn off tracker popups.
-			ctx, err := MakeExtendedIdentify(
+			ctx, err := tlfhandle.MakeExtendedIdentify(
 				ctx, keybase1.TLFIdentifyBehavior_KBFS_INIT)
 			if err != nil {
 				j.log.CWarningf(ctx, "Error making extended identify: %+v", err)
@@ -354,7 +356,7 @@ func (j *JournalManager) MakeFBOsForExistingJournals(
 			// have been logged.  So just close out the extended identify.  If
 			// the user accesses the TLF directly, another proper identify
 			// should happen that shows errors.
-			_ = getExtendedIdentify(ctx).getTlfBreakAndClose()
+			_ = tlfhandle.GetExtendedIdentify(ctx).GetTlfBreakAndClose()
 		}()
 	}
 	return &wg
@@ -624,7 +626,7 @@ func (j *JournalManager) enableLocked(
 // Enable turns on the write journal for the given TLF.  If h is nil,
 // it will be attempted to be fetched from the remote MD server.
 func (j *JournalManager) Enable(ctx context.Context, tlfID tlf.ID,
-	h *TlfHandle, bws TLFJournalBackgroundWorkStatus) (err error) {
+	h *tlfhandle.Handle, bws TLFJournalBackgroundWorkStatus) (err error) {
 	j.lock.Lock()
 	defer j.lock.Unlock()
 	chargedTo := j.currentUID.AsUserOrTeam()
@@ -843,7 +845,7 @@ func (j *JournalManager) blockCache() journalBlockCache {
 }
 
 func (j *JournalManager) dirtyBlockCache(
-	journalCache DirtyBlockCache) journalDirtyBlockCache {
+	journalCache data.DirtyBlockCache) journalDirtyBlockCache {
 	return journalDirtyBlockCache{j, j.delegateDirtyBlockCache, journalCache}
 }
 

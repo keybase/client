@@ -20,11 +20,14 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
@@ -33,11 +36,13 @@ import (
 
 // FS implements the newfuse FS interface for KBFS.
 type FS struct {
-	config libkbfs.Config
-	fuse   *fs.Server
-	conn   *fuse.Conn
-	log    logger.Logger
-	errLog logger.Logger
+	config  libkbfs.Config
+	fuse    *fs.Server
+	conn    *fuse.Conn
+	log     logger.Logger
+	errLog  logger.Logger
+	vlog    *libkb.VDebugLog
+	errVlog *libkb.VDebugLog
 
 	// Protects debugServerListener and debugServer.addr.
 	debugServerLock     sync.Mutex
@@ -115,16 +120,20 @@ func NewFS(config libkbfs.Config, conn *fuse.Conn, debug bool,
 		WriteTimeout: 10 * time.Second,
 	}
 
+	quLog := config.MakeLogger(libkbfs.QuotaUsageLogModule("FS"))
 	fs := &FS{
 		config:         config,
 		conn:           conn,
 		log:            log,
 		errLog:         errLog,
+		vlog:           config.MakeVLogger(log),
+		errVlog:        config.MakeVLogger(errLog),
 		debugServer:    debugServer,
 		notifications:  libfs.NewFSNotifications(log),
 		platformParams: platformParams,
-		quotaUsage:     libkbfs.NewEventuallyConsistentQuotaUsage(config, "FS"),
-		nextInode:      2, // root is 1
+		quotaUsage: libkbfs.NewEventuallyConsistentQuotaUsage(
+			config, quLog, config.MakeVLogger(quLog)),
+		nextInode: 2, // root is 1
 	}
 	fs.root.private = &FolderList{
 		fs:      fs,
@@ -351,7 +360,7 @@ var _ fs.FSStatfser = (*FS)(nil)
 func (f *FS) processError(ctx context.Context,
 	mode libkbfs.ErrorModeType, err error) error {
 	if err == nil {
-		f.errLog.CDebugf(ctx, "Request complete")
+		f.errVlog.CLogf(ctx, libkb.VLog1, "Request complete")
 		return nil
 	}
 
@@ -384,15 +393,16 @@ func (f *FS) Statfs(ctx context.Context, req *fuse.StatfsRequest, resp *fuse.Sta
 	}
 
 	if f.remoteStatus.ExtraFileName() != "" {
-		f.log.CDebugf(
-			ctx, "Skipping quota usage check while errors are present")
+		f.vlog.CLogf(
+			ctx, libkb.VLog1,
+			"Skipping quota usage check while errors are present")
 		return nil
 	}
 
-	if session, err := libkbfs.GetCurrentSessionIfPossible(
+	if session, err := idutil.GetCurrentSessionIfPossible(
 		ctx, f.config.KBPKI(), true); err != nil {
 		return err
-	} else if session == (libkbfs.SessionInfo{}) {
+	} else if session == (idutil.SessionInfo{}) {
 		// If user is not logged in, don't bother getting quota info. Otherwise
 		// reading a public TLF while logged out can fail on macOS.
 		return nil
@@ -400,7 +410,7 @@ func (f *FS) Statfs(ctx context.Context, req *fuse.StatfsRequest, resp *fuse.Sta
 	_, usageBytes, _, limitBytes, err := f.quotaUsage.Get(
 		ctx, quotaUsageStaleTolerance/2, quotaUsageStaleTolerance)
 	if err != nil {
-		f.log.CDebugf(ctx, "Getting quota usage error: %v", err)
+		f.vlog.CLogf(ctx, libkb.VLog1, "Getting quota usage error: %v", err)
 		return err
 	}
 
@@ -492,8 +502,8 @@ func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.L
 }
 
 // PathType returns PathType for this folder
-func (r *Root) PathType() libkbfs.PathType {
-	return libkbfs.KeybasePathType
+func (r *Root) PathType() tlfhandle.PathType {
+	return tlfhandle.KeybasePathType
 }
 
 var _ fs.NodeCreater = (*Root)(nil)
@@ -507,14 +517,14 @@ func (r *Root) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.C
 		// triggering a notification.
 		return nil, nil, syscall.ENOENT
 	}
-	return nil, nil, libkbfs.NewWriteUnsupportedError(libkbfs.BuildCanonicalPath(r.PathType(), req.Name))
+	return nil, nil, libkbfs.NewWriteUnsupportedError(tlfhandle.BuildCanonicalPath(r.PathType(), req.Name))
 }
 
 // Mkdir implements the fs.NodeMkdirer interface for Root.
 func (r *Root) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (_ fs.Node, err error) {
 	r.log().CDebugf(ctx, "FS Mkdir")
 	defer func() { err = r.private.fs.processError(ctx, libkbfs.WriteMode, err) }()
-	return nil, libkbfs.NewWriteUnsupportedError(libkbfs.BuildCanonicalPath(r.PathType(), req.Name))
+	return nil, libkbfs.NewWriteUnsupportedError(tlfhandle.BuildCanonicalPath(r.PathType(), req.Name))
 }
 
 var _ fs.Handle = (*Root)(nil)

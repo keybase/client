@@ -18,16 +18,16 @@ import (
 // loginLoadUser is an engine.
 type loginLoadUser struct {
 	libkb.Contextified
-	user            *libkb.User
-	usernameOrEmail string
+	user     *libkb.User
+	username string
 }
 
-// newLoginLoadUser creates a loginLoadUser engine.
-// usernameOrEmail is optional.
-func newLoginLoadUser(g *libkb.GlobalContext, usernameOrEmail string) *loginLoadUser {
+// newLoginLoadUser creates a loginLoadUser engine. `username` argument is
+// optional.
+func newLoginLoadUser(g *libkb.GlobalContext, username string) *loginLoadUser {
 	return &loginLoadUser{
-		Contextified:    libkb.NewContextified(g),
-		usernameOrEmail: strings.TrimSpace(usernameOrEmail),
+		Contextified: libkb.NewContextified(g),
+		username:     strings.TrimSpace(username),
 	}
 }
 
@@ -85,35 +85,26 @@ func (e *loginLoadUser) User() *libkb.User {
 }
 
 func (e *loginLoadUser) findUsername(m libkb.MetaContext) (string, error) {
-	if len(e.usernameOrEmail) == 0 {
+	if len(e.username) == 0 {
 		if err := e.prompt(m); err != nil {
 			return "", err
 		}
 	}
 
-	if len(e.usernameOrEmail) == 0 {
+	if len(e.username) == 0 {
 		return "", libkb.NoUsernameError{}
 	}
 
-	if libkb.CheckUsername.F(e.usernameOrEmail) {
-		return e.usernameOrEmail, nil
+	if !libkb.CheckUsername.F(e.username) {
+		// Username is not valid:
+		if libkb.CheckEmail.F(e.username) {
+			// It's an e-mail, that we don't support anymore (CORE-10470).
+			return "", libkb.NewBadUsernameErrorWithFullMessage("Logging in with e-mail address is not supported")
+		}
+		return "", libkb.NewBadUsernameError(e.username)
 	}
 
-	if !libkb.CheckEmail.F(e.usernameOrEmail) {
-		return "", libkb.BadNameError(e.usernameOrEmail)
-	}
-
-	// looks like an email address
-	m.Debug("%q looks like an email address, must get login session to get user", e.usernameOrEmail)
-
-	if err := libkb.PassphraseLoginPromptThenSecretStore(m, e.usernameOrEmail, 3, false /* failOnStoreError */); err != nil {
-		return "", err
-	}
-
-	username := m.LoginContext().GetUsername().String()
-	m.Debug("VerifyEmailAddress %q => %q", e.usernameOrEmail, username)
-
-	return username, nil
+	return e.username, nil
 }
 
 func (e *loginLoadUser) prompt(m libkb.MetaContext) error {
@@ -121,6 +112,6 @@ func (e *loginLoadUser) prompt(m libkb.MetaContext) error {
 	if err != nil {
 		return err
 	}
-	e.usernameOrEmail = res
+	e.username = res
 	return nil
 }

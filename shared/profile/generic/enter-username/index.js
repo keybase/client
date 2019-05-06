@@ -2,15 +2,15 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import {isLargeScreen} from '../../../constants/platform'
 import {SiteIcon} from '../shared'
 import type {SiteIconSet} from '../../../constants/types/tracker2'
 
 type InputProps = {|
   error: boolean,
   onChangeUsername: string => void,
+  onEnterKeyDown: () => void,
   serviceIcon: SiteIconSet,
-  serviceName: string,
+  serviceSuffix: string,
   username: string,
 |}
 
@@ -56,13 +56,15 @@ class EnterUsernameInput extends React.Component<InputProps, InputState> {
           />
           <Kb.Box2 direction="horizontal" style={styles.positionRelative} fullWidth={true}>
             <Kb.PlainInput
+              autoFocus={true}
               flexable={true}
               textType="BodySemibold"
               value={this.state.username}
               onChangeText={this._onChangeUsername}
+              onEnterKeyDown={this.props.onEnterKeyDown}
               onFocus={this._onFocus}
               onBlur={this._onBlur}
-              style={styles.marginRightMedium}
+              style={styles.input}
             />
             <Kb.Box2 direction="horizontal" style={styles.inputPlaceholder} pointerEvents="none">
               <Kb.Text type="BodySemibold" lineClamp={1} style={styles.paddingRightTiny}>
@@ -76,7 +78,7 @@ class EnterUsernameInput extends React.Component<InputProps, InputState> {
                   {this.state.username || 'Your username'}
                 </Kb.Text>
                 <Kb.Text type="BodySemibold" style={styles.placeholderService}>
-                  @{this.props.serviceName}
+                  {this.props.serviceSuffix}
                 </Kb.Text>
               </Kb.Text>
             </Kb.Box2>
@@ -101,11 +103,11 @@ const Unreachable = props => (
       style={Styles.collapseStyles([styles.opacity75, styles.inlineIcon])}
     />
     <Kb.Box2 direction="vertical" style={styles.flexOne}>
-      <Kb.Text type="BodySemibold" style={styles.placeholder}>
+      <Kb.Text type="BodySemibold" style={styles.unreachablePlaceholder}>
         <Kb.Text type="BodySemibold" style={styles.colorRed}>
           {props.username}
         </Kb.Text>
-        @{props.serviceName}
+        {props.serviceSuffix}
       </Kb.Text>
       <Kb.Meta title="unreachable" backgroundColor={Styles.globalColors.red} />
     </Kb.Box2>
@@ -121,83 +123,124 @@ const Unreachable = props => (
 type Props = {|
   error: string,
   onBack: () => void,
+  onCancel: () => void,
   onChangeUsername: string => void,
+  onContinue: () => void,
   onSubmit: () => void,
   serviceIcon: SiteIconSet,
   serviceIconFull: SiteIconSet,
   serviceName: string,
   serviceSub: string,
+  serviceSuffix: string,
+  submitButtonLabel: string,
   unreachable: boolean,
   username: string,
+  waiting: boolean, // waiting goes true -> false when proof is complete
 |}
 
-const _EnterUsername = (props: Props) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-    {!props.unreachable && !Styles.isMobile && (
-      <Kb.BackButton onClick={props.onBack} style={styles.backButton} />
-    )}
-    <Kb.Box2 alignItems="center" direction="vertical" gap="xtiny" style={styles.serviceIconHeaderContainer}>
-      <Kb.Box2 direction="vertical" style={styles.positionRelative}>
-        <SiteIcon set={props.serviceIconFull} full={true} style={styles.serviceIconFull} />
-        <Kb.Icon
-          type={props.unreachable ? 'icon-proof-broken' : 'icon-proof-unfinished'}
-          style={styles.serviceProofIcon}
-        />
-      </Kb.Box2>
-      <Kb.Box2 direction="vertical" alignItems="center">
-        <Kb.Text type="BodySemibold">{props.serviceName}</Kb.Text>
-        <Kb.Text type="BodySmall">{props.serviceSub}</Kb.Text>
-      </Kb.Box2>
-    </Kb.Box2>
-    <Kb.Box2
-      fullWidth={true}
-      direction="vertical"
-      alignItems="flex-start"
-      gap="xtiny"
-      style={styles.inputContainer}
-    >
-      {props.unreachable ? (
-        <Unreachable
-          serviceIcon={props.serviceIcon}
-          serviceName={props.serviceName}
-          username={props.username}
-        />
-      ) : (
-        <EnterUsernameInput
-          error={!!props.error}
-          serviceIcon={props.serviceIcon}
-          serviceName={props.serviceName}
-          username={props.username}
-          onChangeUsername={props.onChangeUsername}
-        />
-      )}
-      {!!props.error && <Kb.Text type="BodySmallError">{props.error}</Kb.Text>}
-    </Kb.Box2>
-    <Kb.Box2
-      alignItems="center"
-      fullWidth={true}
-      direction="vertical"
-      style={props.unreachable ? styles.buttonBarWarning : null}
-    >
-      {props.unreachable && (
-        <Kb.Text type="BodySmallSemibold" center={true} style={styles.warningText}>
-          You need to authorize your proof on {props.serviceName}.
-        </Kb.Text>
-      )}
-      <Kb.ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
-        {!Styles.isMobile && !props.unreachable && (
-          <Kb.Button type="Secondary" onClick={props.onBack} label="Cancel" style={styles.buttonSmall} />
+class _EnterUsername extends React.Component<Props> {
+  _waitingButtonKey = 0
+  componentDidUpdate(prevProps: Props) {
+    if (!this.props.waiting && prevProps.waiting) {
+      this.props.onContinue()
+    }
+    if (this.props.error && !prevProps.error) {
+      // We just tried an invalid username
+      // increment waiting button key so it
+      // remounts and we avoid a perma-spinner
+      this._waitingButtonKey++
+    }
+  }
+  render() {
+    const props = this.props
+    return (
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+        {!props.unreachable && !Styles.isMobile && (
+          <Kb.BackButton onClick={props.onBack} style={styles.backButton} />
         )}
-        <Kb.Button
-          type="PrimaryGreen"
-          onClick={props.onSubmit}
-          label={`${isLargeScreen ? 'Authorize on' : 'Go to'} ${props.serviceName}`}
-          style={styles.buttonBig}
-        />
-      </Kb.ButtonBar>
-    </Kb.Box2>
-  </Kb.Box2>
-)
+        <Kb.Box2
+          alignItems="center"
+          direction="vertical"
+          gap="xtiny"
+          style={styles.serviceIconHeaderContainer}
+        >
+          <Kb.Box2 direction="vertical" style={styles.positionRelative}>
+            <SiteIcon set={props.serviceIconFull} full={true} style={styles.serviceIconFull} />
+            <Kb.Icon
+              type={props.unreachable ? 'icon-proof-broken' : 'icon-proof-unfinished'}
+              style={styles.serviceProofIcon}
+            />
+          </Kb.Box2>
+          <Kb.Box2 direction="vertical" alignItems="center" style={styles.serviceMeta}>
+            <Kb.Text type="BodySemibold">{props.serviceName}</Kb.Text>
+            <Kb.Text type="BodySmall" center={true}>
+              {props.serviceSub}
+            </Kb.Text>
+          </Kb.Box2>
+        </Kb.Box2>
+        <Kb.Box2
+          fullWidth={true}
+          direction="vertical"
+          alignItems="flex-start"
+          gap="xtiny"
+          style={styles.inputContainer}
+        >
+          {props.unreachable ? (
+            <Unreachable
+              serviceIcon={props.serviceIcon}
+              serviceSuffix={props.serviceSuffix}
+              username={props.username}
+            />
+          ) : (
+            <EnterUsernameInput
+              error={!!props.error}
+              serviceIcon={props.serviceIcon}
+              serviceSuffix={props.serviceSuffix}
+              username={props.username}
+              onChangeUsername={props.onChangeUsername}
+              onEnterKeyDown={props.onSubmit}
+            />
+          )}
+          {!!props.error && <Kb.Text type="BodySmallError">{props.error}</Kb.Text>}
+        </Kb.Box2>
+        <Kb.Box2
+          alignItems="center"
+          fullWidth={true}
+          direction="vertical"
+          style={props.unreachable ? styles.buttonBarWarning : null}
+        >
+          {props.unreachable && (
+            <Kb.Text type="BodySmallSemibold" center={true} style={styles.warningText}>
+              You need to authorize your proof on {props.serviceName}.
+            </Kb.Text>
+          )}
+          <Kb.ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
+            {!Styles.isMobile && !props.unreachable && (
+              <Kb.Button type="Dim" onClick={props.onBack} label="Cancel" style={styles.buttonSmall} />
+            )}
+            {props.unreachable ? (
+              <Kb.Button
+                type="Success"
+                onClick={props.onSubmit}
+                label={props.submitButtonLabel}
+                style={styles.buttonBig}
+              />
+            ) : (
+              <Kb.WaitingButton
+                type="Success"
+                onClick={props.onSubmit}
+                label={props.submitButtonLabel}
+                style={styles.buttonBig}
+                waitingKey={null}
+                key={this._waitingButtonKey}
+              />
+            )}
+          </Kb.ButtonBar>
+        </Kb.Box2>
+      </Kb.Box2>
+    )
+  }
+}
 const EnterUsername = Kb.HeaderOrPopup(_EnterUsername)
 
 const styles = Styles.styleSheetCreate({
@@ -218,6 +261,15 @@ const styles = Styles.styleSheetCreate({
     position: 'relative',
     top: 1,
   },
+  input: Styles.platformStyles({
+    common: {marginRight: Styles.globalMargins.medium},
+    isAndroid: {
+      top: 1,
+    },
+    isElectron: {
+      marginTop: -1,
+    },
+  }),
   inputBox: {
     ...Styles.padding(Styles.globalMargins.xsmall),
     borderColor: Styles.globalColors.black_10,
@@ -241,10 +293,11 @@ const styles = Styles.styleSheetCreate({
     top: 1,
   },
   invisible: {
-    opacity: 0,
+    // opacity doesn't work in nested Text on android
+    // see here: https://github.com/facebook/react-native/issues/18057
+    color: Styles.globalColors.transparent,
   },
   marginLeftAuto: {marginLeft: 'auto'},
-  marginRightMedium: {marginRight: Styles.globalMargins.medium},
   opacity40: {
     opacity: 0.4,
   },
@@ -268,10 +321,26 @@ const styles = Styles.styleSheetCreate({
   serviceIconHeaderContainer: {
     paddingTop: Styles.globalMargins.medium,
   },
+  serviceMeta: Styles.platformStyles({
+    isElectron: {
+      paddingLeft: Styles.globalMargins.medium,
+      paddingRight: Styles.globalMargins.medium,
+    },
+    isMobile: {
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+    },
+  }),
   serviceProofIcon: {bottom: 0, position: 'absolute', right: 0},
   unreachableBox: Styles.platformStyles({
     common: {...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall)},
     isElectron: {width: 360},
+  }),
+  unreachablePlaceholder: Styles.platformStyles({
+    common: {color: Styles.globalColors.black_40},
+    isElectron: {
+      wordBreak: 'break-all',
+    },
   }),
   warningText: {color: Styles.globalColors.brown_75, marginTop: Styles.globalMargins.small},
 })

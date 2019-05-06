@@ -1526,20 +1526,65 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-skull-64.png'),
   },
-  'icon-stellar-coins-flying-2-48': {
+  'icon-stellar-coins-receiving-16': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-stellar-coins-flying-2-48.png'),
+    require: require('../images/icons/icon-stellar-coins-receiving-16.png'),
   },
-  'icon-stellar-coins-flying-48': {
+  'icon-stellar-coins-receiving-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-stellar-coins-flying-48.png'),
+    require: require('../images/icons/icon-stellar-coins-receiving-32.png'),
+  },
+  'icon-stellar-coins-receiving-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-stellar-coins-receiving-48.png'),
+  },
+  'icon-stellar-coins-receiving-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-stellar-coins-receiving-64.png'),
+  },
+  'icon-stellar-coins-sending-16': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-stellar-coins-sending-16.png'),
+  },
+  'icon-stellar-coins-sending-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-stellar-coins-sending-32.png'),
+  },
+  'icon-stellar-coins-sending-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-stellar-coins-sending-48.png'),
+  },
+  'icon-stellar-coins-sending-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-stellar-coins-sending-64.png'),
   },
   'icon-stellar-coins-stacked-16': {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-stellar-coins-stacked-16.png'),
+  },
+  'icon-stellar-coins-stacked-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-stellar-coins-stacked-32.png'),
+  },
+  'icon-stellar-coins-stacked-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-stellar-coins-stacked-48.png'),
+  },
+  'icon-stellar-coins-stacked-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-stellar-coins-stacked-64.png'),
   },
   'icon-stellar-coins-stacked-inflation-48': {
     extension: 'png',
@@ -1681,6 +1726,11 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-wallet-add-48.png'),
   },
+  'icon-wallet-add-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-wallet-add-64.png'),
+  },
   'icon-wallet-open-32': {
     extension: 'png',
     isFont: false,
@@ -1690,6 +1740,11 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-wallet-open-48.png'),
+  },
+  'icon-wallet-open-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-wallet-open-64.png'),
   },
   'icon-wallet-placeholder-add-32': {
     extension: 'png',
@@ -1778,6 +1833,21 @@ const iconMeta_ = {
   },
   'iconfont-add': {
     charCode: 0xe900,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-app-close': {
+    charCode: 0xe987,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-app-maximize': {
+    charCode: 0xe988,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-app-minimize': {
+    charCode: 0xe989,
     gridSize: 16,
     isFont: true,
   },
@@ -1971,6 +2041,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-filter': {
+    charCode: 0xe986,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-finder': {
     charCode: 0xe91e,
     gridSize: 16,
@@ -2036,13 +2111,13 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
-  'iconfont-heads': {
-    charCode: 0xe97a,
+  'iconfont-heart': {
+    charCode: 0xe978,
     gridSize: 16,
     isFont: true,
   },
-  'iconfont-heart': {
-    charCode: 0xe978,
+  'iconfont-hide': {
+    charCode: 0xe98a,
     gridSize: 16,
     isFont: true,
   },
@@ -2136,6 +2211,56 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-nav-2-chat': {
+    charCode: 0xe97d,
+    gridSize: 24,
+    isFont: true,
+  },
+  'iconfont-nav-2-devices': {
+    charCode: 0xe982,
+    gridSize: 24,
+    isFont: true,
+  },
+  'iconfont-nav-2-files': {
+    charCode: 0xe97e,
+    gridSize: 24,
+    isFont: true,
+  },
+  'iconfont-nav-2-git': {
+    charCode: 0xe981,
+    gridSize: 24,
+    isFont: true,
+  },
+  'iconfont-nav-2-hamburger': {
+    charCode: 0xe98b,
+    gridSize: 24,
+    isFont: true,
+  },
+  'iconfont-nav-2-more': {
+    charCode: 0xe984,
+    gridSize: 24,
+    isFont: true,
+  },
+  'iconfont-nav-2-people': {
+    charCode: 0xe97c,
+    gridSize: 24,
+    isFont: true,
+  },
+  'iconfont-nav-2-settings': {
+    charCode: 0xe983,
+    gridSize: 24,
+    isFont: true,
+  },
+  'iconfont-nav-2-teams': {
+    charCode: 0xe97f,
+    gridSize: 24,
+    isFont: true,
+  },
+  'iconfont-nav-2-wallets': {
+    charCode: 0xe980,
+    gridSize: 24,
+    isFont: true,
+  },
   'iconfont-nav-chat': {
     charCode: 0xe93c,
     gridSize: 24,
@@ -2211,6 +2336,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-phone-contact': {
+    charCode: 0xe97b,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-proof-broken': {
     charCode: 0xe94b,
     gridSize: 16,
@@ -2266,6 +2396,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-reload': {
+    charCode: 0xe97a,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-remove': {
     charCode: 0xe957,
     gridSize: 16,
@@ -2308,11 +2443,6 @@ const iconMeta_ = {
   },
   'iconfont-success': {
     charCode: 0xe95c,
-    gridSize: 16,
-    isFont: true,
-  },
-  'iconfont-tails': {
-    charCode: 0xe97b,
     gridSize: 16,
     isFont: true,
   },
@@ -2383,6 +2513,11 @@ const iconMeta_ = {
   },
   'iconfont-usercard': {
     charCode: 0xe968,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-wallet-transfer': {
+    charCode: 0xe985,
     gridSize: 16,
     isFont: true,
   },

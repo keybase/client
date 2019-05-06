@@ -158,6 +158,7 @@
     bytes previous;
     int num; // Number of items requested when argument, and number returned when result
     boolean last; // Will be true if the number of results is less than requested
+    boolean forceFirstPage; // Let downstream consumers of this Pagination know this is an initial request
   }
 
   record RateLimit {
@@ -330,6 +331,7 @@
     array<MessageID> reactionIDs;
     @mpackkey("u") @jsonkey("u")
     array<MessageID> unfurlIDs;
+    array<MessageID> replies;
     gregor1.Time ctime;
     // server's view of now(), used to calculate ephemeral lifetimes
     @mpackkey("n") @jsonkey("n")
@@ -539,34 +541,39 @@
     COINFLIP_9
   }
 
+  enum ReIndexingMode {
+    NONE_0,
+    PRESEARCH_SYNC_1,
+    POSTSEARCH_SYNC_2
+  }
+
   record SearchOpts {
+    boolean isRegex;
+
+    // message filters
     string sentBy;
+    string sentTo;
     gregor1.Time sentBefore;
     gregor1.Time sentAfter;
+
+    // search parameters
     int maxHits;
     // only used by regexp search
     int maxMessages;
     int beforeContext;
     int afterContext;
     // only used by in inbox search
-    boolean forceReindex;
-    int maxConvs;
+    ReIndexingMode reindexMode;
+    int maxConvsSearched;
+    int maxConvsHit;
+    union { null, ConversationID } convID;
+    // only used by conversation name search
+    int maxNameConvs;
   }
 
-  record ConversationIndexMetadata {
-    @mpackkey("s") @jsonkey("s")
-    map<MessageID, boolean> seenIDs;
-    @mpackkey("v") @jsonkey("v")
-    int version;
-  }
-
-  record ConversationIndex {
-    // search token -> msgID
-    @mpackkey("i") @jsonkey("i")
-    map<string, map<MessageID, boolean>> index;
-    @mpackkey("m") @jsonkey("m")
-    ConversationIndexMetadata metadata;
-  }
+  // The search indexer uses the EmptyStruct to implement a set using a map
+  // with a zero sized value.
+  record EmptyStruct{}
 
   record ChatSearchMatch {
     int startIndex;
@@ -583,7 +590,10 @@
 
   record ChatSearchInboxHit {
     ConversationID convID;
+    TeamType teamType;
     string convName;
+    string query;
+    gregor1.Time time;
     array<ChatSearchHit> hits;
   }
 
@@ -596,6 +606,7 @@
     int numHits;
     int numConvs;
     int percentIndexed;
+    boolean delegated;
   }
 
   record ChatSearchIndexStatus {
@@ -652,5 +663,4 @@
     AssetMetadata metadata;    // type-specific metadata
     AssetTag tag;              // for multiple previews, a tag to differentiate
   }
-
 }

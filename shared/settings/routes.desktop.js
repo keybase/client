@@ -21,7 +21,8 @@ const routeTree = () => {
   const DeleteConfirm = require('./delete-confirm/container').default
   const RemoveDevice = require('../devices/device-revoke/container').default
   const InviteGenerated = require('./invite-generated/container').default
-  const Passphrase = require('./passphrase/container').default
+  const LogOut = require('./logout/container').default
+  const Password = require('./password/container').default
   const UserEmail = require('./email/container').default
   const KextPermissionPopup = require('../fs/banner/system-file-manager-integration-banner/kext-permission-popup-container')
     .default
@@ -32,8 +33,8 @@ const routeTree = () => {
           changeEmail: {
             component: UserEmail,
           },
-          changePassphrase: {
-            component: Passphrase,
+          changePassword: {
+            component: Password,
           },
           // changePlan: {
           // component: PlanDetails,
@@ -88,6 +89,9 @@ const routeTree = () => {
       [Constants.chatTab]: {
         component: ChatContainer,
       },
+      [Constants.logOutTab]: {
+        component: LogOut,
+      },
     },
     containerComponent: Settings,
     defaultSelected: Constants.landingTab,
@@ -105,7 +109,6 @@ const settingsSubRoutes = {
   [Constants.landingTab]: {getScreen: () => require('./landing/container').default},
   [Constants.notificationsTab]: {getScreen: () => require('./notifications/container').default},
   changeEmail: {getScreen: () => require('./email/container').default},
-  changePassphrase: {getScreen: () => require('./passphrase/container').default},
   dbNukeConfirm: {getScreen: () => require('./db-nuke-confirm/container').default},
   deleteConfirm: {getScreen: () => require('./delete-confirm/container').default},
   inviteSent: {getScreen: () => require('./invite-generated/container').default},
@@ -147,7 +150,14 @@ const SettingsSubNavigator = createNavigator(
   {}
 )
 
-export const newRoutes = {
-  'tabs.settingsTab': {getScreen: () => SettingsSubNavigator, upgraded: true},
+SettingsSubNavigator.navigationOptions = {
+  title: 'Settings',
 }
-export const newModalRoutes = {}
+
+export const newRoutes = {
+  settingsRoot: {getScreen: () => SettingsSubNavigator, upgraded: true},
+}
+export const newModalRoutes = {
+  [Constants.logOutTab]: {getScreen: () => require('./logout/container').default},
+  changePassword: {getScreen: () => require('./password/container').default},
+}

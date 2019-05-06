@@ -10,16 +10,23 @@ import {newRoutes as profileNewRoutes, newModalRoutes as profileNewModalRoutes} 
 import {newRoutes as settingsNewRoutes, newModalRoutes as settingsNewModalRoutes} from '../settings/routes'
 import {newRoutes as teamsNewRoutes, newModalRoutes as teamsNewModalRoutes} from '../teams/routes'
 import {newRoutes as walletsNewRoutes, newModalRoutes as walletsNewModalRoutes} from '../wallets/routes'
+import {isMobile} from '../constants/platform'
 import * as Tabs from '../constants/tabs'
 
-// We have normal routes, modal routes, and logged out routes
-
+// We have normal routes, modal routes, and logged out routes.
+// We also end up using existence of a nameToTab value for a route as a test
+// of whether we're on a loggedIn route: loggedOut routes have no selected tab.
 export const nameToTab = {}
 // TODO could make a stronger type
-export const routes: {[key: string]: {getScreen: () => React.ComponentType<any>}} = {}
+export type Route = {
+  getScreen: () => React.ComponentType<any>,
+  screen?: React.ComponentType<any>,
+  upgraded?: boolean,
+}
+export const routes: {[key: string]: Route} = {}
 
 const _newRoutes = [
-  {route: deviceNewRoutes, tab: Tabs.devicesTab},
+  {route: deviceNewRoutes, tab: isMobile ? Tabs.settingsTab : Tabs.devicesTab},
   {route: chatNewRoutes, tab: Tabs.chatTab},
   {route: peopleNewRoutes, tab: Tabs.peopleTab},
   {route: profileNewRoutes, tab: Tabs.peopleTab},
@@ -41,6 +48,17 @@ _newRoutes.forEach(({route, tab}) => {
     routes[name] = route[name]
   })
 })
+
+export const tabRoots = {
+  [Tabs.peopleTab]: 'peopleRoot',
+  [Tabs.chatTab]: 'chatRoot',
+  [Tabs.fsTab]: 'fsRoot',
+  [Tabs.teamsTab]: 'teamsRoot',
+  [Tabs.walletsTab]: 'walletsRoot',
+  [Tabs.gitTab]: 'gitRoot',
+  [Tabs.devicesTab]: 'devicesRoot',
+  [Tabs.settingsTab]: 'settingsRoot',
+}
 
 export const modalRoutes = {
   ...chatNewModalRoutes,

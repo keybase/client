@@ -15,12 +15,11 @@ const routeTree = () => {
   const EditTeamDescription = require('./edit-team-description/container').default
   const CreateChannel = require('../chat/create-channel/container').default
   const ReallyLeaveTeam = require('./really-leave-team/container').default
-  const RolePicker = require('./role-picker/container').default
-  const ControlledRolePicker = require('./role-picker/controlled-container').default
   const Member = require('./team/member/container').default
   const ReallyRemoveMember = require('./team/really-remove-member/container').default
   const Team = require('./team/container').default
   const RetentionWarning = require('./team/settings-tab/retention/warning/container').default
+  const RenameTeam = require('./rename-team/container').default
   const makeManageChannels = {
     chatCreateChannel: {
       children: {},
@@ -40,41 +39,31 @@ const routeTree = () => {
     },
   }
 
-  const rolePicker = {
-    children: {},
-    component: RolePicker,
-    tags: makeLeafTags({layerOnTop: !isMobile}),
-  }
-  const reallyLeaveTeam = {
+  const teamReallyLeaveTeam = {
     children: {},
     component: ReallyLeaveTeam,
     tags: makeLeafTags({layerOnTop: !isMobile}),
   }
-  const controlledRolePicker = {
-    children: {},
-    component: ControlledRolePicker,
-    tags: makeLeafTags({layerOnTop: !isMobile}),
-  }
-  const reallyRemoveMember = {
+  const teamReallyRemoveMember = {
     children: {},
     component: ReallyRemoveMember,
     tags: makeLeafTags({layerOnTop: !isMobile}),
   }
 
-  const showNewTeamDialog = {
+  const teamNewTeamDialog = {
     children: {},
     component: NewTeamDialog,
     tags: makeLeafTags({layerOnTop: !isMobile}),
   }
 
   const makeAddPeopleOptions = {
-    addPeople: {
-      children: {controlledRolePicker},
+    teamAddPeople: {
+      children: {},
       component: AddPeopleDialog,
       tags: makeLeafTags({layerOnTop: !isMobile}),
     },
-    inviteByEmail: {
-      children: {controlledRolePicker},
+    teamInviteByEmail: {
+      children: {},
       component: InviteByEmailDialog,
       tags: makeLeafTags({layerOnTop: !isMobile}),
     },
@@ -90,43 +79,44 @@ const routeTree = () => {
     children: {
       ...makeManageChannels,
       ...makeAddPeopleOptions,
-      controlledRolePicker,
-      editTeamAvatar: {
+      retentionWarning,
+      team: () => teamRoute,
+      teamEditTeamAvatar: {
         component: EditTeamAvatar,
         tags: makeLeafTags({layerOnTop: !isMobile}),
       },
-      editTeamDescription: {
+      teamEditTeamDescription: {
         children: {},
         component: MaybePopupHoc(true)(EditTeamDescription),
         tags: makeLeafTags({layerOnTop: !isMobile}),
       },
-      member: {
+      teamMember: {
         children: {
-          reallyLeaveTeam,
-          reallyRemoveMember,
-          rolePicker,
+          teamReallyLeaveTeam,
+          teamReallyRemoveMember,
         },
         component: Member,
       },
-      reallyLeaveTeam,
-      reallyRemoveMember,
-      retentionWarning,
-      rolePicker,
-      showNewTeamDialog,
-      team: () => teamRoute,
+      teamNewTeamDialog,
+      teamReallyLeaveTeam,
+      teamReallyRemoveMember,
+      teamRename: {
+        component: RenameTeam,
+        tags: makeLeafTags({layerOnTop: !isMobile}),
+      },
     },
     component: Team,
   })
   return makeRouteDefNode({
     children: {
       ...makeManageChannels,
-      showJoinTeamDialog: {
+      team: teamRoute,
+      teamJoinTeamDialog: {
         children: {},
         component: JoinTeamDialog,
         tags: makeLeafTags({layerOnTop: !isMobile}),
       },
-      showNewTeamDialog,
-      team: teamRoute,
+      teamNewTeamDialog,
     },
     component: TeamsContainer,
     tags: makeLeafTags({title: 'Teams'}),
@@ -136,22 +126,32 @@ const routeTree = () => {
 export default routeTree
 
 export const newRoutes = {
-  controlledRolePicker: {getScreen: () => require('./role-picker/controlled-container').default},
-  member: {getScreen: () => require('./team/member/container').default},
-  'tabs.teamsTab': {getScreen: () => require('./container').default},
-  team: {getScreen: () => require('./team/container').default},
+  team: {getScreen: () => require('./team/container').default, upgraded: true},
+  teamMember: {getScreen: () => require('./team/member/container').default, upgraded: true},
+  teamsRoot: {getScreen: () => require('./container').default, upgraded: true},
 }
 
 export const newModalRoutes = {
-  addPeople: {getScreen: () => require('./add-people/container').default},
-  editTeamDescription: {
-    getScreen: () => MaybePopupHoc(true)(require('./edit-team-description/container').default),
+  retentionWarning: {
+    getScreen: () => require('./team/settings-tab/retention/warning/container').default,
+    upgraded: true,
   },
-  inviteByEmail: {getScreen: () => require('./invite-by-email/container').default},
-  reallyLeaveTeam: {getScreen: () => require('./really-leave-team/container').default},
-  reallyRemoveMember: {getScreen: () => require('./team/really-remove-member/container').default},
-  retentionWarning: {getScreen: () => require('./team/settings-tab/retention/warning/container').default},
-  rolePicker: {getScreen: () => require('./role-picker/container').default},
-  showJoinTeamDialog: {getScreen: () => require('./join-team/container').default},
-  showNewTeamDialog: {getScreen: () => require('./new-team/container').default},
+  teamAddPeople: {getScreen: () => require('./add-people/container').default, upgraded: true},
+  teamEditTeamAvatar: {getScreen: () => require('../profile/edit-avatar/container').default, upgraded: true},
+  teamEditTeamDescription: {
+    getScreen: () => MaybePopupHoc(false)(require('./edit-team-description/container').default),
+    upgraded: true,
+  },
+  teamInviteByEmail: {getScreen: () => require('./invite-by-email/container').default, upgraded: true},
+  teamJoinTeamDialog: {getScreen: () => require('./join-team/container').default, upgraded: true},
+  teamNewTeamDialog: {getScreen: () => require('./new-team/container').default, upgraded: true},
+  teamReallyLeaveTeam: {getScreen: () => require('./really-leave-team/container').default, upgraded: true},
+  teamReallyRemoveMember: {
+    getScreen: () => require('./team/really-remove-member/container').default,
+    upgraded: true,
+  },
+  teamRename: {
+    getScreen: () => require('./rename-team/container').default,
+    upgraded: true,
+  },
 }

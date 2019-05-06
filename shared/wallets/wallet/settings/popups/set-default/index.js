@@ -17,7 +17,7 @@ const SetDefaultAccountPopup = (props: Props) => {
     <Kb.Button
       key={0}
       fullWidth={Styles.isMobile}
-      type="Secondary"
+      type="Dim"
       onClick={props.onClose}
       label="Cancel"
       disabled={props.waiting}

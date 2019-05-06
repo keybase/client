@@ -7,6 +7,7 @@ package libfs
 import (
 	"bytes"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/logger"
 	"golang.org/x/net/context"
@@ -25,7 +26,7 @@ import (
 // operations may be blocked, though.) You can figure out when the
 // unstage succeeds by consulting .kbfs_status.
 func UnstageForTesting(ctx context.Context, log logger.Logger,
-	config libkbfs.Config, fb libkbfs.FolderBranch,
+	config libkbfs.Config, fb data.FolderBranch,
 	data []byte) (int, error) {
 	log.CDebugf(ctx, "UnstageForTesting(%v, %v)", fb, data)
 	if len(data) == 0 {

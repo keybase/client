@@ -3,11 +3,13 @@ import * as Kb from '../common-adapters/mobile.native'
 import * as Styles from '../styles'
 import * as React from 'react'
 import GlobalError from '../app/global-errors/container'
-import TabBar from './tab-bar/container'
+import {connect} from '../util/container'
 import {createAppContainer} from '@react-navigation/native'
 import {createSwitchNavigator, StackActions} from '@react-navigation/core'
+import {createBottomTabNavigator} from 'react-navigation-tabs'
 import {createStackNavigator} from 'react-navigation-stack'
-import {modalRoutes, routes, nameToTab, loggedOutRoutes} from './routes'
+import * as Tabs from '../constants/tabs'
+import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {LeftAction} from '../common-adapters/header-hoc'
 import * as Constants from '../constants/router2'
 import * as Shared from './router.shared'
@@ -21,47 +23,134 @@ import OutOfDate from '../app/out-of-date'
 useScreens()
 
 // Options used by default on all navigators
+// For info on what is passed to what see here: https://github.com/react-navigation/react-navigation-stack/blob/master/src/views/Header/Header.js
 const defaultNavigationOptions = {
+  backBehavior: 'none',
   header: null,
-  headerLeft: hp => (
-    <LeftAction badgeNumber={0} leftAction="back" onLeftAction={hp.onPress} disabled={hp.scene.index === 0} />
-  ),
+  headerLeft: hp =>
+    hp.scene.index === 0 ? null : (
+      <LeftAction
+        badgeNumber={0}
+        leftAction="back"
+        onLeftAction={hp.onPress}
+        customIconColor={hp.tintColor}
+      />
+    ),
+  headerStyle: {
+    elevation: undefined, // since we use screen on android turn off drop shadow
+  },
   headerTitle: hp => (
     <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1}>
       {hp.children}
     </Kb.Text>
   ),
 }
-const headerMode = 'float'
+// workaround for https://github.com/react-navigation/react-navigation/issues/4872 else android will eat clicks
+const headerMode = Styles.isAndroid ? 'screen' : 'float'
 
-// Where the main app stuff happens. You're logged in and have a tab bar etc
-const MainStackNavigatorPlain = createStackNavigator(Shim.shim(routes), {
-  defaultNavigationOptions: p => ({
-    ...defaultNavigationOptions,
-  }),
-  headerMode,
-  initialRouteName: 'tabs.peopleTab',
-  initialRouteParams: undefined,
-})
-class MainStackNavigator extends React.PureComponent<any> {
-  static router = MainStackNavigatorPlain.router
-
-  render() {
-    const routeName = this.props.navigation.state.routes[this.props.navigation.state.index].routeName
-    return (
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        <MainStackNavigatorPlain navigation={this.props.navigation} />
-        <TabBar selectedTab={nameToTab[routeName]} />
-        <GlobalError />
-        <OutOfDate />
-      </Kb.Box2>
-    )
-  }
+const tabs = Shared.mobileTabs
+const icons = {
+  [Tabs.chatTab]: 'iconfont-nav-2-chat',
+  [Tabs.fsTab]: 'iconfont-nav-2-files',
+  [Tabs.teamsTab]: 'iconfont-nav-2-teams',
+  [Tabs.peopleTab]: 'iconfont-nav-2-people',
+  [Tabs.settingsTab]: 'iconfont-nav-2-hamburger',
+  [Tabs.walletsTab]: 'iconfont-nav-2-wallets',
 }
+
+const TabBarIcon = ({badgeNumber, focused, routeName}) => (
+  <Kb.NativeView style={tabStyles.container}>
+    <Kb.Icon
+      type={icons[routeName]}
+      fontSize={32}
+      style={tabStyles.tab}
+      color={focused ? Styles.globalColors.white : Styles.globalColors.darkBlue4}
+    />
+    {!!badgeNumber && <Kb.Badge badgeNumber={badgeNumber} badgeStyle={tabStyles.badge} />}
+  </Kb.NativeView>
+)
+
+const settingsTabChildren = [Tabs.gitTab, Tabs.devicesTab, Tabs.walletsTab]
+const getBadgeNumber = (navBadges, routeName) =>
+  routeName === Tabs.settingsTab
+    ? settingsTabChildren.reduce((res, tab) => res + (navBadges.get(tab) || 0), 0)
+    : navBadges.get(routeName)
+
+const ConnectedTabBarIcon = connect<{|focused: boolean, routeName: Tabs.Tab|}, _, _, _, _>(
+  (state, {routeName}) => ({badgeNumber: getBadgeNumber(state.notifications.navBadges, routeName)}),
+  () => ({}),
+  (s, _, o) => ({
+    badgeNumber: s.badgeNumber,
+    focused: o.focused,
+    routeName: o.routeName,
+  })
+)(TabBarIcon)
+
+// The default container has some `hitSlop` set which messes up the clickable
+// area
+const TabBarIconContainer = props => (
+  <Kb.NativeTouchableWithoutFeedback style={props.style} onPress={props.onPress}>
+    <Kb.Box children={props.children} style={props.style} />
+  </Kb.NativeTouchableWithoutFeedback>
+)
+
+const TabNavigator = createBottomTabNavigator(
+  tabs.reduce((map, tab) => {
+    map[tab] = createStackNavigator(Shim.shim(routes), {
+      defaultNavigationOptions,
+      headerMode,
+      initialRouteName: tabRoots[tab],
+      initialRouteParams: undefined,
+      transitionConfig: () => ({
+        transitionSpec: {
+          // the 'accurate' ios one is very slow to stop so going back leads to a missed taps
+          duration: 250,
+          easing: Kb.NativeEasing.bezier(0.2833, 0.99, 0.31833, 0.99),
+          timing: Kb.NativeAnimated.timing,
+        },
+      }),
+    })
+    return map
+  }, {}),
+  {
+    defaultNavigationOptions: ({navigation}) => ({
+      tabBarButtonComponent: TabBarIconContainer,
+      tabBarIcon: ({focused}) => (
+        <ConnectedTabBarIcon focused={focused} routeName={navigation.state.routeName} />
+      ),
+    }),
+    order: tabs,
+    tabBarOptions: {
+      activeBackgroundColor: Styles.globalColors.darkBlue2,
+      inactiveBackgroundColor: Styles.globalColors.darkBlue2,
+      // else keyboard avoiding is racy on ios and won't work correctly
+      keyboardHidesTabBar: Styles.isAndroid,
+      showLabel: false,
+      style: {backgroundColor: Styles.globalColors.darkBlue2},
+    },
+  }
+)
+
+const tabStyles = Styles.styleSheetCreate({
+  badge: {
+    position: 'absolute',
+    right: 8,
+    top: 3,
+  },
+  container: {
+    justifyContent: 'center',
+  },
+  tab: {
+    paddingBottom: 6,
+    paddingLeft: 16,
+    paddingRight: 16,
+    paddingTop: 6,
+  },
+})
 
 const LoggedInStackNavigator = createStackNavigator(
   {
-    Main: {screen: MainStackNavigator},
+    Main: TabNavigator,
     ...Shim.shim(modalRoutes),
   },
   {
@@ -73,9 +162,12 @@ const LoggedInStackNavigator = createStackNavigator(
 const LoggedOutStackNavigator = createStackNavigator(
   {...Shim.shim(loggedOutRoutes)},
   {
-    defaultNavigationOptions: p => ({
+    defaultNavigationOptions: {
       ...defaultNavigationOptions,
-    }),
+      // show the header
+      header: undefined,
+    },
+
     headerMode,
     initialRouteName: 'login',
     initialRouteParams: undefined,
@@ -107,8 +199,14 @@ class RNApp extends React.PureComponent<any, any> {
     } catch (e) {
       logger.error('Nav error', e)
     }
+  }
 
-    this._persistRoute()
+  dispatch = (a: any) => {
+    const nav = this._nav
+    if (!nav) {
+      throw new Error('Missing nav?')
+    }
+    nav.dispatch(a)
   }
 
   // debounce this so we don't persist a route that can crash and then keep them in some crash loop
@@ -154,7 +252,13 @@ class RNApp extends React.PureComponent<any, any> {
   getNavState = () => this._nav?.state?.nav
 
   render() {
-    return <AppContainer ref={nav => (this._nav = nav)} />
+    return (
+      <>
+        <AppContainer ref={nav => (this._nav = nav)} onNavigationStateChange={this._persistRoute} />
+        <GlobalError />
+        <OutOfDate />
+      </>
+    )
   }
 }
 

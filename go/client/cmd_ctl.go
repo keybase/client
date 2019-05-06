@@ -6,13 +6,10 @@ package client
 import (
 	"strings"
 
-	"golang.org/x/net/context"
-
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/install"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 func NewCmdCtl(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -72,13 +69,4 @@ func ctlParseArgv(ctx *cli.Context) map[string]bool {
 		}
 	}
 	return components
-}
-
-// CtlServiceStop will stop a running service via RPC call
-func CtlServiceStop(g *libkb.GlobalContext) error {
-	cli, err := GetCtlClient(g)
-	if err != nil {
-		return err
-	}
-	return cli.Stop(context.TODO(), keybase1.StopArg{ExitCode: keybase1.ExitCode_OK})
 }

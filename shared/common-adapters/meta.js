@@ -31,7 +31,7 @@ const Meta = (props: Props) => (
     ])}
   >
     <Text
-      type="Header"
+      type="BodyTinyBold"
       style={collapseStyles([
         styles.text,
         props.color && {color: props.color},
@@ -44,25 +44,14 @@ const Meta = (props: Props) => (
 )
 
 const styles = styleSheetCreate({
-  container: platformStyles({
-    common: {
-      ...globalStyles.flexBoxColumn,
-      alignItems: 'center',
-      alignSelf: 'flex-start',
-      borderRadius: 2,
-    },
-    isElectron: {
-      paddingBottom: 1,
-      paddingLeft: 2,
-      paddingRight: 3,
-    },
-    isMobile: {
-      paddingBottom: 1,
-      paddingLeft: 3,
-      paddingRight: 3,
-      paddingTop: 2,
-    },
-  }),
+  container: {
+    ...globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    borderRadius: 2,
+    paddingLeft: 3,
+    paddingRight: 3,
+  },
   containerSmall: {
     paddingLeft: 2,
     paddingRight: 2,
@@ -70,30 +59,19 @@ const styles = styleSheetCreate({
   text: platformStyles({
     common: {
       color: globalColors.white,
-    },
-    isElectron: {
-      display: 'block',
-      fontSize: 11,
-      fontWeight: '700',
-      lineHeight: '11px',
-      paddingTop: 1,
+      marginBottom: -1,
+      marginTop: -1,
     },
     isMobile: {
       fontSize: 12,
-      fontWeight: '700',
-      height: 14,
-      lineHeight: 14,
     },
   }),
   textSmall: platformStyles({
     isElectron: {
       fontSize: 10,
-      lineHeight: '11px',
-      marginBottom: -1,
     },
     isMobile: {
       fontSize: 11,
-      lineHeight: 13,
     },
   }),
 })

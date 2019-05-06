@@ -6,6 +6,7 @@ package libdokan
 
 import (
 	"github.com/keybase/client/go/kbfs/dokan"
+	"github.com/keybase/client/go/libkb"
 	"golang.org/x/net/context"
 )
 
@@ -15,7 +16,7 @@ type fakeRoot struct {
 
 func openFakeRoot(ctx context.Context, fs *FS, fi *dokan.FileInfo) (dokan.File, dokan.CreateStatus, error) {
 	path := fi.Path()
-	fs.log.CDebugf(ctx, "openFakeRoot %q", path)
+	fs.vlog.CLogf(ctx, libkb.VLog1, "openFakeRoot %q", path)
 	switch path {
 	case `\` + WrongUserErrorFileName:
 		return stringReadFile(WrongUserErrorContents), dokan.ExistingFile, nil

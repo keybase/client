@@ -40,6 +40,9 @@ import {formatTimeForChat} from '../../../../util/timestamp'
  */
 
 export type Props = {|
+  authorIsAdmin: ?boolean,
+  authorIsOwner: ?boolean,
+  centeredOrdinal: Types.CenterOrdinalHighlightMode,
   conversationIDKey: Types.ConversationIDKey,
   decorate: boolean,
   exploded: boolean,
@@ -60,17 +63,36 @@ export type Props = {|
   orangeLineAbove: boolean,
   previous: ?Types.Message,
   shouldShowPopup: boolean,
+  showCrowns: boolean,
   showSendIndicator: boolean,
 |}
 
 type State = {
+  disableCenteredHighlight: boolean,
   showingPicker: boolean,
   showMenuButton: boolean,
 }
 class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, State> {
-  state = {showMenuButton: false, showingPicker: false}
+  _mounted = false
+  state = {
+    disableCenteredHighlight: false,
+    showMenuButton: false,
+    showingPicker: false,
+  }
+
+  componentDidMount() {
+    this._mounted = true
+    this._updateHighlightMode()
+  }
+
+  componentWillUnmount() {
+    this._mounted = false
+  }
 
   componentDidUpdate(prevProps: Props) {
+    if (this.props.centeredOrdinal !== prevProps.centeredOrdinal) {
+      this._updateHighlightMode()
+    }
     if (this.props.measure) {
       const changed =
         this.props.orangeLineAbove !== prevProps.orangeLineAbove || this.props.message !== prevProps.message
@@ -79,6 +101,24 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         this.props.measure()
       }
     }
+  }
+  _updateHighlightMode = () => {
+    switch (this.props.centeredOrdinal) {
+      case 'flash':
+        this.setState({disableCenteredHighlight: false})
+        setTimeout(() => {
+          if (this._mounted) {
+            this.setState({disableCenteredHighlight: true})
+          }
+        }, 2000)
+        break
+      case 'always':
+        this.setState({disableCenteredHighlight: false})
+        break
+    }
+  }
+  _showCenteredHighlight = () => {
+    return !this.state.disableCenteredHighlight && this.props.centeredOrdinal !== 'none'
   }
   _onMouseOver = () => this.setState(o => (o.showMenuButton ? null : {showMenuButton: true}))
   _setShowingPicker = (showingPicker: boolean) =>
@@ -104,17 +144,30 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               onClick={this._onAuthorClick}
               style={styles.avatar}
             />
-            <Kb.ConnectedUsernames
-              colorBroken={true}
-              colorFollowing={true}
-              colorYou={true}
-              type="BodySmallBold"
-              usernames={[this.props.showUsername]}
-              onUsernameClicked={this._onAuthorClick}
-            />
-            <Kb.Text type="BodyTiny" style={styles.timestamp}>
-              {formatTimeForChat(this.props.message.timestamp)}
-            </Kb.Text>
+            <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.usernameCrown}>
+              <Kb.ConnectedUsernames
+                colorBroken={true}
+                colorFollowing={true}
+                colorYou={true}
+                type="BodySmallBold"
+                usernames={[this.props.showUsername]}
+                onUsernameClicked={this._onAuthorClick}
+              />
+              {this.props.showCrowns && (this.props.authorIsOwner || this.props.authorIsAdmin) && (
+                <Kb.WithTooltip text={this.props.authorIsOwner ? 'Owner' : 'Admin'}>
+                  <Kb.Icon
+                    color={
+                      this.props.authorIsOwner ? Styles.globalColors.yellow2 : Styles.globalColors.black_35
+                    }
+                    fontSize={10}
+                    type="iconfont-crown-owner"
+                  />
+                </Kb.WithTooltip>
+              )}
+              <Kb.Text type="BodyTiny" style={styles.timestamp}>
+                {formatTimeForChat(this.props.message.timestamp)}
+              </Kb.Text>
+            </Kb.Box2>
           </Kb.Box2>
           <Kb.Box2
             key="content"
@@ -247,6 +300,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
           styles.container,
           !this.props.showUsername && styles.containerNoUsername,
           !this._isExploding() && styles.containerNoExploding, // extra right padding to line up with infopane / input icons
+          this._showCenteredHighlight() && styles.centeredOrdinal,
         ]),
       }
       return this.props.decorate
@@ -262,6 +316,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         className: Styles.classNames(
           {
             'WrapperMessage-author': this.props.showUsername,
+            'WrapperMessage-centered': this._showCenteredHighlight(),
             'WrapperMessage-decorated': this.props.decorate,
             'WrapperMessage-hoverColor': !this.props.isPendingPayment,
             'WrapperMessage-noOverflow': this.props.isPendingPayment,
@@ -531,6 +586,9 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {marginLeft: Styles.globalMargins.tiny},
   }),
+  centeredOrdinal: {
+    backgroundColor: Styles.globalColors.yellow,
+  },
   container: Styles.platformStyles({isMobile: {overflow: 'hidden'}}),
   containerNoExploding: Styles.platformStyles({isMobile: {paddingRight: Styles.globalMargins.tiny}}),
   containerNoUsername: Styles.platformStyles({
@@ -632,8 +690,16 @@ const styles = Styles.styleSheetCreate({
     isMobile: {right: 0},
   }),
   timestamp: Styles.platformStyles({
-    isElectron: {lineHeight: 18},
-    isMobile: {lineHeight: 20},
+    common: {paddingLeft: Styles.globalMargins.xtiny},
+    isElectron: {lineHeight: 19},
+  }),
+  usernameCrown: Styles.platformStyles({
+    isElectron: {
+      alignItems: 'baseline',
+      position: 'relative',
+      top: -2,
+    },
+    isMobile: {alignItems: 'center'},
   }),
 })
 

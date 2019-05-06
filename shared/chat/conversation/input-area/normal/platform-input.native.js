@@ -20,12 +20,8 @@ import AddSuggestors, {standardTransformer} from '../suggestors'
 type menuType = 'exploding' | 'filepickerpopup'
 
 type State = {
-  addBottomPadding: boolean,
   hasText: boolean,
 }
-
-// keep min input height here, if it's increased we know this is a multiline message.
-let minimumInputHeight = -1
 
 class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   _input: null | Kb.PlainInput
@@ -35,7 +31,6 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   constructor(props: PlatformInputPropsInternal) {
     super(props)
     this.state = {
-      addBottomPadding: false,
       hasText: false,
     }
   }
@@ -129,18 +124,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     nativeEvent: {
       layout: {x, y, width, height},
     },
-  }) => {
-    if (minimumInputHeight < 0 || height < minimumInputHeight) {
-      minimumInputHeight = height
-    }
-    this.setState(s => {
-      if (s.addBottomPadding ? height <= minimumInputHeight : height > minimumInputHeight) {
-        return {addBottomPadding: !s.addBottomPadding}
-      }
-      return null
-    })
-    this.props.setHeight(height)
-  }
+  }) => this.props.setHeight(height)
 
   _insertMentionMarker = () => {
     if (this._input) {
@@ -180,7 +164,9 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
             visible={this.props.showingMenu}
           />
         )}
-        <Typing conversationIDKey={this.props.conversationIDKey} />
+        {this.props.showTypingStatus && !this.props.suggestionsVisible && (
+          <Typing conversationIDKey={this.props.conversationIDKey} />
+        )}
         <Kb.Box style={styles.container}>
           {this.props.isEditing && (
             <Kb.Box style={styles.editingTabStyle}>
@@ -202,11 +188,8 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
             onChangeText={this._onChangeText}
             onSelectionChange={this.props.onSelectionChange}
             ref={this._inputSetRef}
-            style={Styles.collapseStyles([
-              styles.input,
-              this.state.addBottomPadding && styles.inputBottomPadding,
-            ])}
-            textType="BodyBig"
+            style={styles.input}
+            textType="Body"
             rowsMax={3}
             rowsMin={1}
           />
@@ -248,9 +231,9 @@ const Action = ({
           openExplodingPicker={openExplodingPicker}
         />
       )}
-      <Kb.Text type="BodyBigLink" onClick={onSubmit}>
-        {isEditing ? 'Save' : 'Send'}
-      </Kb.Text>
+      <Kb.ClickableBox onClick={onSubmit} style={styles.send}>
+        <Kb.Text type="BodyBigLink">{isEditing ? 'Save' : 'Send'}</Kb.Text>
+      </Kb.ClickableBox>
     </Kb.Box2>
   ) : (
     <Kb.Box2 direction="horizontal" style={styles.actionIconsContainer}>
@@ -330,6 +313,7 @@ const styles = Styles.styleSheetCreate({
     borderTopWidth: 1,
     flexShrink: 0,
     minHeight: 48,
+    overflow: 'hidden',
     paddingRight: containerPadding,
   },
   editingTabStyle: {
@@ -343,8 +327,7 @@ const styles = Styles.styleSheetCreate({
   },
   input: {
     flex: 1,
-    // Override BodyBig's default weight.
-    fontWeight: Styles.globalStyles.fontRegular.fontWeight,
+    fontSize: 17, // Override Body's font size with BodyBig.
     marginLeft: Styles.globalMargins.tiny,
     marginRight: Styles.globalMargins.tiny,
     ...(isIOS
@@ -353,9 +336,6 @@ const styles = Styles.styleSheetCreate({
           marginBottom: -4, // android has a bug where the lineheight isn't respected
           marginTop: -4, // android has a bug where the lineheight isn't respected
         }),
-  },
-  inputBottomPadding: {
-    paddingBottom: Styles.globalMargins.xtiny,
   },
   marginRightSmall: {
     marginRight: Styles.globalMargins.small,
@@ -366,6 +346,10 @@ const styles = Styles.styleSheetCreate({
     flex: 1,
     height: 160,
     width: '100%',
+  },
+  send: {
+    ...Styles.padding(2, 6, 0, 6),
+    marginRight: -6,
   },
   smallGap: {
     height: Styles.globalMargins.small,

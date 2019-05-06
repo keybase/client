@@ -1,6 +1,7 @@
 // @flow
 import * as ProfileGen from '../actions/profile-gen'
 import * as Types from '../constants/types/profile'
+import * as More from '../constants/types/more'
 import * as Constants from '../constants/profile'
 import * as Flow from '../util/flow'
 import * as Validators from '../util/simple-validators'
@@ -26,7 +27,9 @@ const updateUsername = state => {
       break
     case 'btc':
       // A simple check, the server does a fuller check
-      usernameValid = !!username.match(/^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/)
+      const legacyFormat = !!username.match(/^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/)
+      const segwitFormat = !!username.toLowerCase().match(/^(bc1)[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{11,71}$/)
+      usernameValid = legacyFormat || segwitFormat
       break
   }
 
@@ -72,15 +75,43 @@ export default function(state: Types.State = initialState, action: ProfileGen.Ac
       })
     case ProfileGen.updatePgpPublicKey:
       return state.merge({pgpPublicKey: action.payload.publicKey})
-    case ProfileGen.addProof:
+    case ProfileGen.updatePromptShouldStoreKeyOnServer:
+      return state.merge({promptShouldStoreKeyOnServer: action.payload.promptShouldStoreKeyOnServer})
+    case ProfileGen.addProof: {
+      const platform = action.payload.platform
+      const maybeNotGeneric = More.isPlatformsExpandedType(platform)
       return updateUsername(
         state.merge({
           errorCode: null,
           errorText: '',
-          platform: action.payload.platform,
+          platform: maybeNotGeneric,
+          platformGeneric: maybeNotGeneric ? null : platform,
         })
       )
+    }
+    case ProfileGen.proofParamsReceived:
+      return state.merge({
+        platformGenericParams: action.payload.params,
+      })
+    case ProfileGen.updatePlatformGenericURL:
+      return state.merge({
+        platformGenericURL: action.payload.url,
+      })
+    case ProfileGen.updatePlatformGenericChecking:
+      return state.merge({
+        platformGenericChecking: action.payload.checking,
+      })
     case ProfileGen.cancelAddProof: // fallthrough
+    case ProfileGen.clearPlatformGeneric:
+      return state.merge({
+        errorCode: null,
+        errorText: '',
+        platformGeneric: null,
+        platformGenericChecking: false,
+        platformGenericParams: null,
+        platformGenericURL: null,
+        username: '',
+      })
     case ProfileGen.recheckProof: // fallthrough
     case ProfileGen.checkProof:
       return state.merge({errorCode: null, errorText: ''})

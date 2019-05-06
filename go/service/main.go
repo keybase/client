@@ -94,7 +94,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		home:             home.NewHome(g),
 		tlfUpgrader:      tlfupgrade.NewBackgroundTLFUpdater(g),
 		teamUpgrader:     teams.NewUpgrader(),
-		avatarLoader:     avatars.CreateSourceFromEnv(g),
+		avatarLoader:     avatars.CreateSourceFromEnvAndInstall(g),
 		walletState:      stellar.NewWalletState(g, remote.NewRemoteNet(g)),
 		offlineRPCCache:  offline.NewRPCCache(g),
 	}
@@ -149,7 +149,6 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 			libkb.RPCCancelerReasonAll),
 		keybase1.SimpleFSProtocol(NewSimpleFSHandler(xp, g)),
 		keybase1.LogsendProtocol(NewLogsendHandler(xp, g)),
-		keybase1.AppStateProtocol(newAppStateHandler(xp, g)),
 		CancelingProtocol(g, keybase1.TeamsProtocol(NewTeamsHandler(xp, connID, cg, d)),
 			libkb.RPCCancelerReasonLogout),
 		keybase1.BadgerProtocol(newBadgerHandler(xp, g, d.badger)),
@@ -158,9 +157,14 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.HomeProtocol(NewHomeHandler(xp, g, d.home)),
 		keybase1.AvatarsProtocol(NewAvatarHandler(xp, g, d.avatarLoader)),
 		keybase1.PhoneNumbersProtocol(NewPhoneNumbersHandler(xp, g)),
+		keybase1.ContactsProtocol(NewContactsHandler(xp, g)),
 		keybase1.EmailsProtocol(NewEmailsHandler(xp, g)),
 		keybase1.Identify3Protocol(newIdentify3Handler(xp, g)),
+		keybase1.AuditProtocol(NewAuditHandler(xp, g)),
 	}
+	appStateHandler := newAppStateHandler(xp, g)
+	protocols = append(protocols, keybase1.AppStateProtocol(appStateHandler))
+	shutdowners = append(shutdowners, appStateHandler)
 	walletHandler := newWalletHandler(xp, g, d.walletState)
 	protocols = append(protocols, CancelingProtocol(g, stellar1.LocalProtocol(walletHandler),
 		libkb.RPCCancelerReasonLogout))
@@ -236,7 +240,11 @@ func (d *Service) Run() (err error) {
 			close(d.startCh)
 		}
 		d.G().NotifyRouter.HandleServiceShutdown()
-		d.G().Log.Debug("From Service.Run(): exit with code %d\n", d.G().ExitCode)
+		if err != nil {
+			d.G().Log.Info("Service#Run() exiting with error %s (code %d)", err.Error(), d.G().ExitCode)
+		} else {
+			d.G().Log.Debug("Service#Run() clean exit with code %d", d.G().ExitCode)
+		}
 	}()
 
 	d.G().Log.Debug("+ service starting up; forkType=%v", d.ForkType)
@@ -322,7 +330,7 @@ func (d *Service) SetupCriticalSubServices() error {
 	stellar.ServiceInit(d.G(), d.walletState, d.badger)
 	pvl.NewPvlSourceAndInstall(d.G())
 	externals.NewParamProofStoreAndInstall(d.G())
-	ephemeral.ServiceInit(d.G())
+	ephemeral.ServiceInit(d.MetaContext(context.TODO()))
 	avatars.ServiceInit(d.G(), d.avatarLoader)
 	return nil
 }
@@ -345,6 +353,8 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.runBackgroundPerUserKeyUpgrade()
 	d.runBackgroundPerUserKeyUpkeep()
 	d.runBackgroundWalletUpkeep()
+	d.runBackgroundBoxAuditRetry()
+	d.runBackgroundBoxAuditScheduler()
 	d.runTLFUpgrade()
 	d.runTeamUpgrader(ctx)
 	d.runHomePoller(ctx)
@@ -386,9 +396,10 @@ func (d *Service) startChatModules() {
 		g.FetchRetrier.Start(context.Background(), uid)
 		g.EphemeralPurger.Start(context.Background(), uid)
 		g.InboxSource.Start(context.Background(), uid)
-		g.Indexer.Start(chat.Context(context.Background(), g,
+		g.Indexer.Start(globals.ChatCtx(context.Background(), g,
 			keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil), uid)
 		g.CoinFlipManager.Start(context.Background(), uid)
+		g.TeamMentionLoader.Start(context.Background(), uid)
 	}
 	d.purgeOldChatAttachmentData()
 }
@@ -401,6 +412,7 @@ func (d *Service) stopChatModules(m libkb.MetaContext) {
 	<-d.ChatG().InboxSource.Stop(m.Ctx())
 	<-d.ChatG().Indexer.Stop(m.Ctx())
 	<-d.ChatG().CoinFlipManager.Stop(m.Ctx())
+	<-d.ChatG().TeamMentionLoader.Stop(m.Ctx())
 }
 
 func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
@@ -412,12 +424,14 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	// Set up main chat data sources
 	boxer := chat.NewBoxer(g)
 	chatStorage := storage.New(g, nil)
-	g.InboxSource = chat.NewInboxSource(g, g.Env.GetInboxSourceType(), ri)
+	g.CtxFactory = chat.NewCtxFactory(g)
+	g.InboxSource = chat.NewInboxSource(g, g.Env.GetInboxSourceType(), d.badger, ri)
 	g.ConvSource = chat.NewConversationSource(g, g.Env.GetConvSourceType(),
 		boxer, chatStorage, ri)
 	chatStorage.SetAssetDeleter(g.ConvSource)
 	g.RegexpSearcher = search.NewRegexpSearcher(g)
 	g.Indexer = search.NewIndexer(g)
+	g.AddDbNukeHook(g.Indexer, "Indexer")
 	g.ServerCacheVersions = storage.NewServerVersions(g)
 
 	// Syncer and retriers
@@ -437,14 +451,16 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	// Message sending apparatus
 	s3signer := attachments.NewS3Signer(ri)
 	store := attachments.NewS3Store(g.GetLog(), g.GetEnv(), g.GetRuntimeDir())
-	g.AttachmentUploader = attachments.NewUploader(g, store, s3signer, ri)
+	attachmentLRUSize := 1000
+	g.AttachmentUploader = attachments.NewUploader(g, store, s3signer, ri, attachmentLRUSize)
 	sender := chat.NewBlockingSender(g, chat.NewBoxer(g), ri)
 	g.MessageDeliverer = chat.NewDeliverer(g, sender)
 
 	// team channel source
 	g.TeamChannelSource = chat.NewTeamChannelSource(g)
 
-	g.AttachmentURLSrv = chat.NewAttachmentHTTPSrv(g, chat.NewCachingAttachmentFetcher(g, store, 1000), ri)
+	g.AttachmentURLSrv = chat.NewAttachmentHTTPSrv(g, chat.NewCachingAttachmentFetcher(g, store, attachmentLRUSize), ri)
+	g.AddDbNukeHook(g.AttachmentURLSrv, "AttachmentURLSrv")
 
 	g.StellarLoader = stellar.DefaultLoader(g.ExternalG())
 	g.StellarSender = wallet.NewSender(g)
@@ -456,10 +472,10 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 		ri)
 	g.CommandsSource = commands.NewSource(g)
 	g.CoinFlipManager = chat.NewFlipManager(g, ri)
+	g.TeamMentionLoader = chat.NewTeamMentionLoader(g)
 
 	// Set up Offlinables on Syncer
 	chatSyncer.RegisterOfflinable(g.InboxSource)
-	chatSyncer.RegisterOfflinable(g.ConvSource)
 	chatSyncer.RegisterOfflinable(g.FetchRetrier)
 	chatSyncer.RegisterOfflinable(g.MessageDeliverer)
 
@@ -596,6 +612,7 @@ func (d *Service) startupGregor() {
 		d.gregor.PushHandler(newEKHandler(d.G()))
 		d.gregor.PushHandler(newAvatarGregorHandler(d.G(), d.avatarLoader))
 		d.gregor.PushHandler(newPhoneNumbersGregorHandler(d.G()))
+		d.gregor.PushHandler(newEmailsGregorHandler(d.G()))
 		d.gregor.PushHandler(newKBFSFavoritesHandler(d.G()))
 
 		// Connect to gregord
@@ -607,7 +624,7 @@ func (d *Service) startupGregor() {
 
 func (d *Service) addGlobalHooks() {
 	d.G().AddLoginHook(d)
-	d.G().AddLogoutHook(d)
+	d.G().AddLogoutHook(d, "service/Service")
 }
 
 func (d *Service) StartLoopbackServer() error {
@@ -847,7 +864,41 @@ func (d *Service) runBackgroundWalletUpkeep() {
 	})
 }
 
-func (d *Service) OnLogin() error {
+func (d *Service) runBackgroundBoxAuditRetry() {
+	eng := engine.NewBoxAuditRetryBackground(d.G())
+	go func() {
+		m := libkb.NewMetaContextBackground(d.G())
+		err := engine.RunEngine2(m, eng)
+		if err != nil {
+			m.Warning("background BoxAuditorRetry error: %v", err)
+		}
+	}()
+
+	d.G().PushShutdownHook(func() error {
+		d.G().Log.Debug("stopping background BoxAuditorRetry")
+		eng.Shutdown()
+		return nil
+	})
+}
+
+func (d *Service) runBackgroundBoxAuditScheduler() {
+	eng := engine.NewBoxAuditSchedulerBackground(d.G())
+	go func() {
+		m := libkb.NewMetaContextBackground(d.G())
+		err := engine.RunEngine2(m, eng)
+		if err != nil {
+			m.Warning("background BoxAuditorScheduler error: %v", err)
+		}
+	}()
+
+	d.G().PushShutdownHook(func() error {
+		d.G().Log.Debug("stopping background BoxAuditorScheduler")
+		eng.Shutdown()
+		return nil
+	})
+}
+
+func (d *Service) OnLogin(mctx libkb.MetaContext) error {
 	d.rekeyMaster.Login()
 	if err := d.gregordConnect(); err != nil {
 		return err
@@ -1284,13 +1335,4 @@ func (d *Service) StartStandaloneChat(g *libkb.GlobalContext) error {
 	d.startChatModules()
 
 	return nil
-}
-
-// Called by CtlHandler after DbNuke finishes and succeeds.
-func (d *Service) onDbNuke(ctx context.Context) {
-	mctx := libkb.NewMetaContext(ctx, d.G())
-	d.avatarLoader.OnCacheCleared(mctx)
-	if srv := d.ChatG().AttachmentURLSrv; srv != nil {
-		srv.OnCacheCleared(mctx)
-	}
 }

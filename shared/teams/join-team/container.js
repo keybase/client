@@ -1,5 +1,6 @@
 // @flow
 import * as TeamsGen from '../../actions/teams-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import JoinTeamDialog from '.'
 import {upperFirst} from 'lodash-es'
 import {connect, compose, lifecycle, withStateHandlers, withHandlers} from '../../util/container'
@@ -13,7 +14,7 @@ const mapStateToProps = state => ({
   successTeamName: state.teams.teamJoinSuccessTeamName,
 })
 
-const mapDispatchToProps = (dispatch, {navigateUp}: OwnProps) => ({
+const mapDispatchToProps = dispatch => ({
   _onJoinTeam: (teamname: string) => {
     dispatch(TeamsGen.createJoinTeam({teamname}))
   },
@@ -23,7 +24,7 @@ const mapDispatchToProps = (dispatch, {navigateUp}: OwnProps) => ({
   _onSetTeamJoinSuccess: (success: boolean, teamname: string) => {
     dispatch(TeamsGen.createSetTeamJoinSuccess({success, teamname}))
   },
-  onBack: () => dispatch(navigateUp()),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 export default compose(

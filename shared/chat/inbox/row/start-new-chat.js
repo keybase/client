@@ -1,61 +1,78 @@
 // @flow
 import * as React from 'react'
-import {iconCastPlatformStyles, Icon, Box, ClickableBox, Text} from '../../../common-adapters'
-import {
-  styleSheetCreate,
-  platformStyles,
-  globalStyles,
-  globalColors,
-  globalMargins,
-  isMobile,
-} from '../../../styles'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
+import flags from '../../../util/feature-flags'
 
 type Props = {
+  onBack: () => void,
   onNewChat: () => void,
 }
 
 const StartNewChat = (props: Props) => {
+  if (!flags.useNewRouter || Styles.isMobile) {
+    return (
+      <Kb.Box style={styles.container}>
+        <Kb.ClickableBox style={styles.clickableBox} onClick={props.onNewChat}>
+          <Kb.Icon
+            type="iconfont-compose"
+            style={Kb.iconCastPlatformStyles(styles.iconCompose)}
+            hoverColor="inital"
+          />
+          <Kb.Text type="BodyBigLink" style={{margin: Styles.globalMargins.tiny}}>
+            Start a new chat
+          </Kb.Text>
+        </Kb.ClickableBox>
+      </Kb.Box>
+    )
+  }
   return (
-    <Box style={styles.container}>
-      <ClickableBox style={styles.clickableBox} onClick={props.onNewChat}>
-        <Icon
-          type="iconfont-compose"
-          style={iconCastPlatformStyles(styles.iconCompose)}
-          hoverColor="inital"
-        />
-        <Text type="BodyBigLink" style={{margin: globalMargins.tiny}}>
-          Start a new chat
-        </Text>
-      </ClickableBox>
-    </Box>
+    <Kb.Box2 direction="horizontal" fullWidth={true}>
+      <Kb.Button label="Start a new chat" onClick={props.onNewChat} style={styles.button} small={true}>
+        <Kb.Icon type="iconfont-compose" color={Styles.globalColors.white} style={styles.buttonIcon} />
+      </Kb.Button>
+    </Kb.Box2>
   )
 }
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
+  backButton: {
+    left: 0,
+    position: 'absolute',
+    top: Styles.globalMargins.xxtiny,
+  },
+  button: {
+    flexGrow: 1,
+    marginLeft: Styles.globalMargins.small,
+    marginRight: Styles.globalMargins.small,
+  },
+  buttonIcon: {
+    marginRight: Styles.globalMargins.tiny,
+  },
   clickableBox: {
     alignItems: 'center',
     flexDirection: 'row',
   },
   container: {
-    ...globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    backgroundColor: isMobile ? globalColors.fastBlank : globalColors.blueGrey,
+    backgroundColor: Styles.isMobile ? Styles.globalColors.fastBlank : Styles.globalColors.blueGrey,
     justifyContent: 'center',
     minHeight: 48,
-    paddingLeft: globalMargins.small,
-    paddingRight: globalMargins.small,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
     position: 'relative',
   },
-  iconCompose: platformStyles({
+  iconCompose: Styles.platformStyles({
     common: {
-      color: globalColors.blue,
+      color: Styles.globalColors.blue,
     },
     isElectron: {
       fontSize: 16,
     },
     isMobile: {
       fontSize: 20,
-      padding: globalMargins.xtiny,
+      padding: Styles.globalMargins.xtiny,
     },
   }),
 })

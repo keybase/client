@@ -8,6 +8,7 @@ import * as ChatGen from '../chat2-gen'
 import * as EngineGen from '../engine-gen-gen'
 import * as DevicesGen from '../devices-gen'
 import * as ProfileGen from '../profile-gen'
+import * as FsGen from '../fs-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/config'
 import * as ChatConstants from '../../constants/chat2'
@@ -17,6 +18,8 @@ import * as PlatformSpecific from '../platform-specific'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Tabs from '../../constants/tabs'
 import * as Router2 from '../../constants/router2'
+import * as FsTypes from '../../constants/types/fs'
+import * as FsConstants from '../../constants/fs'
 import URL from 'url-parse'
 import appRouteTree from '../../app/routes-app'
 import loginRouteTree from '../../app/routes-login'
@@ -65,6 +68,7 @@ function* loadDaemonBootstrapStatus(state, action) {
       deviceName: s.deviceName,
       followers: s.followers ?? [],
       following: s.following ?? [],
+      fullname: s.fullname || '',
       loggedIn: s.loggedIn,
       registered: s.registered,
       uid: s.uid,
@@ -238,7 +242,7 @@ const resetGlobalStore = () => ({payload: null, type: 'common:resetStore'})
 
 // Figure out whether we can log out using CanLogout, if so,
 // startLogoutHandshake, else do what's needed - right now only
-// redirect to set passphrase screen.
+// redirect to set password screen.
 const startLogoutHandshakeIfAllowed = state =>
   RPCTypes.userCanLogoutRpcPromise().then(canLogoutRes => {
     if (canLogoutRes.canLogout) {
@@ -247,13 +251,13 @@ const startLogoutHandshakeIfAllowed = state =>
       const heading = canLogoutRes.reason
       if (isMobile) {
         return RouteTreeGen.createNavigateTo({
-          path: [Tabs.settingsTab, {props: {heading}, selected: SettingsConstants.passphraseTab}],
+          path: [Tabs.settingsTab, {props: {heading}, selected: SettingsConstants.passwordTab}],
         })
       } else {
         return [
           RouteTreeGen.createNavigateTo({path: [Tabs.settingsTab]}),
           RouteTreeGen.createNavigateAppend({
-            path: [{props: {heading}, selected: 'changePassphrase'}],
+            path: [{props: {heading}, selected: 'changePassword'}],
           }),
         ]
       }
@@ -302,9 +306,16 @@ const routeToInitialScreen = state => {
       state.config.startupConversation &&
       state.config.startupConversation !== ChatConstants.noConversationIDKey
     ) {
+      const actions = [
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {props: {conversationIDKey: state.config.startupConversation}, selected: 'chatConversation'},
+          ],
+        }),
+      ]
       return [
-        // $FlowIssue
-        RouteTreeGen.createSwitchRouteDef({path: ChatConstants.threadRoute, routeDef: appRouteTree}),
+        RouteTreeGen.createSwitchRouteDef({path: [Tabs.chatTab], routeDef: appRouteTree}),
+        RouteTreeGen.createResetStack({actions, index: 1, tab: Tabs.chatTab}),
         ChatGen.createSelectConversation({
           conversationIDKey: state.config.startupConversation,
           reason: state.config.startupWasFromPush ? 'push' : 'savedLastState',
@@ -312,10 +323,20 @@ const routeToInitialScreen = state => {
       ]
     }
 
+    // A share
+    if (state.config.startupSharePath) {
+      return [
+        RouteTreeGen.createSwitchRouteDef({path: FsConstants.fsRootRouteForNav1, routeDef: appRouteTree}),
+        // $FlowIssue thinks it's undefined
+        FsGen.createSetIncomingShareLocalPath({localPath: state.config.startupSharePath}),
+        FsGen.createShowIncomingShare({initialDestinationParentPath: FsTypes.stringToPath('/keybase')}),
+      ]
+    }
+
     // A follow
     if (state.config.startupFollowUser) {
       return [
-        RouteTreeGen.createSwitchRouteDef({path: [Tabs.profileTab], routeDef: appRouteTree}),
+        RouteTreeGen.createSwitchRouteDef({path: [Tabs.peopleTab], routeDef: appRouteTree}),
         ProfileGen.createShowUserProfile({username: state.config.startupFollowUser}),
       ]
     }
@@ -328,7 +349,7 @@ const routeToInitialScreen = state => {
         logger.info('AppLink: url', url.href, 'username', username)
         if (username) {
           return [
-            RouteTreeGen.createSwitchRouteDef({path: [Tabs.profileTab], routeDef: appRouteTree}),
+            RouteTreeGen.createSwitchRouteDef({path: [Tabs.peopleTab], routeDef: appRouteTree}),
             ProfileGen.createShowUserProfile({username}),
           ]
         }
@@ -356,7 +377,7 @@ const handleAppLink = (_, action) => {
   const username = Constants.urlToUsername(url)
   if (username) {
     return [
-      RouteTreeGen.createSwitchTo({path: [Tabs.profileTab]}),
+      RouteTreeGen.createSwitchTo({path: [Tabs.peopleTab]}),
       ProfileGen.createShowUserProfile({username}),
     ]
   }
@@ -498,6 +519,8 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
       | RouteTreeGen.SwitchRouteDefPayload
       | RouteTreeGen.ClearModalsPayload
       | RouteTreeGen.NavUpToScreenPayload
+      | RouteTreeGen.SwitchTabPayload
+      | RouteTreeGen.ResetStackPayload
     >(
       [
         RouteTreeGen.navigateAppend,
@@ -507,6 +530,8 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
         RouteTreeGen.switchRouteDef,
         RouteTreeGen.clearModals,
         RouteTreeGen.navUpToScreen,
+        RouteTreeGen.switchTab,
+        RouteTreeGen.resetStack,
       ],
       newNavigation
     )

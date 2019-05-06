@@ -17,12 +17,12 @@ const mapStateToProps = (state, {path}: OwnProps) => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  loadPathItem: (path: Types.Path) => dispatch(FsGen.createPathItemLoad({path})),
+  loadPathMetadata: (path: Types.Path) => dispatch(FsGen.createLoadPathMetadata({path, refreshTag: 'main'})),
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 const mergeProps = (stateProps, dispatchProps, {path, routePath}) => ({
-  loadPathItem: dispatchProps.loadPathItem,
+  loadPathMetadata: dispatchProps.loadPathMetadata,
   name: stateProps._pathItem.name,
   onBack: dispatchProps.onBack,
   path,
@@ -33,7 +33,7 @@ export default compose(
   namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'FilePreviewHeader'),
   lifecycle({
     componentDidMount() {
-      this.props.loadPathItem(this.props.path)
+      this.props.loadPathMetadata(this.props.path)
     },
   })
 )(Header)

@@ -6,8 +6,8 @@ import * as Styles from '../../styles'
 import * as Flow from '../../util/flow'
 import QRImage from './qr-image'
 import QRScan from './qr-scan/container'
-import {iconMeta} from '../../common-adapters/icon.constants'
 import {isAndroid} from '../../constants/platform'
+import flags from '../../util/feature-flags'
 
 const blueBackground = require('../../images/illustrations/bg-provisioning-blue.png')
 const greenBackground = require('../../images/illustrations/bg-provisioning-green.png')
@@ -125,12 +125,14 @@ class CodePage2 extends React.Component<Props, State> {
               }
             />
           </Kb.Box2>
-          <Kb.BackButton
-            onClick={this.props.onBack}
-            iconColor={Styles.globalColors.white}
-            style={styles.backButton}
-            textStyle={styles.backButtonText}
-          />
+          {(!flags.useNewRouter || this.props.currentDeviceAlreadyProvisioned) && (
+            <Kb.BackButton
+              onClick={this.props.onBack}
+              iconColor={Styles.globalColors.white}
+              style={styles.backButton}
+              textStyle={styles.backButtonText}
+            />
+          )}
           {!!this.props.error && <ErrorBanner error={this.props.error} />}
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.scrollContainer}>
             <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
@@ -235,8 +237,7 @@ class EnterText extends React.Component<Props, {code: string}> {
         />
         <Kb.WaitingButton
           fullWidth={true}
-          type="PrimaryColoredBackground"
-          backgroundMode="Green"
+          backgroundColor="green"
           label="Submit"
           onClick={this._submit}
           disabled={!this.state.code}
@@ -270,28 +271,25 @@ const Instructions = (p: Props) => (
     ) : (
       <React.Fragment>
         <Kb.Text center={true} type={textType} style={styles.instructions}>
-          On
+          On{' '}
           <Kb.Text center={true} type={textType} style={styles.instructionsItalic}>
-            {' '}
             {p.otherDeviceName}
           </Kb.Text>
           , go to
         </Kb.Text>
-        <Kb.Text center={true} type={textType} style={styles.instructions}>
-          Devices
-          <Kb.Text center={true} type={textType} style={styles.instructionsCarets}>
-            {` ${String.fromCharCode(iconMeta['iconfont-arrow-right'].charCode || 0)} `}
+        <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny">
+          <Kb.Text center={true} type={textType} style={styles.instructions}>
+            Devices
           </Kb.Text>
+          <Kb.Icon type="iconfont-arrow-right" color={Styles.globalColors.white} sizeType="Small" />
           <Kb.Text center={true} type={textType} style={styles.instructions}>
             Add device
           </Kb.Text>
-          <Kb.Text center={true} type={textType} style={styles.instructionsCarets}>
-            {` ${String.fromCharCode(iconMeta['iconfont-arrow-right'].charCode || 0)} `}
-          </Kb.Text>
+          <Kb.Icon type="iconfont-arrow-right" color={Styles.globalColors.white} sizeType="Small" />
           <Kb.Text center={true} type={textType} style={styles.instructions}>
             New {p.currentDeviceType === 'desktop' ? 'computer' : 'phone'}.
           </Kb.Text>
-        </Kb.Text>
+        </Kb.Box2>
       </React.Fragment>
     )}
   </Kb.Box2>
@@ -320,10 +318,16 @@ const styles = Styles.styleSheetCreate({
   backgroundOnRight: {
     marginRight: -230,
   },
-  codePageContainer: {
-    overflow: 'hidden',
-    position: 'relative',
-  },
+  codePageContainer: Styles.platformStyles({
+    common: {
+      overflow: 'hidden',
+      position: 'relative',
+    },
+    isElectron: {
+      minHeight: 400,
+      minWidth: 400,
+    },
+  }),
   container: Styles.platformStyles({
     common: {
       justifyContent: 'space-between',
@@ -356,13 +360,13 @@ const styles = Styles.styleSheetCreate({
       backgroundColor: Styles.globalColors.white,
       borderRadius: 4,
       color: Styles.globalColors.green,
-      fontSize: 16,
       paddingBottom: 15,
       paddingLeft: 20,
       paddingRight: 20,
       paddingTop: 15,
     },
     isElectron: {
+      fontSize: 16,
       maxWidth: 460,
     },
     isMobile: {
@@ -390,20 +394,6 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'center',
   },
   instructions: {color: Styles.globalColors.white},
-  instructionsCarets: Styles.platformStyles({
-    common: {
-      color: Styles.globalColors.white,
-      fontFamily: 'kb',
-      fontStyle: 'normal',
-      fontWeight: 'normal',
-    },
-    isElectron: {
-      WebkitFontSmoothing: 'antialiased',
-      fontVariant: 'normal',
-      speak: 'none',
-      textTransform: 'none',
-    },
-  }),
   instructionsContainer: {
     alignItems: 'center',
     flexWrap: 'wrap',

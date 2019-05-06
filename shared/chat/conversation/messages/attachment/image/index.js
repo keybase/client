@@ -41,10 +41,8 @@ class ImageAttachment extends React.PureComponent<Props, State> {
   _setVideoLoaded = () => this.setState({loadingVideo: 'loaded'})
 
   _onClick = () => {
-    // on desktop, we were experiencing problems with the app crashing when trying to get too
-    // fancy with the inline display and clicks. Once the user clicks the inline video once,
-    // then just let the native controls handle everything else.
-    if (!Styles.isMobile && this.state.playingVideo) {
+    // Once the user clicks the inline video once, then just let the native controls handle everything else.
+    if (this.state.playingVideo) {
       return
     }
     if (this.props.inlineVideoPlayable && this.imageRef) {

@@ -231,6 +231,7 @@ const (
 	SCAlreadyLoggedIn                           = int(keybase1.StatusCode_SCAlreadyLoggedIn)
 	SCCanceled                                  = int(keybase1.StatusCode_SCCanceled)
 	SCInputCanceled                             = int(keybase1.StatusCode_SCInputCanceled)
+	SCBadUsername                               = int(keybase1.StatusCode_SCBadUsername)
 	SCOffline                                   = int(keybase1.StatusCode_SCOffline)
 	SCExists                                    = int(keybase1.StatusCode_SCExists)
 	SCInvalidAddress                            = int(keybase1.StatusCode_SCInvalidAddress)
@@ -352,6 +353,7 @@ const (
 	SCStellarMobileOnlyPurgatory                = int(keybase1.StatusCode_SCStellarMobileOnlyPurgatory)
 	SCStellarIncompatibleVersion                = int(keybase1.StatusCode_SCStellarIncompatibleVersion)
 	SCStellarMissingAccount                     = int(keybase1.StatusCode_SCStellarMissingAccount)
+	SCNoPaperKeys                               = int(keybase1.StatusCode_SCNoPaperKeys)
 )
 
 const (
@@ -460,7 +462,7 @@ var RemoteServiceTypes = map[string]keybase1.ProofType{
 	"generic_social": keybase1.ProofType_GENERIC_SOCIAL,
 }
 
-// TODO Remove with CORE-9923
+// remove when ShouldUseParameterizedProofs is removed
 var RemoteServiceOrder = []keybase1.ProofType{
 	keybase1.ProofType_KEYBASE,
 	keybase1.ProofType_TWITTER,
@@ -590,6 +592,8 @@ const (
 const (
 	EncryptionReasonChatLocalStorage       EncryptionReason = "Keybase-Chat-Local-Storage-1"
 	EncryptionReasonChatMessage            EncryptionReason = "Keybase-Chat-Message-1"
+	EncryptionReasonChatIndexerTokenKey    EncryptionReason = "Keybase-Chat-IndexerTokenKey-1"
+	EncryptionReasonChatIndexerAliasKey    EncryptionReason = "Keybase-Chat-IndexerAliasKey-1"
 	EncryptionReasonTeamsLocalStorage      EncryptionReason = "Keybase-Teams-Local-Storage-1"
 	EncryptionReasonTeamsFTLLocalStorage   EncryptionReason = "Keybase-Teams-FTL-Local-Storage-1"
 	EncryptionReasonErasableKVLocalStorage EncryptionReason = "Keybase-Erasable-KV-Local-Storage-1"
@@ -612,6 +616,8 @@ const (
 	DeriveReasonTeamEKExplodingChat DeriveReason = "Derived-Ephemeral-Team-NaCl-SecretBox-ExplodingChat-1"
 
 	DeriveReasonChatPairwiseMAC DeriveReason = "Derived-Chat-Pairwise-HMAC-SHA256-1"
+
+	DeriveReasonLinuxRevokableKeyring DeriveReason = "Keybase-Derived-LKS-SecretBox-1"
 )
 
 // Not a DeriveReason because it is not used in the same way.
@@ -704,3 +710,15 @@ const ClientTriplesecVersion = 3
 
 // Also hard-coded in packaging/linux/{post_install.sh,run_keybase}
 const DisableRootRedirectorConfigKey = "disable-root-redirector"
+
+// Also defined in lib_public/public_constants.iced
+const (
+	AutoresetEventStart  = 0
+	AutoresetEventVerify = 1
+	AutoresetEventCancel = 2
+	AutoresetEventNotify = 3
+	AutoresetEventReady  = 4
+	AutoresetEventReset  = 5
+)
+
+const ProfileProofSuggestions = true

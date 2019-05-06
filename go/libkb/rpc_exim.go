@@ -23,7 +23,6 @@ import (
 	"github.com/keybase/go-crypto/openpgp"
 	pgpErrors "github.com/keybase/go-crypto/openpgp/errors"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	pkgErrors "github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -176,7 +175,7 @@ func ExportErrorAsStatus(g *GlobalContext, e error) (ret *keybase1.Status) {
 	// Before checking to see if an error implements ExportableError, peel off
 	// any wrappers from the `errors` package (KBFS uses these). This is a
 	// no-op for other types.
-	e = pkgErrors.Cause(e)
+	e = HumanError(e)
 	if ee, ok := e.(ExportableError); ok {
 		tmp := ee.ToStatus()
 		return &tmp
@@ -756,6 +755,8 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 			}
 		}
 		return NewFeatureFlagError(s.Desc, feature)
+	case SCNoPaperKeys:
+		return NoPaperKeysError{}
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -1479,10 +1480,11 @@ func (u *User) ExportToUPKV2AllIncarnations() (*keybase1.UserPlusKeysV2AllIncarn
 	// Then assemble the current version. This one gets a couple extra fields, Uvv and RemoteTracks.
 	current := u.GetComputedKeyInfos().exportUPKV2Incarnation(uid, name, u.GetCurrentEldestSeqno(), kf, status, nil)
 	current.RemoteTracks = make(map[keybase1.UID]keybase1.RemoteTrack)
-	if u.IDTable() != nil {
-		for _, track := range u.IDTable().GetTrackList() {
+	if tab := u.IDTable(); tab != nil {
+		for _, track := range tab.GetTrackList() {
 			current.RemoteTracks[track.whomUID] = track.Export()
 		}
+		current.Unstubbed = !tab.HasStubs()
 	}
 	if accountID := u.StellarAccountID(); accountID != nil {
 		tmp := accountID.String()
@@ -2409,4 +2411,18 @@ func (e FeatureFlagError) ToStatus() (ret keybase1.Status) {
 	ret.Desc = e.msg
 	ret.Fields = []keybase1.StringKVPair{keybase1.StringKVPair{Key: "feature", Value: string(e.feature)}}
 	return ret
+}
+
+func (e BadUsernameError) ToStatus() (ret keybase1.Status) {
+	ret.Code = SCBadUsername
+	ret.Name = "BAD_USERNAME"
+	ret.Desc = e.Error()
+	return ret
+}
+
+func (e NoPaperKeysError) ToStatus() (ret keybase1.Status) {
+	ret.Code = SCNoPaperKeys
+	ret.Name = "NO_PAPER_KEYS"
+	ret.Desc = e.Error()
+	return
 }

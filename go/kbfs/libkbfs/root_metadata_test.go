@@ -13,11 +13,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
@@ -112,13 +114,12 @@ func runBenchmarkOverMetadataVers(
 
 type privateMetadataFuture struct {
 	PrivateMetadata
-	Dir dirEntryFuture
 	kbfscodec.Extra
 }
 
 func (pmf privateMetadataFuture) toCurrent() PrivateMetadata {
 	pm := pmf.PrivateMetadata
-	pm.Dir = DirEntry(pmf.Dir.toCurrent())
+	pm.Dir = pmf.Dir
 	pm.Changes.Ops = make(opsList, len(pmf.Changes.Ops))
 	for i, opFuture := range pmf.Changes.Ops {
 		currentOp := opFuture.(kbfscodec.FutureStruct).ToCurrentStruct()
@@ -146,7 +147,7 @@ func makeFakePrivateMetadataFuture(t *testing.T) privateMetadataFuture {
 
 	pmf := privateMetadataFuture{
 		PrivateMetadata{
-			DirEntry{},
+			data.DirEntry{},
 			kbfscrypto.MakeTLFPrivateKey([32]byte{0xb}),
 			BlockChanges{
 				makeFakeBlockInfo(t),
@@ -166,7 +167,6 @@ func makeFakePrivateMetadataFuture(t *testing.T) privateMetadataFuture {
 			codec.UnknownFieldSetHandler{},
 			BlockChanges{},
 		},
-		makeFakeDirEntryFuture(t),
 		kbfscodec.MakeExtraOrBust("PrivateMetadata", t),
 	}
 	return pmf
@@ -179,16 +179,12 @@ func TestPrivateMetadataUnknownFields(t *testing.T) {
 // makeFakeTlfHandle should only be used in this file.
 func makeFakeTlfHandle(
 	t *testing.T, x uint32, ty tlf.Type,
-	unresolvedWriters, unresolvedReaders []keybase1.SocialAssertion) *TlfHandle {
+	unresolvedWriters, unresolvedReaders []keybase1.SocialAssertion) *tlfhandle.Handle {
 	id := keybase1.MakeTestUID(x).AsUserOrTeam()
-	return &TlfHandle{
-		tlfType: ty,
-		resolvedWriters: map[keybase1.UserOrTeamID]kbname.NormalizedUsername{
+	return tlfhandle.NewHandle(
+		ty, map[keybase1.UserOrTeamID]kbname.NormalizedUsername{
 			id: "test_user",
-		},
-		unresolvedWriters: unresolvedWriters,
-		unresolvedReaders: unresolvedReaders,
-	}
+		}, unresolvedWriters, unresolvedReaders, "", tlf.NullID)
 }
 
 // Test that GetTlfHandle() and MakeBareTlfHandle() work properly for
@@ -306,7 +302,8 @@ func testMakeRekeyReadError(t *testing.T, ver kbfsmd.MetadataVer) {
 
 	dummyErr := errors.New("dummy")
 	err = makeRekeyReadErrorHelper(dummyErr, rmd.ReadOnly(), h, uid, u)
-	require.Equal(t, NewReadAccessError(h, u, "/keybase/private/alice"), err)
+	require.Equal(
+		t, tlfhandle.NewReadAccessError(h, u, "/keybase/private/alice"), err)
 
 	err = makeRekeyReadErrorHelper(dummyErr,
 		rmd.ReadOnly(), h, h.FirstResolvedWriter().AsUserOrBust(), "alice")
@@ -319,7 +316,7 @@ func testMakeRekeyReadErrorResolvedHandle(t *testing.T, ver kbfsmd.MetadataVer) 
 	defer config.Shutdown(ctx)
 
 	tlfID := tlf.FakeID(1, tlf.Private)
-	h, err := ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), nil,
 		"alice,bob@twitter", tlf.Private)
 	require.NoError(t, err)
@@ -336,9 +333,10 @@ func testMakeRekeyReadErrorResolvedHandle(t *testing.T, ver kbfsmd.MetadataVer) 
 
 	err = makeRekeyReadErrorHelper(errors.New("dummy"),
 		rmd.ReadOnly(), h, uid, u)
-	require.Equal(t, NewReadAccessError(h, u, "/keybase/private/alice,bob@twitter"), err)
+	require.Equal(t, tlfhandle.NewReadAccessError(
+		h, u, "/keybase/private/alice,bob@twitter"), err)
 
-	config.KeybaseService().(*KeybaseDaemonLocal).addNewAssertionForTestOrBust(
+	config.KeybaseService().(*KeybaseDaemonLocal).AddNewAssertionForTestOrBust(
 		"bob", "bob@twitter")
 
 	resolvedHandle, err := h.ResolveAgain(ctx, config.KBPKI(), nil, nil)
@@ -410,7 +408,7 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	rmd.SetRefBytes(refBytes)
 	rmd.SetUnrefBytes(unrefBytes)
 	// Make sure the MD looks readable.
-	rmd.data.Dir.BlockPointer = BlockPointer{ID: kbfsblock.FakeID(1)}
+	rmd.data.Dir.BlockPointer = data.BlockPointer{ID: kbfsblock.FakeID(1)}
 
 	// key it once
 	done, _, err := config.KeyManager().Rekey(context.Background(), rmd, false)
@@ -442,7 +440,7 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	require.Equal(t, 0, len(rmd.bareMd.(*kbfsmd.RootMetadataV2).RKeys[0].TLFReaderEphemeralPublicKeys))
 
 	// prove charlie
-	config.KeybaseService().(*KeybaseDaemonLocal).addNewAssertionForTestOrBust(
+	config.KeybaseService().(*KeybaseDaemonLocal).AddNewAssertionForTestOrBust(
 		"charlie", "charlie@twitter")
 
 	// rekey it
@@ -627,7 +625,7 @@ func TestRootMetadataUpconversionPrivateConflict(t *testing.T) {
 	rmd.SetRefBytes(refBytes)
 	rmd.SetUnrefBytes(unrefBytes)
 	// Make sure the MD looks readable.
-	rmd.data.Dir.BlockPointer = BlockPointer{ID: kbfsblock.FakeID(1)}
+	rmd.data.Dir.BlockPointer = data.BlockPointer{ID: kbfsblock.FakeID(1)}
 
 	// key it once
 	done, _, err := config.KeyManager().Rekey(context.Background(), rmd, false)
@@ -806,13 +804,11 @@ func TestRootMetadataTeamMembership(t *testing.T) {
 	tid := teamInfos[0].TID
 
 	tlfID := tlf.FakeID(1, tlf.SingleTeam)
-	h := &TlfHandle{
-		tlfType: tlf.SingleTeam,
-		resolvedWriters: map[keybase1.UserOrTeamID]kbname.NormalizedUsername{
+	h := tlfhandle.NewHandle(
+		tlf.SingleTeam,
+		map[keybase1.UserOrTeamID]kbname.NormalizedUsername{
 			tid.AsUserOrTeam(): "t1",
-		},
-		name: "t1",
-	}
+		}, nil, nil, "t1", tlf.NullID)
 	rmd, err := makeInitialRootMetadata(kbfsmd.InitialExtraMetadataVer, tlfID, h)
 	require.NoError(t, err)
 
@@ -892,18 +888,16 @@ func TestRootMetadataTeamMakeSuccessor(t *testing.T) {
 	tid := teamInfos[0].TID
 
 	tlfID := tlf.FakeID(1, tlf.SingleTeam)
-	h := &TlfHandle{
-		tlfType: tlf.SingleTeam,
-		resolvedWriters: map[keybase1.UserOrTeamID]kbname.NormalizedUsername{
+	h := tlfhandle.NewHandle(
+		tlf.SingleTeam,
+		map[keybase1.UserOrTeamID]kbname.NormalizedUsername{
 			tid.AsUserOrTeam(): "t1",
-		},
-		name: "t1",
-	}
+		}, nil, nil, "t1", tlf.NullID)
 	rmd, err := makeInitialRootMetadata(kbfsmd.SegregatedKeyBundlesVer, tlfID, h)
 	require.NoError(t, err)
 	rmd.bareMd.SetLatestKeyGenerationForTeamTLF(teamInfos[0].LatestKeyGen)
 	// Make sure the MD looks readable.
-	rmd.data.Dir.BlockPointer = BlockPointer{ID: kbfsblock.FakeID(1)}
+	rmd.data.Dir.BlockPointer = data.BlockPointer{ID: kbfsblock.FakeID(1)}
 
 	firstKeyGen := rmd.LatestKeyGeneration()
 	require.Equal(t, kbfsmd.FirstValidKeyGen, firstKeyGen)

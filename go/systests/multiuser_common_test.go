@@ -163,6 +163,12 @@ func (s usernameLoginUI) DisplayPaperKeyPhrase(contextOld.Context, keybase1.Disp
 func (s usernameLoginUI) DisplayPrimaryPaperKey(contextOld.Context, keybase1.DisplayPrimaryPaperKeyArg) error {
 	return nil
 }
+func (s usernameLoginUI) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (bool, error) {
+	return false, nil
+}
+func (s usernameLoginUI) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
+	return nil
+}
 
 func (d *smuDeviceWrapper) popClone() *libkb.TestContext {
 	if len(d.clones) == 0 {
@@ -190,7 +196,6 @@ func (smc *smuContext) setupDeviceHelper(u *smuUser, puk bool) *smuDeviceWrapper
 	tctx := setupTest(smc.t, u.usernamePrefix)
 	tctx.Tp.DisableUpgradePerUserKey = !puk
 	tctx.G.SetClock(smc.fakeClock)
-	installInsecureTriplesec(tctx.G)
 	ret := &smuDeviceWrapper{ctx: smc, tctx: tctx}
 	u.devices = append(u.devices, ret)
 	if u.primary == nil {
@@ -593,6 +598,10 @@ func (u *smuUser) userVersion() keybase1.UserVersion {
 	uv, err := u.primaryDevice().userClient().MeUserVersion(context.Background(), keybase1.MeUserVersionArg{ForcePoll: true})
 	require.NoError(u.ctx.t, err)
 	return uv
+}
+
+func (u *smuUser) MetaContext() libkb.MetaContext {
+	return libkb.NewMetaContextForTest(*u.primaryDevice().tctx)
 }
 
 func (u *smuUser) getPrimaryGlobalContext() *libkb.GlobalContext {

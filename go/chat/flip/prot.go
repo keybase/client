@@ -32,7 +32,7 @@ func (o Start) DeepCopy() Start {
 		RevealWindowMsec:             o.RevealWindowMsec,
 		SlackMsec:                    o.SlackMsec,
 		CommitmentCompleteWindowMsec: o.CommitmentCompleteWindowMsec,
-		Params: o.Params.DeepCopy(),
+		Params:                       o.Params.DeepCopy(),
 	}
 }
 

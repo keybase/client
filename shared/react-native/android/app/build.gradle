@@ -5,7 +5,7 @@ apply plugin: 'com.github.triplet.play'
 import com.android.build.OutputFile
 
 // KB: app version
-def VERSION_NAME = "3.2.1"
+def VERSION_NAME = "4.0.0"
 
 /**
  * The react.gradle file registers a task for each build variant (e.g. bundleDebugJsAndAssets
@@ -226,6 +226,7 @@ dependencies {
     implementation project(':react-native-screens')
     implementation project(':react-native-webview')
     implementation project(':react-native-community-netinfo')
+    implementation project(':react-native-reanimated')
 }
 
 // Run this once to be able to run the application with BUCK

@@ -12,6 +12,8 @@
         }
     },
     "globals": {
+        "requestAnimationFrame": "function",
+        "cancelAnimationFrame": "function",
         "__DEV__": false,
         "__STORYBOOK__": false,
         "__STORYSHOT__": false

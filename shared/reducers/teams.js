@@ -51,6 +51,8 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
         s.setIn(['teamNameToSubteams', action.payload.teamname], action.payload.subteams)
         s.mergeIn(['teamNameToRequests'], action.payload.requests)
       })
+    case TeamsGen.setMembers:
+      return state.setIn(['teamNameToMembers', action.payload.teamname], action.payload.members)
     case TeamsGen.setTeamCanPerform:
       return state.setIn(['teamNameToCanPerform', action.payload.teamname], action.payload.teamOperation)
     case TeamsGen.setTeamPublicitySettings:
@@ -134,6 +136,7 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
     case TeamsGen.reAddToTeam:
     case TeamsGen.badgeAppForTeams:
     case TeamsGen.checkRequestedAccess:
+    case TeamsGen.clearNavBadges:
     case TeamsGen.createChannel:
     case TeamsGen.createNewTeam:
     case TeamsGen.createNewTeamFromConversation:
@@ -145,6 +148,7 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
     case TeamsGen.getChannels:
     case TeamsGen.getDetails:
     case TeamsGen.getDetailsForAllTeams:
+    case TeamsGen.getMembers:
     case TeamsGen.getTeamOperations:
     case TeamsGen.getTeamProfileAddList:
     case TeamsGen.getTeamPublicity:
@@ -158,6 +162,7 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
     case TeamsGen.leaveTeam:
     case TeamsGen.leftTeam:
     case TeamsGen.removeMemberOrPendingInvite:
+    case TeamsGen.renameTeam:
     case TeamsGen.saveChannelMembership:
     case TeamsGen.setMemberPublicity:
     case TeamsGen.setPublicity:

@@ -20,11 +20,17 @@ const Wrapper = (props: {
   children: React.Node,
   onBack: () => void,
   onToggleInfoPanel: () => void,
+  onToggleThreadSearch: () => void,
 }) => (
   <HeaderHocHeader
     badgeNumber={props.badgeNumber}
     onLeftAction={props.onBack}
     rightActions={[
+      {
+        icon: 'iconfont-search',
+        label: 'search',
+        onPress: props.onToggleThreadSearch,
+      },
       {
         icon: 'iconfont-info',
         label: 'Info',

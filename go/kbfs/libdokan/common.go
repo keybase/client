@@ -8,9 +8,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/dokan"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
-	"github.com/keybase/client/go/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
 
@@ -44,7 +45,7 @@ const (
 
 // eiToStat converts from a libkbfs.EntryInfo and error to a *dokan.Stat and error.
 // Note that handling symlinks to directories requires extra processing not done here.
-func eiToStat(ei libkbfs.EntryInfo, err error) (*dokan.Stat, error) {
+func eiToStat(ei data.EntryInfo, err error) (*dokan.Stat, error) {
 	if err != nil {
 		return nil, errToDokan(err)
 	}
@@ -55,17 +56,17 @@ func eiToStat(ei libkbfs.EntryInfo, err error) (*dokan.Stat, error) {
 
 // fillStat fill a dokan.Stat from a libkbfs.DirEntry.
 // Note that handling symlinks to directories requires extra processing not done here.
-func fillStat(a *dokan.Stat, de *libkbfs.EntryInfo) {
+func fillStat(a *dokan.Stat, de *data.EntryInfo) {
 	a.FileSize = int64(de.Size)
 	a.LastWrite = time.Unix(0, de.Mtime)
 	a.LastAccess = a.LastWrite
 	a.Creation = time.Unix(0, de.Ctime)
 	switch de.Type {
-	case libkbfs.File, libkbfs.Exec:
+	case data.File, data.Exec:
 		a.FileAttributes = dokan.FileAttributeNormal
-	case libkbfs.Dir:
+	case data.Dir:
 		a.FileAttributes = dokan.FileAttributeDirectory
-	case libkbfs.Sym:
+	case data.Sym:
 		a.FileAttributes = dokan.FileAttributeReparsePoint
 		a.ReparsePointTag = dokan.IOReparseTagSymlink
 	}
@@ -82,9 +83,9 @@ func addFileAttribute(a *dokan.Stat, fa dokan.FileAttribute) {
 // errToDokan makes some libkbfs errors easier to digest in dokan. Not needed in most places.
 func errToDokan(err error) error {
 	switch err.(type) {
-	case libkbfs.NoSuchNameError:
+	case idutil.NoSuchNameError:
 		return dokan.ErrObjectNameNotFound
-	case libkbfs.NoSuchUserError:
+	case idutil.NoSuchUserError:
 		return dokan.ErrObjectNameNotFound
 	case kbfsmd.ServerErrorUnauthorized:
 		return dokan.ErrAccessDenied

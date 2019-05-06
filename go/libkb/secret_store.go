@@ -4,6 +4,9 @@
 package libkb
 
 import (
+	"errors"
+	"fmt"
+	"strings"
 	"sync"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -11,6 +14,14 @@ import (
 
 type SecretRetriever interface {
 	RetrieveSecret(m MetaContext) (LKSecFullSecret, error)
+}
+
+type SecretStoreOptions struct {
+	RandomPw bool
+}
+
+func DefaultSecretStoreOptions() SecretStoreOptions {
+	return SecretStoreOptions{}
 }
 
 type SecretStorer interface {
@@ -21,15 +32,19 @@ type SecretStorer interface {
 type SecretStore interface {
 	SecretRetriever
 	SecretStorer
+	GetOptions(mctx MetaContext) *SecretStoreOptions
+	SetOptions(mctx MetaContext, options *SecretStoreOptions)
 }
 
 // SecretStoreall stores/retreives the keyring-resider secrets for **all** users
 // on this system.
 type SecretStoreAll interface {
-	RetrieveSecret(m MetaContext, username NormalizedUsername) (LKSecFullSecret, error)
-	StoreSecret(m MetaContext, username NormalizedUsername, secret LKSecFullSecret) error
-	ClearSecret(m MetaContext, username NormalizedUsername) error
-	GetUsersWithStoredSecrets(m MetaContext) ([]string, error)
+	RetrieveSecret(mctx MetaContext, username NormalizedUsername) (LKSecFullSecret, error)
+	StoreSecret(mctx MetaContext, username NormalizedUsername, secret LKSecFullSecret) error
+	GetOptions(mctx MetaContext) *SecretStoreOptions
+	SetOptions(mctx MetaContext, options *SecretStoreOptions)
+	ClearSecret(mctx MetaContext, username NormalizedUsername) error
+	GetUsersWithStoredSecrets(mctx MetaContext) ([]string, error)
 }
 
 // SecretStoreImp is a specialization of a SecretStoreAll for just one username.
@@ -65,6 +80,19 @@ func (s *SecretStoreImp) StoreSecret(m MetaContext, secret LKSecFullSecret) erro
 	// clear out any in-memory secret in this instance
 	s.secret = LKSecFullSecret{}
 	return s.store.StoreSecret(m, s.username, secret)
+}
+
+func (s *SecretStoreImp) GetOptions(mctx MetaContext) *SecretStoreOptions {
+	if s.store != nil {
+		return s.store.GetOptions(mctx)
+	}
+	return nil
+
+}
+func (s *SecretStoreImp) SetOptions(mctx MetaContext, options *SecretStoreOptions) {
+	if s.store != nil {
+		s.store.SetOptions(mctx, options)
+	}
 }
 
 // NewSecretStore returns a SecretStore interface that is only used for
@@ -246,3 +274,171 @@ func (s *SecretStoreLocked) GetUsersWithStoredSecrets(m MetaContext) ([]string, 
 	}
 	return s.disk.GetUsersWithStoredSecrets(m)
 }
+
+func (s *SecretStoreLocked) PrimeSecretStores(mctx MetaContext) (err error) {
+	if s == nil || s.isNil() {
+		return errors.New("secret store is not available")
+	}
+	if s.disk != nil {
+		err = PrimeSecretStore(mctx, s.disk)
+		if err != nil {
+			return err
+		}
+	}
+	err = PrimeSecretStore(mctx, s.mem)
+	return err
+}
+
+func (s *SecretStoreLocked) IsPersistent() bool {
+	if s == nil || s.isNil() {
+		return false
+	}
+	return s.disk != nil
+}
+
+func (s *SecretStoreLocked) GetOptions(mctx MetaContext) *SecretStoreOptions {
+	if s.disk != nil {
+		return s.disk.GetOptions(mctx)
+	}
+	return nil
+}
+func (s *SecretStoreLocked) SetOptions(mctx MetaContext, options *SecretStoreOptions) {
+	if s.disk != nil {
+		s.disk.SetOptions(mctx, options)
+	}
+}
+
+// PrimeSecretStore runs a test with current platform's secret store, trying to
+// store, retrieve, and then delete a secret with an arbitrary name. This should
+// be done before provisioning or logging in
+func PrimeSecretStore(mctx MetaContext, ss SecretStoreAll) (err error) {
+	defer mctx.TraceTimed("PrimeSecretStore", func() error { return err })()
+
+	// Generate test username and test secret
+	testUsername, err := RandString("test_ss_", 5)
+	// RandString returns base32 encoded random bytes, make it look like a
+	// Keybase username. This is not required, though.
+	testUsername = strings.ToLower(strings.Replace(testUsername, "=", "", -1))
+	if err != nil {
+		return err
+	}
+	randBytes, err := RandBytes(LKSecLen)
+	if err != nil {
+		return err
+	}
+	mctx.Debug("PrimeSecretStore: priming secret store with username %q and secret %v", testUsername, randBytes)
+	testNormUsername := NormalizedUsername(testUsername)
+	var secretF [LKSecLen]byte
+	copy(secretF[:], randBytes[:])
+	testSecret := LKSecFullSecret{f: &secretF}
+
+	defer func() {
+		err2 := ss.ClearSecret(mctx, testNormUsername)
+		mctx.Debug("PrimeSecretStore: clearing test secret store entry")
+		if err2 != nil {
+			mctx.Debug("PrimeSecretStore: clearing secret store entry returned an error: %s", err2)
+			if err == nil {
+				err = err2
+			} else {
+				mctx.Debug("suppressing store clearing error because something else has errored prior")
+			}
+		}
+	}()
+
+	// Try to fetch first, we should get an error back.
+	_, err = ss.RetrieveSecret(mctx, testNormUsername)
+	if err == nil {
+		return errors.New("managed to retrieve secret before storing it")
+	} else if err != nil {
+		mctx.Debug("PrimeSecretStore: error when retrieving secret that wasn't stored yet: %q, as expected", err)
+	}
+
+	// Put secret in secret store through `SecretStore` interface.
+	err = ss.StoreSecret(mctx, testNormUsername, testSecret)
+	if err != nil {
+		return fmt.Errorf("error while storing secret: %s", err)
+	}
+
+	// Recreate test store with same username, try to retrieve secret.
+	retrSecret, err := ss.RetrieveSecret(mctx, testNormUsername)
+	if err != nil {
+		return fmt.Errorf("error while retrieving secret: %s", err)
+	}
+	mctx.Debug("PrimeSecretStore: retrieved secret: %v", retrSecret.f)
+	if !retrSecret.Equal(testSecret) {
+		return errors.New("managed to retrieve test secret but it didn't match the stored one")
+	}
+
+	mctx.Debug("PrimeSecretStore: retrieved secret matched!")
+	return nil
+}
+
+func notifySecretStoreCreate(g *GlobalContext, username NormalizedUsername) {
+	g.Log.Debug("got secret store file notifyCreate")
+
+	// check leveldb for existence of notification dismissal
+	dbobj, found, err := g.LocalDb.GetRaw(DbKeyNotificationDismiss(NotificationDismissPGPPrefix, username))
+	if err != nil {
+		g.Log.Debug("notifySecretStoreCreate: localDb.GetRaw error: %s", err)
+		return
+	}
+	if found && string(dbobj) == NotificationDismissPGPValue {
+		g.Log.Debug("notifySecretStoreCreate: %s already dismissed", NotificationDismissPGPPrefix)
+		return
+	}
+
+	// check keyring for pgp keys
+	// can't use the keyring in LoginState because this could be called
+	// within a LoginState request.
+	kr, err := LoadSKBKeyring(username, g)
+	if err != nil {
+		g.Log.Debug("LoadSKBKeyring error: %s", err)
+		return
+	}
+	blocks, err := kr.AllPGPBlocks()
+	if err != nil {
+		g.Log.Debug("keyring.AllPGPBlocks error: %s", err)
+		return
+	}
+
+	if len(blocks) == 0 {
+		g.Log.Debug("notifySecretStoreCreate: no pgp blocks in keyring")
+		return
+	}
+
+	// pgp blocks exist, send a notification
+	g.Log.Debug("user has pgp blocks in keyring, sending notification")
+	if g.NotifyRouter != nil {
+		g.NotifyRouter.HandlePGPKeyInSecretStoreFile()
+	}
+
+	// also log a warning (so CLI users see it)
+	g.Log.Info(pgpStorageWarningText)
+
+	// Note: a separate RPC, callable by CLI or electron, will dismiss
+	// this warning by inserting into leveldb.
+}
+
+const pgpStorageWarningText = `
+Policy change on passphrases
+
+We've gotten lots of feedback that it's annoying as all hell to enter a
+Keybase passphrase after restarts and updates. The consensus is you can
+trust a device's storage to keep a secret that's specific to that device.
+Passphrases stink, like passed gas, and are bloody painful, like passed stones.
+
+Note, however: on this device you have a PGP private key in Keybase's local
+keychain.  Some people want to type a passphrase to unlock their PGP key, and
+this new policy would bypass that. If you're such a person, you can run the
+following command to remove your PGP private key.
+
+    keybase pgp purge
+
+If you do it, you'll have to use GPG for your PGP operations.
+
+If you're ok with the new policy, you can run this command so you won't
+get bothered with this message in the future:
+
+    keybase dismiss pgp-storage
+
+Thanks!`

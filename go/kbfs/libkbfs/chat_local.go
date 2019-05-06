@@ -13,6 +13,7 @@ import (
 
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/pkg/errors"
@@ -32,7 +33,8 @@ type convLocalByNameMap map[tlf.CanonicalName]convLocalByIDMap
 
 type convLocalByTypeMap map[tlf.Type]convLocalByNameMap
 
-type newConvCB func(context.Context, *TlfHandle, chat1.ConversationID, string)
+type newConvCB func(
+	context.Context, *tlfhandle.Handle, chat1.ConversationID, string)
 
 type chatLocalSharedData struct {
 	lock          sync.RWMutex
@@ -190,7 +192,7 @@ func (c *chatLocal) SendTextMessage(
 }
 
 type chatHandleAndTime struct {
-	h     *TlfHandle
+	h     *tlfhandle.Handle
 	mtime time.Time
 }
 
@@ -212,7 +214,7 @@ func (chatbm chatHandleAndTimeByMtime) Swap(i, j int) {
 // GetGroupedInbox implements the Chat interface.
 func (c *chatLocal) GetGroupedInbox(
 	ctx context.Context, chatType chat1.TopicType, maxChats int) (
-	results []*TlfHandle, err error) {
+	results []*tlfhandle.Handle, err error) {
 	if chatType != chat1.TopicType_KBFSFILEEDIT {
 		panic(fmt.Sprintf("Bad topic type: %d", chatType))
 	}
@@ -269,7 +271,7 @@ func (c *chatLocal) GetGroupedInbox(
 
 	c.lock.Lock()
 	defer c.lock.Unlock()
-	var selfHandles []*TlfHandle
+	var selfHandles []*tlfhandle.Handle
 	max := numSelfTlfs
 	for i := len(c.selfConvInfos) - 1; i >= 0 && len(selfHandles) < max; i-- {
 		info := c.selfConvInfos[i]

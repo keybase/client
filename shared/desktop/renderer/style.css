@@ -3,6 +3,7 @@
 @import '../../common-adapters/box.css';
 @import '../../common-adapters/icon.css';
 @import '../../common-adapters/text.css';
+@import '../../common-adapters/button.css';
 
 /* Reset */
 /* http://meyerweb.com/eric/tools/css/reset/
@@ -244,6 +245,10 @@ body {
 }
 
 .hover-underline-container:hover .underline {
+  text-decoration: underline;
+}
+
+.hover-underline-container:hover .hover-underline-child {
   text-decoration: underline;
 }
 

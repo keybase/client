@@ -45,7 +45,12 @@ const styles = Styles.styleSheetCreate({
     minWidth: 0,
   },
   fullname: Styles.platformStyles({
-    isElectron: {wordBreak: 'break-all'},
+    isElectron: {
+      textAlign: 'center',
+      whiteSpace: 'nowrap',
+      width: 80,
+      wordBreak: 'break-all',
+    },
   }),
 })
 

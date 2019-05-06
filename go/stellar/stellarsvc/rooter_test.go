@@ -111,6 +111,10 @@ func (p *ProveUIMock) Checking(_ context.Context, arg keybase1.CheckingArg) erro
 	return nil
 }
 
+func (p *ProveUIMock) ContinueChecking(_ context.Context, _ int) (bool, error) {
+	return true, nil
+}
+
 func (p *ProveUIMock) DisplayRecheckWarning(_ context.Context, arg keybase1.DisplayRecheckWarningArg) error {
 	p.recheck = true
 	return nil

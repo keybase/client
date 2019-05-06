@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
@@ -20,7 +21,7 @@ import (
 // service.
 type replacementMap map[string]string
 
-func mdDumpGetDeviceStringForCryptPublicKey(k kbfscrypto.CryptPublicKey, ui libkbfs.UserInfo) (
+func mdDumpGetDeviceStringForCryptPublicKey(k kbfscrypto.CryptPublicKey, ui idutil.UserInfo) (
 	string, bool) {
 	deviceName, ok := ui.KIDNames[k.KID()]
 	if !ok {
@@ -35,7 +36,7 @@ func mdDumpGetDeviceStringForCryptPublicKey(k kbfscrypto.CryptPublicKey, ui libk
 	return fmt.Sprintf("%s (kid:%s)", deviceName, k), true
 }
 
-func mdDumpGetDeviceStringForVerifyingKey(k kbfscrypto.VerifyingKey, ui libkbfs.UserInfo) (
+func mdDumpGetDeviceStringForVerifyingKey(k kbfscrypto.VerifyingKey, ui idutil.UserInfo) (
 	string, bool) {
 	deviceName, ok := ui.KIDNames[k.KID()]
 	if !ok {
@@ -51,7 +52,7 @@ func mdDumpGetDeviceStringForVerifyingKey(k kbfscrypto.VerifyingKey, ui libkbfs.
 }
 
 func mdDumpFillReplacements(ctx context.Context, codec kbfscodec.Codec,
-	service libkbfs.KeybaseService, osg libkbfs.OfflineStatusGetter,
+	service libkbfs.KeybaseService, osg idutil.OfflineStatusGetter,
 	prefix string, rmd kbfsmd.RootMetadata, extra kbfsmd.ExtraMetadata,
 	replacements replacementMap) error {
 	writers, readers, err := rmd.GetUserDevicePublicKeys(extra)

@@ -24,11 +24,14 @@ import (
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
 	"bazil.org/fuse/fs/fstestutil"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/test/clocktest"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -44,12 +47,16 @@ func makeFS(t testing.TB, ctx context.Context, config *libkbfs.ConfigLocal) (
 	fuse.Debug = MakeFuseDebugFn(debugLog, false /* superVerbose */)
 
 	// TODO duplicates main() in kbfsfuse/main.go too much
+	quLog := config.MakeLogger(libkbfs.QuotaUsageLogModule("FSTest"))
 	filesys := &FS{
 		config:        config,
 		log:           log,
+		vlog:          config.MakeVLogger(log),
 		errLog:        log,
+		errVlog:       config.MakeVLogger(log),
 		notifications: libfs.NewFSNotifications(log),
-		quotaUsage:    libkbfs.NewEventuallyConsistentQuotaUsage(config, "FSTest"),
+		quotaUsage: libkbfs.NewEventuallyConsistentQuotaUsage(
+			config, quLog, config.MakeVLogger(quLog)),
 	}
 	filesys.root.private = &FolderList{
 		fs:      filesys,
@@ -2817,7 +2824,7 @@ func TestErrorFile(t *testing.T) {
 	}
 
 	// Make sure the root error file reads as expected
-	expectedErr := libkbfs.NoSuchUserError{Input: "janedoe"}
+	expectedErr := idutil.NoSuchUserError{Input: "janedoe"}
 
 	// test both the root error file and one in a directory
 	testForErrorText(t, path.Join(mnt.Dir, libkbfs.ErrorFile),
@@ -2847,7 +2854,7 @@ func (t *testMountObserver) BatchChanges(ctx context.Context,
 }
 
 func (t *testMountObserver) TlfHandleChange(ctx context.Context,
-	newHandle *libkbfs.TlfHandle) {
+	newHandle *tlfhandle.Handle) {
 	return
 }
 
@@ -3109,6 +3116,8 @@ func TestStatusFile(t *testing.T) {
 	mnt, _, cancelFn := makeFS(t, ctx, config)
 	defer mnt.Close()
 	defer cancelFn()
+
+	libfs.AddRootWrapper(config)
 
 	jdoe := libkbfs.GetRootNodeOrBust(ctx, t, config, "jdoe", tlf.Public)
 
@@ -3462,7 +3471,7 @@ func TestSimpleCRConflictOnOpenFiles(t *testing.T) {
 	}
 
 	now := time.Now()
-	var clock libkbfs.TestClock
+	var clock clocktest.TestClock
 	clock.Set(now)
 	config2.SetClock(&clock)
 
@@ -3663,7 +3672,7 @@ func TestSimpleCRConflictOnOpenMergedFile(t *testing.T) {
 	}
 
 	now := time.Now()
-	var clock libkbfs.TestClock
+	var clock clocktest.TestClock
 	clock.Set(now)
 	config2.SetClock(&clock)
 

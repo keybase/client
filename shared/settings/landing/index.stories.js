@@ -8,9 +8,9 @@ const defaultAccountProps = {
   hasRandomPW: false,
   isVerified: false,
   onChangeEmail: action('onchangeemail'),
-  onChangePassphrase: action('onchangepassphrase'),
-  onChangeRememberPassphrase: action('onchangerememberpassphrase'),
-  rememberPassphrase: true,
+  onChangePassword: action('onchangepassword'),
+  onChangeRememberPassword: action('onchangerememberpassword'),
+  rememberPassword: true,
 }
 
 const defaultPlanProps = {
@@ -28,7 +28,7 @@ const load = () => {
           email: 'michal@keyba.se',
           hasRandomPW: false,
           isVerified: true,
-          rememberPassphrase: true,
+          rememberPassword: true,
         }}
         {...defaultPlanProps}
       />

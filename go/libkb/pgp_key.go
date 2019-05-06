@@ -923,12 +923,16 @@ func (p PGPFingerprint) GetProofType() keybase1.ProofType {
 func EncryptPGPKey(bundle *openpgp.Entity, passphrase string) error {
 	passBytes := []byte(passphrase)
 
-	if err := bundle.PrivateKey.Encrypt(passBytes, nil); err != nil {
-		return err
+	if bundle.PrivateKey != nil && bundle.PrivateKey.PrivateKey != nil {
+		// Primary private key exists and is not stubbed.
+		if err := bundle.PrivateKey.Encrypt(passBytes, nil); err != nil {
+			return err
+		}
 	}
 
 	for _, subkey := range bundle.Subkeys {
-		if subkey.PrivateKey == nil {
+		if subkey.PrivateKey == nil || subkey.PrivateKey.PrivateKey == nil {
+			// There has to be a private key and not stubbed.
 			continue
 		}
 

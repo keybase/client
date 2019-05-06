@@ -4,7 +4,9 @@
 package service
 
 import (
+	"github.com/keybase/client/go/install"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
@@ -25,14 +27,24 @@ func NewCtlHandler(xp rpc.Transporter, v *Service, g *libkb.GlobalContext) *CtlH
 }
 
 // Stop is called on the rpc keybase.1.ctl.stop, which shuts down the service.
-func (c *CtlHandler) Stop(_ context.Context, args keybase1.StopArg) error {
-	c.G().Log.Debug("Received stop(%d) RPC; shutting down", args.ExitCode)
-	go c.service.Stop(args.ExitCode)
+func (c *CtlHandler) Stop(ctx context.Context, args keybase1.StopArg) error {
+	c.G().Log.Info("Ctl: Stop: StopAllButService")
+	install.StopAllButService(libkb.NewMetaContext(ctx, c.G()), args.ExitCode)
+	c.G().Log.Info("Ctl: Stop: Stopping service")
+	c.service.Stop(args.ExitCode)
+	return nil
+}
+
+func (c *CtlHandler) StopService(ctx context.Context, args keybase1.StopServiceArg) error {
+	c.G().Log.Info("Ctl: StopService")
+	c.service.Stop(args.ExitCode)
 	return nil
 }
 
 func (c *CtlHandler) LogRotate(_ context.Context, sessionID int) error {
-	return c.G().Log.RotateLogFile()
+	logFile, _ := c.G().Env.GetEffectiveLogFile()
+	// Redirect to log file even if not explicitly desired during service call
+	return logger.SetLogFileConfig(c.G().Env.GetLogFileConfig(logFile))
 }
 
 func (c *CtlHandler) Reload(_ context.Context, sessionID int) error {
@@ -68,15 +80,10 @@ func (c *CtlHandler) DbNuke(ctx context.Context, sessionID int) error {
 	}
 	logui.Warning("Nuking chat database %s", fn)
 
-	if teamLoader := c.G().GetTeamLoader(); teamLoader != nil {
-		teamLoader.ClearMem()
-	}
-	if ekLib := c.G().GetEKLib(); ekLib != nil {
-		ekLib.ClearCaches()
-	}
 	// Now drop caches, since we had the DB's state in-memory too.
 	c.G().FlushCaches()
-	c.service.onDbNuke(ctx)
+	mctx := libkb.NewMetaContext(ctx, c.G())
+	c.G().CallDbNukeHooks(mctx)
 	return nil
 }
 

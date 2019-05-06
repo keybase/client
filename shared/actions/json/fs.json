@@ -26,25 +26,33 @@
       "public": "I.Map<string, Types.Tlf>",
       "team": "I.Map<string, Types.Tlf>"
     },
-    "pathItemLoad": {
-      "path": "Types.Path",
-      "identifyBehavior?": "?RPCTypes.TLFIdentifyBehavior",
-      "silenceErrors?": "?boolean"
+    "setFolderViewFilter": {
+      "filter": "string",
+    },
+    "tlfSyncConfigLoaded": {
+      "tlfType": "Types.TlfType",
+      "tlfName": "string",
+      "syncConfig": "Types.TlfSyncConfig",
+    },
+    "tlfSyncConfigsLoaded": {
+      "private": "I.Map<string, Types.TlfSyncConfig>",
+      "public": "I.Map<string, Types.TlfSyncConfig>",
+      "team": "I.Map<string, Types.TlfSyncConfig>"
+    },
+    "loadTlfSyncConfig": {
+      "tlfPath": "Types.Path",
+    },
+    "setTlfSyncConfig": {
+      "enabled": "boolean",
+      "tlfPath": "Types.Path"
     },
     "pathItemLoaded": {
       "path": "Types.Path",
-      "meta": "Types.PathItem"
+      "pathItem": "Types.PathItem"
     },
     "loadPathMetadata": {
-      "path": "Types.Path"
-    },
-    "mimeTypeLoad": {
       "path": "Types.Path",
-      "refreshTag?": "Types.RefreshTag"
-    },
-    "mimeTypeLoaded": {
-      "path": "Types.Path",
-      "mimeType": "Types.Mime"
+      "refreshTag?": "?Types.RefreshTag"
     },
     "sortSetting": {
       "path": "Types.Path",
@@ -119,15 +127,14 @@
       "isRetry?": "?boolean"
     },
     "driverDisable": {},
+    "driverDisabling": {},
     "driverKextPermissionError": {},
 
     "notifyTlfUpdate": {
       "tlfPath": "Types.Path"
     },
-    "notifySyncActivity": {},
     "openSecurityPreferences": {},
-    "refreshLocalHTTPServerInfo": {},
-    "localHTTPServerInfo": {
+    "refreshLocalHTTPServerInfo": {}, "localHTTPServerInfo": {
       "address": "string",
       "token": "string"
     },
@@ -162,14 +169,6 @@
       "key": "string"
     },
 
-    "openPathItem": {
-      "path": "Types.Path",
-      "routePath": "I.List<string>"
-    },
-    "openPathInFilesTab": {
-      "path": "Types.Path",
-      "routePath?": "I.List<string>"
-    },
     "openFilesFromWidget": {
       "path": "Types.Path",
       "type": "Types.PathType"
@@ -206,16 +205,11 @@
     },
     "showIncomingShare": {"initialDestinationParentPath": "Types.Path"},
     "closeDestinationPicker": {},
-    "destinationPickerOpen": {
-      "routePath": "I.List<string>",
-      "path": "Types.Path",
-      "currentIndex": "number"
-    },
     "move": {"destinationParentPath": "Types.Path"},
     "copy": {"destinationParentPath": "Types.Path"},
-    "showSendAttachmentToChat": {
+
+    "initSendAttachmentToChat": {
       "path": "Types.Path",
-      "routePath?": "?I.List<string>"
     },
     "setSendAttachmentToChatConvID": {
       "convID": "ChatTypes.ConversationIDKey"
@@ -223,9 +217,9 @@
     "setSendAttachmentToChatFilter": {
       "filter": "string"
     },
-    "showSendLinkToChat": {
+    "sentAttachmentToChat":{},
+    "initSendLinkToChat": {
       "path": "Types.Path",
-      "routePath?": "?I.List<string>"
     },
     "setSendLinkToChatConvID": {
       "convID": "ChatTypes.ConversationIDKey"
@@ -233,6 +227,11 @@
     "setSendLinkToChatChannels": {
       "channels": "I.Map<ChatTypes.ConversationIDKey, string>"
     },
+    "triggerSendLinkToChat":{},
+    "sentLinkToChat":{
+      "convID": "ChatTypes.ConversationIDKey"
+    },
+
     "setPathItemActionMenuView": {
       "view": "Types.PathItemActionMenuView"
     },
@@ -240,8 +239,14 @@
       "key": "?string"
     },
     "waitForKbfsDaemon": {},
-    "kbfsDaemonStatusChanged": {
-      "kbfsDaemonStatus": "Types.KbfsDaemonStatus"
+    "kbfsDaemonRpcStatusChanged": {
+      "rpcStatus": "Types.KbfsDaemonRpcStatus"
+    },
+    "kbfsDaemonOnlineStatusChanged": {
+      "online": "boolean",
+    },
+    "overallSyncStatusChanged": {
+      "progress": "Types.SyncingFoldersProgress"
     },
 
     "placeholderAction": {}

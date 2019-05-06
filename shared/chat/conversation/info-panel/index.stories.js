@@ -7,6 +7,7 @@ import {Box} from '../../../common-adapters'
 import {globalStyles} from '../../../styles'
 import {InfoPanel, type InfoPanelProps} from '.'
 import addToChannel from './add-to-channel/index.stories'
+import {CaptionedDangerIcon} from './channel-utils'
 
 const onlyValidConversationsProps = {
   conversationIDKey: 'fake key',
@@ -65,23 +66,33 @@ const provider = Sb.createPropProviderWithCommon({
 const commonProps = {
   canDeleteHistory: true,
   canSetMinWriterRole: false,
+  ignored: false,
   onBack: Sb.unexpected('onBack'),
+  onHideConv: Sb.action(`onHideConv`),
   onShowProfile: (username: string) => Sb.action(`onShowProfile(${username})`),
+  onUnhideConv: Sb.action(`onUnhideConv`),
   participants: [
     {
       fullname: 'Fred Akalin',
+      isAdmin: true,
+      isOwner: true,
       username: 'akalin',
     },
     {
       fullname: 'Jeremy Stribling',
+      isAdmin: true,
+      isOwner: false,
       username: 'strib',
     },
     {
       fullname: 'Max Krohn',
+      isAdmin: false,
+      isOwner: false,
       username: 'max',
     },
   ],
   selectedConversationIDKey: Constants.noConversationIDKey,
+  spinnerForHide: false,
 }
 
 const conversationProps = {
@@ -163,9 +174,46 @@ const bigTeamLotsaUsersCommonProps = {
   ...bigTeamNoPreviewProps,
   participants: new Array(100).fill(0).map((_, i) => ({
     fullname: `Agent ${i}`,
+    isAdmin: false,
+    isOwner: false,
     username: `agnt${i}`,
   })),
 }
+
+const hideSpinnerLayout = () => (
+  <Box>
+    <CaptionedDangerIcon
+      key="hf"
+      caption="Hide this conversation"
+      noDanger={true}
+      onClick={Sb.action('hide')}
+      icon="iconfont-remove"
+      spinner={false}
+    />
+    <CaptionedDangerIcon
+      key="ht"
+      caption="Hide this conversation"
+      noDanger={true}
+      onClick={Sb.action('hide')}
+      icon="iconfont-remove"
+      spinner={true}
+    />
+    <CaptionedDangerIcon
+      key="uf"
+      caption="Unhide this conversation"
+      onClick={Sb.action('unhide')}
+      noDanger={true}
+      spinner={false}
+    />
+    <CaptionedDangerIcon
+      key="ut"
+      caption="Unhide this conversation"
+      onClick={Sb.action('unhide')}
+      noDanger={true}
+      spinner={true}
+    />
+  </Box>
+)
 
 const load = () => {
   addToChannel()
@@ -175,11 +223,15 @@ const load = () => {
     .addDecorator(story => (
       <Box style={{...globalStyles.flexBoxColumn, height: 500, width: 320}}>{story()}</Box>
     ))
-    .add('Conversation', () => <InfoPanel {...conversationProps} />)
+    .add('Adhoc conv', () => <InfoPanel {...conversationProps} />)
+    .add('Adhoc conv (hidden)', () => <InfoPanel {...conversationProps} ignored={true} />)
+    .add('Adhoc conv (spinning hide)', () => <InfoPanel {...conversationProps} spinnerForHide={true} />)
     .add('Small team', () => <InfoPanel {...smallTeamProps} />)
+    .add('Small team (hidden)', () => <InfoPanel {...smallTeamProps} ignored={true} />)
     .add('Big team lotsa users', () => <InfoPanel {...bigTeamLotsaUsersCommonProps} />)
     .add('Big team preview', () => <InfoPanel {...bigTeamPreviewProps} />)
     .add('Big team no preview', () => <InfoPanel {...bigTeamNoPreviewProps} />)
+    .add('Hide/unhide spinner layout', hideSpinnerLayout)
 }
 
 export default load

@@ -9,6 +9,7 @@ import {anyWaiting} from '../constants/waiting'
 import {compose, connect, isMobile, type RouteProps} from '../util/container'
 import {sortBy, partition} from 'lodash-es'
 import {memoize} from '../util/memoize'
+import {HeaderTitle, HeaderRightActions} from './nav-header/container'
 
 type OwnProps = RouteProps<{}, {}>
 
@@ -106,6 +107,16 @@ class GitReloadable extends React.PureComponent<
         <Git expandedSet={this.state.expandedSet} onToggleExpand={this._toggleExpand} {...rest} />
       </Kb.Reloadable>
     )
+  }
+}
+
+if (!isMobile) {
+  // $FlowIssue lets fix this
+  GitReloadable.navigationOptions = {
+    header: undefined,
+    headerRightActions: HeaderRightActions,
+    headerTitle: HeaderTitle,
+    title: 'Git',
   }
 }
 

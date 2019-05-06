@@ -6,6 +6,7 @@ import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/wallets'
 import {AccountPageHeader} from '../../common'
 import DisplayCurrencyDropdown from './display-currency-dropdown'
+import flags from '../../../util/feature-flags'
 
 export type SettingsProps = {|
   accountID: Types.AccountID,
@@ -80,7 +81,9 @@ class AccountSettings extends React.Component<SettingsProps> {
             </Kb.Box2>
             <Divider />
             <Kb.Box2 direction="vertical" style={styles.section} fullWidth={true}>
-              <Kb.Text type="BodySmallSemibold" style={styles.identity}>Identity</Kb.Text>
+              <Kb.Text type="BodySmallSemibold" style={styles.identity}>
+                Identity
+              </Kb.Text>
               <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
                 {props.isDefault ? (
                   <Kb.Avatar size={Styles.isMobile ? 48 : 32} username={props.user} />
@@ -162,14 +165,14 @@ class AccountSettings extends React.Component<SettingsProps> {
             </Kb.Box2>
             <Divider />
             <Kb.Box2 direction="vertical" gap="tiny" style={styles.section} fullWidth={true}>
-              <Kb.Box2 direction="horizontal" style={styles.alignSelfFlexStart} gap="tiny" fullWidth={true}>
+              <Kb.Box2 direction="horizontal" style={styles.alignSelfFlexStart} gap="xtiny" fullWidth={true}>
                 <Kb.Text type="BodySmallSemibold">Inflation destination</Kb.Text>
                 {!Styles.isMobile && (
                   <Kb.WithTooltip
                     text="Every year, the total Lumens grows by 1% due to inflation, and you can cast a vote for who gets it."
                     multiline={true}
                   >
-                    <Kb.Icon type="iconfont-question-mark" />
+                    <Kb.Icon type="iconfont-question-mark" sizeType="Small" />
                   </Kb.WithTooltip>
                 )}
               </Kb.Box2>
@@ -180,7 +183,7 @@ class AccountSettings extends React.Component<SettingsProps> {
               )}
               {!!props.canSubmitTx && (
                 <Kb.Button
-                  type="Secondary"
+                  mode="Secondary"
                   label={props.inflationDestination ? 'Change' : 'Set up'}
                   onClick={props.onSetupInflation}
                   style={styles.setupInflation}
@@ -201,24 +204,14 @@ class AccountSettings extends React.Component<SettingsProps> {
               style={styles.removeContainer}
             >
               <Kb.Divider />
-              <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
-                <Kb.ClickableBox style={styles.remove} onClick={props.isDefault ? null : props.onDelete}>
-                  <Kb.Icon
-                    type="iconfont-trash"
-                    style={Styles.collapseStyles([
-                      styles.rightMargin,
-                      props.isDefault && styles.deleteOpacity,
-                    ])}
-                    color={Styles.globalColors.red}
-                  />
-                  <Kb.Text
-                    type="BodySemibold"
-                    style={Styles.collapseStyles([styles.red, props.isDefault && styles.deleteOpacity])}
-                    className={Styles.classNames({'hover-underline': !props.isDefault})}
-                  >
-                    Remove account
-                  </Kb.Text>
-                </Kb.ClickableBox>
+              <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} gap="tiny">
+                <Kb.Button
+                  disabled={props.isDefault}
+                  label="Remove account"
+                  fullWidth={true}
+                  type="Danger"
+                  onClick={props.isDefault ? null : props.onDelete}
+                />
                 {props.isDefault && (
                   <Kb.Text center={true} type="BodySmall">
                     You can’t remove your default account.
@@ -245,6 +238,7 @@ const styles = Styles.styleSheetCreate({
     marginTop: Styles.globalMargins.tiny,
   },
   header: {
+    ...(flags.useNewRouter && !Styles.isMobile ? {minHeight: 48} : {}),
     borderBottomColor: Styles.globalColors.black_10,
     borderBottomWidth: 1,
     borderStyle: 'solid',

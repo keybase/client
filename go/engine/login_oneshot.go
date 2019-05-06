@@ -89,8 +89,8 @@ func (e *LoginOneshot) makeLoginChanges(m libkb.MetaContext) (err error) {
 
 func (e *LoginOneshot) commitLoginChanges(m libkb.MetaContext) (err error) {
 	defer m.Trace("LoginOneshot#commitLoginChanges", func() error { return err })()
-	m.G().NotifyRouter.HandleLogin(e.arg.Username)
-	m.G().CallLoginHooks()
+	m.G().NotifyRouter.HandleLogin(m.Ctx(), e.arg.Username)
+	m.G().CallLoginHooks(m)
 	return nil
 }
 

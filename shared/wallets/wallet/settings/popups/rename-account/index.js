@@ -33,7 +33,7 @@ class RenameAccountPopup extends React.Component<Props, State> {
       : [
           <Kb.Button
             key={0}
-            type="Secondary"
+            type="Dim"
             onClick={this.props.onCancel}
             label="Cancel"
             disabled={this.props.waiting}

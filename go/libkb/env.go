@@ -14,8 +14,10 @@ import (
 	"sync"
 	"time"
 
+	logger "github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/systemd"
+	"github.com/syndtr/goleveldb/leveldb/opt"
 )
 
 type NullConfiguration struct{}
@@ -116,8 +118,11 @@ func (n NullConfiguration) GetDisableTeamAuditor() (bool, bool)             { re
 func (n NullConfiguration) GetDisableMerkleAuditor() (bool, bool)           { return false, false }
 func (n NullConfiguration) GetDisableSearchIndexer() (bool, bool)           { return false, false }
 func (n NullConfiguration) GetDisableBgConvLoader() (bool, bool)            { return false, false }
+func (n NullConfiguration) GetDisableTeamBoxAuditor() (bool, bool)          { return false, false }
 func (n NullConfiguration) GetEnableBotLiteMode() (bool, bool)              { return false, false }
 func (n NullConfiguration) GetExtraNetLogging() (bool, bool)                { return false, false }
+func (n NullConfiguration) GetForceLinuxKeyring() (bool, bool)              { return false, false }
+func (n NullConfiguration) GetForceSecretStoreFile() (bool, bool)           { return false, false }
 func (n NullConfiguration) GetChatOutboxStorageEngine() string              { return "" }
 func (n NullConfiguration) GetBug3964RepairTime(NormalizedUsername) (time.Time, error) {
 	return time.Time{}, nil
@@ -917,6 +922,16 @@ func (e *Env) GetDisableTeamAuditor() bool {
 	)
 }
 
+func (e *Env) GetDisableTeamBoxAuditor() bool {
+	return e.GetBool(false,
+		e.cmd.GetDisableTeamBoxAuditor,
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_DISABLE_TEAM_BOX_AUDITOR") },
+		e.GetConfig().GetDisableTeamBoxAuditor,
+		// If unset, use the BotLite setting
+		func() (bool, bool) { return e.GetEnableBotLiteMode(), true },
+	)
+}
+
 func (e *Env) GetDisableMerkleAuditor() bool {
 	return e.GetBool(false,
 		e.cmd.GetDisableMerkleAuditor,
@@ -1415,6 +1430,22 @@ func (e *Env) GetInstallID() (ret InstallID) {
 	return ret
 }
 
+func (e *Env) GetEffectiveLogFile() (filename string, ok bool) {
+	logFile := e.GetLogFile()
+	if logFile != "" {
+		return logFile, true
+	}
+
+	filePrefix := e.GetLogPrefix()
+	if filePrefix != "" {
+		filePrefix = filePrefix + time.Now().Format("20060102T150405.999999999Z0700")
+		logFile = filePrefix + ".log"
+		return logFile, true
+	}
+
+	return e.GetDefaultLogFile(), e.GetUseDefaultLogFile()
+}
+
 func (e *Env) GetLogFile() string {
 	return e.GetString(
 		func() string { return e.cmd.GetLogFile() },
@@ -1535,6 +1566,7 @@ type AppConfig struct {
 	OutboxStorageEngine            string
 	DisableTeamAuditor             bool
 	DisableMerkleAuditor           bool
+	DisableTeamBoxAuditor          bool
 }
 
 var _ CommandLine = AppConfig{}
@@ -1659,6 +1691,10 @@ func (c AppConfig) GetDisableMerkleAuditor() (bool, bool) {
 	return c.DisableMerkleAuditor, true
 }
 
+func (c AppConfig) GetDisableTeamBoxAuditor() (bool, bool) {
+	return c.DisableTeamBoxAuditor, true
+}
+
 func (c AppConfig) GetAttachmentDisableMulti() (bool, bool) {
 	return c.AttachmentDisableMulti, true
 }
@@ -1745,9 +1781,13 @@ func (e *Env) ModelessWantsSystemd() bool {
 		os.Getenv("KEYBASE_SYSTEMD") != "0")
 }
 
-func (e *Env) DarwinForceSecretStoreFile() bool {
-	return (e.GetRunMode() == DevelRunMode &&
-		os.Getenv("KEYBASE_SECRET_STORE_FILE") == "1")
+func (e *Env) ForceSecretStoreFile() bool {
+	// By default use system-provided secret store (like MacOS Keychain), but
+	// allow users to fall back to file-based store for testing and debugging.
+	return e.GetBool(false,
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_SECRET_STORE_FILE") },
+		func() (bool, bool) { return e.GetConfig().GetForceSecretStoreFile() },
+	)
 }
 
 func (e *Env) RememberPassphrase() bool {
@@ -1773,4 +1813,30 @@ func (e *Env) AllowPTrace() bool {
 	return e.GetBool(false,
 		func() (bool, bool) { return e.getEnvBool("KEYBASE_ALLOW_PTRACE") },
 	)
+}
+
+func (e *Env) GetLogFileConfig(filename string) *logger.LogFileConfig {
+	var maxKeepFiles int
+	var maxSize int64
+
+	if e.GetAppType() == MobileAppType && !e.GetFeatureFlags().Admin(e.GetUID()) {
+		maxKeepFiles = 1
+		maxSize = 16 * opt.MiB // NOTE: If you decrease this, check go/bind/keybase.go:LogSend to make sure we aren't sending more than we store.
+	} else {
+		maxKeepFiles = 3
+		maxSize = 128 * opt.MiB
+	}
+
+	return &logger.LogFileConfig{
+		Path:         filename,
+		MaxAge:       30 * 24 * time.Hour, // 30 days
+		MaxSize:      maxSize,
+		MaxKeepFiles: maxKeepFiles,
+	}
+}
+func (e *Env) GetForceLinuxKeyring() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.cmd.GetForceLinuxKeyring() },
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_FORCE_LINUX_KEYRING") },
+		func() (bool, bool) { return e.GetConfig().GetForceLinuxKeyring() })
 }

@@ -14,7 +14,8 @@ import EditingRow from './editing'
 import PlaceholderRow from './placeholder'
 import UploadingRow from './uploading'
 import {commonProvider} from '../common/index.stories'
-import {asRows as sortBarAsRows} from '../sortbar/container'
+import {topBarProvider} from '../top-bar/index.stories'
+import {asRows as topBarAsRow} from '../top-bar'
 
 export const rowsProvider = {
   ConnectedOpenHOC: (ownProps: any) => ({
@@ -23,9 +24,10 @@ export const rowsProvider = {
   }),
   ConnectedRows: (o: any) => ({
     destinationPickerIndex: o.destinationPickerIndex,
-    items: [
+    emptyMode: 'not-empty',
+    items: I.List([
       ...(o.headerRows || []),
-      ...sortBarAsRows(o.path),
+      ...topBarAsRow(o.path),
       {key: 'me', name: 'me', path: Types.stringToPath('/keybase/private/me'), rowType: 'still'},
       {
         key: 'me,abc',
@@ -71,15 +73,16 @@ export const rowsProvider = {
       ...(!isMobile && typeof o.destinationPickerIndex === 'number'
         ? [{key: 'empty:0', rowType: 'empty'}, {key: 'empty:1', rowType: 'empty'}]
         : []),
-    ],
+    ]),
     routePath: I.List(),
   }),
   ConnectedStillRow: ({
     path,
     destinationPickerIndex,
   }: {
-    path: Types.Path,
     destinationPickerIndex?: number,
+    path: Types.Path,
+    routePath: I.List<string>,
   }) => {
     const pathStr = Types.pathToString(path)
     return {
@@ -87,6 +90,7 @@ export const rowsProvider = {
       isEmpty: pathStr.includes('empty'),
       name: Types.getPathName(path),
       path,
+      routePath: I.List(),
       type: 'folder',
     }
   },
@@ -107,6 +111,7 @@ export const rowsProvider = {
 
 const provider = Sb.createPropProviderWithCommon({
   ...commonProvider,
+  ...topBarProvider,
   ...rowsProvider,
 })
 
@@ -126,7 +131,6 @@ const load = () =>
           <ConnectedStillRow
             name="a"
             path={Types.stringToPath('/keybase/private/meatball/a')}
-            routeProps={I.Map({path: '/keybase/private/meatball/a'})}
             routePath={I.List([])}
           />
         </WrapRow>
@@ -263,7 +267,6 @@ const load = () =>
           <ConnectedStillRow
             name="empty"
             path={Types.stringToPath('/keybase/private/meatball/empty')}
-            routeProps={I.Map({path: '/keybase/private/meatball/empty'})}
             routePath={I.List([])}
           />
         </WrapRow>

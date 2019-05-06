@@ -8,6 +8,8 @@ import (
 	"context"
 	"sync"
 
+	"github.com/keybase/client/go/kbfs/data"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/pkg/errors"
 )
@@ -20,15 +22,15 @@ type dirtyBlockCacheDiskConfig interface {
 }
 
 type dirtyBlockCacheDiskInfo struct {
-	tmpPtr BlockPointer
+	tmpPtr data.BlockPointer
 	isDir  bool
 }
 
-func (dbcdi dirtyBlockCacheDiskInfo) newBlock() Block {
+func (dbcdi dirtyBlockCacheDiskInfo) newBlock() data.Block {
 	if dbcdi.isDir {
-		return NewDirBlock()
+		return data.NewDirBlock()
 	}
-	return NewFileBlock()
+	return data.NewFileBlock()
 }
 
 // DirtyBlockCacheDisk stores dirty blocks in a local disk block
@@ -36,29 +38,29 @@ func (dbcdi dirtyBlockCacheDiskInfo) newBlock() Block {
 type DirtyBlockCacheDisk struct {
 	config    dirtyBlockCacheDiskConfig
 	diskCache *DiskBlockCacheLocal
-	kmd       KeyMetadata
-	branch    BranchName
+	kmd       libkey.KeyMetadata
+	branch    data.BranchName
 
 	lock   sync.RWMutex
-	blocks map[BlockPointer]dirtyBlockCacheDiskInfo
+	blocks map[data.BlockPointer]dirtyBlockCacheDiskInfo
 }
 
-var _ DirtyBlockCacheSimple = (*DirtyBlockCacheDisk)(nil)
+var _ data.DirtyBlockCacheSimple = (*DirtyBlockCacheDisk)(nil)
 
 func newDirtyBlockCacheDisk(
 	config dirtyBlockCacheDiskConfig,
-	diskCache *DiskBlockCacheLocal, kmd KeyMetadata,
-	branch BranchName) *DirtyBlockCacheDisk {
+	diskCache *DiskBlockCacheLocal, kmd libkey.KeyMetadata,
+	branch data.BranchName) *DirtyBlockCacheDisk {
 	return &DirtyBlockCacheDisk{
 		config:    config,
 		diskCache: diskCache,
 		kmd:       kmd,
 		branch:    branch,
-		blocks:    make(map[BlockPointer]dirtyBlockCacheDiskInfo),
+		blocks:    make(map[data.BlockPointer]dirtyBlockCacheDiskInfo),
 	}
 }
 
-func (d *DirtyBlockCacheDisk) getInfo(ptr BlockPointer) (
+func (d *DirtyBlockCacheDisk) getInfo(ptr data.BlockPointer) (
 	dirtyBlockCacheDiskInfo, bool) {
 	d.lock.RLock()
 	defer d.lock.RUnlock()
@@ -67,7 +69,7 @@ func (d *DirtyBlockCacheDisk) getInfo(ptr BlockPointer) (
 }
 
 func (d *DirtyBlockCacheDisk) saveInfo(
-	ptr BlockPointer, info dirtyBlockCacheDiskInfo) {
+	ptr data.BlockPointer, info dirtyBlockCacheDiskInfo) {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	d.blocks[ptr] = info
@@ -76,8 +78,8 @@ func (d *DirtyBlockCacheDisk) saveInfo(
 // Get implements the DirtyBlockCache interface for
 // DirtyBlockCacheDisk.
 func (d *DirtyBlockCacheDisk) Get(
-	ctx context.Context, tlfID tlf.ID, ptr BlockPointer, branch BranchName) (
-	Block, error) {
+	ctx context.Context, tlfID tlf.ID, ptr data.BlockPointer, branch data.BranchName) (
+	data.Block, error) {
 	if branch != d.branch {
 		return nil, errors.Errorf(
 			"Branch %s doesn't match branch %s", branch, d.branch)
@@ -85,7 +87,7 @@ func (d *DirtyBlockCacheDisk) Get(
 
 	info, ok := d.getInfo(ptr)
 	if !ok {
-		return nil, NoSuchBlockError{ptr.ID}
+		return nil, data.NoSuchBlockError{ID: ptr.ID}
 	}
 
 	// Look it up under the temp ID, which is an actual hash that can
@@ -110,8 +112,8 @@ func (d *DirtyBlockCacheDisk) Get(
 // after the `Put` will require another `Put` call, in order for them
 // to be reflected in the next `Get` call for that block pointer.
 func (d *DirtyBlockCacheDisk) Put(
-	ctx context.Context, tlfID tlf.ID, ptr BlockPointer, branch BranchName,
-	block Block) error {
+	ctx context.Context, tlfID tlf.ID, ptr data.BlockPointer,
+	branch data.BranchName, block data.Block) error {
 	if branch != d.branch {
 		return errors.Errorf(
 			"Branch %s doesn't match branch %s", branch, d.branch)
@@ -125,19 +127,19 @@ func (d *DirtyBlockCacheDisk) Put(
 	}
 
 	err = d.diskCache.Put(
-		ctx, tlfID, id, readyBlockData.buf, readyBlockData.serverHalf)
+		ctx, tlfID, id, readyBlockData.Buf, readyBlockData.ServerHalf)
 	if err != nil {
 		return err
 	}
 
-	directType := DirectBlock
+	directType := data.DirectBlock
 	if block.IsIndirect() {
-		directType = IndirectBlock
+		directType = data.IndirectBlock
 	}
-	_, isDir := block.(*DirBlock)
+	_, isDir := block.(*data.DirBlock)
 
 	info := dirtyBlockCacheDiskInfo{
-		tmpPtr: BlockPointer{
+		tmpPtr: data.BlockPointer{
 			ID:         id,
 			KeyGen:     d.kmd.LatestKeyGeneration(),
 			DataVer:    block.DataVersion(),

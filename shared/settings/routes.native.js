@@ -13,7 +13,7 @@ const routeTree = () => {
   const GitRoute = require('../git/routes').default
   const FilesRoute = require('../fs/routes').default
   const WebLinks = require('./web-links.native').default
-  const Passphrase = require('./passphrase/container').default
+  const Password = require('./password/container').default
   const About = require('./about-container').default
   const NotificationsContainer = require('./notifications/container').default
   const DBNukeConfirm = require('./db-nuke-confirm/container').default
@@ -23,6 +23,7 @@ const routeTree = () => {
   const AdvancedContainer = require('./advanced/container').default
   const ChatContainer = require('./chat/container').default
   const Screenprotector = require('./screenprotector-container.native').default
+  const LogOut = require('./logout/container').default
 
   return makeRouteDefNode({
     children: {
@@ -33,7 +34,7 @@ const routeTree = () => {
         },
         component: About,
       },
-      [Constants.passphraseTab]: {component: Passphrase},
+      [Constants.passwordTab]: {component: Password},
       [Constants.feedbackTab]: {component: Feedback},
       [Constants.landingTab]: {component: About},
       [Constants.screenprotectorTab]: {component: Screenprotector},
@@ -67,6 +68,9 @@ const routeTree = () => {
         },
         component: DeleteContainer,
       },
+      [Constants.logOutTab]: {
+        component: LogOut,
+      },
     },
     component: Settings,
   })
@@ -89,14 +93,16 @@ export const newRoutes = {
   [Constants.invitationsTab]: {getScreen: () => require('./invites/container').default},
   [Constants.landingTab]: {getScreen: () => require('./about-container').default},
   [Constants.notificationsTab]: {getScreen: () => require('./notifications/container').default},
-  [Constants.passphraseTab]: {getScreen: () => require('./passphrase/container').default},
+  [Constants.passwordTab]: {getScreen: () => require('./password/container').default},
   [Constants.screenprotectorTab]: {getScreen: () => require('./screenprotector-container.native').default},
   dbNukeConfirm: {getScreen: () => require('./db-nuke-confirm/container').default},
   deleteConfirm: {getScreen: () => require('./delete-confirm/container').default},
   inviteSent: {getScreen: () => require('./invite-generated/container').default},
   privacyPolicy: {getScreen: () => require('./web-links.native').default},
   removeDevice: {getScreen: () => require('../devices/device-revoke/container').default},
-  'tabs.settingsTab': {getScreen: () => require('./').default},
+  settingsRoot: {getScreen: () => require('./').default},
   terms: {getScreen: () => require('./web-links.native').default},
 }
-export const newModalRoutes = {}
+export const newModalRoutes = {
+  [Constants.logOutTab]: {getScreen: () => require('./logout/container').default},
+}

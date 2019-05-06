@@ -108,4 +108,6 @@ func NewImplicitTeamConflictInfoCache(g *libkb.GlobalContext) *lru.Cache {
 func NewImplicitTeamConflictInfoCacheAndInstall(g *libkb.GlobalContext) {
 	cache := NewImplicitTeamConflictInfoCache(g)
 	g.SetImplicitTeamConflictInfoCacher(cache)
+	g.AddLogoutHook(cache, "implicitTeamConflictInfoCache")
+	g.AddDbNukeHook(cache, "implicitTeamConflictInfoCache")
 }

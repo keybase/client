@@ -12,11 +12,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
+	"github.com/keybase/client/go/kbfs/idutil"
+	idutiltest "github.com/keybase/client/go/kbfs/idutil/test"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/assert"
@@ -29,12 +34,12 @@ type singleEncryptionKeyGetter struct {
 }
 
 func (g singleEncryptionKeyGetter) GetTLFCryptKeyForEncryption(
-	ctx context.Context, kmd KeyMetadata) (kbfscrypto.TLFCryptKey, error) {
+	ctx context.Context, kmd libkey.KeyMetadata) (kbfscrypto.TLFCryptKey, error) {
 	return g.k, nil
 }
 
 func (g singleEncryptionKeyGetter) GetTLFCryptKeyForMDDecryption(
-	ctx context.Context, kmdToDecrypt, kmdWithKeys KeyMetadata) (
+	ctx context.Context, kmdToDecrypt, kmdWithKeys libkey.KeyMetadata) (
 	kbfscrypto.TLFCryptKey, error) {
 	return g.k, nil
 }
@@ -42,7 +47,7 @@ func (g singleEncryptionKeyGetter) GetTLFCryptKeyForMDDecryption(
 func setupMDJournalTest(t testing.TB, ver kbfsmd.MetadataVer) (
 	codec kbfscodec.Codec, crypto CryptoCommon, tlfID tlf.ID,
 	signer kbfscrypto.Signer, ekg singleEncryptionKeyGetter,
-	bsplit BlockSplitter, tempdir string, j *mdJournal) {
+	bsplit data.BlockSplitter, tempdir string, j *mdJournal) {
 	codec = kbfscodec.NewMsgpack()
 	crypto = MakeCryptoCommon(codec, makeBlockCryptV1())
 
@@ -71,12 +76,13 @@ func setupMDJournalTest(t testing.TB, ver kbfsmd.MetadataVer) (
 	log := logger.NewTestLogger(t)
 	ctx := context.Background()
 	j, err = makeMDJournal(
-		ctx, uid, verifyingKey, codec, crypto, wallClock{}, nil,
+		ctx, uid, verifyingKey, codec, crypto, data.WallClock{}, nil,
 		&testSyncedTlfGetterSetter{}, tlfID, ver, tempdir, log)
 	require.NoError(t, err)
 
-	bsplit = &BlockSplitterSimple{
-		64 * 1024, int(64 * 1024 / bpSize), 8 * 1024, 0}
+	bsplit, err = data.NewBlockSplitterSimpleExact(
+		64*1024, int(64*1024/data.BPSize), 8*1024)
+	require.NoError(t, err)
 
 	return codec, crypto, tlfID, signer, ekg, bsplit, tempdir, j
 }
@@ -89,13 +95,13 @@ func teardownMDJournalTest(t testing.TB, tempdir string) {
 func makeMDForTest(t testing.TB, ver kbfsmd.MetadataVer, tlfID tlf.ID,
 	revision kbfsmd.Revision, uid keybase1.UID,
 	signer kbfscrypto.Signer, prevRoot kbfsmd.ID) *RootMetadata {
-	nug := testNormalizedUsernameGetter{
+	nug := idutiltest.NormalizedUsernameGetter{
 		uid.AsUserOrTeam(): "fake_username",
 	}
 	bh, err := tlf.MakeHandle(
 		[]keybase1.UserOrTeamID{uid.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
-	h, err := MakeTlfHandle(
+	h, err := tlfhandle.MakeHandle(
 		context.Background(), bh, bh.Type(), nil, nug, nil,
 		keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
@@ -110,7 +116,7 @@ func makeMDForTest(t testing.TB, ver kbfsmd.MetadataVer, tlfID tlf.ID,
 
 type constMerkleRootGetter struct{}
 
-var _ merkleRootGetter = constMerkleRootGetter{}
+var _ idutil.MerkleRootGetter = constMerkleRootGetter{}
 
 func (cmrg constMerkleRootGetter) GetCurrentMerkleRoot(
 	ctx context.Context) (keybase1.MerkleRootV2, time.Time, error) {
@@ -151,7 +157,7 @@ func putMDRangeHelper(t testing.TB, ver kbfsmd.MetadataVer, tlfID tlf.ID,
 
 func putMDRange(t testing.TB, ver kbfsmd.MetadataVer, tlfID tlf.ID,
 	signer kbfscrypto.Signer, ekg encryptionKeyGetter,
-	bsplit BlockSplitter, firstRevision kbfsmd.Revision,
+	bsplit data.BlockSplitter, firstRevision kbfsmd.Revision,
 	firstPrevRoot kbfsmd.ID, mdCount int, j *mdJournal) ([]*RootMetadata, kbfsmd.ID) {
 	return putMDRangeHelper(t, ver, tlfID, signer, firstRevision,
 		firstPrevRoot, mdCount, j.uid,

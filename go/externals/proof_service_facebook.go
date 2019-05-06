@@ -62,13 +62,6 @@ func (t *FacebookServiceType) GetPrompt() string {
 	return "Your username on Facebook"
 }
 
-func (t *FacebookServiceType) CanMakeNewProofs(mctx libkb.MetaContext) bool {
-	if !mctx.G().ShouldUseParameterizedProofs() {
-		return false
-	}
-	return t.BaseServiceType.CanMakeNewProofs(mctx)
-}
-
 func (t *FacebookServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	return t.BaseToServiceJSON(t, un)
 }

@@ -78,7 +78,8 @@ func Params(kbCtx libkbfs.Context,
 // The config should be shutdown when it is done being used.
 func Init(ctx context.Context, gitKBFSParams libkbfs.InitParams,
 	kbCtx libkbfs.Context, keybaseServiceCn libkbfs.KeybaseServiceCn,
-	defaultLogPath string) (context.Context, libkbfs.Config, error) {
+	defaultLogPath string, vlogLevel string) (
+	context.Context, libkbfs.Config, error) {
 	log, err := libkbfs.InitLogWithPrefix(
 		gitKBFSParams, kbCtx, "git", defaultLogPath)
 	if err != nil {
@@ -100,6 +101,7 @@ func Init(ctx context.Context, gitKBFSParams libkbfs.InitParams,
 	if err != nil {
 		return ctx, nil, err
 	}
+	config.SetVLogLevel(vlogLevel)
 
 	// Make any blocks written by via this config charged to the git
 	// quota.
@@ -162,7 +164,8 @@ func getNewConfig(
 	params.LogFileConfig.Path = ""
 
 	newCtx, gitConfig, err = Init(
-		ctx, params, kbCtx, keybaseServicePassthrough{config}, "")
+		ctx, params, kbCtx, keybaseServicePassthrough{config}, "",
+		config.VLogLevel())
 	if err != nil {
 		return nil, nil, "", err
 	}

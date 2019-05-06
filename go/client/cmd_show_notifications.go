@@ -127,6 +127,15 @@ func (d *notificationDisplay) PasswordChanged(_ context.Context) error {
 	return d.printf("Password changed\n")
 }
 
+func (d *notificationDisplay) FSOnlineStatusChanged(_ context.Context, online bool) error {
+	return d.printf("KBFS online status changed: online=%+v\n", online)
+}
+
+func (d *notificationDisplay) FSOverallSyncStatusChanged(_ context.Context,
+	status keybase1.FolderSyncStatus) error {
+	return d.printf("KBFS overall sync status: %+v\n", status)
+}
+
 func (d *notificationDisplay) FSActivity(_ context.Context, notification keybase1.FSNotification) error {
 	return d.printf("KBFS notification: %+v\n", notification)
 }
@@ -156,4 +165,8 @@ func (d *notificationDisplay) TrackingChanged(_ context.Context, arg keybase1.Tr
 
 func (d *notificationDisplay) RootAuditError(_ context.Context, msg string) (err error) {
 	return d.printf("Merkle root audit error: %s\n", msg)
+}
+
+func (d *notificationDisplay) BoxAuditError(_ context.Context, msg string) (err error) {
+	return d.printf("Box audit error (report with `keybase log send`): %s\n", msg)
 }

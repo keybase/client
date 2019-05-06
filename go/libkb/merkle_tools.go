@@ -273,3 +273,24 @@ func VerifyMerkleRootAndKBFS(m MetaContext, arg keybase1.VerifyMerkleRootAndKBFS
 
 	return nil
 }
+
+// Verify that the given link has been posted to the merkle tree.
+// Used to detect a malicious server silently dropping sigchain link posts.
+func MerkleCheckPostedUserSig(mctx MetaContext, uid keybase1.UID,
+	seqno keybase1.Seqno, linkID LinkID) (err error) {
+	defer mctx.TraceTimed(fmt.Sprintf("MerkleCheckPostedUserSig(%v, %v, %v)", uid, seqno, linkID.String()), func() error { return err })()
+	for _, forcePoll := range []bool{false, true} {
+		upak, _, err := mctx.G().GetUPAKLoader().LoadV2(
+			NewLoadUserArgWithMetaContext(mctx).WithPublicKeyOptional().
+				WithUID(uid).WithForcePoll(forcePoll))
+		if err != nil {
+			return err
+		}
+		if foundLinkID, found := upak.SeqnoLinkIDs[seqno]; found {
+			if foundLinkID.Eq(linkID.Export()) {
+				return nil
+			}
+		}
+	}
+	return fmt.Errorf("sigchain link not found at seqno %v", seqno)
+}

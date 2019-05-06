@@ -1,0 +1,58 @@
+@namespace("keybase.1")
+protocol contacts {
+    import idl "common.avdl";
+
+    // Contact syncing / resolving
+    // ---------------------------
+
+    // Contact records coming from the operating system API. Usually
+    // a contact will have a name and a number of associated "components"
+    // like phone numbers or emails.
+    record ContactComponent {
+        string label; // "", "Home", "Work"
+        // Variant record, one of:
+        union { null, RawPhoneNumber } phoneNumber;
+        union { null, EmailAddress } email;
+    }
+    record Contact {
+        string name; // "Bob Goodman"
+        array<ContactComponent> components;
+    }
+
+    // ProcessedContact is either a contact that has been resolved and points
+    // to a Keybase user, providing username and full name. Or if not resolved,
+    // it will be shown in the list as the phone number or email, allowing SBS.
+    record ProcessedContact {
+        int contactIndex; // to associate the resolution to input contact entry
+        string contactName; // redundant, taken from contact to avoid lookups on consumer side.
+        ContactComponent component; // component from contact that was used to create this entry.
+
+        boolean resolved;
+        // If resolved:
+        UID uid; // uid
+        string username; // Keybase username
+        string fullName; // Keybase full name
+        boolean following; // whether resolved user is followed by current user
+
+        // Used for display in UI, derived by service from the fields above.
+        // If contact is not resolved, these will be populated by some fields
+        // from contact itself.
+        // If resolved, these will be populated by a combination of Keybase username, 
+        // Keybase full name, and contact name, depending what's available.
+        string displayName;
+        string displayLabel;
+    }
+
+    // lookupContactList transforms contact list (where every contact may have
+    // multiple `components`, like phone numbers or email addresses) to a list
+    // of (un)resolved contacts.
+    //
+    // If a contact finds a keybase resolution for any of its ContactComponents,
+    // one ProcessedContact is returned with the contact name, ContactComponent
+    // granting its resolution, and Keybase data.
+    //
+    // If a contact cannot be resolved for any of its component, each
+    // ContactComponent is transformed into ProcessedContact and returned. They are
+    // separate because each one can be used in the UI to allow for SBS chat.
+    array<ProcessedContact> lookupContactList(int sessionID, array<Contact> contacts, RegionCode userRegionCode);
+}

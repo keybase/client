@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"sync"
 
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"golang.org/x/net/context"
 )
 
@@ -58,7 +59,7 @@ func (ol *observerList) batchChanges(
 }
 
 func (ol *observerList) tlfHandleChange(
-	ctx context.Context, newHandle *TlfHandle) {
+	ctx context.Context, newHandle *tlfhandle.Handle) {
 	ol.lock.RLock()
 	defer ol.lock.RUnlock()
 	for _, o := range ol.observers {

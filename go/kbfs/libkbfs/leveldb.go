@@ -29,6 +29,7 @@ const (
 
 var leveldbOptions = &opt.Options{
 	Compression: opt.NoCompression,
+	WriteBuffer: 10 * opt.MiB,
 	BlockSize:   1 << 16,
 	// Default max open file descriptors (ulimit -n) is 256 on OS
 	// X, and >=1024 on (most?) Linux machines. So set to a low

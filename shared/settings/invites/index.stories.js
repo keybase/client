@@ -7,8 +7,6 @@ const props = {
   acceptedInvites: [
     {
       created: 1469565223,
-      currentlyFollowing: false,
-      fullname: 'Chris Coyne',
       id: '223456',
       trackerState: 'normal',
       uid: 1,
@@ -16,8 +14,6 @@ const props = {
     },
     {
       created: 1469566223,
-      currentlyFollowing: true,
-      fullname: 'Cécile Boucheron',
       id: '223457',
       trackerState: 'normal',
       uid: 2,
@@ -25,8 +21,6 @@ const props = {
     },
     {
       created: 1469567223,
-      currentlyFollowing: false,
-      fullname: 'Max Goodman',
       id: '223458',
       trackerState: 'error',
       uid: 3,

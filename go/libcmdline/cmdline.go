@@ -34,20 +34,22 @@ const (
 )
 
 type CommandLine struct {
-	app                *cli.App
-	ctx                *cli.Context
-	cmd                Command
-	name               string     // the name of the chosen command
-	service            bool       // The server is a special command
-	fork               ForkCmd    // If the command is to stop (then don't start the server)
-	noStandalone       bool       // On if this command can't run in standalone mode
-	logForward         LogForward // What do to about log forwarding
-	skipOutOfDateCheck bool       // don't try to check for service being out of date
-	defaultCmd         string
+	app                   *cli.App
+	ctx                   *cli.Context
+	cmd                   Command
+	name                  string     // the name of the chosen command
+	service               bool       // The server is a special command
+	fork                  ForkCmd    // If the command is to stop (then don't start the server)
+	noStandalone          bool       // On if this command can't run in standalone mode
+	logForward            LogForward // What do to about log forwarding
+	skipOutOfDateCheck    bool       // don't try to check for service being out of date
+	skipAccountResetCheck bool       // don't check if our account is scheduled for rest
+	defaultCmd            string
 }
 
 func (p CommandLine) IsService() bool             { return p.service }
 func (p CommandLine) SkipOutOfDateCheck() bool    { return p.skipOutOfDateCheck }
+func (p CommandLine) SkipAccountResetCheck() bool { return p.skipAccountResetCheck }
 func (p *CommandLine) SetService()                { p.service = true }
 func (p CommandLine) GetForkCmd() ForkCmd         { return p.fork }
 func (p *CommandLine) SetForkCmd(v ForkCmd)       { p.fork = v }
@@ -56,6 +58,7 @@ func (p CommandLine) IsNoStandalone() bool        { return p.noStandalone }
 func (p *CommandLine) SetLogForward(f LogForward) { p.logForward = f }
 func (p *CommandLine) GetLogForward() LogForward  { return p.logForward }
 func (p *CommandLine) SetSkipOutOfDateCheck()     { p.skipOutOfDateCheck = true }
+func (p *CommandLine) SetSkipAccountResetCheck()  { p.skipAccountResetCheck = true }
 
 func (p CommandLine) GetNoAutoFork() (bool, bool) {
 	return p.GetBool("no-auto-fork", true)
@@ -390,6 +393,10 @@ func (p CommandLine) GetDisableTeamAuditor() (bool, bool) {
 	return p.GetBool("disable-team-auditor", true)
 }
 
+func (p CommandLine) GetDisableTeamBoxAuditor() (bool, bool) {
+	return p.GetBool("disable-team-box-auditor", true)
+}
+
 func (p CommandLine) GetDisableMerkleAuditor() (bool, bool) {
 	return p.GetBool("disable-merkle-auditor", true)
 }
@@ -408,6 +415,14 @@ func (p CommandLine) GetEnableBotLiteMode() (bool, bool) {
 
 func (p CommandLine) GetExtraNetLogging() (bool, bool) {
 	return p.GetBool("extra-net-logging", true)
+}
+
+func (p CommandLine) GetForceLinuxKeyring() (bool, bool) {
+	return p.GetBool("force-linux-keyring", true)
+}
+
+func (p CommandLine) GetForceSecretStoreFile() (bool, bool) {
+	return false, false // not configurable via command line flags
 }
 
 func (p CommandLine) GetAttachmentHTTPStartPort() (int, bool) {
@@ -698,6 +713,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Usage: "Disable auditing of teams",
 		},
 		cli.BoolFlag{
+			Name:  "disable-team-box-auditor",
+			Usage: "Disable box auditing of teams",
+		},
+		cli.BoolFlag{
 			Name:  "disable-merkle-auditor",
 			Usage: "Disable background probabilistic merkle audit",
 		},
@@ -712,6 +731,14 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.BoolFlag{
 			Name:  "enable-bot-lite-mode",
 			Usage: "Enable bot lite mode. Disables non-critical background services for bot performance.",
+		},
+		cli.BoolFlag{
+			Name:  "force-linux-keyring",
+			Usage: "Require the use of the OS keyring (Gnome Keyring or KWallet) and fail if not available rather than falling back to file-based secret store.",
+		},
+		cli.BoolFlag{
+			Name:  "extra-net-logging",
+			Usage: "Do additional debug logging during network requests.",
 		},
 	}
 	if extraFlags != nil {

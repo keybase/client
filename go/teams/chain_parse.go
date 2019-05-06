@@ -297,3 +297,7 @@ func (n SCTeamName) LastPart() (string, error) {
 	}
 	return string(x.LastPart()), nil
 }
+
+func (h SCTeamBoxSummaryHash) BoxSummaryHash() keybase1.BoxSummaryHash {
+	return keybase1.BoxSummaryHash(string(h))
+}

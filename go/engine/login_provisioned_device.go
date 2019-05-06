@@ -4,6 +4,8 @@
 package engine
 
 import (
+	"fmt"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -50,7 +52,7 @@ func (e *LoginProvisionedDevice) RequiredUIs() []libkb.UIKind {
 
 // SubConsumers returns the other UI consumers for this engine.
 func (e *LoginProvisionedDevice) SubConsumers() []libkb.UIConsumer {
-	return nil
+	return []libkb.UIConsumer{}
 }
 
 func (e *LoginProvisionedDevice) Run(m libkb.MetaContext) error {
@@ -59,9 +61,9 @@ func (e *LoginProvisionedDevice) Run(m libkb.MetaContext) error {
 	}
 
 	m.Debug("LoginProvisionedDevice success, sending login notification")
-	m.G().NotifyRouter.HandleLogin(e.username.String())
+	m.G().NotifyRouter.HandleLogin(m.Ctx(), e.username.String())
 	m.Debug("LoginProvisionedDevice success, calling login hooks")
-	m.G().CallLoginHooks()
+	m.G().CallLoginHooks(m)
 
 	return nil
 }
@@ -184,9 +186,10 @@ func (e *LoginProvisionedDevice) tryPassphraseLogin(m libkb.MetaContext) (err er
 		return err
 	}
 
+	options := libkb.LoadAdvisorySecretStoreOptionsFromRemote(m)
 	// A failure here is just a warning, since we still can use the app for this
 	// session. But it will undoubtedly cause pain.
-	w := libkb.StoreSecretAfterLogin(m, e.username, e.uid, e.deviceID)
+	w := libkb.StoreSecretAfterLoginWithOptions(m, e.username, e.uid, e.deviceID, &options)
 	if w != nil {
 		m.Warning("Secret store failed: %s", w.Error())
 	}
@@ -199,12 +202,40 @@ func (e *LoginProvisionedDevice) runBug3964Repairman(m libkb.MetaContext) (err e
 	return libkb.RunBug3964Repairman(m)
 }
 
+func (e *LoginProvisionedDevice) passiveLoginWithUsername(m libkb.MetaContext) (ok bool, uid keybase1.UID) {
+
+	m.Debug("LoginProvisionedDevice#passiveLoginWithUsername %s", e.username)
+
+	cr := m.G().Env.GetConfig()
+	if cr == nil {
+		m.Debug("no config file reader")
+		return false, uid
+	}
+	uid = cr.GetUIDForUsername(e.username)
+	if uid.IsNil() {
+		m.Debug("No UID found locally for username %s", e.username)
+		return false, uid
+	}
+	if isLoggedInAs(m, uid) {
+		return true, uid
+	}
+	return false, keybase1.UID("")
+}
+
+func (e *LoginProvisionedDevice) passiveLogin(m libkb.MetaContext) (ok bool, uid keybase1.UID) {
+	defer m.CTraceString("LoginProvisionedDevice#passiveLogin", func() string { return fmt.Sprintf("<%v,%s>", ok, uid) })()
+	if len(e.username) > 0 {
+		return e.passiveLoginWithUsername(m)
+	}
+	return isLoggedIn(m)
+}
+
 func (e *LoginProvisionedDevice) run(m libkb.MetaContext) (err error) {
 	defer m.Trace("LoginProvisionedDevice#run", func() error { return err })()
 
-	// already logged in?
-	in, loggedInUID := isLoggedIn(m)
-	if in && (len(e.username) == 0 || m.G().Env.GetUsernameForUID(loggedInUID).Eq(e.username)) {
+	in, loggedInUID := e.passiveLogin(m)
+
+	if in {
 		m.Debug("user %s already logged in; short-circuting", loggedInUID)
 		return nil
 	}
@@ -244,11 +275,11 @@ func (e *LoginProvisionedDevice) run(m libkb.MetaContext) (err error) {
 	if !success {
 		return libkb.NewLoginRequiredError("login failed after passphrase verified")
 	}
+
 	return nil
 }
 
 func (e *LoginProvisionedDevice) connectivityWarning(m libkb.MetaContext) {
-
 	// CORE-5876 idea that lksec will be unusable if reachability state is NO
 	// and the user changed passphrase with a different device since it won't
 	// be able to sync the new server half.

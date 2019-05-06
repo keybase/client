@@ -52,14 +52,14 @@ func pplGetLoginSession(m MetaContext, usernameOrEmail string) (*LoginSession, e
 	return ret, err
 }
 
-func pplPromptOnce(m MetaContext, usernameOrEmail string, ls *LoginSession, retryMsg string) (err error) {
+func pplPromptOnce(m MetaContext, ls *LoginSession, arg keybase1.GUIEntryArg) (err error) {
 	defer m.Trace("pplPromptOnce", func() error { return err })()
-	ppres, err := GetKeybasePassphrase(m, m.UIs().SecretUI, usernameOrEmail, retryMsg)
+	ppres, err := GetKeybasePassphrase(m, m.UIs().SecretUI, arg)
 	if err != nil {
 		return err
 	}
 
-	return pplGotPassphrase(m, usernameOrEmail, ppres.Passphrase, ls)
+	return pplGotPassphrase(m, arg.Username, ppres.Passphrase, ls)
 }
 
 func pplGotPassphrase(m MetaContext, usernameOrEmail string, passphrase string, ls *LoginSession) (err error) {
@@ -99,17 +99,16 @@ func pplGotPassphrase(m MetaContext, usernameOrEmail string, passphrase string, 
 	return nil
 }
 
-func pplPromptLoop(m MetaContext, usernameOrEmail string, maxAttempts int, ls *LoginSession) (err error) {
+func pplPromptLoop(m MetaContext, maxAttempts int, ls *LoginSession, arg keybase1.GUIEntryArg) (err error) {
 	defer m.Trace("pplPromptLoop", func() error { return err })()
-	retryMsg := ""
 	for i := 0; i < maxAttempts; i++ {
-		if err = pplPromptOnce(m, usernameOrEmail, ls, retryMsg); err == nil {
+		if err = pplPromptOnce(m, ls, arg); err == nil {
 			return nil
 		}
 		if _, badpw := err.(PassphraseError); !badpw {
 			return err
 		}
-		retryMsg = err.Error()
+		arg.RetryLabel = err.Error()
 	}
 	return err
 }
@@ -149,7 +148,9 @@ func pplPost(m MetaContext, eOu string, lp PDPKALoginPackage) (*loginAPIResult, 
 		return nil, err
 	}
 	if res.Status.Code == SCBadLoginPassword {
-		return nil, PassphraseError{"Invalid passphrase. Server rejected login attempt."}
+		// NOTE: This error message is also hardcoded in the frontend to detect
+		// this class of errors.
+		return nil, PassphraseError{"Invalid password. Server rejected login attempt."}
 	}
 	if res.Status.Code == SCBadLoginUserNotFound {
 		return nil, NotFoundError{}
@@ -191,28 +192,25 @@ func PassphraseLoginNoPromptThenSecretStore(m MetaContext, usernameOrEmail strin
 	return nil
 }
 
-func PassphraseLoginPrompt(m MetaContext, usernameOrEmail string, maxAttempts int) (err error) {
-
+func PassphraseLoginPromptWithArg(m MetaContext, maxAttempts int, arg keybase1.GUIEntryArg) (err error) {
 	defer m.Trace("PassphraseLoginPrompt", func() error { return err })()
 
-	var loginSession *LoginSession
-
-	if err = pplPromptCheckPreconditions(m, usernameOrEmail); err != nil {
+	if err = pplPromptCheckPreconditions(m, arg.Username); err != nil {
 		return err
 	}
-	if usernameOrEmail, err = pplGetEmailOrUsername(m, usernameOrEmail); err != nil {
+	if arg.Username, err = pplGetEmailOrUsername(m, arg.Username); err != nil {
 		return err
 	}
-	if loginSession, err = pplGetLoginSession(m, usernameOrEmail); err != nil {
+	loginSession, err := pplGetLoginSession(m, arg.Username)
+	if err != nil {
 		return err
 	}
-	return pplPromptLoop(m, usernameOrEmail, maxAttempts, loginSession)
+	return pplPromptLoop(m, maxAttempts, loginSession, arg)
 }
 
-func StoreSecretAfterLogin(m MetaContext, n NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) (err error) {
-	defer m.Trace("StoreSecretAfterLogin", func() error { return err })()
-	lksec := NewLKSecWithDeviceID(m.LoginContext().PassphraseStreamCache().PassphraseStream(), uid, deviceID)
-	return StoreSecretAfterLoginWithLKS(m, n, lksec)
+func PassphraseLoginPrompt(m MetaContext, usernameOrEmail string, maxAttempts int) (err error) {
+	arg := DefaultPassphrasePromptArg(m, usernameOrEmail)
+	return PassphraseLoginPromptWithArg(m, maxAttempts, arg)
 }
 
 func pplSecretStore(m MetaContext) (err error) {
@@ -225,7 +223,7 @@ func pplSecretStore(m MetaContext) (err error) {
 	if deviceID.IsNil() {
 		return NewNoDeviceError(fmt.Sprintf("UID=%s", uid))
 	}
-	return StoreSecretAfterLogin(m, lctx.GetUsername(), uid, deviceID)
+	return StoreSecretAfterLoginWithOptions(m, lctx.GetUsername(), uid, deviceID, nil)
 }
 
 func PassphraseLoginPromptThenSecretStore(m MetaContext, usernameOrEmail string, maxAttempts int, failOnStoreError bool) (err error) {
@@ -247,9 +245,36 @@ func PassphraseLoginPromptThenSecretStore(m MetaContext, usernameOrEmail string,
 	return nil
 }
 
-func StoreSecretAfterLoginWithLKS(m MetaContext, n NormalizedUsername, lks *LKSec) (err error) {
+func LoadAdvisorySecretStoreOptionsFromRemote(mctx MetaContext) (options SecretStoreOptions) {
+	options = DefaultSecretStoreOptions()
 
-	defer m.Trace("StoreSecretAfterLoginWithLKS", func() error { return err })()
+	var ret struct {
+		AppStatusEmbed
+		RandomPW bool `json:"random_pw"`
+	}
+	err := mctx.G().API.GetDecode(mctx, APIArg{
+		Endpoint:    "user/has_random_pw",
+		SessionType: APISessionTypeREQUIRED,
+	}, &ret)
+	if err != nil {
+		mctx.Warning("Failed to load advisory secret store options from remote: %s", err)
+		// If there was an API error, just return the default options.
+		options.RandomPw = true
+		return options
+	}
+	options.RandomPw = ret.RandomPW
+
+	return options
+}
+
+func StoreSecretAfterLoginWithOptions(m MetaContext, n NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID, options *SecretStoreOptions) (err error) {
+	defer m.Trace("StoreSecretAfterLogin", func() error { return err })()
+	lksec := NewLKSecWithDeviceID(m.LoginContext().PassphraseStreamCache().PassphraseStream(), uid, deviceID)
+	return StoreSecretAfterLoginWithLKSWithOptions(m, n, lksec, options)
+}
+
+func StoreSecretAfterLoginWithLKSWithOptions(m MetaContext, n NormalizedUsername, lks *LKSec, options *SecretStoreOptions) (err error) {
+	defer m.Trace("StoreSecretAfterLoginWithLKSWithOptions", func() error { return err })()
 
 	secretStore := NewSecretStore(m.G(), n)
 	if secretStore == nil {
@@ -262,7 +287,11 @@ func StoreSecretAfterLoginWithLKS(m MetaContext, n NormalizedUsername, lks *LKSe
 		return err
 	}
 
-	return secretStore.StoreSecret(m, secret)
+	previousOptions := secretStore.GetOptions(m)
+	secretStore.SetOptions(m, options)
+	ret := secretStore.StoreSecret(m, secret)
+	secretStore.SetOptions(m, previousOptions)
+	return ret
 }
 
 func getStoredPassphraseStream(m MetaContext) (*PassphraseStream, error) {

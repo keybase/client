@@ -13,13 +13,15 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/libkb"
 	"golang.org/x/net/context"
 )
 
 type eiCache struct {
-	ei    libkbfs.EntryInfo
+	ei    data.EntryInfo
 	reqID string
 }
 
@@ -37,7 +39,7 @@ func (c *eiCacheHolder) destroy() {
 	c.cache = nil
 }
 
-func (c *eiCacheHolder) getAndDestroyIfMatches(reqID string) (ei *libkbfs.EntryInfo) {
+func (c *eiCacheHolder) getAndDestroyIfMatches(reqID string) (ei *data.EntryInfo) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	if c.cache != nil && c.cache.reqID == reqID {
@@ -47,7 +49,7 @@ func (c *eiCacheHolder) getAndDestroyIfMatches(reqID string) (ei *libkbfs.EntryI
 	return ei
 }
 
-func (c *eiCacheHolder) set(reqID string, ei libkbfs.EntryInfo) {
+func (c *eiCacheHolder) set(reqID string, ei data.EntryInfo) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.cache = &eiCache{
@@ -69,13 +71,13 @@ type File struct {
 var _ fs.Node = (*File)(nil)
 
 func (f *File) fillAttrWithMode(
-	ctx context.Context, ei *libkbfs.EntryInfo, a *fuse.Attr) (err error) {
+	ctx context.Context, ei *data.EntryInfo, a *fuse.Attr) (err error) {
 	if err = f.folder.fillAttrWithUIDAndWritePerm(
 		ctx, f.node, ei, a); err != nil {
 		return err
 	}
 	a.Mode |= 0400
-	if ei.Type == libkbfs.Exec {
+	if ei.Type == data.Exec {
 		a.Mode |= 0100
 	}
 
@@ -89,7 +91,7 @@ func (f *File) Attr(ctx context.Context, a *fuse.Attr) (err error) {
 		ctx, "File.Attr", f.node.GetBasename())
 	defer func() { f.folder.fs.config.MaybeFinishTrace(ctx, err) }()
 
-	f.folder.fs.log.CDebugf(ctx, "File Attr")
+	f.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "File Attr")
 	defer func() { err = f.folder.processError(ctx, libkbfs.ReadMode, err) }()
 
 	if reqID, ok := ctx.Value(CtxIDKey).(string); ok {
@@ -116,6 +118,8 @@ func (f *File) attr(ctx context.Context, a *fuse.Attr) (err error) {
 		}
 		return err
 	}
+
+	f.node.FillCacheDuration(&a.Valid)
 
 	return f.fillAttrWithMode(ctx, &de, a)
 }
@@ -156,7 +160,7 @@ func (f *File) Access(ctx context.Context, r *fuse.AccessRequest) (err error) {
 			}
 			return err
 		}
-		if ei.Type != libkbfs.Exec {
+		if ei.Type != data.Exec {
 			return fuse.EPERM
 		}
 	}
@@ -192,7 +196,7 @@ func (f *File) Fsync(ctx context.Context, req *fuse.FsyncRequest) (err error) {
 		ctx, "File.Fsync", f.node.GetBasename())
 	defer func() { f.folder.fs.config.MaybeFinishTrace(ctx, err) }()
 
-	f.folder.fs.log.CDebugf(ctx, "File Fsync")
+	f.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "File Fsync")
 	defer func() { err = f.folder.processError(ctx, libkbfs.WriteMode, err) }()
 
 	// This fits in situation 1 as described in libkbfs/delayed_cancellation.go
@@ -218,7 +222,7 @@ func (f *File) Read(ctx context.Context, req *fuse.ReadRequest,
 		fmt.Sprintf("%s off=%d sz=%d", f.node.GetBasename(), off, sz))
 	defer func() { f.folder.fs.config.MaybeFinishTrace(ctx, err) }()
 
-	f.folder.fs.log.CDebugf(ctx, "File Read off=%d sz=%d", off, sz)
+	f.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "File Read off=%d sz=%d", off, sz)
 	defer func() { err = f.folder.processError(ctx, libkbfs.ReadMode, err) }()
 
 	n, err := f.folder.fs.config.KBFSOps().Read(
@@ -240,7 +244,7 @@ func (f *File) Write(ctx context.Context, req *fuse.WriteRequest,
 		fmt.Sprintf("%s sz=%d", f.node.GetBasename(), sz))
 	defer func() { f.folder.fs.config.MaybeFinishTrace(ctx, err) }()
 
-	f.folder.fs.log.CDebugf(ctx, "File Write sz=%d ", sz)
+	f.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "File Write sz=%d ", sz)
 	defer func() { err = f.folder.processError(ctx, libkbfs.WriteMode, err) }()
 
 	f.eiCache.destroy()
@@ -262,7 +266,7 @@ func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest,
 		fmt.Sprintf("%s %s", f.node.GetBasename(), valid))
 	defer func() { f.folder.fs.config.MaybeFinishTrace(ctx, err) }()
 
-	f.folder.fs.log.CDebugf(ctx, "File SetAttr %s", valid)
+	f.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "File SetAttr %s", valid)
 	defer func() { err = f.folder.processError(ctx, libkbfs.WriteMode, err) }()
 
 	f.eiCache.destroy()
@@ -301,8 +305,9 @@ func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest,
 		// programs like mv.  Instead ignore it, print a debug
 		// message, and advertise this behavior on the
 		// "understand_kbfs" doc online.
-		f.folder.fs.log.CDebugf(ctx, "Ignoring unsupported attempt to set "+
-			"the UID/GID on a file")
+		f.folder.fs.vlog.CLogf(
+			ctx, libkb.VLog1, "Ignoring unsupported attempt to set "+
+				"the UID/GID on a file")
 		valid &^= fuse.SetattrUid | fuse.SetattrGid
 	}
 

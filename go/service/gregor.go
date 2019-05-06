@@ -268,11 +268,11 @@ func (g *gregorHandler) Init() {
 
 func (g *gregorHandler) monitorAppState() {
 	// Wait for state updates and react accordingly
-	state := keybase1.AppState_FOREGROUND
+	state := keybase1.MobileAppState_FOREGROUND
 	for {
-		state = <-g.G().AppState.NextUpdate(&state)
+		state = <-g.G().MobileAppState.NextUpdate(&state)
 		switch state {
-		case keybase1.AppState_FOREGROUND, keybase1.AppState_BACKGROUNDACTIVE:
+		case keybase1.MobileAppState_FOREGROUND, keybase1.MobileAppState_BACKGROUNDACTIVE:
 			// Make sure the URI is set before attempting this (possible it isn't in a race)
 			if g.uri != nil {
 				g.chatLog.Debug(context.Background(), "foregrounded, reconnecting")
@@ -280,7 +280,7 @@ func (g *gregorHandler) monitorAppState() {
 					g.chatLog.Debug(context.Background(), "error reconnecting: %s", err)
 				}
 			}
-		case keybase1.AppState_BACKGROUND, keybase1.AppState_INACTIVE:
+		case keybase1.MobileAppState_BACKGROUND, keybase1.MobileAppState_INACTIVE:
 			g.chatLog.Debug(context.Background(), "backgrounded, shutting down connection")
 			g.Shutdown()
 		}
@@ -339,7 +339,7 @@ func (g *gregorHandler) resetGregorClient(ctx context.Context) (err error) {
 	var gdid gregor.DeviceID
 	var b []byte
 
-	uid := g.G().Env.GetUID()
+	uid := g.G().ActiveDevice.UID()
 	if !uid.Exists() {
 		err = errors.New("no UID; probably not logged in")
 		return err
@@ -670,7 +670,7 @@ func (g *gregorHandler) serverSync(ctx context.Context,
 	g.replayCh <- replayThreadArg{
 		cli: cli,
 		t:   t,
-		ctx: chat.BackgroundContext(ctx, g.G()),
+		ctx: globals.BackgroundChatCtx(ctx, g.G()),
 	}
 
 	g.pushState(keybase1.PushReason_RECONNECTED)
@@ -685,15 +685,22 @@ func (g *gregorHandler) makeReconnectOobm() gregor1.Message {
 	}
 }
 
-func (g *gregorHandler) authParams(ctx context.Context) (uid gregor1.UID, token gregor1.SessionToken, nist *libkb.NIST, err error) {
+func (g *gregorHandler) authParams(ctx context.Context) (uid gregor1.UID, deviceID gregor1.DeviceID,
+	token gregor1.SessionToken, nist *libkb.NIST, err error) {
 	var res loggedInRes
 	var stoken string
 	var kuid keybase1.UID
-	if kuid, stoken, nist, res = g.loggedIn(ctx); res != loggedInYes {
-		return uid, token, nil,
+	var kdid keybase1.DeviceID
+	if kuid, kdid, stoken, nist, res = g.loggedIn(ctx); res != loggedInYes {
+		return uid, deviceID, token, nil,
 			newConnectionAuthError("failed to check logged in status", res == loggedInMaybe)
 	}
-	return kuid.ToBytes(), gregor1.SessionToken(stoken), nist, nil
+	deviceID = make([]byte, libkb.DeviceIDLen)
+	if err := kdid.ToBytes(deviceID); err != nil {
+		return uid, deviceID, token, nil, err
+	}
+	g.chatLog.Debug(ctx, "generated NIST for UID %s", kuid)
+	return kuid.ToBytes(), deviceID, gregor1.SessionToken(stoken), nist, nil
 }
 
 func (g *gregorHandler) inboxParams(ctx context.Context, uid gregor1.UID) chat1.InboxVers {
@@ -721,6 +728,9 @@ func (g *gregorHandler) notificationParams(ctx context.Context, gcli *grclient.C
 // gregord
 func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	cli rpc.GenericClient, srv *rpc.Server) (err error) {
+
+	ctx = libkb.WithLogTag(ctx, "GRGRONCONN")
+
 	defer g.chatLog.Trace(ctx, func() error { return err }, "OnConnect")()
 
 	// If we get a random OnConnect on some other connection that is not g.conn, then
@@ -745,22 +755,24 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	if err != nil {
 		return fmt.Errorf("failed to get gregor client: %s", err.Error())
 	}
-	uid, token, nist, err := g.authParams(ctx)
+	uid, deviceID, token, nist, err := g.authParams(ctx)
 	if err != nil {
 		return err
 	}
+	gcli.User = uid
+	gcli.Device = deviceID
 	iboxVers := g.inboxParams(ctx, uid)
 	latestCtime := g.notificationParams(ctx, gcli)
 
 	// Run SyncAll to both authenticate, and grab all the data we will need to run the
 	// various resync procedures for chat and notifications
 	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = chat.Context(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
+	ctx = globals.ChatCtx(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
 		chat.NewCachingIdentifyNotifier(g.G()))
 	g.chatLog.Debug(ctx, "OnConnect begin")
 	syncAllRes, err := chatCli.SyncAll(ctx, chat1.SyncAllArg{
 		Uid:              uid,
-		DeviceID:         gcli.Device.(gregor1.DeviceID),
+		DeviceID:         deviceID,
 		Session:          token,
 		InboxVers:        iboxVers,
 		Ctime:            latestCtime,
@@ -1298,29 +1310,29 @@ const (
 	loggedInMaybe
 )
 
-func (g *gregorHandler) loggedIn(ctx context.Context) (uid keybase1.UID, token string, nist *libkb.NIST, res loggedInRes) {
+func (g *gregorHandler) loggedIn(ctx context.Context) (uid keybase1.UID, did keybase1.DeviceID, token string, nist *libkb.NIST, res loggedInRes) {
 
 	// Check to see if we have been shut down,
 	select {
 	case <-g.shutdownCh:
-		return uid, token, nil, loggedInMaybe
+		return uid, did, token, nil, loggedInMaybe
 	default:
 		// if we were going to block, then that means we are still alive
 	}
 
 	var err error
 
-	nist, uid, err = g.G().ActiveDevice.NISTAndUID(ctx)
+	nist, uid, did, err = g.G().ActiveDevice.NISTAndUIDDeviceID(ctx)
 	if nist == nil {
 		g.G().Log.CDebugf(ctx, "gregorHandler: no NIST for login; user isn't logged in")
-		return uid, token, nil, loggedInNo
+		return uid, did, token, nil, loggedInNo
 	}
 	if err != nil {
 		g.G().Log.CDebugf(ctx, "gregorHandler: error in generating NIST: %s", err.Error())
-		return uid, token, nil, loggedInMaybe
+		return uid, did, token, nil, loggedInMaybe
 	}
 
-	return uid, nist.Token().String(), nist, loggedInYes
+	return uid, did, nist.Token().String(), nist, loggedInYes
 }
 
 func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient, auth *gregor1.AuthResult) (err error) {
@@ -1329,7 +1341,7 @@ func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient, auth *g
 	var uid keybase1.UID
 	var nist *libkb.NIST
 
-	if uid, token, nist, res = g.loggedIn(ctx); res != loggedInYes {
+	if uid, _, token, nist, res = g.loggedIn(ctx); res != loggedInYes {
 		return newConnectionAuthError("not logged in for auth", res == loggedInMaybe)
 	}
 

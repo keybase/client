@@ -10,12 +10,13 @@
       "teams": "Array<string>",
       "user": "string"
     },
+    "clearNavBadges": {},
     "createNewTeam": {
       "joinSubteam": "boolean",
       "teamname": "string",
-      "rootPath": "I.List<string>",
-      "sourceSubPath": "I.List<string>",
-      "destSubPath": "I.List<string>"
+      "rootPath?": "I.List<string>",
+      "sourceSubPath?": "I.List<string>",
+      "destSubPath?": "I.List<string>"
     },
     "createNewTeamFromConversation": {
       "conversationIDKey": "ChatTypes.ConversationIDKey",
@@ -25,9 +26,9 @@
       "teamname": "string",
       "channelname": "string",
       "description": "?string",
-      "rootPath": "I.List<string>",
-      "sourceSubPath": "I.List<string>",
-      "destSubPath": "I.List<string>"
+      "rootPath?": "I.List<string>",
+      "sourceSubPath?": "I.List<string>",
+      "destSubPath?": "I.List<string>"
     },
     "clearAddUserToTeamsResults": {},
     "setAddUserToTeamsResults": {
@@ -47,9 +48,18 @@
       "_description": "Fetches the channel information for all channels in a team from the server. Should only be called for components that need the full list.",
       "teamname": "string"
     },
-    "getTeams": {},
+    "getTeams": {
+      "clearNavBadges?": "boolean"
+    },
     "getDetails": {
       "teamname": "string"
+    },
+    "getMembers": {
+      "teamname": "string"
+    },
+    "setMembers": {
+      "teamname": "string",
+      "members": "I.Map<string, Types.MemberInfo>"
     },
     "getDetailsForAllTeams": {},
     "getTeamOperations": {
@@ -81,19 +91,19 @@
       "participant": "string"
     },
     "addPeopleToTeam": {
-      "destSubPath": "I.List<string>",
+      "destSubPath?": "I.List<string>",
       "role": "string",
-      "rootPath": "I.List<string>",
+      "rootPath?": "I.List<string>",
       "sendChatNotification": "boolean",
-      "sourceSubPath": "I.List<string>",
+      "sourceSubPath?": "I.List<string>",
       "teamname": "string"
     },
     "inviteToTeamByEmail": {
-      "destSubPath": "I.List<string>",
+      "destSubPath?": "I.List<string>",
       "invitees": "string",
       "role": "Types.TeamRoleType",
-      "rootPath": "I.List<string>",
-      "sourceSubPath": "I.List<string>",
+      "rootPath?": "I.List<string>",
+      "sourceSubPath?": "I.List<string>",
       "teamname": "string"
     },
     "inviteToTeamByPhone": {
@@ -279,6 +289,11 @@
       "_description": "Sets the retention policy for a team. The store will be updated automatically.",
       "teamname": "string",
       "policy": "RetentionPolicy"
+    },
+    "renameTeam": {
+      "_description": "Rename a subteam",
+      "oldName": "string",
+      "newName": "string"
     }
   }
 }

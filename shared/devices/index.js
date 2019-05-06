@@ -4,6 +4,7 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import DeviceRow from './row/container'
 import * as Styles from '../styles'
+import flags from '../util/feature-flags'
 
 type Item =
   | {key: string, id: Types.DeviceID, type: 'device'}
@@ -55,7 +56,7 @@ class Devices extends React.PureComponent<Props, State> {
       )
     } else if (item.type === 'revokedNote') {
       return (
-        <Kb.Text center={true} type="BodySmallSemibold" style={styles.revokedNote}>
+        <Kb.Text center={true} type="BodySmall" style={styles.revokedNote}>
           Revoked devices will no longer be able to access your Keybase account.
         </Kb.Text>
       )
@@ -75,7 +76,9 @@ class Devices extends React.PureComponent<Props, State> {
 
     return (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
-        <DeviceHeader onAddNew={() => this.props.onAddDevice()} waiting={this.props.waiting} />
+        {(!flags.useNewRouter || Styles.isMobile) && (
+          <DeviceHeader onAddNew={() => this.props.onAddDevice()} waiting={this.props.waiting} />
+        )}
         {this.props.showPaperKeyNudge && (
           <PaperKeyNudge onAddDevice={() => this.props.onAddDevice(['paper key'])} />
         )}
@@ -97,14 +100,14 @@ const styles = Styles.styleSheetCreate({
     width: 20,
   },
   revokedNote: {
-    ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.small, 0),
+    padding: Styles.globalMargins.medium,
     width: '100%',
   },
 })
 
 const DeviceHeader = ({onAddNew, waiting}) => (
   <Kb.ClickableBox onClick={onAddNew} style={headerStyles.container}>
-    <Kb.Button type="Primary" label="Add a device or paper key">
+    <Kb.Button label="Add a device or paper key">
       <Kb.Icon
         type="iconfont-new"
         color={Styles.globalColors.white}
@@ -116,6 +119,7 @@ const DeviceHeader = ({onAddNew, waiting}) => (
 const headerStyles = Styles.styleSheetCreate({
   container: {
     ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
     height: Styles.isMobile ? 64 : 48,
     justifyContent: 'center',
   },
@@ -165,7 +169,6 @@ const paperKeyNudgeStyles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     common: {
       padding: Styles.globalMargins.small,
-      paddingTop: 0,
     },
     isMobile: {
       padding: Styles.globalMargins.tiny,

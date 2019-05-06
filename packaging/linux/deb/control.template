@@ -5,5 +5,5 @@ Installed-Size: @@SIZE@@
 Maintainer: Keybase Bugs <bugs@keybase.io>
 Section: misc
 Priority: optional
-Description: Keybase's command line client
+Description: The Keybase Go client, filesystem, and GUI
 @@DEPENDENCIES@@

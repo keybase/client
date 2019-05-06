@@ -123,12 +123,12 @@ func (c *levelDbCleaner) Stop() {
 
 func (c *levelDbCleaner) monitorAppState() {
 	c.log("monitorAppState")
-	state := keybase1.AppState_FOREGROUND
+	state := keybase1.MobileAppState_FOREGROUND
 	for {
 		select {
-		case state = <-c.G().AppState.NextUpdate(&state):
+		case state = <-c.G().MobileAppState.NextUpdate(&state):
 			switch state {
-			case keybase1.AppState_BACKGROUNDACTIVE:
+			case keybase1.MobileAppState_BACKGROUNDACTIVE:
 				c.log("monitorAppState: attempting clean")
 				c.clean(false)
 			default:
@@ -174,7 +174,7 @@ func (c *levelDbCleaner) shouldCleanLocked(force bool) bool {
 	}
 	validCache := c.cache.Len() >= c.config.MinCacheSize
 	if c.isMobile {
-		return validCache && c.G().AppState.State() == keybase1.AppState_BACKGROUNDACTIVE
+		return validCache && c.G().MobileAppState.State() == keybase1.MobileAppState_BACKGROUNDACTIVE
 	}
 	return validCache &&
 		c.G().GetClock().Now().Sub(c.lastRun) >= c.config.CleanInterval

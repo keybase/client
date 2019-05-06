@@ -129,6 +129,7 @@ helpers.rootLinuxNode(env, {
                     "PATH=${env.PATH}:${env.GOPATH}/bin",
                     "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
                     "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
+                    "GPG=/usr/bin/gpg.distrib",
                   ]) {
                     if (hasGoChanges) {
                       dir("go/keybase") {
@@ -381,6 +382,37 @@ def testGo(prefix, packagesToTest) {
         sh 'make -s lint'
       }
     }
+
+    if (isUnix()) {
+      // Windows `gofmt` pukes on CRLF, so only run on *nix.
+      println "Running mockgen"
+      retry(5) {
+        sh 'go get -u github.com/golang/mock/mockgen'
+      }
+      dir('kbfs/data') {
+        retry(5) {
+          timeout(activity: true, time: 90, unit: 'SECONDS') {
+            sh '''
+              set -e -x
+              ./gen_mocks.sh
+              git diff --exit-code
+            '''
+          }
+        }
+      }
+      dir('kbfs/libkbfs') {
+        retry(5) {
+          timeout(activity: true, time: 90, unit: 'SECONDS') {
+            sh '''
+              set -e -x
+              ./gen_mocks.sh
+              git diff --exit-code
+            '''
+          }
+        }
+      }
+    }
+
     // Make sure we don't accidentally pull in the testing package.
     sh '! go list -f \'{{ join .Deps "\\n" }}\' github.com/keybase/client/go/keybase | grep testing'
 
@@ -398,14 +430,36 @@ def testGo(prefix, packagesToTest) {
           timeout: '15m',
         ],
         'github.com/keybase/client/go/kbfs/libfuse': [
-          flags: '',
           timeout: '3m',
+        ],
+        'github.com/keybase/client/go/libkb': [
+          timeout: '1m',
+        ],
+        'github.com/keybase/client/go/install': [
+          timeout: '30s',
+        ],
+        'github.com/keybase/client/go/launchd': [
+          timeout: '30s',
         ],
       ],
       test_linux_go_: [
         '*': [],
+        'github.com/keybase/client/go/kbfs/test': [
+          name: 'kbfs_test_fuse',
+          flags: '-tags fuse',
+          timeout: '15m',
+        ],
+        'github.com/keybase/client/go/kbfs/data': [
+          flags: '-race',
+          timeout: '30s',
+        ],
         'github.com/keybase/client/go/kbfs/libfuse': [
-          disable: true,
+          flags: '',
+          timeout: '3m',
+        ],
+        'github.com/keybase/client/go/kbfs/idutil': [
+          flags: '-race',
+          timeout: '30s',
         ],
         'github.com/keybase/client/go/kbfs/kbfsblock': [
           flags: '-race',
@@ -443,6 +497,10 @@ def testGo(prefix, packagesToTest) {
           flags: '-race',
           timeout: '30s',
         ],
+        'github.com/keybase/client/go/kbfs/libcontext': [
+          flags: '-race',
+          timeout: '10m',
+        ],
         'github.com/keybase/client/go/kbfs/libfs': [
           flags: '-race',
           timeout: '10m',
@@ -454,6 +512,10 @@ def testGo(prefix, packagesToTest) {
         'github.com/keybase/client/go/kbfs/libhttpserver': [
           flags: '-race',
           timeout: '30s',
+        ],
+        'github.com/keybase/client/go/kbfs/libkey': [
+          flags: '-race',
+          timeout: '5m',
         ],
         'github.com/keybase/client/go/kbfs/libkbfs': [
           flags: '-race',
@@ -480,14 +542,28 @@ def testGo(prefix, packagesToTest) {
           flags: '-race',
           timeout: '30s',
         ],
+        'github.com/keybase/client/go/kbfs/tlfhandle': [
+          flags: '-race',
+          timeout: '30s',
+        ],
       ],
       test_windows_go_: [
         '*': [],
         'github.com/keybase/client/go/systests': [
           disable: true,
         ],
+        'github.com/keybase/client/go/chat': [
+          disable: true,
+        ],
       ],
     ]
+    def getOverallTimeout = { testSpec ->
+      def timeoutMatches = (testSpec.timeout =~ /(\d+)([ms])/)
+      return [
+        time: 1 + (timeoutMatches[0][1] as Integer),
+        unit: timeoutMatches[0][2] == 's' ? 'SECONDS' : 'MINUTES',
+      ]
+    }
     def defaultPackageTestSpec = { pkg ->
       def dirPath = pkg.replaceAll('github.com/keybase/client/go/', '')
       def testName = dirPath.replaceAll('/', '_')
@@ -538,8 +614,11 @@ def testGo(prefix, packagesToTest) {
         if (fileExists(testBinary)) {
           def test = {
             dir(testSpec.dirPath) {
-              println "Running tests for ${testSpec.dirPath}"
-              sh "./${testBinary} -test.timeout ${testSpec.timeout}"
+              def t = getOverallTimeout(testSpec)
+              timeout(activity: true, time: t.time, unit: t.unit) {
+                println "Running tests for ${testSpec.dirPath}"
+                sh "./${testBinary} -test.timeout ${testSpec.timeout}"
+              }
             }
           }
           if (testSpec.name in specialTestFilter) {

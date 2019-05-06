@@ -102,11 +102,14 @@ type configGetter interface {
 	GetAttachmentDisableMulti() (bool, bool)
 	GetChatOutboxStorageEngine() string
 	GetDisableTeamAuditor() (bool, bool)
+	GetDisableTeamBoxAuditor() (bool, bool)
 	GetDisableMerkleAuditor() (bool, bool)
 	GetDisableSearchIndexer() (bool, bool)
 	GetDisableBgConvLoader() (bool, bool)
 	GetEnableBotLiteMode() (bool, bool)
 	GetExtraNetLogging() (bool, bool)
+	GetForceLinuxKeyring() (bool, bool)
+	GetForceSecretStoreFile() (bool, bool)
 }
 
 type CommandLine interface {
@@ -124,6 +127,8 @@ type CommandLine interface {
 
 type Server interface {
 }
+
+type DBKeySet map[DbKey]bool
 
 type LocalDbOps interface {
 	Put(id DbKey, aliases []DbKey, value []byte) error
@@ -147,12 +152,14 @@ type LocalDb interface {
 	Nuke() (string, error)
 	Clean(force bool) error
 	OpenTransaction() (LocalDbTransaction, error)
+	KeysWithPrefixes(prefixes ...[]byte) (DBKeySet, error)
 }
 
 type KVStorer interface {
 	GetInto(obj interface{}, id DbKey) (found bool, err error)
 	PutObj(id DbKey, aliases []DbKey, obj interface{}) (err error)
 	Delete(id DbKey) error
+	KeysWithPrefixes(prefixes ...[]byte) (DBKeySet, error)
 }
 
 type JSONReader interface {
@@ -353,6 +360,7 @@ type ProveUI interface {
 	OutputInstructions(context.Context, keybase1.OutputInstructionsArg) error
 	OkToCheck(context.Context, keybase1.OkToCheckArg) (bool, error)
 	Checking(context.Context, keybase1.CheckingArg) error
+	ContinueChecking(context.Context, int) (bool, error)
 	DisplayRecheckWarning(context.Context, keybase1.DisplayRecheckWarningArg) error
 }
 
@@ -402,18 +410,21 @@ type ChatUI interface {
 	ChatSearchHit(context.Context, chat1.ChatSearchHitArg) error
 	ChatSearchDone(context.Context, chat1.ChatSearchDoneArg) error
 	ChatSearchInboxHit(context.Context, chat1.ChatSearchInboxHitArg) error
+	ChatSearchInboxStart(context.Context) error
 	ChatSearchInboxDone(context.Context, chat1.ChatSearchInboxDoneArg) error
 	ChatSearchIndexStatus(context.Context, chat1.ChatSearchIndexStatusArg) error
+	ChatSearchConvHits(context.Context, chat1.UIChatSearchConvHits) error
 	ChatStellarShowConfirm(context.Context) error
 	ChatStellarDataConfirm(context.Context, chat1.UIChatPaymentSummary) (bool, error)
 	ChatStellarDataError(context.Context, keybase1.Status) (bool, error)
 	ChatStellarDone(context.Context, bool) error
 	ChatGiphySearchResults(ctx context.Context, convID chat1.ConversationID,
-		results []chat1.GiphySearchResult) error
-	ChatGiphyToggleResultWindow(ctx context.Context, convID chat1.ConversationID, show bool) error
+		results chat1.GiphySearchResults) error
+	ChatGiphyToggleResultWindow(ctx context.Context, convID chat1.ConversationID, show, clearInput bool) error
 	ChatShowManageChannels(context.Context, string) error
 	ChatCoinFlipStatus(context.Context, []chat1.UICoinFlipStatus) error
 	ChatCommandMarkdown(context.Context, chat1.ConversationID, *chat1.UICommandMarkdown) error
+	ChatTeamMentionUpdate(context.Context, string, string, chat1.UITeamMention) error
 }
 
 type PromptDefault int
@@ -612,12 +623,15 @@ type ServiceType interface {
 		kbUsername, remoteUsername string, sigID keybase1.SigID) (string, error)
 	GetAPIArgKey() string
 	IsDevelOnly() bool
+	GetLogoKey() string
 
 	MakeProofChecker(l RemoteProofChainLink) ProofChecker
 	SetDisplayConfig(*keybase1.ServiceDisplayConfig)
 	CanMakeNewProofs(mctx MetaContext) bool
+	CanMakeNewProofsSkipFeatureFlag(mctx MetaContext) bool
 	DisplayPriority() int
 	DisplayGroup() string
+	IsNew(MetaContext) bool
 }
 
 type ExternalServicesCollector interface {
@@ -632,6 +646,7 @@ type ExternalServicesCollector interface {
 // parameterized proofs.
 type MerkleStore interface {
 	GetLatestEntry(m MetaContext) (keybase1.MerkleStoreEntry, error)
+	GetLatestEntryWithKnown(MetaContext, *keybase1.MerkleStoreKitHash) (*keybase1.MerkleStoreEntry, error)
 }
 
 // UserChangedHandler is a generic interface for handling user changed events.
@@ -659,6 +674,7 @@ type ConnectivityMonitor interface {
 type TeamLoader interface {
 	VerifyTeamName(ctx context.Context, id keybase1.TeamID, name keybase1.TeamName) error
 	ImplicitAdmins(ctx context.Context, teamID keybase1.TeamID) (impAdmins []keybase1.UserVersion, err error)
+	MapTeamAncestors(ctx context.Context, f func(t keybase1.TeamSigChainState) error, teamID keybase1.TeamID, reason string, forceFullReloadOnceToAssert func(t keybase1.TeamSigChainState) bool) error
 	NotifyTeamRename(ctx context.Context, id keybase1.TeamID, newName string) error
 	Load(context.Context, keybase1.LoadTeamArg) (*keybase1.TeamData, error)
 	// Delete the cache entry. Does not error if there is no cache entry.
@@ -667,7 +683,6 @@ type TeamLoader interface {
 	HintLatestSeqno(ctx context.Context, id keybase1.TeamID, seqno keybase1.Seqno) error
 	ResolveNameToIDUntrusted(ctx context.Context, teamName keybase1.TeamName, public bool, allowCache bool) (id keybase1.TeamID, err error)
 	ForceRepollUntil(ctx context.Context, t gregor.TimeOrOffset) error
-	OnLogout()
 	// Clear the in-memory cache. Does not affect the disk cache.
 	ClearMem()
 }
@@ -678,12 +693,19 @@ type FastTeamLoader interface {
 	HintLatestSeqno(m MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) error
 	VerifyTeamName(m MetaContext, id keybase1.TeamID, name keybase1.TeamName, forceRefresh bool) error
 	ForceRepollUntil(m MetaContext, t gregor.TimeOrOffset) error
-	OnLogout()
 }
 
 type TeamAuditor interface {
 	AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno) (err error)
-	OnLogout(m MetaContext)
+}
+
+type TeamBoxAuditor interface {
+	AssertUnjailedOrReaudit(m MetaContext, id keybase1.TeamID) (didReaudit bool, err error)
+	IsInJail(m MetaContext, id keybase1.TeamID) (bool, error)
+	RetryNextBoxAudit(m MetaContext) (attempt *keybase1.BoxAuditAttempt, err error)
+	BoxAuditRandomTeam(m MetaContext) (attempt *keybase1.BoxAuditAttempt, err error)
+	BoxAuditTeam(m MetaContext, id keybase1.TeamID) (attempt *keybase1.BoxAuditAttempt, err error)
+	Attempt(m MetaContext, id keybase1.TeamID, rotateBeforeAudit bool) keybase1.BoxAuditAttempt
 }
 
 // MiniChatPayment is the argument for sending an in-chat payment.
@@ -718,7 +740,6 @@ type MiniChatPaymentSummary struct {
 }
 
 type Stellar interface {
-	OnLogout()
 	CreateWalletSoft(context.Context)
 	Upkeep(context.Context) error
 	GetServerDefinitions(context.Context) (stellar1.StellarServerDefinitions, error)
@@ -733,54 +754,54 @@ type Stellar interface {
 }
 
 type DeviceEKStorage interface {
-	Put(ctx context.Context, generation keybase1.EkGeneration, deviceEK keybase1.DeviceEk) error
-	Get(ctx context.Context, generation keybase1.EkGeneration) (keybase1.DeviceEk, error)
-	GetAllActive(ctx context.Context, merkleRoot MerkleRoot) ([]keybase1.DeviceEkMetadata, error)
-	MaxGeneration(ctx context.Context, includeErrs bool) (keybase1.EkGeneration, error)
-	DeleteExpired(ctx context.Context, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
+	Put(mctx MetaContext, generation keybase1.EkGeneration, deviceEK keybase1.DeviceEk) error
+	Get(mctx MetaContext, generation keybase1.EkGeneration) (keybase1.DeviceEk, error)
+	GetAllActive(mctx MetaContext, merkleRoot MerkleRoot) ([]keybase1.DeviceEkMetadata, error)
+	MaxGeneration(mctx MetaContext, includeErrs bool) (keybase1.EkGeneration, error)
+	DeleteExpired(mctx MetaContext, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
 	ClearCache()
 	// Dangerous! Only for deprovisioning.
-	ForceDeleteAll(ctx context.Context, username NormalizedUsername) error
+	ForceDeleteAll(mctx MetaContext, username NormalizedUsername) error
 	// For keybase log send
-	ListAllForUser(ctx context.Context) ([]string, error)
+	ListAllForUser(mctx MetaContext) ([]string, error)
 	// Called on login/logout hooks to set the logged in username in the EK log
-	SetLogPrefix()
+	SetLogPrefix(mctx MetaContext)
 }
 
 type UserEKBoxStorage interface {
-	Put(ctx context.Context, generation keybase1.EkGeneration, userEKBoxed keybase1.UserEkBoxed) error
-	Get(ctx context.Context, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.UserEk, error)
-	MaxGeneration(ctx context.Context, includeErrs bool) (keybase1.EkGeneration, error)
-	DeleteExpired(ctx context.Context, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
+	Put(mctx MetaContext, generation keybase1.EkGeneration, userEKBoxed keybase1.UserEkBoxed) error
+	Get(mctx MetaContext, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.UserEk, error)
+	MaxGeneration(mctx MetaContext, includeErrs bool) (keybase1.EkGeneration, error)
+	DeleteExpired(mctx MetaContext, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
 	ClearCache()
 }
 
 type TeamEKBoxStorage interface {
-	Put(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration, teamEKBoxed keybase1.TeamEkBoxed) error
-	Get(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error)
-	MaxGeneration(ctx context.Context, teamID keybase1.TeamID, includeErrs bool) (keybase1.EkGeneration, error)
-	DeleteExpired(ctx context.Context, teamID keybase1.TeamID, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
-	PurgeCacheForTeamID(ctx context.Context, teamID keybase1.TeamID) error
-	Delete(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) error
+	Put(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration, teamEKBoxed keybase1.TeamEkBoxed) error
+	Get(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error)
+	MaxGeneration(mctx MetaContext, teamID keybase1.TeamID, includeErrs bool) (keybase1.EkGeneration, error)
+	DeleteExpired(mctx MetaContext, teamID keybase1.TeamID, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
+	PurgeCacheForTeamID(mctx MetaContext, teamID keybase1.TeamID) error
+	Delete(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration) error
 	ClearCache()
 }
 
 type EKLib interface {
-	KeygenIfNeeded(ctx context.Context) error
-	GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.TeamID) (keybase1.TeamEk, bool, error)
-	GetTeamEK(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error)
-	PurgeCachesForTeamIDAndGeneration(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration)
-	PurgeCachesForTeamID(ctx context.Context, teamID keybase1.TeamID)
+	KeygenIfNeeded(mctx MetaContext) error
+	GetOrCreateLatestTeamEK(mctx MetaContext, teamID keybase1.TeamID) (keybase1.TeamEk, bool, error)
+	GetTeamEK(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error)
+	PurgeCachesForTeamIDAndGeneration(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration)
+	PurgeCachesForTeamID(mctx MetaContext, teamID keybase1.TeamID)
 	NewEphemeralSeed() (keybase1.Bytes32, error)
 	DeriveDeviceDHKey(seed keybase1.Bytes32) *NaclDHKeyPair
-	SignedDeviceEKStatementFromSeed(ctx context.Context, generation keybase1.EkGeneration, seed keybase1.Bytes32, signingKey GenericKey) (keybase1.DeviceEkStatement, string, error)
-	BoxLatestUserEK(ctx context.Context, receiverKey NaclDHKeyPair, deviceEKGeneration keybase1.EkGeneration) (*keybase1.UserEkBoxed, error)
-	PrepareNewUserEK(ctx context.Context, merkleRoot MerkleRoot, pukSeed PerUserKeySeed) (string, []keybase1.UserEkBoxMetadata, keybase1.UserEkMetadata, *keybase1.UserEkBoxed, error)
-	BoxLatestTeamEK(ctx context.Context, teamID keybase1.TeamID, uids []keybase1.UID) (*[]keybase1.TeamEkBoxMetadata, error)
-	PrepareNewTeamEK(ctx context.Context, teamID keybase1.TeamID, signingKey NaclSigningKeyPair, uids []keybase1.UID) (string, *[]keybase1.TeamEkBoxMetadata, keybase1.TeamEkMetadata, *keybase1.TeamEkBoxed, error)
-	ClearCaches()
+	SignedDeviceEKStatementFromSeed(mctx MetaContext, generation keybase1.EkGeneration, seed keybase1.Bytes32, signingKey GenericKey) (keybase1.DeviceEkStatement, string, error)
+	BoxLatestUserEK(mctx MetaContext, receiverKey NaclDHKeyPair, deviceEKGeneration keybase1.EkGeneration) (*keybase1.UserEkBoxed, error)
+	PrepareNewUserEK(mctx MetaContext, merkleRoot MerkleRoot, pukSeed PerUserKeySeed) (string, []keybase1.UserEkBoxMetadata, keybase1.UserEkMetadata, *keybase1.UserEkBoxed, error)
+	BoxLatestTeamEK(mctx MetaContext, teamID keybase1.TeamID, uids []keybase1.UID) (*[]keybase1.TeamEkBoxMetadata, error)
+	PrepareNewTeamEK(mctx MetaContext, teamID keybase1.TeamID, signingKey NaclSigningKeyPair, uids []keybase1.UID) (string, *[]keybase1.TeamEkBoxMetadata, keybase1.TeamEkMetadata, *keybase1.TeamEkBoxed, error)
+	ClearCaches(mctx MetaContext)
 	// For testing
-	NewTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID) (bool, error)
+	NewTeamEKNeeded(mctx MetaContext, teamID keybase1.TeamID) (bool, error)
 }
 
 type ImplicitTeamConflictInfoCacher interface {
@@ -806,11 +827,15 @@ type LRUKeyer interface {
 type LRUer interface {
 	Get(context.Context, LRUContext, LRUKeyer) (interface{}, error)
 	Put(context.Context, LRUContext, LRUKeyer, interface{}) error
+	OnLogout(mctx MetaContext) error
+	OnDbNuke(mctx MetaContext) error
 }
 
 type MemLRUer interface {
 	Get(key interface{}) (interface{}, bool)
 	Put(key, value interface{}) bool
+	OnLogout(mctx MetaContext) error
+	OnDbNuke(mctx MetaContext) error
 }
 
 type ClockContext interface {
@@ -841,6 +866,10 @@ type UIDMapper interface {
 	// For new UIDs, it's a question of just SHA2'ing. For legacy usernames, we check the
 	// hardcoded map.
 	CheckUIDAgainstUsername(uid keybase1.UID, un NormalizedUsername) bool
+
+	// MapHardcodedUsernameToUID will map the given legacy username to a UID if it exists
+	// in the hardcoded map. If not, it will return the nil UID.
+	MapHardcodedUsernameToUID(un NormalizedUsername) keybase1.UID
 
 	// MapUIDToUsernamePackages maps the given set of UIDs to the username
 	// packages, which include a username and a fullname, and when the mapping
@@ -896,9 +925,10 @@ type ChatHelper interface {
 	SendMsgByID(ctx context.Context, convID chat1.ConversationID,
 		tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error
 	SendTextByIDNonblock(ctx context.Context, convID chat1.ConversationID,
-		tlfName string, text string, outboxID *chat1.OutboxID) (chat1.OutboxID, error)
+		tlfName string, text string, outboxID *chat1.OutboxID, replyTo *chat1.MessageID) (chat1.OutboxID, error)
 	SendMsgByIDNonblock(ctx context.Context, convID chat1.ConversationID,
-		tlfName string, body chat1.MessageBody, msgType chat1.MessageType, outboxID *chat1.OutboxID) (chat1.OutboxID, error)
+		tlfName string, body chat1.MessageBody, msgType chat1.MessageType, outboxID *chat1.OutboxID,
+		replyTo *chat1.MessageID) (chat1.OutboxID, error)
 	SendTextByName(ctx context.Context, name string, topicName *string,
 		membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string) error
 	SendMsgByName(ctx context.Context, name string, topicName *string,
@@ -924,7 +954,7 @@ type ChatHelper interface {
 	GetMessage(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		msgID chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) (chat1.MessageUnboxed, error)
 	UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID chat1.TLFID, public bool) error
-	TopReacjis(ctx context.Context, uid gregor1.UID) []string
+	UserReacjis(ctx context.Context, uid gregor1.UID) keybase1.UserReacjis
 }
 
 // Resolver resolves human-readable usernames (joe) and user asssertions (joe+joe@github)

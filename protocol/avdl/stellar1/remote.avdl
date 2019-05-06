@@ -18,7 +18,7 @@ protocol remote {
     boolean quickReturn;
     // if not empty, stellard will inform gregord about this payment's
     // status changes along with this conversation ID
-    union { null, ChatConversationID } chatConversationID; 
+    union { null, ChatConversationID } chatConversationID;
   }
 
   record PaymentRelayPost {
@@ -34,7 +34,7 @@ protocol remote {
     boolean quickReturn; // Same as PaymentDirectPost.quickReturn but success refers to the funding of the relay.
     // if not empty, stellard will inform gregord about this payment's
     // status changes along with this conversation ID
-    union { null, ChatConversationID } chatConversationID; 
+    union { null, ChatConversationID } chatConversationID;
   }
 
   record RelayClaimPost {
@@ -42,6 +42,42 @@ protocol remote {
     RelayDirection dir;
     string signedTransaction; // Claim or yank tx
     union { null, string } autoClaimToken; // Optional. Filled if this is an autoclaim.
+  }
+  
+  record PathPaymentPost {
+    keybase1.DeviceID fromDeviceID;
+    union { null, keybase1.UserVersion } to; // Nil for payments to stellar addresses
+    string noteB64; // b64-encoded EncryptedNote or empty string.
+    string signedTransaction;
+    // If quickReturn == true then the RPC can return success
+    //   while the payment is still pending on the stellar network.
+    boolean quickReturn;
+    // if not empty, stellard will inform gregord about this payment's
+    // status changes along with this conversation ID
+    union { null, ChatConversationID } chatConversationID;
+  }
+
+  record DirectOp {
+    string noteB64; // b64-encoded EncryptedNote or empty string.
+  }
+
+  record RelayOp {
+    string toAssertion;     // Ex: 'mlsteele' or 'maxtaco@reddit'
+    AccountID relayAccount; // Address where the funds will be held
+    keybase1.TeamID teamID; // Impteam ID
+    string boxB64;          // b64-encoded EncryptedRelaySecret
+  }
+
+  record PaymentOp {
+    union { null, keybase1.UserVersion } to; // nil for SBS/stellar address
+    union { null, DirectOp } direct;   // one of direct or relay will be non-nil
+    union { null, RelayOp } relay;
+  }
+
+  record PaymentMultiPost {
+    keybase1.DeviceID fromDeviceID;
+    string signedTransaction;
+    array<PaymentOp> operations;
   }
 
   enum PaymentSummaryType {
@@ -96,6 +132,9 @@ protocol remote {
     boolean fromPrimary;
     string batchID;
     boolean fromAirdrop;
+    string sourceAmountMax;
+    string sourceAmountActual;
+    Asset sourceAsset;
   }
 
   record PaymentSummaryRelay {
@@ -186,6 +225,14 @@ protocol remote {
   PaymentResult submitRelayPayment(keybase1.UserVersion caller, PaymentRelayPost payment);
 
   RelayClaimResult submitRelayClaim(keybase1.UserVersion caller, RelayClaimPost claim);
+  
+  PaymentResult submitPathPayment(keybase1.UserVersion caller, PathPaymentPost payment);
+
+  record SubmitMultiRes {
+    TransactionID txID;
+  }
+
+  SubmitMultiRes submitMultiPayment(keybase1.UserVersion caller, PaymentMultiPost payment);
 
   // Acquire the UV-specific lock for autoclaims.
   // Returns a token, or an empty string if the lock is unavailable.
@@ -255,7 +302,7 @@ protocol remote {
   }
 
   record NetworkOptions {
-    uint64 baseFee; 
+    uint64 baseFee;
   }
   NetworkOptions networkOptions(keybase1.UserVersion caller);
 
@@ -265,4 +312,19 @@ protocol remote {
     array<PaymentSummary> pendingPayments;
   }
   DetailsPlusPayments detailsPlusPayments(keybase1.UserVersion caller, AccountID accountID);
+
+  // search by either an assetCode or an issuerAccountID (or both) to get back matches from stellard/horizon
+  array<Asset> assetSearch(string assetCode, string issuerAccountID);
+
+  void changeTrustline(keybase1.UserVersion caller, string signedTransaction);
+
+  record PaymentPathQuery {
+    AccountID source;
+    AccountID destination;
+    Asset sourceAsset;
+    Asset destinationAsset;
+    string amount;
+  }
+
+  PaymentPath findPaymentPath(keybase1.UserVersion caller, PaymentPathQuery query);
 }

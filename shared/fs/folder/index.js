@@ -4,12 +4,15 @@ import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Kb from '../../common-adapters'
 import * as Kbfs from '../common'
+import * as Styles from '../../styles'
 import FolderHeader from '../header/container'
 import Footer from '../footer/footer'
 import {isMobile} from '../../constants/platform'
 import Rows from '../row/rows-container'
 import {asRows as sfmiBannerAsRows} from '../banner/system-file-manager-integration-banner/container'
 import {asRows as resetBannerAsRows} from '../banner/reset-banner/container'
+import flags from '../../util/feature-flags'
+import OfflineFolder from './offline'
 
 type Props = {|
   onAttach?: ?(paths: Array<string>) => void,
@@ -17,22 +20,26 @@ type Props = {|
   routePath: I.List<string>,
   shouldShowSFMIBanner: boolean,
   resetBannerType: Types.ResetBannerType,
+  offline: boolean,
 |}
 
 const WithContent = (props: Props) => (
-  <Kb.DragAndDrop allowFolders={true} onAttach={props.onAttach}>
-    <Rows
-      path={props.path}
-      routePath={props.routePath}
-      headerRows={[
-        ...resetBannerAsRows(props.path, props.resetBannerType),
-        // only show sfmi banner at /keybase
-        ...(Types.getPathLevel(props.path) === 1
-          ? sfmiBannerAsRows(props.path, props.shouldShowSFMIBanner)
-          : []),
-      ]}
-    />
-  </Kb.DragAndDrop>
+  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.contentContainer}>
+    {/* this extra box is necessary to avoid Kb.DragAndDrop (which is fullHeight) pushes other stuff over */}
+    <Kb.DragAndDrop allowFolders={true} onAttach={props.onAttach}>
+      <Rows
+        path={props.path}
+        routePath={props.routePath}
+        headerRows={[
+          ...resetBannerAsRows(props.path, props.resetBannerType),
+          // only show sfmi banner at /keybase
+          ...(Types.getPathLevel(props.path) === 1
+            ? sfmiBannerAsRows(props.path, props.shouldShowSFMIBanner)
+            : []),
+        ]}
+      />
+    </Kb.DragAndDrop>
+  </Kb.Box2>
 )
 
 const SelfReset = (props: Props) => (
@@ -51,13 +58,24 @@ const SelfReset = (props: Props) => (
 const Folder = (props: Props) => (
   <Kb.BoxGrow>
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-      <FolderHeader path={props.path} routePath={props.routePath} />
+      {!flags.useNewRouter && <FolderHeader path={props.path} routePath={props.routePath} />}
       <Kbfs.Errs />
-      <Kb.Divider />
-      {props.resetBannerType === 'self' ? <SelfReset {...props} /> : <WithContent {...props} />}
+      {props.resetBannerType === 'self' ? (
+        <SelfReset {...props} />
+      ) : props.offline ? (
+        <OfflineFolder path={props.path} />
+      ) : (
+        <WithContent {...props} />
+      )}
       <Footer />
     </Kb.Box2>
   </Kb.BoxGrow>
 )
+
+const styles = Styles.styleSheetCreate({
+  contentContainer: {
+    flex: 1,
+  },
+})
 
 export default Folder

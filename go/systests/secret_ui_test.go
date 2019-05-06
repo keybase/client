@@ -76,7 +76,7 @@ func TestSecretUI(t *testing.T) {
 		t.Errorf("delegate secret UI session ID: %d, expected %d", sui.getPassphraseSessionID, cmd.SessionID)
 	}
 
-	if err := client.CtlServiceStop(tc1.G); err != nil {
+	if err := CtlStop(tc1.G); err != nil {
 		t.Errorf("Error in stopping service: %v", err)
 	}
 
@@ -132,6 +132,12 @@ func (u *loginUI) PromptRevokePaperKeys(context.Context, keybase1.PromptRevokePa
 }
 func (u *loginUI) GetEmailOrUsername(context.Context, int) (string, error) {
 	return "t_alice", nil
+}
+func (u *loginUI) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (bool, error) {
+	return false, nil
+}
+func (u *loginUI) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
+	return nil
 }
 
 type provisionUI struct {

@@ -44,6 +44,7 @@ const siteIconStyles = Styles.styleSheetCreate({
       flexShrink: 0,
     },
     isElectron: {
+      backgroundSize: 'contain',
       height: 16,
       width: 16,
     },

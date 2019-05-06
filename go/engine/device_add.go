@@ -157,7 +157,7 @@ func (e *DeviceAdd) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	m.G().KeyfamilyChanged(m.G().Env.GetUID())
+	m.G().KeyfamilyChanged(m.Ctx(), m.G().Env.GetUID())
 
 	return nil
 }

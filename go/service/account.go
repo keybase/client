@@ -112,7 +112,6 @@ func (h *AccountHandler) ResetAccount(ctx context.Context, arg keybase1.ResetAcc
 type GetLockdownResponse struct {
 	libkb.AppStatusEmbed
 	Enabled bool                       `json:"enabled"`
-	Status  libkb.AppStatus            `json:"status"`
 	History []keybase1.LockdownHistory `json:"history"`
 }
 
@@ -181,9 +180,9 @@ func (h *AccountHandler) PassphraseCheck(ctx context.Context, arg keybase1.Passp
 	return eng.GetResult(), err
 }
 
-func (h *AccountHandler) RecoverUsername(ctx context.Context, arg keybase1.RecoverUsernameArg) (err error) {
+func (h *AccountHandler) RecoverUsernameWithEmail(ctx context.Context, arg keybase1.RecoverUsernameWithEmailArg) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.TraceTimed(fmt.Sprintf("RecoverUsername(%q)", arg.Email), func() error { return err })()
+	defer mctx.TraceTimed(fmt.Sprintf("RecoverUsernameWithEmail(%q)", arg.Email), func() error { return err })()
 	apiArg := libkb.APIArg{
 		Endpoint:    "account/recover_username",
 		SessionType: libkb.APISessionTypeNONE,
@@ -192,5 +191,59 @@ func (h *AccountHandler) RecoverUsername(ctx context.Context, arg keybase1.Recov
 		},
 	}
 	_, err = mctx.G().API.Post(mctx, apiArg)
+	return err
+}
+
+func (h *AccountHandler) RecoverUsernameWithPhone(ctx context.Context, arg keybase1.RecoverUsernameWithPhoneArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed(fmt.Sprintf("RecoverUsernameWithPhone(%q)", arg.Phone), func() error { return err })()
+	if err = libkb.IsPossiblePhoneNumber(arg.Phone); err != nil {
+		return err
+	}
+	apiArg := libkb.APIArg{
+		Endpoint:    "account/recover_username",
+		SessionType: libkb.APISessionTypeNONE,
+		Args: libkb.HTTPArgs{
+			"phone_number": libkb.S{Val: arg.Phone.String()},
+		},
+	}
+	_, err = mctx.G().API.Post(mctx, apiArg)
+	return err
+}
+
+// EnterPipeline allows a user to enter the reset pipeline. The user must
+// verify ownership of the account via an email confirmation or their password.
+// Resets are not allowed on a provisioned device.
+func (h *AccountHandler) EnterResetPipeline(ctx context.Context, arg keybase1.EnterResetPipelineArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("EnterResetPipline", func() error { return err })()
+	uis := libkb.UIs{
+		LoginUI:   h.getLoginUI(arg.SessionID),
+		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
+		LogUI:     h.getLogUI(arg.SessionID),
+		SessionID: arg.SessionID,
+	}
+	eng := engine.NewAccountReset(h.G(), arg.UsernameOrEmail)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	return engine.RunEngine2(m, eng)
+}
+
+// CancelReset allows a user to cancel the reset process via an authenticated API call.
+func (h *AccountHandler) CancelReset(ctx context.Context, sessionID int) error {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	return libkb.CancelResetPipeline(mctx)
+}
+
+// TimeTravelReset allows a user to move forward in the reset process via an authenticated API call [devel-only].
+func (h *AccountHandler) TimeTravelReset(ctx context.Context, arg keybase1.TimeTravelResetArg) error {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	_, err := mctx.G().API.Post(mctx, libkb.APIArg{
+		Endpoint:    "autoreset/timetravel",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"duration_sec": libkb.I{Val: int(arg.Duration)},
+		},
+	})
+
 	return err
 }

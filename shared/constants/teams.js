@@ -4,10 +4,12 @@ import * as ChatTypes from './types/chat2'
 import * as Types from './types/teams'
 import * as RPCTypes from './types/rpc-gen'
 import * as RPCChatTypes from './types/rpc-chat-gen'
+import {getFullRoute} from './router2'
 import {invert} from 'lodash-es'
 import {getPathProps} from '../route-tree'
 import {teamsTab} from './tabs'
 import {memoize} from '../util/memoize'
+import flags from '../util/feature-flags'
 
 import type {Service} from './types/search'
 import type {_RetentionPolicy, RetentionPolicy} from './types/retention-policy'
@@ -40,6 +42,7 @@ export const removeMemberWaitingKey = (teamname: Types.Teamname, id: string) => 
 export const addToTeamSearchKey = 'addToTeamSearch'
 export const teamProfileAddListWaitingKey = 'teamProfileAddList'
 export const leaveTeamWaitingKey = (teamname: Types.Teamname) => `teamLeave:${teamname}`
+export const teamRenameWaitingKey = 'teams:rename'
 
 export const makeChannelInfo: I.RecordFactory<Types._ChannelInfo> = I.Record({
   channelname: '',
@@ -53,6 +56,35 @@ export const makeMemberInfo: I.RecordFactory<Types._MemberInfo> = I.Record({
   type: 'reader',
   username: '',
 })
+
+export const rpcDetailsToMemberInfos = (
+  allRoleMembers: RPCTypes.TeamMembersDetails
+): I.Map<string, Types.MemberInfo> => {
+  const infos = []
+  const types: Types.TeamRoleType[] = ['reader', 'writer', 'admin', 'owner']
+  const typeToKey: Types.TypeMap = {
+    admin: 'admins',
+    owner: 'owners',
+    reader: 'readers',
+    writer: 'writers',
+  }
+  types.forEach(type => {
+    const key = typeToKey[type]
+    const members: Array<RPCTypes.TeamMemberDetails> = allRoleMembers[key] || []
+    members.forEach(({fullName, status, username}) => {
+      infos.push([
+        username,
+        makeMemberInfo({
+          fullName,
+          status: rpcMemberStatusToStatus[status],
+          type,
+          username,
+        }),
+      ])
+    })
+  })
+  return I.Map(infos)
+}
 
 export const makeInviteInfo: I.RecordFactory<Types._InviteInfo> = I.Record({
   email: '',
@@ -233,6 +265,27 @@ const userIsActiveInTeamHelper = (
   return member.status === 'active'
 }
 
+export const userIsRoleInTeamWithInfo = (
+  memberInfo: I.Map<string, Types.MemberInfo>,
+  username: string,
+  role: Types.TeamRoleType
+): boolean => {
+  const member = memberInfo.get(username)
+  if (!member) {
+    return false
+  }
+  return member.type === role
+}
+
+export const userIsRoleInTeam = (
+  state: TypedState,
+  teamname: Types.Teamname,
+  username: string,
+  role: Types.TeamRoleType
+): boolean => {
+  return userIsRoleInTeamWithInfo(state.teams.teamNameToMembers.get(teamname, I.Map()), username, role)
+}
+
 const getEmailInviteError = (state: TypedState) => state.teams.emailInviteError
 
 const isTeamWithChosenChannels = (state: TypedState, teamname: string): boolean =>
@@ -269,6 +322,59 @@ const getTeamMemberCount = (state: TypedState, teamname: Types.Teamname): number
 const isLastOwner = (state: TypedState, teamname: Types.Teamname): boolean =>
   isOwner(getRole(state, teamname)) && !isMultiOwnerTeam(state, teamname)
 
+const getDisabledReasonsForRolePicker = (
+  state: TypedState,
+  teamname: Types.Teamname,
+  memberToModify: ?string
+): Types.DisabledReasonsForRolePicker => {
+  const canManageMembers = getCanPerform(state, teamname).manageMembers
+  if (canManageMembers) {
+    // If you're an implicit admin, the tests below will fail for you, but you can still change roles.
+    return isSubteam(teamname) ? {owner: 'Subteams cannot have owners.'} : {}
+  }
+  const members = getTeamMembers(state, teamname)
+  const member = memberToModify ? members.get(memberToModify) : null
+  const theyAreOwner = member ? member.type === 'owner' : false
+  const you = members.get(state.config.username)
+  // Fallback to the lowest role, although this shouldn't happen
+  const yourRole = you ? you.type : 'reader'
+
+  // We shouldn't get here, but in case we do this is correct.
+  if (yourRole !== 'owner' && yourRole !== 'admin') {
+    return {
+      admin: 'You must be at least an admin to make role changes.',
+      owner: isSubteam(teamname)
+        ? 'Subteams cannot have owners'
+        : 'You must be at least an admin to make role changes.',
+      reader: 'You must be at least an admin to make role changes.',
+      writer: 'You must be at least an admin to make role changes.',
+    }
+  }
+
+  // We shouldn't get here, but in case we do this is correct.
+  if (theyAreOwner && yourRole !== 'owner') {
+    return {
+      admin: `Only owners can change another owner's role`,
+      owner: isSubteam(teamname)
+        ? 'Subteams cannot have owners.'
+        : `Only owners can change another owner's role`,
+      reader: `Only owners can change another owner's role`,
+      writer: `Only owners can change another owner's role`,
+    }
+  }
+
+  // We shouldn't get here, but in case we do this is correct.
+  if (yourRole !== 'owner') {
+    return {
+      owner: isSubteam(teamname)
+        ? 'Subteams cannot have owners.'
+        : `Only owners can turn members into owners`,
+    }
+  }
+
+  return {}
+}
+
 const isMultiOwnerTeam = (state: TypedState, teamname: Types.Teamname): boolean => {
   let countOfOwners = 0
   const allTeamMembers = state.teams.teamNameToMembers.get(teamname, I.Map())
@@ -291,6 +397,15 @@ const getTeamRetentionPolicy = (state: TypedState, teamname: Types.Teamname): ?R
   state.teams.getIn(['teamNameToRetentionPolicy', teamname], null)
 
 const getSelectedTeamNames = (state: TypedState): Types.Teamname[] => {
+  if (flags.useNewRouter) {
+    const path = getFullRoute()
+    return path.reduce((names, curr) => {
+      if (curr.routeName === 'team' && curr.params?.teamname) {
+        names.push(curr.params.teamname)
+      }
+      return names
+    }, [])
+  }
   const pathProps = getPathProps(state.routeTree.routeState, [teamsTab])
   return pathProps.reduce((res, val) => {
     const teamname = val.props.get('teamname')
@@ -471,10 +586,19 @@ export const makeResetUser: I.RecordFactory<Types._ResetUser> = I.Record({
 
 export const chosenChannelsGregorKey = 'chosenChannelsForTeam'
 
+export const isOnTeamsTab = () => {
+  if (!flags.useNewRouter) {
+    return false
+  }
+  const path = getFullRoute()
+  return Array.isArray(path) ? path.some(p => p.routeName === teamsTab) : false
+}
+
 export {
   getNumberOfSubscribedChannels,
   getRole,
   getCanPerform,
+  getDisabledReasonsForRolePicker,
   hasCanPerform,
   hasChannelInfos,
   getEmailInviteError,

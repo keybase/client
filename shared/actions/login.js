@@ -24,14 +24,14 @@ const cancelOnCallback = (params, response) => {
 }
 const ignoreCallback = params => {}
 
-const getPassphraseHandler = passphrase => (params, response) => {
+const getPasswordHandler = passphrase => (params, response) => {
   if (params.pinentry.type === RPCTypes.passphraseCommonPassphraseType.passPhrase) {
     // Service asking us again due to a bad passphrase?
     if (params.pinentry.retryLabel) {
       cancelOnCallback(params, response)
       let retryLabel = params.pinentry.retryLabel
-      if (retryLabel === 'Bad passphrase: Invalid passphrase. Server rejected login attempt..') {
-        retryLabel = 'Incorrect password'
+      if (retryLabel === Constants.invalidPasswordErrorString) {
+        retryLabel = 'Incorrect password.'
       }
       return Saga.put(LoginGen.createLoginError({error: new HiddenString(retryLabel)}))
     } else {
@@ -45,11 +45,11 @@ const getPassphraseHandler = passphrase => (params, response) => {
   }
 }
 
-const moveToProvisioning = (usernameOrEmail: string) => (params, response) => {
+const moveToProvisioning = (username: string) => (params, response) => {
   cancelOnCallback(params, response)
   return Saga.put(
-    ProvisionGen.createSubmitUsernameOrEmail({
-      usernameOrEmail,
+    ProvisionGen.createSubmitUsername({
+      username,
     })
   )
 }
@@ -63,10 +63,10 @@ function* login(state, action) {
           'keybase.1.gpgUi.selectKey': cancelOnCallback,
           'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
           'keybase.1.provisionUi.DisplayAndPromptSecret': cancelOnCallback,
-          'keybase.1.provisionUi.PromptNewDeviceName': moveToProvisioning(action.payload.usernameOrEmail),
+          'keybase.1.provisionUi.PromptNewDeviceName': moveToProvisioning(action.payload.username),
           'keybase.1.provisionUi.chooseDevice': cancelOnCallback,
           'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
-          'keybase.1.secretUi.getPassphrase': getPassphraseHandler(action.payload.passphrase.stringValue()),
+          'keybase.1.secretUi.getPassphrase': getPasswordHandler(action.payload.password.stringValue()),
         },
         // cancel if we get any of these callbacks, we're logging in, not provisioning
         incomingCallMap: {
@@ -77,8 +77,10 @@ function* login(state, action) {
         },
         params: {
           clientType: RPCTypes.commonClientType.guiMain,
+          deviceName: '',
           deviceType: isMobile ? 'mobile' : 'desktop',
-          usernameOrEmail: action.payload.usernameOrEmail,
+          paperKey: '',
+          username: action.payload.username,
         },
         waitingKey: Constants.waitingKey,
       })

@@ -26,22 +26,6 @@ type conversationLocalizer interface {
 	Name() string
 }
 
-type localizerCancelableKeyTyp int
-
-var localizerCancelableKey localizerCancelableKeyTyp
-
-func makeLocalizerCancelableContext(ctx context.Context) context.Context {
-	return context.WithValue(ctx, localizerCancelableKey, true)
-}
-
-func isLocalizerCancelableContext(ctx context.Context) bool {
-	val := ctx.Value(localizerCancelableKey)
-	if _, ok := val.(bool); ok {
-		return true
-	}
-	return false
-}
-
 type baseLocalizer struct {
 	globals.Contextified
 	utils.DebugLabeler
@@ -175,7 +159,7 @@ func (b *nonBlockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, in
 			b.Debug(ctx, "Localize: failed to queue: %s", err)
 			close(b.localizeCb)
 		}
-	}(BackgroundContext(ctx, b.G()))
+	}(globals.BackgroundChatCtx(ctx, b.G()))
 	return nil, nil
 }
 
@@ -201,7 +185,7 @@ func (l *localizerPipelineJob) retry(g *globals.Context) (res *localizerPipeline
 	l.Lock()
 	defer l.Unlock()
 	res = new(localizerPipelineJob)
-	res.ctx, res.cancelFn = context.WithCancel(BackgroundContext(l.ctx, g))
+	res.ctx, res.cancelFn = context.WithCancel(globals.BackgroundChatCtx(l.ctx, g))
 	res.retCh = l.retCh
 	res.uid = l.uid
 	res.completed = l.completed
@@ -256,7 +240,7 @@ func (l *localizerPipelineJob) complete(convID chat1.ConversationID) {
 func newLocalizerPipelineJob(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	convs []chat1.Conversation, retCh chan types.AsyncInboxResult) *localizerPipelineJob {
 	return &localizerPipelineJob{
-		ctx:     BackgroundContext(ctx, g),
+		ctx:     globals.BackgroundChatCtx(ctx, g),
 		retCh:   retCh,
 		uid:     uid,
 		pending: convs,
@@ -313,8 +297,8 @@ func (s *localizerPipeline) queue(ctx context.Context, uid gregor1.UID, convs []
 		return errors.New("localizer not running")
 	}
 	job := newLocalizerPipelineJob(ctx, s.G(), uid, convs, retCh)
-	job.ctx, job.cancelFn = context.WithCancel(BackgroundContext(ctx, s.G()))
-	if isLocalizerCancelableContext(job.ctx) {
+	job.ctx, job.cancelFn = context.WithCancel(globals.BackgroundChatCtx(ctx, s.G()))
+	if globals.IsLocalizerCancelableCtx(job.ctx) {
 		s.Debug(job.ctx, "queue: adding cancellable job")
 	}
 	s.jobQueue <- job
@@ -375,7 +359,7 @@ func (s *localizerPipeline) registerJobPull(ctx context.Context) (string, chan s
 	defer s.Unlock()
 	id := libkb.RandStringB64(3)
 	ch := make(chan struct{}, 1)
-	if isLocalizerCancelableContext(ctx) {
+	if globals.IsLocalizerCancelableCtx(ctx) {
 		s.cancelChs[id] = ch
 	}
 	return id, ch
@@ -423,7 +407,7 @@ func (s *localizerPipeline) localizeJobPulled(job *localizerPipelineJob, stopCh 
 	s.Debug(job.ctx, "localizeJobPulled: pulling job: pending: %d completed: %d", job.numPending(),
 		job.numCompleted())
 	waitCh := make(chan struct{})
-	if !isLocalizerCancelableContext(job.ctx) {
+	if !globals.IsLocalizerCancelableCtx(job.ctx) {
 		close(waitCh)
 	} else {
 		s.Debug(job.ctx, "localizeJobPulled: waiting for resume")

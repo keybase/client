@@ -223,6 +223,10 @@ type BoxerEncryptionInfo struct {
 	Version               chat1.MessageBoxedVersion
 }
 
+type SenderPrepareOptions struct {
+	SkipTopicNameState bool
+}
+
 type SenderPrepareResult struct {
 	Boxed               chat1.MessageBoxed
 	EncryptionInfo      BoxerEncryptionInfo
@@ -274,7 +278,7 @@ func (d DummyAttachmentFetcher) PutUploadedAsset(ctx context.Context, filename s
 func (d DummyAttachmentFetcher) IsAssetLocal(ctx context.Context, asset chat1.Asset) (bool, error) {
 	return false, nil
 }
-func (d DummyAttachmentFetcher) OnCacheCleared(mctx libkb.MetaContext) {}
+func (d DummyAttachmentFetcher) OnDbNuke(mctx libkb.MetaContext) error { return nil }
 
 type DummyAttachmentHTTPSrv struct{}
 
@@ -301,7 +305,11 @@ func (d DummyAttachmentHTTPSrv) GetAttachmentFetcher() AttachmentFetcher {
 func (d DummyAttachmentHTTPSrv) GetGiphyURL(ctx context.Context, giphyURL string) string {
 	return ""
 }
-func (d DummyAttachmentHTTPSrv) OnCacheCleared(mctx libkb.MetaContext) {}
+func (d DummyAttachmentHTTPSrv) GetGiphyGalleryURL(ctx context.Context, convID chat1.ConversationID,
+	tlfName string, results []chat1.GiphySearchResult) string {
+	return ""
+}
+func (d DummyAttachmentHTTPSrv) OnDbNuke(mctx libkb.MetaContext) error { return nil }
 
 type DummyStellarLoader struct{}
 
@@ -321,7 +329,9 @@ var _ EphemeralPurger = (*DummyEphemeralPurger)(nil)
 
 func (d DummyEphemeralPurger) Start(ctx context.Context, uid gregor1.UID) {}
 func (d DummyEphemeralPurger) Stop(ctx context.Context) chan struct{} {
-	return nil
+	ch := make(chan struct{})
+	close(ch)
+	return ch
 }
 func (d DummyEphemeralPurger) Queue(ctx context.Context, purgeInfo chat1.EphemeralPurgeInfo) error {
 	return nil
@@ -333,10 +343,12 @@ var _ Indexer = (*DummyIndexer)(nil)
 
 func (d DummyIndexer) Start(ctx context.Context, uid gregor1.UID) {}
 func (d DummyIndexer) Stop(ctx context.Context) chan struct{} {
-	return nil
+	ch := make(chan struct{})
+	close(ch)
+	return ch
 }
-func (d DummyIndexer) Search(ctx context.Context, uid gregor1.UID, query string, opts chat1.SearchOpts,
-	hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus) (*chat1.ChatSearchInboxResults, error) {
+func (d DummyIndexer) Search(ctx context.Context, uid gregor1.UID, query, origQuery string,
+	opts chat1.SearchOpts, hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus) (*chat1.ChatSearchInboxResults, error) {
 	return nil, nil
 }
 func (d DummyIndexer) Add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg []chat1.MessageUnboxed) error {
@@ -345,8 +357,26 @@ func (d DummyIndexer) Add(ctx context.Context, convID chat1.ConversationID, uid 
 func (d DummyIndexer) Remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg []chat1.MessageUnboxed) error {
 	return nil
 }
+func (d DummyIndexer) SearchableConvs(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) ([]RemoteConversation, error) {
+	return nil, nil
+}
 func (d DummyIndexer) IndexInbox(ctx context.Context, uid gregor1.UID) (map[string]chat1.ProfileSearchConvStats, error) {
 	return nil, nil
+}
+func (d DummyIndexer) ClearCache() {
+	return
+}
+func (d DummyIndexer) OnLogout(mctx libkb.MetaContext) error {
+	return nil
+}
+func (d DummyIndexer) OnDbNuke(mctx libkb.MetaContext) error {
+	return nil
+}
+func (d DummyIndexer) FullyIndexed(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (bool, error) {
+	return false, nil
+}
+func (d DummyIndexer) PercentIndexed(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (int, error) {
+	return 0, nil
 }
 
 type DummyNativeVideoHelper struct{}
@@ -435,7 +465,9 @@ var _ CoinFlipManager = (*DummyCoinFlipManager)(nil)
 
 func (d DummyCoinFlipManager) Start(ctx context.Context, uid gregor1.UID) {}
 func (d DummyCoinFlipManager) Stop(ctx context.Context) chan struct{} {
-	return nil
+	ch := make(chan struct{})
+	close(ch)
+	return ch
 }
 func (d DummyCoinFlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID, tlfName, text string, outboxID *chat1.OutboxID) error {
 	return nil
@@ -457,4 +489,18 @@ func (d DummyCoinFlipManager) HasActiveGames(ctx context.Context) bool {
 
 func (d DummyCoinFlipManager) IsFlipConversationCreated(ctx context.Context, outboxID chat1.OutboxID) (chat1.ConversationID, FlipSendStatus) {
 	return nil, FlipSendStatusError
+}
+
+type DummyTeamMentionLoader struct{}
+
+func (d DummyTeamMentionLoader) Start(ctx context.Context, uid gregor1.UID) {}
+func (d DummyTeamMentionLoader) Stop(ctx context.Context) chan struct{} {
+	ch := make(chan struct{})
+	close(ch)
+	return ch
+}
+
+func (d DummyTeamMentionLoader) LoadTeamMention(ctx context.Context, uid gregor1.UID,
+	teamName, channel string) error {
+	return nil
 }

@@ -42,13 +42,13 @@ class WithTooltip extends React.Component<Props, State> {
         <Box
           style={this.props.containerStyle}
           forwardedRef={this._setAttachmentRef}
-          onMouseEnter={this._onMouseEnter}
+          onMouseOver={this._onMouseEnter}
           onMouseLeave={this._onMouseLeave}
           className={this.props.className}
         >
           {this.props.children}
         </Box>
-        {this.state.mouseIn && (
+        {!this.props.disabled && this.state.mouseIn && (
           <Toast
             containerStyle={Styles.collapseStyles([
               styles.container,
@@ -74,9 +74,12 @@ class WithTooltip extends React.Component<Props, State> {
 }
 
 const styles = Styles.styleSheetCreate({
-  container: {
-    borderRadius: Styles.borderRadius,
-  },
+  container: Styles.platformStyles({
+    isElectron: {
+      borderRadius: Styles.borderRadius,
+      pointerEvents: 'none',
+    },
+  }),
   containerMultiline: {
     maxWidth: 320,
     minWidth: 320,

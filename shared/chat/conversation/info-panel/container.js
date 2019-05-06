@@ -1,6 +1,8 @@
 // @flow
+import * as I from 'immutable'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
+import * as TeamConstants from '../../../constants/teams'
 import * as React from 'react'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Types from '../../../constants/types/chat2'
@@ -8,8 +10,8 @@ import flags from '../../../util/feature-flags'
 import {InfoPanel} from '.'
 import {connect, getRouteProps, isMobile, type RouteProps} from '../../../util/container'
 import {createShowUserProfile} from '../../../actions/profile-gen'
-import {getCanPerform} from '../../../constants/teams'
 import {Box} from '../../../common-adapters'
+import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 
 type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
@@ -27,17 +29,17 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   let canSetRetention = false
   let canDeleteHistory = false
   if (meta.teamname) {
-    const yourOperations = getCanPerform(state, meta.teamname)
+    const yourOperations = TeamConstants.getCanPerform(state, meta.teamname)
     admin = yourOperations.manageMembers
     canEditChannel = yourOperations.editTeamDescription
     canSetMinWriterRole = yourOperations.setMinWriterRole
     canSetRetention = yourOperations.setRetentionPolicy
     canDeleteHistory = yourOperations.deleteChatHistory
   }
-
   return {
     _infoMap: state.users.infoMap,
     _participants: meta.participants,
+    _teamMembers: state.teams.teamNameToMembers.get(meta.teamname, I.Map()),
     admin,
     canDeleteHistory,
     canEditChannel,
@@ -45,9 +47,12 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     canSetRetention,
     channelname: meta.channelname,
     description: meta.description,
+    ignored: meta.status === RPCChatTypes.commonConversationStatus.ignored,
     isPreview: meta.membershipType === 'youArePreviewing',
     selectedConversationIDKey: conversationIDKey,
     smallTeam: meta.teamType !== 'big',
+    spinnerForHide:
+      state.waiting.counts.get(Constants.waitingKeyConvStatusChange(ownProps.conversationIDKey), 0) > 0,
     teamname: meta.teamname,
   }
 }
@@ -68,6 +73,7 @@ const mapDispatchToProps = (dispatch, {conversationIDKey, onBack}: OwnProps) => 
       })
     )
   },
+  onHideConv: () => dispatch(Chat2Gen.createHideConversation({conversationIDKey})),
   onJoinChannel: () => dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),
   onLeaveConversation: () => dispatch(Chat2Gen.createLeaveConversation({conversationIDKey})),
   onShowBlockConversationDialog: () => {
@@ -95,6 +101,7 @@ const mapDispatchToProps = (dispatch, {conversationIDKey, onBack}: OwnProps) => 
     )
   },
   onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
+  onUnhideConv: () => dispatch(Chat2Gen.createUnhideConversation({conversationIDKey})),
 })
 
 // state props
@@ -107,24 +114,34 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   channelname: stateProps.channelname,
   customCancelText: 'Done',
   description: stateProps.description,
+  ignored: stateProps.ignored,
   isPreview: stateProps.isPreview,
   onBack: ownProps.onBack,
   onCancel: ownProps.onCancel,
   onEditChannel: () => dispatchProps._onEditChannel(stateProps.teamname),
+  onHideConv: dispatchProps.onHideConv,
   onJoinChannel: dispatchProps.onJoinChannel,
   onLeaveConversation: dispatchProps.onLeaveConversation,
   onShowBlockConversationDialog: dispatchProps.onShowBlockConversationDialog,
   onShowClearConversationDialog: () => dispatchProps._onShowClearConversationDialog(),
   onShowNewTeamDialog: dispatchProps.onShowNewTeamDialog,
   onShowProfile: dispatchProps.onShowProfile,
+  onUnhideConv: dispatchProps.onUnhideConv,
   participants: stateProps._participants
     .map(p => ({
       fullname: stateProps._infoMap.getIn([p, 'fullname'], ''),
+      isAdmin: stateProps.teamname
+        ? TeamConstants.userIsRoleInTeamWithInfo(stateProps._teamMembers, p, 'admin')
+        : false,
+      isOwner: stateProps.teamname
+        ? TeamConstants.userIsRoleInTeamWithInfo(stateProps._teamMembers, p, 'owner')
+        : false,
       username: p,
     }))
     .toArray(),
   selectedConversationIDKey: stateProps.selectedConversationIDKey,
   smallTeam: stateProps.smallTeam,
+  spinnerForHide: stateProps.spinnerForHide,
   teamname: stateProps.teamname,
 })
 
@@ -147,7 +164,10 @@ const mapStateToSelectorProps = (state, ownProps: SelectorOwnProps) => {
 
 const mapDispatchToSelectorProps = dispatch => ({
   // Used by HeaderHoc.
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onBack: () =>
+    flags.useNewRouter
+      ? dispatch(Chat2Gen.createToggleInfoPanel())
+      : dispatch(RouteTreeGen.createNavigateUp()),
   onGoToInbox: () => dispatch(Chat2Gen.createNavigateToInbox({findNewConversation: true})),
 })
 
@@ -197,7 +217,7 @@ const clickCatcherStyle = {
   left: flags.useNewRouter ? 0 : 80,
   position: 'absolute',
   right: 0,
-  top: flags.useNewRouter ? 44 : 38,
+  top: flags.useNewRouter ? 39 : 38,
 }
 const panelContainerStyle = {
   bottom: 0,

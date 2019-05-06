@@ -353,7 +353,8 @@ func TestChatSrvUnfurl(t *testing.T) {
 
 		t.Logf("exploding unfurl: %v", ctc.world.Fc.Now())
 		dur := gregor1.ToDurationSec(120 * time.Minute)
-		ctc.as(t, users[0]).h.G().GetEKLib().KeygenIfNeeded(context.Background())
+		g := ctc.as(t, users[0]).h.G()
+		g.GetEKLib().KeygenIfNeeded(g.MetaContext(context.Background()))
 		origExplodeID := mustPostLocalEphemeralForTest(t, ctc, users[0], conv, msg, &dur)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
 		recvAndCheckUnfurlMsg(origExplodeID)

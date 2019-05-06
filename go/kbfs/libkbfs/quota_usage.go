@@ -5,10 +5,12 @@
 package libkbfs
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
 	"github.com/keybase/client/go/kbfs/kbfsblock"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -55,16 +57,22 @@ type EventuallyConsistentQuotaUsage struct {
 	bgFetch bool
 }
 
+// QuotaUsageLogModule makes a log module for a quota usage log.
+func QuotaUsageLogModule(suffix string) string {
+	return fmt.Sprintf("%s - %s", ECQUID, suffix)
+}
+
 // NewEventuallyConsistentQuotaUsage creates a new
 // EventuallyConsistentQuotaUsage object.
 func NewEventuallyConsistentQuotaUsage(
-	config Config, loggerSuffix string) *EventuallyConsistentQuotaUsage {
+	config Config, log logger.Logger,
+	vlog *libkb.VDebugLog) *EventuallyConsistentQuotaUsage {
 	q := &EventuallyConsistentQuotaUsage{
 		config: config,
-		log:    config.MakeLogger(ECQUID + "-" + loggerSuffix),
+		log:    log,
 	}
 	q.fetcher = newFetchDecider(
-		q.log, q.getAndCache, ECQUCtxTagKey{}, ECQUID, q.config)
+		q.log, vlog, q.getAndCache, ECQUCtxTagKey{}, ECQUID, q.config)
 	return q
 }
 
@@ -72,8 +80,8 @@ func NewEventuallyConsistentQuotaUsage(
 // EventuallyConsistentQuotaUsage object.
 func NewEventuallyConsistentTeamQuotaUsage(
 	config Config, tid keybase1.TeamID,
-	loggerSuffix string) *EventuallyConsistentQuotaUsage {
-	q := NewEventuallyConsistentQuotaUsage(config, loggerSuffix)
+	log logger.Logger, vlog *libkb.VDebugLog) *EventuallyConsistentQuotaUsage {
+	q := NewEventuallyConsistentQuotaUsage(config, log, vlog)
 	q.tid = tid
 	return q
 }

@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import Box, {Box2} from './box'
-import Icon, {castPlatformStyles as iconCastPlatformStyles} from './icon'
+import Icon from './icon'
 import Text from './text'
 import * as Styles from '../styles'
 
@@ -47,8 +47,7 @@ const Banner = (props: Props) => (
                 key={`action-${index}`}
                 type="BodySmallSemibold"
                 onClick={onClick}
-                style={colorToTextColorStyles[props.color]}
-                underline={true}
+                style={Styles.collapseStyles([colorToTextColorStyles[props.color], styles.underline])}
               >
                 {title}
               </Text>,
@@ -60,9 +59,9 @@ const Banner = (props: Props) => (
     {!!props.onClose && (
       <Box key="iconBox" style={styles.iconContainer}>
         <Icon
-          fontSize={Styles.isMobile ? undefined : Styles.globalMargins.xsmall}
+          padding="xtiny"
+          sizeType="Small"
           type="iconfont-close"
-          style={iconCastPlatformStyles(styles.icon)}
           color={Styles.globalColors.white_90}
           hoverColor={Styles.globalColors.white}
           onClick={props.onClose}
@@ -79,15 +78,19 @@ const styles = Styles.styleSheetCreate({
   containerInline: {
     borderRadius: Styles.borderRadius,
   },
-  icon: {
-    padding: Styles.globalMargins.tiny,
-  },
-  iconContainer: {
-    padding: Styles.globalMargins.xtiny,
-    paddingTop: Styles.globalMargins.xtiny + Styles.globalMargins.tiny,
-    position: 'absolute',
-    right: 0,
-  },
+  iconContainer: Styles.platformStyles({
+    common: {
+      padding: Styles.globalMargins.xtiny,
+      position: 'absolute',
+      right: 0,
+    },
+    isElectron: {
+      paddingTop: Styles.globalMargins.tiny + Styles.globalMargins.xtiny,
+    },
+    isMobile: {
+      paddingTop: Styles.globalMargins.tiny,
+    },
+  }),
   text: Styles.platformStyles({
     common: {
       maxWidth: '100%',
@@ -113,6 +116,9 @@ const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.medium,
     },
   }),
+  underline: {
+    textDecorationLine: 'underline',
+  },
 })
 
 const colorToBackgroundColorStyles = Styles.styleSheetCreate({

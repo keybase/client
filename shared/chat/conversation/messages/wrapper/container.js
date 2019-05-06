@@ -1,6 +1,7 @@
 // @flow
 import WrapperMessage from '.'
 import * as Constants from '../../../../constants/chat2'
+import * as TeamConstants from '../../../../constants/teams'
 import * as MessageConstants from '../../../../constants/chat2/message'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ProfileGen from '../../../../actions/profile-gen'
@@ -28,9 +29,24 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     message.type === 'text'
       ? state.chat2.unfurlPromptMap.getIn([message.conversationIDKey, message.id])
       : null
-
+  const centeredOrdinalInfo = state.chat2.messageCenterOrdinals.get(message.conversationIDKey)
+  const centeredOrdinal =
+    centeredOrdinalInfo && centeredOrdinalInfo.ordinal === ownProps.ordinal
+      ? centeredOrdinalInfo.highlightMode
+      : 'none'
+  const meta = Constants.getMeta(state, message.conversationIDKey)
+  const teamname = meta.teamname
+  const authorIsAdmin = teamname
+    ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'admin')
+    : false
+  const authorIsOwner = teamname
+    ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'owner')
+    : false
   return {
     _you: state.config.username,
+    authorIsAdmin,
+    authorIsOwner,
+    centeredOrdinal,
     conversationIDKey: ownProps.conversationIDKey,
     hasUnfurlPrompts: !!unfurlPrompts && !unfurlPrompts.isEmpty(),
     isLastInThread:
@@ -41,6 +57,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     previous,
     shouldShowPopup: Constants.shouldShowPopup(state, message),
     showCoinsIcon: Constants.hasSuccessfulInlinePayments(state, message),
+    showCrowns: message.type !== 'systemAddedToTeam' && message.type !== 'systemInviteAccepted',
   }
 }
 
@@ -142,6 +159,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const forceAsh = !!message.explodingUnreadable
 
   return {
+    authorIsAdmin: stateProps.authorIsAdmin,
+    authorIsOwner: stateProps.authorIsOwner,
+    centeredOrdinal: stateProps.centeredOrdinal,
     conversationIDKey: stateProps.conversationIDKey,
     decorate,
     exploded: (message.type === 'attachment' || message.type === 'text') && message.exploded,
@@ -161,6 +181,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     previous: stateProps.previous,
     shouldShowPopup: stateProps.shouldShowPopup,
     showCoinsIcon: stateProps.showCoinsIcon,
+    showCrowns: stateProps.showCrowns,
     showSendIndicator,
     showUsername,
   }

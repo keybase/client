@@ -95,7 +95,7 @@ function SpaceInfo({
 const UpgradeButton = ({onClick, type}: {onClick: () => void, type: 'upgrade' | 'change'}) => (
   <Button
     style={{marginRight: 0}}
-    type="PrimaryGreen"
+    type="Success"
     label={{change: 'Change', upgrade: 'Upgrade'}[type]}
     onClick={e => {
       onClick()
@@ -284,44 +284,36 @@ function AccountFirstEmail({onChangeEmail}: {onChangeEmail: () => void}) {
       }}
     >
       <Text type="Body">
-        No e-mail set. You should{' '}
-        <Text type="BodyPrimaryLink" onClick={onChangeEmail}>
-          add an e-mail address.
-        </Text>
+        Email address:
+        <Button label="Add an email address" type="Dim" small={true} onClick={onChangeEmail} />
       </Text>
     </Box>
   )
 }
 
-function AccountPassphrase({onChangePassphrase}: {onChangePassphrase: () => void}) {
+function AccountPassword({onChangePassword}: {onChangePassword: () => void}) {
   return (
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minHeight: ROW_HEIGHT}}>
       <Text type="Body" style={{marginRight: globalMargins.xtiny}}>
-        Passphrase:
+        Password:
       </Text>
       <Text type="Body" style={{flex: 1}}>
         •••••••••
       </Text>
-      <Text type="Body" style={{color: globalColors.blue}} onClick={onChangePassphrase}>
+      <Text type="Body" style={{color: globalColors.blue}} onClick={onChangePassword}>
         Edit
       </Text>
     </Box>
   )
 }
 
-function AccountFirstPassphrase({onChangePassphrase}: {onChangePassphrase: () => void}) {
+function AccountFirstPassword({onChangePassword}: {onChangePassword: () => void}) {
   return (
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minHeight: ROW_HEIGHT}}>
       <Text type="Body" style={{marginRight: globalMargins.xtiny}}>
-        Passphrase:
+        Password:
       </Text>
-      <Text type="Body">
-        Not set! You should{' '}
-        <Text type="Body" style={{color: globalColors.blue}} onClick={onChangePassphrase}>
-          set a passphrase
-        </Text>
-        .
-      </Text>
+      <Button label="Set a password" type="Dim" small={true} onClick={onChangePassword} />
     </Box>
   )
 }
@@ -330,28 +322,26 @@ function Account({
   email,
   isVerified,
   onChangeEmail,
-  onChangePassphrase,
-  onChangeRememberPassphrase,
-  rememberPassphrase,
+  onChangePassword,
+  onChangeRememberPassword,
+  rememberPassword,
   hasRandomPW,
 }: AccountProps) {
-  const Passphrase = hasRandomPW ? AccountFirstPassphrase : AccountPassphrase
+  const Password = hasRandomPW ? AccountFirstPassword : AccountPassword
   const Email = email ? AccountEmail : AccountFirstEmail
   return (
     <Box style={{...globalStyles.flexBoxColumn, marginBottom: globalMargins.medium}}>
       <Email email={email} isVerified={isVerified} onChangeEmail={onChangeEmail} />
       <Divider />
-      <Passphrase onChangePassphrase={onChangePassphrase} />
+      <Password onChangePassword={onChangePassword} />
+      <Divider />
       {!hasRandomPW && (
-        <>
-          <Divider />
-          <Checkbox
-            checked={rememberPassphrase}
-            label="Remember my passphrase"
-            onCheck={onChangeRememberPassphrase}
-            style={{paddingTop: globalMargins.small}}
-          />
-        </>
+        <Checkbox
+          checked={rememberPassword}
+          label="Remember my password"
+          onCheck={onChangeRememberPassword}
+          style={{paddingTop: globalMargins.small}}
+        />
       )}
     </Box>
   )

@@ -53,6 +53,7 @@ var testVectors = []struct {
 	{"zs1fw4tgx9gccv2f8af6ugu727slx7pq0nc46yflcuqyluruxtcmg20hxh3r4d9ec9yejj6gfrf2hc", CryptocurrencyTypeZCashSapling},
 	{"ZS1FW4TGX9GCCV2F8AF6UGU727SLX7PQ0NC46YFLCUQYLURUXTCMG20HXH3R4D9EC9YEJJ6GFRF2HC", CryptocurrencyTypeZCashSapling},
 	{"zs1fw4tgx9gccv2f8af6ugu727slx7pq0nc46yflcuqyluruxtcmg20hxh3r4d9ec9yejj6gfrf2hd", CryptocurrencyTypeNone},
+	{"bc1qcerjvfmt8qr8xlp6pv4htjhwlj2wgdjnayc3cc", CryptocurrencyTypeBTCSegwit},
 }
 
 func TestCryptocurrencyParseAndCheck(t *testing.T) {
@@ -65,16 +66,27 @@ func TestCryptocurrencyParseAndCheck(t *testing.T) {
 }
 
 func TestAddressValidation(t *testing.T) {
-	validAddr := "3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy"
-	invalidAddr := "4J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy" // changed first digit
-
-	_, _, err := BtcAddrCheck(validAddr, nil)
-	if err != nil {
-		t.Fatal("Failed to validate a good address.")
+	btcTestAddrs := []struct {
+		address string
+		valid   bool
+	}{
+		{"3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy", true},
+		{"4J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy", false}, // changed first digit
+		{"bc1qcerjvfmt8qr8xlp6pv4htjhwlj2wgdjnayc3cc", true},
+		{"bc1qcerjvfmt8qr8xlp6pv4htjhwlj2wgdjnaycccc", false}, // bad checksum
+		{"bc11cerjvfmt8qr8xlp6pv4htjhwlj2wgdjnayc3cc", false},
+		{"bc20cerjvfmt8qr8xlp6pv4htjhwlj2wgdjnayc3cc", false},
+		{"bc1q7k78aepp3epmlzvxwvvhc4up849efeg7r5j0xk", true},
+		{"BC1QCERJVFMT8QR8XLP6PV4HTJHWLJ2WGDJNAYC3CC", true}, // uppercase is accepted
+		{"bc1qc7slrfxkknqcq2jevvvkdgvrt8080852dfjewde450xdlk4ugp7szw5tk9", true},
 	}
-
-	_, _, err = BtcAddrCheck(invalidAddr, nil)
-	if err == nil {
-		t.Fatal("Failed to catch a bad address.")
+	for _, testAddr := range btcTestAddrs {
+		_, _, err := BtcAddrCheck(testAddr.address, nil)
+		if testAddr.valid && err != nil {
+			t.Fatalf("Failed to validate a good address %s.", testAddr.address)
+		}
+		if !testAddr.valid && err == nil {
+			t.Fatalf("Failed to catch a bad address %s.", testAddr.address)
+		}
 	}
 }

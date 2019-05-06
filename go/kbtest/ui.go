@@ -13,11 +13,11 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-type gpgtestui struct {
+type GPGTestUI struct {
 	index int
 }
 
-func (g *gpgtestui) SelectKeyAndPushOption(_ context.Context, arg keybase1.SelectKeyAndPushOptionArg) (keybase1.SelectKeyRes, error) {
+func (g *GPGTestUI) SelectKeyAndPushOption(_ context.Context, arg keybase1.SelectKeyAndPushOptionArg) (keybase1.SelectKeyRes, error) {
 	if len(arg.Keys) == 0 {
 		return keybase1.SelectKeyRes{}, fmt.Errorf("no keys in arg")
 	}
@@ -28,7 +28,7 @@ func (g *gpgtestui) SelectKeyAndPushOption(_ context.Context, arg keybase1.Selec
 	return keybase1.SelectKeyRes{KeyID: key.KeyID, DoSecretPush: true}, nil
 }
 
-func (g *gpgtestui) SelectKey(_ context.Context, arg keybase1.SelectKeyArg) (string, error) {
+func (g *GPGTestUI) SelectKey(_ context.Context, arg keybase1.SelectKeyArg) (string, error) {
 	if len(arg.Keys) == 0 {
 		return "", fmt.Errorf("no keys in arg")
 	}
@@ -39,23 +39,23 @@ func (g *gpgtestui) SelectKey(_ context.Context, arg keybase1.SelectKeyArg) (str
 	return key.KeyID, nil
 }
 
-func (g *gpgtestui) WantToAddGPGKey(_ context.Context, _ int) (bool, error) {
+func (g *GPGTestUI) WantToAddGPGKey(_ context.Context, _ int) (bool, error) {
 	return true, nil
 }
 
-func (g *gpgtestui) ConfirmDuplicateKeyChosen(_ context.Context, _ int) (bool, error) {
+func (g *GPGTestUI) ConfirmDuplicateKeyChosen(_ context.Context, _ int) (bool, error) {
 	return true, nil
 }
 
-func (g *gpgtestui) ConfirmImportSecretToExistingKey(_ context.Context, _ int) (bool, error) {
+func (g *GPGTestUI) ConfirmImportSecretToExistingKey(_ context.Context, _ int) (bool, error) {
 	return false, nil
 }
 
-func (g *gpgtestui) Sign(_ context.Context, _ keybase1.SignArg) (string, error) {
+func (g *GPGTestUI) Sign(_ context.Context, _ keybase1.SignArg) (string, error) {
 	return "", fmt.Errorf("not implemented")
 }
 
-func (g *gpgtestui) GetTTY(_ context.Context) (string, error) {
+func (g *GPGTestUI) GetTTY(_ context.Context) (string, error) {
 	return "", nil
 }
 

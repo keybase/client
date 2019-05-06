@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -33,12 +34,14 @@ type NotifyListener interface {
 	ClientOutOfDate(to, uri, msg string)
 	UserChanged(uid keybase1.UID)
 	TrackingChanged(uid keybase1.UID, username NormalizedUsername)
+	FSOnlineStatusChanged(online bool)
 	FSActivity(activity keybase1.FSNotification)
 	FSPathUpdated(path string)
 	FSEditListResponse(arg keybase1.FSEditListArg)
 	FSSyncStatusResponse(arg keybase1.FSSyncStatusArg)
 	FSSyncEvent(arg keybase1.FSPathSyncStatus)
 	FSEditListRequest(arg keybase1.FSEditListRequest)
+	FSOverallSyncStatusChanged(arg keybase1.FolderSyncStatus)
 	FavoritesChanged(uid keybase1.UID)
 	PaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID)
 	KeyfamilyChanged(uid keybase1.UID)
@@ -91,8 +94,10 @@ type NotifyListener interface {
 	PhoneNumberAdded(phoneNumber keybase1.PhoneNumber)
 	PhoneNumberVerified(phoneNumber keybase1.PhoneNumber)
 	PhoneNumberSuperseded(phoneNumber keybase1.PhoneNumber)
+	EmailAddressVerified(emailAddress keybase1.EmailAddress)
 	PasswordChanged()
 	RootAuditError(msg string)
+	BoxAuditError(msg string)
 }
 
 type NoopNotifyListener struct{}
@@ -104,6 +109,8 @@ func (n *NoopNotifyListener) Login(username string)                             
 func (n *NoopNotifyListener) ClientOutOfDate(to, uri, msg string)                           {}
 func (n *NoopNotifyListener) UserChanged(uid keybase1.UID)                                  {}
 func (n *NoopNotifyListener) TrackingChanged(uid keybase1.UID, username NormalizedUsername) {}
+func (n *NoopNotifyListener) FSOnlineStatusChanged(online bool)                             {}
+func (n *NoopNotifyListener) FSOverallSyncStatusChanged(status keybase1.FolderSyncStatus)   {}
 func (n *NoopNotifyListener) FSActivity(activity keybase1.FSNotification)                   {}
 func (n *NoopNotifyListener) FSPathUpdated(path string)                                     {}
 func (n *NoopNotifyListener) FSEditListResponse(arg keybase1.FSEditListArg)                 {}
@@ -185,13 +192,15 @@ func (n *NoopNotifyListener) WalletPendingPaymentsUpdate(accountID stellar1.Acco
 }
 func (n *NoopNotifyListener) WalletRecentPaymentsUpdate(accountID stellar1.AccountID, firstPage stellar1.PaymentsPageLocal) {
 }
-func (n *NoopNotifyListener) TeamListUnverifiedChanged(teamName string)              {}
-func (n *NoopNotifyListener) CanUserPerformChanged(teamName string)                  {}
-func (n *NoopNotifyListener) PhoneNumberAdded(phoneNumber keybase1.PhoneNumber)      {}
-func (n *NoopNotifyListener) PhoneNumberVerified(phoneNumber keybase1.PhoneNumber)   {}
-func (n *NoopNotifyListener) PhoneNumberSuperseded(phoneNumber keybase1.PhoneNumber) {}
-func (n *NoopNotifyListener) PasswordChanged()                                       {}
-func (n *NoopNotifyListener) RootAuditError(msg string)                              {}
+func (n *NoopNotifyListener) TeamListUnverifiedChanged(teamName string)               {}
+func (n *NoopNotifyListener) CanUserPerformChanged(teamName string)                   {}
+func (n *NoopNotifyListener) PhoneNumberAdded(phoneNumber keybase1.PhoneNumber)       {}
+func (n *NoopNotifyListener) PhoneNumberVerified(phoneNumber keybase1.PhoneNumber)    {}
+func (n *NoopNotifyListener) PhoneNumberSuperseded(phoneNumber keybase1.PhoneNumber)  {}
+func (n *NoopNotifyListener) EmailAddressVerified(emailAddress keybase1.EmailAddress) {}
+func (n *NoopNotifyListener) PasswordChanged()                                        {}
+func (n *NoopNotifyListener) RootAuditError(msg string)                               {}
+func (n *NoopNotifyListener) BoxAuditError(msg string)                                {}
 
 type NotifyListenerID string
 
@@ -282,40 +291,48 @@ func (n *NotifyRouter) SetChannels(i ConnectionID, nc keybase1.NotificationChann
 
 // HandleLogout is called whenever the current user logged out. It will broadcast
 // the message to all connections who care about such a message.
-func (n *NotifyRouter) HandleLogout() {
+func (n *NotifyRouter) HandleLogout(ctx context.Context) {
 	if n == nil {
 		return
 	}
-	n.G().Log.Debug("+ Sending logout notification")
+	defer CTrace(ctx, n.G().Log, "NotifyRouter#HandleLogout", func() error { return nil })()
+	ctx = CopyTagsToBackground(ctx)
 	// For all connections we currently have open...
-	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+	n.cm.ApplyAllDetails(func(id ConnectionID, xp rpc.Transporter, d *keybase1.ClientDetails) bool {
 		// If the connection wants the `Session` notification type
+		registered := false
 		if n.getNotificationChannels(id).Session {
+			registered = true
 			// In the background do...
 			go func() {
 				// A send of a `LoggedOut` RPC
 				(keybase1.NotifySessionClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).LoggedOut(context.Background())
+				}).LoggedOut(ctx)
 			}()
 		}
+		desc := "<nil>"
+		if d != nil {
+			desc = fmt.Sprintf("%+v", *d)
+		}
+		n.G().Log.CDebugf(ctx, "| NotifyRouter#HandleLogout: client %s (sent=%v)", desc, registered)
 		return true
 	})
 
 	n.runListeners(func(listener NotifyListener) {
 		listener.Logout()
 	})
-	n.G().Log.Debug("- Logout notification sent")
 }
 
 // HandleLogin is called whenever a user logs in. It will broadcast
 // the message to all connections who care about such a message.
-func (n *NotifyRouter) HandleLogin(u string) {
+func (n *NotifyRouter) HandleLogin(ctx context.Context, u string) {
 	if n == nil {
 		return
 	}
-	n.G().Log.Debug("+ Sending login notification, as user %q", u)
+	n.G().Log.CDebugf(ctx, "+ Sending login notification, as user %q", u)
 	// For all connections we currently have open...
+	ctx = CopyTagsToBackground(ctx)
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		// If the connection wants the `Session` notification type
 		if n.getNotificationChannels(id).Session {
@@ -324,7 +341,7 @@ func (n *NotifyRouter) HandleLogin(u string) {
 				// A send of a `LoggedIn` RPC
 				(keybase1.NotifySessionClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).LoggedIn(context.Background(), u)
+				}).LoggedIn(ctx, u)
 			}()
 		}
 		return true
@@ -333,7 +350,7 @@ func (n *NotifyRouter) HandleLogin(u string) {
 	n.runListeners(func(listener NotifyListener) {
 		listener.Login(u)
 	})
-	n.G().Log.Debug("- Login notification sent")
+	n.G().Log.CDebugf(ctx, "- Login notification sent")
 }
 
 // ClientOutOfDate is called whenever the API server tells us our client is out
@@ -371,7 +388,8 @@ func (n *NotifyRouter) HandleClientOutOfDate(upgradeTo, upgradeURI, upgradeMsg s
 // HandleUserChanged is called whenever we know that a given user has
 // changed (and must be cache-busted). It will broadcast the messages
 // to all curious listeners.
-func (n *NotifyRouter) HandleUserChanged(uid keybase1.UID) {
+func (n *NotifyRouter) HandleUserChanged(mctx MetaContext, uid keybase1.UID, reason string) {
+	mctx.Debug("Sending UserChanged notification %v '%v')", uid, reason)
 	if n == nil {
 		return
 	}
@@ -383,7 +401,7 @@ func (n *NotifyRouter) HandleUserChanged(uid keybase1.UID) {
 			go func() {
 				// A send of a `UserChanged` RPC with the user's UID
 				(keybase1.NotifyUsersClient{
-					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(mctx.G()), nil),
 				}).UserChanged(context.Background(), uid)
 			}()
 		}
@@ -449,6 +467,58 @@ func (n *NotifyRouter) HandleBadgeState(badgeState keybase1.BadgeState) {
 	})
 	n.runListeners(func(listener NotifyListener) {
 		listener.BadgeState(badgeState)
+	})
+}
+
+// HandleFSOnlineStatusChanged is called when KBFS's online status changes. It
+// will broadcast the messages to all curious listeners.
+func (n *NotifyRouter) HandleFSOnlineStatusChanged(online bool) {
+	if n == nil {
+		return
+	}
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `kbfs` notification type
+		if n.getNotificationChannels(id).Kbfs {
+			// In the background do...
+			go func() {
+				// A send of a `FSOnlineStatusChanged` RPC with the
+				// notification
+				(keybase1.NotifyFSClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).FSOnlineStatusChanged(context.Background(), online)
+			}()
+		}
+		return true
+	})
+	n.runListeners(func(listener NotifyListener) {
+		listener.FSOnlineStatusChanged(online)
+	})
+}
+
+// HandleFSOverallSyncStatusChanged is called when the overall sync status
+// changes. It will broadcast the messages to all curious listeners.
+func (n *NotifyRouter) HandleFSOverallSyncStatusChanged(status keybase1.FolderSyncStatus) {
+	if n == nil {
+		return
+	}
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `kbfs` notification type
+		if n.getNotificationChannels(id).Kbfs {
+			// In the background do...
+			go func() {
+				// A send of a `FSOnlineStatusChanged` RPC with the
+				// notification
+				(keybase1.NotifyFSClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).FSOverallSyncStatusChanged(context.Background(), status)
+			}()
+		}
+		return true
+	})
+	n.runListeners(func(listener NotifyListener) {
+		listener.FSOverallSyncStatusChanged(status)
 	})
 }
 
@@ -1965,6 +2035,26 @@ func (n *NotifyRouter) HandlePhoneNumberSuperseded(ctx context.Context, phoneNum
 	})
 }
 
+func (n *NotifyRouter) HandleEmailAddressVerified(ctx context.Context, emailAddress keybase1.EmailAddress) {
+	if n == nil {
+		return
+	}
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Team {
+			go func() {
+				(keybase1.NotifyEmailAddressClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).EmailAddressVerified(context.Background(), emailAddress)
+			}()
+		}
+		return true
+	})
+
+	n.runListeners(func(listener NotifyListener) {
+		listener.EmailAddressVerified(emailAddress)
+	})
+}
+
 func (n *NotifyRouter) HandleChatPaymentInfo(ctx context.Context, uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIPaymentInfo) {
 	if n == nil {
 		return
@@ -2074,4 +2164,27 @@ func (n *NotifyRouter) HandleRootAuditError(msg string) {
 	})
 
 	n.G().Log.Debug("- merkle tree audit notification sent")
+}
+
+func (n *NotifyRouter) HandleBoxAuditError(ctx context.Context, msg string) {
+	if n == nil {
+		return
+	}
+	n.G().Log.CDebugf(ctx, "+ Sending BoxAuditError notification")
+	defer n.G().Log.CDebugf(ctx, "- Sending BoxAuditError notification")
+
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Audit {
+			go func() {
+				(keybase1.NotifyAuditClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).BoxAuditError(context.Background(), msg)
+			}()
+		}
+		return true
+	})
+
+	n.runListeners(func(listener NotifyListener) {
+		listener.BoxAuditError(msg)
+	})
 }

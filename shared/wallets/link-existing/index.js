@@ -49,7 +49,7 @@ class LinkWallet extends React.Component<LinkWalletProps, LinkWalletState> {
   _getKeyButtons = () => [
     ...(Styles.isMobile
       ? []
-      : [<Kb.Button key={0} type="Secondary" onClick={this.props.onCancel} label="Cancel" />]),
+      : [<Kb.Button key={0} type="Dim" onClick={this.props.onCancel} label="Cancel" />]),
     <Kb.Button
       key={1}
       disabled={!this.props.secretKey}
@@ -67,7 +67,7 @@ class LinkWallet extends React.Component<LinkWalletProps, LinkWalletState> {
       : [
           <Kb.Button
             key={0}
-            type="Secondary"
+            type="Dim"
             onClick={this.props.onCancel}
             label="Cancel"
             disabled={this.props.nameValidationState === 'waiting' || this.props.waiting}

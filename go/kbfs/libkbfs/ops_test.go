@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/go-codec/codec"
@@ -19,7 +20,7 @@ import (
 
 func TestCreateOpCustomUpdate(t *testing.T) {
 	oldDir := makeRandomBlockPointer(t)
-	co, err := newCreateOp("name", oldDir, Exec)
+	co, err := newCreateOp("name", oldDir, data.Exec)
 	require.NoError(t, err)
 	require.Equal(t, blockUpdate{Unref: oldDir}, co.Dir)
 
@@ -33,7 +34,7 @@ func TestCreateOpCustomUpdate(t *testing.T) {
 
 func TestRmOpCustomUpdate(t *testing.T) {
 	oldDir := makeRandomBlockPointer(t)
-	ro, err := newRmOp("name", oldDir, File)
+	ro, err := newRmOp("name", oldDir, data.File)
 	require.NoError(t, err)
 	require.Equal(t, blockUpdate{Unref: oldDir}, ro.Dir)
 
@@ -51,11 +52,11 @@ func TestRenameOpCustomUpdateWithinDir(t *testing.T) {
 	renamed.ID = kbfsblock.FakeID(42)
 	ro, err := newRenameOp(
 		"old name", oldDir, "new name", oldDir,
-		renamed, Exec)
+		renamed, data.Exec)
 	require.NoError(t, err)
 	require.Equal(t, blockUpdate{Unref: oldDir}, ro.OldDir)
-	require.Equal(t, BlockPointer{}, ro.NewDir.Unref)
-	require.Equal(t, BlockPointer{}, ro.NewDir.Ref)
+	require.Equal(t, data.BlockPointer{}, ro.NewDir.Unref)
+	require.Equal(t, data.BlockPointer{}, ro.NewDir.Ref)
 
 	// Update to oldDir should update ro.OldDir.
 	newDir := oldDir
@@ -74,7 +75,7 @@ func TestRenameOpCustomUpdateAcrossDirs(t *testing.T) {
 	renamed.ID = kbfsblock.FakeID(43)
 	ro, err := newRenameOp(
 		"old name", oldOldDir, "new name", oldNewDir,
-		renamed, Exec)
+		renamed, data.Exec)
 	require.NoError(t, err)
 	require.Equal(t, blockUpdate{Unref: oldOldDir}, ro.OldDir)
 	require.Equal(t, blockUpdate{Unref: oldNewDir}, ro.NewDir)
@@ -216,17 +217,17 @@ func makeFakeBlockUpdate(t *testing.T) blockUpdate {
 }
 
 func makeFakeOpCommon(t *testing.T, withRefBlocks bool) OpCommon {
-	var refBlocks []BlockPointer
+	var refBlocks []data.BlockPointer
 	if withRefBlocks {
-		refBlocks = []BlockPointer{makeFakeBlockPointer(t)}
+		refBlocks = []data.BlockPointer{makeFakeBlockPointer(t)}
 	}
 	oc := OpCommon{
 		refBlocks,
-		[]BlockPointer{makeFakeBlockPointer(t)},
+		[]data.BlockPointer{makeFakeBlockPointer(t)},
 		[]blockUpdate{makeFakeBlockUpdate(t)},
 		codec.UnknownFieldSetHandler{},
 		writerInfo{},
-		path{},
+		data.Path{},
 		time.Time{},
 	}
 	return oc
@@ -238,7 +239,7 @@ func makeFakeCreateOpFuture(t *testing.T) createOpFuture {
 			makeFakeOpCommon(t, true),
 			"new name",
 			makeFakeBlockUpdate(t),
-			Exec,
+			data.Exec,
 			false,
 			false,
 			"",
@@ -271,7 +272,7 @@ func makeFakeRmOpFuture(t *testing.T) rmOpFuture {
 			makeFakeOpCommon(t, true),
 			"old name",
 			makeFakeBlockUpdate(t),
-			File,
+			data.File,
 			false,
 		},
 		kbfscodec.MakeExtraOrBust("rmOp", t),
@@ -305,8 +306,8 @@ func makeFakeRenameOpFuture(t *testing.T) renameOpFuture {
 			"new name",
 			makeFakeBlockUpdate(t),
 			makeFakeBlockPointer(t),
-			Exec,
-			path{},
+			data.Exec,
+			data.Path{},
 		},
 		kbfscodec.MakeExtraOrBust("renameOp", t),
 	}
@@ -484,9 +485,9 @@ func TestOpSerialization(t *testing.T) {
 
 	ops := testOps{}
 	// add a couple ops of different types
-	co, err := newCreateOp("test1", BlockPointer{ID: kbfsblock.FakeID(42)}, File)
+	co, err := newCreateOp("test1", data.BlockPointer{ID: kbfsblock.FakeID(42)}, data.File)
 	require.NoError(t, err)
-	ro, err := newRmOp("test2", BlockPointer{ID: kbfsblock.FakeID(43)}, File)
+	ro, err := newRmOp("test2", data.BlockPointer{ID: kbfsblock.FakeID(43)}, data.File)
 	require.NoError(t, err)
 	ops.Ops = append(ops.Ops, co, ro)
 
@@ -517,17 +518,17 @@ func TestOpSerialization(t *testing.T) {
 }
 
 func TestOpInversion(t *testing.T) {
-	oldPtr1 := BlockPointer{ID: kbfsblock.FakeID(42)}
-	newPtr1 := BlockPointer{ID: kbfsblock.FakeID(82)}
-	oldPtr2 := BlockPointer{ID: kbfsblock.FakeID(43)}
-	newPtr2 := BlockPointer{ID: kbfsblock.FakeID(83)}
-	filePtr := BlockPointer{ID: kbfsblock.FakeID(44)}
+	oldPtr1 := data.BlockPointer{ID: kbfsblock.FakeID(42)}
+	newPtr1 := data.BlockPointer{ID: kbfsblock.FakeID(82)}
+	oldPtr2 := data.BlockPointer{ID: kbfsblock.FakeID(43)}
+	newPtr2 := data.BlockPointer{ID: kbfsblock.FakeID(83)}
+	filePtr := data.BlockPointer{ID: kbfsblock.FakeID(44)}
 
-	cop, err := newCreateOp("test1", oldPtr1, File)
+	cop, err := newCreateOp("test1", oldPtr1, data.File)
 	require.NoError(t, err)
 	cop.AddUpdate(oldPtr1, newPtr1)
 	cop.AddUpdate(oldPtr2, newPtr2)
-	expectedIOp, err := newRmOp("test1", newPtr1, File)
+	expectedIOp, err := newRmOp("test1", newPtr1, data.File)
 	require.NoError(t, err)
 	expectedIOp.AddUpdate(newPtr1, oldPtr1)
 	expectedIOp.AddUpdate(newPtr2, oldPtr2)
@@ -551,11 +552,11 @@ func TestOpInversion(t *testing.T) {
 	}
 
 	// rename
-	rop, err := newRenameOp("old", oldPtr1, "new", oldPtr2, filePtr, File)
+	rop, err := newRenameOp("old", oldPtr1, "new", oldPtr2, filePtr, data.File)
 	require.NoError(t, err)
 	rop.AddUpdate(oldPtr1, newPtr1)
 	rop.AddUpdate(oldPtr2, newPtr2)
-	expectedIOp3, err := newRenameOp("new", newPtr2, "old", newPtr1, filePtr, File)
+	expectedIOp3, err := newRenameOp("new", newPtr2, "old", newPtr1, filePtr, data.File)
 	require.NoError(t, err)
 	expectedIOp3.AddUpdate(newPtr1, oldPtr1)
 	expectedIOp3.AddUpdate(newPtr2, oldPtr2)
@@ -603,10 +604,10 @@ func TestOpInversion(t *testing.T) {
 	}
 
 	// rename (same dir)
-	rop, err = newRenameOp("old", oldPtr1, "new", oldPtr1, filePtr, File)
+	rop, err = newRenameOp("old", oldPtr1, "new", oldPtr1, filePtr, data.File)
 	require.NoError(t, err)
 	rop.AddUpdate(oldPtr1, newPtr1)
-	expectedIOp6, err := newRenameOp("new", newPtr1, "old", newPtr1, filePtr, File)
+	expectedIOp6, err := newRenameOp("new", newPtr1, "old", newPtr1, filePtr, data.File)
 	require.NoError(t, err)
 	expectedIOp6.AddUpdate(newPtr1, oldPtr1)
 

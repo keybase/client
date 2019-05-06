@@ -84,9 +84,6 @@ func (a *auditLog) Profile(fmts string, args ...interface{}) {
 func (a *auditLog) Configure(style string, debug bool, filename string) {
 	a.l.CloneWithAddedDepth(1).Configure(style, debug, filename)
 }
-func (a *auditLog) RotateLogFile() error {
-	return a.l.RotateLogFile()
-}
 func (a *auditLog) CloneWithAddedDepth(depth int) logger.Logger {
 	// Keep the same list of strings. This is important, because the tests here
 	// read the list at the end, and expect all the log lines to be there, even

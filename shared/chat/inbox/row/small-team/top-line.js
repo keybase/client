@@ -4,12 +4,16 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import shallowEqual from 'shallowequal'
 import TeamMenu from '../../../conversation/info-panel/menu/container'
+import * as ChatTypes from '../../../../constants/types/chat2'
 
 type Props = {
   channelname?: string,
   teamname?: string,
+  conversationIDKey: ChatTypes.ConversationIDKey,
+  forceShowMenu: boolean,
   hasUnread: boolean,
   iconHoverColor: string,
+  onForceHideMenu: () => void,
   participants: Array<string>,
   showBold: boolean,
   showGear: boolean,
@@ -37,11 +41,15 @@ class _SimpleTopLine extends React.Component<Props> {
       <Kb.Box style={styles.container}>
         {this.props.showGear && (
           <TeamMenu
-            visible={this.props.showingMenu}
+            visible={this.props.showingMenu || this.props.forceShowMenu}
             attachTo={this.props.getAttachmentRef}
-            onHidden={this.props.toggleShowingMenu}
+            onHidden={() => {
+              this.props.setShowingMenu(false)
+              this.props.onForceHideMenu()
+            }}
             isSmallTeam={true}
             teamname={(this.props.participants.length && this.props.participants[0]) || ''}
+            conversationIDKey={this.props.conversationIDKey}
           />
         )}
         <Kb.Box style={styles.insideContainer}>
@@ -78,7 +86,7 @@ class _SimpleTopLine extends React.Component<Props> {
         <Kb.Text
           key="timestamp"
           type="BodyTiny"
-          className={Styles.classNames({'small-team-timestamp': this.props.showGear})}
+          className={Styles.classNames({'conversation-timestamp': this.props.showGear})}
           style={Styles.collapseStyles([
             boldStyle,
             styles.timestamp,
@@ -87,10 +95,10 @@ class _SimpleTopLine extends React.Component<Props> {
         >
           {this.props.timestamp}
         </Kb.Text>
-        {this.props.showGear && (
+        {this.props.showGear && !Styles.isMobile && (
           <Kb.Icon
             type="iconfont-gear"
-            className="small-team-gear"
+            className="conversation-gear"
             onClick={this.props.toggleShowingMenu}
             ref={this.props.setAttachmentRef}
             color={this.props.subColor}

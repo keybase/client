@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbtest"
@@ -55,7 +56,7 @@ func TestChatKBFSUpgradeMixed(t *testing.T) {
 
 	boxer := NewBoxer(tc.Context())
 	sender := NewBlockingSender(tc.Context(), boxer, func() chat1.RemoteInterface { return ri })
-	prepareRes, err := sender.Prepare(ctx, kbfsPlain, chat1.ConversationMembersType_KBFS, &conv.Conv)
+	prepareRes, err := sender.Prepare(ctx, kbfsPlain, chat1.ConversationMembersType_KBFS, &conv.Conv, nil)
 	require.NoError(t, err)
 	kbfsBoxed := prepareRes.Boxed
 	kbfsBoxed.ServerHeader = &chat1.MessageServerHeader{
@@ -67,7 +68,7 @@ func TestChatKBFSUpgradeMixed(t *testing.T) {
 		keybase1.TeamApplication_CHAT, cres.CryptKeys))
 
 	conv.Conv.Metadata.MembersType = chat1.ConversationMembersType_IMPTEAMUPGRADE
-	ctx = CtxAddTestingNameInfoSource(ctx, nil)
+	ctx = globals.CtxAddOverrideNameInfoSource(ctx, nil)
 	header = chat1.MessageClientHeader{
 		TlfPublic:   false,
 		TlfName:     u.Username,
@@ -75,7 +76,7 @@ func TestChatKBFSUpgradeMixed(t *testing.T) {
 	}
 	teamPlain := textMsgWithHeader(t, "team", header)
 	prepareRes, err = sender.Prepare(ctx, teamPlain,
-		chat1.ConversationMembersType_IMPTEAMUPGRADE, &conv.Conv)
+		chat1.ConversationMembersType_IMPTEAMUPGRADE, &conv.Conv, nil)
 	require.NoError(t, err)
 	teamBoxed := prepareRes.Boxed
 	teamBoxed.ServerHeader = &chat1.MessageServerHeader{
@@ -115,7 +116,7 @@ func TestChatKBFSUpgradeMixed(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Equal(t, 2, len(iteam.KBFSTLFIDs()))
-	CtxKeyFinder(ctx, tc.Context()).Reset()
+	globals.CtxKeyFinder(ctx, tc.Context()).Reset()
 	checkUnbox()
 }
 

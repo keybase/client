@@ -2,6 +2,7 @@
 import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
+import * as Constants from '../../../constants/fs'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import type {FloatingMenuProps} from './types'
@@ -21,6 +22,11 @@ type Props = {|
   download?: ?() => void,
   ignoreTlf?: ?() => void,
   moveOrCopy?: ?() => void,
+  me: string,
+  newFolder?: ?() => void,
+  openChatNonTeam?: ?() => void,
+  openChatTeam?: ?() => void,
+  pathItemType: Types.PathType,
   saveMedia?: ?ActionOrInProgress,
   showInSystemFileManager?: ?() => void,
   // share menu items
@@ -53,6 +59,31 @@ const hideMenuOnClick = (onClick: (evt?: SyntheticEvent<>) => void, hideMenu: ()
 }
 
 const makeMenuItems = (props: Props, hideMenu: () => void) => [
+  'Divider',
+  ...(props.newFolder
+    ? [
+        {
+          onClick: hideMenuOnClick(props.newFolder, hideMenu),
+          title: 'New folder',
+        },
+      ]
+    : []),
+  ...(props.openChatTeam
+    ? [
+        {
+          onClick: hideMenuOnClick(props.openChatTeam, hideMenu),
+          title: 'Chat with team',
+        },
+      ]
+    : []),
+  ...(props.openChatNonTeam
+    ? [
+        {
+          onClick: hideMenuOnClick(props.openChatNonTeam, hideMenu),
+          title: 'Chat with them',
+        },
+      ]
+    : []),
   ...(props.showInSystemFileManager
     ? [
         {
@@ -76,11 +107,19 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => [
         },
       ]
     : []),
+  ...(props.copyPath
+    ? [
+        {
+          onClick: hideMenuOnClick(props.copyPath, hideMenu),
+          title: 'Copy path',
+        },
+      ]
+    : []),
   ...(props.share
     ? [
         {
           onClick: props.share,
-          title: 'Share',
+          title: 'Share...',
         },
       ]
     : []),
@@ -92,7 +131,8 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => [
             // $FlowIssue doens't know sendLinkToChat can't be null here
             props.sendLinkToChat()
           },
-          title: 'Send link to chat',
+          subTitle: `The ${props.pathItemType === 'folder' ? 'folder' : 'file'} will be sent as a link.`,
+          title: `Send to ${Constants.getChatTarget(props.path, props.me)}`,
         },
       ]
     : []),
@@ -104,7 +144,10 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => [
             // $FlowIssue doens't know sendAttachmentToChat can't be null here
             props.sendAttachmentToChat()
           },
-          title: 'Send as attachment to chat',
+          subTitle: `The ${
+            props.pathItemType === 'folder' ? 'folder' : 'file'
+          } will be sent as an attachment.`,
+          title: 'Attach in other conversation',
         },
       ]
     : []),
@@ -123,19 +166,11 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => [
         },
       ]
     : []),
-  ...(props.copyPath
-    ? [
-        {
-          onClick: hideMenuOnClick(props.copyPath, hideMenu),
-          title: 'Copy path',
-        },
-      ]
-    : []),
   ...(props.download
     ? [
         {
           onClick: hideMenuOnClick(props.download, hideMenu),
-          title: 'Download a copy',
+          title: 'Download',
         },
       ]
     : []),
@@ -144,7 +179,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => [
         {
           danger: true,
           onClick: hideMenuOnClick(props.ignoreTlf, hideMenu),
-          subTitle: 'The folder will no longer appear in your folders list.',
+          subTitle: 'Will hide the folder from your list.',
           title: 'Ignore this folder',
         },
       ]

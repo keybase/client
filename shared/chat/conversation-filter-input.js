@@ -7,50 +7,27 @@ import flags from '../util/feature-flags'
 
 export type Props = {|
   filter: string,
-  filterFocusCount: number,
-  focusOnMount?: ?boolean,
   isLoading: boolean,
+  isSearching: boolean,
+  showNewTag: boolean,
   onBack: () => void,
   noShortcut: ?boolean,
-  onBlur: () => void,
   onEnsureSelection: () => void,
-  onFocus: () => void,
   onNewChat?: () => void,
   onSelectDown: () => void,
   onSelectUp: () => void,
   onSetFilter: (filter: string) => void,
+  onStartSearch: () => void,
+  onStopSearch: () => void,
   style?: Styles.StylesCrossPlatform,
 |}
 
-type State = {
-  isEditing: boolean,
-}
-
-class ConversationFilterInput extends React.PureComponent<Props, State> {
-  state: State
+class ConversationFilterInput extends React.PureComponent<Props> {
   _input: any
-
-  constructor(props: Props) {
-    super(props)
-    this.state = {
-      isEditing: false,
-    }
-  }
-
-  _startEditing = () => {
-    this.setState({isEditing: true})
-    this.props.onFocus()
-  }
-
-  _stopEditing = () => {
-    this.setState({isEditing: false})
-    this.props.onBlur()
-  }
 
   _onKeyDown = (e: SyntheticKeyboardEvent<>, isComposingIME: boolean) => {
     if (e.key === 'Escape' && !isComposingIME) {
-      this.props.onSetFilter('')
-      this._stopEditing()
+      this.props.onStopSearch()
     } else if (e.key === 'ArrowDown') {
       e.preventDefault()
       e.stopPropagation()
@@ -66,59 +43,41 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
     if (!Styles.isMobile) {
       e.preventDefault()
       e.stopPropagation()
-      this.props.onSetFilter('')
-      this._stopEditing()
-      this._input && this._input.blur()
       this.props.onEnsureSelection()
+      this._input && this._input.blur()
     }
   }
 
-  componentDidMount() {
-    // In choose-conversation, this is inside overlay and gets unmounted when
-    // the popup hides. So just provide an option to focus on mount.
-    this.props.focusOnMount && this._startEditing()
-  }
-
-  componentDidUpdate(prevProps: Props, prevState: State) {
-    if (this.state.isEditing !== prevState.isEditing && this.state.isEditing) {
+  componentDidUpdate(prevProps: Props) {
+    if (!prevProps.isSearching && this.props.isSearching) {
       this._input && this._input.focus()
-    }
-    if (this.props.filterFocusCount !== prevProps.filterFocusCount) {
-      this._startEditing()
     }
   }
 
   _setRef = r => (this._input = r)
-  _onCancel = () => {
-    this.props.onSetFilter('')
-    this._stopEditing()
-  }
 
   render() {
     let children
-    if (this.state.isEditing || this.props.filter) {
+    if (this.props.isSearching) {
       children = (
         <Kb.Box2
           alignItems="center"
           direction="horizontal"
           fullWidth={true}
           gap={Styles.isMobile ? 'xsmall' : 'tiny'}
-          style={Styles.collapseStyles([styles.containerFiltering, this.props.style])}
+          style={Styles.collapseStyles([
+            styles.containerFiltering,
+            flags.useNewRouter && !Styles.isMobile && styles.whiteBg,
+            this.props.style,
+          ])}
         >
-          <Kb.Icon
-            type="iconfont-search"
-            style={styles.icon}
-            color={Styles.globalColors.black_50}
-            fontSize={Styles.isMobile ? 20 : 16}
-          />
           <Kb.Input
+            autoFocus={Styles.isMobile}
             hideUnderline={true}
             small={true}
             value={this.props.filter}
-            hintText="Jump to..."
+            hintText="Search your chats..."
             onChangeText={this.props.onSetFilter}
-            onFocus={this._startEditing}
-            onBlur={this._stopEditing}
             onKeyDown={this._onKeyDown}
             onEnterKeyDown={this._onEnterKeyDown}
             ref={this._setRef}
@@ -126,9 +85,9 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
           />
           <Kb.Icon
             type="iconfont-remove"
-            fontSize={16}
+            sizeType="Small"
             color={Styles.globalColors.black_50}
-            onClick={this._onCancel}
+            onClick={this.props.onStopSearch}
             style={styles.icon}
           />
         </Kb.Box2>
@@ -141,37 +100,52 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
           gap="tiny"
           style={Styles.collapseStyles([
             styles.containerNotFiltering,
-            flags.useNewRouter && Styles.isMobile && styles.containerWithBackButton,
+            flags.useNewRouter && !Styles.isMobile && styles.whiteBg,
             this.props.style,
           ])}
           gapStart={true}
           gapEnd={true}
           fullWidth={true}
         >
-          <Kb.Box2 alignItems="center" direction="horizontal" style={styles.flexOne}>
-            {flags.useNewRouter && Styles.isMobile && (
-              <Kb.BackButton onClick={this.props.onBack} style={styles.backButton} />
-            )}
-            <Kb.ClickableBox style={styles.filterContainer} onClick={this._startEditing}>
-              <Kb.Icon
-                type="iconfont-search"
-                style={styles.icon}
-                color={Styles.globalColors.black_50}
-                fontSize={Styles.isMobile ? 20 : 16}
-              />
-              <Kb.Text type="BodySemibold" style={styles.text}>
-                Jump to...
-              </Kb.Text>
-              {!Styles.isMobile && !this.props.noShortcut && (
-                <Kb.Text type="BodySemibold" style={styles.textFaint}>
-                  ({Platforms.shortcutSymbol}K)
+          <Kb.Box2 alignItems="center" direction="horizontal" style={styles.searchBox}>
+            <Kb.WithTooltip
+              disabled={!this.props.showNewTag}
+              containerStyle={{flexGrow: 1}}
+              position="top center"
+              text="NEW! Search all your chats."
+            >
+              <Kb.ClickableBox style={styles.filterContainer} onClick={this.props.onStartSearch}>
+                <Kb.Icon
+                  type="iconfont-search"
+                  style={styles.icon}
+                  color={Styles.globalColors.black_50}
+                  sizeType="Small"
+                />
+                <Kb.Text type="BodySemibold" style={styles.text}>
+                  Search
                 </Kb.Text>
-              )}
-            </Kb.ClickableBox>
+                {!Styles.isMobile && !this.props.noShortcut && (
+                  <Kb.Text type="BodySemibold" style={styles.textFaint}>
+                    ({Platforms.shortcutSymbol}K)
+                  </Kb.Text>
+                )}
+                {this.props.showNewTag && (
+                  <Kb.Box2
+                    direction="horizontal"
+                    alignItems="center"
+                    style={{flexGrow: 1, justifyContent: 'flex-end', paddingRight: Styles.globalMargins.tiny}}
+                  >
+                    <Kb.Meta backgroundColor={Styles.globalColors.blue} title="New" />
+                  </Kb.Box2>
+                )}
+              </Kb.ClickableBox>
+            </Kb.WithTooltip>
           </Kb.Box2>
           {!!this.props.onNewChat && (
-            <Kb.WithTooltip position="bottom center" text={`${Platforms.shortcutSymbol}N`}>
-              <Kb.Button small={true} type="Primary" label="New chat" onClick={this.props.onNewChat} />
+            <Kb.WithTooltip position="top center" text={`New chat (${Platforms.shortcutSymbol}N)`}>
+              <Kb.Button small={true} onClick={this.props.onNewChat} style={styles.newChatButton}>
+                <Kb.Icon type="iconfont-compose" color={Styles.globalColors.white} style={styles.newIcon} />
+              </Kb.Button>
             </Kb.WithTooltip>
           )}
         </Kb.Box2>
@@ -191,40 +165,38 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
 }
 
 const styles = Styles.styleSheetCreate({
-  backButton: {
-    ...Styles.padding(Styles.globalMargins.tiny, 0),
-  },
   containerFiltering: Styles.platformStyles({
     common: {
-      height: 48,
       position: 'relative',
     },
     isElectron: {
+      ...Styles.desktopStyles.windowDraggingClickable,
       ...Styles.padding(0, Styles.globalMargins.small),
       backgroundColor: Styles.globalColors.blueGrey,
+      height: 39,
     },
     isMobile: {
       ...Styles.padding(0, Styles.globalMargins.small, 0, Styles.globalMargins.xsmall),
       backgroundColor: Styles.globalColors.fastBlank,
+      height: 48,
     },
   }),
   containerNotFiltering: Styles.platformStyles({
     common: {
-      height: 48,
+      height: flags.useNewRouter ? undefined : 48,
       position: 'relative',
     },
-    isElectron: {
-      ...Styles.padding(0, Styles.globalMargins.xtiny),
-      backgroundColor: Styles.globalColors.blueGrey,
-    },
+    isElectron: !flags.useNewRouter
+      ? undefined
+      : {
+          ...Styles.padding(0, Styles.globalMargins.xtiny),
+          backgroundColor: Styles.globalColors.blueGrey,
+        },
     isMobile: {
       ...Styles.padding(0, Styles.globalMargins.tiny),
       backgroundColor: Styles.globalColors.fastBlank,
     },
   }),
-  containerWithBackButton: {
-    ...Styles.padding(0, Styles.globalMargins.tiny, 0, 0), // back button adds the left space
-  },
   filterContainer: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxRow,
@@ -245,10 +217,11 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   flexOne: {flex: 1},
-  icon: {
-    position: 'relative',
-    top: 1,
-  },
+  icon: Styles.platformStyles({
+    common: {position: 'relative'},
+    isElectron: {top: 1},
+    isMobile: {top: 0},
+  }),
   input: {
     color: Styles.globalColors.black_50,
     position: 'relative',
@@ -260,17 +233,36 @@ const styles = Styles.styleSheetCreate({
     position: 'absolute',
     right: 0,
   },
-  text: {
-    color: Styles.globalColors.black_50,
-    marginLeft: Styles.globalMargins.xtiny,
-    marginRight: Styles.globalMargins.xtiny,
+  newChatButton: Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
+  newIcon: {
     position: 'relative',
     top: 1,
   },
+  searchBox: Styles.platformStyles({
+    common: {flex: 1},
+    isElectron: Styles.desktopStyles.windowDraggingClickable,
+    isMobile: {...Styles.padding(6, 0)},
+  }),
+  text: Styles.platformStyles({
+    common: {
+      color: Styles.globalColors.black_50,
+      marginLeft: Styles.globalMargins.xtiny,
+      marginRight: Styles.globalMargins.xtiny,
+      position: 'relative',
+    },
+    isElectron: {
+      top: 0,
+    },
+    isMobile: {
+      top: 1,
+    },
+  }),
   textFaint: {
     color: Styles.globalColors.black_35,
     position: 'relative',
-    top: 1,
+  },
+  whiteBg: {
+    backgroundColor: Styles.globalColors.white,
   },
 })
 

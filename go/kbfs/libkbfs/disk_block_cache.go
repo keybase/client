@@ -14,6 +14,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfshash"
@@ -35,12 +36,13 @@ const (
 	defaultDiskBlockCacheMaxBytes   uint64 = 10 * (1 << 30)
 	defaultBlockCacheTableSize      int    = 50 * opt.MiB
 	defaultBlockCacheBlockSize      int    = 4 * opt.MiB
+	defaultBlockCacheCapacity       int    = 8 * opt.MiB
 	evictionConsiderationFactor     int    = 3
 	defaultNumBlocksToEvict         int    = 10
 	defaultNumBlocksToEvictOnClear  int    = 100
 	defaultNumUnmarkedBlocksToCheck int    = 100
 	defaultClearTickerDuration             = 1 * time.Second
-	maxEvictionsPerPut              int    = 4
+	maxEvictionsPerPut              int    = 100
 	blockDbFilename                 string = "diskCacheBlocks.leveldb"
 	metaDbFilename                  string = "diskCacheMetadata.leveldb"
 	tlfDbFilename                   string = "diskCacheTLF.leveldb"
@@ -200,6 +202,7 @@ func newDiskBlockCacheLocalFromStorage(
 	blockDbOptions := *leveldbOptions
 	blockDbOptions.CompactionTableSize = defaultBlockCacheTableSize
 	blockDbOptions.BlockSize = defaultBlockCacheBlockSize
+	blockDbOptions.BlockCacheCapacity = defaultBlockCacheCapacity
 	blockDbOptions.Filter = filter.NewBloomFilter(16)
 	blockDb, err := openLevelDBWithOptions(blockStorage, &blockDbOptions)
 	if err != nil {
@@ -609,7 +612,7 @@ func (cache *DiskBlockCacheLocal) Get(
 	entry, err := cache.blockDb.Get(blockKey, nil)
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, NoPrefetch,
-			NoSuchBlockError{blockID}
+			data.NoSuchBlockError{ID: blockID}
 	}
 	md, err := cache.getMetadataLocked(blockID, true)
 	if err != nil {
@@ -677,7 +680,7 @@ func (cache *DiskBlockCacheLocal) Put(
 	encodedLen := int64(len(entry))
 	defer func() {
 		cache.log.CDebugf(ctx, "Cache Put id=%s tlf=%s bSize=%d entrySize=%d "+
-			"cacheType=%d err=%+v", blockID, tlfID, blockLen, encodedLen,
+			"cacheType=%s err=%+v", blockID, tlfID, blockLen, encodedLen,
 			cache.cacheType, err)
 	}()
 	blockKey := blockID.Bytes()
@@ -697,7 +700,7 @@ func (cache *DiskBlockCacheLocal) Put(
 				return err
 			}
 			if bytesAvailable < 0 {
-				return cachePutCacheFullError{blockID}
+				return data.CachePutCacheFullError{BlockID: blockID}
 			}
 		} else {
 			hasEnoughSpace, err := cache.evictUntilBytesAvailable(ctx, encodedLen)
@@ -705,7 +708,7 @@ func (cache *DiskBlockCacheLocal) Put(
 				return err
 			}
 			if !hasEnoughSpace {
-				return cachePutCacheFullError{blockID}
+				return data.CachePutCacheFullError{BlockID: blockID}
 			}
 		}
 		err = cache.blockDb.PutWithMeter(blockKey, entry, cache.putMeter)
@@ -779,7 +782,7 @@ func (cache *DiskBlockCacheLocal) UpdateMetadata(ctx context.Context,
 
 	md, err := cache.getMetadataLocked(blockID, false)
 	if err != nil {
-		return NoSuchBlockError{blockID}
+		return data.NoSuchBlockError{ID: blockID}
 	}
 	if md.FinishedPrefetch {
 		// Don't update md that's already completed.
@@ -876,6 +879,9 @@ func (cache *DiskBlockCacheLocal) Delete(ctx context.Context,
 	}
 
 	cache.log.CDebugf(ctx, "Cache Delete numBlocks=%d", len(blockIDs))
+	defer func() {
+		cache.log.CDebugf(ctx, "Deleted numRequested=%d numRemoved=%d sizeRemoved=%d err=%+v", len(blockIDs), numRemoved, sizeRemoved, err)
+	}()
 	if cache.config.IsTestMode() {
 		for _, bID := range blockIDs {
 			cache.log.CDebugf(ctx, "Cache type=%d delete block ID %s",
@@ -1039,6 +1045,7 @@ func (cache *DiskBlockCacheLocal) evictLocked(ctx context.Context,
 		for _, tlfIDStruct := range shuffledSlice {
 			tlfID := tlfIDStruct.value
 			if cache.tlfCounts[tlfID] == 0 {
+				cache.log.CDebugf(ctx, "No blocks to delete in TLF %s", tlfID)
 				continue
 			}
 			tlfBytes := tlfID.Bytes()
@@ -1290,7 +1297,7 @@ func (cache *DiskBlockCacheLocal) Mark(
 
 	md, err := cache.getMetadataLocked(blockID, false)
 	if err != nil {
-		return NoSuchBlockError{blockID}
+		return data.NoSuchBlockError{ID: blockID}
 	}
 	md.Tag = tag
 	return cache.updateMetadataLocked(ctx, blockID.Bytes(), md, false)
@@ -1427,6 +1434,28 @@ func (cache *DiskBlockCacheLocal) ClearHomeTLFs(ctx context.Context) error {
 	}
 	cache.homeDirs = make(map[tlf.ID]evictionPriority)
 	return nil
+}
+
+// GetTlfSize returns the number of bytes stored for the given TLF in
+// the cache.
+func (cache *DiskBlockCacheLocal) GetTlfSize(
+	_ context.Context, tlfID tlf.ID) (uint64, error) {
+	cache.lock.RLock()
+	defer cache.lock.RUnlock()
+	return cache.tlfSizes[tlfID], nil
+}
+
+// GetTlfIDs returns the IDs of all the TLFs with blocks stored in
+// the cache.
+func (cache *DiskBlockCacheLocal) GetTlfIDs(
+	_ context.Context) (tlfIDs []tlf.ID, err error) {
+	cache.lock.RLock()
+	defer cache.lock.RUnlock()
+	tlfIDs = make([]tlf.ID, 0, len(cache.tlfSizes))
+	for id := range cache.tlfSizes {
+		tlfIDs = append(tlfIDs, id)
+	}
+	return tlfIDs, nil
 }
 
 // Shutdown implements the DiskBlockCache interface for DiskBlockCacheLocal.

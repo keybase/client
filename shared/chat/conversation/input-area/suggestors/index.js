@@ -75,6 +75,7 @@ type AddSuggestorsState = {
 }
 
 type SuggestorHooks = {
+  suggestionsVisible: boolean, // whether the suggestion list is visible
   inputRef: {current: React.ElementRef<typeof Kb.PlainInput> | null},
   onChangeText: string => void,
   // Desktop only
@@ -337,8 +338,10 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
       if (this.state.active) {
         this._validateProps()
       }
+      let suggestionsVisible = false
       const results = this._getResults()
       if (results.length) {
+        suggestionsVisible = true
         const content = (
           <SuggestionList
             style={this.props.suggestionListStyle}
@@ -393,6 +396,7 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
           {overlay}
           <WrappedComponent
             {...wrappedOP}
+            suggestionsVisible={suggestionsVisible}
             ref={this._setAttachmentRef}
             inputRef={this._inputRef}
             onBlur={this._onBlur}

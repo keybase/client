@@ -5,7 +5,7 @@ import * as Styles from '../../styles'
 import flags from '../../util/feature-flags'
 import Search from './container'
 
-type Props = {|onSearch: () => void|}
+type Props = {|onSearch: () => void, style?: Styles.StylesCrossPlatform, whiteText?: boolean|}
 type State = {|show: boolean|}
 
 class ProfileSearch extends React.PureComponent<Props, State> {
@@ -20,19 +20,26 @@ class ProfileSearch extends React.PureComponent<Props, State> {
   _getAttachmentRef = () => this._ref.current
   render() {
     return (
-      <Kb.Box2 style={styles.container} direction="horizontal" ref={this._ref}>
+      <Kb.Box2
+        style={Styles.collapseStyles([styles.container, this.props.style])}
+        direction="horizontal"
+        ref={this._ref}
+      >
         <Kb.ClickableBox
           onClick={this._onShow}
           style={Styles.collapseStyles([styles.searchContainer, this.state.show && {opacity: 0}])}
         >
           <Kb.Box2 direction="horizontal" alignItems="center">
             <Kb.Icon
-              color={Styles.globalColors.black_50}
+              color={this.props.whiteText ? Styles.globalColors.white_75 : Styles.globalColors.black_50}
               fontSize={Styles.isMobile ? 20 : 16}
               style={styles.searchIcon}
               type="iconfont-search"
             />
-            <Kb.Text style={styles.searchText} type="BodySemibold">
+            <Kb.Text
+              style={Styles.collapseStyles([styles.searchText, this.props.whiteText && styles.colorWhite])}
+              type="BodySemibold"
+            >
               Search{Styles.isMobile ? '' : ' people'}
             </Kb.Text>
           </Kb.Box2>
@@ -42,7 +49,8 @@ class ProfileSearch extends React.PureComponent<Props, State> {
           visible={this.state.show}
           onHidden={this._onHide}
           attachTo={this._getAttachmentRef}
-          position={flags.useNewRouter ? 'top left' : 'top center'}
+          position={flags.useNewRouter ? 'bottom left' : 'bottom center'}
+          positionFallbacks={[]}
           style={styles.overlay}
         >
           <Search onClose={this._onHide} />
@@ -53,6 +61,9 @@ class ProfileSearch extends React.PureComponent<Props, State> {
 }
 
 const styles = Styles.styleSheetCreate({
+  colorWhite: {
+    color: Styles.globalColors.white_75,
+  },
   container: {
     ...(flags.useNewRouter ? {alignSelf: 'flex-end', flexGrow: 1} : {alignSelf: 'center'}),
   },
@@ -60,6 +71,7 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       ...Styles.desktopStyles.boxShadow,
       ...Styles.globalStyles.flexBoxColumn,
+      ...Styles.desktopStyles.windowDraggingClickable,
       ...(flags.useNewRouter ? {marginRight: 12} : {}),
       alignSelf: 'center',
       borderRadius: 5,
@@ -78,6 +90,7 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       ...Styles.desktopStyles.clickable,
+      ...Styles.desktopStyles.windowDraggingClickable,
       height: 24,
       marginLeft: flags.useNewRouter ? 'auto' : Styles.globalMargins.small,
       marginRight: flags.useNewRouter ? Styles.globalMargins.xsmall : Styles.globalMargins.small,

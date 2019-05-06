@@ -16,7 +16,7 @@ import {memoize} from '../../util/memoize'
 export opaque type Path = ?string
 
 export type PathType = 'folder' | 'file' | 'symlink' | 'unknown'
-export type ProgressType = 'favorite' | 'pending' | 'loaded'
+export type ProgressType = 'pending' | 'loaded'
 
 // not naming Error because it has meaning in js.
 export type _FsError = {
@@ -47,6 +47,26 @@ export type ResetMember = {
 
 export type TlfType = 'private' | 'public' | 'team'
 
+export type _TlfSyncEnabled = {
+  mode: 'enabled',
+}
+export type TlfSyncEnabled = I.RecordOf<_TlfSyncEnabled>
+
+export type _TlfSyncDisabled = {
+  mode: 'disabled',
+}
+export type TlfSyncDisabled = I.RecordOf<_TlfSyncDisabled>
+
+export type _TlfSyncPartial = {
+  mode: 'partial',
+  // TODO: swap this out with some smarter data structure to allow faster
+  // lookups.
+  enabledPaths: I.List<Path>,
+}
+export type TlfSyncPartial = I.RecordOf<_TlfSyncPartial>
+
+export type TlfSyncConfig = TlfSyncEnabled | TlfSyncDisabled | TlfSyncPartial
+
 export type _Tlf = {
   name: string,
   isFavorite: boolean,
@@ -63,8 +83,21 @@ export type _Tlf = {
   // youCanUnlock has a list of devices that can unlock this folder, when this
   // folder needs a rekey.
   youCanUnlock?: I.List<Device>,
+  // TODO: when we move favorites stuff into SimpleFS, this should no longer
+  // need to be optional.
+  syncConfig: ?TlfSyncConfig,
 }
 export type Tlf = I.RecordOf<_Tlf>
+
+// name -> Tlf
+export type TlfList = I.Map<string, Tlf>
+
+export type _Tlfs = {
+  private: TlfList,
+  public: TlfList,
+  team: TlfList,
+}
+export type Tlfs = I.RecordOf<_Tlfs>
 
 export type _ParsedPathRoot = {
   kind: 'root',
@@ -79,6 +112,7 @@ export type ParsedPathTlfList = I.RecordOf<_ParsedPathTlfList>
 
 export type _ParsedPathGroupTlf = {
   kind: 'group-tlf',
+  tlfName: string,
   tlfType: 'private' | 'public',
   writers: I.List<string>,
   readers: ?I.List<string>,
@@ -87,6 +121,7 @@ export type ParsedPathGroupTlf = I.RecordOf<_ParsedPathGroupTlf>
 
 export type _ParsedPathTeamTlf = {
   kind: 'team-tlf',
+  tlfName: string,
   tlfType: 'team',
   team: string,
 }
@@ -94,6 +129,7 @@ export type ParsedPathTeamTlf = I.RecordOf<_ParsedPathTeamTlf>
 
 export type _ParsedPathInGroupTlf = {
   kind: 'in-group-tlf',
+  tlfName: string,
   tlfType: 'private' | 'public',
   writers: I.List<string>,
   readers: ?I.List<string>,
@@ -103,6 +139,7 @@ export type ParsedPathInGroupTlf = I.RecordOf<_ParsedPathInGroupTlf>
 
 export type _ParsedPathInTeamTlf = {
   kind: 'in-team-tlf',
+  tlfName: string,
   tlfType: 'team',
   team: string,
   rest: I.List<string>,
@@ -117,35 +154,47 @@ export type ParsedPath =
   | ParsedPathInGroupTlf
   | ParsedPathInTeamTlf
 
-// name -> Tlf
-export type TlfList = I.Map<string, Tlf>
-
-export type _Tlfs = {
-  private: TlfList,
-  public: TlfList,
-  team: TlfList,
+export type _PrefetchNotStarted = {
+  state: 'not-started',
 }
-export type Tlfs = I.RecordOf<_Tlfs>
+export type PrefetchNotStarted = I.RecordOf<_PrefetchNotStarted>
 
-export type PathItemMetadata = {
+export type _PrefetchInProgress = {
+  state: 'in-progress',
+  startTime: number,
+  endEstimate: number,
+  bytesTotal: number,
+  bytesFetched: number,
+}
+export type PrefetchInProgress = I.RecordOf<_PrefetchInProgress>
+
+export type _PrefetchComplete = {
+  state: 'complete',
+}
+export type PrefetchComplete = I.RecordOf<_PrefetchComplete>
+
+export type PrefetchStatus = PrefetchNotStarted | PrefetchInProgress | PrefetchComplete
+
+type _PathItemMetadata = {
   name: string,
   lastModifiedTimestamp: number,
   size: number,
-  lastWriter: RPCTypes.User,
+  lastWriter: string,
   writable: boolean,
+  prefetchStatus: PrefetchStatus,
 }
 
 export type _FolderPathItem = {
   type: 'folder',
   children: I.Set<string>,
   progress: ProgressType,
-} & PathItemMetadata
+} & _PathItemMetadata
 export type FolderPathItem = I.RecordOf<_FolderPathItem>
 
 export type _SymlinkPathItem = {
   type: 'symlink',
   linkTarget: string,
-} & PathItemMetadata
+} & _PathItemMetadata
 export type SymlinkPathItem = I.RecordOf<_SymlinkPathItem>
 
 export type _Mime = {
@@ -157,15 +206,25 @@ export type Mime = I.RecordOf<_Mime>
 export type _FilePathItem = {
   type: 'file',
   mimeType: ?Mime,
-} & PathItemMetadata
+} & _PathItemMetadata
 export type FilePathItem = I.RecordOf<_FilePathItem>
 
 export type _UnknownPathItem = {
   type: 'unknown',
-} & PathItemMetadata
+} & _PathItemMetadata
 export type UnknownPathItem = I.RecordOf<_UnknownPathItem>
 
 export type PathItem = FolderPathItem | SymlinkPathItem | FilePathItem | UnknownPathItem
+
+export type SyncStatus =
+  | 'unknown' // trying to figure out what it is
+  | 'awaiting-to-sync' // sync enabled but we're offline
+  | 'awaiting-to-upload' // has local changes but we're offline
+  | 'online-only' // sync disabled
+  | 'synced' // sync enabled and fully synced
+  | 'sync-error' // uh oh
+  | 'uploading' // flushing or writing into journal and we're online
+  | number // percentage<1. not uploading, and we're syncing down
 
 export opaque type EditID = string
 export type EditType = 'new-folder'
@@ -182,13 +241,7 @@ export type NewFolder = I.RecordOf<_NewFolder>
 
 export type Edit = NewFolder
 
-export type SortBy = 'name' | 'time'
-export type SortOrder = 'asc' | 'desc'
-export type _SortSetting = {
-  sortBy: SortBy,
-  sortOrder: SortOrder,
-}
-export type SortSetting = I.RecordOf<_SortSetting>
+export type SortSetting = 'name-asc' | 'name-desc' | 'time-asc' | 'time-desc'
 
 export type _PathUserSetting = {
   sort: SortSetting,
@@ -233,7 +286,7 @@ export type _Uploads = {
 
   totalSyncingBytes: number,
   endEstimate?: number,
-  syncingPaths: I.Set<Path>,
+  syncingPaths: I.Set<Path>, // paths being uploaded from journal
 }
 export type Uploads = I.RecordOf<_Uploads>
 
@@ -303,21 +356,40 @@ export type _DestinationPicker = {
 
 export type DestinationPicker = I.RecordOf<_DestinationPicker>
 
+export type SendAttachmentToChatState =
+  | 'none'
+  | 'pending-select-conversation'
+  | 'ready-to-send' // a conversation is selected
+  | 'sent'
+
 export type _SendAttachmentToChat = {
   filter: string,
   path: Path,
   convID: ChatTypes.ConversationIDKey,
+  state: SendAttachmentToChatState,
 }
 export type SendAttachmentToChat = I.RecordOf<_SendAttachmentToChat>
 
+export type SendLinkToChatState =
+  | 'none'
+  // when the modal is just shown and we don't know the convID(s) yet
+  | 'locating-conversation'
+  // only applicable to big teams with multiple channels
+  | 'pending-select-conversation'
+  // possibly without a convID, in which case we'll create it
+  | 'ready-to-send'
+  | 'sending'
+  | 'sent'
+
 export type _SendLinkToChat = {
-  path: Path,
+  // populated for teams only
+  channels: I.Map<ChatTypes.ConversationIDKey, string>, // id -> channelname
   // This is the convID that we are sending into. So for group chats or small
   // teams, this is the conversation. For big teams, this is the selected
   // channel.
   convID: ChatTypes.ConversationIDKey,
-  // populated for teams only
-  channels: I.Map<ChatTypes.ConversationIDKey, string>, // id -> channelname
+  path: Path,
+  state: SendLinkToChatState,
 }
 export type SendLinkToChat = I.RecordOf<_SendLinkToChat>
 
@@ -363,12 +435,26 @@ export type _SystemFileManagerIntegration = {
 }
 export type SystemFileManagerIntegration = I.RecordOf<_SystemFileManagerIntegration>
 
-export type KbfsDaemonStatus = 'unknown' | 'waiting' | 'connected' | 'wait-timeout'
+export type KbfsDaemonRpcStatus = 'unknown' | 'waiting' | 'connected' | 'wait-timeout'
+export type _KbfsDaemonStatus = {
+  rpcStatus: KbfsDaemonRpcStatus,
+  online: boolean,
+}
+export type KbfsDaemonStatus = I.RecordOf<_KbfsDaemonStatus>
+
+export type _SyncingFoldersProgress = {
+  bytesFetched: number,
+  bytesTotal: number,
+  endEstimate: number,
+  start: number,
+}
+export type SyncingFoldersProgress = I.RecordOf<_SyncingFoldersProgress>
 
 export type _State = {|
   downloads: Downloads,
   edits: Edits,
   errors: I.Map<string, FsError>,
+  folderViewFilter: string,
   kbfsDaemonStatus: KbfsDaemonStatus,
   loadingPaths: I.Map<Path, I.Set<string>>,
   localHTTPServerInfo: LocalHTTPServer,
@@ -380,6 +466,7 @@ export type _State = {|
   sendAttachmentToChat: SendAttachmentToChat,
   sendLinkToChat: SendLinkToChat,
   sfmi: SystemFileManagerIntegration,
+  syncingFoldersProgress: SyncingFoldersProgress,
   tlfUpdates: UserTlfUpdates,
   tlfs: Tlfs,
   uploads: Uploads,
@@ -401,7 +488,8 @@ export const direntToPathType = (d: RPCTypes.Dirent): PathType => {
       return 'unknown'
   }
 }
-
+export const getPathFromRelative = (tlfName: string, tlfType: TlfType, inTlfPath: string): Path =>
+  '/keybase/' + tlfType + '/' + tlfName + '/' + inTlfPath
 export const stringToEditID = (s: string): EditID => s
 export const editIDToString = (s: EditID): string => s
 export const stringToPath = (s: string): Path => (s.indexOf('/') === 0 ? s : null)
@@ -439,14 +527,13 @@ export const getVisibilityFromElems = (elems: Array<string>) => {
       return null
   }
 }
-export const pathIsInTlfPath = (path: Path, tlfPath: Path) => {
-  const strPath = pathToString(path)
-  const strTlfPath = pathToString(tlfPath)
-  return (
-    strPath.startsWith(strTlfPath) &&
-    (strPath.length === strTlfPath.length || strPath[strTlfPath.length] === '/')
-  )
-}
+export const pathsAreInSameTlf = (path1: Path, path2: Path) =>
+  getPathElements(path1)
+    .slice(0, 3)
+    .join('/') ===
+  getPathElements(path2)
+    .slice(0, 3)
+    .join('/')
 export const getRPCFolderTypeFromVisibility = (v: Visibility): RPCTypes.FolderType => {
   if (v === null) return RPCTypes.favoriteFolderType.unknown
   return RPCTypes.favoriteFolderType[v]
@@ -504,38 +591,6 @@ export const getLocalPathName = (localPath: LocalPath): string => {
 export const getLocalPathDir = (p: LocalPath): string => p.slice(0, p.lastIndexOf(localSep))
 export const getNormalizedLocalPath = (p: LocalPath): LocalPath =>
   localSep === '\\' ? p.replace(/\\/g, '/') : p
-
-type sortSettingDisplayParams = {
-  sortSettingText: string,
-  sortSettingIconType: IconType,
-}
-
-export const sortSettingToIconTypeAndText = (s: SortSetting): sortSettingDisplayParams => {
-  switch (s.sortBy) {
-    case 'name':
-      return s.sortOrder === 'asc'
-        ? {
-            sortSettingIconType: 'iconfont-arrow-full-down',
-            sortSettingText: 'Name ascending',
-          }
-        : {
-            sortSettingIconType: 'iconfont-arrow-full-up',
-            sortSettingText: 'Name descending',
-          }
-    case 'time':
-      return s.sortOrder === 'asc'
-        ? {
-            sortSettingIconType: 'iconfont-time',
-            sortSettingText: 'Recent first',
-          }
-        : {
-            sortSettingIconType: 'iconfont-time-reversed',
-            sortSettingText: 'Older first',
-          }
-    default:
-      throw new Error('invalid SortBy')
-  }
-}
 
 export type PathItemIconSpec =
   | {

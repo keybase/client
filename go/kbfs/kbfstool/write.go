@@ -11,6 +11,7 @@ import (
 	"os"
 
 	"github.com/keybase/client/go/kbfs/fsrpc"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -87,7 +88,7 @@ func writeHelper(ctx context.Context, config libkbfs.Config, args []string) (err
 
 	kbfsOps := config.KBFSOps()
 
-	noSuchFileErr := libkbfs.NoSuchNameError{Name: filename}
+	noSuchFileErr := idutil.NoSuchNameError{Name: filename}
 
 	// The operations below are racy, but that is inherent to a
 	// distributed FS.

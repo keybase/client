@@ -29,15 +29,18 @@ func loadAndUnlockKey(m MetaContext, kr *SKBKeyringFile, secretStore SecretStore
 // nil if everything work, LoginRequiredError if a real "login" is required to
 // make the app work, and various errors on unexpected failures.
 func BootstrapActiveDeviceFromConfig(m MetaContext, online bool) (uid keybase1.UID, err error) {
-	uid, err = bootstrapActiveDeviceFromConfigReturnRawError(m, online)
+	uid, err = bootstrapActiveDeviceFromConfigReturnRawError(m, online, keybase1.UID(""))
 	err = fixupBootstrapError(err)
 	return uid, err
 }
 
-func bootstrapActiveDeviceFromConfigReturnRawError(m MetaContext, online bool) (uid keybase1.UID, err error) {
+func bootstrapActiveDeviceFromConfigReturnRawError(m MetaContext, online bool, assertUID keybase1.UID) (uid keybase1.UID, err error) {
 	uid = m.G().Env.GetUID()
 	if uid.IsNil() {
 		return uid, NoUIDError{}
+	}
+	if assertUID.Exists() && !assertUID.Equal(uid) {
+		return uid, NewUIDMismatchError(fmt.Sprintf("wanted %s but got %s", assertUID, uid))
 	}
 	deviceID := m.G().Env.GetDeviceIDForUID(uid)
 	if deviceID.IsNil() {
@@ -68,7 +71,7 @@ func fixupBootstrapError(err error) error {
 }
 
 func bootstrapActiveDeviceReturnRawError(m MetaContext, uid keybase1.UID, deviceID keybase1.DeviceID, online bool) (err error) {
-	defer m.Trace("bootstrapActiveDeviceReturnRaw", func() error { return err })()
+	defer m.Trace(fmt.Sprintf("bootstrapActiveDeviceReturnRaw(%s,%s)", uid, deviceID), func() error { return err })()
 
 	ad := m.ActiveDevice()
 	if ad.IsValidFor(uid, deviceID) {
@@ -166,4 +169,25 @@ func BootstrapActiveDeviceWithMetaContext(m MetaContext) (ok bool, uid keybase1.
 		err = nil
 	}
 	return ok, uid, err
+}
+
+// BootstrapActiveDeviceWithMetaContextAndAssertUID will setup an ActiveDevice with a NIST Factory
+// for the caller. It only works if we're logged in as the given UID
+func BootstrapActiveDeviceWithMetaContextAndAssertUID(m MetaContext, uid keybase1.UID) (ok bool, err error) {
+	_, err = bootstrapActiveDeviceFromConfigReturnRawError(m, true, uid)
+	switch err.(type) {
+	case nil:
+		return true, nil
+	case LoginRequiredError:
+		return false, nil
+	case UIDMismatchError:
+		return false, nil
+	case NoUIDError:
+		return false, nil
+	default:
+		if err == ErrUnlockNotPossible {
+			return false, nil
+		}
+		return false, err
+	}
 }

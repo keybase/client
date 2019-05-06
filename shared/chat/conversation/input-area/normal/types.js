@@ -14,6 +14,7 @@ type CommonProps = {|
   isEditExploded: boolean,
   isEditing: boolean,
   isExploding: boolean,
+  isSearching: boolean,
   explodingModeSeconds: number,
   focusInputCounter: number,
   clearInboxFilter: () => void,
@@ -26,6 +27,8 @@ type CommonProps = {|
   onSubmit: (text: string) => void,
   showCommandMarkdown: boolean,
   showGiphySearch: boolean,
+  showReplyPreview: boolean,
+  showTypingStatus: boolean,
   showWalletsIcon: boolean, // used on mobile to determine placeholder
 
   editText: string,
@@ -43,7 +46,8 @@ type CommonProps = {|
 type InputProps = {|
   ...CommonProps,
   isActiveForFocus: boolean,
-  suggestUsers: I.List<{username: string, fullName: string}>,
+  suggestTeams: Array<{username: string, fullName: string, teamname: string}>,
+  suggestUsers: I.List<{username: string, fullName: string, teamname?: string}>,
   suggestChannels: I.List<string>,
   suggestCommands: Array<RPCChatTypes.ConversationCommand>,
 |}

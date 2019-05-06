@@ -1,5 +1,5 @@
 // @flow
-import * as FsGen from '../../actions/fs-gen'
+import * as FsConstants from '../../constants/fs'
 import * as FsTypes from '../../constants/types/fs'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import {connect, type RouteProps} from '../../util/container'
@@ -30,9 +30,9 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   _onOpenPrivateFolder: (myUsername, username) => {
     if (myUsername && username) {
       dispatch(
-        FsGen.createOpenPathInFilesTab({
-          path: FsTypes.stringToPath(privateFolderWithUsers([username, myUsername])),
-        })
+        FsConstants.makeActionForOpenPathInFilesTab(
+          FsTypes.stringToPath(privateFolderWithUsers([username, myUsername]))
+        )
       )
     }
   },

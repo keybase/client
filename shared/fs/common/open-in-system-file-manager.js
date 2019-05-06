@@ -24,8 +24,7 @@ const OpenInSystemFileManager = ({openInSystemFileManager}: Props) => (
   <WithTooltip text={`Show in ${fileUIName}`}>
     <Icon
       type="iconfont-finder"
-      style={iconCastPlatformStyles(styles.pathItemActionIcon)}
-      fontSize={16}
+      padding="tiny"
       onClick={openInSystemFileManager}
       color={Styles.globalColors.black_50}
       hoverColor={Styles.globalColors.black}
@@ -35,15 +34,17 @@ const OpenInSystemFileManager = ({openInSystemFileManager}: Props) => (
 
 const FinderPopup = OverlayParentHOC((props: Props & OverlayParentProps) => (
   <>
-    <Icon
-      type="iconfont-finder"
-      style={iconCastPlatformStyles(styles.pathItemActionIcon)}
-      fontSize={16}
-      color={Styles.globalColors.black_50}
-      hoverColor={Styles.globalColors.black}
-      onClick={props.toggleShowingMenu}
-      ref={props.setAttachmentRef}
-    />
+    <WithTooltip text={`Show in ${fileUIName}`}>
+      <Icon
+        type="iconfont-finder"
+        padding="tiny"
+        fontSize={16}
+        color={Styles.globalColors.black_50}
+        hoverColor={Styles.globalColors.black}
+        onClick={props.toggleShowingMenu}
+        ref={props.setAttachmentRef}
+      />
+    </WithTooltip>
     <Overlay
       style={styles.popup}
       attachTo={props.getAttachmentRef}
@@ -61,7 +62,7 @@ const FinderPopup = OverlayParentHOC((props: Props & OverlayParentProps) => (
           and secure.
         </Text>
         <Box style={styles.buttonBox}>
-          <Button type="PrimaryGreen" label="Yes, enable" onClick={props.enableDriver} />
+          <Button type="Success" label="Yes, enable" onClick={props.enableDriver} />
         </Box>
       </Box>
     </Overlay>
@@ -87,10 +88,8 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
     paddingBottom: Styles.globalMargins.small,
+    textAlign: 'center',
     width: '100%',
-  },
-  pathItemActionIcon: {
-    padding: Styles.globalMargins.tiny,
   },
   popup: {
     backgroundColor: Styles.globalColors.white,

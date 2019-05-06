@@ -12,12 +12,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfshash"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/test/clocktest"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -77,9 +80,9 @@ type testTLFJournalConfig struct {
 	*testSyncedTlfGetterSetter
 	t            *testing.T
 	tlfID        tlf.ID
-	splitter     BlockSplitter
+	splitter     data.BlockSplitter
 	crypto       *CryptoLocal
-	bcache       BlockCache
+	bcache       data.BlockCache
 	bops         BlockOps
 	mdcache      MDCache
 	ver          kbfsmd.MetadataVer
@@ -87,24 +90,24 @@ type testTLFJournalConfig struct {
 	uid          keybase1.UID
 	verifyingKey kbfscrypto.VerifyingKey
 	ekg          singleEncryptionKeyGetter
-	nug          normalizedUsernameGetter
+	nug          idutil.NormalizedUsernameGetter
 	mdserver     MDServer
 	dlTimeout    time.Duration
 }
 
-func (c testTLFJournalConfig) BlockSplitter() BlockSplitter {
+func (c testTLFJournalConfig) BlockSplitter() data.BlockSplitter {
 	return c.splitter
 }
 
 func (c testTLFJournalConfig) Clock() Clock {
-	return wallClock{}
+	return data.WallClock{}
 }
 
 func (c testTLFJournalConfig) Crypto() Crypto {
 	return c.crypto
 }
 
-func (c testTLFJournalConfig) BlockCache() BlockCache {
+func (c testTLFJournalConfig) BlockCache() data.BlockCache {
 	return c.bcache
 }
 
@@ -136,11 +139,11 @@ func (c testTLFJournalConfig) mdDecryptionKeyGetter() mdDecryptionKeyGetter {
 	return c.ekg
 }
 
-func (c testTLFJournalConfig) usernameGetter() normalizedUsernameGetter {
+func (c testTLFJournalConfig) usernameGetter() idutil.NormalizedUsernameGetter {
 	return c.nug
 }
 
-func (c testTLFJournalConfig) resolver() resolver {
+func (c testTLFJournalConfig) resolver() idutil.Resolver {
 	return nil
 }
 
@@ -216,8 +219,9 @@ func setupTLFJournalTest(
 	cancel context.CancelFunc, tlfJournal *tlfJournal,
 	delegate testBWDelegate) {
 	// Set up config and dependencies.
-	bsplitter := &BlockSplitterSimple{
-		64 * 1024, int(64 * 1024 / bpSize), 8 * 1024, 0}
+	bsplitter, err := data.NewBlockSplitterSimpleExact(
+		64*1024, int(64*1024/data.BPSize), 8*1024)
+	require.NoError(t, err)
 	codec := kbfscodec.NewMsgpack()
 	signingKey := kbfscrypto.MakeFakeSigningKeyOrBust("client sign")
 	cryptPrivateKey := kbfscrypto.MakeFakeCryptPrivateKeyOrBust("client crypt private")
@@ -228,7 +232,7 @@ func setupTLFJournalTest(
 	ekg := singleEncryptionKeyGetter{kbfscrypto.MakeTLFCryptKey([32]byte{0x1})}
 
 	cig := singleCurrentSessionGetter{
-		SessionInfo{
+		idutil.SessionInfo{
 			Name:         "fake_user",
 			UID:          uid,
 			VerifyingKey: verifyingKey,
@@ -242,7 +246,7 @@ func setupTLFJournalTest(
 		newTestSyncedTlfGetterSetter(), t,
 		tlf.FakeID(1, tlf.Private), bsplitter, crypto,
 		nil, nil, NewMDCacheStandard(10), ver,
-		NewReporterSimple(newTestClockNow(), 10), uid, verifyingKey, ekg, nil,
+		NewReporterSimple(clocktest.NewTestClockNow(), 10), uid, verifyingKey, ekg, nil,
 		mdserver, defaultDiskLimitMaxDelay + time.Second,
 	}
 

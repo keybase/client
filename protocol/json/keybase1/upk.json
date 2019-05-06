@@ -283,6 +283,10 @@
             "ResetSummary"
           ],
           "name": "reset"
+        },
+        {
+          "type": "boolean",
+          "name": "unstubbed"
         }
       ]
     },

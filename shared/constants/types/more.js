@@ -40,9 +40,20 @@ export const ProvablePlatforms = Object.keys(provablePlatformsMap).reduce((arr, 
 }, [])
 
 export type PlatformsExpandedType = $Keys<typeof platformsExpandedMap>
-export const PlatformsExpanded = Object.keys(platformsExpandedMap).reduce((arr, p) => {
-  if (platformsExpandedMap[p]) {
-    arr.push(p)
+export const PlatformsExpanded: Array<PlatformsExpandedType> = Object.keys(platformsExpandedMap).reduce(
+  (arr, p) => {
+    if (platformsExpandedMap[p]) {
+      arr.push(p)
+    }
+    return arr
+  },
+  []
+)
+
+export function isPlatformsExpandedType(str: string): ?PlatformsExpandedType {
+  if (PlatformsExpanded.includes(str)) {
+    // $ForceType flow can't figure this out
+    return str
   }
-  return arr
-}, [])
+  return null
+}

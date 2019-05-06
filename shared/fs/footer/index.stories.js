@@ -1,18 +1,22 @@
 // @flow
 import React from 'react'
 import * as Sb from '../../stories/storybook'
-import {Box, Box2, Text} from '../../common-adapters'
+import {Box2, Text} from '../../common-adapters'
 import Downloads from './downloads'
 import Download from './download'
 import Upload from './upload'
 
 export const footerProvider = {
-  ConnectedDownload: ({downloadKey}: {downloadKey: string}) => ({
+  ConnectedDownload: ({downloadKey, isFirst}: {downloadKey: string, isFirst: boolean}) => ({
     cancel: Sb.action('cancel'),
-    completePortion: downloadKey.split('').reduce((num, char) => (num + char.charCodeAt(0)) % 100, 0) / 100,
+    completePortion:
+      downloadKey === 'completed'
+        ? 1
+        : downloadKey.split('').reduce((num, char) => (num + char.charCodeAt(0)) % 100, 0) / 100,
     dismiss: Sb.action('dismiss'),
     filename: downloadKey,
-    isDone: false,
+    isDone: downloadKey === 'completed',
+    isFirst,
     open: Sb.action('open'),
     progressText: '42 s',
   }),
@@ -54,56 +58,78 @@ const load = () =>
         />
         <Text type="Header">4+ items</Text>
         <Downloads
-          downloadKeys={['file 1', 'blah 2', 'yo 3']}
+          downloadKeys={['file 1', 'blah 2', 'yo 3', 'bla 4', 'blah 5']}
+          thereAreMore={true}
+          openDownloadFolder={Sb.action('openDownloadFolder')}
+        />
+        <Text type="Header">4+ items with completed</Text>
+        <Downloads
+          downloadKeys={['completed', 'file 1', 'blah 2', 'yo 3', 'bla 4', 'blah 5']}
           thereAreMore={true}
           openDownloadFolder={Sb.action('openDownloadFolder')}
         />
       </Box2>
     ))
     .add('Download Cards', () => (
-      <Box>
-        <Box style={{height: 8}} />
+      <Box2 direction="vertical" gap="small" gapStart={true}>
         <Download
           filename="fjweio"
           completePortion={0.42}
           progressText="4 s"
           isDone={false}
+          isFirst={false}
           {...downloadCommonActions}
         />
-        <Box style={{height: 8}} />
         <Download
           filename="fjweio afiojwe fweiojf oweijfweoi fjwoeifj ewoijf oew"
           completePortion={0.42}
           progressText="4 s"
           isDone={false}
+          isFirst={false}
           {...downloadCommonActions}
         />
-        <Box style={{height: 8}} />
         <Download
           filename="fjweioafiojwefweiojfoweijfweoifjwoeifjewoijfoew"
           completePortion={0.42}
           progressText="4 s"
           isDone={false}
+          isFirst={false}
           {...downloadCommonActions}
         />
-        <Box style={{height: 8}} />
         <Download
           filename="fjweioafiojwefweiojfoweijfweoifjwoeifjewoijfoew"
           completePortion={0.42}
           progressText="59 min"
           isDone={false}
+          isFirst={false}
           {...downloadCommonActions}
         />
-        <Box style={{height: 8}} />
         <Download
           filename="fjweioafiojwefweiojfoweijfweoifjwoeifjewoijfoew"
           completePortion={0.42}
           progressText="1234 hr"
           isDone={false}
+          isFirst={false}
           {...downloadCommonActions}
         />
-        <Box style={{height: 8}} />
-      </Box>
+        <Download
+          filename="fjweioafiojwefweiojfoweijfweoifjwoeifjewoijfoew"
+          completePortion={1}
+          progressText="0 s"
+          isDone={true}
+          isFirst={false}
+          {...downloadCommonActions}
+        />
+        <Download
+          filename="fjweioafiojwefweiojfoweijfweoifjwoeifjewoijfoew"
+          error={true}
+          completePortion={0.42}
+          progressText="1234 hr"
+          isDone={false}
+          isFirst={false}
+          {...downloadCommonActions}
+        />
+      </Box2>
     ))
     .add('UploadBanner', () => (
       <Upload fileName={null} files={42} totalSyncingBytes={100} timeLeft="23 min" showing={true} />

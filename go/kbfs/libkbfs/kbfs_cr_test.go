@@ -5,15 +5,19 @@
 package libkbfs
 
 import (
+	"fmt"
 	"os"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libcontext"
+	"github.com/keybase/client/go/kbfs/test/clocktest"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -52,12 +56,12 @@ func (t *testCRObserver) BatchChanges(ctx context.Context,
 }
 
 func (t *testCRObserver) TlfHandleChange(ctx context.Context,
-	newHandle *TlfHandle) {
+	newHandle *tlfhandle.Handle) {
 	return
 }
 
 func checkStatus(t *testing.T, ctx context.Context, kbfsOps KBFSOps,
-	staged bool, headWriter kbname.NormalizedUsername, dirtyPaths []string, fb FolderBranch,
+	staged bool, headWriter kbname.NormalizedUsername, dirtyPaths []string, fb data.FolderBranch,
 	prefix string) {
 	status, _, err := kbfsOps.FolderStatus(ctx, fb)
 	require.NoError(t, err)
@@ -120,12 +124,12 @@ func testMultipleMDUpdates(t *testing.T, unembedChanges bool) {
 	defer CheckConfigAndShutdown(ctx, t, config2)
 
 	if unembedChanges {
-		bss1, ok1 := config1.BlockSplitter().(*BlockSplitterSimple)
+		bss1, ok1 := config1.BlockSplitter().(*data.BlockSplitterSimple)
 		require.True(t, ok1)
-		bss2, ok2 := config2.BlockSplitter().(*BlockSplitterSimple)
+		bss2, ok2 := config2.BlockSplitter().(*data.BlockSplitterSimple)
 		require.True(t, ok2)
-		bss1.blockChangeEmbedMaxSize = 3
-		bss2.blockChangeEmbedMaxSize = 3
+		bss1.SetBlockChangeEmbedMaxSizeForTesting(3)
+		bss2.SetBlockChangeEmbedMaxSizeForTesting(3)
 	}
 
 	name := userName1.String() + "," + userName2.String()
@@ -258,7 +262,7 @@ func TestGetTLFCryptKeysWhileUnmergedAfterRestart(t *testing.T) {
 
 	DisableCRForTesting(config1B, rootNode1.GetFolderBranch())
 
-	tlfHandle, err := ParseTlfHandle(
+	tlfHandle, err := tlfhandle.ParseHandle(
 		ctx, config1B.KBPKI(), config1B.MDOps(), nil, name, tlf.Private)
 	require.NoError(t, err)
 
@@ -354,7 +358,7 @@ func TestUnmergedAfterRestart(t *testing.T) {
 	c := make(chan struct{}, 2)
 	cro := &testCRObserver{c, nil}
 	config1B.Notifier().RegisterForChanges(
-		[]FolderBranch{rootNode1B.GetFolderBranch()}, cro)
+		[]data.FolderBranch{rootNode1B.GetFolderBranch()}, cro)
 
 	ops1B := getOps(config1B, fileNode1B.GetFolderBranch().Tlf)
 	ops2B := getOps(config2B, fileNode1B.GetFolderBranch().Tlf)
@@ -472,14 +476,14 @@ func testBasicCRNoConflict(t *testing.T, unembedChanges bool) {
 	defer CheckConfigAndShutdown(ctx, t, config2)
 
 	if unembedChanges {
-		bss1, ok1 := config1.BlockSplitter().(*BlockSplitterSimple)
+		bss1, ok1 := config1.BlockSplitter().(*data.BlockSplitterSimple)
 		require.True(t, ok1)
-		bss2, ok2 := config2.BlockSplitter().(*BlockSplitterSimple)
+		bss2, ok2 := config2.BlockSplitter().(*data.BlockSplitterSimple)
 		require.True(t, ok2)
 		// 128 seems to be a good size that works on both 386 and x64
 		// platforms.
-		bss1.blockChangeEmbedMaxSize = 128
-		bss2.blockChangeEmbedMaxSize = 128
+		bss1.SetBlockChangeEmbedMaxSizeForTesting(128)
+		bss2.SetBlockChangeEmbedMaxSizeForTesting(128)
 	}
 
 	name := userName1.String() + "," + userName2.String()
@@ -554,7 +558,7 @@ func testBasicCRNoConflict(t *testing.T, unembedChanges bool) {
 		md, err := config1.MDOps().GetForTLF(ctx,
 			rootNode1.GetFolderBranch().Tlf, nil)
 		require.NoError(t, err)
-		require.NotEqual(t, zeroPtr, md.data.cachedChanges.Info.BlockPointer)
+		require.NotEqual(t, data.ZeroPtr, md.data.cachedChanges.Info.BlockPointer)
 	}
 }
 
@@ -690,7 +694,7 @@ func TestBasicCRFileConflict(t *testing.T) {
 	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
 
-	clock, now := newTestClockAndTimeNow()
+	clock, now := clocktest.NewTestClockAndTimeNow()
 	config2.SetClock(clock)
 
 	name := userName1.String() + "," + userName2.String()
@@ -771,6 +775,153 @@ func TestBasicCRFileConflict(t *testing.T) {
 	require.Equal(t, children1, children2)
 }
 
+// Tests that if CR fails enough times it will stop trying,
+// and that we can move the conflicts out of the way.
+func TestBasicCRFailureAndFixing(t *testing.T) {
+	// simulate two users
+	var userName1, userName2 kbname.NormalizedUsername = "u1", "u2"
+	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+
+	config2 := ConfigAsUser(config1, userName2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
+
+	// Enable journaling on user 2
+	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_for_fail_fix")
+	defer os.RemoveAll(tempdir)
+	require.NoError(t, err)
+	err = config2.EnableDiskLimiter(tempdir)
+	require.NoError(t, err)
+	err = config2.EnableJournaling(ctx, tempdir,
+		TLFJournalBackgroundWorkEnabled)
+	require.NoError(t, err)
+	jManager, err := GetJournalManager(config2)
+	require.NoError(t, err)
+	err = jManager.EnableAuto(ctx)
+	require.NoError(t, err)
+
+	clock, _ := clocktest.NewTestClockAndTimeNow()
+	config2.SetClock(clock)
+
+	name := userName1.String() + "," + userName2.String()
+
+	t.Log("User 1 creates a file a/b.")
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, tlf.Private)
+
+	kbfsOps1 := config1.KBFSOps()
+	dirA1, _, err := kbfsOps1.CreateDir(ctx, rootNode1, "a")
+	require.NoError(t, err)
+	fileB1, _, err := kbfsOps1.CreateFile(ctx, dirA1, "b", false, NoExcl)
+	require.NoError(t, err)
+	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
+	require.NoError(t, err)
+
+	t.Log("User 2 looks up file a/b.")
+	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, tlf.Private)
+
+	kbfsOps2 := config2.KBFSOps()
+	dirA2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "a")
+	require.NoError(t, err)
+	fileB2, _, err := kbfsOps2.Lookup(ctx, dirA2, "b")
+	require.NoError(t, err)
+
+	err = SetCRFailureForTesting(ctx, config2, rootNode2.GetFolderBranch(),
+		alwaysFailCR)
+	require.NoError(t, err)
+
+	t.Log("Disable updates on user 2.")
+	c, err := DisableUpdatesForTesting(config2, rootNode2.GetFolderBranch())
+	require.NoError(t, err)
+	err = DisableCRForTesting(config2, rootNode2.GetFolderBranch())
+	require.NoError(t, err)
+
+	t.Log("User 1 writes to file a/b.")
+	data1 := []byte{1, 2, 3, 4, 5}
+	err = kbfsOps1.Write(ctx, fileB1, data1, 0)
+	require.NoError(t, err)
+	err = kbfsOps1.SyncAll(ctx, fileB1.GetFolderBranch())
+	require.NoError(t, err)
+
+	t.Log("User 2 writes to file a/b without having heard user 1's update.")
+	data2 := []byte{5, 4, 3, 2, 1}
+	err = kbfsOps2.Write(ctx, fileB2, data2, 0)
+	require.NoError(t, err)
+	err = kbfsOps2.SyncAll(ctx, fileB2.GetFolderBranch())
+	require.NoError(t, err)
+
+	t.Log("Reenable updates and wait for CR to fail.")
+	c <- struct{}{}
+	err = RestartCRForTesting(
+		libcontext.BackgroundContextWithCancellationDelayer(), config2,
+		rootNode2.GetFolderBranch())
+	require.NoError(t, err)
+
+	t.Log("Try to SyncFromServer on user 2.")
+	err = kbfsOps2.SyncFromServer(ctx,
+		rootNode2.GetFolderBranch(), nil)
+	require.Equal(t, &ErrStillStagedAfterCR{}, err)
+
+	ops, ok := config2.KBFSOps().(*KBFSOpsStandard)
+	require.True(t, ok)
+	fbo := ops.getOpsNoAdd(ctx, rootNode2.GetFolderBranch())
+
+	t.Log("Write a bunch more files as user 2, creating more conflicts.")
+	for i := 0; i < maxConflictResolutionAttempts; i++ {
+		fileName := fmt.Sprintf("file%d", i)
+		newFile, _, err := kbfsOps2.CreateFile(ctx, dirA2, fileName, false,
+			NoExcl)
+		require.NoError(t, err, "Loop %d", i)
+		err = kbfsOps2.SyncAll(ctx, newFile.GetFolderBranch())
+		require.NoError(t, err, "Loop %d", i)
+		err = fbo.cr.Wait(ctx)
+		require.NoError(t, err, "Loop %d", i)
+	}
+
+	t.Log("Check that there is conflict state in the CR DB.")
+	crdb := config2.GetConflictResolutionDB()
+	data, err := crdb.Get(fbo.id().Bytes(), nil)
+	require.NoError(t, err)
+	require.NotZero(t, len(data))
+
+	t.Log("Clear the conflict state and re-enable CR.")
+	err = fbo.clearConflictView(ctx)
+	require.NoError(t, err)
+
+	err = SetCRFailureForTesting(ctx, config2, rootNode2.GetFolderBranch(),
+		doNotAlwaysFailCR)
+	require.NoError(t, err)
+
+	t.Log("Trigger CR and wait for it to resolve.")
+	dirA2, _, err = kbfsOps2.Lookup(ctx, rootNode2, "a")
+	require.NoError(t, err)
+	_, _, err = kbfsOps2.CreateFile(ctx, dirA2, "newFile", false, NoExcl)
+	require.NoError(t, err)
+
+	err = kbfsOps2.SyncAll(ctx, dirA2.GetFolderBranch())
+	require.NoError(t, err)
+	err = fbo.cr.Wait(ctx)
+	require.NoError(t, err)
+
+	t.Log("Verify that the conflict is resolved.")
+	err = kbfsOps2.SyncFromServer(ctx,
+		rootNode2.GetFolderBranch(), nil)
+	require.NoError(t, err)
+
+	err = kbfsOps1.SyncFromServer(ctx,
+		rootNode1.GetFolderBranch(), nil)
+	require.NoError(t, err)
+
+	t.Log("Check that the directories match on the 2 users.")
+
+	children1, err := kbfsOps1.GetDirChildren(ctx, dirA1)
+	require.NoError(t, err)
+
+	children2, err := kbfsOps2.GetDirChildren(ctx, dirA2)
+	require.NoError(t, err)
+
+	require.Equal(t, children2, children1)
+}
+
 // Tests that two users can create the same file simultaneously, and
 // the unmerged user can write to it, and they will be merged into a
 // single file.
@@ -783,7 +934,7 @@ func TestBasicCRFileCreateUnmergedWriteConflict(t *testing.T) {
 	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
 
-	config2.SetClock(newTestClockNow())
+	config2.SetClock(clocktest.NewTestClockNow())
 
 	name := userName1.String() + "," + userName2.String()
 
@@ -873,7 +1024,7 @@ func TestCRDouble(t *testing.T) {
 	require.NoError(t, err)
 	config2.MDServer().DisableRekeyUpdatesForTesting()
 
-	config2.SetClock(newTestClockNow())
+	config2.SetClock(clocktest.NewTestClockNow())
 	name := userName1.String() + "," + userName2.String()
 
 	// create and write to a file
@@ -1015,7 +1166,7 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 	require.NoError(t, err)
 	config2.MDServer().DisableRekeyUpdatesForTesting()
 
-	clock, now := newTestClockAndTimeNow()
+	clock, now := clocktest.NewTestClockAndTimeNow()
 	config2.SetClock(clock)
 	name := userName1.String() + "," + userName2.String()
 
@@ -1159,7 +1310,7 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 	require.NoError(t, err)
 	config2.MDServer().DisableRekeyUpdatesForTesting()
 
-	config2.SetClock(newTestClockNow())
+	config2.SetClock(clocktest.NewTestClockNow())
 	name := userName1.String() + "," + userName2.String()
 
 	// user1 creates a file in a shared dir
@@ -1294,14 +1445,15 @@ func TestCRSyncParallelBlocksErrorCleanup(t *testing.T) {
 	require.NoError(t, err)
 	config2.MDServer().DisableRekeyUpdatesForTesting()
 
-	config2.SetClock(newTestClockNow())
+	config2.SetClock(clocktest.NewTestClockNow())
 	name := userName1.String() + "," + userName2.String()
 
 	// Make the blocks small, with multiple levels of indirection, but
 	// make the unembedded size large, so we don't create thousands of
 	// unembedded block change blocks.
 	blockSize := int64(5)
-	bsplit := &BlockSplitterSimple{blockSize, 2, 100 * 1024, 0}
+	bsplit, err := data.NewBlockSplitterSimpleExact(blockSize, 2, 100*1024)
+	require.NoError(t, err)
 	config1.SetBlockSplitter(bsplit)
 
 	// create and write to a file
@@ -1425,7 +1577,7 @@ func TestCRCanceledAfterNewOperation(t *testing.T) {
 	require.NoError(t, err)
 	config2.MDServer().DisableRekeyUpdatesForTesting()
 
-	clock, now := newTestClockAndTimeNow()
+	clock, now := clocktest.NewTestClockAndTimeNow()
 	config2.SetClock(clock)
 	name := userName1.String() + "," + userName2.String()
 

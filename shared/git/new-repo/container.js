@@ -19,7 +19,7 @@ const mapStateToProps = (state, {routeProps, navigation}) => ({
 })
 
 const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp, routeProps, navigation}) => ({
-  loadTeams: () => dispatch(TeamsGen.createGetTeams()),
+  loadTeams: () => dispatch(TeamsGen.createGetTeams({clearNavBadges: false})),
   onCancel: () => dispatch(navigateUp()),
   onClose: () => dispatch(navigateUp()),
   onCreate: (name: string, teamname: ?string, notifyTeam: boolean) => {
@@ -33,7 +33,7 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp, routePro
       dispatch(navigateUp())
     }
   },
-  onNewTeam: () => dispatch(RouteTreeGen.createNavigateTo({path: [teamsTab, 'showNewTeamDialog']})),
+  onNewTeam: () => dispatch(RouteTreeGen.createNavigateTo({path: [teamsTab, 'teamNewTeamDialog']})),
 })
 
 export default connect<OwnProps, _, _, _, _>(

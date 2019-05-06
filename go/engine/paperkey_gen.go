@@ -122,7 +122,7 @@ func (e *PaperKeyGen) Run(m libkb.MetaContext) error {
 		return nil
 	}
 
-	e.G().KeyfamilyChanged(e.getUID())
+	e.G().KeyfamilyChanged(m.Ctx(), e.getUID())
 
 	return nil
 }

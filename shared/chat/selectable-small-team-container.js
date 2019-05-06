@@ -7,6 +7,8 @@ import {namedConnect} from '../util/container'
 type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
   filter?: string,
+  numSearchHits?: number,
+  maxSearchHits?: number,
   isSelected: boolean,
   onSelectConversation: () => void,
 |}
@@ -15,6 +17,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   const conversationIDKey = ownProps.conversationIDKey
 
   return {
+    _hasBadge: Constants.getHasBadge(state, conversationIDKey),
     _hasUnread: Constants.getHasUnread(state, conversationIDKey),
     _meta: Constants.getMeta(state, conversationIDKey),
     _username: state.config.username,
@@ -55,8 +58,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     isLocked,
     isMuted: stateProps._meta.isMuted,
     isSelected: ownProps.isSelected,
+    maxSearchHits: ownProps.maxSearchHits,
+    numSearchHits: ownProps.numSearchHits,
     onSelectConversation: ownProps.onSelectConversation,
     participants,
+    showBadge: stateProps._hasBadge,
     showBold: styles.showBold,
     teamname: stateProps._meta.teamname,
     usernameColor: styles.usernameColor,

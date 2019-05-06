@@ -24,7 +24,7 @@ const mapDispatchToProps = dispatch => ({
     if (pathElems.length < 3) return
     const filteredPathName = folderNameWithoutUsers(pathElems[2], users)
     const filteredPath = Types.stringToPath(['', pathElems[0], pathElems[1], filteredPathName].join('/'))
-    return dispatch(FsGen.createOpenPathInFilesTab({path: filteredPath}))
+    return dispatch(Constants.makeActionForOpenPathInFilesTab(filteredPath))
   },
   _onReAddToTeam: (id: RPCTypes.TeamID, username: string) =>
     dispatch(FsGen.createLetResetUserBackIn({id, username})),
@@ -69,7 +69,7 @@ export default ConnectedBanner
 export const asRows = (
   path: Types.Path,
   resetBannerType: Types.ResetBannerType
-): Array<RowTypes.RowItemWithKey> =>
+): Array<RowTypes.HeaderRowItem> =>
   typeof resetBannerType === 'number'
     ? [
         {

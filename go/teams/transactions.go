@@ -818,7 +818,7 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 		ekLib := g.GetEKLib()
 		if ekLib != nil && len(memSet.recipients) > 0 {
 			uids := memSet.recipientUids()
-			teamEKBoxes, err = ekLib.BoxLatestTeamEK(mctx.Ctx(), team.ID, uids)
+			teamEKBoxes, err = ekLib.BoxLatestTeamEK(mctx, team.ID, uids)
 			if err != nil {
 				return err
 			}

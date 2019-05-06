@@ -8,6 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/test/clocktest"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
@@ -20,8 +22,9 @@ func TestFetchDecider(t *testing.T) {
 	}
 
 	log := logger.NewTestLogger(t)
-	clock := newTestClockNow()
-	fd := newFetchDecider(log, fetcher, "", "", &testClockGetter{clock})
+	clock := clocktest.NewTestClockNow()
+	fd := newFetchDecider(
+		log, libkb.NewVDebugLog(log), fetcher, "", "", &testClockGetter{clock})
 	ctx, cancel := context.WithTimeout(
 		context.Background(), individualTestTimeout)
 	defer cancel()

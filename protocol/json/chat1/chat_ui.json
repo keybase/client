@@ -650,6 +650,10 @@
         },
         {
           "type": "string",
+          "name": "bodySummary"
+        },
+        {
+          "type": "string",
           "name": "senderUsername"
         },
         {
@@ -703,6 +707,13 @@
             "items": "UIChannelNameMention"
           },
           "name": "channelNameMentions"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "MaybeTeamMention"
+          },
+          "name": "teamMentions"
         },
         {
           "type": "boolean",
@@ -770,6 +781,13 @@
         {
           "type": "boolean",
           "name": "isEditable"
+        },
+        {
+          "type": [
+            null,
+            "UIMessage"
+          ],
+          "name": "replyTo"
         }
       ]
     },
@@ -818,6 +836,13 @@
             "string"
           ],
           "name": "flipGameID"
+        },
+        {
+          "type": [
+            null,
+            "UIMessage"
+          ],
+          "name": "replyTo"
         },
         {
           "type": "string",
@@ -905,12 +930,55 @@
       ]
     },
     {
+      "type": "record",
+      "name": "UITeamMention",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "inTeam"
+        },
+        {
+          "type": "boolean",
+          "name": "open"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "description"
+        },
+        {
+          "type": [
+            null,
+            "int"
+          ],
+          "name": "numMembers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "publicAdmins"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "convID"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "UITextDecorationTyp",
       "symbols": [
         "PAYMENT_0",
         "ATMENTION_1",
-        "CHANNELNAMEMENTION_2"
+        "CHANNELNAMEMENTION_2",
+        "TEAMMENTION_3"
       ]
     },
     {
@@ -941,6 +1009,52 @@
             "def": false
           },
           "body": "UIChannelNameMention"
+        },
+        {
+          "label": {
+            "name": "TEAMMENTION",
+            "def": false
+          },
+          "body": "MaybeTeamMention"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UIChatSearchConvHit",
+      "fields": [
+        {
+          "type": "string",
+          "name": "convID"
+        },
+        {
+          "type": "TeamType",
+          "name": "teamType"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "mtime"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UIChatSearchConvHits",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UIChatSearchConvHit"
+          },
+          "name": "hits"
+        },
+        {
+          "type": "boolean",
+          "name": "unreadMatches"
         }
       ]
     },
@@ -1020,6 +1134,23 @@
         {
           "type": "boolean",
           "name": "previewIsVideo"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GiphySearchResults",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "GiphySearchResult"
+          },
+          "name": "results"
+        },
+        {
+          "type": "string",
+          "name": "galleryUrl"
         }
       ]
     },
@@ -1461,6 +1592,15 @@
       ],
       "response": null
     },
+    "chatSearchInboxStart": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
     "chatSearchInboxHit": {
       "request": [
         {
@@ -1496,6 +1636,19 @@
         {
           "name": "status",
           "type": "ChatSearchIndexStatus"
+        }
+      ],
+      "response": null
+    },
+    "chatSearchConvHits": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "hits",
+          "type": "UIChatSearchConvHits"
         }
       ],
       "response": null
@@ -1573,10 +1726,7 @@
         },
         {
           "name": "results",
-          "type": {
-            "type": "array",
-            "items": "GiphySearchResult"
-          }
+          "type": "GiphySearchResults"
         }
       ],
       "response": null
@@ -1593,6 +1743,10 @@
         },
         {
           "name": "show",
+          "type": "boolean"
+        },
+        {
+          "name": "clearInput",
           "type": "boolean"
         }
       ],
@@ -1643,6 +1797,27 @@
             null,
             "UICommandMarkdown"
           ]
+        }
+      ],
+      "response": null
+    },
+    "chatTeamMentionUpdate": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamName",
+          "type": "string"
+        },
+        {
+          "name": "channel",
+          "type": "string"
+        },
+        {
+          "name": "info",
+          "type": "UITeamMention"
         }
       ],
       "response": null

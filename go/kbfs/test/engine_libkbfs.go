@@ -11,12 +11,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -29,7 +32,7 @@ type LibKBFS struct {
 	// hack: hold references on behalf of the test harness
 	refs map[libkbfs.Config]map[libkbfs.Node]bool
 	// channels used to re-enable updates if disabled
-	updateChannels map[libkbfs.Config]map[libkbfs.FolderBranch]chan<- struct{}
+	updateChannels map[libkbfs.Config]map[data.FolderBranch]chan<- struct{}
 	// test object, for logging.
 	tb testing.TB
 	// timeout for all KBFS calls
@@ -67,7 +70,7 @@ func (k *LibKBFS) InitTest(ver kbfsmd.MetadataVer,
 	config.SetClock(clock)
 	userMap[users[0]] = config
 	k.refs[config] = make(map[libkbfs.Node]bool)
-	k.updateChannels[config] = make(map[libkbfs.FolderBranch]chan<- struct{})
+	k.updateChannels[config] = make(map[data.FolderBranch]chan<- struct{})
 
 	// create the rest of the users as copies of the original config
 	for _, name := range users[1:] {
@@ -79,7 +82,7 @@ func (k *LibKBFS) InitTest(ver kbfsmd.MetadataVer,
 		c.SetClock(clock)
 		userMap[name] = c
 		k.refs[c] = make(map[libkbfs.Node]bool)
-		k.updateChannels[c] = make(map[libkbfs.FolderBranch]chan<- struct{})
+		k.updateChannels[c] = make(map[data.FolderBranch]chan<- struct{})
 	}
 
 	if journal {
@@ -203,16 +206,16 @@ func (k *LibKBFS) GetUID(u User) (uid keybase1.UID) {
 
 func parseTlfHandle(
 	ctx context.Context, kbpki libkbfs.KBPKI, mdOps libkbfs.MDOps,
-	osg libkbfs.OfflineStatusGetter, tlfName string, t tlf.Type) (
-	h *libkbfs.TlfHandle, err error) {
+	osg idutil.OfflineStatusGetter, tlfName string, t tlf.Type) (
+	h *tlfhandle.Handle, err error) {
 	// Limit to one non-canonical name for now.
 outer:
 	for i := 0; i < 2; i++ {
-		h, err = libkbfs.ParseTlfHandle(ctx, kbpki, mdOps, osg, tlfName, t)
+		h, err = tlfhandle.ParseHandle(ctx, kbpki, mdOps, osg, tlfName, t)
 		switch err := errors.Cause(err).(type) {
 		case nil:
 			break outer
-		case libkbfs.TlfNameNotCanonical:
+		case idutil.TlfNameNotCanonical:
 			tlfName = err.NameToTry
 		default:
 			return nil, err
@@ -244,7 +247,7 @@ func (k *LibKBFS) GetFavorites(u User, t tlf.Type) (map[string]bool, error) {
 }
 
 func (k *LibKBFS) getRootDir(
-	u User, tlfName string, t tlf.Type, branch libkbfs.BranchName,
+	u User, tlfName string, t tlf.Type, branch data.BranchName,
 	expectedCanonicalTlfName string) (dir Node, err error) {
 	config := u.(*libkbfs.ConfigLocal)
 
@@ -261,7 +264,7 @@ func (k *LibKBFS) getRootDir(
 			expectedCanonicalTlfName, h.GetCanonicalName())
 	}
 
-	if branch == libkbfs.MasterBranch {
+	if branch == data.MasterBranch {
 		dir, _, err = config.KBFSOps().GetOrCreateRootNode(ctx, h, branch)
 	} else {
 		dir, _, err = config.KBFSOps().GetRootNode(ctx, h, branch)
@@ -279,7 +282,7 @@ func (k *LibKBFS) GetRootDir(
 	u User, tlfName string, t tlf.Type, expectedCanonicalTlfName string) (
 	dir Node, err error) {
 	return k.getRootDir(
-		u, tlfName, t, libkbfs.MasterBranch, expectedCanonicalTlfName)
+		u, tlfName, t, data.MasterBranch, expectedCanonicalTlfName)
 }
 
 // GetRootDirAtRevision implements the Engine interface.
@@ -287,7 +290,7 @@ func (k *LibKBFS) GetRootDirAtRevision(
 	u User, tlfName string, t tlf.Type, rev kbfsmd.Revision,
 	expectedCanonicalTlfName string) (dir Node, err error) {
 	return k.getRootDir(
-		u, tlfName, t, libkbfs.MakeRevBranchName(rev), expectedCanonicalTlfName)
+		u, tlfName, t, data.MakeRevBranchName(rev), expectedCanonicalTlfName)
 }
 
 // GetRootDirAtTimeString implements the Engine interface.
@@ -309,7 +312,7 @@ func (k *LibKBFS) GetRootDirAtTimeString(
 	}
 
 	return k.getRootDir(
-		u, tlfName, t, libkbfs.MakeRevBranchName(rev), expectedCanonicalTlfName)
+		u, tlfName, t, data.MakeRevBranchName(rev), expectedCanonicalTlfName)
 }
 
 // GetRootDirAtRelTimeString implements the Engine interface.
@@ -331,7 +334,7 @@ func (k *LibKBFS) GetRootDirAtRelTimeString(
 	}
 
 	return k.getRootDir(
-		u, tlfName, t, libkbfs.MakeRevBranchName(rev), expectedCanonicalTlfName)
+		u, tlfName, t, data.MakeRevBranchName(rev), expectedCanonicalTlfName)
 }
 
 // CreateDir implements the Engine interface.
@@ -477,7 +480,7 @@ func (k *LibKBFS) Lookup(u User, parentDir Node, name string) (file Node, symPat
 	if file != nil {
 		k.refs[config][file.(libkbfs.Node)] = true
 	}
-	if ei.Type == libkbfs.Sym {
+	if ei.Type == data.Sym {
 		symPath = ei.SymPath
 	}
 	if file == nil {
@@ -491,7 +494,7 @@ func (k *LibKBFS) Lookup(u User, parentDir Node, name string) (file Node, symPat
 // GetDirChildrenTypes implements the Engine interface.
 func (k *LibKBFS) GetDirChildrenTypes(u User, parentDir Node) (childrenTypes map[string]string, err error) {
 	kbfsOps := u.(*libkbfs.ConfigLocal).KBFSOps()
-	var entries map[string]libkbfs.EntryInfo
+	var entries map[string]data.EntryInfo
 	ctx, cancel := k.newContext(u)
 	defer cancel()
 	entries, err = kbfsOps.GetDirChildren(ctx, parentDir.(libkbfs.Node))
@@ -542,7 +545,7 @@ func (k *LibKBFS) SyncAll(
 func (k *LibKBFS) GetMtime(u User, file Node) (mtime time.Time, err error) {
 	config := u.(*libkbfs.ConfigLocal)
 	kbfsOps := config.KBFSOps()
-	var info libkbfs.EntryInfo
+	var info data.EntryInfo
 	ctx, cancel := k.newContext(u)
 	defer cancel()
 	if node, ok := file.(libkbfs.Node); ok {
@@ -560,10 +563,10 @@ func (k *LibKBFS) GetMtime(u User, file Node) (mtime time.Time, err error) {
 
 // GetPrevRevisions implements the Engine interface.
 func (k *LibKBFS) GetPrevRevisions(u User, file Node) (
-	revs libkbfs.PrevRevisions, err error) {
+	revs data.PrevRevisions, err error) {
 	config := u.(*libkbfs.ConfigLocal)
 	kbfsOps := config.KBFSOps()
-	var info libkbfs.EntryInfo
+	var info data.EntryInfo
 	ctx, cancel := k.newContext(u)
 	defer cancel()
 	if node, ok := file.(libkbfs.Node); ok {
@@ -592,7 +595,7 @@ func getRootNode(ctx context.Context, config libkbfs.Config, tlfName string,
 	// TODO: we should cache the root node, to more faithfully
 	// simulate real-world callers and avoid unnecessary work.
 	kbfsOps := config.KBFSOps()
-	dir, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, libkbfs.MasterBranch)
+	dir, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, data.MasterBranch)
 	if err != nil {
 		return nil, err
 	}
@@ -836,7 +839,7 @@ func (k *LibKBFS) UserEditHistory(u User) (
 
 	ctx, cancel := k.newContext(u)
 	defer cancel()
-	session, err := libkbfs.GetCurrentSessionIfPossible(
+	session, err := idutil.GetCurrentSessionIfPossible(
 		ctx, config.KBPKI(), true)
 	if err != nil {
 		return nil, err
@@ -881,7 +884,7 @@ func (k *LibKBFS) Shutdown(u User) error {
 	k.refs[config] = make(map[libkbfs.Node]bool)
 	delete(k.refs, config)
 	// clear update channels
-	k.updateChannels[config] = make(map[libkbfs.FolderBranch]chan<- struct{})
+	k.updateChannels[config] = make(map[data.FolderBranch]chan<- struct{})
 	delete(k.updateChannels, config)
 
 	// Get the user name before shutting everything down.

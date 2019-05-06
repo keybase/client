@@ -12,17 +12,18 @@ import {debounce, throttle} from 'lodash-es'
 import {memoize} from '../../../../util/memoize'
 import CommandMarkdown from '../../command-markdown/container'
 import Giphy from '../../giphy/container'
+import ReplyPreview from '../../reply-preview/container'
 
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
 const throttled = throttle((f, param) => f(param), 2000)
 const debounced = debounce((f, param) => f(param), 500)
 
-const searchUsers = memoize((users, filter) => {
+const searchUsersAndTeams = memoize((users, teams, filter) => {
   if (!filter) {
-    return users.toArray()
+    return users.concat(teams).toArray()
   }
   const fil = filter.toLowerCase()
-  return users
+  const sortedUsers = users
     .map(u => {
       let score = 0
       const username = u.username.toLowerCase()
@@ -45,6 +46,10 @@ const searchUsers = memoize((users, filter) => {
     .sort((a, b) => b.score - a.score)
     .map(userWithScore => userWithScore.user)
     .toArray()
+  const sortedTeams = teams.filter(t => {
+    return t.teamname.includes(fil)
+  })
+  return sortedUsers.concat(sortedTeams)
 })
 
 const suggestorToMarker = {
@@ -57,7 +62,8 @@ const suggestorToMarker = {
 const suggestorKeyExtractors = {
   commands: (c: RPCChatTypes.ConversationCommand) => c.name,
   emoji: (item: {id: string}) => item.id,
-  users: ({username, fullName}: {username: string, fullName: string}) => username,
+  users: ({username, fullName, teamname}: {username: string, fullName: string, teamname?: string}) =>
+    teamname || username,
 }
 
 // 2+ valid emoji chars and no ending colon
@@ -138,9 +144,17 @@ class Input extends React.Component<InputProps, InputState> {
   }
 
   _onChangeText = (text: string) => {
+    const skipThrottle = this._lastText && this._lastText.length > 0 && text.length === 0
     this.props.setUnsentText(text)
     this._lastText = text
-    throttled(this.props.sendTyping, !!text)
+
+    // If the input bar has been cleared, send typing notification right away
+    if (skipThrottle) {
+      throttled.cancel()
+      this.props.sendTyping(false)
+    } else {
+      throttled(this.props.sendTyping, !!text)
+    }
 
     // check if input matches a command with help text,
     // skip debouncing unsentText if so
@@ -243,11 +257,14 @@ class Input extends React.Component<InputProps, InputState> {
       const text = this.props.getUnsentText()
       this._setText(text, true)
       // TODO: Ideally, we'd also stash and restore the selection.
-      this._inputFocus()
+      if (!this.props.isSearching) {
+        this._inputFocus()
+      }
     }
   }
 
-  _getUserSuggestions = filter => searchUsers(this.props.suggestUsers, filter)
+  _getUserSuggestions = filter =>
+    searchUsersAndTeams(this.props.suggestUsers, this.props.suggestTeams, filter)
 
   _getCommandSuggestions = filter => {
     if (this.props.showCommandMarkdown || this.props.showGiphySearch) {
@@ -267,7 +284,7 @@ class Input extends React.Component<InputProps, InputState> {
     return this.props.suggestCommands.filter(c => c.name.includes(fil))
   }
 
-  _renderUserSuggestion = ({username, fullName}: {username: string, fullName: string}, selected: boolean) => (
+  _renderTeamSuggestion = (teamname, selected) => (
     <Kb.Box2
       direction="horizontal"
       fullWidth={true}
@@ -280,28 +297,62 @@ class Input extends React.Component<InputProps, InputState> {
       ])}
       gap="tiny"
     >
-      {Constants.isSpecialMention(username) ? (
-        <Kb.Icon
-          type="iconfont-people"
-          style={styles.paddingXTiny}
-          color={Styles.globalColors.blue}
-          fontSize={24}
-        />
-      ) : (
-        <Kb.Avatar username={username} size={32} />
-      )}
-      <Kb.ConnectedUsernames
-        type="BodySemibold"
-        colorFollowing={true}
-        usernames={[username]}
-        style={styles.boldStyle}
+      <Kb.Icon
+        type="iconfont-people"
+        style={styles.paddingXTiny}
+        color={Styles.globalColors.blue}
+        fontSize={24}
       />
-      <Kb.Text type="BodySmall">{fullName}</Kb.Text>
+      <Kb.Text type="Body">{teamname}</Kb.Text>
     </Kb.Box2>
   )
 
-  _transformUserSuggestion = (input: {fullName: string, username: string}, marker, tData, preview: boolean) =>
-    standardTransformer(`${marker}${input.username}`, tData, preview)
+  _renderUserSuggestion = (
+    {username, fullName, teamname}: {username: string, fullName: string, teamname?: string},
+    selected: boolean
+  ) => {
+    return teamname ? (
+      this._renderTeamSuggestion(teamname, selected)
+    ) : (
+      <Kb.Box2
+        direction="horizontal"
+        fullWidth={true}
+        style={Styles.collapseStyles([
+          styles.suggestionBase,
+          styles.fixSuggestionHeight,
+          {
+            backgroundColor: selected ? Styles.globalColors.blue4 : Styles.globalColors.white,
+          },
+        ])}
+        gap="tiny"
+      >
+        {Constants.isSpecialMention(username) ? (
+          <Kb.Icon
+            type="iconfont-people"
+            style={styles.paddingXTiny}
+            color={Styles.globalColors.blue}
+            fontSize={24}
+          />
+        ) : (
+          <Kb.Avatar username={username} size={32} />
+        )}
+        <Kb.ConnectedUsernames
+          type="Body"
+          colorFollowing={true}
+          usernames={[username]}
+          style={styles.boldStyle}
+        />
+        <Kb.Text type="BodySmall">{fullName}</Kb.Text>
+      </Kb.Box2>
+    )
+  }
+
+  _transformUserSuggestion = (
+    input: {fullName: string, username: string, teamname?: string},
+    marker,
+    tData,
+    preview: boolean
+  ) => standardTransformer(`${marker}${input.teamname || input.username}`, tData, preview)
 
   _getChannelSuggestions = filter => {
     const fil = filter.toLowerCase()
@@ -358,6 +409,7 @@ class Input extends React.Component<InputProps, InputState> {
 
   render = () => {
     const {
+      suggestTeams,
       suggestUsers,
       suggestChannels,
       suggestCommands,
@@ -366,6 +418,7 @@ class Input extends React.Component<InputProps, InputState> {
     } = this.props
     return (
       <Kb.Box2 direction="vertical" fullWidth={true}>
+        {this.props.showReplyPreview && <ReplyPreview conversationIDKey={this.props.conversationIDKey} />}
         {this.props.showCommandMarkdown && (
           <CommandMarkdown conversationIDKey={this.props.conversationIDKey} />
         )}

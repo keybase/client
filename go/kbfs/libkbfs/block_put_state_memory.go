@@ -7,50 +7,51 @@ package libkbfs
 import (
 	"context"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/pkg/errors"
 )
 
 type blockState struct {
-	block          Block
-	readyBlockData ReadyBlockData
+	block          data.Block
+	readyBlockData data.ReadyBlockData
 	syncedCb       func() error
-	oldPtr         BlockPointer
+	oldPtr         data.BlockPointer
 }
 
 // blockPutStateMemory is an internal structure to track data in
 // memory when putting blocks.
 type blockPutStateMemory struct {
-	blockStates map[BlockPointer]blockState
-	lastBlock   BlockPointer
+	blockStates map[data.BlockPointer]blockState
+	lastBlock   data.BlockPointer
 }
 
 var _ blockPutStateCopiable = (*blockPutStateMemory)(nil)
 
 func newBlockPutStateMemory(length int) *blockPutStateMemory {
 	bps := &blockPutStateMemory{}
-	bps.blockStates = make(map[BlockPointer]blockState, length)
+	bps.blockStates = make(map[data.BlockPointer]blockState, length)
 	return bps
 }
 
-// addNewBlock tracks a new block that will be put.  If syncedCb is
+// AddNewBlock tracks a new block that will be put.  If syncedCb is
 // non-nil, it will be called whenever the put for that block is
 // complete (whether or not the put resulted in an error).  Currently
 // it will not be called if the block is never put (due to an earlier
 // error).
-func (bps *blockPutStateMemory) addNewBlock(
-	_ context.Context, blockPtr BlockPointer, block Block,
-	readyBlockData ReadyBlockData, syncedCb func() error) error {
+func (bps *blockPutStateMemory) AddNewBlock(
+	_ context.Context, blockPtr data.BlockPointer, block data.Block,
+	readyBlockData data.ReadyBlockData, syncedCb func() error) error {
 	bps.blockStates[blockPtr] = blockState{
-		block, readyBlockData, syncedCb, zeroPtr}
+		block, readyBlockData, syncedCb, data.ZeroPtr}
 	bps.lastBlock = blockPtr
 	return nil
 }
 
-// saveOldPtr stores the given BlockPointer as the old (pre-readied)
+// SaveOldPtr stores the given BlockPointer as the old (pre-readied)
 // pointer for the most recent blockState.
-func (bps *blockPutStateMemory) saveOldPtr(
-	_ context.Context, oldPtr BlockPointer) error {
-	if bps.lastBlock == zeroPtr {
+func (bps *blockPutStateMemory) SaveOldPtr(
+	_ context.Context, oldPtr data.BlockPointer) error {
+	if bps.lastBlock == data.ZeroPtr {
 		return errors.New("No blocks have been added")
 	}
 	bs, ok := bps.blockStates[bps.lastBlock]
@@ -63,12 +64,13 @@ func (bps *blockPutStateMemory) saveOldPtr(
 }
 
 func (bps *blockPutStateMemory) oldPtr(
-	_ context.Context, blockPtr BlockPointer) (BlockPointer, error) {
+	_ context.Context, blockPtr data.BlockPointer) (data.BlockPointer, error) {
 	bs, ok := bps.blockStates[blockPtr]
 	if ok {
 		return bs.oldPtr, nil
 	}
-	return BlockPointer{}, errors.WithStack(NoSuchBlockError{blockPtr.ID})
+	return data.BlockPointer{}, errors.WithStack(
+		data.NoSuchBlockError{ID: blockPtr.ID})
 }
 
 func (bps *blockPutStateMemory) mergeOtherBps(
@@ -94,7 +96,7 @@ func (bps *blockPutStateMemory) removeOtherBps(
 		return nil
 	}
 
-	otherMemPtrs := make(map[BlockPointer]bool, len(otherMem.blockStates))
+	otherMemPtrs := make(map[data.BlockPointer]bool, len(otherMem.blockStates))
 	for ptr := range otherMem.blockStates {
 		otherMemPtrs[ptr] = true
 	}
@@ -113,8 +115,8 @@ func (bps *blockPutStateMemory) removeOtherBps(
 	return nil
 }
 
-func (bps *blockPutStateMemory) ptrs() []BlockPointer {
-	ret := make([]BlockPointer, len(bps.blockStates))
+func (bps *blockPutStateMemory) ptrs() []data.BlockPointer {
+	ret := make([]data.BlockPointer, len(bps.blockStates))
 	i := 0
 	for ptr := range bps.blockStates {
 		ret[i] = ptr
@@ -124,24 +126,25 @@ func (bps *blockPutStateMemory) ptrs() []BlockPointer {
 }
 
 func (bps *blockPutStateMemory) getBlock(
-	_ context.Context, blockPtr BlockPointer) (Block, error) {
+	_ context.Context, blockPtr data.BlockPointer) (data.Block, error) {
 	bs, ok := bps.blockStates[blockPtr]
 	if ok {
 		return bs.block, nil
 	}
-	return nil, errors.WithStack(NoSuchBlockError{blockPtr.ID})
+	return nil, errors.WithStack(data.NoSuchBlockError{ID: blockPtr.ID})
 }
 
 func (bps *blockPutStateMemory) getReadyBlockData(
-	_ context.Context, blockPtr BlockPointer) (ReadyBlockData, error) {
+	_ context.Context, blockPtr data.BlockPointer) (data.ReadyBlockData, error) {
 	bs, ok := bps.blockStates[blockPtr]
 	if ok {
 		return bs.readyBlockData, nil
 	}
-	return ReadyBlockData{}, errors.WithStack(NoSuchBlockError{blockPtr.ID})
+	return data.ReadyBlockData{}, errors.WithStack(
+		data.NoSuchBlockError{ID: blockPtr.ID})
 }
 
-func (bps *blockPutStateMemory) synced(blockPtr BlockPointer) error {
+func (bps *blockPutStateMemory) synced(blockPtr data.BlockPointer) error {
 	bs, ok := bps.blockStates[blockPtr]
 	if ok && bs.syncedCb != nil {
 		return bs.syncedCb()
@@ -156,7 +159,7 @@ func (bps *blockPutStateMemory) numBlocks() int {
 func (bps *blockPutStateMemory) deepCopy(
 	_ context.Context) (blockPutStateCopiable, error) {
 	newBps := &blockPutStateMemory{}
-	newBps.blockStates = make(map[BlockPointer]blockState, len(bps.blockStates))
+	newBps.blockStates = make(map[data.BlockPointer]blockState, len(bps.blockStates))
 	for ptr, bs := range bps.blockStates {
 		newBps.blockStates[ptr] = bs
 	}
@@ -164,14 +167,14 @@ func (bps *blockPutStateMemory) deepCopy(
 }
 
 func (bps *blockPutStateMemory) deepCopyWithBlacklist(
-	_ context.Context, blacklist map[BlockPointer]bool) (
+	_ context.Context, blacklist map[data.BlockPointer]bool) (
 	blockPutStateCopiable, error) {
 	newBps := &blockPutStateMemory{}
 	newLen := len(bps.blockStates) - len(blacklist)
 	if newLen < 0 {
 		newLen = 0
 	}
-	newBps.blockStates = make(map[BlockPointer]blockState, newLen)
+	newBps.blockStates = make(map[data.BlockPointer]blockState, newLen)
 	for ptr, bs := range bps.blockStates {
 		// Only save the good pointers
 		if !blacklist[ptr] {

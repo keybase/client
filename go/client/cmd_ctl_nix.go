@@ -427,6 +427,7 @@ func (c *CmdCtlInit) ParseArgv(ctx *cli.Context) error {
 type EnvSetting struct {
 	Name  string
 	Value *string
+	Unset bool
 }
 
 func (c *CmdCtlInit) Envs() []EnvSetting {
@@ -434,7 +435,7 @@ func (c *CmdCtlInit) Envs() []EnvSetting {
 	return []EnvSetting{
 		// This is for the system tray icon in new versions of Ubuntu that do not use Unity.
 		// See https://github.com/electron/electron/issues/10887.
-		EnvSetting{"XDG_CURRENT_DESKTOP", strPtr("Unity")},
+		EnvSetting{Name: "XDG_CURRENT_DESKTOP", Value: strPtr("Unity")},
 
 		// * This section is for the Keybase GUI.
 		// Some older distros (e.g. Ubuntu 16.04) don't make X session variables
@@ -444,31 +445,31 @@ func (c *CmdCtlInit) Envs() []EnvSetting {
 		// passwords or keys. Hopefully this section won't be needed someday.
 		// (Arch Linux doesn't need it today.)
 		// See: graphical-session.target.
-		EnvSetting{"DISPLAY", nil},
-		EnvSetting{"XAUTHORITY", nil},
+		EnvSetting{Name: "DISPLAY", Value: nil},
+		EnvSetting{Name: "XAUTHORITY", Value: nil},
 
 		// * This section is for the Keybase GUI.
 		// The following enable CJK and other alternative input methods.
 		// See https://github.com/keybase/client/issues/9861.
-		EnvSetting{"CLUTTER_IM_MODULE", nil},
-		EnvSetting{"GTK_IM_MODULE", nil},
-		EnvSetting{"QT_IM_MODULE", nil},
-		EnvSetting{"QT4_IM_MODULE", nil},
-		EnvSetting{"XMODIFIERS", nil},
+		EnvSetting{Name: "CLUTTER_IM_MODULE", Value: nil},
+		EnvSetting{Name: "GTK_IM_MODULE", Value: nil},
+		EnvSetting{Name: "QT_IM_MODULE", Value: nil},
+		EnvSetting{Name: "QT4_IM_MODULE", Value: nil},
+		EnvSetting{Name: "XMODIFIERS", Value: nil},
 
 		// * This section is for the Keybase GUI.
 		// Arbitrary environment variables from bashrc and similar aren't
 		// automatically available in the systemd session, and users probably
 		// didn't use pam to define their XDG directories. Export them just in
 		// case.
-		EnvSetting{"XDG_DOWNLOAD_DIR", nil},
+		EnvSetting{Name: "XDG_DOWNLOAD_DIR", Value: nil},
 
 		// * This section is for the service, KBFS, and the Keybase GUI.
-		EnvSetting{"XDG_CACHE_HOME", nil},
-		EnvSetting{"XDG_CONFIG_HOME", nil},
-		EnvSetting{"XDG_DATA_HOME", nil},
-		EnvSetting{"XDG_RUNTIME_DIR", nil},
-		EnvSetting{"DBUS_SESSION_BUS_ADDRESS", nil},
+		EnvSetting{Name: "XDG_CACHE_HOME", Value: nil},
+		EnvSetting{Name: "XDG_CONFIG_HOME", Value: nil},
+		EnvSetting{Name: "XDG_DATA_HOME", Value: nil},
+		EnvSetting{Name: "XDG_RUNTIME_DIR", Value: nil},
+		EnvSetting{Name: "DBUS_SESSION_BUS_ADDRESS", Value: nil},
 	}
 }
 
@@ -504,10 +505,15 @@ func (c *CmdCtlInit) RunEnv() error {
 	s += fmt.Sprintf("# To override individual variables, write to %s\n", overrideEnvfileName)
 	for _, env := range envs {
 		if env.Value == nil {
-			val := os.Getenv(env.Name)
+			val, ok := os.LookupEnv(env.Name)
 			env.Value = &val
+			env.Unset = !ok
 		}
-		s += fmt.Sprintf("%s=%s\n", env.Name, *env.Value)
+		if env.Unset {
+			s += fmt.Sprintf("# %s (unset)\n", env.Name)
+		} else {
+			s += fmt.Sprintf("%s=%s\n", env.Name, *env.Value)
+		}
 	}
 	if c.DryRun {
 		fmt.Printf("Writing following text to %s...\n", envfileName)

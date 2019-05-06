@@ -192,7 +192,7 @@ func ListTeamsVerified(ctx context.Context, g *libkb.GlobalContext,
 	}
 
 	res := &keybase1.AnnotatedTeamList{
-		Teams: nil,
+		Teams:                  nil,
 		AnnotatedActiveInvites: make(map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite),
 	}
 
@@ -309,7 +309,7 @@ func ListAll(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListT
 	}
 
 	res := &keybase1.AnnotatedTeamList{
-		Teams: nil,
+		Teams:                  nil,
 		AnnotatedActiveInvites: make(map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite),
 	}
 

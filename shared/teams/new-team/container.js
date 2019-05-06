@@ -1,41 +1,40 @@
 // @flow
+import * as Container from '../../util/container'
 import * as TeamsGen from '../../actions/teams-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import NewTeamDialog from './'
 import {upperFirst} from 'lodash-es'
 import * as WaitingConstants from '../../constants/waiting'
 import * as Constants from '../../constants/teams'
-import {
-  connect,
-  compose,
-  lifecycle,
-  withStateHandlers,
-  withHandlers,
-  type RouteProps,
-} from '../../util/container'
+import flags from '../../util/feature-flags'
 
-type OwnProps = RouteProps<{makeSubteam: boolean, name: string}, {}>
+type OwnProps = Container.RouteProps<{makeSubteam: boolean, name: string}, {}>
 
 const mapStateToProps = state => ({
   errorText: upperFirst(state.teams.teamCreationError),
   pending: WaitingConstants.anyWaiting(state, Constants.teamCreationWaitingKey),
 })
 
-const mapDispatchToProps = (dispatch, {navigateUp, routePath}) => ({
+const mapDispatchToProps = (dispatch, ownProps) => ({
   _onCreateNewTeam: (joinSubteam: boolean, teamname: string) => {
-    const rootPath = routePath.take(1)
-    const sourceSubPath = routePath.rest()
-    const destSubPath = sourceSubPath.butLast()
-    dispatch(TeamsGen.createCreateNewTeam({destSubPath, joinSubteam, rootPath, sourceSubPath, teamname}))
+    if (flags.useNewRouter) {
+      dispatch(TeamsGen.createCreateNewTeam({joinSubteam, teamname}))
+    } else {
+      const rootPath = ownProps.routePath.take(1)
+      const sourceSubPath = ownProps.routePath.rest()
+      const destSubPath = sourceSubPath.butLast()
+      dispatch(TeamsGen.createCreateNewTeam({destSubPath, joinSubteam, rootPath, sourceSubPath, teamname}))
+    }
   },
-  onCancel: () => dispatch(navigateUp()),
+  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
   onSetTeamCreationError: (error: string) => {
     dispatch(TeamsGen.createSetTeamCreationError({error}))
   },
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const isSubteam = ownProps.routeProps.get('makeSubteam') || false
-  const baseTeam = ownProps.routeProps.get('name') || ''
+  const isSubteam = Container.getRouteProps(ownProps, 'makeSubteam') || false
+  const baseTeam = Container.getRouteProps(ownProps, 'name') || ''
   return {
     ...stateProps,
     ...dispatchProps,
@@ -44,21 +43,21 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default compose(
-  connect<OwnProps, _, _, _, _>(
+export default Container.compose(
+  Container.connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps
   ),
-  withStateHandlers(({joinSubteam}) => ({joinSubteam: false, name: ''}), {
+  Container.withStateHandlers(({joinSubteam}) => ({joinSubteam: false, name: ''}), {
     onJoinSubteamChange: () => (checked: boolean) => ({joinSubteam: checked}),
     onNameChange: () => (name: string) => ({name: name.toLowerCase()}),
   }),
-  withHandlers({
+  Container.withHandlers({
     onSubmit: ({joinSubteam, _onCreateNewTeam}) => (fullName: string) =>
       _onCreateNewTeam(joinSubteam, fullName),
   }),
-  lifecycle({
+  Container.lifecycle({
     componentDidMount() {
       this.props.onSetTeamCreationError('')
     },

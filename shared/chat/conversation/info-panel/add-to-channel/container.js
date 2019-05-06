@@ -6,13 +6,12 @@ import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as WaitingGen from '../../../../actions/waiting-gen'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {anyErrors} from '../../../../constants/waiting'
-import type {RouteProps} from '../../../../route-tree/render-route'
 import AddToChannel from '.'
 
-type OwnProps = RouteProps<{conversationIDKey: Types.ConversationIDKey}, {}>
+type OwnProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey}, {}>
 
-const mapStateToProps = (state, {routeProps}) => {
-  const conversationIDKey = routeProps.get('conversationIDKey')
+const mapStateToProps = (state, ownProps) => {
+  const conversationIDKey = Container.getRouteProps(ownProps, 'conversationIDKey')
   const meta = Constants.getMeta(state, conversationIDKey)
   const teamname = meta.teamname
   const generalChannel = Constants.getChannelForTeam(state, teamname, 'general')

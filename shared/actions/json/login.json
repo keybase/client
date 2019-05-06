@@ -5,11 +5,11 @@
   ],
   "actions": {
     "login": {
-      "usernameOrEmail": "string",
-      "passphrase": "HiddenString"
+      "username": "string",
+      "password": "HiddenString"
     },
     "launchAccountResetWebPage": {},
     "launchForgotPasswordWebPage": {},
-    "loginError": { "error": "?HiddenString" },
+    "loginError": { "error": "?HiddenString" }
   }
 }

@@ -75,6 +75,7 @@ const commonBigChannel = {
   hasUnread: false,
   isError: false,
   isMuted: false,
+  isSearching: false,
   isSelected: false,
   onSelectConversation: Sb.action('onSelectConversation'),
   showBold: false,
@@ -247,30 +248,30 @@ const mapPropProviderProps = {
 
   // Big Team B
   bigTeamBHeader: {
-    teamname: 'techtonica',
+    teamname: 'techtonica.long.team.name.with.ellipsis',
     memberCount: 0, // Handled by PropProviders.TeamDropdownMenu
     badgeSubscribe: false,
   },
   bigTeamBChannel1: {
     ...commonBigChannel,
-    teamname: 'techtonica',
+    teamname: 'techtonica.long.team.name.with.ellipsis',
     channelname: 'general',
     isSelected: !isMobile,
   },
   bigTeamBChannel2: {
     ...commonBigChannel,
-    teamname: 'techtonica',
+    teamname: 'techtonica.long.team.name.with.ellipsis',
     channelname: 'ignore-selected-below',
   },
   bigTeamBChannel3: {
     ...commonBigChannel,
-    teamname: 'techtonica',
+    teamname: 'techtonica.long.team.name.with.ellipsis',
     channelname: 'random',
     isMuted: true,
   },
   bigTeamBChannel4: {
     ...commonBigChannel,
-    teamname: 'techtonica',
+    teamname: 'techtonica.long.team.name.with.ellipsis',
     channelname: 'happy-hour',
     isMuted: true,
   },
@@ -323,7 +324,7 @@ const mapPropProviderProps = {
  * Uses either conversationIDKey or teamname as a key in mapPropProviderProps
  */
 const getPropProviderProps = own => {
-  if (own.conversationIDKey) {
+  if (own.conversationIDKey && own.conversationIDKey !== 'EMPTY') {
     const props = mapPropProviderProps[own.conversationIDKey]
     return {
       ...props,
@@ -340,13 +341,9 @@ const getPropProviderProps = own => {
  */
 const propsInboxCommon = {
   allowShowFloatingButton: false,
-  clearedFilterCount: 0,
-  focusFilter: () => {},
-  filter: '',
-  filterFocusCount: 0,
+  isSearching: false,
   neverLoaded: false,
   nowOverride: 0, // just for dumb rendering
-  onDeselectConversation: Sb.action('onDeselectConversation'),
   onNewChat: Sb.action('onNewChat'),
   onUntrustedInboxVisible: Sb.action('onUntrustedInboxVisible'),
   onSelectUp: Sb.action('onSelectUp'),
@@ -356,6 +353,7 @@ const propsInboxCommon = {
   selectedConversationIDKey: Types.stringToConversationIDKey('fake conversation id key'),
   smallTeamsExpanded: false,
   toggleSmallTeamsExpanded: Sb.action('toggleSmallTeamsExpanded'),
+  unreadIndices: I.List(),
 }
 
 const propsInboxEmpty = {
@@ -389,10 +387,14 @@ const propsInboxTeam = {
     makeRowItemBigChannel('bigTeamAChannel4', 'Keybase', 'video-games'),
 
     makeRowItemBigHeader('bigTeamBHeader'),
-    makeRowItemBigChannel('bigTeamBChannel1', 'techtonica', 'general'),
-    makeRowItemBigChannel('bigTeamBChannel2', 'techtonica', 'ignore-selected-below'),
-    makeRowItemBigChannel('bigTeamBChannel3', 'techtonica', 'random'),
-    makeRowItemBigChannel('bigTeamBChannel4', 'techtonica', 'happy-hour'),
+    makeRowItemBigChannel('bigTeamBChannel1', 'techtonica.long.team.name.with.ellipsis', 'general'),
+    makeRowItemBigChannel(
+      'bigTeamBChannel2',
+      'techtonica.long.team.name.with.ellipsis',
+      'ignore-selected-below'
+    ),
+    makeRowItemBigChannel('bigTeamBChannel3', 'techtonica.long.team.name.with.ellipsis', 'random'),
+    makeRowItemBigChannel('bigTeamBChannel4', 'techtonica.long.team.name.with.ellipsis', 'happy-hour'),
   ],
 }
 
@@ -420,10 +422,14 @@ const propsInboxDivider = {
 
     // Big Team B
     makeRowItemBigHeader('bigTeamBHeader'),
-    makeRowItemBigChannel('bigTeamBChannel1', 'techtonica', 'general'),
-    makeRowItemBigChannel('bigTeamBChannel2', 'techtonica', 'ignore-selected-below'),
-    makeRowItemBigChannel('bigTeamBChannel3', 'techtonica', 'random'),
-    makeRowItemBigChannel('bigTeamBChannel4', 'techtonica', 'happy-hour'),
+    makeRowItemBigChannel('bigTeamBChannel1', 'techtonica.long.team.name.with.ellipsis', 'general'),
+    makeRowItemBigChannel(
+      'bigTeamBChannel2',
+      'techtonica.long.team.name.with.ellipsis',
+      'ignore-selected-below'
+    ),
+    makeRowItemBigChannel('bigTeamBChannel3', 'techtonica.long.team.name.with.ellipsis', 'random'),
+    makeRowItemBigChannel('bigTeamBChannel4', 'techtonica.long.team.name.with.ellipsis', 'happy-hour'),
   ],
 }
 
@@ -446,31 +452,12 @@ const propsInboxExpanded = {
   ],
 }
 
-const propsInboxFilter = {
-  ...propsInboxCommon,
-  filter: ' ',
-  rows: [
-    // Small
-    makeRowItemSmall('smallFilterTeamA'),
-    makeRowItemSmall('smallFilterTeamB'),
-    makeRowItemSmall('smallFilterTeamC'),
-
-    // Big Team A
-    makeRowItemBigChannel('bigTeamFilterAChannel1', 'stripe', 'general'),
-    makeRowItemBigChannel('bigTeamFilterAChannel2', 'stripe', 'random'),
-
-    // Big Team B
-    makeRowItemBigChannel('bigTeamFilterBChannel1', 'stripe.usa', 'this-is-a-very-long-channel-name'),
-    makeRowItemBigChannel('bigTeamFilterCChannel1', 'this.is.a.very.long.team.name.situation', 'general'),
-  ],
-}
-
 /*
  * Prop Providers
  */
 const teamMemberCounts = {
   Keybase: 30,
-  techtonica: 30,
+  'techtonica.long.team.name.with.ellipsis': 30,
   stripe: 1337,
 }
 
@@ -515,10 +502,8 @@ const provider = Sb.createPropProviderWithCommon({
     style: {marginBottom: globalMargins.tiny},
     toggle: Sb.action('onToggle'),
   }),
-  // BigTeamHeader is wrapped by OverlayParent
-  OverlayParent: getPropProviderProps,
+  InboxBigTeamHeader: getPropProviderProps,
   SmallTeam: getPropProviderProps,
-  BigTeamHeader: getPropProviderProps,
   BigTeamsDivider: ownProps => ({badgeCount: 5}),
   BigTeamChannel: getPropProviderProps,
   FilterSmallTeam: getPropProviderProps,
@@ -553,7 +538,6 @@ const load = () => {
     .add('Big Teams', () => <Inbox {...propsInboxTeam} />)
     .add('Divider', () => <Inbox {...propsInboxDivider} />)
     .add('Expanded teams', () => <Wrapper />)
-    .add('Filter', () => <Inbox {...propsInboxFilter} />)
 }
 
 export default load

@@ -4,27 +4,29 @@ import * as Types from '../types/chat2'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as TeamBuildingConstants from '../../constants/team-building'
+import {clamp} from 'lodash-es'
 import {chatTab} from '../tabs'
 import type {TypedState} from '../reducer'
 import {getPath} from '../../route-tree'
 import {isMobile} from '../platform'
 import {
-  pendingConversationIDKey,
   noConversationIDKey,
   pendingWaitingConversationIDKey,
   conversationIDKeyToString,
   isValidConversationIDKey,
 } from '../types/chat2/common'
-import {makeConversationMeta, getEffectiveRetentionPolicy, getMeta} from './meta'
+import {getEffectiveRetentionPolicy, getMeta} from './meta'
 import {formatTextForQuoting} from '../../util/chat'
 import * as Router2 from '../router2'
 import flags from '../../util/feature-flags'
+import HiddenString from '../../util/hidden-string'
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   accountsInfoMap: I.Map(),
   attachmentFullscreenMessage: null,
   badgeMap: I.Map(),
   commandMarkdownMap: I.Map(),
+  containsLatestMessageMap: I.Map(),
   editingMap: I.Map(),
   explodingModeLocks: I.Map(),
   explodingModes: I.Map(),
@@ -32,14 +34,14 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   focus: null,
   giphyResultMap: I.Map(),
   giphyWindowMap: I.Map(),
-  inboxFilter: '',
   inboxHasLoaded: false,
+  inboxSearch: null,
+  inboxShowNew: false,
   isWalletsNew: true,
+  messageCenterOrdinals: I.Map(),
   messageMap: I.Map(),
   messageOrdinals: I.Map(),
-  metaMap: I.Map([
-    [pendingConversationIDKey, makeConversationMeta({conversationIDKey: noConversationIDKey})],
-  ]),
+  metaMap: I.Map(),
   moreToLoadMap: I.Map(),
   orangeLineMap: I.Map(),
   paymentConfirmInfo: null,
@@ -48,9 +50,13 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   pendingOutboxToOrdinal: I.Map(),
   pendingStatus: 'none',
   quote: null,
+  replyToMap: I.Map(),
   selectedConversation: noConversationIDKey,
   smallTeamsExpanded: false,
   staticConfig: null,
+  teamMentionMap: I.Map(),
+  threadSearchInfoMap: I.Map(),
+  threadSearchQueryMap: I.Map(),
   trustedInboxHasLoaded: false,
   typingMap: I.Map(),
   unfurlPromptMap: I.Map(),
@@ -60,10 +66,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   // Team Building
   ...TeamBuildingConstants.makeSubState(),
 })
-
-// We stash the resolved pending conversation idkey into the meta itself
-export const getResolvedPendingConversationIDKey = (state: TypedState) =>
-  getMeta(state, pendingConversationIDKey).conversationIDKey
 
 export const makeQuoteInfo: I.RecordFactory<Types._QuoteInfo> = I.Record({
   counter: 0,
@@ -77,8 +79,69 @@ export const makeStaticConfig: I.RecordFactory<Types._StaticConfig> = I.Record({
   deletableByDeleteHistory: I.Set(),
 })
 
+export const makeThreadSearchInfo: I.RecordFactory<Types._ThreadSearchInfo> = I.Record({
+  hits: I.List(),
+  status: 'initial',
+  visible: false,
+})
+
+export const inboxSearchMaxTextMessages = 25
+export const inboxSearchMaxTextResults = 50
+export const inboxSearchMaxNameResults = 7
+export const inboxSearchMaxUnreadNameResults = isMobile ? 5 : 10
+
+export const makeInboxSearchInfo: I.RecordFactory<Types._InboxSearchInfo> = I.Record({
+  indexPercent: 0,
+  nameResults: I.List(),
+  nameResultsUnread: false,
+  nameStatus: 'initial',
+  query: new HiddenString(''),
+  selectedIndex: 0,
+  textResults: I.List(),
+  textStatus: 'initial',
+})
+
+export const makeInboxSearchConvHit: I.RecordFactory<Types._InboxSearchConvHit> = I.Record({
+  conversationIDKey: noConversationIDKey,
+  teamType: 'small',
+})
+
+export const makeInboxSearchTextHit: I.RecordFactory<Types._InboxSearchTextHit> = I.Record({
+  conversationIDKey: noConversationIDKey,
+  numHits: 0,
+  query: '',
+  teamType: 'small',
+  time: 0,
+})
+
+export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
+  if (inboxSearch.selectedIndex < inboxSearch.nameResults.size) {
+    const conversationIDKey = inboxSearch.nameResults.get(inboxSearch.selectedIndex)?.conversationIDKey
+    if (conversationIDKey) {
+      return {
+        conversationIDKey,
+        query: undefined,
+      }
+    }
+  } else if (inboxSearch.selectedIndex < inboxSearch.nameResults.size + inboxSearch.textResults.size) {
+    const result = inboxSearch.textResults.get(inboxSearch.selectedIndex - inboxSearch.nameResults.size)
+    if (result) {
+      return {
+        conversationIDKey: result.conversationIDKey,
+        query: new HiddenString(result.query),
+      }
+    }
+  }
+  return null
+}
+
+export const getThreadSearchInfo = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
+  state.chat2.threadSearchInfoMap.get(conversationIDKey, makeThreadSearchInfo())
+
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.messageOrdinals.get(id, I.OrderedSet())
+export const getMessageCenterOrdinal = (state: TypedState, id: Types.ConversationIDKey) =>
+  state.chat2.messageCenterOrdinals.get(id)
 export const getMessage = (
   state: TypedState,
   id: Types.ConversationIDKey,
@@ -91,6 +154,13 @@ export const getHasBadge = (state: TypedState, id: Types.ConversationIDKey) =>
 export const getHasUnread = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.unreadMap.get(id, 0) > 0
 export const getSelectedConversation = (state: TypedState) => state.chat2.selectedConversation
+export const getReplyToOrdinal = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
+  return state.chat2.replyToMap.get(conversationIDKey, null)
+}
+export const getReplyToMessageID = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
+  const ordinal = getReplyToOrdinal(state, conversationIDKey)
+  return ordinal ? getMessage(state, conversationIDKey, ordinal)?.id : null
+}
 
 export const getEditInfo = (state: TypedState, id: Types.ConversationIDKey) => {
   const ordinal = state.chat2.editingMap.get(id)
@@ -132,9 +202,12 @@ export const isUserActivelyLookingAtThisThread = (
 
   let chatThreadSelected = false
   if (flags.useNewRouter) {
-    const routePath = Router2.getVisiblePath()
-    chatThreadSelected =
-      routePath[routePath.length - 1]?.routeName === isMobile ? 'chatConversation' : 'tabs.chatTab'
+    if (isMobile) {
+      chatThreadSelected = true // conversationIDKey === selectedConversationIDKey is the only thing that matters in the new router
+    } else {
+      chatThreadSelected = Router2.getVisibleScreen()?.routeName === 'chatRoot'
+    }
+    // TODO remove this var when we switch entirely
   } else {
     const routePath = getPath(state.routeTree.routeState)
     if (isMobile) {
@@ -157,10 +230,15 @@ export const isTeamConversationSelected = (state: TypedState, teamname: string) 
   return meta.teamname === teamname
 }
 export const isInfoPanelOpen = (state: TypedState) => {
-  const routePath = getPath(state.routeTree.routeState, [chatTab])
-  return routePath.size === 3 && routePath.get(2) === 'chatInfoPanel'
+  if (flags.useNewRouter) {
+    return Router2.getVisibleScreen()?.routeName === 'chatInfoPanel'
+  } else {
+    const routePath = getPath(state.routeTree.routeState, [chatTab])
+    return routePath.size === 3 && routePath.get(2) === 'chatInfoPanel'
+  }
 }
 
+export const inboxSearchNewKey = 'chat:inboxSearchNew'
 export const waitingKeyJoinConversation = 'chat:joinConversation'
 export const waitingKeyDeleteHistory = 'chat:deleteHistory'
 export const waitingKeyPost = 'chat:post'
@@ -178,6 +256,8 @@ export const waitingKeyThreadLoad = (conversationIDKey: Types.ConversationIDKey)
 export const waitingKeyUnboxing = (conversationIDKey: Types.ConversationIDKey) =>
   `chat:unboxing:${conversationIDKeyToString(conversationIDKey)}`
 export const waitingKeyAddUsersToChannel = 'chat:addUsersToConversation'
+export const waitingKeyConvStatusChange = (conversationIDKey: Types.ConversationIDKey) =>
+  `chat:convStatusChange:${conversationIDKeyToString(conversationIDKey)}`
 
 export const anyChatWaitingKeys = (state: TypedState) =>
   state.waiting.counts.keySeq().some(k => k.startsWith('chat:'))
@@ -203,6 +283,10 @@ export const getConversationExplodingMode = (state: TypedState, c: Types.Convers
 }
 export const isExplodingModeLocked = (state: TypedState, c: Types.ConversationIDKey) =>
   state.chat2.getIn(['explodingModeLocks', c], null) !== null
+
+export const getTeamMentionName = (name: string, channel: string) => {
+  return name + (channel ? `#${channel}` : '')
+}
 
 // When user clicks wallets icon in chat input, set seenWalletsGregorKey with
 // body of 'true'
@@ -242,7 +326,10 @@ export const anyToConversationMembersType = (a: any): ?RPCChatTypes.Conversation
 
 export const threadRoute = isMobile
   ? [chatTab, 'chatConversation']
+  : flags.useNewRouter
+  ? [{props: {}, selected: chatTab}]
   : [{props: {}, selected: chatTab}, {props: {}, selected: null}]
+export const newRouterThreadRoute = isMobile ? ['chatConversation'] : [chatTab]
 
 const numMessagesOnInitialLoad = isMobile ? 20 : 100
 const numMessagesOnScrollback = isMobile ? 100 : 100
@@ -260,6 +347,17 @@ export const flipPhaseToString = (phase: number) => {
   }
 }
 
+export const clampImageSize = (width: number, height: number, maxSize: number) =>
+  height > width
+    ? {
+        height: clamp(height || 0, 0, maxSize),
+        width: (clamp(height || 0, 0, maxSize) * width) / (height || 1),
+      }
+    : {
+        height: (clamp(width || 0, 0, maxSize) * height) / (width || 1),
+        width: clamp(width || 0, 0, maxSize),
+      }
+
 export {
   getChannelForTeam,
   getChannelSuggestions,
@@ -270,6 +368,7 @@ export {
   getParticipantSuggestions,
   getRowParticipants,
   getRowStyles,
+  getTeams,
   inboxUIItemToConversationMeta,
   isDecryptingSnippet,
   makeConversationMeta,
@@ -321,6 +420,5 @@ export {
   noConversationIDKey,
   numMessagesOnInitialLoad,
   numMessagesOnScrollback,
-  pendingConversationIDKey,
   pendingWaitingConversationIDKey,
 }

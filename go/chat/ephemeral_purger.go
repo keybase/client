@@ -116,11 +116,11 @@ type BackgroundEphemeralPurger struct {
 	queueLock sync.Mutex
 
 	uid     gregor1.UID
-	looping bool
 	pq      *priorityQueue
-	stopCh  chan chan struct{}
 	storage *storage.Storage
 
+	started    bool
+	shutdownCh chan struct{}
 	delay      time.Duration
 	clock      clockwork.Clock
 	purgeTimer *time.Timer
@@ -133,7 +133,6 @@ func NewBackgroundEphemeralPurger(g *globals.Context, storage *storage.Storage) 
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "BackgroundEphemeralPurger", false),
 		storage:      storage,
-		stopCh:       make(chan chan struct{}),
 		delay:        500 * time.Millisecond,
 		clock:        clockwork.NewRealClock(),
 	}
@@ -148,50 +147,35 @@ func (b *BackgroundEphemeralPurger) Start(ctx context.Context, uid gregor1.UID) 
 
 	b.lock.Lock()
 	defer b.lock.Unlock()
-
-	b.cleanupTimers()
-	if b.looping {
-		b.Debug(ctx, "Start: stopping existing looper")
-		ch := make(chan struct{})
-		b.stopCh <- ch
-		<-ch
-		// We may get a call to Start/Stop before `loop()` can grab the lock
-		// reset this to false so we just reset it here.
-		b.looping = false
+	if b.started {
+		return
 	}
+
+	b.started = true
 	b.uid = uid
 	b.initQueue(ctx)
-
 	// Immediately fire to queue any purges we picked up during initQueue
 	b.purgeTimer = time.NewTimer(0)
-	b.looping = true
-	go b.loop()
+	shutdownCh := make(chan struct{})
+	b.shutdownCh = shutdownCh
+	go b.loop(shutdownCh)
 }
 
-func (b *BackgroundEphemeralPurger) Stop(ctx context.Context) chan struct{} {
+func (b *BackgroundEphemeralPurger) Stop(ctx context.Context) (ch chan struct{}) {
 	defer b.Trace(ctx, func() error { return nil }, "Stop")()
-
 	b.lock.Lock()
 	defer b.lock.Unlock()
 
-	b.cleanupTimers()
-	ch := make(chan struct{})
-	if b.looping {
-		b.Debug(ctx, "Stop: stopping existing looper")
-		b.stopCh <- ch
-		// We may get a call to Start/Stop before `loop()` can grab the lock
-		// reset this to false so we just reset it here.
-		b.looping = false
+	b.started = false
+	if b.shutdownCh != nil {
+		ch = b.shutdownCh
+		close(ch)
+		b.shutdownCh = nil
 	} else {
+		ch = make(chan struct{})
 		close(ch)
 	}
 	return ch
-}
-
-func (b *BackgroundEphemeralPurger) cleanupTimers() {
-	if b.purgeTimer != nil {
-		b.purgeTimer.Stop()
-	}
 }
 
 func (b *BackgroundEphemeralPurger) Queue(ctx context.Context, purgeInfo chat1.EphemeralPurgeInfo) error {
@@ -226,8 +210,8 @@ func (b *BackgroundEphemeralPurger) Queue(ctx context.Context, purgeInfo chat1.E
 		b.resetTimer(ctx, purgeInfo)
 	}
 	b.updateQueue(purgeInfo)
-	b.Debug(ctx, "Queue purgeInfo: %v, head: %+v, looping: %v, queueSize: %v",
-		purgeInfo, head, b.looping, b.pq.Len())
+	b.Debug(ctx, "Queue purgeInfo: %v, head: %+v, queueSize: %v",
+		purgeInfo, head, b.pq.Len())
 
 	// Sanity check to force our timer to fire if it hasn't for some reason.
 	head = b.pq.Peek()
@@ -270,7 +254,7 @@ func (b *BackgroundEphemeralPurger) updateQueue(purgeInfo chat1.EphemeralPurgeIn
 
 // This runs when we are waiting to run a job but will shut itself down if we
 // have no work.
-func (b *BackgroundEphemeralPurger) loop() {
+func (b *BackgroundEphemeralPurger) loop(shutdownCh chan struct{}) {
 	bgctx := context.Background()
 	b.Debug(bgctx, "loop: starting for %s", b.uid)
 
@@ -279,9 +263,8 @@ func (b *BackgroundEphemeralPurger) loop() {
 		case <-b.purgeTimer.C:
 			b.Debug(bgctx, "loop: looping for %s", b.uid)
 			b.queuePurges(bgctx)
-		case ch := <-b.stopCh: // caller will reset looping=false
+		case <-shutdownCh:
 			b.Debug(bgctx, "loop: shutting down for %s", b.uid)
-			close(ch)
 			return
 		}
 	}
@@ -321,9 +304,6 @@ func (b *BackgroundEphemeralPurger) queuePurges(ctx context.Context) bool {
 
 	nextItem := b.pq.Peek()
 	if nextItem == nil {
-		if b.purgeTimer != nil {
-			b.purgeTimer.Stop()
-		}
 		return true
 	}
 	// Reset our time for the next min item of the queue.

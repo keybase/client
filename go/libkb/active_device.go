@@ -33,7 +33,7 @@ func (a *ActiveDevice) Dump(m MetaContext, prefix string) {
 	m.Debug("%sUsername (via env): %s", prefix, a.Username(m))
 	m.Debug("%sDeviceID: %s", prefix, a.deviceID)
 	m.Debug("%sDeviceName: %s", prefix, a.deviceName)
-	m.Debug("%sDeviceCtime: %s", prefix, a.deviceCtime)
+	m.Debug("%sDeviceCtime: %s", prefix, keybase1.FormatTime(a.deviceCtime))
 	if a.signingKey != nil {
 		m.Debug("%sSigKey: %s", prefix, a.signingKey.GetKID())
 	}
@@ -412,14 +412,30 @@ func (a *ActiveDevice) IsValidFor(uid keybase1.UID, deviceID keybase1.DeviceID) 
 func (a *ActiveDevice) NIST(ctx context.Context) (*NIST, error) {
 	a.RLock()
 	defer a.RUnlock()
-	return a.nistFactory.NIST(ctx)
+	return a.nistLocked(ctx)
 }
 
-func (a *ActiveDevice) NISTAndUID(ctx context.Context) (*NIST, keybase1.UID, error) {
+func (a *ActiveDevice) nistLocked(ctx context.Context) (*NIST, error) {
+	nist, err := a.nistFactory.NIST(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if nist == nil {
+		return nil, nil
+	}
+	uid := a.nistFactory.UID()
+	if !uid.Equal(a.uv.Uid) {
+		return nil, NewUIDMismatchError(fmt.Sprintf("NIST generation error, UIDs didn't match; ActiveDevice said %s, but NIST factory said %s", a.uv.Uid, uid))
+	}
+
+	return nist, nil
+}
+
+func (a *ActiveDevice) NISTAndUIDDeviceID(ctx context.Context) (*NIST, keybase1.UID, keybase1.DeviceID, error) {
 	a.RLock()
 	defer a.RUnlock()
-	nist, err := a.nistFactory.NIST(ctx)
-	return nist, a.uv.Uid, err
+	nist, err := a.nistLocked(ctx)
+	return nist, a.uv.Uid, a.DeviceID(), err
 }
 
 func (a *ActiveDevice) SyncSecretsForUID(m MetaContext, u keybase1.UID, force bool) (ret *SecretSyncer, err error) {

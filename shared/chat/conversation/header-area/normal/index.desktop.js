@@ -40,6 +40,7 @@ const ChannelHeader = (props: Props) => (
       )}
       {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
     </Box>
+    {props.onToggleThreadSearch && <Icon type="iconfont-search" onClick={props.onToggleThreadSearch} />}
     {props.onOpenFolder && (
       <Icon type="iconfont-folder-private" style={styleLeft} onClick={props.onOpenFolder} />
     )}
@@ -67,17 +68,17 @@ const UsernameHeader = (props: Props) => (
       />
       {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
     </Box>
+    {props.onToggleThreadSearch && (
+      <Icon type="iconfont-search" style={styleLeft} onClick={props.onToggleThreadSearch} />
+    )}
     {props.onOpenFolder && (
       <Icon type="iconfont-folder-private" style={styleLeft} onClick={props.onOpenFolder} />
     )}
-    {props.canOpenInfoPanel && (
-      <Icon
-        type={props.infoPanelOpen ? 'iconfont-close' : 'iconfont-info'}
-        style={styleLeft}
-        onClick={props.onToggleInfoPanel}
-      />
-    )}
-    {props.onCancelPending && <Icon type="iconfont-close" onClick={props.onCancelPending} />}
+    <Icon
+      type={props.infoPanelOpen ? 'iconfont-close' : 'iconfont-info'}
+      style={styleLeft}
+      onClick={props.onToggleInfoPanel}
+    />
   </Box>
 )
 

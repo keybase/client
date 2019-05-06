@@ -5,6 +5,7 @@
 package libdokan
 
 import (
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/dokan"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"golang.org/x/net/context"
@@ -34,7 +35,7 @@ func (f *SyncFromServerFile) WriteFile(ctx context.Context, fi *dokan.FileInfo, 
 		return 0, nil
 	}
 	folderBranch := f.folder.getFolderBranch()
-	if folderBranch == (libkbfs.FolderBranch{}) {
+	if folderBranch == (data.FolderBranch{}) {
 		// Nothing to do.
 		return len(bs), nil
 	}

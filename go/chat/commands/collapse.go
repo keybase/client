@@ -20,7 +20,7 @@ func NewCollapse(g *globals.Context) *Collapse {
 }
 
 func (h *Collapse) Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	tlfName, text string) (err error) {
+	tlfName, text string, replyTo *chat1.MessageID) (err error) {
 	defer h.Trace(ctx, func() error { return err }, "Collapse")()
 	if !h.Match(ctx, text) {
 		return ErrInvalidCommand

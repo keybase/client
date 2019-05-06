@@ -11,7 +11,9 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
+	"github.com/keybase/client/go/kbfs/test/clocktest"
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
@@ -56,8 +58,8 @@ func TestKeybaseDaemonRPCGetCurrentSessionCanceled(t *testing.T) {
 // TODO: Add tests for Favorite* methods, too.
 
 type fakeKeybaseClient struct {
-	session                     SessionInfo
-	users                       map[keybase1.UID]UserInfo
+	session                     idutil.SessionInfo
+	users                       map[keybase1.UID]idutil.UserInfo
 	currentSessionCalled        bool
 	identifyCalled              bool
 	loadUserPlusKeysCalled      bool
@@ -157,7 +159,7 @@ const expectCached = false
 
 func testCurrentSession(
 	t *testing.T, client *fakeKeybaseClient, c *KeybaseDaemonRPC,
-	expectedSession SessionInfo, expectedCalled bool) {
+	expectedSession idutil.SessionInfo, expectedCalled bool) {
 	client.currentSessionCalled = false
 
 	ctx := context.Background()
@@ -172,9 +174,9 @@ func testCurrentSession(
 // Test that the session cache works and is invalidated as expected.
 func TestKeybaseDaemonSessionCache(t *testing.T) {
 	name := kbname.NormalizedUsername("fake username")
-	k := MakeLocalUserCryptPublicKeyOrBust(name)
-	v := MakeLocalUserVerifyingKeyOrBust(name)
-	session := SessionInfo{
+	k := idutil.MakeLocalUserCryptPublicKeyOrBust(name)
+	v := idutil.MakeLocalUserVerifyingKeyOrBust(name)
+	session := idutil.SessionInfo{
 		Name:           name,
 		UID:            keybase1.MakeTestUID(1),
 		CryptPublicKey: k,
@@ -244,7 +246,7 @@ func TestKeybaseDaemonUserCache(t *testing.T) {
 	uid2 := keybase1.MakeTestUID(2)
 	name1 := kbname.NewNormalizedUsername("name1")
 	name2 := kbname.NewNormalizedUsername("name2")
-	users := map[keybase1.UID]UserInfo{
+	users := map[keybase1.UID]idutil.UserInfo{
 		uid1: {Name: name1},
 		uid2: {Name: name2},
 	}
@@ -299,7 +301,7 @@ func TestKeybaseDaemonUserCache(t *testing.T) {
 
 	// Test that CheckForRekey gets called only if the logged-in user
 	// changes.
-	session := SessionInfo{
+	session := idutil.SessionInfo{
 		UID: uid1,
 	}
 	c.setCachedCurrentSession(session)
@@ -346,9 +348,9 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 	// kbfsOpsConcurInit turns off notifications, so turn them back on.
-	config1.mode = modeTest{NewInitModeFromType(InitDefault)}
+	config1.SetMode(modeTest{NewInitModeFromType(InitDefault)})
 
-	clock, first := newTestClockAndTimeNow()
+	clock, first := clocktest.NewTestClockAndTimeNow()
 	config1.SetClock(clock)
 
 	config2 := ConfigAsUser(config1, userName2)
@@ -420,7 +422,7 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 		},
 	}
 
-	users := map[keybase1.UID]UserInfo{
+	users := map[keybase1.UID]idutil.UserInfo{
 		uid1: {Name: userName1},
 		uid2: {Name: userName2},
 	}

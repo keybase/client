@@ -35,7 +35,8 @@ func newTestGiphySearcher() *testGiphySearcher {
 	return &testGiphySearcher{}
 }
 
-func (d *testGiphySearcher) Search(mctx libkb.MetaContext, query *string, urlsrv types.AttachmentURLSrv) ([]chat1.GiphySearchResult, error) {
+func (d *testGiphySearcher) Search(mctx libkb.MetaContext, query *string, limit int,
+	urlsrv types.AttachmentURLSrv) ([]chat1.GiphySearchResult, error) {
 	if d.waitForCancel {
 		if d.waitingCh != nil {
 			close(d.waitingCh)
@@ -65,16 +66,17 @@ func TestGiphyPreview(t *testing.T) {
 	convID := chat1.ConversationID{1, 2, 3, 4}
 	ui := kbtest.NewChatUI()
 	g.UIRouter = &fakeUIRouter{ui: ui}
-	timeout := 2 * time.Second
+	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
+	timeout := 20 * time.Second
 
-	giphy.Preview(ctx, uid, convID, "/giph")
+	giphy.Preview(ctx, uid, convID, "", "/giph")
 	select {
 	case <-ui.GiphyResults:
 		require.Fail(t, "no results")
 	default:
 	}
 
-	giphy.Preview(ctx, uid, convID, "/giphy")
+	giphy.Preview(ctx, uid, convID, "", "/giphy")
 	select {
 	case show := <-ui.GiphyWindow:
 		require.True(t, show)
@@ -83,18 +85,18 @@ func TestGiphyPreview(t *testing.T) {
 	}
 	select {
 	case res := <-ui.GiphyResults:
-		require.Equal(t, 1, len(res))
-		require.Equal(t, "https://www.notmiketown.com", res[0].TargetUrl)
+		require.Equal(t, 1, len(res.Results))
+		require.Equal(t, "https://www.notmiketown.com", res.Results[0].TargetUrl)
 	case <-time.After(timeout):
 		require.Fail(t, "no results")
 	}
-	giphy.Preview(ctx, uid, convID, "/giphy ")
+	giphy.Preview(ctx, uid, convID, "", "/giphy ")
 	select {
 	case <-ui.GiphyResults:
 		require.Fail(t, "no results")
 	default:
 	}
-	giphy.Preview(ctx, uid, convID, "")
+	giphy.Preview(ctx, uid, convID, "", "")
 	select {
 	case show := <-ui.GiphyWindow:
 		require.False(t, show)
@@ -107,7 +109,7 @@ func TestGiphyPreview(t *testing.T) {
 	searcher.waitForCancel = true
 	firstDoneCh := make(chan struct{})
 	go func() {
-		giphy.Preview(ctx, uid, convID, "/giphy")
+		giphy.Preview(ctx, uid, convID, "", "/giphy")
 		close(firstDoneCh)
 	}()
 	select {
@@ -116,7 +118,7 @@ func TestGiphyPreview(t *testing.T) {
 	case <-time.After(timeout):
 		require.Fail(t, "no waiting ch")
 	}
-	giphy.Preview(ctx, uid, convID, "/giphy miketown")
+	giphy.Preview(ctx, uid, convID, "", "/giphy miketown")
 	for i := 0; i < 2; i++ {
 		select {
 		case show := <-ui.GiphyWindow:
@@ -127,8 +129,8 @@ func TestGiphyPreview(t *testing.T) {
 	}
 	select {
 	case res := <-ui.GiphyResults:
-		require.Equal(t, 1, len(res))
-		require.Equal(t, "https://www.miketown.com", res[0].TargetUrl)
+		require.Equal(t, 1, len(res.Results))
+		require.Equal(t, "https://www.miketown.com", res.Results[0].TargetUrl)
 	case <-time.After(timeout):
 		require.Fail(t, "no results")
 	}
@@ -137,7 +139,7 @@ func TestGiphyPreview(t *testing.T) {
 	case <-time.After(timeout):
 		require.Fail(t, "no first done")
 	}
-	giphy.Preview(ctx, uid, convID, "")
+	giphy.Preview(ctx, uid, convID, "", "")
 	select {
 	case show := <-ui.GiphyWindow:
 		require.False(t, show)

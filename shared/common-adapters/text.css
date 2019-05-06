@@ -324,6 +324,17 @@
   font-weight: 400;
 }
 
+.text_BodyTinyLink {
+  font-size: 12px;
+  line-height: 16px;
+  color: rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: Keybase;
+  font-weight: 400;
+}
+
 .text_BodyTinyBold {
   font-size: 12px;
   line-height: 16px;

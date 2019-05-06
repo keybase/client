@@ -15,9 +15,9 @@
         "error": "string"
       }
     },
-    "checkPassphrase": {
+    "checkPassword": {
       "pass1": "HiddenString",
-      "pass2": "HiddenString",
+      "pass2": "HiddenString"
     },
     "checkUsernameEmail": {
       "username": "string",
@@ -35,7 +35,7 @@
     },
     "requestInvite": {
       "email": "string",
-      "name": "string",
+      "name": "string"
     },
     "requestedInvite": {
       "email": "string",
@@ -54,7 +54,7 @@
       }
     },
     "checkDevicename": {
-      "devicename": "string",
+      "devicename": "string"
     },
     "checkedDevicename": {
       "devicename": "string",

@@ -43,6 +43,8 @@ export class ImageRender extends React.Component<Props> {
           style={this.props.style}
           onLoadEnd={this._allLoads}
           scrollEnabled={false}
+          automaticallyAdjustContentInsets={false}
+          mediaPlaybackRequiresUserAction={false}
         />
       )
     }

@@ -10,40 +10,39 @@ import {isMobile} from '../../../constants/platform'
 import {namedConnect} from '../../../util/container'
 import type {Props as _Props, RowItemSmall, RowItemBig} from '../index.types'
 import normalRowData from './normal'
-import filteredRowData from './filtered'
 
-type OwnProps = {|
-  routeState: I.RecordOf<{
-    smallTeamsExpanded: boolean,
-  }>,
-  navigateAppend: (...Array<any>) => any,
-|}
+type OwnProps = {||}
 
 const mapStateToProps = state => {
   const metaMap = state.chat2.metaMap
-  const filter = state.chat2.inboxFilter
-  const username = state.config.username
-  const {allowShowFloatingButton, rows, smallTeamsExpanded} = filter
-    ? filteredRowData(metaMap, filter, username)
-    : normalRowData(metaMap, state.chat2.smallTeamsExpanded)
+  const {allowShowFloatingButton, rows, smallTeamsExpanded} = normalRowData(
+    metaMap,
+    state.chat2.smallTeamsExpanded,
+    state.chat2.selectedConversation
+  )
   const neverLoaded = !state.chat2.inboxHasLoaded
   const _canRefreshOnMount = neverLoaded && !Constants.anyChatWaitingKeys(state)
 
   return {
+    _badgeMap: state.chat2.badgeMap,
     _canRefreshOnMount,
     _hasLoadedTrusted: state.chat2.trustedInboxHasLoaded,
     _selectedConversationIDKey: Constants.getSelectedConversation(state),
     allowShowFloatingButton,
-    filter,
+    isSearching: !!state.chat2.inboxSearch,
     neverLoaded,
     rows,
     smallTeamsExpanded,
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
+const mapDispatchToProps = dispatch => ({
+  // a hack to have it check for marked as read when we mount as the focus events don't fire always
   _onInitialLoad: (conversationIDKeys: Array<Types.ConversationIDKey>) =>
     dispatch(Chat2Gen.createMetaNeedsUpdating({conversationIDKeys, reason: 'initialTrustedLoad'})),
+  _onMountedDesktop: () => {
+    dispatch(Chat2Gen.createTabSelected())
+  },
   _onSelect: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxFilterChanged'})),
   _onSelectNext: (rows, selectedConversationIDKey, direction) => {
@@ -77,67 +76,74 @@ const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
 })
 
 // This merge props is not spreading on purpose so we never have any random props that might mutate and force a re-render
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  _canRefreshOnMount: stateProps._canRefreshOnMount,
-  _hasLoadedTrusted: stateProps._hasLoadedTrusted,
-  _onInitialLoad: dispatchProps._onInitialLoad,
-  _refreshInbox: dispatchProps._refreshInbox,
-  allowShowFloatingButton: stateProps.allowShowFloatingButton,
-  filter: stateProps.filter,
-  neverLoaded: stateProps.neverLoaded,
-  onDeselectConversation: () => dispatchProps._onSelect(Constants.noConversationIDKey),
-  onEnsureSelection: () => {
-    // $ForceType
-    if (stateProps.rows.find(r => r.conversationIDKey === stateProps._selectedConversationIDKey)) {
-      return
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  const unreadIndices = []
+  for (let i = stateProps.rows.length - 1; i >= 0; i--) {
+    const row = stateProps.rows[i]
+    if (!['big', 'bigHeader'].includes(row.type)) {
+      // only check big teams for large inbox perf
+      break
     }
-    const first = stateProps.rows[0]
-    if ((first && first.type === 'small') || first.type === 'big') {
-      dispatchProps._onSelect(first.conversationIDKey)
+    if (
+      row.conversationIDKey &&
+      stateProps._badgeMap.get(row.conversationIDKey) &&
+      (isMobile || row.conversationIDKey !== stateProps._selectedConversationIDKey)
+    ) {
+      // on mobile include all convos, on desktop only not currently selected convo
+      unreadIndices.unshift(i)
     }
-  },
-  onNewChat: dispatchProps.onNewChat,
-  onSelectDown: () => dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, 1),
-  onSelectUp: () => dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, -1),
-  onUntrustedInboxVisible: dispatchProps.onUntrustedInboxVisible,
-  rows: stateProps.rows,
-  selectedConversationIDKey: isMobile ? Constants.noConversationIDKey : stateProps._selectedConversationIDKey, // unused on mobile so don't cause updates
-  smallTeamsExpanded: stateProps.smallTeamsExpanded,
-  toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
-})
-
-type Props = $Diff<
-  {|
-    ..._Props,
-    _hasLoadedTrusted: boolean,
-    _onInitialLoad: (Array<Types.ConversationIDKey>) => void,
-    _refreshInbox: () => void,
-    _canRefreshOnMount: boolean,
-  |},
-  {
-    clearedFilterCount: number,
-    filterFocusCount: number,
-    focusFilter: () => void,
   }
->
-
-type State = {
-  clearedFilterCount: number,
-  filterFocusCount: number,
+  return {
+    _canRefreshOnMount: stateProps._canRefreshOnMount,
+    _hasLoadedTrusted: stateProps._hasLoadedTrusted,
+    _onInitialLoad: dispatchProps._onInitialLoad,
+    _onMountedDesktop: dispatchProps._onMountedDesktop,
+    _refreshInbox: dispatchProps._refreshInbox,
+    allowShowFloatingButton: stateProps.allowShowFloatingButton,
+    isSearching: stateProps.isSearching,
+    neverLoaded: stateProps.neverLoaded,
+    onEnsureSelection: () => {
+      // $ForceType
+      if (stateProps.rows.find(r => r.conversationIDKey === stateProps._selectedConversationIDKey)) {
+        return
+      }
+      const first = stateProps.rows[0]
+      if ((first && first.type === 'small') || first.type === 'big') {
+        dispatchProps._onSelect(first.conversationIDKey)
+      }
+    },
+    onNewChat: dispatchProps.onNewChat,
+    onSelectDown: () =>
+      dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, 1),
+    onSelectUp: () => dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, -1),
+    onUntrustedInboxVisible: dispatchProps.onUntrustedInboxVisible,
+    rows: stateProps.rows,
+    selectedConversationIDKey: isMobile
+      ? Constants.noConversationIDKey
+      : stateProps._selectedConversationIDKey, // unused on mobile so don't cause updates
+    smallTeamsExpanded: stateProps.smallTeamsExpanded,
+    toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
+    unreadIndices: I.List(unreadIndices),
+  }
 }
-class InboxWrapper extends React.PureComponent<Props, State> {
-  state = {
-    clearedFilterCount: 0,
-    filterFocusCount: 0,
-  }
-  _focusFilter = () => {
-    this.setState(p => ({filterFocusCount: p.filterFocusCount + 1}))
-  }
 
+type Props = {|
+  ..._Props,
+  _hasLoadedTrusted: boolean,
+  _onInitialLoad: (Array<Types.ConversationIDKey>) => void,
+  _refreshInbox: () => void,
+  _canRefreshOnMount: boolean,
+  _onMountedDesktop: () => void,
+|}
+
+class InboxWrapper extends React.PureComponent<Props> {
   _onSelectUp = () => this.props.onSelectUp()
   _onSelectDown = () => this.props.onSelectDown()
 
   componentDidMount() {
+    if (!isMobile) {
+      this.props._onMountedDesktop()
+    }
     if (this.props._canRefreshOnMount) {
       this.props._refreshInbox()
     }
@@ -154,27 +160,16 @@ class InboxWrapper extends React.PureComponent<Props, State> {
     }
   }
 
-  componentDidUpdate(prevProps) {
-    // check if we cleared filter to tell inbox to skip unboxing
-    if (prevProps.filter.length && !this.props.filter.length) {
-      this.setState(s => ({
-        clearedFilterCount: s.clearedFilterCount + 1,
-      }))
-    }
-  }
-
   render() {
-    const {_hasLoadedTrusted, _refreshInbox, _onInitialLoad, _canRefreshOnMount, ...rest} = this.props
-    return (
-      <Inbox
-        {...rest}
-        clearedFilterCount={this.state.clearedFilterCount}
-        filterFocusCount={this.state.filterFocusCount}
-        focusFilter={this._focusFilter}
-        onSelectUp={this._onSelectUp}
-        onSelectDown={this._onSelectDown}
-      />
-    )
+    const {
+      _hasLoadedTrusted,
+      _refreshInbox,
+      _onInitialLoad,
+      _canRefreshOnMount,
+      _onMountedDesktop,
+      ...rest
+    } = this.props
+    return <Inbox {...rest} onSelectUp={this._onSelectUp} onSelectDown={this._onSelectDown} />
   }
 }
 

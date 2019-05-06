@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"golang.org/x/net/context"
 )
 
@@ -24,7 +26,7 @@ descending order, regardless of whether rev1 <= rev2 or rev1 > rev2.
 // TODO: Factor out common code with StateChecker.findAllBlocksInPath.
 
 func checkDirBlock(ctx context.Context, config libkbfs.Config,
-	name string, kmd libkbfs.KeyMetadata, info libkbfs.BlockInfo,
+	name string, kmd libkey.KeyMetadata, info data.BlockInfo,
 	verbose bool) (err error) {
 	if verbose {
 		fmt.Printf("Checking %s (dir block %v)...\n", name, info)
@@ -38,23 +40,23 @@ func checkDirBlock(ctx context.Context, config libkbfs.Config,
 		}
 	}()
 
-	var dirBlock libkbfs.DirBlock
-	err = config.BlockOps().Get(ctx, kmd, info.BlockPointer, &dirBlock, libkbfs.NoCacheEntry)
+	var dirBlock data.DirBlock
+	err = config.BlockOps().Get(ctx, kmd, info.BlockPointer, &dirBlock, data.NoCacheEntry)
 	if err != nil {
 		return err
 	}
 
 	for entryName, entry := range dirBlock.Children {
 		switch entry.Type {
-		case libkbfs.File, libkbfs.Exec:
+		case data.File, data.Exec:
 			_ = checkFileBlock(
 				ctx, config, filepath.Join(name, entryName),
 				kmd, entry.BlockInfo, verbose)
-		case libkbfs.Dir:
+		case data.Dir:
 			_ = checkDirBlock(
 				ctx, config, filepath.Join(name, entryName),
 				kmd, entry.BlockInfo, verbose)
-		case libkbfs.Sym:
+		case data.Sym:
 			if verbose {
 				fmt.Printf("Skipping symlink %s -> %s\n",
 					entryName, entry.SymPath)
@@ -70,7 +72,7 @@ func checkDirBlock(ctx context.Context, config libkbfs.Config,
 }
 
 func checkFileBlock(ctx context.Context, config libkbfs.Config,
-	name string, kmd libkbfs.KeyMetadata, info libkbfs.BlockInfo,
+	name string, kmd libkey.KeyMetadata, info data.BlockInfo,
 	verbose bool) (err error) {
 	if verbose {
 		fmt.Printf("Checking %s (file block %v)...\n", name, info)
@@ -84,8 +86,8 @@ func checkFileBlock(ctx context.Context, config libkbfs.Config,
 		}
 	}()
 
-	var fileBlock libkbfs.FileBlock
-	err = config.BlockOps().Get(ctx, kmd, info.BlockPointer, &fileBlock, libkbfs.NoCacheEntry)
+	var fileBlock data.FileBlock
+	err = config.BlockOps().Get(ctx, kmd, info.BlockPointer, &fileBlock, data.NoCacheEntry)
 	if err != nil {
 		return err
 	}
@@ -115,11 +117,11 @@ func mdCheckChain(ctx context.Context, config libkbfs.Config,
 	reversedIRMDsWithRoots []libkbfs.ImmutableRootMetadata) {
 	fmt.Printf("Checking chain from rev %d to %d...\n",
 		reversedIRMDs[0].Revision(), reversedIRMDs[len(reversedIRMDs)-1].Revision())
-	gcUnrefs := make(map[libkbfs.BlockRef]bool)
+	gcUnrefs := make(map[data.BlockRef]bool)
 	for i, irmd := range reversedIRMDs {
 		currRev := irmd.Revision()
-		data := irmd.Data()
-		rootPtr := data.Dir.BlockPointer
+		mdData := irmd.Data()
+		rootPtr := mdData.Dir.BlockPointer
 		if !rootPtr.Ref().IsValid() {
 			// This happens in the wild, but only for
 			// folders used for journal-related testing
@@ -134,9 +136,9 @@ func mdCheckChain(ctx context.Context, config libkbfs.Config,
 		} else {
 			fmt.Printf("Checking root for rev %d (%s)...\n",
 				currRev, rootPtr.Ref())
-			var dirBlock libkbfs.DirBlock
+			var dirBlock data.DirBlock
 			err := config.BlockOps().Get(
-				ctx, irmd, rootPtr, &dirBlock, libkbfs.NoCacheEntry)
+				ctx, irmd, rootPtr, &dirBlock, data.NoCacheEntry)
 			if err != nil {
 				fmt.Printf("Got error while checking root "+
 					"for rev %d: %v\n",
@@ -147,7 +149,7 @@ func mdCheckChain(ctx context.Context, config libkbfs.Config,
 			}
 		}
 
-		for _, op := range data.Changes.Ops {
+		for _, op := range mdData.Changes.Ops {
 			if gcOp, ok := op.(*libkbfs.GCOp); ok {
 				for _, unref := range gcOp.Unrefs() {
 					gcUnrefs[unref.Ref()] = true

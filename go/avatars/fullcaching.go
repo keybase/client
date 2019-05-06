@@ -109,11 +109,11 @@ func (c *FullCachingSource) isStale(m libkb.MetaContext, item lru.DiskLRUEntry) 
 
 func (c *FullCachingSource) monitorAppState(m libkb.MetaContext) {
 	c.debug(m, "monitorAppState: starting up")
-	state := keybase1.AppState_FOREGROUND
+	state := keybase1.MobileAppState_FOREGROUND
 	for {
-		state = <-m.G().AppState.NextUpdate(&state)
+		state = <-m.G().MobileAppState.NextUpdate(&state)
 		switch state {
-		case keybase1.AppState_BACKGROUND:
+		case keybase1.MobileAppState_BACKGROUND:
 			c.debug(m, "monitorAppState: backgrounded")
 			c.diskLRU.Flush(m.Ctx(), m.G())
 		}
@@ -378,10 +378,11 @@ func (c *FullCachingSource) ClearCacheForName(m libkb.MetaContext, name string, 
 	return c.clearName(m, name, formats)
 }
 
-func (c *FullCachingSource) OnCacheCleared(m libkb.MetaContext) {
+func (c *FullCachingSource) OnDbNuke(m libkb.MetaContext) error {
 	if c.diskLRU != nil {
 		if err := c.diskLRU.Clean(m.Ctx(), m.G(), c.getCacheDir(m)); err != nil {
 			c.debug(m, "unable to run clean: %v", err)
 		}
 	}
+	return nil
 }

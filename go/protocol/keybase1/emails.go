@@ -26,6 +26,16 @@ func (o EmailLookupResult) DeepCopy() EmailLookupResult {
 	}
 }
 
+type EmailAddressVerifiedMsg struct {
+	Email EmailAddress `codec:"email" json:"email"`
+}
+
+func (o EmailAddressVerifiedMsg) DeepCopy() EmailAddressVerifiedMsg {
+	return EmailAddressVerifiedMsg{
+		Email: o.Email.DeepCopy(),
+	}
+}
+
 type AddEmailArg struct {
 	SessionID  int                `codec:"sessionID" json:"sessionID"`
 	Email      EmailAddress       `codec:"email" json:"email"`

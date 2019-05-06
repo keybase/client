@@ -260,6 +260,15 @@
             "string"
           ],
           "name": "group"
+        },
+        {
+          "type": "boolean",
+          "name": "new"
+        },
+        {
+          "type": "string",
+          "name": "logoKey",
+          "jsonkey": "logo_key"
         }
       ]
     },

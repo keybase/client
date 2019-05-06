@@ -172,11 +172,6 @@ func (log *TestLogger) Configure(style string, debug bool, filename string) {
 	// no-op
 }
 
-func (log *TestLogger) RotateLogFile() error {
-	// no-op
-	return nil
-}
-
 func (log *TestLogger) CloneWithAddedDepth(depth int) Logger {
 	log.Lock()
 	defer log.Unlock()

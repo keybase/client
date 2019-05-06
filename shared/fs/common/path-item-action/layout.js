@@ -11,6 +11,9 @@ export type Layout = {
   download: boolean,
   ignoreTlf: boolean,
   moveOrCopy: boolean,
+  newFolder: boolean,
+  openChatNonTeam: boolean,
+  openChatTeam: boolean,
   saveMedia: boolean,
   showInSystemFileManager: boolean,
   // if multiple share items exist, they go into 2nd level menu - share
@@ -26,6 +29,9 @@ const empty = {
   download: false,
   ignoreTlf: false,
   moveOrCopy: false,
+  newFolder: false,
+  openChatNonTeam: false,
+  openChatTeam: false,
   saveMedia: false,
   showInSystemFileManager: false,
   // share items
@@ -36,7 +42,19 @@ const empty = {
   share: false,
 }
 
-const getRawLayout = (path: Types.Path, pathItem: Types.PathItem): Layout => {
+const isMyOwn = (parsedPath: Types.ParsedPathGroupTlf, me: string) =>
+  !me
+    ? false
+    : (!parsedPath.readers || !parsedPath.readers.size) &&
+      parsedPath.writers.size === 1 &&
+      parsedPath.writers.get(0) === me
+
+const getRawLayout = (
+  mode: 'row' | 'screen',
+  path: Types.Path,
+  pathItem: Types.PathItem,
+  me: string
+): Layout => {
   const parsedPath = Constants.parsePath(path)
   switch (parsedPath.kind) {
     case 'root':
@@ -52,9 +70,16 @@ const getRawLayout = (path: Types.Path, pathItem: Types.PathItem): Layout => {
     case 'team-tlf':
       return {
         ...empty,
+        ...(mode === 'screen'
+          ? {
+              newFolder: pathItem.writable,
+              openChatNonTeam: parsedPath.kind === 'group-tlf',
+              openChatTeam: parsedPath.kind === 'team-tlf',
+            }
+          : {}),
         copyPath: true,
-        ignoreTlf: true,
-        sendLinkToChat: isMobile && Constants.canSendLinkToChat(parsedPath), // desktop uses separate button
+        ignoreTlf: parsedPath.kind === 'team-tlf' || !isMyOwn(parsedPath, me),
+        sendLinkToChat: Constants.canSendLinkToChat(parsedPath),
         showInSystemFileManager: !isMobile,
       }
     case 'in-group-tlf':
@@ -62,16 +87,23 @@ const getRawLayout = (path: Types.Path, pathItem: Types.PathItem): Layout => {
       // inside tlf
       return {
         ...empty,
+        ...(mode === 'screen'
+          ? {
+              newFolder: pathItem.writable && pathItem.type === 'folder',
+              openChatNonTeam: parsedPath.kind === 'in-group-tlf',
+              openChatTeam: parsedPath.kind === 'in-team-tlf',
+            }
+          : {}),
         copyPath: true,
-        delete: pathItem.type === 'file',
+        delete: pathItem.writable && (pathItem.type === 'file' || flags.enableDeleteFolder),
         download: pathItem.type === 'file' && !isIOS,
         moveOrCopy: true,
-        saveMedia: isMobile && pathItem.type === 'file' && Constants.isMedia(pathItem),
+        saveMedia: isMobile && pathItem.type === 'file' && Constants.canSaveMedia(pathItem),
         showInSystemFileManager: !isMobile,
         // share menu items
         // eslint-disable-next-line sort-keys
-        sendAttachmentToChat: flags.sendAttachmentToChat && isMobile && pathItem.type === 'file', // desktop uses separate button
-        sendLinkToChat: isMobile && Constants.canSendLinkToChat(parsedPath), // desktop uses separate button
+        sendAttachmentToChat: pathItem.type === 'file',
+        sendLinkToChat: Constants.canSendLinkToChat(parsedPath),
         sendToOtherApp: pathItem.type === 'file' && isMobile,
       }
     default:
@@ -84,7 +116,7 @@ const totalShare = layout =>
   (layout.sendAttachmentToChat ? 1 : 0) + (layout.sendLinkToChat ? 1 : 0) + (layout.sendToOtherApp ? 1 : 0)
 
 const consolidateShares = (layout: Layout): Layout =>
-  totalShare(layout) > 1
+  isMobile && totalShare(layout) > 1
     ? {
         ...layout,
         sendAttachmentToChat: false,
@@ -101,11 +133,19 @@ const filterForOnlyShares = (layout: Layout): Layout => ({
   sendToOtherApp: layout.sendToOtherApp,
 })
 
-export const getRootLayout = (path: Types.Path, pathItem: Types.PathItem): Layout =>
-  consolidateShares(getRawLayout(path, pathItem))
+export const getRootLayout = (
+  mode: 'row' | 'screen',
+  path: Types.Path,
+  pathItem: Types.PathItem,
+  me: string
+): Layout => consolidateShares(getRawLayout(mode, path, pathItem, me))
 
-export const getShareLayout = (path: Types.Path, pathItem: Types.PathItem): Layout =>
-  filterForOnlyShares(getRawLayout(path, pathItem))
+export const getShareLayout = (
+  mode: 'row' | 'screen',
+  path: Types.Path,
+  pathItem: Types.PathItem,
+  me: string
+): Layout => filterForOnlyShares(getRawLayout(mode, path, pathItem, me))
 
-export const hasShare = (path: Types.Path, pathItem: Types.PathItem): boolean =>
-  totalShare(getRawLayout(path, pathItem)) > 0
+export const hasShare = (mode: 'row' | 'screen', path: Types.Path, pathItem: Types.PathItem): boolean =>
+  totalShare(getRawLayout(mode, path, pathItem, '' /* username doesn't matter for shares */)) > 0

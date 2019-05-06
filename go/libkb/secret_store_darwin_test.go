@@ -12,6 +12,7 @@ import (
 
 func TestSecretStoreDarwin(t *testing.T) {
 	tc := SetupTest(t, "secret store darwin", 1)
+	defer tc.Cleanup()
 
 	mctx := NewMetaContextForTest(tc)
 	secretStore := KeychainSecretStore{}
@@ -109,4 +110,14 @@ func TestSecretStoreDarwin(t *testing.T) {
 	users, err = secretStore.GetUsersWithStoredSecrets(mctx)
 	require.NoError(t, err)
 	require.Len(t, users, 0)
+}
+
+func TestPrimeSecretStoreDarwin(t *testing.T) {
+	tc := SetupTest(t, "secret_store_darwin", 1)
+	defer tc.Cleanup()
+
+	mctx := NewMetaContextForTest(tc)
+	secretStore := KeychainSecretStore{}
+	err := PrimeSecretStore(mctx, secretStore)
+	require.NoError(t, err)
 }

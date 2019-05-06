@@ -93,6 +93,11 @@ type StopArg struct {
 	ExitCode  ExitCode `codec:"exitCode" json:"exitCode"`
 }
 
+type StopServiceArg struct {
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	ExitCode  ExitCode `codec:"exitCode" json:"exitCode"`
+}
+
 type LogRotateArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -133,6 +138,7 @@ type DbGetArg struct {
 
 type CtlInterface interface {
 	Stop(context.Context, StopArg) error
+	StopService(context.Context, StopServiceArg) error
 	LogRotate(context.Context, int) error
 	Reload(context.Context, int) error
 	DbNuke(context.Context, int) error
@@ -159,6 +165,21 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 						return
 					}
 					err = i.Stop(ctx, typedArgs[0])
+					return
+				},
+			},
+			"stopService": {
+				MakeArg: func() interface{} {
+					var ret [1]StopServiceArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]StopServiceArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]StopServiceArg)(nil), args)
+						return
+					}
+					err = i.StopService(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -292,6 +313,11 @@ type CtlClient struct {
 
 func (c CtlClient) Stop(ctx context.Context, __arg StopArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.ctl.stop", []interface{}{__arg}, nil)
+	return
+}
+
+func (c CtlClient) StopService(ctx context.Context, __arg StopServiceArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.ctl.stopService", []interface{}{__arg}, nil)
 	return
 }
 

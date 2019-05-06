@@ -205,7 +205,7 @@ func (e *Kex2Provisionee) handleHello(m libkb.MetaContext, uid keybase1.UID, tok
 		return res, err
 	}
 
-	e.ekReboxer = newEphemeralKeyReboxer(m)
+	e.ekReboxer = newEphemeralKeyReboxer()
 
 	if err = e.addDeviceSibkey(m, jw); err != nil {
 		return res, err
@@ -234,7 +234,7 @@ func (e *Kex2Provisionee) HandleHello2(_ context.Context, harg keybase1.Hello2Ar
 	}
 	res.SigPayload = res1
 	res.EncryptionKey = e.dh.GetKID()
-	res.DeviceEkKID, err = e.ekReboxer.getDeviceEKKID()
+	res.DeviceEkKID, err = e.ekReboxer.getDeviceEKKID(m)
 	if err != nil {
 		return res, err
 	}
@@ -502,6 +502,7 @@ func (e *Kex2Provisionee) postSigs(signingArgs, encryptArgs *libkb.HTTPArgs,
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
 	}
+	// MerkleCheckPostedUserSig was not added here. Changing kex2 is risky and there's no obvious attack.
 
 	_, err := e.G().API.PostJSON(mctx, arg)
 	return err

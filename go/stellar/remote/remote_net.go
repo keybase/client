@@ -38,6 +38,14 @@ func (r *RemoteNet) SubmitRelayPayment(ctx context.Context, post stellar1.Paymen
 	return SubmitRelayPayment(ctx, r.G(), post)
 }
 
+func (r *RemoteNet) SubmitPathPayment(mctx libkb.MetaContext, post stellar1.PathPaymentPost) (stellar1.PaymentResult, error) {
+	return SubmitPathPayment(mctx, post)
+}
+
+func (r *RemoteNet) SubmitMultiPayment(ctx context.Context, post stellar1.PaymentMultiPost) (stellar1.SubmitMultiRes, error) {
+	return SubmitMultiPayment(ctx, r.G(), post)
+}
+
 func (r *RemoteNet) SubmitRelayClaim(ctx context.Context, post stellar1.RelayClaimPost) (stellar1.RelayClaimResult, error) {
 	return SubmitRelayClaim(ctx, r.G(), post)
 }
@@ -124,4 +132,12 @@ func (r *RemoteNet) NetworkOptions(ctx context.Context) (stellar1.NetworkOptions
 
 func (r *RemoteNet) DetailsPlusPayments(ctx context.Context, accountID stellar1.AccountID) (stellar1.DetailsPlusPayments, error) {
 	return DetailsPlusPayments(ctx, r.G(), accountID)
+}
+
+func (r *RemoteNet) ChangeTrustline(ctx context.Context, signedTx string) error {
+	return ChangeTrustline(ctx, r.G(), signedTx)
+}
+
+func (r *RemoteNet) FindPaymentPath(mctx libkb.MetaContext, query stellar1.PaymentPathQuery) (stellar1.PaymentPath, error) {
+	return FindPaymentPath(mctx, query)
 }

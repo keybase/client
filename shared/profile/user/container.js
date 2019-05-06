@@ -1,20 +1,21 @@
 // @flow
 import * as React from 'react'
-import * as I from 'immutable'
 import * as Constants from '../../constants/tracker2'
 import * as Container from '../../util/container'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
 import * as SearchGen from '../../actions/search-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import Profile2 from '.'
 import {memoize} from '../../util/memoize'
 import type {RouteProps} from '../../route-tree/render-route'
 import type {Response} from 'react-native-image-picker'
 import ProfileSearch from '../search/bar'
+import flags from '../../util/feature-flags'
 
 type OwnProps = RouteProps<{username: string}, {}>
-const emptySet = I.OrderedSet()
 
 const headerBackgroundColorType = (state, followThem) => {
   if (['broken', 'error'].includes(state)) {
@@ -31,17 +32,17 @@ const mapStateToProps = (state, ownProps) => {
   const d = Constants.getDetails(state, username)
   const followThem = Constants.followThem(state, username)
   const userIsYou = username === state.config.username
-  const followersCount = state.tracker2.usernameToDetails.getIn([username, 'followersCount'])
-  const followingCount = state.tracker2.usernameToDetails.getIn([username, 'followingCount'])
+  const followersCount = state.tracker2.usernameToDetails.getIn([username, 'followersCount']) || 0
+  const followingCount = state.tracker2.usernameToDetails.getIn([username, 'followingCount']) || 0
 
   return {
     _assertions: d.assertions,
     _suggestionKeys: userIsYou ? state.tracker2.proofSuggestions : null,
     backgroundColorType: headerBackgroundColorType(d.state, followThem),
     followThem,
-    followers: state.tracker2.usernameToDetails.getIn([username, 'followers']) || emptySet,
+    followers: state.tracker2.usernameToDetails.getIn([username, 'followers']),
     followersCount,
-    following: state.tracker2.usernameToDetails.getIn([username, 'following']) || emptySet,
+    following: state.tracker2.usernameToDetails.getIn([username, 'following']),
     followingCount,
     guiID: d.guiID,
     reason: d.reason,
@@ -53,13 +54,13 @@ const mapStateToProps = (state, ownProps) => {
 const mapDispatchToProps = (dispatch, ownProps) => ({
   _onEditAvatar: (image?: Response) => dispatch(ProfileGen.createEditAvatar()),
   _onReload: (username: string, isYou: boolean) => {
-    dispatch(Tracker2Gen.createShowUser({asTracker: false, username}))
+    dispatch(Tracker2Gen.createShowUser({asTracker: false, skipNav: true, username}))
 
     if (isYou) {
       dispatch(Tracker2Gen.createGetProofSuggestions())
     }
   },
-  onAddIdentity: () => {}, // TODO
+  onAddIdentity: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileProofsList']})),
   onBack: () => dispatch(ownProps.navigateUp()),
   onSearch: () => {
     dispatch(SearchGen.createSearchSuggestions({searchKey: 'profileSearch'}))
@@ -67,36 +68,49 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
 })
 
 const followToArray = memoize((followers, following) => ({
-  followers: followers.toArray(),
-  following: following.toArray(),
+  followers: followers ? followers.toArray() : null,
+  following: following ? following.toArray() : null,
 }))
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  assertionKeys: stateProps._assertions
-    ? stateProps._assertions
-        .sort((a, b) => a.priority - b.priority)
-        .keySeq()
-        .toArray()
-    : null,
-  backgroundColorType: stateProps.backgroundColorType,
-  followThem: stateProps.followThem,
-  followersCount: stateProps.followersCount,
-  followingCount: stateProps.followingCount,
-  onAddIdentity: dispatchProps.onAddIdentity,
-  onBack: dispatchProps.onBack,
-  onEditAvatar: stateProps.userIsYou ? dispatchProps._onEditAvatar : null,
-  onReload: () => dispatchProps._onReload(stateProps.username, stateProps.userIsYou),
-  onSearch: dispatchProps.onSearch,
-  reason: stateProps.reason,
-  showOtherIdentities: stateProps.userIsYou, // TODO: gate on available providers
-  state: stateProps.state,
-  suggestionKeys: stateProps._suggestionKeys
-    ? stateProps._suggestionKeys.map(s => s.assertionKey).toArray()
-    : null,
-  userIsYou: stateProps.userIsYou,
-  username: stateProps.username,
-  ...followToArray(stateProps.followers, stateProps.following),
-})
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  let onAddIdentity = null
+  if (
+    stateProps.userIsYou &&
+    flags.proofProviders &&
+    stateProps._suggestionKeys &&
+    stateProps._suggestionKeys.some(s => s.belowFold)
+  ) {
+    onAddIdentity = dispatchProps.onAddIdentity
+  }
+  return {
+    assertionKeys: stateProps._assertions
+      ? stateProps._assertions
+          .sort((a, b) => a.priority - b.priority)
+          .keySeq()
+          .toArray()
+      : null,
+    backgroundColorType: stateProps.backgroundColorType,
+    followThem: stateProps.followThem,
+    followersCount: stateProps.followersCount,
+    followingCount: stateProps.followingCount,
+    onAddIdentity,
+    onBack: dispatchProps.onBack,
+    onEditAvatar: stateProps.userIsYou ? dispatchProps._onEditAvatar : null,
+    onReload: () => dispatchProps._onReload(stateProps.username, stateProps.userIsYou),
+    onSearch: dispatchProps.onSearch,
+    reason: stateProps.reason,
+    state: stateProps.state,
+    suggestionKeys: stateProps._suggestionKeys
+      ? stateProps._suggestionKeys
+          .filter(s => !s.belowFold)
+          .map(s => s.assertionKey)
+          .toArray()
+      : null,
+    userIsYou: stateProps.userIsYou,
+    username: stateProps.username,
+    ...followToArray(stateProps.followers, stateProps.following),
+  }
+}
 
 const connected = Container.namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
@@ -105,9 +119,9 @@ const connected = Container.namedConnect<OwnProps, _, _, _, _>(
   'Profile2'
 )(Profile2)
 
-const Header = ({onSearch}) => (
+const Header = ({onSearch, backgroundColorType}) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
-    <ProfileSearch onSearch={onSearch} />
+    <ProfileSearch whiteText={true} onSearch={onSearch} />
   </Kb.Box2>
 )
 const ConnectedHeader = Container.connect<{||}, _, _, _, _>(
@@ -119,9 +133,17 @@ const ConnectedHeader = Container.connect<{||}, _, _, _, _>(
 )(Header)
 
 // $FlowIssue lets fix this
-connected.navigationOptions = {
+connected.navigationOptions = p => ({
   header: undefined,
-  headerHideBorder: true,
+  headerBackIconColor: Styles.globalColors.white,
+  headerHideBorder: false,
+  headerStyle: {
+    backgroundColor: Styles.globalColors.transparent,
+    borderBottomColor: Styles.globalColors.transparent,
+    borderBottomWidth: 1,
+    borderStyle: 'solid',
+  },
+  headerTintColor: Styles.globalColors.white,
   headerTitle: ConnectedHeader,
   headerTitleContainerStyle: {
     left: 60,
@@ -129,6 +151,6 @@ connected.navigationOptions = {
   },
   headerTransparent: true,
   underNotch: true,
-}
+})
 
 export default connected

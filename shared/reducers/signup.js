@@ -20,7 +20,7 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
         emailError: '',
         inviteCodeError: '',
         nameError: '',
-        passphraseError: new HiddenString(''),
+        passwordError: new HiddenString(''),
         signupError: new HiddenString(''),
         usernameError: '',
       })
@@ -63,21 +63,21 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
             nameError: (action.error && action.payload.nameError) || '',
           })
         : state
-    case SignupGen.checkPassphrase: {
+    case SignupGen.checkPassword: {
       const {pass1, pass2} = action.payload
       const p1 = pass1.stringValue()
       const p2 = pass2.stringValue()
-      let passphraseError = new HiddenString('')
+      let passwordError = new HiddenString('')
       if (!p1 || !p2) {
-        passphraseError = new HiddenString('Fields cannot be blank')
+        passwordError = new HiddenString('Fields cannot be blank')
       } else if (p1 !== p2) {
-        passphraseError = new HiddenString('Passphrases must match')
+        passwordError = new HiddenString('Passwords must match')
       } else if (p1.length < 8) {
-        passphraseError = new HiddenString('Passphrase must be at least 8 characters long')
+        passwordError = new HiddenString('Password must be at least 8 characters long')
       }
       return state.merge({
-        passphrase: action.payload.pass1,
-        passphraseError,
+        password: action.payload.pass1,
+        passwordError,
       })
     }
     case SignupGen.checkDevicename: {

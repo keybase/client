@@ -86,6 +86,12 @@ protocol UPK {
       union { null, string } stellarAccountID;
       map<UID, RemoteTrack> remoteTracks;
       union { null, ResetSummary } reset;
+
+      // Unstubbed is true if no links in the User were stubbed when this
+      // UPAK was derived.
+      // Field introduced in 2.6 of UPAKs, so not all 2.6 stored UPAKs have this. We'll therefore
+      // assume that stored upaks are stubbed by default.
+      boolean unstubbed;
   }
 
   record UserPlusKeysV2AllIncarnations {

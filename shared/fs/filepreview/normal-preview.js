@@ -8,6 +8,7 @@ import * as Kbfs from '../common'
 import Footer from '../footer/footer'
 import Header from './header-container'
 import View from './view-container'
+import flags from '../../util/feature-flags'
 
 type NormalPreviewProps = {
   path: Types.Path,
@@ -29,19 +30,16 @@ export default class NormalPreview extends React.PureComponent<NormalPreviewProp
     return (
       <Kb.BoxGrow>
         <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
-          <Header path={this.props.path} routePath={this.props.routePath} />
+          {!flags.useNewRouter && <Header path={this.props.path} routePath={this.props.routePath} />}
           <Kbfs.Errs />
-          <Kb.Divider />
-          <Kb.Box style={styles.greyContainer}>
-            <Kb.Box style={styles.contentContainer}>
-              <View
-                path={this.props.path}
-                routePath={this.props.routePath}
-                onLoadingStateChange={this._onLoadingStateChange}
-              />
-            </Kb.Box>
+          <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.greyContainer}>
+            <View
+              path={this.props.path}
+              routePath={this.props.routePath}
+              onLoadingStateChange={this._onLoadingStateChange}
+            />
             {this.state.loading && <Kb.ProgressIndicator style={styles.loading} />}
-          </Kb.Box>
+          </Kb.Box2>
           <Footer />
         </Kb.Box2>
       </Kb.BoxGrow>
@@ -63,12 +61,9 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   greyContainer: {
-    ...Styles.globalStyles.flexBoxColumn,
-    ...Styles.globalStyles.flexGrow,
-    alignItems: 'center',
     backgroundColor: Styles.globalColors.blue5,
     flex: 1,
-    justifyContent: 'center',
+    flexShrink: 1,
   },
   loading: Styles.platformStyles({
     common: {

@@ -11,6 +11,7 @@ import profile from '../profile/index.stories'
 import search from '../search/index.stories'
 import settings from '../settings/index.stories'
 import signup from '../login/signup/index.stories'
+import newSignup from '../signup/index.stories'
 import styles from '../styles/index.stories'
 import tabBar from '../app/tab-bar/index.stories'
 import teamBuilding from '../team-building/index.stories'
@@ -24,6 +25,7 @@ const stories = {
   fs,
   git,
   login,
+  newSignup,
   people,
   profile,
   provision,

@@ -9,6 +9,8 @@ import Rows from '../row/rows-container'
 import * as FsCommon from '../common'
 import * as RowCommon from '../row/common'
 import Breadcrumb from '../header/breadcrumb-container.desktop.js'
+import NavHeaderTitle from '../nav-header/title-container'
+import flags from '../../util/feature-flags'
 
 type Props = {
   index: number,
@@ -38,7 +40,7 @@ const DesktopHeaders = (props: Props) => (
         Move or Copy “
       </Kb.Text>
       <FsCommon.PathItemIcon size={16} path={Types.pathConcat(props.parentPath, props.targetName)} />
-      <Kb.Text type="Header" lineClamp={1}>
+      <Kb.Text type="Header" lineClamp={1} style={styles.header}>
         {props.targetName}
       </Kb.Text>
       <Kb.Text type="Header" style={{flexShrink: 0}}>
@@ -46,7 +48,11 @@ const DesktopHeaders = (props: Props) => (
       </Kb.Text>
     </Kb.Box2>
     <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.anotherHeader}>
-      <Breadcrumb path={props.parentPath} inDestinationPicker={true} routePath={props.routePath} />
+      {flags.useNewRouter ? (
+        <NavHeaderTitle inDestinationPicker={true} path={props.parentPath} />
+      ) : (
+        <Breadcrumb path={props.parentPath} inDestinationPicker={true} routePath={props.routePath} />
+      )}
       {!!props.onNewFolder && <NewFolder onNewFolder={props.onNewFolder} />}
     </Kb.Box2>
   </>
@@ -54,6 +60,7 @@ const DesktopHeaders = (props: Props) => (
 
 const DestinationPicker = (props: Props) => (
   <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
+    <FsCommon.LoadPathMetadataWhenNeeded path={props.parentPath} refreshTag="destination-picker" />
     {!Styles.isMobile && <DesktopHeaders {...props} />}
     <Kb.Divider key="dheader" />
     {!!props.onBackUp && (
@@ -99,7 +106,7 @@ const DestinationPicker = (props: Props) => (
       {Styles.isMobile ? (
         <NewFolder onNewFolder={props.onNewFolder} />
       ) : (
-        <Kb.Button type="Secondary" label="Cancel" onClick={props.onCancel} />
+        <Kb.Button type="Dim" label="Cancel" onClick={props.onCancel} />
       )}
     </Kb.Box2>
   </Kb.Box2>
@@ -119,9 +126,7 @@ export default (Styles.isMobile
                 <Kb.Text type="BodySmallSemibold" lineClamp={1}>
                   {props.targetNameWithoutExtension}
                 </Kb.Text>
-                <Kb.Text type="BodySmallSemibold">
-                  {props.targetExtension}
-                </Kb.Text>
+                <Kb.Text type="BodySmallSemibold">{props.targetExtension}</Kb.Text>
               </Kb.Box2>
             </Kb.Box2>
             <Kb.Text type="Header" lineClamp={1}>
@@ -174,6 +179,9 @@ const styles = Styles.styleSheetCreate({
       bottom: 0,
       position: 'absolute',
     },
+  }),
+  header: Styles.platformStyles({
+    isElectron: {wordBreak: 'break-all'},
   }),
   mobileHeaderButton: {
     paddingBottom: 8,

@@ -16,8 +16,10 @@ const profileRoute = () => {
   const SearchPopup = require('./search/container').default
   const NonUserProfile = require('./non-user-profile/container').default
   const ShowcaseTeamOffer = require('./showcase-team-offer/container').default
-  const ControlledRolePicker = require('../teams/role-picker/controlled-container').default
   const WalletConstants = require('../constants/wallets')
+  const ProofsList = require('./generic/proofs-list/container').default
+  const GenericEnterUsername = require('./generic/enter-username/container').default
+  const GenericProofSuccess = require('./generic/success/container').default
 
   const SendRequestFormRoutes = require('../wallets/routes-send-request-form').default()
 
@@ -34,20 +36,25 @@ const profileRoute = () => {
     component: ProveEnterUsername,
   })
 
+  const profileGenericEnterUsername = {
+    children: {
+      profileGenericProofSuccess: {
+        component: GenericProofSuccess,
+        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+      },
+    },
+    component: GenericEnterUsername,
+    tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+  }
+
   return makeRouteDefNode({
     children: {
-      addToTeam: {
-        children: {
-          controlledRolePicker: {
-            children: {},
-            component: ControlledRolePicker,
-            tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile}),
-          },
-        },
+      profile: profileRoute,
+      profileAddToTeam: {
+        children: {},
         component: AddToTeam,
         tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile}),
       },
-      profile: profileRoute,
       profileEdit: {
         component: EditProfile,
         tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
@@ -56,11 +63,19 @@ const profileRoute = () => {
         component: EditAvatar,
         tags: makeLeafTags({layerOnTop: !isMobile}),
       },
+      profileGenericEnterUsername,
       profileNonUser: {
         children: {profile: profileRoute},
         component: NonUserProfile,
       },
       profilePgp: pgpRoutes,
+      profileProofsList: {
+        children: {
+          profileGenericEnterUsername,
+        },
+        component: ProofsList,
+        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+      },
       profileProveEnterUsername: proveEnterUsername,
       profileProveWebsiteChoice: {
         children: {proveEnterUsername},
@@ -87,19 +102,27 @@ const profileRoute = () => {
 
 export const newRoutes = {
   profile: {getScreen: () => require('./user/container').default, upgraded: true},
-  profileAddToTeam: {getScreen: () => require('./add-to-team/container').default},
-  profileEditAvatar: {getScreen: () => require('./edit-avatar/container').default},
   profileNonUser: {getScreen: () => require('./non-user-profile/container').default},
-  profileShowcaseTeamOffer: {getScreen: () => require('./showcase-team-offer/container').default},
 }
 
 export const newModalRoutes = {
+  profileAddToTeam: {getScreen: () => require('./add-to-team/container').default, upgraded: true},
   profileConfirmOrPending: {
     getScreen: () => require('./confirm-or-pending/container').default,
     upgraded: true,
   },
   profileEdit: {getScreen: () => require('./edit-profile/container').default},
+  profileEditAvatar: {getScreen: () => require('./edit-avatar/container').default, upgraded: true},
+  profileGenericEnterUsername: {
+    getScreen: () => require('./generic/enter-username/container').default,
+    upgraded: true,
+  },
+  profileGenericProofSuccess: {
+    getScreen: () => require('./generic/success/container').default,
+    upgraded: true,
+  },
   profilePostProof: {getScreen: () => require('./post-proof/container').default, upgraded: true},
+  profileProofsList: {getScreen: () => require('./generic/proofs-list/container').default, upgraded: true},
   profileProveEnterUsername: {
     getScreen: () => require('./prove-enter-username/container').default,
     upgraded: true,
@@ -110,6 +133,10 @@ export const newModalRoutes = {
   },
   profileRevoke: {getScreen: () => require('./revoke/container').default, upgraded: true},
   profileSearch: {getScreen: () => require('./search/container').default},
+  profileShowcaseTeamOffer: {
+    getScreen: () => require('./showcase-team-offer/container').default,
+    upgraded: true,
+  },
   ...require('./pgp/routes').newRoutes,
 }
 

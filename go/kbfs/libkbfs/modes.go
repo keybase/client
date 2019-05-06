@@ -93,6 +93,10 @@ func (md modeDefault) BlockManagementEnabled() bool {
 	return true
 }
 
+func (md modeDefault) MaxBlockPtrsToManageAtOnce() int {
+	return -1 /* unconstrained by default */
+}
+
 func (md modeDefault) QuotaReclamationEnabled() bool {
 	return true
 }
@@ -228,6 +232,10 @@ func (mm modeMinimal) BlockManagementEnabled() bool {
 	// TODO: in the future it might still be useful to have
 	// e.g. mobile devices doing QR.
 	return false
+}
+
+func (mm modeMinimal) MaxBlockPtrsToManageAtOnce() int {
+	panic("Shouldn't be called when block management is disabled")
 }
 
 func (mm modeMinimal) QuotaReclamationEnabled() bool {
@@ -407,6 +415,10 @@ func (mc modeConstrained) BackgroundFlushesEnabled() bool {
 
 func (mc modeConstrained) ConflictResolutionEnabled() bool {
 	return true
+}
+
+func (mc modeConstrained) MaxBlockPtrsToManageAtOnce() int {
+	return 10000
 }
 
 func (mc modeConstrained) QuotaReclamationEnabled() bool {

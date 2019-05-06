@@ -17,8 +17,10 @@ function defaultColor(backgroundMode: ?Background) {
 const lineClamp = (lines: number) => ({
   WebkitBoxOrient: 'vertical',
   WebkitLineClamp: lines,
+  display: '-webkit-box',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
+  wordBreak: 'break-word',
 })
 
 function fontSizeToSizeStyle(fontSize: number): ?Object {
@@ -210,6 +212,12 @@ const metaData: {[key: TextType]: MetaType} = {
     colorForBackground: {...whiteNegative, positive: globalColors.black_50},
     fontSize: 12,
     styleOverride: globalStyles.fontBold,
+  },
+  BodyTinyLink: {
+    colorForBackground: {...whiteNegative, positive: globalColors.black_50},
+    fontSize: 12,
+    isLink: true,
+    styleOverride: globalStyles.fontRegular,
   },
   BodyTinySemibold: {
     colorForBackground: {...whiteNegative, positive: globalColors.black_50},

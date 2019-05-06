@@ -19,7 +19,6 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc/resinit"
 	"golang.org/x/net/context"
-	"golang.org/x/net/http2"
 
 	"h12.me/socks"
 )
@@ -165,7 +164,8 @@ func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) *Client 
 	xprt := http.Transport{
 		Proxy:                 http.ProxyFromEnvironment,
 		DialContext:           (&dialer).DialContext,
-		MaxIdleConns:          100,
+		MaxIdleConns:          200,
+		MaxIdleConnsPerHost:   100,
 		IdleConnTimeout:       90 * time.Second,
 		TLSHandshakeTimeout:   10 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
@@ -238,10 +238,6 @@ func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) *Client 
 	}
 	if jar != nil {
 		ret.cli.Jar = jar
-	}
-
-	if err := http2.ConfigureTransport(&xprt); err != nil {
-		extraLog(nil, "api.Client:%v New configuring http2 err=%v", err)
 	}
 	ret.cli.Transport = &xprt
 	return ret

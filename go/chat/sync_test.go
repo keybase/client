@@ -26,7 +26,7 @@ func newBlankConvWithMembersType(ctx context.Context, t *testing.T, tc *kbtest.C
 	uid gregor1.UID, ri chat1.RemoteInterface, sender types.Sender, tlfName string,
 	membersType chat1.ConversationMembersType) chat1.Conversation {
 	res, err := NewConversation(ctx, tc.Context(), uid, tlfName, nil, chat1.TopicType_CHAT, membersType,
-		keybase1.TLFVisibility_PRIVATE, func() chat1.RemoteInterface { return ri })
+		keybase1.TLFVisibility_PRIVATE, func() chat1.RemoteInterface { return ri }, NewConvFindExistingNormal)
 	require.NoError(t, err)
 	convID := res.GetConvID()
 	ires, err := ri.GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
@@ -49,7 +49,7 @@ func newConv(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext, uid 
 			MessageType: chat1.MessageType_TEXT,
 		},
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: "foo"}),
-	}, 0, nil, nil)
+	}, 0, nil, nil, nil)
 	require.NoError(t, err)
 	convID := conv.GetConvID()
 	ires, err := ri.GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
@@ -418,7 +418,7 @@ func TestSyncerNeverJoined(t *testing.T) {
 		// simulate an old client that doesn't understand NEVER_JOINED
 		userAgent := libkb.UserAgent
 		libkb.UserAgent = "old:ua:2.12.1"
-		ctx = Context(context.TODO(), g1, keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
+		ctx = globals.ChatCtx(context.TODO(), g1, keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
 		libkb.UserAgent = userAgent // reset user agent for future tests.
 		doAuthedSync(ctx, g2, syncer2, ctc2.ri, uid2)
 		select {
@@ -473,7 +473,7 @@ func TestSyncerMembersTypeChanged(t *testing.T) {
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "hi",
 		}),
-	}, 0, nil, nil)
+	}, 0, nil, nil, nil)
 	require.NoError(t, err)
 	s := storage.New(tc.Context(), tc.ChatG.ConvSource)
 	storedMsgs, err := s.FetchMessages(ctx, convID, uid, []chat1.MessageID{msg.GetMessageID()})
@@ -522,7 +522,7 @@ func TestSyncerAppState(t *testing.T) {
 
 	conv := newConv(ctx, t, tc, uid, ri, sender, u.Username)
 	t.Logf("test incremental")
-	tc.G.AppState.Update(keybase1.AppState_BACKGROUND)
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
 	syncer.SendChatStaleNotifications(context.TODO(), uid, []chat1.ConversationStaleUpdate{
 		chat1.ConversationStaleUpdate{
 			ConvID:     conv.GetConvID(),
@@ -535,7 +535,7 @@ func TestSyncerAppState(t *testing.T) {
 	default:
 	}
 
-	tc.G.AppState.Update(keybase1.AppState_FOREGROUND)
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
 	select {
 	case updates := <-list.threadsStale:
 		require.Equal(t, 1, len(updates))
@@ -544,7 +544,7 @@ func TestSyncerAppState(t *testing.T) {
 		require.Fail(t, "no stale messages")
 	}
 
-	tc.G.AppState.Update(keybase1.AppState_BACKGROUND)
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
 	syncer.SendChatStaleNotifications(context.TODO(), uid, nil, true)
 	select {
 	case <-list.inboxStale:
@@ -552,7 +552,7 @@ func TestSyncerAppState(t *testing.T) {
 	default:
 	}
 
-	tc.G.AppState.Update(keybase1.AppState_FOREGROUND)
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
 	select {
 	case <-list.inboxStale:
 	case <-time.After(20 * time.Second):
@@ -596,7 +596,7 @@ func TestSyncerRetentionExpunge(t *testing.T) {
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "hi",
 		}),
-	}, 0, nil, nil)
+	}, 0, nil, nil, nil)
 	require.NoError(t, err)
 	tv, cerr := tc.ChatG.ConvSource.Pull(ctx, mconv.GetConvID(), uid, chat1.GetThreadReason_GENERAL, nil, nil)
 	require.NoError(t, cerr)
@@ -790,7 +790,7 @@ func TestSyncerBackgroundLoader(t *testing.T) {
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "MIKE!!!!",
 		}),
-	}, 0, nil, nil)
+	}, 0, nil, nil, nil)
 	require.NoError(t, err)
 	_, delMsg, err := sender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
@@ -803,7 +803,7 @@ func TestSyncerBackgroundLoader(t *testing.T) {
 		MessageBody: chat1.NewMessageBodyWithDelete(chat1.MessageDelete{
 			MessageIDs: []chat1.MessageID{txtMsg.GetMessageID()},
 		}),
-	}, 0, nil, nil)
+	}, 0, nil, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, delMsg)
 	require.NoError(t, hcs.storage.ClearAll(context.TODO(), conv.GetConvID(), uid))

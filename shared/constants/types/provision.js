@@ -23,8 +23,9 @@ export type _State = {
   error: HiddenString,
   // if the entire process is dead, we store the whole error so we can render a lot of details about it
   finalError: ?RPCError,
+  forgotUsernameResult: string,
   inlineError: ?RPCError,
-  usernameOrEmail: string,
+  username: string,
   deviceName: string,
   devices: I.List<Device>,
   gpgImportError: ?string,

@@ -2,20 +2,22 @@
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as React from 'react'
-import TabBar from './tab-bar/container'
+import TabBar from './tab-bar/container.desktop'
 import {
   createNavigator,
   StackRouter,
+  SwitchRouter,
   NavigationActions,
   getNavigation,
   NavigationProvider,
   SceneView,
   createSwitchNavigator,
 } from '@react-navigation/core'
-import {modalRoutes, routes, nameToTab, loggedOutRoutes} from './routes'
+import {modalRoutes, routes, nameToTab, loggedOutRoutes, tabRoots} from './routes'
 import * as Shared from './router.shared'
 import Header from './header/index.desktop'
 import * as Shim from './shim.desktop'
+import GlobalError from '../app/global-errors/container'
 import OutOfDate from '../app/out-of-date'
 
 /**
@@ -25,11 +27,22 @@ import OutOfDate from '../app/out-of-date'
  * Modal screens
  * Floating screens
  *
- * You have 2 nested routers, a normal stack and modal stack
+ * You have 2 nested routers, a tab router and modal stack
  * When the modal has a valid route ModalView is rendered, which renders AppView underneath
  * When there are no modals AppView is rendered
  * Floating is rendered to a portal on top
  */
+
+// We could have subnavigators, so traverse the routes so we can get the active
+// screen's index so we know when to enable the back button. Note this doesn't
+// support a subnavigator with a root you can hit back from.
+const getActiveIndex = navState => {
+  const route = navState.routes[navState.index]
+  if (route.routes) {
+    return getActiveIndex(route)
+  }
+  return navState.index
+}
 
 // The app with a tab bar on the left and content area on the right
 // A single content view and n-modals on top
@@ -41,31 +54,46 @@ class AppView extends React.PureComponent<any> {
     const descriptor = this.props.descriptors[activeKey]
     const childNav = descriptor.navigation
     const selectedTab = nameToTab[descriptor.state.routeName]
+    // transparent headers use position absolute and need to be rendered last so they go on top w/o zindex
+    const direction = descriptor.options.headerTransparent ? 'vertical' : 'verticalReverse'
+    const activeIndex = getActiveIndex(navigation.state)
+
+    const sceneView = (
+      <SceneView
+        navigation={childNav}
+        component={descriptor.getComponent()}
+        screenProps={this.props.screenProps}
+        options={descriptor.options}
+      />
+    )
+    // if the header is transparent this needs to be on the same layer
+    const scene = descriptor.options.headerTransparent ? (
+      <Kb.Box2 direction="vertical" style={styles.transparentSceneUnderHeader}>
+        {sceneView}
+      </Kb.Box2>
+    ) : (
+      sceneView
+    )
 
     return (
       <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
-        <TabBar selectedTab={selectedTab} />
         <Kb.Box2
-          direction="vertical"
+          direction={direction}
           fullHeight={true}
           style={selectedTab ? styles.contentArea : styles.contentAreaLogin}
         >
-          <Header options={descriptor.options} onPop={() => childNav.pop()} allowBack={index !== 0} />
-          <SceneView
-            navigation={childNav}
-            component={descriptor.getComponent()}
-            screenProps={this.props.screenProps}
+          {scene}
+          <Header
+            loggedIn={!!selectedTab}
+            options={descriptor.options}
+            onPop={() => childNav.pop()}
+            allowBack={activeIndex !== 0}
           />
         </Kb.Box2>
       </Kb.Box2>
     )
   }
 }
-const MainNavigator = createNavigator(
-  AppView,
-  StackRouter(Shim.shim(routes), {initialRouteName: 'tabs.peopleTab'}),
-  {}
-)
 
 class ModalView extends React.PureComponent<any> {
   render() {
@@ -99,17 +127,64 @@ class ModalView extends React.PureComponent<any> {
             />
           </Kb.Box2>
         )}
+        <GlobalError />
         <OutOfDate />
       </>
     )
   }
 }
 
+class TabView extends React.PureComponent<any> {
+  render() {
+    const navigation = this.props.navigation
+    const index = navigation.state.index
+    const activeKey = navigation.state.routes[index].key
+    const descriptor = this.props.descriptors[activeKey]
+    const childNav = descriptor.navigation
+    const selectedTab = descriptor.state.routeName
+    const sceneView = (
+      <SceneView
+        navigation={childNav}
+        component={descriptor.getComponent()}
+        screenProps={this.props.screenProps}
+        options={descriptor.options}
+      />
+    )
+    return (
+      <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
+        <TabBar navigation={navigation} selectedTab={selectedTab} />
+        {sceneView}
+      </Kb.Box2>
+    )
+  }
+}
+
+const tabs = Shared.desktopTabs
+
+const TabNavigator = createNavigator(
+  TabView,
+  SwitchRouter(
+    tabs.reduce((map, tab) => {
+      map[tab] = createNavigator(
+        AppView,
+        StackRouter(Shim.shim(routes), {
+          initialRouteName: tabRoots[tab],
+          initialRouteParams: undefined,
+        }),
+        {}
+      )
+      return map
+    }, {}),
+    {resetOnBlur: false}
+  ),
+  {}
+)
+
 const LoggedInStackNavigator = createNavigator(
   ModalView,
   StackRouter(
     {
-      Main: {screen: MainNavigator},
+      Main: {screen: TabNavigator},
       ...Shim.shim(modalRoutes),
     },
     {}
@@ -262,11 +337,6 @@ const createElectronApp = Component => {
 const ElectronApp = createElectronApp(RootStackNavigator)
 
 const styles = Styles.styleSheetCreate({
-  back: Styles.platformStyles({
-    isElectron: {
-      ...Styles.desktopStyles.windowDraggingClickable,
-    },
-  }),
   contentArea: {
     flexGrow: 1,
     position: 'relative',
@@ -274,7 +344,6 @@ const styles = Styles.styleSheetCreate({
   contentAreaLogin: Styles.platformStyles({
     isElectron: {
       flexGrow: 1,
-      paddingTop: 20, // don't cover system buttons
       position: 'relative',
     },
     isMobile: {
@@ -284,7 +353,9 @@ const styles = Styles.styleSheetCreate({
   }),
   modalContainer: {
     ...Styles.globalStyles.fillAbsolute,
-    zIndex: 99999,
+  },
+  transparentSceneUnderHeader: {
+    ...Styles.globalStyles.fillAbsolute,
   },
 })
 

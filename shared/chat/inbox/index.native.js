@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import * as React from 'react'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as Styles from '../../styles'
@@ -9,9 +10,9 @@ import BigTeamsDivider from './row/big-teams-divider/container'
 import TeamsDivider from './row/teams-divider/container'
 import {virtualListMarks} from '../../local-debug'
 import {debounce} from 'lodash-es'
-import {Owl} from './owl'
+import UnreadShortcut from './unread-shortcut'
 import * as RowSizes from './row/sizes'
-
+import InboxSearch from '../inbox-search/container'
 import type {Props, RowItem, RowItemSmall} from './index.types'
 
 const NoChats = () => (
@@ -33,6 +34,7 @@ const NoChats = () => (
 
 type State = {
   showFloating: boolean,
+  showUnread: boolean,
 }
 
 class Inbox extends React.PureComponent<Props, State> {
@@ -41,8 +43,21 @@ class Inbox extends React.PureComponent<Props, State> {
   _dividerIndex: number = -1
   // 2 different sizes
   _dividerShowButton: boolean = false
+  // stash first offscreen index for callback
+  _firstOffscreenIdx: number = -1
+  _lastVisibleIdx: number = -1
 
-  state = {showFloating: false}
+  state = {showFloating: false, showUnread: false}
+
+  componentDidUpdate(prevProps: Props) {
+    if (!I.is(prevProps.unreadIndices, this.props.unreadIndices)) {
+      this._updateShowUnread()
+    }
+    if (this.props.rows.length !== prevProps.rows.length) {
+      // list has changed, floating divider is likely to change
+      this._updateShowFloating()
+    }
+  }
 
   _renderItem = ({item, index}) => {
     const row = item
@@ -60,7 +75,6 @@ class Inbox extends React.PureComponent<Props, State> {
       element = makeRow({
         channelname: row.channelname,
         conversationIDKey: row.conversationIDKey,
-        filtered: !!this.props.filter,
         teamname: row.teamname,
         type: row.type,
       })
@@ -99,22 +113,53 @@ class Inbox extends React.PureComponent<Props, State> {
   }
 
   _onViewChanged = data => {
-    this._onScrollUnbox(data)
-    this._updateShowFloating(data)
-  }
-
-  _updateShowFloating = data => {
     if (!data) {
       return
     }
+    this._onScrollUnbox(data)
 
-    let showFloating = true
-    const {viewableItems} = data
-    const item = viewableItems && viewableItems[viewableItems.length - 1]
-    if (!item) {
+    const lastVisibleIdx = data.viewableItems[data.viewableItems.length - 1]?.index
+    this._lastVisibleIdx = lastVisibleIdx || -1
+    this._updateShowUnread()
+    this._updateShowFloating()
+  }
+
+  _updateShowUnread = () => {
+    if (!this.props.unreadIndices.size || this._lastVisibleIdx < 0) {
+      this.setState(s => (s.showUnread ? {showUnread: false} : null))
       return
     }
-    const row = item.item
+
+    const firstOffscreenIdx = this.props.unreadIndices.find(idx => idx > this._lastVisibleIdx)
+    if (firstOffscreenIdx) {
+      this.setState(s => (s.showUnread ? null : {showUnread: true}))
+      this._firstOffscreenIdx = firstOffscreenIdx
+    } else {
+      this.setState(s => (s.showUnread ? {showUnread: false} : null))
+      this._firstOffscreenIdx = -1
+    }
+  }
+
+  _scrollToUnread = () => {
+    if (this._firstOffscreenIdx <= 0 || !this._list) {
+      return
+    }
+    this._list.scrollToIndex({
+      animated: true,
+      index: this._firstOffscreenIdx,
+      viewPosition: 0.5,
+    })
+  }
+
+  _updateShowFloating = data => {
+    if (this._lastVisibleIdx < 0) {
+      return
+    }
+    let showFloating = true
+    const row = this.props.rows[this._lastVisibleIdx]
+    if (!row) {
+      return
+    }
 
     if (!row || row.type !== 'small') {
       showFloating = false
@@ -126,9 +171,6 @@ class Inbox extends React.PureComponent<Props, State> {
   }
 
   _onScrollUnbox = debounce(data => {
-    if (!data) {
-      return
-    }
     const {viewableItems} = data
     const item = viewableItems && viewableItems[0]
     if (item && item.hasOwnProperty('index')) {
@@ -143,10 +185,6 @@ class Inbox extends React.PureComponent<Props, State> {
   }
 
   _getItemLayout = (data, index) => {
-    if (this.props.filter.length) {
-      return {index, length: RowSizes.smallRowHeight, offset: RowSizes.smallRowHeight * (index - 1)}
-    }
-
     // We cache the divider location so we can divide the list into small and large. We can calculate the small cause they're all
     // the same height. We iterate over the big since that list is small and we don't know the number of channels easily
     const smallHeight = RowSizes.smallRowHeight
@@ -174,11 +212,6 @@ class Inbox extends React.PureComponent<Props, State> {
     return {index, length, offset}
   }
 
-  _onEnsureSelection = () => this.props.onEnsureSelection()
-  _onSelectUp = () => this.props.onSelectUp()
-  _onSelectDown = () => this.props.onSelectDown()
-  _onDidFocus = () => this.props.onDeselectConversation()
-
   render() {
     this._dividerShowButton = false
     this._dividerIndex = this.props.rows.findIndex(r => {
@@ -189,52 +222,52 @@ class Inbox extends React.PureComponent<Props, State> {
       return false
     })
 
-    const noChats = !this.props.neverLoaded && !this.props.rows.length && !this.props.filter && <NoChats />
-    const owl = !this.props.rows.length && !!this.props.filter && <Owl />
-    const floatingDivider = this.state.showFloating && this.props.allowShowFloatingButton && (
-      <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
+    const noChats = !this.props.neverLoaded && !this.props.isSearching && !this.props.rows.length && (
+      <NoChats />
     )
-    const HeadComponent = (
-      <ChatInboxHeader
-        filterFocusCount={this.props.filterFocusCount}
-        focusFilter={this.props.focusFilter}
-        onNewChat={this.props.onNewChat}
-        onEnsureSelection={this._onEnsureSelection}
-        onSelectUp={this._onSelectUp}
-        onSelectDown={this._onSelectDown}
-      />
-    )
+    const floatingDivider = this.state.showFloating &&
+      !this.props.isSearching &&
+      this.props.allowShowFloatingButton && <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
+    const HeadComponent = <ChatInboxHeader onNewChat={this.props.onNewChat} />
     return (
       <Kb.ErrorBoundary>
-        <Kb.NavigationEvents onDidFocus={this._onDidFocus} />
-        <Kb.Box style={boxStyle}>
-          <Kb.NativeFlatList
-            ListHeaderComponent={HeadComponent}
-            data={this.props.rows}
-            keyExtractor={this._keyExtractor}
-            renderItem={this._renderItem}
-            ref={this._setRef}
-            onViewableItemsChanged={this._onViewChanged}
-            windowSize={5}
-            keyboardShouldPersistTaps="handled"
-            getItemLayout={this._getItemLayout}
-            removeClippedSubviews={true}
-          />
+        <Kb.Box style={styles.container}>
+          {this.props.isSearching ? (
+            <Kb.Box2 direction="vertical" fullWidth={true}>
+              <InboxSearch header={HeadComponent} />
+            </Kb.Box2>
+          ) : (
+            <Kb.NativeFlatList
+              ListHeaderComponent={HeadComponent}
+              data={this.props.rows}
+              keyExtractor={this._keyExtractor}
+              renderItem={this._renderItem}
+              ref={this._setRef}
+              onViewableItemsChanged={this._onViewChanged}
+              windowSize={5}
+              keyboardShouldPersistTaps="handled"
+              getItemLayout={this._getItemLayout}
+            />
+          )}
           {noChats}
-          {owl}
-          {floatingDivider || <BuildTeam />}
+          {floatingDivider || (!this.props.isSearching && <BuildTeam />)}
+          {this.state.showUnread && !this.props.isSearching && !this.state.showFloating && (
+            <UnreadShortcut onClick={this._scrollToUnread} />
+          )}
         </Kb.Box>
       </Kb.ErrorBoundary>
     )
   }
 }
 
-const boxStyle = {
-  ...Styles.globalStyles.flexBoxColumn,
-  backgroundColor: Styles.globalColors.fastBlank,
-  flex: 1,
-  position: 'relative',
-}
+const styles = Styles.styleSheetCreate({
+  container: {
+    ...Styles.globalStyles.flexBoxColumn,
+    backgroundColor: Styles.globalColors.fastBlank,
+    flex: 1,
+    position: 'relative',
+  },
+})
 
 export default Inbox
 export type {RowItem, RowItemSmall}

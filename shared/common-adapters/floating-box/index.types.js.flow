@@ -23,4 +23,5 @@ export type Props = {
   matchDimension?: boolean,
   position?: Position,
   positionFallbacks?: Position[],
+  hideKeyboard?: boolean, // if true, hide the keyboard on mount
 }

@@ -6,6 +6,8 @@ package engine
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -162,13 +164,11 @@ func TestPGPExportEncryption(t *testing.T) {
 
 	fp, _, key := armorKey(t, tc, u.Email)
 	eng, err := NewPGPKeyImportEngineFromBytes(tc.G, []byte(key), true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
+
 	m := NewMetaContextForTest(tc).WithUIs(uis)
-	if err = RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
-	}
+	err = RunEngine2(m, eng)
+	require.NoError(t, err)
 
 	opts := keybase1.PGPQuery{
 		Secret:     true,
@@ -187,28 +187,17 @@ func TestPGPExportEncryption(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(secui.Prompts) != 2 {
-		t.Error("Expected two prompts in SecretUI (PGP passphrase and confirmation)")
-	}
+	require.Len(t, secui.Prompts, 2, "Expected two prompts in SecretUI (PGP passphrase and confirmation)")
 	secui.Prompts = []string{}
 
 	entity, _, err := libkb.ReadOneKeyFromString(xe.Results()[0].Key)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
-	if entity.PrivateKey == nil {
-		t.Fatal("Key isn't private key")
-	}
+	require.NotNil(t, entity.PrivateKey, "Key isn't private key")
+	require.True(t, entity.PrivateKey.Encrypted, "Key is not encrypted")
 
-	if !entity.PrivateKey.Encrypted {
-		t.Fatal("Key is not encrypted")
-	}
-
-	for _, subkey := range entity.Subkeys {
-		if !subkey.PrivateKey.Encrypted {
-			t.Fatal("Subkey is not encrypted")
-		}
+	for i, subkey := range entity.Subkeys {
+		require.True(t, subkey.PrivateKey.Encrypted, "Subkey %d is not encrypted", i)
 	}
 
 	if err := entity.PrivateKey.Decrypt([]byte(pgpPassphrase)); err != nil {
@@ -222,30 +211,18 @@ func TestPGPExportEncryption(t *testing.T) {
 		Encrypted: false,
 	}
 	xe = NewPGPKeyExportEngine(tc.G, arg)
-	if err := RunEngine2(m, xe); err != nil {
-		t.Fatal(err)
-	}
+	err = RunEngine2(m, xe)
+	require.NoError(t, err)
 
-	if len(secui.Prompts) != 0 {
-		t.Error("Expected no prompts in SecretUI")
-	}
+	require.Len(t, secui.Prompts, 0, "Expected no prompts in SecretUI")
 
 	entity, _, err = libkb.ReadOneKeyFromString(xe.Results()[0].Key)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
-	if entity.PrivateKey == nil {
-		t.Fatal("Key isn't private key")
-	}
+	require.NotNil(t, entity.PrivateKey, "Key isn't private key")
+	require.False(t, entity.PrivateKey.Encrypted, "Key is encrypted")
 
-	if entity.PrivateKey.Encrypted {
-		t.Fatal("Key is encrypted")
-	}
-
-	for _, subkey := range entity.Subkeys {
-		if subkey.PrivateKey.Encrypted {
-			t.Fatal("Subkey is encrypted")
-		}
+	for i, subkey := range entity.Subkeys {
+		require.False(t, subkey.PrivateKey.Encrypted, "Subkey %d is encrypted", i)
 	}
 }

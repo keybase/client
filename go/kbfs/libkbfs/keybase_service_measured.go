@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"time"
 
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
@@ -135,7 +136,7 @@ func (k KeybaseServiceMeasured) NormalizeSocialAssertion(
 func (k KeybaseServiceMeasured) ResolveIdentifyImplicitTeam(
 	ctx context.Context, assertions, suffix string, tlfType tlf.Type,
 	doIdentifies bool, reason string, offline keybase1.OfflineAvailability) (
-	info ImplicitTeamInfo, err error) {
+	info idutil.ImplicitTeamInfo, err error) {
 	k.resolveIdentifyImplicitTeamTimer.Time(func() {
 		info, err = k.delegate.ResolveIdentifyImplicitTeam(
 			ctx, assertions, suffix, tlfType, doIdentifies, reason, offline)
@@ -156,7 +157,7 @@ func (k KeybaseServiceMeasured) ResolveImplicitTeamByID(
 // LoadUserPlusKeys implements the KeybaseService interface for KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) LoadUserPlusKeys(
 	ctx context.Context, uid keybase1.UID, pollForKID keybase1.KID,
-	offline keybase1.OfflineAvailability) (userInfo UserInfo, err error) {
+	offline keybase1.OfflineAvailability) (userInfo idutil.UserInfo, err error) {
 	k.loadUserPlusKeysTimer.Time(func() {
 		userInfo, err = k.delegate.LoadUserPlusKeys(
 			ctx, uid, pollForKID, offline)
@@ -169,7 +170,7 @@ func (k KeybaseServiceMeasured) LoadTeamPlusKeys(ctx context.Context,
 	tid keybase1.TeamID, tlfType tlf.Type, desiredKeyGen kbfsmd.KeyGen,
 	desiredUser keybase1.UserVersion, desiredKey kbfscrypto.VerifyingKey,
 	desiredRole keybase1.TeamRole, offline keybase1.OfflineAvailability) (
-	teamInfo TeamInfo, err error) {
+	teamInfo idutil.TeamInfo, err error) {
 	k.loadTeamPlusKeysTimer.Time(func() {
 		teamInfo, err = k.delegate.LoadTeamPlusKeys(
 			ctx, tid, tlfType, desiredKeyGen, desiredUser, desiredKey,
@@ -224,7 +225,7 @@ func (k KeybaseServiceMeasured) VerifyMerkleRoot(
 // CurrentSession implements the KeybaseService interface for
 // KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) CurrentSession(ctx context.Context, sessionID int) (
-	sessionInfo SessionInfo, err error) {
+	sessionInfo idutil.SessionInfo, err error) {
 	k.currentSessionTimer.Time(func() {
 		sessionInfo, err = k.delegate.CurrentSession(ctx, sessionID)
 	})
@@ -279,6 +280,16 @@ func (k KeybaseServiceMeasured) DecryptFavorites(ctx context.Context,
 	return dataOut, err
 }
 
+// NotifyOnlineStatusChanged implements the KeybaseService interface for
+// KeybaseServiceMeasured.
+func (k KeybaseServiceMeasured) NotifyOnlineStatusChanged(
+	ctx context.Context, online bool) (err error) {
+	k.notifyTimer.Time(func() {
+		err = k.delegate.NotifyOnlineStatusChanged(ctx, online)
+	})
+	return err
+}
+
 // Notify implements the KeybaseService interface for KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) Notify(ctx context.Context, notification *keybase1.FSNotification) (err error) {
 	k.notifyTimer.Time(func() {
@@ -303,6 +314,16 @@ func (k KeybaseServiceMeasured) NotifySyncStatus(ctx context.Context,
 	status *keybase1.FSPathSyncStatus) (err error) {
 	k.notifyTimer.Time(func() {
 		err = k.delegate.NotifySyncStatus(ctx, status)
+	})
+	return err
+}
+
+// NotifyOverallSyncStatus implements the KeybaseService interface for
+// KeybaseServiceMeasured.
+func (k KeybaseServiceMeasured) NotifyOverallSyncStatus(
+	ctx context.Context, status keybase1.FolderSyncStatus) (err error) {
+	k.notifyTimer.Time(func() {
+		err = k.delegate.NotifyOverallSyncStatus(ctx, status)
 	})
 	return err
 }

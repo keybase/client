@@ -53,6 +53,11 @@ protocol proveUi {
   // Used by parameterized proofs only
   void checking(int sessionID, string name);
 
+  // The proof is being polled, ask whether to continue checking.
+  // Returns whether to keep checking.
+  // Used by parametrized proofs only.
+  boolean continueChecking(int sessionID);
+
   // The proof was still not verifiable.
   void displayRecheckWarning(int sessionID, Text text);
 }

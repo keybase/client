@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/kbfs/favorites"
 	"github.com/keybase/client/go/kbfs/kbfsedits"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -38,6 +39,7 @@ const (
 type ChatRPC struct {
 	config   Config
 	log      logger.Logger
+	vlog     *libkb.VDebugLog
 	deferLog logger.Logger
 	client   chat1.LocalInterface
 
@@ -55,6 +57,7 @@ func NewChatRPC(config Config, kbCtx Context) *ChatRPC {
 	deferLog := log.CloneWithAddedDepth(1)
 	c := &ChatRPC{
 		log:      log,
+		vlog:     config.MakeVLogger(log),
 		deferLog: deferLog,
 		config:   config,
 		convCBs:  make(map[string][]ChatChannelNewMessageCB),
@@ -304,7 +307,8 @@ func (c *ChatRPC) SendTextMessage(
 		return nil
 	}
 
-	c.log.CDebugf(ctx, "Writing self-write message to %s", selfConvID)
+	c.vlog.CLogf(
+		ctx, libkb.VLog1, "Writing self-write message to %s", selfConvID)
 
 	session, err := c.config.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
@@ -358,7 +362,7 @@ func (c *ChatRPC) SendTextMessage(
 
 func (c *ChatRPC) getLastSelfWrittenHandles(
 	ctx context.Context, chatType chat1.TopicType, seen map[string]bool) (
-	results []*TlfHandle, err error) {
+	results []*tlfhandle.Handle, err error) {
 	selfConvID, _, err := c.getSelfConvInfo(ctx)
 	if err != nil {
 		return nil, err
@@ -407,7 +411,7 @@ func (c *ChatRPC) getLastSelfWrittenHandles(
 // GetGroupedInbox implements the Chat interface.
 func (c *ChatRPC) GetGroupedInbox(
 	ctx context.Context, chatType chat1.TopicType, maxChats int) (
-	results []*TlfHandle, err error) {
+	results []*tlfhandle.Handle, err error) {
 	// First get the latest TLFs written by this user.
 	seen := make(map[string]bool)
 	results, err = c.getLastSelfWrittenHandles(ctx, chatType, seen)
@@ -557,7 +561,9 @@ func (c *ChatRPC) ReadChannel(
 				return nil, nil, err
 			}
 			if msgType != chat1.MessageType_TEXT {
-				c.log.CDebugf(ctx, "Ignoring unexpected msg type: %d", msgType)
+				c.vlog.CLogf(
+					ctx, libkb.VLog1, "Ignoring unexpected msg type: %d",
+					msgType)
 				continue
 			}
 			messages = append(messages, msgBody.Text().Body)
@@ -650,7 +656,8 @@ func (c *ChatRPC) setLastWrittenConvID(ctx context.Context, body string) error {
 	if err != nil {
 		return err
 	}
-	c.log.CDebugf(ctx, "Last self-written conversation is %s", msg.ConvID)
+	c.vlog.CLogf(
+		ctx, libkb.VLog1, "Last self-written conversation is %s", msg.ConvID)
 	c.lastWrittenConvID = msg.ConvID
 	return nil
 }

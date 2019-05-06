@@ -711,6 +711,11 @@ func (p ProveUI) Checking(_ context.Context, arg keybase1.CheckingArg) error {
 	return nil
 }
 
+func (p ProveUI) ContinueChecking(_ context.Context, _ int) (bool, error) {
+	// Only used by UI to cancel during polling.
+	return true, nil
+}
+
 func (p ProveUI) DisplayRecheckWarning(_ context.Context, arg keybase1.DisplayRecheckWarningArg) error {
 	p.render(arg.Text)
 	return nil
@@ -728,7 +733,7 @@ func NewLoginUI(t libkb.TerminalUI, noPrompt bool) LoginUI {
 }
 
 func (l LoginUI) GetEmailOrUsername(_ context.Context, _ int) (string, error) {
-	return PromptWithChecker(PromptDescriptorLoginUsername, l.parent, "Your keybase username or email address", false,
+	return PromptWithChecker(PromptDescriptorLoginUsername, l.parent, "Your keybase username", false,
 		libkb.CheckEmailOrUsername)
 }
 
@@ -810,6 +815,34 @@ func (l LoginUI) DisplayPrimaryPaperKey(_ context.Context, arg keybase1.DisplayP
 			return err
 		}
 	}
+	return nil
+}
+
+func (l LoginUI) PromptResetAccount(ctx context.Context, arg keybase1.PromptResetAccountArg) (bool, error) {
+	var msg string
+	switch arg.Kind {
+	case keybase1.ResetPromptType_COMPLETE:
+		msg = "Would you like to complete the reset of your account?"
+	case keybase1.ResetPromptType_ENTER_NO_DEVICES:
+		msg = `The only way to provision this device is with access to one of your existing
+devices. You can try again later, or if you have lost access to all your
+existing devices you can reset your account and start fresh.
+
+Would you like to request a reset of your account?`
+	case keybase1.ResetPromptType_ENTER_FORGOT_PW:
+		msg = `If you have forgotten your password and either lost all of your devices, or if you
+uninstalled Keybase from all of them, you can reset your account. You will keep your username,
+but lose all your data.
+
+Would you like to request a reset of your account?`
+	default:
+		return false, fmt.Errorf("Unknown prompt type - got %v", arg.Kind)
+	}
+	return l.parent.PromptYesNo(PromptDescriptorResetAccount, msg, libkb.PromptDefaultNo)
+}
+
+func (l LoginUI) DisplayResetProgress(ctx context.Context, arg keybase1.DisplayResetProgressArg) error {
+	l.parent.Printf("%s\n", arg.Text)
 	return nil
 }
 

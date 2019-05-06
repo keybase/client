@@ -1,46 +1,31 @@
 // @flow
+import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
 import * as RowTypes from './types'
 import * as Flow from '../../util/flow'
-import {memoize} from 'lodash-es'
+import {memoize} from '../../util/memoize'
+import logger from '../../logger'
 
-export type SortableTlfTypeRowItem = RowTypes.TlfTypeRowItem & {
-  type: 'folder',
-}
-
-export type SortableTlfRowItem = RowTypes.TlfRowItem & {
-  type: 'folder',
-  isNew: boolean,
-}
-
-export type SortableStillRowItem = RowTypes.StillRowItem & {
-  type: Types.PathType,
-  lastModifiedTimestamp: number,
-}
-export type SortableEditingRowItem = RowTypes.EditingRowItem & {
-  rowType: 'editing',
-  editType: Types.EditType,
-  type: Types.PathType,
-}
-export type SortableUploadingRowItem = RowTypes.UploadingRowItem & {
-  rowType: 'uploading',
-  type: Types.PathType,
-}
 export type SortableRowItem =
-  | SortableStillRowItem
-  | SortableEditingRowItem
-  | SortableUploadingRowItem
-  | SortableTlfTypeRowItem
-  | SortableTlfRowItem
+  | RowTypes.StillRowItem
+  | RowTypes.EditingRowItem
+  | RowTypes.UploadingRowItem
+  | RowTypes.TlfTypeRowItem
+  | RowTypes.TlfRowItem
 
 type PathItemComparer = (a: SortableRowItem, b: SortableRowItem) => number
+
+const getSortBy = (sortSetting: Types.SortSetting) =>
+  sortSetting === 'name-asc' || sortSetting === 'name-desc' ? 'name' : 'time'
+const getOrder = (sortSetting: Types.SortSetting) =>
+  sortSetting === 'name-asc' || sortSetting === 'time-asc' ? 'asc' : 'desc'
 
 const getLastModifiedTimeStamp = (a: SortableRowItem) =>
   a.rowType === 'still' ? a.lastModifiedTimestamp : Date.now()
 
 // This handles comparisons that aren't affected by asc/desc setting.
 const getCommonComparer = memoize(
-  (meUsername?: string) => (a: SortableRowItem, b: SortableRowItem): number => {
+  (meUsername: string) => (a: SortableRowItem, b: SortableRowItem): number => {
     // See if any of them are newly created folders.
     const aIsNewFolder = a.rowType === 'editing' && a.editType === 'new-folder'
     const bIsNewFolder = b.rowType === 'editing' && b.editType === 'new-folder'
@@ -81,7 +66,7 @@ const getCommonComparer = memoize(
   }
 )
 
-const getComparerBySortBy = (sortBy: Types.SortBy): PathItemComparer => {
+const getComparerBySortBy = (sortBy: 'name' | 'time'): PathItemComparer => {
   switch (sortBy) {
     case 'name':
       return (a: SortableRowItem, b: SortableRowItem): number => {
@@ -112,7 +97,7 @@ const editingRowItemTieBreaker = (a: SortableRowItem, b: SortableRowItem): numbe
   return Types.editIDToString(a.editID).localeCompare(Types.editIDToString(b.editID))
 }
 
-const getComparer = ({sortBy, sortOrder}: Types.SortSetting, meUsername?: string) => (
+const getComparer = (sortSetting: Types.SortSetting, meUsername: string) => (
   a: SortableRowItem,
   b: SortableRowItem
 ): number => {
@@ -121,9 +106,9 @@ const getComparer = ({sortBy, sortOrder}: Types.SortSetting, meUsername?: string
     return commonCompare
   }
 
-  const multiplier = sortOrder === 'desc' ? -1 : 1
+  const multiplier = getOrder(sortSetting) === 'desc' ? -1 : 1
 
-  const sortByCompare = getComparerBySortBy(sortBy)(a, b)
+  const sortByCompare = getComparerBySortBy(getSortBy(sortSetting))(a, b)
   if (sortByCompare !== 0) {
     return sortByCompare * multiplier
   }
@@ -132,10 +117,11 @@ const getComparer = ({sortBy, sortOrder}: Types.SortSetting, meUsername?: string
   return tieBroken * multiplier
 }
 
-export const sortRowItems = (
-  items: Array<SortableRowItem>,
+export const sortRowItems: (
+  items: I.List<SortableRowItem>,
   sortSetting: Types.SortSetting,
-  username?: string
-): Array<SortableRowItem> => {
+  username: string
+) => I.List<SortableRowItem> = memoize((items, sortSetting, username) => {
+  logger.debug('sortRowItems')
   return items.sort(getComparer(sortSetting, username))
-}
+})

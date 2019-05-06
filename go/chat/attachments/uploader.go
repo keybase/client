@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"sync"
 
+	disklru "github.com/keybase/client/go/lru"
+
 	"github.com/keybase/client/go/encrypteddb"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -20,6 +22,11 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
+)
+
+const (
+	uploadedPreviewsDir = "uploadedpreviews"
+	uploadedFullsDir    = "uploadedfulls"
 )
 
 type uploaderTask struct {
@@ -163,11 +170,12 @@ type Uploader struct {
 	utils.DebugLabeler
 	sync.Mutex
 
-	store       Store
-	taskStorage *uploaderTaskStorage
-	ri          func() chat1.RemoteInterface
-	s3signer    s3.Signer
-	uploads     map[string]*activeUpload
+	store                 Store
+	taskStorage           *uploaderTaskStorage
+	ri                    func() chat1.RemoteInterface
+	s3signer              s3.Signer
+	uploads               map[string]*activeUpload
+	previewsLRU, fullsLRU *disklru.DiskLRU
 
 	// testing
 	tempDir string
@@ -175,7 +183,8 @@ type Uploader struct {
 
 var _ types.AttachmentUploader = (*Uploader)(nil)
 
-func NewUploader(g *globals.Context, store Store, s3signer s3.Signer, ri func() chat1.RemoteInterface) *Uploader {
+func NewUploader(g *globals.Context, store Store, s3signer s3.Signer,
+	ri func() chat1.RemoteInterface, size int) *Uploader {
 	return &Uploader{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Attachments.Uploader", false),
@@ -184,10 +193,14 @@ func NewUploader(g *globals.Context, store Store, s3signer s3.Signer, ri func() 
 		s3signer:     s3signer,
 		uploads:      make(map[string]*activeUpload),
 		taskStorage:  newUploaderTaskStorage(g),
+		previewsLRU:  disklru.NewDiskLRU(uploadedPreviewsDir, 1, size),
+		fullsLRU:     disklru.NewDiskLRU(uploadedFullsDir, 1, size),
 	}
 }
 
 func (u *Uploader) SetPreviewTempDir(dir string) {
+	u.Lock()
+	defer u.Unlock()
 	u.tempDir = dir
 }
 
@@ -331,20 +344,45 @@ func (u *Uploader) doneUploading(outboxID chat1.OutboxID) {
 	delete(u.uploads, outboxID.String())
 }
 
-func (u *Uploader) uploadFile(ctx context.Context, dirname, prefix string) (f *os.File, err error) {
+func (u *Uploader) getBaseDir() string {
+	u.Lock()
+	defer u.Unlock()
 	baseDir := u.G().GetCacheDir()
 	if u.tempDir != "" {
 		baseDir = u.tempDir
 	}
+	return baseDir
+}
+
+func (u *Uploader) uploadFile(ctx context.Context, diskLRU *disklru.DiskLRU, dirname, prefix string) (f *os.File, err error) {
+	baseDir := u.getBaseDir()
 	dir := filepath.Join(baseDir, dirname)
 	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 		return nil, err
 	}
-	return ioutil.TempFile(dir, prefix)
+	f, err = ioutil.TempFile(dir, prefix)
+	if err != nil {
+		return nil, err
+	}
+
+	// Add an entry to the disk LRU mapping with the tmpfilename to limit the
+	// number of resources on disk.  If we evict something we remove the
+	// remnants .
+	evicted, err := diskLRU.Put(ctx, u.G(), f.Name(), f.Name())
+	if err != nil {
+		return nil, err
+	}
+	if evicted != nil {
+		path := evicted.Value.(string)
+		if oerr := os.Remove(path); oerr != nil {
+			u.Debug(ctx, "failed to remove file at %s, %v", path, oerr)
+		}
+	}
+	return f, nil
 }
 
 func (u *Uploader) uploadPreviewFile(ctx context.Context) (f *os.File, err error) {
-	return u.uploadFile(ctx, "uploadedpreviews", "up")
+	return u.uploadFile(ctx, u.previewsLRU, uploadedPreviewsDir, "up")
 }
 
 func (u *Uploader) uploadFullFile(ctx context.Context, md chat1.AssetMetadata) (f *os.File, err error) {
@@ -359,7 +397,7 @@ func (u *Uploader) uploadFullFile(ctx context.Context, md chat1.AssetMetadata) (
 	default:
 		return nil, fmt.Errorf("not storing full of type: %v", typ)
 	}
-	return u.uploadFile(ctx, "uploadedfulls", "fl")
+	return u.uploadFile(ctx, u.fullsLRU, uploadedFullsDir, "fl")
 }
 
 func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
@@ -389,7 +427,7 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 	}()
 
 	// Stat the file to get size
-	finfo, err := os.Stat(filename)
+	finfo, err := StatOSOrKbfsFile(ctx, u.G().GlobalContext, filename)
 	if err != nil {
 		return res, err
 	}
@@ -582,4 +620,17 @@ func (u *Uploader) GetUploadTempFile(ctx context.Context, outboxID chat1.OutboxI
 		return "", err
 	}
 	return filepath.Join(dir, filepath.Base(filename)), nil
+}
+
+func (u *Uploader) OnDbNuke(mctx libkb.MetaContext) error {
+	baseDir := u.getBaseDir()
+	previewsDir := filepath.Join(baseDir, uploadedPreviewsDir)
+	if err := u.previewsLRU.Clean(mctx.Ctx(), mctx.G(), previewsDir); err != nil {
+		u.Debug(mctx.Ctx(), "unable to run clean for uploadedPreviews: %v", err)
+	}
+	fullsDir := filepath.Join(baseDir, uploadedFullsDir)
+	if err := u.fullsLRU.Clean(mctx.Ctx(), mctx.G(), fullsDir); err != nil {
+		u.Debug(mctx.Ctx(), "unable to run clean for uploadedFulls: %v", err)
+	}
+	return nil
 }

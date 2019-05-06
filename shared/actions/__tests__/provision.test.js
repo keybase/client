@@ -441,7 +441,7 @@ describe('choose gpg happy path', () => {
   })
 })
 
-describe('passphrase happy path', () => {
+describe('password happy path', () => {
   let init
   beforeEach(() => {
     init = makeInit({
@@ -462,19 +462,19 @@ describe('passphrase happy path', () => {
 
   it('navs to password page', () => {
     const {getRoutePath} = init
-    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'passphrase']))
+    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'password']))
   })
 
   it('submit', () => {
     const {response, getState, dispatch} = init
-    const passphrase = new HiddenString('a passphrase')
-    dispatch(ProvisionGen.createSubmitPassphrase({passphrase}))
-    expect(response.result).toHaveBeenCalledWith({passphrase: passphrase.stringValue(), storeSecret: false})
+    const password = new HiddenString('a password')
+    dispatch(ProvisionGen.createSubmitPassword({password}))
+    expect(response.result).toHaveBeenCalledWith({passphrase: password.stringValue(), storeSecret: false})
     expect(response.error).not.toHaveBeenCalled()
     expect(getState().config.globalError).toEqual(null)
 
     // only submit once
-    dispatch(ProvisionGen.createSubmitPassphrase({passphrase}))
+    dispatch(ProvisionGen.createSubmitPassword({password}))
     expect(getState().config.globalError).not.toEqual(null)
   })
 })
@@ -506,15 +506,15 @@ describe('passphrase error path', () => {
 
   it('submit clears error and submits', () => {
     const {response, getState, dispatch} = init
-    const passphrase = new HiddenString('a passphrase')
-    dispatch(ProvisionGen.createSubmitPassphrase({passphrase}))
+    const password = new HiddenString('a password')
+    dispatch(ProvisionGen.createSubmitPassword({password}))
     expect(getState().provision.error).toEqual(noError)
-    expect(response.result).toHaveBeenCalledWith({passphrase: passphrase.stringValue(), storeSecret: false})
+    expect(response.result).toHaveBeenCalledWith({passphrase: password.stringValue(), storeSecret: false})
     expect(response.error).not.toHaveBeenCalled()
     expect(getState().config.globalError).toEqual(null)
 
     // only submit once
-    dispatch(ProvisionGen.createSubmitPassphrase({passphrase}))
+    dispatch(ProvisionGen.createSubmitPassword({password}))
     expect(getState().config.globalError).not.toEqual(null)
   })
 })
@@ -636,14 +636,14 @@ describe('start the whole process', () => {
   dispatch(ProvisionGen.createProvisionError({error}))
   dispatch(ProvisionGen.createStartProvision())
   expect(getState().provision).toEqual(Constants.makeState())
-  expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'usernameOrEmail']))
+  expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'username']))
 })
 
 describe('Submit user email', () => {
   const {getState, dispatch} = startReduxSaga()
-  const action = ProvisionGen.createSubmitUsernameOrEmail({usernameOrEmail: 'aaa@example.org'})
+  const action = ProvisionGen.createSubmitUsername({username: 'aaa@example.org'})
   dispatch(action)
-  expect(getState().provision.usernameOrEmail).toEqual(action.payload.usernameOrEmail)
+  expect(getState().provision.username).toEqual(action.payload.username)
   expect(getState().provision.error).toEqual(noError)
   expect(getState().provision.finalError).toEqual(null)
 })

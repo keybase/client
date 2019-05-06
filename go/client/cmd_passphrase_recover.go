@@ -55,6 +55,8 @@ func (c *CmdPassphraseRecover) Run() error {
 	switch err.(type) {
 	case libkb.InputCanceledError:
 		return c.errLockedKeys()
+	case libkb.NoPaperKeysError:
+		return c.errNoPaperKeys()
 	}
 	if err != nil {
 		return err
@@ -68,14 +70,11 @@ func (c *CmdPassphraseRecover) Run() error {
 	}
 
 	// Confirm with the user.
-	ui.Printf("Password recovery will put your account on probation for 5 days.\n")
-	ui.Printf("You won't be able to perform certain actions, like revoking devices.\n")
 	if hsk.HasServerKeys {
 		ui.Printf("You have uploaded an encrypted PGP private key, it will be lost.\n")
-	}
-	err = ui.PromptForConfirmation("Continue with password recovery?")
-	if err != nil {
-		return err
+		if err = ui.PromptForConfirmation("Continue with password recovery?"); err != nil {
+			return err
+		}
 	}
 
 	// Ask for the new passphase.
@@ -133,6 +132,16 @@ func (c *CmdPassphraseRecover) errLockedKeys() error {
 These device keys are locked and you did not enter a paper key.
 To change your forgotten passphrase you will need either a device
 with unlocked keys or your paper key.
+
+If you'd like to reset your account:  https://keybase.io/#account-reset
+`)
+}
+
+func (c *CmdPassphraseRecover) errNoPaperKeys() error {
+	return errors.New(`Your account has no paper keys.
+
+To change your forgotten passphrase you will need a device with unlocked keys.
+Otherwise, an account reset will be required.
 
 If you'd like to reset your account:  https://keybase.io/#account-reset
 `)

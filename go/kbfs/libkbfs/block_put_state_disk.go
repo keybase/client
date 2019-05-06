@@ -6,6 +6,9 @@ package libkbfs
 
 import (
 	"context"
+
+	"github.com/keybase/client/go/kbfs/data"
+	"github.com/keybase/client/go/kbfs/libkey"
 )
 
 type blockPutStateDiskConfig interface {
@@ -21,62 +24,63 @@ type blockPutStateDisk struct {
 
 	config    blockPutStateDiskConfig
 	diskCache *DiskBlockCacheLocal
-	kmd       KeyMetadata
-	isDir     map[BlockPointer]bool
+	kmd       libkey.KeyMetadata
+	isDir     map[data.BlockPointer]bool
 }
 
 var _ blockPutState = (*blockPutStateDisk)(nil)
 
 func newBlockPutStateDisk(
 	length int, config blockPutStateDiskConfig,
-	diskCache *DiskBlockCacheLocal, kmd KeyMetadata) *blockPutStateDisk {
+	diskCache *DiskBlockCacheLocal, kmd libkey.KeyMetadata) *blockPutStateDisk {
 	return &blockPutStateDisk{
 		blockPutStateMemory: newBlockPutStateMemory(length),
 		config:              config,
 		diskCache:           diskCache,
 		kmd:                 kmd,
-		isDir:               make(map[BlockPointer]bool),
+		isDir:               make(map[data.BlockPointer]bool),
 	}
 }
 
-// addNewBlock implements the blockPutState interface for blockPutStateDisk.
-func (bps *blockPutStateDisk) addNewBlock(
-	ctx context.Context, blockPtr BlockPointer, block Block,
-	readyBlockData ReadyBlockData, syncedCb func() error) error {
+// AddNewBlock implements the blockPutState interface for blockPutStateDisk.
+func (bps *blockPutStateDisk) AddNewBlock(
+	ctx context.Context, blockPtr data.BlockPointer, block data.Block,
+	readyBlockData data.ReadyBlockData, syncedCb func() error) error {
 	// Add the pointer and the cb to the memory-based put state, and
 	// put the ready data directly into the disk cache.
 	err := bps.diskCache.Put(
-		ctx, bps.kmd.TlfID(), blockPtr.ID, readyBlockData.buf,
-		readyBlockData.serverHalf)
+		ctx, bps.kmd.TlfID(), blockPtr.ID, readyBlockData.Buf,
+		readyBlockData.ServerHalf)
 	if err != nil {
 		return err
 	}
 
-	if _, isDir := block.(*DirBlock); isDir {
+	if _, isDir := block.(*data.DirBlock); isDir {
 		bps.isDir[blockPtr] = true
 	}
 
-	return bps.blockPutStateMemory.addNewBlock(
-		ctx, blockPtr, nil, ReadyBlockData{}, syncedCb)
+	return bps.blockPutStateMemory.AddNewBlock(
+		ctx, blockPtr, nil, data.ReadyBlockData{}, syncedCb)
 }
 
 func (bps *blockPutStateDisk) getBlock(
-	ctx context.Context, blockPtr BlockPointer) (Block, error) {
-	data, serverHalf, _, err := bps.diskCache.Get(
+	ctx context.Context, blockPtr data.BlockPointer) (data.Block, error) {
+	blockData, serverHalf, _, err := bps.diskCache.Get(
 		ctx, bps.kmd.TlfID(), blockPtr.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	var block Block
+	var block data.Block
 	if bps.isDir[blockPtr] {
-		block = NewDirBlock()
+		block = data.NewDirBlock()
 	} else {
-		block = NewFileBlock()
+		block = data.NewFileBlock()
 	}
 	err = assembleBlock(
 		ctx, bps.config.keyGetter(), bps.config.Codec(),
-		bps.config.cryptoPure(), bps.kmd, blockPtr, block, data, serverHalf)
+		bps.config.cryptoPure(), bps.kmd, blockPtr, block, blockData,
+		serverHalf)
 	if err != nil {
 		return nil, err
 	}
@@ -84,14 +88,14 @@ func (bps *blockPutStateDisk) getBlock(
 }
 
 func (bps *blockPutStateDisk) getReadyBlockData(
-	ctx context.Context, blockPtr BlockPointer) (ReadyBlockData, error) {
-	data, serverHalf, _, err := bps.diskCache.Get(
+	ctx context.Context, blockPtr data.BlockPointer) (data.ReadyBlockData, error) {
+	blockData, serverHalf, _, err := bps.diskCache.Get(
 		ctx, bps.kmd.TlfID(), blockPtr.ID)
 	if err != nil {
-		return ReadyBlockData{}, err
+		return data.ReadyBlockData{}, err
 	}
-	return ReadyBlockData{
-		buf:        data,
-		serverHalf: serverHalf,
+	return data.ReadyBlockData{
+		Buf:        blockData,
+		ServerHalf: serverHalf,
 	}, nil
 }

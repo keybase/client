@@ -4,6 +4,7 @@ import {connect} from '../../../../util/container'
 import {AddPeopleHow} from '.'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {teamsTab} from '../../../../constants/tabs'
+import openURL from '../../../../util/open-url'
 
 type OwnProps = {
   attachTo: () => ?React.Component<any>,
@@ -18,9 +19,8 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => {
       dispatch(
         RouteTreeGen.createNavigateTo({
           parentPath: [teamsTab],
-          path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'addPeople'}],
-        }
-        )
+          path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'teamAddPeople'}],
+        })
       )
       dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
     },
@@ -28,12 +28,12 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => {
       dispatch(
         RouteTreeGen.createNavigateTo({
           parentPath: [teamsTab],
-          path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'inviteByEmail'}],
-        }
-        )
+          path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'teamInviteByEmail'}],
+        })
       )
       dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
     },
+    onSlackImport: () => openURL(`https://keybase.io/slack-importer/${teamname}`),
   }
 }
 

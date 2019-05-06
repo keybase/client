@@ -7,6 +7,7 @@ import (
 )
 
 type ChatContext struct {
+	CtxFactory          types.ContextFactory      // source of verified user info and crypt keys
 	InboxSource         types.InboxSource         // source of remote inbox entries for chat
 	ConvSource          types.ConversationSource  // source of remote message bodies for chat
 	MessageDeliverer    types.MessageDeliverer    // background message delivery service
@@ -29,6 +30,7 @@ type ChatContext struct {
 	Unfurler            types.Unfurler                   // unfurl messages with URLs
 	CommandsSource      types.ConversationCommandsSource // source for / commands for conversations
 	CoinFlipManager     types.CoinFlipManager            // manage /flip games
+	TeamMentionLoader   types.TeamMentionLoader          // load potential team mentions
 }
 
 type Context struct {

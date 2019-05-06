@@ -15,8 +15,6 @@ import (
 	"syscall"
 	"time"
 
-	"golang.org/x/net/context"
-
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/install"
@@ -27,6 +25,7 @@ import (
 	"github.com/keybase/client/go/service"
 	"github.com/keybase/client/go/uidmap"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"golang.org/x/net/context"
 )
 
 var cmd libcmdline.Command
@@ -42,6 +41,7 @@ func handleQuickVersion() bool {
 }
 
 func keybaseExit(exitCode int) {
+	logger.Shutdown()
 	logger.RestoreConsoleMode()
 	os.Exit(exitCode)
 }
@@ -99,7 +99,7 @@ func tryToDisableProcessTracing(log logger.Logger, e *libkb.Env) {
 		return
 	}
 
-	if !e.GetFeatureFlags().Admin() {
+	if !e.GetFeatureFlags().Admin(e.GetUID()) {
 		// Admin only for now
 		return
 	}
@@ -248,6 +248,12 @@ func mainInner(g *libkb.GlobalContext, startupErrors []error) error {
 	if !cl.IsService() && !cl.SkipOutOfDateCheck() {
 		// Errors that come up in printing this warning are logged but ignored.
 		client.PrintOutOfDateWarnings(g)
+	}
+
+	// Warn the user if there is an account reset in progress
+	if !cl.IsService() && !cl.SkipAccountResetCheck() {
+		// Errors that come up in printing this warning are logged but ignored.
+		client.PrintAccountResetWarning(g)
 	}
 	return err
 }

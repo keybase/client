@@ -100,14 +100,14 @@ func (b *BackgroundTLFUpdater) Shutdown() error {
 func (b *BackgroundTLFUpdater) monitorAppState() {
 	ctx := context.Background()
 	b.debug(ctx, "monitorAppState: starting up")
-	state := keybase1.AppState_FOREGROUND
+	state := keybase1.MobileAppState_FOREGROUND
 	for {
-		state = <-b.G().AppState.NextUpdate(&state)
+		state = <-b.G().MobileAppState.NextUpdate(&state)
 		switch state {
-		case keybase1.AppState_FOREGROUND:
+		case keybase1.MobileAppState_FOREGROUND:
 			b.debug(ctx, "monitorAppState: foregrounded, running all after: %v", b.initialWait)
 			b.runAll()
-		case keybase1.AppState_BACKGROUND:
+		case keybase1.MobileAppState_BACKGROUND:
 			b.debug(ctx, "monitorAppState: backgrounded, suspending upgrade thread")
 			b.Shutdown()
 		}

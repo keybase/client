@@ -547,6 +547,7 @@ type UIMessageValid struct {
 	OutboxID              *string                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 	MessageBody           MessageBody            `codec:"messageBody" json:"messageBody"`
 	DecoratedTextBody     *string                `codec:"decoratedTextBody,omitempty" json:"decoratedTextBody,omitempty"`
+	BodySummary           string                 `codec:"bodySummary" json:"bodySummary"`
 	SenderUsername        string                 `codec:"senderUsername" json:"senderUsername"`
 	SenderDeviceName      string                 `codec:"senderDeviceName" json:"senderDeviceName"`
 	SenderDeviceType      string                 `codec:"senderDeviceType" json:"senderDeviceType"`
@@ -558,6 +559,7 @@ type UIMessageValid struct {
 	AtMentions            []string               `codec:"atMentions" json:"atMentions"`
 	ChannelMention        ChannelMention         `codec:"channelMention" json:"channelMention"`
 	ChannelNameMentions   []UIChannelNameMention `codec:"channelNameMentions" json:"channelNameMentions"`
+	TeamMentions          []MaybeTeamMention     `codec:"teamMentions" json:"teamMentions"`
 	IsEphemeral           bool                   `codec:"isEphemeral" json:"isEphemeral"`
 	IsEphemeralExpired    bool                   `codec:"isEphemeralExpired" json:"isEphemeralExpired"`
 	ExplodedBy            *string                `codec:"explodedBy,omitempty" json:"explodedBy,omitempty"`
@@ -571,6 +573,7 @@ type UIMessageValid struct {
 	FlipGameID            *string                `codec:"flipGameID,omitempty" json:"flipGameID,omitempty"`
 	IsDeleteable          bool                   `codec:"isDeleteable" json:"isDeleteable"`
 	IsEditable            bool                   `codec:"isEditable" json:"isEditable"`
+	ReplyTo               *UIMessage             `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
 }
 
 func (o UIMessageValid) DeepCopy() UIMessageValid {
@@ -592,6 +595,7 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 			tmp := (*x)
 			return &tmp
 		})(o.DecoratedTextBody),
+		BodySummary:      o.BodySummary,
 		SenderUsername:   o.SenderUsername,
 		SenderDeviceName: o.SenderDeviceName,
 		SenderDeviceType: o.SenderDeviceType,
@@ -635,6 +639,17 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 			}
 			return ret
 		})(o.ChannelNameMentions),
+		TeamMentions: (func(x []MaybeTeamMention) []MaybeTeamMention {
+			if x == nil {
+				return nil
+			}
+			ret := make([]MaybeTeamMention, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.TeamMentions),
 		IsEphemeral:        o.IsEphemeral,
 		IsEphemeralExpired: o.IsEphemeralExpired,
 		ExplodedBy: (func(x *string) *string {
@@ -686,6 +701,13 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 		})(o.FlipGameID),
 		IsDeleteable: o.IsDeleteable,
 		IsEditable:   o.IsEditable,
+		ReplyTo: (func(x *UIMessage) *UIMessage {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ReplyTo),
 	}
 }
 
@@ -699,6 +721,7 @@ type UIMessageOutbox struct {
 	Ordinal           float64         `codec:"ordinal" json:"ordinal"`
 	IsEphemeral       bool            `codec:"isEphemeral" json:"isEphemeral"`
 	FlipGameID        *string         `codec:"flipGameID,omitempty" json:"flipGameID,omitempty"`
+	ReplyTo           *UIMessage      `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
 	Filename          string          `codec:"filename" json:"filename"`
 	Title             string          `codec:"title" json:"title"`
 	Preview           *MakePreviewRes `codec:"preview,omitempty" json:"preview,omitempty"`
@@ -727,6 +750,13 @@ func (o UIMessageOutbox) DeepCopy() UIMessageOutbox {
 			tmp := (*x)
 			return &tmp
 		})(o.FlipGameID),
+		ReplyTo: (func(x *UIMessage) *UIMessage {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ReplyTo),
 		Filename: o.Filename,
 		Title:    o.Title,
 		Preview: (func(x *MakePreviewRes) *MakePreviewRes {
@@ -935,12 +965,61 @@ func (o UIMessages) DeepCopy() UIMessages {
 	}
 }
 
+type UITeamMention struct {
+	InTeam       bool     `codec:"inTeam" json:"inTeam"`
+	Open         bool     `codec:"open" json:"open"`
+	Description  *string  `codec:"description,omitempty" json:"description,omitempty"`
+	NumMembers   *int     `codec:"numMembers,omitempty" json:"numMembers,omitempty"`
+	PublicAdmins []string `codec:"publicAdmins" json:"publicAdmins"`
+	ConvID       *string  `codec:"convID,omitempty" json:"convID,omitempty"`
+}
+
+func (o UITeamMention) DeepCopy() UITeamMention {
+	return UITeamMention{
+		InTeam: o.InTeam,
+		Open:   o.Open,
+		Description: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Description),
+		NumMembers: (func(x *int) *int {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.NumMembers),
+		PublicAdmins: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.PublicAdmins),
+		ConvID: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.ConvID),
+	}
+}
+
 type UITextDecorationTyp int
 
 const (
 	UITextDecorationTyp_PAYMENT            UITextDecorationTyp = 0
 	UITextDecorationTyp_ATMENTION          UITextDecorationTyp = 1
 	UITextDecorationTyp_CHANNELNAMEMENTION UITextDecorationTyp = 2
+	UITextDecorationTyp_TEAMMENTION        UITextDecorationTyp = 3
 )
 
 func (o UITextDecorationTyp) DeepCopy() UITextDecorationTyp { return o }
@@ -949,12 +1028,14 @@ var UITextDecorationTypMap = map[string]UITextDecorationTyp{
 	"PAYMENT":            0,
 	"ATMENTION":          1,
 	"CHANNELNAMEMENTION": 2,
+	"TEAMMENTION":        3,
 }
 
 var UITextDecorationTypRevMap = map[UITextDecorationTyp]string{
 	0: "PAYMENT",
 	1: "ATMENTION",
 	2: "CHANNELNAMEMENTION",
+	3: "TEAMMENTION",
 }
 
 func (e UITextDecorationTyp) String() string {
@@ -969,6 +1050,7 @@ type UITextDecoration struct {
 	Payment__            *TextPayment          `codec:"payment,omitempty" json:"payment,omitempty"`
 	Atmention__          *string               `codec:"atmention,omitempty" json:"atmention,omitempty"`
 	Channelnamemention__ *UIChannelNameMention `codec:"channelnamemention,omitempty" json:"channelnamemention,omitempty"`
+	Teammention__        *MaybeTeamMention     `codec:"teammention,omitempty" json:"teammention,omitempty"`
 }
 
 func (o *UITextDecoration) Typ() (ret UITextDecorationTyp, err error) {
@@ -986,6 +1068,11 @@ func (o *UITextDecoration) Typ() (ret UITextDecorationTyp, err error) {
 	case UITextDecorationTyp_CHANNELNAMEMENTION:
 		if o.Channelnamemention__ == nil {
 			err = errors.New("unexpected nil value for Channelnamemention__")
+			return ret, err
+		}
+	case UITextDecorationTyp_TEAMMENTION:
+		if o.Teammention__ == nil {
+			err = errors.New("unexpected nil value for Teammention__")
 			return ret, err
 		}
 	}
@@ -1022,6 +1109,16 @@ func (o UITextDecoration) Channelnamemention() (res UIChannelNameMention) {
 	return *o.Channelnamemention__
 }
 
+func (o UITextDecoration) Teammention() (res MaybeTeamMention) {
+	if o.Typ__ != UITextDecorationTyp_TEAMMENTION {
+		panic("wrong case accessed")
+	}
+	if o.Teammention__ == nil {
+		return
+	}
+	return *o.Teammention__
+}
+
 func NewUITextDecorationWithPayment(v TextPayment) UITextDecoration {
 	return UITextDecoration{
 		Typ__:     UITextDecorationTyp_PAYMENT,
@@ -1040,6 +1137,13 @@ func NewUITextDecorationWithChannelnamemention(v UIChannelNameMention) UITextDec
 	return UITextDecoration{
 		Typ__:                UITextDecorationTyp_CHANNELNAMEMENTION,
 		Channelnamemention__: &v,
+	}
+}
+
+func NewUITextDecorationWithTeammention(v MaybeTeamMention) UITextDecoration {
+	return UITextDecoration{
+		Typ__:         UITextDecorationTyp_TEAMMENTION,
+		Teammention__: &v,
 	}
 }
 
@@ -1067,6 +1171,51 @@ func (o UITextDecoration) DeepCopy() UITextDecoration {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Channelnamemention__),
+		Teammention__: (func(x *MaybeTeamMention) *MaybeTeamMention {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Teammention__),
+	}
+}
+
+type UIChatSearchConvHit struct {
+	ConvID   string       `codec:"convID" json:"convID"`
+	TeamType TeamType     `codec:"teamType" json:"teamType"`
+	Name     string       `codec:"name" json:"name"`
+	Mtime    gregor1.Time `codec:"mtime" json:"mtime"`
+}
+
+func (o UIChatSearchConvHit) DeepCopy() UIChatSearchConvHit {
+	return UIChatSearchConvHit{
+		ConvID:   o.ConvID,
+		TeamType: o.TeamType.DeepCopy(),
+		Name:     o.Name,
+		Mtime:    o.Mtime.DeepCopy(),
+	}
+}
+
+type UIChatSearchConvHits struct {
+	Hits          []UIChatSearchConvHit `codec:"hits" json:"hits"`
+	UnreadMatches bool                  `codec:"unreadMatches" json:"unreadMatches"`
+}
+
+func (o UIChatSearchConvHits) DeepCopy() UIChatSearchConvHits {
+	return UIChatSearchConvHits{
+		Hits: (func(x []UIChatSearchConvHit) []UIChatSearchConvHit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UIChatSearchConvHit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Hits),
+		UnreadMatches: o.UnreadMatches,
 	}
 }
 
@@ -1139,6 +1288,28 @@ func (o GiphySearchResult) DeepCopy() GiphySearchResult {
 		PreviewWidth:   o.PreviewWidth,
 		PreviewHeight:  o.PreviewHeight,
 		PreviewIsVideo: o.PreviewIsVideo,
+	}
+}
+
+type GiphySearchResults struct {
+	Results    []GiphySearchResult `codec:"results" json:"results"`
+	GalleryUrl string              `codec:"galleryUrl" json:"galleryUrl"`
+}
+
+func (o GiphySearchResults) DeepCopy() GiphySearchResults {
+	return GiphySearchResults{
+		Results: (func(x []GiphySearchResult) []GiphySearchResult {
+			if x == nil {
+				return nil
+			}
+			ret := make([]GiphySearchResult, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Results),
+		GalleryUrl: o.GalleryUrl,
 	}
 }
 
@@ -1853,6 +2024,10 @@ type ChatSearchDoneArg struct {
 	NumHits   int `codec:"numHits" json:"numHits"`
 }
 
+type ChatSearchInboxStartArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type ChatSearchInboxHitArg struct {
 	SessionID int                `codec:"sessionID" json:"sessionID"`
 	SearchHit ChatSearchInboxHit `codec:"searchHit" json:"searchHit"`
@@ -1866,6 +2041,11 @@ type ChatSearchInboxDoneArg struct {
 type ChatSearchIndexStatusArg struct {
 	SessionID int                   `codec:"sessionID" json:"sessionID"`
 	Status    ChatSearchIndexStatus `codec:"status" json:"status"`
+}
+
+type ChatSearchConvHitsArg struct {
+	SessionID int                  `codec:"sessionID" json:"sessionID"`
+	Hits      UIChatSearchConvHits `codec:"hits" json:"hits"`
 }
 
 type ChatConfirmChannelDeleteArg struct {
@@ -1893,15 +2073,16 @@ type ChatStellarDoneArg struct {
 }
 
 type ChatGiphySearchResultsArg struct {
-	SessionID int                 `codec:"sessionID" json:"sessionID"`
-	ConvID    string              `codec:"convID" json:"convID"`
-	Results   []GiphySearchResult `codec:"results" json:"results"`
+	SessionID int                `codec:"sessionID" json:"sessionID"`
+	ConvID    string             `codec:"convID" json:"convID"`
+	Results   GiphySearchResults `codec:"results" json:"results"`
 }
 
 type ChatGiphyToggleResultWindowArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	ConvID    string `codec:"convID" json:"convID"`
-	Show      bool   `codec:"show" json:"show"`
+	SessionID  int    `codec:"sessionID" json:"sessionID"`
+	ConvID     string `codec:"convID" json:"convID"`
+	Show       bool   `codec:"show" json:"show"`
+	ClearInput bool   `codec:"clearInput" json:"clearInput"`
 }
 
 type ChatShowManageChannelsArg struct {
@@ -1920,6 +2101,13 @@ type ChatCommandMarkdownArg struct {
 	Md        *UICommandMarkdown `codec:"md,omitempty" json:"md,omitempty"`
 }
 
+type ChatTeamMentionUpdateArg struct {
+	SessionID int           `codec:"sessionID" json:"sessionID"`
+	TeamName  string        `codec:"teamName" json:"teamName"`
+	Channel   string        `codec:"channel" json:"channel"`
+	Info      UITeamMention `codec:"info" json:"info"`
+}
+
 type ChatUiInterface interface {
 	ChatAttachmentDownloadStart(context.Context, int) error
 	ChatAttachmentDownloadProgress(context.Context, ChatAttachmentDownloadProgressArg) error
@@ -1931,9 +2119,11 @@ type ChatUiInterface interface {
 	ChatThreadFull(context.Context, ChatThreadFullArg) error
 	ChatSearchHit(context.Context, ChatSearchHitArg) error
 	ChatSearchDone(context.Context, ChatSearchDoneArg) error
+	ChatSearchInboxStart(context.Context, int) error
 	ChatSearchInboxHit(context.Context, ChatSearchInboxHitArg) error
 	ChatSearchInboxDone(context.Context, ChatSearchInboxDoneArg) error
 	ChatSearchIndexStatus(context.Context, ChatSearchIndexStatusArg) error
+	ChatSearchConvHits(context.Context, ChatSearchConvHitsArg) error
 	ChatConfirmChannelDelete(context.Context, ChatConfirmChannelDeleteArg) (bool, error)
 	ChatStellarShowConfirm(context.Context, int) error
 	ChatStellarDataConfirm(context.Context, ChatStellarDataConfirmArg) (bool, error)
@@ -1944,6 +2134,7 @@ type ChatUiInterface interface {
 	ChatShowManageChannels(context.Context, ChatShowManageChannelsArg) error
 	ChatCoinFlipStatus(context.Context, ChatCoinFlipStatusArg) error
 	ChatCommandMarkdown(context.Context, ChatCommandMarkdownArg) error
+	ChatTeamMentionUpdate(context.Context, ChatTeamMentionUpdateArg) error
 }
 
 func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
@@ -2100,6 +2291,21 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					return
 				},
 			},
+			"chatSearchInboxStart": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatSearchInboxStartArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatSearchInboxStartArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatSearchInboxStartArg)(nil), args)
+						return
+					}
+					err = i.ChatSearchInboxStart(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
 			"chatSearchInboxHit": {
 				MakeArg: func() interface{} {
 					var ret [1]ChatSearchInboxHitArg
@@ -2142,6 +2348,21 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 						return
 					}
 					err = i.ChatSearchIndexStatus(ctx, typedArgs[0])
+					return
+				},
+			},
+			"chatSearchConvHits": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatSearchConvHitsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatSearchConvHitsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatSearchConvHitsArg)(nil), args)
+						return
+					}
+					err = i.ChatSearchConvHits(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -2295,6 +2516,21 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					return
 				},
 			},
+			"chatTeamMentionUpdate": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatTeamMentionUpdateArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatTeamMentionUpdateArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatTeamMentionUpdateArg)(nil), args)
+						return
+					}
+					err = i.ChatTeamMentionUpdate(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -2355,6 +2591,12 @@ func (c ChatUiClient) ChatSearchDone(ctx context.Context, __arg ChatSearchDoneAr
 	return
 }
 
+func (c ChatUiClient) ChatSearchInboxStart(ctx context.Context, sessionID int) (err error) {
+	__arg := ChatSearchInboxStartArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchInboxStart", []interface{}{__arg}, nil)
+	return
+}
+
 func (c ChatUiClient) ChatSearchInboxHit(ctx context.Context, __arg ChatSearchInboxHitArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchInboxHit", []interface{}{__arg}, nil)
 	return
@@ -2367,6 +2609,11 @@ func (c ChatUiClient) ChatSearchInboxDone(ctx context.Context, __arg ChatSearchI
 
 func (c ChatUiClient) ChatSearchIndexStatus(ctx context.Context, __arg ChatSearchIndexStatusArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchIndexStatus", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ChatUiClient) ChatSearchConvHits(ctx context.Context, __arg ChatSearchConvHitsArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchConvHits", []interface{}{__arg}, nil)
 	return
 }
 
@@ -2418,5 +2665,10 @@ func (c ChatUiClient) ChatCoinFlipStatus(ctx context.Context, __arg ChatCoinFlip
 
 func (c ChatUiClient) ChatCommandMarkdown(ctx context.Context, __arg ChatCommandMarkdownArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatCommandMarkdown", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ChatUiClient) ChatTeamMentionUpdate(ctx context.Context, __arg ChatTeamMentionUpdateArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatTeamMentionUpdate", []interface{}{__arg}, nil)
 	return
 }

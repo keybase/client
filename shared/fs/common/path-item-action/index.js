@@ -2,8 +2,10 @@
 import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
+import * as Constants from '../../../constants/fs'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
+import {type SizeType} from '../../../common-adapters/icon'
 import ChooseView from './choose-view'
 
 type ClickableProps = {|
@@ -17,8 +19,8 @@ type ClickableComponent = {|
 |}
 
 type ClickableIcon = {|
-  actionIconFontSize?: number,
   actionIconWhite?: boolean,
+  sizeType?: ?SizeType,
   type: 'icon',
 |}
 
@@ -27,24 +29,31 @@ export type Clickable = ClickableComponent | ClickableIcon
 type Props = {|
   clickable: Clickable,
   init: () => void,
+  mode: 'row' | 'screen',
   onHidden: () => void,
   path: Types.Path,
   routePath: I.List<string>,
 |}
 
 const IconClickable = props => (
-  <Kb.Icon
-    type="iconfont-ellipsis"
-    color={props.actionIconWhite ? Styles.globalColors.white : Styles.globalColors.black_50}
-    hoverColor={props.actionIconWhite ? null : Styles.globalColors.black}
-    style={Kb.iconCastPlatformStyles(styles.actionIcon)}
-    fontSize={props.actionIconFontSize}
-    onClick={props.onClick}
-    ref={props.setRef}
-  />
+  <Kb.WithTooltip text="More actions">
+    <Kb.Icon
+      type="iconfont-ellipsis"
+      color={props.actionIconWhite ? Styles.globalColors.white : Styles.globalColors.black_50}
+      hoverColor={props.actionIconWhite ? null : Styles.globalColors.black}
+      padding="tiny"
+      sizeType={props.sizeType || 'Default'}
+      onClick={props.onClick}
+      ref={props.setRef}
+    />
+  </Kb.WithTooltip>
 )
 
 const PathItemAction = Kb.OverlayParentHOC((props: Props & Kb.OverlayParentProps) => {
+  if (props.path === Constants.defaultPath) {
+    return null
+  }
+
   const hideMenuOnce = (() => {
     let hideMenuCalled = false
     return () => {
@@ -71,7 +80,7 @@ const PathItemAction = Kb.OverlayParentHOC((props: Props & Kb.OverlayParentProps
         <IconClickable
           onClick={onClick}
           setRef={props.setAttachmentRef}
-          actionIconFontSize={props.clickable.actionIconFontSize}
+          sizeType={props.clickable.sizeType}
           actionIconWhite={props.clickable.actionIconWhite}
         />
       )}
@@ -79,6 +88,7 @@ const PathItemAction = Kb.OverlayParentHOC((props: Props & Kb.OverlayParentProps
         <ChooseView
           path={props.path}
           routePath={props.routePath}
+          mode={props.mode}
           floatingMenuProps={{
             attachTo: props.getAttachmentRef,
             containerStyle: styles.floatingContainer,
@@ -92,9 +102,6 @@ const PathItemAction = Kb.OverlayParentHOC((props: Props & Kb.OverlayParentProps
 })
 
 const styles = Styles.styleSheetCreate({
-  actionIcon: {
-    padding: Styles.globalMargins.tiny,
-  },
   floatingContainer: Styles.platformStyles({
     common: {
       overflow: 'visible',

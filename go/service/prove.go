@@ -61,6 +61,9 @@ func (p *proveUI) Checking(ctx context.Context, arg keybase1.CheckingArg) error 
 	arg.SessionID = p.sessionID
 	return p.cli.Checking(ctx, arg)
 }
+func (p *proveUI) ContinueChecking(ctx context.Context, _ int) (bool, error) {
+	return p.cli.ContinueChecking(ctx, p.sessionID)
+}
 func (p *proveUI) DisplayRecheckWarning(ctx context.Context, arg keybase1.DisplayRecheckWarningArg) error {
 	arg.SessionID = p.sessionID
 	return p.cli.DisplayRecheckWarning(ctx, arg)

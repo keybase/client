@@ -3,6 +3,7 @@ package teams
 import (
 	"fmt"
 	"log"
+	"strings"
 	"sync"
 
 	lru "github.com/hashicorp/golang-lru"
@@ -282,3 +283,17 @@ func (d LameSecretUI) GetPassphrase(pinentry keybase1.GUIEntryArg, terminal *key
 }
 
 var getLameSecretUI = func() libkb.SecretUI { return LameSecretUI{} }
+
+// --------------------------------------------------
+
+// ParseTeamIDDBKey takes an tid:-style key (used by FTL and slow team loader)
+// and returns a regular team id. We can safely strip away the |pub marker
+// because the publicness of a team is encoded in its ID.
+func ParseTeamIDDBKey(s string) (teamID keybase1.TeamID, err error) {
+	if !strings.HasPrefix(s, "tid:") {
+		return "", fmt.Errorf("does not start with team id prefix")
+	}
+	s = strings.TrimPrefix(s, "tid:")
+	s = strings.TrimSuffix(s, "|pub")
+	return keybase1.TeamID(s), nil
+}

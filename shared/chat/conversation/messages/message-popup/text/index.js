@@ -18,7 +18,7 @@ type Props = {
   onDeleteMessageHistory: null | (() => void),
   onEdit: null | (() => void),
   onHidden: () => void,
-  onQuote: null | (() => void),
+  onReply: null | (() => void),
   onReplyPrivately: null | (() => void),
   onViewProfile: null | (() => void),
   position: Position,
@@ -56,7 +56,7 @@ const TextPopupMenu = (props: Props) => {
       : []),
     ...(props.onAddReaction ? [{onClick: props.onAddReaction, title: 'Add a reaction'}] : []),
     {onClick: props.onCopy, title: 'Copy text'},
-    ...(props.onQuote ? [{onClick: props.onQuote, title: 'Quote'}] : []),
+    ...(props.onReply ? [{onClick: props.onReply, title: 'Reply'}] : []),
     ...(props.onReplyPrivately ? [{onClick: props.onReplyPrivately, title: 'Reply privately'}] : []),
     ...(props.onViewProfile ? [{onClick: props.onViewProfile, title: 'View profile'}] : []),
   ]

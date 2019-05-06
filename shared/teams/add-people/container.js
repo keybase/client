@@ -1,53 +1,63 @@
 // @flow
+import * as React from 'react'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as SearchGen from '../../actions/search-gen'
 import * as SearchConstants from '../../constants/search'
-import {getRole, isOwner} from '../../constants/teams'
-import {upperFirst} from 'lodash-es'
-import AddPeople from '.'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as WaitingConstants from '../../constants/waiting'
+import {sendNotificationFooter} from '../role-picker'
+import * as Types from '../../constants/types/teams'
 import {
-  connect,
-  compose,
-  lifecycle,
-  withHandlers,
-  withPropsOnChange,
-  withStateHandlers,
-  type RouteProps,
-} from '../../util/container'
+  getRole,
+  getDisabledReasonsForRolePicker,
+  addPeopleToTeamWaitingKey,
+  getTeamType,
+} from '../../constants/teams'
+import {upperFirst} from 'lodash-es'
+import AddPeople, {type AddPeopleProps} from '.'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as Container from '../../util/container'
+import flags from '../../util/feature-flags'
 
-type OwnProps = RouteProps<{teamname: string}, {}>
+type OwnProps = Container.RouteProps<{teamname: string}, {}>
 
-const mapStateToProps = (state, {routeProps}) => {
-  const teamname = routeProps.get('teamname')
+const mapStateToProps = (state, ownProps) => {
+  const teamname = Container.getRouteProps(ownProps, 'teamname')
   return {
+    _notifLabel:
+      getTeamType(state, teamname) === 'big' ? `Announce them in #general` : `Announce them in team chat`,
     _yourRole: getRole(state, teamname),
+    disabledReasonsForRolePicker: getDisabledReasonsForRolePicker(state, teamname, null),
     errorText: upperFirst(state.teams.teamInviteError),
     name: teamname,
     numberOfUsersSelected: SearchConstants.getUserInputItemIds(state, 'addToTeamSearch').size,
+    waiting: WaitingConstants.anyWaiting(state, addPeopleToTeamWaitingKey(teamname)),
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => ({
-  _getSuggestions: () => dispatch(SearchGen.createSearchSuggestions({searchKey: 'addToTeamSearch'})),
-  onAddPeople: (role: string, sendChatNotification: boolean) => {
-    const teamname = routeProps.get('teamname')
-    const rootPath = routePath.take(1)
-    const sourceSubPath = routePath.rest()
-    const destSubPath = sourceSubPath.butLast()
-    dispatch(
-      TeamsGen.createAddPeopleToTeam({
-        destSubPath,
-        role,
-        rootPath,
-        sendChatNotification,
-        sourceSubPath,
-        teamname,
-      })
-    )
+const mapDispatchToProps = (dispatch, ownProps) => ({
+  _addPeople: (role: string, sendChatNotification: boolean) => {
+    const teamname = Container.getRouteProps(ownProps, 'teamname')
+    if (flags.useNewRouter) {
+      dispatch(TeamsGen.createAddPeopleToTeam({role, sendChatNotification, teamname}))
+    } else {
+      const rootPath = ownProps.routePath.take(1)
+      const sourceSubPath = ownProps.routePath.rest()
+      const destSubPath = sourceSubPath.butLast()
+      dispatch(
+        TeamsGen.createAddPeopleToTeam({
+          destSubPath,
+          role,
+          rootPath,
+          sendChatNotification,
+          sourceSubPath,
+          teamname,
+        })
+      )
+    }
   },
+  _getSuggestions: () => dispatch(SearchGen.createSearchSuggestions({searchKey: 'addToTeamSearch'})),
   onBack: () => {
-    dispatch(navigateUp())
+    dispatch(RouteTreeGen.createNavigateUp())
     dispatch(SearchGen.createClearSearchResults({searchKey: 'addToTeamSearch'}))
     dispatch(SearchGen.createSetUserInputItems({searchKey: 'addToTeamSearch', searchResults: []}))
     dispatch(TeamsGen.createSetTeamInviteError({error: ''}))
@@ -59,80 +69,85 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => ({
     dispatch(SearchGen.createSearchSuggestions({searchKey: 'addToTeamSearch'}))
   },
   onClose: () => {
-    dispatch(navigateUp())
+    dispatch(RouteTreeGen.createNavigateUp())
     dispatch(SearchGen.createClearSearchResults({searchKey: 'addToTeamSearch'}))
     dispatch(SearchGen.createSetUserInputItems({searchKey: 'addToTeamSearch', searchResults: []}))
     dispatch(TeamsGen.createSetTeamInviteError({error: ''}))
   },
-  onOpenRolePicker: (
-    role: string,
-    sendNotification: boolean,
-    allowOwner: boolean,
-    onComplete: (string, boolean) => void
-  ) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {
-              addButtonLabel: 'Add',
-              allowOwner,
-              headerTitle: 'Add them as:',
-              onComplete,
-              selectedRole: role,
-              sendNotificationChecked: true,
-              showNotificationCheckbox: false,
-            },
-            selected: 'controlledRolePicker',
-          },
-        ],
-      })
-    )
-  },
 })
 
-export default compose(
-  connect<OwnProps, _, _, _, _>(
-    mapStateToProps,
-    mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
-  compose(
-    withStateHandlers(
-      {role: 'writer', sendNotification: true},
-      {
-        onRoleChange: () => role => ({role}),
-        setSendNotification: () => sendNotification => ({sendNotification}),
-      }
-    ),
-    withPropsOnChange(['numberOfUsersSelected'], props => ({
-      addButtonLabel: props.numberOfUsersSelected > 0 ? `Add (${props.numberOfUsersSelected})` : 'Add',
-      onCancel: () => props.onClose(),
-      title: `Add to ${props.name}`,
-    })),
-    lifecycle({
-      componentDidMount() {
-        this.props._getSuggestions()
-      },
-    }),
-    withHandlers({
-      onAddPeople: ({onAddPeople, role, sendNotification}) => () =>
-        role && onAddPeople(role, sendNotification),
-      onOpenRolePicker: ({
-        onAddPeople,
-        onOpenRolePicker,
-        role,
-        onRoleChange,
-        sendNotification,
-        setSendNotification,
-        _yourRole,
-      }) => () => {
-        onOpenRolePicker(role, sendNotification, isOwner(_yourRole), (role, sendNotification) => {
-          onRoleChange(role)
-          setSendNotification(sendNotification)
-          onAddPeople(role, sendNotification)
-        })
-      },
-    })
-  )
-)(AddPeople)
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
+  return {
+    _addPeople: dispatchProps._addPeople,
+    _getSuggestions: dispatchProps._getSuggestions,
+    _notifLabel: stateProps._notifLabel,
+    addButtonLabel:
+      stateProps.numberOfUsersSelected > 0 ? `Add (${stateProps.numberOfUsersSelected})` : 'Add',
+    disabledReasonsForRolePicker: stateProps.disabledReasonsForRolePicker,
+    errorText: stateProps.errorText,
+    name: stateProps.name,
+    numberOfUsersSelected: stateProps.numberOfUsersSelected,
+    onClearSearch: dispatchProps.onClearSearch,
+    onClose: dispatchProps.onClose,
+    title: `Add to ${stateProps.name}`,
+    waiting: stateProps.waiting,
+  }
+}
+
+type State = {
+  rolePickerOpen: boolean,
+  selectedRole: Types.TeamRoleType,
+  sendNotification: boolean,
+}
+
+type ExtraProps = {
+  _addPeople: (role: Types.TeamRoleType, sendNotification: boolean) => void,
+  _getSuggestions: () => void,
+  _notifLabel: string,
+}
+
+class AddPeopleStateWrapper extends React.Component<AddPeopleProps & ExtraProps, State> {
+  state = {
+    rolePickerOpen: false,
+    selectedRole: 'writer',
+    sendNotification: true,
+  }
+  _setRef = false
+
+  componentDidMount() {
+    this.props._getSuggestions()
+  }
+
+  render() {
+    const {_addPeople, _getSuggestions, _notifLabel, ...rest} = this.props
+    return (
+      <AddPeople
+        {...rest}
+        onOpenRolePicker={() => this.setState({rolePickerOpen: true})}
+        isRolePickerOpen={this.state.rolePickerOpen}
+        onCancelRolePicker={() => this.setState({rolePickerOpen: false})}
+        onEditMembership={() => this.setState({rolePickerOpen: true})}
+        onConfirmRolePicker={role => {
+          this.setState({rolePickerOpen: false})
+          _addPeople(role, this.state.sendNotification)
+        }}
+        confirmLabel={
+          this.state.selectedRole
+            ? `Add as ${this.state.selectedRole}${this.props.numberOfUsersSelected > 1 ? 's' : ''}`
+            : undefined
+        }
+        footerComponent={sendNotificationFooter(_notifLabel, this.state.sendNotification, nextVal =>
+          this.setState({sendNotification: nextVal})
+        )}
+        onSelectRole={selectedRole => this.setState({selectedRole})}
+        selectedRole={this.state.selectedRole}
+      />
+    )
+  }
+}
+
+export default Container.connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(AddPeopleStateWrapper)

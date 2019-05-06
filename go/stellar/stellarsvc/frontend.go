@@ -560,7 +560,7 @@ func (s *Server) ChangeWalletAccountNameLocal(ctx context.Context, arg stellar1.
 		return ErrAccountIDMissing
 	}
 
-	return stellar.ChangeAccountName(mctx, arg.AccountID, arg.NewName)
+	return stellar.ChangeAccountName(mctx, s.walletState, arg.AccountID, arg.NewName)
 }
 
 func (s *Server) SetWalletAccountAsDefaultLocal(ctx context.Context, arg stellar1.SetWalletAccountAsDefaultLocalArg) (err error) {
@@ -579,7 +579,7 @@ func (s *Server) SetWalletAccountAsDefaultLocal(ctx context.Context, arg stellar
 		return ErrAccountIDMissing
 	}
 
-	return stellar.SetAccountAsPrimary(mctx, arg.AccountID)
+	return stellar.SetAccountAsPrimary(mctx, s.walletState, arg.AccountID)
 }
 
 func (s *Server) DeleteWalletAccountLocal(ctx context.Context, arg stellar1.DeleteWalletAccountLocalArg) (err error) {
@@ -821,6 +821,34 @@ func (s *Server) SendPaymentLocal(ctx context.Context, arg stellar1.SendPaymentL
 	return stellar.SendPaymentLocal(mctx, arg)
 }
 
+func (s *Server) SendPathLocal(ctx context.Context, arg stellar1.SendPathLocalArg) (res stellar1.SendPaymentResLocal, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName:       "SendPathLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return res, err
+	}
+
+	sendRes, err := stellar.SendPathPaymentGUI(mctx, s.walletState, stellar.SendPathPaymentArg{
+		From:        arg.Source,
+		To:          stellarcommon.RecipientInput(arg.Recipient),
+		Path:        arg.Path,
+		SecretNote:  arg.Note,
+		PublicMemo:  arg.PublicNote,
+		QuickReturn: true,
+	})
+	if err != nil {
+		return res, err
+	}
+	return stellar1.SendPaymentResLocal{
+		KbTxID:  sendRes.KbTxID,
+		Pending: sendRes.Pending,
+	}, nil
+}
+
 func (s *Server) CreateWalletAccountLocal(ctx context.Context, arg stellar1.CreateWalletAccountLocalArg) (res stellar1.AccountID, err error) {
 	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:       "CreateWalletAccountLocal",
@@ -962,7 +990,15 @@ func (s *Server) SetAccountMobileOnlyLocal(ctx context.Context, arg stellar1.Set
 		return ErrAccountIDMissing
 	}
 
-	return s.remoter.SetAccountMobileOnly(mctx.Ctx(), arg.AccountID)
+	if err = s.remoter.SetAccountMobileOnly(mctx.Ctx(), arg.AccountID); err != nil {
+		return err
+	}
+
+	if err = s.walletState.UpdateAccountEntries(mctx, "set account mobile only"); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *Server) SetAccountAllDevicesLocal(ctx context.Context, arg stellar1.SetAccountAllDevicesLocalArg) (err error) {
@@ -980,7 +1016,15 @@ func (s *Server) SetAccountAllDevicesLocal(ctx context.Context, arg stellar1.Set
 		return ErrAccountIDMissing
 	}
 
-	return s.remoter.MakeAccountAllDevices(mctx.Ctx(), arg.AccountID)
+	if err = s.remoter.MakeAccountAllDevices(mctx.Ctx(), arg.AccountID); err != nil {
+		return err
+	}
+
+	if err = s.walletState.UpdateAccountEntries(mctx, "set account all devices"); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *Server) GetPredefinedInflationDestinationsLocal(ctx context.Context, sessionID int) (ret []stellar1.PredefinedInflationDestination, err error) {
@@ -1068,4 +1112,89 @@ func (s *Server) AirdropStatusLocal(ctx context.Context, sessionID int) (status 
 	}
 
 	return stellar.AirdropStatus(mctx)
+}
+
+func (s *Server) AddTrustlineLocal(ctx context.Context, arg stellar1.AddTrustlineLocalArg) (err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName:       "AddTrustline",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return err
+	}
+
+	return stellar.AddTrustlineLocal(mctx, arg)
+}
+
+func (s *Server) DeleteTrustlineLocal(ctx context.Context, arg stellar1.DeleteTrustlineLocalArg) (err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName:       "AddTrustline",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return err
+	}
+	return stellar.DeleteTrustlineLocal(mctx, arg)
+}
+
+func (s *Server) ChangeTrustlineLimitLocal(ctx context.Context, arg stellar1.ChangeTrustlineLimitLocalArg) (err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName:       "ChangeTrustlineLimit",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return err
+	}
+	return stellar.ChangeTrustlineLimitLocal(mctx, arg)
+}
+
+func (s *Server) GetTrustlinesLocal(ctx context.Context, arg stellar1.GetTrustlinesLocalArg) (ret []stellar1.Balance, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName: "GetTrustlinesLocal",
+		Err:     &err,
+	})
+	defer fin()
+	if err != nil {
+		return ret, err
+	}
+	balances, err := s.remoter.Balances(mctx.Ctx(), arg.AccountID)
+	if err != nil {
+		return ret, err
+	}
+	ret = make([]stellar1.Balance, 0, len(balances)-1)
+	for _, balance := range balances {
+		if !balance.Asset.IsNativeXLM() {
+			ret = append(ret, balance)
+		}
+	}
+	return ret, nil
+}
+
+func (s *Server) FindPaymentPathLocal(ctx context.Context, arg stellar1.FindPaymentPathLocalArg) (res stellar1.PaymentPathLocal, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName:       "FindPaymentPathLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return stellar1.PaymentPathLocal{}, err
+	}
+
+	path, err := stellar.FindPaymentPath(mctx, s.remoter, arg.From, arg.To, arg.SourceAsset, arg.DestinationAsset, arg.Amount)
+	if err != nil {
+		return stellar1.PaymentPathLocal{}, err
+	}
+
+	res.FullPath = path
+
+	// TODO: need sourceDisplay, sourceMaxDisplay, destinationDisplay (waiting on design)
+
+	return res, nil
 }

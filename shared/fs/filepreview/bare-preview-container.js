@@ -2,7 +2,7 @@
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import {isMobile} from '../../constants/platform'
-import {namedConnect, type RouteProps} from '../../util/container'
+import {getRouteProps, namedConnect, type RouteProps} from '../../util/container'
 import BarePreview from './bare-preview'
 
 type OwnProps = RouteProps<
@@ -16,10 +16,10 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   onBack: () => dispatch(navigateUp()),
 })
 
-const mergeProps = (stateProps, {onBack}, {routeProps, routePath}) => ({
+const mergeProps = (stateProps, {onBack}, ownProps) => ({
   onBack,
-  path: routeProps.get('path', Constants.defaultPath),
-  routePath,
+  path: getRouteProps(ownProps, 'path') || Constants.defaultPath,
+  routePath: ownProps.routePath,
 })
 
 const ConnectedBarePreview = isMobile
