@@ -87,7 +87,7 @@ func (s *BlockingSender) addSenderToMessage(msg chat1.MessagePlaintext) (chat1.M
 }
 
 func (s *BlockingSender) addPrevPointersAndCheckConvID(ctx context.Context, msg chat1.MessagePlaintext,
-	conv chat1.Conversation) (resMsg chat1.MessagePlaintext, err error) {
+	conv chat1.ConversationLocal) (resMsg chat1.MessagePlaintext, err error) {
 
 	// Make sure the caller hasn't already assembled this list. For now, this
 	// should never happen, and we'll return an error just in case we make a
@@ -191,7 +191,7 @@ func (s *BlockingSender) addPrevPointersAndCheckConvID(ctx context.Context, msg 
 // That message (msgToSend) will have the header.{TlfName,TlfPublic} set to the user's intention.
 // But the header.Conv.{Tlfid,TopicType,TopicID} and the convID to post to may be erroneously set to a different conversation's values.
 // This method checks that all of those fields match. Using `msgReference` as the validated link from {TlfName,TlfPublic} <-> ConvTriple.
-func (s *BlockingSender) checkConvID(ctx context.Context, conv chat1.Conversation,
+func (s *BlockingSender) checkConvID(ctx context.Context, conv chat1.ConversationLocal,
 	msgToSend chat1.MessagePlaintext, msgReference chat1.MessageUnboxed) error {
 
 	headerQ := msgToSend.ClientHeader
@@ -226,8 +226,8 @@ func (s *BlockingSender) checkConvID(ctx context.Context, conv chat1.Conversatio
 				return fmt.Errorf("invalid team name: %v", err)
 			}
 			if info, err := CreateNameInfoSource(ctx, s.G(), conv.GetMembersType()).LookupName(ctx,
-				conv.Metadata.IdTriple.Tlfid,
-				conv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC); err != nil {
+				conv.Info.Triple.Tlfid,
+				conv.Info.Visibility == keybase1.TLFVisibility_PUBLIC); err != nil {
 				return err
 			} else if info.CanonicalName != teamNameParsed.String() {
 				return fmt.Errorf("TlfName does not match conversation tlf [%q vs ref %q]", teamNameParsed.String(), info.CanonicalName)
@@ -614,7 +614,8 @@ func (s *BlockingSender) handleMentions(ctx context.Context, uid gregor1.UID, ms
 // Prepare a message to be sent.
 // Returns (boxedMessage, pendingAssetDeletes, error)
 func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePlaintext,
-	membersType chat1.ConversationMembersType, conv *chat1.Conversation, inopts *chat1.SenderPrepareOptions) (res types.SenderPrepareResult, err error) {
+	membersType chat1.ConversationMembersType, conv *chat1.ConversationLocal,
+	inopts *chat1.SenderPrepareOptions) (res types.SenderPrepareResult, err error) {
 	if plaintext.ClientHeader.MessageType == chat1.MessageType_NONE {
 		return res, fmt.Errorf("cannot send message without type")
 	}
@@ -633,7 +634,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	var pendingAssetDeletes []chat1.Asset
 	if conv != nil {
 		convID := (*conv).GetConvID()
-		msg.ClientHeader.Conv = conv.Metadata.IdTriple
+		msg.ClientHeader.Conv = conv.Info.Triple
 		s.Debug(ctx, "Prepare: performing convID based checks")
 
 		// Check for outboxID based edits
@@ -818,9 +819,9 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	// Get conversation metadata first. If we can't find it, we will just attempt to join
 	// the conversation in case that is an option. If it succeeds, then we just keep going,
 	// otherwise we give up and return an error.
-	var conv chat1.Conversation
+	var conv chat1.ConversationLocal
 	sender := gregor1.UID(s.G().Env.GetUID().ToBytes())
-	rc, err := utils.GetUnverifiedConv(ctx, s.G(), sender, convID, types.InboxSourceDataSourceAll)
+	conv, err = utils.GetVerifiedConv(ctx, s.G(), sender, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		if err == utils.ErrGetUnverifiedConvNotFound {
 			// If we didn't find it, then just attempt to join it and see what happens
@@ -836,20 +837,18 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 				}
 				// Force hit the remote here, so there is no race condition against the local
 				// inbox
-				rc, err = utils.GetUnverifiedConv(ctx, s.G(), sender, convID,
+				conv, err = utils.GetVerifiedConv(ctx, s.G(), sender, convID,
 					types.InboxSourceDataSourceRemoteOnly)
 				if err != nil {
 					s.Debug(ctx, "Send: failed to get conversation again, giving up: %s", err.Error())
 					return nil, nil, err
 				}
-				conv = rc.Conv
 			}
 		} else {
 			s.Debug(ctx, "Send: error getting conversation metadata: %s", err.Error())
 			return nil, nil, err
 		}
 	} else {
-		conv = rc.Conv
 		s.Debug(ctx, "Send: uid: %s in conversation %s with status: %v", sender,
 			conv.GetConvID(), conv.ReaderInfo.Status)
 	}
@@ -925,11 +924,11 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 				continue
 			case libkb.ChatEphemeralRetentionPolicyViolatedError:
 				s.Debug(ctx, "Send: failed because of invalid ephemeral policy, trying the whole thing again")
-				rc, err := utils.GetUnverifiedConv(ctx, s.G(), sender, convID, types.InboxSourceDataSourceRemoteOnly)
+				conv, err = utils.GetVerifiedConv(ctx, s.G(), sender, convID,
+					types.InboxSourceDataSourceRemoteOnly)
 				if err != nil {
 					return nil, nil, err
 				}
-				conv = rc.Conv
 				continue
 			case libkb.EphemeralPairwiseMACsMissingUIDsError:
 				merr := err.(libkb.EphemeralPairwiseMACsMissingUIDsError)
@@ -1645,7 +1644,8 @@ func NewNonblockingSender(g *globals.Context, sender types.Sender) *NonblockingS
 }
 
 func (s *NonblockingSender) Prepare(ctx context.Context, msg chat1.MessagePlaintext,
-	membersType chat1.ConversationMembersType, conv *chat1.Conversation, opts *chat1.SenderPrepareOptions) (types.SenderPrepareResult, error) {
+	membersType chat1.ConversationMembersType, conv *chat1.ConversationLocal,
+	opts *chat1.SenderPrepareOptions) (types.SenderPrepareResult, error) {
 	return s.sender.Prepare(ctx, msg, membersType, conv, opts)
 }
 

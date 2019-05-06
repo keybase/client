@@ -21,7 +21,7 @@ var usernameSortOrder []uint16
 var usoOnce sync.Once
 
 func findInit() {
-	once.Do(func() {
+	usoOnce.Do(func() {
 		initUsernameOffsets()
 		initUsernames()
 	})

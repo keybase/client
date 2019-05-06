@@ -669,15 +669,14 @@ func parseItemAsUID(ctx context.Context, g *globals.Context, name string,
 		return *knownMention, nil
 	}
 	nname := libkb.NewNormalizedUsername(name)
-	// TODO: FIXME:  check with Max new function
-	//	if libkb.IsUserByUsernameOffline(libkb.NewMetaContext(ctx, g.ExternalG()), nname) {
-	kuid, err := g.GetUPAKLoader().LookupUID(ctx, nname)
-	if err != nil {
-		return nil, err
+	if libkb.IsUserByUsernameOffline(libkb.NewMetaContext(ctx, g.ExternalG()), nname) {
+		kuid, err := g.GetUPAKLoader().LookupUID(ctx, nname)
+		if err != nil {
+			return nil, err
+		}
+		return kuid.ToBytes(), nil
 	}
-	return kuid.ToBytes(), nil
-	//	}
-	//	return nil, errors.New("not a username")
+	return nil, errors.New("not a username")
 }
 
 func ParseAtMentionedItems(ctx context.Context, g *globals.Context, body string,
@@ -1963,7 +1962,7 @@ func IsPermanentErr(err error) bool {
 	return err != nil
 }
 
-func EphemeralLifetimeFromConv(ctx context.Context, g *globals.Context, conv chat1.Conversation) (res *gregor1.DurationSec, err error) {
+func EphemeralLifetimeFromConv(ctx context.Context, g *globals.Context, conv chat1.ConversationLocal) (res *gregor1.DurationSec, err error) {
 	// Check to see if the conversation has an exploding policy
 	var retentionRes *gregor1.DurationSec
 	var gregorRes *gregor1.DurationSec
