@@ -2,12 +2,10 @@
 import * as React from 'react'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
-import * as Container from '../../../util/container'
 import ResultsList from '../../../search/results-list/container'
 import UserInput from '../../../search/user-input/container'
-import {getPath} from '../../../route-tree/index'
 import {ParticipantsRow} from '../../common'
-import {searchKey, sendRequestFormRouteKey} from '../../../constants/wallets'
+import {searchKey} from '../../../constants/wallets'
 
 export type SearchProps = {|
   heading: 'To' | 'From',
@@ -15,11 +13,6 @@ export type SearchProps = {|
   onShowSuggestions: () => void,
   onShowTracker: (username: string) => void,
   onScanQRCode: ?() => void,
-|}
-
-type SearchPropsInner = {|
-  ...SearchProps,
-  onVisibleScreen: boolean, // true if we are topmost route
 |}
 
 type SearchState = {|
@@ -32,7 +25,7 @@ const placeholder = 'Search Keybase'
 
 // TODO: Once UserInput is cleaned up, we may be able to stretch it
 // properly horizontally without wrapping a vertical Box2 around it.
-class Search extends React.Component<SearchPropsInner, SearchState> {
+class Search extends React.Component<SearchProps, SearchState> {
   _row: ?ParticipantsRow
   state = {
     displayResultsList: false,
@@ -42,19 +35,6 @@ class Search extends React.Component<SearchPropsInner, SearchState> {
 
   componentDidMount() {
     this.props.onShowSuggestions()
-  }
-
-  componentDidUpdate(prevProps: SearchPropsInner, prevState: SearchState) {
-    if (!this.props.onVisibleScreen && prevProps.onVisibleScreen && this.state.displayResultsList) {
-      // if we:
-      // 1. were on the visible screen
-      // 2. are not on the visible screen now
-      // 3. were showing the results list
-      // hide the results list.
-      // this is to avoid displaying the list on the wrong page because it's
-      // rendering in a gateway and may stay mounted
-      this.setState({displayResultsList: false})
-    }
   }
 
   onFocus = () => {
@@ -72,6 +52,11 @@ class Search extends React.Component<SearchPropsInner, SearchState> {
   }
 
   closeResultsList = () => this.setState({displayResultsList: false, hideClearSearch: true})
+
+  _onScanQRCode = () => {
+    this.closeResultsList()
+    this.props.onScanQRCode && this.props.onScanQRCode()
+  }
 
   _setRef = r => (this._row = r)
   _getRef = () => this._row
@@ -102,7 +87,7 @@ class Search extends React.Component<SearchPropsInner, SearchState> {
                 color={Styles.globalColors.black_50}
                 type="iconfont-qr-code"
                 fontSize={24}
-                onClick={this.props.onScanQRCode}
+                onClick={this._onScanQRCode}
                 style={Kb.iconCastPlatformStyles(styles.qrCode)}
               />
             )}
@@ -191,11 +176,5 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-export default Container.namedConnect<SearchProps, _, _, _, _>(
-  (state, ownProps) => ({
-    onVisibleScreen: getPath(state.routeTree.routeState).last() === sendRequestFormRouteKey,
-  }),
-  () => ({}),
-  (s, d, o) => ({...o, ...s, ...d}),
-  'SendFormParticipantsSearch'
-)(Search)
+const SendFormParticipantsSearch = Search
+export default SendFormParticipantsSearch
