@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	lru "github.com/hashicorp/golang-lru"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 type MemDb struct {
@@ -36,6 +37,10 @@ func (m *MemDb) Nuke() (string, error) {
 func (m *MemDb) Clean(force bool) error {
 	return nil
 }
+func (m *MemDb) CleanerInfo() (keybase1.DbCleanerInfo, error) {
+	return keybase1.DbCleanerInfo{}, nil
+}
+func (m *MemDb) CleanerConfigReload() {}
 func (m *MemDb) OpenTransaction() (res LocalDbTransaction, err error) {
 	return res, errors.New("not implemented")
 }

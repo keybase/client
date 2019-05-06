@@ -388,6 +388,8 @@ func (g *GlobalContext) ConfigureConfig() error {
 func (g *GlobalContext) ConfigReload() error {
 	err := g.ConfigureConfig()
 	g.ConfigureUpdaterConfig()
+	g.LocalDb.CleanerConfigReload()
+	g.LocalChatDb.CleanerConfigReload()
 	return err
 }
 
@@ -529,8 +531,8 @@ func (g *GlobalContext) configureDiskCachesLocked() error {
 	// We consider the local DBs as caches; they're caching our
 	// fetches from the server after all (and also our cryptographic
 	// checking).
-	g.LocalDb = NewJSONLocalDb(NewLevelDb(g, g.Env.GetDbFilename))
-	g.LocalChatDb = NewJSONLocalDb(NewLevelDb(g, g.Env.GetChatDbFilename))
+	g.LocalDb = NewJSONLocalDb(NewLevelDb(g, g.Env.GetDbFilename, keybase1.DbType_MAIN))
+	g.LocalChatDb = NewJSONLocalDb(NewLevelDb(g, g.Env.GetChatDbFilename, keybase1.DbType_CHAT))
 
 	epick := FirstErrorPicker{}
 	epick.Push(g.LocalDb.Open())

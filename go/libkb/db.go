@@ -251,7 +251,15 @@ func (j *JSONLocalDb) ForceOpen() error       { return j.engine.ForceOpen() }
 func (j *JSONLocalDb) Close() error           { return j.engine.Close() }
 func (j *JSONLocalDb) Nuke() (string, error)  { return j.engine.Nuke() }
 func (j *JSONLocalDb) Clean(force bool) error { return j.engine.Clean(force) }
-func (j *JSONLocalDb) Stats() string          { return j.engine.Stats() }
+func (j *JSONLocalDb) CleanerInfo() (keybase1.DbCleanerInfo, error) {
+	return j.engine.CleanerInfo()
+}
+func (j *JSONLocalDb) CleanerConfigReload() {
+	if j != nil {
+		j.engine.CleanerConfigReload()
+	}
+}
+func (j *JSONLocalDb) Stats() string { return j.engine.Stats() }
 func (j *JSONLocalDb) KeysWithPrefixes(prefixes ...[]byte) (DBKeySet, error) {
 	return j.engine.KeysWithPrefixes(prefixes...)
 }

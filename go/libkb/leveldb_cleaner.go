@@ -3,6 +3,7 @@ package libkb
 import (
 	"bytes"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -37,25 +38,33 @@ func (c DbCleanerConfig) String() string {
 		c.MinCacheSize, c.SleepInterval)
 }
 
-var DefaultMobileDbCleanerConfig = DbCleanerConfig{
-	MaxSize:       opt.GiB,
-	HaltSize:      opt.GiB * .75,
-	CleanInterval: time.Hour,
-	CacheCapacity: 100000,
-	MinCacheSize:  10000,
-	// On mobile we only run when in the BACKGROUNDACTIVE mode, this is limited
-	// to ~10s of runtime by the OS, we don't want to sleep if we need to get a
-	// clean done.
-	SleepInterval: 0,
+func DbCleanerConfigPath(dbType keybase1.DbType) string {
+	return fmt.Sprintf("dbclean.%v_bytes", strings.ToLower(dbType.String()))
 }
 
-var DefaultDesktopDbCleanerConfig = DbCleanerConfig{
-	MaxSize:       2 * opt.GiB,
-	HaltSize:      1.5 * opt.GiB,
-	CleanInterval: time.Hour,
-	CacheCapacity: 100000,
-	MinCacheSize:  10000,
-	SleepInterval: 50 * time.Millisecond,
+func dbCleanerConfig(g *GlobalContext, dbType keybase1.DbType) *DbCleanerConfig {
+	config := &DbCleanerConfig{
+		CleanInterval: time.Hour,
+		CacheCapacity: 100000,
+		MinCacheSize:  10000,
+	}
+	if g.IsMobileAppType() {
+		config.MaxSize = opt.GiB
+		// On mobile we only run when in the BACKGROUNDACTIVE mode, this is
+		// limited to ~10s of runtime by the OS, we don't want to sleep if we
+		// need to get a clean done.
+		config.SleepInterval = 0
+	} else {
+		config.MaxSize = 2 * opt.GiB
+		config.SleepInterval = 50 * time.Millisecond
+	}
+
+	path := DbCleanerConfigPath(dbType)
+	if maxSize, isSet := g.Env.GetConfig().GetIntAtPath(path); isSet {
+		config.MaxSize = uint64(maxSize)
+	}
+	config.HaltSize = uint64(0.75 * float64(config.MaxSize))
+	return config
 }
 
 type levelDbCleaner struct {
@@ -65,8 +74,8 @@ type levelDbCleaner struct {
 	running  bool
 	lastKey  []byte
 	lastRun  time.Time
-	dbName   string
-	config   DbCleanerConfig
+	dbType   keybase1.DbType
+	config   *DbCleanerConfig
 	cache    *lru.Cache
 	isMobile bool
 	db       *leveldb.DB
@@ -74,26 +83,23 @@ type levelDbCleaner struct {
 	cancelCh chan struct{}
 }
 
-func newLevelDbCleaner(mctx MetaContext, dbName string) *levelDbCleaner {
-	config := DefaultDesktopDbCleanerConfig
-	isMobile := mctx.G().IsMobileAppType()
-	if isMobile {
-		config = DefaultMobileDbCleanerConfig
-	}
-	return newLevelDbCleanerWithConfig(mctx, dbName, config, isMobile)
+func newLevelDbCleaner(mctx MetaContext, dbType keybase1.DbType) *levelDbCleaner {
+	config := dbCleanerConfig(mctx.G(), dbType)
+	return newLevelDbCleanerWithConfig(mctx, dbType, config)
 }
 
-func newLevelDbCleanerWithConfig(mctx MetaContext, dbName string, config DbCleanerConfig, isMobile bool) *levelDbCleaner {
+func newLevelDbCleanerWithConfig(mctx MetaContext, dbType keybase1.DbType, config *DbCleanerConfig) *levelDbCleaner {
 	cache, err := lru.New(config.CacheCapacity)
 	if err != nil {
 		panic(err)
 	}
 	mctx = mctx.WithLogTag("DBCLN")
+	isMobile := mctx.G().IsMobileAppType()
 	c := &levelDbCleaner{
 		MetaContextified: NewMetaContextified(mctx),
 		// Start the run shortly after starting but not immediately
 		lastRun:  mctx.G().GetClock().Now().Add(-(config.CleanInterval - config.CleanInterval/10)),
-		dbName:   dbName,
+		dbType:   dbType,
 		config:   config,
 		cache:    cache,
 		isMobile: isMobile,
@@ -148,7 +154,7 @@ func (c *levelDbCleaner) monitorAppState() {
 }
 
 func (c *levelDbCleaner) log(format string, args ...interface{}) {
-	c.M().Debug(fmt.Sprintf("levelDbCleaner(%s): %s", c.dbName, format), args...)
+	c.M().Debug(fmt.Sprintf("levelDbCleaner(%s): %s", c.dbType, format), args...)
 }
 
 func (c *levelDbCleaner) setDb(db *leveldb.DB) {
@@ -194,6 +200,26 @@ func (c *levelDbCleaner) getDbSize() (size uint64, err error) {
 	return uint64(sizes.Sum()), nil
 }
 
+func (c *levelDbCleaner) configReload() {
+	c.Lock()
+	defer c.Unlock()
+	c.config = dbCleanerConfig(c.G(), c.dbType)
+}
+
+func (c *levelDbCleaner) info() (res keybase1.DbCleanerInfo, err error) {
+	c.Lock()
+	defer c.Unlock()
+
+	dbSize, err := c.getDbSize()
+	if err != nil {
+		return res, err
+	}
+	return keybase1.DbCleanerInfo{
+		DbSize:  dbSize,
+		MaxSize: c.config.MaxSize,
+	}, nil
+}
+
 func (c *levelDbCleaner) clean(force bool) (err error) {
 	c.Lock()
 	// get out without spamming the logs
@@ -205,7 +231,7 @@ func (c *levelDbCleaner) clean(force bool) (err error) {
 	key := c.lastKey
 	c.Unlock()
 
-	defer c.M().TraceTimed(fmt.Sprintf("levelDbCleaner(%s) clean, config: %v", c.dbName, c.config), func() error { return err })()
+	defer c.M().TraceTimed(fmt.Sprintf("levelDbCleaner(%s) clean, config: %v", c.dbType, c.config), func() error { return err })()
 	defer func() {
 		c.Lock()
 		defer c.Unlock()

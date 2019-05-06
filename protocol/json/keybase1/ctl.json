@@ -47,6 +47,20 @@
       "name": "DbValue",
       "fields": [],
       "typedef": "bytes"
+    },
+    {
+      "type": "record",
+      "name": "DbCleanerInfo",
+      "fields": [
+        {
+          "type": "uint64",
+          "name": "dbSize"
+        },
+        {
+          "type": "uint64",
+          "name": "maxSize"
+        }
+      ]
     }
   ],
   "messages": {
@@ -119,6 +133,19 @@
         }
       ],
       "response": null
+    },
+    "dbCleanerInfo": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "dbType",
+          "type": "DbType"
+        }
+      ],
+      "response": "DbCleanerInfo"
     },
     "appExit": {
       "request": [

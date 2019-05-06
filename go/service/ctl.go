@@ -63,6 +63,17 @@ func (c *CtlHandler) DbClean(ctx context.Context, arg keybase1.DbCleanArg) error
 	}
 }
 
+func (c *CtlHandler) DbCleanerInfo(ctx context.Context, arg keybase1.DbCleanerInfoArg) (keybase1.DbCleanerInfo, error) {
+	switch arg.DbType {
+	case keybase1.DbType_MAIN:
+		return c.G().LocalDb.CleanerInfo()
+	case keybase1.DbType_CHAT:
+		return c.G().LocalChatDb.CleanerInfo()
+	default:
+		return keybase1.DbCleanerInfo{}, libkb.NewDBError("no such DB type")
+	}
+}
+
 func (c *CtlHandler) DbNuke(ctx context.Context, sessionID int) error {
 	logui := c.getLogUI(sessionID)
 

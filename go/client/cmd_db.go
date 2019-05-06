@@ -6,8 +6,11 @@ package client
 import (
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"strconv"
+	"strings"
 
+	humanize "github.com/dustin/go-humanize"
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -22,6 +25,9 @@ type CmdDbClean struct {
 }
 
 func (c *CmdDbClean) ParseArgv(ctx *cli.Context) error {
+	if len(ctx.Args()) > 0 {
+		return fmt.Errorf("invalid arguments.")
+	}
 	c.dbType = keybase1.DbType_MAIN
 	if ctx.Bool("chat") {
 		c.dbType = keybase1.DbType_CHAT
@@ -66,6 +72,107 @@ func NewCmdDbClean(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 
 func NewCmdDbCleanRunner(g *libkb.GlobalContext) *CmdDbClean {
 	return &CmdDbClean{
+		Contextified: libkb.NewContextified(g),
+	}
+}
+
+type CmdDbCleanerConfig struct {
+	libkb.Contextified
+	dbType keybase1.DbType
+	size   string
+}
+
+func (c *CmdDbCleanerConfig) ParseArgv(ctx *cli.Context) error {
+	c.dbType = keybase1.DbType_MAIN
+	if ctx.Bool("chat") {
+		c.dbType = keybase1.DbType_CHAT
+	}
+	switch len(ctx.Args()) {
+	case 0:
+	case 1:
+		c.size = ctx.Args().Get(0)
+	default:
+		return fmt.Errorf("invalid arguments.")
+	}
+	return nil
+}
+
+func (c *CmdDbCleanerConfig) Run() error {
+	if c.size != "" {
+		if err := c.setSize(); err != nil {
+			return err
+		}
+	}
+	return c.getInfo()
+}
+
+func (c *CmdDbCleanerConfig) setSize() error {
+	size, err := humanize.ParseBytes(c.size)
+	if err != nil {
+		return err
+	}
+	dui := c.G().UI.GetDumbOutputUI()
+	dui.Printf("Setting %v db to max size %v\n",
+		strings.ToLower(c.dbType.String()), humanize.Bytes(size))
+	cli, err := GetConfigClient(c.G())
+	if err != nil {
+		return err
+	}
+	if err = RegisterProtocolsWithContext(nil, c.G()); err != nil {
+		return err
+	}
+	path := libkb.DbCleanerConfigPath(c.dbType)
+	isize := int(size)
+	return cli.SetValue(context.TODO(), keybase1.SetValueArg{
+		Path: path,
+		Value: keybase1.ConfigValue{
+			I: &isize,
+		},
+	})
+}
+
+func (c *CmdDbCleanerConfig) getInfo() error {
+	cli, err := GetCtlClient(c.G())
+	if err != nil {
+		return err
+	}
+	dui := c.G().UI.GetDumbOutputUI()
+	for typ := range keybase1.DbTypeRevMap {
+		info, err := cli.DbCleanerInfo(context.TODO(), keybase1.DbCleanerInfoArg{
+			DbType: typ,
+		})
+		if err != nil {
+			return err
+		}
+		dui.Printf("%v db current size: %v, configured max size: %v\n",
+			strings.ToLower(typ.String()), humanize.Bytes(uint64(info.DbSize)), humanize.Bytes(uint64(info.MaxSize)))
+		if info.DbSize > info.MaxSize {
+			dui.Printf(
+				"db will be cleaned on next cleaner run. Use `keybase db clean` to manually trigger a run.\n")
+		}
+	}
+	return nil
+}
+
+func NewCmdDbCleanerConfig(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	return cli.Command{
+		Name:         "cleaner-config",
+		ArgumentHelp: "[size] `size` sets the maximum size of the db accepts values like 1GB or 700MB",
+		Usage:        "Manage configuration for the db cleaner.",
+		Action: func(c *cli.Context) {
+			cl.ChooseCommand(NewCmdDbCleanerConfigRunner(g), "config", c)
+		},
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "chat, c",
+				Usage: "Refer to the chat database.",
+			},
+		},
+	}
+}
+
+func NewCmdDbCleanerConfigRunner(g *libkb.GlobalContext) *CmdDbCleanerConfig {
+	return &CmdDbCleanerConfig{
 		Contextified: libkb.NewContextified(g),
 	}
 }
@@ -317,10 +424,18 @@ func NewCmdDb(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 		Subcommands: []cli.Command{
 			NewCmdDbNuke(cl, g),
 			NewCmdDbClean(cl, g),
+			NewCmdDbCleanerConfig(cl, g),
 			NewCmdDbDelete(cl, g),
 			NewCmdDbGet(cl, g),
 			NewCmdDbPut(cl, g),
 		},
+	}
+}
+
+func (c *CmdDbCleanerConfig) GetUsage() libkb.Usage {
+	return libkb.Usage{
+		Config: true,
+		API:    true,
 	}
 }
 

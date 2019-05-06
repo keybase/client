@@ -6,10 +6,10 @@ package libkb
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 	"sync"
 
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/syndtr/goleveldb/leveldb"
 	errors "github.com/syndtr/goleveldb/leveldb/errors"
 	"github.com/syndtr/goleveldb/leveldb/filter"
@@ -129,13 +129,12 @@ type LevelDb struct {
 	Contextified
 }
 
-func NewLevelDb(g *GlobalContext, filename func() string) *LevelDb {
-	path := filename()
+func NewLevelDb(g *GlobalContext, filename func() string, dbType keybase1.DbType) *LevelDb {
 	return &LevelDb{
 		Contextified: NewContextified(g),
-		filename:     path,
+		filename:     filename(),
 		dbOpenerOnce: new(sync.Once),
-		cleaner:      newLevelDbCleaner(NewMetaContextTODO(g), filepath.Base(path)),
+		cleaner:      newLevelDbCleaner(NewMetaContextTODO(g), dbType),
 	}
 }
 
@@ -291,19 +290,33 @@ func (l *LevelDb) isCorrupt(err error) bool {
 }
 
 func (l *LevelDb) Clean(force bool) (err error) {
+	defer l.G().Trace("LevelDb::Clean", func() error { return err })()
 	l.Lock()
 	defer l.Unlock()
-	defer l.G().Trace("LevelDb::Clean", func() error { return err })()
 	return l.cleaner.clean(force)
 }
 
+func (l *LevelDb) CleanerInfo() (res keybase1.DbCleanerInfo, err error) {
+	defer l.G().Trace("LevelDb::CleanerInfo", func() error { return err })()
+	l.Lock()
+	defer l.Unlock()
+	return l.cleaner.info()
+}
+
+func (l *LevelDb) CleanerConfigReload() {
+	defer l.G().Trace("LevelDb::CleanerConfigReload", func() error { return nil })()
+	l.Lock()
+	defer l.Unlock()
+	l.cleaner.configReload()
+}
+
 func (l *LevelDb) Nuke() (fn string, err error) {
+	defer l.G().Trace("LevelDb::Nuke", func() error { return err })()
 	l.Lock()
 	// We need to do deferred Unlock here in Nuke rather than delegating to
 	// l.Close() because we'll be re-opening the database later, and it's
 	// necessary to block other doWhileOpenAndNukeIfCorrupted() calls.
 	defer l.Unlock()
-	defer l.G().Trace("LevelDb::Nuke", func() error { return err })()
 
 	// even if we can't close the db try to nuke the files directly
 	if err = l.closeLocked(); err != nil {

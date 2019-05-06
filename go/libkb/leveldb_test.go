@@ -13,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -51,7 +52,7 @@ func createTempLevelDbForTest(tc *TestContext, td *teardowner) (*LevelDb, error)
 
 	db := NewLevelDb(tc.G, func() string {
 		return filepath.Join(dir, "test.leveldb")
-	})
+	}, keybase1.DbType_MAIN)
 
 	td.register(func() {
 		db.Close()

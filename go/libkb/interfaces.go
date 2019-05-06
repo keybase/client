@@ -151,6 +151,8 @@ type LocalDb interface {
 	Close() error
 	Nuke() (string, error)
 	Clean(force bool) error
+	CleanerInfo() (keybase1.DbCleanerInfo, error)
+	CleanerConfigReload()
 	OpenTransaction() (LocalDbTransaction, error)
 	KeysWithPrefixes(prefixes ...[]byte) (DBKeySet, error)
 }

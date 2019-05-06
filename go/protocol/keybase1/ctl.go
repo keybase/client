@@ -88,6 +88,18 @@ func (o DbValue) DeepCopy() DbValue {
 	})(o)
 }
 
+type DbCleanerInfo struct {
+	DbSize  uint64 `codec:"dbSize" json:"dbSize"`
+	MaxSize uint64 `codec:"maxSize" json:"maxSize"`
+}
+
+func (o DbCleanerInfo) DeepCopy() DbCleanerInfo {
+	return DbCleanerInfo{
+		DbSize:  o.DbSize,
+		MaxSize: o.MaxSize,
+	}
+}
+
 type StopArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
 	ExitCode  ExitCode `codec:"exitCode" json:"exitCode"`
@@ -113,6 +125,11 @@ type DbNukeArg struct {
 type DbCleanArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Force     bool   `codec:"force" json:"force"`
+	DbType    DbType `codec:"dbType" json:"dbType"`
+}
+
+type DbCleanerInfoArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
 	DbType    DbType `codec:"dbType" json:"dbType"`
 }
 
@@ -143,6 +160,7 @@ type CtlInterface interface {
 	Reload(context.Context, int) error
 	DbNuke(context.Context, int) error
 	DbClean(context.Context, DbCleanArg) error
+	DbCleanerInfo(context.Context, DbCleanerInfoArg) (DbCleanerInfo, error)
 	AppExit(context.Context, int) error
 	DbDelete(context.Context, DbDeleteArg) error
 	DbPut(context.Context, DbPutArg) error
@@ -240,6 +258,21 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 						return
 					}
 					err = i.DbClean(ctx, typedArgs[0])
+					return
+				},
+			},
+			"dbCleanerInfo": {
+				MakeArg: func() interface{} {
+					var ret [1]DbCleanerInfoArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]DbCleanerInfoArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]DbCleanerInfoArg)(nil), args)
+						return
+					}
+					ret, err = i.DbCleanerInfo(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -341,6 +374,11 @@ func (c CtlClient) DbNuke(ctx context.Context, sessionID int) (err error) {
 
 func (c CtlClient) DbClean(ctx context.Context, __arg DbCleanArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.ctl.dbClean", []interface{}{__arg}, nil)
+	return
+}
+
+func (c CtlClient) DbCleanerInfo(ctx context.Context, __arg DbCleanerInfoArg) (res DbCleanerInfo, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.ctl.dbCleanerInfo", []interface{}{__arg}, &res)
 	return
 }
 

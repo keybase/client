@@ -23,12 +23,18 @@ protocol ctl {
 
   @typedef("bytes") record DbValue {}
 
+  record DbCleanerInfo {
+    uint64 dbSize;
+    uint64 maxSize;
+  }
+
   void stop(int sessionID, ExitCode exitCode);
   void stopService(int sessionID, ExitCode exitCode);
   void logRotate(int sessionID);
   void reload(int sessionID);
   void dbNuke(int sessionID);
   void dbClean(int sessionID, boolean force, DbType dbType);
+  DbCleanerInfo dbCleanerInfo(int sessionID, DbType dbType);
   void appExit(int sessionID);
 
   void dbDelete(int sessionID, DbKey key);
