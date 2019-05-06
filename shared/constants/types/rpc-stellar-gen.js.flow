@@ -473,7 +473,9 @@ export type TransactionStatus =
   | 4 // ERROR_PERMANENT_4
 
 export type Trustline = $ReadOnly<{assetCode: AssetCode, issuer: AccountID}>
+export type TxDisplaySummary = $ReadOnly<{source: AccountID, fee: Int, memo: String, memoType: String, operations?: ?Array<String>}>
 export type UIPaymentReviewed = $ReadOnly<{bid: BuildPaymentID, reviewID: Int, seqno: Int, banners?: ?Array<SendBannerLocal>, nextButton: String}>
+export type ValidateStellarURIResultLocal = $ReadOnly<{operation: String, originDomain: String, message: String, callbackURL: String, xdr: String, summary: TxDisplaySummary, recipient: String, amount: String, assetCode: String, assetIssuer: String, memo: String, memoType: String}>
 export type WalletAccountLocal = $ReadOnly<{accountID: AccountID, isDefault: Boolean, name: String, balanceDescription: String, seqno: String, currencyLocal: CurrencyLocal, accountMode: AccountMode, accountModeEditable: Boolean, isFunded: Boolean, canSubmitTx: Boolean}>
 
 export type IncomingCallMapType = {|
@@ -559,6 +561,7 @@ declare export function localValidateSecretKeyLocalRpcPromise(params: $PropertyT
 // 'stellar.1.local.makeRequestCLILocal'
 // 'stellar.1.local.lookupCLILocal'
 // 'stellar.1.local.batchLocal'
+// 'stellar.1.local.validateStellarURILocal'
 // 'stellar.1.notify.paymentNotification'
 // 'stellar.1.notify.paymentStatusNotification'
 // 'stellar.1.notify.requestStatusNotification'

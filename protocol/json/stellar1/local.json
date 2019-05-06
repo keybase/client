@@ -1224,6 +1224,90 @@
           "name": "message"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "TxDisplaySummary",
+      "fields": [
+        {
+          "type": "AccountID",
+          "name": "source"
+        },
+        {
+          "type": "int",
+          "name": "fee"
+        },
+        {
+          "type": "string",
+          "name": "memo"
+        },
+        {
+          "type": "string",
+          "name": "memoType"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "operations"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ValidateStellarURIResultLocal",
+      "fields": [
+        {
+          "type": "string",
+          "name": "operation"
+        },
+        {
+          "type": "string",
+          "name": "originDomain"
+        },
+        {
+          "type": "string",
+          "name": "message"
+        },
+        {
+          "type": "string",
+          "name": "callbackURL",
+          "lint": "ignore"
+        },
+        {
+          "type": "string",
+          "name": "xdr"
+        },
+        {
+          "type": "TxDisplaySummary",
+          "name": "summary"
+        },
+        {
+          "type": "string",
+          "name": "recipient"
+        },
+        {
+          "type": "string",
+          "name": "amount"
+        },
+        {
+          "type": "string",
+          "name": "assetCode"
+        },
+        {
+          "type": "string",
+          "name": "assetIssuer"
+        },
+        {
+          "type": "string",
+          "name": "memo"
+        },
+        {
+          "type": "string",
+          "name": "memoType"
+        }
+      ]
     }
   ],
   "messages": {
@@ -2354,6 +2438,19 @@
         }
       ],
       "response": "BatchResultLocal"
+    },
+    "validateStellarURILocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "inputURI",
+          "type": "string"
+        }
+      ],
+      "response": "ValidateStellarURIResultLocal"
     }
   },
   "namespace": "stellar.1"

@@ -595,6 +595,10 @@ func (s *Server) BatchLocal(ctx context.Context, arg stellar1.BatchLocalArg) (re
 	return stellar.Batch(mctx, s.walletState, arg)
 }
 
+func (s *Server) ValidateStellarURILocal(ctx context.Context, arg stellar1.ValidateStellarURILocalArg) (stellar1.ValidateStellarURIResultLocal, error) {
+	return stellar1.ValidateStellarURIResultLocal{}, errors.New("not implemented")
+}
+
 func percentageAmountChange(a, b int64) float64 {
 	if a == 0 && b == 0 {
 		return 0.0

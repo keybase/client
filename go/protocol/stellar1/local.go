@@ -1019,6 +1019,66 @@ func (o BatchPaymentArg) DeepCopy() BatchPaymentArg {
 	}
 }
 
+type TxDisplaySummary struct {
+	Source     AccountID `codec:"source" json:"source"`
+	Fee        int       `codec:"fee" json:"fee"`
+	Memo       string    `codec:"memo" json:"memo"`
+	MemoType   string    `codec:"memoType" json:"memoType"`
+	Operations []string  `codec:"operations" json:"operations"`
+}
+
+func (o TxDisplaySummary) DeepCopy() TxDisplaySummary {
+	return TxDisplaySummary{
+		Source:   o.Source.DeepCopy(),
+		Fee:      o.Fee,
+		Memo:     o.Memo,
+		MemoType: o.MemoType,
+		Operations: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Operations),
+	}
+}
+
+type ValidateStellarURIResultLocal struct {
+	Operation    string           `codec:"operation" json:"operation"`
+	OriginDomain string           `codec:"originDomain" json:"originDomain"`
+	Message      string           `codec:"message" json:"message"`
+	CallbackURL  string           `codec:"callbackURL" json:"callbackURL"`
+	Xdr          string           `codec:"xdr" json:"xdr"`
+	Summary      TxDisplaySummary `codec:"summary" json:"summary"`
+	Recipient    string           `codec:"recipient" json:"recipient"`
+	Amount       string           `codec:"amount" json:"amount"`
+	AssetCode    string           `codec:"assetCode" json:"assetCode"`
+	AssetIssuer  string           `codec:"assetIssuer" json:"assetIssuer"`
+	Memo         string           `codec:"memo" json:"memo"`
+	MemoType     string           `codec:"memoType" json:"memoType"`
+}
+
+func (o ValidateStellarURIResultLocal) DeepCopy() ValidateStellarURIResultLocal {
+	return ValidateStellarURIResultLocal{
+		Operation:    o.Operation,
+		OriginDomain: o.OriginDomain,
+		Message:      o.Message,
+		CallbackURL:  o.CallbackURL,
+		Xdr:          o.Xdr,
+		Summary:      o.Summary.DeepCopy(),
+		Recipient:    o.Recipient,
+		Amount:       o.Amount,
+		AssetCode:    o.AssetCode,
+		AssetIssuer:  o.AssetIssuer,
+		Memo:         o.Memo,
+		MemoType:     o.MemoType,
+	}
+}
+
 type GetWalletAccountsLocalArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -1402,6 +1462,11 @@ type BatchLocalArg struct {
 	UseMulti    bool              `codec:"useMulti" json:"useMulti"`
 }
 
+type ValidateStellarURILocalArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	InputURI  string `codec:"inputURI" json:"inputURI"`
+}
+
 type LocalInterface interface {
 	GetWalletAccountsLocal(context.Context, int) ([]WalletAccountLocal, error)
 	GetWalletAccountLocal(context.Context, GetWalletAccountLocalArg) (WalletAccountLocal, error)
@@ -1471,6 +1536,7 @@ type LocalInterface interface {
 	MakeRequestCLILocal(context.Context, MakeRequestCLILocalArg) (KeybaseRequestID, error)
 	LookupCLILocal(context.Context, string) (LookupResultCLILocal, error)
 	BatchLocal(context.Context, BatchLocalArg) (BatchResultLocal, error)
+	ValidateStellarURILocal(context.Context, ValidateStellarURILocalArg) (ValidateStellarURIResultLocal, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -2477,6 +2543,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"validateStellarURILocal": {
+				MakeArg: func() interface{} {
+					var ret [1]ValidateStellarURILocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ValidateStellarURILocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ValidateStellarURILocalArg)(nil), args)
+						return
+					}
+					ret, err = i.ValidateStellarURILocal(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -2837,5 +2918,10 @@ func (c LocalClient) LookupCLILocal(ctx context.Context, name string) (res Looku
 
 func (c LocalClient) BatchLocal(ctx context.Context, __arg BatchLocalArg) (res BatchResultLocal, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.batchLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) ValidateStellarURILocal(ctx context.Context, __arg ValidateStellarURILocalArg) (res ValidateStellarURIResultLocal, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.validateStellarURILocal", []interface{}{__arg}, &res)
 	return
 }
