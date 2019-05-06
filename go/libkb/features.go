@@ -13,7 +13,8 @@ type Feature string
 type FeatureFlags []Feature
 
 const (
-	EnvironmentFeatureAllowHighSkips = Feature("env_allow_high_skips")
+	EnvironmentFeatureAllowHighSkips    = Feature("env_allow_high_skips")
+	EnvironmentFeatureAutoresetPipeline = Feature("env_autoreset")
 )
 
 // StringToFeatureFlags returns a set of feature flags

@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/sync/errgroup"
@@ -49,6 +50,7 @@ type blockTree struct {
 	getter    blockGetterFn
 	cacher    dirtyBlockCacher
 	log       logger.Logger
+	vlog      *libkb.VDebugLog
 }
 
 // ParentBlockAndChildIndex is a node on a path down the tree to a
@@ -662,8 +664,9 @@ func (bt *blockTree) newRightBlock(
 	}
 	rightParentBlocks := make([]ParentBlockAndChildIndex, len(parentBlocks))
 
-	bt.log.CDebugf(ctx, "Making new right block at off %s for entry %v, "+
-		"lowestAncestor at level %d", off, bt.rootBlockPointer(),
+	bt.vlog.CLogf(
+		ctx, libkb.VLog1, "Making new right block at off %s for entry %v, "+
+			"lowestAncestor at level %d", off, bt.rootBlockPointer(),
 		lowestAncestorWithRoom)
 
 	// Make a new right block for every parent, starting with the
@@ -694,7 +697,8 @@ func (bt *blockTree) newRightBlock(
 			newPtr.DirectType = DirectBlock
 		}
 
-		bt.log.CDebugf(ctx, "New right block for entry %v, level %d, ptr %v",
+		bt.vlog.CLogf(
+			ctx, libkb.VLog1, "New right block for entry %v, level %d, ptr %v",
 			bt.rootBlockPointer(), i, newPtr)
 
 		pblock.AppendNewIndirectPtr(newPtr, off)
@@ -842,8 +846,9 @@ func (bt *blockTree) shiftBlocksToFillHole(
 	currIndex := immedParent.childIndex
 	_, newBlockStartOff := immedParent.childIPtr()
 
-	bt.log.CDebugf(ctx, "Shifting block with offset %s for entry %v into "+
-		"position", newBlockStartOff, bt.rootBlockPointer())
+	bt.vlog.CLogf(
+		ctx, libkb.VLog1, "Shifting block with offset %s for entry %v into "+
+			"position", newBlockStartOff, bt.rootBlockPointer())
 
 	// Swap left as needed.
 	for loopedOnce := false; ; loopedOnce = true {
@@ -856,7 +861,7 @@ func (bt *blockTree) shiftBlocksToFillHole(
 			if loopedOnce {
 				// Now update the left side if needed, before looking into
 				// swapping across blocks.
-				bt.log.CDebugf(ctx, "Updating on left side")
+				bt.vlog.CLogf(ctx, libkb.VLog1, "Updating on left side")
 				_, newOff := immedPblock.IndirectPtr(currIndex)
 				ndp, nu, err := bt.setParentOffsets(
 					ctx, newOff, parents, currIndex)

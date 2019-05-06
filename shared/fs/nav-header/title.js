@@ -6,6 +6,7 @@ import * as Kb from '../../common-adapters'
 import * as Kbfs from '../common'
 import * as Styles from '../../styles'
 import {memoize} from '../../util/memoize'
+import flags from '../../util/feature-flags'
 
 type Props = {|
   path: Types.Path,
@@ -85,8 +86,11 @@ const Breadcrumb = Kb.OverlayParentHOC(
 )
 
 const MainTitle = (props: Props) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true}>
-    <Kb.Text type="Header">{Types.getPathName(props.path)}</Kb.Text>
+  <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="tiny">
+    {flags.kbfsOfflineMode && Types.getPathLevel(props.path) > 2 && <Kbfs.SyncStatus path={props.path} />}
+    <Kb.Text selectable={true} style={styles.mainTitleText} type="Header">
+      {Types.getPathName(props.path)}
+    </Kb.Text>
   </Kb.Box2>
 )
 
@@ -104,10 +108,13 @@ const FsNavHeaderTitle = (props: Props) =>
 export default FsNavHeaderTitle
 
 const styles = Styles.styleSheetCreate({
-  container: {
-    marginTop: -Styles.globalMargins.xsmall,
-    paddingLeft: Styles.globalMargins.xsmall,
-  },
+  container: Styles.platformStyles({
+    common: {
+      marginTop: -Styles.globalMargins.xsmall,
+      paddingLeft: Styles.globalMargins.xsmall,
+    },
+    isElectron: Styles.desktopStyles.windowDraggingClickable,
+  }),
   dropdown: {
     marginLeft: -Styles.globalMargins.tiny, // the icon has padding, so offset it to align with the name below
   },
@@ -119,6 +126,7 @@ const styles = Styles.styleSheetCreate({
   icon: {
     padding: Styles.globalMargins.tiny,
   },
+  mainTitleText: Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
   rootTitle: {
     marginLeft: Styles.globalMargins.xsmall,
   },

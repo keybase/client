@@ -4,6 +4,7 @@ import * as Types from '../../../constants/types/tracker2'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import {SiteIcon} from '../shared'
+import {makeInsertMatcher} from '../../../util/string'
 
 export type IdentityProvider = {|
   name: string,
@@ -32,42 +33,57 @@ type ProvidersProps = {|
   filter: string,
 |}
 class Providers extends React.Component<ProvidersProps> {
-  render() {
-    return this.props.providers
-      .filter(p => filterProvider(p, this.props.filter))
-      .map(provider => (
-        <React.Fragment key={provider.name}>
-          <Kb.Divider />
-          <HoverBox onClick={() => this.props.providerClicked(provider.key)} style={styles.containerBox}>
-            <SiteIcon set={provider.icon} style={styles.icon} full={true} />
-            <Kb.Box2 direction="vertical" fullWidth={true}>
-              <Kb.Text type="BodySemibold" style={styles.title}>
-                {provider.name}
+  static _itemHeight = {
+    height: Styles.isMobile ? 56 : 48,
+    type: 'fixed',
+  }
+  _renderItem = (_, provider) => (
+    <React.Fragment key={provider.name}>
+      <Kb.Divider />
+      <HoverBox onClick={() => this.props.providerClicked(provider.key)} style={styles.containerBox}>
+        <SiteIcon set={provider.icon} style={styles.icon} full={true} />
+        <Kb.Box2 direction="vertical" fullWidth={true}>
+          <Kb.Text type="BodySemibold" style={styles.title}>
+            {provider.name}
+          </Kb.Text>
+          {(provider.new || !!provider.desc) && (
+            <Kb.Box2 direction="horizontal" alignItems="flex-start" fullWidth={true}>
+              {provider.new && (
+                <Kb.Meta title="NEW" backgroundColor={Styles.globalColors.blue} style={styles.new} />
+              )}
+              <Kb.Text type="BodySmall" style={styles.description}>
+                {provider.desc}
               </Kb.Text>
-              <Kb.Box2 direction="horizontal" alignItems="flex-start" fullWidth={true}>
-                {provider.new && (
-                  <Kb.Meta title="NEW" backgroundColor={Styles.globalColors.blue} style={styles.new} />
-                )}
-                <Kb.Text type="BodySmall" style={styles.description}>
-                  {provider.desc}
-                </Kb.Text>
-              </Kb.Box2>
             </Kb.Box2>
-            <Kb.Icon
-              type="iconfont-arrow-right"
-              color={Styles.globalColors.black_50}
-              fontSize={Styles.isMobile ? 20 : 16}
-              style={styles.iconArrow}
-            />
-          </HoverBox>
-        </React.Fragment>
-      ))
+          )}
+        </Kb.Box2>
+        <Kb.Icon
+          type="iconfont-arrow-right"
+          color={Styles.globalColors.black_50}
+          fontSize={Styles.isMobile ? 20 : 16}
+          style={styles.iconArrow}
+        />
+      </HoverBox>
+    </React.Fragment>
+  )
+  render() {
+    const filterRegexp = makeInsertMatcher(this.props.filter)
+
+    const items = this.props.providers.filter(p => filterProvider(p, filterRegexp))
+    return (
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.flexOne}>
+          <Kb.List2 items={items} renderItem={this._renderItem} itemHeight={Providers._itemHeight} />
+        </Kb.Box2>
+      </Kb.Box2>
+    )
   }
 }
 
+const normalizeForFiltering = input => input.toLowerCase().replace(/[.\s]/g, '')
+
 const filterProvider = (p, filter) => {
-  const f = filter.toLowerCase()
-  return p.name.toLowerCase().includes(f) || p.desc.toLowerCase().includes(f)
+  return normalizeForFiltering(p.name).match(filter) || normalizeForFiltering(p.desc).match(filter)
 }
 
 type State = {
@@ -92,6 +108,7 @@ class _ProofsList extends React.Component<Props, State> {
               fontSize={Styles.isMobile ? 20 : 16}
             />
             <Kb.PlainInput
+              autoFocus={true}
               placeholder={`Search ${this.props.providers.length} platforms`}
               placeholderColor={Styles.globalColors.black_50}
               flexable={true}
@@ -103,11 +120,8 @@ class _ProofsList extends React.Component<Props, State> {
             />
           </Kb.Box>
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
-            <Kb.ScrollView>
-              {/* TODO dont use scroll view like this */}
-              <Providers {...this.props} filter={this.state.filter} />
-              <Kb.Divider />
-            </Kb.ScrollView>
+            <Providers {...this.props} filter={this.state.filter} />
+            <Kb.Divider />
           </Kb.Box2>
           <HoverBox onClick={this.props.onClickLearn} style={styles.footer}>
             <Kb.Icon color={Styles.globalColors.black_50} fontSize={16} type="iconfont-info" />
@@ -153,6 +167,9 @@ const styles = Styles.styleSheetCreate({
   description: {
     ...rightColumnStyle,
   },
+  flexOne: {
+    flex: 1,
+  },
   footer: {
     alignItems: 'center',
     backgroundColor: Styles.globalColors.blueGrey,
@@ -191,11 +208,11 @@ const styles = Styles.styleSheetCreate({
     padding: Styles.globalMargins.tiny,
   },
   listContainer: Styles.platformStyles({
-    isElectron: {
-      maxHeight: 525 - 48,
-    },
-    isMobile: {
+    common: {
       flex: 1,
+    },
+    isElectron: {
+      maxHeight: 560 - 48,
     },
   }),
   mobileFlex: Styles.platformStyles({

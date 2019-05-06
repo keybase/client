@@ -21,8 +21,8 @@ const routeTree = () =>
 export default routeTree
 
 export const newRoutes = {
+  gitRoot: {getScreen: () => require('./container').default},
   'settingsTabs.gitTab': {getScreen: () => require('./container').default},
-  'tabs.gitTab': {getScreen: () => require('./container').default},
 }
 export const newModalRoutes = {
   gitDeleteRepo: {getScreen: () => require('./delete-repo/container').default},

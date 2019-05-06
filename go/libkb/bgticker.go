@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-const defaultWait = 5 * time.Second
+const DefaultBgTickerWait = 5 * time.Second
 
 type BgTicker struct {
 	C          <-chan time.Time
@@ -20,7 +20,7 @@ type BgTicker struct {
 // NewBgTicker will panic if wait > duration as time.Ticker does with a
 // negative duration.
 func NewBgTicker(duration time.Duration) *BgTicker {
-	return NewBgTickerWithWait(duration, defaultWait)
+	return NewBgTickerWithWait(duration, DefaultBgTickerWait)
 }
 
 func NewBgTickerWithWait(duration time.Duration, wait time.Duration) *BgTicker {

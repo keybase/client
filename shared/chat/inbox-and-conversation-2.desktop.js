@@ -1,6 +1,5 @@
 // @flow
 // Just for desktop, we show inbox and conversation side by side
-import * as I from 'immutable'
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import Inbox from './inbox/container'
@@ -10,10 +9,7 @@ import Header from './header.desktop'
 import {namedConnect} from '../util/container'
 
 type Props = {|
-  routeState: I.RecordOf<{
-    smallTeamsExpanded: boolean,
-  }>,
-  navigateAppend: (...Array<any>) => any,
+  navigation?: any,
 |}
 
 type InboxSwitchProps = Props & {|
@@ -21,18 +17,12 @@ type InboxSwitchProps = Props & {|
 |}
 
 const InboxSwitch = (props: InboxSwitchProps) => {
-  return props.searchEnabled ? (
-    <InboxSearch />
-  ) : (
-    <Inbox routeState={props.routeState} navigateAppend={props.navigateAppend} />
-  )
+  return props.searchEnabled ? <InboxSearch /> : <Inbox />
 }
 
-const mapStateToProps = state => {
-  return {
-    searchEnabled: !!state.chat2.inboxSearch,
-  }
-}
+const mapStateToProps = state => ({
+  searchEnabled: !!state.chat2.inboxSearch,
+})
 
 const InboxSwitchConnected = namedConnect<Props, _, _, _, _>(
   mapStateToProps,
@@ -49,8 +39,8 @@ class InboxAndConversation extends React.PureComponent<Props> {
   render() {
     return (
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
-        <InboxSwitchConnected routeState={this.props.routeState} navigateAppend={this.props.navigateAppend} />
-        <Conversation />
+        <InboxSwitchConnected />
+        <Conversation navigation={this.props.navigation} />
       </Kb.Box2>
     )
   }

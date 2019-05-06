@@ -107,7 +107,7 @@ class _EditChannel extends React.Component<Props, State> {
           />
         </Box>
         <Box style={_bottomRowStyle}>
-          {!isMobile && this.props.showDelete && (
+          {!isMobile && this.props.showDelete && !this.props.deleteRenameDisabled && (
             <DeleteChannel
               channelName={this.props.channelName}
               onConfirmedDelete={this.props.onConfirmedDelete}
@@ -115,9 +115,8 @@ class _EditChannel extends React.Component<Props, State> {
             />
           )}
           <ButtonBar>
-            <Button type="Secondary" label="Cancel" onClick={this.props.onCancel} />
+            <Button type="Dim" label="Cancel" onClick={this.props.onCancel} />
             <Button
-              type="Primary"
               label="Save"
               disabled={
                 this.props.channelName === this.state.newChannelName &&

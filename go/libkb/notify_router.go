@@ -41,6 +41,7 @@ type NotifyListener interface {
 	FSSyncStatusResponse(arg keybase1.FSSyncStatusArg)
 	FSSyncEvent(arg keybase1.FSPathSyncStatus)
 	FSEditListRequest(arg keybase1.FSEditListRequest)
+	FSOverallSyncStatusChanged(arg keybase1.FolderSyncStatus)
 	FavoritesChanged(uid keybase1.UID)
 	PaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID)
 	KeyfamilyChanged(uid keybase1.UID)
@@ -109,6 +110,7 @@ func (n *NoopNotifyListener) ClientOutOfDate(to, uri, msg string)               
 func (n *NoopNotifyListener) UserChanged(uid keybase1.UID)                                  {}
 func (n *NoopNotifyListener) TrackingChanged(uid keybase1.UID, username NormalizedUsername) {}
 func (n *NoopNotifyListener) FSOnlineStatusChanged(online bool)                             {}
+func (n *NoopNotifyListener) FSOverallSyncStatusChanged(status keybase1.FolderSyncStatus)   {}
 func (n *NoopNotifyListener) FSActivity(activity keybase1.FSNotification)                   {}
 func (n *NoopNotifyListener) FSPathUpdated(path string)                                     {}
 func (n *NoopNotifyListener) FSEditListResponse(arg keybase1.FSEditListArg)                 {}
@@ -491,6 +493,32 @@ func (n *NotifyRouter) HandleFSOnlineStatusChanged(online bool) {
 	})
 	n.runListeners(func(listener NotifyListener) {
 		listener.FSOnlineStatusChanged(online)
+	})
+}
+
+// HandleFSOverallSyncStatusChanged is called when the overall sync status
+// changes. It will broadcast the messages to all curious listeners.
+func (n *NotifyRouter) HandleFSOverallSyncStatusChanged(status keybase1.FolderSyncStatus) {
+	if n == nil {
+		return
+	}
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `kbfs` notification type
+		if n.getNotificationChannels(id).Kbfs {
+			// In the background do...
+			go func() {
+				// A send of a `FSOnlineStatusChanged` RPC with the
+				// notification
+				(keybase1.NotifyFSClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).FSOverallSyncStatusChanged(context.Background(), status)
+			}()
+		}
+		return true
+	})
+	n.runListeners(func(listener NotifyListener) {
+		listener.FSOverallSyncStatusChanged(status)
 	})
 }
 

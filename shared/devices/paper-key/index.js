@@ -37,7 +37,13 @@ class PaperKey extends React.Component<Props, State> {
           </Kb.Text>
           <Kb.Box2 direction="vertical" style={styles.keyBox} centerChildren={true} fullWidth={true}>
             {this.props.paperkey ? (
-              <Kb.Text center={true} type="Header" selectable={true} style={styles.text}>
+              <Kb.Text
+                center={true}
+                type="Header"
+                selectable={true}
+                style={styles.text}
+                textBreakStrategy="simple"
+              >
                 {this.props.paperkey}
               </Kb.Text>
             ) : (
@@ -52,7 +58,6 @@ class PaperKey extends React.Component<Props, State> {
             onCheck={wroteItDown => this.setState({wroteItDown})}
           />
           <Kb.WaitingButton
-            type="Primary"
             label="Done"
             onClick={this.props.onBack}
             disabled={!this.state.wroteItDown}

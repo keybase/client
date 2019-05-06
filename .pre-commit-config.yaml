@@ -26,7 +26,7 @@ repos:
         language: node
         files: \.js$
 -   repo: https://github.com/keybase/pre-commit-golang.git
-    sha: b3408a42cc77ece991924d5f477ee3ae94371f9a
+    rev: b8194ff9d85455a702480677ada13ac4dbe94146
     hooks:
     -   id: go-fmt
     -   id: go-vet

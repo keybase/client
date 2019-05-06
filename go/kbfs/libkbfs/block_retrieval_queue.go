@@ -45,6 +45,7 @@ type blockRetrievalPartialConfig interface {
 	syncedTlfGetterSetter
 	initModeGetter
 	clockGetter
+	reporterGetter
 }
 
 type blockRetrievalConfig interface {
@@ -135,8 +136,12 @@ type blockRetrievalQueue struct {
 
 	// slices to store the workers so we can terminate them when we're done
 	workers []*blockRetrievalWorker
+
 	// channel to be closed when we're done accepting requests
-	doneCh chan struct{}
+	doneLock sync.RWMutex
+	doneCh   chan struct{}
+
+	shutdownCompleteCh chan struct{}
 
 	// protects prefetcher
 	prefetchMtx sync.RWMutex
@@ -161,16 +166,18 @@ func newBlockRetrievalQueue(
 		throttledWorkCh = NewInfiniteChannelWrapper()
 	}
 
+	log := config.MakeLogger("")
 	q := &blockRetrievalQueue{
-		config:           config,
-		log:              config.MakeLogger(""),
-		vlog:             config.MakeVLogger(""),
-		ptrs:             make(map[blockPtrLookup]*blockRetrieval),
-		heap:             &blockRetrievalHeap{},
-		workerCh:         NewInfiniteChannelWrapper(),
-		prefetchWorkerCh: NewInfiniteChannelWrapper(),
-		throttledWorkCh:  throttledWorkCh,
-		doneCh:           make(chan struct{}),
+		config:             config,
+		log:                log,
+		vlog:               config.MakeVLogger(log),
+		ptrs:               make(map[blockPtrLookup]*blockRetrieval),
+		heap:               &blockRetrievalHeap{},
+		workerCh:           NewInfiniteChannelWrapper(),
+		prefetchWorkerCh:   NewInfiniteChannelWrapper(),
+		throttledWorkCh:    throttledWorkCh,
+		doneCh:             make(chan struct{}),
+		shutdownCompleteCh: make(chan struct{}),
 		workers: make([]*blockRetrievalWorker, 0,
 			numWorkers+numPrefetchWorkers),
 	}
@@ -193,7 +200,7 @@ func newBlockRetrievalQueue(
 func (brq *blockRetrievalQueue) sendWork(workerCh channels.Channel) {
 	select {
 	case <-brq.doneCh:
-		brq.shutdownRetrieval()
+		_ = brq.shutdownRetrievalLocked()
 	// Notify the next queued worker.
 	case workerCh.In() <- struct{}{}:
 	}
@@ -220,27 +227,40 @@ func (brq *blockRetrievalQueue) throttleReleaseLoop(
 
 		select {
 		case <-brq.throttledWorkCh.Out():
+			brq.mtx.Lock()
 			brq.sendWork(brq.prefetchWorkerCh)
+			brq.mtx.Unlock()
 		case <-brq.doneCh:
 			return
 		}
 	}
 }
 
-func (brq *blockRetrievalQueue) popIfNotEmpty() *blockRetrieval {
-	brq.mtx.Lock()
-	defer brq.mtx.Unlock()
+func (brq *blockRetrievalQueue) popIfNotEmptyLocked() *blockRetrieval {
 	if brq.heap.Len() > 0 {
 		return heap.Pop(brq.heap).(*blockRetrieval)
 	}
 	return nil
 }
 
-func (brq *blockRetrievalQueue) shutdownRetrieval() {
-	retrieval := brq.popIfNotEmpty()
-	if retrieval != nil {
-		brq.FinalizeRequest(retrieval, nil, DiskBlockAnyCache, io.EOF)
+func (brq *blockRetrievalQueue) popIfNotEmpty() *blockRetrieval {
+	brq.mtx.Lock()
+	defer brq.mtx.Unlock()
+	return brq.popIfNotEmptyLocked()
+}
+
+func (brq *blockRetrievalQueue) shutdownRetrievalLocked() bool {
+	retrieval := brq.popIfNotEmptyLocked()
+	if retrieval == nil {
+		return false
 	}
+
+	// TODO: try to infer the block type from the requests in the retrieval?
+	bpLookup := blockPtrLookup{retrieval.blockPtr, reflect.TypeOf(nil)}
+	delete(brq.ptrs, bpLookup)
+	brq.finalizeRequestAfterPtrDeletion(
+		retrieval, nil, DiskBlockAnyCache, io.EOF)
+	return true
 }
 
 // notifyWorker notifies workers that there is a new request for processing.
@@ -349,10 +369,10 @@ func (brq *blockRetrievalQueue) PutInCaches(ctx context.Context,
 	case data.NoSuchBlockError:
 		// TODO: Add the block to the DBC. This is complicated because we
 		// need the serverHalf.
-		brq.vlog.CLogf(ctx, libkb.VLog1,
+		brq.vlog.CLogf(ctx, libkb.VLog2,
 			"Block %s missing for disk block cache metadata update", ptr.ID)
 	default:
-		brq.vlog.CLogf(ctx, libkb.VLog1, "Error updating metadata: %+v", err)
+		brq.vlog.CLogf(ctx, libkb.VLog2, "Error updating metadata: %+v", err)
 	}
 	// All disk cache errors are fatal
 	return err
@@ -360,8 +380,8 @@ func (brq *blockRetrievalQueue) PutInCaches(ctx context.Context,
 
 // checkCaches copies a block into `block` if it's in one of our caches.
 func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
-	kmd libkey.KeyMetadata, ptr data.BlockPointer, block data.Block, action BlockRequestAction) (
-	PrefetchStatus, error) {
+	kmd libkey.KeyMetadata, ptr data.BlockPointer, block data.Block,
+	action BlockRequestAction) (PrefetchStatus, error) {
 	dbc := brq.config.DiskBlockCache()
 	preferredCacheType := action.CacheType()
 
@@ -381,7 +401,7 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 		// If the prefetch status wasn't in the preferred cache, do a
 		// full `Get()` below in an attempt to move the full block
 		// into the preferred cache.
-	} else if dbc == nil {
+	} else if dbc == nil || action.DelayCacheCheck() {
 		return NoPrefetch, err
 	}
 
@@ -411,10 +431,13 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 func (brq *blockRetrievalQueue) request(ctx context.Context,
 	priority int, kmd libkey.KeyMetadata, ptr data.BlockPointer, block data.Block,
 	lifetime data.BlockCacheLifetime, action BlockRequestAction) <-chan error {
-	brq.vlog.CLogf(ctx, libkb.VLog1,
+	brq.vlog.CLogf(ctx, libkb.VLog2,
 		"Request of %v, action=%s, priority=%d", ptr, action, priority)
 
 	// Only continue if we haven't been shut down
+	brq.doneLock.RLock()
+	defer brq.doneLock.RUnlock()
+
 	ch := make(chan error, 1)
 	select {
 	case <-brq.doneCh:
@@ -438,7 +461,7 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 	if err == nil {
 		if action != BlockRequestSolo {
 			brq.vlog.CLogf(
-				ctx, libkb.VLog1, "Found %v in caches: %s", ptr, prefetchStatus)
+				ctx, libkb.VLog2, "Found %v in caches: %s", ptr, prefetchStatus)
 		}
 		if action.PrefetchTracked() {
 			brq.Prefetcher().ProcessBlockForPrefetch(ctx, ptr, block, kmd,
@@ -537,9 +560,9 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 	}
 	// Update the action if needed.
 	brq.vlog.CLogf(
-		ctx, libkb.VLog1, "Combining actions %d and %d", action, br.action)
+		ctx, libkb.VLog2, "Combining actions %s and %s", action, br.action)
 	br.action = action.Combine(br.action)
-	brq.vlog.CLogf(ctx, libkb.VLog2, "Got action %d", br.action)
+	brq.vlog.CLogf(ctx, libkb.VLog2, "Got action %s", br.action)
 	return ch
 }
 
@@ -553,19 +576,9 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 	return brq.request(ctx, priority, kmd, ptr, block, lifetime, action)
 }
 
-// FinalizeRequest is the last step of a retrieval request once a block has
-// been obtained. It removes the request from the blockRetrievalQueue,
-// preventing more requests from mutating the retrieval, then notifies all
-// subscribed requests.
-func (brq *blockRetrievalQueue) FinalizeRequest(
+func (brq *blockRetrievalQueue) finalizeRequestAfterPtrDeletion(
 	retrieval *blockRetrieval, block data.Block, cacheType DiskBlockCacheType,
 	retrievalErr error) {
-	brq.mtx.Lock()
-	// This might have already been removed if the context has been canceled.
-	// That's okay, because this will then be a no-op.
-	bpLookup := blockPtrLookup{retrieval.blockPtr, reflect.TypeOf(block)}
-	delete(brq.ptrs, bpLookup)
-	brq.mtx.Unlock()
 	defer retrieval.cancelFunc()
 
 	// This is a lock that exists for the race detector, since there
@@ -606,6 +619,8 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 				retrieval.blockPtr, block, retrieval.kmd, retrieval.priority,
 				retrieval.cacheLifetime, NoPrefetch, retrieval.action)
 		} else {
+			brq.log.CDebugf(
+				retrieval.ctx, "Couldn't get block %s: %+v", retrieval.blockPtr, retrievalErr)
 			brq.Prefetcher().CancelPrefetch(retrieval.blockPtr)
 		}
 	} else if retrievalErr == nil {
@@ -638,27 +653,73 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 	retrieval.requests = nil
 }
 
+// FinalizeRequest is the last step of a retrieval request once a block has
+// been obtained. It removes the request from the blockRetrievalQueue,
+// preventing more requests from mutating the retrieval, then notifies all
+// subscribed requests.
+func (brq *blockRetrievalQueue) FinalizeRequest(
+	retrieval *blockRetrieval, block data.Block, cacheType DiskBlockCacheType,
+	retrievalErr error) {
+	brq.mtx.Lock()
+	// This might have already been removed if the context has been canceled.
+	// That's okay, because this will then be a no-op.
+	bpLookup := blockPtrLookup{retrieval.blockPtr, reflect.TypeOf(block)}
+	delete(brq.ptrs, bpLookup)
+	brq.mtx.Unlock()
+	brq.finalizeRequestAfterPtrDeletion(
+		retrieval, block, cacheType, retrievalErr)
+}
+
+func channelToWaitGroup(wg *sync.WaitGroup, ch <-chan struct{}) {
+	wg.Add(1)
+	go func() {
+		<-ch
+		wg.Done()
+	}()
+}
+
+func (brq *blockRetrievalQueue) finalizeAllRequests() {
+	brq.mtx.Lock()
+	defer brq.mtx.Unlock()
+	for brq.shutdownRetrievalLocked() {
+	}
+}
+
 // Shutdown is called when we are no longer accepting requests.
-func (brq *blockRetrievalQueue) Shutdown() {
+func (brq *blockRetrievalQueue) Shutdown() <-chan struct{} {
+	brq.doneLock.Lock()
+	defer brq.doneLock.Unlock()
+
 	select {
 	case <-brq.doneCh:
+		return brq.shutdownCompleteCh
 	default:
-		// We close `doneCh` first so that new requests coming in get
-		// finalized immediately rather than racing with dying workers.
-		close(brq.doneCh)
-		for _, w := range brq.workers {
-			w.Shutdown()
-		}
-		brq.prefetchMtx.Lock()
-		defer brq.prefetchMtx.Unlock()
-		brq.prefetcher.Shutdown()
-
-		brq.workerCh.Close()
-		brq.prefetchWorkerCh.Close()
-		if brq.throttledWorkCh != nil {
-			brq.throttledWorkCh.Close()
-		}
 	}
+
+	var shutdownWaitGroup sync.WaitGroup
+	// We close `doneCh` first so that new requests coming in get
+	// finalized immediately rather than racing with dying workers.
+	close(brq.doneCh)
+	for _, w := range brq.workers {
+		channelToWaitGroup(&shutdownWaitGroup, w.Shutdown())
+	}
+	brq.finalizeAllRequests()
+
+	brq.prefetchMtx.Lock()
+	defer brq.prefetchMtx.Unlock()
+	channelToWaitGroup(&shutdownWaitGroup, brq.prefetcher.Shutdown())
+
+	brq.workerCh.Close()
+	brq.prefetchWorkerCh.Close()
+	if brq.throttledWorkCh != nil {
+		brq.throttledWorkCh.Close()
+	}
+
+	go func() {
+		shutdownWaitGroup.Wait()
+		close(brq.shutdownCompleteCh)
+	}()
+	return brq.shutdownCompleteCh
 }
 
 // TogglePrefetcher allows upstream components to turn the prefetcher on or

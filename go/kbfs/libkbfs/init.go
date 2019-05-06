@@ -228,7 +228,7 @@ func DefaultInitParams(ctx Context) InitParams {
 		DiskCacheMode:                  DiskCacheModeLocal,
 		DiskBlockCacheFraction:         0.10,
 		SyncBlockCacheFraction:         1.00,
-		Mode: InitDefaultString,
+		Mode:                           InitDefaultString,
 	}
 }
 
@@ -565,6 +565,7 @@ func InitWithLogPrefix(
 			case SIGINT:
 			default:
 				if interruptErr != nil {
+					log.Info("Failed to unmount before exit: %s", interruptErr)
 					os.Exit(1)
 				} else {
 					// Do not return 128 + signal since kbfsfuse is not a shell command
@@ -659,6 +660,11 @@ func doInit(
 			return lg
 		}, params.StorageRoot, params.DiskCacheMode, kbCtx)
 	config.SetVLogLevel(kbCtx.GetVDebugSetting())
+	if mode == InitConstrained {
+		// Until we have a way to turn on debug logging for mobile,
+		// log everything.
+		config.SetVLogLevel(libkb.VLog1String)
+	}
 
 	if params.CleanBlockCacheCapacity > 0 {
 		log.CDebugf(
@@ -829,9 +835,6 @@ func doInit(
 	if err != nil {
 		log.CWarningf(ctx,
 			"Could not initialize block metadata store: %+v", err)
-		return nil, err
-		// TODO (KBFS-3659): when we can open levelDB read-only, re-enable
-		//                   this, instead of failing the init.
 		/*
 			notification := &keybase1.FSNotification{
 				StatusCode:       keybase1.FSStatusCode_ERROR,

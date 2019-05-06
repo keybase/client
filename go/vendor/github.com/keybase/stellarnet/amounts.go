@@ -181,3 +181,14 @@ func parseExchangeRate(rate string) (*big.Rat, error) {
 		return nil, fmt.Errorf("exchange rate of unknown sign (%v)", sign)
 	}
 }
+
+// pathPaymentMaxValue returns 105% * amount.
+func pathPaymentMaxValue(amount string) (string, error) {
+	amtInt, err := stellaramount.ParseInt64(amount)
+	if err != nil {
+		return "", err
+	}
+	amtMax := (105 * amtInt) / 100
+
+	return StringFromStellarAmount(amtMax), nil
+}

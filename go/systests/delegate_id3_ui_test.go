@@ -193,7 +193,7 @@ func TestDelegateIdentify3UI(t *testing.T) {
 	require.False(t, eof)
 	dui.checkSuccess()
 
-	err = client.CtlServiceStop(tc1.G)
+	err = CtlStop(tc1.G)
 	require.NoError(t, err)
 
 	// If the server failed, it's also an error

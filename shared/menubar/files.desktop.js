@@ -88,7 +88,7 @@ const FileUpdatesShowAll = (props: ShowAllProps) => (
       label={`+ ${(props.numUpdates - defaultNumFileOptionsShown).toString()} more`}
       onClick={props.onShowAll}
       small={true}
-      type="Secondary"
+      type="Dim"
     />
   </Kb.Box2>
 )

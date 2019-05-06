@@ -95,7 +95,7 @@ function* chainGenerator<Actions: {+type: string}>(
   fcnTag?: string // tag for logger
 ): Generator<any, void, any> {
   type Fn = Actions => RS.Saga<void>
-  return yield Effects.takeEvery<Actions, void, Fn>(pattern, function* chainActionHelper(
+  return yield Effects.takeEvery<Actions, void, Fn>(pattern, function* chainGeneratorHelper(
     action: Actions
   ): RS.Saga<void> {
     const sl = new SagaLogger(action.type, fcnTag || 'unknown')

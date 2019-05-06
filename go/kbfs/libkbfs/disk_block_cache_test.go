@@ -565,6 +565,8 @@ func TestDiskBlockCacheWithRetrievalQueue(t *testing.T) {
 		ctx, kmd.TlfID(), ptr1.ID, block1Encoded, serverHalf1,
 		DiskBlockAnyCache)
 	require.NoError(t, err)
+	// No workers initialized, so no need to clean up the continue ch since
+	// there will be nothing blocking on it.
 	_, _ = bg.setBlockToReturn(ptr1, block1)
 
 	t.Log("Request a block retrieval for ptr1. " +
@@ -733,7 +735,7 @@ func TestDiskBlockCacheUnsyncTlf(t *testing.T) {
 	standardCache.numBlocksToEvictOnClear = 1
 
 	tlfToUnsync := tlf.FakeID(1, tlf.Private)
-	ch, err := config.SetTlfSyncState(tlfToUnsync, FolderSyncConfig{
+	ch, err := config.SetTlfSyncState(ctx, tlfToUnsync, FolderSyncConfig{
 		Mode: keybase1.FolderSyncMode_DISABLED,
 	})
 	require.NoError(t, err)

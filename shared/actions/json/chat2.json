@@ -8,15 +8,18 @@
   ],
   "actions": {
     "toggleSmallTeamsExpanded": {},
+    // Deselct if this is still selected, used in nav2 when you go away from a chat convo
+    "deselectConversation": {
+      "ifConversationIDKey": "Types.ConversationIDKey"
+    },
     // Select a conversation (or leave nothing selected)
     "selectConversation": {
       "conversationIDKey": "Types.ConversationIDKey",
       // why this happened, sometimes there's different side effects
       "reason": [
+        "'focused'", // nav focus changed
         "'clearSelected'", // deselect
         "'desktopNotification'", // clicked notification
-        "'setPendingMode'", // set to pending
-        "'sendingToPending'", // select the pending we sent into
         "'createdMessagePrivately'", // messaging privately and maybe made it
         "'extension'", // from a notification from iOS share extension
         "'files'", // from the Files tab
@@ -32,12 +35,12 @@
         "'justCreated'", // just made it and select it
         "'manageView'", // clicked from manage screen
         "'previewResolved'", // did a preview and are now selecting it
-        "'pendingModeChange'", // pending mode changed so we select the pending conversation id key
         "'push'", // from a push
         "'savedLastState'", // last seen chat tab
         "'startFoundExisting'", // starting a conversation and found one already
         "'teamChat'", // from team
-        "'addedToChannel'" // just added people to this channel
+        "'addedToChannel'", // just added people to this channel
+        "'teamMention'" // from team mention
       ]
     },
     // Select an existing conversation or setup an empty one. Can either be adhoc or a tlf (adhoc or team)
@@ -65,7 +68,8 @@
         "'memberView'",
         "'newChannel'",
         "'transaction'",
-        "'requestedPayment'"
+        "'requestedPayment'",
+        "'teamMention'"
       ]
     },
     "createConversation": {
@@ -149,7 +153,7 @@
       "messages": "Array<Types.Message>",
       // true if these should be the only messages we know about
       "shouldClearOthers?": "boolean",
-      "centeredMessageIDs?": "Array<{conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID}>",
+      "centeredMessageIDs?": "Array<{conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, highlightMode: Types.CenterOrdinalHighlightMode}>",
       "forceContainsLatestCalc?": "boolean"
     },
     // Got an error sending a message
@@ -157,10 +161,6 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "reason": "string",
       "outboxID": "Types.OutboxID"
-    },
-    "setPendingConversationExistingConversationIDKey": {
-      "_description": "When the search changes we need to find any existing conversations to stash into the metaMap",
-      "conversationIDKey": "Types.ConversationIDKey"
     },
     // Start editing a message / or edit the last message / or clear editing
     "messageSetEditing": {
@@ -222,15 +222,6 @@
     "messageDeleteHistory": {
       "conversationIDKey": "Types.ConversationIDKey"
     },
-    // Update why we have a pending conversation, either we're searching or we have a fixed set of users (you clicked a folder for example)
-    // Use `noneDestination` to specify where the user should end up after setting it to 'none'
-    "setPendingMode": {
-      "pendingMode": "Types.PendingMode",
-      "noneDestination?": ["'inbox'", "'thread'"]
-    },
-    "setPendingStatus": {
-      "pendingStatus": "Types.PendingStatus"
-    },
     // Load some more messages for a conversation
     "loadOlderMessagesDueToScroll": {
       "conversationIDKey": "Types.ConversationIDKey"
@@ -238,9 +229,10 @@
     "loadNewerMessagesDueToScroll": {
       "conversationIDKey": "Types.ConversationIDKey"
     },
-    "loadMessagesFromSearchHit": {
+    "loadMessagesCentered": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "messageID": "Types.MessageID"
+      "messageID": "Types.MessageID",
+      "highlightMode": "Types.CenterOrdinalHighlightMode"
     },
     // Show a desktop notification
     "desktopNotification": {
@@ -251,7 +243,8 @@
     // Send a text message
     "messageSend": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "text": "HiddenString"
+      "text": "HiddenString",
+      "replyTo?": "Types.MessageID"
     },
     "toggleLocalReaction": {
       "_description": "Toggle a reaction in the store.",
@@ -298,11 +291,6 @@
     "resetLetThemIn": {
       "conversationIDKey": "Types.ConversationIDKey",
       "username": "string"
-    },
-    // Update the pending conversation users
-    "setPendingConversationUsers": {
-      "users": "Array<string>",
-      "fromSearch": "boolean"
     },
     // The user has selected an attachment with a preview
     "attachmentPreviewSelect": {
@@ -602,10 +590,11 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "query": "HiddenString"
     },
-    "threadSearchResult": {
+    "threadSearchResults": {
       "_description": "Record a new thread search result",
       "conversationIDKey": "Types.ConversationIDKey",
-      "message": "Types.Message"
+      "messages": "Array<Types.Message>",
+      "clear": "boolean"
     },
     "setThreadSearchStatus": {
       "_description": "Set the status of a thread search",
@@ -615,6 +604,16 @@
     "toggleThreadSearch": {
       "_description": "Toggle the display of the thread search window",
       "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "toggleReplyToMessage": {
+      "_description": "Reply to a message publicly",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal?": "Types.Ordinal"
+    },
+    "replyJump": {
+      "_description": "Jump to a replied to message",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "Types.MessageID"
     },
     "setThreadSearchQuery": {
       "_description": "Set thread search query (used from inbox search to initialize it)",
@@ -658,6 +657,18 @@
     "inboxSearchSetIndexPercent": {
       "_description": "Set index percent complete",
       "percent": "number"
+    },
+    "setTeamMentionInfo": {
+      "_description": "Set team mention info",
+      "name": "string",
+      "info": "RPCChatTypes.UITeamMention"
+    },
+    "tabSelected": {
+      "_description": "Desktop changed tab to chat"
+    },
+    "setInboxShowIsNew": {
+      "_description": "We've seen chat search before",
+      "isNew": "boolean"
     }
   }
 }

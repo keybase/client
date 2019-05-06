@@ -18,6 +18,7 @@ const Kb = {
 type Props = {
   type: 'Small' | 'Large',
   icon: React.Node,
+  statusIcon?: React.Node,
   body: React.Node,
   firstItem: boolean,
   action?: React.Node,
@@ -39,6 +40,23 @@ const HoverBox = Styles.isMobile
       },
     })
 
+const containerStyle = (props: Props) =>
+  props.type === 'Small'
+    ? props.statusIcon
+      ? styles.contentContainerSmallWithStatusIcon
+      : styles.contentContainerSmall
+    : props.statusIcon
+    ? styles.contentContainerLargeWithStatusIcon
+    : styles.contentContainerLarge
+const iconStyle = (props: Props) =>
+  props.type === 'Small'
+    ? props.statusIcon
+      ? styles.iconSmallWithStatusIcon
+      : styles.iconSmall
+    : props.statusIcon
+    ? styles.iconLargeWithStatusIcon
+    : styles.iconLarge
+
 const ListItem = (props: Props) => (
   <Kb.ClickableBox
     onClick={props.onClick}
@@ -49,17 +67,15 @@ const ListItem = (props: Props) => (
       style={props.type === 'Small' ? styles.rowSmall : styles.rowLarge}
       fullWidth={true}
     >
-      <Kb.Box2
-        direction="vertical"
-        style={props.type === 'Small' ? styles.iconSmall : styles.iconLarge}
-        centerChildren={true}
-      >
+      {props.statusIcon && (
+        <Kb.Box2 direction="vertical" style={styles.statusIcon} alignItems="flex-end">
+          {props.statusIcon}
+        </Kb.Box2>
+      )}
+      <Kb.Box2 direction="vertical" style={iconStyle(props)} centerChildren={true}>
         {props.icon}
       </Kb.Box2>
-      <Kb.Box2
-        direction="horizontal"
-        style={props.type === 'Small' ? styles.contentContainerSmall : styles.contentContainerLarge}
-      >
+      <Kb.Box2 direction="horizontal" style={containerStyle(props)}>
         {!props.firstItem && <Divider style={styles.divider} />}
         <Kb.BoxGrow>
           <Kb.Box2
@@ -85,7 +101,7 @@ export const smallHeight = Styles.isMobile ? 56 : 48
 export const largeHeight = Styles.isMobile ? 64 : 56
 const smallIconWidth = Styles.isMobile ? 56 : 56
 const largeIconWidth = Styles.isMobile ? 72 : 72
-
+const statusIconWidth = Styles.isMobile ? 32 : 32
 const styles = Styles.styleSheetCreate({
   actionLargeContainer: {
     alignItems: 'center',
@@ -139,9 +155,21 @@ const styles = Styles.styleSheetCreate({
     minHeight: largeHeight,
     position: 'relative',
   },
+  contentContainerLargeWithStatusIcon: {
+    flexGrow: 1,
+    marginLeft: largeIconWidth + statusIconWidth,
+    minHeight: largeHeight,
+    position: 'relative',
+  },
   contentContainerSmall: {
     flexGrow: 1,
     marginLeft: smallIconWidth,
+    minHeight: smallHeight,
+    position: 'relative',
+  },
+  contentContainerSmallWithStatusIcon: {
+    flexGrow: 1,
+    marginLeft: smallIconWidth + statusIconWidth,
     minHeight: smallHeight,
     position: 'relative',
   },
@@ -155,7 +183,17 @@ const styles = Styles.styleSheetCreate({
     position: 'absolute',
     width: Styles.isMobile ? 75 : 72,
   },
+  iconLargeWithStatusIcon: {
+    left: statusIconWidth,
+    position: 'absolute',
+    width: Styles.isMobile ? 75 : 72,
+  },
   iconSmall: {
+    position: 'absolute',
+    width: Styles.isMobile ? 60 : 56,
+  },
+  iconSmallWithStatusIcon: {
+    left: statusIconWidth,
     position: 'absolute',
     width: Styles.isMobile ? 60 : 56,
   },
@@ -168,6 +206,10 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'center',
     minHeight: smallHeight,
     position: 'relative',
+  },
+  statusIcon: {
+    position: 'absolute',
+    width: statusIconWidth,
   },
 })
 

@@ -489,7 +489,7 @@ func (l *TeamLoader) applyNewLink(ctx context.Context,
 		newState = &keybase1.TeamData{
 			// Name is left blank until calculateName updates it.
 			// It shall not be blank by the time it is returned from load2.
-			Name: keybase1.TeamName{},
+			Name:                      keybase1.TeamName{},
 			PerTeamKeySeedsUnverified: make(map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeedItem),
 			ReaderKeyMasks:            make(map[keybase1.TeamApplication]map[keybase1.PerTeamKeyGeneration]keybase1.MaskB64),
 		}

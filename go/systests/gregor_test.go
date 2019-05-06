@@ -178,7 +178,7 @@ func TestGregorForwardToElectron(t *testing.T) {
 	require.NoError(t, err)
 	checkState(state)
 
-	require.NoError(t, client.CtlServiceStop(tc.G))
+	require.NoError(t, CtlStop(tc.G))
 	// If the server failed, it's also an error
 	require.NoError(t, <-stopCh)
 }

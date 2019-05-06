@@ -52,7 +52,7 @@ const Revoke = (props: Props) => {
         </Kb.Text>
         <Kb.ButtonBar>
           <Kb.WaitingButton
-            type="Secondary"
+            type="Dim"
             onClick={props.onCancel}
             label="Cancel"
             waitingKey={Constants.waitingKey}

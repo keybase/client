@@ -20,6 +20,7 @@ import (
 	chat1 "github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	go_billy_v4 "gopkg.in/src-d/go-billy.v4"
+	os "os"
 	reflect "reflect"
 	time "time"
 )
@@ -167,15 +168,17 @@ func (mr *MockBlockOpsMockRecorder) Ready(arg0, arg1, arg2 interface{}) *gomock.
 }
 
 // Shutdown mocks base method
-func (m *MockBlockOps) Shutdown() {
+func (m *MockBlockOps) Shutdown(arg0 context.Context) error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Shutdown")
+	ret := m.ctrl.Call(m, "Shutdown", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // Shutdown indicates an expected call of Shutdown
-func (mr *MockBlockOpsMockRecorder) Shutdown() *gomock.Call {
+func (mr *MockBlockOpsMockRecorder) Shutdown(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shutdown", reflect.TypeOf((*MockBlockOps)(nil).Shutdown))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shutdown", reflect.TypeOf((*MockBlockOps)(nil).Shutdown), arg0)
 }
 
 // TogglePrefetcher mocks base method
@@ -1125,6 +1128,22 @@ func (m *MockKBFSOps) GetRootNode(arg0 context.Context, arg1 *tlfhandle.Handle, 
 func (mr *MockKBFSOpsMockRecorder) GetRootNode(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRootNode", reflect.TypeOf((*MockKBFSOps)(nil).GetRootNode), arg0, arg1, arg2)
+}
+
+// GetRootNodeMetadata mocks base method
+func (m *MockKBFSOps) GetRootNodeMetadata(arg0 context.Context, arg1 data.FolderBranch) (NodeMetadata, *tlfhandle.Handle, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRootNodeMetadata", arg0, arg1)
+	ret0, _ := ret[0].(NodeMetadata)
+	ret1, _ := ret[1].(*tlfhandle.Handle)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetRootNodeMetadata indicates an expected call of GetRootNodeMetadata
+func (mr *MockKBFSOpsMockRecorder) GetRootNodeMetadata(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRootNodeMetadata", reflect.TypeOf((*MockKBFSOps)(nil).GetRootNodeMetadata), arg0, arg1)
 }
 
 // GetSyncConfig mocks base method
@@ -2276,6 +2295,20 @@ func (mr *MockKeybaseServiceMockRecorder) NotifyOnlineStatusChanged(arg0, arg1 i
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyOnlineStatusChanged", reflect.TypeOf((*MockKeybaseService)(nil).NotifyOnlineStatusChanged), arg0, arg1)
 }
 
+// NotifyOverallSyncStatus mocks base method
+func (m *MockKeybaseService) NotifyOverallSyncStatus(arg0 context.Context, arg1 keybase1.FolderSyncStatus) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NotifyOverallSyncStatus", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// NotifyOverallSyncStatus indicates an expected call of NotifyOverallSyncStatus
+func (mr *MockKeybaseServiceMockRecorder) NotifyOverallSyncStatus(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyOverallSyncStatus", reflect.TypeOf((*MockKeybaseService)(nil).NotifyOverallSyncStatus), arg0, arg1)
+}
+
 // NotifyPathUpdated mocks base method
 func (m *MockKeybaseService) NotifyPathUpdated(arg0 context.Context, arg1 string) error {
 	m.ctrl.T.Helper()
@@ -3319,6 +3352,18 @@ func (mr *MockNodeMockRecorder) EntryType() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EntryType", reflect.TypeOf((*MockNode)(nil).EntryType))
 }
 
+// FillCacheDuration mocks base method
+func (m *MockNode) FillCacheDuration(arg0 *time.Duration) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "FillCacheDuration", arg0)
+}
+
+// FillCacheDuration indicates an expected call of FillCacheDuration
+func (mr *MockNodeMockRecorder) FillCacheDuration(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FillCacheDuration", reflect.TypeOf((*MockNode)(nil).FillCacheDuration), arg0)
+}
+
 // GetBasename mocks base method
 func (m *MockNode) GetBasename() string {
 	m.ctrl.T.Helper()
@@ -3433,14 +3478,15 @@ func (mr *MockNodeMockRecorder) RemoveDir(arg0, arg1 interface{}) *gomock.Call {
 }
 
 // ShouldCreateMissedLookup mocks base method
-func (m *MockNode) ShouldCreateMissedLookup(arg0 context.Context, arg1 string) (bool, context.Context, data.EntryType, string) {
+func (m *MockNode) ShouldCreateMissedLookup(arg0 context.Context, arg1 string) (bool, context.Context, data.EntryType, os.FileInfo, string) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ShouldCreateMissedLookup", arg0, arg1)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(context.Context)
 	ret2, _ := ret[2].(data.EntryType)
-	ret3, _ := ret[3].(string)
-	return ret0, ret1, ret2, ret3
+	ret3, _ := ret[3].(os.FileInfo)
+	ret4, _ := ret[4].(string)
+	return ret0, ret1, ret2, ret3, ret4
 }
 
 // ShouldCreateMissedLookup indicates an expected call of ShouldCreateMissedLookup
@@ -3876,6 +3922,18 @@ func (m *MockReporter) Notify(arg0 context.Context, arg1 *keybase1.FSNotificatio
 func (mr *MockReporterMockRecorder) Notify(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Notify", reflect.TypeOf((*MockReporter)(nil).Notify), arg0, arg1)
+}
+
+// NotifyOverallSyncStatus mocks base method
+func (m *MockReporter) NotifyOverallSyncStatus(arg0 context.Context, arg1 keybase1.FolderSyncStatus) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "NotifyOverallSyncStatus", arg0, arg1)
+}
+
+// NotifyOverallSyncStatus indicates an expected call of NotifyOverallSyncStatus
+func (mr *MockReporterMockRecorder) NotifyOverallSyncStatus(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyOverallSyncStatus", reflect.TypeOf((*MockReporter)(nil).NotifyOverallSyncStatus), arg0, arg1)
 }
 
 // NotifyPathUpdated mocks base method

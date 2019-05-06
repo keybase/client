@@ -7,6 +7,7 @@ import PathItemAction, {type Clickable} from '.'
 
 type OwnProps = {|
   clickable: Clickable,
+  mode: 'screen' | 'row',
   path: Types.Path,
   routePath?: ?I.List<string>,
   initView: Types.PathItemActionMenuView,
@@ -28,6 +29,7 @@ const mapDispatchToProps = (dispatch, {initView}) => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   clickable: ownProps.clickable,
   init: dispatchProps.init,
+  mode: ownProps.mode,
   onHidden: () => dispatchProps._onHidden(stateProps._downloadKey),
   path: ownProps.path,
   routePath: ownProps.routePath || I.List(),

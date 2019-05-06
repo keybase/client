@@ -709,6 +709,13 @@
           "name": "channelNameMentions"
         },
         {
+          "type": {
+            "type": "array",
+            "items": "MaybeTeamMention"
+          },
+          "name": "teamMentions"
+        },
+        {
           "type": "boolean",
           "name": "isEphemeral"
         },
@@ -774,6 +781,13 @@
         {
           "type": "boolean",
           "name": "isEditable"
+        },
+        {
+          "type": [
+            null,
+            "UIMessage"
+          ],
+          "name": "replyTo"
         }
       ]
     },
@@ -822,6 +836,13 @@
             "string"
           ],
           "name": "flipGameID"
+        },
+        {
+          "type": [
+            null,
+            "UIMessage"
+          ],
+          "name": "replyTo"
         },
         {
           "type": "string",
@@ -909,12 +930,55 @@
       ]
     },
     {
+      "type": "record",
+      "name": "UITeamMention",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "inTeam"
+        },
+        {
+          "type": "boolean",
+          "name": "open"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "description"
+        },
+        {
+          "type": [
+            null,
+            "int"
+          ],
+          "name": "numMembers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "publicAdmins"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "convID"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "UITextDecorationTyp",
       "symbols": [
         "PAYMENT_0",
         "ATMENTION_1",
-        "CHANNELNAMEMENTION_2"
+        "CHANNELNAMEMENTION_2",
+        "TEAMMENTION_3"
       ]
     },
     {
@@ -945,6 +1009,13 @@
             "def": false
           },
           "body": "UIChannelNameMention"
+        },
+        {
+          "label": {
+            "name": "TEAMMENTION",
+            "def": false
+          },
+          "body": "MaybeTeamMention"
         }
       ]
     },
@@ -1726,6 +1797,27 @@
             null,
             "UICommandMarkdown"
           ]
+        }
+      ],
+      "response": null
+    },
+    "chatTeamMentionUpdate": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamName",
+          "type": "string"
+        },
+        {
+          "name": "channel",
+          "type": "string"
+        },
+        {
+          "name": "info",
+          "type": "UITeamMention"
         }
       ],
       "response": null

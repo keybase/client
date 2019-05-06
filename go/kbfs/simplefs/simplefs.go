@@ -10,6 +10,7 @@ import (
 	"io"
 	"os"
 	stdpath "path"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -177,17 +178,24 @@ func rawPathFromKbfsPath(path keybase1.Path) (string, error) {
 	}
 }
 
-// remoteTlfAndPath decodes a remote path for us.
-func remoteTlfAndPath(path keybase1.Path) (
-	t tlf.Type, tlfName, middlePath, finalElem string, err error) {
+func splitPathFromKbfsPath(path keybase1.Path) ([]string, error) {
 	raw, err := rawPathFromKbfsPath(path)
 	if err != nil {
-		return tlf.Private, "", "", "", err
+		return nil, err
 	}
 	if stdpath.IsAbs(raw) {
 		raw = raw[1:]
 	}
-	ps := strings.Split(raw, `/`)
+	return strings.Split(raw, `/`), nil
+}
+
+// remoteTlfAndPath decodes a remote path for us.
+func remoteTlfAndPath(path keybase1.Path) (
+	t tlf.Type, tlfName, middlePath, finalElem string, err error) {
+	ps, err := splitPathFromKbfsPath(path)
+	if err != nil {
+		return tlf.Private, "", "", "", err
+	}
 	switch {
 	case len(ps) < 2:
 		return tlf.Private, "", "", "", errInvalidRemotePath
@@ -266,6 +274,19 @@ func (k *SimpleFS) getFSWithMaybeCreate(
 	}
 	switch pt {
 	case keybase1.PathType_KBFS, keybase1.PathType_KBFS_ARCHIVED:
+		// Check for the root FS first.
+		ps, err := splitPathFromKbfsPath(path)
+		if err != nil {
+			return nil, "", err
+		}
+		if len(ps) < 2 {
+			fs = libfs.NewRootFS(k.config)
+			if len(ps) == 1 {
+				finalElem = ps[0]
+			}
+			return fs, finalElem, nil
+		}
+
 		t, tlfName, restOfPath, finalElem, err := remoteTlfAndPath(path)
 		if err != nil {
 			return nil, "", err
@@ -366,24 +387,6 @@ func (k *SimpleFS) favoriteList(ctx context.Context, path keybase1.Path, t tlf.T
 	return res, nil
 }
 
-func (k *SimpleFS) prefetchProgressFromByteStatus(
-	status libkbfs.PrefetchProgress) (p keybase1.PrefetchProgress) {
-	p.BytesFetched = int64(status.SubtreeBytesFetched)
-	p.BytesTotal = int64(status.SubtreeBytesTotal)
-	p.Start = keybase1.ToTime(status.Start)
-
-	if p.BytesTotal == 0 || p.Start == 0 {
-		return p
-	}
-
-	timeRunning := k.config.Clock().Now().Sub(status.Start)
-	fracDone := float64(p.BytesFetched) / float64(p.BytesTotal)
-	totalTimeEstimate := time.Duration(float64(timeRunning) / fracDone)
-	endEstimate := status.Start.Add(totalTimeEstimate)
-	p.EndEstimate = keybase1.ToTime(endEstimate)
-	return p
-}
-
 func (k *SimpleFS) setStat(de *keybase1.Dirent, fi os.FileInfo) error {
 	de.Time = keybase1.ToTime(fi.ModTime())
 	de.Size = int(fi.Size()) // TODO: FIX protocol
@@ -406,8 +409,8 @@ func (k *SimpleFS) setStat(de *keybase1.Dirent, fi os.FileInfo) error {
 		}
 		de.LastWriterUnverified = md.LastWriter
 		de.PrefetchStatus = md.PrefetchStatus
-		de.PrefetchProgress = k.prefetchProgressFromByteStatus(
-			md.PrefetchProgress)
+		de.PrefetchProgress = md.PrefetchProgress.ToProtocolProgress(
+			k.config.Clock())
 	}
 	de.Name = fi.Name()
 	return nil
@@ -2162,6 +2165,7 @@ func (k *SimpleFS) TlfHandleChange(_ context.Context, _ *tlfhandle.Handle) {
 // the logged-in user.
 func (k *SimpleFS) SimpleFSGetUserQuotaUsage(ctx context.Context) (
 	res keybase1.SimpleFSQuotaUsage, err error) {
+	ctx = k.makeContext(ctx)
 	status, _, err := k.config.KBFSOps().Status(ctx)
 	if err != nil {
 		return keybase1.SimpleFSQuotaUsage{}, err
@@ -2232,10 +2236,26 @@ func (k *SimpleFS) getSyncConfig(ctx context.Context, path keybase1.Path) (
 	return tlfHandle.TlfID(), config, nil
 }
 
+func (k *SimpleFS) getLocalDiskStats(ctx context.Context) (
+	bytesAvail, bytesTotal int64) {
+	dbc := k.config.DiskBlockCache()
+	if dbc == nil {
+		return 0, 0
+	}
+
+	dbcStatus := dbc.Status(ctx)
+	if status, ok := dbcStatus["SyncBlockCache"]; ok {
+		return int64(status.LocalDiskBytesAvailable),
+			int64(status.LocalDiskBytesTotal)
+	}
+	return 0, 0
+}
+
 // SimpleFSFolderSyncConfigAndStatus gets the given folder's sync config.
 func (k *SimpleFS) SimpleFSFolderSyncConfigAndStatus(
 	ctx context.Context, path keybase1.Path) (
 	keybase1.FolderSyncConfigAndStatus, error) {
+	ctx = k.makeContext(ctx)
 	_, config, err := k.getSyncConfig(ctx, path)
 	if err != nil {
 		return keybase1.FolderSyncConfigAndStatus{}, err
@@ -2259,30 +2279,35 @@ func (k *SimpleFS) SimpleFSFolderSyncConfigAndStatus(
 				return keybase1.FolderSyncConfigAndStatus{}, err
 			}
 			res.Status.PrefetchStatus = metadata.PrefetchStatus
-			res.Status.PrefetchProgress = k.prefetchProgressFromByteStatus(
-				metadata.PrefetchProgress)
+			res.Status.PrefetchProgress =
+				metadata.PrefetchProgress.ToProtocolProgress(k.config.Clock())
+
+			dbc := k.config.DiskBlockCache()
+			libfs, ok := fs.(*libfs.FS)
+			if dbc != nil && ok {
+				size, err := dbc.GetTlfSize(
+					ctx, libfs.RootNode().GetFolderBranch().Tlf,
+					libkbfs.DiskBlockSyncCache)
+				if err != nil {
+					return res, err
+				}
+				res.Status.StoredBytesTotal = int64(size)
+			}
 		} else {
 			k.log.CDebugf(ctx,
 				"Could not get prefetch status from filesys: %T", fi.Sys())
 		}
 	}
 
-	dbc := k.config.DiskBlockCache()
-	if dbc != nil {
-		dbcStatus := dbc.Status(ctx)
-		if status, ok := dbcStatus["SyncBlockCache"]; ok {
-			res.Status.LocalDiskBytesAvailable = int64(
-				status.LocalDiskBytesAvailable)
-			res.Status.LocalDiskBytesTotal = int64(status.LocalDiskBytesTotal)
-		}
-	}
-
+	res.Status.LocalDiskBytesAvailable, res.Status.LocalDiskBytesTotal =
+		k.getLocalDiskStats(ctx)
 	return res, err
 }
 
 // SimpleFSSetFolderSyncConfig implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSSetFolderSyncConfig(
 	ctx context.Context, arg keybase1.SimpleFSSetFolderSyncConfigArg) error {
+	ctx = k.makeContext(ctx)
 	tlfID, _, err := k.getSyncConfig(ctx, arg.Path)
 	if err != nil {
 		return err
@@ -2292,9 +2317,106 @@ func (k *SimpleFS) SimpleFSSetFolderSyncConfig(
 	return err
 }
 
+// SimpleFSSyncConfigAndStatus implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSSyncConfigAndStatus(
+	ctx context.Context) (res keybase1.SyncConfigAndStatusRes, err error) {
+	ctx = k.makeContext(ctx)
+	bytesAvail, bytesTotal := k.getLocalDiskStats(ctx)
+	tlfIDs := k.config.GetAllSyncedTlfs()
+
+	session, err := idutil.GetCurrentSessionIfPossible(
+		ctx, k.config.KBPKI(), true)
+	if err != nil {
+		return keybase1.SyncConfigAndStatusRes{}, err
+	}
+
+	res.Folders = make(
+		[]keybase1.FolderSyncConfigAndStatusWithFolder, len(tlfIDs))
+
+	dbc := k.config.DiskBlockCache()
+	allNotStarted := true
+	for i, tlfID := range tlfIDs {
+		config, err := k.config.KBFSOps().GetSyncConfig(ctx, tlfID)
+		if err != nil {
+			return keybase1.SyncConfigAndStatusRes{}, err
+		}
+
+		if config.Mode == keybase1.FolderSyncMode_DISABLED {
+			panic(fmt.Sprintf(
+				"Folder %s has sync unexpectedly disabled", tlfID))
+		}
+
+		fb := data.FolderBranch{Tlf: tlfID, Branch: data.MasterBranch}
+		md, h, err := k.config.KBFSOps().GetRootNodeMetadata(ctx, fb)
+		if err != nil {
+			return keybase1.SyncConfigAndStatusRes{}, err
+		}
+
+		f := keybase1.Folder{
+			Name:       string(h.GetPreferredFormat(session.Name)),
+			FolderType: tlfID.Type().FolderType(),
+			Private:    tlfID.Type() != tlf.Public,
+		}
+
+		res.Folders[i].Folder = f
+		res.Folders[i].Config = config
+		status := md.PrefetchStatus.ToProtocolStatus()
+		res.Folders[i].Status.PrefetchStatus = status
+		if status != keybase1.PrefetchStatus_NOT_STARTED {
+			allNotStarted = false
+		}
+		if md.PrefetchProgress != nil {
+			res.Folders[i].Status.PrefetchProgress =
+				md.PrefetchProgress.ToProtocolProgress(k.config.Clock())
+		}
+		res.Folders[i].Status.LocalDiskBytesAvailable = bytesAvail
+		res.Folders[i].Status.LocalDiskBytesTotal = bytesTotal
+
+		if dbc != nil {
+			size, err := dbc.GetTlfSize(ctx, tlfID, libkbfs.DiskBlockSyncCache)
+			if err != nil {
+				return keybase1.SyncConfigAndStatusRes{}, err
+			}
+			res.Folders[i].Status.StoredBytesTotal = int64(size)
+		}
+	}
+
+	// Sort by folder name.
+	sort.SliceStable(res.Folders, func(i, j int) bool {
+		return res.Folders[i].Folder.ToString() <
+			res.Folders[j].Folder.ToString()
+	})
+
+	if len(tlfIDs) > 0 {
+		p := k.config.BlockOps().Prefetcher().OverallSyncStatus()
+		res.OverallStatus.PrefetchProgress = p.ToProtocolProgress(
+			k.config.Clock())
+		if allNotStarted {
+			res.OverallStatus.PrefetchStatus =
+				keybase1.PrefetchStatus_NOT_STARTED
+		} else {
+			res.OverallStatus.PrefetchStatus = p.ToProtocolStatus()
+		}
+	}
+
+	res.OverallStatus.LocalDiskBytesAvailable = bytesAvail
+	res.OverallStatus.LocalDiskBytesTotal = bytesTotal
+
+	if dbc != nil {
+		statusMap := dbc.Status(ctx)
+		status, ok := statusMap["SyncBlockCache"]
+		if ok {
+			res.OverallStatus.StoredBytesTotal = int64(status.BlockBytes)
+		}
+	}
+
+	return res, nil
+}
+
 // SimpleFSClearConflictState implements the SimpleFS interface.
 func (k *SimpleFS) SimpleFSClearConflictState(ctx context.Context,
 	path keybase1.Path) error {
+	ctx = k.makeContext(ctx)
 	t, tlfName, _, _, err := remoteTlfAndPath(path)
 	if err != nil {
 		return err
@@ -2310,6 +2432,7 @@ func (k *SimpleFS) SimpleFSClearConflictState(ctx context.Context,
 
 // SimpleFSAreWeConnectedToMDServer implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSAreWeConnectedToMDServer(ctx context.Context) (bool, error) {
+	ctx = k.makeContext(ctx)
 	// This is kind of expensive, but we are only calling this from GUI right
 	// after KBFS daemon is connected. After that we rely on notifications. We
 	// can change this to directly get from currentStatus in KBFSOps if that

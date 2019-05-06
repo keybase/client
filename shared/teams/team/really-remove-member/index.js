@@ -40,7 +40,7 @@ const ReallyRemoveMember = (props: Props) => (
         get back unless an admin invites them.
       </Text>
       <ButtonBar direction={isMobile ? 'column' : 'row'} fullWidth={isMobile}>
-        <Button type="Secondary" onClick={props.onClose} label="Cancel" />
+        <Button type="Dim" onClick={props.onClose} label="Cancel" />
         <Button
           type="Danger"
           onClick={props.onRemove}

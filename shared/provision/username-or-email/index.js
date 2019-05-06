@@ -33,6 +33,10 @@ const InlineError = (props: {|onGoToSignup: ?() => void, error: string|}) => (
 class Username extends React.Component<Props, State> {
   state = {username: ''}
 
+  _submit = () => {
+    this.props.onSubmit(this.state.username)
+  }
+
   render() {
     let errorTextComponent
     if (this.props.submittedUsername === this.state.username && !!this.props.inlineError) {
@@ -53,16 +57,15 @@ class Username extends React.Component<Props, State> {
             hintText="Username"
             errorText={this.props.submittedUsername === this.state.username ? this.props.error : ''}
             errorTextComponent={errorTextComponent}
-            onEnterKeyDown={() => this.props.onSubmit(this.state.username)}
+            onEnterKeyDown={this._submit}
             onChangeText={text => this.setState({username: text})}
             value={this.state.username}
           />
           <Kb.WaitingButton
             label="Continue"
-            type="Primary"
             fullWidth={true}
             style={styles.button}
-            onClick={() => this.props.onSubmit(this.state.username)}
+            onClick={this._submit}
             disabled={!this.state.username}
             waitingKey={Constants.waitingKey}
           />

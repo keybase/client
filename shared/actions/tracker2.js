@@ -193,7 +193,7 @@ const showUser = (_, action) => {
     reason: '',
   })
 
-  if (flags.useNewRouter) {
+  if (flags.useNewRouter && !action.payload.skipNav) {
     // go to profile page
     return [load, ProfileGen.createShowUserProfile({username: action.payload.username})]
   } else {

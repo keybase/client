@@ -42,23 +42,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
         })
       )
     }
-    dispatch(TeamsGen.createGetTeams())
-  },
-  onOpenRolePicker: (role: Types.TeamRoleType, onComplete: Types.TeamRoleType => void) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {
-              allowOwner: false,
-              onComplete,
-              selectedRole: role,
-            },
-            selected: 'teamControlledRolePicker',
-          },
-        ],
-      })
-    )
+    dispatch(TeamsGen.createGetTeams({clearNavBadges: false}))
   },
 })
 

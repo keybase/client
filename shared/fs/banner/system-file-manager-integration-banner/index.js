@@ -104,7 +104,7 @@ const Banner = (props: BannerProps) => (
       {props.button && (
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           <Kb.Button
-            type="PrimaryGreen"
+            type="Success"
             label={props.button.buttonText}
             onClick={props.button.action}
             waiting={props.button.inProgress}

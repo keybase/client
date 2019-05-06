@@ -25,11 +25,11 @@ const listStyle = {
     : {
         backgroundColor: globalColors.white,
         borderLeft: border,
-        marginTop: -4 /* Necessary fix: adds 1px at the top so we hide the gray divider */,
       }),
 }
 const styleTurnIntoTeam = {
-  padding: globalMargins.small,
+  paddingLeft: globalMargins.small,
+  paddingRight: globalMargins.small,
 }
 const Spacer = ({height}: {height: number}) => <Box style={{height, width: 1}} />
 
@@ -335,7 +335,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             caption="Hide this conversation"
             onClick={row.onHideConv}
             noDanger={true}
-            icon="iconfont-remove"
+            icon="iconfont-hide"
             spinner={this.props.spinnerForHide}
           />
         )

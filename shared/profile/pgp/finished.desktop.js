@@ -48,7 +48,6 @@ class Finished extends React.Component<Props, State> {
             </Kb.Box2>
           )}
           <Kb.Button
-            type="Primary"
             onClick={() => this.props.onDone(this.state.shouldStoreKeyOnServer)}
             label={this.state.shouldStoreKeyOnServer ? 'Done, post to Keybase' : 'Done'}
           />

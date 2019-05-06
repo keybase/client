@@ -51,6 +51,7 @@ type BoxAuditAttempt struct {
 	Error      *string               `codec:"error,omitempty" json:"error,omitempty"`
 	Result     BoxAuditAttemptResult `codec:"result" json:"result"`
 	Generation *PerTeamKeyGeneration `codec:"generation,omitempty" json:"generation,omitempty"`
+	Rotated    bool                  `codec:"rotated" json:"rotated"`
 }
 
 func (o BoxAuditAttempt) DeepCopy() BoxAuditAttempt {
@@ -71,6 +72,7 @@ func (o BoxAuditAttempt) DeepCopy() BoxAuditAttempt {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Generation),
+		Rotated: o.Rotated,
 	}
 }
 
@@ -96,7 +98,7 @@ type KnownTeamIDsArg struct {
 
 type AuditInterface interface {
 	IsInJail(context.Context, IsInJailArg) (bool, error)
-	BoxAuditTeam(context.Context, BoxAuditTeamArg) error
+	BoxAuditTeam(context.Context, BoxAuditTeamArg) (*BoxAuditAttempt, error)
 	AttemptBoxAudit(context.Context, AttemptBoxAuditArg) (BoxAuditAttempt, error)
 	KnownTeamIDs(context.Context, int) ([]TeamID, error)
 }
@@ -131,7 +133,7 @@ func AuditProtocol(i AuditInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]BoxAuditTeamArg)(nil), args)
 						return
 					}
-					err = i.BoxAuditTeam(ctx, typedArgs[0])
+					ret, err = i.BoxAuditTeam(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -178,8 +180,8 @@ func (c AuditClient) IsInJail(ctx context.Context, __arg IsInJailArg) (res bool,
 	return
 }
 
-func (c AuditClient) BoxAuditTeam(ctx context.Context, __arg BoxAuditTeamArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.audit.boxAuditTeam", []interface{}{__arg}, nil)
+func (c AuditClient) BoxAuditTeam(ctx context.Context, __arg BoxAuditTeamArg) (res *BoxAuditAttempt, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.audit.boxAuditTeam", []interface{}{__arg}, &res)
 	return
 }
 

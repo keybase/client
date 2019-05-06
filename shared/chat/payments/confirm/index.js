@@ -58,13 +58,8 @@ const _PaymentsConfirmErrorNoWallet = (props: ErrorProps) => (
       </Kb.Box2>
       <Kb.Box2 direction="vertical" style={styles.pushDown} fullWidth={true}>
         <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
-          <Kb.Button type="Secondary" onClick={props.onCancel} style={styles.cancelButton} label="Cancel" />
-          <Kb.Button
-            style={styles.submitButton}
-            type="Primary"
-            onClick={props.onWallet}
-            label="Set up wallet"
-          />
+          <Kb.Button type="Dim" onClick={props.onCancel} style={styles.cancelButton} label="Cancel" />
+          <Kb.Button style={styles.submitButton} onClick={props.onWallet} label="Set up wallet" />
         </Kb.ButtonBar>
       </Kb.Box2>
     </Kb.Box2>
@@ -151,10 +146,10 @@ const PaymentsConfirm = (props: Props) => (
           ))}
         </Kb.ScrollView>
         <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
-          <Kb.Button type="Secondary" onClick={props.onCancel} style={styles.cancelButton} label="Cancel" />
+          <Kb.Button type="Dim" onClick={props.onCancel} style={styles.cancelButton} label="Cancel" />
           <Kb.WaitingButton
             style={styles.submitButton}
-            type="PrimaryGreen"
+            type="Success"
             onClick={props.onAccept}
             waitingKey={null}
             children={

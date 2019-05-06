@@ -11,7 +11,6 @@ import {
   Usernames,
 } from '../../../../common-adapters'
 import {globalMargins, globalStyles, globalColors, isMobile} from '../../../../styles'
-import {roleIconColorMap} from '../../../role-picker/index.meta'
 import {typeToLabel} from '../../../../constants/teams'
 import {isLargeScreen} from '../../../../constants/platform'
 import type {BoolTypeMap, MemberStatus, TeamRoleType} from '../../../../constants/types/teams'
@@ -56,7 +55,6 @@ export const TeamMemberRow = (props: Props) => {
           marginRight: globalMargins.xtiny,
         }}
         fontSize={10}
-        color={roleIconColorMap[props.roleType]}
       />
     )
   }
@@ -140,7 +138,7 @@ export const TeamMemberRow = (props: Props) => {
                   small={true}
                   label="Re-Admit"
                   onClick={props.onReAddToTeam}
-                  type="PrimaryGreen"
+                  type="Success"
                   waiting={props.waitingForAdd}
                   disabled={props.waitingForRemove}
                 />
@@ -149,7 +147,7 @@ export const TeamMemberRow = (props: Props) => {
                 small={true}
                 label="Remove"
                 onClick={props.onRemoveFromTeam}
-                type="Secondary"
+                type="Dim"
                 waiting={props.waitingForRemove}
                 disabled={props.waitingForAdd}
               />
@@ -177,7 +175,7 @@ export const TeamMemberRow = (props: Props) => {
                 small={true}
                 label="Re-Admit"
                 onClick={props.onReAddToTeam}
-                type="PrimaryGreen"
+                type="Success"
                 waiting={props.waitingForAdd}
                 disabled={props.waitingForRemove}
               />
@@ -186,7 +184,7 @@ export const TeamMemberRow = (props: Props) => {
               small={true}
               label="Remove"
               onClick={props.onRemoveFromTeam}
-              type="Secondary"
+              type="Dim"
               waiting={props.waitingForRemove}
               disabled={props.waitingForAdd}
             />

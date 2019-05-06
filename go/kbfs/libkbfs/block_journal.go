@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
@@ -65,6 +66,7 @@ type blockJournal struct {
 
 	log      traceLogger
 	deferLog traceLogger
+	vlog     *libkb.VDebugLog
 
 	// j is the main journal.
 	j *diskJournal
@@ -177,7 +179,7 @@ func deferredGCBlockJournalDir(dir string) string {
 // directory. Any existing journal entries are read.
 func makeBlockJournal(
 	ctx context.Context, codec kbfscodec.Codec, dir string,
-	log logger.Logger) (*blockJournal, error) {
+	log logger.Logger, vlog *libkb.VDebugLog) (*blockJournal, error) {
 	journalPath := blockJournalDir(dir)
 	deferLog := log.CloneWithAddedDepth(1)
 	j, err := makeDiskJournal(
@@ -199,6 +201,7 @@ func makeBlockJournal(
 		codec:      codec,
 		dir:        dir,
 		log:        traceLogger{log},
+		vlog:       vlog,
 		deferLog:   traceLogger{deferLog},
 		j:          j,
 		deferredGC: gcj,
@@ -417,7 +420,9 @@ func (j *blockJournal) putBlockData(
 	ctx context.Context, id kbfsblock.ID, context kbfsblock.Context,
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) (
 	putData bool, err error) {
-	j.log.CDebugf(ctx, "Putting %d bytes of data for block %s with context %v",
+	j.vlog.CLogf(
+		ctx, libkb.VLog1,
+		"Putting %d bytes of data for block %s with context %v",
 		len(buf), id, context)
 	defer func() {
 		if err != nil {
@@ -440,7 +445,7 @@ func (j *blockJournal) putBlockData(
 func (j *blockJournal) appendBlock(
 	ctx context.Context, id kbfsblock.ID, context kbfsblock.Context,
 	bufLenToAdd int64) error {
-	j.log.CDebugf(ctx, "Appending block %s to journal", id)
+	j.vlog.CLogf(ctx, libkb.VLog1, "Appending block %s to journal", id)
 
 	if bufLenToAdd > 0 {
 		var putFiles int64 = filesPerBlockMax
@@ -470,7 +475,8 @@ func (j *blockJournal) appendBlock(
 func (j *blockJournal) addReference(
 	ctx context.Context, id kbfsblock.ID, context kbfsblock.Context) (
 	err error) {
-	j.log.CDebugf(ctx, "Adding reference for block %s with context %v",
+	j.vlog.CLogf(
+		ctx, libkb.VLog1, "Adding reference for block %s with context %v",
 		id, context)
 	defer func() {
 		if err != nil {
@@ -503,7 +509,7 @@ func (j *blockJournal) addReference(
 
 func (j *blockJournal) archiveReferences(
 	ctx context.Context, contexts kbfsblock.ContextMap) (err error) {
-	j.log.CDebugf(ctx, "Archiving references for %v", contexts)
+	j.vlog.CLogf(ctx, libkb.VLog1, "Archiving references for %v", contexts)
 	defer func() {
 		if err != nil {
 			j.deferLog.CDebugf(ctx,
@@ -537,7 +543,7 @@ func (j *blockJournal) archiveReferences(
 func (j *blockJournal) removeReferences(
 	ctx context.Context, contexts kbfsblock.ContextMap) (
 	liveCounts map[kbfsblock.ID]int, err error) {
-	j.log.CDebugf(ctx, "Removing references for %v", contexts)
+	j.vlog.CLogf(ctx, libkb.VLog1, "Removing references for %v", contexts)
 	defer func() {
 		if err != nil {
 			j.deferLog.CDebugf(ctx,
@@ -574,7 +580,8 @@ func (j *blockJournal) removeReferences(
 
 func (j *blockJournal) markMDRevision(ctx context.Context,
 	rev kbfsmd.Revision, isPendingLocalSquash bool) (err error) {
-	j.log.CDebugf(ctx, "Marking MD revision %d in the block journal", rev)
+	j.vlog.CLogf(
+		ctx, libkb.VLog1, "Marking MD revision %d in the block journal", rev)
 	defer func() {
 		if err != nil {
 			j.deferLog.CDebugf(ctx, "Marking MD revision %d error: %+v",
@@ -1093,7 +1100,8 @@ func (j *blockJournal) doGC(ctx context.Context,
 	}
 
 	// Delete the block data for anything in the GC journal.
-	j.log.CDebugf(ctx, "Garbage-collecting blocks for entries [%d, %d]",
+	j.vlog.CLogf(
+		ctx, libkb.VLog1, "Garbage-collecting blocks for entries [%d, %d]",
 		earliest, latest)
 	for i := earliest; i <= latest; i++ {
 		e, err := j.deferredGC.readJournalEntry(i)

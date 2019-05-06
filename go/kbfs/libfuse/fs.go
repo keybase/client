@@ -27,6 +27,7 @@ import (
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
@@ -35,11 +36,13 @@ import (
 
 // FS implements the newfuse FS interface for KBFS.
 type FS struct {
-	config libkbfs.Config
-	fuse   *fs.Server
-	conn   *fuse.Conn
-	log    logger.Logger
-	errLog logger.Logger
+	config  libkbfs.Config
+	fuse    *fs.Server
+	conn    *fuse.Conn
+	log     logger.Logger
+	errLog  logger.Logger
+	vlog    *libkb.VDebugLog
+	errVlog *libkb.VDebugLog
 
 	// Protects debugServerListener and debugServer.addr.
 	debugServerLock     sync.Mutex
@@ -117,16 +120,20 @@ func NewFS(config libkbfs.Config, conn *fuse.Conn, debug bool,
 		WriteTimeout: 10 * time.Second,
 	}
 
+	quLog := config.MakeLogger(libkbfs.QuotaUsageLogModule("FS"))
 	fs := &FS{
 		config:         config,
 		conn:           conn,
 		log:            log,
 		errLog:         errLog,
+		vlog:           config.MakeVLogger(log),
+		errVlog:        config.MakeVLogger(errLog),
 		debugServer:    debugServer,
 		notifications:  libfs.NewFSNotifications(log),
 		platformParams: platformParams,
-		quotaUsage:     libkbfs.NewEventuallyConsistentQuotaUsage(config, "FS"),
-		nextInode:      2, // root is 1
+		quotaUsage: libkbfs.NewEventuallyConsistentQuotaUsage(
+			config, quLog, config.MakeVLogger(quLog)),
+		nextInode: 2, // root is 1
 	}
 	fs.root.private = &FolderList{
 		fs:      fs,
@@ -353,7 +360,7 @@ var _ fs.FSStatfser = (*FS)(nil)
 func (f *FS) processError(ctx context.Context,
 	mode libkbfs.ErrorModeType, err error) error {
 	if err == nil {
-		f.errLog.CDebugf(ctx, "Request complete")
+		f.errVlog.CLogf(ctx, libkb.VLog1, "Request complete")
 		return nil
 	}
 
@@ -386,8 +393,9 @@ func (f *FS) Statfs(ctx context.Context, req *fuse.StatfsRequest, resp *fuse.Sta
 	}
 
 	if f.remoteStatus.ExtraFileName() != "" {
-		f.log.CDebugf(
-			ctx, "Skipping quota usage check while errors are present")
+		f.vlog.CLogf(
+			ctx, libkb.VLog1,
+			"Skipping quota usage check while errors are present")
 		return nil
 	}
 
@@ -402,7 +410,7 @@ func (f *FS) Statfs(ctx context.Context, req *fuse.StatfsRequest, resp *fuse.Sta
 	_, usageBytes, _, limitBytes, err := f.quotaUsage.Get(
 		ctx, quotaUsageStaleTolerance/2, quotaUsageStaleTolerance)
 	if err != nil {
-		f.log.CDebugf(ctx, "Getting quota usage error: %v", err)
+		f.vlog.CLogf(ctx, libkb.VLog1, "Getting quota usage error: %v", err)
 		return err
 	}
 

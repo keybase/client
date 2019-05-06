@@ -231,9 +231,9 @@ const Action = ({
           openExplodingPicker={openExplodingPicker}
         />
       )}
-      <Kb.Text type="BodyBigLink" onClick={onSubmit}>
-        {isEditing ? 'Save' : 'Send'}
-      </Kb.Text>
+      <Kb.ClickableBox onClick={onSubmit} style={styles.send}>
+        <Kb.Text type="BodyBigLink">{isEditing ? 'Save' : 'Send'}</Kb.Text>
+      </Kb.ClickableBox>
     </Kb.Box2>
   ) : (
     <Kb.Box2 direction="horizontal" style={styles.actionIconsContainer}>
@@ -313,6 +313,7 @@ const styles = Styles.styleSheetCreate({
     borderTopWidth: 1,
     flexShrink: 0,
     minHeight: 48,
+    overflow: 'hidden',
     paddingRight: containerPadding,
   },
   editingTabStyle: {
@@ -345,6 +346,10 @@ const styles = Styles.styleSheetCreate({
     flex: 1,
     height: 160,
     width: '100%',
+  },
+  send: {
+    ...Styles.padding(2, 6, 0, 6),
+    marginRight: -6,
   },
   smallGap: {
     height: Styles.globalMargins.small,

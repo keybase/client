@@ -35,6 +35,7 @@ export const chat1ChatUiChatStellarDataConfirm = 'engine-gen:chat1ChatUiChatStel
 export const chat1ChatUiChatStellarDataError = 'engine-gen:chat1ChatUiChatStellarDataError'
 export const chat1ChatUiChatStellarDone = 'engine-gen:chat1ChatUiChatStellarDone'
 export const chat1ChatUiChatStellarShowConfirm = 'engine-gen:chat1ChatUiChatStellarShowConfirm'
+export const chat1ChatUiChatTeamMentionUpdate = 'engine-gen:chat1ChatUiChatTeamMentionUpdate'
 export const chat1ChatUiChatThreadCached = 'engine-gen:chat1ChatUiChatThreadCached'
 export const chat1ChatUiChatThreadFull = 'engine-gen:chat1ChatUiChatThreadFull'
 export const chat1NotifyChatChatAttachmentUploadProgress = 'engine-gen:chat1NotifyChatChatAttachmentUploadProgress'
@@ -97,7 +98,9 @@ export const keybase1IdentifyUiStart = 'engine-gen:keybase1IdentifyUiStart'
 export const keybase1LogUiLog = 'engine-gen:keybase1LogUiLog'
 export const keybase1LoginUiDisplayPaperKeyPhrase = 'engine-gen:keybase1LoginUiDisplayPaperKeyPhrase'
 export const keybase1LoginUiDisplayPrimaryPaperKey = 'engine-gen:keybase1LoginUiDisplayPrimaryPaperKey'
+export const keybase1LoginUiDisplayResetProgress = 'engine-gen:keybase1LoginUiDisplayResetProgress'
 export const keybase1LoginUiGetEmailOrUsername = 'engine-gen:keybase1LoginUiGetEmailOrUsername'
+export const keybase1LoginUiPromptResetAccount = 'engine-gen:keybase1LoginUiPromptResetAccount'
 export const keybase1LoginUiPromptRevokePaperKeys = 'engine-gen:keybase1LoginUiPromptRevokePaperKeys'
 export const keybase1LogsendPrepareLogsend = 'engine-gen:keybase1LogsendPrepareLogsend'
 export const keybase1NotifyAppExit = 'engine-gen:keybase1NotifyAppExit'
@@ -111,6 +114,7 @@ export const keybase1NotifyEphemeralNewTeamEk = 'engine-gen:keybase1NotifyEpheme
 export const keybase1NotifyFSFSActivity = 'engine-gen:keybase1NotifyFSFSActivity'
 export const keybase1NotifyFSFSEditListResponse = 'engine-gen:keybase1NotifyFSFSEditListResponse'
 export const keybase1NotifyFSFSOnlineStatusChanged = 'engine-gen:keybase1NotifyFSFSOnlineStatusChanged'
+export const keybase1NotifyFSFSOverallSyncStatusChanged = 'engine-gen:keybase1NotifyFSFSOverallSyncStatusChanged'
 export const keybase1NotifyFSFSPathUpdated = 'engine-gen:keybase1NotifyFSFSPathUpdated'
 export const keybase1NotifyFSFSSyncActivity = 'engine-gen:keybase1NotifyFSFSSyncActivity'
 export const keybase1NotifyFSFSSyncStatusResponse = 'engine-gen:keybase1NotifyFSFSSyncStatusResponse'
@@ -208,6 +212,7 @@ type _Chat1ChatUiChatStellarDataConfirmPayload = $ReadOnly<{|params: $Exact<$Pro
 type _Chat1ChatUiChatStellarDataErrorPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarDataError'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarDataError'>, 'outParam'>) => void}|}>
 type _Chat1ChatUiChatStellarDonePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarDone'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarDone'>, 'outParam'>) => void}|}>
 type _Chat1ChatUiChatStellarShowConfirmPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarShowConfirm'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarShowConfirm'>, 'outParam'>) => void}|}>
+type _Chat1ChatUiChatTeamMentionUpdatePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatTeamMentionUpdate'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatTeamMentionUpdate'>, 'outParam'>) => void}|}>
 type _Chat1ChatUiChatThreadCachedPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatThreadCached'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatThreadCached'>, 'outParam'>) => void}|}>
 type _Chat1ChatUiChatThreadFullPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatThreadFull'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatThreadFull'>, 'outParam'>) => void}|}>
 type _Chat1NotifyChatChatAttachmentUploadProgressPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatAttachmentUploadProgress'>, 'inParam'>> & {|sessionID: number|}|}>
@@ -270,7 +275,9 @@ type _Keybase1IdentifyUiStartPayload = $ReadOnly<{|params: $Exact<$PropertyType<
 type _Keybase1LogUiLogPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.logUi.log'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.logUi.log'>, 'outParam'>) => void}|}>
 type _Keybase1LoginUiDisplayPaperKeyPhrasePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayPaperKeyPhrase'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayPaperKeyPhrase'>, 'outParam'>) => void}|}>
 type _Keybase1LoginUiDisplayPrimaryPaperKeyPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayPrimaryPaperKey'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayPrimaryPaperKey'>, 'outParam'>) => void}|}>
+type _Keybase1LoginUiDisplayResetProgressPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayResetProgress'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayResetProgress'>, 'outParam'>) => void}|}>
 type _Keybase1LoginUiGetEmailOrUsernamePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.getEmailOrUsername'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.getEmailOrUsername'>, 'outParam'>) => void}|}>
+type _Keybase1LoginUiPromptResetAccountPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.promptResetAccount'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.promptResetAccount'>, 'outParam'>) => void}|}>
 type _Keybase1LoginUiPromptRevokePaperKeysPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.promptRevokePaperKeys'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.promptRevokePaperKeys'>, 'outParam'>) => void}|}>
 type _Keybase1LogsendPrepareLogsendPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.logsend.prepareLogsend'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.logsend.prepareLogsend'>, 'outParam'>) => void}|}>
 type _Keybase1NotifyAppExitPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyApp.exit'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyApp.exit'>, 'outParam'>) => void}|}>
@@ -284,6 +291,7 @@ type _Keybase1NotifyEphemeralNewTeamEkPayload = $ReadOnly<{|params: $Exact<$Prop
 type _Keybase1NotifyFSFSActivityPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSActivity'>, 'inParam'>> & {|sessionID: number|}|}>
 type _Keybase1NotifyFSFSEditListResponsePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSEditListResponse'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSEditListResponse'>, 'outParam'>) => void}|}>
 type _Keybase1NotifyFSFSOnlineStatusChangedPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSOnlineStatusChanged'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSOnlineStatusChanged'>, 'outParam'>) => void}|}>
+type _Keybase1NotifyFSFSOverallSyncStatusChangedPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSOverallSyncStatusChanged'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSOverallSyncStatusChanged'>, 'outParam'>) => void}|}>
 type _Keybase1NotifyFSFSPathUpdatedPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSPathUpdated'>, 'inParam'>> & {|sessionID: number|}|}>
 type _Keybase1NotifyFSFSSyncActivityPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSSyncActivity'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSSyncActivity'>, 'outParam'>) => void}|}>
 type _Keybase1NotifyFSFSSyncStatusResponsePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSSyncStatusResponse'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSSyncStatusResponse'>, 'outParam'>) => void}|}>
@@ -381,6 +389,7 @@ export const createChat1ChatUiChatStellarDataConfirm = (payload: _Chat1ChatUiCha
 export const createChat1ChatUiChatStellarDataError = (payload: _Chat1ChatUiChatStellarDataErrorPayload) => ({payload, type: chat1ChatUiChatStellarDataError})
 export const createChat1ChatUiChatStellarDone = (payload: _Chat1ChatUiChatStellarDonePayload) => ({payload, type: chat1ChatUiChatStellarDone})
 export const createChat1ChatUiChatStellarShowConfirm = (payload: _Chat1ChatUiChatStellarShowConfirmPayload) => ({payload, type: chat1ChatUiChatStellarShowConfirm})
+export const createChat1ChatUiChatTeamMentionUpdate = (payload: _Chat1ChatUiChatTeamMentionUpdatePayload) => ({payload, type: chat1ChatUiChatTeamMentionUpdate})
 export const createChat1ChatUiChatThreadCached = (payload: _Chat1ChatUiChatThreadCachedPayload) => ({payload, type: chat1ChatUiChatThreadCached})
 export const createChat1ChatUiChatThreadFull = (payload: _Chat1ChatUiChatThreadFullPayload) => ({payload, type: chat1ChatUiChatThreadFull})
 export const createChat1NotifyChatChatAttachmentUploadProgress = (payload: _Chat1NotifyChatChatAttachmentUploadProgressPayload) => ({payload, type: chat1NotifyChatChatAttachmentUploadProgress})
@@ -443,7 +452,9 @@ export const createKeybase1IdentifyUiStart = (payload: _Keybase1IdentifyUiStartP
 export const createKeybase1LogUiLog = (payload: _Keybase1LogUiLogPayload) => ({payload, type: keybase1LogUiLog})
 export const createKeybase1LoginUiDisplayPaperKeyPhrase = (payload: _Keybase1LoginUiDisplayPaperKeyPhrasePayload) => ({payload, type: keybase1LoginUiDisplayPaperKeyPhrase})
 export const createKeybase1LoginUiDisplayPrimaryPaperKey = (payload: _Keybase1LoginUiDisplayPrimaryPaperKeyPayload) => ({payload, type: keybase1LoginUiDisplayPrimaryPaperKey})
+export const createKeybase1LoginUiDisplayResetProgress = (payload: _Keybase1LoginUiDisplayResetProgressPayload) => ({payload, type: keybase1LoginUiDisplayResetProgress})
 export const createKeybase1LoginUiGetEmailOrUsername = (payload: _Keybase1LoginUiGetEmailOrUsernamePayload) => ({payload, type: keybase1LoginUiGetEmailOrUsername})
+export const createKeybase1LoginUiPromptResetAccount = (payload: _Keybase1LoginUiPromptResetAccountPayload) => ({payload, type: keybase1LoginUiPromptResetAccount})
 export const createKeybase1LoginUiPromptRevokePaperKeys = (payload: _Keybase1LoginUiPromptRevokePaperKeysPayload) => ({payload, type: keybase1LoginUiPromptRevokePaperKeys})
 export const createKeybase1LogsendPrepareLogsend = (payload: _Keybase1LogsendPrepareLogsendPayload) => ({payload, type: keybase1LogsendPrepareLogsend})
 export const createKeybase1NotifyAppExit = (payload: _Keybase1NotifyAppExitPayload) => ({payload, type: keybase1NotifyAppExit})
@@ -457,6 +468,7 @@ export const createKeybase1NotifyEphemeralNewTeamEk = (payload: _Keybase1NotifyE
 export const createKeybase1NotifyFSFSActivity = (payload: _Keybase1NotifyFSFSActivityPayload) => ({payload, type: keybase1NotifyFSFSActivity})
 export const createKeybase1NotifyFSFSEditListResponse = (payload: _Keybase1NotifyFSFSEditListResponsePayload) => ({payload, type: keybase1NotifyFSFSEditListResponse})
 export const createKeybase1NotifyFSFSOnlineStatusChanged = (payload: _Keybase1NotifyFSFSOnlineStatusChangedPayload) => ({payload, type: keybase1NotifyFSFSOnlineStatusChanged})
+export const createKeybase1NotifyFSFSOverallSyncStatusChanged = (payload: _Keybase1NotifyFSFSOverallSyncStatusChangedPayload) => ({payload, type: keybase1NotifyFSFSOverallSyncStatusChanged})
 export const createKeybase1NotifyFSFSPathUpdated = (payload: _Keybase1NotifyFSFSPathUpdatedPayload) => ({payload, type: keybase1NotifyFSFSPathUpdated})
 export const createKeybase1NotifyFSFSSyncActivity = (payload: _Keybase1NotifyFSFSSyncActivityPayload) => ({payload, type: keybase1NotifyFSFSSyncActivity})
 export const createKeybase1NotifyFSFSSyncStatusResponse = (payload: _Keybase1NotifyFSFSSyncStatusResponsePayload) => ({payload, type: keybase1NotifyFSFSSyncStatusResponse})
@@ -554,6 +566,7 @@ export type Chat1ChatUiChatStellarDataConfirmPayload = {|+payload: _Chat1ChatUiC
 export type Chat1ChatUiChatStellarDataErrorPayload = {|+payload: _Chat1ChatUiChatStellarDataErrorPayload, +type: 'engine-gen:chat1ChatUiChatStellarDataError'|}
 export type Chat1ChatUiChatStellarDonePayload = {|+payload: _Chat1ChatUiChatStellarDonePayload, +type: 'engine-gen:chat1ChatUiChatStellarDone'|}
 export type Chat1ChatUiChatStellarShowConfirmPayload = {|+payload: _Chat1ChatUiChatStellarShowConfirmPayload, +type: 'engine-gen:chat1ChatUiChatStellarShowConfirm'|}
+export type Chat1ChatUiChatTeamMentionUpdatePayload = {|+payload: _Chat1ChatUiChatTeamMentionUpdatePayload, +type: 'engine-gen:chat1ChatUiChatTeamMentionUpdate'|}
 export type Chat1ChatUiChatThreadCachedPayload = {|+payload: _Chat1ChatUiChatThreadCachedPayload, +type: 'engine-gen:chat1ChatUiChatThreadCached'|}
 export type Chat1ChatUiChatThreadFullPayload = {|+payload: _Chat1ChatUiChatThreadFullPayload, +type: 'engine-gen:chat1ChatUiChatThreadFull'|}
 export type Chat1NotifyChatChatAttachmentUploadProgressPayload = {|+payload: _Chat1NotifyChatChatAttachmentUploadProgressPayload, +type: 'engine-gen:chat1NotifyChatChatAttachmentUploadProgress'|}
@@ -616,7 +629,9 @@ export type Keybase1IdentifyUiStartPayload = {|+payload: _Keybase1IdentifyUiStar
 export type Keybase1LogUiLogPayload = {|+payload: _Keybase1LogUiLogPayload, +type: 'engine-gen:keybase1LogUiLog'|}
 export type Keybase1LoginUiDisplayPaperKeyPhrasePayload = {|+payload: _Keybase1LoginUiDisplayPaperKeyPhrasePayload, +type: 'engine-gen:keybase1LoginUiDisplayPaperKeyPhrase'|}
 export type Keybase1LoginUiDisplayPrimaryPaperKeyPayload = {|+payload: _Keybase1LoginUiDisplayPrimaryPaperKeyPayload, +type: 'engine-gen:keybase1LoginUiDisplayPrimaryPaperKey'|}
+export type Keybase1LoginUiDisplayResetProgressPayload = {|+payload: _Keybase1LoginUiDisplayResetProgressPayload, +type: 'engine-gen:keybase1LoginUiDisplayResetProgress'|}
 export type Keybase1LoginUiGetEmailOrUsernamePayload = {|+payload: _Keybase1LoginUiGetEmailOrUsernamePayload, +type: 'engine-gen:keybase1LoginUiGetEmailOrUsername'|}
+export type Keybase1LoginUiPromptResetAccountPayload = {|+payload: _Keybase1LoginUiPromptResetAccountPayload, +type: 'engine-gen:keybase1LoginUiPromptResetAccount'|}
 export type Keybase1LoginUiPromptRevokePaperKeysPayload = {|+payload: _Keybase1LoginUiPromptRevokePaperKeysPayload, +type: 'engine-gen:keybase1LoginUiPromptRevokePaperKeys'|}
 export type Keybase1LogsendPrepareLogsendPayload = {|+payload: _Keybase1LogsendPrepareLogsendPayload, +type: 'engine-gen:keybase1LogsendPrepareLogsend'|}
 export type Keybase1NotifyAppExitPayload = {|+payload: _Keybase1NotifyAppExitPayload, +type: 'engine-gen:keybase1NotifyAppExit'|}
@@ -630,6 +645,7 @@ export type Keybase1NotifyEphemeralNewTeamEkPayload = {|+payload: _Keybase1Notif
 export type Keybase1NotifyFSFSActivityPayload = {|+payload: _Keybase1NotifyFSFSActivityPayload, +type: 'engine-gen:keybase1NotifyFSFSActivity'|}
 export type Keybase1NotifyFSFSEditListResponsePayload = {|+payload: _Keybase1NotifyFSFSEditListResponsePayload, +type: 'engine-gen:keybase1NotifyFSFSEditListResponse'|}
 export type Keybase1NotifyFSFSOnlineStatusChangedPayload = {|+payload: _Keybase1NotifyFSFSOnlineStatusChangedPayload, +type: 'engine-gen:keybase1NotifyFSFSOnlineStatusChanged'|}
+export type Keybase1NotifyFSFSOverallSyncStatusChangedPayload = {|+payload: _Keybase1NotifyFSFSOverallSyncStatusChangedPayload, +type: 'engine-gen:keybase1NotifyFSFSOverallSyncStatusChanged'|}
 export type Keybase1NotifyFSFSPathUpdatedPayload = {|+payload: _Keybase1NotifyFSFSPathUpdatedPayload, +type: 'engine-gen:keybase1NotifyFSFSPathUpdated'|}
 export type Keybase1NotifyFSFSSyncActivityPayload = {|+payload: _Keybase1NotifyFSFSSyncActivityPayload, +type: 'engine-gen:keybase1NotifyFSFSSyncActivity'|}
 export type Keybase1NotifyFSFSSyncStatusResponsePayload = {|+payload: _Keybase1NotifyFSFSSyncStatusResponsePayload, +type: 'engine-gen:keybase1NotifyFSFSSyncStatusResponse'|}
@@ -729,6 +745,7 @@ export type Actions =
   | Chat1ChatUiChatStellarDataErrorPayload
   | Chat1ChatUiChatStellarDonePayload
   | Chat1ChatUiChatStellarShowConfirmPayload
+  | Chat1ChatUiChatTeamMentionUpdatePayload
   | Chat1ChatUiChatThreadCachedPayload
   | Chat1ChatUiChatThreadFullPayload
   | Chat1NotifyChatChatAttachmentUploadProgressPayload
@@ -791,7 +808,9 @@ export type Actions =
   | Keybase1LogUiLogPayload
   | Keybase1LoginUiDisplayPaperKeyPhrasePayload
   | Keybase1LoginUiDisplayPrimaryPaperKeyPayload
+  | Keybase1LoginUiDisplayResetProgressPayload
   | Keybase1LoginUiGetEmailOrUsernamePayload
+  | Keybase1LoginUiPromptResetAccountPayload
   | Keybase1LoginUiPromptRevokePaperKeysPayload
   | Keybase1LogsendPrepareLogsendPayload
   | Keybase1NotifyAppExitPayload
@@ -805,6 +824,7 @@ export type Actions =
   | Keybase1NotifyFSFSActivityPayload
   | Keybase1NotifyFSFSEditListResponsePayload
   | Keybase1NotifyFSFSOnlineStatusChangedPayload
+  | Keybase1NotifyFSFSOverallSyncStatusChangedPayload
   | Keybase1NotifyFSFSPathUpdatedPayload
   | Keybase1NotifyFSFSSyncActivityPayload
   | Keybase1NotifyFSFSSyncStatusResponsePayload

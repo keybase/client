@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/client/go/kbfs/test/clocktest"
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
@@ -728,7 +729,7 @@ func TestFolderBlockManagerCleanSyncCache(t *testing.T) {
 	var userName kbname.NormalizedUsername = "test_user"
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, userName)
 	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
-	config.vdebugSetting = "vlog2"
+	config.SetVLogLevel(libkb.VLog2String)
 
 	// Test the pointer-constraint logic.
 	config.SetMode(modeTestWithMaxPtrsLimit{config.Mode()})
@@ -748,7 +749,7 @@ func TestFolderBlockManagerCleanSyncCache(t *testing.T) {
 		ctx, t, config, userName.String(), tlf.Private)
 	kbfsOps := config.KBFSOps()
 	_, err = config.SetTlfSyncState(
-		rootNode.GetFolderBranch().Tlf, FolderSyncConfig{
+		ctx, rootNode.GetFolderBranch().Tlf, FolderSyncConfig{
 			Mode: keybase1.FolderSyncMode_ENABLED,
 		})
 	require.NoError(t, err)
@@ -814,7 +815,7 @@ func TestFolderBlockManagerCleanSyncCache(t *testing.T) {
 
 	t.Log("Set new TLF to syncing, and add a new revision")
 	_, err = config.SetTlfSyncState(
-		rootNode.GetFolderBranch().Tlf, FolderSyncConfig{
+		ctx, rootNode.GetFolderBranch().Tlf, FolderSyncConfig{
 			Mode: keybase1.FolderSyncMode_ENABLED,
 		})
 	require.NoError(t, err)

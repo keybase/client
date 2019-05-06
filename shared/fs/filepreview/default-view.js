@@ -45,19 +45,20 @@ const DefaultView = (props: DefaultViewProps) => (
         </Kb.Text>
       )}
       {// Enable this button for desktop when we have in-app sharing.
-      hasShare(props.path, props.pathItem) && (
+      hasShare('screen', props.path, props.pathItem) && (
         <>
           <Kb.Box2 direction="vertical" gap="medium" gapStart={true} />
           <PathItemAction
             clickable={{
               component: ({onClick, setRef}) => (
-                <Kb.Button key="share" type="Primary" label="Share" onClick={onClick} ref={setRef} />
+                <Kb.Button key="share" label="Share" onClick={onClick} ref={setRef} />
               ),
               type: 'component',
             }}
             path={props.path}
             routePath={props.routePath}
             initView="share"
+            mode="screen"
           />
         </>
       )}
@@ -65,7 +66,7 @@ const DefaultView = (props: DefaultViewProps) => (
         (props.sfmiEnabled ? (
           <Kb.Button
             key="open"
-            type="Secondary"
+            type="Dim"
             label={'Show in ' + fileUIName}
             style={{marginTop: Styles.globalMargins.small}}
             onClick={props.showInSystemFileManager}
@@ -73,8 +74,8 @@ const DefaultView = (props: DefaultViewProps) => (
         ) : (
           <Kb.Button
             key="download"
-            type="Secondary"
-            label="Download a copy"
+            mode="Secondary"
+            label="Download"
             style={{marginTop: Styles.globalMargins.small}}
             onClick={props.download}
           />

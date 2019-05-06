@@ -461,7 +461,7 @@ func (t *Team) Rotate(ctx context.Context) (err error) {
 		return err
 	}
 
-	mr, err := t.G().MerkleClient.FetchRootFromServerByFreshness(t.MetaContext(ctx), libkb.TeamMerkleFreshnessForAdmin)
+	mr, err := t.G().MerkleClient.FetchRootFromServer(t.MetaContext(ctx), libkb.TeamMerkleFreshnessForAdmin)
 	if err != nil {
 		return err
 	}
@@ -1758,7 +1758,7 @@ func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSetti
 		return err
 	}
 
-	mr, err := t.G().MerkleClient.FetchRootFromServerByFreshness(t.MetaContext(ctx), libkb.TeamMerkleFreshnessForAdmin)
+	mr, err := t.G().MerkleClient.FetchRootFromServer(t.MetaContext(ctx), libkb.TeamMerkleFreshnessForAdmin)
 	if err != nil {
 		return err
 	}

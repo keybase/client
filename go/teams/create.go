@@ -21,7 +21,7 @@ func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam key
 	}
 	teamID := teamName.ToTeamID(impTeam.IsPublic)
 
-	merkleRoot, err := g.MerkleClient.FetchRootFromServerByFreshness(libkb.NewMetaContext(ctx, g), libkb.TeamMerkleFreshnessForAdmin)
+	merkleRoot, err := g.MerkleClient.FetchRootFromServer(libkb.NewMetaContext(ctx, g), libkb.TeamMerkleFreshnessForAdmin)
 	if err != nil {
 		return res, teamName, err
 	}
@@ -285,7 +285,7 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, nameString stri
 		return nil, fmt.Errorf("cannot create root team with subteam name: %v", nameString)
 	}
 
-	merkleRoot, err := g.MerkleClient.FetchRootFromServerByFreshness(libkb.NewMetaContext(ctx, g), libkb.TeamMerkleFreshnessForAdmin)
+	merkleRoot, err := g.MerkleClient.FetchRootFromServer(libkb.NewMetaContext(ctx, g), libkb.TeamMerkleFreshnessForAdmin)
 	if err != nil {
 		return nil, err
 	}
@@ -345,7 +345,7 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 	if err != nil {
 		return nil, err
 	}
-	merkleRoot, err := g.MerkleClient.FetchRootFromServerByFreshness(libkb.NewMetaContext(ctx, g), libkb.TeamMerkleFreshnessForAdmin)
+	merkleRoot, err := g.MerkleClient.FetchRootFromServer(libkb.NewMetaContext(ctx, g), libkb.TeamMerkleFreshnessForAdmin)
 	if err != nil {
 		return nil, err
 	}

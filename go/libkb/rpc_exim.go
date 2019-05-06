@@ -23,7 +23,6 @@ import (
 	"github.com/keybase/go-crypto/openpgp"
 	pgpErrors "github.com/keybase/go-crypto/openpgp/errors"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	pkgErrors "github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -176,7 +175,7 @@ func ExportErrorAsStatus(g *GlobalContext, e error) (ret *keybase1.Status) {
 	// Before checking to see if an error implements ExportableError, peel off
 	// any wrappers from the `errors` package (KBFS uses these). This is a
 	// no-op for other types.
-	e = pkgErrors.Cause(e)
+	e = HumanError(e)
 	if ee, ok := e.(ExportableError); ok {
 		tmp := ee.ToStatus()
 		return &tmp

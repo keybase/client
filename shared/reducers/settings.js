@@ -140,6 +140,7 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
     case SettingsGen.onSubmitNewPassword:
     case SettingsGen.onUpdatePGPSettings:
     case SettingsGen.onChangeLockdownMode:
+    case SettingsGen.stop:
     case SettingsGen.trace:
     case SettingsGen.processorProfile:
     case SettingsGen.unfurlSettingsRefresh:

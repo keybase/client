@@ -148,6 +148,8 @@ protocol proveCommon {
     string key;
     union { null, string } group;
     boolean new;
+    @jsonkey("logo_key")
+    string logoKey;
   }
 
   record ExternalServiceConfig {

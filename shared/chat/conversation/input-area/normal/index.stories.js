@@ -115,6 +115,7 @@ const InputContainer = (props: Props) => {
     setUnsentText: Sb.action('setUnsentText'),
     showCommandMarkdown: false,
     showGiphySearch: false,
+    showReplyPreview: false,
     showTypingStatus: false,
     showWalletsIcon: !props.isEditing,
     suggestChannels: List(['general', 'random', 'spelunky', 'music', 'vidya-games']),
@@ -123,6 +124,7 @@ const InputContainer = (props: Props) => {
       {description: 'Message a user', hasHelpText: false, name: 'msg', usage: '<conversation> <msg>'},
       {description: 'Send a shrug', hasHelpText: false, name: 'shrug', usage: ''},
     ],
+    suggestTeams: [{fullName: '', teamname: 'keybase', username: ''}],
     suggestUsers: List([
       {fullName: 'Danny Ayoub', username: 'ayoubd'},
       {fullName: 'Chris Nojima', username: 'chrisnojima'},

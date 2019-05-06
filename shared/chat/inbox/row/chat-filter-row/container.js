@@ -20,6 +20,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     filter: ownProps.query,
     isLoading: Constants.anyChatWaitingKeys(state),
     isSearching: !!state.chat2.inboxSearch,
+    showNewTag: state.chat2.inboxShowNew,
   }
 }
 
@@ -54,6 +55,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onSetFilter: ownProps.onQueryChanged,
   onStartSearch: dispatchProps.onStartSearch,
   onStopSearch: dispatchProps.onStopSearch,
+  showNewTag: stateProps.showNewTag,
 })
 
 const KeyHandler = isMobile ? c => c : require('../../../../util/key-handler.desktop').default

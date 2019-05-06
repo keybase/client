@@ -2710,3 +2710,36 @@ func (r BoxAuditAttemptResult) IsOK() bool {
 		return false
 	}
 }
+
+func (a BoxAuditAttempt) String() string {
+	ret := fmt.Sprintf("%s", a.Result)
+	if a.Error != nil {
+		ret += fmt.Sprintf("\t(error: %s)", *a.Error)
+	}
+	if a.Rotated {
+		ret += "\t(team rotated)"
+	}
+	return ret
+}
+
+func (r RegionCode) IsNil() bool {
+	return len(r) == 0
+}
+
+func (c ContactComponent) ValueString() string {
+	switch {
+	case c.Email != nil:
+		return string(*c.Email)
+	case c.PhoneNumber != nil:
+		return string(*c.PhoneNumber)
+	default:
+		return ""
+	}
+}
+
+func (c ContactComponent) FormatDisplayLabel(addLabel bool) string {
+	if addLabel && c.Label != "" {
+		return fmt.Sprintf("%s (%s)", c.ValueString(), c.Label)
+	}
+	return c.ValueString()
+}

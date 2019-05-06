@@ -72,6 +72,17 @@
       "oneway": true,
       "lint": "ignore"
     },
+    "FSOverallSyncStatusChanged": {
+      "request": [
+        {
+          "name": "status",
+          "type": "FolderSyncStatus"
+        }
+      ],
+      "response": null,
+      "oneway": true,
+      "lint": "ignore"
+    },
     "FSOnlineStatusChanged": {
       "request": [
         {

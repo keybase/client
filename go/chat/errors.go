@@ -291,6 +291,13 @@ type BoxingCryptKeysError struct {
 	Err error
 }
 
+// Cause implements the pkg/errors Cause() method, also cloned in libkb via HumanError,
+// so that we know which error to show to the human being using keybase (rather than
+// for our own internal uses).
+func (e BoxingCryptKeysError) Cause() error {
+	return e.Err
+}
+
 func NewBoxingCryptKeysError(err error) BoxingCryptKeysError {
 	return BoxingCryptKeysError{
 		Err: err,

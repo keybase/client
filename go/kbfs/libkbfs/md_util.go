@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -493,7 +494,8 @@ func getFileBlockForMD(ctx context.Context, bcache data.BlockCacheSimple, bops B
 
 func reembedBlockChanges(ctx context.Context, codec kbfscodec.Codec,
 	bcache data.BlockCacheSimple, bops BlockOps, mode InitMode, tlfID tlf.ID,
-	pmd *PrivateMetadata, rmdWithKeys libkey.KeyMetadata, log logger.Logger) error {
+	pmd *PrivateMetadata, rmdWithKeys libkey.KeyMetadata,
+	log logger.Logger) error {
 	info := pmd.Changes.Info
 	if info.BlockPointer == data.ZeroPtr {
 		return nil
@@ -537,7 +539,9 @@ func reembedBlockChanges(ctx context.Context, codec kbfscodec.Codec,
 	// just pass in nil.  Also, reading doesn't depend on the UID, so
 	// it's ok to be empty.
 	var id keybase1.UserOrTeamID
-	fd := data.NewFileData(file, id, nil, rmdWithKeys, getter, cacher, log)
+	fd := data.NewFileData(
+		file, id, nil, rmdWithKeys, getter, cacher, log,
+		libkb.NewVDebugLog(log) /* one-off, short-lived, unconfigured vlog */)
 
 	buf, err := fd.GetBytes(ctx, 0, -1)
 	if err != nil {

@@ -319,8 +319,8 @@ func (t *GenericSocialProofServiceType) ProveParameters(mctx libkb.MetaContext) 
 		subtext = t.DisplayName()
 	}
 	return keybase1.ProveParameters{
-		LogoFull:    MakeIcons(mctx, t.config.Domain, "logo_full", 64),
-		LogoBlack:   MakeIcons(mctx, t.config.Domain, "logo_black", 16),
+		LogoFull:    MakeIcons(mctx, t.GetLogoKey(), "logo_full", 64),
+		LogoBlack:   MakeIcons(mctx, t.GetLogoKey(), "logo_black", 16),
 		Title:       t.config.Domain,
 		Subtext:     subtext,
 		Suffix:      fmt.Sprintf("@%v", t.config.Domain),

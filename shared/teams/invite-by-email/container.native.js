@@ -34,8 +34,8 @@ const extractPhoneNumber: string => ?string = (name: string) => {
   return (matches && matches[1] && cleanPhoneNumber(matches[1])) || ''
 }
 
-const mapStateToProps = (state, {routeProps}: OwnProps) => {
-  const teamname = routeProps.get('teamname')
+const mapStateToProps = (state, ownProps: OwnProps) => {
+  const teamname = getRouteProps(ownProps, 'teamname')
   const inviteError = Constants.getEmailInviteError(state)
   return {
     _pendingInvites: teamname ? Constants.getTeamInvites(state, teamname) : I.Set(),
@@ -77,7 +77,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
         })
       )
     }
-    dispatch(TeamsGen.createGetTeams())
+    dispatch(TeamsGen.createGetTeams({clearNavBadges: false}))
   },
   onInvitePhone: ({invitee, role, fullName = ''}) => {
     dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
@@ -89,24 +89,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
         teamname: getRouteProps(ownProps, 'teamname'),
       })
     )
-    dispatch(TeamsGen.createGetTeams())
-  },
-  onOpenRolePicker: (role: string, onComplete: string => void) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {
-              allowAdmin: false,
-              allowOwner: false,
-              onComplete,
-              selectedRole: role,
-            },
-            selected: 'teamControlledRolePicker',
-          },
-        ],
-      })
-    )
+    dispatch(TeamsGen.createGetTeams({clearNavBadges: false}))
   },
   onUninvite: (invitee: string, id?: string) => {
     dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))

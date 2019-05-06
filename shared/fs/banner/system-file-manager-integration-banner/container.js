@@ -32,7 +32,7 @@ export default ConnectedBanner
 
 export const asRows = isMobile
   ? (path: Types.Path, showBanner: boolean) => []
-  : (path: Types.Path, showBanner: boolean): Array<RowTypes.RowItemWithKey> =>
+  : (path: Types.Path, showBanner: boolean): Array<RowTypes.HeaderRowItem> =>
       showBanner
         ? [
             {

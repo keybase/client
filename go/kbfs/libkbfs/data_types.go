@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 	"time"
 
@@ -311,6 +312,21 @@ func (s PrefetchStatus) String() string {
 	return "Unknown"
 }
 
+// ToProtocolStatus returns a prefetch status that can be send over
+// the keybase1 protocol.
+func (s PrefetchStatus) ToProtocolStatus() keybase1.PrefetchStatus {
+	switch s {
+	case NoPrefetch:
+		return keybase1.PrefetchStatus_NOT_STARTED
+	case TriggeredPrefetch:
+		return keybase1.PrefetchStatus_IN_PROGRESS
+	case FinishedPrefetch:
+		return keybase1.PrefetchStatus_COMPLETE
+	default:
+		panic(fmt.Sprintf("Unknown prefetch status: %s", s))
+	}
+}
+
 // MarshalJSON converts a PrefetchStatus to JSON
 func (s PrefetchStatus) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s.String())
@@ -430,6 +446,7 @@ const (
 	blockRequestSync
 	blockRequestStopIfFull
 	blockRequestDeepSync
+	blockRequestDelayCacheCheck
 
 	// BlockRequestSolo indicates that no action should take place
 	// after fetching the block.  However, a TLF that is configured to
@@ -489,6 +506,10 @@ func (bra BlockRequestAction) String() string {
 		attrs = append(attrs, "stop-if-full")
 	}
 
+	if bra.DelayCacheCheck() {
+		attrs = append(attrs, "delay-cache-check")
+	}
+
 	return strings.Join(attrs, "|")
 }
 
@@ -535,7 +556,8 @@ func (bra BlockRequestAction) Sync() bool {
 // DeepSync returns true if the action indicates a deep-syncing of the
 // block tree rooted at the given block.
 func (bra BlockRequestAction) DeepSync() bool {
-	return bra == BlockRequestWithDeepSync
+	// The delayed cache check doesn't affect deep-syncing.
+	return bra.WithoutDelayedCacheCheckAction() == BlockRequestWithDeepSync
 }
 
 // DeepPrefetch returns true if the prefetcher should continue
@@ -590,4 +612,66 @@ func (bra BlockRequestAction) CacheType() DiskBlockCacheType {
 // not get rescheduled) when the corresponding disk cache is full.
 func (bra BlockRequestAction) StopIfFull() bool {
 	return bra&blockRequestStopIfFull > 0
+}
+
+// DelayedCacheCheckAction returns a new action that adds the
+// delayed-cache-check feature to `bra`.
+func (bra BlockRequestAction) DelayedCacheCheckAction() BlockRequestAction {
+	return bra | blockRequestDelayCacheCheck
+}
+
+// WithoutDelayedCacheCheckAction returns a new action that strips the
+// delayed-cache-check feature from `bra`.
+func (bra BlockRequestAction) WithoutDelayedCacheCheckAction() BlockRequestAction {
+	return bra &^ blockRequestDelayCacheCheck
+}
+
+// DelayCacheCheck returns true if the disk cache check for a block
+// request should be delayed until the request is being serviced by a
+// block worker, in order to improve the performance of the inline
+// `Request` call.
+func (bra BlockRequestAction) DelayCacheCheck() bool {
+	return bra&blockRequestDelayCacheCheck > 0
+}
+
+// PrefetchProgress tracks the number of bytes fetched for the block
+// tree rooted at a given block, along with the known total number of
+// bytes in that tree, and the start time of the prefetch.  Note that
+// the total can change over time as more blocks are downloaded.
+type PrefetchProgress struct {
+	SubtreeBytesFetched uint64
+	SubtreeBytesTotal   uint64
+	Start               time.Time
+}
+
+// ToProtocolProgress creates a progress suitable of being sent over
+// the keybase1 protocol to the service.
+func (p PrefetchProgress) ToProtocolProgress(clock Clock) (
+	out keybase1.PrefetchProgress) {
+	out.BytesFetched = int64(p.SubtreeBytesFetched)
+	out.BytesTotal = int64(p.SubtreeBytesTotal)
+	out.Start = keybase1.ToTime(p.Start)
+
+	if out.BytesTotal == 0 || out.Start == 0 {
+		return out
+	}
+
+	timeRunning := clock.Now().Sub(p.Start)
+	fracDone := float64(out.BytesFetched) / float64(out.BytesTotal)
+	totalTimeEstimate := time.Duration(float64(timeRunning) / fracDone)
+	endEstimate := p.Start.Add(totalTimeEstimate)
+	out.EndEstimate = keybase1.ToTime(endEstimate)
+	return out
+}
+
+// ToProtocolStatus creates a status suitable of being sent over the
+// keybase1 protocol to the service.  It never generates NOT_STARTED
+// since that doesn't make sense once you already have a prefetch
+// progress created.
+func (p PrefetchProgress) ToProtocolStatus() keybase1.PrefetchStatus {
+	if p.SubtreeBytesTotal == p.SubtreeBytesFetched ||
+		p.SubtreeBytesTotal == 0 {
+		return keybase1.PrefetchStatus_COMPLETE
+	}
+	return keybase1.PrefetchStatus_IN_PROGRESS
 }

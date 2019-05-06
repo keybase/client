@@ -6,6 +6,7 @@ package simplefs
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -1359,4 +1360,17 @@ func TestGetRevisions(t *testing.T) {
 	newestRev := 9 /* Last file revision was at 7, plus one for GC */
 	checkRevisions(2, newestRev, keybase1.RevisionSpanType_DEFAULT)
 	checkRevisions(2, newestRev, keybase1.RevisionSpanType_LAST_FIVE)
+}
+
+func TestOverallStatusFile(t *testing.T) {
+	ctx := context.Background()
+	sfs := newSimpleFS(
+		env.EmptyAppStateUpdater{}, libkbfs.MakeTestConfigOrBust(t, "jdoe"))
+	defer closeSimpleFS(ctx, t, sfs)
+
+	path := keybase1.NewPathWithKbfs("/" + libfs.StatusFileName)
+	buf := readRemoteFile(ctx, t, sfs, path)
+	var status libkbfs.KBFSStatus
+	json.Unmarshal(buf, &status)
+	require.Equal(t, "jdoe", status.CurrentUser)
 }

@@ -4,6 +4,7 @@ import {connect} from '../../../../util/container'
 import {AddPeopleHow} from '.'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {teamsTab} from '../../../../constants/tabs'
+import openURL from '../../../../util/open-url'
 
 type OwnProps = {
   attachTo: () => ?React.Component<any>,
@@ -32,6 +33,7 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => {
       )
       dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
     },
+    onSlackImport: () => openURL(`https://keybase.io/slack-importer/${teamname}`),
   }
 }
 

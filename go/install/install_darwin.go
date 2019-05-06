@@ -891,12 +891,13 @@ func UninstallKBFSOnStop(context Context, log Log) error {
 	if err != nil {
 		return err
 	}
+	log.Info("UninstallKBFSOnStop: uninstalling from mountdir: %s", mountDir)
 
 	if err := UninstallKBFS(context, mountDir, false, log); err != nil {
 		return err
 	}
 
-	log.Info("Uninstall mount: %s", mountDir)
+	log.Info("Uninstalled mount: %s", mountDir)
 	if err := libnativeinstaller.UninstallMountDir(runMode, log); err != nil {
 		return fmt.Errorf("Error uninstalling mount: %s", err)
 	}

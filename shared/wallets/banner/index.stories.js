@@ -18,7 +18,7 @@ const examples = [
 
 const load = () => {
   const story = storiesOf('Wallets/SendForm/Banner', module).addDecorator(story => (
-    <Box style={{maxWidth: 360}}>{story()}</Box>
+    <Box style={{maxWidth: 400}}>{story()}</Box>
   ))
   examples.forEach((ex, index) => story.add(`Example ${index + 1}`, () => <Banner {...ex} />))
 }

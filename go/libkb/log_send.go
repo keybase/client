@@ -40,6 +40,7 @@ type Logs struct {
 	Trace      string
 	CPUProfile string
 	Watchdog   string
+	Processes  string
 }
 
 // LogSendContext for LogSend
@@ -77,7 +78,7 @@ func addGzippedFile(mpart *multipart.Writer, param, filename, data string) error
 	return gz.Close()
 }
 
-func (l *LogSendContext) post(mctx MetaContext, status, feedback, kbfsLog, svcLog, ekLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog, watchdogLog string, traceBundle, cpuProfileBundle []byte, uid keybase1.UID, installID InstallID) (string, error) {
+func (l *LogSendContext) post(mctx MetaContext, status, feedback, kbfsLog, svcLog, ekLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog, watchdogLog string, traceBundle, cpuProfileBundle []byte, uid keybase1.UID, installID InstallID, processesLog string) (string, error) {
 	mctx.Debug("sending status + logs to keybase")
 
 	var body bytes.Buffer
@@ -126,6 +127,9 @@ func (l *LogSendContext) post(mctx MetaContext, status, feedback, kbfsLog, svcLo
 		return "", err
 	}
 	if err := addGzippedFile(mpart, "watchdog_log_gz", "watchdog_log.gz", watchdogLog); err != nil {
+		return "", err
+	}
+	if err := addGzippedFile(mpart, "processes_log_gz", "processes_log.gz", processesLog); err != nil {
 		return "", err
 	}
 
@@ -499,6 +503,7 @@ func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, num
 	var traceBundle []byte
 	var cpuProfileBundle []byte
 	var watchdogLog string
+	var processesLog string
 
 	if sendLogs {
 		svcLog = tail(l.G().Log, "service", logs.Service, numBytes)
@@ -529,20 +534,10 @@ func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, num
 		if mergeExtendedStatus {
 			statusJSON = l.mergeExtendedStatus(statusJSON)
 		}
-	} else {
-		kbfsLog = ""
-		svcLog = ""
-		ekLog = ""
-		desktopLog = ""
-		updaterLog = ""
-		startLog = ""
-		installLog = ""
-		systemLog = ""
-		gitLog = ""
-		watchdogLog = ""
+		processesLog = keybaseProcessList()
 	}
 
-	return l.post(mctx, statusJSON, feedback, kbfsLog, svcLog, ekLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog, watchdogLog, traceBundle, cpuProfileBundle, uid, installID)
+	return l.post(mctx, statusJSON, feedback, kbfsLog, svcLog, ekLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog, watchdogLog, traceBundle, cpuProfileBundle, uid, installID, processesLog)
 }
 
 // mergeExtendedStatus adds the extended status to the given status json blob.

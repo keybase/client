@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
@@ -33,7 +34,7 @@ type DirData struct {
 func NewDirData(
 	dir Path, chargedTo keybase1.UserOrTeamID, bsplit BlockSplitter,
 	kmd libkey.KeyMetadata, getter dirBlockGetter, cacher dirtyBlockCacher,
-	log logger.Logger) *DirData {
+	log logger.Logger, vlog *libkb.VDebugLog) *DirData {
 	dd := &DirData{
 		getter: getter,
 	}
@@ -45,6 +46,7 @@ func NewDirData(
 		getter:    dd.blockGetter,
 		cacher:    cacher,
 		log:       log,
+		vlog:      vlog,
 	}
 	return dd
 }
@@ -192,8 +194,10 @@ func (dd *DirData) createIndirectBlock(ctx context.Context, dver Ver) (
 		},
 	}
 
-	dd.tree.log.CDebugf(ctx, "Creating new level of indirection for dir %v, "+
-		"new block id for old top level is %v", dd.rootBlockPointer(), newID)
+	dd.tree.vlog.CLogf(
+		ctx, libkb.VLog1, "Creating new level of indirection for dir %v, "+
+			"new block id for old top level is %v",
+		dd.rootBlockPointer(), newID)
 
 	err = dd.tree.cacher(ctx, dd.rootBlockPointer(), dblock)
 	if err != nil {
@@ -221,7 +225,8 @@ func (dd *DirData) processModifiedBlock(
 	unrefs = append(unrefs, newUnrefs...)
 
 	if len(newBlocks) > 1 {
-		dd.tree.log.CDebugf(ctx, "Making new right block for %v",
+		dd.tree.vlog.CLogf(
+			ctx, libkb.VLog1, "Making new right block for %v",
 			dd.rootBlockPointer())
 
 		rightParents, _, err := dd.tree.newRightBlock(

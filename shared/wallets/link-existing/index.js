@@ -49,7 +49,7 @@ class LinkWallet extends React.Component<LinkWalletProps, LinkWalletState> {
   _getKeyButtons = () => [
     ...(Styles.isMobile
       ? []
-      : [<Kb.Button key={0} type="Secondary" onClick={this.props.onCancel} label="Cancel" />]),
+      : [<Kb.Button key={0} type="Dim" onClick={this.props.onCancel} label="Cancel" />]),
     <Kb.Button
       key={1}
       disabled={!this.props.secretKey}
@@ -67,7 +67,7 @@ class LinkWallet extends React.Component<LinkWalletProps, LinkWalletState> {
       : [
           <Kb.Button
             key={0}
-            type="Secondary"
+            type="Dim"
             onClick={this.props.onCancel}
             label="Cancel"
             disabled={this.props.nameValidationState === 'waiting' || this.props.waiting}
@@ -100,8 +100,6 @@ class LinkWallet extends React.Component<LinkWalletProps, LinkWalletState> {
     if (this.props.nameValidationState === 'valid' && this.state.view === 'name') {
       this.props.onClearErrors()
       this.props.onDone()
-      // This is for when we are showing this from a SendForm.
-      this.props.onBack && this.props.onBack()
     }
   }
 

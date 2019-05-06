@@ -4,22 +4,59 @@ import * as Types from '../../../../constants/types/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 
+type ReplyProps = {
+  deleted: boolean,
+  edited: boolean,
+  onClick: () => void,
+  text: string,
+  username: string,
+}
+
+const Reply = (props: ReplyProps) => {
+  return (
+    <Kb.ClickableBox onClick={props.onClick}>
+      <Kb.Box2
+        direction="horizontal"
+        gap="tiny"
+        fullWidth={true}
+        style={styles.replyContainer}
+        className={Styles.classNames('ReplyBox')}
+      >
+        <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />
+        <Kb.Box2 direction="vertical">
+          <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
+            <Kb.Avatar username={props.username} size={32} />
+            <Kb.Text type="BodySemibold" style={styles.replyUsername}>
+              {props.username}
+            </Kb.Text>
+          </Kb.Box2>
+          {!props.deleted ? (
+            <Kb.Text type="BodySmall">{props.text}</Kb.Text>
+          ) : (
+            <Kb.Text type="BodyTiny" style={styles.replyEdited}>
+              Original message deleted
+            </Kb.Text>
+          )}
+          {props.edited && (
+            <Kb.Text type="BodyTiny" style={styles.replyEdited}>
+              EDITED
+            </Kb.Text>
+          )}
+        </Kb.Box2>
+      </Kb.Box2>
+    </Kb.ClickableBox>
+  )
+}
+
 export type Props = {
   isEditing: boolean,
   message: Types.MessageText,
+  reply?: ReplyProps,
   text: string,
   type: 'error' | 'pending' | 'sent',
 }
 
-const MessageText = ({
-  text,
-  type,
-  isEditing,
-  mentionsAt,
-  mentionsChannel,
-  mentionsChannelName,
-  message,
-}: Props) => {
+const MessageText = ({isEditing, message, reply, text, type}: Props) => {
   const markdown = (
     <Kb.Markdown
       style={getStyle(type, isEditing)}
@@ -30,13 +67,19 @@ const MessageText = ({
       {text}
     </Kb.Markdown>
   )
+  const content = (
+    <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
+      {!!reply && <Reply {...reply} />}
+      {markdown}
+    </Kb.Box2>
+  )
 
   return Styles.isMobile ? (
     <Kb.Box2 direction="vertical" style={styles.wrapper}>
-      {markdown}
+      {content}
     </Kb.Box2>
   ) : (
-    markdown
+    content
   )
 }
 
@@ -83,6 +126,20 @@ const styles = Styles.styleSheetCreate({
   editing,
   pendingFail,
   pendingFailEditing,
+  quoteContainer: {
+    alignSelf: 'stretch',
+    backgroundColor: Styles.globalColors.lightGrey,
+    paddingLeft: Styles.globalMargins.xtiny,
+  },
+  replyContainer: {
+    paddingTop: Styles.globalMargins.xtiny,
+  },
+  replyEdited: {
+    color: Styles.globalColors.black_20,
+  },
+  replyUsername: {
+    alignSelf: 'center',
+  },
   sent,
   sentEditing,
   wrapper: {alignSelf: 'flex-start', flex: 1},

@@ -91,7 +91,9 @@ const spawnBuildPayment = (state, action, logger) => {
 const openSendRequestForm = (state, action) => {
   if (!state.wallets.acceptedDisclaimer) {
     // redirect to disclaimer
-    return RouteTreeGen.createNavigateTo({path: Constants.rootWalletPath})
+    return flags.useNewRouter
+      ? RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']})
+      : RouteTreeGen.createNavigateTo({path: Constants.rootWalletPath})
   }
 
   // load accounts for default display currency
@@ -124,7 +126,15 @@ const createNewAccount = (state, action, logger) => {
     })
 }
 
-const emptyAsset = {code: '', issuer: '', issuerName: '', type: 'native', verifiedDomain: ''}
+const emptyAsset = {
+  code: '',
+  desc: '',
+  infoUrl: '',
+  issuer: '',
+  issuerName: '',
+  type: 'native',
+  verifiedDomain: '',
+}
 
 const sendPayment = state => {
   const notXLM = state.wallets.building.currency !== '' && state.wallets.building.currency !== 'XLM'
@@ -249,9 +259,9 @@ const clearBuilding = () => WalletsGen.createClearBuilding()
 const clearErrors = () => WalletsGen.createClearErrors()
 
 const loadWalletDisclaimer = () =>
-  RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise(undefined, Constants.checkOnlineWaitingKey).then(
-    accepted => WalletsGen.createWalletDisclaimerReceived({accepted})
-  )
+  RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise(undefined, Constants.checkOnlineWaitingKey)
+    .then(accepted => WalletsGen.createWalletDisclaimerReceived({accepted}))
+    .catch(() => {}) // handled by reloadable
 
 const loadAccounts = (state, action, logger) => {
   if (!state.config.loggedIn) {
@@ -494,7 +504,7 @@ const changeDisplayCurrency = (state, action) =>
       currency: action.payload.code, // called currency, though it is a code
     },
     Constants.changeDisplayCurrencyWaitingKey
-  )
+  ).then(_ => WalletsGen.createLoadDisplayCurrency({accountID: action.payload.accountID}))
 
 const changeAccountName = (state, action) =>
   RPCStellarTypes.localChangeWalletAccountNameLocalRpcPromise(
@@ -639,6 +649,17 @@ const navigateToAccount = (state, action) => {
     ? [Tabs.settingsTab, SettingsConstants.walletsTab]
     : [{props: {}, selected: Tabs.walletsTab}]
 
+  if (flags.useNewRouter) {
+    return [
+      RouteTreeGen.createClearModals(),
+      RouteTreeGen.createResetStack({
+        actions: isMobile ? [RouteTreeGen.createNavigateAppend({path: [SettingsConstants.walletsTab]})] : [],
+        index: isMobile ? 1 : 0,
+        tab: isMobile ? Tabs.settingsTab : Tabs.walletsTab,
+      }),
+    ]
+  }
+
   return RouteTreeGen.createNavigateTo({path: wallet})
 }
 
@@ -647,19 +668,11 @@ const navigateToTransaction = (state, action) => {
   const actions = [WalletsGen.createSelectAccount({accountID, reason: 'show-transaction'})]
   const path = [...Constants.walletPath, {props: {accountID, paymentID}, selected: 'transactionDetails'}]
   if (flags.useNewRouter) {
-    // Since the new wallet routes have nested stacks, we actually
-    // do want to navigate to each path component separately.
-    for (var i = 0; i < path.length; ++i) {
-      // Set replace for all but the first navigate so that hitting
-      // back once takes us back to the chat.
-      const replace = i > 0
-      actions.push(
-        RouteTreeGen.createNavigateTo({
-          path: [path[i]],
-          replace,
-        })
-      )
-    }
+    actions.push(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {accountID, paymentID}, selected: 'transactionDetails'}],
+      })
+    )
   } else {
     actions.push(RouteTreeGen.createNavigateTo({path}))
   }
@@ -850,7 +863,7 @@ const maybeClearNewTxs = (state, action) => {
 const receivedBadgeState = (state, action) =>
   WalletsGen.createBadgesUpdated({accounts: action.payload.badgeState.unreadWalletAccounts || []})
 
-const acceptDisclaimer = (state, action) =>
+const acceptDisclaimer = state =>
   RPCStellarTypes.localAcceptDisclaimerLocalRpcPromise(undefined, Constants.acceptDisclaimerWaitingKey).catch(
     e => {
       // disclaimer screen handles showing error
@@ -861,8 +874,19 @@ const acceptDisclaimer = (state, action) =>
 
 const checkDisclaimer = (state, _, logger) =>
   RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise()
-    .then(accepted => WalletsGen.createWalletDisclaimerReceived({accepted}))
-    .catch(err => logger.error(`Error: ${err.message}`))
+    .then(accepted => {
+      const actions = [WalletsGen.createWalletDisclaimerReceived({accepted})]
+      if (flags.useNewRouter && accepted) {
+        // in new nav we could be in a modal anywhere in the app right now
+        actions.push(RouteTreeGen.createClearModals())
+        actions.push(RouteTreeGen.createSwitchTab({tab: isMobile ? Tabs.settingsTab : Tabs.walletsTab}))
+        if (isMobile) {
+          actions.push(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.walletsTab]}))
+        }
+      }
+      return actions
+    })
+    .catch(err => logger.error(`Error checking wallet disclaimer: ${err.message}`))
 
 const maybeNavToLinkExisting = (state, action) =>
   action.payload.nextScreen === 'linkExisting' &&
@@ -870,12 +894,16 @@ const maybeNavToLinkExisting = (state, action) =>
     path: [...Constants.rootWalletPath, ...(isMobile ? ['linkExisting'] : ['wallet', 'linkExisting'])],
   })
 
-const rejectDisclaimer = (state, action) =>
-  isMobile
+const rejectDisclaimer = (state, action) => {
+  if (flags.useNewRouter) {
+    return isMobile ? RouteTreeGen.createNavigateUp() : RouteTreeGen.createClearModals()
+  }
+  return isMobile
     ? RouteTreeGen.createNavigateTo({
         path: [{props: {}, selected: Tabs.settingsTab}, {props: {}, selected: null}],
       })
     : RouteTreeGen.createSwitchTo({path: [state.routeTree.get('previousTab') || Tabs.peopleTab]})
+}
 
 const loadMobileOnlyMode = (state, action, logger) => {
   let accountID = action.payload.accountID

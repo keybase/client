@@ -430,6 +430,7 @@ type TestLoginUI struct {
 	Username                 string
 	RevokeBackup             bool
 	CalledGetEmailOrUsername int
+	ResetAccount             bool
 }
 
 func (t *TestLoginUI) GetEmailOrUsername(_ context.Context, _ int) (string, error) {
@@ -446,6 +447,14 @@ func (t *TestLoginUI) DisplayPaperKeyPhrase(_ context.Context, arg keybase1.Disp
 }
 
 func (t *TestLoginUI) DisplayPrimaryPaperKey(_ context.Context, arg keybase1.DisplayPrimaryPaperKeyArg) error {
+	return nil
+}
+
+func (t *TestLoginUI) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (bool, error) {
+	return t.ResetAccount, nil
+}
+
+func (t *TestLoginUI) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
 	return nil
 }
 
@@ -500,6 +509,13 @@ func (t TestUIDMapper) ClearUIDAtEldestSeqno(_ context.Context, _ UIDMapperConte
 
 func (t TestUIDMapper) CheckUIDAgainstUsername(uid keybase1.UID, un NormalizedUsername) bool {
 	return true
+}
+
+func (t TestUIDMapper) MapHardcodedUsernameToUID(un NormalizedUsername) keybase1.UID {
+	if un.String() == "max" {
+		return keybase1.UID("dbb165b7879fe7b1174df73bed0b9500")
+	}
+	return keybase1.UID("")
 }
 
 func (t TestUIDMapper) InformOfEldestSeqno(ctx context.Context, g UIDMapperContext, uv keybase1.UserVersion) (bool, error) {

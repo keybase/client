@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"testing"
 
 	"github.com/keybase/client/go/kbfs/kbfscodec"
@@ -45,8 +46,8 @@ func (lm testLogMaker) MakeLogger(_ string) logger.Logger {
 	return lm.log
 }
 
-func (lm testLogMaker) MakeVLogger(_ string) *libkb.VDebugLog {
-	vlog := libkb.NewVDebugLog(lm.log)
+func (lm testLogMaker) MakeVLogger(log logger.Logger) *libkb.VDebugLog {
+	vlog := libkb.NewVDebugLog(log)
 	vlog.Configure(lm.vdebugSetting)
 	return vlog
 }
@@ -99,7 +100,8 @@ func (t *testSyncedTlfGetterSetter) IsSyncedTlfPath(tlfPath string) bool {
 	return false
 }
 
-func (t *testSyncedTlfGetterSetter) SetTlfSyncState(tlfID tlf.ID,
+func (t *testSyncedTlfGetterSetter) SetTlfSyncState(
+	_ context.Context, tlfID tlf.ID,
 	config FolderSyncConfig) (<-chan error, error) {
 	t.syncedTlfs[tlfID] = config
 	return nil, nil

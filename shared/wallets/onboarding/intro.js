@@ -16,7 +16,7 @@ const Intro = (props: IntroProps) => {
       style={Styles.collapseStyles([styles.buttonStyle, {backgroundColor: Styles.globalColors.white}])}
       fullWidth={true}
       key={0}
-      type="Secondary"
+      type="Dim"
       onClick={() => props.setNextScreen('openWallet')}
       label="Open your wallet"
       labelStyle={styles.labelStyle}

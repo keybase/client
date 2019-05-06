@@ -34,12 +34,7 @@ const YouRekey = ({onEnterPaperkey, onBack}: Props) => {
           <Text center={true} type="BodySmall" style={textStyle} negative={true}>
             To unlock this conversation, open one of your other devices or enter a paperkey.
           </Text>
-          <Button
-            type="Secondary"
-            backgroundMode="Terminal"
-            onClick={onEnterPaperkey}
-            label="Enter a paper key"
-          />
+          <Button onClick={onEnterPaperkey} label="Enter a paper key" />
         </Box>
       </Box>
     </StandardScreen>

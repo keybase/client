@@ -15,8 +15,8 @@ type Props = {|
 const EnterEmail = (props: Props) => (
   <SignupScreen
     buttons={[
-      {label: 'Finish', onClick: props.onFinish, type: 'PrimaryGreen'},
-      ...(Styles.isMobile ? [] : [{label: 'Skip for now', onClick: props.onSkip, type: 'Secondary'}]),
+      {label: 'Finish', onClick: props.onFinish, type: 'Success'},
+      ...(Styles.isMobile ? [] : [{label: 'Skip for now', onClick: props.onSkip, type: 'Dim'}]),
     ]}
     rightActionLabel="Skip"
     onRightAction={props.onSkip}
@@ -29,6 +29,7 @@ const EnterEmail = (props: Props) => (
         keyboardType="email-address"
         placeholder="Email address"
         onChangeText={props.onChangeEmail}
+        textContentType="emailAddress"
       />
       <Kb.Checkbox
         label="Allow friends to find you by this email address"

@@ -18,12 +18,13 @@ const mapStateToProps = (state, {teamname}: OwnProps) => {
   const publicityMember = publicitySettings.member
   const publicityTeam = publicitySettings.team
   const settings = Constants.getTeamSettings(state, teamname)
+  const openTeamRole: Types.MaybeTeamRoleType = Constants.teamRoleByEnum[settings.joinAs]
   return {
     ignoreAccessRequests: publicitySettings.ignoreAccessRequests,
     isBigTeam: Constants.isBigTeam(state, teamname),
     openTeam: settings.open,
-    // TODO this is really a maybe team rolettype
-    openTeamRole: ((Constants.teamRoleByEnum[settings.joinAs]: any): Types.TeamRoleType),
+    // Cast to TeamRoleType
+    openTeamRole: openTeamRole === 'none' ? 'reader' : openTeamRole,
     publicityAnyMember,
     publicityMember,
     publicityTeam,
@@ -53,24 +54,6 @@ const mapDispatchToProps = dispatch => ({
         path: [{props: {entityType, onConfirm, policy}, selected: 'retentionWarning'}],
       })
     ),
-  setOpenTeamRole: (newOpenTeamRole: Types.TeamRoleType, setNewOpenTeamRole: Types.TeamRoleType => void) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {
-              allowAdmin: false,
-              allowOwner: false,
-              onComplete: setNewOpenTeamRole,
-              pluralizeRoleName: true,
-              selectedRole: newOpenTeamRole,
-            },
-            selected: 'teamControlledRolePicker',
-          },
-        ],
-      })
-    )
-  },
 })
 
 const mergeProps = (stateProps, dispatchProps) => {
@@ -92,7 +75,6 @@ const mergeProps = (stateProps, dispatchProps) => {
       }
       dispatchProps._savePublicity(stateProps.teamname, settings)
     },
-    setOpenTeamRole: dispatchProps.setOpenTeamRole,
   }
 }
 

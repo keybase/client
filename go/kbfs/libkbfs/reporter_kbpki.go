@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -79,13 +80,16 @@ var noErrorNames = map[string]bool{
 // tracking.  Notify will make RPCs to the keybase daemon.
 type ReporterKBPKI struct {
 	*ReporterSimple
-	config             Config
-	log                logger.Logger
-	notifyBuffer       chan *keybase1.FSNotification
-	onlineStatusBuffer chan bool
-	notifyPathBuffer   chan string
-	notifySyncBuffer   chan *keybase1.FSPathSyncStatus
-	canceler           func()
+	config                  Config
+	log                     logger.Logger
+	vlog                    *libkb.VDebugLog
+	notifyBuffer            chan *keybase1.FSNotification
+	onlineStatusBuffer      chan bool
+	notifyPathBuffer        chan string
+	notifySyncBuffer        chan *keybase1.FSPathSyncStatus
+	notifyOverallSyncBuffer chan keybase1.FolderSyncStatus
+	shutdownCh              chan struct{}
+	canceler                func()
 
 	lastNotifyPathLock sync.Mutex
 	lastNotifyPath     string
@@ -93,14 +97,18 @@ type ReporterKBPKI struct {
 
 // NewReporterKBPKI creates a new ReporterKBPKI.
 func NewReporterKBPKI(config Config, maxErrors, bufSize int) *ReporterKBPKI {
+	log := config.MakeLogger("")
 	r := &ReporterKBPKI{
-		ReporterSimple:     NewReporterSimple(config.Clock(), maxErrors),
-		config:             config,
-		log:                config.MakeLogger(""),
-		notifyBuffer:       make(chan *keybase1.FSNotification, bufSize),
-		onlineStatusBuffer: make(chan bool, bufSize),
-		notifyPathBuffer:   make(chan string, 1),
-		notifySyncBuffer:   make(chan *keybase1.FSPathSyncStatus, 1),
+		ReporterSimple:          NewReporterSimple(config.Clock(), maxErrors),
+		config:                  config,
+		log:                     log,
+		vlog:                    config.MakeVLogger(log),
+		notifyBuffer:            make(chan *keybase1.FSNotification, bufSize),
+		onlineStatusBuffer:      make(chan bool, bufSize),
+		notifyPathBuffer:        make(chan string, 1),
+		notifySyncBuffer:        make(chan *keybase1.FSPathSyncStatus, 1),
+		notifyOverallSyncBuffer: make(chan keybase1.FolderSyncStatus, 1),
+		shutdownCh:              make(chan struct{}),
 	}
 	var ctx context.Context
 	ctx, r.canceler = context.WithCancel(context.Background())
@@ -204,7 +212,8 @@ func (r *ReporterKBPKI) Notify(ctx context.Context, notification *keybase1.FSNot
 	select {
 	case r.notifyBuffer <- notification:
 	default:
-		r.log.CDebugf(ctx, "ReporterKBPKI: notify buffer full, dropping %+v",
+		r.vlog.CLogf(
+			ctx, libkb.VLog1, "ReporterKBPKI: notify buffer full, dropping %+v",
 			notification)
 	}
 }
@@ -234,16 +243,23 @@ func (r *ReporterKBPKI) NotifyPathUpdated(ctx context.Context, path string) {
 	case r.notifyPathBuffer <- path:
 	default:
 		if sameAsLast {
-			r.log.CDebugf(ctx,
+			r.vlog.CLogf(
+				ctx, libkb.VLog1,
 				"ReporterKBPKI: notify path buffer full, dropping %s", path)
 		} else {
 			// This should be rare; it only happens when user switches from one
 			// TLF to another, and we happen to have an update from the old TLF
 			// in the buffer before switching subscribed TLF.
-			r.log.CDebugf(ctx,
+			r.vlog.CLogf(
+				ctx, libkb.VLog1,
 				"ReporterKBPKI: notify path buffer full, but path is "+
 					"different from last one, so send in a goroutine %s", path)
-			go func() { r.notifyPathBuffer <- path }()
+			go func() {
+				select {
+				case r.notifyPathBuffer <- path:
+				case <-r.shutdownCh:
+				}
+			}()
 		}
 	}
 }
@@ -258,17 +274,45 @@ func (r *ReporterKBPKI) NotifySyncStatus(ctx context.Context,
 	select {
 	case r.notifySyncBuffer <- status:
 	default:
-		r.log.CDebugf(ctx, "ReporterKBPKI: notify sync buffer full, "+
-			"dropping %+v", status)
+		r.vlog.CLogf(
+			ctx, libkb.VLog1, "ReporterKBPKI: notify sync buffer full, "+
+				"dropping %+v", status)
+	}
+}
+
+// NotifyOverallSyncStatus implements the Reporter interface for ReporterKBPKI.
+func (r *ReporterKBPKI) NotifyOverallSyncStatus(
+	ctx context.Context, status keybase1.FolderSyncStatus) {
+	select {
+	case r.notifyOverallSyncBuffer <- status:
+	default:
+		// If this represents a "complete" status, we can't drop it.
+		// Instead launch a goroutine to make sure it gets sent
+		// eventually.
+		if status.PrefetchStatus == keybase1.PrefetchStatus_COMPLETE {
+			go func() {
+				select {
+				case r.notifyOverallSyncBuffer <- status:
+				case <-r.shutdownCh:
+				}
+			}()
+		} else {
+			r.vlog.CLogf(
+				ctx, libkb.VLog1,
+				"ReporterKBPKI: notify overall sync buffer dropping %+v",
+				status)
+		}
 	}
 }
 
 // Shutdown implements the Reporter interface for ReporterKBPKI.
 func (r *ReporterKBPKI) Shutdown() {
 	r.canceler()
+	close(r.shutdownCh)
 	close(r.notifyBuffer)
 	close(r.onlineStatusBuffer)
 	close(r.notifySyncBuffer)
+	close(r.notifyOverallSyncBuffer)
 }
 
 const reporterSendInterval = time.Second
@@ -333,6 +377,19 @@ func (r *ReporterKBPKI) send(ctx context.Context) {
 					status); err != nil {
 					r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
 						"sync status: %s", err)
+				}
+			default:
+			}
+
+			select {
+			case status, ok := <-r.notifyOverallSyncBuffer:
+				if !ok {
+					return
+				}
+				if err := r.config.KeybaseService().NotifyOverallSyncStatus(
+					ctx, status); err != nil {
+					r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
+						"overall sync status: %s", err)
 				}
 			default:
 			}

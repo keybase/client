@@ -306,9 +306,16 @@ const routeToInitialScreen = state => {
       state.config.startupConversation &&
       state.config.startupConversation !== ChatConstants.noConversationIDKey
     ) {
+      const actions = [
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {props: {conversationIDKey: state.config.startupConversation}, selected: 'chatConversation'},
+          ],
+        }),
+      ]
       return [
-        // $FlowIssue
-        RouteTreeGen.createSwitchRouteDef({path: ChatConstants.threadRoute, routeDef: appRouteTree}),
+        RouteTreeGen.createSwitchRouteDef({path: [Tabs.chatTab], routeDef: appRouteTree}),
+        RouteTreeGen.createResetStack({actions, index: 1, tab: Tabs.chatTab}),
         ChatGen.createSelectConversation({
           conversationIDKey: state.config.startupConversation,
           reason: state.config.startupWasFromPush ? 'push' : 'savedLastState',
@@ -512,6 +519,8 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
       | RouteTreeGen.SwitchRouteDefPayload
       | RouteTreeGen.ClearModalsPayload
       | RouteTreeGen.NavUpToScreenPayload
+      | RouteTreeGen.SwitchTabPayload
+      | RouteTreeGen.ResetStackPayload
     >(
       [
         RouteTreeGen.navigateAppend,
@@ -521,6 +530,8 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
         RouteTreeGen.switchRouteDef,
         RouteTreeGen.clearModals,
         RouteTreeGen.navUpToScreen,
+        RouteTreeGen.switchTab,
+        RouteTreeGen.resetStack,
       ],
       newNavigation
     )

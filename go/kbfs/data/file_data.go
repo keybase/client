@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
@@ -36,7 +37,8 @@ type FileData struct {
 func NewFileData(
 	file Path, chargedTo keybase1.UserOrTeamID, bsplit BlockSplitter,
 	kmd libkey.KeyMetadata, getter FileBlockGetter,
-	cacher dirtyBlockCacher, log logger.Logger) *FileData {
+	cacher dirtyBlockCacher, log logger.Logger,
+	vlog *libkb.VDebugLog) *FileData {
 	fd := &FileData{
 		getter: getter,
 	}
@@ -48,6 +50,7 @@ func NewFileData(
 		getter:    fd.blockGetter,
 		cacher:    cacher,
 		log:       log,
+		vlog:      vlog,
 	}
 	return fd
 }
@@ -183,8 +186,9 @@ func (fd *FileData) getByteSlicesInOffsetRange(ctx context.Context,
 				if fill > toRead {
 					fill = toRead
 				}
-				fd.tree.log.CDebugf(ctx, "Read from hole: nextByte=%d "+
-					"lastByteInBlock=%d fill=%d", nextByte, lastByteInBlock,
+				fd.tree.vlog.CLogf(
+					ctx, libkb.VLog1, "Read from hole: nextByte=%d "+
+						"lastByteInBlock=%d fill=%d", nextByte, lastByteInBlock,
 					fill)
 				if fill <= 0 {
 					fd.tree.log.CErrorf(ctx,
@@ -224,8 +228,9 @@ func (fd *FileData) getByteSlicesInOffsetRange(ctx context.Context,
 		if fill > toRead {
 			fill = toRead
 		}
-		fd.tree.log.CDebugf(ctx, "Read from hole at end of file: nextByte=%d "+
-			"fill=%d", nextByte, fill)
+		fd.tree.vlog.CLogf(
+			ctx, libkb.VLog1, "Read from hole at end of file: nextByte=%d "+
+				"fill=%d", nextByte, fill)
 		if fill <= 0 {
 			fd.tree.log.CErrorf(ctx,
 				"Read invalid file fill <= 0 while reading hole")
@@ -334,8 +339,9 @@ func (fd *FileData) createIndirectBlock(
 		},
 	}
 
-	fd.tree.log.CDebugf(ctx, "Creating new level of indirection for file %v, "+
-		"new block id for old top level is %v", fd.rootBlockPointer(), newID)
+	fd.tree.vlog.CLogf(
+		ctx, libkb.VLog1, "Creating new level of indirection for file %v, "+
+			"new block id for old top level is %v", fd.rootBlockPointer(), newID)
 
 	// Mark the old block ID as not dirty, so that we will treat the
 	// old block ID as newly dirtied in cacheBlockIfNotYetDirtyLocked.
@@ -405,7 +411,7 @@ func (fd *FileData) Write(ctx context.Context, data []byte, off Int64Offset,
 	oldSizeWithoutHoles := oldDe.Size
 	newDe = oldDe
 
-	fd.tree.log.CDebugf(ctx, "Writing %d bytes at off %d", n, off)
+	fd.tree.vlog.CLogf(ctx, libkb.VLog1, "Writing %d bytes at off %d", n, off)
 
 	dirtyMap := make(map[BlockPointer]bool)
 	for nCopied < n {
@@ -462,8 +468,9 @@ func (fd *FileData) Write(ctx context.Context, data []byte, off Int64Offset,
 				// and its offset will be smaller than the block to
 				// its left -- we'll fix that up below.
 				var newDirtyPtrs []BlockPointer
-				fd.tree.log.CDebugf(ctx, "Making new right block at "+
-					"nCopied=%d, newBlockOff=%d", nCopied, newBlockOff)
+				fd.tree.vlog.CLogf(
+					ctx, libkb.VLog1, "Making new right block at "+
+						"nCopied=%d, newBlockOff=%d", nCopied, newBlockOff)
 				wasIndirect := topBlock.IsInd
 				rightParents, newDirtyPtrs, err = fd.tree.newRightBlock(
 					ctx, parentBlocks, newBlockOff,
@@ -585,12 +592,14 @@ func (fd *FileData) TruncateExtend(ctx context.Context, size uint64,
 	topBlock *FileBlock, parentBlocks []ParentBlockAndChildIndex,
 	oldDe DirEntry, df *DirtyFile) (
 	newDe DirEntry, dirtyPtrs []BlockPointer, err error) {
-	fd.tree.log.CDebugf(ctx, "truncateExtend: extending file %v to size %d",
+	fd.tree.vlog.CLogf(
+		ctx, libkb.VLog1, "truncateExtend: extending file %v to size %d",
 		fd.rootBlockPointer(), size)
 	switchToIndirect := !topBlock.IsInd
 	oldTopBlock := topBlock
 	if switchToIndirect {
-		fd.tree.log.CDebugf(ctx, "truncateExtend: making block indirect %v",
+		fd.tree.vlog.CLogf(
+			ctx, libkb.VLog1, "truncateExtend: making block indirect %v",
 			fd.rootBlockPointer())
 	}
 
@@ -610,7 +619,8 @@ func (fd *FileData) TruncateExtend(ctx context.Context, size uint64,
 			return DirEntry{}, nil, err
 		}
 		dirtyPtrs = append(dirtyPtrs, topBlock.IPtrs[0].BlockPointer)
-		fd.tree.log.CDebugf(ctx, "truncateExtend: new zero data block %v",
+		fd.tree.vlog.CLogf(
+			ctx, libkb.VLog1, "truncateExtend: new zero data block %v",
 			topBlock.IPtrs[0].BlockPointer)
 	}
 	dirtyPtrs = append(dirtyPtrs, newDirtyPtrs...)
@@ -1122,7 +1132,8 @@ func (fd *FileData) DeepCopy(ctx context.Context, dataVer Ver) (
 			return ZeroPtr, nil, err
 		}
 
-		fd.tree.log.CDebugf(ctx, "Deep copied file %s: %v -> %v",
+		fd.tree.vlog.CLogf(
+			ctx, libkb.VLog1, "Deep copied file %s: %v -> %v",
 			fd.tree.file.TailName(), fd.rootBlockPointer(), newTopPtr)
 
 		return newTopPtr, nil, nil
@@ -1224,7 +1235,8 @@ func (fd *FileData) DeepCopy(ctx context.Context, dataVer Ver) (
 			fd.tree.chargedTo, fd.rootBlockPointer().GetBlockType()),
 		DirectType: IndirectBlock,
 	}
-	fd.tree.log.CDebugf(ctx, "Deep copied indirect file %s: %v -> %v",
+	fd.tree.vlog.CLogf(
+		ctx, libkb.VLog1, "Deep copied indirect file %s: %v -> %v",
 		fd.tree.file.TailName(), fd.rootBlockPointer(), newTopPtr)
 
 	newTopBlock, ok := copiedBlocks[fd.rootBlockPointer()]

@@ -19,8 +19,10 @@ import {findKey} from 'lodash-es'
 import {type TypedActions} from '../actions/typed-actions-gen'
 import flags from '../util/feature-flags'
 
+export const syncToggleWaitingKey = 'fs:syncToggle'
 export const sendLinkToChatFindConversationWaitingKey = 'fs:sendLinkToChatFindConversation'
 export const sendLinkToChatSendWaitingKey = 'fs:sendLinkToChatSend'
+export const deleteWaitingKey = 'fs:delete'
 
 export const defaultPath = Types.stringToPath('/keybase')
 
@@ -42,7 +44,7 @@ export const emptyFolder = makeNewFolder()
 
 export const prefetchNotStarted: Types.PrefetchNotStarted = I.Record({state: 'not-started'})()
 
-export const prefetchComplete: Types.PrefetchComplete = I.Record({state: 'completet'})()
+export const prefetchComplete: Types.PrefetchComplete = I.Record({state: 'complete'})()
 
 export const makePrefetchInProgress: I.RecordFactory<Types._PrefetchInProgress> = I.Record({
   bytesFetched: 0,
@@ -53,13 +55,11 @@ export const makePrefetchInProgress: I.RecordFactory<Types._PrefetchInProgress> 
 })
 
 const pathItemMetadataDefault = {
-  badgeCount: 0,
   lastModifiedTimestamp: 0,
-  lastWriter: {uid: '', username: ''},
+  lastWriter: '',
   name: 'unknown',
   prefetchStatus: prefetchNotStarted,
   size: 0,
-  tlfMeta: undefined,
   writable: false,
 }
 
@@ -112,9 +112,15 @@ export const makeTlf: I.RecordFactory<Types._Tlf> = I.Record({
   resetParticipants: I.List(),
   syncConfig: null,
   teamId: '',
-  tlfType: 'private',
   waitingForParticipantUnlock: I.List(),
   youCanUnlock: I.List(),
+})
+
+export const makeSyncingFoldersProgress: I.RecordFactory<Types._SyncingFoldersProgress> = I.Record({
+  bytesFetched: 0,
+  bytesTotal: 0,
+  endEstimate: 0,
+  start: 0,
 })
 
 export const defaultSortSetting = 'name-asc'
@@ -280,6 +286,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   sendAttachmentToChat: makeSendAttachmentToChat(),
   sendLinkToChat: makeSendLinkToChat(),
   sfmi: makeSystemFileManagerIntegration(),
+  syncingFoldersProgress: makeSyncingFoldersProgress(),
   tlfUpdates: I.List(),
   tlfs: makeTlfs(),
   uploads: makeUploads(),
@@ -687,7 +694,7 @@ export const getTlfListAndTypeFromPath = (
 export const unknownTlf = makeTlf()
 export const getTlfFromPath = (tlfs: Types.Tlfs, path: Types.Path): Types.Tlf => {
   const elems = Types.getPathElements(path)
-  if (elems.length !== 3) {
+  if (elems.length < 3) {
     return unknownTlf
   }
   const {tlfList} = getTlfListAndTypeFromPath(tlfs, path)
@@ -732,6 +739,16 @@ export const usernameInPath = (username: string, path: Types.Path) => {
   const elems = Types.getPathElements(path)
   return elems.length >= 3 && elems[2].split(',').includes(username)
 }
+
+export const isOfflineUnsynced = (
+  daemonStatus: Types.KbfsDaemonStatus,
+  pathItem: Types.PathItem,
+  path: Types.Path
+) =>
+  flags.kbfsOfflineMode &&
+  !daemonStatus.online &&
+  Types.getPathLevel(path) > 2 &&
+  pathItem.prefetchStatus !== prefetchComplete
 
 // To make sure we have consistent badging, all badging related stuff should go
 // through this function. That is:
@@ -779,6 +796,7 @@ export const parsedPathTeamList: Types.ParsedPathTlfList = I.Record({kind: 'tlf-
 const makeParsedPathGroupTlf: I.RecordFactory<Types._ParsedPathGroupTlf> = I.Record({
   kind: 'group-tlf',
   readers: null,
+  tlfName: '',
   tlfType: 'private',
   writers: I.List(),
 })
@@ -786,6 +804,7 @@ const makeParsedPathGroupTlf: I.RecordFactory<Types._ParsedPathGroupTlf> = I.Rec
 const makeParsedPathTeamTlf: I.RecordFactory<Types._ParsedPathTeamTlf> = I.Record({
   kind: 'team-tlf',
   team: '',
+  tlfName: '',
   tlfType: 'team',
 })
 
@@ -793,6 +812,7 @@ const makeParsedPathInGroupTlf: I.RecordFactory<Types._ParsedPathInGroupTlf> = I
   kind: 'in-group-tlf',
   readers: null,
   rest: I.List(),
+  tlfName: '',
   tlfType: 'private',
   writers: I.List(),
 })
@@ -801,6 +821,7 @@ const makeParsedPathInTeamTlf: I.RecordFactory<Types._ParsedPathInTeamTlf> = I.R
   kind: 'in-team-tlf',
   rest: I.List(),
   team: '',
+  tlfName: '',
   tlfType: 'team',
 })
 
@@ -920,6 +941,31 @@ export const isTeamPath = (path: Types.Path): boolean => {
   return parsedPath.kind !== 'root' && parsedPath.tlfType === 'team'
 }
 
+export const getChatTarget = (path: Types.Path, me: string): string => {
+  const parsedPath = parsePath(path)
+  if (parsedPath.kind !== 'root' && parsedPath.tlfType === 'team') {
+    return 'team conversation'
+  }
+  if (parsedPath.kind === 'group-tlf' || parsedPath.kind === 'in-group-tlf') {
+    if (parsedPath.writers.size === 1 && !parsedPath.readers && parsedPath.writers.first() === me) {
+      return 'myself'
+    }
+    if (parsedPath.writers.size + (parsedPath.readers ? parsedPath.readers.size : 0) === 2) {
+      const notMe = parsedPath.writers.concat(parsedPath.readers || []).filter(u => u !== me)
+      if (notMe.size === 1) {
+        return notMe.first()
+      }
+    }
+    return 'group conversation'
+  }
+  return 'conversation'
+}
+
+export const isEmptyFolder = (pathItems: Types.PathItems, path: Types.Path) => {
+  const _pathItem = pathItems.get(path, unknownPathItem)
+  return _pathItem.type === 'folder' && !_pathItem.children.size
+}
+
 const humanizeDownloadIntent = (intent: Types.DownloadIntent) => {
   switch (intent) {
     case 'camera-roll':
@@ -950,7 +996,7 @@ const isPathEnabledForSync = (syncConfig: Types.TlfSyncConfig, path: Types.Path)
     case 'partial':
       // TODO: when we enable partial sync lookup, remember to deal with
       // potential ".." traversal as well.
-      return false
+      return syncConfig.enabledPaths.includes(path)
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(syncConfig.mode)
       return false
@@ -964,7 +1010,7 @@ export const getSyncStatusInMergeProps = (
   uploadingPaths: I.Set<Types.Path>,
   path: Types.Path
 ): Types.SyncStatus => {
-  if (!tlf.syncConfig || pathItem === unknownPathItem) {
+  if (!tlf.syncConfig || (pathItem === unknownPathItem && tlf.syncConfig.mode !== 'disabled')) {
     return 'unknown'
   }
   const tlfSyncConfig: Types.TlfSyncConfig = tlf.syncConfig
@@ -989,6 +1035,9 @@ export const getSyncStatusInMergeProps = (
         return 'awaiting-to-sync'
       }
       const inProgress: Types.PrefetchInProgress = pathItem.prefetchStatus
+      if (inProgress.bytesTotal === 0) {
+        return 'sync-error'
+      }
       return inProgress.bytesFetched / inProgress.bytesTotal
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(pathItem.prefetchStatus.state)
@@ -1023,7 +1072,7 @@ export const makeActionForOpenPathInFilesTab = flags.useNewRouter
   ? (
       path: Types.Path, // TODO: remove the second arg when we are done with migrating to nav2
       routePath?: ?I.List<string>
-    ): TypedActions => RouteTreeGen.createNavigateAppend({path: [{props: {path}, selected: 'tabs.fsTab'}]})
+    ): TypedActions => RouteTreeGen.createNavigateAppend({path: [{props: {path}, selected: 'fsRoot'}]})
   : (path: Types.Path, routePath?: ?I.List<string>): TypedActions => {
       const finalRoute = {props: {path}, selected: 'main'}
       const routeChangeAction = isMobile
@@ -1104,6 +1153,24 @@ export const makeActionsForShowSendAttachmentToChat = (
 
 export const splitFileNameAndExtension = (fileName: string) =>
   ((str, idx) => [str.slice(0, idx), str.slice(idx)])(fileName, fileName.lastIndexOf('.'))
+
+export const isFolder = (path: Types.Path, pathItem: Types.PathItem) =>
+  Types.getPathLevel(path) <= 3 || pathItem.type === 'folder'
+
+export const humanizeBytes = (n: number, d: number): string => {
+  const kb = 1024
+  const mb = kb * 1024
+  const gb = mb * 1024
+
+  if (d < kb) {
+    return `${n} of ${d} bytes`
+  } else if (d < mb) {
+    return `${(n / kb).toFixed(2)} of ${(d / kb).toFixed(2)} KB`
+  } else if (d < gb) {
+    return `${(n / mb).toFixed(2)} of ${(d / mb).toFixed(2)} MB`
+  }
+  return `${(n / gb).toFixed(2)} of ${(d / gb).toFixed(2)} GB`
+}
 
 export const erroredActionToMessage = (action: FsGen.Actions, error: string): string => {
   const errorIsTimeout = error.includes('context deadline exceeded')

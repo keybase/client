@@ -73,8 +73,6 @@ class MenubarRender extends React.Component<Props, State> {
   }
 
   _renderLoggedOut() {
-    const menuColor = this.state.showingMenu ? Styles.globalColors.black_50 : Styles.globalColors.black_50
-
     return (
       <Kb.Box style={styles.widgetContainer}>
         {isDarwin && <style>{_realCSS}</style>}
@@ -87,10 +85,11 @@ class MenubarRender extends React.Component<Props, State> {
           ])}
         >
           <Kb.Icon
-            color={menuColor}
-            hoverColor={menuColor}
-            type="iconfont-nav-more"
+            color={Styles.globalColors.darkBlue4}
+            hoverColor={Styles.globalColors.white}
+            type="iconfont-nav-2-hamburger"
             sizeType="Big"
+            style={styles.hamburgerIcon}
             onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
             ref={this.attachmentRef}
           />
@@ -117,10 +116,10 @@ class MenubarRender extends React.Component<Props, State> {
             color={Styles.globalColors.yellow}
           />
           <Kb.Text type="Body" style={{alignSelf: 'center', marginTop: 6}}>
-            You're logged out of Keybase!
+            You are logged out of Keybase.
           </Kb.Text>
           <Kb.ButtonBar direction="row">
-            <Kb.Button type="Primary" label="Log In" onClick={this.props.logIn} />
+            <Kb.Button label="Log in" onClick={this.props.logIn} />
           </Kb.ButtonBar>
         </Kb.Box>
       </Kb.Box>
@@ -128,11 +127,10 @@ class MenubarRender extends React.Component<Props, State> {
   }
 
   _renderDaemonHandshakeWait() {
-    const menuColor = this.state.showingMenu ? Styles.globalColors.black_50 : Styles.globalColors.black_50
     const text =
       this.props.daemonHandshakeState === 'waitingForWaiters'
-        ? `Connecting UI services to crypto engine... This may take a few seconds`
-        : `Starting up Keybase`
+        ? `Connecting interface to crypto engine... This may take a few seconds.`
+        : `Starting up Keybase...`
 
     return (
       <Kb.Box style={styles.widgetContainer}>
@@ -146,10 +144,11 @@ class MenubarRender extends React.Component<Props, State> {
           ])}
         >
           <Kb.Icon
-            color={menuColor}
-            hoverColor={menuColor}
-            type="iconfont-nav-more"
+            color={Styles.globalColors.darkBlue4}
+            hoverColor={Styles.globalColors.white}
+            type="iconfont-nav-2-hamburger"
             sizeType="Big"
+            style={styles.hamburgerIcon}
             onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
             ref={this.attachmentRef}
           />
@@ -176,7 +175,7 @@ class MenubarRender extends React.Component<Props, State> {
             color={Styles.globalColors.yellow}
           />
           <Kb.Text
-            type="Body"
+            type="BodySmall"
             style={{
               alignSelf: 'center',
               marginTop: 6,
@@ -193,14 +192,14 @@ class MenubarRender extends React.Component<Props, State> {
 
   _menuView(title, iconType, count) {
     return (
-      <Kb.Box2 direction="horizontal" fullWidth={true}>
-        <Kb.Box style={{marginRight: Styles.globalMargins.xsmall, position: 'relative'}}>
-          <Kb.Icon type={iconType} color={Styles.globalColors.black_20} fontSize={20} />
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={{alignItems: 'center'}}>
+        <Kb.Box style={{marginRight: Styles.globalMargins.tiny, position: 'relative'}}>
+          <Kb.Icon type={iconType} color={Styles.globalColors.blue} sizeType="Big" />
           {!!count && (
             <Kb.Badge badgeNumber={count || 0} badgeStyle={{left: 14, position: 'absolute', top: -2}} />
           )}
         </Kb.Box>
-        <Kb.Text className="title" type="Body" style={Styles.collapseStyles([{color: undefined}])}>
+        <Kb.Text className="title" type="BodySemibold" style={Styles.collapseStyles([{color: undefined}])}>
           {title}
         </Kb.Text>
       </Kb.Box2>
@@ -219,22 +218,22 @@ class MenubarRender extends React.Component<Props, State> {
             {
               onClick: () => this.props.openApp(Tabs.walletsTab),
               title: 'Wallet',
-              view: this._menuView('Wallet', 'iconfont-nav-wallets', countMap[Tabs.walletsTab]),
+              view: this._menuView('Wallet', 'iconfont-nav-2-wallets', countMap[Tabs.walletsTab]),
             },
             {
               onClick: () => this.props.openApp(Tabs.gitTab),
               title: 'Git',
-              view: this._menuView('Git', 'iconfont-nav-git', countMap[Tabs.gitTab]),
+              view: this._menuView('Git', 'iconfont-nav-2-git', countMap[Tabs.gitTab]),
             },
             {
               onClick: () => this.props.openApp(Tabs.devicesTab),
               title: 'Devices',
-              view: this._menuView('Devices', 'iconfont-nav-devices', countMap[Tabs.devicesTab]),
+              view: this._menuView('Devices', 'iconfont-nav-2-devices', countMap[Tabs.devicesTab]),
             },
             {
               onClick: () => this.props.openApp(Tabs.settingsTab),
               title: 'Settings',
-              view: this._menuView('Settings', 'iconfont-nav-settings', countMap[Tabs.settingsTab]),
+              view: this._menuView('Settings', 'iconfont-nav-2-settings', countMap[Tabs.settingsTab]),
             },
             'Divider',
           ]
@@ -257,7 +256,7 @@ class MenubarRender extends React.Component<Props, State> {
       ...webLink,
       {onClick: this.props.showBug, title: 'Report a bug'},
       {onClick: this.props.showHelp, title: 'Help'},
-      {onClick: this.props.quit, title: 'Quit app'},
+      {onClick: this.props.quit, title: 'Quit Keybase'},
     ]
   }
 
@@ -290,12 +289,12 @@ class MenubarRender extends React.Component<Props, State> {
                 position: 'relative',
               },
             ])}
-            onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
           >
             <Kb.Icon
               color={Styles.globalColors.darkBlue4}
-              hoverColor={Styles.globalColors.black}
-              type="iconfont-nav-more"
+              hoverColor={Styles.globalColors.white}
+              onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
+              type="iconfont-nav-2-hamburger"
               sizeType="Big"
               ref={this.attachmentRef}
             />
@@ -350,11 +349,11 @@ body {
 `
 
 const iconMap = {
-  [Tabs.peopleTab]: 'iconfont-nav-people',
-  [Tabs.chatTab]: 'iconfont-nav-chat',
-  [Tabs.devicesTab]: 'iconfont-nav-devices',
-  [Tabs.fsTab]: 'iconfont-nav-files',
-  [Tabs.teamsTab]: 'iconfont-nav-teams',
+  [Tabs.peopleTab]: 'iconfont-nav-2-people',
+  [Tabs.chatTab]: 'iconfont-nav-2-chat',
+  [Tabs.devicesTab]: 'iconfont-nav-2-devices',
+  [Tabs.fsTab]: 'iconfont-nav-2-files',
+  [Tabs.teamsTab]: 'iconfont-nav-2-teams',
 }
 const BadgeIcon = ({tab, countMap, openApp}) => {
   const count = countMap[tab]
@@ -365,12 +364,13 @@ const BadgeIcon = ({tab, countMap, openApp}) => {
   }
 
   return (
-    <Kb.Box style={{...Styles.desktopStyles.clickable, marginLeft: 7, marginRight: 7, position: 'relative'}}>
+    <Kb.Box style={{...Styles.desktopStyles.clickable, position: 'relative'}}>
       <Kb.Icon
         color={Styles.globalColors.darkBlue4}
         hoverColor={Styles.globalColors.white}
         onClick={() => openApp(tab)}
         sizeType="Big"
+        style={styles.navIcons}
         type={iconType}
       />
       {!!count && <Kb.Badge badgeNumber={count} badgeStyle={{position: 'absolute', right: -8, top: -6}} />}
@@ -397,6 +397,9 @@ const styles = Styles.styleSheetCreate({
     width: 0,
   },
   footer: {width: 360},
+  hamburgerIcon: {
+    marginRight: Styles.globalMargins.tiny,
+  },
   headerBadgesContainer: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
@@ -408,6 +411,7 @@ const styles = Styles.styleSheetCreate({
     alignSelf: 'center',
     marginBottom: 12,
   },
+  navIcons: {paddingLeft: Styles.globalMargins.xtiny, paddingRight: Styles.globalMargins.xtiny},
   topRow: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',

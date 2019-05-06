@@ -117,13 +117,11 @@ class GlobalError extends React.Component<Props, State> {
           </Kb.Box>
           <Kb.Box style={summaryRowStyle}>
             <Kb.Button
-              backgroundMode="Terminal"
               fullWidth={true}
               label="Please tell us"
               onClick={this.props.onFeedback}
               small={true}
-              style={{width: '100%'}}
-              type="Secondary"
+              type="Dim"
             />
           </Kb.Box>
         </Kb.Box>

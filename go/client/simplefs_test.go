@@ -248,6 +248,12 @@ func (s SimpleFSMock) SimpleFSSetFolderSyncConfig(
 	return nil
 }
 
+// SimpleFSSyncConfigAndStatus implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSSyncConfigAndStatus(
+	_ context.Context) (keybase1.SyncConfigAndStatusRes, error) {
+	return keybase1.SyncConfigAndStatusRes{}, nil
+}
+
 // SimpleFSAreWeConnectedToMDServer implements the SimpleFSInterface.
 func (s SimpleFSMock) SimpleFSAreWeConnectedToMDServer(
 	_ context.Context) (bool, error) {

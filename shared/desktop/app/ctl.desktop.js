@@ -16,6 +16,7 @@ export function ctlStop(callback: any) {
 }
 
 function exitApp() {
+  console.log('exiting app')
   // For some reason the first app.exit kills only popups (remote components and pinentry)
   // The main window survives. This makes sure to keep exiting until we are actually out.
   // It seems to work even when we have a broken reference to a browser window.

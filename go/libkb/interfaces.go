@@ -424,6 +424,7 @@ type ChatUI interface {
 	ChatShowManageChannels(context.Context, string) error
 	ChatCoinFlipStatus(context.Context, []chat1.UICoinFlipStatus) error
 	ChatCommandMarkdown(context.Context, chat1.ConversationID, *chat1.UICommandMarkdown) error
+	ChatTeamMentionUpdate(context.Context, string, string, chat1.UITeamMention) error
 }
 
 type PromptDefault int
@@ -622,10 +623,12 @@ type ServiceType interface {
 		kbUsername, remoteUsername string, sigID keybase1.SigID) (string, error)
 	GetAPIArgKey() string
 	IsDevelOnly() bool
+	GetLogoKey() string
 
 	MakeProofChecker(l RemoteProofChainLink) ProofChecker
 	SetDisplayConfig(*keybase1.ServiceDisplayConfig)
 	CanMakeNewProofs(mctx MetaContext) bool
+	CanMakeNewProofsSkipFeatureFlag(mctx MetaContext) bool
 	DisplayPriority() int
 	DisplayGroup() string
 	IsNew(MetaContext) bool
@@ -643,6 +646,7 @@ type ExternalServicesCollector interface {
 // parameterized proofs.
 type MerkleStore interface {
 	GetLatestEntry(m MetaContext) (keybase1.MerkleStoreEntry, error)
+	GetLatestEntryWithKnown(MetaContext, *keybase1.MerkleStoreKitHash) (*keybase1.MerkleStoreEntry, error)
 }
 
 // UserChangedHandler is a generic interface for handling user changed events.
@@ -679,7 +683,6 @@ type TeamLoader interface {
 	HintLatestSeqno(ctx context.Context, id keybase1.TeamID, seqno keybase1.Seqno) error
 	ResolveNameToIDUntrusted(ctx context.Context, teamName keybase1.TeamName, public bool, allowCache bool) (id keybase1.TeamID, err error)
 	ForceRepollUntil(ctx context.Context, t gregor.TimeOrOffset) error
-	OnLogout()
 	// Clear the in-memory cache. Does not affect the disk cache.
 	ClearMem()
 }
@@ -690,22 +693,19 @@ type FastTeamLoader interface {
 	HintLatestSeqno(m MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) error
 	VerifyTeamName(m MetaContext, id keybase1.TeamID, name keybase1.TeamName, forceRefresh bool) error
 	ForceRepollUntil(m MetaContext, t gregor.TimeOrOffset) error
-	OnLogout()
 }
 
 type TeamAuditor interface {
 	AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno) (err error)
-	OnLogout(m MetaContext)
 }
 
 type TeamBoxAuditor interface {
 	AssertUnjailedOrReaudit(m MetaContext, id keybase1.TeamID) (didReaudit bool, err error)
 	IsInJail(m MetaContext, id keybase1.TeamID) (bool, error)
-	RetryNextBoxAudit(m MetaContext) (err error)
-	BoxAuditRandomTeam(m MetaContext) (err error)
-	BoxAuditTeam(m MetaContext, id keybase1.TeamID) (err error)
+	RetryNextBoxAudit(m MetaContext) (attempt *keybase1.BoxAuditAttempt, err error)
+	BoxAuditRandomTeam(m MetaContext) (attempt *keybase1.BoxAuditAttempt, err error)
+	BoxAuditTeam(m MetaContext, id keybase1.TeamID) (attempt *keybase1.BoxAuditAttempt, err error)
 	Attempt(m MetaContext, id keybase1.TeamID, rotateBeforeAudit bool) keybase1.BoxAuditAttempt
-	OnLogout(m MetaContext)
 }
 
 // MiniChatPayment is the argument for sending an in-chat payment.
@@ -740,7 +740,6 @@ type MiniChatPaymentSummary struct {
 }
 
 type Stellar interface {
-	OnLogout()
 	CreateWalletSoft(context.Context)
 	Upkeep(context.Context) error
 	GetServerDefinitions(context.Context) (stellar1.StellarServerDefinitions, error)
@@ -828,11 +827,15 @@ type LRUKeyer interface {
 type LRUer interface {
 	Get(context.Context, LRUContext, LRUKeyer) (interface{}, error)
 	Put(context.Context, LRUContext, LRUKeyer, interface{}) error
+	OnLogout(mctx MetaContext) error
+	OnDbNuke(mctx MetaContext) error
 }
 
 type MemLRUer interface {
 	Get(key interface{}) (interface{}, bool)
 	Put(key, value interface{}) bool
+	OnLogout(mctx MetaContext) error
+	OnDbNuke(mctx MetaContext) error
 }
 
 type ClockContext interface {
@@ -863,6 +866,10 @@ type UIDMapper interface {
 	// For new UIDs, it's a question of just SHA2'ing. For legacy usernames, we check the
 	// hardcoded map.
 	CheckUIDAgainstUsername(uid keybase1.UID, un NormalizedUsername) bool
+
+	// MapHardcodedUsernameToUID will map the given legacy username to a UID if it exists
+	// in the hardcoded map. If not, it will return the nil UID.
+	MapHardcodedUsernameToUID(un NormalizedUsername) keybase1.UID
 
 	// MapUIDToUsernamePackages maps the given set of UIDs to the username
 	// packages, which include a username and a fullname, and when the mapping
@@ -918,9 +925,10 @@ type ChatHelper interface {
 	SendMsgByID(ctx context.Context, convID chat1.ConversationID,
 		tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error
 	SendTextByIDNonblock(ctx context.Context, convID chat1.ConversationID,
-		tlfName string, text string, outboxID *chat1.OutboxID) (chat1.OutboxID, error)
+		tlfName string, text string, outboxID *chat1.OutboxID, replyTo *chat1.MessageID) (chat1.OutboxID, error)
 	SendMsgByIDNonblock(ctx context.Context, convID chat1.ConversationID,
-		tlfName string, body chat1.MessageBody, msgType chat1.MessageType, outboxID *chat1.OutboxID) (chat1.OutboxID, error)
+		tlfName string, body chat1.MessageBody, msgType chat1.MessageType, outboxID *chat1.OutboxID,
+		replyTo *chat1.MessageID) (chat1.OutboxID, error)
 	SendTextByName(ctx context.Context, name string, topicName *string,
 		membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string) error
 	SendMsgByName(ctx context.Context, name string, topicName *string,

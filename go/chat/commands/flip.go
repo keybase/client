@@ -24,7 +24,7 @@ func NewFlip(g *globals.Context) *Flip {
 }
 
 func (s *Flip) Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	tlfName, text string) (err error) {
+	tlfName, text string, replyTo *chat1.MessageID) (err error) {
 	defer s.Trace(ctx, func() error { return err }, "Execute")()
 	if !s.Match(ctx, text) {
 		return ErrInvalidCommand

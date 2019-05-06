@@ -1175,22 +1175,6 @@ func (o FolderSyncConfig) DeepCopy() FolderSyncConfig {
 	}
 }
 
-type FolderSyncStatus struct {
-	LocalDiskBytesAvailable int64            `codec:"localDiskBytesAvailable" json:"localDiskBytesAvailable"`
-	LocalDiskBytesTotal     int64            `codec:"localDiskBytesTotal" json:"localDiskBytesTotal"`
-	PrefetchStatus          PrefetchStatus   `codec:"prefetchStatus" json:"prefetchStatus"`
-	PrefetchProgress        PrefetchProgress `codec:"prefetchProgress" json:"prefetchProgress"`
-}
-
-func (o FolderSyncStatus) DeepCopy() FolderSyncStatus {
-	return FolderSyncStatus{
-		LocalDiskBytesAvailable: o.LocalDiskBytesAvailable,
-		LocalDiskBytesTotal:     o.LocalDiskBytesTotal,
-		PrefetchStatus:          o.PrefetchStatus.DeepCopy(),
-		PrefetchProgress:        o.PrefetchProgress.DeepCopy(),
-	}
-}
-
 type FolderSyncConfigAndStatus struct {
 	Config FolderSyncConfig `codec:"config" json:"config"`
 	Status FolderSyncStatus `codec:"status" json:"status"`
@@ -1200,6 +1184,42 @@ func (o FolderSyncConfigAndStatus) DeepCopy() FolderSyncConfigAndStatus {
 	return FolderSyncConfigAndStatus{
 		Config: o.Config.DeepCopy(),
 		Status: o.Status.DeepCopy(),
+	}
+}
+
+type FolderSyncConfigAndStatusWithFolder struct {
+	Folder Folder           `codec:"folder" json:"folder"`
+	Config FolderSyncConfig `codec:"config" json:"config"`
+	Status FolderSyncStatus `codec:"status" json:"status"`
+}
+
+func (o FolderSyncConfigAndStatusWithFolder) DeepCopy() FolderSyncConfigAndStatusWithFolder {
+	return FolderSyncConfigAndStatusWithFolder{
+		Folder: o.Folder.DeepCopy(),
+		Config: o.Config.DeepCopy(),
+		Status: o.Status.DeepCopy(),
+	}
+}
+
+type SyncConfigAndStatusRes struct {
+	Folders       []FolderSyncConfigAndStatusWithFolder `codec:"folders" json:"folders"`
+	OverallStatus FolderSyncStatus                      `codec:"overallStatus" json:"overallStatus"`
+}
+
+func (o SyncConfigAndStatusRes) DeepCopy() SyncConfigAndStatusRes {
+	return SyncConfigAndStatusRes{
+		Folders: (func(x []FolderSyncConfigAndStatusWithFolder) []FolderSyncConfigAndStatusWithFolder {
+			if x == nil {
+				return nil
+			}
+			ret := make([]FolderSyncConfigAndStatusWithFolder, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Folders),
+		OverallStatus: o.OverallStatus.DeepCopy(),
 	}
 }
 
@@ -1368,6 +1388,9 @@ type SimpleFSSetFolderSyncConfigArg struct {
 	Config FolderSyncConfig `codec:"config" json:"config"`
 }
 
+type SimpleFSSyncConfigAndStatusArg struct {
+}
+
 type SimpleFSAreWeConnectedToMDServerArg struct {
 }
 
@@ -1483,6 +1506,7 @@ type SimpleFSInterface interface {
 	SimpleFSReset(context.Context, Path) error
 	SimpleFSFolderSyncConfigAndStatus(context.Context, Path) (FolderSyncConfigAndStatus, error)
 	SimpleFSSetFolderSyncConfig(context.Context, SimpleFSSetFolderSyncConfigArg) error
+	SimpleFSSyncConfigAndStatus(context.Context) (SyncConfigAndStatusRes, error)
 	SimpleFSAreWeConnectedToMDServer(context.Context) (bool, error)
 	SimpleFSSetDebugLevel(context.Context, string) error
 }
@@ -1981,6 +2005,16 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSSyncConfigAndStatus": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSSyncConfigAndStatusArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.SimpleFSSyncConfigAndStatus(ctx)
+					return
+				},
+			},
 			"simpleFSAreWeConnectedToMDServer": {
 				MakeArg: func() interface{} {
 					var ret [1]SimpleFSAreWeConnectedToMDServerArg
@@ -2270,6 +2304,11 @@ func (c SimpleFSClient) SimpleFSFolderSyncConfigAndStatus(ctx context.Context, p
 
 func (c SimpleFSClient) SimpleFSSetFolderSyncConfig(ctx context.Context, __arg SimpleFSSetFolderSyncConfigArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSetFolderSyncConfig", []interface{}{__arg}, nil)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSSyncConfigAndStatus(ctx context.Context) (res SyncConfigAndStatusRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSyncConfigAndStatus", []interface{}{SimpleFSSyncConfigAndStatusArg{}}, &res)
 	return
 }
 

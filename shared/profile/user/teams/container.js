@@ -22,10 +22,15 @@ const mapStateToProps = (state, ownProps) => {
 const mapDispatchToProps = (dispatch, ownProps) => ({
   onEdit: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileShowcaseTeamOffer']})),
   onJoinTeam: (teamname: string) => dispatch(TeamsGen.createJoinTeam({teamname})),
+  onViewTeam: (teamname: string) => {
+    dispatch(RouteTreeGen.createClearModals())
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'team'}]}))
+  },
 })
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onEdit: stateProps._isYou ? dispatchProps.onEdit : null,
   onJoinTeam: dispatchProps.onJoinTeam,
+  onViewTeam: dispatchProps.onViewTeam,
   teamMeta: (stateProps._teamShowcase || []).reduce((map, t) => {
     map[t.name] = {
       inTeam: stateProps._roles.get(t.name) || false,

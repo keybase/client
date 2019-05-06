@@ -12,9 +12,9 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
 export const makeDetails: I.RecordFactory<Types._Details> = I.Record({
   assertions: I.Map(),
   bio: null,
-  followers: I.OrderedSet(),
+  followers: null,
   followersCount: null,
-  following: I.OrderedSet(),
+  following: null,
   followingCount: null,
   fullname: null,
   guiID: null,

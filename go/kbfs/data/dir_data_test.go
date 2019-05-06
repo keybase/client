@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/kbfs/libkey"
 	libkeytest "github.com/keybase/client/go/kbfs/libkey/test"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
@@ -59,8 +60,10 @@ func setupDirDataTest(t *testing.T, maxPtrsPerBlock, numDirEntries int) (
 		return dirtyBcache.Put(ctx, id, ptr, MasterBranch, block)
 	}
 
+	log := logger.NewTestLogger(t)
 	dd := NewDirData(
-		dir, chargedTo, bsplit, kmd, getter, cacher, logger.NewTestLogger(t))
+		dir, chargedTo, bsplit, kmd, getter, cacher, log,
+		libkb.NewVDebugLog(log))
 	return dd, cleanCache, dirtyBcache
 }
 

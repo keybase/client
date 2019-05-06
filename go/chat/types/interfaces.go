@@ -104,7 +104,8 @@ type MessageDeliverer interface {
 	Resumable
 
 	Queue(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
-		outboxID *chat1.OutboxID, identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.OutboxRecord, error)
+		outboxID *chat1.OutboxID, sendOpts *chat1.SenderSendOptions,
+		prepareOpts *chat1.SenderPrepareOptions, identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.OutboxRecord, error)
 	ForceDeliverLoop(ctx context.Context)
 	ActiveDeliveries(ctx context.Context) ([]chat1.OutboxRecord, error)
 	NextFailure() (chan []chat1.OutboxRecord, func())
@@ -118,12 +119,16 @@ type RegexpSearcher interface {
 type Indexer interface {
 	Resumable
 
-	Search(ctx context.Context, uid gregor1.UID, query string, opts chat1.SearchOpts,
+	Search(ctx context.Context, uid gregor1.UID, query, origQuery string, opts chat1.SearchOpts,
 		hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus) (*chat1.ChatSearchInboxResults, error)
 	// Add/update the index with the given messages
 	Add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg []chat1.MessageUnboxed) error
 	// Remove the given messages from the index
 	Remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg []chat1.MessageUnboxed) error
+	FullyIndexed(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (bool, error)
+	PercentIndexed(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (int, error)
+	SearchableConvs(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) ([]RemoteConversation, error)
+	OnDbNuke(mctx libkb.MetaContext) error
 	// For devel/testing
 	IndexInbox(ctx context.Context, uid gregor1.UID) (map[string]chat1.ProfileSearchConvStats, error)
 }
@@ -131,9 +136,9 @@ type Indexer interface {
 type Sender interface {
 	Send(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
 		clientPrev chat1.MessageID, outboxID *chat1.OutboxID,
-		joinMentionsAs *chat1.ConversationMemberStatus) (chat1.OutboxID, *chat1.MessageBoxed, error)
+		sendOpts *chat1.SenderSendOptions, prepareOpts *chat1.SenderPrepareOptions) (chat1.OutboxID, *chat1.MessageBoxed, error)
 	Prepare(ctx context.Context, msg chat1.MessagePlaintext, membersType chat1.ConversationMembersType,
-		conv *chat1.Conversation, opts *SenderPrepareOptions) (SenderPrepareResult, error)
+		conv *chat1.Conversation, opts *chat1.SenderPrepareOptions) (SenderPrepareResult, error)
 }
 
 type InboxSource interface {
@@ -348,7 +353,7 @@ type AttachmentFetcher interface {
 		ri func() chat1.RemoteInterface, signer s3.Signer) (io.ReadSeeker, error)
 	PutUploadedAsset(ctx context.Context, filename string, asset chat1.Asset) error
 	IsAssetLocal(ctx context.Context, asset chat1.Asset) (bool, error)
-	OnCacheCleared(mctx libkb.MetaContext)
+	OnDbNuke(mctx libkb.MetaContext) error
 }
 
 type AttachmentURLSrv interface {
@@ -360,7 +365,7 @@ type AttachmentURLSrv interface {
 	GetGiphyGalleryURL(ctx context.Context, convID chat1.ConversationID,
 		tlfName string, results []chat1.GiphySearchResult) string
 	GetAttachmentFetcher() AttachmentFetcher
-	OnCacheCleared(mctx libkb.MetaContext)
+	OnDbNuke(mctx libkb.MetaContext) error
 }
 
 type RateLimitedResult interface {
@@ -387,6 +392,7 @@ type AttachmentUploader interface {
 	Cancel(ctx context.Context, outboxID chat1.OutboxID) error
 	Complete(ctx context.Context, outboxID chat1.OutboxID)
 	GetUploadTempFile(ctx context.Context, outboxID chat1.OutboxID, filename string) (string, error)
+	OnDbNuke(mctx libkb.MetaContext) error
 }
 
 type NativeVideoHelper interface {
@@ -436,7 +442,8 @@ type Unfurler interface {
 
 type ConversationCommand interface {
 	Match(ctx context.Context, text string) bool
-	Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, tlfName, text string) error
+	Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, tlfName, text string,
+		replyTo *chat1.MessageID) error
 	Preview(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, tflName, text string)
 	Name() string
 	Usage() string
@@ -456,7 +463,7 @@ type ConversationCommandsSource interface {
 	GetBuiltins(ctx context.Context) []chat1.BuiltinCommandGroup
 	GetBuiltinCommandType(ctx context.Context, c ConversationCommandsSpec) chat1.ConversationBuiltinCommandTyp
 	AttemptBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-		tlfName string, body chat1.MessageBody) (bool, error)
+		tlfName string, body chat1.MessageBody, replyTo *chat1.MessageID) (bool, error)
 	PreviewBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		tlfName, text string)
 }
@@ -472,6 +479,11 @@ type CoinFlipManager interface {
 	DescribeFlipText(ctx context.Context, text string) string
 	HasActiveGames(ctx context.Context) bool
 	IsFlipConversationCreated(ctx context.Context, outboxID chat1.OutboxID) (chat1.ConversationID, FlipSendStatus)
+}
+
+type TeamMentionLoader interface {
+	Resumable
+	LoadTeamMention(ctx context.Context, uid gregor1.UID, teamName, channel string) error
 }
 
 type InternalError interface {

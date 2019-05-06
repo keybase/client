@@ -136,11 +136,11 @@ class GetTitles extends React.Component<Props, State> {
             selectTextOnFocus={true}
           />
           <Kb.ButtonBar style={{flexShrink: 0}}>
-            <Kb.Button type="Secondary" onClick={this.props.onCancel} label="Cancel" />
+            <Kb.Button type="Dim" onClick={this.props.onCancel} label="Cancel" />
             {this._isLast() ? (
-              <Kb.WaitingButton type="Primary" waitingKey={null} onClick={this._onNext} label="Send" />
+              <Kb.WaitingButton waitingKey={null} onClick={this._onNext} label="Send" />
             ) : (
-              <Kb.Button type="Primary" onClick={this._onNext} label="Next" />
+              <Kb.Button onClick={this._onNext} label="Next" />
             )}
           </Kb.ButtonBar>
         </Kb.Box>

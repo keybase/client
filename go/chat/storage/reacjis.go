@@ -61,11 +61,20 @@ func (i *reacjiMemCacheImpl) Put(uid gregor1.UID, data *ReacjiInternalStorage) {
 	i.data = data
 }
 
-func (i *reacjiMemCacheImpl) OnLogout(m libkb.MetaContext) error {
+func (i *reacjiMemCacheImpl) clearMemCaches() {
 	i.Lock()
 	defer i.Unlock()
 	i.data = NewReacjiInternalStorage()
 	i.uid = nil
+}
+
+func (i *reacjiMemCacheImpl) OnLogout(mctx libkb.MetaContext) error {
+	i.clearMemCaches()
+	return nil
+}
+
+func (i *reacjiMemCacheImpl) OnDbNuke(mctx libkb.MetaContext) error {
+	i.clearMemCaches()
 	return nil
 }
 
@@ -106,6 +115,7 @@ func NewReacjiStore(g *globals.Context) *ReacjiStore {
 	// add a logout hook to clear the in-memory cache, but only add it once:
 	addReacjiMemCacheHookOnce.Do(func() {
 		g.ExternalG().AddLogoutHook(reacjiMemCache, "reacjiMemCache")
+		g.ExternalG().AddDbNukeHook(reacjiMemCache, "reacjiMemCache")
 	})
 	return &ReacjiStore{
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "ReacjiStore", false),
@@ -141,8 +151,8 @@ func (s *ReacjiStore) populateCacheLocked(ctx context.Context, uid gregor1.UID) 
 		// drop the history if our format changed
 		if err = s.encryptedDB.Delete(ctx, dbKey); err != nil {
 			s.Debug(ctx, "unable to delete cache entry: %v", err)
-			return data
 		}
+		return data
 	}
 	data = &entry.Data
 	return data

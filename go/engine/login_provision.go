@@ -30,6 +30,9 @@ type loginProvision struct {
 	hasPGP         bool
 	hasDevice      bool
 	perUserKeyring *libkb.PerUserKeyring
+
+	skippedLogin  bool
+	resetComplete bool
 }
 
 // gpgInterface defines the portions of gpg client that provision
@@ -82,6 +85,7 @@ func (e *loginProvision) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		&DeviceWrap{},
 		&PaperKeyPrimary{},
+		&AccountReset{},
 	}
 }
 
@@ -119,6 +123,9 @@ func (e *loginProvision) Run(m libkb.MetaContext) error {
 
 		return err
 	}
+	if e.skippedLogin || e.resetComplete {
+		return nil
+	}
 
 	// e.route is point of no return. If it succeeds, it means that
 	// config has already been written and there is no way to roll
@@ -144,8 +151,9 @@ func (e *loginProvision) saveToSecretStore(m libkb.MetaContext) error {
 
 func (e *loginProvision) saveToSecretStoreWithLKS(m libkb.MetaContext, lks *libkb.LKSec) (err error) {
 	nun := e.arg.User.GetNormalizedName()
-	defer m.Trace(fmt.Sprintf("saveToSecretStore(%s)", nun), func() error { return err })()
-	return libkb.StoreSecretAfterLoginWithLKS(m, nun, lks)
+	defer m.Trace(fmt.Sprintf("loginProvision.saveToSecretStoreWithLKS(%s)", nun), func() error { return err })()
+	options := libkb.LoadAdvisorySecretStoreOptionsFromRemote(m)
+	return libkb.StoreSecretAfterLoginWithLKSWithOptions(m, nun, lks, &options)
 }
 
 // deviceWithType provisions this device with an existing device using the
@@ -722,20 +730,18 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 		idMap[d.ID] = d
 	}
 
-	arg := keybase1.ChooseDeviceArg{
-		Devices:           expDevices,
-		CanSelectNoDevice: true,
-	}
+	autoresetEnabled := m.G().Env.GetFeatureFlags().HasFeature(libkb.EnvironmentFeatureAutoresetPipeline)
 
 	// check to see if they have a PUK, in which case they must select a device
 	hasPUK, err := e.hasPerUserKey(m)
 	if err != nil {
 		return err
 	}
-	if hasPUK {
-		arg.CanSelectNoDevice = false
-	}
 
+	arg := keybase1.ChooseDeviceArg{
+		Devices:           expDevices,
+		CanSelectNoDevice: (pgp && !hasPUK) || autoresetEnabled,
+	}
 	id, err := m.UIs().ProvisionUI.ChooseDevice(m.Ctx(), arg)
 	if err != nil {
 		return err
@@ -744,17 +750,59 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 	if len(id) == 0 {
 		// they chose not to use a device
 		m.Debug("user has devices, but chose not to use any of them")
-		if pgp {
-			if hasPUK {
-				m.Debug("user has a per-user-key, not attempting pgp provision")
-				return libkb.ProvisionViaDeviceRequiredError{}
+
+		if pgp && !hasPUK {
+			// they have pgp keys, so try that:
+			err = e.tryPGP(m)
+			if err == nil {
+				// Provisioning succeeded
+				return nil
 			}
 
-			// they have pgp keys, so try that:
-			return e.tryPGP(m)
+			// If autoreset is enabled, an error here should passthrough into
+			// autoreset.
+			if autoresetEnabled {
+				m.Warning("Unable to log in with a PGP signature: %s", err.Error())
+			} else {
+				return err
+			}
 		}
-		// tell them they need to reset their account
-		return libkb.ProvisionUnavailableError{}
+
+		// Error differs depending on the input.
+		if !autoresetEnabled {
+			if pgp && hasPUK {
+				return libkb.ProvisionViaDeviceRequiredError{}
+			}
+			return libkb.ProvisionUnavailableError{}
+		}
+
+		// Prompt the user whether they'd like to enter the reset flow.
+		// We will ask them for a password in AccountReset.
+		enterReset, err := m.UIs().LoginUI.PromptResetAccount(m.Ctx(), keybase1.PromptResetAccountArg{
+			Kind: keybase1.ResetPromptType_ENTER_NO_DEVICES,
+		})
+		if err != nil {
+			return err
+		}
+
+		if !enterReset {
+			m.Debug("User decided not to enter the reset pipeline")
+			// User had to explicitly decline entering the pipeline so in order to prevent
+			// confusion prevent further prompts by completing a noop login flow.
+			e.skippedLogin = true
+			return nil
+		}
+
+		// go into the reset flow
+		eng := NewAccountReset(m.G(), e.arg.User.GetName())
+		eng.completeReset = true
+		if err := eng.Run(m); err != nil {
+			return err
+		}
+
+		e.skippedLogin = eng.ResetPending()
+		e.resetComplete = eng.ResetComplete()
+		return nil
 	}
 
 	m.Debug("user selected device %s", id)
@@ -1145,6 +1193,13 @@ func (e *loginProvision) cleanup(m libkb.MetaContext) {
 	// the best way to cleanup is to logout...
 	m.Debug("an error occurred during provisioning, logging out")
 	m.G().Logout(m.Ctx())
+}
+
+func (e *loginProvision) LoggedIn() bool {
+	return !e.skippedLogin
+}
+func (e *loginProvision) AccountReset() bool {
+	return e.resetComplete
 }
 
 var devtypeSortOrder = map[string]int{libkb.DeviceTypeMobile: 0, libkb.DeviceTypeDesktop: 1, libkb.DeviceTypePaper: 2}

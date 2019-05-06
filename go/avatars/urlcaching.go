@@ -182,4 +182,4 @@ func (c *URLCachingSource) ClearCacheForName(m libkb.MetaContext, name string, f
 	return c.clearName(m, name, formats)
 }
 
-func (c *URLCachingSource) OnCacheCleared(m libkb.MetaContext) {}
+func (c *URLCachingSource) OnDbNuke(m libkb.MetaContext) error { return nil }

@@ -1,7 +1,6 @@
 // @flow
 import * as Constants from '../constants/chat2'
 import * as Types from '../constants/types/chat2'
-import * as Styles from '../styles'
 import SelectableSmallTeam from './selectable-small-team'
 import {namedConnect} from '../util/container'
 
@@ -28,9 +27,8 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 const mapDispatchToProps = () => ({})
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const isSelected = ownProps.isSelected && !Styles.isMobile
   const hasUnread = stateProps._hasUnread
-  const styles = Constants.getRowStyles(stateProps._meta, isSelected, hasUnread)
+  const styles = Constants.getRowStyles(stateProps._meta, ownProps.isSelected, hasUnread)
   const participantNeedToRekey = stateProps._meta.rekeyers.size > 0
   const youNeedToRekey = !participantNeedToRekey && stateProps._meta.rekeyers.has(stateProps._username)
   const isLocked = participantNeedToRekey || youNeedToRekey
@@ -59,7 +57,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     backgroundColor: styles.backgroundColor,
     isLocked,
     isMuted: stateProps._meta.isMuted,
-    isSelected,
+    isSelected: ownProps.isSelected,
     maxSearchHits: ownProps.maxSearchHits,
     numSearchHits: ownProps.numSearchHits,
     onSelectConversation: ownProps.onSelectConversation,

@@ -464,17 +464,20 @@ protocol SimpleFS {
     array<string> paths;
   }
 
-  record FolderSyncStatus {
-    // Bytes available and total on the partition hosting the sync cache.
-    int64 localDiskBytesAvailable;
-    int64 localDiskBytesTotal;
-    PrefetchStatus prefetchStatus;
-    PrefetchProgress prefetchProgress;
-  }
-
   record FolderSyncConfigAndStatus {
     FolderSyncConfig config;
     FolderSyncStatus status;
+  }
+
+  record FolderSyncConfigAndStatusWithFolder {
+    Folder folder;
+    FolderSyncConfig config;
+    FolderSyncStatus status;
+  }
+
+  record SyncConfigAndStatusRes {
+    array<FolderSyncConfigAndStatusWithFolder> folders;
+    FolderSyncStatus overallStatus;
   }
 
   // simpleFSFolderSyncConfigAndStatus returns the current sync config for the
@@ -485,6 +488,11 @@ protocol SimpleFS {
   // simpleFSSetFolderSyncConfig sets the sync config for the folder
   // specified in `path`.
   void simpleFSSetFolderSyncConfig(Path path, FolderSyncConfig config);
+
+  // simpleFSSyncConfigAndStatus returns the sync config and status
+  // for all syncing folders, as well as an overall status for the whole
+  // device.
+  SyncConfigAndStatusRes simpleFSSyncConfigAndStatus();
 
   boolean simpleFSAreWeConnectedToMDServer();
 

@@ -95,6 +95,8 @@ func NewTeamLoaderAndInstall(g *libkb.GlobalContext) *TeamLoader {
 	st := NewStorage(g)
 	l := NewTeamLoader(g, world, st)
 	g.SetTeamLoader(l)
+	g.AddLogoutHook(l, "teamLoader")
+	g.AddDbNukeHook(l, "teamLoader")
 	return l
 }
 
@@ -309,8 +311,9 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 		}
 	}
 
-	if l.G().Env.GetFeatureFlags().HasFeature(libkb.FeatureBoxAuditor) {
-		newMctx, shouldReload := VerifyBoxAudit(libkb.NewMetaContext(ctx, l.G()), teamID)
+	mctx := libkb.NewMetaContext(ctx, l.G())
+	if ShouldRunBoxAudit(mctx) {
+		newMctx, shouldReload := VerifyBoxAudit(mctx, teamID)
 		if shouldReload {
 			return l.load1(newMctx.Ctx(), me, lArg)
 		}
@@ -1322,8 +1325,14 @@ func (l *TeamLoader) lows(ctx context.Context, state *keybase1.TeamData) getLink
 	return lows
 }
 
-func (l *TeamLoader) OnLogout() {
+func (l *TeamLoader) OnLogout(mctx libkb.MetaContext) error {
 	l.storage.clearMem()
+	return nil
+}
+
+func (l *TeamLoader) OnDbNuke(mctx libkb.MetaContext) error {
+	l.storage.clearMem()
+	return nil
 }
 
 // Clear the in-memory cache.

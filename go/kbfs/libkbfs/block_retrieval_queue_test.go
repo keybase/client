@@ -16,6 +16,7 @@ import (
 	libkeytest "github.com/keybase/client/go/kbfs/libkey/test"
 	"github.com/keybase/client/go/kbfs/test/clocktest"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
@@ -29,20 +30,23 @@ type testBlockRetrievalConfig struct {
 	*testDiskBlockCacheGetter
 	*testSyncedTlfGetterSetter
 	initModeGetter
-	clock Clock
+	clock    Clock
+	reporter Reporter
 }
 
 func newTestBlockRetrievalConfig(t *testing.T, bg blockGetter,
 	dbc DiskBlockCache) *testBlockRetrievalConfig {
+	clock := clocktest.NewTestClockNow()
 	return &testBlockRetrievalConfig{
 		newTestCodecGetter(),
-		newTestLogMakerWithVDebug(t, "vlog2"),
+		newTestLogMakerWithVDebug(t, libkb.VLog2String),
 		data.NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity(NewInitModeFromType(InitDefault))),
 		bg,
 		newTestDiskBlockCacheGetter(t, dbc),
 		newTestSyncedTlfGetterSetter(),
 		testInitModeGetter{InitDefault},
-		clocktest.NewTestClockNow(),
+		clock,
+		NewReporterSimple(clock, 1),
 	}
 }
 
@@ -58,12 +62,16 @@ func (c testBlockRetrievalConfig) Clock() Clock {
 	return c.clock
 }
 
+func (c testBlockRetrievalConfig) Reporter() Reporter {
+	return c.reporter
+}
+
 func (c testBlockRetrievalConfig) blockGetter() blockGetter {
 	return c.bg
 }
 
 func makeRandomBlockPointer(t *testing.T) data.BlockPointer {
-	id, err := kbfsblock.MakeTemporaryID()
+	id, err := kbfsblock.MakeFakeID()
 	require.NoError(t, err)
 	return data.BlockPointer{
 		ID:         id,
@@ -90,11 +98,20 @@ func initBlockRetrievalQueueTest(t *testing.T) *blockRetrievalQueue {
 	return q
 }
 
+func endBlockRetrievalQueueTest(t *testing.T, q *blockRetrievalQueue) {
+	t.Helper()
+	select {
+	case <-q.Shutdown():
+	case <-time.After(5 * time.Second):
+		t.Fatal("Waited too long for block retrieval queue to shutdown")
+	}
+}
+
 func TestBlockRetrievalQueueBasic(t *testing.T) {
 	t.Log("Add a block retrieval request to the queue and retrieve it.")
 	q := initBlockRetrievalQueueTest(t)
 	require.NotNil(t, q)
-	defer q.Shutdown()
+	defer endBlockRetrievalQueueTest(t, q)
 
 	ctx := context.Background()
 	ptr1 := makeRandomBlockPointer(t)
@@ -120,7 +137,7 @@ func TestBlockRetrievalQueuePreemptPriority(t *testing.T) {
 		"priority request.")
 	q := initBlockRetrievalQueueTest(t)
 	require.NotNil(t, q)
-	defer q.Shutdown()
+	defer endBlockRetrievalQueueTest(t, q)
 
 	ctx := context.Background()
 	ptr1 := makeRandomBlockPointer(t)
@@ -153,7 +170,7 @@ func TestBlockRetrievalQueueInterleavedPreemption(t *testing.T) {
 	t.Log("Handle a first request and then preempt another one.")
 	q := initBlockRetrievalQueueTest(t)
 	require.NotNil(t, q)
-	defer q.Shutdown()
+	defer endBlockRetrievalQueueTest(t, q)
 
 	ctx := context.Background()
 	ptr1 := makeRandomBlockPointer(t)
@@ -199,7 +216,7 @@ func TestBlockRetrievalQueueMultipleRequestsSameBlock(t *testing.T) {
 	t.Log("Request the same block multiple times.")
 	q := initBlockRetrievalQueueTest(t)
 	require.NotNil(t, q)
-	defer q.Shutdown()
+	defer endBlockRetrievalQueueTest(t, q)
 
 	ctx := context.Background()
 	ptr1 := makeRandomBlockPointer(t)
@@ -229,7 +246,7 @@ func TestBlockRetrievalQueueElevatePriorityExistingRequest(t *testing.T) {
 	t.Log("Elevate the priority on an existing request.")
 	q := initBlockRetrievalQueueTest(t)
 	require.NotNil(t, q)
-	defer q.Shutdown()
+	defer endBlockRetrievalQueueTest(t, q)
 
 	ctx := context.Background()
 	ptr1 := makeRandomBlockPointer(t)
@@ -279,7 +296,7 @@ func TestBlockRetrievalQueueCurrentlyProcessingRequest(t *testing.T) {
 	t.Log("Begin processing a request and then add another one for the same block.")
 	q := initBlockRetrievalQueueTest(t)
 	require.NotNil(t, q)
-	defer q.Shutdown()
+	defer endBlockRetrievalQueueTest(t, q)
 
 	ctx := context.Background()
 	ptr1 := makeRandomBlockPointer(t)
@@ -327,7 +344,7 @@ func TestBlockRetrievalQueueThrottling(t *testing.T) {
 	t.Log("Start test with no throttling channel so we can pass in our own")
 	q := initBlockRetrievalQueueTest(t)
 	require.NotNil(t, q)
-	defer q.Shutdown()
+	defer endBlockRetrievalQueueTest(t, q)
 
 	throttleCh := channels.NewInfiniteChannel()
 	q.throttledWorkCh = throttleCh

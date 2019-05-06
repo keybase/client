@@ -662,28 +662,6 @@
     },
     {
       "type": "record",
-      "name": "FolderSyncStatus",
-      "fields": [
-        {
-          "type": "int64",
-          "name": "localDiskBytesAvailable"
-        },
-        {
-          "type": "int64",
-          "name": "localDiskBytesTotal"
-        },
-        {
-          "type": "PrefetchStatus",
-          "name": "prefetchStatus"
-        },
-        {
-          "type": "PrefetchProgress",
-          "name": "prefetchProgress"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "FolderSyncConfigAndStatus",
       "fields": [
         {
@@ -693,6 +671,41 @@
         {
           "type": "FolderSyncStatus",
           "name": "status"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FolderSyncConfigAndStatusWithFolder",
+      "fields": [
+        {
+          "type": "Folder",
+          "name": "folder"
+        },
+        {
+          "type": "FolderSyncConfig",
+          "name": "config"
+        },
+        {
+          "type": "FolderSyncStatus",
+          "name": "status"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SyncConfigAndStatusRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "FolderSyncConfigAndStatusWithFolder"
+          },
+          "name": "folders"
+        },
+        {
+          "type": "FolderSyncStatus",
+          "name": "overallStatus"
         }
       ]
     }
@@ -1148,6 +1161,10 @@
         }
       ],
       "response": null
+    },
+    "simpleFSSyncConfigAndStatus": {
+      "request": [],
+      "response": "SyncConfigAndStatusRes"
     },
     "simpleFSAreWeConnectedToMDServer": {
       "request": [],

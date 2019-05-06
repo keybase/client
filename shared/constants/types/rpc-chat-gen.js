@@ -43,6 +43,7 @@ export const chatUiUITextDecorationTyp = {
   payment: 0,
   atmention: 1,
   channelnamemention: 2,
+  teammention: 3,
 }
 
 export const commandsConversationBuiltinCommandTyp = {
@@ -155,8 +156,8 @@ export const commonNotificationKind = {
 
 export const commonReIndexingMode = {
   none: 0,
-  force: 1,
-  aftersearch: 2,
+  presearchSync: 1,
+  postsearchSync: 2,
 }
 
 export const commonRetentionPolicyType = {

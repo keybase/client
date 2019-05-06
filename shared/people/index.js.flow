@@ -7,7 +7,6 @@ export type Props = {
   newItems: Array<Types.PeopleScreenItem>,
   followSuggestions: Array<Types.FollowSuggestion>,
   getData: (markViewed?: boolean) => void,
-  onSearch: () => void,
   onClickUser: (username: string) => void,
   showAirdrop: boolean,
   myUsername: string,
@@ -17,6 +16,5 @@ export type Props = {
 export default class People extends React.Component<Props> {}
 export class Header extends React.Component<{
   onClickUser: string => void,
-  onSearch: () => void,
   myUsername: string,
 }> {}

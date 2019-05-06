@@ -20,6 +20,7 @@ import (
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -49,6 +50,7 @@ const (
 func newConfigForTest(modeType InitModeType, loggerFn func(module string) logger.Logger) *ConfigLocal {
 	mode := modeTest{NewInitModeFromType(modeType)}
 	config := NewConfigLocal(mode, loggerFn, "", DiskCacheModeOff, &env.KBFSContext{})
+	config.SetVLogLevel(libkb.VLog1String)
 
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
@@ -806,7 +808,11 @@ func ForceQuotaReclamationForTesting(config Config,
 // test if there's an error.
 func CheckConfigAndShutdown(
 	ctx context.Context, t logger.TestLogBackend, config Config) {
-	if err := config.Shutdown(ctx); err != nil {
+	err := config.Shutdown(ctx)
+	switch errors.Cause(err).(type) {
+	case data.ShutdownHappenedError:
+	case nil:
+	default:
 		t.Errorf("err=%+v", err)
 	}
 }

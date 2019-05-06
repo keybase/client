@@ -80,6 +80,16 @@ func NewNISTFactory(g *GlobalContext, uid keybase1.UID, deviceID keybase1.Device
 	}
 }
 
+func (f *NISTFactory) UID() keybase1.UID {
+	if f == nil {
+		return keybase1.UID("")
+	}
+
+	f.Lock()
+	defer f.Unlock()
+	return f.uid
+}
+
 func (f *NISTFactory) NIST(ctx context.Context) (ret *NIST, err error) {
 	if f == nil {
 		return nil, nil

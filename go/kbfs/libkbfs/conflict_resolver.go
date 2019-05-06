@@ -85,6 +85,8 @@ type conflictInput struct {
 	merged   kbfsmd.Revision
 }
 
+var errNoCRDB = errors.New("could not record CR attempt because no DB is open")
+
 // ConflictResolver is responsible for resolving conflicts in the
 // background.
 type ConflictResolver struct {
@@ -120,8 +122,8 @@ func NewConflictResolver(
 		branchSuffix = " " + string(fbo.branch())
 	}
 	tlfStringFull := fbo.id().String()
-	log := config.MakeLogger(fmt.Sprintf("CR %s%s", tlfStringFull[:8],
-		branchSuffix))
+	log := config.MakeLogger(
+		fmt.Sprintf("CR %s%s", tlfStringFull[:8], branchSuffix))
 
 	cr := &ConflictResolver{
 		config: config,
@@ -131,6 +133,7 @@ func NewConflictResolver(
 			folderBranch: fbo.folderBranch,
 			blocks:       &fbo.blocks,
 			log:          log,
+			vlog:         config.MakeVLogger(log),
 		},
 		log:              traceLogger{log},
 		deferLog:         traceLogger{log.CloneWithAddedDepth(1)},
@@ -3247,6 +3250,9 @@ func serializeAndPutConflicts(config Config, db *LevelDb,
 
 func (cr *ConflictResolver) recordStartResolve(ci conflictInput) error {
 	db := cr.config.GetConflictResolutionDB()
+	if db == nil {
+		return errNoCRDB
+	}
 	key := cr.fbo.id().Bytes()
 	conflictsSoFar, err := getAndDeserializeConflicts(cr.config, db, key)
 	if err != nil {
@@ -3274,6 +3280,10 @@ func (cr *ConflictResolver) recordFinishResolve(
 	ctx context.Context, ci conflictInput,
 	panicVar interface{}, receivedErr error) {
 	db := cr.config.GetConflictResolutionDB()
+	if db == nil {
+		cr.log.CWarningf(ctx, "could not record CR result to nil DB")
+		return
+	}
 	key := cr.fbo.id().Bytes()
 
 	// If we neither errored nor panicked, this CR succeeded and we can wipe
@@ -3657,6 +3667,9 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 
 func (cr *ConflictResolver) clearConflictRecords() error {
 	db := cr.config.GetConflictResolutionDB()
+	if db == nil {
+		return errNoCRDB
+	}
 	key := cr.fbo.id().Bytes()
 	return db.Delete(key, nil)
 }
@@ -3686,9 +3699,10 @@ func openCRDBInternal(config Config) (*LevelDb, error) {
 func openCRDB(config Config) (db *LevelDb) {
 	db, err := openCRDBInternal(config)
 	if err != nil {
-		panic(fmt.Sprintf("Could not open conflict resolver DB. "+
-			"Perhaps multiple KBFS instances are being run concurrently"+
-			"? Error: %+v", err))
+		config.MakeLogger("").CWarningf(context.Background(),
+			"Could not open conflict resolver DB. "+
+				"Perhaps multiple KBFS instances are being run concurrently"+
+				"? Error: %+v", err)
 	}
 	return db
 }

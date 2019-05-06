@@ -1,0 +1,48 @@
+/* Handles Button's hover effects on desktop */
+
+.button__border {
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+.button__border_blue:hover {
+  border: 1px solid rgba(77, 142, 255, 0.3);
+}
+.button__border_red:hover {
+  border: 1px solid rgba(255, 77, 97, 0.3);
+}
+.button__border_green:hover {
+  border: 1px solid rgba(55, 189, 153, 0.3);
+}
+.button__border_purple:hover {
+  border: 1px solid rgba(112, 78, 186, 0.3);
+}
+.button__border_black:hover {
+  border: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+.button__underlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  top: 0;
+  border-radius: 4px;
+  transition: background-color 0.2s ease-out;
+}
+.button__underlay_black10:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+.button__underlay_blue:hover {
+  background-color: rgba(76, 142, 255, 0.05);
+}
+.button__underlay_red:hover {
+  background-color: rgba(255, 77, 97, 0.05);
+}
+.button__underlay_green:hover {
+  background-color: rgba(55, 189, 153, 0.05);
+}
+.button__underlay_purple:hover {
+  background-color: rgba(112, 78, 186, 0.05);
+}
+.button__underlay_black:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}

@@ -68,19 +68,20 @@ func (h *Helper) SendMsgByID(ctx context.Context, convID chat1.ConversationID, t
 		},
 		MessageBody: body,
 	}
-	_, _, err := sender.Send(ctx, convID, msg, 0, nil, nil)
+	_, _, err := sender.Send(ctx, convID, msg, 0, nil, nil, nil)
 	return err
 }
 
 func (h *Helper) SendTextByIDNonblock(ctx context.Context, convID chat1.ConversationID,
-	tlfName string, text string, outboxID *chat1.OutboxID) (chat1.OutboxID, error) {
+	tlfName string, text string, outboxID *chat1.OutboxID, replyTo *chat1.MessageID) (chat1.OutboxID, error) {
 	return h.SendMsgByIDNonblock(ctx, convID, tlfName, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: text,
-	}), chat1.MessageType_TEXT, outboxID)
+	}), chat1.MessageType_TEXT, outboxID, replyTo)
 }
 
 func (h *Helper) SendMsgByIDNonblock(ctx context.Context, convID chat1.ConversationID,
-	tlfName string, body chat1.MessageBody, msgType chat1.MessageType, inOutboxID *chat1.OutboxID) (chat1.OutboxID, error) {
+	tlfName string, body chat1.MessageBody, msgType chat1.MessageType, inOutboxID *chat1.OutboxID,
+	replyTo *chat1.MessageID) (chat1.OutboxID, error) {
 	boxer := NewBoxer(h.G())
 	baseSender := NewBlockingSender(h.G(), boxer, h.ri)
 	sender := NewNonblockingSender(h.G(), baseSender)
@@ -91,7 +92,10 @@ func (h *Helper) SendMsgByIDNonblock(ctx context.Context, convID chat1.Conversat
 		},
 		MessageBody: body,
 	}
-	outboxID, _, err := sender.Send(ctx, convID, msg, 0, inOutboxID, nil)
+	prepareOpts := chat1.SenderPrepareOptions{
+		ReplyTo: replyTo,
+	}
+	outboxID, _, err := sender.Send(ctx, convID, msg, 0, inOutboxID, nil, &prepareOpts)
 	return outboxID, err
 }
 
@@ -357,7 +361,7 @@ func (s *sendHelper) deliver(ctx context.Context, body chat1.MessageBody, mtype 
 		},
 		MessageBody: body,
 	}
-	return s.sender.Send(ctx, s.convID, msg, 0, outboxID, nil)
+	return s.sender.Send(ctx, s.convID, msg, 0, outboxID, nil, nil)
 }
 
 func (s *sendHelper) remoteInterface() chat1.RemoteInterface {
@@ -727,7 +731,7 @@ func postJoinLeave(ctx context.Context, g *globals.Context, ri func() chat1.Remo
 
 	// Send with a blocking sender
 	sender := NewBlockingSender(g, NewBoxer(g), ri)
-	_, _, err = sender.Send(ctx, convID, plaintext, 0, nil, nil)
+	_, _, err = sender.Send(ctx, convID, plaintext, 0, nil, nil, nil)
 	return err
 }
 
@@ -1113,6 +1117,15 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 				} else {
 					return res, reserr
 				}
+			case libkb.ChatNotInTeamError:
+				if n.membersType == chat1.ConversationMembersType_TEAM {
+					teamID, tmpErr := TLFIDToTeamID(triple.Tlfid)
+					if tmpErr == nil && teamID.IsSubTeam() {
+						n.Debug(ctx, "For tlf ID %s, inferring NotExplicitMemberOfSubteamError, from error: %s", triple.Tlfid, reserr.Error())
+						return res, teams.NewNotExplicitMemberOfSubteamError()
+					}
+				}
+				return res, fmt.Errorf("error creating conversation: %s", reserr)
 			default:
 				return res, fmt.Errorf("error creating conversation: %s", reserr)
 			}
@@ -1215,7 +1228,7 @@ func (n *newConversationHelper) makeFirstMessage(ctx context.Context, triple cha
 			},
 		}
 	}
-	opts := types.SenderPrepareOptions{
+	opts := chat1.SenderPrepareOptions{
 		SkipTopicNameState: n.findExistingMode == NewConvFindExistingSkip,
 	}
 	sender := NewBlockingSender(n.G(), NewBoxer(n.G()), n.ri)

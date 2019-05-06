@@ -1836,6 +1836,21 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-app-close': {
+    charCode: 0xe987,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-app-maximize': {
+    charCode: 0xe988,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-app-minimize': {
+    charCode: 0xe989,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-arrow-down': {
     charCode: 0xe901,
     gridSize: 16,
@@ -2026,6 +2041,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-filter': {
+    charCode: 0xe986,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-finder': {
     charCode: 0xe91e,
     gridSize: 16,
@@ -2093,6 +2113,11 @@ const iconMeta_ = {
   },
   'iconfont-heart': {
     charCode: 0xe978,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-hide': {
+    charCode: 0xe98a,
     gridSize: 16,
     isFont: true,
   },
@@ -2206,6 +2231,11 @@ const iconMeta_ = {
     gridSize: 24,
     isFont: true,
   },
+  'iconfont-nav-2-hamburger': {
+    charCode: 0xe98b,
+    gridSize: 24,
+    isFont: true,
+  },
   'iconfont-nav-2-more': {
     charCode: 0xe984,
     gridSize: 24,
@@ -2303,6 +2333,11 @@ const iconMeta_ = {
   },
   'iconfont-people': {
     charCode: 0xe94a,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-phone-contact': {
+    charCode: 0xe97b,
     gridSize: 16,
     isFont: true,
   },
@@ -2408,11 +2443,6 @@ const iconMeta_ = {
   },
   'iconfont-success': {
     charCode: 0xe95c,
-    gridSize: 16,
-    isFont: true,
-  },
-  'iconfont-tails': {
-    charCode: 0xe97b,
     gridSize: 16,
     isFont: true,
   },

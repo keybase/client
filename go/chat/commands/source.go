@@ -140,7 +140,7 @@ func (s *Source) ListCommands(ctx context.Context, uid gregor1.UID, conv types.C
 }
 
 func (s *Source) AttemptBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	tlfName string, body chat1.MessageBody) (handled bool, err error) {
+	tlfName string, body chat1.MessageBody, replyTo *chat1.MessageID) (handled bool, err error) {
 	defer s.Trace(ctx, func() error { return err }, "AttemptBuiltinCommand")()
 	if !body.IsType(chat1.MessageType_TEXT) {
 		return false, nil
@@ -157,7 +157,7 @@ func (s *Source) AttemptBuiltinCommand(ctx context.Context, uid gregor1.UID, con
 	for _, cmd := range s.builtins[typ] {
 		if cmd.Match(ctx, text) {
 			s.Debug(ctx, "AttemptBuiltinCommand: matched command: %s, executing...", cmd.Name())
-			return true, cmd.Execute(ctx, uid, convID, tlfName, text)
+			return true, cmd.Execute(ctx, uid, convID, tlfName, text, replyTo)
 		}
 	}
 	return false, nil

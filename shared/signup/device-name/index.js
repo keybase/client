@@ -12,7 +12,7 @@ type Props = {|
 
 const EnterDevicename = (props: Props) => (
   <SignupScreen
-    buttons={[{label: 'Continue', onClick: props.onContinue, type: 'PrimaryGreen'}]}
+    buttons={[{label: 'Continue', onClick: props.onContinue, type: 'Success'}]}
     onBack={props.onBack}
     title={Styles.isMobile ? 'Name this phone' : 'Name this computer'}
   >

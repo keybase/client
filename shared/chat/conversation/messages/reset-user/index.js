@@ -47,15 +47,15 @@ const ResetUser = ({username, viewProfile, letThemIn, allowChatWithoutThem, chat
         }}
       >
         <Button
-          type="Secondary"
-          backgroundMode="Terminal"
+          type="Dim"
+          backgroundColor="red"
           onClick={viewProfile}
           label="View profile"
-          style={{backgroundColor: globalColors.black_20, marginRight: 8}}
+          style={{marginRight: 8}}
         />
         <Button
-          type="Secondary"
-          backgroundMode="Terminal"
+          type="Dim"
+          backgroundColor="red"
           onClick={letThemIn}
           label="Let them in"
           labelStyle={{color: globalColors.red}}

@@ -5,6 +5,7 @@ import * as Styles from '../../../styles'
 
 type Props = {|
   following?: boolean,
+  followsYou?: boolean,
   waitingKey: string,
   style?: Object,
   onFollow?: () => void,
@@ -25,12 +26,13 @@ class FollowButton extends React.Component<Props, State> {
   }
 
   render() {
-    const {following, onFollow, onUnfollow, style, waitingKey, ...otherProps} = this.props
+    const {following, followsYou, onFollow, onUnfollow, style, waitingKey, ...otherProps} = this.props
 
     if (following) {
       return (
         <WaitingButton
-          type="PrimaryGreenActive"
+          type="Success"
+          mode="Secondary"
           label={this.state.mouseOver ? 'Unfollow' : 'Following'}
           onClick={onUnfollow}
           onMouseEnter={Styles.isMobile ? null : () => this.setState({mouseOver: true})}
@@ -43,8 +45,8 @@ class FollowButton extends React.Component<Props, State> {
     } else {
       return (
         <WaitingButton
-          type="PrimaryGreen"
-          label="Follow"
+          type="Success"
+          label={followsYou ? 'Follow back' : 'Follow'}
           onClick={onFollow}
           waitingKey={waitingKey}
           style={{...styleButton, ...style}}

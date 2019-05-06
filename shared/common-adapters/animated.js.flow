@@ -16,17 +16,17 @@ type Config = {|
 |}
 
 export type Props = {|
-  children: _StylesCrossPlatform => React.Node,
+  children: Object => React.Node,
   config?: Config | Function,
   delay?: number | Function,
-  from: Styles.StylesCrossPlatform,
+  from?: Object,
   immediate?: boolean | Function,
   onFrame?: Function,
   onRest?: Function,
   onStart?: Function,
   reset?: boolean,
   reverse?: boolean,
-  to: Styles.StylesCrossPlatform,
+  to: Object,
 |}
 
 export default class Animated extends React.Component<Props> {}

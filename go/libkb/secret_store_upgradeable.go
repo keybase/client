@@ -12,8 +12,8 @@ var _ SecretStoreAll = (*SecretStoreUpgradeable)(nil)
 
 func NewSecretStoreUpgradeable(a, b SecretStoreAll, shouldUpgradeOpportunistically func() bool, shouldStoreInFallback func(*SecretStoreOptions) bool) *SecretStoreUpgradeable {
 	return &SecretStoreUpgradeable{
-		a: a,
-		b: b,
+		a:                              a,
+		b:                              b,
 		shouldUpgradeOpportunistically: shouldUpgradeOpportunistically,
 		shouldStoreInFallback:          shouldStoreInFallback,
 	}

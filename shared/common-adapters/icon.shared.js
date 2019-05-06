@@ -5,6 +5,10 @@ import {iconMeta} from './icon.constants'
 
 export function defaultColor(type: IconType): ?string {
   switch (type) {
+    case 'iconfont-crown-admin':
+      return Styles.globalColors.black_35
+    case 'iconfont-crown-owner':
+      return Styles.globalColors.yellow2
     case 'iconfont-proof-broken':
       return Styles.globalColors.red
     case 'iconfont-proof-pending':
@@ -75,12 +79,14 @@ export function fontSize(type: IconType): ?Object {
 
 export function typeToFontSize(sizeType: SizeType) {
   switch (sizeType) {
+    case 'Huge':
+      return Styles.isMobile ? 64 : 48
     case 'Bigger':
       return Styles.isMobile ? 48 : 36
     case 'Big':
       return Styles.isMobile ? 32 : 24
     case 'Default':
-      return Styles.isMobile ? 22 : 16
+      return Styles.isMobile ? 20 : 16
     case 'Small':
       return Styles.isMobile ? 16 : 12
     case 'Tiny':

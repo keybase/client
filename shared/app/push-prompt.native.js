@@ -14,7 +14,7 @@ type Props = {
 }
 
 const PushPrompt = (props: Props) => (
-  <Kb.ScrollView contentContainerStyle={styles.scrollContent}>
+  <Kb.ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" style={styles.container}>
       <Kb.Box style={styles.spacer} />
       <Kb.Text center={true} type="Header" style={styles.text}>
@@ -37,7 +37,6 @@ const PushPrompt = (props: Props) => (
         you provision a new device, this phone will be contacted.
       </Kb.Text>
       <Kb.WaitingButton
-        type="Primary"
         fullWidth={true}
         onClick={props.onRequestPermissions}
         label="Got it"
@@ -45,7 +44,7 @@ const PushPrompt = (props: Props) => (
         style={styles.button}
       />
       <Kb.Button
-        type="Secondary"
+        type="Dim"
         fullWidth={true}
         onClick={props.onNoPermissions}
         label="No thanks"
@@ -65,6 +64,10 @@ const styles = Styles.styleSheetCreate({
       width: '170%',
     },
   }),
+  scroll: {
+    backgroundColor: Styles.globalColors.white,
+    ...Styles.globalStyles.fillAbsolute,
+  },
   scrollContent: {minHeight: '100%'},
   spacer: {flexGrow: 1},
   text: {

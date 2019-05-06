@@ -378,10 +378,11 @@ func (c *FullCachingSource) ClearCacheForName(m libkb.MetaContext, name string, 
 	return c.clearName(m, name, formats)
 }
 
-func (c *FullCachingSource) OnCacheCleared(m libkb.MetaContext) {
+func (c *FullCachingSource) OnDbNuke(m libkb.MetaContext) error {
 	if c.diskLRU != nil {
 		if err := c.diskLRU.Clean(m.Ctx(), m.G(), c.getCacheDir(m)); err != nil {
 			c.debug(m, "unable to run clean: %v", err)
 		}
 	}
+	return nil
 }

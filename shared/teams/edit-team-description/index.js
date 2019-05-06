@@ -35,12 +35,11 @@ const EditTeamDescription = ({
       style={{alignSelf: 'stretch', flexGrow: 1}}
     />
     <ButtonBar>
-      <Button label="Cancel" onClick={onClose} type="Secondary" />
+      <Button label="Cancel" onClick={onClose} type="Dim" />
       <WaitingButton
         disabled={description === origDescription}
         label="Save"
         onClick={onSetDescription}
-        type="Primary"
         waitingKey={waitingKey}
       />
     </ButtonBar>

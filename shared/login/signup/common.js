@@ -11,6 +11,7 @@ import {
   ButtonBar,
 } from '../../common-adapters'
 import {styleSheetCreate, isMobile, globalMargins, globalColors} from '../../styles'
+import flags from '../../util/feature-flags'
 
 type Props = {
   children: React.Node,
@@ -29,7 +30,7 @@ export const Wrapper = (props: Props) => (
     >
       {props.children}
     </Box2>
-    <HeaderHocHeader onBack={props.onBack} headerStyle={styles.header} />
+    {!flags.useNewRouter && <HeaderHocHeader onBack={props.onBack} headerStyle={styles.header} />}
   </Box2>
 )
 
@@ -37,12 +38,19 @@ export const BlankAvatar = () => (
   <Avatar username="" size={isMobile ? 96 : 128} style={avatarCastPlatformStyles(styles.avatar)} />
 )
 
-export const ContinueButton = ({disabled, onClick}: {disabled?: boolean, onClick: () => void}) => (
+export const ContinueButton = ({
+  disabled,
+  label,
+  onClick,
+}: {
+  disabled?: boolean,
+  label?: string,
+  onClick: () => void,
+}) => (
   <ButtonBar fullWidth={true} style={styles.buttonBar}>
     <WaitingButton
       waitingKey={Constants.waitingKey}
-      type="Primary"
-      label="Continue"
+      label={label || 'Continue'}
       disabled={disabled}
       fullWidth={true}
       onClick={onClick}

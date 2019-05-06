@@ -7,7 +7,9 @@ package libkbfs
 import (
 	"context"
 	"fmt"
+	"os"
 	"runtime"
+	"time"
 
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
@@ -98,8 +100,8 @@ func (n *nodeStandard) Readonly(_ context.Context) bool {
 }
 
 func (n *nodeStandard) ShouldCreateMissedLookup(ctx context.Context, _ string) (
-	bool, context.Context, data.EntryType, string) {
-	return false, ctx, data.File, ""
+	bool, context.Context, data.EntryType, os.FileInfo, string) {
+	return false, ctx, data.File, nil, ""
 }
 
 func (n *nodeStandard) ShouldRetryOnDirRead(ctx context.Context) bool {
@@ -130,3 +132,5 @@ func (n *nodeStandard) GetFile(_ context.Context) billy.File {
 func (n *nodeStandard) EntryType() data.EntryType {
 	return n.core.entryType
 }
+
+func (n *nodeStandard) FillCacheDuration(d *time.Duration) {}

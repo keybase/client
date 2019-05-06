@@ -66,10 +66,12 @@ export const TeamRow = React.memo<RowProps>((props: RowProps) => {
       body={
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.maxWidth}>
           <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start" style={styles.maxWidth}>
-            <Kb.Text type="BodySemibold" lineClamp={1}>
+            <Kb.Text type="BodySemibold" lineClamp={1} style={styles.kerning}>
               {props.name}
             </Kb.Text>
-            {props.isOpen && <Kb.Meta title="open" backgroundColor={Styles.globalColors.green} />}
+            {props.isOpen && (
+              <Kb.Meta title="open" backgroundColor={Styles.globalColors.green} style={styles.openMeta} />
+            )}
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start">
             {props.isNew && <Kb.Meta title="new" backgroundColor={Styles.globalColors.orange} />}
@@ -182,7 +184,9 @@ const styles = Styles.styleSheetCreate({
     right: -5,
     top: -5,
   },
+  kerning: {letterSpacing: 0.2},
   maxWidth: {maxWidth: '100%'},
+  openMeta: {alignSelf: 'center'},
 })
 
 export default Teams

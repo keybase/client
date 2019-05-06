@@ -149,6 +149,11 @@ func requireClientError(t *testing.T, err error, args ...interface{}) {
 	require.True(t, ok, args...)
 }
 
+func auditTeam(a libkb.TeamBoxAuditor, mctx libkb.MetaContext, teamID keybase1.TeamID) error {
+	_, err := a.BoxAuditTeam(mctx, teamID)
+	return err
+}
+
 func TestBoxAuditAudit(t *testing.T) {
 	fus, tcs, cleanup := setupNTests(t, 3)
 	defer cleanup()
@@ -169,9 +174,9 @@ func TestBoxAuditAudit(t *testing.T) {
 	_, err = AddMember(aM.Ctx(), aTc.G, teamName.String(), cU.Username, keybase1.TeamRole_READER)
 	require.NoError(t, err)
 
-	require.NoError(t, aA.BoxAuditTeam(aM, teamID), "A can audit")
-	require.NoError(t, bA.BoxAuditTeam(bM, teamID), "B can audit")
-	require.NoError(t, cA.BoxAuditTeam(cM, teamID), "C can audit (this is vacuous, since C is a reader)")
+	require.NoError(t, auditTeam(aA, aM, teamID), "A can audit")
+	require.NoError(t, auditTeam(bA, bM, teamID), "B can audit")
+	require.NoError(t, auditTeam(cA, cM, teamID), "C can audit (this is vacuous, since C is a reader)")
 
 	var nullstring *string
 	g1 := keybase1.PerTeamKeyGeneration(1)
@@ -265,7 +270,7 @@ func TestBoxAuditAudit(t *testing.T) {
 	aTc.G.TestOptions.NoAutorotateOnBoxAuditRetry = true
 	t.Logf("c rotates and a check's state")
 	kbtest.RotatePaper(*cTc, cU)
-	err = aA.BoxAuditTeam(aM, teamID)
+	err = auditTeam(aA, aM, teamID)
 	requireNonfatalError(t, err, "audit failure on unrotated puk")
 	_, ok := err.(NonfatalBoxAuditError)
 	require.True(t, ok)
@@ -275,7 +280,7 @@ func TestBoxAuditAudit(t *testing.T) {
 	require.Equal(t, len(queue.Items), 1)
 	require.Equal(t, queue.Items[0].TeamID, teamID)
 	require.Equal(t, queue.Version, CurrentBoxAuditVersion)
-	err = aA.BoxAuditTeam(aM, teamID)
+	err = auditTeam(aA, aM, teamID)
 	requireNonfatalError(t, err, "another audit failure on unrotated puk")
 	log, queue, jail = mustGetBoxState(aTc, aA, aM, teamID)
 	require.Equal(t, len(queue.Items), 1, "no duplicates in retry queue")
@@ -286,10 +291,10 @@ func TestBoxAuditAudit(t *testing.T) {
 
 	t.Logf("rotate until we hit max retry attempts; should result in fatal error")
 	for i := 0; i < MaxBoxAuditRetryAttempts-3; i++ {
-		err = aA.BoxAuditTeam(aM, teamID)
+		err = auditTeam(aA, aM, teamID)
 		requireNonfatalError(t, err, "another audit failure on unrotated puk")
 	}
-	err = aA.BoxAuditTeam(aM, teamID)
+	err = auditTeam(aA, aM, teamID)
 	requireFatalError(t, err)
 	log, queue, jail = mustGetBoxState(aTc, aA, aM, teamID)
 	require.Equal(t, len(log.Last().Attempts), MaxBoxAuditRetryAttempts)
@@ -318,7 +323,7 @@ func TestBoxAuditAudit(t *testing.T) {
 	aTc.G.TestOptions.NoAutorotateOnBoxAuditRetry = false
 
 	// Not in queue anymore so this is a noop
-	err = aA.RetryNextBoxAudit(aM)
+	_, err = aA.RetryNextBoxAudit(aM)
 	require.NoError(t, err)
 
 	// We are jailed, but reaudit passes
@@ -345,7 +350,7 @@ func TestBoxAuditAudit(t *testing.T) {
 	require.NotNil(t, randomID)
 	require.Equal(t, teamID, *randomID)
 
-	err = aA.BoxAuditRandomTeam(aM)
+	_, err = aA.BoxAuditRandomTeam(aM)
 	require.NoError(t, err)
 }
 
@@ -404,7 +409,7 @@ func TestBoxAuditRaces(t *testing.T) {
 	for i := 0; i < 3; i++ {
 		for j := 0; j < 3; j++ {
 			go func(i, j int) {
-				auditErr := auditors[i].BoxAuditTeam(metacontexts[i], teamIDs[j])
+				_, auditErr := auditors[i].BoxAuditTeam(metacontexts[i], teamIDs[j])
 				errCh <- auditErr
 				wg.Done()
 			}(i, j)
@@ -621,7 +626,7 @@ func TestBoxAuditImplicit(t *testing.T) {
 		mctx := libkb.NewMetaContextForTest(*tcs[idx])
 		attempt := auditor.Attempt(mctx, team1.ID, false)
 		require.Equal(t, attempt.Result, keybase1.BoxAuditAttemptResult_OK_VERIFIED)
-		require.NoError(t, auditor.BoxAuditTeam(mctx, team1.ID))
+		require.NoError(t, auditTeam(auditor, mctx, team1.ID))
 		teamIDs = append(teamIDs, team1.ID)
 	}
 
@@ -668,7 +673,7 @@ func TestBoxAuditSubteamWithImplicitAdmins(t *testing.T) {
 
 	// Even though A is not in subteam, A has a box because of implicit
 	// adminship. Check that B can still audit successfully.
-	require.NoError(t, bA.BoxAuditTeam(bM, *subteamID))
+	require.NoError(t, auditTeam(bA, bM, *subteamID))
 
 	// Add third user as an admin to parent team. They will be boxed for
 	// subteam as well.
@@ -676,9 +681,9 @@ func TestBoxAuditSubteamWithImplicitAdmins(t *testing.T) {
 	require.NoError(t, err)
 
 	// Audit both teams again
-	require.NoError(t, aA.BoxAuditTeam(aM, parentName.RootID()))
+	require.NoError(t, auditTeam(aA, aM, parentName.RootID()))
 
-	require.NoError(t, bA.BoxAuditTeam(bM, *subteamID))
+	require.NoError(t, auditTeam(bA, bM, *subteamID))
 }
 
 func TestBoxAuditTransactionsWithBoxSummaries(t *testing.T) {

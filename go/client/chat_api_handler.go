@@ -178,6 +178,7 @@ type sendOptionsV1 struct {
 	MembersType       string            `json:"members_type"`
 	EphemeralLifetime ephemeralLifetime `json:"exploding_lifetime"`
 	ConfirmLumenSend  bool              `json:"confirm_lumen_send"`
+	ReplyTo           *chat1.MessageID  `json:"reply_to"`
 }
 
 func (s sendOptionsV1) Check() error {
@@ -350,6 +351,7 @@ func (o markOptionsV1) Check() error {
 
 type searchOptionsV1 struct {
 	SentBy        string `json:"sent_by"`
+	SentTo        string `json:"sent_to"`
 	SentBefore    string `json:"sent_before"`
 	SentAfter     string `json:"sent_after"`
 	MaxHits       int    `json:"max_hits"`

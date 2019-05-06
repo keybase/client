@@ -35,13 +35,12 @@ const NewFolder = ({onNewFolder}) => (
 
 const DesktopHeaders = (props: Props) => (
   <>
-    <FsCommon.LoadPathMetadataWhenNeeded path={props.parentPath} refreshTag="destination-picker" />
     <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.desktopHeader} gap="xtiny">
       <Kb.Text type="Header" style={{flexShrink: 0}}>
         Move or Copy “
       </Kb.Text>
       <FsCommon.PathItemIcon size={16} path={Types.pathConcat(props.parentPath, props.targetName)} />
-      <Kb.Text type="Header" lineClamp={1}>
+      <Kb.Text type="Header" lineClamp={1} style={styles.header}>
         {props.targetName}
       </Kb.Text>
       <Kb.Text type="Header" style={{flexShrink: 0}}>
@@ -61,6 +60,7 @@ const DesktopHeaders = (props: Props) => (
 
 const DestinationPicker = (props: Props) => (
   <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
+    <FsCommon.LoadPathMetadataWhenNeeded path={props.parentPath} refreshTag="destination-picker" />
     {!Styles.isMobile && <DesktopHeaders {...props} />}
     <Kb.Divider key="dheader" />
     {!!props.onBackUp && (
@@ -106,7 +106,7 @@ const DestinationPicker = (props: Props) => (
       {Styles.isMobile ? (
         <NewFolder onNewFolder={props.onNewFolder} />
       ) : (
-        <Kb.Button type="Secondary" label="Cancel" onClick={props.onCancel} />
+        <Kb.Button type="Dim" label="Cancel" onClick={props.onCancel} />
       )}
     </Kb.Box2>
   </Kb.Box2>
@@ -179,6 +179,9 @@ const styles = Styles.styleSheetCreate({
       bottom: 0,
       position: 'absolute',
     },
+  }),
+  header: Styles.platformStyles({
+    isElectron: {wordBreak: 'break-all'},
   }),
   mobileHeaderButton: {
     paddingBottom: 8,

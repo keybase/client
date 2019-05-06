@@ -72,12 +72,12 @@ public class KeybasePushNotificationListenerService extends RNPushNotificationLi
         try {
             String type = bundle.getString("type");
             String payload = bundle.getString("m");
-            Integer membersType = Integer.parseInt(bundle.getString("t"));
             KBPushNotifier notifier = new KBPushNotifier(getApplicationContext());
             notifier.setBundle(bundle);
             switch (type) {
                 case "chat.newmessageSilent_2": {
                     Boolean displayPlaintext = "true".equals(bundle.getString("n"));
+                    Integer membersType = Integer.parseInt(bundle.getString("t"));
                     String convID = bundle.getString("c");
                     Integer messageId = Integer.parseInt(bundle.getString("d"));
                     JSONArray pushes = parseJSONArray(bundle.getString("p"));
@@ -91,6 +91,7 @@ public class KeybasePushNotificationListenerService extends RNPushNotificationLi
                 break;
                 case "chat.newmessage": {
                     String convID = bundle.getString("convID");
+                    Integer membersType = Integer.parseInt(bundle.getString("t"));
                     Integer messageId = Integer.parseInt(bundle.getString("msgID"));
                     Keybase.handleBackgroundNotification(convID, payload, membersType, false, messageId, "", 0, 0, "", notifier);
                     // FIXME: this seems to be sending phantom notifications...
@@ -102,6 +103,7 @@ public class KeybasePushNotificationListenerService extends RNPushNotificationLi
                     NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
                     notificationManager.cancelAll();
                 }
+                break;
                 default:
                     super.onMessageReceived(message);
             }

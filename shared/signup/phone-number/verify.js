@@ -25,7 +25,7 @@ class VerifyPhoneNumber extends React.Component<Props, {value: string}> {
       <SignupScreen
         onBack={this.props.onBack}
         banners={this.props.error ? [<Kb.Banner key="error" color="red" text={this.props.error} />] : []}
-        buttons={[{label: 'Continue', onClick: this.props.onContinue, type: 'PrimaryGreen'}]}
+        buttons={[{label: 'Continue', onClick: this.props.onContinue, type: 'Success'}]}
         titleComponent={
           <Kb.Text type="BodyTinySemibold" style={styles.headerText} center={true}>
             {this.props.phoneNumber}

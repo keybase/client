@@ -107,10 +107,8 @@ const settingsSubRoutes = {
   [Constants.deleteMeTab]: {getScreen: () => require('./delete/container').default},
   [Constants.invitationsTab]: {getScreen: () => require('./invites/container').default},
   [Constants.landingTab]: {getScreen: () => require('./landing/container').default},
-  [Constants.logOutTab]: {getScreen: () => require('./logout/container').default},
   [Constants.notificationsTab]: {getScreen: () => require('./notifications/container').default},
   changeEmail: {getScreen: () => require('./email/container').default},
-  changePassword: {getScreen: () => require('./password/container').default},
   dbNukeConfirm: {getScreen: () => require('./db-nuke-confirm/container').default},
   deleteConfirm: {getScreen: () => require('./delete-confirm/container').default},
   inviteSent: {getScreen: () => require('./invite-generated/container').default},
@@ -153,12 +151,13 @@ const SettingsSubNavigator = createNavigator(
 )
 
 SettingsSubNavigator.navigationOptions = {
-  header: undefined,
-  headerTitle: 'Settings',
   title: 'Settings',
 }
 
 export const newRoutes = {
-  'tabs.settingsTab': {getScreen: () => SettingsSubNavigator, upgraded: true},
+  settingsRoot: {getScreen: () => SettingsSubNavigator, upgraded: true},
 }
-export const newModalRoutes = {}
+export const newModalRoutes = {
+  [Constants.logOutTab]: {getScreen: () => require('./logout/container').default},
+  changePassword: {getScreen: () => require('./password/container').default},
+}

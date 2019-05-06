@@ -6,7 +6,6 @@ import * as React from 'react'
 import * as Sb from '../stories/storybook'
 
 const commonButtonProps = {
-  backgroundMode: 'Normal',
   disabled: false,
   fullWidth: false,
   label: 'Button',
@@ -41,38 +40,38 @@ const load = () => {
         }}
       >
         <ButtonBar {...commonButtonBarProps} direction="row">
-          <Button {...commonButtonProps} type="Primary" label="Button" />
+          <Button {...commonButtonProps} mode="Primary" label="Button" />
         </ButtonBar>
         <ButtonBar {...commonButtonBarProps} direction="row">
-          <Button {...commonButtonProps} type="Secondary" />
-          <Button {...commonButtonProps} type="Primary" label="Another button" />
+          <Button {...commonButtonProps} mode="Secondary" />
+          <Button {...commonButtonProps} mode="Primary" label="Another button" />
         </ButtonBar>
         <ButtonBar {...commonButtonBarProps} direction="column">
-          <Button {...commonButtonProps} type="Primary" />
+          <Button {...commonButtonProps} mode="Primary" />
         </ButtonBar>
         <ButtonBar {...commonButtonBarProps} direction="column">
-          <Button {...commonButtonProps} type="Secondary" />
-          <Button {...commonButtonProps} type="Primary" label="Another button" />
+          <Button {...commonButtonProps} mode="Secondary" />
+          <Button {...commonButtonProps} mode="Primary" label="Another button" />
         </ButtonBar>
         <ButtonBar {...commonButtonBarProps} direction="row" align="flex-start">
-          <Button {...commonButtonProps} type="Primary" />
+          <Button {...commonButtonProps} mode="Primary" />
         </ButtonBar>
         <ButtonBar {...commonButtonBarProps} direction="row" align="flex-end">
-          <Button {...commonButtonProps} type="Primary" />
+          <Button {...commonButtonProps} mode="Primary" />
         </ButtonBar>
         <ButtonBar {...commonButtonBarProps} direction="row" small={true}>
-          <Button {...commonButtonProps} type="Primary" label="Small button" small={true} />
+          <Button {...commonButtonProps} mode="Primary" label="Small button" small={true} />
         </ButtonBar>
         <ButtonBar {...commonButtonBarProps} direction="row" small={true}>
-          <Button {...commonButtonProps} type="Secondary" label="Small button" small={true} />
-          <Button {...commonButtonProps} type="Primary" label="Small button" small={true} />
+          <Button {...commonButtonProps} mode="Secondary" label="Small button" small={true} />
+          <Button {...commonButtonProps} mode="Primary" label="Small button" small={true} />
         </ButtonBar>
         <ButtonBar {...commonButtonBarProps} direction="column" fullWidth={true}>
-          <Button {...commonButtonProps} type="Primary" />
+          <Button {...commonButtonProps} mode="Primary" />
         </ButtonBar>
         <ButtonBar {...commonButtonBarProps} direction="row">
-          <Button {...commonButtonProps} type="Secondary" fullWidth={true} />
-          <Button {...commonButtonProps} type="Primary" fullWidth={true} />
+          <Button {...commonButtonProps} mode="Secondary" fullWidth={true} />
+          <Button {...commonButtonProps} mode="Primary" fullWidth={true} />
         </ButtonBar>
       </Box>
     ))

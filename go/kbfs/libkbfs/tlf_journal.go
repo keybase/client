@@ -23,7 +23,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfssync"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
-	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
 	"github.com/vividcortex/ewma"
@@ -48,7 +48,7 @@ type tlfJournalConfig interface {
 	MDServer() MDServer
 	usernameGetter() idutil.NormalizedUsernameGetter
 	resolver() idutil.Resolver
-	MakeLogger(module string) logger.Logger
+	logMaker
 	diskLimitTimeout() time.Duration
 	teamMembershipChecker() kbfsmd.TeamMembershipChecker
 	BGFlushDirOpBatchSize() int
@@ -244,6 +244,7 @@ type tlfJournal struct {
 	config              tlfJournalConfig
 	delegateBlockServer BlockServer
 	log                 traceLogger
+	vlog                *libkb.VDebugLog
 	deferLog            traceLogger
 	onBranchChange      branchChangeListener
 	onMDFlush           mdFlushListener
@@ -420,8 +421,9 @@ func makeTLFJournal(
 	}
 
 	log := config.MakeLogger("TLFJ")
+	vlog := config.MakeVLogger(log)
 
-	blockJournal, err := makeBlockJournal(ctx, config.Codec(), dir, log)
+	blockJournal, err := makeBlockJournal(ctx, config.Codec(), dir, log, vlog)
 	if err != nil {
 		return nil, err
 	}
@@ -448,6 +450,7 @@ func makeTLFJournal(
 		delegateBlockServer:  delegateBlockServer,
 		log:                  traceLogger{log},
 		deferLog:             traceLogger{log.CloneWithAddedDepth(1)},
+		vlog:                 vlog,
 		onBranchChange:       onBranchChange,
 		onMDFlush:            onMDFlush,
 		forcedSquashByBytes:  ForcedBranchSquashBytesThresholdDefault,
@@ -599,12 +602,13 @@ func (j *tlfJournal) doBackgroundWorkLoop(
 			if j.bwDelegate != nil {
 				j.bwDelegate.OnNewState(ctx, bwIdle)
 			}
-			j.log.CDebugf(
-				ctx, "Waiting for the work signal for %s",
+			j.vlog.CLogf(
+				ctx, libkb.VLog1, "Waiting for the work signal for %s",
 				j.tlfID)
 			select {
 			case <-j.hasWorkCh:
-				j.log.CDebugf(ctx, "Got work signal for %s", j.tlfID)
+				j.vlog.CLogf(
+					ctx, libkb.VLog1, "Got work signal for %s", j.tlfID)
 				if retryTimer != nil {
 					retryTimer.Stop()
 					retryTimer = nil
@@ -629,9 +633,9 @@ func (j *tlfJournal) doBackgroundWorkLoop(
 			if j.bwDelegate != nil {
 				j.bwDelegate.OnNewState(ctx, bwBusy)
 			}
-			j.log.CDebugf(ctx,
-				"Waiting for background work to be done for %s",
-				j.tlfID)
+			j.vlog.CLogf(
+				ctx, libkb.VLog1,
+				"Waiting for background work to be done for %s", j.tlfID)
 			needShutdown := false
 			select {
 			case err := <-errCh:
@@ -860,7 +864,8 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 			return err
 		}
 		if isConflict {
-			j.log.CDebugf(ctx, "Ignoring flush while on conflict branch")
+			j.vlog.CLogf(
+				ctx, libkb.VLog1, "Ignoring flush while on conflict branch")
 			// It's safe to send a pause signal here, because even if
 			// CR has already resolved the conflict and send the
 			// resume signal, we know the background work loop is
@@ -895,7 +900,7 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 		if blockEnd == 0 &&
 			(mdEnd == kbfsmd.RevisionUninitialized ||
 				j.singleOpMode == singleOpRunning) {
-			j.log.CDebugf(ctx, "Nothing else to flush")
+			j.vlog.CLogf(ctx, libkb.VLog1, "Nothing else to flush")
 			if j.singleOpMode == singleOpFinished {
 				j.log.CDebugf(ctx, "Resetting single op mode")
 				j.singleOpMode = singleOpRunning
@@ -930,7 +935,8 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 		}
 
 		if j.singleOpMode == singleOpRunning {
-			j.log.CDebugf(ctx, "Skipping MD flushes in single-op mode")
+			j.vlog.CLogf(
+				ctx, libkb.VLog1, "Skipping MD flushes in single-op mode")
 			continue
 		}
 
@@ -1009,8 +1015,9 @@ func (j *tlfJournal) checkServerForConflicts(ctx context.Context,
 		return nil
 	}
 
-	j.log.CDebugf(ctx, "Checking the MD server for the latest revision; "+
-		"next MD revision in the journal is %d", nextMDToFlush)
+	j.vlog.CLogf(
+		ctx, libkb.VLog1, "Checking the MD server for the latest revision; "+
+			"next MD revision in the journal is %d", nextMDToFlush)
 	// TODO(KBFS-2186): implement a lighterweight server RPC that just
 	// returns the latest revision number, so we don't have to fetch
 	// the entire MD?
@@ -1028,8 +1035,9 @@ func (j *tlfJournal) checkServerForConflicts(ctx context.Context,
 		return nil
 	}
 
-	j.log.CDebugf(ctx, "Server is ahead of local journal (rev=%d), "+
-		"indicating a conflict", currHead.MD.RevisionNumber())
+	j.vlog.CLogf(
+		ctx, libkb.VLog1, "Server is ahead of local journal (rev=%d), "+
+			"indicating a conflict", currHead.MD.RevisionNumber())
 	return j.convertMDsToBranch(ctx)
 }
 
@@ -1080,8 +1088,9 @@ func (j *tlfJournal) removeFlushedBlockEntries(ctx context.Context,
 		j.bytesPerSecEstimate.Add(float64(flushedBytes) / timeToFlush.Seconds())
 	}
 	j.diskLimiter.onBlocksFlush(ctx, flushedBytes, j.chargedTo)
-	j.log.CDebugf(ctx, "Flushed %d bytes in %s; new bandwidth estimate "+
-		"is %f bytes/sec", flushedBytes, timeToFlush,
+	j.vlog.CLogf(
+		ctx, libkb.VLog1, "Flushed %d bytes in %s; new bandwidth estimate "+
+			"is %f bytes/sec", flushedBytes, timeToFlush,
 		j.bytesPerSecEstimate.Value())
 
 	return nil
@@ -1108,7 +1117,8 @@ func (j *tlfJournal) flushBlockEntries(
 		return 0, maxMDRevToFlush, false, nil
 	}
 
-	j.log.CDebugf(ctx, "Flushing %d blocks, up to rev %d",
+	j.vlog.CLogf(
+		ctx, libkb.VLog1, "Flushing %d blocks, up to rev %d",
 		entries.puts.numBlocks(), maxMDRevToFlush)
 
 	// Mark these blocks as flushing, and clear when done.
@@ -1289,7 +1299,7 @@ func (j *tlfJournal) convertMDsToBranchIfOverThreshold(ctx context.Context,
 
 	squashByRev := false
 	if j.singleOpMode == singleOpFinished {
-		j.log.CDebugf(ctx, "Squashing due to single op completion")
+		j.vlog.CLogf(ctx, libkb.VLog1, "Squashing due to single op completion")
 		// Always squash if we've finished the single op and have more
 		// than one revision pending.
 		squashByRev = true
@@ -1317,8 +1327,9 @@ func (j *tlfJournal) convertMDsToBranchIfOverThreshold(ctx context.Context,
 		return false, nil
 	}
 
-	j.log.CDebugf(ctx, "Converting journal with %d unsquashed bytes "+
-		"to a branch", j.unsquashedBytes)
+	j.vlog.CLogf(
+		ctx, libkb.VLog1, "Converting journal with %d unsquashed bytes "+
+			"to a branch", j.unsquashedBytes)
 
 	// If we're squashing by bytes, and there's exactly one
 	// non-local-squash revision, just directly mark it as squashed to
@@ -1330,8 +1341,9 @@ func (j *tlfJournal) convertMDsToBranchIfOverThreshold(ctx context.Context,
 		}
 
 		if !moreThanOneRev {
-			j.log.CDebugf(ctx, "Avoiding CR when there is only one "+
-				"revision that needs squashing; marking as local squash")
+			j.vlog.CLogf(
+				ctx, libkb.VLog1, "Avoiding CR when there is only one "+
+					"revision that needs squashing; marking as local squash")
 			err = j.mdJournal.markLatestAsLocalSquash(ctx)
 			if err != nil {
 				return false, err
@@ -1491,7 +1503,7 @@ func (j *tlfJournal) flushOneMDOp(ctx context.Context,
 		return false, nil
 	}
 
-	j.log.CDebugf(ctx, "Flushing one MD to server")
+	j.vlog.CLogf(ctx, libkb.VLog1, "Flushing one MD to server")
 	defer func() {
 		if err != nil {
 			j.deferLog.CDebugf(ctx, "Flush failed with %v", err)
@@ -1529,12 +1541,14 @@ func (j *tlfJournal) flushOneMDOp(ctx context.Context,
 					"isn't the initial revision")
 			}
 
-			j.log.CDebugf(ctx, "Ignoring lock context for initial MD flush")
+			j.vlog.CLogf(
+				ctx, libkb.VLog1, "Ignoring lock context for initial MD flush")
 			flushCtx.lockContextForPut = nil
 		}
 	}
 
-	j.log.CDebugf(ctx, "Flushing MD for TLF=%s with id=%s, rev=%s, bid=%s",
+	j.vlog.CLogf(
+		ctx, libkb.VLog1, "Flushing MD for TLF=%s with id=%s, rev=%s, bid=%s",
 		rmds.MD.TlfID(), mdID, rmds.MD.RevisionNumber(), rmds.MD.BID())
 	pushErr := mdServer.Put(ctx, rmds, extra,
 		flushCtx.lockContextForPut, flushCtx.priorityForPut)
@@ -2539,7 +2553,8 @@ func (j *tlfJournal) moveAway(ctx context.Context) error {
 	}
 
 	// Make new block and MD journals
-	blockJournal, err := makeBlockJournal(ctx, j.config.Codec(), j.dir, j.log)
+	blockJournal, err := makeBlockJournal(
+		ctx, j.config.Codec(), j.dir, j.log, j.vlog)
 	if err != nil {
 		return err
 	}

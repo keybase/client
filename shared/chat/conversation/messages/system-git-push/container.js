@@ -5,12 +5,25 @@ import * as Types from '../../../../constants/types/chat2'
 import * as Tracker2Gen from '../../../../actions/tracker2-gen'
 import Git from '.'
 import {connect, isMobile} from '../../../../util/container'
-
+import * as FsTypes from '../../../../constants/types/fs'
+import * as FsConstants from '../../../../constants/fs'
 type OwnProps = {|
   message: Types.MessageSystemGitPush,
 |}
 
-const mapDispatchToProps = dispatch => ({
+const getAutogitPath = (commitHash: string, ownProps: OwnProps): FsTypes.Path =>
+  FsTypes.stringToPath(
+    '/keybase/team/' +
+      ownProps.message.team +
+      '/.kbfs_autogit/' +
+      ownProps.message.repo +
+      '/.kbfs_autogit_commit_' +
+      commitHash
+  )
+
+const mapDispatchToProps = (dispatch, ownProps) => ({
+  onClickCommit: (commitHash: string) =>
+    dispatch(FsConstants.makeActionForOpenPathInFilesTab(getAutogitPath(commitHash, ownProps))),
   onClickUserAvatar: (username: string) =>
     isMobile
       ? dispatch(ProfileGen.createShowUserProfile({username}))

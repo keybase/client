@@ -50,9 +50,18 @@ func isLoggedInWithUIDAndError(m libkb.MetaContext) (ret bool, uid keybase1.UID,
 	ret, uid, err = libkb.BootstrapActiveDeviceWithMetaContext(m)
 	return ret, uid, err
 }
+
 func isLoggedIn(m libkb.MetaContext) (ret bool, uid keybase1.UID) {
 	ret, uid, _ = libkb.BootstrapActiveDeviceWithMetaContext(m)
 	return ret, uid
+}
+
+func isLoggedInAs(m libkb.MetaContext, uid keybase1.UID) (ret bool) {
+	ret, err := libkb.BootstrapActiveDeviceWithMetaContextAndAssertUID(m, uid)
+	if err != nil {
+		m.Debug("isLoggedAs error: %s", err)
+	}
+	return ret
 }
 
 func assertLoggedIn(m libkb.MetaContext, which string) (err error) {

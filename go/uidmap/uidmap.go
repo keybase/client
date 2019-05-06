@@ -455,6 +455,10 @@ func (u *UIDMap) CheckUIDAgainstUsername(uid keybase1.UID, un libkb.NormalizedUs
 	return checkUIDAgainstUsername(uid, un)
 }
 
+func (u *UIDMap) MapHardcodedUsernameToUID(un libkb.NormalizedUsername) keybase1.UID {
+	return findHardcodedUsername(un)
+}
+
 func (u *UIDMap) ClearUIDAtEldestSeqno(ctx context.Context, g libkb.UIDMapperContext, uid keybase1.UID, s keybase1.Seqno) error {
 	u.Lock()
 	defer u.Unlock()
@@ -501,7 +505,9 @@ func (u *UIDMap) MapUIDsToUsernamePackagesOffline(ctx context.Context, g libkb.U
 	return res, nil
 }
 
-func MapUIDsReturnMap(ctx context.Context, u libkb.UIDMapper, g libkb.UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration, networkTimeBudget time.Duration, forceNetworkForFullNames bool) (res map[keybase1.UID]libkb.UsernamePackage, err error) {
+func MapUIDsReturnMap(ctx context.Context, u libkb.UIDMapper, g libkb.UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration,
+	networkTimeBudget time.Duration, forceNetworkForFullNames bool) (res map[keybase1.UID]libkb.UsernamePackage, err error) {
+
 	var uidList []keybase1.UID
 	uidSet := map[keybase1.UID]bool{}
 
@@ -525,12 +531,24 @@ func MapUIDsReturnMap(ctx context.Context, u libkb.UIDMapper, g libkb.UIDMapperC
 	return res, err
 }
 
+func MapUIDsReturnMapMctx(mctx libkb.MetaContext, uids []keybase1.UID, fullNameFreshness time.Duration, networkTimeBudget time.Duration,
+	forceNetworkForFullNames bool) (res map[keybase1.UID]libkb.UsernamePackage, err error) {
+	// Same as MapUIDsReturnMap, but takes less arguments because of mctx,
+	// which encapsulates ctx, g, and u (g.UIDMapper).
+	g := mctx.G()
+	return MapUIDsReturnMap(mctx.Ctx(), g.UIDMapper, g, uids, fullNameFreshness, networkTimeBudget, forceNetworkForFullNames)
+}
+
 var _ libkb.UIDMapper = (*UIDMap)(nil)
 
 type OfflineUIDMap struct{}
 
 func (o *OfflineUIDMap) CheckUIDAgainstUsername(uid keybase1.UID, un libkb.NormalizedUsername) bool {
 	return true
+}
+
+func (o *OfflineUIDMap) MapHardcodedUsernameToUID(un libkb.NormalizedUsername) keybase1.UID {
+	return findHardcodedUsername(un)
 }
 
 func (o *OfflineUIDMap) MapUIDsToUsernamePackages(ctx context.Context, g libkb.UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration, networktimeBudget time.Duration, forceNetworkForFullNames bool) ([]libkb.UsernamePackage, error) {

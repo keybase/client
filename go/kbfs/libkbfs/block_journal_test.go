@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
@@ -119,7 +120,7 @@ func setupBlockJournalTest(t *testing.T) (
 		}
 	}()
 
-	j, err = makeBlockJournal(ctx, codec, tempdir, log)
+	j, err = makeBlockJournal(ctx, codec, tempdir, log, libkb.NewVDebugLog(log))
 	require.NoError(t, err)
 	require.Equal(t, uint64(0), j.length())
 
@@ -212,7 +213,7 @@ func TestBlockJournalBasic(t *testing.T) {
 	// Shutdown and restart.
 	err := j.checkInSyncForTest()
 	require.NoError(t, err)
-	j, err = makeBlockJournal(ctx, j.codec, tempdir, j.log)
+	j, err = makeBlockJournal(ctx, j.codec, tempdir, j.log, j.vlog)
 	require.NoError(t, err)
 
 	require.Equal(t, uint64(2), j.length())

@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -193,6 +194,7 @@ type deferredState struct {
 type folderBlockOps struct {
 	config       Config
 	log          logger.Logger
+	vlog         *libkb.VDebugLog
 	folderBranch data.FolderBranch
 	observers    *observerList
 
@@ -307,7 +309,8 @@ func (fbo *folderBlockOps) getCleanEncodedBlockSizeLocked(ctx context.Context,
 	}
 
 	defer func() {
-		fbo.log.CDebugf(ctx, "GetEncodedSize ptr=%v size=%d status=%s: %+v",
+		fbo.vlog.CLogf(
+			ctx, libkb.VLog1, "GetEncodedSize ptr=%v size=%d status=%s: %+v",
 			ptr, size, status, err)
 		// In certain testing situations, a block might be represented
 		// with a 0 size in our journal or be missing from our local
@@ -317,8 +320,9 @@ func (fbo *folderBlockOps) getCleanEncodedBlockSizeLocked(ctx context.Context,
 			errors.Cause(err).(kbfsblock.ServerErrorBlockNonExistent)
 		if isBlockNotFound || size == 0 {
 			if block, cerr := fbo.config.BlockCache().Get(ptr); cerr == nil {
-				fbo.log.CDebugf(
-					ctx, "Fixing encoded size of %v with cached copy", ptr)
+				fbo.vlog.CLogf(
+					ctx, libkb.VLog1,
+					"Fixing encoded size of %v with cached copy", ptr)
 				size = block.GetEncodedSize()
 				err = nil
 			}
@@ -964,7 +968,7 @@ func (fbo *folderBlockOps) newDirDataLocked(lState *kbfssync.LockState,
 		func(ctx context.Context, ptr data.BlockPointer, block data.Block) error {
 			return fbo.config.DirtyBlockCache().Put(
 				ctx, fbo.id(), ptr, dir.Branch, block)
-		}, fbo.log)
+		}, fbo.log, fbo.vlog)
 }
 
 // newDirDataWithDBMLocked creates a new `dirData` that reads from and
@@ -1017,7 +1021,7 @@ func (fbo *folderBlockOps) newDirDataWithDBMLocked(lState *kbfssync.LockState,
 		},
 		func(ctx context.Context, ptr data.BlockPointer, block data.Block) error {
 			return dbm.putBlock(ctx, ptr, block.(*data.DirBlock))
-		}, fbo.log)
+		}, fbo.log, fbo.vlog)
 }
 
 // newDirDataWithDBM is like `newDirDataWithDBMLocked`, but it must be
@@ -1670,7 +1674,7 @@ func (fbo *folderBlockOps) fixChildBlocksAfterRecoverableErrorLocked(
 		// Un-orphan old blocks, since we are reverting back to the
 		// previous state.
 		for _, oldPtr := range redirtyOnRecoverableError {
-			fbo.log.CDebugf(ctx, "Un-orphaning %v", oldPtr)
+			fbo.vlog.CLogf(ctx, libkb.VLog1, "Un-orphaning %v", oldPtr)
 			df.SetBlockOrphaned(oldPtr, false)
 		}
 	}
@@ -1710,7 +1714,8 @@ func (fbo *folderBlockOps) fixChildBlocksAfterRecoverableErrorLocked(
 			continue
 		}
 
-		fbo.log.CDebugf(ctx, "Re-dirtying %v (and deleting dirty block %v)",
+		fbo.vlog.CLogf(
+			ctx, libkb.VLog1, "Re-dirtying %v (and deleting dirty block %v)",
 			newPtr, oldPtr)
 		// These blocks would have been permanent, so they're
 		// definitely still in the cache.
@@ -1723,11 +1728,13 @@ func (fbo *folderBlockOps) fixChildBlocksAfterRecoverableErrorLocked(
 			ctx, lState, newPtr, file, b); err != nil {
 			fbo.log.CWarningf(ctx, "Couldn't re-dirty %v: %v", newPtr, err)
 		}
-		fbo.log.CDebugf(ctx, "Deleting dirty ptr %v after recoverable error",
+		fbo.vlog.CLogf(
+			ctx, libkb.VLog1, "Deleting dirty ptr %v after recoverable error",
 			oldPtr)
 		err = dirtyBcache.Delete(fbo.id(), oldPtr, fbo.branch())
 		if err != nil {
-			fbo.log.CDebugf(ctx, "Couldn't del-dirty %v: %v", oldPtr, err)
+			fbo.vlog.CLogf(
+				ctx, libkb.VLog1, "Couldn't del-dirty %v: %v", oldPtr, err)
 		}
 	}
 }
@@ -1795,7 +1802,7 @@ func (fbo *folderBlockOps) newFileData(lState *kbfssync.LockState,
 		func(ctx context.Context, ptr data.BlockPointer, block data.Block) error {
 			return fbo.cacheBlockIfNotYetDirtyLocked(
 				ctx, lState, ptr, file, block)
-		}, fbo.log)
+		}, fbo.log, fbo.vlog)
 }
 
 func (fbo *folderBlockOps) newFileDataWithCache(lState *kbfssync.LockState,
@@ -1818,7 +1825,7 @@ func (fbo *folderBlockOps) newFileDataWithCache(lState *kbfssync.LockState,
 		},
 		func(ctx context.Context, ptr data.BlockPointer, block data.Block) error {
 			return dirtyBcache.Put(ctx, file.Tlf, ptr, file.Branch, block)
-		}, fbo.log)
+		}, fbo.log, fbo.vlog)
 }
 
 // Read reads from the given file into the given buffer at the given
@@ -1832,7 +1839,7 @@ func (fbo *folderBlockOps) Read(
 
 	filePath := fbo.nodeCache.PathFromNode(file)
 
-	fbo.log.CDebugf(ctx, "Reading from %v", filePath.TailPointer())
+	fbo.vlog.CLogf(ctx, libkb.VLog1, "Reading from %v", filePath.TailPointer())
 
 	var id keybase1.UserOrTeamID // Data reads don't depend on the id.
 	fd := fbo.newFileData(lState, filePath, id, kmd)
@@ -1868,7 +1875,7 @@ func (fbo *folderBlockOps) maybeWaitOnDeferredWrites(
 		select {
 		case <-c:
 			if doLogUnblocked {
-				fbo.log.CDebugf(ctx, "Write unblocked")
+				fbo.vlog.CLogf(ctx, libkb.VLog1, "Write unblocked")
 			}
 			// Make sure there aren't any queued errors.
 			select {
@@ -1894,7 +1901,7 @@ func (fbo *folderBlockOps) maybeWaitOnDeferredWrites(
 		// provoking an error specifically [KBFS-2164]).
 		cause := errors.Cause(err)
 		if cause == context.Canceled || cause == context.DeadlineExceeded {
-			fbo.log.CDebugf(ctx, "Ignoring sync err: %+v", err)
+			fbo.vlog.CLogf(ctx, libkb.VLog1, "Ignoring sync err: %+v", err)
 			err := registerErr()
 			if err != nil {
 				return err
@@ -1962,10 +1969,10 @@ func (fbo *folderBlockOps) writeDataLocked(
 	}
 
 	fbo.blockLock.AssertLocked(lState)
-	fbo.log.CDebugf(ctx, "writeDataLocked on file pointer %v",
+	fbo.vlog.CLogf(ctx, libkb.VLog1, "writeDataLocked on file pointer %v",
 		file.TailPointer())
 	defer func() {
-		fbo.log.CDebugf(ctx, "writeDataLocked done: %v", err)
+		fbo.vlog.CLogf(ctx, libkb.VLog1, "writeDataLocked done: %v", err)
 	}()
 
 	fblock, err := fbo.writeGetFileLocked(ctx, lState, kmd, file)
@@ -1992,7 +1999,8 @@ func (fbo *folderBlockOps) writeDataLocked(
 			// If we can't send on the channel, that means a sync is
 			// already in progress.
 			case fbo.forceSyncChan <- struct{}{}:
-				fbo.log.CDebugf(ctx, "Forcing a sync due to full buffer")
+				fbo.vlog.CLogf(
+					ctx, libkb.VLog1, "Forcing a sync due to full buffer")
 			default:
 			}
 		}
@@ -2091,7 +2099,8 @@ func (fbo *folderBlockOps) Write(
 		// the most obviously correct way.
 		bufCopy := make([]byte, len(buf))
 		copy(bufCopy, buf)
-		fbo.log.CDebugf(ctx, "Deferring a write to file %v off=%d len=%d",
+		fbo.vlog.CLogf(
+			ctx, libkb.VLog1, "Deferring a write to file %v off=%d len=%d",
 			filePath.TailPointer(), off, len(buf))
 		ds := fbo.deferred[filePath.TailRef()]
 		ds.dirtyDeletes = append(ds.dirtyDeletes, dirtyPtrs...)
@@ -2165,12 +2174,13 @@ func (fbo *folderBlockOps) truncateExtendLocked(
 		// If we can't send on the channel, that means a sync is
 		// already in progress
 		case fbo.forceSyncChan <- struct{}{}:
-			fbo.log.CDebugf(ctx, "Forcing a sync due to full buffer")
+			fbo.vlog.CLogf(
+				ctx, libkb.VLog1, "Forcing a sync due to full buffer")
 		default:
 		}
 	}
 
-	fbo.log.CDebugf(ctx, "truncateExtendLocked: done")
+	fbo.vlog.CLogf(ctx, libkb.VLog1, "truncateExtendLocked: done")
 	return latestWrite, dirtyPtrs, nil
 }
 
@@ -2316,7 +2326,8 @@ func (fbo *folderBlockOps) Truncate(
 		// dirty blocks that are in the process of syncing.  So,
 		// we have to redo this truncate once the sync is complete,
 		// using the new file path.
-		fbo.log.CDebugf(ctx, "Deferring a truncate to file %v",
+		fbo.vlog.CLogf(
+			ctx, libkb.VLog1, "Deferring a truncate to file %v",
 			filePath.TailPointer())
 		ds := fbo.deferred[filePath.TailRef()]
 		ds.dirtyDeletes = append(ds.dirtyDeletes, dirtyPtrs...)
@@ -2442,7 +2453,8 @@ func (fbo *folderBlockOps) revertSyncInfoAfterRecoverableError(
 	unrefs := make([]data.BlockInfo, 0, len(si.unrefs))
 	for _, unref := range si.unrefs {
 		if newIndirect[unref.BlockPointer] {
-			fbo.log.CDebugf(nil, "Dropping unref %v", unref)
+			fbo.vlog.CLogf(
+				nil, libkb.VLog1, "Dropping unref %v", unref)
 			continue
 		}
 		unrefs = append(unrefs, unref)
@@ -2805,10 +2817,12 @@ func (fbo *folderBlockOps) CleanupSyncState(
 			dirtyBcache := fbo.config.DirtyBlockCache()
 			for _, ptr := range result.oldFileBlockPtrs {
 				if df.IsBlockOrphaned(ptr) {
-					fbo.log.CDebugf(ctx, "Deleting dirty orphan: %v", ptr)
+					fbo.vlog.CLogf(
+						ctx, libkb.VLog1, "Deleting dirty orphan: %v", ptr)
 					if err := dirtyBcache.Delete(fbo.id(), ptr,
 						fbo.branch()); err != nil {
-						fbo.log.CDebugf(ctx, "Couldn't delete %v", ptr)
+						fbo.vlog.CLogf(
+							ctx, libkb.VLog1, "Couldn't delete %v", ptr)
 					}
 				}
 			}
@@ -2883,8 +2897,9 @@ func (fbo *folderBlockOps) cleanUpUnusedBlocks(ctx context.Context,
 				continue
 			}
 			failedBps.blockStates[ptr] = blockState{}
-			fbo.log.CDebugf(ctx, "Cleaning up block %v from a previous "+
-				"failed revision %d (oldMD is %s, bdType=%d)", ptr,
+			fbo.vlog.CLogf(
+				ctx, libkb.VLog1, "Cleaning up block %v from a previous "+
+					"failed revision %d (oldMD is %s, bdType=%d)", ptr,
 				oldMD.md.Revision(), oldMD.md.MergedStatus(), bdType)
 		}
 
@@ -2910,7 +2925,8 @@ func (fbo *folderBlockOps) doDeferredWritesLocked(ctx context.Context,
 	// happening during the sync, since we're redoing them below.
 	dirtyBcache := fbo.config.DirtyBlockCache()
 	for _, ptr := range ds.dirtyDeletes {
-		fbo.log.CDebugf(ctx, "Deleting deferred dirty ptr %v", ptr)
+		fbo.vlog.CLogf(
+			ctx, libkb.VLog1, "Deleting deferred dirty ptr %v", ptr)
 		if err := dirtyBcache.Delete(fbo.id(), ptr, fbo.branch()); err != nil {
 			return true, err
 		}
@@ -2939,7 +2955,7 @@ func (fbo *folderBlockOps) FinishSyncLocked(
 
 	dirtyBcache := fbo.config.DirtyBlockCache()
 	for _, ptr := range syncState.oldFileBlockPtrs {
-		fbo.log.CDebugf(ctx, "Deleting dirty ptr %v", ptr)
+		fbo.vlog.CLogf(ctx, libkb.VLog1, "Deleting dirty ptr %v", ptr)
 		if err := dirtyBcache.Delete(fbo.id(), ptr, fbo.branch()); err != nil {
 			return true, err
 		}
@@ -3204,8 +3220,9 @@ func (fbo *folderBlockOps) searchForNodesLocked(ctx context.Context,
 	if _, ok := err.(searchWithOutOfDateCacheError); ok {
 		// The md is out-of-date, so use a throwaway cache so we
 		// don't pollute the real node cache with stale nodes.
-		fbo.log.CDebugf(ctx, "Root node %v doesn't exist in the node "+
-			"cache; using a throwaway node cache instead",
+		fbo.vlog.CLogf(
+			ctx, libkb.VLog1, "Root node %v doesn't exist in the node "+
+				"cache; using a throwaway node cache instead",
 			rootPtr)
 		cache = newNodeCacheStandard(fbo.folderBranch)
 		nodeMap, err = fbo.trySearchWithCacheLocked(ctx, lState, cache, ptrs,
@@ -3307,7 +3324,9 @@ func (fbo *folderBlockOps) updatePointer(kmd libkey.KeyMetadata, oldPtr data.Blo
 	// Only prefetch if the updated pointer is a new block ID.
 	// TODO: Remove this comment when we're done debugging because it'll be everywhere.
 	ctx := context.TODO()
-	fbo.log.CDebugf(ctx, "Updated reference for pointer %s to %s.", oldPtr.ID, newPtr.ID)
+	fbo.vlog.CLogf(
+		ctx, libkb.VLog1, "Updated reference for pointer %s to %s.",
+		oldPtr.ID, newPtr.ID)
 	if shouldPrefetch {
 		// Prefetch the new ref, but only if the old ref already exists in
 		// the block cache. Ideally we'd always prefetch it, but we need
@@ -3363,8 +3382,9 @@ func (fbo *folderBlockOps) unlinkDuringFastForwardLocked(ctx context.Context,
 		return
 	}
 	oldPath := fbo.nodeCache.PathFromNode(oldNode)
-	fbo.log.CDebugf(ctx, "Unlinking missing node %s/%v during "+
-		"fast-forward", oldPath, ref)
+	fbo.vlog.CLogf(
+		ctx, libkb.VLog1, "Unlinking missing node %s/%v during "+
+			"fast-forward", oldPath, ref)
 	de, err := fbo.getEntryLocked(ctx, lState, kmd, oldPath, true)
 	if err != nil {
 		fbo.log.CDebugf(ctx, "Couldn't find old dir entry for %s/%v: %+v",
@@ -3426,14 +3446,16 @@ func (fbo *folderBlockOps) fastForwardDirAndChildrenLocked(ctx context.Context,
 			continue
 		}
 
-		fbo.log.CDebugf(ctx, "Fast-forwarding %v -> %v",
+		fbo.vlog.CLogf(
+			ctx, libkb.VLog1, "Fast-forwarding %v -> %v",
 			child.BlockPointer, entry.BlockPointer)
 		fbo.updatePointer(kmd, child.BlockPointer,
 			entry.BlockPointer, true)
 		node := fbo.nodeCache.Get(entry.BlockPointer.Ref())
 		if node == nil {
-			fbo.log.CDebugf(
-				ctx, "Skipping missing node for %s", entry.BlockPointer)
+			fbo.vlog.CLogf(
+				ctx, libkb.VLog1, "Skipping missing node for %s",
+				entry.BlockPointer)
 			continue
 		}
 		if entry.Type == data.Dir {
@@ -3512,15 +3534,18 @@ func (fbo *folderBlockOps) FastForwardAllNodes(ctx context.Context,
 		// Nothing needs to be done!
 		return nil, nil, nil
 	}
-	fbo.log.CDebugf(ctx, "Fast-forwarding %d nodes", len(nodes))
-	defer func() { fbo.log.CDebugf(ctx, "Fast-forward complete: %v", err) }()
+	fbo.vlog.CLogf(ctx, libkb.VLog1, "Fast-forwarding %d nodes", len(nodes))
+	defer func() {
+		fbo.vlog.CLogf(ctx, libkb.VLog1, "Fast-forward complete: %v", err)
+	}()
 
 	rootPath, children := fbo.makeChildrenTreeFromNodesLocked(lState, nodes)
 	if !rootPath.IsValid() {
 		return nil, nil, errors.New("Couldn't find the root path")
 	}
 
-	fbo.log.CDebugf(ctx, "Fast-forwarding root %v -> %v",
+	fbo.vlog.CLogf(
+		ctx, libkb.VLog1, "Fast-forwarding root %v -> %v",
 		rootPath.Path[0].BlockPointer, md.data.Dir.BlockPointer)
 	fbo.updatePointer(md, rootPath.Path[0].BlockPointer,
 		md.data.Dir.BlockPointer, false)
@@ -3572,15 +3597,17 @@ func (fbo *folderBlockOps) getInvalidationChangesForNodes(
 			// This must be a directory.  Invalidate all children.
 			changes, affectedNodeIDs = children.addDirChange(
 				node, p, changes, affectedNodeIDs)
-			fbo.log.CDebugf(ctx, "Invalidating dir node %p/%s", node, prefix)
+			fbo.vlog.CLogf(
+				ctx, libkb.VLog1, "Invalidating dir node %p/%s", node, prefix)
 		} else {
 			// This might be a file.  In any case, it doesn't have any
 			// children that need invalidation, so just send the file
 			// change.
 			changes, affectedNodeIDs = children.addFileChange(
 				node, changes, affectedNodeIDs)
-			fbo.log.CDebugf(
-				ctx, "Invalidating possible file node %p/%s", node, prefix)
+			fbo.vlog.CLogf(
+				ctx, libkb.VLog1, "Invalidating possible file node %p/%s",
+				node, prefix)
 		}
 	}
 	return changes, affectedNodeIDs, nil
@@ -3598,9 +3625,12 @@ func (fbo *folderBlockOps) GetInvalidationChangesForNode(
 
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
-	fbo.log.CDebugf(ctx, "About to get all children for node %p", node)
+	fbo.vlog.CLogf(
+		ctx, libkb.VLog1, "About to get all children for node %p", node)
 	childNodes := fbo.nodeCache.AllNodeChildren(node)
-	fbo.log.CDebugf(ctx, "Found %d children for node %p", len(childNodes), node)
+	fbo.vlog.CLogf(
+		ctx, libkb.VLog1, "Found %d children for node %p", len(childNodes),
+		node)
 	return fbo.getInvalidationChangesForNodes(
 		ctx, lState, append(childNodes, node))
 }
@@ -3618,7 +3648,7 @@ func (fbo *folderBlockOps) GetInvalidationChangesForAll(
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
 	childNodes := fbo.nodeCache.AllNodes()
-	fbo.log.CDebugf(ctx, "Found %d nodes", len(childNodes))
+	fbo.vlog.CLogf(ctx, libkb.VLog1, "Found %d nodes", len(childNodes))
 	return fbo.getInvalidationChangesForNodes(ctx, lState, childNodes)
 }
 

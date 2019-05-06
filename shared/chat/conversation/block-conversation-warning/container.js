@@ -2,20 +2,20 @@
 import RenderBlockConversationWarning from './'
 import * as Constants from '../../../constants/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
-import {connect} from '../../../util/container'
+import * as Container from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {type RouteProps} from '../../../route-tree/render-route'
 import {type ConversationIDKey} from '../../../constants/types/chat2'
 
-type RenderBlockConversationWarningRouteProps = RouteProps<{conversationIDKey: ConversationIDKey}, {}>
-type OwnProps = RenderBlockConversationWarningRouteProps
+type OwnProps = RouteProps<{conversationIDKey: ConversationIDKey}, {}>
 
-const mapStateToProps = (state, {routeProps}: OwnProps) => {
-  const conversationIDKey = routeProps.get('conversationIDKey')
-  const participants = Constants.getMeta(state, conversationIDKey).participants.join(',')
+const mapStateToProps = (state, ownProps: OwnProps) => {
+  const conversationIDKey = Container.getRouteProps(ownProps, 'conversationIDKey')
+  const _participants = Constants.getMeta(state, conversationIDKey).participants
   return {
+    _participants,
+    _you: state.config.username,
     conversationIDKey,
-    participants,
   }
 }
 
@@ -35,10 +35,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onBack: dispatchProps.onBack,
   onBlock: () => dispatchProps._onBlock(stateProps.conversationIDKey, false),
   onBlockAndReport: () => dispatchProps._onBlock(stateProps.conversationIDKey, true),
-  participants: stateProps.participants,
+  participants: stateProps._participants.filter(p => p !== stateProps._you).join(','),
 })
 
-export default connect<OwnProps, _, _, _, _>(
+export default Container.connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps
