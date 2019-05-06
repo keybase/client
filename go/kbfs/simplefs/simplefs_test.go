@@ -1216,11 +1216,8 @@ func TestRefreshSubscription(t *testing.T) {
 
 	t.Log("Make a public TLF")
 	path2 := keybase1.NewPathWithKbfs(`/public/jdoe`)
-	writeRemoteFile(ctx, t, sfs, pathAppend(path2, `test.txt`), []byte(`foo`))
-	syncFS(ctx, t, sfs, "/public/jdoe")
-
-	// now subscribe to a different one, and make sure the old
-	// subscription goes away.
+	// Now subscribe to a different one, before the TLF even exists,
+	// and make sure the old subscription goes away.
 	opid2, err := sfs.SimpleFSMakeOpid(ctx)
 	require.NoError(t, err)
 	err = sfs.SimpleFSList(ctx, keybase1.SimpleFSListArg{
@@ -1232,13 +1229,13 @@ func TestRefreshSubscription(t *testing.T) {
 	err = sfs.SimpleFSWait(ctx, opid2)
 	require.NoError(t, err)
 
-	writeRemoteFile(ctx, t, sfs, pathAppend(path2, `test2.txt`), []byte(`foo`))
+	writeRemoteFile(ctx, t, sfs, pathAppend(path2, `test.txt`), []byte(`foo`))
 	syncFS(ctx, t, sfs, "/public/jdoe")
 	sr.waitForNotification(t)
 	require.Equal(t, "/keybase"+path2.Kbfs(), sr.LastPath())
 
 	// Make sure notification works with file content change.
-	writeRemoteFile(ctx, t, sfs, pathAppend(path2, `test2.txt`), []byte(`poo`))
+	writeRemoteFile(ctx, t, sfs, pathAppend(path2, `test.txt`), []byte(`poo`))
 	syncFS(ctx, t, sfs, "/public/jdoe")
 	sr.waitForNotification(t)
 	require.Equal(t, "/keybase"+path2.Kbfs(), sr.LastPath())

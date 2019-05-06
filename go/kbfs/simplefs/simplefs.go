@@ -111,6 +111,7 @@ type SimpleFS struct {
 	subscribeLock               sync.RWMutex
 	subscribeCurrTlfPathFromGUI string
 	subscribeCurrFB             data.FolderBranch
+	subscribeToEmptyTlf         string
 
 	localHTTPServer *libhttpserver.Server
 }
@@ -308,6 +309,12 @@ func (k *SimpleFS) getFSWithMaybeCreate(
 				return nil, finalElem, libfs.TlfDoesNotExist{}
 			}
 			return nil, "", err
+		}
+		if create {
+			err = k.checkEmptySubscription(ctx, path)
+			if err != nil {
+				return nil, "", err
+			}
 		}
 		return fs, finalElem, nil
 	case keybase1.PathType_LOCAL:
@@ -581,27 +588,8 @@ func (k *SimpleFS) getFolderBranchFromPath(
 	return node.GetFolderBranch(), tlfHandle.GetCanonicalPath(), nil
 }
 
-func (k *SimpleFS) refreshSubscription(
-	ctx context.Context, path keybase1.Path) error {
-	pType, err := path.PathType()
-	if err != nil {
-		return err
-	}
-	if pType != keybase1.PathType_KBFS {
-		k.log.CDebugf(ctx, "Ignoring subscription for path of type %s", pType)
-		return nil
-	}
-
-	tlfType, tlfNameFromGUI, _, _, err := remoteTlfAndPath(path)
-	if err != nil {
-		return err
-	}
-	tlfPathFromGUI := tlfhandle.BuildCanonicalPathForTlfType(
-		tlfType, tlfNameFromGUI)
-
-	k.subscribeLock.Lock()
-	defer k.subscribeLock.Unlock()
-
+func (k *SimpleFS) refreshSubscriptionLocked(
+	ctx context.Context, path keybase1.Path, tlfPathFromGUI string) error {
 	// TODO: when favorites caching is ready, handle folder-list paths
 	// like `/keybase/private` here.
 
@@ -612,10 +600,12 @@ func (k *SimpleFS) refreshSubscription(
 	if fb == (data.FolderBranch{}) {
 		k.log.CDebugf(
 			ctx, "Ignoring subscription for empty TLF %q", path)
+		k.subscribeToEmptyTlf = tlfPathFromGUI
 		return nil
 	}
 
 	if k.subscribeCurrFB == fb {
+		k.subscribeToEmptyTlf = ""
 		return nil
 	}
 
@@ -637,7 +627,68 @@ func (k *SimpleFS) refreshSubscription(
 	// notifying GUI.
 	k.subscribeCurrTlfPathFromGUI = tlfPathFromGUI
 	k.subscribeCurrFB = fb
+	k.subscribeToEmptyTlf = ""
 	return nil
+}
+
+func tlfNameFromPath(path keybase1.Path) (string, error) {
+	pType, err := path.PathType()
+	if err != nil {
+		return "", err
+	}
+	if pType != keybase1.PathType_KBFS {
+		return "", nil
+	}
+
+	tlfType, tlfNameFromGUI, _, _, err := remoteTlfAndPath(path)
+	if err != nil {
+		return "", err
+	}
+	return tlfhandle.BuildCanonicalPathForTlfType(
+		tlfType, tlfNameFromGUI), nil
+}
+
+func (k *SimpleFS) refreshSubscription(
+	ctx context.Context, path keybase1.Path) error {
+	tlfPathFromGUI, err := tlfNameFromPath(path)
+	if err != nil {
+		return err
+	}
+	if tlfPathFromGUI == "" {
+		k.log.CDebugf(ctx, "Ignoring subscription for path %s", path)
+		return nil
+	}
+
+	k.subscribeLock.Lock()
+	defer k.subscribeLock.Unlock()
+	return k.refreshSubscriptionLocked(ctx, path, tlfPathFromGUI)
+}
+
+func (k *SimpleFS) checkEmptySubscription(
+	ctx context.Context, path keybase1.Path) error {
+	k.subscribeLock.Lock()
+	defer k.subscribeLock.Unlock()
+	if k.subscribeToEmptyTlf == "" {
+		// Fast path.
+		return nil
+	}
+
+	tlfPathFromGUI, err := tlfNameFromPath(path)
+	if err != nil {
+		return err
+	}
+	if tlfPathFromGUI == "" {
+		return nil
+	}
+
+	if k.subscribeToEmptyTlf != tlfPathFromGUI {
+		return nil
+	}
+
+	k.log.CDebugf(
+		ctx, "Trying to subscribe to %s, which was previously empty",
+		tlfPathFromGUI)
+	return k.refreshSubscriptionLocked(ctx, path, tlfPathFromGUI)
 }
 
 // SimpleFSList - Begin list of items in directory at path
