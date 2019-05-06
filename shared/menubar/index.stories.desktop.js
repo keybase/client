@@ -47,6 +47,7 @@ const props = {
   totalSyncingBytes: 0,
   updateNow: Storybook.action('updateNow'),
   username: 'nathunsmitty',
+  waitForKbfsDaemon: Storybook.action('waitForKbfsDaemon'),
   windowComponent: 'menubar',
   windowParam: '',
 }
