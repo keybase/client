@@ -291,11 +291,18 @@ func (a *BoxAuditor) AssertUnjailedOrReaudit(mctx libkb.MetaContext, teamID keyb
 	}
 
 	mctx.Debug("team in jail; retrying box audit")
-	_, err = a.BoxAuditTeam(mctx, teamID)
-	if err != nil {
-		return false, fmt.Errorf("failed to reaudit team in box audit jail: %s", err)
+	maxRetries := 3
+	var errs []error
+	for i := 0; i <= maxRetries; i++ {
+		_, err = a.BoxAuditTeam(mctx, teamID)
+		if err != nil {
+			mctx.Debug("AssertUnjailedOrReaudit: box audit try #%d failed...")
+			errs = append(errs, err)
+		} else {
+			return true, nil
+		}
 	}
-	return true, nil
+	return false, fmt.Errorf("failed to successfully reaudit team in box audit jail after %d retries: %s", maxRetries, libkb.CombineErrors(errs...))
 }
 
 // RetryNextBoxAudit selects a teamID from the box audit retry queue and performs another box audit.
