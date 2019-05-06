@@ -29,89 +29,68 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 		return res, nil
 	}
 
-	// Collect phone numbers and emails from Contact list. Iterate through
-	// contacts and descend into components. We will be passing phone number
-	// list and email list to the provider to try to resolve them.
-	type contactRef struct {
-		// Use this struct to point back from phoneNumbers or emails entry to
-		// our contacts list. We need a way to associate result from the
-		// provider to the contact and component they come from.
-		contactIndex   int
-		componentIndex int
-	}
-	var phoneNumbers []keybase1.RawPhoneNumber
-	var phoneComps []contactRef
-	var emails []keybase1.EmailAddress
-	var emailComps []contactRef
-	for contactI, k := range contacts {
-		for compI, component := range k.Components {
+	// Collect sets of email addresses and phones for provider lookup. Use sets
+	// for deduplication.
+	emailSet := make(map[keybase1.EmailAddress]struct{})
+	phoneSet := make(map[keybase1.RawPhoneNumber]struct{})
+
+	for _, k := range contacts {
+		for _, component := range k.Components {
 			if component.Email != nil {
-				emails = append(emails, *component.Email)
-				emailComps = append(emailComps, contactRef{
-					contactIndex:   contactI,
-					componentIndex: compI,
-				})
+				emailSet[*component.Email] = struct{}{}
 			}
 			if component.PhoneNumber != nil {
-				phoneNumbers = append(phoneNumbers, *component.PhoneNumber)
-				phoneComps = append(phoneComps, contactRef{
-					contactIndex:   contactI,
-					componentIndex: compI,
-				})
+				phoneSet[*component.PhoneNumber] = struct{}{}
 			}
 		}
 	}
 
-	mctx.Debug("Going to look up %d emails and %d phone numbers", len(emails), len(phoneNumbers))
+	mctx.Debug("Going to look up %d emails and %d phone numbers", len(emailSet), len(phoneSet))
 
 	// contactIndex -> true for all contacts that have at least one component resolved.
 	contactsFound := make(map[int]struct{})
-	usersFound := make(map[keybase1.UID]struct{})
 
-	insertResult := func(lookupRes ContactLookupResult, toContact contactRef) {
-		contactsFound[toContact.contactIndex] = struct{}{}
-
-		if _, found := usersFound[lookupRes.UID]; found {
-			// This user was already resolved by looking up another
-			// component or another contact.
-			return
+	if len(emailSet) > 0 || len(phoneSet) > 0 {
+		phones := make([]keybase1.RawPhoneNumber, 0, len(phoneSet))
+		emails := make([]keybase1.EmailAddress, 0, len(emailSet))
+		for k := range phoneSet {
+			phones = append(phones, k)
 		}
-		contact := contacts[toContact.contactIndex]
-		component := contact.Components[toContact.componentIndex]
-
-		usersFound[lookupRes.UID] = struct{}{}
-
-		res = append(res, keybase1.ProcessedContact{
-			ContactIndex: toContact.contactIndex,
-			ContactName:  contact.Name,
-			Component:    component,
-			Resolved:     true,
-			Uid:          lookupRes.UID,
-			Following:    true, // assume following=true for now because this creates better display label.
-
-			// following, username (TODO???), and full name are filled later.
-			// unless endpoints start providing this data through
-			// ContactLookupResult
-		})
-	}
-
-	if len(emails) > 0 || len(phoneNumbers) > 0 {
-		providerRes, err := provider.LookupAll(mctx, emails, phoneNumbers, regionCode)
+		for k := range emailSet {
+			emails = append(emails, k)
+		}
+		providerRes, err := provider.LookupAll(mctx, emails, phones, regionCode)
 		if err != nil {
 			return res, err
 		}
 
-		for i, v := range emails {
-			if emailRes, found := providerRes[string(v)]; found {
-				insertResult(emailRes, emailComps[i])
+		// Map into two lists first because we want emails to go first, and
+		// also keep the order of how contacts came in.
+		var emailRes []keybase1.ProcessedContact
+		var phoneRes []keybase1.ProcessedContact
+		for contactI, contact := range contacts {
+			for _, component := range contact.Components {
+				if lookupRes, found := providerRes[component.ValueString()]; found {
+					c := keybase1.ProcessedContact{
+						ContactIndex: contactI,
+						ContactName:  contact.Name,
+						Component:    component,
+						Resolved:     true,
+						Uid:          lookupRes.UID,
+						Following:    true,
+					}
+					if component.Email != nil {
+						emailRes = append(emailRes, c)
+					} else {
+						phoneRes = append(phoneRes, c)
+					}
+					contactsFound[contactI] = struct{}{}
+				}
 			}
 		}
 
-		for i, v := range phoneNumbers {
-			if phoneRes, found := providerRes[string(v)]; found {
-				insertResult(phoneRes, phoneComps[i])
-			}
-		}
+		res = append(res, emailRes...)
+		res = append(res, phoneRes...)
 	}
 
 	if len(res) > 0 {

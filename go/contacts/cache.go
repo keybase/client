@@ -5,74 +5,98 @@ package contacts
 
 import (
 	"fmt"
+	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
-
-func contactCacheStoreKey(meUID keybase1.UID, query interface{}) libkb.DbKey {
-	switch query.(type) {
-	case keybase1.RawPhoneNumber:
-		return libkb.DbKey{
-			Typ: libkb.DBContactResolution,
-			Key: fmt.Sprintf("%v-phone-%s", meUID, query.(keybase1.RawPhoneNumber)),
-		}
-	case keybase1.EmailAddress:
-		return libkb.DbKey{
-			Typ: libkb.DBContactResolution,
-			Key: fmt.Sprintf("%v-email-%s", meUID, query.(keybase1.EmailAddress)),
-		}
-	default:
-		panic("unknown object passed to contactCacheStoreKey")
-	}
-}
 
 type CachedContactsProvider struct {
 	Provider ContactsProvider
 }
 
-type cachedResolutions map[string]ContactLookupResult
+type CachedLookupResult struct {
+	ContactLookupResult
+	Resolved bool
+	cachedAt time.Time
+}
 
-func (c *CachedContactsProvider) LookupPhoneNumbers(mctx libkb.MetaContext, numbers []keybase1.RawPhoneNumber,
-	userRegion keybase1.RegionCode) (res []ContactLookupResult, err error) {
+type cachedResolutions map[string]CachedLookupResult
 
-	defer mctx.TraceTimed(fmt.Sprintf("CachedContactsProvider#LookupPhoneNumbers(len=%d)", len(numbers)),
-		func() error { return err })()
+func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
+	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (res ContactLookupMap, err error) {
 
-	if len(numbers) == 0 {
+	defer mctx.TraceTimed(fmt.Sprintf("bulkLookupContactsProvider#LookupAll(len=%d)", len(emails)+len(numbers)),
+		func() error { return nil })()
+
+	res = make(ContactLookupMap)
+	if len(emails)+len(numbers) == 0 {
 		return res, nil
 	}
 
-	res = make([]ContactLookupResult, len(numbers))
+	now := mctx.G().Clock().Now()
 
-	var remaining []keybase1.RawPhoneNumber
+	var cachedMap cachedResolutions
 	cacheKey := libkb.DbKey{
 		Typ: libkb.DBContactResolution,
-		Key: fmt.Sprintf("%v-phone", mctx.CurrentUID()),
+		Key: fmt.Sprintf("%v-%s", mctx.CurrentUID(), userRegion),
 	}
-	var phoneNumberCache cachedResolutions
-	found, cerr := mctx.G().GetKVStore().GetInto(&phoneNumberCache, cacheKey)
+	found, cerr := mctx.G().GetKVStore().GetInto(&cachedMap, cacheKey)
 	if cerr != nil {
-		return nil, cerr
+		mctx.Warning("Unable to pull cache: %s", cerr)
+	} else if !found {
+		cachedMap = make(cachedResolutions)
 	}
-	if !found {
-		remaining = numbers
-	} else {
-		for i, v := range numbers {
-			cached, found := phoneNumberCache[string(v)]
-			if !found {
-				remaining = append(remaining, v)
+
+	var remainingEmails []keybase1.EmailAddress
+	var remainingNumbers []keybase1.RawPhoneNumber
+
+	for _, v := range emails {
+		if cache, found := cachedMap[string(v)]; found {
+			if cache.Resolved {
+				res[string(v)] = cache.ContactLookupResult
 			}
-			res[i] = cached
+		} else {
+			cachedMap[string(v)] = CachedLookupResult{Resolved: false, cachedAt: now}
+			remainingEmails = append(remainingEmails, v)
 		}
 	}
+
+	for _, v := range numbers {
+		if cache, found := cachedMap[string(v)]; found {
+			if cache.Resolved {
+				res[string(v)] = cache.ContactLookupResult
+			}
+		} else {
+			cachedMap[string(v)] = CachedLookupResult{Resolved: false, cachedAt: now}
+			remainingNumbers = append(remainingNumbers, v)
+		}
+	}
+
+	if len(remainingEmails)+len(remainingNumbers) > 0 {
+		apiRes, err := c.Provider.LookupAll(mctx, remainingEmails, remainingNumbers, userRegion)
+		if err == nil {
+			for k, v := range apiRes {
+				res[k] = v
+				cachedMap[k] = CachedLookupResult{
+					ContactLookupResult: v,
+					Resolved:            true,
+					cachedAt:            now,
+				}
+			}
+		} else {
+			mctx.Warning("Unable to call Provider.LookupAll, returning only cached results: %s", err)
+		}
+
+		spew.Dump("Update cache", cachedMap)
+		cerr := mctx.G().GetKVStore().PutObj(cacheKey, nil, cachedMap)
+		if cerr != nil {
+			mctx.Warning("Unable to update cache: %s", cerr)
+		}
+	}
+
 	return res, nil
-}
-
-func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
-	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (ContactLookupMap, error) {
-
-	return c.Provider.LookupAll(mctx, emails, numbers, userRegion)
 }
 
 func (c *CachedContactsProvider) FillUsernames(mctx libkb.MetaContext, res []keybase1.ProcessedContact) {
