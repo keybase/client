@@ -26,7 +26,7 @@ const UnknownMentionPopup = (props: PopupProps) => {
           Heads up!
         </Kb.Text>
         <Kb.Text type="BodySmall">The text in this @ mention could be either a user or team.</Kb.Text>
-        <Kb.Text type="BodySmallSemibold">Hit Lookup to resolve the text using the Keybase server.</Kb.Text>
+        <Kb.Text type="BodySmall">Hit Lookup to resolve the text using the Keybase server.</Kb.Text>
         <Kb.Button label="Lookup" onClick={props.onResolve} />
       </Kb.Box2>
     ),
@@ -79,6 +79,7 @@ class UnknownMention extends React.Component<Props, State> {
         className={Styles.classNames({'hover-underline': !Styles.isMobile})}
         allowFontScaling={this.props.allowFontScaling}
         style={Styles.collapseStyles([this.props.style, styles.text])}
+        onClick={this._onMouseOver}
       >
         {Styles.isMobile && ' '}
         {text}
