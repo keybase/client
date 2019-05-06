@@ -16,6 +16,7 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
+  onBootstrap: () => dispatch(SettingsGen.createLoadHasRandomPw()),
   onCancel: () => {
     dispatch(SettingsGen.createLoadedCheckPassword({checkPasswordIsCorrect: null}))
     dispatch(RouteTreeGen.createNavigateUp())
@@ -31,9 +32,7 @@ const mapDispatchToProps = dispatch => ({
   },
   onSavePassword: (password: string, passwordConfirm: string) => {
     dispatch(SettingsGen.createOnChangeNewPassword({password: new HiddenString(password)}))
-    dispatch(
-      SettingsGen.createOnChangeNewPasswordConfirm({password: new HiddenString(passwordConfirm)})
-    )
+    dispatch(SettingsGen.createOnChangeNewPasswordConfirm({password: new HiddenString(passwordConfirm)}))
     dispatch(SettingsGen.createOnSubmitNewPassword({thenSignOut: true}))
   },
 })

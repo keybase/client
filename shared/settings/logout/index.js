@@ -8,6 +8,7 @@ import {UpdatePassword} from '../../settings/password'
 export type Props = {|
   checkPasswordIsCorrect: ?boolean,
   hasRandomPW: ?boolean,
+  onBootstrap: () => void,
   onCancel: () => void,
   onCheckPassword: (password: string) => void,
   onLogout: () => void,
@@ -97,43 +98,53 @@ class OfferToCheckPassword extends React.Component<TestProps, State> {
   }
 }
 
-export default (props: Props) => (
-  <Kb.Box2 direction="vertical">
-    {props.hasRandomPW ? (
-      <UpdatePassword
-        onSave={props.onSavePassword}
-        saveLabel="Sign out"
-        waitingForResponse={props.waitingForResponse}
-      />
-    ) : (
-      <Kb.ScrollView contentContainerStyle={styles.container}>
-        <Kb.Box2 centerChildren={true} direction="vertical">
-          {props.checkPasswordIsCorrect ? (
-            <Kb.Box2 direction="vertical" gap="xtiny" centerChildren={true} style={styles.headerText}>
-              <Kb.Icon type="iconfont-check" sizeType="Small" color={Styles.globalColors.green} />
-              <Kb.Text style={{color: Styles.globalColors.green}} type="Header">
-                Your password is correct.
-              </Kb.Text>
-            </Kb.Box2>
-          ) : (
-            <Kb.Text style={styles.headerText} type="Header">
-              Do you know your password?
-            </Kb.Text>
-          )}
-          <Kb.Text style={styles.bodyText} type="Body">
-            You will need it to sign back in.
-          </Kb.Text>
-          <OfferToCheckPassword
-            checkPasswordIsCorrect={props.checkPasswordIsCorrect}
-            onCancel={props.onCancel}
-            onCheckPassword={props.onCheckPassword}
-            onLogout={props.onLogout}
+class LogOut extends React.Component<Props> {
+  componentDidMount() {
+    this.props.onBootstrap()
+  }
+
+  render() {
+    return (
+      <Kb.Box2 direction="vertical">
+        {this.props.hasRandomPW == null ? (
+          <Kb.ProgressIndicator />
+        ) : this.props.hasRandomPW ? (
+          <UpdatePassword
+            onSave={this.props.onSavePassword}
+            saveLabel="Sign out"
+            waitingForResponse={this.props.waitingForResponse}
           />
-        </Kb.Box2>
-      </Kb.ScrollView>
-    )}
-  </Kb.Box2>
-)
+        ) : (
+          <Kb.ScrollView contentContainerStyle={styles.container}>
+            <Kb.Box2 centerChildren={true} direction="vertical">
+              {this.props.checkPasswordIsCorrect ? (
+                <Kb.Box2 direction="vertical" gap="xtiny" centerChildren={true} style={styles.headerText}>
+                  <Kb.Icon type="iconfont-check" sizeType="Small" color={Styles.globalColors.green} />
+                  <Kb.Text style={{color: Styles.globalColors.green}} type="Header">
+                    Your password is correct.
+                  </Kb.Text>
+                </Kb.Box2>
+              ) : (
+                <Kb.Text style={styles.headerText} type="Header">
+                  Do you know your password?
+                </Kb.Text>
+              )}
+              <Kb.Text style={styles.bodyText} type="Body">
+                You will need it to sign back in.
+              </Kb.Text>
+              <OfferToCheckPassword
+                checkPasswordIsCorrect={this.props.checkPasswordIsCorrect}
+                onCancel={this.props.onCancel}
+                onCheckPassword={this.props.onCheckPassword}
+                onLogout={this.props.onLogout}
+              />
+            </Kb.Box2>
+          </Kb.ScrollView>
+        )}
+      </Kb.Box2>
+    )
+  }
+}
 
 const styles = Styles.styleSheetCreate({
   bodyText: {
@@ -163,3 +174,5 @@ const styles = Styles.styleSheetCreate({
   // Avoid moving the buttons down when an errorText is added
   offer: {minHeight: 200},
 })
+
+export default LogOut
