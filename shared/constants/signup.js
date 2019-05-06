@@ -4,6 +4,8 @@ import * as Types from './types/signup'
 import {isAndroid, isIOS, isDarwin, isWindows, isLinux, isMobile} from '../constants/platform'
 import HiddenString from '../util/hidden-string'
 
+export const maxUsernameLength = 16
+
 const devicename =
   (isAndroid && 'My Android Device') ||
   (isIOS && 'My iOS Device') ||
