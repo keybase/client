@@ -5,9 +5,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/contacts"
-	"github.com/keybase/client/go/emails"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/phonenumbers"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/uidmap"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -15,57 +13,6 @@ import (
 )
 
 type bulkLookupContactsProvider struct {
-}
-
-func (c *bulkLookupContactsProvider) LookupPhoneNumbers(mctx libkb.MetaContext, numbers []keybase1.RawPhoneNumber,
-	userRegion keybase1.RegionCode) (res []contacts.ContactLookupResult, err error) {
-
-	defer mctx.TraceTimed(fmt.Sprintf("bulkLookupContactsProvider#LookupContactList(len=%d)", len(numbers)),
-		func() error { return err })()
-
-	regionCodes := make([]keybase1.RegionCode, len(numbers))
-	var maybeUserRegion *keybase1.RegionCode
-	if !userRegion.IsNil() {
-		maybeUserRegion = &userRegion
-	}
-	ret, err := phonenumbers.BulkLookupPhoneNumbers(mctx, numbers, regionCodes, maybeUserRegion)
-	if err != nil {
-		return res, err
-	}
-	res = make([]contacts.ContactLookupResult, len(numbers))
-	for i, v := range ret {
-		if v.Err != nil {
-			mctx.Debug("Server returned an error while looking up phone %q: %s", numbers[i], *v.Err)
-			continue
-		}
-		if v.Uid != nil {
-			res[i].Found = true
-			res[i].UID = *v.Uid
-		}
-	}
-	return res, nil
-}
-
-func (c *bulkLookupContactsProvider) LookupEmails(mctx libkb.MetaContext, emailList []keybase1.EmailAddress) (res []contacts.ContactLookupResult, err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("bulkLookupContactsProvider#LookupEmails(len=%d)", len(emailList)),
-		func() error { return err })()
-
-	strList := make([]string, len(emailList))
-	for i, v := range emailList {
-		strList[i] = string(v)
-	}
-	ret, err := emails.BulkLookupEmails(mctx, strList)
-	if err != nil {
-		return res, err
-	}
-	res = make([]contacts.ContactLookupResult, len(emailList))
-	for i, v := range ret {
-		if v.Uid != nil {
-			res[i].Found = true
-			res[i].UID = *v.Uid
-		}
-	}
-	return res, nil
 }
 
 func (c *bulkLookupContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,

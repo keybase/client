@@ -4,7 +4,6 @@
 package contacts
 
 import (
-	"errors"
 	"fmt"
 	"testing"
 
@@ -31,26 +30,18 @@ func makeProvider() *MockContactsProvider {
 	}
 }
 
-func (c *MockContactsProvider) LookupPhoneNumbers(mctx libkb.MetaContext, numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (res []ContactLookupResult, err error) {
-	return res, errors.New("obsolete")
-}
-
-func (c *MockContactsProvider) LookupEmails(mctx libkb.MetaContext, emails []keybase1.EmailAddress) (res []ContactLookupResult, err error) {
-	return res, errors.New("obsolete")
-}
-
 func (c *MockContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
 	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (ContactLookupMap, error) {
 
 	ret := make(ContactLookupMap)
 	for _, email := range emails {
 		if user, found := c.emails[email]; found {
-			ret[string(email)] = ContactLookupAPIResult{UID: user.UID}
+			ret[string(email)] = ContactLookupResult{UID: user.UID}
 		}
 	}
 	for _, number := range numbers {
 		if user, found := c.phoneNumbers[number]; found {
-			ret[string(number)] = ContactLookupAPIResult{UID: user.UID}
+			ret[string(number)] = ContactLookupResult{UID: user.UID}
 		}
 	}
 	return ret, nil

@@ -66,27 +66,7 @@ func (c *CachedContactsProvider) LookupPhoneNumbers(mctx libkb.MetaContext, numb
 			res[i] = cached
 		}
 	}
-
-	apiRes, err := c.Provider.LookupPhoneNumbers(mctx, remaining, userRegion)
-	if err != nil {
-		mctx.Warning("Error in LookupPhoneNumbers, only returning cached data: %s", err)
-	} else {
-		if len(remaining) == len(numbers) {
-			// if we queried for everything, we can just pass the result.
-			res = apiRes
-		}
-	}
 	return res, nil
-}
-
-func (c *CachedContactsProvider) LookupEmails(mctx libkb.MetaContext, emails []keybase1.EmailAddress) (res []ContactLookupResult, err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("CachedContactsProvider#LookupEmails(len=%d)", len(emails)),
-		func() error { return err })()
-
-	if len(emails) == 0 {
-		return res, nil
-	}
-	return c.Provider.LookupEmails(mctx, emails)
 }
 
 func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,

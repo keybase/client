@@ -4,7 +4,6 @@
 package contacts
 
 import (
-	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -14,12 +13,12 @@ type lookupArg struct {
 	PhoneNumber string `json:"p,omitempty"`
 }
 
-type ContactLookupAPIResult struct {
+type ContactLookupResult struct {
 	UID     keybase1.UID `json:"uid,omitempty"`
 	Coerced bool         `json:"coerced,omitempty"`
 }
 
-type ContactLookupMap map[string]ContactLookupAPIResult
+type ContactLookupMap map[string]ContactLookupResult
 
 type lookupRes struct {
 	libkb.AppStatusEmbed
@@ -53,6 +52,5 @@ func BulkLookupContacts(mctx libkb.MetaContext, emailsContacts []keybase1.EmailA
 	if err != nil {
 		return nil, err
 	}
-	spew.Dump(resp)
 	return resp.Resolutions, nil
 }

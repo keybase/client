@@ -10,14 +10,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-type ContactLookupResult struct {
-	Found bool
-	UID   keybase1.UID
-}
-
 type ContactsProvider interface {
-	LookupPhoneNumbers(libkb.MetaContext, []keybase1.RawPhoneNumber, keybase1.RegionCode) ([]ContactLookupResult, error)
-	LookupEmails(libkb.MetaContext, []keybase1.EmailAddress) ([]ContactLookupResult, error)
 	LookupAll(libkb.MetaContext, []keybase1.EmailAddress, []keybase1.RawPhoneNumber, keybase1.RegionCode) (ContactLookupMap, error)
 	FillUsernames(libkb.MetaContext, []keybase1.ProcessedContact)
 }
@@ -110,13 +103,13 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 
 		for i, v := range emails {
 			if emailRes, found := providerRes[string(v)]; found {
-				insertResult(ContactLookupResult{UID: emailRes.UID}, emailComps[i])
+				insertResult(emailRes, emailComps[i])
 			}
 		}
 
 		for i, v := range phoneNumbers {
 			if phoneRes, found := providerRes[string(v)]; found {
-				insertResult(ContactLookupResult{UID: phoneRes.UID}, phoneComps[i])
+				insertResult(phoneRes, phoneComps[i])
 			}
 		}
 	}
