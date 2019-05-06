@@ -93,6 +93,7 @@ export const replyJump = 'chat2:replyJump'
 export const requestInfoReceived = 'chat2:requestInfoReceived'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
+export const resolveMaybeMention = 'chat2:resolveMaybeMention'
 export const saveMinWriterRole = 'chat2:saveMinWriterRole'
 export const selectConversation = 'chat2:selectConversation'
 export const sendTyping = 'chat2:sendTyping'
@@ -219,6 +220,7 @@ type _ReplyJumpPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey,
 type _RequestInfoReceivedPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: RPCChatTypes.MessageID, requestInfo: Types.ChatRequestInfo|}>
 type _ResetChatWithoutThemPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _ResetLetThemInPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, username: string|}>
+type _ResolveMaybeMentionPayload = $ReadOnly<{|name: string, channel: string|}>
 type _SaveMinWriterRolePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, role: TeamsTypes.TeamRoleType|}>
 type _SelectConversationPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -360,6 +362,10 @@ export const createUnfurlRemove = (payload: _UnfurlRemovePayload) => ({payload, 
  * Reply to a message publicly
  */
 export const createToggleReplyToMessage = (payload: _ToggleReplyToMessagePayload) => ({payload, type: toggleReplyToMessage})
+/**
+ * Resolve an unknown @ mention
+ */
+export const createResolveMaybeMention = (payload: _ResolveMaybeMentionPayload) => ({payload, type: resolveMaybeMention})
 /**
  * Response to an unfurl prompt
  */
@@ -650,6 +656,7 @@ export type ReplyJumpPayload = {|+payload: _ReplyJumpPayload, +type: 'chat2:repl
 export type RequestInfoReceivedPayload = {|+payload: _RequestInfoReceivedPayload, +type: 'chat2:requestInfoReceived'|}
 export type ResetChatWithoutThemPayload = {|+payload: _ResetChatWithoutThemPayload, +type: 'chat2:resetChatWithoutThem'|}
 export type ResetLetThemInPayload = {|+payload: _ResetLetThemInPayload, +type: 'chat2:resetLetThemIn'|}
+export type ResolveMaybeMentionPayload = {|+payload: _ResolveMaybeMentionPayload, +type: 'chat2:resolveMaybeMention'|}
 export type SaveMinWriterRolePayload = {|+payload: _SaveMinWriterRolePayload, +type: 'chat2:saveMinWriterRole'|}
 export type SelectConversationPayload = {|+payload: _SelectConversationPayload, +type: 'chat2:selectConversation'|}
 export type SendTypingPayload = {|+payload: _SendTypingPayload, +type: 'chat2:sendTyping'|}
@@ -779,6 +786,7 @@ export type Actions =
   | RequestInfoReceivedPayload
   | ResetChatWithoutThemPayload
   | ResetLetThemInPayload
+  | ResolveMaybeMentionPayload
   | SaveMinWriterRolePayload
   | SelectConversationPayload
   | SendTypingPayload

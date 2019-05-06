@@ -669,6 +669,11 @@
     "setInboxShowIsNew": {
       "_description": "We've seen chat search before",
       "isNew": "boolean"
+    },
+    "resolveMaybeMention": {
+      "_description": "Resolve an unknown @ mention",
+      "name": "string",
+      "channel": "string"
     }
   }
 }

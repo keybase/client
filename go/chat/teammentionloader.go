@@ -132,15 +132,18 @@ func (l *TeamMentionLoader) loadMention(ctx context.Context, uid gregor1.UID,
 	defer l.Trace(ctx, func() error { return err }, "loadTeamMention: name: %s", maybeMention.Name)()
 	ui, err := l.getChatUI(ctx)
 	if err != nil {
+		ui.ChatMaybeMentionUpdate(ctx, maybeMention.Name, maybeMention.Channel,
+			chat1.NewUIMaybeMentionInfoWithUnknown())
 		return err
 	}
-	defer func() {
-		if err != nil && ui != nil {
-			ui.ChatMaybeMentionUpdate(ctx, maybeMention.Name, maybeMention.Channel,
-				chat1.NewUIMaybeMentionInfoWithUnknown())
-		}
-	}()
+	if _, err := keybase1.TeamNameFromString(maybeMention.Name); err != nil {
+		ui.ChatMaybeMentionUpdate(ctx, maybeMention.Name, maybeMention.Channel,
+			chat1.NewUIMaybeMentionInfoWithNothing())
+		return errors.New("not a team string")
+	}
 	if !forceRemote && !l.IsTeamMention(ctx, uid, maybeMention, knownTeamMentions) {
+		ui.ChatMaybeMentionUpdate(ctx, maybeMention.Name, maybeMention.Channel,
+			chat1.NewUIMaybeMentionInfoWithUnknown())
 		return errors.New("not a team mention")
 	}
 
@@ -153,6 +156,8 @@ func (l *TeamMentionLoader) loadMention(ctx context.Context, uid gregor1.UID,
 	var resp mentionAPIResp
 	if err = l.G().API.GetDecode(libkb.NewMetaContext(ctx, l.G().ExternalG()), arg, &resp); err != nil {
 		l.Debug(ctx, "loadMention: failed to get team info: %s", err)
+		ui.ChatMaybeMentionUpdate(ctx, maybeMention.Name, maybeMention.Channel,
+			chat1.NewUIMaybeMentionInfoWithNothing())
 		return err
 	}
 	info.Open = resp.Open

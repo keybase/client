@@ -1039,6 +1039,7 @@ const (
 	UIMaybeMentionStatus_UNKNOWN UIMaybeMentionStatus = 0
 	UIMaybeMentionStatus_USER    UIMaybeMentionStatus = 1
 	UIMaybeMentionStatus_TEAM    UIMaybeMentionStatus = 2
+	UIMaybeMentionStatus_NOTHING UIMaybeMentionStatus = 3
 )
 
 func (o UIMaybeMentionStatus) DeepCopy() UIMaybeMentionStatus { return o }
@@ -1047,12 +1048,14 @@ var UIMaybeMentionStatusMap = map[string]UIMaybeMentionStatus{
 	"UNKNOWN": 0,
 	"USER":    1,
 	"TEAM":    2,
+	"NOTHING": 3,
 }
 
 var UIMaybeMentionStatusRevMap = map[UIMaybeMentionStatus]string{
 	0: "UNKNOWN",
 	1: "USER",
 	2: "TEAM",
+	3: "NOTHING",
 }
 
 func (e UIMaybeMentionStatus) String() string {
@@ -1104,6 +1107,12 @@ func NewUIMaybeMentionInfoWithTeam(v UITeamMention) UIMaybeMentionInfo {
 	return UIMaybeMentionInfo{
 		Status__: UIMaybeMentionStatus_TEAM,
 		Team__:   &v,
+	}
+}
+
+func NewUIMaybeMentionInfoWithNothing() UIMaybeMentionInfo {
+	return UIMaybeMentionInfo{
+		Status__: UIMaybeMentionStatus_NOTHING,
 	}
 }
 

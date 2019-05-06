@@ -249,13 +249,15 @@ protocol chatUi {
   enum UIMaybeMentionStatus {
     UNKNOWN_0,
     USER_1,
-    TEAM_2
+    TEAM_2,
+    NOTHING_3
   }
 
   variant UIMaybeMentionInfo switch (UIMaybeMentionStatus status) {
     case UNKNOWN: void;
     case USER: void;
     case TEAM: UITeamMention;
+    case NOTHING: void;
   }
 
   variant UITextDecoration switch (UITextDecorationTyp typ) {

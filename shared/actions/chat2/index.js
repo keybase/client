@@ -2713,6 +2713,12 @@ const onChatMaybeMentionUpdate = (state, action) => {
   })
 }
 
+const resolveMaybeMention = (state, action) => {
+  return RPCChatTypes.localResolveMaybeMentionRpcPromise({
+    mention: {channel: action.payload.channel, name: action.payload.name},
+  })
+}
+
 const openChatFromWidget = (state, {payload: {conversationIDKey}}) => [
   ConfigGen.createShowMain(),
   flags.useNewRouter
@@ -3195,6 +3201,11 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<Chat2Gen.DeselectConversationPayload>(
     Chat2Gen.deselectConversation,
     deselectConversation
+  )
+
+  yield* Saga.chainAction<Chat2Gen.ResolveMaybeMentionPayload>(
+    Chat2Gen.resolveMaybeMention,
+    resolveMaybeMention
   )
 
   yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnect)

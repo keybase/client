@@ -980,7 +980,8 @@
       "symbols": [
         "UNKNOWN_0",
         "USER_1",
-        "TEAM_2"
+        "TEAM_2",
+        "NOTHING_3"
       ]
     },
     {
@@ -1011,6 +1012,13 @@
             "def": false
           },
           "body": "UITeamMention"
+        },
+        {
+          "label": {
+            "name": "NOTHING",
+            "def": false
+          },
+          "body": null
         }
       ]
     },
