@@ -1922,3 +1922,57 @@ func TestUnmergedPutAfterCanceledUnmergedPut(t *testing.T) {
 		assert.True(t, ok)
 	}
 }
+
+func TestForceStuckConflict(t *testing.T) {
+	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_for_stuck_cr")
+	defer os.RemoveAll(tempdir)
+	require.NoError(t, err)
+
+	var u1 kbname.NormalizedUsername = "u1"
+	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
+	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
+
+	t.Log("Enable journaling")
+	err = config.EnableDiskLimiter(tempdir)
+	require.NoError(t, err)
+	err = config.EnableJournaling(
+		ctx, tempdir, TLFJournalBackgroundWorkEnabled)
+	require.NoError(t, err)
+	jManager, err := GetJournalManager(config)
+	require.NoError(t, err)
+	err = jManager.EnableAuto(ctx)
+	require.NoError(t, err)
+
+	name := "u1"
+	h, err := tlfhandle.ParseHandle(
+		ctx, config.KBPKI(), config.MDOps(), nil, string(name), tlf.Private)
+	require.NoError(t, err)
+	kbfsOps := config.KBFSOps()
+
+	t.Log("Initialize the TLF")
+	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, data.MasterBranch)
+	require.NoError(t, err)
+	_, _, err = kbfsOps.CreateDir(ctx, rootNode, "a")
+	require.NoError(t, err)
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+
+	t.Log("Force a conflict")
+	tlfID := rootNode.GetFolderBranch().Tlf
+	err = kbfsOps.ForceStuckConflictForTesting(ctx, tlfID)
+	require.NoError(t, err)
+
+	t.Log("Ensure conflict files are there")
+	children, err := kbfsOps.GetDirChildren(ctx, rootNode)
+	require.NoError(t, err)
+	require.Len(t, children, 1+(maxConflictResolutionAttempts+1))
+
+	t.Log("Clear conflict view")
+	err = kbfsOps.ClearConflictView(ctx, tlfID)
+	require.NoError(t, err)
+
+	t.Log("Ensure conflict files are gone")
+	children, err = kbfsOps.GetDirChildren(ctx, rootNode)
+	require.NoError(t, err)
+	require.Len(t, children, 1)
+}

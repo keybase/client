@@ -1023,6 +1023,20 @@ func (mr *MockKBFSOpsMockRecorder) ForceFastForward(arg0 interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForceFastForward", reflect.TypeOf((*MockKBFSOps)(nil).ForceFastForward), arg0)
 }
 
+// ForceStuckConflictForTesting mocks base method
+func (m *MockKBFSOps) ForceStuckConflictForTesting(arg0 context.Context, arg1 tlf.ID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ForceStuckConflictForTesting", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ForceStuckConflictForTesting indicates an expected call of ForceStuckConflictForTesting
+func (mr *MockKBFSOpsMockRecorder) ForceStuckConflictForTesting(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForceStuckConflictForTesting", reflect.TypeOf((*MockKBFSOps)(nil).ForceStuckConflictForTesting), arg0, arg1)
+}
+
 // GetDirChildren mocks base method
 func (m *MockKBFSOps) GetDirChildren(arg0 context.Context, arg1 Node) (map[string]data.EntryInfo, error) {
 	m.ctrl.T.Helper()
