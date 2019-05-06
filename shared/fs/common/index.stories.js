@@ -128,8 +128,12 @@ export const commonProvider = {
   }),
   UploadButton: ({path, style}: {path: Types.Path, style?: ?Styles.StylesCrossPlatform}) => ({
     canUpload: Types.getPathLevel(path) > 2,
-    openAndUpload: Sb.action('openAndUpload'),
-    pickAndUpload: Sb.action('pickAndUpload'),
+    openAndUploadBoth: Styles.isMobile ? null : Sb.action('openAndUploadBoth'),
+    openAndUploadDirectory: null,
+    openAndUploadFile: null,
+    pickAndUploadMixed: Styles.isMobile ? Sb.action('pickAndUploadMixed') : null,
+    pickAndUploadPhoto: null,
+    pickAndUploadVideo: null,
     style,
   }),
 }
