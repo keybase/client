@@ -6,7 +6,7 @@ import * as Kb from '../../common-adapters'
 import * as FsGen from '../../actions/fs-gen'
 import * as React from 'react'
 import * as Styles from '../../styles'
-import {isDarwin, isMobile, isIOS} from '../../constants/platform'
+import * as Platforms from '../../constants/platform'
 
 type OwnProps = {|
   path: Types.Path,
@@ -17,18 +17,18 @@ const UploadButton = Kb.OverlayParentHOC(props => {
   if (!props.canUpload) {
     return null
   }
-  if (isDarwin) {
-    return <Kb.Button small={true} onClick={props.openAndUpload('both')} label="Upload" style={props.style} />
+  if (props.openAndUploadBoth) {
+    return <Kb.Button small={true} onClick={props.openAndUploadBoth} label="Upload" style={props.style} />
   }
-  if (isIOS) {
-    return <Kb.Icon type="iconfont-upload" padding="tiny" onClick={props.pickAndUpload('mixed')} />
+  if (props.pickAndUploadMixed) {
+    return <Kb.Icon type="iconfont-upload" padding="tiny" onClick={props.pickAndUploadMixed} />
   }
   // Either Android, or non-darwin desktop. Android doesn't support mixed
   // mode; Linux/Windows don't support opening file or dir from the same
   // dialog. In both cases a menu is needed.
   return (
     <>
-      {isMobile ? (
+      {Platforms.isMobile ? (
         <Kb.Icon type="iconfont-upload" padding="tiny" onClick={props.toggleShowingMenu} />
       ) : (
         <Kb.Button
@@ -42,29 +42,40 @@ const UploadButton = Kb.OverlayParentHOC(props => {
         attachTo={props.getAttachmentRef}
         visible={props.showingMenu}
         onHidden={props.toggleShowingMenu}
-        items={
-          isMobile
+        items={[
+          ...(props.pickAndUploadPhoto
             ? [
                 {
-                  onClick: () => props.pickAndUpload('photo'),
+                  onClick: props.pickAndUploadPhoto,
                   title: 'Upload photo',
                 },
+              ]
+            : []),
+          ...(props.pickAndUploadVideo
+            ? [
                 {
-                  onClick: () => props.pickAndUpload('video'),
+                  onClick: props.pickAndUploadVideo,
                   title: 'Upload video',
                 },
               ]
-            : [
+            : []),
+          ...(props.openAndUploadDirectory
+            ? [
                 {
-                  onClick: () => props.openAndUpload('directory'),
+                  onClick: props.openAndUploadDirectory,
                   title: 'Upload directory',
                 },
+              ]
+            : []),
+          ...(props.openAndUploadFile
+            ? [
                 {
-                  onClick: () => props.openAndUpload('file'),
+                  onClick: props.openAndUploadFile,
                   title: 'Upload file',
                 },
               ]
-        }
+            : []),
+        ]}
         position="bottom left"
         closeOnSelect={true}
       />
@@ -77,10 +88,26 @@ const mapStateToProps = (state, {path}) => ({
 })
 
 const mapDispatchToProps = (dispatch, {path}) => ({
-  openAndUpload: (type: Types.OpenDialogType) =>
-    dispatch(FsGen.createOpenAndUpload({parentPath: path, type})),
-  pickAndUpload: (type: Types.MobilePickType) =>
-    dispatch(FsGen.createPickAndUpload({parentPath: path, type})),
+  openAndUploadBoth: Platforms.isDarwin
+    ? () => dispatch(FsGen.createOpenAndUpload({parentPath: path, type: 'both'}))
+    : null,
+  openAndUploadDirectory:
+    Platforms.isElectron && !Platforms.isDarwin
+      ? () => dispatch(FsGen.createOpenAndUpload({parentPath: path, type: 'directory'}))
+      : null,
+  openAndUploadFile:
+    Platforms.isElectron && !Platforms.isDarwin
+      ? () => dispatch(FsGen.createOpenAndUpload({parentPath: path, type: 'file'}))
+      : null,
+  pickAndUploadMixed: Platforms.isIOS
+    ? () => dispatch(FsGen.createPickAndUpload({parentPath: path, type: 'mixed'}))
+    : null,
+  pickAndUploadPhoto: Platforms.isAndroid
+    ? () => dispatch(FsGen.createPickAndUpload({parentPath: path, type: 'photo'}))
+    : null,
+  pickAndUploadVideo: Platforms.isAndroid
+    ? () => dispatch(FsGen.createPickAndUpload({parentPath: path, type: 'video'}))
+    : null,
 })
 
 const mergeProps = (s, d, o) => ({

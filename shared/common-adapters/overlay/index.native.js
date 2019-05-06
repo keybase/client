@@ -5,18 +5,13 @@ import {Box, Box2} from '../box'
 import FloatingBox from '../floating-box'
 import type {Props} from '.'
 import {collapseStyles, globalColors, globalStyles, styleSheetCreate} from '../../styles'
-import {dismiss as dismissKeyboard, isOpen as isKeyboardOpen} from '../../util/keyboard'
 
 const Overlay = (props: Props) => {
   if (props.hasOwnProperty('visible') && !props.visible) {
     return null
   }
-  if (isKeyboardOpen()) {
-    // Keyboard will cover up the overlay; need to hide
-    dismissKeyboard()
-  }
   return (
-    <FloatingBox onHidden={() => {}} dest={props.dest}>
+    <FloatingBox onHidden={() => {}} dest={props.dest} hideKeyboard={true}>
       <Box2
         direction="vertical"
         style={collapseStyles([styles.container, !!props.color && {color: props.color}])}
