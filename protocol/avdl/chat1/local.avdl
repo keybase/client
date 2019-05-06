@@ -663,21 +663,6 @@ protocol local {
   UnreadlineRes getUnreadline(int sessionID, ConversationID convID,
     MessageID readMsgID, keybase1.TLFIdentifyBehavior identifyBehavior);
 
-
-  record GetInboxUILocalRes {
-    array<UnverifiedInboxUIItem> conversationsRemote;
-    union { null, Pagination } pagination;
-
-    boolean offline;
-    array<RateLimit> rateLimits;
-    // This only contains identify failures if a TLF name is specified in arg.
-    // It doesn't contain identifyFailures otherwise, since GetInboxLocal
-    // doesn't run identify for each conversation in the inbox.
-    // GetInboxAndUnboxLocal should be used if identify failures are needed.
-    array<keybase1.TLFIdentifyFailure> identifyFailures;
-  }
-  GetInboxUILocalRes getInboxUILocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
-
   record NameQuery {
     string name;
     union { null, TLFID } tlfID; // pass this if we already know the TLFID

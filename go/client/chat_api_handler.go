@@ -138,7 +138,6 @@ type listOptionsV1 struct {
 	TopicType   string            `json:"topic_type,omitempty"`
 	ShowErrors  bool              `json:"show_errors,omitempty"`
 	FailOffline bool              `json:"fail_offline,omitempty"`
-	SkipUnbox   bool              `json:"skip_unbox,omitempty"`
 	Pagination  *chat1.Pagination `json:"pagination,omitempty"`
 }
 

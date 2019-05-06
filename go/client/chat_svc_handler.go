@@ -51,35 +51,6 @@ func newChatServiceHandler(g *libkb.GlobalContext) *chatServiceHandler {
 	}
 }
 
-func (c *chatServiceHandler) exportRemoteConv(ctx context.Context, uiconv chat1.UnverifiedInboxUIItem) (convSummary ConvSummary) {
-	convSummary.ID = uiconv.ConvID
-	convSummary.Unread = uiconv.ReadMsgID < uiconv.MaxVisibleMsgID
-	convSummary.ActiveAt = uiconv.Time.UnixSeconds()
-	convSummary.ActiveAtMs = uiconv.Time.UnixMilliseconds()
-	convSummary.FinalizeInfo = uiconv.FinalizeInfo
-	convSummary.MemberStatus = strings.ToLower(uiconv.MemberStatus.String())
-	for _, super := range uiconv.Supersedes {
-		convSummary.Supersedes = append(convSummary.Supersedes,
-			super.ConversationID.String())
-	}
-	for _, super := range uiconv.SupersededBy {
-		convSummary.SupersededBy = append(convSummary.SupersededBy,
-			super.ConversationID.String())
-	}
-	var topicName string
-	if uiconv.LocalMetadata != nil {
-		topicName = uiconv.LocalMetadata.ChannelName
-	}
-	convSummary.Channel = ChatChannel{
-		Name:        uiconv.Name,
-		Public:      uiconv.IsPublic,
-		TopicType:   strings.ToLower(uiconv.TopicType.String()),
-		MembersType: strings.ToLower(uiconv.MembersType.String()),
-		TopicName:   topicName,
-	}
-	return convSummary
-}
-
 func (c *chatServiceHandler) exportUIConv(ctx context.Context, uiconv chat1.InboxUIItem) (convSummary ConvSummary) {
 	convSummary.ID = uiconv.ConvID
 	convSummary.Unread = uiconv.ReadMsgID < uiconv.MaxVisibleMsgID
@@ -131,61 +102,33 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 	if err != nil {
 		return c.errReply(err)
 	}
-	if opts.SkipUnbox {
-		res, err := client.GetInboxUILocal(ctx, chat1.GetInboxUILocalArg{
-			Query: &chat1.GetInboxLocalQuery{
-				Status:            utils.VisibleChatConversationStatuses(),
-				TopicType:         &topicType,
-				UnreadOnly:        opts.UnreadOnly,
-				OneChatTypePerTLF: new(bool),
-			},
-			Pagination:       opts.Pagination,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-		})
-		if err != nil {
-			return c.errReply(err)
+	res, err := client.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
+		Query: &chat1.GetInboxLocalQuery{
+			Status:            utils.VisibleChatConversationStatuses(),
+			TopicType:         &topicType,
+			UnreadOnly:        opts.UnreadOnly,
+			OneChatTypePerTLF: new(bool),
+		},
+		Pagination:       opts.Pagination,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+	})
+	if err != nil {
+		return c.errReply(err)
+	}
+	pagination = res.Pagination
+	rlimits = utils.AggRateLimits(res.RateLimits)
+	if opts.FailOffline && res.Offline {
+		return c.errReply(chat.OfflineError{})
+	}
+	cl = ChatList{
+		Offline:          res.Offline,
+		IdentifyFailures: res.IdentifyFailures,
+	}
+	for _, conv := range res.Conversations {
+		if !opts.ShowErrors && conv.Error != nil {
+			continue
 		}
-		pagination = res.Pagination
-		rlimits = utils.AggRateLimits(res.RateLimits)
-		if opts.FailOffline && res.Offline {
-			return c.errReply(chat.OfflineError{})
-		}
-		cl = ChatList{
-			Offline:          res.Offline,
-			IdentifyFailures: res.IdentifyFailures,
-		}
-		for _, conv := range res.ConversationsRemote {
-			cl.Conversations = append(cl.Conversations, c.exportRemoteConv(ctx, conv))
-		}
-	} else {
-		res, err := client.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
-			Query: &chat1.GetInboxLocalQuery{
-				Status:            utils.VisibleChatConversationStatuses(),
-				TopicType:         &topicType,
-				UnreadOnly:        opts.UnreadOnly,
-				OneChatTypePerTLF: new(bool),
-			},
-			Pagination:       opts.Pagination,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-		})
-		if err != nil {
-			return c.errReply(err)
-		}
-		pagination = res.Pagination
-		rlimits = utils.AggRateLimits(res.RateLimits)
-		if opts.FailOffline && res.Offline {
-			return c.errReply(chat.OfflineError{})
-		}
-		cl = ChatList{
-			Offline:          res.Offline,
-			IdentifyFailures: res.IdentifyFailures,
-		}
-		for _, conv := range res.Conversations {
-			if !opts.ShowErrors && conv.Error != nil {
-				continue
-			}
-			cl.Conversations = append(cl.Conversations, c.exportLocalConv(ctx, conv))
-		}
+		cl.Conversations = append(cl.Conversations, c.exportLocalConv(ctx, conv))
 	}
 	cl.Pagination = pagination
 	cl.RateLimits.RateLimits = c.aggRateLimits(rlimits)

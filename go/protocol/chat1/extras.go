@@ -1467,10 +1467,6 @@ func (r *DeleteConversationLocalRes) SetOffline() {
 	r.Offline = true
 }
 
-func (r *GetInboxUILocalRes) SetOffline() {
-	r.Offline = true
-}
-
 func (r *SearchRegexpRes) SetOffline() {
 	r.Offline = true
 }
@@ -2034,14 +2030,6 @@ func (r *SetRetentionRes) GetRateLimit() (res []RateLimit) {
 
 func (r *SetRetentionRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimit = &rl[0]
-}
-
-func (r *GetInboxUILocalRes) GetRateLimit() (res []RateLimit) {
-	return r.RateLimits
-}
-
-func (r *GetInboxUILocalRes) SetRateLimits(rl []RateLimit) {
-	r.RateLimits = rl
 }
 
 func (i EphemeralPurgeInfo) String() string {
