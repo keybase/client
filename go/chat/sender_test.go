@@ -871,7 +871,8 @@ func TestAtMentionsText(t *testing.T) {
 	uid1 := u1.User.GetUID().ToBytes()
 	uid2 := u2.User.GetUID().ToBytes()
 	tc := userTc(t, world, u)
-	conv := newBlankConv(ctx, t, tc, uid, ri, blockingSender, u.Username)
+	tlfName := u.Username + "," + u1.Username + "," + u2.Username
+	conv := newBlankConv(ctx, t, tc, uid, ri, blockingSender, tlfName)
 	localConv := localizeConv(ctx, t, tc, uid, conv)
 
 	text := fmt.Sprintf("@%s hello! From @%s. @ksjdskj", u1.Username, u2.Username)
@@ -880,7 +881,7 @@ func TestAtMentionsText(t *testing.T) {
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        conv.Metadata.IdTriple,
 			Sender:      uid,
-			TlfName:     u.Username,
+			TlfName:     tlfName,
 			MessageType: chat1.MessageType_TEXT,
 		},
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
@@ -898,7 +899,7 @@ func TestAtMentionsText(t *testing.T) {
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        conv.Metadata.IdTriple,
 			Sender:      uid,
-			TlfName:     u.Username,
+			TlfName:     tlfName,
 			MessageType: chat1.MessageType_TEXT,
 		},
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
@@ -923,7 +924,8 @@ func TestAtMentionsEdit(t *testing.T) {
 	uid1 := u1.User.GetUID().ToBytes()
 	uid2 := u2.User.GetUID().ToBytes()
 	tc := userTc(t, world, u)
-	conv := newBlankConv(ctx, t, tc, uid, ri, blockingSender, u.Username)
+	tlfName := u.Username + "," + u1.Username + "," + u2.Username
+	conv := newBlankConv(ctx, t, tc, uid, ri, blockingSender, tlfName)
 	localConv := localizeConv(ctx, t, tc, uid, conv)
 
 	text := fmt.Sprintf("%s hello! From %s. @ksjdskj", u1.Username, u2.Username)
@@ -932,7 +934,7 @@ func TestAtMentionsEdit(t *testing.T) {
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        conv.Metadata.IdTriple,
 			Sender:      uid,
-			TlfName:     u.Username,
+			TlfName:     tlfName,
 			MessageType: chat1.MessageType_TEXT,
 		},
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
@@ -948,7 +950,7 @@ func TestAtMentionsEdit(t *testing.T) {
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        conv.Metadata.IdTriple,
 			Sender:      u.User.GetUID().ToBytes(),
-			TlfName:     u.Username,
+			TlfName:     tlfName,
 			MessageType: chat1.MessageType_EDIT,
 			Supersedes:  firstMessageID,
 		},
@@ -969,7 +971,7 @@ func TestAtMentionsEdit(t *testing.T) {
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        conv.Metadata.IdTriple,
 			Sender:      uid,
-			TlfName:     u.Username,
+			TlfName:     tlfName,
 			MessageType: chat1.MessageType_EDIT,
 			Supersedes:  firstMessageID,
 		},

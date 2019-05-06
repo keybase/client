@@ -641,6 +641,7 @@ func (s *BlockingSender) handleMentions(ctx context.Context, uid gregor1.UID, ms
 		if err = checkHeaderBodyTypeMatch(); err != nil {
 			return res, atMentions, chanMention, err
 		}
+		res = msg
 		atMentions, chanMention = utils.SystemMessageMentions(ctx, msg.MessageBody.System(),
 			s.G().GetUPAKLoader())
 	default:
@@ -654,6 +655,7 @@ func (s *BlockingSender) handleMentions(ctx context.Context, uid gregor1.UID, ms
 func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePlaintext,
 	membersType chat1.ConversationMembersType, conv *chat1.ConversationLocal,
 	inopts *chat1.SenderPrepareOptions) (res types.SenderPrepareResult, err error) {
+
 	if plaintext.ClientHeader.MessageType == chat1.MessageType_NONE {
 		return res, fmt.Errorf("cannot send message without type")
 	}
@@ -861,7 +863,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	sender := gregor1.UID(s.G().Env.GetUID().ToBytes())
 	conv, err = utils.GetVerifiedConv(ctx, s.G(), sender, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
-		if err == utils.ErrGetUnverifiedConvNotFound {
+		if err == utils.ErrGetVerifiedConvNotFound {
 			// If we didn't find it, then just attempt to join it and see what happens
 			switch msg.ClientHeader.MessageType {
 			case chat1.MessageType_JOIN, chat1.MessageType_LEAVE:
@@ -962,10 +964,11 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 				continue
 			case libkb.ChatEphemeralRetentionPolicyViolatedError:
 				s.Debug(ctx, "Send: failed because of invalid ephemeral policy, trying the whole thing again")
-				conv, err = utils.GetVerifiedConv(ctx, s.G(), sender, convID,
+				var cerr error
+				conv, cerr = utils.GetVerifiedConv(ctx, s.G(), sender, convID,
 					types.InboxSourceDataSourceRemoteOnly)
-				if err != nil {
-					return nil, nil, err
+				if cerr != nil {
+					return nil, nil, cerr
 				}
 				continue
 			case libkb.EphemeralPairwiseMACsMissingUIDsError:
