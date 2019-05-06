@@ -514,7 +514,38 @@ func (s *BlockingSender) handleReplyTo(ctx context.Context, msg chat1.MessagePla
 	return msg
 }
 
-func (s *BlockingSender) handleMentions(ctx context.Context, uid gregor1.UID, msg chat1.MessagePlaintext) (res chat1.MessagePlaintext, atMentions []gregor1.UID, chanMention chat1.ChannelMention, err error) {
+func (s *BlockingSender) getParticipantsForMentions(ctx context.Context, uid gregor1.UID,
+	conv *chat1.ConversationLocal) ([]chat1.ConversationLocalParticipant, error) {
+	if conv == nil {
+		return nil, nil
+	}
+	// get the conv that we will look for @ mentions in
+	switch conv.GetMembersType() {
+	case chat1.ConversationMembersType_TEAM:
+		if conv.Info.TopicName == globals.DefaultTeamTopic {
+			return conv.Info.Participants, nil
+		}
+		ib, _, err := s.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
+			types.InboxSourceDataSourceAll, nil, &chat1.GetInboxLocalQuery{
+				Name: &chat1.NameQuery{
+					Name:        conv.Info.TlfName,
+					MembersType: chat1.ConversationMembersType_TEAM,
+				},
+				TopicName: &globals.DefaultTeamTopic,
+			}, nil)
+		if err != nil {
+			return nil, err
+		}
+		if len(ib.Convs) == 0 {
+			// just make a best effort here and return the current conv
+			return conv.Info.Participants, nil
+		}
+		return ib.Convs[0].Info.Participants, nil
+	}
+	return conv.Info.Participants, nil
+}
+func (s *BlockingSender) handleMentions(ctx context.Context, uid gregor1.UID, msg chat1.MessagePlaintext,
+	conv *chat1.ConversationLocal) (res chat1.MessagePlaintext, atMentions []gregor1.UID, chanMention chat1.ChannelMention, err error) {
 	if msg.ClientHeader.Conv.TopicType != chat1.TopicType_CHAT {
 		return msg, atMentions, chanMention, nil
 	}
@@ -550,6 +581,12 @@ func (s *BlockingSender) handleMentions(ctx context.Context, uid gregor1.UID, ms
 		return res
 	}
 
+	// get members we can use to identify @ mentions
+	convMembers, err := s.getParticipantsForMentions(ctx, uid, conv)
+	if err != nil {
+		return res, atMentions, chanMention, err
+	}
+
 	// find @ mentions
 	var knownUserMentions []chat1.KnownUserMention
 	var maybeMentions []chat1.MaybeMention
@@ -559,7 +596,7 @@ func (s *BlockingSender) handleMentions(ctx context.Context, uid gregor1.UID, ms
 			return res, atMentions, chanMention, err
 		}
 		knownUserMentions, maybeMentions, chanMention = utils.GetTextAtMentionedItems(ctx, s.G(),
-			msg.MessageBody.Text(), &s.DebugLabeler)
+			msg.MessageBody.Text(), convMembers, &s.DebugLabeler)
 		atMentions = atFromKnown(knownUserMentions)
 		newBody := msg.MessageBody.Text().DeepCopy()
 		newBody.TeamMentions = maybeToTeam(maybeMentions)
@@ -574,7 +611,7 @@ func (s *BlockingSender) handleMentions(ctx context.Context, uid gregor1.UID, ms
 			return res, atMentions, chanMention, err
 		}
 		knownUserMentions, maybeMentions, chanMention = utils.ParseAtMentionedItems(ctx, s.G(),
-			msg.MessageBody.Flip().Text, nil)
+			msg.MessageBody.Flip().Text, nil, convMembers)
 		atMentions = atFromKnown(knownUserMentions)
 		newBody := msg.MessageBody.Flip().DeepCopy()
 		newBody.TeamMentions = maybeToTeam(maybeMentions)
@@ -589,7 +626,7 @@ func (s *BlockingSender) handleMentions(ctx context.Context, uid gregor1.UID, ms
 			return res, atMentions, chanMention, err
 		}
 		knownUserMentions, maybeMentions, chanMention = utils.ParseAtMentionedItems(ctx, s.G(),
-			msg.MessageBody.Edit().Body, nil)
+			msg.MessageBody.Edit().Body, nil, convMembers)
 		atMentions = atFromKnown(knownUserMentions)
 		newBody := msg.MessageBody.Edit().DeepCopy()
 		newBody.TeamMentions = maybeToTeam(maybeMentions)
@@ -712,7 +749,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	// handle mentions
 	var atMentions []gregor1.UID
 	var chanMention chat1.ChannelMention
-	if msg, atMentions, chanMention, err = s.handleMentions(ctx, uid, msg); err != nil {
+	if msg, atMentions, chanMention, err = s.handleMentions(ctx, uid, msg, conv); err != nil {
 		return res, err
 	}
 

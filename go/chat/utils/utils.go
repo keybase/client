@@ -625,8 +625,9 @@ func parseRegexpNames(ctx context.Context, body string, re *regexp.Regexp) (res 
 }
 
 func GetTextAtMentionedItems(ctx context.Context, g *globals.Context, msg chat1.MessageText,
+	convMembs []chat1.ConversationLocalParticipant,
 	debug *DebugLabeler) (atRes []chat1.KnownUserMention, maybeRes []chat1.MaybeMention, chanRes chat1.ChannelMention) {
-	atRes, maybeRes, chanRes = ParseAtMentionedItems(ctx, g, msg.Body, msg.UserMentions)
+	atRes, maybeRes, chanRes = ParseAtMentionedItems(ctx, g, msg.Body, msg.UserMentions, convMembs)
 	atRes = append(atRes, GetPaymentAtMentions(ctx, g.GetUPAKLoader(), msg.Payments, debug)...)
 	return atRes, maybeRes, chanRes
 }
@@ -656,7 +657,7 @@ func ParseAtMentionsNames(ctx context.Context, body string) (res []string) {
 }
 
 func parseItemAsUID(ctx context.Context, g *globals.Context, name string,
-	knownMentions []chat1.KnownUserMention) (gregor1.UID, error) {
+	knownMentions []chat1.KnownUserMention, convMembs []chat1.ConversationLocalParticipant) (gregor1.UID, error) {
 	var knownMention *gregor1.UID
 	for _, known := range knownMentions {
 		if known.Text == name {
@@ -668,8 +669,15 @@ func parseItemAsUID(ctx context.Context, g *globals.Context, name string,
 	if knownMention != nil {
 		return *knownMention, nil
 	}
+	isConvMember := false
+	for _, memb := range convMembs {
+		if memb.Username == name {
+			isConvMember = true
+			break
+		}
+	}
 	nname := libkb.NewNormalizedUsername(name)
-	if libkb.IsUserByUsernameOffline(libkb.NewMetaContext(ctx, g.ExternalG()), nname) {
+	if isConvMember || libkb.IsUserByUsernameOffline(libkb.NewMetaContext(ctx, g.ExternalG()), nname) {
 		kuid, err := g.GetUPAKLoader().LookupUID(ctx, nname)
 		if err != nil {
 			return nil, err
@@ -680,7 +688,7 @@ func parseItemAsUID(ctx context.Context, g *globals.Context, name string,
 }
 
 func ParseAtMentionedItems(ctx context.Context, g *globals.Context, body string,
-	knownMentions []chat1.KnownUserMention) (atRes []chat1.KnownUserMention, maybeRes []chat1.MaybeMention, chanRes chat1.ChannelMention) {
+	knownMentions []chat1.KnownUserMention, convMembs []chat1.ConversationLocalParticipant) (atRes []chat1.KnownUserMention, maybeRes []chat1.MaybeMention, chanRes chat1.ChannelMention) {
 	names := ParseAtMentionsNames(ctx, body)
 	chanRes = chat1.ChannelMention_NONE
 	for _, name := range names {
@@ -703,7 +711,7 @@ func ParseAtMentionedItems(ctx context.Context, g *globals.Context, body string,
 		}
 
 		// Try UID first then team
-		if uid, err := parseItemAsUID(ctx, g, baseName, knownMentions); err == nil {
+		if uid, err := parseItemAsUID(ctx, g, baseName, knownMentions, convMembs); err == nil {
 			atRes = append(atRes, chat1.KnownUserMention{
 				Text: baseName,
 				Uid:  uid,
