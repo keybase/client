@@ -3,6 +3,7 @@ import * as I from 'immutable'
 import React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as Types from '../../constants/types/fs'
+import * as Constants from '../../constants/fs'
 import {isMobile} from '../../constants/platform'
 import {Box} from '../../common-adapters'
 import {WrapRow} from './rows'
@@ -98,6 +99,7 @@ export const rowsProvider = {
     loadFavorites: Sb.action('loadFavorites'),
     loadFolderList: Sb.action('loadFolderList'),
     path,
+    syncingFoldersProgress: Constants.makeSyncingFoldersProgress(),
   }),
   SortBar: ({path}: {path: Types.Path}) => ({
     folderIsPending: true,

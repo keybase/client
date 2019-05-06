@@ -34,7 +34,7 @@
       "tlfName": "string",
       "syncConfig": "Types.TlfSyncConfig",
     },
-    "tlfSyncConfigsLoaded": {
+    "tlfSyncConfigsForAllSyncEnabledTlfsLoaded": {
       "private": "I.Map<string, Types.TlfSyncConfig>",
       "public": "I.Map<string, Types.TlfSyncConfig>",
       "team": "I.Map<string, Types.TlfSyncConfig>"
