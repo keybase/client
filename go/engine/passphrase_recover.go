@@ -126,6 +126,7 @@ func (e *PassphraseRecover) processUsername(mctx libkb.MetaContext) error {
 	return nil
 }
 
+// TODO CORE-10851: Remove
 func (e *PassphraseRecover) legacyRecovery(mctx libkb.MetaContext) (err error) {
 	return e.loginWithPaperKey(mctx)
 }
@@ -243,7 +244,7 @@ func (e *PassphraseRecover) changePassword(mctx libkb.MetaContext) (err error) {
 		}
 		if !proceed {
 			mctx.Info("Password recovery canceled")
-			return nil
+			return libkb.NewCanceledError("Password recovery canceled")
 		}
 	}
 

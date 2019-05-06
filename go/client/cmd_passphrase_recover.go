@@ -96,6 +96,7 @@ func (c *CmdPassphraseRecover) GetUsage() libkb.Usage {
 	}
 }
 
+// TODO CORE-10851: Remove when legacyRecovery is gone
 func (c *CmdPassphraseRecover) errNotProvisioned() error {
 	return errors.New(`Can't recover without device keys.
 

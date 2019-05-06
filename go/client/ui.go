@@ -847,6 +847,9 @@ func (l LoginUI) DisplayResetProgress(ctx context.Context, arg keybase1.DisplayR
 }
 
 func (l LoginUI) ExplainDeviceRecovery(ctx context.Context, arg keybase1.ExplainDeviceRecoveryArg) error {
+	if arg.Name == "" {
+		arg.Name = "your device"
+	}
 	switch arg.Kind {
 	case keybase1.DeviceType_DESKTOP:
 		l.parent.Printf("On %q, go to \"Settings > Your account\" to change your password.\n", arg.Name)
