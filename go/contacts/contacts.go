@@ -49,6 +49,7 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 
 	// contactIndex -> true for all contacts that have at least one component resolved.
 	contactsFound := make(map[int]struct{})
+	usersFound := make(map[keybase1.UID]struct{})
 
 	if len(emailSet) > 0 || len(phoneSet) > 0 {
 		phones := make([]keybase1.RawPhoneNumber, 0, len(phoneSet))
@@ -64,33 +65,47 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 			return res, err
 		}
 
-		// Map into two lists first because we want emails to go first, and
-		// also keep the order of how contacts came in.
-		var emailRes []keybase1.ProcessedContact
-		var phoneRes []keybase1.ProcessedContact
-		for contactI, contact := range contacts {
-			for _, component := range contact.Components {
-				if lookupRes, found := providerRes[component.ValueString()]; found {
-					c := keybase1.ProcessedContact{
-						ContactIndex: contactI,
-						ContactName:  contact.Name,
-						Component:    component,
-						Resolved:     true,
-						Uid:          lookupRes.UID,
-						Following:    true,
+		// Loop twice, because:
+		// - We want e-mails to go first, while still be in order of how the
+		// contacts and components came in.
+		// - We want only one resolution from each contact (if there is any),
+		// but still, with emails going first and in order they came in within
+		// contact.
+		loopOnce := func(email bool) {
+			for contactI, contact := range contacts {
+				if _, alreadyResolved := contactsFound[contactI]; alreadyResolved {
+					continue
+				}
+
+				for _, component := range contact.Components {
+					if component.Email == nil && email {
+						continue
 					}
-					if component.Email != nil {
-						emailRes = append(emailRes, c)
-					} else {
-						phoneRes = append(phoneRes, c)
+
+					if lookupRes, found := providerRes[component.ValueString()]; found {
+						if _, userFound := usersFound[lookupRes.UID]; userFound {
+							// This user was already resolved by looking up another
+							// component or another contact.
+							continue
+						}
+
+						res = append(res, keybase1.ProcessedContact{
+							ContactIndex: contactI,
+							ContactName:  contact.Name,
+							Component:    component,
+							Resolved:     true,
+							Uid:          lookupRes.UID,
+							Following:    true,
+						})
+						contactsFound[contactI] = struct{}{}
+						usersFound[lookupRes.UID] = struct{}{}
 					}
-					contactsFound[contactI] = struct{}{}
 				}
 			}
 		}
 
-		res = append(res, emailRes...)
-		res = append(res, phoneRes...)
+		loopOnce(true /* email */)
+		loopOnce(false /* email */)
 	}
 
 	if len(res) > 0 {
