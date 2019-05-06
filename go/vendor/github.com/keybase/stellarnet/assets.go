@@ -215,6 +215,8 @@ func makeXDRAsset(assetCode string, issuerID AddressStr) (xdr.Asset, error) {
 func assetCodeToType(code string) (string, error) {
 	x := len(code)
 	switch {
+	case x == 0:
+		return "native", nil
 	case x >= 1 && x <= 4:
 		return "credit_alphanum4", nil
 	case x >= 5 && x <= 12:
@@ -222,10 +224,6 @@ func assetCodeToType(code string) (string, error) {
 	default:
 		return "", errors.New("invalid assetCode length")
 	}
-}
-
-func assetBaseType(a AssetBase) (string, error) {
-	return assetCodeToType(a.CodeString())
 }
 
 func assetBaseIssuer(a AssetBase) (AddressStr, error) {
@@ -259,5 +257,4 @@ func assetBaseToXDR(a AssetBase) (xdr.Asset, error) {
 	default:
 		return xdr.Asset{}, errors.New("invalid asset code length")
 	}
-
 }

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"net/http"
 	"sort"
 
 	"github.com/keybase/client/go/libkb"
@@ -596,7 +597,36 @@ func (s *Server) BatchLocal(ctx context.Context, arg stellar1.BatchLocalArg) (re
 }
 
 func (s *Server) ValidateStellarURILocal(ctx context.Context, arg stellar1.ValidateStellarURILocalArg) (stellar1.ValidateStellarURIResultLocal, error) {
-	return stellar1.ValidateStellarURIResultLocal{}, errors.New("not implemented")
+	vp, err := s.validateStellarURI(ctx, arg.InputURI, http.DefaultClient)
+	if err != nil {
+		return stellar1.ValidateStellarURIResultLocal{}, err
+	}
+	return *vp, nil
+}
+
+func (s *Server) validateStellarURI(ctx context.Context, uri string, getter stellarnet.HTTPGetter) (*stellar1.ValidateStellarURIResultLocal, error) {
+	validated, err := stellarnet.ValidateStellarURI(uri, getter)
+	if err != nil {
+		return nil, err
+	}
+
+	local := stellar1.ValidateStellarURIResultLocal{
+		Operation:    validated.Operation,
+		OriginDomain: validated.OriginDomain,
+		Message:      validated.Message,
+		CallbackURL:  validated.CallbackURL,
+		Xdr:          validated.XDR,
+		Recipient:    validated.Recipient,
+		Amount:       validated.Amount,
+		AssetCode:    validated.AssetCode,
+		AssetIssuer:  validated.AssetIssuer,
+		Memo:         validated.Memo,
+		MemoType:     validated.MemoType,
+	}
+
+	// Need summary when validated.Tx != nil
+
+	return &local, nil
 }
 
 func percentageAmountChange(a, b int64) float64 {

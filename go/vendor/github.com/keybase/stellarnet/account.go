@@ -521,7 +521,7 @@ func paymentXLM(from SeedStr, to AddressStr, amount, memoText string) (ledger in
 	if err != nil {
 		return 0, "", 0, errMap(err)
 	}
-	return Submit(sig.Signed)
+	return submitNoResultXDR(sig.Signed)
 }
 
 // PaymentXLMTransaction creates a signed transaction to send a payment from 'from' to 'to' for 'amount' lumens.
@@ -543,7 +543,7 @@ func payment(from SeedStr, to AddressStr, asset AssetBase, amount, memoText stri
 	if err != nil {
 		return 0, "", 0, errMap(err)
 	}
-	return Submit(sig.Signed)
+	return submitNoResultXDR(sig.Signed)
 }
 
 // PaymentTransaction creates a signed transaction to send a payment from 'from' to 'to' for a custom asset.
@@ -569,7 +569,7 @@ func pathPayment(from SeedStr, to AddressStr, sendAsset AssetBase, sendAmountMax
 	if err != nil {
 		return 0, "", 0, errMap(err)
 	}
-	return Submit(sig.Signed)
+	return submitNoResultXDR(sig.Signed)
 }
 
 // PathPaymentTransaction creates a signed transaction for a path payment.
@@ -593,7 +593,7 @@ func createAccountXLM(from SeedStr, to AddressStr, amount, memoText string) (led
 	if err != nil {
 		return 0, "", 0, errMap(err)
 	}
-	return Submit(sig.Signed)
+	return submitNoResultXDR(sig.Signed)
 }
 
 // CreateAccountXLMTransaction creates a signed transaction to fund an new account 'to' from 'from'
@@ -642,7 +642,7 @@ func setInflationDestination(from SeedStr, to AddressStr) (ledger int32, txid st
 	if err != nil {
 		return 0, "", 0, errMap(err)
 	}
-	return Submit(sig.Signed)
+	return submitNoResultXDR(sig.Signed)
 }
 
 // SetHomeDomainTransaction creates a "set options" transaction that will set the
@@ -663,7 +663,7 @@ func setHomeDomain(from SeedStr, domain string) (ledger int32, txid string, atte
 	if err != nil {
 		return 0, "", 0, errMap(err)
 	}
-	return Submit(sig.Signed)
+	return submitNoResultXDR(sig.Signed)
 }
 
 // MakeOfferTransaction creates a new offer transaction.
@@ -683,7 +683,7 @@ func makeOffer(from SeedStr, selling, buying xdr.Asset, amountToSell, price stri
 	if err != nil {
 		return 0, "", 0, errMap(err)
 	}
-	return Submit(sig.Signed)
+	return submitNoResultXDR(sig.Signed)
 }
 
 // RelocateTransaction creates a signed transaction to merge the account `from` into `to`.
@@ -712,8 +712,8 @@ func CreateTrustline(from SeedStr, assetCode string, assetIssuer AddressStr, lim
 	if err != nil {
 		return "", err
 	}
-	_, txID, _, err = Submit(sig.Signed)
-	return txID, err
+	res, err := Submit(sig.Signed)
+	return res.TxID, err
 }
 
 // CreateTrustlineTransaction create a signed transaction to establish a trustline from
@@ -734,8 +734,8 @@ func DeleteTrustline(from SeedStr, assetCode string, assetIssuer AddressStr, bas
 	if err != nil {
 		return "", err
 	}
-	_, txID, _, err = Submit(sig.Signed)
-	return txID, err
+	res, err := Submit(sig.Signed)
+	return res.TxID, err
 }
 
 // DeleteTrustlineTransaction create a signed transaction to remove a trustline from
@@ -749,8 +749,21 @@ func DeleteTrustlineTransaction(from SeedStr, assetCode string, assetIssuer Addr
 	return t.Sign(from)
 }
 
+func submitNoResultXDR(signed string) (ledger int32, txid string, attempt int, err error) {
+	res, err := Submit(signed)
+	return res.Ledger, res.TxID, res.Attempt, err
+}
+
+// SubmitResult contains information about a tx after submission to the stellar network.
+type SubmitResult struct {
+	Ledger    int32
+	TxID      string
+	Attempt   int
+	ResultXDR string
+}
+
 // Submit submits a signed transaction to horizon.
-func Submit(signed string) (ledger int32, txid string, attempt int, err error) {
+func Submit(signed string) (res SubmitResult, err error) {
 	var resp horizon.TransactionSuccess
 	for i := 0; i < submitAttempts; i++ {
 		resp, err = Client().SubmitTransaction(signed)
@@ -773,13 +786,13 @@ func Submit(signed string) (ledger int32, txid string, attempt int, err error) {
 				}
 			}
 
-			return 0, "", i, errMap(err)
+			return SubmitResult{Attempt: i}, errMap(err)
 		}
 
-		return resp.Ledger, resp.Hash, i, nil
+		return SubmitResult{Ledger: resp.Ledger, TxID: resp.Hash, Attempt: i, ResultXDR: resp.Result}, nil
 	}
 
-	return 0, "", submitAttempts, errMap(err)
+	return SubmitResult{Attempt: submitAttempts}, errMap(err)
 }
 
 // FindPaymentPaths searches for path payments from the account object ownere and `to`, for a specific
