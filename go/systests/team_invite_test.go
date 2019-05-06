@@ -56,7 +56,7 @@ func TestTeamInviteRooter(t *testing.T) {
 	}
 
 	// the invite should not be in the active invite map
-	exists, err := t0.HasActiveInvite(keybase1.TeamInviteName(tt.users[1].username), "rooter")
+	exists, err := t0.HasActiveInvite(tt.users[0].tc.MetaContext(), keybase1.TeamInviteName(tt.users[1].username), "rooter")
 	require.NoError(t, err)
 	require.False(t, exists)
 	require.Equal(t, 0, t0.NumActiveInvites())
@@ -109,7 +109,7 @@ func TestTeamInviteEmail(t *testing.T) {
 	}
 
 	// the invite should not be in the active invite map
-	exists, err := t0.HasActiveInvite(keybase1.TeamInviteName(email), "email")
+	exists, err := t0.HasActiveInvite(tt.users[0].tc.MetaContext(), keybase1.TeamInviteName(email), "email")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -452,11 +452,11 @@ func TestClearSocialInvitesOnAdd(t *testing.T) {
 	require.Equal(t, len(writers), 1)
 	require.True(t, writers[0].Uid.Equal(bob.uid))
 
-	hasInv, err := t0.HasActiveInvite(keybase1.TeamInviteName(bob.username), "rooter")
+	hasInv, err := t0.HasActiveInvite(ann.tc.MetaContext(), keybase1.TeamInviteName(bob.username), "rooter")
 	require.NoError(t, err)
 	require.False(t, hasInv, "Adding should have cleared bob...@rooter")
 
-	hasInv, err = t0.HasActiveInvite(keybase1.TeamInviteName(bobBadRooter), "rooter")
+	hasInv, err = t0.HasActiveInvite(ann.tc.MetaContext(), keybase1.TeamInviteName(bobBadRooter), "rooter")
 	require.NoError(t, err)
 	require.True(t, hasInv, "But should not have cleared otherbob...@rooter")
 }
