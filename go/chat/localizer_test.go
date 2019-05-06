@@ -26,9 +26,12 @@ func TestLocalizerPipeline(t *testing.T) {
 	<-tc.Context().ConvLoader.Stop(ctx)
 
 	var convs []chat1.Conversation
-	convs = append(convs, newConv(ctx, t, tc, uid, ri, sender, u.Username+","+u1.Username))
-	convs = append(convs, newConv(ctx, t, tc, uid, ri, sender, u.Username+","+u2.Username))
-	convs = append(convs, newConv(ctx, t, tc, uid, ri, sender, u.Username+","+u2.Username+","+u1.Username))
+	_, conv := newConv(ctx, t, tc, uid, ri, sender, u.Username+","+u1.Username)
+	convs = append(convs, conv)
+	_, conv = newConv(ctx, t, tc, uid, ri, sender, u.Username+","+u2.Username)
+	convs = append(convs, conv)
+	_, conv = newConv(ctx, t, tc, uid, ri, sender, u.Username+","+u2.Username+","+u1.Username)
+	convs = append(convs, conv)
 
 	delay := 2 * time.Second
 	pipeline := newLocalizerPipeline(tc.Context())

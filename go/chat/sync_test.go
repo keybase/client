@@ -22,6 +22,18 @@ func newBlankConv(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext,
 		chat1.ConversationMembersType_IMPTEAMUPGRADE)
 }
 
+func localizeConv(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext,
+	uid gregor1.UID, conv chat1.Conversation) chat1.ConversationLocal {
+	rc := types.RemoteConversation{
+		Conv: conv,
+	}
+	locals, _, err := tc.Context().InboxSource.Localize(ctx, uid, []types.RemoteConversation{rc},
+		types.ConversationLocalizerBlocking)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(locals))
+	return locals[0]
+}
+
 func newBlankConvWithMembersType(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext,
 	uid gregor1.UID, ri chat1.RemoteInterface, sender types.Sender, tlfName string,
 	membersType chat1.ConversationMembersType) chat1.Conversation {
@@ -39,7 +51,7 @@ func newBlankConvWithMembersType(ctx context.Context, t *testing.T, tc *kbtest.C
 }
 
 func newConv(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext, uid gregor1.UID,
-	ri chat1.RemoteInterface, sender types.Sender, tlfName string) chat1.Conversation {
+	ri chat1.RemoteInterface, sender types.Sender, tlfName string) (chat1.ConversationLocal, chat1.Conversation) {
 	conv := newBlankConv(ctx, t, tc, uid, ri, sender, tlfName)
 	_, _, err := sender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
@@ -52,13 +64,14 @@ func newConv(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext, uid 
 	}, 0, nil, nil, nil)
 	require.NoError(t, err)
 	convID := conv.GetConvID()
-	ires, err := ri.GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
-		Query: &chat1.GetInboxQuery{
-			ConvID: &convID,
-		},
-	})
+	ib, _, err := tc.Context().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
+		types.InboxSourceDataSourceAll, nil, &chat1.GetInboxLocalQuery{
+			ConvIDs: []chat1.ConversationID{convID},
+		}, nil)
 	require.NoError(t, err)
-	return ires.Inbox.Full().Conversations[0]
+	require.Equal(t, 1, len(ib.Convs))
+	require.Equal(t, 1, len(ib.ConvsUnverified))
+	return ib.Convs[0], ib.ConvsUnverified[0].Conv
 }
 
 func doSync(t *testing.T, syncer types.Syncer, ri chat1.RemoteInterface, uid gregor1.UID) {
@@ -246,7 +259,7 @@ func TestSyncerAdHocFullReload(t *testing.T) {
 	syncer := NewSyncer(tc.Context())
 	syncer.isConnected = true
 
-	conv := newConv(ctx, t, tc, uid, ri, sender, u.Username)
+	_, conv := newConv(ctx, t, tc, uid, ri, sender, u.Username)
 	t.Logf("convID: %s", conv.GetConvID())
 	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
 		conv.ReaderInfo.Status = chat1.ConversationMemberStatus_LEFT
@@ -520,7 +533,7 @@ func TestSyncerAppState(t *testing.T) {
 	syncer := NewSyncer(tc.Context())
 	syncer.isConnected = true
 
-	conv := newConv(ctx, t, tc, uid, ri, sender, u.Username)
+	_, conv := newConv(ctx, t, tc, uid, ri, sender, u.Username)
 	t.Logf("test incremental")
 	tc.G.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
 	syncer.SendChatStaleNotifications(context.TODO(), uid, []chat1.ConversationStaleUpdate{
@@ -674,7 +687,7 @@ func TestSyncerTeamFilter(t *testing.T) {
 	syncer.isConnected = true
 	ibox := storage.NewInbox(tc.Context())
 
-	iconv := newConv(ctx, t, tc, uid, ri, sender, u.Username)
+	_, iconv := newConv(ctx, t, tc, uid, ri, sender, u.Username)
 	tconv := newBlankConvWithMembersType(ctx, t, tc, uid, ri, sender, u.Username+","+u2.Username,
 		chat1.ConversationMembersType_TEAM)
 

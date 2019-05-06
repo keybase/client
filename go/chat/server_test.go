@@ -5013,7 +5013,6 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
 		ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
 		tc := ctc.world.Tcs[users[0].Username]
-		uid := users[0].User.GetUID().ToBytes()
 		ri := ctc.as(t, users[0]).ri
 
 		firstConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
@@ -5030,8 +5029,8 @@ func TestChatSrvTopicNameState(t *testing.T) {
 				MembersType:   chat1.ConversationMembersType_TEAM,
 			})
 		require.NoError(t, err)
-		conv := ncres.Conv.Info
-		consumeNewConversation(t, listener0, conv.Id)
+		convInfo := ncres.Conv.Info
+		consumeNewConversation(t, listener0, convInfo.Id)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
 		consumeTeamType(t, listener0)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
@@ -5039,7 +5038,7 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		// Delete the conv, make sure we can still create a new channel after
 		_, err = ctc.as(t, users[0]).chatLocalHandler().DeleteConversationLocal(ctx,
 			chat1.DeleteConversationLocalArg{
-				ConvID: conv.Id,
+				ConvID: convInfo.Id,
 			})
 		require.NoError(t, err)
 		consumeLeaveConv(t, listener0)
@@ -5056,19 +5055,16 @@ func TestChatSrvTopicNameState(t *testing.T) {
 				MembersType:   chat1.ConversationMembersType_TEAM,
 			})
 		require.NoError(t, err)
-		conv = ncres.Conv.Info
-		consumeNewConversation(t, listener0, conv.Id)
+		conv := ncres.Conv
+		convInfo = conv.Info
+		consumeNewConversation(t, listener0, convInfo.Id)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
-
-		convRemote, err := utils.GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id,
-			types.InboxSourceDataSourceAll)
-		require.NoError(t, err)
 
 		// Creating a conversation with same topic name just returns the matching one
 		topicName = "random"
 		ncarg := chat1.NewConversationLocalArg{
-			TlfName:       conv.TlfName,
+			TlfName:       convInfo.TlfName,
 			TopicName:     &topicName,
 			TopicType:     chat1.TopicType_CHAT,
 			TlfVisibility: keybase1.TLFVisibility_PRIVATE,
@@ -5087,12 +5083,12 @@ func TestChatSrvTopicNameState(t *testing.T) {
 
 		// Try to change topic name to one that exists
 		plarg := chat1.PostLocalArg{
-			ConversationID: conv.Id,
+			ConversationID: convInfo.Id,
 			Msg: chat1.MessagePlaintext{
 				ClientHeader: chat1.MessageClientHeader{
-					Conv:        conv.Triple,
+					Conv:        convInfo.Triple,
 					MessageType: chat1.MessageType_METADATA,
-					TlfName:     conv.TlfName,
+					TlfName:     convInfo.TlfName,
 				},
 				MessageBody: chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{
 					ConversationTitle: topicName,
@@ -5116,18 +5112,18 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		})
 		sender := NewBlockingSender(tc.Context(), NewBoxer(tc.Context()),
 			func() chat1.RemoteInterface { return ri })
-		prepareRes, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote.Conv, nil)
+		prepareRes, err := sender.Prepare(ctx, plarg.Msg, mt, &conv, nil)
 		require.NoError(t, err)
 		msg1 := prepareRes.Boxed
 		ts1 := prepareRes.TopicNameState
-		prepareRes, err = sender.Prepare(ctx, plarg.Msg, mt, &convRemote.Conv, nil)
+		prepareRes, err = sender.Prepare(ctx, plarg.Msg, mt, &conv, nil)
 		require.NoError(t, err)
 		msg2 := prepareRes.Boxed
 		ts2 := prepareRes.TopicNameState
 		require.True(t, ts1.Eq(*ts2))
 
 		_, err = ri.PostRemote(ctx, chat1.PostRemoteArg{
-			ConversationID: conv.Id,
+			ConversationID: convInfo.Id,
 			MessageBoxed:   msg1,
 			TopicNameState: ts1,
 		})
@@ -5135,7 +5131,7 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_METADATA)
 
 		_, err = ri.PostRemote(ctx, chat1.PostRemoteArg{
-			ConversationID: conv.Id,
+			ConversationID: convInfo.Id,
 			MessageBoxed:   msg2,
 			TopicNameState: ts2,
 		})
@@ -5160,17 +5156,17 @@ func TestChatSrvUnboxMobilePushNotification(t *testing.T) {
 		ctx := ctc.as(t, users[0]).startCtx
 		tc := ctc.world.Tcs[users[0].Username]
 		uid := users[0].User.GetUID().ToBytes()
-		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
-		convRemote, err := utils.GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id,
+		convInfo := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
+		conv, err := utils.GetVerifiedConv(ctx, tc.Context(), uid, convInfo.Id,
 			types.InboxSourceDataSourceAll)
 		require.NoError(t, err)
 		plarg := chat1.PostLocalArg{
-			ConversationID: conv.Id,
+			ConversationID: convInfo.Id,
 			Msg: chat1.MessagePlaintext{
 				ClientHeader: chat1.MessageClientHeader{
-					Conv:        conv.Triple,
+					Conv:        convInfo.Triple,
 					MessageType: chat1.MessageType_TEXT,
-					TlfName:     conv.TlfName,
+					TlfName:     convInfo.TlfName,
 					Sender:      uid,
 				},
 				MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
@@ -5182,7 +5178,7 @@ func TestChatSrvUnboxMobilePushNotification(t *testing.T) {
 		ri := ctc.as(t, users[0]).ri
 		sender := NewBlockingSender(tc.Context(), NewBoxer(tc.Context()),
 			func() chat1.RemoteInterface { return ri })
-		prepareRes, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote.Conv, nil)
+		prepareRes, err := sender.Prepare(ctx, plarg.Msg, mt, &conv, nil)
 		require.NoError(t, err)
 		msg := prepareRes.Boxed
 		msg.ServerHeader = &chat1.MessageServerHeader{
@@ -5196,12 +5192,12 @@ func TestChatSrvUnboxMobilePushNotification(t *testing.T) {
 		encMsg := base64.StdEncoding.EncodeToString(data)
 		unboxRes, err := ctc.as(t, users[0]).chatLocalHandler().UnboxMobilePushNotification(context.TODO(),
 			chat1.UnboxMobilePushNotificationArg{
-				ConvID:      conv.Id.String(),
+				ConvID:      convInfo.Id.String(),
 				MembersType: mt,
 				Payload:     encMsg,
 			})
 		require.NoError(t, err)
-		require.Equal(t, fmt.Sprintf("%s (%s#%s): PUSH", users[0].Username, conv.TlfName, "general"),
+		require.Equal(t, fmt.Sprintf("%s (%s#%s): PUSH", users[0].Username, convInfo.TlfName, "general"),
 			unboxRes)
 	})
 }
