@@ -1151,9 +1151,6 @@ export const makeActionsForShowSendAttachmentToChat = (
   ),
 ]
 
-export const splitFileNameAndExtension = (fileName: string) =>
-  ((str, idx) => [str.slice(0, idx), str.slice(idx)])(fileName, fileName.lastIndexOf('.'))
-
 export const isFolder = (path: Types.Path, pathItem: Types.PathItem) =>
   Types.getPathLevel(path) <= 3 || pathItem.type === 'folder'
 

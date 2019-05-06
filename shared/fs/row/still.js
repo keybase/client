@@ -6,7 +6,7 @@ import * as Flow from '../../util/flow'
 import * as Styles from '../../styles'
 import {rowStyles, StillCommon, type StillCommonProps} from './common'
 import * as Kb from '../../common-adapters'
-import {PathItemInfo} from '../common'
+import {PathItemInfo, Filename} from '../common'
 
 type StillProps = StillCommonProps & {
   intentIfDownloading?: ?Types.DownloadIntent,
@@ -39,13 +39,11 @@ const Still = (props: StillProps) => (
   >
     <Kb.Box style={rowStyles.itemBox}>
       <Kb.Box2 direction="horizontal" fullWidth={true}>
-        <Kb.Text
+        <Filename
+          path={props.path}
           type={Constants.pathTypeToTextType(props.type)}
           style={Styles.collapseStyles([rowStyles.rowText, {color: Constants.getPathTextColor(props.path)}])}
-          lineClamp={Styles.isMobile ? 1 : undefined}
-        >
-          {props.name}
-        </Kb.Text>
+        />
         {props.isEmpty && (
           <Kb.Meta
             title="empty"

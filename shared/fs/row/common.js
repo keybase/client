@@ -62,25 +62,13 @@ export const rowStyles = Styles.styleSheetCreate({
     marginRight: Styles.globalMargins.medium,
   },
   rowText: Styles.platformStyles({
-    isElectron: {
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-    },
     isMobile: {
       flexShrink: 1,
     },
   }),
-  rowText_30: Styles.platformStyles({
-    common: {
-      opacity: 0.3,
-    },
-    isElectron: {
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-    },
-  }),
+  rowText_30: {
+    opacity: 0.3,
+  },
 })
 
 export const normalRowHeight = Kb.smallListItem2Height
