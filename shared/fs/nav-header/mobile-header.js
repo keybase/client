@@ -7,13 +7,12 @@ import * as Types from '../../constants/types/fs'
 import {namedConnect} from '../../util/container'
 import Actions from './actions'
 import * as Kbfs from '../common'
-import {isIPhoneX} from '../../constants/platform'
 import flags from '../../util/feature-flags'
 
 type BannerType = 'none' | 'offline'
 type Props = {|
   bannerType: BannerType,
-  onBack: () => void,
+  onBack: ?() => void,
   path: Types.Path,
 |}
 type State = {|
@@ -43,7 +42,13 @@ class MobileHeader extends React.PureComponent<Props, State> {
           <Kbfs.FolderViewFilter path={this.props.path} onCancel={this._filterDone} />
         ) : (
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.expandedTopContainer}>
-            <Kb.BackButton badgeNumber={0 /* TODO KBFS-4109 */} onClick={this.props.onBack} />
+            {this.props.onBack && (
+              <Kb.BackButton
+                badgeNumber={0 /* TODO KBFS-4109 */}
+                onClick={this.props.onBack}
+                style={styles.backButton}
+              />
+            )}
             <Kb.Box style={styles.gap} />
             <Actions path={this.props.path} onTriggerFilterMobile={this._triggerFilterMobile} />
           </Kb.Box2>
@@ -58,13 +63,33 @@ class MobileHeader extends React.PureComponent<Props, State> {
   }
 }
 
+export const height = Styles.statusBarHeight + 44 + (Styles.isAndroid ? 56 : 44)
+
 const styles = Styles.styleSheetCreate({
+  backButton: Styles.platformStyles({
+    common: {
+      opacity: 1,
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.tiny,
+    },
+    isAndroid: {
+      paddingRight: Styles.globalMargins.small,
+    },
+  }),
   blue: {
     backgroundColor: Styles.globalColors.blue,
   },
   container: {
     backgroundColor: Styles.globalColors.white,
-    paddingTop: isIPhoneX ? 45 : 20,
+    borderBottomColor: Styles.globalColors.black_10,
+    borderBottomWidth: 1,
+    borderStyle: 'solid',
+    height,
+    maxHeight: height,
+    minHeight: height,
+    paddingTop: Styles.isAndroid ? undefined : Styles.statusBarHeight,
   },
   expandedTitleContainer: {
     backgroundColor: Styles.globalColors.white,
@@ -73,11 +98,18 @@ const styles = Styles.styleSheetCreate({
     paddingRight: Styles.globalMargins.small,
     paddingTop: Styles.globalMargins.tiny,
   },
-  expandedTopContainer: {
-    backgroundColor: Styles.globalColors.white,
-    height: 48,
-    paddingRight: Styles.globalMargins.tiny,
-  },
+  expandedTopContainer: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.white,
+      paddingRight: Styles.globalMargins.tiny,
+    },
+    isAndroid: {
+      height: 56,
+    },
+    isIOS: {
+      height: 44,
+    },
+  }),
   gap: {
     flex: 1,
   },
@@ -85,7 +117,7 @@ const styles = Styles.styleSheetCreate({
 
 type OwnProps = {|
   path: Types.Path,
-  onBack: () => void,
+  onBack: ?() => void,
 |}
 
 const mapStateToProps = (state, {path}: OwnProps) => ({

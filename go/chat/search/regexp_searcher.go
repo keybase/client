@@ -55,11 +55,11 @@ func (s *RegexpSearcher) Search(ctx context.Context, uid gregor1.UID, convID cha
 		afterContext = MaxContext - 1
 	}
 
-	if maxHits > MaxAllowedSearchHits || maxHits < 0 {
+	if maxHits > MaxAllowedSearchHits || maxHits <= 0 {
 		maxHits = MaxAllowedSearchHits
 	}
 
-	if maxMessages > MaxAllowedSearchMessages || maxMessages < 0 {
+	if maxMessages > MaxAllowedSearchMessages || maxMessages <= 0 {
 		maxMessages = MaxAllowedSearchMessages
 	}
 

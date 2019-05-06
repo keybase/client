@@ -111,9 +111,7 @@ const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Prop
       } else {
         return (
           <Wrapper onBack={onBack}>
-            <Text type="Body">
-              You can't provision using a password, since you've established a PGP key.
-            </Text>
+            <Text type="Body">You can't provision using a password, since you've established a PGP key.</Text>
             <Text type="BodySemibold" style={{textAlign: 'left'}}>
               You have options:
             </Text>

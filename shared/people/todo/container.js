@@ -30,7 +30,12 @@ const mapStateToProps = state => ({myUsername: state.config.username || ''})
 const AvatarTeamConnector = connect<TodoOwnProps, _, _, _, _>(
   mapStateToProps,
   dispatch => ({
-    onConfirm: () => dispatch(RouteTreeGen.createSwitchTo({path: [Tabs.teamsTab]})),
+    onConfirm: () =>
+      dispatch(
+        flags.useNewRouter
+          ? RouteTreeGen.createSwitchTab({tab: Tabs.teamsTab})
+          : RouteTreeGen.createSwitchTo({path: [Tabs.teamsTab]})
+      ),
     onDismiss: () => {},
   }),
   (stateProps, dispatchProps, ownProps) => ({
@@ -106,13 +111,18 @@ const FollowConnector = connect<TodoOwnProps, _, _, _, _>(
       dispatch(RouteTreeGen.createNavigateAppend({parentPath: [Tabs.peopleTab], path: ['profileSearch']})),
     onDismiss: onSkipTodo('follow', dispatch),
   }),
-  (s, d, o) => ({...o, ...s, ...d})
+  (s, d, o) => ({...o, ...s, ...d, showSearchBar: true})
 )(Task)
 
 const ChatConnector = connect<TodoOwnProps, _, _, _, _>(
   () => ({}),
   dispatch => ({
-    onConfirm: () => dispatch(RouteTreeGen.createSwitchTo({path: [Tabs.chatTab]})),
+    onConfirm: () =>
+      dispatch(
+        flags.useNewRouter
+          ? RouteTreeGen.createSwitchTab({tab: Tabs.chatTab})
+          : RouteTreeGen.createSwitchTo({path: [Tabs.chatTab]})
+      ),
     onDismiss: onSkipTodo('chat', dispatch),
   }),
   (s, d, o) => ({...o, ...s, ...d})
@@ -165,6 +175,10 @@ const FolderConnector = connect<TodoOwnProps, _, _, _, _>(
   () => ({}),
   dispatch => ({
     onConfirm: () => {
+      if (flags.useNewRouter) {
+        dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.fsTab}))
+        return
+      }
       if (!isMobile) {
         dispatch(RouteTreeGen.createNavigateTo({parentPath: [Tabs.folderTab], path: ['private']}))
         dispatch(RouteTreeGen.createSwitchTo({path: [Tabs.folderTab]}))
@@ -187,6 +201,17 @@ const GitRepoConnector = connect<TodoOwnProps, _, _, _, _>(
   () => ({}),
   dispatch => ({
     onConfirm: () => {
+      if (flags.useNewRouter) {
+        if (isMobile) {
+          dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.gitTab]}))
+        } else {
+          dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.gitTab}))
+        }
+        dispatch(
+          RouteTreeGen.createNavigateAppend({path: [{props: {isTeam: false}, selected: 'gitNewRepo'}]})
+        )
+        return
+      }
       dispatch(
         RouteTreeGen.createNavigateTo({
           parentPath: [Tabs.gitTab],
@@ -204,6 +229,10 @@ const TeamShowcaseConnector = connect<TodoOwnProps, _, _, _, _>(
   () => ({}),
   dispatch => ({
     onConfirm: () => {
+      if (flags.useNewRouter) {
+        dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.teamsTab}))
+        return
+      }
       // TODO find a team that the current user is an admin of and nav there?
       dispatch(RouteTreeGen.createNavigateTo({parentPath: [Tabs.teamsTab], path: []}))
       dispatch(RouteTreeGen.createSwitchTo({path: [Tabs.teamsTab]}))

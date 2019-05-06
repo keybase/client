@@ -10,13 +10,12 @@ import type {TypedState} from '../reducer'
 import {getPath} from '../../route-tree'
 import {isMobile} from '../platform'
 import {
-  pendingConversationIDKey,
   noConversationIDKey,
   pendingWaitingConversationIDKey,
   conversationIDKeyToString,
   isValidConversationIDKey,
 } from '../types/chat2/common'
-import {makeConversationMeta, getEffectiveRetentionPolicy, getMeta} from './meta'
+import {getEffectiveRetentionPolicy, getMeta} from './meta'
 import {formatTextForQuoting} from '../../util/chat'
 import * as Router2 from '../router2'
 import flags from '../../util/feature-flags'
@@ -37,13 +36,12 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   giphyWindowMap: I.Map(),
   inboxHasLoaded: false,
   inboxSearch: null,
+  inboxShowNew: false,
   isWalletsNew: true,
   messageCenterOrdinals: I.Map(),
   messageMap: I.Map(),
   messageOrdinals: I.Map(),
-  metaMap: I.Map([
-    [pendingConversationIDKey, makeConversationMeta({conversationIDKey: noConversationIDKey})],
-  ]),
+  metaMap: I.Map(),
   moreToLoadMap: I.Map(),
   orangeLineMap: I.Map(),
   paymentConfirmInfo: null,
@@ -56,6 +54,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   selectedConversation: noConversationIDKey,
   smallTeamsExpanded: false,
   staticConfig: null,
+  teamMentionMap: I.Map(),
   threadSearchInfoMap: I.Map(),
   threadSearchQueryMap: I.Map(),
   trustedInboxHasLoaded: false,
@@ -67,10 +66,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   // Team Building
   ...TeamBuildingConstants.makeSubState(),
 })
-
-// We stash the resolved pending conversation idkey into the meta itself
-export const getResolvedPendingConversationIDKey = (state: TypedState) =>
-  getMeta(state, pendingConversationIDKey).conversationIDKey
 
 export const makeQuoteInfo: I.RecordFactory<Types._QuoteInfo> = I.Record({
   counter: 0,
@@ -90,7 +85,7 @@ export const makeThreadSearchInfo: I.RecordFactory<Types._ThreadSearchInfo> = I.
   visible: false,
 })
 
-export const inboxSearchMaxTextMessages = 100
+export const inboxSearchMaxTextMessages = 25
 export const inboxSearchMaxTextResults = 50
 export const inboxSearchMaxNameResults = 7
 export const inboxSearchMaxUnreadNameResults = isMobile ? 5 : 10
@@ -207,9 +202,12 @@ export const isUserActivelyLookingAtThisThread = (
 
   let chatThreadSelected = false
   if (flags.useNewRouter) {
-    const routePath = Router2.getVisiblePath()
-    chatThreadSelected =
-      routePath[routePath.length - 1]?.routeName === (isMobile ? 'chatConversation' : 'tabs.chatTab')
+    if (isMobile) {
+      chatThreadSelected = true // conversationIDKey === selectedConversationIDKey is the only thing that matters in the new router
+    } else {
+      chatThreadSelected = Router2.getVisibleScreen()?.routeName === 'chatRoot'
+    }
+    // TODO remove this var when we switch entirely
   } else {
     const routePath = getPath(state.routeTree.routeState)
     if (isMobile) {
@@ -240,6 +238,7 @@ export const isInfoPanelOpen = (state: TypedState) => {
   }
 }
 
+export const inboxSearchNewKey = 'chat:inboxSearchNew'
 export const waitingKeyJoinConversation = 'chat:joinConversation'
 export const waitingKeyDeleteHistory = 'chat:deleteHistory'
 export const waitingKeyPost = 'chat:post'
@@ -284,6 +283,10 @@ export const getConversationExplodingMode = (state: TypedState, c: Types.Convers
 }
 export const isExplodingModeLocked = (state: TypedState, c: Types.ConversationIDKey) =>
   state.chat2.getIn(['explodingModeLocks', c], null) !== null
+
+export const getTeamMentionName = (name: string, channel: string) => {
+  return name + (channel ? `#${channel}` : '')
+}
 
 // When user clicks wallets icon in chat input, set seenWalletsGregorKey with
 // body of 'true'
@@ -365,6 +368,7 @@ export {
   getParticipantSuggestions,
   getRowParticipants,
   getRowStyles,
+  getTeams,
   inboxUIItemToConversationMeta,
   isDecryptingSnippet,
   makeConversationMeta,
@@ -416,6 +420,5 @@ export {
   noConversationIDKey,
   numMessagesOnInitialLoad,
   numMessagesOnScrollback,
-  pendingConversationIDKey,
   pendingWaitingConversationIDKey,
 }

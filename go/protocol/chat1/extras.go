@@ -15,7 +15,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"unsafe"
 
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -1472,6 +1471,14 @@ func (r *GetInboxUILocalRes) SetOffline() {
 	r.Offline = true
 }
 
+func (r *SearchRegexpRes) SetOffline() {
+	r.Offline = true
+}
+
+func (r *SearchInboxRes) SetOffline() {
+	r.Offline = true
+}
+
 func (t TyperInfo) String() string {
 	return fmt.Sprintf("typer(u:%s d:%s)", t.Username, t.DeviceName)
 }
@@ -1593,6 +1600,35 @@ func humanizeDuration(duration time.Duration) string {
 		unit = unit + "s"
 	}
 	return fmt.Sprintf("%.0f %s", value, unit)
+}
+
+func (p RetentionPolicy) Eq(o RetentionPolicy) bool {
+	typ1, err := p.Typ()
+	if err != nil {
+		return false
+	}
+
+	typ2, err := o.Typ()
+	if err != nil {
+		return false
+	}
+	if typ1 != typ2 {
+		return false
+	}
+	switch typ1 {
+	case RetentionPolicyType_NONE:
+		return true
+	case RetentionPolicyType_RETAIN:
+		return p.Retain() == o.Retain()
+	case RetentionPolicyType_EXPIRE:
+		return p.Expire() == o.Expire()
+	case RetentionPolicyType_INHERIT:
+		return p.Inherit() == o.Inherit()
+	case RetentionPolicyType_EPHEMERAL:
+		return p.Ephemeral() == o.Ephemeral()
+	default:
+		return false
+	}
 }
 
 func (p RetentionPolicy) HumanSummary() (summary string) {
@@ -2099,84 +2135,6 @@ func (h *ChatSearchInboxHit) Size() int {
 		return 0
 	}
 	return len(h.Hits)
-}
-
-func (m ConversationIndexMetadata) Size() int64 {
-	size := unsafe.Sizeof(m.Version)
-	size += uintptr(len(m.SeenIDs)) * unsafe.Sizeof(MessageID(0))
-	return int64(size)
-}
-
-func (idx *ConversationIndex) Size() int64 {
-	if idx == nil {
-		return 0
-	}
-	var size uintptr
-	for token, msgMap := range idx.Index {
-		size += unsafe.Sizeof(token)
-		size += uintptr(len(msgMap)) * unsafe.Sizeof(MessageID(0))
-	}
-	for alias, tokenMap := range idx.Alias {
-		size += unsafe.Sizeof(alias)
-		for token := range tokenMap {
-			size += unsafe.Sizeof(token)
-		}
-	}
-	return int64(size) + idx.Metadata.Size()
-}
-
-func (idx *ConversationIndex) MinMaxIDs(conv Conversation) (min, max MessageID) {
-	// lowest msgID we care about
-	min = conv.GetMaxDeletedUpTo()
-	if min == 0 {
-		min = 1
-	}
-	// highest msgID we care about
-	max = conv.GetMaxMessageID()
-	return min, max
-}
-
-func (idx *ConversationIndex) MissingIDForConv(conv Conversation) (res []MessageID) {
-	min, max := idx.MinMaxIDs(conv)
-	for i := min; i <= max; i++ {
-		if _, ok := idx.Metadata.SeenIDs[i]; !ok {
-			res = append(res, i)
-		}
-	}
-	return res
-}
-
-func (idx *ConversationIndex) numMissing(min, max MessageID) (numMissing int) {
-	for i := min; i <= max; i++ {
-		if _, ok := idx.Metadata.SeenIDs[i]; !ok {
-			numMissing++
-		}
-	}
-	return numMissing
-}
-
-func (idx *ConversationIndex) PercentIndexed(conv Conversation) int {
-	if idx == nil {
-		return 0
-	}
-	min, max := idx.MinMaxIDs(conv)
-	numMessages := int(max) - int(min)
-	if numMessages <= 0 {
-		return 100
-	}
-	numMissing := idx.numMissing(min, max)
-	return int(100 * (1 - (float64(numMissing) / float64(numMessages))))
-}
-
-func (idx *ConversationIndex) FullyIndexed(conv Conversation) bool {
-	if idx == nil {
-		return false
-	}
-	min, max := idx.MinMaxIDs(conv)
-	if max <= min {
-		return true
-	}
-	return idx.numMissing(min, max) == 0
 }
 
 func (u UnfurlRaw) GetUrl() string {

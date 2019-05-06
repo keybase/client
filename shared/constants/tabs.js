@@ -41,6 +41,8 @@ export type Tab =
   | FsTab
   | WalletsTab
 
+export type AppTab = PeopleTab | ChatTab | FsTab | TeamsTab | WalletsTab | GitTab | DevicesTab | SettingsTab
+
 // Canonical ordering for desktop tabs, used visually and for hotkeys
 const desktopTabOrder = [
   peopleTab,
@@ -61,7 +63,7 @@ function isValidInitialTabString(tab: ?string) {
   // Keep this in left-to-right (for mobile) or top-to-bottom (for
   // desktop) order in the app.
   if (isMobile) {
-    return [peopleTab, chatTab, teamsTab, settingsTab].includes(tab)
+    return [peopleTab, chatTab, teamsTab, settingsTab, fsTab].includes(tab)
   } else {
     return [peopleTab, chatTab, folderTab, teamsTab, devicesTab, settingsTab, profileTab].includes(tab)
   }

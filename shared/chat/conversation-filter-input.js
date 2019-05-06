@@ -9,6 +9,7 @@ export type Props = {|
   filter: string,
   isLoading: boolean,
   isSearching: boolean,
+  showNewTag: boolean,
   onBack: () => void,
   noShortcut: ?boolean,
   onEnsureSelection: () => void,
@@ -99,7 +100,6 @@ class ConversationFilterInput extends React.PureComponent<Props> {
           gap="tiny"
           style={Styles.collapseStyles([
             styles.containerNotFiltering,
-            flags.useNewRouter && Styles.isMobile && styles.containerWithBackButton,
             flags.useNewRouter && !Styles.isMobile && styles.whiteBg,
             this.props.style,
           ])}
@@ -108,28 +108,41 @@ class ConversationFilterInput extends React.PureComponent<Props> {
           fullWidth={true}
         >
           <Kb.Box2 alignItems="center" direction="horizontal" style={styles.searchBox}>
-            {flags.useNewRouter && Styles.isMobile && (
-              <Kb.BackButton onClick={this.props.onBack} style={styles.backButton} />
-            )}
-            <Kb.ClickableBox style={styles.filterContainer} onClick={this.props.onStartSearch}>
-              <Kb.Icon
-                type="iconfont-search"
-                style={styles.icon}
-                color={Styles.globalColors.black_50}
-                sizeType="Small"
-              />
-              <Kb.Text type="BodySemibold" style={styles.text}>
-                Search
-              </Kb.Text>
-              {!Styles.isMobile && !this.props.noShortcut && (
-                <Kb.Text type="BodySemibold" style={styles.textFaint}>
-                  ({Platforms.shortcutSymbol}K)
+            <Kb.WithTooltip
+              disabled={!this.props.showNewTag}
+              containerStyle={{flexGrow: 1}}
+              position="top center"
+              text="NEW! Search all your chats."
+            >
+              <Kb.ClickableBox style={styles.filterContainer} onClick={this.props.onStartSearch}>
+                <Kb.Icon
+                  type="iconfont-search"
+                  style={styles.icon}
+                  color={Styles.globalColors.black_50}
+                  sizeType="Small"
+                />
+                <Kb.Text type="BodySemibold" style={styles.text}>
+                  Search
                 </Kb.Text>
-              )}
-            </Kb.ClickableBox>
+                {!Styles.isMobile && !this.props.noShortcut && (
+                  <Kb.Text type="BodySemibold" style={styles.textFaint}>
+                    ({Platforms.shortcutSymbol}K)
+                  </Kb.Text>
+                )}
+                {this.props.showNewTag && (
+                  <Kb.Box2
+                    direction="horizontal"
+                    alignItems="center"
+                    style={{flexGrow: 1, justifyContent: 'flex-end', paddingRight: Styles.globalMargins.tiny}}
+                  >
+                    <Kb.Meta backgroundColor={Styles.globalColors.blue} title="New" />
+                  </Kb.Box2>
+                )}
+              </Kb.ClickableBox>
+            </Kb.WithTooltip>
           </Kb.Box2>
           {!!this.props.onNewChat && (
-            <Kb.WithTooltip position="bottom center" text={`New chat (${Platforms.shortcutSymbol}N)`}>
+            <Kb.WithTooltip position="top center" text={`New chat (${Platforms.shortcutSymbol}N)`}>
               <Kb.Button small={true} onClick={this.props.onNewChat} style={styles.newChatButton}>
                 <Kb.Icon type="iconfont-compose" color={Styles.globalColors.white} style={styles.newIcon} />
               </Kb.Button>
@@ -152,9 +165,6 @@ class ConversationFilterInput extends React.PureComponent<Props> {
 }
 
 const styles = Styles.styleSheetCreate({
-  backButton: {
-    ...Styles.padding(Styles.globalMargins.tiny, 0),
-  },
   containerFiltering: Styles.platformStyles({
     common: {
       position: 'relative',
@@ -187,9 +197,6 @@ const styles = Styles.styleSheetCreate({
       backgroundColor: Styles.globalColors.fastBlank,
     },
   }),
-  containerWithBackButton: {
-    ...Styles.padding(0, Styles.globalMargins.tiny, 0, 0), // back button adds the left space
-  },
   filterContainer: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxRow,
@@ -234,6 +241,7 @@ const styles = Styles.styleSheetCreate({
   searchBox: Styles.platformStyles({
     common: {flex: 1},
     isElectron: Styles.desktopStyles.windowDraggingClickable,
+    isMobile: {...Styles.padding(6, 0)},
   }),
   text: Styles.platformStyles({
     common: {

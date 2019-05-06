@@ -2483,6 +2483,18 @@ func (o MessagePlaintext) DeepCopy() MessagePlaintext {
 	}
 }
 
+type MaybeTeamMention struct {
+	Name    string `codec:"name" json:"name"`
+	Channel string `codec:"channel" json:"channel"`
+}
+
+func (o MaybeTeamMention) DeepCopy() MaybeTeamMention {
+	return MaybeTeamMention{
+		Name:    o.Name,
+		Channel: o.Channel,
+	}
+}
+
 type MessageUnboxedValid struct {
 	ClientHeader          MessageClientHeaderVerified `codec:"clientHeader" json:"clientHeader"`
 	ServerHeader          MessageServerHeader         `codec:"serverHeader" json:"serverHeader"`
@@ -2498,6 +2510,7 @@ type MessageUnboxedValid struct {
 	AtMentionUsernames    []string                    `codec:"atMentionUsernames" json:"atMentionUsernames"`
 	AtMentions            []gregor1.UID               `codec:"atMentions" json:"atMentions"`
 	ChannelMention        ChannelMention              `codec:"channelMention" json:"channelMention"`
+	TeamMentions          []MaybeTeamMention          `codec:"teamMentions" json:"teamMentions"`
 	ChannelNameMentions   []ChannelNameMention        `codec:"channelNameMentions" json:"channelNameMentions"`
 	Reactions             ReactionMap                 `codec:"reactions" json:"reactions"`
 	Unfurls               map[MessageID]UnfurlResult  `codec:"unfurls" json:"unfurls"`
@@ -2563,6 +2576,17 @@ func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
 			return ret
 		})(o.AtMentions),
 		ChannelMention: o.ChannelMention.DeepCopy(),
+		TeamMentions: (func(x []MaybeTeamMention) []MaybeTeamMention {
+			if x == nil {
+				return nil
+			}
+			ret := make([]MaybeTeamMention, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.TeamMentions),
 		ChannelNameMentions: (func(x []ChannelNameMention) []ChannelNameMention {
 			if x == nil {
 				return nil
@@ -3892,13 +3916,15 @@ func (o SetConversationStatusLocalRes) DeepCopy() SetConversationStatusLocalRes 
 
 type NewConversationLocalRes struct {
 	Conv             ConversationLocal             `codec:"conv" json:"conv"`
+	UiConv           InboxUIItem                   `codec:"uiConv" json:"uiConv"`
 	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
 
 func (o NewConversationLocalRes) DeepCopy() NewConversationLocalRes {
 	return NewConversationLocalRes{
-		Conv: o.Conv.DeepCopy(),
+		Conv:   o.Conv.DeepCopy(),
+		UiConv: o.UiConv.DeepCopy(),
 		RateLimits: (func(x []RateLimit) []RateLimit {
 			if x == nil {
 				return nil
@@ -4644,6 +4670,7 @@ func (o AppNotificationSettingLocal) DeepCopy() AppNotificationSettingLocal {
 }
 
 type SearchRegexpRes struct {
+	Offline          bool                          `codec:"offline" json:"offline"`
 	Hits             []ChatSearchHit               `codec:"hits" json:"hits"`
 	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
@@ -4651,6 +4678,7 @@ type SearchRegexpRes struct {
 
 func (o SearchRegexpRes) DeepCopy() SearchRegexpRes {
 	return SearchRegexpRes{
+		Offline: o.Offline,
 		Hits: (func(x []ChatSearchHit) []ChatSearchHit {
 			if x == nil {
 				return nil
@@ -4688,6 +4716,7 @@ func (o SearchRegexpRes) DeepCopy() SearchRegexpRes {
 }
 
 type SearchInboxRes struct {
+	Offline          bool                          `codec:"offline" json:"offline"`
 	Res              *ChatSearchInboxResults       `codec:"res,omitempty" json:"res,omitempty"`
 	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
@@ -4695,6 +4724,7 @@ type SearchInboxRes struct {
 
 func (o SearchInboxRes) DeepCopy() SearchInboxRes {
 	return SearchInboxRes{
+		Offline: o.Offline,
 		Res: (func(x *ChatSearchInboxResults) *ChatSearchInboxResults {
 			if x == nil {
 				return nil

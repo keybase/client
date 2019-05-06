@@ -336,6 +336,9 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.small,
     },
   }),
+  scroll: {
+    backgroundColor: Styles.globalColors.white,
+  },
   text: {
     textAlign: 'left',
   },
@@ -360,6 +363,12 @@ export class FloatingRolePicker extends React.Component<FloatingProps, S> {
   _setRef = ref => this.setState({ref})
   render() {
     const {position, children, open, floatingContainerStyle, onCancel, ...props} = this.props
+    const picker = <RolePicker {...props} onCancel={Styles.isMobile ? undefined : onCancel} />
+    const wrappedPicker = Styles.isMobile ? (
+      <Kb.ScrollView style={styles.scroll}>{picker}</Kb.ScrollView>
+    ) : (
+      picker
+    )
     return (
       <>
         <Kb.Box ref={this._setRef}>{children}</Kb.Box>
@@ -368,12 +377,13 @@ export class FloatingRolePicker extends React.Component<FloatingProps, S> {
             attachTo={this.state.ref && this._returnRef}
             position={position || 'top center'}
             onHidden={onCancel}
+            hideKeyboard={true}
           >
             <Kb.Box2 direction={'vertical'} fullHeight={Styles.isMobile} style={floatingContainerStyle}>
               {Styles.isMobile && (
                 <Kb.HeaderHocHeader onLeftAction={onCancel} leftAction={'cancel'} title="Pick a role" />
               )}
-              <RolePicker {...props} onCancel={Styles.isMobile ? undefined : onCancel} />
+              {wrappedPicker}
             </Kb.Box2>
           </Kb.FloatingBox>
         )}

@@ -110,9 +110,7 @@ const metaMapReducer = (metaMap, action) => {
     case Chat2Gen.metasReceived:
       return metaMap.withMutations(map => {
         if (action.payload.clearExistingMetas) {
-          // keep pending conversation
-          const pending = map.get(Constants.pendingConversationIDKey)
-          map.clear().set(Constants.pendingConversationIDKey, pending)
+          map.clear()
         }
         const neverCreate = !!action.payload.neverCreate
         map.deleteAll(action.payload.removals || [])
@@ -296,11 +294,8 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         }
       )
     case Chat2Gen.metasReceived:
-      const existingPending = messageMap.get(Constants.pendingConversationIDKey)
       if (action.payload.clearExistingMessages) {
-        return existingPending
-          ? messageMap.clear().set(Constants.pendingConversationIDKey, existingPending)
-          : messageMap.clear()
+        return messageMap.clear()
       }
       return messageMap
     case Chat2Gen.updateMessages:
@@ -366,13 +361,7 @@ const messageOrdinalsReducer = (messageOrdinals, action) => {
         ? messageOrdinals.deleteAll(action.payload.conversationIDKeys)
         : messageOrdinals
     case Chat2Gen.metasReceived:
-      const existingPending = messageOrdinals.get(Constants.pendingConversationIDKey)
-      if (action.payload.clearExistingMessages) {
-        return existingPending
-          ? messageOrdinals.clear().set(Constants.pendingConversationIDKey, existingPending)
-          : messageOrdinals.clear()
-      }
-      return messageOrdinals
+      return action.payload.clearExistingMessages ? messageOrdinals.clear() : messageOrdinals
     default:
       return messageOrdinals
   }
@@ -387,6 +376,8 @@ const rootReducer = (
   switch (action.type) {
     case Chat2Gen.resetStore:
       return initialState
+    case Chat2Gen.setInboxShowIsNew:
+      return state.merge({inboxShowNew: action.payload.isNew})
     case Chat2Gen.toggleSmallTeamsExpanded:
       return state.set('smallTeamsExpanded', !state.smallTeamsExpanded)
     case Chat2Gen.changeFocus:
@@ -479,42 +470,12 @@ const rootReducer = (
     }
     case Chat2Gen.giphyGotSearchResult:
       return state.setIn(['giphyResultMap', action.payload.conversationIDKey], action.payload.results)
-    case Chat2Gen.setPendingMode:
-      return state.withMutations(_s => {
-        const s = (_s: Types.State)
-        s.set('pendingMode', action.payload.pendingMode)
-        s.set('pendingStatus', 'none')
-        if (action.payload.pendingMode === 'none') {
-          s.setIn(['metaMap', Constants.pendingConversationIDKey, 'participants'], I.List())
-          s.setIn(
-            ['metaMap', Constants.pendingConversationIDKey, 'conversationIDKey'],
-            Constants.noConversationIDKey
-          )
-          s.deleteIn(['messageOrdinals', Constants.pendingConversationIDKey])
-          s.deleteIn(['pendingOutboxToOrdinal', Constants.pendingConversationIDKey])
-          s.deleteIn(['messageMap', Constants.pendingConversationIDKey])
-        }
-      })
     case Chat2Gen.setPaymentConfirmInfo:
       return action.error
         ? state.set('paymentConfirmInfo', {error: action.payload.error})
         : state.set('paymentConfirmInfo', {summary: action.payload.summary})
     case Chat2Gen.clearPaymentConfirmInfo:
       return state.set('paymentConfirmInfo', null)
-    case Chat2Gen.setPendingStatus:
-      return state.set('pendingStatus', action.payload.pendingStatus)
-    case Chat2Gen.createConversation:
-      return state.set('pendingStatus', 'none')
-    case Chat2Gen.setPendingConversationUsers:
-      return state.setIn(
-        ['metaMap', Constants.pendingConversationIDKey, 'participants'],
-        I.List(action.payload.users)
-      )
-    case Chat2Gen.setPendingConversationExistingConversationIDKey:
-      return state.setIn(
-        ['metaMap', Constants.pendingConversationIDKey, 'conversationIDKey'],
-        action.payload.conversationIDKey
-      )
     case Chat2Gen.badgesUpdated: {
       const badgeMap = I.Map(
         action.payload.conversations.map(({convID, badgeCounts}) => [
@@ -1028,7 +989,10 @@ const rootReducer = (
       return state.deleteIn(['messageCenterOrdinals', action.payload.conversationIDKey])
     case Chat2Gen.threadSearchResults:
       return state.updateIn(['threadSearchInfoMap', action.payload.conversationIDKey], info =>
-        info.set('hits', info.hits.concat(action.payload.messages))
+        info.set(
+          'hits',
+          action.payload.clear ? I.List(action.payload.messages) : info.hits.concat(action.payload.messages)
+        )
       )
     case Chat2Gen.setThreadSearchStatus:
       return state.updateIn(
@@ -1066,6 +1030,9 @@ const rootReducer = (
         })
       })
     case Chat2Gen.inboxSearchSetIndexPercent:
+      if (!state.inboxSearch || state.inboxSearch.textStatus !== 'inprogress') {
+        return state
+      }
       return state.update('inboxSearch', info => {
         return (info || Constants.makeInboxSearchInfo()).merge({
           indexPercent: action.payload.percent,
@@ -1090,6 +1057,7 @@ const rootReducer = (
       return state.update('inboxSearch', info => {
         const old = info || Constants.makeInboxSearchInfo()
         const textResults = old.textResults
+          .filter(r => r.conversationIDKey !== action.payload.result.conversationIDKey)
           .push(action.payload.result)
           .sort((l: Types.InboxSearchTextHit, r: Types.InboxSearchTextHit) => {
             return r.time - l.time
@@ -1124,7 +1092,7 @@ const rootReducer = (
         return (info || Constants.makeInboxSearchInfo()).merge({
           nameResults: results,
           nameResultsUnread: action.payload.unread,
-          nameStatus: 'done',
+          nameStatus: 'success',
         })
       })
     }
@@ -1180,6 +1148,11 @@ const rootReducer = (
         old.setIn([conversationIDKey, messageID], paymentInfo)
       )
       return nextState.update('paymentStatusMap', old => old.setIn([paymentInfo.paymentID], paymentInfo))
+    }
+    case Chat2Gen.setTeamMentionInfo: {
+      const {name, info} = action.payload
+      // $FlowIssue complains about using name for setIn for unknown reason
+      return state.setIn(['teamMentionMap', name], info)
     }
     case Chat2Gen.requestInfoReceived: {
       const {conversationIDKey, messageID, requestInfo} = action.payload
@@ -1296,7 +1269,10 @@ const rootReducer = (
     case Chat2Gen.toggleMessageCollapse:
     case Chat2Gen.toggleInfoPanel:
     case Chat2Gen.addUsersToChannel:
+    case Chat2Gen.deselectConversation:
+    case Chat2Gen.createConversation:
     case Chat2Gen.loadMessagesCentered:
+    case Chat2Gen.tabSelected:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

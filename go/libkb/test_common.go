@@ -520,6 +520,13 @@ func (t TestUIDMapper) CheckUIDAgainstUsername(uid keybase1.UID, un NormalizedUs
 	return true
 }
 
+func (t TestUIDMapper) MapHardcodedUsernameToUID(un NormalizedUsername) keybase1.UID {
+	if un.String() == "max" {
+		return keybase1.UID("dbb165b7879fe7b1174df73bed0b9500")
+	}
+	return keybase1.UID("")
+}
+
 func (t TestUIDMapper) InformOfEldestSeqno(ctx context.Context, g UIDMapperContext, uv keybase1.UserVersion) (bool, error) {
 	return true, nil
 }

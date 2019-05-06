@@ -9,18 +9,6 @@ import * as Wallet from '../wallets'
 import * as TeamBuildingTypes from '../team-building'
 import HiddenString from '../../../util/hidden-string'
 
-export type PendingMode =
-  | 'none' // no pending
-  | 'searchingForUsers' // doing a search
-  | 'newChat' // doing a search
-  | 'newTeamBuilding' // Users picked via team-building, waiting now.
-  | 'fixedSetOfUsers' // selected a set of users externally
-  | 'startingFromAReset' // fixedSet but our intention is to restart a reset conversation
-
-export type PendingStatus =
-  | 'none' // no special status
-  | 'failed' // creating conversation failed
-
 export type _QuoteInfo = {
   // Always positive and monotonically increasing.
   counter: number,
@@ -57,7 +45,7 @@ export type _ThreadSearchInfo = {
 
 export type ThreadSearchInfo = I.RecordOf<_ThreadSearchInfo>
 
-export type InboxSearchStatus = 'initial' | 'inprogress' | 'done'
+export type InboxSearchStatus = 'initial' | 'inprogress' | 'success' | 'error'
 
 export type _InboxSearchTextHit = {
   conversationIDKey: Common.ConversationIDKey,
@@ -112,6 +100,7 @@ export type _State = {
   focus: Focus,
   inboxHasLoaded: boolean, // if we've ever loaded
   inboxSearch: ?InboxSearchInfo,
+  inboxShowNew: boolean, // mark search as new
   trustedInboxHasLoaded: boolean, // if we've done initial trusted inbox load
   smallTeamsExpanded: boolean, // if we're showing all small teams
   isWalletsNew: boolean, // controls new-ness of wallets in chat UI
@@ -132,8 +121,6 @@ export type _State = {
   giphyWindowMap: I.Map<Common.ConversationIDKey, boolean>,
   giphyResultMap: I.Map<Common.ConversationIDKey, ?RPCChatTypes.GiphySearchResults>,
   pendingOutboxToOrdinal: I.Map<Common.ConversationIDKey, I.Map<Message.OutboxID, Message.Ordinal>>, // messages waiting to be sent
-  pendingMode: PendingMode, // we're about to talk to people we're searching for or a set of users from somewhere else (folder)
-  pendingStatus: PendingStatus, // the status of creating a new conversation
   attachmentFullscreenMessage: ?Message.Message,
   paymentConfirmInfo: ?PaymentConfirmInfo, // chat payment confirm screen data
   paymentStatusMap: I.Map<Wallet.PaymentID, Message.ChatPaymentInfo>,
@@ -144,6 +131,7 @@ export type _State = {
   threadSearchInfoMap: I.Map<Common.ConversationIDKey, ThreadSearchInfo>,
   threadSearchQueryMap: I.Map<Common.ConversationIDKey, ?HiddenString>,
   replyToMap: I.Map<Common.ConversationIDKey, Message.Ordinal>,
+  teamMentionMap: I.Map<string, RPCChatTypes.UITeamMention>,
 } & TeamBuildingTypes.TeamBuildingSubState
 
 export type State = I.RecordOf<_State>

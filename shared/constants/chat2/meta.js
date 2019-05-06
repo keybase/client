@@ -6,6 +6,7 @@ import * as RPCTypes from '../types/rpc-gen'
 import * as WalletConstants from '../wallets'
 import * as Types from '../types/chat2'
 import * as TeamConstants from '../teams'
+import {memoize} from '../../util/memoize'
 import type {_ConversationMeta} from '../types/chat2/meta'
 import type {TypedState} from '../reducer'
 import {formatTimeForConversationList} from '../../util/timestamp'
@@ -338,14 +339,24 @@ const emptyMeta = makeConversationMeta()
 export const getMeta = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.metaMap.get(id, emptyMeta)
 
-export const getParticipantSuggestions = (state: TypedState, id: Types.ConversationIDKey) => {
-  const {participants, teamType} = getMeta(state, id)
-  let suggestions = participants.map(username => ({fullName: getFullname(state, username) || '', username}))
+// we want the memoized function to have access to state but not have it be a part of the memoization else it'll fail always
+let _unmemoizedState
+const _getParticipantSuggestionsMemoized = memoize((participants, teamType) => {
+  let suggestions = participants.map(username => ({
+    fullName: getFullname(_unmemoizedState, username) || '',
+    username,
+  }))
   if (teamType !== 'adhoc') {
     const fullName = teamType === 'small' ? 'Everyone in this team' : 'Everyone in this channel'
     suggestions = suggestions.push({fullName, username: 'channel'}, {fullName, username: 'here'})
   }
   return suggestions
+})
+
+export const getParticipantSuggestions = (state: TypedState, id: Types.ConversationIDKey) => {
+  const {participants, teamType} = getMeta(state, id)
+  _unmemoizedState = state
+  return _getParticipantSuggestionsMemoized(participants, teamType)
 }
 
 export const getChannelSuggestions = (state: TypedState, teamname: string) => {
@@ -452,3 +463,12 @@ export const getConversationRetentionPolicy = (
 
 export const isDecryptingSnippet = (meta: Types.ConversationMeta) =>
   meta.trustedState === 'requesting' || meta.trustedState === 'untrusted'
+
+export const getTeams = (metaMap: Types.MetaMap) => {
+  return metaMap.reduce((l, meta) => {
+    if (meta.teamname && meta.channelname === 'general') {
+      l.push(meta.teamname)
+    }
+    return l
+  }, [])
+}

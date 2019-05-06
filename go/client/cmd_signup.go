@@ -37,6 +37,10 @@ func NewCmdSignup(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 				Usage: "Specify a username.",
 			},
 			cli.BoolFlag{
+				Name:  "no-email",
+				Usage: "Do not signup with email.",
+			},
+			cli.BoolFlag{
 				Name:  "set-password",
 				Usage: "Ask for password (optional by default).",
 			},
@@ -77,6 +81,7 @@ type CmdSignup struct {
 	defaultUsername    string
 	defaultPassphrase  string
 	doPromptPassphrase bool
+	noEmail            bool
 	randomPassphrase   bool
 	defaultDevice      string
 	doPrompt           bool
@@ -136,7 +141,6 @@ func (s *CmdSignup) ParseArgv(ctx *cli.Context) (err error) {
 		s.code = os.Getenv("KEYBASE_INVITATION_CODE")
 	}
 
-	s.defaultEmail = ctx.String("email")
 	s.defaultUsername = ctx.String("username")
 	s.defaultPassphrase = ctx.String("passphrase")
 	s.defaultDevice = ctx.String("device")
@@ -148,9 +152,14 @@ func (s *CmdSignup) ParseArgv(ctx *cli.Context) (err error) {
 	// --set-password flag is used. Only then we are prompting for password.
 	s.doPromptPassphrase = ctx.Bool("set-password")
 
+	s.defaultEmail = ctx.String("email")
+	s.noEmail = ctx.Bool("no-email")
+	if (s.defaultEmail != "") && s.noEmail {
+		return fmt.Errorf("cannot pass --no-email and non-empty --email")
+	}
+
 	if ctx.Bool("batch") {
 		s.fields = &PromptFields{
-			email:           &Field{Value: &s.defaultEmail},
 			code:            &Field{Value: &s.code},
 			username:        &Field{Value: &s.defaultUsername},
 			deviceName:      &Field{Value: &s.defaultDevice},
@@ -300,7 +309,6 @@ func (s *CmdSignup) runEngine() (retry bool, err error) {
 
 	rarg := keybase1.SignupArg{
 		Username:    s.fields.username.GetValue(),
-		Email:       s.fields.email.GetValue(),
 		InviteCode:  s.fields.code.GetValue(),
 		Passphrase:  s.passphrase,
 		RandomPw:    s.randomPassphrase,
@@ -310,6 +318,10 @@ func (s *CmdSignup) runEngine() (retry bool, err error) {
 		SkipMail:    s.skipMail,
 		GenPGPBatch: s.genPGP,
 		GenPaper:    s.genPaper,
+	}
+	email := s.fields.email.GetValue()
+	if email != "" {
+		rarg.Email = email
 	}
 	res, err := s.scli.Signup(context.TODO(), rarg)
 	if err == nil {
@@ -403,6 +415,7 @@ func (s *CmdSignup) MakePrompter() {
 	}
 
 	email := &Field{
+		Disabled:         s.noEmail,
 		Defval:           s.defaultEmail,
 		Name:             "email",
 		Prompt:           "Your email address",

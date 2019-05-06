@@ -577,8 +577,8 @@ func TestProvisionWithRevoke(t *testing.T) {
 // If a user has device keys and no pgp keys, not selecting a device
 // should trigger the autoreset flow.
 func TestProvisionAutoreset(t *testing.T) {
-	// TODO CORE-10774
 	t.Skip()
+
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "provision_x")
 	defer tcX.Cleanup()
@@ -595,28 +595,45 @@ func TestProvisionAutoreset(t *testing.T) {
 
 	uis := libkb.UIs{
 		ProvisionUI: newTestProvisionUIChooseNoDevice(),
-		LoginUI:     &libkb.TestLoginUI{Username: userX.Username},
-		LogUI:       tcY.G.UI.GetLogUI(),
-		SecretUI:    &libkb.TestSecretUI{Passphrase: userX.Passphrase},
-		GPGUI:       &gpgtestui{},
+		LoginUI: &libkb.TestLoginUI{
+			Username:     userX.Username,
+			ResetAccount: true,
+		},
+		LogUI:    tcY.G.UI.GetLogUI(),
+		SecretUI: &libkb.TestSecretUI{Passphrase: userX.Passphrase},
+		GPGUI:    &gpgtestui{},
 	}
 	m := NewMetaContextForTest(tcY).WithUIs(uis)
 	eng := NewLogin(tcY.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	require.NoError(t, RunEngine2(m, eng), "expected login engine to succeed")
 	require.NotNil(t, AssertLoggedIn(tcY), "should not be logged in")
 
-	// Travel 3 days into future + 60s to make sure that it all runs
+	// Travel 3 days into future + 1h to make sure that it all runs
 	require.NoError(t, accelerateReset(tcX))
-	require.NoError(t, timeTravelReset(tcX, time.Hour*72))
-	time.Sleep(time.Second)
+	require.NoError(t, timeTravelReset(tcX, time.Hour*73))
+
+	// Rather than sleeping we'll wait for autoreset by analyzing its state
+	var lastErr error
+	for i := 0; i < 60; i++ {
+		// up to 60 iters * 100ms = 6s
+		lastErr = assertAutoreset(tcX, userX.UID(), libkb.AutoresetEventReady)
+		if lastErr == nil {
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+	require.NoError(t, lastErr)
 
 	// Second iteration on device Y should result in a reset + provision
 	uis = libkb.UIs{
 		ProvisionUI: newTestProvisionUIChooseNoDevice(),
-		LoginUI:     &libkb.TestLoginUI{Username: userX.Username, ResetAccount: true},
-		LogUI:       tcY.G.UI.GetLogUI(),
-		SecretUI:    &libkb.TestSecretUI{Passphrase: userX.Passphrase},
-		GPGUI:       &gpgtestui{},
+		LoginUI: &libkb.TestLoginUI{
+			Username:     userX.Username,
+			ResetAccount: true,
+		},
+		LogUI:    tcY.G.UI.GetLogUI(),
+		SecretUI: &libkb.TestSecretUI{Passphrase: userX.Passphrase},
+		GPGUI:    &gpgtestui{},
 	}
 	m = NewMetaContextForTest(tcY).WithUIs(uis)
 	eng = NewLogin(tcY.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
@@ -4111,4 +4128,33 @@ func assertSecretStored(tc libkb.TestContext, username string) {
 	secret, err := tc.G.SecretStore().RetrieveSecret(NewMetaContextForTest(tc), libkb.NewNormalizedUsername(username))
 	require.NoError(tc.T, err, "no error fetching secret")
 	require.False(tc.T, secret.IsNil(), "secret was non-nil")
+}
+
+func assertAutoreset(tc libkb.TestContext, uid keybase1.UID, expectedStatus int) error {
+	mctx := libkb.NewMetaContextForTest(tc)
+	resp, err := tc.G.API.Get(mctx, libkb.APIArg{
+		Endpoint:    "autoreset/status_dev",
+		SessionType: libkb.APISessionTypeOPTIONAL,
+		Args: libkb.HTTPArgs{
+			"uid": libkb.S{Val: uid.String()},
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	status, ok := resp.Body.AtPathGetInt("autoreset.type")
+	if expectedStatus == -1 {
+		if ok {
+			return fmt.Errorf("expected account %s to not be in reset pipeline", uid.String())
+		}
+		return nil
+	}
+	if !ok {
+		return fmt.Errorf("expected account %s to be in %d state (got null)", uid.String(), expectedStatus)
+	}
+	if status != expectedStatus {
+		return fmt.Errorf("expected account %s to be in %d state (got %d)", uid.String(), expectedStatus, status)
+	}
+	return nil
 }

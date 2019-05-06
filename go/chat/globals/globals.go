@@ -30,6 +30,7 @@ type ChatContext struct {
 	Unfurler            types.Unfurler                   // unfurl messages with URLs
 	CommandsSource      types.ConversationCommandsSource // source for / commands for conversations
 	CoinFlipManager     types.CoinFlipManager            // manage /flip games
+	TeamMentionLoader   types.TeamMentionLoader          // load potential team mentions
 }
 
 type Context struct {

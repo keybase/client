@@ -372,6 +372,12 @@ func (d DummyIndexer) OnLogout(mctx libkb.MetaContext) error {
 func (d DummyIndexer) OnDbNuke(mctx libkb.MetaContext) error {
 	return nil
 }
+func (d DummyIndexer) FullyIndexed(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (bool, error) {
+	return false, nil
+}
+func (d DummyIndexer) PercentIndexed(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (int, error) {
+	return 0, nil
+}
 
 type DummyNativeVideoHelper struct{}
 
@@ -483,4 +489,18 @@ func (d DummyCoinFlipManager) HasActiveGames(ctx context.Context) bool {
 
 func (d DummyCoinFlipManager) IsFlipConversationCreated(ctx context.Context, outboxID chat1.OutboxID) (chat1.ConversationID, FlipSendStatus) {
 	return nil, FlipSendStatusError
+}
+
+type DummyTeamMentionLoader struct{}
+
+func (d DummyTeamMentionLoader) Start(ctx context.Context, uid gregor1.UID) {}
+func (d DummyTeamMentionLoader) Stop(ctx context.Context) chan struct{} {
+	ch := make(chan struct{})
+	close(ch)
+	return ch
+}
+
+func (d DummyTeamMentionLoader) LoadTeamMention(ctx context.Context, uid gregor1.UID,
+	teamName, channel string) error {
+	return nil
 }

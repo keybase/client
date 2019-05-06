@@ -125,7 +125,10 @@ type Indexer interface {
 	Add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg []chat1.MessageUnboxed) error
 	// Remove the given messages from the index
 	Remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg []chat1.MessageUnboxed) error
+	FullyIndexed(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (bool, error)
+	PercentIndexed(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (int, error)
 	SearchableConvs(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) ([]RemoteConversation, error)
+	OnDbNuke(mctx libkb.MetaContext) error
 	// For devel/testing
 	IndexInbox(ctx context.Context, uid gregor1.UID) (map[string]chat1.ProfileSearchConvStats, error)
 }
@@ -389,6 +392,7 @@ type AttachmentUploader interface {
 	Cancel(ctx context.Context, outboxID chat1.OutboxID) error
 	Complete(ctx context.Context, outboxID chat1.OutboxID)
 	GetUploadTempFile(ctx context.Context, outboxID chat1.OutboxID, filename string) (string, error)
+	OnDbNuke(mctx libkb.MetaContext) error
 }
 
 type NativeVideoHelper interface {
@@ -438,7 +442,8 @@ type Unfurler interface {
 
 type ConversationCommand interface {
 	Match(ctx context.Context, text string) bool
-	Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, tlfName, text string) error
+	Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, tlfName, text string,
+		replyTo *chat1.MessageID) error
 	Preview(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, tflName, text string)
 	Name() string
 	Usage() string
@@ -458,7 +463,7 @@ type ConversationCommandsSource interface {
 	GetBuiltins(ctx context.Context) []chat1.BuiltinCommandGroup
 	GetBuiltinCommandType(ctx context.Context, c ConversationCommandsSpec) chat1.ConversationBuiltinCommandTyp
 	AttemptBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-		tlfName string, body chat1.MessageBody) (bool, error)
+		tlfName string, body chat1.MessageBody, replyTo *chat1.MessageID) (bool, error)
 	PreviewBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		tlfName, text string)
 }
@@ -474,6 +479,11 @@ type CoinFlipManager interface {
 	DescribeFlipText(ctx context.Context, text string) string
 	HasActiveGames(ctx context.Context) bool
 	IsFlipConversationCreated(ctx context.Context, outboxID chat1.OutboxID) (chat1.ConversationID, FlipSendStatus)
+}
+
+type TeamMentionLoader interface {
+	Resumable
+	LoadTeamMention(ctx context.Context, uid gregor1.UID, teamName, channel string) error
 }
 
 type InternalError interface {

@@ -10,7 +10,7 @@ import * as SafeElectron from '../../util/safe-electron.desktop'
 import * as Tabs from '../../constants/tabs'
 import fs from 'fs'
 import type {TypedState} from '../../constants/reducer'
-import {fileUIName, isWindows} from '../../constants/platform'
+import {fileUIName, isWindows, isLinux} from '../../constants/platform'
 import logger from '../../logger'
 import {spawn, execFile, exec} from 'child_process'
 import path from 'path'
@@ -241,17 +241,16 @@ const uninstallKBFSConfirm = () =>
         type: 'question',
       },
       // resp is the index of the button that's clicked
-      resp => resp === 0 ? resolve(FsGen.createDriverDisabling()) : resolve()
+      resp => (resp === 0 ? resolve(FsGen.createDriverDisabling()) : resolve())
     )
   )
 
 const uninstallKBFS = () =>
-  RPCTypes.installUninstallKBFSRpcPromise()
-    .then(() => {
-      // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
-      SafeElectron.getApp().relaunch()
-      SafeElectron.getApp().exit(0)
-    })
+  RPCTypes.installUninstallKBFSRpcPromise().then(() => {
+    // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
+    SafeElectron.getApp().relaunch()
+    SafeElectron.getApp().exit(0)
+  })
 
 const uninstallDokanConfirm = state => {
   if (state.fs.sfmi.driverStatus.type !== 'enabled') {
@@ -385,10 +384,12 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
     FsGen.openPathInSystemFileManager,
     openPathInSystemFileManager
   )
-  yield* Saga.chainAction<FsGen.KbfsDaemonRpcStatusChangedPayload | FsGen.RefreshDriverStatusPayload>(
-    [FsGen.kbfsDaemonRpcStatusChanged, FsGen.refreshDriverStatus],
-    refreshDriverStatus
-  )
+  if (!isLinux) {
+    yield* Saga.chainAction<FsGen.KbfsDaemonRpcStatusChangedPayload | FsGen.RefreshDriverStatusPayload>(
+      [FsGen.kbfsDaemonRpcStatusChanged, FsGen.refreshDriverStatus],
+      refreshDriverStatus
+    )
+  }
   yield* Saga.chainAction<FsGen.OpenAndUploadPayload>(FsGen.openAndUpload, openAndUpload)
   yield* Saga.chainAction<FsGen.UserFileEditsLoadPayload>(FsGen.userFileEditsLoad, loadUserFileEdits)
   yield* Saga.chainAction<FsGen.OpenFilesFromWidgetPayload>(FsGen.openFilesFromWidget, openFilesFromWidget)

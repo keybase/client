@@ -35,6 +35,7 @@ export const chat1ChatUiChatStellarDataConfirm = 'engine-gen:chat1ChatUiChatStel
 export const chat1ChatUiChatStellarDataError = 'engine-gen:chat1ChatUiChatStellarDataError'
 export const chat1ChatUiChatStellarDone = 'engine-gen:chat1ChatUiChatStellarDone'
 export const chat1ChatUiChatStellarShowConfirm = 'engine-gen:chat1ChatUiChatStellarShowConfirm'
+export const chat1ChatUiChatTeamMentionUpdate = 'engine-gen:chat1ChatUiChatTeamMentionUpdate'
 export const chat1ChatUiChatThreadCached = 'engine-gen:chat1ChatUiChatThreadCached'
 export const chat1ChatUiChatThreadFull = 'engine-gen:chat1ChatUiChatThreadFull'
 export const chat1NotifyChatChatAttachmentUploadProgress = 'engine-gen:chat1NotifyChatChatAttachmentUploadProgress'
@@ -213,6 +214,7 @@ type _Chat1ChatUiChatStellarDataConfirmPayload = $ReadOnly<{|params: $Exact<$Pro
 type _Chat1ChatUiChatStellarDataErrorPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarDataError'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarDataError'>, 'outParam'>) => void}|}>
 type _Chat1ChatUiChatStellarDonePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarDone'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarDone'>, 'outParam'>) => void}|}>
 type _Chat1ChatUiChatStellarShowConfirmPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarShowConfirm'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarShowConfirm'>, 'outParam'>) => void}|}>
+type _Chat1ChatUiChatTeamMentionUpdatePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatTeamMentionUpdate'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatTeamMentionUpdate'>, 'outParam'>) => void}|}>
 type _Chat1ChatUiChatThreadCachedPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatThreadCached'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatThreadCached'>, 'outParam'>) => void}|}>
 type _Chat1ChatUiChatThreadFullPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatThreadFull'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatThreadFull'>, 'outParam'>) => void}|}>
 type _Chat1NotifyChatChatAttachmentUploadProgressPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatAttachmentUploadProgress'>, 'inParam'>> & {|sessionID: number|}|}>
@@ -391,6 +393,7 @@ export const createChat1ChatUiChatStellarDataConfirm = (payload: _Chat1ChatUiCha
 export const createChat1ChatUiChatStellarDataError = (payload: _Chat1ChatUiChatStellarDataErrorPayload) => ({payload, type: chat1ChatUiChatStellarDataError})
 export const createChat1ChatUiChatStellarDone = (payload: _Chat1ChatUiChatStellarDonePayload) => ({payload, type: chat1ChatUiChatStellarDone})
 export const createChat1ChatUiChatStellarShowConfirm = (payload: _Chat1ChatUiChatStellarShowConfirmPayload) => ({payload, type: chat1ChatUiChatStellarShowConfirm})
+export const createChat1ChatUiChatTeamMentionUpdate = (payload: _Chat1ChatUiChatTeamMentionUpdatePayload) => ({payload, type: chat1ChatUiChatTeamMentionUpdate})
 export const createChat1ChatUiChatThreadCached = (payload: _Chat1ChatUiChatThreadCachedPayload) => ({payload, type: chat1ChatUiChatThreadCached})
 export const createChat1ChatUiChatThreadFull = (payload: _Chat1ChatUiChatThreadFullPayload) => ({payload, type: chat1ChatUiChatThreadFull})
 export const createChat1NotifyChatChatAttachmentUploadProgress = (payload: _Chat1NotifyChatChatAttachmentUploadProgressPayload) => ({payload, type: chat1NotifyChatChatAttachmentUploadProgress})
@@ -569,6 +572,7 @@ export type Chat1ChatUiChatStellarDataConfirmPayload = {|+payload: _Chat1ChatUiC
 export type Chat1ChatUiChatStellarDataErrorPayload = {|+payload: _Chat1ChatUiChatStellarDataErrorPayload, +type: 'engine-gen:chat1ChatUiChatStellarDataError'|}
 export type Chat1ChatUiChatStellarDonePayload = {|+payload: _Chat1ChatUiChatStellarDonePayload, +type: 'engine-gen:chat1ChatUiChatStellarDone'|}
 export type Chat1ChatUiChatStellarShowConfirmPayload = {|+payload: _Chat1ChatUiChatStellarShowConfirmPayload, +type: 'engine-gen:chat1ChatUiChatStellarShowConfirm'|}
+export type Chat1ChatUiChatTeamMentionUpdatePayload = {|+payload: _Chat1ChatUiChatTeamMentionUpdatePayload, +type: 'engine-gen:chat1ChatUiChatTeamMentionUpdate'|}
 export type Chat1ChatUiChatThreadCachedPayload = {|+payload: _Chat1ChatUiChatThreadCachedPayload, +type: 'engine-gen:chat1ChatUiChatThreadCached'|}
 export type Chat1ChatUiChatThreadFullPayload = {|+payload: _Chat1ChatUiChatThreadFullPayload, +type: 'engine-gen:chat1ChatUiChatThreadFull'|}
 export type Chat1NotifyChatChatAttachmentUploadProgressPayload = {|+payload: _Chat1NotifyChatChatAttachmentUploadProgressPayload, +type: 'engine-gen:chat1NotifyChatChatAttachmentUploadProgress'|}
@@ -749,6 +753,7 @@ export type Actions =
   | Chat1ChatUiChatStellarDataErrorPayload
   | Chat1ChatUiChatStellarDonePayload
   | Chat1ChatUiChatStellarShowConfirmPayload
+  | Chat1ChatUiChatTeamMentionUpdatePayload
   | Chat1ChatUiChatThreadCachedPayload
   | Chat1ChatUiChatThreadFullPayload
   | Chat1NotifyChatChatAttachmentUploadProgressPayload

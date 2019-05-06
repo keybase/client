@@ -344,7 +344,6 @@ const propsInboxCommon = {
   isSearching: false,
   neverLoaded: false,
   nowOverride: 0, // just for dumb rendering
-  onDeselectConversation: Sb.action('onDeselectConversation'),
   onNewChat: Sb.action('onNewChat'),
   onUntrustedInboxVisible: Sb.action('onUntrustedInboxVisible'),
   onSelectUp: Sb.action('onSelectUp'),

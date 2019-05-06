@@ -87,6 +87,7 @@ class InboxSearch extends React.Component<Props, State> {
     )
   }
   _renderTextHeader = section => {
+    const ratio = this.props.indexPercent / 100.0
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.textHeader}>
         <Kb.SectionDivider
@@ -95,11 +96,28 @@ class InboxSearch extends React.Component<Props, State> {
           onToggleCollapsed={section.onCollapse}
           showSpinner={section.status === 'inprogress'}
         />
-        {this.props.indexPercent > 0 && (
-          <Kb.Text type="BodySmall" style={styles.indexPercent}>
-            Indexing {this.props.indexPercent}% complete...
-          </Kb.Text>
-        )}
+        {this.props.textStatus === 'error' ? (
+          <Kb.Box2 direction="horizontal" style={styles.percentContainer} fullWidth={true}>
+            <Kb.Text type="BodyTiny" style={styles.errorText} center={true}>
+              Search failed, please try again, or contact Keybase describing the problem.
+            </Kb.Text>
+          </Kb.Box2>
+        ) : this.props.indexPercent > 0 && this.props.indexPercent < 100 ? (
+          <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.percentContainer} fullWidth={true}>
+            <Kb.Text type="BodyTiny">Indexing...</Kb.Text>
+            {Styles.isMobile ? (
+              <Kb.ProgressBar style={styles.progressBar} ratio={ratio} />
+            ) : (
+              <Kb.WithTooltip
+                containerStyle={styles.progressBar}
+                position="bottom center"
+                text={`${this.props.indexPercent}% complete`}
+              >
+                <Kb.ProgressBar style={styles.progressBar} ratio={ratio} />
+              </Kb.WithTooltip>
+            )}
+          </Kb.Box2>
+        ) : null}
       </Kb.Box2>
     )
   }
@@ -113,13 +131,16 @@ class InboxSearch extends React.Component<Props, State> {
   _textResults = () => {
     return this.state.textCollapsed ? [] : this.props.textResults
   }
+  _isStatusDone = status => {
+    return status === 'success' || status === 'error'
+  }
 
   render() {
     const textResults = this._textResults()
     const nameResults = this._nameResults()
     const noResults =
-      this.props.nameStatus === 'done' &&
-      this.props.textStatus === 'done' &&
+      this._isStatusDone(this.props.nameStatus) &&
+      this._isStatusDone(this.props.textStatus) &&
       this.props.nameResults.length === 0 &&
       this.props.textResults.length === 0 &&
       this.props.query.length > 0
@@ -177,8 +198,16 @@ const styles = Styles.styleSheetCreate({
       position: 'relative',
     },
   }),
-  indexPercent: {
-    paddingLeft: Styles.globalMargins.small,
+  errorText: {
+    color: Styles.globalColors.red,
+  },
+  percentContainer: {
+    padding: Styles.globalMargins.tiny,
+  },
+  progressBar: {
+    alignSelf: 'center',
+    flex: 1,
+    width: '100%',
   },
   textHeader: {
     backgroundColor: Styles.globalColors.blue5,

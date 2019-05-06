@@ -83,10 +83,20 @@ func (c *CmdChatSend) Run() (err error) {
 		return err
 	}
 
-	if c.resolvingRequest.TlfName != "" {
-		if err = annotateResolvingRequest(c.G(), &c.resolvingRequest); err != nil {
+	// if no tlfname specified, request one
+	if c.resolvingRequest.TlfName == "" {
+		c.resolvingRequest.TlfName, err = c.G().UI.GetTerminalUI().Prompt(PromptDescriptorEnterChatTLFName,
+			"Specify a team name, a single receiving user, or a comma-separated list of users (e.g. alice,bob,charlie) to continue: ")
+		if err != nil {
 			return err
 		}
+		if c.resolvingRequest.TlfName == "" {
+			return fmt.Errorf("no user or team name specified")
+		}
+	}
+
+	if err = annotateResolvingRequest(c.G(), &c.resolvingRequest); err != nil {
+		return err
 	}
 	// TLFVisibility_ANY doesn't make any sense for send, so switch that to PRIVATE:
 	if c.resolvingRequest.Visibility == keybase1.TLFVisibility_ANY {

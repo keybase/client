@@ -403,3 +403,18 @@ func (a AssetCode) GetAssetType() string {
 		return "asset_code_invalid"
 	}
 }
+
+// TypeString implements stellarnet.AssetBase.
+func (a Asset) TypeString() string {
+	return a.Type
+}
+
+// CodeString implements stellarnet.AssetBase.
+func (a Asset) CodeString() string {
+	return a.Code
+}
+
+// IssuerString implements stellarnet.AssetBase.
+func (a Asset) IssuerString() string {
+	return a.Issuer
+}

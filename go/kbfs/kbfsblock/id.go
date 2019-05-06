@@ -100,19 +100,30 @@ func (id *ID) HashType() kbfshash.HashType {
 	return id.h.GetHashType()
 }
 
-// MakeTemporaryID generates a temporary block ID using a CSPRNG. This
-// is used for indirect blocks before they're committed to the server.
-func MakeTemporaryID() (ID, error) {
+func makeRandomID(ht kbfshash.HashType) (ID, error) {
 	var dh kbfshash.RawDefaultHash
 	err := kbfscrypto.RandRead(dh[:])
 	if err != nil {
 		return ID{}, err
 	}
-	h, err := kbfshash.HashFromRaw(kbfshash.DefaultHashType, dh[:])
+	h, err := kbfshash.HashFromRaw(ht, dh[:])
 	if err != nil {
 		return ID{}, err
 	}
 	return ID{h}, nil
+}
+
+// MakeTemporaryID generates a temporary block ID with an invalid hash
+// type using a CSPRNG. This is used for indirect blocks before
+// they're committed to the server.
+func MakeTemporaryID() (ID, error) {
+	return makeRandomID(kbfshash.TemporaryHashType)
+}
+
+// MakeFakeID generates a fake block ID with a valid hash type using a
+// CSPRNG. This is used for fake block IDs in tests.
+func MakeFakeID() (ID, error) {
+	return makeRandomID(kbfshash.DefaultHashType)
 }
 
 const (

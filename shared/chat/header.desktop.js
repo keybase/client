@@ -27,23 +27,30 @@ type Props = {|
   unMuteConversation: () => void,
 |}
 
+const descStyle = {fontSize: 13, lineHeight: '17px', wordBreak: 'break-all'}
 const descStyleOverride = {
-  del: {fontSize: 12, lineHeight: '16px', wordBreak: 'break-all'},
-  em: {fontSize: 12, lineHeight: '16px', wordBreak: 'break-all'},
-  fence: {fontSize: 12, lineHeight: '16px', wordBreak: 'break-all'},
-  inlineCode: {fontSize: 12, lineHeight: '16px', wordBreak: 'break-all'},
-  kbfsPath: {fontSize: 12, lineHeight: '16px', wordBreak: 'break-all'},
-  link: {fontSize: 12, lineHeight: '16px', wordBreak: 'break-all'},
-  mailto: {fontSize: 12, lineHeight: '16px', wordBreak: 'break-all'},
-  paragraph: {fontSize: 12, lineHeight: '16px', wordBreak: 'break-all'},
-  preview: {fontSize: 12, lineHeight: '16px', wordBreak: 'break-all'},
-  strong: {fontSize: 12, lineHeight: '16px', wordBreak: 'break-all'},
+  del: descStyle,
+  em: descStyle,
+  fence: descStyle,
+  inlineCode: descStyle,
+  kbfsPath: descStyle,
+  link: descStyle,
+  mailto: descStyle,
+  paragraph: descStyle,
+  preview: descStyle,
+  strong: descStyle,
 }
 
 const Header = (p: Props) => {
   let description = !!p.desc && (
     // $FlowIssue not used on mobile
-    <Kb.Markdown style={styles.desc} styleOverride={descStyleOverride} lineClamp={1} selectable={true}>
+    <Kb.Markdown
+      smallStandaloneEmoji={true}
+      style={styles.desc}
+      styleOverride={descStyleOverride}
+      lineClamp={1}
+      selectable={true}
+    >
       {p.desc}
     </Kb.Markdown>
   )

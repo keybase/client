@@ -375,6 +375,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	ictx := globals.CtxAddIdentifyMode(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil)
 	indexer.Start(ictx, uid)
 	indexer.SetPageSize(2)
+	indexer.SetStartSyncDelay(0)
 	g.Indexer = indexer
 
 	h.setTestRemoteClient(ri)
@@ -408,6 +409,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.Unfurler = types.DummyUnfurler{}
 	g.StellarLoader = types.DummyStellarLoader{}
 	g.StellarSender = types.DummyStellarSender{}
+	g.TeamMentionLoader = types.DummyTeamMentionLoader{}
 	g.CoinFlipManager = NewFlipManager(g, func() chat1.RemoteInterface { return ri })
 	g.CoinFlipManager.Start(context.TODO(), uid)
 
@@ -664,7 +666,15 @@ func sweepPollForDeletion(t *testing.T, ctc *chatTestContext, asUser *kbtest.Fak
 			foundTaskCount++
 		}
 		if res.DeletedMessages {
-			expungeInfo := consumeExpunge(t, listener)
+			var expungeInfo chat1.ExpungeInfo
+			for {
+				expungeInfo = consumeExpunge(t, listener)
+				if expungeInfo.Expunge == res.Expunge {
+					break
+				}
+				t.Logf("sweepPollForDeletion %+v != %+v, trying consumeExpunge again",
+					expungeInfo.Expunge, res.Expunge)
+			}
 			require.Equal(t, convID, expungeInfo.ConvID, "accidentally consumed expunge info for other conv")
 			upto = res.Expunge.Upto
 			if upto >= uptoWant {

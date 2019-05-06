@@ -49,6 +49,17 @@ _newRoutes.forEach(({route, tab}) => {
   })
 })
 
+export const tabRoots = {
+  [Tabs.peopleTab]: 'peopleRoot',
+  [Tabs.chatTab]: 'chatRoot',
+  [Tabs.fsTab]: 'fsRoot',
+  [Tabs.teamsTab]: 'teamsRoot',
+  [Tabs.walletsTab]: 'walletsRoot',
+  [Tabs.gitTab]: 'gitRoot',
+  [Tabs.devicesTab]: 'devicesRoot',
+  [Tabs.settingsTab]: 'settingsRoot',
+}
+
 export const modalRoutes = {
   ...chatNewModalRoutes,
   ...deviceNewModalRoutes,

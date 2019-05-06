@@ -10,7 +10,6 @@ import ThreadSearch from '../search/container'
 type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
   focusInputCounter: number,
-  isPending: boolean,
   jumpToRecent: () => void,
   onRequestScrollDown: () => void,
   onRequestScrollToBottom: () => void,
@@ -23,16 +22,12 @@ type Props = {|
   showThreadSearch: boolean,
 |}
 
-const mapStateToProps = (state, {conversationIDKey, isPending}: OwnProps) => {
+const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const meta = Constants.getMeta(state, conversationIDKey)
   let noInput = !meta.resetParticipants.isEmpty() || !!meta.wasFinalizedBy
   const showThreadSearch = Constants.getThreadSearchInfo(state, conversationIDKey).visible
 
-  if (isPending) {
-    if (!Constants.isValidConversationIDKey(conversationIDKey)) {
-      noInput = true
-    }
-  } else if (conversationIDKey === Constants.pendingWaitingConversationIDKey) {
+  if (conversationIDKey === Constants.pendingWaitingConversationIDKey) {
     noInput = true
   }
 

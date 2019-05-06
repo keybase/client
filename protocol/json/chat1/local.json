@@ -1204,6 +1204,20 @@
     },
     {
       "type": "record",
+      "name": "MaybeTeamMention",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "channel"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "MessageUnboxedValid",
       "fields": [
         {
@@ -1276,6 +1290,13 @@
         {
           "type": "ChannelMention",
           "name": "channelMention"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "MaybeTeamMention"
+          },
+          "name": "teamMentions"
         },
         {
           "type": {
@@ -2279,6 +2300,10 @@
           "name": "conv"
         },
         {
+          "type": "InboxUIItem",
+          "name": "uiConv"
+        },
+        {
           "type": {
             "type": "array",
             "items": "RateLimit"
@@ -2814,6 +2839,10 @@
       "name": "SearchRegexpRes",
       "fields": [
         {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
           "type": {
             "type": "array",
             "items": "ChatSearchHit"
@@ -2840,6 +2869,10 @@
       "type": "record",
       "name": "SearchInboxRes",
       "fields": [
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
         {
           "type": [
             null,

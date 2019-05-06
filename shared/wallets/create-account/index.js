@@ -60,8 +60,6 @@ class CreateAccount extends React.Component<Props, State> {
     if (this.props.nameValidationState === 'valid' && prevProps.nameValidationState !== 'valid') {
       this.props.onClearErrors()
       this.props.onCreateAccount(this.state.name)
-      // This is for when we are showing this from a SendForm.
-      this.props.onBack && this.props.onBack()
     }
   }
 

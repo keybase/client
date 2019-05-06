@@ -372,6 +372,11 @@ protocol local {
     union { null, OutboxID } supersedesOutboxID;
   }
 
+  record MaybeTeamMention {
+    string name;
+    string channel;
+  }
+
   record MessageUnboxedValid {
     MessageClientHeaderVerified clientHeader;
     MessageServerHeader serverHeader;
@@ -406,6 +411,7 @@ protocol local {
     array<string> atMentionUsernames;
     array<gregor1.UID> atMentions;
     ChannelMention channelMention;
+    array<MaybeTeamMention> teamMentions;
     array<ChannelNameMention> channelNameMentions;
     // reactionText -> [Reaction(username, reactionMsgID)...]
     ReactionMap reactions;
@@ -754,6 +760,7 @@ protocol local {
   NewConversationLocalRes newConversationLocal(string tlfName, TopicType topicType, keybase1.TLFVisibility tlfVisibility, union { null, string } topicName, ConversationMembersType membersType, keybase1.TLFIdentifyBehavior identifyBehavior);
   record NewConversationLocalRes {
     ConversationLocal conv;
+    InboxUIItem uiConv;
     array<RateLimit> rateLimits;
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
@@ -957,6 +964,7 @@ protocol local {
   void upgradeKBFSConversationToImpteam(ConversationID convID);
 
   record SearchRegexpRes {
+    boolean offline;
     array<ChatSearchHit> hits;
     array<RateLimit> rateLimits;
     array<keybase1.TLFIdentifyFailure> identifyFailures;
@@ -967,6 +975,7 @@ protocol local {
   void cancelActiveInboxSearch();
 
   record SearchInboxRes {
+    boolean offline;
     union { null, ChatSearchInboxResults } res;
     array<RateLimit> rateLimits;
     array<keybase1.TLFIdentifyFailure> identifyFailures;

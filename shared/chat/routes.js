@@ -143,16 +143,12 @@ const routeTree = () => {
 }
 
 export const newRoutes = {
-  chatChooseEmoji: {
-    getScreen: () => require('./conversation/messages/react-button/emoji-picker/container').default,
-    upgraded: true,
-  },
   chatConversation: {getScreen: () => require('./conversation/container').default, upgraded: true},
   chatEnterPaperkey: {
     getScreen: () => require('./conversation/rekey/enter-paper-key').default,
     upgraded: true,
   },
-  'tabs.chatTab': {
+  chatRoot: {
     getScreen: () =>
       // TODO mark as upgraded when inbox doesn't use routeState anymore
       isMobile ? require('./inbox/container').default : require('./inbox-and-conversation-2.desktop').default,
@@ -175,6 +171,10 @@ export const newModalRoutes = {
   },
   chatAttachmentVideoFullscreen: {
     getScreen: () => require('./conversation/attachment-video-fullscreen/container').default,
+    upgraded: true,
+  },
+  chatChooseEmoji: {
+    getScreen: () => require('./conversation/messages/react-button/emoji-picker/container').default,
     upgraded: true,
   },
   chatCreateChannel: {getScreen: () => require('./create-channel/container').default, upgraded: true},

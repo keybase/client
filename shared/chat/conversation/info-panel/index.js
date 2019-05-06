@@ -335,7 +335,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             caption="Hide this conversation"
             onClick={row.onHideConv}
             noDanger={true}
-            icon="iconfont-remove"
+            icon="iconfont-hide"
             spinner={this.props.spinnerForHide}
           />
         )

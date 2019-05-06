@@ -327,6 +327,11 @@ const getDisabledReasonsForRolePicker = (
   teamname: Types.Teamname,
   memberToModify: ?string
 ): Types.DisabledReasonsForRolePicker => {
+  const canManageMembers = getCanPerform(state, teamname).manageMembers
+  if (canManageMembers) {
+    // If you're an implicit admin, the tests below will fail for you, but you can still change roles.
+    return isSubteam(teamname) ? {owner: 'Subteams cannot have owners.'} : {}
+  }
   const members = getTeamMembers(state, teamname)
   const member = memberToModify ? members.get(memberToModify) : null
   const theyAreOwner = member ? member.type === 'owner' : false
@@ -338,7 +343,9 @@ const getDisabledReasonsForRolePicker = (
   if (yourRole !== 'owner' && yourRole !== 'admin') {
     return {
       admin: 'You must be at least an admin to make role changes.',
-      owner: 'You must be at least an admin to make role changes.',
+      owner: isSubteam(teamname)
+        ? 'Subteams cannot have owners'
+        : 'You must be at least an admin to make role changes.',
       reader: 'You must be at least an admin to make role changes.',
       writer: 'You must be at least an admin to make role changes.',
     }
@@ -348,7 +355,9 @@ const getDisabledReasonsForRolePicker = (
   if (theyAreOwner && yourRole !== 'owner') {
     return {
       admin: `Only owners can change another owner's role`,
-      owner: `Only owners can change another owner's role`,
+      owner: isSubteam(teamname)
+        ? 'Subteams cannot have owners.'
+        : `Only owners can change another owner's role`,
       reader: `Only owners can change another owner's role`,
       writer: `Only owners can change another owner's role`,
     }
@@ -357,7 +366,9 @@ const getDisabledReasonsForRolePicker = (
   // We shouldn't get here, but in case we do this is correct.
   if (yourRole !== 'owner') {
     return {
-      owner: `Only owners can turn members into owners`,
+      owner: isSubteam(teamname)
+        ? 'Subteams cannot have owners.'
+        : `Only owners can turn members into owners`,
     }
   }
 
@@ -574,6 +585,14 @@ export const makeResetUser: I.RecordFactory<Types._ResetUser> = I.Record({
 })
 
 export const chosenChannelsGregorKey = 'chosenChannelsForTeam'
+
+export const isOnTeamsTab = () => {
+  if (!flags.useNewRouter) {
+    return false
+  }
+  const path = getFullRoute()
+  return Array.isArray(path) ? path.some(p => p.routeName === teamsTab) : false
+}
 
 export {
   getNumberOfSubscribedChannels,

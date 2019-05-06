@@ -56,7 +56,7 @@ class Devices extends React.PureComponent<Props, State> {
       )
     } else if (item.type === 'revokedNote') {
       return (
-        <Kb.Text center={true} type="BodySmallSemibold" style={styles.revokedNote}>
+        <Kb.Text center={true} type="BodySmall" style={styles.revokedNote}>
           Revoked devices will no longer be able to access your Keybase account.
         </Kb.Text>
       )
@@ -100,7 +100,7 @@ const styles = Styles.styleSheetCreate({
     width: 20,
   },
   revokedNote: {
-    ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.small, 0),
+    padding: Styles.globalMargins.medium,
     width: '100%',
   },
 })
@@ -169,7 +169,6 @@ const paperKeyNudgeStyles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     common: {
       padding: Styles.globalMargins.small,
-      paddingTop: 0,
     },
     isMobile: {
       padding: Styles.globalMargins.tiny,

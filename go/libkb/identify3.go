@@ -196,8 +196,8 @@ func (s *Identify3State) runExpireThread(g *GlobalContext, expireCh <-chan struc
 	for {
 		select {
 		case ch := <-shutdownCh:
-			close(ch)
 			mctx.Debug("identify3State#runExpireThread: exiting on shutdown")
+			close(ch)
 			return
 		case <-expireCh:
 		case <-mctx.G().Clock().AfterTime(wakeupTime):

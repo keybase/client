@@ -11,18 +11,23 @@ const shimNewRoute = (Original: any) => {
   class ShimmedNew extends React.PureComponent<any, void> {
     static navigationOptions = Original.navigationOptions
     render() {
+      const navigationOptions =
+        typeof Original.navigationOptions === 'function'
+          ? Original.navigationOptions({navigation: this.props.navigation})
+          : Original.navigationOptions
       const body = <Original {...this.props} />
       const keyboardBody = (
         <Kb.NativeKeyboardAvoidingView
           style={styles.keyboard}
           behavior={Styles.isIOS ? 'padding' : undefined}
+          keyboardVerticalOffset={(navigationOptions && navigationOptions.headerHeight) || undefined}
         >
           {body}
         </Kb.NativeKeyboardAvoidingView>
       )
 
       // don't make safe areas
-      if (Original.navigationOptions && Original.navigationOptions.underNotch) {
+      if (navigationOptions && navigationOptions.underNotch) {
         return keyboardBody
       }
 

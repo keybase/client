@@ -424,6 +424,7 @@ type ChatUI interface {
 	ChatShowManageChannels(context.Context, string) error
 	ChatCoinFlipStatus(context.Context, []chat1.UICoinFlipStatus) error
 	ChatCommandMarkdown(context.Context, chat1.ConversationID, *chat1.UICommandMarkdown) error
+	ChatTeamMentionUpdate(context.Context, string, string, chat1.UITeamMention) error
 }
 
 type PromptDefault int
@@ -627,6 +628,7 @@ type ServiceType interface {
 	MakeProofChecker(l RemoteProofChainLink) ProofChecker
 	SetDisplayConfig(*keybase1.ServiceDisplayConfig)
 	CanMakeNewProofs(mctx MetaContext) bool
+	CanMakeNewProofsSkipFeatureFlag(mctx MetaContext) bool
 	DisplayPriority() int
 	DisplayGroup() string
 	IsNew(MetaContext) bool
@@ -865,6 +867,10 @@ type UIDMapper interface {
 	// hardcoded map.
 	CheckUIDAgainstUsername(uid keybase1.UID, un NormalizedUsername) bool
 
+	// MapHardcodedUsernameToUID will map the given legacy username to a UID if it exists
+	// in the hardcoded map. If not, it will return the nil UID.
+	MapHardcodedUsernameToUID(un NormalizedUsername) keybase1.UID
+
 	// MapUIDToUsernamePackages maps the given set of UIDs to the username
 	// packages, which include a username and a fullname, and when the mapping
 	// was loaded from the server. It blocks on the network until all usernames
@@ -919,9 +925,10 @@ type ChatHelper interface {
 	SendMsgByID(ctx context.Context, convID chat1.ConversationID,
 		tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error
 	SendTextByIDNonblock(ctx context.Context, convID chat1.ConversationID,
-		tlfName string, text string, outboxID *chat1.OutboxID) (chat1.OutboxID, error)
+		tlfName string, text string, outboxID *chat1.OutboxID, replyTo *chat1.MessageID) (chat1.OutboxID, error)
 	SendMsgByIDNonblock(ctx context.Context, convID chat1.ConversationID,
-		tlfName string, body chat1.MessageBody, msgType chat1.MessageType, outboxID *chat1.OutboxID) (chat1.OutboxID, error)
+		tlfName string, body chat1.MessageBody, msgType chat1.MessageType, outboxID *chat1.OutboxID,
+		replyTo *chat1.MessageID) (chat1.OutboxID, error)
 	SendTextByName(ctx context.Context, name string, topicName *string,
 		membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string) error
 	SendMsgByName(ctx context.Context, name string, topicName *string,

@@ -50,7 +50,14 @@ protocol kbfs {
   void FSSyncEvent(FSPathSyncStatus event);
 
   /**
-    FSSyncEvent is called by KBFS when the online status changes.
+    FSOverallSyncEvent is called by KBFS when the overall sync status
+    changes.
+        */
+  @lint("ignore")
+  void FSOverallSyncEvent(FolderSyncStatus status);
+
+  /**
+    FSOnlineStatusChangedEvent is called by KBFS when the online status changes.
         */
   @lint("ignore")
   void FSOnlineStatusChangedEvent(boolean online);

@@ -33,38 +33,50 @@ type ProvidersProps = {|
   filter: string,
 |}
 class Providers extends React.Component<ProvidersProps> {
+  static _itemHeight = {
+    height: Styles.isMobile ? 56 : 48,
+    type: 'fixed',
+  }
+  _renderItem = (_, provider) => (
+    <React.Fragment key={provider.name}>
+      <Kb.Divider />
+      <HoverBox onClick={() => this.props.providerClicked(provider.key)} style={styles.containerBox}>
+        <SiteIcon set={provider.icon} style={styles.icon} full={true} />
+        <Kb.Box2 direction="vertical" fullWidth={true}>
+          <Kb.Text type="BodySemibold" style={styles.title}>
+            {provider.name}
+          </Kb.Text>
+          {(provider.new || !!provider.desc) && (
+            <Kb.Box2 direction="horizontal" alignItems="flex-start" fullWidth={true}>
+              {provider.new && (
+                <Kb.Meta title="NEW" backgroundColor={Styles.globalColors.blue} style={styles.new} />
+              )}
+              <Kb.Text type="BodySmall" style={styles.description}>
+                {provider.desc}
+              </Kb.Text>
+            </Kb.Box2>
+          )}
+        </Kb.Box2>
+        <Kb.Icon
+          type="iconfont-arrow-right"
+          color={Styles.globalColors.black_50}
+          fontSize={Styles.isMobile ? 20 : 16}
+          style={styles.iconArrow}
+        />
+      </HoverBox>
+    </React.Fragment>
+  )
   render() {
     const filterRegexp = makeInsertMatcher(this.props.filter)
 
-    return this.props.providers
-      .filter(p => filterProvider(p, filterRegexp))
-      .map(provider => (
-        <React.Fragment key={provider.name}>
-          <Kb.Divider />
-          <HoverBox onClick={() => this.props.providerClicked(provider.key)} style={styles.containerBox}>
-            <SiteIcon set={provider.icon} style={styles.icon} full={true} />
-            <Kb.Box2 direction="vertical" fullWidth={true}>
-              <Kb.Text type="BodySemibold" style={styles.title}>
-                {provider.name}
-              </Kb.Text>
-              <Kb.Box2 direction="horizontal" alignItems="flex-start" fullWidth={true}>
-                {provider.new && (
-                  <Kb.Meta title="NEW" backgroundColor={Styles.globalColors.blue} style={styles.new} />
-                )}
-                <Kb.Text type="BodySmall" style={styles.description}>
-                  {provider.desc}
-                </Kb.Text>
-              </Kb.Box2>
-            </Kb.Box2>
-            <Kb.Icon
-              type="iconfont-arrow-right"
-              color={Styles.globalColors.black_50}
-              fontSize={Styles.isMobile ? 20 : 16}
-              style={styles.iconArrow}
-            />
-          </HoverBox>
-        </React.Fragment>
-      ))
+    const items = this.props.providers.filter(p => filterProvider(p, filterRegexp))
+    return (
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.flexOne}>
+          <Kb.List2 items={items} renderItem={this._renderItem} itemHeight={Providers._itemHeight} />
+        </Kb.Box2>
+      </Kb.Box2>
+    )
   }
 }
 
@@ -108,11 +120,8 @@ class _ProofsList extends React.Component<Props, State> {
             />
           </Kb.Box>
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
-            <Kb.ScrollView>
-              {/* TODO dont use scroll view like this */}
-              <Providers {...this.props} filter={this.state.filter} />
-              <Kb.Divider />
-            </Kb.ScrollView>
+            <Providers {...this.props} filter={this.state.filter} />
+            <Kb.Divider />
           </Kb.Box2>
           <HoverBox onClick={this.props.onClickLearn} style={styles.footer}>
             <Kb.Icon color={Styles.globalColors.black_50} fontSize={16} type="iconfont-info" />
@@ -157,6 +166,9 @@ const styles = Styles.styleSheetCreate({
   },
   description: {
     ...rightColumnStyle,
+  },
+  flexOne: {
+    flex: 1,
   },
   footer: {
     alignItems: 'center',

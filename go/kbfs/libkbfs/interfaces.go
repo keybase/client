@@ -115,6 +115,10 @@ type clockGetter interface {
 	Clock() Clock
 }
 
+type reporterGetter interface {
+	Reporter() Reporter
+}
+
 type diskLimiterGetter interface {
 	DiskLimiter() DiskLimiter
 }
@@ -576,6 +580,11 @@ type KeybaseService interface {
 	NotifySyncStatus(ctx context.Context,
 		status *keybase1.FSPathSyncStatus) error
 
+	// NotifyOverallSyncStatus sends an overall sync status
+	// notification.
+	NotifyOverallSyncStatus(
+		ctx context.Context, status keybase1.FolderSyncStatus) error
+
 	// FlushUserFromLocalCache instructs this layer to clear any
 	// KBFS-side, locally-cached information about the given user.
 	// This does NOT involve communication with the daemon, this is
@@ -845,6 +854,10 @@ type Reporter interface {
 	NotifyPathUpdated(ctx context.Context, path string)
 	// NotifySyncStatus sends the given path sync status to any sink.
 	NotifySyncStatus(ctx context.Context, status *keybase1.FSPathSyncStatus)
+	// NotifyOverallSyncStatus sends the given path overall sync
+	// status to any sink.
+	NotifyOverallSyncStatus(
+		ctx context.Context, status keybase1.FolderSyncStatus)
 	// Shutdown frees any resources allocated by a Reporter.
 	Shutdown()
 }
@@ -1291,16 +1304,6 @@ type MDOps interface {
 	// the TLF hasn't been rekeyed since it entered into a conflicting
 	// state.
 	GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (tlf.Handle, error)
-}
-
-// PrefetchProgress tracks the number of bytes fetched for the block
-// tree rooted at a given block, along with the known total number of
-// bytes in that tree, and the start time of the prefetch.  Note that
-// the total can change over time as more blocks are downloaded.
-type PrefetchProgress struct {
-	SubtreeBytesFetched uint64
-	SubtreeBytesTotal   uint64
-	Start               time.Time
 }
 
 // Prefetcher is an interface to a block prefetcher.
@@ -1927,8 +1930,8 @@ type Config interface {
 	SetKBPKI(KBPKI)
 	KeyManager() KeyManager
 	SetKeyManager(KeyManager)
-	Reporter() Reporter
 	SetReporter(Reporter)
+	reporterGetter
 	MDCache() MDCache
 	SetMDCache(MDCache)
 	KeyCache() KeyCache

@@ -2,7 +2,6 @@
 import * as React from 'react'
 import * as Constants from '../../constants/signup'
 import {
-  Box,
   Box2,
   HeaderHocHeader,
   Avatar,
@@ -31,13 +30,7 @@ export const Wrapper = (props: Props) => (
     >
       {props.children}
     </Box2>
-    {flags.useNewRouter ? (
-      <Box style={styles.header}>
-        <HeaderHocHeader onBack={props.onBack} headerStyle={styles.header} />
-      </Box>
-    ) : (
-      <HeaderHocHeader onBack={props.onBack} headerStyle={styles.header} />
-    )}
+    {!flags.useNewRouter && <HeaderHocHeader onBack={props.onBack} headerStyle={styles.header} />}
   </Box2>
 )
 
@@ -45,11 +38,19 @@ export const BlankAvatar = () => (
   <Avatar username="" size={isMobile ? 96 : 128} style={avatarCastPlatformStyles(styles.avatar)} />
 )
 
-export const ContinueButton = ({disabled, onClick}: {disabled?: boolean, onClick: () => void}) => (
+export const ContinueButton = ({
+  disabled,
+  label,
+  onClick,
+}: {
+  disabled?: boolean,
+  label?: string,
+  onClick: () => void,
+}) => (
   <ButtonBar fullWidth={true} style={styles.buttonBar}>
     <WaitingButton
       waitingKey={Constants.waitingKey}
-      label="Continue"
+      label={label || 'Continue'}
       disabled={disabled}
       fullWidth={true}
       onClick={onClick}

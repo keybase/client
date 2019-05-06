@@ -84,8 +84,9 @@ func (p *proofServices) ListServicesThatAcceptNewProofs(mctx libkb.MetaContext) 
 	defer p.Unlock()
 	p.loadServiceConfigs()
 	var services []serviceAndPriority
+	experimentalGenericProofs := mctx.G().FeatureFlags.Enabled(mctx, libkb.ExperimentalGenericProofs)
 	for k, v := range p.externalServices {
-		if v.CanMakeNewProofs(mctx) {
+		if experimentalGenericProofs || v.CanMakeNewProofsSkipFeatureFlag(mctx) {
 			s := serviceAndPriority{name: k, priority: v.DisplayPriority()}
 			services = append(services, s)
 		}
@@ -120,9 +121,6 @@ func (p *proofServices) SuggestionFoldPriority() int {
 func (p *proofServices) loadServiceConfigs() {
 	tracer := p.G().CTimeTracer(context.TODO(), "proofServices.loadServiceConfigs", false)
 	defer tracer.Finish()
-	if !p.G().ShouldUseParameterizedProofs() {
-		return
-	}
 
 	mctx := libkb.NewMetaContext(context.TODO(), p.G())
 	entry, err := p.G().GetParamProofStore().GetLatestEntryWithKnown(mctx, p.loadedHash)

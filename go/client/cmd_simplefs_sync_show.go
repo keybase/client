@@ -125,6 +125,9 @@ func printFolderStatus(
 				ui, e.PrefetchStatus, e.PrefetchProgress, -1, tab+"\t\t")
 		}
 		printBytesStored(ui, status.StoredBytesTotal, tab)
+		if doPrintLocalStats {
+			printLocalStats(ui, status)
+		}
 	default:
 		return fmt.Errorf("Unknown sync mode: %s", config.Mode)
 	}
@@ -159,7 +162,11 @@ func (c *CmdSimpleFSSyncShow) Run() error {
 			}
 			ui.Printf("\n")
 		}
-		printBytesStored(ui, res.OverallStatus.StoredBytesTotal, "")
+
+		printPrefetchStatus(
+			ui, res.OverallStatus.PrefetchStatus,
+			res.OverallStatus.PrefetchProgress,
+			res.OverallStatus.StoredBytesTotal, "")
 		printLocalStats(ui, res.OverallStatus)
 	} else {
 		res, err := cli.SimpleFSFolderSyncConfigAndStatus(ctx, c.path)

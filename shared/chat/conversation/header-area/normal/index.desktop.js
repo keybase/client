@@ -74,14 +74,11 @@ const UsernameHeader = (props: Props) => (
     {props.onOpenFolder && (
       <Icon type="iconfont-folder-private" style={styleLeft} onClick={props.onOpenFolder} />
     )}
-    {props.canOpenInfoPanel && (
-      <Icon
-        type={props.infoPanelOpen ? 'iconfont-close' : 'iconfont-info'}
-        style={styleLeft}
-        onClick={props.onToggleInfoPanel}
-      />
-    )}
-    {props.onCancelPending && <Icon type="iconfont-close" onClick={props.onCancelPending} />}
+    <Icon
+      type={props.infoPanelOpen ? 'iconfont-close' : 'iconfont-info'}
+      style={styleLeft}
+      onClick={props.onToggleInfoPanel}
+    />
   </Box>
 )
 

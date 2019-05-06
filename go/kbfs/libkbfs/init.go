@@ -835,9 +835,6 @@ func doInit(
 	if err != nil {
 		log.CWarningf(ctx,
 			"Could not initialize block metadata store: %+v", err)
-		return nil, err
-		// TODO (KBFS-3659): when we can open levelDB read-only, re-enable
-		//                   this, instead of failing the init.
 		/*
 			notification := &keybase1.FSNotification{
 				StatusCode:       keybase1.FSStatusCode_ERROR,

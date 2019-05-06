@@ -157,6 +157,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.HomeProtocol(NewHomeHandler(xp, g, d.home)),
 		keybase1.AvatarsProtocol(NewAvatarHandler(xp, g, d.avatarLoader)),
 		keybase1.PhoneNumbersProtocol(NewPhoneNumbersHandler(xp, g)),
+		keybase1.ContactsProtocol(NewContactsHandler(xp, g)),
 		keybase1.EmailsProtocol(NewEmailsHandler(xp, g)),
 		keybase1.Identify3Protocol(newIdentify3Handler(xp, g)),
 		keybase1.AuditProtocol(NewAuditHandler(xp, g)),
@@ -239,7 +240,11 @@ func (d *Service) Run() (err error) {
 			close(d.startCh)
 		}
 		d.G().NotifyRouter.HandleServiceShutdown()
-		d.G().Log.Debug("From Service.Run(): exit with code %d\n", d.G().ExitCode)
+		if err != nil {
+			d.G().Log.Info("Service#Run() exiting with error %s (code %d)", err.Error(), d.G().ExitCode)
+		} else {
+			d.G().Log.Debug("Service#Run() clean exit with code %d", d.G().ExitCode)
+		}
 	}()
 
 	d.G().Log.Debug("+ service starting up; forkType=%v", d.ForkType)
@@ -394,6 +399,7 @@ func (d *Service) startChatModules() {
 		g.Indexer.Start(globals.ChatCtx(context.Background(), g,
 			keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil), uid)
 		g.CoinFlipManager.Start(context.Background(), uid)
+		g.TeamMentionLoader.Start(context.Background(), uid)
 	}
 	d.purgeOldChatAttachmentData()
 }
@@ -406,6 +412,7 @@ func (d *Service) stopChatModules(m libkb.MetaContext) {
 	<-d.ChatG().InboxSource.Stop(m.Ctx())
 	<-d.ChatG().Indexer.Stop(m.Ctx())
 	<-d.ChatG().CoinFlipManager.Stop(m.Ctx())
+	<-d.ChatG().TeamMentionLoader.Stop(m.Ctx())
 }
 
 func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
@@ -424,6 +431,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	chatStorage.SetAssetDeleter(g.ConvSource)
 	g.RegexpSearcher = search.NewRegexpSearcher(g)
 	g.Indexer = search.NewIndexer(g)
+	g.AddDbNukeHook(g.Indexer, "Indexer")
 	g.ServerCacheVersions = storage.NewServerVersions(g)
 
 	// Syncer and retriers
@@ -443,14 +451,15 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	// Message sending apparatus
 	s3signer := attachments.NewS3Signer(ri)
 	store := attachments.NewS3Store(g.GetLog(), g.GetEnv(), g.GetRuntimeDir())
-	g.AttachmentUploader = attachments.NewUploader(g, store, s3signer, ri)
+	attachmentLRUSize := 1000
+	g.AttachmentUploader = attachments.NewUploader(g, store, s3signer, ri, attachmentLRUSize)
 	sender := chat.NewBlockingSender(g, chat.NewBoxer(g), ri)
 	g.MessageDeliverer = chat.NewDeliverer(g, sender)
 
 	// team channel source
 	g.TeamChannelSource = chat.NewTeamChannelSource(g)
 
-	g.AttachmentURLSrv = chat.NewAttachmentHTTPSrv(g, chat.NewCachingAttachmentFetcher(g, store, 1000), ri)
+	g.AttachmentURLSrv = chat.NewAttachmentHTTPSrv(g, chat.NewCachingAttachmentFetcher(g, store, attachmentLRUSize), ri)
 	g.AddDbNukeHook(g.AttachmentURLSrv, "AttachmentURLSrv")
 
 	g.StellarLoader = stellar.DefaultLoader(g.ExternalG())
@@ -463,6 +472,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 		ri)
 	g.CommandsSource = commands.NewSource(g)
 	g.CoinFlipManager = chat.NewFlipManager(g, ri)
+	g.TeamMentionLoader = chat.NewTeamMentionLoader(g)
 
 	// Set up Offlinables on Syncer
 	chatSyncer.RegisterOfflinable(g.InboxSource)

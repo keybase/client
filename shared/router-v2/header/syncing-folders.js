@@ -1,22 +1,26 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
+import * as Constants from '../../constants/fs'
 import {namedConnect} from '../../util/typed-connect'
 import PieSlice from '../../fs/common/pie-slice'
 
 type Props = {|
   progress: number,
   show: boolean,
+  tooltip: string,
 |}
 
 const SyncingFolders = (props: Props) =>
   props.show && props.progress !== 1.0 ? (
-    <Kb.Box2 direction="horizontal" alignItems="center">
-      <PieSlice degrees={props.progress * 360} animated={true} />
-      <Kb.Text type="BodyTiny" style={{marginLeft: 5}}>
-        Syncing Folders...
-      </Kb.Text>
-    </Kb.Box2>
+    <Kb.WithTooltip text={props.tooltip}>
+      <Kb.Box2 direction="horizontal" alignItems="center">
+        <PieSlice degrees={props.progress * 360} animated={true} />
+        <Kb.Text type="BodyTiny" style={{marginLeft: 5}}>
+          Syncing folders...
+        </Kb.Text>
+      </Kb.Box2>
+    </Kb.WithTooltip>
   ) : null
 
 const mapStateToProps = state => ({
@@ -28,11 +32,15 @@ const mapDispatchToProps = dispatch => ({})
 
 const mergeProps = (s, d, o) => {
   if (s._syncingFoldersProgress.bytesTotal === 0) {
-    return {progress: 0, show: false}
+    return {progress: 0, show: false, tooltip: ''}
   }
   return {
     progress: s._syncingFoldersProgress.bytesFetched / s._syncingFoldersProgress.bytesTotal,
     show: s.online,
+    tooltip: Constants.humanizeBytes(
+      s._syncingFoldersProgress.bytesFetched,
+      s._syncingFoldersProgress.bytesTotal
+    ),
   }
 }
 
