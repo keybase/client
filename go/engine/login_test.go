@@ -611,23 +611,16 @@ func TestProvisionAutoreset(t *testing.T) {
 	require.NoError(t, timeTravelReset(tcX, time.Hour*73))
 
 	// Rather than sleeping we'll wait for autoreset by analyzing its state
-	var (
-		found   bool
-		lastErr error
-	)
+	var lastErr error
 	for i := 0; i < 60; i++ {
 		// up to 60 iters * 100ms = 6s
-		err := assertAutoreset(tcX, userX.UID(), libkb.AutoresetEventReady)
-		if err == nil {
-			found = true
+		lastErr = assertAutoreset(tcX, userX.UID(), libkb.AutoresetEventReady)
+		if lastErr == nil {
 			break
 		}
-		lastErr = err
 		time.Sleep(100 * time.Millisecond)
 	}
-	if !found {
-		require.NoError(t, lastErr)
-	}
+	require.NoError(t, lastErr)
 
 	// Second iteration on device Y should result in a reset + provision
 	uis = libkb.UIs{
