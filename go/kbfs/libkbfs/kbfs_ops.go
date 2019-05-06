@@ -1056,7 +1056,8 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 	// authenticated with our password.  TODO: fix this in the
 	// service/GUI by handling multiple simultaneous passphrase
 	// requests at once.
-	if err == nil && fs.config.MDServer().IsConnected() {
+	mdserver := fs.config.MDServer()
+	if err == nil && mdserver != nil && mdserver.IsConnected() {
 		var quErr error
 		_, usageBytes, archiveBytes, limitBytes,
 			gitUsageBytes, gitArchiveBytes, gitLimitBytes, quErr =
