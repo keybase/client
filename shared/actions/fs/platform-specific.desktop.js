@@ -356,6 +356,7 @@ const openAndUpload = (state, action) =>
   )
 
 const loadUserFileEdits = (state, action) =>
+  state.fs.kbfsDaemonStatus.rpcStatus === 'connected' &&
   RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise().then(writerEdits =>
     FsGen.createUserFileEditsLoaded({
       tlfUpdates: Constants.userTlfHistoryRPCToState(writerEdits || []),
@@ -391,7 +392,10 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
     )
   }
   yield* Saga.chainAction<FsGen.OpenAndUploadPayload>(FsGen.openAndUpload, openAndUpload)
-  yield* Saga.chainAction<FsGen.UserFileEditsLoadPayload>(FsGen.userFileEditsLoad, loadUserFileEdits)
+  yield* Saga.chainAction<FsGen.UserFileEditsLoadPayload | FsGen.KbfsDaemonRpcStatusChangedPayload>(
+    [FsGen.userFileEditsLoad, FsGen.kbfsDaemonRpcStatusChanged],
+    loadUserFileEdits
+  )
   yield* Saga.chainAction<FsGen.OpenFilesFromWidgetPayload>(FsGen.openFilesFromWidget, openFilesFromWidget)
   if (isWindows) {
     yield* Saga.chainAction<FsGen.DriverEnablePayload>(FsGen.driverEnable, installCachedDokan)

@@ -68,6 +68,7 @@ const mapDispatchToProps = dispatch => ({
   },
   showInFinder: () => dispatch(FsGen.createOpenPathInSystemFileManager({path: FsConstants.defaultPath})),
   updateNow: isWindows || isDarwin ? () => dispatch(ConfigGen.createUpdateNow()) : undefined,
+  waitForKbfsDaemon: throttle(() => dispatch(FsGen.createWaitForKbfsDaemon()), 1000 * 5),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
@@ -76,6 +77,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     ...dispatchProps,
     refreshUserFileEdits: dispatchProps.refreshUserFileEdits,
     showUser: () => dispatchProps._showUser(stateProps.username),
+    waitForKbfsDaemon: dispatchProps.waitForKbfsDaemon,
     ...ownProps,
   }
 }
