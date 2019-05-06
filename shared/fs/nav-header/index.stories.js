@@ -59,6 +59,7 @@ const addStories = story =>
     '/keybase/team/kbkbfstest',
     '/keybase/team/kbkbfstest/folder',
     '/keybase/team/kbkbfstest/folder/pic.jpg',
+    '/keybase/team/kbkbfstest/folder/JDGHJ-FGHJEWK-DHSDGHD-DOPQBNZFHBQKLJKE-DSG32DB17D.20190103-143400.jpg',
   ].forEach(pathStr => story.add(pathStr, () => <TestWrapper path={Types.stringToPath(pathStr)} />))
 
 export default () => {

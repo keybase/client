@@ -197,7 +197,9 @@ const load = () =>
         </WrapRow>
         <WrapRow key="9">
           <UploadingRow
-            path={Types.stringToPath('/keybase/team/kbkbfstest/dir/foo')}
+            path={Types.stringToPath(
+              '/keybase/team/kbkbfstest/dir/foo-obnoxiously-long-aslkdjhfalskjdhfaklsjdfhalksdjfhasdf-asdflkasjdfhlaksdjfh-asdhflaksjdhfaskd.mpeg4'
+            )}
             type="file"
             name="foo"
             writingToJournal={false}
