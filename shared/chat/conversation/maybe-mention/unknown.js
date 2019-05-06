@@ -23,16 +23,11 @@ const UnknownMentionPopup = (props: PopupProps) => {
     view: (
       <Kb.Box2 direction="vertical" gap="tiny" style={styles.popupContainer}>
         <Kb.Text center={true} type="BodySemibold" style={styles.warning}>
-          WARNING
+          Heads up!
         </Kb.Text>
-        <Kb.Text type="BodySmall">
-          The text in this @ mention could not be resolved to a user or team.
-        </Kb.Text>
-        <Kb.Text type="BodySmallSemibold">
-          You can submit the text to Keybase in order to resolve it. Be aware, this allows Keybase to see the
-          text.
-        </Kb.Text>
-        <Kb.Button label="Resolve" onClick={props.onResolve} />
+        <Kb.Text type="BodySmall">The text in this @ mention could be either a user or team.</Kb.Text>
+        <Kb.Text type="BodySmallSemibold">Hit Lookup to resolve the text using the Keybase server.</Kb.Text>
+        <Kb.Button label="Lookup" onClick={props.onResolve} />
       </Kb.Box2>
     ),
   }
@@ -133,7 +128,7 @@ const styles = Styles.styleSheetCreate({
   }),
   text: Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.grey,
+      backgroundColor: Styles.globalColors.lightGrey,
       borderRadius: 2,
       letterSpacing: 0.3,
       paddingLeft: 2,
