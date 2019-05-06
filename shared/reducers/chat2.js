@@ -1149,10 +1149,10 @@ const rootReducer = (
       )
       return nextState.update('paymentStatusMap', old => old.setIn([paymentInfo.paymentID], paymentInfo))
     }
-    case Chat2Gen.setTeamMentionInfo: {
+    case Chat2Gen.setMaybeMentionInfo: {
       const {name, info} = action.payload
       // $FlowIssue complains about using name for setIn for unknown reason
-      return state.setIn(['teamMentionMap', name], info)
+      return state.setIn(['maybeMentionMap', name], info)
     }
     case Chat2Gen.requestInfoReceived: {
       const {conversationIDKey, messageID, requestInfo} = action.payload

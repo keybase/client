@@ -4519,6 +4519,15 @@
         }
       ],
       "response": "keybase1.UserReacjis"
+    },
+    "resolveMaybeMention": {
+      "request": [
+        {
+          "name": "mention",
+          "type": "MaybeMention"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"

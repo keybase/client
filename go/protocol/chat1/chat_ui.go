@@ -1033,6 +1033,93 @@ func (e UITextDecorationTyp) String() string {
 	return ""
 }
 
+type UIMaybeMentionStatus int
+
+const (
+	UIMaybeMentionStatus_UNKNOWN UIMaybeMentionStatus = 0
+	UIMaybeMentionStatus_USER    UIMaybeMentionStatus = 1
+	UIMaybeMentionStatus_TEAM    UIMaybeMentionStatus = 2
+)
+
+func (o UIMaybeMentionStatus) DeepCopy() UIMaybeMentionStatus { return o }
+
+var UIMaybeMentionStatusMap = map[string]UIMaybeMentionStatus{
+	"UNKNOWN": 0,
+	"USER":    1,
+	"TEAM":    2,
+}
+
+var UIMaybeMentionStatusRevMap = map[UIMaybeMentionStatus]string{
+	0: "UNKNOWN",
+	1: "USER",
+	2: "TEAM",
+}
+
+func (e UIMaybeMentionStatus) String() string {
+	if v, ok := UIMaybeMentionStatusRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type UIMaybeMentionInfo struct {
+	Status__ UIMaybeMentionStatus `codec:"status" json:"status"`
+	Team__   *UITeamMention       `codec:"team,omitempty" json:"team,omitempty"`
+}
+
+func (o *UIMaybeMentionInfo) Status() (ret UIMaybeMentionStatus, err error) {
+	switch o.Status__ {
+	case UIMaybeMentionStatus_TEAM:
+		if o.Team__ == nil {
+			err = errors.New("unexpected nil value for Team__")
+			return ret, err
+		}
+	}
+	return o.Status__, nil
+}
+
+func (o UIMaybeMentionInfo) Team() (res UITeamMention) {
+	if o.Status__ != UIMaybeMentionStatus_TEAM {
+		panic("wrong case accessed")
+	}
+	if o.Team__ == nil {
+		return
+	}
+	return *o.Team__
+}
+
+func NewUIMaybeMentionInfoWithUnknown() UIMaybeMentionInfo {
+	return UIMaybeMentionInfo{
+		Status__: UIMaybeMentionStatus_UNKNOWN,
+	}
+}
+
+func NewUIMaybeMentionInfoWithUser() UIMaybeMentionInfo {
+	return UIMaybeMentionInfo{
+		Status__: UIMaybeMentionStatus_USER,
+	}
+}
+
+func NewUIMaybeMentionInfoWithTeam(v UITeamMention) UIMaybeMentionInfo {
+	return UIMaybeMentionInfo{
+		Status__: UIMaybeMentionStatus_TEAM,
+		Team__:   &v,
+	}
+}
+
+func (o UIMaybeMentionInfo) DeepCopy() UIMaybeMentionInfo {
+	return UIMaybeMentionInfo{
+		Status__: o.Status__.DeepCopy(),
+		Team__: (func(x *UITeamMention) *UITeamMention {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Team__),
+	}
+}
+
 type UITextDecoration struct {
 	Typ__                UITextDecorationTyp   `codec:"typ" json:"typ"`
 	Payment__            *TextPayment          `codec:"payment,omitempty" json:"payment,omitempty"`
@@ -2089,11 +2176,11 @@ type ChatCommandMarkdownArg struct {
 	Md        *UICommandMarkdown `codec:"md,omitempty" json:"md,omitempty"`
 }
 
-type ChatTeamMentionUpdateArg struct {
-	SessionID int           `codec:"sessionID" json:"sessionID"`
-	TeamName  string        `codec:"teamName" json:"teamName"`
-	Channel   string        `codec:"channel" json:"channel"`
-	Info      UITeamMention `codec:"info" json:"info"`
+type ChatMaybeMentionUpdateArg struct {
+	SessionID int                `codec:"sessionID" json:"sessionID"`
+	TeamName  string             `codec:"teamName" json:"teamName"`
+	Channel   string             `codec:"channel" json:"channel"`
+	Info      UIMaybeMentionInfo `codec:"info" json:"info"`
 }
 
 type ChatUiInterface interface {
@@ -2122,7 +2209,7 @@ type ChatUiInterface interface {
 	ChatShowManageChannels(context.Context, ChatShowManageChannelsArg) error
 	ChatCoinFlipStatus(context.Context, ChatCoinFlipStatusArg) error
 	ChatCommandMarkdown(context.Context, ChatCommandMarkdownArg) error
-	ChatTeamMentionUpdate(context.Context, ChatTeamMentionUpdateArg) error
+	ChatMaybeMentionUpdate(context.Context, ChatMaybeMentionUpdateArg) error
 }
 
 func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
@@ -2504,18 +2591,18 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					return
 				},
 			},
-			"chatTeamMentionUpdate": {
+			"chatMaybeMentionUpdate": {
 				MakeArg: func() interface{} {
-					var ret [1]ChatTeamMentionUpdateArg
+					var ret [1]ChatMaybeMentionUpdateArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]ChatTeamMentionUpdateArg)
+					typedArgs, ok := args.(*[1]ChatMaybeMentionUpdateArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]ChatTeamMentionUpdateArg)(nil), args)
+						err = rpc.NewTypeError((*[1]ChatMaybeMentionUpdateArg)(nil), args)
 						return
 					}
-					err = i.ChatTeamMentionUpdate(ctx, typedArgs[0])
+					err = i.ChatMaybeMentionUpdate(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -2656,7 +2743,7 @@ func (c ChatUiClient) ChatCommandMarkdown(ctx context.Context, __arg ChatCommand
 	return
 }
 
-func (c ChatUiClient) ChatTeamMentionUpdate(ctx context.Context, __arg ChatTeamMentionUpdateArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatTeamMentionUpdate", []interface{}{__arg}, nil)
+func (c ChatUiClient) ChatMaybeMentionUpdate(ctx context.Context, __arg ChatMaybeMentionUpdateArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatMaybeMentionUpdate", []interface{}{__arg}, nil)
 	return
 }

@@ -5509,6 +5509,10 @@ type PutReacjiSkinToneArg struct {
 	SkinTone keybase1.ReacjiSkinTone `codec:"skinTone" json:"skinTone"`
 }
 
+type ResolveMaybeMentionArg struct {
+	Mention MaybeMention `codec:"mention" json:"mention"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
@@ -5579,6 +5583,7 @@ type LocalInterface interface {
 	ToggleMessageCollapse(context.Context, ToggleMessageCollapseArg) error
 	BulkAddToConv(context.Context, BulkAddToConvArg) error
 	PutReacjiSkinTone(context.Context, keybase1.ReacjiSkinTone) (keybase1.UserReacjis, error)
+	ResolveMaybeMention(context.Context, MaybeMention) error
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -6590,6 +6595,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"resolveMaybeMention": {
+				MakeArg: func() interface{} {
+					var ret [1]ResolveMaybeMentionArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ResolveMaybeMentionArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ResolveMaybeMentionArg)(nil), args)
+						return
+					}
+					err = i.ResolveMaybeMention(ctx, typedArgs[0].Mention)
+					return
+				},
+			},
 		},
 	}
 }
@@ -6951,5 +6971,11 @@ func (c LocalClient) BulkAddToConv(ctx context.Context, __arg BulkAddToConvArg) 
 func (c LocalClient) PutReacjiSkinTone(ctx context.Context, skinTone keybase1.ReacjiSkinTone) (res keybase1.UserReacjis, err error) {
 	__arg := PutReacjiSkinToneArg{SkinTone: skinTone}
 	err = c.Cli.Call(ctx, "chat.1.local.putReacjiSkinTone", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) ResolveMaybeMention(ctx context.Context, mention MaybeMention) (err error) {
+	__arg := ResolveMaybeMentionArg{Mention: mention}
+	err = c.Cli.Call(ctx, "chat.1.local.resolveMaybeMention", []interface{}{__arg}, nil)
 	return
 }

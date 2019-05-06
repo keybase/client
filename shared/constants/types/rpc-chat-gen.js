@@ -39,6 +39,12 @@ export const chatUiUICoinFlipResultTyp = {
   coin: 4,
 }
 
+export const chatUiUIMaybeMentionStatus = {
+  unknown: 0,
+  user: 1,
+  team: 2,
+}
+
 export const chatUiUITextDecorationTyp = {
   payment: 0,
   atmention: 1,

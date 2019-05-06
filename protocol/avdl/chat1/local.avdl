@@ -1060,4 +1060,6 @@ protocol local {
   void bulkAddToConv(ConversationID convID, array<string> usernames);
 
   keybase1.UserReacjis putReacjiSkinTone(keybase1.ReacjiSkinTone skinTone);
+
+  void resolveMaybeMention(MaybeMention mention);
 }

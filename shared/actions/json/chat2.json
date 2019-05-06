@@ -658,10 +658,10 @@
       "_description": "Set index percent complete",
       "percent": "number"
     },
-    "setTeamMentionInfo": {
+    "setMaybeMentionInfo": {
       "_description": "Set team mention info",
       "name": "string",
-      "info": "RPCChatTypes.UITeamMention"
+      "info": "RPCChatTypes.UIMaybeMentionInfo"
     },
     "tabSelected": {
       "_description": "Desktop changed tab to chat"

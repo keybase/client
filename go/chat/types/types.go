@@ -511,7 +511,8 @@ func (d DummyTeamMentionLoader) Stop(ctx context.Context) chan struct{} {
 }
 
 func (d DummyTeamMentionLoader) LoadTeamMention(ctx context.Context, uid gregor1.UID,
-	maybeMention chat1.MaybeMention, knownTeamMentions []chat1.KnownTeamMention) error {
+	maybeMention chat1.MaybeMention, knownTeamMentions []chat1.KnownTeamMention,
+	forceRemote bool) error {
 	return nil
 }
 

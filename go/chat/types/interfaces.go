@@ -485,7 +485,8 @@ type CoinFlipManager interface {
 type TeamMentionLoader interface {
 	Resumable
 	LoadTeamMention(ctx context.Context, uid gregor1.UID,
-		maybeMention chat1.MaybeMention, knownTeamMentions []chat1.KnownTeamMention) error
+		maybeMention chat1.MaybeMention, knownTeamMentions []chat1.KnownTeamMention,
+		forceRemote bool) error
 	IsTeamMention(ctx context.Context, uid gregor1.UID,
 		maybeMention chat1.MaybeMention, knownTeamMentions []chat1.KnownTeamMention) bool
 }

@@ -1433,7 +1433,7 @@ func loadTeamMentions(ctx context.Context, g *globals.Context, uid gregor1.UID,
 		knownTeamMentions = valid.MessageBody.Edit().TeamMentions
 	}
 	for _, tm := range valid.MaybeMentions {
-		g.TeamMentionLoader.LoadTeamMention(ctx, uid, tm, knownTeamMentions)
+		g.TeamMentionLoader.LoadTeamMention(ctx, uid, tm, knownTeamMentions, false)
 	}
 }
 

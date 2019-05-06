@@ -975,6 +975,46 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "UIMaybeMentionStatus",
+      "symbols": [
+        "UNKNOWN_0",
+        "USER_1",
+        "TEAM_2"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "UIMaybeMentionInfo",
+      "switch": {
+        "type": "UIMaybeMentionStatus",
+        "name": "status"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "UNKNOWN",
+            "def": false
+          },
+          "body": null
+        },
+        {
+          "label": {
+            "name": "USER",
+            "def": false
+          },
+          "body": null
+        },
+        {
+          "label": {
+            "name": "TEAM",
+            "def": false
+          },
+          "body": "UITeamMention"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "UITextDecoration",
       "switch": {
@@ -1794,7 +1834,7 @@
       ],
       "response": null
     },
-    "chatTeamMentionUpdate": {
+    "chatMaybeMentionUpdate": {
       "request": [
         {
           "name": "sessionID",
@@ -1810,7 +1850,7 @@
         },
         {
           "name": "info",
-          "type": "UITeamMention"
+          "type": "UIMaybeMentionInfo"
         }
       ],
       "response": null

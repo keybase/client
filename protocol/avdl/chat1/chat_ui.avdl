@@ -246,6 +246,18 @@ protocol chatUi {
     MAYBEMENTION_3
   }
 
+  enum UIMaybeMentionStatus {
+    UNKNOWN_0,
+    USER_1,
+    TEAM_2
+  }
+
+  variant UIMaybeMentionInfo switch (UIMaybeMentionStatus status) {
+    case UNKNOWN: void;
+    case USER: void;
+    case TEAM: UITeamMention;
+  }
+
   variant UITextDecoration switch (UITextDecorationTyp typ) {
     case PAYMENT: TextPayment;
     case ATMENTION: string;
@@ -397,5 +409,5 @@ protocol chatUi {
   }
   void chatCommandMarkdown(int sessionID, string convID, union { null, UICommandMarkdown } md);
 
-  void chatTeamMentionUpdate(int sessionID, string teamName, string channel, UITeamMention info);
+  void chatMaybeMentionUpdate(int sessionID, string teamName, string channel, UIMaybeMentionInfo info);
 }

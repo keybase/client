@@ -18,6 +18,7 @@ type teamMentionJob struct {
 	uid               gregor1.UID
 	maybeMention      chat1.MaybeMention
 	knownTeamMentions []chat1.KnownTeamMention
+	forceRemote       bool
 }
 
 type TeamMentionLoader struct {
@@ -83,13 +84,14 @@ func (l *TeamMentionLoader) IsTeamMention(ctx context.Context, uid gregor1.UID,
 }
 
 func (l *TeamMentionLoader) LoadTeamMention(ctx context.Context, uid gregor1.UID,
-	maybeMention chat1.MaybeMention, knownTeamMentions []chat1.KnownTeamMention) (err error) {
+	maybeMention chat1.MaybeMention, knownTeamMentions []chat1.KnownTeamMention, forceRemote bool) (err error) {
 	defer l.Trace(ctx, func() error { return err }, "LoadTeamMention")()
 	select {
 	case l.jobCh <- teamMentionJob{
 		uid:               uid,
 		maybeMention:      maybeMention,
 		knownTeamMentions: knownTeamMentions,
+		forceRemote:       forceRemote,
 	}:
 	default:
 		l.Debug(ctx, "Load: failed to queue job, full")
@@ -125,15 +127,23 @@ func (l *TeamMentionLoader) getChatUI(ctx context.Context) (libkb.ChatUI, error)
 }
 
 func (l *TeamMentionLoader) loadMention(ctx context.Context, uid gregor1.UID,
-	maybeMention chat1.MaybeMention, knownTeamMentions []chat1.KnownTeamMention) (err error) {
+	maybeMention chat1.MaybeMention, knownTeamMentions []chat1.KnownTeamMention,
+	forceRemote bool) (err error) {
 	defer l.Trace(ctx, func() error { return err }, "loadTeamMention: name: %s", maybeMention.Name)()
-	if !l.IsTeamMention(ctx, uid, maybeMention, knownTeamMentions) {
-		return errors.New("not a team mention")
-	}
 	ui, err := l.getChatUI(ctx)
 	if err != nil {
 		return err
 	}
+	defer func() {
+		if err != nil && ui != nil {
+			ui.ChatMaybeMentionUpdate(ctx, maybeMention.Name, maybeMention.Channel,
+				chat1.NewUIMaybeMentionInfoWithUnknown())
+		}
+	}()
+	if !forceRemote && !l.IsTeamMention(ctx, uid, maybeMention, knownTeamMentions) {
+		return errors.New("not a team mention")
+	}
+
 	var info chat1.UITeamMention
 	arg := libkb.APIArg{
 		Endpoint:    "team/mentiondesc",
@@ -172,7 +182,8 @@ func (l *TeamMentionLoader) loadMention(ctx context.Context, uid gregor1.UID,
 			*info.ConvID = convs[0].GetConvID().String()
 		}
 	}
-	return ui.ChatTeamMentionUpdate(ctx, maybeMention.Name, maybeMention.Channel, info)
+	return ui.ChatMaybeMentionUpdate(ctx, maybeMention.Name, maybeMention.Channel,
+		chat1.NewUIMaybeMentionInfoWithTeam(info))
 }
 
 func (l *TeamMentionLoader) loadLoop() {
@@ -180,7 +191,7 @@ func (l *TeamMentionLoader) loadLoop() {
 	for {
 		select {
 		case job := <-l.jobCh:
-			l.loadMention(ctx, job.uid, job.maybeMention, job.knownTeamMentions)
+			l.loadMention(ctx, job.uid, job.maybeMention, job.knownTeamMentions, job.forceRemote)
 		case ch := <-l.shutdownCh:
 			close(ch)
 			return
