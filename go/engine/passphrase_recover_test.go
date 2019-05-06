@@ -193,12 +193,12 @@ func TestPassphraseRecoverGuideAndReset(t *testing.T) {
 	arg.Username = u.Username
 	require.NoError(t, NewPassphraseRecover(tc.G, arg).Run(m))
 	require.Nil(t, loginUI.lastExplain)
-	require.Nil(t, AssertAutoreset(tc, u.UID(), libkb.AutoresetEventStart))
+	require.Nil(t, assertAutoreset(tc, u.UID(), libkb.AutoresetEventStart))
 
 	arg.Username = u2.Username
 	require.NoError(t, NewPassphraseRecover(tc.G, arg).Run(m))
 	require.Nil(t, loginUI.lastExplain)
-	require.Nil(t, AssertAutoreset(tc, u2.UID(), libkb.AutoresetEventStart))
+	require.Nil(t, assertAutoreset(tc, u2.UID(), libkb.AutoresetEventStart))
 }
 
 func TestPassphraseRecoverNoDevices(t *testing.T) {
@@ -228,7 +228,7 @@ func TestPassphraseRecoverNoDevices(t *testing.T) {
 	}
 	require.NoError(t, NewPassphraseRecover(tc.G, arg).Run(m))
 	require.Nil(t, loginUI.lastExplain)
-	require.Nil(t, AssertAutoreset(tc, u.UID(), libkb.AutoresetEventStart))
+	require.Nil(t, assertAutoreset(tc, u.UID(), libkb.AutoresetEventStart))
 }
 
 func TestPassphraseRecoverChangeWithPaper(t *testing.T) {
@@ -301,36 +301,7 @@ func TestPassphraseRecoverChangeWithPaper(t *testing.T) {
 	}
 	require.Error(t, AssertLoggedIn(tc1))
 	require.Error(t, AssertProvisioned(tc1))
-	require.Nil(t, AssertAutoreset(tc1, u3.UID(), -1))
-}
-
-func AssertAutoreset(tc libkb.TestContext, uid keybase1.UID, expectedStatus int) error {
-	mctx := libkb.NewMetaContextForTest(tc)
-	resp, err := tc.G.API.Get(mctx, libkb.APIArg{
-		Endpoint:    "autoreset/status_dev",
-		SessionType: libkb.APISessionTypeOPTIONAL,
-		Args: libkb.HTTPArgs{
-			"uid": libkb.S{Val: uid.String()},
-		},
-	})
-	if err != nil {
-		return err
-	}
-
-	status, ok := resp.Body.AtPathGetInt("autoreset.type")
-	if expectedStatus == -1 {
-		if ok {
-			return fmt.Errorf("expected account %s to not be in reset pipeline", uid.String())
-		}
-		return nil
-	}
-	if !ok {
-		return fmt.Errorf("expected account %s to be in %d state (got null)", uid.String(), expectedStatus)
-	}
-	if status != expectedStatus {
-		return fmt.Errorf("expected account %s to be in %d state (got %d)", uid.String(), expectedStatus, status)
-	}
-	return nil
+	require.Nil(t, assertAutoreset(tc1, u3.UID(), -1))
 }
 
 type TestSecretUIRecover struct {
