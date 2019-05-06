@@ -41,15 +41,20 @@ const connected = () =>
       logger.warn('error in registering identify ui: ', error)
     })
 
-const refreshChanged = (_, action) =>
-  Tracker2Gen.createLoad({
-    assertion: action.payload.params.username,
-    fromDaemon: false,
-    guiID: Constants.generateGUIID(),
-    ignoreCache: true,
-    inTracker: false,
-    reason: '',
-  })
+const refreshChanged = (state, action) => {
+  // only refresh if we have tracked them before
+  return (
+    state.tracker2.usernameToDetails.get(action.payload.params.username) &&
+    Tracker2Gen.createLoad({
+      assertion: action.payload.params.username,
+      fromDaemon: false,
+      guiID: Constants.generateGUIID(),
+      ignoreCache: true,
+      inTracker: false,
+      reason: '',
+    })
+  )
+}
 
 const updateUserCard = (state, action) => {
   const {guiID, card} = action.payload.params
