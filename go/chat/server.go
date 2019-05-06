@@ -2149,7 +2149,17 @@ func (h *Server) SetConvRetentionLocal(ctx context.Context, arg chat1.SetConvRet
 	if err != nil {
 		return err
 	}
+	// short circuit if the policy is unchanged.
 	policy := arg.Policy
+	conv, err := utils.GetVerifiedConv(ctx, h.G(), uid, arg.ConvID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return err
+	}
+	if convRetention := conv.ConvRetention; convRetention != nil && policy.Eq(*convRetention) {
+		h.Debug(ctx, "retention policy unchanged, skipping update")
+		return nil
+	}
+
 	if _, err = h.remoteClient().SetConvRetention(ctx, chat1.SetConvRetentionArg{
 		ConvID: arg.ConvID,
 		Policy: policy,
@@ -2169,10 +2179,6 @@ func (h *Server) SetConvRetentionLocal(ctx context.Context, arg chat1.SetConvRet
 		isInherit = true
 	}
 
-	conv, err := utils.GetVerifiedConv(ctx, h.G(), uid, arg.ConvID, types.InboxSourceDataSourceAll)
-	if err != nil {
-		return err
-	}
 	if isInherit {
 		teamRetention := conv.TeamRetention
 		if teamRetention == nil {
@@ -2199,9 +2205,19 @@ func (h *Server) SetTeamRetentionLocal(ctx context.Context, arg chat1.SetTeamRet
 	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
 		return err
 	}
+	teamRetention, err := h.GetTeamRetentionLocal(ctx, arg.TeamID)
+	if err != nil {
+		return err
+	}
+	policy := arg.Policy
+	if teamRetention != nil && policy.Eq(*teamRetention) {
+		h.Debug(ctx, "retention policy unchanged, skipping update")
+		return nil
+	}
+
 	if _, err = h.remoteClient().SetTeamRetention(ctx, chat1.SetTeamRetentionArg{
 		TeamID: arg.TeamID,
-		Policy: arg.Policy,
+		Policy: policy,
 	}); err != nil {
 		return err
 	}

@@ -195,4 +195,6 @@ protocol user {
     boolean setPassphrase; // GUI is driven by this boolean.
   }
   CanLogoutRes canLogout(int sessionID);
+
+  union { null, UserCard } userCard(int sessionID, string username, boolean useSession);
 }

@@ -12,49 +12,46 @@ type SendProps = {|
   small?: boolean,
 |}
 
-class _SendButton extends React.PureComponent<SendProps & Kb.OverlayParentProps> {
-  _menuItems = [
+const _SendButton = (props: Kb.PropsWithOverlay<SendProps>) => {
+  const menuItems = [
     {
-      onClick: this.props.onSendToKeybaseUser,
+      onClick: props.onSendToKeybaseUser,
       title: 'To a Keybase user',
     },
     {
-      onClick: this.props.onSendToStellarAddress,
+      onClick: props.onSendToStellarAddress,
       title: 'To a Stellar address',
     },
     {
-      onClick: this.props.onSendToAnotherAccount,
+      onClick: props.onSendToAnotherAccount,
       title: 'To one of your other Stellar accounts',
     },
   ]
-
-  render() {
-    const button = (
-      <>
-        <Kb.Button
-          small={this.props.small}
-          onClick={this.props.disabled ? null : this.props.toggleShowingMenu}
-          ref={this.props.setAttachmentRef}
-          type="Wallet"
-          label="Send"
-          disabled={this.props.disabled}
-        />
-        <Kb.FloatingMenu
-          attachTo={this.props.getAttachmentRef}
-          closeOnSelect={true}
-          items={this._menuItems}
-          onHidden={this.props.toggleShowingMenu}
-          visible={this.props.showingMenu}
-          position="bottom center"
-        />
-      </>
-    )
-    return this.props.disabledDueToMobileOnly ? (
-      <Kb.WithTooltip text="This is a mobile-only account.">{button}</Kb.WithTooltip>
-    ) : (
-      button
-    )
-  }
+  const button = (
+    <>
+      <Kb.Button
+        small={props.small}
+        onClick={props.disabled ? null : props.toggleShowingMenu}
+        ref={props.setAttachmentRef}
+        type="Wallet"
+        label="Send"
+        disabled={props.disabled}
+      />
+      <Kb.FloatingMenu
+        attachTo={props.getAttachmentRef}
+        closeOnSelect={true}
+        items={menuItems}
+        onHidden={props.toggleShowingMenu}
+        visible={props.showingMenu}
+        position="bottom center"
+      />
+    </>
+  )
+  return props.disabledDueToMobileOnly ? (
+    <Kb.WithTooltip text="This is a mobile-only account.">{button}</Kb.WithTooltip>
+  ) : (
+    button
+  )
 }
 export const SendButton = Kb.OverlayParentHOC(_SendButton)
 

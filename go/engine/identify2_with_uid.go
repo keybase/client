@@ -769,7 +769,7 @@ func (e *Identify2WithUID) displayUserCardAsync(m libkb.MetaContext) <-chan erro
 	if e.arg.IdentifyBehavior.SkipUserCard() || e.G().Env.GetReadDeletedSigChain() {
 		return nil
 	}
-	return displayUserCardAsync(m, e.them.GetUID(), (e.me != nil))
+	return libkb.DisplayUserCardAsync(m, e.them.GetUID(), (e.me != nil))
 }
 
 func (e *Identify2WithUID) setupIdentifyUI(m libkb.MetaContext) libkb.MetaContext {
