@@ -43,6 +43,7 @@ const EnterUsername = (props: Props) => (
           autoFocus={true}
           containerStyle={styles.input}
           placeholder="Pick a username"
+          maxLength={16}
           onChangeText={props.onChangeUsername}
         />
         <Kb.Text type="BodySmall" style={styles.inputSub}>

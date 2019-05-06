@@ -32,6 +32,7 @@ class UsernameAndEmail extends React.Component<Props, State> {
           autoFocus={true}
           hintText="Create a username"
           value={this.state.username}
+          maxLength={16}
           errorText={this.props.username === this.state.username ? this.props.usernameError : ''}
           onChangeText={username => this.setState({username})}
         />
