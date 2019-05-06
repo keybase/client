@@ -4833,7 +4833,7 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 		consumeNewConversation(t, listener1, convID)
 		consumeNewConversation(t, listener2, convID)
 
-		verifyMinWriterRoleInfoOnConv := func(user *kbtest.FakeUser, role *keybase1.TeamRole) {
+		verifyMinWriterRoleInfoOnConv := func(user *kbtest.FakeUser, role *keybase1.TeamRole, cannotWrite bool) {
 			tc := ctc.as(t, user)
 
 			var expectedInfo *chat1.ConversationMinWriterRoleInfo
@@ -4844,8 +4844,9 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 					Uid:  gregor1.UID(users[0].GetUID().ToBytes()),
 				}
 				expectedInfoLocal = &chat1.ConversationMinWriterRoleInfoLocal{
-					Role:     *role,
-					Username: users[0].Username,
+					Role:        *role,
+					ChangedBy:   users[0].Username,
+					CannotWrite: cannotWrite,
 				}
 			}
 
@@ -4879,8 +4880,8 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 		mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_TEXT)
 		consumeNewMsgRemote(t, listener2, chat1.MessageType_TEXT)
-		verifyMinWriterRoleInfoOnConv(users[0], nil)
-		verifyMinWriterRoleInfoOnConv(users[1], nil)
+		verifyMinWriterRoleInfoOnConv(users[0], nil, false)
+		verifyMinWriterRoleInfoOnConv(users[1], nil, false)
 
 		role := keybase1.TeamRole_ADMIN
 		err := tc1.chatLocalHandler().SetConvMinWriterRoleLocal(tc1.startCtx, chat1.SetConvMinWriterRoleLocalArg{
@@ -4898,8 +4899,8 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 		})
 		require.Error(t, err)
 		// Only u1's role update went through
-		verifyMinWriterRoleInfoOnConv(users[0], &role)
-		verifyMinWriterRoleInfoOnConv(users[1], &role)
+		verifyMinWriterRoleInfoOnConv(users[0], &role, false)
+		verifyMinWriterRoleInfoOnConv(users[1], &role, true)
 
 		// u2 can't write anymore, only u1 can.
 		_, err = postLocalForTest(t, ctc, users[1], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
@@ -4928,8 +4929,8 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, consumeSetConvSettings(t, listener1).Eq(created.Id))
 		require.True(t, consumeSetConvSettings(t, listener2).Eq(created.Id))
-		verifyMinWriterRoleInfoOnConv(users[0], nil)
-		verifyMinWriterRoleInfoOnConv(users[1], nil)
+		verifyMinWriterRoleInfoOnConv(users[0], nil, false)
+		verifyMinWriterRoleInfoOnConv(users[1], nil, false)
 
 		// Both users can write again
 		mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))

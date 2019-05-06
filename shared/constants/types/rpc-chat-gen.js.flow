@@ -904,7 +904,7 @@ export type ConversationMembersType =
 
 export type ConversationMetadata = $ReadOnly<{idTriple: ConversationIDTriple, conversationID: ConversationID, visibility: Keybase1.TLFVisibility, status: ConversationStatus, membersType: ConversationMembersType, teamType: TeamType, existence: ConversationExistence, version: ConversationVers, localVersion: LocalConversationVers, finalizeInfo?: ?ConversationFinalizeInfo, supersedes?: ?Array<ConversationMetadata>, supersededBy?: ?Array<ConversationMetadata>, activeList?: ?Array<Gregor1.UID>, allList?: ?Array<Gregor1.UID>, resetList?: ?Array<Gregor1.UID>}>
 export type ConversationMinWriterRoleInfo = $ReadOnly<{uid: Gregor1.UID, role: Keybase1.TeamRole}>
-export type ConversationMinWriterRoleInfoLocal = $ReadOnly<{username: String, role: Keybase1.TeamRole}>
+export type ConversationMinWriterRoleInfoLocal = $ReadOnly<{changedBy: String, cannotWrite: Boolean, role: Keybase1.TeamRole}>
 export type ConversationNotificationInfo = $ReadOnly<{channelWide: Boolean, settings: {[key: string]: {[key: string]: Boolean}}}>
 export type ConversationReaderInfo = $ReadOnly<{mtime: Gregor1.Time, readMsgid: MessageID, maxMsgid: MessageID, status: ConversationMemberStatus}>
 export type ConversationResolveInfo = $ReadOnly<{newTLFName: String}>
