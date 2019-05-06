@@ -41,7 +41,9 @@ const connected = () =>
       logger.warn('error in registering identify ui: ', error)
     })
 
-const refreshChanged = (_, action) =>
+// only refresh if we have tracked them before
+const refreshChanged = (state, action) =>
+  !!state.tracker2.usernameToDetails.get(action.payload.params.username) &&
   Tracker2Gen.createLoad({
     assertion: action.payload.params.username,
     fromDaemon: false,
