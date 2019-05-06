@@ -577,8 +577,6 @@ func TestProvisionWithRevoke(t *testing.T) {
 // If a user has device keys and no pgp keys, not selecting a device
 // should trigger the autoreset flow.
 func TestProvisionAutoreset(t *testing.T) {
-	t.Skip()
-
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "provision_x")
 	defer tcX.Cleanup()
