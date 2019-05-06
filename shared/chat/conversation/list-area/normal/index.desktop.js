@@ -609,7 +609,7 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
   // we defer settings things invisible for a little bit, which seems enough to fix it
   _handlePositionChange = ({currentPosition, event}) => {
     // lets ignore when this happens, this seems like a large source of jiggliness
-    if (!event) {
+    if (this.state.isVisible && !event) {
       return
     }
     if (currentPosition) {
