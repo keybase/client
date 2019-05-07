@@ -12,6 +12,7 @@ type Props = {|
   isSuggestion: boolean,
   isYours: boolean,
   metas: $ReadOnlyArray<Types._AssertionMeta>,
+  notAUser: boolean,
   onCopyAddress: () => void,
   onRequestLumens: () => void,
   onRecheck: ?() => void,
@@ -22,8 +23,8 @@ type Props = {|
   onCreateProof: ?() => void,
   onWhatIsStellar: () => void,
   proofURL: string,
-  siteIcon: Types.SiteIconSet,
-  siteIconFull: Types.SiteIconSet,
+  siteIcon: ?Types.SiteIconSet,
+  siteIconFull: ?Types.SiteIconSet,
   siteURL: string,
   state: Types.AssertionState,
   timestamp: number,
@@ -302,7 +303,10 @@ class Assertion extends React.PureComponent<Props, State> {
     }
   }
   _siteIcon = (full: boolean) => {
-    let child = <SiteIcon full={full} set={full ? this.props.siteIconFull : this.props.siteIcon} />
+    if (this.props.notAUser) return null
+    const set = full ? this.props.siteIconFull : this.props.siteIcon
+    if (!set) return null
+    let child = <SiteIcon full={full} set={set} />
     if (full) {
       return child
     }
@@ -324,7 +328,7 @@ class Assertion extends React.PureComponent<Props, State> {
 
     return (
       <Kb.Box2
-        className="hover-container"
+        className={p.notAUser ? null : 'hover-container'}
         ref={this._ref}
         direction="vertical"
         style={styles.container}

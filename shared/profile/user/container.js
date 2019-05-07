@@ -30,15 +30,18 @@ const mapStateToProps = (state, ownProps) => {
     ? ownProps.routeProps.get('username')
     : ownProps.navigation.getParam('username')
   const d = Constants.getDetails(state, username)
-  const followThem = Constants.followThem(state, username)
+  const notAUser = d.state === 'notAUserYet'
+  const followThem = notAUser ? false : Constants.followThem(state, username)
   const userIsYou = username === state.config.username
-  const followersCount = state.tracker2.usernameToDetails.getIn([username, 'followersCount']) || 0
-  const followingCount = state.tracker2.usernameToDetails.getIn([username, 'followingCount']) || 0
+  const followersCount =
+    (!notAUser && state.tracker2.usernameToDetails.getIn([username, 'followersCount'])) || 0
+  const followingCount =
+    (!notAUser && state.tracker2.usernameToDetails.getIn([username, 'followingCount'])) || 0
 
   return {
     _assertions: d.assertions,
     _suggestionKeys: userIsYou ? state.tracker2.proofSuggestions : null,
-    backgroundColorType: headerBackgroundColorType(d.state, followThem),
+    backgroundColorType: notAUser ? 'blue' : headerBackgroundColorType(d.state, followThem),
     followThem,
     followers: state.tracker2.usernameToDetails.getIn([username, 'followers']),
     followersCount,
@@ -84,24 +87,25 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 
   const notAUser = stateProps.state === 'notAUserYet'
-  const assertionKeys = stateProps._assertions
+  const assertionKeys = notAUser
+    ? [stateProps.username]
+    : stateProps._assertions
     ? stateProps._assertions
         .sort((a, b) => a.priority - b.priority)
         .keySeq()
         .toArray()
-    : notAUser
-    ? [stateProps.username]
     : null
 
   const onReload = notAUser
-    ? () => dispatchProps._onReload(stateProps.username, stateProps.userIsYou)
-    : () => {}
+    ? () => {}
+    : () => dispatchProps._onReload(stateProps.username, stateProps.userIsYou)
   return {
     assertionKeys,
     backgroundColorType: stateProps.backgroundColorType,
     followThem: stateProps.followThem,
     followersCount: stateProps.followersCount,
     followingCount: stateProps.followingCount,
+    notAUser,
     onAddIdentity,
     onBack: dispatchProps.onBack,
     onEditAvatar: stateProps.userIsYou ? dispatchProps._onEditAvatar : null,

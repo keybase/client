@@ -72,6 +72,7 @@ const bioProps = {
   onEditAvatar: Sb.action('onEditAvatarClick'),
   reason: 'storybook',
   suggestionKeys: [],
+  notAUser: false,
   username: 'Chris',
 }
 
