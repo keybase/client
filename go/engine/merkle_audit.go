@@ -151,7 +151,7 @@ func performMerkleAudit(m libkb.MetaContext, startSeqno keybase1.Seqno) error {
 	}
 
 	// Acquire the most recent merkle tree root
-	lastRoot := m.G().MerkleClient.LastRoot()
+	lastRoot := m.G().MerkleClient.LastRoot(m)
 	if lastRoot == nil {
 		m.Debug("MerkleAudit unable to retrieve the last root")
 		return errAuditNoLastRoot
@@ -217,7 +217,7 @@ func MerkleAuditRound(m libkb.MetaContext) (err error) {
 	if startSeqno == nil {
 		// nil seqno, generate a new one:
 		// 1. Acquire the most recent merkle tree root
-		lastRoot := m.G().MerkleClient.LastRoot()
+		lastRoot := m.G().MerkleClient.LastRoot(m)
 		if lastRoot == nil {
 			m.Debug("MerkleAudit unable to retrieve the last root")
 			return nil

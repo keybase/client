@@ -264,6 +264,16 @@ func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHisto
 		}
 	}
 
+	first := m.G().MerkleClient.FirstSeqnoWithSkips(m)
+	if first == nil {
+		return 0, keybase1.Seqno(0), NewAuditError("cannot find a first modern merkle sequence")
+	}
+
+	if low < *first {
+		m.Debug("bumping low sequence number to last merkle checkpoint: %s", *first)
+		low = *first
+	}
+
 	probeTuples, err := a.computeProbes(m, history.ID, history.PostProbes, probeID, low, latestMerkleSeqno, 0, getAuditParams(m).NumPostProbes)
 	if err != nil {
 		return 0, keybase1.Seqno(0), err

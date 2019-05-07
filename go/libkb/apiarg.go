@@ -13,6 +13,11 @@ const (
 	APISessionTypeREQUIRED APISessionType = 2
 )
 
+type APIHeader struct {
+	Key   string
+	Value string
+}
+
 type APIArg struct {
 	Endpoint        string
 	uArgs           url.Values
