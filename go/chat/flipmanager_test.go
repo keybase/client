@@ -298,6 +298,8 @@ func TestFlipManagerChannelFlip(t *testing.T) {
 
 func TestFlipManagerParseEdges(t *testing.T) {
 	tc := externalstest.SetupTest(t, "flip", 0)
+	defer tc.Cleanup()
+
 	g := globals.NewContext(tc.G, &globals.ChatContext{})
 	fm := NewFlipManager(g, nil)
 	testCase := func(text string, ftyp flip.FlipType, refMetadata flipTextMetadata) {

@@ -69,10 +69,12 @@ type dummyDeliverer struct {
 func (d dummyDeliverer) ForceDeliverLoop(ctx context.Context) {}
 
 func TestUnfurler(t *testing.T) {
+	tc := externalstest.SetupTest(t, "unfurler", 0)
+	defer tc.Cleanup()
+
 	log := logger.NewTestLogger(t)
 	store := attachments.NewStoreTesting(log, nil)
 	s3signer := &ptsigner{}
-	tc := externalstest.SetupTest(t, "unfurler", 0)
 	g := globals.NewContext(tc.G, &globals.ChatContext{})
 	notifier := makeDummyActivityNotifier()
 	g.ChatContext.ActivityNotifier = notifier

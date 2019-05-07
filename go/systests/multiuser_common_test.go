@@ -68,6 +68,9 @@ func (u *smuUser) cleanup() {
 			d.service.Stop(0)
 			d.stop()
 		}
+		for _, cl := range d.clones {
+			cl.Cleanup()
+		}
 	}
 }
 

@@ -75,6 +75,7 @@ func TestVersionAndStop(t *testing.T) {
 	}()
 
 	tc2 := cloneContext(tc)
+	defer tc2.Cleanup()
 
 	vui := versionUI{
 		Contextified: libkb.NewContextified(tc2.G),

@@ -14,6 +14,8 @@ import (
 
 func TestRPCCacheBestEffort(t *testing.T) {
 	tc := libkb.SetupTest(t, "RPCCache()", 1)
+	defer tc.Cleanup()
+
 	fakeClock := clockwork.NewFakeClock()
 	tc.G.SetClock(fakeClock)
 

@@ -252,13 +252,14 @@ func (h *notifyHandler) PasswordChanged(_ context.Context) error {
 
 func TestSignupLogout(t *testing.T) {
 	tc := setupTest(t, "signup")
+	defer tc.Cleanup()
 	tc2 := cloneContext(tc)
+	defer tc2.Cleanup()
 	tc5 := cloneContext(tc)
+	defer tc5.Cleanup()
 
 	// Hack the various portions of the service that aren't
 	// properly contextified.
-
-	defer tc.Cleanup()
 
 	stopCh := make(chan error)
 	svc := service.NewService(tc.G, false)

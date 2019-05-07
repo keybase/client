@@ -422,6 +422,8 @@ func TestLoadAfterAcctReset2(t *testing.T) {
 	// add new device keys.
 	ResetAccount(resetUserTC, fu)
 	tcp := SetupEngineTest(t, "login")
+	defer tcp.Cleanup()
+
 	fu.LoginOrBust(tcp)
 	if err := AssertProvisioned(tcp); err != nil {
 		t.Fatal(err)

@@ -282,6 +282,7 @@ func (s SimpleFSMock) SimpleFSSetDebugLevel(_ context.Context, _ string) error {
 
 func TestSimpleFSPathRemote(t *testing.T) {
 	tc := libkb.SetupTest(t, "simplefs_path", 0)
+	defer tc.Cleanup()
 
 	testPath, err := makeSimpleFSPath("/keybase/private/foobar")
 	require.NoError(tc.T, err)
@@ -301,6 +302,7 @@ func TestSimpleFSPathRemote(t *testing.T) {
 
 func TestSimpleFSPathLocal(t *testing.T) {
 	tc := libkb.SetupTest(t, "simplefs_path", 0)
+	defer tc.Cleanup()
 
 	testPath, err := makeSimpleFSPath("./foobar")
 	require.NoError(tc.T, err)
@@ -311,6 +313,7 @@ func TestSimpleFSPathLocal(t *testing.T) {
 
 func TestSimpleFSLocalSrcFile(t *testing.T) {
 	tc := libkb.SetupTest(t, "simplefs_path", 0)
+	defer tc.Cleanup()
 
 	// make a temp local dest directory + files we will clean up later
 	tempdir, err := ioutil.TempDir("", "simpleFStest")
@@ -373,6 +376,7 @@ func TestSimpleFSLocalSrcFile(t *testing.T) {
 
 func TestSimpleFSRemoteSrcFile(t *testing.T) {
 	tc := libkb.SetupTest(t, "simplefs_path", 0)
+	defer tc.Cleanup()
 
 	// make a temp local dest directory + files we will clean up later
 	tempdir, err := ioutil.TempDir("", "simpleFstest")
@@ -434,6 +438,7 @@ func TestSimpleFSRemoteSrcFile(t *testing.T) {
 
 func TestSimpleFSLocalSrcDir(t *testing.T) {
 	tc := libkb.SetupTest(t, "simplefs_path", 0)
+	defer tc.Cleanup()
 
 	// make a temp local dest directory + files we will clean up later
 	tempdir, err := ioutil.TempDir("", "simpleFStest")
@@ -501,6 +506,7 @@ func TestSimpleFSLocalSrcDir(t *testing.T) {
 
 func TestSimpleFSRemoteSrcDir(t *testing.T) {
 	tc := libkb.SetupTest(t, "simplefs_path", 0)
+	defer tc.Cleanup()
 
 	// make a temp local dest directory + files we will clean up later
 	tempdir, err := ioutil.TempDir("", "simpleFStest")
@@ -569,6 +575,7 @@ func TestSimpleFSRemoteSrcDir(t *testing.T) {
 
 func TestSimpleFSLocalExists(t *testing.T) {
 	tc := libkb.SetupTest(t, "simplefs_path", 0)
+	defer tc.Cleanup()
 
 	// make a temp local dest directory + files we will clean up later
 	tempdir, err := ioutil.TempDir("", "simpleFstest")
@@ -600,6 +607,7 @@ func TestSimpleFSPlatformGlob(t *testing.T) {
 		return
 	}
 	tc := libkb.SetupTest(t, "simplefs_path", 0)
+	defer tc.Cleanup()
 
 	// make a temp local dest directory + files we will clean up later
 	tempdir, err := ioutil.TempDir("", "simpleFstest")

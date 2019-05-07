@@ -67,6 +67,7 @@ func TestGregorForwardToElectron(t *testing.T) {
 	tc := setupTest(t, "gregor")
 	defer tc.Cleanup()
 	tc1 := cloneContext(tc)
+	defer tc1.Cleanup()
 
 	svc := service.NewService(tc.G, false)
 	startCh := svc.GetStartChannel()

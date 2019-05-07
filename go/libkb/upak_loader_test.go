@@ -18,6 +18,8 @@ import (
 
 func TestCachedUserLoad(t *testing.T) {
 	tc := SetupTest(t, "GetUPAKLoader()", 1)
+	defer tc.Cleanup()
+
 	fakeClock := clockwork.NewFakeClock()
 	tc.G.SetClock(fakeClock)
 
@@ -75,6 +77,8 @@ func TestCachedUserLoad(t *testing.T) {
 
 func TestCheckKIDForUID(t *testing.T) {
 	tc := SetupTest(t, "CheckKIDForUID", 1)
+	defer tc.Cleanup()
+
 	fakeClock := clockwork.NewFakeClock()
 	tc.G.SetClock(fakeClock)
 
@@ -110,6 +114,7 @@ func TestCheckKIDForUID(t *testing.T) {
 func TestCacheFallbacks(t *testing.T) {
 	tc := SetupTest(t, "LookupUsernameAndDevice", 1)
 	defer tc.Cleanup()
+
 	fakeClock := clockwork.NewFakeClock()
 	tc.G.SetClock(fakeClock)
 
@@ -194,6 +199,7 @@ func TestLookupUID(t *testing.T) {
 func TestLookupUsername(t *testing.T) {
 	tc := SetupTest(t, "LookupUsernameAndDevice", 1)
 	defer tc.Cleanup()
+
 	uid := keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")
 	un, err := tc.G.GetUPAKLoader().LookupUsername(context.Background(), uid)
 	require.NoError(t, err)

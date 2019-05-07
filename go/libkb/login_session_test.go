@@ -92,10 +92,11 @@ func (a *FakeAPI) Delete(MetaContext, APIArg) (*APIRes, error) {
 
 func TestLoginSessionTimeout(t *testing.T) {
 	tc := SetupTest(t, "login_session_test", 1)
+	defer tc.Cleanup()
+
 	tc.G.API = &FakeAPI{}
 	c := clockwork.NewFakeClock()
 	tc.G.SetClock(c)
-	defer tc.Cleanup()
 
 	sesh := NewLoginSession(tc.G, "logintest")
 	err := sesh.Load(NewMetaContextForTest(tc))

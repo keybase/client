@@ -49,7 +49,10 @@ func (f *fakeConnectivityMonitor) CheckReachability(ctx context.Context) error {
 
 func TestRPCs(t *testing.T) {
 	tc := setupTest(t, "rpcs")
+	defer tc.Cleanup()
+
 	tc2 := cloneContext(tc)
+	defer tc2.Cleanup()
 
 	// Set a connectivity manager we can control, and set NoGregor so that
 	// way it's not overwritten when we startup gregor.
@@ -57,8 +60,6 @@ func TestRPCs(t *testing.T) {
 	fcm.Set(libkb.ConnectivityMonitorYes)
 	tc.G.ConnectivityMonitor = &fcm
 	tc.G.Env.Test.NoGregor = true
-
-	defer tc.Cleanup()
 
 	stopCh := make(chan error)
 	svc := service.NewService(tc.G, false)
