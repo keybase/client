@@ -2335,12 +2335,11 @@ func TeamInviteTypeFromString(s string, isDev bool) (TeamInviteType, error) {
 		return NewTeamInviteTypeWithSbs(TeamInviteSocialNetwork(s)), nil
 	case "seitan_invite_token":
 		return NewTeamInviteTypeDefault(TeamInviteCategory_SEITAN), nil
+	case "phone":
+		return NewTeamInviteTypeDefault(TeamInviteCategory_PHONE), nil
 	default:
 		if isDev && s == "rooter" {
 			return NewTeamInviteTypeWithSbs(TeamInviteSocialNetwork(s)), nil
-		}
-		if isDev && s == "phone" {
-			return NewTeamInviteTypeDefault(TeamInviteCategory_PHONE), nil
 		}
 		// Don't want to break existing clients if we see an unknown invite
 		// type.
