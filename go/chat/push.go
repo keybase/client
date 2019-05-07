@@ -578,8 +578,12 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				desktopNotification := g.shouldDisplayDesktopNotification(ctx, uid, conv, decmsg)
 				notificationSnippet := ""
 				if desktopNotification {
+					plaintextDesktopDisabled, err := getPlaintextDesktopDisabled(ctx, g.G())
+					if err != nil {
+						g.Debug(ctx, "chat activity: unable to get app notification settings: %v defaulting to disable plaintext", err)
+					}
 					notificationSnippet = utils.GetDesktopNotificationSnippet(conv,
-						g.G().Env.GetUsername().String(), &decmsg)
+						g.G().Env.GetUsername().String(), &decmsg, plaintextDesktopDisabled)
 				}
 				activity = new(chat1.ChatActivity)
 				*activity = chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
