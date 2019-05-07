@@ -199,10 +199,10 @@ export const newRoutes = {
 
 export const newModalRoutes = {
   ...require('./routes-send-request-form').newModalRoutes,
-  airdropQualify: {getScreen: () => require('./airdrop/qualify/container').default},
-  createNewAccount: {getScreen: () => require('./create-account/container').default},
+  airdropQualify: {getScreen: () => require('./airdrop/qualify/container').default, upgraded: true},
+  createNewAccount: {getScreen: () => require('./create-account/container').default, upgraded: true},
   exportSecretKey: {getScreen: () => require('./export-secret-key/container').default},
-  linkExisting: {getScreen: () => require('./link-existing/container').default},
+  linkExisting: {getScreen: () => require('./link-existing/container').default, upgraded: true},
   reallyRemoveAccount: {getScreen: () => require('./wallet/settings/popups').ReallyRemoveAccountPopup},
   receive: {getScreen: () => require('./receive-modal/container').default},
   removeAccount: {getScreen: () => require('./wallet/settings/popups').RemoveAccountPopup},
