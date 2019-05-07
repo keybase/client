@@ -10,6 +10,8 @@ import (
 
 func TestLoaderClean(t *testing.T) {
 	tc := libkb.SetupTest(t, "loaderclean", 1)
+	defer tc.Cleanup()
+
 	loader := NewLoader(tc.G)
 	require.Equal(t, 0, loader.PaymentsLen())
 	require.Equal(t, 0, loader.RequestsLen())

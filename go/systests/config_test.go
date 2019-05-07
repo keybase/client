@@ -14,9 +14,7 @@ import (
 )
 
 func TestConfigGetAndSet(t *testing.T) {
-
 	tc := setupTest(t, "stop")
-
 	defer tc.Cleanup()
 
 	stopCh := make(chan error)
@@ -31,6 +29,7 @@ func TestConfigGetAndSet(t *testing.T) {
 	}()
 
 	tc2 := cloneContext(tc)
+	defer tc2.Cleanup()
 
 	<-startCh
 

@@ -2041,12 +2041,14 @@ func TestUnits(t *testing.T) {
 type failer func(string, ...interface{})
 
 func runPvlTest(t *testing.T, unit *interpUnitTest) {
+	tc := libkb.SetupTest(t, unit.name, 1)
+	defer tc.Cleanup()
+
 	fail := func(f string, arg ...interface{}) {
 		f2 := fmt.Sprintf("[%v] ", unit.name) + f
 		t.Fatalf(f2, arg...)
 	}
 
-	tc := libkb.SetupTest(t, unit.name, 1)
 	g := tc.G
 	xapi := newStubAPIEngine()
 	g.XAPI = xapi

@@ -734,6 +734,7 @@ func TestInboxSync(t *testing.T) {
 
 func TestInboxServerVersion(t *testing.T) {
 	tc, inbox, uid := setupInboxTest(t, "basic")
+	defer tc.Cleanup()
 
 	// Create an inbox with a bunch of convos, merge it and read it back out
 	numConvs := 10

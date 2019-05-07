@@ -10,6 +10,7 @@ import (
 
 func TestIdentifyLite(t *testing.T) {
 	tc, _, name := memberSetup(t)
+	defer tc.Cleanup()
 
 	team, err := GetForTestByStringName(context.Background(), tc.G, name)
 	if err != nil {

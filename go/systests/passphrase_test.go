@@ -20,9 +20,10 @@ import (
 
 func TestPassphraseChange(t *testing.T) {
 	tc := setupTest(t, "pp")
-	tc2 := cloneContext(tc)
-
 	defer tc.Cleanup()
+
+	tc2 := cloneContext(tc)
+	defer tc2.Cleanup()
 
 	stopCh := make(chan error)
 	svc := service.NewService(tc.G, false)
@@ -120,11 +121,10 @@ func testPassphraseRecover(t *testing.T, createDeviceClone bool) {
 	// Service contexts.
 	// Make a new context with cloneContext for each client session.
 	tc1 := setupTest(t, "ppa")
-	tc2 := setupTest(t, "ppb")
-	var tcClient *libkb.TestContext
-
 	defer tc1.Cleanup()
+	tc2 := setupTest(t, "ppb")
 	defer tc2.Cleanup()
+	var tcClient *libkb.TestContext
 
 	t.Logf("Starting services")
 	s1, err := startNewService(tc1)
@@ -136,6 +136,8 @@ func testPassphraseRecover(t *testing.T, createDeviceClone bool) {
 
 	t.Logf("Signup on tc1")
 	tcClient = cloneContext(tc1)
+	defer tcClient.Cleanup()
+
 	aSignupUI := signupUI{
 		info:         userInfo,
 		Contextified: libkb.NewContextified(tc1.G),
@@ -158,6 +160,8 @@ func testPassphraseRecover(t *testing.T, createDeviceClone bool) {
 
 	t.Logf("Login on tc2")
 	tcClient = cloneContext(tc2)
+	defer tcClient.Cleanup()
+
 	aProvisionUI := &testRecoverUIProvision{
 		username:   userInfo.username,
 		paperkey:   userInfo.displayedPaperKey,
@@ -185,6 +189,8 @@ func testPassphraseRecover(t *testing.T, createDeviceClone bool) {
 
 	t.Logf("Recover on tc2")
 	tcClient = cloneContext(tc2)
+	defer tcClient.Cleanup()
+
 	aRecoverUI := &testRecoverUIRecover{
 		Contextified: libkb.NewContextified(tc2.G),
 		passphrase:   newPassphrase,

@@ -11,10 +11,10 @@ import (
 
 func TestChatActive(t *testing.T) {
 	ctx, world, _, _, _, _ := setupTest(t, 1)
+	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
 	tc := world.Tcs[u.Username]
-	defer tc.Cleanup()
 	g := globals.NewContext(tc.G, tc.ChatG)
 	log := utils.NewDebugLabeler(g.GetLog(), "TestChatActive", false)
 

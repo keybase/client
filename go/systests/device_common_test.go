@@ -226,6 +226,9 @@ func (s *testDeviceSet) cleanup() {
 			od.service.Stop(0)
 			od.stop()
 		}
+		for _, cl := range od.clones {
+			cl.Cleanup()
+		}
 	}
 }
 

@@ -148,8 +148,8 @@ func rotatePuk(t *testing.T, m libkb.MetaContext) {
 
 func TestUpkeep(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
-	srv := tcs[0].Srv
 	defer cleanup()
+	srv := tcs[0].Srv
 	m := tcs[0].MetaContext()
 	// create a wallet with two accounts
 	setupWithNewBundle(t, tcs[0])

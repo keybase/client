@@ -82,11 +82,13 @@ func (m *mockUpakLoader) LookupUsername(ctx context.Context, uid keybase1.UID) (
 }
 
 func TestStellarSender(t *testing.T) {
+	tc := externalstest.SetupTest(t, "stellarsender", 0)
+	defer tc.Cleanup()
+
 	mikeUID := gregor1.UID([]byte{0, 1})
 	patrickUID := gregor1.UID([]byte{0, 2})
 	maxUID := gregor1.UID([]byte{0, 4})
 	convID := chat1.ConversationID([]byte{0, 3})
-	tc := externalstest.SetupTest(t, "stellarsender", 0)
 	ms := mockStellar{}
 	mi := mockInboxSource{}
 	mu := newMockUpakLoader()
