@@ -27,7 +27,7 @@ func NewCmdSimpleFSForceConflict(
 	return cli.Command{
 		Name:         "force-conflict",
 		ArgumentHelp: "<path-to-folder>",
-		Usage:        "forces a conflict in the given folder ",
+		Usage:        "forces a conflict in the given folder",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSForceConflict{
 				Contextified: libkb.NewContextified(g)}, "force-conflict", c)
