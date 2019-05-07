@@ -20,35 +20,26 @@ class ButtonBar extends React.PureComponent<Props> {
     small: false,
   }
 
-  _spacing = () => {
-    if (this.props.direction === 'row' && this.props.small && !isMobile) {
-      return SmallSpacer
-    }
-
-    return BigSpacer
-  }
-
   _surroundSpacing = () => {
     return this.props.direction === 'column'
   }
 
   render() {
-    const Spacing = this._spacing()
     const surroundSpacing = this._surroundSpacing()
     const children = React.Children.toArray(this.props.children)
     const childrenWithSpacing = children.reduce((arr, c, idx) => {
       if (surroundSpacing || idx > 0) {
-        arr.push(<Spacing key={arr.length} />)
+        arr.push(<Spacer key={arr.length} />)
       }
       arr.push(c)
       if (surroundSpacing && idx === children.length - 1) {
-        arr.push(<Spacing key={arr.length} />)
+        arr.push(<Spacer key={arr.length} />)
       }
       return arr
     }, [])
 
     const minHeight = {
-      minHeight: isMobile ? (this.props.small ? 64 : 72) : this.props.small ? 44 : 64,
+      minHeight: isMobile ? (this.props.small ? 48 : 72) : this.props.small ? 40 : 56,
     }
 
     const style = collapseStyles([
@@ -71,17 +62,11 @@ class ButtonBar extends React.PureComponent<Props> {
 }
 
 // Note explicitly not using globalMargins here. We don't necessarily want this spacing to change ever
-const BigSpacer = () => <Box style={bigSpacerStyle} />
-const bigSpacerStyle = {
+const Spacer = () => <Box style={spacerStyle} />
+const spacerStyle = {
   flexShrink: 0,
   height: 8,
   width: 8,
-}
-const SmallSpacer = () => <Box style={smallSpacerStyle} />
-const smallSpacerStyle = {
-  flexShrink: 0,
-  height: isMobile ? 8 : 4,
-  width: isMobile ? 8 : 4,
 }
 
 export default ButtonBar
