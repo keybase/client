@@ -342,6 +342,12 @@ export const ctlExitCode = {
   restart: 4,
 }
 
+export const favoriteFolderConflictType = {
+  none: 0,
+  inConflict: 1,
+  inConflictAndStuck: 2,
+}
+
 export const favoriteFolderType = {
   unknown: 0,
   private: 1,
