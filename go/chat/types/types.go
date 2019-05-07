@@ -115,6 +115,13 @@ func (rc RemoteConversation) GetTopicName() string {
 	return ""
 }
 
+func (rc RemoteConversation) GetTLFName() string {
+	if len(rc.Conv.MaxMsgSummaries) == 0 {
+		return ""
+	}
+	return rc.Conv.MaxMsgSummaries[0].TlfName
+}
+
 func (rc RemoteConversation) GetName() string {
 	switch rc.Conv.Metadata.TeamType {
 	case chat1.TeamType_COMPLEX:
@@ -128,6 +135,10 @@ func (rc RemoteConversation) GetName() string {
 		}
 		return rc.Conv.MaxMsgSummaries[0].TlfName
 	}
+}
+
+func (rc RemoteConversation) GetTopicType() chat1.TopicType {
+	return rc.Conv.GetTopicType()
 }
 
 type Inbox struct {
@@ -501,6 +512,12 @@ func (d DummyTeamMentionLoader) Stop(ctx context.Context) chan struct{} {
 }
 
 func (d DummyTeamMentionLoader) LoadTeamMention(ctx context.Context, uid gregor1.UID,
-	teamName, channel string) error {
+	maybeMention chat1.MaybeMention, knownTeamMentions []chat1.KnownTeamMention,
+	forceRemote bool) error {
 	return nil
+}
+
+func (d DummyTeamMentionLoader) IsTeamMention(ctx context.Context, uid gregor1.UID,
+	maybeMention chat1.MaybeMention, knownTeamMentions []chat1.KnownTeamMention) bool {
+	return false
 }

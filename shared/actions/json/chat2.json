@@ -658,10 +658,10 @@
       "_description": "Set index percent complete",
       "percent": "number"
     },
-    "setTeamMentionInfo": {
+    "setMaybeMentionInfo": {
       "_description": "Set team mention info",
       "name": "string",
-      "info": "RPCChatTypes.UITeamMention"
+      "info": "RPCChatTypes.UIMaybeMentionInfo"
     },
     "tabSelected": {
       "_description": "Desktop changed tab to chat"
@@ -669,6 +669,11 @@
     "setInboxShowIsNew": {
       "_description": "We've seen chat search before",
       "isNew": "boolean"
+    },
+    "resolveMaybeMention": {
+      "_description": "Resolve an unknown @ mention",
+      "name": "string",
+      "channel": "string"
     }
   }
 }

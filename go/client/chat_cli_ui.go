@@ -352,6 +352,6 @@ func (c *ChatCLIUI) ChatCommandMarkdown(ctx context.Context, arg chat1.ChatComma
 	return nil
 }
 
-func (c *ChatCLIUI) ChatTeamMentionUpdate(ctx context.Context, arg chat1.ChatTeamMentionUpdateArg) error {
+func (c *ChatCLIUI) ChatMaybeMentionUpdate(ctx context.Context, arg chat1.ChatMaybeMentionUpdateArg) error {
 	return nil
 }

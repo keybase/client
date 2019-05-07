@@ -31,7 +31,7 @@ func TestRecentConversationParticipants(t *testing.T) {
 			}
 		}
 
-		conv := newConv(ctx, t, tc, uid, ri2, sender, tlfName)
+		conv, _ := newConv(ctx, t, tc, uid, ri2, sender, tlfName)
 
 		// Each participant needs to say something
 		for j := i; j >= 0; j-- {
@@ -40,7 +40,7 @@ func TestRecentConversationParticipants(t *testing.T) {
 				ConversationID: conv.GetConvID(),
 				MessageBoxed: chat1.MessageBoxed{
 					ClientHeader: chat1.MessageClientHeader{
-						Conv:      conv.Metadata.IdTriple,
+						Conv:      conv.Info.Triple,
 						Sender:    u.User.GetUID().ToBytes(),
 						TlfName:   tlfName,
 						TlfPublic: false,

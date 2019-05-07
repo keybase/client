@@ -615,6 +615,7 @@ type GetInboxQuery struct {
 	Before            *gregor1.Time              `codec:"before,omitempty" json:"before,omitempty"`
 	After             *gregor1.Time              `codec:"after,omitempty" json:"after,omitempty"`
 	OneChatTypePerTLF *bool                      `codec:"oneChatTypePerTLF,omitempty" json:"oneChatTypePerTLF,omitempty"`
+	TopicName         *string                    `codec:"topicName,omitempty" json:"topicName,omitempty"`
 	Status            []ConversationStatus       `codec:"status" json:"status"`
 	MemberStatus      []ConversationMemberStatus `codec:"memberStatus" json:"memberStatus"`
 	Existences        []ConversationExistence    `codec:"existences" json:"existences"`
@@ -678,6 +679,13 @@ func (o GetInboxQuery) DeepCopy() GetInboxQuery {
 			tmp := (*x)
 			return &tmp
 		})(o.OneChatTypePerTLF),
+		TopicName: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.TopicName),
 		Status: (func(x []ConversationStatus) []ConversationStatus {
 			if x == nil {
 				return nil

@@ -5,8 +5,9 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Constants from '../../../constants/chat2'
 import * as Types from '../../../constants/types/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
+import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import {namedConnect} from '../../../util/container'
-import TeamMention from '.'
+import TeamMention from './team'
 
 type OwnProps = {|
   allowFontScaling?: boolean,
@@ -16,7 +17,13 @@ type OwnProps = {|
 |}
 
 const mapStateToProps = (state, {allowFontScaling, name, channel, style}) => {
-  const mentionInfo = state.chat2.teamMentionMap.get(Constants.getTeamMentionName(name, channel))
+  const maybeMentionInfo = state.chat2.maybeMentionMap.get(Constants.getTeamMentionName(name, channel))
+  const mentionInfo =
+    maybeMentionInfo &&
+    maybeMentionInfo.status === RPCChatTypes.chatUiUIMaybeMentionStatus.team &&
+    maybeMentionInfo.team
+      ? maybeMentionInfo.team
+      : null
   return {
     _convID: mentionInfo?.convID,
     allowFontScaling,

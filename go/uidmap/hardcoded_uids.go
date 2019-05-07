@@ -28,7 +28,7 @@ func findInit() {
 }
 
 func usernameFindInit() {
-	once.Do(initUsernameSort)
+	usoOnce.Do(initUsernameSort)
 }
 
 func usernameBytesAtSortedIndex(i int) []byte {

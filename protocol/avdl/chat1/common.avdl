@@ -176,6 +176,7 @@
     union { null, gregor1.Time } before;
     union { null, gregor1.Time } after;
     union { null, boolean } oneChatTypePerTLF;
+    union { null, string } topicName; // used only by local inbox cache
 
     // If left empty, default is to show unfiled and favorite
     array<ConversationStatus> status;

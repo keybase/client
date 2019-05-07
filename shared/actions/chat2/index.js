@@ -2705,11 +2705,17 @@ const onChatCommandMarkdown = (status, action) => {
   })
 }
 
-const onChatTeamMentionUpdate = (state, action) => {
+const onChatMaybeMentionUpdate = (state, action) => {
   const {teamName, channel, info} = action.payload.params
-  return Chat2Gen.createSetTeamMentionInfo({
+  return Chat2Gen.createSetMaybeMentionInfo({
     info,
     name: Constants.getTeamMentionName(teamName, channel),
+  })
+}
+
+const resolveMaybeMention = (state, action) => {
+  return RPCChatTypes.localResolveMaybeMentionRpcPromise({
+    mention: {channel: action.payload.channel, name: action.payload.name},
   })
 }
 
@@ -3175,9 +3181,9 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     EngineGen.chat1ChatUiChatCommandMarkdown,
     onChatCommandMarkdown
   )
-  yield* Saga.chainAction<EngineGen.Chat1ChatUiChatTeamMentionUpdatePayload>(
-    EngineGen.chat1ChatUiChatTeamMentionUpdate,
-    onChatTeamMentionUpdate
+  yield* Saga.chainAction<EngineGen.Chat1ChatUiChatMaybeMentionUpdatePayload>(
+    EngineGen.chat1ChatUiChatMaybeMentionUpdate,
+    onChatMaybeMentionUpdate
   )
 
   yield* Saga.chainAction<Chat2Gen.ReplyJumpPayload>(Chat2Gen.replyJump, onReplyJump)
@@ -3195,6 +3201,10 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<Chat2Gen.DeselectConversationPayload>(
     Chat2Gen.deselectConversation,
     deselectConversation
+  )
+  yield* Saga.chainAction<Chat2Gen.ResolveMaybeMentionPayload>(
+    Chat2Gen.resolveMaybeMention,
+    resolveMaybeMention
   )
 
   yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnect)
