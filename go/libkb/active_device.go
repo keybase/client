@@ -377,21 +377,39 @@ func (a *ActiveDevice) valid() bool {
 	return a.signingKey != nil && a.encryptionKey != nil && !a.uv.IsNil() && !a.deviceID.IsNil() && a.deviceName != ""
 }
 
-func (a *ActiveDevice) Ctime(m MetaContext) (keybase1.Time, error) {
-	a.Lock()
-	defer a.Unlock()
+func (a *ActiveDevice) Ctime(m MetaContext) (ctime keybase1.Time, err error) {
+	a.RLock()
 	if a.deviceCtime > 0 {
-		return a.deviceCtime, nil
+		ctime = a.deviceCtime
+		a.RUnlock()
+		return ctime, nil
 	}
 	if !a.valid() {
-		return 0, fmt.Errorf("Active device is not valid")
+		a.RUnlock()
+		return 0, errors.New("active device is not valid")
 	}
+
 	decKeys := NewDeviceWithKeysOnly(a.encryptionKey, a.signingKey)
+
+	// decKeys.Populate results in a network call, so unlock ActiveDevice.
+	deviceIDBefore := a.deviceID
+	a.RUnlock()
 	if _, err := decKeys.Populate(m); err != nil {
 		return 0, nil
 	}
+
+	a.Lock()
+	// make sure this is the same device ID
+	if !a.deviceID.Eq(deviceIDBefore) {
+		a.Unlock()
+		return 0, errors.New("active device changed during ctime lookup")
+	}
+
 	a.deviceCtime = decKeys.DeviceCtime()
-	return a.deviceCtime, nil
+	ctime = a.deviceCtime
+	a.Unlock()
+
+	return ctime, nil
 }
 
 func (a *ActiveDevice) IsValidFor(uid keybase1.UID, deviceID keybase1.DeviceID) bool {

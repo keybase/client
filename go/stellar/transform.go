@@ -462,12 +462,18 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 		return empty, err
 	}
 	isMobile := activeDeviceType == libkb.DeviceTypeMobile
-	ctime, err := mctx.G().ActiveDevice.Ctime(mctx)
-	if err != nil {
-		return empty, err
+	editable := false
+	if isMobile {
+		ctime, err := mctx.G().ActiveDevice.Ctime(mctx)
+		if err != nil {
+			return empty, err
+		}
+		deviceProvisionedAt := time.Unix(int64(ctime)/1000, 0)
+		deviceAge := mctx.G().Clock().Since(deviceProvisionedAt)
+		if deviceAge > 7*24*time.Hour {
+			editable = true
+		}
 	}
-	deviceProvisionedAt := time.Unix(int64(ctime)/1000, 0)
-	deviceAge := mctx.G().Clock().Since(deviceProvisionedAt)
 
 	// Is there enough to make any transaction?
 	var availableInt int64
@@ -492,7 +498,7 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 		BalanceDescription:  balance,
 		Seqno:               details.Seqno,
 		AccountMode:         accountMode,
-		AccountModeEditable: isMobile && deviceAge > 7*24*time.Hour,
+		AccountModeEditable: editable,
 		IsFunded:            isFunded,
 		CanSubmitTx:         canSubmitTx,
 	}
