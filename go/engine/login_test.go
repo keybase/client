@@ -577,8 +577,6 @@ func TestProvisionWithRevoke(t *testing.T) {
 // If a user has device keys and no pgp keys, not selecting a device
 // should trigger the autoreset flow.
 func TestProvisionAutoreset(t *testing.T) {
-	t.Skip()
-
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "provision_x")
 	defer tcX.Cleanup()
@@ -609,8 +607,8 @@ func TestProvisionAutoreset(t *testing.T) {
 	require.NotNil(t, AssertLoggedIn(tcY), "should not be logged in")
 
 	// Travel 3 days into future + 1h to make sure that it all runs
-	require.NoError(t, accelerateReset(tcX))
 	require.NoError(t, timeTravelReset(tcX, time.Hour*73))
+	require.NoError(t, processReset(tcX))
 
 	// Rather than sleeping we'll wait for autoreset by analyzing its state
 	var lastErr error
@@ -654,11 +652,12 @@ func timeTravelReset(tc libkb.TestContext, duration time.Duration) error {
 	return err
 }
 
-func accelerateReset(tc libkb.TestContext) error {
+func processReset(tc libkb.TestContext) error {
 	mctx := libkb.NewMetaContextForTest(tc)
 	_, err := tc.G.API.Post(mctx, libkb.APIArg{
-		Endpoint:    "test/accelerate_autoresetd",
-		SessionType: libkb.APISessionTypeREQUIRED,
+		Endpoint:    "autoreset/process_dev",
+		SessionType: libkb.APISessionTypeNONE,
+		RetryCount:  5,
 	})
 	return err
 }
