@@ -203,7 +203,10 @@ export const newModalRoutes = {
   createNewAccount: {getScreen: () => require('./create-account/container').default, upgraded: true},
   exportSecretKey: {getScreen: () => require('./export-secret-key/container').default, upgraded: true},
   linkExisting: {getScreen: () => require('./link-existing/container').default, upgraded: true},
-  reallyRemoveAccount: {getScreen: () => require('./wallet/settings/popups').ReallyRemoveAccountPopup},
+  reallyRemoveAccount: {
+    getScreen: () => require('./wallet/settings/popups').ReallyRemoveAccountPopup,
+    upgraded: true,
+  },
   receive: {getScreen: () => require('./receive-modal/container').default},
   removeAccount: {getScreen: () => require('./wallet/settings/popups').RemoveAccountPopup},
   renameAccount: {getScreen: () => require('./wallet/settings/popups').RenameAccountPopup},
