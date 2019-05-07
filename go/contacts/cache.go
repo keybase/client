@@ -74,6 +74,9 @@ func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keyb
 				res.Emails[string(v)] = cache.ContactLookupResult
 			}
 		} else {
+			// Pre-insert to the cache. If Provider.LookupAll does not find
+			// these, they will stay in the cache as unresolved, otherwise they
+			// are overwritten.
 			cachedMap.Emails[string(v)] = CachedLookupResult{Resolved: false, cachedAt: now}
 			remainingEmails = append(remainingEmails, v)
 		}
@@ -85,6 +88,7 @@ func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keyb
 				res.PhoneNumbers[string(v)] = cache.ContactLookupResult
 			}
 		} else {
+			// Pre-insert to the cache, same as for emails.
 			cachedMap.PhoneNumbers[string(v)] = CachedLookupResult{Resolved: false, cachedAt: now}
 			remainingNumbers = append(remainingNumbers, v)
 		}
