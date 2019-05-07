@@ -64,7 +64,6 @@ func TestRotate(t *testing.T) {
 
 func setupRotateTest(t *testing.T, implicit bool, public bool) (tc libkb.TestContext, owner, other *kbtest.FakeUser, teamID keybase1.TeamID, teamName keybase1.TeamName) {
 	tc = SetupTest(t, "team", 1)
-	defer tc.Cleanup()
 
 	var usernames []string
 
