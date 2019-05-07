@@ -882,11 +882,11 @@ func LoadHasRandomPw(mctx MetaContext, arg keybase1.LoadHasRandomPwArg) (res boo
 		if !arg.ForceRepoll {
 			if hasCache {
 				// We are allowed to return cache if we have any.
-				mctx.Warning("Unable to make a network request to has_random_pw. Returning cached value: %t", cachedValue)
+				mctx.Warning("Unable to make a network request to has_random_pw. Returning cached value: %t. Error: %s.", cachedValue, err)
 				return cachedValue, nil
 			}
 
-			mctx.Warning("Unable to make a network request to has_random_pw and there is no cache. Erroring out.")
+			mctx.Warning("Unable to make a network request to has_random_pw and there is no cache. Erroring out: %s.", err)
 		}
 		return res, err
 	}
