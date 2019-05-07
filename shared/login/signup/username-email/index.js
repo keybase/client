@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import {maxUsernameLength} from '../../../constants/signup'
 import {Wrapper, Input, BlankAvatar, ContinueButton} from '../common'
 
 type Props = {|
@@ -32,6 +33,7 @@ class UsernameAndEmail extends React.Component<Props, State> {
           autoFocus={true}
           hintText="Create a username"
           value={this.state.username}
+          maxLength={maxUsernameLength}
           errorText={this.props.username === this.state.username ? this.props.usernameError : ''}
           onChangeText={username => this.setState({username})}
         />

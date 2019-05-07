@@ -297,12 +297,7 @@ class Input extends React.Component<InputProps, InputState> {
       ])}
       gap="tiny"
     >
-      <Kb.Icon
-        type="iconfont-people"
-        style={styles.paddingXTiny}
-        color={Styles.globalColors.blue}
-        fontSize={24}
-      />
+      <Kb.Avatar teamname={teamname} size={32} />
       <Kb.Text type="Body">{teamname}</Kb.Text>
     </Kb.Box2>
   )

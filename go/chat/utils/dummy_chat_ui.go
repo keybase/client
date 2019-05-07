@@ -111,7 +111,7 @@ func (r DummyChatUI) ChatCommandMarkdown(ctx context.Context, arg chat1.ChatComm
 	return nil
 }
 
-func (r DummyChatUI) ChatTeamMentionUpdate(ctx context.Context, arg chat1.ChatTeamMentionUpdateArg) error {
+func (r DummyChatUI) ChatMaybeMentionUpdate(ctx context.Context, arg chat1.ChatMaybeMentionUpdateArg) error {
 	return nil
 }
 

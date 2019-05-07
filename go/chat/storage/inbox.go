@@ -564,6 +564,10 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, rcs 
 		if query.TlfID != nil && !query.TlfID.Eq(conv.Metadata.IdTriple.Tlfid) {
 			continue
 		}
+		if query.TopicName != nil && rc.LocalMetadata != nil &&
+			*query.TopicName != rc.LocalMetadata.TopicName {
+			continue
+		}
 		// If we are finalized and are superseded, then don't return this
 		if query.OneChatTypePerTLF == nil ||
 			(query.OneChatTypePerTLF != nil && *query.OneChatTypePerTLF) {
@@ -667,6 +671,18 @@ func (i *Inbox) queryConvIDsExist(ctx context.Context, ibox inboxDiskData,
 	return true
 }
 
+func (i *Inbox) queryNameExists(ctx context.Context, ibox inboxDiskData,
+	tlfID chat1.TLFID, membersType chat1.ConversationMembersType, topicName string,
+	topicType chat1.TopicType) bool {
+	for _, conv := range ibox.Conversations {
+		if conv.Conv.Metadata.IdTriple.Tlfid.Eq(tlfID) && conv.GetMembersType() == membersType &&
+			conv.GetTopicName() == topicName && conv.GetTopicType() == topicType {
+			return true
+		}
+	}
+	return false
+}
+
 func (i *Inbox) queryExists(ctx context.Context, ibox inboxDiskData, query *chat1.GetInboxQuery,
 	p *chat1.Pagination) bool {
 
@@ -679,6 +695,16 @@ func (i *Inbox) queryExists(ctx context.Context, ibox inboxDiskData, query *chat
 		}
 		i.Debug(ctx, "Read: queryExists: convIDs query, checking list: len: %d", len(convIDs))
 		return i.queryConvIDsExist(ctx, ibox, convIDs)
+	}
+
+	// Check for a name query that is after a single conversation
+	if query != nil && query.TlfID != nil && query.TopicType != nil && query.TopicName != nil &&
+		len(query.MembersTypes) == 1 {
+		if i.queryNameExists(ctx, ibox, *query.TlfID, query.MembersTypes[0], *query.TopicName,
+			*query.TopicType) {
+			i.Debug(ctx, "Read: queryExists: single name query hit")
+			return true
+		}
 	}
 
 	hquery, err := i.hashQuery(ctx, query)

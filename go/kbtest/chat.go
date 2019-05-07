@@ -1171,8 +1171,8 @@ func (c *ChatUI) ChatCommandMarkdown(ctx context.Context, convID chat1.Conversat
 	return nil
 }
 
-func (c *ChatUI) ChatTeamMentionUpdate(ctx context.Context, teamName, channel string,
-	info chat1.UITeamMention) error {
+func (c *ChatUI) ChatMaybeMentionUpdate(ctx context.Context, teamName, channel string,
+	info chat1.UIMaybeMentionInfo) error {
 	return nil
 }
 

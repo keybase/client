@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import {maxUsernameLength} from '../../constants/signup'
 import {SignupScreen} from '../common'
 
 type Props = {|
@@ -43,6 +44,7 @@ const EnterUsername = (props: Props) => (
           autoFocus={true}
           containerStyle={styles.input}
           placeholder="Pick a username"
+          maxLength={maxUsernameLength}
           onChangeText={props.onChangeUsername}
         />
         <Kb.Text type="BodySmall" style={styles.inputSub}>

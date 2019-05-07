@@ -4,7 +4,7 @@ import * as Constants from '../../constants/chat2'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Types from '../../constants/types/chat2'
 import * as Flow from '../../util/flow'
-import {isMobile} from '../../styles'
+import {isMobile, isIOS} from '../../constants/platform'
 import {connect, getRouteProps} from '../../util/container'
 import Normal from './normal/container'
 import NoConversation from './no-conversation'
@@ -38,6 +38,14 @@ class Conversation extends React.PureComponent<SwitchProps> {
   }
   _onWillBlur = () => {
     this.props.deselectConversation()
+  }
+  componentWillUnmount() {
+    // Workaround
+    // https://github.com/react-navigation/react-navigation/issues/5669
+    // Covers the case of swiping back on iOS
+    if (isIOS) {
+      this.props.deselectConversation()
+    }
   }
 
   render() {

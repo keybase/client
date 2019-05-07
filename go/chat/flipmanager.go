@@ -777,23 +777,8 @@ func (m *FlipManager) parseRange(arg string, nPlayersApprox int) (start flip.Sta
 	}, nil
 }
 
-func (m *FlipManager) resolveConvMembers(convMembers []gregor1.UID) (usernames []string, err error) {
-	var kuids []keybase1.UID
-	for _, uid := range convMembers {
-		kuids = append(kuids, keybase1.UID(uid.String()))
-	}
-	rows, err := m.G().UIDMapper.MapUIDsToUsernamePackages(context.TODO(), m.G(), kuids, 0, 0,
-		false)
-	if err != nil {
-		return usernames, err
-	}
-	for _, r := range rows {
-		usernames = append(usernames, r.NormalizedUsername.String())
-	}
-	return usernames, nil
-}
-
-func (m *FlipManager) parseSpecials(arg string, convMembers []gregor1.UID, nPlayersApprox int) (start flip.Start, metadata flipTextMetadata, err error) {
+func (m *FlipManager) parseSpecials(arg string, convMembers []chat1.ConversationLocalParticipant,
+	nPlayersApprox int) (start flip.Start, metadata flipTextMetadata, err error) {
 	switch {
 	case strings.HasPrefix(arg, "cards"):
 		deckShuffle, deckShuffleMetadata, _ := m.parseShuffle(m.deck, nPlayersApprox)
@@ -812,8 +797,8 @@ func (m *FlipManager) parseSpecials(arg string, convMembers []gregor1.UID, nPlay
 		var targets []string
 		handParts := strings.Split(strings.Join(toks[2:], " "), ",")
 		if len(handParts) == 1 && (handParts[0] == "@here" || handParts[0] == "@channel") {
-			if targets, err = m.resolveConvMembers(convMembers); err != nil {
-				return start, metadata, err
+			for _, memb := range convMembers {
+				targets = append(targets, memb.Username)
 			}
 		} else {
 			for _, pt := range handParts {
@@ -835,9 +820,9 @@ func (m *FlipManager) parseSpecials(arg string, convMembers []gregor1.UID, nPlay
 				ConvMemberShuffle: true,
 			}, nil
 		}
-		usernames, err := m.resolveConvMembers(convMembers)
-		if err != nil {
-			return start, metadata, err
+		var usernames []string
+		for _, memb := range convMembers {
+			usernames = append(usernames, memb.Username)
 		}
 		return flip.NewStartWithShuffle(m.clock.Now(), int64(len(usernames)), nPlayersApprox),
 			flipTextMetadata{
@@ -848,7 +833,7 @@ func (m *FlipManager) parseSpecials(arg string, convMembers []gregor1.UID, nPlay
 	return start, metadata, errFailedToParse
 }
 
-func (m *FlipManager) startFromText(text string, convMembers []gregor1.UID) (start flip.Start, metadata flipTextMetadata) {
+func (m *FlipManager) startFromText(text string, convMembers []chat1.ConversationLocalParticipant) (start flip.Start, metadata flipTextMetadata) {
 	var err error
 	nPlayersApprox := len(convMembers)
 	toks := strings.Split(strings.TrimRight(text, " "), " ")
@@ -958,7 +943,7 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 	m.Debug(ctx, "StartFlip: using gameID: %s", gameID)
 
 	// Get host conv using local storage, just bail out if we don't have it
-	hostConv, err := utils.GetUnverifiedConv(ctx, m.G(), uid, hostConvID,
+	hostConv, err := utils.GetVerifiedConv(ctx, m.G(), uid, hostConvID,
 		types.InboxSourceDataSourceLocalOnly)
 	if err != nil {
 		return err
@@ -1012,7 +997,7 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 
 	// Preserve the ephemeral lifetime from the conv/message to the game
 	// conversation.
-	if elf, err := utils.EphemeralLifetimeFromConv(ctx, m.G(), hostConv.Conv); err != nil {
+	if elf, err := utils.EphemeralLifetimeFromConv(ctx, m.G(), hostConv); err != nil {
 		m.Debug(ctx, "StartFlip: failed to get ephemeral lifetime from conv: %s", err)
 		return err
 	} else if elf != nil {
@@ -1026,8 +1011,8 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 	}
 
 	// Record metadata of the host message into the game thread as the first message
-	m.Debug(ctx, "StartFlip: generating parameters for %d players", len(hostConv.Conv.Metadata.AllList))
-	start, metadata := m.startFromText(text, hostConv.Conv.Metadata.AllList)
+	m.Debug(ctx, "StartFlip: generating parameters for %d players", len(hostConv.Info.Participants))
+	start, metadata := m.startFromText(text, hostConv.Info.Participants)
 	infoBody, err := json.Marshal(hostMessageInfo{
 		flipTextMetadata: metadata,
 		ConvID:           hostConvID,

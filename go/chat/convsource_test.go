@@ -538,11 +538,11 @@ func TestGetThreadHoleResolution(t *testing.T) {
 	syncer.isConnected = true
 	<-tc.ChatG.ConvLoader.Stop(context.Background())
 
-	conv := newConv(ctx, t, tc, uid, ri, sender, u.Username)
+	conv, remoteConv := newConv(ctx, t, tc, uid, ri, sender, u.Username)
 	convID := conv.GetConvID()
 	pt := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
-			Conv:        conv.Metadata.IdTriple,
+			Conv:        conv.Info.Triple,
 			Sender:      u.User.GetUID().ToBytes(),
 			TlfName:     u.Username,
 			TlfPublic:   false,
@@ -572,13 +572,13 @@ func TestGetThreadHoleResolution(t *testing.T) {
 		msg.ServerHeader = &res.MsgHeader
 	}
 
-	conv.MaxMsgs = []chat1.MessageBoxed{*msg}
-	conv.MaxMsgSummaries = []chat1.MessageSummary{msg.Summary()}
-	conv.ReaderInfo.MaxMsgid = msg.GetMessageID()
+	remoteConv.MaxMsgs = []chat1.MessageBoxed{*msg}
+	remoteConv.MaxMsgSummaries = []chat1.MessageSummary{msg.Summary()}
+	remoteConv.ReaderInfo.MaxMsgid = msg.GetMessageID()
 	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
 		return chat1.NewSyncInboxResWithIncremental(chat1.SyncIncrementalRes{
 			Vers:  vers + 1,
-			Convs: []chat1.Conversation{conv},
+			Convs: []chat1.Conversation{remoteConv},
 		}), nil
 	}
 	doSync(t, syncer, ri, uid)
@@ -637,7 +637,7 @@ func TestConversationLocking(t *testing.T) {
 		t.Skip()
 	}
 
-	conv := newConv(ctx, t, tc, uid, ri, sender, u.Username)
+	conv, _ := newConv(ctx, t, tc, uid, ri, sender, u.Username)
 
 	t.Logf("Trace 1 can get multiple locks")
 	var breaks []keybase1.TLFIdentifyFailure

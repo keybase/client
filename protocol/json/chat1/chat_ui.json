@@ -709,13 +709,6 @@
           "name": "channelNameMentions"
         },
         {
-          "type": {
-            "type": "array",
-            "items": "MaybeTeamMention"
-          },
-          "name": "teamMentions"
-        },
-        {
           "type": "boolean",
           "name": "isEphemeral"
         },
@@ -978,7 +971,55 @@
         "PAYMENT_0",
         "ATMENTION_1",
         "CHANNELNAMEMENTION_2",
-        "TEAMMENTION_3"
+        "MAYBEMENTION_3"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "UIMaybeMentionStatus",
+      "symbols": [
+        "UNKNOWN_0",
+        "USER_1",
+        "TEAM_2",
+        "NOTHING_3"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "UIMaybeMentionInfo",
+      "switch": {
+        "type": "UIMaybeMentionStatus",
+        "name": "status"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "UNKNOWN",
+            "def": false
+          },
+          "body": null
+        },
+        {
+          "label": {
+            "name": "USER",
+            "def": false
+          },
+          "body": null
+        },
+        {
+          "label": {
+            "name": "TEAM",
+            "def": false
+          },
+          "body": "UITeamMention"
+        },
+        {
+          "label": {
+            "name": "NOTHING",
+            "def": false
+          },
+          "body": null
+        }
       ]
     },
     {
@@ -1012,10 +1053,10 @@
         },
         {
           "label": {
-            "name": "TEAMMENTION",
+            "name": "MAYBEMENTION",
             "def": false
           },
-          "body": "MaybeTeamMention"
+          "body": "MaybeMention"
         }
       ]
     },
@@ -1801,7 +1842,7 @@
       ],
       "response": null
     },
-    "chatTeamMentionUpdate": {
+    "chatMaybeMentionUpdate": {
       "request": [
         {
           "name": "sessionID",
@@ -1817,7 +1858,7 @@
         },
         {
           "name": "info",
-          "type": "UITeamMention"
+          "type": "UIMaybeMentionInfo"
         }
       ],
       "response": null

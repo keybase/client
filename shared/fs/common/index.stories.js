@@ -79,6 +79,7 @@ export const commonProvider = {
   LoadPathMetadataWhenNeeded: ({path}: {path: Types.Path}) => ({
     loadPathMetadata: Sb.action('loadPathMetadata'),
     path,
+    syncingFoldersProgress: Constants.makeSyncingFoldersProgress(),
   }),
   NewFolder: ({path}: {path: Types.Path}) => ({
     canCreateNewFolder: Types.getPathLevel(path) > 2,
