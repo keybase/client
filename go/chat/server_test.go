@@ -3690,13 +3690,13 @@ func TestChatSrvGetInboxNonblockError(t *testing.T) {
 		for i := 0; i < numMsgs; i++ {
 			mustPostLocalForTest(t, ctc, users[0], conv, msg)
 		}
-		require.NoError(t,
-			ctc.world.Tcs[users[0].Username].ChatG.ConvSource.Clear(context.TODO(), conv.Id, uid))
 		g := ctc.world.Tcs[users[0].Username].Context()
-		ri := ctc.as(t, users[0]).ri
 		g.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {
 			return chat1.RemoteClient{Cli: errorClient{}}
 		})
+		require.NoError(t,
+			ctc.world.Tcs[users[0].Username].ChatG.ConvSource.Clear(context.TODO(), conv.Id, uid))
+		ri := ctc.as(t, users[0]).ri
 
 		ctx := ctc.as(t, users[0]).startCtx
 		_, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxNonblockLocal(ctx,
