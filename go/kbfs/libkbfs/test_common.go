@@ -779,14 +779,14 @@ func RestartCRForTesting(baseCtx context.Context, config Config,
 // SetCRFailureForTesting sets whether CR should always fail on the folder
 // branch.
 func SetCRFailureForTesting(ctx context.Context, config Config,
-	folderBranch data.FolderBranch, fail failModeForTest) error {
+	folderBranch data.FolderBranch, fail failModeForTesting) error {
 	kbfsOps, ok := config.KBFSOps().(*KBFSOpsStandard)
 	if !ok {
 		return errors.New("Unexpected KBFSOps type")
 	}
 
 	ops := kbfsOps.getOpsNoAdd(ctx, folderBranch)
-	ops.cr.failModeForTest = fail
+	ops.cr.setFailModeForTesting(fail)
 	return nil
 }
 

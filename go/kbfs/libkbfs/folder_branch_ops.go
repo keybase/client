@@ -816,9 +816,9 @@ func (fbo *folderBranchOps) forceStuckConflictForTesting(
 	}
 
 	// Set CR to always fail.
-	oldMode := fbo.cr.getFailModeForTest()
-	fbo.cr.setFailModeForTest(alwaysFailCR)
-	defer func() { fbo.cr.setFailModeForTest(oldMode) }()
+	oldMode := fbo.cr.getFailModeForTesting()
+	fbo.cr.setFailModeForTesting(alwaysFailCR)
+	defer func() { fbo.cr.setFailModeForTesting(oldMode) }()
 
 	// Make fake conflicting files to trigger CR. Make one for each
 	// attempt needed to result in stuck CR.
