@@ -133,7 +133,7 @@ export default routeTree
 const sharedRoutes = {
   airdrop: {getScreen: () => require('./airdrop/container').default, upgraded: true},
   settings: {getScreen: () => require('./wallet/settings/container').default, upgraded: true},
-  transactionDetails: {getScreen: () => require('./transaction-details/container').default},
+  transactionDetails: {getScreen: () => require('./transaction-details/container').default, upgraded: true},
 }
 
 const walletsSubRoutes = isMobile
