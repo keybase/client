@@ -948,7 +948,7 @@ export const getChatTarget = (path: Types.Path, me: string): string => {
   }
   if (parsedPath.kind === 'group-tlf' || parsedPath.kind === 'in-group-tlf') {
     if (parsedPath.writers.size === 1 && !parsedPath.readers && parsedPath.writers.first() === me) {
-      return 'myself'
+      return 'yourself'
     }
     if (parsedPath.writers.size + (parsedPath.readers ? parsedPath.readers.size : 0) === 2) {
       const notMe = parsedPath.writers.concat(parsedPath.readers || []).filter(u => u !== me)
