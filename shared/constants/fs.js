@@ -1036,7 +1036,7 @@ export const getSyncStatusInMergeProps = (
       }
       const inProgress: Types.PrefetchInProgress = pathItem.prefetchStatus
       if (inProgress.bytesTotal === 0) {
-        return 'sync-error'
+        return 'awaiting-to-sync'
       }
       return inProgress.bytesFetched / inProgress.bytesTotal
     default:

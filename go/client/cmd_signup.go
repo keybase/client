@@ -319,9 +319,11 @@ func (s *CmdSignup) runEngine() (retry bool, err error) {
 		GenPGPBatch: s.genPGP,
 		GenPaper:    s.genPaper,
 	}
-	email := s.fields.email.GetValue()
-	if email != "" {
-		rarg.Email = email
+	if s.fields.email != nil {
+		email := s.fields.email.GetValue()
+		if email != "" {
+			rarg.Email = email
+		}
 	}
 	res, err := s.scli.Signup(context.TODO(), rarg)
 	if err == nil {

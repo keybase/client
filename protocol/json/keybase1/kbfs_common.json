@@ -258,6 +258,10 @@
         {
           "type": "int64",
           "name": "storedBytesTotal"
+        },
+        {
+          "type": "boolean",
+          "name": "outOfSyncSpace"
         }
       ]
     }
