@@ -70,6 +70,7 @@ const (
 	PromptDescriptorPaperKey
 	PromptDescriptorStellarConfirm
 	PromptDescriptorResetAccount
+	PromptDescriptorPassphraseRecovery
 )
 
 const (

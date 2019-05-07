@@ -99,7 +99,9 @@ export const keybase1LogUiLog = 'engine-gen:keybase1LogUiLog'
 export const keybase1LoginUiDisplayPaperKeyPhrase = 'engine-gen:keybase1LoginUiDisplayPaperKeyPhrase'
 export const keybase1LoginUiDisplayPrimaryPaperKey = 'engine-gen:keybase1LoginUiDisplayPrimaryPaperKey'
 export const keybase1LoginUiDisplayResetProgress = 'engine-gen:keybase1LoginUiDisplayResetProgress'
+export const keybase1LoginUiExplainDeviceRecovery = 'engine-gen:keybase1LoginUiExplainDeviceRecovery'
 export const keybase1LoginUiGetEmailOrUsername = 'engine-gen:keybase1LoginUiGetEmailOrUsername'
+export const keybase1LoginUiPromptPassphraseRecovery = 'engine-gen:keybase1LoginUiPromptPassphraseRecovery'
 export const keybase1LoginUiPromptResetAccount = 'engine-gen:keybase1LoginUiPromptResetAccount'
 export const keybase1LoginUiPromptRevokePaperKeys = 'engine-gen:keybase1LoginUiPromptRevokePaperKeys'
 export const keybase1LogsendPrepareLogsend = 'engine-gen:keybase1LogsendPrepareLogsend'
@@ -276,7 +278,9 @@ type _Keybase1LogUiLogPayload = $ReadOnly<{|params: $Exact<$PropertyType<$Proper
 type _Keybase1LoginUiDisplayPaperKeyPhrasePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayPaperKeyPhrase'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayPaperKeyPhrase'>, 'outParam'>) => void}|}>
 type _Keybase1LoginUiDisplayPrimaryPaperKeyPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayPrimaryPaperKey'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayPrimaryPaperKey'>, 'outParam'>) => void}|}>
 type _Keybase1LoginUiDisplayResetProgressPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayResetProgress'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayResetProgress'>, 'outParam'>) => void}|}>
+type _Keybase1LoginUiExplainDeviceRecoveryPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.explainDeviceRecovery'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.explainDeviceRecovery'>, 'outParam'>) => void}|}>
 type _Keybase1LoginUiGetEmailOrUsernamePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.getEmailOrUsername'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.getEmailOrUsername'>, 'outParam'>) => void}|}>
+type _Keybase1LoginUiPromptPassphraseRecoveryPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.promptPassphraseRecovery'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.promptPassphraseRecovery'>, 'outParam'>) => void}|}>
 type _Keybase1LoginUiPromptResetAccountPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.promptResetAccount'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.promptResetAccount'>, 'outParam'>) => void}|}>
 type _Keybase1LoginUiPromptRevokePaperKeysPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.promptRevokePaperKeys'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.promptRevokePaperKeys'>, 'outParam'>) => void}|}>
 type _Keybase1LogsendPrepareLogsendPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.logsend.prepareLogsend'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.logsend.prepareLogsend'>, 'outParam'>) => void}|}>
@@ -453,7 +457,9 @@ export const createKeybase1LogUiLog = (payload: _Keybase1LogUiLogPayload) => ({p
 export const createKeybase1LoginUiDisplayPaperKeyPhrase = (payload: _Keybase1LoginUiDisplayPaperKeyPhrasePayload) => ({payload, type: keybase1LoginUiDisplayPaperKeyPhrase})
 export const createKeybase1LoginUiDisplayPrimaryPaperKey = (payload: _Keybase1LoginUiDisplayPrimaryPaperKeyPayload) => ({payload, type: keybase1LoginUiDisplayPrimaryPaperKey})
 export const createKeybase1LoginUiDisplayResetProgress = (payload: _Keybase1LoginUiDisplayResetProgressPayload) => ({payload, type: keybase1LoginUiDisplayResetProgress})
+export const createKeybase1LoginUiExplainDeviceRecovery = (payload: _Keybase1LoginUiExplainDeviceRecoveryPayload) => ({payload, type: keybase1LoginUiExplainDeviceRecovery})
 export const createKeybase1LoginUiGetEmailOrUsername = (payload: _Keybase1LoginUiGetEmailOrUsernamePayload) => ({payload, type: keybase1LoginUiGetEmailOrUsername})
+export const createKeybase1LoginUiPromptPassphraseRecovery = (payload: _Keybase1LoginUiPromptPassphraseRecoveryPayload) => ({payload, type: keybase1LoginUiPromptPassphraseRecovery})
 export const createKeybase1LoginUiPromptResetAccount = (payload: _Keybase1LoginUiPromptResetAccountPayload) => ({payload, type: keybase1LoginUiPromptResetAccount})
 export const createKeybase1LoginUiPromptRevokePaperKeys = (payload: _Keybase1LoginUiPromptRevokePaperKeysPayload) => ({payload, type: keybase1LoginUiPromptRevokePaperKeys})
 export const createKeybase1LogsendPrepareLogsend = (payload: _Keybase1LogsendPrepareLogsendPayload) => ({payload, type: keybase1LogsendPrepareLogsend})
@@ -630,7 +636,9 @@ export type Keybase1LogUiLogPayload = {|+payload: _Keybase1LogUiLogPayload, +typ
 export type Keybase1LoginUiDisplayPaperKeyPhrasePayload = {|+payload: _Keybase1LoginUiDisplayPaperKeyPhrasePayload, +type: 'engine-gen:keybase1LoginUiDisplayPaperKeyPhrase'|}
 export type Keybase1LoginUiDisplayPrimaryPaperKeyPayload = {|+payload: _Keybase1LoginUiDisplayPrimaryPaperKeyPayload, +type: 'engine-gen:keybase1LoginUiDisplayPrimaryPaperKey'|}
 export type Keybase1LoginUiDisplayResetProgressPayload = {|+payload: _Keybase1LoginUiDisplayResetProgressPayload, +type: 'engine-gen:keybase1LoginUiDisplayResetProgress'|}
+export type Keybase1LoginUiExplainDeviceRecoveryPayload = {|+payload: _Keybase1LoginUiExplainDeviceRecoveryPayload, +type: 'engine-gen:keybase1LoginUiExplainDeviceRecovery'|}
 export type Keybase1LoginUiGetEmailOrUsernamePayload = {|+payload: _Keybase1LoginUiGetEmailOrUsernamePayload, +type: 'engine-gen:keybase1LoginUiGetEmailOrUsername'|}
+export type Keybase1LoginUiPromptPassphraseRecoveryPayload = {|+payload: _Keybase1LoginUiPromptPassphraseRecoveryPayload, +type: 'engine-gen:keybase1LoginUiPromptPassphraseRecovery'|}
 export type Keybase1LoginUiPromptResetAccountPayload = {|+payload: _Keybase1LoginUiPromptResetAccountPayload, +type: 'engine-gen:keybase1LoginUiPromptResetAccount'|}
 export type Keybase1LoginUiPromptRevokePaperKeysPayload = {|+payload: _Keybase1LoginUiPromptRevokePaperKeysPayload, +type: 'engine-gen:keybase1LoginUiPromptRevokePaperKeys'|}
 export type Keybase1LogsendPrepareLogsendPayload = {|+payload: _Keybase1LogsendPrepareLogsendPayload, +type: 'engine-gen:keybase1LogsendPrepareLogsend'|}
@@ -809,7 +817,9 @@ export type Actions =
   | Keybase1LoginUiDisplayPaperKeyPhrasePayload
   | Keybase1LoginUiDisplayPrimaryPaperKeyPayload
   | Keybase1LoginUiDisplayResetProgressPayload
+  | Keybase1LoginUiExplainDeviceRecoveryPayload
   | Keybase1LoginUiGetEmailOrUsernamePayload
+  | Keybase1LoginUiPromptPassphraseRecoveryPayload
   | Keybase1LoginUiPromptResetAccountPayload
   | Keybase1LoginUiPromptRevokePaperKeysPayload
   | Keybase1LogsendPrepareLogsendPayload

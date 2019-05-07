@@ -537,6 +537,10 @@ export const kbfsCommonFSStatusCode = {
   error: 2,
 }
 
+export const loginUiPassphraseRecoveryPromptType = {
+  encryptedPgpKeys: 0,
+}
+
 export const loginUiResetPromptType = {
   complete: 0,
   enterNoDevices: 1,

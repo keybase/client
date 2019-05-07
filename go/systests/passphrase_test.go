@@ -11,6 +11,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/client"
+	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/service"
@@ -189,9 +190,11 @@ func testPassphraseRecover(t *testing.T, createDeviceClone bool) {
 		passphrase:   newPassphrase,
 	}
 	aUI = genericUI{
-		g:          tc2.G,
-		TerminalUI: aRecoverUI,
-		SecretUI:   aRecoverUI,
+		g:           tc2.G,
+		TerminalUI:  aRecoverUI,
+		SecretUI:    aRecoverUI,
+		ProvisionUI: aRecoverUI,
+		LoginUI:     aRecoverUI,
 	}
 	tcClient.G.SetUI(&aUI)
 	recoverCmd := client.NewCmdPassphraseRecoverRunner(tcClient.G)
@@ -290,9 +293,17 @@ func (r *testRecoverUIProvision) PromptResetAccount(_ context.Context, arg keyba
 func (r *testRecoverUIProvision) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
 	return nil
 }
+func (r *testRecoverUIProvision) PromptPassphraseRecovery(_ context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
+	return false, nil
+}
+func (r *testRecoverUIProvision) ExplainDeviceRecovery(_ context.Context, arg keybase1.ExplainDeviceRecoveryArg) error {
+	return nil
+}
 
 type testRecoverUIRecover struct {
 	libkb.Contextified
+	kbtest.TestProvisionUI
+	libkb.TestLoginUI
 	passphrase string
 }
 
