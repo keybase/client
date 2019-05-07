@@ -131,8 +131,8 @@ const routeTree = () => {
 export default routeTree
 
 const sharedRoutes = {
-  airdrop: {getScreen: () => require('./airdrop/container').default},
-  settings: {getScreen: () => require('./wallet/settings/container').default},
+  airdrop: {getScreen: () => require('./airdrop/container').default, upgraded: true},
+  settings: {getScreen: () => require('./wallet/settings/container').default, upgraded: true},
   transactionDetails: {getScreen: () => require('./transaction-details/container').default},
 }
 
