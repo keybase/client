@@ -377,39 +377,64 @@ func (a *ActiveDevice) valid() bool {
 	return a.signingKey != nil && a.encryptionKey != nil && !a.uv.IsNil() && !a.deviceID.IsNil() && a.deviceName != ""
 }
 
-func (a *ActiveDevice) Ctime(m MetaContext) (ctime keybase1.Time, err error) {
-	a.RLock()
-	if a.deviceCtime > 0 {
-		ctime = a.deviceCtime
-		a.RUnlock()
+func (a *ActiveDevice) Ctime(m MetaContext) (keybase1.Time, error) {
+	// make sure the device id doesn't change throughout this function
+	deviceID := a.DeviceID()
+
+	// check if we have a cached ctime already
+	ctime, err := a.ctimeCached(deviceID)
+	if err != nil {
+		return 0, err
+	}
+	if ctime > 0 {
 		return ctime, nil
 	}
-	if !a.valid() {
-		a.RUnlock()
-		return 0, errors.New("active device is not valid")
+
+	// need to build a device and ask the server for ctimes
+	decKeys, err := a.deviceKeys(deviceID)
+	if err != nil {
+		return 0, err
 	}
-
-	decKeys := NewDeviceWithKeysOnly(a.encryptionKey, a.signingKey)
-
-	// decKeys.Populate results in a network call, so unlock ActiveDevice.
-	deviceIDBefore := a.deviceID
-	a.RUnlock()
+	// Note: decKeys.Populate() makes a network API call
 	if _, err := decKeys.Populate(m); err != nil {
 		return 0, nil
 	}
 
+	// set the ctime value under a write lock
 	a.Lock()
-	// make sure this is the same device ID
-	if !a.deviceID.Eq(deviceIDBefore) {
-		a.Unlock()
+	defer a.Unlock()
+	if !a.deviceID.Eq(deviceID) {
+		return 0, errors.New("active device changed during ctime lookup")
+	}
+	a.deviceCtime = decKeys.DeviceCtime()
+
+	return a.deviceCtime, nil
+}
+
+func (a *ActiveDevice) ctimeCached(deviceID keybase1.DeviceID) (keybase1.Time, error) {
+	a.RLock()
+	defer a.RUnlock()
+
+	if !a.deviceID.Eq(deviceID) {
 		return 0, errors.New("active device changed during ctime lookup")
 	}
 
-	a.deviceCtime = decKeys.DeviceCtime()
-	ctime = a.deviceCtime
-	a.Unlock()
+	return a.deviceCtime, nil
+}
 
-	return ctime, nil
+func (a *ActiveDevice) deviceKeys(deviceID keybase1.DeviceID) (*DeviceWithKeys, error) {
+	a.RLock()
+	defer a.RUnlock()
+
+	if !a.valid() {
+		return nil, errors.New("active device is not valid")
+	}
+
+	if !a.deviceID.Eq(deviceID) {
+		return nil, errors.New("active device changed")
+	}
+
+	return NewDeviceWithKeysOnly(a.encryptionKey, a.signingKey), nil
 }
 
 func (a *ActiveDevice) IsValidFor(uid keybase1.UID, deviceID keybase1.DeviceID) bool {
