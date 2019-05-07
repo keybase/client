@@ -909,11 +909,12 @@ const waitForKbfsDaemon = (state, action) => {
     })
 }
 
-const getKbfsDaemonOnlineStatus = (state, action) =>
-  action.payload.rpcStatus === 'connected' &&
-  RPCTypes.SimpleFSSimpleFSAreWeConnectedToMDServerRpcPromise().then(connectedToMDServer =>
-    FsGen.createKbfsDaemonOnlineStatusChanged({online: connectedToMDServer})
-  )
+const updateKbfsDaemonOnlineStatus = (state, action) =>
+  state.fs.kbfsDaemonStatus.rpcStatus === 'connected' && state.config.osNetworkOnline
+    ? RPCTypes.SimpleFSSimpleFSAreWeConnectedToMDServerRpcPromise().then(connectedToMDServer =>
+        FsGen.createKbfsDaemonOnlineStatusChanged({online: connectedToMDServer})
+      )
+    : Promise.resolve(FsGen.createKbfsDaemonOnlineStatusChanged({online: false}))
 
 const onFSOnlineStatusChanged = (state, action) =>
   FsGen.createKbfsDaemonOnlineStatusChanged({online: action.payload.params.online})
@@ -985,8 +986,8 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
       loadTlfSyncConfig
     )
     yield* Saga.chainAction<FsGen.KbfsDaemonRpcStatusChangedPayload>(
-      FsGen.kbfsDaemonRpcStatusChanged,
-      getKbfsDaemonOnlineStatus
+      [FsGen.kbfsDaemonRpcStatusChanged, ConfigGen.osNetworkStatusChanged],
+      updateKbfsDaemonOnlineStatus
     )
     yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSOnlineStatusChangedPayload>(
       EngineGen.keybase1NotifyFSFSOnlineStatusChanged,

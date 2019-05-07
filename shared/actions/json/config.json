@@ -113,6 +113,9 @@
       "_description": "Save critical check status",
       "status": "'critical' | 'suggested' | 'ok'",
       "message": "string",
+    },
+    "osNetworkStatusChanged": {
+      "online": "boolean",
     }
   }
 }
