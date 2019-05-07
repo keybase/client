@@ -1733,7 +1733,11 @@
       "fields": [
         {
           "type": "string",
-          "name": "username"
+          "name": "changedBy"
+        },
+        {
+          "type": "boolean",
+          "name": "cannotWrite"
         },
         {
           "type": "keybase1.TeamRole",

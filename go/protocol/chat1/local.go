@@ -3161,14 +3161,16 @@ func (o ConversationErrorRekey) DeepCopy() ConversationErrorRekey {
 }
 
 type ConversationMinWriterRoleInfoLocal struct {
-	Username string            `codec:"username" json:"username"`
-	Role     keybase1.TeamRole `codec:"role" json:"role"`
+	ChangedBy   string            `codec:"changedBy" json:"changedBy"`
+	CannotWrite bool              `codec:"cannotWrite" json:"cannotWrite"`
+	Role        keybase1.TeamRole `codec:"role" json:"role"`
 }
 
 func (o ConversationMinWriterRoleInfoLocal) DeepCopy() ConversationMinWriterRoleInfoLocal {
 	return ConversationMinWriterRoleInfoLocal{
-		Username: o.Username,
-		Role:     o.Role.DeepCopy(),
+		ChangedBy:   o.ChangedBy,
+		CannotWrite: o.CannotWrite,
+		Role:        o.Role.DeepCopy(),
 	}
 }
 

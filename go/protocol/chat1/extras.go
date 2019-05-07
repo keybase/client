@@ -2061,11 +2061,11 @@ func (i *ConversationMinWriterRoleInfoLocal) String() string {
 	if i == nil {
 		return "Minimum writer role for this conversation is not set."
 	}
-	usernameSuffix := "."
-	if i.Username != "" {
-		usernameSuffix = fmt.Sprintf(", last set by %v.", i.Username)
+	changedBySuffix := "."
+	if i.ChangedBy != "" {
+		changedBySuffix = fmt.Sprintf(", last set by %v.", i.ChangedBy)
 	}
-	return fmt.Sprintf("Minimum writer role for this conversation is %v%v", i.Role, usernameSuffix)
+	return fmt.Sprintf("Minimum writer role for this conversation is %v%v", i.Role, changedBySuffix)
 }
 
 func (s *ConversationSettings) IsNil() bool {

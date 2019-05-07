@@ -559,7 +559,8 @@ protocol local {
   }
 
   record ConversationMinWriterRoleInfoLocal {
-    string username;
+    string changedBy;
+    boolean cannotWrite;
     keybase1.TeamRole role;
   }
 
