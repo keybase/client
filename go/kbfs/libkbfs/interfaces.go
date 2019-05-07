@@ -276,7 +276,7 @@ type KBFSOps interface {
 	// favorites list and fetch a new list from the server.  The
 	// effects are asychronous; if there's an error refreshing the
 	// favorites, the cached favorites will become empty.
-	RefreshCachedFavorites(ctx context.Context)
+	RefreshCachedFavorites(ctx context.Context, mode FavoritesRefreshMode)
 	// ClearCachedFavorites tells the instances to forget any cached
 	// favorites list, e.g. when a user logs out.
 	ClearCachedFavorites(ctx context.Context)

@@ -33,6 +33,7 @@ func favTestInit(t *testing.T, testingDiskCache bool) (
 				UID:  keybase1.MakeTestUID(16),
 			}, nil)
 	}
+	config.mockClock.EXPECT().Now().Return(time.Unix(0, 0)).AnyTimes()
 
 	return mockCtrl, config, context.Background()
 }
@@ -64,7 +65,6 @@ func TestFavoritesAddTwice(t *testing.T) {
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(keybase1.FavoritesResult{}, nil)
 	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), fav1.ToKBFolder()).
 		Return(nil)
-	config.mockClock.EXPECT().Now().Return(time.Unix(0, 0)).Times(2)
 	if err := f.Add(ctx, fav1); err != nil {
 		t.Fatalf("Couldn't add favorite: %v", err)
 	}
@@ -96,7 +96,6 @@ func TestFavoriteAddCreatedAlwaysGoThrough(t *testing.T) {
 	}
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(keybase1.FavoritesResult{}, nil)
 	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), expected1).Return(nil)
-	config.mockClock.EXPECT().Now().Return(time.Unix(0, 0)).Times(2)
 	if err := f.Add(ctx, fav1); err != nil {
 		t.Fatalf("Couldn't add favorite: %v", err)
 	}
@@ -136,7 +135,6 @@ func TestFavoritesAddCreated(t *testing.T) {
 		Created: true,
 	}
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(keybase1.FavoritesResult{}, nil)
-	config.mockClock.EXPECT().Now().Return(time.Unix(0, 0))
 	expected := keybase1.Folder{
 		Name:       "test",
 		FolderType: keybase1.FolderType_PUBLIC,
@@ -170,7 +168,6 @@ func TestFavoritesAddRemoveAdd(t *testing.T) {
 		Times(2).Return(nil)
 	config.mockKbpki.EXPECT().FavoriteDelete(gomock.Any(), folder1).
 		Return(nil)
-	config.mockClock.EXPECT().Now().Return(time.Unix(0, 0)).Times(3)
 
 	if err := f.Add(ctx, fav1); err != nil {
 		t.Fatalf("Couldn't add favorite: %v", err)
@@ -203,7 +200,6 @@ func TestFavoritesAddAsync(t *testing.T) {
 		Created: false,
 	}
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(keybase1.FavoritesResult{}, nil)
-	config.mockClock.EXPECT().Now().Return(time.Unix(0, 0))
 
 	c := make(chan struct{})
 	// Block until there are multiple outstanding calls
@@ -238,8 +234,6 @@ func TestFavoritesListFailsDuringAddAsync(t *testing.T) {
 		Data:    favorites.Data{},
 		Created: false,
 	}
-
-	config.mockClock.EXPECT().Now().Return(time.Unix(0, 0)).Times(2)
 
 	// Cancel the first list request
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(keybase1.
@@ -276,7 +270,6 @@ func TestFavoritesControlUserHistory(t *testing.T) {
 	config.mockKbs.EXPECT().EncryptFavorites(gomock.Any(),
 		gomock.Any()).Return(nil, nil)
 	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(nil, nil).Times(2)
-	config.mockClock.EXPECT().Now().Return(time.Unix(0, 0)).Times(2)
 	config.mockKbpki.EXPECT().FavoriteDelete(gomock.Any(), gomock.Any()).
 		Return(nil)
 
@@ -347,7 +340,6 @@ func TestFavoritesGetAll(t *testing.T) {
 	}
 	// Mock out the API server.
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(res, nil)
-	config.mockClock.EXPECT().Now().Return(time.Unix(0, 0)).Times(1)
 	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(nil, nil).Times(2)
 	config.mockKbs.EXPECT().EncryptFavorites(gomock.Any(),
 		gomock.Any()).Return(nil, nil)
@@ -385,7 +377,6 @@ func TestFavoritesDiskCache(t *testing.T) {
 
 	f := NewFavorites(config)
 
-	config.mockClock.EXPECT().Now().Return(time.Unix(0, 0)).Times(2)
 	f.Initialize(ctx)
 
 	// Add a favorite. Expect that it will be encoded to disk.
