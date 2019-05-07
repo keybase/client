@@ -207,7 +207,7 @@ export const newModalRoutes = {
     getScreen: () => require('./wallet/settings/popups').ReallyRemoveAccountPopup,
     upgraded: true,
   },
-  receive: {getScreen: () => require('./receive-modal/container').default},
+  receive: {getScreen: () => require('./receive-modal/container').default, upgraded: true},
   removeAccount: {getScreen: () => require('./wallet/settings/popups').RemoveAccountPopup},
   renameAccount: {getScreen: () => require('./wallet/settings/popups').RenameAccountPopup},
   setDefaultAccount: {getScreen: () => require('./wallet/settings/popups').SetDefaultAccountPopup},

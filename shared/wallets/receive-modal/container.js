@@ -1,19 +1,20 @@
 // @flow
-import {connect, type RouteProps} from '../../util/container'
+import * as Container from '../../util/container'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
 import * as WalletsGen from '../../actions/wallets-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import Receive from '.'
 
-export type OwnProps = RouteProps<
+export type OwnProps = Container.RouteProps<
   {
     accountID: Types.AccountID,
   },
   {}
 >
 
-const mapStateToProps = (state, {routeProps}) => {
-  const accountID = routeProps.get('accountID')
+const mapStateToProps = (state, ownProps) => {
+  const accountID = Container.getRouteProps(ownProps, 'accountID')
   const account = Constants.getAccount(state, accountID)
   return {
     accountName: account.name,
@@ -23,11 +24,11 @@ const mapStateToProps = (state, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
-  navigateUp: () => dispatch(navigateUp()),
+const mapDispatchToProps = (dispatch, ownProps) => ({
+  navigateUp: () => dispatch(RouteTreeGen.createNavigateUp()),
   onRequest: () => {
-    const accountID = routeProps.get('accountID')
-    dispatch(navigateUp())
+    const accountID = Container.getRouteProps(ownProps, 'accountID')
+    dispatch(RouteTreeGen.createNavigateUp())
     dispatch(
       WalletsGen.createOpenSendRequestForm({
         from: accountID,
@@ -43,7 +44,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
   onRequest: dispatchProps.onRequest,
 })
 
-export default connect<OwnProps, _, _, _, _>(
+export default Container.connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps
