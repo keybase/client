@@ -376,6 +376,11 @@ protocol SimpleFS {
   void simpleFSClearConflictState(Path path);
 
   /**
+   Force a TLF into a stuck conflict state (for testing).
+   */
+  void simpleFSForceStuckConflict(Path path);
+
+  /**
    Get sync status.
    */
   FSSyncStatus simpleFSSyncStatus(ListFilter filter);

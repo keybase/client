@@ -1351,6 +1351,10 @@ type SimpleFSClearConflictStateArg struct {
 	Path Path `codec:"path" json:"path"`
 }
 
+type SimpleFSForceStuckConflictArg struct {
+	Path Path `codec:"path" json:"path"`
+}
+
 type SimpleFSSyncStatusArg struct {
 	Filter ListFilter `codec:"filter" json:"filter"`
 }
@@ -1468,6 +1472,8 @@ type SimpleFSInterface interface {
 	SimpleFSDumpDebuggingInfo(context.Context) error
 	// Clear the conflict state of a TLF.
 	SimpleFSClearConflictState(context.Context, Path) error
+	// Force a TLF into a stuck conflict state (for testing).
+	SimpleFSForceStuckConflict(context.Context, Path) error
 	// Get sync status.
 	SimpleFSSyncStatus(context.Context, ListFilter) (FSSyncStatus, error)
 	// This RPC generates a random token to be used by a client that needs to
@@ -1875,6 +1881,21 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSForceStuckConflict": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSForceStuckConflictArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSForceStuckConflictArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSForceStuckConflictArg)(nil), args)
+						return
+					}
+					err = i.SimpleFSForceStuckConflict(ctx, typedArgs[0].Path)
+					return
+				},
+			},
 			"simpleFSSyncStatus": {
 				MakeArg: func() interface{} {
 					var ret [1]SimpleFSSyncStatusArg
@@ -2221,6 +2242,13 @@ func (c SimpleFSClient) SimpleFSDumpDebuggingInfo(ctx context.Context) (err erro
 func (c SimpleFSClient) SimpleFSClearConflictState(ctx context.Context, path Path) (err error) {
 	__arg := SimpleFSClearConflictStateArg{Path: path}
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSClearConflictState", []interface{}{__arg}, nil)
+	return
+}
+
+// Force a TLF into a stuck conflict state (for testing).
+func (c SimpleFSClient) SimpleFSForceStuckConflict(ctx context.Context, path Path) (err error) {
+	__arg := SimpleFSForceStuckConflictArg{Path: path}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSForceStuckConflict", []interface{}{__arg}, nil)
 	return
 }
 

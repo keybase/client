@@ -2482,6 +2482,23 @@ func (k *SimpleFS) SimpleFSClearConflictState(ctx context.Context,
 	return k.config.KBFSOps().ClearConflictView(ctx, tlfID)
 }
 
+// SimpleFSForceStuckConflict implements the SimpleFS interface.
+func (k *SimpleFS) SimpleFSForceStuckConflict(
+	ctx context.Context, path keybase1.Path) error {
+	ctx = k.makeContext(ctx)
+	t, tlfName, _, _, err := remoteTlfAndPath(path)
+	if err != nil {
+		return err
+	}
+	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
+		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, tlfName, t)
+	if err != nil {
+		return err
+	}
+	tlfID := tlfHandle.TlfID()
+	return k.config.KBFSOps().ForceStuckConflictForTesting(ctx, tlfID)
+}
+
 // SimpleFSAreWeConnectedToMDServer implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSAreWeConnectedToMDServer(ctx context.Context) (bool, error) {
 	ctx = k.makeContext(ctx)
