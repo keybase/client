@@ -402,6 +402,19 @@ func (u *User) getSyncedSecretKeyLogin(m MetaContext, lctx LoginContext) (ret *S
 
 func (u *User) GetSyncedSecretKey(m MetaContext) (ret *SKB, err error) {
 	defer m.Trace("User#GetSyncedSecretKey", func() error { return err })()
+	skbs, err := u.GetSyncedSecretKeys(m)
+	if err != nil {
+		return nil, err
+	}
+	if len(skbs) == 0 {
+		return nil, nil
+	}
+	m.Debug("NOTE: using GetSyncedSecretKey, returning first secret key from randomly ordered map")
+	return skbs[0], nil
+}
+
+func (u *User) GetSyncedSecretKeys(m MetaContext) (ret []*SKB, err error) {
+	defer m.Trace("User#GetSyncedSecretKeys", func() error { return err })()
 
 	if err = u.SyncSecrets(m); err != nil {
 		return
@@ -418,7 +431,7 @@ func (u *User) GetSyncedSecretKey(m MetaContext) (ret *SKB, err error) {
 		return nil, err
 	}
 
-	ret, err = syncer.FindActiveKey(ckf)
+	ret, err = syncer.FindActiveKeys(ckf)
 	return ret, err
 }
 
