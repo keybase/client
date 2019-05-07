@@ -10,6 +10,11 @@ protocol favorite {
     TEAM_3
   }
 
+  enum FolderConflictType {
+    NONE_0,
+    IN_CONFLICT_1,
+    IN_CONFLICT_AND_STUCK_2
+  }
 
   /**
     Folder represents a favorite top-level folder in kbfs.
@@ -33,6 +38,9 @@ protocol favorite {
     array<User> resetMembers;
 
     union { null, Time } mtime;
+
+    // Is the local view of this folder hosed due to stuck CR?
+    FolderConflictType conflictType;
   }
 
   // Each of your TLFs is in one of 3 states with respect to favoriting. Either
