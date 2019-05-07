@@ -1332,7 +1332,7 @@ func (mr *MockKBFSOpsMockRecorder) Read(arg0, arg1, arg2, arg3 interface{}) *gom
 }
 
 // RefreshCachedFavorites mocks base method
-func (m *MockKBFSOps) RefreshCachedFavorites(arg0 context.Context, arg1 bool) {
+func (m *MockKBFSOps) RefreshCachedFavorites(arg0 context.Context, arg1 FavoritesRefreshMode) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "RefreshCachedFavorites", arg0, arg1)
 }

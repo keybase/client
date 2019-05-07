@@ -714,6 +714,13 @@ func (f *Favorites) RefreshCache(ctx context.Context, mode FavoritesRefreshMode)
 	}
 	select {
 	case f.reqChan <- req:
+		go func() {
+			<-req.done
+			if req.err != nil {
+				f.log.CDebugf(ctx, "Failed to refresh cached Favorites ("+
+					"error in main loop): %+v", req.err)
+			}
+		}()
 	case <-ctx.Done():
 		// Because the request will not make it to the main processing
 		// loop, mark it as done and clear the refresh channel here.
