@@ -27,10 +27,13 @@ if (__DEV__ && !__STORYBOOK__) {
 const socketName = 'keybased.sock'
 
 const getLinuxPaths = () => {
+  const useXDG = !__DEV__ && !process.env['KEYBASE_XDG_OVERRIDE']
+
   // If XDG_RUNTIME_DIR is defined use that, else use $HOME/.config.
   const homeConfigDir = path.join(homeEnv, '.config')
-  const runtimeDir = process.env['XDG_RUNTIME_DIR'] || ''
-  const cacheDir = runtimeDir || homeConfigDir
+  const runtimeDir = (useXDG && process.env['XDG_RUNTIME_DIR']) || ''
+  const socketDir = (useXDG && runtimeDir) || homeConfigDir
+
   const appName = `keybase${runMode === 'prod' ? '' : `.${runMode}`}`
 
   if (!runtimeDir && !homeEnv) {
@@ -39,16 +42,16 @@ const getLinuxPaths = () => {
     )
   }
 
-  const logDir = `${process.env['XDG_CACHE_HOME'] || `${homeEnv}/.cache`}/${appName}/`
+  const logDir = `${(useXDG && process.env['XDG_CACHE_HOME']) || `${homeEnv}/.cache`}/${appName}/`
 
   return {
     cacheRoot: logDir,
-    dataRoot: `${process.env['XDG_DATA_HOME'] || `${homeEnv}/.local/share`}/${appName}/`,
+    dataRoot: `${(useXDG && process.env['XDG_DATA_HOME']) || `${homeEnv}/.local/share`}/${appName}/`,
     jsonDebugFileName: `${logDir}keybase.app.debug`,
     logDir,
     logFileName: `${logDir}Keybase.app.log`,
     serverConfigFileName: `${logDir}keybase.app.serverConfig`,
-    socketPath: path.join(cacheDir, appName, socketName),
+    socketPath: path.join(socketDir, appName, socketName),
   }
 }
 
