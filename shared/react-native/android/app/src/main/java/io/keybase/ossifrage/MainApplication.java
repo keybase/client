@@ -81,7 +81,7 @@ public class MainApplication extends Application implements ReactApplication {
                         new FastImageViewPackage(),
                         new LottiePackage(),
                         new RNGestureHandlerPackage(),
-                        new RNScreensPackage(),
+                        // new RNScreensPackage(),
                         new ReanimatedPackage()
                 );
             }
@@ -98,7 +98,7 @@ public class MainApplication extends Application implements ReactApplication {
                     new FastImageViewPackage(),
                     new LottiePackage(),
                     new RNGestureHandlerPackage(),
-                    new RNScreensPackage(),
+                    // new RNScreensPackage(),
                     new ReanimatedPackage()
             );
         }

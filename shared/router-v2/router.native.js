@@ -13,14 +13,14 @@ import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {LeftAction} from '../common-adapters/header-hoc'
 import * as Constants from '../constants/router2'
 import * as Shared from './router.shared'
-import {useScreens} from 'react-native-screens'
+// import {useScreens} from 'react-native-screens'
 import * as Shim from './shim.native'
 import {debounce} from 'lodash-es'
 import logger from '../logger'
 import OutOfDate from '../app/out-of-date'
 
 // turn on screens
-useScreens()
+// useScreens()
 
 // Options used by default on all navigators
 // For info on what is passed to what see here: https://github.com/react-navigation/react-navigation-stack/blob/master/src/views/Header/Header.js
