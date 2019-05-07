@@ -234,6 +234,18 @@ func (s *CmdSignup) checkRegistered() (err error) {
 	s.G().Log.Debug("+ clientModeSignupEngine::CheckRegistered")
 	defer s.G().Log.Debug("- clientModeSignupEngine::CheckRegistered -> %s", libkb.ErrToOk(err))
 
+	ucli, err := GetUserClient(s.G())
+	if err != nil {
+		return err
+	}
+	hasRandomPw, err := ucli.LoadHasRandomPw(context.TODO(), keybase1.LoadHasRandomPwArg{})
+	if err != nil {
+		return err
+	}
+	if hasRandomPw {
+		return fmt.Errorf("Cannot sign up while logged into an account with no password.\nCreate a password with `keybase passphrase change` first.")
+	}
+
 	var rres keybase1.GetCurrentStatusRes
 
 	if rres, err = s.ccli.GetCurrentStatus(context.TODO(), 0); err != nil {
