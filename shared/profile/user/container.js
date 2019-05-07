@@ -82,13 +82,22 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   ) {
     onAddIdentity = dispatchProps.onAddIdentity
   }
+
+  const notAUser = stateProps.state === 'notAUserYet'
+  const assertionKeys = stateProps._assertions
+    ? stateProps._assertions
+        .sort((a, b) => a.priority - b.priority)
+        .keySeq()
+        .toArray()
+    : notAUser
+    ? [stateProps.username]
+    : null
+
+  const onReload = notAUser
+    ? () => dispatchProps._onReload(stateProps.username, stateProps.userIsYou)
+    : () => {}
   return {
-    assertionKeys: stateProps._assertions
-      ? stateProps._assertions
-          .sort((a, b) => a.priority - b.priority)
-          .keySeq()
-          .toArray()
-      : null,
+    assertionKeys,
     backgroundColorType: stateProps.backgroundColorType,
     followThem: stateProps.followThem,
     followersCount: stateProps.followersCount,
@@ -96,7 +105,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onAddIdentity,
     onBack: dispatchProps.onBack,
     onEditAvatar: stateProps.userIsYou ? dispatchProps._onEditAvatar : null,
-    onReload: () => dispatchProps._onReload(stateProps.username, stateProps.userIsYou),
+    onReload,
     onSearch: dispatchProps.onSearch,
     reason: stateProps.reason,
     state: stateProps.state,

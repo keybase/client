@@ -1,6 +1,7 @@
 // @flow
 import * as Tracker2Gen from './tracker2-gen'
 import * as ProfileGen from './profile-gen'
+import * as WaitingGen from './waiting-gen'
 import * as EngineGen from './engine-gen-gen'
 import * as Saga from '../util/saga'
 import * as Constants from '../constants/tracker2'
@@ -143,6 +144,13 @@ function* load(state, action) {
       })
     )
   } catch (err) {
+    if (err.code === RPCTypes.constantsStatusCode.scresolutionfailed) {
+      // not a user, handle differently, don't show reloadable
+      yield Saga.put(WaitingGen.createClearWaiting({key: Constants.profileLoadWaitingKey}))
+      yield Saga.put(
+        Tracker2Gen.createUpdateResult({guiID: action.payload.guiID, reason: null, result: 'notAUserYet'})
+      )
+    }
     // hooked into reloadable
     logger.error(`Error loading profile: ${err.message}`)
   }
