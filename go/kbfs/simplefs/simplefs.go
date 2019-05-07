@@ -2468,7 +2468,11 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(
 // SimpleFSClearConflictState implements the SimpleFS interface.
 func (k *SimpleFS) SimpleFSClearConflictState(ctx context.Context,
 	path keybase1.Path) error {
-	ctx = k.makeContext(ctx)
+	ctx, err := k.startOpWrapContext(k.makeContext(ctx))
+	if err != nil {
+		return err
+	}
+	defer func() { libcontext.CleanupCancellationDelayer(ctx) }()
 	t, tlfName, _, _, err := remoteTlfAndPath(path)
 	if err != nil {
 		return err
@@ -2485,7 +2489,11 @@ func (k *SimpleFS) SimpleFSClearConflictState(ctx context.Context,
 // SimpleFSForceStuckConflict implements the SimpleFS interface.
 func (k *SimpleFS) SimpleFSForceStuckConflict(
 	ctx context.Context, path keybase1.Path) error {
-	ctx = k.makeContext(ctx)
+	ctx, err := k.startOpWrapContext(k.makeContext(ctx))
+	if err != nil {
+		return err
+	}
+	defer func() { libcontext.CleanupCancellationDelayer(ctx) }()
 	t, tlfName, _, _, err := remoteTlfAndPath(path)
 	if err != nil {
 		return err
