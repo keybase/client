@@ -31,17 +31,17 @@ func makeProvider() *MockContactsProvider {
 }
 
 func (c *MockContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
-	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (ContactLookupMap, error) {
+	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (BulkLookupResult, error) {
 
-	ret := make(ContactLookupMap)
+	ret := MakeBulkLookupResult()
 	for _, email := range emails {
 		if user, found := c.emails[email]; found {
-			ret[string(email)] = ContactLookupResult{UID: user.UID}
+			ret.Emails[string(email)] = ContactLookupResult{UID: user.UID}
 		}
 	}
 	for _, number := range numbers {
 		if user, found := c.phoneNumbers[number]; found {
-			ret[string(number)] = ContactLookupResult{UID: user.UID}
+			ret.PhoneNumbers[string(number)] = ContactLookupResult{UID: user.UID}
 		}
 	}
 	return ret, nil

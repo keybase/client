@@ -11,7 +11,7 @@ import (
 )
 
 type ContactsProvider interface {
-	LookupAll(libkb.MetaContext, []keybase1.EmailAddress, []keybase1.RawPhoneNumber, keybase1.RegionCode) (ContactLookupMap, error)
+	LookupAll(libkb.MetaContext, []keybase1.EmailAddress, []keybase1.RawPhoneNumber, keybase1.RegionCode) (BulkLookupResult, error)
 	FillUsernames(libkb.MetaContext, []keybase1.ProcessedContact)
 }
 
@@ -45,7 +45,7 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 		}
 	}
 
-	mctx.Debug("Going to look up %d emails and %d phone numbers", len(emailSet), len(phoneSet))
+	mctx.Debug("Going to look up %d emails and %d phone numbers using provider", len(emailSet), len(phoneSet))
 
 	// contactIndex -> true for all contacts that have at least one component resolved.
 	contactsFound := make(map[int]struct{})
@@ -82,7 +82,7 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 						continue
 					}
 
-					if lookupRes, found := providerRes[component.ValueString()]; found {
+					if lookupRes, found := providerRes.FindComponent(component); found {
 						if _, userFound := usersFound[lookupRes.UID]; userFound {
 							// This user was already resolved by looking up another
 							// component or another contact.
