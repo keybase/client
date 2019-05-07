@@ -140,7 +140,7 @@ const walletsSubRoutes = isMobile
   ? {}
   : {
       ...sharedRoutes,
-      wallet: {getScreen: () => require('./wallet/container').default},
+      wallet: {getScreen: () => require('./wallet/container').default, upgraded: true},
     }
 
 class WalletsSubNav extends React.PureComponent<any> {
