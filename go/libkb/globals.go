@@ -701,7 +701,7 @@ func (g *GlobalContext) Shutdown() error {
 			epick.Push(hook())
 		}
 
-		g.Identify3State.Shutdown()
+		<-g.Identify3State.Shutdown()
 
 		err = epick.Error()
 

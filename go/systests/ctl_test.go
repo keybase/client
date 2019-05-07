@@ -101,6 +101,9 @@ func TestVersionAndStop(t *testing.T) {
 }
 
 func CtlStop(g *libkb.GlobalContext) error {
+	if err := g.Shutdown(); err != nil {
+		return err
+	}
 	cli, err := client.GetCtlClient(g)
 	if err != nil {
 		return err
