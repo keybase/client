@@ -435,7 +435,7 @@ func (a *ActiveDevice) NISTAndUIDDeviceID(ctx context.Context) (*NIST, keybase1.
 	a.RLock()
 	defer a.RUnlock()
 	nist, err := a.nistLocked(ctx)
-	return nist, a.uv.Uid, a.DeviceID(), err
+	return nist, a.uv.Uid, a.deviceID, err
 }
 
 func (a *ActiveDevice) SyncSecretsForUID(m MetaContext, u keybase1.UID, force bool) (ret *SecretSyncer, err error) {
