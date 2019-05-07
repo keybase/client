@@ -335,7 +335,8 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 				if err != nil {
 					idx.Debug(ctx, "unable to update ui %v", err)
 				} else {
-					idx.Debug(ctx, "%v is %d%% indexed", rconv.GetName(), percentIndexed)
+					idx.Debug(ctx, "%v is %d%% indexed, inbox is %d%% indexed",
+						rconv.GetName(), md.PercentIndexed(conv), percentIndexed)
 				}
 			}
 		}
