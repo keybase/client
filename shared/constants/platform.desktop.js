@@ -27,7 +27,7 @@ if (__DEV__ && !__STORYBOOK__) {
 const socketName = 'keybased.sock'
 
 const getLinuxPaths = () => {
-  const useXDG = !__DEV__ && !process.env['KEYBASE_XDG_OVERRIDE']
+  const useXDG = runMode !== 'devel' && !process.env['KEYBASE_XDG_OVERRIDE']
 
   // If XDG_RUNTIME_DIR is defined use that, else use $HOME/.config.
   const homeConfigDir = path.join(homeEnv, '.config')
