@@ -108,13 +108,15 @@ const loadTlfSyncConfig = (state, action) => {
   }
   return RPCTypes.SimpleFSSimpleFSFolderSyncConfigAndStatusRpcPromise({
     path: Constants.pathToRPCPath(tlfPath),
-  }).then(result =>
-    FsGen.createTlfSyncConfigLoaded({
-      syncConfig: getSyncConfigFromRPC(parsedPath.tlfName, parsedPath.tlfType, result.config),
-      tlfName: parsedPath.tlfName,
-      tlfType: parsedPath.tlfType,
-    })
-  )
+  })
+    .then(result =>
+      FsGen.createTlfSyncConfigLoaded({
+        syncConfig: getSyncConfigFromRPC(parsedPath.tlfName, parsedPath.tlfType, result.config),
+        tlfName: parsedPath.tlfName,
+        tlfType: parsedPath.tlfType,
+      })
+    )
+    .catch(makeUnretriableErrorHandler(action, tlfPath))
 }
 
 const setTlfSyncConfig = (state, action) =>

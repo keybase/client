@@ -18,7 +18,9 @@ const makeErrorHandler = (action: FsGen.Actions, path: ?Types.Path, retriable: b
         // team doesn't exist
         error.desc.includes('Root team does not exist') ||
         // public tlf doesn't exist
-        error.desc.includes("Can't create TLF ID for non-team-backed handle")
+        error.desc.includes("Can't create TLF ID for non-team-backed handle") ||
+        // /keybase/private/non_existent_user
+        error.desc.includes(' is not a Keybase user')
       ) {
         const tlfPath = Constants.getTlfPath(path)
         if (tlfPath) {
