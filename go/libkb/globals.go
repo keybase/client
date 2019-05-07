@@ -306,6 +306,31 @@ func (g *GlobalContext) logoutSecretStore(mctx MetaContext, username NormalizedU
 }
 
 func (g *GlobalContext) LogoutWithSecretKill(mctx MetaContext, killSecrets bool) (err error) {
+	return g.logoutWithSecretKillWithForce(mctx, killSecrets, false)
+}
+
+func (g *GlobalContext) ForceLogoutWithSecretKill(mctx MetaContext, killSecrets bool) (err error) {
+	return g.logoutWithSecretKillWithForce(mctx, killSecrets, true)
+}
+
+func (g *GlobalContext) logoutWithSecretKillWithForce(mctx MetaContext, killSecrets bool, force bool) (err error) {
+	if killSecrets && mctx.G().ActiveDevice.Valid() {
+		hasRandomPw, err := LoadHasRandomPw(mctx, keybase1.LoadHasRandomPwArg{})
+		if err != nil {
+			if force {
+				mctx.Warning("got error while loading randomPw state: %s. passed force=true, so continuing to log out.")
+			} else {
+				return err
+			}
+		}
+		if hasRandomPw {
+			if force {
+				mctx.Warning("account has random passphrase set, but passed force=true, so continuing to log out.")
+			} else {
+				return fmt.Errorf("must set a passphrase to complete this action; try `keybase passphrase change`")
+			}
+		}
+	}
 
 	defer g.switchUserMu.Acquire(mctx, "Logout")()
 

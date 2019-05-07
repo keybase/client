@@ -243,16 +243,18 @@ func (s *CmdSignup) checkRegistered() (err error) {
 		return
 	}
 
-	ucli, err := GetUserClient(s.G())
-	if err != nil {
-		return err
-	}
-	hasRandomPw, err := ucli.LoadHasRandomPw(context.TODO(), keybase1.LoadHasRandomPwArg{})
-	if err != nil {
-		return err
-	}
-	if hasRandomPw {
-		return fmt.Errorf("Cannot sign up while logged into an account with no password.\nCreate a password with `keybase passphrase change` first.")
+	if s.G().ActiveDevice.Valid() {
+		ucli, err := GetUserClient(s.G())
+		if err != nil {
+			return err
+		}
+		hasRandomPw, err := ucli.LoadHasRandomPw(context.TODO(), keybase1.LoadHasRandomPwArg{})
+		if err != nil {
+			return err
+		}
+		if hasRandomPw {
+			return fmt.Errorf("Cannot sign up while logged into an account with no password.\nCreate a password with `keybase passphrase change` first.")
+		}
 	}
 
 	if !s.doPrompt {
