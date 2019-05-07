@@ -132,6 +132,7 @@ func (b *baseInboxSource) GetInboxQueryLocalToRemote(ctx context.Context,
 		rquery.MembersTypes = []chat1.ConversationMembersType{lquery.Name.MembersType}
 		b.Debug(ctx, "GetInboxQueryLocalToRemote: mapped name %q to TLFID %v", tlfName, info.ID)
 	}
+	rquery.TopicName = lquery.TopicName
 	rquery.After = lquery.After
 	rquery.Before = lquery.Before
 	rquery.TlfVisibility = lquery.TlfVisibility
@@ -358,6 +359,10 @@ func (s *RemoteInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 
 func (s *RemoteInboxSource) Search(ctx context.Context, uid gregor1.UID, query string, limit int) (res []types.RemoteConversation, err error) {
 	return nil, errors.New("not implemented")
+}
+
+func (s *RemoteInboxSource) IsTeam(ctx context.Context, uid gregor1.UID, item string) (bool, error) {
+	return false, errors.New("not implemented")
 }
 
 func (s *RemoteInboxSource) NewConversation(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
@@ -850,6 +855,20 @@ func (s *HybridInboxSource) Search(ctx context.Context, uid gregor1.UID, query s
 		return res[:limit], nil
 	}
 	return res, nil
+}
+
+func (s *HybridInboxSource) IsTeam(ctx context.Context, uid gregor1.UID, item string) (res bool, err error) {
+	defer s.Trace(ctx, func() error { return err }, "IsTeam")()
+	_, convs, err := s.createInbox().ReadAll(ctx, uid, true)
+	if err != nil {
+		return res, err
+	}
+	for _, conv := range convs {
+		if conv.GetMembersType() == chat1.ConversationMembersType_TEAM && conv.GetTLFName() == item {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 func (s *HybridInboxSource) handleInboxError(ctx context.Context, err error, uid gregor1.UID) (ferr error) {

@@ -2898,3 +2898,26 @@ func (h *Server) PutReacjiSkinTone(ctx context.Context, skinTone keybase1.Reacji
 	res = store.UserReacjis(ctx, uid)
 	return res, nil
 }
+
+func (h *Server) ResolveMaybeMention(ctx context.Context, mention chat1.MaybeMention) (err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "ResolveMaybeMention")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return err
+	}
+
+	// Try to load as user
+	if mention.Channel == "" {
+		nn := libkb.NewNormalizedUsername(mention.Name)
+		if _, err = h.G().GetUPAKLoader().LookupUID(ctx, nn); err != nil {
+			h.Debug(ctx, "ResolveMaybeMention: not a user")
+		} else {
+			h.getChatUI(0).ChatMaybeMentionUpdate(ctx, mention.Name, mention.Channel,
+				chat1.NewUIMaybeMentionInfoWithUser())
+			return nil
+		}
+	}
+	// Try to load as team
+	return h.G().TeamMentionLoader.LoadTeamMention(ctx, uid, mention, nil, true)
+}

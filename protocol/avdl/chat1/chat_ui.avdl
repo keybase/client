@@ -176,7 +176,6 @@ protocol chatUi {
     array<string> atMentions;
     ChannelMention channelMention;
     array<UIChannelNameMention> channelNameMentions;
-    array<MaybeTeamMention> teamMentions;
     boolean isEphemeral;
     boolean isEphemeralExpired;
     union { null, string} explodedBy;
@@ -244,14 +243,28 @@ protocol chatUi {
     PAYMENT_0,
     ATMENTION_1,
     CHANNELNAMEMENTION_2,
-    TEAMMENTION_3
+    MAYBEMENTION_3
+  }
+
+  enum UIMaybeMentionStatus {
+    UNKNOWN_0,
+    USER_1,
+    TEAM_2,
+    NOTHING_3
+  }
+
+  variant UIMaybeMentionInfo switch (UIMaybeMentionStatus status) {
+    case UNKNOWN: void;
+    case USER: void;
+    case TEAM: UITeamMention;
+    case NOTHING: void;
   }
 
   variant UITextDecoration switch (UITextDecorationTyp typ) {
     case PAYMENT: TextPayment;
     case ATMENTION: string;
     case CHANNELNAMEMENTION: UIChannelNameMention;
-    case TEAMMENTION: MaybeTeamMention;
+    case MAYBEMENTION: MaybeMention;
   }
 
   void chatAttachmentDownloadStart(int sessionID);
@@ -398,5 +411,5 @@ protocol chatUi {
   }
   void chatCommandMarkdown(int sessionID, string convID, union { null, UICommandMarkdown } md);
 
-  void chatTeamMentionUpdate(int sessionID, string teamName, string channel, UITeamMention info);
+  void chatMaybeMentionUpdate(int sessionID, string teamName, string channel, UIMaybeMentionInfo info);
 }
