@@ -10,7 +10,7 @@ const makeErrorHandler = (action: FsGen.Actions, path: ?Types.Path, retriable: b
   error: any
 ): Array<TypedActions> => {
   if (path) {
-    // TODO: add and use proper error code for all these
+    // TODO: KBFS-4143 add and use proper error code for all these
     if (typeof error.desc === 'string') {
       if (
         error.desc.includes('does not have read access to') ||
