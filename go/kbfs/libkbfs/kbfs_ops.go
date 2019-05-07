@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/favorites"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsedits"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
@@ -1057,18 +1058,26 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 	// service/GUI by handling multiple simultaneous passphrase
 	// requests at once.
 	mdserver := fs.config.MDServer()
-	if err == nil && mdserver != nil && mdserver.IsConnected() {
-		var quErr error
-		_, usageBytes, archiveBytes, limitBytes,
-			gitUsageBytes, gitArchiveBytes, gitLimitBytes, quErr =
-			fs.quotaUsage.GetAllTypes(
-				ctx, quotaUsageStaleTolerance/2, quotaUsageStaleTolerance)
-		if quErr != nil {
-			// The error is ignored here so that other fields can still be populated
-			// even if this fails.
-			fs.log.CDebugf(ctx, "Getting quota usage error: %v", quErr)
+	switch err.(type) {
+	case nil:
+		if mdserver != nil && mdserver.IsConnected() {
+			var quErr error
+			_, usageBytes, archiveBytes, limitBytes,
+				gitUsageBytes, gitArchiveBytes, gitLimitBytes, quErr =
+				fs.quotaUsage.GetAllTypes(
+					ctx, quotaUsageStaleTolerance/2, quotaUsageStaleTolerance)
+			if quErr != nil {
+				// The error is ignored here so that other fields can still be populated
+				// even if this fails.
+				fs.log.CDebugf(ctx, "Getting quota usage error: %v", quErr)
+			}
 		}
+	case idutil.NoCurrentSessionError:
+		err = nil
+	default:
+		return KBFSStatus{}, nil, err
 	}
+
 	failures, ch := fs.currentStatus.CurrentStatus()
 	var jManagerStatus *JournalManagerStatus
 	jManager, jErr := GetJournalManager(fs.config)

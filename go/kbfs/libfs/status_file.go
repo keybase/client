@@ -35,6 +35,7 @@ func GetEncodedStatus(ctx context.Context, config libkbfs.Config) (
 	status, _, err := config.KBFSOps().Status(ctx)
 	if err != nil {
 		config.Reporter().ReportErr(ctx, "", tlf.Private, libkbfs.ReadMode, err)
+		return nil, t, err
 	}
 	data, err = PrettyJSON(status)
 	return
