@@ -137,6 +137,18 @@ android {
         multiDexEnabled true
     }
 
+    bundle {
+        language {
+            enableSplit = true
+        }
+        density {
+            enableSplit = true
+        }
+        abi {
+            enableSplit = true
+        }
+    }
+
     // KB:
     signingConfigs {
         release {
