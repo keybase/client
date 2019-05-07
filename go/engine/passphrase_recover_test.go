@@ -19,34 +19,22 @@ func TestPassphraseRecoverLegacy(t *testing.T) {
 	defer tc.Cleanup()
 	u, paperkey := CreateAndSignupLPK(tc, "pprec")
 
-	// Should not do anything logged in, even if we pass an invalid username
-	// If it did anything, it would crash due to lack of UIs.
-	uis := libkb.UIs{}
-	arg := keybase1.RecoverPassphraseArg{}
-	m := NewMetaContextForTest(tc).WithUIs(uis)
-	require.NoError(t, NewPassphraseRecover(tc.G, arg).Run(m))
-
-	// Run the same thing but with a specified username:
-	// 1) A valid one
-	arg.Username = u.Username
-	require.NoError(t, NewPassphraseRecover(tc.G, arg).Run(m))
-	// 2) An invalid one
-	arg.Username = "doesntexist"
-	require.NoError(t, NewPassphraseRecover(tc.G, arg).Run(m))
-
-	// Log out to make the engine actually work
+	// Changing the password is covered by systests, here we're only
+	// testing the typical recovery flow where user only has a paper key.
 	Logout(tc)
 
 	// Prepare some UIs to make all of this actually work
-	uis = libkb.UIs{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: u.NewSecretUI(),
 	}
-	m = m.WithUIs(uis)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
 
 	// Now an invalid username should result in a NotProvisioned error
-	arg.Username = "doesntexist"
+	arg := keybase1.RecoverPassphraseArg{
+		Username: "doesntexist",
+	}
 	require.Equal(t, libkb.NotProvisionedError{},
 		NewPassphraseRecover(tc.G, arg).Run(m))
 

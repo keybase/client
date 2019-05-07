@@ -58,13 +58,6 @@ func (e *PassphraseRecover) SubConsumers() []libkb.UIConsumer {
 func (e *PassphraseRecover) Run(mctx libkb.MetaContext) (err error) {
 	defer mctx.Trace("PassphraseRecover#Run", func() error { return err })()
 
-	// Check to see if already logged in
-	if loggedIn, _ := isLoggedIn(mctx); loggedIn {
-		mctx.Debug("Already logged in with unlocked device keys")
-		return nil
-	}
-	mctx.Debug("No device keys available, proceeding with recovery")
-
 	// Look up the passed username against the list of configured users
 	if err := e.processUsername(mctx); err != nil {
 		return err
@@ -78,6 +71,13 @@ func (e *PassphraseRecover) Run(mctx libkb.MetaContext) (err error) {
 		}
 		return e.legacyRecovery(mctx)
 	}
+
+	// In the new flow we noop if we're already logged in
+	if loggedIn, _ := isLoggedIn(mctx); loggedIn {
+		mctx.Debug("Already logged in with unlocked device keys")
+		return nil
+	}
+	mctx.Debug("No device keys available, proceeding with recovery")
 
 	// Load the user by username
 	ueng := newLoginLoadUser(mctx.G(), e.arg.Username)
