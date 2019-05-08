@@ -267,12 +267,62 @@ func (fs *KBFSOpsStandard) GetFavorites(ctx context.Context) (
 
 // GetFavoritesAll implements the KBFSOps interface for
 // KBFSOpsStandard.
-func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (keybase1.
-	FavoritesResult, error) {
+func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (
+	keybase1.FavoritesResult, error) {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
-	return fs.favs.GetAll(ctx)
+	favs, err := fs.favs.GetAll(ctx)
+	if err != nil {
+		return keybase1.FavoritesResult{}, err
+	}
+
+	// Add the conflict status for any folders in a conflict state to
+	// the favorite struct.
+	journalManager, err := GetJournalManager(fs.config)
+	if err != nil {
+		// Journaling not enabled.
+		return favs, nil
+	}
+	conflicts, err := journalManager.GetJournalsInConflict(ctx)
+	if err != nil {
+		return keybase1.FavoritesResult{}, err
+	}
+
+	if len(conflicts) == 0 {
+		return favs, nil
+	}
+	conflictMap := make(map[ConflictJournalRecord]tlf.ID, len(conflicts))
+	for _, c := range conflicts {
+		conflictMap[ConflictJournalRecord{Name: c.Name, Type: c.Type}] = c.ID
+	}
+
+	found := 0
+	for i, f := range favs.FavoriteFolders {
+		c := ConflictJournalRecord{
+			Name: tlf.CanonicalName(f.Name),
+			Type: tlf.TypeFromFolderType(f.FolderType),
+		}
+		tlfID, ok := conflictMap[c]
+		if !ok {
+			continue
+		}
+
+		fb := data.FolderBranch{Tlf: tlfID, Branch: data.MasterBranch}
+		ops := fs.getOps(ctx, fb, FavoritesOpNoChange)
+		status, err := ops.FolderConflictStatus(ctx)
+		if err != nil {
+			return keybase1.FavoritesResult{}, err
+		}
+		favs.FavoriteFolders[i].ConflictType = status
+		fs.log.CDebugf(ctx, "Conflict status for %s: %s", tlfID, status)
+		found++
+		if found == len(conflictMap) {
+			// Short-circuit the loop if we've already found all the conflicts.
+			break
+		}
+	}
+	return favs, nil
 }
 
 // RefreshCachedFavorites implements the KBFSOps interface for
