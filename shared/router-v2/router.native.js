@@ -23,7 +23,7 @@ import OutOfDate from '../app/out-of-date'
 useScreens()
 
 // Options used by default on all navigators
-// For info on what is passed to what see here: https://github.com/react-navigation/react-navigation-stack/blob/master/src/views/Header/Header.js
+// For info on what is passed to what see here: https://github.com/react-navigation/stack/blob/478c354248f2aedfc304a1c4b479c3df359d3868/src/views/Header/Header.js
 const defaultNavigationOptions = {
   backBehavior: 'none',
   header: null,
@@ -32,7 +32,7 @@ const defaultNavigationOptions = {
       <LeftAction
         badgeNumber={0}
         leftAction="back"
-        onLeftAction={hp.onPress}
+        onLeftAction={hp.onPress} // react navigation makes sure this onPress can only happen once
         customIconColor={hp.tintColor}
       />
     ),
