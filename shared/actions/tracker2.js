@@ -145,8 +145,6 @@ function* load(state, action) {
     )
   } catch (err) {
     if (err.code === RPCTypes.constantsStatusCode.scresolutionfailed) {
-      // not a user, handle differently, don't show reloadable
-      yield Saga.put(WaitingGen.createClearWaiting({key: Constants.profileLoadWaitingKey}))
       yield Saga.put(
         Tracker2Gen.createUpdateResult({guiID: action.payload.guiID, reason: null, result: 'notAUserYet'})
       )

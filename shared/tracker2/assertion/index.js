@@ -18,8 +18,8 @@ type Props = {|
   onRecheck: ?() => void,
   onRevoke: ?() => void,
   onSendLumens: () => void,
-  onShowProof: () => void,
-  onShowSite: () => void,
+  onShowProof: ?() => void,
+  onShowSite: ?() => void,
   onCreateProof: ?() => void,
   onWhatIsStellar: () => void,
   proofURL: string,
@@ -189,7 +189,7 @@ const Value = p => {
 
     content = (
       <Kb.Text
-        type="BodyPrimaryLink"
+        type={p.notAUser ? 'Body' : 'BodyPrimaryLink'}
         onClick={p.onCreateProof || p.onShowSite}
         style={Styles.collapseStyles([
           style,

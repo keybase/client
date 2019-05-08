@@ -16,6 +16,23 @@ type OwnProps = {|
   assertionKey: string,
 |}
 
+const notAUserAssertion = {
+  color: 'gray',
+  metas: [
+    {
+      color: 'gray',
+      label: 'PENDING',
+    },
+  ],
+  proofURL: '',
+  sigID: '0',
+  siteIcon: null,
+  siteIconFull: null,
+  siteURL: '',
+  state: 'checking',
+  timestamp: 0,
+}
+
 const mapStateToProps = (state, ownProps) => {
   let a = Constants.noAssertion
   let notAUser = false
@@ -29,17 +46,9 @@ const mapStateToProps = (state, ownProps) => {
     if (notAUser) {
       const parts = ownProps.username.split('@')
       a = {
-        color: 'gray',
-        metas: [],
-        proofURL: '',
-        sigID: '0',
-        siteIcon: null,
-        siteIconFull: null,
-        siteURL: '',
-        state: 'checking',
-        timestamp: 0,
-        type: parts[0],
-        value: parts[1],
+        ...notAUserAssertion,
+        type: parts[1],
+        value: parts[0],
       }
     } else if (d.assertions) {
       a = d.assertions.get(ownProps.assertionKey, Constants.noAssertion)
@@ -111,9 +120,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     },
     onSendLumens: () =>
       dispatchProps._onSendOrRequestLumens(stateProps.value.split('*')[0], false, 'keybaseUser'),
-    onShowProof: () => (stateProps.proofURL ? openUrl(stateProps.proofURL) : undefined),
-    onShowSite: () =>
-      stateProps.notAUser ? undefined : stateProps.siteURL ? openUrl(stateProps.siteURL) : undefined,
+    onShowProof: stateProps.notAUser || !stateProps.proofURL ? undefined : () => openUrl(stateProps.proofURL),
+    onShowSite: stateProps.notAUser || !stateProps.siteURL ? undefined : () => openUrl(stateProps.siteURL),
     onWhatIsStellar: () => openUrl('https://keybase.io/what-is-stellar'),
     proofURL: stateProps.proofURL,
     siteIcon: stateProps.siteIcon,
