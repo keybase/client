@@ -32,6 +32,7 @@ protocol favorite {
     @jsonkey("reset_members") @mpackkey("reset_members")
     array<User> resetMembers;
 
+    union { null, Time } mtime;
   }
 
   // Each of your TLFs is in one of 3 states with respect to favoriting. Either

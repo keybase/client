@@ -54,6 +54,13 @@
           "name": "resetMembers",
           "jsonkey": "reset_members",
           "mpackkey": "reset_members"
+        },
+        {
+          "type": [
+            null,
+            "Time"
+          ],
+          "name": "mtime"
         }
       ],
       "doc": "Folder represents a favorite top-level folder in kbfs.\n    This type is likely to change significantly as all the various parts are\n    connected and tested."
