@@ -173,11 +173,23 @@ func (c *CmdWalletHandleURI) payOp(v stellar1.ValidateStellarURIResultLocal) err
 			}
 			ui.Printf("Sent!\nKeybase Transaction ID: %v\nStellar Transaction ID: %v\n", res.KbTxID, res.TxID)
 		} else {
-
+			// send a path payment
+			arg := stellar1.FindPaymentPathLocalArg{
+				To:     v.Recipient,
+				Amount: v.Amount,
+				DestionationAsset: stellar1.Asset{
+					// XXX need Type?
+					Code:   v.AssetCode,
+					Issuer: v.AssetIssuer,
+				},
+			}
+			if err := runPathPayment(c.G(), arg, "", v.PublicNote); err != nil {
+				return err
+			}
 		}
-
 	} else {
-
+		// TODO: going to need new local RPCs that post the signed tx
+		// (send and path versions) to CallbackURL
 	}
 
 	return nil

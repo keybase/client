@@ -151,7 +151,7 @@ func transformStellarCLIError(err *error) {
 }
 
 // runPathPayment called by cmd_wallet_send_path_payment and cmd_wallet_handle_uri.
-func runPathPayment(g *libkb.GlobalContext, findArg stellar1.FindPaymentPathLocalArg, note string) (err error) {
+func runPathPayment(g *libkb.GlobalContext, findArg stellar1.FindPaymentPathLocalArg, note, publicMemo string) (err error) {
 	defer transformStellarCLIError(&err)
 
 	cli, err := GetWalletClient(g)
@@ -184,10 +184,11 @@ func runPathPayment(g *libkb.GlobalContext, findArg stellar1.FindPaymentPathLoca
 
 	ui.Printf(ColorString(g, "yellow", "Submitting transaction to the Stellar network..."))
 	sendArg := stellar1.SendPathCLILocalArg{
-		Source:    findArg.From,
-		Recipient: findArg.To,
-		Path:      path.FullPath,
-		Note:      note,
+		Source:     findArg.From,
+		Recipient:  findArg.To,
+		Path:       path.FullPath,
+		Note:       note,
+		PublicNote: publicMemo,
 	}
 	res, err := cli.SendPathCLILocal(context.Background(), sendArg)
 	if err != nil {
