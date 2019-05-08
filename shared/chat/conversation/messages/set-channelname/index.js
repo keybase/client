@@ -9,7 +9,7 @@ type Props = {
 }
 
 export default (props: Props) => (
-  <Kb.Text type="BodySmall" style={styles.text}>
+  <Kb.Text type="BodySmall" style={styles.text} selectable={true}>
     set the channel name to <Kb.Text type="BodySmallItalic">#{props.message.newChannelname}</Kb.Text>
   </Kb.Text>
 )
