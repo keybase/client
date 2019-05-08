@@ -290,14 +290,15 @@ func setupTestContext(tb TestingTB, name string, tcPrev *TestContext) (tc TestCo
 	tc.cleanupCh = cleanupCh
 	tc.eg = &errgroup.Group{}
 	tc.eg.Go(func() error {
-		g.Log.Debug("TestContext bg loop starting up")
+		log := g.Log.CloneWithAddedDepth(1)
+		log.Debug("TestContext bg loop starting up")
 		for {
 			select {
 			case <-cleanupCh:
-				g.Log.Debug("TestContext bg loop shutting down")
+				log.Debug("TestContext bg loop shutting down")
 				return nil
-			case <-time.After(time.Second):
-				g.Log.Debug("TestContext bg loop not cleaned up yet")
+			case <-time.After(time.Nanosecond):
+				log.Debug("TestContext bg loop not cleaned up yet")
 			}
 		}
 	})
