@@ -878,9 +878,6 @@ func (e *Env) GetGregorDisabled() bool {
 func (e *Env) GetSecretStorePrimingDisabled() bool {
 	return e.GetBool(false,
 		func() (bool, bool) { return e.Test.GetSecretStorePrimingDisabled() },
-		func() (bool, bool) { return e.cmd.GetSecretStorePrimingDisabled() },
-		func() (bool, bool) { return getEnvBool("KEYBASE_SECRET_STORE_PRIMING_DISABLED") },
-		func() (bool, bool) { return e.GetConfig().GetSecretStorePrimingDisabled() },
 	)
 }
 
