@@ -11,7 +11,7 @@ import (
 )
 
 type ContactsProvider interface {
-	LookupAll(libkb.MetaContext, []keybase1.EmailAddress, []keybase1.RawPhoneNumber, keybase1.RegionCode) (BulkLookupResult, error)
+	LookupAll(libkb.MetaContext, []keybase1.EmailAddress, []keybase1.RawPhoneNumber, keybase1.RegionCode) (ContactLookupMap, error)
 	FillUsernames(libkb.MetaContext, []keybase1.ProcessedContact)
 }
 

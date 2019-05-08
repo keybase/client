@@ -15,8 +15,10 @@ import (
 type bulkLookupContactsProvider struct {
 }
 
+var _ contacts.ContactsProvider = (*bulkLookupContactsProvider)(nil)
+
 func (c *bulkLookupContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
-	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (contacts.BulkLookupResult, error) {
+	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (contacts.ContactLookupMap, error) {
 	defer mctx.TraceTimed(fmt.Sprintf("bulkLookupContactsProvider#LookupAll(len=%d)", len(emails)+len(numbers)),
 		func() error { return nil })()
 	return contacts.BulkLookupContacts(mctx, emails, numbers, userRegion)
@@ -75,5 +77,6 @@ func (h *ContactsHandler) LookupContactList(ctx context.Context, arg keybase1.Lo
 	provider := &contacts.CachedContactsProvider{
 		Provider: &bulkLookupContactsProvider{},
 	}
+	// provider := &bulkLookupContactsProvider{}
 	return contacts.ResolveContacts(mctx, provider, arg.Contacts, arg.UserRegionCode)
 }

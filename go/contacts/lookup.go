@@ -4,6 +4,8 @@
 package contacts
 
 import (
+	"fmt"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -15,40 +17,40 @@ type lookupArg struct {
 
 type ContactLookupResult struct {
 	UID     keybase1.UID `json:"uid,omitempty"`
-	Coerced bool         `json:"coerced,omitempty"`
+	Coerced string       `json:"coerced,omitempty"`
 }
 
 type ContactLookupMap map[string]ContactLookupResult
 
-type BulkLookupResult struct {
-	Emails       ContactLookupMap `json:"emails"`
-	PhoneNumbers ContactLookupMap `json:"phone_numbers"`
-}
-
-func (r *BulkLookupResult) FindComponent(component keybase1.ContactComponent) (res ContactLookupResult, found bool) {
+func (r ContactLookupMap) FindComponent(component keybase1.ContactComponent) (res ContactLookupResult, found bool) {
+	var key string
 	switch {
 	case component.Email != nil:
-		res, found = r.Emails[string(*component.Email)]
+		key = fmt.Sprintf("e:%s", *component.Email)
 	case component.PhoneNumber != nil:
-		res, found = r.PhoneNumbers[string(*component.PhoneNumber)]
+		key = fmt.Sprintf("p:%s", *component.PhoneNumber)
+	default:
+		return res, false
 	}
+	res, found = r[key]
 	return res, found
 }
 
-func MakeBulkLookupResult() BulkLookupResult {
-	return BulkLookupResult{
-		Emails:       make(ContactLookupMap),
-		PhoneNumbers: make(ContactLookupMap),
-	}
+func makeEmailLookupKey(e keybase1.EmailAddress) string {
+	return fmt.Sprintf("e:%s", string(e))
+}
+
+func makePhoneLookupKey(p keybase1.RawPhoneNumber) string {
+	return fmt.Sprintf("p:%s", string(p))
 }
 
 type lookupRes struct {
 	libkb.AppStatusEmbed
-	BulkLookupResult
+	Resolutions ContactLookupMap `json:"resolutions"`
 }
 
 func BulkLookupContacts(mctx libkb.MetaContext, emailsContacts []keybase1.EmailAddress,
-	phoneNumberContacts []keybase1.RawPhoneNumber, userRegionCode keybase1.RegionCode) (BulkLookupResult, error) {
+	phoneNumberContacts []keybase1.RawPhoneNumber, userRegionCode keybase1.RegionCode) (ContactLookupMap, error) {
 
 	lookups := make([]lookupArg, 0, len(phoneNumberContacts)+len(emailsContacts))
 	for _, v := range phoneNumberContacts {
@@ -72,7 +74,7 @@ func BulkLookupContacts(mctx libkb.MetaContext, emailsContacts []keybase1.EmailA
 	var resp lookupRes
 	err := mctx.G().API.PostDecode(mctx, arg, &resp)
 	if err != nil {
-		return BulkLookupResult{}, err
+		return nil, err
 	}
-	return resp.BulkLookupResult, nil
+	return resp.Resolutions, err
 }
