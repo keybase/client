@@ -195,7 +195,9 @@ var setupTestMu sync.Mutex
 func setupTestContext(tb TestingTB, name string, tcPrev *TestContext) (tc TestContext, err error) {
 	setupTestMu.Lock()
 	defer setupTestMu.Unlock()
-	tc.Tp = &TestParameters{}
+	tc.Tp = &TestParameters{
+		SecretStorePrimingDisabled: true,
+	}
 
 	g := NewGlobalContext()
 
