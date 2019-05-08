@@ -160,6 +160,7 @@ func (s *CmdSignup) ParseArgv(ctx *cli.Context) (err error) {
 
 	if ctx.Bool("batch") {
 		s.fields = &PromptFields{
+			email:           &Field{Value: &s.defaultEmail},
 			code:            &Field{Value: &s.code},
 			username:        &Field{Value: &s.defaultUsername},
 			deviceName:      &Field{Value: &s.defaultDevice},
