@@ -4,9 +4,6 @@ import {namedConnect} from '../../util/container'
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 
-const setRefreshTag = true
-const doNotSetRefreshTag = false
-
 type OwnProps = {|
   path: Types.Path,
   refreshTag?: ?Types.RefreshTag,
@@ -17,8 +14,8 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = (dispatch, {path, refreshTag}) => ({
-  loadPathMetadata: setRefreshTag =>
-    dispatch(FsGen.createLoadPathMetadata({path, refreshTag: setRefreshTag ? refreshTag : null})),
+  loadPathMetadataWithRefreshTag: () => dispatch(FsGen.createLoadPathMetadata({path, refreshTag})),
+  loadPathMetadataWithoutRefreshTag: () => dispatch(FsGen.createLoadPathMetadata({path})),
 })
 
 const mergeProps = (s, d, o) => ({
@@ -28,17 +25,20 @@ const mergeProps = (s, d, o) => ({
 })
 
 type Props = {|
-  loadPathMetadata: (setRefreshTag: boolean) => void,
+  loadPathMetadataWithRefreshTag: () => void,
+  loadPathMetadataWithoutRefreshTag: () => void,
   path: Types.Path,
   syncingFoldersProgress: Types.SyncingFoldersProgress,
 |}
 
 class LoadPathMetadataWhenNeeded extends React.PureComponent<Props> {
   componentDidMount() {
-    this.props.loadPathMetadata(setRefreshTag)
+    this.props.loadPathMetadataWithRefreshTag()
   }
   componentDidUpdate(prevProps) {
-    if (this.props.syncingFoldersProgress !== prevProps.syncingFoldersProgress) {
+    if (this.props.path !== prevProps.path) {
+      this.props.loadPathMetadataWithRefreshTag()
+    } else if (this.props.syncingFoldersProgress !== prevProps.syncingFoldersProgress) {
       // If syncingFoldersProgress (i.e. the overall syncing progress) changes,
       // refresh current one so we get updated prefetchStatus in case they
       // change.
@@ -47,9 +47,7 @@ class LoadPathMetadataWhenNeeded extends React.PureComponent<Props> {
       // for prefetchStatus changes and it take a few points to do that. If
       // this turns out to cause performance issues, we can figure that out as
       // an optimization.
-      this.props.loadPathMetadata(doNotSetRefreshTag)
-    } else if (this.props.path !== prevProps.path) {
-      this.props.loadPathMetadata(setRefreshTag)
+      this.props.loadPathMetadataWithoutRefreshTag()
     }
   }
   render() {
