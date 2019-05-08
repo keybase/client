@@ -1,7 +1,6 @@
 // @flow
 import * as Tracker2Gen from './tracker2-gen'
 import * as ProfileGen from './profile-gen'
-import * as WaitingGen from './waiting-gen'
 import * as EngineGen from './engine-gen-gen'
 import * as Saga from '../util/saga'
 import * as Constants from '../constants/tracker2'
