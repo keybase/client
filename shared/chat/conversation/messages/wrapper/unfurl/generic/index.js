@@ -60,7 +60,7 @@ class UnfurlGeneric extends React.Component<Props> {
             {this.props.title}
           </Kb.Text>
           {!!this.props.description && (
-            <Kb.Text type="Body" lineClamp={5}>
+            <Kb.Text type="Body" lineClamp={5} selectable={true}>
               {this.props.description}
               {showBottomImage && (
                 <>
