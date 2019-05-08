@@ -36,9 +36,13 @@ type State = {
 class ImageAttachment extends React.PureComponent<Props, State> {
   imageRef: any
 
+  _mounted = true
+  componentWillUnmount() {
+    this._mounted = false
+  }
   state = {loaded: false, loadingVideo: 'notloaded', playingVideo: false}
-  _setLoaded = () => this.setState({loaded: true})
-  _setVideoLoaded = () => this.setState({loadingVideo: 'loaded'})
+  _setLoaded = () => this._mounted && this.setState({loaded: true})
+  _setVideoLoaded = () => this._mounted && this.setState({loadingVideo: 'loaded'})
 
   _onClick = () => {
     // Once the user clicks the inline video once, then just let the native controls handle everything else.
