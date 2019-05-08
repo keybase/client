@@ -757,7 +757,7 @@ func (fbo *folderBranchOps) clearConflictView(ctx context.Context) (
 	if err != nil {
 		return err
 	}
-	return fbo.cr.clearConflictRecords()
+	return fbo.cr.clearConflictRecords(ctx)
 }
 
 // forceStuckConflictForTesting forces the TLF into a stuck conflict
