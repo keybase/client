@@ -31,7 +31,8 @@ type Props = {|
 |}
 
 const LabelContainer = props =>
-  props.labelTooltip ? (
+  // We put the tooltip on the whole thing on desktop.
+  Styles.isMobile && props.labelTooltip ? (
     <Kb.WithTooltip
       text={props.labelTooltip}
       containerStyle={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, styles.labelContainer])}
@@ -45,12 +46,8 @@ const LabelContainer = props =>
     </Kb.Box2>
   )
 
-const Switch = React.forwardRef<Props, Kb.ClickableBox>((props: Props, ref) => (
-  <Kb.Box2
-    direction={props.align !== 'right' ? 'horizontal' : 'horizontalReverse'}
-    alignItems="center"
-    style={Styles.collapseStyles([styles.container, props.disabled && styles.disabled, props.style])}
-  >
+const getContent = (props, ref) => (
+  <>
     <Kb.ClickableBox onClick={props.disabled ? undefined : props.onClick} ref={ref}>
       <SwitchToggle
         on={props.on}
@@ -70,8 +67,30 @@ const Switch = React.forwardRef<Props, Kb.ClickableBox>((props: Props, ref) => (
     ) : (
       props.label
     )}
-  </Kb.Box2>
-))
+  </>
+)
+
+const getStyle = props =>
+  Styles.collapseStyles([
+    styles.container,
+    props.align !== 'right' ? Styles.globalStyles.flexBoxRow : Styles.globalStyles.flexBoxRowReverse,
+    props.disabled && styles.disabled,
+    props.style,
+  ])
+
+const Switch = React.forwardRef<Props, Kb.ClickableBox>((props: Props, ref) =>
+  Styles.isMobile || !props.labelTooltip ? (
+    <Kb.Box style={getStyle(props)}>{getContent(props, ref)}</Kb.Box>
+  ) : (
+    <Kb.WithTooltip
+      containerStyle={getStyle(props)}
+      text={props.labelTooltip || ''}
+      position={props.align !== 'right' ? 'top left' : 'top right'}
+    >
+      {getContent(props, ref)}
+    </Kb.WithTooltip>
+  )
+)
 
 export default Switch
 
