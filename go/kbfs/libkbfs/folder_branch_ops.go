@@ -9046,8 +9046,11 @@ func (fbo *folderBranchOps) SetSyncConfig(
 		_ = fbo.kickOffRootBlockFetch(ctx, md)
 	}
 
-	fbo.config.Reporter().Notify(ctx, syncConfigChangeNotification(
-		md.GetTlfHandle(), config))
+	// Issue notifications to client when sync mode changes (or is partial).
+	if oldConfig.Mode != config.Mode || config.Mode == keybase1.FolderSyncMode_PARTIAL {
+		fbo.config.Reporter().Notify(ctx, syncConfigChangeNotification(
+			md.GetTlfHandle(), config))
+	}
 
 	return ch, nil
 }
