@@ -34,6 +34,9 @@ type FSOverallSyncStatusChangedArg struct {
 	Status FolderSyncStatus `codec:"status" json:"status"`
 }
 
+type FSFavoritesChangedArg struct {
+}
+
 type FSOnlineStatusChangedArg struct {
 	Online bool `codec:"online" json:"online"`
 }
@@ -45,6 +48,7 @@ type NotifyFSInterface interface {
 	FSEditListResponse(context.Context, FSEditListResponseArg) error
 	FSSyncStatusResponse(context.Context, FSSyncStatusResponseArg) error
 	FSOverallSyncStatusChanged(context.Context, FolderSyncStatus) error
+	FSFavoritesChanged(context.Context) error
 	FSOnlineStatusChanged(context.Context, bool) error
 }
 
@@ -142,6 +146,16 @@ func NotifyFSProtocol(i NotifyFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"FSFavoritesChanged": {
+				MakeArg: func() interface{} {
+					var ret [1]FSFavoritesChangedArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.FSFavoritesChanged(ctx)
+					return
+				},
+			},
 			"FSOnlineStatusChanged": {
 				MakeArg: func() interface{} {
 					var ret [1]FSOnlineStatusChangedArg
@@ -196,6 +210,11 @@ func (c NotifyFSClient) FSSyncStatusResponse(ctx context.Context, __arg FSSyncSt
 func (c NotifyFSClient) FSOverallSyncStatusChanged(ctx context.Context, status FolderSyncStatus) (err error) {
 	__arg := FSOverallSyncStatusChangedArg{Status: status}
 	err = c.Cli.Notify(ctx, "keybase.1.NotifyFS.FSOverallSyncStatusChanged", []interface{}{__arg})
+	return
+}
+
+func (c NotifyFSClient) FSFavoritesChanged(ctx context.Context) (err error) {
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyFS.FSFavoritesChanged", []interface{}{FSFavoritesChangedArg{}})
 	return
 }
 
