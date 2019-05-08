@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -124,7 +123,6 @@ func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keyb
 			mctx.Warning("Unable to call Provider.LookupAll, returning only cached results: %s", err)
 		}
 
-		spew.Dump("Update cache", conCache.Lookups)
 		cerr := mctx.G().GetKVStore().PutObj(cacheKey, nil, conCache)
 		if cerr != nil {
 			mctx.Warning("Unable to update cache: %s", cerr)
