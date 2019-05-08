@@ -60,6 +60,10 @@ export type MessageTypes = {|
     inParam: $ReadOnly<{|edits: FSFolderEditHistory, requestID: Int|}>,
     outParam: void,
   |},
+  'keybase.1.NotifyFS.FSFavoritesChanged': {|
+    inParam: void,
+    outParam: void,
+  |},
   'keybase.1.NotifyFS.FSOnlineStatusChanged': {|
     inParam: $ReadOnly<{|online: Boolean|}>,
     outParam: void,
@@ -3339,6 +3343,7 @@ export type IncomingCallMapType = {|
   'keybase.1.NotifyFS.FSEditListResponse'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSEditListResponse'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn,
   'keybase.1.NotifyFS.FSSyncStatusResponse'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSSyncStatusResponse'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn,
   'keybase.1.NotifyFS.FSOverallSyncStatusChanged'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSOverallSyncStatusChanged'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn,
+  'keybase.1.NotifyFS.FSFavoritesChanged'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSFavoritesChanged'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn,
   'keybase.1.NotifyFS.FSOnlineStatusChanged'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSOnlineStatusChanged'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn,
   'keybase.1.NotifyKeyfamily.keyfamilyChanged'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyKeyfamily.keyfamilyChanged'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn,
   'keybase.1.NotifyPaperKey.paperKeyCached'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyPaperKey.paperKeyCached'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn,
@@ -3452,6 +3457,7 @@ export type CustomResponseIncomingCallMap = {|
   'keybase.1.NotifyFS.FSEditListResponse'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSEditListResponse'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSEditListResponse'>, 'outParam'>) => void}) => IncomingReturn,
   'keybase.1.NotifyFS.FSSyncStatusResponse'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSSyncStatusResponse'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSSyncStatusResponse'>, 'outParam'>) => void}) => IncomingReturn,
   'keybase.1.NotifyFS.FSOverallSyncStatusChanged'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSOverallSyncStatusChanged'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSOverallSyncStatusChanged'>, 'outParam'>) => void}) => IncomingReturn,
+  'keybase.1.NotifyFS.FSFavoritesChanged'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSFavoritesChanged'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSFavoritesChanged'>, 'outParam'>) => void}) => IncomingReturn,
   'keybase.1.NotifyFS.FSOnlineStatusChanged'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSOnlineStatusChanged'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSOnlineStatusChanged'>, 'outParam'>) => void}) => IncomingReturn,
   'keybase.1.NotifyKeyfamily.keyfamilyChanged'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyKeyfamily.keyfamilyChanged'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyKeyfamily.keyfamilyChanged'>, 'outParam'>) => void}) => IncomingReturn,
   'keybase.1.NotifyPaperKey.paperKeyCached'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyPaperKey.paperKeyCached'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyPaperKey.paperKeyCached'>, 'outParam'>) => void}) => IncomingReturn,
@@ -3785,6 +3791,7 @@ declare export function userUploadUserAvatarRpcPromise(params: $PropertyType<$Pr
 // 'keybase.1.kbfs.FSSyncEvent'
 // 'keybase.1.kbfs.FSOverallSyncEvent'
 // 'keybase.1.kbfs.FSOnlineStatusChangedEvent'
+// 'keybase.1.kbfs.FSFavoritesChangedEvent'
 // 'keybase.1.kbfs.createTLF'
 // 'keybase.1.kbfs.getKBFSTeamSettings'
 // 'keybase.1.kbfs.upgradeTLF'
@@ -3867,6 +3874,7 @@ declare export function userUploadUserAvatarRpcPromise(params: $PropertyType<$Pr
 // 'keybase.1.NotifyFS.FSEditListResponse'
 // 'keybase.1.NotifyFS.FSSyncStatusResponse'
 // 'keybase.1.NotifyFS.FSOverallSyncStatusChanged'
+// 'keybase.1.NotifyFS.FSFavoritesChanged'
 // 'keybase.1.NotifyFS.FSOnlineStatusChanged'
 // 'keybase.1.NotifyFSRequest.FSEditListRequest'
 // 'keybase.1.NotifyFSRequest.FSSyncStatusRequest'
