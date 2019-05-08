@@ -162,7 +162,7 @@ export function kbfsNotification(notification: FSNotification, notify: any, stat
     // independently.
     [kbfsCommonFSNotificationType.initialized]: '',
     [kbfsCommonFSNotificationType.connection]: '',
-    [kbfsCommonFSNotificationType.syncConfigChanged]: 'Synchronization config changed',
+    //[kbfsCommonFSNotificationType.syncConfigChanged]: 'Synchronization config changed',
   }[notification.notificationType]
 
   if (action === undefined && notification.statusCode !== kbfsCommonFSStatusCode.error) {
