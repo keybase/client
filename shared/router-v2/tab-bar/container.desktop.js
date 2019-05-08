@@ -66,7 +66,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
       quit('quitButton')
     }, 2000)
   },
-  onSettings: () => dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.landingTab]})),
+  onSettings: () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab})),
   onSignOut: () => dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.logOutTab]})),
 })
 
