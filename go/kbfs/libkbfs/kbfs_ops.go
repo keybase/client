@@ -1058,7 +1058,7 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 	// service/GUI by handling multiple simultaneous passphrase
 	// requests at once.
 	mdserver := fs.config.MDServer()
-	switch err.(type) {
+	switch errors.Cause(err).(type) {
 	case nil:
 		if mdserver != nil && mdserver.IsConnected() {
 			var quErr error
@@ -1071,8 +1071,13 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 				// even if this fails.
 				fs.log.CDebugf(ctx, "Getting quota usage error: %v", quErr)
 			}
+		} else {
+			fs.log.CDebugf(ctx, "Skipping getting quota usage because "+
+				"mdserver not set or not connected")
 		}
 	case idutil.NoCurrentSessionError:
+		fs.log.CDebugf(ctx, "Skipping getting quota usage because "+
+			"we are not logged in")
 		err = nil
 	default:
 		return KBFSStatus{}, nil, err

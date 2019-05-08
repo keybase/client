@@ -918,7 +918,7 @@ const updateKbfsDaemonOnlineStatus = (state, action) =>
 
 // We don't trigger the reachability check at init. Reachability checks cause
 // any pending "reconnect" fire right away, and overrides any random back-off
-// timer we have at process restart (which is there to avoid surge server
+// timer we have at process restart (which is there to avoid surging server
 // load around app releases). So only do that when OS network status changes
 // after we're up.
 const checkKbfsServerReachabilityIfNeeded = (state, action) =>
