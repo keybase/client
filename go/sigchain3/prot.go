@@ -22,8 +22,8 @@ const (
 
 // The values are picked so they don't conflict with Sigchain V1 and V2 SeqType's
 const (
-	ChainTypeUserPrivate ChainType = 16
-	ChainTypeTeamPrivate ChainType = 17
+	ChainTypeUserPrivateOffTree ChainType = 16
+	ChainTypeTeamPrivateOffTree ChainType = 17
 )
 
 // OuterLink V3 is the third version of Keybase sigchain signatures, it roughly approximates
