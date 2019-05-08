@@ -522,12 +522,12 @@ func (e *Identify2WithUID) runReturnError(m libkb.MetaContext) (err error) {
 
 	// If we're not using tracking and we're not using remote assertions,
 	// we can unblock the RPC caller here, and perform the identifyUI operations
-	// in the background. NOTE: we need to copy out our background context,
-	// since it will the foreground context will disappear after we unblock.
-	m = m.BackgroundWithLogTags()
-
+	// in the background.
 	if (!e.useTracking && !e.useRemoteAssertions() && e.allowEarlyOuts()) || e.arg.IdentifyBehavior.UnblockThenForceIDTable() {
 		e.unblock(m /* isFinal */, false, nil)
+		// NOTE: we need to move to a background context,
+		// since the foreground context will disappear after we unblock.
+		m = m.BackgroundWithLogTags()
 	}
 
 	return e.runIdentifyUI(m)
