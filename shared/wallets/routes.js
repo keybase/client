@@ -208,9 +208,12 @@ export const newModalRoutes = {
     upgraded: true,
   },
   receive: {getScreen: () => require('./receive-modal/container').default, upgraded: true},
-  removeAccount: {getScreen: () => require('./wallet/settings/popups').RemoveAccountPopup},
-  renameAccount: {getScreen: () => require('./wallet/settings/popups').RenameAccountPopup},
-  setDefaultAccount: {getScreen: () => require('./wallet/settings/popups').SetDefaultAccountPopup},
-  setInflation: {getScreen: () => require('./wallet/settings/popups').InflationDestination},
-  walletOnboarding: {getScreen: () => require('./onboarding/container').default},
+  removeAccount: {getScreen: () => require('./wallet/settings/popups').RemoveAccountPopup, upgraded: true},
+  renameAccount: {getScreen: () => require('./wallet/settings/popups').RenameAccountPopup, upgraded: true},
+  setDefaultAccount: {
+    getScreen: () => require('./wallet/settings/popups').SetDefaultAccountPopup,
+    upgraded: true,
+  },
+  setInflation: {getScreen: () => require('./wallet/settings/popups').InflationDestination, upgraded: true},
+  walletOnboarding: {getScreen: () => require('./onboarding/container').default, upgraded: true},
 }

@@ -23,7 +23,7 @@ const mapDispatchToProps = dispatch => ({
   onClose: () => dispatch(WalletsGen.createRejectDisclaimer()),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps) => ({
   acceptDisclaimerError: stateProps.acceptDisclaimerError,
   acceptingDisclaimerDelay: stateProps.acceptingDisclaimerDelay,
   onAcceptDisclaimer: dispatchProps.onAcceptDisclaimer,
