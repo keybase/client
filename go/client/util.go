@@ -7,9 +7,6 @@ import (
 )
 
 func ensureSetPassphraseFromRemote(mctx libkb.MetaContext) error {
-	if !mctx.G().ActiveDevice.Valid() {
-		return nil
-	}
 	cli, err := GetUserClient(mctx.G())
 	if err != nil {
 		return err
