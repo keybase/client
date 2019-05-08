@@ -268,6 +268,14 @@ function* setupNetInfoWatcher() {
     NetInfo.addEventListener('connectionChange', ({type}) => emitter(type === 'none' ? 'offline' : 'online'))
     return () => {}
   }, Saga.buffers.sliding(1))
+
+  const toPut = yield Saga.callUntyped(
+    NetInfo.getConnectionInfo().then(({type}) =>
+      ConfigGen.createOsNetworkStatusChanged({isInit: true, online: type !== 'none'})
+    )
+  )
+  yield Saga.put(toPut)
+
   while (true) {
     const status = yield Saga.take(channel)
     yield Saga.put(ConfigGen.createOsNetworkStatusChanged({online: status === 'online'}))

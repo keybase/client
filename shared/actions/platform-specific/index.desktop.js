@@ -208,6 +208,9 @@ function* setupReachabilityWatcher() {
     window.addEventListener('offline', () => emitter('offline'))
     return () => {}
   }, Saga.buffers.sliding(1))
+
+  yield Saga.put(ConfigGen.createOsNetworkStatusChanged({isInit: true, online: navigator.onLine}))
+
   while (true) {
     const status = yield Saga.take(channel)
     yield Saga.put(ConfigGen.createOsNetworkStatusChanged({online: status === 'online'}))

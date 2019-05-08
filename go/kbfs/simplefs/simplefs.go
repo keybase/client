@@ -2444,6 +2444,13 @@ func (k *SimpleFS) SimpleFSAreWeConnectedToMDServer(ctx context.Context) (bool, 
 	return status.FailingServices[libkbfs.MDServiceName] == nil, nil
 }
 
+// SimpleFSCheckReachability implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSCheckReachability(ctx context.Context) error {
+	ctx = k.makeContext(ctx)
+	k.config.MDServer().CheckReachability(ctx)
+	return nil
+}
+
 // SimpleFSSetDebugLevel implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSSetDebugLevel(
 	_ context.Context, level string) error {

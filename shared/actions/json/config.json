@@ -116,6 +116,7 @@
     },
     "osNetworkStatusChanged": {
       "online": "boolean",
+      "isInit?": "boolean"
     }
   }
 }

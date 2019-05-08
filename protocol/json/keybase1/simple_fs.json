@@ -1170,6 +1170,10 @@
       "request": [],
       "response": "boolean"
     },
+    "simpleFSCheckReachability": {
+      "request": [],
+      "response": null
+    },
     "simpleFSSetDebugLevel": {
       "request": [
         {

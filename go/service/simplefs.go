@@ -483,6 +483,17 @@ func (s *SimpleFSHandler) SimpleFSAreWeConnectedToMDServer(
 	return cli.SimpleFSAreWeConnectedToMDServer(ctx)
 }
 
+// SimpleFSCheckReachability implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSCheckReachability(ctx context.Context) error {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return err
+	}
+	return cli.SimpleFSCheckReachability(ctx)
+}
+
 // SimpleFSSetDebugLevel implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSSetDebugLevel(
 	ctx context.Context, level string) error {
