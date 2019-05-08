@@ -1008,6 +1008,7 @@ const (
 	UITextDecorationTyp_ATMENTION          UITextDecorationTyp = 1
 	UITextDecorationTyp_CHANNELNAMEMENTION UITextDecorationTyp = 2
 	UITextDecorationTyp_MAYBEMENTION       UITextDecorationTyp = 3
+	UITextDecorationTyp_LINK               UITextDecorationTyp = 4
 )
 
 func (o UITextDecorationTyp) DeepCopy() UITextDecorationTyp { return o }
@@ -1017,6 +1018,7 @@ var UITextDecorationTypMap = map[string]UITextDecorationTyp{
 	"ATMENTION":          1,
 	"CHANNELNAMEMENTION": 2,
 	"MAYBEMENTION":       3,
+	"LINK":               4,
 }
 
 var UITextDecorationTypRevMap = map[UITextDecorationTyp]string{
@@ -1024,6 +1026,7 @@ var UITextDecorationTypRevMap = map[UITextDecorationTyp]string{
 	1: "ATMENTION",
 	2: "CHANNELNAMEMENTION",
 	3: "MAYBEMENTION",
+	4: "LINK",
 }
 
 func (e UITextDecorationTyp) String() string {
@@ -1135,6 +1138,7 @@ type UITextDecoration struct {
 	Atmention__          *string               `codec:"atmention,omitempty" json:"atmention,omitempty"`
 	Channelnamemention__ *UIChannelNameMention `codec:"channelnamemention,omitempty" json:"channelnamemention,omitempty"`
 	Maybemention__       *MaybeMention         `codec:"maybemention,omitempty" json:"maybemention,omitempty"`
+	Link__               *string               `codec:"link,omitempty" json:"link,omitempty"`
 }
 
 func (o *UITextDecoration) Typ() (ret UITextDecorationTyp, err error) {
@@ -1157,6 +1161,11 @@ func (o *UITextDecoration) Typ() (ret UITextDecorationTyp, err error) {
 	case UITextDecorationTyp_MAYBEMENTION:
 		if o.Maybemention__ == nil {
 			err = errors.New("unexpected nil value for Maybemention__")
+			return ret, err
+		}
+	case UITextDecorationTyp_LINK:
+		if o.Link__ == nil {
+			err = errors.New("unexpected nil value for Link__")
 			return ret, err
 		}
 	}
@@ -1203,6 +1212,16 @@ func (o UITextDecoration) Maybemention() (res MaybeMention) {
 	return *o.Maybemention__
 }
 
+func (o UITextDecoration) Link() (res string) {
+	if o.Typ__ != UITextDecorationTyp_LINK {
+		panic("wrong case accessed")
+	}
+	if o.Link__ == nil {
+		return
+	}
+	return *o.Link__
+}
+
 func NewUITextDecorationWithPayment(v TextPayment) UITextDecoration {
 	return UITextDecoration{
 		Typ__:     UITextDecorationTyp_PAYMENT,
@@ -1228,6 +1247,13 @@ func NewUITextDecorationWithMaybemention(v MaybeMention) UITextDecoration {
 	return UITextDecoration{
 		Typ__:          UITextDecorationTyp_MAYBEMENTION,
 		Maybemention__: &v,
+	}
+}
+
+func NewUITextDecorationWithLink(v string) UITextDecoration {
+	return UITextDecoration{
+		Typ__:  UITextDecorationTyp_LINK,
+		Link__: &v,
 	}
 }
 
@@ -1262,6 +1288,13 @@ func (o UITextDecoration) DeepCopy() UITextDecoration {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Maybemention__),
+		Link__: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Link__),
 	}
 }
 

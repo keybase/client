@@ -243,7 +243,8 @@ protocol chatUi {
     PAYMENT_0,
     ATMENTION_1,
     CHANNELNAMEMENTION_2,
-    MAYBEMENTION_3
+    MAYBEMENTION_3,
+    LINK_4
   }
 
   enum UIMaybeMentionStatus {
@@ -265,6 +266,7 @@ protocol chatUi {
     case ATMENTION: string;
     case CHANNELNAMEMENTION: UIChannelNameMention;
     case MAYBEMENTION: MaybeMention;
+    case LINK: string;
   }
 
   void chatAttachmentDownloadStart(int sessionID);

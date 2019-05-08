@@ -971,7 +971,8 @@
         "PAYMENT_0",
         "ATMENTION_1",
         "CHANNELNAMEMENTION_2",
-        "MAYBEMENTION_3"
+        "MAYBEMENTION_3",
+        "LINK_4"
       ]
     },
     {
@@ -1057,6 +1058,13 @@
             "def": false
           },
           "body": "MaybeMention"
+        },
+        {
+          "label": {
+            "name": "LINK",
+            "def": false
+          },
+          "body": "string"
         }
       ]
     },
