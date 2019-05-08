@@ -1263,6 +1263,22 @@ func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonbloc
 	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostTextNonblock")()
 
+	if arg.ReplyTo != nil {
+		if os.Getenv("KEYBASE_CHAT_REPLYREACT") == "1" {
+			// Redirect replies to reactions.
+			return h.PostReactionNonblock(ctx, chat1.PostReactionNonblockArg{
+				ConversationID:   arg.ConversationID,
+				TlfName:          arg.TlfName,
+				TlfPublic:        arg.TlfPublic,
+				Supersedes:       *arg.ReplyTo,
+				Body:             arg.Body,
+				OutboxID:         arg.OutboxID,
+				ClientPrev:       arg.ClientPrev,
+				IdentifyBehavior: arg.IdentifyBehavior,
+			})
+		}
+	}
+
 	var parg chat1.PostLocalNonblockArg
 	parg.SessionID = arg.SessionID
 	parg.ClientPrev = arg.ClientPrev
@@ -1294,6 +1310,9 @@ func (h *Server) PostReactionNonblock(ctx context.Context, arg chat1.PostReactio
 	parg.Msg.ClientHeader.Supersedes = arg.Supersedes
 	parg.Msg.ClientHeader.TlfName = arg.TlfName
 	parg.Msg.ClientHeader.TlfPublic = arg.TlfPublic
+	if arg.Supersedes == 0 {
+		return res, fmt.Errorf("invalid reaction message: missing target")
+	}
 	parg.Msg.MessageBody = chat1.NewMessageBodyWithReaction(chat1.MessageReaction{
 		MessageID: arg.Supersedes,
 		Body:      arg.Body,
