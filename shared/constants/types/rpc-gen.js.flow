@@ -184,6 +184,10 @@ export type MessageTypes = {|
     inParam: $ReadOnly<{|opID: OpID|}>,
     outParam: OpProgress,
   |},
+  'keybase.1.SimpleFS.simpleFSCheckReachability': {|
+    inParam: void,
+    outParam: void,
+  |},
   'keybase.1.SimpleFS.simpleFSCopyRecursive': {|
     inParam: $ReadOnly<{|opID: OpID, src: Path, dest: Path|}>,
     outParam: void,
@@ -3487,6 +3491,7 @@ export type CustomResponseIncomingCallMap = {|
 |}
 declare export function SimpleFSSimpleFSAreWeConnectedToMDServerRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSAreWeConnectedToMDServer'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSAreWeConnectedToMDServer'>, 'outParam'>>
 declare export function SimpleFSSimpleFSCancelRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCancel'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCancel'>, 'outParam'>>
+declare export function SimpleFSSimpleFSCheckReachabilityRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCheckReachability'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCheckReachability'>, 'outParam'>>
 declare export function SimpleFSSimpleFSCheckRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCheck'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCheck'>, 'outParam'>>
 declare export function SimpleFSSimpleFSCopyRecursiveRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCopyRecursive'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCopyRecursive'>, 'outParam'>>
 declare export function SimpleFSSimpleFSFolderSyncConfigAndStatusRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus'>, 'outParam'>>

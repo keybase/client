@@ -1398,6 +1398,9 @@ type SimpleFSSyncConfigAndStatusArg struct {
 type SimpleFSAreWeConnectedToMDServerArg struct {
 }
 
+type SimpleFSCheckReachabilityArg struct {
+}
+
 type SimpleFSSetDebugLevelArg struct {
 	Level string `codec:"level" json:"level"`
 }
@@ -1514,6 +1517,7 @@ type SimpleFSInterface interface {
 	SimpleFSSetFolderSyncConfig(context.Context, SimpleFSSetFolderSyncConfigArg) error
 	SimpleFSSyncConfigAndStatus(context.Context) (SyncConfigAndStatusRes, error)
 	SimpleFSAreWeConnectedToMDServer(context.Context) (bool, error)
+	SimpleFSCheckReachability(context.Context) error
 	SimpleFSSetDebugLevel(context.Context, string) error
 }
 
@@ -2046,6 +2050,16 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSCheckReachability": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSCheckReachabilityArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.SimpleFSCheckReachability(ctx)
+					return
+				},
+			},
 			"simpleFSSetDebugLevel": {
 				MakeArg: func() interface{} {
 					var ret [1]SimpleFSSetDebugLevelArg
@@ -2342,6 +2356,11 @@ func (c SimpleFSClient) SimpleFSSyncConfigAndStatus(ctx context.Context) (res Sy
 
 func (c SimpleFSClient) SimpleFSAreWeConnectedToMDServer(ctx context.Context) (res bool, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSAreWeConnectedToMDServer", []interface{}{SimpleFSAreWeConnectedToMDServerArg{}}, &res)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSCheckReachability(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSCheckReachability", []interface{}{SimpleFSCheckReachabilityArg{}}, nil)
 	return
 }
 

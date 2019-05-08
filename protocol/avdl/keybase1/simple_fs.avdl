@@ -501,6 +501,12 @@ protocol SimpleFS {
 
   boolean simpleFSAreWeConnectedToMDServer();
 
+  // This is called when GUI learns about a OS level network status change, and
+  // causes mdserver_remote to check reachability with a Dial. Then it either
+  // forces a reconnect, or fast forwards any pending reconnect, depending on
+  // if the Dial succeeds.
+  void simpleFSCheckReachability();
+
   // simpleFSSetDebugLevel sets the vdebug log level.  Useful level strings
   // are defined in libkb/vdebug.go.  Any unknown strings will have no effect
   // on the level (but won't cause an error).

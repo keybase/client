@@ -474,6 +474,10 @@ func (md *MDServerRemote) CheckReachability(ctx context.Context) {
 			md.log.CInfof(ctx, "MDServerRemote: CheckReachability(): "+
 				"failed to connect (%s), but not reconnecting", err.Error())
 		}
+	} else {
+		md.log.CInfof(ctx, "MDServerRemote: CheckReachability(): "+
+			"dial succeeded; fast forwarding any pending reconnect")
+		md.conn.FastForwardInitialBackoffTimer()
 	}
 	if conn != nil {
 		conn.Close()

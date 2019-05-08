@@ -2,7 +2,6 @@
 import * as ConfigGen from '../config-gen'
 import * as ConfigConstants from '../../constants/config'
 import * as EngineGen from '../engine-gen-gen'
-import * as GregorGen from '../gregor-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import * as Saga from '../../util/saga'
@@ -208,10 +207,13 @@ function* setupReachabilityWatcher() {
     window.addEventListener('online', () => emitter('online'))
     window.addEventListener('offline', () => emitter('offline'))
     return () => {}
-  }, Saga.buffers.dropping(1))
+  }, Saga.buffers.sliding(1))
+
+  yield Saga.put(ConfigGen.createOsNetworkStatusChanged({isInit: true, online: navigator.onLine}))
+
   while (true) {
-    yield Saga.take(channel)
-    yield Saga.put(GregorGen.createCheckReachability())
+    const status = yield Saga.take(channel)
+    yield Saga.put(ConfigGen.createOsNetworkStatusChanged({online: status === 'online'}))
   }
 }
 
