@@ -37,6 +37,7 @@ export const serialize: any = {
           }
     }, {}),
   daemonHandshakeState: v => v,
+  diskSpaceStatus: v => v,
   endEstimate: v => v,
   externalRemoteWindow: v => v,
   fileName: v => v,

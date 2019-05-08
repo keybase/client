@@ -10,7 +10,7 @@ type OwnProps = {||}
 const mapStateToProps = state => ({
   _kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
   _name: state.config.username,
-  _overallSyncStatus: null,
+  _overallSyncStatus: state.fs.overallSyncStatus,
 })
 
 const mapDispatchToProps = dispatch => ({

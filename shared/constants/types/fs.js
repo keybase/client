@@ -471,6 +471,13 @@ export type _SyncingFoldersProgress = {
 }
 export type SyncingFoldersProgress = I.RecordOf<_SyncingFoldersProgress>
 
+export type DiskSpaceStatus = 'warning' | 'error' | 'ok'
+export type _OverallSyncStatus = {
+  syncingFoldersProgress: SyncingFoldersProgress,
+  diskSpaceStatus: DiskSpaceStatus,
+}
+export type OverallSyncStatus = I.RecordOf<_OverallSyncStatus>
+
 export type SoftError = 'no-access' | 'non-existent'
 
 export type _SoftErrors = {
@@ -495,6 +502,7 @@ export type _State = {|
   loadingPaths: I.Map<Path, I.Set<string>>,
   localHTTPServerInfo: LocalHTTPServer,
   destinationPicker: DestinationPicker,
+  overallSyncStatus: OverallSyncStatus,
   pathItemActionMenu: PathItemActionMenu,
   pathItems: PathItems,
   pathUserSettings: I.Map<Path, PathUserSetting>,
@@ -502,7 +510,6 @@ export type _State = {|
   sendLinkToChat: SendLinkToChat,
   sfmi: SystemFileManagerIntegration,
   softErrors: SoftErrors,
-  syncingFoldersProgress: SyncingFoldersProgress,
   tlfUpdates: UserTlfUpdates,
   tlfs: Tlfs,
   uploads: Uploads,

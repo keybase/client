@@ -10,6 +10,7 @@ import FilesPreview from './files-container.desktop'
 import {isDarwin} from '../constants/platform'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import OutOfDate from './out-of-date'
+import SpaceWarning from './space-warning'
 import Upload from '../fs/footer/upload'
 import UploadCountdownHOC, {type UploadCountdownHOCProps} from '../fs/footer/upload-countdown-hoc'
 import KbfsDaemonNotRunning from '../fs/common/kbfs-daemon-not-running'
@@ -17,12 +18,14 @@ import type {DaemonHandshakeState} from '../constants/types/config'
 
 export type Props = {
   daemonHandshakeState: DaemonHandshakeState,
+  diskSpaceStatus: FsTypes.DiskSpaceStatus,
   logIn: () => void,
   loggedIn: boolean,
   kbfsDaemonStatus: FsTypes.KbfsDaemonStatus,
   kbfsEnabled: boolean,
   updateNow: () => void,
   onRekey: (path: string) => void,
+  onRetrySync: () => void,
   openApp: (tab: ?string) => void,
   outOfDate?: ConfigTypes.OutOfDate,
   showInFinder: () => void,
@@ -321,6 +324,7 @@ class MenubarRender extends React.Component<Props, State> {
           />
         </Kb.Box>
         <OutOfDate outOfDate={this.props.outOfDate} updateNow={this.props.updateNow} />
+        <SpaceWarning diskSpaceStatus={this.props.diskSpaceStatus} onRetry={this.props.onRetrySync} />
         <Kb.ScrollView>
           <ChatContainer convLimit={3} />
           {this.props.kbfsDaemonStatus.rpcStatus === 'connected' ? (

@@ -8,6 +8,7 @@ import * as Constants from '../constants/fs'
 import Menubar from './index.desktop'
 import OutOfDate from './out-of-date'
 import {FileUpdate} from './files.desktop'
+import SpaceWarning from './space-warning'
 
 const props = {
   badgeInfo: {
@@ -27,6 +28,7 @@ const props = {
     // TODO: fill in a few.
   ],
   daemonHandshakeState: 'done',
+  diskSpaceStatus: 'ok',
   fileName: null,
   files: 0,
   folderProps: null,
@@ -36,6 +38,7 @@ const props = {
   loggedIn: true,
   onFolderClick: Storybook.action('onFolderClick'),
   onRekey: Storybook.action('onRekey'),
+  onRetrySync: Storybook.action('onRetrySync'),
   onSelectConversation: () => {},
   openApp: Storybook.action('openApp'),
   quit: Storybook.action('quit'),
@@ -111,6 +114,12 @@ const load = () => {
           outOfDate={ConfigConstants.makeOutOfDate({critical: true, message: 'This is a critical message.'})}
           updateNow={Storybook.action('updateNow')}
         />
+      </Kb.Box2>
+    ))
+    .add('Out of space banner', () => (
+      <Kb.Box2 fullWidth={true} direction="vertical" gap="small">
+        <SpaceWarning diskSpaceStatus="warning" onRetry={Storybook.action('retry')} />
+        <SpaceWarning diskSpaceStatus="error" onRetry={Storybook.action('retry')} />
       </Kb.Box2>
     ))
     .add('Uploading', () => <Menubar {...props} files={1} totalSyncingBytes={1} />)

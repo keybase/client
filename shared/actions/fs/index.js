@@ -984,6 +984,7 @@ const onFSOnlineStatusChanged = (state, action) =>
 
 const onFSOverallSyncSyncStatusChanged = (state, action) =>
   FsGen.createOverallSyncStatusChanged({
+    outOfSpace: action.payload.params.status.outOfSyncSpace,
     progress: Constants.makeSyncingFoldersProgress(action.payload.params.status.prefetchProgress),
   })
 

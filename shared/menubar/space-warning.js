@@ -1,26 +1,59 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../common-adapters'
+import * as FsTypes from '../constants/types/fs'
 
-export type BannerType = 'warning' | 'failure' | 'none'
 type Props = {
-  onClose: () => void,
   onRetry: () => void,
-  bannerType: BannerType,
+  diskSpaceStatus: FsTypes.DiskSpaceStatus,
+}
+type State = {
+  hidden: boolean,
 }
 
-const Banner = (props: Props) =>
-  props.bannerType !== 'none' && (
-    <Kb.Banner
-      onClose={props.onClose}
-      text={
-        props.bannerType === 'warning'
-          ? 'You have less than 1 GB of' + ' storage space. Make some space, or unsync some folders.'
-          : 'You are' + ' out of storage space. Unsync some folders, or make some space then'
-      }
-      color={props.bannerType === 'warning' ? 'blue' : 'red'}
-      actions={[...(props.onRetry ? [{onClick: props.onRetry, title: 'retry' + ' the sync.'}] : [])]}
-    />
-  )
+class SpaceWarning extends React.PureComponent<Props, State> {
+  constructor(props: Props) {
+    super(props)
 
-export default Banner
+    this.state = {hidden: false}
+  }
+
+  _close = () => {
+    this.setState(() => ({
+      hidden: true,
+    }))
+  }
+
+  componentDidUpdate(prevProps: Props) {
+    // got updated
+    if (this.props.diskSpaceStatus !== prevProps.diskSpaceStatus) {
+      this.setState(() => ({
+        hidden: false,
+      }))
+    }
+  }
+
+  render() {
+    const display =
+      this.props.diskSpaceStatus === 'error' ||
+      (this.props.diskSpaceStatus === 'warning' && !this.state.hidden)
+    return (
+      display && (
+        <Kb.Banner
+          {...(this.props.diskSpaceStatus === 'warning' ? {onClose: this._close} : {})}
+          text={
+            this.props.diskSpaceStatus === 'warning'
+              ? 'You have less than 1 GB of' + ' storage space. Make some space, or unsync some folders.'
+              : 'You are' + ' out of storage space. Unsync some folders, or make some space then'
+          }
+          color={this.props.diskSpaceStatus === 'warning' ? 'blue' : 'red'}
+          actions={[
+            ...(this.props.onRetry ? [{onClick: this.props.onRetry, title: 'retry' + ' the sync.'}] : []),
+          ]}
+        />
+      )
+    )
+  }
+}
+
+export default SpaceWarning

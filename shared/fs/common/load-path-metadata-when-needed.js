@@ -10,7 +10,7 @@ type OwnProps = {|
 |}
 
 const mapStateToProps = state => ({
-  syncingFoldersProgress: state.fs.syncingFoldersProgress,
+  syncingFoldersProgress: state.fs.overallSyncStatus.syncingFoldersProgress,
 })
 
 const mapDispatchToProps = (dispatch, {path, refreshTag}) => ({

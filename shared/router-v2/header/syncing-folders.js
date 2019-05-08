@@ -24,7 +24,7 @@ const SyncingFolders = (props: Props) =>
   ) : null
 
 const mapStateToProps = state => ({
-  _syncingFoldersProgress: state.fs.syncingFoldersProgress,
+  _syncingFoldersProgress: state.fs.overallSyncStatus.syncingFoldersProgress,
   online: state.fs.kbfsDaemonStatus.online,
 })
 

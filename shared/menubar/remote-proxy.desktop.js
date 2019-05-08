@@ -42,6 +42,7 @@ const mapStateToProps = state => ({
   _uploads: state.fs.uploads,
   conversationsToSend: conversationsToSend(state),
   daemonHandshakeState: state.config.daemonHandshakeState,
+  diskSpaceStatus: state.fs.overallSyncStatus.diskSpaceStatus,
   kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
   kbfsEnabled: state.fs.sfmi.driverStatus.type === 'enabled',
   loggedIn: state.config.loggedIn,
@@ -64,6 +65,7 @@ const mergeProps = stateProps => {
     conversationIDs: stateProps.conversationsToSend,
     conversationMap: stateProps.conversationsToSend,
     daemonHandshakeState: stateProps.daemonHandshakeState,
+    diskSpaceStatus: stateProps.diskSpaceStatus,
     externalRemoteWindow: stateProps._externalRemoteWindowID
       ? SafeElectron.getRemote().BrowserWindow.fromId(stateProps._externalRemoteWindowID)
       : null,
