@@ -328,6 +328,16 @@ func (k KeybaseServiceMeasured) NotifyOverallSyncStatus(
 	return err
 }
 
+// NotifyFavoritesChanged implements the KeybaseService interface for
+// KeybaseServiceMeasured.
+func (k KeybaseServiceMeasured) NotifyFavoritesChanged(
+	ctx context.Context) (err error) {
+	k.notifyTimer.Time(func() {
+		err = k.delegate.NotifyFavoritesChanged(ctx)
+	})
+	return err
+}
+
 // FlushUserFromLocalCache implements the KeybaseService interface for
 // KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) FlushUserFromLocalCache(

@@ -375,6 +375,11 @@ func (k *KeybaseDaemonLocal) NotifyOnlineStatusChanged(ctx context.Context, onli
 	return checkContext(ctx)
 }
 
+// NotifyFavoritesChanged implements KeybaseDaemon for KeybaseDeamonLocal.
+func (k *KeybaseDaemonLocal) NotifyFavoritesChanged(ctx context.Context) error {
+	return checkContext(ctx)
+}
+
 // Notify implements KeybaseDaemon for KeybaseDeamonLocal.
 func (k *KeybaseDaemonLocal) Notify(ctx context.Context, notification *keybase1.FSNotification) error {
 	return checkContext(ctx)
