@@ -6081,6 +6081,24 @@ func (fbo *folderBranchOps) FolderStatus(
 	return fbo.status.getStatus(ctx, &fbo.blocks)
 }
 
+func (fbo *folderBranchOps) FolderConflictStatus(ctx context.Context) (
+	keybase1.FolderConflictType, error) {
+	isStuck, err := fbo.cr.isStuck()
+	if err != nil {
+		return keybase1.FolderConflictType_NONE, err
+	}
+
+	if isStuck {
+		return keybase1.FolderConflictType_IN_CONFLICT_AND_STUCK, nil
+	}
+
+	lState := makeFBOLockState()
+	if fbo.isUnmerged(lState) {
+		return keybase1.FolderConflictType_IN_CONFLICT, nil
+	}
+	return keybase1.FolderConflictType_NONE, nil
+}
+
 func (fbo *folderBranchOps) Status(
 	ctx context.Context) (
 	fbs KBFSStatus, updateChan <-chan StatusUpdate, err error) {

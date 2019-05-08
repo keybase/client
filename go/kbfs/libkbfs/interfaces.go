@@ -428,6 +428,11 @@ type KBFSOps interface {
 	// updated (to eliminate the need for polling this method).
 	FolderStatus(ctx context.Context, folderBranch data.FolderBranch) (
 		FolderBranchStatus, <-chan StatusUpdate, error)
+	// FolderConflictStatus is alightweight method to return the
+	// conflict status of a particular folder/branch.  (The conflict
+	// status is also available in `FolderBranchStatus`.
+	FolderConflictStatus(ctx context.Context, folderBranch data.FolderBranch) (
+		keybase1.FolderConflictType, error)
 	// Status returns the status of KBFS, along with a channel that will be
 	// closed when the status has been updated (to eliminate the need for
 	// polling this method). Note that this channel only applies to
