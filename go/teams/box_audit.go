@@ -861,6 +861,11 @@ func calculateChainSummary(mctx libkb.MetaContext, team *Team) (summary *boxPubl
 	if err != nil {
 		return nil, err
 	}
+
+	if !mctx.G().GetMerkleClient().CanExamineHistoricalRoot(mctx, merkleSeqno) {
+		return nil, fmt.Errorf("last rotation was at %d, before the most recent checkpoint, so forcing a rotation", merkleSeqno)
+	}
+
 	return calculateSummaryAtMerkleSeqno(mctx, team, merkleSeqno, true)
 }
 

@@ -15,6 +15,7 @@ type FeatureFlags []Feature
 const (
 	EnvironmentFeatureAllowHighSkips    = Feature("env_allow_high_skips")
 	EnvironmentFeatureAutoresetPipeline = Feature("env_autoreset")
+	EnvironmentFeatureMerkleCheckpoint  = Feature("merkle_checkpoint")
 )
 
 // StringToFeatureFlags returns a set of feature flags

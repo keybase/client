@@ -18,9 +18,9 @@ func TestMerkleClientHistorical(t *testing.T) {
 	q.Add("uid", libkb.UIDArg(fu.UID()))
 	mc := tc.G.MerkleClient
 	leaf, err := mc.LookupUser(m, q, nil)
-	root := mc.LastRoot()
 
 	require.NoError(t, err)
+	root := mc.LastRoot(m)
 	require.NotNil(t, leaf)
 	require.NotNil(t, root)
 
