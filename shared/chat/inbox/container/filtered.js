@@ -53,7 +53,10 @@ const score = (lcFilter: string, lcYou: string, names: Array<string>, insertMatc
   // insertionDistance = searchStr.length - filter.length
   // 1 / (insertionDistance + 1) * 20
   // 20 <= insertionScore < 0
-  const insertionScore = insertionMatch ? (1 / (searchStr.length - filter.length + 1)) * 20 : 0
+  let insertionScore = 0
+  if (filter) {
+    insertionScore = insertionMatch ? (1 / (searchStr.length - filter.length + 1)) * 20 : 0
+  }
 
   let rawScore = (foundExact ? 1000 : 0) + (foundPrefix ? 100 : 0) + insertionScore + (foundSub ? 10 : 0)
 
