@@ -1045,6 +1045,18 @@ func (fs *KBFSOpsStandard) FolderStatus(
 	return ops.FolderStatus(ctx, folderBranch)
 }
 
+// FolderConflictStatus implements the KBFSOps interface for
+// KBFSOpsStandard
+func (fs *KBFSOpsStandard) FolderConflictStatus(
+	ctx context.Context, folderBranch data.FolderBranch) (
+	keybase1.FolderConflictType, error) {
+	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
+	defer timeTrackerDone()
+
+	ops := fs.getOps(ctx, folderBranch, FavoritesOpNoChange)
+	return ops.FolderConflictStatus(ctx)
+}
+
 // Status implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 	KBFSStatus, <-chan StatusUpdate, error) {
