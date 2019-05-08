@@ -239,6 +239,7 @@ func makeHistory(history *keybase1.AuditHistory, id keybase1.TeamID) *keybase1.A
 	return &ret
 }
 
+// doPostProbes probes the sequence timeline _after_ the team was created.
 func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHistory, probeID int, headMerkleSeqno keybase1.Seqno, latestMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxChainSeqno keybase1.Seqno) (numProbes int, maxMerkleProbe keybase1.Seqno, err error) {
 	defer m.Trace("Auditor#doPostProbes", func() error { return err })()
 
@@ -264,7 +265,10 @@ func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHisto
 		}
 	}
 
+	// Probe only after the checkpoint. Merkle roots before the checkpoint aren't examined and are
+	// trusted to be legit, being buried far enough in the past. Therefore probing is not necessary.
 	first := m.G().MerkleClient.FirstExaminableHistoricalRoot(m)
+
 	if first == nil {
 		return 0, keybase1.Seqno(0), NewAuditError("cannot find a first modern merkle sequence")
 	}
