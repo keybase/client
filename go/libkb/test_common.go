@@ -297,7 +297,7 @@ func setupTestContext(tb TestingTB, name string, tcPrev *TestContext) (tc TestCo
 				g.Log.Debug("TestContext bg loop shutting down")
 				return nil
 			case <-time.After(time.Second):
-				g.Log.Debug("TestContext bg loop not cleaned up")
+				g.Log.Debug("TestContext bg loop not cleaned up yet")
 			}
 		}
 	})
