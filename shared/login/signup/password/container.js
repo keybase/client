@@ -14,9 +14,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(SignupGen.createGoBackAndClearErrors()),
   onSubmit: (pass1: string, pass2: string) =>
-    dispatch(
-      SignupGen.createCheckPassword({pass1: new HiddenString(pass1), pass2: new HiddenString(pass2)})
-    ),
+    dispatch(SignupGen.createCheckPassword({pass1: new HiddenString(pass1), pass2: new HiddenString(pass2)})),
 })
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,

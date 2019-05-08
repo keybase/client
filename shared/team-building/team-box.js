@@ -49,11 +49,7 @@ const TeamInput = (props: Props) => (
     onDownArrowKeyDown={props.onDownArrowKeyDown}
     onUpArrowKeyDown={props.onUpArrowKeyDown}
     onBackspace={props.onBackspace}
-    placeholder={
-      props.teamSoFar.length
-        ? 'Add another username or enter to chat'
-        : 'Enter a username'
-    }
+    placeholder={props.teamSoFar.length ? 'Add another username or enter to chat' : 'Enter a username'}
     searchString={props.searchString}
   />
 )

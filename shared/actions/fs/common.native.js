@@ -21,14 +21,14 @@ const pickAndUploadToPromise = (state: TypedState, action: FsGen.PickAndUploadPa
         response.didCancel
           ? resolve()
           : response.error
-            ? reject(response.error)
-            : isIOS
-              ? response.uri
-                ? resolve(response.uri.replace('file://', ''))
-                : reject(new Error('uri field is missing from response'))
-              : response.path
-                ? resolve(response.path)
-                : reject(new Error('path field is missing from response'))
+          ? reject(response.error)
+          : isIOS
+          ? response.uri
+            ? resolve(response.uri.replace('file://', ''))
+            : reject(new Error('uri field is missing from response'))
+          : response.path
+          ? resolve(response.path)
+          : reject(new Error('path field is missing from response'))
     )
   )
     .then(localPath => localPath && FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))

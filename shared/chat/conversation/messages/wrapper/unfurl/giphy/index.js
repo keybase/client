@@ -29,7 +29,7 @@ class UnfurlGiphy extends React.Component<Props> {
                 boxStyle={styles.collapseBox}
                 style={styles.collapse}
                 onClick={this.props.onCollapse}
-sizeType='Tiny'
+                sizeType="Tiny"
                 type={this.props.isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
               />
             </Kb.Box2>
