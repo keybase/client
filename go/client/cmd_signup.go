@@ -44,6 +44,10 @@ func NewCmdSignup(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 				Name:  "set-password",
 				Usage: "Ask for password (optional by default).",
 			},
+			cli.BoolFlag{
+				Name:  "force",
+				Usage: "(dangerous) Ignore any reasons not to signup right now",
+			},
 		},
 	}
 
@@ -88,6 +92,7 @@ type CmdSignup struct {
 	skipMail           bool
 	genPGP             bool
 	genPaper           bool
+	force              bool
 
 	// Test option to not call to requestInvitationCode for bypassing
 	// invitation code.
@@ -158,6 +163,8 @@ func (s *CmdSignup) ParseArgv(ctx *cli.Context) (err error) {
 		return fmt.Errorf("cannot pass --no-email and non-empty --email")
 	}
 
+	s.force = ctx.Bool("force")
+
 	if ctx.Bool("batch") {
 		s.fields = &PromptFields{
 			code:            &Field{Value: &s.code},
@@ -208,8 +215,10 @@ func (s *CmdSignup) Run() (err error) {
 		return err
 	}
 
-	if err = s.checkRegistered(); err != nil {
-		return err
+	if !s.force {
+		if err = s.checkRegistered(); err != nil {
+			return err
+		}
 	}
 
 	if s.code == "" && !s.noInvitationCodeBypass {
@@ -243,18 +252,9 @@ func (s *CmdSignup) checkRegistered() (err error) {
 		return
 	}
 
-	if s.G().ActiveDevice.Valid() {
-		ucli, err := GetUserClient(s.G())
-		if err != nil {
-			return err
-		}
-		hasRandomPw, err := ucli.LoadHasRandomPw(context.TODO(), keybase1.LoadHasRandomPwArg{})
-		if err != nil {
-			return err
-		}
-		if hasRandomPw {
-			return fmt.Errorf("Cannot sign up while logged into an account with no password.\nCreate a password with `keybase passphrase change` first.")
-		}
+	err = ensureSetPassphraseFromRemote(libkb.NewMetaContextTODO(s.G()))
+	if err != nil {
+		return err
 	}
 
 	if !s.doPrompt {
