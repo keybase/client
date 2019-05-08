@@ -108,7 +108,11 @@ func NewDeviceEKStorage(mctx libkb.MetaContext) *DeviceEKStorage {
 }
 
 func (s *DeviceEKStorage) SetLogPrefix(mctx libkb.MetaContext) {
-	s.logger.SetPrefix(getLogPrefix(mctx))
+	s.Lock()
+	defer s.Unlock()
+	if s.logger != nil {
+		s.logger.SetPrefix(getLogPrefix(mctx))
+	}
 }
 
 // Log sensitive deletion actions to a separate log file so we don't lose the
