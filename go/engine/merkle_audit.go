@@ -225,7 +225,7 @@ func MerkleAuditRound(m libkb.MetaContext) (err error) {
 		lastSeqno := *lastRoot.Seqno()
 
 		// 2. Figure out the first merkle root seqno with skips, fall back to 1
-		firstSeqno := m.G().MerkleClient.FirstSeqnoWithSkips(m)
+		firstSeqno := m.G().MerkleClient.FirstExaminableHistoricalRoot(m)
 		if firstSeqno == nil {
 			val := keybase1.Seqno(1)
 			firstSeqno = &val

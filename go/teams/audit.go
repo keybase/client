@@ -264,7 +264,7 @@ func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHisto
 		}
 	}
 
-	first := m.G().MerkleClient.FirstSeqnoWithSkips(m)
+	first := m.G().MerkleClient.FirstExaminableHistoricalRoot(m)
 	if first == nil {
 		return 0, keybase1.Seqno(0), NewAuditError("cannot find a first modern merkle sequence")
 	}
@@ -332,7 +332,7 @@ func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHisto
 func (a *Auditor) doPreProbes(m libkb.MetaContext, history *keybase1.AuditHistory, probeID int, headMerkleSeqno keybase1.Seqno) (numProbes int, err error) {
 	defer m.Trace("Auditor#doPreProbes", func() error { return err })()
 
-	first := m.G().MerkleClient.FirstSeqnoWithSkips(m)
+	first := m.G().MerkleClient.FirstExaminableHistoricalRoot(m)
 	if first == nil {
 		return 0, NewAuditError("cannot find a first modern merkle sequence")
 	}

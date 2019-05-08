@@ -260,7 +260,7 @@ func (l *LoaderContextG) merkleLookupTripleInPast(ctx context.Context, isPublic 
 	mctx := l.MetaContext(ctx)
 
 	mc := l.G().MerkleClient
-	checkpoint := mc.CheckpointSeqno(mctx)
+	checkpoint := mc.FirstExaminableHistoricalRoot(mctx)
 	var leaf *libkb.MerkleGenericLeaf
 
 	// If we're trying to lookup a leaf from before the checkpoint, just bump forward to the checkpoint.

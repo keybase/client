@@ -790,7 +790,9 @@ func readRootFromAPIRes(m MetaContext, jw *jsonw.Wrapper, opts MerkleOpts) (*Mer
 		return nil, err
 	}
 	if chk := GetMerkleCheckpoint(m); chk != nil && *ret.Seqno() < *chk.Seqno() {
-		return nil, NewClientMerkleFailedCheckpointError(fmt.Sprintf("got unexpected early root %d < %d", *ret.Seqno(), *chk.Seqno()))
+		msg := fmt.Sprintf("got unexpected early root %d < %d", *ret.Seqno(), *chk.Seqno())
+		m.Error("checkpoint failure: %s", msg)
+		return nil, NewClientMerkleFailedCheckpointError(msg)
 	}
 	ret.fetched = m.G().Clock().Now()
 	return ret, nil
@@ -962,7 +964,7 @@ func (mc *MerkleClient) storeRoot(m MetaContext, root *MerkleRoot) {
 	}
 }
 
-func (mc *MerkleClient) FirstSeqnoWithSkipsProd(m MetaContext) *keybase1.Seqno {
+func (mc *MerkleClient) firstExaminableHistoricalRootProd(m MetaContext) *keybase1.Seqno {
 	chk := GetMerkleCheckpoint(m)
 	var ret *keybase1.Seqno
 	if chk != nil {
@@ -974,10 +976,10 @@ func (mc *MerkleClient) FirstSeqnoWithSkipsProd(m MetaContext) *keybase1.Seqno {
 	return ret
 }
 
-func (mc *MerkleClient) FirstSeqnoWithSkips(m MetaContext) *keybase1.Seqno {
+func (mc *MerkleClient) FirstExaminableHistoricalRoot(m MetaContext) *keybase1.Seqno {
 
 	if mc.G().Env.GetRunMode() == ProductionRunMode {
-		return mc.FirstSeqnoWithSkipsProd(m)
+		return mc.firstExaminableHistoricalRootProd(m)
 	}
 
 	ret := mc.getFirstSkip()
@@ -987,10 +989,6 @@ func (mc *MerkleClient) FirstSeqnoWithSkips(m MetaContext) *keybase1.Seqno {
 
 	ret = mc.getFirstSkipFromServer(m)
 	return ret
-}
-
-func (mc *MerkleClient) CheckpointSeqno(m MetaContext) *keybase1.Seqno {
-	return mc.FirstSeqnoWithSkips(m)
 }
 
 func (mc *MerkleClient) getFirstSkip() *keybase1.Seqno {
@@ -1066,7 +1064,7 @@ func (mc *MerkleClient) verifySkipSequence(m MetaContext, ss SkipSequence, thisR
 	// from after the server starting providing skip pointers.
 	if ss == nil {
 		m.VLogf(VLog1, "| nil SkipSequence")
-		fss := mc.FirstSeqnoWithSkips(m)
+		fss := mc.FirstExaminableHistoricalRoot(m)
 		if lastRoot == nil {
 			m.VLogf(VLog1, "| lastRoot==nil, so OK")
 			return nil
@@ -1976,15 +1974,9 @@ func (mrp MerkleRootPayload) kbfsPrivateTeam() (keybase1.KBFSRootHash, *keybase1
 }
 
 func (mc *MerkleClient) CanExamineHistoricalRoot(m MetaContext, q keybase1.Seqno) bool {
-	if m.G().Env.GetRunMode() != ProductionRunMode {
+	chk := mc.FirstExaminableHistoricalRoot(m)
+	if chk == nil {
 		return true
 	}
-	if q < FirstProdMerkleSeqnoWithSkips {
-		return false
-	}
-	chk := GetMerkleCheckpoint(m)
-	if chk != nil && q < *chk.Seqno() {
-		return false
-	}
-	return true
+	return q >= *chk
 }
