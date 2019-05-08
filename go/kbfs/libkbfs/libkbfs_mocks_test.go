@@ -896,6 +896,18 @@ func (mr *MockKBFSOpsMockRecorder) AddFavorite(arg0, arg1, arg2 interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddFavorite", reflect.TypeOf((*MockKBFSOps)(nil).AddFavorite), arg0, arg1, arg2)
 }
 
+// AddRootNodeWrapper mocks base method
+func (m *MockKBFSOps) AddRootNodeWrapper(arg0 func(Node) Node) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "AddRootNodeWrapper", arg0)
+}
+
+// AddRootNodeWrapper indicates an expected call of AddRootNodeWrapper
+func (mr *MockKBFSOpsMockRecorder) AddRootNodeWrapper(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddRootNodeWrapper", reflect.TypeOf((*MockKBFSOps)(nil).AddRootNodeWrapper), arg0)
+}
+
 // ClearCachedFavorites mocks base method
 func (m *MockKBFSOps) ClearCachedFavorites(arg0 context.Context) {
 	m.ctrl.T.Helper()

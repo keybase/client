@@ -541,6 +541,11 @@ type KBFSOps interface {
 	SetSyncConfig(
 		ctx context.Context, tlfID tlf.ID, config keybase1.FolderSyncConfig) (
 		<-chan error, error)
+
+	// AddRootNodeWrapper adds a new root node wrapper for every
+	// existing TLF.  Any Nodes that have already been returned by
+	// `KBFSOps` won't use these wrappers.
+	AddRootNodeWrapper(func(Node) Node)
 }
 
 type gitMetadataPutter interface {

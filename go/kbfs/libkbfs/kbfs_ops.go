@@ -1473,6 +1473,16 @@ func (fs *KBFSOpsStandard) changeHandle(ctx context.Context,
 	delete(fs.opsByFav, oldFav)
 }
 
+// AddRootNodeWrapper implements the KBFSOps interface for
+// KBFSOpsStandard.
+func (fs *KBFSOpsStandard) AddRootNodeWrapper(f func(Node) Node) {
+	fs.opsLock.Lock()
+	defer fs.opsLock.Unlock()
+	for _, op := range fs.ops {
+		op.addRootNodeWrapper(f)
+	}
+}
+
 // Notifier:
 var _ Notifier = (*KBFSOpsStandard)(nil)
 
