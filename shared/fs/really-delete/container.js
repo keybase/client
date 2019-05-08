@@ -28,7 +28,7 @@ const mapDispatchToProps = (dispatch, ownProps) => {
       // If this is a screen menu, then we're deleting the folder we're in,
       // and we need to navigate up twice.
       if (mode === 'screen') {
-        dispatch(Constants.makeActionForOpenPathInFilesTab(Types.getPathParent(path)))
+        dispatch(RouteTreeGen.createNavigateUp())
         dispatch(RouteTreeGen.createNavigateUp())
       } else {
         dispatch(RouteTreeGen.createNavigateUp())

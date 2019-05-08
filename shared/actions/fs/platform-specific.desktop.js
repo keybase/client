@@ -100,7 +100,7 @@ const _openPathInSystemFileManagerPromise = (openPath: string, isFolder: boolean
 const openLocalPathInSystemFileManager = (state, action) =>
   getPathType(action.payload.localPath)
     .then(pathType => _openPathInSystemFileManagerPromise(action.payload.localPath, pathType === 'directory'))
-    .catch(makeUnretriableErrorHandler(action))
+    .catch(makeUnretriableErrorHandler(action, null))
 
 const _rebaseKbfsPathToMountLocation = (kbfsPath: Types.Path, mountLocation: string) =>
   path.resolve(
@@ -121,7 +121,7 @@ const openPathInSystemFileManager = (state, action) =>
           )
         )
         .catch(err => {
-          return makeRetriableErrorHandler(action)(err)
+          return makeRetriableErrorHandler(action, action.payload.path)(err)
         })
     : new Promise((resolve, reject) =>
         // This usually indicates a developer error as
@@ -332,7 +332,7 @@ const installCachedDokan = (state, action) =>
     })
   })
     .then(() => FsGen.createRefreshDriverStatus())
-    .catch(makeUnretriableErrorHandler(action))
+    .catch(makeUnretriableErrorHandler(action, null))
 
 const openAndUploadToPromise = (state: TypedState, action: FsGen.OpenAndUploadPayload) =>
   new Promise((resolve, reject) =>

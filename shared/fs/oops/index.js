@@ -4,15 +4,11 @@ import * as Types from '../../constants/types/fs'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Flow from '../../util/flow'
-import {withProps} from 'recompose'
 import {isMobile} from '../../constants/platform'
-
-export type Reason = 'no-access' | 'non-existent'
 
 type Props = {
   path: Types.Path,
-  onCancel: () => void,
-  reason: Reason,
+  reason: Types.SoftError,
 }
 
 const Explain = (props: Props) => {
@@ -51,14 +47,7 @@ const Explain = (props: Props) => {
 }
 
 const NoAccess = (props: Props) => (
-  <Kb.Box2 direction="vertical" style={styles.container}>
-    {!isMobile && (
-      <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true} style={styles.header}>
-        <Kb.Text type="BodySemibold" negative={true}>
-          Oops.
-        </Kb.Text>
-      </Kb.Box2>
-    )}
+  <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
     <Kb.Box2 direction="vertical" style={styles.main} fullWidth={true} centerChildren={true}>
       <Kb.Icon
         type={isMobile ? 'icon-fancy-no-access-mobile-128-125' : 'icon-fancy-no-access-desktop-96-94'}
@@ -68,23 +57,11 @@ const NoAccess = (props: Props) => (
       </Kb.Text>
       <Explain {...props} />
     </Kb.Box2>
-    {!isMobile && (
-      <Kb.Box2 direction="horizontal" style={styles.footer} fullWidth={true} centerChildren={true}>
-        <Kb.Button label="Got it" onClick={props.onCancel} />
-      </Kb.Box2>
-    )}
   </Kb.Box2>
 )
 
 const NonExistent = (props: Props) => (
-  <Kb.Box2 direction="vertical" style={styles.container}>
-    {!isMobile && (
-      <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true} style={styles.header}>
-        <Kb.Text type="BodySemibold" negative={true}>
-          Oops.
-        </Kb.Text>
-      </Kb.Box2>
-    )}
+  <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
     <Kb.Box2 direction="vertical" style={styles.main} fullWidth={true} centerChildren={true}>
       <Kb.Icon
         type={
@@ -102,11 +79,6 @@ const NonExistent = (props: Props) => (
         </Kb.Text>
       </Kb.Box2>
     </Kb.Box2>
-    {!isMobile && (
-      <Kb.Box2 direction="horizontal" style={styles.footer} fullWidth={true} centerChildren={true}>
-        <Kb.Button label="Got it" onClick={props.onCancel} />
-      </Kb.Box2>
-    )}
   </Kb.Box2>
 )
 
@@ -122,24 +94,13 @@ const Oops = (props: Props) => {
   }
 }
 
-export default (isMobile
-  ? withProps<Props & {customCancelText: string}, Props>(({path, onCancel, reason}) => ({
-      customCancelText: 'Close',
-      onCancel,
-      path,
-      reason,
-    }))(Kb.HeaderOrPopup(Oops))
-  : Kb.HeaderOrPopup(Oops))
+export default Oops
 
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     common: {
-      ...Styles.globalStyles.rounded,
+      ...Styles.globalStyles.flexGrow,
       backgroundColor: Styles.globalColors.white,
-    },
-    isElectron: {
-      height: 380,
-      width: 560,
     },
     isMobile: {
       padding: Styles.globalMargins.large,
@@ -162,8 +123,6 @@ const styles = Styles.styleSheetCreate({
   },
   header: {
     backgroundColor: Styles.globalColors.red,
-    borderTopLeftRadius: 4,
-    borderTopRightRadius: 4,
     height: 40,
   },
   main: {

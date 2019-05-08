@@ -33,7 +33,7 @@ const loadFavorites = (state, action) =>
         state.config.loggedIn
       )
     )
-    .catch(makeRetriableErrorHandler(action))
+    .catch(makeRetriableErrorHandler(action, null))
 
 const getSyncConfigFromRPC = (tlfName, tlfType, config: RPCTypes.FolderSyncConfig): Types.TlfSyncConfig => {
   switch (config.mode) {
@@ -108,13 +108,15 @@ const loadTlfSyncConfig = (state, action) => {
   }
   return RPCTypes.SimpleFSSimpleFSFolderSyncConfigAndStatusRpcPromise({
     path: Constants.pathToRPCPath(tlfPath),
-  }).then(result =>
-    FsGen.createTlfSyncConfigLoaded({
-      syncConfig: getSyncConfigFromRPC(parsedPath.tlfName, parsedPath.tlfType, result.config),
-      tlfName: parsedPath.tlfName,
-      tlfType: parsedPath.tlfType,
-    })
-  )
+  })
+    .then(result =>
+      FsGen.createTlfSyncConfigLoaded({
+        syncConfig: getSyncConfigFromRPC(parsedPath.tlfName, parsedPath.tlfType, result.config),
+        tlfName: parsedPath.tlfName,
+        tlfType: parsedPath.tlfType,
+      })
+    )
+    .catch(makeUnretriableErrorHandler(action, tlfPath))
 }
 
 const setTlfSyncConfig = (state, action) =>
@@ -295,7 +297,7 @@ function* folderList(_, action) {
       yield Saga.put(FsGen.createDiscardEdit({editID: action.payload.editID}))
     }
   } catch (error) {
-    yield makeRetriableErrorHandler(action)(error).map(action => Saga.put(action))
+    yield makeRetriableErrorHandler(action, rootPath)(error).map(action => Saga.put(action))
   } finally {
     yield Saga.put(FsGen.createLoadingPath({done: true, id: loadingPathID, path: rootPath}))
   }
@@ -385,7 +387,7 @@ function* download(state, action) {
   } catch (error) {
     // This needs to be before the dismiss below, so that if it's a legit
     // error we'd show the red bar.
-    yield makeRetriableErrorHandler(action)(error).map(action => Saga.put(action))
+    yield makeRetriableErrorHandler(action, path)(error).map(action => Saga.put(action))
   } finally {
     if (intent !== 'none') {
       // If it's a normal download, we show a red card for the user to dismiss.
@@ -418,7 +420,7 @@ function* upload(_, action) {
     yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID})
     yield Saga.put(FsGen.createUploadWritingSuccess({path}))
   } catch (error) {
-    yield makeRetriableErrorHandler(action)(error).map(action => Saga.put(action))
+    yield makeRetriableErrorHandler(action, path)(error).map(action => Saga.put(action))
   }
 }
 
@@ -535,7 +537,7 @@ function* ignoreFavoriteSaga(_, action) {
         folder,
       })
     } catch (error) {
-      yield makeRetriableErrorHandler(action)(error).map(action => Saga.put(action))
+      yield makeRetriableErrorHandler(action, action.payload.path)(error).map(action => Saga.put(action))
     }
   }
 }
@@ -587,7 +589,7 @@ const getMimeTypePromise = (localHTTPServerInfo: Types.LocalHTTPServer, path: Ty
 const refreshLocalHTTPServerInfo = (state, action) =>
   RPCTypes.SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise()
     .then(({address, token}) => FsGen.createLocalHTTPServerInfo({address, token}))
-    .catch(makeUnretriableErrorHandler(action))
+    .catch(makeUnretriableErrorHandler(action, null))
 
 // loadMimeType uses HEAD request to load mime type from the KBFS HTTP server.
 // If the server address/token are not populated yet, or if the token turns out
@@ -645,7 +647,7 @@ const commitEdit = (state, action) => {
         opID: Constants.makeUUID(),
       })
         .then(() => FsGen.createEditSuccess({editID, parentPath}))
-        .catch(makeRetriableErrorHandler(action))
+        .catch(makeRetriableErrorHandler(action, parentPath))
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(type)
       return new Promise(resolve => resolve())
@@ -685,7 +687,7 @@ function* loadPathMetadata(state, action) {
       })
     )
   } catch (err) {
-    yield makeRetriableErrorHandler(action)(err).map(action => Saga.put(action))
+    yield makeRetriableErrorHandler(action, path)(err).map(action => Saga.put(action))
   }
 }
 
@@ -707,7 +709,7 @@ const deleteFile = (state, action) => {
     recursive: true,
   })
     .then(() => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}, Constants.deleteWaitingKey))
-    .catch(makeRetriableErrorHandler(action))
+    .catch(makeRetriableErrorHandler(action, action.payload.path))
 }
 
 const moveOrCopy = (state, action) => {
@@ -749,7 +751,7 @@ const moveOrCopy = (state, action) => {
       // We get source/dest paths from state rather than action, so we can't
       // just retry it. If we do want retry in the future we can include those
       // paths in the action.
-      .catch(makeUnretriableErrorHandler(action))
+      .catch(makeUnretriableErrorHandler(action, action.payload.destinationParentPath))
   )
 }
 
