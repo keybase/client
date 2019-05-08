@@ -546,6 +546,9 @@ func (f *JSONConfigFile) GetGregorURI() string {
 func (f *JSONConfigFile) GetGregorDisabled() (bool, bool) {
 	return f.GetBoolAtPath("push.disabled")
 }
+func (f *JSONConfigFile) GetSecretStorePrimingDisabled() (bool, bool) {
+	return f.GetBoolAtPath("secret_store_priming.disabled")
+}
 func (f *JSONConfigFile) GetBGIdentifierDisabled() (bool, bool) {
 	return f.GetBoolAtPath("bg_identifier.disabled")
 }

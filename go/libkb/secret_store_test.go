@@ -142,6 +142,7 @@ func TestGetUsersWithStoredSecrets(t *testing.T) {
 func TestPrimeSecretStore(t *testing.T) {
 	tc := SetupTest(t, "secret_store", 1)
 	defer tc.Cleanup()
+	tc.G.Env.Test.SecretStorePrimingDisabled = false
 
 	mctx := NewMetaContextForTest(tc)
 	err := mctx.G().SecretStore().PrimeSecretStores(mctx)

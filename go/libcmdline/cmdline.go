@@ -161,6 +161,9 @@ func (p CommandLine) GetGregorSaveInterval() (time.Duration, bool) {
 func (p CommandLine) GetGregorDisabled() (bool, bool) {
 	return p.GetBool("push-disabled", true)
 }
+func (p CommandLine) GetSecretStorePrimingDisabled() (bool, bool) {
+	return p.GetBool("secret-store-priming-disabled", true)
+}
 func (p CommandLine) GetBGIdentifierDisabled() (bool, bool) {
 	return p.GetBool("bg-identifier-disabled", true)
 }
