@@ -1225,6 +1225,12 @@ func (k *KeybaseServiceBase) NotifyOverallSyncStatus(
 	return k.kbfsClient.FSOverallSyncEvent(ctx, status)
 }
 
+// NotifyFavoritesChanged implements the KeybaseService interface for
+// KeybaseServiceBase.
+func (k *KeybaseServiceBase) NotifyFavoritesChanged(ctx context.Context) error {
+	return k.kbfsClient.FSFavoritesChangedEvent(ctx)
+}
+
 // FlushUserFromLocalCache implements the KeybaseService interface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) FlushUserFromLocalCache(ctx context.Context,

@@ -599,6 +599,10 @@ type KeybaseService interface {
 	NotifyOverallSyncStatus(
 		ctx context.Context, status keybase1.FolderSyncStatus) error
 
+	// NotifyFavoritesChanged sends a notification that favorites have
+	// changed.
+	NotifyFavoritesChanged(ctx context.Context) error
+
 	// FlushUserFromLocalCache instructs this layer to clear any
 	// KBFS-side, locally-cached information about the given user.
 	// This does NOT involve communication with the daemon, this is
