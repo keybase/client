@@ -906,20 +906,6 @@ func (c CryptocurrencyChainLink) Export() (ret keybase1.Cryptocurrency) {
 
 //=============================================================================
 
-func (c CurrentStatus) Export() (ret keybase1.GetCurrentStatusRes) {
-	ret.Configured = c.Configured
-	ret.Registered = c.Registered
-	ret.LoggedIn = c.LoggedIn
-	ret.SessionIsValid = c.SessionIsValid
-	if c.User != nil {
-		ret.User = c.User.Export()
-	}
-	// ret.ServerUri = G.Env.GetServerUri();
-	return
-}
-
-//=============================================================================
-
 func (p PassphraseError) ToStatus() (s keybase1.Status) {
 	s.Code = SCBadLoginPassword
 	s.Name = "BAD_LOGIN_PASSWORD"
