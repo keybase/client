@@ -1,23 +1,27 @@
 package sigchain3
 
-import ()
+import (
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+)
 
 type UID [16]byte
 type LinkType int
 type ChainType int
 type SigVersion int
 type LinkID []byte
-type Seqno int
-type Time uint
+type Seqno = keybase1.Seqno
+type Time = keybase1.Time
 type SigIgnoreIfUnsupported bool
 type KID []byte
+type TeamID = keybase1.TeamID
+type PerTeamKeyGeneration = keybase1.PerTeamKeyGeneration
 
 // These values are picked so they don't conflict with Sigchain V1 and V2 link types
 const (
-	LinkTypeNone          LinkType = 0
-	LinkTypeSecretSummary LinkType = 65
-	LinkTypePassiveFollow LinkType = 66
-	LinkTypeTeamPTK       LinkType = 81
+	LinkTypeNone              LinkType = 0
+	LinkTypeUserSecretSummary LinkType = 65
+	LinkTypeUserPassiveFollow LinkType = 66
+	LinkTypeTeamPerTeamKey    LinkType = 81
 )
 
 // The values are picked so they don't conflict with Sigchain V1 and V2 SeqType's
@@ -42,49 +46,58 @@ type OuterLink struct {
 }
 
 type InnerLink struct {
-	_struct         bool        `codec:",toarray"`
-	SigningKeySeqno Seqno       `codec:"key_seqno"`   // the signing key, given by the sequence of the user's sigchain; implies an eldest seqno
-	Ctime           Time        `codec:"ctime"`       // Seconds since 1970 UTC.
-	MerkleRoot      *MerkleRoot `codec:"merkle_root"` // Optional snapshot of merkle root at time of sig
-	Client          *Client     `codec:"client"`      // Optional client type making sig
-	Body            interface{} `codec:"body"`        // The actual body, which varies based on the type in the outer link
+	Signer     Signer      `codec:"s"` // Info on the signer, including UID, KID and eldest
+	TeamID     *TeamID     `codec:"t"` // for teams, the TeamID, and null otherwise
+	Ctime      Time        `codec:"c"` // Seconds since 1970 UTC.
+	MerkleRoot *MerkleRoot `codec:"m"` // Optional snapshot of merkle root at time of sig
+	ClientInfo *ClientInfo `codec:"i"` // Optional client type making sig
+	Body       interface{} `codec:"b"` // The actual body, which varies based on the type in the outer link
 }
 
-type PassiveFollow struct {
-	_struct bool          `codec:",toarray"`
-	Follows map[UID]Seqno `codec:"follows"`
+type Signer struct {
+	UID         UID            `codec:"u"`
+	EldestSeqno keybase1.Seqno `codec:"e"`
+	KID         KID            `codec:"k"`
 }
 
-type SecretSummary struct {
-	Follows map[UID]Seqno `codec:"follows"`
+type PassiveFollowBody struct {
+	Follows map[UID]Seqno `codec:"f"`
+}
+
+type SecretSummaryBody struct {
+	Follows map[UID]Seqno `codec:"f"`
+}
+
+type PerTeamKeyBody struct {
+	Generation    PerTeamKeyGeneration `codec:"g"`
+	SigningKID    KID                  `codec:"s"`
+	EncryptionKID KID                  `codec:"e"`
+	ReverseSig    []byte               `codec:"r"`
 }
 
 type MerkleRoot struct {
-	_struct bool   `codec:",toarray"`
-	Hash    []byte `codec:"hash"`
-	Seqno   Seqno  `codec:"seqno"`
-	Ctime   Time   `codec:"ctime"`
+	Hash  []byte `codec:"h"` // HashMeta of the MerkleRoot
+	Seqno Seqno  `codec:"s"`
+	Ctime Time   `codec:"c"`
 }
 
-type Client struct {
-	_struct bool   `codec:",toarray"`
-	Desc    string `codec:"description"`
-	Version string `codec:"version"`
+type ClientInfo struct {
+	Desc    string `codec:"d"`
+	Version string `codec:"v"`
 }
 
 // If the inner link is encrypted, we specify the encryption parameters
 // with this offloaded structure. So far, we don't know of any such encrypted
 // payloads, but we'll allow it.
 type EncryptionParameters struct {
-	_struct bool   `codec:",toarray"`
-	Version int    `codec:"version"`
-	KID     KID    `codec:"kid"`
-	Nonce   []byte `codec:"nonce"`
+	Version int    `codec:"v"`
+	KID     KID    `codec:"k"`
+	Nonce   []byte `codec:"n"`
 }
 
 type Tail struct {
-	_struct bool      `codec:",toarray"`
-	SeqType ChainType `codec:"seqtype"`
-	Seqno   Seqno     `codec:"seqno"`
-	Hash    LinkID    `codec:"hash"`
+	_struct   bool      `codec:",toarray"`
+	ChainType ChainType `codec:"seqtype"`
+	Seqno     Seqno     `codec:"seqno"`
+	Hash      LinkID    `codec:"hash"` // hash of the outer link
 }
