@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters/native-wrappers.native'
-import * as logger from '../../../../../logger'
+import logger from '../../../../../logger'
 import type {Props} from './image-render.types'
 import Video from 'react-native-video'
 
