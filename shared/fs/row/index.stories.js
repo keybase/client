@@ -97,7 +97,8 @@ export const rowsProvider = {
   },
   LoadFilesWhenNeeded: ({path}: any) => ({
     loadFavorites: Sb.action('loadFavorites'),
-    loadFolderList: Sb.action('loadFolderList'),
+    loadFolderListWithRefreshTag: Sb.action('loadFolderListWithRefreshTag'),
+    loadFolderListWithoutRefreshTag: Sb.action('loadFolderListWithoutRefreshTag'),
     path,
     syncingFoldersProgress: Constants.makeSyncingFoldersProgress(),
   }),
