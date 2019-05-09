@@ -1,18 +1,20 @@
 // @flow
 import * as React from 'react'
-import * as Kb from '../../../../../common-adapters/native-wrappers.native'
+import * as Kb from '../../../../../common-adapters/mobile.native'
+import * as Styles from '../../../../../styles'
 import logger from '../../../../../logger'
 import type {Props} from './image-render.types'
 import Video from 'react-native-video'
 
-type State = {|paused: boolean|}
+type State = {|paused: boolean, showVideo: boolean|}
 export class ImageRender extends React.Component<Props, State> {
   state = {
-    paused: true,
+    paused: false,
+    showVideo: false,
   }
 
   onVideoClick = () => {
-    this.setState(({paused}) => ({paused: !paused}))
+    this.setState({showVideo: true})
   }
 
   _allLoads = () => {
@@ -25,18 +27,29 @@ export class ImageRender extends React.Component<Props, State> {
       const source = {
         uri: `${this.props.videoSrc}&contentforce=true&poster=${encodeURIComponent(this.props.src)}`,
       }
+      // poster not working correctly so we need this box
+      // https://github.com/react-native-community/react-native-video/issues/1509
+
+      const {height, width} = this.props
       return (
-        <Video
-          source={source}
-          controls={true}
-          paused={this.state.paused}
-          onLoad={() => this._allLoads()}
-          onError={e => {
-            logger.error(`Error loading vid: ${JSON.stringify(e)}`)
-          }}
-          resizeMode="cover"
-          style={this.props.style}
-        />
+        <Kb.Box2 direction="vertical" style={[styles.container, this.props.style, {height, width}]}>
+          {this.state.showVideo && (
+            <Video
+              source={source}
+              controls={!this.state.paused}
+              paused={this.state.paused}
+              onLoad={() => this._allLoads()}
+              onError={e => {
+                logger.error(`Error loading vid: ${JSON.stringify(e)}`)
+              }}
+              style={{height, width}}
+              resizeMode="cover"
+            />
+          )}
+          {!this.props.loaded && (
+            <Kb.NativeFastImage source={{uri: this.props.src}} resizeMode="cover" style={styles.poster} />
+          )}
+        </Kb.Box2>
       )
     }
     return (
@@ -49,6 +62,11 @@ export class ImageRender extends React.Component<Props, State> {
     )
   }
 }
+
+const styles = Styles.styleSheetCreate({
+  container: {position: 'relative'},
+  poster: {...Styles.globalStyles.fillAbsolute},
+})
 
 export function imgMaxWidth() {
   const {width: maxWidth} = Kb.NativeDimensions.get('window')
