@@ -68,6 +68,7 @@ const provider = (cfProps =>
 const bioProps = {
   assertionKeys: [],
   backgroundColorType: 'green',
+  notAUser: false,
   onAddIdentity: Sb.action('onAddIdentity'),
   onEditAvatar: Sb.action('onEditAvatarClick'),
   reason: 'storybook',
