@@ -63,12 +63,17 @@ type Signer struct {
 	UID         UID            `codec:"u"`
 }
 
+type FollowStatement struct {
+	Seqno  Seqno
+	LinkID LinkID
+}
+
 type PassiveFollowBody struct {
-	Follows map[UID]Seqno `codec:"f"`
+	Follows map[UID]FollowStatement `codec:"f"`
 }
 
 type SecretSummaryBody struct {
-	Follows map[UID]Seqno `codec:"f"`
+	Follows map[UID]FollowStatement `codec:"f"`
 }
 
 type PerTeamKeyBody struct {
