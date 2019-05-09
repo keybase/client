@@ -11,7 +11,7 @@ type SigVersion int
 type LinkID []byte
 type Seqno = keybase1.Seqno
 type Time = keybase1.Time
-type SigIgnoreIfUnsupported bool
+type IgnoreIfUnsupported bool
 type KID []byte
 type TeamID = keybase1.TeamID
 type PerTeamKeyGeneration = keybase1.PerTeamKeyGeneration
@@ -34,26 +34,27 @@ const (
 // OuterLink V3 is the third version of Keybase sigchain signatures, it roughly approximates
 // the outer link v2s that we have previously used.
 type OuterLink struct {
-	_struct             bool                   `codec:",toarray"`
-	Version             SigVersion             `codec:"version"` // comment should be 3
-	Seqno               Seqno                  `codec:"seqno"`
-	Prev                LinkID                 `codec:"prev"`
-	Curr                LinkID                 `codec:"curr"`
-	LinkType            LinkType               `codec:"type"`
-	ChainType           ChainType              `codec:"chaintype"`
-	IgnoreIfUnsupported SigIgnoreIfUnsupported `codec:"ignore_if_unsupported"`
+	_struct             bool                `codec:",toarray"`
+	Version             SigVersion          `codec:"version"` // comment should be 3
+	Seqno               Seqno               `codec:"seqno"`
+	Prev                LinkID              `codec:"prev"`
+	Curr                LinkID              `codec:"curr"`
+	LinkType            LinkType            `codec:"type"`
+	ChainType           ChainType           `codec:"chaintype"`
+	IgnoreIfUnsupported IgnoreIfUnsupported `codec:"ignore_if_unsupported"`
 	// New field for V3; if this link is encrypted, specify the format, nonce and PUK
-	EncParams *EncryptionParameters `codec:"encryption_parameters"`
+	EncryptionParameters *EncryptionParameters `codec:"encryption_parameters"`
 }
 
 type InnerLink struct {
-	Body       interface{} `codec:"b"` // The actual body, which varies based on the type in the outer link
-	Ctime      Time        `codec:"c"` // Seconds since 1970 UTC.
-	Entropy    Entropy     `codec:"e"` // entropy for hiding the value of the inner link
-	ClientInfo *ClientInfo `codec:"i"` // Optional client type making sig
-	MerkleRoot *MerkleRoot `codec:"m"` // Optional snapshot of merkle root at time of sig
-	Signer     Signer      `codec:"s"` // Info on the signer, including UID, KID and eldest
-	TeamID     *TeamID     `codec:"t"` // for teams, the TeamID, and null otherwise
+	Body        interface{} `codec:"b"` // The actual body, which varies based on the type in the outer link
+	Ctime       Time        `codec:"c"` // Seconds since 1970 UTC.
+	Entropy     Entropy     `codec:"e"` // entropy for hiding the value of the inner link
+	ClientInfo  *ClientInfo `codec:"i"` // Optional client type making sig
+	MerkleRoot  *MerkleRoot `codec:"m"` // Optional snapshot of merkle root at time of sig
+	PublicChain *Tail       `codec:"p"` // Optional grab of the most-recent chain tail of the corresponding public chain
+	Signer      Signer      `codec:"s"` // Info on the signer, including UID, KID and eldest
+	TeamID      *TeamID     `codec:"t"` // for teams, the TeamID, and null otherwise
 }
 
 type Signer struct {
@@ -99,7 +100,7 @@ type EncryptionParameters struct {
 
 type Tail struct {
 	_struct   bool      `codec:",toarray"`
-	ChainType ChainType `codec:"seqtype"`
+	ChainType ChainType `codec:"chaintype"`
 	Seqno     Seqno     `codec:"seqno"`
 	Hash      LinkID    `codec:"hash"` // hash of the outer link
 }
