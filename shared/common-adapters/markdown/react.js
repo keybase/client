@@ -256,27 +256,6 @@ const reactComponentsForMarkdownType = {
       />
     )
   },
-  link: (node, output, state) => {
-    const {protocol, afterProtocol, spaceInFront} = node
-    const rawURL = protocol + afterProtocol
-    const url = (protocol || 'http://') + afterProtocol
-
-    return (
-      <React.Fragment key={state.key}>
-        {spaceInFront}
-        <Text
-          className="hover-underline"
-          type="BodyPrimaryLink"
-          style={Styles.collapseStyles([linkStyle, state.styleOverride.link])}
-          title={url}
-          onClickURL={url}
-          onLongPressURL={url}
-        >
-          {rawURL}
-        </Text>
-      </React.Fragment>
-    )
-  },
   mailto: (node, output, state) => {
     return (
       <React.Fragment key={state.key}>

@@ -1068,6 +1068,18 @@ func (e UIMaybeMentionStatus) String() string {
 	return ""
 }
 
+type UILinkDecoration struct {
+	Display string `codec:"display" json:"display"`
+	Url     string `codec:"url" json:"url"`
+}
+
+func (o UILinkDecoration) DeepCopy() UILinkDecoration {
+	return UILinkDecoration{
+		Display: o.Display,
+		Url:     o.Url,
+	}
+}
+
 type UIMaybeMentionInfo struct {
 	Status__ UIMaybeMentionStatus `codec:"status" json:"status"`
 	Team__   *UITeamMention       `codec:"team,omitempty" json:"team,omitempty"`
@@ -1138,7 +1150,7 @@ type UITextDecoration struct {
 	Atmention__          *string               `codec:"atmention,omitempty" json:"atmention,omitempty"`
 	Channelnamemention__ *UIChannelNameMention `codec:"channelnamemention,omitempty" json:"channelnamemention,omitempty"`
 	Maybemention__       *MaybeMention         `codec:"maybemention,omitempty" json:"maybemention,omitempty"`
-	Link__               *string               `codec:"link,omitempty" json:"link,omitempty"`
+	Link__               *UILinkDecoration     `codec:"link,omitempty" json:"link,omitempty"`
 }
 
 func (o *UITextDecoration) Typ() (ret UITextDecorationTyp, err error) {
@@ -1212,7 +1224,7 @@ func (o UITextDecoration) Maybemention() (res MaybeMention) {
 	return *o.Maybemention__
 }
 
-func (o UITextDecoration) Link() (res string) {
+func (o UITextDecoration) Link() (res UILinkDecoration) {
 	if o.Typ__ != UITextDecorationTyp_LINK {
 		panic("wrong case accessed")
 	}
@@ -1250,7 +1262,7 @@ func NewUITextDecorationWithMaybemention(v MaybeMention) UITextDecoration {
 	}
 }
 
-func NewUITextDecorationWithLink(v string) UITextDecoration {
+func NewUITextDecorationWithLink(v UILinkDecoration) UITextDecoration {
 	return UITextDecoration{
 		Typ__:  UITextDecorationTyp_LINK,
 		Link__: &v,
@@ -1288,11 +1300,11 @@ func (o UITextDecoration) DeepCopy() UITextDecoration {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Maybemention__),
-		Link__: (func(x *string) *string {
+		Link__: (func(x *UILinkDecoration) *UILinkDecoration {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x)
+			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Link__),
 	}

@@ -1325,6 +1325,7 @@ export type UICoinFlipResultTyp =
 
 export type UICoinFlipStatus = $ReadOnly<{gameID: String, phase: UICoinFlipPhase, progressText: String, resultText: String, commitmentVisualization: String, revealVisualization: String, participants?: ?Array<UICoinFlipParticipant>, errorInfo?: ?UICoinFlipError, resultInfo?: ?UICoinFlipResult}>
 export type UICommandMarkdown = $ReadOnly<{body: String, title?: ?String}>
+export type UILinkDecoration = $ReadOnly<{display: String, url: String}>
 export type UIMaybeMentionInfo = {status: 0} | {status: 1} | {status: 2, team: ?UITeamMention} | {status: 3}
 export type UIMaybeMentionStatus =
   | 0 // UNKNOWN_0
@@ -1341,7 +1342,7 @@ export type UIPagination = $ReadOnly<{next: String, previous: String, num: Int, 
 export type UIPaymentInfo = $ReadOnly<{accountID?: ?Stellar1.AccountID, amountDescription: String, worth: String, worthAtSendTime: String, delta: Stellar1.BalanceDelta, note: String, paymentID: Stellar1.PaymentID, status: Stellar1.PaymentStatus, statusDescription: String, statusDetail: String, showCancel: Boolean, fromUsername: String, toUsername: String}>
 export type UIRequestInfo = $ReadOnly<{amount: String, amountDescription: String, asset?: ?Stellar1.Asset, currency?: ?Stellar1.OutsideCurrencyCode, worthAtRequestTime: String, status: Stellar1.RequestStatus}>
 export type UITeamMention = $ReadOnly<{inTeam: Boolean, open: Boolean, description?: ?String, numMembers?: ?Int, publicAdmins?: ?Array<String>, convID?: ?String}>
-export type UITextDecoration = {typ: 0, payment: ?TextPayment} | {typ: 1, atmention: ?String} | {typ: 2, channelnamemention: ?UIChannelNameMention} | {typ: 3, maybemention: ?MaybeMention} | {typ: 4, link: ?String}
+export type UITextDecoration = {typ: 0, payment: ?TextPayment} | {typ: 1, atmention: ?String} | {typ: 2, channelnamemention: ?UIChannelNameMention} | {typ: 3, maybemention: ?MaybeMention} | {typ: 4, link: ?UILinkDecoration}
 export type UITextDecorationTyp =
   | 0 // PAYMENT_0
   | 1 // ATMENTION_1

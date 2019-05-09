@@ -254,6 +254,11 @@ protocol chatUi {
     NOTHING_3
   }
 
+  record UILinkDecoration {
+    string display;
+    string url;
+  }
+
   variant UIMaybeMentionInfo switch (UIMaybeMentionStatus status) {
     case UNKNOWN: void;
     case USER: void;
@@ -266,7 +271,7 @@ protocol chatUi {
     case ATMENTION: string;
     case CHANNELNAMEMENTION: UIChannelNameMention;
     case MAYBEMENTION: MaybeMention;
-    case LINK: string;
+    case LINK: UILinkDecoration;
   }
 
   void chatAttachmentDownloadStart(int sessionID);

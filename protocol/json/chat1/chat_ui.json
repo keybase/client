@@ -986,6 +986,20 @@
       ]
     },
     {
+      "type": "record",
+      "name": "UILinkDecoration",
+      "fields": [
+        {
+          "type": "string",
+          "name": "display"
+        },
+        {
+          "type": "string",
+          "name": "url"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "UIMaybeMentionInfo",
       "switch": {
@@ -1064,7 +1078,7 @@
             "name": "LINK",
             "def": false
           },
-          "body": "string"
+          "body": "UILinkDecoration"
         }
       ]
     },

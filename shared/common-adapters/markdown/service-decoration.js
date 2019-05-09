@@ -76,11 +76,11 @@ const ServiceDecoration = (props: Props) => {
         className="hover-underline"
         type="BodyPrimaryLink"
         style={Styles.collapseStyles([props.styles.wrapStyle, linkStyle])}
-        title={parsed.link}
-        onClickURL={parsed.link}
-        onLongPressURL={parsed.link}
+        title={parsed.link.display}
+        onClickURL={parsed.link.url}
+        onLongPressURL={parsed.link.url}
       >
-        {parsed.link}
+        {parsed.link.display}
       </Text>
     )
   } else if (
