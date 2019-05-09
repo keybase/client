@@ -1,3 +1,6 @@
+// Copyright 2019 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 package status
 
 import (
@@ -24,16 +27,6 @@ func GetCurrentStatus(mctx libkb.MetaContext) (res keybase1.CurrentStatus, err e
 	res.SessionIsValid = mctx.ActiveDevice().Valid()
 	res.LoggedIn = res.SessionIsValid
 	return res, nil
-}
-
-func GetClientStatus(mctx libkb.MetaContext) (res []keybase1.ClientStatus) {
-	if mctx.G().ConnectionManager != nil {
-		res = mctx.G().ConnectionManager.ListAllLabeledConnections()
-		for i, client := range res {
-			res[i].NotificationChannels = mctx.G().NotifyRouter.GetChannels(libkb.ConnectionID(client.ConnectionID))
-		}
-	}
-	return res
 }
 
 func GetExtendedStatus(mctx libkb.MetaContext) (res keybase1.ExtendedStatus, err error) {

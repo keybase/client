@@ -1,3 +1,6 @@
+// Copyright 2019 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 package status
 
 import (
@@ -520,7 +523,6 @@ func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, num
 		if l.G().Env.WantsSystemd() {
 			startLog = tailSystemdJournal(l.G().Log, []string{
 				"keybase.service",
-				"keybase.ek",
 				"kbfs.service",
 				"keybase.gui.service",
 				"keybase-redirector.service",
