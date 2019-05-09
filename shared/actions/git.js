@@ -14,7 +14,6 @@ import {isMobile} from '../constants/platform'
 import type {TypedState} from '../util/container'
 import {logError} from '../util/errors'
 import flags from '../util/feature-flags'
-import {FolderConflictType} from '../constants/types/rpc-gen'
 
 const load = (state: TypedState) =>
   state.config.loggedIn &&
@@ -80,7 +79,7 @@ const setTeamRepoSettings = (_, action) =>
     channelName: action.payload.channelName,
     chatDisabled: action.payload.chatDisabled,
     folder: {
-      conflictType: FolderConflictType.none,
+      conflictType: RPCTypes.favoriteFolderConflictType.none,
       created: false,
       folderType: RPCTypes.favoriteFolderType.team,
       name: action.payload.teamname,

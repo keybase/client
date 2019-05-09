@@ -626,7 +626,7 @@ export const folderRPCFromPath = (path: Types.Path): ?RPCTypes.Folder => {
   if (name === '') return null
 
   return {
-    conflictType: RPCTypes.FolderConflictType.none,
+    conflictType: RPCTypes.favoriteFolderConflictType.none,
     created: false,
     folderType: Types.getRPCFolderTypeFromVisibility(visibility),
     name,
