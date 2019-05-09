@@ -15,6 +15,7 @@ type SigIgnoreIfUnsupported bool
 type KID []byte
 type TeamID = keybase1.TeamID
 type PerTeamKeyGeneration = keybase1.PerTeamKeyGeneration
+type Entropy []byte
 
 // These values are picked so they don't conflict with Sigchain V1 and V2 link types
 const (
@@ -48,6 +49,7 @@ type OuterLink struct {
 type InnerLink struct {
 	Body       interface{} `codec:"b"` // The actual body, which varies based on the type in the outer link
 	Ctime      Time        `codec:"c"` // Seconds since 1970 UTC.
+	Entropy    Entropy     `codec:"e"` // entropy for hiding the value of the inner link
 	ClientInfo *ClientInfo `codec:"i"` // Optional client type making sig
 	MerkleRoot *MerkleRoot `codec:"m"` // Optional snapshot of merkle root at time of sig
 	Signer     Signer      `codec:"s"` // Info on the signer, including UID, KID and eldest
