@@ -16,7 +16,7 @@ systemd_stop_if_active() {
 # This works no matter how the services were started, because our
 # Restart=on-failure systemd unit configuration won't restart after SIGTERM.
 kill_all() {
-  # systemd will restart services if they failed to stop, so do this explicitly
+  # systemd will restart services if they failed to stop cleanly, so do this explicitly
   # first to make the rest of a function a no-op.
   if [ "$KEYBASE_KILL" = "1" ]; then
       systemd_stop_if_active "keybase"
@@ -25,7 +25,13 @@ kill_all() {
       systemd_stop_if_active "keybase-redirector"
   fi
 
-  killall Keybase &> /dev/null && echo Shutting down Keybase GUI...
+  # Only stop main Electron process; others have additional flags after the process name
+  # Child Electron processes will be stopped by main process' handler
+  if main_electron_pids="$(pgrep 'Keybase$')"; then
+      # intentionally splitting pids
+      # shellcheck disable=SC2046
+      kill $(echo "$main_electron_pids" | xargs) &> /dev/null && echo Shutting down Keybase GUI...
+  fi
 
   # mountdir may be empty on the initial install, so don't try to unmount in that case.
   if mountdir="$(keybase config get --direct --bare mountdir 2> /dev/null)" && [ -n "$mountdir" ]; then
