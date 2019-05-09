@@ -46,18 +46,18 @@ type OuterLink struct {
 }
 
 type InnerLink struct {
+	Body       interface{} `codec:"b"` // The actual body, which varies based on the type in the outer link
+	Ctime      Time        `codec:"c"` // Seconds since 1970 UTC.
+	ClientInfo *ClientInfo `codec:"i"` // Optional client type making sig
+	MerkleRoot *MerkleRoot `codec:"m"` // Optional snapshot of merkle root at time of sig
 	Signer     Signer      `codec:"s"` // Info on the signer, including UID, KID and eldest
 	TeamID     *TeamID     `codec:"t"` // for teams, the TeamID, and null otherwise
-	Ctime      Time        `codec:"c"` // Seconds since 1970 UTC.
-	MerkleRoot *MerkleRoot `codec:"m"` // Optional snapshot of merkle root at time of sig
-	ClientInfo *ClientInfo `codec:"i"` // Optional client type making sig
-	Body       interface{} `codec:"b"` // The actual body, which varies based on the type in the outer link
 }
 
 type Signer struct {
-	UID         UID            `codec:"u"`
 	EldestSeqno keybase1.Seqno `codec:"e"`
 	KID         KID            `codec:"k"`
+	UID         UID            `codec:"u"`
 }
 
 type PassiveFollowBody struct {
@@ -69,16 +69,16 @@ type SecretSummaryBody struct {
 }
 
 type PerTeamKeyBody struct {
-	Generation    PerTeamKeyGeneration `codec:"g"`
-	SigningKID    KID                  `codec:"s"`
 	EncryptionKID KID                  `codec:"e"`
+	Generation    PerTeamKeyGeneration `codec:"g"`
 	ReverseSig    []byte               `codec:"r"`
+	SigningKID    KID                  `codec:"s"`
 }
 
 type MerkleRoot struct {
+	Ctime Time   `codec:"c"`
 	Hash  []byte `codec:"h"` // HashMeta of the MerkleRoot
 	Seqno Seqno  `codec:"s"`
-	Ctime Time   `codec:"c"`
 }
 
 type ClientInfo struct {
@@ -90,9 +90,9 @@ type ClientInfo struct {
 // with this offloaded structure. So far, we don't know of any such encrypted
 // payloads, but we'll allow it.
 type EncryptionParameters struct {
-	Version int    `codec:"v"`
 	KID     KID    `codec:"k"`
 	Nonce   []byte `codec:"n"`
+	Version int    `codec:"v"`
 }
 
 type Tail struct {
