@@ -6,15 +6,15 @@ package systests
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
-	"github.com/keybase/client/go/protocol/keybase1"
-	context "golang.org/x/net/context"
-
 	"github.com/keybase/client/go/kbtest"
+	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
+
+	"github.com/stretchr/testify/require"
+	context "golang.org/x/net/context"
 )
 
-func TestLookupPhoneNumbers(t *testing.T) {
+func TestLookupContactList(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -58,4 +58,35 @@ func TestLookupPhoneNumbers(t *testing.T) {
 	require.Equal(t, ann.uid, contactRes.Uid)
 	require.NotNil(t, contactRes.Component.PhoneNumber)
 	require.Equal(t, rawPhone, *contactRes.Component.PhoneNumber)
+
+	mctx := libkb.NewMetaContextForTest(*ann.tc)
+	emailAddr := keybase1.EmailAddress(ann.userInfo.email)
+	err = kbtest.VerifyEmailAuto(mctx, emailAddr)
+	require.NoError(t, err)
+
+	emailCli := keybase1.EmailsClient{Cli: ann.teamsClient.Cli}
+	err = emailCli.SetVisibilityEmail(context.Background(), keybase1.SetVisibilityEmailArg{
+		Email:      emailAddr,
+		Visibility: keybase1.IdentityVisibility_PUBLIC,
+	})
+	require.NoError(t, err)
+
+	res, err = contactsCli.LookupContactList(context.Background(), keybase1.LookupContactListArg{
+		Contacts: []keybase1.Contact{
+			keybase1.Contact{Name: "It's me",
+				Components: []keybase1.ContactComponent{
+					keybase1.ContactComponent{
+						Email: &emailAddr,
+					},
+				},
+			},
+		},
+	})
+	require.NoError(t, err)
+	require.Len(t, res, 1)
+	contactRes = res[0]
+	require.True(t, contactRes.Resolved)
+	require.Equal(t, ann.uid, contactRes.Uid)
+	require.NotNil(t, contactRes.Component.Email)
+	require.Equal(t, emailAddr, *contactRes.Component.Email)
 }
