@@ -302,6 +302,7 @@ func (u *unvalidatedURI) validateTx(getter HTTPGetter) (*ValidatedStellarURI, er
 	if err := xdr.SafeUnmarshalBase64(xdrEncoded, &tx); err != nil {
 		return nil, ErrInvalidParameter{Key: "xdr"}
 	}
+	validated.Tx = &tx
 
 	return validated, nil
 }
