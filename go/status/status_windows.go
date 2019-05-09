@@ -16,7 +16,7 @@ func osSpecific(mctx libkb.MetaContext, status *keybase1.FullStatus) error {
 	// it.
 	productVersion, _, err := osVersionAndBuild()
 	if err != nil {
-		mctx.Warning("Error determining OS version: %s", err)
+		mctx.Debug("Error determining OS version: %s", err)
 	}
 	status.ExtStatus.PlatformInfo.OsVersion = productVersion
 	return nil
