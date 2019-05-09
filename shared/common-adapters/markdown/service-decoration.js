@@ -9,6 +9,7 @@ import PaymentStatus from '../../chat/payments/status/container'
 import Mention from '../mention-container'
 import Channel from '../channel-container'
 import MaybeMention from '../../chat/conversation/maybe-mention'
+import Text from '../text'
 
 export type Props = {
   json: string,
@@ -69,6 +70,19 @@ const ServiceDecoration = (props: Props) => {
         channel={parsed.maybemention.channel}
       />
     )
+  } else if (parsed.typ === RPCChatTypes.chatUiUITextDecorationTyp.link && parsed.link) {
+    return (
+      <Text
+        className="hover-underline"
+        type="BodyPrimaryLink"
+        style={Styles.collapseStyles([props.styles.wrapStyle, linkStyle])}
+        title={parsed.link}
+        onClickURL={parsed.link}
+        onLongPressURL={parsed.link}
+      >
+        {parsed.link}
+      </Text>
+    )
   } else if (
     parsed.typ === RPCChatTypes.chatUiUITextDecorationTyp.channelnamemention &&
     parsed.channelnamemention
@@ -84,5 +98,14 @@ const ServiceDecoration = (props: Props) => {
   }
   return null
 }
+
+const linkStyle = Styles.platformStyles({
+  isElectron: {
+    fontWeight: 'inherit',
+  },
+  isMobile: {
+    fontWeight: undefined,
+  },
+})
 
 export default ServiceDecoration

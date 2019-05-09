@@ -252,6 +252,24 @@ func TestDecorateMentions(t *testing.T) {
 	}
 }
 
+type decorateLinkTest struct {
+	body   string
+	result string
+}
+
+func TestDecorateLinks(t *testing.T) {
+	cases := []decorateLinkTest{
+		decorateLinkTest{
+			body:   "click www.google.com",
+			result: "click sddsdsds",
+		},
+	}
+	for _, c := range cases {
+		res := DecorateWithLinks(context.TODO(), c.body)
+		require.Equal(t, c.result, res)
+	}
+}
+
 type configUsernamer struct {
 	libkb.ConfigReader
 	username libkb.NormalizedUsername

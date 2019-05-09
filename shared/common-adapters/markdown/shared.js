@@ -221,33 +221,6 @@ const rules = {
       type: 'kbfsPath',
     }),
   },
-
-  link: {
-    match: (source, state, lookBehind) => {
-      const matches = inlineLinkMatch(source, state, lookBehind)
-      // If there is a match, let's also check if it's a valid tld
-      if (
-        matches &&
-        (!lookBehind.length || beforeLinkRegex.exec(lookBehind)) &&
-        matches.groups &&
-        tldExp.exec(matches.groups.tld)
-      ) {
-        return matches
-      }
-      return null
-    },
-    order: SimpleMarkdown.defaultRules.newline.order + 0.5,
-    parse: function(capture, parse, state) {
-      const ret = {
-        afterProtocol: capture[3],
-        content: undefined,
-        protocol: capture[2] || '',
-        spaceInFront: capture[1],
-      }
-      ret.content = ret.protocol + ret.afterProtocol
-      return ret
-    },
-  },
   mailto: {
     match: (source, state, lookBehind) => {
       const matches = inlineEmailMatch(source, state, lookBehind)
