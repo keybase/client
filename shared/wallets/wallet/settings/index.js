@@ -204,7 +204,13 @@ class AccountSettings extends React.Component<SettingsProps> {
               style={styles.removeContainer}
             >
               <Kb.Divider />
-              <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} gap="tiny">
+              <Kb.Box2
+                direction="vertical"
+                fullWidth={true}
+                centerChildren={true}
+                gap="tiny"
+                style={styles.removeContentContainer}
+              >
                 <Kb.Button
                   disabled={props.isDefault}
                   label="Remove account"
@@ -265,6 +271,7 @@ const styles = Styles.styleSheetCreate({
     isElectron: {marginTop: 'auto'},
     isMobile: {marginTop: Styles.globalMargins.medium},
   }),
+  removeContentContainer: {...Styles.padding(0, Styles.globalMargins.small)},
   rightMargin: {
     marginRight: Styles.globalMargins.tiny,
   },

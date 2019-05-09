@@ -9,7 +9,7 @@ const mapStateToProps = state => ({
   isRequest: state.wallets.building.isRequest,
 })
 
-const mapDispatchToProps = (dispatch, {navigateUp}) => ({
+const mapDispatchToProps = dispatch => ({
   onClose: () => dispatch(WalletsGen.createAbandonPayment()),
 })
 

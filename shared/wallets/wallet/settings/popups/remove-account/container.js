@@ -1,13 +1,14 @@
 // @flow
-import {namedConnect, type RouteProps} from '../../../../../util/container'
+import * as Container from '../../../../../util/container'
 import * as Constants from '../../../../../constants/wallets'
 import * as Types from '../../../../../constants/types/wallets'
+import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import RemoveAccountPopup from '.'
 
-type OwnProps = RouteProps<{accountID: Types.AccountID}, {}>
+type OwnProps = Container.RouteProps<{accountID: Types.AccountID}, {}>
 
-const mapStateToProps = (state, {routeProps}) => {
-  const accountID = routeProps.get('accountID')
+const mapStateToProps = (state, ownProps) => {
+  const accountID = Container.getRouteProps(ownProps, 'accountID')
   const account = Constants.getAccount(state, accountID)
 
   return {
@@ -17,16 +18,18 @@ const mapStateToProps = (state, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, ownProps) => ({
-  _onClose: () => dispatch(ownProps.navigateUp()),
+const mapDispatchToProps = dispatch => ({
+  _onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
   _onDelete: (accountID: Types.AccountID) => {
     dispatch(
-      ownProps.navigateAppend([
-        {
-          props: {accountID},
-          selected: 'reallyRemoveAccount',
-        },
-      ])
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {accountID},
+            selected: 'reallyRemoveAccount',
+          },
+        ],
+      })
     )
   },
 })
@@ -38,7 +41,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onDelete: () => dispatchProps._onDelete(stateProps.accountID),
 })
 
-export default namedConnect<OwnProps, _, _, _, _>(
+export default Container.namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,
