@@ -100,7 +100,6 @@ function updateIconFont(web) {
     )
     throw e
   }
-  console.log('Created new webfont')
   const svgFilePaths = getSvgPaths(true /* print skipped */)
 
   if (web) {
@@ -122,7 +121,7 @@ function updateIconFont(web) {
       html: false,
       writeFiles: false,
       formatOptions: {
-        ttf: {ts: 0}, // make this reproducible, sadly fontforge messes this up
+        ttf: {ts: 0, version: `${Date.now()}.0`}, // MUST use a unique version else windows installer does the WRONG THING
         // Setting descent to zero on font generation will prevent the final
         // glyphs from being shifted down
         svg: {
@@ -133,9 +132,11 @@ function updateIconFont(web) {
     },
     (error, result) => (error ? fontsGeneratedError(error) : fontsGeneratedSuccess(web, result))
   )
+  console.log('Created new webfont')
 }
 
 const fontsGeneratedSuccess = (web, result) => {
+  console.log('Generator success')
   if (web) {
     generateWebCSS(result)
   } else {
@@ -225,9 +226,10 @@ ${Object.keys(rules)
 }
 
 const fontsGeneratedError = error => {
-  throw new Error(
+  console.log(
     `webfonts-generator failed to generate ttf iconfont file. Check that all svgs exist and the destination directory exits. ${error}`
   )
+  process.exit(1)
 }
 
 function updateIconConstants() {
