@@ -233,6 +233,11 @@ func (d *Service) Handle(c net.Conn) {
 }
 
 func (d *Service) Run() (err error) {
+	go func() {
+		time.Sleep(5 * time.Second)
+		panic("manual crash")
+	}()
+
 	defer func() {
 
 		d.stopProfile()
