@@ -4,8 +4,6 @@
 package client
 
 import (
-	"fmt"
-
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -28,17 +26,9 @@ func (v *CmdLogout) Run() error {
 	}
 	ctx := context.TODO()
 	if !v.Force {
-		userCli, err := GetUserClient(v.G())
+		err := ensureSetPassphraseFromRemote(libkb.NewMetaContextTODO(v.G()))
 		if err != nil {
 			return err
-		}
-		ret, err := userCli.CanLogout(ctx, 0)
-		if err != nil {
-			return err
-		}
-		v.G().Log.CDebugf(ctx, "CanLogout call returned: %+v", ret)
-		if !ret.CanLogout {
-			return fmt.Errorf("Cannot logout: %s", ret.Reason)
 		}
 	}
 	return cli.Logout(ctx, 0)
