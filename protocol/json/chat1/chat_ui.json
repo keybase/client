@@ -972,7 +972,8 @@
         "ATMENTION_1",
         "CHANNELNAMEMENTION_2",
         "MAYBEMENTION_3",
-        "LINK_4"
+        "LINK_4",
+        "MAILTO_5"
       ]
     },
     {
@@ -1076,6 +1077,13 @@
         {
           "label": {
             "name": "LINK",
+            "def": false
+          },
+          "body": "UILinkDecoration"
+        },
+        {
+          "label": {
+            "name": "MAILTO",
             "def": false
           },
           "body": "UILinkDecoration"

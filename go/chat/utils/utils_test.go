@@ -315,6 +315,14 @@ func TestDecorateLinks(t *testing.T) {
 			body:   "nytimes.json",
 			result: "nytimes.json",
 		},
+		decorateLinkTest{
+			body:   "mike.maxim@gmail.com",
+			result: "$>kb$eyJ0eXAiOjUsIm1haWx0byI6eyJkaXNwbGF5IjoibWlrZS5tYXhpbUBnbWFpbC5jb20iLCJ1cmwiOiJtYWlsdG86bWlrZS5tYXhpbUBnbWFpbC5jb20ifX0=$<kb$",
+		},
+		decorateLinkTest{
+			body:   "mailto:mike.maxim@gmail.com",
+			result: "mailto:$>kb$eyJ0eXAiOjUsIm1haWx0byI6eyJkaXNwbGF5IjoibWlrZS5tYXhpbUBnbWFpbC5jb20iLCJ1cmwiOiJtYWlsdG86bWlrZS5tYXhpbUBnbWFpbC5jb20ifX0=$<kb$",
+		},
 	}
 	for _, c := range cases {
 		res := DecorateWithLinks(context.TODO(), c.body)

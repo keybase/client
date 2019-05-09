@@ -83,6 +83,19 @@ const ServiceDecoration = (props: Props) => {
         {parsed.link.display}
       </Text>
     )
+  } else if (parsed.typ === RPCChatTypes.chatUiUITextDecorationTyp.mailto && parsed.mailto) {
+    return (
+      <Text
+        className="hover-underline"
+        type="BodyPrimaryLink"
+        style={Styles.collapseStyles([props.styles.wrapStyle, linkStyle])}
+        title={parsed.mailto.display}
+        onClickURL={parsed.mailto.url}
+        onLongPressURL={parsed.mailto.url}
+      >
+        {parsed.mailto.display}
+      </Text>
+    )
   } else if (
     parsed.typ === RPCChatTypes.chatUiUITextDecorationTyp.channelnamemention &&
     parsed.channelnamemention

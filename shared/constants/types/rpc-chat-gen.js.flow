@@ -476,6 +476,7 @@ export const chatUiUITextDecorationTyp = {
   channelnamemention: 2,
   maybemention: 3,
   link: 4,
+  mailto: 5,
 }
 
 export const commandsConversationBuiltinCommandTyp = {
@@ -1342,13 +1343,14 @@ export type UIPagination = $ReadOnly<{next: String, previous: String, num: Int, 
 export type UIPaymentInfo = $ReadOnly<{accountID?: ?Stellar1.AccountID, amountDescription: String, worth: String, worthAtSendTime: String, delta: Stellar1.BalanceDelta, note: String, paymentID: Stellar1.PaymentID, status: Stellar1.PaymentStatus, statusDescription: String, statusDetail: String, showCancel: Boolean, fromUsername: String, toUsername: String}>
 export type UIRequestInfo = $ReadOnly<{amount: String, amountDescription: String, asset?: ?Stellar1.Asset, currency?: ?Stellar1.OutsideCurrencyCode, worthAtRequestTime: String, status: Stellar1.RequestStatus}>
 export type UITeamMention = $ReadOnly<{inTeam: Boolean, open: Boolean, description?: ?String, numMembers?: ?Int, publicAdmins?: ?Array<String>, convID?: ?String}>
-export type UITextDecoration = {typ: 0, payment: ?TextPayment} | {typ: 1, atmention: ?String} | {typ: 2, channelnamemention: ?UIChannelNameMention} | {typ: 3, maybemention: ?MaybeMention} | {typ: 4, link: ?UILinkDecoration}
+export type UITextDecoration = {typ: 0, payment: ?TextPayment} | {typ: 1, atmention: ?String} | {typ: 2, channelnamemention: ?UIChannelNameMention} | {typ: 3, maybemention: ?MaybeMention} | {typ: 4, link: ?UILinkDecoration} | {typ: 5, mailto: ?UILinkDecoration}
 export type UITextDecorationTyp =
   | 0 // PAYMENT_0
   | 1 // ATMENTION_1
   | 2 // CHANNELNAMEMENTION_2
   | 3 // MAYBEMENTION_3
   | 4 // LINK_4
+  | 5 // MAILTO_5
 
 export type Unfurl = {unfurlType: 0, generic: ?UnfurlGeneric} | {unfurlType: 1, youtube: ?UnfurlYoutube} | {unfurlType: 2, giphy: ?UnfurlGiphy}
 export type UnfurlDisplay = {unfurlType: 0, generic: ?UnfurlGenericDisplay} | {unfurlType: 1, youtube: ?UnfurlYoutubeDisplay} | {unfurlType: 2, giphy: ?UnfurlGiphyDisplay}

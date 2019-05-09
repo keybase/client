@@ -2075,17 +2075,35 @@ func DecorateBody(ctx context.Context, body string, offset, length int, decorati
 }
 
 var linkRegexp = xurls.Relaxed()
+var mailtoRegexp = regexp.MustCompile(`(?:(?:[\w-_.]*)@(?:[\w-]+(?:\.[\w-]+)+))\b`)
 
 func DecorateWithLinks(ctx context.Context, body string) string {
-	allMatches := linkRegexp.FindAllStringSubmatchIndex(ReplaceQuotedSubstrings(body, true), -1)
 	var added int
 	offset := 0
 	origBody := body
+
+	allMatches := mailtoRegexp.FindAllStringSubmatchIndex(ReplaceQuotedSubstrings(body, true), -1)
+	for _, match := range allMatches {
+		bodyMatch := origBody[match[0]:match[1]]
+		url := "mailto:" + bodyMatch
+		body, added = DecorateBody(ctx, body, match[0]+offset, match[1]-match[0],
+			chat1.NewUITextDecorationWithMailto(chat1.UILinkDecoration{
+				Display: bodyMatch,
+				Url:     url,
+			}))
+		offset += added
+	}
+
+	offset = 0
+	allMatches = linkRegexp.FindAllStringSubmatchIndex(ReplaceQuotedSubstrings(body, true), -1)
 	for _, match := range allMatches {
 		bodyMatch := origBody[match[0]:match[1]]
 		url := bodyMatch
 		if !(strings.HasPrefix(bodyMatch, "http://") || strings.HasPrefix(bodyMatch, "https://")) {
 			url = "http://" + bodyMatch
+		}
+		if strings.HasPrefix(bodyMatch, "mailto:") {
+			continue
 		}
 		body, added = DecorateBody(ctx, body, match[0]+offset, match[1]-match[0],
 			chat1.NewUITextDecorationWithLink(chat1.UILinkDecoration{

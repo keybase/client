@@ -52,6 +52,7 @@ export const chatUiUITextDecorationTyp = {
   channelnamemention: 2,
   maybemention: 3,
   link: 4,
+  mailto: 5,
 }
 
 export const commandsConversationBuiltinCommandTyp = {
