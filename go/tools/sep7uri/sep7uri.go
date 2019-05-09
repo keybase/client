@@ -9,13 +9,20 @@ import (
 	"github.com/keybase/stellarnet"
 )
 
-func main() {
-	var destination string
-	var amount string
-	var key string
-	var domain string
-	var message string
+var destination string
+var amount string
+var key string
+var domain string
+var message string
+var xdr string
 
+func main() {
+	parseFlags()
+	uri := run()
+	fmt.Println(uri)
+}
+
+func parseFlags() {
 	flag.StringVar(&destination, "to", "", "destination stellar address")
 	flag.StringVar(&destination, "t", "", "destination stellar address (shorthand)")
 	flag.StringVar(&amount, "amount", "", "number of XLM to send to destination")
@@ -26,13 +33,64 @@ func main() {
 	flag.StringVar(&domain, "d", "", "origin domain for the request (shorthand)")
 	flag.StringVar(&message, "message", "", "message to include")
 	flag.StringVar(&domain, "m", "", "message to include (shorthand)")
+	flag.StringVar(&xdr, "xdr", "", "base64-encoded xdr transaction")
 
 	flag.Parse()
 
-	if destination == "" || key == "" || domain == "" {
+	if xdr != "" {
+		if destination != "" {
+			fmt.Fprintln(os.Stderr, "cannot specify xdr and destination")
+			flag.PrintDefaults()
+			os.Exit(1)
+		}
+		if amount != "" {
+			fmt.Fprintln(os.Stderr, "cannot specify xdr and amount")
+			flag.PrintDefaults()
+			os.Exit(1)
+		}
+	} else if destination == "" {
+		fmt.Fprintln(os.Stderr, "destination or xdr is required")
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
+
+	if key == "" || domain == "" {
+		fmt.Fprintln(os.Stderr, "key and domain are required")
+		flag.PrintDefaults()
+		os.Exit(1)
+	}
+}
+
+func run() string {
+	var op string
+	if xdr != "" {
+		op = "tx"
+	} else {
+		op = "pay"
+	}
+
+	u, err := url.Parse("web+stellar:" + op)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	q := u.Query()
+	q.Set("origin_domain", domain)
+	if message != "" {
+		q.Set("msg", message)
+	}
+
+	switch op {
+	case "pay":
+		q.Set("destination", destination)
+		if amount != "" {
+			q.Set("amount", amount)
+		}
+	case "tx":
+		q.Set("xdr", xdr)
+	}
+
+	u.RawQuery = q.Encode()
 
 	seed, err := stellarnet.NewSeedStr(key)
 	if err != nil {
@@ -40,27 +98,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	u, err := url.Parse("web+stellar:pay")
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-
-	q := u.Query()
-	q.Set("destination", destination)
-	q.Set("origin_domain", domain)
-	if amount != "" {
-		q.Set("amount", amount)
-	}
-	if message != "" {
-		q.Set("msg", message)
-	}
-	u.RawQuery = q.Encode()
-
 	signed, _, err := stellarnet.SignStellarURI(u.String(), seed)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-	fmt.Println(signed)
+	return signed
 }
