@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -27,7 +28,7 @@ type LoaderContext interface {
 	// Get the current user's per-user-key's derived encryption key (full).
 	perUserEncryptionKey(ctx context.Context, userSeqno keybase1.Seqno) (*libkb.NaclDHKeyPair, error)
 	merkleLookup(ctx context.Context, teamID keybase1.TeamID, public bool) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error)
-	merkleLookupTripleAtHashMeta(ctx context.Context, isPublic bool, leafID keybase1.UserOrTeamID, hm keybase1.HashMeta) (triple *libkb.MerkleTriple, err error)
+	merkleLookupTripleInPast(ctx context.Context, isPublic bool, leafID keybase1.UserOrTeamID, root keybase1.MerkleRootV2) (triple *libkb.MerkleTriple, err error)
 	forceLinkMapRefreshForUser(ctx context.Context, uid keybase1.UID) (linkMap linkMapT, err error)
 	loadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID, lkc *loadKeyCache) (keybase1.UserVersion, *keybase1.PublicKeyV2NaCl, linkMapT, error)
 }
@@ -35,6 +36,12 @@ type LoaderContext interface {
 // The main LoaderContext is G.
 type LoaderContextG struct {
 	libkb.Contextified
+
+	// Cache of size=1 for caching merkle leaf lookups at the checkpoint, since in practice
+	// we hit this is rapid succession.
+	cacheMu     sync.RWMutex
+	cachedSeqno keybase1.Seqno
+	cachedLeaf  *libkb.MerkleGenericLeaf
 }
 
 var _ LoaderContext = (*LoaderContextG)(nil)
@@ -215,8 +222,56 @@ func (l *LoaderContextG) merkleLookup(ctx context.Context, teamID keybase1.TeamI
 	return leaf.Private.Seqno, leaf.Private.LinkID.Export(), nil
 }
 
-func (l *LoaderContextG) merkleLookupTripleAtHashMeta(ctx context.Context, isPublic bool, leafID keybase1.UserOrTeamID, hm keybase1.HashMeta) (triple *libkb.MerkleTriple, err error) {
-	leaf, err := l.G().MerkleClient.LookupLeafAtHashMeta(l.MetaContext(ctx), leafID, hm)
+func (l *LoaderContextG) getCachedCheckpointLookup(leafID keybase1.UserOrTeamID, seqno keybase1.Seqno) *libkb.MerkleGenericLeaf {
+	l.cacheMu.RLock()
+	defer l.cacheMu.RUnlock()
+	if l.cachedLeaf == nil || !l.cachedLeaf.LeafID.Equal(leafID) || !l.cachedSeqno.Eq(seqno) {
+		return nil
+	}
+	ret := l.cachedLeaf.PartialClone()
+	return &ret
+}
+
+func (l *LoaderContextG) putCachedCheckpoint(seqno keybase1.Seqno, leaf *libkb.MerkleGenericLeaf) {
+	l.cacheMu.Lock()
+	defer l.cacheMu.Unlock()
+	tmp := leaf.PartialClone()
+	l.cachedLeaf = &tmp
+	l.cachedSeqno = seqno
+}
+
+func (l *LoaderContextG) merkleLookupTripleAtCheckpoint(mctx libkb.MetaContext, leafID keybase1.UserOrTeamID, seqno keybase1.Seqno) (leaf *libkb.MerkleGenericLeaf, err error) {
+
+	ret := l.getCachedCheckpointLookup(leafID, seqno)
+	if ret != nil {
+		mctx.VLogf(libkb.VLog0, "hit checkpoint cache")
+		return ret, nil
+	}
+
+	mc := l.G().MerkleClient
+	leaf, _, err = mc.LookupLeafAtSeqno(mctx, leafID, seqno)
+	if leaf != nil && err == nil {
+		l.putCachedCheckpoint(seqno, leaf)
+	}
+	return leaf, err
+}
+
+func (l *LoaderContextG) merkleLookupTripleInPast(ctx context.Context, isPublic bool, leafID keybase1.UserOrTeamID, root keybase1.MerkleRootV2) (triple *libkb.MerkleTriple, err error) {
+	mctx := l.MetaContext(ctx)
+
+	mc := l.G().MerkleClient
+	checkpoint := mc.FirstExaminableHistoricalRoot(mctx)
+	var leaf *libkb.MerkleGenericLeaf
+
+	// If we're trying to lookup a leaf from before the checkpoint, just bump forward to the checkpoint.
+	// The checkpoint is consindered to be a legitimate version of Tree.
+	if checkpoint != nil && root.Seqno < *checkpoint {
+		mctx.Debug("Bumping up pre-checkpoint merkle fetch to checkpoint at %d for %s", *checkpoint, leafID)
+		leaf, err = l.merkleLookupTripleAtCheckpoint(mctx, leafID, *checkpoint)
+	} else {
+		leaf, err = mc.LookupLeafAtHashMeta(mctx, leafID, root.HashMeta)
+	}
+
 	if err != nil {
 		return nil, err
 	}

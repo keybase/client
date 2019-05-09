@@ -4,7 +4,6 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as FsTypes from '../../constants/types/fs'
 import * as ConfigGen from '../config-gen'
 import * as ProfileGen from '../profile-gen'
-import * as GregorGen from '../gregor-gen'
 import * as Chat2Gen from '../chat2-gen'
 import * as Flow from '../../util/flow'
 import * as Tabs from '../../constants/tabs'
@@ -266,12 +265,20 @@ function* persistRouteState(state) {
 
 function* setupNetInfoWatcher() {
   const channel = Saga.eventChannel(emitter => {
-    NetInfo.addEventListener('connectionChange', () => emitter('changed'))
+    NetInfo.addEventListener('connectionChange', ({type}) => emitter(type === 'none' ? 'offline' : 'online'))
     return () => {}
-  }, Saga.buffers.dropping(1))
+  }, Saga.buffers.sliding(1))
+
+  const toPut = yield Saga.callUntyped(() =>
+    NetInfo.getConnectionInfo().then(({type}) =>
+      ConfigGen.createOsNetworkStatusChanged({isInit: true, online: type !== 'none'})
+    )
+  )
+  yield Saga.put(toPut)
+
   while (true) {
-    yield Saga.take(channel)
-    yield Saga.put(GregorGen.createCheckReachability())
+    const status = yield Saga.take(channel)
+    yield Saga.put(ConfigGen.createOsNetworkStatusChanged({online: status === 'online'}))
   }
 }
 

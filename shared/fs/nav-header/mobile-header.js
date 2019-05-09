@@ -4,14 +4,11 @@ import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/fs'
 import * as Types from '../../constants/types/fs'
-import {namedConnect} from '../../util/container'
 import Actions from './actions'
 import * as Kbfs from '../common'
-import flags from '../../util/feature-flags'
+import MainBanner from './main-banner/container'
 
-type BannerType = 'none' | 'offline'
 type Props = {|
-  bannerType: BannerType,
   onBack: ?() => void,
   path: Types.Path,
 |}
@@ -19,7 +16,7 @@ type State = {|
   filterExpanded: boolean,
 |}
 
-class MobileHeader extends React.PureComponent<Props, State> {
+class NavMobileHeader extends React.PureComponent<Props, State> {
   state = {filterExpanded: false}
   _triggerFilterMobile = () => {
     this.setState({filterExpanded: true})
@@ -27,17 +24,12 @@ class MobileHeader extends React.PureComponent<Props, State> {
   _filterDone = () => {
     this.setState({filterExpanded: false})
   }
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps: Props) {
     prevProps.path !== this.props.path && this.setState({filterExpanded: false})
   }
   render() {
     return (
-      <Kb.Box2
-        direction="vertical"
-        fullWidth={true}
-        style={Styles.collapseStyles([styles.container, this.props.bannerType === 'offline' && styles.blue])}
-      >
-        {this.props.bannerType === 'offline' && <Kb.Banner text="You are offline." color="blue" />}
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
         {this.state.filterExpanded ? (
           <Kbfs.FolderViewFilter path={this.props.path} onCancel={this._filterDone} />
         ) : (
@@ -58,6 +50,7 @@ class MobileHeader extends React.PureComponent<Props, State> {
             {this.props.path === Constants.defaultPath ? 'Files' : Types.getPathName(this.props.path)}
           </Kb.Text>
         </Kb.Box2>
+        <MainBanner />
       </Kb.Box2>
     )
   }
@@ -78,9 +71,6 @@ const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.small,
     },
   }),
-  blue: {
-    backgroundColor: Styles.globalColors.blue,
-  },
   container: {
     backgroundColor: Styles.globalColors.white,
     borderBottomColor: Styles.globalColors.black_10,
@@ -115,21 +105,4 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-type OwnProps = {|
-  path: Types.Path,
-  onBack: ?() => void,
-|}
-
-const mapStateToProps = (state, {path}: OwnProps) => ({
-  kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
-})
-
-const mergeProps = (s, d, o) => ({
-  bannerType: flags.kbfsOfflineMode && !s.kbfsDaemonStatus.online ? 'offline' : 'none',
-  onBack: o.onBack,
-  path: o.path,
-})
-
-export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, () => ({}), mergeProps, 'NavHeaderMobile')(
-  MobileHeader
-)
+export default NavMobileHeader

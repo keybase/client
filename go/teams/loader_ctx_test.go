@@ -238,9 +238,10 @@ func (l *MockLoaderContext) merkleLookup(ctx context.Context, teamID keybase1.Te
 	return x.Seqno, x.LinkID, nil
 }
 
-func (l *MockLoaderContext) merkleLookupTripleAtHashMeta(ctx context.Context,
-	isPublic bool, leafID keybase1.UserOrTeamID, hm keybase1.HashMeta) (triple *libkb.MerkleTriple, err error) {
+func (l *MockLoaderContext) merkleLookupTripleInPast(ctx context.Context,
+	isPublic bool, leafID keybase1.UserOrTeamID, root keybase1.MerkleRootV2) (triple *libkb.MerkleTriple, err error) {
 
+	hm := root.HashMeta
 	key := fmt.Sprintf("%s-%s", leafID, hm)
 	triple1, ok := l.unit.MerkleTriples[key]
 	if !ok {

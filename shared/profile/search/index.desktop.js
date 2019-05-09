@@ -4,6 +4,7 @@ import SearchResultsList from '../../search/results-list/container'
 import UserInput from '../../search/user-input/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import flags from '../../util/feature-flags'
 import type {Props} from '.'
 import {searchKey, placeholder} from './index.shared'
 
@@ -21,7 +22,7 @@ const Search = (props: Props) => (
       />
     </Kb.Box2>
     <SearchResultsList
-      style={{minHeight: 240, overflow: 'auto'}}
+      style={{minHeight: flags.useNewRouter ? 360 : 240, overflow: 'auto'}}
       searchKey={searchKey}
       onClick={props.onClick}
       disableListBuilding={true}

@@ -911,11 +911,20 @@ const waitForKbfsDaemon = (state, action) => {
     })
 }
 
-const getKbfsDaemonOnlineStatus = (state, action) =>
-  action.payload.rpcStatus === 'connected' &&
-  RPCTypes.SimpleFSSimpleFSAreWeConnectedToMDServerRpcPromise().then(connectedToMDServer =>
-    FsGen.createKbfsDaemonOnlineStatusChanged({online: connectedToMDServer})
-  )
+const updateKbfsDaemonOnlineStatus = (state, action) =>
+  state.fs.kbfsDaemonStatus.rpcStatus === 'connected' && state.config.osNetworkOnline
+    ? RPCTypes.SimpleFSSimpleFSAreWeConnectedToMDServerRpcPromise().then(connectedToMDServer =>
+        FsGen.createKbfsDaemonOnlineStatusChanged({online: connectedToMDServer})
+      )
+    : Promise.resolve(FsGen.createKbfsDaemonOnlineStatusChanged({online: false}))
+
+// We don't trigger the reachability check at init. Reachability checks cause
+// any pending "reconnect" fire right away, and overrides any random back-off
+// timer we have at process restart (which is there to avoid surging server
+// load around app releases). So only do that when OS network status changes
+// after we're up.
+const checkKbfsServerReachabilityIfNeeded = (state, action) =>
+  !action.payload.isInit && RPCTypes.SimpleFSSimpleFSCheckReachabilityRpcPromise()
 
 const onFSOnlineStatusChanged = (state, action) =>
   FsGen.createKbfsDaemonOnlineStatusChanged({online: action.payload.params.online})
@@ -986,9 +995,12 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
       [FsGen.loadTlfSyncConfig, FsGen.loadPathMetadata],
       loadTlfSyncConfig
     )
-    yield* Saga.chainAction<FsGen.KbfsDaemonRpcStatusChangedPayload>(
-      FsGen.kbfsDaemonRpcStatusChanged,
-      getKbfsDaemonOnlineStatus
+    yield* Saga.chainAction<
+      FsGen.KbfsDaemonRpcStatusChangedPayload | ConfigGen.OsNetworkStatusChangedPayload
+    >([FsGen.kbfsDaemonRpcStatusChanged, ConfigGen.osNetworkStatusChanged], updateKbfsDaemonOnlineStatus)
+    yield* Saga.chainAction<ConfigGen.OsNetworkStatusChangedPayload>(
+      ConfigGen.osNetworkStatusChanged,
+      checkKbfsServerReachabilityIfNeeded
     )
     yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSOnlineStatusChangedPayload>(
       EngineGen.keybase1NotifyFSFSOnlineStatusChanged,

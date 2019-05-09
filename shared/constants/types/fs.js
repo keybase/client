@@ -679,3 +679,4 @@ export type RefreshTag = 'main' | 'path-item-action-popup' | 'destination-picker
 export type PathItemBadge = 'upload' | 'download' | 'new' | 'rekey' | number
 
 export type ResetBannerType = 'none' | 'self' | number
+export type MainBannerType = 'offline' | 'out-of-space' | 'none'

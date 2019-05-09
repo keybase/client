@@ -162,12 +162,11 @@ func setupUserWithMockPhoneListener(user *userPlusDevice) *mockPhoneListener {
 func TestPhoneNumberNotifications(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
+
 	ann := tt.addUser("ann")
 	annListener := setupUserWithMockPhoneListener(ann)
-	defer ann.tc.Cleanup()
 	bob := tt.addUser("bob")
 	bobListener := setupUserWithMockPhoneListener(bob)
-	defer bob.tc.Cleanup()
 	tt.logUserNames()
 
 	phone := "+" + kbtest.GenerateTestPhoneNumber()

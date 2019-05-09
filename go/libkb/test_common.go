@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"golang.org/x/net/context"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/logger"
@@ -96,10 +97,16 @@ type TestContext struct {
 	PrevGlobal *GlobalContext
 	Tp         *TestParameters
 	// TODO: Rename this to TB.
-	T TestingTB
+	T         TestingTB
+	eg        *errgroup.Group
+	cleanupCh chan struct{}
 }
 
 func (tc *TestContext) Cleanup() {
+	// stop the background logger
+	close(tc.cleanupCh)
+	tc.eg.Wait()
+
 	tc.G.Log.Debug("global context shutdown:")
 	tc.G.Shutdown()
 	if len(tc.Tp.Home) > 0 {
@@ -195,7 +202,9 @@ var setupTestMu sync.Mutex
 func setupTestContext(tb TestingTB, name string, tcPrev *TestContext) (tc TestContext, err error) {
 	setupTestMu.Lock()
 	defer setupTestMu.Unlock()
-	tc.Tp = &TestParameters{}
+	tc.Tp = &TestParameters{
+		SecretStorePrimingDisabled: true,
+	}
 
 	g := NewGlobalContext()
 
@@ -273,6 +282,26 @@ func setupTestContext(tb TestingTB, name string, tcPrev *TestContext) (tc TestCo
 	g.SetUIDMapper(NewTestUIDMapper(g.GetUPAKLoader()))
 	tc.G = g
 	tc.T = tb
+
+	// Periodically log in the background until `Cleanup` is called. Tests that
+	// forget to call this will panic because of logging after the test
+	// completes.
+	cleanupCh := make(chan struct{})
+	tc.cleanupCh = cleanupCh
+	tc.eg = &errgroup.Group{}
+	tc.eg.Go(func() error {
+		log := g.Log.CloneWithAddedDepth(1)
+		log.Debug("TestContext bg loop starting up")
+		for {
+			select {
+			case <-cleanupCh:
+				log.Debug("TestContext bg loop shutting down")
+				return nil
+			case <-time.After(time.Second):
+				log.Debug("TestContext bg loop not cleaned up yet")
+			}
+		}
+	})
 
 	return
 }

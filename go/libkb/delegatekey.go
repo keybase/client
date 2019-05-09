@@ -167,7 +167,7 @@ func (d *Delegator) Run(m MetaContext) (err error) {
 		return err
 	}
 
-	d.MerkleRoot = m.G().MerkleClient.LastRoot()
+	d.MerkleRoot = m.G().MerkleClient.LastRoot(m)
 
 	// We'll need to generate two proofs, so set the Ctime
 	// so that we get the same time both times

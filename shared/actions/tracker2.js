@@ -143,6 +143,11 @@ function* load(state, action) {
       })
     )
   } catch (err) {
+    if (err.code === RPCTypes.constantsStatusCode.scresolutionfailed) {
+      yield Saga.put(
+        Tracker2Gen.createUpdateResult({guiID: action.payload.guiID, reason: null, result: 'notAUserYet'})
+      )
+    }
     // hooked into reloadable
     logger.error(`Error loading profile: ${err.message}`)
   }

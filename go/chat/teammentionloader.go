@@ -132,8 +132,6 @@ func (l *TeamMentionLoader) loadMention(ctx context.Context, uid gregor1.UID,
 	defer l.Trace(ctx, func() error { return err }, "loadTeamMention: name: %s", maybeMention.Name)()
 	ui, err := l.getChatUI(ctx)
 	if err != nil {
-		ui.ChatMaybeMentionUpdate(ctx, maybeMention.Name, maybeMention.Channel,
-			chat1.NewUIMaybeMentionInfoWithUnknown())
 		return err
 	}
 	if _, err := keybase1.TeamNameFromString(maybeMention.Name); err != nil {

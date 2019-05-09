@@ -265,6 +265,12 @@ func (s SimpleFSMock) SimpleFSAreWeConnectedToMDServer(
 	return true, nil
 }
 
+// SimpleFSCheckReachability implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSCheckReachability(
+	_ context.Context) error {
+	return nil
+}
+
 // SimpleFSSetDebugLevel implements the SimpleFSInterface.
 func (s SimpleFSMock) SimpleFSSetDebugLevel(_ context.Context, _ string) error {
 	return nil

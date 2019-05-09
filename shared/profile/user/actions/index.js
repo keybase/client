@@ -50,7 +50,12 @@ const Actions = (p: Props) => {
     </Kb.WaitingButton>
   )
 
-  if (p.onEditProfile) {
+  if (p.state === 'notAUserYet') {
+    buttons = [
+      chatButton,
+      <Kb.Button key="Open folder" mode="Secondary" label="Open folder" onClick={p.onOpenPrivateFolder} />,
+    ]
+  } else if (p.onEditProfile) {
     buttons = [
       <Kb.Button key="Edit profile" mode="Secondary" label="Edit profile" onClick={p.onEditProfile} />,
     ]

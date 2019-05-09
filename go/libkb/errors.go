@@ -1231,6 +1231,7 @@ const (
 	merkleErrorOutOfOrderCtime
 	merkleErrorWrongSkipSequence
 	merkleErrorWrongRootSkips
+	merkleErrorFailedCheckpoint
 )
 
 type MerkleClientError struct {
@@ -1248,6 +1249,13 @@ func NewClientMerkleSkipHashMismatchError(m string) MerkleClientError {
 func NewClientMerkleSkipMissingError(m string) MerkleClientError {
 	return MerkleClientError{
 		t: merkleErrorSkipMissing,
+		m: m,
+	}
+}
+
+func NewClientMerkleFailedCheckpointError(m string) MerkleClientError {
+	return MerkleClientError{
+		t: merkleErrorFailedCheckpoint,
 		m: m,
 	}
 }
