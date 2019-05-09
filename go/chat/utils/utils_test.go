@@ -311,6 +311,10 @@ func TestDecorateLinks(t *testing.T) {
 			body:   "> www.google.com",
 			result: "> $>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6Ind3dy5nb29nbGUuY29tIiwidXJsIjoiaHR0cDovL3d3dy5nb29nbGUuY29tIn19$<kb$",
 		},
+		decorateLinkTest{
+			body:   "nytimes.json",
+			result: "nytimes.json",
+		},
 	}
 	for _, c := range cases {
 		res := DecorateWithLinks(context.TODO(), c.body)
