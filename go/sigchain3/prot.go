@@ -38,8 +38,8 @@ type OuterLink struct {
 	Version             SigVersion          `codec:"version"` // comment should be 3
 	Seqno               Seqno               `codec:"seqno"`
 	Prev                LinkID              `codec:"prev"`
-	Curr                LinkID              `codec:"curr"`
-	LinkType            LinkType            `codec:"type"`
+	InnerLink           LinkID              `codec:"curr"` // hash of the msgpack of the InnerLink
+	LinkType            LinkType            `codec:"type"` // hash of the msgpack of the previous OuterLink
 	ChainType           ChainType           `codec:"chaintype"`
 	IgnoreIfUnsupported IgnoreIfUnsupported `codec:"ignore_if_unsupported"`
 	// New field for V3; if this link is encrypted, specify the format, nonce and PUK
