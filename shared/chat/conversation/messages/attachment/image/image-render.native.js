@@ -42,7 +42,7 @@ export class ImageRender extends React.Component<Props, State> {
               onError={e => {
                 logger.error(`Error loading vid: ${JSON.stringify(e)}`)
               }}
-              style={{height, width}}
+              style={Styles.collapseStyles([styles.video, {height, width}])}
               resizeMode="cover"
             />
           )}
@@ -65,7 +65,8 @@ export class ImageRender extends React.Component<Props, State> {
 
 const styles = Styles.styleSheetCreate({
   container: {position: 'relative'},
-  poster: {...Styles.globalStyles.fillAbsolute},
+  poster: {...Styles.globalStyles.fillAbsolute, borderRadius: Styles.borderRadius},
+  video: {borderRadius: Styles.borderRadius},
 })
 
 export function imgMaxWidth() {
