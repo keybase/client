@@ -1,5 +1,6 @@
 // @flow
 import * as ConfigGen from '../config-gen'
+import * as SettingsGen from '../settings-gen'
 import * as ConfigConstants from '../../constants/config'
 import * as EngineGen from '../engine-gen-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -11,13 +12,14 @@ import {NotifyPopup} from '../../native/notifications'
 import {execFile} from 'child_process'
 import {getEngine} from '../../engine'
 import {getMainWindow} from '../../desktop/remote/util.desktop'
-import {isWindows, socketPath} from '../../constants/platform.desktop'
+import {isWindows, socketPath, defaultUseNativeFrame} from '../../constants/platform.desktop'
 import {kbfsNotification} from '../../util/kbfs-notifications'
 import {quit} from '../../util/quit-helper'
 import {showDockIcon} from '../../desktop/app/dock-icon.desktop'
 import {writeLogLinesToFile} from '../../util/forward-logs'
 import InputMonitor from './input-monitor.desktop'
 import {skipAppFocusActions} from '../../local-debug.desktop'
+import AppState from '../../app/app-state.desktop'
 
 export function showShareActionSheetFromURL(options: {url?: ?any, message?: ?any}): void {
   throw new Error('Show Share Action - unsupported on this platform')
@@ -339,6 +341,13 @@ function* startPowerMonitor() {
   }
 }
 
+const setUseNativeFrame = (state, action) =>
+  SafeElectron.getIpcRenderer().send('setAppState', {useNativeFrame: state.settings.useNativeFrame})
+
+function* initializeUseNativeFrame() {
+  yield Saga.put(SettingsGen.createOnChangeUseNativeFrame({enabled: new AppState().state.useNativeFrame ?? defaultUseNativeFrame}))
+}
+
 export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<ConfigGen.SetOpenAtLoginPayload>(
     ConfigGen.setOpenAtLogin,
@@ -380,11 +389,16 @@ export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
     ConfigGen.daemonHandshakeWait,
     sendKBServiceCheck
   )
+  yield* Saga.chainAction<SettingsGen.OnChangeUseNativeFramePayload>(
+    SettingsGen.onChangeUseNativeFrame,
+    setUseNativeFrame
+  )
 
   if (isWindows) {
     yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, checkRPCOwnership)
   }
 
+  yield Saga.spawn(initializeUseNativeFrame)
   yield Saga.spawn(initializeInputMonitor)
   yield Saga.spawn(handleWindowFocusEvents)
   yield Saga.spawn(initializeAppSettingsState)

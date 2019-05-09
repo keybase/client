@@ -1,25 +1,11 @@
 // @flow
 // This is modified from https://github.com/mawie81/electron-window-state
-import * as SafeElectron from '../../util/safe-electron.desktop'
+import * as SafeElectron from '../util/safe-electron.desktop'
 import fs from 'fs'
 import path from 'path'
 import {isEqual} from 'lodash-es'
-import logger from '../../logger'
-
-export type State = {
-  x: ?number,
-  y: ?number,
-  width: number,
-  height: number,
-  windowHidden: boolean,
-  isMaximized: ?boolean,
-  isFullScreen: ?boolean,
-  displayBounds: ?any,
-  tab: ?string,
-  dockHidden: boolean,
-  notifySound: boolean,
-  openAtLogin: boolean,
-}
+import logger from '../logger'
+import type {State} from './app-state'
 
 export type Config = {
   path: string,
@@ -56,6 +42,7 @@ export default class AppState {
       notifySound: false,
       openAtLogin: true,
       tab: null,
+      useNativeFrame: null,
       width: 800,
       windowHidden: false,
       x: null,

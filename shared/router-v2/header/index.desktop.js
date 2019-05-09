@@ -6,6 +6,7 @@ import * as Styles from '../../styles'
 import * as Window from '../../util/window-management'
 import SyncingFolders from './syncing-folders'
 import flags from '../../util/feature-flags'
+import AppState from '../../app/app-state.desktop'
 // A mobile-like header for desktop
 
 // Fix this as we figure out what this needs to be
@@ -25,6 +26,8 @@ const AppIconBoxOnRed = Styles.styled(Kb.ClickableBox)({
 type State = {|
   hoveringOnClose: boolean,
 |}
+
+const initialUseNativeFrame = new AppState().state.useNativeFrame ?? Platform.defaultUseNativeFrame
 
 class Header extends React.PureComponent<Props, State> {
   state = {hoveringOnClose: false}
@@ -88,6 +91,7 @@ class Header extends React.PureComponent<Props, State> {
         : this.props.loggedIn
         ? Styles.globalColors.black_10
         : Styles.globalColors.transparent)
+
     return (
       <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true}>
         <Kb.Box2
@@ -114,7 +118,7 @@ class Header extends React.PureComponent<Props, State> {
             {flags.kbfsOfflineMode && <SyncingFolders />}
             {!title && rightActions}
 
-            {!Platform.isDarwin && (
+            {!Platform.isDarwin && !initialUseNativeFrame && (
               <Kb.Box2 direction="horizontal">
                 <AppIconBox direction="vertical" onClick={Window.minimizeWindow} style={styles.appIconBox}>
                   <Kb.Icon
