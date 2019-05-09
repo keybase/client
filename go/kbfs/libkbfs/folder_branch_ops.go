@@ -7253,7 +7253,21 @@ func (fbo *folderBranchOps) SyncFromServer(ctx context.Context,
 		return err
 	}
 
-	if !fbo.config.MDServer().IsConnected() {
+	// MDServer.IsConnected() takes some time to work when you get
+	// disconnected from inside the network (as we do in a test).  To
+	// get a quick result, force a reachability check with a short
+	// timeout, and if it times out, assume we're disconnected.
+	mdserver := fbo.config.MDServer()
+	timeoutCtx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
+	defer cancel()
+	mdserver.CheckReachability(timeoutCtx)
+	timedOut := false
+	select {
+	case <-timeoutCtx.Done():
+		timedOut = true
+	default:
+	}
+	if timedOut || !mdserver.IsConnected() {
 		fbo.vlog.CLogf(
 			ctx, libkb.VLog1, "Not fetching new updates while offline")
 		return nil
