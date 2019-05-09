@@ -32,7 +32,7 @@ const shimAsRouteTree = (Original: any) => {
           routeSelected={null}
           routePath={this._routePath}
           routeLeafTags={this._routeLeafTags}
-          routeStack={this._routeLeafTags}
+          routeStack={this._routeStack}
           setRouteState={this._setRouteState}
           navigateUp={this._navigateUp}
           navigateAppend={this._navigateAppend}
@@ -41,6 +41,23 @@ const shimAsRouteTree = (Original: any) => {
     }
   }
   return ShimmedOldRouteTree
+}
+
+// Give safe nav actions to routable screens
+const shimSafeNav = (Original: any) => {
+  class ShimmedSafeNav extends React.PureComponent<any> {
+    static navigationOptions = Original.navigationOptions
+    _pop = () => RouteTreeGen.createNavigateUp({fromKey: this.props.navigation.state.key})
+    _push = path => RouteTreeGen.createNavigateAppend({fromKey: this.props.navigation.state.key, path})
+
+    render() {
+      // TODO export this type
+      return (
+        <Original navigation={this.props.navigation} shouldRender={true} pop={this._pop} push={this._push} />
+      )
+    }
+  }
+  return ShimmedSafeNav
 }
 
 export const shim = (routes: any, platformWrapper: any) => {
@@ -56,6 +73,7 @@ export const shim = (routes: any, platformWrapper: any) => {
 
         let Component = routes[route].getScreen()
         // Wrap as an old style route tree component, TODO get rid of these eventually
+        Component = routes[route].upgraded ? shimSafeNav(Component) : shimAsRouteTree(Component)
         if (!routes[route].upgraded) {
           Component = shimAsRouteTree(Component)
         }

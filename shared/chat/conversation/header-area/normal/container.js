@@ -36,7 +36,7 @@ const mapDispatchToProps = (
 ) => ({
   _onOpenFolder: () => dispatch(Chat2Gen.createOpenFolder({conversationIDKey})),
   _onUnMuteConversation: () => dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: false})),
-  onBack: navigateUp,
+  onBack: () => dispatch(navigateUp()),
   onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
   onToggleInfoPanel,
   onToggleThreadSearch: () => dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
