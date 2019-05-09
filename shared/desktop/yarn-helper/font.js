@@ -132,7 +132,7 @@ function updateIconFont(web) {
     },
     (error, result) => (error ? fontsGeneratedError(error) : fontsGeneratedSuccess(web, result))
   )
-  console.log('Created new webfont')
+  console.log('Created new font')
 }
 
 const fontsGeneratedSuccess = (web, result) => {
