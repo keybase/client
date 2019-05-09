@@ -10,6 +10,7 @@ import nativeSaga from './common.native'
 function copyToDownloadDir(path: string, mimeType: string) {
   const fileName = path.substring(path.lastIndexOf('/') + 1)
   const downloadPath = `${RNFetchBlob.fs.dirs.DownloadDir}/${fileName}`
+  let stage = 'permission' // additional debug message for KBFS-4080
   return PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE, {
     message: 'Keybase needs access to your storage so we can download a file to it',
     title: 'Keybase Storage Permission',
@@ -18,21 +19,30 @@ function copyToDownloadDir(path: string, mimeType: string) {
       if (permissionStatus !== 'granted') {
         throw new Error('Unable to acquire storage permissions')
       }
+      stage = 'copy'
       return copy(path, downloadPath)
     })
-    .then(() => unlink(path))
-    .then(() =>
-      RNFetchBlob.android.addCompleteDownload({
+    .then(() => {
+      stage = 'unlink'
+      return unlink(path)
+    })
+    .then(() => {
+      stage = 'addCompleteDownload'
+      return RNFetchBlob.android.addCompleteDownload({
         description: `Keybase downloaded ${fileName}`,
         mime: mimeType,
         path: downloadPath,
         showNotification: true,
         title: fileName,
       })
-    )
+    })
     .catch(err => {
-      console.log('Error completing download')
-      console.log(err)
+      logger.error('Error completing download', {
+        cacheDir: RNFetchBlob.fs.dirs.CacheDir,
+        downloadDir: RNFetchBlob.fs.dirs.DownloadDir,
+        hasNumberSuffix: !!path.match(/\(\d\)/),
+        stage,
+      })
       throw err
     })
 }

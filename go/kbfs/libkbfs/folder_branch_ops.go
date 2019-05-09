@@ -9344,3 +9344,7 @@ func (fbo *folderBranchOps) monitorEditsChat(tlfName tlf.CanonicalName) {
 		}
 	}
 }
+
+func (fbo *folderBranchOps) addRootNodeWrapper(f func(Node) Node) {
+	fbo.nodeCache.AddRootWrapper(f)
+}

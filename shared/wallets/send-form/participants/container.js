@@ -141,13 +141,13 @@ const mapDispatchToPropsOtherAccount = dispatch => ({
   onCreateNewAccount: () =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {backButton: true, fromSendForm: true}, selected: 'createNewAccount'}],
+        path: [{props: {fromSendForm: true}, selected: 'createNewAccount'}],
       })
     ),
   onLinkAccount: () =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {backButton: true, fromSendForm: true}, selected: 'linkExisting'}],
+        path: [{props: {fromSendForm: true}, selected: 'linkExisting'}],
       })
     ),
 })

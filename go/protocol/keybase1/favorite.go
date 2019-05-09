@@ -50,6 +50,7 @@ type Folder struct {
 	FolderType   FolderType `codec:"folderType" json:"folderType"`
 	TeamID       *TeamID    `codec:"team_id,omitempty" json:"team_id,omitempty"`
 	ResetMembers []User     `codec:"reset_members" json:"reset_members"`
+	Mtime        *Time      `codec:"mtime,omitempty" json:"mtime,omitempty"`
 }
 
 func (o Folder) DeepCopy() Folder {
@@ -76,6 +77,13 @@ func (o Folder) DeepCopy() Folder {
 			}
 			return ret
 		})(o.ResetMembers),
+		Mtime: (func(x *Time) *Time {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Mtime),
 	}
 }
 

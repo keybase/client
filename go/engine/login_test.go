@@ -970,9 +970,6 @@ func TestProvisionGPGWithPUK(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// now safe to cleanup first home
-	tc.Cleanup()
-
 	// run login on new device
 	uis2 := libkb.UIs{
 		ProvisionUI: newTestProvisionUIGPGImport(),
@@ -1476,9 +1473,6 @@ func TestProvisionGPGImportOK(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// now safe to cleanup first home
-	tc.Cleanup()
-
 	// run login on new device
 	uis2 := libkb.UIs{
 		ProvisionUI: newTestProvisionUIGPGImport(),
@@ -1530,9 +1524,6 @@ func TestProvisionGPGImportMultiple(t *testing.T) {
 	if err := tc.MoveGpgKeyringTo(tc2); err != nil {
 		t.Fatal(err)
 	}
-
-	// now safe to cleanup first home
-	tc.Cleanup()
 
 	// run login on new device
 	uis2 := libkb.UIs{
@@ -1594,9 +1585,6 @@ func TestProvisionGPGSign(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		// now safe to cleanup first home
-		tc.Cleanup()
-
 		// run login on new device
 		uis2 := libkb.UIs{
 			ProvisionUI: newTestProvisionUIGPGSign(),
@@ -1657,9 +1645,6 @@ func TestProvisionGPGSignFailedSign(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// now safe to cleanup first home
-	tc.Cleanup()
-
 	// run login on new device
 	uis2 := libkb.UIs{
 		ProvisionUI: newTestProvisionUIGPGSign(),
@@ -1711,9 +1696,6 @@ func TestProvisionGPGSignSecretStore(t *testing.T) {
 		if err := tc.MoveGpgKeyringTo(tc2); err != nil {
 			t.Fatal(err)
 		}
-
-		// now safe to cleanup first home
-		tc.Cleanup()
 
 		// create a secret UI that stores the secret
 		secUI := u1.NewSecretUI()
@@ -1781,9 +1763,6 @@ func TestProvisionGPGSwitchToSign(t *testing.T) {
 		if err := tc.MoveGpgKeyringTo(tc2); err != nil {
 			t.Fatal(err)
 		}
-
-		// now safe to cleanup first home
-		tc.Cleanup()
 
 		// load the user (bypassing LoginUsername for this test...)
 		user, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc2.G, u1.Username))
@@ -1860,9 +1839,6 @@ func TestProvisionGPGNoSwitchToSign(t *testing.T) {
 	if err := tc.MoveGpgKeyringTo(tc2); err != nil {
 		t.Fatal(err)
 	}
-
-	// now safe to cleanup first home
-	tc.Cleanup()
 
 	// load the user (bypassing LoginUsername for this test...)
 	user, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc2.G, u1.Username))
@@ -2795,16 +2771,15 @@ func TestResetAccountKexProvision(t *testing.T) {
 // Try to replicate @nistur sigchain.
 // github issue: https://github.com/keybase/client/issues/2356
 func TestResetThenPGPOnlyThenProvision(t *testing.T) {
-	tc := SetupEngineTest(t, "login")
-	defer tc.Cleanup()
+	tc0 := SetupEngineTest(t, "login")
+	defer tc0.Cleanup()
 
 	// user with synced pgp key
-	u := createFakeUserWithPGPOnly(t, tc)
-	Logout(tc)
-	tc.Cleanup()
+	u := createFakeUserWithPGPOnly(t, tc0)
+	Logout(tc0)
 
 	// provision a device with that key
-	tc = SetupEngineTest(t, "login")
+	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
 	uis := libkb.UIs{
@@ -2864,16 +2839,15 @@ func TestResetThenPGPOnlyThenProvision(t *testing.T) {
 // Try to replicate @nistur sigchain.
 // github issue: https://github.com/keybase/client/issues/2356
 func TestResetAccountLikeNistur(t *testing.T) {
-	tc := SetupEngineTest(t, "login")
-	defer tc.Cleanup()
+	tc0 := SetupEngineTest(t, "login")
+	defer tc0.Cleanup()
 
 	// user with synced pgp key
-	u := createFakeUserWithPGPOnly(t, tc)
-	Logout(tc)
-	tc.Cleanup()
+	u := createFakeUserWithPGPOnly(t, tc0)
+	Logout(tc0)
 
 	// provision a device with that key
-	tc = SetupEngineTest(t, "login")
+	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
 	uis := libkb.UIs{
@@ -3260,9 +3234,6 @@ func TestProvisionGPGMobile(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// now safe to cleanup first home
-	tc.Cleanup()
-
 	// run login on new device
 	uis := libkb.UIs{
 		ProvisionUI: newTestProvisionUIGPGImport(),
@@ -3554,9 +3525,6 @@ func TestBootstrapAfterGPGSign(t *testing.T) {
 		if err := tc.MoveGpgKeyringTo(tc2); err != nil {
 			t.Fatal(err)
 		}
-
-		// now safe to cleanup first home
-		tc.Cleanup()
 
 		// run login on new device
 		uis := libkb.UIs{

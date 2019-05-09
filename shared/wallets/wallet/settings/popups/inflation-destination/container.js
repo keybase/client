@@ -1,15 +1,16 @@
 // @flow
-import {namedConnect, type RouteProps} from '../../../../../util/container'
+import * as Container from '../../../../../util/container'
 import * as Constants from '../../../../../constants/wallets'
 import * as Types from '../../../../../constants/types/wallets'
 import * as WalletsGen from '../../../../../actions/wallets-gen'
+import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import logger from '../../../../../logger'
 import InflationDestination from '.'
 
-type OwnProps = RouteProps<{accountID: Types.AccountID}, {}>
+type OwnProps = Container.RouteProps<{accountID: Types.AccountID}, {}>
 
-const mapStateToProps = (state, {routeProps}) => {
-  const accountID = routeProps.get('accountID')
+const mapStateToProps = (state, ownProps) => {
+  const accountID = Container.getRouteProps(ownProps, 'accountID')
   return {
     _options: state.wallets.inflationDestinations,
     accountID,
@@ -18,10 +19,10 @@ const mapStateToProps = (state, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, ownProps) => ({
+const mapDispatchToProps = dispatch => ({
   _onClose: () => {
     dispatch(WalletsGen.createInflationDestinationReceivedError({error: ''}))
-    dispatch(ownProps.navigateUp())
+    dispatch(RouteTreeGen.createNavigateUp())
   },
   _onSubmit: (accountID: Types.AccountID, destination: string, name: string) => {
     if (!destination) {
@@ -38,7 +39,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps) => ({
   error: stateProps.error,
   inflationDestination: stateProps.inflationDestination,
   onClose: () => dispatchProps._onClose(),
@@ -46,7 +47,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   options: stateProps._options.toArray().map(o => o.toObject()),
 })
 
-export default namedConnect<OwnProps, _, _, _, _>(
+export default Container.namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,

@@ -54,8 +54,6 @@ const ConfirmSend = (props: ConfirmSendProps) => (
         fullWidth={true}
         centerChildren={true}
         gap="small"
-        gapStart={true}
-        gapEnd={true}
         style={styles.buttonContainer}
       >
         {props.readyToSend === 'spinning' ? (
@@ -99,6 +97,7 @@ const styles = Styles.styleSheetCreate({
   },
   buttonContainer: Styles.platformStyles({
     common: {
+      ...Styles.padding(0, Styles.globalMargins.small),
       alignSelf: 'flex-end',
       flexShrink: 0,
     },

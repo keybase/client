@@ -16,15 +16,41 @@ type OwnProps = {|
   assertionKey: string,
 |}
 
+const notAUserAssertion = {
+  color: 'gray',
+  metas: [
+    {
+      color: 'gray',
+      label: 'PENDING',
+    },
+  ],
+  proofURL: '',
+  sigID: '0',
+  siteIcon: null,
+  siteIconFull: null,
+  siteURL: '',
+  state: 'checking',
+  timestamp: 0,
+}
+
 const mapStateToProps = (state, ownProps) => {
   let a = Constants.noAssertion
+  let notAUser = false
   if (ownProps.isSuggestion) {
     a =
       state.tracker2.proofSuggestions.find(s => s.assertionKey === ownProps.assertionKey) ||
       Constants.noAssertion
   } else {
     const d = Constants.getDetails(state, ownProps.username)
-    if (d.assertions) {
+    notAUser = d.state === 'notAUserYet'
+    if (notAUser) {
+      const parts = ownProps.username.split('@')
+      a = {
+        ...notAUserAssertion,
+        type: parts[1],
+        value: parts[0],
+      }
+    } else if (d.assertions) {
       a = d.assertions.get(ownProps.assertionKey, Constants.noAssertion)
     }
   }
@@ -33,6 +59,7 @@ const mapStateToProps = (state, ownProps) => {
     _sigID: a.sigID,
     color: a.color,
     isYours: ownProps.username === state.config.username,
+    notAUser,
     proofURL: a.proofURL,
     siteIcon: a.siteIcon,
     siteIconFull: a.siteIconFull,
@@ -66,37 +93,46 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  color: stateProps.color,
-  isSuggestion: !!ownProps.isSuggestion,
-  isYours: stateProps.isYours,
-  metas: stateProps._metas.map(({color, label}) => ({color, label})),
-  onCopyAddress: () => dispatchProps._onCopyAddress(stateProps.value),
-  onCreateProof: ownProps.isSuggestion ? () => dispatchProps._onCreateProof(stateProps.type) : undefined,
-  onRecheck: () => dispatchProps._onRecheck(stateProps._sigID),
-  onRequestLumens: () =>
-    dispatchProps._onSendOrRequestLumens(stateProps.value.split('*')[0], true, 'keybaseUser'),
-  onRevoke: () =>
-    dispatchProps._onRevokeProof(
-      stateProps.type,
-      stateProps.value,
-      stateProps._sigID,
-      stateProps.siteIconFull
-    ),
-  onSendLumens: () =>
-    dispatchProps._onSendOrRequestLumens(stateProps.value.split('*')[0], false, 'keybaseUser'),
-  onShowProof: () => (stateProps.proofURL ? openUrl(stateProps.proofURL) : undefined),
-  onShowSite: () => (stateProps.siteURL ? openUrl(stateProps.siteURL) : undefined),
-  onWhatIsStellar: () => openUrl('https://keybase.io/what-is-stellar'),
-  proofURL: stateProps.proofURL,
-  siteIcon: stateProps.siteIcon,
-  siteIconFull: stateProps.siteIconFull,
-  siteURL: stateProps.siteURL,
-  state: stateProps.state,
-  timestamp: stateProps.timestamp,
-  type: stateProps.type,
-  value: stateProps.value,
-})
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  return {
+    color: stateProps.color,
+    isSuggestion: !!ownProps.isSuggestion,
+    isYours: stateProps.isYours,
+    metas: stateProps._metas.map(({color, label}) => ({color, label})),
+    notAUser: stateProps.notAUser,
+    onCopyAddress: () => dispatchProps._onCopyAddress(stateProps.value),
+    onCreateProof: stateProps.notAUser
+      ? undefined
+      : ownProps.isSuggestion
+      ? () => dispatchProps._onCreateProof(stateProps.type)
+      : undefined,
+    onRecheck: () => dispatchProps._onRecheck(stateProps._sigID),
+    onRequestLumens: () =>
+      dispatchProps._onSendOrRequestLumens(stateProps.value.split('*')[0], true, 'keybaseUser'),
+    onRevoke: () => {
+      if (stateProps.siteIconFull)
+        dispatchProps._onRevokeProof(
+          stateProps.type,
+          stateProps.value,
+          stateProps._sigID,
+          stateProps.siteIconFull
+        )
+    },
+    onSendLumens: () =>
+      dispatchProps._onSendOrRequestLumens(stateProps.value.split('*')[0], false, 'keybaseUser'),
+    onShowProof: stateProps.notAUser || !stateProps.proofURL ? undefined : () => openUrl(stateProps.proofURL),
+    onShowSite: stateProps.notAUser || !stateProps.siteURL ? undefined : () => openUrl(stateProps.siteURL),
+    onWhatIsStellar: () => openUrl('https://keybase.io/what-is-stellar'),
+    proofURL: stateProps.proofURL,
+    siteIcon: stateProps.siteIcon,
+    siteIconFull: stateProps.siteIconFull,
+    siteURL: stateProps.siteURL,
+    state: stateProps.state,
+    timestamp: stateProps.timestamp,
+    type: stateProps.type,
+    value: stateProps.value,
+  }
+}
 
 export default Container.namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,

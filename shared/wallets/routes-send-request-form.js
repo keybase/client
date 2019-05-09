@@ -70,10 +70,12 @@ export default routeTree
 export const newModalRoutes = {
   [Constants.chooseAssetFormRouteKey]: {
     getScreen: () => require('./send-form/choose-asset/container').default,
+    upgraded: true,
   },
-  [Constants.confirmFormRouteKey]: {getScreen: () => require('./confirm-form/container').default},
-  createNewAccount: {getScreen: () => require('./create-account/container').default},
-  linkExisting: {getScreen: () => require('./link-existing/container').default},
-  qrScan: {getScreen: () => require('./qr-scan/container').default},
-  sendReceiveForm: {getScreen: () => require('./send-form/container').default},
+  [Constants.confirmFormRouteKey]: {
+    getScreen: () => require('./confirm-form/container').default,
+    upgraded: true,
+  },
+  qrScan: {getScreen: () => require('./qr-scan/container').default, upgraded: true},
+  sendReceiveForm: {getScreen: () => require('./send-form/container').default, upgraded: true},
 }
