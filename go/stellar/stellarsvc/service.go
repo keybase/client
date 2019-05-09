@@ -2,6 +2,7 @@ package stellarsvc
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"math"
@@ -14,6 +15,7 @@ import (
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/keybase/stellarnet"
+	"github.com/stellar/go/xdr"
 )
 
 type UISource interface {
@@ -624,7 +626,18 @@ func (s *Server) validateStellarURI(ctx context.Context, uri string, getter stel
 		MemoType:     validated.MemoType,
 	}
 
-	// Need summary when validated.Tx != nil
+	if validated.Tx != nil {
+		local.Summary.Source = stellar1.AccountID(validated.Tx.SourceAccount.Address())
+		local.Summary.Fee = int(validated.Tx.Fee)
+		local.Summary.Memo, local.Summary.MemoType, err = memoStrings(validated.Tx.Memo)
+		if err != nil {
+			return nil, err
+		}
+		local.Summary.Operations = make([]string, len(validated.Tx.Operations))
+		for i, op := range validated.Tx.Operations {
+			local.Summary.Operations[i] = opSummary(op)
+		}
+	}
 
 	return &local, nil
 }
@@ -635,4 +648,68 @@ func percentageAmountChange(a, b int64) float64 {
 	}
 	mid := 0.5 * float64(a+b)
 	return math.Abs(100.0 * float64(a-b) / mid)
+}
+
+func memoStrings(x xdr.Memo) (string, string, error) {
+	switch x.Type {
+	case xdr.MemoTypeMemoNone:
+		return "", "MEMO_NONE", nil
+	case xdr.MemoTypeMemoText:
+		return x.MustText(), "MEMO_TEXT", nil
+	case xdr.MemoTypeMemoId:
+		return fmt.Sprintf("%d", x.MustId()), "MEMO_ID", nil
+	case xdr.MemoTypeMemoHash:
+		hash := x.MustHash()
+		return base64.StdEncoding.EncodeToString(hash[:]), "MEMO_HASH", nil
+	case xdr.MemoTypeMemoReturn:
+		hash := x.MustRetHash()
+		return base64.StdEncoding.EncodeToString(hash[:]), "MEMO_RETURN", nil
+	default:
+		return "", "", errors.New("invalid memo type")
+	}
+}
+
+func opSummary(op xdr.Operation) string {
+	var opSource string
+	if op.SourceAccount != nil {
+		opSource = op.SourceAccount.Address()
+	}
+
+	switch op.Body.Type {
+	case xdr.OperationTypeCreateAccount:
+		iop := op.Body.MustCreateAccountOp()
+		return fmt.Sprintf("Create account %s with starting balance of %d XLM", iop.Destination.Address(), stellarnet.StringFromStellarXdrAmount(iop.StartingBalance))
+	case xdr.OperationTypePayment:
+		iop := op.Body.MustPaymentOp()
+		return fmt.Sprintf("Pay %d %s to account %s", stellarnet.StringFromStellarXdrAmount(iop.Amount), stellarnet.XDRSummary(iop.Asset), iop.Destination.Address())
+	case xdr.OperationTypePathPayment:
+		iop := op.Body.MustPathPaymentOp()
+		return fmt.Sprintf("Pay %d %s to account %s using at most %d %s", stellarnet.StringFromStellarXdrAmount(iop.SendMax), stellarnet.XDRSummary(
+		_ = iop
+	case xdr.OperationTypeManageOffer:
+		iop := op.Body.MustManageOfferOp()
+		_ = iop
+	case xdr.OperationTypeCreatePassiveOffer:
+		iop := op.Body.MustCreatePassiveOfferOp()
+		_ = iop
+	case xdr.OperationTypeSetOptions:
+		iop := op.Body.MustSetOptionsOp()
+		_ = iop
+	case xdr.OperationTypeChangeTrust:
+		iop := op.Body.MustChangeTrustOp()
+		_ = iop
+	case xdr.OperationTypeAllowTrust:
+		iop := op.Body.MustAllowTrustOp()
+		_ = iop
+	case xdr.OperationTypeAccountMerge:
+		// oh of cource, MustDestination...why would it possibly match
+		// everything else?
+		iop := op.Body.MustDestination()
+		_ = iop
+	case xdr.OperationTypeManageData:
+		iop := op.Body.MustManageDataOp()
+		_ = iop
+	default:
+		return "invalid operation type"
+	}
 }

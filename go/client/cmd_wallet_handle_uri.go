@@ -177,13 +177,13 @@ func (c *CmdWalletHandleURI) payOp(v stellar1.ValidateStellarURIResultLocal) err
 			arg := stellar1.FindPaymentPathLocalArg{
 				To:     v.Recipient,
 				Amount: v.Amount,
-				DestionationAsset: stellar1.Asset{
+				DestinationAsset: stellar1.Asset{
 					// XXX need Type?
 					Code:   v.AssetCode,
 					Issuer: v.AssetIssuer,
 				},
 			}
-			if err := runPathPayment(c.G(), arg, "", v.PublicNote); err != nil {
+			if err := runPathPayment(c.G(), arg, "", v.Memo); err != nil {
 				return err
 			}
 		}
@@ -196,6 +196,8 @@ func (c *CmdWalletHandleURI) payOp(v stellar1.ValidateStellarURIResultLocal) err
 }
 
 func (c *CmdWalletHandleURI) txOp(v stellar1.ValidateStellarURIResultLocal) error {
+	ui := c.G().UI.GetTerminalUI()
+	ui.Printf("result: %+v\n", v)
 	return errors.New("tx not handled yet")
 }
 
