@@ -168,20 +168,27 @@ func (md *MDServerRemote) initNewConnection() {
 
 const reconnectTimeout = 30 * time.Second
 
-func (md *MDServerRemote) reconnect() error {
+func (md *MDServerRemote) reconnectContext(ctx context.Context) error {
 	md.connMu.Lock()
 	defer md.connMu.Unlock()
 
 	if md.conn != nil {
-		ctx, cancel := context.WithTimeout(
-			context.Background(), reconnectTimeout)
-		defer cancel()
+		_, hasDeadline := ctx.Deadline()
+		if !hasDeadline {
+			var cancel context.CancelFunc
+			ctx, cancel = context.WithTimeout(ctx, reconnectTimeout)
+			defer cancel()
+		}
+
 		return md.conn.ForceReconnect(ctx)
 	}
 
 	md.initNewConnection()
 	return nil
+}
 
+func (md *MDServerRemote) reconnect() error {
+	return md.reconnectContext(context.Background())
 }
 
 // RemoteAddress returns the remote mdserver this client is talking to
@@ -467,7 +474,7 @@ func (md *MDServerRemote) CheckReachability(ctx context.Context) {
 		if md.getIsAuthenticated() {
 			md.log.CInfof(ctx, "MDServerRemote: CheckReachability(): "+
 				"failed to connect, reconnecting: %s", err.Error())
-			if err = md.reconnect(); err != nil {
+			if err = md.reconnectContext(ctx); err != nil {
 				md.log.CInfof(ctx, "reconnect error: %v", err)
 			}
 		} else {
