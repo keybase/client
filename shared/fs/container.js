@@ -28,7 +28,7 @@ const mapStateToProps = (state, ownProps) => {
 const mapDispatchToProps = (dispatch, {routePath}) => ({
   _emitBarePreview: flags.useNewRouter
     ? (path: Types.Path) => {
-        dispatch(RouteTreeGen.createNavigateUp())
+        dispatch(RouteTreeGen.createNavigateUp({}))
         dispatch(
           RouteTreeGen.createNavigateAppend({
             path: [{props: {path}, selected: 'barePreview'}],

@@ -21,7 +21,7 @@ const NoPGPView = props => (
 
 const NoPGP = connect<OwnProps, _, _, _, _>(
   () => ({}),
-  dispatch => ({onCancel: () => dispatch(RouteTreeGen.createNavigateUp())}),
+  dispatch => ({onCancel: () => dispatch(RouteTreeGen.createNavigateUp({}))}),
   (s, d, o) => ({...o, ...s, ...d})
 )(NoPGPView)
 

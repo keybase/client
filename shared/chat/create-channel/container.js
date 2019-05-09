@@ -49,13 +49,13 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   onBack: () =>
     dispatch(
       flags.useNewRouter
-        ? RouteTreeGen.createNavigateUp()
+        ? RouteTreeGen.createNavigateUp({})
         : RouteTreeGen.createNavigateTo({
             parentPath: ownProps.routePath.butLast(),
             path: ['chatManageChannels'],
           })
     ),
-  onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onClose: () => dispatch(RouteTreeGen.createNavigateUp({})),
 })
 
 export default compose(

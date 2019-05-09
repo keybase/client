@@ -30,9 +30,9 @@ export const switchTo = 'route-tree:switchTo'
 // Payload Types
 type _ClearModalsPayload = void
 type _NavUpToScreenPayload = $ReadOnly<{|routeName: string|}>
-type _NavigateAppendPayload = $ReadOnly<{|path: RCConstants.PropsPath<any>, parentPath?: ?RCConstants.Path, replace?: boolean|}>
+type _NavigateAppendPayload = $ReadOnly<{|fromKey?: string, path: RCConstants.PropsPath<any>, parentPath?: ?RCConstants.Path, replace?: boolean|}>
 type _NavigateToPayload = $ReadOnly<{|path: RCConstants.PropsPath<any>, parentPath?: ?RCConstants.Path, replace?: boolean|}>
-type _NavigateUpPayload = void
+type _NavigateUpPayload = $ReadOnly<{|fromKey?: string|}>
 type _PutActionIfOnPathPayload = $ReadOnly<{|expectedPath: RCConstants.Path, otherAction: any, parentPath?: ?RCConstants.Path|}>
 type _RefreshRouteDefPayload = $ReadOnly<{|loginRouteTree: RCConstants.RouteDefParams, appRouteTree: RCConstants.RouteDefParams|}>
 type _ResetRoutePayload = $ReadOnly<{|path: RCConstants.Path|}>

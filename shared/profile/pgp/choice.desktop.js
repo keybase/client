@@ -36,7 +36,7 @@ const mapDispatchToProps = dispatch => ({
   onCancel: () =>
     flags.useNewRouter
       ? dispatch(RouteTreeGen.createClearModals())
-      : dispatch(RouteTreeGen.createNavigateUp()),
+      : dispatch(RouteTreeGen.createNavigateUp({})),
   onShowGetNew: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileProvideInfo']})),
   onShowImport: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileImport']})),
 })

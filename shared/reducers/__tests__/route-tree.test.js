@@ -42,7 +42,7 @@ describe('routeTree reducer', () => {
       const routeDef = demoRouteDef
       const routeState = routeSetProps(routeDef, null, (['foo', 'bar']: PropsPath<*>))
 
-      const action = RouteTreeGen.createNavigateUp()
+      const action = RouteTreeGen.createNavigateUp({})
       const newState = routeTreeReducer(makeState({routeDef, routeState}), action)
       expect(newState.routeDef).toBe(routeDef)
       expect(newState.routeState).toEqual(routeSetProps(routeDef, null, (['foo']: Array<string>)))

@@ -28,11 +28,12 @@
       "replace?": "boolean"
     },
     "navigateAppend": {
+      "fromKey?": "string",
       "path": "RCConstants.PropsPath<any>",
       "parentPath?": "?RCConstants.Path",
       "replace?": "boolean"
     },
-    "navigateUp": {},
+    "navigateUp": {"fromKey?": "string"},
     "putActionIfOnPath": {
       "expectedPath": "RCConstants.Path",
       "otherAction": "any",

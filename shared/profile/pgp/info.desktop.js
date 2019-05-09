@@ -83,7 +83,7 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onCancel: () => dispatch(RouteTreeGen.createNavigateUp({})),
   onChangeEmail1: pgpEmail1 => dispatch(ProfileGen.createUpdatePgpInfo({pgpEmail1})),
   onChangeEmail2: pgpEmail2 => dispatch(ProfileGen.createUpdatePgpInfo({pgpEmail2})),
   onChangeEmail3: pgpEmail3 => dispatch(ProfileGen.createUpdatePgpInfo({pgpEmail3})),

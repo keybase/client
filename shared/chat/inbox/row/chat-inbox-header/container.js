@@ -19,7 +19,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp({})),
   onEnsureSelection: () => dispatch(Chat2Gen.createInboxSearchSelect({})),
   onQueryChanged: query => dispatch(Chat2Gen.createInboxSearch({query: new HiddenString(query)})),
   onSelectDown: () => dispatch(Chat2Gen.createInboxSearchMoveSelectedIndex({increment: true})),

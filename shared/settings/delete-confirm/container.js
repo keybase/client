@@ -36,7 +36,7 @@ const mapStateToProps = state => {
 }
 
 const mapDispatchToProps = dispatch => ({
-  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onCancel: () => dispatch(RouteTreeGen.createNavigateUp({})),
   onDeleteForever: () => dispatch(SettingsGen.createDeleteAccountForever()),
   setAllowDeleteAccount: allow => dispatch(SettingsGen.createSetAllowDeleteAccount({allow})),
 })

@@ -18,7 +18,7 @@ const mapDispatchToProps = (dispatch, ownProps) => {
   const email = Container.getRouteProps(ownProps, 'email')
   const username = Container.getRouteProps(ownProps, 'username')
   return {
-    onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
+    onClose: () => dispatch(RouteTreeGen.createNavigateUp({})),
     onRemove: () => {
       dispatch(
         TeamsGen.createRemoveMemberOrPendingInvite({

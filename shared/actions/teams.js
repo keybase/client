@@ -407,7 +407,7 @@ const uploadAvatar = (_, action, logger) => {
     },
     uploadAvatarWaitingKey
   )
-    .then(() => RouteTreeGen.createNavigateUp())
+    .then(() => RouteTreeGen.createNavigateUp({}))
     .catch(e => {
       // error displayed in component
       logger.warn(`Error uploading team avatar: ${e.message}`)

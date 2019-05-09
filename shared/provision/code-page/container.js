@@ -27,7 +27,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   onBack: () => {
     if (flags.useNewRouter) {
-      dispatch(RouteTreeGen.createNavigateUp())
+      dispatch(RouteTreeGen.createNavigateUp({}))
     } else {
       dispatch(ownProps.navigateUp())
     }

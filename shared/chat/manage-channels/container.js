@@ -73,7 +73,7 @@ const mapDispatchToProps = (dispatch, ownProps) => {
           you,
         })
       )
-      dispatch(RouteTreeGen.createNavigateUp())
+      dispatch(RouteTreeGen.createNavigateUp({}))
       dispatch(Chat2Gen.createPreviewConversation({channelname, reason: 'manageView', teamname}))
     },
     _saveSubscriptions: (
@@ -93,15 +93,15 @@ const mapDispatchToProps = (dispatch, ownProps) => {
       if (selectedChatID in nextChannelState && !nextChannelState[selectedChatID]) {
         dispatch(
           flags.useNewRouter && Container.isMobile
-            ? RouteTreeGen.createNavigateUp()
+            ? RouteTreeGen.createNavigateUp({})
             : Chat2Gen.createNavigateToInbox({avoidConversationID: selectedChatID, findNewConversation: true})
         )
       } else {
-        dispatch(RouteTreeGen.createNavigateUp())
+        dispatch(RouteTreeGen.createNavigateUp({}))
       }
     },
-    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
+    onBack: () => dispatch(RouteTreeGen.createNavigateUp({})),
+    onClose: () => dispatch(RouteTreeGen.createNavigateUp({})),
     onCreate: () =>
       dispatch(
         RouteTreeGen.createNavigateTo({

@@ -26,7 +26,7 @@ const mapDispatchToProps = dispatch => ({
   _showRevokeDevicePage: (deviceID: Types.DeviceID) => dispatch(DevicesGen.createShowRevokePage({deviceID})),
   onBack: () => {
     if (!flags.useNewRouter || isMobile) {
-      dispatch(RouteTreeGen.createNavigateUp())
+      dispatch(RouteTreeGen.createNavigateUp({}))
     }
   },
 })

@@ -24,7 +24,7 @@ const mapDispatchToProps = dispatch => ({
   _onSetTeamJoinSuccess: (success: boolean, teamname: string) => {
     dispatch(TeamsGen.createSetTeamJoinSuccess({success, teamname}))
   },
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp({})),
 })
 
 export default compose(

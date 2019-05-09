@@ -88,7 +88,7 @@ class RenderRouteNode extends React.PureComponent<RenderRouteNodeProps<any>, any
   _navigateUp = () =>
     RouteTreeGen.createPutActionIfOnPath({
       expectedPath: this.props.path,
-      otherAction: RouteTreeGen.createNavigateUp(),
+      otherAction: RouteTreeGen.createNavigateUp({}),
     })
   _navigateAppend = path =>
     RouteTreeGen.createPutActionIfOnPath({

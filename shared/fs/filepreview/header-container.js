@@ -18,7 +18,7 @@ const mapStateToProps = (state, {path}: OwnProps) => ({
 
 const mapDispatchToProps = dispatch => ({
   loadPathMetadata: (path: Types.Path) => dispatch(FsGen.createLoadPathMetadata({path, refreshTag: 'main'})),
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp({})),
 })
 
 const mergeProps = (stateProps, dispatchProps, {path, routePath}) => ({

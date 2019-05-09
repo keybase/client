@@ -17,7 +17,7 @@ const mapDispatchToProps = dispatch => ({
   onBack: () => {
     flags.useNewRouter
       ? dispatch(RouteTreeGen.createClearModals())
-      : dispatch(RouteTreeGen.createNavigateUp())
+      : dispatch(RouteTreeGen.createNavigateUp({}))
   },
 })
 

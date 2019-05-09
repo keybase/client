@@ -24,13 +24,13 @@ const noErrors = (state: TypedState) =>
 
 // Navigation side effects ///////////////////////////////////////////////////////////
 // When going back we clear all errors so we can fix things and move forward
-const goBackAndClearErrors = () => RouteTreeGen.createNavigateUp()
+const goBackAndClearErrors = () => RouteTreeGen.createNavigateUp({})
 
 const showUserEmailOnNoErrors = (state: TypedState) => {
   if (flags.useNewRouter) {
     return (
       noErrors(state) && [
-        RouteTreeGen.createNavigateUp(),
+        RouteTreeGen.createNavigateUp({}),
         RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupUsernameAndEmail']}),
       ]
     )

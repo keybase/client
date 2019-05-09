@@ -34,7 +34,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   loadTeamList: () =>
     dispatch(TeamsGen.createGetTeamProfileAddList({username: Container.getRouteProps(ownProps, 'username')})),
   onBack: () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    dispatch(RouteTreeGen.createNavigateUp({}))
     dispatch(TeamsGen.createSetTeamProfileAddList({teamlist: I.List([])}))
   },
 })
