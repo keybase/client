@@ -110,7 +110,7 @@ func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keyb
 		}
 	}
 
-	mctx.Debug("After fetching cache, %d emails and %d numbers left to be looked up", len(remainingEmails), len(remainingNumbers))
+	mctx.Debug("After checking cache, %d emails and %d numbers left to be looked up", len(remainingEmails), len(remainingNumbers))
 
 	if len(remainingEmails)+len(remainingNumbers) > 0 {
 		apiRes, err := c.Provider.LookupAll(mctx, remainingEmails, remainingNumbers, userRegion)
