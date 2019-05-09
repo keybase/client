@@ -81,25 +81,31 @@ export type _TlfConflict = {
 export type TlfConflict = I.RecordOf<_TlfConflict>
 
 export type _Tlf = {
-  name: string,
+  conflict: TlfConflict,
   isFavorite: boolean,
   isIgnored: boolean,
   isNew: boolean,
-  conflict: TlfConflict,
-  needsRekey: boolean,
-  resetParticipants: I.List<ResetMember>,
-  teamId: RPCTypes.TeamID,
-  // Following two fields are calculated but not in-use today yet.
-  //
-  // waitingForParticipantUnlock is the list of participants that can unlock
-  // this folder, when this folder needs a rekey.
-  waitingForParticipantUnlock?: I.List<ParticipantUnlock>,
-  // youCanUnlock has a list of devices that can unlock this folder, when this
-  // folder needs a rekey.
-  youCanUnlock?: I.List<Device>,
+  name: string,
+  resetParticipants: I.List<string>, // usernames
   // TODO: when we move favorites stuff into SimpleFS, this should no longer
   // need to be optional.
   syncConfig: ?TlfSyncConfig,
+  teamId: RPCTypes.TeamID,
+  /*
+   * Disabled because SimpleFS API doesn't have problem_set yet. We might never
+   * need these.
+   *
+   * needsRekey: boolean,
+   *
+   * // Following two fields are calculated but not in-use today yet.
+   * //
+   * // waitingForParticipantUnlock is the list of participants that can unlock
+   * // this folder, when this folder needs a rekey.
+   * waitingForParticipantUnlock?: I.List<ParticipantUnlock>,
+   * // youCanUnlock has a list of devices that can unlock this folder, when this
+   * // folder needs a rekey.
+   * youCanUnlock?: I.List<Device>,
+   */
 }
 export type Tlf = I.RecordOf<_Tlf>
 

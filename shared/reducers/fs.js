@@ -132,12 +132,6 @@ const updateTlf = (oldTlf?: ?Types.Tlf, newTlf: Types.Tlf): Types.Tlf => {
   if (!newTlf.resetParticipants.equals(oldTlf.resetParticipants)) {
     return newTlfDontClearSyncConfig
   }
-  if (!I.is(newTlfDontClearSyncConfig.waitingForParticipantUnlock, oldTlf.waitingForParticipantUnlock)) {
-    return newTlfDontClearSyncConfig
-  }
-  if (!I.is(newTlfDontClearSyncConfig.youCanUnlock, oldTlf.youCanUnlock)) {
-    return newTlfDontClearSyncConfig
-  }
   if (
     !I.is(newTlfDontClearSyncConfig.syncConfig, oldTlf.syncConfig) &&
     !haveSamePartialSyncConfig(oldTlf, newTlfDontClearSyncConfig)
@@ -146,11 +140,7 @@ const updateTlf = (oldTlf?: ?Types.Tlf, newTlf: Types.Tlf): Types.Tlf => {
   }
   return oldTlf.merge(
     newTlfDontClearSyncConfig.withMutations(n =>
-      n
-        .set('resetParticipants', oldTlf.resetParticipants)
-        .set('waitingForParticipantUnlock', oldTlf.waitingForParticipantUnlock)
-        .set('youCanUnlock', oldTlf.youCanUnlock)
-        .set('syncConfig', oldTlf.syncConfig)
+      n.set('resetParticipants', oldTlf.resetParticipants).set('syncConfig', oldTlf.syncConfig)
     )
   )
 }

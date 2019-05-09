@@ -188,11 +188,8 @@ describe('fs reducer', () => {
       isIgnored: true,
       isNew: true,
       name: 'foo',
-      needsRekey: true,
       resetParticipants: I.List(),
       teamId: '123',
-      waitingForParticipantUnlock: I.List(),
-      youCanUnlock: I.List(),
     }
     const state0 = Constants.makeState({
       tlfs: Constants.makeTlfs({
