@@ -67,7 +67,7 @@ class ConversationFilterInput extends React.PureComponent<Props> {
           gap={Styles.isMobile ? 'xsmall' : 'tiny'}
           style={Styles.collapseStyles([
             styles.containerFiltering,
-            flags.useNewRouter && !Styles.isMobile && styles.whiteBg,
+            !Styles.isMobile && styles.whiteBg,
             this.props.style,
           ])}
         >
@@ -100,7 +100,7 @@ class ConversationFilterInput extends React.PureComponent<Props> {
           gap="tiny"
           style={Styles.collapseStyles([
             styles.containerNotFiltering,
-            flags.useNewRouter && !Styles.isMobile && styles.whiteBg,
+            !Styles.isMobile && styles.whiteBg,
             this.props.style,
           ])}
           gapStart={true}
@@ -183,15 +183,13 @@ const styles = Styles.styleSheetCreate({
   }),
   containerNotFiltering: Styles.platformStyles({
     common: {
-      height: flags.useNewRouter ? undefined : 48,
+      height: undefined,
       position: 'relative',
     },
-    isElectron: !flags.useNewRouter
-      ? undefined
-      : {
-          ...Styles.padding(0, Styles.globalMargins.xtiny),
-          backgroundColor: Styles.globalColors.blueGrey,
-        },
+    isElectron: {
+      ...Styles.padding(0, Styles.globalMargins.xtiny),
+      backgroundColor: Styles.globalColors.blueGrey,
+    },
     isMobile: {
       ...Styles.padding(0, Styles.globalMargins.tiny),
       backgroundColor: Styles.globalColors.fastBlank,

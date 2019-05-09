@@ -5,12 +5,9 @@ import * as Saga from '../util/saga'
 import * as I from 'immutable'
 import * as Constants from '../constants/people'
 import * as Types from '../constants/types/people'
-import * as RouteTreeGen from './route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
 import {peopleTab} from '../constants/tabs'
-import {getPath} from '../route-tree'
-import flags from '../util/feature-flags'
 
 // set this to true to have all todo items show up all the time
 const debugTodo = false
@@ -143,20 +140,6 @@ const onNavigateTo = (state, action) => {
   }
 }
 
-const onTabChange = (state, action) => {
-  // TODO replace this with notification based refreshing
-  const list = I.List(action.payload.path)
-  const root = list.first()
-  const peoplePath = getPath(state.routeTree.routeState, [peopleTab])
-
-  if (root !== peopleTab && _wasOnPeopleTab && peoplePath.size === 1) {
-    _wasOnPeopleTab = false
-    return Promise.resolve(PeopleGen.createMarkViewed())
-  } else if (root === peopleTab && !_wasOnPeopleTab) {
-    _wasOnPeopleTab = true
-  }
-}
-
 const networkErrors = [
   RPCTypes.constantsStatusCode.scgenericapierror,
   RPCTypes.constantsStatusCode.scapinetworkerror,
@@ -176,11 +159,6 @@ const peopleSaga = function*(): Saga.SagaGenerator<any, any> {
     homeUIRefresh
   )
   yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, connected)
-
-  if (!flags.useNewRouter) {
-    yield* Saga.chainAction<RouteTreeGen.SwitchToPayload>(RouteTreeGen.switchTo, onTabChange)
-    yield* Saga.chainAction<RouteTreeGen.NavigateToPayload>(RouteTreeGen.navigateTo, onNavigateTo)
-  }
 }
 
 export default peopleSaga

@@ -68,7 +68,6 @@ class SelectOtherDevice extends React.Component<Props> {
         gap={isMobile ? undefined : 'medium'}
         gapEnd={true}
       >
-        {!flags.useNewRouter && <BackButton onClick={this.props.onBack} style={styles.backButton} />}
         <Box2 direction="vertical" fullWidth={true} style={styles.contentBox} gap={'medium'}>
           <Text center={true} type={isMobile ? 'BodyBig' : 'Header'}>
             For security reasons, you need to authorize with an existing device. Which of your existing

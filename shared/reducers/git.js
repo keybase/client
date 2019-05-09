@@ -4,7 +4,6 @@ import * as Constants from '../constants/git'
 import * as Types from '../constants/types/git'
 import * as GitGen from '../actions/git-gen'
 import * as Flow from '../util/flow'
-import flags from '../util/feature-flags'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -21,7 +20,7 @@ export default function(state: Types.State = initialState, action: GitGen.Action
     case GitGen.badgeAppForGit:
       const newSet = I.Set(action.payload.ids)
       // We show our badges until we clear with the clearBadges call. If there are no badges we likely cleared it from the nav ourselves
-      if (flags.useNewRouter && newSet.isEmpty()) {
+      if (newSet.isEmpty()) {
         return state
       }
       return state.merge({isNew: newSet})

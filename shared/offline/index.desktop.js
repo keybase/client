@@ -53,7 +53,7 @@ const overlayRowStyle = {
 const containerOverlayStyle = {
   ...globalStyles.flexBoxColumn,
   bottom: 0,
-  left: flags.useNewRouter ? 0 : 80,
+  left: 0,
   position: 'absolute',
   right: 0,
   top: 0,

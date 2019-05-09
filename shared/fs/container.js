@@ -14,7 +14,6 @@ import KbfsDaemonNotRunning from './common/kbfs-daemon-not-running'
 import LoadPathMetadataWhenNeeded from './common/load-path-metadata-when-needed'
 import Oops from './oops'
 import {Actions, MainBanner, MobileHeader, mobileHeaderHeight, Title} from './nav-header'
-import flags from '../util/feature-flags'
 
 const mapStateToProps = (state, ownProps) => {
   const path = getRouteProps(ownProps, 'path') || Constants.defaultPath
@@ -26,25 +25,14 @@ const mapStateToProps = (state, ownProps) => {
 }
 
 const mapDispatchToProps = (dispatch, {routePath}) => ({
-  _emitBarePreview: flags.useNewRouter
-    ? (path: Types.Path) => {
-        dispatch(RouteTreeGen.createNavigateUp())
-        dispatch(
-          RouteTreeGen.createNavigateAppend({
-            path: [{props: {path}, selected: 'barePreview'}],
-          })
-        )
-      }
-    : (path: Types.Path) =>
-        dispatch(
-          RouteTreeGen.createPutActionIfOnPath({
-            expectedPath: routePath,
-            otherAction: RouteTreeGen.createNavigateTo({
-              parentPath: routePath.skipLast(1),
-              path: [{props: {path}, selected: 'barePreview'}],
-            }),
-          })
-        ),
+  _emitBarePreview: (path: Types.Path) => {
+    dispatch(RouteTreeGen.createNavigateUp())
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {path}, selected: 'barePreview'}],
+      })
+    )
+  },
   waitForKbfsDaemon: () => dispatch(FsGen.createWaitForKbfsDaemon()),
 })
 

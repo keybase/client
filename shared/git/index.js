@@ -48,7 +48,7 @@ class _Git extends React.Component<Props & Kb.OverlayParentProps, {}> {
   render() {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-        {(!flags.useNewRouter || Styles.isMobile) && (
+        {Styles.isMobile && (
           <Kb.ClickableBox
             ref={this.props.setAttachmentRef}
             style={styles.header}

@@ -8,8 +8,6 @@ import * as I from 'immutable'
 import * as Kb from '../common-adapters'
 import {compose, isMobile, namedConnect, safeSubmitPerMount} from '../util/container'
 import {partition} from 'lodash-es'
-import flags from '../util/feature-flags'
-import type {RouteProps} from '../route-tree/render-route'
 import {HeaderTitle, HeaderRightActions} from './nav-header/container'
 
 const mapStateToProps = state => ({
@@ -22,12 +20,8 @@ const mapDispatchToProps = (dispatch, {navigateAppend, navigation}) => ({
   clearBadges: () => dispatch(DevicesGen.createClearBadges()),
   loadDevices: () => dispatch(DevicesGen.createLoad()),
   onAddDevice: (highlight?: Array<'computer' | 'phone' | 'paper key'>) => {
-    if (flags.useNewRouter) {
-      // We don't have navigateAppend in upgraded routes
-      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {highlight}, selected: 'deviceAdd'}]}))
-    } else {
-      dispatch(navigateAppend([{props: {highlight}, selected: 'deviceAdd'}]))
-    }
+    // We don't have navigateAppend in upgraded routes
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {highlight}, selected: 'deviceAdd'}]}))
   },
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
@@ -48,7 +42,7 @@ const splitAndSortDevices = deviceMap =>
     d => d.revokedAt
   )
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = {||}
 
 function mergeProps(stateProps, dispatchProps, ownProps: OwnProps) {
   const [revoked, normal] = splitAndSortDevices(stateProps._deviceMap)

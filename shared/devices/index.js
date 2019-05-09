@@ -76,7 +76,7 @@ class Devices extends React.PureComponent<Props, State> {
 
     return (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
-        {(!flags.useNewRouter || Styles.isMobile) && (
+        {Styles.isMobile && (
           <DeviceHeader onAddNew={() => this.props.onAddDevice()} waiting={this.props.waiting} />
         )}
         {this.props.showPaperKeyNudge && (

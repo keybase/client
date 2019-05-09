@@ -23,10 +23,9 @@ type Props = {
   routeDef: RouteDefNode,
   routeState: RouteStateNode,
   setRouteState: (path: Path, partialState: {}) => void,
-  useNewRouter: boolean,
 }
 
-// TODO move all this badge handling to menubar side
+// TODO likely remove this class
 class Main extends React.PureComponent<Props> {
   _updateBadges = () => {
     SafeElectron.getIpcRenderer().send('showTray', this.props.widgetBadge, this.props.desktopAppBadgeCount)
@@ -55,22 +54,12 @@ class Main extends React.PureComponent<Props> {
   }
 
   render() {
-    return (
-      <RouterSwitcheroo
-        useNewRouter={this.props.useNewRouter}
-        oldRouteDef={this.props.routeDef}
-        oldRouteState={this.props.routeState}
-        oldSetRouteState={this.props.setRouteState}
-      />
-    )
+    return <RouterSwitcheroo />
   }
 }
 
 const mapStateToProps = state => ({
   desktopAppBadgeCount: state.notifications.get('desktopAppBadgeCount'),
-  routeDef: state.routeTree.routeDef,
-  routeState: state.routeTree.routeState,
-  useNewRouter: state.config.useNewRouter,
   username: state.config.username,
   widgetBadge: state.notifications.get('widgetBadge') || false,
 })

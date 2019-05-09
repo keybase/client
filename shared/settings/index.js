@@ -10,7 +10,6 @@ import {compose} from 'recompose'
 import {connect, lifecycle} from '../util/container'
 import {requestIdleCallback} from '../util/idle-callback'
 import {type RouteProps} from '../route-tree/render-route'
-import flags from '../util/feature-flags'
 
 type OwnProps = {|children: React.Node, ...$Exact<RouteProps<{}, {}>>|}
 
@@ -28,7 +27,7 @@ const mapDispatchToProps = (dispatch, {routePath}: OwnProps) => ({
   _loadHasRandomPW: () => dispatch(SettingsGen.createLoadHasRandomPw()),
   onLogout: () => dispatch(ConfigGen.createLogout()),
   onTabChange: (tab: Types.Tab, walletsAcceptedDisclaimer: boolean) => {
-    if (flags.useNewRouter && tab === Constants.walletsTab && !walletsAcceptedDisclaimer) {
+    if (tab === Constants.walletsTab && !walletsAcceptedDisclaimer) {
       dispatch(RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']}))
       return
     }

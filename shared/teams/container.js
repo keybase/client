@@ -53,12 +53,7 @@ const mapDispatchToProps = (dispatch, {routePath}) => ({
       RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
     ),
   onOpenFolder: (teamname: Teamname) =>
-    dispatch(
-      FsConstants.makeActionForOpenPathInFilesTab(
-        FsTypes.stringToPath(`/keybase/team/${teamname}`),
-        flags.useNewRouter ? undefined : routePath
-      )
-    ),
+    dispatch(FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`))),
   onReadMore: () => {
     openURL('https://keybase.io/blog/introducing-keybase-teams')
   },

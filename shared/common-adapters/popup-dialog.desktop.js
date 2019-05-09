@@ -95,7 +95,7 @@ const styles = Styles.styleSheetCreate({
     paddingBottom: Styles.globalMargins.small,
     paddingLeft: Styles.globalMargins.large,
     paddingRight: Styles.globalMargins.large,
-    paddingTop: flags.useNewRouter ? Styles.globalMargins.large : Styles.globalMargins.small,
+    paddingTop: Styles.globalMargins.large ,
   },
 })
 

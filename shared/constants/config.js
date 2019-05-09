@@ -117,7 +117,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   startupTab: null,
   startupWasFromPush: false,
   uid: '',
-  useNewRouter: flags.useNewRouter,
   userActive: true,
   username: '',
 })

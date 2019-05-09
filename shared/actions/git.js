@@ -13,7 +13,6 @@ import * as Tabs from '../constants/tabs'
 import {isMobile} from '../constants/platform'
 import type {TypedState} from '../util/container'
 import {logError} from '../util/errors'
-import flags from '../util/feature-flags'
 
 const load = (state: TypedState) =>
   state.config.loggedIn &&
@@ -143,8 +142,6 @@ function* navigateToTeamRepo(state, action) {
 const receivedBadgeState = (_, action) =>
   GitGen.createBadgeAppForGit({ids: action.payload.badgeState.newGitRepoGlobalUniqueIDs || []})
 
-const navBack = () => GitGen.createNavToGit({routeState: null, switchTab: false})
-
 function* gitSaga(): Saga.SagaGenerator<any, any> {
   // Create / Delete
   yield* Saga.chainAction<GitGen.CreatePersonalRepoPayload>(GitGen.createPersonalRepo, createPersonalRepo)
@@ -155,15 +152,6 @@ function* gitSaga(): Saga.SagaGenerator<any, any> {
     [GitGen.repoCreated, GitGen.repoDeleted, GitGen.loadGit],
     load
   )
-
-  // Nav*
-  if (!flags.useNewRouter) {
-    yield* Saga.chainAction<GitGen.NavToGitPayload>(GitGen.navToGit, navToGit)
-    yield* Saga.chainAction<GitGen.RepoCreatedPayload | GitGen.RepoDeletedPayload>(
-      [GitGen.repoCreated, GitGen.repoDeleted],
-      navBack
-    )
-  }
 
   // Loading
   yield* Saga.chainAction<GitGen.LoadedPayload>(GitGen.loaded, surfaceGlobalErrors)
@@ -178,12 +166,8 @@ function* gitSaga(): Saga.SagaGenerator<any, any> {
     receivedBadgeState
   )
 
-  if (flags.useNewRouter) {
-    // clear on load
-    yield* Saga.chainAction<GitGen.LoadGitPayload>(GitGen.loadGit, clearNavBadges)
-  } else {
-    yield* Saga.chainAction<RouteTreeGen.SwitchToPayload>(RouteTreeGen.switchTo, clearBadgesAfterNav)
-  }
+  // clear on load
+  yield* Saga.chainAction<GitGen.LoadGitPayload>(GitGen.loadGit, clearNavBadges)
 
   // Gregor
   yield* Saga.chainAction<GregorGen.PushOOBMPayload>(GregorGen.pushOOBM, handleIncomingGregor)

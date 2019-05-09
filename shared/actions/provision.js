@@ -10,13 +10,10 @@ import * as Router2Constants from '../constants/router2'
 import logger from '../logger'
 import {isMobile} from '../constants/platform'
 import HiddenString from '../util/hidden-string'
-import flags from '../util/feature-flags'
 import {type TypedState} from '../constants/reducer'
 import {devicesTab as settingsDevicesTab} from '../constants/settings'
 
-const devicesRoot = isMobile
-  ? [Tabs.settingsTab, settingsDevicesTab]
-  : [Tabs.devicesTab, ...(flags.useNewRouter ? ['devicesRoot'] : [])]
+const devicesRoot = isMobile ? [Tabs.settingsTab, settingsDevicesTab] : [Tabs.devicesTab, 'devicesRoot']
 
 type ValidCallback =
   | 'keybase.1.gpgUi.selectKey'
@@ -357,11 +354,9 @@ class ProvisioningManager {
     let root = state.routeTree.routeState && state.routeTree.routeState.selected
     let onDevicesTab = root === devicesRoot[0]
     let onLoginTab = root === Tabs.loginTab
-    if (flags.useNewRouter) {
-      const path = Router2Constants.getFullRoute().map(p => p.routeName)
-      onDevicesTab = path.includes(devicesRoot[0])
-      onLoginTab = path.includes('login')
-    }
+    const path = Router2Constants.getFullRoute().map(p => p.routeName)
+    onDevicesTab = path.includes(devicesRoot[0])
+    onLoginTab = path.includes('login')
 
     const doingDeviceAdd = this._addingANewDevice && onDevicesTab
     const doingProvision = !this._addingANewDevice && onLoginTab
@@ -380,7 +375,7 @@ class ProvisioningManager {
         response &&
           RouteTreeGen.createNavigateTo({
             parentPath: [],
-            path: doingDeviceAdd ? devicesRoot : [flags.useNewRouter ? 'login' : Tabs.loginTab],
+            path: doingDeviceAdd ? devicesRoot : ['login'],
           }),
       ]
     }
@@ -446,14 +441,8 @@ function* addNewDevice(state) {
     ProvisioningManager.getSingleton().done('add device success')
     // Now refresh and nav back
     yield Saga.put(DevicesGen.createLoad())
-    if (flags.useNewRouter) {
-      yield Saga.put(RouteTreeGen.createNavigateTo({parentPath: [], path: devicesRoot}))
-    } else {
-      yield Saga.put(RouteTreeGen.createNavigateTo({parentPath: devicesRoot, path: []}))
-    }
-    if (flags.useNewRouter) {
-      yield Saga.put(RouteTreeGen.createClearModals())
-    }
+    yield Saga.put(RouteTreeGen.createNavigateTo({parentPath: [], path: devicesRoot}))
+    yield Saga.put(RouteTreeGen.createClearModals())
   } catch (finalError) {
     ProvisioningManager.getSingleton().done(finalError.message)
 
@@ -501,9 +490,7 @@ const showPaperkeyPage = state =>
   RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['paperkey'], replace: true})
 
 const showFinalErrorPage = (state, action) => {
-  const parentPath = action.payload.fromDeviceAdd
-    ? devicesRoot
-    : [flags.useNewRouter ? 'login' : Tabs.loginTab]
+  const parentPath = action.payload.fromDeviceAdd ? devicesRoot : ['login']
   let path
   if (state.provision.finalError && !Constants.errorCausedByUsCanceling(state.provision.finalError)) {
     path = ['error']
@@ -511,9 +498,7 @@ const showFinalErrorPage = (state, action) => {
     path = []
   }
 
-  return RouteTreeGen.createNavigateTo(
-    !flags.useNewRouter ? {parentPath, path, replace: true} : {path: [...parentPath, ...path], replace: true}
-  )
+  return RouteTreeGen.createNavigateTo({path: [...parentPath, ...path], replace: true})
 }
 
 const showUsernameEmailPage = () =>
