@@ -12,6 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mvdan/xurls"
+
 	emoji "gopkg.in/kyokomi/emoji.v1"
 
 	"github.com/keybase/client/go/chat/pager"
@@ -1417,6 +1419,8 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msg chat1
 	body = EscapeForDecorate(ctx, body)
 	body = EscapeShrugs(ctx, body)
 
+	// Links
+	body = DecorateWithLinks(ctx, body)
 	// Payment decorations
 	body = g.StellarSender.DecorateWithPayments(ctx, body, payments)
 	// Mentions
@@ -2068,6 +2072,21 @@ func DecorateBody(ctx context.Context, body string, offset, length int, decorati
 	added = len(strDecoration) - length
 	res = fmt.Sprintf("%s%s%s", body[:offset], strDecoration, body[offset+length:])
 	return res, added
+}
+
+var linkRegexp = xurls.Relaxed()
+
+func DecorateWithLinks(ctx context.Context, body string) string {
+	allMatches := linkRegexp.FindAllStringSubmatchIndex(body, -1)
+	var added int
+	offset := 0
+	origBody := body
+	for _, match := range allMatches {
+		body, added = DecorateBody(ctx, body, match[0]+offset, match[1]-match[0],
+			chat1.NewUITextDecorationWithLink(origBody[match[0]:match[1]]))
+		offset += added
+	}
+	return body
 }
 
 func DecorateWithMentions(ctx context.Context, body string, atMentions []string,
