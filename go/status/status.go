@@ -43,7 +43,7 @@ func GetExtendedStatus(mctx libkb.MetaContext) (res keybase1.ExtendedStatus, err
 
 	res.Standalone = g.Env.GetStandalone()
 	res.LogDir = g.Env.GetLogDir()
-	res.Clients = GetClientStatus(mctx)
+	res.Clients = libkb.GetClientStatus(mctx)
 
 	if err = g.GetFullSelfer().WithSelf(mctx.Ctx(), func(me *libkb.User) error {
 		ckf := me.GetComputedKeyFamily()
