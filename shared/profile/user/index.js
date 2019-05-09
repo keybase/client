@@ -105,10 +105,9 @@ const Proofs = p => {
   if (p.notAUser) {
     const [name, service] = p.username.split('@')
     proveIt = (
-      <Kb.Text
-        type="BodySmall"
-        style={styles.proveIt}
-      >{`Tell ${name} to join Keybase and prove their ${service}.`}</Kb.Text>
+      <Kb.Text type="BodySmall" style={styles.proveIt}>
+        Tell {name} to join Keybase and prove their {service}.
+      </Kb.Text>
     )
   }
 

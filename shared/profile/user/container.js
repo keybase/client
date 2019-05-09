@@ -20,6 +20,8 @@ type OwnProps = RouteProps<{username: string}, {}>
 const headerBackgroundColorType = (state, followThem) => {
   if (['broken', 'error'].includes(state)) {
     return 'red'
+  } else if (state === 'notAUserYet') {
+    return 'blue'
   } else {
     return followThem ? 'green' : 'blue'
   }
@@ -41,7 +43,7 @@ const mapStateToProps = (state, ownProps) => {
   return {
     _assertions: d.assertions,
     _suggestionKeys: userIsYou ? state.tracker2.proofSuggestions : null,
-    backgroundColorType: notAUser ? 'blue' : headerBackgroundColorType(d.state, followThem),
+    backgroundColorType: headerBackgroundColorType(d.state, followThem),
     followThem,
     followers: state.tracker2.usernameToDetails.getIn([username, 'followers']),
     followersCount,
