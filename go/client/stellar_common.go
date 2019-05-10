@@ -7,7 +7,6 @@ import (
 
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/terminalescaper"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	isatty "github.com/mattn/go-isatty"
 	"golang.org/x/net/context"
 
@@ -148,53 +147,4 @@ func transformStellarCLIError(err *error) {
 			})
 		}
 	}
-}
-
-// runPathPayment called by cmd_wallet_send_path_payment and cmd_wallet_handle_uri.
-func runPathPayment(g *libkb.GlobalContext, findArg stellar1.FindPaymentPathLocalArg, note, publicMemo string) (err error) {
-	defer transformStellarCLIError(&err)
-
-	cli, err := GetWalletClient(g)
-	if err != nil {
-		return err
-	}
-
-	protocols := []rpc.Protocol{
-		NewIdentifyUIProtocol(g),
-	}
-	if err := RegisterProtocolsWithContext(protocols, g); err != nil {
-		return err
-	}
-
-	ui := g.UI.GetTerminalUI()
-
-	ui.Printf(ColorString(g, "yellow", "Searching for payment path for %s to %s...\n", findArg.SourceAsset, findArg.DestinationAsset))
-	path, err := cli.FindPaymentPathLocal(context.Background(), findArg)
-	if err != nil {
-		return err
-	}
-
-	// TODO: when SourceDisplay, SourceMaxDisplay, DestinationDisplay filled in, use those
-	ui.Printf("Sending approximately %s of %s (at most %s)\n", path.FullPath.SourceAmount, path.FullPath.SourceAsset, path.FullPath.SourceAmountMax)
-	ui.Printf("User %s will receive %s of %s\n\n", findArg.To, path.FullPath.DestinationAmount, path.FullPath.DestinationAsset)
-
-	if err := ui.PromptForConfirmation("Proceed?"); err != nil {
-		return err
-	}
-
-	ui.Printf(ColorString(g, "yellow", "Submitting transaction to the Stellar network..."))
-	sendArg := stellar1.SendPathCLILocalArg{
-		Source:     findArg.From,
-		Recipient:  findArg.To,
-		Path:       path.FullPath,
-		Note:       note,
-		PublicNote: publicMemo,
-	}
-	res, err := cli.SendPathCLILocal(context.Background(), sendArg)
-	if err != nil {
-		return err
-	}
-
-	ui.Printf("Sent!\nKeybase Transaction ID: %v\nStellar Transaction ID: %v\n", res.KbTxID, res.TxID)
-	return nil
 }
