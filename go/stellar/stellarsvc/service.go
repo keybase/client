@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"net/url"
 	"sort"
 
 	"github.com/keybase/client/go/libkb"
@@ -719,7 +720,9 @@ func (s *Server) ApproveTxURILocal(ctx context.Context, arg stellar1.ApproveTxUR
 			return "", err
 		}
 	} else {
-
+		if err := postXDRToCallback(sig.Signed, vp.CallbackURL); err != nil {
+			return "", err
+		}
 	}
 
 	return stellar1.TransactionID(sig.TxHash), nil
@@ -761,6 +764,25 @@ func (s *Server) ApprovePathURILocal(ctx context.Context, arg stellar1.ApprovePa
 	}
 	_ = vp
 	return errors.New("nyi")
+}
+
+func postXDRToCallback(signed, callbackURL string) error {
+	u, err := url.Parse(callbackURL)
+	if err != nil {
+		return err
+	}
+
+	// take any values that are in the URL
+	values := u.Query()
+	// remove the RawQuery so we can POST them all as a form
+	u.RawQuery = ""
+
+	// put the signed tx in the values
+	values.Set("xdr", signed)
+
+	// POST it
+	_, err = http.PostForm(callbackURL, values)
+	return err
 }
 
 func percentageAmountChange(a, b int64) float64 {
