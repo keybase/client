@@ -41,7 +41,7 @@ const Root = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate({
-  backgroundColorBlue5: {backgroundColor: Styles.globalColors.blue5},
+  backgroundColorBlue5: {backgroundColor: Styles.globalColors.blueLighter3},
   backgroundColorPurple: {backgroundColor: Styles.globalColors.purple},
   container: Styles.platformStyles({
     isElectron: {

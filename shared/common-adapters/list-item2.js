@@ -33,7 +33,7 @@ const HoverBox = Styles.isMobile
         opacity: 0,
       },
       ':hover': {
-        backgroundColor: Styles.globalColors.blue4,
+        backgroundColor: Styles.globalColors.blueLighter2,
       },
       ':hover .hidden-no-hover': {
         opacity: 1,

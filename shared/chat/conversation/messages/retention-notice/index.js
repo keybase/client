@@ -30,7 +30,7 @@ export default (props: Props) => {
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
-  backgroundColor: globalColors.blue5,
+  backgroundColor: globalColors.blueLighter3,
   paddingBottom: globalMargins.small,
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,

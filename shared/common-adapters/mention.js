@@ -38,7 +38,7 @@ const styles = Styles.styleSheetCreate({
     borderRadius: 2,
   },
   nonFollow: {
-    backgroundColor: Styles.globalColors.blue4,
+    backgroundColor: Styles.globalColors.blueLighter2,
     borderRadius: 2,
     color: Styles.globalColors.blue,
   },

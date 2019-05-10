@@ -30,7 +30,7 @@ class ChoiceList extends Component<Props, State> {
           return (
             <ClickableBox
               key={idx}
-              underlayColor={globalColors.blue4}
+              underlayColor={globalColors.blueLighter2}
               onClick={op.onClick}
               onPressIn={() => this.setState({activeIndex: idx})}
               onPressOut={() => this.setState({activeIndex: null})}

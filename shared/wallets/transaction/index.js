@@ -401,7 +401,7 @@ export const Transaction = (props: Props) => {
       throw new Error(`Unexpected counterpartyType ${props.counterpartyType}`)
   }
   const pending = !props.timestamp || ['pending', 'claimable'].includes(props.status)
-  const backgroundColor = props.unread && !props.detailView ? globalColors.blue4 : globalColors.white
+  const backgroundColor = props.unread && !props.detailView ? globalColors.blueLighter2 : globalColors.white
   return (
     <Box2 direction="vertical" fullWidth={true} style={{backgroundColor}}>
       <ClickableBox onClick={props.onSelectTransaction}>

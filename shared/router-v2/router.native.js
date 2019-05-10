@@ -64,7 +64,7 @@ const TabBarIcon = ({badgeNumber, focused, routeName}) => (
       type={icons[routeName]}
       fontSize={32}
       style={tabStyles.tab}
-      color={focused ? Styles.globalColors.white : Styles.globalColors.darkBlue4}
+      color={focused ? Styles.globalColors.white : Styles.globalColors.blueDarker}
     />
     {!!badgeNumber && <Kb.Badge badgeNumber={badgeNumber} badgeStyle={tabStyles.badge} />}
   </Kb.NativeView>
@@ -121,12 +121,12 @@ const TabNavigator = createBottomTabNavigator(
     }),
     order: tabs,
     tabBarOptions: {
-      activeBackgroundColor: Styles.globalColors.darkBlue2,
-      inactiveBackgroundColor: Styles.globalColors.darkBlue2,
+      activeBackgroundColor: Styles.globalColors.blueDark,
+      inactiveBackgroundColor: Styles.globalColors.blueDark,
       // else keyboard avoiding is racy on ios and won't work correctly
       keyboardHidesTabBar: Styles.isAndroid,
       showLabel: false,
-      style: {backgroundColor: Styles.globalColors.darkBlue2},
+      style: {backgroundColor: Styles.globalColors.blueDark},
     },
   }
 )

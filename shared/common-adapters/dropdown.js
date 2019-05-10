@@ -192,7 +192,7 @@ const ItemBox = Styles.styled(Box)({
     ? {}
     : {
         ':hover': {
-          backgroundColor: Styles.globalColors.blue4,
+          backgroundColor: Styles.globalColors.blueLighter2,
         },
       }),
   borderBottomWidth: 1,

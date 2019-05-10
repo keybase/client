@@ -282,7 +282,7 @@ const metaData: {[key: TextType]: MetaType} = {
   Terminal: {
     colorForBackground: {
       negative: globalColors.darkBlue,
-      positive: globalColors.blue3,
+      positive: globalColors.blueLighter,
     },
     fontSize: 15,
     styleOverride: {
@@ -292,8 +292,8 @@ const metaData: {[key: TextType]: MetaType} = {
   },
   TerminalComment: {
     colorForBackground: {
-      negative: globalColors.blue3_40,
-      positive: globalColors.blue3_40,
+      negative: globalColors.blueLighter_40,
+      positive: globalColors.blueLighter_40,
     },
     fontSize: 15,
     styleOverride: {
@@ -303,8 +303,8 @@ const metaData: {[key: TextType]: MetaType} = {
   },
   TerminalEmpty: {
     colorForBackground: {
-      negative: globalColors.blue3_40,
-      positive: globalColors.blue3_40,
+      negative: globalColors.blueLighter_40,
+      positive: globalColors.blueLighter_40,
     },
     fontSize: 15,
     styleOverride: {
@@ -321,7 +321,7 @@ const metaData: {[key: TextType]: MetaType} = {
     fontSize: 15,
     styleOverride: {
       ...globalStyles.fontTerminal,
-      backgroundColor: globalColors.blue4,
+      backgroundColor: globalColors.blueLighter2,
       borderRadius: 2,
       height: 20,
       lineHeight: 20,

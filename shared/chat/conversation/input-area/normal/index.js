@@ -76,7 +76,7 @@ const emojiRenderer = (item, selected: boolean) => (
     style={Styles.collapseStyles([
       styles.suggestionBase,
       {
-        backgroundColor: selected ? Styles.globalColors.blue4 : Styles.globalColors.white,
+        backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white,
       },
     ])}
     gap="small"
@@ -292,7 +292,7 @@ class Input extends React.Component<InputProps, InputState> {
         styles.suggestionBase,
         styles.fixSuggestionHeight,
         {
-          backgroundColor: selected ? Styles.globalColors.blue4 : Styles.globalColors.white,
+          backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white,
         },
       ])}
       gap="tiny"
@@ -316,7 +316,7 @@ class Input extends React.Component<InputProps, InputState> {
           styles.suggestionBase,
           styles.fixSuggestionHeight,
           {
-            backgroundColor: selected ? Styles.globalColors.blue4 : Styles.globalColors.white,
+            backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white,
           },
         ])}
         gap="tiny"
@@ -365,7 +365,7 @@ class Input extends React.Component<InputProps, InputState> {
         styles.suggestionBase,
         styles.fixSuggestionHeight,
         {
-          backgroundColor: selected ? Styles.globalColors.blue4 : Styles.globalColors.white,
+          backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white,
         },
       ])}
     >
@@ -385,7 +385,7 @@ class Input extends React.Component<InputProps, InputState> {
         styles.fixSuggestionHeight,
         {
           alignItems: 'flex-start',
-          backgroundColor: selected ? Styles.globalColors.blue4 : Styles.globalColors.white,
+          backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white,
         },
       ])}
     >

@@ -33,7 +33,7 @@ const styles = Styles.styleSheetCreate({
 const webviewCSS = Styles.isMobile
   ? `
 html{
-  background-color: ${Styles.globalColors.blue5};
+  background-color: ${Styles.globalColors.blueLighter3};
   padding-top: ${Styles.globalMargins.mediumLarge};
   padding-bottom: ${Styles.globalMargins.mediumLarge}; 
   margin: 0;
@@ -52,7 +52,7 @@ pre{
 `
   : `
 html{
-  background-color: ${Styles.globalColors.blue5};
+  background-color: ${Styles.globalColors.blueLighter3};
   padding: ${Styles.globalMargins.medium}; 
   margin: 0;
 }

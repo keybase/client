@@ -87,7 +87,7 @@ class MenubarRender extends React.Component<Props, State> {
           ])}
         >
           <Kb.Icon
-            color={Styles.globalColors.darkBlue4}
+            color={Styles.globalColors.blueDarker}
             hoverColor={Styles.globalColors.white}
             type="iconfont-nav-2-hamburger"
             sizeType="Big"
@@ -146,7 +146,7 @@ class MenubarRender extends React.Component<Props, State> {
           ])}
         >
           <Kb.Icon
-            color={Styles.globalColors.darkBlue4}
+            color={Styles.globalColors.blueDarker}
             hoverColor={Styles.globalColors.white}
             type="iconfont-nav-2-hamburger"
             sizeType="Big"
@@ -293,7 +293,7 @@ class MenubarRender extends React.Component<Props, State> {
             ])}
           >
             <Kb.Icon
-              color={Styles.globalColors.darkBlue4}
+              color={Styles.globalColors.blueDarker}
               hoverColor={Styles.globalColors.white}
               onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
               type="iconfont-nav-2-hamburger"
@@ -368,7 +368,7 @@ const BadgeIcon = ({tab, countMap, openApp}) => {
   return (
     <Kb.Box style={{...Styles.desktopStyles.clickable, position: 'relative'}}>
       <Kb.Icon
-        color={Styles.globalColors.darkBlue4}
+        color={Styles.globalColors.blueDarker}
         hoverColor={Styles.globalColors.white}
         onClick={() => openApp(tab)}
         sizeType="Big"
@@ -382,7 +382,7 @@ const BadgeIcon = ({tab, countMap, openApp}) => {
 
 const styles = Styles.styleSheetCreate({
   arrowTick: {
-    borderBottomColor: Styles.globalColors.darkBlue2,
+    borderBottomColor: Styles.globalColors.blueDark,
     borderBottomWidth: 6,
     borderLeftColor: 'transparent',
     borderLeftWidth: 6,
@@ -417,7 +417,7 @@ const styles = Styles.styleSheetCreate({
   topRow: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    backgroundColor: Styles.globalColors.darkBlue2,
+    backgroundColor: Styles.globalColors.blueDark,
     borderTopLeftRadius: Styles.globalMargins.xtiny,
     borderTopRightRadius: Styles.globalMargins.xtiny,
     flex: 1,

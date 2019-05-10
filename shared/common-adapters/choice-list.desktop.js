@@ -38,7 +38,7 @@ const rawCSS = `
     background-color: transparent;
   }
   .cl-entry:hover {
-    background-color: ${globalColors.blue4};
+    background-color: ${globalColors.blueLighter2};
   }
 
   .cl-icon {

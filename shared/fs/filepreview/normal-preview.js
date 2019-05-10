@@ -58,7 +58,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   greyContainer: {
-    backgroundColor: Styles.globalColors.blue5,
+    backgroundColor: Styles.globalColors.blueLighter3,
     flex: 1,
     flexShrink: 1,
   },

@@ -308,7 +308,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             ...props,
             onLongPress: this.props.toggleShowingMenu,
             onPress: this._dismissKeyboard,
-            underlayColor: Styles.globalColors.blue5,
+            underlayColor: Styles.globalColors.blueLighter3,
           }
         : props
     } else {

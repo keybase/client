@@ -95,7 +95,7 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     isElectron: {
-      backgroundColor: Styles.globalColors.blue5,
+      backgroundColor: Styles.globalColors.blueLighter3,
       height: Styles.globalMargins.medium,
     },
   }),

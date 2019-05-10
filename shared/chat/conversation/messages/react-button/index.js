@@ -47,7 +47,7 @@ const ButtonBox = Styles.styled(ClickableBox)(props =>
     ? {borderColor: Styles.globalColors.black_10}
     : {
         ...(props.border
-          ? {':hover': {backgroundColor: Styles.globalColors.blue4, borderColor: Styles.globalColors.blue}}
+          ? {':hover': {backgroundColor: Styles.globalColors.blueLighter2, borderColor: Styles.globalColors.blue}}
           : {}),
         '& .centered': {animation: `${bounceIn} 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards`},
         '& .offscreen': {animation: `${bounceOut} 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards`},
@@ -228,7 +228,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
 
 const styles = Styles.styleSheetCreate({
   active: {
-    backgroundColor: Styles.globalColors.blue4,
+    backgroundColor: Styles.globalColors.blueLighter2,
     borderColor: Styles.globalColors.blue,
   },
   borderBase: {
