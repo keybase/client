@@ -3,7 +3,6 @@
 import {isIOS} from '../constants/platform'
 
 const colors = {
-  beige: '#FAF2ED',
   black: 'rgba(0, 0, 0, 0.85)',
   black_05: 'rgba(0, 0, 0, 0.05)',
   black_05_on_white: 'rgb(242,242,242)',
@@ -70,6 +69,10 @@ const colors = {
   red_20: 'rgba(255,0,0,0.2)',
   red_75: 'rgba(255,0,0,0.75)',
   red_75_on_white: 'rgb(255,64,64)',
+  redLight: '#FFCAC1',
+  redDark: '#D72236',
+  redDarker: '#A5090E',
+  redLighter: '#FAF2ED',
   transparent: 'rgba(0, 0, 0, 0)',
   transparent_on_white: '#ffffff',
   white: '#ffffff',
