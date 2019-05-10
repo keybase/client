@@ -317,11 +317,12 @@ func (f *Favorites) sendChangesToEditHistory(oldCache map[favorites.Folder]favor
 
 func favoriteToFolder(fav favorites.Folder, data favorites.Data) keybase1.Folder {
 	return keybase1.Folder{
-		Name:       fav.Name,
-		Private:    data.Private,
-		Created:    false,
-		FolderType: data.FolderType,
-		TeamID:     data.TeamID,
+		Name:         fav.Name,
+		Private:      data.Private,
+		Created:      false,
+		FolderType:   data.FolderType,
+		TeamID:       data.TeamID,
+		ResetMembers: data.ResetMembers,
 	}
 }
 

@@ -84,10 +84,11 @@ type Data struct {
 // keybase1 protocol.
 func DataFrom(folder keybase1.Folder) Data {
 	return Data{
-		Name:       folder.Name,
-		FolderType: folder.FolderType,
-		Private:    folder.Private,
-		TeamID:     folder.TeamID,
+		Name:         folder.Name,
+		FolderType:   folder.FolderType,
+		Private:      folder.Private,
+		TeamID:       folder.TeamID,
+		ResetMembers: folder.ResetMembers,
 	}
 }
 
