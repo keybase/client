@@ -12,14 +12,8 @@ type HeaderProps = {|
 |}
 
 const Header = (props: HeaderProps) => (
-  <Kb.Box2 noShrink={true} direction="horizontal" fullWidth={true} style={styles.header}>
-    <Kb.Box2
-      noShrink={true}
-      direction="vertical"
-      fullWidth={true}
-      centerChildren={true}
-      style={styles.headerContent}
-    >
+  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
+    <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.headerContent}>
       <Kb.Icon
         type={
           Styles.isMobile
@@ -56,6 +50,7 @@ const styles = Styles.styleSheetCreate({
     isMobile: {
       flexBasis: 'auto',
       flexGrow: 1,
+      flexShrink: 1,
       minHeight: 250,
     },
   }),
