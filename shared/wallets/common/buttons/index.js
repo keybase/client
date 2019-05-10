@@ -48,7 +48,7 @@ const _SendButton = (props: Kb.PropsWithOverlay<SendProps>) => {
     </>
   )
   return props.thisDeviceIsLockedOut ? (
-    <Kb.WithTooltip text="You can only send from a mobile device less than 7 days old.">
+    <Kb.WithTooltip text="You can only send from a mobile device more than 7 days old.">
       {button}
     </Kb.WithTooltip>
   ) : (

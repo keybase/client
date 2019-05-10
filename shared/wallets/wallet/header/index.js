@@ -87,7 +87,7 @@ const Header = (props: Props) => {
         <DropdownButton />
       </Kb.Box2>
       {props.thisDeviceIsLockedOut && Styles.isMobile && (
-        <Kb.Text type="BodySmall">You can only send from a mobile device less than 7 days old.</Kb.Text>
+        <Kb.Text type="BodySmall">You can only send from a mobile device more than 7 days old.</Kb.Text>
       )}
     </Kb.Box2>
   )
