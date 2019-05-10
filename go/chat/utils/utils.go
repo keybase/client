@@ -2094,14 +2094,24 @@ func DecorateWithLinks(ctx context.Context, body string) string {
 		offset += added
 	}
 
+	shouldSkipPrefix := func(body string) bool {
+		for _, scheme := range xurls.SchemesNoAuthority {
+			if strings.HasPrefix(body, scheme) {
+				return true
+			}
+		}
+		if strings.HasPrefix(body, "ftp://") || strings.HasPrefix(body, "gopher://") {
+			return true
+		}
+		return false
+	}
+
 	offset = 0
 	allMatches = linkRegexp.FindAllStringSubmatchIndex(ReplaceQuotedSubstrings(body, true), -1)
 	for _, match := range allMatches {
 		bodyMatch := origBody[match[0]:match[1]]
 		url := bodyMatch
-		if strings.HasPrefix(bodyMatch, "mailto:") ||
-			strings.HasPrefix(bodyMatch, "ftp://") ||
-			strings.HasPrefix(bodyMatch, "gopher://") {
+		if shouldSkipPrefix(bodyMatch) {
 			continue
 		}
 		if !(strings.HasPrefix(bodyMatch, "http://") || strings.HasPrefix(bodyMatch, "https://")) {
