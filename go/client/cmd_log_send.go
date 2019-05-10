@@ -42,6 +42,10 @@ func NewCmdLogSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 				Name:  "no-confirm",
 				Usage: "Send logs without confirming",
 			},
+			cli.StringFlag{
+				Name:  "feedback",
+				Usage: "Attach a feedback message to a log send",
+			},
 		},
 	}
 }
@@ -59,8 +63,10 @@ func (c *CmdLogSend) Run() error {
 		if err := c.confirm(); err != nil {
 			return err
 		}
-		if err := c.getFeedback(); err != nil {
-			return err
+		if c.feedback == "" {
+			if err := c.getFeedback(); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -205,6 +211,7 @@ func (c *CmdLogSend) ParseArgv(ctx *cli.Context) error {
 	}
 	c.noConfirm = ctx.Bool("no-confirm")
 	c.numBytes = ctx.Int("n")
+	c.feedback = ctx.String("feedback")
 	if c.numBytes < 1 {
 		c.numBytes = defaultBytes
 	} else if c.numBytes > maxBytes {

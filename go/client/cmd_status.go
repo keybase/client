@@ -169,7 +169,11 @@ func (c *CmdStatus) load() (*fstatus, error) {
 		status.Service.Running = false
 	} else {
 		status.Service.Running = true
-		status.Service.Log = filepath.Join(extStatus.LogDir, libkb.ServiceLogFileName)
+		if extStatus.ServiceLogPath != "" {
+			status.Service.Log = extStatus.ServiceLogPath
+		} else {
+			status.Service.Log = filepath.Join(extStatus.LogDir, libkb.ServiceLogFileName)
+		}
 		status.Service.EKLog = filepath.Join(extStatus.LogDir, libkb.EKLogFileName)
 	}
 
