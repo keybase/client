@@ -108,6 +108,9 @@ function updateIconFont(web) {
     } catch (_) {}
   }
 
+  const now = new Date()
+  const ttfVersion = `${now.getUTCFullYear()}${now.getUTCMonth()}.${now.getUTCDate()}${now.getUTCHours()}${now.getUTCMinutes()}`
+  console.log('Using version', ttfVersion)
   webfontsGenerator(
     {
       // An intermediate svgfont will be generated and then converted to TTF by webfonts-generator
@@ -121,7 +124,7 @@ function updateIconFont(web) {
       html: false,
       writeFiles: false,
       formatOptions: {
-        ttf: {ts: 0, version: `${Date.now()}.0`}, // MUST use a unique version else windows installer does the WRONG THING
+        ttf: {version: ttfVersion}, // MUST use a unique version else windows installer does the WRONG THING
         // Setting descent to zero on font generation will prevent the final
         // glyphs from being shifted down
         svg: {
@@ -142,6 +145,7 @@ const fontsGeneratedSuccess = (web, result) => {
   } else {
     console.log('Webfont generated successfully... updating constants and flow types')
     fs.writeFileSync(path.join(paths.fonts, 'kb.ttf'), result.ttf)
+    console.log('Wrote font')
     setFontMetrics()
     updateIconConstants()
   }
@@ -409,7 +413,9 @@ const setFontMetrics = () => {
   try {
     execSync(command, {encoding: 'utf8', env: process.env})
   } catch (e) {
+    console.log('Error!!!')
     console.error(e)
+    process.exit(1)
   }
 }
 
