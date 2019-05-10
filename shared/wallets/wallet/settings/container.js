@@ -1,12 +1,13 @@
 // @flow
 import Settings, {type SettingsProps} from '.'
-import {compose, namedConnect, safeSubmit, type RouteProps} from '../../../util/container'
+import * as Container from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
 import * as Constants from '../../../constants/wallets'
 import * as Types from '../../../constants/types/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = Container.RouteProps<{}, {}>
 
 const mapStateToProps = state => {
   const accountID = Constants.getSelectedAccount(state)
@@ -48,23 +49,25 @@ const mapStateToProps = state => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp, navigateAppend}) => ({
+const mapDispatchToProps = dispatch => ({
   _onBack: (accountID: Types.AccountID) => {
-    dispatch(navigateUp())
+    dispatch(RouteTreeGen.createNavigateUp())
     dispatch(WalletsGen.createLoadPayments({accountID}))
   },
   _onChangeMobileOnlyMode: (accountID: Types.AccountID, enabled: boolean) =>
     dispatch(WalletsGen.createChangeMobileOnlyMode({accountID, enabled})),
   _onDelete: (accountID: Types.AccountID) =>
-    dispatch(navigateAppend([{props: {accountID}, selected: 'removeAccount'}])),
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {accountID}, selected: 'removeAccount'}]})),
   _onEditName: (accountID: Types.AccountID) =>
-    dispatch(navigateAppend([{props: {accountID}, selected: 'renameAccount'}])),
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {accountID}, selected: 'renameAccount'}]})),
   _onSetDefault: (accountID: Types.AccountID) =>
-    dispatch(navigateAppend([{props: {accountID}, selected: 'setDefaultAccount'}])),
+    dispatch(
+      RouteTreeGen.createNavigateAppend({path: [{props: {accountID}, selected: 'setDefaultAccount'}]})
+    ),
   _onSetDisplayCurrency: (accountID: Types.AccountID, code: Types.CurrencyCode) =>
     dispatch(WalletsGen.createChangeDisplayCurrency({accountID, code})),
   _onSetupInflation: (accountID: Types.AccountID) =>
-    dispatch(navigateAppend([{props: {accountID}, selected: 'setInflation'}])),
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {accountID}, selected: 'setInflation'}]})),
   _refresh: accountID => {
     dispatch(WalletsGen.createLoadDisplayCurrencies())
     dispatch(WalletsGen.createLoadInflationDestination({accountID}))
@@ -87,7 +90,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps): SettingsProps => ({
   refresh: () => dispatchProps._refresh(stateProps.accountID),
 })
 
-export default compose(
-  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'Settings'),
-  safeSubmit(['onCurrencyChange'], ['currencyWaiting'])
+export default Container.compose(
+  Container.namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'Settings'),
+  Container.safeSubmit(['onCurrencyChange'], ['currencyWaiting'])
 )(Settings)

@@ -267,12 +267,62 @@ func (fs *KBFSOpsStandard) GetFavorites(ctx context.Context) (
 
 // GetFavoritesAll implements the KBFSOps interface for
 // KBFSOpsStandard.
-func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (keybase1.
-	FavoritesResult, error) {
+func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (
+	keybase1.FavoritesResult, error) {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
-	return fs.favs.GetAll(ctx)
+	favs, err := fs.favs.GetAll(ctx)
+	if err != nil {
+		return keybase1.FavoritesResult{}, err
+	}
+
+	// Add the conflict status for any folders in a conflict state to
+	// the favorite struct.
+	journalManager, err := GetJournalManager(fs.config)
+	if err != nil {
+		// Journaling not enabled.
+		return favs, nil
+	}
+	conflicts, err := journalManager.GetJournalsInConflict(ctx)
+	if err != nil {
+		return keybase1.FavoritesResult{}, err
+	}
+
+	if len(conflicts) == 0 {
+		return favs, nil
+	}
+	conflictMap := make(map[ConflictJournalRecord]tlf.ID, len(conflicts))
+	for _, c := range conflicts {
+		conflictMap[ConflictJournalRecord{Name: c.Name, Type: c.Type}] = c.ID
+	}
+
+	found := 0
+	for i, f := range favs.FavoriteFolders {
+		c := ConflictJournalRecord{
+			Name: tlf.CanonicalName(f.Name),
+			Type: tlf.TypeFromFolderType(f.FolderType),
+		}
+		tlfID, ok := conflictMap[c]
+		if !ok {
+			continue
+		}
+
+		fb := data.FolderBranch{Tlf: tlfID, Branch: data.MasterBranch}
+		ops := fs.getOps(ctx, fb, FavoritesOpNoChange)
+		status, err := ops.FolderConflictStatus(ctx)
+		if err != nil {
+			return keybase1.FavoritesResult{}, err
+		}
+		favs.FavoriteFolders[i].ConflictType = status
+		fs.log.CDebugf(ctx, "Conflict status for %s: %s", tlfID, status)
+		found++
+		if found == len(conflictMap) {
+			// Short-circuit the loop if we've already found all the conflicts.
+			break
+		}
+	}
+	return favs, nil
 }
 
 // RefreshCachedFavorites implements the KBFSOps interface for
@@ -1045,6 +1095,18 @@ func (fs *KBFSOpsStandard) FolderStatus(
 	return ops.FolderStatus(ctx, folderBranch)
 }
 
+// FolderConflictStatus implements the KBFSOps interface for
+// KBFSOpsStandard
+func (fs *KBFSOpsStandard) FolderConflictStatus(
+	ctx context.Context, folderBranch data.FolderBranch) (
+	keybase1.FolderConflictType, error) {
+	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
+	defer timeTrackerDone()
+
+	ops := fs.getOps(ctx, folderBranch, FavoritesOpNoChange)
+	return ops.FolderConflictStatus(ctx)
+}
+
 // Status implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 	KBFSStatus, <-chan StatusUpdate, error) {
@@ -1471,6 +1533,16 @@ func (fs *KBFSOpsStandard) changeHandle(ctx context.Context,
 	fs.log.CDebugf(ctx, "Changing handle: %v -> %v", oldFav, newFav)
 	fs.opsByFav[newFav] = ops
 	delete(fs.opsByFav, oldFav)
+}
+
+// AddRootNodeWrapper implements the KBFSOps interface for
+// KBFSOpsStandard.
+func (fs *KBFSOpsStandard) AddRootNodeWrapper(f func(Node) Node) {
+	fs.opsLock.Lock()
+	defer fs.opsLock.Unlock()
+	for _, op := range fs.ops {
+		op.addRootNodeWrapper(f)
+	}
 }
 
 // Notifier:

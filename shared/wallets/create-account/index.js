@@ -9,7 +9,6 @@ type Props = {|
   createNewAccountError: string,
   error: string,
   nameValidationState: ValidationState,
-  onBack?: () => void,
   onCancel: () => void,
   onClearErrors: () => void,
   onCreateAccount: (name: string) => void,

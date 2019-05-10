@@ -101,6 +101,7 @@ func (n NullConfiguration) GetGregorPingInterval() (time.Duration, bool)    { re
 func (n NullConfiguration) GetGregorPingTimeout() (time.Duration, bool)     { return 0, false }
 func (n NullConfiguration) GetChatDelivererInterval() (time.Duration, bool) { return 0, false }
 func (n NullConfiguration) GetGregorDisabled() (bool, bool)                 { return false, false }
+func (n NullConfiguration) GetSecretStorePrimingDisabled() (bool, bool)     { return false, false }
 func (n NullConfiguration) GetMountDir() string                             { return "" }
 func (n NullConfiguration) GetMountDirDefault() string                      { return "" }
 func (n NullConfiguration) GetBGIdentifierDisabled() (bool, bool)           { return false, false }
@@ -228,6 +229,9 @@ type TestParameters struct {
 	// TeamAuditParams can be customized if we want to control the behavior
 	// of audits deep in a test
 	TeamAuditParams *TeamAuditParams
+
+	// Toggle if we want to try to 'prime' the secret store before using it.
+	SecretStorePrimingDisabled bool
 }
 
 func (tp TestParameters) GetDebug() (bool, bool) {
@@ -239,6 +243,13 @@ func (tp TestParameters) GetDebug() (bool, bool) {
 
 func (tp TestParameters) GetNoGregor() (bool, bool) {
 	if tp.NoGregor {
+		return true, true
+	}
+	return false, false
+}
+
+func (tp TestParameters) GetSecretStorePrimingDisabled() (bool, bool) {
+	if tp.SecretStorePrimingDisabled {
 		return true, true
 	}
 	return false, false
@@ -861,6 +872,12 @@ func (e *Env) GetGregorDisabled() bool {
 		func() (bool, bool) { return e.cmd.GetGregorDisabled() },
 		func() (bool, bool) { return getEnvBool("KEYBASE_PUSH_DISABLED") },
 		func() (bool, bool) { return e.GetConfig().GetGregorDisabled() },
+	)
+}
+
+func (e *Env) GetSecretStorePrimingDisabled() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.Test.GetSecretStorePrimingDisabled() },
 	)
 }
 

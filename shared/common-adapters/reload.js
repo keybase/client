@@ -10,6 +10,7 @@ import Text from './text'
 import Button from './button'
 import Icon from './icon'
 import {namedConnect} from '../util/container'
+import type {RPCError} from '../util/errors'
 
 type ReloadProps = {|
   onBack?: () => void,
@@ -123,10 +124,14 @@ export type OwnProps = {|
   reloadOnMount?: boolean,
   title?: string,
   waitingKeys: string | Array<string>,
+  errorFilter?: RPCError => boolean,
 |}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
-  const error = Constants.anyErrors(state, ownProps.waitingKeys)
+  let error = Constants.anyErrors(state, ownProps.waitingKeys)
+  if (error && ownProps.errorFilter) {
+    error = ownProps.errorFilter(error) ? error : null
+  }
   return {
     needsReload: !!error,
     reason: error?.message ?? '',

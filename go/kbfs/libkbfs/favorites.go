@@ -150,14 +150,14 @@ func NewFavorites(config Config) *Favorites {
 }
 
 type favoritesCacheForDisk struct {
-	version      int
-	favCache     map[favorites.Folder]favorites.Data
-	newCache     map[favorites.Folder]favorites.Data
-	ignoredCache map[favorites.Folder]favorites.Data
+	Version      int
+	FavCache     map[favorites.Folder]favorites.Data
+	NewCache     map[favorites.Folder]favorites.Data
+	IgnoredCache map[favorites.Folder]favorites.Data
 }
 type favoritesCacheEncryptedForDisk struct {
-	version        int
-	encryptedCache []byte
+	Version        int
+	EncryptedCache []byte
 }
 
 func (f *Favorites) readCacheFromDisk(ctx context.Context) error {
@@ -194,14 +194,14 @@ func (f *Favorites) readCacheFromDisk(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	if decodedData.version != favoritesDiskCacheStorageVersion {
+	if decodedData.Version != favoritesDiskCacheStorageVersion {
 		return errIncorrectFavoritesCacheVersion{cache: "serialized",
-			version: decodedData.version}
+			version: decodedData.Version}
 	}
 
 	// Send the data to the service to be decrypted
 	decryptedData, err := f.config.KeybaseService().DecryptFavorites(ctx,
-		decodedData.encryptedCache)
+		decodedData.EncryptedCache)
 	if err != nil {
 		return err
 	}
@@ -212,14 +212,14 @@ func (f *Favorites) readCacheFromDisk(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	if cacheDecoded.version != favoritesDiskCacheVersion {
+	if cacheDecoded.Version != favoritesDiskCacheVersion {
 		return errIncorrectFavoritesCacheVersion{cache: "encrypted",
-			version: decodedData.version}
+			version: decodedData.Version}
 	}
 
-	f.favCache = cacheDecoded.favCache
-	f.newCache = cacheDecoded.newCache
-	f.ignoredCache = cacheDecoded.ignoredCache
+	f.favCache = cacheDecoded.FavCache
+	f.newCache = cacheDecoded.NewCache
+	f.ignoredCache = cacheDecoded.IgnoredCache
 	return nil
 }
 
@@ -229,10 +229,10 @@ func (f *Favorites) writeCacheToDisk(ctx context.Context) error {
 	}
 	// Encode the cache map into a byte buffer
 	cacheForDisk := favoritesCacheForDisk{
-		favCache:     f.favCache,
-		newCache:     f.newCache,
-		ignoredCache: f.ignoredCache,
-		version:      favoritesDiskCacheVersion,
+		FavCache:     f.favCache,
+		NewCache:     f.newCache,
+		IgnoredCache: f.ignoredCache,
+		Version:      favoritesDiskCacheVersion,
 	}
 	cacheSerialized, err := f.config.Codec().Encode(cacheForDisk)
 	if err != nil {
@@ -249,8 +249,8 @@ func (f *Favorites) writeCacheToDisk(ctx context.Context) error {
 	// Encode the encrypted data in a versioned struct before writing it to
 	// the LevelDb.
 	cacheEncryptedForDisk := favoritesCacheEncryptedForDisk{
-		encryptedCache: data,
-		version:        favoritesDiskCacheStorageVersion,
+		EncryptedCache: data,
+		Version:        favoritesDiskCacheStorageVersion,
 	}
 	encodedData, err := f.config.Codec().Encode(cacheEncryptedForDisk)
 	if err != nil {

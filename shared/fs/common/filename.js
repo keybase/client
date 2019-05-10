@@ -38,7 +38,7 @@ const Filename = (props: Props) => {
       >
         {fileNameWithoutExtension}
       </Kb.Text>
-      {fileExtension && (
+      {!!fileExtension && (
         <Kb.Text type={props.type} style={props.style} selectable={props.selectable} lineClamp={0}>
           {fileExtension}
         </Kb.Text>

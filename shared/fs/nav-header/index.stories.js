@@ -5,14 +5,13 @@ import * as Types from '../../constants/types/fs'
 import * as Sb from '../../stories/storybook'
 import {commonProvider} from '../common/index.stories'
 import Nav2Header from '../../router-v2/header'
-import Title from './title-container'
-import Actions from './actions'
 import MobileHeader from './mobile-header'
 import {MainBanner} from '.'
+import FilesContainer from '../container'
 
 export const headerProvider = {
   MainBanner: (p: any) => ({
-    bannerType: p ? p.storyProps.bannerType : 'none',
+    bannerType: p.storyProps?.bannerType || 'none',
     onRetry: Sb.action('onRetry'),
   }),
   NavHeaderMobile: ({onBack, path}: {onBack: () => void, path: Types.Path}) => ({
@@ -36,11 +35,14 @@ const TestWrapper = ({path, offline}: {path: Types.Path, offline?: ?boolean}) =>
   ) : (
     <Nav2Header
       allowBack={true}
+      loggedIn={true}
       onPop={Sb.action('onPop')}
-      options={{
-        headerRightActions: () => <Actions path={path} onTriggerFilterMobile={() => {}} />,
-        headerTitle: () => <Title path={path} />,
-      }}
+      options={
+        // $FlowIssue
+        FilesContainer.navigationOptions({
+          navigation: {getParam: key => (key === 'path' ? path : null)},
+        })
+      }
     />
   )
 

@@ -55,6 +55,15 @@ func (jsc journalManagerConfig) getEnableAuto(currentUID keybase1.UID) (
 	return true, false
 }
 
+// ConflictJournalRecord contains info for TLF journals that are
+// currently in conflict on the local device.
+type ConflictJournalRecord struct {
+	Name tlf.CanonicalName
+	Type tlf.Type
+	Path string
+	ID   tlf.ID
+}
+
 // JournalManagerStatus represents the overall status of the
 // JournalManager for display in diagnostics. It is suitable for
 // encoding directly as JSON.
@@ -75,6 +84,7 @@ type JournalManagerStatus struct {
 	UnflushedPaths    []string
 	EndEstimate       *time.Time
 	DiskLimiterStatus interface{}
+	Conflicts         []ConflictJournalRecord `json:",omitempty"`
 }
 
 // branchChangeListener describes a caller that will get updates via
@@ -280,33 +290,42 @@ func (j *JournalManager) hasTLFJournal(tlfID tlf.ID) bool {
 	return ok
 }
 
-func (j *JournalManager) makeFBOForJournal(
-	ctx context.Context, tj *tlfJournal, tlfID tlf.ID) error {
+func (j *JournalManager) getHandleForJournal(
+	ctx context.Context, tj *tlfJournal, tlfID tlf.ID) (
+	*tlfhandle.Handle, error) {
 	bid, err := tj.getBranchID()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	head, err := tj.getMDHead(ctx, bid)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if head == (ImmutableBareRootMetadata{}) {
-		return nil
+		return nil, nil
 	}
 
 	headBareHandle, err := head.MakeBareTlfHandleWithExtra()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	handle, err := tlfhandle.MakeHandle(
+	return tlfhandle.MakeHandle(
 		ctx, headBareHandle, tlfID.Type(), j.config.KBPKI(),
 		j.config.KBPKI(), tlfhandle.ConstIDGetter{ID: tlfID},
 		j.config.OfflineAvailabilityForID(tlfID))
+}
+
+func (j *JournalManager) makeFBOForJournal(
+	ctx context.Context, tj *tlfJournal, tlfID tlf.ID) error {
+	handle, err := j.getHandleForJournal(ctx, tj, tlfID)
 	if err != nil {
 		return err
+	}
+	if handle == nil {
+		return nil
 	}
 
 	_, _, err = j.config.KBFSOps().GetRootNode(ctx, handle, data.MasterBranch)
@@ -902,6 +921,44 @@ func (j *JournalManager) maybeMakeDiskLimitErrorReportable(
 	return err
 }
 
+func (j *JournalManager) getJournalsInConflictLocked(ctx context.Context) (
+	records []ConflictJournalRecord, err error) {
+	for _, tlfJournal := range j.tlfJournals {
+		isConflict, err := tlfJournal.isOnConflictBranch()
+		if err != nil {
+			return nil, err
+		}
+		if !isConflict {
+			continue
+		}
+
+		handle, err := j.getHandleForJournal(ctx, tlfJournal, tlfJournal.tlfID)
+		if err != nil {
+			return nil, err
+		}
+		if handle == nil {
+			continue
+		}
+
+		records = append(records, ConflictJournalRecord{
+			Name: handle.GetCanonicalName(),
+			Type: handle.Type(),
+			Path: handle.GetCanonicalPath(),
+			ID:   tlfJournal.tlfID,
+		})
+	}
+	return records, nil
+}
+
+// GetJournalsInConflict returns records for each TLF journal that
+// currently has a conflict.
+func (j *JournalManager) GetJournalsInConflict(ctx context.Context) (
+	records []ConflictJournalRecord, err error) {
+	j.lock.RLock()
+	defer j.lock.RUnlock()
+	return j.getJournalsInConflictLocked(ctx)
+}
+
 // Status returns a JournalManagerStatus object suitable for
 // diagnostics.  It also returns a list of TLF IDs which have journals
 // enabled.
@@ -925,6 +982,11 @@ func (j *JournalManager) Status(
 		tlfIDs = append(tlfIDs, tlfJournal.tlfID)
 	}
 	enableAuto, enableAutoSetByUser := j.getEnableAutoLocked()
+	records, err := j.getJournalsInConflictLocked(ctx)
+	if err != nil {
+		j.log.CWarningf(ctx, "Couldn't get conflict journals: %+v", err)
+		records = nil
+	}
 	return JournalManagerStatus{
 		RootDir:             j.rootPath(),
 		Version:             1,
@@ -938,6 +1000,7 @@ func (j *JournalManager) Status(
 		UnflushedBytes:      totalUnflushedBytes,
 		DiskLimiterStatus: j.config.DiskLimiter().getStatus(
 			ctx, j.currentUID.AsUserOrTeam()),
+		Conflicts: records,
 	}, tlfIDs
 }
 
