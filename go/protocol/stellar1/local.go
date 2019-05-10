@@ -1467,6 +1467,23 @@ type ValidateStellarURILocalArg struct {
 	InputURI  string `codec:"inputURI" json:"inputURI"`
 }
 
+type ApproveTxURILocalArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	InputURI  string `codec:"inputURI" json:"inputURI"`
+}
+
+type ApprovePayURILocalArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	InputURI  string `codec:"inputURI" json:"inputURI"`
+	Amount    string `codec:"amount" json:"amount"`
+}
+
+type ApprovePathURILocalArg struct {
+	SessionID int         `codec:"sessionID" json:"sessionID"`
+	InputURI  string      `codec:"inputURI" json:"inputURI"`
+	FullPath  PaymentPath `codec:"fullPath" json:"fullPath"`
+}
+
 type LocalInterface interface {
 	GetWalletAccountsLocal(context.Context, int) ([]WalletAccountLocal, error)
 	GetWalletAccountLocal(context.Context, GetWalletAccountLocalArg) (WalletAccountLocal, error)
@@ -1537,6 +1554,9 @@ type LocalInterface interface {
 	LookupCLILocal(context.Context, string) (LookupResultCLILocal, error)
 	BatchLocal(context.Context, BatchLocalArg) (BatchResultLocal, error)
 	ValidateStellarURILocal(context.Context, ValidateStellarURILocalArg) (ValidateStellarURIResultLocal, error)
+	ApproveTxURILocal(context.Context, ApproveTxURILocalArg) (TransactionID, error)
+	ApprovePayURILocal(context.Context, ApprovePayURILocalArg) error
+	ApprovePathURILocal(context.Context, ApprovePathURILocalArg) error
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -2558,6 +2578,51 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"approveTxURILocal": {
+				MakeArg: func() interface{} {
+					var ret [1]ApproveTxURILocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ApproveTxURILocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ApproveTxURILocalArg)(nil), args)
+						return
+					}
+					ret, err = i.ApproveTxURILocal(ctx, typedArgs[0])
+					return
+				},
+			},
+			"approvePayURILocal": {
+				MakeArg: func() interface{} {
+					var ret [1]ApprovePayURILocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ApprovePayURILocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ApprovePayURILocalArg)(nil), args)
+						return
+					}
+					err = i.ApprovePayURILocal(ctx, typedArgs[0])
+					return
+				},
+			},
+			"approvePathURILocal": {
+				MakeArg: func() interface{} {
+					var ret [1]ApprovePathURILocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ApprovePathURILocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ApprovePathURILocalArg)(nil), args)
+						return
+					}
+					err = i.ApprovePathURILocal(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -2923,5 +2988,20 @@ func (c LocalClient) BatchLocal(ctx context.Context, __arg BatchLocalArg) (res B
 
 func (c LocalClient) ValidateStellarURILocal(ctx context.Context, __arg ValidateStellarURILocalArg) (res ValidateStellarURIResultLocal, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.validateStellarURILocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) ApproveTxURILocal(ctx context.Context, __arg ApproveTxURILocalArg) (res TransactionID, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.approveTxURILocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) ApprovePayURILocal(ctx context.Context, __arg ApprovePayURILocalArg) (err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.approvePayURILocal", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) ApprovePathURILocal(ctx context.Context, __arg ApprovePathURILocalArg) (err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.approvePathURILocal", []interface{}{__arg}, nil)
 	return
 }

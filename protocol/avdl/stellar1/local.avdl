@@ -729,4 +729,7 @@ protocol local {
   }
   
   ValidateStellarURIResultLocal validateStellarURILocal(int sessionID, string inputURI);
+  TransactionID approveTxURILocal(int sessionID, string inputURI);
+  void approvePayURILocal(int sessionID, string inputURI, string amount);
+  void approvePathURILocal(int sessionID, string inputURI, PaymentPath fullPath);
 }

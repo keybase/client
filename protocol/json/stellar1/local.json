@@ -2451,6 +2451,53 @@
         }
       ],
       "response": "ValidateStellarURIResultLocal"
+    },
+    "approveTxURILocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "inputURI",
+          "type": "string"
+        }
+      ],
+      "response": "TransactionID"
+    },
+    "approvePayURILocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "inputURI",
+          "type": "string"
+        },
+        {
+          "name": "amount",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "approvePathURILocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "inputURI",
+          "type": "string"
+        },
+        {
+          "name": "fullPath",
+          "type": "PaymentPath"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "stellar.1"

@@ -136,7 +136,7 @@ func (c *CmdWalletHandleURI) payOp(v stellar1.ValidateStellarURIResultLocal) err
 	} else {
 		ui.Printf("\nIf you confirm this request, Keybase will create a payment\n")
 		ui.Printf("transaction, sign it with your primary account, and send it\n")
-		ui.Printf("to the following URL for processing:\n")
+		ui.Printf("to the following URL for processing:\n\n")
 		ui.Printf("\t%s\n\n", v.CallbackURL)
 		ui.Printf("Note: Keybase will NOT be submitting the transaction to the Stellar\n")
 		ui.Printf("network and does not know what will happen to it after sending\n")
@@ -178,7 +178,6 @@ func (c *CmdWalletHandleURI) payOp(v stellar1.ValidateStellarURIResultLocal) err
 				To:     v.Recipient,
 				Amount: v.Amount,
 				DestinationAsset: stellar1.Asset{
-					// XXX need Type?
 					Code:   v.AssetCode,
 					Issuer: v.AssetIssuer,
 				},
@@ -197,8 +196,71 @@ func (c *CmdWalletHandleURI) payOp(v stellar1.ValidateStellarURIResultLocal) err
 
 func (c *CmdWalletHandleURI) txOp(v stellar1.ValidateStellarURIResultLocal) error {
 	ui := c.G().UI.GetTerminalUI()
-	ui.Printf("result: %+v\n", v)
-	return errors.New("tx not handled yet")
+	ui.Printf("The URI is requesting that you sign a transaction.\n\n")
+	ui.Printf("Here is the base64-encoded transaction envelope:\n\n")
+	ui.Printf("\t%s\n\n", v.Xdr)
+	ui.Printf("Transaction summary:\n\n")
+	if v.Summary.Source != "" {
+		ui.Printf("\tSource account: %s\n", v.Summary.Source)
+	}
+	if v.Summary.Fee > 0 {
+		ui.Printf("\tFee: %d stroops\n", v.Summary.Fee)
+	}
+	if v.Summary.Memo != "" {
+		ui.Printf("\tMemo: %q (%s)\n", v.Summary.Memo, v.Summary.MemoType)
+	}
+	ui.Printf("\tOperations: %d\n", len(v.Summary.Operations))
+	for _, op := range v.Summary.Operations {
+		ui.Printf("\t\t%s\n", op)
+	}
+	ui.Printf("\n")
+
+	if v.CallbackURL == "" {
+		ui.Printf("If you confirm this request, Keybase will sign this transaction\n")
+		ui.Printf("with your primary account, and submit it to the Stellar network.\n\n")
+		if err := ui.PromptForConfirmation("Sign this transaction and submit it to the Stellar network?"); err != nil {
+			return err
+		}
+	} else {
+		ui.Printf("If you confirm this request, Keybase will sign this transaction\n")
+		ui.Printf("with your primary account, and send it to the following URL\n")
+		ui.Printf("for processing:\n\n")
+		ui.Printf("\t%s\n\n", v.CallbackURL)
+		ui.Printf("Note: Keybase will NOT be submitting the transaction to the Stellar\n")
+		ui.Printf("network and does not know what will happen to it after sending\n")
+		ui.Printf("it to the URL above.\n")
+		if err := ui.PromptForConfirmation("Sign this transaction and submit it to the URL above?"); err != nil {
+			return err
+		}
+	}
+
+	// user approved the operation, so proceed
+	cli, err := GetWalletClient(c.G())
+	if err != nil {
+		return err
+	}
+	protocols := []rpc.Protocol{
+		NewIdentifyUIProtocol(c.G()),
+	}
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
+		return err
+	}
+
+	arg := stellar1.ApproveTxURILocalArg{
+		InputURI: c.uri,
+	}
+	txID, err := cli.ApproveTxURILocal(context.Background(), arg)
+	if err != nil {
+		return err
+	}
+	ui.Printf(c.green("Success!") + "\n")
+	if v.CallbackURL == "" {
+		ui.Printf("Transaction submitted to Stellar network, transaction ID: %s\n", txID)
+	} else {
+		ui.Printf("Transaction sent to %s, transaction ID: %s\n", v.CallbackURL, txID)
+	}
+
+	return nil
 }
 
 func (c *CmdWalletHandleURI) GetUsage() libkb.Usage {

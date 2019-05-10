@@ -598,18 +598,29 @@ func (s *Server) BatchLocal(ctx context.Context, arg stellar1.BatchLocalArg) (re
 	return stellar.Batch(mctx, s.walletState, arg)
 }
 
-func (s *Server) ValidateStellarURILocal(ctx context.Context, arg stellar1.ValidateStellarURILocalArg) (stellar1.ValidateStellarURIResultLocal, error) {
-	vp, err := s.validateStellarURI(ctx, arg.InputURI, http.DefaultClient)
+func (s *Server) ValidateStellarURILocal(ctx context.Context, arg stellar1.ValidateStellarURILocalArg) (res stellar1.ValidateStellarURIResultLocal, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName: "ValidateStellarURILocal",
+		Err:     &err,
+	})
+	defer fin()
+	if err != nil {
+		return stellar1.ValidateStellarURIResultLocal{}, err
+	}
+
+	vp, _, err := s.validateStellarURI(mctx, arg.InputURI, http.DefaultClient)
 	if err != nil {
 		return stellar1.ValidateStellarURIResultLocal{}, err
 	}
 	return *vp, nil
 }
 
-func (s *Server) validateStellarURI(ctx context.Context, uri string, getter stellarnet.HTTPGetter) (*stellar1.ValidateStellarURIResultLocal, error) {
+const zeroSourceAccount = "00000000000000000000000000000000000000000000000000000000"
+
+func (s *Server) validateStellarURI(mctx libkb.MetaContext, uri string, getter stellarnet.HTTPGetter) (*stellar1.ValidateStellarURIResultLocal, *xdr.TransactionEnvelope, error) {
 	validated, err := stellarnet.ValidateStellarURI(uri, getter)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	local := stellar1.ValidateStellarURIResultLocal{
@@ -626,20 +637,130 @@ func (s *Server) validateStellarURI(ctx context.Context, uri string, getter stel
 		MemoType:     validated.MemoType,
 	}
 
-	if validated.Tx != nil {
-		local.Summary.Source = stellar1.AccountID(validated.Tx.SourceAccount.Address())
-		local.Summary.Fee = int(validated.Tx.Fee)
-		local.Summary.Memo, local.Summary.MemoType, err = memoStrings(validated.Tx.Memo)
-		if err != nil {
-			return nil, err
+	if validated.TxEnv != nil {
+		tx := validated.TxEnv.Tx
+		if tx.SourceAccount.Address() != "" && tx.SourceAccount.Address() != zeroSourceAccount {
+			local.Summary.Source = stellar1.AccountID(tx.SourceAccount.Address())
 		}
-		local.Summary.Operations = make([]string, len(validated.Tx.Operations))
-		for i, op := range validated.Tx.Operations {
+		local.Summary.Fee = int(tx.Fee)
+		local.Summary.Memo, local.Summary.MemoType, err = memoStrings(tx.Memo)
+		if err != nil {
+			return nil, nil, err
+		}
+		local.Summary.Operations = make([]string, len(tx.Operations))
+		for i, op := range tx.Operations {
 			local.Summary.Operations[i] = stellarnet.OpSummary(op)
 		}
 	}
 
-	return &local, nil
+	return &local, validated.TxEnv, nil
+}
+
+func (s *Server) ApproveTxURILocal(ctx context.Context, arg stellar1.ApproveTxURILocalArg) (txID stellar1.TransactionID, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName: "ApproveTxURILocal",
+		Err:     &err,
+	})
+	defer fin()
+	if err != nil {
+		return "", err
+	}
+
+	// revalidate the URI
+	vp, txEnv, err := s.validateStellarURI(mctx, arg.InputURI, http.DefaultClient)
+	if err != nil {
+		return "", err
+	}
+
+	if txEnv == nil {
+		return "", errors.New("no tx envelope in URI")
+	}
+
+	if vp.Summary.Source == "" {
+		// need to fill in SourceAccount
+		accountID, err := stellar.GetOwnPrimaryAccountID(mctx)
+		if err != nil {
+			return "", err
+		}
+		address, err := stellarnet.NewAddressStr(accountID.String())
+		if err != nil {
+			return "", err
+		}
+		txEnv.Tx.SourceAccount, err = address.AccountID()
+		if err != nil {
+			return "", err
+		}
+	}
+
+	if txEnv.Tx.SeqNum == 0 {
+		// need to fill in SeqNum
+		sp, unlock := stellar.NewSeqnoProvider(mctx, s.walletState)
+		defer unlock()
+
+		txEnv.Tx.SeqNum, err = sp.SequenceForAccount(txEnv.Tx.SourceAccount.Address())
+		if err != nil {
+			return "", err
+		}
+	}
+
+	// sign it
+	_, seed, err := stellar.LookupSenderSeed(mctx)
+	if err != nil {
+		return "", err
+	}
+	sig, err := stellarnet.SignEnvelope(seed, *txEnv)
+	if err != nil {
+		return "", err
+	}
+
+	if vp.CallbackURL == "" {
+		_, err := stellarnet.Submit(sig.Signed)
+		if err != nil {
+			return "", err
+		}
+	} else {
+
+	}
+
+	return stellar1.TransactionID(sig.TxHash), nil
+}
+
+func (s *Server) ApprovePayURILocal(ctx context.Context, arg stellar1.ApprovePayURILocalArg) (err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName: "ApprovePayURILocal",
+		Err:     &err,
+	})
+	defer fin()
+	if err != nil {
+		return err
+	}
+
+	// revalidate the URI
+	vp, _, err := s.validateStellarURI(mctx, arg.InputURI, http.DefaultClient)
+	if err != nil {
+		return err
+	}
+	_ = vp
+	return errors.New("nyi")
+}
+
+func (s *Server) ApprovePathURILocal(ctx context.Context, arg stellar1.ApprovePathURILocalArg) (err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName: "ApprovePathURILocal",
+		Err:     &err,
+	})
+	defer fin()
+	if err != nil {
+		return err
+	}
+
+	// revalidate the URI
+	vp, _, err := s.validateStellarURI(mctx, arg.InputURI, http.DefaultClient)
+	if err != nil {
+		return err
+	}
+	_ = vp
+	return errors.New("nyi")
 }
 
 func percentageAmountChange(a, b int64) float64 {

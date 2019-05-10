@@ -280,14 +280,22 @@ func AssetBaseSummary(a AssetBase) string {
 	if a.TypeString() == "native" {
 		return "XLM"
 	}
+	if a.CodeString() == "" && a.IssuerString() == "" {
+		return "XLM"
+	}
 	return a.CodeString() + "/" + a.IssuerString()
 }
 
-// XDRSummary returns a string summary of an xdr.Asset.
-func XDRSummary(x xdr.Asset) string {
+// XDRAssetSummary returns a string summary of an xdr.Asset.
+func XDRAssetSummary(x xdr.Asset) string {
 	a, err := XDRToAssetMinimal(x)
 	if err != nil {
 		return "invalid asset"
 	}
 	return AssetBaseSummary(a)
+}
+
+// XDRAssetAmountSummary returns a summary of an amount and an asset.
+func XDRAssetAmountSummary(amt xdr.Int64, asset xdr.Asset) string {
+	return StringFromStellarXdrAmount(amt) + " " + XDRAssetSummary(asset)
 }

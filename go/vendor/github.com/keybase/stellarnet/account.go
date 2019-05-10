@@ -1,6 +1,8 @@
 package stellarnet
 
 import (
+	"bytes"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -747,6 +749,39 @@ func DeleteTrustlineTransaction(from SeedStr, assetCode string, assetIssuer Addr
 	}
 	t.AddDeleteTrustlineOp(assetCode, assetIssuer)
 	return t.Sign(from)
+}
+
+// SignEnvelope signs an xdr.TransactionEnvelope.
+func SignEnvelope(from SeedStr, txEnv xdr.TransactionEnvelope) (SignResult, error) {
+	hash, err := snetwork.HashTransaction(&txEnv.Tx, NetworkPassphrase())
+	if err != nil {
+		return SignResult{}, err
+	}
+
+	kp, err := keypair.Parse(from.SecureNoLogString())
+	if err != nil {
+		return SignResult{}, err
+	}
+	sig, err := kp.SignDecorated(hash[:])
+	if err != nil {
+		return SignResult{}, err
+	}
+
+	txEnv.Signatures = append(txEnv.Signatures, sig)
+
+	var buf bytes.Buffer
+	_, err = xdr.Marshal(&buf, txEnv)
+	if err != nil {
+		return SignResult{}, err
+	}
+	signed := base64.StdEncoding.EncodeToString(buf.Bytes())
+	txHashHex := hex.EncodeToString(hash[:])
+
+	return SignResult{
+		Seqno:  uint64(txEnv.Tx.SeqNum),
+		Signed: signed,
+		TxHash: txHashHex,
+	}, nil
 }
 
 func submitNoResultXDR(signed string) (ledger int32, txid string, attempt int, err error) {

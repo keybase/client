@@ -192,3 +192,9 @@ func PathPaymentMaxValue(amount string) (string, error) {
 
 	return StringFromStellarAmount(amtMax), nil
 }
+
+// XDRPriceString converts xdr.Price to a string.
+func XDRPriceString(x xdr.Price) string {
+	n := big.NewRat(int64(x.N), int64(x.D))
+	return n.FloatString(7)
+}

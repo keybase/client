@@ -103,7 +103,7 @@ type ValidatedStellarURI struct {
 	Message      string
 	CallbackURL  string
 	XDR          string
-	Tx           *xdr.Transaction
+	TxEnv        *xdr.TransactionEnvelope
 	Recipient    string
 	Amount       string
 	AssetCode    string
@@ -298,11 +298,14 @@ func (u *unvalidatedURI) validateTx(getter HTTPGetter) (*ValidatedStellarURI, er
 	validated := u.newValidated("tx")
 	validated.XDR = xdrEncoded
 
-	var tx xdr.Transaction
-	if err := xdr.SafeUnmarshalBase64(xdrEncoded, &tx); err != nil {
+	// this isn't in the spec (as of May 2019), but the tx parameter
+	// is actually a TransactionEnvelope.
+	var txEnv xdr.TransactionEnvelope
+	if err := xdr.SafeUnmarshalBase64(xdrEncoded, &txEnv); err != nil {
+		fmt.Println(err)
 		return nil, ErrInvalidParameter{Key: "xdr"}
 	}
-	validated.Tx = &tx
+	validated.TxEnv = &txEnv
 
 	return validated, nil
 }
