@@ -614,7 +614,7 @@ export const getAcceptedDisclaimer = (state: TypedState) => state.wallets.accept
 export const balanceChangeColor = (delta: Types.PaymentDelta, status: Types.StatusSimplified) => {
   let balanceChangeColor = Styles.globalColors.black
   if (delta !== 'none') {
-    balanceChangeColor = delta === 'increase' ? Styles.globalColors.green : Styles.globalColors.purple
+    balanceChangeColor = delta === 'increase' ? Styles.globalColors.green : Styles.globalColors.purpleDark
   }
   if (status !== 'completed') {
     balanceChangeColor = Styles.globalColors.black_20

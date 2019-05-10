@@ -256,7 +256,7 @@ const styles = Styles.styleSheetCreate({
   totalContainer: Styles.platformStyles({
     common: {
       alignItems: 'center',
-      backgroundColor: Styles.globalColors.purple,
+      backgroundColor: Styles.globalColors.purpleDark,
       paddingBottom: Styles.globalMargins.tiny,
     },
     isElectron: {

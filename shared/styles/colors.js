@@ -57,7 +57,7 @@ const colors = {
   lightGrey2: '#e6e6e6',
   orange: '#ff6f21',
   orange_90: 'rgba(255, 111, 33, 0.9)',
-  purple: '#704eba',
+  purpleDark: '#704eba',
   purple2: '#845cdb',
   purple2_01: 'rgba(132, 92, 219, 0.01)',
   purple2_10: 'rgba(132, 92, 219, 0.1)',

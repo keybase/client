@@ -253,7 +253,7 @@ const labelStyles = Styles.styleSheetCreate({
   SecondaryDefault: {...commonLabel, color: Styles.globalColors.blue},
   SecondarySuccess: {...commonLabel, color: Styles.globalColors.green},
   SecondaryDanger: {...commonLabel, color: Styles.globalColors.red},
-  SecondaryWallet: {...commonLabel, color: Styles.globalColors.purple},
+  SecondaryWallet: {...commonLabel, color: Styles.globalColors.purpleDark},
   SecondaryDim: {...commonLabel, color: Styles.globalColors.black_50},
 })
 
@@ -270,7 +270,7 @@ const backgroundColorLabelStyles = Styles.styleSheetCreate({
   Primaryblue: {...commonLabel, color: Styles.globalColors.blue},
   Primaryred: {...commonLabel, color: Styles.globalColors.red},
   Primarygreen: {...commonLabel, color: Styles.globalColors.green},
-  Primarypurple: {...commonLabel, color: Styles.globalColors.purple},
+  Primarypurple: {...commonLabel, color: Styles.globalColors.purpleDark},
   Primaryblack: {...commonLabel, color: Styles.globalColors.black},
   Secondary: {...commonLabel, color: Styles.globalColors.white},
 })

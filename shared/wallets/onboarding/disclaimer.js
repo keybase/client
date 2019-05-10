@@ -252,7 +252,7 @@ const styles = Styles.styleSheetCreate({
       minHeight: 40,
     },
   }),
-  buttonLabelStyle: {color: Styles.globalColors.purple},
+  buttonLabelStyle: {color: Styles.globalColors.purpleDark},
   buttonStyle: {backgroundColor: Styles.globalColors.white, width: '100%'},
   container: {
     backgroundColor: Styles.globalColors.purple2,
@@ -276,7 +276,7 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.white,
   },
   labelStyle: {
-    color: Styles.globalColors.purple,
+    color: Styles.globalColors.purpleDark,
   },
   notNowButtonStyle: {width: '100%'},
   scrollView: {

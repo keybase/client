@@ -90,7 +90,7 @@ const ConfirmSend = (props: ConfirmSendProps) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  backgroundColorPurple: {backgroundColor: Styles.globalColors.purple},
+  backgroundColorPurple: {backgroundColor: Styles.globalColors.purpleDark},
   button: {
     marginBottom: Styles.globalMargins.small,
     marginTop: Styles.globalMargins.small,

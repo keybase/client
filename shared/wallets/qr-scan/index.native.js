@@ -74,14 +74,14 @@ const styles = Styles.styleSheetCreate({
   },
   container: {
     alignItems: 'center',
-    backgroundColor: Styles.globalColors.purple,
+    backgroundColor: Styles.globalColors.purpleDark,
   },
   header: {
     backgroundColor: Styles.globalColors.transparent,
     width: '100%',
   },
-  safeAreaViewTop: {backgroundColor: Styles.globalColors.purple, flexGrow: 0},
-  text: { color: Styles.globalColors.white },
+  safeAreaViewTop: {backgroundColor: Styles.globalColors.purpleDark, flexGrow: 0},
+  text: {color: Styles.globalColors.white},
   topContainer: {
     alignItems: 'center',
     flexGrow: 1,
