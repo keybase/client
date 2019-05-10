@@ -29,7 +29,7 @@ export default ({username, theme, style, allowFontScaling, onClick}: Props) => (
 
 const styles = Styles.styleSheetCreate({
   follow: {
-    backgroundColor: Styles.globalColors.green3,
+    backgroundColor: Styles.globalColors.greenLighter,
     borderRadius: 2,
     color: Styles.globalColors.green,
   },

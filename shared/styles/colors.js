@@ -48,7 +48,7 @@ const colors = {
   fastBlank: isIOS ? '#ffffff' : undefined,
   green: '#37BD99',
   green2: '#0E8263',
-  green3: '#E8FAF6',
+  greenLighter: '#E8FAF6',
   grey: '#cccccc',
   lightGrey: '#f0f0f0',
   lightGrey2: '#e6e6e6',

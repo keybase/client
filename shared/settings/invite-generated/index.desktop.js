@@ -69,7 +69,7 @@ const iconStyle = collapseStyles([
 const linkContainerStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  backgroundColor: globalColors.green3,
+  backgroundColor: globalColors.greenLighter,
   borderRadius,
   height: 32,
   marginTop: globalMargins.tiny,
