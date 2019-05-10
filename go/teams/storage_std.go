@@ -82,7 +82,7 @@ func migrateInvites(mctx libkb.MetaContext, teamID keybase1.TeamID, invites map[
 			continue
 		}
 		categoryStr := invite.Type.Unknown()
-		if mctx.G().GetProofServices().GetServiceType(categoryStr) == nil {
+		if mctx.G().GetProofServices().GetServiceType(mctx.Ctx(), categoryStr) == nil {
 			continue
 		}
 		mctx.Debug("migrateInvites repairing teamID:%v inviteID:%v cat:%v", teamID, invite.Id, categoryStr)
