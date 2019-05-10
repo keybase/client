@@ -33,7 +33,7 @@ func parseFlags() {
 	flag.StringVar(&domain, "d", "", "origin domain for the request (shorthand)")
 	flag.StringVar(&message, "message", "", "message to include")
 	flag.StringVar(&domain, "m", "", "message to include (shorthand)")
-	flag.StringVar(&xdr, "xdr", "", "base64-encoded xdr transaction")
+	flag.StringVar(&xdr, "xdr", "", "base64-encoded xdr transaction envelope")
 
 	flag.Parse()
 
