@@ -18,6 +18,15 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "FolderConflictType",
+      "symbols": [
+        "NONE_0",
+        "IN_CONFLICT_1",
+        "IN_CONFLICT_AND_STUCK_2"
+      ]
+    },
+    {
       "type": "record",
       "name": "Folder",
       "fields": [
@@ -61,6 +70,10 @@
             "Time"
           ],
           "name": "mtime"
+        },
+        {
+          "type": "FolderConflictType",
+          "name": "conflictType"
         }
       ],
       "doc": "Folder represents a favorite top-level folder in kbfs.\n    This type is likely to change significantly as all the various parts are\n    connected and tested."

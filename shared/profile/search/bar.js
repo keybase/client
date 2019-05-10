@@ -63,10 +63,10 @@ const styles = Styles.styleSheetCreate({
   container: {width: '100%'},
   overlay: Styles.platformStyles({
     isElectron: {
+      borderRadius: 5,
       marginLeft: Styles.globalMargins.xsmall,
       marginRight: Styles.globalMargins.xsmall,
       marginTop: -(searchContainerHeight + 8),
-      borderRadius: 5,
     },
   }),
   searchContainer: Styles.platformStyles({
@@ -81,13 +81,13 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       ...Styles.desktopStyles.clickable,
       ...Styles.desktopStyles.windowDraggingClickable,
-      justifyContent: 'flex-start',
-      paddingLeft: Styles.globalMargins.xsmall,
-      width: '100%',
       height: searchContainerHeight,
+      justifyContent: 'flex-start',
       marginLeft: Styles.globalMargins.xsmall,
       marginRight: Styles.globalMargins.xsmall,
       marginTop: -Styles.globalMargins.xtiny,
+      paddingLeft: Styles.globalMargins.xsmall,
+      width: '100%',
     },
     isMobile: {
       flexGrow: 1,

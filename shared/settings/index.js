@@ -11,7 +11,7 @@ import {connect, lifecycle} from '../util/container'
 import {requestIdleCallback} from '../util/idle-callback'
 import {type RouteProps} from '../route-tree/render-route'
 
-type OwnProps = {|children: React.Node, ...$Exact<RouteProps<{}, {}>>|}
+type OwnProps = {|routeSelected: string, children: React.Node, ...$Exact<RouteProps<{}, {}>>|}
 
 const mapStateToProps = (state, {routeSelected}: OwnProps) => ({
   _badgeNumbers: state.notifications.get('navBadges'),

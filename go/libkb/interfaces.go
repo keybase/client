@@ -571,6 +571,7 @@ type DNSContext interface {
 }
 
 type AssertionContext interface {
+	Ctx() context.Context
 	NormalizeSocialName(service string, username string) (string, error)
 }
 
@@ -638,11 +639,11 @@ type ServiceType interface {
 }
 
 type ExternalServicesCollector interface {
-	GetServiceType(n string) ServiceType
-	ListProofCheckers() []string
+	GetServiceType(context.Context, string) ServiceType
+	ListProofCheckers(MetaContext) []string
 	ListServicesThatAcceptNewProofs(MetaContext) []string
-	ListDisplayConfigs() (res []keybase1.ServiceDisplayConfig)
-	SuggestionFoldPriority() int
+	ListDisplayConfigs(MetaContext) (res []keybase1.ServiceDisplayConfig)
+	SuggestionFoldPriority(MetaContext) int
 }
 
 // Generic store for data that is hashed into the merkle root. Used by pvl and

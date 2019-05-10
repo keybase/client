@@ -7,8 +7,6 @@ import {globalColors, globalMargins, globalStyles, platformStyles} from '../../s
 import IconOrAvatar from '../icon-or-avatar'
 import {followingStateToStyle} from '../shared'
 import {getStyle as getTextStyle} from '../../common-adapters/text'
-import flags from '../../util/feature-flags'
-
 import type {UserDetails, Props} from './'
 
 type UserItemProps = UserDetails & {onRemoveUser: (id: string) => void}

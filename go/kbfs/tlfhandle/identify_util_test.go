@@ -68,7 +68,7 @@ func (ti *testIdentifier) Identify(
 
 func (ti *testIdentifier) NormalizeSocialAssertion(
 	ctx context.Context, assertion string) (keybase1.SocialAssertion, error) {
-	socialAssertion, isSocialAssertion := externals.NormalizeSocialAssertionStatic(assertion)
+	socialAssertion, isSocialAssertion := externals.NormalizeSocialAssertionStatic(ctx, assertion)
 	if !isSocialAssertion {
 		return keybase1.SocialAssertion{}, fmt.Errorf("Invalid social assertion")
 	}

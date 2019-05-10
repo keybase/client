@@ -4,7 +4,6 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import DeviceRow from './row/container'
 import * as Styles from '../styles'
-import flags from '../util/feature-flags'
 
 type Item =
   | {key: string, id: Types.DeviceID, type: 'device'}

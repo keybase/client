@@ -5,8 +5,6 @@ import {Box, Text, Icon} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles'
 import {reachabilityReachable} from '../constants/types/rpc-gen'
 import {ignoreDisconnectOverlay} from '../local-debug.desktop'
-import flags from '../util/feature-flags'
-
 import type {Props} from './index'
 
 const Offline = ({reachable, appFocused}: Props) => {

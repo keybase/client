@@ -19,6 +19,7 @@ import (
 
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/status"
 	"golang.org/x/sync/errgroup"
 
 	"strings"
@@ -44,7 +45,7 @@ var kbCtx *libkb.GlobalContext
 var kbChatCtx *globals.ChatContext
 var conn net.Conn
 var startOnce sync.Once
-var logSendContext libkb.LogSendContext
+var logSendContext status.LogSendContext
 var kbfsConfig libkbfs.Config
 
 var initMutex sync.Mutex
@@ -209,14 +210,14 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	kbChatCtx = svc.ChatContextified.ChatG()
 	kbChatCtx.NativeVideoHelper = newVideoHelper(nvh)
 
-	logs := libkb.Logs{
+	logs := status.Logs{
 		Service: config.GetLogFile(),
 		EK:      config.GetEKLogFile(),
 	}
 
 	fmt.Printf("Go: Using config: %+v\n", kbCtx.Env.GetLogFileConfig(config.GetLogFile()))
 
-	logSendContext = libkb.LogSendContext{
+	logSendContext = status.LogSendContext{
 		Contextified: libkb.NewContextified(kbCtx),
 		Logs:         logs,
 	}

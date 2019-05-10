@@ -421,7 +421,7 @@ func (tx *AddMemberTx) AddMemberByUsername(ctx context.Context, username string,
 // If it's an email (or phone) assertion, we assert that it only has one part (and isn't a+b compound).
 // If there is only one factor in the assertion, then that's returned. Otherwise, nil.
 func preprocessAssertion(m libkb.MetaContext, s string) (isServerTrustInvite bool, single libkb.AssertionURL, err error) {
-	a, err := externals.AssertionParseAndOnly(m.G(), s)
+	a, err := externals.AssertionParseAndOnly(m, s)
 	if err != nil {
 		return false, nil, err
 	}

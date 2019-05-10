@@ -9,7 +9,6 @@ export const newRoutes = {
   },
   chatRoot: {
     getScreen: () =>
-      // TODO mark as upgraded when inbox doesn't use routeState anymore
       isMobile ? require('./inbox/container').default : require('./inbox-and-conversation-2.desktop').default,
     upgraded: true,
   },

@@ -94,7 +94,7 @@ func (ph *ProveHandler) StartProof(ctx context.Context, arg keybase1.StartProofA
 
 func (ph *ProveHandler) ValidateUsername(ctx context.Context, arg keybase1.ValidateUsernameArg) error {
 	mctx := libkb.NewMetaContext(ctx, ph.G())
-	serviceType := mctx.G().GetProofServices().GetServiceType(arg.Service)
+	serviceType := mctx.G().GetProofServices().GetServiceType(ctx, arg.Service)
 	if serviceType == nil {
 		return libkb.BadServiceError{Service: arg.Service}
 	}

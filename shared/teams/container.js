@@ -15,7 +15,6 @@ import * as Constants from '../constants/teams'
 import * as WaitingConstants from '../constants/waiting'
 import {type Teamname} from '../constants/types/teams'
 import {memoize} from '../util/memoize'
-import flags from '../util/feature-flags'
 
 type OwnProps = RouteProps<{}, {}>
 

@@ -74,6 +74,7 @@ const setTeamRepoSettings = (_, action) =>
     channelName: action.payload.channelName,
     chatDisabled: action.payload.chatDisabled,
     folder: {
+      conflictType: RPCTypes.favoriteFolderConflictType.none,
       created: false,
       folderType: RPCTypes.favoriteFolderType.team,
       name: action.payload.teamname,

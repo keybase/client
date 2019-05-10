@@ -13,7 +13,7 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  onBack: () => dispatch(RouteTreeGen.createClearModals()) ,
+  onBack: () => dispatch(RouteTreeGen.createClearModals()),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({

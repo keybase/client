@@ -24,7 +24,6 @@ import * as Tracker2Gen from './tracker2-gen'
 import * as Router2Constants from '../constants/router2'
 import {uploadAvatarWaitingKey} from '../constants/profile'
 import {isMobile} from '../constants/platform'
-import {teamsTab} from '../constants/tabs'
 import openSMS from '../util/sms'
 import {convertToError, logError} from '../util/errors'
 

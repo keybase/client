@@ -3249,6 +3249,10 @@ func serializeAndPutConflicts(config Config, db *LevelDb,
 	return db.Put(key, conflictsSerialized, nil)
 }
 
+func isCRStuckFromRecords(conflictsSoFar []conflictRecord) bool {
+	return len(conflictsSoFar) > maxConflictResolutionAttempts
+}
+
 func (cr *ConflictResolver) isStuckWithDbAndConflicts() (
 	db *LevelDb, key []byte, conflictsSoFar []conflictRecord, isStuck bool,
 	err error) {
@@ -3262,8 +3266,7 @@ func (cr *ConflictResolver) isStuckWithDbAndConflicts() (
 		return nil, nil, nil, false, err
 	}
 
-	return db, key, conflictsSoFar,
-		len(conflictsSoFar) > maxConflictResolutionAttempts, nil
+	return db, key, conflictsSoFar, isCRStuckFromRecords(conflictsSoFar), nil
 }
 
 func (cr *ConflictResolver) isStuck() (bool, error) {

@@ -8,8 +8,6 @@ import {getFullRoute} from './router2'
 import {invert} from 'lodash-es'
 import {teamsTab} from './tabs'
 import {memoize} from '../util/memoize'
-import flags from '../util/feature-flags'
-
 import type {Service} from './types/search'
 import type {_RetentionPolicy, RetentionPolicy} from './types/retention-policy'
 import {type TypedState} from './reducer'

@@ -100,7 +100,7 @@ func (h *IdentifyHandler) identifyLite(mctx libkb.MetaContext, arg keybase1.Iden
 	if len(arg.Assertion) > 0 {
 		// It's OK to fail this assertion; it will be off in the case of regular lookups
 		// for users like `t_ellen` without a `type` specification
-		au, parseError = libkb.ParseAssertionURL(mctx.G().MakeAssertionContext(), arg.Assertion, true)
+		au, parseError = libkb.ParseAssertionURL(mctx.G().MakeAssertionContext(mctx), arg.Assertion, true)
 	} else {
 		// empty assertion url required for teams.IdentifyLite
 		au = libkb.AssertionKeybase{}
@@ -198,7 +198,7 @@ func (h *IdentifyHandler) ResolveIdentifyImplicitTeam(ctx context.Context, arg k
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("RIIT")
 	defer mctx.Trace(fmt.Sprintf("IdentifyHandler#ResolveIdentifyImplicitTeam(%+v)", arg), func() error { return err })()
 
-	writerAssertions, readerAssertions, err := externals.ParseAssertionsWithReaders(h.G(), arg.Assertions)
+	writerAssertions, readerAssertions, err := externals.ParseAssertionsWithReaders(h.MetaContext(ctx), arg.Assertions)
 	if err != nil {
 		return res, err
 	}
@@ -388,7 +388,7 @@ func (h *IdentifyHandler) ResolveImplicitTeam(ctx context.Context, arg keybase1.
 func (h *IdentifyHandler) NormalizeSocialAssertion(ctx context.Context, assertion string) (socialAssertion keybase1.SocialAssertion, err error) {
 	ctx = libkb.WithLogTag(ctx, "NSA")
 	defer h.G().CTrace(ctx, fmt.Sprintf("IdentifyHandler#NormalizeSocialAssertion(%s)", assertion), func() error { return err })()
-	socialAssertion, isSocialAssertion := libkb.NormalizeSocialAssertion(h.G().MakeAssertionContext(), assertion)
+	socialAssertion, isSocialAssertion := libkb.NormalizeSocialAssertion(h.G().MakeAssertionContext(h.MetaContext(ctx)), assertion)
 	if !isSocialAssertion {
 		return keybase1.SocialAssertion{}, fmt.Errorf("Invalid social assertion")
 	}

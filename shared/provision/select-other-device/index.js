@@ -2,9 +2,8 @@
 import * as React from 'react'
 import * as Flow from '../../util/flow'
 import * as Types from '../../constants/types/provision'
-import {ListItem2, BackButton, Box2, List, Text, Icon} from '../../common-adapters'
+import {ListItem2, Box2, List, Text, Icon} from '../../common-adapters'
 import {globalMargins, styleSheetCreate, platformStyles, isMobile} from '../../styles'
-import flags from '../../util/feature-flags'
 
 type Props = {|
   devices: Array<Types.Device>,

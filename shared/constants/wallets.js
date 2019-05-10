@@ -633,5 +633,3 @@ export const balanceChangeSign = (delta: Types.PaymentDelta, balanceChange: stri
 export const rootWalletTab = Styles.isMobile ? Tabs.settingsTab : Tabs.walletsTab // tab for wallets
 export const rootWalletPath = [rootWalletTab, ...(Styles.isMobile ? [SettingsConstants.walletsTab] : [])] // path to wallets
 export const walletPath = Styles.isMobile ? rootWalletPath : [...rootWalletPath, 'wallet'] // path to wallet
-
-const walletPathList = I.List(walletPath)
