@@ -17,6 +17,7 @@ const mapStateToProps = (state, ownProps) => {
     _isYou: state.config.username === ownProps.username,
     _roles: state.teams.teamNameToRole,
     _teamShowcase: d.teamShowcase,
+    _youAreInTeams: state.teams.teamnames.count() > 0,
   }
 }
 const mapDispatchToProps = (dispatch, ownProps) => ({
@@ -28,7 +29,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   },
 })
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  onEdit: stateProps._isYou ? dispatchProps.onEdit : null,
+  onEdit: stateProps._isYou && stateProps._youAreInTeams ? dispatchProps.onEdit : null,
   onJoinTeam: dispatchProps.onJoinTeam,
   onViewTeam: dispatchProps.onViewTeam,
   teamMeta: (stateProps._teamShowcase || []).reduce((map, t) => {
