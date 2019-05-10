@@ -52,6 +52,7 @@ type configGetter interface {
 	GetGpgHome() string
 	GetGpgOptions() []string
 	GetGregorDisabled() (bool, bool)
+	GetSecretStorePrimingDisabled() (bool, bool)
 	GetBGIdentifierDisabled() (bool, bool)
 	GetGregorPingInterval() (time.Duration, bool)
 	GetGregorPingTimeout() (time.Duration, bool)

@@ -38,6 +38,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   isSuggestion: false,
   isYours: false, // no edit controls on tracker
   metas: stateProps._metas.map(({color, label}) => ({color, label})),
+  notAUser: false,
   onCopyAddress: () => dispatchProps._onCopyAddress(stateProps.value),
   onCreateProof: null,
   onRecheck: null,

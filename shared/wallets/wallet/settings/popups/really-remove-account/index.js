@@ -12,6 +12,7 @@ type Props = Kb.PropsWithTimer<{|
   onFinish: () => void,
   onCancel: () => void,
   onLoadSecretKey: () => void,
+  onSecretKeySeen: () => void,
 |}>
 
 type State = {
@@ -26,6 +27,9 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
 
   componentDidMount() {
     this.props.onLoadSecretKey()
+  }
+  componentWillUnmount() {
+    this.props.onSecretKeySeen()
   }
 
   copy = () => {

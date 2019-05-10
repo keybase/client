@@ -2107,7 +2107,10 @@ const navigateToThreadRoute = conversationIDKey => {
   if (!flags.useNewRouter) {
     return RouteTreeGen.createNavigateTo({path: Constants.threadRoute})
   }
-
+  if (!isMobile && Router2Constants.getVisibleScreen()?.routeName === 'chatRoot') {
+    // Don't append; we don't want to increase the size of the stack on desktop
+    return
+  }
   return RouteTreeGen.createNavigateAppend({
     path: [{props: {conversationIDKey}, selected: isMobile ? 'chatConversation' : 'chatRoot'}],
   })

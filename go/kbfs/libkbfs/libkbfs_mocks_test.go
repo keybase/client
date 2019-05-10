@@ -896,6 +896,18 @@ func (mr *MockKBFSOpsMockRecorder) AddFavorite(arg0, arg1, arg2 interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddFavorite", reflect.TypeOf((*MockKBFSOps)(nil).AddFavorite), arg0, arg1, arg2)
 }
 
+// AddRootNodeWrapper mocks base method
+func (m *MockKBFSOps) AddRootNodeWrapper(arg0 func(Node) Node) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "AddRootNodeWrapper", arg0)
+}
+
+// AddRootNodeWrapper indicates an expected call of AddRootNodeWrapper
+func (mr *MockKBFSOpsMockRecorder) AddRootNodeWrapper(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddRootNodeWrapper", reflect.TypeOf((*MockKBFSOps)(nil).AddRootNodeWrapper), arg0)
+}
+
 // ClearCachedFavorites mocks base method
 func (m *MockKBFSOps) ClearCachedFavorites(arg0 context.Context) {
 	m.ctrl.T.Helper()
@@ -993,6 +1005,21 @@ func (m *MockKBFSOps) DeleteFavorite(arg0 context.Context, arg1 favorites.Folder
 func (mr *MockKBFSOpsMockRecorder) DeleteFavorite(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFavorite", reflect.TypeOf((*MockKBFSOps)(nil).DeleteFavorite), arg0, arg1)
+}
+
+// FolderConflictStatus mocks base method
+func (m *MockKBFSOps) FolderConflictStatus(arg0 context.Context, arg1 data.FolderBranch) (keybase1.FolderConflictType, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FolderConflictStatus", arg0, arg1)
+	ret0, _ := ret[0].(keybase1.FolderConflictType)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FolderConflictStatus indicates an expected call of FolderConflictStatus
+func (mr *MockKBFSOpsMockRecorder) FolderConflictStatus(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FolderConflictStatus", reflect.TypeOf((*MockKBFSOps)(nil).FolderConflictStatus), arg0, arg1)
 }
 
 // FolderStatus mocks base method

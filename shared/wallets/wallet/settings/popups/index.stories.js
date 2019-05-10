@@ -22,6 +22,7 @@ const reallyProps = {
   onCopyKey: Sb.action('onCopyKey'),
   onFinish: Sb.action('onFinish'),
   onLoadSecretKey: Sb.action('onLoadSecretKey'),
+  onSecretKeySeen: Sb.action('onSecretKeySeen'),
   waiting: false,
 }
 

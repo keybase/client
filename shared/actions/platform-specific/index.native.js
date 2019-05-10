@@ -269,7 +269,7 @@ function* setupNetInfoWatcher() {
     return () => {}
   }, Saga.buffers.sliding(1))
 
-  const toPut = yield Saga.callUntyped(
+  const toPut = yield Saga.callUntyped(() =>
     NetInfo.getConnectionInfo().then(({type}) =>
       ConfigGen.createOsNetworkStatusChanged({isInit: true, online: type !== 'none'})
     )

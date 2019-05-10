@@ -1,13 +1,14 @@
 // @flow
 import {connect, isMobile} from '../../../util/container'
 import {memoize} from '../../../util/memoize'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Constants from '../../../constants/wallets'
 import * as Types from '../../../constants/types/wallets'
 import Header from '.'
 
 const otherUnreadPayments = memoize((map, accID) => !!map.delete(accID).some(Boolean))
 
-type OwnProps = {navigateAppend: (...Array<any>) => any, onBack: () => void}
+type OwnProps = {onBack: () => void}
 
 const mapStateToProps = state => {
   const accountID = Constants.getSelectedAccount(state)
@@ -24,12 +25,14 @@ const mapStateToProps = state => {
 const mapDispatchToProps = (dispatch, ownProps) => ({
   _onReceive: (accountID: Types.AccountID) =>
     dispatch(
-      ownProps.navigateAppend([
-        {
-          props: {accountID},
-          selected: 'receive',
-        },
-      ])
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {accountID},
+            selected: 'receive',
+          },
+        ],
+      })
     ),
 })
 

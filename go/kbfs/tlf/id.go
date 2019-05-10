@@ -67,6 +67,11 @@ func (t Type) String() string {
 	}
 }
 
+// MarshalText implements the encoding.TextMarshaler interface for Type.
+func (t Type) MarshalText() ([]byte, error) {
+	return []byte(t.String()), nil
+}
+
 // PathString returns the string representation of t, when they are used in a
 // KBFS path. This is different from String() where this one returns 'team'
 // instead of 'singleTeam' for SingleTeam.

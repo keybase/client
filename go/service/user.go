@@ -638,7 +638,7 @@ func (h *UserHandler) CanLogout(ctx context.Context, sessionID int) (res keybase
 		return keybase1.CanLogoutRes{
 			CanLogout:     false,
 			SetPassphrase: true,
-			Reason:        "You signed up without a password and need to set a password first.",
+			Reason:        "You signed up without a password and need to set a password first",
 		}, nil
 	}
 

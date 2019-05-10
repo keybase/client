@@ -501,13 +501,14 @@ func (t *TestPgpUI) Finished(context.Context, int) error {
 }
 
 func TestPGPDecryptWithSyncedKey(t *testing.T) {
-	tc := SetupEngineTest(t, "pgpg")
-	u := createFakeUserWithPGPOnly(t, tc)
+	tc0 := SetupEngineTest(t, "pgpg")
+	defer tc0.Cleanup()
+
+	u := createFakeUserWithPGPOnly(t, tc0)
 	t.Log("Created fake user with PGP synced only")
-	defer tc.Cleanup()
 
 	// find recipient key
-	ur, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, u.Username))
+	ur, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc0.G, u.Username))
 	require.NoError(t, err, "loaded the user")
 	rkeys := ur.GetActivePGPKeys(false)
 	require.True(t, len(rkeys) > 0, "recipient has no active pgp keys")
@@ -520,11 +521,10 @@ func TestPGPDecryptWithSyncedKey(t *testing.T) {
 	require.NoError(t, err, "pgp encryption failed")
 	t.Logf("encrypted data: %x", mid.Bytes())
 
-	Logout(tc)
-	tc.Cleanup()
+	Logout(tc0)
 
 	// redo SetupEngineTest to get a new home directory...should look like a new device.
-	tc = SetupEngineTest(t, "login")
+	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
 	uis := libkb.UIs{

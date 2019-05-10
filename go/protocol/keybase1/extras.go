@@ -2742,3 +2742,30 @@ func (c ContactComponent) FormatDisplayLabel(addLabel bool) string {
 	}
 	return c.ValueString()
 }
+
+func (fct FolderConflictType) MarshalText() ([]byte, error) {
+	switch fct {
+	case FolderConflictType_NONE:
+		return []byte("none"), nil
+	case FolderConflictType_IN_CONFLICT:
+		return []byte("in conflict"), nil
+	case FolderConflictType_IN_CONFLICT_AND_STUCK:
+		return []byte("in conflict and stuck"), nil
+	default:
+		return []byte(fmt.Sprintf("unknown conflict type: %d", fct)), nil
+	}
+}
+
+func (fct *FolderConflictType) UnmarshalText(text []byte) error {
+	switch string(text) {
+	case "none":
+		*fct = FolderConflictType_NONE
+	case "in conflict":
+		*fct = FolderConflictType_IN_CONFLICT
+	case "in conflict and stuck":
+		*fct = FolderConflictType_IN_CONFLICT_AND_STUCK
+	default:
+		return errors.New(fmt.Sprintf("Unknown conflict type: %s", text))
+	}
+	return nil
+}

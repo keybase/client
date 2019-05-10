@@ -21,7 +21,7 @@ func TestSecretUI(t *testing.T) {
 	tc1 := cloneContext(tc)
 	defer tc1.Cleanup()
 	tc2 := cloneContext(tc)
-	defer tc1.Cleanup()
+	defer tc2.Cleanup()
 
 	stopCh := make(chan error)
 	svc := service.NewService(tc.G, false)

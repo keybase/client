@@ -27,7 +27,10 @@ class ProfileSearch extends React.PureComponent<Props, State> {
       >
         <Kb.ClickableBox
           onClick={this._onShow}
-          style={Styles.collapseStyles([styles.searchContainer, this.state.show && {opacity: 0}])}
+          style={Styles.collapseStyles([
+            styles.searchContainer,
+            this.state.show && !flags.useNewRouter && {opacity: 0},
+          ])}
         >
           <Kb.Box2 direction="horizontal" alignItems="center">
             <Kb.Icon
@@ -49,7 +52,8 @@ class ProfileSearch extends React.PureComponent<Props, State> {
           visible={this.state.show}
           onHidden={this._onHide}
           attachTo={this._getAttachmentRef}
-          position={flags.useNewRouter ? 'bottom left' : 'bottom center'}
+          matchDimension={flags.useNewRouter}
+          position={flags.useNewRouter ? undefined : 'top center'}
           positionFallbacks={[]}
           style={styles.overlay}
         >
@@ -60,23 +64,27 @@ class ProfileSearch extends React.PureComponent<Props, State> {
   }
 }
 
+const searchContainerHeight = flags.useNewRouter ? 32 : 24
 const styles = Styles.styleSheetCreate({
   colorWhite: {
     color: Styles.globalColors.white_75,
   },
   container: {
-    ...(flags.useNewRouter ? {alignSelf: 'flex-end', flexGrow: 1} : {alignSelf: 'center'}),
+    ...(flags.useNewRouter ? {width: '100%'} : {alignSelf: 'center'}),
   },
   overlay: Styles.platformStyles({
     isElectron: {
-      ...Styles.desktopStyles.boxShadow,
-      ...Styles.globalStyles.flexBoxColumn,
-      ...Styles.desktopStyles.windowDraggingClickable,
-      ...(flags.useNewRouter ? {marginRight: 12} : {}),
-      alignSelf: 'center',
+      ...(flags.useNewRouter
+        ? {
+            marginLeft: Styles.globalMargins.xsmall,
+            marginRight: Styles.globalMargins.xsmall,
+            marginTop: -(searchContainerHeight + 8),
+          }
+        : {
+            marginTop: -searchContainerHeight,
+            minWidth: 400,
+          }),
       borderRadius: 5,
-      marginTop: -24,
-      minWidth: 400,
     },
   }),
   searchContainer: Styles.platformStyles({
@@ -91,11 +99,17 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       ...Styles.desktopStyles.clickable,
       ...Styles.desktopStyles.windowDraggingClickable,
-      height: 24,
-      marginLeft: flags.useNewRouter ? 'auto' : Styles.globalMargins.small,
+      ...(flags.useNewRouter
+        ? {
+            justifyContent: 'flex-start',
+            paddingLeft: Styles.globalMargins.xsmall,
+            width: '100%',
+          }
+        : {width: 240}),
+      height: searchContainerHeight,
+      marginLeft: flags.useNewRouter ? Styles.globalMargins.xsmall : Styles.globalMargins.small,
       marginRight: flags.useNewRouter ? Styles.globalMargins.xsmall : Styles.globalMargins.small,
-      marginTop: flags.useNewRouter ? 0 : Styles.globalMargins.xsmall,
-      width: 240,
+      marginTop: flags.useNewRouter ? -Styles.globalMargins.xtiny : Styles.globalMargins.xsmall,
     },
     isMobile: {
       flexGrow: 1,
