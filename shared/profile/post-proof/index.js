@@ -156,7 +156,7 @@ class PostProof extends React.Component<Props, State> {
               platform={props.platform}
               style={styles.center}
               overlay="icon-proof-unfinished"
-              overlayColor={Styles.globalColors.grey}
+              overlayColor={Styles.globalColors.greyDark}
             />
             <>
               <Kb.Text center={true} style={styles.blue} type="Header">

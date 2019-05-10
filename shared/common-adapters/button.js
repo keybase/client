@@ -232,7 +232,7 @@ const containerStyles = Styles.styleSheetCreate({
   PrimarySuccess: {...common, backgroundColor: Styles.globalColors.green},
   PrimaryDanger: {...common, backgroundColor: Styles.globalColors.red},
   PrimaryWallet: {...common, backgroundColor: Styles.globalColors.purple},
-  PrimaryDim: {...common, backgroundColor: Styles.globalColors.lightGrey2},
+  PrimaryDim: {...common, backgroundColor: Styles.globalColors.grey},
   SecondaryDefault: commonSecondaryWhiteBg,
   SecondarySuccess: commonSecondaryWhiteBg,
   SecondaryDanger: commonSecondaryWhiteBg,

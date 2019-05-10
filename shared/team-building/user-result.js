@@ -228,7 +228,7 @@ const styles = Styles.styleSheetCreate({
   actionButton: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.rounded,
-      backgroundColor: Styles.globalColors.lightGrey2,
+      backgroundColor: Styles.globalColors.grey,
       height: ActionButtonSize,
       marginLeft: Styles.globalMargins.tiny,
       width: ActionButtonSize,

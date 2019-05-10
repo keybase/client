@@ -352,7 +352,7 @@ class EditAvatar extends React.Component<_Props, State> {
             {!this.state.loading && !this.state.hasPreview && (
               <Kb.Icon
                 className="icon"
-                color={Styles.globalColors.grey}
+                color={Styles.globalColors.greyDark}
                 fontSize={48}
                 style={Kb.iconCastPlatformStyles(styles.icon)}
                 type="iconfont-camera"
@@ -395,14 +395,14 @@ class EditAvatar extends React.Component<_Props, State> {
 const HoverBox = Styles.styled(Kb.Box)({
   '&.filled': {
     backgroundColor: Styles.globalColors.white,
-    borderColor: Styles.globalColors.lightGrey2,
+    borderColor: Styles.globalColors.grey,
     borderStyle: 'solid',
     cursor: '-webkit-grab',
   },
   '&.filled:active': {cursor: '-webkit-grabbing'},
   '&.filled:hover': {
     backgroundColor: Styles.globalColors.white,
-    borderColor: Styles.globalColors.lightGrey2,
+    borderColor: Styles.globalColors.grey,
   },
   '&:hover': {borderColor: Styles.globalColors.black_50},
   '&:hover .icon': {color: Styles.globalColors.black_50},
@@ -411,8 +411,8 @@ const HoverBox = Styles.styled(Kb.Box)({
     borderColor: Styles.globalColors.blue_60,
   },
   '.dropping & .icon': {color: Styles.globalColors.blue_60},
-  backgroundColor: Styles.globalColors.lightGrey2,
-  borderColor: Styles.globalColors.grey,
+  backgroundColor: Styles.globalColors.grey,
+  borderColor: Styles.globalColors.greyDark,
   borderStyle: 'dotted',
   borderWidth: AVATAR_BORDER_SIZE,
   cursor: 'pointer',
@@ -463,7 +463,7 @@ const styles = Styles.styleSheetCreate({
     top: '50%',
   },
   spinnerContainer: {
-    backgroundColor: Styles.globalColors.lightGrey2,
+    backgroundColor: Styles.globalColors.grey,
     height: '100%',
     width: '100%',
   },

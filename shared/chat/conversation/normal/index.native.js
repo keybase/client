@@ -12,7 +12,7 @@ const Offline = () => (
   <Box
     style={{
       ...globalStyles.flexBoxCenter,
-      backgroundColor: globalColors.grey,
+      backgroundColor: globalColors.greyDark,
       paddingBottom: globalMargins.tiny,
       paddingLeft: globalMargins.medium,
       paddingRight: globalMargins.medium,

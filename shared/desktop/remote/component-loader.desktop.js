@@ -77,7 +77,7 @@ const styles = {
     width: '100%',
   },
   loading: {
-    backgroundColor: Styles.globalColors.grey,
+    backgroundColor: Styles.globalColors.greyDark,
   },
 }
 

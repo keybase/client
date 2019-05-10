@@ -14,7 +14,7 @@ const load = () => {
           <Box style={{...globalStyles.flexBoxColumn, alignItems: 'flex-end', width: '50%'}}>
             <Box
               style={{
-                borderColor: globalColors.grey,
+                borderColor: globalColors.greyDark,
                 borderStyle: 'dashed',
                 borderWidth: 2,
                 height: globalMargins[size],

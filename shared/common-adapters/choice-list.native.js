@@ -73,7 +73,7 @@ const styleIconContainer = active => ({
   borderRadius: (globalMargins.large + globalMargins.medium) / 2,
   height: globalMargins.large + globalMargins.medium,
   justifyContent: 'center',
-  ...(active ? {} : {backgroundColor: globalColors.lightGrey}),
+  ...(active ? {} : {backgroundColor: globalColors.greyLight}),
   width: globalMargins.large + globalMargins.medium,
 })
 

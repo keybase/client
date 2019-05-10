@@ -139,12 +139,12 @@ const circleCommon = {
 const styles = Styles.styleSheetCreate({
   circleClosed: {
     ...circleCommon,
-    backgroundColor: Styles.globalColors.lightGrey2,
+    backgroundColor: Styles.globalColors.grey,
     borderColor: Styles.globalColors.white,
   },
   circleOpen: {
     ...circleCommon,
-    borderColor: Styles.globalColors.lightGrey2,
+    borderColor: Styles.globalColors.grey,
   },
   invisible: {opacity: 0},
   marker: {
@@ -158,12 +158,12 @@ const styles = Styles.styleSheetCreate({
   subDesc: {color: Styles.globalColors.black},
   timelineLabel: {alignItems: 'flex-start'},
   timelineLineBottom: {
-    backgroundColor: Styles.globalColors.lightGrey2,
+    backgroundColor: Styles.globalColors.grey,
     flex: 1,
     width: 2,
   },
   timelineLineTop: {
-    backgroundColor: Styles.globalColors.lightGrey2,
+    backgroundColor: Styles.globalColors.grey,
     height: 6,
     width: 2,
   },

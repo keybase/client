@@ -167,7 +167,7 @@ const styles = Styles.styleSheetCreate({
   whitelist: Styles.platformStyles({
     common: {
       alignSelf: 'flex-start',
-      borderColor: Styles.globalColors.lightGrey,
+      borderColor: Styles.globalColors.greyLight,
       borderRadius: Styles.borderRadius,
       borderStyle: 'solid',
       borderWidth: 1,

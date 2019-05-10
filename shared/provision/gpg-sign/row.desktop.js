@@ -82,7 +82,7 @@ const stylesIcon = {
 }
 const stylesIconBackground = {
   ...transition('opacity'),
-  backgroundColor: globalColors.lightGrey,
+  backgroundColor: globalColors.greyLight,
   borderRadius: 40,
   left: 0,
   maxHeight: 80,

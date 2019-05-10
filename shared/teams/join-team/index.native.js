@@ -31,7 +31,7 @@ const EntryComponent = ({errorText, name, onNameChange, onSubmit}: Props) => (
           style={collapseStyles([
             styles.input,
             {
-              borderColor: errorText ? globalColors.red : globalColors.grey,
+              borderColor: errorText ? globalColors.red : globalColors.greyDark,
             },
           ])}
         />

@@ -51,7 +51,7 @@ const rawCSS = `
 
   .cl-icon-container {
     transition: 0.5s background;
-    background: ${globalColors.lightGrey};
+    background: ${globalColors.greyLight};
     border-radius: 50%;
   }
   .cl-entry:hover .cl-icon-container {

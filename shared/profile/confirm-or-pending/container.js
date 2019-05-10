@@ -24,7 +24,7 @@ const mapStateToProps = state => {
   return {
     isPending,
     platform: profile.platform,
-    platformIconOverlayColor: isGood ? globalColors.green : globalColors.grey,
+    platformIconOverlayColor: isGood ? globalColors.green : globalColors.greyDark,
     username: profile.username,
   }
 }

@@ -87,7 +87,7 @@ const strikeStyle = Styles.platformStyles({
 
 const quoteStyle = Styles.platformStyles({
   common: {
-    borderLeftColor: Styles.globalColors.lightGrey2,
+    borderLeftColor: Styles.globalColors.grey,
     borderLeftWidth: 3,
     borderStyle: 'solid',
   },

@@ -49,7 +49,7 @@ class EnterUsername extends React.Component<Props, State> {
             style={styles.centered}
             platform={this.props.platform}
             overlay={'icon-proof-unfinished'}
-            overlayColor={Styles.globalColors.grey}
+            overlayColor={Styles.globalColors.greyDark}
           />
           <Kb.Input
             autoFocus={true}

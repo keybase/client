@@ -38,7 +38,7 @@ const background = props => (
       {
         backgroundColor: props.loaded
           ? Styles.globalColors.white
-          : props.loadingColor || Styles.globalColors.lightGrey,
+          : props.loadingColor || Styles.globalColors.greyLight,
         borderRadius: props.borderRadius,
       },
     ]}
