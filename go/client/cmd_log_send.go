@@ -63,8 +63,10 @@ func (c *CmdLogSend) Run() error {
 		if err := c.confirm(); err != nil {
 			return err
 		}
-		if err := c.getFeedback(); err != nil {
-			return err
+		if c.feedback == "" {
+			if err := c.getFeedback(); err != nil {
+				return err
+			}
 		}
 	}
 
