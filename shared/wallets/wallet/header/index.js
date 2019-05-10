@@ -9,12 +9,12 @@ import MaybeSwitcher from './maybe-switcher'
 type Props = {|
   accountID: Types.AccountID,
   isDefaultWallet: boolean,
-  unreadPayments: boolean,
-  onReceive: () => void,
-  onBack: ?() => void,
   keybaseUser: string,
-  walletName: ?string,
+  onBack: ?() => void,
+  onReceive: () => void,
   thisDeviceIsLockedOut: boolean,
+  unreadPayments: boolean,
+  walletName: ?string,
 |}
 
 const Header = (props: Props) => {
@@ -86,7 +86,7 @@ const Header = (props: Props) => {
         />
         <DropdownButton />
       </Kb.Box2>
-      {props.thisDeviceIsLockedOut && Styles.isMobile && (
+      {props.thisDeviceIsLockedOut && (
         <Kb.Text type="BodySmall">You can only send from a mobile device more than 7 days old.</Kb.Text>
       )}
     </Kb.Box2>
