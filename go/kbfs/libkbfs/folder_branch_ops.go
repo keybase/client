@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"fmt"
+	"io"
 	"math/rand"
 	"os"
 	stdpath "path"
@@ -5176,6 +5177,12 @@ func (fbo *folderBranchOps) Read(
 		defer fsFile.Close()
 		fbo.vlog.CLogf(ctx, libkb.VLog1, "Reading from an FS file")
 		nInt, err := fsFile.ReadAt(dest, off)
+		if nInt == 0 && errors.Cause(err) == io.EOF {
+			// The billy interfaces requires an EOF when you start
+			// reading past the end of a file, but the libkbfs
+			// interface wants a nil error in that case.
+			err = nil
+		}
 		return int64(nInt), err
 	}
 
