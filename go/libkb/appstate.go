@@ -74,13 +74,26 @@ func (a *MobileAppState) State() keybase1.MobileAppState {
 type DesktopAppState struct {
 	Contextified
 	sync.Mutex
-	provider  rpc.Transporter
-	suspended bool
-	locked    bool
+	provider         rpc.Transporter
+	suspended        bool
+	locked           bool
+	updateSuspendChs []chan bool
 }
 
 func NewDesktopAppState(g *GlobalContext) *DesktopAppState {
 	return &DesktopAppState{Contextified: NewContextified(g)}
+}
+
+func (a *DesktopAppState) NextSuspendUpdate(lastState *bool) chan bool {
+	a.Lock()
+	defer a.Unlock()
+	ch := make(chan bool, 1)
+	if lastState != nil && *lastState != a.suspended {
+		ch <- a.suspended
+	} else {
+		a.updateSuspendChs = append(a.updateSuspendChs, ch)
+	}
+	return ch
 }
 
 // event from power monitor
@@ -102,6 +115,10 @@ func (a *DesktopAppState) Update(mctx MetaContext, event string, provider rpc.Tr
 		a.suspended = false
 		a.locked = false
 	}
+	for _, ch := range a.updateSuspendChs {
+		ch <- a.suspended
+	}
+	a.updateSuspendChs = nil
 }
 
 func (a *DesktopAppState) Disconnected(provider rpc.Transporter) {

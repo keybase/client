@@ -266,13 +266,35 @@ func (g *gregorHandler) Init() {
 	go g.syncReplayThread()
 }
 
+const (
+	monitorConnect int = iota
+	monitorDisconnect
+	monitorNoop
+)
+
 func (g *gregorHandler) monitorAppState() {
 	// Wait for state updates and react accordingly
 	state := keybase1.MobileAppState_FOREGROUND
+	suspended := false
 	for {
-		state = <-g.G().MobileAppState.NextUpdate(&state)
-		switch state {
-		case keybase1.MobileAppState_FOREGROUND, keybase1.MobileAppState_BACKGROUNDACTIVE:
+		monitorAction := monitorNoop
+		select {
+		case mobileState := <-g.G().MobileAppState.NextUpdate(&state):
+			switch mobileState {
+			case keybase1.MobileAppState_FOREGROUND, keybase1.MobileAppState_BACKGROUNDACTIVE:
+				monitorAction = monitorConnect
+			case keybase1.MobileAppState_BACKGROUND, keybase1.MobileAppState_INACTIVE:
+				monitorAction = monitorDisconnect
+			}
+		case suspended := <-g.G().DesktopAppState.NextSuspendUpdate(&suspended):
+			if !suspended {
+				monitorAction = monitorConnect
+			} else {
+				monitorAction = monitorDisconnect
+			}
+		}
+		switch monitorAction {
+		case monitorConnect:
 			// Make sure the URI is set before attempting this (possible it isn't in a race)
 			if g.uri != nil {
 				g.chatLog.Debug(context.Background(), "foregrounded, reconnecting")
@@ -280,7 +302,7 @@ func (g *gregorHandler) monitorAppState() {
 					g.chatLog.Debug(context.Background(), "error reconnecting: %s", err)
 				}
 			}
-		case keybase1.MobileAppState_BACKGROUND, keybase1.MobileAppState_INACTIVE:
+		case monitorDisconnect:
 			g.chatLog.Debug(context.Background(), "backgrounded, shutting down connection")
 			g.Shutdown()
 		}
