@@ -1,22 +1,23 @@
 // @flow
-import {connect, compose, type RouteProps} from '../../util/container'
+import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {getFullname} from '../../constants/users'
 import openURL from '../../util/open-url'
 import TransactionDetails from '.'
 import {anyWaiting} from '../../constants/waiting'
 
-type OwnProps = RouteProps<{accountID: Types.AccountID, paymentID: Types.PaymentID}, {}>
+type OwnProps = Container.RouteProps<{accountID: Types.AccountID, paymentID: Types.PaymentID}, {}>
 
 const mapStateToProps = (state, ownProps) => {
   const you = state.config.username || ''
-  const accountID = ownProps.routeProps.get('accountID')
-  const paymentID = ownProps.routeProps.get('paymentID')
+  const accountID = Container.getRouteProps(ownProps, 'accountID')
+  const paymentID = Container.getRouteProps(ownProps, 'paymentID')
   const _transaction = Constants.getPayment(state, accountID, paymentID)
   const yourInfoAndCounterparty = Constants.paymentToYourInfoAndCounterparty(_transaction)
   // Transaction can briefly be empty when status changes
@@ -39,17 +40,22 @@ const mapStateToProps = (state, ownProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
-  navigateUp: () => dispatch(navigateUp()),
+const mapDispatchToProps = (dispatch, ownProps) => ({
+  navigateUp: () => dispatch(RouteTreeGen.createNavigateUp()),
   onCancelPayment: () =>
-    dispatch(WalletsGen.createCancelPayment({paymentID: routeProps.get('paymentID'), showAccount: true})),
+    dispatch(
+      WalletsGen.createCancelPayment({
+        paymentID: Container.getRouteProps(ownProps, 'paymentID'),
+        showAccount: true,
+      })
+    ),
   onChat: (username: string) =>
     dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'transaction'})),
   onLoadPaymentDetail: () =>
     dispatch(
       WalletsGen.createLoadPaymentDetail({
-        accountID: routeProps.get('accountID'),
-        paymentID: routeProps.get('paymentID'),
+        accountID: Container.getRouteProps(ownProps, 'accountID'),
+        paymentID: Container.getRouteProps(ownProps, 'paymentID'),
       })
     ),
   onShowProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
@@ -95,8 +101,8 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
-export default compose(
-  connect<OwnProps, _, _, _, _>(
+export default Container.compose(
+  Container.connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps

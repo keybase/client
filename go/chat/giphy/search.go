@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -24,6 +25,26 @@ const MediaHost = "media.giphy.com"
 const Host = "giphy.com"
 const giphyProxy = "https://giphy-proxy.core.keybaseapi.com"
 
+func getPreferredPreview(mctx libkb.MetaContext, img gifImage) (string, bool, error) {
+	isMobile := mctx.G().GetEnv().GetAppType() == libkb.MobileAppType
+	if len(img.MP4) == 0 && len(img.URL) == 0 {
+		return "", false, errors.New("no preview")
+	}
+	if len(img.MP4) == 0 {
+		return img.URL, false, nil
+	}
+	if len(img.URL) == 0 {
+		if isMobile {
+			return "", false, errors.New("need gif for mobile")
+		}
+		return img.MP4, true, nil
+	}
+	if isMobile {
+		return img.URL, false, nil
+	}
+	return img.MP4, true, nil
+}
+
 func formatResponse(mctx libkb.MetaContext, response giphyResponse, srv types.AttachmentURLSrv) (res []chat1.GiphySearchResult) {
 	for _, obj := range response.Data {
 		for typ, img := range obj.Images {
@@ -35,7 +56,8 @@ func formatResponse(mctx libkb.MetaContext, response giphyResponse, srv types.At
 			if typ != "fixed_height" {
 				continue
 			}
-			if len(img.MP4) == 0 {
+			previewURL, isVideo, err := getPreferredPreview(mctx, img)
+			if err != nil {
 				continue
 			}
 			height, err := strconv.Atoi(img.Height)
@@ -48,10 +70,10 @@ func formatResponse(mctx libkb.MetaContext, response giphyResponse, srv types.At
 			}
 			res = append(res, chat1.GiphySearchResult{
 				TargetUrl:      obj.URL,
-				PreviewUrl:     srv.GetGiphyURL(mctx.Ctx(), img.MP4),
+				PreviewUrl:     srv.GetGiphyURL(mctx.Ctx(), previewURL),
 				PreviewHeight:  height,
 				PreviewWidth:   width,
-				PreviewIsVideo: true,
+				PreviewIsVideo: isVideo,
 			})
 		}
 	}

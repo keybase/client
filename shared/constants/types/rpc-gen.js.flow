@@ -1454,6 +1454,12 @@ export const ctlExitCode = {
   restart: 4,
 }
 
+export const favoriteFolderConflictType = {
+  none: 0,
+  inConflict: 1,
+  inConflictAndStuck: 2,
+}
+
 export const favoriteFolderType = {
   unknown: 0,
   private: 1,
@@ -2238,7 +2244,12 @@ export type FileType =
 
 export type FindNextMDResponse = $ReadOnly<{kbfsRoot: MerkleRoot, merkleNodes?: ?Array<Bytes>, rootSeqno: Seqno, rootHash: HashMeta}>
 export type FirstStepResult = $ReadOnly<{valPlusTwo: Int}>
-export type Folder = $ReadOnly<{name: String, private: Boolean, created: Boolean, folderType: FolderType, team_id /* teamID */?: ?TeamID, reset_members /* resetMembers */?: ?Array<User>, mtime?: ?Time}>
+export type Folder = $ReadOnly<{name: String, private: Boolean, created: Boolean, folderType: FolderType, team_id /* teamID */?: ?TeamID, reset_members /* resetMembers */?: ?Array<User>, mtime?: ?Time, conflictType: FolderConflictType}>
+export type FolderConflictType =
+  | 0 // NONE_0
+  | 1 // IN_CONFLICT_1
+  | 2 // IN_CONFLICT_AND_STUCK_2
+
 export type FolderSyncConfig = $ReadOnly<{mode: FolderSyncMode, paths?: ?Array<String>}>
 export type FolderSyncConfigAndStatus = $ReadOnly<{config: FolderSyncConfig, status: FolderSyncStatus}>
 export type FolderSyncConfigAndStatusWithFolder = $ReadOnly<{folder: Folder, config: FolderSyncConfig, status: FolderSyncStatus}>

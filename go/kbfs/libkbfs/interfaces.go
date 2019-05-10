@@ -428,6 +428,11 @@ type KBFSOps interface {
 	// updated (to eliminate the need for polling this method).
 	FolderStatus(ctx context.Context, folderBranch data.FolderBranch) (
 		FolderBranchStatus, <-chan StatusUpdate, error)
+	// FolderConflictStatus is a lightweight method to return the
+	// conflict status of a particular folder/branch.  (The conflict
+	// status is also available in `FolderBranchStatus`.)
+	FolderConflictStatus(ctx context.Context, folderBranch data.FolderBranch) (
+		keybase1.FolderConflictType, error)
 	// Status returns the status of KBFS, along with a channel that will be
 	// closed when the status has been updated (to eliminate the need for
 	// polling this method). Note that this channel only applies to
@@ -541,6 +546,11 @@ type KBFSOps interface {
 	SetSyncConfig(
 		ctx context.Context, tlfID tlf.ID, config keybase1.FolderSyncConfig) (
 		<-chan error, error)
+
+	// AddRootNodeWrapper adds a new root node wrapper for every
+	// existing TLF.  Any Nodes that have already been returned by
+	// `KBFSOps` won't use these wrappers.
+	AddRootNodeWrapper(func(Node) Node)
 }
 
 type gitMetadataPutter interface {

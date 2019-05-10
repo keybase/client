@@ -433,7 +433,7 @@ def testGo(prefix, packagesToTest) {
           timeout: '3m',
         ],
         'github.com/keybase/client/go/libkb': [
-          timeout: '1m',
+          timeout: '5m',
         ],
         'github.com/keybase/client/go/install': [
           timeout: '30s',

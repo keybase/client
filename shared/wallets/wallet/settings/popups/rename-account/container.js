@@ -1,16 +1,17 @@
 // @flow
 import {capitalize} from 'lodash-es'
-import {connect, type RouteProps} from '../../../../../util/container'
+import * as Container from '../../../../../util/container'
 import * as Constants from '../../../../../constants/wallets'
 import * as Types from '../../../../../constants/types/wallets'
 import * as WalletsGen from '../../../../../actions/wallets-gen'
+import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import {anyWaiting} from '../../../../../constants/waiting'
 import RenameAccount from '.'
 
-type OwnProps = RouteProps<{accountID: Types.AccountID}, {}>
+type OwnProps = Container.RouteProps<{accountID: Types.AccountID}, {}>
 
-const mapStateToProps = (state, {routeProps}) => {
-  const accountID = routeProps.get('accountID')
+const mapStateToProps = (state, ownProps) => {
+  const accountID = Container.getRouteProps(ownProps, 'accountID')
   const selectedAccount = Constants.getAccount(state, accountID)
   return {
     accountID,
@@ -26,17 +27,17 @@ const mapStateToProps = (state, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp}) => ({
+const mapDispatchToProps = dispatch => ({
   _onChangeAccountName: (accountID: Types.AccountID, name: string) =>
     dispatch(WalletsGen.createChangeAccountName({accountID, name})),
-  onCancel: () => dispatch(navigateUp()),
+  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
   onClearErrors: () => dispatch(WalletsGen.createClearErrors()),
   onDone: (name: string) => {
     dispatch(WalletsGen.createValidateAccountName({name}))
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps) => ({
   error: capitalize(stateProps.error),
   initialName: stateProps.initialName,
   nameValidationState: stateProps.nameValidationState,
@@ -48,7 +49,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   waiting: stateProps.waiting,
 })
 
-export default connect<OwnProps, _, _, _, _>(
+export default Container.connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps
