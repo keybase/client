@@ -26,6 +26,7 @@ const Host = "giphy.com"
 const giphyProxy = "https://giphy-proxy.core.keybaseapi.com"
 
 func getPreferredPreview(mctx libkb.MetaContext, img gifImage) (string, bool, error) {
+	isMobile := mctx.G().GetEnv().GetAppType() == libkb.MobileAppType
 	if len(img.MP4) == 0 && len(img.URL) == 0 {
 		return "", false, errors.New("no preview")
 	}
@@ -33,9 +34,12 @@ func getPreferredPreview(mctx libkb.MetaContext, img gifImage) (string, bool, er
 		return img.URL, false, nil
 	}
 	if len(img.URL) == 0 {
+		if isMobile {
+			return "", false, errors.New("need gif for mobile")
+		}
 		return img.MP4, true, nil
 	}
-	if mctx.G().GetEnv().GetAppType() == libkb.MobileAppType {
+	if isMobile {
 		return img.URL, false, nil
 	}
 	return img.MP4, true, nil
