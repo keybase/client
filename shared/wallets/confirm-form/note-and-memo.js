@@ -40,9 +40,10 @@ const NoteAndMemo = (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  bodyText: {
-    color: Styles.globalColors.black,
-  },
+  bodyText: Styles.platformStyles({
+    common: {color: Styles.globalColors.black},
+    isElectron: {wordBreak: 'break-word'},
+  }),
   headingText: {
     color: Styles.globalColors.blue,
     marginBottom: Styles.globalMargins.xtiny,

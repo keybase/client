@@ -45,7 +45,7 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       flex: 1,
-      minHeight: 144,
+      minHeight: 160,
     },
     isMobile: {
       flexBasis: 'auto',
