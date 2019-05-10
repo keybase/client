@@ -225,20 +225,7 @@ func GetFullStatus(mctx libkb.MetaContext) (status *keybase1.FullStatus, err err
 	}
 
 	// set log paths
-	serviceLogPath, ok := mctx.G().Env.GetEffectiveLogFile()
-	if ok && serviceLogPath != "" {
-		serviceLogPath, err = filepath.Abs(serviceLogPath)
-		if err != nil {
-			mctx.Debug("Unable to get abspath for effective log file %v", err)
-			serviceLogPath = ""
-		} else {
-			status.Service.Log = serviceLogPath
-		}
-	}
-
-	if serviceLogPath == "" {
-		status.Service.Log = filepath.Join(status.ExtStatus.LogDir, libkb.ServiceLogFileName)
-	}
+	status.Service.Log = getServiceLog(mctx, status.ExtStatus.LogDir)
 	status.Service.EkLog = filepath.Join(status.ExtStatus.LogDir, libkb.EKLogFileName)
 	status.Kbfs.Log = filepath.Join(status.ExtStatus.LogDir, libkb.KBFSLogFileName)
 	status.Desktop.Log = filepath.Join(status.ExtStatus.LogDir, libkb.DesktopLogFileName)

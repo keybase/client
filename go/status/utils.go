@@ -53,6 +53,24 @@ func MergeStatusJSON(obj interface{}, key, status string) string {
 	return string(fullStatus)
 }
 
+// getServiceLog uses the EffectiveLogPath if available and falls back to the
+// ServiceLogFileName otherwise.
+func getServiceLog(mctx libkb.MetaContext, logDir string) string {
+	serviceLogPath, ok := mctx.G().Env.GetEffectiveLogFile()
+	if ok && serviceLogPath != "" {
+		var err error
+		serviceLogPath, err = filepath.Abs(serviceLogPath)
+		if err != nil {
+			mctx.Debug("Unable to get abspath for effective log file %v", err)
+			serviceLogPath = ""
+		}
+	}
+	if serviceLogPath == "" {
+		return filepath.Join(logDir, libkb.ServiceLogFileName)
+	}
+	return serviceLogPath
+}
+
 func logFilesFromStatus(g *libkb.GlobalContext, fstatus *keybase1.FullStatus) Logs {
 	logDir := g.Env.GetLogDir()
 	installLogPath, err := install.InstallLogPath()
@@ -87,7 +105,7 @@ func logFilesFromStatus(g *libkb.GlobalContext, fstatus *keybase1.FullStatus) Lo
 	return Logs{
 		Desktop:  filepath.Join(logDir, libkb.DesktopLogFileName),
 		Kbfs:     filepath.Join(logDir, libkb.KBFSLogFileName),
-		Service:  filepath.Join(logDir, libkb.ServiceLogFileName),
+		Service:  getServiceLog(libkb.NewMetaContextTODO(g), logDir),
 		EK:       filepath.Join(logDir, libkb.EKLogFileName),
 		Updater:  filepath.Join(logDir, libkb.UpdaterLogFileName),
 		Start:    filepath.Join(logDir, libkb.StartLogFileName),
