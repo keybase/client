@@ -1153,13 +1153,7 @@ func NewCmdService(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 }
 
 func (d *Service) GetUsage() libkb.Usage {
-	return libkb.Usage{
-		Config:     true,
-		KbKeyring:  true,
-		GpgKeyring: true,
-		API:        true,
-		Socket:     true,
-	}
+	return libkb.ServiceUsage
 }
 
 func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
