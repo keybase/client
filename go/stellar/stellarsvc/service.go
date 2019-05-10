@@ -743,8 +743,33 @@ func (s *Server) ApprovePayURILocal(ctx context.Context, arg stellar1.ApprovePay
 	if err != nil {
 		return "", err
 	}
-	_ = vp
-	return "", errors.New("nyi")
+
+	sendArg := stellar.SendPaymentArg{
+		To:     stellarcommon.RecipientInput(vp.Recipient),
+		Amount: vp.Amount,
+	}
+	if sendArg.Amount == "" {
+		sendArg.Amount = arg.Amount
+	}
+	if vp.MemoType == "MEMO_TEXT" {
+		sendArg.PublicMemo = vp.Memo
+	}
+
+	var res stellar.SendPaymentResult
+	if arg.FromCLI {
+		sendArg.QuickReturn = false
+		res, err = stellar.SendPaymentCLI(mctx, s.walletState, sendArg)
+	} else {
+		sendArg.QuickReturn = true
+		res, err = stellar.SendPaymentGUI(mctx, s.walletState, sendArg)
+	}
+	if err != nil {
+		return "", err
+	}
+
+	// TODO: handle callback path
+
+	return res.TxID, nil
 }
 
 func (s *Server) ApprovePathURILocal(ctx context.Context, arg stellar1.ApprovePathURILocalArg) (txID stellar1.TransactionID, err error) {
@@ -762,8 +787,28 @@ func (s *Server) ApprovePathURILocal(ctx context.Context, arg stellar1.ApprovePa
 	if err != nil {
 		return "", err
 	}
-	_ = vp
-	return "", errors.New("nyi")
+
+	sendArg := stellar.SendPathPaymentArg{
+		To:   stellarcommon.RecipientInput(vp.Recipient),
+		Path: arg.FullPath,
+	}
+	if vp.MemoType == "MEMO_TEXT" {
+		sendArg.PublicMemo = vp.Memo
+	}
+
+	var res stellar.SendPaymentResult
+	if arg.FromCLI {
+		sendArg.QuickReturn = false
+		res, err = stellar.SendPathPaymentCLI(mctx, s.walletState, sendArg)
+	} else {
+		sendArg.QuickReturn = true
+		res, err = stellar.SendPathPaymentGUI(mctx, s.walletState, sendArg)
+	}
+	if err != nil {
+		return "", err
+	}
+
+	return res.TxID, nil
 }
 
 func postXDRToCallback(signed, callbackURL string) error {
