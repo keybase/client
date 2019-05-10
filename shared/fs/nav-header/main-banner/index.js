@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Types from '../../../constants/types/fs'
+import {isMobile} from '../../../constants/platform'
 
 // /*
 //  * This banner is used as part of a List2 in fs/row/rows.js, so it's important
@@ -23,7 +24,9 @@ const Banner = (props: Props) =>
     <Kb.Banner text="You are offline." color="blue" />
   ) : (
     <Kb.Banner
-      text="You are out of storage space and some folders could not be properly synced. Make some space and"
+      text={`Your ${
+        isMobile ? 'phone' : 'computer'
+      } is out of space and some folders could not be properly synced. Make some space and`}
       color="red"
       actions={[{onClick: props.onRetry, title: 'retry the sync.'}]}
     />

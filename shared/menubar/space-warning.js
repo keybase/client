@@ -32,6 +32,8 @@ const SpaceWarning = (props: Props) => {
               ]
             : []),
         ]}
+        narrow={true}
+        style={{minHeight: 50}}
       />
     )
   )

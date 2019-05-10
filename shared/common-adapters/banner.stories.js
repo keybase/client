@@ -44,6 +44,16 @@ const load = () => {
             {onClick: Sb.action('onClick-action2'), title: 'action2'},
           ]}
         />
+        <Banner
+          key="10"
+          color="red"
+          text="this is a narrow red banner with actions and super long text blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah yes very long"
+          actions={[
+            {onClick: Sb.action('onClick-action1'), title: 'action1'},
+            {onClick: Sb.action('onClick-action2'), title: 'action2'},
+          ]}
+          narrow={true}
+        />
       </Box2>
     ))
 }
