@@ -289,7 +289,9 @@ func (g *gregorHandler) monitorAppState() {
 		case suspended = <-g.G().DesktopAppState.NextSuspendUpdate(&suspended):
 			if !suspended {
 				monitorAction = monitorConnect
+				g.chatLog.Debug(context.Background(), "resumed, connecting")
 			} else {
+				g.chatLog.Debug(context.Background(), "suspended, disconnecting")
 				monitorAction = monitorDisconnect
 			}
 		}
