@@ -15,6 +15,7 @@ const mapStateToProps = state => {
   const selectedAccount = Constants.getAccount(state, accountID)
   return {
     accountID: selectedAccount.accountID,
+    disabledDueToMobileOnly: !selectedAccount.mobileOnlyEditable,
     isDefaultWallet: selectedAccount.isDefault,
     keybaseUser: state.config.username,
     unreadPayments: otherUnreadPayments(state.wallets.unreadPaymentsMap, selectedAccount.accountID),

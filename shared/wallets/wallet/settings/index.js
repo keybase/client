@@ -106,11 +106,16 @@ class AccountSettings extends React.Component<SettingsProps> {
                       ? 'All transactions and overall activity are tied to your Keybase identity.'
                       : 'Transactions will be tied to your Stellar public address only.'}
                   </Kb.Text>
-                  {!props.isDefault && (
-                    <Kb.Text type="BodySmallPrimaryLink" onClick={props.onSetDefault}>
-                      Set as default Keybase account
-                    </Kb.Text>
-                  )}
+                  {!props.isDefault &&
+                    (!props.mobileOnlyEditable ? (
+                      <Kb.Text style={styles.setAsDefaultError} type="BodySmall">
+                        This account can only be made default from a mobile device over 7 days old.
+                      </Kb.Text>
+                    ) : (
+                      <Kb.Text type="BodySmallPrimaryLink" onClick={props.onSetDefault}>
+                        Set as default Keybase account
+                      </Kb.Text>
+                    ))}
                 </Kb.Box2>
               </Kb.Box2>
             </Kb.Box2>
@@ -211,8 +216,13 @@ class AccountSettings extends React.Component<SettingsProps> {
                 gap="tiny"
                 style={styles.removeContentContainer}
               >
+                {!props.mobileOnlyEditable && (
+                  <Kb.Text type="BodySmall">
+                    This account can only be removed from a mobile device over 7 days old.
+                  </Kb.Text>
+                )}
                 <Kb.Button
-                  disabled={props.isDefault}
+                  disabled={props.isDefault || !props.mobileOnlyEditable}
                   label="Remove account"
                   fullWidth={true}
                   type="Danger"
@@ -290,6 +300,9 @@ const styles = Styles.styleSheetCreate({
   sectionLabel: {
     alignSelf: 'flex-start',
     marginBottom: Styles.globalMargins.tiny,
+  },
+  setAsDefaultError: {
+    paddingTop: Styles.globalMargins.tiny,
   },
   settingsPage: {
     alignSelf: 'flex-start',

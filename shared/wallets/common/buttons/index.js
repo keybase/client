@@ -48,7 +48,9 @@ const _SendButton = (props: Kb.PropsWithOverlay<SendProps>) => {
     </>
   )
   return props.disabledDueToMobileOnly ? (
-    <Kb.WithTooltip text="This is a mobile-only account.">{button}</Kb.WithTooltip>
+    <Kb.WithTooltip text="You can only send from a mobile device less than 7 days old.">
+      {button}
+    </Kb.WithTooltip>
   ) : (
     button
   )

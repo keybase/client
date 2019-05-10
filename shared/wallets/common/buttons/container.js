@@ -14,8 +14,7 @@ const mapStateToPropsSendButton = state => {
   const _account = Constants.getSelectedAccountData(state)
   return {
     _account,
-    disabledDueToMobileOnly:
-      !Container.isMobile && state.wallets.mobileOnlyMap.get(_account.accountID, false),
+    disabledDueToMobileOnly: !Constants.getAccount(state, _account.accountID).mobileOnlyEditable,
   }
 }
 

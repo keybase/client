@@ -14,6 +14,7 @@ type Props = {|
   onBack: ?() => void,
   keybaseUser: string,
   walletName: ?string,
+  disabledDueToMobileOnly: boolean,
 |}
 
 const Header = (props: Props) => {
@@ -60,6 +61,7 @@ const Header = (props: Props) => {
       centerChildren={true}
       style={styles.topContainer}
     >
+      mobileOnlyEditable
       {backButton}
       <Kb.ProgressIndicator style={styles.spinner} type="Small" />
     </Kb.Box2>
@@ -85,6 +87,9 @@ const Header = (props: Props) => {
         />
         <DropdownButton />
       </Kb.Box2>
+      {!props.disabledDueToMobileOnly && !!Styles.isMobile && (
+        <Kb.Text type="BodySmall">You can only send from a mobile device less than 7 days old.</Kb.Text>
+      )}
     </Kb.Box2>
   )
 }
