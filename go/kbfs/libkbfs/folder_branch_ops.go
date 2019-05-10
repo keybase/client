@@ -7365,11 +7365,24 @@ func (fbo *folderBranchOps) SyncFromServer(ctx context.Context,
 		}
 	}
 
-	if err := fbo.fbm.waitForQuotaReclamations(ctx); err != nil {
-		return err
+	// Same with block-related activity, when the bserver might be offline.
+	qrCtx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
+	defer cancel()
+	if err := fbo.fbm.waitForQuotaReclamations(qrCtx); err != nil {
+		if err == context.DeadlineExceeded {
+			fbo.log.CDebugf(ctx, "Couldn't wait for qr activity")
+		} else {
+			return err
+		}
 	}
-	if err := fbo.fbm.waitForDiskCacheCleans(ctx); err != nil {
-		return err
+	cleanCtx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
+	defer cancel()
+	if err := fbo.fbm.waitForDiskCacheCleans(cleanCtx); err != nil {
+		if err == context.DeadlineExceeded {
+			fbo.log.CDebugf(ctx, "Couldn't wait for disk clean activity")
+		} else {
+			return err
+		}
 	}
 	if err := fbo.partialSyncs.Wait(ctx); err != nil {
 		return err
