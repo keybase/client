@@ -20,6 +20,7 @@ const mapStateToProps = (state, {routeSelected}: OwnProps) => ({
   hasRandomPW: state.settings.password.randomPW,
   isModal: false,
   logoutHandshakeWaiters: state.config.logoutHandshakeWaiters,
+  selectedTab: ((routeSelected: any): Types.Tab),
 })
 
 const mapDispatchToProps = dispatch => ({
@@ -44,6 +45,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   logoutInProgress: stateProps.logoutHandshakeWaiters.size > 0,
   onLogout: dispatchProps.onLogout,
   onTabChange: tab => dispatchProps.onTabChange(tab, stateProps._walletsAcceptedDisclaimer),
+  selectedTab: stateProps.selectedTab,
 })
 
 const Connected = compose(

@@ -225,7 +225,7 @@ const updateTeamRetentionPolicy = (state, action, logger) => {
 }
 
 function* inviteByEmail(_, action, logger) {
-  const {destSubPath, invitees, role, rootPath, sourceSubPath, teamname} = action.payload
+  const {invitees, role, teamname} = action.payload
   yield Saga.put(TeamsGen.createSetTeamLoadingInvites({invitees, loadingInvites: true, teamname}))
   try {
     const res: RPCTypes.BulkRes = yield* Saga.callPromise(
@@ -920,7 +920,7 @@ function* saveChannelMembership(state, action) {
 }
 
 function* createChannel(_, action, logger) {
-  const {channelname, description, teamname, rootPath, sourceSubPath, destSubPath} = action.payload
+  const {channelname, description, teamname} = action.payload
   yield Saga.put(TeamsGen.createSetTeamCreationError({error: ''}))
   try {
     const result = yield* Saga.callPromise(
@@ -1339,19 +1339,7 @@ const badgeAppForTeams = (state, action) => {
   return actions
 }
 
-let _oldNavOnTeamsTab = false
 let _wasOnTeamsTab = () => Constants.isOnTeamsTab()
-const onTabChange = (_, action) => {
-  const list = I.List(action.payload.path)
-  const root = list.first()
-
-  if (root === teamsTab) {
-    _oldNavOnTeamsTab = true
-  } else if (_oldNavOnTeamsTab) {
-    _oldNavOnTeamsTab = false
-    return TeamsGen.createClearNavBadges()
-  }
-}
 
 const receivedBadgeState = (state, action) =>
   TeamsGen.createBadgeAppForTeams({

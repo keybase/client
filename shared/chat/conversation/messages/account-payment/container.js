@@ -136,8 +136,7 @@ const mapDispatchToProps = (dispatch, {message: {conversationIDKey, ordinal}}) =
       dispatch(WalletsGen.createCancelPayment({paymentID}))
     }
   },
-  onClaim: () =>
-    dispatch( RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']})),
+  onClaim: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']})),
   onSend: () => dispatch(Chat2Gen.createPrepareFulfillRequestForm({conversationIDKey, ordinal})),
 })
 

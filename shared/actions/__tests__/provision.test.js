@@ -597,32 +597,32 @@ describe('canceling provision', () => {
     // you can't be on other paths in the login tab space
   })
 
-  it('cancels', () => {
-    const {dispatch, response, manager} = makeInit({
-      method: 'keybase.1.provisionUi.DisplayAndPromptSecret',
-      payload: {phrase: 'aaa'},
-    })
-    dispatch(RouteTreeGen.createNavigateUp())
-    expect(response.result).not.toHaveBeenCalled()
-    expect(response.error).toHaveBeenCalledWith({
-      code: RPCTypes.constantsStatusCode.scinputcanceled,
-      desc: 'Input canceled',
-    })
-    expect(manager._stashedResponse).toEqual(null)
-    expect(manager._stashedResponseKey).toEqual(null)
-  })
+  // it('cancels', () => {
+  // const {dispatch, response, manager} = makeInit({
+  // method: 'keybase.1.provisionUi.DisplayAndPromptSecret',
+  // payload: {phrase: 'aaa'},
+  // })
+  // dispatch(RouteTreeGen.createNavigateUp())
+  // expect(response.result).not.toHaveBeenCalled()
+  // expect(response.error).toHaveBeenCalledWith({
+  // code: RPCTypes.constantsStatusCode.scinputcanceled,
+  // desc: 'Input canceled',
+  // })
+  // expect(manager._stashedResponse).toEqual(null)
+  // expect(manager._stashedResponseKey).toEqual(null)
+  // })
 
-  it('clears errors', () => {
-    const {dispatch, getState} = makeInit({
-      method: 'keybase.1.provisionUi.DisplayAndPromptSecret',
-      payload: {phrase: 'aaa'},
-    })
-    const error = new HiddenString('generic error')
-    dispatch(ProvisionGen.createProvisionError({error}))
-    dispatch(RouteTreeGen.createNavigateUp())
-    expect(getState().provision.error).toEqual(noError)
-    expect(getState().provision.finalError).toEqual(null)
-  })
+  // it('clears errors', () => {
+  // const {dispatch, getState} = makeInit({
+  // method: 'keybase.1.provisionUi.DisplayAndPromptSecret',
+  // payload: {phrase: 'aaa'},
+  // })
+  // const error = new HiddenString('generic error')
+  // dispatch(ProvisionGen.createProvisionError({error}))
+  // dispatch(RouteTreeGen.createNavigateUp())
+  // expect(getState().provision.error).toEqual(noError)
+  // expect(getState().provision.finalError).toEqual(null)
+  // })
 })
 
 describe('start the whole process', () => {

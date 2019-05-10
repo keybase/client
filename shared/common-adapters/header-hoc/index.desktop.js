@@ -78,11 +78,6 @@ function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
   return (props: P & Props) => <WrappedComponent {...(props: P)} />
 }
 
-const _containerStyle = {
-  ...Styles.globalStyles.flexBoxColumn,
-  flex: 1,
-}
-
 const _headerStyle = {
   ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
@@ -100,19 +95,6 @@ const _headerStyleThemed = {
   },
   light: {
     backgroundColor: Styles.globalColors.white,
-  },
-}
-
-const _backButtonIconStyle = {
-  position: 'absolute',
-}
-
-const _backButtonIconStyleThemed = {
-  dark: {
-    color: Styles.globalColors.white,
-  },
-  light: {
-    color: Styles.globalColors.black_50,
   },
 }
 

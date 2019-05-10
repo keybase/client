@@ -263,14 +263,14 @@ describe('navs after revoking', () => {
   afterEach(() => {})
 
   it('root of devices on revoke other', () => {
-    const {dispatch, getState} = init
+    const {dispatch} = init
     const deviceID = Types.stringToDeviceID('456')
     dispatch(DevicesGen.createRevoked({deviceID, deviceName: 'a phone', wasCurrentDevice: false}))
     // expect(getRoute(getState)).toEqual(I.List([Tabs.devicesTab]))
   })
 
   it('root of login on revoke self', () => {
-    const {dispatch, getState} = init
+    const {dispatch} = init
     const deviceID = Types.stringToDeviceID('456')
     dispatch(DevicesGen.createRevoked({deviceID, deviceName: 'a phone', wasCurrentDevice: true}))
     // expect(getRoutePath(getState().routeTree.routeState, [Tabs.loginTab])).toEqual(I.List([]))
@@ -356,7 +356,7 @@ describe('shows paperkey page correctly', () => {
   })
 
   it('shows paperkey page', () => {
-    const {dispatch, getState} = init
+    const {dispatch} = init
     dispatch(DevicesGen.createShowPaperKeyPage())
     // expect(getRoute(getState)).toEqual(I.List([Tabs.devicesTab, 'devicePaperKey']))
   })

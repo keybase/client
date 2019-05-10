@@ -1506,7 +1506,6 @@ function* messageSend(state, action, logger) {
   ]
   const onHideConfirm = ({canceled}) =>
     Saga.callUntyped(function*() {
-      const state = yield* Saga.selectState()
       if (Router2Constants.getVisibleScreen()?.routeName === confirmRouteName) {
         yield Saga.put(RouteTreeGen.createClearModals())
       }

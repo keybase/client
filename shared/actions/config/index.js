@@ -307,7 +307,7 @@ const routeToInitialScreen = state => {
         }),
       ]
       return [
-        RouteTreeGen.createSwitchRouteDef({path: [Tabs.chatTab], loggedIn: true}),
+        RouteTreeGen.createSwitchRouteDef({loggedIn: true, path: [Tabs.chatTab]}),
         RouteTreeGen.createResetStack({actions, index: 1, tab: Tabs.chatTab}),
         ChatGen.createSelectConversation({
           conversationIDKey: state.config.startupConversation,
@@ -319,7 +319,7 @@ const routeToInitialScreen = state => {
     // A share
     if (state.config.startupSharePath) {
       return [
-        RouteTreeGen.createSwitchRouteDef({path: FsConstants.fsRootRouteForNav1, loggedIn: true}),
+        RouteTreeGen.createSwitchRouteDef({loggedIn: true, path: FsConstants.fsRootRouteForNav1}),
         // $FlowIssue thinks it's undefined
         FsGen.createSetIncomingShareLocalPath({localPath: state.config.startupSharePath}),
         FsGen.createShowIncomingShare({initialDestinationParentPath: FsTypes.stringToPath('/keybase')}),
@@ -329,7 +329,7 @@ const routeToInitialScreen = state => {
     // A follow
     if (state.config.startupFollowUser) {
       return [
-        RouteTreeGen.createSwitchRouteDef({path: [Tabs.peopleTab], loggedIn: true}),
+        RouteTreeGen.createSwitchRouteDef({loggedIn: true, path: [Tabs.peopleTab]}),
         ProfileGen.createShowUserProfile({username: state.config.startupFollowUser}),
       ]
     }
@@ -342,7 +342,7 @@ const routeToInitialScreen = state => {
         logger.info('AppLink: url', url.href, 'username', username)
         if (username) {
           return [
-            RouteTreeGen.createSwitchRouteDef({path: [Tabs.peopleTab], loggedIn: true}),
+            RouteTreeGen.createSwitchRouteDef({loggedIn: true, path: [Tabs.peopleTab]}),
             ProfileGen.createShowUserProfile({username}),
           ]
         }
@@ -353,8 +353,8 @@ const routeToInitialScreen = state => {
 
     // Just a saved tab
     return RouteTreeGen.createSwitchRouteDef({
-      path: [state.config.startupTab || Tabs.peopleTab],
       loggedIn: true,
+      path: [state.config.startupTab || Tabs.peopleTab],
     })
   } else {
     // Show a login screen

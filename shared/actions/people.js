@@ -7,7 +7,6 @@ import * as Constants from '../constants/people'
 import * as Types from '../constants/types/people'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
-import {peopleTab} from '../constants/tabs'
 
 // set this to true to have all todo items show up all the time
 const debugTodo = false

@@ -642,9 +642,6 @@ const navigateToAccount = (state, action) => {
     // we don't want to show, don't nav
     return
   }
-  const wallet = isMobile
-    ? [Tabs.settingsTab, SettingsConstants.walletsTab]
-    : [{props: {}, selected: Tabs.walletsTab}]
 
   return [
     RouteTreeGen.createClearModals(),
@@ -659,7 +656,6 @@ const navigateToAccount = (state, action) => {
 const navigateToTransaction = (state, action) => {
   const {accountID, paymentID} = action.payload
   const actions = [WalletsGen.createSelectAccount({accountID, reason: 'show-transaction'})]
-  const path = [...Constants.walletPath, {props: {accountID, paymentID}, selected: 'transactionDetails'}]
   actions.push(
     RouteTreeGen.createNavigateAppend({
       path: [{props: {accountID, paymentID}, selected: 'transactionDetails'}],
