@@ -2099,11 +2099,13 @@ func DecorateWithLinks(ctx context.Context, body string) string {
 	for _, match := range allMatches {
 		bodyMatch := origBody[match[0]:match[1]]
 		url := bodyMatch
+		if strings.HasPrefix(bodyMatch, "mailto:") ||
+			strings.HasPrefix(bodyMatch, "ftp://") ||
+			strings.HasPrefix(bodyMatch, "gopher://") {
+			continue
+		}
 		if !(strings.HasPrefix(bodyMatch, "http://") || strings.HasPrefix(bodyMatch, "https://")) {
 			url = "http://" + bodyMatch
-		}
-		if strings.HasPrefix(bodyMatch, "mailto:") {
-			continue
 		}
 		body, added = DecorateBody(ctx, body, match[0]+offset, match[1]-match[0],
 			chat1.NewUITextDecorationWithLink(chat1.UILinkDecoration{

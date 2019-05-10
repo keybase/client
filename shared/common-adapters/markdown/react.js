@@ -256,23 +256,6 @@ const reactComponentsForMarkdownType = {
       />
     )
   },
-  mailto: (node, output, state) => {
-    return (
-      <React.Fragment key={state.key}>
-        {node.spaceInFront}
-        <Text
-          className="hover-underline"
-          type="BodyPrimaryLink"
-          style={Styles.collapseStyles([linkStyle, state.styleOverride.mailto])}
-          title={node.content}
-          onClickURL={node.mailto}
-          onLongPressURL={node.mailto}
-        >
-          {node.content}
-        </Text>
-      </React.Fragment>
-    )
-  },
   newline: (node, output, state) =>
     !Styles.isMobile || state.inParagraph ? (
       '\n'
