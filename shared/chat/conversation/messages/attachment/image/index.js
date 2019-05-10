@@ -33,6 +33,8 @@ type State = {
   playingVideo: boolean,
 }
 
+// TODO the relationship between this class and the image renderer is very messy. This thing holds a ton of state
+// that it itself doesnt' know about so it has to proxy it and feed it back into the child
 class ImageAttachment extends React.PureComponent<Props, State> {
   imageRef: any
 
@@ -108,12 +110,13 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                     onLoadedVideo={this._setVideoLoaded}
                     loaded={this.state.loaded}
                     inlineVideoPlayable={this.props.inlineVideoPlayable}
+                    height={this.props.height}
+                    width={this.props.width}
                     style={Styles.collapseStyles([
                       styles.image,
                       {
                         backgroundColor: this.state.loaded ? undefined : Styles.globalColors.fastBlank,
                         height: this.props.height,
-                        opacity: this.state.loaded ? 1 : 0,
                         width: this.props.width,
                       },
                     ])}
@@ -165,10 +168,10 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                       />
                     </Kb.Box>
                   )}
-                  {(!this.state.loaded || this.state.loadingVideo === 'loading') && (
-                    <Kb.ProgressIndicator style={styles.progress} />
-                  )}
                 </Kb.Box>
+              )}
+              {Styles.isMobile && this.state.loadingVideo === 'loading' && (
+                <Kb.ProgressIndicator style={styles.progress} />
               )}
             </Kb.Box>
             <Kb.Box style={styles.progressContainer}>
