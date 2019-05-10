@@ -2,7 +2,6 @@ package service
 
 import (
 	"bytes"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"net"
@@ -250,18 +249,10 @@ func newGregorHandler(g *globals.Context) *gregorHandler {
 
 // Init starts all the background services for managing connection to Gregor
 func (g *gregorHandler) Init() {
-	// Attempt to create a gregor client initially, if we are not logged in
-	// or don't have user/device info in G, then this won't work
-	if err := g.resetGregorClient(context.TODO()); err != nil {
-		g.Warning(context.Background(), "unable to create push service client: %s", err.Error())
-	}
-
 	// Start broadcast handler goroutine
 	go g.broadcastMessageHandler()
-
 	// Start the app state monitor thread
 	go g.monitorAppState()
-
 	// Start replay thread
 	go g.syncReplayThread()
 }
@@ -355,61 +346,39 @@ func (g *gregorHandler) setFirstConnect(val bool) {
 	g.firstConnect = val
 }
 
-func (g *gregorHandler) resetGregorClient(ctx context.Context) (err error) {
+func (g *gregorHandler) shutdownGregorClient(ctx context.Context) {
+	g.gregorCliMu.Lock()
+	gcliOld := g.gregorCli
+	g.gregorCli = nil
+	g.gregorCliMu.Unlock()
+	if gcliOld != nil {
+		gcliOld.Stop()
+	}
+}
+
+func (g *gregorHandler) resetGregorClient(ctx context.Context, uid gregor1.UID, deviceID gregor1.DeviceID) (gcli *grclient.Client, err error) {
 	defer g.G().Trace("gregorHandler#newGregorClient", func() error { return err })()
-	of := gregor1.ObjFactory{}
+	// Create client object if we are logged in
+	if uid != nil && deviceID != nil {
+		gcli = grclient.NewClient(uid, deviceID, func() gregor.StateMachine {
+			return storage.NewMemEngine(gregor1.ObjFactory{}, clockwork.NewRealClock(), g.G().Log)
+		}, storage.NewLocalDB(g.G().ExternalG()), g.GetIncomingClient, g.G().Log, clockwork.NewRealClock())
 
-	var guid gregor.UID
-	var gdid gregor.DeviceID
-	var b []byte
-
-	uid := g.G().ActiveDevice.UID()
-	if !uid.Exists() {
-		err = errors.New("no UID; probably not logged in")
-		return err
+		// Bring up local state
+		g.Debug(ctx, "restoring state from leveldb")
+		if err = gcli.Restore(ctx); err != nil {
+			// If this fails, we'll keep trying since the server can bail us out
+			g.Debug(ctx, "restore local state failed: %s", err)
+		}
 	}
-	if b = uid.ToBytes(); b == nil {
-		err = errors.New("Can't convert UID to byte array")
-		return err
-	}
-	if guid, err = of.MakeUID(b); err != nil {
-		return err
-	}
-
-	did := g.G().Env.GetDeviceID()
-	if !did.Exists() {
-		err = errors.New("no device ID; probably not logged in")
-		return err
-	}
-	if b, err = hex.DecodeString(did.String()); err != nil {
-		return err
-	}
-	if gdid, err = of.MakeDeviceID(b); err != nil {
-		return err
-	}
-
-	// Create client object
-	gcli := grclient.NewClient(guid, gdid, func() gregor.StateMachine {
-		return storage.NewMemEngine(of, clockwork.NewRealClock(), g.G().Log)
-	}, storage.NewLocalDB(g.G().ExternalG()), g.GetIncomingClient, g.G().Log, clockwork.NewRealClock())
-
-	// Bring up local state
-	g.Debug(ctx, "restoring state from leveldb")
-	if err = gcli.Restore(ctx); err != nil {
-		// If this fails, we'll keep trying since the server can bail us out
-		g.Debug(ctx, "restore local state failed: %s", err)
-	}
-
 	g.gregorCliMu.Lock()
 	gcliOld := g.gregorCli
 	g.gregorCli = gcli
 	g.gregorCliMu.Unlock()
-
 	if gcliOld != nil {
 		gcliOld.Stop()
 	}
-
-	return nil
+	return gcli, nil
 }
 
 func (g *gregorHandler) getGregorCli() (*grclient.Client, error) {
@@ -466,12 +435,6 @@ func (g *gregorHandler) Connect(uri *rpc.FMPURI) (err error) {
 		close(g.connectHappened)
 		g.connectHappened = make(chan struct{})
 	}()
-
-	// Create client interface to gregord; the user needs to be logged in for this
-	// to work
-	if err = g.resetGregorClient(context.TODO()); err != nil {
-		return err
-	}
 
 	// In case we need to interrupt auth'ing or the ping loop,
 	// set up this channel.
@@ -771,20 +734,17 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	timeoutCli := WrapGenericClientWithTimeout(cli, GregorRequestTimeout, chat.ErrChatServerTimeout)
 	chatCli := chat1.RemoteClient{Cli: chat.NewRemoteClient(g.G(), cli)}
 	if err := srv.Register(gregor1.OutgoingProtocol(g)); err != nil {
-		return fmt.Errorf("error registering protocol: %s", err.Error())
+		return fmt.Errorf("error registering protocol: %s", err)
 	}
 
-	// Grab authentication and sync params
-	gcli, err := g.getGregorCli()
-	if err != nil {
-		return fmt.Errorf("failed to get gregor client: %s", err.Error())
-	}
 	uid, deviceID, token, nist, err := g.authParams(ctx)
 	if err != nil {
 		return err
 	}
-	gcli.User = uid
-	gcli.Device = deviceID
+	gcli, err := g.resetGregorClient(ctx, uid, deviceID)
+	if err != nil {
+		return fmt.Errorf("failed to get gregor client: %s", err)
+	}
 	iboxVers := g.inboxParams(ctx, uid)
 	latestCtime := g.notificationParams(ctx, gcli)
 
@@ -1323,7 +1283,8 @@ func (g *gregorHandler) Shutdown() {
 func (g *gregorHandler) Reset() error {
 	g.Shutdown()
 	g.setFirstConnect(true)
-	return g.resetGregorClient(context.TODO())
+	g.shutdownGregorClient(context.TODO())
+	return nil
 }
 
 type loggedInRes int
