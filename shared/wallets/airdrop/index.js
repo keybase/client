@@ -242,7 +242,7 @@ const styles = Styles.styleSheetCreate({
   grow: {flexGrow: 1, flexShrink: 1, width: 100},
   header: Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.purple2,
+      backgroundColor: Styles.globalColors.purple,
       paddingBottom: Styles.globalMargins.medium,
     },
     isElectron: {paddingTop: Styles.globalMargins.medium},
@@ -258,7 +258,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   leaveButtonBar: {marginBottom: Styles.globalMargins.small},
-  link: {color: Styles.globalColors.purple2, fontWeight: '600'},
+  link: {color: Styles.globalColors.purple, fontWeight: '600'},
   progress: {
     height: 20,
     width: 20,

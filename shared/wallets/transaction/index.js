@@ -45,7 +45,7 @@ const CounterpartyIcon = (props: CounterpartyIconProps) => {
           style={collapseStyles([styles.transferIconContainer, {width: size}])}
         >
           <Icon
-            color={globalColors.purple2}
+            color={globalColors.purple}
             sizeType={props.detailView ? 'Bigger' : 'Big'}
             style={collapseStyles([!props.detailView && styles.transferIcon])}
             type="iconfont-wallet-transfer"

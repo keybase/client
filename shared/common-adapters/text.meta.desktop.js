@@ -199,7 +199,7 @@ const metaData: {[key: TextType]: MetaType} = {
     styleOverride: globalStyles.fontRegular,
   },
   BodySmallWallet: {
-    colorForBackground: {...whiteNegative, positive: globalColors.purple2},
+    colorForBackground: {...whiteNegative, positive: globalColors.purple},
     fontSize: 13,
     styleOverride: globalStyles.fontRegular,
   },

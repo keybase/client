@@ -82,7 +82,7 @@ const load = () => {
 
 const styles = styleSheetCreate({
   box: {
-    backgroundColor: globalColors.purple2_40,
+    backgroundColor: globalColors.purple_40,
     color: globalColors.white,
     padding: globalMargins.xtiny,
     textAlign: 'center',

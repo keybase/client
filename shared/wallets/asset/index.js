@@ -155,7 +155,7 @@ const IssuerAccountID = (props: IssuerAccountIDProps) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  balance: {color: Styles.globalColors.purple2},
+  balance: {color: Styles.globalColors.purple},
   balanceContainer: {
     alignItems: 'flex-end',
     justifyContent: 'flex-start',

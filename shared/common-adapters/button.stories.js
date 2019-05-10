@@ -37,7 +37,7 @@ const bgToColor = {
   black: globalColors.black_75,
   blue: globalColors.blue,
   green: globalColors.green,
-  purple: globalColors.purple2,
+  purple: globalColors.purple,
   red: globalColors.red,
 }
 

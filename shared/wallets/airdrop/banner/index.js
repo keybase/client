@@ -87,7 +87,7 @@ const styles = Styles.styleSheetCreate({
   }),
   close: {padding: Styles.globalMargins.xxtiny},
   container: {
-    backgroundColor: Styles.globalColors.purple2,
+    backgroundColor: Styles.globalColors.purple,
     padding: Styles.globalMargins.tiny,
   },
   grow: {flexGrow: 1, flexShrink: 1},

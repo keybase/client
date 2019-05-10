@@ -56,7 +56,7 @@ const JoinAirdrop = p => (
     <Kb.Box2
       style={Styles.collapseStyles([
         styles.joinAirdrop,
-        p.selected && {backgroundColor: Styles.globalColors.purple2},
+        p.selected && {backgroundColor: Styles.globalColors.purple},
       ])}
       direction="horizontal"
       fullWidth={true}
