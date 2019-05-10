@@ -94,19 +94,19 @@ func ExportRemoteProof(p RemoteProofChainLink) keybase1.RemoteProof {
 	}
 }
 
-func (is IdentifyState) ExportToUncheckedIdentity(g *GlobalContext) *keybase1.Identity {
-	return is.res.ExportToUncheckedIdentity(g)
+func (is IdentifyState) ExportToUncheckedIdentity(mctx MetaContext) *keybase1.Identity {
+	return is.res.ExportToUncheckedIdentity(mctx)
 }
 
-func (ir IdentifyOutcome) ExportToUncheckedIdentity(g *GlobalContext) *keybase1.Identity {
+func (ir IdentifyOutcome) ExportToUncheckedIdentity(mctx MetaContext) *keybase1.Identity {
 	tmp := keybase1.Identity{
-		Status: ExportErrorAsStatus(g, ir.Error),
+		Status: ExportErrorAsStatus(mctx.G(), ir.Error),
 	}
 	if ir.TrackUsed != nil {
 		tmp.WhenLastTracked = keybase1.ToTime(ir.TrackUsed.GetCTime())
 	}
 
-	pc := ir.ProofChecksSorted()
+	pc := ir.ProofChecksSorted(mctx)
 	tmp.Proofs = make([]keybase1.IdentifyRow, len(pc))
 	for j, p := range pc {
 		tmp.Proofs[j] = p.ExportToIdentifyRow(j)

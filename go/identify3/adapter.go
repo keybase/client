@@ -100,7 +100,7 @@ func (i *UIAdapter) Start(mctx libkb.MetaContext, user string, reason keybase1.I
 func (i *UIAdapter) initPriorityMap(mctx libkb.MetaContext) {
 	i.priorityMap = make(map[string]int)
 	var haveDisplayConfigs bool
-	for _, displayConfig := range mctx.G().GetProofServices().ListDisplayConfigs() {
+	for _, displayConfig := range mctx.G().GetProofServices().ListDisplayConfigs(mctx) {
 		haveDisplayConfigs = true
 		i.priorityMap[displayConfig.Key] = displayConfig.Priority
 		var altKey string
@@ -254,7 +254,7 @@ func (i *UIAdapter) rowPartial(mctx libkb.MetaContext, proof keybase1.RemoteProo
 		iconKey = "facebook"
 	case keybase1.ProofType_GENERIC_SOCIAL:
 		row.SiteURL = humanURLOrSigchainURL
-		serviceType := mctx.G().GetProofServices().GetServiceType(proof.Key)
+		serviceType := mctx.G().GetProofServices().GetServiceType(mctx.Ctx(), proof.Key)
 		if serviceType != nil {
 			if serviceType, ok := serviceType.(*externals.GenericSocialProofServiceType); ok {
 				profileURL, err := serviceType.ProfileURL(proof.Value)

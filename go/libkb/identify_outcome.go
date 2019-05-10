@@ -64,7 +64,7 @@ func (i *IdentifyOutcome) TrackSet() *TrackSet {
 	return i.remoteProofLinks().TrackSet()
 }
 
-func (i *IdentifyOutcome) ProofChecksSorted() []*LinkCheckResult {
+func (i *IdentifyOutcome) ProofChecksSorted(mctx MetaContext) []*LinkCheckResult {
 	// Sort by display priority
 	pc := make([]*LinkCheckResult, len(i.ProofChecks))
 	copy(pc, i.ProofChecks)
@@ -73,7 +73,7 @@ func (i *IdentifyOutcome) ProofChecksSorted() []*LinkCheckResult {
 	for _, lcr := range pc {
 		key := lcr.link.DisplayPriorityKey()
 		if _, ok := serviceTypes[key]; !ok {
-			st := proofServices.GetServiceType(key)
+			st := proofServices.GetServiceType(mctx.Ctx(), key)
 			displayPriority := 0
 			if st != nil {
 				displayPriority = st.DisplayPriority()
