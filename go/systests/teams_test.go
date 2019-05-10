@@ -667,6 +667,10 @@ func (u *userPlusDevice) proveRooter() {
 	}
 }
 
+func (u *userPlusDevice) proveGubbleSocial() {
+	proveGubbleUniverse(u.tc, "gubble.social", "gubble_social", u.username, u.newSecretUI())
+}
+
 func (u *userPlusDevice) track(username string) {
 	trackCmd := client.NewCmdTrackRunner(u.tc.G)
 	trackCmd.SetUser(username)

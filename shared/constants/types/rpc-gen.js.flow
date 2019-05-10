@@ -529,7 +529,7 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'keybase.1.identify.identify2': {|
-    inParam: $ReadOnly<{|uid: UID, userAssertion: String, reason: IdentifyReason, useDelegateUI?: Boolean, alwaysBlock?: Boolean, noErrorOnTrackFailure?: Boolean, forceRemoteCheck?: Boolean, needProofSet?: Boolean, allowEmptySelfID?: Boolean, noSkipSelf?: Boolean, canSuppressUI?: Boolean, identifyBehavior?: TLFIdentifyBehavior, forceDisplay?: Boolean, actLoggedOut?: Boolean|}>,
+    inParam: $ReadOnly<{|uid: UID, userAssertion: String, reason: IdentifyReason, useDelegateUI: Boolean, alwaysBlock: Boolean, noErrorOnTrackFailure: Boolean, forceRemoteCheck: Boolean, needProofSet: Boolean, allowEmptySelfID: Boolean, noSkipSelf: Boolean, canSuppressUI: Boolean, identifyBehavior: TLFIdentifyBehavior, forceDisplay: Boolean, actLoggedOut: Boolean|}>,
     outParam: Identify2Res,
   |},
   'keybase.1.identify3.identify3': {|
@@ -2131,12 +2131,14 @@ export type CopyArgs = $ReadOnly<{opID: OpID, src: Path, dest: Path}>
 export type CryptKey = $ReadOnly<{KeyGeneration: Int, Key: Bytes32}>
 export type Cryptocurrency = $ReadOnly<{rowId: Int, pkhash: Bytes, address: String, sigID: SigID, type: String, family: String}>
 export type CsrfToken = String
+export type CurrentStatus = $ReadOnly<{configured: Boolean, registered: Boolean, loggedIn: Boolean, sessionIsValid: Boolean, user?: ?User}>
 export type DbKey = $ReadOnly<{dbType: DbType, objType: Int, key: String}>
 export type DbType =
   | 0 // MAIN_0
   | 1 // CHAT_1
 
 export type DbValue = Bytes
+export type DesktopStatus = $ReadOnly<{version: String, running: Boolean, log: String}>
 export type Device = $ReadOnly<{type: String, name: String, deviceID: DeviceID, cTime: Time, mTime: Time, lastUsedTime: Time, encryptKey: KID, verifyKey: KID, status: Int}>
 export type DeviceDetail = $ReadOnly<{device: Device, eldest: Boolean, provisioner?: ?Device, provisionedAt?: ?Time, revokedAt?: ?Time, revokedBy: KID, revokedByDevice?: ?Device, currentDevice: Boolean}>
 export type DeviceEk = $ReadOnly<{seed: Bytes32, metadata: DeviceEkMetadata}>
@@ -2180,7 +2182,7 @@ export type ExitCode =
   | 2 // NOTOK_2
   | 4 // RESTART_4
 
-export type ExtendedStatus = $ReadOnly<{standalone: Boolean, passphraseStreamCached: Boolean, tsecCached: Boolean, deviceSigKeyCached: Boolean, deviceEncKeyCached: Boolean, paperSigKeyCached: Boolean, paperEncKeyCached: Boolean, storedSecret: Boolean, secretPromptSkip: Boolean, rememberPassphrase: Boolean, device?: ?Device, deviceErr?: ?LoadDeviceErr, logDir: String, session?: ?SessionStatus, defaultUsername: String, provisionedUsernames?: ?Array<String>, Clients?: ?Array<ClientStatus>, deviceEkNames?: ?Array<String>, platformInfo: PlatformInfo, defaultDeviceID: DeviceID, localDbStats?: ?Array<String>, localChatDbStats?: ?Array<String>, cacheDirSizeInfo?: ?Array<DirSizeInfo>, uiRouterMapping: {[key: string]: Int}, serviceLogPath: String}>
+export type ExtendedStatus = $ReadOnly<{standalone: Boolean, passphraseStreamCached: Boolean, tsecCached: Boolean, deviceSigKeyCached: Boolean, deviceEncKeyCached: Boolean, paperSigKeyCached: Boolean, paperEncKeyCached: Boolean, storedSecret: Boolean, secretPromptSkip: Boolean, rememberPassphrase: Boolean, device?: ?Device, deviceErr?: ?LoadDeviceErr, logDir: String, session?: ?SessionStatus, defaultUsername: String, provisionedUsernames?: ?Array<String>, Clients?: ?Array<ClientStatus>, deviceEkNames?: ?Array<String>, platformInfo: PlatformInfo, defaultDeviceID: DeviceID, localDbStats?: ?Array<String>, localChatDbStats?: ?Array<String>, cacheDirSizeInfo?: ?Array<DirSizeInfo>, uiRouterMapping: {[key: string]: Int}}>
 export type ExternalServiceConfig = $ReadOnly<{schemaVersion: Int, display?: ?ServiceDisplayConfig, config?: ?ParamProofServiceConfig}>
 export type FSEditListRequest = $ReadOnly<{folder: Folder, requestID: Int}>
 export type FSErrorType =
@@ -2279,6 +2281,7 @@ export type FullNamePackageVersion =
   | 1 // V1_1
   | 2 // V2_2
 
+export type FullStatus = $ReadOnly<{configPath: String, curStatus: CurrentStatus, extStatus: ExtendedStatus, client: KbClientStatus, service: KbServiceStatus, kbfs: KBFSStatus, desktop: DesktopStatus, updater: UpdaterStatus, start: StartStatus, git: GitStatus}>
 export type FuseMountInfo = $ReadOnly<{path: String, fstype: String, output: String}>
 export type FuseStatus = $ReadOnly<{version: String, bundleVersion: String, kextID: String, path: String, kextStarted: Boolean, installStatus: InstallStatus, installAction: InstallAction, mountInfos?: ?Array<FuseMountInfo>, status: Status}>
 export type GPGKey = $ReadOnly<{algorithm: String, keyID: String, creation: String, expiration: String, identities?: ?Array<PGPIdentity>}>
@@ -2291,7 +2294,6 @@ export type GUIEntryArg = $ReadOnly<{windowTitle: String, prompt: String, userna
 export type GUIEntryFeatures = $ReadOnly<{showTyping: Feature}>
 export type GcOptions = $ReadOnly<{maxLooseRefs: Int, pruneMinLooseObjects: Int, pruneExpireTime: Time, maxObjectPacks: Int}>
 export type GetBlockRes = $ReadOnly<{blockKey: String, buf: Bytes, size: Int, status: BlockStatus}>
-export type GetCurrentStatusRes = $ReadOnly<{configured: Boolean, registered: Boolean, loggedIn: Boolean, sessionIsValid: Boolean, user?: ?User}>
 export type GetLockdownResponse = $ReadOnly<{history?: ?Array<LockdownHistory>, status: Boolean}>
 export type GetPassphraseRes = $ReadOnly<{passphrase: String, storeSecret: Boolean}>
 export type GetRevisionsArgs = $ReadOnly<{opID: OpID, path: Path, spanType: RevisionSpanType}>
@@ -2317,6 +2319,7 @@ export type GitRepoResultState =
   | 1 // OK_1
 
 export type GitServerMetadata = $ReadOnly<{ctime: Time, mtime: Time, lastModifyingUsername: String, lastModifyingDeviceID: DeviceID, lastModifyingDeviceName: String}>
+export type GitStatus = $ReadOnly<{log: String}>
 export type GitTeamRepoSettings = $ReadOnly<{channelName?: ?String, chatDisabled: Boolean}>
 export type HasServerKeysRes = $ReadOnly<{hasServerKeys: Boolean}>
 export type HashMeta = Bytes
@@ -2440,8 +2443,11 @@ export type KBFSArchivedType =
 export type KBFSRevision = Int64
 export type KBFSRoot = $ReadOnly<{treeID: MerkleTreeID, root: KBFSRootHash}>
 export type KBFSRootHash = Bytes
+export type KBFSStatus = $ReadOnly<{version: String, installedVersion: String, running: Boolean, pid: String, log: String, mount: String}>
 export type KBFSTeamSettings = $ReadOnly<{tlfID: TLFID}>
 export type KID = String
+export type KbClientStatus = $ReadOnly<{version: String}>
+export type KbServiceStatus = $ReadOnly<{version: String, running: Boolean, pid: String, log: String, ekLog: String}>
 export type KeyBundle = $ReadOnly<{version: Int, bundle: Bytes}>
 export type KeyBundleResponse = $ReadOnly<{WriterBundle: KeyBundle, ReaderBundle: KeyBundle}>
 export type KeyHalf = $ReadOnly<{user: UID, deviceKID: KID, key: Bytes}>
@@ -2827,6 +2833,7 @@ export type SizedImage = $ReadOnly<{path: String, width: Int}>
 export type SocialAssertion = $ReadOnly<{user: String, service: SocialAssertionService}>
 export type SocialAssertionService = String
 export type StartProofResult = $ReadOnly<{sigID: SigID}>
+export type StartStatus = $ReadOnly<{log: String}>
 export type Status = $ReadOnly<{code: Int, name: String, desc: String, fields?: ?Array<StringKVPair>}>
 export type StatusCode =
   | 0 // SCOk_0
@@ -3086,7 +3093,7 @@ export type TeamChangeReq = $ReadOnly<{owners?: ?Array<UserVersion>, admins?: ?A
 export type TeamChangeRow = $ReadOnly<{id: TeamID, name: String, keyRotated: Boolean, membershipChanged: Boolean, latestSeqno: Seqno, implicitTeam: Boolean, misc: Boolean, removedResetUsers: Boolean}>
 export type TeamChangeSet = $ReadOnly<{membershipChanged: Boolean, keyRotated: Boolean, renamed: Boolean, misc: Boolean}>
 export type TeamCreateResult = $ReadOnly<{teamID: TeamID, chatSent: Boolean, creatorAdded: Boolean}>
-export type TeamData = $ReadOnly<{secretless: Boolean, name: TeamName, chain: TeamSigChainState, perTeamKeySeeds /* perTeamKeySeedsUnverified */: {[key: string]: PerTeamKeySeedItem}, readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}, latestSeqnoHint: Seqno, cachedAt: Time, tlfCryptKeys: {[key: string]: ?Array<CryptKey>}}>
+export type TeamData = $ReadOnly<{v /* subversion */: Int, secretless: Boolean, name: TeamName, chain: TeamSigChainState, perTeamKeySeeds /* perTeamKeySeedsUnverified */: {[key: string]: PerTeamKeySeedItem}, readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}, latestSeqnoHint: Seqno, cachedAt: Time, tlfCryptKeys: {[key: string]: ?Array<CryptKey>}}>
 export type TeamDebugRes = $ReadOnly<{chain: TeamSigChainState}>
 export type TeamDetails = $ReadOnly<{members: TeamMembersDetails, keyGeneration: PerTeamKeyGeneration, annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite}, settings: TeamSettings, showcase: TeamShowcase}>
 export type TeamEk = $ReadOnly<{seed: Bytes32, metadata: TeamEkMetadata}>
@@ -3236,6 +3243,7 @@ export type UpdateInfoStatus2 =
   | 1 // SUGGESTED_1
   | 2 // CRITICAL_2
 
+export type UpdaterStatus = $ReadOnly<{log: String}>
 export type User = $ReadOnly<{uid: UID, username: String}>
 export type UserCard = $ReadOnly<{following: Int, followers: Int, uid: UID, fullName: String, location: String, bio: String, website: String, twitter: String, youFollowThem: Boolean, theyFollowYou: Boolean, teamShowcase?: ?Array<UserTeamShowcase>, registeredForAirdrop: Boolean}>
 export type UserEk = $ReadOnly<{seed: Bytes32, metadata: UserEkMetadata}>
@@ -3683,8 +3691,8 @@ declare export function userUploadUserAvatarRpcPromise(params: $PropertyType<$Pr
 // 'keybase.1.block.blockPing'
 // 'keybase.1.BTC.registerBTC'
 // 'keybase.1.config.getCurrentStatus'
-// 'keybase.1.config.getExtendedStatus'
 // 'keybase.1.config.getClientStatus'
+// 'keybase.1.config.getFullStatus'
 // 'keybase.1.config.setUserConfig'
 // 'keybase.1.config.setPath'
 // 'keybase.1.config.clearValue'

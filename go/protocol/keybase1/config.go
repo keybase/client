@@ -9,7 +9,7 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type GetCurrentStatusRes struct {
+type CurrentStatus struct {
 	Configured     bool  `codec:"configured" json:"configured"`
 	Registered     bool  `codec:"registered" json:"registered"`
 	LoggedIn       bool  `codec:"loggedIn" json:"loggedIn"`
@@ -17,8 +17,8 @@ type GetCurrentStatusRes struct {
 	User           *User `codec:"user,omitempty" json:"user,omitempty"`
 }
 
-func (o GetCurrentStatusRes) DeepCopy() GetCurrentStatusRes {
-	return GetCurrentStatusRes{
+func (o CurrentStatus) DeepCopy() CurrentStatus {
+	return CurrentStatus{
 		Configured:     o.Configured,
 		Registered:     o.Registered,
 		LoggedIn:       o.LoggedIn,
@@ -160,7 +160,6 @@ type ExtendedStatus struct {
 	LocalChatDbStats       []string       `codec:"localChatDbStats" json:"localChatDbStats"`
 	CacheDirSizeInfo       []DirSizeInfo  `codec:"cacheDirSizeInfo" json:"cacheDirSizeInfo"`
 	UiRouterMapping        map[string]int `codec:"uiRouterMapping" json:"uiRouterMapping"`
-	ServiceLogPath         string         `codec:"serviceLogPath" json:"serviceLogPath"`
 }
 
 func (o ExtendedStatus) DeepCopy() ExtendedStatus {
@@ -278,7 +277,126 @@ func (o ExtendedStatus) DeepCopy() ExtendedStatus {
 			}
 			return ret
 		})(o.UiRouterMapping),
-		ServiceLogPath: o.ServiceLogPath,
+	}
+}
+
+type KbClientStatus struct {
+	Version string `codec:"version" json:"version"`
+}
+
+func (o KbClientStatus) DeepCopy() KbClientStatus {
+	return KbClientStatus{
+		Version: o.Version,
+	}
+}
+
+type KbServiceStatus struct {
+	Version string `codec:"version" json:"version"`
+	Running bool   `codec:"running" json:"running"`
+	Pid     string `codec:"pid" json:"pid"`
+	Log     string `codec:"log" json:"log"`
+	EkLog   string `codec:"ekLog" json:"ekLog"`
+}
+
+func (o KbServiceStatus) DeepCopy() KbServiceStatus {
+	return KbServiceStatus{
+		Version: o.Version,
+		Running: o.Running,
+		Pid:     o.Pid,
+		Log:     o.Log,
+		EkLog:   o.EkLog,
+	}
+}
+
+type KBFSStatus struct {
+	Version          string `codec:"version" json:"version"`
+	InstalledVersion string `codec:"installedVersion" json:"installedVersion"`
+	Running          bool   `codec:"running" json:"running"`
+	Pid              string `codec:"pid" json:"pid"`
+	Log              string `codec:"log" json:"log"`
+	Mount            string `codec:"mount" json:"mount"`
+}
+
+func (o KBFSStatus) DeepCopy() KBFSStatus {
+	return KBFSStatus{
+		Version:          o.Version,
+		InstalledVersion: o.InstalledVersion,
+		Running:          o.Running,
+		Pid:              o.Pid,
+		Log:              o.Log,
+		Mount:            o.Mount,
+	}
+}
+
+type DesktopStatus struct {
+	Version string `codec:"version" json:"version"`
+	Running bool   `codec:"running" json:"running"`
+	Log     string `codec:"log" json:"log"`
+}
+
+func (o DesktopStatus) DeepCopy() DesktopStatus {
+	return DesktopStatus{
+		Version: o.Version,
+		Running: o.Running,
+		Log:     o.Log,
+	}
+}
+
+type UpdaterStatus struct {
+	Log string `codec:"log" json:"log"`
+}
+
+func (o UpdaterStatus) DeepCopy() UpdaterStatus {
+	return UpdaterStatus{
+		Log: o.Log,
+	}
+}
+
+type StartStatus struct {
+	Log string `codec:"log" json:"log"`
+}
+
+func (o StartStatus) DeepCopy() StartStatus {
+	return StartStatus{
+		Log: o.Log,
+	}
+}
+
+type GitStatus struct {
+	Log string `codec:"log" json:"log"`
+}
+
+func (o GitStatus) DeepCopy() GitStatus {
+	return GitStatus{
+		Log: o.Log,
+	}
+}
+
+type FullStatus struct {
+	ConfigPath string          `codec:"configPath" json:"configPath"`
+	CurStatus  CurrentStatus   `codec:"curStatus" json:"curStatus"`
+	ExtStatus  ExtendedStatus  `codec:"extStatus" json:"extStatus"`
+	Client     KbClientStatus  `codec:"client" json:"client"`
+	Service    KbServiceStatus `codec:"service" json:"service"`
+	Kbfs       KBFSStatus      `codec:"kbfs" json:"kbfs"`
+	Desktop    DesktopStatus   `codec:"desktop" json:"desktop"`
+	Updater    UpdaterStatus   `codec:"updater" json:"updater"`
+	Start      StartStatus     `codec:"start" json:"start"`
+	Git        GitStatus       `codec:"git" json:"git"`
+}
+
+func (o FullStatus) DeepCopy() FullStatus {
+	return FullStatus{
+		ConfigPath: o.ConfigPath,
+		CurStatus:  o.CurStatus.DeepCopy(),
+		ExtStatus:  o.ExtStatus.DeepCopy(),
+		Client:     o.Client.DeepCopy(),
+		Service:    o.Service.DeepCopy(),
+		Kbfs:       o.Kbfs.DeepCopy(),
+		Desktop:    o.Desktop.DeepCopy(),
+		Updater:    o.Updater.DeepCopy(),
+		Start:      o.Start.DeepCopy(),
+		Git:        o.Git.DeepCopy(),
 	}
 }
 
@@ -649,11 +767,11 @@ type GetCurrentStatusArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
-type GetExtendedStatusArg struct {
+type GetClientStatusArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
-type GetClientStatusArg struct {
+type GetFullStatusArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
@@ -727,9 +845,9 @@ type GetUpdateInfo2Arg struct {
 }
 
 type ConfigInterface interface {
-	GetCurrentStatus(context.Context, int) (GetCurrentStatusRes, error)
-	GetExtendedStatus(context.Context, int) (ExtendedStatus, error)
+	GetCurrentStatus(context.Context, int) (CurrentStatus, error)
 	GetClientStatus(context.Context, int) ([]ClientStatus, error)
+	GetFullStatus(context.Context, int) (*FullStatus, error)
 	GetAllProvisionedUsernames(context.Context, int) (AllProvisionedUsernames, error)
 	GetConfig(context.Context, int) (Config, error)
 	// Change user config.
@@ -774,21 +892,6 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 					return
 				},
 			},
-			"getExtendedStatus": {
-				MakeArg: func() interface{} {
-					var ret [1]GetExtendedStatusArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]GetExtendedStatusArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]GetExtendedStatusArg)(nil), args)
-						return
-					}
-					ret, err = i.GetExtendedStatus(ctx, typedArgs[0].SessionID)
-					return
-				},
-			},
 			"getClientStatus": {
 				MakeArg: func() interface{} {
 					var ret [1]GetClientStatusArg
@@ -801,6 +904,21 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetClientStatus(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
+			"getFullStatus": {
+				MakeArg: func() interface{} {
+					var ret [1]GetFullStatusArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetFullStatusArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetFullStatusArg)(nil), args)
+						return
+					}
+					ret, err = i.GetFullStatus(ctx, typedArgs[0].SessionID)
 					return
 				},
 			},
@@ -1037,21 +1155,21 @@ type ConfigClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c ConfigClient) GetCurrentStatus(ctx context.Context, sessionID int) (res GetCurrentStatusRes, err error) {
+func (c ConfigClient) GetCurrentStatus(ctx context.Context, sessionID int) (res CurrentStatus, err error) {
 	__arg := GetCurrentStatusArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.config.getCurrentStatus", []interface{}{__arg}, &res)
-	return
-}
-
-func (c ConfigClient) GetExtendedStatus(ctx context.Context, sessionID int) (res ExtendedStatus, err error) {
-	__arg := GetExtendedStatusArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.config.getExtendedStatus", []interface{}{__arg}, &res)
 	return
 }
 
 func (c ConfigClient) GetClientStatus(ctx context.Context, sessionID int) (res []ClientStatus, err error) {
 	__arg := GetClientStatusArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.config.getClientStatus", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ConfigClient) GetFullStatus(ctx context.Context, sessionID int) (res *FullStatus, err error) {
+	__arg := GetFullStatusArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.config.getFullStatus", []interface{}{__arg}, &res)
 	return
 }
 

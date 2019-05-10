@@ -158,7 +158,7 @@ func (e *SaltpackRecipientKeyfinderEngine) identifyAndAddUserRecipient(m libkb.M
 	case libkb.IsNotFoundError(err) || libkb.IsResolutionNotFoundError(err):
 		// recipient is not a keybase user
 
-		expr, err := externals.AssertionParse(m.G(), u)
+		expr, err := externals.AssertionParse(m, u)
 		if err != nil {
 			m.Debug("error parsing assertion: %s", err)
 			return libkb.NewRecipientNotFoundError(fmt.Sprintf("Cannot encrypt for %v: it is not a keybase user or social assertion (err = %v)", u, err))

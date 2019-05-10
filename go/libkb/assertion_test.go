@@ -9,9 +9,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"golang.org/x/net/context"
 )
 
 type testAssertionContext struct{}
+
+func (t testAssertionContext) Ctx() context.Context { return context.Background() }
 
 func (t testAssertionContext) NormalizeSocialName(service string, username string) (string, error) {
 	return strings.ToLower(username), nil
@@ -20,6 +23,8 @@ func (t testAssertionContext) NormalizeSocialName(service string, username strin
 type testAlwaysFailAssertionContext struct{}
 
 const failAssertionContextErr = "Unknown social network BECAUSE IT'S A TEST"
+
+func (t testAlwaysFailAssertionContext) Ctx() context.Context { return context.Background() }
 
 func (t testAlwaysFailAssertionContext) NormalizeSocialName(service string, username string) (string, error) {
 	return "", fmt.Errorf("%s: %s", failAssertionContextErr, service)

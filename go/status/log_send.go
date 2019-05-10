@@ -1,7 +1,7 @@
-// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// Copyright 2019 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-package libkb
+package status
 
 import (
 	"archive/tar"
@@ -20,6 +20,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 
@@ -45,7 +46,7 @@ type Logs struct {
 
 // LogSendContext for LogSend
 type LogSendContext struct {
-	Contextified
+	libkb.Contextified
 	Logs Logs
 }
 
@@ -78,7 +79,10 @@ func addGzippedFile(mpart *multipart.Writer, param, filename, data string) error
 	return gz.Close()
 }
 
-func (l *LogSendContext) post(mctx MetaContext, status, feedback, kbfsLog, svcLog, ekLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog, watchdogLog string, traceBundle, cpuProfileBundle []byte, uid keybase1.UID, installID InstallID, processesLog string) (string, error) {
+func (l *LogSendContext) post(mctx libkb.MetaContext, status, feedback, kbfsLog, svcLog, ekLog,
+	desktopLog, updaterLog, startLog, installLog, systemLog, gitLog, watchdogLog string,
+	traceBundle, cpuProfileBundle []byte, uid keybase1.UID,
+	installID libkb.InstallID, processesLog string) (string, error) {
 	mctx.Debug("sending status + logs to keybase")
 
 	var body bytes.Buffer
@@ -153,9 +157,9 @@ func (l *LogSendContext) post(mctx MetaContext, status, feedback, kbfsLog, svcLo
 
 	mctx.Debug("body size: %d", body.Len())
 
-	arg := APIArg{
+	arg := libkb.APIArg{
 		Endpoint:    "logdump/send",
-		SessionType: APISessionTypeOPTIONAL,
+		SessionType: libkb.APISessionTypeOPTIONAL,
 	}
 
 	resp, err := mctx.G().API.PostRaw(mctx, arg, mpart.FormDataContentType(), &body)
@@ -467,29 +471,30 @@ func getBundledFiles(log logger.Logger, files []string, maxFileCount int) []byte
 }
 
 func getTraceBundle(log logger.Logger, traceDir string) []byte {
-	traceFiles, err := GetSortedTraceFiles(traceDir)
+	traceFiles, err := libkb.GetSortedTraceFiles(traceDir)
 	if err != nil {
 		log.Warning("Error getting trace files in %q: %s", traceDir, err)
 		return nil
 	}
 
-	return getBundledFiles(log, traceFiles, MaxTraceFileCount)
+	return getBundledFiles(log, traceFiles, libkb.MaxTraceFileCount)
 }
 
 func getCPUProfileBundle(log logger.Logger, cpuProfileDir string) []byte {
-	cpuProfileFiles, err := GetSortedCPUProfileFiles(cpuProfileDir)
+	cpuProfileFiles, err := libkb.GetSortedCPUProfileFiles(cpuProfileDir)
 	if err != nil {
 		log.Warning("Error getting CPU profile files in %q: %s", cpuProfileDir, err)
 		return nil
 	}
 
-	return getBundledFiles(log, cpuProfileFiles, MaxCPUProfileFileCount)
+	return getBundledFiles(log, cpuProfileFiles, libkb.MaxCPUProfileFileCount)
 }
 
 // LogSend sends the tails of log files to kb, and also the last
 // few trace output files.
-func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, numBytes int, uid keybase1.UID, installID InstallID, mergeExtendedStatus bool) (string, error) {
-	mctx := NewMetaContextBackground(l.G()).WithLogTag("LOGSEND")
+func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, numBytes int,
+	uid keybase1.UID, installID libkb.InstallID, mergeExtendedStatus bool) (string, error) {
+	mctx := libkb.NewMetaContextBackground(l.G()).WithLogTag("LOGSEND")
 	logs := l.Logs
 	var kbfsLog string
 	var svcLog string
@@ -516,7 +521,12 @@ func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, num
 		// However we do use it for startup logs, since that's the only place
 		// to get them in systemd mode.
 		if l.G().Env.WantsSystemd() {
-			startLog = tailSystemdJournal(l.G().Log, []string{"keybase.service", "keybase.ek", "kbfs.service", "keybase.gui.service", "keybase-redirector.service"}, numBytes)
+			startLog = tailSystemdJournal(l.G().Log, []string{
+				"keybase.service",
+				"kbfs.service",
+				"keybase.gui.service",
+				"keybase-redirector.service",
+			}, numBytes)
 		} else {
 			startLog = tail(l.G().Log, "start", logs.Start, numBytes)
 		}
@@ -537,7 +547,10 @@ func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, num
 		processesLog = keybaseProcessList()
 	}
 
-	return l.post(mctx, statusJSON, feedback, kbfsLog, svcLog, ekLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog, watchdogLog, traceBundle, cpuProfileBundle, uid, installID, processesLog)
+	return l.post(mctx, statusJSON, feedback, kbfsLog, svcLog, ekLog,
+		desktopLog, updaterLog, startLog,
+		installLog, systemLog, gitLog, watchdogLog, traceBundle,
+		cpuProfileBundle, uid, installID, processesLog)
 }
 
 // mergeExtendedStatus adds the extended status to the given status json blob.
@@ -553,7 +566,7 @@ func (l *LogSendContext) mergeExtendedStatus(status string) string {
 		return status
 	}
 
-	extStatus, err := GetExtendedStatus(NewMetaContextTODO(l.G()))
+	extStatus, err := GetExtendedStatus(libkb.NewMetaContextTODO(l.G()))
 	if err != nil {
 		return status
 	}

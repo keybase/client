@@ -8800,6 +8800,11 @@ keycode@^2.2.0:
   resolved "https://registry.yarnpkg.com/keycode/-/keycode-2.2.0.tgz#3d0af56dc7b8b8e5cba8d0a97f107204eec22b04"
   integrity sha1-PQr1bce4uOXLqNCpfxByBO7CKwQ=
 
+keymirror@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/keymirror/-/keymirror-0.1.1.tgz#918889ea13f8d0a42e7c557250eee713adc95c35"
+  integrity sha1-kYiJ6hP40KQufFVyUO7nE63JXDU=
+
 killable@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/killable/-/killable-1.0.1.tgz#4c8ce441187a061c7474fb87ca08e2a638194892"
@@ -11726,6 +11731,15 @@ react-native-tab-view@^2.2.0:
   resolved "https://registry.yarnpkg.com/react-native-tab-view/-/react-native-tab-view-2.2.0.tgz#30d015b8f33f497d82419b56df7d43ecfcc3f9b1"
   integrity sha512-mhFDRvPH/kmvqfAzTwNptbOM/xXmpqYRsD0PSMJX1nP0LzhU4uRI1QmSW6sWZGLyOwKgVw0ZYkwZ54N8AmoO1A==
 
+react-native-video@4.4.1:
+  version "4.4.1"
+  resolved "https://registry.yarnpkg.com/react-native-video/-/react-native-video-4.4.1.tgz#12c6a8bfbabfa7641338a52db3d857ac3073a4fd"
+  integrity sha512-gTZKRqa4NkEBx6t6iAzTFlgxDY23IZW/8YClR0hMzhOD0/9I/AzOBBaOXDyFeKj4EQF+uZ/LUS3r+oDnz1ks5w==
+  dependencies:
+    keymirror "^0.1.1"
+    prop-types "^15.5.10"
+    shaka-player "^2.4.4"
+
 "react-native@git://github.com/keybase/react-native#keybase-fixes-off-578":
   version "0.57.8"
   resolved "git://github.com/keybase/react-native#3bb14d2d04e5afebced95bf4d1db46b898faebba"
@@ -12769,6 +12783,11 @@ sha.js@^2.4.0, sha.js@^2.4.8:
   dependencies:
     inherits "^2.0.1"
     safe-buffer "^5.0.1"
+
+shaka-player@^2.4.4:
+  version "2.5.0"
+  resolved "https://registry.yarnpkg.com/shaka-player/-/shaka-player-2.5.0.tgz#e479366120c248597f0697d5e4458ebe9f75846d"
+  integrity sha512-MaJ1BbMBiSDpfhctMHG+C/GYspH2D037gcGBAKGrQBWdVc/7loJ50flbvmOhZm2LJsFV8sSg/JjAlH7gei3Ozg==
 
 shallow-clone@^0.1.2:
   version "0.1.2"

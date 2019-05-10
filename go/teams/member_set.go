@@ -153,7 +153,7 @@ func loadUPAK2(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, fo
 }
 
 func parseSocialAssertion(m libkb.MetaContext, username string) (typ string, name string, err error) {
-	assertion, err := libkb.ParseAssertionURL(m.G().MakeAssertionContext(), username, false)
+	assertion, err := libkb.ParseAssertionURL(m.G().MakeAssertionContext(m), username, false)
 	if err != nil {
 		return "", "", err
 	}

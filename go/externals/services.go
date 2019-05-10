@@ -56,17 +56,17 @@ func (p *proofServices) registerServiceTypes(services []libkb.ServiceType) {
 	}
 }
 
-func (p *proofServices) GetServiceType(s string) libkb.ServiceType {
+func (p *proofServices) GetServiceType(ctx context.Context, s string) libkb.ServiceType {
 	p.Lock()
 	defer p.Unlock()
-	p.loadServiceConfigs()
+	p.loadServiceConfigs(p.MetaContext(ctx))
 	return p.externalServices[strings.ToLower(s)]
 }
 
-func (p *proofServices) ListProofCheckers() []string {
+func (p *proofServices) ListProofCheckers(mctx libkb.MetaContext) []string {
 	p.Lock()
 	defer p.Unlock()
-	p.loadServiceConfigs()
+	p.loadServiceConfigs(mctx)
 	var ret []string
 	for k := range p.externalServices {
 		ret = append(ret, k)
@@ -82,7 +82,7 @@ type serviceAndPriority struct {
 func (p *proofServices) ListServicesThatAcceptNewProofs(mctx libkb.MetaContext) []string {
 	p.Lock()
 	defer p.Unlock()
-	p.loadServiceConfigs()
+	p.loadServiceConfigs(mctx)
 	var services []serviceAndPriority
 	experimentalGenericProofs := mctx.G().FeatureFlags.Enabled(mctx, libkb.ExperimentalGenericProofs)
 	for k, v := range p.externalServices {
@@ -101,31 +101,30 @@ func (p *proofServices) ListServicesThatAcceptNewProofs(mctx libkb.MetaContext) 
 	return serviceNames
 }
 
-func (p *proofServices) ListDisplayConfigs() (res []keybase1.ServiceDisplayConfig) {
+func (p *proofServices) ListDisplayConfigs(mctx libkb.MetaContext) (res []keybase1.ServiceDisplayConfig) {
 	p.Lock()
 	defer p.Unlock()
-	p.loadServiceConfigs()
+	p.loadServiceConfigs(mctx)
 	for _, config := range p.displayConfigs {
 		res = append(res, config)
 	}
 	return res
 }
 
-func (p *proofServices) SuggestionFoldPriority() int {
+func (p *proofServices) SuggestionFoldPriority(mctx libkb.MetaContext) int {
 	p.Lock()
 	defer p.Unlock()
-	p.loadServiceConfigs()
+	p.loadServiceConfigs(mctx)
 	return p.suggestionFold
 }
 
-func (p *proofServices) loadServiceConfigs() {
-	tracer := p.G().CTimeTracer(context.TODO(), "proofServices.loadServiceConfigs", false)
+func (p *proofServices) loadServiceConfigs(mctx libkb.MetaContext) {
+	tracer := p.G().CTimeTracer(mctx.Ctx(), "proofServices.loadServiceConfigs", false)
 	defer tracer.Finish()
 
-	mctx := libkb.NewMetaContext(context.TODO(), p.G())
 	entry, err := p.G().GetParamProofStore().GetLatestEntryWithKnown(mctx, p.loadedHash)
 	if err != nil {
-		p.G().Log.CDebugf(context.TODO(), "unable to load paramproofs: %v", err)
+		mctx.Debug("unable to load paramproofs: %v", err)
 		return
 	}
 	if entry == nil {
@@ -134,9 +133,9 @@ func (p *proofServices) loadServiceConfigs() {
 	}
 	defer mctx.TraceTimed("proofServices.loadServiceConfigsBulk", func() error { return err })()
 	tracer.Stage("parse")
-	config, err := p.parseServerConfig(*entry)
+	config, err := p.parseServerConfig(mctx, *entry)
 	if err != nil {
-		p.G().Log.CDebugf(context.TODO(), "unable to parse paramproofs: %v", err)
+		mctx.Debug("unable to parse paramproofs: %v", err)
 		return
 	}
 	tracer.Stage("fill")
@@ -170,7 +169,7 @@ type proofServicesT struct {
 	Services       []keybase1.ExternalServiceConfig `json:"services"`
 }
 
-func (p *proofServices) parseServerConfig(entry keybase1.MerkleStoreEntry) (res parsedServerConfig, err error) {
+func (p *proofServices) parseServerConfig(mctx libkb.MetaContext, entry keybase1.MerkleStoreEntry) (res parsedServerConfig, err error) {
 	b := []byte(entry.Entry)
 	services := proofServicesT{}
 
@@ -184,14 +183,14 @@ func (p *proofServices) parseServerConfig(entry keybase1.MerkleStoreEntry) (res 
 			// Do some basic validation of what we parsed
 			validConf, err := NewGenericSocialProofConfig(p.G(), *service.Config)
 			if err != nil {
-				p.G().Log.CDebugf(context.TODO(), "Unable to validate config for %s: %v", service.Config.DisplayName, err)
+				mctx.Debug("Unable to validate config for %s: %v", service.Config.DisplayName, err)
 				continue
 			}
 			res.ProofConfigs = append(res.ProofConfigs, validConf)
 		}
 		if service.Display != nil {
 			if service.Config != nil && service.Config.Domain != service.Display.Key {
-				p.G().Log.CDebugf(context.TODO(), "Invalid display config, key mismatch %s != %s", service.Config.Domain, service.Display.Key)
+				mctx.Debug("Invalid display config, key mismatch %s != %s", service.Config.Domain, service.Display.Key)
 				continue
 			}
 			res.DisplayConfigs = append(res.DisplayConfigs, service.Display)

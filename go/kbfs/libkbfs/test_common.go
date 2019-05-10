@@ -460,7 +460,7 @@ func AddNewAssertionForTest(
 	// configs, it may end up invoking the following call more than
 	// once on the shared md databases.  That's ok though, it's an
 	// idempotent call.
-	newSocialAssertion, ok := externals.NormalizeSocialAssertionStatic(newAssertion)
+	newSocialAssertion, ok := externals.NormalizeSocialAssertionStatic(context.Background(), newAssertion)
 	if !ok {
 		return errors.Errorf("%s couldn't be parsed as a social assertion", newAssertion)
 	}
