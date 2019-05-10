@@ -16,7 +16,10 @@ type MobileAppState struct {
 	sync.Mutex
 	state     keybase1.MobileAppState
 	updateChs []chan keybase1.MobileAppState
-	mtime     *time.Time
+
+	// mtime is the time at which the appstate first switched to the current state.
+	// It is a monotonic timestamp and should only be used relatively.
+	mtime *time.Time
 }
 
 func NewMobileAppState(g *GlobalContext) *MobileAppState {
@@ -50,7 +53,7 @@ func (a *MobileAppState) Update(state keybase1.MobileAppState) {
 			state, a.state)
 		a.state = state
 		t := time.Now()
-		a.mtime = &t
+		a.mtime = &t // only update mtime if we're changing state
 		for _, ch := range a.updateChs {
 			ch <- state
 		}
