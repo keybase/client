@@ -160,6 +160,7 @@ type ExtendedStatus struct {
 	LocalChatDbStats       []string       `codec:"localChatDbStats" json:"localChatDbStats"`
 	CacheDirSizeInfo       []DirSizeInfo  `codec:"cacheDirSizeInfo" json:"cacheDirSizeInfo"`
 	UiRouterMapping        map[string]int `codec:"uiRouterMapping" json:"uiRouterMapping"`
+	ServiceLogPath         string         `codec:"serviceLogPath" json:"serviceLogPath"`
 }
 
 func (o ExtendedStatus) DeepCopy() ExtendedStatus {
@@ -277,6 +278,7 @@ func (o ExtendedStatus) DeepCopy() ExtendedStatus {
 			}
 			return ret
 		})(o.UiRouterMapping),
+		ServiceLogPath: o.ServiceLogPath,
 	}
 }
 

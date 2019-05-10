@@ -101,7 +101,11 @@ export class UpdatePassword extends Component<Props, State> {
             <Kb.Button
               fullWidth={true}
               label={this.props.saveLabel || 'Save'}
-              disabled={!!this.state.errorSaving || this.state.password.length < 8}
+              disabled={
+                !!this.state.errorSaving ||
+                this.state.password.length < 8 ||
+                this.state.password !== this.state.passwordConfirm
+              }
               onClick={() => this.props.onSave(this.state.password, this.state.passwordConfirm)}
               waiting={this.props.waitingForResponse}
             />

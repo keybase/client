@@ -28,6 +28,7 @@ func randomEmailAddress(t *testing.T) keybase1.EmailAddress {
 }
 
 func TestEmailHappyPath(t *testing.T) {
+	t.Skip()
 	tc := libkb.SetupTest(t, "TestEmailHappyPath", 1)
 	defer tc.Cleanup()
 

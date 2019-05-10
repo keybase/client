@@ -152,5 +152,9 @@ func GetExtendedStatus(mctx MetaContext) (res keybase1.ExtendedStatus, err error
 		res.UiRouterMapping = uiMapping
 	}
 
+	if serviceLogPath, ok := g.Env.GetEffectiveLogFile(); ok {
+		res.ServiceLogPath = serviceLogPath
+	}
+
 	return res, nil
 }
