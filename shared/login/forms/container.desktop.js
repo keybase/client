@@ -1,15 +1,12 @@
 // @flow
 import * as React from 'react'
-import {BackButton} from '../../common-adapters'
 import {globalStyles} from '../../styles'
-import flags from '../../util/feature-flags'
 
 import type {Props} from './container'
 
 const Container = ({children, onBack, style, outerStyle}: Props) => {
   return (
     <div style={{...stylesContainer, ...outerStyle}}>
-      {!flags.useNewRouter && onBack && <BackButton style={stylesButton} onClick={onBack} />}
       <div style={{...stylesInnerContainer, ...style}}>{children}</div>
     </div>
   )
@@ -28,11 +25,6 @@ const stylesInnerContainer = {
   alignSelf: 'stretch',
   height: '100%',
   width: '100%',
-}
-
-const stylesButton = {
-  position: 'absolute',
-  zIndex: 9999,
 }
 
 export default Container

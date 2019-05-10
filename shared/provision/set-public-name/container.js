@@ -4,7 +4,6 @@ import * as Constants from '../../constants/provision'
 import SetPublicName from '.'
 import {connect, withStateHandlers, compose, safeSubmit} from '../../util/container'
 import {type RouteProps} from '../../route-tree/render-route'
-import flags from '../../util/feature-flags'
 
 type OwnProps = {deviceName: string, onChange: (text: string) => void} & RouteProps<{}, {}>
 
@@ -15,9 +14,8 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   _onSubmit: (name: string) => dispatch(ProvisionGen.createSubmitDeviceName({name})),
-  onBack: () => {
-    !flags.useNewRouter && dispatch(ownProps.navigateUp())
-  },
+  // TODO remove
+  onBack: () => {},
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {

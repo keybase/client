@@ -9,7 +9,6 @@ import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {anyWaiting} from '../../constants/waiting'
 import {getChannelsWaitingKey, getCanPerform, getTeamChannelInfos, hasCanPerform} from '../../constants/teams'
-import flags from '../../util/feature-flags'
 
 type OwnProps = Container.RouteProps<{teamname: string}, {}>
 
@@ -92,7 +91,7 @@ const mapDispatchToProps = (dispatch, ownProps) => {
       )
       if (selectedChatID in nextChannelState && !nextChannelState[selectedChatID]) {
         dispatch(
-          flags.useNewRouter && Container.isMobile
+          Container.isMobile
             ? RouteTreeGen.createNavigateUp()
             : Chat2Gen.createNavigateToInbox({avoidConversationID: selectedChatID, findNewConversation: true})
         )
@@ -105,7 +104,7 @@ const mapDispatchToProps = (dispatch, ownProps) => {
     onCreate: () =>
       dispatch(
         RouteTreeGen.createNavigateTo({
-          parentPath: flags.useNewRouter ? [] : ownProps.routePath.butLast(),
+          parentPath: [],
           path: [{props: {teamname}, selected: 'chatCreateChannel'}],
         })
       ),

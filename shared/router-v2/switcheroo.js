@@ -1,41 +1,21 @@
 // @flow
 // Switches between the route-tree router and the new router, will go away
 import * as React from 'react'
-import RenderRoute from '../route-tree/render-route'
 import Router from './router'
 import {connect} from '../util/container'
 import * as ConfigGen from '../actions/config-gen'
-import type {RouteDefNode, RouteStateNode, Path} from '../route-tree'
 
-type OwnProps = {|
-  useNewRouter: boolean,
-  oldRouteDef: RouteDefNode,
-  oldRouteState: RouteStateNode,
-  oldSetRouteState: (path: Path, partialState: {}) => void,
-|}
+type OwnProps = {||}
 
 type Props = {|
-  useNewRouter: boolean,
-  oldRouteDef: RouteDefNode,
-  oldRouteState: RouteStateNode,
-  oldSetRouteState: (path: Path, partialState: {}) => void,
   updateNavigator: any => void,
   persistRoute: any => void,
 |}
 
+// TODO remove this class
 class RouterSwitcheroo extends React.PureComponent<Props> {
   render() {
-    if (this.props.useNewRouter) {
-      return <Router ref={r => this.props.updateNavigator(r)} persistRoute={this.props.persistRoute} />
-    }
-
-    return (
-      <RenderRoute
-        routeDef={this.props.oldRouteDef}
-        routeState={this.props.oldRouteState}
-        setRouteState={this.props.oldSetRouteState}
-      />
-    )
+    return <Router ref={r => this.props.updateNavigator(r)} persistRoute={this.props.persistRoute} />
   }
 }
 

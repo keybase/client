@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import {isMobile} from '../../constants/platform'
@@ -19,7 +20,7 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
 const mergeProps = (stateProps, {onBack}, ownProps) => ({
   onBack,
   path: getRouteProps(ownProps, 'path') || Constants.defaultPath,
-  routePath: ownProps.routePath,
+  routePath: I.List(), // TODO fix ownProps.routePath,
 })
 
 const ConnectedBarePreview = isMobile

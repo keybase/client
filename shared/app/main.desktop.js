@@ -1,6 +1,5 @@
 // @flow
 import {hot} from 'react-hot-loader/root'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as React from 'react'
 import RouterSwitcheroo from '../router-v2/switcheroo'
 import {connect} from '../util/container'
@@ -8,7 +7,6 @@ import * as SafeElectron from '../util/safe-electron.desktop'
 import {isWindows} from '../constants/platform'
 import {resolveImage} from '../desktop/app/resolve-root.desktop'
 import {getMainWindow} from '../desktop/remote/util.desktop'
-import {type RouteDefNode, type RouteStateNode, type Path} from '../route-tree'
 // Uncomment to get more info on hot loading
 // import {setConfig} from 'react-hot-loader'
 // setConfig({logLevel: 'debug'})
@@ -19,14 +17,9 @@ type Props = {
   widgetBadge: boolean,
   desktopAppBadgeCount: number,
   username: string,
-  navigateUp: () => void,
-  routeDef: RouteDefNode,
-  routeState: RouteStateNode,
-  setRouteState: (path: Path, partialState: {}) => void,
-  useNewRouter: boolean,
 }
 
-// TODO move all this badge handling to menubar side
+// TODO likely remove this class
 class Main extends React.PureComponent<Props> {
   _updateBadges = () => {
     SafeElectron.getIpcRenderer().send('showTray', this.props.widgetBadge, this.props.desktopAppBadgeCount)
@@ -55,32 +48,17 @@ class Main extends React.PureComponent<Props> {
   }
 
   render() {
-    return (
-      <RouterSwitcheroo
-        useNewRouter={this.props.useNewRouter}
-        oldRouteDef={this.props.routeDef}
-        oldRouteState={this.props.routeState}
-        oldSetRouteState={this.props.setRouteState}
-      />
-    )
+    return <RouterSwitcheroo />
   }
 }
 
 const mapStateToProps = state => ({
   desktopAppBadgeCount: state.notifications.get('desktopAppBadgeCount'),
-  routeDef: state.routeTree.routeDef,
-  routeState: state.routeTree.routeState,
-  useNewRouter: state.config.useNewRouter,
   username: state.config.username,
   widgetBadge: state.notifications.get('widgetBadge') || false,
 })
 
-const mapDispatchToProps = dispatch => ({
-  navigateUp: () => dispatch(RouteTreeGen.createNavigateUp()),
-  setRouteState: (path, partialState) => {
-    dispatch(RouteTreeGen.createSetRouteState({partialState, path}))
-  },
-})
+const mapDispatchToProps = dispatch => ({})
 
 export default hot(
   connect<OwnProps, _, _, _, _>(

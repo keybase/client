@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import Header from './header'
-import flags from '../../util/feature-flags'
 
 type Props = {|
   onClose: () => void,
@@ -38,17 +37,6 @@ const Root = (props: Props) => {
       <Kb.SafeAreaView style={styles.backgroundColorBlue5} />
     </>
   )
-  if (!flags.useNewRouter) {
-    // new router adds this by default
-    child = (
-      <Kb.KeyboardAvoidingView
-        behavior={Styles.isAndroid ? undefined : 'padding'}
-        style={Styles.globalStyles.fillAbsolute}
-      >
-        {child}
-      </Kb.KeyboardAvoidingView>
-    )
-  }
   return <Kb.MaybePopup onClose={props.onClose}>{child}</Kb.MaybePopup>
 }
 

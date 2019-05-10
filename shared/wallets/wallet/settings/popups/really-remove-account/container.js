@@ -7,7 +7,6 @@ import * as WalletsGen from '../../../../../actions/wallets-gen'
 import * as Types from '../../../../../constants/types/wallets'
 import {anyWaiting} from '../../../../../constants/waiting'
 import ReallyRemoveAccountPopup from '.'
-import flags from '../../../../../util/feature-flags'
 
 type OwnProps = Container.RouteProps<{accountID: Types.AccountID}, {}>
 
@@ -33,9 +32,7 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
         accountID,
       })
     )
-    if (flags.useNewRouter) {
-      dispatch(RouteTreeGen.createClearModals())
-    }
+    dispatch(RouteTreeGen.createClearModals())
   },
   _onLoadSecretKey: (accountID: Types.AccountID) => dispatch(WalletsGen.createExportSecretKey({accountID})),
   _onSecretKeySeen: (accountID: Types.AccountID) => dispatch(WalletsGen.createSecretKeySeen({accountID})),

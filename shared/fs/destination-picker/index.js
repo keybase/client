@@ -8,9 +8,7 @@ import {withProps} from 'recompose'
 import Rows from '../row/rows-container'
 import * as FsCommon from '../common'
 import * as RowCommon from '../row/common'
-import Breadcrumb from '../header/breadcrumb-container.desktop.js'
 import NavHeaderTitle from '../nav-header/title-container'
-import flags from '../../util/feature-flags'
 
 type Props = {
   index: number,
@@ -46,11 +44,7 @@ const DesktopHeaders = (props: Props) => (
       </Kb.Text>
     </Kb.Box2>
     <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.anotherHeader}>
-      {flags.useNewRouter ? (
-        <NavHeaderTitle inDestinationPicker={true} path={props.parentPath} />
-      ) : (
-        <Breadcrumb path={props.parentPath} inDestinationPicker={true} routePath={props.routePath} />
-      )}
+      <NavHeaderTitle inDestinationPicker={true} path={props.parentPath} />
       {!!props.onNewFolder && <NewFolder onNewFolder={props.onNewFolder} />}
     </Kb.Box2>
   </>

@@ -2,7 +2,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import flags from '../../util/feature-flags'
 
 type Props = {
   error: ?Error,
@@ -140,4 +139,4 @@ const _containerStyle = {
   padding: Styles.isMobile ? Styles.globalMargins.large : Styles.globalMargins.xlarge,
 }
 
-export default (flags.useNewRouter ? Kb.HeaderOrPopup(DeleteRepo) : DeleteRepo)
+export default Kb.HeaderOrPopup(DeleteRepo)

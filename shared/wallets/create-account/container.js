@@ -6,7 +6,6 @@ import * as WalletsGen from '../../actions/wallets-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {anyWaiting} from '../../constants/waiting'
 import CreateAccount from '.'
-import flags from '../../util/feature-flags'
 
 type OwnProps = Container.RouteProps<{fromSendForm?: boolean, showOnCreation?: boolean}, {}>
 
@@ -28,9 +27,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
         showOnCreation: Container.getRouteProps(ownProps, 'showOnCreation'),
       })
     )
-    if (flags.useNewRouter) {
-      dispatch(RouteTreeGen.createNavigateUp())
-    }
+    dispatch(RouteTreeGen.createNavigateUp())
   },
   onDone: (name: string) => {
     dispatch(WalletsGen.createValidateAccountName({name}))

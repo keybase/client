@@ -15,7 +15,6 @@ import * as Constants from '../constants/teams'
 import * as WaitingConstants from '../constants/waiting'
 import {type Teamname} from '../constants/types/teams'
 import {memoize} from '../util/memoize'
-import flags from '../util/feature-flags'
 
 type OwnProps = RouteProps<{}, {}>
 
@@ -53,12 +52,7 @@ const mapDispatchToProps = (dispatch, {routePath}) => ({
       RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
     ),
   onOpenFolder: (teamname: Teamname) =>
-    dispatch(
-      FsConstants.makeActionForOpenPathInFilesTab(
-        FsTypes.stringToPath(`/keybase/team/${teamname}`),
-        flags.useNewRouter ? undefined : routePath
-      )
-    ),
+    dispatch(FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`))),
   onReadMore: () => {
     openURL('https://keybase.io/blog/introducing-keybase-teams')
   },
