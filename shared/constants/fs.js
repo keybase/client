@@ -1048,16 +1048,9 @@ export const makeActionsForDestinationPickerOpen = (
     index,
     path,
   }),
-  !routePath
-    ? RouteTreeGen.createNavigateAppend({
-        path: [{props: {index}, selected: 'destinationPicker'}],
-      })
-    : RouteTreeGen.createPutActionIfOnPath({
-        expectedPath: routePath,
-        otherAction: RouteTreeGen.createNavigateAppend({
-          path: [{props: {index}, selected: 'destinationPicker'}],
-        }),
-      }),
+  RouteTreeGen.createNavigateAppend({
+    path: [{props: {index}, selected: 'destinationPicker'}],
+  }),
 ]
 
 export const fsRootRouteForNav1 = isMobile ? [Tabs.settingsTab, SettingsConstants.fsTab] : [Tabs.fsTab]
