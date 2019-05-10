@@ -5,7 +5,6 @@ import Main from '../../app/main.desktop'
 import * as NotificationsGen from '../../actions/notifications-gen'
 import * as React from 'react'
 import * as ConfigGen from '../../actions/config-gen'
-import {setupLoginHMR} from '../../actions/login'
 import ReactDOM from 'react-dom'
 import RemoteProxies from '../remote/proxies.desktop'
 import Root from './container.desktop'
@@ -138,7 +137,6 @@ function setupHMR(store) {
 
   accept(['../../app/main.desktop'], refreshMain)
   accept('../../common-adapters/index.js', () => {})
-  setupLoginHMR(refreshMain)
 }
 
 function load() {

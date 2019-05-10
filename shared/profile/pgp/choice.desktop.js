@@ -32,7 +32,7 @@ const Choice = p => (
 )
 
 const mapDispatchToProps = dispatch => ({
-  onCancel: () => dispatch(RouteTreeGen.createClearModals())
+  onCancel: () => dispatch(RouteTreeGen.createClearModals()),
   onShowGetNew: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileProvideInfo']})),
   onShowImport: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileImport']})),
 })

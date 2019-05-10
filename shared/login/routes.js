@@ -1,8 +1,6 @@
 // @flow
-import * as I from 'immutable'
 import * as React from 'react'
 import {connect, type RouteProps} from '../util/container'
-import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 
 type OwnProps = RouteProps<{}, {}>
 
@@ -35,30 +33,6 @@ const RootLogin = connect<OwnProps, _, _, _, _>(
 RootLogin.navigationOptions = {
   header: null,
 }
-
-const addTags = component => ({component, tags: makeLeafTags({hideStatusBar: true})})
-
-const routeTree = () => {
-  const provisonRoutes = require('../provision/routes').default
-  const signupRoutes = require('./signup/routes').default
-  const Feedback = require('../settings/feedback-container').default
-  const recursiveLazyRoutes = I.Seq({
-    feedback: addTags(Feedback),
-    login: addTags(RootLogin),
-    ...provisonRoutes,
-    ...signupRoutes,
-  })
-    .map(routeData =>
-      makeRouteDefNode({
-        ...routeData,
-        children: name => recursiveLazyRoutes.get(name),
-      })
-    )
-    .toMap()
-  return recursiveLazyRoutes.get('login')
-}
-
-export default routeTree
 
 export const newRoutes = {
   feedback: {getScreen: () => require('../settings/feedback-container').default},

@@ -24,7 +24,7 @@ const mapStateToProps = (state, ownProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {routePath}) => ({
+const mapDispatchToProps = dispatch => ({
   _emitBarePreview: (path: Types.Path) => {
     dispatch(RouteTreeGen.createNavigateUp())
     dispatch(
@@ -46,7 +46,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       !isDefinitelyFolder && stateProps._pathItem.type === 'file' ? stateProps._pathItem.mimeType : null,
     path,
     pathType: isDefinitelyFolder ? 'folder' : stateProps._pathItem.type,
-    routePath: ownProps.routePath,
+    routePath: I.List(), // not a valid value anymore TODO fix
     softError: Constants.getSoftError(stateProps._softErrors, path),
     waitForKbfsDaemon: dispatchProps.waitForKbfsDaemon,
   }

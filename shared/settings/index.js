@@ -13,17 +13,16 @@ import {type RouteProps} from '../route-tree/render-route'
 
 type OwnProps = {|children: React.Node, ...$Exact<RouteProps<{}, {}>>|}
 
-const mapStateToProps = (state, {routeLeafTags, routeSelected}: OwnProps) => ({
+const mapStateToProps = (state, {routeSelected}: OwnProps) => ({
   _badgeNumbers: state.notifications.get('navBadges'),
   _walletsAcceptedDisclaimer: state.wallets.acceptedDisclaimer,
   badgeNotifications: !state.push.hasPermissions,
   hasRandomPW: state.settings.password.randomPW,
-  isModal: routeLeafTags.modal,
+  isModal: false,
   logoutHandshakeWaiters: state.config.logoutHandshakeWaiters,
-  selectedTab: ((routeSelected: any): Types.Tab),
 })
 
-const mapDispatchToProps = (dispatch, {routePath}: OwnProps) => ({
+const mapDispatchToProps = dispatch => ({
   _loadHasRandomPW: () => dispatch(SettingsGen.createLoadHasRandomPw()),
   onLogout: () => dispatch(ConfigGen.createLogout()),
   onTabChange: (tab: Types.Tab, walletsAcceptedDisclaimer: boolean) => {
@@ -31,7 +30,7 @@ const mapDispatchToProps = (dispatch, {routePath}: OwnProps) => ({
       dispatch(RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']}))
       return
     }
-    dispatch(RouteTreeGen.createSwitchTo({path: routePath.push(tab)}))
+    dispatch(RouteTreeGen.createSwitchTo({path: [tab]}))
   },
 })
 
@@ -45,7 +44,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   logoutInProgress: stateProps.logoutHandshakeWaiters.size > 0,
   onLogout: dispatchProps.onLogout,
   onTabChange: tab => dispatchProps.onTabChange(tab, stateProps._walletsAcceptedDisclaimer),
-  selectedTab: stateProps.selectedTab,
 })
 
 const Connected = compose(

@@ -351,34 +351,33 @@ class ProvisioningManager {
     })
 
   maybeCancelProvision = state => {
-    let root = state.routeTree.routeState && state.routeTree.routeState.selected
-    let onDevicesTab = root === devicesRoot[0]
-    let onLoginTab = root === Tabs.loginTab
-    const path = Router2Constants.getFullRoute().map(p => p.routeName)
-    onDevicesTab = path.includes(devicesRoot[0])
-    onLoginTab = path.includes('login')
-
-    const doingDeviceAdd = this._addingANewDevice && onDevicesTab
-    const doingProvision = !this._addingANewDevice && onLoginTab
-    if (doingDeviceAdd || doingProvision) {
-      // cancel if we're waiting on anything
-      const response = this._stashedResponse
-      if (response) {
-        Constants.cancelOnCallback(null, response)
-      }
-      this._stashedResponse = null
-      this._stashedResponseKey = null
-
-      // clear errors always, and nav to root if we actually canceled something
-      return [
-        ProvisionGen.createProvisionError({error: new HiddenString('')}),
-        response &&
-          RouteTreeGen.createNavigateTo({
-            parentPath: [],
-            path: doingDeviceAdd ? devicesRoot : ['login'],
-          }),
-      ]
-    }
+    // TODO fix
+    // let root = state.routeTree.routeState && state.routeTree.routeState.selected
+    // let onDevicesTab = root === devicesRoot[0]
+    // let onLoginTab = root === Tabs.loginTab
+    // const path = Router2Constants.getFullRoute().map(p => p.routeName)
+    // onDevicesTab = path.includes(devicesRoot[0])
+    // onLoginTab = path.includes('login')
+    // const doingDeviceAdd = this._addingANewDevice && onDevicesTab
+    // const doingProvision = !this._addingANewDevice && onLoginTab
+    // if (doingDeviceAdd || doingProvision) {
+    // // cancel if we're waiting on anything
+    // const response = this._stashedResponse
+    // if (response) {
+    // Constants.cancelOnCallback(null, response)
+    // }
+    // this._stashedResponse = null
+    // this._stashedResponseKey = null
+    // // clear errors always, and nav to root if we actually canceled something
+    // return [
+    // ProvisionGen.createProvisionError({error: new HiddenString('')}),
+    // response &&
+    // RouteTreeGen.createNavigateTo({
+    // parentPath: [],
+    // path: doingDeviceAdd ? devicesRoot : ['login'],
+    // }),
+    // ]
+    // }
   }
 }
 
@@ -573,7 +572,8 @@ function* provisionSaga(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainAction<ProvisionGen.ForgotUsernamePayload>(ProvisionGen.forgotUsername, forgotUsername)
 
-  yield* Saga.chainAction<RouteTreeGen.NavigateUpPayload>(RouteTreeGen.navigateUp, maybeCancelProvision)
+  // TODo fix
+  // yield* Saga.chainAction<RouteTreeGen.NavigateUpPayload>(RouteTreeGen.navigateUp, maybeCancelProvision)
 }
 
 export const _testing = {

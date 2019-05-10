@@ -797,19 +797,20 @@ const paymentReviewed = (_, action) => {
 const maybeClearErrors = state => WalletsGen.createClearErrors()
 
 const maybeClearNewTxs = (state, action) => {
-  const rootTab = I.List(action.payload.path).first()
-  // If we're leaving from the Wallets tab, and the Wallets tab route
-  // was the main transaction list for an account, clear new txs.
-  if (
-    state.routeTree.previousTab === Constants.rootWalletTab &&
-    rootTab !== Constants.rootWalletTab
-    // Constants.isLookingAtWallet(state.routeTree.routeState)
-  ) {
-    const accountID = state.wallets.selectedAccount
-    if (accountID !== Types.noAccountID) {
-      return WalletsGen.createClearNewPayments({accountID})
-    }
-  }
+  // TODO fix
+  // const rootTab = I.List(action.payload.path).first()
+  // // If we're leaving from the Wallets tab, and the Wallets tab route
+  // // was the main transaction list for an account, clear new txs.
+  // if (
+  // state.routeTree.previousTab === Constants.rootWalletTab &&
+  // rootTab !== Constants.rootWalletTab
+  // // Constants.isLookingAtWallet(state.routeTree.routeState)
+  // ) {
+  // const accountID = state.wallets.selectedAccount
+  // if (accountID !== Types.noAccountID) {
+  // return WalletsGen.createClearNewPayments({accountID})
+  // }
+  // }
 }
 
 const receivedBadgeState = (state, action) =>
@@ -1278,6 +1279,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     maybeClearErrors,
     'maybeClearErrors'
   )
+  // TODO fix
   yield* Saga.chainAction<RouteTreeGen.SwitchToPayload>(
     RouteTreeGen.switchTo,
     maybeClearNewTxs,

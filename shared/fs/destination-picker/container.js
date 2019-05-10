@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import {getRouteProps, namedConnect, type RouteProps} from '../../util/container'
 import {memoize} from '../../util/memoize'
 import DestinationPicker from '.'
@@ -34,7 +35,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
     Constants.makeActionsForDestinationPickerOpen(
       getIndex(ownProps) + 1,
       Types.getPathParent(currentPath),
-      ownProps.routePath
+      I.List() // ownProps.routePath
     ).forEach(action => dispatch(action)),
   _onCopyHere: destinationParentPath => {
     dispatch(FsGen.createCopy({destinationParentPath}))
@@ -113,7 +114,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
       ? () => dispatchProps._onNewFolder(getDestinationParentPath(stateProps, ownProps))
       : null,
     parentPath: getDestinationParentPath(stateProps, ownProps),
-    routePath: ownProps.routePath,
+    routePath: I.List(), // ownProps.routePath,
     targetName,
   }
 }

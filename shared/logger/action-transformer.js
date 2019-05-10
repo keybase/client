@@ -42,8 +42,6 @@ const actionTransformMap = {
   [RouteTreeGen.switchTo]: pathActionTransformer,
   [RouteTreeGen.navigateTo]: pathActionTransformer,
   [RouteTreeGen.navigateAppend]: pathActionTransformer,
-  [RouteTreeGen.setRouteState]: pathActionTransformer,
-  [RouteTreeGen.resetRoute]: pathActionTransformer,
 
   [EntitiesGen.deleteEntity]: entityTransformer,
   [EntitiesGen.mergeEntity]: entityTransformer,
