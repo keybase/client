@@ -2486,6 +2486,7 @@ export type LogLevel =
   | 6 // CRITICAL_6
   | 7 // FATAL_7
 
+export type LogSendID = String
 export type LookupImplicitTeamRes = $ReadOnly<{teamID: TeamID, name: TeamName, displayName: ImplicitTeamDisplayName, tlfID: TLFID}>
 export type MDBlock = $ReadOnly<{version: Int, timestamp: Time, block: Bytes}>
 export type MDPriority = Int
@@ -3693,6 +3694,7 @@ declare export function userUploadUserAvatarRpcPromise(params: $PropertyType<$Pr
 // 'keybase.1.config.getCurrentStatus'
 // 'keybase.1.config.getClientStatus'
 // 'keybase.1.config.getFullStatus'
+// 'keybase.1.config.logSend'
 // 'keybase.1.config.setUserConfig'
 // 'keybase.1.config.setPath'
 // 'keybase.1.config.clearValue'

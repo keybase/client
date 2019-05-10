@@ -149,6 +149,9 @@ protocol config {
   // commands
   union { null, FullStatus } getFullStatus(int sessionID);
 
+  @typedef("string")  record LogSendID {}
+  LogSendID logSend(int sessionID, string statusJSON, string feedback,
+    boolean sendLogs);
 
   record AllProvisionedUsernames {
     string defaultUsername;
