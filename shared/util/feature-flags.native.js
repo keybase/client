@@ -10,6 +10,7 @@ const ff: FeatureFlags = {
   admin: __DEV__,
   airdrop: false,
   chatIndexProfilingEnabled: false,
+  conflictResolutionGui: false,
   dbCleanEnabled: false,
   enableDeleteFolder: false,
   foldersInProfileTab: false,

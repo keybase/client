@@ -10,9 +10,12 @@ import {isMobile} from '../../constants/platform'
 import Rows from '../row/rows-container'
 import {asRows as sfmiBannerAsRows} from '../banner/system-file-manager-integration-banner/container'
 import {asRows as resetBannerAsRows} from '../banner/reset-banner/container'
+import {asRows as conflictBannerAsRows} from '../banner/conflict-banner-container'
+import flags from '../../util/feature-flags'
 import OfflineFolder from './offline'
 
 type Props = {|
+  conflictState: Types.ConflictState,
   onAttach?: ?(paths: Array<string>) => void,
   path: Types.Path,
   routePath: I.List<string>,
@@ -30,6 +33,7 @@ const WithContent = (props: Props) => (
         routePath={props.routePath}
         headerRows={[
           ...resetBannerAsRows(props.path, props.resetBannerType),
+          ...conflictBannerAsRows(props.path, props.conflictState),
           // only show sfmi banner at /keybase
           ...(Types.getPathLevel(props.path) === 1
             ? sfmiBannerAsRows(props.path, props.shouldShowSFMIBanner)
