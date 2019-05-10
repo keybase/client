@@ -213,6 +213,11 @@ func MerkleAuditRound(m libkb.MetaContext) (err error) {
 		return nil
 	}
 
+	if startSeqno != nil && !m.G().MerkleClient.CanExamineHistoricalRoot(m, *startSeqno) {
+		m.Debug("Not exploring previously-failed historical merkle root, since it's before checkpoint")
+		startSeqno = nil
+	}
+
 	// If no retry was requested
 	if startSeqno == nil {
 		// nil seqno, generate a new one:
@@ -237,6 +242,8 @@ func MerkleAuditRound(m libkb.MetaContext) (err error) {
 			return err
 		}
 		startSeqno = &randomSeqno
+	} else {
+		m.Debug("Audit retry requested for %d", *startSeqno)
 	}
 
 	// If this time it fails, save it
