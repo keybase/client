@@ -62,7 +62,7 @@ const colors = {
   purple2_01: 'rgba(132, 92, 219, 0.01)',
   purple2_10: 'rgba(132, 92, 219, 0.1)',
   purple2_40: 'rgba(132, 92, 219, 0.4)',
-  purple3: '#9f7bec',
+  purpleLight: '#9f7bec',
   red: '#ff4d61',
   red_10: 'rgba(255,0,0,0.1)',
   red_20: 'rgba(255,0,0,0.2)',

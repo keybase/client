@@ -83,7 +83,7 @@ const WalletRow = (props: Props) => {
       <HoverBox
         style={Styles.collapseStyles([
           styles.containerBox,
-          props.isSelected ? {backgroundColor: Styles.globalColors.purple3} : {},
+          props.isSelected ? {backgroundColor: Styles.globalColors.purpleLight} : {},
         ])}
         direction="horizontal"
         fullWidth={true}
