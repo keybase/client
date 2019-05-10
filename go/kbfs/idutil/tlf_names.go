@@ -5,6 +5,7 @@
 package idutil
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"strings"
@@ -23,7 +24,7 @@ func normalizeAssertionOrName(s string, t tlf.Type) (string, error) {
 	}
 
 	// TODO: this fails for http and https right now (see CORE-2968).
-	socialAssertion, isSocialAssertion := externals.NormalizeSocialAssertionStatic(s)
+	socialAssertion, isSocialAssertion := externals.NormalizeSocialAssertionStatic(context.TODO(), s)
 	if isSocialAssertion {
 		if t == tlf.SingleTeam {
 			return "", fmt.Errorf(
@@ -36,7 +37,7 @@ func normalizeAssertionOrName(s string, t tlf.Type) (string, error) {
 	if t == tlf.SingleTeam {
 		sAssertion = "team:" + s
 	}
-	if expr, err := externals.AssertionParseAndOnlyStatic(sAssertion); err == nil {
+	if expr, err := externals.AssertionParseAndOnlyStatic(context.TODO(), sAssertion); err == nil {
 		// If the expression only contains a single url, make sure
 		// it's not a just considered a single keybase username.  If
 		// it is, then some non-username slipped into the default

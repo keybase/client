@@ -110,7 +110,6 @@ const canBackUp = isMobile
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const targetName = Constants.getDestinationPickerPathName(stateProps._destinationPicker)
-  const [targetNameWithoutExtension, targetExtension] = Constants.splitFileNameAndExtension(targetName)
   return {
     index: getIndex(ownProps),
     onBackUp: canBackUp(stateProps, ownProps)
@@ -128,9 +127,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
       : null,
     parentPath: getDestinationParentPath(stateProps, ownProps),
     routePath: ownProps.routePath,
-    targetExtension,
     targetName,
-    targetNameWithoutExtension,
   }
 }
 

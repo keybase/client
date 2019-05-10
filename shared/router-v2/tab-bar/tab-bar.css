@@ -64,7 +64,7 @@
   }
   .tab-label,
   .username {
-    display: none;
+    display: none !important;
   }
   .tab-tooltip {
     display: flex !important;

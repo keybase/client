@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externals"
+	"github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/offline"
 	"github.com/keybase/client/go/profiling"
@@ -380,7 +381,7 @@ func (h *UserHandler) ProofSuggestions(ctx context.Context, sessionID int) (ret 
 		return ret, err
 	}
 	tracer.Stage("fold-pri")
-	foldPriority := mctx.G().GetProofServices().SuggestionFoldPriority()
+	foldPriority := mctx.G().GetProofServices().SuggestionFoldPriority(h.MetaContext(ctx))
 	tracer.Stage("fold-loop")
 	for _, suggestion := range suggestions {
 		if foldPriority > 0 && suggestion.Priority >= foldPriority {
@@ -458,7 +459,7 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext, tracer prof
 			// "web" is added below.
 			continue
 		}
-		serviceType := mctx.G().GetProofServices().GetServiceType(service)
+		serviceType := mctx.G().GetProofServices().GetServiceType(mctx.Ctx(), service)
 		if serviceType == nil {
 			mctx.Debug("missing proof service type: %v", service)
 			continue
@@ -517,7 +518,7 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext, tracer prof
 	tracer.Stage("prioritize-server")
 	serverPriority := make(map[string]int) // key -> server priority
 	maxServerPriority := 0
-	for _, displayConfig := range mctx.G().GetProofServices().ListDisplayConfigs() {
+	for _, displayConfig := range mctx.G().GetProofServices().ListDisplayConfigs(mctx) {
 		if displayConfig.Priority <= 0 {
 			continue
 		}
@@ -637,10 +638,21 @@ func (h *UserHandler) CanLogout(ctx context.Context, sessionID int) (res keybase
 		return keybase1.CanLogoutRes{
 			CanLogout:     false,
 			SetPassphrase: true,
-			Reason:        "You signed up without a password and need to set a password first.",
+			Reason:        "You signed up without a password and need to set a password first",
 		}, nil
 	}
 
 	res.CanLogout = true
 	return res, nil
+}
+
+func (h *UserHandler) UserCard(ctx context.Context, arg keybase1.UserCardArg) (res *keybase1.UserCard, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("UserHandler#UserCard", func() error { return err })()
+
+	uid := mctx.G().UIDMapper.MapHardcodedUsernameToUID(kbun.NewNormalizedUsername(arg.Username))
+	if !uid.Exists() {
+		uid = libkb.UsernameToUIDPreserveCase(arg.Username)
+	}
+	return libkb.UserCard(mctx, uid, arg.UseSession)
 }

@@ -71,10 +71,12 @@ export const setIncomingShareLocalPath = 'fs:setIncomingShareLocalPath'
 export const setMoveOrCopySource = 'fs:setMoveOrCopySource'
 export const setPathItemActionMenuDownloadKey = 'fs:setPathItemActionMenuDownloadKey'
 export const setPathItemActionMenuView = 'fs:setPathItemActionMenuView'
+export const setPathSoftError = 'fs:setPathSoftError'
 export const setSendAttachmentToChatConvID = 'fs:setSendAttachmentToChatConvID'
 export const setSendAttachmentToChatFilter = 'fs:setSendAttachmentToChatFilter'
 export const setSendLinkToChatChannels = 'fs:setSendLinkToChatChannels'
 export const setSendLinkToChatConvID = 'fs:setSendLinkToChatConvID'
+export const setTlfSoftError = 'fs:setTlfSoftError'
 export const setTlfSyncConfig = 'fs:setTlfSyncConfig'
 export const shareNative = 'fs:shareNative'
 export const showIncomingShare = 'fs:showIncomingShare'
@@ -82,7 +84,7 @@ export const showMoveOrCopy = 'fs:showMoveOrCopy'
 export const showSystemFileManagerIntegrationBanner = 'fs:showSystemFileManagerIntegrationBanner'
 export const sortSetting = 'fs:sortSetting'
 export const tlfSyncConfigLoaded = 'fs:tlfSyncConfigLoaded'
-export const tlfSyncConfigsLoaded = 'fs:tlfSyncConfigsLoaded'
+export const tlfSyncConfigsForAllSyncEnabledTlfsLoaded = 'fs:tlfSyncConfigsForAllSyncEnabledTlfsLoaded'
 export const triggerSendLinkToChat = 'fs:triggerSendLinkToChat'
 export const uninstallKBFSConfirm = 'fs:uninstallKBFSConfirm'
 export const upload = 'fs:upload'
@@ -154,10 +156,12 @@ type _SetIncomingShareLocalPathPayload = $ReadOnly<{|localPath: Types.LocalPath|
 type _SetMoveOrCopySourcePayload = $ReadOnly<{|path: Types.Path|}>
 type _SetPathItemActionMenuDownloadKeyPayload = $ReadOnly<{|key: ?string|}>
 type _SetPathItemActionMenuViewPayload = $ReadOnly<{|view: Types.PathItemActionMenuView|}>
+type _SetPathSoftErrorPayload = $ReadOnly<{|path: Types.Path, softError: ?Types.SoftError|}>
 type _SetSendAttachmentToChatConvIDPayload = $ReadOnly<{|convID: ChatTypes.ConversationIDKey|}>
 type _SetSendAttachmentToChatFilterPayload = $ReadOnly<{|filter: string|}>
 type _SetSendLinkToChatChannelsPayload = $ReadOnly<{|channels: I.Map<ChatTypes.ConversationIDKey, string>|}>
 type _SetSendLinkToChatConvIDPayload = $ReadOnly<{|convID: ChatTypes.ConversationIDKey|}>
+type _SetTlfSoftErrorPayload = $ReadOnly<{|path: Types.Path, softError: ?Types.SoftError|}>
 type _SetTlfSyncConfigPayload = $ReadOnly<{|enabled: boolean, tlfPath: Types.Path|}>
 type _ShareNativePayload = $ReadOnly<{|path: Types.Path, key: string|}>
 type _ShowIncomingSharePayload = $ReadOnly<{|initialDestinationParentPath: Types.Path|}>
@@ -165,7 +169,7 @@ type _ShowMoveOrCopyPayload = $ReadOnly<{|initialDestinationParentPath: Types.Pa
 type _ShowSystemFileManagerIntegrationBannerPayload = void
 type _SortSettingPayload = $ReadOnly<{|path: Types.Path, sortSetting: Types.SortSetting|}>
 type _TlfSyncConfigLoadedPayload = $ReadOnly<{|tlfType: Types.TlfType, tlfName: string, syncConfig: Types.TlfSyncConfig|}>
-type _TlfSyncConfigsLoadedPayload = $ReadOnly<{|private: I.Map<string, Types.TlfSyncConfig>, public: I.Map<string, Types.TlfSyncConfig>, team: I.Map<string, Types.TlfSyncConfig>|}>
+type _TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload = $ReadOnly<{|private: I.Map<string, Types.TlfSyncConfig>, public: I.Map<string, Types.TlfSyncConfig>, team: I.Map<string, Types.TlfSyncConfig>|}>
 type _TriggerSendLinkToChatPayload = void
 type _UninstallKBFSConfirmPayload = void
 type _UploadPayload = $ReadOnly<{|parentPath: Types.Path, localPath: string|}>
@@ -237,10 +241,12 @@ export const createSetIncomingShareLocalPath = (payload: _SetIncomingShareLocalP
 export const createSetMoveOrCopySource = (payload: _SetMoveOrCopySourcePayload) => ({payload, type: setMoveOrCopySource})
 export const createSetPathItemActionMenuDownloadKey = (payload: _SetPathItemActionMenuDownloadKeyPayload) => ({payload, type: setPathItemActionMenuDownloadKey})
 export const createSetPathItemActionMenuView = (payload: _SetPathItemActionMenuViewPayload) => ({payload, type: setPathItemActionMenuView})
+export const createSetPathSoftError = (payload: _SetPathSoftErrorPayload) => ({payload, type: setPathSoftError})
 export const createSetSendAttachmentToChatConvID = (payload: _SetSendAttachmentToChatConvIDPayload) => ({payload, type: setSendAttachmentToChatConvID})
 export const createSetSendAttachmentToChatFilter = (payload: _SetSendAttachmentToChatFilterPayload) => ({payload, type: setSendAttachmentToChatFilter})
 export const createSetSendLinkToChatChannels = (payload: _SetSendLinkToChatChannelsPayload) => ({payload, type: setSendLinkToChatChannels})
 export const createSetSendLinkToChatConvID = (payload: _SetSendLinkToChatConvIDPayload) => ({payload, type: setSendLinkToChatConvID})
+export const createSetTlfSoftError = (payload: _SetTlfSoftErrorPayload) => ({payload, type: setTlfSoftError})
 export const createSetTlfSyncConfig = (payload: _SetTlfSyncConfigPayload) => ({payload, type: setTlfSyncConfig})
 export const createShareNative = (payload: _ShareNativePayload) => ({payload, type: shareNative})
 export const createShowIncomingShare = (payload: _ShowIncomingSharePayload) => ({payload, type: showIncomingShare})
@@ -248,7 +254,7 @@ export const createShowMoveOrCopy = (payload: _ShowMoveOrCopyPayload) => ({paylo
 export const createShowSystemFileManagerIntegrationBanner = (payload: _ShowSystemFileManagerIntegrationBannerPayload) => ({payload, type: showSystemFileManagerIntegrationBanner})
 export const createSortSetting = (payload: _SortSettingPayload) => ({payload, type: sortSetting})
 export const createTlfSyncConfigLoaded = (payload: _TlfSyncConfigLoadedPayload) => ({payload, type: tlfSyncConfigLoaded})
-export const createTlfSyncConfigsLoaded = (payload: _TlfSyncConfigsLoadedPayload) => ({payload, type: tlfSyncConfigsLoaded})
+export const createTlfSyncConfigsForAllSyncEnabledTlfsLoaded = (payload: _TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload) => ({payload, type: tlfSyncConfigsForAllSyncEnabledTlfsLoaded})
 export const createTriggerSendLinkToChat = (payload: _TriggerSendLinkToChatPayload) => ({payload, type: triggerSendLinkToChat})
 export const createUninstallKBFSConfirm = (payload: _UninstallKBFSConfirmPayload) => ({payload, type: uninstallKBFSConfirm})
 export const createUpload = (payload: _UploadPayload) => ({payload, type: upload})
@@ -320,10 +326,12 @@ export type SetIncomingShareLocalPathPayload = {|+payload: _SetIncomingShareLoca
 export type SetMoveOrCopySourcePayload = {|+payload: _SetMoveOrCopySourcePayload, +type: 'fs:setMoveOrCopySource'|}
 export type SetPathItemActionMenuDownloadKeyPayload = {|+payload: _SetPathItemActionMenuDownloadKeyPayload, +type: 'fs:setPathItemActionMenuDownloadKey'|}
 export type SetPathItemActionMenuViewPayload = {|+payload: _SetPathItemActionMenuViewPayload, +type: 'fs:setPathItemActionMenuView'|}
+export type SetPathSoftErrorPayload = {|+payload: _SetPathSoftErrorPayload, +type: 'fs:setPathSoftError'|}
 export type SetSendAttachmentToChatConvIDPayload = {|+payload: _SetSendAttachmentToChatConvIDPayload, +type: 'fs:setSendAttachmentToChatConvID'|}
 export type SetSendAttachmentToChatFilterPayload = {|+payload: _SetSendAttachmentToChatFilterPayload, +type: 'fs:setSendAttachmentToChatFilter'|}
 export type SetSendLinkToChatChannelsPayload = {|+payload: _SetSendLinkToChatChannelsPayload, +type: 'fs:setSendLinkToChatChannels'|}
 export type SetSendLinkToChatConvIDPayload = {|+payload: _SetSendLinkToChatConvIDPayload, +type: 'fs:setSendLinkToChatConvID'|}
+export type SetTlfSoftErrorPayload = {|+payload: _SetTlfSoftErrorPayload, +type: 'fs:setTlfSoftError'|}
 export type SetTlfSyncConfigPayload = {|+payload: _SetTlfSyncConfigPayload, +type: 'fs:setTlfSyncConfig'|}
 export type ShareNativePayload = {|+payload: _ShareNativePayload, +type: 'fs:shareNative'|}
 export type ShowIncomingSharePayload = {|+payload: _ShowIncomingSharePayload, +type: 'fs:showIncomingShare'|}
@@ -331,7 +339,7 @@ export type ShowMoveOrCopyPayload = {|+payload: _ShowMoveOrCopyPayload, +type: '
 export type ShowSystemFileManagerIntegrationBannerPayload = {|+payload: _ShowSystemFileManagerIntegrationBannerPayload, +type: 'fs:showSystemFileManagerIntegrationBanner'|}
 export type SortSettingPayload = {|+payload: _SortSettingPayload, +type: 'fs:sortSetting'|}
 export type TlfSyncConfigLoadedPayload = {|+payload: _TlfSyncConfigLoadedPayload, +type: 'fs:tlfSyncConfigLoaded'|}
-export type TlfSyncConfigsLoadedPayload = {|+payload: _TlfSyncConfigsLoadedPayload, +type: 'fs:tlfSyncConfigsLoaded'|}
+export type TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload = {|+payload: _TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload, +type: 'fs:tlfSyncConfigsForAllSyncEnabledTlfsLoaded'|}
 export type TriggerSendLinkToChatPayload = {|+payload: _TriggerSendLinkToChatPayload, +type: 'fs:triggerSendLinkToChat'|}
 export type UninstallKBFSConfirmPayload = {|+payload: _UninstallKBFSConfirmPayload, +type: 'fs:uninstallKBFSConfirm'|}
 export type UploadPayload = {|+payload: _UploadPayload, +type: 'fs:upload'|}
@@ -405,10 +413,12 @@ export type Actions =
   | SetMoveOrCopySourcePayload
   | SetPathItemActionMenuDownloadKeyPayload
   | SetPathItemActionMenuViewPayload
+  | SetPathSoftErrorPayload
   | SetSendAttachmentToChatConvIDPayload
   | SetSendAttachmentToChatFilterPayload
   | SetSendLinkToChatChannelsPayload
   | SetSendLinkToChatConvIDPayload
+  | SetTlfSoftErrorPayload
   | SetTlfSyncConfigPayload
   | ShareNativePayload
   | ShowIncomingSharePayload
@@ -416,7 +426,7 @@ export type Actions =
   | ShowSystemFileManagerIntegrationBannerPayload
   | SortSettingPayload
   | TlfSyncConfigLoadedPayload
-  | TlfSyncConfigsLoadedPayload
+  | TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload
   | TriggerSendLinkToChatPayload
   | UninstallKBFSConfirmPayload
   | UploadPayload

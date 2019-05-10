@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/status"
 	"golang.org/x/net/context"
 )
 
@@ -42,6 +43,10 @@ func NewCmdLogSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 				Name:  "no-confirm",
 				Usage: "Send logs without confirming",
 			},
+			cli.StringFlag{
+				Name:  "feedback",
+				Usage: "Attach a feedback message to a log send",
+			},
 		},
 	}
 }
@@ -54,13 +59,14 @@ type CmdLogSend struct {
 }
 
 func (c *CmdLogSend) Run() error {
-
 	if !c.noConfirm {
 		if err := c.confirm(); err != nil {
 			return err
 		}
-		if err := c.getFeedback(); err != nil {
-			return err
+		if c.feedback == "" {
+			if err := c.getFeedback(); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -70,7 +76,7 @@ func (c *CmdLogSend) Run() error {
 	c.G().Log.Debug("attempting retrieval of keybase service status")
 	var statusJSON string
 	statusCmd := &CmdStatus{Contextified: libkb.NewContextified(c.G())}
-	status, err := statusCmd.load()
+	fstatus, err := statusCmd.load()
 	if err != nil {
 		c.G().Log.Info("ignoring error getting keybase status: %s", err)
 		// pid will be -1 if not found here
@@ -85,7 +91,7 @@ func (c *CmdLogSend) Run() error {
 		}
 		statusJSON = fmt.Sprintf("{\"pid\":%d, \"Error\":%q}", pid, err)
 	} else {
-		json, err := json.Marshal(status)
+		json, err := json.Marshal(fstatus)
 		if err != nil {
 			c.G().Log.Info("ignoring status json marshal error: %s", err)
 			statusJSON = c.errJSON(err)
@@ -94,12 +100,11 @@ func (c *CmdLogSend) Run() error {
 		}
 	}
 
-	err = c.pokeUI()
-	if err != nil {
+	if err = c.pokeUI(); err != nil {
 		c.G().Log.Info("ignoring UI logs: %s", err)
 	}
 
-	logs := c.logFiles(status)
+	logs := c.logFiles(fstatus)
 	// So far, install logs are Windows only
 	if logs.Install != "" {
 		defer os.Remove(logs.Install)
@@ -109,7 +114,7 @@ func (c *CmdLogSend) Run() error {
 		defer os.Remove(logs.Watchdog)
 	}
 
-	logSendContext := libkb.LogSendContext{
+	logSendContext := status.LogSendContext{
 		Contextified: libkb.NewContextified(c.G()),
 		Logs:         logs,
 	}
@@ -117,13 +122,8 @@ func (c *CmdLogSend) Run() error {
 	installID := c.G().Env.GetInstallID()
 
 	var uid keybase1.UID
-	if status != nil {
-		if uidString := status.UserID; len(uidString) > 0 {
-			uid, err = keybase1.UIDFromString(uidString)
-			if err != nil {
-				c.G().Log.Info("bad UID from status (%s): %s", uidString, err)
-			}
-		}
+	if fstatus != nil {
+		uid = fstatus.CurStatus.User.Uid
 	} else {
 		uid = c.G().Env.GetUID()
 	}
@@ -146,12 +146,11 @@ func (c *CmdLogSend) pokeUI() error {
 	if err != nil {
 		return err
 	}
-	err = cli.PrepareLogsend(context.Background())
-	if err != nil {
+	if err = cli.PrepareLogsend(context.Background()); err != nil {
 		return err
 	}
 	// Give the GUI a moment to get its logs in order
-	time.Sleep(1 * time.Second)
+	time.Sleep(time.Second)
 	return nil
 }
 
@@ -205,6 +204,7 @@ func (c *CmdLogSend) ParseArgv(ctx *cli.Context) error {
 	}
 	c.noConfirm = ctx.Bool("no-confirm")
 	c.numBytes = ctx.Int("n")
+	c.feedback = ctx.String("feedback")
 	if c.numBytes < 1 {
 		c.numBytes = defaultBytes
 	} else if c.numBytes > maxBytes {
@@ -220,7 +220,7 @@ func (c *CmdLogSend) GetUsage() libkb.Usage {
 	}
 }
 
-func (c *CmdLogSend) logFiles(status *fstatus) libkb.Logs {
+func (c *CmdLogSend) logFiles(fstatus *keybase1.FullStatus) status.Logs {
 	logDir := c.G().Env.GetLogDir()
 	installLogPath, err := install.InstallLogPath()
 	if err != nil {
@@ -234,16 +234,16 @@ func (c *CmdLogSend) logFiles(status *fstatus) libkb.Logs {
 
 	traceDir := logDir
 	cpuProfileDir := logDir
-	if status != nil {
-		return libkb.Logs{
-			Desktop:    status.Desktop.Log,
-			Kbfs:       status.KBFS.Log,
-			Service:    status.Service.Log,
-			EK:         status.Service.EKLog,
-			Updater:    status.Updater.Log,
-			Start:      status.Start.Log,
+	if fstatus != nil {
+		return status.Logs{
+			Desktop:    fstatus.Desktop.Log,
+			Kbfs:       fstatus.Kbfs.Log,
+			Service:    fstatus.Service.Log,
+			EK:         fstatus.Service.EkLog,
+			Updater:    fstatus.Updater.Log,
+			Start:      fstatus.Start.Log,
 			System:     install.SystemLogPath(),
-			Git:        status.Git.Log,
+			Git:        fstatus.Git.Log,
 			Install:    installLogPath,
 			Trace:      traceDir,
 			CPUProfile: cpuProfileDir,
@@ -251,7 +251,7 @@ func (c *CmdLogSend) logFiles(status *fstatus) libkb.Logs {
 		}
 	}
 
-	return libkb.Logs{
+	return status.Logs{
 		Desktop:  filepath.Join(logDir, libkb.DesktopLogFileName),
 		Kbfs:     filepath.Join(logDir, libkb.KBFSLogFileName),
 		Service:  filepath.Join(logDir, libkb.ServiceLogFileName),

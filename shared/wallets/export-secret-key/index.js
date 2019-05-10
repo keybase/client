@@ -19,12 +19,16 @@ type Props = {
   secretKey: string,
   onClose: () => void,
   onLoadSecretKey: () => void,
+  onSecretKeySeen: () => void,
   username: string,
 }
 
 export default class ExportSecretKeyPopup extends React.Component<Props> {
   componentDidMount() {
     this.props.onLoadSecretKey()
+  }
+  componentWillUnmount() {
+    this.props.onSecretKeySeen()
   }
 
   render() {

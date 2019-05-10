@@ -57,6 +57,8 @@ func (d *testGiphySearcher) Search(mctx libkb.MetaContext, query *string, limit 
 
 func TestGiphyPreview(t *testing.T) {
 	tc := externalstest.SetupTest(t, "giphy", 0)
+	defer tc.Cleanup()
+
 	g := globals.NewContext(tc.G, &globals.ChatContext{})
 	giphy := NewGiphy(g)
 	searcher := newTestGiphySearcher()

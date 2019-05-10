@@ -529,10 +529,11 @@ func TestBoxAuditCalculation(t *testing.T) {
 
 func TestBoxAuditSubteamCalculation(t *testing.T) {
 	fus, tcs, cleanup := setupNTests(t, 3)
+	defer cleanup()
+
 	aU, bU, cU := fus[0], fus[1], fus[2]
 	aTc, bTc, cTc := tcs[0], tcs[1], tcs[2]
 	aM, _, _ := libkb.NewMetaContextForTest(*aTc), libkb.NewMetaContextForTest(*bTc), libkb.NewMetaContextForTest(*cTc)
-	defer cleanup()
 
 	parentName, parentID := createTeam2(*tcs[0])
 	// A is not in subteam

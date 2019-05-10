@@ -88,9 +88,7 @@ const Breadcrumb = Kb.OverlayParentHOC(
 const MainTitle = (props: Props) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="tiny">
     {flags.kbfsOfflineMode && Types.getPathLevel(props.path) > 2 && <Kbfs.SyncStatus path={props.path} />}
-    <Kb.Text selectable={true} style={styles.mainTitleText} type="Header">
-      {Types.getPathName(props.path)}
-    </Kb.Text>
+    <Kbfs.Filename path={props.path} selectable={true} style={styles.mainTitleText} type="Header" />
   </Kb.Box2>
 )
 

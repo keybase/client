@@ -526,8 +526,8 @@ ${messageTypesData}
     .filter(Boolean)
     .join('\n')
 
-  const notEnabled = `// Not enabled calls. To enable add to enabled-calls.json: ${project.notEnabled.join(
-    ' '
+  const notEnabled = `// Not enabled calls. To enable add to enabled-calls.json:\n// ${project.notEnabled.join(
+    '\n// '
   )}`
 
   const toWrite = [typePrelude, data, notEnabled].join('\n')

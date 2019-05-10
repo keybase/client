@@ -23,6 +23,7 @@ export const chat1ChatUiChatGiphyToggleResultWindow = 'engine-gen:chat1ChatUiCha
 export const chat1ChatUiChatInboxConversation = 'engine-gen:chat1ChatUiChatInboxConversation'
 export const chat1ChatUiChatInboxFailed = 'engine-gen:chat1ChatUiChatInboxFailed'
 export const chat1ChatUiChatInboxUnverified = 'engine-gen:chat1ChatUiChatInboxUnverified'
+export const chat1ChatUiChatMaybeMentionUpdate = 'engine-gen:chat1ChatUiChatMaybeMentionUpdate'
 export const chat1ChatUiChatSearchConvHits = 'engine-gen:chat1ChatUiChatSearchConvHits'
 export const chat1ChatUiChatSearchDone = 'engine-gen:chat1ChatUiChatSearchDone'
 export const chat1ChatUiChatSearchHit = 'engine-gen:chat1ChatUiChatSearchHit'
@@ -35,7 +36,6 @@ export const chat1ChatUiChatStellarDataConfirm = 'engine-gen:chat1ChatUiChatStel
 export const chat1ChatUiChatStellarDataError = 'engine-gen:chat1ChatUiChatStellarDataError'
 export const chat1ChatUiChatStellarDone = 'engine-gen:chat1ChatUiChatStellarDone'
 export const chat1ChatUiChatStellarShowConfirm = 'engine-gen:chat1ChatUiChatStellarShowConfirm'
-export const chat1ChatUiChatTeamMentionUpdate = 'engine-gen:chat1ChatUiChatTeamMentionUpdate'
 export const chat1ChatUiChatThreadCached = 'engine-gen:chat1ChatUiChatThreadCached'
 export const chat1ChatUiChatThreadFull = 'engine-gen:chat1ChatUiChatThreadFull'
 export const chat1NotifyChatChatAttachmentUploadProgress = 'engine-gen:chat1NotifyChatChatAttachmentUploadProgress'
@@ -99,7 +99,9 @@ export const keybase1LogUiLog = 'engine-gen:keybase1LogUiLog'
 export const keybase1LoginUiDisplayPaperKeyPhrase = 'engine-gen:keybase1LoginUiDisplayPaperKeyPhrase'
 export const keybase1LoginUiDisplayPrimaryPaperKey = 'engine-gen:keybase1LoginUiDisplayPrimaryPaperKey'
 export const keybase1LoginUiDisplayResetProgress = 'engine-gen:keybase1LoginUiDisplayResetProgress'
+export const keybase1LoginUiExplainDeviceRecovery = 'engine-gen:keybase1LoginUiExplainDeviceRecovery'
 export const keybase1LoginUiGetEmailOrUsername = 'engine-gen:keybase1LoginUiGetEmailOrUsername'
+export const keybase1LoginUiPromptPassphraseRecovery = 'engine-gen:keybase1LoginUiPromptPassphraseRecovery'
 export const keybase1LoginUiPromptResetAccount = 'engine-gen:keybase1LoginUiPromptResetAccount'
 export const keybase1LoginUiPromptRevokePaperKeys = 'engine-gen:keybase1LoginUiPromptRevokePaperKeys'
 export const keybase1LogsendPrepareLogsend = 'engine-gen:keybase1LogsendPrepareLogsend'
@@ -200,6 +202,7 @@ type _Chat1ChatUiChatGiphyToggleResultWindowPayload = $ReadOnly<{|params: $Exact
 type _Chat1ChatUiChatInboxConversationPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatInboxConversation'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatInboxConversation'>, 'outParam'>) => void}|}>
 type _Chat1ChatUiChatInboxFailedPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatInboxFailed'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatInboxFailed'>, 'outParam'>) => void}|}>
 type _Chat1ChatUiChatInboxUnverifiedPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatInboxUnverified'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatInboxUnverified'>, 'outParam'>) => void}|}>
+type _Chat1ChatUiChatMaybeMentionUpdatePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatMaybeMentionUpdate'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatMaybeMentionUpdate'>, 'outParam'>) => void}|}>
 type _Chat1ChatUiChatSearchConvHitsPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchConvHits'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchConvHits'>, 'outParam'>) => void}|}>
 type _Chat1ChatUiChatSearchDonePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchDone'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchDone'>, 'outParam'>) => void}|}>
 type _Chat1ChatUiChatSearchHitPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchHit'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchHit'>, 'outParam'>) => void}|}>
@@ -212,7 +215,6 @@ type _Chat1ChatUiChatStellarDataConfirmPayload = $ReadOnly<{|params: $Exact<$Pro
 type _Chat1ChatUiChatStellarDataErrorPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarDataError'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarDataError'>, 'outParam'>) => void}|}>
 type _Chat1ChatUiChatStellarDonePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarDone'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarDone'>, 'outParam'>) => void}|}>
 type _Chat1ChatUiChatStellarShowConfirmPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarShowConfirm'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarShowConfirm'>, 'outParam'>) => void}|}>
-type _Chat1ChatUiChatTeamMentionUpdatePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatTeamMentionUpdate'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatTeamMentionUpdate'>, 'outParam'>) => void}|}>
 type _Chat1ChatUiChatThreadCachedPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatThreadCached'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatThreadCached'>, 'outParam'>) => void}|}>
 type _Chat1ChatUiChatThreadFullPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatThreadFull'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatThreadFull'>, 'outParam'>) => void}|}>
 type _Chat1NotifyChatChatAttachmentUploadProgressPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatAttachmentUploadProgress'>, 'inParam'>> & {|sessionID: number|}|}>
@@ -276,7 +278,9 @@ type _Keybase1LogUiLogPayload = $ReadOnly<{|params: $Exact<$PropertyType<$Proper
 type _Keybase1LoginUiDisplayPaperKeyPhrasePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayPaperKeyPhrase'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayPaperKeyPhrase'>, 'outParam'>) => void}|}>
 type _Keybase1LoginUiDisplayPrimaryPaperKeyPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayPrimaryPaperKey'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayPrimaryPaperKey'>, 'outParam'>) => void}|}>
 type _Keybase1LoginUiDisplayResetProgressPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayResetProgress'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayResetProgress'>, 'outParam'>) => void}|}>
+type _Keybase1LoginUiExplainDeviceRecoveryPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.explainDeviceRecovery'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.explainDeviceRecovery'>, 'outParam'>) => void}|}>
 type _Keybase1LoginUiGetEmailOrUsernamePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.getEmailOrUsername'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.getEmailOrUsername'>, 'outParam'>) => void}|}>
+type _Keybase1LoginUiPromptPassphraseRecoveryPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.promptPassphraseRecovery'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.promptPassphraseRecovery'>, 'outParam'>) => void}|}>
 type _Keybase1LoginUiPromptResetAccountPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.promptResetAccount'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.promptResetAccount'>, 'outParam'>) => void}|}>
 type _Keybase1LoginUiPromptRevokePaperKeysPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.promptRevokePaperKeys'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.promptRevokePaperKeys'>, 'outParam'>) => void}|}>
 type _Keybase1LogsendPrepareLogsendPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.logsend.prepareLogsend'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.logsend.prepareLogsend'>, 'outParam'>) => void}|}>
@@ -377,6 +381,7 @@ export const createChat1ChatUiChatGiphyToggleResultWindow = (payload: _Chat1Chat
 export const createChat1ChatUiChatInboxConversation = (payload: _Chat1ChatUiChatInboxConversationPayload) => ({payload, type: chat1ChatUiChatInboxConversation})
 export const createChat1ChatUiChatInboxFailed = (payload: _Chat1ChatUiChatInboxFailedPayload) => ({payload, type: chat1ChatUiChatInboxFailed})
 export const createChat1ChatUiChatInboxUnverified = (payload: _Chat1ChatUiChatInboxUnverifiedPayload) => ({payload, type: chat1ChatUiChatInboxUnverified})
+export const createChat1ChatUiChatMaybeMentionUpdate = (payload: _Chat1ChatUiChatMaybeMentionUpdatePayload) => ({payload, type: chat1ChatUiChatMaybeMentionUpdate})
 export const createChat1ChatUiChatSearchConvHits = (payload: _Chat1ChatUiChatSearchConvHitsPayload) => ({payload, type: chat1ChatUiChatSearchConvHits})
 export const createChat1ChatUiChatSearchDone = (payload: _Chat1ChatUiChatSearchDonePayload) => ({payload, type: chat1ChatUiChatSearchDone})
 export const createChat1ChatUiChatSearchHit = (payload: _Chat1ChatUiChatSearchHitPayload) => ({payload, type: chat1ChatUiChatSearchHit})
@@ -389,7 +394,6 @@ export const createChat1ChatUiChatStellarDataConfirm = (payload: _Chat1ChatUiCha
 export const createChat1ChatUiChatStellarDataError = (payload: _Chat1ChatUiChatStellarDataErrorPayload) => ({payload, type: chat1ChatUiChatStellarDataError})
 export const createChat1ChatUiChatStellarDone = (payload: _Chat1ChatUiChatStellarDonePayload) => ({payload, type: chat1ChatUiChatStellarDone})
 export const createChat1ChatUiChatStellarShowConfirm = (payload: _Chat1ChatUiChatStellarShowConfirmPayload) => ({payload, type: chat1ChatUiChatStellarShowConfirm})
-export const createChat1ChatUiChatTeamMentionUpdate = (payload: _Chat1ChatUiChatTeamMentionUpdatePayload) => ({payload, type: chat1ChatUiChatTeamMentionUpdate})
 export const createChat1ChatUiChatThreadCached = (payload: _Chat1ChatUiChatThreadCachedPayload) => ({payload, type: chat1ChatUiChatThreadCached})
 export const createChat1ChatUiChatThreadFull = (payload: _Chat1ChatUiChatThreadFullPayload) => ({payload, type: chat1ChatUiChatThreadFull})
 export const createChat1NotifyChatChatAttachmentUploadProgress = (payload: _Chat1NotifyChatChatAttachmentUploadProgressPayload) => ({payload, type: chat1NotifyChatChatAttachmentUploadProgress})
@@ -453,7 +457,9 @@ export const createKeybase1LogUiLog = (payload: _Keybase1LogUiLogPayload) => ({p
 export const createKeybase1LoginUiDisplayPaperKeyPhrase = (payload: _Keybase1LoginUiDisplayPaperKeyPhrasePayload) => ({payload, type: keybase1LoginUiDisplayPaperKeyPhrase})
 export const createKeybase1LoginUiDisplayPrimaryPaperKey = (payload: _Keybase1LoginUiDisplayPrimaryPaperKeyPayload) => ({payload, type: keybase1LoginUiDisplayPrimaryPaperKey})
 export const createKeybase1LoginUiDisplayResetProgress = (payload: _Keybase1LoginUiDisplayResetProgressPayload) => ({payload, type: keybase1LoginUiDisplayResetProgress})
+export const createKeybase1LoginUiExplainDeviceRecovery = (payload: _Keybase1LoginUiExplainDeviceRecoveryPayload) => ({payload, type: keybase1LoginUiExplainDeviceRecovery})
 export const createKeybase1LoginUiGetEmailOrUsername = (payload: _Keybase1LoginUiGetEmailOrUsernamePayload) => ({payload, type: keybase1LoginUiGetEmailOrUsername})
+export const createKeybase1LoginUiPromptPassphraseRecovery = (payload: _Keybase1LoginUiPromptPassphraseRecoveryPayload) => ({payload, type: keybase1LoginUiPromptPassphraseRecovery})
 export const createKeybase1LoginUiPromptResetAccount = (payload: _Keybase1LoginUiPromptResetAccountPayload) => ({payload, type: keybase1LoginUiPromptResetAccount})
 export const createKeybase1LoginUiPromptRevokePaperKeys = (payload: _Keybase1LoginUiPromptRevokePaperKeysPayload) => ({payload, type: keybase1LoginUiPromptRevokePaperKeys})
 export const createKeybase1LogsendPrepareLogsend = (payload: _Keybase1LogsendPrepareLogsendPayload) => ({payload, type: keybase1LogsendPrepareLogsend})
@@ -554,6 +560,7 @@ export type Chat1ChatUiChatGiphyToggleResultWindowPayload = {|+payload: _Chat1Ch
 export type Chat1ChatUiChatInboxConversationPayload = {|+payload: _Chat1ChatUiChatInboxConversationPayload, +type: 'engine-gen:chat1ChatUiChatInboxConversation'|}
 export type Chat1ChatUiChatInboxFailedPayload = {|+payload: _Chat1ChatUiChatInboxFailedPayload, +type: 'engine-gen:chat1ChatUiChatInboxFailed'|}
 export type Chat1ChatUiChatInboxUnverifiedPayload = {|+payload: _Chat1ChatUiChatInboxUnverifiedPayload, +type: 'engine-gen:chat1ChatUiChatInboxUnverified'|}
+export type Chat1ChatUiChatMaybeMentionUpdatePayload = {|+payload: _Chat1ChatUiChatMaybeMentionUpdatePayload, +type: 'engine-gen:chat1ChatUiChatMaybeMentionUpdate'|}
 export type Chat1ChatUiChatSearchConvHitsPayload = {|+payload: _Chat1ChatUiChatSearchConvHitsPayload, +type: 'engine-gen:chat1ChatUiChatSearchConvHits'|}
 export type Chat1ChatUiChatSearchDonePayload = {|+payload: _Chat1ChatUiChatSearchDonePayload, +type: 'engine-gen:chat1ChatUiChatSearchDone'|}
 export type Chat1ChatUiChatSearchHitPayload = {|+payload: _Chat1ChatUiChatSearchHitPayload, +type: 'engine-gen:chat1ChatUiChatSearchHit'|}
@@ -566,7 +573,6 @@ export type Chat1ChatUiChatStellarDataConfirmPayload = {|+payload: _Chat1ChatUiC
 export type Chat1ChatUiChatStellarDataErrorPayload = {|+payload: _Chat1ChatUiChatStellarDataErrorPayload, +type: 'engine-gen:chat1ChatUiChatStellarDataError'|}
 export type Chat1ChatUiChatStellarDonePayload = {|+payload: _Chat1ChatUiChatStellarDonePayload, +type: 'engine-gen:chat1ChatUiChatStellarDone'|}
 export type Chat1ChatUiChatStellarShowConfirmPayload = {|+payload: _Chat1ChatUiChatStellarShowConfirmPayload, +type: 'engine-gen:chat1ChatUiChatStellarShowConfirm'|}
-export type Chat1ChatUiChatTeamMentionUpdatePayload = {|+payload: _Chat1ChatUiChatTeamMentionUpdatePayload, +type: 'engine-gen:chat1ChatUiChatTeamMentionUpdate'|}
 export type Chat1ChatUiChatThreadCachedPayload = {|+payload: _Chat1ChatUiChatThreadCachedPayload, +type: 'engine-gen:chat1ChatUiChatThreadCached'|}
 export type Chat1ChatUiChatThreadFullPayload = {|+payload: _Chat1ChatUiChatThreadFullPayload, +type: 'engine-gen:chat1ChatUiChatThreadFull'|}
 export type Chat1NotifyChatChatAttachmentUploadProgressPayload = {|+payload: _Chat1NotifyChatChatAttachmentUploadProgressPayload, +type: 'engine-gen:chat1NotifyChatChatAttachmentUploadProgress'|}
@@ -630,7 +636,9 @@ export type Keybase1LogUiLogPayload = {|+payload: _Keybase1LogUiLogPayload, +typ
 export type Keybase1LoginUiDisplayPaperKeyPhrasePayload = {|+payload: _Keybase1LoginUiDisplayPaperKeyPhrasePayload, +type: 'engine-gen:keybase1LoginUiDisplayPaperKeyPhrase'|}
 export type Keybase1LoginUiDisplayPrimaryPaperKeyPayload = {|+payload: _Keybase1LoginUiDisplayPrimaryPaperKeyPayload, +type: 'engine-gen:keybase1LoginUiDisplayPrimaryPaperKey'|}
 export type Keybase1LoginUiDisplayResetProgressPayload = {|+payload: _Keybase1LoginUiDisplayResetProgressPayload, +type: 'engine-gen:keybase1LoginUiDisplayResetProgress'|}
+export type Keybase1LoginUiExplainDeviceRecoveryPayload = {|+payload: _Keybase1LoginUiExplainDeviceRecoveryPayload, +type: 'engine-gen:keybase1LoginUiExplainDeviceRecovery'|}
 export type Keybase1LoginUiGetEmailOrUsernamePayload = {|+payload: _Keybase1LoginUiGetEmailOrUsernamePayload, +type: 'engine-gen:keybase1LoginUiGetEmailOrUsername'|}
+export type Keybase1LoginUiPromptPassphraseRecoveryPayload = {|+payload: _Keybase1LoginUiPromptPassphraseRecoveryPayload, +type: 'engine-gen:keybase1LoginUiPromptPassphraseRecovery'|}
 export type Keybase1LoginUiPromptResetAccountPayload = {|+payload: _Keybase1LoginUiPromptResetAccountPayload, +type: 'engine-gen:keybase1LoginUiPromptResetAccount'|}
 export type Keybase1LoginUiPromptRevokePaperKeysPayload = {|+payload: _Keybase1LoginUiPromptRevokePaperKeysPayload, +type: 'engine-gen:keybase1LoginUiPromptRevokePaperKeys'|}
 export type Keybase1LogsendPrepareLogsendPayload = {|+payload: _Keybase1LogsendPrepareLogsendPayload, +type: 'engine-gen:keybase1LogsendPrepareLogsend'|}
@@ -733,6 +741,7 @@ export type Actions =
   | Chat1ChatUiChatInboxConversationPayload
   | Chat1ChatUiChatInboxFailedPayload
   | Chat1ChatUiChatInboxUnverifiedPayload
+  | Chat1ChatUiChatMaybeMentionUpdatePayload
   | Chat1ChatUiChatSearchConvHitsPayload
   | Chat1ChatUiChatSearchDonePayload
   | Chat1ChatUiChatSearchHitPayload
@@ -745,7 +754,6 @@ export type Actions =
   | Chat1ChatUiChatStellarDataErrorPayload
   | Chat1ChatUiChatStellarDonePayload
   | Chat1ChatUiChatStellarShowConfirmPayload
-  | Chat1ChatUiChatTeamMentionUpdatePayload
   | Chat1ChatUiChatThreadCachedPayload
   | Chat1ChatUiChatThreadFullPayload
   | Chat1NotifyChatChatAttachmentUploadProgressPayload
@@ -809,7 +817,9 @@ export type Actions =
   | Keybase1LoginUiDisplayPaperKeyPhrasePayload
   | Keybase1LoginUiDisplayPrimaryPaperKeyPayload
   | Keybase1LoginUiDisplayResetProgressPayload
+  | Keybase1LoginUiExplainDeviceRecoveryPayload
   | Keybase1LoginUiGetEmailOrUsernamePayload
+  | Keybase1LoginUiPromptPassphraseRecoveryPayload
   | Keybase1LoginUiPromptResetAccountPayload
   | Keybase1LoginUiPromptRevokePaperKeysPayload
   | Keybase1LogsendPrepareLogsendPayload

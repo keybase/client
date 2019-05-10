@@ -227,6 +227,7 @@ dependencies {
     implementation project(':react-native-webview')
     implementation project(':react-native-community-netinfo')
     implementation project(':react-native-reanimated')
+    implementation project(':react-native-video')
 }
 
 // Run this once to be able to run the application with BUCK

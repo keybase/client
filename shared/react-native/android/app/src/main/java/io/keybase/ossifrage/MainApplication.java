@@ -26,6 +26,8 @@ import com.airbnb.android.react.lottie.LottiePackage;
 import com.swmansion.gesturehandler.react.RNGestureHandlerPackage;
 import com.swmansion.reanimated.ReanimatedPackage;
 import com.swmansion.rnscreens.RNScreensPackage;
+import com.brentvatne.react.ReactVideoPackage;
+
 
 import java.io.File;
 import java.util.ArrayList;
@@ -94,6 +96,7 @@ public class MainApplication extends Application implements ReactApplication {
                         new RNScreensPackage(),
                         new NetInfoPackage(),
                         new RNCWebViewPackage(),
+                        new ReactVideoPackage(),
                         new ReanimatedPackage()
                 );
             }
@@ -113,6 +116,7 @@ public class MainApplication extends Application implements ReactApplication {
                     new RNScreensPackage(),
                     new NetInfoPackage(),
                     new RNCWebViewPackage(),
+                    new ReactVideoPackage(),
                     new ReanimatedPackage()
             );
         }

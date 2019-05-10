@@ -19,7 +19,7 @@ func TestLoadParamServices(t *testing.T) {
 	entry, err := tc.G.GetParamProofStore().GetLatestEntry(m)
 	require.NoError(t, err)
 
-	config, err := proofServices.parseServerConfig(entry)
+	config, err := proofServices.parseServerConfig(m, entry)
 	require.NoError(t, err)
 	require.NotNil(t, config.ProofConfigs)
 	require.NotNil(t, config.DisplayConfigs)

@@ -41,7 +41,8 @@ type LoginProvisionedDeviceArg struct {
 }
 
 type LoginWithPaperKeyArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Username  string `codec:"username" json:"username"`
 }
 
 type ClearStoredSecretArg struct {
@@ -61,6 +62,11 @@ type DeprovisionArg struct {
 
 type RecoverAccountFromEmailAddressArg struct {
 	Email string `codec:"email" json:"email"`
+}
+
+type RecoverPassphraseArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Username  string `codec:"username" json:"username"`
 }
 
 type PaperKeyArg struct {
@@ -107,13 +113,16 @@ type LoginInterface interface {
 	// Login and unlock by
 	// - trying unlocked device keys if available
 	// - prompting for a paper key and using that
-	LoginWithPaperKey(context.Context, int) error
+	LoginWithPaperKey(context.Context, LoginWithPaperKeyArg) error
 	// Removes any existing stored secret for the given username.
 	// loginWithStoredSecret(_, username) will fail after this is called.
 	ClearStoredSecret(context.Context, ClearStoredSecretArg) error
 	Logout(context.Context, int) error
 	Deprovision(context.Context, DeprovisionArg) error
 	RecoverAccountFromEmailAddress(context.Context, string) error
+	// Guide the user through possibilities of changing their passphrase.
+	// Lets them change their passphrase using a paper key or enter the reset pipeline.
+	RecoverPassphrase(context.Context, RecoverPassphraseArg) error
 	// PaperKey generates paper backup keys for restoring an account.
 	// It calls login_ui.displayPaperKeyPhrase with the phrase.
 	PaperKey(context.Context, int) error
@@ -191,7 +200,7 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]LoginWithPaperKeyArg)(nil), args)
 						return
 					}
-					err = i.LoginWithPaperKey(ctx, typedArgs[0].SessionID)
+					err = i.LoginWithPaperKey(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -252,6 +261,21 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 						return
 					}
 					err = i.RecoverAccountFromEmailAddress(ctx, typedArgs[0].Email)
+					return
+				},
+			},
+			"recoverPassphrase": {
+				MakeArg: func() interface{} {
+					var ret [1]RecoverPassphraseArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]RecoverPassphraseArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]RecoverPassphraseArg)(nil), args)
+						return
+					}
+					err = i.RecoverPassphrase(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -381,8 +405,7 @@ func (c LoginClient) LoginProvisionedDevice(ctx context.Context, __arg LoginProv
 // Login and unlock by
 // - trying unlocked device keys if available
 // - prompting for a paper key and using that
-func (c LoginClient) LoginWithPaperKey(ctx context.Context, sessionID int) (err error) {
-	__arg := LoginWithPaperKeyArg{SessionID: sessionID}
+func (c LoginClient) LoginWithPaperKey(ctx context.Context, __arg LoginWithPaperKeyArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.login.loginWithPaperKey", []interface{}{__arg}, nil)
 	return
 }
@@ -408,6 +431,13 @@ func (c LoginClient) Deprovision(ctx context.Context, __arg DeprovisionArg) (err
 func (c LoginClient) RecoverAccountFromEmailAddress(ctx context.Context, email string) (err error) {
 	__arg := RecoverAccountFromEmailAddressArg{Email: email}
 	err = c.Cli.Call(ctx, "keybase.1.login.recoverAccountFromEmailAddress", []interface{}{__arg}, nil)
+	return
+}
+
+// Guide the user through possibilities of changing their passphrase.
+// Lets them change their passphrase using a paper key or enter the reset pipeline.
+func (c LoginClient) RecoverPassphrase(ctx context.Context, __arg RecoverPassphraseArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.login.recoverPassphrase", []interface{}{__arg}, nil)
 	return
 }
 

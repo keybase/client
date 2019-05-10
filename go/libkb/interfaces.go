@@ -52,6 +52,7 @@ type configGetter interface {
 	GetGpgHome() string
 	GetGpgOptions() []string
 	GetGregorDisabled() (bool, bool)
+	GetSecretStorePrimingDisabled() (bool, bool)
 	GetBGIdentifierDisabled() (bool, bool)
 	GetGregorPingInterval() (time.Duration, bool)
 	GetGregorPingTimeout() (time.Duration, bool)
@@ -424,7 +425,7 @@ type ChatUI interface {
 	ChatShowManageChannels(context.Context, string) error
 	ChatCoinFlipStatus(context.Context, []chat1.UICoinFlipStatus) error
 	ChatCommandMarkdown(context.Context, chat1.ConversationID, *chat1.UICommandMarkdown) error
-	ChatTeamMentionUpdate(context.Context, string, string, chat1.UITeamMention) error
+	ChatMaybeMentionUpdate(context.Context, string, string, chat1.UIMaybeMentionInfo) error
 }
 
 type PromptDefault int
@@ -516,6 +517,8 @@ type Clock interface {
 
 type GregorState interface {
 	State(ctx context.Context) (gregor.State, error)
+	UpdateCategory(ctx context.Context, cat string, body []byte,
+		dtime gregor1.TimeOrOffset) (res gregor1.MsgID, err error)
 	InjectItem(ctx context.Context, cat string, body []byte, dtime gregor1.TimeOrOffset) (gregor1.MsgID, error)
 	DismissItem(ctx context.Context, cli gregor1.IncomingInterface, id gregor.MsgID) error
 	LocalDismissItem(ctx context.Context, id gregor.MsgID) error
@@ -568,6 +571,7 @@ type DNSContext interface {
 }
 
 type AssertionContext interface {
+	Ctx() context.Context
 	NormalizeSocialName(service string, username string) (string, error)
 }
 
@@ -635,11 +639,11 @@ type ServiceType interface {
 }
 
 type ExternalServicesCollector interface {
-	GetServiceType(n string) ServiceType
-	ListProofCheckers() []string
+	GetServiceType(context.Context, string) ServiceType
+	ListProofCheckers(MetaContext) []string
 	ListServicesThatAcceptNewProofs(MetaContext) []string
-	ListDisplayConfigs() (res []keybase1.ServiceDisplayConfig)
-	SuggestionFoldPriority() int
+	ListDisplayConfigs(MetaContext) (res []keybase1.ServiceDisplayConfig)
+	SuggestionFoldPriority(MetaContext) int
 }
 
 // Generic store for data that is hashed into the merkle root. Used by pvl and

@@ -3,12 +3,11 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as FsTypes from '../constants/types/fs'
+import {Filename} from '../fs/common'
 import ConnectedUsernames from '../common-adapters/usernames/remote-container'
 
 type FileUpdateProps = {|
   path: FsTypes.Path,
-  targetExtension?: string,
-  targetNameWithoutExtension: string,
   tlfType: FsTypes.TlfType,
   uploading: boolean,
   onClick: () => void,
@@ -45,10 +44,7 @@ export const FileUpdate = (props: FileUpdateProps) => (
           <Kb.Icon type="icon-addon-file-uploading" style={Kb.iconCastPlatformStyles(styles.iconBadge)} />
         </Kb.Box>
       )}
-      <Kb.Text type="Body" style={styles.wordWrapFilename}>
-        {props.targetNameWithoutExtension}
-        {props.targetExtension}
-      </Kb.Text>
+      <Filename type="Body" path={props.path} />
     </Kb.Box2>
   </Kb.ClickableBox>
 )
@@ -172,7 +168,7 @@ const styles = Styles.styleSheetCreate({
   },
   fileUpdateRow: {
     marginTop: Styles.globalMargins.xtiny,
-    paddingRight: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.large,
   },
   fullWidth: {
     // needed to avoid icon being pinched

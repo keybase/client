@@ -40,9 +40,7 @@ const DesktopHeaders = (props: Props) => (
         Move or Copy “
       </Kb.Text>
       <FsCommon.PathItemIcon size={16} path={Types.pathConcat(props.parentPath, props.targetName)} />
-      <Kb.Text type="Header" lineClamp={1} style={styles.header}>
-        {props.targetName}
-      </Kb.Text>
+      <FsCommon.Filename type="Header" filename={props.targetName} />
       <Kb.Text type="Header" style={{flexShrink: 0}}>
         ”
       </Kb.Text>
@@ -122,12 +120,7 @@ export default (Styles.isMobile
           <Kb.Box2 direction="vertical" centerChildren={true} style={styles.mobileHeaderContent}>
             <Kb.Box2 direction="horizontal" centerChildren={true} gap="xtiny">
               <FsCommon.PathItemIcon size={12} path={Types.pathConcat(props.parentPath, props.targetName)} />
-              <Kb.Box2 direction="horizontal">
-                <Kb.Text type="BodySmallSemibold" lineClamp={1}>
-                  {props.targetNameWithoutExtension}
-                </Kb.Text>
-                <Kb.Text type="BodySmallSemibold">{props.targetExtension}</Kb.Text>
-              </Kb.Box2>
+              <FsCommon.Filename type="BodySmallSemibold" filename={props.targetName} />
             </Kb.Box2>
             <Kb.Text type="Header" lineClamp={1}>
               {Types.getPathName(props.parentPath)}
@@ -179,9 +172,6 @@ const styles = Styles.styleSheetCreate({
       bottom: 0,
       position: 'absolute',
     },
-  }),
-  header: Styles.platformStyles({
-    isElectron: {wordBreak: 'break-all'},
   }),
   mobileHeaderButton: {
     paddingBottom: 8,

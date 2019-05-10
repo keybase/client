@@ -1,6 +1,5 @@
 // @flow
 import * as FsTypes from '../constants/types/fs'
-import * as Constants from '../constants/fs'
 import * as FsGen from '../actions/fs-gen'
 import * as ProfileGen from '../actions/profile-gen'
 import * as FsUtil from '../util/kbfs'
@@ -41,14 +40,9 @@ const mergeProps = (stateProps, dispatchProps) => ({
       // Default to private visibility--this should never happen though.
       tlfType,
       updates: c.updates.map(({path, uploading}) => {
-        const [targetNameWithoutExtension, targetExtension] = Constants.splitFileNameAndExtension(
-          FsTypes.getPathName(path)
-        )
         return {
           onClick: () => dispatchProps._onSelectPath(path, 'file'),
           path,
-          targetExtension,
-          targetNameWithoutExtension,
           tlfType,
           uploading,
         }

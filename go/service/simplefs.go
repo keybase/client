@@ -460,6 +460,7 @@ func (s *SimpleFSHandler) SimpleFSSyncConfigAndStatus(
 	return cli.SimpleFSSyncConfigAndStatus(ctx)
 }
 
+// SimpleFSClearConflictState implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSClearConflictState(ctx context.Context,
 	path keybase1.Path) error {
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
@@ -469,6 +470,18 @@ func (s *SimpleFSHandler) SimpleFSClearConflictState(ctx context.Context,
 		return err
 	}
 	return cli.SimpleFSClearConflictState(ctx, path)
+}
+
+// SimpleFSForceStuckConflict implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSForceStuckConflict(
+	ctx context.Context, path keybase1.Path) error {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return err
+	}
+	return cli.SimpleFSForceStuckConflict(ctx, path)
 }
 
 // SimpleFSAreWeConnectedToMDServer implements the SimpleFSInterface.
@@ -481,6 +494,17 @@ func (s *SimpleFSHandler) SimpleFSAreWeConnectedToMDServer(
 		return false, err
 	}
 	return cli.SimpleFSAreWeConnectedToMDServer(ctx)
+}
+
+// SimpleFSCheckReachability implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSCheckReachability(ctx context.Context) error {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return err
+	}
+	return cli.SimpleFSCheckReachability(ctx)
 }
 
 // SimpleFSSetDebugLevel implements the SimpleFSInterface.

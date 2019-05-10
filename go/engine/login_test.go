@@ -577,8 +577,6 @@ func TestProvisionWithRevoke(t *testing.T) {
 // If a user has device keys and no pgp keys, not selecting a device
 // should trigger the autoreset flow.
 func TestProvisionAutoreset(t *testing.T) {
-	t.Skip()
-
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "provision_x")
 	defer tcX.Cleanup()
@@ -609,8 +607,8 @@ func TestProvisionAutoreset(t *testing.T) {
 	require.NotNil(t, AssertLoggedIn(tcY), "should not be logged in")
 
 	// Travel 3 days into future + 1h to make sure that it all runs
-	require.NoError(t, accelerateReset(tcX))
 	require.NoError(t, timeTravelReset(tcX, time.Hour*73))
+	require.NoError(t, processReset(tcX))
 
 	// Rather than sleeping we'll wait for autoreset by analyzing its state
 	var lastErr error
@@ -654,11 +652,12 @@ func timeTravelReset(tc libkb.TestContext, duration time.Duration) error {
 	return err
 }
 
-func accelerateReset(tc libkb.TestContext) error {
+func processReset(tc libkb.TestContext) error {
 	mctx := libkb.NewMetaContextForTest(tc)
 	_, err := tc.G.API.Post(mctx, libkb.APIArg{
-		Endpoint:    "test/accelerate_autoresetd",
-		SessionType: libkb.APISessionTypeREQUIRED,
+		Endpoint:    "autoreset/process_dev",
+		SessionType: libkb.APISessionTypeNONE,
+		RetryCount:  5,
 	})
 	return err
 }
@@ -970,9 +969,6 @@ func TestProvisionGPGWithPUK(t *testing.T) {
 	if err := tc.MoveGpgKeyringTo(tc2); err != nil {
 		t.Fatal(err)
 	}
-
-	// now safe to cleanup first home
-	tc.Cleanup()
 
 	// run login on new device
 	uis2 := libkb.UIs{
@@ -1477,9 +1473,6 @@ func TestProvisionGPGImportOK(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// now safe to cleanup first home
-	tc.Cleanup()
-
 	// run login on new device
 	uis2 := libkb.UIs{
 		ProvisionUI: newTestProvisionUIGPGImport(),
@@ -1531,9 +1524,6 @@ func TestProvisionGPGImportMultiple(t *testing.T) {
 	if err := tc.MoveGpgKeyringTo(tc2); err != nil {
 		t.Fatal(err)
 	}
-
-	// now safe to cleanup first home
-	tc.Cleanup()
 
 	// run login on new device
 	uis2 := libkb.UIs{
@@ -1595,9 +1585,6 @@ func TestProvisionGPGSign(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		// now safe to cleanup first home
-		tc.Cleanup()
-
 		// run login on new device
 		uis2 := libkb.UIs{
 			ProvisionUI: newTestProvisionUIGPGSign(),
@@ -1658,9 +1645,6 @@ func TestProvisionGPGSignFailedSign(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// now safe to cleanup first home
-	tc.Cleanup()
-
 	// run login on new device
 	uis2 := libkb.UIs{
 		ProvisionUI: newTestProvisionUIGPGSign(),
@@ -1712,9 +1696,6 @@ func TestProvisionGPGSignSecretStore(t *testing.T) {
 		if err := tc.MoveGpgKeyringTo(tc2); err != nil {
 			t.Fatal(err)
 		}
-
-		// now safe to cleanup first home
-		tc.Cleanup()
 
 		// create a secret UI that stores the secret
 		secUI := u1.NewSecretUI()
@@ -1782,9 +1763,6 @@ func TestProvisionGPGSwitchToSign(t *testing.T) {
 		if err := tc.MoveGpgKeyringTo(tc2); err != nil {
 			t.Fatal(err)
 		}
-
-		// now safe to cleanup first home
-		tc.Cleanup()
 
 		// load the user (bypassing LoginUsername for this test...)
 		user, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc2.G, u1.Username))
@@ -1861,9 +1839,6 @@ func TestProvisionGPGNoSwitchToSign(t *testing.T) {
 	if err := tc.MoveGpgKeyringTo(tc2); err != nil {
 		t.Fatal(err)
 	}
-
-	// now safe to cleanup first home
-	tc.Cleanup()
 
 	// load the user (bypassing LoginUsername for this test...)
 	user, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc2.G, u1.Username))
@@ -2796,16 +2771,15 @@ func TestResetAccountKexProvision(t *testing.T) {
 // Try to replicate @nistur sigchain.
 // github issue: https://github.com/keybase/client/issues/2356
 func TestResetThenPGPOnlyThenProvision(t *testing.T) {
-	tc := SetupEngineTest(t, "login")
-	defer tc.Cleanup()
+	tc0 := SetupEngineTest(t, "login")
+	defer tc0.Cleanup()
 
 	// user with synced pgp key
-	u := createFakeUserWithPGPOnly(t, tc)
-	Logout(tc)
-	tc.Cleanup()
+	u := createFakeUserWithPGPOnly(t, tc0)
+	Logout(tc0)
 
 	// provision a device with that key
-	tc = SetupEngineTest(t, "login")
+	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
 	uis := libkb.UIs{
@@ -2865,16 +2839,15 @@ func TestResetThenPGPOnlyThenProvision(t *testing.T) {
 // Try to replicate @nistur sigchain.
 // github issue: https://github.com/keybase/client/issues/2356
 func TestResetAccountLikeNistur(t *testing.T) {
-	tc := SetupEngineTest(t, "login")
-	defer tc.Cleanup()
+	tc0 := SetupEngineTest(t, "login")
+	defer tc0.Cleanup()
 
 	// user with synced pgp key
-	u := createFakeUserWithPGPOnly(t, tc)
-	Logout(tc)
-	tc.Cleanup()
+	u := createFakeUserWithPGPOnly(t, tc0)
+	Logout(tc0)
 
 	// provision a device with that key
-	tc = SetupEngineTest(t, "login")
+	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
 	uis := libkb.UIs{
@@ -3261,9 +3234,6 @@ func TestProvisionGPGMobile(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// now safe to cleanup first home
-	tc.Cleanup()
-
 	// run login on new device
 	uis := libkb.UIs{
 		ProvisionUI: newTestProvisionUIGPGImport(),
@@ -3556,9 +3526,6 @@ func TestBootstrapAfterGPGSign(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		// now safe to cleanup first home
-		tc.Cleanup()
-
 		// run login on new device
 		uis := libkb.UIs{
 			ProvisionUI: newTestProvisionUIGPGSign(),
@@ -3822,6 +3789,7 @@ type testProvisionUI struct {
 	verbose                bool
 	calledChooseDeviceType int
 	abortSwitchToGPGSign   bool
+	lastDevices            []keybase1.Device
 }
 
 func newTestProvisionUI() *testProvisionUI {
@@ -3836,6 +3804,12 @@ func newTestProvisionUI() *testProvisionUI {
 func newTestProvisionUISecretCh(ch chan kex2.Secret) *testProvisionUI {
 	ui := newTestProvisionUI()
 	ui.secretCh = ch
+	ui.chooseDevice = "desktop"
+	return ui
+}
+
+func newTestProvisionUINoSecret() *testProvisionUI {
+	ui := newTestProvisionUI()
 	ui.chooseDevice = "desktop"
 	return ui
 }
@@ -3899,6 +3873,8 @@ func (u *testProvisionUI) SwitchToGPGSignOK(ctx context.Context, arg keybase1.Sw
 func (u *testProvisionUI) ChooseDevice(_ context.Context, arg keybase1.ChooseDeviceArg) (keybase1.DeviceID, error) {
 	u.printf("ChooseDevice")
 	u.calledChooseDevice++
+
+	u.lastDevices = arg.Devices
 
 	if len(arg.Devices) == 0 {
 		return "", nil
@@ -4002,6 +3978,14 @@ func (p *paperLoginUI) PromptResetAccount(_ context.Context, arg keybase1.Prompt
 
 func (p *paperLoginUI) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
 	return nil
+}
+
+func (p *paperLoginUI) ExplainDeviceRecovery(_ context.Context, arg keybase1.ExplainDeviceRecoveryArg) error {
+	return nil
+}
+
+func (p *paperLoginUI) PromptPassphraseRecovery(_ context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
+	return false, nil
 }
 
 func signString(tc libkb.TestContext, input string, secUI libkb.SecretUI) error {

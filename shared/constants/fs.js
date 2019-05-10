@@ -271,6 +271,11 @@ export const makeKbfsDaemonStatus: I.RecordFactory<Types._KbfsDaemonStatus> = I.
   rpcStatus: 'unknown',
 })
 
+export const makeSoftErrors: I.RecordFactory<Types._SoftErrors> = I.Record({
+  pathErrors: I.Map(),
+  tlfErrors: I.Map(),
+})
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   destinationPicker: makeDestinationPicker(),
   downloads: I.Map(),
@@ -286,6 +291,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   sendAttachmentToChat: makeSendAttachmentToChat(),
   sendLinkToChat: makeSendLinkToChat(),
   sfmi: makeSystemFileManagerIntegration(),
+  softErrors: makeSoftErrors(),
   syncingFoldersProgress: makeSyncingFoldersProgress(),
   tlfUpdates: I.List(),
   tlfs: makeTlfs(),
@@ -620,6 +626,7 @@ export const folderRPCFromPath = (path: Types.Path): ?RPCTypes.Folder => {
   if (name === '') return null
 
   return {
+    conflictType: RPCTypes.favoriteFolderConflictType.none,
     created: false,
     folderType: Types.getRPCFolderTypeFromVisibility(visibility),
     name,
@@ -948,7 +955,7 @@ export const getChatTarget = (path: Types.Path, me: string): string => {
   }
   if (parsedPath.kind === 'group-tlf' || parsedPath.kind === 'in-group-tlf') {
     if (parsedPath.writers.size === 1 && !parsedPath.readers && parsedPath.writers.first() === me) {
-      return 'myself'
+      return 'yourself'
     }
     if (parsedPath.writers.size + (parsedPath.readers ? parsedPath.readers.size : 0) === 2) {
       const notMe = parsedPath.writers.concat(parsedPath.readers || []).filter(u => u !== me)
@@ -1036,7 +1043,7 @@ export const getSyncStatusInMergeProps = (
       }
       const inProgress: Types.PrefetchInProgress = pathItem.prefetchStatus
       if (inProgress.bytesTotal === 0) {
-        return 'sync-error'
+        return 'awaiting-to-sync'
       }
       return inProgress.bytesFetched / inProgress.bytesTotal
     default:
@@ -1151,8 +1158,18 @@ export const makeActionsForShowSendAttachmentToChat = (
   ),
 ]
 
-export const splitFileNameAndExtension = (fileName: string) =>
-  ((str, idx) => [str.slice(0, idx), str.slice(idx)])(fileName, fileName.lastIndexOf('.'))
+// TODO(KBFS-4129): make this actually able to check out-of-spaceness
+export const getMainBannerType = (
+  kbfsDaemonStatus: Types.KbfsDaemonStatus,
+  overallSyncStatus: any
+): Types.MainBannerType =>
+  kbfsDaemonStatus.online
+    ? overallSyncStatus === null
+      ? 'none'
+      : 'out-of-space'
+    : flags.kbfsOfflineMode
+    ? 'offline'
+    : 'none'
 
 export const isFolder = (path: Types.Path, pathItem: Types.PathItem) =>
   Types.getPathLevel(path) <= 3 || pathItem.type === 'folder'
@@ -1170,6 +1187,23 @@ export const humanizeBytes = (n: number, d: number): string => {
     return `${(n / mb).toFixed(2)} of ${(d / mb).toFixed(2)} MB`
   }
   return `${(n / gb).toFixed(2)} of ${(d / gb).toFixed(2)} GB`
+}
+
+export const getTlfPath = (path: Types.Path): ?Types.Path => {
+  const elems = Types.getPathElements(path)
+  return elems.length > 2 ? Types.pathConcat(Types.pathConcat(defaultPath, elems[1]), elems[2]) : null
+}
+
+export const getSoftError = (softErrors: Types.SoftErrors, path: Types.Path): ?Types.SoftError => {
+  const pathError = softErrors.pathErrors.get(path)
+  if (pathError) {
+    return pathError
+  }
+  if (!softErrors.tlfErrors.size) {
+    return null
+  }
+  const tlfPath = getTlfPath(path)
+  return tlfPath ? softErrors.tlfErrors.get(tlfPath) : null
 }
 
 export const erroredActionToMessage = (action: FsGen.Actions, error: string): string => {

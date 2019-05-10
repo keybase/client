@@ -1216,11 +1216,8 @@ func TestRefreshSubscription(t *testing.T) {
 
 	t.Log("Make a public TLF")
 	path2 := keybase1.NewPathWithKbfs(`/public/jdoe`)
-	writeRemoteFile(ctx, t, sfs, pathAppend(path2, `test.txt`), []byte(`foo`))
-	syncFS(ctx, t, sfs, "/public/jdoe")
-
-	// now subscribe to a different one, and make sure the old
-	// subscription goes away.
+	// Now subscribe to a different one, before the TLF even exists,
+	// and make sure the old subscription goes away.
 	opid2, err := sfs.SimpleFSMakeOpid(ctx)
 	require.NoError(t, err)
 	err = sfs.SimpleFSList(ctx, keybase1.SimpleFSListArg{
@@ -1232,13 +1229,13 @@ func TestRefreshSubscription(t *testing.T) {
 	err = sfs.SimpleFSWait(ctx, opid2)
 	require.NoError(t, err)
 
-	writeRemoteFile(ctx, t, sfs, pathAppend(path2, `test2.txt`), []byte(`foo`))
+	writeRemoteFile(ctx, t, sfs, pathAppend(path2, `test.txt`), []byte(`foo`))
 	syncFS(ctx, t, sfs, "/public/jdoe")
 	sr.waitForNotification(t)
 	require.Equal(t, "/keybase"+path2.Kbfs(), sr.LastPath())
 
 	// Make sure notification works with file content change.
-	writeRemoteFile(ctx, t, sfs, pathAppend(path2, `test2.txt`), []byte(`poo`))
+	writeRemoteFile(ctx, t, sfs, pathAppend(path2, `test.txt`), []byte(`poo`))
 	syncFS(ctx, t, sfs, "/public/jdoe")
 	sr.waitForNotification(t)
 	require.Equal(t, "/keybase"+path2.Kbfs(), sr.LastPath())
@@ -1373,4 +1370,76 @@ func TestOverallStatusFile(t *testing.T) {
 	var status libkbfs.KBFSStatus
 	json.Unmarshal(buf, &status)
 	require.Equal(t, "jdoe", status.CurrentUser)
+}
+
+func TestFavoriteConflicts(t *testing.T) {
+	ctx := context.Background()
+	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_for_simplefs_cr")
+	defer os.RemoveAll(tempdir)
+	require.NoError(t, err)
+	sfs := newSimpleFS(
+		env.EmptyAppStateUpdater{}, libkbfs.MakeTestConfigOrBust(t, "jdoe"))
+	defer closeSimpleFS(ctx, t, sfs)
+	config := sfs.config.(*libkbfs.ConfigLocal)
+
+	t.Log("Enable journaling")
+	err = config.EnableDiskLimiter(tempdir)
+	require.NoError(t, err)
+	err = config.EnableJournaling(
+		ctx, tempdir, libkbfs.TLFJournalBackgroundWorkEnabled)
+	require.NoError(t, err)
+	jManager, err := libkbfs.GetJournalManager(config)
+	require.NoError(t, err)
+	err = jManager.EnableAuto(ctx)
+	require.NoError(t, err)
+
+	pathPriv := keybase1.NewPathWithKbfs(`/private/jdoe`)
+	pathPub := keybase1.NewPathWithKbfs(`/public/jdoe`)
+
+	t.Log("Add one file in each directory")
+	writeRemoteFile(
+		ctx, t, sfs, pathAppend(pathPriv, `test.txt`), []byte(`foo`))
+	syncFS(ctx, t, sfs, "/private/jdoe")
+	writeRemoteFile(
+		ctx, t, sfs, pathAppend(pathPub, `test.txt`), []byte(`foo`))
+	syncFS(ctx, t, sfs, "/public/jdoe")
+
+	t.Log("Make sue we see two favorites with no conflicts")
+	favs, err := sfs.SimpleFSListFavorites(ctx)
+	require.NoError(t, err)
+	require.Len(t, favs.FavoriteFolders, 2)
+	for _, f := range favs.FavoriteFolders {
+		require.Equal(t, keybase1.FolderConflictType_NONE, f.ConflictType)
+	}
+
+	t.Log("Force a stuck conflict and make sure it's captured correctly")
+	err = sfs.SimpleFSForceStuckConflict(ctx, pathPub)
+	require.NoError(t, err)
+	favs, err = sfs.SimpleFSListFavorites(ctx)
+	require.NoError(t, err)
+	require.Len(t, favs.FavoriteFolders, 2)
+	stuck, notStuck := 0, 0
+	for _, f := range favs.FavoriteFolders {
+		if f.FolderType == keybase1.FolderType_PUBLIC {
+			require.Equal(
+				t, keybase1.FolderConflictType_IN_CONFLICT_AND_STUCK,
+				f.ConflictType)
+			stuck++
+		} else {
+			require.Equal(t, keybase1.FolderConflictType_NONE, f.ConflictType)
+			notStuck++
+		}
+	}
+	require.Equal(t, 1, stuck)
+	require.Equal(t, 1, notStuck)
+
+	t.Log("Resolve the conflict")
+	err = sfs.SimpleFSClearConflictState(ctx, pathPub)
+	require.NoError(t, err)
+	favs, err = sfs.SimpleFSListFavorites(ctx)
+	require.NoError(t, err)
+	require.Len(t, favs.FavoriteFolders, 2)
+	for _, f := range favs.FavoriteFolders {
+		require.Equal(t, keybase1.FolderConflictType_NONE, f.ConflictType)
+	}
 }

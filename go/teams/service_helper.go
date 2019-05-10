@@ -545,7 +545,7 @@ func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails
 			}
 
 			name := keybase1.TeamInviteName(addr.Address)
-			existing, err := t.HasActiveInvite(name, "email")
+			existing, err := t.HasActiveInvite(libkb.NewMetaContext(ctx, g), name, "email")
 			if err != nil {
 				return err
 			}
@@ -1344,7 +1344,7 @@ func removeMemberInviteOfType(ctx context.Context, g *libkb.GlobalContext, team 
 	g.Log.CDebugf(ctx, "looking for active invite in %s for %s/%s", team.Name(), typ, inviteName)
 
 	// make sure this is a valid invite type
-	itype, err := keybase1.TeamInviteTypeFromString(typ, g.Env.GetRunMode() == libkb.DevelRunMode)
+	itype, err := TeamInviteTypeFromString(libkb.NewMetaContext(ctx, g), typ)
 	if err != nil {
 		return err
 	}

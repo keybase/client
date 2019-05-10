@@ -17,10 +17,11 @@ import (
 
 func TestSecretUI(t *testing.T) {
 	tc := setupTest(t, "secret_ui")
-	tc1 := cloneContext(tc)
-	tc2 := cloneContext(tc)
-
 	defer tc.Cleanup()
+	tc1 := cloneContext(tc)
+	defer tc1.Cleanup()
+	tc2 := cloneContext(tc)
+	defer tc2.Cleanup()
 
 	stopCh := make(chan error)
 	svc := service.NewService(tc.G, false)
@@ -138,6 +139,12 @@ func (u *loginUI) PromptResetAccount(_ context.Context, arg keybase1.PromptReset
 }
 func (u *loginUI) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
 	return nil
+}
+func (u *loginUI) ExplainDeviceRecovery(_ context.Context, arg keybase1.ExplainDeviceRecoveryArg) error {
+	return nil
+}
+func (u *loginUI) PromptPassphraseRecovery(_ context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
+	return false, nil
 }
 
 type provisionUI struct {

@@ -41,7 +41,9 @@ const connected = () =>
       logger.warn('error in registering identify ui: ', error)
     })
 
-const refreshChanged = (_, action) =>
+// only refresh if we have tracked them before
+const refreshChanged = (state, action) =>
+  !!state.tracker2.usernameToDetails.get(action.payload.params.username) &&
   Tracker2Gen.createLoad({
     assertion: action.payload.params.username,
     fromDaemon: false,
@@ -141,6 +143,11 @@ function* load(state, action) {
       })
     )
   } catch (err) {
+    if (err.code === RPCTypes.constantsStatusCode.scresolutionfailed) {
+      yield Saga.put(
+        Tracker2Gen.createUpdateResult({guiID: action.payload.guiID, reason: null, result: 'notAUserYet'})
+      )
+    }
     // hooked into reloadable
     logger.error(`Error loading profile: ${err.message}`)
   }

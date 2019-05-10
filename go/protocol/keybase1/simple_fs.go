@@ -1351,6 +1351,10 @@ type SimpleFSClearConflictStateArg struct {
 	Path Path `codec:"path" json:"path"`
 }
 
+type SimpleFSForceStuckConflictArg struct {
+	Path Path `codec:"path" json:"path"`
+}
+
 type SimpleFSSyncStatusArg struct {
 	Filter ListFilter `codec:"filter" json:"filter"`
 }
@@ -1392,6 +1396,9 @@ type SimpleFSSyncConfigAndStatusArg struct {
 }
 
 type SimpleFSAreWeConnectedToMDServerArg struct {
+}
+
+type SimpleFSCheckReachabilityArg struct {
 }
 
 type SimpleFSSetDebugLevelArg struct {
@@ -1468,6 +1475,8 @@ type SimpleFSInterface interface {
 	SimpleFSDumpDebuggingInfo(context.Context) error
 	// Clear the conflict state of a TLF.
 	SimpleFSClearConflictState(context.Context, Path) error
+	// Force a TLF into a stuck conflict state (for testing).
+	SimpleFSForceStuckConflict(context.Context, Path) error
 	// Get sync status.
 	SimpleFSSyncStatus(context.Context, ListFilter) (FSSyncStatus, error)
 	// This RPC generates a random token to be used by a client that needs to
@@ -1508,6 +1517,7 @@ type SimpleFSInterface interface {
 	SimpleFSSetFolderSyncConfig(context.Context, SimpleFSSetFolderSyncConfigArg) error
 	SimpleFSSyncConfigAndStatus(context.Context) (SyncConfigAndStatusRes, error)
 	SimpleFSAreWeConnectedToMDServer(context.Context) (bool, error)
+	SimpleFSCheckReachability(context.Context) error
 	SimpleFSSetDebugLevel(context.Context, string) error
 }
 
@@ -1875,6 +1885,21 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSForceStuckConflict": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSForceStuckConflictArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSForceStuckConflictArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSForceStuckConflictArg)(nil), args)
+						return
+					}
+					err = i.SimpleFSForceStuckConflict(ctx, typedArgs[0].Path)
+					return
+				},
+			},
 			"simpleFSSyncStatus": {
 				MakeArg: func() interface{} {
 					var ret [1]SimpleFSSyncStatusArg
@@ -2022,6 +2047,16 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					ret, err = i.SimpleFSAreWeConnectedToMDServer(ctx)
+					return
+				},
+			},
+			"simpleFSCheckReachability": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSCheckReachabilityArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.SimpleFSCheckReachability(ctx)
 					return
 				},
 			},
@@ -2224,6 +2259,13 @@ func (c SimpleFSClient) SimpleFSClearConflictState(ctx context.Context, path Pat
 	return
 }
 
+// Force a TLF into a stuck conflict state (for testing).
+func (c SimpleFSClient) SimpleFSForceStuckConflict(ctx context.Context, path Path) (err error) {
+	__arg := SimpleFSForceStuckConflictArg{Path: path}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSForceStuckConflict", []interface{}{__arg}, nil)
+	return
+}
+
 // Get sync status.
 func (c SimpleFSClient) SimpleFSSyncStatus(ctx context.Context, filter ListFilter) (res FSSyncStatus, err error) {
 	__arg := SimpleFSSyncStatusArg{Filter: filter}
@@ -2314,6 +2356,11 @@ func (c SimpleFSClient) SimpleFSSyncConfigAndStatus(ctx context.Context) (res Sy
 
 func (c SimpleFSClient) SimpleFSAreWeConnectedToMDServer(ctx context.Context) (res bool, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSAreWeConnectedToMDServer", []interface{}{SimpleFSAreWeConnectedToMDServerArg{}}, &res)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSCheckReachability(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSCheckReachability", []interface{}{SimpleFSCheckReachabilityArg{}}, nil)
 	return
 }
 

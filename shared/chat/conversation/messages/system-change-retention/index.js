@@ -77,7 +77,7 @@ const ChangeRetention = (props: Props) => {
         {formatTimeForMessages(props.timestamp)}
       </Kb.Text>
       <Kb.Box2 direction="vertical" centerChildren={true}>
-        <Kb.Text type="BodySmallSemibold" center={true} negative={true} style={styles.text}>
+        <Kb.Text type="BodySmallSemibold" center={true} negative={true} style={styles.text} selectable={true}>
           {changedBy} changed the {convType} retention policy{inheritDescription}. Messages will{' '}
           {policySummary}.
         </Kb.Text>

@@ -43,7 +43,7 @@ protocol login {
   - trying unlocked device keys if available
   - prompting for a paper key and using that
     */
-  void loginWithPaperKey(int sessionID);
+  void loginWithPaperKey(int sessionID, string username);
 
   /**
     Removes any existing stored secret for the given username.
@@ -55,6 +55,12 @@ protocol login {
   void deprovision(int sessionID, string username, boolean doRevoke);
 
   void recoverAccountFromEmailAddress(string email);
+
+  /**
+    Guide the user through possibilities of changing their passphrase.
+    Lets them change their passphrase using a paper key or enter the reset pipeline.
+    */
+  void recoverPassphrase(int sessionID, string username);
 
   /**
     PaperKey generates paper backup keys for restoring an account.

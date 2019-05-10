@@ -1,15 +1,11 @@
-// Copyright 2015 Keybase, Inc. All rights reserved. Use of
-// this source code is governed by the included BSD license.
-
-package engine
+package libkb
 
 import (
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 type card struct {
-	Status        libkb.AppStatus `json:"status"`
+	Status        AppStatus `json:"status"`
 	FollowSummary struct {
 		Following int `json:"following"`
 		Followers int `json:"followers"`
@@ -27,12 +23,12 @@ type card struct {
 	RegisteredForAirdrop bool                        `json:"airdrop_registered"`
 }
 
-func (c *card) GetAppStatus() *libkb.AppStatus {
+func (c *card) GetAppStatus() *AppStatus {
 	return &c.Status
 }
 
-func getUserCard(m libkb.MetaContext, uid keybase1.UID, useSession bool) (ret *keybase1.UserCard, err error) {
-	defer m.Trace("getUserCard", func() error { return err })()
+func UserCard(m MetaContext, uid keybase1.UID, useSession bool) (ret *keybase1.UserCard, err error) {
+	defer m.Trace("UserCard", func() error { return err })()
 
 	cached, err := m.G().CardCache().Get(uid, useSession)
 	if err != nil {
@@ -43,14 +39,14 @@ func getUserCard(m libkb.MetaContext, uid keybase1.UID, useSession bool) (ret *k
 	}
 	m.Debug("CardCache.Get miss for %s", uid)
 
-	sessionType := libkb.APISessionTypeNONE
+	sessionType := APISessionTypeNONE
 	if useSession {
-		sessionType = libkb.APISessionTypeREQUIRED
+		sessionType = APISessionTypeREQUIRED
 	}
-	arg := libkb.APIArg{
+	arg := APIArg{
 		Endpoint:    "user/card",
 		SessionType: sessionType,
-		Args:        libkb.HTTPArgs{"uid": libkb.S{Val: uid.String()}},
+		Args:        HTTPArgs{"uid": S{Val: uid.String()}},
 	}
 
 	var card card
@@ -82,8 +78,8 @@ func getUserCard(m libkb.MetaContext, uid keybase1.UID, useSession bool) (ret *k
 	return ret, nil
 }
 
-func displayUserCard(m libkb.MetaContext, uid keybase1.UID, useSession bool) error {
-	card, err := getUserCard(m, uid, useSession)
+func displayUserCard(m MetaContext, uid keybase1.UID, useSession bool) error {
+	card, err := UserCard(m, uid, useSession)
 	if err != nil {
 		return err
 	}
@@ -94,7 +90,7 @@ func displayUserCard(m libkb.MetaContext, uid keybase1.UID, useSession bool) err
 	return m.UIs().IdentifyUI.DisplayUserCard(m, *card)
 }
 
-func displayUserCardAsync(m libkb.MetaContext, uid keybase1.UID, useSession bool) <-chan error {
+func DisplayUserCardAsync(m MetaContext, uid keybase1.UID, useSession bool) <-chan error {
 	ch := make(chan error)
 	go func() {
 		ch <- displayUserCard(m, uid, useSession)
@@ -102,8 +98,8 @@ func displayUserCardAsync(m libkb.MetaContext, uid keybase1.UID, useSession bool
 	return ch
 }
 
-func GetFullName(m libkb.MetaContext, uid keybase1.UID) (string, error) {
-	card, err := getUserCard(m, uid, false)
+func GetFullName(m MetaContext, uid keybase1.UID) (string, error) {
+	card, err := UserCard(m, uid, false)
 	if err != nil {
 		return "", err
 	}

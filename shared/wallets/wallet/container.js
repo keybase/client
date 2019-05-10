@@ -2,6 +2,7 @@
 import * as React from 'react'
 import {connect, isMobile} from '../../util/container'
 import * as WalletsGen from '../../actions/wallets-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
 import Onboarding from '../onboarding/container'
@@ -9,10 +10,7 @@ import {partition} from 'lodash-es'
 
 import Wallet, {type Props} from '.'
 
-type OwnProps = {|
-  navigateAppend: any => any,
-  navigateUp: () => any,
-|}
+type OwnProps = {||}
 
 const mapStateToProps = state => {
   const accountID = Constants.getSelectedAccount(state)
@@ -29,15 +27,14 @@ const mapDispatchToProps = (dispatch, {navigateAppend, navigateUp}) => ({
   _onLoadMore: accountID => dispatch(WalletsGen.createLoadMorePayments({accountID})),
   _onMarkAsRead: (accountID, mostRecentID) =>
     dispatch(WalletsGen.createMarkAsRead({accountID, mostRecentID})),
-  onBack: () => dispatch(navigateUp()),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, dispatchProps) => {
   const sections = []
   // layout is
-  // 1. header (TODO: not included in list yet)
-  // 2. assets header and list of assets
-  // 3. transactions header and transactions
+  // 1. assets header and list of assets
+  // 2. transactions header and transactions
   // Formatted in a SectionList
   const assets =
     stateProps.assets.count() > 0 ? stateProps.assets.map((a, index) => index).toArray() : ['notLoadedYet']
@@ -75,7 +72,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     acceptedDisclaimer: stateProps.acceptedDisclaimer,
     accountID: stateProps.accountID,
     loadingMore: stateProps.loadingMore,
-    navigateAppend: ownProps.navigateAppend,
     onBack: dispatchProps.onBack,
     onLoadMore: () => dispatchProps._onLoadMore(stateProps.accountID),
     onMarkAsRead: () => {

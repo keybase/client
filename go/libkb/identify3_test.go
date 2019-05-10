@@ -69,6 +69,8 @@ func (i *id3FakeUI) Identify3Result(context.Context, keybase1.Identify3ResultArg
 
 func TestIdentify3State(t *testing.T) {
 	tc := SetupTest(t, "TestIdentify3State()", 1)
+	defer tc.Cleanup()
+
 	fakeClock := clockwork.NewFakeClock()
 	tc.G.SetClock(fakeClock)
 	uiRouter := id3FakeUIRouter{}

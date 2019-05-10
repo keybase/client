@@ -10,6 +10,7 @@ type Props = {|
   addee: string,
   adder: string,
   onManageChannels: () => void,
+  onManageNotifications: () => void,
   onViewTeam: () => void,
   teamname: string,
   timestamp: number,
@@ -28,9 +29,14 @@ const ManageComponent = (props: Props) => {
   const textType = 'BodySmallSemiboldPrimaryLink'
   if (props.addee === props.you) {
     return (
-      <Kb.Text onClick={props.onManageChannels} type={textType}>
-        Manage your channel subscriptions
-      </Kb.Text>
+      <Kb.Box type={textType} style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center'}}>
+        <Kb.Text onClick={props.onManageNotifications} type={textType}>
+          Manage phone and computer notifications
+        </Kb.Text>
+        <Kb.Text onClick={props.onManageChannels} type={textType}>
+          Browse other channels
+        </Kb.Text>
+      </Kb.Box>
     )
   } else if (props.isAdmin) {
     return (

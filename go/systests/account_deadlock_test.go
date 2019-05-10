@@ -18,9 +18,9 @@ import (
 
 func TestAccountDeadlock(t *testing.T) {
 	tc := setupTest(t, "deadlock")
-	tc2 := cloneContext(tc)
-
 	defer tc.Cleanup()
+	tc2 := cloneContext(tc)
+	defer tc2.Cleanup()
 
 	stopCh := make(chan error)
 	svc := service.NewService(tc.G, false)

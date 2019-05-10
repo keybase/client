@@ -37,8 +37,16 @@ func NewCmdSignup(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 				Usage: "Specify a username.",
 			},
 			cli.BoolFlag{
+				Name:  "no-email",
+				Usage: "Do not signup with email.",
+			},
+			cli.BoolFlag{
 				Name:  "set-password",
 				Usage: "Ask for password (optional by default).",
+			},
+			cli.BoolFlag{
+				Name:  "force",
+				Usage: "(dangerous) Ignore any reasons not to signup right now",
 			},
 		},
 	}
@@ -77,12 +85,14 @@ type CmdSignup struct {
 	defaultUsername    string
 	defaultPassphrase  string
 	doPromptPassphrase bool
+	noEmail            bool
 	randomPassphrase   bool
 	defaultDevice      string
 	doPrompt           bool
 	skipMail           bool
 	genPGP             bool
 	genPaper           bool
+	force              bool
 
 	// Test option to not call to requestInvitationCode for bypassing
 	// invitation code.
@@ -136,7 +146,6 @@ func (s *CmdSignup) ParseArgv(ctx *cli.Context) (err error) {
 		s.code = os.Getenv("KEYBASE_INVITATION_CODE")
 	}
 
-	s.defaultEmail = ctx.String("email")
 	s.defaultUsername = ctx.String("username")
 	s.defaultPassphrase = ctx.String("passphrase")
 	s.defaultDevice = ctx.String("device")
@@ -147,6 +156,14 @@ func (s *CmdSignup) ParseArgv(ctx *cli.Context) (err error) {
 	// default and user is signing up in no-passphrase mode - that is unless
 	// --set-password flag is used. Only then we are prompting for password.
 	s.doPromptPassphrase = ctx.Bool("set-password")
+
+	s.defaultEmail = ctx.String("email")
+	s.noEmail = ctx.Bool("no-email")
+	if (s.defaultEmail != "") && s.noEmail {
+		return fmt.Errorf("cannot pass --no-email and non-empty --email")
+	}
+
+	s.force = ctx.Bool("force")
 
 	if ctx.Bool("batch") {
 		s.fields = &PromptFields{
@@ -199,8 +216,10 @@ func (s *CmdSignup) Run() (err error) {
 		return err
 	}
 
-	if err = s.checkRegistered(); err != nil {
-		return err
+	if !s.force {
+		if err = s.checkRegistered(); err != nil {
+			return err
+		}
 	}
 
 	if s.code == "" && !s.noInvitationCodeBypass {
@@ -225,13 +244,18 @@ func (s *CmdSignup) checkRegistered() (err error) {
 	s.G().Log.Debug("+ clientModeSignupEngine::CheckRegistered")
 	defer s.G().Log.Debug("- clientModeSignupEngine::CheckRegistered -> %s", libkb.ErrToOk(err))
 
-	var rres keybase1.GetCurrentStatusRes
+	var rres keybase1.CurrentStatus
 
 	if rres, err = s.ccli.GetCurrentStatus(context.TODO(), 0); err != nil {
 		return err
 	}
 	if !rres.Registered {
 		return
+	}
+
+	err = ensureSetPassphraseFromRemote(libkb.NewMetaContextTODO(s.G()))
+	if err != nil {
+		return err
 	}
 
 	if !s.doPrompt {
@@ -300,7 +324,6 @@ func (s *CmdSignup) runEngine() (retry bool, err error) {
 
 	rarg := keybase1.SignupArg{
 		Username:    s.fields.username.GetValue(),
-		Email:       s.fields.email.GetValue(),
 		InviteCode:  s.fields.code.GetValue(),
 		Passphrase:  s.passphrase,
 		RandomPw:    s.randomPassphrase,
@@ -310,6 +333,12 @@ func (s *CmdSignup) runEngine() (retry bool, err error) {
 		SkipMail:    s.skipMail,
 		GenPGPBatch: s.genPGP,
 		GenPaper:    s.genPaper,
+	}
+	if s.fields.email != nil {
+		email := s.fields.email.GetValue()
+		if email != "" {
+			rarg.Email = email
+		}
 	}
 	res, err := s.scli.Signup(context.TODO(), rarg)
 	if err == nil {
@@ -403,6 +432,7 @@ func (s *CmdSignup) MakePrompter() {
 	}
 
 	email := &Field{
+		Disabled:         s.noEmail,
 		Defval:           s.defaultEmail,
 		Name:             "email",
 		Prompt:           "Your email address",

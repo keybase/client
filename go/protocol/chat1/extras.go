@@ -1467,10 +1467,6 @@ func (r *DeleteConversationLocalRes) SetOffline() {
 	r.Offline = true
 }
 
-func (r *GetInboxUILocalRes) SetOffline() {
-	r.Offline = true
-}
-
 func (r *SearchRegexpRes) SetOffline() {
 	r.Offline = true
 }
@@ -1600,6 +1596,35 @@ func humanizeDuration(duration time.Duration) string {
 		unit = unit + "s"
 	}
 	return fmt.Sprintf("%.0f %s", value, unit)
+}
+
+func (p RetentionPolicy) Eq(o RetentionPolicy) bool {
+	typ1, err := p.Typ()
+	if err != nil {
+		return false
+	}
+
+	typ2, err := o.Typ()
+	if err != nil {
+		return false
+	}
+	if typ1 != typ2 {
+		return false
+	}
+	switch typ1 {
+	case RetentionPolicyType_NONE:
+		return true
+	case RetentionPolicyType_RETAIN:
+		return p.Retain() == o.Retain()
+	case RetentionPolicyType_EXPIRE:
+		return p.Expire() == o.Expire()
+	case RetentionPolicyType_INHERIT:
+		return p.Inherit() == o.Inherit()
+	case RetentionPolicyType_EPHEMERAL:
+		return p.Ephemeral() == o.Ephemeral()
+	default:
+		return false
+	}
 }
 
 func (p RetentionPolicy) HumanSummary() (summary string) {
@@ -2007,14 +2032,6 @@ func (r *SetRetentionRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimit = &rl[0]
 }
 
-func (r *GetInboxUILocalRes) GetRateLimit() (res []RateLimit) {
-	return r.RateLimits
-}
-
-func (r *GetInboxUILocalRes) SetRateLimits(rl []RateLimit) {
-	r.RateLimits = rl
-}
-
 func (i EphemeralPurgeInfo) String() string {
 	return fmt.Sprintf("EphemeralPurgeInfo{ ConvID: %v, IsActive: %v, NextPurgeTime: %v, MinUnexplodedID: %v }",
 		i.ConvID, i.IsActive, i.NextPurgeTime.Time(), i.MinUnexplodedID)
@@ -2044,11 +2061,11 @@ func (i *ConversationMinWriterRoleInfoLocal) String() string {
 	if i == nil {
 		return "Minimum writer role for this conversation is not set."
 	}
-	usernameSuffix := "."
-	if i.Username != "" {
-		usernameSuffix = fmt.Sprintf(", last set by %v.", i.Username)
+	changedBySuffix := "."
+	if i.ChangedBy != "" {
+		changedBySuffix = fmt.Sprintf(", last set by %v.", i.ChangedBy)
 	}
-	return fmt.Sprintf("Minimum writer role for this conversation is %v%v", i.Role, usernameSuffix)
+	return fmt.Sprintf("Minimum writer role for this conversation is %v%v", i.Role, changedBySuffix)
 }
 
 func (s *ConversationSettings) IsNil() bool {
@@ -2197,6 +2214,8 @@ func (g GlobalAppNotificationSetting) Usage() string {
 	switch g {
 	case GlobalAppNotificationSetting_NEWMESSAGES:
 		return "Show notifications for new messages"
+	case GlobalAppNotificationSetting_PLAINTEXTDESKTOP:
+		return "Show plaintext notifications on desktop devices"
 	case GlobalAppNotificationSetting_PLAINTEXTMOBILE:
 		return "Show plaintext notifications on mobile devices"
 	case GlobalAppNotificationSetting_DEFAULTSOUNDMOBILE:
@@ -2212,6 +2231,8 @@ func (g GlobalAppNotificationSetting) FlagName() string {
 	switch g {
 	case GlobalAppNotificationSetting_NEWMESSAGES:
 		return "new-messages"
+	case GlobalAppNotificationSetting_PLAINTEXTDESKTOP:
+		return "plaintext-desktop"
 	case GlobalAppNotificationSetting_PLAINTEXTMOBILE:
 		return "plaintext-mobile"
 	case GlobalAppNotificationSetting_DEFAULTSOUNDMOBILE:

@@ -9,7 +9,6 @@ type Props = {|
   createNewAccountError: string,
   error: string,
   nameValidationState: ValidationState,
-  onBack?: () => void,
   onCancel: () => void,
   onClearErrors: () => void,
   onCreateAccount: (name: string) => void,
@@ -60,8 +59,6 @@ class CreateAccount extends React.Component<Props, State> {
     if (this.props.nameValidationState === 'valid' && prevProps.nameValidationState !== 'valid') {
       this.props.onClearErrors()
       this.props.onCreateAccount(this.state.name)
-      // This is for when we are showing this from a SendForm.
-      this.props.onBack && this.props.onBack()
     }
   }
 

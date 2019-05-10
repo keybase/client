@@ -15,9 +15,10 @@ import (
 )
 
 type teamMentionJob struct {
-	uid      gregor1.UID
-	teamName string
-	channel  string
+	uid               gregor1.UID
+	maybeMention      chat1.MaybeMention
+	knownTeamMentions []chat1.KnownTeamMention
+	forceRemote       bool
 }
 
 type TeamMentionLoader struct {
@@ -64,11 +65,34 @@ func (l *TeamMentionLoader) Stop(ctx context.Context) chan struct{} {
 	return ch
 }
 
+func (l *TeamMentionLoader) IsTeamMention(ctx context.Context, uid gregor1.UID,
+	maybeMention chat1.MaybeMention, knownTeamMentions []chat1.KnownTeamMention) bool {
+	if _, err := keybase1.TeamNameFromString(maybeMention.Name); err != nil {
+		return false
+	}
+	for _, known := range knownTeamMentions {
+		if known.Name == maybeMention.Name {
+			return true
+		}
+	}
+	res, err := l.G().InboxSource.IsTeam(ctx, uid, maybeMention.Name)
+	if err != nil {
+		l.Debug(ctx, "isTeam: failed to check if team: %s", err)
+		return false
+	}
+	return res
+}
+
 func (l *TeamMentionLoader) LoadTeamMention(ctx context.Context, uid gregor1.UID,
-	teamName, channel string) (err error) {
+	maybeMention chat1.MaybeMention, knownTeamMentions []chat1.KnownTeamMention, forceRemote bool) (err error) {
 	defer l.Trace(ctx, func() error { return err }, "LoadTeamMention")()
 	select {
-	case l.jobCh <- teamMentionJob{uid: uid, teamName: teamName, channel: channel}:
+	case l.jobCh <- teamMentionJob{
+		uid:               uid,
+		maybeMention:      maybeMention,
+		knownTeamMentions: knownTeamMentions,
+		forceRemote:       forceRemote,
+	}:
 	default:
 		l.Debug(ctx, "Load: failed to queue job, full")
 		return errors.New("queue full")
@@ -103,21 +127,35 @@ func (l *TeamMentionLoader) getChatUI(ctx context.Context) (libkb.ChatUI, error)
 }
 
 func (l *TeamMentionLoader) loadMention(ctx context.Context, uid gregor1.UID,
-	teamName, inChannel string) (err error) {
-	defer l.Trace(ctx, func() error { return err }, "loadTeamMention: name: %s", teamName)()
+	maybeMention chat1.MaybeMention, knownTeamMentions []chat1.KnownTeamMention,
+	forceRemote bool) (err error) {
+	defer l.Trace(ctx, func() error { return err }, "loadTeamMention: name: %s", maybeMention.Name)()
 	ui, err := l.getChatUI(ctx)
 	if err != nil {
 		return err
 	}
+	if _, err := keybase1.TeamNameFromString(maybeMention.Name); err != nil {
+		ui.ChatMaybeMentionUpdate(ctx, maybeMention.Name, maybeMention.Channel,
+			chat1.NewUIMaybeMentionInfoWithNothing())
+		return errors.New("not a team string")
+	}
+	if !forceRemote && !l.IsTeamMention(ctx, uid, maybeMention, knownTeamMentions) {
+		ui.ChatMaybeMentionUpdate(ctx, maybeMention.Name, maybeMention.Channel,
+			chat1.NewUIMaybeMentionInfoWithUnknown())
+		return errors.New("not a team mention")
+	}
+
 	var info chat1.UITeamMention
 	arg := libkb.APIArg{
 		Endpoint:    "team/mentiondesc",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		Args:        libkb.HTTPArgs{"name": libkb.S{Val: teamName}},
+		Args:        libkb.HTTPArgs{"name": libkb.S{Val: maybeMention.Name}},
 	}
 	var resp mentionAPIResp
 	if err = l.G().API.GetDecode(libkb.NewMetaContext(ctx, l.G().ExternalG()), arg, &resp); err != nil {
 		l.Debug(ctx, "loadMention: failed to get team info: %s", err)
+		ui.ChatMaybeMentionUpdate(ctx, maybeMention.Name, maybeMention.Channel,
+			chat1.NewUIMaybeMentionInfoWithNothing())
 		return err
 	}
 	info.Open = resp.Open
@@ -134,12 +172,12 @@ func (l *TeamMentionLoader) loadMention(ctx context.Context, uid gregor1.UID,
 
 	if info.InTeam {
 		var channel *string
-		if len(inChannel) > 0 {
+		if len(maybeMention.Channel) > 0 {
 			channel = new(string)
-			*channel = inChannel
+			*channel = maybeMention.Channel
 		}
-		convs, err := l.G().ChatHelper.FindConversations(ctx, teamName, channel, chat1.TopicType_CHAT,
-			chat1.ConversationMembersType_TEAM, keybase1.TLFVisibility_PRIVATE)
+		convs, err := l.G().ChatHelper.FindConversations(ctx, maybeMention.Name, channel,
+			chat1.TopicType_CHAT, chat1.ConversationMembersType_TEAM, keybase1.TLFVisibility_PRIVATE)
 		if err != nil || len(convs) == 0 {
 			l.Debug(ctx, "loadMention: failed to find conversation: %s", err)
 		} else {
@@ -147,7 +185,8 @@ func (l *TeamMentionLoader) loadMention(ctx context.Context, uid gregor1.UID,
 			*info.ConvID = convs[0].GetConvID().String()
 		}
 	}
-	return ui.ChatTeamMentionUpdate(ctx, teamName, inChannel, info)
+	return ui.ChatMaybeMentionUpdate(ctx, maybeMention.Name, maybeMention.Channel,
+		chat1.NewUIMaybeMentionInfoWithTeam(info))
 }
 
 func (l *TeamMentionLoader) loadLoop() {
@@ -155,7 +194,7 @@ func (l *TeamMentionLoader) loadLoop() {
 	for {
 		select {
 		case job := <-l.jobCh:
-			l.loadMention(ctx, job.uid, job.teamName, job.channel)
+			l.loadMention(ctx, job.uid, job.maybeMention, job.knownTeamMentions, job.forceRemote)
 		case ch := <-l.shutdownCh:
 			close(ch)
 			return

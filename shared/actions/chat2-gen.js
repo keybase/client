@@ -93,6 +93,7 @@ export const replyJump = 'chat2:replyJump'
 export const requestInfoReceived = 'chat2:requestInfoReceived'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
+export const resolveMaybeMention = 'chat2:resolveMaybeMention'
 export const saveMinWriterRole = 'chat2:saveMinWriterRole'
 export const selectConversation = 'chat2:selectConversation'
 export const sendTyping = 'chat2:sendTyping'
@@ -103,9 +104,9 @@ export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
 export const setExplodingModeLock = 'chat2:setExplodingModeLock'
 export const setInboxShowIsNew = 'chat2:setInboxShowIsNew'
+export const setMaybeMentionInfo = 'chat2:setMaybeMentionInfo'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const setPaymentConfirmInfo = 'chat2:setPaymentConfirmInfo'
-export const setTeamMentionInfo = 'chat2:setTeamMentionInfo'
 export const setThreadSearchQuery = 'chat2:setThreadSearchQuery'
 export const setThreadSearchStatus = 'chat2:setThreadSearchStatus'
 export const setUnsentText = 'chat2:setUnsentText'
@@ -219,6 +220,7 @@ type _ReplyJumpPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey,
 type _RequestInfoReceivedPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: RPCChatTypes.MessageID, requestInfo: Types.ChatRequestInfo|}>
 type _ResetChatWithoutThemPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _ResetLetThemInPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, username: string|}>
+type _ResolveMaybeMentionPayload = $ReadOnly<{|name: string, channel: string|}>
 type _SaveMinWriterRolePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, role: TeamsTypes.TeamRoleType|}>
 type _SelectConversationPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -232,10 +234,10 @@ type _SetConvRetentionPolicyPayload = $ReadOnly<{|conversationIDKey: Types.Conve
 type _SetConversationOfflinePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, offline: boolean|}>
 type _SetExplodingModeLockPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, unset?: boolean|}>
 type _SetInboxShowIsNewPayload = $ReadOnly<{|isNew: boolean|}>
+type _SetMaybeMentionInfoPayload = $ReadOnly<{|name: string, info: RPCChatTypes.UIMaybeMentionInfo|}>
 type _SetMinWriterRolePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, role: TeamsTypes.TeamRoleType|}>
 type _SetPaymentConfirmInfoPayload = $ReadOnly<{|summary: RPCChatTypes.UIChatPaymentSummary|}>
 type _SetPaymentConfirmInfoPayloadError = $ReadOnly<{|error: RPCTypes.Status|}>
-type _SetTeamMentionInfoPayload = $ReadOnly<{|name: string, info: RPCChatTypes.UITeamMention|}>
 type _SetThreadSearchQueryPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, query: HiddenString|}>
 type _SetThreadSearchStatusPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, status: Types.ThreadSearchStatus|}>
 type _SetUnsentTextPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, text: ?HiddenString|}>
@@ -361,6 +363,10 @@ export const createUnfurlRemove = (payload: _UnfurlRemovePayload) => ({payload, 
  */
 export const createToggleReplyToMessage = (payload: _ToggleReplyToMessagePayload) => ({payload, type: toggleReplyToMessage})
 /**
+ * Resolve an unknown @ mention
+ */
+export const createResolveMaybeMention = (payload: _ResolveMaybeMentionPayload) => ({payload, type: resolveMaybeMention})
+/**
  * Response to an unfurl prompt
  */
 export const createUnfurlResolvePrompt = (payload: _UnfurlResolvePromptPayload) => ({payload, type: unfurlResolvePrompt})
@@ -383,7 +389,7 @@ export const createInboxSearchSetIndexPercent = (payload: _InboxSearchSetIndexPe
 /**
  * Set team mention info
  */
-export const createSetTeamMentionInfo = (payload: _SetTeamMentionInfoPayload) => ({payload, type: setTeamMentionInfo})
+export const createSetMaybeMentionInfo = (payload: _SetMaybeMentionInfoPayload) => ({payload, type: setMaybeMentionInfo})
 /**
  * Set that wallets in chat is not new.
  */
@@ -650,6 +656,7 @@ export type ReplyJumpPayload = {|+payload: _ReplyJumpPayload, +type: 'chat2:repl
 export type RequestInfoReceivedPayload = {|+payload: _RequestInfoReceivedPayload, +type: 'chat2:requestInfoReceived'|}
 export type ResetChatWithoutThemPayload = {|+payload: _ResetChatWithoutThemPayload, +type: 'chat2:resetChatWithoutThem'|}
 export type ResetLetThemInPayload = {|+payload: _ResetLetThemInPayload, +type: 'chat2:resetLetThemIn'|}
+export type ResolveMaybeMentionPayload = {|+payload: _ResolveMaybeMentionPayload, +type: 'chat2:resolveMaybeMention'|}
 export type SaveMinWriterRolePayload = {|+payload: _SaveMinWriterRolePayload, +type: 'chat2:saveMinWriterRole'|}
 export type SelectConversationPayload = {|+payload: _SelectConversationPayload, +type: 'chat2:selectConversation'|}
 export type SendTypingPayload = {|+payload: _SendTypingPayload, +type: 'chat2:sendTyping'|}
@@ -660,10 +667,10 @@ export type SetConvRetentionPolicyPayload = {|+payload: _SetConvRetentionPolicyP
 export type SetConversationOfflinePayload = {|+payload: _SetConversationOfflinePayload, +type: 'chat2:setConversationOffline'|}
 export type SetExplodingModeLockPayload = {|+payload: _SetExplodingModeLockPayload, +type: 'chat2:setExplodingModeLock'|}
 export type SetInboxShowIsNewPayload = {|+payload: _SetInboxShowIsNewPayload, +type: 'chat2:setInboxShowIsNew'|}
+export type SetMaybeMentionInfoPayload = {|+payload: _SetMaybeMentionInfoPayload, +type: 'chat2:setMaybeMentionInfo'|}
 export type SetMinWriterRolePayload = {|+payload: _SetMinWriterRolePayload, +type: 'chat2:setMinWriterRole'|}
 export type SetPaymentConfirmInfoPayload = {|+payload: _SetPaymentConfirmInfoPayload, +type: 'chat2:setPaymentConfirmInfo'|}
 export type SetPaymentConfirmInfoPayloadError = {|+error: true, +payload: _SetPaymentConfirmInfoPayloadError, +type: 'chat2:setPaymentConfirmInfo'|}
-export type SetTeamMentionInfoPayload = {|+payload: _SetTeamMentionInfoPayload, +type: 'chat2:setTeamMentionInfo'|}
 export type SetThreadSearchQueryPayload = {|+payload: _SetThreadSearchQueryPayload, +type: 'chat2:setThreadSearchQuery'|}
 export type SetThreadSearchStatusPayload = {|+payload: _SetThreadSearchStatusPayload, +type: 'chat2:setThreadSearchStatus'|}
 export type SetUnsentTextPayload = {|+payload: _SetUnsentTextPayload, +type: 'chat2:setUnsentText'|}
@@ -779,6 +786,7 @@ export type Actions =
   | RequestInfoReceivedPayload
   | ResetChatWithoutThemPayload
   | ResetLetThemInPayload
+  | ResolveMaybeMentionPayload
   | SaveMinWriterRolePayload
   | SelectConversationPayload
   | SendTypingPayload
@@ -789,10 +797,10 @@ export type Actions =
   | SetConversationOfflinePayload
   | SetExplodingModeLockPayload
   | SetInboxShowIsNewPayload
+  | SetMaybeMentionInfoPayload
   | SetMinWriterRolePayload
   | SetPaymentConfirmInfoPayload
   | SetPaymentConfirmInfoPayloadError
-  | SetTeamMentionInfoPayload
   | SetThreadSearchQueryPayload
   | SetThreadSearchStatusPayload
   | SetUnsentTextPayload

@@ -11,7 +11,7 @@ type Props = {|
 export default (props: Props) => {
   const desc = props.message.newDescription.stringValue()
   return desc ? (
-    <Kb.Text type="BodySmall" style={styles.text}>
+    <Kb.Text type="BodySmall" style={styles.text} selectable={true}>
       set the channel description: <Kb.Text type="BodySmallSemiboldItalic">{desc}</Kb.Text>
     </Kb.Text>
   ) : (

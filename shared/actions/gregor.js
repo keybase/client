@@ -1,5 +1,6 @@
 // @flow
 import logger from '../logger'
+import * as ConfigGen from './config-gen'
 import * as GregorGen from './gregor-gen'
 import * as EngineGen from './engine-gen-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -70,7 +71,10 @@ const updateCategory = (_, action) =>
 
 function* gregorSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<GregorGen.UpdateCategoryPayload>(GregorGen.updateCategory, updateCategory)
-  yield* Saga.chainAction<GregorGen.CheckReachabilityPayload>(GregorGen.checkReachability, checkReachability)
+  yield* Saga.chainAction<GregorGen.CheckReachabilityPayload>(
+    [GregorGen.checkReachability, ConfigGen.osNetworkStatusChanged],
+    checkReachability
+  )
   yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, registerForGit)
   yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, startReachability)
   yield* Saga.chainAction<EngineGen.Keybase1GregorUIPushOutOfBandMessagesPayload>(

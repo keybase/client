@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/favorites"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsedits"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
@@ -266,21 +267,72 @@ func (fs *KBFSOpsStandard) GetFavorites(ctx context.Context) (
 
 // GetFavoritesAll implements the KBFSOps interface for
 // KBFSOpsStandard.
-func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (keybase1.
-	FavoritesResult, error) {
+func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (
+	keybase1.FavoritesResult, error) {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
-	return fs.favs.GetAll(ctx)
+	favs, err := fs.favs.GetAll(ctx)
+	if err != nil {
+		return keybase1.FavoritesResult{}, err
+	}
+
+	// Add the conflict status for any folders in a conflict state to
+	// the favorite struct.
+	journalManager, err := GetJournalManager(fs.config)
+	if err != nil {
+		// Journaling not enabled.
+		return favs, nil
+	}
+	conflicts, err := journalManager.GetJournalsInConflict(ctx)
+	if err != nil {
+		return keybase1.FavoritesResult{}, err
+	}
+
+	if len(conflicts) == 0 {
+		return favs, nil
+	}
+	conflictMap := make(map[ConflictJournalRecord]tlf.ID, len(conflicts))
+	for _, c := range conflicts {
+		conflictMap[ConflictJournalRecord{Name: c.Name, Type: c.Type}] = c.ID
+	}
+
+	found := 0
+	for i, f := range favs.FavoriteFolders {
+		c := ConflictJournalRecord{
+			Name: tlf.CanonicalName(f.Name),
+			Type: tlf.TypeFromFolderType(f.FolderType),
+		}
+		tlfID, ok := conflictMap[c]
+		if !ok {
+			continue
+		}
+
+		fb := data.FolderBranch{Tlf: tlfID, Branch: data.MasterBranch}
+		ops := fs.getOps(ctx, fb, FavoritesOpNoChange)
+		status, err := ops.FolderConflictStatus(ctx)
+		if err != nil {
+			return keybase1.FavoritesResult{}, err
+		}
+		favs.FavoriteFolders[i].ConflictType = status
+		fs.log.CDebugf(ctx, "Conflict status for %s: %s", tlfID, status)
+		found++
+		if found == len(conflictMap) {
+			// Short-circuit the loop if we've already found all the conflicts.
+			break
+		}
+	}
+	return favs, nil
 }
 
 // RefreshCachedFavorites implements the KBFSOps interface for
 // KBFSOpsStandard.
-func (fs *KBFSOpsStandard) RefreshCachedFavorites(ctx context.Context) {
+func (fs *KBFSOpsStandard) RefreshCachedFavorites(ctx context.Context,
+	mode FavoritesRefreshMode) {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
-	fs.favs.RefreshCache(ctx)
+	fs.favs.RefreshCache(ctx, mode)
 }
 
 // ClearCachedFavorites implements the KBFSOps interface for
@@ -1043,6 +1095,18 @@ func (fs *KBFSOpsStandard) FolderStatus(
 	return ops.FolderStatus(ctx, folderBranch)
 }
 
+// FolderConflictStatus implements the KBFSOps interface for
+// KBFSOpsStandard
+func (fs *KBFSOpsStandard) FolderConflictStatus(
+	ctx context.Context, folderBranch data.FolderBranch) (
+	keybase1.FolderConflictType, error) {
+	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
+	defer timeTrackerDone()
+
+	ops := fs.getOps(ctx, folderBranch, FavoritesOpNoChange)
+	return ops.FolderConflictStatus(ctx)
+}
+
 // Status implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 	KBFSStatus, <-chan StatusUpdate, error) {
@@ -1056,18 +1120,32 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 	// authenticated with our password.  TODO: fix this in the
 	// service/GUI by handling multiple simultaneous passphrase
 	// requests at once.
-	if err == nil && fs.config.MDServer().IsConnected() {
-		var quErr error
-		_, usageBytes, archiveBytes, limitBytes,
-			gitUsageBytes, gitArchiveBytes, gitLimitBytes, quErr =
-			fs.quotaUsage.GetAllTypes(
-				ctx, quotaUsageStaleTolerance/2, quotaUsageStaleTolerance)
-		if quErr != nil {
-			// The error is ignored here so that other fields can still be populated
-			// even if this fails.
-			fs.log.CDebugf(ctx, "Getting quota usage error: %v", quErr)
+	mdserver := fs.config.MDServer()
+	switch errors.Cause(err).(type) {
+	case nil:
+		if mdserver != nil && mdserver.IsConnected() {
+			var quErr error
+			_, usageBytes, archiveBytes, limitBytes,
+				gitUsageBytes, gitArchiveBytes, gitLimitBytes, quErr =
+				fs.quotaUsage.GetAllTypes(
+					ctx, quotaUsageStaleTolerance/2, quotaUsageStaleTolerance)
+			if quErr != nil {
+				// The error is ignored here so that other fields can still be populated
+				// even if this fails.
+				fs.log.CDebugf(ctx, "Getting quota usage error: %v", quErr)
+			}
+		} else {
+			fs.log.CDebugf(ctx, "Skipping getting quota usage because "+
+				"mdserver not set or not connected")
 		}
+	case idutil.NoCurrentSessionError:
+		fs.log.CDebugf(ctx, "Skipping getting quota usage because "+
+			"we are not logged in")
+		err = nil
+	default:
+		return KBFSStatus{}, nil, err
 	}
+
 	failures, ch := fs.currentStatus.CurrentStatus()
 	var jManagerStatus *JournalManagerStatus
 	jManager, jErr := GetJournalManager(fs.config)
@@ -1409,6 +1487,17 @@ func (fs *KBFSOpsStandard) ClearConflictView(ctx context.Context,
 	return fbo.clearConflictView(ctx)
 }
 
+// ForceStuckConflictForTesting implements the KBFSOps interface for
+// KBFSOpsStandard.
+func (fs *KBFSOpsStandard) ForceStuckConflictForTesting(
+	ctx context.Context, tlfID tlf.ID) error {
+	fbo := fs.getOpsNoAdd(ctx, data.FolderBranch{
+		Tlf:    tlfID,
+		Branch: data.MasterBranch,
+	})
+	return fbo.forceStuckConflictForTesting(ctx)
+}
+
 // GetSyncConfig implements the KBFSOps interface for KBFSOpsStandard.
 func (fs *KBFSOpsStandard) GetSyncConfig(
 	ctx context.Context, tlfID tlf.ID) (keybase1.FolderSyncConfig, error) {
@@ -1444,6 +1533,16 @@ func (fs *KBFSOpsStandard) changeHandle(ctx context.Context,
 	fs.log.CDebugf(ctx, "Changing handle: %v -> %v", oldFav, newFav)
 	fs.opsByFav[newFav] = ops
 	delete(fs.opsByFav, oldFav)
+}
+
+// AddRootNodeWrapper implements the KBFSOps interface for
+// KBFSOpsStandard.
+func (fs *KBFSOpsStandard) AddRootNodeWrapper(f func(Node) Node) {
+	fs.opsLock.Lock()
+	defer fs.opsLock.Unlock()
+	for _, op := range fs.ops {
+		op.addRootNodeWrapper(f)
+	}
 }
 
 // Notifier:

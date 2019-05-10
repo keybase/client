@@ -111,6 +111,7 @@ type SimpleFS struct {
 	subscribeLock               sync.RWMutex
 	subscribeCurrTlfPathFromGUI string
 	subscribeCurrFB             data.FolderBranch
+	subscribeToEmptyTlf         string
 
 	localHTTPServer *libhttpserver.Server
 }
@@ -308,6 +309,12 @@ func (k *SimpleFS) getFSWithMaybeCreate(
 				return nil, finalElem, libfs.TlfDoesNotExist{}
 			}
 			return nil, "", err
+		}
+		if create {
+			err = k.checkEmptySubscription(ctx, path)
+			if err != nil {
+				return nil, "", err
+			}
 		}
 		return fs, finalElem, nil
 	case keybase1.PathType_LOCAL:
@@ -581,27 +588,8 @@ func (k *SimpleFS) getFolderBranchFromPath(
 	return node.GetFolderBranch(), tlfHandle.GetCanonicalPath(), nil
 }
 
-func (k *SimpleFS) refreshSubscription(
-	ctx context.Context, path keybase1.Path) error {
-	pType, err := path.PathType()
-	if err != nil {
-		return err
-	}
-	if pType != keybase1.PathType_KBFS {
-		k.log.CDebugf(ctx, "Ignoring subscription for path of type %s", pType)
-		return nil
-	}
-
-	tlfType, tlfNameFromGUI, _, _, err := remoteTlfAndPath(path)
-	if err != nil {
-		return err
-	}
-	tlfPathFromGUI := tlfhandle.BuildCanonicalPathForTlfType(
-		tlfType, tlfNameFromGUI)
-
-	k.subscribeLock.Lock()
-	defer k.subscribeLock.Unlock()
-
+func (k *SimpleFS) refreshSubscriptionLocked(
+	ctx context.Context, path keybase1.Path, tlfPathFromGUI string) error {
 	// TODO: when favorites caching is ready, handle folder-list paths
 	// like `/keybase/private` here.
 
@@ -612,10 +600,12 @@ func (k *SimpleFS) refreshSubscription(
 	if fb == (data.FolderBranch{}) {
 		k.log.CDebugf(
 			ctx, "Ignoring subscription for empty TLF %q", path)
+		k.subscribeToEmptyTlf = tlfPathFromGUI
 		return nil
 	}
 
 	if k.subscribeCurrFB == fb {
+		k.subscribeToEmptyTlf = ""
 		return nil
 	}
 
@@ -637,7 +627,68 @@ func (k *SimpleFS) refreshSubscription(
 	// notifying GUI.
 	k.subscribeCurrTlfPathFromGUI = tlfPathFromGUI
 	k.subscribeCurrFB = fb
+	k.subscribeToEmptyTlf = ""
 	return nil
+}
+
+func tlfNameFromPath(path keybase1.Path) (string, error) {
+	pType, err := path.PathType()
+	if err != nil {
+		return "", err
+	}
+	if pType != keybase1.PathType_KBFS {
+		return "", nil
+	}
+
+	tlfType, tlfNameFromGUI, _, _, err := remoteTlfAndPath(path)
+	if err != nil {
+		return "", err
+	}
+	return tlfhandle.BuildCanonicalPathForTlfType(
+		tlfType, tlfNameFromGUI), nil
+}
+
+func (k *SimpleFS) refreshSubscription(
+	ctx context.Context, path keybase1.Path) error {
+	tlfPathFromGUI, err := tlfNameFromPath(path)
+	if err != nil {
+		return err
+	}
+	if tlfPathFromGUI == "" {
+		k.log.CDebugf(ctx, "Ignoring subscription for path %s", path)
+		return nil
+	}
+
+	k.subscribeLock.Lock()
+	defer k.subscribeLock.Unlock()
+	return k.refreshSubscriptionLocked(ctx, path, tlfPathFromGUI)
+}
+
+func (k *SimpleFS) checkEmptySubscription(
+	ctx context.Context, path keybase1.Path) error {
+	k.subscribeLock.Lock()
+	defer k.subscribeLock.Unlock()
+	if k.subscribeToEmptyTlf == "" {
+		// Fast path.
+		return nil
+	}
+
+	tlfPathFromGUI, err := tlfNameFromPath(path)
+	if err != nil {
+		return err
+	}
+	if tlfPathFromGUI == "" {
+		return nil
+	}
+
+	if k.subscribeToEmptyTlf != tlfPathFromGUI {
+		return nil
+	}
+
+	k.log.CDebugf(
+		ctx, "Trying to subscribe to %s, which was previously empty",
+		tlfPathFromGUI)
+	return k.refreshSubscriptionLocked(ctx, path, tlfPathFromGUI)
 }
 
 // SimpleFSList - Begin list of items in directory at path
@@ -2236,21 +2287,6 @@ func (k *SimpleFS) getSyncConfig(ctx context.Context, path keybase1.Path) (
 	return tlfHandle.TlfID(), config, nil
 }
 
-func (k *SimpleFS) getLocalDiskStats(ctx context.Context) (
-	bytesAvail, bytesTotal int64) {
-	dbc := k.config.DiskBlockCache()
-	if dbc == nil {
-		return 0, 0
-	}
-
-	dbcStatus := dbc.Status(ctx)
-	if status, ok := dbcStatus["SyncBlockCache"]; ok {
-		return int64(status.LocalDiskBytesAvailable),
-			int64(status.LocalDiskBytesTotal)
-	}
-	return 0, 0
-}
-
 // SimpleFSFolderSyncConfigAndStatus gets the given folder's sync config.
 func (k *SimpleFS) SimpleFSFolderSyncConfigAndStatus(
 	ctx context.Context, path keybase1.Path) (
@@ -2262,6 +2298,7 @@ func (k *SimpleFS) SimpleFSFolderSyncConfigAndStatus(
 	}
 	res := keybase1.FolderSyncConfigAndStatus{Config: config}
 
+	dbc := k.config.DiskBlockCache()
 	if config.Mode != keybase1.FolderSyncMode_DISABLED {
 		fs, finalElem, err := k.getFSIfExists(ctx, path)
 		if err != nil {
@@ -2282,7 +2319,6 @@ func (k *SimpleFS) SimpleFSFolderSyncConfigAndStatus(
 			res.Status.PrefetchProgress =
 				metadata.PrefetchProgress.ToProtocolProgress(k.config.Clock())
 
-			dbc := k.config.DiskBlockCache()
 			libfs, ok := fs.(*libfs.FS)
 			if dbc != nil && ok {
 				size, err := dbc.GetTlfSize(
@@ -2299,8 +2335,8 @@ func (k *SimpleFS) SimpleFSFolderSyncConfigAndStatus(
 		}
 	}
 
-	res.Status.LocalDiskBytesAvailable, res.Status.LocalDiskBytesTotal =
-		k.getLocalDiskStats(ctx)
+	libkbfs.FillInDiskSpaceStatus(
+		ctx, &res.Status, res.Status.PrefetchStatus, dbc)
 	return res, err
 }
 
@@ -2321,7 +2357,17 @@ func (k *SimpleFS) SimpleFSSetFolderSyncConfig(
 func (k *SimpleFS) SimpleFSSyncConfigAndStatus(
 	ctx context.Context) (res keybase1.SyncConfigAndStatusRes, err error) {
 	ctx = k.makeContext(ctx)
-	bytesAvail, bytesTotal := k.getLocalDiskStats(ctx)
+	dbc := k.config.DiskBlockCache()
+	bytesAvail, bytesTotal := libkbfs.GetLocalDiskStats(ctx, dbc)
+
+	hasRoom := true
+	if dbc != nil {
+		hasRoom, err = dbc.DoesCacheHaveSpace(ctx, libkbfs.DiskBlockSyncCache)
+		if err != nil {
+			return keybase1.SyncConfigAndStatusRes{}, err
+		}
+	}
+
 	tlfIDs := k.config.GetAllSyncedTlfs()
 
 	session, err := idutil.GetCurrentSessionIfPossible(
@@ -2332,8 +2378,6 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(
 
 	res.Folders = make(
 		[]keybase1.FolderSyncConfigAndStatusWithFolder, len(tlfIDs))
-
-	dbc := k.config.DiskBlockCache()
 	allNotStarted := true
 	for i, tlfID := range tlfIDs {
 		config, err := k.config.KBFSOps().GetSyncConfig(ctx, tlfID)
@@ -2371,6 +2415,10 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(
 		}
 		res.Folders[i].Status.LocalDiskBytesAvailable = bytesAvail
 		res.Folders[i].Status.LocalDiskBytesTotal = bytesTotal
+		if res.Folders[i].Status.PrefetchStatus !=
+			keybase1.PrefetchStatus_COMPLETE {
+			res.Folders[i].Status.OutOfSyncSpace = !hasRoom
+		}
 
 		if dbc != nil {
 			size, err := dbc.GetTlfSize(ctx, tlfID, libkbfs.DiskBlockSyncCache)
@@ -2401,6 +2449,10 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(
 
 	res.OverallStatus.LocalDiskBytesAvailable = bytesAvail
 	res.OverallStatus.LocalDiskBytesTotal = bytesTotal
+	if res.OverallStatus.PrefetchStatus !=
+		keybase1.PrefetchStatus_COMPLETE {
+		res.OverallStatus.OutOfSyncSpace = !hasRoom
+	}
 
 	if dbc != nil {
 		statusMap := dbc.Status(ctx)
@@ -2416,7 +2468,11 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(
 // SimpleFSClearConflictState implements the SimpleFS interface.
 func (k *SimpleFS) SimpleFSClearConflictState(ctx context.Context,
 	path keybase1.Path) error {
-	ctx = k.makeContext(ctx)
+	ctx, err := k.startOpWrapContext(k.makeContext(ctx))
+	if err != nil {
+		return err
+	}
+	defer func() { libcontext.CleanupCancellationDelayer(ctx) }()
 	t, tlfName, _, _, err := remoteTlfAndPath(path)
 	if err != nil {
 		return err
@@ -2428,6 +2484,27 @@ func (k *SimpleFS) SimpleFSClearConflictState(ctx context.Context,
 	}
 	tlfID := tlfHandle.TlfID()
 	return k.config.KBFSOps().ClearConflictView(ctx, tlfID)
+}
+
+// SimpleFSForceStuckConflict implements the SimpleFS interface.
+func (k *SimpleFS) SimpleFSForceStuckConflict(
+	ctx context.Context, path keybase1.Path) error {
+	ctx, err := k.startOpWrapContext(k.makeContext(ctx))
+	if err != nil {
+		return err
+	}
+	defer func() { libcontext.CleanupCancellationDelayer(ctx) }()
+	t, tlfName, _, _, err := remoteTlfAndPath(path)
+	if err != nil {
+		return err
+	}
+	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
+		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, tlfName, t)
+	if err != nil {
+		return err
+	}
+	tlfID := tlfHandle.TlfID()
+	return k.config.KBFSOps().ForceStuckConflictForTesting(ctx, tlfID)
 }
 
 // SimpleFSAreWeConnectedToMDServer implements the SimpleFSInterface.
@@ -2442,6 +2519,13 @@ func (k *SimpleFS) SimpleFSAreWeConnectedToMDServer(ctx context.Context) (bool, 
 		return false, err
 	}
 	return status.FailingServices[libkbfs.MDServiceName] == nil, nil
+}
+
+// SimpleFSCheckReachability implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSCheckReachability(ctx context.Context) error {
+	ctx = k.makeContext(ctx)
+	k.config.MDServer().CheckReachability(ctx)
+	return nil
 }
 
 // SimpleFSSetDebugLevel implements the SimpleFSInterface.

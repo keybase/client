@@ -1076,6 +1076,16 @@
       "response": null,
       "doc": "Clear the conflict state of a TLF."
     },
+    "simpleFSForceStuckConflict": {
+      "request": [
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": null,
+      "doc": "Force a TLF into a stuck conflict state (for testing)."
+    },
     "simpleFSSyncStatus": {
       "request": [
         {
@@ -1169,6 +1179,10 @@
     "simpleFSAreWeConnectedToMDServer": {
       "request": [],
       "response": "boolean"
+    },
+    "simpleFSCheckReachability": {
+      "request": [],
+      "response": null
     },
     "simpleFSSetDebugLevel": {
       "request": [

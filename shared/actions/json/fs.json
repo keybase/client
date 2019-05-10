@@ -34,7 +34,7 @@
       "tlfName": "string",
       "syncConfig": "Types.TlfSyncConfig",
     },
-    "tlfSyncConfigsLoaded": {
+    "tlfSyncConfigsForAllSyncEnabledTlfsLoaded": {
       "private": "I.Map<string, Types.TlfSyncConfig>",
       "public": "I.Map<string, Types.TlfSyncConfig>",
       "team": "I.Map<string, Types.TlfSyncConfig>"
@@ -247,6 +247,14 @@
     },
     "overallSyncStatusChanged": {
       "progress": "Types.SyncingFoldersProgress"
+    },
+    "setPathSoftError": {
+      "path": "Types.Path",
+      "softError": "?Types.SoftError",
+    },
+    "setTlfSoftError": {
+      "path": "Types.Path",
+      "softError": "?Types.SoftError",
     },
 
     "placeholderAction": {}

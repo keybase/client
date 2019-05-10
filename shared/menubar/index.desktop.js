@@ -32,6 +32,7 @@ export type Props = {
   showHelp: () => void,
   showUser: (username: ?string) => void,
   username: ?string,
+  waitForKbfsDaemon: () => void,
   badgeInfo: {[string]: number},
 } & UploadCountdownHOCProps
 
@@ -46,22 +47,23 @@ class MenubarRender extends React.Component<Props, State> {
   state: State = {showingMenu: false}
   attachmentRef = React.createRef<Kb.Icon>()
 
-  _refreshUserFileEditsIfPossible = () =>
+  _refreshUserFileEditsOrWaitForKbfsDaemon = () =>
     this.props.loggedIn &&
-    this.props.kbfsDaemonStatus.rpcStatus === 'connected' &&
-    this.props.refreshUserFileEdits()
+    (this.props.kbfsDaemonStatus.rpcStatus === 'connected'
+      ? this.props.refreshUserFileEdits()
+      : this.props.waitForKbfsDaemon())
 
   componentDidMount() {
-    this._refreshUserFileEditsIfPossible()
+    this._refreshUserFileEditsOrWaitForKbfsDaemon()
     SafeElectron.getRemote()
       .getCurrentWindow()
-      .on('show', this._refreshUserFileEditsIfPossible)
+      .on('show', this._refreshUserFileEditsOrWaitForKbfsDaemon)
   }
 
   componentWillUnmount() {
     SafeElectron.getRemote()
       .getCurrentWindow()
-      .removeListener('show', this._refreshUserFileEditsIfPossible)
+      .removeListener('show', this._refreshUserFileEditsOrWaitForKbfsDaemon)
   }
 
   render() {

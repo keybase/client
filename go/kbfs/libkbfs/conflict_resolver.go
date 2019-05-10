@@ -35,7 +35,7 @@ import (
 // conflict resolution
 type CtxCRTagKey int
 
-type failModeForTest int
+type failModeForTesting int
 
 const (
 	// CtxCRIDKey is the type of the tag for unique operation IDs
@@ -63,7 +63,7 @@ const (
 	// we should give up.
 	maxConflictResolutionAttempts = 10
 
-	alwaysFailCR failModeForTest = iota
+	alwaysFailCR failModeForTesting = iota
 	doNotAlwaysFailCR
 )
 
@@ -72,8 +72,8 @@ const (
 var ErrTooManyCRAttempts = errors.New(
 	"too many attempts at conflict resolution on this TLF")
 
-// ErrCRFailForTest indicates that CR is disabled for a test.
-var ErrCRFailForTest = errors.New(
+// ErrCRFailForTesting indicates that CR is disabled for a test.
+var ErrCRFailForTesting = errors.New(
 	"conflict resolution failed because test requested it")
 
 // CtxCROpID is the display name for the unique operation
@@ -109,7 +109,8 @@ type ConflictResolver struct {
 	lockNextTime  bool
 	canceledCount int
 
-	failModeForTest failModeForTest
+	failModeLock       sync.RWMutex
+	failModeForTesting failModeForTesting
 }
 
 // NewConflictResolver constructs a new ConflictResolver (and launches
@@ -3248,18 +3249,37 @@ func serializeAndPutConflicts(config Config, db *LevelDb,
 	return db.Put(key, conflictsSerialized, nil)
 }
 
-func (cr *ConflictResolver) recordStartResolve(ci conflictInput) error {
-	db := cr.config.GetConflictResolutionDB()
+func isCRStuckFromRecords(conflictsSoFar []conflictRecord) bool {
+	return len(conflictsSoFar) > maxConflictResolutionAttempts
+}
+
+func (cr *ConflictResolver) isStuckWithDbAndConflicts() (
+	db *LevelDb, key []byte, conflictsSoFar []conflictRecord, isStuck bool,
+	err error) {
+	db = cr.config.GetConflictResolutionDB()
 	if db == nil {
-		return errNoCRDB
+		return nil, nil, nil, false, errNoCRDB
 	}
-	key := cr.fbo.id().Bytes()
-	conflictsSoFar, err := getAndDeserializeConflicts(cr.config, db, key)
+	key = cr.fbo.id().Bytes()
+	conflictsSoFar, err = getAndDeserializeConflicts(cr.config, db, key)
+	if err != nil {
+		return nil, nil, nil, false, err
+	}
+
+	return db, key, conflictsSoFar, isCRStuckFromRecords(conflictsSoFar), nil
+}
+
+func (cr *ConflictResolver) isStuck() (bool, error) {
+	_, _, _, isStuck, err := cr.isStuckWithDbAndConflicts()
+	return isStuck, err
+}
+
+func (cr *ConflictResolver) recordStartResolve(ci conflictInput) error {
+	db, key, conflictsSoFar, isStuck, err := cr.isStuckWithDbAndConflicts()
 	if err != nil {
 		return err
 	}
-
-	if len(conflictsSoFar) > maxConflictResolutionAttempts {
+	if isStuck {
 		return ErrTooManyCRAttempts
 	}
 	conflictsSoFar = append(conflictsSoFar, conflictRecord{
@@ -3381,6 +3401,18 @@ func (cr *ConflictResolver) makeDiskBlockCache(ctx context.Context) (
 	return dbc, cleanupFn, nil
 }
 
+func (cr *ConflictResolver) getFailModeForTesting() failModeForTesting {
+	cr.failModeLock.RLock()
+	defer cr.failModeLock.RUnlock()
+	return cr.failModeForTesting
+}
+
+func (cr *ConflictResolver) setFailModeForTesting(mode failModeForTesting) {
+	cr.failModeLock.Lock()
+	defer cr.failModeLock.Unlock()
+	cr.failModeForTesting = mode
+}
+
 // CRWrapError wraps an error that happens during conflict resolution.
 type CRWrapError struct {
 	err error
@@ -3450,8 +3482,8 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		return
 	}
 
-	if cr.failModeForTest == alwaysFailCR {
-		err = ErrCRFailForTest
+	if cr.getFailModeForTesting() == alwaysFailCR {
+		err = ErrCRFailForTesting
 		return
 	}
 

@@ -25,6 +25,7 @@ class TestWrapper extends React.PureComponent<
     initialEnabled: boolean,
     label: string | React.Node,
     labelSubtitle?: ?string,
+    labelTooltip?: ?string,
   },
   {on: boolean}
 > {
@@ -39,6 +40,7 @@ class TestWrapper extends React.PureComponent<
         gapInBetween={this.props.gapInBetween}
         label={this.props.label}
         labelSubtitle={this.props.labelSubtitle}
+        labelTooltip={this.props.labelTooltip}
         on={this.state.on}
         onClick={this._onClick}
         style={{width: 320}}
@@ -90,9 +92,26 @@ const load = () => {
         />
         <TestWrapper
           align="left"
+          key="with-tooltip"
+          label="with tooltip"
+          labelTooltip="This is a tooltip!"
+          color="blue"
+          initialEnabled={true}
+        />
+        <TestWrapper
+          align="left"
           key="with-subtitle"
           label="This component is awesome!"
           labelSubtitle="Flip this if you think this component is awesome. Also let's make it longer so it wraps."
+          color="green"
+          initialEnabled={false}
+        />
+        <TestWrapper
+          align="left"
+          key="with-subtitle-and-tooltip"
+          label="This component is awesome and it even supports tooltip can you believe it?"
+          labelSubtitle="Flip this if you can believe it."
+          labelTooltip="Don't you wanna flip it???"
           color="green"
           initialEnabled={false}
         />

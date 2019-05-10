@@ -100,7 +100,7 @@ const _openPathInSystemFileManagerPromise = (openPath: string, isFolder: boolean
 const openLocalPathInSystemFileManager = (state, action) =>
   getPathType(action.payload.localPath)
     .then(pathType => _openPathInSystemFileManagerPromise(action.payload.localPath, pathType === 'directory'))
-    .catch(makeUnretriableErrorHandler(action))
+    .catch(makeUnretriableErrorHandler(action, null))
 
 const _rebaseKbfsPathToMountLocation = (kbfsPath: Types.Path, mountLocation: string) =>
   path.resolve(
@@ -121,7 +121,7 @@ const openPathInSystemFileManager = (state, action) =>
           )
         )
         .catch(err => {
-          return makeRetriableErrorHandler(action)(err)
+          return makeRetriableErrorHandler(action, action.payload.path)(err)
         })
     : new Promise((resolve, reject) =>
         // This usually indicates a developer error as
@@ -332,7 +332,7 @@ const installCachedDokan = (state, action) =>
     })
   })
     .then(() => FsGen.createRefreshDriverStatus())
-    .catch(makeUnretriableErrorHandler(action))
+    .catch(makeUnretriableErrorHandler(action, null))
 
 const openAndUploadToPromise = (state: TypedState, action: FsGen.OpenAndUploadPayload) =>
   new Promise((resolve, reject) =>
@@ -356,6 +356,7 @@ const openAndUpload = (state, action) =>
   )
 
 const loadUserFileEdits = (state, action) =>
+  state.fs.kbfsDaemonStatus.rpcStatus === 'connected' &&
   RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise().then(writerEdits =>
     FsGen.createUserFileEditsLoaded({
       tlfUpdates: Constants.userTlfHistoryRPCToState(writerEdits || []),
@@ -391,7 +392,10 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
     )
   }
   yield* Saga.chainAction<FsGen.OpenAndUploadPayload>(FsGen.openAndUpload, openAndUpload)
-  yield* Saga.chainAction<FsGen.UserFileEditsLoadPayload>(FsGen.userFileEditsLoad, loadUserFileEdits)
+  yield* Saga.chainAction<FsGen.UserFileEditsLoadPayload | FsGen.KbfsDaemonRpcStatusChangedPayload>(
+    [FsGen.userFileEditsLoad, FsGen.kbfsDaemonRpcStatusChanged],
+    loadUserFileEdits
+  )
   yield* Saga.chainAction<FsGen.OpenFilesFromWidgetPayload>(FsGen.openFilesFromWidget, openFilesFromWidget)
   if (isWindows) {
     yield* Saga.chainAction<FsGen.DriverEnablePayload>(FsGen.driverEnable, installCachedDokan)

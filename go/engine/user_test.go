@@ -34,8 +34,8 @@ func TestLoadUserPlusKeysHasKeys(t *testing.T) {
 func TestLoadUserPlusKeysRevoked(t *testing.T) {
 	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc := SetupEngineTest(t, "login")
-	tc.G.SetClock(fakeClock)
 	defer tc.Cleanup()
+	tc.G.SetClock(fakeClock)
 
 	fu := CreateAndSignupFakeUserPaper(tc, "login")
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(tc.G))

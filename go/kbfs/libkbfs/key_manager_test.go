@@ -37,7 +37,7 @@ type shimKMCrypto struct {
 func mockNormalizeSocialAssertion(config *ConfigMock) {
 	config.mockKbpki.EXPECT().NormalizeSocialAssertion(gomock.Any(), gomock.Any()).DoAndReturn(
 		func(ctx context.Context, assertion string) (keybase1.SocialAssertion, error) {
-			socialAssertion, isSocialAssertion := externals.NormalizeSocialAssertionStatic(assertion)
+			socialAssertion, isSocialAssertion := externals.NormalizeSocialAssertionStatic(context.Background(), assertion)
 			if !isSocialAssertion {
 				return keybase1.SocialAssertion{}, fmt.Errorf("Invalid social assertion")
 			}

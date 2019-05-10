@@ -411,7 +411,7 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput, isCLI
 		return res, err
 	}
 	if maybeUsername == "" {
-		expr, err := externals.AssertionParse(m.G(), string(to))
+		expr, err := externals.AssertionParse(m, string(to))
 		if err != nil {
 			m.Debug("error parsing assertion: %s", err)
 			return res, fmt.Errorf("invalid recipient %q: %s", to, err)

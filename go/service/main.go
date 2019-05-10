@@ -5,6 +5,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"net"
 	"os"
@@ -404,7 +405,7 @@ func (d *Service) startChatModules() {
 	d.purgeOldChatAttachmentData()
 }
 
-func (d *Service) stopChatModules(m libkb.MetaContext) {
+func (d *Service) stopChatModules(m libkb.MetaContext) error {
 	<-d.ChatG().MessageDeliverer.Stop(m.Ctx())
 	<-d.ChatG().ConvLoader.Stop(m.Ctx())
 	<-d.ChatG().FetchRetrier.Stop(m.Ctx())
@@ -413,6 +414,7 @@ func (d *Service) stopChatModules(m libkb.MetaContext) {
 	<-d.ChatG().Indexer.Stop(m.Ctx())
 	<-d.ChatG().CoinFlipManager.Stop(m.Ctx())
 	<-d.ChatG().TeamMentionLoader.Stop(m.Ctx())
+	return nil
 }
 
 func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
@@ -906,6 +908,7 @@ func (d *Service) OnLogin(mctx libkb.MetaContext) error {
 	uid := d.G().Env.GetUID()
 	if !uid.IsNil() {
 		d.startChatModules()
+		d.G().PushShutdownHook(func() error { return d.stopChatModules(mctx) })
 		d.runBackgroundIdentifierWithUID(uid)
 		d.runTLFUpgrade()
 		go d.identifySelf()
@@ -923,7 +926,9 @@ func (d *Service) OnLogout(m libkb.MetaContext) (err error) {
 	d.G().RPCCanceler.CancelLiveContexts(libkb.RPCCancelerReasonLogout)
 
 	log("shutting down chat modules")
-	d.stopChatModules(m)
+	if err := d.stopChatModules(m); err != nil {
+		log(fmt.Sprintf("unable to stopChatModules %v", err))
+	}
 
 	log("shutting down gregor")
 	if d.gregor != nil {

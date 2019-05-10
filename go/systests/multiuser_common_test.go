@@ -68,6 +68,9 @@ func (u *smuUser) cleanup() {
 			d.service.Stop(0)
 			d.stop()
 		}
+		for _, cl := range d.clones {
+			cl.Cleanup()
+		}
 	}
 }
 
@@ -168,6 +171,12 @@ func (s usernameLoginUI) PromptResetAccount(_ context.Context, arg keybase1.Prom
 }
 func (s usernameLoginUI) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
 	return nil
+}
+func (s usernameLoginUI) ExplainDeviceRecovery(_ context.Context, arg keybase1.ExplainDeviceRecoveryArg) error {
+	return nil
+}
+func (s usernameLoginUI) PromptPassphraseRecovery(_ context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
+	return false, nil
 }
 
 func (d *smuDeviceWrapper) popClone() *libkb.TestContext {

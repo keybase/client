@@ -2,11 +2,12 @@ package teams
 
 import (
 	"context"
+	"testing"
+
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func getStorageFromG(g *libkb.GlobalContext) *Storage {
@@ -17,6 +18,8 @@ func getStorageFromG(g *libkb.GlobalContext) *Storage {
 // Storage can get from memory
 func TestStorageMem(t *testing.T) {
 	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
 	_, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
 
@@ -43,6 +46,8 @@ func TestStorageMem(t *testing.T) {
 // Storage can get from disk.
 func TestStorageDisk(t *testing.T) {
 	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
 	_, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
 
@@ -73,6 +78,8 @@ func TestStorageDisk(t *testing.T) {
 // Switching users should render other user's cache inaccessible.
 func TestStorageLogout(t *testing.T) {
 	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
 	_, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
 

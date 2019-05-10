@@ -910,14 +910,16 @@ func TestChatMessageSenderMismatch(t *testing.T) {
 		require.Error(t, err, "should not unbox with sender mismatch")
 	})
 
+	tc := libkb.SetupTest(t, "batch", 0)
+	defer tc.Cleanup()
+
 	// Just check that batch fetching of device encryption keys work.
 	// Use the 4 users we've collected in this test.
 	var uvs []keybase1.UserVersion
 	for _, uid := range allUIDs {
 		uvs = append(uvs, keybase1.UserVersion{Uid: uid})
 	}
-	tc := libkb.SetupTest(t, "batch", 0)
-	defer tc.Cleanup()
+
 	keys, err := batchLoadEncryptionKIDs(context.TODO(), tc.G, uvs)
 	require.NoError(t, err, "no error")
 	require.Equal(t, len(keys), len(uvs), "one key per user")

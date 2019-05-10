@@ -112,6 +112,13 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 
 	t.Logf("add message but drop oobm")
 
+	rc := types.RemoteConversation{
+		Conv: conv,
+	}
+	localConvs, _, err := tc.Context().InboxSource.Localize(ctx, uid, []types.RemoteConversation{rc},
+		types.ConversationLocalizerBlocking)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(localConvs))
 	prepareRes, err := sender.Prepare(ctx, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        conv.Metadata.IdTriple,
@@ -123,7 +130,7 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "HIHI",
 		}),
-	}, chat1.ConversationMembersType_KBFS, &conv, nil)
+	}, chat1.ConversationMembersType_KBFS, &localConvs[0], nil)
 	require.NoError(t, err)
 	boxed := prepareRes.Boxed
 

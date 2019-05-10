@@ -351,8 +351,7 @@ func (r *AttachmentHTTPSrv) serveGiphyGallery(w http.ResponseWriter, req *http.R
 	var videoStr string
 	for _, res := range galleryInfo.results {
 		videoStr += fmt.Sprintf(`
-			<video style="height: 100%%" src="%s" onclick="sendMessage('%s')" playsinline webkit-playsinline autoplay muted loop>
-			</video>
+			<img style="height: 100%%" src="%s" onclick="sendMessage('%s')" />
 		`, res.PreviewUrl, r.getGiphyGallerySelectURL(ctx, galleryInfo.convID, galleryInfo.tlfName,
 			res.TargetUrl))
 	}

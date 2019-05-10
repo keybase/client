@@ -59,8 +59,8 @@ func NewScanKeys(m libkb.MetaContext) (sk *ScanKeys, err error) {
 		return nil, fmt.Errorf("loadme error: %s", err)
 	}
 
-	// if user provided, then load their local keys, and their synced secret key:
-	synced, err := sk.me.GetSyncedSecretKey(m)
+	// if user provided, then load their local keys, and their synced secret keys:
+	synced, err := sk.me.GetSyncedSecretKeys(m)
 	if err != nil {
 		return nil, fmt.Errorf("getsyncedsecret err: %s", err)
 	}
@@ -195,7 +195,7 @@ func (s *ScanKeys) KeyOwnerByEntity(entity *openpgp.Entity) *libkb.User {
 
 // coalesceBlocks puts the synced pgp key block and all the pgp key
 // blocks in ring into s.skbs.
-func (s *ScanKeys) coalesceBlocks(m libkb.MetaContext, ring *libkb.SKBKeyringFile, synced *libkb.SKB) (err error) {
+func (s *ScanKeys) coalesceBlocks(m libkb.MetaContext, ring *libkb.SKBKeyringFile, synced []*libkb.SKB) (err error) {
 	defer m.Trace("ScanKeys#coalesceBlocks", func() error { return err })()
 
 	// We want keys in this order: first local keyring keys that are LKSec, and
@@ -219,9 +219,7 @@ func (s *ScanKeys) coalesceBlocks(m libkb.MetaContext, ring *libkb.SKBKeyringFil
 		s.skbs = append(s.skbs, b)
 	}
 
-	if synced != nil {
-		s.skbs = append(s.skbs, synced)
-	}
+	s.skbs = append(s.skbs, synced...)
 
 	return nil
 }

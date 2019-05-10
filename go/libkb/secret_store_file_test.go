@@ -226,6 +226,7 @@ func TestPrimeSecretStoreFile(t *testing.T) {
 
 	tc := SetupTest(t, "secret_store_file", 1)
 	defer tc.Cleanup()
+	tc.G.Env.Test.SecretStorePrimingDisabled = false
 
 	mctx := NewMetaContextForTest(tc)
 	secretStore := NewSecretStoreFile(td)
@@ -240,6 +241,7 @@ func TestPrimeSecretStoreFileFail(t *testing.T) {
 
 	tc := SetupTest(t, "secret_store_file", 1)
 	defer tc.Cleanup()
+	tc.G.Env.Test.SecretStorePrimingDisabled = false
 
 	td, cleanup := CreateReadOnlySecretStoreDir(tc)
 	defer cleanup()

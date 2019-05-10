@@ -374,6 +374,7 @@ func TestSignupWithBadSecretStore(t *testing.T) {
 
 	tc := SetupEngineTest(t, "signup_nopw")
 	defer tc.Cleanup()
+	tc.G.Env.Test.SecretStorePrimingDisabled = false
 
 	// Create a secret store that's read only - even though
 	// secret store exists, secrets cannot be stored.

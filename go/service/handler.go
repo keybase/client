@@ -62,6 +62,16 @@ func (u *LoginUI) DisplayResetProgress(ctx context.Context, arg keybase1.Display
 	return u.cli.DisplayResetProgress(ctx, arg)
 }
 
+func (u *LoginUI) ExplainDeviceRecovery(ctx context.Context, arg keybase1.ExplainDeviceRecoveryArg) error {
+	arg.SessionID = u.sessionID
+	return u.cli.ExplainDeviceRecovery(ctx, arg)
+}
+
+func (u *LoginUI) PromptPassphraseRecovery(ctx context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
+	arg.SessionID = u.sessionID
+	return u.cli.PromptPassphraseRecovery(ctx, arg)
+}
+
 type SecretUI struct {
 	sessionID int
 	cli       *keybase1.SecretUiClient

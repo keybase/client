@@ -880,8 +880,8 @@ func (t *Team) NumActiveInvites() int {
 	return t.chain().NumActiveInvites()
 }
 
-func (t *Team) HasActiveInvite(name keybase1.TeamInviteName, typ string) (bool, error) {
-	it, err := keybase1.TeamInviteTypeFromString(typ, t.G().Env.GetRunMode() == libkb.DevelRunMode)
+func (t *Team) HasActiveInvite(mctx libkb.MetaContext, name keybase1.TeamInviteName, typ string) (bool, error) {
+	it, err := TeamInviteTypeFromString(mctx, typ)
 	if err != nil {
 		return false, err
 	}
@@ -909,7 +909,7 @@ func (t *Team) InviteMember(ctx context.Context, username string, role keybase1.
 	// if a user version was previously loaded, then there is a keybase user for username, but
 	// without a PUK or without any keys.
 	if uv.Uid.Exists() {
-		return t.inviteKeybaseMember(ctx, uv, role, resolvedUsername)
+		return t.inviteKeybaseMember(libkb.NewMetaContext(ctx, t.G()), uv, role, resolvedUsername)
 	}
 
 	// If a social, or email, or other type of invite, assert it's not an owner.
@@ -935,8 +935,8 @@ func (t *Team) InviteEmailMember(ctx context.Context, email string, role keybase
 	return t.postInvite(ctx, invite, role)
 }
 
-func (t *Team) inviteKeybaseMember(ctx context.Context, uv keybase1.UserVersion, role keybase1.TeamRole, resolvedUsername libkb.NormalizedUsername) (res keybase1.TeamAddMemberResult, err error) {
-	t.G().Log.CDebugf(ctx, "team %s invite keybase member %s", t.Name(), uv)
+func (t *Team) inviteKeybaseMember(mctx libkb.MetaContext, uv keybase1.UserVersion, role keybase1.TeamRole, resolvedUsername libkb.NormalizedUsername) (res keybase1.TeamAddMemberResult, err error) {
+	mctx.Debug("team %s invite keybase member %s", t.Name(), uv)
 
 	invite := SCTeamInvite{
 		Type: "keybase",
@@ -944,7 +944,7 @@ func (t *Team) inviteKeybaseMember(ctx context.Context, uv keybase1.UserVersion,
 		ID:   NewInviteID(),
 	}
 
-	existing, err := t.HasActiveInvite(invite.Name, invite.Type)
+	existing, err := t.HasActiveInvite(mctx, invite.Name, invite.Type)
 	if err != nil {
 		return res, err
 	}
@@ -998,17 +998,17 @@ func (t *Team) inviteKeybaseMember(ctx context.Context, uv keybase1.UserVersion,
 			}
 		}
 
-		t.G().Log.CDebugf(ctx, "Canceling old Keybase invite: %+v", existingInvite)
+		mctx.Debug("Canceling old Keybase invite: %+v", existingInvite)
 		cancelList = append(cancelList, SCTeamInviteID(inviteID))
 	}
 
 	if len(cancelList) != 0 {
-		t.G().Log.CDebugf(ctx, "Total %d old invites will be canceled.", len(cancelList))
+		mctx.Debug("Total %d old invites will be canceled.", len(cancelList))
 		invites.Cancel = &cancelList
 	}
 
-	t.G().Log.CDebugf(ctx, "Adding invite: %+v", invite)
-	if err := t.postTeamInvites(ctx, invites); err != nil {
+	mctx.Debug("Adding invite: %+v", invite)
+	if err := t.postTeamInvites(mctx.Ctx(), invites); err != nil {
 		return res, err
 	}
 	return keybase1.TeamAddMemberResult{Invited: true, User: &keybase1.User{Uid: uv.Uid, Username: resolvedUsername.String()}}, nil
@@ -1108,7 +1108,7 @@ func (t *Team) InviteSeitanV2(ctx context.Context, role keybase1.TeamRole, label
 }
 
 func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase1.TeamRole) error {
-	existing, err := t.HasActiveInvite(invite.Name, invite.Type)
+	existing, err := t.HasActiveInvite(t.MetaContext(ctx), invite.Name, invite.Type)
 	if err != nil {
 		return err
 	}
@@ -2094,4 +2094,30 @@ func UpgradeTLFIDToImpteam(ctx context.Context, g *libkb.GlobalContext, tlfName 
 
 	// Post the crypt keys
 	return team.AssociateWithTLFKeyset(ctx, tlfID, cryptKeys, appType)
+}
+
+func TeamInviteTypeFromString(mctx libkb.MetaContext, inviteTypeStr string) (keybase1.TeamInviteType, error) {
+	switch inviteTypeStr {
+	case "keybase":
+		return keybase1.NewTeamInviteTypeDefault(keybase1.TeamInviteCategory_KEYBASE), nil
+	case "email":
+		return keybase1.NewTeamInviteTypeDefault(keybase1.TeamInviteCategory_EMAIL), nil
+	case "seitan_invite_token":
+		return keybase1.NewTeamInviteTypeDefault(keybase1.TeamInviteCategory_SEITAN), nil
+	case "phone":
+		return keybase1.NewTeamInviteTypeDefault(keybase1.TeamInviteCategory_PHONE), nil
+	case "twitter", "github", "facebook", "reddit", "hackernews", "pgp", "http", "https", "dns":
+		return keybase1.NewTeamInviteTypeWithSbs(keybase1.TeamInviteSocialNetwork(inviteTypeStr)), nil
+	default:
+		if mctx.G().GetProofServices().GetServiceType(mctx.Ctx(), inviteTypeStr) != nil {
+			return keybase1.NewTeamInviteTypeWithSbs(keybase1.TeamInviteSocialNetwork(inviteTypeStr)), nil
+		}
+
+		isDev := mctx.G().Env.GetRunMode() == libkb.DevelRunMode
+		if isDev && inviteTypeStr == "rooter" {
+			return keybase1.NewTeamInviteTypeWithSbs(keybase1.TeamInviteSocialNetwork(inviteTypeStr)), nil
+		}
+		// Don't want to break existing clients if we see an unknown invite type.
+		return keybase1.NewTeamInviteTypeWithUnknown(inviteTypeStr), nil
+	}
 }

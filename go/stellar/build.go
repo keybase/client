@@ -590,7 +590,7 @@ func isFollowingForReview(mctx libkb.MetaContext, assertion string) (isFollowing
 }
 
 func isKeybaseAssertion(mctx libkb.MetaContext, assertion string) bool {
-	expr, err := externals.AssertionParse(mctx.G(), string(assertion))
+	expr, err := externals.AssertionParse(mctx, string(assertion))
 	if err != nil {
 		mctx.Debug("error parsing assertion: %s", err)
 		return false

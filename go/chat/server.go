@@ -10,7 +10,6 @@ import (
 	"os"
 	"regexp"
 	"sort"
-	"strconv"
 	"sync"
 	"time"
 
@@ -343,40 +342,6 @@ func (h *Server) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalA
 	}
 	return chat1.MarkAsReadLocalRes{
 		Offline: h.G().InboxSource.IsOffline(ctx),
-	}, nil
-}
-
-func (h *Server) GetInboxUILocal(ctx context.Context, arg chat1.GetInboxUILocalArg) (res chat1.GetInboxUILocalRes, err error) {
-	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "GetInboxUILocal")()
-	defer func() { h.setResultRateLimit(ctx, &res) }()
-	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
-	uid, err := utils.AssertLoggedInUID(ctx, h.G())
-	if err != nil {
-		return res, err
-	}
-	rquery, _, err := h.G().InboxSource.GetInboxQueryLocalToRemote(ctx, arg.Query)
-	if err != nil {
-		return res, err
-	}
-	// Read inbox from the source
-	ib, err := h.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll, rquery,
-		arg.Pagination)
-	if err != nil {
-		if _, ok := err.(UnknownTLFNameError); ok {
-			h.Debug(ctx, "GetInboxAndUnboxLocal: got unknown TLF name error, returning blank results")
-			ib.Convs = nil
-			ib.Pagination = nil
-		} else {
-			return res, err
-		}
-	}
-	return chat1.GetInboxUILocalRes{
-		ConversationsRemote: utils.PresentRemoteConversations(ctx, h.G(), ib.ConvsUnverified),
-		Pagination:          ib.Pagination,
-		Offline:             h.G().InboxSource.IsOffline(ctx),
-		IdentifyFailures:    identBreaks,
 	}, nil
 }
 
@@ -2076,21 +2041,7 @@ func (h *Server) SetGlobalAppNotificationSettingsLocal(ctx context.Context,
 	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
 		return err
 	}
-	var settings chat1.GlobalAppNotificationSettings
-	settings.Settings = make(map[chat1.GlobalAppNotificationSetting]bool)
-	for k, v := range strSettings {
-		key, err := strconv.Atoi(k)
-		if err != nil {
-			h.Debug(ctx, "SetGlobalAppNotificationSettings: failed to convert key: %s", err.Error())
-			continue
-		}
-		gkey := chat1.GlobalAppNotificationSetting(key)
-		h.Debug(ctx, "SetGlobalAppNotificationSettings: setting typ: %s enabled: %v",
-			chat1.GlobalAppNotificationSettingRevMap[gkey], v)
-		settings.Settings[gkey] = v
-	}
-
-	return h.remoteClient().SetGlobalAppNotificationSettings(ctx, settings)
+	return setGlobalAppNotificationSettings(ctx, h.G(), h.remoteClient, strSettings)
 }
 
 func (h *Server) GetGlobalAppNotificationSettingsLocal(ctx context.Context) (res chat1.GlobalAppNotificationSettings, err error) {
@@ -2099,7 +2050,7 @@ func (h *Server) GetGlobalAppNotificationSettingsLocal(ctx context.Context) (res
 	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
 		return res, err
 	}
-	return h.remoteClient().GetGlobalAppNotificationSettings(ctx)
+	return getGlobalAppNotificationSettings(ctx, h.G(), h.remoteClient)
 }
 
 func (h *Server) AddTeamMemberAfterReset(ctx context.Context,
@@ -2149,7 +2100,17 @@ func (h *Server) SetConvRetentionLocal(ctx context.Context, arg chat1.SetConvRet
 	if err != nil {
 		return err
 	}
+	// short circuit if the policy is unchanged.
 	policy := arg.Policy
+	conv, err := utils.GetVerifiedConv(ctx, h.G(), uid, arg.ConvID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return err
+	}
+	if convRetention := conv.ConvRetention; convRetention != nil && policy.Eq(*convRetention) {
+		h.Debug(ctx, "retention policy unchanged, skipping update")
+		return nil
+	}
+
 	if _, err = h.remoteClient().SetConvRetention(ctx, chat1.SetConvRetentionArg{
 		ConvID: arg.ConvID,
 		Policy: policy,
@@ -2169,10 +2130,6 @@ func (h *Server) SetConvRetentionLocal(ctx context.Context, arg chat1.SetConvRet
 		isInherit = true
 	}
 
-	conv, err := utils.GetVerifiedConv(ctx, h.G(), uid, arg.ConvID, types.InboxSourceDataSourceAll)
-	if err != nil {
-		return err
-	}
 	if isInherit {
 		teamRetention := conv.TeamRetention
 		if teamRetention == nil {
@@ -2199,9 +2156,19 @@ func (h *Server) SetTeamRetentionLocal(ctx context.Context, arg chat1.SetTeamRet
 	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
 		return err
 	}
+	teamRetention, err := h.GetTeamRetentionLocal(ctx, arg.TeamID)
+	if err != nil {
+		return err
+	}
+	policy := arg.Policy
+	if teamRetention != nil && policy.Eq(*teamRetention) {
+		h.Debug(ctx, "retention policy unchanged, skipping update")
+		return nil
+	}
+
 	if _, err = h.remoteClient().SetTeamRetention(ctx, chat1.SetTeamRetentionArg{
 		TeamID: arg.TeamID,
-		Policy: arg.Policy,
+		Policy: policy,
 	}); err != nil {
 		return err
 	}
@@ -2881,4 +2848,27 @@ func (h *Server) PutReacjiSkinTone(ctx context.Context, skinTone keybase1.Reacji
 	store.PutSkinTone(ctx, uid, skinTone)
 	res = store.UserReacjis(ctx, uid)
 	return res, nil
+}
+
+func (h *Server) ResolveMaybeMention(ctx context.Context, mention chat1.MaybeMention) (err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "ResolveMaybeMention")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return err
+	}
+
+	// Try to load as user
+	if mention.Channel == "" {
+		nn := libkb.NewNormalizedUsername(mention.Name)
+		if _, err = h.G().GetUPAKLoader().LookupUID(ctx, nn); err != nil {
+			h.Debug(ctx, "ResolveMaybeMention: not a user")
+		} else {
+			h.getChatUI(0).ChatMaybeMentionUpdate(ctx, mention.Name, mention.Channel,
+				chat1.NewUIMaybeMentionInfoWithUser())
+			return nil
+		}
+	}
+	// Try to load as team
+	return h.G().TeamMentionLoader.LoadTeamMention(ctx, uid, mention, nil, true)
 }

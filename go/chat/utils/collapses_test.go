@@ -15,6 +15,8 @@ import (
 
 func TestCollapses(t *testing.T) {
 	tc := externalstest.SetupTest(t, "collapses", 0)
+	defer tc.Cleanup()
+
 	g := globals.NewContext(tc.G, &globals.ChatContext{})
 	collapses := NewCollapses(g)
 

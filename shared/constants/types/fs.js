@@ -450,6 +450,14 @@ export type _SyncingFoldersProgress = {
 }
 export type SyncingFoldersProgress = I.RecordOf<_SyncingFoldersProgress>
 
+export type SoftError = 'no-access' | 'non-existent'
+
+export type _SoftErrors = {
+  pathErrors: I.Map<Path, SoftError>,
+  tlfErrors: I.Map<Path, SoftError>,
+}
+export type SoftErrors = I.RecordOf<_SoftErrors>
+
 export type _State = {|
   downloads: Downloads,
   edits: Edits,
@@ -459,13 +467,13 @@ export type _State = {|
   loadingPaths: I.Map<Path, I.Set<string>>,
   localHTTPServerInfo: LocalHTTPServer,
   destinationPicker: DestinationPicker,
-  sendLinkToChat: SendLinkToChat,
   pathItemActionMenu: PathItemActionMenu,
   pathItems: PathItems,
   pathUserSettings: I.Map<Path, PathUserSetting>,
   sendAttachmentToChat: SendAttachmentToChat,
   sendLinkToChat: SendLinkToChat,
   sfmi: SystemFileManagerIntegration,
+  softErrors: SoftErrors,
   syncingFoldersProgress: SyncingFoldersProgress,
   tlfUpdates: UserTlfUpdates,
   tlfs: Tlfs,
@@ -671,3 +679,4 @@ export type RefreshTag = 'main' | 'path-item-action-popup' | 'destination-picker
 export type PathItemBadge = 'upload' | 'download' | 'new' | 'rekey' | number
 
 export type ResetBannerType = 'none' | 'self' | number
+export type MainBannerType = 'offline' | 'out-of-space' | 'none'

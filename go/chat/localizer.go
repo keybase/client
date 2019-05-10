@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
 	"github.com/keybase/client/go/uidmap"
 	"golang.org/x/sync/errgroup"
 )
@@ -590,30 +591,67 @@ func (s *localizerPipeline) getMessagesOffline(ctx context.Context, convID chat1
 	return foundMsgs, chat1.ConversationErrorType_NONE, nil
 }
 
-func (s *localizerPipeline) getMinWriterRoleInfoLocal(ctx context.Context, info *chat1.ConversationMinWriterRoleInfo) *chat1.ConversationMinWriterRoleInfoLocal {
-	if info == nil {
-		return nil
+func (s *localizerPipeline) getMinWriterRoleInfoLocal(ctx context.Context, uid gregor1.UID,
+	conv chat1.Conversation) (*chat1.ConversationMinWriterRoleInfoLocal, error) {
+	if conv.ConvSettings == nil {
+		return nil, nil
 	}
-	username := ""
+	info := conv.ConvSettings.MinWriterRoleInfo
+	if info == nil {
+		return nil, nil
+	}
+
+	// determine if the current user can write.
+	teamID, err := keybase1.TeamIDFromString(conv.Metadata.IdTriple.Tlfid.String())
+	if err != nil {
+		return nil, err
+	}
+	extG := s.G().ExternalG()
+	team, err := teams.Load(ctx, extG, keybase1.LoadTeamArg{
+		ID:     teamID,
+		Public: conv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	upak, _, err := s.G().GetUPAKLoader().LoadV2(
+		libkb.NewLoadUserByUIDArg(ctx, extG, keybase1.UID(uid.String())))
+	if err != nil {
+		return nil, err
+	}
+
+	uv := upak.Current.ToUserVersion()
+	role, err := team.MemberRole(ctx, uv)
+	if err != nil {
+		return nil, err
+	}
+
+	// get the changed by username
 	name, err := s.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(info.Uid.String()))
-	if err == nil {
-		username = name.String()
+	if err != nil {
+		return nil, err
 	}
 	return &chat1.ConversationMinWriterRoleInfoLocal{
-		Role:     info.Role,
-		Username: username,
-	}
+		Role:        info.Role,
+		ChangedBy:   name.String(),
+		CannotWrite: !role.IsOrAbove(info.Role),
+	}, nil
 }
 
-func (s *localizerPipeline) getConvSettingsLocal(ctx context.Context, conv chat1.Conversation) (res *chat1.ConversationSettingsLocal) {
+func (s *localizerPipeline) getConvSettingsLocal(ctx context.Context, uid gregor1.UID,
+	conv chat1.Conversation) (*chat1.ConversationSettingsLocal, error) {
 	settings := conv.ConvSettings
 	if settings == nil {
-		return nil
+		return nil, nil
 	}
-	res = &chat1.ConversationSettingsLocal{}
-	res.MinWriterRoleInfo = s.getMinWriterRoleInfoLocal(ctx, settings.MinWriterRoleInfo)
-	return res
-
+	res := &chat1.ConversationSettingsLocal{}
+	minWriterRoleInfo, err := s.getMinWriterRoleInfoLocal(ctx, uid, conv)
+	if err != nil {
+		return nil, err
+	}
+	res.MinWriterRoleInfo = minWriterRoleInfo
+	return res, nil
 }
 
 func (s *localizerPipeline) getResetUserNames(ctx context.Context, uidMapper libkb.UIDMapper,
@@ -694,7 +732,13 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	conversationLocal.Expunge = conversationRemote.Expunge
 	conversationLocal.ConvRetention = conversationRemote.ConvRetention
 	conversationLocal.TeamRetention = conversationRemote.TeamRetention
-	conversationLocal.ConvSettings = s.getConvSettingsLocal(ctx, conversationRemote)
+	convSettings, err := s.getConvSettingsLocal(ctx, uid, conversationRemote)
+	if err != nil {
+		conversationLocal.Error = chat1.NewConversationErrorLocal(
+			err.Error(), conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT, nil)
+		return conversationLocal
+	}
+	conversationLocal.ConvSettings = convSettings
 
 	if len(conversationRemote.MaxMsgSummaries) == 0 {
 		errMsg := "conversation has an empty MaxMsgSummaries field"

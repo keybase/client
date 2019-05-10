@@ -44,13 +44,13 @@ func printBytesStored(ui libkb.TerminalUI, bytes int64, tab string) {
 }
 
 func printPrefetchStatus(
-	ui libkb.TerminalUI, status keybase1.PrefetchStatus,
-	progress keybase1.PrefetchProgress, totalBytes int64, tab string) {
-	switch status {
+	ui libkb.TerminalUI, status keybase1.FolderSyncStatus, tab string) {
+	switch status.PrefetchStatus {
 	case keybase1.PrefetchStatus_COMPLETE:
 		ui.Printf("%sStatus: fully synced\n", tab)
 	case keybase1.PrefetchStatus_IN_PROGRESS:
 		ui.Printf("%sStatus: sync in progress\n", tab)
+		progress := status.PrefetchProgress
 		if progress.BytesTotal > 0 {
 			ui.Printf("%s%s/%s (%.2f%%)\n",
 				tab, humanizeBytes(progress.BytesFetched, false),
@@ -58,17 +58,19 @@ func printPrefetchStatus(
 				100*float64(progress.BytesFetched)/
 					float64(progress.BytesTotal))
 		}
-		if progress.EndEstimate > 0 {
+		if progress.EndEstimate > 0 && !status.OutOfSyncSpace {
 			timeRemaining := time.Until(keybase1.FromTime(progress.EndEstimate))
 			ui.Printf("%sEstimated time remaining: %s\n",
 				tab, timeRemaining.Round(1*time.Second))
+		} else if status.OutOfSyncSpace {
+			ui.Printf("%sError: out of disk space\n", tab)
 		}
 	case keybase1.PrefetchStatus_NOT_STARTED:
 		ui.Printf("%sStatus: sync not yet started\n", tab)
 	default:
 		ui.Printf("%sStatus: unknown\n", tab)
 	}
-	printBytesStored(ui, totalBytes, tab)
+	printBytesStored(ui, status.StoredBytesTotal, tab)
 }
 
 func appendToTlfPath(tlfPath keybase1.Path, p string) (keybase1.Path, error) {
@@ -93,9 +95,7 @@ func printFolderStatus(
 		ui.Printf("%sSyncing disabled\n", tab)
 	case keybase1.FolderSyncMode_ENABLED:
 		ui.Printf("%sSyncing enabled\n", tab)
-		printPrefetchStatus(
-			ui, status.PrefetchStatus, status.PrefetchProgress,
-			status.StoredBytesTotal, tab)
+		printPrefetchStatus(ui, status, tab)
 		if doPrintLocalStats {
 			printLocalStats(ui, status)
 		}
@@ -121,8 +121,13 @@ func printFolderStatus(
 			}
 
 			ui.Printf("%s\t%s\n", tab, p)
-			printPrefetchStatus(
-				ui, e.PrefetchStatus, e.PrefetchProgress, -1, tab+"\t\t")
+			pathStatus := keybase1.FolderSyncStatus{
+				PrefetchStatus:   e.PrefetchStatus,
+				PrefetchProgress: e.PrefetchProgress,
+				StoredBytesTotal: -1,
+				OutOfSyncSpace:   status.OutOfSyncSpace,
+			}
+			printPrefetchStatus(ui, pathStatus, tab+"\t\t")
 		}
 		printBytesStored(ui, status.StoredBytesTotal, tab)
 		if doPrintLocalStats {
@@ -163,10 +168,7 @@ func (c *CmdSimpleFSSyncShow) Run() error {
 			ui.Printf("\n")
 		}
 
-		printPrefetchStatus(
-			ui, res.OverallStatus.PrefetchStatus,
-			res.OverallStatus.PrefetchProgress,
-			res.OverallStatus.StoredBytesTotal, "")
+		printPrefetchStatus(ui, res.OverallStatus, "")
 		printLocalStats(ui, res.OverallStatus)
 	} else {
 		res, err := cli.SimpleFSFolderSyncConfigAndStatus(ctx, c.path)

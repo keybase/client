@@ -165,10 +165,12 @@ func newDelegateUI(t *testing.T) *delegateUI {
 
 func TestDelegateUI(t *testing.T) {
 	tc := setupTest(t, "delegate_ui")
-	tc1 := cloneContext(tc)
-	tc2 := cloneContext(tc)
-
 	defer tc.Cleanup()
+
+	tc1 := cloneContext(tc)
+	defer tc1.Cleanup()
+	tc2 := cloneContext(tc)
+	defer tc2.Cleanup()
 
 	stopCh := make(chan error)
 	svc := service.NewService(tc.G, false)

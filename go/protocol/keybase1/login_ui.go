@@ -37,6 +37,29 @@ func (e ResetPromptType) String() string {
 	return ""
 }
 
+type PassphraseRecoveryPromptType int
+
+const (
+	PassphraseRecoveryPromptType_ENCRYPTED_PGP_KEYS PassphraseRecoveryPromptType = 0
+)
+
+func (o PassphraseRecoveryPromptType) DeepCopy() PassphraseRecoveryPromptType { return o }
+
+var PassphraseRecoveryPromptTypeMap = map[string]PassphraseRecoveryPromptType{
+	"ENCRYPTED_PGP_KEYS": 0,
+}
+
+var PassphraseRecoveryPromptTypeRevMap = map[PassphraseRecoveryPromptType]string{
+	0: "ENCRYPTED_PGP_KEYS",
+}
+
+func (e PassphraseRecoveryPromptType) String() string {
+	if v, ok := PassphraseRecoveryPromptTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type GetEmailOrUsernameArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -67,6 +90,17 @@ type DisplayResetProgressArg struct {
 	Text      string `codec:"text" json:"text"`
 }
 
+type ExplainDeviceRecoveryArg struct {
+	SessionID int        `codec:"sessionID" json:"sessionID"`
+	Kind      DeviceType `codec:"kind" json:"kind"`
+	Name      string     `codec:"name" json:"name"`
+}
+
+type PromptPassphraseRecoveryArg struct {
+	SessionID int                          `codec:"sessionID" json:"sessionID"`
+	Kind      PassphraseRecoveryPromptType `codec:"kind" json:"kind"`
+}
+
 type LoginUiInterface interface {
 	GetEmailOrUsername(context.Context, int) (string, error)
 	PromptRevokePaperKeys(context.Context, PromptRevokePaperKeysArg) (bool, error)
@@ -76,8 +110,12 @@ type LoginUiInterface interface {
 	// would like to either enter the autoreset pipeline or perform the reset
 	// of the account.
 	PromptResetAccount(context.Context, PromptResetAccountArg) (bool, error)
-	// In some flows the user will get
+	// In some flows the user will get notified of the reset progress
 	DisplayResetProgress(context.Context, DisplayResetProgressArg) error
+	// During recovery the service might want to explain to the user how they can change
+	// their password by using the "change password" functionality on other devices.
+	ExplainDeviceRecovery(context.Context, ExplainDeviceRecoveryArg) error
+	PromptPassphraseRecovery(context.Context, PromptPassphraseRecoveryArg) (bool, error)
 }
 
 func LoginUiProtocol(i LoginUiInterface) rpc.Protocol {
@@ -174,6 +212,36 @@ func LoginUiProtocol(i LoginUiInterface) rpc.Protocol {
 					return
 				},
 			},
+			"explainDeviceRecovery": {
+				MakeArg: func() interface{} {
+					var ret [1]ExplainDeviceRecoveryArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ExplainDeviceRecoveryArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ExplainDeviceRecoveryArg)(nil), args)
+						return
+					}
+					err = i.ExplainDeviceRecovery(ctx, typedArgs[0])
+					return
+				},
+			},
+			"promptPassphraseRecovery": {
+				MakeArg: func() interface{} {
+					var ret [1]PromptPassphraseRecoveryArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]PromptPassphraseRecoveryArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]PromptPassphraseRecoveryArg)(nil), args)
+						return
+					}
+					ret, err = i.PromptPassphraseRecovery(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -211,8 +279,20 @@ func (c LoginUiClient) PromptResetAccount(ctx context.Context, __arg PromptReset
 	return
 }
 
-// In some flows the user will get
+// In some flows the user will get notified of the reset progress
 func (c LoginUiClient) DisplayResetProgress(ctx context.Context, __arg DisplayResetProgressArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.loginUi.displayResetProgress", []interface{}{__arg}, nil)
+	return
+}
+
+// During recovery the service might want to explain to the user how they can change
+// their password by using the "change password" functionality on other devices.
+func (c LoginUiClient) ExplainDeviceRecovery(ctx context.Context, __arg ExplainDeviceRecoveryArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.loginUi.explainDeviceRecovery", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LoginUiClient) PromptPassphraseRecovery(ctx context.Context, __arg PromptPassphraseRecoveryArg) (res bool, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.loginUi.promptPassphraseRecovery", []interface{}{__arg}, &res)
 	return
 }

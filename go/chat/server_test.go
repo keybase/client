@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -136,6 +137,28 @@ func (g *gregorTestConnection) State(ctx context.Context) (gregor.State, error) 
 	return gregor1.IncomingClient{Cli: g.cli}.State(ctx, gregor1.StateArg{
 		Uid: g.uid,
 	})
+}
+
+func (g *gregorTestConnection) UpdateCategory(ctx context.Context, cat string, body []byte,
+	dtime gregor1.TimeOrOffset) (gregor1.MsgID, error) {
+	msg, err := grutils.TemplateMessage(g.uid)
+	if err != nil {
+		return nil, err
+	}
+	msgID := msg.Ibm_.StateUpdate_.Md_.MsgID_
+	msg.Ibm_.StateUpdate_.Creation_ = &gregor1.Item{
+		Category_: gregor1.Category(cat),
+		Body_:     gregor1.Body(body),
+		Dtime_:    dtime,
+	}
+	msg.Ibm_.StateUpdate_.Dismissal_ = &gregor1.Dismissal{
+		Ranges_: []gregor1.MsgRange{
+			gregor1.MsgRange{
+				Category_:   gregor1.Category(cat),
+				SkipMsgIDs_: []gregor1.MsgID{msgID},
+			}},
+	}
+	return msgID, gregor1.IncomingClient{Cli: g.cli}.ConsumeMessage(ctx, msg)
 }
 
 func (g *gregorTestConnection) DismissItem(ctx context.Context, cli gregor1.IncomingInterface, id gregor.MsgID) error {
@@ -3690,13 +3713,13 @@ func TestChatSrvGetInboxNonblockError(t *testing.T) {
 		for i := 0; i < numMsgs; i++ {
 			mustPostLocalForTest(t, ctc, users[0], conv, msg)
 		}
-		require.NoError(t,
-			ctc.world.Tcs[users[0].Username].ChatG.ConvSource.Clear(context.TODO(), conv.Id, uid))
 		g := ctc.world.Tcs[users[0].Username].Context()
-		ri := ctc.as(t, users[0]).ri
 		g.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {
 			return chat1.RemoteClient{Cli: errorClient{}}
 		})
+		require.NoError(t,
+			ctc.world.Tcs[users[0].Username].ChatG.ConvSource.Clear(context.TODO(), conv.Id, uid))
+		ri := ctc.as(t, users[0]).ri
 
 		ctx := ctc.as(t, users[0]).startCtx
 		_, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxNonblockLocal(ctx,
@@ -4833,7 +4856,7 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 		consumeNewConversation(t, listener1, convID)
 		consumeNewConversation(t, listener2, convID)
 
-		verifyMinWriterRoleInfoOnConv := func(user *kbtest.FakeUser, role *keybase1.TeamRole) {
+		verifyMinWriterRoleInfoOnConv := func(user *kbtest.FakeUser, role *keybase1.TeamRole, cannotWrite bool) {
 			tc := ctc.as(t, user)
 
 			var expectedInfo *chat1.ConversationMinWriterRoleInfo
@@ -4844,8 +4867,9 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 					Uid:  gregor1.UID(users[0].GetUID().ToBytes()),
 				}
 				expectedInfoLocal = &chat1.ConversationMinWriterRoleInfoLocal{
-					Role:     *role,
-					Username: users[0].Username,
+					Role:        *role,
+					ChangedBy:   users[0].Username,
+					CannotWrite: cannotWrite,
 				}
 			}
 
@@ -4879,8 +4903,8 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 		mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_TEXT)
 		consumeNewMsgRemote(t, listener2, chat1.MessageType_TEXT)
-		verifyMinWriterRoleInfoOnConv(users[0], nil)
-		verifyMinWriterRoleInfoOnConv(users[1], nil)
+		verifyMinWriterRoleInfoOnConv(users[0], nil, false)
+		verifyMinWriterRoleInfoOnConv(users[1], nil, false)
 
 		role := keybase1.TeamRole_ADMIN
 		err := tc1.chatLocalHandler().SetConvMinWriterRoleLocal(tc1.startCtx, chat1.SetConvMinWriterRoleLocalArg{
@@ -4898,8 +4922,8 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 		})
 		require.Error(t, err)
 		// Only u1's role update went through
-		verifyMinWriterRoleInfoOnConv(users[0], &role)
-		verifyMinWriterRoleInfoOnConv(users[1], &role)
+		verifyMinWriterRoleInfoOnConv(users[0], &role, false)
+		verifyMinWriterRoleInfoOnConv(users[1], &role, true)
 
 		// u2 can't write anymore, only u1 can.
 		_, err = postLocalForTest(t, ctc, users[1], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
@@ -4928,8 +4952,8 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, consumeSetConvSettings(t, listener1).Eq(created.Id))
 		require.True(t, consumeSetConvSettings(t, listener2).Eq(created.Id))
-		verifyMinWriterRoleInfoOnConv(users[0], nil)
-		verifyMinWriterRoleInfoOnConv(users[1], nil)
+		verifyMinWriterRoleInfoOnConv(users[0], nil, false)
+		verifyMinWriterRoleInfoOnConv(users[1], nil, false)
 
 		// Both users can write again
 		mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
@@ -5013,7 +5037,6 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
 		ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
 		tc := ctc.world.Tcs[users[0].Username]
-		uid := users[0].User.GetUID().ToBytes()
 		ri := ctc.as(t, users[0]).ri
 
 		firstConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
@@ -5030,8 +5053,8 @@ func TestChatSrvTopicNameState(t *testing.T) {
 				MembersType:   chat1.ConversationMembersType_TEAM,
 			})
 		require.NoError(t, err)
-		conv := ncres.Conv.Info
-		consumeNewConversation(t, listener0, conv.Id)
+		convInfo := ncres.Conv.Info
+		consumeNewConversation(t, listener0, convInfo.Id)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
 		consumeTeamType(t, listener0)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
@@ -5039,7 +5062,7 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		// Delete the conv, make sure we can still create a new channel after
 		_, err = ctc.as(t, users[0]).chatLocalHandler().DeleteConversationLocal(ctx,
 			chat1.DeleteConversationLocalArg{
-				ConvID: conv.Id,
+				ConvID: convInfo.Id,
 			})
 		require.NoError(t, err)
 		consumeLeaveConv(t, listener0)
@@ -5056,19 +5079,16 @@ func TestChatSrvTopicNameState(t *testing.T) {
 				MembersType:   chat1.ConversationMembersType_TEAM,
 			})
 		require.NoError(t, err)
-		conv = ncres.Conv.Info
-		consumeNewConversation(t, listener0, conv.Id)
+		conv := ncres.Conv
+		convInfo = conv.Info
+		consumeNewConversation(t, listener0, convInfo.Id)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
-
-		convRemote, err := utils.GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id,
-			types.InboxSourceDataSourceAll)
-		require.NoError(t, err)
 
 		// Creating a conversation with same topic name just returns the matching one
 		topicName = "random"
 		ncarg := chat1.NewConversationLocalArg{
-			TlfName:       conv.TlfName,
+			TlfName:       convInfo.TlfName,
 			TopicName:     &topicName,
 			TopicType:     chat1.TopicType_CHAT,
 			TlfVisibility: keybase1.TLFVisibility_PRIVATE,
@@ -5087,12 +5107,12 @@ func TestChatSrvTopicNameState(t *testing.T) {
 
 		// Try to change topic name to one that exists
 		plarg := chat1.PostLocalArg{
-			ConversationID: conv.Id,
+			ConversationID: convInfo.Id,
 			Msg: chat1.MessagePlaintext{
 				ClientHeader: chat1.MessageClientHeader{
-					Conv:        conv.Triple,
+					Conv:        convInfo.Triple,
 					MessageType: chat1.MessageType_METADATA,
-					TlfName:     conv.TlfName,
+					TlfName:     convInfo.TlfName,
 				},
 				MessageBody: chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{
 					ConversationTitle: topicName,
@@ -5116,18 +5136,18 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		})
 		sender := NewBlockingSender(tc.Context(), NewBoxer(tc.Context()),
 			func() chat1.RemoteInterface { return ri })
-		prepareRes, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote.Conv, nil)
+		prepareRes, err := sender.Prepare(ctx, plarg.Msg, mt, &conv, nil)
 		require.NoError(t, err)
 		msg1 := prepareRes.Boxed
 		ts1 := prepareRes.TopicNameState
-		prepareRes, err = sender.Prepare(ctx, plarg.Msg, mt, &convRemote.Conv, nil)
+		prepareRes, err = sender.Prepare(ctx, plarg.Msg, mt, &conv, nil)
 		require.NoError(t, err)
 		msg2 := prepareRes.Boxed
 		ts2 := prepareRes.TopicNameState
 		require.True(t, ts1.Eq(*ts2))
 
 		_, err = ri.PostRemote(ctx, chat1.PostRemoteArg{
-			ConversationID: conv.Id,
+			ConversationID: convInfo.Id,
 			MessageBoxed:   msg1,
 			TopicNameState: ts1,
 		})
@@ -5135,7 +5155,7 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_METADATA)
 
 		_, err = ri.PostRemote(ctx, chat1.PostRemoteArg{
-			ConversationID: conv.Id,
+			ConversationID: convInfo.Id,
 			MessageBoxed:   msg2,
 			TopicNameState: ts2,
 		})
@@ -5160,17 +5180,17 @@ func TestChatSrvUnboxMobilePushNotification(t *testing.T) {
 		ctx := ctc.as(t, users[0]).startCtx
 		tc := ctc.world.Tcs[users[0].Username]
 		uid := users[0].User.GetUID().ToBytes()
-		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
-		convRemote, err := utils.GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id,
+		convInfo := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
+		conv, err := utils.GetVerifiedConv(ctx, tc.Context(), uid, convInfo.Id,
 			types.InboxSourceDataSourceAll)
 		require.NoError(t, err)
 		plarg := chat1.PostLocalArg{
-			ConversationID: conv.Id,
+			ConversationID: convInfo.Id,
 			Msg: chat1.MessagePlaintext{
 				ClientHeader: chat1.MessageClientHeader{
-					Conv:        conv.Triple,
+					Conv:        convInfo.Triple,
 					MessageType: chat1.MessageType_TEXT,
-					TlfName:     conv.TlfName,
+					TlfName:     convInfo.TlfName,
 					Sender:      uid,
 				},
 				MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
@@ -5182,7 +5202,7 @@ func TestChatSrvUnboxMobilePushNotification(t *testing.T) {
 		ri := ctc.as(t, users[0]).ri
 		sender := NewBlockingSender(tc.Context(), NewBoxer(tc.Context()),
 			func() chat1.RemoteInterface { return ri })
-		prepareRes, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote.Conv, nil)
+		prepareRes, err := sender.Prepare(ctx, plarg.Msg, mt, &conv, nil)
 		require.NoError(t, err)
 		msg := prepareRes.Boxed
 		msg.ServerHeader = &chat1.MessageServerHeader{
@@ -5196,12 +5216,12 @@ func TestChatSrvUnboxMobilePushNotification(t *testing.T) {
 		encMsg := base64.StdEncoding.EncodeToString(data)
 		unboxRes, err := ctc.as(t, users[0]).chatLocalHandler().UnboxMobilePushNotification(context.TODO(),
 			chat1.UnboxMobilePushNotificationArg{
-				ConvID:      conv.Id.String(),
+				ConvID:      convInfo.Id.String(),
 				MembersType: mt,
 				Payload:     encMsg,
 			})
 		require.NoError(t, err)
-		require.Equal(t, fmt.Sprintf("%s (%s#%s): PUSH", users[0].Username, conv.TlfName, "general"),
+		require.Equal(t, fmt.Sprintf("%s (%s#%s): PUSH", users[0].Username, convInfo.TlfName, "general"),
 			unboxRes)
 	})
 }
@@ -6512,5 +6532,53 @@ func TestReacjiStore(t *testing.T) {
 		expected.SkinTone = expectedSkinTone
 		expectedData.SkinTone = expectedSkinTone
 		assertReacjiStore(userReacjis, expected, expectedData)
+	})
+}
+
+func TestGlobalAppNotificationSettings(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_IMPTEAMNATIVE:
+		default:
+			return
+		}
+		ctc := makeChatTestContext(t, "GlobalAppNotificationSettings", 1)
+		defer ctc.cleanup()
+
+		user := ctc.users()[0]
+		//tc := ctc.world.Tcs[user.Username]
+		ctx := ctc.as(t, user).startCtx
+		expectedSettings := map[chat1.GlobalAppNotificationSetting]bool{
+			chat1.GlobalAppNotificationSetting_NEWMESSAGES:      true,
+			chat1.GlobalAppNotificationSetting_PLAINTEXTDESKTOP: true,
+			chat1.GlobalAppNotificationSetting_PLAINTEXTMOBILE:  false,
+			chat1.GlobalAppNotificationSetting_DISABLETYPING:    false,
+		}
+
+		// convert the expectedSettings to the RPC format
+		strSettings := func() map[string]bool {
+			s := make(map[string]bool)
+			for k, v := range expectedSettings {
+				s[strconv.Itoa(int(k))] = v
+			}
+			return s
+		}
+
+		// Test default settings
+		s, err := ctc.as(t, user).chatLocalHandler().GetGlobalAppNotificationSettingsLocal(ctx)
+		require.NoError(t, err)
+		for k, v := range expectedSettings {
+			require.Equal(t, v, s.Settings[k], fmt.Sprintf("Not equal %v", k))
+			// flip all the defaults for the next test
+			expectedSettings[k] = !v
+		}
+
+		err = ctc.as(t, user).chatLocalHandler().SetGlobalAppNotificationSettingsLocal(ctx, strSettings())
+		require.NoError(t, err)
+		s, err = ctc.as(t, user).chatLocalHandler().GetGlobalAppNotificationSettingsLocal(ctx)
+		require.NoError(t, err)
+		for k, v := range expectedSettings {
+			require.Equal(t, v, s.Settings[k], fmt.Sprintf("Not equal %v", k))
+		}
 	})
 }

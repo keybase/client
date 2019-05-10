@@ -30,7 +30,7 @@ const Joined = (props: Props) =>
           style={{color: Styles.globalColors.blue}}
           type="BodySmall"
         >
-          Manage channel subscriptions.
+          Browse other channels
         </Kb.Text>
       )}
     </Kb.Text>
@@ -75,7 +75,7 @@ const JoinedUserNotice = (props: Props) => (
         style={{color: Styles.globalColors.blue}}
         type="BodySmallSemibold"
       >
-        Manage channel subscriptions.
+        Browse other channels
       </Kb.Text>
     )}
   </UserNotice>

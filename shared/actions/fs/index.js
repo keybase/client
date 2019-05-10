@@ -33,7 +33,7 @@ const loadFavorites = (state, action) =>
         state.config.loggedIn
       )
     )
-    .catch(makeRetriableErrorHandler(action))
+    .catch(makeRetriableErrorHandler(action, null))
 
 const getSyncConfigFromRPC = (tlfName, tlfType, config: RPCTypes.FolderSyncConfig): Types.TlfSyncConfig => {
   switch (config.mode) {
@@ -54,39 +54,46 @@ const getSyncConfigFromRPC = (tlfName, tlfType, config: RPCTypes.FolderSyncConfi
   }
 }
 
-const tlfListToGetSyncConfigPromise = (state, tlfType) =>
-  Array.from(state.fs.tlfs.get(tlfType, I.Map()).keys()).map(tlfName =>
-    RPCTypes.SimpleFSSimpleFSFolderSyncConfigAndStatusRpcPromise({
-      path: Constants.pathToRPCPath(Constants.tlfTypeAndNameToPath(tlfType, tlfName)),
-    }).then(result => ({
-      syncConfig: getSyncConfigFromRPC(tlfName, tlfType, result.config),
-      tlfName,
-      tlfType,
-    }))
-  )
+const rpcFolderToTlfNameAndType = (folder: RPCTypes.Folder) => {
+  switch (folder.folderType) {
+    case RPCTypes.favoriteFolderType.private:
+      return {tlfName: folder.name, tlfType: 'private'}
+    case RPCTypes.favoriteFolderType.public:
+      return {tlfName: folder.name, tlfType: 'public'}
+    case RPCTypes.favoriteFolderType.team:
+      return {tlfName: folder.name, tlfType: 'team'}
+    default:
+      return null
+  }
+}
 
-// TODO (KBFS-4047): make a SimpleFS RPC for this case where we are asking for
-// all.
+// TODO: perhaps favoritesLoad's response should just include these from the Go
+// side -- when we move it to a SimpleFS RPC.
 const loadSyncConfigForAllTlfs = (state, action) =>
-  Promise.all(
-    // TODO: sometimes we get an error if a TLF is not backed by team.
-    [/* 'private', 'public', */ 'team']
-      .map(tlfType => tlfListToGetSyncConfigPromise(state, tlfType))
-      // $FlowIssue hasn't learnt about .flat yet.
-      .flat()
-  ).then(results => {
-    const payloadMutable = results.reduce(
-      (payload, {syncConfig, tlfType, tlfName}) => ({
-        ...payload,
-        [tlfType]: payload[tlfType].set(tlfName, syncConfig),
-      }),
+  RPCTypes.SimpleFSSimpleFSSyncConfigAndStatusRpcPromise().then(({folders}) => {
+    if (!folders) {
+      return null
+    }
+    const payloadMutable = folders.reduce(
+      (payloadMutable, {folder, config}) => {
+        const tlfNameAndType = rpcFolderToTlfNameAndType(folder)
+        return tlfNameAndType
+          ? {
+              ...payloadMutable,
+              [tlfNameAndType.tlfType]: payloadMutable[tlfNameAndType.tlfType].set(
+                tlfNameAndType.tlfName,
+                getSyncConfigFromRPC(tlfNameAndType.tlfName, tlfNameAndType.tlfType, config)
+              ),
+            }
+          : payloadMutable
+      },
       {
         private: I.Map().asMutable(),
         public: I.Map().asMutable(),
         team: I.Map().asMutable(),
       }
     )
-    return FsGen.createTlfSyncConfigsLoaded({
+    return FsGen.createTlfSyncConfigsForAllSyncEnabledTlfsLoaded({
       private: payloadMutable.private.asImmutable(),
       public: payloadMutable.public.asImmutable(),
       team: payloadMutable.team.asImmutable(),
@@ -94,19 +101,22 @@ const loadSyncConfigForAllTlfs = (state, action) =>
   })
 
 const loadTlfSyncConfig = (state, action) => {
-  const parsedPath = Constants.parsePath(action.payload.tlfPath)
-  if (parsedPath.kind === 'root' || parsedPath.kind === 'tlf-list') {
+  const tlfPath = action.type === FsGen.loadPathMetadata ? action.payload.path : action.payload.tlfPath
+  const parsedPath = Constants.parsePath(tlfPath)
+  if (parsedPath.kind !== 'group-tlf' && parsedPath.kind !== 'team-tlf') {
     return null
   }
   return RPCTypes.SimpleFSSimpleFSFolderSyncConfigAndStatusRpcPromise({
-    path: Constants.pathToRPCPath(action.payload.tlfPath),
-  }).then(result =>
-    FsGen.createTlfSyncConfigLoaded({
-      syncConfig: getSyncConfigFromRPC(parsedPath.tlfName, parsedPath.tlfType, result.config),
-      tlfName: parsedPath.tlfName,
-      tlfType: parsedPath.tlfType,
-    })
-  )
+    path: Constants.pathToRPCPath(tlfPath),
+  })
+    .then(result =>
+      FsGen.createTlfSyncConfigLoaded({
+        syncConfig: getSyncConfigFromRPC(parsedPath.tlfName, parsedPath.tlfType, result.config),
+        tlfName: parsedPath.tlfName,
+        tlfType: parsedPath.tlfType,
+      })
+    )
+    .catch(makeUnretriableErrorHandler(action, tlfPath))
 }
 
 const setTlfSyncConfig = (state, action) =>
@@ -287,7 +297,7 @@ function* folderList(_, action) {
       yield Saga.put(FsGen.createDiscardEdit({editID: action.payload.editID}))
     }
   } catch (error) {
-    yield makeRetriableErrorHandler(action)(error).map(action => Saga.put(action))
+    yield makeRetriableErrorHandler(action, rootPath)(error).map(action => Saga.put(action))
   } finally {
     yield Saga.put(FsGen.createLoadingPath({done: true, id: loadingPathID, path: rootPath}))
   }
@@ -377,7 +387,7 @@ function* download(state, action) {
   } catch (error) {
     // This needs to be before the dismiss below, so that if it's a legit
     // error we'd show the red bar.
-    yield makeRetriableErrorHandler(action)(error).map(action => Saga.put(action))
+    yield makeRetriableErrorHandler(action, path)(error).map(action => Saga.put(action))
   } finally {
     if (intent !== 'none') {
       // If it's a normal download, we show a red card for the user to dismiss.
@@ -410,7 +420,7 @@ function* upload(_, action) {
     yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID})
     yield Saga.put(FsGen.createUploadWritingSuccess({path}))
   } catch (error) {
-    yield makeRetriableErrorHandler(action)(error).map(action => Saga.put(action))
+    yield makeRetriableErrorHandler(action, path)(error).map(action => Saga.put(action))
   }
 }
 
@@ -527,7 +537,7 @@ function* ignoreFavoriteSaga(_, action) {
         folder,
       })
     } catch (error) {
-      yield makeRetriableErrorHandler(action)(error).map(action => Saga.put(action))
+      yield makeRetriableErrorHandler(action, action.payload.path)(error).map(action => Saga.put(action))
     }
   }
 }
@@ -579,7 +589,7 @@ const getMimeTypePromise = (localHTTPServerInfo: Types.LocalHTTPServer, path: Ty
 const refreshLocalHTTPServerInfo = (state, action) =>
   RPCTypes.SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise()
     .then(({address, token}) => FsGen.createLocalHTTPServerInfo({address, token}))
-    .catch(makeUnretriableErrorHandler(action))
+    .catch(makeUnretriableErrorHandler(action, null))
 
 // loadMimeType uses HEAD request to load mime type from the KBFS HTTP server.
 // If the server address/token are not populated yet, or if the token turns out
@@ -637,7 +647,7 @@ const commitEdit = (state, action) => {
         opID: Constants.makeUUID(),
       })
         .then(() => FsGen.createEditSuccess({editID, parentPath}))
-        .catch(makeRetriableErrorHandler(action))
+        .catch(makeRetriableErrorHandler(action, parentPath))
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(type)
       return new Promise(resolve => resolve())
@@ -677,7 +687,7 @@ function* loadPathMetadata(state, action) {
       })
     )
   } catch (err) {
-    yield makeRetriableErrorHandler(action)(err).map(action => Saga.put(action))
+    yield makeRetriableErrorHandler(action, path)(err).map(action => Saga.put(action))
   }
 }
 
@@ -699,7 +709,7 @@ const deleteFile = (state, action) => {
     recursive: true,
   })
     .then(() => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}, Constants.deleteWaitingKey))
-    .catch(makeRetriableErrorHandler(action))
+    .catch(makeRetriableErrorHandler(action, action.payload.path))
 }
 
 const moveOrCopy = (state, action) => {
@@ -741,7 +751,7 @@ const moveOrCopy = (state, action) => {
       // We get source/dest paths from state rather than action, so we can't
       // just retry it. If we do want retry in the future we can include those
       // paths in the action.
-      .catch(makeUnretriableErrorHandler(action))
+      .catch(makeUnretriableErrorHandler(action, action.payload.destinationParentPath))
   )
 }
 
@@ -901,20 +911,29 @@ const waitForKbfsDaemon = (state, action) => {
     })
 }
 
-const getKbfsDaemonOnlineStatus = (state, action) =>
-  action.payload.rpcStatus === 'connected' &&
-  RPCTypes.SimpleFSSimpleFSAreWeConnectedToMDServerRpcPromise().then(connectedToMDServer =>
-    FsGen.createKbfsDaemonOnlineStatusChanged({online: connectedToMDServer})
-  )
+const updateKbfsDaemonOnlineStatus = (state, action) =>
+  state.fs.kbfsDaemonStatus.rpcStatus === 'connected' && state.config.osNetworkOnline
+    ? RPCTypes.SimpleFSSimpleFSAreWeConnectedToMDServerRpcPromise().then(connectedToMDServer =>
+        FsGen.createKbfsDaemonOnlineStatusChanged({online: connectedToMDServer})
+      )
+    : Promise.resolve(FsGen.createKbfsDaemonOnlineStatusChanged({online: false}))
+
+// We don't trigger the reachability check at init. Reachability checks cause
+// any pending "reconnect" fire right away, and overrides any random back-off
+// timer we have at process restart (which is there to avoid surging server
+// load around app releases). So only do that when OS network status changes
+// after we're up.
+const checkKbfsServerReachabilityIfNeeded = (state, action) =>
+  !action.payload.isInit && RPCTypes.SimpleFSSimpleFSCheckReachabilityRpcPromise()
 
 const onFSOnlineStatusChanged = (state, action) =>
   FsGen.createKbfsDaemonOnlineStatusChanged({online: action.payload.params.online})
 
-const onFSOverallSyncSyncStatusChanged = (state, action) => {
-  return FsGen.createOverallSyncStatusChanged({
+const onFSOverallSyncSyncStatusChanged = (state, action) =>
+  FsGen.createOverallSyncStatusChanged({
     progress: Constants.makeSyncingFoldersProgress(action.payload.params.status.prefetchProgress),
   })
-}
+
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<FsGen.RefreshLocalHTTPServerInfoPayload>(
     FsGen.refreshLocalHTTPServerInfo,
@@ -972,10 +991,16 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   if (flags.kbfsOfflineMode) {
     yield* Saga.chainAction<FsGen.FavoritesLoadedPayload>(FsGen.favoritesLoaded, loadSyncConfigForAllTlfs)
     yield* Saga.chainAction<FsGen.SetTlfSyncConfigPayload>(FsGen.setTlfSyncConfig, setTlfSyncConfig)
-    yield* Saga.chainAction<FsGen.LoadTlfSyncConfigPayload>(FsGen.loadTlfSyncConfig, loadTlfSyncConfig)
-    yield* Saga.chainAction<FsGen.KbfsDaemonRpcStatusChangedPayload>(
-      FsGen.kbfsDaemonRpcStatusChanged,
-      getKbfsDaemonOnlineStatus
+    yield* Saga.chainAction<FsGen.LoadTlfSyncConfigPayload>(
+      [FsGen.loadTlfSyncConfig, FsGen.loadPathMetadata],
+      loadTlfSyncConfig
+    )
+    yield* Saga.chainAction<
+      FsGen.KbfsDaemonRpcStatusChangedPayload | ConfigGen.OsNetworkStatusChangedPayload
+    >([FsGen.kbfsDaemonRpcStatusChanged, ConfigGen.osNetworkStatusChanged], updateKbfsDaemonOnlineStatus)
+    yield* Saga.chainAction<ConfigGen.OsNetworkStatusChangedPayload>(
+      ConfigGen.osNetworkStatusChanged,
+      checkKbfsServerReachabilityIfNeeded
     )
     yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSOnlineStatusChangedPayload>(
       EngineGen.keybase1NotifyFSFSOnlineStatusChanged,

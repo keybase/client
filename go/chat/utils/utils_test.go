@@ -263,6 +263,8 @@ func (c configUsernamer) GetUsername() libkb.NormalizedUsername {
 
 func TestAddUserToTlfName(t *testing.T) {
 	tc := externalstest.SetupTest(t, "chat-utils", 0)
+	defer tc.Cleanup()
+
 	g := globals.NewContext(tc.G, &globals.ChatContext{})
 	g.Env.SetConfig(
 		&configUsernamer{g.Env.GetConfig(), "charlie"}, g.Env.GetConfigWriter())

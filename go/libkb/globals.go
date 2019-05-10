@@ -701,7 +701,7 @@ func (g *GlobalContext) Shutdown() error {
 			epick.Push(hook())
 		}
 
-		g.Identify3State.Shutdown()
+		<-g.Identify3State.Shutdown()
 
 		err = epick.Error()
 
@@ -1106,13 +1106,13 @@ func (g *GlobalContext) LogoutSelfCheck(ctx context.Context) error {
 	return nil
 }
 
-func (g *GlobalContext) MakeAssertionContext() AssertionContext {
+func (g *GlobalContext) MakeAssertionContext(mctx MetaContext) AssertionContext {
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
 	if g.proofServices == nil {
 		return nil
 	}
-	return MakeAssertionContext(g.proofServices)
+	return MakeAssertionContext(mctx, g.proofServices)
 }
 
 func (g *GlobalContext) SetProofServices(s ExternalServicesCollector) {

@@ -46,7 +46,7 @@ export type _Assertion = {
 }
 export type Assertion = I.RecordOf<_Assertion>
 
-export type DetailsState = 'checking' | 'valid' | 'broken' | 'needsUpgrade' | 'error'
+export type DetailsState = 'checking' | 'valid' | 'broken' | 'needsUpgrade' | 'error' | 'notAUserYet'
 
 export type _Details = {
   assertions: ?I.Map<string, Assertion>,
