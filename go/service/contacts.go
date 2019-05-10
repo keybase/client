@@ -77,6 +77,5 @@ func (h *ContactsHandler) LookupContactList(ctx context.Context, arg keybase1.Lo
 	provider := &contacts.CachedContactsProvider{
 		Provider: &bulkLookupContactsProvider{},
 	}
-	// provider := &bulkLookupContactsProvider{}
 	return contacts.ResolveContacts(mctx, provider, arg.Contacts, arg.UserRegionCode)
 }

@@ -20,7 +20,7 @@ const (
 	DBTeamChain         = 0x10
 	DBUserPlusAllKeysV1 = 0x19
 
-	DBContactResolution              = 0xb0
+	DBContactResolution              = 0xba
 	DBBoxAuditorPermanent            = 0xbb
 	DBBoxAuditor                     = 0xbc
 	DBUserPlusKeysVersionedUnstubbed = 0xbd
