@@ -728,42 +728,42 @@ func (s *Server) ApproveTxURILocal(ctx context.Context, arg stellar1.ApproveTxUR
 	return stellar1.TransactionID(sig.TxHash), nil
 }
 
-func (s *Server) ApprovePayURILocal(ctx context.Context, arg stellar1.ApprovePayURILocalArg) (err error) {
+func (s *Server) ApprovePayURILocal(ctx context.Context, arg stellar1.ApprovePayURILocalArg) (txID stellar1.TransactionID, err error) {
 	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName: "ApprovePayURILocal",
 		Err:     &err,
 	})
 	defer fin()
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// revalidate the URI
 	vp, _, err := s.validateStellarURI(mctx, arg.InputURI, http.DefaultClient)
 	if err != nil {
-		return err
+		return "", err
 	}
 	_ = vp
-	return errors.New("nyi")
+	return "", errors.New("nyi")
 }
 
-func (s *Server) ApprovePathURILocal(ctx context.Context, arg stellar1.ApprovePathURILocalArg) (err error) {
+func (s *Server) ApprovePathURILocal(ctx context.Context, arg stellar1.ApprovePathURILocalArg) (txID stellar1.TransactionID, err error) {
 	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName: "ApprovePathURILocal",
 		Err:     &err,
 	})
 	defer fin()
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// revalidate the URI
 	vp, _, err := s.validateStellarURI(mctx, arg.InputURI, http.DefaultClient)
 	if err != nil {
-		return err
+		return "", err
 	}
 	_ = vp
-	return errors.New("nyi")
+	return "", errors.New("nyi")
 }
 
 func postXDRToCallback(signed, callbackURL string) error {

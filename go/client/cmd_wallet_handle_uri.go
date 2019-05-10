@@ -159,36 +159,51 @@ func (c *CmdWalletHandleURI) payOp(v stellar1.ValidateStellarURIResultLocal) err
 		return err
 	}
 
-	if v.CallbackURL == "" {
-		if v.AssetCode == "" {
-			arg := stellar1.SendCLILocalArg{
-				Recipient:  v.Recipient,
-				Amount:     v.Amount,
-				Asset:      stellar1.AssetNative(),
-				PublicNote: v.Memo,
-			}
-			res, err := cli.SendCLILocal(context.Background(), arg)
-			if err != nil {
-				return err
-			}
-			ui.Printf("Sent!\nKeybase Transaction ID: %v\nStellar Transaction ID: %v\n", res.KbTxID, res.TxID)
-		} else {
-			// send a path payment
-			arg := stellar1.FindPaymentPathLocalArg{
-				To:     v.Recipient,
-				Amount: v.Amount,
-				DestinationAsset: stellar1.Asset{
-					Code:   v.AssetCode,
-					Issuer: v.AssetIssuer,
-				},
-			}
-			if err := runPathPayment(c.G(), arg, "", v.Memo); err != nil {
-				return err
-			}
+	if v.AssetCode == "" {
+		arg := stellar1.ApprovePayURILocalArg{
+			InputURI: c.uri,
+			Amount:   v.Amount,
+			FromCLI:  true,
 		}
+		txID, err := cli.ApprovePayURILocal(context.Background(), arg)
+		if err != nil {
+			return err
+		}
+
+		ui.Printf("Sent!\nStellar Transaction ID: %v\n", txID)
 	} else {
-		// TODO: going to need new local RPCs that post the signed tx
-		// (send and path versions) to CallbackURL
+		// find a path payment so user can confirm it is ok
+		arg := stellar1.FindPaymentPathLocalArg{
+			To:     v.Recipient,
+			Amount: v.Amount,
+			DestinationAsset: stellar1.Asset{
+				Code:   v.AssetCode,
+				Issuer: v.AssetIssuer,
+			},
+		}
+		ui.Printf(c.yellow(fmt.Sprintf("Searching for payment path to %s...", arg.DestinationAsset)) + "\n")
+		path, err := cli.FindPaymentPathLocal(context.Background(), arg)
+		if err != nil {
+			return err
+		}
+
+		ui.Printf("Sending approximately %s of %s (at most %s)\n", path.FullPath.SourceAmount, path.FullPath.SourceAsset, path.FullPath.SourceAmountMax)
+		ui.Printf("Account %s will receive %s of %s\n\n", arg.To, path.FullPath.DestinationAmount, path.FullPath.DestinationAsset)
+
+		if err := ui.PromptForConfirmation("Proceed?"); err != nil {
+			return err
+		}
+
+		approveArg := stellar1.ApprovePathURILocalArg{
+			InputURI: c.uri,
+			FullPath: path.FullPath,
+			FromCLI:  true,
+		}
+		txID, err := cli.ApprovePathURILocal(context.Background(), approveArg)
+		if err != nil {
+			return err
+		}
+		ui.Printf("Sent!\nStellar Transaction ID: %v\n", txID)
 	}
 
 	return nil

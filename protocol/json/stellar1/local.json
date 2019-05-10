@@ -2478,9 +2478,13 @@
         {
           "name": "amount",
           "type": "string"
+        },
+        {
+          "name": "fromCLI",
+          "type": "boolean"
         }
       ],
-      "response": null
+      "response": "TransactionID"
     },
     "approvePathURILocal": {
       "request": [
@@ -2495,9 +2499,13 @@
         {
           "name": "fullPath",
           "type": "PaymentPath"
+        },
+        {
+          "name": "fromCLI",
+          "type": "boolean"
         }
       ],
-      "response": null
+      "response": "TransactionID"
     }
   },
   "namespace": "stellar.1"
