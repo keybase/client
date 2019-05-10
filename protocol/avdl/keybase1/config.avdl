@@ -87,6 +87,7 @@ protocol config {
     array<string> localChatDbStats;
     array<DirSizeInfo> cacheDirSizeInfo;
     map<int> uiRouterMapping;
+    string serviceLogPath;
   }
 
   ExtendedStatus getExtendedStatus(int sessionID);

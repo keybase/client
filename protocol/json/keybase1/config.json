@@ -302,6 +302,10 @@
             "values": "int"
           },
           "name": "uiRouterMapping"
+        },
+        {
+          "type": "string",
+          "name": "serviceLogPath"
         }
       ]
     },
