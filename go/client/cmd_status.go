@@ -65,82 +65,8 @@ func (c *CmdStatus) load() (*keybase1.FullStatus, error) {
 		return nil, err
 	}
 
-<<<<<<< HEAD
-	status.ConfigPath = config.ConfigPath
-	status.Service.Version = config.Version
-
-	status.Device = extStatus.Device
-
-	if extStatus.Standalone {
-		status.Service.Running = false
-	} else {
-		status.Service.Running = true
-		if extStatus.ServiceLogPath != "" {
-			status.Service.Log = extStatus.ServiceLogPath
-		} else {
-			status.Service.Log = filepath.Join(extStatus.LogDir, libkb.ServiceLogFileName)
-		}
-		status.Service.EKLog = filepath.Join(extStatus.LogDir, libkb.EKLogFileName)
-	}
-
-	status.PassphraseStreamCached = extStatus.PassphraseStreamCached
-	status.TsecCached = extStatus.TsecCached
-	status.DeviceSigKeyCached = extStatus.DeviceSigKeyCached
-	status.DeviceEncKeyCached = extStatus.DeviceEncKeyCached
-	status.PaperSigKeyCached = extStatus.PaperSigKeyCached
-	status.PaperEncKeyCached = extStatus.PaperEncKeyCached
-	status.StoredSecret = extStatus.StoredSecret
-	status.SecretPromptSkip = extStatus.SecretPromptSkip
-
-	kbfsInstalledVersion, err := install.KBFSBundleVersion(c.G(), "")
-	if err == nil {
-		status.KBFS.InstalledVersion = kbfsInstalledVersion
-	}
-	if kbfs := getFirstClient(extStatus.Clients, keybase1.ClientType_KBFS); kbfs != nil {
-		status.KBFS.Version = kbfs.Version
-		status.KBFS.Running = true
-		// This just gets the mountpoint from the environment; the
-		// user could have technically passed a different mountpoint
-		// to KBFS on macOS or Linux.  TODO(KBFS-2723): fetch the
-		// actual mountpoint with a new RPC from KBFS.
-		mountDir, err := c.G().Env.GetMountDir()
-		if err != nil {
-			return nil, err
-		}
-		status.KBFS.Mount = mountDir
-	} else {
-		status.KBFS.Version = kbfsInstalledVersion
-	}
-
-	if desktop := getFirstClient(extStatus.Clients, keybase1.ClientType_GUI_MAIN); desktop != nil {
-		status.Desktop.Running = true
-		status.Desktop.Version = desktop.Version
-	}
-
-	status.KBFS.Log = filepath.Join(extStatus.LogDir, libkb.KBFSLogFileName)
-	status.Desktop.Log = filepath.Join(extStatus.LogDir, libkb.DesktopLogFileName)
-	status.Updater.Log = filepath.Join(extStatus.LogDir, libkb.UpdaterLogFileName)
-
-	status.Start.Log = filepath.Join(extStatus.LogDir, libkb.StartLogFileName)
-	status.Git.Log = filepath.Join(extStatus.LogDir, libkb.GitLogFileName)
-
-	status.DefaultUsername = extStatus.DefaultUsername
-	status.ProvisionedUsernames = extStatus.ProvisionedUsernames
-	status.Clients = extStatus.Clients
-	status.PlatformInfo = extStatus.PlatformInfo
-	status.DeviceEKNames = extStatus.DeviceEkNames
-	status.LocalDbStats = extStatus.LocalDbStats
-	status.LocalChatDbStats = extStatus.LocalChatDbStats
-	status.CacheDirSizeInfo = extStatus.CacheDirSizeInfo
-	status.UIRouterMapping = extStatus.UiRouterMapping
-
-	// set anything os-specific:
-	if err := c.osSpecific(&status); err != nil {
-		return nil, err
-=======
 	if fstatus != nil {
 		fstatus.Client.Version = libkb.VersionString()
->>>>>>> refactor to status pkg
 	}
 	return fstatus, nil
 }

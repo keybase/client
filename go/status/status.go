@@ -189,20 +189,15 @@ func GetFullStatus(mctx libkb.MetaContext) (status *keybase1.FullStatus, err err
 		return nil, err
 	}
 
+	// set service status
 	if status.ExtStatus.Standalone {
 		status.Service.Running = false
 	} else {
 		status.Service.Running = true
 	}
-
-	if serviceLogPath, ok := g.Env.GetEffectiveLogFile(); ok {
-		status.Service.Log = serviceLogPath
-	} else {
-		status.Service.Log = filepath.Join(status.ExtStatus.LogDir, libkb.ServiceLogFileName)
-	}
-	status.Service.EkLog = filepath.Join(status.ExtStatus.LogDir, libkb.EKLogFileName)
 	status.Service.Version = libkb.VersionString()
 
+	// set kbfs status
 	kbfsInstalledVersion, err := install.KBFSBundleVersion(mctx.G(), "")
 	if err == nil {
 		status.Kbfs.InstalledVersion = kbfsInstalledVersion
@@ -223,12 +218,27 @@ func GetFullStatus(mctx libkb.MetaContext) (status *keybase1.FullStatus, err err
 		status.Kbfs.Version = kbfsInstalledVersion
 	}
 
+	// set desktop status
 	if desktop := GetFirstClient(status.ExtStatus.Clients, keybase1.ClientType_GUI_MAIN); desktop != nil {
 		status.Desktop.Running = true
 		status.Desktop.Version = desktop.Version
 	}
 
-	status.Service.Log = filepath.Join(status.ExtStatus.LogDir, libkb.ServiceLogFileName)
+	// set log paths
+	serviceLogPath, ok := mctx.G().Env.GetEffectiveLogFile()
+	if ok && serviceLogPath != "" {
+		serviceLogPath, err = filepath.Abs(serviceLogPath)
+		if err != nil {
+			mctx.Debug("Unable to get abspath for effective log file %v", err)
+			serviceLogPath = ""
+		} else {
+			status.Service.Log = serviceLogPath
+		}
+	}
+
+	if serviceLogPath == "" {
+		status.Service.Log = filepath.Join(status.ExtStatus.LogDir, libkb.ServiceLogFileName)
+	}
 	status.Service.EkLog = filepath.Join(status.ExtStatus.LogDir, libkb.EKLogFileName)
 	status.Kbfs.Log = filepath.Join(status.ExtStatus.LogDir, libkb.KBFSLogFileName)
 	status.Desktop.Log = filepath.Join(status.ExtStatus.LogDir, libkb.DesktopLogFileName)
