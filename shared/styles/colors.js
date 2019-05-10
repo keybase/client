@@ -90,9 +90,6 @@ const colors = {
   yellowDark: '#FFB800',
   yellowGreen: '#a8cf36',
   yellowGreen2: '#94b52f',
-  yellowGreen2_75: 'rgba(154, 180, 57, 0.75)',
-  yellowGreen2_75_on_white: 'rgb(179,199,107)',
-  yellowGreen3: '#d2e697',
   yellowLight: '#fffdcc',
 }
 
