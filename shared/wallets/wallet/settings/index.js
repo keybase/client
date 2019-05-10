@@ -216,7 +216,7 @@ class AccountSettings extends React.Component<SettingsProps> {
                 gap="tiny"
                 style={styles.removeContentContainer}
               >
-                {!props.mobileOnlyEditable && (
+                {!props.isDefault && !props.mobileOnlyEditable && (
                   <Kb.Text type="BodySmall">
                     This account can only be removed from a mobile device over 7 days old.
                   </Kb.Text>

@@ -3,7 +3,7 @@ import Footer from '.'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as Constants from '../../../constants/wallets'
-import {namedConnect, isMobile} from '../../../util/container'
+import {namedConnect} from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
 
 type OwnProps = {
@@ -17,12 +17,12 @@ const mapStateToProps = state => {
     ? state.wallets.builtRequest.readyToRequest
     : state.wallets.builtPayment.readyToReview
   const currencyWaiting = anyWaiting(state, Constants.getDisplayCurrencyWaitingKey(accountID))
-  const sendDisabledDueToMobileOnly = !isMobile && !!state.wallets.mobileOnlyMap.get(accountID)
+  const thisDeviceIsLockedOut = Constants.getThisDeviceIsLockedOut(state, accountID)
   return {
     calculating: !!state.wallets.building.amount,
-    disabled: !isReady || currencyWaiting || sendDisabledDueToMobileOnly,
+    disabled: !isReady || currencyWaiting || thisDeviceIsLockedOut,
     isRequest,
-    sendDisabledDueToMobileOnly,
+    thisDeviceIsLockedOut,
     waitingKey: state.wallets.building.isRequest
       ? Constants.requestPaymentWaitingKey
       : Constants.buildPaymentWaitingKey,
@@ -56,7 +56,7 @@ const mergeProps = (s, d, o) => ({
   disabled: s.disabled,
   onClickRequest: s.isRequest ? d.onClickRequest : undefined,
   onClickSend: s.isRequest ? undefined : d.onClickSend,
-  sendDisabledDueToMobileOnly: s.sendDisabledDueToMobileOnly,
+  thisDeviceIsLockedOut: s.thisDeviceIsLockedOut,
   waitingKey: s.waitingKey,
   worthDescription: s.worthDescription,
 })

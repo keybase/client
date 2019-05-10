@@ -612,6 +612,9 @@ export const getCurrencyAndSymbol = (state: TypedState, code: string) => {
 
 export const getAcceptedDisclaimer = (state: TypedState) => state.wallets.acceptedDisclaimer
 
+export const getThisDeviceIsLockedOut = (state: TypedState, accountID: Types.AccountID) =>
+  getAccount(state, accountID).mobileOnlyEditable
+
 export const balanceChangeColor = (delta: Types.PaymentDelta, status: Types.StatusSimplified) => {
   let balanceChangeColor = Styles.globalColors.black
   if (delta !== 'none') {
