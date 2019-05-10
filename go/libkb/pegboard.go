@@ -52,12 +52,10 @@ func (p *Pegboard) TrackUPAK(mctx MetaContext, upak keybase1.UserPlusKeysV2) (er
 	defer mctx.Trace("Pegboard.TrackUPAK", func() error { return err })()
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	if peg, ok := p.store[upak.Uid]; ok {
-		// User is already tracked.
+	if peg, ok := p.store[upak.Uid]; ok && peg.EldestSeqno != 0 && upak.EldestSeqno != 0 && upak.EldestSeqno < peg.EldestSeqno {
+		// User is already tracked. But at a newer version than the argument.
 		// CORE-10522 check with explicit local and remote follows?
-		if peg.EldestSeqno != 0 && upak.EldestSeqno != 0 && upak.EldestSeqno < peg.EldestSeqno {
-			return fmt.Errorf("Cannot older version of user: %v %v < %v", upak.Uid, upak.EldestSeqno, peg.EldestSeqno)
-		}
+		return fmt.Errorf("Cannot update to older version of user: %v %v < %v", upak.Uid, upak.EldestSeqno, peg.EldestSeqno)
 	}
 	p.store[upak.Uid] = Peg{
 		UID:         upak.Uid,
