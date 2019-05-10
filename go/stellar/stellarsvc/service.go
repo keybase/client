@@ -635,7 +635,7 @@ func (s *Server) validateStellarURI(ctx context.Context, uri string, getter stel
 		}
 		local.Summary.Operations = make([]string, len(validated.Tx.Operations))
 		for i, op := range validated.Tx.Operations {
-			local.Summary.Operations[i] = opSummary(op)
+			local.Summary.Operations[i] = stellarnet.OpSummary(op)
 		}
 	}
 
@@ -666,50 +666,5 @@ func memoStrings(x xdr.Memo) (string, string, error) {
 		return base64.StdEncoding.EncodeToString(hash[:]), "MEMO_RETURN", nil
 	default:
 		return "", "", errors.New("invalid memo type")
-	}
-}
-
-func opSummary(op xdr.Operation) string {
-	var opSource string
-	if op.SourceAccount != nil {
-		opSource = op.SourceAccount.Address()
-	}
-
-	switch op.Body.Type {
-	case xdr.OperationTypeCreateAccount:
-		iop := op.Body.MustCreateAccountOp()
-		return fmt.Sprintf("Create account %s with starting balance of %d XLM", iop.Destination.Address(), stellarnet.StringFromStellarXdrAmount(iop.StartingBalance))
-	case xdr.OperationTypePayment:
-		iop := op.Body.MustPaymentOp()
-		return fmt.Sprintf("Pay %d %s to account %s", stellarnet.StringFromStellarXdrAmount(iop.Amount), stellarnet.XDRSummary(iop.Asset), iop.Destination.Address())
-	case xdr.OperationTypePathPayment:
-		iop := op.Body.MustPathPaymentOp()
-		return fmt.Sprintf("Pay %d %s to account %s using at most %d %s", stellarnet.StringFromStellarXdrAmount(iop.SendMax), stellarnet.XDRSummary(
-		_ = iop
-	case xdr.OperationTypeManageOffer:
-		iop := op.Body.MustManageOfferOp()
-		_ = iop
-	case xdr.OperationTypeCreatePassiveOffer:
-		iop := op.Body.MustCreatePassiveOfferOp()
-		_ = iop
-	case xdr.OperationTypeSetOptions:
-		iop := op.Body.MustSetOptionsOp()
-		_ = iop
-	case xdr.OperationTypeChangeTrust:
-		iop := op.Body.MustChangeTrustOp()
-		_ = iop
-	case xdr.OperationTypeAllowTrust:
-		iop := op.Body.MustAllowTrustOp()
-		_ = iop
-	case xdr.OperationTypeAccountMerge:
-		// oh of cource, MustDestination...why would it possibly match
-		// everything else?
-		iop := op.Body.MustDestination()
-		_ = iop
-	case xdr.OperationTypeManageData:
-		iop := op.Body.MustManageDataOp()
-		_ = iop
-	default:
-		return "invalid operation type"
 	}
 }
