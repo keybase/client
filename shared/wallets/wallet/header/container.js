@@ -17,7 +17,7 @@ const mapStateToProps = state => {
     accountID: selectedAccount.accountID,
     isDefaultWallet: selectedAccount.isDefault,
     keybaseUser: state.config.username,
-    thisDeviceIsLockedOut: !selectedAccount.mobileOnlyEditable,
+    thisDeviceIsLockedOut: Constants.getThisDeviceIsLockedOut(state, selectedAccount.accountID),
     unreadPayments: otherUnreadPayments(state.wallets.unreadPaymentsMap, selectedAccount.accountID),
     walletName: selectedAccount.name,
   }

@@ -616,7 +616,7 @@ export const getAcceptedDisclaimer = (state: TypedState) => state.wallets.accept
 // that's less than seven days old.  TODO: Use a `deviceReadOnly` field insstead once it exists.
 export const getThisDeviceIsLockedOut = (state: TypedState, accountID: Types.AccountID) =>
   Styles.isMobile
-    ? getAccount(state, accountID).mobileOnlyEditable
+    ? !getAccount(state, accountID).mobileOnlyEditable
     : state.wallets.mobileOnlyMap.get(accountID, false)
 
 export const balanceChangeColor = (delta: Types.PaymentDelta, status: Types.StatusSimplified) => {

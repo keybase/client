@@ -30,6 +30,7 @@ export type SettingsProps = {|
   mobileOnlyMode: boolean,
   mobileOnlyWaiting: boolean,
   mobileOnlyEditable: boolean,
+  thisDeviceIsLockedOut: boolean,
 |}
 
 const HoverText = Styles.isMobile
@@ -107,7 +108,7 @@ class AccountSettings extends React.Component<SettingsProps> {
                       : 'Transactions will be tied to your Stellar public address only.'}
                   </Kb.Text>
                   {!props.isDefault &&
-                    (!props.mobileOnlyEditable ? (
+                    (props.thisDeviceIsLockedOut ? (
                       <Kb.Text style={styles.setAsDefaultError} type="BodySmall">
                         This account can only be made default from a mobile device over 7 days old.
                       </Kb.Text>
@@ -216,13 +217,13 @@ class AccountSettings extends React.Component<SettingsProps> {
                 gap="tiny"
                 style={styles.removeContentContainer}
               >
-                {!props.isDefault && !props.mobileOnlyEditable && (
+                {!props.isDefault && props.thisDeviceIsLockedOut && (
                   <Kb.Text type="BodySmall">
                     This account can only be removed from a mobile device over 7 days old.
                   </Kb.Text>
                 )}
                 <Kb.Button
-                  disabled={props.isDefault || !props.mobileOnlyEditable}
+                  disabled={props.isDefault || props.thisDeviceIsLockedOut}
                   label="Remove account"
                   fullWidth={true}
                   type="Danger"
