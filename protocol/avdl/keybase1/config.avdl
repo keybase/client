@@ -5,7 +5,7 @@ protocol config {
   import idl "common.avdl";
   import idl "notify_ctl.avdl";
 
-  record GetCurrentStatusRes {
+  record CurrentStatus {
     boolean configured;
     boolean registered;
     boolean loggedIn;
@@ -13,7 +13,7 @@ protocol config {
     union { null, User } user;
   }
 
-  GetCurrentStatusRes getCurrentStatus(int sessionID);
+  CurrentStatus getCurrentStatus(int sessionID);
 
   record SessionStatus {
     @lint("ignore")
@@ -87,11 +87,67 @@ protocol config {
     array<string> localChatDbStats;
     array<DirSizeInfo> cacheDirSizeInfo;
     map<int> uiRouterMapping;
-    string serviceLogPath;
   }
 
-  ExtendedStatus getExtendedStatus(int sessionID);
+  record KbClientStatus {
+    string version;
+  }
+
+  record KbServiceStatus {
+    string version;
+    boolean running;
+    string pid;
+    string log;
+    string ekLog;
+  }
+
+  record KBFSStatus {
+    string version;
+    string installedVersion;
+    boolean running;
+    string pid;
+    string log;
+    string mount;
+  }
+
+  record DesktopStatus {
+    string version;
+    boolean running;
+    string log;
+  }
+
+  record UpdaterStatus {
+    string log;
+  }
+
+  record StartStatus {
+    string log;
+  }
+
+  record GitStatus {
+    string log;
+  }
+
+  record FullStatus {
+    string configPath;
+
+    CurrentStatus curStatus;
+    ExtendedStatus extStatus;
+
+    KbClientStatus client;
+    KbServiceStatus service;
+    KBFSStatus kbfs;
+    DesktopStatus desktop;
+    UpdaterStatus updater;
+    StartStatus start;
+    GitStatus git;
+  }
+
   array<ClientStatus> getClientStatus(int sessionID);
+
+  // FullStatus encapsulates everything required for the status and log send
+  // commands
+  union { null, FullStatus } getFullStatus(int sessionID);
 
 
   record AllProvisionedUsernames {

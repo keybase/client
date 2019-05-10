@@ -244,7 +244,7 @@ func (s *CmdSignup) checkRegistered() (err error) {
 	s.G().Log.Debug("+ clientModeSignupEngine::CheckRegistered")
 	defer s.G().Log.Debug("- clientModeSignupEngine::CheckRegistered -> %s", libkb.ErrToOk(err))
 
-	var rres keybase1.GetCurrentStatusRes
+	var rres keybase1.CurrentStatus
 
 	if rres, err = s.ccli.GetCurrentStatus(context.TODO(), 0); err != nil {
 		return err

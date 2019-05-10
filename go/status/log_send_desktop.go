@@ -3,7 +3,7 @@
 
 // +build !ios,!android
 
-package libkb
+package status
 
 import (
 	"fmt"
