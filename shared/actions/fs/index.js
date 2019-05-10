@@ -988,6 +988,15 @@ const onFSOverallSyncSyncStatusChanged = (state, action) =>
     progress: Constants.makeSyncingFoldersProgress(action.payload.params.status.prefetchProgress),
   })
 
+let prevOutOfSpace = false
+const updateMenubarIconOnStuckSync = (state, action) => {
+  const outOfSpace = action.payload.params.status.outOfSyncSpace
+  if (outOfSpace !== prevOutOfSpace) {
+    prevOutOfSpace = outOfSpace
+    return NotificationsGen.createBadgeApp({key: 'outOfSpace', on: outOfSpace})
+  }
+}
+
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<FsGen.RefreshLocalHTTPServerInfoPayload>(
     FsGen.refreshLocalHTTPServerInfo,
@@ -1063,6 +1072,10 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSOverallSyncStatusChangedPayload>(
       EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged,
       onFSOverallSyncSyncStatusChanged
+    )
+    yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSOverallSyncStatusChangedPayload>(
+      EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged,
+      updateMenubarIconOnStuckSync
     )
     yield* Saga.chainAction<FsGen.LoadSettingsPayload>(FsGen.loadSettings, loadSettings)
     yield* Saga.chainAction<FsGen.SetSpaceAvailableNotificationThresholdPayload>(FsGen.setSpaceAvailableNotificationThreshold, setSpaceNotificationThreshold)
