@@ -78,9 +78,8 @@ func opBodySummary(op xdr.Operation) string {
 		iop := op.Body.MustChangeTrustOp()
 		if iop.Limit == 0 {
 			return fmt.Sprintf("Remove trust line to %s", XDRAssetSummary(iop.Line))
-		} else {
-			return fmt.Sprintf("Establish trust line to %s with limit %v", XDRAssetSummary(iop.Line), iop.Limit)
 		}
+		return fmt.Sprintf("Establish trust line to %s with limit %v", XDRAssetSummary(iop.Line), iop.Limit)
 	case xdr.OperationTypeAllowTrust:
 		iop := op.Body.MustAllowTrustOp()
 		var assetCode string
@@ -96,9 +95,8 @@ func opBodySummary(op xdr.Operation) string {
 		}
 		if iop.Authorize {
 			return fmt.Sprintf("Authorize trustline to %s for %s", assetCode, iop.Trustor.Address())
-		} else {
-			return fmt.Sprintf("Deauthorize trustline to %s for %s", assetCode, iop.Trustor.Address())
 		}
+		return fmt.Sprintf("Deauthorize trustline to %s for %s", assetCode, iop.Trustor.Address())
 	case xdr.OperationTypeAccountMerge:
 		// oh of cource, MustDestination...why would it possibly match
 		// everything else?
