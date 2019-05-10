@@ -104,17 +104,6 @@ const showDevicePage = (_, {payload: {deviceID}}) =>
 const showPaperKeyPage = () =>
   RouteTreeGen.createNavigateTo({path: [...Constants.devicesTabLocation, 'devicePaperKey']})
 
-let _wasOnDeviceTab = false
-const clearBadgesAfterNav = (state, action) => {
-  if (Constants.isLookingAtDevices(state, action)) {
-    _wasOnDeviceTab = true
-  } else if (_wasOnDeviceTab) {
-    _wasOnDeviceTab = false
-    // clear badges
-    return RPCTypes.deviceDismissDeviceChangeNotificationsRpcPromise().catch(logError)
-  }
-}
-
 const clearNavBadges = state => RPCTypes.deviceDismissDeviceChangeNotificationsRpcPromise().catch(logError)
 
 const receivedBadgeState = (state, action) =>

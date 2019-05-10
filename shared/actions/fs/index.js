@@ -17,7 +17,6 @@ import logger from '../../logger'
 import platformSpecificSaga from './platform-specific'
 import {getContentTypeFromURL} from '../platform-specific'
 import * as RouteTreeGen from '../route-tree-gen'
-import {getPathProps} from '../../route-tree'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
 import flags from '../../util/feature-flags'
 
@@ -759,7 +758,8 @@ const showMoveOrCopy = (state, action) =>
   RouteTreeGen.createNavigateAppend({path: [{props: {index: 0}, selected: 'destinationPicker'}]})
 
 const closeDestinationPicker = (state, action) => {
-  const currentRoutes = getPathProps(state.routeTree.routeState)
+  const currentRoutes = I.List()
+  // const currentRoutes = getPathProps(state.routeTree.routeState)
   const firstDestinationPickerIndex = currentRoutes.findIndex(({node}) => node === 'destinationPicker')
   const newRoute = currentRoutes.reduce(
     (routes, {node, props}, i) =>

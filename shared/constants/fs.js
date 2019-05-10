@@ -772,19 +772,6 @@ export const pathsInSameTlf = (a: Types.Path, b: Types.Path): boolean => {
   return elemsA.length >= 3 && elemsB.length >= 3 && elemsA[1] === elemsB[1] && elemsA[2] === elemsB[2]
 }
 
-export const destinationPickerGoToPathAction = (
-  routePath: I.List<string>,
-  destinationParentPath: Types.Path
-) => {
-  const to = {props: {destinationParentPath}, selected: 'destinationPicker'}
-  return RouteTreeGen.createPutActionIfOnPath({
-    expectedPath: routePath,
-    otherAction: isMobile
-      ? RouteTreeGen.createNavigateAppend({path: [to]})
-      : RouteTreeGen.createNavigateTo({path: [to]}),
-  })
-}
-
 export const escapePath = (path: Types.Path): string =>
   Types.pathToString(path).replace(/(\\)|( )/g, (match, p1, p2) => `\\${p1 || p2}`)
 export const unescapePath = (escaped: string): Types.Path =>

@@ -7,7 +7,6 @@ import {connect, type RouteProps} from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {teamsTab} from '../../constants/tabs'
 import {getSortedTeamnames} from '../../constants/teams'
-import flags from '../../util/feature-flags'
 
 type OwnProps = RouteProps<{isTeam: boolean}, {}>
 
@@ -29,9 +28,7 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp, routePro
         ? GitGen.createCreateTeamRepo({name, notifyTeam, teamname})
         : GitGen.createCreatePersonalRepo({name})
     dispatch(createAction)
-    if (flags.useNewRouter) {
-      dispatch(navigateUp())
-    }
+    dispatch(navigateUp())
   },
   onNewTeam: () => dispatch(RouteTreeGen.createNavigateTo({path: [teamsTab, 'teamNewTeamDialog']})),
 })

@@ -4,7 +4,6 @@ import * as Constants from '../../constants/devices'
 import * as DevicesGen from '../../actions/devices-gen'
 import DevicePage from '.'
 import {namedConnect, getRouteProps} from '../../util/container'
-import flags from '../../util/feature-flags'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {isMobile} from '../../constants/platform'
 
@@ -16,16 +15,14 @@ const mapStateToProps = (state, p: OwnProps) => {
   // It's a bad pattern to have navigation distributed across react-navigation
   // and our store. device id is purely an argument to the screen, the store
   // doesn't care about it.
-  const deviceID = flags.useNewRouter ? getRouteProps(p, 'deviceID') : state.devices.selectedDeviceID
-  return {
-    device: Constants.getDevice(state, deviceID),
-  }
+  const deviceID = getRouteProps(p, 'deviceID')
+  return {device: Constants.getDevice(state, deviceID)}
 }
 
 const mapDispatchToProps = dispatch => ({
   _showRevokeDevicePage: (deviceID: Types.DeviceID) => dispatch(DevicesGen.createShowRevokePage({deviceID})),
   onBack: () => {
-    if (!flags.useNewRouter || isMobile) {
+    if (isMobile) {
       dispatch(RouteTreeGen.createNavigateUp())
     }
   },

@@ -2,7 +2,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import flags from '../../util/feature-flags'
 
 type Props = {
   error: ?Error,
@@ -201,4 +200,4 @@ const _addIconStyle = {
   marginBottom: 27,
 }
 
-export default (flags.useNewRouter ? Kb.HeaderOrPopup(NewRepo) : NewRepo)
+export default Kb.HeaderOrPopup(NewRepo)

@@ -3,8 +3,6 @@ import * as TeamsGen from '../../../actions/teams-gen'
 import * as Container from '../../../util/container'
 import ReallyLeaveTeam from '.'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import {teamsTab} from '../../../constants/tabs'
-import flags from '../../../util/feature-flags'
 
 type OwnProps = Container.RouteProps<{username: string, teamname: string, email: string}, {}>
 
@@ -28,11 +26,7 @@ const mapDispatchToProps = (dispatch, ownProps) => {
           username,
         })
       )
-      dispatch(
-        flags.useNewRouter
-          ? RouteTreeGen.createNavUpToScreen({routeName: 'team'})
-          : RouteTreeGen.createNavigateTo({path: [teamsTab, {props: {teamname}, selected: 'team'}]})
-      )
+      dispatch(RouteTreeGen.createNavUpToScreen({routeName: 'team'}))
       dispatch(TeamsGen.createGetDetails({teamname}))
     },
   }

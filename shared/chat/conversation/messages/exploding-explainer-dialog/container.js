@@ -1,7 +1,6 @@
 // @flow
 import ExplodingExplainer from '.'
 import {type RouteProps} from '../../../../route-tree/render-route'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {compose, connect} from '../../../../util/container'
 
 type OwnProps = RouteProps<{}, {}>
@@ -9,16 +8,7 @@ type OwnProps = RouteProps<{}, {}>
 const mapStateToProps = (state, ownProps: OwnProps) => ({})
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
-  onCancel:
-    ownProps.routePath.size > 1
-      ? () =>
-          dispatch(
-            RouteTreeGen.createPutActionIfOnPath({
-              expectedPath: ownProps.routePath,
-              otherAction: RouteTreeGen.createNavigateUp(),
-            })
-          )
-      : () => {},
+  onCancel: () => {},
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({

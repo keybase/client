@@ -738,13 +738,6 @@ const maybeNavigateAwayFromSendForm = state => {
 }
 
 const maybeNavigateToConversation = (state, action, logger) => {
-  // nav to previewed conversation if we aren't already on the chat tab
-  const routeState = state.routeTree.routeState
-  const path = getPath(routeState)
-  if (path.first() === Tabs.chatTab) {
-    return maybeNavigateAwayFromSendForm(state)
-  }
-  // not on chat tab; preview
   logger.info('Navigating to conversation because we requested a payment')
   return Chat2Gen.createPreviewConversation({
     participants: [action.payload.requestee],
@@ -809,8 +802,8 @@ const maybeClearNewTxs = (state, action) => {
   // was the main transaction list for an account, clear new txs.
   if (
     state.routeTree.previousTab === Constants.rootWalletTab &&
-    rootTab !== Constants.rootWalletTab &&
-    Constants.isLookingAtWallet(state.routeTree.routeState)
+    rootTab !== Constants.rootWalletTab
+    // Constants.isLookingAtWallet(state.routeTree.routeState)
   ) {
     const accountID = state.wallets.selectedAccount
     if (accountID !== Types.noAccountID) {

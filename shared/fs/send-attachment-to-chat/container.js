@@ -5,7 +5,6 @@ import * as Types from '../../constants/types/fs'
 import {type RouteProps} from '../../route-tree/render-route'
 import {namedConnect} from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import flags from '../../util/feature-flags'
 import SendAttachmentToChat from '.'
 
 type OwnProps = RouteProps<{}, {}>
@@ -28,7 +27,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
         titles: [Types.getPathName(path)],
       })
     )
-    dispatch(flags.useNewRouter ? RouteTreeGen.createClearModals() : RouteTreeGen.createNavigateUp())
+    dispatch(RouteTreeGen.createClearModals())
     dispatch(
       ChatGen.createSelectConversation({
         conversationIDKey,
@@ -38,8 +37,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     dispatch(ChatGen.createNavigateToThread())
     dispatch(FsGen.createSentAttachmentToChat())
   },
-  onCancel: () =>
-    dispatch(flags.useNewRouter ? RouteTreeGen.createClearModals() : RouteTreeGen.createNavigateUp()),
+  onCancel: () => dispatch(RouteTreeGen.createClearModals()),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownPropps) => ({

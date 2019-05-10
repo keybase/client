@@ -9,7 +9,6 @@ import * as SettingsConstants from './settings'
 import {invert} from 'lodash-es'
 import {type TypedState} from './reducer'
 import HiddenString from '../util/hidden-string'
-import {getPath, type RouteStateNode} from '../route-tree'
 
 export const balanceDeltaToString: {
   [key: RPCTypes.BalanceDelta]: $Keys<typeof RPCTypes.localBalanceDelta>,
@@ -636,7 +635,3 @@ export const rootWalletPath = [rootWalletTab, ...(Styles.isMobile ? [SettingsCon
 export const walletPath = Styles.isMobile ? rootWalletPath : [...rootWalletPath, 'wallet'] // path to wallet
 
 const walletPathList = I.List(walletPath)
-export const isLookingAtWallet = (routeState: ?RouteStateNode) => {
-  const path = getPath(routeState, [rootWalletTab])
-  return path.equals(walletPathList)
-}

@@ -5,7 +5,6 @@ import * as Constants from '../../../constants/chat2'
 import {connect} from '../../../util/container'
 import {isMobile} from '../../../styles'
 import ConversationHeader from './normal/container'
-import flags from '../../../util/feature-flags'
 
 type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
@@ -41,4 +40,4 @@ const Connected = connect<OwnProps, _, _, _, _>(
 )(HeaderArea)
 
 const Empty = () => null
-export default (flags.useNewRouter && !isMobile ? Empty : Connected)
+export default (!isMobile ? Empty : Connected)

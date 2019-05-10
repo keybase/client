@@ -1,6 +1,5 @@
 // @flow
 import * as React from 'react'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Kb from '../common-adapters/mobile.native'
 import * as Styles from '../styles'
 import PushPrompt from './push-prompt.native'
@@ -12,8 +11,6 @@ import {View} from 'react-native'
 type OwnProps = {||}
 
 type Props = {
-  routeDef: any,
-  routeState: any,
   showPushPrompt: any,
 }
 

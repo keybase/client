@@ -21,8 +21,6 @@ import * as Router2 from '../../constants/router2'
 import * as FsTypes from '../../constants/types/fs'
 import * as FsConstants from '../../constants/fs'
 import URL from 'url-parse'
-import appRouteTree from '../../app/routes-app'
-import loginRouteTree from '../../app/routes-login'
 import avatarSaga from './avatar'
 import {isMobile} from '../../constants/platform'
 import {type TypedState} from '../../constants/reducer'
@@ -222,7 +220,7 @@ function* loadDaemonAccounts(state, action) {
 }
 
 const showDeletedSelfRootPage = () => [
-  RouteTreeGen.createSwitchRouteDef({routeDef: loginRouteTree}),
+  RouteTreeGen.createSwitchRouteDef({loggedIn: false}),
   RouteTreeGen.createNavigateTo({path: [Tabs.loginTab]}),
 ]
 
@@ -230,10 +228,10 @@ const switchRouteDef = (state, action) => {
   if (state.config.loggedIn) {
     if (action.type === ConfigGen.loggedIn && !action.payload.causedByStartup) {
       // only do this if we're not handling the initial loggedIn event, cause its handled by routeToInitialScreenOnce
-      return RouteTreeGen.createSwitchRouteDef({routeDef: appRouteTree})
+      return RouteTreeGen.createSwitchRouteDef({loggedIn: true})
     }
   } else {
-    return RouteTreeGen.createSwitchRouteDef({routeDef: loginRouteTree})
+    return RouteTreeGen.createSwitchRouteDef({loggedIn: false})
   }
 }
 
@@ -309,7 +307,7 @@ const routeToInitialScreen = state => {
         }),
       ]
       return [
-        RouteTreeGen.createSwitchRouteDef({path: [Tabs.chatTab], routeDef: appRouteTree}),
+        RouteTreeGen.createSwitchRouteDef({path: [Tabs.chatTab], loggedIn: true}),
         RouteTreeGen.createResetStack({actions, index: 1, tab: Tabs.chatTab}),
         ChatGen.createSelectConversation({
           conversationIDKey: state.config.startupConversation,
@@ -321,7 +319,7 @@ const routeToInitialScreen = state => {
     // A share
     if (state.config.startupSharePath) {
       return [
-        RouteTreeGen.createSwitchRouteDef({path: FsConstants.fsRootRouteForNav1, routeDef: appRouteTree}),
+        RouteTreeGen.createSwitchRouteDef({path: FsConstants.fsRootRouteForNav1, loggedIn: true}),
         // $FlowIssue thinks it's undefined
         FsGen.createSetIncomingShareLocalPath({localPath: state.config.startupSharePath}),
         FsGen.createShowIncomingShare({initialDestinationParentPath: FsTypes.stringToPath('/keybase')}),
@@ -331,7 +329,7 @@ const routeToInitialScreen = state => {
     // A follow
     if (state.config.startupFollowUser) {
       return [
-        RouteTreeGen.createSwitchRouteDef({path: [Tabs.peopleTab], routeDef: appRouteTree}),
+        RouteTreeGen.createSwitchRouteDef({path: [Tabs.peopleTab], loggedIn: true}),
         ProfileGen.createShowUserProfile({username: state.config.startupFollowUser}),
       ]
     }
@@ -344,7 +342,7 @@ const routeToInitialScreen = state => {
         logger.info('AppLink: url', url.href, 'username', username)
         if (username) {
           return [
-            RouteTreeGen.createSwitchRouteDef({path: [Tabs.peopleTab], routeDef: appRouteTree}),
+            RouteTreeGen.createSwitchRouteDef({path: [Tabs.peopleTab], loggedIn: true}),
             ProfileGen.createShowUserProfile({username}),
           ]
         }
@@ -356,12 +354,12 @@ const routeToInitialScreen = state => {
     // Just a saved tab
     return RouteTreeGen.createSwitchRouteDef({
       path: [state.config.startupTab || Tabs.peopleTab],
-      routeDef: appRouteTree,
+      loggedIn: true,
     })
   } else {
     // Show a login screen
     return [
-      RouteTreeGen.createSwitchRouteDef({routeDef: loginRouteTree}),
+      RouteTreeGen.createSwitchRouteDef({loggedIn: false}),
       RouteTreeGen.createNavigateTo({parentPath: [Tabs.loginTab], path: []}),
     ]
   }

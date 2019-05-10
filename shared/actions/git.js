@@ -87,18 +87,6 @@ const setTeamRepoSettings = (_, action) =>
     repoID: action.payload.repoID,
   }).then(() => GitGen.createLoadGit())
 
-let _wasOnGitTab = false
-const clearBadgesAfterNav = (state, action) => {
-  // on the git tab?
-  if (Constants.isLookingAtGit(state, action)) {
-    _wasOnGitTab = true
-  } else if (_wasOnGitTab) {
-    _wasOnGitTab = false
-    // clear badges
-    return clearNavBadges()
-  }
-}
-
 const clearNavBadges = () =>
   RPCTypes.gregorDismissCategoryRpcPromise({
     category: 'new_git_repo',
@@ -113,15 +101,6 @@ const handleIncomingGregor = (_, action) => {
       return GitGen.createLoadGit()
     }
   }
-}
-
-const navToGit = (_, action) => {
-  const {routeState} = action.payload
-  const path = isMobile ? [Tabs.settingsTab, SettingsConstants.gitTab] : [Tabs.gitTab]
-  return [
-    RouteTreeGen.createNavigateTo({parentPath: [], path}),
-    routeState && RouteTreeGen.createSetRouteState({partialState: routeState, path}),
-  ]
 }
 
 function* navigateToTeamRepo(state, action) {

@@ -130,16 +130,6 @@ const connected = () => {
     .catch(error => console.warn('Error in registering home UI:', error))
 }
 
-const onNavigateTo = (state, action) => {
-  const list = I.List(action.payload.path)
-  const root = list.first()
-  const peoplePath = getPath(state.routeTree.routeState, [peopleTab])
-  if (root === peopleTab && peoplePath.size === 2 && peoplePath.get(1) === 'profile' && _wasOnPeopleTab) {
-    // Navigating away from the people tab root to a profile page.
-    return PeopleGen.createMarkViewed()
-  }
-}
-
 const networkErrors = [
   RPCTypes.constantsStatusCode.scgenericapierror,
   RPCTypes.constantsStatusCode.scapinetworkerror,

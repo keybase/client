@@ -10,8 +10,6 @@ import * as RouteTreeGen from '../route-tree-gen'
 import * as Tracker2Gen from '../tracker2-gen'
 import * as Tracker2Constants from '../../constants/tracker2'
 import {peopleTab} from '../../constants/tabs'
-import {getPath} from '../../route-tree'
-import flags from '../../util/feature-flags'
 import openURL from '../../util/open-url'
 
 const checkProof = (state, action) => {
@@ -315,7 +313,6 @@ function* proofsSaga(): Saga.SagaGenerator<any, any> {
     [ProfileGen.submitBTCAddress, ProfileGen.submitZcashAddress],
     submitCryptoAddress
   )
-  yield* Saga.chainAction<ProfileGen.CancelAddProofPayload>(ProfileGen.cancelAddProof, cancelAddProof)
   yield* Saga.chainGenerator<ProfileGen.AddProofPayload>(ProfileGen.addProof, addProof)
   yield* Saga.chainAction<ProfileGen.CheckProofPayload>(ProfileGen.checkProof, checkProof)
   yield* Saga.chainAction<ProfileGen.RecheckProofPayload>(ProfileGen.recheckProof, recheckProof)

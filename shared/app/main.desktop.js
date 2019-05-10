@@ -1,6 +1,5 @@
 // @flow
 import {hot} from 'react-hot-loader/root'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as React from 'react'
 import RouterSwitcheroo from '../router-v2/switcheroo'
 import {connect} from '../util/container'
@@ -8,7 +7,6 @@ import * as SafeElectron from '../util/safe-electron.desktop'
 import {isWindows} from '../constants/platform'
 import {resolveImage} from '../desktop/app/resolve-root.desktop'
 import {getMainWindow} from '../desktop/remote/util.desktop'
-import {type RouteDefNode, type RouteStateNode, type Path} from '../route-tree'
 // Uncomment to get more info on hot loading
 // import {setConfig} from 'react-hot-loader'
 // setConfig({logLevel: 'debug'})
@@ -19,10 +17,6 @@ type Props = {
   widgetBadge: boolean,
   desktopAppBadgeCount: number,
   username: string,
-  navigateUp: () => void,
-  routeDef: RouteDefNode,
-  routeState: RouteStateNode,
-  setRouteState: (path: Path, partialState: {}) => void,
 }
 
 // TODO likely remove this class
@@ -64,12 +58,7 @@ const mapStateToProps = state => ({
   widgetBadge: state.notifications.get('widgetBadge') || false,
 })
 
-const mapDispatchToProps = dispatch => ({
-  navigateUp: () => dispatch(RouteTreeGen.createNavigateUp()),
-  setRouteState: (path, partialState) => {
-    dispatch(RouteTreeGen.createSetRouteState({partialState, path}))
-  },
-})
+const mapDispatchToProps = dispatch => ({})
 
 export default hot(
   connect<OwnProps, _, _, _, _>(

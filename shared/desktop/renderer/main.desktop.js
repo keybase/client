@@ -129,19 +129,16 @@ function setupHMR(store) {
     return
   }
 
-  const refreshRoutes = () => {
-    const appRouteTree = require('../../app/routes-app').default
-    const loginRouteTree = require('../../app/routes-login').default
-    store.dispatch(RouteTreeGen.createRefreshRouteDef({appRouteTree, loginRouteTree}))
+  const refreshMain = () => {
     try {
       const NewMain = require('../../app/main.desktop').default
       render(store, NewMain)
     } catch (_) {}
   }
 
-  accept(['../../app/main.desktop', '../../app/routes-app', '../../app/routes-login'], refreshRoutes)
+  accept(['../../app/main.desktop'], refreshMain)
   accept('../../common-adapters/index.js', () => {})
-  setupLoginHMR(refreshRoutes)
+  setupLoginHMR(refreshMain)
 }
 
 function load() {

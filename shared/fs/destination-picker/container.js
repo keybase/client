@@ -6,7 +6,6 @@ import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
 import {isMobile} from '../../constants/platform'
-import flags from '../../util/feature-flags'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 type OwnProps = RouteProps<
@@ -39,34 +38,22 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
     ).forEach(action => dispatch(action)),
   _onCopyHere: destinationParentPath => {
     dispatch(FsGen.createCopy({destinationParentPath}))
-    if (flags.useNewRouter) {
-      dispatch(FsGen.createClearRefreshTag({refreshTag: 'destination-picker'}))
-      dispatch(RouteTreeGen.createClearModals())
-    } else {
-      dispatch(FsGen.createCloseDestinationPicker())
-    }
+    dispatch(FsGen.createClearRefreshTag({refreshTag: 'destination-picker'}))
+    dispatch(RouteTreeGen.createClearModals())
   },
   _onMoveHere: destinationParentPath => {
     dispatch(FsGen.createMove({destinationParentPath}))
-    if (flags.useNewRouter) {
-      dispatch(FsGen.createClearRefreshTag({refreshTag: 'destination-picker'}))
-      dispatch(RouteTreeGen.createClearModals())
-      dispatch(
-        RouteTreeGen.createNavigateAppend({path: [{props: {path: destinationParentPath}, selected: 'main'}]})
-      )
-    } else {
-      dispatch(Constants.makeActionForOpenPathInFilesTab(destinationParentPath, ownProps.routePath))
-    }
+    dispatch(FsGen.createClearRefreshTag({refreshTag: 'destination-picker'}))
+    dispatch(RouteTreeGen.createClearModals())
+    dispatch(
+      RouteTreeGen.createNavigateAppend({path: [{props: {path: destinationParentPath}, selected: 'main'}]})
+    )
   },
   _onNewFolder: destinationParentPath =>
     dispatch(FsGen.createNewFolderRow({parentPath: destinationParentPath})),
   onCancel: () => {
-    if (flags.useNewRouter) {
-      dispatch(FsGen.createClearRefreshTag({refreshTag: 'destination-picker'}))
-      dispatch(RouteTreeGen.createClearModals())
-    } else {
-      dispatch(FsGen.createCloseDestinationPicker())
-    }
+    dispatch(FsGen.createClearRefreshTag({refreshTag: 'destination-picker'}))
+    dispatch(RouteTreeGen.createClearModals())
   },
 })
 

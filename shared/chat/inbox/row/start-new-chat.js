@@ -2,7 +2,6 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import flags from '../../../util/feature-flags'
 
 type Props = {
   onBack: () => void,
@@ -10,7 +9,7 @@ type Props = {
 }
 
 const StartNewChat = (props: Props) => {
-  if (!flags.useNewRouter || Styles.isMobile) {
+  if (Styles.isMobile) {
     return (
       <Kb.Box style={styles.container}>
         <Kb.ClickableBox style={styles.clickableBox} onClick={props.onNewChat}>

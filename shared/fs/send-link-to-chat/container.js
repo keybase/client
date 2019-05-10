@@ -8,7 +8,6 @@ import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
 import * as ChatGen from '../../actions/chat2-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import flags from '../../util/feature-flags'
 import SendLinkToChat from '.'
 
 type OwnProps = {
@@ -22,14 +21,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
   _onSent: (conversationIDKey: ChatTypes.ConversationIDKey) => {
-    dispatch(
-      flags.useNewRouter
-        ? RouteTreeGen.createClearModals()
-        : RouteTreeGen.createPutActionIfOnPath({
-            expectedPath: ownProps.routePath,
-            otherAction: RouteTreeGen.createNavigateUp(),
-          })
-    )
+    dispatch(RouteTreeGen.createClearModals())
     dispatch(
       ChatGen.createSelectConversation({
         conversationIDKey,
@@ -42,15 +34,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     dispatch(FsGen.createSetSendLinkToChatConvID({convID})),
   _send: (conversationIDKey: ChatTypes.ConversationIDKey, text: string) =>
     dispatch(FsGen.createTriggerSendLinkToChat()),
-  onCancel: () =>
-    dispatch(
-      flags.useNewRouter
-        ? RouteTreeGen.createClearModals()
-        : RouteTreeGen.createPutActionIfOnPath({
-            expectedPath: ownProps.routePath,
-            otherAction: RouteTreeGen.createNavigateUp(),
-          })
-    ),
+  onCancel: () => dispatch(RouteTreeGen.createClearModals()),
 })
 
 const mergeProps = (stateProps, {onCancel, _onSent, _send, _selectChannel}, ownProps) => {
