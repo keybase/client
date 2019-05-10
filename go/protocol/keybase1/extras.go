@@ -2325,28 +2325,6 @@ func (i TeamInviteID) Eq(i2 TeamInviteID) bool {
 	return string(i) == string(i2)
 }
 
-func TeamInviteTypeFromString(s string, isDev bool) (TeamInviteType, error) {
-	switch s {
-	case "keybase":
-		return NewTeamInviteTypeDefault(TeamInviteCategory_KEYBASE), nil
-	case "email":
-		return NewTeamInviteTypeDefault(TeamInviteCategory_EMAIL), nil
-	case "twitter", "github", "facebook", "reddit", "hackernews", "pgp", "http", "https", "dns":
-		return NewTeamInviteTypeWithSbs(TeamInviteSocialNetwork(s)), nil
-	case "seitan_invite_token":
-		return NewTeamInviteTypeDefault(TeamInviteCategory_SEITAN), nil
-	case "phone":
-		return NewTeamInviteTypeDefault(TeamInviteCategory_PHONE), nil
-	default:
-		if isDev && s == "rooter" {
-			return NewTeamInviteTypeWithSbs(TeamInviteSocialNetwork(s)), nil
-		}
-		// Don't want to break existing clients if we see an unknown invite
-		// type.
-		return NewTeamInviteTypeWithUnknown(s), nil
-	}
-}
-
 func (t TeamInviteType) String() (string, error) {
 	c, err := t.C()
 	if err != nil {
