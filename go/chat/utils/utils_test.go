@@ -327,6 +327,10 @@ func TestDecorateLinks(t *testing.T) {
 			body:   "mike.maxim@gmail.com/google.com",
 			result: "$>kb$eyJ0eXAiOjUsIm1haWx0byI6eyJkaXNwbGF5IjoibWlrZS5tYXhpbUBnbWFpbC5jb20iLCJ1cmwiOiJtYWlsdG86bWlrZS5tYXhpbUBnbWFpbC5jb20ifX0=$<kb$/$>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6Imdvb2dsZS5jb20iLCJ1cmwiOiJodHRwOi8vZ29vZ2xlLmNvbSJ9fQ==$<kb$",
 		},
+		decorateLinkTest{
+			body:   "https://medium.com/@wouterarkink/https-medium-com-wouterarkink-how-to-send-money-to-anyone-in-the-world-by-only-knowing-their-social-handle-3180e6cd4e58",
+			result: "$>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6Imh0dHBzOi8vbWVkaXVtLmNvbS9Ad291dGVyYXJraW5rL2h0dHBzLW1lZGl1bS1jb20td291dGVyYXJraW5rLWhvdy10by1zZW5kLW1vbmV5LXRvLWFueW9uZS1pbi10aGUtd29ybGQtYnktb25seS1rbm93aW5nLXRoZWlyLXNvY2lhbC1oYW5kbGUtMzE4MGU2Y2Q0ZTU4IiwidXJsIjoiaHR0cHM6Ly9tZWRpdW0uY29tL0B3b3V0ZXJhcmtpbmsvaHR0cHMtbWVkaXVtLWNvbS13b3V0ZXJhcmtpbmstaG93LXRvLXNlbmQtbW9uZXktdG8tYW55b25lLWluLXRoZS13b3JsZC1ieS1vbmx5LWtub3dpbmctdGhlaXItc29jaWFsLWhhbmRsZS0zMTgwZTZjZDRlNTgifX0=$<kb$",
+		},
 	}
 	for _, c := range cases {
 		res := DecorateWithLinks(context.TODO(), c.body)
