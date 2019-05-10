@@ -6,7 +6,6 @@ import Box from '../box'
 import Icon from '../icon'
 import * as Styles from '../../styles'
 import type {Props, LeftActionProps} from './types'
-import flags from '../../util/feature-flags'
 
 export const HeaderHocHeader = ({
   headerStyle,
@@ -21,14 +20,6 @@ export const HeaderHocHeader = ({
 }: Props) => (
   <Box style={Styles.collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle])}>
     {customComponent}
-    {onBack && !flags.useNewRouter && (
-      <BackButton
-        key="back"
-        hideBackLabel={hideBackLabel}
-        onClick={onBack}
-        style={{..._backButtonIconStyle, ..._backButtonIconStyleThemed[theme]}}
-      />
-    )}
     {onCancel && (
       <Icon
         style={Styles.collapseStyles([_styleClose, _styleCloseThemed[theme]])}
@@ -84,15 +75,7 @@ export const LeftAction = ({
 )
 
 function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
-  return (props: P & Props) =>
-    flags.useNewRouter ? (
-      <WrappedComponent {...(props: P)} />
-    ) : (
-      <Box style={_containerStyle}>
-        <HeaderHocHeader {...props} />
-        <WrappedComponent {...(props: P)} />
-      </Box>
-    )
+  return (props: P & Props) => <WrappedComponent {...(props: P)} />
 }
 
 const _containerStyle = {
@@ -105,7 +88,7 @@ const _headerStyle = {
   alignItems: 'center',
   flexShrink: 0,
   justifyContent: 'flex-start',
-  minHeight: flags.useNewRouter ? undefined : 48,
+  minHeight: undefined,
   paddingLeft: Styles.globalMargins.small,
   paddingRight: Styles.globalMargins.small,
   position: 'relative',

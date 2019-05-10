@@ -8,7 +8,6 @@ import {hideDockIcon} from './dock-icon.desktop'
 import {isDarwin, isWindows} from '../../constants/platform'
 import logger from '../../logger'
 import {resolveRootAsURL} from './resolve-root.desktop'
-import flags from '../../util/feature-flags'
 
 const htmlFile = resolveRootAsURL('dist', `main${__DEV__ ? '.dev' : ''}.html`)
 
@@ -51,11 +50,7 @@ export default function() {
     width: appState.state.width,
     x: appState.state.x,
     y: appState.state.y,
-    ...(flags.useNewRouter && isDarwin
-      ? {
-          titleBarStyle: 'hiddenInset',
-        }
-      : {}),
+    ...(isDarwin ? {titleBarStyle: 'hiddenInset'} : {}),
   })
 
   const webContents = mainWindow.window.webContents

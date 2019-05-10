@@ -3,9 +3,8 @@ import * as React from 'react'
 import * as TabConstants from '../../constants/tabs'
 import * as Constants from '../../constants/settings'
 import {globalStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
-import {HeaderHoc, NativeSectionList, Text} from '../../common-adapters/mobile.native'
+import {NativeSectionList, Text} from '../../common-adapters/mobile.native'
 import {isAndroid} from '../../constants/platform'
-import flags from '../../util/feature-flags'
 import SettingsItem from './settings-item'
 
 import type {Props} from './index'
@@ -30,18 +29,6 @@ function SettingsNav(props: Props) {
       sections={[
         {
           data: [
-            ...[
-              flags.useNewRouter
-                ? []
-                : [
-                    {
-                      badgeNumber: props.badgeNumbers[TabConstants.fsTab],
-                      icon: 'iconfont-nav-files',
-                      onClick: () => props.onTabChange(Constants.fsTab),
-                      text: 'Files',
-                    },
-                  ],
-            ],
             {
               badgeNumber: props.badgeNumbers[TabConstants.gitTab],
               icon: 'iconfont-nav-git',
@@ -118,4 +105,4 @@ const styles = styleSheetCreate({
   },
 })
 
-export default (flags.useNewRouter ? SettingsNav : HeaderHoc(SettingsNav))
+export default SettingsNav

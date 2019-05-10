@@ -147,31 +147,6 @@ function* addProof(state, action) {
     }
   })
 
-  const watchForNavUp = yield Saga._fork(function*() {
-    // TODO remove this when flags.useNewRouter is removed
-    // nav2 should use navigationOptions.gesturesEnabled = false
-    // to disable sidestepping custom behavior on back
-    // Check that those exist before removing this
-    while (true) {
-      yield Saga.take(RouteTreeGen.navigateUp)
-      const state = yield Saga.selectState()
-      const path = getPath(state.routeTree.routeState)
-      if (
-        ![
-          'profileGenericEnterUsername',
-          'profileProveEnterUsername',
-          'profileConfirmOrPending',
-          'profilePostProof',
-          'profileGenericProofSuccess',
-        ].includes(path.last()) &&
-        !canceled
-      ) {
-        // We nav'd away without canceling
-        yield Saga.put(ProfileGen.createCancelAddProof())
-      }
-    }
-  })
-
   const promptUsername = (args, response) => {
     const {parameters, prevError} = args
     if (canceled) {
@@ -299,12 +274,8 @@ function* addProof(state, action) {
   cancelTask.cancel()
   checkProofTask.cancel()
   submitUsernameTask.cancel()
-  watchForNavUp.cancel()
   addProofInProgress = false
 }
-
-const cancelAddProof = state =>
-  !flags.useNewRouter && ProfileGen.createShowUserProfile({username: state.config.username})
 
 const submitCryptoAddress = (state, action) => {
   if (!state.profile.usernameValid) {

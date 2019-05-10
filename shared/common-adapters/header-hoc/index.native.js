@@ -8,7 +8,6 @@ import Icon from '../icon'
 import SafeAreaView, {SafeAreaViewTop} from '../safe-area-view'
 import * as Styles from '../../styles'
 import type {Action, Props, LeftActionProps} from './types'
-import flags from '../../util/feature-flags'
 
 const MAX_RIGHT_ACTIONS = 3
 type State = {|
@@ -109,7 +108,7 @@ export class HeaderHocHeader extends React.Component<Props, State> {
     if (Styles.isAndroid) {
       return header
     }
-    return flags.useNewRouter && !this.props.underNotch ? <SafeAreaViewTop>{header}</SafeAreaViewTop> : header
+    return !this.props.underNotch ? <SafeAreaViewTop>{header}</SafeAreaViewTop> : header
   }
 }
 

@@ -4,11 +4,6 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {peopleTab} from '../../constants/tabs'
-import flags from '../../util/feature-flags'
-
-const navBack = flags.useNewRouter
-  ? null
-  : Saga.put(RouteTreeGen.createNavigateTo({path: [peopleTab, 'profile']}))
 
 function* generatePgp(state) {
   let canceled = false
@@ -24,7 +19,6 @@ function* generatePgp(state) {
   const onKeyGenerated = ({key}, response) => {
     if (canceled) {
       response.error({code: RPCTypes.constantsStatusCode.scinputcanceled, desc: 'Input canceled'})
-      return navBack
     } else {
       response.result()
       return Saga.put(ProfileGen.createUpdatePgpPublicKey({publicKey: key.key}))
@@ -50,7 +44,6 @@ function* generatePgp(state) {
       )
       const action: ProfileGen.FinishedWithKeyGenPayload = yield Saga.take(ProfileGen.finishedWithKeyGen)
       response.result(action.payload.shouldStoreKeyOnServer)
-      yield navBack
     })
   }
   const onFinished = () => {}
@@ -63,7 +56,6 @@ function* generatePgp(state) {
   // We allow the UI to cancel this call. Just stash this intention and nav away and response with an error to the rpc
   const cancelTask = yield Saga._fork(function*() {
     yield Saga.take(ProfileGen.cancelPgpGen)
-    yield navBack
     canceled = true
   })
   try {

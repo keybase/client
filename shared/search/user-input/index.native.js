@@ -93,7 +93,7 @@ class UserItem extends Component<UserItemProps, UserItemState> {
             observe it being removed when the value changes. */}
         {isSelected && (
           <TextInput
-            autoFocus={!flags.useNewRouter}
+            autoFocus={false}
             onBlur={this._onDeselect}
             onChangeText={this._onChangeText}
             value=" "

@@ -12,7 +12,6 @@ import Root from './container.desktop'
 import configureStore from '../../store/configure-store'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {makeEngine} from '../../engine'
-import loginRouteTree from '../../app/routes-login'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import {merge} from 'lodash-es'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
@@ -124,10 +123,6 @@ function render(store, MainComponent) {
   )
 }
 
-function setupRoutes(store) {
-  store.dispatch(RouteTreeGen.createSetInitialRouteDef({routeDef: loginRouteTree}))
-}
-
 function setupHMR(store) {
   const accept = module.hot?.accept
   if (!accept) {
@@ -159,9 +154,6 @@ function load() {
   initDesktopStyles()
   const {store, runSagas} = setupStore()
   setupApp(store, runSagas)
-  if (!flags.useNewRouter) {
-    setupRoutes(store)
-  }
   setupHMR(store)
   render(store, Main)
 }

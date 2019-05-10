@@ -6,7 +6,6 @@ import NewTeamDialog from './'
 import {upperFirst} from 'lodash-es'
 import * as WaitingConstants from '../../constants/waiting'
 import * as Constants from '../../constants/teams'
-import flags from '../../util/feature-flags'
 
 type OwnProps = Container.RouteProps<{makeSubteam: boolean, name: string}, {}>
 
@@ -16,16 +15,8 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
-  _onCreateNewTeam: (joinSubteam: boolean, teamname: string) => {
-    if (flags.useNewRouter) {
-      dispatch(TeamsGen.createCreateNewTeam({joinSubteam, teamname}))
-    } else {
-      const rootPath = ownProps.routePath.take(1)
-      const sourceSubPath = ownProps.routePath.rest()
-      const destSubPath = sourceSubPath.butLast()
-      dispatch(TeamsGen.createCreateNewTeam({destSubPath, joinSubteam, rootPath, sourceSubPath, teamname}))
-    }
-  },
+  _onCreateNewTeam: (joinSubteam: boolean, teamname: string) =>
+    dispatch(TeamsGen.createCreateNewTeam({joinSubteam, teamname})),
   onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
   onSetTeamCreationError: (error: string) => {
     dispatch(TeamsGen.createSetTeamCreationError({error}))

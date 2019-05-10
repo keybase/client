@@ -7,7 +7,6 @@ import * as TeamBuildingConstants from '../../constants/team-building'
 import {clamp} from 'lodash-es'
 import {chatTab} from '../tabs'
 import type {TypedState} from '../reducer'
-import {getPath} from '../../route-tree'
 import {isMobile} from '../platform'
 import {
   noConversationIDKey,
@@ -18,7 +17,6 @@ import {
 import {getEffectiveRetentionPolicy, getMeta} from './meta'
 import {formatTextForQuoting} from '../../util/chat'
 import * as Router2 from '../router2'
-import flags from '../../util/feature-flags'
 import HiddenString from '../../util/hidden-string'
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
@@ -201,21 +199,10 @@ export const isUserActivelyLookingAtThisThread = (
   const selectedConversationIDKey = getSelectedConversation(state)
 
   let chatThreadSelected = false
-  if (flags.useNewRouter) {
-    if (isMobile) {
-      chatThreadSelected = true // conversationIDKey === selectedConversationIDKey is the only thing that matters in the new router
-    } else {
-      chatThreadSelected = Router2.getVisibleScreen()?.routeName === 'chatRoot'
-    }
-    // TODO remove this var when we switch entirely
+  if (isMobile) {
+    chatThreadSelected = true // conversationIDKey === selectedConversationIDKey is the only thing that matters in the new router
   } else {
-    const routePath = getPath(state.routeTree.routeState)
-    if (isMobile) {
-      chatThreadSelected =
-        routePath.size === 2 && routePath.get(0) === chatTab && routePath.get(1) === 'chatConversation'
-    } else {
-      chatThreadSelected = routePath.size >= 1 && routePath.get(0) === chatTab
-    }
+    chatThreadSelected = Router2.getVisibleScreen()?.routeName === 'chatRoot'
   }
 
   return (
@@ -229,14 +216,8 @@ export const isTeamConversationSelected = (state: TypedState, teamname: string) 
   const meta = getMeta(state, getSelectedConversation(state))
   return meta.teamname === teamname
 }
-export const isInfoPanelOpen = (state: TypedState) => {
-  if (flags.useNewRouter) {
-    return Router2.getVisibleScreen()?.routeName === 'chatInfoPanel'
-  } else {
-    const routePath = getPath(state.routeTree.routeState, [chatTab])
-    return routePath.size === 3 && routePath.get(2) === 'chatInfoPanel'
-  }
-}
+export const isInfoPanelOpen = (state: TypedState) =>
+  Router2.getVisibleScreen()?.routeName === 'chatInfoPanel'
 
 export const inboxSearchNewKey = 'chat:inboxSearchNew'
 export const waitingKeyJoinConversation = 'chat:joinConversation'
@@ -324,11 +305,7 @@ export const anyToConversationMembersType = (a: any): ?RPCChatTypes.Conversation
   }
 }
 
-export const threadRoute = isMobile
-  ? [chatTab, 'chatConversation']
-  : flags.useNewRouter
-  ? [{props: {}, selected: chatTab}]
-  : [{props: {}, selected: chatTab}, {props: {}, selected: null}]
+export const threadRoute = isMobile ? [chatTab, 'chatConversation'] : [{props: {}, selected: chatTab}]
 export const newRouterThreadRoute = isMobile ? ['chatConversation'] : [chatTab]
 
 const numMessagesOnInitialLoad = isMobile ? 20 : 100
