@@ -32,7 +32,7 @@ const _AddWallet = (props: AddProps & Kb.OverlayParentProps) => {
         style={styles.addContainerBox}
         direction="horizontal"
         fullWidth={true}
-        className="hover_background_color_blueGrey2"
+        className="hover_background_color_blueGreyDark"
       >
         <Kb.Icon type="icon-wallet-placeholder-add-32" style={Kb.iconCastPlatformStyles(styles.icon)} />
         <Kb.Text type="BodySemibold">Add an account</Kb.Text>
@@ -60,7 +60,7 @@ const JoinAirdrop = p => (
       ])}
       direction="horizontal"
       fullWidth={true}
-      className="hover_background_color_blueGrey2"
+      className="hover_background_color_blueGreyDark"
     >
       <Kb.Icon type="icon-airdrop-star-32" style={Kb.iconCastPlatformStyles(styles.icon)} />
       <Kb.Text negative={p.selected} type="BodySemibold">

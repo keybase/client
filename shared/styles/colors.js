@@ -30,7 +30,7 @@ const colors = {
   blueLighter2: '#EBF2FC',
   blueLighter3: '#F7F9FC',
   blueGrey: '#F2F4F7',
-  blueGrey2: '#E0E8F6',
+  blueGreyDark: '#E0E8F6',
   blue_30: 'rgba(51, 160, 255, 0.3)',
   blue_30_on_white: 'rgb(192,226,255)',
   blue_60: 'rgba(51, 160, 255, 0.6)',

@@ -32,7 +32,7 @@ class BigTeamChannel extends PureComponent<Props, State> {
       <Kb.ClickableBox onClick={this.props.onSelectConversation} style={styles.container}>
         <Kb.Box style={styles.rowContainer}>
           <Kb.Box2
-            className="hover_background_color_blueGrey2"
+            className="hover_background_color_blueGreyDark"
             direction="horizontal"
             fullWidth={!Styles.isMobile}
             style={Styles.collapseStyles([
