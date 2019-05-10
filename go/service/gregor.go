@@ -279,14 +279,14 @@ func (g *gregorHandler) monitorAppState() {
 	for {
 		monitorAction := monitorNoop
 		select {
-		case mobileState := <-g.G().MobileAppState.NextUpdate(&state):
-			switch mobileState {
+		case state = <-g.G().MobileAppState.NextUpdate(&state):
+			switch state {
 			case keybase1.MobileAppState_FOREGROUND, keybase1.MobileAppState_BACKGROUNDACTIVE:
 				monitorAction = monitorConnect
 			case keybase1.MobileAppState_BACKGROUND, keybase1.MobileAppState_INACTIVE:
 				monitorAction = monitorDisconnect
 			}
-		case suspended := <-g.G().DesktopAppState.NextSuspendUpdate(&suspended):
+		case suspended = <-g.G().DesktopAppState.NextSuspendUpdate(&suspended):
 			if !suspended {
 				monitorAction = monitorConnect
 			} else {
