@@ -715,30 +715,30 @@ func SendPathPaymentGUI(mctx libkb.MetaContext, walletState *WalletState, sendAr
 	return sendPathPayment(mctx, walletState, sendArg)
 }
 
-func sendPathPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendPathPaymentArg) (res SendPaymentResult, err error) {
+// PathPaymentTx reutrns a signed path payment tx.
+func PathPaymentTx(mctx libkb.MetaContext, walletState *WalletState, sendArg SendPathPaymentArg) (*stellarnet.SignResult, *stellar1.BundleEntry, *stellarcommon.Recipient, error) {
 	senderEntry, senderAccountBundle, err := LookupSender(mctx, sendArg.From)
 	if err != nil {
-		return res, err
+		return nil, nil, nil, err
 	}
 	senderSeed, err := stellarnet.NewSeedStr(senderAccountBundle.Signers[0].SecureNoLogString())
 	if err != nil {
-		return res, err
+		return nil, nil, nil, err
 	}
-	senderAccountID := senderEntry.AccountID
 
 	recipient, err := LookupRecipient(mctx, stellarcommon.RecipientInput(sendArg.To), false)
 	if err != nil {
-		return res, err
+		return nil, nil, nil, err
 	}
 	if recipient.AccountID == nil {
-		return res, errors.New("cannot send a path payment to a user without a stellar account")
+		return nil, nil, nil, errors.New("cannot send a path payment to a user without a stellar account")
 	}
 
 	baseFee := walletState.BaseFee(mctx)
 
 	to, err := stellarnet.NewAddressStr(recipient.AccountID.String())
 	if err != nil {
-		return res, err
+		return nil, nil, nil, err
 	}
 
 	sp, unlock := NewSeqnoProvider(mctx, walletState)
@@ -746,8 +746,18 @@ func sendPathPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg S
 
 	sig, err := stellarnet.PathPaymentTransaction(senderSeed, to, sendArg.Path.SourceAsset, sendArg.Path.SourceAmountMax, sendArg.Path.DestinationAsset, sendArg.Path.DestinationAmount, AssetSliceToAssetBase(sendArg.Path.Path), sendArg.PublicMemo, sp, nil, baseFee)
 	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	return &sig, &senderEntry, &recipient, nil
+}
+
+func sendPathPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendPathPaymentArg) (res SendPaymentResult, err error) {
+	sig, senderEntry, recipient, err := PathPaymentTx(mctx, walletState, sendArg)
+	if err != nil {
 		return res, err
 	}
+	senderAccountID := senderEntry.AccountID
 
 	post := stellar1.PathPaymentPost{
 		FromDeviceID:      mctx.G().ActiveDevice.DeviceID(),
@@ -799,7 +809,7 @@ func sendPathPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg S
 
 	if senderEntry.IsPrimary {
 		sendChat := func(mctx libkb.MetaContext) {
-			if err := chatSendPaymentMessage(mctx, recipient, rres.StellarID); err != nil {
+			if err := chatSendPaymentMessage(mctx, *recipient, rres.StellarID); err != nil {
 				// if the chat message fails to send, just log the error
 				mctx.Debug("failed to send chat SendPathPayment message: %s", err)
 			}

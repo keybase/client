@@ -744,12 +744,50 @@ func (s *Server) ApprovePayURILocal(ctx context.Context, arg stellar1.ApprovePay
 		return "", err
 	}
 
+	if vp.Amount == "" {
+		vp.Amount = arg.Amount
+	}
+
+	if vp.CallbackURL != "" {
+		recipient, err := stellar.LookupRecipient(mctx, stellarcommon.RecipientInput(vp.Recipient), arg.FromCLI)
+		if err != nil {
+			return "", err
+		}
+		if recipient.AccountID == nil {
+			return "", errors.New("recipient lookup failed to find an account")
+		}
+		recipientAddr, err := stellarnet.NewAddressStr(recipient.AccountID.String())
+		if err != nil {
+			return "", err
+		}
+
+		_, senderSeed, err := stellar.LookupSenderSeed(mctx)
+		if err != nil {
+			return "", err
+		}
+		var memoText string
+		if vp.MemoType == "MEMO_TEXT" {
+			memoText = vp.Memo
+		}
+
+		sp, unlock := stellar.NewSeqnoProvider(mctx, s.walletState)
+		defer unlock()
+
+		baseFee := s.walletState.BaseFee(mctx)
+
+		sig, err := stellarnet.PaymentXLMTransaction(senderSeed, recipientAddr, vp.Amount, memoText, sp, nil, baseFee)
+		if err != nil {
+			return "", err
+		}
+		if err := postXDRToCallback(sig.Signed, vp.CallbackURL); err != nil {
+			return "", err
+		}
+		return stellar1.TransactionID(sig.TxHash), nil
+	}
+
 	sendArg := stellar.SendPaymentArg{
 		To:     stellarcommon.RecipientInput(vp.Recipient),
 		Amount: vp.Amount,
-	}
-	if sendArg.Amount == "" {
-		sendArg.Amount = arg.Amount
 	}
 	if vp.MemoType == "MEMO_TEXT" {
 		sendArg.PublicMemo = vp.Memo
@@ -794,6 +832,17 @@ func (s *Server) ApprovePathURILocal(ctx context.Context, arg stellar1.ApprovePa
 	}
 	if vp.MemoType == "MEMO_TEXT" {
 		sendArg.PublicMemo = vp.Memo
+	}
+
+	if vp.CallbackURL != "" {
+		sig, _, _, err := stellar.PathPaymentTx(mctx, s.walletState, sendArg)
+		if err != nil {
+			return "", err
+		}
+		if err := postXDRToCallback(sig.Signed, vp.CallbackURL); err != nil {
+			return "", err
+		}
+		return stellar1.TransactionID(sig.TxHash), nil
 	}
 
 	var res stellar.SendPaymentResult

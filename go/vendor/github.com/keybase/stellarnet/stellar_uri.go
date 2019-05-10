@@ -302,7 +302,6 @@ func (u *unvalidatedURI) validateTx(getter HTTPGetter) (*ValidatedStellarURI, er
 	// is actually a TransactionEnvelope.
 	var txEnv xdr.TransactionEnvelope
 	if err := xdr.SafeUnmarshalBase64(xdrEncoded, &txEnv); err != nil {
-		fmt.Println(err)
 		return nil, ErrInvalidParameter{Key: "xdr"}
 	}
 	validated.TxEnv = &txEnv

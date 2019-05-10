@@ -170,6 +170,9 @@ func (c *CmdWalletHandleURI) payOp(v stellar1.ValidateStellarURIResultLocal) err
 			return err
 		}
 
+		if v.CallbackURL == "" {
+			ui.Printf("Signed transaction sent to %s\n", v.CallbackURL)
+		}
 		ui.Printf("Sent!\nStellar Transaction ID: %v\n", txID)
 	} else {
 		// find a path payment so user can confirm it is ok
@@ -202,6 +205,9 @@ func (c *CmdWalletHandleURI) payOp(v stellar1.ValidateStellarURIResultLocal) err
 		txID, err := cli.ApprovePathURILocal(context.Background(), approveArg)
 		if err != nil {
 			return err
+		}
+		if v.CallbackURL == "" {
+			ui.Printf("Signed transaction sent to %s\n", v.CallbackURL)
 		}
 		ui.Printf("Sent!\nStellar Transaction ID: %v\n", txID)
 	}
