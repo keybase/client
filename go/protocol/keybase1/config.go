@@ -373,6 +373,7 @@ func (o GitStatus) DeepCopy() GitStatus {
 }
 
 type FullStatus struct {
+	Username   string          `codec:"username" json:"username"`
 	ConfigPath string          `codec:"configPath" json:"configPath"`
 	CurStatus  CurrentStatus   `codec:"curStatus" json:"curStatus"`
 	ExtStatus  ExtendedStatus  `codec:"extStatus" json:"extStatus"`
@@ -387,6 +388,7 @@ type FullStatus struct {
 
 func (o FullStatus) DeepCopy() FullStatus {
 	return FullStatus{
+		Username:   o.Username,
 		ConfigPath: o.ConfigPath,
 		CurStatus:  o.CurStatus.DeepCopy(),
 		ExtStatus:  o.ExtStatus.DeepCopy(),
@@ -398,6 +400,12 @@ func (o FullStatus) DeepCopy() FullStatus {
 		Start:      o.Start.DeepCopy(),
 		Git:        o.Git.DeepCopy(),
 	}
+}
+
+type LogSendID string
+
+func (o LogSendID) DeepCopy() LogSendID {
+	return o
 }
 
 type AllProvisionedUsernames struct {
@@ -775,6 +783,13 @@ type GetFullStatusArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type LogSendArg struct {
+	SessionID  int    `codec:"sessionID" json:"sessionID"`
+	StatusJSON string `codec:"statusJSON" json:"statusJSON"`
+	Feedback   string `codec:"feedback" json:"feedback"`
+	SendLogs   bool   `codec:"sendLogs" json:"sendLogs"`
+}
+
 type GetAllProvisionedUsernamesArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -848,6 +863,7 @@ type ConfigInterface interface {
 	GetCurrentStatus(context.Context, int) (CurrentStatus, error)
 	GetClientStatus(context.Context, int) ([]ClientStatus, error)
 	GetFullStatus(context.Context, int) (*FullStatus, error)
+	LogSend(context.Context, LogSendArg) (LogSendID, error)
 	GetAllProvisionedUsernames(context.Context, int) (AllProvisionedUsernames, error)
 	GetConfig(context.Context, int) (Config, error)
 	// Change user config.
@@ -919,6 +935,21 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetFullStatus(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
+			"logSend": {
+				MakeArg: func() interface{} {
+					var ret [1]LogSendArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]LogSendArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]LogSendArg)(nil), args)
+						return
+					}
+					ret, err = i.LogSend(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -1170,6 +1201,11 @@ func (c ConfigClient) GetClientStatus(ctx context.Context, sessionID int) (res [
 func (c ConfigClient) GetFullStatus(ctx context.Context, sessionID int) (res *FullStatus, err error) {
 	__arg := GetFullStatusArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.config.getFullStatus", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ConfigClient) LogSend(ctx context.Context, __arg LogSendArg) (res LogSendID, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.config.logSend", []interface{}{__arg}, &res)
 	return
 }
 
