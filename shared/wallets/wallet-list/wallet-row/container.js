@@ -4,7 +4,6 @@ import {connect, isMobile} from '../../../util/container'
 import {getAccount, getSelectedAccount} from '../../../constants/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as RouteTree from '../../../route-tree'
 import {type AccountID} from '../../../constants/types/wallets'
 
 // TODO: This is now desktop-only, so remove references to isMobile.
@@ -17,8 +16,8 @@ const mapStateToProps = (state, ownProps: {accountID: AccountID}) => {
   const me = state.config.username || ''
   const keybaseUser = account.isDefault ? me : ''
   const selectedAccount = getSelectedAccount(state)
-  const path = RouteTree.getPath(state.routeTree.routeState).last()
-  const airdropSelected = path === 'airdrop' || path === 'airdropQualify'
+  // const path = RouteTree.getPath(state.routeTree.routeState).last()
+  const airdropSelected = false // TODO path === 'airdrop' || path === 'airdropQualify'
 
   return {
     contents: account.balanceDescription,

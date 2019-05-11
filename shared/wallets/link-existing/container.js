@@ -6,7 +6,6 @@ import * as Constants from '../../constants/wallets'
 import {anyWaiting} from '../../constants/waiting'
 import HiddenString from '../../util/hidden-string'
 import {Wrapper as LinkExisting} from '.'
-import flags from '../../util/feature-flags'
 
 type OwnProps = Container.RouteProps<{fromSendForm?: boolean, showOnCreation?: boolean}, {}>
 
@@ -48,9 +47,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
       })
     )
 
-    if (flags.useNewRouter) {
-      dispatch(RouteTreeGen.createNavigateUp())
-    }
+    dispatch(RouteTreeGen.createNavigateUp())
   },
 })
 

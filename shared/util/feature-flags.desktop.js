@@ -23,7 +23,6 @@ const ff: FeatureFlags = {
   outOfDateBanner: false,
   plansEnabled: false,
   proofProviders: true,
-  useNewRouter: true,
 }
 
 const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {

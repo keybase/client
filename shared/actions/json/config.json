@@ -96,7 +96,6 @@
       "writeFile": "boolean"
     },
     "setDeletedSelf": {"deletedUsername": "string"},
-    "swapRouter": {"useNewRouter": "boolean"},
     "persistRoute": {"path": "Array<any>"},
     "setNavigator": {"navigator": "any"},
     "loggedOut": {},

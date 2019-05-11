@@ -77,7 +77,8 @@ export const commonProvider = {
     ...props,
   }),
   LoadPathMetadataWhenNeeded: ({path}: {path: Types.Path}) => ({
-    loadPathMetadata: Sb.action('loadPathMetadata'),
+    loadPathMetadataWithRefreshTag: Sb.action('loadPathMetadataWithRefreshTag'),
+    loadPathMetadataWithoutRefreshTag: Sb.action('loadPathMetadataWithoutRefreshTag'),
     path,
     syncingFoldersProgress: Constants.makeSyncingFoldersProgress(),
   }),

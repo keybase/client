@@ -4,7 +4,6 @@ import PaperKey from '.'
 import {connect} from '../../util/container'
 import HiddenString from '../../util/hidden-string'
 import {type RouteProps} from '../../route-tree/render-route'
-import flags from '../../util/feature-flags'
 
 type OwnProps = RouteProps<{}, {}>
 
@@ -14,9 +13,8 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
-  onBack: () => {
-    !flags.useNewRouter && dispatch(ownProps.navigateUp())
-  },
+  // TODO remove
+  onBack: () => {},
   onSubmit: (paperKey: string) =>
     dispatch(ProvisionGen.createSubmitPaperkey({paperkey: new HiddenString(paperKey)})),
 })

@@ -27,12 +27,10 @@ import chatTeamBuildingSaga from './team-building'
 import * as TeamsConstants from '../../constants/teams'
 import logger from '../../logger'
 import {isMobile} from '../../constants/platform'
-import {getPath} from '../../route-tree'
 import {NotifyPopup} from '../../native/notifications'
 import {saveAttachmentToCameraRoll, showShareActionSheetFromFile} from '../platform-specific'
 import {downloadFilePath} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
-import flags from '../../util/feature-flags'
 import {RPCError} from '../../util/errors'
 import HiddenString from '../../util/hidden-string'
 
@@ -1508,13 +1506,8 @@ function* messageSend(state, action, logger) {
   ]
   const onHideConfirm = ({canceled}) =>
     Saga.callUntyped(function*() {
-      const state = yield* Saga.selectState()
-      if (!flags.useNewRouter && getPath(state.routeTree.routeState).last() === confirmRouteName) {
-        yield Saga.put(RouteTreeGen.createNavigateUp())
-      } else if (flags.useNewRouter) {
-        if (Router2Constants.getVisibleScreen()?.routeName === confirmRouteName) {
-          yield Saga.put(RouteTreeGen.createClearModals())
-        }
+      if (Router2Constants.getVisibleScreen()?.routeName === confirmRouteName) {
+        yield Saga.put(RouteTreeGen.createClearModals())
       }
       if (canceled) {
         yield Saga.put(Chat2Gen.createSetUnsentText({conversationIDKey, text}))
@@ -2063,40 +2056,7 @@ const navigateToInbox = (state, action, logger) => {
   if (action.type === Chat2Gen.leaveConversation && action.payload.dontNavigateToInbox) {
     return
   }
-  if (flags.useNewRouter) {
-    return RouteTreeGen.createNavUpToScreen({routeName: Tabs.chatTab})
-  }
-  let resetRouteAction = RouteTreeGen.createNavigateTo({
-    path: flags.useNewRouter
-      ? [{props: {}, selected: Tabs.chatTab}]
-      : [{props: {}, selected: Tabs.chatTab}, {props: {}, selected: null}],
-  })
-  if (action.type === TeamsGen.leaveTeam || action.type === TeamsGen.leftTeam) {
-    const {context, teamname} = action.payload
-    switch (action.type) {
-      case TeamsGen.leaveTeam:
-        if (context !== 'chat' && Constants.isTeamConversationSelected(state, teamname)) {
-          // If we're leaving a team from somewhere else and we have a team convo
-          // selected, reset the chat tab to the root
-          logger.info(`chat:navigateToInbox resetting chat tab nav stack to root because of leaveTeam`)
-          return RouteTreeGen.createNavigateTo({parentPath: [Tabs.chatTab], path: []})
-        }
-        break
-      case TeamsGen.leftTeam:
-        if (context === 'chat') {
-          // If we've left a team from the chat tab indiscriminately navigate to
-          // the tab root
-          logger.info(`chat:navigateToInbox navigating to cleared chat routes because of leftTeam`)
-          return resetRouteAction
-        }
-    }
-    return
-  }
-  const actions = [resetRouteAction]
-  if (action.type === Chat2Gen.navigateToInbox && action.payload.findNewConversation && !isMobile) {
-    actions.push(_maybeAutoselectNewestConversation(state, action, logger))
-  }
-  return actions
+  return RouteTreeGen.createNavUpToScreen({routeName: Tabs.chatTab})
 }
 
 // Unchecked version of Chat2Gen.createNavigateToThread() --
@@ -2104,13 +2064,6 @@ const navigateToInbox = (state, action, logger) => {
 // (which doesn't count as valid).
 //
 const navigateToThreadRoute = conversationIDKey => {
-  if (!flags.useNewRouter) {
-    return RouteTreeGen.createNavigateTo({path: Constants.threadRoute})
-  }
-  if (!isMobile && Router2Constants.getVisibleScreen()?.routeName === 'chatRoot') {
-    // Don't append; we don't want to increase the size of the stack on desktop
-    return
-  }
   return RouteTreeGen.createNavigateAppend({
     path: [{props: {conversationIDKey}, selected: isMobile ? 'chatConversation' : 'chatRoot'}],
   })
@@ -2145,20 +2098,6 @@ const mobileNavigateOnSelect = (state, action) => {
 const desktopNavigateOnSelect = (state, action) => {
   if (action.payload.reason === 'findNewestConversation') return
   return navigateToThreadRoute(state.chat2.selectedConversation)
-}
-
-const mobileChangeSelection = state => {
-  if (flags.useNewRouter) {
-    return
-  }
-  const routePath = getPath(state.routeTree.routeState)
-  const inboxSelected = routePath.size === 1 && routePath.get(0) === Tabs.chatTab
-  if (inboxSelected) {
-    return Chat2Gen.createSelectConversation({
-      conversationIDKey: Constants.noConversationIDKey,
-      reason: 'clearSelected',
-    })
-  }
 }
 
 // Native share sheet for attachments
@@ -2640,22 +2579,12 @@ const unfurlResolvePrompt = (state, action) => {
 }
 
 const toggleInfoPanel = (state, action) => {
-  if (flags.useNewRouter) {
-    if (Router2Constants.getVisibleScreen()?.routeName === 'chatInfoPanel') {
-      return RouteTreeGen.createNavigateUp()
-    } else {
-      return RouteTreeGen.createNavigateAppend({
-        path: [{props: {conversationIDKey: state.chat2.selectedConversation}, selected: 'chatInfoPanel'}],
-      })
-    }
+  if (Router2Constants.getVisibleScreen()?.routeName === 'chatInfoPanel') {
+    return RouteTreeGen.createNavigateUp()
   } else {
-    if (Constants.isInfoPanelOpen(state)) {
-      return RouteTreeGen.createNavigateTo({parentPath: [Tabs.chatTab], path: ['chatConversation']})
-    } else {
-      return RouteTreeGen.createNavigateAppend({
-        path: [{props: {conversationIDKey: state.chat2.selectedConversation}, selected: 'chatInfoPanel'}],
-      })
-    }
+    return RouteTreeGen.createNavigateAppend({
+      path: [{props: {conversationIDKey: state.chat2.selectedConversation}, selected: 'chatInfoPanel'}],
+    })
   }
 }
 
@@ -2720,9 +2649,7 @@ const resolveMaybeMention = (state, action) => {
 
 const openChatFromWidget = (state, {payload: {conversationIDKey}}) => [
   ConfigGen.createShowMain(),
-  flags.useNewRouter
-    ? RouteTreeGen.createSwitchTab({tab: Tabs.chatTab})
-    : RouteTreeGen.createSwitchTo({path: [Tabs.chatTab]}),
+  RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
   ...(conversationIDKey
     ? [Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSmall'})]
     : []),
@@ -2840,12 +2767,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.messageAttachmentNativeSave,
       mobileMessageAttachmentSave,
       'mobileMessageAttachmentSave'
-    )
-    // Unselect the conversation when we go to the inbox
-    yield* Saga.chainAction<any>(
-      a => typeof a.type === 'string' && a.type.startsWith(RouteTreeGen.typePrefix),
-      mobileChangeSelection,
-      'mobileChangeSelection'
     )
   } else {
     yield* Saga.chainGenerator<Chat2Gen.DesktopNotificationPayload>(

@@ -10,13 +10,11 @@ import * as Tracker2Gen from '../tracker2-gen'
 import keybaseUrl from '../../constants/urls'
 import logger from '../../logger'
 import openURL from '../../util/open-url'
-import {getPathProps} from '../../route-tree'
 import type {RPCError} from '../../util/errors'
 import {peopleTab} from '../../constants/tabs'
 import {pgpSaga} from './pgp'
 import {proofsSaga} from './proofs'
 import {isMobile} from '../../constants/platform'
-import flags from '../../util/feature-flags'
 
 const editProfile = (state, action) =>
   RPCTypes.userProfileEditRpcPromise(
@@ -51,7 +49,6 @@ const finishRevoking = state => [
     reason: '',
   }),
   ProfileGen.createRevokeFinish(),
-  ...(flags.useNewRouter ? [] : [RouteTreeGen.createNavigateUp()]),
 ]
 
 const showUserProfile = (state, action) => {
@@ -62,17 +59,10 @@ const showUserProfile = (state, action) => {
     userId
   )
 
-  if (flags.useNewRouter) {
-    return [
-      RouteTreeGen.createClearModals(),
-      RouteTreeGen.createNavigateTo({path: [{props: {username}, selected: 'profile'}]}),
-    ]
-  }
-  // Get the peopleTab path
-  const peopleRouteProps = getPathProps(state.routeTree.routeState, [peopleTab])
-  const path = Constants.getProfilePath(peopleRouteProps, username, state.config.username, state)
-  // $FlowIssue
-  return path && RouteTreeGen.createNavigateTo({path})
+  return [
+    RouteTreeGen.createClearModals(),
+    RouteTreeGen.createNavigateTo({path: [{props: {username}, selected: 'profile'}]}),
+  ]
 }
 
 const onClickAvatar = (_, action) => {
@@ -94,14 +84,10 @@ const submitRevokeProof = (state, action) => {
   if (!proof) return null
 
   if (proof.type === 'pgp') {
-    return RPCTypes.revokeRevokeKeyRpcPromise({keyID: proof.kid}, Constants.waitingKey)
-      .then(() =>
-        flags.useNewRouter ? null : RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: []})
-      )
-      .catch(e => {
-        logger.info('error in dropping pgp key', e)
-        return ProfileGen.createRevokeFinishError({error: `Error in dropping Pgp Key: ${e}`})
-      })
+    return RPCTypes.revokeRevokeKeyRpcPromise({keyID: proof.kid}, Constants.waitingKey).catch(e => {
+      logger.info('error in dropping pgp key', e)
+      return ProfileGen.createRevokeFinishError({error: `Error in dropping Pgp Key: ${e}`})
+    })
   } else {
     return RPCTypes.revokeRevokeSigsRpcPromise({sigIDQueries: [action.payload.proofId]}, Constants.waitingKey)
       .then(() => ProfileGen.createFinishRevoking())

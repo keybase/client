@@ -12,9 +12,7 @@ import Friend from './friend/container'
 import Measure from './measure'
 import Teams from './teams/container'
 import Folders from '../folders/container'
-import flags from '../../util/feature-flags'
 import shallowEqual from 'shallowequal'
-import PeopleSearch from '../search/bar'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Flow from '../../util/flow'
 
@@ -54,18 +52,6 @@ const colorTypeToStyle = type => {
       return styles.typedBackgroundRed
   }
 }
-
-const Header = p =>
-  flags.useNewRouter ? null : (
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
-      <Kb.BackButton iconColor={Styles.globalColors.white} textStyle={styles.backButton} onClick={p.onBack} />
-      <Kb.Box2 direction="vertical" style={{flexGrow: 1, paddingRight: Styles.isMobile ? 16 : 0}}>
-        <Kb.Box2 direction="vertical" alignSelf="flex-end">
-          <PeopleSearch onSearch={p.onSearch} whiteText={true} />
-        </Kb.Box2>
-      </Kb.Box2>
-    </Kb.Box2>
-  )
 
 const BioLayout = p => (
   <Kb.Box2 direction="vertical" style={styles.bio}>
@@ -297,19 +283,9 @@ class User extends React.Component<Props, State> {
   }
 
   _renderSectionHeader = ({section}) => {
-    if (section === this._bioTeamProofsSection) {
-      return (
-        <Header
-          key="header"
-          onBack={this.props.onBack}
-          state={this.props.state}
-          backgroundColorType={this.props.backgroundColorType}
-          onSearch={this.props.onSearch}
-        />
-      )
-    }
-
+    if (section === this._bioTeamProofsSection) return null
     if (this.props.notAUser) return null
+
     const loading = !this.props.followers || !this.props.following
     return (
       <FriendshipTabs
@@ -444,7 +420,6 @@ export const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.tiny,
     },
   }),
-  backButton: {color: Styles.globalColors.white},
   backgroundColor: {
     ...Styles.globalStyles.fillAbsolute,
     bottom: undefined,
@@ -512,17 +487,6 @@ export const styles = Styles.styleSheetCreate({
     },
     isElectron: {justifyContent: 'flex-start'},
     isMobile: {justifyContent: 'center'},
-  }),
-  header: Styles.platformStyles({
-    common: {
-      alignItems: 'center',
-      flexShrink: 0,
-      height: headerHeight,
-    },
-    isElectron: {
-      padding: Styles.globalMargins.small,
-    },
-    isMobile: {},
   }),
   innerContainer: {
     height: '100%',

@@ -92,7 +92,7 @@ func (c *CmdStatus) outputJSON(status *keybase1.FullStatus) error {
 func (c *CmdStatus) outputTerminal(status *keybase1.FullStatus) error {
 	extStatus := status.ExtStatus
 	dui := c.G().UI.GetDumbOutputUI()
-	dui.Printf("Username:      %s\n", status.CurStatus.User.Username)
+	dui.Printf("Username:      %s\n", status.Username)
 	dui.Printf("Logged in:     %s\n", BoolString(status.CurStatus.LoggedIn, "yes", "no"))
 	if extStatus.Device != nil {
 		dui.Printf("\nDevice:\n")

@@ -4,6 +4,7 @@ import * as Constants from '../../constants/chat2'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Types from '../../constants/types/chat2'
 import * as Flow from '../../util/flow'
+import * as Kb from '../../common-adapters'
 import {isMobile, isIOS} from '../../constants/platform'
 import {connect, getRouteProps} from '../../util/container'
 import Normal from './normal/container'
@@ -11,7 +12,6 @@ import NoConversation from './no-conversation'
 import Error from './error/container'
 import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
-import flags from '../../util/feature-flags'
 
 type OwnProps = {|
   navigation?: any,
@@ -23,13 +23,6 @@ type SwitchProps = {
   selectConversation: () => void,
   deselectConversation: () => void,
   type: 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rekey',
-}
-
-let NavigationEvents
-if (flags.useNewRouter) {
-  NavigationEvents = require('@react-navigation/core').NavigationEvents
-} else {
-  NavigationEvents = () => null
 }
 
 class Conversation extends React.PureComponent<SwitchProps> {
@@ -67,7 +60,7 @@ class Conversation extends React.PureComponent<SwitchProps> {
       case 'normal':
         return (
           <>
-            {isMobile && <NavigationEvents onDidFocus={this._onDidFocus} onWillBlur={this._onWillBlur} />}
+            {isMobile && <Kb.NavigationEvents onDidFocus={this._onDidFocus} onWillBlur={this._onWillBlur} />}
             <Normal conversationIDKey={this.props.conversationIDKey} />
           </>
         )
@@ -84,8 +77,7 @@ class Conversation extends React.PureComponent<SwitchProps> {
 
 const mapStateToProps = (state, ownProps) => {
   let _storeConvoIDKey = Constants.getSelectedConversation(state)
-  const conversationIDKey =
-    flags.useNewRouter && isMobile ? getRouteProps(ownProps, 'conversationIDKey') : _storeConvoIDKey
+  const conversationIDKey = isMobile ? getRouteProps(ownProps, 'conversationIDKey') : _storeConvoIDKey
   let _meta = Constants.getMeta(state, conversationIDKey)
 
   return {
@@ -132,11 +124,11 @@ const mergeProps = (stateProps, dispatchProps) => {
   return {
     conversationIDKey: stateProps.conversationIDKey, // we pass down conversationIDKey so this can be calculated once and also this lets us have chat things in other contexts so we can theoretically show multiple chats at the same time (like in a modal)
     deselectConversation:
-      !flags.useNewRouter || stateProps._storeConvoIDKey !== stateProps.conversationIDKey
+      stateProps._storeConvoIDKey !== stateProps.conversationIDKey
         ? () => {}
         : () => dispatchProps._deselectConversation(stateProps.conversationIDKey),
     selectConversation:
-      !flags.useNewRouter || stateProps._storeConvoIDKey === stateProps.conversationIDKey
+      stateProps._storeConvoIDKey === stateProps.conversationIDKey
         ? () => {} // ignore if already selected or pending
         : () => dispatchProps._selectConversation(stateProps.conversationIDKey),
     type,

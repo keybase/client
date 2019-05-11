@@ -8,7 +8,6 @@ import * as Saga from '../util/saga'
 import * as Tabs from '../constants/tabs'
 import HiddenString from '../util/hidden-string'
 import {logError, type RPCError} from '../util/errors'
-import flags from '../util/feature-flags'
 
 const load = state =>
   state.config.loggedIn
@@ -40,7 +39,7 @@ function* requestPaperKey(): Generator<any, void, any> {
 
 const requestEndangeredTLFsLoad = (state, action) => {
   const actingDevice = state.config.deviceID
-  const targetDevice = flags.useNewRouter ? action.payload.deviceID : state.devices.selectedDeviceID
+  const targetDevice = action.payload.deviceID
   if (actingDevice && targetDevice) {
     return RPCTypes.rekeyGetRevokeWarningRpcPromise({actingDevice, targetDevice}, Constants.waitingKey)
       .then((tlfs: RPCTypes.RevokeWarning) =>
@@ -81,7 +80,7 @@ const revoke = (state, action) => {
 }
 
 const navigateAfterRevoked = (state, action) => {
-  if (flags.useNewRouter && !action.payload.wasCurrentDevice) {
+  if (!action.payload.wasCurrentDevice) {
     return RouteTreeGen.createNavUpToScreen({
       routeName: Constants.devicesTabLocation[Constants.devicesTabLocation.length - 1],
     })
@@ -104,17 +103,6 @@ const showDevicePage = (_, {payload: {deviceID}}) =>
 
 const showPaperKeyPage = () =>
   RouteTreeGen.createNavigateTo({path: [...Constants.devicesTabLocation, 'devicePaperKey']})
-
-let _wasOnDeviceTab = false
-const clearBadgesAfterNav = (state, action) => {
-  if (Constants.isLookingAtDevices(state, action)) {
-    _wasOnDeviceTab = true
-  } else if (_wasOnDeviceTab) {
-    _wasOnDeviceTab = false
-    // clear badges
-    return RPCTypes.deviceDismissDeviceChangeNotificationsRpcPromise().catch(logError)
-  }
-}
 
 const clearNavBadges = state => RPCTypes.deviceDismissDeviceChangeNotificationsRpcPromise().catch(logError)
 
@@ -143,13 +131,9 @@ function* deviceSaga(): Saga.SagaGenerator<any, any> {
     receivedBadgeState
   )
 
-  if (!flags.useNewRouter) {
-    yield* Saga.chainAction<RouteTreeGen.SwitchToPayload>(RouteTreeGen.switchTo, clearBadgesAfterNav)
-  } else {
-    yield* Saga.chainAction<
-      DevicesGen.LoadPayload | DevicesGen.RevokedPayload | DevicesGen.PaperKeyCreatedPayload
-    >([DevicesGen.load, DevicesGen.revoked, DevicesGen.paperKeyCreated], clearNavBadges)
-  }
+  yield* Saga.chainAction<
+    DevicesGen.LoadPayload | DevicesGen.RevokedPayload | DevicesGen.PaperKeyCreatedPayload
+  >([DevicesGen.load, DevicesGen.revoked, DevicesGen.paperKeyCreated], clearNavBadges)
 
   // Loading data
   yield* Saga.chainAction<DevicesGen.ShowRevokePagePayload>(

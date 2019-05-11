@@ -741,7 +741,7 @@ func TestTeamInviteSweepOldMembers(t *testing.T) {
 func proveGubbleUniverse(tc *libkb.TestContext, serviceName, endpoint string, username string, secretUI libkb.SecretUI) keybase1.SigID {
 	tc.T.Logf("proof for %s", serviceName)
 	g := tc.G
-	proofService := g.GetProofServices().GetServiceType(serviceName)
+	proofService := g.GetProofServices().GetServiceType(context.Background(), serviceName)
 	require.NotNil(tc.T, proofService)
 
 	// Post a proof to the testing generic social service

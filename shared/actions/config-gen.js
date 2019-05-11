@@ -50,7 +50,6 @@ export const setOpenAtLogin = 'config:setOpenAtLogin'
 export const setStartupDetails = 'config:setStartupDetails'
 export const showMain = 'config:showMain'
 export const startHandshake = 'config:startHandshake'
-export const swapRouter = 'config:swapRouter'
 export const updateCriticalCheckStatus = 'config:updateCriticalCheckStatus'
 export const updateInfo = 'config:updateInfo'
 export const updateMenubarWindowID = 'config:updateMenubarWindowID'
@@ -94,7 +93,6 @@ type _SetOpenAtLoginPayload = $ReadOnly<{|open: boolean, writeFile: boolean|}>
 type _SetStartupDetailsPayload = $ReadOnly<{|startupWasFromPush: boolean, startupConversation: ?ChatTypes.ConversationIDKey, startupLink: string, startupTab: ?Tabs.Tab, startupFollowUser: string, startupSharePath: ?FsTypes.LocalPath|}>
 type _ShowMainPayload = void
 type _StartHandshakePayload = void
-type _SwapRouterPayload = $ReadOnly<{|useNewRouter: boolean|}>
 type _UpdateCriticalCheckStatusPayload = $ReadOnly<{|status: 'critical' | 'suggested' | 'ok', message: string|}>
 type _UpdateInfoPayload = $ReadOnly<{|isOutOfDate: boolean, critical: boolean, message?: string|}>
 type _UpdateMenubarWindowIDPayload = $ReadOnly<{|id: number|}>
@@ -178,7 +176,6 @@ export const createSetNotifySound = (payload: _SetNotifySoundPayload) => ({paylo
 export const createSetOpenAtLogin = (payload: _SetOpenAtLoginPayload) => ({payload, type: setOpenAtLogin})
 export const createSetStartupDetails = (payload: _SetStartupDetailsPayload) => ({payload, type: setStartupDetails})
 export const createShowMain = (payload: _ShowMainPayload) => ({payload, type: showMain})
-export const createSwapRouter = (payload: _SwapRouterPayload) => ({payload, type: swapRouter})
 export const createUpdateInfo = (payload: _UpdateInfoPayload) => ({payload, type: updateInfo})
 export const createUpdateMenubarWindowID = (payload: _UpdateMenubarWindowIDPayload) => ({payload, type: updateMenubarWindowID})
 export const createUpdateNow = (payload: _UpdateNowPayload) => ({payload, type: updateNow})
@@ -221,7 +218,6 @@ export type SetOpenAtLoginPayload = {|+payload: _SetOpenAtLoginPayload, +type: '
 export type SetStartupDetailsPayload = {|+payload: _SetStartupDetailsPayload, +type: 'config:setStartupDetails'|}
 export type ShowMainPayload = {|+payload: _ShowMainPayload, +type: 'config:showMain'|}
 export type StartHandshakePayload = {|+payload: _StartHandshakePayload, +type: 'config:startHandshake'|}
-export type SwapRouterPayload = {|+payload: _SwapRouterPayload, +type: 'config:swapRouter'|}
 export type UpdateCriticalCheckStatusPayload = {|+payload: _UpdateCriticalCheckStatusPayload, +type: 'config:updateCriticalCheckStatus'|}
 export type UpdateInfoPayload = {|+payload: _UpdateInfoPayload, +type: 'config:updateInfo'|}
 export type UpdateMenubarWindowIDPayload = {|+payload: _UpdateMenubarWindowIDPayload, +type: 'config:updateMenubarWindowID'|}
@@ -267,7 +263,6 @@ export type Actions =
   | SetStartupDetailsPayload
   | ShowMainPayload
   | StartHandshakePayload
-  | SwapRouterPayload
   | UpdateCriticalCheckStatusPayload
   | UpdateInfoPayload
   | UpdateMenubarWindowIDPayload

@@ -46,9 +46,13 @@ type MerkleAuditArgs struct {
 	testingRoundResCh chan<- error
 }
 
+// Bump this up whenever there is a change that needs to reset the current stored state.
+const merkleAuditCurrentVersion = 1
+
 type merkleAuditState struct {
 	RetrySeqno *keybase1.Seqno `json:"retrySeqno"`
 	LastSeqno  *keybase1.Seqno `json:"lastSeqno"`
+	Version    int             `json:"version"`
 }
 
 // NewMerkleAudit creates a new MerkleAudit engine.
@@ -135,12 +139,17 @@ func lookupMerkleAuditRetryFromState(m libkb.MetaContext) (*keybase1.Seqno, *key
 		// Nothing found, no error
 		return nil, nil, nil
 	}
+	if state.Version != merkleAuditCurrentVersion {
+		m.Debug("discarding state with version %d, which isn't %d", state.Version, merkleAuditCurrentVersion)
+		return nil, nil, nil
+	}
 
 	// Can still be nil
 	return state.RetrySeqno, state.LastSeqno, nil
 }
 
 func saveMerkleAuditState(m libkb.MetaContext, state merkleAuditState) error {
+	state.Version = merkleAuditCurrentVersion
 	return m.G().LocalDb.PutObj(merkleAuditKey, nil, state)
 }
 
@@ -237,6 +246,8 @@ func MerkleAuditRound(m libkb.MetaContext) (err error) {
 			return err
 		}
 		startSeqno = &randomSeqno
+	} else {
+		m.Debug("Audit retry requested for %d", *startSeqno)
 	}
 
 	// If this time it fails, save it

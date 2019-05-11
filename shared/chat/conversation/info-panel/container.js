@@ -6,7 +6,6 @@ import * as TeamConstants from '../../../constants/teams'
 import * as React from 'react'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Types from '../../../constants/types/chat2'
-import flags from '../../../util/feature-flags'
 import {InfoPanel} from '.'
 import {connect, getRouteProps, isMobile, type RouteProps} from '../../../util/container'
 import {createShowUserProfile} from '../../../actions/profile-gen'
@@ -164,10 +163,7 @@ const mapStateToSelectorProps = (state, ownProps: SelectorOwnProps) => {
 
 const mapDispatchToSelectorProps = dispatch => ({
   // Used by HeaderHoc.
-  onBack: () =>
-    flags.useNewRouter
-      ? dispatch(Chat2Gen.createToggleInfoPanel())
-      : dispatch(RouteTreeGen.createNavigateUp()),
+  onBack: () => dispatch(Chat2Gen.createToggleInfoPanel()),
   onGoToInbox: () => dispatch(Chat2Gen.createNavigateToInbox({findNewConversation: true})),
 })
 
@@ -198,8 +194,8 @@ class InfoPanelSelector extends React.PureComponent<Props> {
 
     return isMobile ? (
       <ConnectedInfoPanel
-        onBack={flags.useNewRouter ? undefined : this.props.onBack}
-        onCancel={flags.useNewRouter ? this.props.onBack : undefined}
+        onBack={undefined}
+        onCancel={this.props.onBack}
         conversationIDKey={this.props.conversationIDKey}
       />
     ) : (
@@ -214,10 +210,10 @@ class InfoPanelSelector extends React.PureComponent<Props> {
 
 const clickCatcherStyle = {
   bottom: 0,
-  left: flags.useNewRouter ? 0 : 80,
+  left: 0,
   position: 'absolute',
   right: 0,
-  top: flags.useNewRouter ? 39 : 38,
+  top: 39,
 }
 const panelContainerStyle = {
   bottom: 0,
@@ -225,7 +221,7 @@ const panelContainerStyle = {
   flexDirection: 'column',
   position: 'absolute',
   right: 0,
-  top: flags.useNewRouter ? 40 : 0,
+  top: 40,
   width: 320,
 }
 

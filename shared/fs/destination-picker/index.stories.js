@@ -16,6 +16,10 @@ export const provider = Sb.createPropProviderWithCommon({
   ...topBarProvider,
   ConnectedBreadcrumb: ({path}) =>
     makeBreadcrumbProps('meatball', path => Sb.action(`navigate to ${Types.pathToString(path)}`)(), path),
+  NavHeaderTitle: ({path}: {path: Types.Path}) => ({
+    onOpenPath: Sb.action('onOpenPath'),
+    path,
+  }),
 })
 
 const load = () =>

@@ -3,8 +3,6 @@ import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as FsGen from '../fs-gen'
 import type {TypedActions} from '../typed-actions-gen'
-import * as RouteTreeGen from '../route-tree-gen'
-import flags from '../../util/feature-flags'
 
 const makeErrorHandler = (action: FsGen.Actions, path: ?Types.Path, retriable: boolean) => (
   error: any
@@ -40,7 +38,6 @@ const makeErrorHandler = (action: FsGen.Actions, path: ?Types.Path, retriable: b
         // Although this seems impossible to do for nav2 as things are just
         // pushed on top of each other, so just don't do anything for now.
         // Perhaps it's OK.
-        ...(flags.useNewRouter ? [] : [RouteTreeGen.createNavigateTo({path: Constants.fsRootRouteForNav1})]),
       ]
     }
   }

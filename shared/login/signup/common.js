@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Constants from '../../constants/signup'
 import {
   Box2,
-  HeaderHocHeader,
   Avatar,
   WaitingButton,
   Input as CommonInput,
@@ -11,7 +10,6 @@ import {
   ButtonBar,
 } from '../../common-adapters'
 import {styleSheetCreate, isMobile, globalMargins, globalColors} from '../../styles'
-import flags from '../../util/feature-flags'
 
 type Props = {
   children: React.Node,
@@ -30,7 +28,6 @@ export const Wrapper = (props: Props) => (
     >
       {props.children}
     </Box2>
-    {!flags.useNewRouter && <HeaderHocHeader onBack={props.onBack} headerStyle={styles.header} />}
   </Box2>
 )
 

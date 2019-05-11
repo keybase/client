@@ -4,12 +4,9 @@ import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as WalletConstants from '../../../../constants/wallets'
 import * as WalletTypes from '../../../../constants/types/wallets'
-import * as Tabs from '../../../../constants/tabs'
-import * as SettingsTabs from '../../../../constants/settings'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as WalletsGen from '../../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-import flags from '../../../../util/feature-flags'
 import AccountPayment from '.'
 
 // Props for rendering the loading indicator
@@ -139,14 +136,7 @@ const mapDispatchToProps = (dispatch, {message: {conversationIDKey, ordinal}}) =
       dispatch(WalletsGen.createCancelPayment({paymentID}))
     }
   },
-  onClaim: () =>
-    dispatch(
-      flags.useNewRouter
-        ? RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']})
-        : RouteTreeGen.createNavigateTo({
-            path: Container.isMobile ? [Tabs.settingsTab, SettingsTabs.walletsTab] : [Tabs.walletsTab],
-          })
-    ),
+  onClaim: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']})),
   onSend: () => dispatch(Chat2Gen.createPrepareFulfillRequestForm({conversationIDKey, ordinal})),
 })
 

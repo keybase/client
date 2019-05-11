@@ -12,12 +12,6 @@ import {isMobile} from '../constants/platform'
 import {niceError} from '../util/errors'
 import HiddenString from '../util/hidden-string'
 
-// Login dips into the routing dep tree, so we need to tell
-// webpack that we can still handle updates that propagate to here.
-export function setupLoginHMR(cb: () => void) {
-  module.hot && module.hot.accept(['../app/routes-app', '../app/routes-login'], cb)
-}
-
 const cancelDesc = 'Canceling RPC'
 const cancelOnCallback = (params, response) => {
   response.error({code: RPCTypes.constantsStatusCode.scgeneric, desc: cancelDesc})
