@@ -373,6 +373,7 @@ func (o GitStatus) DeepCopy() GitStatus {
 }
 
 type FullStatus struct {
+	Username   string          `codec:"username" json:"username"`
 	ConfigPath string          `codec:"configPath" json:"configPath"`
 	CurStatus  CurrentStatus   `codec:"curStatus" json:"curStatus"`
 	ExtStatus  ExtendedStatus  `codec:"extStatus" json:"extStatus"`
@@ -387,6 +388,7 @@ type FullStatus struct {
 
 func (o FullStatus) DeepCopy() FullStatus {
 	return FullStatus{
+		Username:   o.Username,
 		ConfigPath: o.ConfigPath,
 		CurStatus:  o.CurStatus.DeepCopy(),
 		ExtStatus:  o.ExtStatus.DeepCopy(),

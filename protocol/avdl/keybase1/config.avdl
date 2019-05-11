@@ -129,6 +129,7 @@ protocol config {
   }
 
   record FullStatus {
+    string username;
     string configPath;
 
     CurrentStatus curStatus;

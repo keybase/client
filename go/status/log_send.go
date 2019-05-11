@@ -68,7 +68,7 @@ func NewLogSendContext(g *libkb.GlobalContext, fstatus *keybase1.FullStatus, sta
 	logs := logFilesFromStatus(g, fstatus)
 
 	var uid keybase1.UID
-	if fstatus != nil {
+	if fstatus != nil && fstatus.CurStatus.User != nil {
 		uid = fstatus.CurStatus.User.Uid
 	} else {
 		uid = g.Env.GetUID()

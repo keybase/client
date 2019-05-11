@@ -184,6 +184,12 @@ func GetFullStatus(mctx libkb.MetaContext) (status *keybase1.FullStatus, err err
 		return nil, err
 	}
 
+	// Duplicate the username at top-level for backwards compatibility of
+	// output.
+	if status.CurStatus.User != nil {
+		status.Username = status.CurStatus.User.Username
+	}
+
 	status.ExtStatus, err = GetExtendedStatus(mctx)
 	if err != nil {
 		return nil, err

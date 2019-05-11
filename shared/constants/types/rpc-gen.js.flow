@@ -2281,7 +2281,7 @@ export type FullNamePackageVersion =
   | 1 // V1_1
   | 2 // V2_2
 
-export type FullStatus = $ReadOnly<{configPath: String, curStatus: CurrentStatus, extStatus: ExtendedStatus, client: KbClientStatus, service: KbServiceStatus, kbfs: KBFSStatus, desktop: DesktopStatus, updater: UpdaterStatus, start: StartStatus, git: GitStatus}>
+export type FullStatus = $ReadOnly<{username: String, configPath: String, curStatus: CurrentStatus, extStatus: ExtendedStatus, client: KbClientStatus, service: KbServiceStatus, kbfs: KBFSStatus, desktop: DesktopStatus, updater: UpdaterStatus, start: StartStatus, git: GitStatus}>
 export type FuseMountInfo = $ReadOnly<{path: String, fstype: String, output: String}>
 export type FuseStatus = $ReadOnly<{version: String, bundleVersion: String, kextID: String, path: String, kextStarted: Boolean, installStatus: InstallStatus, installAction: InstallAction, mountInfos?: ?Array<FuseMountInfo>, status: Status}>
 export type GPGKey = $ReadOnly<{algorithm: String, keyID: String, creation: String, expiration: String, identities?: ?Array<PGPIdentity>}>
