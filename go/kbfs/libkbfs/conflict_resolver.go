@@ -3224,6 +3224,9 @@ type conflictRecord struct {
 
 func getAndDeserializeConflicts(config Config, db *LevelDb,
 	key []byte) ([]conflictRecord, error) {
+	if db == nil {
+		return nil, errors.New("No conflict DB given")
+	}
 	conflictsSoFarSerialized, err := db.Get(key, nil)
 	var conflictsSoFar []conflictRecord
 	switch errors.Cause(err) {
@@ -3242,6 +3245,10 @@ func getAndDeserializeConflicts(config Config, db *LevelDb,
 
 func serializeAndPutConflicts(config Config, db *LevelDb,
 	key []byte, conflicts []conflictRecord) error {
+	if db == nil {
+		return errors.New("No conflict DB given")
+	}
+
 	conflictsSerialized, err := config.Codec().Encode(conflicts)
 	if err != nil {
 		return err
