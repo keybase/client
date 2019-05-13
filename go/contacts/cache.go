@@ -81,7 +81,7 @@ func cachedResultFromLookupResult(v ContactLookupResult, now time.Time) cachedLo
 	}
 }
 
-const contactCacheFreshness = 7 * 24 * time.Hour
+const contactCacheFreshness = 30 * 24 * time.Hour // approx a month
 
 func (c *contactsCache) findFreshOrSetEmpty(mctx libkb.MetaContext, key string) (res cachedLookupResult, found bool) {
 	clock := mctx.G().Clock()
