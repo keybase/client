@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mvdan/xurls"
+	"github.com/keybase/xurls"
 
 	emoji "gopkg.in/kyokomi/emoji.v1"
 
@@ -2074,15 +2074,53 @@ func DecorateBody(ctx context.Context, body string, offset, length int, decorati
 	return res, added
 }
 
-var linkRegexp = xurls.Relaxed()
-var mailtoRegexp = regexp.MustCompile(`(?:(?:[\w-_.]*)@(?:[\w-]+(?:\.[\w-]+)+))\b`)
+var linkRegexp = xurls.RelaxedAtDomain()
+var mailtoRegexp = regexp.MustCompile(`(?:(?:[\w-_.]+)@(?:[\w-]+(?:\.[\w-]+)+))\b`)
 
 func DecorateWithLinks(ctx context.Context, body string) string {
 	var added int
 	offset := 0
 	origBody := body
 
-	allMatches := mailtoRegexp.FindAllStringIndex(ReplaceQuotedSubstrings(body, true), -1)
+	shouldSkipLink := func(body string) bool {
+		fmt.Printf("BODY: %s\n", body)
+		if strings.Contains(strings.Split(body, "/")[0], "@") {
+			return true
+		}
+		for _, scheme := range xurls.SchemesNoAuthority {
+			if strings.HasPrefix(body, scheme) {
+				return true
+			}
+		}
+		if strings.HasPrefix(body, "ftp://") || strings.HasPrefix(body, "gopher://") {
+			return true
+		}
+		return false
+	}
+	allMatches := linkRegexp.FindAllStringIndex(ReplaceQuotedSubstrings(body, true), -1)
+	for _, match := range allMatches {
+		if len(match) < 2 {
+			continue
+		}
+		bodyMatch := origBody[match[0]:match[1]]
+		url := bodyMatch
+		if shouldSkipLink(bodyMatch) {
+			continue
+		}
+		if !(strings.HasPrefix(bodyMatch, "http://") || strings.HasPrefix(bodyMatch, "https://")) {
+			url = "http://" + bodyMatch
+		}
+		body, added = DecorateBody(ctx, body, match[0]+offset, match[1]-match[0],
+			chat1.NewUITextDecorationWithLink(chat1.UILinkDecoration{
+				Display: bodyMatch,
+				Url:     url,
+			}))
+		offset += added
+	}
+
+	offset = 0
+	origBody = body
+	allMatches = mailtoRegexp.FindAllStringIndex(ReplaceQuotedSubstrings(body, true), -1)
 	for _, match := range allMatches {
 		if len(match) < 2 {
 			continue
@@ -2097,40 +2135,6 @@ func DecorateWithLinks(ctx context.Context, body string) string {
 		offset += added
 	}
 
-	shouldSkipPrefix := func(body string) bool {
-		for _, scheme := range xurls.SchemesNoAuthority {
-			if strings.HasPrefix(body, scheme) {
-				return true
-			}
-		}
-		if strings.HasPrefix(body, "ftp://") || strings.HasPrefix(body, "gopher://") {
-			return true
-		}
-		return false
-	}
-
-	offset = 0
-	origBody = body
-	allMatches = linkRegexp.FindAllStringIndex(ReplaceQuotedSubstrings(body, true), -1)
-	for _, match := range allMatches {
-		if len(match) < 2 {
-			continue
-		}
-		bodyMatch := origBody[match[0]:match[1]]
-		url := bodyMatch
-		if shouldSkipPrefix(bodyMatch) {
-			continue
-		}
-		if !(strings.HasPrefix(bodyMatch, "http://") || strings.HasPrefix(bodyMatch, "https://")) {
-			url = "http://" + bodyMatch
-		}
-		body, added = DecorateBody(ctx, body, match[0]+offset, match[1]-match[0],
-			chat1.NewUITextDecorationWithLink(chat1.UILinkDecoration{
-				Display: bodyMatch,
-				Url:     url,
-			}))
-		offset += added
-	}
 	return body
 }
 

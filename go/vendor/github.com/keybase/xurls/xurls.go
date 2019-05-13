@@ -17,6 +17,7 @@ const (
 	mark      = `\p{M}`
 	number    = `\p{N}`
 	iriChar   = letter + mark + number
+	iriAtChar = iriChar + `@`
 	currency  = `\p{Sc}`
 	otherSymb = `\p{So}`
 	endChar   = iriChar + `/\-+_&~*%=#` + currency + otherSymb
@@ -27,14 +28,15 @@ const (
 	wellBrace = `\{[` + midChar + `]*(\{[` + midChar + `]*\}[` + midChar + `]*)*\}`
 	wellAll   = wellParen + `|` + wellBrack + `|` + wellBrace
 	pathCont  = `([` + midChar + `]*(` + wellAll + `|[` + endChar + `])+)+`
-
-	iri      = `[` + iriChar + `]([` + iriChar + `\-]*[` + iriChar + `])?`
-	domain   = `(` + iri + `\.)+`
-	octet    = `(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]|[0-9])`
-	ipv4Addr = `\b` + octet + `\.` + octet + `\.` + octet + `\.` + octet + `\b`
-	ipv6Addr = `([0-9a-fA-F]{1,4}:([0-9a-fA-F]{1,4}:([0-9a-fA-F]{1,4}:([0-9a-fA-F]{1,4}:([0-9a-fA-F]{1,4}:[0-9a-fA-F]{0,4}|:[0-9a-fA-F]{1,4})?|(:[0-9a-fA-F]{1,4}){0,2})|(:[0-9a-fA-F]{1,4}){0,3})|(:[0-9a-fA-F]{1,4}){0,4})|:(:[0-9a-fA-F]{1,4}){0,5})((:[0-9a-fA-F]{1,4}){2}|:(25[0-5]|(2[0-4]|1[0-9]|[1-9])?[0-9])(\.(25[0-5]|(2[0-4]|1[0-9]|[1-9])?[0-9])){3})|(([0-9a-fA-F]{1,4}:){1,6}|:):[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){7}:`
-	ipAddr   = `(` + ipv4Addr + `|` + ipv6Addr + `)`
-	port     = `(:[0-9]*)?`
+	iri       = `[` + iriChar + `]([` + iriChar + `\-]*[` + iriChar + `])?`
+	iriAt     = `[` + iriAtChar + `]([` + iriAtChar + `\-]*[` + iriAtChar + `])?`
+	domain    = `(` + iri + `\.)+`
+	domainAt  = `(` + iriAt + `\.)+`
+	octet     = `(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]|[0-9])`
+	ipv4Addr  = `\b` + octet + `\.` + octet + `\.` + octet + `\.` + octet + `\b`
+	ipv6Addr  = `([0-9a-fA-F]{1,4}:([0-9a-fA-F]{1,4}:([0-9a-fA-F]{1,4}:([0-9a-fA-F]{1,4}:([0-9a-fA-F]{1,4}:[0-9a-fA-F]{0,4}|:[0-9a-fA-F]{1,4})?|(:[0-9a-fA-F]{1,4}){0,2})|(:[0-9a-fA-F]{1,4}){0,3})|(:[0-9a-fA-F]{1,4}){0,4})|:(:[0-9a-fA-F]{1,4}){0,5})((:[0-9a-fA-F]{1,4}){2}|:(25[0-5]|(2[0-4]|1[0-9]|[1-9])?[0-9])(\.(25[0-5]|(2[0-4]|1[0-9]|[1-9])?[0-9])){3})|(([0-9a-fA-F]{1,4}:){1,6}|:):[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){7}:`
+	ipAddr    = `(` + ipv4Addr + `|` + ipv6Addr + `)`
+	port      = `(:[0-9]*)?`
 )
 
 // AnyScheme can be passed to StrictMatchingScheme to match any possibly valid
@@ -78,6 +80,13 @@ func relaxedExp() string {
 	return strictExp() + `|` + webURL
 }
 
+func relaxedAtDomainExp() string {
+	site := domainAt + `(?i)` + anyOf(append(TLDs, PseudoTLDs...)...) + `(?-i)`
+	hostName := `(` + site + `|` + ipAddr + `)`
+	webURL := hostName + port + `(/|/` + pathCont + `?|\b|$)`
+	return strictExp() + `|` + webURL
+}
+
 // Strict produces a regexp that matches any URL with a scheme in either the
 // Schemes or SchemesNoAuthority lists.
 func Strict() *regexp.Regexp {
@@ -90,6 +99,12 @@ func Strict() *regexp.Regexp {
 // URL with no scheme.
 func Relaxed() *regexp.Regexp {
 	re := regexp.MustCompile(relaxedExp())
+	re.Longest()
+	return re
+}
+
+func RelaxedAtDomain() *regexp.Regexp {
+	re := regexp.MustCompile(relaxedAtDomainExp())
 	re.Longest()
 	return re
 }
