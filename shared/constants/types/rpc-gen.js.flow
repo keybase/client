@@ -192,6 +192,10 @@ export type MessageTypes = {|
     inParam: void,
     outParam: void,
   |},
+  'keybase.1.SimpleFS.simpleFSClearConflictState': {|
+    inParam: $ReadOnly<{|path: Path|}>,
+    outParam: void,
+  |},
   'keybase.1.SimpleFS.simpleFSCopyRecursive': {|
     inParam: $ReadOnly<{|opID: OpID, src: Path, dest: Path|}>,
     outParam: void,
@@ -3530,6 +3534,7 @@ declare export function SimpleFSSimpleFSAreWeConnectedToMDServerRpcPromise(param
 declare export function SimpleFSSimpleFSCancelRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCancel'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCancel'>, 'outParam'>>
 declare export function SimpleFSSimpleFSCheckReachabilityRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCheckReachability'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCheckReachability'>, 'outParam'>>
 declare export function SimpleFSSimpleFSCheckRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCheck'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCheck'>, 'outParam'>>
+declare export function SimpleFSSimpleFSClearConflictStateRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSClearConflictState'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSClearConflictState'>, 'outParam'>>
 declare export function SimpleFSSimpleFSCopyRecursiveRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCopyRecursive'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCopyRecursive'>, 'outParam'>>
 declare export function SimpleFSSimpleFSFolderSyncConfigAndStatusRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus'>, 'outParam'>>
 declare export function SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.SimpleFSGetHTTPAddressAndToken'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.SimpleFSGetHTTPAddressAndToken'>, 'outParam'>>
@@ -3998,7 +4003,6 @@ declare export function userUploadUserAvatarRpcPromise(params: $PropertyType<$Pr
 // 'keybase.1.SimpleFS.simpleFSClose'
 // 'keybase.1.SimpleFS.simpleFSGetOps'
 // 'keybase.1.SimpleFS.simpleFSDumpDebuggingInfo'
-// 'keybase.1.SimpleFS.simpleFSClearConflictState'
 // 'keybase.1.SimpleFS.simpleFSForceStuckConflict'
 // 'keybase.1.SimpleFS.simpleFSFolderEditHistory'
 // 'keybase.1.SimpleFS.simpleFSListFavorites'

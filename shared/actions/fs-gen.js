@@ -86,6 +86,8 @@ export const showIncomingShare = 'fs:showIncomingShare'
 export const showMoveOrCopy = 'fs:showMoveOrCopy'
 export const showSystemFileManagerIntegrationBanner = 'fs:showSystemFileManagerIntegrationBanner'
 export const sortSetting = 'fs:sortSetting'
+export const startManualConflictResolution = 'fs:startManualConflictResolution'
+export const tlfCrStatusChanged = 'fs:tlfCrStatusChanged'
 export const tlfSyncConfigLoaded = 'fs:tlfSyncConfigLoaded'
 export const tlfSyncConfigsForAllSyncEnabledTlfsLoaded = 'fs:tlfSyncConfigsForAllSyncEnabledTlfsLoaded'
 export const triggerSendLinkToChat = 'fs:triggerSendLinkToChat'
@@ -174,6 +176,8 @@ type _ShowIncomingSharePayload = $ReadOnly<{|initialDestinationParentPath: Types
 type _ShowMoveOrCopyPayload = $ReadOnly<{|initialDestinationParentPath: Types.Path|}>
 type _ShowSystemFileManagerIntegrationBannerPayload = void
 type _SortSettingPayload = $ReadOnly<{|path: Types.Path, sortSetting: Types.SortSetting|}>
+type _StartManualConflictResolutionPayload = $ReadOnly<{|tlfPath: Types.Path|}>
+type _TlfCrStatusChangedPayload = $ReadOnly<{|status: Types.ConflictState, tlfPath: Types.Path|}>
 type _TlfSyncConfigLoadedPayload = $ReadOnly<{|tlfType: Types.TlfType, tlfName: string, syncConfig: Types.TlfSyncConfig|}>
 type _TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload = $ReadOnly<{|private: I.Map<string, Types.TlfSyncConfig>, public: I.Map<string, Types.TlfSyncConfig>, team: I.Map<string, Types.TlfSyncConfig>|}>
 type _TriggerSendLinkToChatPayload = void
@@ -262,6 +266,8 @@ export const createShowIncomingShare = (payload: _ShowIncomingSharePayload) => (
 export const createShowMoveOrCopy = (payload: _ShowMoveOrCopyPayload) => ({payload, type: showMoveOrCopy})
 export const createShowSystemFileManagerIntegrationBanner = (payload: _ShowSystemFileManagerIntegrationBannerPayload) => ({payload, type: showSystemFileManagerIntegrationBanner})
 export const createSortSetting = (payload: _SortSettingPayload) => ({payload, type: sortSetting})
+export const createStartManualConflictResolution = (payload: _StartManualConflictResolutionPayload) => ({payload, type: startManualConflictResolution})
+export const createTlfCrStatusChanged = (payload: _TlfCrStatusChangedPayload) => ({payload, type: tlfCrStatusChanged})
 export const createTlfSyncConfigLoaded = (payload: _TlfSyncConfigLoadedPayload) => ({payload, type: tlfSyncConfigLoaded})
 export const createTlfSyncConfigsForAllSyncEnabledTlfsLoaded = (payload: _TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload) => ({payload, type: tlfSyncConfigsForAllSyncEnabledTlfsLoaded})
 export const createTriggerSendLinkToChat = (payload: _TriggerSendLinkToChatPayload) => ({payload, type: triggerSendLinkToChat})
@@ -350,6 +356,8 @@ export type ShowIncomingSharePayload = {|+payload: _ShowIncomingSharePayload, +t
 export type ShowMoveOrCopyPayload = {|+payload: _ShowMoveOrCopyPayload, +type: 'fs:showMoveOrCopy'|}
 export type ShowSystemFileManagerIntegrationBannerPayload = {|+payload: _ShowSystemFileManagerIntegrationBannerPayload, +type: 'fs:showSystemFileManagerIntegrationBanner'|}
 export type SortSettingPayload = {|+payload: _SortSettingPayload, +type: 'fs:sortSetting'|}
+export type StartManualConflictResolutionPayload = {|+payload: _StartManualConflictResolutionPayload, +type: 'fs:startManualConflictResolution'|}
+export type TlfCrStatusChangedPayload = {|+payload: _TlfCrStatusChangedPayload, +type: 'fs:tlfCrStatusChanged'|}
 export type TlfSyncConfigLoadedPayload = {|+payload: _TlfSyncConfigLoadedPayload, +type: 'fs:tlfSyncConfigLoaded'|}
 export type TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload = {|+payload: _TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload, +type: 'fs:tlfSyncConfigsForAllSyncEnabledTlfsLoaded'|}
 export type TriggerSendLinkToChatPayload = {|+payload: _TriggerSendLinkToChatPayload, +type: 'fs:triggerSendLinkToChat'|}
@@ -440,6 +448,8 @@ export type Actions =
   | ShowMoveOrCopyPayload
   | ShowSystemFileManagerIntegrationBannerPayload
   | SortSettingPayload
+  | StartManualConflictResolutionPayload
+  | TlfCrStatusChangedPayload
   | TlfSyncConfigLoadedPayload
   | TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload
   | TriggerSendLinkToChatPayload
