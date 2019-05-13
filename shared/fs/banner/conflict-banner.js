@@ -44,7 +44,7 @@ const getMessage = (tlf, conflictState, isUnmerged): string => {
       return 'This should not happen.'
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(conflictState)
-      return 'This should not happen.'
+      return 'Unknown conflictState: ' + conflictState
   }
 }
 
