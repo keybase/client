@@ -105,7 +105,7 @@ export const makeTlfSyncPartial: I.RecordFactory<Types._TlfSyncPartial> = I.Reco
 
 export const makeTlfConflict: I.RecordFactory<Types._TlfConflict> = I.Record({
   branch: '',
-  conflictState: 'none',
+  conflict: 'none',
 })
 
 export const makeTlf: I.RecordFactory<Types._Tlf> = I.Record({
