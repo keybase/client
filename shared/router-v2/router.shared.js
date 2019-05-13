@@ -76,7 +76,7 @@ export const oldActionToNewActions = (action: any, navigation: any, allowAppendD
         const {fromKey} = action.payload
         const activeKey = getActiveKey(navigation.state)
         if (fromKey !== activeKey) {
-          console.log('Skipping append on wrong screen')
+          logger.warn('Skipping append on wrong screen')
           return
         }
       }

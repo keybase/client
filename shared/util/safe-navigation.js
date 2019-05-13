@@ -27,6 +27,8 @@ function withSafeNavigation<Config: {}, Instance>(
   |}
 
   class WithSafeNavigation extends React.Component<WithSafeNavigationProps> {
+    static displayName = `WithSafeNavigation(${Component.displayName || Component.name || 'Component'})`
+
     _navigateAppend = ({path, replace}) =>
       RouteTreeGen.createNavigateAppend({fromKey: getActiveKey(this.props.navigation.state), path, replace})
 
@@ -47,6 +49,7 @@ function withSafeNavigation<Config: {}, Instance>(
   const WithForwardRef = React.forwardRef((props, ref) => (
     <WithSafeNavigation {...props} forwardedRef={ref} />
   ))
+  WithForwardRef.displayName = `ForwardRef(WithSafeNavigation)`
   return withNavigation(WithForwardRef)
 }
 
