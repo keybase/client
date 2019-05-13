@@ -922,6 +922,10 @@ function* loadMoreMessages(state, action, logger) {
     case Chat2Gen.selectConversation:
       key = action.payload.conversationIDKey
       reason = action.payload.reason || 'selected'
+      if (reason === 'focused') {
+        // don't immediately load do to a nav change. this thrashes the list too much
+        return
+      }
       break
     case Chat2Gen.metasReceived:
       if (!action.payload.clearExistingMessages) {
