@@ -5598,6 +5598,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 
 	dirtyFiles := fbo.blocks.GetDirtyFileBlockRefs(lState)
 	dirtyDirs := fbo.blocks.GetDirtyDirBlockRefs(lState)
+	defer fbo.blocks.GetDirtyDirBlockRefsDone(lState)
 	if len(dirtyFiles) == 0 && len(dirtyDirs) == 0 {
 		return nil
 	}

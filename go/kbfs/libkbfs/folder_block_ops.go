@@ -216,7 +216,9 @@ type folderBlockOps struct {
 
 	// dirtyDirs track which directories are currently dirty in this
 	// TLF.
-	dirtyDirs map[data.BlockPointer][]data.BlockInfo
+	dirtyDirs          map[data.BlockPointer][]data.BlockInfo
+	dirtyDirsSyncing   bool
+	deferredDirUpdates []func(lState *kbfssync.LockState) error
 
 	// dirtyRootDirEntry is a DirEntry representing the root of the
 	// TLF (to be copied into the RootMetadata on a sync).
@@ -1485,6 +1487,25 @@ func (fbo *folderBlockOps) updateEntryLocked(ctx context.Context,
 	} else {
 		_ = fbo.makeDirDirtyLocked(lState, parentPath.TailPointer(), unrefs)
 	}
+
+	// If we're in the middle of syncing the directories, but the
+	// current file is not yet being synced, we need to re-apply this
+	// update after the sync is done, so it doesn't get lost after the
+	// syncing directory block is readied.  This only applies to dir
+	// updates being caused by file changes; other types of dir writes
+	// are protected by `folderBranchOps.syncLock`, which is held
+	// during `SyncAll`.
+	if fbo.dirtyDirsSyncing && !fbo.doDeferWrite {
+		fbo.log.CDebugf(ctx, "Deferring update entry during sync")
+		n := fbo.nodeCache.Get(file.TailRef())
+		fbo.deferredDirUpdates = append(
+			fbo.deferredDirUpdates, func(lState *kbfssync.LockState) error {
+				file := fbo.nodeCache.PathFromNode(n)
+				return fbo.updateEntryLocked(
+					ctx, lState, kmd, file, de, includeDeleted)
+			})
+	}
+
 	return nil
 }
 
@@ -1631,13 +1652,27 @@ func (fbo *folderBlockOps) GetDirtyFileBlockRefs(
 // directories.
 func (fbo *folderBlockOps) GetDirtyDirBlockRefs(
 	lState *kbfssync.LockState) []data.BlockRef {
-	fbo.blockLock.RLock(lState)
-	defer fbo.blockLock.RUnlock(lState)
+	fbo.blockLock.Lock(lState)
+	defer fbo.blockLock.Unlock(lState)
 	var dirtyRefs []data.BlockRef
 	for ptr := range fbo.dirtyDirs {
 		dirtyRefs = append(dirtyRefs, ptr.Ref())
 	}
+	if fbo.dirtyDirsSyncing {
+		panic("GetDirtyDirBlockRefs() called twice")
+	}
+	fbo.dirtyDirsSyncing = true
 	return dirtyRefs
+}
+
+// GetDirtyDirBlockRefsDone is called to indicate the caller is done
+// with the data previously returned from `GetDirtyDirBlockRefs()`.
+func (fbo *folderBlockOps) GetDirtyDirBlockRefsDone(
+	lState *kbfssync.LockState) {
+	fbo.blockLock.Lock(lState)
+	defer fbo.blockLock.Unlock(lState)
+	fbo.dirtyDirsSyncing = false
+	fbo.deferredDirUpdates = nil
 }
 
 // getDirtyDirUnrefsLocked returns a list of block infos that need to be
@@ -2422,6 +2457,16 @@ func (fbo *folderBlockOps) clearAllDirtyDirsLocked(
 	}
 	fbo.dirtyDirs = make(map[data.BlockPointer][]data.BlockInfo)
 	fbo.dirtyRootDirEntry = nil
+	fbo.dirtyDirsSyncing = false
+	// Re-apply any deferred directory updates related to files that
+	// weren't synced as part of this batch.
+	for _, f := range fbo.deferredDirUpdates {
+		err := f(lState)
+		if err != nil {
+			fbo.log.CWarningf(ctx, "Deferred entry update failed: %+v", err)
+		}
+	}
+	fbo.deferredDirUpdates = nil
 }
 
 // ClearCacheInfo removes any cached info for the the given file.

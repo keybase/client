@@ -2414,3 +2414,67 @@ func TestKBFSOpsConcurMultiblockOverwriteWithCanceledSync(t *testing.T) {
 		t.Errorf("Read wrong data.  Expected %v, got %v", data4, gotData)
 	}
 }
+
+// Test that during a sync of a directory, a non-syncing file can be
+// updated without losing its file size after the sync completes.
+// Regression test for KBFS-4165.
+func TestKBFSOpsConcurWriteOfNonsyncedFileDuringSync(t *testing.T) {
+	config, _, ctx, cancel := kbfsOpsConcurInit(t, "test_user")
+	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
+	kbfsOps := config.KBFSOps()
+
+	t.Log("Create and sync a 0-byte file")
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
+	fileA := "a"
+	fileANode, _, err := kbfsOps.CreateFile(
+		ctx, rootNode, fileA, false, NoExcl)
+	require.NoError(t, err)
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+
+	t.Log("Create a second file, but stall the SyncAll")
+	onPutStalledCh, putUnstallCh, putCtx :=
+		StallMDOp(ctx, config, StallableMDAfterPut, 1)
+
+	fileB := "b"
+	fileBNode, _, err := kbfsOps.CreateFile(
+		ctx, rootNode, fileB, false, NoExcl)
+	require.NoError(t, err)
+	dataB := []byte{1, 2, 3}
+	err = kbfsOps.Write(ctx, fileBNode, dataB, 0)
+	require.NoError(t, err)
+
+	// start the sync
+	errChan := make(chan error)
+	go func() {
+		errChan <- kbfsOps.SyncAll(putCtx, rootNode.GetFolderBranch())
+	}()
+
+	// wait until Sync gets stuck at MDOps.Put()
+	select {
+	case <-onPutStalledCh:
+	case <-ctx.Done():
+		require.NoError(t, ctx.Err())
+	}
+
+	t.Log("Write some data into the first file")
+	dataA := []byte{3, 2, 1}
+	err = kbfsOps.Write(ctx, fileANode, dataA, 0)
+	require.NoError(t, err)
+	ei, err := kbfsOps.Stat(ctx, fileANode)
+	require.NoError(t, err)
+	require.Equal(t, uint64(len(dataA)), ei.Size)
+
+	t.Log("Finish the sync, and make sure the first file's data " +
+		"is still available")
+	close(putUnstallCh)
+	err = <-errChan
+	require.NoError(t, err)
+
+	ei, err = kbfsOps.Stat(ctx, fileANode)
+	require.NoError(t, err)
+	require.Equal(t, uint64(len(dataA)), ei.Size)
+
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+}
