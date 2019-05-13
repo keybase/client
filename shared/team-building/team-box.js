@@ -49,11 +49,7 @@ const TeamInput = (props: Props) => (
     onDownArrowKeyDown={props.onDownArrowKeyDown}
     onUpArrowKeyDown={props.onUpArrowKeyDown}
     onBackspace={props.onBackspace}
-    placeholder={
-      props.teamSoFar.length
-        ? 'Add another username or enter to chat'
-        : 'Enter a username'
-    }
+    placeholder={props.teamSoFar.length ? 'Add another username or enter to chat' : 'Enter a username'}
     searchString={props.searchString}
   />
 )
@@ -126,7 +122,6 @@ const styles = Styles.styleSheetCreate({
       borderWidth: 1,
       maxHeight: 170,
       minHeight: 40,
-      overflowY: 'scroll',
     },
     isMobile: {
       borderBottomColor: Styles.globalColors.black_10,
