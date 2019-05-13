@@ -279,6 +279,7 @@ const styles = Styles.styleSheetCreate({
       width: '100%',
     },
     isAndroid: {
+      backgroundColor: Styles.globalColors.white,
       height: 56,
     },
     isIOS: {
