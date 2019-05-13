@@ -21,7 +21,7 @@ const mapStateToProps = (state, ownProps) => {
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
   onClearInviteError: () => dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''})), // should only be called on unmount
-  onClose: () => dispatch(RouteTreeGen.createNavigateUp({})),
+  onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
   onInvite: (invitees: string, role: Types.TeamRoleType) => {
     const teamname = getRouteProps(ownProps, 'teamname')
     dispatch(TeamsGen.createInviteToTeamByEmail({invitees, role, teamname}))

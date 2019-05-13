@@ -13,7 +13,7 @@ const mapDispatchToProps = dispatch => ({
       dispatch(WalletsGen.createSetBuildingRecipientType({recipientType: 'stellarPublicKey'}))
       dispatch(WalletsGen.createSetBuildingTo({to}))
     }
-    dispatch(RouteTreeGen.createNavigateUp({}))
+    dispatch(RouteTreeGen.createNavigateUp())
   },
 })
 const mergeProps = (stateProps, dispatchProps) => ({

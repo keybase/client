@@ -13,7 +13,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   onAccountReset: () => openURL('https://keybase.io/#account-reset'),
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp({})),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onKBHome: () => openURL('https://keybase.io/'),
   onPasswordReset: () => openURL('https://keybase.io/#password-reset'),
 })

@@ -54,7 +54,7 @@ const mapDispatchToProps = dispatch => ({
   onAbandonPayment: () => dispatch(WalletsGen.createAbandonPayment()),
   onBack: () => {
     dispatch(WalletsGen.createClearErrors())
-    dispatch(RouteTreeGen.createNavigateUp({}))
+    dispatch(RouteTreeGen.createNavigateUp())
   },
   onExitFailed: () => dispatch(WalletsGen.createExitFailedPayment()),
   onSendClick: () => dispatch(WalletsGen.createSendPayment()),

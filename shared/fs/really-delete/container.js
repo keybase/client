@@ -28,13 +28,13 @@ const mapDispatchToProps = (dispatch, ownProps) => {
       // If this is a screen menu, then we're deleting the folder we're in,
       // and we need to navigate up twice.
       if (mode === 'screen') {
-        dispatch(RouteTreeGen.createNavigateUp({}))
-        dispatch(RouteTreeGen.createNavigateUp({}))
+        dispatch(RouteTreeGen.createNavigateUp())
+        dispatch(RouteTreeGen.createNavigateUp())
       } else {
-        dispatch(RouteTreeGen.createNavigateUp({}))
+        dispatch(RouteTreeGen.createNavigateUp())
       }
     },
-    onBack: () => dispatch(RouteTreeGen.createNavigateUp({})),
+    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
     onDelete: () => {
       if (path !== Constants.defaultPath) {
         dispatch(FsGen.createDeleteFile({path}))

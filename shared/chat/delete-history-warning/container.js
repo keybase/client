@@ -11,11 +11,11 @@ const mapStateToProps = () => ({})
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => {
   return {
-    onBack: isMobile ? null : () => dispatch(RouteTreeGen.createNavigateUp({})),
-    onCancel: () => dispatch(RouteTreeGen.createNavigateUp({})),
+    onBack: isMobile ? null : () => dispatch(RouteTreeGen.createNavigateUp()),
+    onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
     onDeleteHistory: () => {
       const conversationIDKey = getRouteProps(ownProps, 'conversationIDKey')
-      dispatch(RouteTreeGen.createNavigateUp({}))
+      dispatch(RouteTreeGen.createNavigateUp())
       dispatch(Chat2Gen.createMessageDeleteHistory({conversationIDKey}))
     },
   }

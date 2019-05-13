@@ -17,7 +17,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = (dispatch, ownProps) => ({
   _onCreateNewTeam: (joinSubteam: boolean, teamname: string) =>
     dispatch(TeamsGen.createCreateNewTeam({joinSubteam, teamname})),
-  onCancel: () => dispatch(RouteTreeGen.createNavigateUp({})),
+  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
   onSetTeamCreationError: (error: string) => {
     dispatch(TeamsGen.createSetTeamCreationError({error}))
   },

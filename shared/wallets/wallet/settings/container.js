@@ -51,7 +51,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => ({
   _onBack: (accountID: Types.AccountID) => {
-    dispatch(RouteTreeGen.createNavigateUp({}))
+    dispatch(RouteTreeGen.createNavigateUp())
     dispatch(WalletsGen.createLoadPayments({accountID}))
   },
   _onChangeMobileOnlyMode: (accountID: Types.AccountID, enabled: boolean) =>

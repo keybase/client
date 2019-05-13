@@ -32,7 +32,7 @@ const mapStateToProps = (state, ownProps) => ({
 const mapDispatchToProps = dispatch => ({
   onClose: () => {
     dispatch(WaitingGen.createClearWaiting({key: Constants.uploadAvatarWaitingKey}))
-    dispatch(RouteTreeGen.createNavigateUp({}))
+    dispatch(RouteTreeGen.createNavigateUp())
   },
   onSaveTeamAvatar: (
     filename: string,

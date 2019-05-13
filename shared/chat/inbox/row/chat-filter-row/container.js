@@ -36,7 +36,7 @@ const mapDispatchToProps = (dispatch, {focusFilter}) => ({
       dispatch(Chat2Gen.createToggleInboxSearch({enabled: true}))
     }
   },
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp({})),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onStartSearch: () => dispatch(Chat2Gen.createToggleInboxSearch({enabled: true})),
   onStopSearch: () => dispatch(Chat2Gen.createToggleInboxSearch({enabled: false})),
 })

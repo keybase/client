@@ -24,7 +24,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp({})),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onSubmitTextCode: (code: string) =>
     dispatch(ProvisionGen.createSubmitTextCode({phrase: new HiddenString(code)})),
 })

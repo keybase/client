@@ -19,7 +19,7 @@ const mapStateToProps = (state, ownProps) => {
 }
 
 const mapDispatchToProps = dispatch => ({
-  _onClose: () => dispatch(RouteTreeGen.createNavigateUp({})),
+  _onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
   _onDelete: (accountID: Types.AccountID) => {
     dispatch(
       RouteTreeGen.createNavigateAppend({

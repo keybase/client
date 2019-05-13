@@ -32,7 +32,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(Chat2Gen.createAddUsersToChannel({conversationIDKey, usernames})),
   onCancel: () => {
     dispatch(WaitingGen.createClearWaiting({key: Constants.waitingKeyAddUsersToChannel}))
-    dispatch(RouteTreeGen.createNavigateUp({}))
+    dispatch(RouteTreeGen.createNavigateUp())
   },
 })
 

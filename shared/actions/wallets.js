@@ -626,7 +626,7 @@ const createdOrLinkedAccount = (state, action) => {
   if (action.payload.setBuildingTo) {
     return WalletsGen.createSetBuildingTo({to: action.payload.accountID})
   }
-  return RouteTreeGen.createNavigateUp({})
+  return RouteTreeGen.createNavigateUp()
 }
 
 const navigateUp = (state, action) => {
@@ -634,7 +634,7 @@ const navigateUp = (state, action) => {
     // we don't want to nav on error
     return
   }
-  return RouteTreeGen.createNavigateUp({})
+  return RouteTreeGen.createNavigateUp()
 }
 
 const navigateToAccount = (state, action) => {
@@ -724,7 +724,7 @@ const maybeNavigateAwayFromSendForm = state => {
   // pop off any routes that are part of the popup
   path.reverse().some(p => {
     if (Constants.sendRequestFormRoutes.includes(p.routeName)) {
-      actions.push(RouteTreeGen.createNavigateUp({}))
+      actions.push(RouteTreeGen.createNavigateUp())
       return false
     }
     // we're done
@@ -844,7 +844,7 @@ const maybeNavToLinkExisting = (state, action) =>
   })
 
 const rejectDisclaimer = (state, action) =>
-  isMobile ? RouteTreeGen.createNavigateUp({}) : RouteTreeGen.createClearModals()
+  isMobile ? RouteTreeGen.createNavigateUp() : RouteTreeGen.createClearModals()
 
 const loadMobileOnlyMode = (state, action, logger) => {
   let accountID = action.payload.accountID

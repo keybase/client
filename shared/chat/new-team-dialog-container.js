@@ -27,7 +27,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
       })
     )
   },
-  onCancel: () => dispatch(RouteTreeGen.createNavigateUp({})),
+  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
   onJoinSubteamChange: () => {},
   onSetTeamCreationError: (error: string) => {
     dispatch(TeamsGen.createSetTeamCreationError({error}))

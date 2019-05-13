@@ -25,7 +25,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
   fromSendForm: Container.getRouteProps(ownProps, 'fromSendForm'),
-  onCancel: () => dispatch(RouteTreeGen.createNavigateUp({})),
+  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
   onCheckKey: (key: string) => {
     dispatch(
       WalletsGen.createValidateSecretKey({
@@ -47,7 +47,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
       })
     )
 
-    dispatch(RouteTreeGen.createNavigateUp({}))
+    dispatch(RouteTreeGen.createNavigateUp())
   },
 })
 

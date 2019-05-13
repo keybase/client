@@ -42,7 +42,7 @@ const mapDispatchToProps = (dispatch, {setSelectedTab}: OwnProps) => ({
     lastSelectedTabs[teamname] = selectedTab
     setSelectedTab(selectedTab)
   },
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp({})),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {

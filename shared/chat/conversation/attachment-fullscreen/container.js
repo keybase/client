@@ -46,7 +46,7 @@ const mapDispatchToProps = dispatch => ({
       dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath}))
   },
   onClose: () => {
-    dispatch(RouteTreeGen.createNavigateUp({}))
+    dispatch(RouteTreeGen.createNavigateUp())
   },
 })
 

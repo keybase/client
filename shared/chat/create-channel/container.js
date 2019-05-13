@@ -26,8 +26,8 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   _onCreateChannel: ({channelname, description, teamname}) =>
     dispatch(TeamsGen.createCreateChannel({channelname, description, teamname})),
   _onSetChannelCreationError: error => dispatch(TeamsGen.createSetChannelCreationError({error})),
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp({})),
-  onClose: () => dispatch(RouteTreeGen.createNavigateUp({})),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 export default compose(

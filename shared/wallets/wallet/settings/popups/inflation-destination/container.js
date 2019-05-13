@@ -22,7 +22,7 @@ const mapStateToProps = (state, ownProps) => {
 const mapDispatchToProps = dispatch => ({
   _onClose: () => {
     dispatch(WalletsGen.createInflationDestinationReceivedError({error: ''}))
-    dispatch(RouteTreeGen.createNavigateUp({}))
+    dispatch(RouteTreeGen.createNavigateUp())
   },
   _onSubmit: (accountID: Types.AccountID, destination: string, name: string) => {
     if (!destination) {

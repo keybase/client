@@ -29,7 +29,7 @@ function* onSubmitNewEmail(state) {
       newEmail,
     })
     yield Saga.put(SettingsGen.createLoadSettings())
-    yield Saga.put(RouteTreeGen.createNavigateUp({}))
+    yield Saga.put(RouteTreeGen.createNavigateUp())
   } catch (error) {
     yield Saga.put(SettingsGen.createOnUpdateEmailError({error}))
   } finally {
@@ -50,7 +50,7 @@ function* onSubmitNewPassword(state, action) {
       oldPassphrase: '',
       passphrase: newPassword.stringValue(),
     })
-    yield Saga.put(RouteTreeGen.createNavigateUp({}))
+    yield Saga.put(RouteTreeGen.createNavigateUp())
     if (action.payload.thenSignOut) {
       yield Saga.put(ConfigGen.createLogout())
     }

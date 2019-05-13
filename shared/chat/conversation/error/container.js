@@ -14,7 +14,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp({})),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({

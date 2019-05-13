@@ -33,7 +33,7 @@ describe('goBackAndClearErrors', () => {
     expect(nextState.signup.nameError).toEqual('')
     expect(nextState.signup.signupError.stringValue()).toEqual('')
     expect(nextState.signup.usernameError).toEqual('')
-    expect(_testing.goBackAndClearErrors()).toEqual(RouteTreeGen.createNavigateUp({}))
+    expect(_testing.goBackAndClearErrors()).toEqual(RouteTreeGen.createNavigateUp())
   })
 })
 

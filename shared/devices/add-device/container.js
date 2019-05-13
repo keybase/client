@@ -10,7 +10,7 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   onAddComputer: () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'desktop'})),
   onAddPaperKey: () => dispatch(DevicesGen.createShowPaperKeyPage()),
   onAddPhone: () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'mobile'})),
-  onCancel: () => dispatch(RouteTreeGen.createNavigateUp({})),
+  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 export default Container.namedConnect<

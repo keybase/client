@@ -18,7 +18,7 @@ const mapStateToProps = (state, ownProps: {}) => ({
 })
 
 const mapDispatchToProps = (dispatch: any, ownProps: {}) => ({
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp({})),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onRefresh: () => dispatch(SettingsGen.createNotificationsRefresh()),
   onToggle: (group: string, name?: string) => dispatch(SettingsGen.createNotificationsToggle({group, name})),
   onToggleSound: (sound: boolean) => dispatch(ConfigGen.createSetNotifySound({sound, writeFile: true})),

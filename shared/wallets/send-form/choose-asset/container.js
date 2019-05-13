@@ -26,13 +26,13 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => ({
   _onChoose: (currency: string) => {
     dispatch(WalletsGen.createSetBuildingCurrency({currency}))
-    dispatch(RouteTreeGen.createNavigateUp({}))
+    dispatch(RouteTreeGen.createNavigateUp())
   },
   _onRefresh: (accountID: Types.AccountID, to: string) => {
     dispatch(WalletsGen.createLoadDisplayCurrencies())
     accountID !== Types.noAccountID && dispatch(WalletsGen.createLoadSendAssetChoices({from: accountID, to}))
   },
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp({})),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({
