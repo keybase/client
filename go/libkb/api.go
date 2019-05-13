@@ -949,12 +949,6 @@ func (api *ExternalAPIEngine) DoRequest(m MetaContext,
 	}
 	defer finisher()
 
-	if strings.HasPrefix(arg.Endpoint, "https://mobile.twitter.com") {
-		var buf bytes.Buffer
-		buf.ReadFrom(resp.Body)
-		panic(arg.Endpoint + " - " + buf.String())
-	}
-
 	switch restype {
 	case XAPIResJSON:
 		ar = &ExternalAPIRes{resp.StatusCode, jw}
