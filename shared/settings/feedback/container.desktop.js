@@ -2,7 +2,7 @@
 import logger from '../../logger'
 import * as React from 'react'
 import {HOCTimers} from '../../common-adapters'
-import Feedback from './index.desktop'
+import Feedback from './index'
 import {compose, connect, type RouteProps} from '../../util/container'
 import {version} from '../../constants/platform'
 import {writeLogLinesToFile} from '../../util/forward-logs'

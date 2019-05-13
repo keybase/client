@@ -2,7 +2,7 @@
 import logger from '../../logger'
 import * as React from 'react'
 import {HOCTimers} from '../../common-adapters'
-import Feedback from './index.native'
+import Feedback from './index'
 import logSend from '../../native/log-send'
 import {compose, connect, type RouteProps} from '../../util/container'
 import {isAndroid, version, logFileName, pprofDir} from '../../constants/platform'
