@@ -313,7 +313,7 @@ export const createInflationDestinationReceivedError = (payload: _InflationDesti
 /**
  * Initialize and navigate to the send or request form. See docs for `setBuilding*` for param semantics.
  */
-export const createOpenSendRequestForm = (payload: _OpenSendRequestFormPayload) => ({payload, type: openSendRequestForm})
+export const createOpenSendRequestForm = (payload: _OpenSendRequestFormPayload = Object.freeze({})) => ({payload, type: openSendRequestForm})
 /**
  * Link an existing Stellar account with this Keybase user.
  */

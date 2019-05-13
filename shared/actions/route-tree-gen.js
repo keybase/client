@@ -55,7 +55,7 @@ export const createResetStack = (payload: _ResetStackPayload) => ({payload, type
 export const createSwitchRouteDef = (payload: _SwitchRouteDefPayload) => ({payload, type: switchRouteDef})
 export const createNavigateAppend = (payload: _NavigateAppendPayload) => ({payload, type: navigateAppend})
 export const createNavigateTo = (payload: _NavigateToPayload) => ({payload, type: navigateTo})
-export const createNavigateUp = (payload: _NavigateUpPayload) => ({payload, type: navigateUp})
+export const createNavigateUp = (payload: _NavigateUpPayload = Object.freeze({})) => ({payload, type: navigateUp})
 export const createPutActionIfOnPath = (payload: _PutActionIfOnPathPayload) => ({payload, type: putActionIfOnPath})
 export const createSwitchTo = (payload: _SwitchToPayload) => ({payload, type: switchTo})
 

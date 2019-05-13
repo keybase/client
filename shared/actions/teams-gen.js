@@ -198,7 +198,7 @@ export const createGetMembers = (payload: _GetMembersPayload) => ({payload, type
 export const createGetTeamOperations = (payload: _GetTeamOperationsPayload) => ({payload, type: getTeamOperations})
 export const createGetTeamProfileAddList = (payload: _GetTeamProfileAddListPayload) => ({payload, type: getTeamProfileAddList})
 export const createGetTeamPublicity = (payload: _GetTeamPublicityPayload) => ({payload, type: getTeamPublicity})
-export const createGetTeams = (payload: _GetTeamsPayload) => ({payload, type: getTeams})
+export const createGetTeams = (payload: _GetTeamsPayload = Object.freeze({})) => ({payload, type: getTeams})
 export const createIgnoreRequest = (payload: _IgnoreRequestPayload) => ({payload, type: ignoreRequest})
 export const createInviteToTeamByEmail = (payload: _InviteToTeamByEmailPayload) => ({payload, type: inviteToTeamByEmail})
 export const createInviteToTeamByPhone = (payload: _InviteToTeamByPhonePayload) => ({payload, type: inviteToTeamByPhone})

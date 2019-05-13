@@ -84,7 +84,7 @@ type _UploadAvatarPayload = $ReadOnly<{|filename: string, crop?: RPCTypes.ImageC
 /**
  * Update any fields
  */
-export const createUpdatePgpInfo = (payload: _UpdatePgpInfoPayload) => ({payload, type: updatePgpInfo})
+export const createUpdatePgpInfo = (payload: _UpdatePgpInfoPayload = Object.freeze({})) => ({payload, type: updatePgpInfo})
 export const createAddProof = (payload: _AddProofPayload) => ({payload, type: addProof})
 export const createBackToProfile = (payload: _BackToProfilePayload) => ({payload, type: backToProfile})
 export const createCancelAddProof = (payload: _CancelAddProofPayload) => ({payload, type: cancelAddProof})
