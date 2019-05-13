@@ -6,6 +6,7 @@ import * as Constants from '../constants/router2'
 import * as Tabs from '../constants/tabs'
 import {modalRoutes, routes, tabRoots} from './routes'
 import logger from '../logger'
+import {getActiveKey} from './util'
 
 const getNumModals = navigation => {
   const path = Constants._getModalStackForNavigator(navigation.state)
@@ -67,6 +68,15 @@ export const oldActionToNewActions = (action: any, navigation: any, allowAppendD
       if (visible) {
         if (!allowAppendDupe && routeName === visible.routeName && shallowEqual(visible.params, params)) {
           console.log('Skipping append dupe')
+          return
+        }
+      }
+
+      if (action.payload.fromKey) {
+        const {fromKey} = action.payload
+        const activeKey = getActiveKey(navigation.state)
+        if (fromKey !== activeKey) {
+          console.log('Skipping append on wrong screen')
           return
         }
       }

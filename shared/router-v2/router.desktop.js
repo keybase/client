@@ -14,6 +14,7 @@ import {
   createSwitchNavigator,
 } from '@react-navigation/core'
 import {modalRoutes, routes, nameToTab, loggedOutRoutes, tabRoots} from './routes'
+import {getActiveIndex, getActiveKey} from './util'
 import * as Shared from './router.shared'
 import Header from './header/index.desktop'
 import * as Shim from './shim.desktop'
@@ -32,25 +33,6 @@ import OutOfDate from '../app/out-of-date'
  * When there are no modals AppView is rendered
  * Floating is rendered to a portal on top
  */
-
-// We could have subnavigators, so traverse the routes so we can get the active
-// screen's index so we know when to enable the back button. Note this doesn't
-// support a subnavigator with a root you can hit back from.
-const getActiveIndex = navState => {
-  const route = navState.routes[navState.index]
-  if (route.routes) {
-    return getActiveIndex(route)
-  }
-  return navState.index
-}
-// Get active key inside any subnavigator so navigation closures are
-const getActiveKey = navState => {
-  const route = navState.routes[navState.index]
-  if (route.routes) {
-    return getActiveKey(route)
-  }
-  return navState.routes[navState.index].key
-}
 
 // The app with a tab bar on the left and content area on the right
 // A single content view and n-modals on top
