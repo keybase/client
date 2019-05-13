@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"sync"
 
-	"github.com/mvdan/xurls"
+	"github.com/keybase/xurls"
 
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"

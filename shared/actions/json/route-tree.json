@@ -1,7 +1,5 @@
 {
-  "prelude": [
-    "import * as Tabs from '../constants/tabs'"
-  ],
+  "prelude": ["import * as Tabs from '../constants/tabs'"],
   "actions": {
     "switchRouteDef": {
       "_description": "TODO for this whole json. replace all these actions with a cleaned up version",
@@ -18,11 +16,12 @@
       "replace?": "boolean"
     },
     "navigateAppend": {
+      "fromKey?": "string",
       "path": "any",
       "parentPath?": "any",
       "replace?": "boolean"
     },
-    "navigateUp": {},
+    "navigateUp": {"fromKey?": "string"},
     "putActionIfOnPath": {
       "expectedPath": "any",
       "otherAction": "any",

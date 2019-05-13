@@ -12,35 +12,19 @@ type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = state => {
   const build = state.wallets.building
-  const built = state.wallets.builtPayment
-  const banners = (state.wallets.sentPaymentError
-    ? [
-        {
-          bannerBackground: 'HighRisk',
-          bannerText: state.wallets.sentPaymentError,
-          sendFailed: true,
-        },
-      ]
-    : []
-  ).concat(
-    (built.reviewBanners || []).map(banner => ({
-      bannerBackground: Constants.bannerLevelToBackground(banner.level),
-      bannerText: banner.message,
-      reviewProofs: banner.proofsChanged,
-    }))
-  )
+  const _built = state.wallets.builtPayment
   const waitingKey = Constants.sendPaymentWaitingKey
   const _waiting = anyWaiting(state, waitingKey)
   return {
+    _built,
+    _sentPaymentError: state.wallets.sentPaymentError,
     _waiting,
-    banners,
-    displayAmountFiat: built.displayAmountFiat,
-    displayAmountXLM: built.displayAmountXLM,
+    displayAmountFiat: _built.displayAmountFiat,
+    displayAmountXLM: _built.displayAmountXLM,
     encryptedNote: build.secretNote.stringValue(),
     publicMemo: build.publicMemo.stringValue(),
-    readyToSend: built.readyToSend,
-    sendFailed: !!state.wallets.sentPaymentError,
-    sendingIntentionXLM: built.sendingIntentionXLM,
+    readyToSend: _built.readyToSend,
+    sendingIntentionXLM: _built.sendingIntentionXLM,
     to: build.to,
     waitingKey,
   }
@@ -55,6 +39,7 @@ const mapDispatchToProps = dispatch => ({
   onBack: () => {
     dispatch(WalletsGen.createClearErrors())
     dispatch(RouteTreeGen.createNavigateUp())
+    dispatch(WalletsGen.createBuildPayment())
   },
   onExitFailed: () => dispatch(WalletsGen.createExitFailedPayment()),
   onSendClick: () => dispatch(WalletsGen.createSendPayment()),
@@ -64,23 +49,37 @@ export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   (stateProps, dispatchProps) => {
+    const {_built, _sentPaymentError} = stateProps
+    const exchangeRateChanged = _sentPaymentError && _sentPaymentError.toLowerCase().includes('exchange rate')
+    const banners = (_sentPaymentError
+      ? [
+          {
+            action: exchangeRateChanged ? undefined : dispatchProps.onExitFailed,
+            bannerBackground: 'HighRisk',
+            bannerText: _sentPaymentError,
+            sendFailed: true,
+          },
+        ]
+      : []
+    ).concat(
+      (_built.reviewBanners || []).map(banner => ({
+        action: banner.proofsChanged ? () => dispatchProps._onReviewProofs(stateProps.to) : undefined,
+        bannerBackground: Constants.bannerLevelToBackground(banner.level),
+        bannerText: banner.message,
+        reviewProofs: banner.proofsChanged,
+      }))
+    )
+
     let onBack = dispatchProps.onBack
     if (stateProps._waiting) {
       // Not allowed to go anywhere while waiting for send
       onBack = () => {}
-    } else if (stateProps.sendFailed) {
+    } else if (stateProps._sentPaymentError && !exchangeRateChanged) {
       // Close out of everything if failed
       onBack = dispatchProps.onAbandonPayment
     }
     return {
-      banners: stateProps.banners.map(b => {
-        if (b.reviewProofs) {
-          return {...b, action: () => dispatchProps._onReviewProofs(stateProps.to)}
-        } else if (b.sendFailed) {
-          return {...b, action: dispatchProps.onExitFailed}
-        }
-        return b
-      }),
+      banners,
       displayAmountFiat: stateProps.displayAmountFiat,
       displayAmountXLM: stateProps.displayAmountXLM,
       encryptedNote: stateProps.encryptedNote,
@@ -89,7 +88,7 @@ export default connect<OwnProps, _, _, _, _>(
       onSendClick: dispatchProps.onSendClick,
       publicMemo: stateProps.publicMemo,
       readyToSend: stateProps.readyToSend,
-      sendFailed: stateProps.sendFailed,
+      sendFailed: !!_sentPaymentError,
       sendingIntentionXLM: stateProps.sendingIntentionXLM,
       waitingKey: stateProps.waitingKey,
     }

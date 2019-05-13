@@ -195,7 +195,7 @@ export const createDownloadStarted = (payload: _DownloadStartedPayload) => ({pay
 export const createDownloadSuccess = (payload: _DownloadSuccessPayload) => ({payload, type: downloadSuccess})
 export const createDriverDisable = (payload: _DriverDisablePayload) => ({payload, type: driverDisable})
 export const createDriverDisabling = (payload: _DriverDisablingPayload) => ({payload, type: driverDisabling})
-export const createDriverEnable = (payload: _DriverEnablePayload) => ({payload, type: driverEnable})
+export const createDriverEnable = (payload: _DriverEnablePayload = Object.freeze({})) => ({payload, type: driverEnable})
 export const createDriverKextPermissionError = (payload: _DriverKextPermissionErrorPayload) => ({payload, type: driverKextPermissionError})
 export const createEditSuccess = (payload: _EditSuccessPayload) => ({payload, type: editSuccess})
 export const createFavoriteIgnore = (payload: _FavoriteIgnorePayload) => ({payload, type: favoriteIgnore})
