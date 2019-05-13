@@ -17,6 +17,7 @@ type Props = {
   loadMoreType: 'moreToLoad' | 'noMoreToLoad',
   showTeamOffer: boolean,
   measure: ?() => void,
+  waitingPending: boolean,
 }
 
 class TopMessage extends React.PureComponent<Props> {
@@ -36,11 +37,18 @@ class TopMessage extends React.PureComponent<Props> {
         {this.props.hasOlderResetConversation && (
           <ProfileResetNotice conversationIDKey={this.props.conversationIDKey} />
         )}
-        {this.props.loadMoreType === 'noMoreToLoad' && !this.props.showRetentionNotice && (
-          <Kb.Box style={secureStyle}>
-            <Kb.Icon type={isMobile ? 'icon-secure-static-266' : 'icon-secure-266'} />
-          </Kb.Box>
+        {this.props.waitingPending && (
+          <Kb.Text type="BodySmallSemibold" style={loadingStyle}>
+            Loading...
+          </Kb.Text>
         )}
+        {this.props.loadMoreType === 'noMoreToLoad' &&
+          !this.props.showRetentionNotice &&
+          !this.props.waitingPending && (
+            <Kb.Box style={secureStyle}>
+              <Kb.Icon type={isMobile ? 'icon-secure-static-266' : 'icon-secure-266'} />
+            </Kb.Box>
+          )}
         {this.props.showTeamOffer && (
           <Kb.Box style={moreStyle}>
             <CreateTeamNotice />
@@ -55,6 +63,10 @@ class TopMessage extends React.PureComponent<Props> {
       </Kb.Box>
     )
   }
+}
+
+const loadingStyle = {
+  marginLeft: globalMargins.small,
 }
 
 const spacerStyle = {
@@ -79,6 +91,7 @@ type OwnProps = {
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const hasLoadedEver = state.chat2.messageOrdinals.get(ownProps.conversationIDKey) !== undefined
   const meta = Constants.getMeta(state, ownProps.conversationIDKey)
+  const waitingPending = ownProps.conversationIDKey === Constants.pendingWaitingConversationIDKey
   const loadMoreType = state.chat2.moreToLoadMap.get(ownProps.conversationIDKey)
     ? 'moreToLoad'
     : 'noMoreToLoad'
@@ -99,6 +112,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     loadMoreType,
     showRetentionNotice,
     showTeamOffer,
+    waitingPending,
   }
 }
 const mapDispatchToProps = dispatch => ({})

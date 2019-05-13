@@ -1570,8 +1570,13 @@ const confirmScreenResponse = (_, action) => {
 // We always make adhoc convos and never preview it
 const previewConversationPersonMakesAConversation = (state, action) =>
   !action.payload.teamname &&
-  action.payload.participants &&
-  Chat2Gen.createCreateConversation({participants: action.payload.participants})
+  action.payload.participants && [
+    Chat2Gen.createSelectConversation({
+      conversationIDKey: Constants.pendingWaitingConversationIDKey,
+      reason: 'justCreated',
+    }),
+    Chat2Gen.createCreateConversation({participants: action.payload.participants}),
+  ]
 
 // We preview channels
 const previewConversationTeam = (state, action) => {
@@ -1641,6 +1646,10 @@ const _maybeAutoselectNewestConversation = (state, action, logger) => {
     avoidTeam = action.payload.teamname
   }
   let selected = Constants.getSelectedConversation(state)
+  if (selected === Constants.pendingWaitingConversationIDKey) {
+    // never auto select when we're building one
+    return
+  }
   const selectedMeta = state.chat2.metaMap.get(selected)
   if (!selectedMeta) {
     selected = Constants.noConversationIDKey
