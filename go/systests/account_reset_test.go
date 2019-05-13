@@ -21,7 +21,16 @@ func assertResetBadgeState(t *testing.T, user *userPlusDevice, expectedDaysLeft 
 		}
 		return badges.ResetState.EndTime == 0
 	})
+}
 
+func processReset(tc libkb.TestContext) error {
+	mctx := libkb.NewMetaContextForTest(tc)
+	_, err := tc.G.API.Post(mctx, libkb.APIArg{
+		Endpoint:    "autoreset/process_dev",
+		SessionType: libkb.APISessionTypeNONE,
+		RetryCount:  5,
+	})
+	return err
 }
 
 func TestCancelResetPipeline(t *testing.T) {
@@ -60,6 +69,7 @@ func TestCancelResetPipeline(t *testing.T) {
 	assertResetBadgeState(t, ann, 2)
 	err = libkb.CancelResetPipeline(mctx)
 	require.NoError(t, err)
+	require.NoError(t, processReset(*tc))
 	assertResetBadgeState(t, ann, 0)
 
 	// succeed without a session
