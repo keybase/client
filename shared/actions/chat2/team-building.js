@@ -4,6 +4,7 @@ import * as Constants from '../../constants/team-building'
 import * as TeamBuildingTypes from '../../constants/types/team-building'
 import * as TeamBuildingGen from '../team-building-gen'
 import * as Chat2Gen from '../chat2-gen'
+import * as WaitingGen from '../waiting-gen'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Saga from '../../util/saga'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -133,10 +134,16 @@ const fetchUserRecs = state =>
     })
     .then(users => TeamBuildingGen.createFetchedUserRecs({users}))
 
-const createConversation = state =>
-  Chat2Gen.createCreateConversation({
-    participants: state.chat2.teamBuildingFinishedTeam.toArray().map(u => u.id),
-  })
+function* createConversation(state) {
+  yield Saga.put(
+    Chat2Gen.createCreateConversation({
+      participants: state.chat2.teamBuildingFinishedTeam.toArray().map(u => u.id),
+    })
+  )
+  // fragile just to test, todo make an event to say the create is done
+  yield Saga.take(WaitingGen.decrementWaiting)
+  yield Saga.put(RouteTreeGen.createNavigateUp())
+}
 
 function* chatTeamBuildingSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<TeamBuildingGen.SearchPayload>(TeamBuildingGen.search, search)
@@ -148,9 +155,10 @@ function* chatTeamBuildingSaga(): Saga.SagaGenerator<any, any> {
   )
 
   // Navigation
-  yield* Saga.chainAction<
-    TeamBuildingGen.CancelTeamBuildingPayload | TeamBuildingGen.FinishedTeamBuildingPayload
-  >([TeamBuildingGen.cancelTeamBuilding, TeamBuildingGen.finishedTeamBuilding], closeTeamBuilding)
+  yield* Saga.chainAction<TeamBuildingGen.CancelTeamBuildingPayload>(
+    TeamBuildingGen.cancelTeamBuilding,
+    closeTeamBuilding
+  )
 }
 
 export default chatTeamBuildingSaga

@@ -41,6 +41,7 @@ export type Props = {
   showRecs: boolean,
   showServiceResultCount: boolean,
   teamSoFar: Array<{userId: string, prettyName: string, service: ServiceIdWithContact, username: string}>,
+  waitingForCreate: boolean,
 }
 
 class TeamBuilding extends React.PureComponent<Props, void> {
@@ -158,6 +159,11 @@ class TeamBuilding extends React.PureComponent<Props, void> {
             )}
           />
         )}
+        {props.waitingForCreate && (
+          <Kb.Box2 direction="vertical" style={styles.waiting} alignItems="center">
+            <Kb.ProgressIndicator />
+          </Kb.Box2>
+        )}
       </Kb.Box2>
     )
   }
@@ -168,6 +174,7 @@ const styles = Styles.styleSheetCreate({
     common: {
       flex: 1,
       minHeight: 200,
+      position: 'relative',
     },
     isElectron: {
       borderRadius: 4,
@@ -220,6 +227,10 @@ const styles = Styles.styleSheetCreate({
   mobileFlex: Styles.platformStyles({
     isMobile: {flex: 1},
   }),
+  waiting: {
+    ...Styles.globalStyles.fillAbsolute,
+    backgroundColor: Styles.globalColors.black_20,
+  },
 })
 
 export default TeamBuilding

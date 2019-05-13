@@ -2283,6 +2283,11 @@ function* createConversation(state, action, logger) {
   }
 
   try {
+    // TEMP
+    //
+    yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.waitingKeyCreating}))
+    // TEMP
+
     const result: RPCChatTypes.NewConversationLocalRes = yield* Saga.callPromise(
       RPCChatTypes.localNewConversationLocalRpcPromise,
       {
@@ -2293,9 +2298,15 @@ function* createConversation(state, action, logger) {
           .join(','),
         tlfVisibility: RPCTypes.commonTLFVisibility.private,
         topicType: RPCChatTypes.commonTopicType.chat,
-      },
-      Constants.waitingKeyCreating
+      }
+      // Constants.waitingKeyCreating
     )
+
+    // TEMP
+    yield Saga.callUntyped(Saga.delay, 5002)
+    yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.waitingKeyCreating}))
+    // TEMP
+    //
     const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
     if (!conversationIDKey) {
       logger.warn("Couldn't make a new conversation?")
