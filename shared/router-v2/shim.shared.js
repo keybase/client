@@ -47,13 +47,20 @@ const shimAsRouteTree = (Original: any) => {
 const shimSafeNav = (Original: any) => {
   class ShimmedSafeNav extends React.PureComponent<any> {
     static navigationOptions = Original.navigationOptions
-    _pop = () => RouteTreeGen.createNavigateUp({fromKey: this.props.navigation.state.key})
-    _push = path => RouteTreeGen.createNavigateAppend({fromKey: this.props.navigation.state.key, path})
+    _navigateAppend = ({path, replace}) =>
+      RouteTreeGen.createNavigateAppend({fromKey: this.props.navigation.state.key, path, replace})
+
+    _navigateUp = () => RouteTreeGen.createNavigateUp({fromKey: this.props.navigation.state.key})
 
     render() {
       // TODO export this type
       return (
-        <Original navigation={this.props.navigation} shouldRender={true} pop={this._pop} push={this._push} />
+        <Original
+          navigation={this.props.navigation}
+          shouldRender={true}
+          navigateUp={this._navigateUp}
+          navigateAppend={this._navigateAppend}
+        />
       )
     }
   }
