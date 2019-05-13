@@ -373,7 +373,7 @@ export const createUnfurlResolvePrompt = (payload: _UnfurlResolvePromptPayload) 
 /**
  * Select an inbox search item
  */
-export const createInboxSearchSelect = (payload: _InboxSearchSelectPayload) => ({payload, type: inboxSearchSelect})
+export const createInboxSearchSelect = (payload: _InboxSearchSelectPayload = Object.freeze({})) => ({payload, type: inboxSearchSelect})
 /**
  * Set a lock on the exploding mode for a conversation.
  */
@@ -559,7 +559,7 @@ export const createMuteConversation = (payload: _MuteConversationPayload) => ({p
 export const createNavigateToInbox = (payload: _NavigateToInboxPayload) => ({payload, type: navigateToInbox})
 export const createNavigateToThread = (payload: _NavigateToThreadPayload) => ({payload, type: navigateToThread})
 export const createNotificationSettingsUpdated = (payload: _NotificationSettingsUpdatedPayload) => ({payload, type: notificationSettingsUpdated})
-export const createOpenChatFromWidget = (payload: _OpenChatFromWidgetPayload) => ({payload, type: openChatFromWidget})
+export const createOpenChatFromWidget = (payload: _OpenChatFromWidgetPayload = Object.freeze({})) => ({payload, type: openChatFromWidget})
 export const createOpenFolder = (payload: _OpenFolderPayload) => ({payload, type: openFolder})
 export const createPendingMessageWasEdited = (payload: _PendingMessageWasEditedPayload) => ({payload, type: pendingMessageWasEdited})
 export const createPreviewConversation = (payload: _PreviewConversationPayload) => ({payload, type: previewConversation})

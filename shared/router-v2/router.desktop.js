@@ -14,6 +14,7 @@ import {
   createSwitchNavigator,
 } from '@react-navigation/core'
 import {modalRoutes, routes, nameToTab, loggedOutRoutes, tabRoots} from './routes'
+import {getActiveIndex, getActiveKey} from './util'
 import * as Shared from './router.shared'
 import Header from './header/index.desktop'
 import * as Shim from './shim.desktop'
@@ -33,30 +34,20 @@ import OutOfDate from '../app/out-of-date'
  * Floating is rendered to a portal on top
  */
 
-// We could have subnavigators, so traverse the routes so we can get the active
-// screen's index so we know when to enable the back button. Note this doesn't
-// support a subnavigator with a root you can hit back from.
-const getActiveIndex = navState => {
-  const route = navState.routes[navState.index]
-  if (route.routes) {
-    return getActiveIndex(route)
-  }
-  return navState.index
-}
-
 // The app with a tab bar on the left and content area on the right
 // A single content view and n-modals on top
 class AppView extends React.PureComponent<any> {
   render() {
     const navigation = this.props.navigation
     const index = navigation.state.index
-    const activeKey = navigation.state.routes[index].key
-    const descriptor = this.props.descriptors[activeKey]
+    const activeRootKey = navigation.state.routes[index].key
+    const descriptor = this.props.descriptors[activeRootKey]
     const childNav = descriptor.navigation
     const selectedTab = nameToTab[descriptor.state.routeName]
     // transparent headers use position absolute and need to be rendered last so they go on top w/o zindex
     const direction = descriptor.options.headerTransparent ? 'vertical' : 'verticalReverse'
     const activeIndex = getActiveIndex(navigation.state)
+    const activeKey = getActiveKey(navigation.state)
 
     const sceneView = (
       <SceneView
@@ -86,7 +77,7 @@ class AppView extends React.PureComponent<any> {
           <Header
             loggedIn={!!selectedTab}
             options={descriptor.options}
-            onPop={() => childNav.pop()}
+            onPop={() => childNav.goBack(activeKey)}
             allowBack={activeIndex !== 0}
           />
         </Kb.Box2>

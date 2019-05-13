@@ -23,9 +23,9 @@ export const switchTo = 'route-tree:switchTo'
 // Payload Types
 type _ClearModalsPayload = void
 type _NavUpToScreenPayload = $ReadOnly<{|routeName: string|}>
-type _NavigateAppendPayload = $ReadOnly<{|path: any, parentPath?: any, replace?: boolean|}>
+type _NavigateAppendPayload = $ReadOnly<{|fromKey?: string, path: any, parentPath?: any, replace?: boolean|}>
 type _NavigateToPayload = $ReadOnly<{|path: any, parentPath?: any, replace?: boolean|}>
-type _NavigateUpPayload = void
+type _NavigateUpPayload = $ReadOnly<{|fromKey?: string|}>
 type _PutActionIfOnPathPayload = $ReadOnly<{|expectedPath: any, otherAction: any, parentPath?: any|}>
 type _ResetStackPayload = $ReadOnly<{|tab: Tabs.AppTab, actions: Array<any>, index: number|}>
 type _SwitchRouteDefPayload = $ReadOnly<{|loggedIn: boolean, path?: any|}>
@@ -55,7 +55,7 @@ export const createResetStack = (payload: _ResetStackPayload) => ({payload, type
 export const createSwitchRouteDef = (payload: _SwitchRouteDefPayload) => ({payload, type: switchRouteDef})
 export const createNavigateAppend = (payload: _NavigateAppendPayload) => ({payload, type: navigateAppend})
 export const createNavigateTo = (payload: _NavigateToPayload) => ({payload, type: navigateTo})
-export const createNavigateUp = (payload: _NavigateUpPayload) => ({payload, type: navigateUp})
+export const createNavigateUp = (payload: _NavigateUpPayload = Object.freeze({})) => ({payload, type: navigateUp})
 export const createPutActionIfOnPath = (payload: _PutActionIfOnPathPayload) => ({payload, type: putActionIfOnPath})
 export const createSwitchTo = (payload: _SwitchToPayload) => ({payload, type: switchTo})
 

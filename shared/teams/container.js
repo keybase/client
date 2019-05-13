@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as I from 'immutable'
 import * as FsConstants from '../constants/fs'
@@ -9,14 +10,12 @@ import * as TeamsGen from '../actions/teams-gen'
 import Teams from './main'
 import {HeaderRightActions} from './main/header'
 import openURL from '../util/open-url'
-import * as RouteTreeGen from '../actions/route-tree-gen'
-import {compose, isMobile, lifecycle, connect, type RouteProps} from '../util/container'
 import * as Constants from '../constants/teams'
 import * as WaitingConstants from '../constants/waiting'
 import {type Teamname} from '../constants/types/teams'
 import {memoize} from '../util/memoize'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = Container.PropsWithSafeNavigation<{}>
 
 const mapStateToProps = state => ({
   _newTeamRequests: state.teams.getIn(['newTeamRequests'], I.List()),
@@ -31,33 +30,31 @@ const mapStateToProps = state => ({
 })
 
 // share some between headerRightActions on desktop and component on mobile
-const headerActions = dispatch => ({
+const headerActions = (dispatch, {navigateAppend}) => ({
   onCreateTeam: () => {
     dispatch(
-      RouteTreeGen.createNavigateAppend({
+      navigateAppend({
         path: [{props: {}, selected: 'teamNewTeamDialog'}],
       })
     )
   },
   onJoinTeam: () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['teamJoinTeamDialog']}))
+    dispatch(navigateAppend({path: ['teamJoinTeamDialog']}))
   },
 })
-const mapDispatchToProps = (dispatch, {routePath}) => ({
-  ...headerActions(dispatch),
+const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
+  ...headerActions(dispatch, {navigateAppend}),
   _loadTeams: () => dispatch(TeamsGen.createGetTeams({clearNavBadges: true})),
   onHideChatBanner: () => dispatch(GregorGen.createUpdateCategory({body: 'true', category: 'sawChatBanner'})),
   onManageChat: (teamname: Teamname) =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
-    ),
+    dispatch(navigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})),
   onOpenFolder: (teamname: Teamname) =>
     dispatch(FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`))),
   onReadMore: () => {
     openURL('https://keybase.io/blog/introducing-keybase-teams')
   },
   onViewTeam: (teamname: Teamname) =>
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'team'}]})),
+    dispatch(navigateAppend({path: [{props: {teamname}, selected: 'team'}]})),
 })
 
 const makeTeamToRequest = memoize(tr =>
@@ -91,7 +88,7 @@ class Reloadable extends React.PureComponent<{
     return (
       <Kb.Reloadable
         waitingKeys={Constants.teamsLoadedWaitingKey}
-        onBack={isMobile ? this.props.onBack : undefined}
+        onBack={Container.isMobile ? this.props.onBack : undefined}
         onReload={_loadTeams}
         reloadOnMount={true}
         title={this.props.title}
@@ -102,23 +99,27 @@ class Reloadable extends React.PureComponent<{
   }
 }
 
-const Connected = compose(
-  connect<OwnProps, _, _, _, _>(
+const Connected = Container.compose(
+  Container.withSafeNavigation,
+  Container.connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps
   ),
-  lifecycle({
+  Container.lifecycle({
     componentDidMount() {
       this.props._loadTeams()
     },
   })
 )(Reloadable)
 
-const ConnectedHeaderRightActions = connect<{}, _, _, _, _>(
-  () => ({}),
-  headerActions,
-  (s, d, o) => ({...o, ...s, ...d})
+const ConnectedHeaderRightActions = Container.compose(
+  Container.withSafeNavigation,
+  Container.connect<OwnProps, _, _, _, _>(
+    () => ({}),
+    headerActions,
+    (s, d, o) => ({...o, ...s, ...d})
+  )
 )(HeaderRightActions)
 
 // $FlowIssue lets fix this

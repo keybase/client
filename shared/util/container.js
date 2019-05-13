@@ -2,6 +2,7 @@
 import type {TypedActions} from '../actions/typed-actions-gen'
 import type {TypedState} from '../constants/reducer'
 import type {RouteProps} from '../route-tree/render-route'
+import type {PropsWithSafeNavigation} from './safe-navigation'
 import {constantsStatusCode} from '../constants/types/rpc-gen'
 
 export const NullComponent = () => null
@@ -38,4 +39,5 @@ export {default as remoteConnect} from './typed-remote-connect'
 export {isMobile} from '../constants/platform'
 export {anyWaiting, anyErrors} from '../constants/waiting'
 export {safeSubmit, safeSubmitPerMount} from './safe-submit'
-export type {RouteProps, TypedActions, TypedState, TypedDispatch, Dispatch}
+export {default as withSafeNavigation} from './safe-navigation'
+export type {RouteProps, TypedActions, TypedState, TypedDispatch, Dispatch, PropsWithSafeNavigation}
