@@ -43,6 +43,14 @@ const getActiveIndex = navState => {
   }
   return navState.index
 }
+// Get active key inside any subnavigator so navigation closures are
+const getActiveKey = navState => {
+  const route = navState.routes[navState.index]
+  if (route.routes) {
+    return getActiveKey(route)
+  }
+  return navState.routes[navState.index].key
+}
 
 // The app with a tab bar on the left and content area on the right
 // A single content view and n-modals on top
@@ -50,13 +58,14 @@ class AppView extends React.PureComponent<any> {
   render() {
     const navigation = this.props.navigation
     const index = navigation.state.index
-    const activeKey = navigation.state.routes[index].key
-    const descriptor = this.props.descriptors[activeKey]
+    const activeRootKey = navigation.state.routes[index].key
+    const descriptor = this.props.descriptors[activeRootKey]
     const childNav = descriptor.navigation
     const selectedTab = nameToTab[descriptor.state.routeName]
     // transparent headers use position absolute and need to be rendered last so they go on top w/o zindex
     const direction = descriptor.options.headerTransparent ? 'vertical' : 'verticalReverse'
     const activeIndex = getActiveIndex(navigation.state)
+    const activeKey = getActiveKey(navigation.state)
 
     const sceneView = (
       <SceneView
@@ -86,7 +95,7 @@ class AppView extends React.PureComponent<any> {
           <Header
             loggedIn={!!selectedTab}
             options={descriptor.options}
-            onPop={() => childNav.pop()}
+            onPop={() => childNav.goBack(activeKey)}
             allowBack={activeIndex !== 0}
           />
         </Kb.Box2>
