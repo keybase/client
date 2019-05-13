@@ -43,30 +43,6 @@ const shimAsRouteTree = (Original: any) => {
   return ShimmedOldRouteTree
 }
 
-// Give safe nav actions to routable screens
-const shimSafeNav = (Original: any) => {
-  class ShimmedSafeNav extends React.PureComponent<any> {
-    static navigationOptions = Original.navigationOptions
-    _navigateAppend = ({path, replace}) =>
-      RouteTreeGen.createNavigateAppend({fromKey: this.props.navigation.state.key, path, replace})
-
-    _navigateUp = () => RouteTreeGen.createNavigateUp({fromKey: this.props.navigation.state.key})
-
-    render() {
-      // TODO export this type
-      return (
-        <Original
-          navigation={this.props.navigation}
-          shouldRender={true}
-          navigateUp={this._navigateUp}
-          navigateAppend={this._navigateAppend}
-        />
-      )
-    }
-  }
-  return ShimmedSafeNav
-}
-
 export const shim = (routes: any, platformWrapper: any) => {
   return Object.keys(routes).reduce((map, route) => {
     let _cached = null
