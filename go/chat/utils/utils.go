@@ -2083,7 +2083,6 @@ func DecorateWithLinks(ctx context.Context, body string) string {
 	origBody := body
 
 	shouldSkipLink := func(body string) bool {
-		fmt.Printf("BODY: %s\n", body)
 		if strings.Contains(strings.Split(body, "/")[0], "@") {
 			return true
 		}
