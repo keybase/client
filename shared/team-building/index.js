@@ -161,7 +161,7 @@ class TeamBuilding extends React.PureComponent<Props, void> {
         )}
         {props.waitingForCreate && (
           <Kb.Box2 direction="vertical" style={styles.waiting} alignItems="center">
-            <Kb.ProgressIndicator />
+            <Kb.ProgressIndicator type="Small" white={true} style={styles.waitingProgress} />
           </Kb.Box2>
         )}
       </Kb.Box2>
@@ -230,6 +230,10 @@ const styles = Styles.styleSheetCreate({
   waiting: {
     ...Styles.globalStyles.fillAbsolute,
     backgroundColor: Styles.globalColors.black_20,
+  },
+  waitingProgress: {
+    height: 48,
+    width: 48,
   },
 })
 
