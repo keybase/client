@@ -1569,7 +1569,7 @@ const confirmScreenResponse = (_, action) => {
 
 // We always make adhoc convos and never preview it
 const previewConversationPersonMakesAConversation = (state, action) => {
-  const participants = action.payload.participants
+  const {participants} = action.payload
   return (
     !action.payload.teamname &&
     participants && [
@@ -2080,6 +2080,12 @@ const navigateToThreadRoute = conversationIDKey => {
   let replace = false
 
   const visible = Router2Constants.getVisibleScreen()
+
+  if (!isMobile && visible?.routeName === 'chatRoot') {
+    // Don't append; we don't want to increase the size of the stack on desktop
+    return
+  }
+
   // looking at the pending screen?
   if (
     visible?.routeName === 'chatConversation' &&
