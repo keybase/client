@@ -3,15 +3,7 @@
 import React, {Component} from 'react'
 import {globalMargins, globalColors} from '../../styles'
 import * as Kb from '../../common-adapters'
-
-const getOtherErrorInfo = (err: Error) => {
-  const info = {}
-  for (const k in err) info[k] = (err: Object)[k]
-  delete info.name
-  delete info.message
-  delete info.stack
-  return info
-}
+import {getOtherErrorInfo} from './index.js'
 
 type Props = {
   onSendFeedbackContained: () => void,
@@ -45,6 +37,7 @@ class Feedback extends Component<Props> {
           <Kb.Box2
             alignItems="center"
             direction="horizontal"
+            fullWidth={true}
             style={{
               backgroundColor: globalColors.green,
               flex: 0,
@@ -124,9 +117,6 @@ class Feedback extends Component<Props> {
             </Kb.Box2>
           )}
         </Kb.Box2>
-        {
-          // Box style={{...globalStyles.flexBoxRow} => Box2 direction="horizontal"
-        }
       </Kb.Box2>
     )
   }

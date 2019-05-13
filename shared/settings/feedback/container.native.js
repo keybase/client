@@ -1,15 +1,14 @@
 // @flow
 import logger from '../../logger'
-import * as I from 'immutable'
-import * as ChatConstants from '../../constants/chat2'
 import * as React from 'react'
-import {HOCTimers, type PropsWithTimer} from '../../common-adapters'
+import {HOCTimers} from '../../common-adapters'
 import Feedback from './index.native'
 import logSend from '../../native/log-send'
 import {compose, connect, type RouteProps} from '../../util/container'
 import {isAndroid, version, logFileName, pprofDir} from '../../constants/platform'
 import {writeLogLinesToFile} from '../../util/forward-logs'
 import {Platform, NativeModules} from 'react-native'
+import {extraChatLogs, type State, type Props} from './utils'
 
 type OwnProps = RouteProps<{}, {}>
 
@@ -17,21 +16,6 @@ const nativeBridge = NativeModules.KeybaseEngine
 const appVersionName = nativeBridge.appVersionName || ''
 const appVersionCode = nativeBridge.appVersionCode || ''
 const mobileOsVersion = Platform.Version
-
-type State = {
-  sentFeedback: boolean,
-  feedback: ?string,
-  sending: boolean,
-  sendLogs: boolean,
-  sendError: ?Error,
-}
-
-type Props = PropsWithTimer<{
-  chat: Object,
-  onBack: () => void,
-  status: Object,
-  title: string,
-}>
 
 class FeedbackContainer extends React.Component<Props, State> {
   mounted = false
@@ -120,58 +104,6 @@ class FeedbackContainer extends React.Component<Props, State> {
       />
     )
   }
-}
-
-const extraChatLogs = state => {
-  const chat = state.chat2
-  const c = state.chat2.selectedConversation
-  if (c) {
-    const metaMap: Object = ChatConstants.getMeta(state, c).toJS()
-    return I.Map({
-      badgeMap: chat.badgeMap.get(c),
-      editingMap: chat.editingMap.get(c),
-      messageMap: chat.messageMap.get(c, I.Map()).map(m => ({
-        a: m.author,
-        i: m.id,
-        o: m.ordinal,
-        out: (m.type === 'text' || m.type === 'attachment') && m.outboxID,
-        s: (m.type === 'text' || m.type === 'attachment') && m.submitState,
-        t: m.type,
-      })),
-      messageOrdinals: chat.messageOrdinals.get(c),
-      metaMap: {
-        channelname: 'x',
-        conversationIDKey: metaMap.conversationIDKey,
-        description: 'x',
-        inboxVersion: metaMap.inboxVersion,
-        isMuted: metaMap.isMuted,
-        membershipType: metaMap.membershipType,
-        notificationsDesktop: metaMap.notificationsDesktop,
-        notificationsGlobalIgnoreMentions: metaMap.notificationsGlobalIgnoreMentions,
-        notificationsMobile: metaMap.notificationsMobile,
-        offline: metaMap.offline,
-        participants: 'x',
-        rekeyers: metaMap.rekeyers && metaMap.rekeyers.size,
-        resetParticipants: metaMap.resetParticipants && metaMap.resetParticipants.size,
-        retentionPolicy: metaMap.retentionPolicy,
-        snippet: 'x',
-        snippetDecoration: 'x',
-        supersededBy: metaMap.supersededBy,
-        supersedes: metaMap.supersedes,
-        teamRetentionPolicy: metaMap.teamRetentionPolicy,
-        teamType: metaMap.teamType,
-        teamname: metaMap.teamname,
-        timestamp: metaMap.timestamp,
-        tlfname: metaMap.tlfname,
-        trustedState: metaMap.trustedState,
-        wasFinalizedBy: metaMap.wasFinalizedBy,
-      },
-      pendingOutboxToOrdinal: chat.pendingOutboxToOrdinal.get(c),
-      quote: chat.quote,
-      unreadMap: chat.unreadMap.get(c),
-    }).toJS()
-  }
-  return {}
 }
 
 // TODO really shouldn't be doing this in connect, should do this with an action

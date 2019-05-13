@@ -1,27 +1,15 @@
 // @flow
 import logger from '../../logger'
 import * as React from 'react'
-import {HOCTimers, type PropsWithTimer} from '../../common-adapters'
+import {HOCTimers} from '../../common-adapters'
 import Feedback from './index.desktop'
 import {compose, connect, type RouteProps} from '../../util/container'
+import {version} from '../../constants/platform'
 import {writeLogLinesToFile} from '../../util/forward-logs'
+import {extraChatLogs, type State, type Props} from './utils'
+import * as RPCTypes from '../../constants/types/rpc-gen'
 
 type OwnProps = RouteProps<{}, {}>
-
-type State = {
-  sentFeedback: boolean,
-  feedback: ?string,
-  sending: boolean,
-  sendLogs: boolean,
-  sendError: ?Error,
-}
-
-type Props = PropsWithTimer<{
-  // chat: Object,
-  onBack: () => void,
-  // status: Object,
-  title: string,
-}>
 
 class FeedbackContainer extends React.Component<Props, State> {
   mounted = false
@@ -51,48 +39,41 @@ class FeedbackContainer extends React.Component<Props, State> {
   }
 
   _onSendFeedback = () => {
-    // this.setState({sending: true, sentFeedback: false})
-    // this.props.setTimeout(() => {
-    //  const maybeDump = this.state.sendLogs ? this._dumpLogs() : Promise.resolve('')
-    //  maybeDump
-    //    .then(() => {
-    //      const logPath = logFileName
-    //      logger.info(`Sending ${this.state.sendLogs ? 'log' : 'feedback'} to daemon`)
-    //      const extra = this.state.sendLogs ? {...this.props.status, ...this.props.chat} : this.props.status
-    //      const traceDir = pprofDir
-    //      const cpuProfileDir = traceDir
-    //      // TODO RPC for RPC for logsend with full status
-    //      return logSend(
-    //        JSON.stringify(extra),
-    //        this.state.feedback || '',
-    //        this.state.sendLogs,
-    //        logPath,
-    //        traceDir,
-    //        cpuProfileDir
-    //      )
-    //    })
-    //    .then(logSendId => {
-    //      logger.info('logSendId is', logSendId)
-    //      if (this.mounted) {
-    //        this.setState({
-    //          feedback: null,
-    //          sendError: null,
-    //          sending: false,
-    //          sentFeedback: true,
-    //        })
-    //      }
-    //    })
-    //    .catch(err => {
-    //      logger.warn('err in sending logs', err)
-    //      if (this.mounted) {
-    //        this.setState({
-    //          sendError: err,
-    //          sending: false,
-    //          sentFeedback: false,
-    //        })
-    //      }
-    //    })
-    // }, 0)
+    this.setState({sending: true, sentFeedback: false})
+    this.props.setTimeout(() => {
+      const maybeDump = this.state.sendLogs ? this._dumpLogs() : Promise.resolve('')
+      maybeDump
+        .then(() => {
+          logger.info(`Sending ${this.state.sendLogs ? 'log' : 'feedback'} to daemon`)
+          const extra = this.state.sendLogs ? {...this.props.status, ...this.props.chat} : this.props.status
+          return RPCTypes.configLogSendRpcPromise({
+            feedback: this.state.feedback || '',
+            sendLogs: this.state.sendLogs,
+            statusJSON: JSON.stringify(extra),
+          })
+        })
+        .then(logSendId => {
+          logger.info('logSendId is', logSendId)
+          if (this.mounted) {
+            this.setState({
+              feedback: null,
+              sendError: null,
+              sending: false,
+              sentFeedback: true,
+            })
+          }
+        })
+        .catch(err => {
+          logger.warn('err in sending logs', err)
+          if (this.mounted) {
+            this.setState({
+              sendError: err,
+              sending: false,
+              sentFeedback: false,
+            })
+          }
+        })
+    }, 0)
   }
 
   render() {
@@ -112,7 +93,12 @@ class FeedbackContainer extends React.Component<Props, State> {
 }
 
 const mapStateToProps = state => {
-  return {}
+  return {
+    chat: extraChatLogs(state),
+    status: {
+      version,
+    },
+  }
 }
 
 const mapDispatchToProps = (dispatch, {navigateUp}) => ({

@@ -13,14 +13,7 @@ import {
   NativeKeyboard,
 } from '../../common-adapters/mobile.native'
 
-const getOtherErrorInfo = (err: Error) => {
-  const info = {}
-  for (const k in err) info[k] = (err: Object)[k]
-  delete info.name
-  delete info.message
-  delete info.stack
-  return info
-}
+import {getOtherErrorInfo} from './index'
 
 type Props = {
   onSendFeedbackContained: () => void,

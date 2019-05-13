@@ -99,6 +99,7 @@
   "keybase.1.config.getUpdateInfo2": {"promise": true},
   "keybase.1.config.getValue": {"promise": true},
   "keybase.1.config.helloIAm": {"promise": true},
+  "keybase.1.config.logSend": {"promise": true},
   "keybase.1.config.setRememberPassphrase": {"promise": true},
   "keybase.1.config.setValue": {"promise": true},
   "keybase.1.config.startUpdateIfNeeded": {"promise": true},
