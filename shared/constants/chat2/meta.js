@@ -266,7 +266,11 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
     minWriterRole = 'reader'
   }
 
+  const cannotWrite =
+    i.convSettings && i.convSettings.minWriterRoleInfo && i.convSettings.minWriterRoleInfo.cannotWrite
+
   return makeConversationMeta({
+    cannotWrite,
     channelname: (isTeam && i.channel) || '',
     commands: i.commands,
     conversationIDKey: Types.stringToConversationIDKey(i.convID),

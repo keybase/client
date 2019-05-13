@@ -10,6 +10,7 @@ import {PlainInput} from '../../../../common-adapters'
 //     PlatformInput, with props PlatformInputProps.
 
 type CommonProps = {|
+  cannotWrite: boolean,
   conversationIDKey: Types.ConversationIDKey,
   isEditExploded: boolean,
   isEditing: boolean,
@@ -18,6 +19,7 @@ type CommonProps = {|
   explodingModeSeconds: number,
   focusInputCounter: number,
   clearInboxFilter: () => void,
+  minWriterRole: string,
   onAttach: (paths: Array<string>) => void,
   onEditLastMessage: () => void,
   onCancelEditing: () => void,
