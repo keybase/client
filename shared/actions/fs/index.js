@@ -964,6 +964,16 @@ const waitForKbfsDaemon = (state, action) => {
     })
 }
 
+const startManualCR = (state, action) =>
+  RPCTypes.SimpleFSSimpleFSClearConflictStateRpcPromise({
+    path: Constants.pathToRPCPath(action.payload.tlfPath),
+  }).then(() =>
+    FsGen.createTlfCrStatusChanged({
+      status: 'in-manual-resolution',
+      tlfPath: action.payload.tlfPath,
+    })
+  ) // TODO: deal with errors
+
 const updateKbfsDaemonOnlineStatus = (state, action) =>
   state.fs.kbfsDaemonStatus.rpcStatus === 'connected' && state.config.osNetworkOnline
     ? RPCTypes.SimpleFSSimpleFSAreWeConnectedToMDServerRpcPromise().then(connectedToMDServer =>
@@ -1065,6 +1075,12 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     )
     yield* Saga.chainAction<FsGen.LoadSettingsPayload>(FsGen.loadSettings, loadSettings)
     yield* Saga.chainAction<FsGen.SetSpaceAvailableNotificationThresholdPayload>(FsGen.setSpaceAvailableNotificationThreshold, setSpaceNotificationThreshold)
+  }
+  if (flags.conflictResolutionGui) {
+    yield* Saga.chainAction<FsGen.StartManualConflictResolutionPayload>(
+      FsGen.startManualConflictResolution,
+      startManualCR
+    )
   }
 
   yield Saga.spawn(platformSpecificSaga)

@@ -130,6 +130,14 @@
     "driverDisabling": {},
     "driverKextPermissionError": {},
 
+    "startManualConflictResolution": {
+      "tlfPath": "Types.Path"
+    },
+    "tlfCrStatusChanged": {
+      "status": "Types.ConflictState",
+      "tlfPath": "Types.Path"
+    },
+
     "notifyTlfUpdate": {
       "tlfPath": "Types.Path"
     },
