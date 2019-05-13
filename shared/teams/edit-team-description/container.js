@@ -27,9 +27,9 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
         teamname: Container.getRouteProps(ownProps, 'teamname'),
       })
     )
-    dispatch(RouteTreeGen.createNavigateUp())
+    dispatch(RouteTreeGen.createNavigateUp({}))
   },
-  onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onClose: () => dispatch(RouteTreeGen.createNavigateUp({})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({

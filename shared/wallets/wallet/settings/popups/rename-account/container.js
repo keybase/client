@@ -30,7 +30,7 @@ const mapStateToProps = (state, ownProps) => {
 const mapDispatchToProps = dispatch => ({
   _onChangeAccountName: (accountID: Types.AccountID, name: string) =>
     dispatch(WalletsGen.createChangeAccountName({accountID, name})),
-  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onCancel: () => dispatch(RouteTreeGen.createNavigateUp({})),
   onClearErrors: () => dispatch(WalletsGen.createClearErrors()),
   onDone: (name: string) => {
     dispatch(WalletsGen.createValidateAccountName({name}))

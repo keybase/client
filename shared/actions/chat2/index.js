@@ -2580,7 +2580,7 @@ const unfurlResolvePrompt = (state, action) => {
 
 const toggleInfoPanel = (state, action) => {
   if (Router2Constants.getVisibleScreen()?.routeName === 'chatInfoPanel') {
-    return RouteTreeGen.createNavigateUp()
+    return RouteTreeGen.createNavigateUp({})
   } else {
     return RouteTreeGen.createNavigateAppend({
       path: [{props: {conversationIDKey: state.chat2.selectedConversation}, selected: 'chatInfoPanel'}],

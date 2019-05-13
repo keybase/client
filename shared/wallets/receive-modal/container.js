@@ -25,10 +25,10 @@ const mapStateToProps = (state, ownProps) => {
 }
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
-  navigateUp: () => dispatch(RouteTreeGen.createNavigateUp()),
+  navigateUp: () => dispatch(RouteTreeGen.createNavigateUp({})),
   onRequest: () => {
     const accountID = Container.getRouteProps(ownProps, 'accountID')
-    dispatch(RouteTreeGen.createNavigateUp())
+    dispatch(RouteTreeGen.createNavigateUp({}))
     dispatch(
       WalletsGen.createOpenSendRequestForm({
         from: accountID,

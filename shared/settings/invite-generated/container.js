@@ -11,7 +11,7 @@ const mapStateToProps = (state: any, {routeProps}) => ({
 })
 
 const mapDispatchToProps = (dispatch: any) => ({
-  onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onClose: () => dispatch(RouteTreeGen.createNavigateUp({})),
 })
 
 export default connect<OwnProps, _, _, _, _>(

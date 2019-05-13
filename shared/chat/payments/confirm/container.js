@@ -31,7 +31,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
     dispatch(Chat2Gen.createConfirmScreenResponse({accept: false}))
   },
   onWallet: () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    dispatch(RouteTreeGen.createNavigateUp({}))
     dispatch(Chat2Gen.createConfirmScreenResponse({accept: false}))
     dispatch(
       WalletsGen.createSelectAccount({

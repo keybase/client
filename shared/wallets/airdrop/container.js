@@ -13,7 +13,7 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp({})),
   onCheckQualify: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['airdropQualify']})),
   onLoad: () => {
     dispatch(WalletsGen.createUpdateAirdropState())

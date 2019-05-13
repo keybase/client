@@ -40,7 +40,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   },
   _getSuggestions: () => dispatch(SearchGen.createSearchSuggestions({searchKey: 'addToTeamSearch'})),
   onBack: () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    dispatch(RouteTreeGen.createNavigateUp({}))
     dispatch(SearchGen.createClearSearchResults({searchKey: 'addToTeamSearch'}))
     dispatch(SearchGen.createSetUserInputItems({searchKey: 'addToTeamSearch', searchResults: []}))
     dispatch(TeamsGen.createSetTeamInviteError({error: ''}))
@@ -52,7 +52,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     dispatch(SearchGen.createSearchSuggestions({searchKey: 'addToTeamSearch'}))
   },
   onClose: () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    dispatch(RouteTreeGen.createNavigateUp({}))
     dispatch(SearchGen.createClearSearchResults({searchKey: 'addToTeamSearch'}))
     dispatch(SearchGen.createSetUserInputItems({searchKey: 'addToTeamSearch', searchResults: []}))
     dispatch(TeamsGen.createSetTeamInviteError({error: ''}))

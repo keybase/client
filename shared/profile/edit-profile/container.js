@@ -16,10 +16,10 @@ const mapStateToProps = state => {
   }
 }
 const mapDispatchToProps = dispatch => ({
-  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onCancel: () => dispatch(RouteTreeGen.createNavigateUp({})),
   onSubmit: (bio: string, fullname: string, location: string) => {
     dispatch(ProfileGen.createEditProfile({bio, fullname, location}))
-    dispatch(RouteTreeGen.createNavigateUp())
+    dispatch(RouteTreeGen.createNavigateUp({}))
   },
 })
 const mergeProps = (stateProps, dispatchProps) => ({

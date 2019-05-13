@@ -34,9 +34,9 @@ const mapDispatchToProps = dispatch => ({
         titles,
       })
     )
-    dispatch(RouteTreeGen.createNavigateUp())
+    dispatch(RouteTreeGen.createNavigateUp({}))
   },
-  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onCancel: () => dispatch(RouteTreeGen.createNavigateUp({})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
