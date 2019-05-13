@@ -78,6 +78,9 @@ type Data struct {
 	Private      bool
 	TeamID       *keybase1.TeamID
 	ResetMembers []keybase1.User
+	// Mtime is the TLF mtime (i.e. not favorite change time) stored in the
+	// core db. It's based on notifications from the mdserver.
+	TlfMtime *keybase1.Time
 }
 
 // DataFrom returns auxiliary data from a folder sent via the
@@ -89,6 +92,7 @@ func DataFrom(folder keybase1.Folder) Data {
 		Private:      folder.Private,
 		TeamID:       folder.TeamID,
 		ResetMembers: folder.ResetMembers,
+		TlfMtime:     folder.Mtime,
 	}
 }
 
