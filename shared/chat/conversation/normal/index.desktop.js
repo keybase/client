@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
 import Banner from '../bottom-banner/container'
-import HeaderArea from '../header-area/container'
 import InputArea from '../input-area/container'
 import ListArea from '../list-area/container'
 import * as Kb from '../../../common-adapters'
