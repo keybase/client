@@ -80,6 +80,7 @@ func TestStellarNoteRoundtripAndResets(t *testing.T) {
 
 // Test took 38s on a dev server 2018-06-07
 func TestStellarRelayAutoClaims(t *testing.T) {
+	t.Skip("currently broken due to friendbot")
 	kbtest.SkipTestOnNonMasterCI(t, "slow stellar test")
 	if disable {
 		t.Skip(disableMsg)
@@ -89,6 +90,7 @@ func TestStellarRelayAutoClaims(t *testing.T) {
 
 // Test took 29s on a dev server 2018-06-07
 func TestStellarRelayAutoClaimsWithPUK(t *testing.T) {
+	t.Skip("currently broken due to friendbot")
 	kbtest.SkipTestOnNonMasterCI(t, "slow stellar test")
 	if disable {
 		t.Skip(disableMsg)
@@ -242,6 +244,7 @@ func testStellarRelayAutoClaims(t *testing.T, startWithPUK, skipPart2 bool) {
 // To debug this test use log filter "stellar_test|poll-|AutoClaim|stellar.claim|pollfor"
 // Test took 20s on a dev server 2019-01-23
 func TestStellarRelayAutoClaimsSBS(t *testing.T) {
+	t.Skip("currently broken due to friendbot")
 	kbtest.SkipTestOnNonMasterCI(t, "slow stellar test")
 	if disable {
 		t.Skip(disableMsg)
