@@ -143,7 +143,6 @@ const createConversation = state => [
   Chat2Gen.createCreateConversation({
     participants: state.chat2.teamBuildingFinishedTeam.toArray().map(u => u.id),
   }),
-  RouteTreeGen.createNavigateUp(),
 ]
 
 function* chatTeamBuildingSaga(): Saga.SagaGenerator<any, any> {
