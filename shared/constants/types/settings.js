@@ -85,6 +85,13 @@ export type _EmailState = {
 }
 export type EmailState = I.RecordOf<_EmailState>
 
+export type _FeedbackState = {
+  feedback: '',
+  error: ?Error,
+  sendLogs: boolean,
+}
+export type FeedbackState = I.RecordOf<_FeedbackState>
+
 export type _ChatUnfurlState = {
   unfurlMode?: RPCChatTypes.UnfurlMode,
   unfurlWhitelist?: I.List<string>,
@@ -101,6 +108,7 @@ export type _State = {
   allowDeleteAccount: boolean,
   waitingForResponse: boolean,
   invites: InvitesState,
+  feedback: FeedbackState,
   notifications: NotificationsState,
   email: EmailState,
   password: PasswordState,

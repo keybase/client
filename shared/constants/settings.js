@@ -38,6 +38,12 @@ export const makeEmailRow: I.RecordFactory<Types._EmailRow> = I.Record({
   visibility: 0,
 })
 
+export const makeFeedback: I.RecordFactory<Types._FeedbackState> = I.Record({
+  error: null,
+  feedback: '',
+  sendLogs: true,
+})
+
 export const makeInvites: I.RecordFactory<Types._InvitesState> = I.Record({
   acceptedInvites: I.List(),
   error: null,
@@ -60,6 +66,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   chat: makeChat(),
   checkPasswordIsCorrect: null,
   email: makeEmail(),
+  feedback: makeFeedback(),
   invites: makeInvites(),
   lockdownModeEnabled: null,
   notifications: makeNotifications(),

@@ -1,14 +1,14 @@
 // @flow
-import logger from '../logger'
+import logger from '../../logger'
 import * as I from 'immutable'
-import * as ChatConstants from '../constants/chat2'
+import * as ChatConstants from '../../constants/chat2'
 import * as React from 'react'
-import {HOCTimers, type PropsWithTimer} from '../common-adapters'
-import Feedback from './feedback.native'
-import logSend from '../native/log-send'
-import {compose, connect, type RouteProps} from '../util/container'
-import {isAndroid, version, logFileName, pprofDir} from '../constants/platform'
-import {writeLogLinesToFile} from '../util/forward-logs'
+import {HOCTimers, type PropsWithTimer} from '../../common-adapters'
+import Feedback from './index.native'
+import logSend from '../../native/log-send'
+import {compose, connect, type RouteProps} from '../../util/container'
+import {isAndroid, version, logFileName, pprofDir} from '../../constants/platform'
+import {writeLogLinesToFile} from '../../util/forward-logs'
 import {Platform, NativeModules} from 'react-native'
 
 type OwnProps = RouteProps<{}, {}>
