@@ -325,11 +325,19 @@ func TestDecorateLinks(t *testing.T) {
 		},
 		decorateLinkTest{
 			body:   "mike.maxim@gmail.com/google.com",
-			result: "$>kb$eyJ0eXAiOjUsIm1haWx0byI6eyJkaXNwbGF5IjoibWlrZS5tYXhpbUBnbWFpbC5jb20iLCJ1cmwiOiJtYWlsdG86bWlrZS5tYXhpbUBnbWFpbC5jb20ifX0=$<kb$/$>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6Imdvb2dsZS5jb20iLCJ1cmwiOiJodHRwOi8vZ29vZ2xlLmNvbSJ9fQ==$<kb$",
+			result: "$>kb$eyJ0eXAiOjUsIm1haWx0byI6eyJkaXNwbGF5IjoibWlrZS5tYXhpbUBnbWFpbC5jb20iLCJ1cmwiOiJtYWlsdG86bWlrZS5tYXhpbUBnbWFpbC5jb20ifX0=$<kb$/google.com",
 		},
 		decorateLinkTest{
 			body:   "https://medium.com/@wouterarkink/https-medium-com-wouterarkink-how-to-send-money-to-anyone-in-the-world-by-only-knowing-their-social-handle-3180e6cd4e58",
 			result: "$>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6Imh0dHBzOi8vbWVkaXVtLmNvbS9Ad291dGVyYXJraW5rL2h0dHBzLW1lZGl1bS1jb20td291dGVyYXJraW5rLWhvdy10by1zZW5kLW1vbmV5LXRvLWFueW9uZS1pbi10aGUtd29ybGQtYnktb25seS1rbm93aW5nLXRoZWlyLXNvY2lhbC1oYW5kbGUtMzE4MGU2Y2Q0ZTU4IiwidXJsIjoiaHR0cHM6Ly9tZWRpdW0uY29tL0B3b3V0ZXJhcmtpbmsvaHR0cHMtbWVkaXVtLWNvbS13b3V0ZXJhcmtpbmstaG93LXRvLXNlbmQtbW9uZXktdG8tYW55b25lLWluLXRoZS13b3JsZC1ieS1vbmx5LWtub3dpbmctdGhlaXItc29jaWFsLWhhbmRsZS0zMTgwZTZjZDRlNTgifX0=$<kb$",
+		},
+		decorateLinkTest{
+			body:   "https://drive.google.com/open?id=1BKcMML-uqOFAK-D4btEBlcoyodfvE4gg&authuser=cecile@keyba.se&usp=drive_fs",
+			result: "$>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6Imh0dHBzOi8vZHJpdmUuZ29vZ2xlLmNvbS9vcGVuP2lkPTFCS2NNTUwtdXFPRkFLLUQ0YnRFQmxjb3lvZGZ2RTRnZ1x1MDAyNmF1dGh1c2VyPWNlY2lsZUBrZXliYS5zZVx1MDAyNnVzcD1kcml2ZV9mcyIsInVybCI6Imh0dHBzOi8vZHJpdmUuZ29vZ2xlLmNvbS9vcGVuP2lkPTFCS2NNTUwtdXFPRkFLLUQ0YnRFQmxjb3lvZGZ2RTRnZ1x1MDAyNmF1dGh1c2VyPWNlY2lsZUBrZXliYS5zZVx1MDAyNnVzcD1kcml2ZV9mcyJ9fQ==$<kb$",
+		},
+		decorateLinkTest{
+			body:   "@google.com",
+			result: "@google.com",
 		},
 	}
 	for _, c := range cases {
