@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
+import {getActiveKey} from '../router-v2/util'
 import {withNavigation} from '@react-navigation/core'
 
 type Path = Array<string | {|props?: any, selected?: string|}>
@@ -27,9 +28,9 @@ function withSafeNavigation<Config: {}, Instance>(
 
   class WithSafeNavigation extends React.Component<WithSafeNavigationProps> {
     _navigateAppend = ({path, replace}) =>
-      RouteTreeGen.createNavigateAppend({fromKey: this.props.navigation.state.key, path, replace})
+      RouteTreeGen.createNavigateAppend({fromKey: getActiveKey(this.props.navigation.state), path, replace})
 
-    _navigateUp = () => RouteTreeGen.createNavigateUp({fromKey: this.props.navigation.state.key})
+    _navigateUp = () => RouteTreeGen.createNavigateUp({fromKey: getActiveKey(this.props.navigation.state)})
 
     render() {
       const {navigation, forwardedRef, ...rest} = this.props
