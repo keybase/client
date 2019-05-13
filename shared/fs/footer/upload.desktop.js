@@ -53,10 +53,10 @@ const Upload = ({showing, files, fileName, totalSyncingBytes, timeLeft, debugTog
           <Kb.Text key="files" type="BodySemibold" style={styles.textOverflow}>
             {files
               ? fileName
-                ? `Encrypting and uploading ${fileName}...`
-                : `Encrypting and uploading ${files} files...`
+                ? `Encrypting and updating ${fileName}...`
+                : `Encrypting and updating ${files} files...`
               : totalSyncingBytes
-              ? 'Encrypting and uploading...'
+              ? 'Encrypting and updating files...'
               : 'Done!'}
           </Kb.Text>
           {!!(timeLeft && timeLeft.length) && (
