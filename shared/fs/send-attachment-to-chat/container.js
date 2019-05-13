@@ -28,7 +28,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
         titles: [Types.getPathName(path)],
       })
     )
-    dispatch(flags.useNewRouter ? RouteTreeGen.createClearModals() : RouteTreeGen.createNavigateUp({}))
+    dispatch(flags.useNewRouter ? RouteTreeGen.createClearModals() : RouteTreeGen.createNavigateUp())
     dispatch(
       ChatGen.createSelectConversation({
         conversationIDKey,
@@ -39,7 +39,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     dispatch(FsGen.createSentAttachmentToChat())
   },
   onCancel: () =>
-    dispatch(flags.useNewRouter ? RouteTreeGen.createClearModals() : RouteTreeGen.createNavigateUp({})),
+    dispatch(flags.useNewRouter ? RouteTreeGen.createClearModals() : RouteTreeGen.createNavigateUp()),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownPropps) => ({

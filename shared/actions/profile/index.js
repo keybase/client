@@ -36,7 +36,7 @@ const uploadAvatar = (_, action) =>
     },
     Constants.uploadAvatarWaitingKey
   )
-    .then(() => RouteTreeGen.createNavigateUp({}))
+    .then(() => RouteTreeGen.createNavigateUp())
     .catch(e => {
       // error displayed in component
       logger.warn(`Error uploading user avatar: ${e.message}`)
@@ -51,7 +51,7 @@ const finishRevoking = state => [
     reason: '',
   }),
   ProfileGen.createRevokeFinish(),
-  ...(flags.useNewRouter ? [] : [RouteTreeGen.createNavigateUp({})]),
+  ...(flags.useNewRouter ? [] : [RouteTreeGen.createNavigateUp()]),
 ]
 
 const showUserProfile = (state, action) => {

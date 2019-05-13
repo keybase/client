@@ -20,16 +20,16 @@ const mapDispatchToProps = dispatch => ({
   _onRename: (oldName, newName) => dispatch(TeamsGen.createRenameTeam({newName, oldName})),
   onCancel: () => {
     dispatch(WaitingGen.createClearWaiting({key: Constants.teamRenameWaitingKey}))
-    dispatch(RouteTreeGen.createNavigateUp({}))
+    dispatch(RouteTreeGen.createNavigateUp())
   },
   onSuccess: teamname => {
     // TODO we wouldn't have to do any of this if team stuff was keyed on the
     // team ID instead of name. Since it's keyed on name, we replace the parent
     // route with one with the newly changed teamname
-    dispatch(RouteTreeGen.createNavigateUp({}))
+    dispatch(RouteTreeGen.createNavigateUp())
     if (!flags.useNewRouter) {
       // old router doesn't support replace, nav up twice as a workaround
-      dispatch(RouteTreeGen.createNavigateUp({}))
+      dispatch(RouteTreeGen.createNavigateUp())
     }
     dispatch(
       RouteTreeGen.createNavigateAppend({

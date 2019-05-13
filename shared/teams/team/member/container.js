@@ -80,7 +80,7 @@ const mapDispatchToProps = (dispatch, ownProps): DispatchProps => ({
       })
     )
   },
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp({})),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onOpenProfile: () =>
     dispatch(createShowUserProfile({username: Container.getRouteProps(ownProps, 'username')})),
 })

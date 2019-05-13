@@ -1510,7 +1510,7 @@ function* messageSend(state, action, logger) {
     Saga.callUntyped(function*() {
       const state = yield* Saga.selectState()
       if (!flags.useNewRouter && getPath(state.routeTree.routeState).last() === confirmRouteName) {
-        yield Saga.put(RouteTreeGen.createNavigateUp({}))
+        yield Saga.put(RouteTreeGen.createNavigateUp())
       } else if (flags.useNewRouter) {
         if (Router2Constants.getVisibleScreen()?.routeName === confirmRouteName) {
           yield Saga.put(RouteTreeGen.createClearModals())
@@ -2639,7 +2639,7 @@ const unfurlResolvePrompt = (state, action) => {
 const toggleInfoPanel = (state, action) => {
   if (flags.useNewRouter) {
     if (Router2Constants.getVisibleScreen()?.routeName === 'chatInfoPanel') {
-      return RouteTreeGen.createNavigateUp({})
+      return RouteTreeGen.createNavigateUp()
     } else {
       return RouteTreeGen.createNavigateAppend({
         path: [{props: {conversationIDKey: state.chat2.selectedConversation}, selected: 'chatInfoPanel'}],

@@ -29,7 +29,7 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   onCancel: () => {
     if (flags.useNewRouter) {
       // We don't have ownProps.navigateUp in upgraded Routes
-      dispatch(RouteTreeGen.createNavigateUp({}))
+      dispatch(RouteTreeGen.createNavigateUp())
     } else {
       dispatch(navigateUp())
     }

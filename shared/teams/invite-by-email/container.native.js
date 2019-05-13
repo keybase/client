@@ -48,7 +48,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 const mapDispatchToProps = (dispatch, ownProps) => ({
   onClearError: () => dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''})),
   onClose: () => {
-    dispatch(RouteTreeGen.createNavigateUp({}))
+    dispatch(RouteTreeGen.createNavigateUp())
     dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
   },
   onInviteEmail: ({invitee, role}) => {

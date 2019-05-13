@@ -607,7 +607,7 @@ describe('canceling provision', () => {
       method: 'keybase.1.provisionUi.DisplayAndPromptSecret',
       payload: {phrase: 'aaa'},
     })
-    dispatch(RouteTreeGen.createNavigateUp({}))
+    dispatch(RouteTreeGen.createNavigateUp())
     expect(response.result).not.toHaveBeenCalled()
     expect(response.error).toHaveBeenCalledWith({
       code: RPCTypes.constantsStatusCode.scinputcanceled,
@@ -624,7 +624,7 @@ describe('canceling provision', () => {
     })
     const error = new HiddenString('generic error')
     dispatch(ProvisionGen.createProvisionError({error}))
-    dispatch(RouteTreeGen.createNavigateUp({}))
+    dispatch(RouteTreeGen.createNavigateUp())
     expect(getState().provision.error).toEqual(noError)
     expect(getState().provision.finalError).toEqual(null)
   })

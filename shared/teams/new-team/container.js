@@ -26,7 +26,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
       dispatch(TeamsGen.createCreateNewTeam({destSubPath, joinSubteam, rootPath, sourceSubPath, teamname}))
     }
   },
-  onCancel: () => dispatch(RouteTreeGen.createNavigateUp({})),
+  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
   onSetTeamCreationError: (error: string) => {
     dispatch(TeamsGen.createSetTeamCreationError({error}))
   },

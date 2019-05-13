@@ -26,7 +26,7 @@ const mapStateToProps = state => {
 }
 
 const mapDispatchToProps = dispatch => ({
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp({})),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onSave: email => {
     dispatch(SettingsGen.createOnChangeNewEmail({email}))
     dispatch(SettingsGen.createOnSubmitNewEmail())

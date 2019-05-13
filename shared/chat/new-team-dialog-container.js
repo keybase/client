@@ -32,7 +32,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   onCancel: () =>
     dispatch(
       flags.useNewRouter
-        ? RouteTreeGen.createNavigateUp({})
+        ? RouteTreeGen.createNavigateUp()
         : Chat2Gen.createNavigateToInbox({findNewConversation: false})
     ),
   onJoinSubteamChange: () => {},

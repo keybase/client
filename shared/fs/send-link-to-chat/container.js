@@ -27,7 +27,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
         ? RouteTreeGen.createClearModals()
         : RouteTreeGen.createPutActionIfOnPath({
             expectedPath: ownProps.routePath,
-            otherAction: RouteTreeGen.createNavigateUp({}),
+            otherAction: RouteTreeGen.createNavigateUp(),
           })
     )
     dispatch(
@@ -48,7 +48,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
         ? RouteTreeGen.createClearModals()
         : RouteTreeGen.createPutActionIfOnPath({
             expectedPath: ownProps.routePath,
-            otherAction: RouteTreeGen.createNavigateUp({}),
+            otherAction: RouteTreeGen.createNavigateUp(),
           })
     ),
 })

@@ -21,7 +21,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 
 const mapDispatchToProps = dispatch => ({
   onClose: () => {
-    dispatch(RouteTreeGen.createNavigateUp({}))
+    dispatch(RouteTreeGen.createNavigateUp())
   },
 })
 

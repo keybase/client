@@ -19,7 +19,7 @@ const shimAsRouteTree = (Original: any) => {
     _setRouteState = () => {
       throw new Error('Route state NOT supported anymore')
     }
-    _navigateUp = () => RouteTreeGen.createNavigateUp({})
+    _navigateUp = () => RouteTreeGen.createNavigateUp()
     _navigateAppend = path => RouteTreeGen.createNavigateAppend({path})
 
     render() {

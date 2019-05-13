@@ -41,7 +41,7 @@ const mapStateToProps = state => {
 }
 
 const dispatchToProps = dispatch => ({
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp({})),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onForgotUsername: () =>
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'forgotUsername'}]})),
   onGoToSignup: () => dispatch(SignupGen.createRequestAutoInvite()),

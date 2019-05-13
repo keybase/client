@@ -167,7 +167,7 @@ const mapDispatchToSelectorProps = dispatch => ({
   onBack: () =>
     flags.useNewRouter
       ? dispatch(Chat2Gen.createToggleInfoPanel())
-      : dispatch(RouteTreeGen.createNavigateUp({})),
+      : dispatch(RouteTreeGen.createNavigateUp()),
   onGoToInbox: () => dispatch(Chat2Gen.createNavigateToInbox({findNewConversation: true})),
 })
 

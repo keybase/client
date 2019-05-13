@@ -15,7 +15,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
           dispatch(
             RouteTreeGen.createPutActionIfOnPath({
               expectedPath: ownProps.routePath,
-              otherAction: RouteTreeGen.createNavigateUp({}),
+              otherAction: RouteTreeGen.createNavigateUp(),
             })
           )
       : () => {},
