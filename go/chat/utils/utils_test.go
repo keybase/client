@@ -335,6 +335,10 @@ func TestDecorateLinks(t *testing.T) {
 			body:   "https://drive.google.com/open?id=1BKcMML-uqOFAK-D4btEBlcoyodfvE4gg&authuser=cecile@keyba.se&usp=drive_fs",
 			result: "$>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6Imh0dHBzOi8vZHJpdmUuZ29vZ2xlLmNvbS9vcGVuP2lkPTFCS2NNTUwtdXFPRkFLLUQ0YnRFQmxjb3lvZGZ2RTRnZ1x1MDAyNmF1dGh1c2VyPWNlY2lsZUBrZXliYS5zZVx1MDAyNnVzcD1kcml2ZV9mcyIsInVybCI6Imh0dHBzOi8vZHJpdmUuZ29vZ2xlLmNvbS9vcGVuP2lkPTFCS2NNTUwtdXFPRkFLLUQ0YnRFQmxjb3lvZGZ2RTRnZ1x1MDAyNmF1dGh1c2VyPWNlY2lsZUBrZXliYS5zZVx1MDAyNnVzcD1kcml2ZV9mcyJ9fQ==$<kb$",
 		},
+		decorateLinkTest{
+			body:   "@google.com",
+			result: "@google.com",
+		},
 	}
 	for _, c := range cases {
 		res := DecorateWithLinks(context.TODO(), c.body)
