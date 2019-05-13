@@ -115,7 +115,7 @@ export const oldActionToNewActions = (action: any, navigation: any, allowAppendD
       return numModals ? [StackActions.pop({n: numModals})] : []
     }
     case RouteTreeGen.navigateUp:
-      return [NavigationActions.back()]
+      return [NavigationActions.back({key: action.payload.fromKey})]
     case RouteTreeGen.navUpToScreen: {
       const fullPath = Constants._getFullRouteForNavigator(navigation.state)
       const popActions = []
