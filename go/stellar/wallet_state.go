@@ -41,6 +41,7 @@ type WalletState struct {
 	seqnoMu       sync.Mutex
 	seqnoLockHeld bool
 	options       *Options
+	bkgCancelFn   context.CancelFunc
 }
 
 // NewWalletState creates a wallet state with a remoter that will be
@@ -59,7 +60,9 @@ func NewWalletState(g *libkb.GlobalContext, r remote.Remoter) *WalletState {
 
 	g.PushShutdownHook(ws.Shutdown)
 
-	go ws.backgroundRefresh()
+	ctx, cancelFn := context.WithCancel(context.TODO())
+	ws.bkgCancelFn = cancelFn
+	go ws.backgroundRefresh(ctx)
 
 	return ws
 }
@@ -72,6 +75,7 @@ func (w *WalletState) Shutdown() error {
 		w.Lock()
 		w.resetWithLock(mctx)
 		close(w.refreshReqs)
+		w.bkgCancelFn()
 		mctx.Debug("waiting for background refresh requests to finish")
 		select {
 		case <-w.backgroundDone:
@@ -331,7 +335,7 @@ func (w *WalletState) ForceSeqnoRefresh(mctx libkb.MetaContext, accountID stella
 // backgroundRefresh gets any refresh requests and will refresh
 // the account state if sufficient time has passed since the
 // last refresh.
-func (w *WalletState) backgroundRefresh() {
+func (w *WalletState) backgroundRefresh(ctx context.Context) {
 	w.backgroundDone = make(chan struct{})
 	for accountID := range w.refreshReqs {
 		a, ok := w.accountState(accountID)
@@ -342,7 +346,7 @@ func (w *WalletState) backgroundRefresh() {
 		rt := a.rtime
 		a.RUnlock()
 
-		mctx := libkb.NewMetaContextBackground(w.G()).WithLogTag("WABR")
+		mctx := libkb.NewMetaContext(ctx, w.G()).WithLogTag("WABR")
 		if time.Since(rt) < 120*time.Second {
 			mctx.Debug("WalletState.backgroundRefresh skipping for %s due to recent refresh", accountID)
 			continue
