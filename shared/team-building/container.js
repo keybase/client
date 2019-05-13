@@ -4,6 +4,8 @@ import React from 'react'
 import * as I from 'immutable'
 import {debounce, trim} from 'lodash-es'
 import TeamBuilding from '.'
+import * as WaitingConstants from '../constants/waiting'
+import * as ChatConstants from '../constants/chat2'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import {compose, namedConnect} from '../util/container'
 import {requestIdleCallback} from '../util/idle-callback'
@@ -110,6 +112,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     showServiceResultCount: deriveShowServiceResultCount(ownProps.searchString),
     teamSoFar: deriveTeamSoFar(state.chat2.teamBuildingTeamSoFar),
     userFromUserId: deriveUserFromUserIdFn(userResults, state.chat2.teamBuildingUserRecs),
+    waitingForCreate: WaitingConstants.anyWaiting(state, ChatConstants.waitingKeyCreating),
   }
 }
 
@@ -203,6 +206,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     serviceResultCount,
     showServiceResultCount,
     recommendations,
+    waitingForCreate,
   } = stateProps
 
   const showRecs = !ownProps.searchString && !!recommendations && ownProps.selectedService === 'keybase'
@@ -278,6 +282,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     showRecs,
     showServiceResultCount,
     teamSoFar,
+    waitingForCreate,
   }
 }
 

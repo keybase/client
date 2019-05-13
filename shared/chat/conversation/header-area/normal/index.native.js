@@ -15,28 +15,26 @@ import type {Props} from './index.types'
 const shhIconColor = globalColors.black_20
 const shhIconFontSize = 24
 
-const Wrapper = (props: {
-  badgeNumber: number,
-  children: React.Node,
-  onBack: () => void,
-  onToggleInfoPanel: () => void,
-  onToggleThreadSearch: () => void,
-}) => (
+const Wrapper = (props: {...Props, children: React.Node}) => (
   <HeaderHocHeader
     badgeNumber={props.badgeNumber}
     onLeftAction={props.onBack}
-    rightActions={[
-      {
-        icon: 'iconfont-search',
-        label: 'search',
-        onPress: props.onToggleThreadSearch,
-      },
-      {
-        icon: 'iconfont-info',
-        label: 'Info',
-        onPress: props.onToggleInfoPanel,
-      },
-    ]}
+    rightActions={
+      props.pendingWaiting
+        ? undefined
+        : [
+            {
+              icon: 'iconfont-search',
+              label: 'search',
+              onPress: props.onToggleThreadSearch,
+            },
+            {
+              icon: 'iconfont-info',
+              label: 'Info',
+              onPress: props.onToggleInfoPanel,
+            },
+          ]
+    }
     titleComponent={props.children}
   />
 )

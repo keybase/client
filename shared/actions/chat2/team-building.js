@@ -1,6 +1,7 @@
 // @flow
 import logger from '../../logger'
 import * as Constants from '../../constants/team-building'
+import * as ChatConstants from '../../constants/chat2'
 import * as TeamBuildingTypes from '../../constants/types/team-building'
 import * as TeamBuildingGen from '../team-building-gen'
 import * as Chat2Gen from '../chat2-gen'
@@ -9,7 +10,7 @@ import * as Saga from '../../util/saga'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import {type TypedState} from '../../constants/reducer'
 
-const closeTeamBuilding = () => RouteTreeGen.createNavigateUp()
+const closeTeamBuilding = () => RouteTreeGen.createClearModals()
 
 const apiSearch = (
   query: string,
@@ -133,24 +134,29 @@ const fetchUserRecs = state =>
     })
     .then(users => TeamBuildingGen.createFetchedUserRecs({users}))
 
-const createConversation = state =>
+const createConversation = state => [
+  Chat2Gen.createSelectConversation({
+    conversationIDKey: ChatConstants.pendingWaitingConversationIDKey,
+    reason: 'justCreated',
+  }),
   Chat2Gen.createCreateConversation({
     participants: state.chat2.teamBuildingFinishedTeam.toArray().map(u => u.id),
-  })
+  }),
+]
 
 function* chatTeamBuildingSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<TeamBuildingGen.SearchPayload>(TeamBuildingGen.search, search)
   yield* Saga.chainAction<TeamBuildingGen.FetchUserRecsPayload>(TeamBuildingGen.fetchUserRecs, fetchUserRecs)
   yield* Saga.chainGenerator<TeamBuildingGen.SearchPayload>(TeamBuildingGen.search, searchResultCounts)
+  // Navigation, before creating
+  yield* Saga.chainAction<
+    TeamBuildingGen.CancelTeamBuildingPayload | TeamBuildingGen.FinishedTeamBuildingPayload
+  >([TeamBuildingGen.cancelTeamBuilding, TeamBuildingGen.finishedTeamBuilding], closeTeamBuilding)
+
   yield* Saga.chainAction<TeamBuildingGen.FinishedTeamBuildingPayload>(
     TeamBuildingGen.finishedTeamBuilding,
     createConversation
   )
-
-  // Navigation
-  yield* Saga.chainAction<
-    TeamBuildingGen.CancelTeamBuildingPayload | TeamBuildingGen.FinishedTeamBuildingPayload
-  >([TeamBuildingGen.cancelTeamBuilding, TeamBuildingGen.finishedTeamBuilding], closeTeamBuilding)
 }
 
 export default chatTeamBuildingSaga

@@ -1568,10 +1568,19 @@ const confirmScreenResponse = (_, action) => {
 }
 
 // We always make adhoc convos and never preview it
-const previewConversationPersonMakesAConversation = (state, action) =>
-  !action.payload.teamname &&
-  action.payload.participants &&
-  Chat2Gen.createCreateConversation({participants: action.payload.participants})
+const previewConversationPersonMakesAConversation = (state, action) => {
+  const {participants} = action.payload
+  return (
+    !action.payload.teamname &&
+    participants && [
+      Chat2Gen.createSelectConversation({
+        conversationIDKey: Constants.pendingWaitingConversationIDKey,
+        reason: 'justCreated',
+      }),
+      Chat2Gen.createCreateConversation({participants}),
+    ]
+  )
+}
 
 // We preview channels
 const previewConversationTeam = (state, action) => {
@@ -1641,6 +1650,10 @@ const _maybeAutoselectNewestConversation = (state, action, logger) => {
     avoidTeam = action.payload.teamname
   }
   let selected = Constants.getSelectedConversation(state)
+  if (selected === Constants.pendingWaitingConversationIDKey) {
+    // never auto select when we're building one
+    return
+  }
   const selectedMeta = state.chat2.metaMap.get(selected)
   if (!selectedMeta) {
     selected = Constants.noConversationIDKey
@@ -2064,8 +2077,26 @@ const navigateToInbox = (state, action, logger) => {
 // (which doesn't count as valid).
 //
 const navigateToThreadRoute = conversationIDKey => {
+  let replace = false
+
+  const visible = Router2Constants.getVisibleScreen()
+
+  if (!isMobile && visible?.routeName === 'chatRoot') {
+    // Don't append; we don't want to increase the size of the stack on desktop
+    return
+  }
+
+  // looking at the pending screen?
+  if (
+    visible?.routeName === 'chatConversation' &&
+    visible?.params?.conversationIDKey === Constants.pendingWaitingConversationIDKey
+  ) {
+    replace = true
+  }
+
   return RouteTreeGen.createNavigateAppend({
     path: [{props: {conversationIDKey}, selected: isMobile ? 'chatConversation' : 'chatRoot'}],
+    replace,
   })
 }
 
@@ -2092,6 +2123,8 @@ const mobileNavigateOnSelect = (state, action) => {
       return // never nav if this is from a nav
     }
     return navigateToThreadRoute(state.chat2.selectedConversation)
+  } else if (action.payload.conversationIDKey === Constants.pendingWaitingConversationIDKey) {
+    return navigateToThreadRoute(action.payload.conversationIDKey)
   }
 }
 
@@ -2296,6 +2329,7 @@ function* createConversation(state, action, logger) {
       },
       Constants.waitingKeyCreating
     )
+
     const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
     if (!conversationIDKey) {
       logger.warn("Couldn't make a new conversation?")

@@ -14,6 +14,7 @@ const defaultProps = {
   onToggleInfoPanel: Sb.action('onToggleInfoPanel'),
   onToggleThreadSearch: Sb.action('onToggleThreadSearch'),
   participants: ['joshblum', 'ayoubd'],
+  pendingWaiting: false,
   smallTeam: true,
   teamName: 'keybase',
   unMuteConversation: Sb.action('unMuteConversation'),
