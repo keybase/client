@@ -435,20 +435,6 @@ func (a *BoxAuditor) attemptLocked(mctx libkb.MetaContext, teamID keybase1.TeamI
 		return attempt
 	}
 
-	if rotateBeforeAudit {
-		mctx.Debug("rotating before audit")
-		err := team.Rotate(mctx.Ctx())
-		if err != nil {
-			attempt.Error = getErrorMessage(fmt.Errorf("failed to rotate team before audit: %s", err))
-			return attempt
-		}
-		return a.attemptLocked(mctx, teamID, false, true)
-	}
-
-	if justRotated {
-		attempt.Rotated = true
-	}
-
 	g := team.Generation()
 	attempt.Generation = &g
 
@@ -461,6 +447,22 @@ func (a *BoxAuditor) attemptLocked(mctx libkb.MetaContext, teamID keybase1.TeamI
 		mctx.Debug("Not attempting box audit attempt; %s", attempt.Result)
 		attempt.Result = *shouldAuditResult
 		return attempt
+	}
+
+	if rotateBeforeAudit {
+		mctx.Debug("rotating before audit")
+		err := team.Rotate(mctx.Ctx())
+		if err != nil {
+			mctx.Warning("failed to rotate team before audit: %s", err)
+			// continue despite having failed to rotate
+		} else {
+			// reload the team
+			return a.attemptLocked(mctx, teamID, false, true)
+		}
+	}
+
+	if justRotated {
+		attempt.Rotated = true
 	}
 
 	pastSummary, err := calculateChainSummary(mctx, team)
