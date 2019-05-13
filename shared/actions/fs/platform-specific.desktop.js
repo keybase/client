@@ -169,13 +169,17 @@ const fuseStatusToActions = (previousStatusType: 'enabled' | 'disabled' | 'unkno
     ? [
         FsGen.createSetDriverStatus({
           driverStatus: Constants.makeDriverStatusEnabled({
-            dokanOutdated: status.installAction === 2,
+            dokanOutdated: status.installAction === RPCTypes.installInstallAction.upgrade,
             dokanUninstallExecPath: fuseStatusToUninstallExecPath(status),
           }),
         }),
-        ...(previousStatusType === 'disabled' || status.installAction === 2
+        ...(previousStatusType === 'disabled' ||
+        status.installAction === RPCTypes.installInstallAction.upgrade
           ? [FsGen.createShowSystemFileManagerIntegrationBanner()]
           : []), // show banner for newly enabled
+        ...(previousStatusType === 'disabled'
+          ? [FsGen.createOpenPathInSystemFileManager({path: Types.stringToPath('/keybase')})]
+          : []), // open Finder/Explorer/etc for newly enabled
       ]
     : [
         FsGen.createSetDriverStatus({driverStatus: Constants.makeDriverStatusDisabled()}),
