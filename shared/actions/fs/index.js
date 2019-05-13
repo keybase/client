@@ -50,7 +50,10 @@ const loadFavorites = (state, action) =>
       (mutablePayload, {folders, isFavorite, isIgnored, isNew}) =>
         folders.reduce((mutablePayload, folder) => {
           const tlfType = rpcFolderTypeToTlfType(folder.folderType)
-          const tlfName = tlfToPreferredOrder(folder.name, state.config.username)
+          const tlfName =
+            tlfType === 'private' || tlfType === 'public'
+              ? tlfToPreferredOrder(folder.name, state.config.username)
+              : folder.name
           return !tlfType
             ? mutablePayload
             : {
@@ -64,6 +67,7 @@ const loadFavorites = (state, action) =>
                     name: tlfName,
                     resetParticipants: I.List((folder.reset_members || []).map(({username}) => username)),
                     teamId: folder.team_id || '',
+                    tlfMtime: folder.mtime || 0,
                   })
                 ),
               }

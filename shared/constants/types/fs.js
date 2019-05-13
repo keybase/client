@@ -91,6 +91,7 @@ export type _Tlf = {
   // need to be optional.
   syncConfig: ?TlfSyncConfig,
   teamId: RPCTypes.TeamID,
+  tlfMtime: number, // tlf mtime stored in core db based on notification from mdserver
   /*
    * Disabled because SimpleFS API doesn't have problem_set yet. We might never
    * need these.

@@ -114,6 +114,7 @@ export const makeTlf: I.RecordFactory<Types._Tlf> = I.Record({
   resetParticipants: I.List(),
   syncConfig: null,
   teamId: '',
+  tlfMtime: 0,
   /* See comment in constants/types/fs.js
   needsRekey: false,
   waitingForParticipantUnlock: I.List(),
@@ -128,13 +129,17 @@ export const makeSyncingFoldersProgress: I.RecordFactory<Types._SyncingFoldersPr
   start: 0,
 })
 
-export const defaultSortSetting = 'name-asc'
-
 export const makePathUserSetting: I.RecordFactory<Types._PathUserSetting> = I.Record({
-  sort: defaultSortSetting,
+  sort: 'name-asc',
 })
 
-export const defaultPathUserSetting = makePathUserSetting()
+export const defaultPathUserSetting = makePathUserSetting({
+  sort: 'name-asc',
+})
+
+export const defaultTlfListPathUserSetting = makePathUserSetting({
+  sort: 'time-asc',
+})
 
 export const makeDownloadMeta: I.RecordFactory<Types._DownloadMeta> = I.Record({
   entryType: 'unknown',
@@ -824,11 +829,6 @@ export const getChatTarget = (path: Types.Path, me: string): string => {
   return 'conversation'
 }
 
-export const isEmptyFolder = (pathItems: Types.PathItems, path: Types.Path) => {
-  const _pathItem = pathItems.get(path, unknownPathItem)
-  return _pathItem.type === 'folder' && !_pathItem.children.size
-}
-
 const humanizeDownloadIntent = (intent: Types.DownloadIntent) => {
   switch (intent) {
     case 'camera-roll':
@@ -991,6 +991,25 @@ export const getTlfPath = (path: Types.Path): ?Types.Path => {
   const elems = Types.getPathElements(path)
   return elems.length > 2 ? Types.pathConcat(Types.pathConcat(defaultPath, elems[1]), elems[2]) : null
 }
+
+export const getPathUserSetting = (
+  pathUserSettings: I.Map<Types.Path, Types.PathUserSetting>,
+  path: Types.Path
+): Types.PathUserSetting =>
+  pathUserSettings.get(
+    path,
+    Types.getPathLevel(path) < 3 ? defaultTlfListPathUserSetting : defaultPathUserSetting
+  )
+
+export const showSortSetting = (
+  path: Types.Path,
+  pathItem: Types.PathItem,
+  kbfsDaemonStatus: Types.KbfsDaemonStatus
+) =>
+  !isMobile &&
+  path !== defaultPath &&
+  (Types.getPathLevel(path) === 2 || (pathItem.type === 'folder' && !!pathItem.size)) &&
+  !isOfflineUnsynced(kbfsDaemonStatus, pathItem, path)
 
 export const getSoftError = (softErrors: Types.SoftErrors, path: Types.Path): ?Types.SoftError => {
   const pathError = softErrors.pathErrors.get(path)
