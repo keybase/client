@@ -80,10 +80,7 @@ export const shim = (routes: any, platformWrapper: any) => {
 
         let Component = routes[route].getScreen()
         // Wrap as an old style route tree component, TODO get rid of these eventually
-        Component = routes[route].upgraded ? shimSafeNav(Component) : shimAsRouteTree(Component)
-        if (!routes[route].upgraded) {
-          Component = shimAsRouteTree(Component)
-        }
+        Component = routes[route].upgraded ? Component : shimAsRouteTree(Component)
 
         _cached = platformWrapper(Component)
         return _cached
