@@ -96,7 +96,7 @@ function SettingsNav(props: Props) {
 
 const styles = styleSheetCreate({
   sectionTitle: {
-    backgroundColor: globalColors.blue5,
+    backgroundColor: globalColors.blueLighter3,
     color: globalColors.black_50,
     paddingBottom: 7,
     paddingLeft: globalMargins.small,

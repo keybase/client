@@ -190,7 +190,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
               styles.inputWrapper,
               {
                 backgroundColor: this.props.isEditing
-                  ? Styles.globalColors.yellow3
+                  ? Styles.globalColors.yellowLight
                   : Styles.globalColors.white,
                 borderColor: this.props.explodingModeSeconds
                   ? Styles.globalColors.black

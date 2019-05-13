@@ -64,9 +64,9 @@ const Intro = (props: IntroProps) => {
 
 const styles = Styles.styleSheetCreate({
   bodyText: {color: Styles.globalColors.white, marginBottom: Styles.globalMargins.tiny},
-  buttonLabelStyle: {color: Styles.globalColors.purple},
+  buttonLabelStyle: {color: Styles.globalColors.purpleDark},
   buttonStyle: {width: '100%'},
-  container: {backgroundColor: Styles.globalColors.purple2, padding: Styles.globalMargins.medium},
+  container: {backgroundColor: Styles.globalColors.purple, padding: Styles.globalMargins.medium},
   headerText: {
     color: Styles.globalColors.white,
     marginBottom: Styles.globalMargins.small,
@@ -80,7 +80,7 @@ const styles = Styles.styleSheetCreate({
     paddingBottom: Styles.globalMargins.mediumLarge,
   },
   labelStyle: {
-    color: Styles.globalColors.purple,
+    color: Styles.globalColors.purpleDark,
   },
 })
 

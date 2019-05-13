@@ -23,7 +23,7 @@ export type Props = {
 }
 
 const realCSS = (inTeam: boolean) => `
-    .hoverRow${inTeam ? 'inTeam' : ''}:hover { background-color: ${Styles.globalColors.blue4};}
+    .hoverRow${inTeam ? 'inTeam' : ''}:hover { background-color: ${Styles.globalColors.blueLighter2};}
     .hoverRow${inTeam ? 'inTeam' : ''}:hover .actionButton * { color: ${
   Styles.globalColors.white
 } !important;}
@@ -228,7 +228,7 @@ const styles = Styles.styleSheetCreate({
   actionButton: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.rounded,
-      backgroundColor: Styles.globalColors.lightGrey2,
+      backgroundColor: Styles.globalColors.grey,
       height: ActionButtonSize,
       marginLeft: Styles.globalMargins.tiny,
       width: ActionButtonSize,
@@ -252,7 +252,7 @@ const styles = Styles.styleSheetCreate({
   },
   highlighted: Styles.platformStyles({
     isElectron: {
-      backgroundColor: Styles.globalColors.blue4,
+      backgroundColor: Styles.globalColors.blueLighter2,
       borderRadius: Styles.borderRadius,
     },
   }),

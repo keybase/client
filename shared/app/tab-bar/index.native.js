@@ -41,7 +41,7 @@ const TabBarRender = ({selectedTab, onTabClick, badgeNumbers, isNew}: Props) => 
 )
 
 const _iconStyle = {
-  color: globalColors.darkBlue4,
+  color: globalColors.blueDarker,
   fontSize: 32,
 }
 const _selectedIconStyle = {
@@ -53,7 +53,7 @@ export const tabBarHeight = 48
 
 const stylesTabBar = {
   ...globalStyles.flexBoxRow,
-  backgroundColor: globalColors.darkBlue2,
+  backgroundColor: globalColors.blueDark,
   height: tabBarHeight,
   justifyContent: 'flex-start',
 }

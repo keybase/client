@@ -74,7 +74,7 @@ class CodePage2 extends React.Component<Props, State> {
     throw new Error('Impossible defaultTab')
   }
 
-  _tabBackground = () => (this.state.tab === 'QR' ? Styles.globalColors.blue2 : Styles.globalColors.green)
+  _tabBackground = () => (this.state.tab === 'QR' ? Styles.globalColors.blueLight : Styles.globalColors.green)
 
   render() {
     let content

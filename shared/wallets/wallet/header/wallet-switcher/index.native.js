@@ -201,7 +201,7 @@ const styles = Styles.styleSheetCreate({
     height: infoTextRowHeight,
   },
   infoTextRowContainer: {
-    backgroundColor: Styles.globalColors.lightGrey,
+    backgroundColor: Styles.globalColors.greyLight,
   },
   lastRow: {
     // Have this instead of a top margin on the divider to maximize

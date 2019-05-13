@@ -64,7 +64,7 @@ const typeToIcon = {
 const DeviceOption = ({highlight, onClick, type}) => (
   <Kb.ClickableBox onClick={onClick}>
     <Kb.Box2
-      className="hover_background_color_blue4"
+      className="hover_background_color_blueLighter2"
       style={Styles.collapseStyles([
         styles.deviceOption,
         Styles.isMobile && highlight && styles.deviceOptionHighlighted,
@@ -95,7 +95,7 @@ const styles = Styles.styleSheetCreate({
     padding: Styles.globalMargins.tiny,
     width: Styles.isMobile ? 160 : 140,
   },
-  deviceOptionHighlighted: {backgroundColor: Styles.globalColors.blue4},
+  deviceOptionHighlighted: {backgroundColor: Styles.globalColors.blueLighter2},
   deviceOptions: Styles.platformStyles({
     isElectron: {
       paddingLeft: Styles.globalMargins.large,

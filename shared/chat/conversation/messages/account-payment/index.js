@@ -78,7 +78,7 @@ const AccountPayment = (props: Props) => {
         ])}
       >
         <Box2 direction="horizontal" gap="xtiny" gapEnd={true} style={styles.alignItemsCenter}>
-          {!!props.icon && <Icon type={props.icon} color={globalColors.purple2} fontSize={12} />}
+          {!!props.icon && <Icon type={props.icon} color={globalColors.purple} fontSize={12} />}
           <Text
             type="BodySmall"
             style={collapseStyles([styles.purple, props.canceled && styles.lineThrough])}
@@ -169,7 +169,7 @@ const styles = styleSheetCreate({
       width: 22,
     },
   }),
-  purple: {color: globalColors.purple2},
+  purple: {color: globalColors.purple},
   tooltipText: platformStyles({
     isElectron: {wordBreak: 'normal'},
   }),

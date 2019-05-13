@@ -33,17 +33,17 @@ const load = () => {
       </Box2>
     ))
     .add('UserNotice blank', () => (
-      <UserNotice bgColor={globalColors.blue4}>
+      <UserNotice bgColor={globalColors.blueLighter2}>
         <Text type="BodySmall">Some generic notice</Text>
       </UserNotice>
     ))
     .add('UserNotice blank team', () => (
-      <UserNotice bgColor={globalColors.blue4} teamname="">
+      <UserNotice bgColor={globalColors.blueLighter2} teamname="">
         <Text type="BodySmall">Some team notice</Text>
       </UserNotice>
     ))
     .add('UserNotice blank user', () => (
-      <UserNotice bgColor={globalColors.blue4} username="">
+      <UserNotice bgColor={globalColors.blueLighter2} username="">
         <Text type="BodySmall">Some user notice</Text>
       </UserNotice>
     ))

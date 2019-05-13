@@ -58,7 +58,7 @@ class CopyableText extends React.Component<Props, State> {
 const styleBase = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'flex-start',
-  backgroundColor: globalColors.lightGrey,
+  backgroundColor: globalColors.greyLight,
   borderColor: globalColors.black_10,
   borderRadius: 3,
   borderWidth: 1,

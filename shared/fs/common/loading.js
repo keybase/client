@@ -17,7 +17,7 @@ export default ({path}: Props) => (
 
 const styles = Styles.styleSheetCreate({
   container: {
-    backgroundColor: Styles.globalColors.blue5,
+    backgroundColor: Styles.globalColors.blueLighter3,
     ...Styles.globalStyles.flexGrow,
   },
 })

@@ -47,7 +47,7 @@ export const height = Styles.isMobile ? 40 : 32
 
 const styles = Styles.styleSheetCreate({
   container: {
-    backgroundColor: Styles.globalColors.blue5,
+    backgroundColor: Styles.globalColors.blueLighter3,
     height,
   },
   flex: {flex: 1},

@@ -101,7 +101,7 @@ const Footer = (props: Props) => {
 const styles = Styles.styleSheetCreate({
   background: Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.blue5,
+      backgroundColor: Styles.globalColors.blueLighter3,
     },
     isElectron: {
       borderBottomLeftRadius: 4,

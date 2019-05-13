@@ -43,7 +43,7 @@ const Service = ({service, selected, hovering, onHover, onSelect}) => {
   let backgroundColor
 
   if (hovering && !selected) {
-    backgroundColor = globalColors.blue4
+    backgroundColor = globalColors.blueLighter2
   } else if (selected) {
     backgroundColor = bubbleColors[service]
   }

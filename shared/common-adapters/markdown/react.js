@@ -87,7 +87,7 @@ const strikeStyle = Styles.platformStyles({
 
 const quoteStyle = Styles.platformStyles({
   common: {
-    borderLeftColor: Styles.globalColors.lightGrey2,
+    borderLeftColor: Styles.globalColors.grey,
     borderLeftWidth: 3,
     borderStyle: 'solid',
   },
@@ -105,7 +105,7 @@ const codeSnippetStyle = Styles.platformStyles({
     ...wrapStyle,
     ...Styles.globalStyles.fontTerminal,
     ...Styles.globalStyles.rounded,
-    backgroundColor: Styles.globalColors.beige,
+    backgroundColor: Styles.globalColors.redLighter,
     color: Styles.globalColors.blue,
     paddingLeft: Styles.globalMargins.xtiny,
     paddingRight: Styles.globalMargins.xtiny,
@@ -122,7 +122,7 @@ const codeSnippetBlockStyle = Styles.platformStyles({
   common: {
     ...wrapStyle,
     ...codeSnippetStyle,
-    backgroundColor: Styles.globalColors.beige,
+    backgroundColor: Styles.globalColors.redLighter,
     marginBottom: Styles.globalMargins.xtiny,
     marginTop: Styles.globalMargins.xtiny,
     paddingBottom: Styles.globalMargins.xtiny,

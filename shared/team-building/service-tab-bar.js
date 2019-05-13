@@ -57,7 +57,7 @@ const ServiceIconDesktop = (props: IconProps) => (
         ) : (
           <Kb.Icon
             type="icon-progress-grey-animated"
-            color={Styles.globalColors.grey}
+            color={Styles.globalColors.greyDark}
             style={styles.pendingIcon}
           />
         ))}
@@ -87,7 +87,7 @@ const ServiceIconMobile = (props: IconProps) => (
       {!!props.showCount && !Number.isInteger(props.count) && (
         <Kb.Icon
           type="icon-progress-grey-animated"
-          color={Styles.globalColors.grey}
+          color={Styles.globalColors.greyDark}
           style={styles.pendingIcon}
         />
       )}

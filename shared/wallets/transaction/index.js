@@ -45,7 +45,7 @@ const CounterpartyIcon = (props: CounterpartyIconProps) => {
           style={collapseStyles([styles.transferIconContainer, {width: size}])}
         >
           <Icon
-            color={globalColors.purple2}
+            color={globalColors.purple}
             sizeType={props.detailView ? 'Bigger' : 'Big'}
             style={collapseStyles([!props.detailView && styles.transferIcon])}
             type="iconfont-wallet-transfer"
@@ -401,7 +401,7 @@ export const Transaction = (props: Props) => {
       throw new Error(`Unexpected counterpartyType ${props.counterpartyType}`)
   }
   const pending = !props.timestamp || ['pending', 'claimable'].includes(props.status)
-  const backgroundColor = props.unread && !props.detailView ? globalColors.blue4 : globalColors.white
+  const backgroundColor = props.unread && !props.detailView ? globalColors.blueLighter2 : globalColors.white
   return (
     <Box2 direction="vertical" fullWidth={true} style={{backgroundColor}}>
       <ClickableBox onClick={props.onSelectTransaction}>

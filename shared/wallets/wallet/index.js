@@ -150,7 +150,7 @@ const styles = Styles.styleSheetCreate({
   },
   sectionHeader: {
     ...Styles.globalStyles.flexBoxColumn,
-    backgroundColor: Styles.globalColors.blue5,
+    backgroundColor: Styles.globalColors.blueLighter3,
     paddingBottom: Styles.globalMargins.xtiny,
     paddingLeft: Styles.globalMargins.tiny,
     paddingRight: Styles.globalMargins.xtiny,

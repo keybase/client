@@ -17,7 +17,7 @@ const styles = Styles.styleSheetCreate({
       marginTop: Styles.globalMargins.medium,
     },
     isMobile: {
-      backgroundColor: Styles.globalColors.blue5,
+      backgroundColor: Styles.globalColors.blueLighter3,
     },
   }),
 })

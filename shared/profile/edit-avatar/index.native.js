@@ -143,7 +143,7 @@ const styles = styleSheetCreate({
   },
   standardScreen: {...padding(0)},
   zoomContainer: {
-    backgroundColor: globalColors.lightGrey2,
+    backgroundColor: globalColors.grey,
     height: AVATAR_SIZE,
     marginBottom: globalMargins.tiny,
     overflow: 'hidden',

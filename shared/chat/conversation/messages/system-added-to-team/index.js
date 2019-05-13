@@ -79,7 +79,7 @@ const YouAddedToTeam = (props: Props) => {
     <UserNotice
       style={{marginTop: Styles.globalMargins.small}}
       teamname={teamname}
-      bgColor={Styles.globalColors.blue4}
+      bgColor={Styles.globalColors.blueLighter2}
       onClickAvatar={onViewTeam}
     >
       <Kb.Icon type="icon-team-sparkles-64-40" style={{height: 40, marginTop: -36, width: 64}} />

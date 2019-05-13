@@ -199,7 +199,7 @@ const metaData: {[key: TextType]: MetaType} = {
     styleOverride: globalStyles.fontRegular,
   },
   BodySmallWallet: {
-    colorForBackground: {...whiteNegative, positive: globalColors.purple2},
+    colorForBackground: {...whiteNegative, positive: globalColors.purple},
     fontSize: 13,
     styleOverride: globalStyles.fontRegular,
   },
@@ -260,8 +260,8 @@ const metaData: {[key: TextType]: MetaType} = {
   },
   Terminal: {
     colorForBackground: {
-      negative: globalColors.blue3,
-      positive: globalColors.blue3,
+      negative: globalColors.blueLighter,
+      positive: globalColors.blueLighter,
     },
     fontSize: 13,
     styleOverride: {
@@ -271,8 +271,8 @@ const metaData: {[key: TextType]: MetaType} = {
   },
   TerminalComment: {
     colorForBackground: {
-      negative: globalColors.blue3_40,
-      positive: globalColors.blue3_40,
+      negative: globalColors.blueLighter_40,
+      positive: globalColors.blueLighter_40,
     },
     fontSize: 13,
     styleOverride: {
@@ -282,8 +282,8 @@ const metaData: {[key: TextType]: MetaType} = {
   },
   TerminalEmpty: {
     colorForBackground: {
-      negative: globalColors.blue3_40,
-      positive: globalColors.blue3_40,
+      negative: globalColors.blueLighter_40,
+      positive: globalColors.blueLighter_40,
     },
     fontSize: 13,
     styleOverride: {
@@ -297,7 +297,7 @@ const metaData: {[key: TextType]: MetaType} = {
     fontSize: 13,
     styleOverride: {
       ...globalStyles.fontTerminal,
-      backgroundColor: globalColors.blue4,
+      backgroundColor: globalColors.blueLighter2,
       borderRadius: 2,
       display: 'inline-block',
       height: 17,

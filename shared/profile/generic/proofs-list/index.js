@@ -25,7 +25,7 @@ export type Props = {|
 const HoverBox = Styles.isMobile
   ? Kb.ClickableBox
   : Styles.styled(Kb.ClickableBox)({
-      ':hover': {backgroundColor: Styles.globalColors.blue4},
+      ':hover': {backgroundColor: Styles.globalColors.blueLighter2},
     })
 
 type ProvidersProps = {|

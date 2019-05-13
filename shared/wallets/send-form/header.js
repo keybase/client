@@ -30,7 +30,7 @@ const styles = Styles.styleSheetCreate({
   header: Styles.platformStyles({
     common: {
       alignSelf: 'flex-end',
-      backgroundColor: Styles.globalColors.purple,
+      backgroundColor: Styles.globalColors.purpleDark,
       flexShrink: 0,
       justifyContent: 'center',
       position: 'relative',

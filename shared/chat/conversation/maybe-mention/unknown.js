@@ -129,7 +129,7 @@ const styles = Styles.styleSheetCreate({
   }),
   text: Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.lightGrey,
+      backgroundColor: Styles.globalColors.greyLight,
       borderRadius: 2,
       letterSpacing: 0.3,
       paddingLeft: 2,

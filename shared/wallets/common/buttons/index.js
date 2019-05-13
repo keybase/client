@@ -95,7 +95,7 @@ class _DropdownButton extends React.PureComponent<DropdownProps & Kb.OverlayPare
             ])}
             disabled={this.props.disabled}
           >
-            <Kb.Icon type="iconfont-ellipsis" color={Styles.globalColors.purple} />
+            <Kb.Icon type="iconfont-ellipsis" color={Styles.globalColors.purpleDark} />
           </Kb.Button>
         </Kb.Box2>
         <Kb.FloatingMenu

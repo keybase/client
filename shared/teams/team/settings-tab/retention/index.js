@@ -265,7 +265,7 @@ const dropdownStyle = Styles.platformStyles({
   common: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    borderColor: Styles.globalColors.lightGrey2,
+    borderColor: Styles.globalColors.grey,
     borderRadius: Styles.borderRadius,
     borderStyle: 'solid',
     borderWidth: 1,

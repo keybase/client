@@ -118,7 +118,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
           size={32}
           onClick={this.props.onClick}
           username={this.props.source.username}
-          loadingColor={Styles.globalColors.blue3_40}
+          loadingColor={Styles.globalColors.blueLighter_40}
         />
         {badgeNumber > 0 && (
           <Box style={{display: 'flex', width: 0}}>
@@ -172,7 +172,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
                 title="new"
                 size="Small"
                 style={{alignSelf: 'center', marginRight: 4}}
-                backgroundColor={Styles.globalColors.blue2}
+                backgroundColor={Styles.globalColors.blueLight}
               />
             </Box>
           )}
@@ -226,7 +226,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
   }
 
   render() {
-    const color = this.props.selected ? Styles.globalColors.white : Styles.globalColors.blue3_60
+    const color = this.props.selected ? Styles.globalColors.white : Styles.globalColors.blueLighter_60
     const badgeNumber = this.props.badgeNumber || 0
 
     switch (this.props.source.type) {
@@ -326,7 +326,7 @@ const stylesTabBarNavIcon = {
 }
 
 const navRealCSS = `
-  .nav-item .img { color: ${Styles.globalColors.darkBlue4}; }
+  .nav-item .img { color: ${Styles.globalColors.blueDarker}; }
   .nav-item:hover .img { color: ${Styles.globalColors.white}; }
   .nav-item.selected .img { color: ${Styles.globalColors.white}; }
 

@@ -25,7 +25,7 @@ const QRScan = (props: Props) => (
           barCodeTypes={[RNCamera.Constants.BarCodeType.qr]}
           style={styles.camera}
         />
-        <Kb.QRLines canScan={true} color={Styles.globalColors.purple3} />
+        <Kb.QRLines canScan={true} color={Styles.globalColors.purpleLight} />
       </Kb.Box2>
       <Kb.Text center={true} type="BodySemibold" style={styles.text}>
         Scan a Stellar QR code.
@@ -54,7 +54,7 @@ const styles = Styles.styleSheetCreate({
   cameraContainer: {
     alignSelf: 'center',
     backgroundColor: Styles.globalColors.black,
-    borderColor: Styles.globalColors.purple3,
+    borderColor: Styles.globalColors.purpleLight,
     borderRadius: Styles.borderRadius,
     borderStyle: 'solid',
     borderWidth: 4,
@@ -74,14 +74,14 @@ const styles = Styles.styleSheetCreate({
   },
   container: {
     alignItems: 'center',
-    backgroundColor: Styles.globalColors.purple,
+    backgroundColor: Styles.globalColors.purpleDark,
   },
   header: {
     backgroundColor: Styles.globalColors.transparent,
     width: '100%',
   },
-  safeAreaViewTop: {backgroundColor: Styles.globalColors.purple, flexGrow: 0},
-  text: { color: Styles.globalColors.white },
+  safeAreaViewTop: {backgroundColor: Styles.globalColors.purpleDark, flexGrow: 0},
+  text: {color: Styles.globalColors.white},
   topContainer: {
     alignItems: 'center',
     flexGrow: 1,
