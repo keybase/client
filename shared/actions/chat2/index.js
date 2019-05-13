@@ -1568,15 +1568,19 @@ const confirmScreenResponse = (_, action) => {
 }
 
 // We always make adhoc convos and never preview it
-const previewConversationPersonMakesAConversation = (state, action) =>
-  !action.payload.teamname &&
-  action.payload.participants && [
-    Chat2Gen.createSelectConversation({
-      conversationIDKey: Constants.pendingWaitingConversationIDKey,
-      reason: 'justCreated',
-    }),
-    Chat2Gen.createCreateConversation({participants: action.payload.participants}),
-  ]
+const previewConversationPersonMakesAConversation = (state, action) => {
+  const participants = action.payload.participants
+  return (
+    !action.payload.teamname &&
+    participants && [
+      Chat2Gen.createSelectConversation({
+        conversationIDKey: Constants.pendingWaitingConversationIDKey,
+        reason: 'justCreated',
+      }),
+      Chat2Gen.createCreateConversation({participants}),
+    ]
+  )
+}
 
 // We preview channels
 const previewConversationTeam = (state, action) => {
@@ -2073,8 +2077,20 @@ const navigateToInbox = (state, action, logger) => {
 // (which doesn't count as valid).
 //
 const navigateToThreadRoute = conversationIDKey => {
+  let replace = false
+
+  const visible = Router2Constants.getVisibleScreen()
+  // looking at the pending screen?
+  if (
+    visible?.routeName === 'chatConversation' &&
+    visible?.params?.conversationIDKey === Constants.pendingWaitingConversationIDKey
+  ) {
+    replace = true
+  }
+
   return RouteTreeGen.createNavigateAppend({
     path: [{props: {conversationIDKey}, selected: isMobile ? 'chatConversation' : 'chatRoot'}],
+    replace,
   })
 }
 
@@ -2101,6 +2117,8 @@ const mobileNavigateOnSelect = (state, action) => {
       return // never nav if this is from a nav
     }
     return navigateToThreadRoute(state.chat2.selectedConversation)
+  } else if (action.payload.conversationIDKey === Constants.pendingWaitingConversationIDKey) {
+    return navigateToThreadRoute(action.payload.conversationIDKey)
   }
 }
 

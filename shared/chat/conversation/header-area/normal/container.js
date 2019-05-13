@@ -25,6 +25,7 @@ const mapStateToProps = (state, {infoPanelOpen, conversationIDKey}) => {
     channelName: meta.channelname,
     infoPanelOpen,
     muted: meta.isMuted,
+    pendingWaiting: conversationIDKey === Constants.pendingWaitingConversationIDKey,
     smallTeam: meta.teamType !== 'big',
     teamName: meta.teamname,
   }
@@ -55,6 +56,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
   onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
   onToggleThreadSearch: dispatchProps.onToggleThreadSearch,
   participants: stateProps._participants.toArray(),
+  pendingWaiting: stateProps.pendingWaiting,
   smallTeam: stateProps.smallTeam,
   teamName: stateProps.teamName,
   unMuteConversation: dispatchProps._onUnMuteConversation,
