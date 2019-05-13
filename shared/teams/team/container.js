@@ -12,7 +12,6 @@ import {mapStateHelper as invitesMapStateHelper, getRows as getInviteRows} from 
 import {mapStateHelper as memberMapStateHelper, getRows as getMemberRows} from './members-tab/helper'
 import {mapStateHelper as subteamsMapStateHelper, getRows as getSubteamsRows} from './subteams-tab/helper'
 import type {RouteProps} from '../../route-tree/render-route'
-import flags from '../../util/feature-flags'
 
 // $FlowIssue
 type OwnProps = RouteProps<{teamname: string}, {}> & {selectedTab: string, setSelectedTab: string => void}
@@ -62,11 +61,7 @@ const mergeProps = (stateProps, dispatchProps) => {
       tabSpecificRows = [{type: 'settings'}]
       break
   }
-  const rows = [
-    ...(flags.useNewRouter && !isMobile ? [] : [{type: 'header'}]),
-    {type: 'tabs'},
-    ...tabSpecificRows,
-  ]
+  const rows = [...(!isMobile ? [] : [{type: 'header'}]), {type: 'tabs'}, ...tabSpecificRows]
   const customComponent = <CustomTitle teamname={stateProps.teamname} />
   return {
     _load: () => dispatchProps._loadTeam(stateProps.teamname),

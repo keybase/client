@@ -60,6 +60,8 @@ const getButtons = (props: Props) => {
   }
 
   switch (props.state) {
+    case 'notAUserYet':
+      return [buttonClose]
     case 'checking':
       break
     case 'valid':

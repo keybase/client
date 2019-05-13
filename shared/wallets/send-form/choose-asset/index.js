@@ -179,7 +179,7 @@ type DisplayChoiceProps = {
 }
 const DisplayChoice = (props: DisplayChoiceProps) => (
   <Kb.ClickableBox
-    hoverColor={Styles.globalColors.blue4}
+    hoverColor={Styles.globalColors.blueLighter2}
     onClick={props.onClick}
     style={styles.displayChoice}
   >
@@ -217,7 +217,7 @@ type OtherChoiceProps = {
 }
 const OtherChoice = (props: OtherChoiceProps) => (
   <Kb.ClickableBox
-    hoverColor={!props.disabledExplanation ? Styles.globalColors.blue4 : null}
+    hoverColor={!props.disabledExplanation ? Styles.globalColors.blueLighter2 : null}
     onClick={!props.disabledExplanation ? props.onClick : null}
   >
     <Kb.Box2
@@ -329,7 +329,7 @@ const styles = Styles.styleSheetCreate({
   sectionHeaderContainer: Styles.platformStyles({
     common: {
       alignItems: 'flex-start',
-      backgroundColor: Styles.globalColors.blue5,
+      backgroundColor: Styles.globalColors.blueLighter3,
       justifyContent: 'center',
       paddingBottom: Styles.globalMargins.tiny,
       paddingLeft: Styles.globalMargins.small,

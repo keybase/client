@@ -111,7 +111,7 @@ const styles = Styles.styleSheetCreate({
     height: 32,
   },
   listItemAlternate: {
-    backgroundColor: Styles.globalColors.grey,
+    backgroundColor: Styles.globalColors.greyDark,
     height: 64,
   },
 })

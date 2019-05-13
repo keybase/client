@@ -2,7 +2,6 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import flags from '../util/feature-flags'
 
 type Props = {|
   children: React.Node,
@@ -23,18 +22,6 @@ const Modal = ({children, onCancel, skipButton}: Props) => (
   </Kb.Box2>
 )
 
-// TODO remove
-const OldScreen = ({children, onCancel, skipButton}: Props) => (
-  <Kb.StandardScreen onCancel={onCancel} style={{maxWidth: 512}}>
-    {children}
-    {onCancel && !skipButton && (
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.buttonBar} alignItems="center">
-        <Kb.Button type="Dim" label="Cancel" onClick={onCancel} />
-      </Kb.Box2>
-    )}
-  </Kb.StandardScreen>
-)
-
 const styles = Styles.styleSheetCreate({
   buttonBar: {
     flexShrink: 0,
@@ -51,4 +38,4 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-export default (flags.useNewRouter ? Kb.HeaderOrPopup(Modal) : OldScreen)
+export default Kb.HeaderOrPopup(Modal)

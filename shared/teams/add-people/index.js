@@ -7,7 +7,6 @@ import SearchResultsList from '../../search/results-list/container'
 import * as Constants from '../../constants/teams'
 import {type TeamRoleType, type DisabledReasonsForRolePicker} from '../../constants/types/teams'
 import {FloatingRolePicker} from '../role-picker'
-import flags from '../../util/feature-flags'
 
 const MaybePopup = Styles.isMobile
   ? (props: {onClose: () => void, children: React.Node}) => (
@@ -156,7 +155,7 @@ const styles = Styles.styleSheetCreate({
       position: 'relative',
     },
   }),
-  header: flags.useNewRouter ? {minHeight: 48} : {},
+  header: {minHeight: 48},
   outerBox: Styles.platformStyles({
     isElectron: {
       ...Styles.globalStyles.flexBoxColumn,

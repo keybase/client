@@ -1,5 +1,5 @@
 // @flow
-import {namedConnect, type RouteProps} from '../../../../../util/container'
+import * as Container from '../../../../../util/container'
 import * as Constants from '../../../../../constants/wallets'
 import * as ConfigGen from '../../../../../actions/config-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
@@ -7,12 +7,11 @@ import * as WalletsGen from '../../../../../actions/wallets-gen'
 import * as Types from '../../../../../constants/types/wallets'
 import {anyWaiting} from '../../../../../constants/waiting'
 import ReallyRemoveAccountPopup from '.'
-import flags from '../../../../../util/feature-flags'
 
-type OwnProps = RouteProps<{accountID: Types.AccountID}, {}>
+type OwnProps = Container.RouteProps<{accountID: Types.AccountID}, {}>
 
-const mapStateToProps = (state, {routeProps}) => {
-  const accountID = routeProps.get('accountID')
+const mapStateToProps = (state, ownProps) => {
+  const accountID = Container.getRouteProps(ownProps, 'accountID')
   const secretKey = Constants.getSecretKey(state, accountID).stringValue()
 
   return {
@@ -25,10 +24,7 @@ const mapStateToProps = (state, {routeProps}) => {
 }
 
 const mapDispatchToProps = (dispatch, {navigateUp}) => ({
-  _onClose: (accountID: Types.AccountID) => {
-    dispatch(WalletsGen.createSecretKeySeen({accountID}))
-    dispatch(navigateUp())
-  },
+  _onClose: (accountID: Types.AccountID) => dispatch(RouteTreeGen.createNavigateUp()),
   _onCopyKey: (secretKey: string) => dispatch(ConfigGen.createCopyToClipboard({text: secretKey})),
   _onFinish: (accountID: Types.AccountID) => {
     dispatch(
@@ -36,11 +32,10 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
         accountID,
       })
     )
-    if (flags.useNewRouter) {
-      dispatch(RouteTreeGen.createClearModals())
-    }
+    dispatch(RouteTreeGen.createClearModals())
   },
   _onLoadSecretKey: (accountID: Types.AccountID) => dispatch(WalletsGen.createExportSecretKey({accountID})),
+  _onSecretKeySeen: (accountID: Types.AccountID) => dispatch(WalletsGen.createSecretKeySeen({accountID})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
@@ -50,10 +45,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onCopyKey: () => dispatchProps._onCopyKey(stateProps.secretKey),
   onFinish: () => dispatchProps._onFinish(stateProps.accountID),
   onLoadSecretKey: () => dispatchProps._onLoadSecretKey(stateProps.accountID),
+  onSecretKeySeen: () => dispatchProps._onSecretKeySeen(stateProps.accountID),
   waiting: stateProps.waiting,
 })
 
-export default namedConnect<OwnProps, _, _, _, _>(
+export default Container.namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,

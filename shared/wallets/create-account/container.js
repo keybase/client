@@ -1,35 +1,33 @@
 // @flow
 import {capitalize} from 'lodash-es'
-import {connect, type RouteProps} from '../../util/container'
+import * as Container from '../../util/container'
 import * as Constants from '../../constants/wallets'
 import * as WalletsGen from '../../actions/wallets-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {anyWaiting} from '../../constants/waiting'
 import CreateAccount from '.'
-import flags from '../../util/feature-flags'
 
-type OwnProps = RouteProps<{backButton?: boolean, fromSendForm?: boolean, showOnCreation?: boolean}, {}>
+type OwnProps = Container.RouteProps<{fromSendForm?: boolean, showOnCreation?: boolean}, {}>
 
-const mapStateToProps = (state, {routeProps}: OwnProps) => ({
+const mapStateToProps = state => ({
   createNewAccountError: state.wallets.createNewAccountError,
   error: state.wallets.accountNameError,
   nameValidationState: state.wallets.accountNameValidationState,
   waiting: anyWaiting(state, Constants.createNewAccountWaitingKey, Constants.validateAccountNameWaitingKey),
 })
 
-const mapDispatchToProps = (dispatch, {navigateUp, routeProps, fromSendForm}) => ({
-  onCancel: () => navigateUp && dispatch(navigateUp()),
+const mapDispatchToProps = (dispatch, ownProps) => ({
+  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
   onClearErrors: () => dispatch(WalletsGen.createClearErrors()),
   onCreateAccount: (name: string) => {
     dispatch(
       WalletsGen.createCreateNewAccount({
         name,
-        setBuildingTo: routeProps.get('fromSendForm'),
-        showOnCreation: routeProps.get('showOnCreation'),
+        setBuildingTo: Container.getRouteProps(ownProps, 'fromSendForm'),
+        showOnCreation: Container.getRouteProps(ownProps, 'showOnCreation'),
       })
     )
-    if (flags.useNewRouter) {
-      dispatch(navigateUp())
-    }
+    dispatch(RouteTreeGen.createNavigateUp())
   },
   onDone: (name: string) => {
     dispatch(WalletsGen.createValidateAccountName({name}))
@@ -39,14 +37,13 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps, fromSendForm}) =>
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...stateProps,
   error: capitalize(stateProps.error),
-  onBack: ownProps.routeProps.get('backButton') ? dispatchProps.onCancel : undefined,
   onCancel: dispatchProps.onCancel,
   onClearErrors: dispatchProps.onClearErrors,
   onCreateAccount: dispatchProps.onCreateAccount,
   onDone: dispatchProps.onDone,
 })
 
-export default connect<OwnProps, _, _, _, _>(
+export default Container.connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

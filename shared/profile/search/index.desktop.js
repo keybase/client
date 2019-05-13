@@ -21,7 +21,7 @@ const Search = (props: Props) => (
       />
     </Kb.Box2>
     <SearchResultsList
-      style={{minHeight: 240, overflow: 'auto'}}
+      style={{minHeight: 360, overflow: 'auto'}}
       searchKey={searchKey}
       onClick={props.onClick}
       disableListBuilding={true}

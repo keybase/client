@@ -139,7 +139,7 @@ function PlanLevelRow({level, price, onInfo, variants, style, gigabytes}: PlanLe
         ...globalStyles.flexBoxRow,
         ...desktopStyles.clickable,
         ...planLevelRowStyle,
-        backgroundColor: selected ? globalColors.blue4 : globalColors.white,
+        backgroundColor: selected ? globalColors.blueLighter2 : globalColors.white,
         ...style,
       }}
       onClick={() => onInfo()}
@@ -151,7 +151,7 @@ function PlanLevelRow({level, price, onInfo, variants, style, gigabytes}: PlanLe
           </Text>
           <Text type={'BodySmall'}>({price})</Text>
         </Box>
-        {selected && <Meta title="Your Plan" backgroundColor={globalColors.blue2} />}
+        {selected && <Meta title="Your Plan" backgroundColor={globalColors.blueLight} />}
       </Box>
       <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
         <Text style={{...globalStyles.fontSemibold, marginRight: globalMargins.xtiny}} type="BodySmall">

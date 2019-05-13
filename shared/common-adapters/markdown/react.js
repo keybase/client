@@ -87,7 +87,7 @@ const strikeStyle = Styles.platformStyles({
 
 const quoteStyle = Styles.platformStyles({
   common: {
-    borderLeftColor: Styles.globalColors.lightGrey2,
+    borderLeftColor: Styles.globalColors.grey,
     borderLeftWidth: 3,
     borderStyle: 'solid',
   },
@@ -105,7 +105,7 @@ const codeSnippetStyle = Styles.platformStyles({
     ...wrapStyle,
     ...Styles.globalStyles.fontTerminal,
     ...Styles.globalStyles.rounded,
-    backgroundColor: Styles.globalColors.beige,
+    backgroundColor: Styles.globalColors.redLighter,
     color: Styles.globalColors.blue,
     paddingLeft: Styles.globalMargins.xtiny,
     paddingRight: Styles.globalMargins.xtiny,
@@ -122,7 +122,7 @@ const codeSnippetBlockStyle = Styles.platformStyles({
   common: {
     ...wrapStyle,
     ...codeSnippetStyle,
-    backgroundColor: Styles.globalColors.beige,
+    backgroundColor: Styles.globalColors.redLighter,
     marginBottom: Styles.globalMargins.xtiny,
     marginTop: Styles.globalMargins.xtiny,
     paddingBottom: Styles.globalMargins.xtiny,
@@ -254,44 +254,6 @@ const reactComponentsForMarkdownType = {
         allowFontScaling={state.allowFontScaling}
         style={state.styleOverride.kbfsPath}
       />
-    )
-  },
-  link: (node, output, state) => {
-    const {protocol, afterProtocol, spaceInFront} = node
-    const rawURL = protocol + afterProtocol
-    const url = (protocol || 'http://') + afterProtocol
-
-    return (
-      <React.Fragment key={state.key}>
-        {spaceInFront}
-        <Text
-          className="hover-underline"
-          type="BodyPrimaryLink"
-          style={Styles.collapseStyles([linkStyle, state.styleOverride.link])}
-          title={url}
-          onClickURL={url}
-          onLongPressURL={url}
-        >
-          {rawURL}
-        </Text>
-      </React.Fragment>
-    )
-  },
-  mailto: (node, output, state) => {
-    return (
-      <React.Fragment key={state.key}>
-        {node.spaceInFront}
-        <Text
-          className="hover-underline"
-          type="BodyPrimaryLink"
-          style={Styles.collapseStyles([linkStyle, state.styleOverride.mailto])}
-          title={node.content}
-          onClickURL={node.mailto}
-          onLongPressURL={node.mailto}
-        >
-          {node.content}
-        </Text>
-      </React.Fragment>
     )
   },
   newline: (node, output, state) =>

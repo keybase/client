@@ -12,7 +12,6 @@ import * as Tracker2Gen from '../../actions/tracker2-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import openURL from '../../util/open-url'
-import flags from '../../util/feature-flags'
 
 type TodoOwnProps = {|
   badged: boolean,
@@ -30,12 +29,7 @@ const mapStateToProps = state => ({myUsername: state.config.username || ''})
 const AvatarTeamConnector = connect<TodoOwnProps, _, _, _, _>(
   mapStateToProps,
   dispatch => ({
-    onConfirm: () =>
-      dispatch(
-        flags.useNewRouter
-          ? RouteTreeGen.createSwitchTab({tab: Tabs.teamsTab})
-          : RouteTreeGen.createSwitchTo({path: [Tabs.teamsTab]})
-      ),
+    onConfirm: () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.teamsTab})),
     onDismiss: () => {},
   }),
   (stateProps, dispatchProps, ownProps) => ({
@@ -48,15 +42,7 @@ const AvatarTeamConnector = connect<TodoOwnProps, _, _, _, _>(
 const AvatarUserConnector = connect<TodoOwnProps, _, _, _, _>(
   mapStateToProps,
   dispatch => ({
-    _onConfirm: username => {
-      if (flags.useNewRouter) {
-        dispatch(ProfileGen.createEditAvatar())
-        return
-      }
-      // make sure we have tracker state & profile is up to date
-      dispatch(Tracker2Gen.createShowUser({asTracker: false, username}))
-      dispatch(RouteTreeGen.createSwitchTo({path: [Tabs.profileTab, 'profileEditAvatar']}))
-    },
+    _onConfirm: username => dispatch(ProfileGen.createEditAvatar()),
     onDismiss: () => {},
   }),
   (stateProps, dispatchProps, ownProps) => ({
@@ -117,12 +103,7 @@ const FollowConnector = connect<TodoOwnProps, _, _, _, _>(
 const ChatConnector = connect<TodoOwnProps, _, _, _, _>(
   () => ({}),
   dispatch => ({
-    onConfirm: () =>
-      dispatch(
-        flags.useNewRouter
-          ? RouteTreeGen.createSwitchTab({tab: Tabs.chatTab})
-          : RouteTreeGen.createSwitchTo({path: [Tabs.chatTab]})
-      ),
+    onConfirm: () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.chatTab})),
     onDismiss: onSkipTodo('chat', dispatch),
   }),
   (s, d, o) => ({...o, ...s, ...d})
@@ -131,29 +112,12 @@ const ChatConnector = connect<TodoOwnProps, _, _, _, _>(
 const PaperKeyConnector = connect<TodoOwnProps, _, _, _, _>(
   () => ({}),
   dispatch => ({
-    onConfirm: () => {
-      if (flags.useNewRouter) {
-        dispatch(
-          RouteTreeGen.createNavigateAppend({
-            path: [{props: {highlight: ['paper key']}, selected: 'deviceAdd'}],
-          })
-        )
-        return
-      }
-
-      if (!isMobile) {
-        dispatch(RouteTreeGen.createSwitchTo({path: [Tabs.devicesTab]}))
-        dispatch(RouteTreeGen.createNavigateAppend({parentPath: [Tabs.devicesTab], path: ['deviceAdd']}))
-      } else {
-        dispatch(
-          RouteTreeGen.createNavigateTo({
-            parentPath: [Tabs.settingsTab],
-            path: [SettingsTabs.devicesTab, 'deviceAdd'],
-          })
-        )
-        dispatch(RouteTreeGen.createSwitchTo({path: [Tabs.settingsTab]}))
-      }
-    },
+    onConfirm: () =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {highlight: ['paper key']}, selected: 'deviceAdd'}],
+        })
+      ),
     onDismiss: () => {},
   }),
   (s, d, o) => ({...o, ...s, ...d})
@@ -174,24 +138,7 @@ const TeamConnector = connect<TodoOwnProps, _, _, _, _>(
 const FolderConnector = connect<TodoOwnProps, _, _, _, _>(
   () => ({}),
   dispatch => ({
-    onConfirm: () => {
-      if (flags.useNewRouter) {
-        dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.fsTab}))
-        return
-      }
-      if (!isMobile) {
-        dispatch(RouteTreeGen.createNavigateTo({parentPath: [Tabs.folderTab], path: ['private']}))
-        dispatch(RouteTreeGen.createSwitchTo({path: [Tabs.folderTab]}))
-      } else {
-        dispatch(
-          RouteTreeGen.createNavigateTo({
-            parentPath: [Tabs.settingsTab],
-            path: [SettingsTabs.foldersTab, 'private'],
-          })
-        )
-        dispatch(RouteTreeGen.createSwitchTo({path: [Tabs.settingsTab]}))
-      }
-    },
+    onConfirm: () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.fsTab})),
     onDismiss: onSkipTodo('folder', dispatch),
   }),
   (s, d, o) => ({...o, ...s, ...d})
@@ -201,24 +148,12 @@ const GitRepoConnector = connect<TodoOwnProps, _, _, _, _>(
   () => ({}),
   dispatch => ({
     onConfirm: () => {
-      if (flags.useNewRouter) {
-        if (isMobile) {
-          dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.gitTab]}))
-        } else {
-          dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.gitTab}))
-        }
-        dispatch(
-          RouteTreeGen.createNavigateAppend({path: [{props: {isTeam: false}, selected: 'gitNewRepo'}]})
-        )
-        return
+      if (isMobile) {
+        dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.gitTab]}))
+      } else {
+        dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.gitTab}))
       }
-      dispatch(
-        RouteTreeGen.createNavigateTo({
-          parentPath: [Tabs.gitTab],
-          path: [{props: {isTeam: false}, selected: 'gitNewRepo'}],
-        })
-      )
-      dispatch(RouteTreeGen.createSwitchTo({path: [Tabs.gitTab]}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {isTeam: false}, selected: 'gitNewRepo'}]}))
     },
     onDismiss: onSkipTodo('gitRepo', dispatch),
   }),
@@ -228,15 +163,7 @@ const GitRepoConnector = connect<TodoOwnProps, _, _, _, _>(
 const TeamShowcaseConnector = connect<TodoOwnProps, _, _, _, _>(
   () => ({}),
   dispatch => ({
-    onConfirm: () => {
-      if (flags.useNewRouter) {
-        dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.teamsTab}))
-        return
-      }
-      // TODO find a team that the current user is an admin of and nav there?
-      dispatch(RouteTreeGen.createNavigateTo({parentPath: [Tabs.teamsTab], path: []}))
-      dispatch(RouteTreeGen.createSwitchTo({path: [Tabs.teamsTab]}))
-    },
+    onConfirm: () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.teamsTab})),
     onDismiss: onSkipTodo('teamShowcase', dispatch),
   }),
   (s, d, o) => ({...o, ...s, ...d})

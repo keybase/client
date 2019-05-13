@@ -223,9 +223,6 @@ export default function(state: Types.State = initialState, action: Actions): Typ
       })
     case ConfigGen.setDeletedSelf:
       return state.merge({justDeletedSelf: action.payload.deletedUsername})
-    case ConfigGen.swapRouter: {
-      return state.set('useNewRouter', action.payload.useNewRouter)
-    }
     case ConfigGen.daemonHandshakeDone:
       return state.merge({
         daemonHandshakeState: 'done',
@@ -248,6 +245,8 @@ export default function(state: Types.State = initialState, action: Actions): Typ
         appOutOfDateMessage: action.payload.message,
         appOutOfDateStatus: action.payload.status,
       })
+    case ConfigGen.osNetworkStatusChanged:
+      return state.set('osNetworkOnline', action.payload.online)
     // Saga only actions
     case ConfigGen.loadTeamAvatars:
     case ConfigGen.loadAvatars:

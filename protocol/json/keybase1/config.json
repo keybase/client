@@ -13,7 +13,7 @@
   "types": [
     {
       "type": "record",
-      "name": "GetCurrentStatusRes",
+      "name": "CurrentStatus",
       "fields": [
         {
           "type": "boolean",
@@ -307,6 +307,176 @@
     },
     {
       "type": "record",
+      "name": "KbClientStatus",
+      "fields": [
+        {
+          "type": "string",
+          "name": "version"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "KbServiceStatus",
+      "fields": [
+        {
+          "type": "string",
+          "name": "version"
+        },
+        {
+          "type": "boolean",
+          "name": "running"
+        },
+        {
+          "type": "string",
+          "name": "pid"
+        },
+        {
+          "type": "string",
+          "name": "log"
+        },
+        {
+          "type": "string",
+          "name": "ekLog"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "KBFSStatus",
+      "fields": [
+        {
+          "type": "string",
+          "name": "version"
+        },
+        {
+          "type": "string",
+          "name": "installedVersion"
+        },
+        {
+          "type": "boolean",
+          "name": "running"
+        },
+        {
+          "type": "string",
+          "name": "pid"
+        },
+        {
+          "type": "string",
+          "name": "log"
+        },
+        {
+          "type": "string",
+          "name": "mount"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "DesktopStatus",
+      "fields": [
+        {
+          "type": "string",
+          "name": "version"
+        },
+        {
+          "type": "boolean",
+          "name": "running"
+        },
+        {
+          "type": "string",
+          "name": "log"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UpdaterStatus",
+      "fields": [
+        {
+          "type": "string",
+          "name": "log"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "StartStatus",
+      "fields": [
+        {
+          "type": "string",
+          "name": "log"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GitStatus",
+      "fields": [
+        {
+          "type": "string",
+          "name": "log"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FullStatus",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "configPath"
+        },
+        {
+          "type": "CurrentStatus",
+          "name": "curStatus"
+        },
+        {
+          "type": "ExtendedStatus",
+          "name": "extStatus"
+        },
+        {
+          "type": "KbClientStatus",
+          "name": "client"
+        },
+        {
+          "type": "KbServiceStatus",
+          "name": "service"
+        },
+        {
+          "type": "KBFSStatus",
+          "name": "kbfs"
+        },
+        {
+          "type": "DesktopStatus",
+          "name": "desktop"
+        },
+        {
+          "type": "UpdaterStatus",
+          "name": "updater"
+        },
+        {
+          "type": "StartStatus",
+          "name": "start"
+        },
+        {
+          "type": "GitStatus",
+          "name": "git"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "LogSendID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "AllProvisionedUsernames",
       "fields": [
         {
@@ -593,16 +763,7 @@
           "type": "int"
         }
       ],
-      "response": "GetCurrentStatusRes"
-    },
-    "getExtendedStatus": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        }
-      ],
-      "response": "ExtendedStatus"
+      "response": "CurrentStatus"
     },
     "getClientStatus": {
       "request": [
@@ -615,6 +776,39 @@
         "type": "array",
         "items": "ClientStatus"
       }
+    },
+    "getFullStatus": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": [
+        null,
+        "FullStatus"
+      ]
+    },
+    "logSend": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "statusJSON",
+          "type": "string"
+        },
+        {
+          "name": "feedback",
+          "type": "string"
+        },
+        {
+          "name": "sendLogs",
+          "type": "boolean"
+        }
+      ],
+      "response": "LogSendID"
     },
     "getAllProvisionedUsernames": {
       "request": [

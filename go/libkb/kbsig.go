@@ -326,6 +326,9 @@ func (arg ProofMetadata) ToJSON2(m MetaContext) (ret *ProofMetadataRes, err erro
 			prev = jsonw.NewString(arg.PrevLinkID.String())
 		}
 	} else {
+		if arg.Me == nil {
+			return nil, fmt.Errorf("missing self user object while signing")
+		}
 		lastSeqno := arg.Me.sigChain().GetLastKnownSeqno()
 		lastLink := arg.Me.sigChain().GetLastKnownID()
 		if lastLink == nil {
@@ -386,6 +389,9 @@ func (arg ProofMetadata) ToJSON2(m MetaContext) (ret *ProofMetadataRes, err erro
 	}
 	eldest := arg.Eldest
 	if eldest == "" {
+		if arg.Me == nil {
+			return nil, fmt.Errorf("missing self user object while signing")
+		}
 		eldest = arg.Me.GetEldestKID()
 	}
 

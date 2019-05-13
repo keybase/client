@@ -44,6 +44,10 @@ func NewCmdSignup(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 				Name:  "set-password",
 				Usage: "Ask for password (optional by default).",
 			},
+			cli.BoolFlag{
+				Name:  "force",
+				Usage: "(dangerous) Ignore any reasons not to signup right now",
+			},
 		},
 	}
 
@@ -88,6 +92,7 @@ type CmdSignup struct {
 	skipMail           bool
 	genPGP             bool
 	genPaper           bool
+	force              bool
 
 	// Test option to not call to requestInvitationCode for bypassing
 	// invitation code.
@@ -158,8 +163,11 @@ func (s *CmdSignup) ParseArgv(ctx *cli.Context) (err error) {
 		return fmt.Errorf("cannot pass --no-email and non-empty --email")
 	}
 
+	s.force = ctx.Bool("force")
+
 	if ctx.Bool("batch") {
 		s.fields = &PromptFields{
+			email:           &Field{Value: &s.defaultEmail},
 			code:            &Field{Value: &s.code},
 			username:        &Field{Value: &s.defaultUsername},
 			deviceName:      &Field{Value: &s.defaultDevice},
@@ -208,8 +216,10 @@ func (s *CmdSignup) Run() (err error) {
 		return err
 	}
 
-	if err = s.checkRegistered(); err != nil {
-		return err
+	if !s.force {
+		if err = s.checkRegistered(); err != nil {
+			return err
+		}
 	}
 
 	if s.code == "" && !s.noInvitationCodeBypass {
@@ -234,13 +244,18 @@ func (s *CmdSignup) checkRegistered() (err error) {
 	s.G().Log.Debug("+ clientModeSignupEngine::CheckRegistered")
 	defer s.G().Log.Debug("- clientModeSignupEngine::CheckRegistered -> %s", libkb.ErrToOk(err))
 
-	var rres keybase1.GetCurrentStatusRes
+	var rres keybase1.CurrentStatus
 
 	if rres, err = s.ccli.GetCurrentStatus(context.TODO(), 0); err != nil {
 		return err
 	}
 	if !rres.Registered {
 		return
+	}
+
+	err = ensureSetPassphraseFromRemote(libkb.NewMetaContextTODO(s.G()))
+	if err != nil {
+		return err
 	}
 
 	if !s.doPrompt {

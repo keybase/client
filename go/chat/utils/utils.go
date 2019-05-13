@@ -12,6 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mvdan/xurls"
+
 	emoji "gopkg.in/kyokomi/emoji.v1"
 
 	"github.com/keybase/client/go/chat/pager"
@@ -129,7 +131,7 @@ func AggRateLimits(rlimits []chat1.RateLimit) (res []chat1.RateLimit) {
 // This never fails, worse comes to worst it just returns the split of tlfname.
 func ReorderParticipants(mctx libkb.MetaContext, g libkb.UIDMapperContext, umapper libkb.UIDMapper,
 	tlfname string, activeList []gregor1.UID) (writerNames []chat1.ConversationLocalParticipant, err error) {
-	srcWriterNames, _, _, err := splitAndNormalizeTLFNameCanonicalize(mctx.G(), tlfname, false)
+	srcWriterNames, _, _, err := splitAndNormalizeTLFNameCanonicalize(mctx, tlfname, false)
 	if err != nil {
 		return writerNames, err
 	}
@@ -181,10 +183,10 @@ func ReorderParticipants(mctx libkb.MetaContext, g libkb.UIDMapperContext, umapp
 }
 
 // Drive splitAndNormalizeTLFName with one attempt to follow TlfNameNotCanonical.
-func splitAndNormalizeTLFNameCanonicalize(g *libkb.GlobalContext, name string, public bool) (writerNames, readerNames []string, extensionSuffix string, err error) {
-	writerNames, readerNames, extensionSuffix, err = SplitAndNormalizeTLFName(g, name, public)
+func splitAndNormalizeTLFNameCanonicalize(mctx libkb.MetaContext, name string, public bool) (writerNames, readerNames []string, extensionSuffix string, err error) {
+	writerNames, readerNames, extensionSuffix, err = SplitAndNormalizeTLFName(mctx, name, public)
 	if retryErr, retry := err.(TlfNameNotCanonical); retry {
-		return SplitAndNormalizeTLFName(g, retryErr.NameToTry, public)
+		return SplitAndNormalizeTLFName(mctx, retryErr.NameToTry, public)
 	}
 	return writerNames, readerNames, extensionSuffix, err
 }
@@ -1417,6 +1419,8 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msg chat1
 	body = EscapeForDecorate(ctx, body)
 	body = EscapeShrugs(ctx, body)
 
+	// Links
+	body = DecorateWithLinks(ctx, body)
 	// Payment decorations
 	body = g.StellarSender.DecorateWithPayments(ctx, body, payments)
 	// Mentions
@@ -2068,6 +2072,66 @@ func DecorateBody(ctx context.Context, body string, offset, length int, decorati
 	added = len(strDecoration) - length
 	res = fmt.Sprintf("%s%s%s", body[:offset], strDecoration, body[offset+length:])
 	return res, added
+}
+
+var linkRegexp = xurls.Relaxed()
+var mailtoRegexp = regexp.MustCompile(`(?:(?:[\w-_.]*)@(?:[\w-]+(?:\.[\w-]+)+))\b`)
+
+func DecorateWithLinks(ctx context.Context, body string) string {
+	var added int
+	offset := 0
+	origBody := body
+
+	allMatches := mailtoRegexp.FindAllStringIndex(ReplaceQuotedSubstrings(body, true), -1)
+	for _, match := range allMatches {
+		if len(match) < 2 {
+			continue
+		}
+		bodyMatch := origBody[match[0]:match[1]]
+		url := "mailto:" + bodyMatch
+		body, added = DecorateBody(ctx, body, match[0]+offset, match[1]-match[0],
+			chat1.NewUITextDecorationWithMailto(chat1.UILinkDecoration{
+				Display: bodyMatch,
+				Url:     url,
+			}))
+		offset += added
+	}
+
+	shouldSkipPrefix := func(body string) bool {
+		for _, scheme := range xurls.SchemesNoAuthority {
+			if strings.HasPrefix(body, scheme) {
+				return true
+			}
+		}
+		if strings.HasPrefix(body, "ftp://") || strings.HasPrefix(body, "gopher://") {
+			return true
+		}
+		return false
+	}
+
+	offset = 0
+	origBody = body
+	allMatches = linkRegexp.FindAllStringIndex(ReplaceQuotedSubstrings(body, true), -1)
+	for _, match := range allMatches {
+		if len(match) < 2 {
+			continue
+		}
+		bodyMatch := origBody[match[0]:match[1]]
+		url := bodyMatch
+		if shouldSkipPrefix(bodyMatch) {
+			continue
+		}
+		if !(strings.HasPrefix(bodyMatch, "http://") || strings.HasPrefix(bodyMatch, "https://")) {
+			url = "http://" + bodyMatch
+		}
+		body, added = DecorateBody(ctx, body, match[0]+offset, match[1]-match[0],
+			chat1.NewUITextDecorationWithLink(chat1.UILinkDecoration{
+				Display: bodyMatch,
+				Url:     url,
+			}))
+		offset += added
+	}
+	return body
 }
 
 func DecorateWithMentions(ctx context.Context, body string, atMentions []string,

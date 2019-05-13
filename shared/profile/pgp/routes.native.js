@@ -1,6 +1,5 @@
 // @flow
 import * as React from 'react'
-import {makeRouteDefNode} from '../../route-tree'
 import * as Kb from '../../common-adapters'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {connect} from '../../util/container'
@@ -24,10 +23,6 @@ const NoPGP = connect<OwnProps, _, _, _, _>(
   dispatch => ({onCancel: () => dispatch(RouteTreeGen.createNavigateUp())}),
   (s, d, o) => ({...o, ...s, ...d})
 )(NoPGPView)
-
-const routeTree = makeRouteDefNode({component: NoPGP})
-
-export default routeTree
 
 export const newRoutes = {
   profilePgp: {getScreen: () => NoPGP, upgraded: true},

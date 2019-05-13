@@ -3,7 +3,6 @@ import * as ProvisionGen from '../../actions/provision-gen'
 import {connect} from '../../util/container'
 import {type RouteProps} from '../../route-tree/render-route'
 import GPGSign from '.'
-import flags from '../../util/feature-flags'
 
 type OwnProps = RouteProps<{}, {}>
 
@@ -13,9 +12,8 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   onAcceptGpgSign: () => dispatch(ProvisionGen.createSubmitGPGSignOK({accepted: true})),
-  onBack: () => {
-    !flags.useNewRouter && dispatch(ownProps.navigateUp())
-  },
+  // TODO remove
+  onBack: () => {},
   onRejectGpgSign: () => dispatch(ProvisionGen.createSubmitGPGSignOK({accepted: false})),
   onSubmitGpgMethod: exportKey => dispatch(ProvisionGen.createSubmitGPGMethod({exportKey})),
 })

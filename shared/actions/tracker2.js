@@ -1,12 +1,10 @@
 // @flow
 import * as Tracker2Gen from './tracker2-gen'
-import * as ProfileGen from './profile-gen'
 import * as EngineGen from './engine-gen-gen'
 import * as Saga from '../util/saga'
 import * as Constants from '../constants/tracker2'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
-import flags from '../util/feature-flags'
 
 const identify3Result = (_, action) => {
   const {guiID, result} = action.payload.params
@@ -143,6 +141,11 @@ function* load(state, action) {
       })
     )
   } catch (err) {
+    if (err.code === RPCTypes.constantsStatusCode.scresolutionfailed) {
+      yield Saga.put(
+        Tracker2Gen.createUpdateResult({guiID: action.payload.guiID, reason: null, result: 'notAUserYet'})
+      )
+    }
     // hooked into reloadable
     logger.error(`Error loading profile: ${err.message}`)
   }
@@ -183,25 +186,17 @@ const getProofSuggestions = () =>
     )
     .catch(e => logger.error(`Error loading proof suggestions: ${e.message}`))
 
-const showUser = (_, action) => {
-  const load = Tracker2Gen.createLoad({
+const showUser = (_, action) =>
+  Tracker2Gen.createLoad({
     assertion: action.payload.username,
     // with new nav we never show trackers from inside the app
-    forceDisplay: flags.useNewRouter ? false : action.payload.asTracker,
+    forceDisplay: false,
     fromDaemon: false,
     guiID: Constants.generateGUIID(),
     ignoreCache: true,
     inTracker: action.payload.asTracker,
     reason: '',
   })
-
-  if (flags.useNewRouter && !action.payload.skipNav) {
-    // go to profile page
-    return [load, ProfileGen.createShowUserProfile({username: action.payload.username})]
-  } else {
-    return load
-  }
-}
 
 // if we mutated somehow reload ourselves and reget the suggestions
 const refreshSelf = (state, action) =>

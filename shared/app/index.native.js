@@ -3,22 +3,14 @@ import * as ConfigGen from '../actions/config-gen'
 import Main from './main.native'
 import React, {Component} from 'react'
 import configureStore from '../store/configure-store'
-import loginRouteTree from './routes-login'
 import {AppRegistry, AppState, Linking} from 'react-native'
 import {GatewayProvider} from 'react-gateway'
 import {Provider} from 'react-redux'
 import {makeEngine} from '../engine'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 
 module.hot &&
   module.hot.accept(() => {
     console.log('accepted update in shared/index.native')
-    if (global.store) {
-      console.log('updating route defs due to hot reload')
-      const appRouteTree = require('./routes-app').default
-      const loginRouteTree = require('./routes-login').default
-      global.store.dispatch(RouteTreeGen.createRefreshRouteDef({appRouteTree, loginRouteTree}))
-    }
   })
 
 class Keybase extends Component<any> {
@@ -38,8 +30,6 @@ class Keybase extends Component<any> {
       const eng = makeEngine(this.store.dispatch, this.store.getState)
       runSagas()
       eng.sagasAreReady()
-
-      this.store.dispatch(RouteTreeGen.createSetInitialRouteDef({routeDef: loginRouteTree}))
 
       // On mobile there is no installer
       this.store.dispatch(ConfigGen.createInstallerRan())

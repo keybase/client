@@ -38,6 +38,7 @@ export const logoutHandshakeWait = 'config:logoutHandshakeWait'
 export const mobileAppState = 'config:mobileAppState'
 export const openAppSettings = 'config:openAppSettings'
 export const openAppStore = 'config:openAppStore'
+export const osNetworkStatusChanged = 'config:osNetworkStatusChanged'
 export const persistRoute = 'config:persistRoute'
 export const pushLoaded = 'config:pushLoaded'
 export const restartHandshake = 'config:restartHandshake'
@@ -49,7 +50,6 @@ export const setOpenAtLogin = 'config:setOpenAtLogin'
 export const setStartupDetails = 'config:setStartupDetails'
 export const showMain = 'config:showMain'
 export const startHandshake = 'config:startHandshake'
-export const swapRouter = 'config:swapRouter'
 export const updateCriticalCheckStatus = 'config:updateCriticalCheckStatus'
 export const updateInfo = 'config:updateInfo'
 export const updateMenubarWindowID = 'config:updateMenubarWindowID'
@@ -81,6 +81,7 @@ type _LogoutPayload = void
 type _MobileAppStatePayload = $ReadOnly<{|nextAppState: 'active' | 'background' | 'inactive'|}>
 type _OpenAppSettingsPayload = void
 type _OpenAppStorePayload = void
+type _OsNetworkStatusChangedPayload = $ReadOnly<{|online: boolean, isInit?: boolean|}>
 type _PersistRoutePayload = $ReadOnly<{|path: Array<any>|}>
 type _PushLoadedPayload = $ReadOnly<{|pushLoaded: boolean|}>
 type _RestartHandshakePayload = void
@@ -92,7 +93,6 @@ type _SetOpenAtLoginPayload = $ReadOnly<{|open: boolean, writeFile: boolean|}>
 type _SetStartupDetailsPayload = $ReadOnly<{|startupWasFromPush: boolean, startupConversation: ?ChatTypes.ConversationIDKey, startupLink: string, startupTab: ?Tabs.Tab, startupFollowUser: string, startupSharePath: ?FsTypes.LocalPath|}>
 type _ShowMainPayload = void
 type _StartHandshakePayload = void
-type _SwapRouterPayload = $ReadOnly<{|useNewRouter: boolean|}>
 type _UpdateCriticalCheckStatusPayload = $ReadOnly<{|status: 'critical' | 'suggested' | 'ok', message: string|}>
 type _UpdateInfoPayload = $ReadOnly<{|isOutOfDate: boolean, critical: boolean, message?: string|}>
 type _UpdateMenubarWindowIDPayload = $ReadOnly<{|id: number|}>
@@ -166,6 +166,7 @@ export const createLoadedAvatars = (payload: _LoadedAvatarsPayload) => ({payload
 export const createLoggedIn = (payload: _LoggedInPayload) => ({payload, type: loggedIn})
 export const createLoggedOut = (payload: _LoggedOutPayload) => ({payload, type: loggedOut})
 export const createMobileAppState = (payload: _MobileAppStatePayload) => ({payload, type: mobileAppState})
+export const createOsNetworkStatusChanged = (payload: _OsNetworkStatusChangedPayload) => ({payload, type: osNetworkStatusChanged})
 export const createPersistRoute = (payload: _PersistRoutePayload) => ({payload, type: persistRoute})
 export const createPushLoaded = (payload: _PushLoadedPayload) => ({payload, type: pushLoaded})
 export const createSetAccounts = (payload: _SetAccountsPayload) => ({payload, type: setAccounts})
@@ -175,7 +176,6 @@ export const createSetNotifySound = (payload: _SetNotifySoundPayload) => ({paylo
 export const createSetOpenAtLogin = (payload: _SetOpenAtLoginPayload) => ({payload, type: setOpenAtLogin})
 export const createSetStartupDetails = (payload: _SetStartupDetailsPayload) => ({payload, type: setStartupDetails})
 export const createShowMain = (payload: _ShowMainPayload) => ({payload, type: showMain})
-export const createSwapRouter = (payload: _SwapRouterPayload) => ({payload, type: swapRouter})
 export const createUpdateInfo = (payload: _UpdateInfoPayload) => ({payload, type: updateInfo})
 export const createUpdateMenubarWindowID = (payload: _UpdateMenubarWindowIDPayload) => ({payload, type: updateMenubarWindowID})
 export const createUpdateNow = (payload: _UpdateNowPayload) => ({payload, type: updateNow})
@@ -206,6 +206,7 @@ export type LogoutPayload = {|+payload: _LogoutPayload, +type: 'config:logout'|}
 export type MobileAppStatePayload = {|+payload: _MobileAppStatePayload, +type: 'config:mobileAppState'|}
 export type OpenAppSettingsPayload = {|+payload: _OpenAppSettingsPayload, +type: 'config:openAppSettings'|}
 export type OpenAppStorePayload = {|+payload: _OpenAppStorePayload, +type: 'config:openAppStore'|}
+export type OsNetworkStatusChangedPayload = {|+payload: _OsNetworkStatusChangedPayload, +type: 'config:osNetworkStatusChanged'|}
 export type PersistRoutePayload = {|+payload: _PersistRoutePayload, +type: 'config:persistRoute'|}
 export type PushLoadedPayload = {|+payload: _PushLoadedPayload, +type: 'config:pushLoaded'|}
 export type RestartHandshakePayload = {|+payload: _RestartHandshakePayload, +type: 'config:restartHandshake'|}
@@ -217,7 +218,6 @@ export type SetOpenAtLoginPayload = {|+payload: _SetOpenAtLoginPayload, +type: '
 export type SetStartupDetailsPayload = {|+payload: _SetStartupDetailsPayload, +type: 'config:setStartupDetails'|}
 export type ShowMainPayload = {|+payload: _ShowMainPayload, +type: 'config:showMain'|}
 export type StartHandshakePayload = {|+payload: _StartHandshakePayload, +type: 'config:startHandshake'|}
-export type SwapRouterPayload = {|+payload: _SwapRouterPayload, +type: 'config:swapRouter'|}
 export type UpdateCriticalCheckStatusPayload = {|+payload: _UpdateCriticalCheckStatusPayload, +type: 'config:updateCriticalCheckStatus'|}
 export type UpdateInfoPayload = {|+payload: _UpdateInfoPayload, +type: 'config:updateInfo'|}
 export type UpdateMenubarWindowIDPayload = {|+payload: _UpdateMenubarWindowIDPayload, +type: 'config:updateMenubarWindowID'|}
@@ -251,6 +251,7 @@ export type Actions =
   | MobileAppStatePayload
   | OpenAppSettingsPayload
   | OpenAppStorePayload
+  | OsNetworkStatusChangedPayload
   | PersistRoutePayload
   | PushLoadedPayload
   | RestartHandshakePayload
@@ -262,7 +263,6 @@ export type Actions =
   | SetStartupDetailsPayload
   | ShowMainPayload
   | StartHandshakePayload
-  | SwapRouterPayload
   | UpdateCriticalCheckStatusPayload
   | UpdateInfoPayload
   | UpdateMenubarWindowIDPayload

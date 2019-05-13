@@ -549,6 +549,7 @@ func (o TeamPlusApplicationKeys) DeepCopy() TeamPlusApplicationKeys {
 }
 
 type TeamData struct {
+	Subversion                int                                                  `codec:"v" json:"v"`
 	Secretless                bool                                                 `codec:"secretless" json:"secretless"`
 	Name                      TeamName                                             `codec:"name" json:"name"`
 	Chain                     TeamSigChainState                                    `codec:"chain" json:"chain"`
@@ -561,6 +562,7 @@ type TeamData struct {
 
 func (o TeamData) DeepCopy() TeamData {
 	return TeamData{
+		Subversion: o.Subversion,
 		Secretless: o.Secretless,
 		Name:       o.Name.DeepCopy(),
 		Chain:      o.Chain.DeepCopy(),

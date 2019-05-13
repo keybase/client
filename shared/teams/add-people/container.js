@@ -16,7 +16,6 @@ import {upperFirst} from 'lodash-es'
 import AddPeople, {type AddPeopleProps} from '.'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Container from '../../util/container'
-import flags from '../../util/feature-flags'
 
 type OwnProps = Container.RouteProps<{teamname: string}, {}>
 
@@ -37,23 +36,7 @@ const mapStateToProps = (state, ownProps) => {
 const mapDispatchToProps = (dispatch, ownProps) => ({
   _addPeople: (role: string, sendChatNotification: boolean) => {
     const teamname = Container.getRouteProps(ownProps, 'teamname')
-    if (flags.useNewRouter) {
-      dispatch(TeamsGen.createAddPeopleToTeam({role, sendChatNotification, teamname}))
-    } else {
-      const rootPath = ownProps.routePath.take(1)
-      const sourceSubPath = ownProps.routePath.rest()
-      const destSubPath = sourceSubPath.butLast()
-      dispatch(
-        TeamsGen.createAddPeopleToTeam({
-          destSubPath,
-          role,
-          rootPath,
-          sendChatNotification,
-          sourceSubPath,
-          teamname,
-        })
-      )
-    }
+    dispatch(TeamsGen.createAddPeopleToTeam({role, sendChatNotification, teamname}))
   },
   _getSuggestions: () => dispatch(SearchGen.createSearchSuggestions({searchKey: 'addToTeamSearch'})),
   onBack: () => {

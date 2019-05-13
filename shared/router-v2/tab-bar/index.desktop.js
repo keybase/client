@@ -121,7 +121,7 @@ class TabBar extends React.PureComponent<Props, State> {
                   </Kb.Text>
                   <Kb.Icon
                     type="iconfont-arrow-down"
-                    color={Styles.globalColors.blue3}
+                    color={Styles.globalColors.blueLighter}
                     fontSize={12}
                     style={styles.caret}
                   />
@@ -202,7 +202,7 @@ const styles = Styles.styleSheetCreate({
     position: 'relative',
   },
   username: Styles.platformStyles({
-    isElectron: {color: Styles.globalColors.blue3, flexGrow: 1, wordBreak: 'break-all'},
+    isElectron: {color: Styles.globalColors.blueLighter, flexGrow: 1, wordBreak: 'break-all'},
   }),
 })
 

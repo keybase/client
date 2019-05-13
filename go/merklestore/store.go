@@ -158,7 +158,8 @@ func (s *MerkleStoreImpl) getKitString(m libkb.MetaContext, knownHash *keybase1.
 	defer s.Unlock()
 
 	tracer.Stage("LastRoot")
-	root := mc.LastRoot()
+	root := mc.LastRoot(m)
+
 	// The time that the root was fetched is used rather than when the
 	// root was published so that we can continue to operate even if
 	// the root has not been published in a long time.
@@ -170,7 +171,7 @@ func (s *MerkleStoreImpl) getKitString(m libkb.MetaContext, knownHash *keybase1.
 		if err != nil {
 			m.Debug("MerkleStore: could not refresh merkle root: %s", err)
 		} else {
-			root = mc.LastRoot()
+			root = mc.LastRoot(m)
 		}
 	}
 

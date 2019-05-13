@@ -43,6 +43,7 @@ export type _State = {
   menubarWindowID: number,
   notifySound: boolean,
   openAtLogin: boolean,
+  osNetworkOnline: boolean,
   outOfDate?: ?OutOfDate,
   pushLoaded: boolean,
   registered: boolean,
@@ -54,7 +55,6 @@ export type _State = {
   startupTab: ?Tab,
   startupSharePath: ?LocalPath,
   uid: string,
-  useNewRouter: boolean,
   userActive: boolean,
   username: string,
 }

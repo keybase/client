@@ -78,7 +78,7 @@ func (t *TeamerImpl) lookupOrCreateImplicitTeam(ctx context.Context, folder keyb
 		visibility = keybase1.TLFVisibility_PUBLIC
 	}
 
-	impName, err := libkb.ParseImplicitTeamTLFName(t.G().MakeAssertionContext(), "/keybase/"+folder.ToString())
+	impName, err := libkb.ParseImplicitTeamTLFName(t.G().MakeAssertionContext(t.MetaContext(ctx)), "/keybase/"+folder.ToString())
 	if err != nil {
 		return res, err
 	}

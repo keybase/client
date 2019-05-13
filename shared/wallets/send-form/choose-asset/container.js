@@ -1,11 +1,12 @@
 // @flow
 import ChooseAsset, {type DisplayItem, type OtherItem} from '.'
-import {namedConnect, type RouteProps} from '../../../util/container'
+import * as Container from '../../../util/container'
 import * as WalletsGen from '../../../actions/wallets-gen'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Constants from '../../../constants/wallets'
 import * as Types from '../../../constants/types/wallets'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = Container.RouteProps<{}, {}>
 
 const mapStateToProps = state => {
   const accountID = state.wallets.selectedAccount
@@ -22,19 +23,19 @@ const mapStateToProps = state => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp, onBack}: OwnProps) => ({
+const mapDispatchToProps = dispatch => ({
   _onChoose: (currency: string) => {
     dispatch(WalletsGen.createSetBuildingCurrency({currency}))
-    dispatch(navigateUp())
+    dispatch(RouteTreeGen.createNavigateUp())
   },
   _onRefresh: (accountID: Types.AccountID, to: string) => {
     dispatch(WalletsGen.createLoadDisplayCurrencies())
     accountID !== Types.noAccountID && dispatch(WalletsGen.createLoadSendAssetChoices({from: accountID, to}))
   },
-  onBack: () => dispatch(navigateUp()),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps) => ({
   displayChoices: (stateProps.currencies || []).map(c => ({
     currencyCode: c.code,
     selected: c.code === stateProps.selected,
@@ -55,7 +56,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   selected: stateProps.selected,
 })
 
-export default namedConnect<OwnProps, _, _, _, _>(
+export default Container.namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,

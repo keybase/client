@@ -21,7 +21,7 @@ const styleBase = platformStyles({
   common: {
     ...globalStyles.fontTerminal,
     alignItems: 'flex-start',
-    backgroundColor: globalColors.lightGrey,
+    backgroundColor: globalColors.greyLight,
     borderRadius: 3,
     color: globalColors.black,
     fontSize: 13,

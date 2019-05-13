@@ -24,13 +24,11 @@ import * as Tracker2Gen from './tracker2-gen'
 import * as Router2Constants from '../constants/router2'
 import {uploadAvatarWaitingKey} from '../constants/profile'
 import {isMobile} from '../constants/platform'
-import {chatTab, teamsTab} from '../constants/tabs'
 import openSMS from '../util/sms'
 import {convertToError, logError} from '../util/errors'
-import flags from '../util/feature-flags'
 
 function* createNewTeam(_, action) {
-  const {destSubPath, joinSubteam, rootPath, sourceSubPath, teamname} = action.payload
+  const {joinSubteam, teamname} = action.payload
   yield Saga.put(TeamsGen.createSetTeamCreationError({error: ''}))
   try {
     yield* Saga.callPromise(
@@ -42,50 +40,19 @@ function* createNewTeam(_, action) {
       Constants.teamCreationWaitingKey
     )
 
-    if (!flags.useNewRouter && rootPath && sourceSubPath && destSubPath) {
-      // Dismiss the create team dialog.
-      yield Saga.put(
-        RouteTreeGen.createPutActionIfOnPath({
-          expectedPath: rootPath.concat(sourceSubPath),
-          otherAction: RouteTreeGen.createNavigateTo({parentPath: rootPath, path: destSubPath}),
-          parentPath: rootPath,
-        })
-      )
-
-      // No error if we get here.
-      yield Saga.all([
-        Saga.put(
-          RouteTreeGen.createNavigateTo({
-            parentPath: isMobile ? [] : [teamsTab],
-            path: isMobile ? [chatTab] : [{props: {teamname}, selected: 'team'}],
-          })
-        ),
-        // Show the avatar editor on desktop.
-        ...(!isMobile
-          ? [
-              Saga.put(
-                RouteTreeGen.createNavigateAppend({
-                  path: [{props: {createdTeam: true, teamname}, selected: 'teamEditTeamAvatar'}],
-                })
-              ),
-            ]
-          : []),
-      ])
-    } else {
-      yield Saga.sequentially([
-        Saga.put(RouteTreeGen.createClearModals()),
-        Saga.put(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'team'}]})),
-        ...(isMobile
-          ? []
-          : [
-              Saga.put(
-                RouteTreeGen.createNavigateAppend({
-                  path: [{props: {createdTeam: true, teamname}, selected: 'teamEditTeamAvatar'}],
-                })
-              ),
-            ]),
-      ])
-    }
+    yield Saga.sequentially([
+      Saga.put(RouteTreeGen.createClearModals()),
+      Saga.put(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'team'}]})),
+      ...(isMobile
+        ? []
+        : [
+            Saga.put(
+              RouteTreeGen.createNavigateAppend({
+                path: [{props: {createdTeam: true, teamname}, selected: 'teamEditTeamAvatar'}],
+              })
+            ),
+          ]),
+    ])
   } catch (error) {
     yield Saga.put(TeamsGen.createSetTeamCreationError({error: error.desc}))
   }
@@ -153,19 +120,10 @@ const leaveTeam = (state, action, logger) => {
   })
 }
 
-const leftTeam = (state, action) => {
-  if (flags.useNewRouter) {
-    return RouteTreeGen.createNavUpToScreen({routeName: 'teamsRoot'})
-  }
-  const selectedTeamnames = Constants.getSelectedTeamNames(state)
-  if (selectedTeamnames.includes(action.payload.teamname)) {
-    // Back out of that team's page
-    return RouteTreeGen.createNavigateTo({parentPath: [teamsTab], path: []})
-  }
-}
+const leftTeam = (state, action) => RouteTreeGen.createNavUpToScreen({routeName: 'teamsRoot'})
 
 const addPeopleToTeam = (state, action, logger) => {
-  const {destSubPath, role, rootPath, sendChatNotification, sourceSubPath, teamname} = action.payload
+  const {role, sendChatNotification, teamname} = action.payload
   const ids = SearchConstants.getUserInputItemIds(state, 'addToTeamSearch').toArray()
   logger.info(`Adding ${ids.length} people to ${teamname}`)
   logger.info(`Adding ${ids.join(',')}`)
@@ -185,15 +143,7 @@ const addPeopleToTeam = (state, action, logger) => {
       // Success, dismiss the create team dialog and clear out search results
       logger.info(`Successfully added ${ids.length} users to ${teamname}`)
       return [
-        ...(!flags.useNewRouter && rootPath && sourceSubPath && destSubPath
-          ? [
-              RouteTreeGen.createPutActionIfOnPath({
-                expectedPath: rootPath.concat(sourceSubPath),
-                otherAction: RouteTreeGen.createNavigateTo({parentPath: rootPath, path: destSubPath}),
-                parentPath: rootPath,
-              }),
-            ]
-          : [RouteTreeGen.createClearModals()]),
+        RouteTreeGen.createClearModals(),
         SearchGen.createClearSearchResults({searchKey: 'addToTeamSearch'}),
         SearchGen.createSetUserInputItems({searchKey: 'addToTeamSearch', searchResults: []}),
         TeamsGen.createSetTeamInviteError({error: ''}),
@@ -274,7 +224,7 @@ const updateTeamRetentionPolicy = (state, action, logger) => {
 }
 
 function* inviteByEmail(_, action, logger) {
-  const {destSubPath, invitees, role, rootPath, sourceSubPath, teamname} = action.payload
+  const {invitees, role, teamname} = action.payload
   yield Saga.put(TeamsGen.createSetTeamLoadingInvites({invitees, loadingInvites: true, teamname}))
   try {
     const res: RPCTypes.BulkRes = yield* Saga.callPromise(
@@ -308,17 +258,7 @@ function* inviteByEmail(_, action, logger) {
       )
       if (!isMobile) {
         // mobile does not nav away
-        if (!flags.useNewRouter && rootPath && sourceSubPath && destSubPath) {
-          yield Saga.put(
-            RouteTreeGen.createPutActionIfOnPath({
-              expectedPath: rootPath.concat(sourceSubPath),
-              otherAction: RouteTreeGen.createNavigateTo({parentPath: rootPath, path: destSubPath}),
-              parentPath: rootPath,
-            })
-          )
-        } else {
-          yield Saga.put(RouteTreeGen.createClearModals())
-        }
+        yield Saga.put(RouteTreeGen.createClearModals())
       }
     }
   } catch (err) {
@@ -979,7 +919,7 @@ function* saveChannelMembership(state, action) {
 }
 
 function* createChannel(_, action, logger) {
-  const {channelname, description, teamname, rootPath, sourceSubPath, destSubPath} = action.payload
+  const {channelname, description, teamname} = action.payload
   yield Saga.put(TeamsGen.createSetTeamCreationError({error: ''}))
   try {
     const result = yield* Saga.callPromise(
@@ -1019,18 +959,8 @@ function* createChannel(_, action, logger) {
     }
 
     // Dismiss the create channel dialog.
-    if (flags.useNewRouter) {
-      if (Router2Constants.getVisibleScreen()?.routeName === 'chatCreateChannel') {
-        yield Saga.put(RouteTreeGen.createClearModals())
-      }
-    } else if (sourceSubPath && rootPath && destSubPath) {
-      yield Saga.put(
-        RouteTreeGen.createPutActionIfOnPath({
-          expectedPath: rootPath.concat(sourceSubPath),
-          otherAction: RouteTreeGen.createNavigateTo({parentPath: rootPath, path: destSubPath}),
-          parentPath: rootPath,
-        })
-      )
+    if (Router2Constants.getVisibleScreen()?.routeName === 'chatCreateChannel') {
+      yield Saga.put(RouteTreeGen.createClearModals())
     }
 
     // Select the new channel, and switch to the chat tab.
@@ -1214,12 +1144,7 @@ const teamDeletedOrExit = (state, action) => {
   const {teamID} = action.payload.params
   const selectedTeamNames = Constants.getSelectedTeamNames(state)
   if (selectedTeamNames.includes(Constants.getTeamNameFromID(state, teamID))) {
-    return [
-      flags.useNewRouter
-        ? RouteTreeGen.createNavUpToScreen({routeName: 'teamsRoot'})
-        : RouteTreeGen.createNavigateTo({parentPath: [teamsTab], path: []}),
-      ...getLoadCalls(),
-    ]
+    return [RouteTreeGen.createNavUpToScreen({routeName: 'teamsRoot'}), ...getLoadCalls()]
   }
   return getLoadCalls()
 }
@@ -1413,19 +1338,7 @@ const badgeAppForTeams = (state, action) => {
   return actions
 }
 
-let _oldNavOnTeamsTab = false
-let _wasOnTeamsTab = () => (flags.useNewRouter ? Constants.isOnTeamsTab() : _oldNavOnTeamsTab)
-const onTabChange = (_, action) => {
-  const list = I.List(action.payload.path)
-  const root = list.first()
-
-  if (root === teamsTab) {
-    _oldNavOnTeamsTab = true
-  } else if (_oldNavOnTeamsTab) {
-    _oldNavOnTeamsTab = false
-    return TeamsGen.createClearNavBadges()
-  }
-}
+let _wasOnTeamsTab = () => Constants.isOnTeamsTab()
 
 const receivedBadgeState = (state, action) =>
   TeamsGen.createBadgeAppForTeams({
@@ -1663,9 +1576,6 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
     'teamDeletedOrExit'
   )
 
-  if (!flags.useNewRouter) {
-    yield* Saga.chainAction<RouteTreeGen.SwitchToPayload>(RouteTreeGen.switchTo, onTabChange)
-  }
   yield* Saga.chainAction<TeamsGen.ClearNavBadgesPayload>(TeamsGen.clearNavBadges, clearNavBadges)
 }
 

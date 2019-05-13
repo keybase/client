@@ -18,8 +18,9 @@ type CmdPassphraseChange struct {
 
 func NewCmdPassphraseChange(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:  "change",
-		Usage: "Change your keybase account passphrase.",
+		Name:    "change",
+		Aliases: []string{"set"},
+		Usage:   "Change your keybase account passphrase.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdPassphraseChangeRunner(g), "change", c)
 		},

@@ -70,14 +70,14 @@ const ChangeRetention = (props: Props) => {
     <UserNotice
       style={styles.userNotice}
       username={props.user}
-      bgColor={Styles.globalColors.blue4}
+      bgColor={Styles.globalColors.blueLighter2}
       onClickAvatar={() => props.onClickUserAvatar()}
     >
       <Kb.Text type="BodySmallSemibold" negative={true} style={styles.text}>
         {formatTimeForMessages(props.timestamp)}
       </Kb.Text>
       <Kb.Box2 direction="vertical" centerChildren={true}>
-        <Kb.Text type="BodySmallSemibold" center={true} negative={true} style={styles.text}>
+        <Kb.Text type="BodySmallSemibold" center={true} negative={true} style={styles.text} selectable={true}>
           {changedBy} changed the {convType} retention policy{inheritDescription}. Messages will{' '}
           {policySummary}.
         </Kb.Text>

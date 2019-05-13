@@ -6,14 +6,9 @@ import * as GitGen from './git-gen'
 import * as NotificationsGen from './notifications-gen'
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
-import * as SettingsConstants from '../constants/settings'
-import * as Tabs from '../constants/tabs'
-import {isMobile} from '../constants/platform'
 import type {TypedState} from '../util/container'
 import {logError} from '../util/errors'
-import flags from '../util/feature-flags'
 
 const load = (state: TypedState) =>
   state.config.loggedIn &&
@@ -79,6 +74,7 @@ const setTeamRepoSettings = (_, action) =>
     channelName: action.payload.channelName,
     chatDisabled: action.payload.chatDisabled,
     folder: {
+      conflictType: RPCTypes.favoriteFolderConflictType.none,
       created: false,
       folderType: RPCTypes.favoriteFolderType.team,
       name: action.payload.teamname,
@@ -87,18 +83,6 @@ const setTeamRepoSettings = (_, action) =>
     },
     repoID: action.payload.repoID,
   }).then(() => GitGen.createLoadGit())
-
-let _wasOnGitTab = false
-const clearBadgesAfterNav = (state, action) => {
-  // on the git tab?
-  if (Constants.isLookingAtGit(state, action)) {
-    _wasOnGitTab = true
-  } else if (_wasOnGitTab) {
-    _wasOnGitTab = false
-    // clear badges
-    return clearNavBadges()
-  }
-}
 
 const clearNavBadges = () =>
   RPCTypes.gregorDismissCategoryRpcPromise({
@@ -114,15 +98,6 @@ const handleIncomingGregor = (_, action) => {
       return GitGen.createLoadGit()
     }
   }
-}
-
-const navToGit = (_, action) => {
-  const {routeState} = action.payload
-  const path = isMobile ? [Tabs.settingsTab, SettingsConstants.gitTab] : [Tabs.gitTab]
-  return [
-    RouteTreeGen.createNavigateTo({parentPath: [], path}),
-    routeState && RouteTreeGen.createSetRouteState({partialState: routeState, path}),
-  ]
 }
 
 function* navigateToTeamRepo(state, action) {
@@ -143,8 +118,6 @@ function* navigateToTeamRepo(state, action) {
 const receivedBadgeState = (_, action) =>
   GitGen.createBadgeAppForGit({ids: action.payload.badgeState.newGitRepoGlobalUniqueIDs || []})
 
-const navBack = () => GitGen.createNavToGit({routeState: null, switchTab: false})
-
 function* gitSaga(): Saga.SagaGenerator<any, any> {
   // Create / Delete
   yield* Saga.chainAction<GitGen.CreatePersonalRepoPayload>(GitGen.createPersonalRepo, createPersonalRepo)
@@ -155,15 +128,6 @@ function* gitSaga(): Saga.SagaGenerator<any, any> {
     [GitGen.repoCreated, GitGen.repoDeleted, GitGen.loadGit],
     load
   )
-
-  // Nav*
-  if (!flags.useNewRouter) {
-    yield* Saga.chainAction<GitGen.NavToGitPayload>(GitGen.navToGit, navToGit)
-    yield* Saga.chainAction<GitGen.RepoCreatedPayload | GitGen.RepoDeletedPayload>(
-      [GitGen.repoCreated, GitGen.repoDeleted],
-      navBack
-    )
-  }
 
   // Loading
   yield* Saga.chainAction<GitGen.LoadedPayload>(GitGen.loaded, surfaceGlobalErrors)
@@ -178,12 +142,8 @@ function* gitSaga(): Saga.SagaGenerator<any, any> {
     receivedBadgeState
   )
 
-  if (flags.useNewRouter) {
-    // clear on load
-    yield* Saga.chainAction<GitGen.LoadGitPayload>(GitGen.loadGit, clearNavBadges)
-  } else {
-    yield* Saga.chainAction<RouteTreeGen.SwitchToPayload>(RouteTreeGen.switchTo, clearBadgesAfterNav)
-  }
+  // clear on load
+  yield* Saga.chainAction<GitGen.LoadGitPayload>(GitGen.loadGit, clearNavBadges)
 
   // Gregor
   yield* Saga.chainAction<GregorGen.PushOOBMPayload>(GregorGen.pushOOBM, handleIncomingGregor)

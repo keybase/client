@@ -276,6 +276,10 @@ func (s *SecretStoreLocked) GetUsersWithStoredSecrets(m MetaContext) ([]string, 
 }
 
 func (s *SecretStoreLocked) PrimeSecretStores(mctx MetaContext) (err error) {
+	if mctx.G().Env.GetSecretStorePrimingDisabled() {
+		mctx.Debug("Skipping PrimeSecretStores, disabled in env")
+		return nil
+	}
 	if s == nil || s.isNil() {
 		return errors.New("secret store is not available")
 	}

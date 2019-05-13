@@ -1,13 +1,13 @@
 // @flow
-import {connect, type RouteProps} from '../../util/container'
+import * as Container from '../../util/container'
 import * as WalletsGen from '../../actions/wallets-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/wallets'
 import {anyWaiting} from '../../constants/waiting'
 import HiddenString from '../../util/hidden-string'
 import {Wrapper as LinkExisting} from '.'
-import flags from '../../util/feature-flags'
 
-type OwnProps = RouteProps<{backButton?: boolean, fromSendForm?: boolean, showOnCreation?: boolean}, {}>
+type OwnProps = Container.RouteProps<{fromSendForm?: boolean, showOnCreation?: boolean}, {}>
 
 const mapStateToProps = state => ({
   keyError: state.wallets.secretKeyError,
@@ -23,9 +23,9 @@ const mapStateToProps = state => ({
   ),
 })
 
-const mapDispatchToProps = (dispatch, {navigateUp, routeProps}: OwnProps) => ({
-  fromSendForm: routeProps.get('fromSendForm'),
-  onCancel: () => navigateUp && dispatch(navigateUp()),
+const mapDispatchToProps = (dispatch, ownProps) => ({
+  fromSendForm: Container.getRouteProps(ownProps, 'fromSendForm'),
+  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
   onCheckKey: (key: string) => {
     dispatch(
       WalletsGen.createValidateSecretKey({
@@ -42,14 +42,12 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}: OwnProps) => ({
       WalletsGen.createLinkExistingAccount({
         name,
         secretKey: new HiddenString(sk),
-        setBuildingTo: routeProps.get('fromSendForm'),
-        showOnCreation: routeProps.get('showOnCreation'),
+        setBuildingTo: Container.getRouteProps(ownProps, 'fromSendForm'),
+        showOnCreation: Container.getRouteProps(ownProps, 'showOnCreation'),
       })
     )
 
-    if (flags.useNewRouter) {
-      dispatch(navigateUp())
-    }
+    dispatch(RouteTreeGen.createNavigateUp())
   },
 })
 
@@ -58,7 +56,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   linkExistingAccountError: stateProps.linkExistingAccountError,
   nameError: stateProps.nameError,
   nameValidationState: stateProps.nameValidationState,
-  onBack: ownProps.routeProps.get('backButton') ? dispatchProps.onCancel : undefined,
   onCancel: dispatchProps.onCancel,
   onCheckKey: dispatchProps.onCheckKey,
   onCheckName: dispatchProps.onCheckName,
@@ -68,7 +65,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   waiting: stateProps.waiting,
 })
 
-export default connect<OwnProps, _, _, _, _>(
+export default Container.connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

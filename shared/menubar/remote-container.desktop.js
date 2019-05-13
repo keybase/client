@@ -15,7 +15,6 @@ import {urlHelper} from '../util/url-helper'
 import {isWindows, isDarwin, isLinux} from '../constants/platform'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as SettingsGen from '../actions/settings-gen'
-import flags from '../util/feature-flags'
 
 // Props are handled by remote-proxy.desktop.js
 const mapDispatchToProps = dispatch => ({
@@ -33,10 +32,7 @@ const mapDispatchToProps = dispatch => ({
   },
   openApp: (tab?: AppTab) => {
     dispatch(ConfigGen.createShowMain())
-    tab &&
-      dispatch(
-        flags.useNewRouter ? RouteTreeGen.createSwitchTab({tab}) : RouteTreeGen.createSwitchTo({path: [tab]})
-      )
+    tab && dispatch(RouteTreeGen.createSwitchTab({tab}))
   },
   quit: () => {
     if (!__DEV__) {

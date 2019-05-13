@@ -6,7 +6,6 @@ import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/wallets'
 import {AccountPageHeader} from '../../common'
 import DisplayCurrencyDropdown from './display-currency-dropdown'
-import flags from '../../../util/feature-flags'
 
 export type SettingsProps = {|
   accountID: Types.AccountID,
@@ -35,7 +34,7 @@ export type SettingsProps = {|
 const HoverText = Styles.isMobile
   ? Kb.Text
   : Styles.styled(Kb.Text)({
-      ':hover': {backgroundColor: Styles.globalColors.yellow3},
+      ':hover': {backgroundColor: Styles.globalColors.yellowLight},
     })
 
 const Divider = () => <Kb.Divider style={styles.divider} />
@@ -204,7 +203,13 @@ class AccountSettings extends React.Component<SettingsProps> {
               style={styles.removeContainer}
             >
               <Kb.Divider />
-              <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} gap="tiny">
+              <Kb.Box2
+                direction="vertical"
+                fullWidth={true}
+                centerChildren={true}
+                gap="tiny"
+                style={styles.removeContentContainer}
+              >
                 <Kb.Button
                   disabled={props.isDefault}
                   label="Remove account"
@@ -238,7 +243,7 @@ const styles = Styles.styleSheetCreate({
     marginTop: Styles.globalMargins.tiny,
   },
   header: {
-    ...(flags.useNewRouter && !Styles.isMobile ? {minHeight: 48} : {}),
+    ...(!Styles.isMobile ? {minHeight: 48} : {}),
     borderBottomColor: Styles.globalColors.black_10,
     borderBottomWidth: 1,
     borderStyle: 'solid',
@@ -265,6 +270,7 @@ const styles = Styles.styleSheetCreate({
     isElectron: {marginTop: 'auto'},
     isMobile: {marginTop: Styles.globalMargins.medium},
   }),
+  removeContentContainer: {...Styles.padding(0, Styles.globalMargins.small)},
   rightMargin: {
     marginRight: Styles.globalMargins.tiny,
   },

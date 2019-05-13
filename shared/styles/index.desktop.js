@@ -50,7 +50,7 @@ const font = {
 const util = {
   ...Shared.util({flexCommon: {display: 'flex'}}),
   loadingTextStyle: {
-    backgroundColor: globalColors.lightGrey,
+    backgroundColor: globalColors.greyLight,
     height: 16,
     marginBottom: Shared.globalMargins.tiny,
     marginTop: Shared.globalMargins.tiny,

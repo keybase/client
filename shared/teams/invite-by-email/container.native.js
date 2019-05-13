@@ -20,7 +20,6 @@ import {
 } from '../../util/container'
 import {isAndroid} from '../../constants/platform'
 import {getContacts} from './permissions'
-import flags from '../../util/feature-flags'
 
 type OwnProps = RouteProps<{teamname: string}, {}>
 
@@ -54,29 +53,13 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   onInviteEmail: ({invitee, role}) => {
     const teamname = getRouteProps(ownProps, 'teamname')
     dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
-    if (flags.useNewRouter) {
-      dispatch(
-        TeamsGen.createInviteToTeamByEmail({
-          invitees: invitee,
-          role,
-          teamname,
-        })
-      )
-    } else {
-      const rootPath = ownProps.routePath.take(1)
-      const sourceSubPath = ownProps.routePath.rest()
-      const destSubPath = sourceSubPath.butLast()
-      dispatch(
-        TeamsGen.createInviteToTeamByEmail({
-          destSubPath,
-          invitees: invitee,
-          role,
-          rootPath,
-          sourceSubPath,
-          teamname,
-        })
-      )
-    }
+    dispatch(
+      TeamsGen.createInviteToTeamByEmail({
+        invitees: invitee,
+        role,
+        teamname,
+      })
+    )
     dispatch(TeamsGen.createGetTeams({clearNavBadges: false}))
   },
   onInvitePhone: ({invitee, role, fullName = ''}) => {

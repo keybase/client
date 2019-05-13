@@ -36,7 +36,7 @@ class ComplexTeamNotice extends React.PureComponent<Props> {
       <UserNotice
         style={{marginTop: globalMargins.small}}
         teamname={team || ''}
-        bgColor={globalColors.blue4}
+        bgColor={globalColors.blueLighter2}
         onClickAvatar={() => onViewTeam(team)}
       >
         <Text

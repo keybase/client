@@ -139,7 +139,6 @@ func NewMetaContextBackground(g *GlobalContext) MetaContext {
 
 func (m MetaContext) WithDelegatedIdentifyUI(u IdentifyUI) MetaContext {
 	m.uis.IdentifyUI = u
-	m.uis.IdentifyUIIsDelegated = true
 	return m
 }
 
@@ -288,10 +287,6 @@ type UIs struct {
 	// since some things like GPG shell-out work differently
 	// depending.
 	ClientType keybase1.ClientType
-
-	// Special-case flag for identifyUI -- if it's been delegated
-	// to the electron UI, then it's rate-limitable
-	IdentifyUIIsDelegated bool
 
 	SessionID int
 }

@@ -1695,6 +1695,9 @@ func (c *ConfigLocal) AddRootNodeWrapper(f func(Node) Node) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	c.rootNodeWrappers = append(c.rootNodeWrappers, f)
+	if c.kbfs != nil {
+		c.kbfs.AddRootNodeWrapper(f)
+	}
 }
 
 // SetVLogLevel implements the Config interface for ConfigLocal.

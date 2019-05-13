@@ -59,7 +59,7 @@ const styles = Styles.styleSheetCreate({
   },
   leftGrey: {
     ...stylePieHalf,
-    backgroundColor: Styles.globalColors.lightGrey,
+    backgroundColor: Styles.globalColors.greyLight,
     // -1 is a workaround for a rendering issue where the blue part of the
     // pie is not entirely hidden by the white part
     borderBottomLeftRadius: pieHalfSize - 1,
@@ -79,7 +79,7 @@ const styles = Styles.styleSheetCreate({
   },
   wholeGrey: {
     ...stylePieWhole,
-    backgroundColor: Styles.globalColors.lightGrey,
+    backgroundColor: Styles.globalColors.greyLight,
     // -1 is a workaround for a rendering issue where the blue part of the
     // pie is not entirely hidden by the white part
     borderRadius: pieHalfSize - 1,

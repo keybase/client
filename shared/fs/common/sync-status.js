@@ -36,14 +36,14 @@ function getColor(props: Props) {
     case 'uploading':
       return Styles.globalColors.blue
     case 'awaiting-to-upload':
-      return Styles.globalColors.grey
+      return Styles.globalColors.greyDark
     case 'synced':
       return Styles.globalColors.green
     case 'sync-error':
       return Styles.globalColors.red
     default:
       // This case should never be reached.
-      return Styles.globalColors.grey
+      return Styles.globalColors.greyDark
   }
 }
 

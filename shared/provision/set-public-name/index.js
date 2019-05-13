@@ -1,9 +1,8 @@
 // @flow
 import * as Constants from '../../constants/provision'
 import * as React from 'react'
-import {Input, BackButton, Box2, WaitingButton, Text, Icon} from '../../common-adapters'
+import {Input, Box2, WaitingButton, Text, Icon} from '../../common-adapters'
 import {globalMargins, styleSheetCreate, isMobile, platformStyles} from '../../styles'
-import flags from '../../util/feature-flags'
 
 type Props = {|
   onBack: () => void,
@@ -16,7 +15,6 @@ type Props = {|
 const SetPublicName = (props: Props) => {
   return (
     <Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="medium" gapStart={true}>
-      {!flags.useNewRouter && <BackButton onClick={props.onBack} style={styles.backButton} />}
       <Box2 direction="vertical" style={styles.contents} centerChildren={true} gap="medium">
         <Text type={isMobile ? 'Body' : 'Header'}>
           Set a public name for this new {isMobile ? 'phone' : 'computer'}:

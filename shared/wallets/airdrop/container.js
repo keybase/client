@@ -1,9 +1,10 @@
 // @flow
 import Airdrop from '.'
 import * as WalletsGen from '../../actions/wallets-gen'
-import {connect, type RouteProps} from '../../util/container'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as Container from '../../util/container'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = Container.RouteProps<{}, {}>
 
 const mapStateToProps = state => ({
   _details: state.wallets.airdropDetails,
@@ -11,9 +12,9 @@ const mapStateToProps = state => ({
   signedUp: state.wallets.airdropState === 'accepted',
 })
 
-const mapDispatchToProps = (dispatch, {navigateAppend, navigateUp}) => ({
-  onBack: () => dispatch(navigateUp()),
-  onCheckQualify: () => dispatch(navigateAppend(['airdropQualify'])),
+const mapDispatchToProps = dispatch => ({
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onCheckQualify: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['airdropQualify']})),
   onLoad: () => {
     dispatch(WalletsGen.createUpdateAirdropState())
     dispatch(WalletsGen.createUpdateAirdropDetails())
@@ -41,7 +42,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
   title: 'Airdrop',
 })
 
-export default connect<OwnProps, _, _, _, _>(
+export default Container.connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

@@ -5,7 +5,6 @@ import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 import {InviteByEmailDesktop} from '.'
 import {connect, getRouteProps, type RouteProps} from '../../util/container'
-import flags from '../../util/feature-flags'
 
 type OwnProps = RouteProps<{teamname: string}, {}>
 
@@ -25,23 +24,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
   onInvite: (invitees: string, role: Types.TeamRoleType) => {
     const teamname = getRouteProps(ownProps, 'teamname')
-    if (flags.useNewRouter) {
-      dispatch(TeamsGen.createInviteToTeamByEmail({invitees, role, teamname}))
-    } else {
-      const rootPath = ownProps.routePath.take(1)
-      const sourceSubPath = ownProps.routePath.rest()
-      const destSubPath = sourceSubPath.butLast()
-      dispatch(
-        TeamsGen.createInviteToTeamByEmail({
-          destSubPath,
-          invitees,
-          role,
-          rootPath,
-          sourceSubPath,
-          teamname,
-        })
-      )
-    }
+    dispatch(TeamsGen.createInviteToTeamByEmail({invitees, role, teamname}))
     dispatch(TeamsGen.createGetTeams({clearNavBadges: false}))
   },
 })

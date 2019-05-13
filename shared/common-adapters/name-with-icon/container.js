@@ -5,7 +5,6 @@ import * as Tracker2Gen from '../../actions/tracker2-gen'
 import NameWithIcon, {type NameWithIconProps} from '.'
 import {namedConnect, isMobile} from '../../util/container'
 import {teamsTab} from '../../constants/tabs'
-import flags from '../../util/feature-flags'
 
 export type ConnectedNameWithIconProps = {|
   ...NameWithIconProps,
@@ -18,9 +17,7 @@ const mapStateToProps = () => ({})
 
 const mapDispatchToProps = dispatch => ({
   onOpenTeamProfile: (teamname: string) => {
-    if (flags.useNewRouter) {
-      dispatch(RouteTreeGen.createClearModals())
-    }
+    dispatch(RouteTreeGen.createClearModals())
     dispatch(
       RouteTreeGen.createNavigateTo({path: [teamsTab, {props: {teamname: teamname}, selected: 'team'}]})
     )

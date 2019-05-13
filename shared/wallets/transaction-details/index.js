@@ -171,7 +171,7 @@ const colorForStatus = (status: Types.StatusSimplified) => {
       return Styles.globalColors.green
     case 'pending':
     case 'claimable':
-      return Styles.globalColors.purple2
+      return Styles.globalColors.purple
     case 'error':
     case 'canceled':
       return Styles.globalColors.red

@@ -2,7 +2,6 @@
 // File to map action type to loggable action.
 // We don't want to log every part of the action, just the useful bits.
 
-import * as I from 'immutable'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as ConfigGen from '../actions/config-gen'
@@ -10,9 +9,7 @@ import * as GregorGen from '../actions/gregor-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as WaitingGen from '../actions/waiting-gen'
 import * as EntitiesGen from '../actions/entities-gen'
-import {getPath} from '../route-tree'
 import type {TypedState} from '../constants/reducer'
-import flags from '../util/feature-flags'
 
 // If you use nullTransform it'll not be logged at all
 const nullTransform = action => {
@@ -20,22 +17,9 @@ const nullTransform = action => {
 }
 
 const pathActionTransformer = (action, oldState) => {
-  if (flags.useNewRouter) {
-    const path = Array.from(action.payload.path.map(p => (typeof p === 'string' ? p : p.selected)))
-    return {
-      payload: {path},
-      type: action.type,
-    }
-  }
-  const prevPath = oldState.routeTree ? getPath(oldState.routeTree.routeState) : I.List()
   const path = Array.from(action.payload.path.map(p => (typeof p === 'string' ? p : p.selected)))
-  const parentPath = action.payload.parentPath && Array.from(action.payload.parentPath)
   return {
-    payload: {
-      parentPath,
-      path,
-      prevPath,
-    },
+    payload: {path},
     type: action.type,
   }
 }
@@ -58,8 +42,6 @@ const actionTransformMap = {
   [RouteTreeGen.switchTo]: pathActionTransformer,
   [RouteTreeGen.navigateTo]: pathActionTransformer,
   [RouteTreeGen.navigateAppend]: pathActionTransformer,
-  [RouteTreeGen.setRouteState]: pathActionTransformer,
-  [RouteTreeGen.resetRoute]: pathActionTransformer,
 
   [EntitiesGen.deleteEntity]: entityTransformer,
   [EntitiesGen.mergeEntity]: entityTransformer,

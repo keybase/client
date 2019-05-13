@@ -2,7 +2,6 @@
 import * as Container from '../../../util/container'
 import * as ProfileGen from '../../../actions/profile-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import flags from '../../../util/feature-flags'
 import openURL from '../../../util/open-url'
 import EnterUsername from '.'
 
@@ -25,9 +24,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
   onBack: () => {
     dispatch(ProfileGen.createCancelAddProof())
-    if (flags.useNewRouter) {
-      dispatch(RouteTreeGen.createClearModals())
-    }
+    dispatch(RouteTreeGen.createClearModals())
   },
   onChangeUsername: username => dispatch(ProfileGen.createUpdateUsername({username})),
   onContinue: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileGenericProofSuccess']})),

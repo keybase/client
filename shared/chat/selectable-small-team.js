@@ -41,7 +41,7 @@ class SelectableSmallTeam extends React.PureComponent<Props, State> {
           direction="horizontal"
           fullWidth={true}
           fullHeight={true}
-          className={Styles.classNames('hover_background_color_blueGrey2', {
+          className={Styles.classNames('hover_background_color_blueGreyDark', {
             background_color_blue: props.isSelected,
           })}
           style={Styles.collapseStyles([

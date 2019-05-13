@@ -14,7 +14,6 @@ import (
 	keychain "github.com/keybase/go-keychain"
 )
 
-const maxKeychainItemSlots = 50
 const slotSep = "/"
 
 type keychainSlottedAccount struct {

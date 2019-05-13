@@ -2,9 +2,8 @@
 import * as React from 'react'
 import * as Flow from '../../util/flow'
 import * as Types from '../../constants/types/provision'
-import {ListItem2, BackButton, Box2, List, Text, Icon} from '../../common-adapters'
+import {ListItem2, Box2, List, Text, Icon} from '../../common-adapters'
 import {globalMargins, styleSheetCreate, platformStyles, isMobile} from '../../styles'
-import flags from '../../util/feature-flags'
 
 type Props = {|
   devices: Array<Types.Device>,
@@ -68,7 +67,6 @@ class SelectOtherDevice extends React.Component<Props> {
         gap={isMobile ? undefined : 'medium'}
         gapEnd={true}
       >
-        {!flags.useNewRouter && <BackButton onClick={this.props.onBack} style={styles.backButton} />}
         <Box2 direction="vertical" fullWidth={true} style={styles.contentBox} gap={'medium'}>
           <Text center={true} type={isMobile ? 'BodyBig' : 'Header'}>
             For security reasons, you need to authorize with an existing device. Which of your existing

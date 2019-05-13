@@ -12,6 +12,9 @@ import (
 )
 
 func TestObsoletingInvites1(t *testing.T) {
+	tc := SetupTest(t, "team", 0)
+	defer tc.Cleanup()
+
 	// This chain has 3 keybase invites total:
 	// 1) 579651b0d574971040b531b66efbc519%1
 	// 2) 618d663af0f1ec88a5a19defa65a2f19%1
@@ -28,15 +31,15 @@ func TestObsoletingInvites1(t *testing.T) {
 	allInvites := team.GetActiveAndObsoleteInvites()
 	require.Equal(t, 2, len(allInvites))
 
-	hasInvite, err := team.HasActiveInvite(keybase1.TeamInviteName("579651b0d574971040b531b66efbc519%1"), "keybase")
+	hasInvite, err := team.HasActiveInvite(tc.MetaContext(), keybase1.TeamInviteName("579651b0d574971040b531b66efbc519%1"), "keybase")
 	require.NoError(t, err)
 	require.False(t, hasInvite)
 
-	hasInvite, err = team.HasActiveInvite(keybase1.TeamInviteName("618d663af0f1ec88a5a19defa65a2f19%1"), "keybase")
+	hasInvite, err = team.HasActiveInvite(tc.MetaContext(), keybase1.TeamInviteName("618d663af0f1ec88a5a19defa65a2f19%1"), "keybase")
 	require.NoError(t, err)
 	require.False(t, hasInvite)
 
-	hasInvite, err = team.HasActiveInvite(keybase1.TeamInviteName("40903c59d19feef1d67c455499304c19%1"), "keybase")
+	hasInvite, err = team.HasActiveInvite(tc.MetaContext(), keybase1.TeamInviteName("40903c59d19feef1d67c455499304c19%1"), "keybase")
 	require.NoError(t, err)
 	require.True(t, hasInvite)
 

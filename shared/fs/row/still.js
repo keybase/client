@@ -47,7 +47,7 @@ const Still = (props: StillProps) => (
         {props.isEmpty && (
           <Kb.Meta
             title="empty"
-            backgroundColor={Styles.globalColors.grey}
+            backgroundColor={Styles.globalColors.greyDark}
             style={{marginLeft: Styles.globalMargins.tiny, marginTop: Styles.globalMargins.xxtiny}}
           />
         )}

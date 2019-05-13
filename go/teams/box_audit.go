@@ -17,17 +17,21 @@ import (
 )
 
 func ShouldRunBoxAudit(mctx libkb.MetaContext) bool {
-	validSession := mctx.G().ActiveDevice.Valid()
-	if !validSession {
+	if !mctx.G().ActiveDevice.Valid() {
 		mctx.Debug("ShouldRunBoxAudit: not logged in")
+		return false
 	}
-	shouldRun := mctx.G().Env.GetRunMode() == libkb.DevelRunMode ||
-		mctx.G().Env.RunningInCI() ||
-		mctx.G().FeatureFlags.Enabled(mctx, libkb.FeatureBoxAuditor)
-	if !shouldRun {
-		mctx.Debug("ShouldRunBoxAudit: determined should not run")
+
+	if mctx.G().IsMobileAppType() {
+		state, stateMtime := mctx.G().MobileAppState.StateAndMtime()
+		mctx.Debug("ShouldRunBoxAudit: mobileAppState=%+v, stateMtime=%+v", state, stateMtime)
+		if stateMtime == nil || state != keybase1.MobileAppState_FOREGROUND || time.Now().Sub(*stateMtime) < 3*time.Minute {
+			mctx.Debug("ShouldRunBoxAudit: mobile and backgrounded")
+			return false
+		}
 	}
-	return validSession && shouldRun
+
+	return mctx.G().Env.GetRunMode() == libkb.DevelRunMode || mctx.G().Env.RunningInCI() || mctx.G().FeatureFlags.Enabled(mctx, libkb.FeatureBoxAuditor)
 }
 
 const CurrentBoxAuditVersion Version = 5
@@ -304,13 +308,13 @@ func (a *BoxAuditor) AssertUnjailedOrReaudit(mctx libkb.MetaContext, teamID keyb
 	for i := 0; i <= maxRetries; i++ {
 		_, err = a.BoxAuditTeam(mctx, teamID)
 		if err != nil {
-			mctx.Debug("AssertUnjailedOrReaudit: box audit try #%d failed...")
+			mctx.Debug("AssertUnjailedOrReaudit: box audit try #%d failed...", i+1)
 			errs = append(errs, err)
 		} else {
 			return true, nil
 		}
 	}
-	return false, fmt.Errorf("failed to successfully reaudit team in box audit jail after %d retries: %s", maxRetries, libkb.CombineErrors(errs...))
+	return false, fmt.Errorf("failed to successfully reaudit team %s in box audit jail after %d retries: %s", teamID, maxRetries, libkb.CombineErrors(errs...))
 }
 
 // RetryNextBoxAudit selects a teamID from the box audit retry queue and performs another box audit.
@@ -435,20 +439,6 @@ func (a *BoxAuditor) attemptLocked(mctx libkb.MetaContext, teamID keybase1.TeamI
 		return attempt
 	}
 
-	if rotateBeforeAudit {
-		mctx.Debug("rotating before audit")
-		err := team.Rotate(mctx.Ctx())
-		if err != nil {
-			attempt.Error = getErrorMessage(fmt.Errorf("failed to rotate team before audit: %s", err))
-			return attempt
-		}
-		return a.attemptLocked(mctx, teamID, false, true)
-	}
-
-	if justRotated {
-		attempt.Rotated = true
-	}
-
 	g := team.Generation()
 	attempt.Generation = &g
 
@@ -461,6 +451,22 @@ func (a *BoxAuditor) attemptLocked(mctx libkb.MetaContext, teamID keybase1.TeamI
 		mctx.Debug("Not attempting box audit attempt; %s", attempt.Result)
 		attempt.Result = *shouldAuditResult
 		return attempt
+	}
+
+	if rotateBeforeAudit {
+		mctx.Debug("rotating before audit")
+		err := team.Rotate(mctx.Ctx())
+		if err != nil {
+			mctx.Warning("failed to rotate team before audit: %s", err)
+			// continue despite having failed to rotate
+		} else {
+			// reload the team
+			return a.attemptLocked(mctx, teamID, false, true)
+		}
+	}
+
+	if justRotated {
+		attempt.Rotated = true
 	}
 
 	pastSummary, err := calculateChainSummary(mctx, team)
@@ -861,6 +867,11 @@ func calculateChainSummary(mctx libkb.MetaContext, team *Team) (summary *boxPubl
 	if err != nil {
 		return nil, err
 	}
+
+	if !mctx.G().GetMerkleClient().CanExamineHistoricalRoot(mctx, merkleSeqno) {
+		return nil, fmt.Errorf("last rotation was at %d, before the most recent checkpoint, so forcing a rotation", merkleSeqno)
+	}
+
 	return calculateSummaryAtMerkleSeqno(mctx, team, merkleSeqno, true)
 }
 

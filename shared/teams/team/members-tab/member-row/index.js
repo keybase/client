@@ -216,7 +216,7 @@ const stylesContainer = {
 
 const stylesContainerReset = {
   ...stylesContainer,
-  backgroundColor: globalColors.blue4,
+  backgroundColor: globalColors.blueLighter2,
 }
 
 const stylesChatButtonDesktop = {

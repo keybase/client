@@ -4,6 +4,7 @@ import * as Constants from '../../constants/wallets'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {anyWaiting} from '../../constants/waiting'
 import {connect, isMobile, type RouteProps} from '../../util/container'
 
@@ -45,7 +46,7 @@ const mapStateToProps = state => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp}: OwnProps) => ({
+const mapDispatchToProps = dispatch => ({
   _onReviewProofs: (username: string) =>
     isMobile
       ? dispatch(ProfileGen.createShowUserProfile({username}))
@@ -53,7 +54,7 @@ const mapDispatchToProps = (dispatch, {navigateUp}: OwnProps) => ({
   onAbandonPayment: () => dispatch(WalletsGen.createAbandonPayment()),
   onBack: () => {
     dispatch(WalletsGen.createClearErrors())
-    dispatch(navigateUp())
+    dispatch(RouteTreeGen.createNavigateUp())
   },
   onExitFailed: () => dispatch(WalletsGen.createExitFailedPayment()),
   onSendClick: () => dispatch(WalletsGen.createSendPayment()),

@@ -16,7 +16,7 @@ const ProgressBar = ({ratio, style, fillStyle}: Props) => (
 )
 
 const outer = {
-  backgroundColor: globalColors.lightGrey,
+  backgroundColor: globalColors.greyLight,
   borderRadius: 3,
   height: 4,
   width: 64,

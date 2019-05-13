@@ -1,146 +1,21 @@
 // @flow
-import * as Constants from '../constants/wallets'
-import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import {isMobile} from '../constants/platform'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import {createNavigator, StackRouter, SceneView} from '@react-navigation/core'
 import * as Shim from '../router-v2/shim'
 
-const routeTree = () => {
-  const CreateNewAccount = require('./create-account/container').default
-  const LinkExisting = require('./link-existing/container').default
-  const WalletsAndDetails = require('./wallets-and-details/container').default
-  const ReceiveModal = require('./receive-modal/container').default
-  const ExportSecretKey = require('./export-secret-key/container').default
-  const TransactionDetails = require('./transaction-details/container').default
-  const AccountSettings = require('./wallet/settings/container').default
-  const {
-    SetDefaultAccountPopup,
-    RemoveAccountPopup,
-    ReallyRemoveAccountPopup,
-    RenameAccountPopup,
-    InflationDestination,
-  } = require('./wallet/settings/popups')
-  const Wallet = require('./wallet/container').default
-  const Airdrop = require('./airdrop/container').default
-  const AirdropQualify = require('./airdrop/qualify/container').default
-
-  const createNewAccount = {
-    children: {},
-    component: CreateNewAccount,
-    tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
-  }
-
-  const linkExisting = {
-    children: {},
-    component: LinkExisting,
-    tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
-  }
-
-  const walletChildren = {
-    airdrop: {
-      children: {
-        airdropQualify: {
-          component: AirdropQualify,
-          tags: makeLeafTags({layerOnTop: true}),
-        },
-      },
-      component: Airdrop,
-    },
-    createNewAccount,
-    exportSecretKey: {
-      children: {},
-      component: ExportSecretKey,
-      tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile, renderTopmostOnly: true}),
-    },
-    linkExisting,
-    receive: {
-      children: {},
-      component: ReceiveModal,
-      tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile, renderTopmostOnly: true}),
-    },
-    [Constants.sendRequestFormRouteKey]: require('./routes-send-request-form').default(),
-    settings: {
-      children: {
-        createNewAccount,
-        linkExisting,
-        removeAccount: {
-          children: {
-            reallyRemoveAccount: {
-              children: {},
-              component: ReallyRemoveAccountPopup,
-              tags: makeLeafTags({
-                fullscreen: isMobile,
-                layerOnTop: !isMobile,
-                renderTopmostOnly: true,
-                underNotch: true,
-              }),
-            },
-          },
-          component: RemoveAccountPopup,
-          tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile, renderTopmostOnly: true}),
-        },
-        renameAccount: {
-          children: {},
-          component: RenameAccountPopup,
-          tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile, renderTopmostOnly: true}),
-        },
-        setDefaultAccount: {
-          children: {},
-          component: SetDefaultAccountPopup,
-          tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile, renderTopmostOnly: true}),
-        },
-        setInflation: {
-          children: {},
-          component: InflationDestination,
-          tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile, renderTopmostOnly: true}),
-        },
-      },
-      component: AccountSettings,
-    },
-    transactionDetails: {
-      children: {
-        createNewAccount,
-        linkExisting,
-      },
-      component: TransactionDetails,
-    },
-  }
-  // On mobile we take the user directly to the wallet page, and they
-  // navigate by tapping on the wallet name which brings up a
-  // switcher. On desktop, we use a wallet list component and we don't
-  // have a wallet switcher tied to the name.
-  return isMobile
-    ? makeRouteDefNode({
-        children: walletChildren,
-        component: Wallet,
-      })
-    : makeRouteDefNode({
-        children: {
-          wallet: {
-            children: walletChildren,
-            component: Wallet,
-          },
-        },
-        containerComponent: WalletsAndDetails,
-        defaultSelected: 'wallet',
-      })
-}
-
-export default routeTree
-
 const sharedRoutes = {
-  airdrop: {getScreen: () => require('./airdrop/container').default},
-  settings: {getScreen: () => require('./wallet/settings/container').default},
-  transactionDetails: {getScreen: () => require('./transaction-details/container').default},
+  airdrop: {getScreen: () => require('./airdrop/container').default, upgraded: true},
+  settings: {getScreen: () => require('./wallet/settings/container').default, upgraded: true},
+  transactionDetails: {getScreen: () => require('./transaction-details/container').default, upgraded: true},
 }
 
 const walletsSubRoutes = isMobile
   ? {}
   : {
       ...sharedRoutes,
-      wallet: {getScreen: () => require('./wallet/container').default},
+      wallet: {getScreen: () => require('./wallet/container').default, upgraded: true},
     }
 
 class WalletsSubNav extends React.PureComponent<any> {
@@ -199,15 +74,21 @@ export const newRoutes = {
 
 export const newModalRoutes = {
   ...require('./routes-send-request-form').newModalRoutes,
-  airdropQualify: {getScreen: () => require('./airdrop/qualify/container').default},
-  createNewAccount: {getScreen: () => require('./create-account/container').default},
-  exportSecretKey: {getScreen: () => require('./export-secret-key/container').default},
-  linkExisting: {getScreen: () => require('./link-existing/container').default},
-  reallyRemoveAccount: {getScreen: () => require('./wallet/settings/popups').ReallyRemoveAccountPopup},
-  receive: {getScreen: () => require('./receive-modal/container').default},
-  removeAccount: {getScreen: () => require('./wallet/settings/popups').RemoveAccountPopup},
-  renameAccount: {getScreen: () => require('./wallet/settings/popups').RenameAccountPopup},
-  setDefaultAccount: {getScreen: () => require('./wallet/settings/popups').SetDefaultAccountPopup},
-  setInflation: {getScreen: () => require('./wallet/settings/popups').InflationDestination},
-  walletOnboarding: {getScreen: () => require('./onboarding/container').default},
+  airdropQualify: {getScreen: () => require('./airdrop/qualify/container').default, upgraded: true},
+  createNewAccount: {getScreen: () => require('./create-account/container').default, upgraded: true},
+  exportSecretKey: {getScreen: () => require('./export-secret-key/container').default, upgraded: true},
+  linkExisting: {getScreen: () => require('./link-existing/container').default, upgraded: true},
+  reallyRemoveAccount: {
+    getScreen: () => require('./wallet/settings/popups').ReallyRemoveAccountPopup,
+    upgraded: true,
+  },
+  receive: {getScreen: () => require('./receive-modal/container').default, upgraded: true},
+  removeAccount: {getScreen: () => require('./wallet/settings/popups').RemoveAccountPopup, upgraded: true},
+  renameAccount: {getScreen: () => require('./wallet/settings/popups').RenameAccountPopup, upgraded: true},
+  setDefaultAccount: {
+    getScreen: () => require('./wallet/settings/popups').SetDefaultAccountPopup,
+    upgraded: true,
+  },
+  setInflation: {getScreen: () => require('./wallet/settings/popups').InflationDestination, upgraded: true},
+  walletOnboarding: {getScreen: () => require('./onboarding/container').default, upgraded: true},
 }

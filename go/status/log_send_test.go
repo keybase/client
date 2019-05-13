@@ -1,17 +1,19 @@
-package libkb
+// Copyright 2019 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
+package status
 
 import (
-	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
-	"github.com/stretchr/testify/require"
-
 	jsonw "github.com/keybase/go-jsonw"
+	"github.com/stretchr/testify/require"
 )
 
 func testTail(t *testing.T, testname, filename string, count, actual int, first, last string) {
@@ -36,7 +38,7 @@ func testTail(t *testing.T, testname, filename string, count, actual int, first,
 
 func TestTail(t *testing.T) {
 	// file has 20k lines in it
-	filename := filepath.Join("testfixtures", "longline.testlog")
+	filename := filepath.Join("../libkb/testfixtures", "longline.testlog")
 
 	lastLine := "19999"
 
@@ -48,7 +50,7 @@ func TestTail(t *testing.T) {
 }
 
 func TestTailMulti(t *testing.T) {
-	stem := filepath.Join("testfixtures", "f.testlog")
+	stem := filepath.Join("../libkb/testfixtures", "f.testlog")
 
 	atime := time.Date(2017, time.March, 2, 4, 5, 6, 0, time.UTC)
 	// Force the fact the logs are from different times, since
@@ -63,28 +65,26 @@ func TestTailMulti(t *testing.T) {
 	testTail(t, "follow", stem, 10000, 9996, "28334", "29999")
 }
 
-func TestMergeExtendedStatus(t *testing.T) {
-	tc := SetupTest(t, "MergedExtendedStatus", 1)
+func TestMergeStatusJSON(t *testing.T) {
+	tc := libkb.SetupTest(t, "MergeStatusJSON", 1)
 	defer tc.Cleanup()
-	lsCtx := LogSendContext{
-		Contextified: NewContextified(tc.G),
-	}
 
-	// invalid json is skipped
-	fullStatus := lsCtx.mergeExtendedStatus("")
-	require.Equal(t, fullStatus, "")
-
-	// Status is merged in under the key 'status'
-	status := `{"status":{"foo":"bar"}}`
-	fullStatus = lsCtx.mergeExtendedStatus(status)
-	require.True(t, strings.Contains(fullStatus, status))
-
-	err := jsonw.EnsureMaxDepthBytesDefault([]byte(fullStatus))
+	mctx := libkb.NewMetaContextForTest(tc)
+	fstatus, err := GetFullStatus(mctx)
 	require.NoError(t, err)
+	require.NotNil(t, fstatus)
+	status := `{"desktop":{"running": true}}`
+	mergedStatus := MergeStatusJSON(fstatus, "fstatus", status)
+	require.NotEqual(t, status, mergedStatus)
 
-	fullStatusMap := map[string]interface{}{}
-	err = json.Unmarshal([]byte(fullStatus), &fullStatusMap)
+	w, err := jsonw.Unmarshal([]byte(mergedStatus))
 	require.NoError(t, err)
-	_, ok := fullStatusMap["status"]
-	require.True(t, ok)
+	statusW := w.AtPath("status.desktop.running")
+	require.NotNil(t, statusW)
+	running, err := statusW.GetBool()
+	require.NoError(t, err)
+	require.True(t, running)
+
+	fstatusW := w.AtPath("fstatus")
+	require.NotNil(t, fstatusW)
 }

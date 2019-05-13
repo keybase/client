@@ -9,7 +9,6 @@ import * as SettingsConstants from './settings'
 import {invert} from 'lodash-es'
 import {type TypedState} from './reducer'
 import HiddenString from '../util/hidden-string'
-import {getPath, type RouteStateNode} from '../route-tree'
 
 export const balanceDeltaToString: {
   [key: RPCTypes.BalanceDelta]: $Keys<typeof RPCTypes.localBalanceDelta>,
@@ -615,7 +614,7 @@ export const getAcceptedDisclaimer = (state: TypedState) => state.wallets.accept
 export const balanceChangeColor = (delta: Types.PaymentDelta, status: Types.StatusSimplified) => {
   let balanceChangeColor = Styles.globalColors.black
   if (delta !== 'none') {
-    balanceChangeColor = delta === 'increase' ? Styles.globalColors.green : Styles.globalColors.purple
+    balanceChangeColor = delta === 'increase' ? Styles.globalColors.green : Styles.globalColors.purpleDark
   }
   if (status !== 'completed') {
     balanceChangeColor = Styles.globalColors.black_20
@@ -634,9 +633,3 @@ export const balanceChangeSign = (delta: Types.PaymentDelta, balanceChange: stri
 export const rootWalletTab = Styles.isMobile ? Tabs.settingsTab : Tabs.walletsTab // tab for wallets
 export const rootWalletPath = [rootWalletTab, ...(Styles.isMobile ? [SettingsConstants.walletsTab] : [])] // path to wallets
 export const walletPath = Styles.isMobile ? rootWalletPath : [...rootWalletPath, 'wallet'] // path to wallet
-
-const walletPathList = I.List(walletPath)
-export const isLookingAtWallet = (routeState: ?RouteStateNode) => {
-  const path = getPath(routeState, [rootWalletTab])
-  return path.equals(walletPathList)
-}

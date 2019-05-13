@@ -4,7 +4,6 @@ import * as I from 'immutable'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import Row from './row/container'
-import flags from '../util/feature-flags'
 
 type Props = {|
   expandedSet: I.Set<string>,
@@ -48,7 +47,7 @@ class _Git extends React.Component<Props & Kb.OverlayParentProps, {}> {
   render() {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-        {(!flags.useNewRouter || Styles.isMobile) && (
+        {Styles.isMobile && (
           <Kb.ClickableBox
             ref={this.props.setAttachmentRef}
             style={styles.header}

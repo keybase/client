@@ -1,7 +1,7 @@
-// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// Copyright 2019 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-package libkb
+package status
 
 import (
 	"archive/tar"
@@ -15,38 +15,105 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
 
+	humanize "github.com/dustin/go-humanize"
+	"github.com/keybase/client/go/install"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
-
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-// Logs is the struct to specify the path of log files
-type Logs struct {
-	Desktop    string
-	Kbfs       string
-	Service    string
-	EK         string
-	Updater    string
-	Start      string
-	Install    string
-	System     string
-	Git        string
-	Trace      string
-	CPUProfile string
-	Watchdog   string
-	Processes  string
+// MergeStatusJSON merges the given `obj` into the given `status` JSON blob.
+// If any errors occur the original `status` is returned. Otherwise a new JSON
+// blob is created of the form {"status": status, key: obj}
+func MergeStatusJSON(obj interface{}, key, status string) string {
+	if err := jsonw.EnsureMaxDepthBytesDefault([]byte(status)); err != nil {
+		return status
+	}
+
+	var statusObj map[string]interface{}
+	if err := json.Unmarshal([]byte(status), &statusObj); err != nil {
+		return status
+	}
+
+	statusMap := make(map[string]interface{})
+	statusMap["status"] = statusObj
+	statusMap[key] = obj
+
+	fullStatus, err := json.Marshal(statusMap)
+	if err != nil {
+		return status
+	}
+	return string(fullStatus)
 }
 
-// LogSendContext for LogSend
-type LogSendContext struct {
-	Contextified
-	Logs Logs
+// getServiceLog uses the EffectiveLogPath if available and falls back to the
+// ServiceLogFileName otherwise.
+func getServiceLog(mctx libkb.MetaContext, logDir string) string {
+	serviceLogPath, ok := mctx.G().Env.GetEffectiveLogFile()
+	if ok && serviceLogPath != "" {
+		var err error
+		serviceLogPath, err = filepath.Abs(serviceLogPath)
+		if err != nil {
+			mctx.Debug("Unable to get abspath for effective log file %v", err)
+			serviceLogPath = ""
+		}
+	}
+	if serviceLogPath == "" {
+		return filepath.Join(logDir, libkb.ServiceLogFileName)
+	}
+	return serviceLogPath
+}
+
+func logFilesFromStatus(g *libkb.GlobalContext, fstatus *keybase1.FullStatus) Logs {
+	logDir := g.Env.GetLogDir()
+	installLogPath, err := install.InstallLogPath()
+	if err != nil {
+		g.Log.Errorf("Error (InstallLogPath): %s", err)
+	}
+
+	watchdogLogPath, err := install.WatchdogLogPath(filepath.Join(logDir, "watchdog*.log"))
+	if err != nil {
+		g.Log.Errorf("Error (WatchdogLogPath): %s", err)
+	}
+
+	traceDir := logDir
+	cpuProfileDir := logDir
+	if fstatus != nil {
+		return Logs{
+			Desktop:    fstatus.Desktop.Log,
+			Kbfs:       fstatus.Kbfs.Log,
+			Service:    fstatus.Service.Log,
+			EK:         fstatus.Service.EkLog,
+			Updater:    fstatus.Updater.Log,
+			Start:      fstatus.Start.Log,
+			System:     install.SystemLogPath(),
+			Git:        fstatus.Git.Log,
+			Install:    installLogPath,
+			Trace:      traceDir,
+			CPUProfile: cpuProfileDir,
+			Watchdog:   watchdogLogPath,
+		}
+	}
+
+	return Logs{
+		Desktop:  filepath.Join(logDir, libkb.DesktopLogFileName),
+		Kbfs:     filepath.Join(logDir, libkb.KBFSLogFileName),
+		Service:  getServiceLog(libkb.NewMetaContextTODO(g), logDir),
+		EK:       filepath.Join(logDir, libkb.EKLogFileName),
+		Updater:  filepath.Join(logDir, libkb.UpdaterLogFileName),
+		Start:    filepath.Join(logDir, libkb.StartLogFileName),
+		Git:      filepath.Join(logDir, libkb.GitLogFileName),
+		Install:  installLogPath,
+		Trace:    traceDir,
+		Watchdog: watchdogLogPath,
+	}
 }
 
 func addFile(mpart *multipart.Writer, param, filename string, data []byte) error {
@@ -76,100 +143,6 @@ func addGzippedFile(mpart *multipart.Writer, param, filename, data string) error
 		return err
 	}
 	return gz.Close()
-}
-
-func (l *LogSendContext) post(mctx MetaContext, status, feedback, kbfsLog, svcLog, ekLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog, watchdogLog string, traceBundle, cpuProfileBundle []byte, uid keybase1.UID, installID InstallID, processesLog string) (string, error) {
-	mctx.Debug("sending status + logs to keybase")
-
-	var body bytes.Buffer
-	mpart := multipart.NewWriter(&body)
-
-	if feedback != "" {
-		mpart.WriteField("feedback", feedback)
-	}
-
-	if len(installID) > 0 {
-		mpart.WriteField("install_id", string(installID))
-	}
-
-	if !uid.IsNil() {
-		mpart.WriteField("uid", uid.String())
-	}
-
-	if err := addGzippedFile(mpart, "status_gz", "status.gz", status); err != nil {
-		return "", err
-	}
-	if err := addGzippedFile(mpart, "kbfs_log_gz", "kbfs_log.gz", kbfsLog); err != nil {
-		return "", err
-	}
-	if err := addGzippedFile(mpart, "keybase_log_gz", "keybase_log.gz", svcLog); err != nil {
-		return "", err
-	}
-	if err := addGzippedFile(mpart, "ek_log_gz", "ek_log.gz", ekLog); err != nil {
-		return "", err
-	}
-	if err := addGzippedFile(mpart, "updater_log_gz", "updater_log.gz", updaterLog); err != nil {
-		return "", err
-	}
-	if err := addGzippedFile(mpart, "gui_log_gz", "gui_log.gz", desktopLog); err != nil {
-		return "", err
-	}
-	if err := addGzippedFile(mpart, "start_log_gz", "start_log.gz", startLog); err != nil {
-		return "", err
-	}
-	if err := addGzippedFile(mpart, "install_log_gz", "install_log.gz", installLog); err != nil {
-		return "", err
-	}
-	if err := addGzippedFile(mpart, "system_log_gz", "system_log.gz", systemLog); err != nil {
-		return "", err
-	}
-	if err := addGzippedFile(mpart, "git_log_gz", "git_log.gz", gitLog); err != nil {
-		return "", err
-	}
-	if err := addGzippedFile(mpart, "watchdog_log_gz", "watchdog_log.gz", watchdogLog); err != nil {
-		return "", err
-	}
-	if err := addGzippedFile(mpart, "processes_log_gz", "processes_log.gz", processesLog); err != nil {
-		return "", err
-	}
-
-	if len(traceBundle) > 0 {
-		mctx.Debug("trace bundle size: %d", len(traceBundle))
-		if err := addFile(mpart, "trace_tar_gz", "trace.tar.gz", traceBundle); err != nil {
-			return "", err
-		}
-	}
-
-	if len(cpuProfileBundle) > 0 {
-		mctx.Debug("CPU profile bundle size: %d", len(cpuProfileBundle))
-		if err := addFile(mpart, "cpu_profile_tar_gz", "cpu_profile.tar.gz", cpuProfileBundle); err != nil {
-			return "", err
-		}
-	}
-
-	if err := mpart.Close(); err != nil {
-		return "", err
-	}
-
-	mctx.Debug("body size: %d", body.Len())
-
-	arg := APIArg{
-		Endpoint:    "logdump/send",
-		SessionType: APISessionTypeOPTIONAL,
-	}
-
-	resp, err := mctx.G().API.PostRaw(mctx, arg, mpart.FormDataContentType(), &body)
-	if err != nil {
-		mctx.Debug("post error: %s", err)
-		return "", err
-	}
-
-	id, err := resp.Body.AtKey("logdump_id").GetString()
-	if err != nil {
-		return "", err
-	}
-
-	return id, nil
 }
 
 // tail the logs that start with the stem `stem`, which are of type `which`.
@@ -467,104 +440,100 @@ func getBundledFiles(log logger.Logger, files []string, maxFileCount int) []byte
 }
 
 func getTraceBundle(log logger.Logger, traceDir string) []byte {
-	traceFiles, err := GetSortedTraceFiles(traceDir)
+	traceFiles, err := libkb.GetSortedTraceFiles(traceDir)
 	if err != nil {
 		log.Warning("Error getting trace files in %q: %s", traceDir, err)
 		return nil
 	}
 
-	return getBundledFiles(log, traceFiles, MaxTraceFileCount)
+	return getBundledFiles(log, traceFiles, libkb.MaxTraceFileCount)
 }
 
 func getCPUProfileBundle(log logger.Logger, cpuProfileDir string) []byte {
-	cpuProfileFiles, err := GetSortedCPUProfileFiles(cpuProfileDir)
+	cpuProfileFiles, err := libkb.GetSortedCPUProfileFiles(cpuProfileDir)
 	if err != nil {
 		log.Warning("Error getting CPU profile files in %q: %s", cpuProfileDir, err)
 		return nil
 	}
 
-	return getBundledFiles(log, cpuProfileFiles, MaxCPUProfileFileCount)
+	return getBundledFiles(log, cpuProfileFiles, libkb.MaxCPUProfileFileCount)
 }
 
-// LogSend sends the tails of log files to kb, and also the last
-// few trace output files.
-func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, numBytes int, uid keybase1.UID, installID InstallID, mergeExtendedStatus bool) (string, error) {
-	mctx := NewMetaContextBackground(l.G()).WithLogTag("LOGSEND")
-	logs := l.Logs
-	var kbfsLog string
-	var svcLog string
-	var ekLog string
-	var desktopLog string
-	var updaterLog string
-	var startLog string
-	var installLog string
-	var systemLog string
-	var gitLog string
-	var traceBundle []byte
-	var cpuProfileBundle []byte
-	var watchdogLog string
-	var processesLog string
-
-	if sendLogs {
-		svcLog = tail(l.G().Log, "service", logs.Service, numBytes)
-		ekLog = tail(l.G().Log, "ek", logs.EK, numBytes)
-		kbfsLog = tail(l.G().Log, "kbfs", logs.Kbfs, numBytes)
-		desktopLog = tail(l.G().Log, "desktop", logs.Desktop, numBytes)
-		updaterLog = tail(l.G().Log, "updater", logs.Updater, numBytes)
-		// We don't use the systemd journal to store regular logs, since on
-		// some systems (e.g. Ubuntu 16.04) it's not persisted across boots.
-		// However we do use it for startup logs, since that's the only place
-		// to get them in systemd mode.
-		if l.G().Env.WantsSystemd() {
-			startLog = tailSystemdJournal(l.G().Log, []string{"keybase.service", "keybase.ek", "kbfs.service", "keybase.gui.service", "keybase-redirector.service"}, numBytes)
-		} else {
-			startLog = tail(l.G().Log, "start", logs.Start, numBytes)
-		}
-		installLog = tail(l.G().Log, "install", logs.Install, numBytes)
-		systemLog = tail(l.G().Log, "system", logs.System, numBytes)
-		gitLog = tail(l.G().Log, "git", logs.Git, numBytes)
-		watchdogLog = tail(l.G().Log, "watchdog", logs.Watchdog, numBytes)
-		if logs.Trace != "" {
-			traceBundle = getTraceBundle(l.G().Log, logs.Trace)
-		}
-		if logs.CPUProfile != "" {
-			cpuProfileBundle = getCPUProfileBundle(l.G().Log, logs.CPUProfile)
-		}
-		// Only add extended status if we're sending logs
-		if mergeExtendedStatus {
-			statusJSON = l.mergeExtendedStatus(statusJSON)
-		}
-		processesLog = keybaseProcessList()
+func getPlatformInfo() keybase1.PlatformInfo {
+	return keybase1.PlatformInfo{
+		Os:        runtime.GOOS,
+		Arch:      runtime.GOARCH,
+		GoVersion: runtime.Version(),
 	}
-
-	return l.post(mctx, statusJSON, feedback, kbfsLog, svcLog, ekLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog, watchdogLog, traceBundle, cpuProfileBundle, uid, installID, processesLog)
 }
 
-// mergeExtendedStatus adds the extended status to the given status json blob.
-// If any errors occur the original status is returned unmodified.
-func (l *LogSendContext) mergeExtendedStatus(status string) string {
-	err := jsonw.EnsureMaxDepthBytesDefault([]byte(status))
+// DirSize walks the file tree the size of the given directory
+func DirSize(dirPath string) (size uint64, numFiles int, err error) {
+	err = filepath.Walk(dirPath, func(_ string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			size += uint64(info.Size())
+			numFiles++
+		}
+		return nil
+	})
+	return size, numFiles, err
+}
+
+func CacheSizeInfo(g *libkb.GlobalContext) (info []keybase1.DirSizeInfo, err error) {
+	cacheDir := g.GetCacheDir()
+	files, err := ioutil.ReadDir(cacheDir)
 	if err != nil {
-		return status
+		return nil, err
 	}
 
-	var statusObj map[string]interface{}
-	if err = json.Unmarshal([]byte(status), &statusObj); err != nil {
-		return status
+	var totalSize uint64
+	var totalFiles int
+	for _, file := range files {
+		if !file.IsDir() {
+			totalSize += uint64(file.Size())
+			continue
+		}
+		dirPath := filepath.Join(cacheDir, file.Name())
+		size, numFiles, err := DirSize(dirPath)
+		if err != nil {
+			return nil, err
+		}
+		totalSize += size
+		totalFiles += numFiles
+		info = append(info, keybase1.DirSizeInfo{
+			Name:      dirPath,
+			NumFiles:  numFiles,
+			HumanSize: humanize.Bytes(size),
+		})
 	}
+	info = append(info, keybase1.DirSizeInfo{
+		Name:      cacheDir,
+		NumFiles:  totalFiles,
+		HumanSize: humanize.Bytes(totalSize),
+	})
+	return info, nil
+}
 
-	extStatus, err := GetExtendedStatus(NewMetaContextTODO(l.G()))
+// execToString returns the space-trimmed output of a command or an error.
+func execToString(bin string, args []string) (string, error) {
+	result, err := exec.Command(bin, args...).Output()
 	if err != nil {
-		return status
+		return "", err
 	}
-
-	statusMap := make(map[string]interface{})
-	statusMap["status"] = statusObj
-	statusMap["extstatus"] = extStatus
-
-	fullStatus, err := json.Marshal(statusMap)
-	if err != nil {
-		return status
+	if result == nil {
+		return "", fmt.Errorf("Nil result")
 	}
-	return string(fullStatus)
+	return strings.TrimSpace(string(result)), nil
+}
+
+func GetFirstClient(v []keybase1.ClientStatus, typ keybase1.ClientType) *keybase1.ClientDetails {
+	for _, cli := range v {
+		if cli.Details.ClientType == typ {
+			return &cli.Details
+		}
+	}
+	return nil
 }

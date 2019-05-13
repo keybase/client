@@ -35,7 +35,7 @@ export const backgroundModeToTextColor = (backgroundMode: Background): $Values<t
     case 'Normal':
       return globalColors.black
     case 'Terminal':
-      return globalColors.blue3
+      return globalColors.blueLighter
     default:
       return globalColors.white
   }

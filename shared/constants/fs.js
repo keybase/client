@@ -626,6 +626,7 @@ export const folderRPCFromPath = (path: Types.Path): ?RPCTypes.Folder => {
   if (name === '') return null
 
   return {
+    conflictType: RPCTypes.favoriteFolderConflictType.none,
     created: false,
     folderType: Types.getRPCFolderTypeFromVisibility(visibility),
     name,
@@ -770,19 +771,6 @@ export const pathsInSameTlf = (a: Types.Path, b: Types.Path): boolean => {
   const elemsA = Types.getPathElements(a)
   const elemsB = Types.getPathElements(b)
   return elemsA.length >= 3 && elemsB.length >= 3 && elemsA[1] === elemsB[1] && elemsA[2] === elemsB[2]
-}
-
-export const destinationPickerGoToPathAction = (
-  routePath: I.List<string>,
-  destinationParentPath: Types.Path
-) => {
-  const to = {props: {destinationParentPath}, selected: 'destinationPicker'}
-  return RouteTreeGen.createPutActionIfOnPath({
-    expectedPath: routePath,
-    otherAction: isMobile
-      ? RouteTreeGen.createNavigateAppend({path: [to]})
-      : RouteTreeGen.createNavigateTo({path: [to]}),
-  })
 }
 
 export const escapePath = (path: Types.Path): string =>
@@ -1060,76 +1048,18 @@ export const makeActionsForDestinationPickerOpen = (
     index,
     path,
   }),
-  flags.useNewRouter || !routePath
-    ? RouteTreeGen.createNavigateAppend({
-        path: [{props: {index}, selected: 'destinationPicker'}],
-      })
-    : RouteTreeGen.createPutActionIfOnPath({
-        expectedPath: routePath,
-        otherAction: RouteTreeGen.createNavigateAppend({
-          path: [{props: {index}, selected: 'destinationPicker'}],
-        }),
-      }),
+  RouteTreeGen.createNavigateAppend({
+    path: [{props: {index}, selected: 'destinationPicker'}],
+  }),
 ]
 
 export const fsRootRouteForNav1 = isMobile ? [Tabs.settingsTab, SettingsConstants.fsTab] : [Tabs.fsTab]
 
-export const makeActionForOpenPathInFilesTab = flags.useNewRouter
-  ? (
-      path: Types.Path, // TODO: remove the second arg when we are done with migrating to nav2
-      routePath?: ?I.List<string>
-    ): TypedActions => RouteTreeGen.createNavigateAppend({path: [{props: {path}, selected: 'fsRoot'}]})
-  : (path: Types.Path, routePath?: ?I.List<string>): TypedActions => {
-      const finalRoute = {props: {path}, selected: 'main'}
-      const routeChangeAction = isMobile
-        ? RouteTreeGen.createNavigateTo({
-            path:
-              path === defaultPath
-                ? fsRootRouteForNav1
-                : [
-                    ...fsRootRouteForNav1,
-                    // Construct all parent folders so back button works all the way back
-                    // to /keybase
-                    ...Types.getPathElements(path)
-                      .slice(1, -1) // fsTab default to /keybase, so we skip one here
-                      .reduce(
-                        (routes, elem) => [
-                          ...routes,
-                          {
-                            props: {
-                              path: routes.length
-                                ? Types.pathConcat(routes[routes.length - 1].props.path, elem)
-                                : Types.stringToPath(`/keybase/${elem}`),
-                            },
-                            selected: 'main',
-                          },
-                        ],
-                        []
-                      ),
-                    finalRoute,
-                  ],
-          })
-        : RouteTreeGen.createNavigateTo({
-            path: [
-              Tabs.fsTab,
-              // Prepend the parent folder so when user clicks the back button they'd
-              // go back to the parent folder.
-              {props: {path: Types.getPathParent(path)}, selected: 'main'},
-              finalRoute,
-            ],
-          })
-      return routePath
-        ? RouteTreeGen.createPutActionIfOnPath({expectedPath: routePath, otherAction: routeChangeAction})
-        : routeChangeAction
-    }
+export const makeActionForOpenPathInFilesTab = (
+  path: Types.Path // TODO: remove the second arg when we are done with migrating to nav2
+): TypedActions => RouteTreeGen.createNavigateAppend({path: [{props: {path}, selected: 'fsRoot'}]})
 
-export const putActionIfOnPathForNav1 = (action: TypedActions, routePath?: ?I.List<string>) =>
-  !flags.useNewRouter && routePath
-    ? RouteTreeGen.createPutActionIfOnPath({
-        expectedPath: routePath,
-        otherAction: action,
-      })
-    : action
+export const putActionIfOnPathForNav1 = (action: TypedActions, routePath?: ?I.List<string>) => action
 
 export const makeActionsForShowSendLinkToChat = (
   path: Types.Path,

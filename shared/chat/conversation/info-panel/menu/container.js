@@ -8,8 +8,6 @@ import * as TeamsGen from '../../../../actions/teams-gen'
 import * as ChatGen from '../../../../actions/chat2-gen'
 import {namedConnect} from '../../../../util/container'
 import {InfoPanelMenu} from '.'
-import {teamsTab} from '../../../../constants/tabs'
-import flags from '../../../../util/feature-flags'
 import * as ChatTypes from '../../../../constants/types/chat2'
 
 export type OwnProps = {
@@ -92,35 +90,11 @@ const mapStateToProps = (state, {teamname, conversationIDKey, isSmallTeam, visib
 
 const mapDispatchToProps = (dispatch, {teamname, conversationIDKey}: OwnProps) => ({
   loadOperations: () => dispatch(TeamsGen.createGetTeamOperations({teamname})),
-  onAddPeople: () => {
-    if (flags.useNewRouter) {
-      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamAddPeople'}]}))
-    } else {
-      dispatch(
-        RouteTreeGen.createNavigateTo({
-          parentPath: [teamsTab],
-          path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'teamAddPeople'}],
-        })
-      )
-      dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
-    }
-  },
+  onAddPeople: () =>
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamAddPeople'}]})),
   onHideConv: () => dispatch(ChatGen.createHideConversation({conversationIDKey})),
-  onInvite: () => {
-    if (flags.useNewRouter) {
-      dispatch(
-        RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamInviteByEmail'}]})
-      )
-    } else {
-      dispatch(
-        RouteTreeGen.createNavigateTo({
-          parentPath: [teamsTab],
-          path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'teamInviteByEmail'}],
-        })
-      )
-      dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
-    }
-  },
+  onInvite: () =>
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamInviteByEmail'}]})),
   onLeaveTeam: () => {
     dispatch(
       RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamReallyLeaveTeam'}]})
@@ -133,15 +107,8 @@ const mapDispatchToProps = (dispatch, {teamname, conversationIDKey}: OwnProps) =
   onMuteConv: (muted: boolean) => dispatch(ChatGen.createMuteConversation({conversationIDKey, muted})),
   onUnhideConv: () => dispatch(ChatGen.createUnhideConversation({conversationIDKey})),
   onViewTeam: () => {
-    if (flags.useNewRouter) {
-      dispatch(RouteTreeGen.createClearModals())
-      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'team'}]}))
-    } else {
-      dispatch(
-        RouteTreeGen.createNavigateTo({parentPath: [teamsTab], path: [{props: {teamname}, selected: 'team'}]})
-      )
-      dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
-    }
+    dispatch(RouteTreeGen.createClearModals())
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'team'}]}))
   },
 })
 

@@ -11,17 +11,18 @@ import (
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
+	"golang.org/x/net/context"
 )
 
 //=============================================================================
 
-func MakeProofChecker(c ExternalServicesCollector, l RemoteProofChainLink) (ProofChecker, ProofError) {
+func MakeProofChecker(mctx MetaContext, c ExternalServicesCollector, l RemoteProofChainLink) (ProofChecker, ProofError) {
 	if c == nil {
 		return nil, NewProofError(keybase1.ProofStatus_UNKNOWN_TYPE,
 			"No proof services configured")
 	}
 	k := l.TableKey()
-	st := c.GetServiceType(k)
+	st := c.GetServiceType(mctx.Ctx(), k)
 	if st == nil {
 		return nil, NewProofError(keybase1.ProofStatus_UNKNOWN_TYPE,
 			"No proof service for type: %s", k)
@@ -205,15 +206,18 @@ func (t *BaseServiceType) IsNew(mctx MetaContext) bool {
 //=============================================================================
 
 type assertionContext struct {
-	esc ExternalServicesCollector
+	mctx MetaContext
+	esc  ExternalServicesCollector
 }
 
-func MakeAssertionContext(s ExternalServicesCollector) AssertionContext {
-	return assertionContext{esc: s}
+func MakeAssertionContext(mctx MetaContext, s ExternalServicesCollector) AssertionContext {
+	return assertionContext{mctx: mctx, esc: s}
 }
+
+func (a assertionContext) Ctx() context.Context { return a.mctx.Ctx() }
 
 func (a assertionContext) NormalizeSocialName(service string, username string) (string, error) {
-	st := a.esc.GetServiceType(service)
+	st := a.esc.GetServiceType(a.Ctx(), service)
 	if st == nil {
 		return "", fmt.Errorf("Unknown social network: %s", service)
 	}

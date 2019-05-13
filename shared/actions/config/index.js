@@ -21,13 +21,10 @@ import * as Router2 from '../../constants/router2'
 import * as FsTypes from '../../constants/types/fs'
 import * as FsConstants from '../../constants/fs'
 import URL from 'url-parse'
-import appRouteTree from '../../app/routes-app'
-import loginRouteTree from '../../app/routes-login'
 import avatarSaga from './avatar'
 import {isMobile} from '../../constants/platform'
 import {type TypedState} from '../../constants/reducer'
 import {updateServerConfigLastLoggedIn} from '../../app/server-config'
-import flags from '../../util/feature-flags'
 
 const onLoggedIn = (state, action) => {
   logger.info('keybase.1.NotifySession.loggedIn')
@@ -223,7 +220,7 @@ function* loadDaemonAccounts(state, action) {
 }
 
 const showDeletedSelfRootPage = () => [
-  RouteTreeGen.createSwitchRouteDef({routeDef: loginRouteTree}),
+  RouteTreeGen.createSwitchRouteDef({loggedIn: false}),
   RouteTreeGen.createNavigateTo({path: [Tabs.loginTab]}),
 ]
 
@@ -231,10 +228,10 @@ const switchRouteDef = (state, action) => {
   if (state.config.loggedIn) {
     if (action.type === ConfigGen.loggedIn && !action.payload.causedByStartup) {
       // only do this if we're not handling the initial loggedIn event, cause its handled by routeToInitialScreenOnce
-      return RouteTreeGen.createSwitchRouteDef({routeDef: appRouteTree})
+      return RouteTreeGen.createSwitchRouteDef({loggedIn: true})
     }
   } else {
-    return RouteTreeGen.createSwitchRouteDef({routeDef: loginRouteTree})
+    return RouteTreeGen.createSwitchRouteDef({loggedIn: false})
   }
 }
 
@@ -278,10 +275,6 @@ function* maybeDoneWithLogoutHandshake(state) {
 let routeToInitialScreenOnce = false
 
 const routeToInitialScreen2 = state => {
-  if (!flags.useNewRouter) {
-    return
-  }
-
   // bail if we don't have a navigator and loaded
   if (!Router2._getNavigator()) {
     return
@@ -314,7 +307,7 @@ const routeToInitialScreen = state => {
         }),
       ]
       return [
-        RouteTreeGen.createSwitchRouteDef({path: [Tabs.chatTab], routeDef: appRouteTree}),
+        RouteTreeGen.createSwitchRouteDef({loggedIn: true, path: [Tabs.chatTab]}),
         RouteTreeGen.createResetStack({actions, index: 1, tab: Tabs.chatTab}),
         ChatGen.createSelectConversation({
           conversationIDKey: state.config.startupConversation,
@@ -326,7 +319,7 @@ const routeToInitialScreen = state => {
     // A share
     if (state.config.startupSharePath) {
       return [
-        RouteTreeGen.createSwitchRouteDef({path: FsConstants.fsRootRouteForNav1, routeDef: appRouteTree}),
+        RouteTreeGen.createSwitchRouteDef({loggedIn: true, path: FsConstants.fsRootRouteForNav1}),
         // $FlowIssue thinks it's undefined
         FsGen.createSetIncomingShareLocalPath({localPath: state.config.startupSharePath}),
         FsGen.createShowIncomingShare({initialDestinationParentPath: FsTypes.stringToPath('/keybase')}),
@@ -336,7 +329,7 @@ const routeToInitialScreen = state => {
     // A follow
     if (state.config.startupFollowUser) {
       return [
-        RouteTreeGen.createSwitchRouteDef({path: [Tabs.peopleTab], routeDef: appRouteTree}),
+        RouteTreeGen.createSwitchRouteDef({loggedIn: true, path: [Tabs.peopleTab]}),
         ProfileGen.createShowUserProfile({username: state.config.startupFollowUser}),
       ]
     }
@@ -349,7 +342,7 @@ const routeToInitialScreen = state => {
         logger.info('AppLink: url', url.href, 'username', username)
         if (username) {
           return [
-            RouteTreeGen.createSwitchRouteDef({path: [Tabs.peopleTab], routeDef: appRouteTree}),
+            RouteTreeGen.createSwitchRouteDef({loggedIn: true, path: [Tabs.peopleTab]}),
             ProfileGen.createShowUserProfile({username}),
           ]
         }
@@ -360,13 +353,13 @@ const routeToInitialScreen = state => {
 
     // Just a saved tab
     return RouteTreeGen.createSwitchRouteDef({
+      loggedIn: true,
       path: [state.config.startupTab || Tabs.peopleTab],
-      routeDef: appRouteTree,
     })
   } else {
     // Show a login screen
     return [
-      RouteTreeGen.createSwitchRouteDef({routeDef: loginRouteTree}),
+      RouteTreeGen.createSwitchRouteDef({loggedIn: false}),
       RouteTreeGen.createNavigateTo({parentPath: [Tabs.loginTab], path: []}),
     ]
   }
@@ -502,46 +495,38 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
     [ConfigGen.loggedIn, ConfigGen.loggedOut],
     switchRouteDef
   )
-  if (flags.useNewRouter) {
-    // MUST go above routeToInitialScreen2 so we set the nav correctly
-    yield* Saga.chainAction<ConfigGen.SetNavigatorPayload>(ConfigGen.setNavigator, setNavigator)
-    // Go to the correct starting screen
-    yield* Saga.chainAction<ConfigGen.DaemonHandshakeDonePayload | ConfigGen.SetNavigatorPayload>(
-      [ConfigGen.daemonHandshakeDone, ConfigGen.setNavigator],
-      routeToInitialScreen2
-    )
+  // MUST go above routeToInitialScreen2 so we set the nav correctly
+  yield* Saga.chainAction<ConfigGen.SetNavigatorPayload>(ConfigGen.setNavigator, setNavigator)
+  // Go to the correct starting screen
+  yield* Saga.chainAction<ConfigGen.DaemonHandshakeDonePayload | ConfigGen.SetNavigatorPayload>(
+    [ConfigGen.daemonHandshakeDone, ConfigGen.setNavigator],
+    routeToInitialScreen2
+  )
 
-    yield* Saga.chainAction<
-      | RouteTreeGen.NavigateAppendPayload
-      | RouteTreeGen.NavigateToPayload
-      | RouteTreeGen.NavigateUpPayload
-      | RouteTreeGen.SwitchToPayload
-      | RouteTreeGen.SwitchRouteDefPayload
-      | RouteTreeGen.ClearModalsPayload
-      | RouteTreeGen.NavUpToScreenPayload
-      | RouteTreeGen.SwitchTabPayload
-      | RouteTreeGen.ResetStackPayload
-    >(
-      [
-        RouteTreeGen.navigateAppend,
-        RouteTreeGen.navigateTo,
-        RouteTreeGen.navigateUp,
-        RouteTreeGen.switchTo,
-        RouteTreeGen.switchRouteDef,
-        RouteTreeGen.clearModals,
-        RouteTreeGen.navUpToScreen,
-        RouteTreeGen.switchTab,
-        RouteTreeGen.resetStack,
-      ],
-      newNavigation
-    )
-  } else {
-    // Go to the correct starting screen
-    yield* Saga.chainAction<ConfigGen.DaemonHandshakeDonePayload>(
-      ConfigGen.daemonHandshakeDone,
-      routeToInitialScreen
-    )
-  }
+  yield* Saga.chainAction<
+    | RouteTreeGen.NavigateAppendPayload
+    | RouteTreeGen.NavigateToPayload
+    | RouteTreeGen.NavigateUpPayload
+    | RouteTreeGen.SwitchToPayload
+    | RouteTreeGen.SwitchRouteDefPayload
+    | RouteTreeGen.ClearModalsPayload
+    | RouteTreeGen.NavUpToScreenPayload
+    | RouteTreeGen.SwitchTabPayload
+    | RouteTreeGen.ResetStackPayload
+  >(
+    [
+      RouteTreeGen.navigateAppend,
+      RouteTreeGen.navigateTo,
+      RouteTreeGen.navigateUp,
+      RouteTreeGen.switchTo,
+      RouteTreeGen.switchRouteDef,
+      RouteTreeGen.clearModals,
+      RouteTreeGen.navUpToScreen,
+      RouteTreeGen.switchTab,
+      RouteTreeGen.resetStack,
+    ],
+    newNavigation
+  )
   // If you start logged in we don't get the incoming call from the daemon so we generate our own here
   yield* Saga.chainAction<ConfigGen.DaemonHandshakeDonePayload>(
     ConfigGen.daemonHandshakeDone,

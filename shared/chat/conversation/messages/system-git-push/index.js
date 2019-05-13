@@ -81,7 +81,7 @@ const GitPushDefault = ({
             <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-start', flex: 1}}>
               <Box
                 style={{
-                  backgroundColor: globalColors.blue3_20,
+                  backgroundColor: globalColors.blueLighter_20,
                   borderRadius: 3,
                   display: 'flex',
                   height: 18,
@@ -127,7 +127,7 @@ const GitPushCommon = ({children, pusher, timestamp, onClickUserAvatar}: PushCom
   <UserNotice
     username={pusher}
     style={{marginTop: globalMargins.small}}
-    bgColor={globalColors.blue4}
+    bgColor={globalColors.blueLighter2}
     onClickAvatar={() => onClickUserAvatar(pusher)}
   >
     {!isMobile && <Icon type="icon-team-git-16" style={{marginLeft: 20, marginTop: -12, zIndex: 999}} />}

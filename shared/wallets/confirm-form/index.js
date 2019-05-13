@@ -54,8 +54,6 @@ const ConfirmSend = (props: ConfirmSendProps) => (
         fullWidth={true}
         centerChildren={true}
         gap="small"
-        gapStart={true}
-        gapEnd={true}
         style={styles.buttonContainer}
       >
         {props.readyToSend === 'spinning' ? (
@@ -92,13 +90,14 @@ const ConfirmSend = (props: ConfirmSendProps) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  backgroundColorPurple: {backgroundColor: Styles.globalColors.purple},
+  backgroundColorPurple: {backgroundColor: Styles.globalColors.purpleDark},
   button: {
     marginBottom: Styles.globalMargins.small,
     marginTop: Styles.globalMargins.small,
   },
   buttonContainer: Styles.platformStyles({
     common: {
+      ...Styles.padding(0, Styles.globalMargins.small),
       alignSelf: 'flex-end',
       flexShrink: 0,
     },

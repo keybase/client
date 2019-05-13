@@ -12,9 +12,8 @@ import Friend from './friend/container'
 import Measure from './measure'
 import Teams from './teams/container'
 import Folders from '../folders/container'
-import flags from '../../util/feature-flags'
 import shallowEqual from 'shallowequal'
-import PeopleSearch from '../search/bar'
+import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Flow from '../../util/flow'
 
 type BackgroundColorType = 'red' | 'green' | 'blue'
@@ -27,6 +26,7 @@ export type Props = {|
   followersCount: number,
   following: ?Array<string>,
   followingCount: number,
+  notAUser: boolean,
   onAddIdentity: ?() => void,
   onBack: () => void,
   onReload: () => void,
@@ -53,18 +53,6 @@ const colorTypeToStyle = type => {
   }
 }
 
-const Header = p =>
-  flags.useNewRouter ? null : (
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
-      <Kb.BackButton iconColor={Styles.globalColors.white} textStyle={styles.backButton} onClick={p.onBack} />
-      <Kb.Box2 direction="vertical" style={{flexGrow: 1, paddingRight: Styles.isMobile ? 16 : 0}}>
-        <Kb.Box2 direction="vertical" alignSelf="flex-end">
-          <PeopleSearch onSearch={p.onSearch} whiteText={true} />
-        </Kb.Box2>
-      </Kb.Box2>
-    </Kb.Box2>
-  )
-
 const BioLayout = p => (
   <Kb.Box2 direction="vertical" style={styles.bio}>
     <Kb.ConnectedNameWithIcon
@@ -72,7 +60,7 @@ const BioLayout = p => (
       underline={false}
       selectable={true}
       colorFollowing={true}
-      notFollowingColorOverride={Styles.globalColors.orange}
+      notFollowingColorOverride={p.notAUser ? Styles.globalColors.black_50 : Styles.globalColors.orange}
       editableIcon={!!p.onEditAvatar}
       onEditIcon={p.onEditAvatar}
       avatarSize={avatarSize}
@@ -98,9 +86,21 @@ const Proofs = p => {
     assertions = null
   }
 
+  let proveIt = null
+
+  if (p.notAUser) {
+    const [name, service] = p.username.split('@')
+    proveIt = (
+      <Kb.Text type="BodySmall" style={styles.proveIt}>
+        Tell {name} to join Keybase and prove their {service}.
+      </Kb.Text>
+    )
+  }
+
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       {assertions}
+      {proveIt}
     </Kb.Box2>
   )
 }
@@ -180,6 +180,7 @@ export type BioTeamProofsProps = {|
   assertionKeys: ?Array<string>,
   backgroundColorType: BackgroundColorType,
   onEditAvatar: ?() => void,
+  notAUser: boolean,
   suggestionKeys: ?Array<string>,
   username: string,
   reason: string,
@@ -282,17 +283,9 @@ class User extends React.Component<Props, State> {
   }
 
   _renderSectionHeader = ({section}) => {
-    if (section === this._bioTeamProofsSection) {
-      return (
-        <Header
-          key="header"
-          onBack={this.props.onBack}
-          state={this.props.state}
-          backgroundColorType={this.props.backgroundColorType}
-          onSearch={this.props.onSearch}
-        />
-      )
-    }
+    if (section === this._bioTeamProofsSection) return null
+    if (this.props.notAUser) return null
+
     const loading = !this.props.followers || !this.props.following
     return (
       <FriendshipTabs
@@ -307,7 +300,7 @@ class User extends React.Component<Props, State> {
   }
 
   _renderOtherUsers = ({item, section, index}) =>
-    item.type === 'noFriends' || item.type === 'loading' ? (
+    this.props.notAUser ? null : item.type === 'noFriends' || item.type === 'loading' ? (
       <Kb.Box2 direction="horizontal" style={styles.textEmpty} centerChildren={true}>
         <Kb.Text type="BodySmall">{item.text}</Kb.Text>
       </Kb.Box2>
@@ -326,6 +319,7 @@ class User extends React.Component<Props, State> {
         reason={this.props.reason}
         suggestionKeys={this.props.suggestionKeys}
         onEditAvatar={this.props.onEditAvatar}
+        notAUser={this.props.notAUser}
       />
     ),
   }
@@ -338,6 +332,8 @@ class User extends React.Component<Props, State> {
       this.props.onReload()
     }
   }
+
+  _errorFilter = e => e.code !== RPCTypes.constantsStatusCode.scresolutionfailed
 
   render() {
     const friends = this.state.selectedFollowing ? this.props.following : this.props.followers
@@ -366,6 +362,7 @@ class User extends React.Component<Props, State> {
         onReload={this.props.onReload}
         onBack={this.props.onBack}
         waitingKeys={[Constants.profileLoadWaitingKey]}
+        errorFilter={this._errorFilter}
       >
         <Kb.Box2
           direction="vertical"
@@ -423,7 +420,6 @@ export const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.tiny,
     },
   }),
-  backButton: {color: Styles.globalColors.white},
   backgroundColor: {
     ...Styles.globalStyles.fillAbsolute,
     bottom: undefined,
@@ -492,17 +488,6 @@ export const styles = Styles.styleSheetCreate({
     isElectron: {justifyContent: 'flex-start'},
     isMobile: {justifyContent: 'center'},
   }),
-  header: Styles.platformStyles({
-    common: {
-      alignItems: 'center',
-      flexShrink: 0,
-      height: headerHeight,
-    },
-    isElectron: {
-      padding: Styles.globalMargins.small,
-    },
-    isMobile: {},
-  }),
   innerContainer: {
     height: '100%',
     width: '100%',
@@ -536,6 +521,9 @@ export const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.medium,
     },
   }),
+  proveIt: {
+    paddingTop: Styles.globalMargins.small,
+  },
   reason: Styles.platformStyles({
     isElectron: {
       height: avatarSize / 2 + Styles.globalMargins.small,

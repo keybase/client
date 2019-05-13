@@ -3,7 +3,7 @@
 
 // +build ios android
 
-package libkb
+package status
 
 func keybaseProcessList() string {
 	return "no process info available for mobile systems"

@@ -30,7 +30,7 @@ const font = isIOS
 const util = {
   ...Shared.util({}),
   loadingTextStyle: {
-    backgroundColor: globalColors.lightGrey,
+    backgroundColor: globalColors.greyLight,
     height: 16,
   },
 }

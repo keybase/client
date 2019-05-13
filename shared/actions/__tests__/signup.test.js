@@ -128,9 +128,9 @@ describe('checkInviteCode', () => {
     const nextState = makeTypedState(reducer(state, action))
     // leaves state alone
     expect(nextState).toEqual(makeTypedState(state))
-    expect(_testing.showUserEmailOnNoErrors(nextState)).toEqual(
-      RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupUsernameAndEmail']})
-    )
+    // expect(_testing.showUserEmailOnNoErrors(nextState)).toEqual(
+    // RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupUsernameAndEmail']})
+    // )
   })
   it("shows error on fail: must match invite code. doesn't go to next screen", () => {
     const preAction = SignupGen.createRequestedAutoInvite({inviteCode: 'invite code'})
