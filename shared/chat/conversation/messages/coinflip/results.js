@@ -330,7 +330,7 @@ const styles = Styles.styleSheetCreate({
   },
   listOrder: Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.grey,
+      backgroundColor: Styles.globalColors.greyDark,
       borderRadius: 2,
       color: Styles.globalColors.black,
       height: 14,

@@ -74,7 +74,7 @@ const styles = Styles.styleSheetCreate({
 const HoverBox = Styles.isMobile
   ? Kb.Box2
   : Styles.styled(Kb.Box2)({
-      ':hover': {backgroundColor: Styles.globalColors.blueGrey2},
+      ':hover': {backgroundColor: Styles.globalColors.blueGreyDark},
     })
 
 const WalletRow = (props: Props) => {
@@ -83,7 +83,7 @@ const WalletRow = (props: Props) => {
       <HoverBox
         style={Styles.collapseStyles([
           styles.containerBox,
-          props.isSelected ? {backgroundColor: Styles.globalColors.purple3} : {},
+          props.isSelected ? {backgroundColor: Styles.globalColors.purpleLight} : {},
         ])}
         direction="horizontal"
         fullWidth={true}

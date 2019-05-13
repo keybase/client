@@ -40,7 +40,7 @@ func TestMergeExtendedStatus(t *testing.T) {
 }
 
 func TestFullStatus(t *testing.T) {
-	tc := libkb.SetupTest(t, "MergedExtendedStatus", 1)
+	tc := libkb.SetupTest(t, "FullStatus", 1)
 	defer tc.Cleanup()
 	mctx := libkb.NewMetaContextForTest(tc)
 	fstatus, err := GetFullStatus(mctx)

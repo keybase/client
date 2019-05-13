@@ -46,7 +46,7 @@ const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     common: {
       ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.tiny),
-      backgroundColor: Styles.globalColors.blue5,
+      backgroundColor: Styles.globalColors.blueLighter3,
     },
     isElectron: {
       height: 32,

@@ -121,12 +121,12 @@ class PaymentStatus extends React.Component<Props, State> {
 
 const styles = Styles.styleSheetCreate({
   completed: {
-    backgroundColor: Styles.globalColors.purple2_10,
+    backgroundColor: Styles.globalColors.purple_10,
     borderRadius: Styles.globalMargins.xxtiny,
-    color: Styles.globalColors.purple2,
+    color: Styles.globalColors.purple,
   },
   completedIcon: {
-    color: Styles.globalColors.purple2,
+    color: Styles.globalColors.purple,
   },
   container: Styles.platformStyles({
     isElectron: {

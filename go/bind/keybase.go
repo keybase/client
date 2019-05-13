@@ -272,14 +272,19 @@ func (s serviceCn) NewChat(config libkbfs.Config, params libkbfs.InitParams, ctx
 }
 
 // LogSend sends a log to Keybase
-func LogSend(status string, feedback string, sendLogs bool, uiLogPath, traceDir, cpuProfileDir string) (res string, err error) {
+func LogSend(statusJSON string, feedback string, sendLogs bool, uiLogPath, traceDir, cpuProfileDir string) (res string, err error) {
 	defer func() { err = flattenError(err) }()
+	env := kbCtx.Env
+	logSendContext.UID = env.GetUID()
+	logSendContext.InstallID = env.GetInstallID()
+	logSendContext.StatusJSON = statusJSON
+	logSendContext.Feedback = feedback
 	logSendContext.Logs.Desktop = uiLogPath
 	logSendContext.Logs.Trace = traceDir
 	logSendContext.Logs.CPUProfile = cpuProfileDir
-	env := kbCtx.Env
-	sendLogMaxSizeBytes := 10 * 1024 * 1024 // NOTE: If you increase this, check go/libkb/env.go:Env.GetLogFileConfig to make sure we store at least that much.
-	return logSendContext.LogSend(status, feedback, sendLogs, sendLogMaxSizeBytes, env.GetUID(), env.GetInstallID(), true /* mergeExtendedStatus */)
+
+	logSendID, err := logSendContext.LogSend(sendLogs, status.LogSendDefaultBytesMobile, true /* mergeExtendedStatus */)
+	return string(logSendID), err
 }
 
 // WriteB64 sends a base64 encoded msgpack rpc payload

@@ -14,7 +14,7 @@ class SystemText extends React.PureComponent<Props> {
   render() {
     const {author, timestamp, text} = this.props.message
     return (
-      <UserNotice style={{marginTop: globalMargins.small}} username={author} bgColor={globalColors.blue4}>
+      <UserNotice style={{marginTop: globalMargins.small}} username={author} bgColor={globalColors.blueLighter2}>
         <Text type="BodySmallSemibold" negative={true} style={{color: globalColors.black_50}}>
           {formatTimeForMessages(timestamp)}
         </Text>

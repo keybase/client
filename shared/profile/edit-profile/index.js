@@ -115,7 +115,7 @@ class EditProfile extends React.Component<Props, State> {
 const roundedBox = {
   alignSelf: 'stretch',
   borderBottomWidth: 1,
-  borderColor: Styles.globalColors.grey,
+  borderColor: Styles.globalColors.greyDark,
   borderLeftWidth: 1,
   borderRightWidth: 1,
   borderStyle: 'solid',

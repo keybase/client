@@ -13,7 +13,7 @@ type Props = any
 
 const AppIconBox = Styles.styled(Kb.ClickableBox)({
   ':hover': {
-    backgroundColor: Styles.globalColors.lightGrey,
+    backgroundColor: Styles.globalColors.greyLight,
   },
 })
 const AppIconBoxOnRed = Styles.styled(Kb.ClickableBox)({

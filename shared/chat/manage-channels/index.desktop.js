@@ -166,7 +166,7 @@ const _createIcon = Styles.platformStyles({
   isElectron: {display: 'block'},
 })
 
-const _hoverColor = Styles.globalColors.blue2
+const _hoverColor = Styles.globalColors.blueLight
 
 const _createStyle = {
   ...Styles.globalStyles.flexBoxRow,

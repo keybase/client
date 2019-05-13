@@ -3,6 +3,7 @@ package libkb
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -15,12 +16,17 @@ type MobileAppState struct {
 	sync.Mutex
 	state     keybase1.MobileAppState
 	updateChs []chan keybase1.MobileAppState
+
+	// mtime is the time at which the appstate first switched to the current state.
+	// It is a monotonic timestamp and should only be used relatively.
+	mtime *time.Time
 }
 
 func NewMobileAppState(g *GlobalContext) *MobileAppState {
 	return &MobileAppState{
 		Contextified: NewContextified(g),
 		state:        keybase1.MobileAppState_FOREGROUND,
+		mtime:        nil,
 	}
 }
 
@@ -46,6 +52,8 @@ func (a *MobileAppState) Update(state keybase1.MobileAppState) {
 		a.G().Log.Debug("MobileAppState.Update: useful update: %v, we are currently in state: %v",
 			state, a.state)
 		a.state = state
+		t := time.Now()
+		a.mtime = &t // only update mtime if we're changing state
 		for _, ch := range a.updateChs {
 			ch <- state
 		}
@@ -67,6 +75,12 @@ func (a *MobileAppState) State() keybase1.MobileAppState {
 	a.Lock()
 	defer a.Unlock()
 	return a.state
+}
+
+func (a *MobileAppState) StateAndMtime() (keybase1.MobileAppState, *time.Time) {
+	a.Lock()
+	defer a.Unlock()
+	return a.state, a.mtime
 }
 
 // --------------------------------------------------

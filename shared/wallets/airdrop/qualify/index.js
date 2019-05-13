@@ -256,7 +256,7 @@ const styles = Styles.styleSheetCreate({
     flexGrow: 0,
   },
   container: Styles.platformStyles({
-    common: {backgroundColor: Styles.globalColors.purple2},
+    common: {backgroundColor: Styles.globalColors.purple},
     isElectron: {
       height: 550,
       width: 400,
@@ -286,7 +286,7 @@ const styles = Styles.styleSheetCreate({
   },
   headerText: {color: Styles.globalColors.white},
   loadingText: {color: Styles.globalColors.white_40},
-  popupContainer: {backgroundColor: Styles.globalColors.purple2},
+  popupContainer: {backgroundColor: Styles.globalColors.purple},
   progress: Styles.platformStyles({
     common: {
       color: Styles.globalColors.white_75,

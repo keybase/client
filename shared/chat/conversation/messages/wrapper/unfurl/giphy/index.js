@@ -92,7 +92,7 @@ const styles = Styles.styleSheetCreate({
       minWidth: 150,
     },
     isMobile: {
-      borderColor: Styles.globalColors.lightGrey,
+      borderColor: Styles.globalColors.greyLight,
       borderRadius: Styles.borderRadius,
       borderWidth: 1,
       padding: Styles.globalMargins.xtiny,
@@ -100,7 +100,7 @@ const styles = Styles.styleSheetCreate({
   }),
   quoteContainer: {
     alignSelf: 'stretch',
-    backgroundColor: Styles.globalColors.lightGrey,
+    backgroundColor: Styles.globalColors.greyLight,
     paddingLeft: Styles.globalMargins.xtiny,
   },
   siteNameContainer: Styles.platformStyles({

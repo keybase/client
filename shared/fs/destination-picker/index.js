@@ -131,7 +131,7 @@ const styles = Styles.styleSheetCreate({
   actionRowContainer: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    backgroundColor: Styles.globalColors.blue5,
+    backgroundColor: Styles.globalColors.blueLighter3,
     flexShrink: 1,
     height: RowCommon.normalRowHeight,
     paddingLeft: Styles.globalMargins.small,

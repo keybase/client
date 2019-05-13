@@ -107,7 +107,7 @@ class AssetInput extends React.Component<Props> {
           onChangeText={this._onChangeAmount}
           textType="HeaderBigExtrabold"
           placeholder={this.props.inputPlaceholder}
-          placeholderColor={Styles.globalColors.purple2_40}
+          placeholderColor={Styles.globalColors.purple_40}
           error={!!this.props.warningAsset}
           value={this.props.value}
         />
@@ -151,7 +151,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   input: {
-    color: Styles.globalColors.purple2,
+    color: Styles.globalColors.purple,
     position: 'relative',
     top: -8,
   },
@@ -163,7 +163,7 @@ const styles = Styles.styleSheetCreate({
   labelMargin: {marginLeft: 1},
   topLabel: {color: Styles.globalColors.blue},
   unit: {
-    color: Styles.globalColors.purple2,
+    color: Styles.globalColors.purple,
   },
 })
 

@@ -123,7 +123,7 @@ class Search extends React.Component<SearchProps, SearchState> {
 }
 
 const styles = Styles.styleSheetCreate({
-  backgroundColorPurple: {backgroundColor: Styles.globalColors.purple},
+  backgroundColorPurple: {backgroundColor: Styles.globalColors.purpleDark},
   input: {
     alignSelf: 'center',
     borderBottomWidth: 0,

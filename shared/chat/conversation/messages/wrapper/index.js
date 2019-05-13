@@ -157,7 +157,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                 <Kb.WithTooltip text={this.props.authorIsOwner ? 'Owner' : 'Admin'}>
                   <Kb.Icon
                     color={
-                      this.props.authorIsOwner ? Styles.globalColors.yellow2 : Styles.globalColors.black_35
+                      this.props.authorIsOwner ? Styles.globalColors.yellowDark : Styles.globalColors.black_35
                     }
                     fontSize={10}
                     type="iconfont-crown-owner"
@@ -308,7 +308,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             ...props,
             onLongPress: this.props.toggleShowingMenu,
             onPress: this._dismissKeyboard,
-            underlayColor: Styles.globalColors.blue5,
+            underlayColor: Styles.globalColors.blueLighter3,
           }
         : props
     } else {

@@ -26,7 +26,7 @@ const UserButton = ({isPublic, onClick}: {isPublic: boolean, onClick: () => void
       onClick={onClick}
       labelStyle={{color: globalColors.white}}
       style={{
-        backgroundColor: isPublic ? globalColors.yellowGreen : globalColors.darkBlue2,
+        backgroundColor: isPublic ? globalColors.yellowGreen : globalColors.blueDark,
       }}
       label={isPublic ? 'Open public folder' : 'New private folder'}
     />
@@ -74,7 +74,7 @@ const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username, text}:
         style={platformStyles({
           isElectron: desktopStyles.clickable,
         })}
-        color={isPublic ? globalColors.yellowGreen : globalColors.darkBlue2}
+        color={isPublic ? globalColors.yellowGreen : globalColors.blueDark}
       />
     </Box>
   )

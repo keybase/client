@@ -219,7 +219,7 @@ const styles = Styles.styleSheetCreate({
   headerTop: Styles.platformStyles({
     common: {
       alignItems: 'center',
-      backgroundColor: Styles.globalColors.purple,
+      backgroundColor: Styles.globalColors.purpleDark,
       paddingBottom: Styles.globalMargins.small,
     },
     isElectron: {
@@ -228,7 +228,7 @@ const styles = Styles.styleSheetCreate({
   }),
   loadingHeaderTop: Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.purple,
+      backgroundColor: Styles.globalColors.purpleDark,
     },
     isElectron: {
       height: 133,

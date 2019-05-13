@@ -41,7 +41,7 @@ const Header = (props: HeaderProps) => (
 const styles = Styles.styleSheetCreate({
   header: Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.purple,
+      backgroundColor: Styles.globalColors.purpleDark,
     },
     isElectron: {
       flex: 1,

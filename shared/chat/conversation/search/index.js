@@ -309,7 +309,7 @@ const styles = Styles.styleSheetCreate({
   },
   hitList: Styles.platformStyles({
     isElectron: {
-      backgroundColor: Styles.globalColors.blue5,
+      backgroundColor: Styles.globalColors.blueLighter3,
       borderBottom: '1px solid',
       borderColor: Styles.globalColors.black_20,
       height: 4 * hitHeight,
@@ -353,7 +353,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   outerContainer: {
-    backgroundColor: Styles.globalColors.blue5,
+    backgroundColor: Styles.globalColors.blueLighter3,
     justifyContent: 'space-between',
     padding: Styles.globalMargins.tiny,
   },

@@ -33,7 +33,7 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       ...Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
-      backgroundColor: Styles.globalColors.grey,
+      backgroundColor: Styles.globalColors.greyDark,
       borderRadius: 8,
       flexShrink: 0,
       height: 16,
