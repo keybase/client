@@ -58,12 +58,20 @@ func (c *bulkLookupContactsProvider) FillUsernames(mctx libkb.MetaContext, res [
 type ContactsHandler struct {
 	libkb.Contextified
 	*BaseHandler
+
+	contactsProvider *contacts.CachedContactsProvider
 }
 
 func NewContactsHandler(xp rpc.Transporter, g *libkb.GlobalContext) *ContactsHandler {
+	contactsProvider := &contacts.CachedContactsProvider{
+		Provider: &bulkLookupContactsProvider{},
+		Cache:    contacts.NewContactCacheStore(g),
+	}
+
 	handler := &ContactsHandler{
-		Contextified: libkb.NewContextified(g),
-		BaseHandler:  NewBaseHandler(g, xp),
+		Contextified:     libkb.NewContextified(g),
+		BaseHandler:      NewBaseHandler(g, xp),
+		contactsProvider: contactsProvider,
 	}
 	return handler
 }
@@ -74,8 +82,5 @@ func (h *ContactsHandler) LookupContactList(ctx context.Context, arg keybase1.Lo
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("LOOKCON")
 	defer mctx.TraceTimed(fmt.Sprintf("ContactsHandler#LookupContactList(len=%d)", len(arg.Contacts)),
 		func() error { return err })()
-	provider := &contacts.CachedContactsProvider{
-		Provider: &bulkLookupContactsProvider{},
-	}
-	return contacts.ResolveContacts(mctx, provider, arg.Contacts, arg.UserRegionCode)
+	return contacts.ResolveContacts(mctx, h.contactsProvider, arg.Contacts, arg.UserRegionCode)
 }

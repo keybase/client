@@ -6,6 +6,8 @@ package contacts
 import (
 	"testing"
 
+	"github.com/keybase/client/go/kbtest"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
@@ -39,6 +41,7 @@ func TestCacheProvider(t *testing.T) {
 	mockProvider := makeProvider()
 	cacheProvider := &CachedContactsProvider{
 		Provider: mockProvider,
+		Cache:    NewContactCacheStore(tc.G),
 	}
 
 	res, err := cacheProvider.LookupAll(libkb.NewMetaContextForTest(tc), []keybase1.EmailAddress{}, []keybase1.RawPhoneNumber{}, keybase1.RegionCode(""))
@@ -50,6 +53,9 @@ func TestLookupCache(t *testing.T) {
 	tc := libkb.SetupTest(t, "TestLookupContacts", 1)
 	defer tc.Cleanup()
 
+	_, err := kbtest.CreateAndSignupFakeUser("itof", tc.G)
+	require.NoError(t, err)
+
 	mockProvider := makeProvider()
 	provider := &anotherMockContactsProvider{
 		provider: mockProvider,
@@ -57,6 +63,7 @@ func TestLookupCache(t *testing.T) {
 	}
 	cacheProvider := &CachedContactsProvider{
 		Provider: provider,
+		Cache:    NewContactCacheStore(tc.G),
 	}
 
 	// Test empty contact list
