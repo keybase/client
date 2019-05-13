@@ -32,6 +32,7 @@ class EnterUsernameInput extends React.Component<InputProps, InputState> {
   _onBlur = () => this._setFocus(false)
 
   render() {
+    // If ever there become more than 2 choices, this can be pushed into a protocol parameter.
     let usernamePlaceholder = this.props.serviceSuffix === '@theqrl.org' ? 'Your QRL address' : 'Your username'
     return (
       <Kb.Box2
