@@ -787,6 +787,12 @@
 			"revisionTime": "2019-04-24T19:09:51Z"
 		},
 		{
+			"checksumSHA1": "LA9Xi99EOzjB7nqOI3UqmJIfqA8=",
+			"path": "github.com/keybase/xurls",
+			"revision": "20723a7d9031ce424dd37d4b43ee581b1b8680ba",
+			"revisionTime": "2019-04-12T04:22:54Z"
+		},
+		{
 			"checksumSHA1": "38ZTud4EfZYfY/4YZxwzesb3mIs=",
 			"path": "github.com/kr/pty",
 			"revision": "f7ee69f31298ecbe5d2b349c711e2547a617d398",
@@ -833,12 +839,6 @@
 			"path": "github.com/mitchellh/go-homedir",
 			"revision": "ae18d6b8b3205b561c79e8e5f69bff09736185f4",
 			"revisionTime": "2018-08-24T00:42:36Z"
-		},
-		{
-			"checksumSHA1": "hODFhJJ4mBX+GN/Y55hkN8yle1s=",
-			"path": "github.com/mvdan/xurls",
-			"revision": "20723a7d9031ce424dd37d4b43ee581b1b8680ba",
-			"revisionTime": "2019-04-12T04:22:54Z"
 		},
 		{
 			"checksumSHA1": "rZ4W4fT8VjifBeSBQSEjWWI4ISU=",
