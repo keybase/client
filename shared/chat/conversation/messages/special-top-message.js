@@ -110,9 +110,9 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     conversationIDKey: ownProps.conversationIDKey,
     hasOlderResetConversation,
     loadMoreType,
+    pendingWaiting,
     showRetentionNotice,
     showTeamOffer,
-    pendingWaiting,
   }
 }
 const mapDispatchToProps = dispatch => ({})
