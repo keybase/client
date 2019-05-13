@@ -14,11 +14,11 @@ const provider = Sb.createPropProviderWithCommon({
   }),
   WalletSendButton: props => ({
     disabled: false,
-    disabledDueToMobileOnly: false,
     onSendToAnotherAccount: Sb.action('onSendToAnotherAccount'),
     onSendToKeybaseUser: Sb.action('onSendToKeybaseUser'),
     onSendToStellarAddress: Sb.action('onSendToStellarAddress'),
     small: props.small,
+    thisDeviceIsLockedOut: false,
   }),
 })
 
@@ -38,6 +38,7 @@ const common = {
   accountID: Types.stringToAccountID('GDP25ACNJ6CDEJLILV5UZZIQS66SHHWQ3554EMBF4VPXXKKYXXXMTAGZ'),
   onBack: Sb.action('onBack'),
   onReceive: Sb.action('onReceive'),
+  thisDeviceIsLockedOut: false,
   unreadPayments: false,
 }
 

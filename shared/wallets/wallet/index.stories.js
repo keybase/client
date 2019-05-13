@@ -23,11 +23,11 @@ const provider = Sb.createPropProviderWithCommon({
   }),
   WalletSendButton: props => ({
     disabled: false,
-    disabledDueToMobileOnly: false,
     onSendToAnotherAccount: Sb.action('onSendToAnotherAccount'),
     onSendToKeybaseUser: Sb.action('onSendToKeybaseUser'),
     onSendToStellarAddress: Sb.action('onSendToStellarAddress'),
     small: props.small,
+    thisDeviceIsLockedOut: false,
   }),
 })
 

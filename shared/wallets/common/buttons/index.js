@@ -5,11 +5,11 @@ import * as Styles from '../../../styles'
 
 type SendProps = {|
   disabled: boolean,
-  disabledDueToMobileOnly: boolean,
   onSendToKeybaseUser: () => void,
   onSendToStellarAddress: () => void,
   onSendToAnotherAccount: () => void,
   small?: boolean,
+  thisDeviceIsLockedOut: boolean,
 |}
 
 const _SendButton = (props: Kb.PropsWithOverlay<SendProps>) => {
@@ -47,8 +47,10 @@ const _SendButton = (props: Kb.PropsWithOverlay<SendProps>) => {
       />
     </>
   )
-  return props.disabledDueToMobileOnly ? (
-    <Kb.WithTooltip text="This is a mobile-only account.">{button}</Kb.WithTooltip>
+  return props.thisDeviceIsLockedOut ? (
+    <Kb.WithTooltip text="You can only send from a mobile device more than 7 days old.">
+      {button}
+    </Kb.WithTooltip>
   ) : (
     button
   )

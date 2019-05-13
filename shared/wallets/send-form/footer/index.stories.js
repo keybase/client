@@ -14,7 +14,7 @@ const common = {
   calculating: false,
   disabled: false,
   onClickSend: Sb.action('onClickSend'),
-  sendDisabledDueToMobileOnly: false,
+  thisDeviceIsLockedOut: false,
   waitingKey: 'wallets:buildPayment',
 }
 
