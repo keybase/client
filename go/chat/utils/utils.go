@@ -2084,6 +2084,9 @@ func DecorateWithLinks(ctx context.Context, body string) string {
 
 	allMatches := mailtoRegexp.FindAllStringIndex(ReplaceQuotedSubstrings(body, true), -1)
 	for _, match := range allMatches {
+		if len(match) < 2 {
+			continue
+		}
 		bodyMatch := origBody[match[0]:match[1]]
 		url := "mailto:" + bodyMatch
 		body, added = DecorateBody(ctx, body, match[0]+offset, match[1]-match[0],
@@ -2110,6 +2113,9 @@ func DecorateWithLinks(ctx context.Context, body string) string {
 	origBody = body
 	allMatches = linkRegexp.FindAllStringIndex(ReplaceQuotedSubstrings(body, true), -1)
 	for _, match := range allMatches {
+		if len(match) < 2 {
+			continue
+		}
 		bodyMatch := origBody[match[0]:match[1]]
 		url := bodyMatch
 		if shouldSkipPrefix(bodyMatch) {
