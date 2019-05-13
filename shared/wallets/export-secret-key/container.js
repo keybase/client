@@ -26,7 +26,7 @@ const mapStateToProps = (state, ownProps) => {
 }
 
 const mapDispatchToProps = (dispatch, {navigateUp}) => ({
-  _onClose: (accountID: Types.AccountID) => dispatch(RouteTreeGen.createNavigateUp()),
+  _onClose: (accountID: Types.AccountID) => dispatch(RouteTreeGen.createNavigateUp({})),
   _onLoadSecretKey: (accountID: Types.AccountID) => dispatch(WalletsGen.createExportSecretKey({accountID})),
   _onSecretKeySeen: (accountID: Types.AccountID) => dispatch(WalletsGen.createSecretKeySeen({accountID})),
 })

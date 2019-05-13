@@ -6,7 +6,7 @@ import type {Route} from './routes'
 import {connect, isMobile} from '../util/container'
 
 const dispatchProps = dispatch => ({
-  onClosePopup: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onClosePopup: () => dispatch(RouteTreeGen.createNavigateUp({})),
 })
 
 const Modal = <P>(C: React.ComponentType<P>) =>

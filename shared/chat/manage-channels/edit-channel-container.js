@@ -59,7 +59,7 @@ const mapDispatchToProps = dispatch => {
   return {
     _loadChannelInfo: (teamname: string, conversationIDKey: Types.ConversationIDKey) =>
       dispatch(TeamsGen.createGetChannelInfo({conversationIDKey, teamname})),
-    _navigateUp: () => dispatch(RouteTreeGen.createNavigateUp()),
+    _navigateUp: () => dispatch(RouteTreeGen.createNavigateUp({})),
     _onConfirmedDelete: (teamname: string, conversationIDKey: Types.ConversationIDKey) =>
       dispatch(TeamsGen.createDeleteChannelConfirmed({conversationIDKey, teamname})),
     _updateChannelName: (

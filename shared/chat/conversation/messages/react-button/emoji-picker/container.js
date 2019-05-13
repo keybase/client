@@ -38,9 +38,9 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => {
   return {
     onAddReaction: (emoji: string) => {
       dispatch(Chat2Gen.createToggleMessageReaction({conversationIDKey, emoji, ordinal}))
-      dispatch(RouteTreeGen.createNavigateUp())
+      dispatch(RouteTreeGen.createNavigateUp({}))
     },
-    onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
+    onCancel: () => dispatch(RouteTreeGen.createNavigateUp({})),
   }
 }
 

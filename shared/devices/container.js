@@ -23,7 +23,7 @@ const mapDispatchToProps = (dispatch, {navigateAppend, navigation}) => ({
     // We don't have navigateAppend in upgraded routes
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {highlight}, selected: 'deviceAdd'}]}))
   },
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp({})),
 })
 
 const sortDevices = (a, b) => {

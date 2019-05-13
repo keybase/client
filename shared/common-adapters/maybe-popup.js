@@ -38,7 +38,7 @@ const MaybePopup = isMobile
 const DispatchNavUpHoc: any = connect<any, _, _, _, _>(
   () => ({}),
   (dispatch, {navigateUp}) => ({
-    connectedNavigateUp: () => dispatch(navigateUp ? navigateUp() : RouteTreeGen.createNavigateUp()),
+    connectedNavigateUp: () => dispatch(navigateUp ? navigateUp() : RouteTreeGen.createNavigateUp({})),
   }),
   (s, d, o) => ({...o, ...s, ...d})
 )

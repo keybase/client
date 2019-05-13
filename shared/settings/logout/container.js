@@ -19,7 +19,7 @@ const mapDispatchToProps = dispatch => ({
   onBootstrap: () => dispatch(SettingsGen.createLoadHasRandomPw()),
   onCancel: () => {
     dispatch(SettingsGen.createLoadedCheckPassword({checkPasswordIsCorrect: null}))
-    dispatch(RouteTreeGen.createNavigateUp())
+    dispatch(RouteTreeGen.createNavigateUp({}))
   },
   onCheckPassword: password => {
     if (password) {

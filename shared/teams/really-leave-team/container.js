@@ -22,7 +22,7 @@ const mapStateToProps = (state, ownProps) => {
 }
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp({})),
   onLeave: () => {
     dispatch(
       TeamsGen.createLeaveTeam({context: 'teams', teamname: Container.getRouteProps(ownProps, 'teamname')})

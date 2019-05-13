@@ -17,7 +17,7 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
-  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onCancel: () => dispatch(RouteTreeGen.createNavigateUp({})),
   onClearErrors: () => dispatch(WalletsGen.createClearErrors()),
   onCreateAccount: (name: string) => {
     dispatch(
@@ -27,7 +27,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
         showOnCreation: Container.getRouteProps(ownProps, 'showOnCreation'),
       })
     )
-    dispatch(RouteTreeGen.createNavigateUp())
+    dispatch(RouteTreeGen.createNavigateUp({}))
   },
   onDone: (name: string) => {
     dispatch(WalletsGen.createValidateAccountName({name}))

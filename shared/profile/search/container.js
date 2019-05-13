@@ -10,7 +10,7 @@ type OwnProps = {|onClose?: () => void|}
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
   onClick: username => dispatch(createShowUserProfile({username})),
-  onClose: ownProps.onClose || (() => dispatch(createNavigateUp())),
+  onClose: ownProps.onClose || (() => dispatch(createNavigateUp({}))),
 })
 
 const mergeProps = (_, dispatchProps, ownProps) => {

@@ -9,7 +9,7 @@ import * as Saga from '../../util/saga'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import {type TypedState} from '../../constants/reducer'
 
-const closeTeamBuilding = () => RouteTreeGen.createNavigateUp()
+const closeTeamBuilding = () => RouteTreeGen.createNavigateUp({})
 
 const apiSearch = (
   query: string,

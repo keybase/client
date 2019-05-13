@@ -26,7 +26,7 @@ const mapDispatchToProps = dispatch => ({
         accountID,
       })
     ),
-  _onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
+  _onClose: () => dispatch(RouteTreeGen.createNavigateUp({})),
 })
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   accountName: stateProps.accountName,

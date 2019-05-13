@@ -12,7 +12,7 @@ const mapStateToProps = state => ({
 })
 
 const dispatchToProps = dispatch => ({
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp({})),
   onSubmit: (email: string) => dispatch(ProvisionGen.createForgotUsername({email})),
 })
 

@@ -41,7 +41,7 @@ const mapStateToProps = (state, ownProps) => {
 }
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
-  navigateUp: () => dispatch(RouteTreeGen.createNavigateUp()),
+  navigateUp: () => dispatch(RouteTreeGen.createNavigateUp({})),
   onCancelPayment: () =>
     dispatch(
       WalletsGen.createCancelPayment({
