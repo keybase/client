@@ -67,11 +67,25 @@ export type TlfSyncPartial = I.RecordOf<_TlfSyncPartial>
 
 export type TlfSyncConfig = TlfSyncEnabled | TlfSyncDisabled | TlfSyncPartial
 
+export type ConflictState =
+  | 'in-conflict-stuck'
+  | 'in-conflict-not-stuck'
+  | 'in-manual-resolution'
+  | 'finishing'
+  | 'none'
+
+export type _TlfConflict = {
+  state: ConflictState,
+  branch: string,
+}
+export type TlfConflict = I.RecordOf<_TlfConflict>
+
 export type _Tlf = {
   name: string,
   isFavorite: boolean,
   isIgnored: boolean,
   isNew: boolean,
+  conflict: TlfConflict,
   needsRekey: boolean,
   resetParticipants: I.List<ResetMember>,
   teamId: RPCTypes.TeamID,
