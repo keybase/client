@@ -4,53 +4,22 @@
 package contacts
 
 import (
-	"fmt"
-
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-type lookupArg struct {
-	Email       string `json:"e,omitempty"`
-	PhoneNumber string `json:"p,omitempty"`
-}
-
-type ContactLookupResult struct {
-	UID     keybase1.UID `json:"uid,omitempty"`
-	Coerced string       `json:"coerced,omitempty"`
-}
-
-type ContactLookupMap map[string]ContactLookupResult
-
-func (r ContactLookupMap) FindComponent(component keybase1.ContactComponent) (res ContactLookupResult, found bool) {
-	var key string
-	switch {
-	case component.Email != nil:
-		key = fmt.Sprintf("e:%s", *component.Email)
-	case component.PhoneNumber != nil:
-		key = fmt.Sprintf("p:%s", *component.PhoneNumber)
-	default:
-		return res, false
-	}
-	res, found = r[key]
-	return res, found
-}
-
-func makeEmailLookupKey(e keybase1.EmailAddress) string {
-	return fmt.Sprintf("e:%s", string(e))
-}
-
-func makePhoneLookupKey(p keybase1.RawPhoneNumber) string {
-	return fmt.Sprintf("p:%s", string(p))
-}
-
-type lookupRes struct {
-	libkb.AppStatusEmbed
-	Resolutions ContactLookupMap `json:"resolutions"`
-}
-
 func BulkLookupContacts(mctx libkb.MetaContext, emailsContacts []keybase1.EmailAddress,
 	phoneNumberContacts []keybase1.RawPhoneNumber, userRegionCode keybase1.RegionCode) (ContactLookupMap, error) {
+
+	type lookupArg struct {
+		Email       string `json:"e,omitempty"`
+		PhoneNumber string `json:"p,omitempty"`
+	}
+
+	type lookupRes struct {
+		libkb.AppStatusEmbed
+		Resolutions ContactLookupMap `json:"resolutions"`
+	}
 
 	lookups := make([]lookupArg, 0, len(phoneNumberContacts)+len(emailsContacts))
 	for _, v := range phoneNumberContacts {

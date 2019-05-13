@@ -10,11 +10,6 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-type ContactsProvider interface {
-	LookupAll(libkb.MetaContext, []keybase1.EmailAddress, []keybase1.RawPhoneNumber, keybase1.RegionCode) (ContactLookupMap, error)
-	FillUsernames(libkb.MetaContext, []keybase1.ProcessedContact)
-}
-
 // ResolveContacts resolves contacts with cache for UI. See API documentation
 // in phone_numbers.avdl
 //

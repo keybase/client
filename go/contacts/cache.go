@@ -14,6 +14,8 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
+// ContactCacheStore is used by CachedContactsProvider to store contact cache
+// encrypted with device key.
 type ContactCacheStore struct {
 	encryptedDB *encrypteddb.EncryptedDB
 }
@@ -25,6 +27,7 @@ func (s *ContactCacheStore) dbKey(uid keybase1.UID) libkb.DbKey {
 	}
 }
 
+// NewContactCacheStore creates new ContactCacheStore for given global context.
 func NewContactCacheStore(g *libkb.GlobalContext) *ContactCacheStore {
 	keyFn := func(ctx context.Context) ([32]byte, error) {
 		return storage.GetSecretBoxKey(ctx, g, storage.DefaultSecretUI)
