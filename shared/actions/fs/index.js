@@ -146,8 +146,7 @@ const loadSettings = (state, action) =>
     )
 
 const setSpaceNotificationThreshold = (state, action) =>
-  RPCTypes.SimpleFSSimpleFSSetNotificationThresholdRpcPromise({spaceAvailableNotificationThreshold: action.payload.spaceAvailableNotificationThreshold})
-    .then
+  RPCTypes.SimpleFSSimpleFSSetNotificationThresholdRpcPromise({threshold: action.payload.spaceAvailableNotificationThreshold})
 
 const getPrefetchStatusFromRPC = (
   prefetchStatus: RPCTypes.PrefetchStatus,
