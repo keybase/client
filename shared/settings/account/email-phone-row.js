@@ -75,6 +75,16 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
     gearIconBadge = badge(Styles.globalColors.blue)
   }
 
+  const header = {
+    title: 'emailPhoneHeader',
+    view: (
+      <Kb.Box2 direction="vertical" centerChildren={true} style={styles.menuHeader}>
+        <Kb.Text type="BodySmallSemibold">{props.address}</Kb.Text>
+        {props.primary && <Kb.Text type="BodySmall">Primary email</Kb.Text>}
+      </Kb.Box2>
+    ),
+  }
+
   return (
     <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.container}>
       <Kb.Box2 alignItems="flex-start" direction="vertical" style={styles.flexOne}>
@@ -96,6 +106,7 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
         containerStyle={styles.menuNoGrow}
         visible={props.showingMenu}
         position="bottom right"
+        header={Styles.isMobile ? header : null}
         items={menuItems}
         closeOnSelect={true}
         onHidden={props.toggleShowingMenu}
@@ -125,6 +136,9 @@ const styles = Styles.styleSheetCreate({
   },
   flexOne: {
     flex: 1,
+  },
+  menuHeader: {
+    height: 64,
   },
   menuNoGrow: Styles.platformStyles({isElectron: {width: 220}}),
   positionRelative: {position: 'relative'},
