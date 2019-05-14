@@ -341,11 +341,15 @@ function* startPowerMonitor() {
   }
 }
 
-const setUseNativeFrame = (state, action) =>
+const setUseNativeFrame = (state, _) =>
   SafeElectron.getIpcRenderer().send('setAppState', {useNativeFrame: state.settings.useNativeFrame})
 
 function* initializeUseNativeFrame() {
-  yield Saga.put(SettingsGen.createOnChangeUseNativeFrame({enabled: new AppState().state.useNativeFrame ?? defaultUseNativeFrame}))
+  yield Saga.put(
+    SettingsGen.createOnChangeUseNativeFrame({
+      enabled: new AppState().state.useNativeFrame ?? defaultUseNativeFrame,
+    })
+  )
 }
 
 export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {

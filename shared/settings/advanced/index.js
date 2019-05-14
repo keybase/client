@@ -30,24 +30,24 @@ type Props = {
 const initialUseNativeFrame = new AppState().state.useNativeFrame ?? defaultUseNativeFrame
 
 const UseNativeFrame = (props: Props) => {
-  return !isMobile && (
-    <>
-      <Kb.Box style={styles.checkboxContainer}>
-        <Kb.Checkbox
-          checked={!props.useNativeFrame}
-          label={
-            'Hide system window frame'
-          }
-          onCheck={(x) => props.onChangeUseNativeFrame(!x)}
-          style={styles.checkbox}
-        />
-      </Kb.Box>
-     {initialUseNativeFrame !== props.useNativeFrame && (
-       <Kb.Text type="BodySmall" style={styles.error}>
-         Keybase needs to restart for this change to take effect.
-       </Kb.Text>
-     )}
-    </>
+  return (
+    !isMobile && (
+      <>
+        <Kb.Box style={styles.checkboxContainer}>
+          <Kb.Checkbox
+            checked={!props.useNativeFrame}
+            label={'Hide system window frame'}
+            onCheck={x => props.onChangeUseNativeFrame(!x)}
+            style={styles.checkbox}
+          />
+        </Kb.Box>
+        {initialUseNativeFrame !== props.useNativeFrame && (
+          <Kb.Text type="BodySmall" style={styles.error}>
+            Keybase needs to restart for this change to take effect.
+          </Kb.Text>
+        )}
+      </>
+    )
   )
 }
 
@@ -75,7 +75,7 @@ const Advanced = (props: Props) => {
           {props.setLockdownModeError}
         </Kb.Text>
       )}
-      {isLinux && UseNativeFrame(props)}
+      {isLinux && <UseNativeFrame {...props} />}
       {!Styles.isMobile && !isLinux && (
         <Kb.Box style={styles.openAtLoginCheckboxContainer}>
           <Kb.Checkbox
