@@ -127,33 +127,33 @@ func TestServerTrustResolveInvalidInput(t *testing.T) {
 	checkErr(err)
 }
 
+type mockPhoneNotification struct {
+	list        []keybase1.UserPhoneNumber
+	category    string
+	phoneNumber keybase1.PhoneNumber
+}
+
 type mockPhoneListener struct {
 	libkb.NoopNotifyListener
-	addedPhones      []keybase1.PhoneNumber
-	verifiedPhones   []keybase1.PhoneNumber
-	supersededPhones []keybase1.PhoneNumber
+	notifications []mockPhoneNotification
 }
 
 var _ libkb.NotifyListener = (*mockPhoneListener)(nil)
 
-func (n *mockPhoneListener) PhoneNumberAdded(phoneNumber keybase1.PhoneNumber) {
-	n.addedPhones = append(n.addedPhones, phoneNumber)
+func (n *mockPhoneListener) PhoneNumbersChanged(list []keybase1.UserPhoneNumber, category string, phoneNumber keybase1.PhoneNumber) {
+	n.notifications = append(n.notifications, mockPhoneNotification{
+		list, category, phoneNumber,
+	})
 }
 
-func (n *mockPhoneListener) PhoneNumberVerified(phoneNumber keybase1.PhoneNumber) {
-	n.verifiedPhones = append(n.verifiedPhones, phoneNumber)
-}
-
-func (n *mockPhoneListener) PhoneNumberSuperseded(phoneNumber keybase1.PhoneNumber) {
-	n.supersededPhones = append(n.supersededPhones, phoneNumber)
+func (n *mockPhoneListener) DrainPhoneNumberNotifications() (ret []mockPhoneNotification) {
+	ret = n.notifications
+	n.notifications = nil
+	return ret
 }
 
 func setupUserWithMockPhoneListener(user *userPlusDevice) *mockPhoneListener {
-	userListener := &mockPhoneListener{
-		addedPhones:      []keybase1.PhoneNumber(nil),
-		verifiedPhones:   []keybase1.PhoneNumber(nil),
-		supersededPhones: []keybase1.PhoneNumber(nil),
-	}
+	userListener := &mockPhoneListener{}
 	user.tc.G.SetService()
 	user.tc.G.NotifyRouter.AddListener(userListener)
 	return userListener
@@ -171,7 +171,6 @@ func TestPhoneNumberNotifications(t *testing.T) {
 
 	phone := "+" + kbtest.GenerateTestPhoneNumber()
 	kbPhone := keybase1.PhoneNumber(phone)
-	expectedNotification := []keybase1.PhoneNumber{kbPhone}
 	cli := &client.CmdAddPhoneNumber{
 		Contextified: libkb.NewContextified(ann.tc.G),
 		PhoneNumber:  phone,
@@ -179,9 +178,21 @@ func TestPhoneNumberNotifications(t *testing.T) {
 	err := cli.Run()
 	require.NoError(t, err)
 
+	assertNotificationGetList := func(listener *mockPhoneListener, phoneNumber keybase1.PhoneNumber, category string) []keybase1.UserPhoneNumber {
+		notifications := listener.DrainPhoneNumberNotifications()
+		require.Len(t, notifications, 1)
+		require.Equal(t, kbPhone, notifications[0].phoneNumber)
+		require.Equal(t, category, notifications[0].category)
+		return notifications[0].list
+	}
+
 	// adding the phone number generates a notification
 	ann.drainGregor()
-	require.Equal(t, annListener.addedPhones, expectedNotification)
+	list := assertNotificationGetList(annListener, kbPhone, "phone.added")
+	require.Len(t, list, 1)
+	require.Equal(t, kbPhone, list[0].PhoneNumber)
+	require.False(t, list[0].Verified)
+	require.False(t, list[0].Superseded)
 
 	// verifying the phone number generates a notification
 	code, err := kbtest.GetPhoneVerificationCode(ann.MetaContext(), kbPhone)
@@ -194,8 +205,11 @@ func TestPhoneNumberNotifications(t *testing.T) {
 	err = cli2.Run()
 	require.NoError(t, err)
 	ann.drainGregor()
-	require.Equal(t, annListener.verifiedPhones, expectedNotification)
-	require.Equal(t, annListener.supersededPhones, []keybase1.PhoneNumber(nil))
+	list = assertNotificationGetList(annListener, kbPhone, "phone.verified")
+	require.Len(t, list, 1)
+	require.Equal(t, kbPhone, list[0].PhoneNumber)
+	require.True(t, list[0].Verified)
+	require.False(t, list[0].Superseded)
 
 	// if bob now adds and verifies that same number, he should have new notifications for add and verify
 	// and ann should have one that her number was superseded
@@ -206,7 +220,8 @@ func TestPhoneNumberNotifications(t *testing.T) {
 	err = cli3.Run()
 	require.NoError(t, err)
 	bob.drainGregor()
-	require.Equal(t, bobListener.addedPhones, expectedNotification)
+	list = assertNotificationGetList(bobListener, kbPhone, "phone.added")
+	require.Len(t, list, 1)
 	code, err = kbtest.GetPhoneVerificationCode(bob.MetaContext(), kbPhone)
 	require.NoError(t, err)
 	cli4 := &client.CmdVerifyPhoneNumber{
@@ -216,9 +231,20 @@ func TestPhoneNumberNotifications(t *testing.T) {
 	}
 	err = cli4.Run()
 	require.NoError(t, err)
+
 	bob.drainGregor()
-	require.Equal(t, bobListener.verifiedPhones, expectedNotification)
-	require.Equal(t, annListener.supersededPhones, expectedNotification)
+	list = assertNotificationGetList(bobListener, kbPhone, "phone.verified")
+	require.Len(t, list, 1)
+	require.Equal(t, kbPhone, list[0].PhoneNumber)
+	require.True(t, list[0].Verified)
+	require.False(t, list[0].Superseded)
+
+	ann.drainGregor()
+	list = assertNotificationGetList(annListener, kbPhone, "phone.superseded")
+	require.Len(t, list, 1)
+	require.Equal(t, kbPhone, list[0].PhoneNumber)
+	require.True(t, list[0].Verified)
+	require.True(t, list[0].Superseded)
 }
 
 func TestImplicitTeamWithEmail(t *testing.T) {

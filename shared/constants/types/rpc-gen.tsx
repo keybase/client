@@ -51,6 +51,10 @@ export type MessageTypes = {
     inParam: {readonly emailAddress: EmailAddress}
     outParam: void
   }
+  'keybase.1.NotifyEmailAddress.emailsChanged': {
+    inParam: {readonly list?: Array<Email> | null; readonly category: String; readonly email: EmailAddress}
+    outParam: void
+  }
   'keybase.1.NotifyEphemeral.newTeamEk': {
     inParam: {readonly id: TeamID; readonly generation: EkGeneration}
     outParam: void
@@ -103,16 +107,8 @@ export type MessageTypes = {
     inParam: {readonly uid: UID; readonly encKID: KID; readonly sigKID: KID}
     outParam: void
   }
-  'keybase.1.NotifyPhoneNumber.phoneNumberAdded': {
-    inParam: {readonly phoneNumber: PhoneNumber}
-    outParam: void
-  }
-  'keybase.1.NotifyPhoneNumber.phoneNumberSuperseded': {
-    inParam: {readonly phoneNumber: PhoneNumber}
-    outParam: void
-  }
-  'keybase.1.NotifyPhoneNumber.phoneNumberVerified': {
-    inParam: {readonly phoneNumber: PhoneNumber}
+  'keybase.1.NotifyPhoneNumber.phoneNumbersChanged': {
+    inParam: {readonly list?: Array<UserPhoneNumber> | null; readonly category: String; readonly phoneNumber: PhoneNumber}
     outParam: void
   }
   'keybase.1.NotifyService.shutdown': {
@@ -2134,6 +2130,7 @@ export type ED25519SignatureInfo = {readonly sig: ED25519Signature; readonly pub
 export type EkGeneration = Int64
 export type Email = {readonly email: EmailAddress; readonly isVerified: Boolean; readonly isPrimary: Boolean; readonly visibility: IdentityVisibility}
 export type EmailAddress = String
+export type EmailAddressChangedMsg = {readonly email: EmailAddress}
 export type EmailAddressVerifiedMsg = {readonly email: EmailAddress}
 export type EmailLookupResult = {readonly email: EmailAddress; readonly uid?: UID | null}
 export type EncryptedBytes32 = string | null
@@ -2312,10 +2309,8 @@ export type PerUserKeyBox = {readonly generation: PerUserKeyGeneration; readonly
 export type PerUserKeyGeneration = Int
 export type PhoneLookupResult = {readonly uid: UID; readonly username: String; readonly ctime: UnixTime}
 export type PhoneNumber = String
-export type PhoneNumberAddedMsg = {readonly phoneNumber: PhoneNumber}
+export type PhoneNumberChangedMsg = {readonly phoneNumber: PhoneNumber}
 export type PhoneNumberLookupResult = {readonly phoneNumber: RawPhoneNumber; readonly coercedPhoneNumber: PhoneNumber; readonly err?: String | null; readonly uid?: UID | null}
-export type PhoneNumberSupersededMsg = {readonly phoneNumber: PhoneNumber}
-export type PhoneNumberVerifiedMsg = {readonly phoneNumber: PhoneNumber}
 export type Pics = {readonly square40: String; readonly square200: String; readonly square360: String}
 export type PingResponse = {readonly timestamp: Time}
 export type PlatformInfo = {readonly os: String; readonly osVersion: String; readonly arch: String; readonly goVersion: String}
@@ -2514,7 +2509,7 @@ export type UserEkStatement = {readonly currentUserEkMetadata: UserEkMetadata}
 export type UserLogPoint = {readonly role: TeamRole; readonly sigMeta: SignatureMetadata}
 export type UserOrTeamID = String
 export type UserOrTeamLite = {readonly id: UserOrTeamID; readonly name: String}
-export type UserPhoneNumber = {readonly phoneNumber: PhoneNumber; readonly verified: Boolean; readonly visibility: IdentityVisibility; readonly ctime: UnixTime}
+export type UserPhoneNumber = {readonly phoneNumber: PhoneNumber; readonly verified: Boolean; readonly superseded: Boolean; readonly visibility: IdentityVisibility; readonly ctime: UnixTime}
 export type UserPlusAllKeys = {readonly base: UserPlusKeys; readonly pgpKeys?: Array<PublicKey> | null; readonly remoteTracks?: Array<RemoteTrack> | null}
 export type UserPlusKeys = {readonly uid: UID; readonly username: String; readonly eldestSeqno: Seqno; readonly status: StatusCode; readonly deviceKeys?: Array<PublicKey> | null; readonly revokedDeviceKeys?: Array<RevokedKey> | null; readonly pgpKeyCount: Int; readonly uvv: UserVersionVector; readonly deletedDeviceKeys?: Array<PublicKey> | null; readonly perUserKeys?: Array<PerUserKey> | null; readonly resets?: Array<ResetSummary> | null}
 export type UserPlusKeysV2 = {readonly uid: UID; readonly username: String; readonly eldestSeqno: Seqno; readonly status: StatusCode; readonly perUserKeys?: Array<PerUserKey> | null; readonly deviceKeys: {[key: string]: PublicKeyV2NaCl}; readonly pgpKeys: {[key: string]: PublicKeyV2PGPSummary}; readonly stellarAccountID?: String | null; readonly remoteTracks: {[key: string]: RemoteTrack}; readonly reset?: ResetSummary | null; readonly unstubbed: Boolean}
@@ -2585,6 +2580,7 @@ export type IncomingCallMapType = {
   'keybase.1.NotifyCanUserPerform.canUserPerformChanged'?: (params: MessageTypes['keybase.1.NotifyCanUserPerform.canUserPerformChanged']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyDeviceClone.deviceCloneCountChanged'?: (params: MessageTypes['keybase.1.NotifyDeviceClone.deviceCloneCountChanged']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyEmailAddress.emailAddressVerified'?: (params: MessageTypes['keybase.1.NotifyEmailAddress.emailAddressVerified']['inParam'] & {sessionID: number}) => IncomingReturn
+  'keybase.1.NotifyEmailAddress.emailsChanged'?: (params: MessageTypes['keybase.1.NotifyEmailAddress.emailsChanged']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyEphemeral.newTeamEk'?: (params: MessageTypes['keybase.1.NotifyEphemeral.newTeamEk']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyFavorites.favoritesChanged'?: (params: MessageTypes['keybase.1.NotifyFavorites.favoritesChanged']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyFS.FSActivity'?: (params: MessageTypes['keybase.1.NotifyFS.FSActivity']['inParam'] & {sessionID: number}) => IncomingReturn
@@ -2598,9 +2594,7 @@ export type IncomingCallMapType = {
   'keybase.1.NotifyKeyfamily.keyfamilyChanged'?: (params: MessageTypes['keybase.1.NotifyKeyfamily.keyfamilyChanged']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyPaperKey.paperKeyCached'?: (params: MessageTypes['keybase.1.NotifyPaperKey.paperKeyCached']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'?: (params: MessageTypes['keybase.1.NotifyPGP.pgpKeyInSecretStoreFile']['inParam'] & {sessionID: number}) => IncomingReturn
-  'keybase.1.NotifyPhoneNumber.phoneNumberAdded'?: (params: MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumberAdded']['inParam'] & {sessionID: number}) => IncomingReturn
-  'keybase.1.NotifyPhoneNumber.phoneNumberVerified'?: (params: MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumberVerified']['inParam'] & {sessionID: number}) => IncomingReturn
-  'keybase.1.NotifyPhoneNumber.phoneNumberSuperseded'?: (params: MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumberSuperseded']['inParam'] & {sessionID: number}) => IncomingReturn
+  'keybase.1.NotifyPhoneNumber.phoneNumbersChanged'?: (params: MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumbersChanged']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyService.shutdown'?: (params: MessageTypes['keybase.1.NotifyService.shutdown']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifySession.loggedOut'?: (params: MessageTypes['keybase.1.NotifySession.loggedOut']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifySession.loggedIn'?: (params: MessageTypes['keybase.1.NotifySession.loggedIn']['inParam'] & {sessionID: number}) => IncomingReturn
@@ -2703,6 +2697,7 @@ export type CustomResponseIncomingCallMap = {
   'keybase.1.logsend.prepareLogsend'?: (params: MessageTypes['keybase.1.logsend.prepareLogsend']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.logsend.prepareLogsend']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyApp.exit'?: (params: MessageTypes['keybase.1.NotifyApp.exit']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyApp.exit']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyEmailAddress.emailAddressVerified'?: (params: MessageTypes['keybase.1.NotifyEmailAddress.emailAddressVerified']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyEmailAddress.emailAddressVerified']['outParam']) => void}) => IncomingReturn
+  'keybase.1.NotifyEmailAddress.emailsChanged'?: (params: MessageTypes['keybase.1.NotifyEmailAddress.emailsChanged']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyEmailAddress.emailsChanged']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyFS.FSSyncActivity'?: (params: MessageTypes['keybase.1.NotifyFS.FSSyncActivity']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyFS.FSSyncActivity']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyFS.FSEditListResponse'?: (params: MessageTypes['keybase.1.NotifyFS.FSEditListResponse']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyFS.FSEditListResponse']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyFS.FSSyncStatusResponse'?: (params: MessageTypes['keybase.1.NotifyFS.FSSyncStatusResponse']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyFS.FSSyncStatusResponse']['outParam']) => void}) => IncomingReturn
@@ -2712,9 +2707,7 @@ export type CustomResponseIncomingCallMap = {
   'keybase.1.NotifyKeyfamily.keyfamilyChanged'?: (params: MessageTypes['keybase.1.NotifyKeyfamily.keyfamilyChanged']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyKeyfamily.keyfamilyChanged']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyPaperKey.paperKeyCached'?: (params: MessageTypes['keybase.1.NotifyPaperKey.paperKeyCached']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyPaperKey.paperKeyCached']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'?: (params: MessageTypes['keybase.1.NotifyPGP.pgpKeyInSecretStoreFile']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyPGP.pgpKeyInSecretStoreFile']['outParam']) => void}) => IncomingReturn
-  'keybase.1.NotifyPhoneNumber.phoneNumberAdded'?: (params: MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumberAdded']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumberAdded']['outParam']) => void}) => IncomingReturn
-  'keybase.1.NotifyPhoneNumber.phoneNumberVerified'?: (params: MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumberVerified']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumberVerified']['outParam']) => void}) => IncomingReturn
-  'keybase.1.NotifyPhoneNumber.phoneNumberSuperseded'?: (params: MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumberSuperseded']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumberSuperseded']['outParam']) => void}) => IncomingReturn
+  'keybase.1.NotifyPhoneNumber.phoneNumbersChanged'?: (params: MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumbersChanged']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumbersChanged']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyService.shutdown'?: (params: MessageTypes['keybase.1.NotifyService.shutdown']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyService.shutdown']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifySession.loggedIn'?: (params: MessageTypes['keybase.1.NotifySession.loggedIn']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifySession.loggedIn']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifySession.clientOutOfDate'?: (params: MessageTypes['keybase.1.NotifySession.clientOutOfDate']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifySession.clientOutOfDate']['outParam']) => void}) => IncomingReturn
@@ -3122,6 +3115,7 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // 'keybase.1.NotifyCanUserPerform.canUserPerformChanged'
 // 'keybase.1.NotifyDeviceClone.deviceCloneCountChanged'
 // 'keybase.1.NotifyEmailAddress.emailAddressVerified'
+// 'keybase.1.NotifyEmailAddress.emailsChanged'
 // 'keybase.1.NotifyEphemeral.newTeamEk'
 // 'keybase.1.NotifyFavorites.favoritesChanged'
 // 'keybase.1.NotifyFS.FSActivity'
@@ -3137,9 +3131,7 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // 'keybase.1.NotifyKeyfamily.keyfamilyChanged'
 // 'keybase.1.NotifyPaperKey.paperKeyCached'
 // 'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'
-// 'keybase.1.NotifyPhoneNumber.phoneNumberAdded'
-// 'keybase.1.NotifyPhoneNumber.phoneNumberVerified'
-// 'keybase.1.NotifyPhoneNumber.phoneNumberSuperseded'
+// 'keybase.1.NotifyPhoneNumber.phoneNumbersChanged'
 // 'keybase.1.NotifyService.shutdown'
 // 'keybase.1.NotifySession.loggedOut'
 // 'keybase.1.NotifySession.loggedIn'

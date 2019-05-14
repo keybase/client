@@ -121,6 +121,7 @@ export const keybase1NotifyDeviceCloneDeviceCloneCountChanged =
   'engine-gen:keybase1NotifyDeviceCloneDeviceCloneCountChanged'
 export const keybase1NotifyEmailAddressEmailAddressVerified =
   'engine-gen:keybase1NotifyEmailAddressEmailAddressVerified'
+export const keybase1NotifyEmailAddressEmailsChanged = 'engine-gen:keybase1NotifyEmailAddressEmailsChanged'
 export const keybase1NotifyEphemeralNewTeamEk = 'engine-gen:keybase1NotifyEphemeralNewTeamEk'
 export const keybase1NotifyFSFSActivity = 'engine-gen:keybase1NotifyFSFSActivity'
 export const keybase1NotifyFSFSEditListResponse = 'engine-gen:keybase1NotifyFSFSEditListResponse'
@@ -135,12 +136,8 @@ export const keybase1NotifyFavoritesFavoritesChanged = 'engine-gen:keybase1Notif
 export const keybase1NotifyKeyfamilyKeyfamilyChanged = 'engine-gen:keybase1NotifyKeyfamilyKeyfamilyChanged'
 export const keybase1NotifyPGPPgpKeyInSecretStoreFile = 'engine-gen:keybase1NotifyPGPPgpKeyInSecretStoreFile'
 export const keybase1NotifyPaperKeyPaperKeyCached = 'engine-gen:keybase1NotifyPaperKeyPaperKeyCached'
-export const keybase1NotifyPhoneNumberPhoneNumberAdded =
-  'engine-gen:keybase1NotifyPhoneNumberPhoneNumberAdded'
-export const keybase1NotifyPhoneNumberPhoneNumberSuperseded =
-  'engine-gen:keybase1NotifyPhoneNumberPhoneNumberSuperseded'
-export const keybase1NotifyPhoneNumberPhoneNumberVerified =
-  'engine-gen:keybase1NotifyPhoneNumberPhoneNumberVerified'
+export const keybase1NotifyPhoneNumberPhoneNumbersChanged =
+  'engine-gen:keybase1NotifyPhoneNumberPhoneNumbersChanged'
 export const keybase1NotifyServiceShutdown = 'engine-gen:keybase1NotifyServiceShutdown'
 export const keybase1NotifySessionClientOutOfDate = 'engine-gen:keybase1NotifySessionClientOutOfDate'
 export const keybase1NotifySessionLoggedIn = 'engine-gen:keybase1NotifySessionLoggedIn'
@@ -1001,6 +998,17 @@ type _Keybase1NotifyEmailAddressEmailAddressVerifiedPayload = {
     ) => void
   }
 }
+type _Keybase1NotifyEmailAddressEmailsChangedPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyEmailAddress.emailsChanged']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (
+      param: keybase1Types.MessageTypes['keybase.1.NotifyEmailAddress.emailsChanged']['outParam']
+    ) => void
+  }
+}
 type _Keybase1NotifyEphemeralNewTeamEkPayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.NotifyEphemeral.newTeamEk']['inParam'] & {
     sessionID: number
@@ -1110,36 +1118,14 @@ type _Keybase1NotifyPaperKeyPaperKeyCachedPayload = {
     result: (param: keybase1Types.MessageTypes['keybase.1.NotifyPaperKey.paperKeyCached']['outParam']) => void
   }
 }
-type _Keybase1NotifyPhoneNumberPhoneNumberAddedPayload = {
-  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumberAdded']['inParam'] & {
+type _Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumbersChanged']['inParam'] & {
     sessionID: number
   }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: keybase1Types.MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumberAdded']['outParam']
-    ) => void
-  }
-}
-type _Keybase1NotifyPhoneNumberPhoneNumberSupersededPayload = {
-  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumberSuperseded']['inParam'] & {
-    sessionID: number
-  }
-  response: {
-    error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: keybase1Types.MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumberSuperseded']['outParam']
-    ) => void
-  }
-}
-type _Keybase1NotifyPhoneNumberPhoneNumberVerifiedPayload = {
-  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumberVerified']['inParam'] & {
-    sessionID: number
-  }
-  response: {
-    error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: keybase1Types.MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumberVerified']['outParam']
+      param: keybase1Types.MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumbersChanged']['outParam']
     ) => void
   }
 }
@@ -2008,6 +1994,12 @@ export const createKeybase1NotifyEmailAddressEmailAddressVerified = (
   payload,
   type: keybase1NotifyEmailAddressEmailAddressVerified,
 })
+export const createKeybase1NotifyEmailAddressEmailsChanged = (
+  payload: _Keybase1NotifyEmailAddressEmailsChangedPayload
+): Keybase1NotifyEmailAddressEmailsChangedPayload => ({
+  payload,
+  type: keybase1NotifyEmailAddressEmailsChanged,
+})
 export const createKeybase1NotifyEphemeralNewTeamEk = (
   payload: _Keybase1NotifyEphemeralNewTeamEkPayload
 ): Keybase1NotifyEphemeralNewTeamEkPayload => ({payload, type: keybase1NotifyEphemeralNewTeamEk})
@@ -2059,23 +2051,11 @@ export const createKeybase1NotifyPGPPgpKeyInSecretStoreFile = (
 export const createKeybase1NotifyPaperKeyPaperKeyCached = (
   payload: _Keybase1NotifyPaperKeyPaperKeyCachedPayload
 ): Keybase1NotifyPaperKeyPaperKeyCachedPayload => ({payload, type: keybase1NotifyPaperKeyPaperKeyCached})
-export const createKeybase1NotifyPhoneNumberPhoneNumberAdded = (
-  payload: _Keybase1NotifyPhoneNumberPhoneNumberAddedPayload
-): Keybase1NotifyPhoneNumberPhoneNumberAddedPayload => ({
+export const createKeybase1NotifyPhoneNumberPhoneNumbersChanged = (
+  payload: _Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload
+): Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload => ({
   payload,
-  type: keybase1NotifyPhoneNumberPhoneNumberAdded,
-})
-export const createKeybase1NotifyPhoneNumberPhoneNumberSuperseded = (
-  payload: _Keybase1NotifyPhoneNumberPhoneNumberSupersededPayload
-): Keybase1NotifyPhoneNumberPhoneNumberSupersededPayload => ({
-  payload,
-  type: keybase1NotifyPhoneNumberPhoneNumberSuperseded,
-})
-export const createKeybase1NotifyPhoneNumberPhoneNumberVerified = (
-  payload: _Keybase1NotifyPhoneNumberPhoneNumberVerifiedPayload
-): Keybase1NotifyPhoneNumberPhoneNumberVerifiedPayload => ({
-  payload,
-  type: keybase1NotifyPhoneNumberPhoneNumberVerified,
+  type: keybase1NotifyPhoneNumberPhoneNumbersChanged,
 })
 export const createKeybase1NotifyServiceShutdown = (
   payload: _Keybase1NotifyServiceShutdownPayload
@@ -2699,6 +2679,10 @@ export type Keybase1NotifyEmailAddressEmailAddressVerifiedPayload = {
   readonly payload: _Keybase1NotifyEmailAddressEmailAddressVerifiedPayload
   readonly type: 'engine-gen:keybase1NotifyEmailAddressEmailAddressVerified'
 }
+export type Keybase1NotifyEmailAddressEmailsChangedPayload = {
+  readonly payload: _Keybase1NotifyEmailAddressEmailsChangedPayload
+  readonly type: 'engine-gen:keybase1NotifyEmailAddressEmailsChanged'
+}
 export type Keybase1NotifyEphemeralNewTeamEkPayload = {
   readonly payload: _Keybase1NotifyEphemeralNewTeamEkPayload
   readonly type: 'engine-gen:keybase1NotifyEphemeralNewTeamEk'
@@ -2751,17 +2735,9 @@ export type Keybase1NotifyPaperKeyPaperKeyCachedPayload = {
   readonly payload: _Keybase1NotifyPaperKeyPaperKeyCachedPayload
   readonly type: 'engine-gen:keybase1NotifyPaperKeyPaperKeyCached'
 }
-export type Keybase1NotifyPhoneNumberPhoneNumberAddedPayload = {
-  readonly payload: _Keybase1NotifyPhoneNumberPhoneNumberAddedPayload
-  readonly type: 'engine-gen:keybase1NotifyPhoneNumberPhoneNumberAdded'
-}
-export type Keybase1NotifyPhoneNumberPhoneNumberSupersededPayload = {
-  readonly payload: _Keybase1NotifyPhoneNumberPhoneNumberSupersededPayload
-  readonly type: 'engine-gen:keybase1NotifyPhoneNumberPhoneNumberSuperseded'
-}
-export type Keybase1NotifyPhoneNumberPhoneNumberVerifiedPayload = {
-  readonly payload: _Keybase1NotifyPhoneNumberPhoneNumberVerifiedPayload
-  readonly type: 'engine-gen:keybase1NotifyPhoneNumberPhoneNumberVerified'
+export type Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload = {
+  readonly payload: _Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload
+  readonly type: 'engine-gen:keybase1NotifyPhoneNumberPhoneNumbersChanged'
 }
 export type Keybase1NotifyServiceShutdownPayload = {
   readonly payload: _Keybase1NotifyServiceShutdownPayload
@@ -3116,6 +3092,7 @@ export type Actions =
   | Keybase1NotifyCanUserPerformCanUserPerformChangedPayload
   | Keybase1NotifyDeviceCloneDeviceCloneCountChangedPayload
   | Keybase1NotifyEmailAddressEmailAddressVerifiedPayload
+  | Keybase1NotifyEmailAddressEmailsChangedPayload
   | Keybase1NotifyEphemeralNewTeamEkPayload
   | Keybase1NotifyFSFSActivityPayload
   | Keybase1NotifyFSFSEditListResponsePayload
@@ -3129,9 +3106,7 @@ export type Actions =
   | Keybase1NotifyKeyfamilyKeyfamilyChangedPayload
   | Keybase1NotifyPGPPgpKeyInSecretStoreFilePayload
   | Keybase1NotifyPaperKeyPaperKeyCachedPayload
-  | Keybase1NotifyPhoneNumberPhoneNumberAddedPayload
-  | Keybase1NotifyPhoneNumberPhoneNumberSupersededPayload
-  | Keybase1NotifyPhoneNumberPhoneNumberVerifiedPayload
+  | Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload
   | Keybase1NotifyServiceShutdownPayload
   | Keybase1NotifySessionClientOutOfDatePayload
   | Keybase1NotifySessionLoggedInPayload
