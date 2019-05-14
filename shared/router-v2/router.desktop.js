@@ -20,6 +20,8 @@ import Header from './header/index.desktop'
 import * as Shim from './shim.desktop'
 import GlobalError from '../app/global-errors/container'
 import OutOfDate from '../app/out-of-date'
+import AppState from '../app/app-state.desktop'
+import * as Platform from '../constants/platform'
 
 /**
  * How this works:
@@ -33,6 +35,8 @@ import OutOfDate from '../app/out-of-date'
  * When there are no modals AppView is rendered
  * Floating is rendered to a portal on top
  */
+
+const initialUseNativeFrame = new AppState().state.useNativeFrame ?? Platform.defaultUseNativeFrame
 
 // The app with a tab bar on the left and content area on the right
 // A single content view and n-modals on top
@@ -79,6 +83,7 @@ class AppView extends React.PureComponent<any> {
             options={descriptor.options}
             onPop={() => childNav.goBack(activeKey)}
             allowBack={activeIndex !== 0}
+            initialUseNativeFrame={initialUseNativeFrame}
           />
         </Kb.Box2>
       </Kb.Box2>
