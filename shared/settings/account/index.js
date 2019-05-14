@@ -4,6 +4,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
 type Props = {|
+  hasPassword: boolean,
   onAddEmail: () => void,
   onAddPhone: () => void,
   onDeleteAccount: () => void,
@@ -11,6 +12,10 @@ type Props = {|
 |}
 
 const AccountSettings = (props: Props) => {
+  let passwordLabel = props.hasPassword ? 'Change password' : 'Set a password'
+  if (props.hasPassword && Styles.isMobile) {
+    passwordLabel = 'Change'
+  }
   return (
     <Kb.ScrollView>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
@@ -38,9 +43,16 @@ const AccountSettings = (props: Props) => {
               Allows you to log out and log back in, and use the keybase.io website.
             </Kb.Text>
           </Kb.Box2>
-          <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
-            <Kb.Button mode="Secondary" onClick={props.onSetPassword} label="Set a password" small={true} />
-          </Kb.ButtonBar>
+          <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true}>
+            {props.hasPassword && (
+              <Kb.Text type="BodySemibold" style={styles.password}>
+                ********************
+              </Kb.Text>
+            )}
+            <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
+              <Kb.Button mode="Secondary" onClick={props.onSetPassword} label={passwordLabel} small={true} />
+            </Kb.ButtonBar>
+          </Kb.Box2>
         </Kb.Box2>
 
         {/* Delete account */}
@@ -70,6 +82,10 @@ const AccountSettings = (props: Props) => {
 const styles = Styles.styleSheetCreate({
   buttonBar: {
     minHeight: undefined,
+    width: undefined,
+  },
+  password: {
+    flexGrow: 1,
   },
   section: Styles.platformStyles({
     isElectron: {
