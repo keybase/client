@@ -247,7 +247,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
             <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputBox}>
               <Kb.PlainInput
                 className={'mousetrap' /* className needed so key handler doesn't ignore hotkeys */}
-                disabled={this.props.cannotWrite}
+                disabled={this.props.cannotWrite ?? false}
                 autoFocus={false}
                 ref={this._inputSetRef}
                 placeholder={hintText}

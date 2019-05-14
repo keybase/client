@@ -183,7 +183,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
           <Kb.PlainInput
             autoCorrect={true}
             autoCapitalize="sentences"
-            disabled={this.props.cannotWrite}
+            disabled={this.props.cannotWrite ?? false}
             placeholder={hintText}
             multiline={true}
             onBlur={this.props.onBlur}
