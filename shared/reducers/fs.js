@@ -6,7 +6,6 @@ import * as Constants from '../constants/fs'
 import * as ChatConstants from '../constants/chat2'
 import * as Flow from '../util/flow'
 import * as Types from '../constants/types/fs'
-import {NotifyPopup} from '../native/notifications'
 
 const initialState = Constants.makeState()
 
@@ -114,25 +113,6 @@ const updatePathItem = (
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(newPathItem.type)
       return newPathItem
-  }
-}
-
-const notifyDiskSpaceStatus = (diskSpaceStatus: Types.DiskSpaceStatus) => {
-  switch (diskSpaceStatus) {
-    case 'error':
-      NotifyPopup('Sync Error', {
-        body: 'You are out of disk space. Some folders could not be synced.',
-        sound: true,
-      })
-      break
-    case 'warning':
-      // TODO: propogate correct number of GB from setting
-      NotifyPopup('Disk Space Low', {body: 'You have less than 1 GB of storage space left.'})
-      break
-    case 'ok':
-      break
-    default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(diskSpaceStatus)
   }
 }
 

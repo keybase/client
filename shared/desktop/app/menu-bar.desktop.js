@@ -4,43 +4,24 @@ import menubar from 'menubar'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {isDarwin, isWindows, isLinux} from '../../constants/platform'
 import {resolveImage, resolveRootAsURL} from './resolve-root.desktop'
-import type {BadgeType} from '../../constants/types/notifications'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
 import logger from '../../logger'
 
 const htmlFile = resolveRootAsURL('dist', `menubar${__DEV__ ? '.dev' : ''}.html`)
 
-let iconType: BadgeType = 'regular'
-
-const isDarkMode = () => isDarwin && SafeElectron.getSystemPreferences().isDarkMode()
-
-const getIcon = invertColors => {
-  const devMode = __DEV__ ? '-dev' : ''
-  let color = 'white'
-  let platform = ''
-
-  if (isDarwin) {
-    color = isDarkMode() ? 'white' : 'black'
-  } else if (isWindows) {
-    color = 'black'
-    platform = 'windows-'
-  }
-
-  const size = isWindows ? 16 : 22
-
-  color = invertColors ? {black: 'white', white: 'black'}[color] : color
-
-  return resolveImage(
-    'menubarIcon',
-    `icon-${platform}keybase-menubar-${iconType}-${color}-${size}${devMode}@2x.png`
-  )
-}
+let icon = ''
+let selectedIcon = ''
 
 export default function(menubarWindowIDCallback: (id: number) => void) {
   const mb = menubar({
     hasShadow: true,
     height: 480,
-    icon: getIcon(false),
+    icon: resolveImage(
+      'menubarIcon',
+      isWindows
+        ? 'icon-windows-keybase-menubar-regular-black-16@2x.png'
+        : 'icon-keybase-menubar-regular-white-22@2x.png'
+    ),
     index: htmlFile,
     preloadWindow: true,
     resizable: false,
@@ -56,22 +37,17 @@ export default function(menubarWindowIDCallback: (id: number) => void) {
     width: 360,
   })
 
-  const updateIcon = invertColors => {
-    mb.tray.setImage(getIcon(invertColors))
+  const updateIcon = selected => {
+    mb.tray.setImage(resolveImage('menubarIcon', selected ? icon : selectedIcon))
   }
-
-  if (isDarwin && SafeElectron.getSystemPreferences().subscribeNotification) {
-    SafeElectron.getSystemPreferences().subscribeNotification(
-      'AppleInterfaceThemeChangedNotification',
-      () => {
-        updateIcon(false)
-      }
-    )
-  }
-
-  SafeElectron.getIpcMain().on('showTray', (event, type, count) => {
-    iconType = type
+  const setIcons = (regular, selected) => {
+    icon = regular
+    selectedIcon = selected
     updateIcon(false)
+  }
+
+  SafeElectron.getIpcMain().on('showTray', (event, regular, selected, count) => {
+    setIcons(regular, selected)
     const dock = SafeElectron.getApp().dock
     if (dock && dock.isVisible()) {
       SafeElectron.getApp().setBadgeCount(count)
@@ -139,7 +115,7 @@ export default function(menubarWindowIDCallback: (id: number) => void) {
         mb.setOption('y', y)
       }
 
-      isDarwin && updateIcon(!isDarkMode())
+      isDarwin && updateIcon(true)
     })
     mb.on('hide', () => {
       isDarwin && updateIcon(false)

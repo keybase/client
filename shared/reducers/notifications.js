@@ -8,11 +8,11 @@ import * as Flow from '../util/flow'
 const initialState: Types.State = Constants.makeState()
 
 const _updateWidgetBadge = (s: Types.State): Types.State => {
-  let widgetBadge = s.desktopAppBadgeCount ? 'badged' : 'regular'
+  let widgetBadge = 'regular'
   if (s.getIn(['keyState', 'outOfSpace'])) {
-    widgetBadge = s.desktopAppBadgeCount ? 'badged-error' : 'error'
+    widgetBadge = 'error'
   } else if (s.getIn(['keyState', 'kbfsUploading'])) {
-    widgetBadge = s.desktopAppBadgeCount ? 'badged-uploading' : 'uploading'
+    widgetBadge = 'uploading'
   }
   return s.set('widgetBadge', widgetBadge)
 }
