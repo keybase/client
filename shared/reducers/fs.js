@@ -575,7 +575,9 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         )
       )
     case FsGen.settingsLoaded:
-      return state.set('settings', action.payload.settings)
+      return action.payload.settings ? state.set('settings', action.payload.settings) : state.update('settings', s => s.set('isLoading', false))
+    case FsGen.loadSettings:
+      return state.update('settings', s => s.set('isLoading', true))
 
     case FsGen.driverDisable:
     case FsGen.folderListLoad:
@@ -606,7 +608,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.refreshDriverStatus:
     case FsGen.loadTlfSyncConfig:
     case FsGen.setTlfSyncConfig:
-    case FsGen.loadSettings:
     case FsGen.setSpaceAvailableNotificationThreshold:
       return state
     default:

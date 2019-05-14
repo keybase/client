@@ -474,6 +474,7 @@ export type SoftErrors = I.RecordOf<_SoftErrors>
 
 export type _Settings = {
   spaceAvailableNotificationThreshold: number,
+  isLoading: boolean,
 }
 
 export type Settings = I.RecordOf<_Settings>

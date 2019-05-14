@@ -283,6 +283,7 @@ export const makeSoftErrors: I.RecordFactory<Types._SoftErrors> = I.Record({
 })
 
 export const makeSettings: I.RecordFactory<Types._Settings> = I.Record({
+  isLoading: false,
   spaceAvailableNotificationThreshold: 0,
 })
 

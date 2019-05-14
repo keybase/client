@@ -168,7 +168,7 @@ type _SetSendLinkToChatConvIDPayload = $ReadOnly<{|convID: ChatTypes.Conversatio
 type _SetSpaceAvailableNotificationThresholdPayload = $ReadOnly<{|spaceAvailableNotificationThreshold: number|}>
 type _SetTlfSoftErrorPayload = $ReadOnly<{|path: Types.Path, softError: ?Types.SoftError|}>
 type _SetTlfSyncConfigPayload = $ReadOnly<{|enabled: boolean, tlfPath: Types.Path|}>
-type _SettingsLoadedPayload = $ReadOnly<{|settings: Types.Settings|}>
+type _SettingsLoadedPayload = $ReadOnly<{|settings?: Types.Settings|}>
 type _ShareNativePayload = $ReadOnly<{|path: Types.Path, key: string|}>
 type _ShowIncomingSharePayload = $ReadOnly<{|initialDestinationParentPath: Types.Path|}>
 type _ShowMoveOrCopyPayload = $ReadOnly<{|initialDestinationParentPath: Types.Path|}>
@@ -256,7 +256,7 @@ export const createSetSendLinkToChatConvID = (payload: _SetSendLinkToChatConvIDP
 export const createSetSpaceAvailableNotificationThreshold = (payload: _SetSpaceAvailableNotificationThresholdPayload) => ({payload, type: setSpaceAvailableNotificationThreshold})
 export const createSetTlfSoftError = (payload: _SetTlfSoftErrorPayload) => ({payload, type: setTlfSoftError})
 export const createSetTlfSyncConfig = (payload: _SetTlfSyncConfigPayload) => ({payload, type: setTlfSyncConfig})
-export const createSettingsLoaded = (payload: _SettingsLoadedPayload) => ({payload, type: settingsLoaded})
+export const createSettingsLoaded = (payload: _SettingsLoadedPayload = Object.freeze({})) => ({payload, type: settingsLoaded})
 export const createShareNative = (payload: _ShareNativePayload) => ({payload, type: shareNative})
 export const createShowIncomingShare = (payload: _ShowIncomingSharePayload) => ({payload, type: showIncomingShare})
 export const createShowMoveOrCopy = (payload: _ShowMoveOrCopyPayload) => ({payload, type: showMoveOrCopy})

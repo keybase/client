@@ -258,7 +258,7 @@
     },
     "loadSettings": {},
     "settingsLoaded": {
-      "settings": "Types.Settings",
+      "settings?": "Types.Settings",
     },
     "setSpaceAvailableNotificationThreshold": {
       "spaceAvailableNotificationThreshold": "number",

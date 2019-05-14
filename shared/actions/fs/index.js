@@ -144,6 +144,9 @@ const loadSettings = (state, action) =>
         }),
       })
     )
+    .catch(() =>
+      FsGen.createSettingsLoaded({})
+    )
 
 const setSpaceNotificationThreshold = (state, action) =>
   RPCTypes.SimpleFSSimpleFSSetNotificationThresholdRpcPromise({threshold: action.payload.spaceAvailableNotificationThreshold})
