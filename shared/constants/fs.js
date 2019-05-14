@@ -282,6 +282,10 @@ export const makeSoftErrors: I.RecordFactory<Types._SoftErrors> = I.Record({
   tlfErrors: I.Map(),
 })
 
+export const makeSettings: I.RecordFactory<Types._Settings> = I.Record({
+  spaceAvailableNotificationThreshold: 0,
+})
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   destinationPicker: makeDestinationPicker(),
   downloads: I.Map(),
@@ -296,6 +300,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   pathUserSettings: I.Map(),
   sendAttachmentToChat: makeSendAttachmentToChat(),
   sendLinkToChat: makeSendLinkToChat(),
+  settings: makeSettings(),
   sfmi: makeSystemFileManagerIntegration(),
   softErrors: makeSoftErrors(),
   syncingFoldersProgress: makeSyncingFoldersProgress(),

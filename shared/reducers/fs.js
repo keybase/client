@@ -574,6 +574,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
             : tlfErrors.remove(action.payload.path)
         )
       )
+    case FsGen.settingsLoaded:
+      return state.set('settings', action.payload.settings)
 
     case FsGen.driverDisable:
     case FsGen.folderListLoad:
@@ -604,6 +606,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.refreshDriverStatus:
     case FsGen.loadTlfSyncConfig:
     case FsGen.setTlfSyncConfig:
+    case FsGen.loadSettings:
+    case FsGen.setSpaceAvailableNotificationThreshold:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

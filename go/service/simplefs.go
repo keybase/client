@@ -518,3 +518,27 @@ func (s *SimpleFSHandler) SimpleFSSetDebugLevel(
 	}
 	return cli.SimpleFSSetDebugLevel(ctx, level)
 }
+
+// SimpleFSSettings implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSSettings(
+	ctx context.Context) (keybase1.FSSettings, error) {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return keybase1.FSSettings{}, err
+	}
+	return cli.SimpleFSSettings(ctx)
+}
+
+// SimpleFSSetNotificationThreshold implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSSetNotificationThreshold(
+	ctx context.Context, threshold int64) error {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return err
+	}
+	return cli.SimpleFSSetNotificationThreshold(ctx, threshold)
+}

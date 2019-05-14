@@ -708,6 +708,16 @@
           "name": "overallStatus"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "FSSettings",
+      "fields": [
+        {
+          "type": "int64",
+          "name": "spaceAvailableNotificationThreshold"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1189,6 +1199,19 @@
         {
           "name": "level",
           "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSSettings": {
+      "request": [],
+      "response": "FSSettings"
+    },
+    "simpleFSSetNotificationThreshold": {
+      "request": [
+        {
+          "name": "threshold",
+          "type": "int64"
         }
       ],
       "response": null

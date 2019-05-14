@@ -135,6 +135,20 @@ const setTlfSyncConfig = (state, action) =>
     })
   )
 
+const loadSettings = (state, action) =>
+  RPCTypes.SimpleFSSimpleFSSettingsRpcPromise()
+    .then(settings =>
+      FsGen.createSettingsLoaded({
+        settings: Constants.makeSettings({
+          spaceAvailableNotificationThreshold: settings.spaceAvailableNotificationThreshold,
+        }),
+      })
+    )
+
+const setSpaceNotificationThreshold = (state, action) =>
+  RPCTypes.SimpleFSSimpleFSSetNotificationThresholdRpcPromise({spaceAvailableNotificationThreshold: action.payload.spaceAvailableNotificationThreshold})
+    .then
+
 const getPrefetchStatusFromRPC = (
   prefetchStatus: RPCTypes.PrefetchStatus,
   prefetchProgress: RPCTypes.PrefetchProgress
@@ -1010,6 +1024,8 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
       EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged,
       onFSOverallSyncSyncStatusChanged
     )
+    yield* Saga.chainAction<FsGen.LoadSettingsPayload>(FsGen.loadSettings, loadSettings)
+    yield* Saga.chainAction<FsGen.SetSpaceAvailableNotificationThresholdPayload>(FsGen.setSpaceAvailableNotificationThreshold, setSpaceNotificationThreshold)
   }
 
   yield Saga.spawn(platformSpecificSaga)

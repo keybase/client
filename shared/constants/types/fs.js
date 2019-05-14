@@ -472,6 +472,12 @@ export type _SoftErrors = {
 }
 export type SoftErrors = I.RecordOf<_SoftErrors>
 
+export type _Settings = {
+  spaceAvailableNotificationThreshold: number,
+}
+
+export type Settings = I.RecordOf<_Settings>
+
 export type _State = {|
   downloads: Downloads,
   edits: Edits,
@@ -492,6 +498,7 @@ export type _State = {|
   tlfUpdates: UserTlfUpdates,
   tlfs: Tlfs,
   uploads: Uploads,
+  settings: Settings,
 |}
 export type State = I.RecordOf<_State>
 
