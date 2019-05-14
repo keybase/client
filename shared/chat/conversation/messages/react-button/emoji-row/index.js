@@ -101,10 +101,7 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     common: {
-      paddingBottom: Styles.globalMargins.xtiny,
-      paddingLeft: Styles.globalMargins.xsmall,
-      paddingRight: Styles.globalMargins.xsmall,
-      paddingTop: Styles.globalMargins.xtiny,
+      ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.xsmall),
     },
     isElectron: {
       backgroundColor: Styles.globalColors.blueLighter3,
