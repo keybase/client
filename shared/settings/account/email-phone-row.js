@@ -21,6 +21,16 @@ const addSpacer = (into: string, add: string) => {
   return into + (into.length ? ' • ' : '') + add
 }
 
+const badge = (backgroundColor: string, menuItem: boolean = false) => (
+  <Kb.Box
+    style={Styles.collapseStyles([
+      styles.badge,
+      menuItem ? styles.badgeMenuItem : styles.badgeGearIcon,
+      {backgroundColor},
+    ])}
+  />
+)
+
 const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
   let subtitle = ''
   if (props.type === 'email' && props.primary) {
@@ -33,8 +43,11 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
 
   const menuItems = []
   if (!props.verified) {
-    // TODO badge
-    menuItems.push({onClick: props.onVerify, title: 'Verify'})
+    menuItems.push({
+      decoration: props.verified ? undefined : badge(Styles.globalColors.orange, true),
+      onClick: props.onVerify,
+      title: 'Verify',
+    })
   }
   if (props.type === 'email' && !props.primary && props.verified) {
     menuItems.push({
@@ -45,6 +58,7 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
   }
   if (props.verified) {
     menuItems.push({
+      decoration: props.searchable ? undefined : badge(Styles.globalColors.blue, true),
       onClick: props.onToggleSearchable,
       subTitle: props.searchable
         ? 'Disallow friends to find you by this email.'
@@ -53,6 +67,13 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
     })
   }
   menuItems.push('Divider', {danger: true, onClick: props.onDelete, title: 'Delete'})
+
+  let gearIconBadge = null
+  if (!props.verified) {
+    gearIconBadge = badge(Styles.globalColors.orange)
+  } else if (!props.searchable) {
+    gearIconBadge = badge(Styles.globalColors.blue)
+  }
 
   return (
     <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.container}>
@@ -65,7 +86,10 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
           </Kb.Box2>
         )}
       </Kb.Box2>
-      <Kb.Icon type="iconfont-gear" ref={props.setAttachmentRef} onClick={props.toggleShowingMenu} />
+      <Kb.Box style={styles.positionRelative}>
+        <Kb.Icon type="iconfont-gear" ref={props.setAttachmentRef} onClick={props.toggleShowingMenu} />
+        {gearIconBadge}
+      </Kb.Box>
       <Kb.FloatingMenu
         attachTo={props.getAttachmentRef}
         closeText="Cancel"
@@ -82,6 +106,20 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
 const EmailPhoneRow = Kb.OverlayParentHOC(_EmailPhoneRow)
 
 const styles = Styles.styleSheetCreate({
+  badge: {
+    borderRadius: Styles.isMobile ? 5 : 4,
+    height: Styles.isMobile ? 10 : 8,
+    width: Styles.isMobile ? 10 : 8,
+  },
+  badgeGearIcon: {
+    position: 'absolute',
+    right: -3,
+    top: -2,
+  },
+  badgeMenuItem: {
+    alignSelf: 'center',
+    marginLeft: 'auto',
+  },
   container: {
     height: Styles.isMobile ? 48 : 40,
   },
@@ -89,6 +127,7 @@ const styles = Styles.styleSheetCreate({
     flex: 1,
   },
   menuNoGrow: Styles.platformStyles({isElectron: {width: 220}}),
+  positionRelative: {position: 'relative'},
 })
 
 // props exported for stories
