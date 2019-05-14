@@ -82,12 +82,6 @@ func (h *EmailsHandler) GetEmails(ctx context.Context, sessionID int) (ret []key
 	return emails.GetEmails(mctx)
 }
 
-func (h *EmailsHandler) BulkLookupEmails(ctx context.Context, arg keybase1.BulkLookupEmailsArg) (ret []keybase1.EmailLookupResult, err error) {
-	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.TraceTimed("EmailsHandler#BulkLookupEmails", func() error { return err })()
-	return emails.BulkLookupEmails(mctx, arg.EmailContacts)
-}
-
 const emailsGregorHandlerName = "emailHandler"
 
 type emailsGregorHandler struct {

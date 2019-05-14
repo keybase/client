@@ -30,28 +30,21 @@ func makeProvider() *MockContactsProvider {
 	}
 }
 
-func (c *MockContactsProvider) LookupPhoneNumbers(mctx libkb.MetaContext, numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (res []ContactLookupResult, err error) {
-	for _, number := range numbers {
-		result := ContactLookupResult{}
-		if user, found := c.phoneNumbers[number]; found {
-			result.Found = true
-			result.UID = user.UID
-		}
-		res = append(res, result)
-	}
-	return res, nil
-}
+func (c *MockContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
+	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (ContactLookupMap, error) {
 
-func (c *MockContactsProvider) LookupEmails(mctx libkb.MetaContext, emails []keybase1.EmailAddress) (res []ContactLookupResult, err error) {
+	ret := make(ContactLookupMap)
 	for _, email := range emails {
-		result := ContactLookupResult{}
 		if user, found := c.emails[email]; found {
-			result.Found = true
-			result.UID = user.UID
+			ret[fmt.Sprintf("e:%s", string(email))] = ContactLookupResult{UID: user.UID}
 		}
-		res = append(res, result)
 	}
-	return res, nil
+	for _, number := range numbers {
+		if user, found := c.phoneNumbers[number]; found {
+			ret[fmt.Sprintf("p:%s", string(number))] = ContactLookupResult{UID: user.UID}
+		}
+	}
+	return ret, nil
 }
 
 func (c *MockContactsProvider) FillUsernames(mctx libkb.MetaContext, res []keybase1.ProcessedContact) {
