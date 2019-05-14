@@ -266,8 +266,10 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
     minWriterRole = 'reader'
   }
 
-  const cannotWrite =
-    i.convSettings && i.convSettings.minWriterRoleInfo && i.convSettings.minWriterRoleInfo.cannotWrite
+  let cannotWrite = false
+  if (i.convSettings && i.convSettings.minWriterRoleInfo && i.convSettings.minWriterRoleInfo.cannotWrite) {
+    cannotWrite = i.convSettings.minWriterRoleInfo.cannotWrite
+  }
 
   return makeConversationMeta({
     cannotWrite,
