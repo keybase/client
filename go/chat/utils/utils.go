@@ -1374,6 +1374,7 @@ func presentRequestInfo(ctx context.Context, g *globals.Context, msgID chat1.Mes
 func PresentUnfurl(ctx context.Context, g *globals.Context, convID chat1.ConversationID, u chat1.Unfurl) *chat1.UnfurlDisplay {
 	ud, err := display.DisplayUnfurl(ctx, g.AttachmentURLSrv, convID, u)
 	if err != nil {
+		g.GetLog().CDebugf(ctx, "PresentUnfurl: failed to display unfurl: %s", err)
 		return nil
 	}
 	return &ud
