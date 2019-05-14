@@ -2979,7 +2979,11 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<Chat2Gen.OpenFolderPayload>(Chat2Gen.openFolder, openFolder)
 
   // On login lets load the untrusted inbox. This helps make some flows easier
-  yield* Saga.chainAction<ConfigGen.LoggedInPayload>(ConfigGen.loggedIn, startupInboxLoad, 'startupInboxLoad')
+  yield* Saga.chainAction<ConfigGen.BootstrapStatusLoadedPayload>(
+    ConfigGen.bootstrapStatusLoaded,
+    startupInboxLoad,
+    'startupInboxLoad'
+  )
 
   // Search handling
   yield* Saga.chainAction<SearchGen.UserInputItemsUpdatedPayload>(

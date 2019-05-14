@@ -1433,8 +1433,8 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
     'getChannelInfo'
   )
   yield* Saga.chainAction<TeamsGen.GetChannelsPayload>(TeamsGen.getChannels, getChannels, 'getChannels')
-  yield* Saga.chainGenerator<ConfigGen.LoggedInPayload, TeamsGen.GetTeamsPayload, TeamsGen.LeftTeamPayload>(
-    [ConfigGen.loggedIn, TeamsGen.getTeams, TeamsGen.leftTeam],
+  yield* Saga.chainGenerator<ConfigGen.BootstrapStatusLoadedPayload, TeamsGen.GetTeamsPayload, TeamsGen.LeftTeamPayload>(
+    [ConfigGen.bootstrapStatusLoaded, TeamsGen.getTeams, TeamsGen.leftTeam],
     getTeams,
     'getTeams'
   )

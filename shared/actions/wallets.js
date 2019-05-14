@@ -1289,9 +1289,11 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   )
 
   yield* Saga.chainAction<
-    WalletsGen.LoadAccountsPayload | ConfigGen.LoggedInPayload | WalletsGen.LoadWalletDisclaimerPayload
+    | WalletsGen.LoadAccountsPayload
+    | ConfigGen.BootstrapStatusLoadedPayload
+    | WalletsGen.LoadWalletDisclaimerPayload
   >(
-    [WalletsGen.loadAccounts, ConfigGen.loggedIn, WalletsGen.loadWalletDisclaimer],
+    [WalletsGen.loadAccounts, ConfigGen.bootstrapStatusLoaded, WalletsGen.loadWalletDisclaimer],
     loadWalletDisclaimer,
     'loadWalletDisclaimer'
   )
