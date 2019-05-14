@@ -10,12 +10,14 @@ import Mention from '../mention-container'
 import Channel from '../channel-container'
 import MaybeMention from '../../chat/conversation/maybe-mention'
 import Text from '../text'
+import {type StyleOverride} from '.'
 
 export type Props = {
   json: string,
   onClick?: () => void,
   allowFontScaling?: ?boolean,
-  message: Types.MessageText,
+  message?: Types.MessageText,
+  styleOverride: StyleOverride,
   styles: {[key: string]: Styles.StylesCrossPlatform},
 }
 
@@ -28,7 +30,7 @@ const ServiceDecoration = (props: Props) => {
   } catch (e) {
     return null
   }
-  if (parsed.typ === RPCChatTypes.chatUiUITextDecorationTyp.payment && parsed.payment) {
+  if (parsed.typ === RPCChatTypes.chatUiUITextDecorationTyp.payment && parsed.payment && props.message) {
     let paymentID: WalletTypes.PaymentID
     let error
     if (
@@ -75,7 +77,7 @@ const ServiceDecoration = (props: Props) => {
       <Text
         className="hover-underline"
         type="BodyPrimaryLink"
-        style={Styles.collapseStyles([props.styles.wrapStyle, linkStyle])}
+        style={Styles.collapseStyles([props.styles.wrapStyle, linkStyle, props.styleOverride.link])}
         title={parsed.link.display}
         onClickURL={parsed.link.url}
         onLongPressURL={parsed.link.url}
@@ -88,7 +90,7 @@ const ServiceDecoration = (props: Props) => {
       <Text
         className="hover-underline"
         type="BodyPrimaryLink"
-        style={Styles.collapseStyles([props.styles.wrapStyle, linkStyle])}
+        style={Styles.collapseStyles([props.styles.wrapStyle, linkStyle, props.styleOverride.mailto])}
         title={parsed.mailto.display}
         onClickURL={parsed.mailto.url}
         onLongPressURL={parsed.mailto.url}
