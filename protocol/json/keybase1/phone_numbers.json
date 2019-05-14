@@ -28,6 +28,11 @@
           "jsonkey": "verified"
         },
         {
+          "type": "boolean",
+          "name": "superseded",
+          "jsonkey": "superseded"
+        },
+        {
           "type": "IdentityVisibility",
           "name": "visibility",
           "jsonkey": "visibility"
@@ -74,29 +79,7 @@
     },
     {
       "type": "record",
-      "name": "PhoneNumberAddedMsg",
-      "fields": [
-        {
-          "type": "PhoneNumber",
-          "name": "phoneNumber",
-          "jsonkey": "phone"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "PhoneNumberVerifiedMsg",
-      "fields": [
-        {
-          "type": "PhoneNumber",
-          "name": "phoneNumber",
-          "jsonkey": "phone"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "PhoneNumberSupersededMsg",
+      "name": "PhoneNumberChangedMsg",
       "fields": [
         {
           "type": "PhoneNumber",

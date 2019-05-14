@@ -18,6 +18,7 @@ func (o RawPhoneNumber) DeepCopy() RawPhoneNumber {
 type UserPhoneNumber struct {
 	PhoneNumber PhoneNumber        `codec:"phoneNumber" json:"phone_number"`
 	Verified    bool               `codec:"verified" json:"verified"`
+	Superseded  bool               `codec:"superseded" json:"superseded"`
 	Visibility  IdentityVisibility `codec:"visibility" json:"visibility"`
 	Ctime       UnixTime           `codec:"ctime" json:"ctime"`
 }
@@ -26,6 +27,7 @@ func (o UserPhoneNumber) DeepCopy() UserPhoneNumber {
 	return UserPhoneNumber{
 		PhoneNumber: o.PhoneNumber.DeepCopy(),
 		Verified:    o.Verified,
+		Superseded:  o.Superseded,
 		Visibility:  o.Visibility.DeepCopy(),
 		Ctime:       o.Ctime.DeepCopy(),
 	}
@@ -59,32 +61,12 @@ func (o PhoneNumberLookupResult) DeepCopy() PhoneNumberLookupResult {
 	}
 }
 
-type PhoneNumberAddedMsg struct {
+type PhoneNumberChangedMsg struct {
 	PhoneNumber PhoneNumber `codec:"phoneNumber" json:"phone"`
 }
 
-func (o PhoneNumberAddedMsg) DeepCopy() PhoneNumberAddedMsg {
-	return PhoneNumberAddedMsg{
-		PhoneNumber: o.PhoneNumber.DeepCopy(),
-	}
-}
-
-type PhoneNumberVerifiedMsg struct {
-	PhoneNumber PhoneNumber `codec:"phoneNumber" json:"phone"`
-}
-
-func (o PhoneNumberVerifiedMsg) DeepCopy() PhoneNumberVerifiedMsg {
-	return PhoneNumberVerifiedMsg{
-		PhoneNumber: o.PhoneNumber.DeepCopy(),
-	}
-}
-
-type PhoneNumberSupersededMsg struct {
-	PhoneNumber PhoneNumber `codec:"phoneNumber" json:"phone"`
-}
-
-func (o PhoneNumberSupersededMsg) DeepCopy() PhoneNumberSupersededMsg {
-	return PhoneNumberSupersededMsg{
+func (o PhoneNumberChangedMsg) DeepCopy() PhoneNumberChangedMsg {
+	return PhoneNumberChangedMsg{
 		PhoneNumber: o.PhoneNumber.DeepCopy(),
 	}
 }
