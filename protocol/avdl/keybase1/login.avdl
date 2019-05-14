@@ -55,7 +55,7 @@ protocol login {
     If forceDangerous is passed, will skip all checks that might prevent logout.
     NOTE: May fail without a network connection if forceDangerous is not passed.
     */
-  void logout(int sessionID, bool forceDangerous);
+  void logout(int sessionID, boolean forceDangerous);
 
   void deprovision(int sessionID, string username, boolean doRevoke);
 

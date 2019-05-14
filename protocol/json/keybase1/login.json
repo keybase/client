@@ -125,10 +125,11 @@
         },
         {
           "name": "forceDangerous",
-          "type": "bool"
+          "type": "boolean"
         }
       ],
-      "response": null
+      "response": null,
+      "doc": "If forceDangerous is passed, will skip all checks that might prevent logout.\n    NOTE: May fail without a network connection if forceDangerous is not passed."
     },
     "deprovision": {
       "request": [

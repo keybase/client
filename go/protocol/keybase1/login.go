@@ -118,6 +118,8 @@ type LoginInterface interface {
 	// Removes any existing stored secret for the given username.
 	// loginWithStoredSecret(_, username) will fail after this is called.
 	ClearStoredSecret(context.Context, ClearStoredSecretArg) error
+	// If forceDangerous is passed, will skip all checks that might prevent logout.
+	// NOTE: May fail without a network connection if forceDangerous is not passed.
 	Logout(context.Context, LogoutArg) error
 	Deprovision(context.Context, DeprovisionArg) error
 	RecoverAccountFromEmailAddress(context.Context, string) error
@@ -418,6 +420,8 @@ func (c LoginClient) ClearStoredSecret(ctx context.Context, __arg ClearStoredSec
 	return
 }
 
+// If forceDangerous is passed, will skip all checks that might prevent logout.
+// NOTE: May fail without a network connection if forceDangerous is not passed.
 func (c LoginClient) Logout(ctx context.Context, __arg LogoutArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.login.logout", []interface{}{__arg}, nil)
 	return
