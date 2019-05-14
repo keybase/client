@@ -345,21 +345,17 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 	needFetch := (req.refresh || f.favCache == nil) && !req.clear
 	wantFetch := f.config.Clock().Now().After(f.cacheExpireTime) && !req.clear
 
-	changed := false
+	deferredRefresh := false
 	// Note we don't edit fs.favCache directly for add or del, since
 	// fav.ToKBFolder() doesn't everything we need. We could have a reducer to
 	// "update" existing item in the cache, but since KBPKI is the ultimate
 	// source for this stuff, we might as well reload from there.
 	defer func() {
-		if changed {
-			go func() {
-				newCtx, _ := context.WithTimeout(context.Background(),
-					favoritesBackgroundRefreshTimeout)
-				f.RefreshCache(newCtx, FavoritesRefreshModeBlocking)
-				if changed {
-					f.config.KeybaseService().NotifyFavoritesChanged(req.ctx)
-				}
-			}()
+		if deferredRefresh {
+			newCtx, _ := context.WithTimeout(context.Background(),
+				favoritesBackgroundRefreshTimeout)
+			f.RefreshCache(newCtx, FavoritesRefreshModeInMainFavoritesLoop)
+			f.config.KeybaseService().NotifyFavoritesChanged(req.ctx)
 
 		}
 	}()
@@ -393,9 +389,7 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 			// If we weren't explicitly asked to refresh, we can return possibly
 			// stale favorites rather than return nothing.
 			if err == context.DeadlineExceeded {
-				newCtx, _ := context.WithTimeout(context.Background(),
-					favoritesBackgroundRefreshTimeout)
-				go f.RefreshCache(newCtx, FavoritesRefreshModeBlocking)
+				deferredRefresh = true
 			}
 			f.log.CDebugf(req.ctx,
 				"Serving possibly stale favorites; new data could not be"+
@@ -454,12 +448,12 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 				}
 			}
 			if oldCache != nil {
-				changed = f.sendChangesToEditHistory(oldCache)
+				deferredRefresh = f.sendChangesToEditHistory(oldCache)
 			}
 		}
 	} else if req.clear {
 		f.favCache = nil
-		changed = true
+		deferredRefresh = true
 		return nil
 	}
 
@@ -474,7 +468,7 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 				"Failure adding favorite %v: %v", fav, err)
 			return err
 		}
-		changed = true
+		deferredRefresh = true
 	}
 
 	for _, fav := range req.toDel {
@@ -486,7 +480,7 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 			return err
 		}
 		f.config.UserHistory().ClearTLF(tlf.CanonicalName(fav.Name), fav.Type)
-		changed = true
+		deferredRefresh = true
 	}
 
 	if req.favs != nil {
