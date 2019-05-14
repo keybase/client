@@ -638,7 +638,6 @@ const rootReducer = (
           Object.keys(convoToMessages).forEach(cid => {
             const conversationIDKey = Types.stringToConversationIDKey(cid)
             const messages = convoToMessages[cid]
-            const removedOrdinals = []
             const ordinals = messages.reduce((arr, message) => {
               const m = canSendType(message)
               if (m) {
@@ -659,7 +658,6 @@ const rootReducer = (
                 if (!existingOrdinal) {
                   arr.push(message.ordinal)
                 } else {
-                  removedOrdinals.push(message.ordinal)
                   logger.info(`Skipping placeholder for message with id ${message.id} because already exists`)
                 }
               } else {
@@ -670,10 +668,7 @@ const rootReducer = (
 
             map.update(conversationIDKey, I.OrderedSet(), (set: I.OrderedSet<Types.Ordinal>) =>
               // add new ones, remove deleted ones, sort
-              set
-                .concat(ordinals)
-                .subtract(removedOrdinals)
-                .sort()
+              set.concat(ordinals).sort()
             )
           })
         }
