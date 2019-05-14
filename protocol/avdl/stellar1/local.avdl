@@ -698,4 +698,38 @@ protocol local {
   // if false, it will send them in individual transactions.
   BatchResultLocal batchLocal(string batchID, int timeoutSecs, array<BatchPaymentArg> payments, boolean useMulti);
 
+  record TxDisplaySummary {
+    AccountID source;
+    int fee;
+    string memo;
+    string memoType;
+    array<string> operations;
+  }
+
+  record ValidateStellarURIResultLocal {
+    string operation;         // currently, 'pay' or 'tx'
+
+    // common fields
+    string originDomain;      // required (by keybase, not by sep7)
+    string message;           // optional
+    @lint("ignore")
+    string callbackURL;       // optional
+
+    // tx fields
+    string xdr;               // required for op tx
+    TxDisplaySummary summary; // use for displaying tx
+
+    // pay fields
+    string recipient;         // required for op pay
+    string amount;            // optional
+    string assetCode;         // optional
+    string assetIssuer;       // required if assetCode exists
+    string memo;              // optional
+    string memoType;          // required if memo exists
+  }
+  
+  ValidateStellarURIResultLocal validateStellarURILocal(int sessionID, string inputURI);
+  TransactionID approveTxURILocal(int sessionID, string inputURI);
+  TransactionID approvePayURILocal(int sessionID, string inputURI, string amount, boolean fromCLI);
+  TransactionID approvePathURILocal(int sessionID, string inputURI, PaymentPath fullPath, boolean fromCLI);
 }

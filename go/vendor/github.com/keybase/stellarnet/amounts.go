@@ -182,8 +182,8 @@ func parseExchangeRate(rate string) (*big.Rat, error) {
 	}
 }
 
-// pathPaymentMaxValue returns 105% * amount.
-func pathPaymentMaxValue(amount string) (string, error) {
+// PathPaymentMaxValue returns 105% * amount.
+func PathPaymentMaxValue(amount string) (string, error) {
 	amtInt, err := stellaramount.ParseInt64(amount)
 	if err != nil {
 		return "", err
@@ -191,4 +191,10 @@ func pathPaymentMaxValue(amount string) (string, error) {
 	amtMax := (105 * amtInt) / 100
 
 	return StringFromStellarAmount(amtMax), nil
+}
+
+// XDRPriceString converts xdr.Price to a string.
+func XDRPriceString(x xdr.Price) string {
+	n := big.NewRat(int64(x.N), int64(x.D))
+	return n.FloatString(7)
 }
