@@ -142,7 +142,7 @@ func (c *CmdWalletHandleURI) payOp(v stellar1.ValidateStellarURIResultLocal) err
 		ui.Printf("network and does not know what will happen to it after sending\n")
 		ui.Printf("it to the URL above.\n")
 
-		if err := ui.PromptForConfirmation(fmt.Sprintf("Sign transaction to pay %s %s to %s and send it to the URL above?", c.green(v.Amount), c.green(assetDisplay), c.yellow(v.Recipient), v.CallbackURL)); err != nil {
+		if err := ui.PromptForConfirmation(fmt.Sprintf("Sign transaction to pay %s %s to %s and send it to the URL above?", c.green(v.Amount), c.green(assetDisplay), c.yellow(v.Recipient))); err != nil {
 			return err
 		}
 	}
