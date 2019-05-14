@@ -29,11 +29,11 @@ func DeleteAccount(mctx MetaContext, username NormalizedUsername, passphrase str
 func resetOrDeleteAccount(mctx MetaContext, username NormalizedUsername, passphrase string, endpoint string) (err error) {
 	defer mctx.Trace("resetOrDeleteAccount", func() error { return err })()
 
-	// mctx = mctx.WithNewProvisionalLoginContext()
-	// err = PassphraseLoginNoPrompt(mctx, username.String(), passphrase)
-	// if err != nil {
-	// 	return err
-	// }
+	mctx = mctx.WithNewProvisionalLoginContext()
+	err = PassphraseLoginNoPrompt(mctx, username.String(), passphrase)
+	if err != nil {
+		return err
+	}
 	pps := mctx.PassphraseStream()
 	if pps == nil {
 		return errors.New("unexpected nil passphrase stream")
