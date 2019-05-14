@@ -460,7 +460,7 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 					Type: tlf.Public,
 				}] = favorites.Data{
 					Name:       string(session.Name),
-					FolderType: tlf.Private.FolderType(),
+					FolderType: tlf.Public.FolderType(),
 					TeamID:     &f.homeTLFInfo.PublicTeamID,
 					Private:    false,
 				}
