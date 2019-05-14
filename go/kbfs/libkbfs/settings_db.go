@@ -20,7 +20,7 @@ const (
 	settingsDBName          = "kbfsSettings.leveldb"
 
 	// Settings keys
-	notificationThresholdKey = "notificationThreshold"
+	spaceAvailableNotificationThresholdKey = "spaceAvailableNotificationThreshold"
 )
 
 // ErrNoSettingsDB is returned when there is no settings DB potentially due to
@@ -59,7 +59,7 @@ func openSettingsDBInternal(config Config) (*LevelDb, error) {
 func openSettingsDB(config Config) *SettingsDB {
 	db, err := openSettingsDBInternal(config)
 	if err != nil {
-		config.MakeLogger("").CWarningf(context.Background(),
+		config.MakeLogger("SDB").CWarningf(context.Background(),
 			"Could not open settings DB. "+
 				"Perhaps multiple KBFS instances are being run concurrently"+
 				"? Error: %+v", err)
@@ -118,7 +118,7 @@ func (db *SettingsDB) Settings(ctx context.Context) (keybase1.FSSettings, error)
 	}
 	var notificationThreshold int64
 	notificationThresholdBytes, err :=
-		db.Get(getSettingsDbKey(uid, notificationThresholdKey), nil)
+		db.Get(getSettingsDbKey(uid, spaceAvailableNotificationThresholdKey), nil)
 	if err == nil {
 		notificationThreshold, _ =
 			strconv.ParseInt(string(notificationThresholdBytes), 10, 64)
@@ -137,6 +137,6 @@ func (db *SettingsDB) SetNotificationThreshold(
 	if uid == keybase1.UID("") {
 		return errNoSession
 	}
-	return db.Put(getSettingsDbKey(uid, notificationThresholdKey),
+	return db.Put(getSettingsDbKey(uid, spaceAvailableNotificationThresholdKey),
 		[]byte(strconv.FormatInt(threshold, 10)), nil)
 }
