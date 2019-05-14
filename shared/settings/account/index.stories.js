@@ -13,19 +13,26 @@ const props = {
   onSetPassword: Sb.action('onSetPassword'),
 }
 
-const contacts = {
-  a: {address: 'cecile@keyba.se', subtitle: '', unverified: false},
-  b: {address: 'cecile@keyba.se', subtitle: 'Not searchable', unverified: false},
-  c: {address: 'cecile@keyba.se', subtitle: 'Primary email • Not searchable', unverified: false},
-  d: {address: 'cecile@keyba.se', subtitle: 'Primary email', unverified: true},
-  e: {address: 'cecile@keyba.se', subtitle: 'Check your inbox', unverified: true},
-  f: {address: '+33 6 76 38 86 97', subtitle: '', unverified: false},
-  g: {address: '+33 6 76 38 86 97', subtitle: 'Not searchable', unverified: false},
-  h: {address: '+33 6 76 38 86 97', subtitle: '', unverified: true},
+const cc = {
+  onDelete: Sb.action('onDelete'),
+  onMakePrimary: Sb.action('onMakePrimary'),
+  onToggleSearchable: Sb.action('onToggleSearchable'),
+  onVerify: Sb.action('onVerify'),
+}
+// prettier-ignore
+const contacts: {[key: string]: ContactRowProps} = {
+  a: {...cc, address: 'cecile@keyba.se', primary: false, searchable: true, type: 'email', verified: true},
+  b: {...cc, address: 'cecile@keyba.se', primary: false, searchable: false, type: 'email', verified: true},
+  c: {...cc, address: 'cecile@keyba.se', primary: true, searchable: false, type: 'email', verified: true},
+  d: {...cc, address: 'cecile@keyba.se', primary: true, searchable: true, type: 'email', verified: false},
+  e: {...cc, address: 'cecile@keyba.se', primary: false, searchable: true, type: 'email', verified: false},
+  f: {...cc, address: '+33 6 76 38 86 97', primary: false, searchable: true, type: 'phone', verified: true},
+  g: {...cc, address: '+33 6 76 38 86 97', primary: false, searchable: false, type: 'phone', verified: true},
+  h: {...cc, address: '+33 6 76 38 86 97', primary: false, searchable: true, type: 'phone', verified: false},
 }
 
 const provider = Sb.createPropProvider({
-  ConnectedEmailPhoneRow: ({contactKey}: ContactRowOwnProps): ContactRowProps => contacts[contactKey],
+  ConnectedEmailPhoneRow: ({contactKey}: ContactRowOwnProps) => contacts[contactKey],
 })
 
 const load = () => {
