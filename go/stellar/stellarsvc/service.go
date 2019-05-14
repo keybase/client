@@ -768,6 +768,9 @@ func (s *Server) ApprovePayURILocal(ctx context.Context, arg stellar1.ApprovePay
 		var memoText string
 		if vp.MemoType == "MEMO_TEXT" {
 			memoText = vp.Memo
+		} else if vp.Memo != "" {
+			// CORE-10865 will fix this:
+			return "", errors.New("keybase cannot handle non-text memos currently")
 		}
 
 		sp, unlock := stellar.NewSeqnoProvider(mctx, s.walletState)
