@@ -286,7 +286,7 @@ const reactComponentsForMarkdownType = {
       json={node.content}
       key={state.key}
       allowFontScaling={state.allowFontScaling}
-      message={state?.markdownMeta?.message ?? undefined}
+      message={state.markdownMeta?.message ?? undefined}
       styleOverride={state.styleOverride}
       styles={markdownStyles}
     />
