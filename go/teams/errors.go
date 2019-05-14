@@ -301,6 +301,14 @@ func (e NotExplicitMemberOfSubteamError) HumanError() error {
 	return e
 }
 
+type TeamTombstonedError struct{}
+
+func NewTeamTombstonedError() error { return &TeamTombstonedError{} }
+
+func (e TeamTombstonedError) Error() string {
+	return "team has been tombstoned"
+}
+
 type TeamDeletedError struct{}
 
 func NewTeamDeletedError() error { return &TeamDeletedError{} }

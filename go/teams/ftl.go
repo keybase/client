@@ -411,12 +411,8 @@ func (f *FastTeamChainLoader) toResult(m libkb.MetaContext, arg fastLoadArg, sta
 }
 
 // findState in cache finds the team ID's state in an in-memory cache.
-func (f *FastTeamChainLoader) findStateInCache(m libkb.MetaContext, id keybase1.TeamID) *keybase1.FastTeamData {
-	tmp := f.storage.Get(m, id, id.IsPublic())
-	if tmp == nil {
-		return nil
-	}
-	return tmp
+func (f *FastTeamChainLoader) findStateInCache(m libkb.MetaContext, id keybase1.TeamID) (data *keybase1.FastTeamData, frozen bool, tombstoned bool) {
+	return f.storage.Get(m, id, id.IsPublic())
 }
 
 // stateHasKeySeed returns true/false if the state has the seed material for the given
@@ -1222,7 +1218,14 @@ func (f *FastTeamChainLoader) updateCache(m libkb.MetaContext, state *keybase1.F
 // this teamID.
 func (f *FastTeamChainLoader) loadLocked(m libkb.MetaContext, arg fastLoadArg) (res *fastLoadRes, err error) {
 
-	state := f.findStateInCache(m, arg.ID)
+	frozenState, frozen, tombstoned := f.findStateInCache(m, arg.ID)
+	var state *keybase1.FastTeamData
+	if tombstoned {
+		return nil, NewTeamTombstonedError()
+	}
+	if !frozen {
+		state = frozenState
+	}
 
 	var shoppingList shoppingList
 	if state != nil {
@@ -1253,6 +1256,14 @@ func (f *FastTeamChainLoader) loadLocked(m libkb.MetaContext, arg fastLoadArg) (
 	// Always update the cache, even if we're just bumping the cachedAt time.
 	f.updateCache(m, state)
 
+	if frozen && frozenState != nil {
+		frozenLast := frozenState.Chain.Last
+		linkID := state.Chain.LinkIDs[frozenLast.Seqno]
+		if !linkID.Eq(frozenLast.LinkID) {
+			return nil, fmt.Errorf("FastTeamChainLoader#loadLocked: got wrong sigchain link ID for seqno %d: expected %v from previous cache entry (frozen=%t); got %v in new chain", frozenLast.Seqno, frozenLast.LinkID, frozen, linkID)
+		}
+	}
+
 	return f.toResult(m, arg, state)
 }
 
@@ -1279,7 +1290,7 @@ func (f *FastTeamChainLoader) HintLatestSeqno(m libkb.MetaContext, id keybase1.T
 	lock := f.locktab.AcquireOnName(m.Ctx(), m.G(), id.String())
 	defer lock.Release(m.Ctx())
 
-	if state := f.findStateInCache(m, id); state != nil {
+	if state, frozen, tombstoned := f.findStateInCache(m, id); state != nil && !frozen && !tombstoned {
 		m.Debug("Found state in cache; updating")
 		state.LatestSeqnoHint = seqno
 		f.updateCache(m, state)
@@ -1308,4 +1319,52 @@ func (f *FastTeamChainLoader) InForceRepollMode(m libkb.MetaContext) bool {
 	}
 	f.forceRepollUntil = nil
 	return false
+}
+
+func newFrozenFastChain(chain *keybase1.FastTeamSigChainState) keybase1.FastTeamSigChainState {
+	return keybase1.FastTeamSigChainState{
+		ID:     chain.ID,
+		Public: chain.Public,
+		Last:   chain.Last,
+	}
+}
+
+func (f *FastTeamChainLoader) Freeze(mctx libkb.MetaContext, teamID keybase1.TeamID) (err error) {
+	defer mctx.TraceTimed(fmt.Sprintf("FastTeamChainLoader#Freeze(%s)", teamID), func() error { return err })()
+
+	// Single-flight lock by team ID.
+	lock := f.locktab.AcquireOnName(mctx.Ctx(), mctx.G(), teamID.String())
+	defer lock.Release(mctx.Ctx())
+
+	td, frozen, tombstoned := f.storage.Get(mctx, teamID, teamID.IsPublic())
+	if frozen || td == nil {
+		return nil
+	}
+	newTD := &keybase1.FastTeamData{
+		Frozen:     true,
+		Tombstoned: tombstoned,
+		Chain:      newFrozenFastChain(&td.Chain),
+	}
+	f.storage.Put(mctx, newTD)
+	return nil
+}
+
+func (f *FastTeamChainLoader) Tombstone(mctx libkb.MetaContext, teamID keybase1.TeamID) (err error) {
+	defer mctx.TraceTimed(fmt.Sprintf("FastTeamChainLoader#Tombstone(%s)", teamID), func() error { return err })()
+
+	// Single-flight lock by team ID.
+	lock := f.locktab.AcquireOnName(mctx.Ctx(), mctx.G(), teamID.String())
+	defer lock.Release(mctx.Ctx())
+
+	td, frozen, tombstoned := f.storage.Get(mctx, teamID, teamID.IsPublic())
+	if tombstoned || td == nil {
+		return nil
+	}
+	newTD := &keybase1.FastTeamData{
+		Frozen:     frozen,
+		Tombstoned: true,
+		Chain:      newFrozenFastChain(&td.Chain),
+	}
+	f.storage.Put(mctx, newTD)
+	return nil
 }
