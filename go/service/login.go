@@ -4,6 +4,8 @@
 package service
 
 import (
+	"fmt"
+
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -28,8 +30,21 @@ func (h *LoginHandler) GetConfiguredAccounts(context context.Context, sessionID 
 	return h.G().GetConfiguredAccounts(context)
 }
 
-func (h *LoginHandler) Logout(ctx context.Context, sessionID int) (err error) {
+func (h *LoginHandler) Logout(ctx context.Context, arg keybase1.LogoutArg) (err error) {
 	defer h.G().CTraceTimed(ctx, "Logout [service RPC]", func() error { return err })()
+
+	if !arg.ForceDangerous {
+		res, err := libkb.CanLogout(libkb.NewMetaContext(ctx, h.G()))
+		if err != nil {
+			return err
+		}
+		if !res.CanLogout {
+			return fmt.Errorf("cannot logout: %s; try with force", res.Reason)
+		}
+	} else {
+		h.G().Log.CWarningf(ctx, "Force logging out.")
+	}
+
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("LOGOUT")
 	eng := engine.NewLogout()
 	return engine.RunEngine2(mctx, eng)

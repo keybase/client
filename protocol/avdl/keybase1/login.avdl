@@ -51,7 +51,12 @@ protocol login {
     */
   void clearStoredSecret(int sessionID, string username);
 
-  void logout(int sessionID);
+  /**
+    If forceDangerous is passed, will skip all checks that might prevent logout.
+    NOTE: May fail without a network connection if forceDangerous is not passed.
+    */
+  void logout(int sessionID, bool forceDangerous);
+
   void deprovision(int sessionID, string username, boolean doRevoke);
 
   void recoverAccountFromEmailAddress(string email);

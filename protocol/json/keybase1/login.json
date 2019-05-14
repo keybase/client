@@ -122,6 +122,10 @@
         {
           "name": "sessionID",
           "type": "int"
+        },
+        {
+          "name": "forceDangerous",
+          "type": "bool"
         }
       ],
       "response": null

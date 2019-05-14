@@ -51,7 +51,8 @@ type ClearStoredSecretArg struct {
 }
 
 type LogoutArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
+	SessionID      int  `codec:"sessionID" json:"sessionID"`
+	ForceDangerous bool `codec:"forceDangerous" json:"forceDangerous"`
 }
 
 type DeprovisionArg struct {
@@ -117,7 +118,7 @@ type LoginInterface interface {
 	// Removes any existing stored secret for the given username.
 	// loginWithStoredSecret(_, username) will fail after this is called.
 	ClearStoredSecret(context.Context, ClearStoredSecretArg) error
-	Logout(context.Context, int) error
+	Logout(context.Context, LogoutArg) error
 	Deprovision(context.Context, DeprovisionArg) error
 	RecoverAccountFromEmailAddress(context.Context, string) error
 	// Guide the user through possibilities of changing their passphrase.
@@ -230,7 +231,7 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]LogoutArg)(nil), args)
 						return
 					}
-					err = i.Logout(ctx, typedArgs[0].SessionID)
+					err = i.Logout(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -417,8 +418,7 @@ func (c LoginClient) ClearStoredSecret(ctx context.Context, __arg ClearStoredSec
 	return
 }
 
-func (c LoginClient) Logout(ctx context.Context, sessionID int) (err error) {
-	__arg := LogoutArg{SessionID: sessionID}
+func (c LoginClient) Logout(ctx context.Context, __arg LogoutArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.login.logout", []interface{}{__arg}, nil)
 	return
 }
