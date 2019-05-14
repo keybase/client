@@ -9,6 +9,7 @@ import {
   Icon,
   MaybePopup,
   ProgressIndicator,
+  Text,
 } from '../../common-adapters'
 import {globalStyles, globalMargins} from '../../styles'
 
