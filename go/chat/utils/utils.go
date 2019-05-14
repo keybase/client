@@ -1145,7 +1145,7 @@ func PresentConversationErrorLocal(ctx context.Context, g *globals.Context, rawC
 	return res
 }
 
-func PresentConversationLocal(rawConv chat1.ConversationLocal, currentUsername string) (res chat1.InboxUIItem) {
+func PresentConversationLocal(ctx context.Context, rawConv chat1.ConversationLocal, currentUsername string) (res chat1.InboxUIItem) {
 	var writerNames []string
 	fullNames := make(map[string]string)
 	for _, p := range rawConv.Info.Participants {
@@ -1160,7 +1160,7 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal, currentUsername s
 	res.Name = rawConv.Info.TlfName
 	res.Snippet, res.SnippetDecoration = GetConvSnippet(rawConv, currentUsername)
 	res.Channel = rawConv.Info.TopicName
-	res.Headline = rawConv.Info.Headline
+	res.Headline = DecorateWithLinks(ctx, EscapeForDecorate(ctx, rawConv.Info.Headline))
 	res.Participants = writerNames
 	res.FullNames = fullNames
 	res.ResetParticipants = rawConv.Info.ResetNames
@@ -1188,9 +1188,9 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal, currentUsername s
 	return res
 }
 
-func PresentConversationLocals(convs []chat1.ConversationLocal, currentUsername string) (res []chat1.InboxUIItem) {
+func PresentConversationLocals(ctx context.Context, convs []chat1.ConversationLocal, currentUsername string) (res []chat1.InboxUIItem) {
 	for _, conv := range convs {
-		res = append(res, PresentConversationLocal(conv, currentUsername))
+		res = append(res, PresentConversationLocal(ctx, conv, currentUsername))
 	}
 	return res
 }
