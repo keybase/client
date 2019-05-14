@@ -73,7 +73,7 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
         style={Styles.collapseStyles([styles.container, this.props.style])}
         className={this.props.className}
       >
-        <Kb.Box2 direction="horizontal" gap="tiny" style={styles.emojisRow}>
+        <Kb.Box2 direction="horizontal" gap="tiny">
           {this.props.emojis.map(e => (
             <HoverEmoji name={e} key={e} onClick={() => this.props.onReact(e)} />
           ))}
@@ -118,7 +118,6 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'center',
     width: Styles.globalMargins.small,
   },
-  emojisRow: {},
   pickerContainer: Styles.platformStyles({
     isElectron: {
       ...Styles.desktopStyles.boxShadow,
