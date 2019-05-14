@@ -369,7 +369,7 @@ const styles = Styles.styleSheetCreate({
       maxWidth: 460,
     },
     isMobile: {
-      maxWidth: 360,
+      width: '100%',
     },
   }),
   errorContainer: {
