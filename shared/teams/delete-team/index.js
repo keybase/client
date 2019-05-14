@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Constants from '../../constants/teams'
 import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 
 export type Props = {
   onBack: () => void,
@@ -13,7 +14,10 @@ export type Props = {
 const Header = (props: Props) => (
   <>
     <Kb.Avatar teamname={props.teamname} size={64} />
-    <Kb.Icon type="icon-team-leave-28" style={{marginRight: -60, marginTop: -20, zIndex: 1}} />
+    <Kb.Icon type="icon-team-delete-28" style={{marginRight: -60, marginTop: -20, zIndex: 1}} />
+    <Kb.Text style={styles.headerTeamname} type="BodySemibold">
+      {props.teamname}
+    </Kb.Text>
   </>
 )
 
@@ -22,7 +26,6 @@ type CheckboxesState = {|
   box2: boolean,
   box3: boolean,
 |}
-
 type CheckboxesProps = {|
   onAllowDelete: boolean => void,
 |}
@@ -83,6 +86,7 @@ class Checkboxes extends React.Component<CheckboxesProps, CheckboxesState> {
 type State = {|
   allowDelete: boolean,
 |}
+
 class _ReallyDeleteTeam extends React.Component<Props, State> {
   state = {
     allowDelete: false,
@@ -91,12 +95,9 @@ class _ReallyDeleteTeam extends React.Component<Props, State> {
   render() {
     return (
       <Kb.ConfirmModal
-        confirmText={`Yes, leave ${this.props.teamname}`}
+        confirmText={`Delete ${this.props.teamname}`}
         content={<Checkboxes onAllowDelete={allowDelete => this.setState({allowDelete})} />}
-        description={`You will lose access to all the ${
-          this.props.teamname
-        } chats and folders, and you won't be able to get back
-    unless an admin invites you.`}
+        description="This cannot be undone. By deleting the team, you agree that:"
         header={<Header {...this.props} />}
         onCancel={this.props.onBack}
         onConfirm={this.state.allowDelete ? this.props.onDelete : null}
@@ -106,5 +107,9 @@ class _ReallyDeleteTeam extends React.Component<Props, State> {
     )
   }
 }
+
+const styles = Styles.styleSheetCreate({
+  headerTeamname: {color: Styles.globalColors.red, textDecorationLine: 'line-through'},
+})
 
 export default Kb.HeaderOnMobile(_ReallyDeleteTeam)

@@ -21,6 +21,7 @@ const mapStateToProps = (state, {teamname}: OwnProps) => {
   const isBigTeam = Constants.isBigTeam(state, teamname)
   return {
     canCreateSubteam: yourOperations.manageSubteams,
+    canDeleteTeam: Constants.canDeleteTeam(state, teamname),
     canLeaveTeam: yourOperations.leaveTeam,
     canManageChat: yourOperations.renameChannel,
     canViewFolder: !yourOperations.joinTeam,
@@ -79,7 +80,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   if (stateProps.canViewFolder) {
     items.push({onClick: dispatchProps.onOpenFolder, title: 'Open folder'})
   }
-  items.push({danger: true, onClick: dispatchProps.onDeleteTeam, title: 'Delete team'})
+  if (stateProps.canDeleteTeam) {
+    items.push({danger: true, onClick: dispatchProps.onDeleteTeam, title: 'Delete team'})
+  }
 
   return {
     attachTo: ownProps.attachTo,
