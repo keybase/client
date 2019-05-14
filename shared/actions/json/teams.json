@@ -98,6 +98,9 @@
       "sourceSubPath?": "I.List<string>",
       "teamname": "string"
     },
+    "deleteTeam": {
+      "teamname": "string"
+    },
     "inviteToTeamByEmail": {
       "destSubPath?": "I.List<string>",
       "invitees": "string",

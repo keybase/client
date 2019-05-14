@@ -16,8 +16,8 @@ export type Props = {|
   description: string,
   header?: React.Node,
   icon?: IconType,
-  onCancel: () => void,
-  onConfirm: () => void,
+  onCancel: ?() => void,
+  onConfirm: ?() => void,
   prompt: string,
   waitingKey?: string,
 |}
@@ -62,6 +62,7 @@ class _ConfirmModal extends React.PureComponent<Props> {
           <ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
             {!Styles.isMobile && (
               <WaitingButton
+                disabled={!this.props.onCancel}
                 type="Dim"
                 label="Cancel"
                 onClick={this.props.onCancel}
@@ -70,6 +71,7 @@ class _ConfirmModal extends React.PureComponent<Props> {
               />
             )}
             <WaitingButton
+              disabled={!this.props.onConfirm}
               type="Danger"
               label={this.props.confirmText || 'Confirm'}
               onClick={this.props.onConfirm}

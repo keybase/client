@@ -105,6 +105,22 @@ const getTeamProfileAddList = (state, action) =>
     return TeamsGen.createSetTeamProfileAddList({teamlist: I.List(teamlist || [])})
   })
 
+function* deleteTeam(_, action) {
+  yield* Saga.callRPCs(
+    RPCTypes.teamsTeamDeleteRpcSaga({
+      customResponseIncomingCallMap: {
+        'keybase.1.teamsUi.confirmRootTeamDelete': (_, response) => response.result(true),
+        'keybase.1.teamsUi.confirmSubteamDelete': (_, response) => response.result(true),
+      },
+      incomingCallMap: {},
+      params: {
+        name: action.payload.teamname,
+      },
+      waitingKey: Constants.deleteTeamWaitingKey(action.payload.teamname),
+    })
+  )
+}
+
 const leaveTeam = (state, action, logger) => {
   const {context, teamname} = action.payload
   logger.info(`leaveTeam: Leaving ${teamname} from context ${context}`)
@@ -1393,6 +1409,7 @@ const clearNavBadges = () =>
 
 const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<TeamsGen.LeaveTeamPayload>(TeamsGen.leaveTeam, leaveTeam, 'leaveTeam')
+  yield* Saga.chainGenerator<TeamsGen.DeleteTeamPayload>(TeamsGen.deleteTeam, deleteTeam, 'deleteTeam')
   yield* Saga.chainAction<TeamsGen.GetTeamProfileAddListPayload>(
     TeamsGen.getTeamProfileAddList,
     getTeamProfileAddList,

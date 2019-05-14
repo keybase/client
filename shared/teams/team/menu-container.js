@@ -36,6 +36,13 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
         path: [{props: {makeSubteam: true, name: teamname}, selected: 'teamNewTeamDialog'}],
       })
     ),
+  onDeleteTeam: () =>
+    dispatch(
+      RouteTreeGen.createNavigateTo({
+        parentPath: [teamsTab, 'team'],
+        path: [{props: {teamname}, selected: 'teamDeleteTeam'}],
+      })
+    ),
   onLeaveTeam: () =>
     dispatch(
       RouteTreeGen.createNavigateTo({
@@ -72,6 +79,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   if (stateProps.canViewFolder) {
     items.push({onClick: dispatchProps.onOpenFolder, title: 'Open folder'})
   }
+  items.push({danger: true, onClick: dispatchProps.onDeleteTeam, title: 'Delete team'})
+
   return {
     attachTo: ownProps.attachTo,
     items,

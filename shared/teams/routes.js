@@ -22,6 +22,7 @@ export const newModalRoutes = {
   teamInviteByEmail: {getScreen: () => require('./invite-by-email/container').default, upgraded: true},
   teamJoinTeamDialog: {getScreen: () => require('./join-team/container').default, upgraded: true},
   teamNewTeamDialog: {getScreen: () => require('./new-team/container').default, upgraded: true},
+  teamReallyLeaveTeam: {getScreen: () => require('./really-leave-team/container').default, upgraded: true},
   teamReallyRemoveMember: {
     getScreen: () => require('./team/really-remove-member/container').default,
     upgraded: true,

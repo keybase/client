@@ -34,10 +34,19 @@ class Checkboxes extends React.Component<CheckboxesProps, CheckboxesState> {
     box3: false,
   }
 
-  componentDidUpdate() {
-    if (this.state.box1 && this.state.box2 && this.state.box3) {
+  componentDidUpdate(prevProps, prevState) {
+    if (
+      this.state.box1 &&
+      this.state.box2 &&
+      this.state.box3 &&
+      (!prevState.box1 || !prevState.box2 || !prevState.box3)
+    ) {
       this.props.onAllowDelete(true)
-    } else {
+    } else if (
+      this.state.box1 !== prevState.box1 ||
+      this.state.box2 !== prevState.box2 ||
+      this.state.box3 !== prevState.box3
+    ) {
       this.props.onAllowDelete(false)
     }
   }
