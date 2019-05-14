@@ -20,6 +20,7 @@ import * as RouteTreeGen from '../route-tree-gen'
 import {tlfToPreferredOrder} from '../../util/kbfs'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
 import flags from '../../util/feature-flags'
+import {NotifyPopup} from '../../native/notifications'
 
 const rpcFolderTypeToTlfType = (rpcFolderType: RPCTypes.FolderType) => {
   switch (rpcFolderType) {
@@ -988,11 +989,31 @@ const onFSOverallSyncSyncStatusChanged = (state, action) =>
     progress: Constants.makeSyncingFoldersProgress(action.payload.params.status.prefetchProgress),
   })
 
+const notifyDiskSpaceStatus = (diskSpaceStatus: Types.DiskSpaceStatus) => {
+  switch (diskSpaceStatus) {
+    case 'error':
+      NotifyPopup('Sync Error', {
+        body: 'You are out of disk space. Some folders could not be synced.',
+        sound: true,
+      })
+      break
+    case 'warning':
+      NotifyPopup('Disk Space Low', {body: 'You have less than 1 GB of storage space left.'})
+      break
+    case 'ok':
+      break
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(diskSpaceStatus)
+  }
+}
+
 let prevOutOfSpace = false
 const updateMenubarIconOnStuckSync = (state, action) => {
   const outOfSpace = action.payload.params.status.outOfSyncSpace
   if (outOfSpace !== prevOutOfSpace) {
     prevOutOfSpace = outOfSpace
+    // TODO once go side sends info: low on space warning
+    notifyDiskSpaceStatus(outOfSpace ? 'error' : 'ok')
     return NotificationsGen.createBadgeApp({key: 'outOfSpace', on: outOfSpace})
   }
 }
