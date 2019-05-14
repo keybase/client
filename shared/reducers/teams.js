@@ -141,6 +141,7 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
     case TeamsGen.createNewTeam:
     case TeamsGen.createNewTeamFromConversation:
     case TeamsGen.deleteChannelConfirmed:
+    case TeamsGen.deleteTeam:
     case TeamsGen.editMembership:
     case TeamsGen.editTeamDescription:
     case TeamsGen.uploadTeamAvatar:
