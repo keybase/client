@@ -4,6 +4,7 @@
 package contacts
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 
@@ -19,14 +20,18 @@ type mockLookupUser struct {
 }
 
 type MockContactsProvider struct {
+	t            *testing.T
 	phoneNumbers map[keybase1.RawPhoneNumber]mockLookupUser
 	emails       map[keybase1.EmailAddress]mockLookupUser
+	following    map[keybase1.UID]bool
 }
 
-func makeProvider() *MockContactsProvider {
+func makeProvider(t *testing.T) *MockContactsProvider {
 	return &MockContactsProvider{
+		t:            t,
 		phoneNumbers: make(map[keybase1.RawPhoneNumber]mockLookupUser),
 		emails:       make(map[keybase1.EmailAddress]mockLookupUser),
+		following:    make(map[keybase1.UID]bool),
 	}
 }
 
@@ -49,6 +54,7 @@ func (c *MockContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybas
 
 func (c *MockContactsProvider) FillUsernames(mctx libkb.MetaContext, res []keybase1.ProcessedContact) {
 	for i, v := range res {
+		require.False(c.t, v.Uid.IsNil())
 		if v.Resolved {
 			var found bool
 			for _, y := range c.phoneNumbers {
@@ -71,6 +77,34 @@ func (c *MockContactsProvider) FillUsernames(mctx libkb.MetaContext, res []keyba
 			}
 		}
 	}
+}
+
+func (c *MockContactsProvider) FillFollowing(mctx libkb.MetaContext, res []keybase1.ProcessedContact) {
+	for i, v := range res {
+		require.False(c.t, v.Uid.IsNil())
+		if _, found := c.following[v.Uid]; found {
+			res[i].Following = true
+		}
+	}
+}
+
+type ErrorContactsProvider struct {
+	t *testing.T
+}
+
+func (c *ErrorContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
+	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (ret ContactLookupMap, err error) {
+	c.t.Errorf("Call to ErrorContactsProvider.LookupAll")
+	err = errors.New("error contacts provider")
+	return
+}
+
+func (c *ErrorContactsProvider) FillUsernames(libkb.MetaContext, []keybase1.ProcessedContact) {
+	c.t.Errorf("Call to ErrorContactsProvider.FillUsernames")
+}
+
+func (c *ErrorContactsProvider) FillFollowing(libkb.MetaContext, []keybase1.ProcessedContact) {
+	c.t.Errorf("Call to ErrorContactsProvider.FillFollowing")
 }
 
 func makePhoneComponent(label string, phone string) keybase1.ContactComponent {
@@ -115,6 +149,18 @@ func displayResults(res []keybase1.ProcessedContact) (ret []string) {
 	return ret
 }
 
+func TestLookupEmptyList(t *testing.T) {
+	tc := libkb.SetupTest(t, "TestLookupContacts", 1)
+	defer tc.Cleanup()
+
+	provider := &ErrorContactsProvider{t}
+	contactList := []keybase1.Contact{}
+
+	res, err := ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
+	require.NoError(t, err)
+	require.Len(t, res, 0)
+}
+
 func TestLookupContacts(t *testing.T) {
 	tc := libkb.SetupTest(t, "TestLookupContacts", 1)
 	defer tc.Cleanup()
@@ -130,7 +176,7 @@ func TestLookupContacts(t *testing.T) {
 		},
 	}
 
-	provider := makeProvider()
+	provider := makeProvider(t)
 
 	// None of the contact components resolved (empty mock provider). Return all
 	// 3 unresolved components to the caller.
@@ -175,7 +221,7 @@ func TestLookupContacts(t *testing.T) {
 	}, stringifyResults(res))
 
 	// Test with email
-	provider = makeProvider()
+	provider = makeProvider(t)
 	provider.emails["joe@linux.org"] = mockLookupUser{UID: keybase1.UID("1"), Username: "joe"}
 	res, err = ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
 	require.NoError(t, err)
@@ -215,7 +261,7 @@ func TestLookupContactsMultipleUsers(t *testing.T) {
 		},
 	}
 
-	provider := makeProvider()
+	provider := makeProvider(t)
 
 	res, err := ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
 	require.NoError(t, err)
@@ -262,7 +308,7 @@ func TestEmptyComponentLabels(t *testing.T) {
 		},
 	}
 
-	provider := makeProvider()
+	provider := makeProvider(t)
 
 	res, err := ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
 	require.NoError(t, err)
@@ -285,6 +331,60 @@ func TestEmptyComponentLabels(t *testing.T) {
 	require.Equal(t, "alice", res[0].Username)
 	require.Equal(t, "A L I C E", res[0].FullName)
 	require.EqualValues(t, "1111", res[0].Uid)
+	require.False(t, res[0].Following)
 	require.Equal(t, "alice", res[0].DisplayName)
-	require.Equal(t, "A L I C E", res[0].DisplayLabel)
+	require.Equal(t, "Alice", res[0].DisplayLabel) // Because we are not following, contact name is used instead of full name.
+}
+
+func TestFollowing(t *testing.T) {
+	tc := libkb.SetupTest(t, "TestLookupContacts", 1)
+	defer tc.Cleanup()
+
+	contactList := []keybase1.Contact{
+		keybase1.Contact{
+			Name: "Alice",
+			Components: []keybase1.ContactComponent{
+				makePhoneComponent("", "+1111222"),
+			},
+		},
+		keybase1.Contact{
+			Name: "Bob",
+			Components: []keybase1.ContactComponent{
+				makeEmailComponent("", "bob+test@keyba.se"),
+			},
+		},
+		keybase1.Contact{
+			Name: "Charlie",
+			Components: []keybase1.ContactComponent{
+				makeEmailComponent("", "charlie+test@keyba.se"),
+			},
+		},
+		keybase1.Contact{
+			Name: "",
+			Components: []keybase1.ContactComponent{
+				makeEmailComponent("", "doug+test@keyba.se"),
+			},
+		},
+	}
+
+	provider := makeProvider(t)
+
+	provider.phoneNumbers["+1111222"] = mockLookupUser{UID: keybase1.UID("1111"), Username: "alice", Fullname: "CryptoAlice"}
+	provider.emails["bob+test@keyba.se"] = mockLookupUser{UID: keybase1.UID("2222"), Username: "bob", Fullname: ""}
+	provider.emails["charlie+test@keyba.se"] = mockLookupUser{UID: keybase1.UID("3333"), Username: "charlie", Fullname: ""}
+	provider.emails["doug+test@keyba.se"] = mockLookupUser{UID: keybase1.UID("4444"), Username: "doug", Fullname: ""}
+
+	provider.following[keybase1.UID("1111")] = true
+	provider.following[keybase1.UID("3333")] = true
+
+	res, err := ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
+	require.NoError(t, err)
+	require.Len(t, res, 4)
+	expected := []string{
+		`"bob" "Bob"`,                 // not followed, no full name, take contact name
+		`"charlie" "Charlie"`,         // followed but no full name, take contact name
+		`"doug" "doug+test@keyba.se"`, // not followed, no full name, no contact name, take component
+		`"alice" "CryptoAlice"`,       // followed and have full name, take full name
+	}
+	require.Equal(t, expected, displayResults(res))
 }

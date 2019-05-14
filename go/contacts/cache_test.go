@@ -35,11 +35,15 @@ func (c *anotherMockContactsProvider) FillUsernames(mctx libkb.MetaContext, res 
 	c.provider.FillUsernames(mctx, res)
 }
 
+func (c *anotherMockContactsProvider) FillFollowing(mctx libkb.MetaContext, res []keybase1.ProcessedContact) {
+	c.provider.FillFollowing(mctx, res)
+}
+
 func TestCacheProvider(t *testing.T) {
 	tc := libkb.SetupTest(t, "TestCacheProvider", 1)
 	defer tc.Cleanup()
 
-	mockProvider := makeProvider()
+	mockProvider := makeProvider(t)
 	cacheProvider := &CachedContactsProvider{
 		Provider: mockProvider,
 		Store:    NewContactCacheStore(tc.G),
@@ -53,7 +57,7 @@ func TestCacheProvider(t *testing.T) {
 func setupTestCacheProviders(t *testing.T, tc libkb.TestContext) (provider *anotherMockContactsProvider,
 	cacheProvider *CachedContactsProvider) {
 
-	mockProvider := makeProvider()
+	mockProvider := makeProvider(t)
 	provider = &anotherMockContactsProvider{
 		provider: mockProvider,
 		t:        t,
