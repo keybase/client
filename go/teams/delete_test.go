@@ -23,9 +23,8 @@ func TestDeleteRoot(t *testing.T) {
 
 	_, err := GetTeamByNameForTest(context.Background(), tc.G, teamname, false, false)
 	require.Error(t, err, "no error getting deleted team")
-	spew.Dump(err)
 	_, ok := err.(*TeamTombstonedError)
-	require.True(t, ok)
+	require.True(t, ok) // ensure server cannot temporarily pretend a team was deleted
 }
 
 func TestDeleteSubteamAdmin(t *testing.T) {
