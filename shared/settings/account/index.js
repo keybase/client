@@ -2,8 +2,10 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import EmailPhoneRow from './email-phone-row'
 
 type Props = {|
+  contactKeys: Array<string>,
   hasPassword: boolean,
   onAddEmail: () => void,
   onAddPhone: () => void,
@@ -28,6 +30,13 @@ const AccountSettings = (props: Props) => {
               teammates to find you by phone number or email.
             </Kb.Text>
           </Kb.Box2>
+          {!!props.contactKeys.length && (
+            <Kb.Box2 direction="vertical" style={styles.contactRows} fullWidth={true}>
+              {props.contactKeys.map(ck => (
+                <EmailPhoneRow contactKey={ck} key={ck} />
+              ))}
+            </Kb.Box2>
+          )}
           <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
             <Kb.Button mode="Secondary" onClick={props.onAddEmail} label="Add email" small={true} />
             <Kb.Button mode="Secondary" onClick={props.onAddPhone} label="Add phone" small={true} />
@@ -84,7 +93,13 @@ const styles = Styles.styleSheetCreate({
     minHeight: undefined,
     width: undefined,
   },
+  contactRows: Styles.platformStyles({
+    isElectron: {
+      paddingTop: Styles.globalMargins.xtiny,
+    },
+  }),
   password: {
+    ...Styles.padding(Styles.globalMargins.xsmall, 0),
     flexGrow: 1,
   },
   section: Styles.platformStyles({
