@@ -92,12 +92,11 @@ type ErrorContactsProvider struct {
 	t *testing.T
 }
 
-func (c *ErrorContactsProvider) LookupPhoneNumbers(libkb.MetaContext, []keybase1.RawPhoneNumber, keybase1.RegionCode) ([]ContactLookupResult, error) {
-	return nil, errors.New("error contacts provider")
-}
-
-func (c *ErrorContactsProvider) LookupEmails(libkb.MetaContext, []keybase1.EmailAddress) ([]ContactLookupResult, error) {
-	return nil, errors.New("error contacts provider")
+func (c *ErrorContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
+	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (ret ContactLookupMap, err error) {
+	c.t.Errorf("Call to ErrorContactsProvider.LookupAll")
+	err = errors.New("error contacts provider")
+	return
 }
 
 func (c *ErrorContactsProvider) FillUsernames(libkb.MetaContext, []keybase1.ProcessedContact) {

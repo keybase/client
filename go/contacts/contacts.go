@@ -90,7 +90,6 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 							Component:    component,
 							Resolved:     true,
 							Uid:          lookupRes.UID,
-							Following:    true,
 						})
 						contactsFound[contactI] = struct{}{}
 						usersFound[lookupRes.UID] = struct{}{}
