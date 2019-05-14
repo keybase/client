@@ -328,7 +328,13 @@ func favoriteToFolder(fav favorites.Folder, data favorites.Data) keybase1.Folder
 }
 
 func (f *Favorites) handleReq(req *favReq) (err error) {
-	defer func() { f.closeReq(req, err) }()
+	changed := false
+	defer func() {
+		f.closeReq(req, err)
+		if changed {
+			f.config.KeybaseService().NotifyFavoritesChanged(req.ctx)
+		}
+	}()
 
 	if req.refresh {
 		<-f.refreshWaiting
@@ -345,24 +351,35 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 	needFetch := (req.refresh || f.favCache == nil) && !req.clear
 	wantFetch := f.config.Clock().Now().After(f.cacheExpireTime) && !req.clear
 
-	changed := false
-	// Note we don't edit fs.favCache directly for add or del, since
-	// fav.ToKBFolder() doesn't everything we need. We could have a reducer to
-	// "update" existing item in the cache, but since KBPKI is the ultimate
-	// source for this stuff, we might as well reload from there.
-	defer func() {
-		if changed {
-			go func() {
-				newCtx, _ := context.WithTimeout(context.Background(),
-					favoritesBackgroundRefreshTimeout)
-				f.RefreshCache(newCtx, FavoritesRefreshModeBlocking)
-				if changed {
-					f.config.KeybaseService().NotifyFavoritesChanged(req.ctx)
-				}
-			}()
-
+	for _, fav := range req.toAdd {
+		// FOR DISCUSSION: we don't check this in toDel because it could be
+		// out-of-date. So perhaps we should get rid of this too?
+		// _, present := f.favCache[fav.Folder]
+		// if !fav.Created && present {
+		// 	continue
+		// }
+		err := kbpki.FavoriteAdd(req.ctx, fav.ToKBFolder())
+		if err != nil {
+			f.log.CDebugf(req.ctx,
+				"Failure adding favorite %v: %v", fav, err)
+			return err
 		}
-	}()
+		needFetch = true
+		changed = true
+	}
+
+	for _, fav := range req.toDel {
+		// Since our cache isn't necessarily up-to-date, always delete
+		// the favorite.
+		folder := fav.ToKBFolder(false)
+		err := kbpki.FavoriteDelete(req.ctx, folder)
+		if err != nil {
+			return err
+		}
+		f.config.UserHistory().ClearTLF(tlf.CanonicalName(fav.Name), fav.Type)
+		needFetch = true
+		changed = true
+	}
 
 	if needFetch || wantFetch {
 		getCtx := req.ctx
@@ -461,32 +478,6 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 		f.favCache = nil
 		changed = true
 		return nil
-	}
-
-	for _, fav := range req.toAdd {
-		_, present := f.favCache[fav.Folder]
-		if !fav.Created && present {
-			continue
-		}
-		err := kbpki.FavoriteAdd(req.ctx, fav.ToKBFolder())
-		if err != nil {
-			f.log.CDebugf(req.ctx,
-				"Failure adding favorite %v: %v", fav, err)
-			return err
-		}
-		changed = true
-	}
-
-	for _, fav := range req.toDel {
-		// Since our cache isn't necessarily up-to-date, always delete
-		// the favorite.
-		folder := fav.ToKBFolder(false)
-		err := kbpki.FavoriteDelete(req.ctx, folder)
-		if err != nil {
-			return err
-		}
-		f.config.UserHistory().ClearTLF(tlf.CanonicalName(fav.Name), fav.Type)
-		changed = true
 	}
 
 	if req.favs != nil {
