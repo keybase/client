@@ -42,7 +42,7 @@ func TestCacheProvider(t *testing.T) {
 	mockProvider := makeProvider()
 	cacheProvider := &CachedContactsProvider{
 		Provider: mockProvider,
-		Cache:    NewContactCacheStore(tc.G),
+		Store:    NewContactCacheStore(tc.G),
 	}
 
 	res, err := cacheProvider.LookupAll(libkb.NewMetaContextForTest(tc), []keybase1.EmailAddress{}, []keybase1.RawPhoneNumber{}, keybase1.RegionCode(""))
@@ -60,7 +60,7 @@ func setupTestCacheProviders(t *testing.T, tc libkb.TestContext) (provider *anot
 	}
 	cacheProvider = &CachedContactsProvider{
 		Provider: provider,
-		Cache:    NewContactCacheStore(tc.G),
+		Store:    NewContactCacheStore(tc.G),
 	}
 
 	return provider, cacheProvider

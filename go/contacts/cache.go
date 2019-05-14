@@ -42,7 +42,7 @@ func NewContactCacheStore(g *libkb.GlobalContext) *ContactCacheStore {
 
 type CachedContactsProvider struct {
 	Provider ContactsProvider
-	Cache    *ContactCacheStore
+	Store    *ContactCacheStore
 }
 
 var _ ContactsProvider = (*CachedContactsProvider)(nil)
@@ -111,8 +111,8 @@ func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keyb
 	now := mctx.G().Clock().Now()
 
 	var conCache contactsCache
-	cacheKey := c.Cache.dbKey(mctx.CurrentUID())
-	found, cerr := c.Cache.encryptedDB.Get(mctx.Ctx(), cacheKey, &conCache)
+	cacheKey := c.Store.dbKey(mctx.CurrentUID())
+	found, cerr := c.Store.encryptedDB.Get(mctx.Ctx(), cacheKey, &conCache)
 	if cerr != nil {
 		mctx.Warning("Unable to pull cache: %s", cerr)
 	} else if !found {
@@ -160,7 +160,7 @@ func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keyb
 			mctx.Warning("Unable to call Provider.LookupAll, returning only cached results: %s", err)
 		}
 
-		cerr := c.Cache.encryptedDB.Put(mctx.Ctx(), cacheKey, conCache)
+		cerr := c.Store.encryptedDB.Put(mctx.Ctx(), cacheKey, conCache)
 		if cerr != nil {
 			mctx.Warning("Unable to update cache: %s", cerr)
 		}

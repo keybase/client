@@ -12,8 +12,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-type bulkLookupContactsProvider struct {
-}
+type bulkLookupContactsProvider struct{}
 
 var _ contacts.ContactsProvider = (*bulkLookupContactsProvider)(nil)
 
@@ -65,7 +64,7 @@ type ContactsHandler struct {
 func NewContactsHandler(xp rpc.Transporter, g *libkb.GlobalContext) *ContactsHandler {
 	contactsProvider := &contacts.CachedContactsProvider{
 		Provider: &bulkLookupContactsProvider{},
-		Cache:    contacts.NewContactCacheStore(g),
+		Store:    contacts.NewContactCacheStore(g),
 	}
 
 	handler := &ContactsHandler{
