@@ -1633,7 +1633,7 @@ const previewConversationTeam = (state, action) => {
 }
 
 const startupInboxLoad = state =>
-  state.config.username ? Chat2Gen.createInboxRefresh({reason: 'bootstrap'}) : undefined
+  !!state.config.username && Chat2Gen.createInboxRefresh({reason: 'bootstrap'})
 
 const changeSelectedConversation = (state, action, logger) => {
   if (!isMobile) {
