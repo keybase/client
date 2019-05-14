@@ -721,6 +721,7 @@ func (u Usage) UseKeyring() bool {
 	return u.KbKeyring || u.GpgKeyring
 }
 
+// If changed, make sure to correct standalone usage in g.Configure below
 var ServiceUsage = Usage{
 	Config:     true,
 	KbKeyring:  true,
@@ -741,7 +742,12 @@ func (g *GlobalContext) Configure(line CommandLine, usage Usage) error {
 	}
 	if g.Env.GetStandalone() {
 		// If standalone, override the usage to be the same as in a service
-		usage = ServiceUsage
+		// If changed, make sure to correct ServiceUsage above.
+		usage.Config = ServiceUsage.Config
+		usage.KbKeyring = ServiceUsage.KbKeyring
+		usage.GpgKeyring = ServiceUsage.GpgKeyring
+		usage.API = ServiceUsage.API
+		usage.Socket = ServiceUsage.Socket
 	}
 
 	if err := g.ConfigureUsage(usage); err != nil {
