@@ -64,6 +64,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   lockdownModeEnabled: null,
   notifications: makeNotifications(),
   password: makePassword(),
+  useNativeFrame: true,
   waitingForResponse: false,
 })
 

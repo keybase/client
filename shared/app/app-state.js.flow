@@ -1,0 +1,23 @@
+// @flow
+
+export type State = {
+  x: ?number,
+  y: ?number,
+  width: number,
+  height: number,
+  windowHidden: boolean,
+  isMaximized: ?boolean,
+  isFullScreen: ?boolean,
+  displayBounds: ?any,
+  tab: ?string,
+  dockHidden: boolean,
+  notifySound: boolean,
+  openAtLogin: boolean,
+  useNativeFrame: ?boolean,
+}
+
+declare class AppState {
+  state: State;
+}
+
+export default AppState

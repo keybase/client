@@ -44,6 +44,9 @@
     "onChangeLockdownMode": {
       "enabled": "boolean"
     },
+    "onChangeUseNativeFrame": {
+      "enabled": "boolean"
+    },
     "notificationsRefresh": {},
     "notificationsRefreshed": {
       "notifications": "I.Map<string, Types.NotificationsGroupState>"

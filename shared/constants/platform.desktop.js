@@ -14,6 +14,8 @@ export const isLinux = platform === 'linux'
 export const isAndroidNewerThanN = false
 export const shortcutSymbol = isDarwin ? '⌘' : 'Ctrl-'
 
+export const defaultUseNativeFrame = isDarwin || isLinux
+
 // For storyshots, we only want to test macOS
 export const fileUIName = isDarwin || __STORYBOOK__ ? 'Finder' : isWindows ? 'Explorer' : 'File Explorer'
 
@@ -30,7 +32,7 @@ const getLinuxPaths = () => {
   const useXDG = runMode !== 'devel' && !process.env['KEYBASE_XDG_OVERRIDE']
 
   // If XDG_RUNTIME_DIR is defined use that, else use $HOME/.config.
-  const homeConfigDir = path.join(homeEnv, '.config')
+  const homeConfigDir = (useXDG && process.env['XDG_CONFIG_HOME']) || path.join(homeEnv, '.config')
   const runtimeDir = (useXDG && process.env['XDG_RUNTIME_DIR']) || ''
   const socketDir = (useXDG && runtimeDir) || homeConfigDir
 
