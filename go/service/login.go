@@ -39,7 +39,7 @@ func (h *LoginHandler) Logout(ctx context.Context, arg keybase1.LogoutArg) (err 
 			return err
 		}
 		if !res.CanLogout {
-			return fmt.Errorf("cannot logout: %s; try with force", res.Reason)
+			return fmt.Errorf("Cannot logout: %s.", res.Reason)
 		}
 	} else {
 		h.G().Log.CWarningf(ctx, "Force logging out.")
