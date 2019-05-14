@@ -53,14 +53,14 @@ const RetentionWarning = (props: Props) => {
           style={styles.checkboxStyle}
           label=""
           labelComponent={
-            <Kb.Box style={styles.confirmLabelStyle}>
+            <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.flexOne}>
               <Kb.Text type="Body">
                 I understand that messages older than {props.timePeriod} will be deleted for everyone.
               </Kb.Text>
               {showChannelWarnings && (
                 <Kb.Text type="BodySmall">Channels you've set manually will not be affected.</Kb.Text>
               )}
-            </Kb.Box>
+            </Kb.Box2>
           }
         />
         <Kb.ButtonBar>
@@ -102,15 +102,13 @@ const getConvType = (entityType: RetentionEntityType) => {
 const styles = Styles.styleSheetCreate({
   bodyStyle: {marginBottom: Styles.globalMargins.small},
   checkboxStyle: Styles.platformStyles({
-    isMobile: {
-      marginLeft: Styles.globalMargins.tiny,
-      marginRight: Styles.globalMargins.tiny,
+    isElectron: {
+      marginBottom: Styles.globalMargins.xlarge,
     },
-  }),
-  confirmLabelStyle: Styles.platformStyles({
-    common: {...Styles.globalStyles.flexBoxColumn},
-    isElectron: {marginBottom: Styles.globalMargins.xlarge},
-    isMobile: {marginBottom: Styles.globalMargins.small},
+    isMobile: {
+      marginBottom: Styles.globalMargins.small,
+      width: '100%',
+    },
   }),
   container: Styles.platformStyles({
     common: {
@@ -130,6 +128,7 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.small,
     },
   }),
+  flexOne: {flex: 1},
   headerStyle: {marginBottom: Styles.globalMargins.small},
   iconStyle: {marginBottom: 20},
 })
