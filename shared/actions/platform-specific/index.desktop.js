@@ -341,7 +341,7 @@ function* startPowerMonitor() {
   }
 }
 
-const setUseNativeFrame = (state, _) =>
+const setUseNativeFrame = state =>
   SafeElectron.getIpcRenderer().send('setAppState', {useNativeFrame: state.settings.useNativeFrame})
 
 function* initializeUseNativeFrame() {
