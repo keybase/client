@@ -339,6 +339,18 @@ func TestDecorateLinks(t *testing.T) {
 			body:   "@google.com",
 			result: "@google.com",
 		},
+		decorateLinkTest{
+			body:   "/keybase/team/keybase.staff_v8/candidates/feedback-template.md",
+			result: "/keybase/team/keybase.staff_v8/candidates/feedback-template.md",
+		},
+		decorateLinkTest{
+			body:   "#google.com",
+			result: "#$>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6Imdvb2dsZS5jb20iLCJ1cmwiOiJodHRwOi8vZ29vZ2xlLmNvbSJ9fQ==$<kb$",
+		},
+		decorateLinkTest{
+			body:   "client/go/profiling/aggregate_timers.py",
+			result: "client/go/profiling/aggregate_timers.py",
+		},
 	}
 	for _, c := range cases {
 		res := DecorateWithLinks(context.TODO(), c.body)

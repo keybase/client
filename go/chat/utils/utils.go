@@ -2075,8 +2075,21 @@ func DecorateBody(ctx context.Context, body string, offset, length int, decorati
 	return res, added
 }
 
-var linkRegexp = xurls.RelaxedAtDomain()
+var linkRegexp = xurls.Relaxed()
+var linkRelaxedRegexpIndex = 0
+var linkStrictRegexpIndex = 0
 var mailtoRegexp = regexp.MustCompile(`(?:(?:[\w-_.]+)@(?:[\w-]+(?:\.[\w-]+)+))\b`)
+
+func init() {
+	for index, name := range linkRegexp.SubexpNames() {
+		if name == "relaxed" {
+			linkRelaxedRegexpIndex = index + 1
+		}
+		if name == "strict" {
+			linkStrictRegexpIndex = index + 1
+		}
+	}
+}
 
 func DecorateWithLinks(ctx context.Context, body string) string {
 	var added int
@@ -2097,12 +2110,20 @@ func DecorateWithLinks(ctx context.Context, body string) string {
 		}
 		return false
 	}
-	allMatches := linkRegexp.FindAllStringIndex(ReplaceQuotedSubstrings(body, true), -1)
+	allMatches := linkRegexp.FindAllStringSubmatchIndex(ReplaceQuotedSubstrings(body, true), -1)
 	for _, match := range allMatches {
-		if len(match) < 2 {
+		var lowhit, highhit int
+		if len(match) >= linkRelaxedRegexpIndex*2 && match[linkRelaxedRegexpIndex*2-2] >= 0 {
+			lowhit = linkRelaxedRegexpIndex*2 - 2
+			highhit = linkRelaxedRegexpIndex*2 - 1
+		} else if len(match) >= linkStrictRegexpIndex*2 && match[linkStrictRegexpIndex*2-2] >= 0 {
+			lowhit = linkStrictRegexpIndex*2 - 2
+			highhit = linkStrictRegexpIndex*2 - 1
+		} else {
 			continue
 		}
-		bodyMatch := origBody[match[0]:match[1]]
+
+		bodyMatch := origBody[match[lowhit]:match[highhit]]
 		url := bodyMatch
 		if shouldSkipLink(bodyMatch) {
 			continue
@@ -2110,7 +2131,7 @@ func DecorateWithLinks(ctx context.Context, body string) string {
 		if !(strings.HasPrefix(bodyMatch, "http://") || strings.HasPrefix(bodyMatch, "https://")) {
 			url = "http://" + bodyMatch
 		}
-		body, added = DecorateBody(ctx, body, match[0]+offset, match[1]-match[0],
+		body, added = DecorateBody(ctx, body, match[lowhit]+offset, match[highhit]-match[lowhit],
 			chat1.NewUITextDecorationWithLink(chat1.UILinkDecoration{
 				Display: bodyMatch,
 				Url:     url,
