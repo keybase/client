@@ -87,7 +87,7 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
 
   return (
     <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.container}>
-      <Kb.Box2 alignItems="flex-start" direction="vertical" style={styles.flexOne}>
+      <Kb.Box2 alignItems="flex-start" direction="vertical" style={{...Styles.globalStyles.flexOne}}>
         <Kb.Text type="BodySemibold">{props.address}</Kb.Text>
         {(!!subtitle || !props.verified) && (
           <Kb.Box2 direction="horizontal" alignItems="flex-start" gap="xtiny" fullWidth={true}>
@@ -133,9 +133,6 @@ const styles = Styles.styleSheetCreate({
   },
   container: {
     height: Styles.isMobile ? 48 : 40,
-  },
-  flexOne: {
-    flex: 1,
   },
   menuHeader: {
     height: 64,
