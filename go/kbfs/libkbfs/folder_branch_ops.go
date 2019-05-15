@@ -9045,6 +9045,13 @@ func (fbo *folderBranchOps) SetSyncConfig(
 		fbo.log.CDebugf(ctx, "Starting full deep sync")
 		_ = fbo.kickOffRootBlockFetch(ctx, md)
 	}
+
+	// Issue notifications to client when sync mode changes (or is partial).
+	if oldConfig.Mode != config.Mode || config.Mode == keybase1.FolderSyncMode_PARTIAL {
+		fbo.config.Reporter().Notify(ctx, syncConfigChangeNotification(
+			md.GetTlfHandle(), config))
+	}
+
 	return ch, nil
 }
 

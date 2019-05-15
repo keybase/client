@@ -39,35 +39,37 @@ func (e FSStatusCode) String() string {
 type FSNotificationType int
 
 const (
-	FSNotificationType_ENCRYPTING      FSNotificationType = 0
-	FSNotificationType_DECRYPTING      FSNotificationType = 1
-	FSNotificationType_SIGNING         FSNotificationType = 2
-	FSNotificationType_VERIFYING       FSNotificationType = 3
-	FSNotificationType_REKEYING        FSNotificationType = 4
-	FSNotificationType_CONNECTION      FSNotificationType = 5
-	FSNotificationType_MD_READ_SUCCESS FSNotificationType = 6
-	FSNotificationType_FILE_CREATED    FSNotificationType = 7
-	FSNotificationType_FILE_MODIFIED   FSNotificationType = 8
-	FSNotificationType_FILE_DELETED    FSNotificationType = 9
-	FSNotificationType_FILE_RENAMED    FSNotificationType = 10
-	FSNotificationType_INITIALIZED     FSNotificationType = 11
+	FSNotificationType_ENCRYPTING          FSNotificationType = 0
+	FSNotificationType_DECRYPTING          FSNotificationType = 1
+	FSNotificationType_SIGNING             FSNotificationType = 2
+	FSNotificationType_VERIFYING           FSNotificationType = 3
+	FSNotificationType_REKEYING            FSNotificationType = 4
+	FSNotificationType_CONNECTION          FSNotificationType = 5
+	FSNotificationType_MD_READ_SUCCESS     FSNotificationType = 6
+	FSNotificationType_FILE_CREATED        FSNotificationType = 7
+	FSNotificationType_FILE_MODIFIED       FSNotificationType = 8
+	FSNotificationType_FILE_DELETED        FSNotificationType = 9
+	FSNotificationType_FILE_RENAMED        FSNotificationType = 10
+	FSNotificationType_INITIALIZED         FSNotificationType = 11
+	FSNotificationType_SYNC_CONFIG_CHANGED FSNotificationType = 12
 )
 
 func (o FSNotificationType) DeepCopy() FSNotificationType { return o }
 
 var FSNotificationTypeMap = map[string]FSNotificationType{
-	"ENCRYPTING":      0,
-	"DECRYPTING":      1,
-	"SIGNING":         2,
-	"VERIFYING":       3,
-	"REKEYING":        4,
-	"CONNECTION":      5,
-	"MD_READ_SUCCESS": 6,
-	"FILE_CREATED":    7,
-	"FILE_MODIFIED":   8,
-	"FILE_DELETED":    9,
-	"FILE_RENAMED":    10,
-	"INITIALIZED":     11,
+	"ENCRYPTING":          0,
+	"DECRYPTING":          1,
+	"SIGNING":             2,
+	"VERIFYING":           3,
+	"REKEYING":            4,
+	"CONNECTION":          5,
+	"MD_READ_SUCCESS":     6,
+	"FILE_CREATED":        7,
+	"FILE_MODIFIED":       8,
+	"FILE_DELETED":        9,
+	"FILE_RENAMED":        10,
+	"INITIALIZED":         11,
+	"SYNC_CONFIG_CHANGED": 12,
 }
 
 var FSNotificationTypeRevMap = map[FSNotificationType]string{
@@ -83,6 +85,7 @@ var FSNotificationTypeRevMap = map[FSNotificationType]string{
 	9:  "FILE_DELETED",
 	10: "FILE_RENAMED",
 	11: "INITIALIZED",
+	12: "SYNC_CONFIG_CHANGED",
 }
 
 func (e FSNotificationType) String() string {
