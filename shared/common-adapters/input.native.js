@@ -4,16 +4,12 @@
 import React, {Component} from 'react'
 import Box from './box'
 import Text, {getStyle as getTextStyle} from './text'
-// import {NativeTextInput} from './native-wrappers.native'
+import NativeTextInput from './kb-text-input.native'
 import {collapseStyles, globalStyles, globalColors, styleSheetCreate} from '../styles'
 import {isIOS, isAndroid} from '../constants/platform'
-// ImageView.js
-import {requireNativeComponent} from 'react-native'
 
 import type {KeyboardType, Props, Selection, TextInfo} from './input'
 import {checkTextInfo} from './input.shared'
-
-const NativeTextInput = requireNativeComponent('KBTextInput')
 
 type State = {
   focused: boolean,

@@ -56,9 +56,8 @@ public class KBReactPackage implements com.facebook.react.ReactPackage {
 
     @Override
     public List<ViewManager> createViewManagers(ReactApplicationContext reactApplicationContext) {
-//        return Arrays.asList(
-//            new KBTextInputManager()
-//        );
-        return Collections.emptyList();
+        return Arrays.<ViewManager>asList(
+            new KBTextInputManager()
+        );
     }
 }
