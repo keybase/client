@@ -397,6 +397,9 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		ExternalTxURL:       details.ExternalTxURL,
 		IsInflation:         summary.IsInflation,
 		InflationSource:     summary.InflationSource,
+		SourceAsset:         summary.SourceAsset,
+		SourceAmountMax:     summary.SourceAmountMax,
+		SourceAmountActual:  summary.SourceAmountActual,
 	}
 
 	return payment, nil
