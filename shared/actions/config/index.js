@@ -476,16 +476,10 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
     ConfigGen.daemonHandshakeWait,
     maybeDoneWithDaemonHandshake
   )
-  // Re-get info about our account if you log in/out/we're done handshaking/became reachable
+  // Re-get info about our account if you log in/we're done handshaking/became reachable
   yield* Saga.chainGenerator<
-    | ConfigGen.LoggedInPayload
-    | ConfigGen.LoggedOutPayload
-    | ConfigGen.DaemonHandshakePayload
-    | GregorGen.UpdateReachablePayload
-  >(
-    [ConfigGen.loggedIn, ConfigGen.loggedOut, ConfigGen.daemonHandshake, GregorGen.updateReachable],
-    loadDaemonBootstrapStatus
-  )
+    ConfigGen.LoggedInPayload | ConfigGen.DaemonHandshakePayload | GregorGen.UpdateReachablePayload
+  >([ConfigGen.loggedIn, ConfigGen.daemonHandshake, GregorGen.updateReachable], loadDaemonBootstrapStatus)
   // Load the known accounts if you revoke / handshake / logout
   yield* Saga.chainGenerator<
     DevicesGen.RevokedPayload | ConfigGen.DaemonHandshakePayload | ConfigGen.LoggedOutPayload

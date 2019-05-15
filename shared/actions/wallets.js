@@ -255,7 +255,8 @@ const clearBuilding = () => WalletsGen.createClearBuilding()
 
 const clearErrors = () => WalletsGen.createClearErrors()
 
-const loadWalletDisclaimer = () =>
+const loadWalletDisclaimer = state =>
+  !!state.config.username &&
   RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise(undefined, Constants.checkOnlineWaitingKey)
     .then(accepted => WalletsGen.createWalletDisclaimerReceived({accepted}))
     .catch(() => {}) // handled by reloadable
@@ -1289,9 +1290,11 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   )
 
   yield* Saga.chainAction<
-    WalletsGen.LoadAccountsPayload | ConfigGen.LoggedInPayload | WalletsGen.LoadWalletDisclaimerPayload
+    | WalletsGen.LoadAccountsPayload
+    | ConfigGen.BootstrapStatusLoadedPayload
+    | WalletsGen.LoadWalletDisclaimerPayload
   >(
-    [WalletsGen.loadAccounts, ConfigGen.loggedIn, WalletsGen.loadWalletDisclaimer],
+    [WalletsGen.loadAccounts, ConfigGen.bootstrapStatusLoaded, WalletsGen.loadWalletDisclaimer],
     loadWalletDisclaimer,
     'loadWalletDisclaimer'
   )

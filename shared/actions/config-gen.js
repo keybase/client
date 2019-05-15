@@ -112,6 +112,10 @@ export const createUpdateCriticalCheckStatus = (payload: _UpdateCriticalCheckSta
  */
 export const createFilePickerError = (payload: _FilePickerErrorPayload) => ({payload, type: filePickerError})
 /**
+ * Used internally to know we were logged in. if you want to react to being logged in likely you want bootstrapStatusLoaded
+ */
+export const createLoggedIn = (payload: _LoggedInPayload) => ({payload, type: loggedIn})
+/**
  * desktop only: the installer ran and we can start up
  */
 export const createInstallerRan = (payload: _InstallerRanPayload) => ({payload, type: installerRan})
@@ -163,7 +167,6 @@ export const createLink = (payload: _LinkPayload) => ({payload, type: link})
 export const createLoadAvatars = (payload: _LoadAvatarsPayload) => ({payload, type: loadAvatars})
 export const createLoadTeamAvatars = (payload: _LoadTeamAvatarsPayload) => ({payload, type: loadTeamAvatars})
 export const createLoadedAvatars = (payload: _LoadedAvatarsPayload) => ({payload, type: loadedAvatars})
-export const createLoggedIn = (payload: _LoggedInPayload) => ({payload, type: loggedIn})
 export const createLoggedOut = (payload: _LoggedOutPayload) => ({payload, type: loggedOut})
 export const createMobileAppState = (payload: _MobileAppStatePayload) => ({payload, type: mobileAppState})
 export const createOsNetworkStatusChanged = (payload: _OsNetworkStatusChangedPayload) => ({payload, type: osNetworkStatusChanged})
