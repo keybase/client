@@ -4,6 +4,7 @@ import HiddenString from '../util/hidden-string'
 import type {TypedState} from './reducer'
 import * as I from 'immutable'
 import * as WaitingConstants from './waiting'
+import {getMeta} from './chat2/meta'
 
 export const makeNotificationsGroup: I.RecordFactory<Types._NotificationsGroupState> = I.Record({
   settings: I.List(),
@@ -75,6 +76,58 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   waitingForResponse: false,
 })
 
+export const getExtraChatLogsForLogSend = (state: Object) => {
+  const chat = state.chat2
+  const c = state.chat2.selectedConversation
+  if (c) {
+    const metaMap: Object = getMeta(state, c).toJS()
+    return I.Map({
+      badgeMap: chat.badgeMap.get(c),
+      editingMap: chat.editingMap.get(c),
+      messageMap: chat.messageMap.get(c, I.Map()).map(m => ({
+        a: m.author,
+        i: m.id,
+        o: m.ordinal,
+        out: (m.type === 'text' || m.type === 'attachment') && m.outboxID,
+        s: (m.type === 'text' || m.type === 'attachment') && m.submitState,
+        t: m.type,
+      })),
+      messageOrdinals: chat.messageOrdinals.get(c),
+      metaMap: {
+        channelname: 'x',
+        conversationIDKey: metaMap.conversationIDKey,
+        description: 'x',
+        inboxVersion: metaMap.inboxVersion,
+        isMuted: metaMap.isMuted,
+        membershipType: metaMap.membershipType,
+        notificationsDesktop: metaMap.notificationsDesktop,
+        notificationsGlobalIgnoreMentions: metaMap.notificationsGlobalIgnoreMentions,
+        notificationsMobile: metaMap.notificationsMobile,
+        offline: metaMap.offline,
+        participants: 'x',
+        rekeyers: metaMap.rekeyers && metaMap.rekeyers.size,
+        resetParticipants: metaMap.resetParticipants && metaMap.resetParticipants.size,
+        retentionPolicy: metaMap.retentionPolicy,
+        snippet: 'x',
+        snippetDecoration: 'x',
+        supersededBy: metaMap.supersededBy,
+        supersedes: metaMap.supersedes,
+        teamRetentionPolicy: metaMap.teamRetentionPolicy,
+        teamType: metaMap.teamType,
+        teamname: metaMap.teamname,
+        timestamp: metaMap.timestamp,
+        tlfname: metaMap.tlfname,
+        trustedState: metaMap.trustedState,
+        wasFinalizedBy: metaMap.wasFinalizedBy,
+      },
+      pendingOutboxToOrdinal: chat.pendingOutboxToOrdinal.get(c),
+      quote: chat.quote,
+      unreadMap: chat.unreadMap.get(c),
+    }).toJS()
+  }
+  return {}
+}
+
 export const traceInProgressKey = 'settings:traceInProgress'
 export const traceInProgress = (state: TypedState) => WaitingConstants.anyWaiting(state, traceInProgressKey)
 export const processorProfileInProgressKey = 'settings:processorProfileInProgress'
@@ -106,3 +159,4 @@ export const setLockdownModeWaitingKey = 'settings:setLockdownMode'
 export const loadLockdownModeWaitingKey = 'settings:loadLockdownMode'
 export const checkPasswordWaitingKey = 'settings:checkPassword'
 export const dontUseWaitingKey = 'settings:settingsPage'
+export const sendFeedbackWaitingKey = 'settings:sendFeedback'

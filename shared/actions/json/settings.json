@@ -124,6 +124,18 @@
     },
     "loadedCheckPassword": {
       "checkPasswordIsCorrect": "?boolean"
-    }
+    },
+    "setFeedback": {
+      "feedback": "?string"
+    },
+    "setSendLogs": {
+      "sendLogs": "boolean"
+    },
+    "sendFeedback": {},
+    "sendFeedbackError": {
+      "_description": "An error occurred while trying to send feedback to Keybase",
+      "error": "Error"
+    },
+    "sentFeedback": {},
   }
 }

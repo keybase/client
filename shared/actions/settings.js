@@ -14,7 +14,8 @@ import * as SettingsGen from '../actions/settings-gen'
 import * as WaitingGen from '../actions/waiting-gen'
 import {mapValues, trim} from 'lodash-es'
 import {delay} from 'redux-saga'
-import {isAndroidNewerThanN, pprofDir} from '../constants/platform'
+import {isAndroidNewerThanN, pprofDir, version} from '../constants/platform'
+import {writeLogLinesToFile} from '../util/forward-logs'
 
 const onUpdatePGPSettings = () =>
   RPCTypes.accountHasServerKeysRpcPromise()
@@ -442,6 +443,35 @@ const setLockdownMode = (state, action) =>
     .then(() => SettingsGen.createLoadedLockdownMode({status: action.payload.enabled}))
     .catch(() => SettingsGen.createLoadLockdownMode())
 
+const sendFeedback = (state, action) => {
+  const maybeDump = state.settings.feedback.sendLogs
+    ? logger.dump().then(writeLogLinesToFile)
+    : Promise.resolve('')
+  const status = {version}
+  maybeDump
+    .then(() => {
+      logger.info(`Sending ${state.settings.feedback.sendLogs ? 'log' : 'feedback'} to daemon`)
+      const extra = state.settings.feedback.sendLogs
+        ? {...status, ...Constants.getExtraChatLogsForLogSend(state)}
+        : status
+      return RPCTypes.configLogSendRpcPromise(
+        {
+          feedback: state.settings.feedback.feedback || '',
+          sendLogs: state.settings.feedback.sendLogs,
+          statusJSON: JSON.stringify(extra),
+        },
+        Constants.sendFeedbackWaitingKey
+      )
+    })
+    .then(logSendId => {
+      logger.info('logSendId is', logSendId)
+    })
+    .catch(error => {
+      logger.warn('err in sending logs', error)
+      return SettingsGen.createSendFeedbackError({error})
+    })
+}
+
 const unfurlSettingsRefresh = (state, action) =>
   state.config.loggedIn &&
   ChatTypes.localGetUnfurlSettingsRpcPromise(undefined, Constants.chatUnfurlWaitingKey)
@@ -536,6 +566,7 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     SettingsGen.onChangeLockdownMode,
     setLockdownMode
   )
+  yield* Saga.chainAction<SettingsGen.SendFeedbackPayload>(SettingsGen.sendFeedback, sendFeedback)
   yield* Saga.chainAction<SettingsGen.UnfurlSettingsRefreshPayload>(
     SettingsGen.unfurlSettingsRefresh,
     unfurlSettingsRefresh

@@ -86,7 +86,7 @@ export type _EmailState = {
 export type EmailState = I.RecordOf<_EmailState>
 
 export type _FeedbackState = {
-  feedback: '',
+  feedback: ?string,
   error: ?Error,
   sendLogs: boolean,
 }

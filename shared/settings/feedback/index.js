@@ -1,6 +1,6 @@
 // @flow
 
-import React, {Component} from 'react'
+import React from 'react'
 import {globalMargins, globalColors} from '../../styles'
 import * as Kb from '../../common-adapters'
 import {isMobile} from '../../util/container'
@@ -16,7 +16,6 @@ export const getOtherErrorInfo = (err: Error) => {
 
 type Props = {
   onSendFeedbackContained: () => void,
-  showSuccessBanner: boolean,
   sendLogs: boolean,
   feedback: ?string,
   sending: boolean,
@@ -24,15 +23,27 @@ type Props = {
   onChangeSendLogs: (nextValue: boolean) => void,
   onChangeFeedback: (nextValue: ?string) => void,
 }
+type State = {
+  showSuccessBanner: boolean,
+}
 
-class Feedback extends Component<Props> {
-  _onSubmit = () => {
-    this.props.onSendFeedbackContained()
+class Feedback extends React.Component<Props, State> {
+  state = {showSuccessBanner: false}
+  componentDidUpdate(prevProps: Props) {
+    if (prevProps.sending && !this.props.sending) {
+      this.setState({
+        showSuccessBanner: true,
+      })
+    }
+    if (!prevProps.sending && this.props.sending) {
+      this.setState({
+        showSuccessBanner: false,
+      })
+    }
   }
-
   render() {
     const {
-      showSuccessBanner,
+      onSendFeedbackContained,
       sendLogs,
       onChangeSendLogs,
       feedback,
@@ -43,7 +54,7 @@ class Feedback extends Component<Props> {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center">
         <Kb.ScrollView>
-          {showSuccessBanner && (
+          {this.state.showSuccessBanner && (
             <Kb.Box2
               alignItems="center"
               direction="horizontal"
@@ -95,7 +106,10 @@ class Feedback extends Component<Props> {
             <Kb.Box2 direction="horizontal">
               <Kb.Checkbox
                 label=""
-                style={{alignItems: 'flex-start', marginRight: globalMargins.tiny}}
+                style={{
+                  alignItems: 'flex-start',
+                  marginRight: globalMargins.tiny,
+                }}
                 checked={sendLogs}
                 onCheck={onChangeSendLogs}
               />
@@ -108,14 +122,14 @@ class Feedback extends Component<Props> {
               </Kb.Box2>
             </Kb.Box2>
             <Kb.ButtonBar style={{paddingTop: globalMargins.small}}>
-              <Kb.Button fullWidth={true} label="Send" onClick={this._onSubmit} waiting={sending} />
+              <Kb.Button fullWidth={true} label="Send" onClick={onSendFeedbackContained} waiting={sending} />
             </Kb.ButtonBar>
             {sendError && (
               <Kb.Box2 direction="vertical" style={{marginTop: globalMargins.small}}>
                 <Kb.Text type="BodySmallError">Could not send log</Kb.Text>
-                <Kb.Text type="BodySmall" selectable={true} style={{marginBottom: 10, marginTop: 10}}>{`${
-                  sendError.name
-                }: ${sendError.message}`}</Kb.Text>
+                <Kb.Text type="BodySmall" selectable={true} style={{marginBottom: 10, marginTop: 10}}>
+                  {`${sendError.name}: ${sendError.message}`}
+                </Kb.Text>
                 <Kb.Text type="BodySmallSemibold">Stack</Kb.Text>
                 <Kb.Text type="BodySmall" selectable={true} style={{marginBottom: 10, marginTop: 10}}>
                   {sendError.stack}

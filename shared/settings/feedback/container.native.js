@@ -8,9 +8,24 @@ import {compose, connect, type RouteProps} from '../../util/container'
 import {isAndroid, version, logFileName, pprofDir} from '../../constants/platform'
 import {writeLogLinesToFile} from '../../util/forward-logs'
 import {Platform, NativeModules} from 'react-native'
-import {extraChatLogs, type State, type Props} from './utils'
+import {getExtraChatLogsForLogSend} from '../../constants/settings'
+import type {PropsWithTimer} from '../../common-adapters'
 
 type OwnProps = RouteProps<{}, {}>
+
+export type State = {
+  sentFeedback: boolean,
+  feedback: ?string,
+  sending: boolean,
+  sendLogs: boolean,
+  sendError: ?Error,
+}
+export type Props = PropsWithTimer<{
+  chat: Object,
+  onBack: () => void,
+  status: Object,
+  title: string,
+}>
 
 const nativeBridge = NativeModules.KeybaseEngine
 const appVersionName = nativeBridge.appVersionName || ''
@@ -109,7 +124,7 @@ class FeedbackContainer extends React.Component<Props, State> {
 // TODO really shouldn't be doing this in connect, should do this with an action
 const mapStateToProps = state => {
   return {
-    chat: extraChatLogs(state),
+    chat: getExtraChatLogsForLogSend(state),
     status: {
       appVersionCode,
       appVersionName,
