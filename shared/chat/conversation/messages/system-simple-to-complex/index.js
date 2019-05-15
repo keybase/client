@@ -66,11 +66,6 @@ class ComplexTeamNotice extends React.PureComponent<Props> {
               <Text type="BodySmallSemibold" style={{marginRight: globalMargins.tiny}}>
                 {bullet}
               </Text>
-            </Box>
-            <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.tiny}}>
-              <Text type="BodySmallSemibold" style={{marginRight: globalMargins.tiny}}>
-                {bullet}
-              </Text>
               <Text type="BodySmallSemibold">
                 Everyone can now create and join channels.{' '}
                 <Text
