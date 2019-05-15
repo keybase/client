@@ -1,5 +1,3 @@
-// @flow
-
 // Basically the same as React Native's text input, but the long press bug is
 // fixed. Look at KBTextInput(Manager) in the android folder.
 
