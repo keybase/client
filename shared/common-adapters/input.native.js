@@ -51,13 +51,6 @@ class Input extends Component<Props, State> {
     this._timeoutIds.forEach(clearTimeout)
   }
 
-  // componentDidMount = () => {
-  //   this._setTimeout(() => {
-  //     this.setNativeProps({editable: false})
-  //     this.setNativeProps({editable: true})
-  //   }, 3e3)
-  // }
-
   componentDidUpdate = (prevProps: Props) => {
     if (prevProps.clearTextCounter !== this.props.clearTextCounter) {
       this._clearText()
