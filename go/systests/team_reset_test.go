@@ -114,6 +114,30 @@ func TestTeamDelete(t *testing.T) {
 	cam.assertMemberActive(team, bob)
 }
 
+func TestTeamLoadDeletedSigner(t *testing.T) {
+	// Similar to TestTeamDelete but much simplier for debugging team loading
+	// when a signer is deleted. All user eligible to load the team must also
+	// be able to load that deleted user.
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	ann := ctx.installKeybaseForUser("ann", 5)
+	ann.signup()
+	divDebug(ctx, "Signed up ann (%s)", ann.username)
+	bob := ctx.installKeybaseForUser("bob", 5)
+	bob.signup()
+	divDebug(ctx, "Signed up bob (%s)", bob.username)
+
+	team := ann.createTeam([]*smuUser{bob})
+	divDebug(ctx, "team created (%s)", team.name)
+
+	ann.delete()
+	divDebug(ctx, "Ann deleted her account")
+
+	bob.primaryDevice().clearUPAKCache()
+	bob.loadTeam(team.name, false /* admin */)
+}
+
 func TestTeamReset(t *testing.T) {
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
