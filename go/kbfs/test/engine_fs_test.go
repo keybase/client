@@ -501,6 +501,49 @@ func (*fsEngine) TogglePrefetch(user User, enable bool) error {
 		[]byte("1"), 0644)
 }
 
+// ForceConflict implements the Engine interface.
+func (*fsEngine) ForceConflict(user User, tlfName string, t tlf.Type) error {
+	u := user.(*fsUser)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	ctx, err := libcontext.NewContextWithCancellationDelayer(
+		libcontext.NewContextReplayable(
+			ctx, func(ctx context.Context) context.Context { return ctx }))
+	if err != nil {
+		return err
+	}
+
+	root, err := getRootNode(ctx, u.config, tlfName, t)
+	if err != nil {
+		return err
+	}
+
+	return u.config.KBFSOps().ForceStuckConflictForTesting(
+		ctx, root.GetFolderBranch().Tlf)
+}
+
+// ClearConflicts implements the Engine interface.
+func (*fsEngine) ClearConflicts(user User, tlfName string, t tlf.Type) error {
+	u := user.(*fsUser)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	ctx, err := libcontext.NewContextWithCancellationDelayer(
+		libcontext.NewContextReplayable(
+			ctx, func(ctx context.Context) context.Context { return ctx }))
+	if err != nil {
+		return err
+	}
+
+	root, err := getRootNode(ctx, u.config, tlfName, t)
+	if err != nil {
+		return err
+	}
+
+	return u.config.KBFSOps().ClearConflictView(ctx, root.GetFolderBranch().Tlf)
+}
+
 // Shutdown is called by the test harness when it is done with the
 // given user.
 func (e *fsEngine) Shutdown(user User) error {
