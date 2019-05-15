@@ -58,6 +58,7 @@ const AdhocHeader = (props: AdhocHeaderProps) => (
         commaColor={Styles.globalColors.black_50}
         inline={false}
         skipSelf={props.participants.length > 1}
+        containerStyle={styles.maybeLongText}
         type="BodyBig"
         underline={false}
         usernames={props.participants}
@@ -76,7 +77,9 @@ const TeamHeader = (props: TeamHeaderProps) => (
   <Kb.Box2 direction="vertical" gap="tiny" gapStart={false} gapEnd={true} style={styles.headerContainer}>
     <TeamAvatar teamname={props.teamname} isMuted={props.isMuted} isSelected={false} isHovered={false} />
     <Kb.Box2 direction="vertical" centerChildren={true}>
-      <Kb.Text type="BodySemibold">{props.teamname}</Kb.Text>
+      <Kb.Text type="BodySemibold" style={styles.maybeLongText}>
+        {props.teamname}
+      </Kb.Text>
       <Kb.Text type="BodySmall">{`${props.memberCount} member${props.memberCount !== 1 ? 's' : ''}`}</Kb.Text>
     </Kb.Box2>
   </Kb.Box2>
@@ -239,12 +242,22 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       paddingTop: 16,
+      width: 200, // don't expand if text is long
     },
     isMobile: {paddingBottom: 24, paddingTop: 40},
   }),
   icon: {
     marginLeft: Styles.globalMargins.tiny,
   },
+  maybeLongText: Styles.platformStyles({
+    common: {
+      ...Styles.padding(0, Styles.globalMargins.tiny),
+      textAlign: 'center',
+    },
+    isElectron: {
+      wordBreak: 'break-word',
+    },
+  }),
   muteAction: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
