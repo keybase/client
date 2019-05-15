@@ -4347,6 +4347,7 @@ func TestChatSrvTLFConversationsLocal(t *testing.T) {
 		ignoreTypes := []chat1.MessageType{chat1.MessageType_SYSTEM, chat1.MessageType_JOIN, chat1.MessageType_TEXT}
 		consumeNewMsgWhileIgnoring(t, listener0, chat1.MessageType_LEAVE, ignoreTypes, chat1.ChatActivitySource_REMOTE)
 
+		// make sure both users have processed the leave in their inbox
 		for i, user := range users {
 			getTLFRes, err = ctc.as(t, user).chatLocalHandler().GetTLFConversationsLocal(ctc.as(t, user).startCtx,
 				chat1.GetTLFConversationsLocalArg{
@@ -4364,6 +4365,30 @@ func TestChatSrvTLFConversationsLocal(t *testing.T) {
 			}
 			require.Equal(t, 1, len(getTLFRes.Convs[1].Participants))
 			require.Equal(t, users[0].Username, getTLFRes.Convs[1].Participants[0])
+		}
+
+		// delete the channel make sure it's gone from both inboxes
+		_, err = ctc.as(t, users[0]).chatLocalHandler().DeleteConversationLocal(ctx,
+			chat1.DeleteConversationLocalArg{
+				ConvID:    ncres.Conv.GetConvID(),
+				Confirmed: true,
+			})
+		require.NoError(t, err)
+		consumeLeaveConv(t, listener0)
+		consumeTeamType(t, listener0)
+		consumeLeaveConv(t, listener1)
+		consumeTeamType(t, listener1)
+
+		for _, user := range users {
+			getTLFRes, err = ctc.as(t, user).chatLocalHandler().GetTLFConversationsLocal(ctc.as(t, user).startCtx,
+				chat1.GetTLFConversationsLocalArg{
+					TlfName:     conv.TlfName,
+					TopicType:   chat1.TopicType_CHAT,
+					MembersType: chat1.ConversationMembersType_TEAM,
+				})
+			require.NoError(t, err)
+			require.Equal(t, 1, len(getTLFRes.Convs))
+			require.Equal(t, globals.DefaultTeamTopic, getTLFRes.Convs[0].Channel)
 		}
 	})
 }
