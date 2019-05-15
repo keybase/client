@@ -351,6 +351,14 @@ func TestDecorateLinks(t *testing.T) {
 			body:   "client/go/profiling/aggregate_timers.py",
 			result: "client/go/profiling/aggregate_timers.py",
 		},
+		decorateLinkTest{
+			body:   "cnn.com/@mike/index.html",
+			result: "$>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6ImNubi5jb20vQG1pa2UvaW5kZXguaHRtbCIsInVybCI6Imh0dHA6Ly9jbm4uY29tL0BtaWtlL2luZGV4Lmh0bWwifX0=$<kb$",
+		},
+		decorateLinkTest{
+			body:   "google.com/mike?email=mike@gmail.com",
+			result: "$>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6Imdvb2dsZS5jb20vbWlrZT9lbWFpbD1taWtlQGdtYWlsLmNvbSIsInVybCI6Imh0dHA6Ly9nb29nbGUuY29tL21pa2U/ZW1haWw9bWlrZUBnbWFpbC5jb20ifX0=$<kb$",
+		},
 	}
 	for _, c := range cases {
 		res := DecorateWithLinks(context.TODO(), c.body)
