@@ -329,24 +329,43 @@ func (r *ResolverImpl) resolveURLViaServerLookup(m MetaContext, au AssertionURL,
 		fields += ",public_keys,pictures"
 	}
 	ha.Add("fields", S{fields})
-	ares, res.err = m.G().API.Get(m, APIArg{
-		Endpoint:        "user/lookup",
-		SessionType:     APISessionTypeNONE,
-		Args:            ha,
-		AppStatusCodes:  []int{SCOk, SCNotFound, SCDeleted},
-		RetryCount:      3,
-		InitialTimeout:  4 * time.Second,
-		RetryMultiplier: 1.5,
-	})
 
+	makeRequest := func(sessionType APISessionType) (*APIRes, error) {
+		return m.G().API.Get(m, APIArg{
+			Endpoint:        "user/lookup",
+			SessionType:     sessionType,
+			Args:            ha,
+			AppStatusCodes:  []int{SCOk, SCNotFound, SCDeleted},
+			RetryCount:      3,
+			InitialTimeout:  4 * time.Second,
+			RetryMultiplier: 1.5,
+		})
+	}
+
+	ares, res.err = makeRequest(APISessionTypeNONE)
 	if res.err != nil {
 		m.Debug("API user/lookup %q error: %s", input, res.err)
 		return
 	}
+
+	if ares.AppStatus.Code == SCDeleted && !m.CurrentUID().IsNil() {
+		// Try again if deleted, this time with session.
+		m.Debug("API user/lookup %q: is deleted, trying again with session", input)
+		ares, res.err = makeRequest(APISessionTypeREQUIRED)
+		if res.err != nil {
+			m.Debug("API user/lookup %q (2) error: %s", input, res.err)
+			return
+		}
+	}
+
 	switch ares.AppStatus.Code {
 	case SCNotFound:
 		m.Debug("API user/lookup %q not found", input)
 		res.err = NotFoundError{}
+		return
+	case SCDeleted:
+		m.Debug("APU user/lookup %q is deleted and not readable", input)
+		res.err = DeletedError{}
 		return
 	}
 

@@ -563,7 +563,8 @@ func LoadUserFromServer(m MetaContext, uid keybase1.UID, body *jsonw.Wrapper) (u
 
 		res, err := makeRequest(APISessionTypeNONE)
 		if err != nil {
-			if aerr, ok := err.(AppStatusError); ok && aerr.Code == SCDeleted {
+			if aerr, ok := err.(AppStatusError); ok && aerr.Code == SCDeleted && !m.CurrentUID().IsNil() {
+				m.Debug("User %s is deleted, trying again with session", uid)
 				res, err = makeRequest(APISessionTypeREQUIRED)
 				if err != nil {
 					return nil, err
