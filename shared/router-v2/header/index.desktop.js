@@ -135,7 +135,13 @@ class Header extends React.PureComponent<Props> {
             opt.headerStyle,
           ])}
         >
-          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerBack} alignItems="center">
+          <Kb.Box2
+            key="topBar"
+            direction="horizontal"
+            fullWidth={true}
+            style={styles.headerBack}
+            alignItems="center"
+          >
             {/* TODO have headerLeft be the back button */}
             {opt.headerLeft !== null && (
               <Kb.Icon
@@ -150,11 +156,12 @@ class Header extends React.PureComponent<Props> {
             {!Platform.isDarwin && !initialUseNativeFrame && <SystemButtons />}
           </Kb.Box2>
           <Kb.Box2
+            key="bottomBar"
             direction="horizontal"
             fullWidth={true}
             style={opt.headerExpandable ? styles.bottomExpandable : styles.bottom}
           >
-            <Kb.Box2 direction="horizontal" style={styles.flexOne}>
+            <Kb.Box2 direction="horizontal" style={styles.bottomTitle}>
               {title}
             </Kb.Box2>
             {!!title && rightActions}
@@ -184,8 +191,9 @@ const styles = Styles.styleSheetCreate({
       top: -Styles.globalMargins.xtiny,
     },
   }),
-  bottom: {height: 40 - 1}, // for border
+  bottom: {height: 40 - 1, maxHeight: 40 - 1}, // for border
   bottomExpandable: {minHeight: 40 - 1},
+  bottomTitle: {flexGrow: 1, height: '100%', maxHeight: '100%', overflow: 'hidden'},
   disabledIcon: Styles.platformStyles({
     isElectron: {
       cursor: 'default',
