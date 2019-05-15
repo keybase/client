@@ -11,9 +11,11 @@ type Props = {|
   channelname: string,
   isBigTeam: boolean,
   onManageChannels: () => void,
+  onManageNotifications: () => void,
   teamname: string,
   timestamp: number,
 |}
+const textType = 'BodySmallSemiboldPrimaryLink'
 
 const Joined = (props: Props) =>
   // Bring more attention to the current user joining
@@ -24,14 +26,14 @@ const Joined = (props: Props) =>
       joined {props.isBigTeam ? `#${props.channelname}` : props.teamname}
       {'. '}
       {props.authorIsYou && props.isBigTeam && (
-        <Kb.Text
-          title=""
-          onClick={props.onManageChannels}
-          style={{color: Styles.globalColors.blue}}
-          type="BodySmall"
-        >
-          Browse other channels
-        </Kb.Text>
+        <Kb.Box type={textType} style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center'}}>
+          <Kb.Text onClick={props.onManageNotifications} type={textType}>
+            Manage phone and computer notifications
+          </Kb.Text>
+          <Kb.Text onClick={props.onManageChannels} type={textType}>
+            Browse other channels
+          </Kb.Text>
+        </Kb.Box>
       )}
     </Kb.Text>
   )
@@ -69,14 +71,14 @@ const JoinedUserNotice = (props: Props) => (
       .
     </Kb.Text>
     {props.authorIsYou && props.isBigTeam && (
-      <Kb.Text
-        negative={true}
-        onClick={props.onManageChannels}
-        style={{color: Styles.globalColors.blue}}
-        type="BodySmallSemibold"
-      >
-        Browse other channels
-      </Kb.Text>
+      <Kb.Box type={textType} style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center'}}>
+        <Kb.Text onClick={props.onManageNotifications} type={textType}>
+          Manage phone and computer notifications
+        </Kb.Text>
+        <Kb.Text onClick={props.onManageChannels} type={textType}>
+          Browse other channels
+        </Kb.Text>
+      </Kb.Box>
     )}
   </UserNotice>
 )
