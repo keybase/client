@@ -52,6 +52,7 @@ class MenuLayout extends Component<MenuLayoutProps> {
                 style={styles.badge}
               />
             )}
+            {item.decoration}
           </Box>
         )}
         {!item.view && item.subTitle && (
