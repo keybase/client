@@ -2076,17 +2076,19 @@ func DecorateBody(ctx context.Context, body string, offset, length int, decorati
 }
 
 var linkRegexp = xurls.Relaxed()
-var linkRelaxedRegexpIndex = 0
-var linkStrictRegexpIndex = 0
+
+// These indices correspond to the named capture groups in the xurls regexes
+var linkRelaxedGroupIndex = 0
+var linkStrictGroupIndex = 0
 var mailtoRegexp = regexp.MustCompile(`(?:(?:[\w-_.]+)@(?:[\w-]+(?:\.[\w-]+)+))\b`)
 
 func init() {
 	for index, name := range linkRegexp.SubexpNames() {
 		if name == "relaxed" {
-			linkRelaxedRegexpIndex = index + 1
+			linkRelaxedGroupIndex = index + 1
 		}
 		if name == "strict" {
-			linkStrictRegexpIndex = index + 1
+			linkStrictGroupIndex = index + 1
 		}
 	}
 }
@@ -2113,12 +2115,12 @@ func DecorateWithLinks(ctx context.Context, body string) string {
 	allMatches := linkRegexp.FindAllStringSubmatchIndex(ReplaceQuotedSubstrings(body, true), -1)
 	for _, match := range allMatches {
 		var lowhit, highhit int
-		if len(match) >= linkRelaxedRegexpIndex*2 && match[linkRelaxedRegexpIndex*2-2] >= 0 {
-			lowhit = linkRelaxedRegexpIndex*2 - 2
-			highhit = linkRelaxedRegexpIndex*2 - 1
-		} else if len(match) >= linkStrictRegexpIndex*2 && match[linkStrictRegexpIndex*2-2] >= 0 {
-			lowhit = linkStrictRegexpIndex*2 - 2
-			highhit = linkStrictRegexpIndex*2 - 1
+		if len(match) >= linkRelaxedGroupIndex*2 && match[linkRelaxedGroupIndex*2-2] >= 0 {
+			lowhit = linkRelaxedGroupIndex*2 - 2
+			highhit = linkRelaxedGroupIndex*2 - 1
+		} else if len(match) >= linkStrictGroupIndex*2 && match[linkStrictGroupIndex*2-2] >= 0 {
+			lowhit = linkStrictGroupIndex*2 - 2
+			highhit = linkStrictGroupIndex*2 - 1
 		} else {
 			continue
 		}
