@@ -262,7 +262,34 @@ func (fs *KBFSOpsStandard) GetFavorites(ctx context.Context) (
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
-	return fs.favs.Get(ctx)
+	favs, err := fs.favs.Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Add the conflict status for any folders in a conflict state to
+	// the favorite struct.
+	journalManager, err := GetJournalManager(fs.config)
+	if err != nil {
+		// Journaling not enabled.
+		return favs, nil
+	}
+	_, cleared, err := journalManager.GetJournalsInConflict(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(cleared) == 0 {
+		return favs, nil
+	}
+
+	for _, c := range cleared {
+		favs = append(favs, favorites.Folder{
+			Name: string(c.Name),
+			Type: c.Type,
+		})
+	}
+	return favs, nil
 }
 
 // GetFavoritesAll implements the KBFSOps interface for
@@ -284,14 +311,30 @@ func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (
 		// Journaling not enabled.
 		return favs, nil
 	}
-	conflicts, err := journalManager.GetJournalsInConflict(ctx)
+	conflicts, cleared, err := journalManager.GetJournalsInConflict(ctx)
 	if err != nil {
 		return keybase1.FavoritesResult{}, err
+	}
+
+	if len(conflicts) == 0 && len(cleared) == 0 {
+		return favs, nil
+	}
+
+	for _, c := range cleared {
+		favs.FavoriteFolders = append(favs.FavoriteFolders,
+			keybase1.Folder{
+				Name:         string(c.Name),
+				FolderType:   c.Type.FolderType(),
+				Private:      c.Type != tlf.Public,
+				ResetMembers: []keybase1.User{},
+				ConflictType: keybase1.FolderConflictType_CLEARED_CONFLICT,
+			})
 	}
 
 	if len(conflicts) == 0 {
 		return favs, nil
 	}
+
 	conflictMap := make(map[ConflictJournalRecord]tlf.ID, len(conflicts))
 	for _, c := range conflicts {
 		conflictMap[ConflictJournalRecord{Name: c.Name, Type: c.Type}] = c.ID
@@ -327,6 +370,7 @@ func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (
 			break
 		}
 	}
+
 	return favs, nil
 }
 
@@ -447,8 +491,10 @@ func (fs *KBFSOpsStandard) getOpsNoAdd(
 	ops, ok := fs.ops[fb]
 	if !ok {
 		bType := standard
-		if _, isRevBranch := fb.Branch.RevisionIfSpecified(); isRevBranch {
+		if fb.Branch.IsArchived() {
 			bType = archive
+		} else if fb.Branch.IsLocalConflict() {
+			bType = conflict
 		}
 		var quotaUsage *EventuallyConsistentQuotaUsage
 		if fb.Tlf.Type() != tlf.SingleTeam {
