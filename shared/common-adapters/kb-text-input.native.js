@@ -4,8 +4,13 @@
 // fixed. Look at KBTextInput(Manager) in the android folder.
 
 import React from 'react'
-import {requireNativeComponent, Text, UIManager, TouchableWithoutFeedback} from 'react-native'
-import {NativeTextInput as RNTextInput} from './native-wrappers.native'
+import {
+  requireNativeComponent,
+  Text,
+  TextInput as RNTextInput,
+  UIManager,
+  TouchableWithoutFeedback,
+} from 'react-native'
 import {isAndroid} from '../constants/platform'
 
 let _KBTextInput = RNTextInput
