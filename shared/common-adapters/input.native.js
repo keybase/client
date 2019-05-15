@@ -4,12 +4,16 @@
 import React, {Component} from 'react'
 import Box from './box'
 import Text, {getStyle as getTextStyle} from './text'
-import {NativeTextInput} from './native-wrappers.native'
+// import {NativeTextInput} from './native-wrappers.native'
 import {collapseStyles, globalStyles, globalColors, styleSheetCreate} from '../styles'
 import {isIOS, isAndroid} from '../constants/platform'
+// ImageView.js
+import {requireNativeComponent} from 'react-native'
 
 import type {KeyboardType, Props, Selection, TextInfo} from './input'
 import {checkTextInfo} from './input.shared'
+
+const NativeTextInput = requireNativeComponent('KBTextInput')
 
 type State = {
   focused: boolean,
@@ -50,6 +54,13 @@ class Input extends Component<Props, State> {
   componentWillUnmount = () => {
     this._timeoutIds.forEach(clearTimeout)
   }
+
+  // componentDidMount = () => {
+  //   this._setTimeout(() => {
+  //     this.setNativeProps({editable: false})
+  //     this.setNativeProps({editable: true})
+  //   }, 3e3)
+  // }
 
   componentDidUpdate = (prevProps: Props) => {
     if (prevProps.clearTextCounter !== this.props.clearTextCounter) {
