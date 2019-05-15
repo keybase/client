@@ -184,7 +184,6 @@ func TestFavoritesAddRemoveAdd(t *testing.T) {
 
 	config.mockKbpki.EXPECT().FavoriteDelete(gomock.Any(), folder1).
 		Return(nil)
-	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(keybase1.FavoritesResult{}, nil)
 	if err := f.Delete(ctx, fav1.Folder); err != nil {
 		t.Fatalf("Couldn't delete favorite: %v", err)
 	}
@@ -277,15 +276,15 @@ func TestFavoritesListFailsDuringAddAsync(t *testing.T) {
 }
 
 func TestFavoritesControlUserHistory(t *testing.T) {
-	t.Skip()
 	mockCtrl, config, ctx := favTestInit(t, false)
 	f := NewFavorites(config)
 	f.Initialize(ctx)
 	defer favTestShutdown(t, mockCtrl, config, f)
 
-	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(keybase1.FavoritesResult{}, nil)
 	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), gomock.Any()).
 		Return(nil)
+	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).
+		Return(keybase1.FavoritesResult{}, nil)
 	config.mockKbs.EXPECT().EncryptFavorites(gomock.Any(),
 		gomock.Any()).Return(nil, nil)
 	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(nil, nil).Times(2)

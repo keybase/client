@@ -352,15 +352,18 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 	wantFetch := f.config.Clock().Now().After(f.cacheExpireTime) && !req.clear
 
 	for _, fav := range req.toAdd {
-		// FOR DISCUSSION: we don't check this in toDel because it could be
-		// out-of-date. So perhaps we should get rid of this too? Relevant
-		// question, if a favorite is deleted from another device, do we get
-		// notification from core for cache invalidation?
+		// This check for adds is critical and we should definitely leave it
+		// in. We've had issues in the past with spamming the API server with
+		// adding the same favorite multiple times. We don't have the same
+		// problem with deletes, because after the user deletes it, they aren't
+		// accessing the folder again. But with adds, we could be going through
+		// this code on basically every folder access. Favorite deletes from
+		// another device result in a notification to this device, so a race
+		// condition where we miss an "add" can't happen.
 		_, present := f.favCache[fav.Folder]
 		if !fav.Created && present {
 			continue
 		}
-		//
 		err := kbpki.FavoriteAdd(req.ctx, fav.ToKBFolder())
 		if err != nil {
 			f.log.CDebugf(req.ctx,
@@ -380,8 +383,10 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 			return err
 		}
 		f.config.UserHistory().ClearTLF(tlf.CanonicalName(fav.Name), fav.Type)
-		needFetch = true
 		changed = true
+		// Simply delete here instead of triggering another list as an
+		// optimization because there's nothing additional we need from core.
+		delete(f.favCache, fav)
 	}
 
 	if needFetch || wantFetch {
