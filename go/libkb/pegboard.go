@@ -110,4 +110,5 @@ func (p *Pegboard) OnLogout(mctx MetaContext) {
 	}
 	p.mu.Lock()
 	defer p.mu.Unlock()
+	p.store = make(map[keybase1.UID]Peg)
 }

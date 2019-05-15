@@ -532,8 +532,7 @@ type identifyFailure struct {
 
 // Identify participants of a conv.
 // Returns as if all IDs succeeded if ctx is in TLFIdentifyBehavior_CHAT_GUI mode.
-// Returns (!nil, nil) if there are track breaks.
-func (t *ImplicitTeamsNameInfoSource) identify(ctx context.Context, team *teams.Team, impTeamName keybase1.ImplicitTeamDisplayName) (idFail *identifyFailure, err error) {
+func (t *ImplicitTeamsNameInfoSource) identify(ctx context.Context, team *teams.Team, impTeamName keybase1.ImplicitTeamDisplayName) (err error) {
 	var names []string
 	names = append(names, impTeamName.Writers.KeybaseUsers...)
 	names = append(names, impTeamName.Readers.KeybaseUsers...)
@@ -542,7 +541,7 @@ func (t *ImplicitTeamsNameInfoSource) identify(ctx context.Context, team *teams.
 	identBehavior, _, ok := globals.CtxIdentifyMode(ctx)
 	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("identify(%s, %v)", impTeamName.String(), identBehavior))()
 	if !ok {
-		return nil, errors.New("invalid context with no chat metadata")
+		return errors.New("invalid context with no chat metadata")
 	}
 	cb := make(chan struct{})
 	go func(ctx context.Context) {
@@ -557,15 +556,7 @@ func (t *ImplicitTeamsNameInfoSource) identify(ctx context.Context, team *teams.
 		if err != nil || len(idFails) > 0 {
 			t.Debug(ctx, "identify failed err=%v fails=%+v", err, idFails)
 		}
-		if err != nil {
-			idFail = &identifyFailure{Msg: err.Error()}
-		} else if len(idFails) > 0 {
-			var suffix string
-			if len(idFails) > 1 {
-				suffix = fmt.Sprintf(" (and %v other users)", len(idFails)-1)
-			}
-			idFail = &identifyFailure{Msg: fmt.Sprintf("Failed to identify %v%v", idFails[0].User.Username, suffix)}
-		}
+		// ignore idFails
 		close(cb)
 	}(globals.BackgroundChatCtx(ctx, t.G()))
 	switch identBehavior {
@@ -584,13 +575,13 @@ func (t *ImplicitTeamsNameInfoSource) identify(ctx context.Context, team *teams.
 			if err != nil {
 				// Turn peg failures into identify failures
 				t.Debug(ctx, "pegboard rejected %v: %v", uv, err)
-				return &identifyFailure{Msg: fmt.Sprintf("A user may have reset: %v", err)}, nil
+				return fmt.Errorf("A user may have reset: %v", err)
 			}
 		}
-		return nil, nil
+		return nil
 	default:
 		<-cb
-		return idFail, err
+		return err
 	}
 }
 
@@ -687,12 +678,8 @@ func (t *ImplicitTeamsNameInfoSource) EncryptionKey(ctx context.Context, name st
 	if err != nil {
 		return res, ni, err
 	}
-	idFail, err := t.identify(ctx, team, impTeamName)
-	if err != nil {
+	if err := t.identify(ctx, team, impTeamName); err != nil {
 		return res, ni, err
-	}
-	if idFail != nil {
-		return res, ni, errors.New(idFail.Msg)
 	}
 	if res, err = getTeamCryptKey(ctx, team, team.Generation(), public, false); err != nil {
 		return res, ni, err
@@ -717,8 +704,7 @@ func (t *ImplicitTeamsNameInfoSource) DecryptionKey(ctx context.Context, name st
 	if err != nil {
 		return res, err
 	}
-	// identify but ignore fails
-	if _, err = t.identify(ctx, team, impTeamName); err != nil {
+	if err := t.identify(ctx, team, impTeamName); err != nil {
 		return res, err
 	}
 	return getTeamCryptKey(ctx, team, keybase1.PerTeamKeyGeneration(keyGeneration), public,
@@ -738,16 +724,9 @@ func (t *ImplicitTeamsNameInfoSource) ephemeralLoadAndIdentify(ctx context.Conte
 	if err != nil {
 		return teamID, err
 	}
-	idFail, err := t.identify(ctx, team, impTeamName)
-	if err != nil {
+	if err := t.identify(ctx, team, impTeamName); err != nil {
 		return teamID, err
 	}
-	if encrypting {
-		if idFail != nil {
-			return teamID, errors.New(idFail.Msg)
-		}
-	}
-	// identify but ignore fails when decrypting
 	return team.ID, nil
 }
 
