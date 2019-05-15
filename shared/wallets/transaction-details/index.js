@@ -34,6 +34,8 @@ export type NotLoadingProps = {|
   recipientAccountID: ?Types.AccountID,
   selectableText: boolean,
   senderAccountID: Types.AccountID,
+  sourceAmount: string,
+  sourceAsset: string,
   status: Types.StatusSimplified,
   statusDetail: string,
   // A null timestamp means the transaction is still pending.
@@ -290,6 +292,8 @@ const TransactionDetails = (props: NotLoadingProps) => {
           onShowProfile={props.onShowProfile} // Don't render unread state in detail view.
           readState="read"
           selectableText={true}
+          sourceAmount={props.sourceAmount}
+          sourceAsset={props.sourceAsset}
           status={props.status}
           statusDetail={props.statusDetail}
           timestamp={props.timestamp}
