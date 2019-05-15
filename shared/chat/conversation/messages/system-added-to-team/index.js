@@ -29,7 +29,7 @@ const ManageComponent = (props: Props) => {
   const textType = 'BodySmallSemiboldPrimaryLink'
   if (props.addee === props.you) {
     return (
-      <Kb.Box type={textType} style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center'}}>
+      <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center'}}>
         <Kb.Text onClick={props.onManageNotifications} type={textType}>
           Manage phone and computer notifications
         </Kb.Text>
