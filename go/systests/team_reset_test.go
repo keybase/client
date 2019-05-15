@@ -114,7 +114,7 @@ func TestTeamDelete(t *testing.T) {
 	cam.assertMemberActive(team, bob)
 }
 
-func TestTeamLoadDeletedSigner(t *testing.T) {
+func TestUserLookupDeleted(t *testing.T) {
 	// Similar to TestTeamDelete but much simplier for debugging team loading
 	// when a signer is deleted. All user eligible to load the team must also
 	// be able to load that deleted user.
@@ -127,6 +127,9 @@ func TestTeamLoadDeletedSigner(t *testing.T) {
 	bob := ctx.installKeybaseForUser("bob", 5)
 	bob.signup()
 	divDebug(ctx, "Signed up bob (%s)", bob.username)
+	cam := ctx.installKeybaseForUser("cam", 10)
+	cam.signup()
+	divDebug(ctx, "Signed up cam (%s)", cam.username)
 
 	team := ann.createTeam([]*smuUser{bob})
 	divDebug(ctx, "team created (%s)", team.name)
@@ -136,6 +139,15 @@ func TestTeamLoadDeletedSigner(t *testing.T) {
 
 	bob.primaryDevice().clearUPAKCache()
 	bob.loadTeam(team.name, false /* admin */)
+
+	// Same with Resolver. user/lookup call there will only succeed if caller
+	// is eligible to read that user.
+	bob.primaryDevice().clearUPAKCache()
+	// _, _, err := bob.getPrimaryGlobalContext().Resolver.ResolveUser(bob.MetaContext(), ann.username)
+	// require.NoError(t, err)
+
+	_, _, err := cam.getPrimaryGlobalContext().Resolver.ResolveUser(cam.MetaContext(), ann.username)
+	require.NoError(t, err)
 }
 
 func TestTeamReset(t *testing.T) {
