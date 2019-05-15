@@ -2091,9 +2091,11 @@ func (o SearchOpts) Matches(msg MessageUnboxed) bool {
 	}
 	// Check if the user was @mentioned or there was a @here/@channel.
 	if o.SentTo != "" {
-		switch msg.ChannelMention() {
-		case ChannelMention_ALL, ChannelMention_HERE:
-			return true
+		if o.MatchMentions {
+			switch msg.ChannelMention() {
+			case ChannelMention_ALL, ChannelMention_HERE:
+				return true
+			}
 		}
 		for _, username := range msg.AtMentionUsernames() {
 			if o.SentTo == username {

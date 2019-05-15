@@ -125,19 +125,18 @@ func TestChatSearchConvRegexp(t *testing.T) {
 
 		// Test basic equality match
 		query := "hi"
-		msgBody := "hi there"
+		msgBody := "hi @here"
 		msgID1 := sendMessage(chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: msgBody,
 		}), u1)
+		searchMatch := chat1.ChatSearchMatch{
+			StartIndex: 0,
+			EndIndex:   2,
+			Match:      query,
+		}
 		res := runSearch(query, isRegex, opts)
 		require.Equal(t, 1, len(res.Hits))
-		verifyHit(nil, msgID1, nil, []chat1.ChatSearchMatch{
-			chat1.ChatSearchMatch{
-				StartIndex: 0,
-				EndIndex:   2,
-				Match:      query,
-			},
-		}, res.Hits[0])
+		verifyHit(nil, msgID1, nil, []chat1.ChatSearchMatch{searchMatch}, res.Hits[0])
 		verifySearchDone(1)
 
 		// Test basic no results
@@ -149,11 +148,7 @@ func TestChatSearchConvRegexp(t *testing.T) {
 		// Test maxHits
 		opts.MaxHits = 1
 		query = "hi"
-		searchMatch := chat1.ChatSearchMatch{
-			StartIndex: 0,
-			EndIndex:   2,
-			Match:      query,
-		}
+		msgBody = "hi there"
 		msgID2 := sendMessage(chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: msgBody,
 		}), u1)
@@ -206,13 +201,12 @@ func TestChatSearchConvRegexp(t *testing.T) {
 		require.Zero(t, len(res.Hits))
 		verifySearchDone(0)
 
-		// TODO test @here/@channel
-
 		opts.SentTo = u1.Username
 		res = runSearch(query, isRegex, opts)
-		require.Equal(t, 1, len(res.Hits))
+		require.Equal(t, 2, len(res.Hits))
 		verifyHit([]chat1.MessageID{msgID2, msgID3}, msgID4, nil, []chat1.ChatSearchMatch{searchMatch}, res.Hits[0])
-		verifySearchDone(1)
+		verifyHit(nil, msgID1, []chat1.MessageID{msgID2, msgID3}, []chat1.ChatSearchMatch{searchMatch}, res.Hits[1])
+		verifySearchDone(2)
 		opts.SentTo = ""
 
 		// test sentBefore/sentAfter
