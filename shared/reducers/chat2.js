@@ -148,10 +148,10 @@ const metaMapReducer = (metaMap, action) => {
       }, {})
       return metaMap.merge(newMetas)
     case Chat2Gen.saveMinWriterRole:
-      const {conversationIDKey, role} = action.payload
+      const {cannotWrite, conversationIDKey, role} = action.payload
       return metaMap.update(conversationIDKey, old => {
         if (old) {
-          return old.set('minWriterRole', role)
+          return old.set('cannotWrite', cannotWrite).set('minWriterRole', role)
         }
         // if we haven't loaded it yet we'll load it on navigation into the
         // convo

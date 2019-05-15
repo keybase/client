@@ -13,7 +13,7 @@ export type MetaTrustedState = 'untrusted' | 'requesting' | 'trusted' | 'error'
 export type NotificationsType = 'onAnyActivity' | 'onWhenAtMentioned' | 'never'
 
 export type _ConversationMeta = {
-  cannotWrite: ?boolean,
+  cannotWrite: boolean,
   channelname: string,
   conversationIDKey: Common.ConversationIDKey, // should be the key for this meta EXCEPT for pendingConversationIDKey, in that case its the resolved conversation we're previewing
   commands: RPCChatTypes.ConversationCommandGroups,

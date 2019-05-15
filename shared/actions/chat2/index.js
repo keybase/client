@@ -669,8 +669,8 @@ const onChatSetConvSettings = (_, action, logger) => {
   const role = newRole && TeamsConstants.teamRoleByEnum[newRole]
   const cannotWrite = conv?.convSettings?.minWriterRoleInfo?.cannotWrite
   logger.info(`got new minWriterRole ${role || ''} for convID ${conversationIDKey}`)
-  if (role && role !== 'none' && cannotWrite !== null) {
-    return Chat2Gen.createSaveMinWriterRole({conversationIDKey, cannotWrite, role})
+  if (role && role !== 'none' && cannotWrite !== undefined) {
+    return Chat2Gen.createSaveMinWriterRole({cannotWrite, conversationIDKey, role})
   }
   logger.warn(
     `got NotifyChat.ChatSetConvSettings with no valid minWriterRole for convID ${conversationIDKey}. The local version may be out of date.`
