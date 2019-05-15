@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -108,7 +109,12 @@ const (
 	maxSavedBlockRemovalsAtATime = uint64(500)
 	// How often to check the server for conflicts while flushing.
 	tlfJournalServerMDCheckInterval = 1 * time.Minute
+
+	tlfJournalBakFmt = "%s-%d.bak"
 )
+
+var tlfJournalBakRegexp = regexp.MustCompile(
+	`[/\\]([[:alnum:]]+)-([[:digit:]]+).bak$`)
 
 // TLFJournalStatus represents the status of a TLF's journal for
 // display in diagnostics. It is suitable for encoding directly as
@@ -250,6 +256,15 @@ type tlfJournal struct {
 	onMDFlush           mdFlushListener
 	forcedSquashByBytes uint64
 
+	// overrideTlfID is used for journals that are accessed by the
+	// upper layers through a TLF ID that's not the same one present
+	// in the on-disk MDs.  MDs returned from this journal will have
+	// their TLF ID overridden by this ID.  An example is a local
+	// conflict branch that's been moved to a new storage directory,
+	// and is presented under a new fake TLF ID.  This should only be
+	// used for read-only journals; writes will fail.
+	overrideTlfID tlf.ID
+
 	// Invariant: this tlfJournal acquires exactly
 	// blockJournal.getStoredBytes() and
 	// blockJournal.getStoredFiles() until shutdown.
@@ -365,7 +380,7 @@ func makeTLFJournal(
 	config tlfJournalConfig, delegateBlockServer BlockServer,
 	bws TLFJournalBackgroundWorkStatus, bwDelegate tlfJournalBWDelegate,
 	onBranchChange branchChangeListener, onMDFlush mdFlushListener,
-	diskLimiter DiskLimiter) (*tlfJournal, error) {
+	diskLimiter DiskLimiter, overrideTlfID tlf.ID) (*tlfJournal, error) {
 	if uid == keybase1.UID("") {
 		return nil, errors.New("Empty user")
 	}
@@ -431,7 +446,7 @@ func makeTLFJournal(
 	mdJournal, err := makeMDJournal(
 		ctx, uid, key, config.Codec(), config.Crypto(), config.Clock(),
 		config.teamMembershipChecker(), config, tlfID, config.MetadataVersion(),
-		dir, log)
+		dir, log, overrideTlfID)
 	if err != nil {
 		return nil, err
 	}
@@ -454,6 +469,7 @@ func makeTLFJournal(
 		onBranchChange:       onBranchChange,
 		onMDFlush:            onMDFlush,
 		forcedSquashByBytes:  ForcedBranchSquashBytesThresholdDefault,
+		overrideTlfID:        overrideTlfID,
 		diskLimiter:          diskLimiter,
 		hasWorkCh:            make(chan struct{}, 1),
 		needPauseCh:          make(chan struct{}, 1),
@@ -832,7 +848,20 @@ func (j *tlfJournal) checkAndFinishSingleOpFlushLocked(
 	return nil
 }
 
+var errReadOnlyJournal = errors.New("Can't modify a read-only journal")
+
+func (j *tlfJournal) checkWriteable() error {
+	if j.overrideTlfID != tlf.NullID {
+		return errors.WithStack(errReadOnlyJournal)
+	}
+	return nil
+}
+
 func (j *tlfJournal) flush(ctx context.Context) (err error) {
+	if err := j.checkWriteable(); err != nil {
+		return err
+	}
+
 	j.flushLock.Lock()
 	defer j.flushLock.Unlock()
 
@@ -2061,6 +2090,10 @@ func (j *tlfJournal) checkInfoFileLocked() error {
 func (j *tlfJournal) putBlockData(
 	ctx context.Context, id kbfsblock.ID, blockCtx kbfsblock.Context, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
+	if err := j.checkWriteable(); err != nil {
+		return err
+	}
+
 	// Since beforeBlockPut can block, it should happen outside of
 	// the journal lock.
 
@@ -2411,6 +2444,10 @@ func (j *tlfJournal) prepAndAddRMDWithRetry(ctx context.Context,
 
 func (j *tlfJournal) putMD(ctx context.Context, rmd *RootMetadata,
 	verifyingKey kbfscrypto.VerifyingKey) (irmd ImmutableRootMetadata, err error) {
+	if err := j.checkWriteable(); err != nil {
+		return ImmutableRootMetadata{}, err
+	}
+
 	err = j.prepAndAddRMDWithRetry(ctx, rmd,
 		func(mdInfo unflushedPathMDInfo, perRevMap unflushedPathsPerRevMap) (
 			retry bool, err error) {
@@ -2425,6 +2462,10 @@ func (j *tlfJournal) putMD(ctx context.Context, rmd *RootMetadata,
 }
 
 func (j *tlfJournal) clearMDs(ctx context.Context, bid kbfsmd.BranchID) error {
+	if err := j.checkWriteable(); err != nil {
+		return err
+	}
+
 	if j.onBranchChange != nil {
 		j.onBranchChange.onTLFBranchChange(j.tlfID, kbfsmd.NullBranchID)
 	}
@@ -2521,49 +2562,54 @@ func (j *tlfJournal) doResolveBranch(ctx context.Context,
 	return irmd, false, nil
 }
 
-func (j *tlfJournal) moveAway(ctx context.Context) error {
+func (j *tlfJournal) moveAway(ctx context.Context) (string, error) {
+	if err := j.checkWriteable(); err != nil {
+		return "", err
+	}
+
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	// j.dir is X/y-z. Current timestamp is T. Move directory X/y-z to X/z-T.bak
 	// and then rebuild it.
 	restDir, lastDir := filepath.Split(j.dir)
 	idParts := strings.Split(lastDir, "-")
-	newDirName := fmt.Sprintf("%s-%d.bak", idParts[len(idParts)-1],
+	newDirName := fmt.Sprintf(tlfJournalBakFmt, idParts[len(idParts)-1],
 		j.config.Clock().Now().UnixNano())
 	fullDirName := filepath.Join(restDir, newDirName)
 
 	err := os.Rename(j.dir, fullDirName)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	err = os.MkdirAll(j.dir, 0700)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// Copy over the info.json file
 	infoData, err := ioutil.ReadFile(getTLFJournalInfoFilePath(fullDirName))
 	if err != nil {
-		return err
+		return "", err
 	}
 	err = ioutil.WriteFile(getTLFJournalInfoFilePath(j.dir), infoData, 0600)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// Make new block and MD journals
 	blockJournal, err := makeBlockJournal(
 		ctx, j.config.Codec(), j.dir, j.log, j.vlog)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	mdJournal, err := makeMDJournal(ctx, j.uid, j.key, j.config.Codec(),
 		j.config.Crypto(), j.config.Clock(), j.config.teamMembershipChecker(),
-		j.config, j.tlfID, j.config.MetadataVersion(), j.dir, j.log)
+		j.config, j.tlfID, j.config.MetadataVersion(), j.dir, j.log,
+		j.overrideTlfID)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	j.blockJournal = blockJournal
@@ -2571,13 +2617,17 @@ func (j *tlfJournal) moveAway(ctx context.Context) error {
 
 	j.resume(journalPauseConflict)
 	j.signalWork()
-	return nil
+	return fullDirName, nil
 }
 
 func (j *tlfJournal) resolveBranch(ctx context.Context,
 	bid kbfsmd.BranchID, blocksToDelete []kbfsblock.ID, rmd *RootMetadata,
 	verifyingKey kbfscrypto.VerifyingKey) (
 	irmd ImmutableRootMetadata, err error) {
+	if err := j.checkWriteable(); err != nil {
+		return ImmutableRootMetadata{}, err
+	}
+
 	err = j.prepAndAddRMDWithRetry(ctx, rmd,
 		func(mdInfo unflushedPathMDInfo, perRevMap unflushedPathsPerRevMap) (
 			retry bool, err error) {
