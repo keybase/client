@@ -527,7 +527,7 @@ func NewImplicitTeamsNameInfoSource(g *globals.Context, lookupUpgraded bool) *Im
 }
 
 func (t *ImplicitTeamsNameInfoSource) identify(ctx context.Context, tlfID chat1.TLFID,
-	impTeamName keybase1.ImplicitTeamDisplayName) (res []keybase1.TLFIdentifyFailure, err error) {
+	impTeamName keybase1.ImplicitTeamDisplayName) (err error) {
 
 	var names []string
 	names = append(names, impTeamName.Writers.KeybaseUsers...)
@@ -536,11 +536,11 @@ func (t *ImplicitTeamsNameInfoSource) identify(ctx context.Context, tlfID chat1.
 	// identify the members in the conversation
 	identBehavior, _, ok := globals.CtxIdentifyMode(ctx)
 	if !ok {
-		return res, errors.New("invalid context with no chat metadata")
+		return errors.New("invalid context with no chat metadata")
 	}
 	cb := make(chan struct{})
 	go func(ctx context.Context) {
-		res, err = t.Identify(ctx, names, true,
+		_, err = t.Identify(ctx, names, true,
 			func() keybase1.TLFID {
 				return keybase1.TLFID(tlfID.String())
 			},
@@ -553,14 +553,14 @@ func (t *ImplicitTeamsNameInfoSource) identify(ctx context.Context, tlfID chat1.
 	case keybase1.TLFIdentifyBehavior_CHAT_GUI:
 		// For GUI mode, let's just let this identify roll in the background. We will be sending up
 		// tracker breaks to the UI out of band with whatever chat operation has invoked us here.
-		return nil, nil
+		return nil
 	default:
 		<-cb
 		if err != nil {
-			return res, err
+			return err
 		}
 	}
-	return res, nil
+	return nil
 }
 
 func (t *ImplicitTeamsNameInfoSource) transformTeamDoesNotExist(ctx context.Context, err error, name string) error {
@@ -656,7 +656,7 @@ func (t *ImplicitTeamsNameInfoSource) EncryptionKey(ctx context.Context, name st
 	if err != nil {
 		return res, ni, err
 	}
-	if _, err := t.identify(ctx, teamID, impTeamName); err != nil {
+	if err := t.identify(ctx, teamID, impTeamName); err != nil {
 		return res, ni, err
 	}
 	if res, err = getTeamCryptKey(ctx, team, team.Generation(), public, false); err != nil {
@@ -682,7 +682,7 @@ func (t *ImplicitTeamsNameInfoSource) DecryptionKey(ctx context.Context, name st
 	if err != nil {
 		return res, err
 	}
-	if _, err = t.identify(ctx, teamID, impTeamName); err != nil {
+	if err = t.identify(ctx, teamID, impTeamName); err != nil {
 		return res, err
 	}
 	return getTeamCryptKey(ctx, team, keybase1.PerTeamKeyGeneration(keyGeneration), public,
@@ -702,7 +702,7 @@ func (t *ImplicitTeamsNameInfoSource) ephemeralLoadAndIdentify(ctx context.Conte
 	if err != nil {
 		return teamID, err
 	}
-	if _, err := t.identify(ctx, tlfID, impTeamName); err != nil {
+	if err := t.identify(ctx, tlfID, impTeamName); err != nil {
 		return teamID, err
 	}
 	return team.ID, nil
