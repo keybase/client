@@ -8,6 +8,9 @@ import * as Types from '../constants/types/people'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
 
+import * as WaitingGen from './waiting-gen'
+import {RPCError} from '../util/errors'
+
 // set this to true to have all todo items show up all the time
 const debugTodo = false
 
@@ -27,6 +30,12 @@ const getPeopleData = (state, action) => {
     markViewed = action.payload.markViewed
     numFollowSuggestionsWanted = action.payload.numFollowSuggestionsWanted
   }
+
+  // TEMP
+  return WaitingGen.createDecrementWaiting({
+    key: Constants.getPeopleDataWaitingKey,
+    error: new RPCError('message', 123, [], null, null),
+  })
   return RPCTypes.homeHomeGetScreenRpcPromise(
     {markViewed, numFollowSuggestionsWanted},
     Constants.getPeopleDataWaitingKey
