@@ -5535,7 +5535,7 @@ func TestChatSrvTeamTypeChanged(t *testing.T) {
 			conv.Id, types.InboxSourceDataSourceRemoteOnly)
 		require.NoError(t, err)
 		require.NotNil(t, uconv.Conv.Notifications)
-		require.False(t,
+		require.True(t,
 			uconv.Conv.Notifications.Settings[keybase1.DeviceType_DESKTOP][chat1.NotificationKind_GENERIC])
 
 		inboxRes, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(ctx,
@@ -5548,9 +5548,8 @@ func TestChatSrvTeamTypeChanged(t *testing.T) {
 		require.Equal(t, 1, len(inboxRes.Conversations))
 		require.Equal(t, chat1.TeamType_COMPLEX, inboxRes.Conversations[0].Info.TeamType)
 		require.NotNil(t, inboxRes.Conversations[0].Notifications)
-		require.False(t, inboxRes.Conversations[0].Notifications.Settings[keybase1.DeviceType_DESKTOP][chat1.NotificationKind_GENERIC])
+		require.True(t, inboxRes.Conversations[0].Notifications.Settings[keybase1.DeviceType_DESKTOP][chat1.NotificationKind_GENERIC])
 	})
-
 }
 
 func TestChatSrvDeleteConversation(t *testing.T) {
