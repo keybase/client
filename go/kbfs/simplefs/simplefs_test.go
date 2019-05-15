@@ -1404,7 +1404,7 @@ func TestFavoriteConflicts(t *testing.T) {
 		ctx, t, sfs, pathAppend(pathPub, `test.txt`), []byte(`foo`))
 	syncFS(ctx, t, sfs, "/public/jdoe")
 
-	t.Log("Make sue we see two favorites with no conflicts")
+	t.Log("Make sure we see two favorites with no conflicts")
 	favs, err := sfs.SimpleFSListFavorites(ctx)
 	require.NoError(t, err)
 	require.Len(t, favs.FavoriteFolders, 2)
@@ -1440,8 +1440,32 @@ func TestFavoriteConflicts(t *testing.T) {
 	require.NoError(t, err)
 	favs, err = sfs.SimpleFSListFavorites(ctx)
 	require.NoError(t, err)
-	require.Len(t, favs.FavoriteFolders, 2)
+	require.Len(t, favs.FavoriteFolders, 3)
+	var pathConflict keybase1.Path
 	for _, f := range favs.FavoriteFolders {
-		require.Nil(t, f.ConflictState)
+		if tlf.ContainsLocalConflictExtensionPrefix(f.Name) {
+			require.NotNil(t, f.ConflictState)
+			ct, err := f.ConflictState.ConflictStateType()
+			require.NoError(t, err)
+			require.Equal(
+				t, keybase1.ConflictStateType_ManualResolvingLocalView, ct)
+			pathConflict = keybase1.NewPathWithKbfs("/public/" + f.Name)
+		} else {
+			require.Nil(t, f.ConflictState)
+		}
 	}
+
+	t.Log("Make sure we see all the conflict files in the local branch")
+	opid, err := sfs.SimpleFSMakeOpid(ctx)
+	require.NoError(t, err)
+	err = sfs.SimpleFSList(ctx, keybase1.SimpleFSListArg{
+		OpID: opid,
+		Path: pathConflict,
+	})
+	require.NoError(t, err)
+	err = sfs.SimpleFSWait(ctx, opid)
+	require.NoError(t, err)
+	listResult, err := sfs.SimpleFSReadList(ctx, opid)
+	require.NoError(t, err)
+	require.Len(t, listResult.Entries, 12)
 }
