@@ -508,7 +508,15 @@ func (h Handle) IsFinal() bool {
 // IsConflict returns whether or not this TlfHandle represents a conflicted
 // top-level folder.
 func (h Handle) IsConflict() bool {
-	return h.conflictInfo != nil
+	return h.conflictInfo != nil &&
+		h.conflictInfo.Type == tlf.HandleExtensionConflict
+}
+
+// IsLocalConflict returns whether or not this TlfHandle represents a
+// locally conflict branch for a top-level folder.
+func (h Handle) IsLocalConflict() bool {
+	return h.conflictInfo != nil &&
+		h.conflictInfo.Type == tlf.HandleExtensionLocalConflict
 }
 
 // GetPreferredFormat returns a TLF name formatted with the username given
