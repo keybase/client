@@ -50,37 +50,36 @@ const addConfigs = (stories, namePrefix, storyFn) => {
     {amountUser: '', amountXLM: '19.4567588 XLM', memo: singleEmojiMemo, timestamp: beforeLastWeek},
   ]
   const readStates = [{readState: 'read'}, {readState: 'unread'}, {readState: 'oldestUnread'}]
-  const pathStates = [{sourceAmount: '', sourceAsset: ''}, {sourceAmount: '1', sourceAsset: 'TOAD'}]
 
+  // NOTE: Do not add another layer of `forEach` to this; storyshots may hang
   roles.forEach(r => {
     stories.add(`${namePrefix} (${r.yourRole})`, () => {
       const components = []
       statuses.forEach(st => {
         memosAndTimes.forEach(mt => {
           readStates.forEach(rs => {
-            pathStates.forEach(ps => {
-              // a non-complete transaction is already treated as 'unread'.
-              if (st.status !== 'completed' && rs.readState === 'read') {
-                return
-              }
-              components.push(
-                storyFn({
-                  approxWorth: '',
-                  issuerDescription: '',
-                  ...r,
-                  ...st,
-                  ...mt,
-                  ...rs,
-                  ...ps,
-                  key: components.length,
-                  onCancelPaymentWaitingKey: '',
-                  onSelectTransaction: Sb.action('onSelectTransaction'),
-                  onShowProfile: Sb.action('onShowProfile'),
-                  selectableText: false,
-                  unread: false,
-                })
-              )
-            })
+            // a non-complete transaction is already treated as 'unread'.
+            if (st.status !== 'completed' && rs.readState === 'read') {
+              return
+            }
+            components.push(
+              storyFn({
+                approxWorth: '',
+                issuerDescription: '',
+                ...r,
+                ...st,
+                ...mt,
+                ...rs,
+                key: components.length,
+                onCancelPaymentWaitingKey: '',
+                onSelectTransaction: Sb.action('onSelectTransaction'),
+                onShowProfile: Sb.action('onShowProfile'),
+                selectableText: false,
+                sourceAmount: '',
+                sourceAsset: '',
+                unread: false,
+              })
+            )
           })
         })
       })

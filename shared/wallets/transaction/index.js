@@ -217,7 +217,8 @@ const Detail = (props: DetailProps) => {
         const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
         return (
           <Text type={textType} style={textStyle}>
-            {verbPhrase} {amount} from {counterparty()} to this account{approxWorth} {byConverting}
+            {verbPhrase} {amount} from {counterparty()} to this account{approxWorth}
+            {byConverting}
             {textSentenceEnd}
           </Text>
         )
