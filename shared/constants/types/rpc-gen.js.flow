@@ -228,6 +228,14 @@ export type MessageTypes = {|
     inParam: $ReadOnly<{|path: Path, config: FolderSyncConfig|}>,
     outParam: void,
   |},
+  'keybase.1.SimpleFS.simpleFSSetNotificationThreshold': {|
+    inParam: $ReadOnly<{|threshold: Int64|}>,
+    outParam: void,
+  |},
+  'keybase.1.SimpleFS.simpleFSSettings': {|
+    inParam: void,
+    outParam: FSSettings,
+  |},
   'keybase.1.SimpleFS.simpleFSStat': {|
     inParam: $ReadOnly<{|path: Path, identifyBehavior?: ?TLFIdentifyBehavior, refreshSubscription: Boolean|}>,
     outParam: Dirent,
@@ -2229,6 +2237,7 @@ export type FSNotificationType =
   | 12 // SYNC_CONFIG_CHANGED_12
 
 export type FSPathSyncStatus = $ReadOnly<{folderType: FolderType, path: String, syncingBytes: Int64, syncingOps: Int64, syncedBytes: Int64}>
+export type FSSettings = $ReadOnly<{spaceAvailableNotificationThreshold: Int64}>
 export type FSStatusCode =
   | 0 // START_0
   | 1 // FINISH_1
@@ -3531,6 +3540,8 @@ declare export function SimpleFSSimpleFSOpenRpcPromise(params: $PropertyType<$Pr
 declare export function SimpleFSSimpleFSReadListRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSReadList'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSReadList'>, 'outParam'>>
 declare export function SimpleFSSimpleFSRemoveRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSRemove'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSRemove'>, 'outParam'>>
 declare export function SimpleFSSimpleFSSetFolderSyncConfigRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSSetFolderSyncConfig'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSSetFolderSyncConfig'>, 'outParam'>>
+declare export function SimpleFSSimpleFSSetNotificationThresholdRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSSetNotificationThreshold'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSSetNotificationThreshold'>, 'outParam'>>
+declare export function SimpleFSSimpleFSSettingsRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSSettings'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSSettings'>, 'outParam'>>
 declare export function SimpleFSSimpleFSStatRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSStat'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSStat'>, 'outParam'>>
 declare export function SimpleFSSimpleFSSyncConfigAndStatusRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSSyncConfigAndStatus'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSSyncConfigAndStatus'>, 'outParam'>>
 declare export function SimpleFSSimpleFSSyncStatusRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSSyncStatus'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSSyncStatus'>, 'outParam'>>

@@ -511,4 +511,13 @@ protocol SimpleFS {
   // are defined in libkb/vdebug.go.  Any unknown strings will have no effect
   // on the level (but won't cause an error).
   void simpleFSSetDebugLevel(string level);
+
+  record FSSettings {
+    int64 spaceAvailableNotificationThreshold;
+  }
+
+  // simpleFSSettings retrieves the settings for this client.
+  FSSettings simpleFSSettings();
+
+  void simpleFSSetNotificationThreshold(int64 threshold);
 }
