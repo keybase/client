@@ -206,6 +206,8 @@ func TestChatSearchConvRegexp(t *testing.T) {
 		require.Zero(t, len(res.Hits))
 		verifySearchDone(0)
 
+		// TODO test @here/@channel
+
 		opts.SentTo = u1.Username
 		res = runSearch(query, isRegex, opts)
 		require.Equal(t, 1, len(res.Hits))
