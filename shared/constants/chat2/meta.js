@@ -258,15 +258,17 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
 
   const {retentionPolicy, teamRetentionPolicy} = UIItemToRetentionPolicies(i, isTeam)
 
-  const minWriterRoleEnum =
-    i.convSettings && i.convSettings.minWriterRoleInfo && i.convSettings.minWriterRoleInfo.role
+  const minWriterRoleEnum = i.convSettings?.minWriterRoleInfo?.role
   let minWriterRole = minWriterRoleEnum ? TeamConstants.teamRoleByEnum[minWriterRoleEnum] : 'reader'
   if (minWriterRole === 'none') {
     // means nothing. set it to reader.
     minWriterRole = 'reader'
   }
 
+  let cannotWrite = i.convSettings?.minWriterRoleInfo?.cannotWrite
+
   return makeConversationMeta({
+    cannotWrite,
     channelname: (isTeam && i.channel) || '',
     commands: i.commands,
     conversationIDKey: Types.stringToConversationIDKey(i.convID),
@@ -301,6 +303,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
 }
 
 export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record({
+  cannotWrite: false,
   channelname: '',
   commands: {},
   conversationIDKey: noConversationIDKey,

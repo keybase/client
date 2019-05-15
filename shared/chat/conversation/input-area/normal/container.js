@@ -53,6 +53,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     _metaMap: state.chat2.metaMap,
     _replyTo,
     _you,
+    cannotWrite: meta.cannotWrite,
     conversationIDKey,
     editText: editInfo ? editInfo.text : '',
     explodingModeSeconds,
@@ -60,6 +61,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     isEditExploded: editInfo ? editInfo.exploded : false,
     isExploding,
     isSearching,
+    minWriterRole: meta.minWriterRole,
     quoteCounter: quoteInfo ? quoteInfo.counter : 0,
     quoteText: quoteInfo ? quoteInfo.text : '',
     showCommandMarkdown,
@@ -134,6 +136,7 @@ const getTeams = memoize(metaMap =>
 )
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
+  cannotWrite: stateProps.cannotWrite,
   clearInboxFilter: dispatchProps.clearInboxFilter,
   conversationIDKey: stateProps.conversationIDKey,
   editText: stateProps.editText,
@@ -146,6 +149,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   isEditing: !!stateProps._editOrdinal,
   isExploding: stateProps.isExploding,
   isSearching: stateProps.isSearching,
+  minWriterRole: stateProps.minWriterRole,
   onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
   onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
   onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
