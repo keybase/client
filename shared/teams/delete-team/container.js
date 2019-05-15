@@ -13,7 +13,6 @@ const mapStateToProps = (state, ownProps) => {
   return {
     _deleting: anyWaiting(state, deleteTeamWaitingKey(teamname)),
     teamname,
-    title: 'Confirmation',
   }
 }
 
@@ -27,7 +26,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onBack: stateProps._deleting ? () => {} : dispatchProps.onBack,
   onDelete: () => dispatchProps.onDelete(stateProps.teamname),
   teamname: stateProps.teamname,
-  title: stateProps.title,
 })
 
 export default Container.compose(

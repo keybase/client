@@ -8,7 +8,6 @@ export type Props = {
   onBack: () => void,
   onDelete: () => void,
   teamname: string,
-  title: string,
 }
 
 const Header = (props: Props) => (
@@ -57,27 +56,21 @@ class Checkboxes extends React.Component<CheckboxesProps, CheckboxesState> {
   render() {
     return (
       <Kb.Box2 direction="vertical">
-        <Kb.Box direction="horizontal">
-          <Kb.Checkbox
-            checked={this.state.box1}
-            label="Team chats will be lost"
-            onCheck={() => this.setState({box1: !this.state.box1})}
-          />
-        </Kb.Box>
-        <Kb.Box direction="horizontal">
-          <Kb.Checkbox
-            checked={this.state.box2}
-            label="Data in the team folder will be lost"
-            onCheck={() => this.setState({box2: !this.state.box2})}
-          />
-        </Kb.Box>
-        <Kb.Box direction="horizontal">
-          <Kb.Checkbox
-            checked={this.state.box3}
-            label="Team members will be notified"
-            onCheck={() => this.setState({box3: !this.state.box3})}
-          />
-        </Kb.Box>
+        <Kb.Checkbox
+          checked={this.state.box1}
+          label="Team chats will be lost"
+          onCheck={() => this.setState({box1: !this.state.box1})}
+        />
+        <Kb.Checkbox
+          checked={this.state.box2}
+          label="Data in the team folder will be lost"
+          onCheck={() => this.setState({box2: !this.state.box2})}
+        />
+        <Kb.Checkbox
+          checked={this.state.box3}
+          label="Team members will be notified"
+          onCheck={() => this.setState({box3: !this.state.box3})}
+        />
       </Kb.Box2>
     )
   }
@@ -112,4 +105,4 @@ const styles = Styles.styleSheetCreate({
   headerTeamname: {color: Styles.globalColors.red, textDecorationLine: 'line-through'},
 })
 
-export default Kb.HeaderOnMobile(_ReallyDeleteTeam)
+export default _ReallyDeleteTeam
