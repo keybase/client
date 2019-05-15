@@ -57,7 +57,7 @@ const containerStyle = {
 const iconContainerStyle = {
   marginLeft: Styles.globalMargins.small,
   marginRight: Styles.globalMargins.xsmall,
-  width: Styles.isMobile ? 48 : 32,
+  width: 48,
 }
 
 const childrenContainerStyle = {
