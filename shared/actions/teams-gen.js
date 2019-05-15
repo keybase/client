@@ -81,7 +81,7 @@ export const updateTopic = 'teams:updateTopic'
 export const uploadTeamAvatar = 'teams:uploadTeamAvatar'
 
 // Payload Types
-type _AddParticipantPayload = $ReadOnly<{|teamname: string, conversationIDKey: ChatTypes.ConversationIDKey, participant: string|}>
+type _AddParticipantPayload = $ReadOnly<{|teamname: string, conversationIDKey: ChatTypes.ConversationIDKey|}>
 type _AddPeopleToTeamPayload = $ReadOnly<{|destSubPath?: I.List<string>, role: string, rootPath?: I.List<string>, sendChatNotification: boolean, sourceSubPath?: I.List<string>, teamname: string|}>
 type _AddTeamWithChosenChannelsPayload = $ReadOnly<{|teamname: string|}>
 type _AddToTeamPayload = $ReadOnly<{|teamname: string, username: string, role: Types.TeamRoleType, sendChatNotification: boolean|}>
@@ -116,9 +116,9 @@ type _LeaveTeamPayload = $ReadOnly<{|teamname: string, context: 'teams' | 'chat'
 type _LeftTeamPayload = $ReadOnly<{|teamname: string, context: 'teams' | 'chat'|}>
 type _ReAddToTeamPayload = $ReadOnly<{|teamname: string, username: string|}>
 type _RemoveMemberOrPendingInvitePayload = $ReadOnly<{|email: string, teamname: string, username: string, inviteID: string|}>
-type _RemoveParticipantPayload = $ReadOnly<{|teamname: string, conversationIDKey: ChatTypes.ConversationIDKey, participant: string|}>
+type _RemoveParticipantPayload = $ReadOnly<{|teamname: string, conversationIDKey: ChatTypes.ConversationIDKey|}>
 type _RenameTeamPayload = $ReadOnly<{|oldName: string, newName: string|}>
-type _SaveChannelMembershipPayload = $ReadOnly<{|teamname: string, oldChannelState: Types.ChannelMembershipState, newChannelState: Types.ChannelMembershipState, you: string|}>
+type _SaveChannelMembershipPayload = $ReadOnly<{|teamname: string, oldChannelState: Types.ChannelMembershipState, newChannelState: Types.ChannelMembershipState|}>
 type _SaveTeamRetentionPolicyPayload = $ReadOnly<{|teamname: string, policy: RetentionPolicy|}>
 type _SetAddUserToTeamsResultsPayload = $ReadOnly<{|error: boolean, results: string|}>
 type _SetChannelCreationErrorPayload = $ReadOnly<{|error: string|}>

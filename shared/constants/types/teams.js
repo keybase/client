@@ -3,6 +3,7 @@ import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
 import type {ConversationIDKey} from './chat2'
 import type {RetentionPolicy} from './retention-policy'
+import * as RPCChatTypes from './rpc-chat-gen'
 
 export type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner'
 export type DisabledReasonsForRolePicker = {[key: TeamRoleType]: string}
@@ -46,7 +47,7 @@ export type ChannelMembershipState = {[ConversationIDKey]: boolean}
 export type _ChannelInfo = {
   channelname: string,
   description: string,
-  participants: I.Set<string>,
+  memberStatus: RPCChatTypes.ConversationMemberStatus,
 }
 export type ChannelInfo = I.RecordOf<_ChannelInfo>
 
