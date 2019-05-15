@@ -353,11 +353,14 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 
 	for _, fav := range req.toAdd {
 		// FOR DISCUSSION: we don't check this in toDel because it could be
-		// out-of-date. So perhaps we should get rid of this too?
-		// _, present := f.favCache[fav.Folder]
-		// if !fav.Created && present {
-		// 	continue
-		// }
+		// out-of-date. So perhaps we should get rid of this too? Relevant
+		// question, if a favorite is deleted from another device, do we get
+		// notification from core for cache invalidation?
+		_, present := f.favCache[fav.Folder]
+		if !fav.Created && present {
+			continue
+		}
+		//
 		err := kbpki.FavoriteAdd(req.ctx, fav.ToKBFolder())
 		if err != nil {
 			f.log.CDebugf(req.ctx,
