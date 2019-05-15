@@ -68,6 +68,7 @@ const (
 	archive                          // an online, read-only branch
 	offline                          // an offline, read-write branch
 	archiveOffline                   // an offline, read-only branch
+	conflict                         // a cleared, local conflict branch
 )
 
 // Constants used in this file.  TODO: Make these configurable?
@@ -407,7 +408,7 @@ func newFolderBranchOps(
 		for _, f := range config.RootNodeWrappers() {
 			nodeCache.AddRootWrapper(f)
 		}
-		if bType == archive {
+		if bType == archive || bType == conflict {
 			nodeCache.AddRootWrapper(readonlyWrapper)
 		}
 	}
@@ -2859,7 +2860,7 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 		fbo.mdWriterLock.Lock(lState)
 		defer fbo.mdWriterLock.Unlock(lState)
 
-		if md.MergedStatus() == kbfsmd.Unmerged {
+		if md.MergedStatus() == kbfsmd.Unmerged && fbo.bType != conflict {
 			mdops := fbo.config.MDOps()
 			mergedMD, err := mdops.GetForTLF(ctx, fbo.id(), nil)
 			if err != nil {
@@ -6976,17 +6977,9 @@ func (fbo *folderBranchOps) unstageLocked(ctx context.Context,
 			return err
 		}
 
-		if tlfJournal, ok := jManager.getTLFJournal(fbo.id(), nil); ok {
-			err = tlfJournal.wait(ctx)
-			if err != nil {
-				return err
-			}
-			err = tlfJournal.moveAway(ctx)
-			if err != nil {
-				return err
-			}
-		} else {
-			return errJournalNotAvailable
+		err = jManager.MoveAway(ctx, fbo.id())
+		if err != nil {
+			return err
 		}
 	}
 
