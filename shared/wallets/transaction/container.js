@@ -65,6 +65,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onShowProfile: dispatchProps.onShowProfile,
     readState,
     selectableText: false,
+    sourceAmount: tx.sourceAmount,
+    sourceAsset: tx.sourceAsset,
     status: tx.statusSimplified,
     statusDetail: tx.statusDetail,
     timestamp: tx.time ? new Date(tx.time) : null,
