@@ -1152,6 +1152,18 @@ func disablePrefetch() fileOp {
 	}, IsInit, "disablePrefetch()"}
 }
 
+func forceConflict() fileOp {
+	return fileOp{func(c *ctx) error {
+		return c.engine.ForceConflict(c.user, c.tlfName, c.tlfType)
+	}, IsInit, "forceConflict()"}
+}
+
+func clearConflicts() fileOp {
+	return fileOp{func(c *ctx) error {
+		return c.engine.ClearConflicts(c.user, c.tlfName, c.tlfType)
+	}, IsInit, "clearConflicts()"}
+}
+
 func lsfavoritesOp(c *ctx, expected []string, t tlf.Type) error {
 	favorites, err := c.engine.GetFavorites(c.user, t)
 	if err != nil {
@@ -1192,6 +1204,12 @@ func lsprivatefavorites(contents []string) fileOp {
 	return fileOp{func(c *ctx) error {
 		return lsfavoritesOp(c, contents, tlf.Private)
 	}, Defaults, fmt.Sprintf("lsprivatefavorites(%s)", contents)}
+}
+
+func lsteamfavorites(contents []string) fileOp {
+	return fileOp{func(c *ctx) error {
+		return lsfavoritesOp(c, contents, tlf.SingleTeam)
+	}, Defaults, fmt.Sprintf("lsteamfavorites(%s)", contents)}
 }
 
 func lsdir(name string, contents m) fileOp {
