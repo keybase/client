@@ -1785,9 +1785,9 @@ func (j *tlfJournal) getUnflushedPathMDInfos(ctx context.Context,
 		return nil, err
 	}
 
-	handle, err := tlfhandle.MakeHandle(
+	handle, err := tlfhandle.MakeHandleWithTlfID(
 		ctx, ibrmdBareHandle, j.tlfID.Type(), j.config.resolver(),
-		j.config.usernameGetter(), tlfhandle.ConstIDGetter{ID: j.tlfID},
+		j.config.usernameGetter(), j.tlfID,
 		j.config.OfflineAvailabilityForID(j.tlfID))
 	if err != nil {
 		return nil, err

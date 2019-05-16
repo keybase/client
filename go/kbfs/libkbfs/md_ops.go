@@ -1054,10 +1054,9 @@ func (md *MDOpsStandard) processSignedMD(
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
-	handle, err := tlfhandle.MakeHandle(
+	handle, err := tlfhandle.MakeHandleWithTlfID(
 		ctx, bareHandle, rmds.MD.TlfID().Type(), md.config.KBPKI(),
-		md.config.KBPKI(), tlfhandle.ConstIDGetter{ID: id},
-		md.config.OfflineAvailabilityForID(id))
+		md.config.KBPKI(), id, md.config.OfflineAvailabilityForID(id))
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -1150,10 +1149,9 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id tlf.ID,
 			if err != nil {
 				return err
 			}
-			handle, err := tlfhandle.MakeHandle(
+			handle, err := tlfhandle.MakeHandleWithTlfID(
 				groupCtx, bareHandle, rmds.MD.TlfID().Type(), md.config.KBPKI(),
-				md.config.KBPKI(), tlfhandle.ConstIDGetter{ID: id},
-				md.config.OfflineAvailabilityForID(id))
+				md.config.KBPKI(), id, md.config.OfflineAvailabilityForID(id))
 			if err != nil {
 				return err
 			}
