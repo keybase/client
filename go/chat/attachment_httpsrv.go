@@ -394,7 +394,12 @@ func (r *AttachmentHTTPSrv) serveGiphyLink(w http.ResponseWriter, req *http.Requ
 	// Grab range headers
 	rangeHeader := req.Header.Get("Range")
 	client := giphy.AssetClient()
-	giphyReq, err := http.NewRequest("GET", val.(string), nil)
+	url, err := giphy.ProxyURL(val.(string))
+	if err != nil {
+		r.makeError(ctx, w, http.StatusInternalServerError, "url creation: %s", err)
+		return
+	}
+	giphyReq, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		r.makeError(ctx, w, http.StatusInternalServerError, "request creation: %s", err)
 		return
@@ -402,6 +407,7 @@ func (r *AttachmentHTTPSrv) serveGiphyLink(w http.ResponseWriter, req *http.Requ
 	if len(rangeHeader) > 0 {
 		giphyReq.Header.Add("Range", rangeHeader)
 	}
+	giphyReq.Host = giphy.MediaHost
 	resp, err := client.Do(giphyReq)
 	if err != nil {
 		r.makeError(ctx, w, resp.StatusCode, "failed to get read giphy link: %s", err)
