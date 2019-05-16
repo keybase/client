@@ -13,6 +13,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/chat/giphy"
+
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
@@ -391,7 +393,7 @@ func (r *AttachmentHTTPSrv) serveGiphyLink(w http.ResponseWriter, req *http.Requ
 	}
 	// Grab range headers
 	rangeHeader := req.Header.Get("Range")
-	client := &http.Client{}
+	client := giphy.AssetClient()
 	giphyReq, err := http.NewRequest("GET", val.(string), nil)
 	if err != nil {
 		r.makeError(ctx, w, http.StatusInternalServerError, "request creation: %s", err)
