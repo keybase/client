@@ -125,17 +125,13 @@
     "loadedCheckPassword": {
       "checkPasswordIsCorrect": "?boolean"
     },
-    "setFeedback": {
-      "feedback": "?string"
-    },
-    "setSendLogs": {
+    "sendFeedback": {
+      "feedback": "string",
       "sendLogs": "boolean"
     },
-    "sendFeedback": {},
-    "sendFeedbackError": {
+    "feedbackSent": {
       "_description": "An error occurred while trying to send feedback to Keybase",
-      "error": "Error"
+      "error": "?Error"
     },
-    "sentFeedback": {},
   }
 }

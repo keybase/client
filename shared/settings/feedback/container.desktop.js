@@ -9,17 +9,14 @@ import * as Constants from '../../constants/settings'
 type OwnProps = {||}
 
 const mapStateToProps = state => ({
-  feedback: state.settings.feedback.feedback,
+  loggedOut: !state.config.loggedIn,
   sendError: state.settings.feedback.error,
-  sendLogs: state.settings.feedback.sendLogs,
   sending: anyWaiting(state, Constants.sendFeedbackWaitingKey),
 })
 
 const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-  onChangeFeedback: feedback => dispatch(SettingsGen.createSetFeedback({feedback})),
-  onChangeSendLogs: sendLogs => dispatch(SettingsGen.createSetSendLogs({sendLogs})),
-  onSendFeedbackContained: () => dispatch(SettingsGen.createSendFeedback()),
+  onSendFeedback: (feedback, sendLogs) => dispatch(SettingsGen.createSendFeedback({feedback, sendLogs})),
 })
 
 const mergeProps = (s, d, o) => ({

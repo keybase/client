@@ -448,7 +448,7 @@ const sendFeedback = (state, action) => {
     ? logger.dump().then(writeLogLinesToFile)
     : Promise.resolve('')
   const status = {version}
-  maybeDump
+  return maybeDump
     .then(() => {
       logger.info(`Sending ${state.settings.feedback.sendLogs ? 'log' : 'feedback'} to daemon`)
       const extra = state.settings.feedback.sendLogs
@@ -468,7 +468,7 @@ const sendFeedback = (state, action) => {
     })
     .catch(error => {
       logger.warn('err in sending logs', error)
-      return SettingsGen.createSendFeedbackError({error})
+      return SettingsGen.createFeedbackSent({error})
     })
 }
 

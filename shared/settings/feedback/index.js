@@ -1,9 +1,10 @@
 // @flow
 
 import React from 'react'
-import {globalMargins, globalColors} from '../../styles'
+import {globalMargins} from '../../styles'
 import * as Kb from '../../common-adapters'
 import {isMobile} from '../../util/container'
+import * as Styles from '../../styles/index'
 
 export const getOtherErrorInfo = (err: Error) => {
   const info = {}
@@ -15,79 +16,56 @@ export const getOtherErrorInfo = (err: Error) => {
 }
 
 type Props = {
-  onSendFeedbackContained: () => void,
-  sendLogs: boolean,
-  feedback: ?string,
+  loggedOut: boolean,
+  onSendFeedback: (feedback: string, sendLogs: boolean) => void,
   sending: boolean,
   sendError: ?Error,
-  onChangeSendLogs: (nextValue: boolean) => void,
-  onChangeFeedback: (nextValue: ?string) => void,
 }
 type State = {
+  email: ?string,
   showSuccessBanner: boolean,
+  sendLogs: boolean,
+  feedback: string,
 }
 
 class Feedback extends React.Component<Props, State> {
-  state = {showSuccessBanner: false}
+  state = {
+    email: null,
+    feedback: '',
+    sendLogs: true,
+    showSuccessBanner: false,
+  }
   componentDidUpdate(prevProps: Props) {
-    if (prevProps.sending && !this.props.sending) {
+    if (prevProps.sending !== this.props.sending || this.props.sendError !== prevProps.sendError) {
       this.setState({
-        showSuccessBanner: true,
-      })
-    }
-    if (!prevProps.sending && this.props.sending) {
-      this.setState({
-        showSuccessBanner: false,
+        showSuccessBanner: !this.props.sending && !this.props.sendError,
       })
     }
   }
+  _onChangeFeedback = feedback => {
+    this.setState({feedback})
+  }
+  _onChangeSendLogs = (sendLogs: boolean) => this.setState({sendLogs})
+
+  _onChangeEmail = email => {
+    this.setState({email})
+  }
+
+  _onSendFeedback = () => {
+    this.setState({showSuccessBanner: false})
+    this.props.onSendFeedback(
+      this.state.email ? `${this.state.feedback} (email: ${this.state.email} )` : this.state.feedback,
+      this.state.sendLogs
+    )
+  }
   render() {
-    const {
-      onSendFeedbackContained,
-      sendLogs,
-      onChangeSendLogs,
-      feedback,
-      onChangeFeedback,
-      sending,
-      sendError,
-    } = this.props
+    const {sending, sendError} = this.props
     return (
-      <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center">
+      <Kb.Box2 direction="vertical" alignSelf="flex-start">
         <Kb.ScrollView>
-          {this.state.showSuccessBanner && (
-            <Kb.Box2
-              alignItems="center"
-              direction="horizontal"
-              fullWidth={true}
-              style={{
-                backgroundColor: globalColors.green,
-                flex: 0,
-                minHeight: 40,
-                paddingBottom: globalMargins.tiny,
-                paddingTop: globalMargins.tiny,
-              }}
-            >
-              <Kb.Text center={true} type="BodySmallSemibold" negative={true} style={{flex: 1}}>
-                Thanks! Your feedback was sent.
-              </Kb.Text>
-            </Kb.Box2>
-          )}
-          <Kb.Box2
-            direction="vertical"
-            style={{
-              alignItems: 'stretch',
-              justifyContent: 'flex-start',
-              marginLeft: globalMargins.small,
-              marginRight: globalMargins.small,
-            }}
-          >
-            <Kb.Box2
-              direction="horizontal"
-              fullWidth={true}
-              style={{
-                paddingTop: globalMargins.small,
-              }}
-            >
+          {this.state.showSuccessBanner && <Kb.Banner color="green" text="Thanks! Your feedback was sent." />}
+          <Kb.Box2 direction="vertical" style={styles.mainBox} gap="xsmall">
+            <Kb.Box2 direction="horizontal" fullWidth={true}>
               <Kb.Input
                 autoCapitalize="sentences"
                 autoCorrect={true}
@@ -96,24 +74,16 @@ class Feedback extends React.Component<Props, State> {
                 hideLabel={true}
                 inputStyle={{textAlign: 'left'}}
                 multiline={true}
-                rowsMin={3}
-                rowsMax={isMobile ? 3 : 10}
+                rowsMin={4}
+                rowsMax={isMobile ? 4 : 10}
                 hintText="Please tell us what you were doing, your experience, or anything else we should know. Thanks!"
-                value={feedback}
-                onChangeText={onChangeFeedback}
+                value={this.state.feedback}
+                onChangeText={this._onChangeFeedback}
               />
             </Kb.Box2>
-            <Kb.Box2 direction="horizontal">
-              <Kb.Checkbox
-                label=""
-                style={{
-                  alignItems: 'flex-start',
-                  marginRight: globalMargins.tiny,
-                }}
-                checked={sendLogs}
-                onCheck={onChangeSendLogs}
-              />
-              <Kb.Box2 direction="vertical">
+            <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
+              <Kb.Checkbox label="" checked={this.state.sendLogs} onCheck={this._onChangeSendLogs} />
+              <Kb.Box2 direction="vertical" style={styles.textBox}>
                 <Kb.Text type="Body">Include your logs</Kb.Text>
                 <Kb.Text type="BodySmall">
                   This includes some private metadata info (e.g., filenames, but not contents) but it will
@@ -121,21 +91,26 @@ class Feedback extends React.Component<Props, State> {
                 </Kb.Text>
               </Kb.Box2>
             </Kb.Box2>
-            <Kb.ButtonBar style={{paddingTop: globalMargins.small}}>
-              <Kb.Button fullWidth={true} label="Send" onClick={onSendFeedbackContained} waiting={sending} />
+            {this.props.loggedOut && (
+              <Kb.Box2 direction="horizontal" fullWidth={true}>
+                <Kb.NewInput placeholder="Email (pretty please!)" onChangeText={this._onChangeEmail} />
+              </Kb.Box2>
+            )}
+            <Kb.ButtonBar>
+              <Kb.Button fullWidth={true} label="Send" onClick={this._onSendFeedback} waiting={sending} />
             </Kb.ButtonBar>
             {sendError && (
-              <Kb.Box2 direction="vertical" style={{marginTop: globalMargins.small}}>
+              <Kb.Box2 direction="vertical" gap="small">
                 <Kb.Text type="BodySmallError">Could not send log</Kb.Text>
-                <Kb.Text type="BodySmall" selectable={true} style={{marginBottom: 10, marginTop: 10}}>
+                <Kb.Text type="BodySmall" selectable={true}>
                   {`${sendError.name}: ${sendError.message}`}
                 </Kb.Text>
                 <Kb.Text type="BodySmallSemibold">Stack</Kb.Text>
-                <Kb.Text type="BodySmall" selectable={true} style={{marginBottom: 10, marginTop: 10}}>
+                <Kb.Text type="BodySmall" selectable={true}>
                   {sendError.stack}
                 </Kb.Text>
                 <Kb.Text type="BodySmallSemibold">Error dump</Kb.Text>
-                <Kb.Text type="BodySmall" selectable={true} style={{marginBottom: 10, marginTop: 10}}>
+                <Kb.Text type="BodySmall" selectable={true}>
                   {JSON.stringify(getOtherErrorInfo(sendError), null, 2)}
                 </Kb.Text>
               </Kb.Box2>
@@ -148,3 +123,23 @@ class Feedback extends React.Component<Props, State> {
 }
 
 export default Feedback
+
+const styles = Styles.styleSheetCreate({
+  container: Styles.platformStyles({
+    common: {
+      flex: 1,
+    },
+  }),
+  mainBox: {
+    padding: globalMargins.small,
+  },
+  outerStyle: {
+    backgroundColor: 'white',
+  },
+  smallLabel: {
+    color: 'black',
+  },
+  textBox: {
+    flex: 1,
+  },
+})

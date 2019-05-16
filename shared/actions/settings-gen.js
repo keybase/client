@@ -14,6 +14,7 @@ export const typePrefix = 'settings:'
 export const checkPassword = 'settings:checkPassword'
 export const dbNuke = 'settings:dbNuke'
 export const deleteAccountForever = 'settings:deleteAccountForever'
+export const feedbackSent = 'settings:feedbackSent'
 export const invitesClearError = 'settings:invitesClearError'
 export const invitesReclaim = 'settings:invitesReclaim'
 export const invitesReclaimed = 'settings:invitesReclaimed'
@@ -49,11 +50,7 @@ export const onUpdatePasswordError = 'settings:onUpdatePasswordError'
 export const onUpdatedPGPSettings = 'settings:onUpdatedPGPSettings'
 export const processorProfile = 'settings:processorProfile'
 export const sendFeedback = 'settings:sendFeedback'
-export const sendFeedbackError = 'settings:sendFeedbackError'
-export const sentFeedback = 'settings:sentFeedback'
 export const setAllowDeleteAccount = 'settings:setAllowDeleteAccount'
-export const setFeedback = 'settings:setFeedback'
-export const setSendLogs = 'settings:setSendLogs'
 export const stop = 'settings:stop'
 export const trace = 'settings:trace'
 export const unfurlSettingsError = 'settings:unfurlSettingsError'
@@ -66,6 +63,7 @@ export const waitingForResponse = 'settings:waitingForResponse'
 type _CheckPasswordPayload = $ReadOnly<{|password: HiddenString|}>
 type _DbNukePayload = void
 type _DeleteAccountForeverPayload = void
+type _FeedbackSentPayload = $ReadOnly<{|error: ?Error|}>
 type _InvitesClearErrorPayload = void
 type _InvitesReclaimPayload = $ReadOnly<{|inviteId: string|}>
 type _InvitesReclaimedPayload = void
@@ -102,12 +100,8 @@ type _OnUpdatePGPSettingsPayload = void
 type _OnUpdatePasswordErrorPayload = $ReadOnly<{|error: Error|}>
 type _OnUpdatedPGPSettingsPayload = $ReadOnly<{|hasKeys: boolean|}>
 type _ProcessorProfilePayload = $ReadOnly<{|durationSeconds: number|}>
-type _SendFeedbackErrorPayload = $ReadOnly<{|error: Error|}>
-type _SendFeedbackPayload = void
-type _SentFeedbackPayload = void
+type _SendFeedbackPayload = $ReadOnly<{|feedback: string, sendLogs: boolean|}>
 type _SetAllowDeleteAccountPayload = $ReadOnly<{|allow: boolean|}>
-type _SetFeedbackPayload = $ReadOnly<{|feedback: ?string|}>
-type _SetSendLogsPayload = $ReadOnly<{|sendLogs: boolean|}>
 type _StopPayload = $ReadOnly<{|exitCode: RPCTypes.ExitCode|}>
 type _TracePayload = $ReadOnly<{|durationSeconds: number|}>
 type _UnfurlSettingsErrorPayload = $ReadOnly<{|error: string|}>
@@ -124,7 +118,7 @@ export const createUnfurlSettingsError = (payload: _UnfurlSettingsErrorPayload) 
 /**
  * An error occurred while trying to send feedback to Keybase
  */
-export const createSendFeedbackError = (payload: _SendFeedbackErrorPayload) => ({payload, type: sendFeedbackError})
+export const createFeedbackSent = (payload: _FeedbackSentPayload) => ({payload, type: feedbackSent})
 /**
  * Refresh unfurl settings
  */
@@ -177,10 +171,7 @@ export const createOnUpdatePasswordError = (payload: _OnUpdatePasswordErrorPaylo
 export const createOnUpdatedPGPSettings = (payload: _OnUpdatedPGPSettingsPayload) => ({payload, type: onUpdatedPGPSettings})
 export const createProcessorProfile = (payload: _ProcessorProfilePayload) => ({payload, type: processorProfile})
 export const createSendFeedback = (payload: _SendFeedbackPayload) => ({payload, type: sendFeedback})
-export const createSentFeedback = (payload: _SentFeedbackPayload) => ({payload, type: sentFeedback})
 export const createSetAllowDeleteAccount = (payload: _SetAllowDeleteAccountPayload) => ({payload, type: setAllowDeleteAccount})
-export const createSetFeedback = (payload: _SetFeedbackPayload) => ({payload, type: setFeedback})
-export const createSetSendLogs = (payload: _SetSendLogsPayload) => ({payload, type: setSendLogs})
 export const createStop = (payload: _StopPayload) => ({payload, type: stop})
 export const createTrace = (payload: _TracePayload) => ({payload, type: trace})
 export const createWaitingForResponse = (payload: _WaitingForResponsePayload) => ({payload, type: waitingForResponse})
@@ -189,6 +180,7 @@ export const createWaitingForResponse = (payload: _WaitingForResponsePayload) =>
 export type CheckPasswordPayload = {|+payload: _CheckPasswordPayload, +type: 'settings:checkPassword'|}
 export type DbNukePayload = {|+payload: _DbNukePayload, +type: 'settings:dbNuke'|}
 export type DeleteAccountForeverPayload = {|+payload: _DeleteAccountForeverPayload, +type: 'settings:deleteAccountForever'|}
+export type FeedbackSentPayload = {|+payload: _FeedbackSentPayload, +type: 'settings:feedbackSent'|}
 export type InvitesClearErrorPayload = {|+payload: _InvitesClearErrorPayload, +type: 'settings:invitesClearError'|}
 export type InvitesReclaimPayload = {|+payload: _InvitesReclaimPayload, +type: 'settings:invitesReclaim'|}
 export type InvitesReclaimedPayload = {|+payload: _InvitesReclaimedPayload, +type: 'settings:invitesReclaimed'|}
@@ -225,12 +217,8 @@ export type OnUpdatePGPSettingsPayload = {|+payload: _OnUpdatePGPSettingsPayload
 export type OnUpdatePasswordErrorPayload = {|+payload: _OnUpdatePasswordErrorPayload, +type: 'settings:onUpdatePasswordError'|}
 export type OnUpdatedPGPSettingsPayload = {|+payload: _OnUpdatedPGPSettingsPayload, +type: 'settings:onUpdatedPGPSettings'|}
 export type ProcessorProfilePayload = {|+payload: _ProcessorProfilePayload, +type: 'settings:processorProfile'|}
-export type SendFeedbackErrorPayload = {|+payload: _SendFeedbackErrorPayload, +type: 'settings:sendFeedbackError'|}
 export type SendFeedbackPayload = {|+payload: _SendFeedbackPayload, +type: 'settings:sendFeedback'|}
-export type SentFeedbackPayload = {|+payload: _SentFeedbackPayload, +type: 'settings:sentFeedback'|}
 export type SetAllowDeleteAccountPayload = {|+payload: _SetAllowDeleteAccountPayload, +type: 'settings:setAllowDeleteAccount'|}
-export type SetFeedbackPayload = {|+payload: _SetFeedbackPayload, +type: 'settings:setFeedback'|}
-export type SetSendLogsPayload = {|+payload: _SetSendLogsPayload, +type: 'settings:setSendLogs'|}
 export type StopPayload = {|+payload: _StopPayload, +type: 'settings:stop'|}
 export type TracePayload = {|+payload: _TracePayload, +type: 'settings:trace'|}
 export type UnfurlSettingsErrorPayload = {|+payload: _UnfurlSettingsErrorPayload, +type: 'settings:unfurlSettingsError'|}
@@ -245,6 +233,7 @@ export type Actions =
   | CheckPasswordPayload
   | DbNukePayload
   | DeleteAccountForeverPayload
+  | FeedbackSentPayload
   | InvitesClearErrorPayload
   | InvitesReclaimPayload
   | InvitesReclaimedPayload
@@ -281,12 +270,8 @@ export type Actions =
   | OnUpdatePasswordErrorPayload
   | OnUpdatedPGPSettingsPayload
   | ProcessorProfilePayload
-  | SendFeedbackErrorPayload
   | SendFeedbackPayload
-  | SentFeedbackPayload
   | SetAllowDeleteAccountPayload
-  | SetFeedbackPayload
-  | SetSendLogsPayload
   | StopPayload
   | TracePayload
   | UnfurlSettingsErrorPayload

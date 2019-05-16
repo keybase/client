@@ -15,13 +15,12 @@ type OwnProps = RouteProps<{}, {}>
 
 export type State = {
   sentFeedback: boolean,
-  feedback: ?string,
   sending: boolean,
-  sendLogs: boolean,
   sendError: ?Error,
 }
 export type Props = PropsWithTimer<{
   chat: Object,
+  loggedOut: boolean,
   onBack: () => void,
   status: Object,
   title: string,
@@ -36,19 +35,10 @@ class FeedbackContainer extends React.Component<Props, State> {
   mounted = false
 
   state = {
-    feedback: null,
     sendError: null,
-    sendLogs: true,
     sending: false,
     sentFeedback: false,
   }
-
-  _onChangeSendLogs = (sendLogs: boolean) => this.setState({sendLogs})
-
-  _onChangeFeedback = feedback => {
-    this.setState({feedback})
-  }
-
   _dumpLogs = () => logger.dump().then(writeLogLinesToFile)
 
   componentWillUnmount() {
@@ -59,33 +49,25 @@ class FeedbackContainer extends React.Component<Props, State> {
     this.mounted = true
   }
 
-  _onSendFeedback = () => {
+  _onSendFeedback = (feedback: string, sendLogs: boolean) => {
     this.setState({sending: true, sentFeedback: false})
 
     this.props.setTimeout(() => {
-      const maybeDump = this.state.sendLogs ? this._dumpLogs() : Promise.resolve('')
+      const maybeDump = sendLogs ? this._dumpLogs() : Promise.resolve('')
 
       maybeDump
         .then(() => {
           const logPath = logFileName
-          logger.info(`Sending ${this.state.sendLogs ? 'log' : 'feedback'} to daemon`)
-          const extra = this.state.sendLogs ? {...this.props.status, ...this.props.chat} : this.props.status
+          logger.info(`Sending ${sendLogs ? 'log' : 'feedback'} to daemon`)
+          const extra = sendLogs ? {...this.props.status, ...this.props.chat} : this.props.status
           const traceDir = pprofDir
           const cpuProfileDir = traceDir
-          return logSend(
-            JSON.stringify(extra),
-            this.state.feedback || '',
-            this.state.sendLogs,
-            logPath,
-            traceDir,
-            cpuProfileDir
-          )
+          return logSend(JSON.stringify(extra), feedback || '', sendLogs, logPath, traceDir, cpuProfileDir)
         })
         .then(logSendId => {
           logger.info('logSendId is', logSendId)
           if (this.mounted) {
             this.setState({
-              feedback: null,
               sendError: null,
               sending: false,
               sentFeedback: true,
@@ -108,14 +90,10 @@ class FeedbackContainer extends React.Component<Props, State> {
   render() {
     return (
       <Feedback
-        showSuccessBanner={this.state.sentFeedback}
-        onSendFeedbackContained={this._onSendFeedback}
-        onChangeFeedback={this._onChangeFeedback}
-        feedback={this.state.feedback}
+        onSendFeedback={this._onSendFeedback}
         sending={this.state.sending}
         sendError={this.state.sendError}
-        sendLogs={this.state.sendLogs}
-        onChangeSendLogs={this._onChangeSendLogs}
+        loggedOut={this.props.loggedOut}
       />
     )
   }
@@ -125,6 +103,7 @@ class FeedbackContainer extends React.Component<Props, State> {
 const mapStateToProps = state => {
   return {
     chat: getExtraChatLogsForLogSend(state),
+    loggedOut: !state.config.loggedIn,
     status: {
       appVersionCode,
       appVersionName,
