@@ -248,13 +248,16 @@ func (p *Loader) LoadPaymentSync(ctx context.Context, paymentID stellar1.Payment
 	mctx := libkb.NewMetaContext(ctx, p.G())
 	defer mctx.TraceTimed(fmt.Sprintf("LoadPaymentSync(%s)", paymentID), func() error { return nil })()
 
-	for i := 1; i <= 100; i++ {
+	backoffPolicy := libkb.BackoffPolicy{
+		Millis: []int{500, 500, 500, 500, 500, 500, 500, 1000},
+	}
+	for i := 0; i <= 30; i++ {
 		err := p.loadPayment(paymentID)
 		if err == nil {
 			break
 		}
 		mctx.Debug("error on attempt %d to load payment %s: %s. sleep and retry.", i, paymentID, err)
-		time.Sleep(1 * time.Second)
+		time.Sleep(backoffPolicy.Duration(i))
 	}
 }
 
