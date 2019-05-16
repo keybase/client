@@ -21,9 +21,12 @@ const UnknownMentionPopup = (props: PopupProps) => {
   const header = {
     title: 'header',
     view: (
-      <Kb.Box2 direction="vertical" gap="tiny" style={styles.popupContainer}>
-        <Kb.Text type="BodySmall">This could be either a user or team.</Kb.Text>
-        <Kb.Button label="Look up" onClick={props.onResolve} />
+      <Kb.Box2 direction="vertical" gap="tiny" style={styles.popupContainer} gapStart={true}>
+        <Kb.Text type="BodySemibold">User or Team</Kb.Text>
+        <Kb.Text type="BodySmall">
+          This could be either a user or team. You can find out with a quick request to Keybase.
+        </Kb.Text>
+        <Kb.Button label="Lookup" onClick={props.onResolve} />
       </Kb.Box2>
     ),
   }
