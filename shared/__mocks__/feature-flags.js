@@ -11,7 +11,6 @@ const ff: FeatureFlags = {
   airdrop: true,
   chatIndexProfilingEnabled: false,
   dbCleanEnabled: false,
-  enableDeleteFolder: false,
   foldersInProfileTab: true,
   kbfsOfflineMode: true,
   moveOrCopy: true,

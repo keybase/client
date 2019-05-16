@@ -16,9 +16,7 @@ const mapStateToProps = (state, {path}) => ({
 
 const mergeProps = (stateProps, dispatchProps, {mode}) => {
   const resetParticipants =
-    stateProps._tlf === Constants.unknownTlf
-      ? undefined
-      : stateProps._tlf.resetParticipants.map(i => i.username).toArray()
+    stateProps._tlf === Constants.unknownTlf ? undefined : stateProps._tlf.resetParticipants.toArray()
   return {
     mode,
     reset:

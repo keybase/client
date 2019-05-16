@@ -40,6 +40,7 @@ export const onChangeNewPassword = 'settings:onChangeNewPassword'
 export const onChangeNewPasswordConfirm = 'settings:onChangeNewPasswordConfirm'
 export const onChangeRememberPassword = 'settings:onChangeRememberPassword'
 export const onChangeShowPassword = 'settings:onChangeShowPassword'
+export const onChangeUseNativeFrame = 'settings:onChangeUseNativeFrame'
 export const onSubmitNewEmail = 'settings:onSubmitNewEmail'
 export const onSubmitNewPassword = 'settings:onSubmitNewPassword'
 export const onUpdateEmailError = 'settings:onUpdateEmailError'
@@ -88,6 +89,7 @@ type _OnChangeNewPasswordConfirmPayload = $ReadOnly<{|password: HiddenString|}>
 type _OnChangeNewPasswordPayload = $ReadOnly<{|password: HiddenString|}>
 type _OnChangeRememberPasswordPayload = $ReadOnly<{|remember: boolean|}>
 type _OnChangeShowPasswordPayload = void
+type _OnChangeUseNativeFramePayload = $ReadOnly<{|enabled: boolean|}>
 type _OnSubmitNewEmailPayload = void
 type _OnSubmitNewPasswordPayload = $ReadOnly<{|thenSignOut: boolean|}>
 type _OnUpdateEmailErrorPayload = $ReadOnly<{|error: Error|}>
@@ -152,6 +154,7 @@ export const createOnChangeNewPassword = (payload: _OnChangeNewPasswordPayload) 
 export const createOnChangeNewPasswordConfirm = (payload: _OnChangeNewPasswordConfirmPayload) => ({payload, type: onChangeNewPasswordConfirm})
 export const createOnChangeRememberPassword = (payload: _OnChangeRememberPasswordPayload) => ({payload, type: onChangeRememberPassword})
 export const createOnChangeShowPassword = (payload: _OnChangeShowPasswordPayload) => ({payload, type: onChangeShowPassword})
+export const createOnChangeUseNativeFrame = (payload: _OnChangeUseNativeFramePayload) => ({payload, type: onChangeUseNativeFrame})
 export const createOnSubmitNewEmail = (payload: _OnSubmitNewEmailPayload) => ({payload, type: onSubmitNewEmail})
 export const createOnSubmitNewPassword = (payload: _OnSubmitNewPasswordPayload) => ({payload, type: onSubmitNewPassword})
 export const createOnUpdateEmailError = (payload: _OnUpdateEmailErrorPayload) => ({payload, type: onUpdateEmailError})
@@ -196,6 +199,7 @@ export type OnChangeNewPasswordConfirmPayload = {|+payload: _OnChangeNewPassword
 export type OnChangeNewPasswordPayload = {|+payload: _OnChangeNewPasswordPayload, +type: 'settings:onChangeNewPassword'|}
 export type OnChangeRememberPasswordPayload = {|+payload: _OnChangeRememberPasswordPayload, +type: 'settings:onChangeRememberPassword'|}
 export type OnChangeShowPasswordPayload = {|+payload: _OnChangeShowPasswordPayload, +type: 'settings:onChangeShowPassword'|}
+export type OnChangeUseNativeFramePayload = {|+payload: _OnChangeUseNativeFramePayload, +type: 'settings:onChangeUseNativeFrame'|}
 export type OnSubmitNewEmailPayload = {|+payload: _OnSubmitNewEmailPayload, +type: 'settings:onSubmitNewEmail'|}
 export type OnSubmitNewPasswordPayload = {|+payload: _OnSubmitNewPasswordPayload, +type: 'settings:onSubmitNewPassword'|}
 export type OnUpdateEmailErrorPayload = {|+payload: _OnUpdateEmailErrorPayload, +type: 'settings:onUpdateEmailError'|}
@@ -246,6 +250,7 @@ export type Actions =
   | OnChangeNewPasswordPayload
   | OnChangeRememberPasswordPayload
   | OnChangeShowPasswordPayload
+  | OnChangeUseNativeFramePayload
   | OnSubmitNewEmailPayload
   | OnSubmitNewPasswordPayload
   | OnUpdateEmailErrorPayload

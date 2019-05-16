@@ -140,6 +140,8 @@ export type _PaymentCommon = {|
   noteErr: HiddenString,
   source: string,
   sourceAccountID: string,
+  sourceAmount: string, // this and sourceAsset are set if this was a path payment
+  sourceAsset: string, // just code for now
   sourceType: string,
   statusSimplified: StatusSimplified,
   statusDescription: string,

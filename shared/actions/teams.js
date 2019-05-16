@@ -742,7 +742,7 @@ const getChannelInfo = (_, action, logger) => {
     const channelInfo = Constants.makeChannelInfo({
       channelname: meta.channelname,
       description: meta.description,
-      participants: meta.participants.toSet(),
+      memberStatus: convs[0].memberStatus,
     })
 
     return TeamsGen.createSetTeamChannelInfo({channelInfo, conversationIDKey, teamname})
@@ -766,7 +766,7 @@ const getChannels = (_, action) => {
       channelInfos[convID] = Constants.makeChannelInfo({
         channelname: conv.channel,
         description: conv.headline,
-        participants: I.Set(conv.participants || []),
+        memberStatus: conv.memberStatus,
       })
     })
 
@@ -861,8 +861,7 @@ const checkRequestedAccess = (_, action) =>
 
 const _joinConversation = function*(
   teamname: Types.Teamname,
-  conversationIDKey: ChatTypes.ConversationIDKey,
-  participant: string
+  conversationIDKey: ChatTypes.ConversationIDKey
 ) {
   try {
     const convID = ChatTypes.keyToConversationID(conversationIDKey)
@@ -876,7 +875,6 @@ const _joinConversation = function*(
     yield Saga.put(
       TeamsGen.createAddParticipant({
         conversationIDKey,
-        participant,
         teamname,
       })
     )
@@ -887,8 +885,7 @@ const _joinConversation = function*(
 
 const _leaveConversation = function*(
   teamname: Types.Teamname,
-  conversationIDKey: ChatTypes.ConversationIDKey,
-  participant: string
+  conversationIDKey: ChatTypes.ConversationIDKey
 ) {
   try {
     const convID = ChatTypes.keyToConversationID(conversationIDKey)
@@ -902,7 +899,6 @@ const _leaveConversation = function*(
     yield Saga.put(
       TeamsGen.createRemoveParticipant({
         conversationIDKey,
-        participant,
         teamname,
       })
     )
@@ -922,9 +918,9 @@ function* saveChannelMembership(state, action) {
     }
 
     if (newChannelState[convIDKey]) {
-      calls.push(Saga.callUntyped(_joinConversation, teamname, convIDKey, action.payload.you))
+      calls.push(Saga.callUntyped(_joinConversation, teamname, convIDKey))
     } else {
-      calls.push(Saga.callUntyped(_leaveConversation, teamname, convIDKey, action.payload.you))
+      calls.push(Saga.callUntyped(_leaveConversation, teamname, convIDKey))
     }
   }
 
@@ -1450,8 +1446,8 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
     'getChannelInfo'
   )
   yield* Saga.chainAction<TeamsGen.GetChannelsPayload>(TeamsGen.getChannels, getChannels, 'getChannels')
-  yield* Saga.chainGenerator<ConfigGen.LoggedInPayload, TeamsGen.GetTeamsPayload, TeamsGen.LeftTeamPayload>(
-    [ConfigGen.loggedIn, TeamsGen.getTeams, TeamsGen.leftTeam],
+  yield* Saga.chainGenerator<ConfigGen.BootstrapStatusLoadedPayload, TeamsGen.GetTeamsPayload, TeamsGen.LeftTeamPayload>(
+    [ConfigGen.bootstrapStatusLoaded, TeamsGen.getTeams, TeamsGen.leftTeam],
     getTeams,
     'getTeams'
   )

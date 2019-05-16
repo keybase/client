@@ -9,6 +9,7 @@ type Props = {|
   className?: string,
   emojis: Array<string>, // e.g. ':tada:'
   onReact: string => void,
+  onReply: () => void,
   onShowingEmojiPicker?: boolean => void,
   style?: Styles.StylesCrossPlatform,
 |}
@@ -67,16 +68,21 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
     return (
       <Kb.Box2
         direction="horizontal"
+        gap="tiny"
         ref={this._attachmentRef}
         style={Styles.collapseStyles([styles.container, this.props.style])}
         className={this.props.className}
       >
-        <Kb.Box2 direction="horizontal" gap="tiny" style={styles.emojisRow}>
+        <Kb.Box2 direction="horizontal" gap="tiny">
           {this.props.emojis.map(e => (
             <HoverEmoji name={e} key={e} onClick={() => this.props.onReact(e)} />
           ))}
           <HoverEmoji name="" isReacjiIcon={true} onClick={this._showPicker} key="reacji-icon" />
         </Kb.Box2>
+        <Kb.Divider vertical={true} />
+        <Kb.Text type="BodySmallSecondaryLink" style={styles.reply} onClick={this.props.onReply}>
+          Reply
+        </Kb.Text>
         {this.state.showingPicker && (
           <Kb.FloatingBox
             attachTo={this._getAttachmentRef}
@@ -94,6 +100,9 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
 
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
+    common: {
+      ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.xsmall),
+    },
     isElectron: {
       backgroundColor: Styles.globalColors.blueLighter3,
       height: Styles.globalMargins.medium,
@@ -106,12 +115,6 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'center',
     width: Styles.globalMargins.small,
   },
-  emojisRow: {
-    paddingBottom: Styles.globalMargins.xtiny,
-    paddingLeft: Styles.globalMargins.xsmall,
-    paddingRight: Styles.globalMargins.xsmall,
-    paddingTop: Styles.globalMargins.xtiny,
-  },
   pickerContainer: Styles.platformStyles({
     isElectron: {
       ...Styles.desktopStyles.boxShadow,
@@ -120,6 +123,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   reacjiIcon: {position: 'relative', top: 1},
+  reply: {alignSelf: 'center'},
 })
 
 export default EmojiRow

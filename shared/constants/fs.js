@@ -10,19 +10,15 @@ import * as SettingsConstants from './settings'
 import {type TypedState} from '../util/container'
 import {isLinux, isMobile} from './platform'
 import uuidv1 from 'uuid/v1'
-import logger from '../logger'
 import {globalColors} from '../styles'
 import {downloadFilePath, downloadFilePathNoSearch} from '../util/file'
-import {tlfToPreferredOrder} from '../util/kbfs'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-import {findKey} from 'lodash-es'
 import {type TypedActions} from '../actions/typed-actions-gen'
 import flags from '../util/feature-flags'
 
 export const syncToggleWaitingKey = 'fs:syncToggle'
 export const sendLinkToChatFindConversationWaitingKey = 'fs:sendLinkToChatFindConversation'
 export const sendLinkToChatSendWaitingKey = 'fs:sendLinkToChatSend'
-export const deleteWaitingKey = 'fs:delete'
 
 export const defaultPath = Types.stringToPath('/keybase')
 
@@ -114,12 +110,15 @@ export const makeTlf: I.RecordFactory<Types._Tlf> = I.Record({
   isIgnored: false,
   isNew: false,
   name: '',
-  needsRekey: false,
   resetParticipants: I.List(),
   syncConfig: null,
   teamId: '',
+  tlfMtime: 0,
+  /* See comment in constants/types/fs.js
+  needsRekey: false,
   waitingForParticipantUnlock: I.List(),
   youCanUnlock: I.List(),
+  */
 })
 
 export const makeSyncingFoldersProgress: I.RecordFactory<Types._SyncingFoldersProgress> = I.Record({
@@ -129,13 +128,17 @@ export const makeSyncingFoldersProgress: I.RecordFactory<Types._SyncingFoldersPr
   start: 0,
 })
 
-export const defaultSortSetting = 'name-asc'
-
 export const makePathUserSetting: I.RecordFactory<Types._PathUserSetting> = I.Record({
-  sort: defaultSortSetting,
+  sort: 'name-asc',
 })
 
-export const defaultPathUserSetting = makePathUserSetting()
+export const defaultPathUserSetting = makePathUserSetting({
+  sort: 'name-asc',
+})
+
+export const defaultTlfListPathUserSetting = makePathUserSetting({
+  sort: 'time-asc',
+})
 
 export const makeDownloadMeta: I.RecordFactory<Types._DownloadMeta> = I.Record({
   entryType: 'unknown',
@@ -282,6 +285,11 @@ export const makeSoftErrors: I.RecordFactory<Types._SoftErrors> = I.Record({
   tlfErrors: I.Map(),
 })
 
+export const makeSettings: I.RecordFactory<Types._Settings> = I.Record({
+  isLoading: false,
+  spaceAvailableNotificationThreshold: 0,
+})
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   destinationPicker: makeDestinationPicker(),
   downloads: I.Map(),
@@ -296,6 +304,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   pathUserSettings: I.Map(),
   sendAttachmentToChat: makeSendAttachmentToChat(),
   sendLinkToChat: makeSendLinkToChat(),
+  settings: makeSettings(),
   sfmi: makeSystemFileManagerIntegration(),
   softErrors: makeSoftErrors(),
   syncingFoldersProgress: makeSyncingFoldersProgress(),
@@ -358,142 +367,6 @@ export const downloadFilePathFromPath = (p: Types.Path): Promise<Types.LocalPath
   downloadFilePath(Types.getPathName(p))
 export const downloadFilePathFromPathNoSearch = (p: Types.Path): string =>
   downloadFilePathNoSearch(Types.getPathName(p))
-
-export type FavoritesListResult = {
-  users: {[string]: string},
-  devices: {[string]: Types.Device},
-  favorites: Array<Types.FavoriteFolder>,
-  new: Array<Types.FavoriteFolder>,
-  ignored: Array<Types.FavoriteFolder>,
-}
-
-// Take the parsed JSON from kbfs/favorite/list, and populate an array of
-// Types.FolderRPCWithMeta with the appropriate metadata:
-//
-// 1) Is this favorite ignored or new?
-// 2) Does it need a rekey?
-//
-const _fillMetadataInFavoritesResult = (
-  favoritesResult: FavoritesListResult,
-  myKID: any
-): Array<Types.FolderRPCWithMeta> => {
-  const mapFolderWithMeta = ({isIgnored, isNew}) => (
-    folder: Types.FavoriteFolder
-  ): Types.FolderRPCWithMeta => {
-    if (!folder.problem_set) {
-      return {
-        ...folder,
-        isIgnored,
-        isNew,
-        needsRekey: false,
-      }
-    }
-
-    const solutions = folder.problem_set.solution_kids || {}
-    const canSelfHelp = folder.problem_set.can_self_help
-    const youCanUnlock = canSelfHelp
-      ? (solutions[myKID] || []).map(kid => ({...favoritesResult.devices[kid], deviceID: kid}))
-      : []
-
-    const waitingForParticipantUnlock = !canSelfHelp
-      ? Object.keys(solutions).map(userID => {
-          const devices = solutions[userID].map(kid => favoritesResult.devices[kid].name)
-          const numDevices = devices.length
-          const last = numDevices > 1 ? devices.pop() : null
-
-          return {
-            devices: `Tell them to turn on${numDevices > 1 ? ':' : ' '} ${devices.join(', ')}${
-              last ? ` or ${last}` : ''
-            }.`,
-            name: favoritesResult.users[userID],
-          }
-        })
-      : []
-    return {
-      ...folder,
-      isIgnored,
-      isNew,
-      needsRekey: !!Object.keys(solutions).length,
-      waitingForParticipantUnlock,
-      youCanUnlock,
-    }
-  }
-
-  return [
-    ...favoritesResult.favorites.map(mapFolderWithMeta({isIgnored: false, isNew: false})),
-    ...favoritesResult.ignored.map(mapFolderWithMeta({isIgnored: true, isNew: false})),
-    ...favoritesResult.new.map(mapFolderWithMeta({isIgnored: false, isNew: true})),
-  ]
-}
-
-export const createFavoritesLoadedFromJSONResults = (
-  txt: string = '',
-  username: string,
-  loggedIn: boolean
-): ?FsGen.FavoritesLoadedPayload => {
-  const favoritesResult = ((txt: string): ?FavoritesListResult => {
-    try {
-      return JSON.parse(txt)
-    } catch (err) {
-      logger.warn('Invalid json from getFavorites: ', err)
-      return null
-    }
-  })(txt)
-
-  if (!favoritesResult) {
-    return null
-  }
-
-  // figure out who can solve the rekey
-  const myKID = findKey(favoritesResult.users, name => name === username)
-  const folders: Array<Types.FolderRPCWithMeta> = _fillMetadataInFavoritesResult(favoritesResult, myKID)
-
-  const tlfs: {
-    private: {[string]: Types.Tlf},
-    public: {[string]: Types.Tlf},
-    team: {[string]: Types.Tlf},
-  } = folders.reduce(
-    (tlfs, folder) => {
-      const {
-        name,
-        folderType,
-        isIgnored,
-        isNew,
-        needsRekey,
-        waitingForParticipantUnlock,
-        youCanUnlock,
-        team_id,
-        reset_members,
-      } = folder
-      const tlf = makeTlf({
-        isFavorite: true,
-        isIgnored,
-        isNew,
-        name: tlfToPreferredOrder(name, username),
-        needsRekey,
-        resetParticipants: I.List(reset_members || []),
-        teamId: team_id || '',
-        waitingForParticipantUnlock: I.List(waitingForParticipantUnlock || []),
-        youCanUnlock: I.List(youCanUnlock || []),
-      })
-      if (folderType === RPCTypes.favoriteFolderType.private) {
-        tlfs.private[tlf.name] = tlf
-      } else if (folderType === RPCTypes.favoriteFolderType.public) {
-        tlfs.public[tlf.name] = tlf
-      } else if (folderType === RPCTypes.favoriteFolderType.team) {
-        tlfs.team[tlf.name] = tlf
-      }
-      return tlfs
-    },
-    {private: {}, public: {}, team: {}}
-  )
-
-  return FsGen.createFavoritesLoaded({
-    private: I.Map(tlfs.private),
-    public: I.Map(tlfs.public),
-    team: I.Map(tlfs.team),
-  })
-}
 
 export const makeTlfUpdate: I.RecordFactory<Types._TlfUpdate> = I.Record({
   history: I.List(),
@@ -736,7 +609,7 @@ export const resetBannerType = (state: TypedState, path: Types.Path): Types.Rese
   if (resetParticipants.size === 0) {
     return 'none'
   }
-  if (resetParticipants.findIndex(i => i.username === state.config.username) >= 0) {
+  if (resetParticipants.findIndex(username => username === state.config.username) >= 0) {
     return 'self'
   }
   return resetParticipants.size
@@ -771,7 +644,7 @@ export const isOfflineUnsynced = (
 //   and only if this funciton returns true.
 //
 // If we add more badges, this function should be updated.
-export const tlfIsBadged = (tlf: Types.Tlf) => !tlf.isIgnored && (tlf.isNew || tlf.needsRekey)
+export const tlfIsBadged = (tlf: Types.Tlf) => !tlf.isIgnored && tlf.isNew
 
 export const pathsInSameTlf = (a: Types.Path, b: Types.Path): boolean => {
   const elemsA = Types.getPathElements(a)
@@ -961,11 +834,6 @@ export const getChatTarget = (path: Types.Path, me: string): string => {
   return 'conversation'
 }
 
-export const isEmptyFolder = (pathItems: Types.PathItems, path: Types.Path) => {
-  const _pathItem = pathItems.get(path, unknownPathItem)
-  return _pathItem.type === 'folder' && !_pathItem.children.size
-}
-
 const humanizeDownloadIntent = (intent: Types.DownloadIntent) => {
   switch (intent) {
     case 'camera-roll':
@@ -1128,6 +996,25 @@ export const getTlfPath = (path: Types.Path): ?Types.Path => {
   const elems = Types.getPathElements(path)
   return elems.length > 2 ? Types.pathConcat(Types.pathConcat(defaultPath, elems[1]), elems[2]) : null
 }
+
+export const getPathUserSetting = (
+  pathUserSettings: I.Map<Types.Path, Types.PathUserSetting>,
+  path: Types.Path
+): Types.PathUserSetting =>
+  pathUserSettings.get(
+    path,
+    Types.getPathLevel(path) < 3 ? defaultTlfListPathUserSetting : defaultPathUserSetting
+  )
+
+export const showSortSetting = (
+  path: Types.Path,
+  pathItem: Types.PathItem,
+  kbfsDaemonStatus: Types.KbfsDaemonStatus
+) =>
+  !isMobile &&
+  path !== defaultPath &&
+  (Types.getPathLevel(path) === 2 || (pathItem.type === 'folder' && !!pathItem.size)) &&
+  !isOfflineUnsynced(kbfsDaemonStatus, pathItem, path)
 
 export const getSoftError = (softErrors: Types.SoftErrors, path: Types.Path): ?Types.SoftError => {
   const pathError = softErrors.pathErrors.get(path)

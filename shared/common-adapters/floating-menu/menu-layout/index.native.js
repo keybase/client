@@ -31,12 +31,14 @@ const MenuRow = (props: MenuRowProps) => (
     {props.view || (
       <>
         <Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
+          {props.decoration && <Box style={styles.flexOne} />}
           <Text center={true} type="BodyBig" style={styleRowText(props)}>
             {props.title}
           </Text>
           {props.newTag && (
             <Meta title="New" size="Small" backgroundColor={Styles.globalColors.blue} style={styles.badge} />
           )}
+          {props.decoration && <Box style={styles.flexOne}>{props.decoration}</Box>}
         </Box2>
         {!!props.subTitle && (
           <Text center={true} type="BodyTiny">
@@ -118,6 +120,9 @@ const styles = Styles.styleSheetCreate({
   },
   flexGrow: {
     flexGrow: 1,
+  },
+  flexOne: {
+    flex: 1,
   },
   itemContainer: {
     ...Styles.globalStyles.flexBoxColumn,

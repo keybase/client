@@ -281,23 +281,16 @@ const reactComponentsForMarkdownType = {
       </Text>
     )
   },
-  serviceDecoration: (node, output, state) => {
-    const {markdownMeta} = state
-    if (!markdownMeta) {
-      throw new Error('markdownMeta unexpectedly empty')
-    }
-    const {message} = markdownMeta
-
-    return (
-      <ServiceDecoration
-        json={node.content}
-        key={state.key}
-        allowFontScaling={state.allowFontScaling}
-        message={message}
-        styles={markdownStyles}
-      />
-    )
-  },
+  serviceDecoration: (node, output, state) => (
+    <ServiceDecoration
+      json={node.content}
+      key={state.key}
+      allowFontScaling={state.allowFontScaling}
+      message={state.markdownMeta?.message ?? undefined}
+      styleOverride={state.styleOverride}
+      styles={markdownStyles}
+    />
+  ),
   strong: (node, output, state) => {
     return (
       <Text

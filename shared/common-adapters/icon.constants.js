@@ -146,6 +146,16 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-dns-48.png'),
   },
+  'icon-email-delete-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-email-delete-48.png'),
+  },
+  'icon-email-delete-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-email-delete-64.png'),
+  },
   'icon-facebook-continue': {
     extension: 'png',
     isFont: false,
@@ -965,6 +975,16 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-nav-settings-selected-40.png'),
+  },
+  'icon-number-delete-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-number-delete-48.png'),
+  },
+  'icon-number-delete-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-number-delete-64.png'),
   },
   'icon-onboarding-chat-32': {
     extension: 'png',

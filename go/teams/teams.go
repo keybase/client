@@ -744,7 +744,7 @@ func (t *Team) deleteRoot(ctx context.Context, ui keybase1.TeamsUiInterface) err
 	if role != keybase1.TeamRole_OWNER {
 		return libkb.AppStatusError{
 			Code: int(keybase1.StatusCode_SCTeamSelfNotOwner),
-			Name: "SELF_NOT_ONWER",
+			Name: "SELF_NOT_OWNER",
 			Desc: "You must be an owner to delete a team",
 		}
 	}
@@ -2120,4 +2120,28 @@ func TeamInviteTypeFromString(mctx libkb.MetaContext, inviteTypeStr string) (key
 		// Don't want to break existing clients if we see an unknown invite type.
 		return keybase1.NewTeamInviteTypeWithUnknown(inviteTypeStr), nil
 	}
+}
+
+func FreezeTeam(mctx libkb.MetaContext, teamID keybase1.TeamID) error {
+	err1 := mctx.G().GetTeamLoader().Freeze(mctx.Ctx(), teamID)
+	if err1 != nil {
+		mctx.Debug("error freezing in team cache: %v", err1)
+	}
+	err2 := mctx.G().GetFastTeamLoader().Freeze(mctx, teamID)
+	if err2 != nil {
+		mctx.Debug("error freezing in fast team cache: %v", err2)
+	}
+	return libkb.CombineErrors(err1, err2)
+}
+
+func TombstoneTeam(mctx libkb.MetaContext, teamID keybase1.TeamID) error {
+	err1 := mctx.G().GetTeamLoader().Tombstone(mctx.Ctx(), teamID)
+	if err1 != nil {
+		mctx.Debug("error tombstoning in team cache: %v", err1)
+	}
+	err2 := mctx.G().GetFastTeamLoader().Tombstone(mctx, teamID)
+	if err2 != nil {
+		mctx.Debug("error tombstoning in fast team cache: %v", err2)
+	}
+	return libkb.CombineErrors(err1, err2)
 }

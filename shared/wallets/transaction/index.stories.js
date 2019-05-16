@@ -51,6 +51,7 @@ const addConfigs = (stories, namePrefix, storyFn) => {
   ]
   const readStates = [{readState: 'read'}, {readState: 'unread'}, {readState: 'oldestUnread'}]
 
+  // NOTE: Do not add another layer of `forEach` to this; storyshots may hang
   roles.forEach(r => {
     stories.add(`${namePrefix} (${r.yourRole})`, () => {
       const components = []
@@ -74,6 +75,8 @@ const addConfigs = (stories, namePrefix, storyFn) => {
                 onSelectTransaction: Sb.action('onSelectTransaction'),
                 onShowProfile: Sb.action('onShowProfile'),
                 selectableText: false,
+                sourceAmount: '',
+                sourceAsset: '',
                 unread: false,
               })
             )

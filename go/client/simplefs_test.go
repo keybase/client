@@ -276,6 +276,16 @@ func (s SimpleFSMock) SimpleFSSetDebugLevel(_ context.Context, _ string) error {
 	return nil
 }
 
+// SimpleFSSettings implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSSettings(_ context.Context) (keybase1.FSSettings, error) {
+	return keybase1.FSSettings{}, nil
+}
+
+// SimpleFSSetNotificationThreshold implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSSetNotificationThreshold(_ context.Context, _ int64) error {
+	return nil
+}
+
 /*
  file source cases:
  1. file

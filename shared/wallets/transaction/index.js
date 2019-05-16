@@ -110,6 +110,8 @@ type DetailProps = {|
   isXLM: boolean,
   onShowProfile: string => void,
   selectableText: boolean,
+  sourceAmount: string,
+  sourceAsset: string,
   status: string,
   issuerDescription: string,
 |}
@@ -175,6 +177,16 @@ const Detail = (props: DetailProps) => {
     ''
   )
 
+  const byConverting = props.sourceAmount ? (
+    <Text type={textType}>
+      {' '}
+      by converting{' '}
+      <Text type={textTypeExtrabold}>
+        {props.sourceAmount} {props.sourceAsset}
+      </Text>
+    </Text>
+  ) : null
+
   const textStyle = props.canceled || props.status === 'error' ? styles.lineThrough : null
 
   switch (props.yourRole) {
@@ -185,6 +197,7 @@ const Detail = (props: DetailProps) => {
           <Text type={textType} style={textStyle}>
             {verbPhrase} {amount} from this account to {counterparty()}
             {approxWorth}
+            {byConverting}
             {textSentenceEnd}
           </Text>
         )
@@ -194,6 +207,7 @@ const Detail = (props: DetailProps) => {
           <Text type={textType} style={textStyle}>
             {verbPhrase} {amount} to {counterparty()}
             {approxWorth}
+            {byConverting}
             {textSentenceEnd}
           </Text>
         )
@@ -204,6 +218,7 @@ const Detail = (props: DetailProps) => {
         return (
           <Text type={textType} style={textStyle}>
             {verbPhrase} {amount} from {counterparty()} to this account{approxWorth}
+            {byConverting}
             {textSentenceEnd}
           </Text>
         )
@@ -213,6 +228,7 @@ const Detail = (props: DetailProps) => {
           <Text type={textType} style={textStyle}>
             {counterparty()} {verbPhrase} {amount}
             {approxWorth}
+            {byConverting}
             {textSentenceEnd}
           </Text>
         )
@@ -222,6 +238,7 @@ const Detail = (props: DetailProps) => {
       return (
         <Text type={textType} style={textStyle}>
           {verbPhrase} {amount} from this account to itself{approxWorth}
+          {byConverting}
           {textSentenceEnd}
         </Text>
       )
@@ -371,6 +388,8 @@ export type Props = {|
   onShowProfile: string => void,
   readState: ReadState,
   selectableText: boolean,
+  sourceAmount: string,
+  sourceAsset: string,
   status: Types.StatusSimplified,
   statusDetail: string,
   // A null timestamp means the transaction is still pending.
@@ -434,6 +453,8 @@ export const Transaction = (props: Props) => {
               isXLM={!props.amountUser}
               onShowProfile={props.onShowProfile}
               selectableText={props.selectableText}
+              sourceAmount={props.sourceAmount}
+              sourceAsset={props.sourceAsset}
               status={props.status}
               issuerDescription={props.issuerDescription}
             />

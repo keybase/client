@@ -12,6 +12,7 @@ type PopupProps = {
   attachTo: () => ?React.Component<any>,
   onHidden: () => void,
   onResolve: () => void,
+  text: string,
   visible: boolean,
 }
 
@@ -21,12 +22,11 @@ const UnknownMentionPopup = (props: PopupProps) => {
   const header = {
     title: 'header',
     view: (
-      <Kb.Box2 direction="vertical" gap="tiny" style={styles.popupContainer}>
-        <Kb.Text center={true} type="BodySemibold" style={styles.warning}>
-          Heads up!
+      <Kb.Box2 direction="vertical" gap="tiny" style={styles.popupContainer} gapStart={true}>
+        <Kb.Text type="BodySemibold">User or Team</Kb.Text>
+        <Kb.Text type="BodySmall">
+          {props.text} could be either a user or team. You can find out with a quick request to Keybase.
         </Kb.Text>
-        <Kb.Text type="BodySmall">The text in this @ mention could be either a user or team.</Kb.Text>
-        <Kb.Text type="BodySmall">Hit Lookup to resolve the text using the Keybase server.</Kb.Text>
         <Kb.Button label="Lookup" onClick={props.onResolve} />
       </Kb.Box2>
     ),
@@ -91,6 +91,7 @@ class UnknownMention extends React.Component<Props, State> {
         attachTo={this._getAttachmentRef}
         onHidden={this._onMouseLeave}
         onResolve={this.props.onResolve}
+        text={text}
         visible={this.state.showPopup}
       />
     )
@@ -122,6 +123,7 @@ const styles = Styles.styleSheetCreate({
   popupContainer: Styles.platformStyles({
     common: {
       padding: Styles.globalMargins.tiny,
+      textAlign: 'center',
     },
     isElectron: {
       width: 200,

@@ -37,6 +37,8 @@ const props = {
   recipientAccountID: stringToAccountID('GBCCH4KHE5MUXXYSFCKJ3BRN4U3MTXOXD2GBJH5V7QF6OJ6S5R23DWYF'),
   selectableText: false,
   senderAccountID: stringToAccountID('GCHRPJ4AI54NMJSJWTCA5ZMTKVSDWGDY6KNJOXLYGRHA4FU5OJVRJR3F'),
+  sourceAmount: '',
+  sourceAsset: '',
   status: 'completed',
   statusDetail: '',
   timestamp: yesterday,
@@ -175,6 +177,17 @@ const load = () => {
         publicMemo="compliance trigger warning"
         yourAccountName="First account"
         yourRole="receiverOnly"
+      />
+    ))
+    .add('Sent path payment', () => (
+      <TransactionDetails
+        {...props}
+        counterpartyMeta="Addie Stokes"
+        counterpartyType="keybaseUser"
+        amountUser="$12.50"
+        amountXLM="53.1688643 XLM"
+        sourceAmount="1.0000000"
+        sourceAsset="TOAD"
       />
     ))
 }

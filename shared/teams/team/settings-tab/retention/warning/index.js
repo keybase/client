@@ -1,17 +1,7 @@
 // @flow
 import * as React from 'react'
-import {
-  Box,
-  Button,
-  ButtonBar,
-  Checkbox,
-  HeaderOnMobile,
-  Icon,
-  PopupDialog,
-  ScrollView,
-  Text,
-} from '../../../../../common-adapters'
-import {globalMargins, globalStyles, isMobile, platformStyles} from '../../../../../styles'
+import * as Kb from '../../../../../common-adapters'
+import * as Styles from '../../../../../styles'
 import type {RetentionEntityType} from '..'
 
 type Props = {
@@ -24,14 +14,17 @@ type Props = {
   onBack: () => void,
 }
 
-const iconType = isMobile ? 'icon-message-retention-64' : 'icon-message-retention-48'
+const iconType = Styles.isMobile ? 'icon-message-retention-64' : 'icon-message-retention-48'
 const explodeIconType = 'icon-illustration-exploding-messages-240'
 
 const Wrapper = ({children, onBack}: {children: React.Node, onBack: () => void}) =>
-  isMobile ? (
-    <ScrollView style={{...globalStyles.fillAbsolute, ...globalStyles.flexBoxColumn}} children={children} />
+  Styles.isMobile ? (
+    <Kb.ScrollView
+      style={{...Styles.globalStyles.fillAbsolute, ...Styles.globalStyles.flexBoxColumn}}
+      children={children}
+    />
   ) : (
-    <PopupDialog onClose={onBack} children={children} />
+    <Kb.PopupDialog onClose={onBack} children={children} />
   )
 
 const RetentionWarning = (props: Props) => {
@@ -42,44 +35,44 @@ const RetentionWarning = (props: Props) => {
   let convType: string = getConvType(props.entityType)
   return (
     <Wrapper onBack={props.onBack}>
-      <Box style={containerStyle}>
-        <Icon type={props.exploding ? explodeIconType : iconType} style={iconStyle} />
-        <Text center={true} type="Header" style={headerStyle}>
+      <Kb.Box style={styles.container}>
+        <Kb.Icon type={props.exploding ? explodeIconType : iconType} style={styles.iconStyle} />
+        <Kb.Text center={true} type="Header" style={styles.headerStyle}>
           {props.exploding ? 'Explode' : 'Destroy'} chat messages after {props.timePeriod}?
-        </Text>
-        <Text center={true} type="Body" style={bodyStyle}>
+        </Kb.Text>
+        <Kb.Text center={true} type="Body" style={styles.bodyStyle}>
           You are about to set the messages in this {convType} to{' '}
           {props.exploding ? 'explode after ' : 'be deleted after '}
-          <Text type="BodySemibold">{props.timePeriod}.</Text>{' '}
+          <Kb.Text type="BodySemibold">{props.timePeriod}.</Kb.Text>{' '}
           {showChannelWarnings &&
             "This will affect all the team's channels, except the ones you've set manually."}
-        </Text>
-        <Checkbox
+        </Kb.Text>
+        <Kb.Checkbox
           checked={props.enabled}
           onCheck={props.setEnabled}
-          style={checkboxStyle}
+          style={styles.checkboxStyle}
           label=""
           labelComponent={
-            <Box style={confirmLabelStyle}>
-              <Text type="Body">
+            <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.flexOne}>
+              <Kb.Text type="Body">
                 I understand that messages older than {props.timePeriod} will be deleted for everyone.
-              </Text>
+              </Kb.Text>
               {showChannelWarnings && (
-                <Text type="BodySmall">Channels you've set manually will not be affected.</Text>
+                <Kb.Text type="BodySmall">Channels you've set manually will not be affected.</Kb.Text>
               )}
-            </Box>
+            </Kb.Box2>
           }
         />
-        <ButtonBar>
-          <Button type="Dim" onClick={props.onBack} label="Cancel" />
-          <Button
+        <Kb.ButtonBar>
+          <Kb.Button type="Dim" onClick={props.onBack} label="Cancel" />
+          <Kb.Button
             type="Danger"
             onClick={props.onConfirm}
-            label={isMobile ? 'Confirm' : `Yes, set to ${props.timePeriod}`}
+            label={Styles.isMobile ? 'Confirm' : `Yes, set to ${props.timePeriod}`}
             disabled={!props.enabled}
           />
-        </ButtonBar>
-      </Box>
+        </Kb.ButtonBar>
+      </Kb.Box>
     </Wrapper>
   )
 }
@@ -106,39 +99,38 @@ const getConvType = (entityType: RetentionEntityType) => {
   return convType
 }
 
-const containerStyle = platformStyles({
-  common: {
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    maxWidth: 560,
-    paddingBottom: globalMargins.large,
-  },
-  isElectron: {
-    paddingLeft: globalMargins.xlarge,
-    paddingRight: globalMargins.xlarge,
-    paddingTop: globalMargins.xlarge,
-  },
-  isMobile: {
-    paddingLeft: globalMargins.small,
-    paddingRight: globalMargins.small,
-    paddingTop: globalMargins.small,
-  },
+const styles = Styles.styleSheetCreate({
+  bodyStyle: {marginBottom: Styles.globalMargins.small},
+  checkboxStyle: Styles.platformStyles({
+    isElectron: {
+      marginBottom: Styles.globalMargins.xlarge,
+    },
+    isMobile: {
+      marginBottom: Styles.globalMargins.small,
+      width: '100%',
+    },
+  }),
+  container: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxColumn,
+      alignItems: 'center',
+      maxWidth: 560,
+      paddingBottom: Styles.globalMargins.large,
+    },
+    isElectron: {
+      paddingLeft: Styles.globalMargins.xlarge,
+      paddingRight: Styles.globalMargins.xlarge,
+      paddingTop: Styles.globalMargins.xlarge,
+    },
+    isMobile: {
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+      paddingTop: Styles.globalMargins.small,
+    },
+  }),
+  flexOne: {flex: 1},
+  headerStyle: {marginBottom: Styles.globalMargins.small},
+  iconStyle: {marginBottom: 20},
 })
 
-const iconStyle = {marginBottom: 20}
-const headerStyle = {marginBottom: globalMargins.small}
-const bodyStyle = {marginBottom: globalMargins.small}
-const checkboxStyle = platformStyles({
-  isMobile: {
-    marginLeft: globalMargins.tiny,
-    marginRight: globalMargins.tiny,
-  },
-})
-
-const confirmLabelStyle = platformStyles({
-  common: {...globalStyles.flexBoxColumn},
-  isElectron: {marginBottom: globalMargins.xlarge},
-  isMobile: {marginBottom: globalMargins.small},
-})
-
-export default HeaderOnMobile(RetentionWarning)
+export default Kb.HeaderOnMobile(RetentionWarning)

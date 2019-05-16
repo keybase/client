@@ -204,6 +204,10 @@ export type MessageTypes = {|
     inParam: $ReadOnly<{|opID: OpID, path: Path, filter: ListFilter, refreshSubscription: Boolean|}>,
     outParam: void,
   |},
+  'keybase.1.SimpleFS.simpleFSListFavorites': {|
+    inParam: void,
+    outParam: FavoritesResult,
+  |},
   'keybase.1.SimpleFS.simpleFSListRecursiveToDepth': {|
     inParam: $ReadOnly<{|opID: OpID, path: Path, filter: ListFilter, refreshSubscription: Boolean, depth: Int|}>,
     outParam: void,
@@ -227,6 +231,14 @@ export type MessageTypes = {|
   'keybase.1.SimpleFS.simpleFSSetFolderSyncConfig': {|
     inParam: $ReadOnly<{|path: Path, config: FolderSyncConfig|}>,
     outParam: void,
+  |},
+  'keybase.1.SimpleFS.simpleFSSetNotificationThreshold': {|
+    inParam: $ReadOnly<{|threshold: Int64|}>,
+    outParam: void,
+  |},
+  'keybase.1.SimpleFS.simpleFSSettings': {|
+    inParam: void,
+    outParam: FSSettings,
   |},
   'keybase.1.SimpleFS.simpleFSStat': {|
     inParam: $ReadOnly<{|path: Path, identifyBehavior?: ?TLFIdentifyBehavior, refreshSubscription: Boolean|}>,
@@ -1655,6 +1667,7 @@ export const kbfsCommonFSNotificationType = {
   fileDeleted: 9,
   fileRenamed: 10,
   initialized: 11,
+  syncConfigChanged: 12,
 }
 
 export const kbfsCommonFSStatusCode = {
@@ -2229,8 +2242,10 @@ export type FSNotificationType =
   | 9 // FILE_DELETED_9
   | 10 // FILE_RENAMED_10
   | 11 // INITIALIZED_11
+  | 12 // SYNC_CONFIG_CHANGED_12
 
 export type FSPathSyncStatus = $ReadOnly<{folderType: FolderType, path: String, syncingBytes: Int64, syncingOps: Int64, syncedBytes: Int64}>
+export type FSSettings = $ReadOnly<{spaceAvailableNotificationThreshold: Int64}>
 export type FSStatusCode =
   | 0 // START_0
   | 1 // FINISH_1
@@ -2238,7 +2253,7 @@ export type FSStatusCode =
 
 export type FSSyncStatus = $ReadOnly<{totalSyncingBytes: Int64, syncingPaths?: ?Array<String>, endEstimate?: ?Time}>
 export type FSSyncStatusRequest = $ReadOnly<{requestID: Int}>
-export type FastTeamData = $ReadOnly<{name: TeamName, chain: FastTeamSigChainState, perTeamKeySeeds /* perTeamKeySeedsUnverified */: {[key: string]: PerTeamKeySeed}, latestKeyGeneration: PerTeamKeyGeneration, readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}, latestSeqnoHint: Seqno, cachedAt: Time, loadedLatest: Boolean}>
+export type FastTeamData = $ReadOnly<{frozen: Boolean, tombstoned: Boolean, name: TeamName, chain: FastTeamSigChainState, perTeamKeySeeds /* perTeamKeySeedsUnverified */: {[key: string]: PerTeamKeySeed}, latestKeyGeneration: PerTeamKeyGeneration, readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}, latestSeqnoHint: Seqno, cachedAt: Time, loadedLatest: Boolean}>
 export type FastTeamLoadArg = $ReadOnly<{ID: TeamID, public: Boolean, assertTeamName?: ?TeamName, applications?: ?Array<TeamApplication>, keyGenerationsNeeded?: ?Array<PerTeamKeyGeneration>, needLatestKey: Boolean, forceRefresh: Boolean}>
 export type FastTeamLoadRes = $ReadOnly<{name: TeamName, applicationKeys?: ?Array<TeamApplicationKey>}>
 export type FastTeamSigChainState = $ReadOnly<{ID: TeamID, public: Boolean, rootAncestor: TeamName, nameDepth: Int, last?: ?LinkTriple, perTeamKeys: {[key: string]: PerTeamKey}, perTeamKeySeedsVerified: {[key: string]: PerTeamKeySeed}, downPointers: {[key: string]: DownPointer}, lastUpPointer?: ?UpPointer, perTeamKeyCTime: UnixTime, linkIDs: {[key: string]: LinkID}, merkleInfo: {[key: string]: MerkleRootV2}}>
@@ -3102,7 +3117,7 @@ export type TeamChangeReq = $ReadOnly<{owners?: ?Array<UserVersion>, admins?: ?A
 export type TeamChangeRow = $ReadOnly<{id: TeamID, name: String, keyRotated: Boolean, membershipChanged: Boolean, latestSeqno: Seqno, implicitTeam: Boolean, misc: Boolean, removedResetUsers: Boolean}>
 export type TeamChangeSet = $ReadOnly<{membershipChanged: Boolean, keyRotated: Boolean, renamed: Boolean, misc: Boolean}>
 export type TeamCreateResult = $ReadOnly<{teamID: TeamID, chatSent: Boolean, creatorAdded: Boolean}>
-export type TeamData = $ReadOnly<{v /* subversion */: Int, secretless: Boolean, name: TeamName, chain: TeamSigChainState, perTeamKeySeeds /* perTeamKeySeedsUnverified */: {[key: string]: PerTeamKeySeedItem}, readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}, latestSeqnoHint: Seqno, cachedAt: Time, tlfCryptKeys: {[key: string]: ?Array<CryptKey>}}>
+export type TeamData = $ReadOnly<{v /* subversion */: Int, frozen: Boolean, tombstoned: Boolean, secretless: Boolean, name: TeamName, chain: TeamSigChainState, perTeamKeySeeds /* perTeamKeySeedsUnverified */: {[key: string]: PerTeamKeySeedItem}, readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}, latestSeqnoHint: Seqno, cachedAt: Time, tlfCryptKeys: {[key: string]: ?Array<CryptKey>}}>
 export type TeamDebugRes = $ReadOnly<{chain: TeamSigChainState}>
 export type TeamDetails = $ReadOnly<{members: TeamMembersDetails, keyGeneration: PerTeamKeyGeneration, annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite}, settings: TeamSettings, showcase: TeamShowcase}>
 export type TeamEk = $ReadOnly<{seed: Bytes32, metadata: TeamEkMetadata}>
@@ -3526,6 +3541,7 @@ declare export function SimpleFSSimpleFSCheckRpcPromise(params: $PropertyType<$P
 declare export function SimpleFSSimpleFSCopyRecursiveRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCopyRecursive'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCopyRecursive'>, 'outParam'>>
 declare export function SimpleFSSimpleFSFolderSyncConfigAndStatusRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus'>, 'outParam'>>
 declare export function SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.SimpleFSGetHTTPAddressAndToken'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.SimpleFSGetHTTPAddressAndToken'>, 'outParam'>>
+declare export function SimpleFSSimpleFSListFavoritesRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSListFavorites'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSListFavorites'>, 'outParam'>>
 declare export function SimpleFSSimpleFSListRecursiveToDepthRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSListRecursiveToDepth'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSListRecursiveToDepth'>, 'outParam'>>
 declare export function SimpleFSSimpleFSListRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSList'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSList'>, 'outParam'>>
 declare export function SimpleFSSimpleFSMoveRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSMove'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSMove'>, 'outParam'>>
@@ -3533,6 +3549,8 @@ declare export function SimpleFSSimpleFSOpenRpcPromise(params: $PropertyType<$Pr
 declare export function SimpleFSSimpleFSReadListRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSReadList'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSReadList'>, 'outParam'>>
 declare export function SimpleFSSimpleFSRemoveRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSRemove'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSRemove'>, 'outParam'>>
 declare export function SimpleFSSimpleFSSetFolderSyncConfigRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSSetFolderSyncConfig'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSSetFolderSyncConfig'>, 'outParam'>>
+declare export function SimpleFSSimpleFSSetNotificationThresholdRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSSetNotificationThreshold'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSSetNotificationThreshold'>, 'outParam'>>
+declare export function SimpleFSSimpleFSSettingsRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSSettings'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSSettings'>, 'outParam'>>
 declare export function SimpleFSSimpleFSStatRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSStat'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSStat'>, 'outParam'>>
 declare export function SimpleFSSimpleFSSyncConfigAndStatusRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSSyncConfigAndStatus'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSSyncConfigAndStatus'>, 'outParam'>>
 declare export function SimpleFSSimpleFSSyncStatusRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSSyncStatus'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSSyncStatus'>, 'outParam'>>
@@ -3737,7 +3755,6 @@ declare export function userUploadUserAvatarRpcPromise(params: $PropertyType<$Pr
 // 'keybase.1.emails.editEmail'
 // 'keybase.1.emails.setPrimaryEmail'
 // 'keybase.1.emails.sendVerificationEmail'
-// 'keybase.1.emails.bulkLookupEmails'
 // 'keybase.1.emails.setVisibilityEmail'
 // 'keybase.1.emails.setVisibilityAllEmail'
 // 'keybase.1.emails.getEmails'
@@ -3934,7 +3951,6 @@ declare export function userUploadUserAvatarRpcPromise(params: $PropertyType<$Pr
 // 'keybase.1.phoneNumbers.deletePhoneNumber'
 // 'keybase.1.phoneNumbers.setVisibilityPhoneNumber'
 // 'keybase.1.phoneNumbers.setVisibilityAllPhoneNumber'
-// 'keybase.1.phoneNumbers.bulkLookupPhoneNumbers'
 // 'keybase.1.pprof.processorProfile'
 // 'keybase.1.pprof.trace'
 // 'keybase.1.prove.listProofServices'
@@ -3996,7 +4012,6 @@ declare export function userUploadUserAvatarRpcPromise(params: $PropertyType<$Pr
 // 'keybase.1.SimpleFS.simpleFSClearConflictState'
 // 'keybase.1.SimpleFS.simpleFSForceStuckConflict'
 // 'keybase.1.SimpleFS.simpleFSFolderEditHistory'
-// 'keybase.1.SimpleFS.simpleFSListFavorites'
 // 'keybase.1.SimpleFS.simpleFSGetUserQuotaUsage'
 // 'keybase.1.SimpleFS.simpleFSGetTeamQuotaUsage'
 // 'keybase.1.SimpleFS.simpleFSReset'

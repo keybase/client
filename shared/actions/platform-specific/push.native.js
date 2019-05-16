@@ -191,6 +191,7 @@ function* handlePush(_, action) {
 }
 
 const uploadPushToken = state =>
+  !!state.config.username &&
   !!state.push.token &&
   !!state.config.deviceID &&
   RPCTypes.apiserverPostRpcPromise({

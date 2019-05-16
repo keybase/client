@@ -45,7 +45,7 @@ export const teamRenameWaitingKey = 'teams:rename'
 export const makeChannelInfo: I.RecordFactory<Types._ChannelInfo> = I.Record({
   channelname: '',
   description: '',
-  participants: I.Set(),
+  memberStatus: RPCChatTypes.commonConversationMemberStatus.active,
 })
 
 export const makeMemberInfo: I.RecordFactory<Types._MemberInfo> = I.Record({

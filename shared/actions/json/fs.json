@@ -256,6 +256,13 @@
       "path": "Types.Path",
       "softError": "?Types.SoftError",
     },
+    "loadSettings": {},
+    "settingsLoaded": {
+      "settings?": "Types.Settings",
+    },
+    "setSpaceAvailableNotificationThreshold": {
+      "spaceAvailableNotificationThreshold": "number",
+    },
 
     "placeholderAction": {}
   }

@@ -228,7 +228,7 @@ func DefaultInitParams(ctx Context) InitParams {
 		DiskCacheMode:                  DiskCacheModeLocal,
 		DiskBlockCacheFraction:         0.10,
 		SyncBlockCacheFraction:         1.00,
-		Mode:                           InitDefaultString,
+		Mode: InitDefaultString,
 	}
 }
 
@@ -410,11 +410,11 @@ func makeMDServer(config Config, mdserverAddr string,
 func makeKeyServer(
 	config Config, keyserverAddr string, log logger.Logger) (
 	libkey.KeyServer, error) {
-	kConfig := keyOpsConfigWrapper{config}
+	keyOpsConfig := keyOpsConfigWrapper{config}
 	if keyserverAddr == memoryAddr {
 		log.Debug("Using in-memory keyserver")
 		// local in-memory key server
-		return libkey.NewKeyServerMemory(kConfig, log)
+		return libkey.NewKeyServerMemory(keyOpsConfig, log)
 	}
 
 	if len(keyserverAddr) == 0 {
@@ -425,7 +425,7 @@ func makeKeyServer(
 		log.Debug("Using on-disk keyserver at %s", serverRootDir)
 		// local persistent key server
 		keyPath := filepath.Join(serverRootDir, "kbfs_key")
-		return libkey.NewKeyServerDir(kConfig, log, keyPath)
+		return libkey.NewKeyServerDir(keyOpsConfig, log, keyPath)
 	}
 
 	log.Debug("Using remote keyserver %s (same as mdserver)", keyserverAddr)

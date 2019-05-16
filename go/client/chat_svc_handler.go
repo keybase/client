@@ -85,7 +85,7 @@ func (c *chatServiceHandler) exportLocalConv(ctx context.Context, conv chat1.Con
 		convSummary.Error = conv.Error.Message
 		return convSummary
 	}
-	uiconv := utils.PresentConversationLocal(conv, c.G().Env.GetUsername().String())
+	uiconv := utils.PresentConversationLocal(ctx, conv, c.G().Env.GetUsername().String())
 	return c.exportUIConv(ctx, uiconv)
 }
 
