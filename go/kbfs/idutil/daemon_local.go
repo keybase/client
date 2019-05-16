@@ -565,12 +565,13 @@ func (dl *DaemonLocal) RemoveAssertionForTest(assertion string) {
 // AddTeamWriterForTest adds a writer to a team.  Should only be used
 // by tests.
 func (dl *DaemonLocal) AddTeamWriterForTest(
-	tid keybase1.TeamID, uid keybase1.UID) (kbname.NormalizedUsername, error) {
+	tid keybase1.TeamID, uid keybase1.UID) (
+	kbname.NormalizedUsername, bool, error) {
 	dl.lock.Lock()
 	defer dl.lock.Unlock()
 	t, err := dl.localTeams.getLocalTeam(tid)
 	if err != nil {
-		return "", err
+		return "", false, err
 	}
 
 	if t.Writers == nil {
@@ -579,7 +580,8 @@ func (dl *DaemonLocal) AddTeamWriterForTest(
 	t.Writers[uid] = true
 	delete(t.Readers, uid)
 	dl.localTeams[tid] = t
-	return t.Name, nil
+	_, isImplicit := dl.localImplicitTeams[tid]
+	return t.Name, isImplicit, nil
 }
 
 // RemoveTeamWriterForTest removes a writer from a team.  Should only
