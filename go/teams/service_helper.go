@@ -1592,7 +1592,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 	ret.SetTeamShowcase = isAdmin || isImplicitAdmin
 	ret.ChangeOpenTeam = isAdmin || isImplicitAdmin
 	ret.ChangeTarsDisabled = isAdmin || isImplicitAdmin
-	ret.EditTeamDescription = isAdmin
+	ret.EditTeamDescription = isAdmin || isImplicitAdmin
 	ret.SetMemberShowcase, err = canMemberShowcase()
 	if err != nil {
 		return ret, err
