@@ -52,6 +52,7 @@ const getIcons = (iconType: BadgeType, isBadged: boolean) => {
 // Like RemoteWindow but the browserWindow is handled by the 3rd party menubar class and mostly lets it handle things
 function RemoteMenubarWindow(ComposedComponent: any) {
   class RemoteWindowComponent extends React.PureComponent<Props> {
+    subscriptionId: ?number = null
     _updateBadges = () => {
       const [icon, iconSelected] = getIcons(this.props.widgetBadge, this.props.desktopAppBadgeCount > 0)
       SafeElectron.getIpcRenderer().send('showTray', icon, iconSelected, this.props.desktopAppBadgeCount)
@@ -79,12 +80,17 @@ function RemoteMenubarWindow(ComposedComponent: any) {
       this._updateBadges()
 
       if (isDarwin && SafeElectron.getSystemPreferences().subscribeNotification) {
-        SafeElectron.getSystemPreferences().subscribeNotification(
+        this.subscriptionId = SafeElectron.getSystemPreferences().subscribeNotification(
           'AppleInterfaceThemeChangedNotification',
           () => {
             this._updateBadges()
           }
         )
+      }
+    }
+    componentDidUnmount() {
+      if (this.subscriptionId && SafeElectron.getSystemPreferences().unsubscribeNotification) {
+        SafeElectron.getSystemPreferences().unsubscribeNotification(this.subscriptionId || -1)
       }
     }
 
