@@ -1158,18 +1158,26 @@ func lsfavoritesOp(c *ctx, expected []string, t tlf.Type) error {
 		return err
 	}
 	c.tb.Log("lsfavorites", t, "=>", favorites)
-	expectedMap := make(map[string]bool)
 	for _, f := range expected {
-		if !favorites[f] {
+		if favorites[f] {
+			delete(favorites, f)
+			continue
+		}
+
+		p, err := tlf.CanonicalToPreferredName(
+			kbname.NormalizedUsername(c.username), tlf.CanonicalName(f))
+		if err != nil {
+			return err
+		}
+		if favorites[string(p)] {
+			delete(favorites, string(p))
+		} else {
 			return fmt.Errorf("Missing favorite %s", f)
 		}
-		expectedMap[f] = true
 	}
 
 	for f := range favorites {
-		if !expectedMap[f] {
-			return fmt.Errorf("Unexpected favorite %s", f)
-		}
+		return fmt.Errorf("Unexpected favorite %s", f)
 	}
 	return nil
 }
