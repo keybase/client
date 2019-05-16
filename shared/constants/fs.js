@@ -977,7 +977,22 @@ export const getMainBannerType = (
 export const isFolder = (path: Types.Path, pathItem: Types.PathItem) =>
   Types.getPathLevel(path) <= 3 || pathItem.type === 'folder'
 
-export const humanizeBytes = (n: number, d: number): string => {
+export const humanizeBytes = (n: number, p: number): string => {
+  const kb = 1024
+  const mb = kb * 1024
+  const gb = mb * 1024
+
+  if (n < kb) {
+    return `${n} bytes`
+  } else if (n < mb) {
+    return `${(n / kb).toFixed(p)} KB`
+  } else if (n < gb) {
+    return `${(n / mb).toFixed(p)} MB`
+  }
+  return `${(n / gb).toFixed(p)} GB`
+}
+
+export const humanizeBytesOfTotal = (n: number, d: number): string => {
   const kb = 1024
   const mb = kb * 1024
   const gb = mb * 1024
