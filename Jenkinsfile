@@ -16,7 +16,7 @@ def withKbweb(closure) {
     closure()
   } catch (ex) {
     logForeverServices('docker-compose', 'kbweb')
-    
+
     println "Dockers:"
     sh "docker ps -a"
     sh "docker-compose stop"
@@ -34,7 +34,7 @@ def logContainer(composefile, container) {
 }
 
 def logForeverServices(composefile, container) {
-  sh "docker cp \$(docker-compose ps -f ${composefile}.yml -q ${container}.local):/root/.forever ./forever"
+  sh "docker cp \$(docker-compose -f ${composefile}.yml ps -q ${container}.local):/root/.forever ./forever"
   sh "tar ./forever-${container}.tar.gz ./forever"
   archive("forever-${container}.log.gz")
 }
