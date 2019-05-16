@@ -13,9 +13,9 @@ const RpcClient = rpc.client.Client
 function _wrap<A1, A2, A3, A4, A5, F: (A1, A2, A3, A4, A5) => void>(options: {|
   handler: F,
   type: string,
-  method: string | Function,
+  method: string | ((...Array<any>) => string),
   reason: string,
-  extra: Object | Function,
+  extra: Object | ((...Array<any>) => Object),
   // we only want to enfoce a single callback on some wrapped things
   enforceOnlyOnce: boolean,
 |}): F {
