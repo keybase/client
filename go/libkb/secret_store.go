@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -316,6 +317,11 @@ func (s *SecretStoreLocked) SetOptions(mctx MetaContext, options *SecretStoreOpt
 // store, retrieve, and then delete a secret with an arbitrary name. This should
 // be done before provisioning or logging in
 func PrimeSecretStore(mctx MetaContext, ss SecretStoreAll) (err error) {
+	defer func() {
+		if err != nil {
+			go reportPrimeSecretStoreFailure(mctx.BackgroundWithLogTags())
+		}
+	}()
 	defer mctx.TraceTimed("PrimeSecretStore", func() error { return err })()
 
 	// Generate test username and test secret
@@ -375,6 +381,31 @@ func PrimeSecretStore(mctx MetaContext, ss SecretStoreAll) (err error) {
 
 	mctx.Debug("PrimeSecretStore: retrieved secret matched!")
 	return nil
+}
+
+func reportPrimeSecretStoreFailure(mctx MetaContext) {
+	var err error
+	defer mctx.TraceTimed("reportPrimeSecretStoreFailure", func() error { return err })()
+	osVersion, osBuild, err := OSVersionAndBuild()
+	if err != nil {
+		mctx.Debug("os info error: %v", err)
+	}
+	apiArg := APIArg{
+		Endpoint:    "pkg/report",
+		SessionType: APISessionTypeNONE,
+		Args: HTTPArgs{
+			"event":      S{Val: "prime_secret_store"},
+			"install_id": S{Val: mctx.G().Env.GetInstallID().String()},
+			"run_mode":   S{Val: string(mctx.G().GetRunMode())},
+			"kb_version": S{Val: VersionString()},
+			"os_version": S{Val: osVersion},
+			"os_build":   S{Val: osBuild},
+		},
+		RetryCount:     3,
+		InitialTimeout: 10 * time.Second,
+	}
+	var apiRes AppStatusEmbed
+	err = mctx.G().API.GetDecode(mctx, apiArg, &apiRes)
 }
 
 func notifySecretStoreCreate(g *GlobalContext, username NormalizedUsername) {
