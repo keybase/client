@@ -15,12 +15,13 @@ def withKbweb(closure) {
 
     closure()
   } catch (ex) {
+    logForeverServices('docker-compose', 'kbweb')
+    
     println "Dockers:"
     sh "docker ps -a"
     sh "docker-compose stop"
     logContainer('docker-compose', 'mysql')
     logContainer('docker-compose', 'gregor')
-    logForeverServices('docker-compose', 'kbweb')
     throw ex
   } finally {
     sh "docker-compose down"
