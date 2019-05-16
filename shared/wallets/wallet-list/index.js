@@ -125,7 +125,7 @@ class WalletList extends React.Component<Props> {
   }
 
   render() {
-    if (this.props.loading) {
+    if (this.props.loading && !this.props.accountIDs.length) {
       return (
         <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
           <Kb.ProgressIndicator style={styles.progressIndicator} />
@@ -142,6 +142,7 @@ class WalletList extends React.Component<Props> {
 
     return (
       <>
+        {this.props.loading && <Kb.ProgressIndicator style={styles.progressHeader} />}
         <Kb.BoxGrow>
           <Kb.List items={rows} renderItem={this._renderRow} keyProperty="key" style={this.props.style} />
         </Kb.BoxGrow>
@@ -170,6 +171,14 @@ const styles = Styles.styleSheetCreate({
     borderStyle: `solid`,
     borderTopWidth: 1,
     height: rowHeight,
+  },
+  progressHeader: {
+    height: 18,
+    left: 40,
+    position: 'absolute',
+    top: 9,
+    width: 18,
+    zIndex: 2,
   },
   progressIndicator: {height: 30, width: 30},
   whatIsStellar: {
