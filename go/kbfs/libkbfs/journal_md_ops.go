@@ -127,9 +127,9 @@ func (j journalMDOps) getHeadFromJournal(
 	}
 
 	if handle == nil {
-		handle, err = tlfhandle.MakeHandle(
+		handle, err = tlfhandle.MakeHandleWithTlfID(
 			ctx, headBareHandle, id.Type(), j.jManager.config.KBPKI(),
-			j.jManager.config.KBPKI(), tlfhandle.ConstIDGetter{ID: id},
+			j.jManager.config.KBPKI(), id,
 			j.jManager.config.OfflineAvailabilityForID(id))
 		if err != nil {
 			return ImmutableRootMetadata{}, err
@@ -137,9 +137,9 @@ func (j journalMDOps) getHeadFromJournal(
 		handle.SetTlfID(id)
 	} else {
 		// Check for mutual handle resolution.
-		headHandle, err := tlfhandle.MakeHandle(
+		headHandle, err := tlfhandle.MakeHandleWithTlfID(
 			ctx, headBareHandle, id.Type(), j.jManager.config.KBPKI(),
-			j.jManager.config.KBPKI(), tlfhandle.ConstIDGetter{ID: id},
+			j.jManager.config.KBPKI(), id,
 			j.jManager.config.OfflineAvailabilityForID(id))
 		if err != nil {
 			return ImmutableRootMetadata{}, err
@@ -202,9 +202,9 @@ func (j journalMDOps) getRangeFromJournal(
 	if err != nil {
 		return nil, err
 	}
-	handle, err := tlfhandle.MakeHandle(
+	handle, err := tlfhandle.MakeHandleWithTlfID(
 		ctx, bareHandle, id.Type(), j.jManager.config.KBPKI(),
-		j.jManager.config.KBPKI(), tlfhandle.ConstIDGetter{ID: id},
+		j.jManager.config.KBPKI(), id,
 		j.jManager.config.OfflineAvailabilityForID(id))
 	if err != nil {
 		return nil, err

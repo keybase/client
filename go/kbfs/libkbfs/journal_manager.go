@@ -357,10 +357,9 @@ func (j *JournalManager) getHandleForJournal(
 		return nil, err
 	}
 
-	return tlfhandle.MakeHandle(
+	return tlfhandle.MakeHandleWithTlfID(
 		ctx, headBareHandle, tlfID.Type(), j.config.KBPKI(),
-		j.config.KBPKI(), tlfhandle.ConstIDGetter{ID: tlfID},
-		j.config.OfflineAvailabilityForID(tlfID))
+		j.config.KBPKI(), tlfID, j.config.OfflineAvailabilityForID(tlfID))
 }
 
 func (j *JournalManager) makeFBOForJournal(

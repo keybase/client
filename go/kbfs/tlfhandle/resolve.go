@@ -376,6 +376,29 @@ func MakeHandle(
 	return h, nil
 }
 
+// MakeHandleWithTlfID is like `MakeHandle`, but it ensures the
+// handle's TLF ID is always set to `tlfID`, even if it corresponds to
+// an implicit team for which the iteam settings don't yet contain a
+// TLF ID (due to a cross-device race or certain testing scenarios).
+func MakeHandleWithTlfID(
+	ctx context.Context, bareHandle tlf.Handle, t tlf.Type,
+	resolver idutil.Resolver, nug idutil.NormalizedUsernameGetter,
+	tlfID tlf.ID, offline keybase1.OfflineAvailability) (
+	*Handle, error) {
+	handle, err := MakeHandle(
+		ctx, bareHandle, t, resolver, nug, ConstIDGetter{ID: tlfID}, offline)
+	if err != nil {
+		return nil, err
+	}
+	if handle.TlfID() == tlf.NullID {
+		// In cases (mostly in testing) where the iteam settings don't
+		// yet contain the TLF ID, the idGetter will never even get
+		// called, so we need to set it manually here.
+		handle.SetTlfID(tlfID)
+	}
+	return handle, nil
+}
+
 type resolvableNameUIDPair nameIDPair
 
 func (rp resolvableNameUIDPair) resolve(ctx context.Context) (
