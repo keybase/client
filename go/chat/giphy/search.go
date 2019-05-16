@@ -35,7 +35,7 @@ func formatResponse(mctx libkb.MetaContext, response giphyResponse, srv types.At
 			if typ != "fixed_height" {
 				continue
 			}
-			if len(img.MP4) == 0 {
+			if len(img.URL) == 0 {
 				continue
 			}
 			height, err := strconv.Atoi(img.Height)
@@ -48,10 +48,10 @@ func formatResponse(mctx libkb.MetaContext, response giphyResponse, srv types.At
 			}
 			res = append(res, chat1.GiphySearchResult{
 				TargetUrl:      obj.URL,
-				PreviewUrl:     srv.GetGiphyURL(mctx.Ctx(), img.MP4),
+				PreviewUrl:     srv.GetGiphyURL(mctx.Ctx(), img.URL),
 				PreviewHeight:  height,
 				PreviewWidth:   width,
-				PreviewIsVideo: true,
+				PreviewIsVideo: false,
 			})
 		}
 	}

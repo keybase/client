@@ -2,7 +2,8 @@
 import * as React from 'react'
 import * as Kb from '../../../../../../common-adapters/index'
 import * as Styles from '../../../../../../styles'
-import {NativeWebView} from '../../../../../../common-adapters/native-wrappers.native'
+import logger from '../../../../../../logger'
+import RNVideo from 'react-native-video'
 import type {Props} from './video.types'
 
 type State = {
@@ -10,7 +11,6 @@ type State = {
 }
 
 export class Video extends React.Component<Props, State> {
-  _webviewRef = React.createRef()
   state = {playingVideo: this.props.autoPlay}
 
   _onClick = () => {
@@ -18,33 +18,27 @@ export class Video extends React.Component<Props, State> {
       this.props.onClick()
       return
     }
-    if (!(this._webviewRef && this._webviewRef.current)) {
-      return
-    }
-    const arg = this.state.playingVideo ? 'pause' : 'play'
-    const runJS = this._webviewRef.current.injectJavaScript
-    runJS(`togglePlay("${arg}")`)
     this.setState({playingVideo: !this.state.playingVideo})
   }
 
   render() {
     const source = {
-      uri: `${this.props.url}&autoplay=${this.props.autoPlay ? 'true' : 'false'}`,
+      uri: `${this.props.url}&autoplay=${this.props.autoPlay ? 'true' : 'false'}&contentforce=true`,
     }
     return (
       <Kb.ClickableBox
         onClick={this._onClick}
         style={Styles.collapseStyles([this.props.style, styles.container])}
       >
-        <NativeWebView
-          ref={this._webviewRef}
-          allowsInlineMediaPlayback={true}
-          useWebKit={true}
+        <RNVideo
           source={source}
-          style={Styles.collapseStyles([styles.webview, this.props.style])}
-          scrollEnabled={false}
-          automaticallyAdjustContentInsets={false}
-          mediaPlaybackRequiresUserAction={false}
+          onError={e => {
+            logger.error(`Error loading vid: ${JSON.stringify(e)}`)
+          }}
+          resizeMode="cover"
+          style={Styles.collapseStyles([styles.player, this.props.style])}
+          repeat={true}
+          paused={!this.state.playingVideo}
         />
         <Kb.Box
           style={Styles.collapseStyles([
@@ -85,7 +79,7 @@ const styles = Styles.styleSheetCreate({
     right: '50%',
     top: '50%',
   },
-  webview: {
+  player: {
     position: 'relative',
   },
 })
