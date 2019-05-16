@@ -4,6 +4,40 @@ import groovy.json.JsonSlurperClassic
 
 helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-helpers.git', 'master', null, 'linux')
 
+def withKbweb(closure) {
+  try {
+    retry(5) {
+      sh "docker-compose up -d mysql.local"
+    }
+    // Give MySQL a few seconds to start up.
+    sleep(10)
+    sh "docker-compose up -d kbweb.local"
+
+    closure()
+  } catch (ex) {
+    println "Dockers:"
+    sh "docker ps -a"
+    sh "docker-compose stop"
+    logContainer('docker-compose', 'mysql')
+    logContainer('docker-compose', 'gregor')
+    logForeverServices('docker-compose', 'kbweb')
+    throw ex
+  } finally {
+    sh "docker-compose down"
+  }
+}
+
+def logContainer(composefile, container) {
+  sh "docker-compose -f ${composefile}.yml logs ${container}.local | gzip > ${container}.log.gz"
+  archive("${container}.log.gz")
+}
+
+def logForeverServices(composefile, container) {
+  sh "docker cp $(docker-compose ps -f ${composefile}.yml -q ${container}.local):/root/.forever ./forever"
+  sh "tar ./forever-${container}.tar.gz ./forever"
+  archive("forever-${container}.log.gz")
+}
+
 helpers.rootLinuxNode(env, {
   helpers.slackOnError("client", env, currentBuild)
 }, {}) {
@@ -99,7 +133,7 @@ helpers.rootLinuxNode(env, {
     }
 
     stage("Test") {
-      helpers.withKbweb() {
+      withKbweb() {
         parallel (
           test_linux_deps: {
             if (hasGoChanges) {
