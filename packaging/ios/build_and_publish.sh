@@ -78,13 +78,11 @@ if [ ! "$cache_npm" = "1" ]; then
   yarn global add react-native-cli
 fi
 
-if [ ! "$cache_pods" = "1" ]; then
-  echo "Running pod install"
+echo "Running pod install"
 
-  cd "$shared_dir/react-native/ios"
-  pod install
-  cd "$shared_dir"
-fi
+cd "$shared_dir/react-native/ios"
+pod install
+cd "$shared_dir"
 
 
 if [ ! "$cache_go_lib" = "1" ]; then
