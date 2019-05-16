@@ -33,7 +33,7 @@ def logContainer(composefile, container) {
 }
 
 def logForeverServices(composefile, container) {
-  sh "docker cp $(docker-compose ps -f ${composefile}.yml -q ${container}.local):/root/.forever ./forever"
+  sh "docker cp \$(docker-compose ps -f ${composefile}.yml -q ${container}.local):/root/.forever ./forever"
   sh "tar ./forever-${container}.tar.gz ./forever"
   archive("forever-${container}.log.gz")
 }
