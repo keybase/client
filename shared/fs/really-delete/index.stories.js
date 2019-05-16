@@ -5,8 +5,6 @@ import React from 'react'
 import ReallyDelete from '.'
 
 const reallyDeleteProps = {
-  _deleting: false,
-  _onFinishDelete: () => {},
   onBack: Sb.action('onBack'),
   onDelete: Sb.action('onDelete'),
   path: Types.stringToPath('/keybase/private/alice/my_folder'),
