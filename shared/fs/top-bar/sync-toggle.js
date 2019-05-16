@@ -64,7 +64,7 @@ const SyncToggle = (props: Props) =>
   !!props.syncConfig && (
     <>
       <Kb.Switch
-        align={Styles.isMobile ? 'right' : 'left'}
+        align="right"
         onClick={props.syncConfig.mode === 'enabled' ? props.toggleShowingMenu : props.enableSync}
         on={props.syncConfig.mode === 'enabled'}
         color="green"

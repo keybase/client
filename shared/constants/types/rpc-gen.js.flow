@@ -204,6 +204,10 @@ export type MessageTypes = {|
     inParam: $ReadOnly<{|opID: OpID, path: Path, filter: ListFilter, refreshSubscription: Boolean|}>,
     outParam: void,
   |},
+  'keybase.1.SimpleFS.simpleFSListFavorites': {|
+    inParam: void,
+    outParam: FavoritesResult,
+  |},
   'keybase.1.SimpleFS.simpleFSListRecursiveToDepth': {|
     inParam: $ReadOnly<{|opID: OpID, path: Path, filter: ListFilter, refreshSubscription: Boolean, depth: Int|}>,
     outParam: void,
@@ -3533,6 +3537,7 @@ declare export function SimpleFSSimpleFSCheckRpcPromise(params: $PropertyType<$P
 declare export function SimpleFSSimpleFSCopyRecursiveRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCopyRecursive'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCopyRecursive'>, 'outParam'>>
 declare export function SimpleFSSimpleFSFolderSyncConfigAndStatusRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus'>, 'outParam'>>
 declare export function SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.SimpleFSGetHTTPAddressAndToken'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.SimpleFSGetHTTPAddressAndToken'>, 'outParam'>>
+declare export function SimpleFSSimpleFSListFavoritesRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSListFavorites'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSListFavorites'>, 'outParam'>>
 declare export function SimpleFSSimpleFSListRecursiveToDepthRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSListRecursiveToDepth'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSListRecursiveToDepth'>, 'outParam'>>
 declare export function SimpleFSSimpleFSListRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSList'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSList'>, 'outParam'>>
 declare export function SimpleFSSimpleFSMoveRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSMove'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSMove'>, 'outParam'>>
@@ -4001,7 +4006,6 @@ declare export function userUploadUserAvatarRpcPromise(params: $PropertyType<$Pr
 // 'keybase.1.SimpleFS.simpleFSClearConflictState'
 // 'keybase.1.SimpleFS.simpleFSForceStuckConflict'
 // 'keybase.1.SimpleFS.simpleFSFolderEditHistory'
-// 'keybase.1.SimpleFS.simpleFSListFavorites'
 // 'keybase.1.SimpleFS.simpleFSGetUserQuotaUsage'
 // 'keybase.1.SimpleFS.simpleFSGetTeamQuotaUsage'
 // 'keybase.1.SimpleFS.simpleFSReset'

@@ -317,16 +317,24 @@ func (f *Favorites) sendChangesToEditHistory(oldCache map[favorites.Folder]favor
 
 func favoriteToFolder(fav favorites.Folder, data favorites.Data) keybase1.Folder {
 	return keybase1.Folder{
-		Name:       fav.Name,
-		Private:    data.Private,
-		Created:    false,
-		FolderType: data.FolderType,
-		TeamID:     data.TeamID,
+		Name:         fav.Name,
+		Private:      data.Private,
+		Created:      false,
+		FolderType:   data.FolderType,
+		TeamID:       data.TeamID,
+		ResetMembers: data.ResetMembers,
+		Mtime:        data.TlfMtime,
 	}
 }
 
 func (f *Favorites) handleReq(req *favReq) (err error) {
-	defer func() { f.closeReq(req, err) }()
+	changed := false
+	defer func() {
+		f.closeReq(req, err)
+		if changed {
+			f.config.KeybaseService().NotifyFavoritesChanged(req.ctx)
+		}
+	}()
 
 	if req.refresh {
 		<-f.refreshWaiting
@@ -342,7 +350,45 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 	// quickly when offline.
 	needFetch := (req.refresh || f.favCache == nil) && !req.clear
 	wantFetch := f.config.Clock().Now().After(f.cacheExpireTime) && !req.clear
-	changed := false
+
+	for _, fav := range req.toAdd {
+		// This check for adds is critical and we should definitely leave it
+		// in. We've had issues in the past with spamming the API server with
+		// adding the same favorite multiple times. We don't have the same
+		// problem with deletes, because after the user deletes it, they aren't
+		// accessing the folder again. But with adds, we could be going through
+		// this code on basically every folder access. Favorite deletes from
+		// another device result in a notification to this device, so a race
+		// condition where we miss an "add" can't happen.
+		_, present := f.favCache[fav.Folder]
+		if !fav.Created && present {
+			continue
+		}
+		err := kbpki.FavoriteAdd(req.ctx, fav.ToKBFolder())
+		if err != nil {
+			f.log.CDebugf(req.ctx,
+				"Failure adding favorite %v: %v", fav, err)
+			return err
+		}
+		needFetch = true
+		changed = true
+	}
+
+	for _, fav := range req.toDel {
+		// Since our cache isn't necessarily up-to-date, always delete
+		// the favorite.
+		folder := fav.ToKBFolder(false)
+		err := kbpki.FavoriteDelete(req.ctx, folder)
+		if err != nil {
+			return err
+		}
+		f.config.UserHistory().ClearTLF(tlf.CanonicalName(fav.Name), fav.Type)
+		changed = true
+		// Simply delete here instead of triggering another list as an
+		// optimization because there's nothing additional we need from core.
+		delete(f.favCache, fav)
+	}
+
 	if needFetch || wantFetch {
 		getCtx := req.ctx
 		if !needFetch {
@@ -422,7 +468,7 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 					Type: tlf.Public,
 				}] = favorites.Data{
 					Name:       string(session.Name),
-					FolderType: tlf.Private.FolderType(),
+					FolderType: tlf.Public.FolderType(),
 					TeamID:     &f.homeTLFInfo.PublicTeamID,
 					Private:    false,
 				}
@@ -438,41 +484,8 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 		}
 	} else if req.clear {
 		f.favCache = nil
-		f.config.KeybaseService().NotifyFavoritesChanged(req.ctx)
+		changed = true
 		return nil
-	}
-
-	for _, fav := range req.toAdd {
-		_, present := f.favCache[fav.Folder]
-		if !fav.Created && present {
-			f.favCache[fav.Folder] = fav.Data
-			continue
-		}
-		err := kbpki.FavoriteAdd(req.ctx, fav.ToKBFolder())
-		if err != nil {
-			f.log.CDebugf(req.ctx,
-				"Failure adding favorite %v: %v", fav, err)
-			return err
-		}
-		f.favCache[fav.Folder] = fav.Data
-		changed = true
-	}
-
-	for _, fav := range req.toDel {
-		// Since our cache isn't necessarily up-to-date, always delete
-		// the favorite.
-		folder := fav.ToKBFolder(false)
-		err := kbpki.FavoriteDelete(req.ctx, folder)
-		if err != nil {
-			return err
-		}
-		delete(f.favCache, fav)
-		f.config.UserHistory().ClearTLF(tlf.CanonicalName(fav.Name), fav.Type)
-		changed = true
-	}
-
-	if changed {
-		f.config.KeybaseService().NotifyFavoritesChanged(req.ctx)
 	}
 
 	if req.favs != nil {
