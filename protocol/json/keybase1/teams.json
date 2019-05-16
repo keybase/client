@@ -2416,6 +2416,10 @@
         {
           "type": "boolean",
           "name": "deleteOtherMessages"
+        },
+        {
+          "type": "boolean",
+          "name": "deleteTeam"
         }
       ]
     },
