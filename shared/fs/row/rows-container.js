@@ -127,7 +127,7 @@ const getTlfRowsFromTlfs = memoize(
   (tlfs: I.Map<string, Types.Tlf>, tlfType: Types.TlfType): I.List<SortableRowItem> =>
     I.List().withMutations(list =>
       tlfs.reduce(
-        (rows, {isIgnored, isNew}, name) =>
+        (rows, {isIgnored, isNew, tlfMtime}, name) =>
           isIgnored
             ? rows
             : rows.push({
@@ -135,6 +135,7 @@ const getTlfRowsFromTlfs = memoize(
                 key: `tlf:${name}`,
                 name,
                 rowType: 'tlf',
+                tlfMtime,
                 tlfType,
                 type: 'folder',
               }),
@@ -180,7 +181,7 @@ const mapStateToProps = (state, {path}) => ({
   _edits: state.fs.edits,
   _filter: state.fs.folderViewFilter,
   _pathItems: state.fs.pathItems,
-  _sortSetting: state.fs.pathUserSettings.get(path, Constants.defaultPathUserSetting).sort,
+  _sortSetting: Constants.getPathUserSetting(state.fs.pathUserSettings, path).sort,
   _tlfs: state.fs.tlfs,
   _uploads: state.fs.uploads,
   _username: state.config.username,

@@ -21,7 +21,7 @@ const getOrder = (sortSetting: Types.SortSetting) =>
   sortSetting === 'name-asc' || sortSetting === 'time-asc' ? 'asc' : 'desc'
 
 const getLastModifiedTimeStamp = (a: SortableRowItem) =>
-  a.rowType === 'still' ? a.lastModifiedTimestamp : Date.now()
+  a.rowType === 'still' ? a.lastModifiedTimestamp : a.rowType === 'tlf' ? a.tlfMtime : Date.now()
 
 // This handles comparisons that aren't affected by asc/desc setting.
 const getCommonComparer = memoize(
