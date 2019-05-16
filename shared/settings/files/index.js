@@ -28,11 +28,11 @@ const EnableSystemFileManagerIntegration = (props: Props) => (
 )
 
 const SyncNotificationSetting = (props: Props) => (
-  <Kb.Box2 direction="horizontal">
+  <Kb.Box2 direction="horizontal" alignItems="center">
     <Kb.Text type="Body">Warn me if I only have less than </Kb.Text>
     <Kb.Dropdown
       items={[100 * 1024 ** 2, 1024 ** 3, 10 * 1024 ** 3].map(i => (
-        <Kb.Text type="Body" key={i}>{Constants.humanizeBytes(i, 0)}</Kb.Text>
+        <Kb.Text type="Body" key={i} >{Constants.humanizeBytes(i, 0)}</Kb.Text>
       ))}
       onChanged={() => undefined}
       selected={(
@@ -41,6 +41,7 @@ const SyncNotificationSetting = (props: Props) => (
         </Kb.Box2>
       )}
       style={styles.syncNotificationSettingDropdown}
+      selectedBoxStyle={styles.syncNotificationDropdownItem}
     />
     <Kb.Text type="Body">of storage space</Kb.Text>
   </Kb.Box2>
@@ -58,7 +59,7 @@ export default (props: Props) => (
       <SystemFileManagerIntegrationBanner alwaysShow={true} />
       {(Platform.isDarwin || Platform.isWindows) && (
         <>
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.mainContent}>
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.finderIntegrationContent}>
             <Kb.Box>
               <Kb.Box2 direction="horizontal" gap="tiny" style={styles.contentHeader}>
                 <Kb.Text type="BodySmallSemibold">{Platform.fileUIName} integration</Kb.Text>
@@ -83,7 +84,7 @@ export default (props: Props) => (
           <Kb.Divider style={styles.divider} />
         </>
       )}
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.mainContent}>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.syncContent}>
         <Kb.Box>
           <Kb.Box2 direction="horizontal" gap="tiny" style={styles.contentHeader}>
             <Kb.Text type="BodySmallSemibold">Sync</Kb.Text>
@@ -93,6 +94,7 @@ export default (props: Props) => (
             labelComponent={<SyncNotificationSetting {...props} />}
             checked={props.driverStatus.type === 'enabled'}
             disabled={isPending(props)}
+            style={styles.syncNotificationCheckbox}
           />
         </Kb.Box>
       </Kb.Box2>
@@ -113,7 +115,7 @@ const styles = Styles.styleSheetCreate({
   divider: {
     marginTop: Styles.globalMargins.medium,
   },
-  mainContent: {
+  finderIntegrationContent: {
     paddingLeft: Styles.globalMargins.xsmall,
     paddingTop: Styles.globalMargins.medium,
   },
@@ -121,7 +123,19 @@ const styles = Styles.styleSheetCreate({
     height: 16,
     width: 16,
   },
+  syncContent: {
+    paddingLeft: Styles.globalMargins.xsmall,
+    paddingTop: Styles.globalMargins.medium,
+  },
+  syncNotificationCheckbox: {
+    alignItems: 'center',
+  },
+  syncNotificationDropdownItem: {
+    width: 2 * Styles.globalMargins.xlarge,
+  },
   syncNotificationSettingDropdown: {
-    width: Styles.globalMargins.medium,
+    marginLeft: Styles.globalMargins.tiny,
+    marginRight: Styles.globalMargins.tiny,
+    width: 2 * Styles.globalMargins.xlarge,
   },
 })
