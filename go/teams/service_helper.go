@@ -1583,7 +1583,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		return ret, err
 	}
 
-	// team sttings
+	// team settings
 	ret.ListFirst = isImplicitAdmin
 	ret.JoinTeam = isNone && isImplicitAdmin
 	ret.SetPublicityAny = isAdmin || isImplicitAdmin
@@ -1597,21 +1597,23 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 	if err != nil {
 		return ret, err
 	}
+	if team.chain().IsSubteam() {
+		ret.DeleteTeam = isImplicitAdmin
+	} else {
+		ret.DeleteTeam = isOwner
+	}
 
 	// only check hasOtherOwner if we have to.
-	if isNone {
+	if teamRole != keybase1.TeamRole_NONE {
 		leaveTeam := true
-		deleteTeam := false
 		if isOwner {
 			hasOtherOwner, err := getHasOtherOwner()
 			if err != nil {
 				return ret, err
 			}
-			deleteTeam = hasOtherOwner
 			leaveTeam = hasOtherOwner
 		}
 		ret.LeaveTeam = leaveTeam
-		ret.DeleteTeam = deleteTeam
 	}
 
 	// chat settings
