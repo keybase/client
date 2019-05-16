@@ -30,7 +30,7 @@ export const todoTypes: {[key: Types.TodoType]: Types.TodoType} = {
 
 export const todoTypeToInstructions: {[key: Types.TodoType]: string} = {
   avatarTeam: 'NEW! Change your team’s avatar from within the Keybase app.',
-  avatarUser: 'NEW! Change your photo from within the Keybase app.',
+  avatarUser: 'NEW! Change your avatar from within the Keybase app.',
   bio: 'Add your name, bio, and location to complete your profile.',
   chat: 'Start a chat! All conversations on Keybase are end-to-end encrypted.',
   device: `Install Keybase on your ${
@@ -82,7 +82,7 @@ export const todoTypeToIcon: {[key: Types.TodoType]: IconType} = {
   avatarUser: 'icon-onboarding-user-avatar-48',
   bio: 'icon-onboarding-user-info-48',
   chat: 'icon-onboarding-chat-48',
-  device: 'icon-onboarding-computer-48',
+  device: isMobile ? 'icon-onboarding-computer-48' : 'icon-onboarding-phone-48',
   folder: 'icon-onboarding-folder-48',
   follow: 'icon-onboarding-follow-48',
   gitRepo: 'icon-onboarding-git-48',
