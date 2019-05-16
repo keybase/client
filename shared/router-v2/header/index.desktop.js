@@ -15,8 +15,8 @@ type Props = any
 const initialUseNativeFrame = new AppState().state.useNativeFrame ?? Platform.defaultUseNativeFrame
 
 const PlainTitle = ({title}) => (
-  <Kb.Box2 direction="horizontal" style={{flexGrow: 1, marginLeft: Styles.globalMargins.xsmall}}>
-    <Kb.Text style={{flexGrow: 1}} type="Header">
+  <Kb.Box2 direction="horizontal" style={styles.plainContainer}>
+    <Kb.Text style={styles.plainText} type="Header">
       {title}
     </Kb.Text>
   </Kb.Box2>
@@ -230,6 +230,13 @@ const styles = Styles.styleSheetCreate({
       padding: Styles.globalMargins.xtiny,
     },
   }),
+  plainContainer: {
+    ...Styles.globalStyles.flexGrow,
+    marginLeft: Styles.globalMargins.xsmall,
+  },
+  plainText: {
+    ...Styles.globalStyles.flexGrow,
+  },
 })
 
 export default Header
