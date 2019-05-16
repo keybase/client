@@ -15,7 +15,6 @@ import pinentry from './pinentry'
 import profile from './profile'
 import tracker2 from './tracker2'
 import push from './push'
-import routeTree from './route-tree'
 import settings from './settings'
 import signup from './signup'
 import teams from './teams'
@@ -44,7 +43,6 @@ const reducers = {
   profile,
   provision,
   push,
-  routeTree,
   settings,
   signup,
   teams,

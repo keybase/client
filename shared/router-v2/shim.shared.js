@@ -32,7 +32,7 @@ const shimAsRouteTree = (Original: any) => {
           routeSelected={null}
           routePath={this._routePath}
           routeLeafTags={this._routeLeafTags}
-          routeStack={this._routeLeafTags}
+          routeStack={this._routeStack}
           setRouteState={this._setRouteState}
           navigateUp={this._navigateUp}
           navigateAppend={this._navigateAppend}
@@ -56,9 +56,7 @@ export const shim = (routes: any, platformWrapper: any) => {
 
         let Component = routes[route].getScreen()
         // Wrap as an old style route tree component, TODO get rid of these eventually
-        if (!routes[route].upgraded) {
-          Component = shimAsRouteTree(Component)
-        }
+        Component = routes[route].upgraded ? Component : shimAsRouteTree(Component)
 
         _cached = platformWrapper(Component)
         return _cached

@@ -96,11 +96,13 @@
       "writeFile": "boolean"
     },
     "setDeletedSelf": {"deletedUsername": "string"},
-    "swapRouter": {"useNewRouter": "boolean"},
     "persistRoute": {"path": "Array<any>"},
     "setNavigator": {"navigator": "any"},
     "loggedOut": {},
-    "loggedIn": {"causedByStartup": "boolean"},
+    "loggedIn": {
+      "_description": "Used internally to know we were logged in. if you want to react to being logged in likely you want bootstrapStatusLoaded",
+      "causedByStartup": "boolean"
+    },
     "updateMenubarWindowID": {"id": "number"},
     "copyToClipboard": {"text": "string"},
     "checkForUpdate": {},

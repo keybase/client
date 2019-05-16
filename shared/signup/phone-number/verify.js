@@ -127,7 +127,7 @@ const styles = Styles.styleSheetCreate({
   }),
   input: Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.darkBlue2,
+      backgroundColor: Styles.globalColors.blueDark,
       borderRadius: Styles.borderRadius,
       color: Styles.globalColors.white,
       letterSpacing: 20,

@@ -35,7 +35,7 @@ export const backgroundModeToTextColor = (backgroundMode: Background): $Values<t
     case 'Normal':
       return globalColors.black
     case 'Terminal':
-      return globalColors.blue3
+      return globalColors.blueLighter
     default:
       return globalColors.white
   }
@@ -49,6 +49,7 @@ export const util = ({flexCommon}: {flexCommon?: ?Object}) => ({
   flexBoxRow: {...flexCommon, flexDirection: 'row'},
   flexBoxRowReverse: {...flexCommon, flexDirection: 'row-reverse'},
   flexGrow: {flexGrow: 1},
+  flexOne: {flex: 1},
   fullHeight: {height: '100%'},
   rounded: {borderRadius: 3},
 })

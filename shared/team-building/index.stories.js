@@ -38,6 +38,7 @@ const load = () => {
       <TeamBuilding
         searchString="chris"
         selectedService="keybase"
+        waitingForCreate={false}
         onChangeService={Sb.action('onChangeService')}
         onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
         onChangeText={Sb.action('onChangeText')}
@@ -128,6 +129,7 @@ const load = () => {
       <TeamBuilding
         searchString=""
         selectedService="keybase"
+        waitingForCreate={false}
         onChangeService={Sb.action('onChangeService')}
         onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
         onChangeText={Sb.action('onChangeText')}
@@ -218,6 +220,7 @@ const load = () => {
       <TeamBuilding
         searchString=""
         selectedService="keybase"
+        waitingForCreate={false}
         onChangeService={Sb.action('onChangeService')}
         onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
         onChangeText={Sb.action('onChangeText')}
@@ -245,6 +248,7 @@ const load = () => {
       <TeamBuilding
         searchString="chris"
         selectedService="keybase"
+        waitingForCreate={false}
         onChangeService={Sb.action('onChangeService')}
         onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
         onChangeText={Sb.action('onChangeText')}
@@ -316,6 +320,7 @@ const load = () => {
       <TeamBuilding
         searchString="chris"
         selectedService="keybase"
+        waitingForCreate={false}
         onChangeService={Sb.action('onChangeService')}
         onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
         onChangeText={Sb.action('onChangeText')}
@@ -387,6 +392,7 @@ const load = () => {
       <TeamBuilding
         searchString="chris"
         selectedService="keybase"
+        waitingForCreate={false}
         onChangeService={Sb.action('onChangeService')}
         onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
         onChangeText={Sb.action('onChangeText')}

@@ -58,6 +58,7 @@ const sharedSettingsProps = {
   onSetupInflation: Sb.action('onSetupInflation'),
   refresh: () => {},
   saveCurrencyWaiting: false,
+  thisDeviceIsLockedOut: false,
   user: 'testuser',
 }
 
@@ -87,6 +88,7 @@ const load = () => {
     ))
     .add('Secondary', () => <Settings {...secondarySettingsProps} />)
     .add('MobileOnlyEditable', () => <Settings {...secondarySettingsProps} mobileOnlyEditable={true} />)
+    .add('Device is locked out', () => <Settings {...secondarySettingsProps} thisDeviceIsLockedOut={true} />)
   popups()
 }
 

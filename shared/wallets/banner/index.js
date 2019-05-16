@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {Box2, Text} from '../../common-adapters'
 import type {Background} from '../../common-adapters/text'
-import {backgroundModeToColor, backgroundModeToTextColor, collapseStyles, globalMargins, styleSheetCreate} from '../../styles'
+import * as Styles from '../../styles'
 
 type Props = {
   background: Background,
@@ -17,13 +17,21 @@ const Banner = (props: Props) => (
     direction="vertical"
     fullWidth={true}
     centerChildren={true}
-    style={collapseStyles([styles.container, {backgroundColor: backgroundModeToColor[props.background]}])}
+    style={Styles.collapseStyles([
+      styles.container,
+      {backgroundColor: Styles.backgroundModeToColor[props.background]},
+    ])}
   >
-    <Text center={true} type="BodySmallSemibold" negative={true} style={{
-      color: backgroundModeToTextColor(props.background),
-    }}>
+    <Text
+      center={true}
+      type="BodySmallSemibold"
+      negative={true}
+      style={{
+        color: Styles.backgroundModeToTextColor(props.background),
+      }}
+    >
       {props.text}
-      {props.reviewProofs && (
+      {props.reviewProofs && props.onAction && (
         <Text
           type="BodySmallSemiboldPrimaryLink"
           center={true}
@@ -35,7 +43,7 @@ const Banner = (props: Props) => (
         </Text>
       )}
     </Text>
-    {props.sendFailed && (
+    {props.sendFailed && props.onAction && (
       <Text
         type="BodySmallSemiboldPrimaryLink"
         center={true}
@@ -49,14 +57,14 @@ const Banner = (props: Props) => (
   </Box2>
 )
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   container: {
     minHeight: 40,
-    padding: globalMargins.small,
-    paddingBottom: globalMargins.tiny,
-    paddingTop: globalMargins.tiny,
+    padding: Styles.globalMargins.small,
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.tiny,
   },
-  secondText: {paddingLeft: globalMargins.xtiny},
+  secondText: {paddingLeft: Styles.globalMargins.xtiny},
 })
 
 export default Banner

@@ -36,7 +36,7 @@ class ComplexTeamNotice extends React.PureComponent<Props> {
       <UserNotice
         style={{marginTop: globalMargins.small}}
         teamname={team || ''}
-        bgColor={globalColors.blue4}
+        bgColor={globalColors.blueLighter2}
         onClickAvatar={() => onViewTeam(team)}
       >
         <Text
@@ -60,11 +60,6 @@ class ComplexTeamNotice extends React.PureComponent<Props> {
               </Text>
               <Text type="BodySmallSemibold">
                 Your team channels will now appear in the "Big teams" section of the inbox.
-              </Text>
-            </Box>
-            <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.tiny}}>
-              <Text type="BodySmallSemibold" style={{marginRight: globalMargins.tiny}}>
-                {bullet}
               </Text>
             </Box>
             <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.tiny}}>

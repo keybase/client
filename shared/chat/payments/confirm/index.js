@@ -217,7 +217,7 @@ const styles = Styles.styleSheetCreate({
   }),
   paymentContainer: Styles.platformStyles({
     common: {
-      borderColor: Styles.globalColors.lightGrey,
+      borderColor: Styles.globalColors.greyLight,
       borderStyle: 'solid',
       borderWidth: 1,
       justifyContent: 'space-between',
@@ -256,7 +256,7 @@ const styles = Styles.styleSheetCreate({
   totalContainer: Styles.platformStyles({
     common: {
       alignItems: 'center',
-      backgroundColor: Styles.globalColors.purple,
+      backgroundColor: Styles.globalColors.purpleDark,
       paddingBottom: Styles.globalMargins.tiny,
     },
     isElectron: {

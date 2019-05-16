@@ -369,16 +369,19 @@ func (o PaymentSummary) DeepCopy() PaymentSummary {
 }
 
 type PaymentSummaryStellar struct {
-	TxID            TransactionID `codec:"txID" json:"txID"`
-	From            AccountID     `codec:"from" json:"from"`
-	To              AccountID     `codec:"to" json:"to"`
-	Amount          string        `codec:"amount" json:"amount"`
-	Asset           Asset         `codec:"asset" json:"asset"`
-	Ctime           TimeMs        `codec:"ctime" json:"ctime"`
-	CursorToken     string        `codec:"cursorToken" json:"cursorToken"`
-	Unread          bool          `codec:"unread" json:"unread"`
-	IsInflation     bool          `codec:"isInflation" json:"isInflation"`
-	InflationSource *string       `codec:"inflationSource,omitempty" json:"inflationSource,omitempty"`
+	TxID               TransactionID `codec:"txID" json:"txID"`
+	From               AccountID     `codec:"from" json:"from"`
+	To                 AccountID     `codec:"to" json:"to"`
+	Amount             string        `codec:"amount" json:"amount"`
+	Asset              Asset         `codec:"asset" json:"asset"`
+	Ctime              TimeMs        `codec:"ctime" json:"ctime"`
+	CursorToken        string        `codec:"cursorToken" json:"cursorToken"`
+	Unread             bool          `codec:"unread" json:"unread"`
+	IsInflation        bool          `codec:"isInflation" json:"isInflation"`
+	InflationSource    *string       `codec:"inflationSource,omitempty" json:"inflationSource,omitempty"`
+	SourceAmountMax    string        `codec:"sourceAmountMax" json:"sourceAmountMax"`
+	SourceAmountActual string        `codec:"sourceAmountActual" json:"sourceAmountActual"`
+	SourceAsset        Asset         `codec:"sourceAsset" json:"sourceAsset"`
 }
 
 func (o PaymentSummaryStellar) DeepCopy() PaymentSummaryStellar {
@@ -399,6 +402,9 @@ func (o PaymentSummaryStellar) DeepCopy() PaymentSummaryStellar {
 			tmp := (*x)
 			return &tmp
 		})(o.InflationSource),
+		SourceAmountMax:    o.SourceAmountMax,
+		SourceAmountActual: o.SourceAmountActual,
+		SourceAsset:        o.SourceAsset.DeepCopy(),
 	}
 }
 

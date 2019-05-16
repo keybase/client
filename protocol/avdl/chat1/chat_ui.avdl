@@ -19,6 +19,7 @@ protocol chatUi {
   record UnverifiedInboxUIItemMetadata {
     string channelName;
     string headline;
+    string headlineDecorated;
     string snippet;
     string snippetDecoration; // One of: "", "💣" (bomb), "💥" (exploded)
     array<string> writerNames;
@@ -69,6 +70,7 @@ protocol chatUi {
     string snippetDecoration; // One of: "", "💣" (bomb), "💥" (exploded)
     string channel;
     string headline;
+    string headlineDecorated;
     keybase1.TLFVisibility visibility;
     array<string> participants;
     map<string, string> fullNames;
@@ -243,7 +245,9 @@ protocol chatUi {
     PAYMENT_0,
     ATMENTION_1,
     CHANNELNAMEMENTION_2,
-    MAYBEMENTION_3
+    MAYBEMENTION_3,
+    LINK_4,
+    MAILTO_5
   }
 
   enum UIMaybeMentionStatus {
@@ -251,6 +255,11 @@ protocol chatUi {
     USER_1,
     TEAM_2,
     NOTHING_3
+  }
+
+  record UILinkDecoration {
+    string display;
+    string url;
   }
 
   variant UIMaybeMentionInfo switch (UIMaybeMentionStatus status) {
@@ -265,6 +274,8 @@ protocol chatUi {
     case ATMENTION: string;
     case CHANNELNAMEMENTION: UIChannelNameMention;
     case MAYBEMENTION: MaybeMention;
+    case LINK: UILinkDecoration;
+    case MAILTO: UILinkDecoration;
   }
 
   void chatAttachmentDownloadStart(int sessionID);

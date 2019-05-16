@@ -69,7 +69,7 @@ class Avatars extends React.Component<AvatarProps> {
     const opacity = isLocked ? 0.4 : 1
     const avatarProps = participants.slice(0, 2).map((username, idx) => ({
       borderColor: rowBorderColor(idx, idx === avatarCount - 1, backgroundColor),
-      loadingColor: globalColors.lightGrey,
+      loadingColor: globalColors.greyLight,
       size: 32,
       skipBackground: isMobile,
       skipBackgroundAfterLoaded: isMobile,

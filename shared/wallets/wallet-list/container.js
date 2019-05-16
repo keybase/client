@@ -2,7 +2,6 @@
 import {WalletList, type Props} from '.'
 import * as Constants from '../../constants/wallets'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as RouteTree from '../../route-tree'
 import * as Styles from '../../styles'
 import openURL from '../../util/open-url'
 import {connect} from '../../util/container'
@@ -11,10 +10,9 @@ import {anyWaiting} from '../../constants/waiting'
 type OwnProps = {style: Styles.StylesCrossPlatform}
 
 const mapStateToProps = state => {
-  const path = RouteTree.getPath(state.routeTree.routeState).last()
   return {
     accounts: Constants.getAccountIDs(state),
-    airdropSelected: path === 'airdrop' || path === 'airdropQualify',
+    airdropSelected: false, // TODO path === 'airdrop' || path === 'airdropQualify',
     inAirdrop: state.wallets.airdropState === 'accepted',
     loading: anyWaiting(state, Constants.loadAccountsWaitingKey),
   }

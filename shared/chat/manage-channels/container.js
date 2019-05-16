@@ -1,6 +1,7 @@
 // @flow
 import {isEqual} from 'lodash-es'
 import * as ChatTypes from '../../constants/types/chat2'
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import {type ChannelMembershipState} from '../../constants/types/teams'
@@ -9,7 +10,6 @@ import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {anyWaiting} from '../../constants/waiting'
 import {getChannelsWaitingKey, getCanPerform, getTeamChannelInfos, hasCanPerform} from '../../constants/teams'
-import flags from '../../util/feature-flags'
 
 type OwnProps = Container.RouteProps<{teamname: string}, {}>
 
@@ -18,7 +18,6 @@ const mapStateToProps = (state, ownProps) => {
   const waitingKey = getChannelsWaitingKey(teamname)
   const waitingForGet = anyWaiting(state, waitingKey)
   const channelInfos = getTeamChannelInfos(state, teamname)
-  const you = state.config.username
   const yourOperations = getCanPerform(state, teamname)
   // We can get here without loading team operations
   // if we manage channels on mobile without loading the conversation first
@@ -33,7 +32,7 @@ const mapStateToProps = (state, ownProps) => {
       convID,
       description: info.description,
       name: info.channelname,
-      selected: you && info.participants.has(you),
+      selected: info.memberStatus === RPCChatTypes.commonConversationMemberStatus.active,
     }))
     .valueSeq()
     .toArray()
@@ -43,7 +42,6 @@ const mapStateToProps = (state, ownProps) => {
 
   return {
     _hasOperations,
-    _you: you,
     canCreateChannels,
     canEditChannels,
     channels,
@@ -62,7 +60,6 @@ const mapDispatchToProps = (dispatch, ownProps) => {
     _onView: (
       oldChannelState: ChannelMembershipState,
       nextChannelState: ChannelMembershipState,
-      you: string,
       channelname: string
     ) => {
       dispatch(
@@ -70,7 +67,6 @@ const mapDispatchToProps = (dispatch, ownProps) => {
           newChannelState: nextChannelState,
           oldChannelState,
           teamname,
-          you,
         })
       )
       dispatch(RouteTreeGen.createNavigateUp())
@@ -79,7 +75,6 @@ const mapDispatchToProps = (dispatch, ownProps) => {
     _saveSubscriptions: (
       oldChannelState: ChannelMembershipState,
       nextChannelState: ChannelMembershipState,
-      you: string,
       selectedChatID: ChatTypes.ConversationIDKey
     ) => {
       dispatch(
@@ -87,12 +82,11 @@ const mapDispatchToProps = (dispatch, ownProps) => {
           newChannelState: nextChannelState,
           oldChannelState,
           teamname,
-          you,
         })
       )
       if (selectedChatID in nextChannelState && !nextChannelState[selectedChatID]) {
         dispatch(
-          flags.useNewRouter && Container.isMobile
+          Container.isMobile
             ? RouteTreeGen.createNavigateUp()
             : Chat2Gen.createNavigateToInbox({avoidConversationID: selectedChatID, findNewConversation: true})
         )
@@ -105,7 +99,7 @@ const mapDispatchToProps = (dispatch, ownProps) => {
     onCreate: () =>
       dispatch(
         RouteTreeGen.createNavigateTo({
-          parentPath: flags.useNewRouter ? [] : ownProps.routePath.butLast(),
+          parentPath: [],
           path: [{props: {teamname}, selected: 'chatCreateChannel'}],
         })
       ),
@@ -140,15 +134,10 @@ export default Container.compose(
   ),
   Container.withHandlers({
     onClickChannel: props => (channelname: string) => {
-      props._onView(props.oldChannelState, props.nextChannelState, props._you, channelname)
+      props._onView(props.oldChannelState, props.nextChannelState, channelname)
     },
     onSaveSubscriptions: props => () =>
-      props._saveSubscriptions(
-        props.oldChannelState,
-        props.nextChannelState,
-        props._you,
-        props.selectedChatID
-      ),
+      props._saveSubscriptions(props.oldChannelState, props.nextChannelState, props.selectedChatID),
     onToggle: props => (convID: ChatTypes.ConversationIDKey) =>
       props.setNextChannelState({
         ...props.nextChannelState,

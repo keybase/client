@@ -6,6 +6,7 @@ import * as Constants from '../constants/router2'
 import * as Tabs from '../constants/tabs'
 import {modalRoutes, routes, tabRoots} from './routes'
 import logger from '../logger'
+import {getActiveKey} from './util'
 
 const getNumModals = navigation => {
   const path = Constants._getModalStackForNavigator(navigation.state)
@@ -71,6 +72,15 @@ export const oldActionToNewActions = (action: any, navigation: any, allowAppendD
         }
       }
 
+      if (action.payload.fromKey) {
+        const {fromKey} = action.payload
+        const activeKey = getActiveKey(navigation.state)
+        if (fromKey !== activeKey) {
+          logger.warn('Skipping append on wrong screen')
+          return
+        }
+      }
+
       if (action.payload.replace) {
         return [StackActions.replace({params, routeName})]
       }
@@ -82,7 +92,7 @@ export const oldActionToNewActions = (action: any, navigation: any, allowAppendD
     }
     case RouteTreeGen.switchRouteDef: {
       // used to tell if its the login one or app one. this will all change when we deprecate the old routing
-      const routeName = action.payload.routeDef.defaultSelected === 'tabs.loginTab' ? 'loggedOut' : 'loggedIn'
+      const routeName = action.payload.loggedIn ? 'loggedIn' : 'loggedOut'
 
       // You're logged out
       if (routeName === 'loggedOut') {
@@ -115,7 +125,7 @@ export const oldActionToNewActions = (action: any, navigation: any, allowAppendD
       return numModals ? [StackActions.pop({n: numModals})] : []
     }
     case RouteTreeGen.navigateUp:
-      return [NavigationActions.back()]
+      return [NavigationActions.back({key: action.payload.fromKey})]
     case RouteTreeGen.navUpToScreen: {
       const fullPath = Constants._getFullRouteForNavigator(navigation.state)
       const popActions = []

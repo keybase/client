@@ -2,17 +2,16 @@
 import * as I from 'immutable'
 import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {ChannelHeader, UsernameHeader} from '.'
-import {branch, compose, renderComponent, connect} from '../../../../util/container'
+import * as Container from '../../../../util/container'
 import {createShowUserProfile} from '../../../../actions/profile-gen'
 
-type OwnProps = {|
+type OwnProps = Container.PropsWithSafeNavigation<{|
   conversationIDKey: Types.ConversationIDKey,
   infoPanelOpen: boolean,
   onToggleInfoPanel: () => void,
-|}
+|}>
 
 const mapStateToProps = (state, {infoPanelOpen, conversationIDKey}) => {
   const meta = Constants.getMeta(state, conversationIDKey)
@@ -25,15 +24,19 @@ const mapStateToProps = (state, {infoPanelOpen, conversationIDKey}) => {
     channelName: meta.channelname,
     infoPanelOpen,
     muted: meta.isMuted,
+    pendingWaiting: conversationIDKey === Constants.pendingWaitingConversationIDKey,
     smallTeam: meta.teamType !== 'big',
     teamName: meta.teamname,
   }
 }
 
-const mapDispatchToProps = (dispatch, {onToggleInfoPanel, onToggleThreadSearch, conversationIDKey}) => ({
+const mapDispatchToProps = (
+  dispatch,
+  {navigateUp, onToggleInfoPanel, onToggleThreadSearch, conversationIDKey}
+) => ({
   _onOpenFolder: () => dispatch(Chat2Gen.createOpenFolder({conversationIDKey})),
   _onUnMuteConversation: () => dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: false})),
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onBack: () => dispatch(navigateUp()),
   onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
   onToggleInfoPanel,
   onToggleThreadSearch: () => dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
@@ -55,16 +58,18 @@ const mergeProps = (stateProps, dispatchProps) => ({
   onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
   onToggleThreadSearch: dispatchProps.onToggleThreadSearch,
   participants: stateProps._participants.toArray(),
+  pendingWaiting: stateProps.pendingWaiting,
   smallTeam: stateProps.smallTeam,
   teamName: stateProps.teamName,
   unMuteConversation: dispatchProps._onUnMuteConversation,
 })
 
-export default compose(
-  connect<OwnProps, _, _, _, _>(
+export default Container.compose(
+  Container.withSafeNavigation,
+  Container.connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps
   ),
-  branch(props => !!props.teamName, renderComponent(ChannelHeader))
+  Container.branch(props => !!props.teamName, Container.renderComponent(ChannelHeader))
 )(UsernameHeader)

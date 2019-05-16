@@ -136,6 +136,10 @@ func (d *notificationDisplay) FSOverallSyncStatusChanged(_ context.Context,
 	return d.printf("KBFS overall sync status: %+v\n", status)
 }
 
+func (d *notificationDisplay) FSFavoritesChanged(_ context.Context) error {
+	return d.printf("KBFS favorites changed\n")
+}
+
 func (d *notificationDisplay) FSActivity(_ context.Context, notification keybase1.FSNotification) error {
 	return d.printf("KBFS notification: %+v\n", notification)
 }

@@ -425,6 +425,10 @@
       "fields": [
         {
           "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
           "name": "configPath"
         },
         {
@@ -464,6 +468,12 @@
           "name": "git"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "LogSendID",
+      "fields": [],
+      "typedef": "string"
     },
     {
       "type": "record",
@@ -778,6 +788,27 @@
         null,
         "FullStatus"
       ]
+    },
+    "logSend": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "statusJSON",
+          "type": "string"
+        },
+        {
+          "name": "feedback",
+          "type": "string"
+        },
+        {
+          "name": "sendLogs",
+          "type": "boolean"
+        }
+      ],
+      "response": "LogSendID"
     },
     "getAllProvisionedUsernames": {
       "request": [

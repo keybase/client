@@ -14,7 +14,6 @@ import KbfsDaemonNotRunning from './common/kbfs-daemon-not-running'
 import LoadPathMetadataWhenNeeded from './common/load-path-metadata-when-needed'
 import Oops from './oops'
 import {Actions, MainBanner, MobileHeader, mobileHeaderHeight, Title} from './nav-header'
-import flags from '../util/feature-flags'
 
 const mapStateToProps = (state, ownProps) => {
   const path = getRouteProps(ownProps, 'path') || Constants.defaultPath
@@ -25,26 +24,15 @@ const mapStateToProps = (state, ownProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {routePath}) => ({
-  _emitBarePreview: flags.useNewRouter
-    ? (path: Types.Path) => {
-        dispatch(RouteTreeGen.createNavigateUp())
-        dispatch(
-          RouteTreeGen.createNavigateAppend({
-            path: [{props: {path}, selected: 'barePreview'}],
-          })
-        )
-      }
-    : (path: Types.Path) =>
-        dispatch(
-          RouteTreeGen.createPutActionIfOnPath({
-            expectedPath: routePath,
-            otherAction: RouteTreeGen.createNavigateTo({
-              parentPath: routePath.skipLast(1),
-              path: [{props: {path}, selected: 'barePreview'}],
-            }),
-          })
-        ),
+const mapDispatchToProps = dispatch => ({
+  _emitBarePreview: (path: Types.Path) => {
+    dispatch(RouteTreeGen.createNavigateUp())
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {path}, selected: 'barePreview'}],
+      })
+    )
+  },
   waitForKbfsDaemon: () => dispatch(FsGen.createWaitForKbfsDaemon()),
 })
 
@@ -58,7 +46,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       !isDefinitelyFolder && stateProps._pathItem.type === 'file' ? stateProps._pathItem.mimeType : null,
     path,
     pathType: isDefinitelyFolder ? 'folder' : stateProps._pathItem.type,
-    routePath: ownProps.routePath,
+    routePath: I.List(), // not a valid value anymore TODO fix
     softError: Constants.getSoftError(stateProps._softErrors, path),
     waitForKbfsDaemon: dispatchProps.waitForKbfsDaemon,
   }

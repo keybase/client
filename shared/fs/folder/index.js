@@ -5,13 +5,11 @@ import * as Types from '../../constants/types/fs'
 import * as Kb from '../../common-adapters'
 import * as Kbfs from '../common'
 import * as Styles from '../../styles'
-import FolderHeader from '../header/container'
 import Footer from '../footer/footer'
 import {isMobile} from '../../constants/platform'
 import Rows from '../row/rows-container'
 import {asRows as sfmiBannerAsRows} from '../banner/system-file-manager-integration-banner/container'
 import {asRows as resetBannerAsRows} from '../banner/reset-banner/container'
-import flags from '../../util/feature-flags'
 import OfflineFolder from './offline'
 
 type Props = {|
@@ -58,7 +56,6 @@ const SelfReset = (props: Props) => (
 const Folder = (props: Props) => (
   <Kb.BoxGrow>
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-      {!flags.useNewRouter && <FolderHeader path={props.path} routePath={props.routePath} />}
       <Kbfs.Errs />
       {props.resetBannerType === 'self' ? (
         <SelfReset {...props} />

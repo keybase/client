@@ -91,7 +91,7 @@ const props = {
         horizontal={true}
         title={fruitName}
         containerStyle={{
-          backgroundColor: selected ? Styles.globalColors.blue4 : Styles.globalColors.white,
+          backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white,
           padding: 10,
         }}
       />
@@ -101,7 +101,7 @@ const props = {
         username={username}
         horizontal={true}
         containerStyle={{
-          backgroundColor: selected ? Styles.globalColors.blue4 : Styles.globalColors.white,
+          backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white,
           padding: 10,
         }}
       />

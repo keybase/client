@@ -55,7 +55,6 @@ export type _State = {
   startupTab: ?Tab,
   startupSharePath: ?LocalPath,
   uid: string,
-  useNewRouter: boolean,
   userActive: boolean,
   username: string,
 }

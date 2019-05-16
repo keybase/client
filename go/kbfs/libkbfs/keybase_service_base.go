@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -576,6 +577,11 @@ func (k *KeybaseServiceBase) ResolveIdentifyImplicitTeam(
 	res, err := k.identifyClient.ResolveIdentifyImplicitTeam(ctx, arg)
 	if err != nil {
 		return idutil.ImplicitTeamInfo{}, ConvertIdentifyError(assertions, err)
+	}
+	if strings.Contains(res.DisplayName, "_implicit_team_") {
+		k.log.CWarningf(
+			ctx, "Got display name %s for assertions %s",
+			res.DisplayName, assertions)
 	}
 	name := kbname.NormalizedUsername(res.DisplayName)
 
@@ -1223,6 +1229,12 @@ func (k *KeybaseServiceBase) NotifySyncStatus(ctx context.Context,
 func (k *KeybaseServiceBase) NotifyOverallSyncStatus(
 	ctx context.Context, status keybase1.FolderSyncStatus) error {
 	return k.kbfsClient.FSOverallSyncEvent(ctx, status)
+}
+
+// NotifyFavoritesChanged implements the KeybaseService interface for
+// KeybaseServiceBase.
+func (k *KeybaseServiceBase) NotifyFavoritesChanged(ctx context.Context) error {
+	return k.kbfsClient.FSFavoritesChangedEvent(ctx)
 }
 
 // FlushUserFromLocalCache implements the KeybaseService interface for

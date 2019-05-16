@@ -32,7 +32,7 @@ class SwitchToggle extends React.PureComponent<Props, {||}> {
           {
             backgroundColor: this._offset.interpolate({
               inputRange: [disabledOffset, enabledOffset],
-              outputRange: [Styles.globalColors.grey, Styles.globalColors[this.props.color]],
+              outputRange: [Styles.globalColors.greyDark, Styles.globalColors[this.props.color]],
             }),
           },
           this.props.style,

@@ -145,6 +145,10 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
       hintText = this.props.showWalletsIcon ? 'Exploding' : 'Exploding message'
     } else if (this.props.isEditing) {
       hintText = 'Edit your message'
+    } else if (this.props.cannotWrite) {
+      hintText = `You must be at least ${'aeiou'.includes(this.props.minWriterRole[0]) ? 'an' : 'a'} ${
+        this.props.minWriterRole
+      } to post`
     }
 
     return (
@@ -179,6 +183,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
           <Kb.PlainInput
             autoCorrect={true}
             autoCapitalize="sentences"
+            disabled={this.props.cannotWrite ?? false}
             placeholder={hintText}
             multiline={true}
             onBlur={this.props.onBlur}
@@ -193,17 +198,19 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
             rowsMax={3}
             rowsMin={1}
           />
-          <Action
-            hasText={this.state.hasText}
-            onSubmit={this._onSubmit}
-            isEditing={this.props.isEditing}
-            openExplodingPicker={() => this._toggleShowingMenu('exploding')}
-            openFilePicker={this._openFilePicker}
-            insertMentionMarker={this._insertMentionMarker}
-            isExploding={this.props.isExploding}
-            showWalletsIcon={this.props.showWalletsIcon}
-            explodingModeSeconds={this.props.explodingModeSeconds}
-          />
+          {!this.props.cannotWrite && (
+            <Action
+              hasText={this.state.hasText}
+              onSubmit={this._onSubmit}
+              isEditing={this.props.isEditing}
+              openExplodingPicker={() => this._toggleShowingMenu('exploding')}
+              openFilePicker={this._openFilePicker}
+              insertMentionMarker={this._insertMentionMarker}
+              isExploding={this.props.isExploding}
+              showWalletsIcon={this.props.showWalletsIcon}
+              explodingModeSeconds={this.props.explodingModeSeconds}
+            />
+          )}
         </Kb.Box>
       </Kb.Box>
     )
@@ -319,7 +326,7 @@ const styles = Styles.styleSheetCreate({
   editingTabStyle: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'flex-start',
-    backgroundColor: Styles.globalColors.yellow3,
+    backgroundColor: Styles.globalColors.yellowLight,
     flexShrink: 0,
     height: '100%',
     minWidth: 32,

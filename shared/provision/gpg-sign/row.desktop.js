@@ -15,7 +15,7 @@ type Props = {
 
 const realCSS = `
   .register-row { background-color: ${globalColors.white}; }
-  .register-row:hover { background-color: ${globalColors.blue4}; }
+  .register-row:hover { background-color: ${globalColors.blueLighter2}; }
 
   .register-row .register-background {  }
   .register-row:hover .register-background { opacity: 0 }
@@ -82,7 +82,7 @@ const stylesIcon = {
 }
 const stylesIconBackground = {
   ...transition('opacity'),
-  backgroundColor: globalColors.lightGrey,
+  backgroundColor: globalColors.greyLight,
   borderRadius: 40,
   left: 0,
   maxHeight: 80,

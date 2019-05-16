@@ -60,6 +60,10 @@ export type MessageTypes = {|
     inParam: $ReadOnly<{|edits: FSFolderEditHistory, requestID: Int|}>,
     outParam: void,
   |},
+  'keybase.1.NotifyFS.FSFavoritesChanged': {|
+    inParam: void,
+    outParam: void,
+  |},
   'keybase.1.NotifyFS.FSOnlineStatusChanged': {|
     inParam: $ReadOnly<{|online: Boolean|}>,
     outParam: void,
@@ -223,6 +227,14 @@ export type MessageTypes = {|
   'keybase.1.SimpleFS.simpleFSSetFolderSyncConfig': {|
     inParam: $ReadOnly<{|path: Path, config: FolderSyncConfig|}>,
     outParam: void,
+  |},
+  'keybase.1.SimpleFS.simpleFSSetNotificationThreshold': {|
+    inParam: $ReadOnly<{|threshold: Int64|}>,
+    outParam: void,
+  |},
+  'keybase.1.SimpleFS.simpleFSSettings': {|
+    inParam: void,
+    outParam: FSSettings,
   |},
   'keybase.1.SimpleFS.simpleFSStat': {|
     inParam: $ReadOnly<{|path: Path, identifyBehavior?: ?TLFIdentifyBehavior, refreshSubscription: Boolean|}>,
@@ -1647,6 +1659,7 @@ export const kbfsCommonFSNotificationType = {
   fileDeleted: 9,
   fileRenamed: 10,
   initialized: 11,
+  syncConfigChanged: 12,
 }
 
 export const kbfsCommonFSStatusCode = {
@@ -2221,8 +2234,10 @@ export type FSNotificationType =
   | 9 // FILE_DELETED_9
   | 10 // FILE_RENAMED_10
   | 11 // INITIALIZED_11
+  | 12 // SYNC_CONFIG_CHANGED_12
 
 export type FSPathSyncStatus = $ReadOnly<{folderType: FolderType, path: String, syncingBytes: Int64, syncingOps: Int64, syncedBytes: Int64}>
+export type FSSettings = $ReadOnly<{spaceAvailableNotificationThreshold: Int64}>
 export type FSStatusCode =
   | 0 // START_0
   | 1 // FINISH_1
@@ -2230,7 +2245,7 @@ export type FSStatusCode =
 
 export type FSSyncStatus = $ReadOnly<{totalSyncingBytes: Int64, syncingPaths?: ?Array<String>, endEstimate?: ?Time}>
 export type FSSyncStatusRequest = $ReadOnly<{requestID: Int}>
-export type FastTeamData = $ReadOnly<{name: TeamName, chain: FastTeamSigChainState, perTeamKeySeeds /* perTeamKeySeedsUnverified */: {[key: string]: PerTeamKeySeed}, latestKeyGeneration: PerTeamKeyGeneration, readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}, latestSeqnoHint: Seqno, cachedAt: Time, loadedLatest: Boolean}>
+export type FastTeamData = $ReadOnly<{frozen: Boolean, tombstoned: Boolean, name: TeamName, chain: FastTeamSigChainState, perTeamKeySeeds /* perTeamKeySeedsUnverified */: {[key: string]: PerTeamKeySeed}, latestKeyGeneration: PerTeamKeyGeneration, readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}, latestSeqnoHint: Seqno, cachedAt: Time, loadedLatest: Boolean}>
 export type FastTeamLoadArg = $ReadOnly<{ID: TeamID, public: Boolean, assertTeamName?: ?TeamName, applications?: ?Array<TeamApplication>, keyGenerationsNeeded?: ?Array<PerTeamKeyGeneration>, needLatestKey: Boolean, forceRefresh: Boolean}>
 export type FastTeamLoadRes = $ReadOnly<{name: TeamName, applicationKeys?: ?Array<TeamApplicationKey>}>
 export type FastTeamSigChainState = $ReadOnly<{ID: TeamID, public: Boolean, rootAncestor: TeamName, nameDepth: Int, last?: ?LinkTriple, perTeamKeys: {[key: string]: PerTeamKey}, perTeamKeySeedsVerified: {[key: string]: PerTeamKeySeed}, downPointers: {[key: string]: DownPointer}, lastUpPointer?: ?UpPointer, perTeamKeyCTime: UnixTime, linkIDs: {[key: string]: LinkID}, merkleInfo: {[key: string]: MerkleRootV2}}>
@@ -2281,7 +2296,7 @@ export type FullNamePackageVersion =
   | 1 // V1_1
   | 2 // V2_2
 
-export type FullStatus = $ReadOnly<{configPath: String, curStatus: CurrentStatus, extStatus: ExtendedStatus, client: KbClientStatus, service: KbServiceStatus, kbfs: KBFSStatus, desktop: DesktopStatus, updater: UpdaterStatus, start: StartStatus, git: GitStatus}>
+export type FullStatus = $ReadOnly<{username: String, configPath: String, curStatus: CurrentStatus, extStatus: ExtendedStatus, client: KbClientStatus, service: KbServiceStatus, kbfs: KBFSStatus, desktop: DesktopStatus, updater: UpdaterStatus, start: StartStatus, git: GitStatus}>
 export type FuseMountInfo = $ReadOnly<{path: String, fstype: String, output: String}>
 export type FuseStatus = $ReadOnly<{version: String, bundleVersion: String, kextID: String, path: String, kextStarted: Boolean, installStatus: InstallStatus, installAction: InstallAction, mountInfos?: ?Array<FuseMountInfo>, status: Status}>
 export type GPGKey = $ReadOnly<{algorithm: String, keyID: String, creation: String, expiration: String, identities?: ?Array<PGPIdentity>}>
@@ -2486,6 +2501,7 @@ export type LogLevel =
   | 6 // CRITICAL_6
   | 7 // FATAL_7
 
+export type LogSendID = String
 export type LookupImplicitTeamRes = $ReadOnly<{teamID: TeamID, name: TeamName, displayName: ImplicitTeamDisplayName, tlfID: TLFID}>
 export type MDBlock = $ReadOnly<{version: Int, timestamp: Time, block: Bytes}>
 export type MDPriority = Int
@@ -3093,7 +3109,7 @@ export type TeamChangeReq = $ReadOnly<{owners?: ?Array<UserVersion>, admins?: ?A
 export type TeamChangeRow = $ReadOnly<{id: TeamID, name: String, keyRotated: Boolean, membershipChanged: Boolean, latestSeqno: Seqno, implicitTeam: Boolean, misc: Boolean, removedResetUsers: Boolean}>
 export type TeamChangeSet = $ReadOnly<{membershipChanged: Boolean, keyRotated: Boolean, renamed: Boolean, misc: Boolean}>
 export type TeamCreateResult = $ReadOnly<{teamID: TeamID, chatSent: Boolean, creatorAdded: Boolean}>
-export type TeamData = $ReadOnly<{v /* subversion */: Int, secretless: Boolean, name: TeamName, chain: TeamSigChainState, perTeamKeySeeds /* perTeamKeySeedsUnverified */: {[key: string]: PerTeamKeySeedItem}, readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}, latestSeqnoHint: Seqno, cachedAt: Time, tlfCryptKeys: {[key: string]: ?Array<CryptKey>}}>
+export type TeamData = $ReadOnly<{v /* subversion */: Int, frozen: Boolean, tombstoned: Boolean, secretless: Boolean, name: TeamName, chain: TeamSigChainState, perTeamKeySeeds /* perTeamKeySeedsUnverified */: {[key: string]: PerTeamKeySeedItem}, readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}, latestSeqnoHint: Seqno, cachedAt: Time, tlfCryptKeys: {[key: string]: ?Array<CryptKey>}}>
 export type TeamDebugRes = $ReadOnly<{chain: TeamSigChainState}>
 export type TeamDetails = $ReadOnly<{members: TeamMembersDetails, keyGeneration: PerTeamKeyGeneration, annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite}, settings: TeamSettings, showcase: TeamShowcase}>
 export type TeamEk = $ReadOnly<{seed: Bytes32, metadata: TeamEkMetadata}>
@@ -3338,6 +3354,7 @@ export type IncomingCallMapType = {|
   'keybase.1.NotifyFS.FSEditListResponse'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSEditListResponse'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn,
   'keybase.1.NotifyFS.FSSyncStatusResponse'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSSyncStatusResponse'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn,
   'keybase.1.NotifyFS.FSOverallSyncStatusChanged'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSOverallSyncStatusChanged'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn,
+  'keybase.1.NotifyFS.FSFavoritesChanged'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSFavoritesChanged'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn,
   'keybase.1.NotifyFS.FSOnlineStatusChanged'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSOnlineStatusChanged'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn,
   'keybase.1.NotifyKeyfamily.keyfamilyChanged'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyKeyfamily.keyfamilyChanged'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn,
   'keybase.1.NotifyPaperKey.paperKeyCached'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyPaperKey.paperKeyCached'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn,
@@ -3451,6 +3468,7 @@ export type CustomResponseIncomingCallMap = {|
   'keybase.1.NotifyFS.FSEditListResponse'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSEditListResponse'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSEditListResponse'>, 'outParam'>) => void}) => IncomingReturn,
   'keybase.1.NotifyFS.FSSyncStatusResponse'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSSyncStatusResponse'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSSyncStatusResponse'>, 'outParam'>) => void}) => IncomingReturn,
   'keybase.1.NotifyFS.FSOverallSyncStatusChanged'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSOverallSyncStatusChanged'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSOverallSyncStatusChanged'>, 'outParam'>) => void}) => IncomingReturn,
+  'keybase.1.NotifyFS.FSFavoritesChanged'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSFavoritesChanged'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSFavoritesChanged'>, 'outParam'>) => void}) => IncomingReturn,
   'keybase.1.NotifyFS.FSOnlineStatusChanged'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSOnlineStatusChanged'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSOnlineStatusChanged'>, 'outParam'>) => void}) => IncomingReturn,
   'keybase.1.NotifyKeyfamily.keyfamilyChanged'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyKeyfamily.keyfamilyChanged'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyKeyfamily.keyfamilyChanged'>, 'outParam'>) => void}) => IncomingReturn,
   'keybase.1.NotifyPaperKey.paperKeyCached'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyPaperKey.paperKeyCached'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyPaperKey.paperKeyCached'>, 'outParam'>) => void}) => IncomingReturn,
@@ -3522,6 +3540,8 @@ declare export function SimpleFSSimpleFSOpenRpcPromise(params: $PropertyType<$Pr
 declare export function SimpleFSSimpleFSReadListRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSReadList'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSReadList'>, 'outParam'>>
 declare export function SimpleFSSimpleFSRemoveRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSRemove'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSRemove'>, 'outParam'>>
 declare export function SimpleFSSimpleFSSetFolderSyncConfigRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSSetFolderSyncConfig'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSSetFolderSyncConfig'>, 'outParam'>>
+declare export function SimpleFSSimpleFSSetNotificationThresholdRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSSetNotificationThreshold'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSSetNotificationThreshold'>, 'outParam'>>
+declare export function SimpleFSSimpleFSSettingsRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSSettings'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSSettings'>, 'outParam'>>
 declare export function SimpleFSSimpleFSStatRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSStat'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSStat'>, 'outParam'>>
 declare export function SimpleFSSimpleFSSyncConfigAndStatusRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSSyncConfigAndStatus'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSSyncConfigAndStatus'>, 'outParam'>>
 declare export function SimpleFSSimpleFSSyncStatusRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSSyncStatus'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSSyncStatus'>, 'outParam'>>
@@ -3693,6 +3713,7 @@ declare export function userUploadUserAvatarRpcPromise(params: $PropertyType<$Pr
 // 'keybase.1.config.getCurrentStatus'
 // 'keybase.1.config.getClientStatus'
 // 'keybase.1.config.getFullStatus'
+// 'keybase.1.config.logSend'
 // 'keybase.1.config.setUserConfig'
 // 'keybase.1.config.setPath'
 // 'keybase.1.config.clearValue'
@@ -3723,7 +3744,6 @@ declare export function userUploadUserAvatarRpcPromise(params: $PropertyType<$Pr
 // 'keybase.1.emails.editEmail'
 // 'keybase.1.emails.setPrimaryEmail'
 // 'keybase.1.emails.sendVerificationEmail'
-// 'keybase.1.emails.bulkLookupEmails'
 // 'keybase.1.emails.setVisibilityEmail'
 // 'keybase.1.emails.setVisibilityAllEmail'
 // 'keybase.1.emails.getEmails'
@@ -3783,6 +3803,7 @@ declare export function userUploadUserAvatarRpcPromise(params: $PropertyType<$Pr
 // 'keybase.1.kbfs.FSSyncEvent'
 // 'keybase.1.kbfs.FSOverallSyncEvent'
 // 'keybase.1.kbfs.FSOnlineStatusChangedEvent'
+// 'keybase.1.kbfs.FSFavoritesChangedEvent'
 // 'keybase.1.kbfs.createTLF'
 // 'keybase.1.kbfs.getKBFSTeamSettings'
 // 'keybase.1.kbfs.upgradeTLF'
@@ -3865,6 +3886,7 @@ declare export function userUploadUserAvatarRpcPromise(params: $PropertyType<$Pr
 // 'keybase.1.NotifyFS.FSEditListResponse'
 // 'keybase.1.NotifyFS.FSSyncStatusResponse'
 // 'keybase.1.NotifyFS.FSOverallSyncStatusChanged'
+// 'keybase.1.NotifyFS.FSFavoritesChanged'
 // 'keybase.1.NotifyFS.FSOnlineStatusChanged'
 // 'keybase.1.NotifyFSRequest.FSEditListRequest'
 // 'keybase.1.NotifyFSRequest.FSSyncStatusRequest'
@@ -3918,7 +3940,6 @@ declare export function userUploadUserAvatarRpcPromise(params: $PropertyType<$Pr
 // 'keybase.1.phoneNumbers.deletePhoneNumber'
 // 'keybase.1.phoneNumbers.setVisibilityPhoneNumber'
 // 'keybase.1.phoneNumbers.setVisibilityAllPhoneNumber'
-// 'keybase.1.phoneNumbers.bulkLookupPhoneNumbers'
 // 'keybase.1.pprof.processorProfile'
 // 'keybase.1.pprof.trace'
 // 'keybase.1.prove.listProofServices'

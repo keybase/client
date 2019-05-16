@@ -29,7 +29,7 @@ const ManageComponent = (props: Props) => {
   const textType = 'BodySmallSemiboldPrimaryLink'
   if (props.addee === props.you) {
     return (
-      <Kb.Box type={textType} style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center'}}>
+      <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center'}}>
         <Kb.Text onClick={props.onManageNotifications} type={textType}>
           Manage phone and computer notifications
         </Kb.Text>
@@ -79,7 +79,7 @@ const YouAddedToTeam = (props: Props) => {
     <UserNotice
       style={{marginTop: Styles.globalMargins.small}}
       teamname={teamname}
-      bgColor={Styles.globalColors.blue4}
+      bgColor={Styles.globalColors.blueLighter2}
       onClickAvatar={onViewTeam}
     >
       <Kb.Icon type="icon-team-sparkles-64-40" style={{height: 40, marginTop: -36, width: 64}} />

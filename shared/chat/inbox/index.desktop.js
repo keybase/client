@@ -229,7 +229,7 @@ const styles = Styles.styleSheetCreate({
     overflow: 'hidden',
   },
   hover: {
-    backgroundColor: Styles.globalColors.blueGrey2,
+    backgroundColor: Styles.globalColors.blueGreyDark,
   },
   list: {flex: 1},
 })

@@ -55,7 +55,7 @@ const sendingProps = {
   action: 'sending Lumens worth',
   amount: '$35',
   balanceChange: '-90.5700999 XLM',
-  balanceChangeColor: globalColors.grey,
+  balanceChangeColor: globalColors.greyDark,
   icon: 'iconfont-time',
   loading: false,
   memo: ':beer:',

@@ -6,7 +6,6 @@ import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/wallets'
 import {AccountPageHeader} from '../../common'
 import DisplayCurrencyDropdown from './display-currency-dropdown'
-import flags from '../../../util/feature-flags'
 
 export type SettingsProps = {|
   accountID: Types.AccountID,
@@ -30,12 +29,13 @@ export type SettingsProps = {|
   mobileOnlyMode: boolean,
   mobileOnlyWaiting: boolean,
   mobileOnlyEditable: boolean,
+  thisDeviceIsLockedOut: boolean,
 |}
 
 const HoverText = Styles.isMobile
   ? Kb.Text
   : Styles.styled(Kb.Text)({
-      ':hover': {backgroundColor: Styles.globalColors.yellow3},
+      ':hover': {backgroundColor: Styles.globalColors.yellowLight},
     })
 
 const Divider = () => <Kb.Divider style={styles.divider} />
@@ -106,11 +106,16 @@ class AccountSettings extends React.Component<SettingsProps> {
                       ? 'All transactions and overall activity are tied to your Keybase identity.'
                       : 'Transactions will be tied to your Stellar public address only.'}
                   </Kb.Text>
-                  {!props.isDefault && (
-                    <Kb.Text type="BodySmallPrimaryLink" onClick={props.onSetDefault}>
-                      Set as default Keybase account
-                    </Kb.Text>
-                  )}
+                  {!props.isDefault &&
+                    (props.thisDeviceIsLockedOut ? (
+                      <Kb.Text style={styles.setAsDefaultError} type="BodySmall">
+                        This account can only be made default from a mobile device over 7 days old.
+                      </Kb.Text>
+                    ) : (
+                      <Kb.Text type="BodySmallPrimaryLink" onClick={props.onSetDefault}>
+                        Set as default Keybase account
+                      </Kb.Text>
+                    ))}
                 </Kb.Box2>
               </Kb.Box2>
             </Kb.Box2>
@@ -211,8 +216,13 @@ class AccountSettings extends React.Component<SettingsProps> {
                 gap="tiny"
                 style={styles.removeContentContainer}
               >
+                {!props.isDefault && props.thisDeviceIsLockedOut && (
+                  <Kb.Text type="BodySmall">
+                    This account can only be removed from a mobile device over 7 days old.
+                  </Kb.Text>
+                )}
                 <Kb.Button
-                  disabled={props.isDefault}
+                  disabled={props.isDefault || props.thisDeviceIsLockedOut}
                   label="Remove account"
                   fullWidth={true}
                   type="Danger"
@@ -244,7 +254,7 @@ const styles = Styles.styleSheetCreate({
     marginTop: Styles.globalMargins.tiny,
   },
   header: {
-    ...(flags.useNewRouter && !Styles.isMobile ? {minHeight: 48} : {}),
+    ...(!Styles.isMobile ? {minHeight: 48} : {}),
     borderBottomColor: Styles.globalColors.black_10,
     borderBottomWidth: 1,
     borderStyle: 'solid',
@@ -290,6 +300,9 @@ const styles = Styles.styleSheetCreate({
   sectionLabel: {
     alignSelf: 'flex-start',
     marginBottom: Styles.globalMargins.tiny,
+  },
+  setAsDefaultError: {
+    paddingTop: Styles.globalMargins.tiny,
   },
   settingsPage: {
     alignSelf: 'flex-start',

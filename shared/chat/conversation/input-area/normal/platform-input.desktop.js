@@ -167,7 +167,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
   }
 
   _toggleShowingMenu = () => {
-    if (this.props.isEditing) return
+    if (this.props.isEditing || this.props.cannotWrite) return
     this.props.toggleShowingMenu()
   }
 
@@ -177,6 +177,10 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
       hintText = 'Write an exploding message'
     } else if (this.props.isEditing) {
       hintText = 'Edit your message'
+    } else if (this.props.cannotWrite) {
+      hintText = `You must be at least ${'aeiou'.includes(this.props.minWriterRole[0]) ? 'an' : 'a'} ${
+        this.props.minWriterRole
+      } to post`
     }
 
     return (
@@ -190,7 +194,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
               styles.inputWrapper,
               {
                 backgroundColor: this.props.isEditing
-                  ? Styles.globalColors.yellow3
+                  ? Styles.globalColors.yellowLight
                   : Styles.globalColors.white,
                 borderColor: this.props.explodingModeSeconds
                   ? Styles.globalColors.black
@@ -205,6 +209,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
                 ref={this.props.setAttachmentRef}
                 style={Styles.collapseStyles([
                   styles.explodingIconContainer,
+                  !this.props.cannotWrite && styles.explodingIconContainerClickable,
                   !!this.props.explodingModeSeconds && {
                     backgroundColor: Styles.globalColors.black,
                   },
@@ -217,7 +222,8 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
                 ) : (
                   <Kb.Icon
                     className="timer"
-                    onClick={this._toggleShowingMenu}
+                    colorOverride={this.props.cannotWrite ? Styles.globalColors.black_20 : null}
+                    onClick={this.props.cannotWrite ? undefined : this._toggleShowingMenu}
                     padding="xtiny"
                     type="iconfont-timer"
                   />
@@ -241,6 +247,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
             <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputBox}>
               <Kb.PlainInput
                 className={'mousetrap' /* className needed so key handler doesn't ignore hotkeys */}
+                disabled={this.props.cannotWrite ?? false}
                 autoFocus={false}
                 ref={this._inputSetRef}
                 placeholder={hintText}
@@ -264,18 +271,24 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
             {this.state.emojiPickerOpen && (
               <EmojiPicker emojiPickerToggle={this._emojiPickerToggle} onClick={this._pickerOnClick} />
             )}
-            {this.props.showWalletsIcon && <WalletsIcon size={16} style={styles.walletsIcon} />}
-            <Kb.Icon
-              color={this.state.emojiPickerOpen ? Styles.globalColors.black : null}
-              onClick={this._emojiPickerToggle}
-              style={Kb.iconCastPlatformStyles(styles.icon)}
-              type="iconfont-emoji"
-            />
-            <Kb.Icon
-              onClick={this._filePickerOpen}
-              style={Kb.iconCastPlatformStyles(styles.icon)}
-              type="iconfont-attachment"
-            />
+            {!this.props.cannotWrite && this.props.showWalletsIcon && (
+              <WalletsIcon size={16} style={styles.walletsIcon} />
+            )}
+            {!this.props.cannotWrite && (
+              <>
+                <Kb.Icon
+                  color={this.state.emojiPickerOpen ? Styles.globalColors.black : null}
+                  onClick={this._emojiPickerToggle}
+                  style={Kb.iconCastPlatformStyles(styles.icon)}
+                  type="iconfont-emoji"
+                />
+                <Kb.Icon
+                  onClick={this._filePickerOpen}
+                  style={Kb.iconCastPlatformStyles(styles.icon)}
+                  type="iconfont-attachment"
+                />
+              </>
+            )}
           </Kb.Box>
           <Kb.Box style={styles.footerContainer}>
             <Typing conversationIDKey={this.props.conversationIDKey} />
@@ -388,9 +401,11 @@ const styles = Styles.styleSheetCreate({
       width: 32,
     },
     isElectron: {
-      ...Styles.desktopStyles.clickable,
       borderRight: `1px solid ${Styles.globalColors.black_20}`,
     },
+  }),
+  explodingIconContainerClickable: Styles.platformStyles({
+    isElectron: {...Styles.desktopStyles.clickable},
   }),
   footer: {
     alignSelf: 'flex-end',

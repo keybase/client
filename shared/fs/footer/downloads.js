@@ -75,7 +75,7 @@ const Desktop = (props: DownloadsProps) =>
 const styles = Styles.styleSheetCreate({
   box: Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.blue5,
+      backgroundColor: Styles.globalColors.blueLighter3,
       overflow: 'hidden',
     },
     isElectron: {

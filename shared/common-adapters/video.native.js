@@ -110,7 +110,7 @@ const getHTML = url => `
         padding: 0;
         width: 100%;
         height: 100%;
-        background-color: ${Styles.globalColors.blue5};
+        background-color: ${Styles.globalColors.blueLighter3};
       }
       body {
         display: block;

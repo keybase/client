@@ -1,14 +1,13 @@
 // @flow
 import URL from 'url-parse'
-import AppState from './app-state.desktop'
+import AppState from '../../app/app-state.desktop'
 import Window from './window.desktop'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {showDevTools} from '../../local-debug.desktop'
 import {hideDockIcon} from './dock-icon.desktop'
-import {isDarwin, isWindows} from '../../constants/platform'
+import {isDarwin, isWindows, defaultUseNativeFrame} from '../../constants/platform'
 import logger from '../../logger'
 import {resolveRootAsURL} from './resolve-root.desktop'
-import flags from '../../util/feature-flags'
 
 const htmlFile = resolveRootAsURL('dist', `main${__DEV__ ? '.dev' : ''}.html`)
 
@@ -38,7 +37,7 @@ export default function() {
 
   const mainWindow = new Window(htmlFile, {
     backgroundThrottling: false,
-    frame: isDarwin,
+    frame: appState.state.useNativeFrame ?? defaultUseNativeFrame,
     height: appState.state.height,
     minHeight: 600,
     minWidth: 400,
@@ -51,11 +50,7 @@ export default function() {
     width: appState.state.width,
     x: appState.state.x,
     y: appState.state.y,
-    ...(flags.useNewRouter && isDarwin
-      ? {
-          titleBarStyle: 'hiddenInset',
-        }
-      : {}),
+    ...(isDarwin ? {titleBarStyle: 'hiddenInset'} : {}),
   })
 
   const webContents = mainWindow.window.webContents

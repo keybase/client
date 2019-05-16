@@ -114,25 +114,6 @@
       ],
       "response": null
     },
-    "bulkLookupEmails": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "emailContacts",
-          "type": {
-            "type": "array",
-            "items": "string"
-          }
-        }
-      ],
-      "response": {
-        "type": "array",
-        "items": "EmailLookupResult"
-      }
-    },
     "setVisibilityEmail": {
       "request": [
         {

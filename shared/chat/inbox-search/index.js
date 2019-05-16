@@ -210,7 +210,7 @@ const styles = Styles.styleSheetCreate({
     width: '100%',
   },
   textHeader: {
-    backgroundColor: Styles.globalColors.blue5,
+    backgroundColor: Styles.globalColors.blueLighter3,
   },
 })
 

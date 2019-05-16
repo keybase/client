@@ -2,9 +2,12 @@ package stellarsvc
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"math"
+	"net/http"
+	"net/url"
 	"sort"
 
 	"github.com/keybase/client/go/libkb"
@@ -13,6 +16,7 @@ import (
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/keybase/stellarnet"
+	"github.com/stellar/go/xdr"
 )
 
 type UISource interface {
@@ -595,10 +599,312 @@ func (s *Server) BatchLocal(ctx context.Context, arg stellar1.BatchLocalArg) (re
 	return stellar.Batch(mctx, s.walletState, arg)
 }
 
+func (s *Server) ValidateStellarURILocal(ctx context.Context, arg stellar1.ValidateStellarURILocalArg) (res stellar1.ValidateStellarURIResultLocal, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName: "ValidateStellarURILocal",
+		Err:     &err,
+	})
+	defer fin()
+	if err != nil {
+		return stellar1.ValidateStellarURIResultLocal{}, err
+	}
+
+	vp, _, err := s.validateStellarURI(mctx, arg.InputURI, http.DefaultClient)
+	if err != nil {
+		return stellar1.ValidateStellarURIResultLocal{}, err
+	}
+	return *vp, nil
+}
+
+const zeroSourceAccount = "00000000000000000000000000000000000000000000000000000000"
+
+func (s *Server) validateStellarURI(mctx libkb.MetaContext, uri string, getter stellarnet.HTTPGetter) (*stellar1.ValidateStellarURIResultLocal, *xdr.TransactionEnvelope, error) {
+	validated, err := stellarnet.ValidateStellarURI(uri, getter)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	local := stellar1.ValidateStellarURIResultLocal{
+		Operation:    validated.Operation,
+		OriginDomain: validated.OriginDomain,
+		Message:      validated.Message,
+		CallbackURL:  validated.CallbackURL,
+		Xdr:          validated.XDR,
+		Recipient:    validated.Recipient,
+		Amount:       validated.Amount,
+		AssetCode:    validated.AssetCode,
+		AssetIssuer:  validated.AssetIssuer,
+		Memo:         validated.Memo,
+		MemoType:     validated.MemoType,
+	}
+
+	if validated.TxEnv != nil {
+		tx := validated.TxEnv.Tx
+		if tx.SourceAccount.Address() != "" && tx.SourceAccount.Address() != zeroSourceAccount {
+			local.Summary.Source = stellar1.AccountID(tx.SourceAccount.Address())
+		}
+		local.Summary.Fee = int(tx.Fee)
+		local.Summary.Memo, local.Summary.MemoType, err = memoStrings(tx.Memo)
+		if err != nil {
+			return nil, nil, err
+		}
+		local.Summary.Operations = make([]string, len(tx.Operations))
+		for i, op := range tx.Operations {
+			local.Summary.Operations[i] = stellarnet.OpSummary(op)
+		}
+	}
+
+	return &local, validated.TxEnv, nil
+}
+
+func (s *Server) ApproveTxURILocal(ctx context.Context, arg stellar1.ApproveTxURILocalArg) (txID stellar1.TransactionID, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName: "ApproveTxURILocal",
+		Err:     &err,
+	})
+	defer fin()
+	if err != nil {
+		return "", err
+	}
+
+	// revalidate the URI
+	vp, txEnv, err := s.validateStellarURI(mctx, arg.InputURI, http.DefaultClient)
+	if err != nil {
+		return "", err
+	}
+
+	if txEnv == nil {
+		return "", errors.New("no tx envelope in URI")
+	}
+
+	if vp.Summary.Source == "" {
+		// need to fill in SourceAccount
+		accountID, err := stellar.GetOwnPrimaryAccountID(mctx)
+		if err != nil {
+			return "", err
+		}
+		address, err := stellarnet.NewAddressStr(accountID.String())
+		if err != nil {
+			return "", err
+		}
+		txEnv.Tx.SourceAccount, err = address.AccountID()
+		if err != nil {
+			return "", err
+		}
+	}
+
+	if txEnv.Tx.SeqNum == 0 {
+		// need to fill in SeqNum
+		sp, unlock := stellar.NewSeqnoProvider(mctx, s.walletState)
+		defer unlock()
+
+		txEnv.Tx.SeqNum, err = sp.SequenceForAccount(txEnv.Tx.SourceAccount.Address())
+		if err != nil {
+			return "", err
+		}
+	}
+
+	// sign it
+	_, seed, err := stellar.LookupSenderSeed(mctx)
+	if err != nil {
+		return "", err
+	}
+	sig, err := stellarnet.SignEnvelope(seed, *txEnv)
+	if err != nil {
+		return "", err
+	}
+
+	if vp.CallbackURL == "" {
+		_, err := stellarnet.Submit(sig.Signed)
+		if err != nil {
+			return "", err
+		}
+	} else {
+		if err := postXDRToCallback(sig.Signed, vp.CallbackURL); err != nil {
+			return "", err
+		}
+	}
+
+	return stellar1.TransactionID(sig.TxHash), nil
+}
+
+func (s *Server) ApprovePayURILocal(ctx context.Context, arg stellar1.ApprovePayURILocalArg) (txID stellar1.TransactionID, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName: "ApprovePayURILocal",
+		Err:     &err,
+	})
+	defer fin()
+	if err != nil {
+		return "", err
+	}
+
+	// revalidate the URI
+	vp, _, err := s.validateStellarURI(mctx, arg.InputURI, http.DefaultClient)
+	if err != nil {
+		return "", err
+	}
+
+	if vp.Amount == "" {
+		vp.Amount = arg.Amount
+	}
+
+	if vp.CallbackURL != "" {
+		recipient, err := stellar.LookupRecipient(mctx, stellarcommon.RecipientInput(vp.Recipient), arg.FromCLI)
+		if err != nil {
+			return "", err
+		}
+		if recipient.AccountID == nil {
+			return "", errors.New("recipient lookup failed to find an account")
+		}
+		recipientAddr, err := stellarnet.NewAddressStr(recipient.AccountID.String())
+		if err != nil {
+			return "", err
+		}
+
+		_, senderSeed, err := stellar.LookupSenderSeed(mctx)
+		if err != nil {
+			return "", err
+		}
+		var memoText string
+		if vp.MemoType == "MEMO_TEXT" {
+			memoText = vp.Memo
+		} else if vp.Memo != "" {
+			// CORE-10865 will fix this:
+			return "", errors.New("keybase cannot handle non-text memos currently")
+		}
+
+		sp, unlock := stellar.NewSeqnoProvider(mctx, s.walletState)
+		defer unlock()
+
+		baseFee := s.walletState.BaseFee(mctx)
+
+		sig, err := stellarnet.PaymentXLMTransaction(senderSeed, recipientAddr, vp.Amount, memoText, sp, nil, baseFee)
+		if err != nil {
+			return "", err
+		}
+		if err := postXDRToCallback(sig.Signed, vp.CallbackURL); err != nil {
+			return "", err
+		}
+		return stellar1.TransactionID(sig.TxHash), nil
+	}
+
+	sendArg := stellar.SendPaymentArg{
+		To:     stellarcommon.RecipientInput(vp.Recipient),
+		Amount: vp.Amount,
+	}
+	if vp.MemoType == "MEMO_TEXT" {
+		sendArg.PublicMemo = vp.Memo
+	}
+
+	var res stellar.SendPaymentResult
+	if arg.FromCLI {
+		sendArg.QuickReturn = false
+		res, err = stellar.SendPaymentCLI(mctx, s.walletState, sendArg)
+	} else {
+		sendArg.QuickReturn = true
+		res, err = stellar.SendPaymentGUI(mctx, s.walletState, sendArg)
+	}
+	if err != nil {
+		return "", err
+	}
+
+	// TODO: handle callback path
+
+	return res.TxID, nil
+}
+
+func (s *Server) ApprovePathURILocal(ctx context.Context, arg stellar1.ApprovePathURILocalArg) (txID stellar1.TransactionID, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName: "ApprovePathURILocal",
+		Err:     &err,
+	})
+	defer fin()
+	if err != nil {
+		return "", err
+	}
+
+	// revalidate the URI
+	vp, _, err := s.validateStellarURI(mctx, arg.InputURI, http.DefaultClient)
+	if err != nil {
+		return "", err
+	}
+
+	sendArg := stellar.SendPathPaymentArg{
+		To:   stellarcommon.RecipientInput(vp.Recipient),
+		Path: arg.FullPath,
+	}
+	if vp.MemoType == "MEMO_TEXT" {
+		sendArg.PublicMemo = vp.Memo
+	}
+
+	if vp.CallbackURL != "" {
+		sig, _, _, err := stellar.PathPaymentTx(mctx, s.walletState, sendArg)
+		if err != nil {
+			return "", err
+		}
+		if err := postXDRToCallback(sig.Signed, vp.CallbackURL); err != nil {
+			return "", err
+		}
+		return stellar1.TransactionID(sig.TxHash), nil
+	}
+
+	var res stellar.SendPaymentResult
+	if arg.FromCLI {
+		sendArg.QuickReturn = false
+		res, err = stellar.SendPathPaymentCLI(mctx, s.walletState, sendArg)
+	} else {
+		sendArg.QuickReturn = true
+		res, err = stellar.SendPathPaymentGUI(mctx, s.walletState, sendArg)
+	}
+	if err != nil {
+		return "", err
+	}
+
+	return res.TxID, nil
+}
+
+func postXDRToCallback(signed, callbackURL string) error {
+	u, err := url.Parse(callbackURL)
+	if err != nil {
+		return err
+	}
+
+	// take any values that are in the URL
+	values := u.Query()
+	// remove the RawQuery so we can POST them all as a form
+	u.RawQuery = ""
+
+	// put the signed tx in the values
+	values.Set("xdr", signed)
+
+	// POST it
+	_, err = http.PostForm(callbackURL, values)
+	return err
+}
+
 func percentageAmountChange(a, b int64) float64 {
 	if a == 0 && b == 0 {
 		return 0.0
 	}
 	mid := 0.5 * float64(a+b)
 	return math.Abs(100.0 * float64(a-b) / mid)
+}
+
+func memoStrings(x xdr.Memo) (string, string, error) {
+	switch x.Type {
+	case xdr.MemoTypeMemoNone:
+		return "", "MEMO_NONE", nil
+	case xdr.MemoTypeMemoText:
+		return x.MustText(), "MEMO_TEXT", nil
+	case xdr.MemoTypeMemoId:
+		return fmt.Sprintf("%d", x.MustId()), "MEMO_ID", nil
+	case xdr.MemoTypeMemoHash:
+		hash := x.MustHash()
+		return base64.StdEncoding.EncodeToString(hash[:]), "MEMO_HASH", nil
+	case xdr.MemoTypeMemoReturn:
+		hash := x.MustRetHash()
+		return base64.StdEncoding.EncodeToString(hash[:]), "MEMO_RETURN", nil
+	default:
+		return "", "", errors.New("invalid memo type")
+	}
 }

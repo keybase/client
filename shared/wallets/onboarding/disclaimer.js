@@ -252,16 +252,16 @@ const styles = Styles.styleSheetCreate({
       minHeight: 40,
     },
   }),
-  buttonLabelStyle: {color: Styles.globalColors.purple},
+  buttonLabelStyle: {color: Styles.globalColors.purpleDark},
   buttonStyle: {backgroundColor: Styles.globalColors.white, width: '100%'},
   container: {
-    backgroundColor: Styles.globalColors.purple2,
+    backgroundColor: Styles.globalColors.purple,
     padding: Styles.globalMargins.medium,
   },
   gradient: Styles.platformStyles({
     isElectron: {
-      backgroundImage: `linear-gradient(to bottom, ${Styles.globalColors.purple2_01}, ${
-        Styles.globalColors.purple2
+      backgroundImage: `linear-gradient(to bottom, ${Styles.globalColors.purple_01}, ${
+        Styles.globalColors.purple
       })`,
       height: Styles.globalMargins.large,
       position: 'relative',
@@ -276,7 +276,7 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.white,
   },
   labelStyle: {
-    color: Styles.globalColors.purple,
+    color: Styles.globalColors.purpleDark,
   },
   notNowButtonStyle: {width: '100%'},
   scrollView: {

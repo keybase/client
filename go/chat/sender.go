@@ -838,9 +838,9 @@ func (s *BlockingSender) Sign(payload []byte) ([]byte, error) {
 	return s.getRi().S3Sign(context.Background(), arg)
 }
 
-func (s *BlockingSender) presentUIItem(conv *chat1.ConversationLocal) (res *chat1.InboxUIItem) {
+func (s *BlockingSender) presentUIItem(ctx context.Context, conv *chat1.ConversationLocal) (res *chat1.InboxUIItem) {
 	if conv != nil {
-		pc := utils.PresentConversationLocal(*conv, s.G().Env.GetUsername().String())
+		pc := utils.PresentConversationLocal(ctx, *conv, s.G().Env.GetUsername().String())
 		res = &pc
 	}
 	return res
@@ -851,10 +851,6 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	outboxID *chat1.OutboxID, sendOpts *chat1.SenderSendOptions, prepareOpts *chat1.SenderPrepareOptions) (obid chat1.OutboxID, boxed *chat1.MessageBoxed, err error) {
 	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("Send(%s)", convID))()
 	defer utils.SuspendComponent(ctx, s.G(), s.G().InboxSource)()
-
-	// Record that this user is "active in chat", which we use to determine
-	// gregor reconnect backoffs.
-	RecordChatSend(ctx, s.G(), s.DebugLabeler)
 
 	// Get conversation metadata first. If we can't find it, we will just attempt to join
 	// the conversation in case that is an option. If it succeeds, then we just keep going,
@@ -1026,7 +1022,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 				convID),
 			ConvID:                     convID,
 			DisplayDesktopNotification: false,
-			Conv:                       s.presentUIItem(convLocal),
+			Conv:                       s.presentUIItem(ctx, convLocal),
 		})
 		s.G().ActivityNotifier.Activity(ctx, boxed.ClientHeader.Sender, conv.GetTopicType(), &activity,
 			chat1.ChatActivitySource_LOCAL)

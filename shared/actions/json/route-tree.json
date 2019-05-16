@@ -1,49 +1,31 @@
 {
-  "prelude": [
-    "import * as Types from '../constants/types/route-tree'",
-    "import * as Constants from '../constants/route-tree'",
-    "import * as RCConstants from '../route-tree'",
-    "import * as Tabs from '../constants/tabs'"
-  ],
+  "prelude": ["import * as Tabs from '../constants/tabs'"],
   "actions": {
-    "setInitialRouteDef": {
-      "_description": "Set the tree of route definitions. Dispatched at initialization time.",
-      "routeDef": "RCConstants.RouteDefParams"
-    },
-    "refreshRouteDef": {
-      "loginRouteTree": "RCConstants.RouteDefParams",
-      "appRouteTree": "RCConstants.RouteDefParams"
-    },
     "switchRouteDef": {
-      "routeDef": "RCConstants.RouteDefParams",
-      "path?": "?RCConstants.Path"
+      "_description": "TODO for this whole json. replace all these actions with a cleaned up version",
+      "loggedIn": "boolean",
+      "path?": "any"
     },
     "switchTo": {
-      "path": "RCConstants.Path",
-      "parentPath?": "?RCConstants.Path"
+      "path": "any",
+      "parentPath?": "any"
     },
     "navigateTo": {
-      "path": "RCConstants.PropsPath<any>",
-      "parentPath?": "?RCConstants.Path",
+      "path": "any",
+      "parentPath?": "any",
       "replace?": "boolean"
     },
     "navigateAppend": {
-      "path": "RCConstants.PropsPath<any>",
-      "parentPath?": "?RCConstants.Path",
+      "fromKey?": "string",
+      "path": "any",
+      "parentPath?": "any",
       "replace?": "boolean"
     },
-    "navigateUp": {},
+    "navigateUp": {"fromKey?": "string"},
     "putActionIfOnPath": {
-      "expectedPath": "RCConstants.Path",
+      "expectedPath": "any",
       "otherAction": "any",
-      "parentPath?": "?RCConstants.Path"
-    },
-    "setRouteState": {
-      "path": "RCConstants.Path",
-      "partialState": "{} | ((oldState: I.Map<string, any>) => I.Map<string, any>)"
-    },
-    "resetRoute": {
-      "path": "RCConstants.Path"
+      "parentPath?": "any"
     },
     "clearModals": {
       "_description": "ONLY used by the new nav. use this to clear any modal routes"

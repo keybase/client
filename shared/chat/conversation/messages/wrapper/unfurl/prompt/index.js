@@ -69,7 +69,7 @@ const styles = Styles.styleSheetCreate({
     common: {
       ...Styles.globalStyles.flexBoxRow,
       alignSelf: 'flex-start',
-      backgroundColor: Styles.globalColors.blue5,
+      backgroundColor: Styles.globalColors.blueLighter3,
       borderRadius: Styles.borderRadius,
       paddingBottom: 8,
       paddingTop: 8,

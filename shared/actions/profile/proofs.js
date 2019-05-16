@@ -10,8 +10,6 @@ import * as RouteTreeGen from '../route-tree-gen'
 import * as Tracker2Gen from '../tracker2-gen'
 import * as Tracker2Constants from '../../constants/tracker2'
 import {peopleTab} from '../../constants/tabs'
-import {getPath} from '../../route-tree'
-import flags from '../../util/feature-flags'
 import openURL from '../../util/open-url'
 
 const checkProof = (state, action) => {
@@ -147,31 +145,6 @@ function* addProof(state, action) {
     }
   })
 
-  const watchForNavUp = yield Saga._fork(function*() {
-    // TODO remove this when flags.useNewRouter is removed
-    // nav2 should use navigationOptions.gesturesEnabled = false
-    // to disable sidestepping custom behavior on back
-    // Check that those exist before removing this
-    while (true) {
-      yield Saga.take(RouteTreeGen.navigateUp)
-      const state = yield Saga.selectState()
-      const path = getPath(state.routeTree.routeState)
-      if (
-        ![
-          'profileGenericEnterUsername',
-          'profileProveEnterUsername',
-          'profileConfirmOrPending',
-          'profilePostProof',
-          'profileGenericProofSuccess',
-        ].includes(path.last()) &&
-        !canceled
-      ) {
-        // We nav'd away without canceling
-        yield Saga.put(ProfileGen.createCancelAddProof())
-      }
-    }
-  })
-
   const promptUsername = (args, response) => {
     const {parameters, prevError} = args
     if (canceled) {
@@ -299,12 +272,8 @@ function* addProof(state, action) {
   cancelTask.cancel()
   checkProofTask.cancel()
   submitUsernameTask.cancel()
-  watchForNavUp.cancel()
   addProofInProgress = false
 }
-
-const cancelAddProof = state =>
-  !flags.useNewRouter && ProfileGen.createShowUserProfile({username: state.config.username})
 
 const submitCryptoAddress = (state, action) => {
   if (!state.profile.usernameValid) {
@@ -344,7 +313,6 @@ function* proofsSaga(): Saga.SagaGenerator<any, any> {
     [ProfileGen.submitBTCAddress, ProfileGen.submitZcashAddress],
     submitCryptoAddress
   )
-  yield* Saga.chainAction<ProfileGen.CancelAddProofPayload>(ProfileGen.cancelAddProof, cancelAddProof)
   yield* Saga.chainGenerator<ProfileGen.AddProofPayload>(ProfileGen.addProof, addProof)
   yield* Saga.chainAction<ProfileGen.CheckProofPayload>(ProfileGen.checkProof, checkProof)
   yield* Saga.chainAction<ProfileGen.RecheckProofPayload>(ProfileGen.recheckProof, recheckProof)

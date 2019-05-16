@@ -52,6 +52,7 @@ class MenuLayout extends Component<MenuLayoutProps> {
                 style={styles.badge}
               />
             )}
+            {item.decoration}
           </Box>
         )}
         {!item.view && item.subTitle && (
@@ -71,7 +72,7 @@ class MenuLayout extends Component<MenuLayoutProps> {
   render() {
     const realCSS = `
     .menu-hover:hover { background-color: ${
-      this.props.hoverColor ? this.props.hoverColor : Styles.globalColors.blue4
+      this.props.hoverColor ? this.props.hoverColor : Styles.globalColors.blueLighter2
     }; }
     .menu-hover-danger:hover { background-color: ${Styles.globalColors.red}; }
 

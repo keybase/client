@@ -7,7 +7,6 @@ import * as SearchGen from '../../../actions/search-gen'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as Tracker2Gen from '../../../actions/tracker2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as RouteTree from '../../../route-tree'
 import * as Constants from '../../../constants/wallets'
 import * as Types from '../../../constants/types/wallets'
 import {anyWaiting} from '../../../constants/waiting'
@@ -61,19 +60,19 @@ const ConnectedParticipantsKeybaseUser = namedConnect<OwnProps, _, _, _, _>(
 // and just take in the props again (aka remount) so, in order to achieve this in the least invasive way we'll watch the
 // route and we'll increment out key if we become topmost again
 let keyCounter = 1
-let lastPath = ''
+// let lastPath = ''
 
 const mapStateToPropsStellarPublicKey = state => {
   const build = state.wallets.building
   const built = build.isRequest ? state.wallets.builtRequest : state.wallets.builtPayment
 
-  const curPath = RouteTree.getPath(state.routeTree.routeState, [Constants.rootWalletTab]).last()
-  // looking at the form now, but wasn't before
-  if (curPath === Constants.sendRequestFormRouteKey && curPath !== lastPath) {
-    keyCounter++
-  }
+  // const curPath = RouteTree.getPath(state.routeTree.routeState, [Constants.rootWalletTab]).last()
+  // // looking at the form now, but wasn't before
+  // if (curPath === Constants.sendRequestFormRouteKey && curPath !== lastPath) {
+  // keyCounter++
+  // }
 
-  lastPath = curPath
+  // lastPath = curPath
 
   return {
     errorMessage: built.toErrMsg,

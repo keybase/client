@@ -32,7 +32,7 @@ const _AddWallet = (props: AddProps & Kb.OverlayParentProps) => {
         style={styles.addContainerBox}
         direction="horizontal"
         fullWidth={true}
-        className="hover_background_color_blueGrey2"
+        className="hover_background_color_blueGreyDark"
       >
         <Kb.Icon type="icon-wallet-placeholder-add-32" style={Kb.iconCastPlatformStyles(styles.icon)} />
         <Kb.Text type="BodySemibold">Add an account</Kb.Text>
@@ -56,11 +56,11 @@ const JoinAirdrop = p => (
     <Kb.Box2
       style={Styles.collapseStyles([
         styles.joinAirdrop,
-        p.selected && {backgroundColor: Styles.globalColors.purple2},
+        p.selected && {backgroundColor: Styles.globalColors.purple},
       ])}
       direction="horizontal"
       fullWidth={true}
-      className="hover_background_color_blueGrey2"
+      className="hover_background_color_blueGreyDark"
     >
       <Kb.Icon type="icon-airdrop-star-32" style={Kb.iconCastPlatformStyles(styles.icon)} />
       <Kb.Text negative={p.selected} type="BodySemibold">
@@ -125,7 +125,7 @@ class WalletList extends React.Component<Props> {
   }
 
   render() {
-    if (this.props.loading) {
+    if (this.props.loading && !this.props.accountIDs.length) {
       return (
         <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
           <Kb.ProgressIndicator style={styles.progressIndicator} />
@@ -135,10 +135,6 @@ class WalletList extends React.Component<Props> {
 
     const rows = this.props.accountIDs.map(accountID => ({accountID, key: accountID, type: 'wallet'}))
 
-    if (!flags.useNewRouter) {
-      const addWallet = 'add wallet'
-      rows.push({key: addWallet, type: addWallet})
-    }
     if (flags.airdrop) {
       const joinAirdrop = 'join airdrop'
       rows.push({key: joinAirdrop, type: joinAirdrop})
@@ -146,6 +142,7 @@ class WalletList extends React.Component<Props> {
 
     return (
       <>
+        {this.props.loading && <Kb.ProgressIndicator style={styles.progressHeader} />}
         <Kb.BoxGrow>
           <Kb.List items={rows} renderItem={this._renderRow} keyProperty="key" style={this.props.style} />
         </Kb.BoxGrow>
@@ -174,6 +171,14 @@ const styles = Styles.styleSheetCreate({
     borderStyle: `solid`,
     borderTopWidth: 1,
     height: rowHeight,
+  },
+  progressHeader: {
+    height: 18,
+    left: 40,
+    position: 'absolute',
+    top: 9,
+    width: 18,
+    zIndex: 2,
   },
   progressIndicator: {height: 30, width: 30},
   whatIsStellar: {

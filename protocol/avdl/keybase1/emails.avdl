@@ -12,7 +12,6 @@ protocol emails {
     void editEmail(int sessionID, EmailAddress oldEmail, EmailAddress email, IdentityVisibility visibility);
     void setPrimaryEmail(int sessionID, EmailAddress email);
     void sendVerificationEmail(int sessionID, EmailAddress email);
-    array<EmailLookupResult> bulkLookupEmails(int sessionID, array<string> emailContacts);
     void setVisibilityEmail(int sessionID, EmailAddress email, IdentityVisibility visibility);
     void setVisibilityAllEmail(int sessionID, IdentityVisibility visibility);
     array<Email> getEmails(int sessionID);

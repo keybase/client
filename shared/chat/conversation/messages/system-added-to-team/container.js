@@ -35,9 +35,6 @@ const mapDispatchToProps = dispatch => ({
       })
     ),
   _onViewTeam: (teamname: string) => {
-    dispatch(
-      RouteTreeGen.createSetRouteState({partialState: {selectedTab: 'members'}, path: [teamsTab, 'team']})
-    )
     dispatch(RouteTreeGen.createNavigateTo({path: [teamsTab, {props: {teamname}, selected: 'team'}]}))
   },
 })

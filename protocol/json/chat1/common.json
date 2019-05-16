@@ -1446,6 +1446,10 @@
           "name": "sentTo"
         },
         {
+          "type": "boolean",
+          "name": "matchMentions"
+        },
+        {
           "type": "gregor1.Time",
           "name": "sentBefore"
         },

@@ -52,7 +52,7 @@
 .tab-badge {
 }
 
-@media all and (max-width: 700px) and (min-width: 0px) {
+@media all and (max-width: 800px) and (min-width: 0px) {
   .tab-container {
     width: 80px;
   }

@@ -24,5 +24,8 @@ protocol NotifyFS {
   void FSOverallSyncStatusChanged(FolderSyncStatus status) oneway;
 
   @lint("ignore")
+  void FSFavoritesChanged() oneway;
+
+  @lint("ignore")
   void FSOnlineStatusChanged(boolean online) oneway;
 }

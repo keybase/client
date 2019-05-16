@@ -1,9 +1,6 @@
 // @flow
-import flags from '../util/feature-flags'
 import {NavigationEvents as _NavigationEvents} from '@react-navigation/core'
-
-// Just to brige old / new nav, deprecate this when routetree is gone
-export const NavigationEvents = flags.useNewRouter ? _NavigationEvents : (p: any) => p.children || null
+export const NavigationEvents = _NavigationEvents
 
 export {default as Animated} from './animated'
 export {default as Animation} from './animation'

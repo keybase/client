@@ -32,6 +32,8 @@ class EnterUsernameInput extends React.Component<InputProps, InputState> {
   _onBlur = () => this._setFocus(false)
 
   render() {
+    // If ever there become more than 2 choices, this can be pushed into a protocol parameter.
+    let usernamePlaceholder = this.props.serviceSuffix === '@theqrl.org' ? 'Your QRL address' : 'Your username'
     return (
       <Kb.Box2
         direction="vertical"
@@ -45,7 +47,7 @@ class EnterUsernameInput extends React.Component<InputProps, InputState> {
       >
         {!!this.state.username && (
           <Kb.Text type="BodySmallSemibold" style={styles.colorBlue}>
-            Your username
+            {usernamePlaceholder}
           </Kb.Text>
         )}
         <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" fullWidth={true}>
@@ -75,7 +77,7 @@ class EnterUsernameInput extends React.Component<InputProps, InputState> {
                     !!this.state.username && styles.invisible,
                   ])}
                 >
-                  {this.state.username || 'Your username'}
+                  {this.state.username || usernamePlaceholder}
                 </Kb.Text>
                 <Kb.Text type="BodySemibold" style={styles.placeholderService}>
                   {this.props.serviceSuffix}

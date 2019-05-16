@@ -67,11 +67,25 @@ export type TlfSyncPartial = I.RecordOf<_TlfSyncPartial>
 
 export type TlfSyncConfig = TlfSyncEnabled | TlfSyncDisabled | TlfSyncPartial
 
+export type ConflictState =
+  | 'in-conflict-stuck'
+  | 'in-conflict-not-stuck'
+  | 'in-manual-resolution'
+  | 'finishing'
+  | 'none'
+
+export type _TlfConflict = {
+  state: ConflictState,
+  branch: string,
+}
+export type TlfConflict = I.RecordOf<_TlfConflict>
+
 export type _Tlf = {
   name: string,
   isFavorite: boolean,
   isIgnored: boolean,
   isNew: boolean,
+  conflict: TlfConflict,
   needsRekey: boolean,
   resetParticipants: I.List<ResetMember>,
   teamId: RPCTypes.TeamID,
@@ -458,6 +472,13 @@ export type _SoftErrors = {
 }
 export type SoftErrors = I.RecordOf<_SoftErrors>
 
+export type _Settings = {
+  spaceAvailableNotificationThreshold: number,
+  isLoading: boolean,
+}
+
+export type Settings = I.RecordOf<_Settings>
+
 export type _State = {|
   downloads: Downloads,
   edits: Edits,
@@ -478,6 +499,7 @@ export type _State = {|
   tlfUpdates: UserTlfUpdates,
   tlfs: Tlfs,
   uploads: Uploads,
+  settings: Settings,
 |}
 export type State = I.RecordOf<_State>
 

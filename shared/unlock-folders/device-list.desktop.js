@@ -67,7 +67,7 @@ const styles = {
   },
   devicesContainer: {
     alignSelf: 'center',
-    backgroundColor: globalColors.lightGrey,
+    backgroundColor: globalColors.greyLight,
     height: 162,
     overflowY: 'scroll',
     paddingBottom: globalMargins.small,

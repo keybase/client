@@ -129,7 +129,7 @@ export type Props = Types.RowProps
 const SearchResultRow = (props: Props) => (
   <ClickableBox
     style={_clickableBoxStyle[(!!props.selected && props.leftIconOpaque).toString()]}
-    underlayColor={globalColors.blue4}
+    underlayColor={globalColors.blueLighter2}
     onClick={props.userIsSelectable ? props.onClick : null}
     onMouseOver={props.onMouseOver}
   >
@@ -175,7 +175,7 @@ const _clickableBoxStyle = {
   false: _clickableBoxStyleCommon,
   true: {
     ..._clickableBoxStyleCommon,
-    backgroundColor: globalColors.blue4,
+    backgroundColor: globalColors.blueLighter2,
   },
 }
 

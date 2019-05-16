@@ -23,7 +23,7 @@ import OutOfDate from '../app/out-of-date'
 useScreens()
 
 // Options used by default on all navigators
-// For info on what is passed to what see here: https://github.com/react-navigation/react-navigation-stack/blob/master/src/views/Header/Header.js
+// For info on what is passed to what see here: https://github.com/react-navigation/stack/blob/478c354248f2aedfc304a1c4b479c3df359d3868/src/views/Header/Header.js
 const defaultNavigationOptions = {
   backBehavior: 'none',
   header: null,
@@ -32,7 +32,7 @@ const defaultNavigationOptions = {
       <LeftAction
         badgeNumber={0}
         leftAction="back"
-        onLeftAction={hp.onPress}
+        onLeftAction={hp.onPress} // react navigation makes sure this onPress can only happen once
         customIconColor={hp.tintColor}
       />
     ),
@@ -64,7 +64,7 @@ const TabBarIcon = ({badgeNumber, focused, routeName}) => (
       type={icons[routeName]}
       fontSize={32}
       style={tabStyles.tab}
-      color={focused ? Styles.globalColors.white : Styles.globalColors.darkBlue4}
+      color={focused ? Styles.globalColors.white : Styles.globalColors.blueDarker}
     />
     {!!badgeNumber && <Kb.Badge badgeNumber={badgeNumber} badgeStyle={tabStyles.badge} />}
   </Kb.NativeView>
@@ -121,12 +121,12 @@ const TabNavigator = createBottomTabNavigator(
     }),
     order: tabs,
     tabBarOptions: {
-      activeBackgroundColor: Styles.globalColors.darkBlue2,
-      inactiveBackgroundColor: Styles.globalColors.darkBlue2,
+      activeBackgroundColor: Styles.globalColors.blueDark,
+      inactiveBackgroundColor: Styles.globalColors.blueDark,
       // else keyboard avoiding is racy on ios and won't work correctly
       keyboardHidesTabBar: Styles.isAndroid,
       showLabel: false,
-      style: {backgroundColor: Styles.globalColors.darkBlue2},
+      style: {backgroundColor: Styles.globalColors.blueDark},
     },
   }
 )

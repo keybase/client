@@ -15,7 +15,6 @@ import * as Flow from '../util/flow'
 import * as Router2Constants from '../constants/router2'
 import HiddenString from '../util/hidden-string'
 import logger from '../logger'
-import {getPath} from '../route-tree'
 import * as Tabs from '../constants/tabs'
 import * as SettingsConstants from '../constants/settings'
 import * as I from 'immutable'
@@ -91,9 +90,7 @@ const spawnBuildPayment = (state, action, logger) => {
 const openSendRequestForm = (state, action) => {
   if (!state.wallets.acceptedDisclaimer) {
     // redirect to disclaimer
-    return flags.useNewRouter
-      ? RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']})
-      : RouteTreeGen.createNavigateTo({path: Constants.rootWalletPath})
+    return RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']})
   }
 
   // load accounts for default display currency
@@ -258,7 +255,8 @@ const clearBuilding = () => WalletsGen.createClearBuilding()
 
 const clearErrors = () => WalletsGen.createClearErrors()
 
-const loadWalletDisclaimer = () =>
+const loadWalletDisclaimer = state =>
+  !!state.config.username &&
   RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise(undefined, Constants.checkOnlineWaitingKey)
     .then(accepted => WalletsGen.createWalletDisclaimerReceived({accepted}))
     .catch(() => {}) // handled by reloadable
@@ -645,37 +643,25 @@ const navigateToAccount = (state, action) => {
     // we don't want to show, don't nav
     return
   }
-  const wallet = isMobile
-    ? [Tabs.settingsTab, SettingsConstants.walletsTab]
-    : [{props: {}, selected: Tabs.walletsTab}]
 
-  if (flags.useNewRouter) {
-    return [
-      RouteTreeGen.createClearModals(),
-      RouteTreeGen.createResetStack({
-        actions: isMobile ? [RouteTreeGen.createNavigateAppend({path: [SettingsConstants.walletsTab]})] : [],
-        index: isMobile ? 1 : 0,
-        tab: isMobile ? Tabs.settingsTab : Tabs.walletsTab,
-      }),
-    ]
-  }
-
-  return RouteTreeGen.createNavigateTo({path: wallet})
+  return [
+    RouteTreeGen.createClearModals(),
+    RouteTreeGen.createResetStack({
+      actions: isMobile ? [RouteTreeGen.createNavigateAppend({path: [SettingsConstants.walletsTab]})] : [],
+      index: isMobile ? 1 : 0,
+      tab: isMobile ? Tabs.settingsTab : Tabs.walletsTab,
+    }),
+  ]
 }
 
 const navigateToTransaction = (state, action) => {
   const {accountID, paymentID} = action.payload
   const actions = [WalletsGen.createSelectAccount({accountID, reason: 'show-transaction'})]
-  const path = [...Constants.walletPath, {props: {accountID, paymentID}, selected: 'transactionDetails'}]
-  if (flags.useNewRouter) {
-    actions.push(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {accountID, paymentID}, selected: 'transactionDetails'}],
-      })
-    )
-  } else {
-    actions.push(RouteTreeGen.createNavigateTo({path}))
-  }
+  actions.push(
+    RouteTreeGen.createNavigateAppend({
+      path: [{props: {accountID, paymentID}, selected: 'transactionDetails'}],
+    })
+  )
   return actions
 }
 
@@ -734,48 +720,21 @@ const cancelRequest = (state, action, logger) =>
   )
 
 const maybeNavigateAwayFromSendForm = state => {
-  if (flags.useNewRouter) {
-    const path = Router2Constants.getModalStack()
-    const actions = []
-    // pop off any routes that are part of the popup
-    path.reverse().some(p => {
-      if (Constants.sendRequestFormRoutes.includes(p.routeName)) {
-        actions.push(RouteTreeGen.createNavigateUp())
-        return false
-      }
-      // we're done
-      return true
-    })
-    return actions
-  } else {
-    const routeState = state.routeTree.routeState
-    const path = getPath(routeState)
-    const lastNode = path.last()
-    if (Constants.sendRequestFormRoutes.includes(lastNode)) {
-      if (path.first() === Tabs.walletsTab) {
-        // User is on send form in wallets tab, navigate back to root of tab
-        return [
-          RouteTreeGen.createNavigateTo({
-            path: [{props: {}, selected: Tabs.walletsTab}, {props: {}, selected: null}],
-          }),
-        ]
-      }
-      // User is somewhere else, send them to most recent parent that isn't a form route
-      const firstFormIndex = path.findIndex(node => Constants.sendRequestFormRoutes.includes(node))
-      const pathAboveForm = path.slice(0, firstFormIndex)
-      return [RouteTreeGen.createNavigateTo({path: pathAboveForm})]
+  const path = Router2Constants.getModalStack()
+  const actions = []
+  // pop off any routes that are part of the popup
+  path.reverse().some(p => {
+    if (Constants.sendRequestFormRoutes.includes(p.routeName)) {
+      actions.push(RouteTreeGen.createNavigateUp())
+      return false
     }
-  }
+    // we're done
+    return true
+  })
+  return actions
 }
 
 const maybeNavigateToConversation = (state, action, logger) => {
-  // nav to previewed conversation if we aren't already on the chat tab
-  const routeState = state.routeTree.routeState
-  const path = getPath(routeState)
-  if (path.first() === Tabs.chatTab) {
-    return maybeNavigateAwayFromSendForm(state)
-  }
-  // not on chat tab; preview
   logger.info('Navigating to conversation because we requested a payment')
   return Chat2Gen.createPreviewConversation({
     participants: [action.payload.requestee],
@@ -831,33 +790,24 @@ const paymentReviewed = (_, action) => {
   return WalletsGen.createReviewedPaymentReceived({banners, bid, nextButton, reviewID, seqno})
 }
 
-const maybeClearErrors = state => {
-  if (flags.useNewRouter) {
-    // maybe just clear always?
-    return WalletsGen.createClearErrors()
-  } else {
-    const routePath = getPath(state.routeTree.routeState)
-    const selectedTab = routePath.first()
-    if (selectedTab === Tabs.walletsTab) {
-      return WalletsGen.createClearErrors()
-    }
-  }
-}
+// maybe just clear always?
+const maybeClearErrors = state => WalletsGen.createClearErrors()
 
 const maybeClearNewTxs = (state, action) => {
-  const rootTab = I.List(action.payload.path).first()
-  // If we're leaving from the Wallets tab, and the Wallets tab route
-  // was the main transaction list for an account, clear new txs.
-  if (
-    state.routeTree.previousTab === Constants.rootWalletTab &&
-    rootTab !== Constants.rootWalletTab &&
-    Constants.isLookingAtWallet(state.routeTree.routeState)
-  ) {
-    const accountID = state.wallets.selectedAccount
-    if (accountID !== Types.noAccountID) {
-      return WalletsGen.createClearNewPayments({accountID})
-    }
-  }
+  // TODO fix
+  // const rootTab = I.List(action.payload.path).first()
+  // // If we're leaving from the Wallets tab, and the Wallets tab route
+  // // was the main transaction list for an account, clear new txs.
+  // if (
+  // state.routeTree.previousTab === Constants.rootWalletTab &&
+  // rootTab !== Constants.rootWalletTab
+  // // Constants.isLookingAtWallet(state.routeTree.routeState)
+  // ) {
+  // const accountID = state.wallets.selectedAccount
+  // if (accountID !== Types.noAccountID) {
+  // return WalletsGen.createClearNewPayments({accountID})
+  // }
+  // }
 }
 
 const receivedBadgeState = (state, action) =>
@@ -876,7 +826,7 @@ const checkDisclaimer = (state, _, logger) =>
   RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise()
     .then(accepted => {
       const actions = [WalletsGen.createWalletDisclaimerReceived({accepted})]
-      if (flags.useNewRouter && accepted) {
+      if (accepted) {
         // in new nav we could be in a modal anywhere in the app right now
         actions.push(RouteTreeGen.createClearModals())
         actions.push(RouteTreeGen.createSwitchTab({tab: isMobile ? Tabs.settingsTab : Tabs.walletsTab}))
@@ -894,16 +844,8 @@ const maybeNavToLinkExisting = (state, action) =>
     path: [...Constants.rootWalletPath, ...(isMobile ? ['linkExisting'] : ['wallet', 'linkExisting'])],
   })
 
-const rejectDisclaimer = (state, action) => {
-  if (flags.useNewRouter) {
-    return isMobile ? RouteTreeGen.createNavigateUp() : RouteTreeGen.createClearModals()
-  }
-  return isMobile
-    ? RouteTreeGen.createNavigateTo({
-        path: [{props: {}, selected: Tabs.settingsTab}, {props: {}, selected: null}],
-      })
-    : RouteTreeGen.createSwitchTo({path: [state.routeTree.get('previousTab') || Tabs.peopleTab]})
-}
+const rejectDisclaimer = (state, action) =>
+  isMobile ? RouteTreeGen.createNavigateUp() : RouteTreeGen.createClearModals()
 
 const loadMobileOnlyMode = (state, action, logger) => {
   let accountID = action.payload.accountID
@@ -1334,6 +1276,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     maybeClearErrors,
     'maybeClearErrors'
   )
+  // TODO fix
   yield* Saga.chainAction<RouteTreeGen.SwitchToPayload>(
     RouteTreeGen.switchTo,
     maybeClearNewTxs,
@@ -1347,9 +1290,11 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   )
 
   yield* Saga.chainAction<
-    WalletsGen.LoadAccountsPayload | ConfigGen.LoggedInPayload | WalletsGen.LoadWalletDisclaimerPayload
+    | WalletsGen.LoadAccountsPayload
+    | ConfigGen.BootstrapStatusLoadedPayload
+    | WalletsGen.LoadWalletDisclaimerPayload
   >(
-    [WalletsGen.loadAccounts, ConfigGen.loggedIn, WalletsGen.loadWalletDisclaimer],
+    [WalletsGen.loadAccounts, ConfigGen.bootstrapStatusLoaded, WalletsGen.loadWalletDisclaimer],
     loadWalletDisclaimer,
     'loadWalletDisclaimer'
   )

@@ -3,7 +3,6 @@ import * as ProfileGen from '../../actions/profile-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import ProveEnterUsername from '.'
 import {connect} from '../../util/container'
-import flags from '../../util/feature-flags'
 
 type OwnProps = {||}
 
@@ -36,9 +35,7 @@ const mapDispatchToProps = dispatch => ({
   },
   onCancel: () => {
     dispatch(ProfileGen.createCancelAddProof())
-    if (flags.useNewRouter) {
-      dispatch(RouteTreeGen.createClearModals())
-    }
+    dispatch(RouteTreeGen.createClearModals())
   },
 })
 

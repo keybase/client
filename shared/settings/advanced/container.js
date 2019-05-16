@@ -6,6 +6,7 @@ import {
   createLoadLockdownMode,
   createLoadHasRandomPw,
   createOnChangeLockdownMode,
+  createOnChangeUseNativeFrame,
 } from '../../actions/settings-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {HeaderHoc} from '../../common-adapters'
@@ -27,6 +28,7 @@ const mapStateToProps = state => {
     setLockdownModeError: setLockdownModeError?.message ?? '',
     settingLockdownMode,
     traceInProgress: Constants.traceInProgress(state),
+    useNativeFrame: state.settings.useNativeFrame,
   }
 }
 
@@ -35,6 +37,7 @@ const mapDispatchToProps = dispatch => ({
   _loadLockdownMode: () => dispatch(createLoadLockdownMode()),
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onChangeLockdownMode: (checked: boolean) => dispatch(createOnChangeLockdownMode({enabled: checked})),
+  onChangeUseNativeFrame: (checked: boolean) => dispatch(createOnChangeUseNativeFrame({enabled: checked})),
   onDBNuke: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['dbNukeConfirm']})),
   onProcessorProfile: (durationSeconds: number) => dispatch(createProcessorProfile({durationSeconds})),
   onSetOpenAtLogin: (open: boolean) => dispatch(ConfigGen.createSetOpenAtLogin({open, writeFile: true})),

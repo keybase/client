@@ -26,8 +26,8 @@ export const globalShortcut = {}
 export const session = {}
 export const dialog = {}
 export const systemPreferences = {}
-export const ipcMain = {}
-export const app = {}
+export const ipcMain = {on: () => {}}
+export const app = {getPath: () => '', on: () => {}}
 export const screen = {}
 
 export const BrowserWindow = {}

@@ -11,7 +11,6 @@ const ff: FeatureFlags = {
   airdrop: true,
   chatIndexProfilingEnabled: false,
   dbCleanEnabled: false,
-  enableDeleteFolder: false,
   foldersInProfileTab: true,
   kbfsOfflineMode: true,
   moveOrCopy: true,
@@ -19,7 +18,6 @@ const ff: FeatureFlags = {
   outOfDateBanner: true,
   plansEnabled: false,
   proofProviders: true,
-  useNewRouter: false,
 }
 
 console.warn('feature flag mock in effect')

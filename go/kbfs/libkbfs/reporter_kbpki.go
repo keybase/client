@@ -336,6 +336,7 @@ func (r *ReporterKBPKI) send(ctx context.Context) {
 			if nt != keybase1.FSNotificationType_REKEYING &&
 				nt != keybase1.FSNotificationType_INITIALIZED &&
 				nt != keybase1.FSNotificationType_CONNECTION &&
+				nt != keybase1.FSNotificationType_SYNC_CONFIG_CHANGED &&
 				st != keybase1.FSStatusCode_ERROR {
 				continue
 			}
@@ -556,6 +557,20 @@ func mdReadSuccessNotification(handle *tlfhandle.Handle,
 		Filename:         string(handle.GetCanonicalPath()),
 		StatusCode:       keybase1.FSStatusCode_START,
 		NotificationType: keybase1.FSNotificationType_MD_READ_SUCCESS,
+		Params:           params,
+	}
+}
+
+func syncConfigChangeNotification(handle *tlfhandle.Handle,
+	fsc keybase1.FolderSyncConfig) *keybase1.FSNotification {
+	params := map[string]string{
+		"syncMode": fsc.Mode.String(),
+	}
+	return &keybase1.FSNotification{
+		FolderType:       handle.Type().FolderType(),
+		Filename:         string(handle.GetCanonicalPath()),
+		StatusCode:       keybase1.FSStatusCode_START,
+		NotificationType: keybase1.FSNotificationType_SYNC_CONFIG_CHANGED,
 		Params:           params,
 	}
 }

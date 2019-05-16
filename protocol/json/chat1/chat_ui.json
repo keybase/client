@@ -66,6 +66,10 @@
         },
         {
           "type": "string",
+          "name": "headlineDecorated"
+        },
+        {
+          "type": "string",
           "name": "snippet"
         },
         {
@@ -270,6 +274,10 @@
         {
           "type": "string",
           "name": "headline"
+        },
+        {
+          "type": "string",
+          "name": "headlineDecorated"
         },
         {
           "type": "keybase1.TLFVisibility",
@@ -971,7 +979,9 @@
         "PAYMENT_0",
         "ATMENTION_1",
         "CHANNELNAMEMENTION_2",
-        "MAYBEMENTION_3"
+        "MAYBEMENTION_3",
+        "LINK_4",
+        "MAILTO_5"
       ]
     },
     {
@@ -982,6 +992,20 @@
         "USER_1",
         "TEAM_2",
         "NOTHING_3"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UILinkDecoration",
+      "fields": [
+        {
+          "type": "string",
+          "name": "display"
+        },
+        {
+          "type": "string",
+          "name": "url"
+        }
       ]
     },
     {
@@ -1057,6 +1081,20 @@
             "def": false
           },
           "body": "MaybeMention"
+        },
+        {
+          "label": {
+            "name": "LINK",
+            "def": false
+          },
+          "body": "UILinkDecoration"
+        },
+        {
+          "label": {
+            "name": "MAILTO",
+            "def": false
+          },
+          "body": "UILinkDecoration"
         }
       ]
     },

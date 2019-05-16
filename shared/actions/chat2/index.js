@@ -27,12 +27,10 @@ import chatTeamBuildingSaga from './team-building'
 import * as TeamsConstants from '../../constants/teams'
 import logger from '../../logger'
 import {isMobile} from '../../constants/platform'
-import {getPath} from '../../route-tree'
 import {NotifyPopup} from '../../native/notifications'
 import {saveAttachmentToCameraRoll, showShareActionSheetFromFile} from '../platform-specific'
 import {downloadFilePath} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
-import flags from '../../util/feature-flags'
 import {RPCError} from '../../util/errors'
 import HiddenString from '../../util/hidden-string'
 
@@ -667,15 +665,12 @@ const onChatSetConvRetention = (_, action, logger) => {
 const onChatSetConvSettings = (_, action, logger) => {
   const {conv, convID} = action.payload.params
   const conversationIDKey = Types.conversationIDToKey(convID)
-  const newRole =
-    conv &&
-    conv.convSettings &&
-    conv.convSettings.minWriterRoleInfo &&
-    conv.convSettings.minWriterRoleInfo.role
+  const newRole = conv?.convSettings?.minWriterRoleInfo?.role
   const role = newRole && TeamsConstants.teamRoleByEnum[newRole]
+  const cannotWrite = conv?.convSettings?.minWriterRoleInfo?.cannotWrite
   logger.info(`got new minWriterRole ${role || ''} for convID ${conversationIDKey}`)
-  if (role && role !== 'none') {
-    return Chat2Gen.createSaveMinWriterRole({conversationIDKey, role})
+  if (role && role !== 'none' && cannotWrite !== undefined) {
+    return Chat2Gen.createSaveMinWriterRole({cannotWrite, conversationIDKey, role})
   }
   logger.warn(
     `got NotifyChat.ChatSetConvSettings with no valid minWriterRole for convID ${conversationIDKey}. The local version may be out of date.`
@@ -1344,6 +1339,7 @@ function* threadSearch(state, action, logger) {
           convID: Types.keyToConversationID(conversationIDKey),
           forceReindex: false,
           isRegex: false,
+          matchMentions: false,
           maxConvsHit: 0,
           maxConvsSearched: 0,
           maxHits: 1000,
@@ -1453,6 +1449,7 @@ function* inboxSearch(state, action, logger) {
           afterContext: 0,
           beforeContext: 0,
           isRegex: false,
+          matchMentions: false,
           maxConvsHit: Constants.inboxSearchMaxTextResults,
           maxConvsSearched: 0,
           maxHits: Constants.inboxSearchMaxTextMessages,
@@ -1508,13 +1505,8 @@ function* messageSend(state, action, logger) {
   ]
   const onHideConfirm = ({canceled}) =>
     Saga.callUntyped(function*() {
-      const state = yield* Saga.selectState()
-      if (!flags.useNewRouter && getPath(state.routeTree.routeState).last() === confirmRouteName) {
-        yield Saga.put(RouteTreeGen.createNavigateUp())
-      } else if (flags.useNewRouter) {
-        if (Router2Constants.getVisibleScreen()?.routeName === confirmRouteName) {
-          yield Saga.put(RouteTreeGen.createClearModals())
-        }
+      if (Router2Constants.getVisibleScreen()?.routeName === confirmRouteName) {
+        yield Saga.put(RouteTreeGen.createClearModals())
       }
       if (canceled) {
         yield Saga.put(Chat2Gen.createSetUnsentText({conversationIDKey, text}))
@@ -1575,10 +1567,19 @@ const confirmScreenResponse = (_, action) => {
 }
 
 // We always make adhoc convos and never preview it
-const previewConversationPersonMakesAConversation = (state, action) =>
-  !action.payload.teamname &&
-  action.payload.participants &&
-  Chat2Gen.createCreateConversation({participants: action.payload.participants})
+const previewConversationPersonMakesAConversation = (state, action) => {
+  const {participants} = action.payload
+  return (
+    !action.payload.teamname &&
+    participants && [
+      Chat2Gen.createSelectConversation({
+        conversationIDKey: Constants.pendingWaitingConversationIDKey,
+        reason: 'justCreated',
+      }),
+      Chat2Gen.createCreateConversation({participants}),
+    ]
+  )
+}
 
 // We preview channels
 const previewConversationTeam = (state, action) => {
@@ -1631,7 +1632,7 @@ const previewConversationTeam = (state, action) => {
 }
 
 const startupInboxLoad = state =>
-  state.config.username ? Chat2Gen.createInboxRefresh({reason: 'bootstrap'}) : undefined
+  !!state.config.username && Chat2Gen.createInboxRefresh({reason: 'bootstrap'})
 
 const changeSelectedConversation = (state, action, logger) => {
   if (!isMobile) {
@@ -1648,6 +1649,10 @@ const _maybeAutoselectNewestConversation = (state, action, logger) => {
     avoidTeam = action.payload.teamname
   }
   let selected = Constants.getSelectedConversation(state)
+  if (selected === Constants.pendingWaitingConversationIDKey) {
+    // never auto select when we're building one
+    return
+  }
   const selectedMeta = state.chat2.metaMap.get(selected)
   if (!selectedMeta) {
     selected = Constants.noConversationIDKey
@@ -2063,40 +2068,7 @@ const navigateToInbox = (state, action, logger) => {
   if (action.type === Chat2Gen.leaveConversation && action.payload.dontNavigateToInbox) {
     return
   }
-  if (flags.useNewRouter) {
-    return RouteTreeGen.createNavUpToScreen({routeName: Tabs.chatTab})
-  }
-  let resetRouteAction = RouteTreeGen.createNavigateTo({
-    path: flags.useNewRouter
-      ? [{props: {}, selected: Tabs.chatTab}]
-      : [{props: {}, selected: Tabs.chatTab}, {props: {}, selected: null}],
-  })
-  if (action.type === TeamsGen.leaveTeam || action.type === TeamsGen.leftTeam) {
-    const {context, teamname} = action.payload
-    switch (action.type) {
-      case TeamsGen.leaveTeam:
-        if (context !== 'chat' && Constants.isTeamConversationSelected(state, teamname)) {
-          // If we're leaving a team from somewhere else and we have a team convo
-          // selected, reset the chat tab to the root
-          logger.info(`chat:navigateToInbox resetting chat tab nav stack to root because of leaveTeam`)
-          return RouteTreeGen.createNavigateTo({parentPath: [Tabs.chatTab], path: []})
-        }
-        break
-      case TeamsGen.leftTeam:
-        if (context === 'chat') {
-          // If we've left a team from the chat tab indiscriminately navigate to
-          // the tab root
-          logger.info(`chat:navigateToInbox navigating to cleared chat routes because of leftTeam`)
-          return resetRouteAction
-        }
-    }
-    return
-  }
-  const actions = [resetRouteAction]
-  if (action.type === Chat2Gen.navigateToInbox && action.payload.findNewConversation && !isMobile) {
-    actions.push(_maybeAutoselectNewestConversation(state, action, logger))
-  }
-  return actions
+  return RouteTreeGen.createNavUpToScreen({routeName: Tabs.chatTab})
 }
 
 // Unchecked version of Chat2Gen.createNavigateToThread() --
@@ -2104,15 +2076,26 @@ const navigateToInbox = (state, action, logger) => {
 // (which doesn't count as valid).
 //
 const navigateToThreadRoute = conversationIDKey => {
-  if (!flags.useNewRouter) {
-    return RouteTreeGen.createNavigateTo({path: Constants.threadRoute})
-  }
-  if (!isMobile && Router2Constants.getVisibleScreen()?.routeName === 'chatRoot') {
+  let replace = false
+
+  const visible = Router2Constants.getVisibleScreen()
+
+  if (!isMobile && visible?.routeName === 'chatRoot') {
     // Don't append; we don't want to increase the size of the stack on desktop
     return
   }
+
+  // looking at the pending screen?
+  if (
+    visible?.routeName === 'chatConversation' &&
+    visible?.params?.conversationIDKey === Constants.pendingWaitingConversationIDKey
+  ) {
+    replace = true
+  }
+
   return RouteTreeGen.createNavigateAppend({
     path: [{props: {conversationIDKey}, selected: isMobile ? 'chatConversation' : 'chatRoot'}],
+    replace,
   })
 }
 
@@ -2139,26 +2122,14 @@ const mobileNavigateOnSelect = (state, action) => {
       return // never nav if this is from a nav
     }
     return navigateToThreadRoute(state.chat2.selectedConversation)
+  } else if (action.payload.conversationIDKey === Constants.pendingWaitingConversationIDKey) {
+    return navigateToThreadRoute(action.payload.conversationIDKey)
   }
 }
 
 const desktopNavigateOnSelect = (state, action) => {
   if (action.payload.reason === 'findNewestConversation') return
   return navigateToThreadRoute(state.chat2.selectedConversation)
-}
-
-const mobileChangeSelection = state => {
-  if (flags.useNewRouter) {
-    return
-  }
-  const routePath = getPath(state.routeTree.routeState)
-  const inboxSelected = routePath.size === 1 && routePath.get(0) === Tabs.chatTab
-  if (inboxSelected) {
-    return Chat2Gen.createSelectConversation({
-      conversationIDKey: Constants.noConversationIDKey,
-      reason: 'clearSelected',
-    })
-  }
 }
 
 // Native share sheet for attachments
@@ -2357,6 +2328,7 @@ function* createConversation(state, action, logger) {
       },
       Constants.waitingKeyCreating
     )
+
     const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
     if (!conversationIDKey) {
       logger.warn("Couldn't make a new conversation?")
@@ -2640,22 +2612,12 @@ const unfurlResolvePrompt = (state, action) => {
 }
 
 const toggleInfoPanel = (state, action) => {
-  if (flags.useNewRouter) {
-    if (Router2Constants.getVisibleScreen()?.routeName === 'chatInfoPanel') {
-      return RouteTreeGen.createNavigateUp()
-    } else {
-      return RouteTreeGen.createNavigateAppend({
-        path: [{props: {conversationIDKey: state.chat2.selectedConversation}, selected: 'chatInfoPanel'}],
-      })
-    }
+  if (Router2Constants.getVisibleScreen()?.routeName === 'chatInfoPanel') {
+    return RouteTreeGen.createNavigateUp()
   } else {
-    if (Constants.isInfoPanelOpen(state)) {
-      return RouteTreeGen.createNavigateTo({parentPath: [Tabs.chatTab], path: ['chatConversation']})
-    } else {
-      return RouteTreeGen.createNavigateAppend({
-        path: [{props: {conversationIDKey: state.chat2.selectedConversation}, selected: 'chatInfoPanel'}],
-      })
-    }
+    return RouteTreeGen.createNavigateAppend({
+      path: [{props: {conversationIDKey: state.chat2.selectedConversation}, selected: 'chatInfoPanel'}],
+    })
   }
 }
 
@@ -2720,9 +2682,7 @@ const resolveMaybeMention = (state, action) => {
 
 const openChatFromWidget = (state, {payload: {conversationIDKey}}) => [
   ConfigGen.createShowMain(),
-  flags.useNewRouter
-    ? RouteTreeGen.createSwitchTab({tab: Tabs.chatTab})
-    : RouteTreeGen.createSwitchTo({path: [Tabs.chatTab]}),
+  RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
   ...(conversationIDKey
     ? [Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSmall'})]
     : []),
@@ -2840,12 +2800,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.messageAttachmentNativeSave,
       mobileMessageAttachmentSave,
       'mobileMessageAttachmentSave'
-    )
-    // Unselect the conversation when we go to the inbox
-    yield* Saga.chainAction<any>(
-      a => typeof a.type === 'string' && a.type.startsWith(RouteTreeGen.typePrefix),
-      mobileChangeSelection,
-      'mobileChangeSelection'
     )
   } else {
     yield* Saga.chainGenerator<Chat2Gen.DesktopNotificationPayload>(
@@ -3024,7 +2978,11 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<Chat2Gen.OpenFolderPayload>(Chat2Gen.openFolder, openFolder)
 
   // On login lets load the untrusted inbox. This helps make some flows easier
-  yield* Saga.chainAction<ConfigGen.LoggedInPayload>(ConfigGen.loggedIn, startupInboxLoad, 'startupInboxLoad')
+  yield* Saga.chainAction<ConfigGen.BootstrapStatusLoadedPayload>(
+    ConfigGen.bootstrapStatusLoaded,
+    startupInboxLoad,
+    'startupInboxLoad'
+  )
 
   // Search handling
   yield* Saga.chainAction<SearchGen.UserInputItemsUpdatedPayload>(

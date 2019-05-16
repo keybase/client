@@ -3224,6 +3224,9 @@ type conflictRecord struct {
 
 func getAndDeserializeConflicts(config Config, db *LevelDb,
 	key []byte) ([]conflictRecord, error) {
+	if db == nil {
+		return nil, errors.New("No conflict DB given")
+	}
 	conflictsSoFarSerialized, err := db.Get(key, nil)
 	var conflictsSoFar []conflictRecord
 	switch errors.Cause(err) {
@@ -3242,6 +3245,10 @@ func getAndDeserializeConflicts(config Config, db *LevelDb,
 
 func serializeAndPutConflicts(config Config, db *LevelDb,
 	key []byte, conflicts []conflictRecord) error {
+	if db == nil {
+		return errors.New("No conflict DB given")
+	}
+
 	conflictsSerialized, err := config.Codec().Encode(conflicts)
 	if err != nil {
 		return err
@@ -3250,6 +3257,11 @@ func serializeAndPutConflicts(config Config, db *LevelDb,
 }
 
 func isCRStuckFromRecords(conflictsSoFar []conflictRecord) bool {
+	// If we're exactly at the threshold, make sure the last attempt
+	// has completed.
+	if len(conflictsSoFar) == maxConflictResolutionAttempts+1 {
+		return !conflictsSoFar[len(conflictsSoFar)-1].ErrorTime.IsZero()
+	}
 	return len(conflictsSoFar) > maxConflictResolutionAttempts
 }
 
@@ -3299,12 +3311,11 @@ func (cr *ConflictResolver) recordStartResolve(ci conflictInput) error {
 func (cr *ConflictResolver) recordFinishResolve(
 	ctx context.Context, ci conflictInput,
 	panicVar interface{}, receivedErr error) {
-	db := cr.config.GetConflictResolutionDB()
-	if db == nil {
-		cr.log.CWarningf(ctx, "could not record CR result to nil DB")
+	db, key, _, wasStuck, err := cr.isStuckWithDbAndConflicts()
+	if err != nil {
+		cr.log.CWarningf(ctx, "could not record CR result: %+v", err)
 		return
 	}
-	key := cr.fbo.id().Bytes()
 
 	// If we neither errored nor panicked, this CR succeeded and we can wipe
 	// the DB entry.
@@ -3315,10 +3326,13 @@ func (cr *ConflictResolver) recordFinishResolve(
 			cr.log.CWarningf(ctx,
 				"Could not record conflict resolution success: %v", err)
 		}
+
+		if wasStuck {
+			cr.config.KeybaseService().NotifyFavoritesChanged(ctx)
+		}
 		return
 	}
 
-	var err error
 	defer func() {
 		// If we can't record the failure to the CR DB, at least log it.
 		if err != nil {
@@ -3351,6 +3365,15 @@ func (cr *ConflictResolver) recordFinishResolve(
 	}
 
 	err = serializeAndPutConflicts(cr.config, db, key, conflictsSoFar)
+	if err != nil {
+		cr.log.CWarningf(ctx,
+			"Could not record conflict resolution success: %+v", err)
+		return
+	}
+
+	if !wasStuck && isCRStuckFromRecords(conflictsSoFar) {
+		cr.config.KeybaseService().NotifyFavoritesChanged(ctx)
+	}
 }
 
 func (cr *ConflictResolver) makeDiskBlockCache(ctx context.Context) (
@@ -3697,13 +3720,21 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	// to clean up the quota anyway . . .)
 }
 
-func (cr *ConflictResolver) clearConflictRecords() error {
-	db := cr.config.GetConflictResolutionDB()
-	if db == nil {
-		return errNoCRDB
+func (cr *ConflictResolver) clearConflictRecords(ctx context.Context) error {
+	db, key, _, wasStuck, err := cr.isStuckWithDbAndConflicts()
+	if err != nil {
+		return err
 	}
-	key := cr.fbo.id().Bytes()
-	return db.Delete(key, nil)
+
+	err = db.Delete(key, nil)
+	if err != nil {
+		return err
+	}
+
+	if wasStuck {
+		cr.config.KeybaseService().NotifyFavoritesChanged(ctx)
+	}
+	return nil
 }
 
 func openCRDBInternal(config Config) (*LevelDb, error) {

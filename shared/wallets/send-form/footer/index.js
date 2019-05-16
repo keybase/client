@@ -9,7 +9,7 @@ type Props = {
   disabled?: boolean,
   onClickRequest?: Function,
   onClickSend?: Function,
-  sendDisabledDueToMobileOnly: boolean,
+  thisDeviceIsLockedOut: boolean,
   waitingKey: string,
   worthDescription?: string,
 }
@@ -85,7 +85,7 @@ const Footer = (props: Props) => {
             />
           )}
           {!!props.onClickSend &&
-            (props.sendDisabledDueToMobileOnly ? (
+            (props.thisDeviceIsLockedOut ? (
               <Kb.WithTooltip text="This is a mobile-only wallet." containerStyle={styles.fullWidth}>
                 {sendButton}
               </Kb.WithTooltip>
@@ -101,7 +101,7 @@ const Footer = (props: Props) => {
 const styles = Styles.styleSheetCreate({
   background: Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.blue5,
+      backgroundColor: Styles.globalColors.blueLighter3,
     },
     isElectron: {
       borderBottomLeftRadius: 4,

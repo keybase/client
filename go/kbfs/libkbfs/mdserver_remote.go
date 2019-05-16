@@ -166,7 +166,7 @@ func (md *MDServerRemote) initNewConnection() {
 	md.client = keybase1.MetadataClient{Cli: md.conn.GetClient()}
 }
 
-const reconnectTimeout = 30 * time.Second
+const reconnectTimeout = 10 * time.Second
 
 func (md *MDServerRemote) reconnectContext(ctx context.Context) error {
 	md.connMu.Lock()

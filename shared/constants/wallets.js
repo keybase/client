@@ -9,7 +9,6 @@ import * as SettingsConstants from './settings'
 import {invert} from 'lodash-es'
 import {type TypedState} from './reducer'
 import HiddenString from '../util/hidden-string'
-import {getPath, type RouteStateNode} from '../route-tree'
 
 export const balanceDeltaToString: {
   [key: RPCTypes.BalanceDelta]: $Keys<typeof RPCTypes.localBalanceDelta>,
@@ -251,6 +250,8 @@ const _defaultPaymentCommon = {
   showCancel: false,
   source: '',
   sourceAccountID: '',
+  sourceAmount: '',
+  sourceAsset: '',
   sourceType: '',
   statusDescription: '',
   statusDetail: '',
@@ -378,6 +379,8 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal | RPCTypes.PaymentDe
     showCancel: p.showCancel,
     source,
     sourceAccountID: p.fromAccountID,
+    sourceAmount: p.sourceAmountActual,
+    sourceAsset: p.sourceAsset.code,
     sourceType,
     statusDescription: p.statusDescription,
     statusDetail: p.statusDetail,
@@ -612,10 +615,17 @@ export const getCurrencyAndSymbol = (state: TypedState, code: string) => {
 
 export const getAcceptedDisclaimer = (state: TypedState) => state.wallets.acceptedDisclaimer
 
+// The device is read-only if it's a desktop device and mobile-only is on, or it's a mobile device
+// that's less than seven days old.  TODO: Use a `deviceReadOnly` field insstead once it exists.
+export const getThisDeviceIsLockedOut = (state: TypedState, accountID: Types.AccountID) =>
+  Styles.isMobile
+    ? !getAccount(state, accountID).mobileOnlyEditable
+    : state.wallets.mobileOnlyMap.get(accountID, false)
+
 export const balanceChangeColor = (delta: Types.PaymentDelta, status: Types.StatusSimplified) => {
   let balanceChangeColor = Styles.globalColors.black
   if (delta !== 'none') {
-    balanceChangeColor = delta === 'increase' ? Styles.globalColors.green : Styles.globalColors.purple
+    balanceChangeColor = delta === 'increase' ? Styles.globalColors.green : Styles.globalColors.purpleDark
   }
   if (status !== 'completed') {
     balanceChangeColor = Styles.globalColors.black_20
@@ -634,9 +644,3 @@ export const balanceChangeSign = (delta: Types.PaymentDelta, balanceChange: stri
 export const rootWalletTab = Styles.isMobile ? Tabs.settingsTab : Tabs.walletsTab // tab for wallets
 export const rootWalletPath = [rootWalletTab, ...(Styles.isMobile ? [SettingsConstants.walletsTab] : [])] // path to wallets
 export const walletPath = Styles.isMobile ? rootWalletPath : [...rootWalletPath, 'wallet'] // path to wallet
-
-const walletPathList = I.List(walletPath)
-export const isLookingAtWallet = (routeState: ?RouteStateNode) => {
-  const path = getPath(routeState, [rootWalletTab])
-  return path.equals(walletPathList)
-}

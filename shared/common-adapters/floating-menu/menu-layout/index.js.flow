@@ -3,6 +3,7 @@ import * as React from 'react'
 
 export type MenuItem = {|
   danger?: boolean,
+  decoration?: React.Node, // on the right side. unused if `view` is given
   disabled?: boolean,
   newTag?: ?boolean,
   onClick?: ?(evt?: SyntheticEvent<>) => void,
@@ -22,7 +23,7 @@ export type MenuLayoutProps = {
   closeOnClick?: boolean,
   style?: Object,
   hoverColor?: string,
-  closeText?:?string, // mobile only; default to "Close"
+  closeText?: ?string, // mobile only; default to "Close"
 }
 
 export default class MenuLayout extends React.Component<MenuLayoutProps> {}

@@ -25,7 +25,6 @@ type ConfirmSendProps = {|
 
 const ConfirmSend = (props: ConfirmSendProps) => (
   <Kb.MaybePopup onClose={props.onClose}>
-    <Kb.SafeAreaViewTop style={styles.backgroundColorPurple} />
     <Kb.Box2 direction="vertical" fullHeight={!Styles.isMobile} fullWidth={true} style={styles.container}>
       <Header
         onBack={props.onBack}
@@ -90,7 +89,7 @@ const ConfirmSend = (props: ConfirmSendProps) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  backgroundColorPurple: {backgroundColor: Styles.globalColors.purple},
+  backgroundColorPurple: {backgroundColor: Styles.globalColors.purpleDark},
   button: {
     marginBottom: Styles.globalMargins.small,
     marginTop: Styles.globalMargins.small,

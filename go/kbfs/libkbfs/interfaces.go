@@ -139,6 +139,10 @@ type blockRetrieverGetter interface {
 	BlockRetriever() BlockRetriever
 }
 
+type settingsDBGetter interface {
+	GetSettingsDB() *SettingsDB
+}
+
 // NodeID is a unique but transient ID for a Node. That is, two Node
 // objects in memory at the same time represent the same file or
 // directory if and only if their NodeIDs are equal (by pointer).
@@ -598,6 +602,10 @@ type KeybaseService interface {
 	// notification.
 	NotifyOverallSyncStatus(
 		ctx context.Context, status keybase1.FolderSyncStatus) error
+
+	// NotifyFavoritesChanged sends a notification that favorites have
+	// changed.
+	NotifyFavoritesChanged(ctx context.Context) error
 
 	// FlushUserFromLocalCache instructs this layer to clear any
 	// KBFS-side, locally-cached information about the given user.
@@ -1936,6 +1944,7 @@ type Config interface {
 	diskLimiterGetter
 	syncedTlfGetterSetter
 	initModeGetter
+	settingsDBGetter
 	SetMode(mode InitMode)
 	Tracer
 	KBFSOps() KBFSOps

@@ -298,18 +298,21 @@ func (f *Favorites) closeReq(req *favReq, err error) {
 
 // sendChangesToEditHistory notes any deleted favorites and removes them
 // from this user's kbfsedits.UserHistory.
-func (f *Favorites) sendChangesToEditHistory(oldCache map[favorites.Folder]favorites.Data) {
+func (f *Favorites) sendChangesToEditHistory(oldCache map[favorites.Folder]favorites.Data) (changed bool) {
 	for oldFav := range oldCache {
 		if _, present := f.favCache[oldFav]; !present {
 			f.config.UserHistory().ClearTLF(tlf.CanonicalName(oldFav.Name),
 				oldFav.Type)
+			changed = true
 		}
 	}
 	for newFav := range f.favCache {
 		if _, present := oldCache[newFav]; !present {
 			f.config.KBFSOps().RefreshEditHistory(newFav)
+			changed = true
 		}
 	}
+	return changed
 }
 
 func favoriteToFolder(fav favorites.Folder, data favorites.Data) keybase1.Folder {
@@ -339,6 +342,7 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 	// quickly when offline.
 	needFetch := (req.refresh || f.favCache == nil) && !req.clear
 	wantFetch := f.config.Clock().Now().After(f.cacheExpireTime) && !req.clear
+	changed := false
 	if needFetch || wantFetch {
 		getCtx := req.ctx
 		if !needFetch {
@@ -429,11 +433,12 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 				}
 			}
 			if oldCache != nil {
-				f.sendChangesToEditHistory(oldCache)
+				changed = f.sendChangesToEditHistory(oldCache)
 			}
 		}
 	} else if req.clear {
 		f.favCache = nil
+		f.config.KeybaseService().NotifyFavoritesChanged(req.ctx)
 		return nil
 	}
 
@@ -450,6 +455,7 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 			return err
 		}
 		f.favCache[fav.Folder] = fav.Data
+		changed = true
 	}
 
 	for _, fav := range req.toDel {
@@ -462,6 +468,11 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 		}
 		delete(f.favCache, fav)
 		f.config.UserHistory().ClearTLF(tlf.CanonicalName(fav.Name), fav.Type)
+		changed = true
+	}
+
+	if changed {
+		f.config.KeybaseService().NotifyFavoritesChanged(req.ctx)
 	}
 
 	if req.favs != nil {

@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Constants from '../../constants/devices'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import flags from '../../util/feature-flags'
 
 type Props = {
   paperkey: string,
@@ -21,7 +20,6 @@ class PaperKey extends React.Component<Props, State> {
   render() {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        {!flags.useNewRouter && <Kb.HeaderHocHeader onBack={this.props.onBack} headerStyle={styles.header} />}
         <Kb.Box2
           direction="vertical"
           fullWidth={true}

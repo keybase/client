@@ -82,6 +82,11 @@ function payloadKeys(p: Object) {
   return Object.keys(p).filter(key => !reservedPayloadKeys.includes(key))
 }
 
+function payloadOptional(p: Object) {
+  const keys = payloadKeys(p)
+  return keys.length && keys.every(key => key.endsWith('?'))
+}
+
 function printPayload(p: Object) {
   return payloadKeys(p).length
     ? '$ReadOnly<{|' +
@@ -115,6 +120,7 @@ function compilePayloadTypes(ns: ActionNS, actionName: ActionName, desc: ActionD
 }
 
 function compileActionCreator(ns: ActionNS, actionName: ActionName, desc: ActionDesc) {
+  const {canError, ...noErrorPayload} = desc
   return (
     (desc._description
       ? `/**
@@ -122,7 +128,9 @@ function compileActionCreator(ns: ActionNS, actionName: ActionName, desc: Action
      */
     `
       : '') +
-    `export const create${capitalize(actionName)} = (payload: _${capitalize(actionName)}Payload) => (
+    `export const create${capitalize(actionName)} = (payload: _${capitalize(actionName)}Payload${
+      payloadOptional(noErrorPayload) ? ' = Object.freeze({})' : ''
+    }) => (
   { payload, type: ${actionName}, }
 )` +
     (desc.canError

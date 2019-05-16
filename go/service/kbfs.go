@@ -84,6 +84,11 @@ func (h *KBFSHandler) FSOverallSyncEvent(
 	return nil
 }
 
+func (h *KBFSHandler) FSFavoritesChangedEvent(_ context.Context) (err error) {
+	h.G().NotifyRouter.HandleFSFavoritesChanged()
+	return nil
+}
+
 // checkConversationRekey looks for rekey finished notifications and tries to
 // find any conversations associated with the rekeyed TLF.  If it finds any,
 // it will send ChatThreadsStale notifications for them.

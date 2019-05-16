@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
 import Banner from '../bottom-banner/container'
-import HeaderArea from '../header-area/container'
 import InputArea from '../input-area/container'
 import ListArea from '../list-area/container'
 import * as Kb from '../../../common-adapters'
@@ -50,10 +49,6 @@ class Conversation extends React.PureComponent<Props, State> {
       <Kb.Box className="conversation" style={styles.container} onPaste={this._onPaste}>
         <Kb.DragAndDrop onAttach={this.props.onAttach}>
           {this.props.threadLoadedOffline && <Offline />}
-          <HeaderArea
-            onToggleInfoPanel={this.props.onToggleInfoPanel}
-            conversationIDKey={this.props.conversationIDKey}
-          />
           {this.props.showLoader && <Kb.LoadingLine />}
           <ListArea
             onFocusInput={this.props.onFocusInput}

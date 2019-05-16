@@ -14,8 +14,7 @@ const mapStateToPropsSendButton = state => {
   const _account = Constants.getSelectedAccountData(state)
   return {
     _account,
-    disabledDueToMobileOnly:
-      !Container.isMobile && state.wallets.mobileOnlyMap.get(_account.accountID, false),
+    thisDeviceIsLockedOut: Constants.getThisDeviceIsLockedOut(state, _account.accountID),
   }
 }
 
@@ -31,14 +30,14 @@ const mapDispatchToPropsSendButton = dispatch => ({
 })
 
 const mergePropsSendButton = (stateProps, dispatchProps, ownProps) => ({
-  disabled: !stateProps._account.name || stateProps.disabledDueToMobileOnly,
-  disabledDueToMobileOnly: stateProps.disabledDueToMobileOnly,
+  disabled: !stateProps._account.name || stateProps.thisDeviceIsLockedOut,
   onSendToAnotherAccount: () =>
     dispatchProps._onGoToSendReceive(stateProps._account.accountID, 'otherAccount'),
   onSendToKeybaseUser: () => dispatchProps._onGoToSendReceive(stateProps._account.accountID, 'keybaseUser'),
   onSendToStellarAddress: () =>
     dispatchProps._onGoToSendReceive(stateProps._account.accountID, 'stellarPublicKey'),
   small: ownProps.small,
+  thisDeviceIsLockedOut: stateProps.thisDeviceIsLockedOut,
 })
 
 export const SendButton = Container.namedConnect<SendButtonOwnProps, _, _, _, _>(
@@ -82,7 +81,7 @@ const mapDispatchToPropsDropdownButton = dispatch => ({
 const mergePropsDropdownButton = (stateProps, dispatchProps, ownProps) => ({
   disabled: !stateProps._account.name,
   onSettings: () => dispatchProps._onSettings(stateProps._account.accountID),
-  onShowSecretKey: stateProps.disabledDueToMobileOnly
+  onShowSecretKey: stateProps.thisDeviceIsLockedOut
     ? null
     : () => dispatchProps._onShowSecretKey(stateProps._account.accountID, stateProps._account.name),
   small: ownProps.small,

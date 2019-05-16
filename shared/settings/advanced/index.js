@@ -2,11 +2,12 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {isLinux} from '../../constants/platform'
+import {isMobile, isLinux, defaultUseNativeFrame} from '../../constants/platform'
 import flags from '../../util/feature-flags'
 // normally never do this but this call serves no purpose for users at all
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import AppState from '../../app/app-state'
 
 type Props = {
   openAtLogin: boolean,
@@ -22,6 +23,32 @@ type Props = {
   traceInProgress: boolean,
   processorProfileInProgress: boolean,
   hasRandomPW: boolean,
+  useNativeFrame: boolean,
+  onChangeUseNativeFrame: boolean => void,
+}
+
+const initialUseNativeFrame = new AppState().state.useNativeFrame ?? defaultUseNativeFrame
+
+const UseNativeFrame = (props: Props) => {
+  return (
+    !isMobile && (
+      <>
+        <Kb.Box style={styles.checkboxContainer}>
+          <Kb.Checkbox
+            checked={!props.useNativeFrame}
+            label={'Hide system window frame'}
+            onCheck={x => props.onChangeUseNativeFrame(!x)}
+            style={styles.checkbox}
+          />
+        </Kb.Box>
+        {initialUseNativeFrame !== props.useNativeFrame && (
+          <Kb.Text type="BodySmall" style={styles.error}>
+            Keybase needs to restart for this change to take effect.
+          </Kb.Text>
+        )}
+      </>
+    )
+  )
 }
 
 const Advanced = (props: Props) => {
@@ -48,6 +75,7 @@ const Advanced = (props: Props) => {
           {props.setLockdownModeError}
         </Kb.Text>
       )}
+      {isLinux && <UseNativeFrame {...props} />}
       {!Styles.isMobile && !isLinux && (
         <Kb.Box style={styles.openAtLoginCheckboxContainer}>
           <Kb.Checkbox

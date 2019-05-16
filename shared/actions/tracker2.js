@@ -1,12 +1,11 @@
 // @flow
 import * as Tracker2Gen from './tracker2-gen'
-import * as ProfileGen from './profile-gen'
 import * as EngineGen from './engine-gen-gen'
+import * as ProfileGen from './profile-gen'
 import * as Saga from '../util/saga'
 import * as Constants from '../constants/tracker2'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
-import flags from '../util/feature-flags'
 
 const identify3Result = (_, action) => {
   const {guiID, result} = action.payload.params
@@ -192,15 +191,14 @@ const showUser = (_, action) => {
   const load = Tracker2Gen.createLoad({
     assertion: action.payload.username,
     // with new nav we never show trackers from inside the app
-    forceDisplay: flags.useNewRouter ? false : action.payload.asTracker,
+    forceDisplay: false,
     fromDaemon: false,
     guiID: Constants.generateGUIID(),
     ignoreCache: true,
     inTracker: action.payload.asTracker,
     reason: '',
   })
-
-  if (flags.useNewRouter && !action.payload.skipNav) {
+  if (!action.payload.skipNav) {
     // go to profile page
     return [load, ProfileGen.createShowUserProfile({username: action.payload.username})]
   } else {

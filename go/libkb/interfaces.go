@@ -681,8 +681,17 @@ type TeamLoader interface {
 	MapTeamAncestors(ctx context.Context, f func(t keybase1.TeamSigChainState) error, teamID keybase1.TeamID, reason string, forceFullReloadOnceToAssert func(t keybase1.TeamSigChainState) bool) error
 	NotifyTeamRename(ctx context.Context, id keybase1.TeamID, newName string) error
 	Load(context.Context, keybase1.LoadTeamArg) (*keybase1.TeamData, error)
-	// Delete the cache entry. Does not error if there is no cache entry.
-	Delete(ctx context.Context, teamID keybase1.TeamID) error
+	// Freezing a team clears most data and forces a full reload when the team
+	// is loaded again. The team loader checks that the previous tail is
+	// contained within the new chain post-freeze. In particular, since we load
+	// a team before deleting it in response to the server-driven delete gregor
+	// notifications, the server can't roll-back to a state where the team is
+	// undeleted, so we don't have to special-case team deletion.
+	Freeze(ctx context.Context, teamID keybase1.TeamID) error
+	// Tombstoning a team prevents it from being loaded ever again, as long as
+	// that cache entry exists. Used to prevent server from "undeleting" a
+	// team. While a team is tombstoned, most data is cleared.
+	Tombstone(ctx context.Context, teamID keybase1.TeamID) error
 	// Untrusted hint of what a team's latest seqno is
 	HintLatestSeqno(ctx context.Context, id keybase1.TeamID, seqno keybase1.Seqno) error
 	ResolveNameToIDUntrusted(ctx context.Context, teamName keybase1.TeamName, public bool, allowCache bool) (id keybase1.TeamID, err error)
@@ -697,6 +706,10 @@ type FastTeamLoader interface {
 	HintLatestSeqno(m MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) error
 	VerifyTeamName(m MetaContext, id keybase1.TeamID, name keybase1.TeamName, forceRefresh bool) error
 	ForceRepollUntil(m MetaContext, t gregor.TimeOrOffset) error
+	// See comment in TeamLoader#Freeze.
+	Freeze(MetaContext, keybase1.TeamID) error
+	// See comment in TeamLoader#Tombstone.
+	Tombstone(MetaContext, keybase1.TeamID) error
 }
 
 type TeamAuditor interface {

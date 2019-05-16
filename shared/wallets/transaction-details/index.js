@@ -34,6 +34,8 @@ export type NotLoadingProps = {|
   recipientAccountID: ?Types.AccountID,
   selectableText: boolean,
   senderAccountID: Types.AccountID,
+  sourceAmount: string,
+  sourceAsset: string,
   status: Types.StatusSimplified,
   statusDetail: string,
   // A null timestamp means the transaction is still pending.
@@ -171,7 +173,7 @@ const colorForStatus = (status: Types.StatusSimplified) => {
       return Styles.globalColors.green
     case 'pending':
     case 'claimable':
-      return Styles.globalColors.purple2
+      return Styles.globalColors.purple
     case 'error':
     case 'canceled':
       return Styles.globalColors.red
@@ -290,6 +292,8 @@ const TransactionDetails = (props: NotLoadingProps) => {
           onShowProfile={props.onShowProfile} // Don't render unread state in detail view.
           readState="read"
           selectableText={true}
+          sourceAmount={props.sourceAmount}
+          sourceAsset={props.sourceAsset}
           status={props.status}
           statusDetail={props.statusDetail}
           timestamp={props.timestamp}

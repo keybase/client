@@ -61,7 +61,7 @@ const styles = Styles.styleSheetCreate({
   pgpKeyString: Styles.platformStyles({
     isElectron: {
       ...Styles.globalStyles.fontTerminal,
-      backgroundColor: Styles.globalColors.lightGrey,
+      backgroundColor: Styles.globalColors.greyLight,
       border: `solid 1px ${Styles.globalColors.black_10}`,
       borderRadius: 3,
       color: Styles.globalColors.black,

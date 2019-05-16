@@ -17,7 +17,7 @@ export default (props: Props) => (
   <Kb.Box
     style={{
       ...containerStyle,
-      backgroundColor: props.badged ? Styles.globalColors.blue4 : Styles.globalColors.white,
+      backgroundColor: props.badged ? Styles.globalColors.blueLighter2 : Styles.globalColors.white,
       borderBottomColor: props.badged ? Styles.globalColors.white : Styles.globalColors.black_10,
     }}
   >

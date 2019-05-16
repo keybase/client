@@ -92,6 +92,8 @@ const mergeProps = (stateProps, dispatchProps) => {
     recipientAccountID: tx.targetAccountID ? Types.stringToAccountID(tx.targetAccountID) : null,
     selectableText: true,
     senderAccountID: Types.stringToAccountID(tx.sourceAccountID),
+    sourceAmount: tx.sourceAmount,
+    sourceAsset: tx.sourceAsset,
     status: tx.statusSimplified,
     statusDetail: tx.statusDetail,
     timestamp: tx.time ? new Date(tx.time) : null,

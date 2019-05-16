@@ -82,7 +82,7 @@
       "<rootDir>/desktop/node_modules"
     ],
     "transformIgnorePatterns": [
-      "node_modules/(?!universalify|fs-extra|react-redux|@storybook|lodash-es|react-navigation|@react-navigation/.*).+\\.js"
+      "node_modules/(?!universalify|fs-extra|react-redux|@storybook|lodash-es|@react-navigation/.*).+\\.js"
     ],
     "setupFiles": [],
     "setupTestFrameworkScriptFile": "<rootDir>/test/setupTestFrameworkScriptFile.js",
@@ -168,7 +168,6 @@
     "react-native-screens": "1.0.0-alpha.22",
     "react-native-webview": "5.8.2",
     "react-native-video": "4.4.1",
-    "react-navigation": "git://github.com/keybase/react-navigation#keybase-fixes-off-beta-12",
     "react-redux": "7.0.3",
     "react-navigation-stack": "1.3.0",
     "react-navigation-tabs": "2.1.2",

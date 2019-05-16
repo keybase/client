@@ -4,36 +4,13 @@ import * as DevicesGen from '../../actions/devices-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ProvisionGen from '../../actions/provision-gen'
 import AddDevice from '.'
-import flags from '../../util/feature-flags'
 import type {RouteProps} from '../../route-tree/render-route'
 
 const mapDispatchToProps = (dispatch, {navigateUp}) => ({
-  onAddComputer: () => {
-    if (!flags.useNewRouter) {
-      dispatch(navigateUp())
-    }
-    dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'desktop'}))
-  },
-  onAddPaperKey: () => {
-    if (!flags.useNewRouter) {
-      dispatch(navigateUp())
-    }
-    dispatch(DevicesGen.createShowPaperKeyPage())
-  },
-  onAddPhone: () => {
-    if (!flags.useNewRouter) {
-      dispatch(navigateUp())
-    }
-    dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'mobile'}))
-  },
-  onCancel: () => {
-    if (flags.useNewRouter) {
-      // We don't have ownProps.navigateUp in upgraded Routes
-      dispatch(RouteTreeGen.createNavigateUp())
-    } else {
-      dispatch(navigateUp())
-    }
-  },
+  onAddComputer: () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'desktop'})),
+  onAddPaperKey: () => dispatch(DevicesGen.createShowPaperKeyPage()),
+  onAddPhone: () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'mobile'})),
+  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 export default Container.namedConnect<

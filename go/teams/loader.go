@@ -111,14 +111,49 @@ func (l *TeamLoader) Load(ctx context.Context, lArg keybase1.LoadTeamArg) (res *
 	return l.load1(ctx, me, lArg)
 }
 
-func (l *TeamLoader) Delete(ctx context.Context, teamID keybase1.TeamID) (err error) {
-	defer l.G().CTraceTimed(ctx, fmt.Sprintf("TeamLoader#Delete(%v)", teamID), func() error { return err })()
+func newFrozenChain(chain *keybase1.TeamSigChainState) keybase1.TeamSigChainState {
+	return keybase1.TeamSigChainState{
+		Id:         chain.Id,
+		Public:     chain.Public,
+		LastSeqno:  chain.LastSeqno,
+		LastLinkID: chain.LastLinkID,
+	}
+}
 
-	// Single-flight lock by team ID.
+func (l *TeamLoader) Freeze(ctx context.Context, teamID keybase1.TeamID) (err error) {
+	defer l.G().CTraceTimed(ctx, fmt.Sprintf("TeamLoader#Freeze(%s)", teamID), func() error { return err })()
 	lock := l.locktab.AcquireOnName(ctx, l.G(), teamID.String())
 	defer lock.Release(ctx)
+	mctx := libkb.NewMetaContext(ctx, l.G())
+	td, frozen, tombstoned := l.storage.Get(mctx, teamID, teamID.IsPublic())
+	if frozen || td == nil {
+		return nil
+	}
+	newTD := &keybase1.TeamData{
+		Frozen:     true,
+		Tombstoned: tombstoned,
+		Chain:      newFrozenChain(&td.Chain),
+	}
+	l.storage.Put(mctx, newTD)
+	return nil
+}
 
-	return l.storage.Delete(libkb.NewMetaContext(ctx, l.G()), teamID, teamID.IsPublic())
+func (l *TeamLoader) Tombstone(ctx context.Context, teamID keybase1.TeamID) (err error) {
+	defer l.G().CTraceTimed(ctx, fmt.Sprintf("TeamLoader#Tombstone(%s)", teamID), func() error { return err })()
+	lock := l.locktab.AcquireOnName(ctx, l.G(), teamID.String())
+	defer lock.Release(ctx)
+	mctx := libkb.NewMetaContext(ctx, l.G())
+	td, frozen, tombstoned := l.storage.Get(mctx, teamID, teamID.IsPublic())
+	if tombstoned || td == nil {
+		return nil
+	}
+	newTD := &keybase1.TeamData{
+		Frozen:     frozen,
+		Tombstoned: true,
+		Chain:      newFrozenChain(&td.Chain),
+	}
+	l.storage.Put(mctx, newTD)
+	return nil
 }
 
 func (l *TeamLoader) HintLatestSeqno(ctx context.Context, teamID keybase1.TeamID, seqno keybase1.Seqno) error {
@@ -128,8 +163,8 @@ func (l *TeamLoader) HintLatestSeqno(ctx context.Context, teamID keybase1.TeamID
 	mctx := libkb.NewMetaContext(ctx, l.G())
 
 	// Load from the cache
-	td := l.storage.Get(mctx, teamID, teamID.IsPublic())
-	if td == nil {
+	td, frozen, tombstoned := l.storage.Get(mctx, teamID, teamID.IsPublic())
+	if frozen || tombstoned || td == nil {
 		// Nothing to store the hint on.
 		return nil
 	}
@@ -457,10 +492,15 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 
 	// Fetch from cache
 	tracer.Stage("cache load")
+	tailCheckRet, frozen, tombstoned := l.storage.Get(libkb.NewMetaContext(ctx, l.G()), arg.teamID, arg.public)
+	if tombstoned {
+		return nil, NewTeamTombstonedError()
+	}
+
 	var ret *keybase1.TeamData
-	if !arg.forceFullReload {
+	if !frozen && !arg.forceFullReload {
 		// Load from cache
-		ret = l.storage.Get(libkb.NewMetaContext(ctx, l.G()), arg.teamID, arg.public)
+		ret = tailCheckRet
 	}
 
 	if ret != nil && !ret.Chain.Reader.Eq(arg.me) {
@@ -699,6 +739,18 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	if !ret.Chain.LastLinkID.Eq(lastLinkID) {
 		return nil, fmt.Errorf("wrong sigchain link ID: %v != %v",
 			ret.Chain.LastLinkID, lastLinkID)
+	}
+
+	if tailCheckRet != nil {
+		// If we previously discarded cache due to forceFullReload, or left the
+		// team, froze it, and are rejoining, make sure the previous tail is
+		// still in the chain.
+		// The chain loader ensures it is part of a well-formed chain with correct prevs.
+		linkID := ret.Chain.LinkIDs[tailCheckRet.Chain.LastSeqno]
+		if !linkID.Eq(tailCheckRet.Chain.LastLinkID) {
+			return nil, fmt.Errorf("got wrong sigchain link ID for seqno %d: expected %v from previous cache entry (frozen=%t); got %v in new chain", tailCheckRet.Chain.LastSeqno,
+				tailCheckRet.Chain.LastLinkID, ret.Frozen, linkID)
+		}
 	}
 
 	tracer.Stage("pco")

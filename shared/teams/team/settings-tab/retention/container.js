@@ -2,7 +2,7 @@
 import * as TeamsGen from '../../../../actions/teams-gen'
 import * as Flow from '../../../../util/flow'
 import {createSetConvRetentionPolicy} from '../../../../actions/chat2-gen'
-import {namedConnect, compose, lifecycle, withStateHandlers, withHandlers} from '../../../../util/container'
+import {namedConnect, compose, lifecycle, withHandlers} from '../../../../util/container'
 import {
   getTeamRetentionPolicy,
   retentionPolicies,
@@ -12,7 +12,6 @@ import {
 import {getConversationRetentionPolicy} from '../../../../constants/chat2/meta'
 import type {RetentionPolicy} from '../../../../constants/types/retention-policy'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-import {getPath, type Path} from '../../../../route-tree'
 import type {ConversationIDKey} from '../../../../constants/types/chat2'
 import type {StylesCrossPlatform} from '../../../../styles'
 import RetentionPicker, {type RetentionEntityType} from './'
@@ -108,9 +107,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 
   const policyIsExploding =
     policy.type === 'explode' || (policy.type === 'inherit' && teamPolicy && teamPolicy.type === 'explode')
-  const _path = getPath(state.routeTree.routeState)
   return {
-    _path,
     _permissionsLoaded,
     canSetPolicy,
     entityType, // used only to display policy to non-admins
@@ -129,15 +126,9 @@ const mapDispatchToProps = (
 ) => ({
   _loadTeamOperations: () => teamname && dispatch(TeamsGen.createGetTeamOperations({teamname})),
   _loadTeamPolicy: () => teamname && dispatch(TeamsGen.createGetTeamRetentionPolicy({teamname})),
-  _onShowWarning: (
-    policy: RetentionPolicy,
-    onConfirm: () => void,
-    onCancel: () => void,
-    parentPath: Path
-  ) => {
+  _onShowWarning: (policy: RetentionPolicy, onConfirm: () => void, onCancel: () => void) => {
     dispatch(
       RouteTreeGen.createNavigateTo({
-        parentPath,
         path: [
           {
             props: {entityType, onCancel, onConfirm, policy},
@@ -167,16 +158,14 @@ export default compose(
     (s, d, o) => ({...o, ...s, ...d}),
     'RetentionPicker'
   ),
-  withStateHandlers({_parentPath: null}, {_setParentPath: () => _parentPath => ({_parentPath})}),
   lifecycle({
     componentDidMount() {
-      this.props._setParentPath(this.props._path)
       this.props._loadTeamPolicy()
       !this.props._permissionsLoaded && this.props._loadTeamOperations()
     },
   }),
   withHandlers({
-    onShowWarning: ({_parentPath, _onShowWarning}) => (policy, onConfirm, onCancel) =>
-      _onShowWarning(policy, onConfirm, onCancel, _parentPath),
+    onShowWarning: ({_onShowWarning}) => (policy, onConfirm, onCancel) =>
+      _onShowWarning(policy, onConfirm, onCancel),
   })
 )(RetentionPicker)

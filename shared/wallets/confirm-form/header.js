@@ -41,17 +41,17 @@ const Header = (props: HeaderProps) => (
 const styles = Styles.styleSheetCreate({
   header: Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.purple,
+      backgroundColor: Styles.globalColors.purpleDark,
     },
     isElectron: {
       flex: 1,
-      minHeight: 144,
+      minHeight: 160,
     },
     isMobile: {
       flexBasis: 'auto',
       flexGrow: 1,
       flexShrink: 1,
-      minHeight: 200,
+      minHeight: 250,
     },
   }),
   headerContent: Styles.platformStyles({

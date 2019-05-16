@@ -10,7 +10,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
+	jsonw "github.com/keybase/go-jsonw"
+	"github.com/stretchr/testify/require"
 )
 
 func testTail(t *testing.T, testname, filename string, count, actual int, first, last string) {
@@ -60,4 +63,28 @@ func TestTailMulti(t *testing.T) {
 	}
 	testTail(t, "follow", stem, 100000, 99996, "13334", "29999")
 	testTail(t, "follow", stem, 10000, 9996, "28334", "29999")
+}
+
+func TestMergeStatusJSON(t *testing.T) {
+	tc := libkb.SetupTest(t, "MergeStatusJSON", 1)
+	defer tc.Cleanup()
+
+	mctx := libkb.NewMetaContextForTest(tc)
+	fstatus, err := GetFullStatus(mctx)
+	require.NoError(t, err)
+	require.NotNil(t, fstatus)
+	status := `{"desktop":{"running": true}}`
+	mergedStatus := MergeStatusJSON(fstatus, "fstatus", status)
+	require.NotEqual(t, status, mergedStatus)
+
+	w, err := jsonw.Unmarshal([]byte(mergedStatus))
+	require.NoError(t, err)
+	statusW := w.AtPath("status.desktop.running")
+	require.NotNil(t, statusW)
+	running, err := statusW.GetBool()
+	require.NoError(t, err)
+	require.True(t, running)
+
+	fstatusW := w.AtPath("fstatus")
+	require.NotNil(t, fstatusW)
 }

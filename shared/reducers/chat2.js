@@ -148,10 +148,10 @@ const metaMapReducer = (metaMap, action) => {
       }, {})
       return metaMap.merge(newMetas)
     case Chat2Gen.saveMinWriterRole:
-      const {conversationIDKey, role} = action.payload
+      const {cannotWrite, conversationIDKey, role} = action.payload
       return metaMap.update(conversationIDKey, old => {
         if (old) {
-          return old.set('minWriterRole', role)
+          return old.set('cannotWrite', cannotWrite).set('minWriterRole', role)
         }
         // if we haven't loaded it yet we'll load it on navigation into the
         // convo
@@ -638,12 +638,21 @@ const rootReducer = (
           Object.keys(convoToMessages).forEach(cid => {
             const conversationIDKey = Types.stringToConversationIDKey(cid)
             const messages = convoToMessages[cid]
+            const removedOrdinals = []
             const ordinals = messages.reduce((arr, message) => {
               const m = canSendType(message)
               if (m) {
                 // Sendable so we might have an existing message
                 if (!findExistingSentOrPending(conversationIDKey, m)) {
                   arr.push(m.ordinal)
+                }
+                // We might have a placeholder for this message in there with ordinal of its own ID, let's
+                // get rid of it if that is the case
+                if (m.id) {
+                  const oldMsg = oldMessageMap.getIn([conversationIDKey, Types.numberToOrdinal(m.id)])
+                  if (oldMsg && oldMsg.type === 'placeholder' && oldMsg.ordinal !== m.ordinal) {
+                    removedOrdinals.push(oldMsg.ordinal)
+                  }
                 }
               } else if (message.type === 'placeholder') {
                 // sometimes we send then get a placeholder for that send. Lets see if we already have the message id for the sent
@@ -668,7 +677,10 @@ const rootReducer = (
 
             map.update(conversationIDKey, I.OrderedSet(), (set: I.OrderedSet<Types.Ordinal>) =>
               // add new ones, remove deleted ones, sort
-              set.concat(ordinals).sort()
+              set
+                .subtract(removedOrdinals)
+                .concat(ordinals)
+                .sort()
             )
           })
         }

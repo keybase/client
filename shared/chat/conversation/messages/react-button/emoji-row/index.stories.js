@@ -9,6 +9,7 @@ const common = {
   className: 'emoji-row',
   emojis: [':tada:', ':smiley:', ':slightly_smiling_face:', ':ok_hand:', ':fire:'],
   onReact: Sb.action('onReact'),
+  onReply: Sb.action('onReply'),
   onShowingEmojiPicker: Sb.action('onShowingEmojiPicker'),
 }
 

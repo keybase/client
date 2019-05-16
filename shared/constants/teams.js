@@ -6,11 +6,8 @@ import * as RPCTypes from './types/rpc-gen'
 import * as RPCChatTypes from './types/rpc-chat-gen'
 import {getFullRoute} from './router2'
 import {invert} from 'lodash-es'
-import {getPathProps} from '../route-tree'
 import {teamsTab} from './tabs'
 import {memoize} from '../util/memoize'
-import flags from '../util/feature-flags'
-
 import type {Service} from './types/search'
 import type {_RetentionPolicy, RetentionPolicy} from './types/retention-policy'
 import {type TypedState} from './reducer'
@@ -47,7 +44,7 @@ export const teamRenameWaitingKey = 'teams:rename'
 export const makeChannelInfo: I.RecordFactory<Types._ChannelInfo> = I.Record({
   channelname: '',
   description: '',
-  participants: I.Set(),
+  memberStatus: RPCChatTypes.commonConversationMemberStatus.active,
 })
 
 export const makeMemberInfo: I.RecordFactory<Types._MemberInfo> = I.Record({
@@ -397,22 +394,12 @@ const getTeamRetentionPolicy = (state: TypedState, teamname: Types.Teamname): ?R
   state.teams.getIn(['teamNameToRetentionPolicy', teamname], null)
 
 const getSelectedTeamNames = (state: TypedState): Types.Teamname[] => {
-  if (flags.useNewRouter) {
-    const path = getFullRoute()
-    return path.reduce((names, curr) => {
-      if (curr.routeName === 'team' && curr.params?.teamname) {
-        names.push(curr.params.teamname)
-      }
-      return names
-    }, [])
-  }
-  const pathProps = getPathProps(state.routeTree.routeState, [teamsTab])
-  return pathProps.reduce((res, val) => {
-    const teamname = val.props.get('teamname')
-    if (val.node === 'team' && teamname) {
-      return res.concat(teamname)
+  const path = getFullRoute()
+  return path.reduce((names, curr) => {
+    if (curr.routeName === 'team' && curr.params?.teamname) {
+      names.push(curr.params.teamname)
     }
-    return res
+    return names
   }, [])
 }
 
@@ -587,9 +574,6 @@ export const makeResetUser: I.RecordFactory<Types._ResetUser> = I.Record({
 export const chosenChannelsGregorKey = 'chosenChannelsForTeam'
 
 export const isOnTeamsTab = () => {
-  if (!flags.useNewRouter) {
-    return false
-  }
   const path = getFullRoute()
   return Array.isArray(path) ? path.some(p => p.routeName === teamsTab) : false
 }
