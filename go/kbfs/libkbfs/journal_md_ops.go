@@ -134,6 +134,7 @@ func (j journalMDOps) getHeadFromJournal(
 		if err != nil {
 			return ImmutableRootMetadata{}, err
 		}
+		handle.SetTlfID(id)
 	} else {
 		// Check for mutual handle resolution.
 		headHandle, err := tlfhandle.MakeHandle(
@@ -208,6 +209,7 @@ func (j journalMDOps) getRangeFromJournal(
 	if err != nil {
 		return nil, err
 	}
+	handle.SetTlfID(id)
 
 	irmds := make([]ImmutableRootMetadata, 0, len(ibrmds))
 
