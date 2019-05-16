@@ -852,10 +852,6 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("Send(%s)", convID))()
 	defer utils.SuspendComponent(ctx, s.G(), s.G().InboxSource)()
 
-	// Record that this user is "active in chat", which we use to determine
-	// gregor reconnect backoffs.
-	RecordChatSend(ctx, s.G(), s.DebugLabeler)
-
 	// Get conversation metadata first. If we can't find it, we will just attempt to join
 	// the conversation in case that is an option. If it succeeds, then we just keep going,
 	// otherwise we give up and return an error.

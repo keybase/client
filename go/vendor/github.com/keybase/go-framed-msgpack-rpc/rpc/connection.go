@@ -471,11 +471,11 @@ func newConnectionWithTransportAndProtocolsWithLog(handler ConnectionHandler,
 		reconnectBackoff:              reconnectBackoff,
 		doCommandBackoff:              commandBackoff,
 		initialReconnectBackoffWindow: opts.InitialReconnectBackoffWindow,
-		wef:               opts.WrapErrorFunc,
-		tagsFunc:          opts.TagsFunc,
-		log:               log,
-		protocols:         opts.Protocols,
-		reconnectedBefore: opts.ForceInitialBackoff,
+		wef:                           opts.WrapErrorFunc,
+		tagsFunc:                      opts.TagsFunc,
+		log:                           log,
+		protocols:                     opts.Protocols,
+		reconnectedBefore:             opts.ForceInitialBackoff,
 	}
 	if !opts.DontConnectNow {
 		// start connecting now
@@ -698,7 +698,8 @@ func (c *Connection) doReconnect(ctx context.Context, disconnectStatus Disconnec
 		c.log.Debug("%s!", LogField{Key: ConnectionLogMsgKey, Value: "backoff done"})
 	}
 	c.log.Debug("RetryNotify %s", LogField{Key: ConnectionLogMsgKey, Value: "beginning"})
-	err := backoff.RetryNotify(func() (err error) {
+	err := backoff.RetryNotifyWithContext(ctx, func() (err error) {
+		c.log.Debug("RetryNotify %s", LogField{Key: ConnectionLogMsgKey, Value: "attempt"})
 		defer func() {
 			c.log.Debug("RetryNotify operation result: %s", LogField{Key: ConnectionLogMsgKey, Value: err})
 		}()
