@@ -320,10 +320,6 @@ const getTeamMemberCount = (state: TypedState, teamname: Types.Teamname): number
 const isLastOwner = (state: TypedState, teamname: Types.Teamname): boolean =>
   isOwner(getRole(state, teamname)) && !isMultiOwnerTeam(state, teamname)
 
-const canDeleteTeam = (state: TypedState, teamname: Types.Teamname): boolean =>
-  // FIXME: Use getCanPerform().deleteTeam once it exists: CORE-10908.
-  isOwner(getRole(state, teamname)) && !teamHasSubteams(state, teamname)
-
 const getDisabledReasonsForRolePicker = (
   state: TypedState,
   teamname: Types.Teamname,
@@ -463,9 +459,6 @@ const isAccessRequestPending = (state: TypedState, teamname: Types.Teamname): bo
 const getTeamSubteams = (state: TypedState, teamname: Types.Teamname): I.Set<Types.Teamname> =>
   state.teams.getIn(['teamNameToSubteams', teamname], I.Set())
 
-const teamHasSubteams = (state: TypedState, teamname: Types.Teamname): boolean =>
-  getTeamSubteams(state, teamname).count() > 0
-
 const getTeamSettings = (state: TypedState, teamname: Types.Teamname): Types.TeamSettings =>
   state.teams.getIn(['teamNameToSettings', teamname], makeTeamSettings())
 
@@ -587,7 +580,6 @@ export const isOnTeamsTab = () => {
 }
 
 export {
-  canDeleteTeam,
   getNumberOfSubscribedChannels,
   getRole,
   getCanPerform,
@@ -626,5 +618,4 @@ export {
   retentionPolicyToServiceRetentionPolicy,
   baseRetentionPolicies,
   retentionPolicies,
-  teamHasSubteams,
 }

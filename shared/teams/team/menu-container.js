@@ -21,7 +21,7 @@ const mapStateToProps = (state, {teamname}: OwnProps) => {
   const isBigTeam = Constants.isBigTeam(state, teamname)
   return {
     canCreateSubteam: yourOperations.manageSubteams,
-    canDeleteTeam: Constants.canDeleteTeam(state, teamname),
+    canDeleteTeam: yourOperations.deleteTeam,
     canLeaveTeam: yourOperations.leaveTeam,
     canManageChat: yourOperations.renameChannel,
     canViewFolder: !yourOperations.joinTeam,
