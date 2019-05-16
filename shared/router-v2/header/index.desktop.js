@@ -12,26 +12,61 @@ import AppState from '../../app/app-state.desktop'
 // Fix this as we figure out what this needs to be
 type Props = any
 
-const AppIconBox = Styles.styled(Kb.ClickableBox)({
-  ':hover': {
-    backgroundColor: Styles.globalColors.greyLight,
-  },
-})
-const AppIconBoxOnRed = Styles.styled(Kb.ClickableBox)({
-  ':hover': {
-    backgroundColor: Styles.globalColors.red,
-  },
-})
-
-type State = {|
-  hoveringOnClose: boolean,
-|}
-
 const initialUseNativeFrame = new AppState().state.useNativeFrame ?? Platform.defaultUseNativeFrame
 
-class Header extends React.PureComponent<Props, State> {
-  state = {hoveringOnClose: false}
+const PlainTitle = ({title}) => (
+  <Kb.Box2 direction="horizontal" style={styles.plainContainer}>
+    <Kb.Text style={styles.plainText} type="Header">
+      {title}
+    </Kb.Text>
+  </Kb.Box2>
+)
 
+const SystemButtons = () => (
+  <Kb.Box2 direction="horizontal">
+    <Kb.ClickableBox
+      className="hover_background_color_greyLight"
+      direction="vertical"
+      onClick={Window.minimizeWindow}
+      style={styles.appIconBox}
+    >
+      <Kb.Icon
+        color={Styles.globalColors.black_50}
+        onClick={Window.minimizeWindow}
+        style={styles.appIcon}
+        type="iconfont-app-minimize"
+      />
+    </Kb.ClickableBox>
+    <Kb.ClickableBox
+      className="hover_background_color_greyLight"
+      direction="vertical"
+      onClick={Window.toggleMaximizeWindow}
+      style={styles.appIconBox}
+    >
+      <Kb.Icon
+        color={Styles.globalColors.black_50}
+        onClick={Window.toggleMaximizeWindow}
+        style={styles.appIcon}
+        type="iconfont-app-maximize"
+      />
+    </Kb.ClickableBox>
+    <Kb.ClickableBox
+      className="hover_background_color_red hover_color_white color_black_50"
+      direction="vertical"
+      onClick={Window.closeWindow}
+      style={styles.appIconBox}
+    >
+      <Kb.Icon
+        inheritColor={true}
+        onClick={Window.closeWindow}
+        style={styles.appIcon}
+        type="iconfont-app-close"
+      />
+    </Kb.ClickableBox>
+  </Kb.Box2>
+)
+
+class Header extends React.PureComponent<Props> {
   render() {
     // TODO add more here as we use more options on the mobile side maybe
     const opt = this.props.options
@@ -41,14 +76,9 @@ class Header extends React.PureComponent<Props, State> {
 
     let title = null
     if (opt.title) {
-      title = (
-        <Kb.Box2 direction="horizontal" style={{flexGrow: 1, marginLeft: Styles.globalMargins.xsmall}}>
-          <Kb.Text style={{flexGrow: 1}} type="Header">
-            {opt.title}
-          </Kb.Text>
-        </Kb.Box2>
-      )
+      title = <PlainTitle title={opt.title} />
     }
+
     if (typeof opt.headerTitle === 'function') {
       const CustomTitle = opt.headerTitle
       title = <CustomTitle>{opt.title}</CustomTitle>
@@ -105,7 +135,13 @@ class Header extends React.PureComponent<Props, State> {
             opt.headerStyle,
           ])}
         >
-          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerBack} alignItems="center">
+          <Kb.Box2
+            key="topBar"
+            direction="horizontal"
+            fullWidth={true}
+            style={styles.headerBack}
+            alignItems="center"
+          >
             {/* TODO have headerLeft be the back button */}
             {opt.headerLeft !== null && (
               <Kb.Icon
@@ -117,55 +153,15 @@ class Header extends React.PureComponent<Props, State> {
             )}
             {flags.kbfsOfflineMode && <SyncingFolders />}
             {!title && rightActions}
-
-            {!Platform.isDarwin && !initialUseNativeFrame && (
-              <Kb.Box2 direction="horizontal">
-                <AppIconBox direction="vertical" onClick={Window.minimizeWindow} style={styles.appIconBox}>
-                  <Kb.Icon
-                    color={Styles.globalColors.black_50}
-                    onClick={Window.minimizeWindow}
-                    style={styles.appIcon}
-                    type="iconfont-app-minimize"
-                  />
-                </AppIconBox>
-                <AppIconBox
-                  direction="vertical"
-                  onClick={Window.toggleMaximizeWindow}
-                  style={styles.appIconBox}
-                >
-                  <Kb.Icon
-                    color={Styles.globalColors.black_50}
-                    onClick={Window.toggleMaximizeWindow}
-                    style={styles.appIcon}
-                    type="iconfont-app-maximize"
-                  />
-                </AppIconBox>
-                <AppIconBoxOnRed
-                  direction="vertical"
-                  onMouseEnter={() => this.setState({hoveringOnClose: true})}
-                  onMouseLeave={() => this.setState({hoveringOnClose: false})}
-                  onClick={Window.closeWindow}
-                  style={styles.appIconBox}
-                >
-                  <Kb.Icon
-                    color={
-                      this.state.hoveringOnClose ? Styles.globalColors.white : Styles.globalColors.black_50
-                    }
-                    hoverColor={Styles.globalColors.white}
-                    onClick={Window.closeWindow}
-                    style={styles.appIcon}
-                    type="iconfont-app-close"
-                  />
-                </AppIconBoxOnRed>
-              </Kb.Box2>
-            )}
+            {!Platform.isDarwin && !initialUseNativeFrame && <SystemButtons />}
           </Kb.Box2>
           <Kb.Box2
+            key="bottomBar"
             direction="horizontal"
             fullWidth={true}
             style={opt.headerExpandable ? styles.bottomExpandable : styles.bottom}
           >
-            <Kb.Box2 direction="horizontal" style={styles.flexOne}>
+            <Kb.Box2 direction="horizontal" style={styles.bottomTitle}>
               {title}
             </Kb.Box2>
             {!!title && rightActions}
@@ -195,8 +191,9 @@ const styles = Styles.styleSheetCreate({
       top: -Styles.globalMargins.xtiny,
     },
   }),
-  bottom: {height: 40 - 1}, // for border
+  bottom: {height: 40 - 1, maxHeight: 40 - 1}, // for border
   bottomExpandable: {minHeight: 40 - 1},
+  bottomTitle: {flexGrow: 1, height: '100%', maxHeight: '100%', overflow: 'hidden'},
   disabledIcon: Styles.platformStyles({
     isElectron: {
       cursor: 'default',
@@ -233,6 +230,13 @@ const styles = Styles.styleSheetCreate({
       padding: Styles.globalMargins.xtiny,
     },
   }),
+  plainContainer: {
+    ...Styles.globalStyles.flexGrow,
+    marginLeft: Styles.globalMargins.xsmall,
+  },
+  plainText: {
+    ...Styles.globalStyles.flexGrow,
+  },
 })
 
 export default Header
