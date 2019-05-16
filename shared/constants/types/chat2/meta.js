@@ -18,6 +18,7 @@ export type _ConversationMeta = {
   conversationIDKey: Common.ConversationIDKey, // should be the key for this meta EXCEPT for pendingConversationIDKey, in that case its the resolved conversation we're previewing
   commands: RPCChatTypes.ConversationCommandGroups,
   description: string,
+  descriptionDecorated: string,
   inboxLocalVersion: number,
   inboxVersion: number,
   isMuted: boolean,
