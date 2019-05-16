@@ -1329,6 +1329,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, annPerms.ChangeTarsDisabled)
 	require.True(t, annPerms.DeleteChatHistory)
 	require.True(t, annPerms.Chat)
+	require.True(t, annPerms.DeleteTeam)
 
 	require.True(t, bobPerms.ManageMembers)
 	require.True(t, bobPerms.ManageSubteams)
@@ -1349,6 +1350,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, bobPerms.ChangeTarsDisabled)
 	require.True(t, bobPerms.DeleteChatHistory)
 	require.True(t, bobPerms.Chat)
+	require.False(t, bobPerms.DeleteTeam)
 
 	// Some ops are fine for writers
 	require.False(t, pamPerms.ManageMembers)
@@ -1370,6 +1372,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, pamPerms.ChangeTarsDisabled)
 	require.False(t, pamPerms.DeleteChatHistory)
 	require.True(t, pamPerms.Chat)
+	require.False(t, pamPerms.DeleteTeam)
 
 	// Only SetMemberShowcase (by default), LeaveTeam, and Chat is available for readers
 	require.False(t, eddPerms.ManageMembers)
@@ -1391,6 +1394,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, eddPerms.ChangeTarsDisabled)
 	require.False(t, eddPerms.DeleteChatHistory)
 	require.True(t, eddPerms.Chat)
+	require.False(t, eddPerms.DeleteTeam)
 
 	annPerms = callCanPerform(ann, subteam)
 	bobPerms = callCanPerform(bob, subteam)
@@ -1402,7 +1406,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, annPerms.DeleteChannel)
 	require.False(t, annPerms.RenameChannel)
 	require.False(t, annPerms.EditChannelDescription)
-	require.False(t, annPerms.EditTeamDescription)
+	require.True(t, annPerms.EditTeamDescription)
 	require.True(t, annPerms.SetTeamShowcase)
 	require.False(t, annPerms.SetMemberShowcase)
 	require.False(t, annPerms.SetRetentionPolicy)
@@ -1414,6 +1418,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, annPerms.ChangeTarsDisabled)
 	require.False(t, annPerms.DeleteChatHistory)
 	require.False(t, annPerms.Chat)
+	require.True(t, annPerms.DeleteTeam)
 
 	require.True(t, bobPerms.ManageMembers)
 	require.True(t, bobPerms.ManageSubteams)
@@ -1421,7 +1426,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, bobPerms.DeleteChannel)
 	require.False(t, bobPerms.RenameChannel)
 	require.False(t, bobPerms.EditChannelDescription)
-	require.False(t, bobPerms.EditTeamDescription)
+	require.True(t, bobPerms.EditTeamDescription)
 	require.True(t, bobPerms.SetTeamShowcase)
 	require.False(t, bobPerms.SetMemberShowcase)
 	require.False(t, bobPerms.SetRetentionPolicy)
@@ -1434,6 +1439,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, bobPerms.ChangeTarsDisabled)
 	require.False(t, bobPerms.DeleteChatHistory)
 	require.False(t, bobPerms.Chat)
+	require.True(t, bobPerms.DeleteTeam)
 
 	// Invalid team for pam
 	_, err = teams.CanUserPerform(context.TODO(), pam.tc.G, subteam)
@@ -1461,6 +1467,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, donnyPerms.SetPublicityAny)
 	require.False(t, donnyPerms.DeleteChatHistory)
 	require.False(t, donnyPerms.Chat)
+	require.False(t, donnyPerms.DeleteTeam)
 }
 
 func TestBatchAddMembersCLI(t *testing.T) {
