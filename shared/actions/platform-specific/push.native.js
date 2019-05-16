@@ -16,8 +16,8 @@ import * as Saga from '../../util/saga'
 import * as WaitingGen from '../waiting-gen'
 import * as RouteTreeGen from '../route-tree-gen'
 import logger from '../../logger'
-import {NativeModules, NativeEventEmitter} from 'react-native'
-import {isIOS} from '../../constants/platform'
+import {Linking, NativeModules, NativeEventEmitter} from 'react-native'
+import {isAndroid, isIOS} from '../../constants/platform'
 
 let lastCount = -1
 const updateAppBadge = (_, action) => {
@@ -99,6 +99,13 @@ const listenForPushNotificationsFromJS = emitter => {
     requestPermissions: !isIOS,
     senderID: Constants.androidSenderID,
   })
+}
+
+function* setupDeepLinking() {
+  if (isAndroid) {
+    Linking.getInitialURL().then(url => console.warn('got url', url))
+  }
+  Linking.addEventListener('url', url => console.warn('got url', url))
 }
 
 function* setupPushEventLoop() {
@@ -393,6 +400,7 @@ function* pushSaga(): Saga.SagaGenerator<any, any> {
     updateAppBadge
   )
   yield* Saga.chainGenerator<PushGen.NotificationPayload>(PushGen.notification, handlePush)
+  yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, setupDeepLinking)
   yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, setupPushEventLoop)
   yield Saga.spawn(initialPermissionsCheck)
 }
