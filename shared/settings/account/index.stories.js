@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import type {Props as ContactRowProps, OwnProps as ContactRowOwnProps} from './email-phone-row'
 import AccountSettings from '.'
+import ConfirmDelete from './confirm-delete'
 
 const props = {
   contactKeys: [],
@@ -31,7 +32,12 @@ const contacts: {[key: string]: ContactRowProps} = {
   h: {...cc, address: '+33 6 76 38 86 97', primary: false, searchable: true, type: 'phone', verified: false},
 }
 
-const provider = Sb.createPropProvider({
+const confirmDeleteProps = {
+  onCancel: Sb.action('onCancel'),
+  onConfirm: Sb.action('onConfirm'),
+}
+
+const provider = Sb.createPropProviderWithCommon({
   ConnectedEmailPhoneRow: ({contactKey}: ContactRowOwnProps) => contacts[contactKey],
 })
 
@@ -41,6 +47,12 @@ const load = () => {
     .add('Empty', () => <AccountSettings {...props} />)
     .add('With password', () => <AccountSettings {...props} hasPassword={true} />)
     .add('With email/phone', () => <AccountSettings {...props} contactKeys={Object.keys(contacts)} />)
+    .add('Confirm delete email', () => (
+      <ConfirmDelete {...confirmDeleteProps} address="cecile@keyba.se" type="email" />
+    ))
+    .add('Confirm delete phone', () => (
+      <ConfirmDelete {...confirmDeleteProps} address="+33 6 76 38 86 97" type="phone" />
+    ))
 }
 
 export default load
