@@ -1,0 +1,196 @@
+PODS:
+  - boost-for-react-native (1.63.0)
+  - DoubleConversion (1.1.6)
+  - FLAnimatedImage (1.0.12)
+  - Folly (2018.10.22.00):
+    - boost-for-react-native
+    - DoubleConversion
+    - glog
+  - glog (0.3.5)
+  - lottie-ios (2.5.0)
+  - lottie-react-native (2.6.1):
+    - lottie-ios (~> 2.5.0)
+    - React
+  - React (0.59.6):
+    - React/Core (= 0.59.6)
+  - react-native-camera (2.0.0):
+    - React
+    - react-native-camera/RCT (= 2.0.0)
+    - react-native-camera/RN (= 2.0.0)
+  - react-native-camera/RCT (2.0.0):
+    - React
+  - react-native-camera/RN (2.0.0):
+    - React
+  - react-native-contacts (2.2.5):
+    - React
+  - react-native-fast-image (5.1.1):
+    - FLAnimatedImage
+    - React
+    - SDWebImage/Core
+    - SDWebImage/GIF
+  - react-native-image-picker (0.27.1):
+    - React
+  - react-native-netinfo (1.2.3):
+    - React
+  - react-native-webview (5.3.1):
+    - React
+  - React/Core (0.59.6):
+    - yoga (= 0.59.6.React)
+  - React/CxxBridge (0.59.6):
+    - Folly (= 2018.10.22.00)
+    - React/Core
+    - React/cxxreact
+    - React/jsiexecutor
+  - React/cxxreact (0.59.6):
+    - boost-for-react-native (= 1.63.0)
+    - DoubleConversion
+    - Folly (= 2018.10.22.00)
+    - glog
+    - React/jsinspector
+  - React/DevSupport (0.59.6):
+    - React/Core
+    - React/RCTWebSocket
+  - React/fishhook (0.59.6)
+  - React/jsi (0.59.6):
+    - DoubleConversion
+    - Folly (= 2018.10.22.00)
+    - glog
+  - React/jsiexecutor (0.59.6):
+    - DoubleConversion
+    - Folly (= 2018.10.22.00)
+    - glog
+    - React/cxxreact
+    - React/jsi
+  - React/jsinspector (0.59.6)
+  - React/RCTActionSheet (0.59.6):
+    - React/Core
+  - React/RCTAnimation (0.59.6):
+    - React/Core
+  - React/RCTBlob (0.59.6):
+    - React/Core
+  - React/RCTCameraRoll (0.59.6):
+    - React/Core
+    - React/RCTImage
+  - React/RCTImage (0.59.6):
+    - React/Core
+    - React/RCTNetwork
+  - React/RCTLinkingIOS (0.59.6):
+    - React/Core
+  - React/RCTNetwork (0.59.6):
+    - React/Core
+  - React/RCTPushNotification (0.59.6):
+    - React/Core
+  - React/RCTSettings (0.59.6):
+    - React/Core
+  - React/RCTText (0.59.6):
+    - React/Core
+  - React/RCTWebSocket (0.59.6):
+    - React/Core
+    - React/fishhook
+    - React/RCTBlob
+  - rn-fetch-blob (0.10.6):
+    - React/Core
+  - RNGestureHandler (1.1.0):
+    - React
+  - RNReanimated (1.0.1):
+    - React
+  - RNScreens (1.0.0-alpha.22):
+    - React
+  - SDWebImage/Core (4.3.3)
+  - SDWebImage/GIF (4.3.3):
+    - FLAnimatedImage (~> 1.0)
+    - SDWebImage/Core
+  - yoga (0.59.6.React)
+
+DEPENDENCIES:
+  - DoubleConversion (from `../../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
+  - Folly (from `../../node_modules/react-native/third-party-podspecs/Folly.podspec`)
+  - glog (from `../../node_modules/react-native/third-party-podspecs/glog.podspec`)
+  - lottie-ios (from `../../node_modules/lottie-ios`)
+  - lottie-react-native (from `../../node_modules/lottie-react-native`)
+  - react-native-camera (from `../../node_modules/react-native-camera`)
+  - react-native-contacts (from `../../node_modules/react-native-contacts`)
+  - react-native-fast-image (from `../../node_modules/react-native-fast-image`)
+  - react-native-image-picker (from `../../node_modules/react-native-image-picker`)
+  - react-native-netinfo (from `../../node_modules/@react-native-community/netinfo`)
+  - react-native-webview (from `../../node_modules/react-native-webview`)
+  - React/Core (from `../../node_modules/react-native`)
+  - React/CxxBridge (from `../../node_modules/react-native`)
+  - React/DevSupport (from `../../node_modules/react-native`)
+  - React/RCTActionSheet (from `../../node_modules/react-native`)
+  - React/RCTAnimation (from `../../node_modules/react-native`)
+  - React/RCTCameraRoll (from `../../node_modules/react-native`)
+  - React/RCTImage (from `../../node_modules/react-native`)
+  - React/RCTLinkingIOS (from `../../node_modules/react-native`)
+  - React/RCTNetwork (from `../../node_modules/react-native`)
+  - React/RCTPushNotification (from `../../node_modules/react-native`)
+  - React/RCTSettings (from `../../node_modules/react-native`)
+  - React/RCTText (from `../../node_modules/react-native`)
+  - React/RCTWebSocket (from `../../node_modules/react-native`)
+  - rn-fetch-blob (from `../../node_modules/rn-fetch-blob`)
+  - RNGestureHandler (from `../../node_modules/react-native-gesture-handler`)
+  - RNReanimated (from `../../node_modules/react-native-reanimated`)
+  - RNScreens (from `../../node_modules/react-native-screens`)
+  - yoga (from `../../node_modules/react-native/ReactCommon/yoga`)
+
+EXTERNAL SOURCES:
+  DoubleConversion:
+    :podspec: ../../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec
+  Folly:
+    :podspec: ../../node_modules/react-native/third-party-podspecs/Folly.podspec
+  glog:
+    :podspec: ../../node_modules/react-native/third-party-podspecs/glog.podspec
+  lottie-ios:
+    :path: ../../node_modules/lottie-ios
+  lottie-react-native:
+    :path: ../../node_modules/lottie-react-native
+  React:
+    :path: ../../node_modules/react-native
+  react-native-camera:
+    :path: ../../node_modules/react-native-camera
+  react-native-contacts:
+    :path: ../../node_modules/react-native-contacts
+  react-native-fast-image:
+    :path: ../../node_modules/react-native-fast-image
+  react-native-image-picker:
+    :path: ../../node_modules/react-native-image-picker
+  react-native-netinfo:
+    :path: ../../node_modules/@react-native-community/netinfo
+  react-native-webview:
+    :path: ../../node_modules/react-native-webview
+  rn-fetch-blob:
+    :path: ../../node_modules/rn-fetch-blob
+  RNGestureHandler:
+    :path: ../../node_modules/react-native-gesture-handler
+  RNReanimated:
+    :path: ../../node_modules/react-native-reanimated
+  RNScreens:
+    :path: ../../node_modules/react-native-screens
+  yoga:
+    :path: ../../node_modules/react-native/ReactCommon/yoga
+
+SPEC CHECKSUMS:
+  boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
+  DoubleConversion: bb338842f62ab1d708ceb63ec3d999f0f3d98ecd
+  FLAnimatedImage: 4a0b56255d9b05f18b6dd7ee06871be5d3b89e31
+  Folly: de497beb10f102453a1afa9edbf8cf8a251890de
+  glog: aefd1eb5dda2ab95ba0938556f34b98e2da3a60d
+  lottie-ios: 9f24be3ecb13412223b6ac70d97437742b0e3de1
+  lottie-react-native: fc1fe3ee36ef1e19e56e9a4f90a3c50af6f3553e
+  React: 1d605e098d69bdf08960787f3446f0a9dc2e2ccf
+  react-native-camera: 25e0f493dde6e15c814e734685934d55f46e45b2
+  react-native-contacts: 1a8913219e54d1fa20e817b99d9b42b9ec98558d
+  react-native-fast-image: cba3d9bf9c2cf8ddb643d887a686c53a5dd90a2c
+  react-native-image-picker: f42de90075c5b1af53417af927631d909a1a746e
+  react-native-netinfo: f4039dc64d3a55da59d6d03d4bd667d0a9f5450e
+  react-native-webview: a42108b827082f8f0333529b0772102031d5960d
+  rn-fetch-blob: 76a8f798dae965bbcd146a2438f2e1d381c91ae3
+  RNGestureHandler: afde2addc517e85cc97a25bfe119acbee779a7ce
+  RNReanimated: 45d9313b7a62318ed00d60a811937321e43e076e
+  RNScreens: 354046589421edc3d83d5c6212475bf1fb9a731d
+  SDWebImage: de4d90b5bff3571eae7bd16202b1f43135409fa5
+  yoga: 128daf064cacaede0c3bb27424b6b4c71052e6cd
+
+PODFILE CHECKSUM: bada99c455c68a72ea1322e1f452d2f0daa9c7f9
+
+COCOAPODS: 1.4.0
