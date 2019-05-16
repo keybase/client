@@ -602,6 +602,7 @@ type electron$session = {
 type electron$systemPreferences = {
   isDarkMode: () => boolean,
   subscribeNotification: (string, () => void) => void,
+  unsubscribeNotification: (number) => void,
 }
 
 /**
