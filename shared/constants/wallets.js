@@ -617,11 +617,6 @@ export const getCurrencyAndSymbol = (state: TypedState, code: string) => {
 
 export const getAcceptedDisclaimer = (state: TypedState) => state.wallets.acceptedDisclaimer
 
-// The device is read-only if it's a desktop device and mobile-only is on, or it's a mobile device
-// that's less than seven days old.  TODO: Use a `deviceReadOnly` field insstead once it exists.
-export const getThisDeviceIsLockedOut = (state: TypedState, accountID: Types.AccountID) =>
-  getAccount(state, accountID).deviceReadOnly
-
 export const balanceChangeColor = (delta: Types.PaymentDelta, status: Types.StatusSimplified) => {
   let balanceChangeColor = Styles.globalColors.black
   if (delta !== 'none') {
