@@ -150,6 +150,8 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	err := errors.New("Fake error to prevent trying to read favs from disk")
 	config.mockKbpki.EXPECT().GetCurrentSession(gomock.Any()).Return(
 		idutil.SessionInfo{}, err)
+	config.mockRep.EXPECT().
+		NotifyFavoritesChanged(gomock.Any()).Return().AnyTimes()
 	kbfsops.favs.Initialize(ctx)
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).AnyTimes().
 		Return(keybase1.FavoritesResult{}, nil)

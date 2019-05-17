@@ -34,8 +34,8 @@ func favTestInit(t *testing.T, testingDiskCache bool) (
 			}, nil)
 	}
 	config.mockClock.EXPECT().Now().Return(time.Unix(0, 0)).AnyTimes()
-	config.mockKbs.EXPECT().NotifyFavoritesChanged(gomock.Any()).Return(nil).
-		AnyTimes()
+	config.mockRep.EXPECT().
+		NotifyFavoritesChanged(gomock.Any()).Return().AnyTimes()
 
 	return mockCtrl, config, context.Background()
 }
