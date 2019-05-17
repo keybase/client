@@ -1096,6 +1096,7 @@ protocol teams {
     boolean changeTarsDisabled;
     boolean deleteChatHistory;
     boolean deleteOtherMessages;
+    boolean deleteTeam;
   }
 
   record ProfileTeamLoadRes {

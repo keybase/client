@@ -352,6 +352,10 @@ export type MessageTypes = {|
     inParam: $ReadOnly<{|details: ClientDetails|}>,
     outParam: void,
   |},
+  'keybase.1.config.logSend': {|
+    inParam: $ReadOnly<{|statusJSON: String, feedback: String, sendLogs: Boolean|}>,
+    outParam: LogSendID,
+  |},
   'keybase.1.config.setRememberPassphrase': {|
     inParam: $ReadOnly<{|remember: Boolean|}>,
     outParam: void,
@@ -3164,7 +3168,7 @@ export type TeamNamePart = String
 export type TeamNewlyAddedRow = $ReadOnly<{id: TeamID, name: String}>
 export type TeamOpenReqMsg = $ReadOnly<{teamID: TeamID, tars?: ?Array<TeamAccessRequest>}>
 export type TeamOpenSweepMsg = $ReadOnly<{teamID: TeamID, resetUsersUntrusted?: ?Array<TeamCLKRResetUser>}>
-export type TeamOperation = $ReadOnly<{manageMembers: Boolean, manageSubteams: Boolean, createChannel: Boolean, chat: Boolean, deleteChannel: Boolean, renameChannel: Boolean, editChannelDescription: Boolean, editTeamDescription: Boolean, setTeamShowcase: Boolean, setMemberShowcase: Boolean, setRetentionPolicy: Boolean, setMinWriterRole: Boolean, changeOpenTeam: Boolean, leaveTeam: Boolean, joinTeam: Boolean, setPublicityAny: Boolean, listFirst: Boolean, changeTarsDisabled: Boolean, deleteChatHistory: Boolean, deleteOtherMessages: Boolean}>
+export type TeamOperation = $ReadOnly<{manageMembers: Boolean, manageSubteams: Boolean, createChannel: Boolean, chat: Boolean, deleteChannel: Boolean, renameChannel: Boolean, editChannelDescription: Boolean, editTeamDescription: Boolean, setTeamShowcase: Boolean, setMemberShowcase: Boolean, setRetentionPolicy: Boolean, setMinWriterRole: Boolean, changeOpenTeam: Boolean, leaveTeam: Boolean, joinTeam: Boolean, setPublicityAny: Boolean, listFirst: Boolean, changeTarsDisabled: Boolean, deleteChatHistory: Boolean, deleteOtherMessages: Boolean, deleteTeam: Boolean}>
 export type TeamPlusApplicationKeys = $ReadOnly<{id: TeamID, name: String, implicit: Boolean, public: Boolean, application: TeamApplication, writers?: ?Array<UserVersion>, onlyReaders?: ?Array<UserVersion>, applicationKeys?: ?Array<TeamApplicationKey>}>
 export type TeamProfileAddEntry = $ReadOnly<{teamName: TeamName, open: Boolean, disabledReason: String}>
 export type TeamRefreshers = $ReadOnly<{needKeyGeneration: PerTeamKeyGeneration, needApplicationsAtGenerations: {[key: string]: ?Array<TeamApplication>}, needApplicationsAtGenerationsWithKBFS: {[key: string]: ?Array<TeamApplication>}, wantMembers?: ?Array<UserVersion>, wantMembersRole: TeamRole, needKBFSKeyGeneration: TeamKBFSKeyRefresher}>
@@ -3575,6 +3579,7 @@ declare export function configGetUpdateInfo2RpcPromise(params: $PropertyType<$Pr
 declare export function configGetUpdateInfoRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.getUpdateInfo'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.getUpdateInfo'>, 'outParam'>>
 declare export function configGetValueRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.getValue'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.getValue'>, 'outParam'>>
 declare export function configHelloIAmRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.helloIAm'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.helloIAm'>, 'outParam'>>
+declare export function configLogSendRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.logSend'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.logSend'>, 'outParam'>>
 declare export function configSetRememberPassphraseRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.setRememberPassphrase'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.setRememberPassphrase'>, 'outParam'>>
 declare export function configSetValueRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.setValue'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.setValue'>, 'outParam'>>
 declare export function configStartUpdateIfNeededRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.startUpdateIfNeeded'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.startUpdateIfNeeded'>, 'outParam'>>
@@ -3718,7 +3723,6 @@ declare export function userUploadUserAvatarRpcPromise(params: $PropertyType<$Pr
 // 'keybase.1.config.getCurrentStatus'
 // 'keybase.1.config.getClientStatus'
 // 'keybase.1.config.getFullStatus'
-// 'keybase.1.config.logSend'
 // 'keybase.1.config.setUserConfig'
 // 'keybase.1.config.setPath'
 // 'keybase.1.config.clearValue'
