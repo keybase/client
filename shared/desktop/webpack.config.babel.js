@@ -27,9 +27,12 @@ const config = (_, {mode}) => {
       loader: 'babel-loader',
       options: {
         cacheDirectory: true,
-        ignore: [/\.(native|ios|android)\.js$/],
+        ignore: [/\.(native|ios|android)\.(ts|js)x?$/],
         plugins: [...(isHot && !nodeThread ? ['react-hot-loader/babel'] : [])],
-        presets: [['@babel/preset-env', {debug: false, modules: false, targets: {electron: '4.1.0'}}]],
+        presets: [
+          ['@babel/preset-env', {debug: false, modules: false, targets: {electron: '4.1.0'}}],
+          '@babel/preset-typescript',
+        ],
       },
     }
 
@@ -47,7 +50,7 @@ const config = (_, {mode}) => {
       },
       {
         exclude: /((node_modules\/(?!universalify|fs-extra|react-redux))|\/dist\/)/,
-        test: /\.jsx?$/,
+        test: /\.(ts|js)x?$/,
         use: [babelRule],
       },
       {
@@ -114,7 +117,7 @@ const config = (_, {mode}) => {
         new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/), // Skip a bunch of crap moment pulls in
       ],
       resolve: {
-        extensions: ['.desktop.js', '.js', '.jsx', '.json', '.flow'],
+        extensions: ['.desktop.js', '.js', '.jsx', '.tsx', '.ts', '.json', '.flow'],
       },
       stats: {
         ...(isDev
