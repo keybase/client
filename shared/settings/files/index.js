@@ -147,6 +147,6 @@ const styles = Styles.styleSheetCreate({
   syncNotificationSettingDropdown: {
     marginLeft: Styles.globalMargins.tiny,
     marginRight: Styles.globalMargins.tiny,
-    width: 2 * Styles.globalMargins.xlarge,
+    width: Styles.globalMargins.xlarge + Styles.globalMargins.medium,
   },
 })

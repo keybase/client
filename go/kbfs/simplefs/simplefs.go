@@ -2542,7 +2542,10 @@ func (k *SimpleFS) SimpleFSSetDebugLevel(
 }
 
 // SimpleFSSettings implements the SimpleFSInterface.
-func (k *SimpleFS) SimpleFSSettings(ctx context.Context) (keybase1.FSSettings, error) {
+func (k *SimpleFS) SimpleFSSettings(ctx context.Context) (settings keybase1.FSSettings, err error) {
+	defer func() {
+		k.log.CDebugf(ctx, "SimpleFSSettings settings=%+v err=%+v", settings, err)
+	}()
 	db := k.config.GetSettingsDB()
 	if db == nil {
 		return keybase1.FSSettings{}, libkbfs.ErrNoSettingsDB
@@ -2551,7 +2554,10 @@ func (k *SimpleFS) SimpleFSSettings(ctx context.Context) (keybase1.FSSettings, e
 }
 
 // SimpleFSSetNotificationThreshold implements the SimpleFSInterface.
-func (k *SimpleFS) SimpleFSSetNotificationThreshold(ctx context.Context, threshold int64) error {
+func (k *SimpleFS) SimpleFSSetNotificationThreshold(ctx context.Context, threshold int64) (err error) {
+	defer func() {
+		k.log.CDebugf(ctx, "SimpleFSSetNotificationThreshold threshold=%d err=%+v", threshold, err)
+	}()
 	db := k.config.GetSettingsDB()
 	if db == nil {
 		return libkbfs.ErrNoSettingsDB
