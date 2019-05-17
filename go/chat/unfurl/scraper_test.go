@@ -288,3 +288,34 @@ func TestScraper(t *testing.T) {
 	testCase("slim.html", chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{}), false, nil, nil)
 
 }
+
+func TestGiphySearchScrape(t *testing.T) {
+	scraper := NewScraper(logger.NewTestLogger(t))
+
+	clock := clockwork.NewFakeClock()
+	scraper.cache.setClock(clock)
+	scraper.giphyProxy = false
+
+	url := "https://media0.giphy.com/media/iJDLBX5GY8niCpZYkR/giphy.mp4#height=360&width=640&isvideo=true"
+	res, err := scraper.Scrape(context.TODO(), url, nil)
+	require.NoError(t, err)
+	typ, err := res.UnfurlType()
+	require.NoError(t, err)
+	require.Equal(t, chat1.UnfurlType_GIPHY, typ)
+	require.Nil(t, res.Giphy().ImageUrl)
+	require.NotNil(t, res.Giphy().Video)
+	require.Equal(t, res.Giphy().Video.Url, url)
+	require.Equal(t, 360, res.Giphy().Video.Height)
+	require.Equal(t, 640, res.Giphy().Video.Width)
+
+	url = "https://media0.giphy.com/media/iJDLBX5GY8niCpZYkR/giphy.mp4#height=360&width=640&isvideo=false"
+	res, err = scraper.Scrape(context.TODO(), url, nil)
+	require.NoError(t, err)
+	typ, err = res.UnfurlType()
+	require.NoError(t, err)
+	require.Equal(t, chat1.UnfurlType_GIPHY, typ)
+	require.NotNil(t, res.Giphy().ImageUrl)
+	require.Nil(t, res.Giphy().Video)
+	require.Equal(t, *res.Giphy().ImageUrl, url)
+
+}
