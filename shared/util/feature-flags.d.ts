@@ -13,5 +13,5 @@ export type FeatureFlags = {
   proofProviders: boolean
 };
 
-declare var ff: FeatureFlags;
+declare const ff: FeatureFlags
 export default ff

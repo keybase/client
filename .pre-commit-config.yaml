@@ -10,7 +10,7 @@ repos:
         name: eslint
         entry: shared/node_modules/.bin/eslint
         language: node
-        files: \.js$
+        files: \.(js|ts|tsx)$
         args: [
             '--quiet'
         ]
@@ -23,7 +23,7 @@ repos:
         name: prettier
         entry: shared/node_modules/.bin/prettier --write
         language: node
-        files: \.js$
+        files: \.(js|ts|tsx)$
 -   repo: https://github.com/keybase/pre-commit-golang.git
     rev: b8194ff9d85455a702480677ada13ac4dbe94146
     hooks:

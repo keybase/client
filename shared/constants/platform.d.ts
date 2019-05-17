@@ -13,9 +13,9 @@ export const isIPhoneX: boolean
 export const isAndroidNewerThanN: boolean
 export const defaultUseNativeFrame: boolean
 
-export declare var fileUIName: string
-export declare var version: string
-export declare var logFileName: string
-export declare var pprofDir: string
-export declare var serverConfigFileName: string
-export declare var shortcutSymbol: string
+export declare const fileUIName: string
+export declare const version: string
+export declare const logFileName: string
+export declare const pprofDir: string
+export declare const serverConfigFileName: string
+export declare const shortcutSymbol: string

@@ -1,6 +1,6 @@
 import * as Styles from '../styles'
-import { ServiceIdWithContact } from '../constants/types/team-building';
-import { IconType } from '../common-adapters/icon.constants';
+import {ServiceIdWithContact} from '../constants/types/team-building'
+import {IconType} from '../common-adapters/icon.constants'
 
 const services = {
   contact: {

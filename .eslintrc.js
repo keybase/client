@@ -5,7 +5,11 @@ module.exports = {
   overrides: [
     {
       files: ['*.tsx', '*.ts'],
-      parser: "babel-eslint"
+      parser: "babel-eslint",
+      rules: {
+        'no-undef': 'off', // ts itself will catch this
+        'no-unused-vars': 'off' // ts itself will catch this
+      }
     }
   ],
   parserOptions: {
@@ -13,7 +17,7 @@ module.exports = {
     sourceType: "module",
     ecmaFeatures: { jsx: true },
     babelOptions: {
-      configFile: "./shared/babel.config.js"
+      configFile: __dirname + "/shared/babel.config.js"
     }
   },
   globals: {
