@@ -1,21 +1,21 @@
-export const runMode: string = ''
+export const runMode: string
 
-export const isMobile: boolean = false
-export const isAndroid: boolean = false
-export const isIOS: boolean = false
-export const isLargeScreen: boolean = false
+export const isMobile: boolean
+export const isAndroid: boolean
+export const isIOS: boolean
+export const isLargeScreen: boolean
 
-export const isElectron: boolean = false
-export const isDarwin: boolean = false
-export const isWindows: boolean = false
-export const isLinux: boolean = false
-export const isIPhoneX: boolean = false
-export const isAndroidNewerThanN: boolean = false
-export const defaultUseNativeFrame: boolean = false
+export const isElectron: boolean
+export const isDarwin: boolean
+export const isWindows: boolean
+export const isLinux: boolean
+export const isIPhoneX: boolean
+export const isAndroidNewerThanN: boolean
+export const defaultUseNativeFrame: boolean
 
-export declare var fileUIName: string;
-export declare var version: string;
-export declare var logFileName: string;
-export declare var pprofDir: string;
-export declare var serverConfigFileName: string;
-export declare var shortcutSymbol: string;
+export declare var fileUIName: string
+export declare var version: string
+export declare var logFileName: string
+export declare var pprofDir: string
+export declare var serverConfigFileName: string
+export declare var shortcutSymbol: string
