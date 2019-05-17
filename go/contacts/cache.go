@@ -6,6 +6,7 @@ package contacts
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/keybase/client/go/chat/storage"
@@ -41,6 +42,8 @@ func NewContactCacheStore(g *libkb.GlobalContext) *ContactCacheStore {
 }
 
 type CachedContactsProvider struct {
+	lock sync.Mutex
+
 	Provider ContactsProvider
 	Store    *ContactCacheStore
 }
@@ -109,6 +112,15 @@ func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keyb
 	}
 
 	now := mctx.G().Clock().Now()
+
+	// This is a rather long-lived lock, because normally it will be held
+	// through the entire duration of the lookup, but:
+	// - We don't expect this to be called concurrently, or repeatedly, without
+	//   user's interaction.
+	// - We want to avoid looking up the same assertion multiple times (burning
+	//   through the rate limit), while keeping the locking strategy simple.
+	c.lock.Lock()
+	defer c.lock.Unlock()
 
 	var conCache contactsCache
 	cacheKey := c.Store.dbKey(mctx.CurrentUID())
