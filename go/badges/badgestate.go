@@ -74,6 +74,16 @@ type newTeamBody struct {
 	Implicit bool   `json:"implicit_team"`
 }
 
+type teamDeletedBody struct {
+	TeamID   string `json:"id"`
+	TeamName string `json:"name"`
+	Implicit bool   `json:"implicit_team"`
+	OpBy     struct {
+		UID      string `json:"uid"`
+		Username string `json:"username"`
+	} `json:"op_by"`
+}
+
 type memberOutBody struct {
 	TeamName  string `json:"team_name"`
 	ResetUser struct {
@@ -155,6 +165,7 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 	b.state.NewDevices = []keybase1.DeviceID{}
 	b.state.RevokedDevices = []keybase1.DeviceID{}
 	b.state.NewTeamNames = nil
+	b.state.DeletedTeams = nil
 	b.state.NewTeamAccessRequests = nil
 	b.state.HomeTodoItems = 0
 	b.state.TeamsWithResetUsers = nil
@@ -265,6 +276,24 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 					continue
 				}
 				b.state.NewTeamNames = append(b.state.NewTeamNames, x.TeamName)
+			}
+		case "team.delete":
+			var body []teamDeletedBody
+			if err := json.Unmarshal(item.Body().Bytes(), &body); err != nil {
+				b.log.CDebugf(ctx, "BadgeState unmarshal error for team.delete item: %v", err)
+				continue
+			}
+			for _, x := range body {
+				if x.TeamName == "" || x.OpBy.Username == "" {
+					continue
+				}
+				if x.Implicit {
+					continue
+				}
+				b.state.DeletedTeams = append(b.state.DeletedTeams, keybase1.DeletedTeamInfo{
+					TeamName:  x.TeamName,
+					DeletedBy: x.OpBy.Username,
+				})
 			}
 		case "team.request_access":
 			var body []newTeamBody
