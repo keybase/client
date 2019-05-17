@@ -56,6 +56,7 @@ func (s *Scraper) scrapeGiphyWithMetadata(ctx context.Context, sourceURL string)
 		video.Height = int(height)
 		video.Width = int(width)
 		video.Url = sourceURL
+		video.MimeType = "video/mp4"
 		rawgiphy.Video = &video
 	} else {
 		rawgiphy.ImageUrl = &sourceURL
