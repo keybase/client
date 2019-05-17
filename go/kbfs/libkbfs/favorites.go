@@ -332,7 +332,7 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 	defer func() {
 		f.closeReq(req, err)
 		if changed {
-			f.config.KeybaseService().NotifyFavoritesChanged(req.ctx)
+			f.config.Reporter().NotifyFavoritesChanged(req.ctx)
 		}
 	}()
 
