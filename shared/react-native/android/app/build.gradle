@@ -137,6 +137,18 @@ android {
         multiDexEnabled true
     }
 
+    bundle {
+        language {
+            enableSplit = true
+        }
+        density {
+            enableSplit = true
+        }
+        abi {
+            enableSplit = true
+        }
+    }
+
     // KB:
     signingConfigs {
         release {
@@ -201,7 +213,7 @@ android {
 // KB:
 play {
     track = 'alpha'
-    jsonFile = file(KB_SERVICE_ACCT_JSON)
+    serviceAccountCredentials = file(KB_SERVICE_ACCT_JSON)
 }
 
 dependencies {
