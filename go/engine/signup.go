@@ -76,14 +76,6 @@ func (s *SignupEngine) GetMe() *libkb.User {
 
 func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 	defer m.Trace("SignupEngine#Run", func() error { return err })()
-	defer func() {
-		if err == nil {
-			_, rpwErr := libkb.LoadHasRandomPw(m, keybase1.LoadHasRandomPwArg{ForceRepoll: true})
-			if rpwErr != nil {
-				m.Debug("Failed to preload no-passphrase status after signup: %s", rpwErr)
-			}
-		}
-	}()
 
 	// make sure we're starting with a clear login state:
 	if err = m.G().Logout(m.Ctx()); err != nil {
@@ -167,6 +159,11 @@ func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 	m.G().CallLoginHooks(m)
 
 	m.G().GetStellar().CreateWalletSoft(m.Ctx())
+
+	_, rpwErr := libkb.LoadHasRandomPw(m, keybase1.LoadHasRandomPwArg{ForceRepoll: true})
+	if rpwErr != nil {
+		m.Debug("Failed to preload no-passphrase status after signup: %s", rpwErr)
+	}
 
 	return nil
 }
