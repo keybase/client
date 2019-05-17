@@ -192,8 +192,16 @@ export type MessageTypes = {|
     inParam: void,
     outParam: void,
   |},
+  'keybase.1.SimpleFS.simpleFSClearConflictState': {|
+    inParam: $ReadOnly<{|path: Path|}>,
+    outParam: void,
+  |},
   'keybase.1.SimpleFS.simpleFSCopyRecursive': {|
     inParam: $ReadOnly<{|opID: OpID, src: Path, dest: Path|}>,
+    outParam: void,
+  |},
+  'keybase.1.SimpleFS.simpleFSFinishResolvingConflict': {|
+    inParam: $ReadOnly<{|path: Path|}>,
     outParam: void,
   |},
   'keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus': {|
@@ -1474,6 +1482,12 @@ export const ctlExitCode = {
   restart: 4,
 }
 
+export const favoriteConflictStateType = {
+  automaticresolving: 0,
+  manualresolvingserverview: 1,
+  manualresolvinglocalview: 2,
+}
+
 export const favoriteFolderConflictType = {
   none: 0,
   inConflict: 1,
@@ -2145,7 +2159,16 @@ export type Config = $ReadOnly<{serverURI: String, socketFile: String, label: St
 export type ConfigValue = $ReadOnly<{isNull: Boolean, b?: ?Boolean, i?: ?Int, s?: ?String, o?: ?String}>
 export type ConfiguredAccount = $ReadOnly<{username: String, hasStoredSecret: Boolean}>
 export type ConfirmResult = $ReadOnly<{identityConfirmed: Boolean, remoteConfirmed: Boolean, expiringLocal: Boolean, autoConfirmed: Boolean}>
+export type ConflictAutomaticResolving = $ReadOnly<{isStuck: Boolean}>
 export type ConflictGeneration = Int
+export type ConflictManualResolvingLocalView = $ReadOnly<{serverView: Path}>
+export type ConflictManualResolvingServerView = $ReadOnly<{localViews?: ?Array<Path>}>
+export type ConflictState = {conflictStateType: 0, automaticresolving: ?ConflictAutomaticResolving} | {conflictStateType: 1, manualresolvingserverview: ?ConflictManualResolvingServerView} | {conflictStateType: 2, manualresolvinglocalview: ?ConflictManualResolvingLocalView}
+export type ConflictStateType =
+  | 0 // AutomaticResolving_0
+  | 1 // ManualResolvingServerView_1
+  | 2 // ManualResolvingLocalView_2
+
 export type Contact = $ReadOnly<{name: String, components?: ?Array<ContactComponent>}>
 export type ContactComponent = $ReadOnly<{label: String, phoneNumber?: ?RawPhoneNumber, email?: ?EmailAddress}>
 export type CopyArgs = $ReadOnly<{opID: OpID, src: Path, dest: Path}>
@@ -2269,7 +2292,7 @@ export type FileType =
 
 export type FindNextMDResponse = $ReadOnly<{kbfsRoot: MerkleRoot, merkleNodes?: ?Array<Bytes>, rootSeqno: Seqno, rootHash: HashMeta}>
 export type FirstStepResult = $ReadOnly<{valPlusTwo: Int}>
-export type Folder = $ReadOnly<{name: String, private: Boolean, created: Boolean, folderType: FolderType, team_id /* teamID */?: ?TeamID, reset_members /* resetMembers */?: ?Array<User>, mtime?: ?Time, conflictType: FolderConflictType}>
+export type Folder = $ReadOnly<{name: String, private: Boolean, created: Boolean, folderType: FolderType, team_id /* teamID */?: ?TeamID, reset_members /* resetMembers */?: ?Array<User>, mtime?: ?Time, conflictState?: ?ConflictState}>
 export type FolderConflictType =
   | 0 // NONE_0
   | 1 // IN_CONFLICT_1
@@ -3538,7 +3561,9 @@ declare export function SimpleFSSimpleFSAreWeConnectedToMDServerRpcPromise(param
 declare export function SimpleFSSimpleFSCancelRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCancel'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCancel'>, 'outParam'>>
 declare export function SimpleFSSimpleFSCheckReachabilityRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCheckReachability'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCheckReachability'>, 'outParam'>>
 declare export function SimpleFSSimpleFSCheckRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCheck'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCheck'>, 'outParam'>>
+declare export function SimpleFSSimpleFSClearConflictStateRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSClearConflictState'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSClearConflictState'>, 'outParam'>>
 declare export function SimpleFSSimpleFSCopyRecursiveRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCopyRecursive'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCopyRecursive'>, 'outParam'>>
+declare export function SimpleFSSimpleFSFinishResolvingConflictRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSFinishResolvingConflict'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSFinishResolvingConflict'>, 'outParam'>>
 declare export function SimpleFSSimpleFSFolderSyncConfigAndStatusRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus'>, 'outParam'>>
 declare export function SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.SimpleFSGetHTTPAddressAndToken'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.SimpleFSGetHTTPAddressAndToken'>, 'outParam'>>
 declare export function SimpleFSSimpleFSListFavoritesRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSListFavorites'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSListFavorites'>, 'outParam'>>
@@ -4007,7 +4032,6 @@ declare export function userUploadUserAvatarRpcPromise(params: $PropertyType<$Pr
 // 'keybase.1.SimpleFS.simpleFSClose'
 // 'keybase.1.SimpleFS.simpleFSGetOps'
 // 'keybase.1.SimpleFS.simpleFSDumpDebuggingInfo'
-// 'keybase.1.SimpleFS.simpleFSClearConflictState'
 // 'keybase.1.SimpleFS.simpleFSForceStuckConflict'
 // 'keybase.1.SimpleFS.simpleFSFolderEditHistory'
 // 'keybase.1.SimpleFS.simpleFSGetUserQuotaUsage'

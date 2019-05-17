@@ -472,6 +472,18 @@ func (s *SimpleFSHandler) SimpleFSClearConflictState(ctx context.Context,
 	return cli.SimpleFSClearConflictState(ctx, path)
 }
 
+// SimpleFSFinishResolvingConflict implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSFinishResolvingConflict(ctx context.Context,
+	path keybase1.Path) error {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return err
+	}
+	return cli.SimpleFSFinishResolvingConflict(ctx, path)
+}
+
 // SimpleFSForceStuckConflict implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSForceStuckConflict(
 	ctx context.Context, path keybase1.Path) error {
