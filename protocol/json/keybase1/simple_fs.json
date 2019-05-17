@@ -1083,8 +1083,16 @@
           "type": "Path"
         }
       ],
-      "response": null,
-      "doc": "Clear the conflict state of a TLF."
+      "response": null
+    },
+    "simpleFSFinishResolvingConflict": {
+      "request": [
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": null
     },
     "simpleFSForceStuckConflict": {
       "request": [

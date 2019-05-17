@@ -16,6 +16,30 @@ protocol favorite {
     IN_CONFLICT_AND_STUCK_2
   }
 
+  enum ConflictStateType {
+    AutomaticResolving_0,
+    ManualResolvingServerView_1,
+    ManualResolvingLocalView_2
+  }
+
+  record ConflictAutomaticResolving {
+    boolean isStuck;
+  }
+
+  record ConflictManualResolvingServerView {
+    array<Path> localViews;
+  }
+
+  record ConflictManualResolvingLocalView {
+    Path serverView;
+  }
+
+  variant ConflictState switch (ConflictStateType conflictStateType) {
+    case AutomaticResolving: ConflictAutomaticResolving;
+    case ManualResolvingServerView: ConflictManualResolvingServerView;
+    case ManualResolvingLocalView: ConflictManualResolvingLocalView;
+  }
+
   /**
     Folder represents a favorite top-level folder in kbfs.
     This type is likely to change significantly as all the various parts are
@@ -39,8 +63,7 @@ protocol favorite {
 
     union { null, Time } mtime;
 
-    // Is the local view of this folder hosed due to stuck CR?
-    FolderConflictType conflictType;
+    union { null, ConflictState } conflictState;
   }
 
   // Each of your TLFs is in one of 3 states with respect to favoriting. Either

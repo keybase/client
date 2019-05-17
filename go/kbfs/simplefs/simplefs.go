@@ -2486,6 +2486,12 @@ func (k *SimpleFS) SimpleFSClearConflictState(ctx context.Context,
 	return k.config.KBFSOps().ClearConflictView(ctx, tlfID)
 }
 
+// SimpleFSFinishResolvingConflict implements the SimpleFS interface.
+func (k *SimpleFS) SimpleFSFinishResolvingConflict(ctx context.Context,
+	path keybase1.Path) error {
+	return errors.New("not implemented")
+}
+
 // SimpleFSForceStuckConflict implements the SimpleFS interface.
 func (k *SimpleFS) SimpleFSForceStuckConflict(
 	ctx context.Context, path keybase1.Path) error {
