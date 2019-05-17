@@ -27,7 +27,7 @@ const mapStateToProps = state => {
   const mobileOnlyMode = state.wallets.mobileOnlyMap.get(accountID, false)
   const mobileOnlyWaiting = anyWaiting(state, Constants.setAccountMobileOnlyWaitingKey(accountID))
   const canSubmitTx = account.canSubmitTx
-  const thisDeviceIsLockedOut = Constants.getThisDeviceIsLockedOut(state, accountID)
+  const thisDeviceIsLockedOut = account.deviceReadOnly
   const inflationDest = Constants.getInflationDestination(state, accountID)
   return {
     accountID,
