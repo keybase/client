@@ -206,6 +206,7 @@ func (a *BoxAuditor) boxAuditTeamLocked(mctx libkb.MetaContext, teamID keybase1.
 	isRetry := log.InProgress
 	rotateBeforeAudit := isRetry && !mctx.G().TestOptions.NoAutorotateOnBoxAuditRetry
 	attempt := a.attemptLocked(mctx, teamID, rotateBeforeAudit, false)
+
 	var id BoxAuditID
 	if isRetry {
 		// If there's already an inprogress Audit (i.e., previous failure and
@@ -1029,21 +1030,21 @@ type Versioned interface {
 	GetVersion() Version
 }
 
-func BoxAuditLogDbKey(teamID keybase1.TeamID) libkb.DbKey {
-	return libkb.DbKey{Typ: libkb.DBBoxAuditor, Key: string(teamID)}
+func BoxAuditLogDbKey(mctx libkb.MetaContext, teamID keybase1.TeamID) libkb.DbKey {
+	return libkb.DbKey{Typ: libkb.DBBoxAuditor, Key: string(teamID) + mctx.ActiveDevice().UID().String()}
 }
 
-func BoxAuditQueueDbKey() libkb.DbKey {
-	return libkb.DbKey{Typ: libkb.DBBoxAuditorPermanent, Key: "queue"}
+func BoxAuditQueueDbKey(mctx libkb.MetaContext) libkb.DbKey {
+	return libkb.DbKey{Typ: libkb.DBBoxAuditorPermanent, Key: "queue" + mctx.ActiveDevice().UID().String()}
 }
 
-func BoxAuditJailDbKey() libkb.DbKey {
-	return libkb.DbKey{Typ: libkb.DBBoxAuditorPermanent, Key: "jail"}
+func BoxAuditJailDbKey(mctx libkb.MetaContext) libkb.DbKey {
+	return libkb.DbKey{Typ: libkb.DBBoxAuditorPermanent, Key: "jail" + mctx.ActiveDevice().UID().String()}
 }
 
 func (a *BoxAuditor) maybeGetLog(mctx libkb.MetaContext, teamID keybase1.TeamID) (*BoxAuditLog, error) {
 	var log BoxAuditLog
-	found, err := a.maybeGetIntoVersioned(mctx, &log, BoxAuditLogDbKey(teamID))
+	found, err := a.maybeGetIntoVersioned(mctx, &log, BoxAuditLogDbKey(mctx, teamID))
 	if err != nil || !found {
 		return nil, err
 	}
@@ -1052,7 +1053,7 @@ func (a *BoxAuditor) maybeGetLog(mctx libkb.MetaContext, teamID keybase1.TeamID)
 
 func (a *BoxAuditor) maybeGetQueue(mctx libkb.MetaContext) (*BoxAuditQueue, error) {
 	var queue BoxAuditQueue
-	found, err := a.maybeGetIntoVersioned(mctx, &queue, BoxAuditQueueDbKey())
+	found, err := a.maybeGetIntoVersioned(mctx, &queue, BoxAuditQueueDbKey(mctx))
 	if err != nil || !found {
 		return nil, err
 	}
@@ -1061,7 +1062,7 @@ func (a *BoxAuditor) maybeGetQueue(mctx libkb.MetaContext) (*BoxAuditQueue, erro
 
 func (a *BoxAuditor) maybeGetJail(mctx libkb.MetaContext) (*BoxAuditJail, error) {
 	var jail BoxAuditJail
-	found, err := a.maybeGetIntoVersioned(mctx, &jail, BoxAuditJailDbKey())
+	found, err := a.maybeGetIntoVersioned(mctx, &jail, BoxAuditJailDbKey(mctx))
 	if err != nil || !found {
 		return nil, err
 	}
@@ -1088,15 +1089,15 @@ func (a *BoxAuditor) maybeGetIntoVersioned(mctx libkb.MetaContext, v Versioned, 
 }
 
 func putLogToDisk(mctx libkb.MetaContext, log *BoxAuditLog, teamID keybase1.TeamID) error {
-	return putToDisk(mctx, BoxAuditLogDbKey(teamID), log)
+	return putToDisk(mctx, BoxAuditLogDbKey(mctx, teamID), log)
 }
 
 func putQueueToDisk(mctx libkb.MetaContext, queue *BoxAuditQueue) error {
-	return putToDisk(mctx, BoxAuditQueueDbKey(), queue)
+	return putToDisk(mctx, BoxAuditQueueDbKey(mctx), queue)
 }
 
 func putJailToDisk(mctx libkb.MetaContext, jail *BoxAuditJail) error {
-	return putToDisk(mctx, BoxAuditJailDbKey(), jail)
+	return putToDisk(mctx, BoxAuditJailDbKey(mctx), jail)
 }
 
 func putToDisk(mctx libkb.MetaContext, dbKey libkb.DbKey, i interface{}) error {
