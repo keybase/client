@@ -31,6 +31,11 @@ function SettingsNav(props: Props) {
         onClick={() => props.onTabChange(Constants.notificationsTab)}
       />
       <SettingsItem
+        text="Feedback"
+        selected={props.selectedTab === Constants.feedbackTab}
+        onClick={() => props.onTabChange(Constants.feedbackTab)}
+      />
+      <SettingsItem
         text="Invitations"
         selected={props.selectedTab === Constants.invitationsTab}
         onClick={() => props.onTabChange(Constants.invitationsTab)}

@@ -101,7 +101,10 @@
       "name": "UnfurlGiphyRaw",
       "fields": [
         {
-          "type": "string",
+          "type": [
+            null,
+            "string"
+          ],
           "name": "imageUrl"
         },
         {

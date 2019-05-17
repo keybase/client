@@ -1285,11 +1285,13 @@ func TestTeamCanUserPerform(t *testing.T) {
 	bob := tt.addUser("bob")
 	pam := tt.addUser("pam")
 	edd := tt.addUser("edd")
+	jon := tt.addUser("jon")
 
 	team := ann.createTeam()
 	ann.addTeamMember(team, bob.username, keybase1.TeamRole_ADMIN)
 	ann.addTeamMember(team, pam.username, keybase1.TeamRole_WRITER)
 	ann.addTeamMember(team, edd.username, keybase1.TeamRole_READER)
+	ann.addTeamMember(team, jon.username, keybase1.TeamRole_ADMIN)
 
 	parentName, err := keybase1.TeamNameFromString(team)
 	require.NoError(t, err)
@@ -1297,6 +1299,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	_, err = teams.CreateSubteam(context.TODO(), ann.tc.G, "mysubteam", parentName, keybase1.TeamRole_NONE /* addSelfAs */)
 	require.NoError(t, err)
 	subteam := team + ".mysubteam"
+	ann.addTeamMember(subteam, jon.username, keybase1.TeamRole_READER)
 
 	callCanPerform := func(user *userPlusDevice, teamname string) keybase1.TeamOperation {
 		ret, err := teams.CanUserPerform(context.TODO(), user.tc.G, teamname)
@@ -1398,6 +1401,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 
 	annPerms = callCanPerform(ann, subteam)
 	bobPerms = callCanPerform(bob, subteam)
+	jonPerms := callCanPerform(jon, subteam)
 
 	// Some ops are fine for implicit admins
 	require.True(t, annPerms.ManageMembers)
@@ -1441,8 +1445,31 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, bobPerms.Chat)
 	require.True(t, bobPerms.DeleteTeam)
 
-	// Invalid team for pam
+	// make sure JoinTeam is false since already a member
+	require.True(t, jonPerms.ManageMembers)
+	require.True(t, jonPerms.ManageSubteams)
+	require.False(t, jonPerms.CreateChannel)
+	require.False(t, jonPerms.DeleteChannel)
+	require.False(t, jonPerms.RenameChannel)
+	require.False(t, jonPerms.EditChannelDescription)
+	require.True(t, jonPerms.EditTeamDescription)
+	require.True(t, jonPerms.SetTeamShowcase)
+	require.True(t, jonPerms.SetMemberShowcase)
+	require.False(t, jonPerms.SetRetentionPolicy)
+	require.False(t, jonPerms.SetMinWriterRole)
+	require.True(t, jonPerms.ChangeOpenTeam)
+	require.True(t, jonPerms.LeaveTeam)
+	require.True(t, jonPerms.ListFirst)
+	require.False(t, jonPerms.JoinTeam)
+	require.True(t, jonPerms.SetPublicityAny)
+	require.True(t, jonPerms.ChangeTarsDisabled)
+	require.False(t, jonPerms.DeleteChatHistory)
+	require.True(t, jonPerms.Chat)
+	require.True(t, jonPerms.DeleteTeam)
+
+	// Invalid team for pam, no error
 	_, err = teams.CanUserPerform(context.TODO(), pam.tc.G, subteam)
+	require.NoError(t, err)
 
 	// Non-membership shouldn't be an error
 	donny := tt.addUser("donny")
