@@ -423,6 +423,8 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 		ri = d.gregor.GetClient
 	}
 
+	// Add OnLogout/OnDbNuke hooks for any in-memory sources
+	storage.SetupGlobalHooks(g)
 	// Set up main chat data sources
 	boxer := chat.NewBoxer(g)
 	chatStorage := storage.New(g, nil)
