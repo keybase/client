@@ -83,7 +83,7 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 	m = m.WithLogTag("LOGIN")
 	defer m.Trace("Login#Run", func() error { return err })()
 	defer func() {
-		if err != nil {
+		if err == nil {
 			_, rpwErr := libkb.LoadHasRandomPw(m, keybase1.LoadHasRandomPwArg{ForceRepoll: true})
 			if rpwErr != nil {
 				m.Debug("Failed to preload no-passphrase status after login: %s", rpwErr)
