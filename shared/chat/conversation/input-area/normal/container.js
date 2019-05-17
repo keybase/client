@@ -72,6 +72,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     suggestChannels: Constants.getChannelSuggestions(state, teamname),
     suggestCommands: Constants.getCommands(state, conversationIDKey),
     suggestUsers: Constants.getParticipantSuggestions(state, conversationIDKey),
+    suggestAllChannels: Constants.getAllChannels(state),
     typing: Constants.getTyping(state, conversationIDKey),
     unsentText,
   }
@@ -194,6 +195,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   suggestCommands: stateProps.suggestCommands,
   suggestTeams: getTeams(stateProps._metaMap),
   suggestUsers: stateProps.suggestUsers,
+  suggestAllChannels: stateProps.suggestAllChannels,
   unsentTextChanged: (text: string) => {
     dispatchProps._unsentTextChanged(stateProps.conversationIDKey, text)
   },

@@ -18,11 +18,36 @@ import ReplyPreview from '../../reply-preview/container'
 const throttled = throttle((f, param) => f(param), 2000)
 const debounced = debounce((f, param) => f(param), 500)
 
-const searchUsersAndTeams = memoize((users, teams, filter) => {
+const searchUsersAndTeamsAndTeamChannels = memoize((users, teams, allChannels, filter) => {
   if (!filter) {
     return users.concat(teams).toArray()
   }
   const fil = filter.toLowerCase()
+  let match = fil.match(/^([a-zA-Z0-9_\.]+)#(\S*)$/) // team name followed by #
+  if (match) {
+    let teamname = match[1]
+    const channelfil = match[2]
+    if (!channelfil) {
+      // All the team's channels
+      return allChannels.filter(v => v.teamname === teamname).toArray()
+    }
+    return allChannels.filter(v => v.teamname === teamname)
+      .map(v => {
+        let score = 0
+        const channelname = v.channelname.toLowerCase()
+        if (channelname.includes(channelfil)) {
+          score++
+        }
+        if (channelname.startsWith(channelfil)) {
+          score+=2
+        }
+        return {score, v}
+      })
+      .filter(withScore => !!withScore.score)
+      .sort((a, b) => b.score - a.score)
+      .map(({v}) => v)
+      .toArray()
+  }
   const sortedUsers = users
     .map(u => {
       let score = 0
@@ -49,21 +74,38 @@ const searchUsersAndTeams = memoize((users, teams, filter) => {
   const sortedTeams = teams.filter(t => {
     return t.teamname.includes(fil)
   })
-  return sortedUsers.concat(sortedTeams)
+  let usersAndTeams = sortedUsers.concat(sortedTeams)
+  if (usersAndTeams.length === 1 && usersAndTeams[0].teamname) {
+    // The only user+team result is a single team. Present its channels as well.
+    return usersAndTeams.concat(allChannels.filter(v => v.teamname === usersAndTeams[0].teamname).toArray())
+  }
+  return usersAndTeams
 })
 
 const suggestorToMarker = {
   channels: '#',
+  // channels: /^(#|@[a-zA-Z]+#|beebase#)/,
   commands: '/',
   emoji: ':',
+  // 'users' is for @user, @team, and @team#channel
   users: /^((\+\d+(\.\d+)?[a-zA-Z]{3,12}@)|@)/, // match normal mentions and ones in a stellar send
 }
 
 const suggestorKeyExtractors = {
   commands: (c: RPCChatTypes.ConversationCommand) => c.name,
   emoji: (item: {id: string}) => item.id,
-  users: ({username, fullName, teamname}: {username: string, fullName: string, teamname?: string}) =>
-    teamname || username,
+  users: ({username, fullName, teamname, channelname}:
+          {username: string, fullName: string, teamname?: string, channelname?: string}) => {
+            if (teamname) {
+              if (channelname) {
+                return teamname + '#' + channelname
+              } else {
+                return teamname
+              }
+            } else {
+              return username
+            }
+          }
 }
 
 // 2+ valid emoji chars and no ending colon
@@ -264,7 +306,7 @@ class Input extends React.Component<InputProps, InputState> {
   }
 
   _getUserSuggestions = filter =>
-    searchUsersAndTeams(this.props.suggestUsers, this.props.suggestTeams, filter)
+    searchUsersAndTeamsAndTeamChannels(this.props.suggestUsers, this.props.suggestTeams, this.props.suggestAllChannels, filter)
 
   _getCommandSuggestions = filter => {
     if (this.props.showCommandMarkdown || this.props.showGiphySearch) {
@@ -284,7 +326,7 @@ class Input extends React.Component<InputProps, InputState> {
     return this.props.suggestCommands.filter(c => c.name.includes(fil))
   }
 
-  _renderTeamSuggestion = (teamname, selected) => (
+  _renderTeamSuggestion = (teamname, channelname, selected) => (
     <Kb.Box2
       direction="horizontal"
       fullWidth={true}
@@ -298,16 +340,16 @@ class Input extends React.Component<InputProps, InputState> {
       gap="tiny"
     >
       <Kb.Avatar teamname={teamname} size={32} />
-      <Kb.Text type="Body">{teamname}</Kb.Text>
+      <Kb.Text type="Body">{channelname ? teamname + ' #' + channelname : teamname}</Kb.Text>
     </Kb.Box2>
   )
 
   _renderUserSuggestion = (
-    {username, fullName, teamname}: {username: string, fullName: string, teamname?: string},
+    {username, fullName, teamname, channelname}: {username: string, fullName: string, teamname?: string, channelname?: string},
     selected: boolean
   ) => {
     return teamname ? (
-      this._renderTeamSuggestion(teamname, selected)
+      this._renderTeamSuggestion(teamname, channelname, selected)
     ) : (
       <Kb.Box2
         direction="horizontal"
@@ -343,11 +385,23 @@ class Input extends React.Component<InputProps, InputState> {
   }
 
   _transformUserSuggestion = (
-    input: {fullName: string, username: string, teamname?: string},
+    input: {fullName: string, username: string, teamname?: string, channelname?: string},
     marker,
     tData,
     preview: boolean
-  ) => standardTransformer(`${marker}${input.teamname || input.username}`, tData, preview)
+  ) => {
+    let s
+    if (input.teamname) {
+      if (input.channelname) {
+        s = input.teamname + '#' + input.channelname
+      } else {
+        s = input.teamname
+      }
+    } else {
+      s = input.username
+    }
+    return standardTransformer(`${marker}${s}`, tData, preview)
+  }
 
   _getChannelSuggestions = filter => {
     const fil = filter.toLowerCase()
@@ -407,6 +461,7 @@ class Input extends React.Component<InputProps, InputState> {
       suggestTeams,
       suggestUsers,
       suggestChannels,
+      suggestAllChannels,
       suggestCommands,
       isActiveForFocus,
       ...platformInputProps
