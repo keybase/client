@@ -19,7 +19,7 @@
         "__STORYSHOT__": false
     },
     "plugins": [
-        "filenames", "babel", "import", "flowtype"
+        "filenames", "babel", "import"
     ],
     "settings": {
         "import/core-modules": [ "electron", "react-native" ],
@@ -34,18 +34,6 @@
         "comma-dangle": ["error", "always-multiline"],
         "curly": "off",
         "filenames/match-regex": ["error", "^[0-9a-z-.]+(\\.desktop|\\.native|\\.ios|\\.android)?$"],
-        "flowtype/define-flow-type": "error",
-        "flowtype/delimiter-dangle": ["error", "always-multiline"],
-        "flowtype/generic-spacing": "off",
-        "flowtype/no-dupe-keys": "off",
-        "flowtype/object-type-delimiter": "off",
-        "flowtype/require-valid-file-annotation": ["error", "always", {"annotationStyle": "line"}],
-        "flowtype/semi": ["error", "never"],
-        "flowtype/space-after-type-colon": "off",
-        "flowtype/space-before-generic-bracket": ["error", "never"],
-        "flowtype/union-intersection-spacing": ["error", "always"],
-        "flowtype/use-flow-type": "error",
-        "flowtype/valid-syntax": ["error"],
         "generator-star-spacing": "off",
         "import/export": "error",
         "import/imports-first": "error",

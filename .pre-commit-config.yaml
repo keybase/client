@@ -14,12 +14,11 @@ repos:
         args: [
             '--quiet'
         ]
-    -   id: flow
-        name: flow
-        entry: sh
-        language: system
-        files: \.(js|flow)$
-        args: [-c, cd shared && node_modules/.bin/flow]
+    -   id: tsc
+        name: tsc
+        entry: shared/node_modules/.bin/tsc --noEmit
+        language: node
+        files: \.(ts|tsx)$
     -   id: prettier
         name: prettier
         entry: shared/node_modules/.bin/prettier --write
