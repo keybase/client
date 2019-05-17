@@ -1,5 +1,5 @@
 // @flow
-import Files from '.'
+import Files, {defaultNotificationThreshold, allowedNotificationThresholds} from '.'
 import * as FsGen from '../../actions/fs-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {namedConnect} from '../../util/container'
@@ -7,6 +7,7 @@ import {isMobile} from '../../constants/platform'
 
 type OwnProps = {||}
 const mapStateToProps = state => ({
+  areSettingsLoading: state.fs.settings.isLoading,
   driverStatus: state.fs.sfmi.driverStatus,
   spaceAvailableNotificationThreshold: state.fs.settings.spaceAvailableNotificationThreshold,
 })
@@ -27,10 +28,11 @@ export default (isMobile
       (s, d, o) => ({
         ...s,
         ...o,
+        onChangedSyncNotifications: (selectedIdx) => d._onEnableSyncNotifications(allowedNotificationThresholds[selectedIdx]),
         onDisable: d.onDisable,
         onDisableSyncNotifications: d.onDisableSyncNotifications,
         onEnable: d.onEnable,
-        onEnableSyncNotifications: () => d._onEnableSyncNotifications(100), // TODO: fix the threshold
+        onEnableSyncNotifications: () => d._onEnableSyncNotifications(defaultNotificationThreshold),
         onShowKextPermissionPopup: d.onShowKextPermissionPopup,
       }),
       'SettingsFiles'

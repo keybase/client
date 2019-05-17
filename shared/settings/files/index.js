@@ -9,14 +9,24 @@ import SystemFileManagerIntegrationBanner from '../../fs/banner/system-file-mana
 import RefreshDriverStatusOnMount from '../../fs/common/refresh-driver-status-on-mount'
 
 type Props = {|
+  areSettingsLoading: boolean,
   driverStatus: Types.DriverStatus,
   onEnable: () => void,
   onDisable: () => void,
   onShowKextPermissionPopup: () => void,
   spaceAvailableNotificationThreshold: number,
-  onEnableSyncNotifications?: () => void,
+  onChangedSyncNotifications: (number) => void,
+  onEnableSyncNotifications: () => void,
   onDisableSyncNotifications: () => void,
 |}
+
+export const allowedNotificationThresholds = [
+  100 * 1024 ** 2,
+  1024 ** 3,
+  10 * 1024 ** 3,
+]
+
+export const defaultNotificationThreshold = 100 * 1024 ** 2
 
 const EnableSystemFileManagerIntegration = (props: Props) => (
   <Kb.Box style={Styles.globalStyles.flexBoxColumn}>
@@ -31,17 +41,18 @@ const SyncNotificationSetting = (props: Props) => (
   <Kb.Box2 direction="horizontal" alignItems="center">
     <Kb.Text type="Body">Warn me if I only have less than </Kb.Text>
     <Kb.Dropdown
-      items={[100 * 1024 ** 2, 1024 ** 3, 10 * 1024 ** 3].map(i => (
+      items={allowedNotificationThresholds.map(i => (
         <Kb.Text type="Body" key={i} >{Constants.humanizeBytes(i, 0)}</Kb.Text>
       ))}
-      onChanged={() => undefined}
+      onChanged={props.onChangedSyncNotifications}
       selected={(
-        <Kb.Box2 direction="horizontal" key={props.spaceAvailableNotificationThreshold || 0}>
-          <Kb.Text type="Body">{Constants.humanizeBytes(props.spaceAvailableNotificationThreshold || 100 * 1024 ** 2, 0)}</Kb.Text>
+        <Kb.Box2 direction="horizontal" key={props.spaceAvailableNotificationThreshold || defaultNotificationThreshold}>
+          <Kb.Text type="Body">{Constants.humanizeBytes(props.spaceAvailableNotificationThreshold || defaultNotificationThreshold, 0)}</Kb.Text>
         </Kb.Box2>
       )}
       style={styles.syncNotificationSettingDropdown}
       selectedBoxStyle={styles.syncNotificationDropdownItem}
+      disabled={props.areSettingsLoading || props.spaceAvailableNotificationThreshold === 0}
     />
     <Kb.Text type="Body">of storage space</Kb.Text>
   </Kb.Box2>
@@ -90,10 +101,10 @@ export default (props: Props) => (
             <Kb.Text type="BodySmallSemibold">Sync</Kb.Text>
           </Kb.Box2>
           <Kb.Checkbox
-            onCheck={props.driverStatus.type === 'enabled' ? props.onDisableSyncNotifications : props.onEnableSyncNotifications}
+            onCheck={props.spaceAvailableNotificationThreshold === 0 ? props.onEnableSyncNotifications : props.onDisableSyncNotifications}
             labelComponent={<SyncNotificationSetting {...props} />}
-            checked={props.driverStatus.type === 'enabled'}
-            disabled={isPending(props)}
+            checked={props.spaceAvailableNotificationThreshold !== 0}
+            disabled={props.areSettingsLoading}
             style={styles.syncNotificationCheckbox}
           />
         </Kb.Box>
