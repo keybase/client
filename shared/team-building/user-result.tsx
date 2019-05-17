@@ -14,6 +14,7 @@ export type Props = {
   username: string
   prettyName: string
   services: {[K in ServiceIdWithContact]: string}
+  fixedHeight?: number
   inTeam: boolean
   followingState: FollowingState
   highlight: boolean

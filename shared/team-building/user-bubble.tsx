@@ -1,16 +1,17 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
+// @ts-ignore codemode issue
 import DesktopStyle from '../common-adapters/desktop-style'
 import {serviceIdToIconFont, serviceIdToAccentColor} from './shared'
-import { ServiceIdWithContact } from '../constants/types/team-building';
+import {ServiceIdWithContact} from '../constants/types/team-building'
 
 export type Props = {
-  username: string,
-  prettyName: string,
-  service: ServiceIdWithContact,
+  username: string
+  prettyName: string
+  service: ServiceIdWithContact
   onRemove: () => void
-};
+}
 
 const bubbleSize = 32
 const removeSize = 16
@@ -53,13 +54,7 @@ const DesktopBubble = (props: Props) => {
   )
 }
 
-const RemoveBubble = ({
-  onRemove,
-  prettyName
-}: {
-  onRemove: () => void,
-  prettyName: string
-}) => (
+const RemoveBubble = ({onRemove, prettyName}: {onRemove: () => void; prettyName: string}) => (
   <Kb.WithTooltip text={prettyName} position={'top center'} containerStyle={styles.remove} className="remove">
     <Kb.ClickableBox onClick={() => onRemove()} style={styles.removeBubbleTextAlignCenter}>
       <Kb.Icon
@@ -73,15 +68,18 @@ const RemoveBubble = ({
 )
 
 type SwapOnClickProps = Kb.PropsWithTimer<{
-  children: React.ElementType,
-  clickedLayerComponent: React.AbstractComponent<{}>,
-  clickedLayerTimeout: number,
+  children: React.ElementType
+  clickedLayerComponent: React.AbstractComponent<{}>
+  clickedLayerTimeout: number
   containerStyle?: Styles.StylesCrossPlatform
-}>;
+}>
 
-class _SwapOnClick extends React.PureComponent<SwapOnClickProps, {
-  showClickedLayer: boolean
-}> {
+class _SwapOnClick extends React.PureComponent<
+  SwapOnClickProps,
+  {
+    showClickedLayer: boolean
+  }
+> {
   state = {showClickedLayer: false}
   _onClick = () => {
     if (!this.state.showClickedLayer) {
@@ -104,8 +102,11 @@ class _SwapOnClick extends React.PureComponent<SwapOnClickProps, {
 const SwapOnClick = Kb.HOCTimers(_SwapOnClick)
 
 function SwapOnClickHoc<A>(
+  // @ts-ignore codemode issue
   Component: React.AbstractComponent<{}, A>,
+  // @ts-ignore codemode issue
   OtherComponent: React.AbstractComponent<{}, A>
+  // @ts-ignore codemode issue
 ): React.AbstractComponent<{
   containerStyle?: Styles.StylesCrossPlatform
 }> {

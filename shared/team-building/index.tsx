@@ -48,7 +48,7 @@ export type Props = {
   waitingForCreate: boolean
 }
 
-class TeamBuilding extends React.PureComponent<Props, void> {
+class TeamBuilding extends React.PureComponent<Props, {}> {
   componentDidMount = () => {
     this.props.fetchUserRecs()
   }

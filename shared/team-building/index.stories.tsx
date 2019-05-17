@@ -573,9 +573,6 @@ const load = () => {
         followingState="Following"
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
-        p={true}
-        onMouseOver={Sb.action('onMouseOver')}
-        onMouseLeave={Sb.action('onMouseLeave')}
       />
     ))
     .add('Chris (already in team)', () => (
@@ -595,8 +592,6 @@ const load = () => {
         followingState="Following"
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
-        onMouseOver={Sb.action('onMouseOver')}
-        onMouseLeave={Sb.action('onMouseLeave')}
       />
     ))
     .add('marcopolo (github) - keybase user. following', () => (
@@ -610,8 +605,6 @@ const load = () => {
         followingState="Following"
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
-        onMouseOver={Sb.action('onMouseOver')}
-        onMouseLeave={Sb.action('onMouseLeave')}
       />
     ))
     .add('marcopolo2 (github) - no keybase user', () => (
@@ -625,8 +618,6 @@ const load = () => {
         followingState="NoState"
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
-        onMouseOver={Sb.action('onMouseOver')}
-        onMouseLeave={Sb.action('onMouseLeave')}
       />
     ))
     .add('Chris Highlighted (already in team)', () => (
