@@ -8,7 +8,6 @@
     "help": "yarn run _helper help",
     "lint": "yarn run lint-specific .",
     "lint-specific": "cd .. && shared/node_modules/.bin/eslint --quiet ",
-    "local-visdiff": "yarn run _helper local-visdiff",
     "postinstall": "yarn run _helper postinstall",
     "prettier": "./node_modules/.bin/prettier --write ",
     "prettier-check": "git ls-files | grep \"\\.js\\(.flow\\)\\?\\$\" | xargs yarn run prettier --debug-check",
