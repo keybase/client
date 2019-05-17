@@ -6,6 +6,7 @@ import ResetBanner from './reset-banner'
 import SystemFileManagerIntegrationBanner from './system-file-manager-integration-banner'
 import KextPermissionPopup from './system-file-manager-integration-banner/kext-permission-popup'
 import {commonProvider} from '../common/index.stories'
+import PublicReminder from './public-reminder'
 
 const resetBannerCommon = {
   onOpenWithoutResetUsers: Sb.action('onOpenWithoutResetUsers'),
@@ -43,6 +44,9 @@ export default () => {
     .addDecorator(Sb.scrollViewDecorator)
     .add('ResetBanner - other', () => (
       <ResetBanner resetParticipants={['reset1', 'reset3']} {...resetBannerCommon} />
+    ))
+    .add('Public Reminder Banner', () => (
+      <PublicReminder path={Types.stringToPath('/keybase/public/jakob223,songgao')} />
     ))
     .add('SystemFileManagerIntegrationBanner - disabled', () => (
       <SystemFileManagerIntegrationBanner

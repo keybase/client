@@ -9,7 +9,6 @@ import * as SettingsConstants from './settings'
 import {TypedState} from '../util/container'
 import {isLinux, isMobile} from './platform'
 import uuidv1 from 'uuid/v1'
-import {globalColors} from '../styles'
 import {downloadFilePath, downloadFilePathNoSearch} from '../util/file'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import {TypedActions} from '../actions/typed-actions-gen'
@@ -337,13 +336,8 @@ export const pathToRPCPath = (path: Types.Path): RPCTypes.Path => ({
   kbfs: Types.pathToString(path).substring('/keybase'.length) || '/',
 })
 
-export const getPathTextColor = (path: Types.Path) => {
-  const elems = Types.getPathElements(path)
-  return elems.length >= 2 && elems[1] === 'public' ? globalColors.yellowGreen2 : globalColors.black
-}
-
 export const pathTypeToTextType = (type: Types.PathType) =>
-  type === Types.PathType.Folder ? 'BodySemibold' : 'Body'
+    type === Types.PathType.Folder ? 'BodySemibold' : 'Body'
 
 export const splitTlfIntoUsernames = (tlf: string): Array<string> =>
   tlf
@@ -618,6 +612,17 @@ export const getTlfFromTlfs = (tlfs: Types.Tlfs, tlfType: Types.TlfType, name: s
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(tlfType)
       return makeTlf()
+  }
+}
+
+export const isOwnPublic = (p: Types.Path, username: string) => {
+  const parsedPath = parsePath(p)
+  switch (parsedPath.kind) {
+    case 'group-tlf':
+    case 'in-group-tlf':
+      return parsedPath.writers.contains(username)
+    default:
+      return false
   }
 }
 
