@@ -34,9 +34,9 @@ def logContainer(composefile, container) {
 }
 
 def logForeverServices(composefile, container) {
-  sh "docker cp \$(docker-compose -f ${composefile}.yml ps -q ${container}.local):/root/.forever ./forever"
-  sh "tar czvf ./forever-${container}.tar.gz ./forever"
-  archive("forever-${container}.tar.gz")
+  sh "docker cp \$(docker-compose -f ${composefile}.yml ps -q ${container}.local):/keybase ./logs"
+  sh "tar czvf ./logs-${container}.tar.gz ./logs"
+  archive("logs-${container}.tar.gz")
 }
 
 helpers.rootLinuxNode(env, {
@@ -59,7 +59,7 @@ helpers.rootLinuxNode(env, {
   env.GOPATH="${env.BASEDIR}/go"
   def mysqlImage = docker.image("keybaseprivate/mysql")
   def gregorImage = docker.image("keybaseprivate/kbgregor")
-  def kbwebImage = docker.image("keybaseprivate/kbweb")
+  def kbwebImage = docker.image("keybaseprivate/kbweb:log-split")
   def glibcImage = docker.image("keybaseprivate/glibc")
   def clientImage = null
 
