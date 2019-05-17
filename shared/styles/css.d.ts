@@ -1,12 +1,11 @@
-// @flow strict
-export type Color = null | string
-type Dimension = string | number
+export type Color = null | string;
+type Dimension = string | number;
 
-export type _StylesCrossPlatform = {|
-  alignContent?: 'flex-start' | 'flex-end' | 'center' | 'stretch' | 'space-between' | 'space-around',
-  alignItems?: 'flex-start' | 'flex-end' | 'center' | 'stretch' | 'baseline',
-  alignSelf?: 'auto' | 'flex-start' | 'flex-end' | 'center' | 'stretch' | 'baseline',
-  backfaceVisibility?: 'visible' | 'hidden',
+export type _StylesCrossPlatform = {
+  alignContent?: "flex-start" | "flex-end" | "center" | "stretch" | "space-between" | "space-around",
+  alignItems?: "flex-start" | "flex-end" | "center" | "stretch" | "baseline",
+  alignSelf?: "auto" | "flex-start" | "flex-end" | "center" | "stretch" | "baseline",
+  backfaceVisibility?: "visible" | "hidden",
   backgroundColor?: Color,
   borderBottomColor?: Color,
   borderBottomLeftRadius?: number,
@@ -18,7 +17,7 @@ export type _StylesCrossPlatform = {|
   borderRadius?: number,
   borderRightColor?: Color,
   borderRightWidth?: number,
-  borderStyle?: 'solid' | 'dotted' | 'dashed',
+  borderStyle?: "solid" | "dotted" | "dashed",
   borderTopColor?: string,
   borderTopLeftRadius?: number,
   borderTopRightRadius?: number,
@@ -26,23 +25,21 @@ export type _StylesCrossPlatform = {|
   borderWidth?: number,
   bottom?: Dimension,
   color?: Color,
-  direction?: 'inherit' | 'ltr' | 'rtl',
-  display?: 'none' | 'flex',
+  direction?: "inherit" | "ltr" | "rtl",
+  display?: "none" | "flex",
   flex?: number,
   flexBasis?: number | string,
-  flexDirection?: 'row' | 'row-reverse' | 'column' | 'column-reverse',
+  flexDirection?: "row" | "row-reverse" | "column" | "column-reverse",
   flexGrow?: number,
   flexShrink?: number,
-  flexWrap?: 'wrap' | 'nowrap',
+  flexWrap?: "wrap" | "nowrap",
   fontFamily?: string,
   fontSize?: number,
-  fontStyle?: 'normal' | 'italic',
-  fontVariant?: $ReadOnlyArray<
-    'small-caps' | 'oldstyle-nums' | 'lining-nums' | 'tabular-nums' | 'proportional-nums'
-  >,
-  fontWeight?: 'normal' | 'bold' | '100' | '200' | '300' | '400' | '500' | '600' | '700' | '800' | '900',
+  fontStyle?: "normal" | "italic",
+  fontVariant?: ReadonlyArray<"small-caps" | "oldstyle-nums" | "lining-nums" | "tabular-nums" | "proportional-nums">,
+  fontWeight?: "normal" | "bold" | "100" | "200" | "300" | "400" | "500" | "600" | "700" | "800" | "900",
   height?: Dimension,
-  justifyContent?: 'flex-start' | 'flex-end' | 'center' | 'space-between' | 'space-around',
+  justifyContent?: "flex-start" | "flex-end" | "center" | "space-between" | "space-around",
   left?: Dimension,
   letterSpacing?: number,
   lineHeight?: number,
@@ -56,7 +53,7 @@ export type _StylesCrossPlatform = {|
   minHeight?: Dimension,
   minWidth?: Dimension,
   opacity?: number,
-  overflow?: 'visible' | 'hidden' | 'scroll' | 'auto',
+  overflow?: "visible" | "hidden" | "scroll" | "auto",
   overflowX?: string,
   overflowY?: string,
   padding?: Dimension,
@@ -64,46 +61,51 @@ export type _StylesCrossPlatform = {|
   paddingLeft?: Dimension,
   paddingRight?: Dimension,
   paddingTop?: Dimension,
-  position?: 'absolute' | 'relative',
+  position?: "absolute" | "relative",
   right?: Dimension,
-  textAlign?: 'auto' | 'left' | 'right' | 'center' | 'justify',
+  textAlign?: "auto" | "left" | "right" | "center" | "justify",
   textDecorationColor?: Color,
-  textDecorationLine?: 'none' | 'underline' | 'line-through' | 'underline line-through',
-  textDecorationStyle?: 'solid' | 'double' | 'dotted' | 'dashed',
+  textDecorationLine?: "none" | "underline" | "line-through" | "underline line-through",
+  textDecorationStyle?: "solid" | "double" | "dotted" | "dashed",
   top?: Dimension,
-  transform?: $ReadOnlyArray<
-    | {perspective: number}
-    | {rotate: string}
-    | {rotateX: string}
-    | {rotateY: string}
-    | {rotateZ: string}
-    | {scale: number}
-    | {scaleX: number}
-    | {scaleY: number}
-    | {translateX: number}
-    | {translateY: number}
-    | {
-        translate: [number, number],
-      }
-    | {skewX: string}
-    | {skewY: string}
-    | {matrix: $ReadOnlyArray<number>}
-  >,
+  transform?: ReadonlyArray<{
+    perspective: number
+  } | {
+    rotate: string
+  } | {
+    rotateX: string
+  } | {
+    rotateY: string
+  } | {
+    rotateZ: string
+  } | {
+    scale: number
+  } | {
+    scaleX: number
+  } | {
+    scaleY: number
+  } | {
+    translateX: number
+  } | {
+    translateY: number
+  } | {
+    translate: [number, number]
+  } | {
+    skewX: string
+  } | {
+    skewY: string
+  } | {
+    matrix: ReadonlyArray<number>
+  }>,
   width?: Dimension,
-  zIndex?: number,
-|}
+  zIndex?: number
+};
 
-export type StylesCrossPlatform =
-  | null
-  | _StylesCrossPlatform
-  | $ReadOnlyArray<_StylesCrossPlatform | null | false | void>
+export type StylesCrossPlatform = null | _StylesCrossPlatform | ReadonlyArray<_StylesCrossPlatform | null | false | void>;
 
-export type StylesCrossPlatformWithSomeDisallowed<D> =
-  | null
-  | (_StylesCrossPlatform & D)
-  | $ReadOnlyArray<(_StylesCrossPlatform & D) | null | false | void>
+export type StylesCrossPlatformWithSomeDisallowed<D> = null | _StylesCrossPlatform & D | ReadonlyArray<_StylesCrossPlatform & D | null | false | void>;
 
-export type _StylesDesktop = {|
+export type _StylesDesktop = {
   alignContent?: string,
   alignItems?: string,
   alignSelf?: string,
@@ -349,7 +351,7 @@ export type _StylesDesktop = {|
   shapeImageThreshold?: string,
   shapeMargin?: string,
   shapeOutside?: string,
-  speak?: 'none',
+  speak?: "none",
   tabSize?: string,
   tableLayout?: string,
   textAlign?: string,
@@ -399,14 +401,14 @@ export type _StylesDesktop = {|
   wordSpacing?: string,
   wordWrap?: string,
   writingMode?: string,
-  zIndex?: number,
-|}
+  zIndex?: number
+};
 
-export type StylesDesktop = null | _StylesDesktop | $ReadOnlyArray<_StylesDesktop | null | false | void>
+export type StylesDesktop = null | _StylesDesktop | ReadonlyArray<_StylesDesktop | null | false | void>;
 
 // Mostly lifted from StyleSheetTypes
-export type _StylesMobile = {|
-  display?: 'none' | 'flex',
+export type _StylesMobile = {
+  display?: "none" | "flex",
   width?: Dimension,
   height?: Dimension,
   top?: Dimension,
@@ -431,52 +433,58 @@ export type _StylesMobile = {|
   paddingBottom?: Dimension,
   paddingLeft?: Dimension,
   paddingRight?: Dimension,
-  borderWidth?: number,
-  borderTopWidth?: number,
-  borderBottomWidth?: number,
-  borderLeftWidth?: number,
-  borderRightWidth?: number,
-  position?: 'absolute' | 'relative',
-  flexDirection?: 'row' | 'row-reverse' | 'column' | 'column-reverse',
-  flexWrap?: 'wrap' | 'nowrap',
-  justifyContent?: 'flex-start' | 'flex-end' | 'center' | 'space-between' | 'space-around',
-  alignItems?: 'flex-start' | 'flex-end' | 'center' | 'stretch' | 'baseline',
-  alignSelf?: 'auto' | 'flex-start' | 'flex-end' | 'center' | 'stretch' | 'baseline',
-  alignContent?: 'flex-start' | 'flex-end' | 'center' | 'stretch' | 'space-between' | 'space-around',
-  overflow?: 'visible' | 'hidden' | 'scroll' | 'auto',
+  position?: "absolute" | "relative",
+  flexDirection?: "row" | "row-reverse" | "column" | "column-reverse",
+  flexWrap?: "wrap" | "nowrap",
+  justifyContent?: "flex-start" | "flex-end" | "center" | "space-between" | "space-around",
+  alignItems?: "flex-start" | "flex-end" | "center" | "stretch" | "baseline",
+  alignSelf?: "auto" | "flex-start" | "flex-end" | "center" | "stretch" | "baseline",
+  alignContent?: "flex-start" | "flex-end" | "center" | "stretch" | "space-between" | "space-around",
+  overflow?: "visible" | "hidden" | "scroll" | "auto",
   flex?: number,
   flexGrow?: number,
   flexShrink?: number,
   flexBasis?: number | string,
   aspectRatio?: number,
   zIndex?: number,
-  direction?: 'inherit' | 'ltr' | 'rtl',
-  transform?: $ReadOnlyArray<
-    | {perspective: number}
-    | {rotate: string}
-    | {rotateX: string}
-    | {rotateY: string}
-    | {rotateZ: string}
-    | {scale: number}
-    | {scaleX: number}
-    | {scaleY: number}
-    | {translateX: number}
-    | {translateY: number}
-    | {
-        translate: [number, number],
-      }
-    | {skewX: string}
-    | {skewY: string}
-    | {matrix: $ReadOnlyArray<number>}
-  >,
+  direction?: "inherit" | "ltr" | "rtl",
+  transform?: ReadonlyArray<{
+    perspective: number
+  } | {
+    rotate: string
+  } | {
+    rotateX: string
+  } | {
+    rotateY: string
+  } | {
+    rotateZ: string
+  } | {
+    scale: number
+  } | {
+    scaleX: number
+  } | {
+    scaleY: number
+  } | {
+    translateX: number
+  } | {
+    translateY: number
+  } | {
+    translate: [number, number]
+  } | {
+    skewX: string
+  } | {
+    skewY: string
+  } | {
+    matrix: ReadonlyArray<number>
+  }>,
   shadowColor?: Color,
   shadowOffset?: {
     width?: number,
-    height?: number,
+    height?: number
   },
   shadowOpacity?: number,
   shadowRadius?: number,
-  backfaceVisibility?: 'visible' | 'hidden',
+  backfaceVisibility?: "visible" | "hidden",
   backgroundColor?: Color,
   borderColor?: Color,
   borderTopColor?: Color,
@@ -488,7 +496,7 @@ export type _StylesMobile = {|
   borderTopRightRadius?: number,
   borderBottomLeftRadius?: number,
   borderBottomRightRadius?: number,
-  borderStyle?: 'solid' | 'dotted' | 'dashed',
+  borderStyle?: "solid" | "dotted" | "dashed",
   borderWidth?: number,
   borderTopWidth?: number,
   borderRightWidth?: number,
@@ -499,25 +507,26 @@ export type _StylesMobile = {|
   color?: Color,
   fontFamily?: string,
   fontSize?: number,
-  fontStyle?: 'normal' | 'italic',
-  fontWeight?: 'normal' | 'bold' | '100' | '200' | '300' | '400' | '500' | '600' | '700' | '800' | '900',
-  fontVariant?: $ReadOnlyArray<
-    'small-caps' | 'oldstyle-nums' | 'lining-nums' | 'tabular-nums' | 'proportional-nums'
-  >,
-  textShadowOffset?: {width: number, height: number},
+  fontStyle?: "normal" | "italic",
+  fontWeight?: "normal" | "bold" | "100" | "200" | "300" | "400" | "500" | "600" | "700" | "800" | "900",
+  fontVariant?: ReadonlyArray<"small-caps" | "oldstyle-nums" | "lining-nums" | "tabular-nums" | "proportional-nums">,
+  textShadowOffset?: {
+    width: number,
+    height: number
+  },
   textShadowRadius?: number,
   textShadowColor?: Color,
   letterSpacing?: number,
   lineHeight?: number,
-  textAlign?: 'auto' | 'left' | 'right' | 'center' | 'justify',
-  textAlignVertical?: 'auto' | 'top' | 'bottom' | 'center',
+  textAlign?: "auto" | "left" | "right" | "center" | "justify",
+  textAlignVertical?: "auto" | "top" | "bottom" | "center",
   includeFontPadding?: boolean,
-  textDecorationLine?: 'none' | 'underline' | 'line-through' | 'underline line-through',
-  textDecorationStyle?: 'solid' | 'double' | 'dotted' | 'dashed',
+  textDecorationLine?: "none" | "underline" | "line-through" | "underline line-through",
+  textDecorationStyle?: "solid" | "double" | "dotted" | "dashed",
   textDecorationColor?: Color,
-  writingDirection?: 'auto' | 'ltr' | 'rtl',
+  writingDirection?: "auto" | "ltr" | "rtl",
   tintColor?: Color,
-  overlayColor?: string,
-|}
+  overlayColor?: string
+};
 
-export type StylesMobile = null | _StylesMobile | $ReadOnlyArray<_StylesMobile | null | false | void>
+export type StylesMobile = null | _StylesMobile | ReadonlyArray<_StylesMobile | null | false | void>;
