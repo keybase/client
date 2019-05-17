@@ -257,7 +257,7 @@ func TestScraper(t *testing.T) {
 		FaviconUrl:  strPtr("http://127.0.0.1/images/favicon.ico"),
 	}), true, nil, nil)
 	testCase("giphy0.html", chat1.NewUnfurlRawWithGiphy(chat1.UnfurlGiphyRaw{
-		ImageUrl:   "https://media.giphy.com/media/5C3Zrs5xUg5fHV4Kcf/giphy-downsized-large.gif",
+		ImageUrl:   strPtr("https://media.giphy.com/media/5C3Zrs5xUg5fHV4Kcf/giphy-downsized-large.gif"),
 		FaviconUrl: strPtr("https://giphy.com/static/img/icons/apple-touch-icon-180px.png"),
 		Video: &chat1.UnfurlVideo{
 			Url:    "https://media.giphy.com/media/5C3Zrs5xUg5fHV4Kcf/giphy.mp4",

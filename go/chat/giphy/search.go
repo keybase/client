@@ -46,6 +46,9 @@ func getPreferredPreview(mctx libkb.MetaContext, img gifImage) (string, bool, er
 }
 
 func getTargetURL(mctx libkb.MetaContext, images map[string]gifImage) (string, error) {
+	adorn := func(url string, isVideo bool, img gifImage) string {
+		return fmt.Sprintf("%s#height=%s&width=%s&isvideo=%v", url, img.Height, img.Width, isVideo)
+	}
 	for typ, img := range images {
 		if typ != "original" {
 			continue
@@ -54,9 +57,9 @@ func getTargetURL(mctx libkb.MetaContext, images map[string]gifImage) (string, e
 			return "", errors.New("no gif target")
 		}
 		if len(img.MP4) == 0 {
-			return img.URL, nil
+			return adorn(img.URL, false, img), nil
 		}
-		return img.MP4, nil
+		return adorn(img.MP4, true, img), nil
 	}
 	return "", errors.New("no original target found")
 }
