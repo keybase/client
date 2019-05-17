@@ -14,7 +14,7 @@ const fileLoaderRule = {
 
 module.exports = (storybookBaseConfig, configType) => {
   storybookBaseConfig.resolve = {
-    extensions: ['.desktop.js', '.js', '.jsx', '.json', '.flow'],
+    extensions: ['.desktop.js', '.js', '.jsx', '.json', '.flow', '.ts', '.tsx'],
   }
 
   storybookBaseConfig.plugins.push(
@@ -58,6 +58,10 @@ module.exports = (storybookBaseConfig, configType) => {
     {
       test: /\.css$/,
       use: ['style-loader', 'css-loader'],
+    },
+    {
+      test: /\.(ts|tsx)$/,
+      use: ['babel-loader'],
     }
   )
 
