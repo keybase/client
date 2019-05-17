@@ -5,13 +5,15 @@
         "noImplicitAny": false,
         "module": "commonjs",
         "target": "es6",
-        "jsx": "preserve"
+        "jsx": "preserve",
+        "incremental": true
     },
     "include": [
         "./**/*"
     ],
     "exclude": [
         "node_modules",
-        "react-native"
+        "react-native",
+        "desktop/dist"
     ]
 }

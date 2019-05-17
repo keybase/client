@@ -1,36 +1,40 @@
-import React from 'react'
+import * as React from 'react'
 import GoButton from './go-button'
 import Input from './input'
 import UserBubble from './user-bubble'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import { ServiceIdWithContact } from '../constants/types/team-building';
+import {ServiceIdWithContact} from '../constants/types/team-building'
 
 type Props = {
-  onChangeText: (newText: string) => void,
-  onEnterKeyDown: () => void,
-  onDownArrowKeyDown: () => void,
-  onUpArrowKeyDown: () => void,
+  onChangeText: (newText: string) => void
+  onEnterKeyDown: () => void
+  onDownArrowKeyDown: () => void
+  onUpArrowKeyDown: () => void
   teamSoFar: Array<{
-    userId: string,
-    prettyName: string,
-    username: string,
+    userId: string
+    prettyName: string
+    username: string
     service: ServiceIdWithContact
-  }>,
-  onRemove: (userId: string) => void,
-  onBackspace: () => void,
-  onFinishTeamBuilding: () => void,
+  }>
+  onRemove: (userId: string) => void
+  onBackspace: () => void
+  onFinishTeamBuilding: () => void
   searchString: string
-};
+}
 
-const formatNameForUserBubble = (username: string, service: ServiceIdWithContact, prettyName: string | null) => {
+const formatNameForUserBubble = (
+  username: string,
+  service: ServiceIdWithContact,
+  prettyName: string | null
+) => {
   const technicalName = service === 'keybase' ? username : `${username} on ${service}`
   return `${technicalName} ${prettyName ? `(${prettyName})` : ''}`
 }
 
 class UserBubbleCollection extends React.PureComponent<{
-  teamSoFar: Props["teamSoFar"],
-  onRemove: Props["onRemove"]
+  teamSoFar: Props['teamSoFar']
+  onRemove: Props['onRemove']
 }> {
   render() {
     return this.props.teamSoFar.map(u => (
@@ -53,11 +57,7 @@ const TeamInput = (props: Props) => (
     onDownArrowKeyDown={props.onDownArrowKeyDown}
     onUpArrowKeyDown={props.onUpArrowKeyDown}
     onBackspace={props.onBackspace}
-    placeholder={
-      props.teamSoFar.length
-        ? 'Add another username or enter to chat'
-        : 'Enter a username'
-    }
+    placeholder={props.teamSoFar.length ? 'Add another username or enter to chat' : 'Enter a username'}
     searchString={props.searchString}
   />
 )

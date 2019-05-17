@@ -1,27 +1,25 @@
-import React from 'react'
+import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import {followingStateToStyle} from '../search/shared'
 import {serviceIdToIconFont, serviceIdToAccentColor} from './shared'
-import { ServiceIdWithContact, FollowingState } from '../constants/types/team-building';
+import {ServiceIdWithContact, FollowingState} from '../constants/types/team-building'
 
 // TODO
 // * Use ListItem2
 // * maybe move realCSS up?
 
 export type Props = {
-  resultForService: ServiceIdWithContact,
-  username: string,
-  prettyName: string,
-  services: {
-    [K in ServiceIdWithContact]: string;
-  },
-  inTeam: boolean,
-  followingState: FollowingState,
-  highlight: boolean,
-  onAdd: () => void,
+  resultForService: ServiceIdWithContact
+  username: string
+  prettyName: string
+  services: {[K in ServiceIdWithContact]: string}
+  inTeam: boolean
+  followingState: FollowingState
+  highlight: boolean
+  onAdd: () => void
   onRemove: () => void
-};
+}
 
 const realCSS = (inTeam: boolean) => `
     .hoverRow${inTeam ? 'inTeam' : ''}:hover { background-color: ${Styles.globalColors.blueLighter2};}
@@ -35,7 +33,7 @@ const realCSS = (inTeam: boolean) => `
 
 type LocalState = {
   hovering: boolean
-};
+}
 
 class Row extends React.Component<Props, LocalState> {
   state = {hovering: false}
@@ -96,9 +94,9 @@ class Row extends React.Component<Props, LocalState> {
 const AvatarSize = Styles.isMobile ? 48 : 32
 const Avatar = ({
   resultForService,
-  keybaseUsername
+  keybaseUsername,
 }: {
-  keybaseUsername: string | null,
+  keybaseUsername: string | null
   resultForService: ServiceIdWithContact
 }) => {
   if (keybaseUsername) {
@@ -115,9 +113,9 @@ const Avatar = ({
 }
 
 const Username = (props: {
-  username: string,
-  prettyName: string,
-  followingState: FollowingState,
+  username: string
+  prettyName: string
+  followingState: FollowingState
   keybaseResult: boolean
 }) => (
   <Kb.Box2 direction="vertical" style={styles.username}>
@@ -135,13 +133,11 @@ const Services = ({
   services,
   keybaseResult,
   keybaseUsername,
-  followingState
+  followingState,
 }: {
-  services: {
-    [K in ServiceIdWithContact]: string;
-  },
-  keybaseResult: boolean,
-  keybaseUsername: string | null,
+  services: {[K in ServiceIdWithContact]: string}
+  keybaseResult: boolean
+  keybaseUsername: string | null
   followingState: FollowingState
 }) => {
   if (keybaseResult) {
@@ -174,10 +170,10 @@ const Services = ({
 }
 
 const ActionButton = (props: {
-  highlight: boolean,
-  hover: boolean,
-  inTeam: boolean,
-  onAdd: () => void,
+  highlight: boolean
+  hover: boolean
+  inTeam: boolean
+  onAdd: () => void
   onRemove: () => void
 }) => {
   let Icon = props.inTeam ? AlreadyAddedIconButton : AddButton

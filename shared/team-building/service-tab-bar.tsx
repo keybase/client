@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
 import {
@@ -8,24 +8,22 @@ import {
   inactiveServiceAccentColor,
 } from './shared'
 import * as Constants from '../constants/team-building'
-import { ServiceIdWithContact } from '../constants/types/team-building';
+import {ServiceIdWithContact} from '../constants/types/team-building'
 
 type Props = {
-  selectedService: ServiceIdWithContact,
-  onChangeService: (newService: ServiceIdWithContact) => void,
-  serviceResultCount: {
-    [K in ServiceIdWithContact]: number | null;
-  },
+  selectedService: ServiceIdWithContact
+  onChangeService: (newService: ServiceIdWithContact) => void
+  serviceResultCount: {[K in ServiceIdWithContact]: number | null}
   showServiceResultCount: boolean
-};
+}
 
 type IconProps = {
-  service: ServiceIdWithContact,
-  onClick: () => void,
-  count: number | null,
-  showCount: boolean,
+  service: ServiceIdWithContact
+  onClick: () => void
+  count: number | null
+  showCount: boolean
   isActive: boolean
-};
+}
 
 const HoverIcon = Styles.styled(Kb.Icon)(props => ({
   '&:hover': {

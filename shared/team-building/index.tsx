@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import GoButton from './go-button'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
@@ -7,50 +7,46 @@ import ServiceTabBar from './service-tab-bar'
 import UserResult from './user-result'
 import flags from '../util/feature-flags'
 import {serviceIdToAccentColor, serviceIdToIconFont, serviceIdToLabel} from './shared'
-import { ServiceIdWithContact, FollowingState } from '../constants/types/team-building';
+import {ServiceIdWithContact, FollowingState} from '../constants/types/team-building'
 
 type SearchResult = {
-  userId: string,
-  username: string,
-  prettyName: string,
-  services: {
-    [K in ServiceIdWithContact]: string;
-  },
-  inTeam: boolean,
+  userId: string
+  username: string
+  prettyName: string
+  services: {[K in ServiceIdWithContact]: string}
+  inTeam: boolean
   followingState: FollowingState
-};
+}
 
 export type Props = {
-  fetchUserRecs: () => void,
-  highlightedIndex: number | null,
-  onAdd: (userId: string) => void,
-  onBackspace: () => void,
-  onChangeService: (newService: ServiceIdWithContact) => void,
-  onChangeText: (newText: string) => void,
-  onDownArrowKeyDown: () => void,
-  onEnterKeyDown: () => void,
-  onFinishTeamBuilding: () => void,
-  onMakeItATeam: () => void,
-  onRemove: (userId: string) => void,
-  onSearchForMore: () => void,
-  onUpArrowKeyDown: () => void,
-  recommendations: Array<SearchResult> | null,
-  searchResults: Array<SearchResult> | null,
-  searchString: string,
-  selectedService: ServiceIdWithContact,
-  serviceResultCount: {
-    [K in ServiceIdWithContact]: number | null;
-  },
-  showRecs: boolean,
-  showServiceResultCount: boolean,
+  fetchUserRecs: () => void
+  highlightedIndex: number | null
+  onAdd: (userId: string) => void
+  onBackspace: () => void
+  onChangeService: (newService: ServiceIdWithContact) => void
+  onChangeText: (newText: string) => void
+  onDownArrowKeyDown: () => void
+  onEnterKeyDown: () => void
+  onFinishTeamBuilding: () => void
+  onMakeItATeam: () => void
+  onRemove: (userId: string) => void
+  onSearchForMore: () => void
+  onUpArrowKeyDown: () => void
+  recommendations: Array<SearchResult> | null
+  searchResults: Array<SearchResult> | null
+  searchString: string
+  selectedService: ServiceIdWithContact
+  serviceResultCount: {[K in ServiceIdWithContact]: number | null}
+  showRecs: boolean
+  showServiceResultCount: boolean
   teamSoFar: Array<{
-    userId: string,
-    prettyName: string,
-    service: ServiceIdWithContact,
+    userId: string
+    prettyName: string
+    service: ServiceIdWithContact
     username: string
-  }>,
+  }>
   waitingForCreate: boolean
-};
+}
 
 class TeamBuilding extends React.PureComponent<Props, void> {
   componentDidMount = () => {

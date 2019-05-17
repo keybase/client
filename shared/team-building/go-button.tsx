@@ -1,10 +1,10 @@
-import React from 'react'
+import * as React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
 
 export type Props = {
   onClick: () => void
-};
+}
 
 const Go = () => (
   <Kb.Text type="BodyBig" style={styles.go}>
