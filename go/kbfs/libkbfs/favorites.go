@@ -315,8 +315,9 @@ func (f *Favorites) sendChangesToEditHistory(oldCache map[favorites.Folder]favor
 		if !present {
 			f.config.KBFSOps().RefreshEditHistory(newFav)
 			changed = true
-		} else if newFavData.TlfMtime != nil && oldFavData.TlfMtime != nil &&
-			*newFavData.TlfMtime > *oldFavData.TlfMtime {
+		} else if newFavData.TlfMtime != nil &&
+			(oldFavData.TlfMtime == nil ||
+				(*newFavData.TlfMtime > *oldFavData.TlfMtime)) {
 			changed = true
 		}
 	}
@@ -463,24 +464,32 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 					folder)] = favorites.DataFrom(folder)
 			}
 			if sessionErr == nil {
-				// Add favorites for the current user, that cannot be deleted.
-				f.favCache[favorites.Folder{
+				// Add favorites for the current user, that cannot be
+				// deleted.  Only overwrite them (with a 0 mtime) if
+				// they weren't already part of the favorites list.
+				selfPriv := favorites.Folder{
 					Name: string(session.Name),
 					Type: tlf.Private,
-				}] = favorites.Data{
-					Name:       string(session.Name),
-					FolderType: tlf.Private.FolderType(),
-					TeamID:     &f.homeTLFInfo.PrivateTeamID,
-					Private:    true,
 				}
-				f.favCache[favorites.Folder{
+				if _, ok := f.favCache[selfPriv]; !ok {
+					f.favCache[selfPriv] = favorites.Data{
+						Name:       string(session.Name),
+						FolderType: tlf.Private.FolderType(),
+						TeamID:     &f.homeTLFInfo.PrivateTeamID,
+						Private:    true,
+					}
+				}
+				selfPub := favorites.Folder{
 					Name: string(session.Name),
 					Type: tlf.Public,
-				}] = favorites.Data{
-					Name:       string(session.Name),
-					FolderType: tlf.Public.FolderType(),
-					TeamID:     &f.homeTLFInfo.PublicTeamID,
-					Private:    false,
+				}
+				if _, ok := f.favCache[selfPub]; !ok {
+					f.favCache[selfPub] = favorites.Data{
+						Name:       string(session.Name),
+						FolderType: tlf.Public.FolderType(),
+						TeamID:     &f.homeTLFInfo.PublicTeamID,
+						Private:    false,
+					}
 				}
 				err = f.writeCacheToDisk(req.ctx)
 				if err != nil {
