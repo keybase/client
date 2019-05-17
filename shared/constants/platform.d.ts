@@ -1,4 +1,3 @@
-// @flow strict
 export const runMode: string = ''
 
 export const isMobile: boolean = false
@@ -14,9 +13,9 @@ export const isIPhoneX: boolean = false
 export const isAndroidNewerThanN: boolean = false
 export const defaultUseNativeFrame: boolean = false
 
-declare export var fileUIName: string
-declare export var version: string
-declare export var logFileName: string
-declare export var pprofDir: string
-declare export var serverConfigFileName: string
-declare export var shortcutSymbol: string
+export declare var fileUIName: string;
+export declare var version: string;
+export declare var logFileName: string;
+export declare var pprofDir: string;
+export declare var serverConfigFileName: string;
+export declare var shortcutSymbol: string;
