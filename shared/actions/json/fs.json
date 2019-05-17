@@ -133,9 +133,8 @@
     "startManualConflictResolution": {
       "tlfPath": "Types.Path"
     },
-    "tlfCrStatusChanged": {
-      "status": "Types.ConflictState",
-      "tlfPath": "Types.Path"
+    "finishManualConflictResolution": {
+      "localViewTlfPath": "Types.Path"
     },
 
     "notifyTlfUpdate": {

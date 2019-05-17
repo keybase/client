@@ -115,22 +115,25 @@ export default () => {
     .add('Conflict Resolution - in conflict, not stuck', () => (
       <ConflictBanner
         path={Types.stringToPath('/keybase/team/keybasefriends')}
-        conflictState="in-conflict-not-stuck"
+        conflictState={Constants.conflictStateAutomaticResolvingNotStuck}
       />
     ))
     .add('Conflict Resolution - in conflict, stuck', () => (
       <ConflictBanner
         path={Types.stringToPath('/keybase/team/keybasefriends')}
-        conflictState="in-conflict-stuck"
+        conflictState={Constants.conflictStateAutomaticResolvingStuck}
       />
     ))
     .add('Conflict Resolution - in resolution, server view', () => (
       <ConflictBanner
-        path={Types.stringToPath('/keybase/team/keybasefriends')}
-        conflictState="in-manual-resolution"
+        path={Types.stringToPath('/keybase/team/keybasefriends (conflict blah)')}
+        conflictState={Constants.makeConflictStateManualResolvingServerView()}
       />
     ))
-    .add('Conflict Resolution - finishing', () => (
-      <ConflictBanner path={Types.stringToPath('/keybase/team/keybasefriends')} conflictState="finishing" />
+    .add('Conflict Resolution - in resolution, local view', () => (
+      <ConflictBanner
+        path={Types.stringToPath('/keybase/team/keybasefriends (conflict blah)')}
+        conflictState={Constants.makeConflictStateManualResolvingLocalView()}
+      />
     ))
 }

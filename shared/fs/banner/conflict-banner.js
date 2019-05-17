@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Flow from '../../util/flow'
 import * as Types from '../../constants/types/fs'
+import * as Constants from '../../constants/fs'
 
 /*
  * This banner is used as part of a List2 in fs/row/rows.js, so it's important
@@ -11,7 +12,8 @@ import * as Types from '../../constants/types/fs'
  * changes.
  *
  */
-export const getHeight = (conflictState: Types.ConflictState): number => (conflictState === 'none' ? 0 : 50)
+export const getHeight = (conflictState: Types.ConflictState): number =>
+  conflictState.type === 'none' ? 0 : 50
 
 type Props = {
   conflictState: Types.ConflictState,
@@ -24,32 +26,26 @@ type Props = {
 }
 
 const getMessage = (conflictState, isUnmerged): string => {
-  switch (conflictState) {
-    case 'in-conflict-stuck':
-      return (
-        'Your changes to this folder conflict with changes made to this' +
-        ' folder on the server. Automatic conflict resolution has failed, so' +
-        ' you may need to manually resolve the conflict. This is not' +
-        ' supposed to happen!'
-      )
-    case 'in-conflict-not-stuck':
-      return (
-        'Your changes to this folder conflict with changes made to this' +
-        ' folder on the server. We are trying to fix it automatically, but' +
-        ' you may need to manually resolve the conflict. This is not' +
-        ' supposed to happen!'
-      )
-    case 'in-manual-resolution':
-      return isUnmerged
-        ? 'This is your local view of the conflicted folder.'
-        : "This is the server's view of the conflicted folder."
-    case 'finishing':
-      return 'Finishing conflict resolution...'
+  switch (conflictState.type) {
+    case 'automatic':
+      return conflictState.isStuck
+        ? 'Your changes to this folder conflict with changes made to this' +
+            ' folder on the server. Automatic conflict resolution has failed, so' +
+            ' you may need to manually resolve the conflict. This is not' +
+            ' supposed to happen!'
+        : 'Your changes to this folder conflict with changes made to this' +
+            ' folder on the server. We are trying to fix it automatically, but' +
+            ' you may need to manually resolve the conflict. This is not' +
+            ' supposed to happen!'
+    case 'manual-local-view':
+      return 'This is your local view of the conflicted folder.'
+    case 'manual-server-view':
+      return "This is the server's view of the conflicted folder."
     case 'none':
       return 'This should not happen.'
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(conflictState)
-      return 'Unknown conflictState: ' + conflictState
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(conflictState.type)
+      return 'Unknown conflictState type: ' + conflictState.type
   }
 }
 
@@ -69,26 +65,26 @@ const ConflictBanner = (props: Props) => {
   const onSeeOtherView = props.isUnmergedView ? onSeeServerView : onSeeLocalView
 
   let actions = []
-  switch (props.conflictState) {
-    case 'in-conflict-stuck':
-      actions = [startRes, feedbackAction, helpAction]
+  switch (props.conflictState.type) {
+    case 'automatic':
+      actions = props.conflictState.isStuck
+        ? [startRes, feedbackAction, helpAction]
+        : [startRes, feedbackAction, helpAction]
       break
-    case 'in-conflict-not-stuck':
-      actions = [startRes, feedbackAction, helpAction]
+    case 'manual-server-view':
+      actions = [onSeeOtherView, finishRes, feedbackAction, helpAction]
       break
-    case 'finishing':
-      break
-    case 'in-manual-resolution':
+    case 'manual-local-view':
       actions = [onSeeOtherView, finishRes, feedbackAction, helpAction]
       break
     case 'none':
       actions = [feedbackAction]
       break
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.conflictState)
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.conflictState.type)
   }
   return (
-    props.conflictState !== 'none' && (
+    props.conflictState !== Constants.conflictStateNone && (
       <Kb.Banner
         text={getMessage(props.conflictState, props.isUnmergedView)}
         color="red"

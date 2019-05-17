@@ -116,42 +116,32 @@ const updatePathItem = (
   }
 }
 
-const haveSamePartialSyncConfig = (tlf1: Types.Tlf, tlf2: Types.Tlf) =>
-  tlf2.syncConfig &&
-  tlf1.syncConfig &&
-  tlf2.syncConfig.mode === 'partial' &&
-  tlf1.syncConfig.mode === 'partial' &&
-  tlf2.syncConfig.enabledPaths.equals(tlf1.syncConfig.enabledPaths)
-
-const updateTlf = (oldTlf?: ?Types.Tlf, newTlf: Types.Tlf): Types.Tlf => {
-  if (!oldTlf) {
-    return newTlf
-  }
-  // TODO: Ideally this should come in with other data from the same RPC.
-  const newTlfDontClearSyncConfig = newTlf.syncConfig ? newTlf : newTlf.set('syncConfig', oldTlf.syncConfig)
-  if (
-    !I.is(newTlfDontClearSyncConfig.syncConfig, oldTlf.syncConfig) &&
-    !haveSamePartialSyncConfig(oldTlf, newTlfDontClearSyncConfig)
-  ) {
-    return newTlfDontClearSyncConfig
-  }
-  if (!newTlf.resetParticipants.equals(oldTlf.resetParticipants)) {
-    return newTlfDontClearSyncConfig
-  }
-  if (!newTlf.conflict.equals(oldTlf.conflict)) {
-    return newTlfDontClearSyncConfig
-  }
-  // syncConfig, resetParticipants, and conflict all stayed thte same in value,
-  // so just reuse old reference.
-  return oldTlf.merge(
-    newTlfDontClearSyncConfig.withMutations(n =>
-      n
-        .set('syncConfig', oldTlf.syncConfig)
-        .set('resetParticipants', oldTlf.resetParticipants)
-        .set('conflict', oldTlf.conflict)
-    )
-  )
-}
+const updateTlf = (oldTlf?: ?Types.Tlf, newTlf: Types.Tlf): Types.Tlf =>
+  oldTlf
+    ? oldTlf.merge(
+        newTlf.withMutations(n =>
+          n
+            .set(
+              'syncConfig',
+              // This comes from a different RPC for now. So make sure we don't
+              // override non-nil syncConfig with a nil one.
+              !newTlf.syncConfig || I.is(newTlf.syncConfig, oldTlf.syncConfig)
+                ? oldTlf.syncConfig
+                : newTlf.syncConfig
+            )
+            .set(
+              'resetParticipants',
+              newTlf.resetParticipants.equals(oldTlf.resetParticipants)
+                ? oldTlf.resetParticipants
+                : newTlf.resetParticipants
+            )
+            .set(
+              'conflictState',
+              I.is(newTlf.conflictState, oldTlf.conflictState) ? oldTlf.conflictState : newTlf.conflictState
+            )
+        )
+      )
+    : newTlf
 
 const updateTlfList = (oldTlfList: Types.TlfList, newTlfList: Types.TlfList): Types.TlfList =>
   newTlfList.map((tlf, name) => updateTlf(oldTlfList.get(name), tlf))
@@ -556,31 +546,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           driverStatus.type === 'enabled' ? driverStatus.set('isDisabling', true) : driverStatus
         )
       )
-    case FsGen.tlfCrStatusChanged:
-      const parsedPath = Constants.parsePath(action.payload.tlfPath)
-      const newState = action.payload.status
-      if (parsedPath.kind === 'root' || parsedPath.kind === 'tlf-list') {
-        // This should not happen.
-        return state
-      }
-      return state.update('tlfs', tlfs =>
-        tlfs.update(parsedPath.tlfType, tlfList =>
-          tlfList.update(parsedPath.tlfName, tlf =>
-            tlf.update('conflict', tlfConflict => {
-              if (
-                tlfConflict.state === 'in-manual-resolution' &&
-                (newState === 'in-conflict-stuck' || newState === 'in-conflict-not-stuck')
-              ) {
-                // If the conflict is being manually resolved, ignore new
-                // conflicts that come in.
-                return tlfConflict
-              } else {
-                return tlfConflict.set('state', newState)
-              }
-            })
-          )
-        )
-      )
     case FsGen.setPathSoftError:
       return state.update('softErrors', softErrors =>
         softErrors.update('pathErrors', pathErrors =>
@@ -598,11 +563,14 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         )
       )
     case FsGen.settingsLoaded:
-      return action.payload.settings ? state.set('settings', action.payload.settings) : state.update('settings', s => s.set('isLoading', false))
+      return action.payload.settings
+        ? state.set('settings', action.payload.settings)
+        : state.update('settings', s => s.set('isLoading', false))
     case FsGen.loadSettings:
       return state.update('settings', s => s.set('isLoading', true))
 
     case FsGen.startManualConflictResolution:
+    case FsGen.finishManualConflictResolution:
     case FsGen.driverDisable:
     case FsGen.folderListLoad:
     case FsGen.placeholderAction:

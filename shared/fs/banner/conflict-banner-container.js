@@ -36,7 +36,7 @@ const ConnectedBanner = namedConnect<OwnProps, _, _, _, _>(
 export default ConnectedBanner
 
 export const asRows = (path: Types.Path, conflictState: Types.ConflictState): Array<RowTypes.HeaderRowItem> =>
-  conflictState === 'none'
+  conflictState.type === 'none'
     ? []
     : [
         {

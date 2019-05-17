@@ -67,21 +67,37 @@ export type TlfSyncPartial = I.RecordOf<_TlfSyncPartial>
 
 export type TlfSyncConfig = TlfSyncEnabled | TlfSyncDisabled | TlfSyncPartial
 
-export type ConflictState =
-  | 'in-conflict-stuck'
-  | 'in-conflict-not-stuck'
-  | 'in-manual-resolution'
-  | 'finishing'
-  | 'none'
-
-export type _TlfConflict = {
-  state: ConflictState,
-  branch: string,
+export type _ConflictStateNone = {
+  type: 'none',
 }
-export type TlfConflict = I.RecordOf<_TlfConflict>
+export type ConflictStateNone = I.RecordOf<_ConflictStateNone>
+
+export type _ConflictStateAutomaticResolving = {
+  isStuck: boolean,
+  type: 'automatic',
+}
+export type ConflictStateAutomaticResolving = I.RecordOf<_ConflictStateAutomaticResolving>
+
+export type _ConflictStateManualResolvingServerView = {
+  localViewTlfPaths: I.List<Path>,
+  type: 'manual-server-view',
+}
+export type ConflictStateManualResolvingServerView = I.RecordOf<_ConflictStateManualResolvingServerView>
+
+export type _ConflictStateManualResolvingLocalView = {
+  serverViewTlfPath: Path,
+  type: 'manual-local-view',
+}
+export type ConflictStateManualResolvingLocalView = I.RecordOf<_ConflictStateManualResolvingLocalView>
+
+export type ConflictState =
+  | ConflictStateNone
+  | ConflictStateAutomaticResolving
+  | ConflictStateManualResolvingServerView
+  | ConflictStateManualResolvingLocalView
 
 export type _Tlf = {
-  conflict: TlfConflict,
+  conflictState: ConflictState,
   isFavorite: boolean,
   isIgnored: boolean,
   isNew: boolean,

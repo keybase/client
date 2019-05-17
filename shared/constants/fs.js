@@ -99,13 +99,33 @@ export const makeTlfSyncPartial: I.RecordFactory<Types._TlfSyncPartial> = I.Reco
   mode: 'partial',
 })
 
-export const makeTlfConflict: I.RecordFactory<Types._TlfConflict> = I.Record({
-  branch: '',
-  state: 'none',
-})
+export const conflictStateNone: Types.ConflictStateNone = I.Record({type: 'none'})()
+
+const makeConflictStateAutomaticResolving: I.RecordFactory<Types._ConflictStateAutomaticResolving> = I.Record(
+  {
+    isStuck: false,
+    type: 'automatic',
+  }
+)
+export const conflictStateAutomaticResolvingNotStuck = makeConflictStateAutomaticResolving()
+export const conflictStateAutomaticResolvingStuck = makeConflictStateAutomaticResolving({isStuck: true})
+
+export const makeConflictStateManualResolvingServerView: I.RecordFactory<Types._ConflictStateManualResolvingServerView> = I.Record(
+  {
+    localViews: I.List(),
+    type: 'manual-server-view',
+  }
+)
+
+export const makeConflictStateManualResolvingLocalView: I.RecordFactory<Types._ConflictStateManualResolvingLocalView> = I.Record(
+  {
+    serverView: defaultPath,
+    type: 'manual-local-view',
+  }
+)
 
 export const makeTlf: I.RecordFactory<Types._Tlf> = I.Record({
-  conflict: makeTlfConflict(),
+  conflictState: conflictStateNone,
   isFavorite: false,
   isIgnored: false,
   isNew: false,

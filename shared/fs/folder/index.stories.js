@@ -1,6 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import React from 'react'
+import * as Constants from '../../constants/fs'
 import * as Types from '../../constants/types/fs'
 import * as Sb from '../../stories/storybook'
 import Folder from '.'
@@ -27,7 +28,7 @@ export default () => {
     .add('normal', () => (
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
         <Folder
-          conflictState="none"
+          conflictState={Constants.conflictStateNone}
           path={Types.stringToPath('/keybase/private/foo')}
           routePath={I.List([])}
           shouldShowSFMIBanner={false}
@@ -39,7 +40,7 @@ export default () => {
     .add('with SystemFileManagerIntegrationBanner', () => (
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
         <Folder
-          conflictState="none"
+          conflictState={Constants.conflictStateNone}
           path={Types.stringToPath('/keybase/private/foo')}
           routePath={I.List([])}
           shouldShowSFMIBanner={true}
@@ -51,7 +52,7 @@ export default () => {
     .add('I am reset', () => (
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
         <Folder
-          conflictState="none"
+          conflictState={Constants.conflictStateNone}
           path={Types.stringToPath('/keybase/private/me,reset')}
           routePath={I.List([])}
           shouldShowSFMIBanner={false}
@@ -63,7 +64,7 @@ export default () => {
     .add('others reset', () => (
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
         <Folder
-          conflictState="none"
+          conflictState={Constants.conflictStateNone}
           path={Types.stringToPath('/keybase/private/others,reset')}
           routePath={I.List([])}
           shouldShowSFMIBanner={false}
@@ -75,7 +76,7 @@ export default () => {
     .add('offline and not synced', () => (
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
         <Folder
-          conflictState="none"
+          conflictState={Constants.conflictStateNone}
           path={Types.stringToPath('/keybase/private/others,reset')}
           routePath={I.List([])}
           shouldShowSFMIBanner={false}

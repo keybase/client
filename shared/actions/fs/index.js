@@ -180,13 +180,12 @@ const loadSettings = (state, action) =>
         }),
       })
     )
-    .catch(() =>
-      FsGen.createSettingsLoaded({})
-    )
+    .catch(() => FsGen.createSettingsLoaded({}))
 
 const setSpaceNotificationThreshold = (state, action) =>
-  RPCTypes.SimpleFSSimpleFSSetNotificationThresholdRpcPromise({threshold: action.payload.spaceAvailableNotificationThreshold})
-    .then(() => FsGen.createLoadSettings())
+  RPCTypes.SimpleFSSimpleFSSetNotificationThresholdRpcPromise({
+    threshold: action.payload.spaceAvailableNotificationThreshold,
+  }).then(() => FsGen.createLoadSettings())
 
 const getPrefetchStatusFromRPC = (
   prefetchStatus: RPCTypes.PrefetchStatus,
@@ -967,12 +966,14 @@ const waitForKbfsDaemon = (state, action) => {
 const startManualCR = (state, action) =>
   RPCTypes.SimpleFSSimpleFSClearConflictStateRpcPromise({
     path: Constants.pathToRPCPath(action.payload.tlfPath),
-  }).then(() =>
-    FsGen.createTlfCrStatusChanged({
-      status: 'in-manual-resolution',
-      tlfPath: action.payload.tlfPath,
-    })
-  ) // TODO: deal with errors
+  }).then(() => FsGen.createFavoritesLoad()) // TODO: deal with errors
+// songgao: perhaps if this errors we should just let it black bar? I guess
+// depends on if/how we expect this to fail.
+
+const finishManualCR = (state, action) =>
+  RPCTypes.SimpleFSSimpleFSFinishResolvingConflictRpcPromise({
+    path: Constants.pathToRPCPath(action.payload.localViewTlfPath),
+  }).then(() => FsGen.createFavoritesLoad())
 
 const updateKbfsDaemonOnlineStatus = (state, action) =>
   state.fs.kbfsDaemonStatus.rpcStatus === 'connected' && state.config.osNetworkOnline
@@ -1074,12 +1075,19 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
       onFSOverallSyncSyncStatusChanged
     )
     yield* Saga.chainAction<FsGen.LoadSettingsPayload>(FsGen.loadSettings, loadSettings)
-    yield* Saga.chainAction<FsGen.SetSpaceAvailableNotificationThresholdPayload>(FsGen.setSpaceAvailableNotificationThreshold, setSpaceNotificationThreshold)
+    yield* Saga.chainAction<FsGen.SetSpaceAvailableNotificationThresholdPayload>(
+      FsGen.setSpaceAvailableNotificationThreshold,
+      setSpaceNotificationThreshold
+    )
   }
   if (flags.conflictResolutionGui) {
     yield* Saga.chainAction<FsGen.StartManualConflictResolutionPayload>(
       FsGen.startManualConflictResolution,
       startManualCR
+    )
+    yield* Saga.chainAction<FsGen.FinishManualConflictResolutionPayload>(
+      FsGen.finishManualConflictResolution,
+      finishManualCR
     )
   }
 

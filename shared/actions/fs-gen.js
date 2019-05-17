@@ -32,6 +32,7 @@ export const favoriteIgnore = 'fs:favoriteIgnore'
 export const favoriteIgnoreError = 'fs:favoriteIgnoreError'
 export const favoritesLoad = 'fs:favoritesLoad'
 export const favoritesLoaded = 'fs:favoritesLoaded'
+export const finishManualConflictResolution = 'fs:finishManualConflictResolution'
 export const folderListLoad = 'fs:folderListLoad'
 export const folderListLoaded = 'fs:folderListLoaded'
 export const fsError = 'fs:fsError'
@@ -87,7 +88,6 @@ export const showMoveOrCopy = 'fs:showMoveOrCopy'
 export const showSystemFileManagerIntegrationBanner = 'fs:showSystemFileManagerIntegrationBanner'
 export const sortSetting = 'fs:sortSetting'
 export const startManualConflictResolution = 'fs:startManualConflictResolution'
-export const tlfCrStatusChanged = 'fs:tlfCrStatusChanged'
 export const tlfSyncConfigLoaded = 'fs:tlfSyncConfigLoaded'
 export const tlfSyncConfigsForAllSyncEnabledTlfsLoaded = 'fs:tlfSyncConfigsForAllSyncEnabledTlfsLoaded'
 export const triggerSendLinkToChat = 'fs:triggerSendLinkToChat'
@@ -122,6 +122,7 @@ type _FavoriteIgnoreErrorPayload = $ReadOnly<{|path: Types.Path, error: Types.Fs
 type _FavoriteIgnorePayload = $ReadOnly<{|path: Types.Path|}>
 type _FavoritesLoadPayload = void
 type _FavoritesLoadedPayload = $ReadOnly<{|private: I.Map<string, Types.Tlf>, public: I.Map<string, Types.Tlf>, team: I.Map<string, Types.Tlf>|}>
+type _FinishManualConflictResolutionPayload = $ReadOnly<{|localViewTlfPath: Types.Path|}>
 type _FolderListLoadPayload = $ReadOnly<{|path: Types.Path, refreshTag?: Types.RefreshTag|}>
 type _FolderListLoadedPayload = $ReadOnly<{|path: Types.Path, pathItems: I.Map<Types.Path, Types.PathItem>|}>
 type _FsErrorPayload = $ReadOnly<{|error: Types.FsError|}>
@@ -177,7 +178,6 @@ type _ShowMoveOrCopyPayload = $ReadOnly<{|initialDestinationParentPath: Types.Pa
 type _ShowSystemFileManagerIntegrationBannerPayload = void
 type _SortSettingPayload = $ReadOnly<{|path: Types.Path, sortSetting: Types.SortSetting|}>
 type _StartManualConflictResolutionPayload = $ReadOnly<{|tlfPath: Types.Path|}>
-type _TlfCrStatusChangedPayload = $ReadOnly<{|status: Types.ConflictState, tlfPath: Types.Path|}>
 type _TlfSyncConfigLoadedPayload = $ReadOnly<{|tlfType: Types.TlfType, tlfName: string, syncConfig: Types.TlfSyncConfig|}>
 type _TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload = $ReadOnly<{|private: I.Map<string, Types.TlfSyncConfig>, public: I.Map<string, Types.TlfSyncConfig>, team: I.Map<string, Types.TlfSyncConfig>|}>
 type _TriggerSendLinkToChatPayload = void
@@ -212,6 +212,7 @@ export const createFavoriteIgnore = (payload: _FavoriteIgnorePayload) => ({paylo
 export const createFavoriteIgnoreError = (payload: _FavoriteIgnoreErrorPayload) => ({payload, type: favoriteIgnoreError})
 export const createFavoritesLoad = (payload: _FavoritesLoadPayload) => ({payload, type: favoritesLoad})
 export const createFavoritesLoaded = (payload: _FavoritesLoadedPayload) => ({payload, type: favoritesLoaded})
+export const createFinishManualConflictResolution = (payload: _FinishManualConflictResolutionPayload) => ({payload, type: finishManualConflictResolution})
 export const createFolderListLoad = (payload: _FolderListLoadPayload) => ({payload, type: folderListLoad})
 export const createFolderListLoaded = (payload: _FolderListLoadedPayload) => ({payload, type: folderListLoaded})
 export const createFsError = (payload: _FsErrorPayload) => ({payload, type: fsError})
@@ -267,7 +268,6 @@ export const createShowMoveOrCopy = (payload: _ShowMoveOrCopyPayload) => ({paylo
 export const createShowSystemFileManagerIntegrationBanner = (payload: _ShowSystemFileManagerIntegrationBannerPayload) => ({payload, type: showSystemFileManagerIntegrationBanner})
 export const createSortSetting = (payload: _SortSettingPayload) => ({payload, type: sortSetting})
 export const createStartManualConflictResolution = (payload: _StartManualConflictResolutionPayload) => ({payload, type: startManualConflictResolution})
-export const createTlfCrStatusChanged = (payload: _TlfCrStatusChangedPayload) => ({payload, type: tlfCrStatusChanged})
 export const createTlfSyncConfigLoaded = (payload: _TlfSyncConfigLoadedPayload) => ({payload, type: tlfSyncConfigLoaded})
 export const createTlfSyncConfigsForAllSyncEnabledTlfsLoaded = (payload: _TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload) => ({payload, type: tlfSyncConfigsForAllSyncEnabledTlfsLoaded})
 export const createTriggerSendLinkToChat = (payload: _TriggerSendLinkToChatPayload) => ({payload, type: triggerSendLinkToChat})
@@ -302,6 +302,7 @@ export type FavoriteIgnoreErrorPayload = {|+payload: _FavoriteIgnoreErrorPayload
 export type FavoriteIgnorePayload = {|+payload: _FavoriteIgnorePayload, +type: 'fs:favoriteIgnore'|}
 export type FavoritesLoadPayload = {|+payload: _FavoritesLoadPayload, +type: 'fs:favoritesLoad'|}
 export type FavoritesLoadedPayload = {|+payload: _FavoritesLoadedPayload, +type: 'fs:favoritesLoaded'|}
+export type FinishManualConflictResolutionPayload = {|+payload: _FinishManualConflictResolutionPayload, +type: 'fs:finishManualConflictResolution'|}
 export type FolderListLoadPayload = {|+payload: _FolderListLoadPayload, +type: 'fs:folderListLoad'|}
 export type FolderListLoadedPayload = {|+payload: _FolderListLoadedPayload, +type: 'fs:folderListLoaded'|}
 export type FsErrorPayload = {|+payload: _FsErrorPayload, +type: 'fs:fsError'|}
@@ -357,7 +358,6 @@ export type ShowMoveOrCopyPayload = {|+payload: _ShowMoveOrCopyPayload, +type: '
 export type ShowSystemFileManagerIntegrationBannerPayload = {|+payload: _ShowSystemFileManagerIntegrationBannerPayload, +type: 'fs:showSystemFileManagerIntegrationBanner'|}
 export type SortSettingPayload = {|+payload: _SortSettingPayload, +type: 'fs:sortSetting'|}
 export type StartManualConflictResolutionPayload = {|+payload: _StartManualConflictResolutionPayload, +type: 'fs:startManualConflictResolution'|}
-export type TlfCrStatusChangedPayload = {|+payload: _TlfCrStatusChangedPayload, +type: 'fs:tlfCrStatusChanged'|}
 export type TlfSyncConfigLoadedPayload = {|+payload: _TlfSyncConfigLoadedPayload, +type: 'fs:tlfSyncConfigLoaded'|}
 export type TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload = {|+payload: _TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload, +type: 'fs:tlfSyncConfigsForAllSyncEnabledTlfsLoaded'|}
 export type TriggerSendLinkToChatPayload = {|+payload: _TriggerSendLinkToChatPayload, +type: 'fs:triggerSendLinkToChat'|}
@@ -394,6 +394,7 @@ export type Actions =
   | FavoriteIgnorePayload
   | FavoritesLoadPayload
   | FavoritesLoadedPayload
+  | FinishManualConflictResolutionPayload
   | FolderListLoadPayload
   | FolderListLoadedPayload
   | FsErrorPayload
@@ -449,7 +450,6 @@ export type Actions =
   | ShowSystemFileManagerIntegrationBannerPayload
   | SortSettingPayload
   | StartManualConflictResolutionPayload
-  | TlfCrStatusChangedPayload
   | TlfSyncConfigLoadedPayload
   | TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload
   | TriggerSendLinkToChatPayload

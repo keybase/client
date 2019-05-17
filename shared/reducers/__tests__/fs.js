@@ -184,12 +184,19 @@ describe('fs reducer', () => {
 
   test('favorritesLoaded: reuse tlf', () => {
     const tlfFields = {
+      conflictState: Constants.makeConflictStateManualResolvingServerView({
+        localViewTlfPaths: I.List([
+          Types.stringToPath('/keybase/private/bla (conflict 1)'),
+          Types.stringToPath('/keybase/private/bla (conflict 2)'),
+        ]),
+      }),
       isFavorite: true,
       isIgnored: true,
       isNew: true,
       name: 'foo',
-      resetParticipants: I.List(),
+      resetParticipants: I.List(['foo', 'bar']),
       teamId: '123',
+      tlfMtime: 123123124,
     }
     const state0 = Constants.makeState({
       tlfs: Constants.makeTlfs({
