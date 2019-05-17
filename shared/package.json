@@ -82,10 +82,15 @@
     "moduleFileExtensions": [
       "js",
       "json",
+      "ts",
+      "tsx",
       "jsx",
       "node",
       "desktop.js"
     ],
+    "transform": {
+      "^.+\\.(js|jsx|ts|tsx)$": "babel-jest"
+    },
     "globals": {
       "__DEV__": true,
       "__STORYBOOK__": true,
