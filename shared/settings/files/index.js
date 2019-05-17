@@ -7,6 +7,8 @@ import * as Platform from '../../constants/platform'
 import * as Styles from '../../styles'
 import SystemFileManagerIntegrationBanner from '../../fs/banner/system-file-manager-integration-banner/container'
 import RefreshDriverStatusOnMount from '../../fs/common/refresh-driver-status-on-mount'
+import RefreshSettings from './refresh-settings'
+import flags from '../../util/feature-flags'
 
 type Props = {|
   areSettingsLoading: boolean,
@@ -66,6 +68,7 @@ const isPending = (props: Props) =>
 export default (props: Props) => (
   <>
     <RefreshDriverStatusOnMount />
+    <RefreshSettings />
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
       <SystemFileManagerIntegrationBanner alwaysShow={true} />
       {(Platform.isDarwin || Platform.isWindows) && (
@@ -92,23 +95,27 @@ export default (props: Props) => (
               />
             </Kb.Box>
           </Kb.Box2>
-          <Kb.Divider style={styles.divider} />
+          {flags.kbfsOfflineMode && (
+            <Kb.Divider style={styles.divider} />
+          )}
         </>
       )}
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.syncContent}>
-        <Kb.Box>
-          <Kb.Box2 direction="horizontal" gap="tiny" style={styles.contentHeader}>
-            <Kb.Text type="BodySmallSemibold">Sync</Kb.Text>
-          </Kb.Box2>
-          <Kb.Checkbox
-            onCheck={props.spaceAvailableNotificationThreshold === 0 ? props.onEnableSyncNotifications : props.onDisableSyncNotifications}
-            labelComponent={<SyncNotificationSetting {...props} />}
-            checked={props.spaceAvailableNotificationThreshold !== 0}
-            disabled={props.areSettingsLoading}
-            style={styles.syncNotificationCheckbox}
-          />
-        </Kb.Box>
-      </Kb.Box2>
+      {flags.kbfsOfflineMode && (
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.syncContent}>
+          <Kb.Box>
+            <Kb.Box2 direction="horizontal" gap="tiny" style={styles.contentHeader}>
+              <Kb.Text type="BodySmallSemibold">Sync</Kb.Text>
+            </Kb.Box2>
+            <Kb.Checkbox
+              onCheck={props.spaceAvailableNotificationThreshold === 0 ? props.onEnableSyncNotifications : props.onDisableSyncNotifications}
+              labelComponent={<SyncNotificationSetting {...props} />}
+              checked={props.spaceAvailableNotificationThreshold !== 0}
+              disabled={props.areSettingsLoading}
+              style={styles.syncNotificationCheckbox}
+            />
+          </Kb.Box>
+        </Kb.Box2>
+      )}
     </Kb.Box2>
   </>
 )
