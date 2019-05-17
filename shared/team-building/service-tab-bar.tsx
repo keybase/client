@@ -1,4 +1,3 @@
-// @flow
 import React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
@@ -9,26 +8,24 @@ import {
   inactiveServiceAccentColor,
 } from './shared'
 import * as Constants from '../constants/team-building'
-import type {ServiceIdWithContact} from '../constants/types/team-building'
-
-// TODO
-// * Add contact icon
-// * Add tooltip
+import { ServiceIdWithContact } from '../constants/types/team-building';
 
 type Props = {
   selectedService: ServiceIdWithContact,
   onChangeService: (newService: ServiceIdWithContact) => void,
-  serviceResultCount: {[key: ServiceIdWithContact]: ?number},
-  showServiceResultCount: boolean,
-}
+  serviceResultCount: {
+    [K in ServiceIdWithContact]: number | null;
+  },
+  showServiceResultCount: boolean
+};
 
 type IconProps = {
   service: ServiceIdWithContact,
   onClick: () => void,
-  count: ?number,
+  count: number | null,
   showCount: boolean,
-  isActive: boolean,
-}
+  isActive: boolean
+};
 
 const HoverIcon = Styles.styled(Kb.Icon)(props => ({
   '&:hover': {

@@ -1,17 +1,16 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
 import DesktopStyle from '../common-adapters/desktop-style'
 import {serviceIdToIconFont, serviceIdToAccentColor} from './shared'
-import type {ServiceIdWithContact} from '../constants/types/team-building'
+import { ServiceIdWithContact } from '../constants/types/team-building';
 
 export type Props = {
   username: string,
   prettyName: string,
   service: ServiceIdWithContact,
-  onRemove: () => void,
-}
+  onRemove: () => void
+};
 
 const bubbleSize = 32
 const removeSize = 16
@@ -54,7 +53,13 @@ const DesktopBubble = (props: Props) => {
   )
 }
 
-const RemoveBubble = ({onRemove, prettyName}: {onRemove: () => void, prettyName: string}) => (
+const RemoveBubble = ({
+  onRemove,
+  prettyName
+}: {
+  onRemove: () => void,
+  prettyName: string
+}) => (
   <Kb.WithTooltip text={prettyName} position={'top center'} containerStyle={styles.remove} className="remove">
     <Kb.ClickableBox onClick={() => onRemove()} style={styles.removeBubbleTextAlignCenter}>
       <Kb.Icon
@@ -68,13 +73,15 @@ const RemoveBubble = ({onRemove, prettyName}: {onRemove: () => void, prettyName:
 )
 
 type SwapOnClickProps = Kb.PropsWithTimer<{
-  children: React.Node,
-  clickedLayerComponent: React.AbstractComponent<{||}>,
+  children: React.ElementType,
+  clickedLayerComponent: React.AbstractComponent<{}>,
   clickedLayerTimeout: number,
-  containerStyle?: Styles.StylesCrossPlatform,
-}>
+  containerStyle?: Styles.StylesCrossPlatform
+}>;
 
-class _SwapOnClick extends React.PureComponent<SwapOnClickProps, {showClickedLayer: boolean}> {
+class _SwapOnClick extends React.PureComponent<SwapOnClickProps, {
+  showClickedLayer: boolean
+}> {
   state = {showClickedLayer: false}
   _onClick = () => {
     if (!this.state.showClickedLayer) {
@@ -99,7 +106,9 @@ const SwapOnClick = Kb.HOCTimers(_SwapOnClick)
 function SwapOnClickHoc<A>(
   Component: React.AbstractComponent<{}, A>,
   OtherComponent: React.AbstractComponent<{}, A>
-): React.AbstractComponent<{containerStyle?: Styles.StylesCrossPlatform}> {
+): React.AbstractComponent<{
+  containerStyle?: Styles.StylesCrossPlatform
+}> {
   return ({containerStyle}) => (
     <SwapOnClick
       containerStyle={containerStyle}

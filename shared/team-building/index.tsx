@@ -1,4 +1,3 @@
-// @flow
 import React from 'react'
 import GoButton from './go-button'
 import * as Kb from '../common-adapters/index'
@@ -8,20 +7,22 @@ import ServiceTabBar from './service-tab-bar'
 import UserResult from './user-result'
 import flags from '../util/feature-flags'
 import {serviceIdToAccentColor, serviceIdToIconFont, serviceIdToLabel} from './shared'
-import type {ServiceIdWithContact, FollowingState} from '../constants/types/team-building'
+import { ServiceIdWithContact, FollowingState } from '../constants/types/team-building';
 
 type SearchResult = {
   userId: string,
   username: string,
   prettyName: string,
-  services: {[key: ServiceIdWithContact]: string},
+  services: {
+    [K in ServiceIdWithContact]: string;
+  },
   inTeam: boolean,
-  followingState: FollowingState,
-}
+  followingState: FollowingState
+};
 
 export type Props = {
   fetchUserRecs: () => void,
-  highlightedIndex: ?number,
+  highlightedIndex: number | null,
   onAdd: (userId: string) => void,
   onBackspace: () => void,
   onChangeService: (newService: ServiceIdWithContact) => void,
@@ -33,16 +34,23 @@ export type Props = {
   onRemove: (userId: string) => void,
   onSearchForMore: () => void,
   onUpArrowKeyDown: () => void,
-  recommendations: ?Array<SearchResult>,
-  searchResults: ?Array<SearchResult>,
+  recommendations: Array<SearchResult> | null,
+  searchResults: Array<SearchResult> | null,
   searchString: string,
   selectedService: ServiceIdWithContact,
-  serviceResultCount: {[key: ServiceIdWithContact]: ?number},
+  serviceResultCount: {
+    [K in ServiceIdWithContact]: number | null;
+  },
   showRecs: boolean,
   showServiceResultCount: boolean,
-  teamSoFar: Array<{userId: string, prettyName: string, service: ServiceIdWithContact, username: string}>,
-  waitingForCreate: boolean,
-}
+  teamSoFar: Array<{
+    userId: string,
+    prettyName: string,
+    service: ServiceIdWithContact,
+    username: string
+  }>,
+  waitingForCreate: boolean
+};
 
 class TeamBuilding extends React.PureComponent<Props, void> {
   componentDidMount = () => {

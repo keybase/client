@@ -1,4 +1,3 @@
-// @flow
 import React from 'react'
 import {noop} from 'lodash-es'
 import * as Kb from '../common-adapters/index'
@@ -12,8 +11,8 @@ type Props = {
   onUpArrowKeyDown: () => void,
   onBackspace: () => void,
   placeholder: string,
-  searchString: string,
-}
+  searchString: string
+};
 
 const handleKeyDown = (preventDefault: () => void, ctrlKey: boolean, key: string, props: Props) => {
   switch (key) {

@@ -1,6 +1,5 @@
-// @flow
 import logger from '../logger'
-import React from 'react'
+import * as React from 'react'
 import * as I from 'immutable'
 import {debounce, trim} from 'lodash-es'
 import TeamBuilding from '.'
@@ -14,25 +13,24 @@ import {isMobile} from '../constants/platform'
 import {parseUserId} from '../util/platforms'
 import {followStateHelperWithId} from '../constants/team-building'
 import {memoizeShallow, memoize} from '../util/memoize'
-import type {ServiceIdWithContact, User, SearchResults} from '../constants/types/team-building'
-import type {Props as HeaderHocProps} from '../common-adapters/header-hoc/types'
+import {ServiceIdWithContact, User, SearchResults} from '../constants/types/team-building'
+import {Props as HeaderHocProps} from '../common-adapters/header-hoc/types'
 
 type OwnProps = {
-  // Supplied by StateComponent
-  searchString: string,
-  selectedService: ServiceIdWithContact,
-  highlightedIndex: number,
-  onChangeText: (newText: string) => void,
-  onChangeService: (newService: ServiceIdWithContact) => void,
-  incHighlightIndex: (maxIndex: number) => void,
-  decHighlightIndex: () => void,
-  resetHighlightIndex: (resetToHidden?: boolean) => void,
+  searchString: string
+  selectedService: ServiceIdWithContact
+  highlightedIndex: number
+  onChangeText: (newText: string) => void
+  onChangeService: (newService: ServiceIdWithContact) => void
+  incHighlightIndex: (maxIndex: number) => void
+  decHighlightIndex: () => void
+  resetHighlightIndex: (resetToHidden?: boolean) => void
 }
 
 type LocalState = {
-  searchString: string,
-  selectedService: ServiceIdWithContact,
-  highlightedIndex: number,
+  searchString: string
+  selectedService: ServiceIdWithContact
+  highlightedIndex: number
 }
 
 const initialState: LocalState = {
@@ -42,7 +40,12 @@ const initialState: LocalState = {
 }
 
 const deriveSearchResults = memoize(
-  (searchResults: ?Array<User>, teamSoFar: I.Set<User>, myUsername: string, followingState: I.Set<string>) =>
+  (
+    searchResults: Array<User> | null,
+    teamSoFar: I.Set<User>,
+    myUsername: string,
+    followingState: I.Set<string>
+  ) =>
     searchResults &&
     searchResults.map(info => ({
       followingState: followStateHelperWithId(myUsername, followingState, info.id),
@@ -69,7 +72,7 @@ const deriveTeamSoFar = memoize((teamSoFar: I.Set<User>) =>
 const deriveServiceResultCount: (
   searchResults: SearchResults,
   query: string
-) => {[key: ServiceIdWithContact]: ?number} = memoize((searchResults: SearchResults, query) =>
+) => {[K in ServiceIdWithContact]: number | null} = memoize((searchResults: SearchResults, query) =>
   // $FlowIssue toObject looses typing
   searchResults
     .get(trim(query), I.Map())
@@ -80,7 +83,7 @@ const deriveServiceResultCount: (
 const deriveShowServiceResultCount = memoize(searchString => !!searchString)
 
 const deriveUserFromUserIdFn = memoize(
-  (searchResults: ?Array<User>, recommendations: ?Array<User>) => (userId: string): ?User =>
+  (searchResults: Array<User> | null, recommendations: Array<User> | null) => (userId: string): User | null =>
     (searchResults || []).filter(u => u.id === userId)[0] ||
     (recommendations || []).filter(u => u.id === userId)[0] ||
     null
@@ -287,6 +290,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 }
 
 const Connected = compose(
+  // @ts-ignore codemode issue
   namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'TeamBuilding'),
   isMobile ? HeaderHoc : PopupDialogHoc
 )(TeamBuilding)

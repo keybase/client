@@ -1,32 +1,36 @@
-// @flow
 import React from 'react'
 import GoButton from './go-button'
 import Input from './input'
 import UserBubble from './user-bubble'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import type {ServiceIdWithContact} from '../constants/types/team-building'
+import { ServiceIdWithContact } from '../constants/types/team-building';
 
 type Props = {
   onChangeText: (newText: string) => void,
   onEnterKeyDown: () => void,
   onDownArrowKeyDown: () => void,
   onUpArrowKeyDown: () => void,
-  teamSoFar: Array<{userId: string, prettyName: string, username: string, service: ServiceIdWithContact}>,
+  teamSoFar: Array<{
+    userId: string,
+    prettyName: string,
+    username: string,
+    service: ServiceIdWithContact
+  }>,
   onRemove: (userId: string) => void,
   onBackspace: () => void,
   onFinishTeamBuilding: () => void,
-  searchString: string,
-}
+  searchString: string
+};
 
-const formatNameForUserBubble = (username: string, service: ServiceIdWithContact, prettyName: ?string) => {
+const formatNameForUserBubble = (username: string, service: ServiceIdWithContact, prettyName: string | null) => {
   const technicalName = service === 'keybase' ? username : `${username} on ${service}`
   return `${technicalName} ${prettyName ? `(${prettyName})` : ''}`
 }
 
 class UserBubbleCollection extends React.PureComponent<{
-  teamSoFar: $PropertyType<Props, 'teamSoFar'>,
-  onRemove: $PropertyType<Props, 'onRemove'>,
+  teamSoFar: Props["teamSoFar"],
+  onRemove: Props["onRemove"]
 }> {
   render() {
     return this.props.teamSoFar.map(u => (
