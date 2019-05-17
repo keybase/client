@@ -23,7 +23,7 @@ const searchUsersAndTeamsAndTeamChannels = memoize((users, teams, allChannels, f
     return users.concat(teams).toArray()
   }
   const fil = filter.toLowerCase()
-  let match = fil.match(/^([a-zA-Z0-9_\.]+)#(\S*)$/) // team name followed by #
+  let match = fil.match(/^([a-zA-Z0-9_.]+)#(\S*)$/) // team name followed by #
   if (match) {
     let teamname = match[1]
     const channelfil = match[2]
@@ -31,7 +31,8 @@ const searchUsersAndTeamsAndTeamChannels = memoize((users, teams, allChannels, f
       // All the team's channels
       return allChannels.filter(v => v.teamname === teamname).toArray()
     }
-    return allChannels.filter(v => v.teamname === teamname)
+    return allChannels
+      .filter(v => v.teamname === teamname)
       .map(v => {
         let score = 0
         const channelname = v.channelname.toLowerCase()
@@ -39,7 +40,7 @@ const searchUsersAndTeamsAndTeamChannels = memoize((users, teams, allChannels, f
           score++
         }
         if (channelname.startsWith(channelfil)) {
-          score+=2
+          score += 2
         }
         return {score, v}
       })
@@ -94,18 +95,27 @@ const suggestorToMarker = {
 const suggestorKeyExtractors = {
   commands: (c: RPCChatTypes.ConversationCommand) => c.name,
   emoji: (item: {id: string}) => item.id,
-  users: ({username, fullName, teamname, channelname}:
-          {username: string, fullName: string, teamname?: string, channelname?: string}) => {
-            if (teamname) {
-              if (channelname) {
-                return teamname + '#' + channelname
-              } else {
-                return teamname
-              }
-            } else {
-              return username
-            }
-          }
+  users: ({
+    username,
+    fullName,
+    teamname,
+    channelname,
+  }: {
+    username: string,
+    fullName: string,
+    teamname?: string,
+    channelname?: string,
+  }) => {
+    if (teamname) {
+      if (channelname) {
+        return teamname + '#' + channelname
+      } else {
+        return teamname
+      }
+    } else {
+      return username
+    }
+  },
 }
 
 // 2+ valid emoji chars and no ending colon
@@ -306,7 +316,12 @@ class Input extends React.Component<InputProps, InputState> {
   }
 
   _getUserSuggestions = filter =>
-    searchUsersAndTeamsAndTeamChannels(this.props.suggestUsers, this.props.suggestTeams, this.props.suggestAllChannels, filter)
+    searchUsersAndTeamsAndTeamChannels(
+      this.props.suggestUsers,
+      this.props.suggestTeams,
+      this.props.suggestAllChannels,
+      filter
+    )
 
   _getCommandSuggestions = filter => {
     if (this.props.showCommandMarkdown || this.props.showGiphySearch) {
@@ -345,7 +360,12 @@ class Input extends React.Component<InputProps, InputState> {
   )
 
   _renderUserSuggestion = (
-    {username, fullName, teamname, channelname}: {username: string, fullName: string, teamname?: string, channelname?: string},
+    {
+      username,
+      fullName,
+      teamname,
+      channelname,
+    }: {username: string, fullName: string, teamname?: string, channelname?: string},
     selected: boolean
   ) => {
     return teamname ? (

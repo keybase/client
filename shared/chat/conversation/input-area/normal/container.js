@@ -69,10 +69,10 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     showTypingStatus:
       Constants.getTyping(state, conversationIDKey).size !== 0 && !showGiphySearch && !showCommandMarkdown,
     showWalletsIcon: Constants.shouldShowWalletsIcon(state, conversationIDKey),
+    suggestAllChannels: Constants.getAllChannels(state),
     suggestChannels: Constants.getChannelSuggestions(state, teamname),
     suggestCommands: Constants.getCommands(state, conversationIDKey),
     suggestUsers: Constants.getParticipantSuggestions(state, conversationIDKey),
-    suggestAllChannels: Constants.getAllChannels(state),
     typing: Constants.getTyping(state, conversationIDKey),
     unsentText,
   }
@@ -191,11 +191,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   showReplyPreview: !!stateProps._replyTo,
   showTypingStatus: stateProps.showTypingStatus,
   showWalletsIcon: stateProps.showWalletsIcon,
+  suggestAllChannels: stateProps.suggestAllChannels,
   suggestChannels: stateProps.suggestChannels,
   suggestCommands: stateProps.suggestCommands,
   suggestTeams: getTeams(stateProps._metaMap),
   suggestUsers: stateProps.suggestUsers,
-  suggestAllChannels: stateProps.suggestAllChannels,
   unsentTextChanged: (text: string) => {
     dispatchProps._unsentTextChanged(stateProps.conversationIDKey, text)
   },
