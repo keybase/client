@@ -213,7 +213,7 @@ android {
 // KB:
 play {
     track = 'alpha'
-    jsonFile = file(KB_SERVICE_ACCT_JSON)
+    serviceAccountCredentials = file(KB_SERVICE_ACCT_JSON)
 }
 
 dependencies {
