@@ -34,7 +34,7 @@ func ShouldRunBoxAudit(mctx libkb.MetaContext) bool {
 	return mctx.G().Env.GetRunMode() == libkb.DevelRunMode || mctx.G().Env.RunningInCI() || mctx.G().FeatureFlags.Enabled(mctx, libkb.FeatureBoxAuditor)
 }
 
-const CurrentBoxAuditVersion Version = 5
+const CurrentBoxAuditVersion Version = 6
 const JailLRUSize = 100
 const BoxAuditIDLen = 16
 const MaxBoxAuditRetryAttempts = 6
