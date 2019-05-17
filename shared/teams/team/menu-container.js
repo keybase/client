@@ -45,7 +45,6 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
   onLeaveTeam: () =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        parentPath: [teamsTab, 'team'],
         path: [{props: {teamname}, selected: 'teamReallyLeaveTeam'}],
       })
     ),
