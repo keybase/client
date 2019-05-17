@@ -41,7 +41,26 @@ func (c *CmdAccountReset) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
+func (c *CmdAccountReset) checkRandomPW() error {
+	cli, err := GetUserClient(c.G())
+	if err != nil {
+		return err
+	}
+	randomPW, err := cli.LoadHasRandomPw(context.Background(), keybase1.LoadHasRandomPwArg{})
+	if err != nil {
+		return err
+	}
+	if randomPW {
+		return errors.New("Can't reset without a password. Set a password first")
+	}
+	return nil
+}
+
 func (c *CmdAccountReset) Run() error {
+	err := c.checkRandomPW()
+	if err != nil {
+		return err
+	}
 	protocols := []rpc.Protocol{
 		NewSecretUIProtocol(c.G()),
 	}
