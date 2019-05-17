@@ -643,6 +643,12 @@ export const localConversationErrorType = {
   none: 6,
 }
 
+export const localGalleryItemTyp = {
+  media: 0,
+  link: 1,
+  doc: 2,
+}
+
 export const localGetThreadNonblockCbMode = {
   full: 0,
   incremental: 1,
@@ -949,6 +955,11 @@ export type ExpungePayload = $ReadOnly<{Action: String, convID: ConversationID, 
 export type FailedMessageInfo = $ReadOnly<{outboxRecords?: ?Array<OutboxRecord>, isEphemeralPurge: Boolean}>
 export type FindConversationsLocalRes = $ReadOnly<{conversations?: ?Array<ConversationLocal>, uiConversations?: ?Array<InboxUIItem>, offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 export type FlipGameID = Bytes
+export type GalleryItemTyp =
+  | 0 // MEDIA_0
+  | 1 // LINK_1
+  | 2 // DOC_2
+
 export type GenericPayload = $ReadOnly<{Action: String, inboxVers: InboxVers, convID: ConversationID, topicType: TopicType, unreadUpdate?: ?UnreadUpdate}>
 export type GetConversationForCLILocalQuery = $ReadOnly<{markAsRead: Boolean, MessageTypes?: ?Array<MessageType>, Since?: ?String, limit: UnreadFirstNumLimit, conv: ConversationLocal}>
 export type GetConversationForCLILocalRes = $ReadOnly<{conversation: ConversationLocal, messages?: ?Array<MessageUnboxed>, offline: Boolean, rateLimits?: ?Array<RateLimit>}>
@@ -1036,6 +1047,7 @@ export type JoinLeaveConversationRemoteRes = $ReadOnly<{rateLimit?: ?RateLimit}>
 export type KBFSImpteamUpgradeUpdate = $ReadOnly<{convID: ConversationID, inboxVers: InboxVers, topicType: TopicType}>
 export type KnownTeamMention = $ReadOnly<{name: String, channel: String}>
 export type KnownUserMention = $ReadOnly<{text: String, uid: Gregor1.UID}>
+export type LoadGalleryRes = $ReadOnly<{messages?: ?Array<UIMessage>, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 export type LocalConversationVers = Uint64
 export type MakePreviewRes = $ReadOnly<{mimeType: String, previewMimeType?: ?String, location?: ?PreviewLocation, metadata?: ?AssetMetadata, baseMetadata?: ?AssetMetadata}>
 export type MarkAsReadLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>}>
@@ -1574,6 +1586,7 @@ declare export function localUpdateUnsentTextRpcPromise(params: $PropertyType<$P
 // 'chat.1.local.joinConversationLocal'
 // 'chat.1.local.upgradeKBFSConversationToImpteam'
 // 'chat.1.local.putReacjiSkinTone'
+// 'chat.1.local.loadGallery'
 // 'chat.1.NotifyChat.NewChatActivity'
 // 'chat.1.NotifyChat.ChatIdentifyUpdate'
 // 'chat.1.NotifyChat.ChatTLFFinalize'

@@ -219,6 +219,12 @@ export const localConversationErrorType = {
   none: 6,
 }
 
+export const localGalleryItemTyp = {
+  media: 0,
+  link: 1,
+  doc: 2,
+}
+
 export const localGetThreadNonblockCbMode = {
   full: 0,
   incremental: 1,

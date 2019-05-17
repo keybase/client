@@ -2874,3 +2874,49 @@ func (h *Server) ResolveMaybeMention(ctx context.Context, mention chat1.MaybeMen
 	// Try to load as team
 	return h.G().TeamMentionLoader.LoadTeamMention(ctx, uid, mention, nil, true)
 }
+
+func (h *Server) LoadGallery(ctx context.Context, arg chat1.LoadGalleryArg) (res chat1.LoadGalleryRes, err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "LoadGallery")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	defer h.suspendConvLoader(ctx)()
+
+	convID := arg.ConvID
+	var opts attachments.NextMessageOptions
+	switch arg.Typ {
+	case chat1.GalleryItemTyp_MEDIA:
+		opts.MessageTypes = []chat1.MessageType{chat1.MessageType_ATTACHMENT}
+		opts.AssetTypes = []chat1.AssetMetadataType{chat1.AssetMetadataType_IMAGE,
+			chat1.AssetMetadataType_VIDEO}
+	case chat1.GalleryItemTyp_LINK:
+		opts.MessageTypes = []chat1.MessageType{chat1.MessageType_UNFURL}
+	case chat1.GalleryItemTyp_DOC:
+		opts.MessageTypes = []chat1.MessageType{chat1.MessageType_ATTACHMENT}
+		opts.AssetTypes = []chat1.AssetMetadataType{chat1.AssetMetadataType_NONE}
+	default:
+		return res, errors.New("invalid gallery type")
+	}
+	var msgID chat1.MessageID
+	if arg.FromMsgID != nil {
+		msgID = *arg.FromMsgID
+	} else {
+		conv, err := utils.GetUnverifiedConv(ctx, h.G(), uid, convID, types.InboxSourceDataSourceAll)
+		if err != nil {
+			return res, err
+		}
+		msgID = conv.Conv.ReaderInfo.MaxMsgid
+	}
+
+	gallery := attachments.NewGallery(h.G())
+	msgs, err := gallery.NextMessages(ctx, uid, convID, msgID, arg.Num, opts)
+	if err != nil {
+		return res, err
+	}
+	return chat1.LoadGalleryRes{
+		Messages: utils.PresentMessagesUnboxed(ctx, h.G(), msgs, uid, convID),
+	}, nil
+}

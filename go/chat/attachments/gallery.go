@@ -11,8 +11,9 @@ import (
 )
 
 type NextMessageOptions struct {
-	BackInTime bool
-	AssetTypes []chat1.AssetMetadataType
+	BackInTime   bool
+	MessageTypes []chat1.MessageType
+	AssetTypes   []chat1.AssetMetadataType
 }
 
 type Gallery struct {
@@ -31,34 +32,60 @@ func NewGallery(g *globals.Context) *Gallery {
 	}
 }
 
-func (g *Gallery) eligibleNextMessage(msg chat1.MessageUnboxed, opts NextMessageOptions) bool {
+func (g *Gallery) eligibleNextMessage(msg chat1.MessageUnboxed, typMap map[chat1.MessageType]bool,
+	assetMap map[chat1.AssetMetadataType]bool) bool {
 	if !msg.IsValid() {
 		return false
 	}
 	body := msg.Valid().MessageBody
 	typ, err := body.MessageType()
-	if err != nil || typ != chat1.MessageType_ATTACHMENT {
-		return false
-	}
-	md := body.Attachment().Object.Metadata
-	atyp, err := md.AssetType()
 	if err != nil {
 		return false
 	}
-	if len(opts.AssetTypes) == 0 {
-		return true
+	if !typMap[typ] {
+		return false
 	}
-	for _, a := range opts.AssetTypes {
-		if atyp == a {
-			return true
+	switch typ {
+	case chat1.MessageType_ATTACHMENT:
+		md := body.Attachment().Object.Metadata
+		atyp, err := md.AssetType()
+		if err != nil {
+			return false
+		}
+		if len(assetMap) > 0 && !assetMap[atyp] {
+			return false
 		}
 	}
-	return false
+	return true
 }
 
 func (g *Gallery) NextMessage(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msgID chat1.MessageID, opts NextMessageOptions) (res *chat1.MessageUnboxed, err error) {
+	msgs, err := g.NextMessages(ctx, uid, convID, msgID, 1, opts)
+	if err != nil {
+		return res, err
+	}
+	if len(msgs) == 0 {
+		return nil, nil
+	}
+	return &msgs[0], nil
+}
 
+func (g *Gallery) makeMaps(opts NextMessageOptions) (typMap map[chat1.MessageType]bool,
+	assetMap map[chat1.AssetMetadataType]bool) {
+	typMap = make(map[chat1.MessageType]bool)
+	assetMap = make(map[chat1.AssetMetadataType]bool)
+	for _, typ := range opts.MessageTypes {
+		typMap[typ] = true
+	}
+	for _, atyp := range opts.AssetTypes {
+		assetMap[atyp] = true
+	}
+	return typMap, assetMap
+}
+
+func (g *Gallery) NextMessages(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, msgID chat1.MessageID, num int, opts NextMessageOptions) (res []chat1.MessageUnboxed, err error) {
 	var reverseFn func(chat1.ThreadView) []chat1.MessageUnboxed
 	var nextPageFn func(*chat1.Pagination) *chat1.Pagination
 	pivot := msgID
@@ -66,6 +93,10 @@ func (g *Gallery) NextMessage(ctx context.Context, uid gregor1.UID,
 	if opts.BackInTime {
 		mode = chat1.MessageIDControlMode_OLDERMESSAGES
 	}
+	if len(opts.MessageTypes) == 0 {
+		opts.MessageTypes = []chat1.MessageType{chat1.MessageType_ATTACHMENT}
+	}
+	typMap, assetMap := g.makeMaps(opts)
 	pagination := utils.MessageIDControlToPagination(ctx, g.DebugLabeler, &chat1.MessageIDControl{
 		Pivot: &pivot,
 		Mode:  mode,
@@ -103,19 +134,22 @@ func (g *Gallery) NextMessage(ctx context.Context, uid gregor1.UID,
 		g.Debug(ctx, "NextMessage: starting scan: p: %s pivot: %d", pagination, pivot)
 		tv, err := g.G().ConvSource.Pull(ctx, convID, uid, chat1.GetThreadReason_GENERAL,
 			&chat1.GetThreadQuery{
-				MessageTypes: []chat1.MessageType{chat1.MessageType_ATTACHMENT},
+				MessageTypes: opts.MessageTypes,
 			}, pagination)
 		if err != nil {
 			return res, err
 		}
 		messages := reverseFn(tv)
 		for _, m := range messages {
-			if !g.eligibleNextMessage(m, opts) {
+			if !g.eligibleNextMessage(m, typMap, assetMap) {
 				continue
 			}
-			return &m, nil
+			res = append(res, m)
+			if len(res) >= num {
+				return res, nil
+			}
 		}
-		g.Debug(ctx, "NextMessage: missed all messages: len: %d", len(tv.Messages))
+		g.Debug(ctx, "NextMessages: still need more (%d < %d): len: %d", len(res), num, len(tv.Messages))
 		if tv.Pagination.Last {
 			break
 		}
