@@ -71,48 +71,20 @@ export type _StylesCrossPlatform = {
   textDecorationStyle?: 'solid' | 'double' | 'dotted' | 'dashed'
   top?: Dimension
   transform?: ReadonlyArray<
-    | {
-        perspective: number
-      }
-    | {
-        rotate: string
-      }
-    | {
-        rotateX: string
-      }
-    | {
-        rotateY: string
-      }
-    | {
-        rotateZ: string
-      }
-    | {
-        scale: number
-      }
-    | {
-        scaleX: number
-      }
-    | {
-        scaleY: number
-      }
-    | {
-        translateX: number
-      }
-    | {
-        translateY: number
-      }
-    | {
-        translate: [number, number]
-      }
-    | {
-        skewX: string
-      }
-    | {
-        skewY: string
-      }
-    | {
-        matrix: ReadonlyArray<number>
-      }
+    | {perspective: number}
+    | {rotate: string}
+    | {rotateX: string}
+    | {rotateY: string}
+    | {rotateZ: string}
+    | {scale: number}
+    | {scaleX: number}
+    | {scaleY: number}
+    | {translateX: number}
+    | {translateY: number}
+    | {translate: [number, number]}
+    | {skewX: string}
+    | {skewY: string}
+    | {matrix: ReadonlyArray<number>}
   >
   width?: Dimension
   zIndex?: number
@@ -472,48 +444,20 @@ export type _StylesMobile = {
   zIndex?: number
   direction?: 'inherit' | 'ltr' | 'rtl'
   transform?: ReadonlyArray<
-    | {
-        perspective: number
-      }
-    | {
-        rotate: string
-      }
-    | {
-        rotateX: string
-      }
-    | {
-        rotateY: string
-      }
-    | {
-        rotateZ: string
-      }
-    | {
-        scale: number
-      }
-    | {
-        scaleX: number
-      }
-    | {
-        scaleY: number
-      }
-    | {
-        translateX: number
-      }
-    | {
-        translateY: number
-      }
-    | {
-        translate: [number, number]
-      }
-    | {
-        skewX: string
-      }
-    | {
-        skewY: string
-      }
-    | {
-        matrix: ReadonlyArray<number>
-      }
+    | {perspective: number}
+    | {rotate: string}
+    | {rotateX: string}
+    | {rotateY: string}
+    | {rotateZ: string}
+    | {scale: number}
+    | {scaleX: number}
+    | {scaleY: number}
+    | {translateX: number}
+    | {translateY: number}
+    | {translate: [number, number]}
+    | {skewX: string}
+    | {skewY: string}
+    | {matrix: ReadonlyArray<number>}
   >
   shadowColor?: Color
   shadowOffset?: {
