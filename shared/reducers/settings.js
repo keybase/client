@@ -108,7 +108,9 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
     case SettingsGen.feedbackSent:
       return state.update('feedback', feedback => feedback.set('error', action.payload.error))
     case SettingsGen.sendFeedback:
-      return state.update('feedback', feedback => feedback.set('error', null))
+      return state.update('feedback', feedback =>
+        feedback.merge({error: null, feedback: action.payload.feedback, sendLogs: action.payload.sendLogs})
+      )
     case SettingsGen.unfurlSettingsRefreshed:
     case SettingsGen.unfurlSettingsSaved:
       return state.merge({
