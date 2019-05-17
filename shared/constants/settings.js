@@ -41,8 +41,6 @@ export const makeEmailRow: I.RecordFactory<Types._EmailRow> = I.Record({
 
 export const makeFeedback: I.RecordFactory<Types._FeedbackState> = I.Record({
   error: null,
-  feedback: '',
-  sendLogs: true,
 })
 
 export const makeInvites: I.RecordFactory<Types._InvitesState> = I.Record({

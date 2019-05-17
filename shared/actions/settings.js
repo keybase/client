@@ -444,20 +444,17 @@ const setLockdownMode = (state, action) =>
     .catch(() => SettingsGen.createLoadLockdownMode())
 
 const sendFeedback = (state, action) => {
-  const maybeDump = state.settings.feedback.sendLogs
-    ? logger.dump().then(writeLogLinesToFile)
-    : Promise.resolve('')
+  const {feedback, sendLogs} = action.payload
+  const maybeDump = sendLogs ? logger.dump().then(writeLogLinesToFile) : Promise.resolve('')
   const status = {version}
   return maybeDump
     .then(() => {
-      logger.info(`Sending ${state.settings.feedback.sendLogs ? 'log' : 'feedback'} to daemon`)
-      const extra = state.settings.feedback.sendLogs
-        ? {...status, ...Constants.getExtraChatLogsForLogSend(state)}
-        : status
+      logger.info(`Sending ${sendLogs ? 'log' : 'feedback'} to daemon`)
+      const extra = sendLogs ? {...status, ...Constants.getExtraChatLogsForLogSend(state)} : status
       return RPCTypes.configLogSendRpcPromise(
         {
-          feedback: state.settings.feedback.feedback || '',
-          sendLogs: state.settings.feedback.sendLogs,
+          feedback: feedback || '',
+          sendLogs: sendLogs,
           statusJSON: JSON.stringify(extra),
         },
         Constants.sendFeedbackWaitingKey
