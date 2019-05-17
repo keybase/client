@@ -85,7 +85,6 @@ const searchUsersAndTeamsAndTeamChannels = memoize((users, teams, allChannels, f
 
 const suggestorToMarker = {
   channels: '#',
-  // channels: /^(#|@[a-zA-Z]+#|beebase#)/,
   commands: '/',
   emoji: ':',
   // 'users' is for @user, @team, and @team#channel
