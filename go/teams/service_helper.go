@@ -1573,7 +1573,6 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		return true, nil
 	}
 
-	isNone := isRoleOrAbove(keybase1.TeamRole_NONE)
 	isReader := isRoleOrAbove(keybase1.TeamRole_READER)
 	isWriter := isRoleOrAbove(keybase1.TeamRole_WRITER)
 	isAdmin := isRoleOrAbove(keybase1.TeamRole_ADMIN)
@@ -1585,7 +1584,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 
 	// team settings
 	ret.ListFirst = isImplicitAdmin
-	ret.JoinTeam = isNone && isImplicitAdmin
+	ret.JoinTeam = teamRole == keybase1.TeamRole_NONE && isImplicitAdmin
 	ret.SetPublicityAny = isAdmin || isImplicitAdmin
 	ret.ManageMembers = isAdmin || isImplicitAdmin
 	ret.ManageSubteams = isAdmin || isImplicitAdmin
