@@ -8,7 +8,7 @@ import {compose, connect, type RouteProps} from '../../util/container'
 import {isAndroid, version, logFileName, pprofDir} from '../../constants/platform'
 import {writeLogLinesToFile} from '../../util/forward-logs'
 import {Platform, NativeModules} from 'react-native'
-import {getExtraChatLogsForLogSend} from '../../constants/settings'
+import {getExtraChatLogsForLogSend, getPushTokenForLogSend} from '../../constants/settings'
 import type {PropsWithTimer} from '../../common-adapters'
 
 type OwnProps = RouteProps<{}, {}>
@@ -21,6 +21,7 @@ export type State = {
 export type Props = PropsWithTimer<{
   chat: Object,
   loggedOut: boolean,
+  push: Object,
   onBack: () => void,
   status: Object,
   title: string,
@@ -59,7 +60,9 @@ class FeedbackContainer extends React.Component<Props, State> {
         .then(() => {
           const logPath = logFileName
           logger.info(`Sending ${sendLogs ? 'log' : 'feedback'} to daemon`)
-          const extra = sendLogs ? {...this.props.status, ...this.props.chat} : this.props.status
+          const extra = sendLogs
+            ? {...this.props.status, ...this.props.chat, ...this.props.push}
+            : this.props.status
           const traceDir = pprofDir
           const cpuProfileDir = traceDir
           return logSend(JSON.stringify(extra), feedback || '', sendLogs, logPath, traceDir, cpuProfileDir)
@@ -104,6 +107,7 @@ const mapStateToProps = state => {
   return {
     chat: getExtraChatLogsForLogSend(state),
     loggedOut: !state.config.loggedIn,
+    push: getPushTokenForLogSend(state),
     status: {
       appVersionCode,
       appVersionName,

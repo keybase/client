@@ -76,6 +76,8 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   waitingForResponse: false,
 })
 
+export const getPushTokenForLogSend = (state: Object) => ({pushToken: state.push.token})
+
 export const getExtraChatLogsForLogSend = (state: Object) => {
   const chat = state.chat2
   const c = state.chat2.selectedConversation
