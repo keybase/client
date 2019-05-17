@@ -18,12 +18,14 @@ import type {DaemonHandshakeState} from '../constants/types/config'
 
 export type Props = {
   daemonHandshakeState: DaemonHandshakeState,
+  diskSpaceBannerHidden: boolean,
   diskSpaceStatus: FsTypes.DiskSpaceStatus,
   logIn: () => void,
   loggedIn: boolean,
   kbfsDaemonStatus: FsTypes.KbfsDaemonStatus,
   kbfsEnabled: boolean,
   updateNow: () => void,
+  onHideDiskSpaceBanner: () => void,
   onRekey: (path: string) => void,
   onRetrySync: () => void,
   openApp: (tab: ?string) => void,
@@ -324,7 +326,12 @@ class MenubarRender extends React.Component<Props, State> {
           />
         </Kb.Box>
         <OutOfDate outOfDate={this.props.outOfDate} updateNow={this.props.updateNow} />
-        <SpaceWarning diskSpaceStatus={this.props.diskSpaceStatus} onRetry={this.props.onRetrySync} />
+        <SpaceWarning
+          diskSpaceStatus={this.props.diskSpaceStatus}
+          onRetry={this.props.onRetrySync}
+          onClose={this.props.onHideDiskSpaceBanner}
+          hidden={this.props.diskSpaceBannerHidden}
+        />
         <Kb.ScrollView>
           <ChatContainer convLimit={3} />
           {this.props.kbfsDaemonStatus.rpcStatus === 'connected' ? (

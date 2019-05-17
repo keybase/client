@@ -121,6 +121,7 @@
     "setDriverStatus": {
       "driverStatus": "Types.DriverStatus"
     },
+    "hideDiskSpaceBanner": {},
     "hideSystemFileManagerIntegrationBanner": {},
     "showSystemFileManagerIntegrationBanner": {},
     "driverEnable": {

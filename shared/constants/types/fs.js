@@ -475,6 +475,7 @@ export type DiskSpaceStatus = 'warning' | 'error' | 'ok'
 export type _OverallSyncStatus = {
   syncingFoldersProgress: SyncingFoldersProgress,
   diskSpaceStatus: DiskSpaceStatus,
+  diskSpaceBannerHidden: boolean,
 }
 export type OverallSyncStatus = I.RecordOf<_OverallSyncStatus>
 

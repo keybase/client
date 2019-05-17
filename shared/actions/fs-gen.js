@@ -35,6 +35,7 @@ export const favoritesLoaded = 'fs:favoritesLoaded'
 export const folderListLoad = 'fs:folderListLoad'
 export const folderListLoaded = 'fs:folderListLoaded'
 export const fsError = 'fs:fsError'
+export const hideDiskSpaceBanner = 'fs:hideDiskSpaceBanner'
 export const hideSystemFileManagerIntegrationBanner = 'fs:hideSystemFileManagerIntegrationBanner'
 export const initSendAttachmentToChat = 'fs:initSendAttachmentToChat'
 export const initSendLinkToChat = 'fs:initSendLinkToChat'
@@ -123,6 +124,7 @@ type _FavoritesLoadedPayload = $ReadOnly<{|private: I.Map<string, Types.Tlf>, pu
 type _FolderListLoadPayload = $ReadOnly<{|path: Types.Path, refreshTag?: Types.RefreshTag|}>
 type _FolderListLoadedPayload = $ReadOnly<{|path: Types.Path, pathItems: I.Map<Types.Path, Types.PathItem>|}>
 type _FsErrorPayload = $ReadOnly<{|error: Types.FsError|}>
+type _HideDiskSpaceBannerPayload = void
 type _HideSystemFileManagerIntegrationBannerPayload = void
 type _InitSendAttachmentToChatPayload = $ReadOnly<{|path: Types.Path|}>
 type _InitSendLinkToChatPayload = $ReadOnly<{|path: Types.Path|}>
@@ -211,6 +213,7 @@ export const createFavoritesLoaded = (payload: _FavoritesLoadedPayload) => ({pay
 export const createFolderListLoad = (payload: _FolderListLoadPayload) => ({payload, type: folderListLoad})
 export const createFolderListLoaded = (payload: _FolderListLoadedPayload) => ({payload, type: folderListLoaded})
 export const createFsError = (payload: _FsErrorPayload) => ({payload, type: fsError})
+export const createHideDiskSpaceBanner = (payload: _HideDiskSpaceBannerPayload) => ({payload, type: hideDiskSpaceBanner})
 export const createHideSystemFileManagerIntegrationBanner = (payload: _HideSystemFileManagerIntegrationBannerPayload) => ({payload, type: hideSystemFileManagerIntegrationBanner})
 export const createInitSendAttachmentToChat = (payload: _InitSendAttachmentToChatPayload) => ({payload, type: initSendAttachmentToChat})
 export const createInitSendLinkToChat = (payload: _InitSendLinkToChatPayload) => ({payload, type: initSendLinkToChat})
@@ -299,6 +302,7 @@ export type FavoritesLoadedPayload = {|+payload: _FavoritesLoadedPayload, +type:
 export type FolderListLoadPayload = {|+payload: _FolderListLoadPayload, +type: 'fs:folderListLoad'|}
 export type FolderListLoadedPayload = {|+payload: _FolderListLoadedPayload, +type: 'fs:folderListLoaded'|}
 export type FsErrorPayload = {|+payload: _FsErrorPayload, +type: 'fs:fsError'|}
+export type HideDiskSpaceBannerPayload = {|+payload: _HideDiskSpaceBannerPayload, +type: 'fs:hideDiskSpaceBanner'|}
 export type HideSystemFileManagerIntegrationBannerPayload = {|+payload: _HideSystemFileManagerIntegrationBannerPayload, +type: 'fs:hideSystemFileManagerIntegrationBanner'|}
 export type InitSendAttachmentToChatPayload = {|+payload: _InitSendAttachmentToChatPayload, +type: 'fs:initSendAttachmentToChat'|}
 export type InitSendLinkToChatPayload = {|+payload: _InitSendLinkToChatPayload, +type: 'fs:initSendLinkToChat'|}
@@ -389,6 +393,7 @@ export type Actions =
   | FolderListLoadPayload
   | FolderListLoadedPayload
   | FsErrorPayload
+  | HideDiskSpaceBannerPayload
   | HideSystemFileManagerIntegrationBannerPayload
   | InitSendAttachmentToChatPayload
   | InitSendLinkToChatPayload

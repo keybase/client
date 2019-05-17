@@ -533,6 +533,11 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
               : action.payload.progress
           )
           .set('diskSpaceStatus', action.payload.outOfSpace ? 'error' : 'ok')
+          // Unhide the banner if the state we're coming from isn't WARNING.
+          .set(
+            'diskSpaceBannerHidden',
+            overallSyncStatus.diskSpaceBannerHidden && overallSyncStatus.diskSpaceStatus === 'warning'
+          )
       )
     case FsGen.setDriverStatus:
       return state.update('sfmi', sfmi => sfmi.set('driverStatus', action.payload.driverStatus))
@@ -540,6 +545,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.update('sfmi', sfmi => sfmi.set('showingBanner', true))
     case FsGen.hideSystemFileManagerIntegrationBanner:
       return state.update('sfmi', sfmi => sfmi.set('showingBanner', false))
+    case FsGen.hideDiskSpaceBanner:
+      return state.update('overallSyncStatus', status => status.set('diskSpaceBannerHidden', false))
     case FsGen.driverEnable:
       return state.update('sfmi', sfmi =>
         sfmi.update('driverStatus', driverStatus =>
@@ -577,7 +584,9 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         )
       )
     case FsGen.settingsLoaded:
-      return action.payload.settings ? state.set('settings', action.payload.settings) : state.update('settings', s => s.set('isLoading', false))
+      return action.payload.settings
+        ? state.set('settings', action.payload.settings)
+        : state.update('settings', s => s.set('isLoading', false))
     case FsGen.loadSettings:
       return state.update('settings', s => s.set('isLoading', true))
 

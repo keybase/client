@@ -28,6 +28,7 @@ const props = {
     // TODO: fill in a few.
   ],
   daemonHandshakeState: 'done',
+  diskSpaceBannerHidden: false,
   diskSpaceStatus: 'ok',
   fileName: null,
   files: 0,
@@ -37,6 +38,7 @@ const props = {
   logIn: Storybook.action('logIn'),
   loggedIn: true,
   onFolderClick: Storybook.action('onFolderClick'),
+  onHideDiskSpaceBanner: Storybook.action('hideDiskSpaceBanner'),
   onRekey: Storybook.action('onRekey'),
   onRetrySync: Storybook.action('onRetrySync'),
   onSelectConversation: () => {},
@@ -118,8 +120,18 @@ const load = () => {
     ))
     .add('Out of space banner', () => (
       <Kb.Box2 fullWidth={true} direction="vertical" gap="small">
-        <SpaceWarning diskSpaceStatus="warning" onRetry={Storybook.action('retry')} />
-        <SpaceWarning diskSpaceStatus="error" onRetry={Storybook.action('retry')} />
+        <SpaceWarning
+          diskSpaceStatus="warning"
+          onRetry={Storybook.action('retry')}
+          hidden={false}
+          onClose={Storybook.action('hide')}
+        />
+        <SpaceWarning
+          diskSpaceStatus="error"
+          onRetry={Storybook.action('retry')}
+          hidden={false}
+          onClose={() => {}}
+        />
       </Kb.Box2>
     ))
     .add('Uploading', () => <Menubar {...props} files={1} totalSyncingBytes={1} />)
