@@ -7,6 +7,7 @@ import {AppRegistry, AppState, Linking} from 'react-native'
 import {GatewayProvider} from 'react-gateway'
 import {Provider} from 'react-redux'
 import {makeEngine} from '../engine'
+import {isAndroid} from '../constants/platform'
 
 module.hot &&
   module.hot.accept(() => {
@@ -42,6 +43,10 @@ class Keybase extends Component<any> {
 
   componentDidMount() {
     Linking.addEventListener('url', this._handleOpenURL)
+
+    if (isAndroid) {
+      Linking.getInitialURL().then(event => event?.url && this._handleOpenURL(event))
+    }
   }
 
   componentWillUnmount() {
@@ -50,6 +55,7 @@ class Keybase extends Component<any> {
   }
 
   _handleOpenURL(event: {url: string}) {
+    console.warn('in _handleOpenURL with', event.url)
     this.store.dispatch(ConfigGen.createLink({link: event.url}))
   }
 

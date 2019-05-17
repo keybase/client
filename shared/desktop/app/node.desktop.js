@@ -10,6 +10,8 @@ import {setupExecuteActionsListener, executeActionsForContext} from '../../util/
 import {allowMultipleInstances} from '../../local-debug.desktop'
 import startWinService from './start-win-service.desktop'
 import {isWindows, cacheRoot} from '../../constants/platform.desktop'
+import {sendToMainWindow} from '../remote/util.desktop'
+import * as ConfigGen from '../../actions/config-gen'
 
 let mainWindow = null
 
@@ -134,6 +136,12 @@ const createMainWindow = () => {
   tellMainWindowAboutMenubar()
   SafeElectron.getIpcMain().on('mainWindowWantsMenubarWindowID', () => {
     tellMainWindowAboutMenubar()
+  })
+
+  SafeElectron.getApp().on('open-url', (event, link) => {
+    event.preventDefault()
+    console.warn('in open-url', link)
+    sendToMainWindow('dispatchAction', {payload: {link}, type: ConfigGen.link})
   })
 
   // A remote window wants props

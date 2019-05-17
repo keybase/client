@@ -61,7 +61,11 @@ const receivedRootAuditError = (state, action) =>
 
 const receivedBoxAuditError = (state, action) =>
   ConfigGen.createGlobalError({
-    globalError: new Error(`Keybase had a problem loading a team, please report this with \`keybase log send\`: ${action.payload.params.message}`),
+    globalError: new Error(
+      `Keybase had a problem loading a team, please report this with \`keybase log send\`: ${
+        action.payload.params.message
+      }`
+    ),
   })
 
 function* notificationsSaga(): Saga.SagaGenerator<any, any> {

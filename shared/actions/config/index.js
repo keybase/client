@@ -367,12 +367,16 @@ const routeToInitialScreen = state => {
 
 const handleAppLink = (_, action) => {
   const url = new URL(action.payload.link)
-  const username = Constants.urlToUsername(url)
-  if (username) {
-    return [
-      RouteTreeGen.createSwitchTo({path: [Tabs.peopleTab]}),
-      ProfileGen.createShowUserProfile({username}),
-    ]
+  if (action.payload.link.startsWith('keybase://')) {
+    console.warn('Got keybase link:', action.payload.link)
+  } else {
+    const username = Constants.urlToUsername(url)
+    if (username) {
+      return [
+        RouteTreeGen.createSwitchTo({path: [Tabs.peopleTab]}),
+        ProfileGen.createShowUserProfile({username}),
+      ]
+    }
   }
 }
 

@@ -65,20 +65,6 @@ export default function() {
 
   // $FlowIssue missing type
   app.setAsDefaultProtocolClient('keybase')
-  app.on('will-finish-launching', () => {
-    // macOS receives keybase:// links via open-url
-    app.on('open-url', (event, url) => {
-      event.preventDefault()
-      console.warn('got url', url)
-    })
-    // Windows receives keybase:// links that started the app in argv
-    if (isWindows) {
-      const url = process.argv.slice(1)
-      if (url) {
-        console.warn('got start url', url)
-      }
-    }
-  })
   const openedAtLogin = app.getLoginItemSettings().wasOpenedAtLogin
   // app.getLoginItemSettings().restoreState is Mac only, so consider it always on in Windows
   const isRestore =
