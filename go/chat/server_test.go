@@ -5885,7 +5885,7 @@ func TestChatSrvUserResetAndDeleted(t *testing.T) {
 
 		t.Logf("delete user 3")
 		ctcForUser3 := ctc.as(t, users[3])
-		require.NoError(t, libkb.DeleteAccount(ctcForUser3.m, users[3].NormalizedUsername(), users[3].Passphrase))
+		require.NoError(t, libkb.DeleteAccount(ctcForUser3.m, users[3].NormalizedUsername(), &users[3].Passphrase))
 		select {
 		case <-listener0.membersUpdate:
 			require.Fail(t, "got members update after delete")

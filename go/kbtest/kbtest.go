@@ -147,7 +147,7 @@ func ResetAccount(tc libkb.TestContext, u *FakeUser) {
 
 func DeleteAccount(tc libkb.TestContext, u *FakeUser) {
 	m := libkb.NewMetaContextForTest(tc)
-	err := libkb.DeleteAccount(m, u.NormalizedUsername(), u.Passphrase)
+	err := libkb.DeleteAccount(m, u.NormalizedUsername(), &u.Passphrase)
 	require.NoError(tc.T, err)
 	tc.T.Logf("Account deleted for user %s", u.Username)
 	Logout(tc)
