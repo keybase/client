@@ -741,7 +741,7 @@ func (fbo *folderBranchOps) clearConflictView(ctx context.Context) (
 
 	fbo.log.CDebugf(ctx, "Clearing conflict view")
 	defer func() {
-		fbo.log.CDebugf(ctx, "Done with clearConflictView: %+v", err)
+		fbo.deferLog.CDebugf(ctx, "Done with clearConflictView: %+v", err)
 	}()
 
 	lState := makeFBOLockState()
@@ -8327,7 +8327,8 @@ func (fbo *folderBranchOps) MigrateToImplicitTeam(
 
 	fbo.log.CDebugf(ctx, "Starting migration of TLF %s", id)
 	defer func() {
-		fbo.log.CDebugf(ctx, "Finished migration of TLF %s, err=%+v", id, err)
+		fbo.deferLog.CDebugf(
+			ctx, "Finished migration of TLF %s, err=%+v", id, err)
 	}()
 
 	if id.Type() != tlf.Private && id.Type() != tlf.Public {
