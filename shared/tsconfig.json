@@ -4,6 +4,7 @@
         "sourceMap": true,
         "noImplicitAny": false,
         "module": "commonjs",
+        "noEmit": true,
         "target": "es6",
         "jsx": "preserve",
         "incremental": true
