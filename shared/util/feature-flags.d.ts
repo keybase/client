@@ -1,5 +1,4 @@
-// @flow strict
-export type FeatureFlags = {|
+export type FeatureFlags = {
   admin: boolean,
   airdrop: boolean,
   chatIndexProfilingEnabled: boolean,
@@ -8,12 +7,11 @@ export type FeatureFlags = {|
   foldersInProfileTab: boolean,
   kbfsOfflineMode: boolean,
   moveOrCopy: boolean,
-  // Enables the "Add up to 14 more people. Need more? Make it a team." feature
   newTeamBuildingForChatAllowMakeTeam: boolean,
   outOfDateBanner: boolean,
   plansEnabled: boolean,
-  proofProviders: boolean,
-|}
+  proofProviders: boolean
+};
 
-declare var ff: FeatureFlags
+declare var ff: FeatureFlags;
 export default ff
