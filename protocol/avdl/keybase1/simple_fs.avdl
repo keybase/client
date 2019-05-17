@@ -376,8 +376,8 @@ protocol SimpleFS {
   //      under the normal TLF path;
   //   2) a TLF that's locally branched, under a path with a TLF suffix.
   //
-  // After this, user is expected to make change in 1), usually by coping needed
-  // data from 2) into 1).
+  // After this, user is expected to make changes in 1), usually by coping
+  // needed data from 2) into 1).
   //
   // Note that it's possible to have multiple 2) for the same 1).
   void simpleFSClearConflictState(Path path);

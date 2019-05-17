@@ -319,7 +319,6 @@ func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (
 			conflictState := keybase1.NewConflictStateWithAutomaticresolving(
 				keybase1.ConflictAutomaticResolving{IsStuck: stk})
 			favs.FavoriteFolders[i].ConflictState = &conflictState
-
 		}
 		fs.log.CDebugf(ctx, "Conflict status for %s: %s", tlfID, status)
 		found++
