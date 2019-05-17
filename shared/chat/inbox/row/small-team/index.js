@@ -58,8 +58,8 @@ class SmallTeam extends React.PureComponent<Props, State> {
 
   _onMouseLeave = () => this.setState({isHovered: false})
   _onMouseOver = () => this.setState({isHovered: true})
-  _onForceShowMenu = () => this.settate({showMenu: true})
-  _onForceHideMenu = () => this.settate({showMenu: false})
+  _onForceShowMenu = () => this.setState({showMenu: true})
+  _onForceHideMenu = () => this.setState({showMenu: false})
 
   _backgroundColor = () =>
     // props.backgroundColor should always override hover styles, otherwise, there's a
