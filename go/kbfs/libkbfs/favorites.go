@@ -35,6 +35,7 @@ const (
 	// on startup). Reasonably low in case we're offline.
 	favoritesServerTimeoutWhenCacheExpired = 500 * time.Millisecond
 	favoritesBackgroundRefreshTimeout      = 15 * time.Second
+	favoritesBufferedReqInterval           = 5 * time.Second
 )
 
 var errNoFavoritesCache = errors.New("disk favorites cache not present")
@@ -59,6 +60,7 @@ type favReq struct {
 	// Request types
 	clear       bool
 	refresh     bool
+	buffered    bool
 	toAdd       []favorites.ToAdd
 	toDel       []favorites.Folder
 	favs        chan<- []favorites.Folder
@@ -92,7 +94,8 @@ type Favorites struct {
 	homeTLFInfo homeTLFInfo
 
 	// Channel for interacting with the favorites cache
-	reqChan chan *favReq
+	reqChan         chan *favReq
+	bufferedReqChan chan *favReq
 	// Channel that is full when there is already a refresh queued
 	refreshWaiting chan struct{}
 
@@ -134,11 +137,12 @@ func newFavoritesWithChan(config Config, reqChan chan *favReq) *Favorites {
 	}
 
 	f := &Favorites{
-		config:         config,
-		reqChan:        reqChan,
-		refreshWaiting: make(chan struct{}, 1),
-		inFlightAdds:   make(map[favorites.Folder]*favReq),
-		log:            log,
+		config:          config,
+		reqChan:         reqChan,
+		bufferedReqChan: make(chan *favReq, 1),
+		refreshWaiting:  make(chan struct{}, 1),
+		inFlightAdds:    make(map[favorites.Folder]*favReq),
+		log:             log,
 	}
 
 	return f
@@ -306,9 +310,13 @@ func (f *Favorites) sendChangesToEditHistory(oldCache map[favorites.Folder]favor
 			changed = true
 		}
 	}
-	for newFav := range f.favCache {
-		if _, present := oldCache[newFav]; !present {
+	for newFav, newFavData := range f.favCache {
+		oldFavData, present := oldCache[newFav]
+		if !present {
 			f.config.KBFSOps().RefreshEditHistory(newFav)
+			changed = true
+		} else if newFavData.TlfMtime != nil && oldFavData.TlfMtime != nil &&
+			*newFavData.TlfMtime > *oldFavData.TlfMtime {
 			changed = true
 		}
 	}
@@ -328,6 +336,8 @@ func favoriteToFolder(fav favorites.Folder, data favorites.Data) keybase1.Folder
 }
 
 func (f *Favorites) handleReq(req *favReq) (err error) {
+	defer f.wg.Done()
+
 	changed := false
 	defer func() {
 		f.closeReq(req, err)
@@ -336,7 +346,7 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 		}
 	}()
 
-	if req.refresh {
+	if req.refresh && !req.buffered {
 		<-f.refreshWaiting
 	}
 
@@ -526,9 +536,29 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 }
 
 func (f *Favorites) loop() {
-	for req := range f.reqChan {
-		f.handleReq(req)
-		f.wg.Done()
+	bufferedTicker := time.NewTicker(favoritesBufferedReqInterval)
+	defer bufferedTicker.Stop()
+
+	for {
+		select {
+		case req, ok := <-f.reqChan:
+			if !ok {
+				return
+			}
+			f.handleReq(req)
+		case <-bufferedTicker.C:
+			select {
+			case req, ok := <-f.bufferedReqChan:
+				if !ok {
+					return
+				}
+				// Don't block the wait group on buffered requests
+				// until we're actually processing one.
+				f.wg.Add(1)
+				f.handleReq(req)
+			default:
+			}
+		}
 	}
 }
 
@@ -542,6 +572,7 @@ func (f *Favorites) Shutdown() error {
 	defer f.muShutdown.Unlock()
 	f.shutdown = true
 	close(f.reqChan)
+	close(f.bufferedReqChan)
 	if f.diskCache != nil {
 		err := f.diskCache.Close()
 		if err != nil {
@@ -751,6 +782,34 @@ func (f *Favorites) RefreshCache(ctx context.Context, mode FavoritesRefreshMode)
 		f.wg.Done()
 		<-f.refreshWaiting
 		return
+	}
+}
+
+// RefreshCacheWhenMTimeChanged refreshes the cached favorites, but
+// does so with rate-limiting, so that it doesn't hit the server too
+// often.
+func (f *Favorites) RefreshCacheWhenMTimeChanged(ctx context.Context) {
+	if f.disabled || f.hasShutdown() {
+		return
+	}
+
+	req := &favReq{
+		refresh:  true,
+		buffered: true,
+		done:     make(chan struct{}),
+		ctx:      context.Background(),
+	}
+	select {
+	case f.bufferedReqChan <- req:
+		go func() {
+			<-req.done
+			if req.err != nil {
+				f.log.CDebugf(ctx, "Failed to refresh cached Favorites ("+
+					"error in main loop): %+v", req.err)
+			}
+		}()
+	default:
+		// There's already a buffered request waiting.
 	}
 }
 
