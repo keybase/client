@@ -82,14 +82,6 @@ func (e *Login) SubConsumers() []libkb.UIConsumer {
 func (e *Login) Run(m libkb.MetaContext) (err error) {
 	m = m.WithLogTag("LOGIN")
 	defer m.Trace("Login#Run", func() error { return err })()
-	defer func() {
-		if err == nil {
-			_, rpwErr := libkb.LoadHasRandomPw(m, keybase1.LoadHasRandomPwArg{ForceRepoll: true})
-			if rpwErr != nil {
-				m.Debug("Failed to preload no-passphrase status after login: %s", rpwErr)
-			}
-		}
-	}()
 
 	if len(e.username) > 0 && libkb.CheckEmail.F(e.username) {
 		// We used to support logging in with e-mail but we don't anymore,

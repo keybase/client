@@ -160,11 +160,6 @@ func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 
 	m.G().GetStellar().CreateWalletSoft(m.Ctx())
 
-	_, rpwErr := libkb.LoadHasRandomPw(m, keybase1.LoadHasRandomPwArg{ForceRepoll: true})
-	if rpwErr != nil {
-		m.Debug("Failed to preload no-passphrase status after signup: %s", rpwErr)
-	}
-
 	return nil
 }
 
