@@ -57,8 +57,7 @@ func (c *CmdAccountReset) checkRandomPW() error {
 }
 
 func (c *CmdAccountReset) Run() error {
-	err := c.checkRandomPW()
-	if err != nil {
+	if err := c.checkRandomPW(); err != nil {
 		return err
 	}
 	protocols := []rpc.Protocol{
