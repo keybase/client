@@ -71,7 +71,12 @@ func (c *CmdAccountReset) Run() error {
 	if err != nil {
 		return err
 	}
-	return cli.ResetAccount(context.Background(), keybase1.ResetAccountArg{})
+	err = cli.ResetAccount(context.Background(), keybase1.ResetAccountArg{})
+	if err != nil {
+		return err
+	}
+	c.G().UI.GetDumbOutputUI().PrintfStderr("Account has been reset.\n")
+	return nil
 }
 
 func (c *CmdAccountReset) GetUsage() libkb.Usage {
