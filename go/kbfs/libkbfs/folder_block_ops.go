@@ -2458,15 +2458,16 @@ func (fbo *folderBlockOps) clearAllDirtyDirsLocked(
 	fbo.dirtyDirs = make(map[data.BlockPointer][]data.BlockInfo)
 	fbo.dirtyRootDirEntry = nil
 	fbo.dirtyDirsSyncing = false
+	deferredDirUpdates := fbo.deferredDirUpdates
+	fbo.deferredDirUpdates = nil
 	// Re-apply any deferred directory updates related to files that
 	// weren't synced as part of this batch.
-	for _, f := range fbo.deferredDirUpdates {
+	for _, f := range deferredDirUpdates {
 		err := f(lState)
 		if err != nil {
 			fbo.log.CWarningf(ctx, "Deferred entry update failed: %+v", err)
 		}
 	}
-	fbo.deferredDirUpdates = nil
 }
 
 // ClearCacheInfo removes any cached info for the the given file.
