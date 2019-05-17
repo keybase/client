@@ -35,7 +35,7 @@ RootLogin.navigationOptions = {
 }
 
 export const newRoutes = {
-  feedback: {getScreen: () => require('../settings/feedback-container').default},
+  feedback: {getScreen: () => require('../settings/feedback/container').default},
   login: {getScreen: () => RootLogin},
   ...require('../provision/routes').newRoutes,
   ...require('./signup/routes').newRoutes,
