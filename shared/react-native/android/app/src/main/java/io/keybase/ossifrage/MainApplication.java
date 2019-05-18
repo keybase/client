@@ -1,7 +1,10 @@
 package io.keybase.ossifrage;
 
 import android.app.Application;
+import android.content.Context;
+import android.support.multidex.MultiDex;
 
+import com.reactnativecommunity.netinfo.NetInfoPackage;
 import com.evernote.android.job.JobManager;
 import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactNativeHost;
@@ -13,6 +16,7 @@ import com.dieam.reactnativepushnotification.ReactNativePushNotificationPackage;
 import com.facebook.soloader.SoLoader;
 import com.imagepicker.ImagePickerPackage;
 import com.RNFetchBlob.RNFetchBlobPackage;
+import com.reactnativecommunity.webview.RNCWebViewPackage;
 import com.rt2zz.reactnativecontacts.ReactNativeContacts;
 import com.dylanvann.fastimage.FastImageViewPackage;
 
@@ -37,6 +41,12 @@ import io.keybase.ossifrage.modules.BackgroundSyncJob;
 import io.keybase.ossifrage.modules.NativeLogger;
 
 public class MainApplication extends Application implements ReactApplication {
+    @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(base);
+        MultiDex.install(this);
+    }
+
     @Override
     public void onCreate() {
         NativeLogger.info("MainApplication created");
@@ -84,6 +94,8 @@ public class MainApplication extends Application implements ReactApplication {
                         new LottiePackage(),
                         new RNGestureHandlerPackage(),
                         new RNScreensPackage(),
+                        new NetInfoPackage(),
+                        new RNCWebViewPackage(),
                         new ReactVideoPackage(),
                         new ReanimatedPackage()
                 );
@@ -102,9 +114,15 @@ public class MainApplication extends Application implements ReactApplication {
                     new LottiePackage(),
                     new RNGestureHandlerPackage(),
                     new RNScreensPackage(),
+                    new NetInfoPackage(),
+                    new RNCWebViewPackage(),
                     new ReactVideoPackage(),
                     new ReanimatedPackage()
             );
+        }
+        @Override
+        protected String getJSMainModuleName() {
+            return "index";
         }
 
     };
