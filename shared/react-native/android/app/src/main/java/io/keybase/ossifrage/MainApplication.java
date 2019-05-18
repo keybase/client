@@ -90,15 +90,21 @@ public class MainApplication extends Application implements ReactApplication {
                     new KBReactPackage() {
                         @Override
                         public List<NativeModule> createNativeModules(ReactApplicationContext reactApplicationContext) {
-                            List<NativeModule> modules = new ArrayList<>();
-                            modules.add(new StorybookConstants(reactApplicationContext));
-                            return modules;
+                            if (BuildConfig.BUILD_TYPE == "storyBook") {
+                                List<NativeModule> modules = new ArrayList<>();
+                                modules.add(new StorybookConstants(reactApplicationContext));
+                                return modules;
+                            } else {
+                                return super.createNativeModules(reactApplicationContext);
+                            }
                         }
-                    },                    new ReactNativePushNotificationPackage(),
+                    },
+                    new ReactNativePushNotificationPackage(),
                     new RNCameraPackage(),
                     new ImagePickerPackage(),
                     new RNFetchBlobPackage(),
                     new ReactNativeContacts(),
+                    //new FastImageViewPackage(),
                     new LottiePackage(),
                     new RNGestureHandlerPackage(),
                     new RNScreensPackage(),
@@ -112,7 +118,6 @@ public class MainApplication extends Application implements ReactApplication {
         protected String getJSMainModuleName() {
             return "index";
         }
-
     };
 
     @Override
