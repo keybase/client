@@ -1361,6 +1361,10 @@ type SimpleFSClearConflictStateArg struct {
 	Path Path `codec:"path" json:"path"`
 }
 
+type SimpleFSFinishResolvingConflictArg struct {
+	Path Path `codec:"path" json:"path"`
+}
+
 type SimpleFSForceStuckConflictArg struct {
 	Path Path `codec:"path" json:"path"`
 }
@@ -1490,8 +1494,8 @@ type SimpleFSInterface interface {
 	SimpleFSWait(context.Context, OpID) error
 	// Instructs KBFS to dump debugging info into its logs.
 	SimpleFSDumpDebuggingInfo(context.Context) error
-	// Clear the conflict state of a TLF.
 	SimpleFSClearConflictState(context.Context, Path) error
+	SimpleFSFinishResolvingConflict(context.Context, Path) error
 	// Force a TLF into a stuck conflict state (for testing).
 	SimpleFSForceStuckConflict(context.Context, Path) error
 	// Get sync status.
@@ -1904,6 +1908,21 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSFinishResolvingConflict": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSFinishResolvingConflictArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSFinishResolvingConflictArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSFinishResolvingConflictArg)(nil), args)
+						return
+					}
+					err = i.SimpleFSFinishResolvingConflict(ctx, typedArgs[0].Path)
+					return
+				},
+			},
 			"simpleFSForceStuckConflict": {
 				MakeArg: func() interface{} {
 					var ret [1]SimpleFSForceStuckConflictArg
@@ -2296,10 +2315,15 @@ func (c SimpleFSClient) SimpleFSDumpDebuggingInfo(ctx context.Context) (err erro
 	return
 }
 
-// Clear the conflict state of a TLF.
 func (c SimpleFSClient) SimpleFSClearConflictState(ctx context.Context, path Path) (err error) {
 	__arg := SimpleFSClearConflictStateArg{Path: path}
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSClearConflictState", []interface{}{__arg}, nil)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSFinishResolvingConflict(ctx context.Context, path Path) (err error) {
+	__arg := SimpleFSFinishResolvingConflictArg{Path: path}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSFinishResolvingConflict", []interface{}{__arg}, nil)
 	return
 }
 
