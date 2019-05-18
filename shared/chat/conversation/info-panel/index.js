@@ -2,9 +2,9 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
 import * as Flow from '../../../util/flow'
-import {Box, Divider, HeaderOnMobile, List} from '../../../common-adapters'
+import * as Styles from '../../../styles'
+import * as Kb from '../../../common-adapters'
 import type {Props as HeaderHocProps} from '../../../common-adapters/header-hoc/types'
-import {globalColors, globalMargins, globalStyles, isMobile, platformStyles} from '../../../styles'
 import {SmallTeamHeader, BigTeamHeader} from './header'
 import Notifications from './notifications/container'
 import AddPeople from './add-people'
@@ -13,23 +13,11 @@ import {ParticipantCount} from './participant-count'
 import {CaptionedButton, CaptionedDangerIcon} from './channel-utils'
 import RetentionPicker from '../../../teams/team/settings-tab/retention/container'
 import MinWriterRole from './min-writer-role/container'
+import {MembersPanel, SettingsPanel} from './panels'
 
-const border = `1px solid ${globalColors.black_10}`
-const listStyle = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'stretch',
-  flex: 1,
-  paddingBottom: globalMargins.medium,
-  ...(isMobile
-    ? {}
-    : {
-        backgroundColor: globalColors.white,
-        borderLeft: border,
-      }),
-}
 const styleTurnIntoTeam = {
-  paddingLeft: globalMargins.small,
-  paddingRight: globalMargins.small,
+  paddingLeft: Styles.globalMargins.small,
+  paddingRight: Styles.globalMargins.small,
 }
 const Spacer = ({height}: {height: number}) => <Box style={{height, width: 1}} />
 
@@ -117,27 +105,6 @@ type RetentionRow = {
   // this should match RetentionEntityType from team/settings/retention/container
   // setting it explicity causes flow to be unable to resolve these row types
   entityType: 'adhoc' | 'channel' | 'small team' | 'big team',
-}
-
-const retentionStyles = {
-  containerStyle: platformStyles({
-    common: {
-      paddingLeft: 16,
-      paddingRight: 16,
-    },
-    isMobile: {
-      marginRight: 16,
-    },
-  }),
-  dropdownStyle: platformStyles({
-    isElectron: {
-      marginRight: 45 - 16,
-      width: 'auto',
-    },
-    isMobile: {
-      width: '100%',
-    },
-  }),
 }
 
 type SpacerRow = {
@@ -266,8 +233,80 @@ const typeSizeEstimator = (row: Row): number => {
   return 0
 }
 
-class _InfoPanel extends React.Component<InfoPanelProps> {
-  _renderRow = (i: number, row: Row): React.Node => {
+const TabText = ({selected, text}: {selected: boolean, text: string}) => (
+  <Kb.Text type="BodySmallSemibold" style={selected ? styles.tabTextSelected : styles.tabText}>
+    {text}
+  </Kb.Text>
+)
+
+type Panel = 'settings' | 'members' | 'attachments'
+type InfoPanelState = {
+  selectedPanel: Panel,
+}
+
+class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
+  state = {selectedPanel: 'settings'}
+
+  _getEntityType = () => {
+    if (this.props.teamname && this.props.channelname) {
+      return this.props.smallTeam ? 'small team' : 'channel'
+    }
+    return 'adhoc'
+  }
+
+  _isSelected = s => {
+    return s === this.state.selectedPanel
+  }
+
+  _getTabs = () => {
+    return [
+      <Kb.Box key="settings" style={styles.tabTextContainer}>
+        <TabText selected={this._isSelected('settings')} text="Settings" />
+      </Kb.Box>,
+      <Kb.Box key="members" style={styles.tabTextContainer}>
+        <TabText selected={this._isSelected('members')} text="Members" />
+      </Kb.Box>,
+      <Kb.Box key="attachments" style={styles.tabTextContainer}>
+        <TabText selected={this._isSelected('attachments')} text="Attachments" />
+      </Kb.Box>,
+    ]
+  }
+
+  _onSelectTab = tab => {
+    this.setState({selectedPanel: tab.key})
+  }
+
+  render() {
+    const entityType = this._getEntityType()
+    const tabs = this._getTabs()
+    const selected = tabs.find(tab => this._isSelected(tab.key)) || null
+    return (
+      <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
+        <Kb.Box2 direction="vertical">
+          <Kb.Tabs tabs={tabs} selected={selected} onSelect={this._onSelectTab} />
+        </Kb.Box2>
+        {this._isSelected('settings') && (
+          <SettingsPanel
+            canDeleteHistory={this.props.canDeleteHistory}
+            conversationIDKey={this.props.selectedConversationIDKey}
+            entityType={entityType}
+            key="settings"
+            onHideConv={this.props.onHideConv}
+            onUnhideConv={this.props.onUnhideConv}
+            onShowBlockConversationDialog={this.props.onShowBlockConversationDialog}
+            onShowClearConversationDialog={this.props.onShowClearConversationDialog}
+            spinnerForHide={this.props.spinnerForHide}
+            teamname={this.props.teamname}
+          />
+        )}
+        {this._isSelected('members') && (
+          <MembersPanel onShowProfile={this.props.onShowProfile} participants={this.props.participants} />
+        )}
+      </Kb.Box2>
+    )
+  }
+  /*
+    _renderRow = (i: number, row: Row): React.Node => {
     switch (row.type) {
       case 'add people':
         return (
@@ -434,8 +473,9 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         throw new Error(`Impossible case encountered: ${row.type}`)
     }
   }
+*/
 
-  render() {
+  /*render() {
     // Desktop uses the key returned by _renderRow (e.g. `divider X`)
     // mobile uses the `key` prop supplied on these row objects
     // use this to ensure we don't repeat a number for the arbitrary keys
@@ -795,10 +835,26 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         itemSizeEstimator={rowSizeEstimator}
       />
     )
-  }
+  }*/
 }
 
-const InfoPanel = HeaderOnMobile(_InfoPanel)
+const border = `1px solid ${Styles.globalColors.black_10}`
+const styles = Styles.styleSheetCreate({
+  container: Styles.platformStyles({
+    common: {alignItems: 'stretch', flex: 1, paddingBottom: Styles.globalMargins.medium},
+    isElectron: {
+      backgroundColor: Styles.globalColors.white,
+      borderLeft: border,
+    },
+  }),
+  tabTextContainer: {
+    ...Styles.globalStyles.flexBoxRow,
+    justifyContent: 'center',
+  },
+  tabTextSelected: {color: Styles.globalColors.black},
+})
+
+const InfoPanel = Kb.HeaderOnMobile(_InfoPanel)
 
 export type {InfoPanelProps}
 export {InfoPanel}
