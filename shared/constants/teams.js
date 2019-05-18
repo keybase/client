@@ -177,6 +177,7 @@ export const initialCanUserPerform: RPCTypes.TeamOperation = {
   deleteChannel: false,
   deleteChatHistory: false,
   deleteOtherMessages: false,
+  deleteTeam: false,
   editChannelDescription: false,
   editTeamDescription: false,
   joinTeam: false,
@@ -325,16 +326,21 @@ const getDisabledReasonsForRolePicker = (
   memberToModify: ?string
 ): Types.DisabledReasonsForRolePicker => {
   const canManageMembers = getCanPerform(state, teamname).manageMembers
-  if (canManageMembers) {
-    // If you're an implicit admin, the tests below will fail for you, but you can still change roles.
-    return isSubteam(teamname) ? {owner: 'Subteams cannot have owners.'} : {}
-  }
   const members = getTeamMembers(state, teamname)
   const member = memberToModify ? members.get(memberToModify) : null
   const theyAreOwner = member ? member.type === 'owner' : false
   const you = members.get(state.config.username)
   // Fallback to the lowest role, although this shouldn't happen
   const yourRole = you ? you.type : 'reader'
+
+  if (canManageMembers) {
+    // If you're an implicit admin, the tests below will fail for you, but you can still change roles.
+    return isSubteam(teamname)
+      ? {owner: 'Subteams cannot have owners.'}
+      : yourRole !== 'owner'
+      ? {owner: 'Only owners can turn team members into owners.'}
+      : {}
+  }
 
   // We shouldn't get here, but in case we do this is correct.
   if (yourRole !== 'owner' && yourRole !== 'admin') {

@@ -7,6 +7,7 @@
 //
 
 #import "AppDelegate.h"
+#import <AVFoundation/AVFoundation.h> 
 #import <React/RCTPushNotificationManager.h>
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTRootView.h>
@@ -16,11 +17,6 @@
 #import <keybase/keybase.h>
 #import "Pusher.h"
 #import "Fs.h"
-
-// Systrace is busted due to the new bridge. Uncomment this to force the old bridge.
-// You'll also have to edit the React.xcodeproj. Instructions here:
-// https://github.com/facebook/react-native/issues/15003#issuecomment-323715121
-//#define SYSTRACING
 
 @interface AppDelegate ()
 @property UIBackgroundTaskIdentifier backgroundTask;
@@ -72,36 +68,22 @@ const BOOL isDebug = NO;
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+  // allow audio to be mixed
+  [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient error:nil];
   [self setupLogger];
   [self setupGo];
   [self notifyAppState:application];
 
-  NSURL *jsCodeLocation;
-
-  // Uncomment for prod JS in dev mode (and comment the line after
-  // that). If you're building onto a phone, you'll have to change
-  // localhost:8081 to point to the bundler running on your computer.
-  //
-//   jsCodeLocation = [NSURL URLWithString:@"http://localhost:8081/index.ios.bundle?platform=ios&dev=false"];
-  jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index.ios" fallbackResource:nil];
-#ifdef SYSTRACING
-  RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self
-                                            launchOptions:launchOptions];
-
-  RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge moduleName:@"Keybase" initialProperties:nil];
-#else
-  RCTRootView *rootView = [[RCTRootView alloc] initWithBundleURL:jsCodeLocation
-                                                      moduleName:@"Keybase"
-                                               initialProperties:nil
-                                                   launchOptions:launchOptions];
-  rootView.backgroundColor = [UIColor whiteColor];
-#endif
+  RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self launchOptions:launchOptions];
+  RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge
+                                                   moduleName:@"Keybase"
+                                            initialProperties:nil];
+  rootView.backgroundColor = [[UIColor alloc] initWithRed:1.0f green:1.0f blue:1.0f alpha:1];
 
   self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
   UIViewController *rootViewController = [UIViewController new];
   rootViewController.view = rootView;
   self.window.rootViewController = rootViewController;
-
   [self.window makeKeyAndVisible];
 
   // To simplify the cover animation raciness
@@ -117,6 +99,17 @@ const BOOL isDebug = NO;
    UIApplicationBackgroundFetchIntervalMinimum];
 
   return YES;
+}
+
+- (NSURL *)sourceURLForBridge:(RCTBridge *)bridge
+{
+#if DEBUG
+  // uncomment to get a prod bundle
+  // [[RCTBundleURLProvider sharedSettings] setEnableDev: false];
+  return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index" fallbackResource:nil];
+#else
+  return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
+#endif
 }
 
 -(void) application:(UIApplication *)application performFetchWithCompletionHandler:
@@ -295,12 +288,11 @@ const BOOL isDebug = NO;
                       sourceApplication:sourceApplication annotation:annotation];
 }
 
-- (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity
- restorationHandler:(void (^)(NSArray * _Nullable))restorationHandler
+- (BOOL) application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler
 {
-  return [RCTLinkingManager application:application
-                   continueUserActivity:userActivity
-                     restorationHandler:restorationHandler];
+    return [RCTLinkingManager application:application
+                     continueUserActivity:userActivity
+                       restorationHandler:restorationHandler];
 }
 
 - (void)applicationDidReceiveMemoryWarning:(UIApplication *)application

@@ -13,7 +13,7 @@ export const newRoutes = {
         : require('../wallets/wallets-and-details/container').default,
   },
   [Constants.deleteMeTab]: {getScreen: () => require('./delete/container').default},
-  [Constants.feedbackTab]: {getScreen: () => require('./feedback-container').default},
+  [Constants.feedbackTab]: {getScreen: () => require('./feedback/container').default},
   [Constants.invitationsTab]: {getScreen: () => require('./invites/container').default},
   [Constants.landingTab]: {getScreen: () => require('./about-container').default},
   [Constants.notificationsTab]: {getScreen: () => require('./notifications/container').default},

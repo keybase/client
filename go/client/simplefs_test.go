@@ -217,6 +217,11 @@ func (s SimpleFSMock) SimpleFSClearConflictState(_ context.Context,
 	return nil
 }
 
+func (s SimpleFSMock) SimpleFSFinishResolvingConflict(_ context.Context,
+	_ keybase1.Path) error {
+	return nil
+}
+
 func (s SimpleFSMock) SimpleFSForceStuckConflict(_ context.Context,
 	_ keybase1.Path) error {
 	return nil

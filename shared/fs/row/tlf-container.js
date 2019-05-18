@@ -30,7 +30,6 @@ const mergeProps = (stateProps, dispatchProps, {tlfType, name, routePath, destin
     loadPathMetadata:
       flags.kbfsOfflineMode && stateProps._tlf.syncConfig && stateProps._tlf.syncConfig.mode !== 'disabled',
     name,
-    needsRekey: shouldBadge && stateProps._tlf.needsRekey,
     path,
     routePath,
   }

@@ -311,9 +311,9 @@ func (s *localizerPipeline) clearQueue() {
 }
 
 func (s *localizerPipeline) start(ctx context.Context) {
+	defer s.Trace(ctx, func() error { return nil }, "start")()
 	s.Lock()
 	defer s.Unlock()
-	s.Debug(ctx, "start")
 	if s.started {
 		close(s.stopCh)
 		s.stopCh = make(chan struct{})
@@ -324,9 +324,9 @@ func (s *localizerPipeline) start(ctx context.Context) {
 }
 
 func (s *localizerPipeline) stop(ctx context.Context) chan struct{} {
+	defer s.Trace(ctx, func() error { return nil }, "stop")()
 	s.Lock()
 	defer s.Unlock()
-	s.Debug(ctx, "stop")
 	ch := make(chan struct{})
 	if s.started {
 		close(s.stopCh)

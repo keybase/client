@@ -2148,7 +2148,9 @@ func (u UnfurlRaw) GetUrl() string {
 	case UnfurlType_GENERIC:
 		return u.Generic().Url
 	case UnfurlType_GIPHY:
-		return u.Giphy().ImageUrl
+		if u.Giphy().ImageUrl != nil {
+			return *u.Giphy().ImageUrl
+		}
 	}
 	return ""
 }
@@ -2196,7 +2198,7 @@ func (g UnfurlGiphyRaw) UnsafeDebugString() string {
 	return fmt.Sprintf(`GIPHY SPECIAL
 FaviconUrl: %s
 ImageUrl: %s
-Video: %s`, yieldStr(g.FaviconUrl), g.ImageUrl, g.Video)
+Video: %s`, yieldStr(g.FaviconUrl), yieldStr(g.ImageUrl), g.Video)
 }
 
 func (v UnfurlVideo) String() string {

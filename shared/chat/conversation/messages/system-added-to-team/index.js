@@ -30,7 +30,7 @@ const ManageComponent = (props: Props) => {
   if (props.addee === props.you) {
     return (
       <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center'}}>
-        <Kb.Text onClick={props.onManageNotifications} type={textType}>
+        <Kb.Text onClick={props.onManageNotifications} type={textType} center={true}>
           Manage phone and computer notifications
         </Kb.Text>
         <Kb.Text onClick={props.onManageChannels} type={textType}>

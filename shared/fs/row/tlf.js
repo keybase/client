@@ -10,7 +10,6 @@ import {TlfInfo, LoadPathMetadataWhenNeeded} from '../common'
 type TlfProps = StillCommonProps & {
   isNew: boolean,
   loadPathMetadata?: boolean,
-  needsRekey: boolean,
   // We don't use this at the moment. In the future this will be used for
   // showing ignored folders when we allow user to show ignored folders in GUI.
   isIgnored: boolean,
@@ -23,7 +22,7 @@ const Tlf = (props: TlfProps) => (
     path={props.path}
     onOpen={props.onOpen}
     inDestinationPicker={props.inDestinationPicker}
-    badge={props.isNew ? 'new' : props.needsRekey ? 'rekey' : null}
+    badge={props.isNew ? 'new' : null}
     routePath={props.routePath}
   >
     {props.loadPathMetadata && <LoadPathMetadataWhenNeeded path={props.path} />}
