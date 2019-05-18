@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
+import {InlineDropdown} from '../../common-adapters/dropdown'
 import * as Platform from '../../constants/platform'
 import * as Styles from '../../styles'
 import SystemFileManagerIntegrationBanner from '../../fs/banner/system-file-manager-integration-banner/container'
@@ -39,23 +40,67 @@ const EnableSystemFileManagerIntegration = (props: Props) => (
   </Kb.Box>
 )
 
+class ThresholdDropdownMobile extends React.PureComponent<Props, {visible: boolean}> {
+  state = {visible: false}
+  _show = () => this.setState({visible: true})
+  _hide = () => this.setState({visible: false})
+  _select = selectedIdx => this.props.onChangedSyncNotifications(selectedIdx)
+  render() {
+    return (
+      <>
+        <InlineDropdown
+          onPress={this.state.visible ? this._show : this._hide}
+          type="Body"
+          label={Constants.humanizeBytes(this.props.spaceAvailableNotificationThreshold || defaultNotificationThreshold, 0)}
+        />
+        <Kb.FloatingPicker
+          items={allowedNotificationThresholds.map(i => ({
+            label: Constants.humanizeBytes(i, 0),
+            value: i,
+          }))}
+          visible={this.state.visible}
+          selectedValue={
+            this.props.spaceAvailableNotificationThreshold || defaultNotificationThreshold
+          }
+          promptString="Pick a threshold"
+          prompt={
+            <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" centerChildren={true}>
+              <Kb.Text type="BodySmallSemibold">Pick a threshold</Kb.Text>
+            </Kb.Box2>
+          }
+          onCancel={this._hide}
+          onHidden={this._hide}
+          onDone={this._hide}
+          onSelect={this._select}
+        />
+      </>
+    )
+  }
+}
+
+const ThresholdDropdownDesktop = (props: Props) => (
+  <Kb.Dropdown
+    items={allowedNotificationThresholds.map(i => (
+      <Kb.Text type="Body" key={i} >{Constants.humanizeBytes(i, 0)}</Kb.Text>
+    ))}
+    onChanged={props.onChangedSyncNotifications}
+    selected={(
+      <Kb.Box2 direction="horizontal" key={props.spaceAvailableNotificationThreshold || defaultNotificationThreshold}>
+        <Kb.Text type="Body">{Constants.humanizeBytes(props.spaceAvailableNotificationThreshold || defaultNotificationThreshold, 0)}</Kb.Text>
+      </Kb.Box2>
+    )}
+    style={styles.syncNotificationSettingDropdown}
+    selectedBoxStyle={styles.syncNotificationDropdownItem}
+    disabled={props.areSettingsLoading || props.spaceAvailableNotificationThreshold === 0}
+  />
+)
+
+const ThresholdDropdown = Platform.isMobile ? ThresholdDropdownMobile : ThresholdDropdownDesktop
+
 const SyncNotificationSetting = (props: Props) => (
   <Kb.Box2 direction="horizontal" alignItems="center">
     <Kb.Text type="Body">Warn me if I only have less than </Kb.Text>
-    <Kb.Dropdown
-      items={allowedNotificationThresholds.map(i => (
-        <Kb.Text type="Body" key={i} >{Constants.humanizeBytes(i, 0)}</Kb.Text>
-      ))}
-      onChanged={props.onChangedSyncNotifications}
-      selected={(
-        <Kb.Box2 direction="horizontal" key={props.spaceAvailableNotificationThreshold || defaultNotificationThreshold}>
-          <Kb.Text type="Body">{Constants.humanizeBytes(props.spaceAvailableNotificationThreshold || defaultNotificationThreshold, 0)}</Kb.Text>
-        </Kb.Box2>
-      )}
-      style={styles.syncNotificationSettingDropdown}
-      selectedBoxStyle={styles.syncNotificationDropdownItem}
-      disabled={props.areSettingsLoading || props.spaceAvailableNotificationThreshold === 0}
-    />
+    <ThresholdDropdown {...props} />
     <Kb.Text type="Body">of storage space</Kb.Text>
   </Kb.Box2>
 )

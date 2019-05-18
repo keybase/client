@@ -53,7 +53,9 @@ class Dropdown<N: React.Node> extends React.Component<Props<N> & OverlayParentPr
     disabled: false,
   }
 
-  _toggleOpen = () => {
+  _toggleOpen = (evt?: SyntheticEvent<>) => {
+    evt && evt.stopPropagation && evt.stopPropagation()
+    evt && evt.preventDefault && evt.preventDefault()
     this.setState(prevState => ({
       expanded: !prevState.expanded,
     }))
@@ -84,7 +86,9 @@ class Dropdown<N: React.Node> extends React.Component<Props<N> & OverlayParentPr
             {this.props.items.map((i, idx) => (
               <ClickableBox
                 key={idx}
-                onClick={() => {
+                onClick={(evt: SyntheticEvent<>) => {
+                  evt.stopPropagation && evt.stopPropagation()
+                  evt.preventDefault && evt.preventDefault()
                   // Bug in flow that doesn't let us just call this function
                   // this._onSelect(i)
                   this.props.onChanged && this.props.onChanged(i)
