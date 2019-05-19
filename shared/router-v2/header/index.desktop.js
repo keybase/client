@@ -79,19 +79,19 @@ class Header extends React.PureComponent<Props> {
       title = <PlainTitle title={opt.title} />
     }
 
-    if (typeof opt.headerTitle === 'function') {
+    if (opt.headerTitle) {
       const CustomTitle = opt.headerTitle
       title = <CustomTitle>{opt.title}</CustomTitle>
     }
 
     let rightActions = null
-    if (typeof opt.headerRightActions === 'function') {
+    if (opt.headerRightActions) {
       const CustomActions = opt.headerRightActions
       rightActions = <CustomActions />
     }
 
     let subHeader = null
-    if (typeof opt.subHeader === 'function') {
+    if (opt.subHeader) {
       const CustomSubHeader = opt.subHeader
       subHeader = <CustomSubHeader />
     }
