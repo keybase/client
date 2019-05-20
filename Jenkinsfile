@@ -15,28 +15,28 @@ def withKbweb(closure) {
 
     closure()
   } catch (ex) {
-    logForeverServices('docker-compose', 'kbweb')
+    def kbwebName = containerName('docker-compose', 'kbweb')
 
     println "Dockers:"
     sh "docker ps -a"
     sh "docker-compose stop"
-    logContainer('docker-compose', 'mysql')
-    logContainer('docker-compose', 'gregor')
+    helpers.logContainer('docker-compose', 'mysql')
+    helpers.logContainer('docker-compose', 'gregor')
+    logKbwebServices('docker-compose', kbwebName)
     throw ex
   } finally {
     sh "docker-compose down"
   }
 }
 
-def logContainer(composefile, container) {
-  sh "docker-compose -f ${composefile}.yml logs ${container}.local | gzip > ${container}.log.gz"
-  archive("${container}.log.gz")
+def containerName(composefile, container) {
+  return sh(returnStdout: true, script: "docker-compose -f ${composefile}.yml ps -q ${container}.local")
 }
 
-def logForeverServices(composefile, container) {
-  sh "docker cp \$(docker-compose -f ${composefile}.yml ps -q ${container}.local):/keybase/logs ./${container}-logs"
-  sh "tar -C ${container}-logs -czvf logs-${container}.tar.gz ."
-  archive("logs-${container}.tar.gz")
+def logKbwebServices(composefile, container) {
+  sh "docker cp ${container}:/keybase/logs ./kbweb-logs"
+  sh "tar -C kbweb-logs -czvf kbweb-logs.tar.gz ."
+  archive("kbweb-logs.tar.gz")
 }
 
 helpers.rootLinuxNode(env, {
@@ -134,7 +134,7 @@ helpers.rootLinuxNode(env, {
     }
 
     stage("Test") {
-      withKbweb() {
+      hewithKbweb() {
         parallel (
           test_linux_deps: {
             if (hasGoChanges) {
