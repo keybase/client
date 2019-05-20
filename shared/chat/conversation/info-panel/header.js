@@ -69,7 +69,7 @@ type AdhocProps = {|
 export const AdhocHeader = (props: AdhocProps) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.adhocContainer} gap="tiny">
-      <Kb.ScrollView>
+      <Kb.ScrollView style={styles.adhocScrollContainer}>
         {props.participants.map(p => {
           return (
             <Kb.NameWithIcon
@@ -100,7 +100,7 @@ const styles = Styles.styleSheetCreate({
     marginLeft: Styles.globalMargins.small,
     marginRight: Styles.globalMargins.small,
   },
-  adhocContainer: {
+  adhocScrollContainer: {
     maxHeight: 230,
   },
   adhocPartContainer: {

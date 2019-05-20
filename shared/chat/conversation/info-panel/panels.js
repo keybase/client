@@ -24,61 +24,63 @@ type SettingsPanelProps = {|
 
 export const SettingsPanel = (props: SettingsPanelProps) => {
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.settingsContainer}>
-      <Notifications conversationIDKey={props.conversationIDKey} />
-      <Kb.Divider style={styles.divider} />
-      <RetentionPicker
-        containerStyle={styles.retentionContainerStyle}
-        conversationIDKey={
-          ['adhoc', 'channel'].includes(props.entityType) ? props.conversationIDKey : undefined
-        }
-        dropdownStyle={styles.retentionDropdownStyle}
-        entityType={props.entityType}
-        showSaveIndicator={true}
-        teamname={props.teamname}
-        type="auto"
-      />
-      {(props.entityType === 'channel' || props.entityType === 'small team') && (
-        <>
-          <Kb.Divider style={styles.divider} />
-          <MinWriterRole
-            conversationIDKey={props.conversationIDKey}
-            isSmallTeam={props.entityType === 'small team'}
-          />
-        </>
-      )}
-      <Kb.Divider style={styles.divider} />
-      {(props.canDeleteHistory || props.entityType === 'adhoc') && (
-        <CaptionedDangerIcon
-          caption="Clear entire conversation"
-          onClick={props.onShowClearConversationDialog}
-          icon="iconfont-fire"
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.settingsContainer}>
+      <Kb.ScrollView>
+        <Notifications conversationIDKey={props.conversationIDKey} />
+        <Kb.Divider style={styles.divider} />
+        <RetentionPicker
+          containerStyle={styles.retentionContainerStyle}
+          conversationIDKey={
+            ['adhoc', 'channel'].includes(props.entityType) ? props.conversationIDKey : undefined
+          }
+          dropdownStyle={styles.retentionDropdownStyle}
+          entityType={props.entityType}
+          showSaveIndicator={true}
+          teamname={props.teamname}
+          type="auto"
         />
-      )}
-      {props.entityType === 'adhoc' && (
-        <CaptionedDangerIcon
-          caption="Block this conversation"
-          onClick={props.onShowBlockConversationDialog}
-          icon="iconfont-remove"
-        />
-      )}
-      {props.entityType !== 'channel' &&
-        (props.ignored ? (
+        {(props.entityType === 'channel' || props.entityType === 'small team') && (
+          <>
+            <Kb.Divider style={styles.divider} />
+            <MinWriterRole
+              conversationIDKey={props.conversationIDKey}
+              isSmallTeam={props.entityType === 'small team'}
+            />
+          </>
+        )}
+        <Kb.Divider style={styles.divider} />
+        {(props.canDeleteHistory || props.entityType === 'adhoc') && (
           <CaptionedDangerIcon
-            caption="Unhide this conversation"
-            onClick={props.onUnhideConv}
-            noDanger={true}
-            spinner={props.spinnerForHide}
+            caption="Clear entire conversation"
+            onClick={props.onShowClearConversationDialog}
+            icon="iconfont-fire"
           />
-        ) : (
+        )}
+        {props.entityType === 'adhoc' && (
           <CaptionedDangerIcon
-            caption="Hide this conversation"
-            onClick={props.onHideConv}
-            noDanger={true}
-            icon="iconfont-hide"
-            spinner={props.spinnerForHide}
+            caption="Block this conversation"
+            onClick={props.onShowBlockConversationDialog}
+            icon="iconfont-remove"
           />
-        ))}
+        )}
+        {props.entityType !== 'channel' &&
+          (props.ignored ? (
+            <CaptionedDangerIcon
+              caption="Unhide this conversation"
+              onClick={props.onUnhideConv}
+              noDanger={true}
+              spinner={props.spinnerForHide}
+            />
+          ) : (
+            <CaptionedDangerIcon
+              caption="Hide this conversation"
+              onClick={props.onHideConv}
+              noDanger={true}
+              icon="iconfont-hide"
+              spinner={props.spinnerForHide}
+            />
+          ))}
+      </Kb.ScrollView>
     </Kb.Box2>
   )
 }
