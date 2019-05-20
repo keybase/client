@@ -8,13 +8,16 @@ export const namedConnect = (
   mapStateToProps: any,
   mapDispatchToProps: any,
   mergeProps: any,
-  displayName: string
+  displayName: string,
+  options?: {|forwardRef: boolean|}
 ): any =>
   compose(
+    // $FlowIssue options
     connect(
       mapStateToProps,
       mapDispatchToProps,
-      mergeProps
+      mergeProps,
+      options
     ),
     setDisplayName(displayName)
   )

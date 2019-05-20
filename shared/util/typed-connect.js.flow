@@ -35,7 +35,8 @@ declare export function namedConnect<
   mapStateToProps: MapStateToProps<OwnProps, RSP>,
   mapDispatchToProps: MapDispatchToProps<OwnProps, RDP>,
   mergeProps: MergeProps<RSP, RDP, OwnProps, RMP>,
-  displayName: string
+  displayName: string,
+  options?: {|forwardRef: boolean|}
 ): (component: Com) => ComponentType<OwnProps>
 // See how spread is currently broken https://github.com/facebook/flow/issues/6526
 // type SpreadWorkaround<A, B> = $Rest<A, B> & B
