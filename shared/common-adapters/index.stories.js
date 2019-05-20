@@ -1,6 +1,7 @@
 // @flow
 import animated from './animated.stories'
 import avatar from './avatar.stories'
+import avatarLine from './avatar-line.stories'
 import backButton from './back-button.stories'
 import badge from './badge.stories'
 import banner from './banner.stories'
@@ -40,6 +41,7 @@ import video from './video.stories'
 
 const load = () => {
   ;[
+    avatarLine,
     animated,
     avatar,
     backButton,
