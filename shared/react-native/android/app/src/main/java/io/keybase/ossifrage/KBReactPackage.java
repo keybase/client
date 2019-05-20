@@ -5,10 +5,12 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.uimanager.ViewManager;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import io.keybase.ossifrage.components.KBTextInputManager;
 import io.keybase.ossifrage.modules.IntentHandler;
 import io.keybase.ossifrage.modules.KeybaseEngine;
 import io.keybase.ossifrage.modules.KillableModule;
@@ -54,6 +56,8 @@ public class KBReactPackage implements com.facebook.react.ReactPackage {
 
     @Override
     public List<ViewManager> createViewManagers(ReactApplicationContext reactApplicationContext) {
-        return Collections.emptyList();
+        return Arrays.<ViewManager>asList(
+            new KBTextInputManager()
+        );
     }
 }

@@ -96,6 +96,7 @@ type GlobalContext struct {
 	pvlSource        MerkleStore      // a cache and fetcher for pvl
 	paramProofStore  MerkleStore      // a cache and fetcher for param proofs
 	PayloadCache     *PayloadCache    // cache of ChainLink payload json wrappers
+	Pegboard         *Pegboard
 
 	GpgClient        *GpgCLI        // A standard GPG-client (optional)
 	ShutdownHooks    []ShutdownHook // on shutdown, fire these...
@@ -199,6 +200,7 @@ func NewGlobalContext() *GlobalContext {
 		switchUserMu:       NewVerboseLock(VLog0, "switchUserMu"),
 		FeatureFlags:       NewFeatureFlagSet(),
 		switchedUsers:      make(map[NormalizedUsername]bool),
+		Pegboard:           NewPegboard(),
 	}
 	return ret
 }
@@ -343,6 +345,8 @@ func (g *GlobalContext) LogoutWithSecretKill(mctx MetaContext, killSecrets bool)
 	g.Identify3State.OnLogout()
 
 	g.GetUPAKLoader().OnLogout()
+
+	g.Pegboard.OnLogout(mctx)
 
 	return nil
 }

@@ -261,6 +261,7 @@ type folderBranchOps struct {
 	bType         branchType
 	observers     *observerList
 	serviceStatus *kbfsCurrentStatus
+	favs          *Favorites
 
 	// The leveled locks below, when locked concurrently by the same
 	// goroutine, should only be taken in the following order to avoid
@@ -399,7 +400,7 @@ func newFolderBranchOps(
 	config Config, fb data.FolderBranch,
 	bType branchType,
 	quotaUsage *EventuallyConsistentQuotaUsage,
-	serviceStatus *kbfsCurrentStatus) *folderBranchOps {
+	serviceStatus *kbfsCurrentStatus, favs *Favorites) *folderBranchOps {
 	var nodeCache NodeCache
 	if config.Mode().NodeCacheEnabled() {
 		nodeCache = newNodeCacheStandard(fb)
@@ -453,6 +454,7 @@ func newFolderBranchOps(
 		bType:         bType,
 		observers:     observers,
 		serviceStatus: serviceStatus,
+		favs:          favs,
 		status: newFolderBranchStatusKeeper(
 			config, nodeCache, quotaUsage, fb.Tlf.Bytes()),
 		mdWriterLock: mdWriterLock,
@@ -576,30 +578,29 @@ func (fbo *folderBranchOps) branch() data.BranchName {
 	return fbo.folderBranch.Branch
 }
 
-func (fbo *folderBranchOps) addToFavorites(ctx context.Context,
-	favorites *Favorites, created bool) (err error) {
+func (fbo *folderBranchOps) addToFavorites(
+	ctx context.Context, created bool) (err error) {
 	lState := makeFBOLockState()
 	head := fbo.getTrustedHead(ctx, lState, mdNoCommit)
 	if head == (ImmutableRootMetadata{}) {
 		return OpsCantHandleFavorite{"Can't add a favorite without a handle"}
 	}
 
-	return fbo.addToFavoritesByHandle(ctx, favorites, head.GetTlfHandle(), created)
+	return fbo.addToFavoritesByHandle(ctx, head.GetTlfHandle(), created)
 }
 
-func (fbo *folderBranchOps) addToFavoritesByHandle(ctx context.Context,
-	favorites *Favorites, handle *tlfhandle.Handle, created bool) (err error) {
+func (fbo *folderBranchOps) addToFavoritesByHandle(
+	ctx context.Context, handle *tlfhandle.Handle, created bool) (err error) {
 	if _, err := fbo.config.KBPKI().GetCurrentSession(ctx); err != nil {
 		// Can't favorite while not logged in
 		return nil
 	}
 
-	favorites.AddAsync(ctx, handle.ToFavToAdd(created))
+	fbo.favs.AddAsync(ctx, handle.ToFavToAdd(created))
 	return nil
 }
 
-func (fbo *folderBranchOps) deleteFromFavorites(ctx context.Context,
-	favorites *Favorites) error {
+func (fbo *folderBranchOps) deleteFromFavorites(ctx context.Context) error {
 	if _, err := fbo.config.KBPKI().GetCurrentSession(ctx); err != nil {
 		// Can't unfavorite while not logged in
 		return nil
@@ -613,26 +614,26 @@ func (fbo *folderBranchOps) deleteFromFavorites(ctx context.Context,
 	}
 
 	h := head.GetTlfHandle()
-	return favorites.Delete(ctx, h.ToFavorite())
+	return fbo.favs.Delete(ctx, h.ToFavorite())
 }
 
-func (fbo *folderBranchOps) doFavoritesOp(ctx context.Context,
-	favs *Favorites, fop FavoritesOp, handle *tlfhandle.Handle) error {
+func (fbo *folderBranchOps) doFavoritesOp(
+	ctx context.Context, fop FavoritesOp, handle *tlfhandle.Handle) error {
 	switch fop {
 	case FavoritesOpNoChange:
 		return nil
 	case FavoritesOpAdd:
 		if handle != nil {
-			return fbo.addToFavoritesByHandle(ctx, favs, handle, false)
+			return fbo.addToFavoritesByHandle(ctx, handle, false)
 		}
-		return fbo.addToFavorites(ctx, favs, false)
+		return fbo.addToFavorites(ctx, false)
 	case FavoritesOpAddNewlyCreated:
 		if handle != nil {
-			return fbo.addToFavoritesByHandle(ctx, favs, handle, true)
+			return fbo.addToFavoritesByHandle(ctx, handle, true)
 		}
-		return fbo.addToFavorites(ctx, favs, true)
+		return fbo.addToFavorites(ctx, true)
 	case FavoritesOpRemove:
-		return fbo.deleteFromFavorites(ctx, favs)
+		return fbo.deleteFromFavorites(ctx)
 	default:
 		return InvalidFavoritesOpError{}
 	}
@@ -2200,10 +2201,12 @@ func (fbo *folderBranchOps) getMDForWriteOrRekeyLocked(
 	// if this device has any unmerged commits -- take the latest one.
 	mdops := fbo.config.MDOps()
 
-	// get the head of the unmerged branch for this device (if any)
-	md, err = mdops.GetUnmergedForTLF(ctx, fbo.id(), kbfsmd.NullBranchID)
-	if err != nil {
-		return ImmutableRootMetadata{}, err
+	if fbo.config.Mode().UnmergedTLFsEnabled() {
+		// get the head of the unmerged branch for this device (if any)
+		md, err = mdops.GetUnmergedForTLF(ctx, fbo.id(), kbfsmd.NullBranchID)
+		if err != nil {
+			return ImmutableRootMetadata{}, err
+		}
 	}
 
 	mergedMD, err := mdops.GetForTLF(ctx, fbo.id(), nil)
@@ -9302,6 +9305,7 @@ func (fbo *folderBranchOps) handleEditActivity(
 		if rmd != (ImmutableRootMetadata{}) {
 			_ = fbo.kickOffEditActivityPartialSync(ctx, lState, rmd)
 		}
+		fbo.favs.RefreshCacheWhenMTimeChanged(ctx)
 		fbo.editActivity.Done()
 	}()
 

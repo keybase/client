@@ -428,3 +428,71 @@ func signerToX(uv *keybase1.UserVersion) *SignerX {
 	}
 	return &SignerX{signer: *uv}
 }
+
+func TestMemberCtime(t *testing.T) {
+	uv := NewUserVersion("foo", 1)
+	var points []keybase1.UserLogPoint
+	newTeamChainState := func() TeamSigChainState {
+		return TeamSigChainState{
+			inner: keybase1.TeamSigChainState{
+				UserLog: map[keybase1.UserVersion][]keybase1.UserLogPoint{
+					uv: points,
+				},
+			},
+		}
+	}
+
+	// nil points
+	tcs := newTeamChainState()
+	ctime := tcs.MemberCtime(uv)
+	require.Nil(t, ctime)
+
+	// user joined as a writer
+	points = append(points,
+		keybase1.UserLogPoint{
+			Role: keybase1.TeamRole_WRITER,
+			SigMeta: keybase1.SignatureMetadata{
+				Time: 1,
+			},
+		})
+	tcs = newTeamChainState()
+	ctime = tcs.MemberCtime(uv)
+	require.NotNil(t, ctime)
+	require.EqualValues(t, 1, *ctime)
+
+	points = append(points,
+		keybase1.UserLogPoint{
+			Role: keybase1.TeamRole_NONE,
+			SigMeta: keybase1.SignatureMetadata{
+				Time: 2,
+			},
+		},
+		keybase1.UserLogPoint{
+			Role: keybase1.TeamRole_ADMIN,
+			SigMeta: keybase1.SignatureMetadata{
+				Time: 3,
+			},
+		})
+
+	// user left and joined later as an admin
+	tcs = newTeamChainState()
+	ctime = tcs.MemberCtime(uv)
+	require.NotNil(t, ctime)
+	require.EqualValues(t, 3, *ctime)
+
+	// user had a bunch of non-NONE roles, we should return the first join time
+	points = nil
+	for i := 0; i < 5; i++ {
+		points = append(points,
+			keybase1.UserLogPoint{
+				Role: keybase1.TeamRole_WRITER,
+				SigMeta: keybase1.SignatureMetadata{
+					Time: keybase1.Time(i),
+				},
+			})
+		tcs = newTeamChainState()
+		ctime = tcs.MemberCtime(uv)
+		require.NotNil(t, ctime)
+		require.EqualValues(t, 0, *ctime)
+	}
+}

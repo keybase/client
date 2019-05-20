@@ -3328,7 +3328,7 @@ func (cr *ConflictResolver) recordFinishResolve(
 		}
 
 		if wasStuck {
-			cr.config.KeybaseService().NotifyFavoritesChanged(ctx)
+			cr.config.Reporter().NotifyFavoritesChanged(ctx)
 		}
 		return
 	}
@@ -3372,7 +3372,7 @@ func (cr *ConflictResolver) recordFinishResolve(
 	}
 
 	if !wasStuck && isCRStuckFromRecords(conflictsSoFar) {
-		cr.config.KeybaseService().NotifyFavoritesChanged(ctx)
+		cr.config.Reporter().NotifyFavoritesChanged(ctx)
 	}
 }
 
@@ -3732,7 +3732,7 @@ func (cr *ConflictResolver) clearConflictRecords(ctx context.Context) error {
 	}
 
 	if wasStuck {
-		cr.config.KeybaseService().NotifyFavoritesChanged(ctx)
+		cr.config.Reporter().NotifyFavoritesChanged(ctx)
 	}
 	return nil
 }

@@ -2098,7 +2098,7 @@ export type AvatarUpdateType =
 
 export type AvatarUrl = String
 export type BadgeConversationInfo = $ReadOnly<{convID: ChatConversationID, badgeCounts: {[key: string]: Int}, unreadMessages: Int}>
-export type BadgeState = $ReadOnly<{newTlfs: Int, rekeysNeeded: Int, newFollowers: Int, inboxVers: Int, homeTodoItems: Int, newDevices?: ?Array<DeviceID>, revokedDevices?: ?Array<DeviceID>, conversations?: ?Array<BadgeConversationInfo>, newGitRepoGlobalUniqueIDs?: ?Array<String>, newTeamNames?: ?Array<String>, newTeamAccessRequests?: ?Array<String>, teamsWithResetUsers?: ?Array<TeamMemberOutReset>, unreadWalletAccounts?: ?Array<WalletAccountInfo>, resetState: ResetState}>
+export type BadgeState = $ReadOnly<{newTlfs: Int, rekeysNeeded: Int, newFollowers: Int, inboxVers: Int, homeTodoItems: Int, newDevices?: ?Array<DeviceID>, revokedDevices?: ?Array<DeviceID>, conversations?: ?Array<BadgeConversationInfo>, newGitRepoGlobalUniqueIDs?: ?Array<String>, newTeamNames?: ?Array<String>, deletedTeams?: ?Array<DeletedTeamInfo>, newTeamAccessRequests?: ?Array<String>, teamsWithResetUsers?: ?Array<TeamMemberOutReset>, unreadWalletAccounts?: ?Array<WalletAccountInfo>, resetState: ResetState}>
 export type BinaryKID = Bytes
 export type BlockIdCombo = $ReadOnly<{blockHash: String, chargedTo: UserOrTeamID, blockType: BlockType}>
 export type BlockIdCount = $ReadOnly<{id: BlockIdCombo, liveCount: Int}>
@@ -2186,6 +2186,7 @@ export type DbType =
   | 1 // CHAT_1
 
 export type DbValue = Bytes
+export type DeletedTeamInfo = $ReadOnly<{teamName: String, deletedBy: String, id: Gregor1.MsgID}>
 export type DesktopStatus = $ReadOnly<{version: String, running: Boolean, log: String}>
 export type Device = $ReadOnly<{type: String, name: String, deviceID: DeviceID, cTime: Time, mTime: Time, lastUsedTime: Time, encryptKey: KID, verifyKey: KID, status: Int}>
 export type DeviceDetail = $ReadOnly<{device: Device, eldest: Boolean, provisioner?: ?Device, provisionedAt?: ?Time, revokedAt?: ?Time, revokedBy: KID, revokedByDevice?: ?Device, currentDevice: Boolean}>

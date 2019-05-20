@@ -15,6 +15,8 @@ var key string
 var domain string
 var message string
 var xdr string
+var memo string
+var memoType string
 
 func main() {
 	parseFlags()
@@ -34,6 +36,8 @@ func parseFlags() {
 	flag.StringVar(&message, "message", "", "message to include")
 	flag.StringVar(&message, "m", "", "message to include (shorthand)")
 	flag.StringVar(&xdr, "xdr", "", "base64-encoded xdr transaction envelope")
+	flag.StringVar(&memo, "memo", "", "public memo")
+	flag.StringVar(&memoType, "memo-type", "", "MEMO_TEXT, MEMO_ID, MEMO_HASH, MEMO_RETURN")
 
 	flag.Parse()
 
@@ -58,6 +62,10 @@ func parseFlags() {
 		fmt.Fprintln(os.Stderr, "key and domain are required")
 		flag.PrintDefaults()
 		os.Exit(1)
+	}
+
+	if memo != "" && memoType == "" {
+		memoType = "MEMO_TEXT"
 	}
 }
 
@@ -85,6 +93,10 @@ func run() string {
 		q.Set("destination", destination)
 		if amount != "" {
 			q.Set("amount", amount)
+		}
+		if memo != "" {
+			q.Set("memo", memo)
+			q.Set("memo_type", memoType)
 		}
 	case "tx":
 		q.Set("xdr", xdr)

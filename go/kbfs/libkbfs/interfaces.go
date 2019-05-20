@@ -880,6 +880,8 @@ type Reporter interface {
 	// status to any sink.
 	NotifyOverallSyncStatus(
 		ctx context.Context, status keybase1.FolderSyncStatus)
+	// NotifyFavoritesChanged sends the a favorites invalidation to any sink.
+	NotifyFavoritesChanged(ctx context.Context)
 	// Shutdown frees any resources allocated by a Reporter.
 	Shutdown()
 }
