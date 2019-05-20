@@ -319,7 +319,7 @@ func (s *SecretStoreLocked) SetOptions(mctx MetaContext, options *SecretStoreOpt
 func PrimeSecretStore(mctx MetaContext, ss SecretStoreAll) (err error) {
 	defer func() {
 		if err != nil {
-			go reportPrimeSecretStoreFailure(mctx.BackgroundWithLogTags())
+			go reportPrimeSecretStoreFailure(mctx.BackgroundWithLogTags(), ss, err)
 		}
 	}()
 	defer mctx.TraceTimed("PrimeSecretStore", func() error { return err })()
@@ -383,7 +383,7 @@ func PrimeSecretStore(mctx MetaContext, ss SecretStoreAll) (err error) {
 	return nil
 }
 
-func reportPrimeSecretStoreFailure(mctx MetaContext) {
+func reportPrimeSecretStoreFailure(mctx MetaContext, ss SecretStoreAll, reportErr error) {
 	var err error
 	defer mctx.TraceTimed("reportPrimeSecretStoreFailure", func() error { return err })()
 	osVersion, osBuild, err := OSVersionAndBuild()
@@ -391,11 +391,11 @@ func reportPrimeSecretStoreFailure(mctx MetaContext) {
 		mctx.Debug("os info error: %v", err)
 	}
 	apiArg := APIArg{
-		Endpoint:    "pkg/report",
+		Endpoint:    "device/error",
 		SessionType: APISessionTypeNONE,
 		Args: HTTPArgs{
 			"event":      S{Val: "prime_secret_store"},
-			"install_id": S{Val: mctx.G().Env.GetInstallID().String()},
+			"msg":        S{Val: fmt.Sprintf("[%T] [%T] %v", ss, reportErr, reportErr.Error())},
 			"run_mode":   S{Val: string(mctx.G().GetRunMode())},
 			"kb_version": S{Val: VersionString()},
 			"os_version": S{Val: osVersion},
@@ -405,7 +405,7 @@ func reportPrimeSecretStoreFailure(mctx MetaContext) {
 		InitialTimeout: 10 * time.Second,
 	}
 	var apiRes AppStatusEmbed
-	err = mctx.G().API.GetDecode(mctx, apiArg, &apiRes)
+	err = mctx.G().API.PostDecode(mctx, apiArg, &apiRes)
 }
 
 func notifySecretStoreCreate(g *GlobalContext, username NormalizedUsername) {
