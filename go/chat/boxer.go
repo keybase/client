@@ -141,6 +141,7 @@ func (b *Boxer) detectPermanentError(err error, tlfName string) types.UnboxingEr
 		libkb.KeyMaskNotFoundError,
 		libkb.AssertionCheckError,
 		DecryptionKeyNotFoundError,
+		NotAuthenticatedForThisDeviceError,
 		InvalidMACError,
 		ImpteamBadteamError:
 		return NewPermanentUnboxingError(err)
@@ -687,7 +688,7 @@ func (b *Boxer) validatePairwiseMAC(ctx context.Context, boxed chat1.MessageBoxe
 	if !found {
 		// This is an error users will actually see when they've just joined a
 		// team or added a new device.
-		return nil, ephemeral.NewNotAuthenticatedForThisDeviceError(b.G().MetaContext(ctx),
+		return nil, NewNotAuthenticatedForThisDeviceError(b.G().MetaContext(ctx),
 			boxed.ClientHeader.Conv.Tlfid, boxed.ServerHeader.Ctime)
 	}
 

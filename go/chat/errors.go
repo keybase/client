@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/ephemeral"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -27,7 +28,7 @@ type PermanentUnboxingError struct{ inner error }
 
 func (e PermanentUnboxingError) Error() string {
 	switch err := e.inner.(type) {
-	case EphemeralUnboxingError:
+	case EphemeralUnboxingError, NotAuthenticatedForThisDeviceError:
 		return err.Error()
 	default:
 		return fmt.Sprintf("Unable to decrypt chat message: %s", err.Error())
@@ -44,7 +45,7 @@ func (e PermanentUnboxingError) ExportType() chat1.MessageUnboxedErrorType {
 		return err.ExportType()
 	case EphemeralUnboxingError:
 		return chat1.MessageUnboxedErrorType_EPHEMERAL
-	case InvalidMACError:
+	case NotAuthenticatedForThisDeviceError, InvalidMACError:
 		return chat1.MessageUnboxedErrorType_PAIRWISE_MISSING
 	default:
 		return chat1.MessageUnboxedErrorType_MISC
@@ -198,6 +199,24 @@ func NewPublicTeamEphemeralKeyError() PublicTeamEphemeralKeyError {
 
 func (e PublicTeamEphemeralKeyError) Error() string {
 	return "Cannot use exploding messages for a public team."
+}
+
+//=============================================================================
+
+type NotAuthenticatedForThisDeviceError struct{ inner ephemeral.EphemeralKeyError }
+
+func NewNotAuthenticatedForThisDeviceError(mctx libkb.MetaContext, tlfID chat1.TLFID,
+	contentCtime gregor1.Time) NotAuthenticatedForThisDeviceError {
+	inner := ephemeral.NewNotAuthenticatedForThisDeviceError(mctx, tlfID, contentCtime)
+	return NotAuthenticatedForThisDeviceError{inner: inner}
+}
+
+func (e NotAuthenticatedForThisDeviceError) Error() string {
+	return e.inner.HumanError()
+}
+
+func (e NotAuthenticatedForThisDeviceError) InternalError() string {
+	return e.inner.Error()
 }
 
 //=============================================================================
