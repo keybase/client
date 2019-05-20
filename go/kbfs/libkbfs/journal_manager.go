@@ -59,10 +59,11 @@ func (jsc journalManagerConfig) getEnableAuto(currentUID keybase1.UID) (
 // ConflictJournalRecord contains info for TLF journals that are
 // currently in conflict on the local device.
 type ConflictJournalRecord struct {
-	Name tlf.CanonicalName
-	Type tlf.Type
-	Path string
-	ID   tlf.ID
+	Name           tlf.CanonicalName
+	Type           tlf.Type
+	Path           string
+	ID             tlf.ID
+	ServerViewPath keybase1.Path
 }
 
 // JournalManagerStatus represents the overall status of the
@@ -1102,6 +1103,7 @@ func (j *JournalManager) getJournalsInConflictLocked(ctx context.Context) (
 		if handle == nil {
 			continue
 		}
+		serverViewPath := handle.GetProtocolPath()
 
 		ext, err := tlf.NewHandleExtension(
 			tlf.HandleExtensionLocalConflict, key.num, "", key.date)
@@ -1114,10 +1116,11 @@ func (j *JournalManager) getJournalsInConflictLocked(ctx context.Context) (
 		}
 
 		cleared = append(cleared, ConflictJournalRecord{
-			Name: handle.GetCanonicalName(),
-			Type: handle.Type(),
-			Path: handle.GetCanonicalPath(),
-			ID:   tlfJournal.tlfID,
+			Name:           handle.GetCanonicalName(),
+			Type:           handle.Type(),
+			Path:           handle.GetCanonicalPath(),
+			ID:             tlfJournal.tlfID,
+			ServerViewPath: serverViewPath,
 		})
 	}
 
