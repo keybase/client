@@ -283,6 +283,8 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 				b.log.CDebugf(ctx, "BadgeState unmarshal error for team.delete item: %v", err)
 				continue
 			}
+
+			msgID := item.Metadata().MsgID().(gregor1.MsgID)
 			for _, x := range body {
 				if x.TeamName == "" || x.OpBy.Username == "" {
 					continue
@@ -293,6 +295,7 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 				b.state.DeletedTeams = append(b.state.DeletedTeams, keybase1.DeletedTeamInfo{
 					TeamName:  x.TeamName,
 					DeletedBy: x.OpBy.Username,
+					Id:        msgID,
 				})
 			}
 		case "team.request_access":

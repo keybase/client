@@ -51,6 +51,10 @@
         {
           "type": "string",
           "name": "deletedBy"
+        },
+        {
+          "type": "gregor1.MsgID",
+          "name": "id"
         }
       ]
     },

@@ -37,14 +37,16 @@ func (o TeamMemberOutReset) DeepCopy() TeamMemberOutReset {
 }
 
 type DeletedTeamInfo struct {
-	TeamName  string `codec:"teamName" json:"teamName"`
-	DeletedBy string `codec:"deletedBy" json:"deletedBy"`
+	TeamName  string        `codec:"teamName" json:"teamName"`
+	DeletedBy string        `codec:"deletedBy" json:"deletedBy"`
+	Id        gregor1.MsgID `codec:"id" json:"id"`
 }
 
 func (o DeletedTeamInfo) DeepCopy() DeletedTeamInfo {
 	return DeletedTeamInfo{
 		TeamName:  o.TeamName,
 		DeletedBy: o.DeletedBy,
+		Id:        o.Id.DeepCopy(),
 	}
 }
 
