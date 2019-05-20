@@ -11,7 +11,6 @@ import * as Saga from '../../util/saga'
 // this CANNOT be an import *, totally screws up the packager
 import {
   Alert,
-  NetInfo,
   Linking,
   NativeModules,
   ActionSheetIOS,
@@ -19,6 +18,7 @@ import {
   PermissionsAndroid,
   Clipboard,
 } from 'react-native'
+import NetInfo from '@react-native-community/netinfo'
 import RNFetchBlob from 'rn-fetch-blob'
 import * as PushNotifications from 'react-native-push-notification'
 import {isIOS, isAndroid} from '../../constants/platform'

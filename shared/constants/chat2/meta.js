@@ -385,6 +385,13 @@ export const getChannelSuggestions = (state: TypedState, teamname: string) => {
     .toList()
 }
 
+export const getAllChannels = (state: TypedState) => {
+  return state.chat2.metaMap
+    .filter(v => v.teamname && v.channelname && v.teamType === 'big')
+    .map(({channelname, teamname}) => ({channelname, teamname}))
+    .toList()
+}
+
 export const getChannelForTeam = (state: TypedState, teamname: string, channelname: string) =>
   state.chat2.metaMap.find(
     m => m.teamname === teamname && m.channelname === channelname,

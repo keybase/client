@@ -122,13 +122,22 @@ const InputContainer = (props: Props) => {
     showReplyPreview: false,
     showTypingStatus: false,
     showWalletsIcon: !props.isEditing,
+    suggestAllChannels: List([
+      {channelname: 'general', teamname: 'keybase'},
+      {channelname: 'spooner', teamname: 'keybase'},
+      {channelname: 'general', teamname: 'got'},
+      {channelname: 'live', teamname: 'got'},
+    ]),
     suggestChannels: List(['general', 'random', 'spelunky', 'music', 'vidya-games']),
     suggestCommands: [
       {description: 'Hide current or given conv', hasHelpText: false, name: 'hide', usage: '[conversation]'},
       {description: 'Message a user', hasHelpText: false, name: 'msg', usage: '<conversation> <msg>'},
       {description: 'Send a shrug', hasHelpText: false, name: 'shrug', usage: ''},
     ],
-    suggestTeams: [{fullName: '', teamname: 'keybase', username: ''}],
+    suggestTeams: [
+      {fullName: '', teamname: 'keybase', username: ''},
+      {fullName: '', teamname: 'got', username: ''},
+    ],
     suggestUsers: List([
       {fullName: 'Danny Ayoub', username: 'ayoubd'},
       {fullName: 'Chris Nojima', username: 'chrisnojima'},
