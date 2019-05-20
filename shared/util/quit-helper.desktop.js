@@ -2,6 +2,7 @@
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {quit} from '../desktop/app/ctl.desktop'
 import {hideDockIcon} from '../desktop/app/dock-icon.desktop'
+import {isWindows} from '../constants/platform'
 
 export type Context = 'uiWindow' | 'mainThread' | 'quitButton' | 'beforeQuit'
 export type Action = 'closePopups' | 'quitMainWindow' | 'quitApp'
@@ -30,7 +31,7 @@ function _executeActions(actions: Array<Action>) {
   actions.forEach(a => {
     switch (a) {
       case 'quitMainWindow':
-        hideDockIcon()
+        isWindows ? quit(true) : hideDockIcon()
         break
       case 'closePopups':
         SafeElectron.getApp().emit('close-windows')
