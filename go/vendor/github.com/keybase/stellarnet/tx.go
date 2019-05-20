@@ -338,6 +338,9 @@ func (t *Tx) AddMemo(memo *Memo) {
 	if t.skipAddMemo() {
 		return
 	}
+	if memo == nil {
+		return
+	}
 
 	m, err := memo.toXDR()
 	if err != nil {
