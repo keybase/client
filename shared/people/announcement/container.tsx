@@ -84,6 +84,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   url: ownProps.url,
 })
 
+// @ts-ignore codemod issue
 export default namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,

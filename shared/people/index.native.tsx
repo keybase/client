@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters/mobile.native'
 import {PeoplePageList} from './index.shared'
-import {Props} from './types'
+import {Props} from '.'
 import {globalStyles, styleSheetCreate} from '../styles'
 import ProfileSearch from '../profile/search/bar-container'
 

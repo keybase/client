@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-// ts-ignore codemod issue
+// @ts-ignore codemod issue
 import * as Types from '../constants/types/people'
 
 export type Props = {
@@ -14,8 +14,8 @@ export type Props = {
   waiting: boolean
 }
 
-declare class People extends React.Component<Props> {}
-declare class Header extends React.Component<{
+export default class People extends React.Component<Props> {}
+export class Header extends React.Component<{
   onClickUser: (username: string) => void
   myUsername: string
 }> {}

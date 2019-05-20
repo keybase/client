@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {Task} from '.'
 import * as PeopleGen from '../../actions/people-gen'
-// ts-ignore codemod issue
+// @ts-ignore codemod issue
 import * as Types from '../../constants/types/people'
 import * as Tabs from '../../constants/tabs'
 import * as SettingsTabs from '../../constants/settings'

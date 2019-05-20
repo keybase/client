@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Constants from '../constants/people'
 import * as Types from '../constants/types/people'
 import * as Kb from '../common-adapters'
-import People, {Header} from './types'
+import People, {Header} from './index'
 import * as PeopleGen from '../actions/people-gen'
 import {connect, RouteProps, isMobile} from '../util/container'
 import {createSearchSuggestions} from '../actions/search-gen'
@@ -24,6 +24,7 @@ const mergePropsHeader = (stateProps, dispatchProps) => ({
   myUsername: stateProps.myUsername,
   ...dispatchProps,
 })
+// @ts-ignore codemod issue
 const ConnectedHeader = connect<OwnProps, _, _, _, _>(
   mapStateToPropsHeader,
   mapDispatchToPropsHeader,
@@ -97,6 +98,7 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
+// @ts-ignore codemod issue
 const connected = connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,

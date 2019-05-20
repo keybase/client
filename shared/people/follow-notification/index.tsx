@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import PeopleItem from '../item'
 import * as Types from '../../constants/types/people'
 import {Avatar, ClickableBox, ConnectedUsernames, ScrollView, Text, WithTooltip} from '../../common-adapters'

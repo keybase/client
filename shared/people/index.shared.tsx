@@ -6,7 +6,7 @@ import Todo from './todo/container'
 import FollowNotification from './follow-notification'
 import Announcement from './announcement/container'
 import FollowSuggestions from './follow-suggestions'
-import {Props} from './types'
+import {Props} from '.'
 import AirdropBanner from '../wallets/airdrop/banner/container'
 
 export const itemToComponent: (arg0: Types.PeopleScreenItem, props: Props) => React.ReactNode = (

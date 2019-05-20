@@ -1,5 +1,5 @@
 import * as React from 'react'
-// ts-ignore codemod issue
+// @ts-ignore codemod issue
 import * as Types from '../../constants/types/people'
 import {Box, ConnectedNameWithIcon, ScrollView, Text} from '../../common-adapters'
 import * as Styles from '../../styles'
