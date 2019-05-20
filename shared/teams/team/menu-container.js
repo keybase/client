@@ -7,7 +7,6 @@ import {connect} from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {type MenuItem} from '../../common-adapters/floating-menu/menu-layout'
 import {FloatingMenu} from '../../common-adapters'
-import {teamsTab} from '../../constants/tabs'
 
 type OwnProps = {
   attachTo: () => ?React.Component<any>,
