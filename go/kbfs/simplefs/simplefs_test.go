@@ -1443,6 +1443,7 @@ func TestFavoriteConflicts(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, favs.FavoriteFolders, 3)
 	var pathConflict keybase1.Path
+	var pathLocalView keybase1.Path
 	for _, f := range favs.FavoriteFolders {
 		if tlf.ContainsLocalConflictExtensionPrefix(f.Name) {
 			require.NotNil(t, f.ConflictState)
@@ -1453,10 +1454,21 @@ func TestFavoriteConflicts(t *testing.T) {
 			mrlv := f.ConflictState.Manualresolvinglocalview()
 			require.Equal(t, pathPub.String(), mrlv.ServerView.String())
 			pathConflict = keybase1.NewPathWithKbfs("/public/" + f.Name)
+		} else if f.Name == "jdoe" && f.FolderType == keybase1.FolderType_PUBLIC {
+			require.NotNil(t, f.ConflictState)
+			ct, err := f.ConflictState.ConflictStateType()
+			require.NoError(t, err)
+			require.Equal(
+				t, keybase1.ConflictStateType_ManualResolvingServerView, ct)
+			mrsv := f.ConflictState.Manualresolvingserverview()
+			require.Len(t, mrsv.LocalViews, 1)
+			pathLocalView = mrsv.LocalViews[0]
 		} else {
 			require.Nil(t, f.ConflictState)
 		}
 	}
+	require.NotEqual(t, "", pathConflict.String())
+	require.Equal(t, pathLocalView.String(), pathConflict.String())
 
 	t.Log("Make sure we see all the conflict files in the local branch")
 	opid, err := sfs.SimpleFSMakeOpid(ctx)

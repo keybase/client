@@ -63,7 +63,8 @@ type ConflictJournalRecord struct {
 	Type           tlf.Type
 	Path           string
 	ID             tlf.ID
-	ServerViewPath keybase1.Path
+	ServerViewPath keybase1.Path // for cleared conflicts only
+	LocalViewPath  keybase1.Path // for cleared conflicts only
 }
 
 // JournalManagerStatus represents the overall status of the
@@ -1068,6 +1069,9 @@ func (j *JournalManager) maybeMakeDiskLimitErrorReportable(
 func (j *JournalManager) getJournalsInConflictLocked(ctx context.Context) (
 	current, cleared []ConflictJournalRecord, err error) {
 	for _, tlfJournal := range j.tlfJournals {
+		if tlfJournal.overrideTlfID != tlf.NullID {
+			continue
+		}
 		isConflict, err := tlfJournal.isOnConflictBranch()
 		if err != nil {
 			return nil, nil, err
@@ -1121,6 +1125,7 @@ func (j *JournalManager) getJournalsInConflictLocked(ctx context.Context) (
 			Path:           handle.GetCanonicalPath(),
 			ID:             tlfJournal.tlfID,
 			ServerViewPath: serverViewPath,
+			LocalViewPath:  handle.GetProtocolPath(),
 		})
 	}
 
