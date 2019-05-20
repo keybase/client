@@ -222,10 +222,7 @@ helpers.rootLinuxNode(env, {
                       // other than Go tests on Windows,
                       // add a `hasGoChanges` check here.
                       dir("go/keybase") {
-                        bat "go build --tags=production"
-                      }
-                      dir("go/keybase") {
-                        bat "go build"
+                        bat "go build -ldflags \"-s -w\" --tags=production"
                       }
                       testGo("test_windows_go_", getPackagesToTest(dependencyFiles))
                     }
@@ -272,7 +269,7 @@ helpers.rootLinuxNode(env, {
                   test_macos_go: {
                     if (hasGoChanges) {
                       dir("go/keybase") {
-                        sh "go build --tags=production"
+                        sh "go build -ldflags \"-s -w\" --tags=production"
                       }
                       testGo("test_macos_go_", getPackagesToTest(dependencyFiles))
                     }
