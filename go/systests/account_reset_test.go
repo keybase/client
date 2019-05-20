@@ -34,6 +34,8 @@ func processReset(tc libkb.TestContext) error {
 }
 
 func TestCancelResetPipeline(t *testing.T) {
+	t.Skip()
+
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
