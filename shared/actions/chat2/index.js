@@ -1289,7 +1289,7 @@ const loadAttachmentView = (state, action) => {
   return RPCChatTypes.localLoadGalleryRpcPromise({
     convID: Types.keyToConversationID(conversationIDKey),
     typ: viewType,
-    num: 25,
+    num: 150,
     fromMsgID: action.payload.fromMsgID,
   })
     .then(results => {
