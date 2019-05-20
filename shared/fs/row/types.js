@@ -14,6 +14,7 @@ export type TlfRowItem = {
   key: string,
   name: string,
   rowType: 'tlf',
+  tlfMtime: number,
   tlfType: Types.TlfType,
   type: 'folder',
 }

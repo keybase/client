@@ -314,7 +314,12 @@ func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (
 		if err != nil {
 			return keybase1.FavoritesResult{}, err
 		}
-		favs.FavoriteFolders[i].ConflictType = status
+		if status != keybase1.FolderConflictType_NONE {
+			stk := status == keybase1.FolderConflictType_IN_CONFLICT_AND_STUCK
+			conflictState := keybase1.NewConflictStateWithAutomaticresolving(
+				keybase1.ConflictAutomaticResolving{IsStuck: stk})
+			favs.FavoriteFolders[i].ConflictState = &conflictState
+		}
 		fs.log.CDebugf(ctx, "Conflict status for %s: %s", tlfID, status)
 		found++
 		if found == len(conflictMap) {
@@ -780,7 +785,7 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 		h.GetCanonicalPath(), branch, create)
 	defer func() {
 		err = fs.transformReadError(ctx, h, err)
-		fs.deferLog.CDebugf(ctx, "Done: %#v", err)
+		fs.deferLog.CDebugf(ctx, "Done: %+v", err)
 	}()
 
 	if branch != data.MasterBranch && create {

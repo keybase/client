@@ -64,9 +64,12 @@ func TestFavoritesAddTwice(t *testing.T) {
 		Data:    favorites.Data{},
 		Created: false,
 	}
-	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(keybase1.FavoritesResult{}, nil)
 	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), fav1.ToKBFolder()).
 		Return(nil)
+	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).
+		Return(keybase1.FavoritesResult{
+			FavoriteFolders: []keybase1.Folder{fav1.ToKBFolder()},
+		}, nil)
 	if err := f.Add(ctx, fav1); err != nil {
 		t.Fatalf("Couldn't add favorite: %v", err)
 	}
@@ -96,8 +99,10 @@ func TestFavoriteAddCreatedAlwaysGoThrough(t *testing.T) {
 		FolderType: keybase1.FolderType_PUBLIC,
 		Created:    false,
 	}
-	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(keybase1.FavoritesResult{}, nil)
 	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), expected1).Return(nil)
+	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(keybase1.FavoritesResult{
+		FavoriteFolders: []keybase1.Folder{fav1.ToKBFolder()},
+	}, nil)
 	if err := f.Add(ctx, fav1); err != nil {
 		t.Fatalf("Couldn't add favorite: %v", err)
 	}
@@ -116,6 +121,9 @@ func TestFavoriteAddCreatedAlwaysGoThrough(t *testing.T) {
 		Created:    true,
 	}
 	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), expected2).Return(nil)
+	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(keybase1.FavoritesResult{
+		FavoriteFolders: []keybase1.Folder{fav2.ToKBFolder()},
+	}, nil)
 	if err := f.Add(ctx, fav2); err != nil {
 		t.Fatalf("Couldn't add favorite: %v", err)
 	}
@@ -163,23 +171,29 @@ func TestFavoritesAddRemoveAdd(t *testing.T) {
 		Data:    favorites.Data{},
 		Created: false,
 	}
-	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(keybase1.FavoritesResult{}, nil)
 	folder1 := fav1.ToKBFolder()
 
 	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), folder1).
-		Times(2).Return(nil)
-	config.mockKbpki.EXPECT().FavoriteDelete(gomock.Any(), folder1).
 		Return(nil)
-
+	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(keybase1.FavoritesResult{
+		FavoriteFolders: []keybase1.Folder{folder1},
+	}, nil)
 	if err := f.Add(ctx, fav1); err != nil {
 		t.Fatalf("Couldn't add favorite: %v", err)
 	}
 
+	config.mockKbpki.EXPECT().FavoriteDelete(gomock.Any(), folder1).
+		Return(nil)
 	if err := f.Delete(ctx, fav1.Folder); err != nil {
 		t.Fatalf("Couldn't delete favorite: %v", err)
 	}
 
-	// A second add shouldn't result in a KBPKI call
+	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), folder1).
+		Return(nil)
+	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(keybase1.FavoritesResult{
+		FavoriteFolders: []keybase1.Folder{folder1},
+	}, nil)
+	config.mockKbfs.EXPECT().RefreshEditHistory(gomock.Any()).Return()
 	if err := f.Add(ctx, fav1); err != nil {
 		t.Fatalf("Couldn't re-add same favorite: %v", err)
 	}
@@ -237,6 +251,7 @@ func TestFavoritesListFailsDuringAddAsync(t *testing.T) {
 		Created: false,
 	}
 
+	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), fav1.ToKBFolder()).Return(nil)
 	// Cancel the first list request
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(keybase1.
 		FavoritesResult{}, context.Canceled)
@@ -266,9 +281,10 @@ func TestFavoritesControlUserHistory(t *testing.T) {
 	f.Initialize(ctx)
 	defer favTestShutdown(t, mockCtrl, config, f)
 
-	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(keybase1.FavoritesResult{}, nil)
 	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), gomock.Any()).
 		Return(nil)
+	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).
+		Return(keybase1.FavoritesResult{}, nil)
 	config.mockKbs.EXPECT().EncryptFavorites(gomock.Any(),
 		gomock.Any()).Return(nil, nil)
 	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(nil, nil).Times(2)
@@ -394,8 +410,10 @@ func TestFavoritesDiskCache(t *testing.T) {
 	encodedData := []byte("encoded data")
 	encryptedData := []byte("encrypted data")
 	diskData := []byte("disk data")
-	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(keybase1.FavoritesResult{}, nil)
 	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), gomock.Any()).Return(nil)
+	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(keybase1.FavoritesResult{
+		FavoriteFolders: []keybase1.Folder{fav1Add.ToKBFolder()},
+	}, nil)
 	config.mockCodec.EXPECT().Encode(gomock.Any()).Do(func(
 		f favoritesCacheForDisk) {
 		decodedData = f

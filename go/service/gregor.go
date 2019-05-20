@@ -33,8 +33,7 @@ import (
 )
 
 const GregorRequestTimeout time.Duration = 30 * time.Second
-const GregorConnectionShortRetryInterval time.Duration = 2 * time.Second
-const GregorConnectionLongRetryInterval time.Duration = 10 * time.Second
+const GregorConnectionRetryInterval time.Duration = 2 * time.Second
 const GregorGetClientTimeout time.Duration = 4 * time.Second
 const slowConnSleepTime = 1 * time.Second
 
@@ -842,7 +841,9 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 }
 
 func (g *gregorHandler) OnConnectError(err error, reconnectThrottleDuration time.Duration) {
-	g.chatLog.Debug(context.Background(), "connect error %s, reconnect throttle duration: %s", err, reconnectThrottleDuration)
+	defer g.chatLog.Trace(context.Background(), func() error { return nil }, "OnConnectError")()
+	g.chatLog.Debug(context.Background(), "OnConnectError: err: %s, reconnect throttle duration: %s", err,
+		reconnectThrottleDuration)
 
 	// Check reachability here to see the nature of our offline status
 	go func() {
@@ -1479,60 +1480,6 @@ func (g *gregorHandler) pingLoop() {
 	}
 }
 
-// Our heuristic for figuring out whether your device is "active in chat" is
-// whether you've sent a message in the last month. We're recording your last
-// send as a simple timestamp, and we'll compare that to the current time.
-// However, we want to avoid the situation where we ship this code for the
-// first time, and suddenly *all* devices appear inactive, because no one has
-// written the timestamp yet. So we add a second timestamp, which is the first
-// time you ran any of this code. For 24 hours after the first time a device
-// queries these keys, we treat all devices as active. We'll want to keep
-// (something like) this code even after it's all stable in the wild, because
-// it covers newly provisioned devices too.
-func (g *gregorHandler) chatAwareReconnectIsLong(ctx context.Context) bool {
-	now := time.Now()
-	firstQueryTime := chat.TouchFirstChatActiveQueryTime(ctx, g.G(), g.chatLog)
-
-	// As a special case, always use a short backoff on mobile. Mobile devices
-	// aren't responsible for the thundering herd issues that this logic is
-	// trying to mitigate, and mobile users are much more likely to notice a
-	// connection delay.
-	if g.G().Env.GetAppType() == libkb.MobileAppType {
-		return false
-	}
-
-	// All devices are presumed active for the first 24 hours after they start
-	// checking this, and we give them a short backoff.
-	if now.Sub(firstQueryTime) < chat.InitialAssumedActiveInterval {
-		return false
-	}
-
-	// Otherwise, devices that haven't recorded a send in the last month are
-	// given a long backoff.
-	lastSendTime := chat.GetLastSendTime(ctx, g.G(), g.chatLog)
-	if now.Sub(lastSendTime) < chat.ActiveIntervalAfterSend {
-		return false
-	}
-	g.chatLog.Debug(ctx, "Device isn't active in chat. Using long reconnect backoff.")
-	return true
-}
-
-func (g *gregorHandler) chatAwareReconnectBackoff(ctx context.Context) backoff.BackOff {
-	if g.chatAwareReconnectIsLong(ctx) {
-		return backoff.NewConstantBackOff(GregorConnectionLongRetryInterval)
-	}
-	return backoff.NewConstantBackOff(GregorConnectionShortRetryInterval)
-}
-
-// Similar to the backoff above, except that the "short" window is zero, so
-// that active clients don't wait at all before their first reconnect attempt.
-func (g *gregorHandler) chatAwareInitialReconnectBackoffWindow(ctx context.Context) time.Duration {
-	if g.chatAwareReconnectIsLong(ctx) {
-		return GregorConnectionLongRetryInterval
-	}
-	return 0
-}
-
 // connMutex must be locked before calling this
 func (g *gregorHandler) connectTLS() error {
 	ctx := context.Background()
@@ -1552,11 +1499,12 @@ func (g *gregorHandler) connectTLS() error {
 	g.G().NotifyRouter.HandleChatInboxSyncStarted(ctx, g.G().Env.GetUID())
 
 	opts := rpc.ConnectionOpts{
-		TagsFunc:                      logger.LogTagsFromContextRPC,
-		WrapErrorFunc:                 libkb.MakeWrapError(g.G().ExternalG()),
-		InitialReconnectBackoffWindow: func() time.Duration { return g.chatAwareInitialReconnectBackoffWindow(ctx) },
-		ReconnectBackoff:              func() backoff.BackOff { return g.chatAwareReconnectBackoff(ctx) },
-		DialerTimeout:                 10 * time.Second,
+		TagsFunc:      logger.LogTagsFromContextRPC,
+		WrapErrorFunc: libkb.MakeWrapError(g.G().ExternalG()),
+		ReconnectBackoff: func() backoff.BackOff {
+			return backoff.NewConstantBackOff(GregorConnectionRetryInterval)
+		},
+		DialerTimeout: 10 * time.Second,
 		// We deliberately avoid ForceInitialBackoff here, becuase we don't
 		// want to penalize mobile, which tears down its connection frequently.
 	}
@@ -1595,12 +1543,11 @@ func (g *gregorHandler) connectNoTLS() error {
 	g.transportForTesting = t
 
 	opts := rpc.ConnectionOpts{
-		TagsFunc:                      logger.LogTagsFromContextRPC,
-		WrapErrorFunc:                 libkb.MakeWrapError(g.G().ExternalG()),
-		InitialReconnectBackoffWindow: func() time.Duration { return g.chatAwareInitialReconnectBackoffWindow(ctx) },
-		ReconnectBackoff:              func() backoff.BackOff { return g.chatAwareReconnectBackoff(ctx) },
-		// We deliberately avoid ForceInitialBackoff here, because we don't
-		// want to penalize mobile, which tears down its connection frequently.
+		TagsFunc:      logger.LogTagsFromContextRPC,
+		WrapErrorFunc: libkb.MakeWrapError(g.G().ExternalG()),
+		ReconnectBackoff: func() backoff.BackOff {
+			return backoff.NewConstantBackOff(GregorConnectionRetryInterval)
+		},
 	}
 	g.conn = rpc.NewConnectionWithTransport(g, t,
 		libkb.NewContextifiedErrorUnwrapper(g.G().ExternalG()),

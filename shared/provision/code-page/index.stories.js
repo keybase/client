@@ -78,7 +78,7 @@ const load = () => {
     }
 
     // We're looking at this from current's perspective
-    const currentTypeName = `<${current}>`
+    const currentTypeName = `A${current}`
     const n1 = provisioned ? currentTypeName : otherType
     const n2 = provisioned ? otherType : currentTypeName
     const storyName = `${n1} adding ${n2}`

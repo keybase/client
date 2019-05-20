@@ -1088,6 +1088,7 @@ func PresentRemoteConversation(ctx context.Context, g *globals.Context, rc types
 		res.LocalMetadata = &chat1.UnverifiedInboxUIItemMetadata{
 			ChannelName:       rc.LocalMetadata.TopicName,
 			Headline:          rc.LocalMetadata.Headline,
+			HeadlineDecorated: DecorateWithLinks(ctx, EscapeForDecorate(ctx, rc.LocalMetadata.Headline)),
 			Snippet:           rc.LocalMetadata.Snippet,
 			SnippetDecoration: rc.LocalMetadata.SnippetDecoration,
 			WriterNames:       rc.LocalMetadata.WriterNames,
@@ -1160,7 +1161,8 @@ func PresentConversationLocal(ctx context.Context, rawConv chat1.ConversationLoc
 	res.Name = rawConv.Info.TlfName
 	res.Snippet, res.SnippetDecoration = GetConvSnippet(rawConv, currentUsername)
 	res.Channel = rawConv.Info.TopicName
-	res.Headline = DecorateWithLinks(ctx, EscapeForDecorate(ctx, rawConv.Info.Headline))
+	res.Headline = rawConv.Info.Headline
+	res.HeadlineDecorated = DecorateWithLinks(ctx, EscapeForDecorate(ctx, rawConv.Info.Headline))
 	res.Participants = writerNames
 	res.FullNames = fullNames
 	res.ResetParticipants = rawConv.Info.ResetNames
@@ -2298,4 +2300,17 @@ func GetVerifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 			inbox.Convs[0].GetConvID(), convID)
 	}
 	return inbox.Convs[0], nil
+}
+
+func DedupStringLists(lists ...[]string) (res []string) {
+	seen := make(map[string]struct{})
+	for _, list := range lists {
+		for _, x := range list {
+			if _, ok := seen[x]; !ok {
+				seen[x] = struct{}{}
+				res = append(res, x)
+			}
+		}
+	}
+	return res
 }

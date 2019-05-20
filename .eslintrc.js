@@ -27,7 +27,7 @@ module.exports = {
     __STORYBOOK__: false,
     __STORYSHOT__: false
   },
-  plugins: [ "filenames", "babel", "import", "flowtype"],
+  plugins: [ "filenames", "babel", "import", "flowtype", "react-hooks"],
   settings: {
     "import/core-modules": [ "electron", "react-native" ],
     "import/resolver": {
@@ -90,6 +90,8 @@ module.exports = {
     "react/prop-types": "off",
     "react/react-in-jsx-scope": "error",
     "react/require-render-return": "error",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
     "sort-keys": ["error", "asc", {"caseSensitive": true, "natural": false}],
     "space-before-function-paren": "off",
     "standard/array-bracket-even-spacing": "off",

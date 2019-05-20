@@ -336,6 +336,7 @@ export const clampImageSize = (width: number, height: number, maxSize: number) =
       }
 
 export {
+  getAllChannels,
   getChannelForTeam,
   getChannelSuggestions,
   getCommands,

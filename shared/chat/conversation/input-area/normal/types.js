@@ -51,6 +51,7 @@ type InputProps = {|
   suggestTeams: Array<{username: string, fullName: string, teamname: string}>,
   suggestUsers: I.List<{username: string, fullName: string, teamname?: string}>,
   suggestChannels: I.List<string>,
+  suggestAllChannels: I.List<{teamname: string, channelname: string}>,
   suggestCommands: Array<RPCChatTypes.ConversationCommand>,
 |}
 

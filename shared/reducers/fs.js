@@ -129,28 +129,26 @@ const updateTlf = (oldTlf?: ?Types.Tlf, newTlf: Types.Tlf): Types.Tlf => {
   }
   // TODO: Ideally this should come in with other data from the same RPC.
   const newTlfDontClearSyncConfig = newTlf.syncConfig ? newTlf : newTlf.set('syncConfig', oldTlf.syncConfig)
-  if (!newTlf.resetParticipants.equals(oldTlf.resetParticipants)) {
-    return newTlfDontClearSyncConfig
-  }
-  if (!I.is(newTlfDontClearSyncConfig.waitingForParticipantUnlock, oldTlf.waitingForParticipantUnlock)) {
-    return newTlfDontClearSyncConfig
-  }
-  if (!I.is(newTlfDontClearSyncConfig.youCanUnlock, oldTlf.youCanUnlock)) {
-    return newTlfDontClearSyncConfig
-  }
   if (
     !I.is(newTlfDontClearSyncConfig.syncConfig, oldTlf.syncConfig) &&
     !haveSamePartialSyncConfig(oldTlf, newTlfDontClearSyncConfig)
   ) {
     return newTlfDontClearSyncConfig
   }
+  if (!newTlf.resetParticipants.equals(oldTlf.resetParticipants)) {
+    return newTlfDontClearSyncConfig
+  }
+  if (!newTlf.conflict.equals(oldTlf.conflict)) {
+    return newTlfDontClearSyncConfig
+  }
+  // syncConfig, resetParticipants, and conflict all stayed thte same in value,
+  // so just reuse old reference.
   return oldTlf.merge(
     newTlfDontClearSyncConfig.withMutations(n =>
       n
-        .set('resetParticipants', oldTlf.resetParticipants)
-        .set('waitingForParticipantUnlock', oldTlf.waitingForParticipantUnlock)
-        .set('youCanUnlock', oldTlf.youCanUnlock)
         .set('syncConfig', oldTlf.syncConfig)
+        .set('resetParticipants', oldTlf.resetParticipants)
+        .set('conflict', oldTlf.conflict)
     )
   )
 }

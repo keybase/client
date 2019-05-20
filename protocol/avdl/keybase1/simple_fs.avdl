@@ -370,10 +370,22 @@ protocol SimpleFS {
    */
   void simpleFSDumpDebuggingInfo();
 
-  /**
-   Clear the conflict state of a TLF.
-   */
+  // Clear the conflict state of a TLF. This turns a locally "branched" TLF
+  // into:
+  //   1) a TLF that's as seen on all other devices, i.e. the server view,
+  //      under the normal TLF path;
+  //   2) a TLF that's locally branched, under a path with a TLF suffix.
+  //
+  // After this, user is expected to make changes in 1), usually by coping
+  // needed data from 2) into 1).
+  //
+  // Note that it's possible to have multiple 2) for the same 1).
   void simpleFSClearConflictState(Path path);
+
+  // Mark the finish of resolving conflict. This deletes the locally branched
+  // version of the TLF. Path must be a local view TLF path with conflict
+  // suffix.
+  void simpleFSFinishResolvingConflict(Path path);
 
   /**
    Force a TLF into a stuck conflict state (for testing).

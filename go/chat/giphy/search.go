@@ -45,8 +45,30 @@ func getPreferredPreview(mctx libkb.MetaContext, img gifImage) (string, bool, er
 	return img.MP4, true, nil
 }
 
+func getTargetURL(mctx libkb.MetaContext, images map[string]gifImage) (string, error) {
+	adorn := func(url string, isVideo bool, img gifImage) string {
+		return fmt.Sprintf("%s#height=%s&width=%s&isvideo=%v", url, img.Height, img.Width, isVideo)
+	}
+	for typ, img := range images {
+		if typ != "original" {
+			continue
+		}
+		if len(img.MP4) == 0 && len(img.URL) == 0 {
+			return "", errors.New("no gif target")
+		}
+		if len(img.MP4) == 0 {
+			return adorn(img.URL, false, img), nil
+		}
+		return adorn(img.MP4, true, img), nil
+	}
+	return "", errors.New("no original target found")
+}
+
 func formatResponse(mctx libkb.MetaContext, response giphyResponse, srv types.AttachmentURLSrv) (res []chat1.GiphySearchResult) {
+	var err error
 	for _, obj := range response.Data {
+		var searchRes chat1.GiphySearchResult
+		foundPreview := true
 		for typ, img := range obj.Images {
 			select {
 			case <-mctx.Ctx().Done():
@@ -56,25 +78,28 @@ func formatResponse(mctx libkb.MetaContext, response giphyResponse, srv types.At
 			if typ != "fixed_height" {
 				continue
 			}
-			previewURL, isVideo, err := getPreferredPreview(mctx, img)
+			searchRes.PreviewUrl, searchRes.PreviewIsVideo, err = getPreferredPreview(mctx, img)
 			if err != nil {
 				continue
 			}
-			height, err := strconv.Atoi(img.Height)
+			searchRes.PreviewHeight, err = strconv.Atoi(img.Height)
 			if err != nil {
 				continue
 			}
-			width, err := strconv.Atoi(img.Width)
+			searchRes.PreviewWidth, err = strconv.Atoi(img.Width)
 			if err != nil {
 				continue
 			}
-			res = append(res, chat1.GiphySearchResult{
-				TargetUrl:      obj.URL,
-				PreviewUrl:     srv.GetGiphyURL(mctx.Ctx(), previewURL),
-				PreviewHeight:  height,
-				PreviewWidth:   width,
-				PreviewIsVideo: isVideo,
-			})
+			searchRes.PreviewUrl = srv.GetGiphyURL(mctx.Ctx(), searchRes.PreviewUrl)
+			foundPreview = true
+			break
+		}
+		if foundPreview {
+			searchRes.TargetUrl, err = getTargetURL(mctx, obj.Images)
+			if err != nil {
+				continue
+			}
+			res = append(res, searchRes)
 		}
 	}
 	return res

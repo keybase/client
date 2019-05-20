@@ -17,22 +17,73 @@ import logger from '../../logger'
 import platformSpecificSaga from './platform-specific'
 import {getContentTypeFromURL} from '../platform-specific'
 import * as RouteTreeGen from '../route-tree-gen'
+import {tlfToPreferredOrder} from '../../util/kbfs'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
 import flags from '../../util/feature-flags'
 
+const rpcFolderTypeToTlfType = (rpcFolderType: RPCTypes.FolderType) => {
+  switch (rpcFolderType) {
+    case RPCTypes.favoriteFolderType.private:
+      return 'private'
+    case RPCTypes.favoriteFolderType.public:
+      return 'public'
+    case RPCTypes.favoriteFolderType.team:
+      return 'team'
+    default:
+      return null
+  }
+}
+
 const loadFavorites = (state, action) =>
-  RPCTypes.apiserverGetWithSessionRpcPromise({
-    args: [{key: 'problems', value: '1'}],
-    endpoint: 'kbfs/favorite/list',
-  })
-    .then(results =>
-      Constants.createFavoritesLoadedFromJSONResults(
-        results && results.body,
-        state.config.username || '',
-        state.config.loggedIn
-      )
+  RPCTypes.SimpleFSSimpleFSListFavoritesRpcPromise().then(results => {
+    const mutablePayload = [
+      ...(results.favoriteFolders
+        ? [{folders: results.favoriteFolders, isFavorite: true, isIgnored: false, isNew: false}]
+        : []),
+      ...(results.ignoredFolders
+        ? [{folders: results.ignoredFolders, isFavorite: false, isIgnored: true, isNew: false}]
+        : []),
+      ...(results.newFolders
+        ? [{folders: results.newFolders, isFavorite: true, isIgnored: false, isNew: true}]
+        : []),
+    ].reduce(
+      (mutablePayload, {folders, isFavorite, isIgnored, isNew}) =>
+        folders.reduce((mutablePayload, folder) => {
+          const tlfType = rpcFolderTypeToTlfType(folder.folderType)
+          const tlfName =
+            tlfType === 'private' || tlfType === 'public'
+              ? tlfToPreferredOrder(folder.name, state.config.username)
+              : folder.name
+          return !tlfType
+            ? mutablePayload
+            : {
+                ...mutablePayload,
+                [tlfType]: mutablePayload[tlfType].set(
+                  tlfName,
+                  Constants.makeTlf({
+                    isFavorite,
+                    isIgnored,
+                    isNew,
+                    name: tlfName,
+                    resetParticipants: I.List((folder.reset_members || []).map(({username}) => username)),
+                    teamId: folder.team_id || '',
+                    tlfMtime: folder.mtime || 0,
+                  })
+                ),
+              }
+        }, mutablePayload),
+      {
+        private: I.Map().asMutable(),
+        public: I.Map().asMutable(),
+        team: I.Map().asMutable(),
+      }
     )
-    .catch(makeRetriableErrorHandler(action, null))
+    return FsGen.createFavoritesLoaded({
+      private: mutablePayload.private.asImmutable(),
+      public: mutablePayload.public.asImmutable(),
+      team: mutablePayload.team.asImmutable(),
+    })
+  })
 
 const getSyncConfigFromRPC = (tlfName, tlfType, config: RPCTypes.FolderSyncConfig): Types.TlfSyncConfig => {
   switch (config.mode) {
@@ -53,19 +104,6 @@ const getSyncConfigFromRPC = (tlfName, tlfType, config: RPCTypes.FolderSyncConfi
   }
 }
 
-const rpcFolderToTlfNameAndType = (folder: RPCTypes.Folder) => {
-  switch (folder.folderType) {
-    case RPCTypes.favoriteFolderType.private:
-      return {tlfName: folder.name, tlfType: 'private'}
-    case RPCTypes.favoriteFolderType.public:
-      return {tlfName: folder.name, tlfType: 'public'}
-    case RPCTypes.favoriteFolderType.team:
-      return {tlfName: folder.name, tlfType: 'team'}
-    default:
-      return null
-  }
-}
-
 // TODO: perhaps favoritesLoad's response should just include these from the Go
 // side -- when we move it to a SimpleFS RPC.
 const loadSyncConfigForAllTlfs = (state, action) =>
@@ -75,14 +113,12 @@ const loadSyncConfigForAllTlfs = (state, action) =>
     }
     const payloadMutable = folders.reduce(
       (payloadMutable, {folder, config}) => {
-        const tlfNameAndType = rpcFolderToTlfNameAndType(folder)
-        return tlfNameAndType
+        const tlfType = rpcFolderTypeToTlfType(folder.folderType)
+        const tlfName = tlfToPreferredOrder(folder.name, state.config.username)
+        return tlfType
           ? {
               ...payloadMutable,
-              [tlfNameAndType.tlfType]: payloadMutable[tlfNameAndType.tlfType].set(
-                tlfNameAndType.tlfName,
-                getSyncConfigFromRPC(tlfNameAndType.tlfName, tlfNameAndType.tlfType, config)
-              ),
+              [tlfType]: payloadMutable[tlfType].set(tlfName, getSyncConfigFromRPC(tlfName, tlfType, config)),
             }
           : payloadMutable
       },
@@ -724,7 +760,7 @@ const deleteFile = (state, action) => {
     path: Constants.pathToRPCPath(action.payload.path),
     recursive: true,
   })
-    .then(() => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}, Constants.deleteWaitingKey))
+    .then(() => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}))
     .catch(makeRetriableErrorHandler(action, action.payload.path))
 }
 

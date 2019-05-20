@@ -741,7 +741,7 @@ func (fbo *folderBranchOps) clearConflictView(ctx context.Context) (
 
 	fbo.log.CDebugf(ctx, "Clearing conflict view")
 	defer func() {
-		fbo.log.CDebugf(ctx, "Done with clearConflictView: %+v", err)
+		fbo.deferLog.CDebugf(ctx, "Done with clearConflictView: %+v", err)
 	}()
 
 	lState := makeFBOLockState()
@@ -2200,10 +2200,12 @@ func (fbo *folderBranchOps) getMDForWriteOrRekeyLocked(
 	// if this device has any unmerged commits -- take the latest one.
 	mdops := fbo.config.MDOps()
 
-	// get the head of the unmerged branch for this device (if any)
-	md, err = mdops.GetUnmergedForTLF(ctx, fbo.id(), kbfsmd.NullBranchID)
-	if err != nil {
-		return ImmutableRootMetadata{}, err
+	if fbo.config.Mode().UnmergedTLFsEnabled() {
+		// get the head of the unmerged branch for this device (if any)
+		md, err = mdops.GetUnmergedForTLF(ctx, fbo.id(), kbfsmd.NullBranchID)
+		if err != nil {
+			return ImmutableRootMetadata{}, err
+		}
 	}
 
 	mergedMD, err := mdops.GetForTLF(ctx, fbo.id(), nil)
@@ -5598,6 +5600,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 
 	dirtyFiles := fbo.blocks.GetDirtyFileBlockRefs(lState)
 	dirtyDirs := fbo.blocks.GetDirtyDirBlockRefs(lState)
+	defer fbo.blocks.GetDirtyDirBlockRefsDone(lState)
 	if len(dirtyFiles) == 0 && len(dirtyDirs) == 0 {
 		return nil
 	}
@@ -8327,7 +8330,8 @@ func (fbo *folderBranchOps) MigrateToImplicitTeam(
 
 	fbo.log.CDebugf(ctx, "Starting migration of TLF %s", id)
 	defer func() {
-		fbo.log.CDebugf(ctx, "Finished migration of TLF %s, err=%+v", id, err)
+		fbo.deferLog.CDebugf(
+			ctx, "Finished migration of TLF %s, err=%+v", id, err)
 	}()
 
 	if id.Type() != tlf.Private && id.Type() != tlf.Public {

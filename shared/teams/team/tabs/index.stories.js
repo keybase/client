@@ -11,6 +11,7 @@ const yourOperations = {
   deleteChannel: false,
   deleteChatHistory: false,
   deleteOtherMessages: false,
+  deleteTeam: false,
   editChannelDescription: false,
   editTeamDescription: false,
   joinTeam: false,

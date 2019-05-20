@@ -39,7 +39,7 @@ const mergeProps = (
   {_onReAddToTeam, _onOpenWithoutResetUsers, onViewProfile},
   {path}: OwnProps
 ) => {
-  const resetParticipants = stateProps._tlf.resetParticipants.map(i => i.username).toArray()
+  const resetParticipants = stateProps._tlf.resetParticipants.toArray()
   return {
     onOpenWithoutResetUsers: () =>
       _onOpenWithoutResetUsers(
