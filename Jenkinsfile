@@ -24,7 +24,7 @@ helpers.rootLinuxNode(env, {
   env.GOPATH="${env.BASEDIR}/go"
   def mysqlImage = docker.image("keybaseprivate/mysql")
   def gregorImage = docker.image("keybaseprivate/kbgregor")
-  def kbwebImage = docker.image("keybaseprivate/kbweb")
+  def kbwebImage = docker.image("keybaseprivate/kbweb:log-split")
   def glibcImage = docker.image("keybaseprivate/glibc")
   def clientImage = null
 

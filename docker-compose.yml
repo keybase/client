@@ -10,7 +10,7 @@ services:
             - "3306"
         command: ["--innodb_print_all_deadlocks=1", "--max_connections=1000"]
     kbweb.local:
-        image: keybaseprivate/kbweb
+        image: keybaseprivate/kbweb:log-split
         ports:
             - "3000:3000"
             - "13009"
