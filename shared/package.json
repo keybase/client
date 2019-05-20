@@ -10,7 +10,7 @@
     "lint-specific": "cd .. && shared/node_modules/.bin/eslint --quiet --ext js --ext ts --ext tsx",
     "postinstall": "yarn run _helper postinstall",
     "prettier": "./node_modules/.bin/prettier --write ",
-    "prettier-check": "git ls-files | grep \"\\.js\\(.flow\\)\\?\\$\" | xargs yarn run prettier --debug-check",
+    "prettier-check": "git ls-files | grep \"\\.js\\(.flow\\)\\?\\$\" | xargs ./node_modules/.bin/prettier --debug-check",
     "prettier-write-all": "yarn run _helper prettier-write-all",
     "render-screenshots": "yarn run _helper render-screenshots",
     "test": "cross-env-shell BABEL_ENV=test jest",
