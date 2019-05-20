@@ -2887,6 +2887,7 @@ func (h *Server) LoadGallery(ctx context.Context, arg chat1.LoadGalleryArg) (res
 
 	convID := arg.ConvID
 	var opts attachments.NextMessageOptions
+	opts.BackInTime = true
 	switch arg.Typ {
 	case chat1.GalleryItemTyp_MEDIA:
 		opts.MessageTypes = []chat1.MessageType{chat1.MessageType_ATTACHMENT}

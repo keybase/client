@@ -14,6 +14,7 @@ import {CaptionedButton, CaptionedDangerIcon} from './channel-utils'
 import RetentionPicker from '../../../teams/team/settings-tab/retention/container'
 import MinWriterRole from './min-writer-role/container'
 import {MembersPanel, SettingsPanel} from './panels'
+import AttachmentPanel from './attachments/container'
 
 const styleTurnIntoTeam = {
   paddingLeft: Styles.globalMargins.small,
@@ -269,9 +270,6 @@ class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
       <Kb.Box key="attachments" style={styles.tabTextContainer}>
         <TabText selected={this._isSelected('attachments')} text="Attachments" />
       </Kb.Box>,
-      <Kb.Box key="emoji" style={styles.tabTextContainer}>
-        <TabText selected={this._isSelected('emoji')} text="Emoji" />
-      </Kb.Box>,
     ]
   }
 
@@ -304,6 +302,9 @@ class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
         )}
         {this._isSelected('members') && (
           <MembersPanel onShowProfile={this.props.onShowProfile} participants={this.props.participants} />
+        )}
+        {this._isSelected('attachments') && (
+          <AttachmentPanel conversationIDKey={this.props.selectedConversationIDKey} />
         )}
       </Kb.Box2>
     )

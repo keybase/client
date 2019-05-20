@@ -1286,14 +1286,14 @@ const messageRetry = (state, action) => {
 const loadAttachmentView = (state, action) => {
   const conversationIDKey = action.payload.conversationIDKey
   const viewType = action.payload.viewType
-  return RPCChatTypes.localLoadGalleryPromise({
+  return RPCChatTypes.localLoadGalleryRpcPromise({
     convID: Types.keyToConversationID(conversationIDKey),
     typ: viewType,
     num: 25,
     fromMsgID: action.payload.fromMsgID,
   })
-    .then(results =>
-      Chat2Gen.createSetAttachmentView({
+    .then(results => {
+      return Chat2Gen.createSetAttachmentView({
         conversationIDKey,
         messages: results.messages.reduce((l, m) => {
           const uiMessage = Constants.uiMessageToMessage(state, conversationIDKey, m)
@@ -1301,7 +1301,7 @@ const loadAttachmentView = (state, action) => {
         }, I.List()),
         viewType,
       })
-    )
+    })
     .catch(e => {
       logger.error('failed to load attachment view: ' + e.message)
       return Chat2Gen.createSetAttachmentViewError({conversationIDKey, viewType})
