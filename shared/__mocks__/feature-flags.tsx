@@ -6,7 +6,7 @@ const ff = {
   admin: false,
   airdrop: true,
   chatIndexProfilingEnabled: false,
-  conflictResolutionGui: false,
+  conflictResolution: false,
   dbCleanEnabled: false,
   foldersInProfileTab: true,
   kbfsOfflineMode: true,

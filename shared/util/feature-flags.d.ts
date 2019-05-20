@@ -2,7 +2,7 @@ export type FeatureFlags = {
   admin: boolean
   airdrop: boolean
   chatIndexProfilingEnabled: boolean
-  conflictResolutionGui: boolean
+  conflictResolution: boolean
   dbCleanEnabled: boolean
   foldersInProfileTab: boolean
   kbfsOfflineMode: boolean
