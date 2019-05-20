@@ -10,6 +10,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/client"
+	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
@@ -80,7 +81,7 @@ func TestStellarNoteRoundtripAndResets(t *testing.T) {
 
 // Test took 38s on a dev server 2018-06-07
 func TestStellarRelayAutoClaims(t *testing.T) {
-	// kbtest.SkipTestOnNonMasterCI(t, "slow stellar test")
+	kbtest.SkipTestOnNonMasterCI(t, "slow stellar test")
 	if disable {
 		t.Skip(disableMsg)
 	}
@@ -89,7 +90,7 @@ func TestStellarRelayAutoClaims(t *testing.T) {
 
 // Test took 29s on a dev server 2018-06-07
 func TestStellarRelayAutoClaimsWithPUK(t *testing.T) {
-	// kbtest.SkipTestOnNonMasterCI(t, "slow stellar test")
+	kbtest.SkipTestOnNonMasterCI(t, "slow stellar test")
 	if disable {
 		t.Skip(disableMsg)
 	}
@@ -245,7 +246,7 @@ func testStellarRelayAutoClaims(t *testing.T, startWithPUK, skipPart2 bool) {
 // To debug this test use log filter "stellar_test|poll-|AutoClaim|stellar.claim|pollfor"
 // Test took 20s on a dev server 2019-01-23
 func TestStellarRelayAutoClaimsSBS(t *testing.T) {
-	// kbtest.SkipTestOnNonMasterCI(t, "slow stellar test")
+	kbtest.SkipTestOnNonMasterCI(t, "slow stellar test")
 	if disable {
 		t.Skip(disableMsg)
 	}
