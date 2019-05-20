@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as Constants from '../../constants/devices'
 import * as Types from '../../constants/types/devices'
@@ -6,14 +5,16 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
 export type Props = {
-  device: Types.Device,
-  endangeredTLFs: Array<string>,
-  onCancel: () => void,
-  onSubmit: () => void,
-  waiting: boolean,
+  device: Types.Device
+  endangeredTLFs: Array<string>
+  onCancel: () => void
+  onSubmit: () => void
+  waiting: boolean
 }
 
-class EndangeredTLFList extends React.Component<{endangeredTLFs: Array<string>}> {
+class EndangeredTLFList extends React.Component<{
+  endangeredTLFs: Array<string>
+}> {
   _renderTLFEntry = (index: number, tlf: string) => (
     <Kb.Box2 direction="horizontal" key={index} gap="tiny" fullWidth={true} style={styles.row}>
       <Kb.Text type="BodySemibold">•</Kb.Text>

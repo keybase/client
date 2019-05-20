@@ -1,4 +1,3 @@
-// @flow
 import {newRoutes as provisionNewRoutes} from '../provision/routes'
 import {modalizeRoute} from '../router-v2/modal-helper'
 import {mapValues} from 'lodash-es'

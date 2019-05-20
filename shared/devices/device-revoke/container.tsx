@@ -1,4 +1,3 @@
-// @flow
 import * as WaitingConstants from '../../constants/waiting'
 import * as Types from '../../constants/types/devices'
 import * as Constants from '../../constants/devices'
@@ -7,7 +6,7 @@ import DeviceRevoke from '.'
 import {connect} from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 
-type OwnProps = {||}
+type OwnProps = {}
 
 const mapStateToProps = state => ({
   _endangeredTLFs: Constants.getEndangeredTLFs(state, state.devices.selectedDeviceID),
@@ -28,6 +27,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
   waiting: stateProps.waiting,
 })
 
+// @ts-ignore codemode issue
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,

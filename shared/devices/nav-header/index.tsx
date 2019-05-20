@@ -1,12 +1,11 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
-type HeaderTitleProps = {|
-  numActive: number,
-  numRevoked: number,
-|}
+type HeaderTitleProps = {
+  numActive: number
+  numRevoked: number
+}
 
 export const HeaderTitle = (props: HeaderTitleProps) => (
   <Kb.Box2 direction="vertical" style={styles.headerTitle}>
@@ -17,7 +16,7 @@ export const HeaderTitle = (props: HeaderTitleProps) => (
   </Kb.Box2>
 )
 
-export const HeaderRightActions = ({onAdd}: {|onAdd: () => void|}) => (
+export const HeaderRightActions = ({onAdd}: {onAdd: () => void}) => (
   <Kb.Button small={true} label="Add device or paper key" onClick={onAdd} style={styles.addDeviceButton} />
 )
 

@@ -1,4 +1,3 @@
-// @flow
 // A mirror of the remote pinentry windows.
 // RemotePinentrys renders all of them (usually only one)
 // RemotePinentry is a single remote window
@@ -34,7 +33,7 @@ const RemotePinentry = compose(
 )(NullComponent)
 
 type Props = {
-  sessionIDToPinentry: I.Map<number, Types.PinentryState>,
+  sessionIDToPinentry: I.Map<number, Types.PinentryState>
 }
 
 class RemotePinentrys extends React.PureComponent<Props> {
@@ -53,7 +52,8 @@ const mapStateToProps = state => ({
   sessionIDToPinentry: state.pinentry.sessionIDToPinentry,
 })
 
-type OwnProps = {||}
+type OwnProps = {}
+// @ts-ignore codemode issue
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   () => ({}),

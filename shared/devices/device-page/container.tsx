@@ -1,4 +1,3 @@
-// @flow
 import * as Types from '../../constants/types/devices'
 import * as Constants from '../../constants/devices'
 import * as DevicesGen from '../../actions/devices-gen'
@@ -7,7 +6,7 @@ import {namedConnect, getRouteProps} from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {isMobile} from '../../constants/platform'
 
-type OwnProps = {||}
+type OwnProps = {}
 
 const mapStateToProps = (state, p: OwnProps) => {
   // TODO(newRouter) after committing to new router:
@@ -34,6 +33,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
   showRevokeDevicePage: () => dispatchProps._showRevokeDevicePage(stateProps.device.deviceID),
 })
 
+// @ts-ignore codemode issue
 export default namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,

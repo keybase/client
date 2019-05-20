@@ -15,7 +15,8 @@ const mapDispatchToPropsHeaderRightActions = dispatch => ({
   },
 })
 
-export const HeaderRightActions = Container.namedConnect<{||}, _, _, _, _>(
+// @ts-ignore codemode issue
+export const HeaderRightActions = Container.namedConnect<{}, _, _, _, _>(
   () => ({}),
   mapDispatchToPropsHeaderRightActions,
   (_, d) => d,

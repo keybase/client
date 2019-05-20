@@ -1,18 +1,17 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Flow from '../../util/flow'
 import * as Styles from '../../styles'
 
-type Props = {|
-  isCurrentDevice: boolean,
-  name: string,
-  isRevoked: boolean,
-  isNew: boolean,
-  type: 'desktop' | 'backup' | 'mobile',
-  showExistingDevicePage: () => void,
-  firstItem: boolean,
-|}
+type Props = {
+  isCurrentDevice: boolean
+  name: string
+  isRevoked: boolean
+  isNew: boolean
+  type: 'desktop' | 'backup' | 'mobile'
+  showExistingDevicePage: () => void
+  firstItem: boolean
+}
 
 const DeviceRow = (props: Props) => {
   let icon

@@ -1,4 +1,3 @@
-// @flow
 import * as Types from '../constants/types/devices'
 import * as React from 'react'
 import * as Kb from '../common-adapters'
@@ -6,27 +5,36 @@ import DeviceRow from './row/container'
 import * as Styles from '../styles'
 
 type Item =
-  | {key: string, id: Types.DeviceID, type: 'device'}
-  | {key: string, type: 'revokedHeader'}
-  | {key: string, type: 'revokedNote'}
+  | {
+      key: string
+      id: Types.DeviceID
+      type: 'device'
+    }
+  | {
+      key: string
+      type: 'revokedHeader'
+    }
+  | {
+      key: string
+      type: 'revokedNote'
+    }
 
 type State = {
-  revokedExpanded: boolean,
+  revokedExpanded: boolean
 }
 
-type Props = {|
-  // Only used by storybook
-  _stateOverride: ?State,
-  items: Array<Item>,
-  loadDevices: () => void,
-  onAddDevice: (highlight?: Array<'computer' | 'phone' | 'paper key'>) => void,
-  onBack: () => void,
-  revokedItems: Array<Item>,
-  showPaperKeyNudge: boolean,
-  hasNewlyRevoked: boolean,
-  waiting: boolean,
-  title: string,
-|}
+export type Props = {
+  _stateOverride: State | null
+  items: Array<Item>
+  loadDevices: () => void
+  onAddDevice: (highlight?: Array<'computer' | 'phone' | 'paper key'>) => void
+  onBack: () => void
+  revokedItems: Array<Item>
+  showPaperKeyNudge: boolean
+  hasNewlyRevoked: boolean
+  waiting: boolean
+  title: string
+}
 
 class Devices extends React.PureComponent<Props, State> {
   static defaultProps = {_stateOverride: null}
@@ -128,7 +136,7 @@ const headerStyles = Styles.styleSheetCreate({
   },
 })
 
-const RevokedHeader = ({children, onToggleExpanded, expanded}) => (
+const RevokedHeader = ({onToggleExpanded, expanded}) => (
   <Kb.SectionDivider collapsed={!expanded} onToggleCollapsed={onToggleExpanded} label="Revoked devices" />
 )
 

@@ -1,6 +1,5 @@
-// @flow
 import * as React from 'react'
-import Devices from '.'
+import Devices, {Props} from '.'
 import * as DevicesGen from '../actions/devices-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Constants from '../constants/devices'
@@ -42,7 +41,7 @@ const splitAndSortDevices = deviceMap =>
     d => d.revokedAt
   )
 
-type OwnProps = {||}
+type OwnProps = {}
 
 function mergeProps(stateProps, dispatchProps, ownProps: OwnProps) {
   const [revoked, normal] = splitAndSortDevices(stateProps._deviceMap)
@@ -66,7 +65,9 @@ function mergeProps(stateProps, dispatchProps, ownProps: OwnProps) {
 }
 
 class ReloadableDevices extends React.PureComponent<
-  React.ElementConfig<typeof Devices> & {|clearBadges: () => void|}
+  Props & {
+    clearBadges: () => void
+  }
 > {
   componentWillUnmount() {
     this.props.clearBadges()
@@ -99,6 +100,7 @@ class ReloadableDevices extends React.PureComponent<
 }
 
 const Connected = compose(
+  // @ts-ignore codemode issue
   namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'Devices'),
   safeSubmitPerMount(['onBack'])
 )(ReloadableDevices)
