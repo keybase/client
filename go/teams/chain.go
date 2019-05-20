@@ -290,6 +290,15 @@ func (t TeamSigChainState) GetAllUVsWithUID(uid keybase1.UID) (res []keybase1.Us
 	return res
 }
 
+func (t TeamSigChainState) GetAllUVs() (res []keybase1.UserVersion) {
+	for uv := range t.inner.UserLog {
+		if t.getUserRole(uv) != keybase1.TeamRole_NONE {
+			res = append(res, uv)
+		}
+	}
+	return res
+}
+
 func (t TeamSigChainState) GetLatestPerTeamKey() (keybase1.PerTeamKey, error) {
 	res, ok := t.inner.PerTeamKeys[keybase1.PerTeamKeyGeneration(len(t.inner.PerTeamKeys))]
 	if !ok {
