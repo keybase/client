@@ -321,9 +321,10 @@ func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (
 	}
 
 	for _, c := range cleared {
-		serverView := keybase1.NewPathWithKbfs("")
 		cs := keybase1.NewConflictStateWithManualresolvinglocalview(
-			keybase1.ConflictManualResolvingLocalView{ServerView: serverView})
+			keybase1.ConflictManualResolvingLocalView{
+				ServerView: c.ServerViewPath,
+			})
 		favs.FavoriteFolders = append(favs.FavoriteFolders,
 			keybase1.Folder{
 				Name:          string(c.Name),

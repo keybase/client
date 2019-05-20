@@ -1426,6 +1426,7 @@ func TestFavoriteConflicts(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, keybase1.ConflictStateType_AutomaticResolving,
 				conflictStateType)
+			require.True(t, f.ConflictState.Automaticresolving().IsStuck)
 			stuck++
 		} else {
 			require.Nil(t, f.ConflictState)
@@ -1449,6 +1450,8 @@ func TestFavoriteConflicts(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(
 				t, keybase1.ConflictStateType_ManualResolvingLocalView, ct)
+			mrlv := f.ConflictState.Manualresolvinglocalview()
+			require.Equal(t, pathPub.String(), mrlv.ServerView.String())
 			pathConflict = keybase1.NewPathWithKbfs("/public/" + f.Name)
 		} else {
 			require.Nil(t, f.ConflictState)

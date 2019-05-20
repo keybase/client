@@ -446,6 +446,12 @@ func (h *Handle) GetCanonicalPath() string {
 	return BuildCanonicalPathForTlfName(h.Type(), h.GetCanonicalName())
 }
 
+// GetProtocolPath returns the `keybase1.Path` representing this
+// handle.
+func (h *Handle) GetProtocolPath() keybase1.Path {
+	return BuildProtocolPathForTlfName(h.Type(), h.GetCanonicalName())
+}
+
 // ToFavorite converts a TlfHandle into a Favorite, suitable for
 // Favorites calls.
 func (h *Handle) ToFavorite() favorites.Folder {
