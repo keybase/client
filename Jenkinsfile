@@ -16,6 +16,7 @@ def withKbweb(closure) {
     closure()
   } catch (ex) {
     def kbwebName = containerName('docker-compose', 'kbweb')
+    println "kbweb is running in ${kbwebName}"
 
     println "Dockers:"
     sh "docker ps -a"
@@ -30,7 +31,7 @@ def withKbweb(closure) {
 }
 
 def containerName(composefile, container) {
-  return sh(returnStdout: true, script: "docker-compose -f ${composefile}.yml ps -q ${container}.local")
+  return sh(returnStdout: true, script: "docker-compose -f ${composefile}.yml ps -q ${container}.local").trim()
 }
 
 def logKbwebServices(composefile, container) {
