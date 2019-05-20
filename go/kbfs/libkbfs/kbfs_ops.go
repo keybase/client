@@ -785,7 +785,7 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 		h.GetCanonicalPath(), branch, create)
 	defer func() {
 		err = fs.transformReadError(ctx, h, err)
-		fs.deferLog.CDebugf(ctx, "Done: %#v", err)
+		fs.deferLog.CDebugf(ctx, "Done: %+v", err)
 	}()
 
 	if branch != data.MasterBranch && create {
