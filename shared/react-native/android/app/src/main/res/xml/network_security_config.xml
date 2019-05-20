@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<blah xmlns:android="http://schemas.android.com/apk/res/android">
-
-</blah>
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <domain includeSubdomains="false">localhost</domain>
+    </domain-config>
+</network-security-config>
