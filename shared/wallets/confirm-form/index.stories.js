@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import participants from './participants/index.stories'
+import Participants from './participants/container'
 import ConfirmSend from '.'
 
 // TODO some of the state of these child components
@@ -28,6 +29,7 @@ const confirmProps = {
   onBack: Sb.action('onBack'),
   onClose: Sb.action('onClose'),
   onSendClick: Sb.action('onSendClick'),
+  participantsComp: Participants,
   readyToSend: 'enabled',
   sendFailed: false,
   sendingIntentionXLM: true,
