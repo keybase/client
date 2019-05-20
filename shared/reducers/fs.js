@@ -158,6 +158,9 @@ const updateTlfList = (oldTlfList: Types.TlfList, newTlfList: Types.TlfList): Ty
 
 const withFsErrorBar = (state: Types.State, action: FsGen.FsErrorPayload): Types.State => {
   const fsError = action.payload.error
+  if (!state.kbfsDaemonStatus.online && action.payload.expectedIfOffline) {
+    return state
+  }
   logger.error('error (fs)', fsError.erroredAction.type, fsError.errorMessage)
   return state.update('errors', errors => errors.set(Constants.makeUUID(), fsError))
 }

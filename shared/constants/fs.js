@@ -1029,6 +1029,10 @@ export const getSoftError = (softErrors: Types.SoftErrors, path: Types.Path): ?T
 }
 
 export const erroredActionToMessage = (action: FsGen.Actions, error: string): string => {
+  // We have FsError.expectedIfOffline now to take care of real offline
+  // scenarios, but we still need to keep this timeout check here in case we
+  // get a timeout error when we think we think we're online. In this case it's
+  // likely bad network condition.
   const errorIsTimeout = error.includes('context deadline exceeded')
   const timeoutExplain = 'An operation took too long to complete. Are you connected to the Internet?'
   const suffix = errorIsTimeout ? ` ${timeoutExplain}` : ''
