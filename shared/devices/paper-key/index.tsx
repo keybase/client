@@ -4,14 +4,14 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
 type Props = {
-  paperkey: string,
-  waiting: boolean,
+  paperkey: string
+  waiting: boolean
   onBack: () => void
-};
+}
 
 type State = {
   wroteItDown: boolean
-};
+}
 
 class PaperKey extends React.Component<Props, State> {
   state = {wroteItDown: false}

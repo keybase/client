@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Constants from '../../constants/devices'
 import * as Types from '../../constants/types/devices'
 import * as Sb from '../../stories/storybook'
-import DeviceRevoke, { Props } from '.';
+import DeviceRevoke, {Props} from '.'
 
 const props: Props = {
   device: Constants.makeDevice({
