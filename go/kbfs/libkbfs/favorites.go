@@ -592,12 +592,6 @@ func (f *Favorites) Shutdown() error {
 	return f.wg.Wait(context.Background())
 }
 
-func (f *Favorites) hasShutdown() bool {
-	f.muShutdown.RLock()
-	defer f.muShutdown.RUnlock()
-	return f.shutdown
-}
-
 func (f *Favorites) waitOnReq(ctx context.Context,
 	req *favReq) (retry bool, err error) {
 	select {
@@ -654,10 +648,13 @@ func (f *Favorites) startOrJoinAddReq(
 
 // Add adds a favorite to your favorites list.
 func (f *Favorites) Add(ctx context.Context, fav favorites.ToAdd) error {
+	f.muShutdown.RLock()
+	defer f.muShutdown.RUnlock()
+
 	if f.disabled {
 		return nil
 	}
-	if f.hasShutdown() {
+	if f.shutdown {
 		return data.ShutdownHappenedError{}
 	}
 	doAdd := true
@@ -681,7 +678,10 @@ func (f *Favorites) Add(ctx context.Context, fav favorites.ToAdd) error {
 // used only for enqueuing the request on an internal queue, not for
 // any resulting I/O.
 func (f *Favorites) AddAsync(ctx context.Context, fav favorites.ToAdd) {
-	if f.disabled || f.hasShutdown() {
+	f.muShutdown.RLock()
+	defer f.muShutdown.RUnlock()
+
+	if f.disabled || f.shutdown {
 		return
 	}
 	// Use a fresh context, since we want the request to succeed even
@@ -703,10 +703,13 @@ func (f *Favorites) AddAsync(ctx context.Context, fav favorites.ToAdd) {
 // Delete deletes a favorite from the favorites list.  It is
 // idempotent.
 func (f *Favorites) Delete(ctx context.Context, fav favorites.Folder) error {
+	f.muShutdown.RLock()
+	defer f.muShutdown.RUnlock()
+
 	if f.disabled {
 		return nil
 	}
-	if f.hasShutdown() {
+	if f.shutdown {
 		return data.ShutdownHappenedError{}
 	}
 	return f.sendReq(ctx, &favReq{
@@ -741,7 +744,9 @@ const (
 // the favorites cache has not been initialized at all and cannot serve any
 // requests until this refresh is completed.
 func (f *Favorites) RefreshCache(ctx context.Context, mode FavoritesRefreshMode) {
-	if f.disabled || f.hasShutdown() {
+	f.muShutdown.RLock()
+	defer f.muShutdown.RUnlock()
+	if f.disabled || f.shutdown {
 		return
 	}
 
@@ -798,7 +803,9 @@ func (f *Favorites) RefreshCache(ctx context.Context, mode FavoritesRefreshMode)
 // does so with rate-limiting, so that it doesn't hit the server too
 // often.
 func (f *Favorites) RefreshCacheWhenMTimeChanged(ctx context.Context) {
-	if f.disabled || f.hasShutdown() {
+	f.muShutdown.RLock()
+	defer f.muShutdown.RUnlock()
+	if f.disabled || f.shutdown {
 		return
 	}
 
@@ -824,7 +831,9 @@ func (f *Favorites) RefreshCacheWhenMTimeChanged(ctx context.Context) {
 
 // ClearCache clears the cached list of favorites.
 func (f *Favorites) ClearCache(ctx context.Context) {
-	if f.disabled || f.hasShutdown() {
+	f.muShutdown.RLock()
+	defer f.muShutdown.RUnlock()
+	if f.disabled || f.shutdown {
 		return
 	}
 	// This request is non-blocking, so use a throw-away done channel
@@ -857,7 +866,9 @@ func (f *Favorites) Get(ctx context.Context) ([]favorites.Folder, error) {
 		}
 		return nil, nil
 	}
-	if f.hasShutdown() {
+	f.muShutdown.RLock()
+	defer f.muShutdown.RUnlock()
+	if f.shutdown {
 		return nil, data.ShutdownHappenedError{}
 	}
 	favChan := make(chan []favorites.Folder, 1)
@@ -876,7 +887,9 @@ func (f *Favorites) Get(ctx context.Context) ([]favorites.Folder, error) {
 // setHomeTLFInfo should be called when a new user logs in so that their home
 // TLFs can be returned as favorites.
 func (f *Favorites) setHomeTLFInfo(ctx context.Context, info homeTLFInfo) {
-	if f.hasShutdown() {
+	f.muShutdown.RLock()
+	defer f.muShutdown.RUnlock()
+	if f.shutdown {
 		return
 	}
 	// This request is non-blocking, so use a throw-away done channel
@@ -924,7 +937,10 @@ func (f *Favorites) GetAll(ctx context.Context) (keybase1.FavoritesResult,
 		}
 		return keybase1.FavoritesResult{}, nil
 	}
-	if f.hasShutdown() {
+	f.muShutdown.RLock()
+	defer f.muShutdown.RUnlock()
+
+	if f.shutdown {
 		return keybase1.FavoritesResult{}, data.ShutdownHappenedError{}
 	}
 	favChan := make(chan keybase1.FavoritesResult, 1)
