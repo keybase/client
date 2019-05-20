@@ -1885,6 +1885,7 @@ func reviewPaymentExpectQuickSuccess(t testing.TB, tc *TestContext, arg stellar1
 		mockUI.PaymentReviewedHandler = original
 	}()
 	reviewSuccessCh := make(chan struct{}, 1)
+	reviewExitedCh := make(chan struct{}, 1)
 	mockUI.PaymentReviewedHandler = func(ctx context.Context, notification stellar1.PaymentReviewedArg) error {
 		assert.Equal(t, arg.Bid, notification.Msg.Bid)
 		// Allow the not-following warning banner.
@@ -1915,11 +1916,17 @@ func reviewPaymentExpectQuickSuccess(t testing.TB, tc *TestContext, arg stellar1
 	go func() {
 		err := tc.Srv.ReviewPaymentLocal(context.Background(), arg)
 		assert.NoError(t, err) // Use 'assert' since 'require' can only be used from the main goroutine.
+		reviewExitedCh <- struct{}{}
 	}()
 	select {
 	case <-timeoutCh:
 		assert.Fail(t, "timed out")
 	case <-reviewSuccessCh:
+	}
+	select {
+	case <-timeoutCh:
+		assert.Fail(t, "timed out")
+	case <-reviewExitedCh:
 	}
 	t.Logf("review ran for %v", time.Since(start))
 	check(t)
