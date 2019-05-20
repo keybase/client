@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import Pinentry from './index.desktop'
 import {action, storiesOf} from '../stories/storybook'

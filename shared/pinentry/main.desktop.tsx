@@ -1,4 +1,3 @@
-// @flow
 // Entry point for the menubar render window
 import * as React from 'react'
 import Pinentry from './remote-container.desktop'
@@ -11,5 +10,6 @@ load({
   child: <Pinentry />,
   deserialize,
   name: 'pinentry',
-  params: sessionID?.[1] || '',
+  // Auto generated from flowToTs. Please clean me!
+  params: (sessionID === null || sessionID === undefined ? undefined : sessionID[1]) || '',
 })
