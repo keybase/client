@@ -1143,6 +1143,36 @@ const rootReducer = (
           query: action.payload.query,
         })
       })
+    case Chat2Gen.loadAttachmentView:
+      return state.updateIn(
+        ['attachmentViewMap', action.payload.conversationIDKey, action.payload.viewType],
+        (info = Constants.makeAttachmentViewInfo()) => {
+          return info.merge({
+            status: 'loading',
+          })
+        }
+      )
+    case Chat2Gen.setAttachmentView:
+      return state.updateIn(
+        ['attachmentViewMap', action.payload.conversationIDKey, action.payload.viewType],
+        (info = Constants.makeAttachmentViewInfo()) => {
+          return info.merge({
+            status: 'success',
+            messages: action.payload.messages,
+          })
+        }
+      )
+    case Chat2Gen.setAttachmentViewError:
+      return state.updateIn(
+        ['attachmentViewMap', action.payload.conversationIDKey, action.payload.viewType],
+        (info = Constants.makeAttachmentViewInfo()) => {
+          return info.merge({
+            status: 'error',
+          })
+        }
+      )
+    case Chat2Gen.clearAttachmentView:
+      return state.attachmentViewMap.delete(action.payload.conversationIDKey)
     case Chat2Gen.staticConfigLoaded:
       return state.set('staticConfig', action.payload.staticConfig)
     case Chat2Gen.metasReceived: {

@@ -675,6 +675,27 @@
       "_description": "Resolve an unknown @ mention",
       "name": "string",
       "channel": "string"
+    },
+    "loadAttachmentView": {
+      "_description": "Load attachment view pane",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "viewType": "RPCChatTypes.GalleryItemTyp",
+      "fromMsgID?": "Types.MessageID"
+    },
+    "setAttachmentView": {
+      "_description": "Set results for attachment view",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "viewType": "RPCChatTypes.GalleryItemTyp",
+      "messages": "I.List<Types.Message>"
+    },
+    "setAttachmentViewError": {
+      "_description": "Set attachment view error",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "viewType": "RPCChatTypes.GalleryItemTyp"
+    },
+    "clearAttachmentView": {
+      "_description": "Clear attachment views",
+      "conversationIDKey": "Types.ConversationIDKey"
     }
   }
 }

@@ -269,6 +269,9 @@ class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
       <Kb.Box key="attachments" style={styles.tabTextContainer}>
         <TabText selected={this._isSelected('attachments')} text="Attachments" />
       </Kb.Box>,
+      <Kb.Box key="emoji" style={styles.tabTextContainer}>
+        <TabText selected={this._isSelected('emoji')} text="Emoji" />
+      </Kb.Box>,
     ]
   }
 

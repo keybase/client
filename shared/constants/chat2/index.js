@@ -22,6 +22,7 @@ import HiddenString from '../../util/hidden-string'
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   accountsInfoMap: I.Map(),
   attachmentFullscreenMessage: null,
+  attachmentViewMap: I.Map(),
   badgeMap: I.Map(),
   commandMarkdownMap: I.Map(),
   containsLatestMessageMap: I.Map(),
@@ -110,6 +111,11 @@ export const makeInboxSearchTextHit: I.RecordFactory<Types._InboxSearchTextHit> 
   query: '',
   teamType: 'small',
   time: 0,
+})
+
+export const makeAttachmentViewInfo: I.RecordFactory<Types._AttachmentViewInfo> = I.Record({
+  status: 'loading',
+  messages: I.List(),
 })
 
 export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {

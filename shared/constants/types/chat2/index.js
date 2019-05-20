@@ -90,6 +90,15 @@ export type CenterOrdinal = {
   highlightMode: CenterOrdinalHighlightMode,
 }
 
+export type AttachmentViewStatus = 'loading' | 'success' | 'error'
+
+export type _AttachmentViewInfo = {
+  status: AttachmentViewStatus,
+  messages: I.List<Message.Message>,
+}
+
+export type AttachmentViewInfo = I.RecordOf<_AttachmentViewInfo>
+
 export type _State = {
   accountsInfoMap: I.Map<
     Common.ConversationIDKey,
@@ -132,6 +141,7 @@ export type _State = {
   threadSearchQueryMap: I.Map<Common.ConversationIDKey, ?HiddenString>,
   replyToMap: I.Map<Common.ConversationIDKey, Message.Ordinal>,
   maybeMentionMap: I.Map<string, RPCChatTypes.UIMaybeMentionInfo>,
+  attachmentViewMap: I.Map<Common.ConversationIDKey, I.Map<RPCChatTypes.GalleryItemTyp, AttachmentViewInfo>>,
 } & TeamBuildingTypes.TeamBuildingSubState
 
 export type State = I.RecordOf<_State>

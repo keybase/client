@@ -312,6 +312,10 @@ export type MessageTypes = {|
     inParam: $ReadOnly<{|convID: ConversationID|}>,
     outParam: JoinLeaveConversationLocalRes,
   |},
+  'chat.1.local.loadGallery': {|
+    inParam: $ReadOnly<{|convID: ConversationID, typ: GalleryItemTyp, num: Int, fromMsgID?: ?MessageID|}>,
+    outParam: LoadGalleryRes,
+  |},
   'chat.1.local.makePreview': {|
     inParam: $ReadOnly<{|filename: String, outboxID: OutboxID|}>,
     outParam: MakePreviewRes,
@@ -1511,6 +1515,7 @@ declare export function localGetUnreadlineRpcPromise(params: $PropertyType<$Prop
 declare export function localGetUploadTempFileRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getUploadTempFile'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getUploadTempFile'>, 'outParam'>>
 declare export function localJoinConversationByIDLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.joinConversationByIDLocal'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.joinConversationByIDLocal'>, 'outParam'>>
 declare export function localLeaveConversationLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.leaveConversationLocal'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.leaveConversationLocal'>, 'outParam'>>
+declare export function localLoadGalleryRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.loadGallery'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.loadGallery'>, 'outParam'>>
 declare export function localMakePreviewRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.makePreview'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.makePreview'>, 'outParam'>>
 declare export function localMakeUploadTempFileRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.makeUploadTempFile'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.makeUploadTempFile'>, 'outParam'>>
 declare export function localMarkAsReadLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.markAsReadLocal'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.markAsReadLocal'>, 'outParam'>>
@@ -1586,7 +1591,6 @@ declare export function localUpdateUnsentTextRpcPromise(params: $PropertyType<$P
 // 'chat.1.local.joinConversationLocal'
 // 'chat.1.local.upgradeKBFSConversationToImpteam'
 // 'chat.1.local.putReacjiSkinTone'
-// 'chat.1.local.loadGallery'
 // 'chat.1.NotifyChat.NewChatActivity'
 // 'chat.1.NotifyChat.ChatIdentifyUpdate'
 // 'chat.1.NotifyChat.ChatTLFFinalize'
