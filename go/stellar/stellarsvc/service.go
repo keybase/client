@@ -765,12 +765,9 @@ func (s *Server) ApprovePayURILocal(ctx context.Context, arg stellar1.ApprovePay
 		if err != nil {
 			return "", err
 		}
-		var memoText string
-		if vp.MemoType == "MEMO_TEXT" {
-			memoText = vp.Memo
-		} else if vp.Memo != "" {
-			// CORE-10865 will fix this:
-			return "", errors.New("keybase cannot handle non-text memos currently")
+		memo, err := vp.MemoExport()
+		if err != nil {
+			return "", err
 		}
 
 		sp, unlock := stellar.NewSeqnoProvider(mctx, s.walletState)
@@ -778,7 +775,7 @@ func (s *Server) ApprovePayURILocal(ctx context.Context, arg stellar1.ApprovePay
 
 		baseFee := s.walletState.BaseFee(mctx)
 
-		sig, err := stellarnet.PaymentXLMTransaction(senderSeed, recipientAddr, vp.Amount, memoText, sp, nil, baseFee)
+		sig, err := stellarnet.PaymentXLMTransactionWithMemo(senderSeed, recipientAddr, vp.Amount, memo, sp, nil, baseFee)
 		if err != nil {
 			return "", err
 		}

@@ -31,18 +31,18 @@ func opBodySummary(op xdr.Operation) string {
 		iop := op.Body.MustManageOfferOp()
 		switch {
 		case iop.OfferId == 0:
-			return fmt.Sprintf("Create offer selling %s for %s to buy %s", XDRAssetAmountSummary(iop.Amount, iop.Selling), XDRPriceString(iop.Price), XDRAssetSummary(iop.Buying))
+			return fmt.Sprintf("Create offer selling %s for %s to buy %s", XDRAssetAmountSummary(iop.Amount, iop.Selling), iop.Price.String(), XDRAssetSummary(iop.Buying))
 		case iop.Amount == 0:
-			return fmt.Sprintf("Remove offer selling %s for %s to buy %s (id %d)", XDRAssetSummary(iop.Selling), XDRPriceString(iop.Price), XDRAssetSummary(iop.Buying), iop.OfferId)
+			return fmt.Sprintf("Remove offer selling %s for %s to buy %s (id %d)", XDRAssetSummary(iop.Selling), iop.Price.String(), XDRAssetSummary(iop.Buying), iop.OfferId)
 		default:
-			return fmt.Sprintf("Update offer selling %s for %s to buy %s (id %d)", XDRAssetAmountSummary(iop.Amount, iop.Selling), XDRPriceString(iop.Price), XDRAssetSummary(iop.Buying), iop.OfferId)
+			return fmt.Sprintf("Update offer selling %s for %s to buy %s (id %d)", XDRAssetAmountSummary(iop.Amount, iop.Selling), iop.Price.String(), XDRAssetSummary(iop.Buying), iop.OfferId)
 		}
 	case xdr.OperationTypeCreatePassiveOffer:
 		iop := op.Body.MustCreatePassiveOfferOp()
 		if iop.Amount == 0 {
-			return fmt.Sprintf("Remove passive offer selling %s for %s to buy %s", XDRAssetSummary(iop.Selling), XDRPriceString(iop.Price), XDRAssetSummary(iop.Buying))
+			return fmt.Sprintf("Remove passive offer selling %s for %s to buy %s", XDRAssetSummary(iop.Selling), iop.Price.String(), XDRAssetSummary(iop.Buying))
 		}
-		return fmt.Sprintf("Create passive offer selling %s for %s to buy %s", XDRAssetAmountSummary(iop.Amount, iop.Selling), XDRPriceString(iop.Price), XDRAssetSummary(iop.Buying))
+		return fmt.Sprintf("Create passive offer selling %s for %s to buy %s", XDRAssetAmountSummary(iop.Amount, iop.Selling), iop.Price.String(), XDRAssetSummary(iop.Buying))
 	case xdr.OperationTypeSetOptions:
 		iop := op.Body.MustSetOptionsOp()
 		var all []string
