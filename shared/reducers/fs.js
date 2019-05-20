@@ -532,14 +532,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
               ? syncingFoldersProgress
               : action.payload.progress
           )
-          .update('diskSpaceStatus', oldDiskSpaceStatus => {
-            // TODO: allow for 'warning' status
-            const newDiskSpaceStatus = action.payload.outOfSpace ? 'error' : 'ok'
-            if (newDiskSpaceStatus !== oldDiskSpaceStatus && oldDiskSpaceStatus !== 'error') {
-              notifyDiskSpaceStatus(newDiskSpaceStatus)
-            }
-            return newDiskSpaceStatus
-          })
+          .set('diskSpaceStatus', action.payload.outOfSpace ? 'error' : 'ok')
           // Unhide the banner if the state we're coming from isn't WARNING.
           .set(
             'diskSpaceBannerHidden',
@@ -553,7 +546,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.hideSystemFileManagerIntegrationBanner:
       return state.update('sfmi', sfmi => sfmi.set('showingBanner', false))
     case FsGen.hideDiskSpaceBanner:
-      return state.update('overallSyncStatus', status => status.set('diskSpaceBannerHidden', false))
+      return state.update('overallSyncStatus', status => status.set('diskSpaceBannerHidden', true))
     case FsGen.driverEnable:
       return state.update('sfmi', sfmi =>
         sfmi.update('driverStatus', driverStatus =>
