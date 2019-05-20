@@ -108,92 +108,38 @@ type Props = {|
 |}
 
 const PaymentsConfirm = (props: Props) => {
-  if (!props.loading && !props.error) {
+  if (props.loading) {
+    return <PaymentsConfirmLoading />
+  }
+  if (props.error) {
     return (
-      <ConfirmForm
-        onClose={props.onCancel}
-        onSendClick={props.onAccept}
-        onBack={props.onCancel}
-        participantsComp={() =>
-          props.payments.map(p => (
-            <Kb.Box2 key={p.username} direction="horizontal" fullWidth={true} style={styles.paymentContainer}>
-              <PaymentRow {...p} />
-            </Kb.Box2>
-          ))
-        }
-        sendFailed={false}
-        waitingKey=""
-        sendingIntentionXLM={true}
-        displayAmountXLM={props.xlmTotal}
-        displayAmountFiat={props.displayTotal}
-        readyToSend="enabled"
+      <PaymentsConfirmError
+        error={props.error}
+        errorIsNoWallet={props.errorIsNoWallet || false}
+        onCancel={props.onCancel}
+        onWallet={props.onWallet}
       />
     )
   }
   return (
-    <Kb.MaybePopup onClose={props.onCancel}>
-      {props.loading ? (
-        <PaymentsConfirmLoading />
-      ) : props.error ? (
-        <PaymentsConfirmError
-          error={props.error}
-          errorIsNoWallet={props.errorIsNoWallet || false}
-          onCancel={props.onCancel}
-          onWallet={props.onWallet}
-        />
-      ) : (
-        <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.totalContainer}>
-            <Kb.Icon
-              type={
-                Styles.isMobile
-                  ? 'icon-fancy-stellar-sending-mobile-149-129'
-                  : 'icon-fancy-stellar-sending-desktop-98-86'
-              }
-              style={styles.icon}
-            />
-            <Kb.Text type="BodyTiny" style={styles.headerText}>
-              SENDING
-            </Kb.Text>
-            <Kb.Text type="HeaderBigExtrabold" style={styles.xlmTotal}>
-              {props.xlmTotal}
-            </Kb.Text>
-            <Kb.Text type="BodyTiny" style={styles.headerText}>
-              (APPROXIMATELY {props.displayTotal})
-            </Kb.Text>
+    <ConfirmForm
+      onClose={props.onCancel}
+      onSendClick={props.onAccept}
+      onBack={props.onCancel}
+      participantsComp={() =>
+        props.payments.map(p => (
+          <Kb.Box2 key={p.username} direction="horizontal" fullWidth={true} style={styles.paymentContainer}>
+            <PaymentRow {...p} />
           </Kb.Box2>
-          <Kb.ScrollView style={styles.paymentsContainer}>
-            {props.payments.map(p => (
-              <Kb.Box2
-                key={p.username}
-                direction="horizontal"
-                fullWidth={true}
-                style={styles.paymentContainer}
-              >
-                <PaymentRow {...p} />
-              </Kb.Box2>
-            ))}
-          </Kb.ScrollView>
-          <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
-            <Kb.Button type="Dim" onClick={props.onCancel} style={styles.cancelButton} label="Cancel" />
-            <Kb.WaitingButton
-              style={styles.submitButton}
-              type="Success"
-              onClick={props.onAccept}
-              waitingKey={null}
-              children={
-                <Kb.Icon
-                  color={Styles.globalColors.white}
-                  style={Kb.iconCastPlatformStyles(styles.submitIcon)}
-                  type="iconfont-stellar-send"
-                />
-              }
-              label={'Send ' + props.xlmTotal}
-            />
-          </Kb.ButtonBar>
-        </Kb.Box2>
-      )}
-    </Kb.MaybePopup>
+        ))
+      }
+      sendFailed={false}
+      waitingKey=""
+      sendingIntentionXLM={true}
+      displayAmountXLM={props.xlmTotal}
+      displayAmountFiat={props.displayTotal}
+      readyToSend="enabled"
+    />
   )
 }
 
