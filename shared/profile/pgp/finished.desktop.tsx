@@ -6,17 +6,17 @@ import * as Styles from '../../styles'
 import {namedConnect} from '../../util/container'
 import Modal from '../modal'
 
-type OwnProps = {};
+type OwnProps = {}
 
 type Props = {
-  onDone: (shouldStoreKeyOnServer: boolean) => void,
-  promptShouldStoreKeyOnServer: boolean,
+  onDone: (shouldStoreKeyOnServer: boolean) => void
+  promptShouldStoreKeyOnServer: boolean
   pgpKeyString: string
-};
+}
 
 type State = {
   shouldStoreKeyOnServer: boolean
-};
+}
 
 class Finished extends React.Component<Props, State> {
   state = {shouldStoreKeyOnServer: false}
@@ -96,6 +96,7 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
+// @ts-ignore codemode issue
 export default namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,

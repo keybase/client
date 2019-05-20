@@ -4,7 +4,7 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {connect} from '../../util/container'
 import Modal from '../modal'
 
-type OwnProps = {};
+type OwnProps = {}
 
 const NoPGPView = props => (
   <Modal onCancel={props.onCancel}>
@@ -17,6 +17,7 @@ const NoPGPView = props => (
   </Modal>
 )
 
+// @ts-ignore codemode issue
 const NoPGP = connect<OwnProps, _, _, _, _>(
   () => ({}),
   dispatch => ({onCancel: () => dispatch(RouteTreeGen.createNavigateUp())}),

@@ -6,19 +6,19 @@ import * as Styles from '../../styles'
 const maxBio = 255
 
 type Props = {
-  bio: string,
-  fullname: string,
-  location: string,
-  title: string,
-  onCancel: () => void,
+  bio: string
+  fullname: string
+  location: string
+  title: string
+  onCancel: () => void
   onSubmit: (bio: string, fullname: string, location: string) => void
-};
+}
 
 type State = {
-  bio: string,
-  fullname: string,
+  bio: string
+  fullname: string
   location: string
-};
+}
 
 // TODO move this concept to common adapters
 const RoundedBox = ({side, children}) => (

@@ -5,7 +5,7 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {namedConnect} from '../../util/container'
 import Modal from '../modal'
 
-type OwnProps = {};
+type OwnProps = {}
 
 const Generate = props => (
   <Modal onCancel={props.onCancel}>
@@ -29,6 +29,7 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
+// @ts-ignore codemode issue
 export default namedConnect<OwnProps, _, _, _, _>(
   () => ({}),
   mapDispatchToProps,

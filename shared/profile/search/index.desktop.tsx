@@ -1,9 +1,9 @@
-import React from 'react'
+import * as React from 'react'
 import SearchResultsList from '../../search/results-list/container'
 import UserInput from '../../search/user-input/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import { Props } from '.';
+import {Props} from '.'
 import {searchKey, placeholder} from './index.shared'
 
 const Search = (props: Props) => (

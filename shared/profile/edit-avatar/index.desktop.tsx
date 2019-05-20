@@ -86,9 +86,8 @@ class EditAvatar extends React.Component<_Props, State> {
     const paths = fileList.length
       ? Array.prototype.map
           .call(fileList, (f: File) => {
-            // We rely on path being here, even though it's
-            // not part of the File spec.
-            // $ForceType
+            // We rely on path being here, even though it's not part of the File spec.
+            // @ts-ignore
             const path: string = f.path
             return path
           })
@@ -149,7 +148,7 @@ class EditAvatar extends React.Component<_Props, State> {
     this.setState({imageSource: path})
   }
 
-  _onImageLoad = (e: React.SyntheticEvent) => {
+  _onImageLoad = (e: React.SyntheticEvent<any>) => {
     // TODO: Make RPC to check file size and warn them before they try submitting.
 
     let height = AVATAR_SIZE
@@ -181,7 +180,7 @@ class EditAvatar extends React.Component<_Props, State> {
     }, 1500)
   }
 
-  _onRangeChange = (e: SyntheticInputEvent<any>) => {
+  _onRangeChange = (e: React.FormEvent<any>) => {
     const scale = parseFloat(e.currentTarget.value)
     const scaledImageHeight = this.state.startingImageHeight * scale
     const scaledImageWidth = this.state.startingImageWidth * scale
@@ -214,7 +213,9 @@ class EditAvatar extends React.Component<_Props, State> {
     this.setState({
       dragStartX: e.pageX,
       dragStartY: e.pageY,
+      // @ts-ignore codemode issue
       dragStopX: img && img.style.left ? parseInt(img.style.left, 10) : this.state.dragStopX,
+      // @ts-ignore codemode issue
       dragStopY: img && img.style.top ? parseInt(img.style.top, 10) : this.state.dragStopY,
       dragging: true,
     })
@@ -226,7 +227,9 @@ class EditAvatar extends React.Component<_Props, State> {
     const img = this._image.current
 
     this.setState({
+      // @ts-ignore codemode issue
       dragStopX: img && img.style.left ? parseInt(img.style.left, 10) : this.state.dragStopX,
+      // @ts-ignore codemode issue
       dragStopY: img && img.style.top ? parseInt(img.style.top, 10) : this.state.dragStopY,
       dragging: false,
     })

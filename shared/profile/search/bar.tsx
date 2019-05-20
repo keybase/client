@@ -1,17 +1,17 @@
-import React from 'react'
+import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import Search from './container'
 
 type Props = {
-  onSearch: () => void,
-  style?: Styles.StylesCrossPlatform,
+  onSearch: () => void
+  style?: Styles.StylesCrossPlatform
   whiteText?: boolean
-};
+}
 
 type State = {
   show: boolean
-};
+}
 
 class ProfileSearch extends React.PureComponent<Props, State> {
   state = {show: false}

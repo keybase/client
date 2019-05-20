@@ -103,16 +103,20 @@ const mergeProps = (stateProps, dispatchProps, {profileUsername}) => ({
             })),
         ],
 })
+// @ts-ignore codemode issue
+const hasFolders = namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'ConnectedFolders'
+)(Folders)
 
-export default (flags.foldersInProfileTab
-  ? // @ts-ignore codemode issue
-    namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedFolders')(
-      Folders
-    )
-  : // @ts-ignore codemode issue
-    namedConnect<OwnProps, _, _, _, _>(
-      () => ({}),
-      () => ({}),
-      () => ({loadTlfs: () => {}, tlfs: []}),
-      'ConnectedFolders'
-    )(Folders))
+// @ts-ignore codemode issue
+const noFolders = namedConnect<OwnProps, _, _, _, _>(
+  () => ({}),
+  () => ({}),
+  () => ({loadTlfs: () => {}, tlfs: []}),
+  'ConnectedFolders'
+)(Folders)
+
+export default (flags.foldersInProfileTab ? hasFolders : noFolders)
