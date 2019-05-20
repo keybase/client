@@ -652,6 +652,9 @@ func decryptMDPrivateData(ctx context.Context, codec kbfscodec.Codec,
 			pmd, err = crypto.DecryptPrivateMetadata(
 				encryptedPrivateMetadata, k)
 			if err != nil {
+				log.CDebugf(
+					ctx, "Failed to decrypt MD for id=%s, keygen=%d",
+					rmdToDecrypt.TlfID(), rmdToDecrypt.LatestKeyGeneration())
 				return PrivateMetadata{}, err
 			}
 		}
@@ -662,6 +665,10 @@ func decryptMDPrivateData(ctx context.Context, codec kbfscodec.Codec,
 		ctx, codec, bcache, bops, mode, rmdWithKeys.TlfID(),
 		&pmd, rmdWithKeys, log)
 	if err != nil {
+		log.CDebugf(
+			ctx, "Failed to re-embed block changes for id=%s, keygen=%d, info pointer=%v",
+			rmdToDecrypt.TlfID(), rmdToDecrypt.LatestKeyGeneration(),
+			pmd.Changes.Info)
 		return PrivateMetadata{}, err
 	}
 

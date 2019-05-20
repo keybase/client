@@ -194,6 +194,9 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 		tlfCryptKey, err =
 			kmd.GetHistoricTLFCryptKey(km.config.Codec(), keyGen, latestKey)
 		if err != nil {
+			km.log.CDebugf(
+				ctx, "Can't get historic TLF crypt key for id=%s, keyGen=%d",
+				tlfID, keyGen)
 			return kbfscrypto.TLFCryptKey{}, err
 		}
 	} else if err != nil {
