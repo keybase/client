@@ -24,7 +24,7 @@ const babelRule = {
 
 module.exports = ({config, mode}) => {
   config.resolve = {
-    extensions: ['.desktop.js', '.js', '.jsx', '.json'],
+    extensions: ['.desktop.js', '.js', '.jsx', '.json', '.flow', '.ts', '.tsx'],
   }
 
   config.plugins = [
@@ -77,6 +77,10 @@ module.exports = ({config, mode}) => {
     {
       test: /\.css$/,
       use: ['style-loader', 'css-loader'],
+    },
+    {
+      test: /\.(ts|tsx)$/,
+      use: ['babel-loader'],
     },
   ]
 

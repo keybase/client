@@ -1,0 +1,26 @@
+import * as Container from '../../util/container'
+import * as Constants from '../../constants/devices'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import {HeaderTitle as _HeaderTitle, HeaderRightActions as _HeaderRightActions} from '.'
+
+const mapStateToPropsHeaderTitle = state => Constants.getDeviceCounts(state)
+
+// @ts-ignore codemode issue
+export const HeaderTitle = Container.namedConnect<{}, _, _, _, _>(
+  mapStateToPropsHeaderTitle,
+  () => ({}),
+  (s, d, o) => s,
+  'DevicesHeaderTitle'
+)(_HeaderTitle)
+
+const mapDispatchToPropsHeaderRightActions = dispatch => ({
+  onAdd: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['deviceAdd']})),
+})
+
+// @ts-ignore codemode issue
+export const HeaderRightActions = Container.namedConnect<{}, _, _, _, _>(
+  () => ({}),
+  mapDispatchToPropsHeaderRightActions,
+  (s, d, o) => d,
+  'DevicesHeaderRightActions'
+)(_HeaderRightActions)
