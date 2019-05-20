@@ -4,13 +4,13 @@ import * as Styles from '../../styles'
 import {isLargeScreen} from '../../constants/platform'
 
 type Props = {
-  highlight?: Array<"computer" | "phone" | "paper key"> | null,
-  onAddComputer: () => void,
-  onAddPaperKey: () => void,
-  onAddPhone: () => void,
-  onCancel: () => void,
+  highlight?: Array<'computer' | 'phone' | 'paper key'> | null
+  onAddComputer: () => void
+  onAddPaperKey: () => void
+  onAddPhone: () => void
+  onCancel: () => void
   title: string
-};
+}
 
 const AddDevice = (props: Props) => (
   <Kb.ScrollView alwaysBounceVertical={false}>
