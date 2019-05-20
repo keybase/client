@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/BurntSushi/toml"
@@ -124,6 +125,42 @@ func ValidateStellarURI(uri string, getter HTTPGetter) (*ValidatedStellarURI, er
 	return uv.Validate(getter)
 }
 
+// MemoExport returns a Memo type based on Memo, MemoType from the URI.
+func (v *ValidatedStellarURI) MemoExport() (*Memo, error) {
+	switch v.MemoType {
+	case "MEMO_TEXT":
+		return NewMemoText(v.Memo), nil
+	case "MEMO_ID":
+		id, err := strconv.ParseUint(v.Memo, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		return NewMemoID(id), nil
+	case "MEMO_HASH":
+		hash, err := base64.StdEncoding.DecodeString(v.Memo)
+		if err != nil {
+			return nil, err
+		}
+		var bhash MemoHash
+		copy(bhash[:], hash)
+		return NewMemoHash(bhash), nil
+	case "MEMO_RETURN":
+		hash, err := base64.StdEncoding.DecodeString(v.Memo)
+		if err != nil {
+			return nil, err
+		}
+		var bhash MemoHash
+		copy(bhash[:], hash)
+		return NewMemoReturn(bhash), nil
+	case "":
+		if v.Memo == "" {
+			return NewMemoNone(), nil
+		}
+	}
+
+	return nil, errors.New("invalid memo")
+}
+
 type unvalidatedURI struct {
 	raw          string
 	values       url.Values
@@ -165,8 +202,7 @@ func (u *unvalidatedURI) Validate(getter HTTPGetter) (*ValidatedStellarURI, erro
 		return nil, ErrMissingParameter{Key: "signature"}
 	}
 
-	// make sure there's no port or scheme
-	if strings.IndexByte(u.OriginDomain, ':') != -1 {
+	if !isDomainName(u.OriginDomain) {
 		return nil, ErrInvalidParameter{Key: "origin_domain"}
 	}
 
@@ -241,7 +277,9 @@ func (u *unvalidatedURI) validateOriginDomain(getter HTTPGetter) error {
 
 func (u *unvalidatedURI) payload() []byte {
 	// get the portion of the URI that was signed by stripping &signature off the end
-	index := strings.LastIndex(u.raw, "&signature=")
+	// note that we are stripping off whatever is the last parameter.  In a valid URI
+	// that will be the signature.
+	index := strings.LastIndex(u.raw, "&")
 	if index == -1 {
 		// this shouldn't happen because we already checked that signature
 		// exists
@@ -333,4 +371,60 @@ func payloadFromString(data string) []byte {
 	payload = append(payload, []byte(data)...)
 
 	return payload
+}
+
+// Copied from Go source for net/dnsclient.go
+//
+// isDomainName checks if a string is a presentation-format domain name
+// (currently restricted to hostname-compatible "preferred name" LDH labels and
+// SRV-like "underscore labels"; see golang.org/issue/12421).
+func isDomainName(s string) bool {
+	// terminal empty label is optional here because we assume fully-qualified
+	// (absolute) input. We must therefore reserve space for the first and last
+	// labels' length octets in wire format, where they are necessary and the
+	// maximum total length is 255.
+	// So our _effective_ maximum is 253, but 254 is not rejected if the last
+	// character is a dot.
+	l := len(s)
+	if l == 0 || l > 254 || l == 254 && s[l-1] != '.' {
+		return false
+	}
+
+	last := byte('.')
+	ok := false // Ok once we've seen a letter.
+	partlen := 0
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		switch {
+		default:
+			return false
+		case 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z' || c == '_':
+			ok = true
+			partlen++
+		case '0' <= c && c <= '9':
+			// fine
+			partlen++
+		case c == '-':
+			// Byte before dash cannot be dot.
+			if last == '.' {
+				return false
+			}
+			partlen++
+		case c == '.':
+			// Byte before dot cannot be dot, dash.
+			if last == '.' || last == '-' {
+				return false
+			}
+			if partlen > 63 || partlen == 0 {
+				return false
+			}
+			partlen = 0
+		}
+		last = c
+	}
+	if last == '-' || partlen > 63 {
+		return false
+	}
+
+	return ok
 }

@@ -4,7 +4,7 @@ export {default as globalColors} from './colors'
 
 export declare const transition: (...properties: Array<string>) => Object
 
-type _fakeFontDefSeeCommentsOnThisStyle = {
+type fontShape = {
   fontFamily: 'Keybase'
   fontWeight: '700'
   fontStyle: 'normal'
@@ -37,20 +37,16 @@ export declare const globalStyles: {
   flexGrow: {
     flexGrow: 1
   }
-  fontBold: {
-    fontFamily: 'Keybase'
-    fontWeight: '700'
-    fontStyle: 'normal'
-  }
-  fontExtrabold: _fakeFontDefSeeCommentsOnThisStyle
-  fontRegular: _fakeFontDefSeeCommentsOnThisStyle
-  fontSemibold: _fakeFontDefSeeCommentsOnThisStyle
-  fontTerminal: _fakeFontDefSeeCommentsOnThisStyle
-  fontTerminalSemibold: _fakeFontDefSeeCommentsOnThisStyle
+  fontBold: fontShape
+  fontExtrabold: fontShape
+  fontRegular: fontShape
+  fontSemibold: fontShape
+  fontTerminal: fontShape
+  fontTerminalSemibold: fontShape
   fullHeight: {
     height: '100%'
   }
-  italic: _fakeFontDefSeeCommentsOnThisStyle
+  italic: fontShape
   loadingTextStyle: CSS._StylesCrossPlatform
   rounded: {
     borderRadius: 3

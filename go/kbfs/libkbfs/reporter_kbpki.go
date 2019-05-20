@@ -88,6 +88,7 @@ type ReporterKBPKI struct {
 	notifyPathBuffer        chan string
 	notifySyncBuffer        chan *keybase1.FSPathSyncStatus
 	notifyOverallSyncBuffer chan keybase1.FolderSyncStatus
+	notifyFavsBuffer        chan struct{}
 	shutdownCh              chan struct{}
 	canceler                func()
 
@@ -108,6 +109,7 @@ func NewReporterKBPKI(config Config, maxErrors, bufSize int) *ReporterKBPKI {
 		notifyPathBuffer:        make(chan string, 1),
 		notifySyncBuffer:        make(chan *keybase1.FSPathSyncStatus, 1),
 		notifyOverallSyncBuffer: make(chan keybase1.FolderSyncStatus, 1),
+		notifyFavsBuffer:        make(chan struct{}, 1),
 		shutdownCh:              make(chan struct{}),
 	}
 	var ctx context.Context
@@ -280,6 +282,18 @@ func (r *ReporterKBPKI) NotifySyncStatus(ctx context.Context,
 	}
 }
 
+// NotifyFavoritesChanged implements the Reporter interface for
+// ReporterSimple.
+func (r *ReporterKBPKI) NotifyFavoritesChanged(ctx context.Context) {
+	select {
+	case r.notifyFavsBuffer <- struct{}{}:
+	default:
+		r.vlog.CLogf(
+			ctx, libkb.VLog1, "ReporterKBPKI: notify favs buffer full, "+
+				"dropping")
+	}
+}
+
 // NotifyOverallSyncStatus implements the Reporter interface for ReporterKBPKI.
 func (r *ReporterKBPKI) NotifyOverallSyncStatus(
 	ctx context.Context, status keybase1.FolderSyncStatus) {
@@ -313,15 +327,21 @@ func (r *ReporterKBPKI) Shutdown() {
 	close(r.onlineStatusBuffer)
 	close(r.notifySyncBuffer)
 	close(r.notifyOverallSyncBuffer)
+	close(r.notifyFavsBuffer)
 }
 
-const reporterSendInterval = time.Second
+const (
+	reporterSendInterval    = time.Second
+	reporterFavSendInterval = 5 * time.Second
+)
 
 // send takes notifications out of notifyBuffer, notifyPathBuffer, and
 // notifySyncBuffer and sends them to the keybase daemon.
 func (r *ReporterKBPKI) send(ctx context.Context) {
 	sendTicker := time.NewTicker(reporterSendInterval)
 	defer sendTicker.Stop()
+	favSendTicker := time.NewTicker(reporterFavSendInterval)
+	defer favSendTicker.Stop()
 
 	for {
 		select {
@@ -391,6 +411,19 @@ func (r *ReporterKBPKI) send(ctx context.Context) {
 					ctx, status); err != nil {
 					r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
 						"overall sync status: %s", err)
+				}
+			default:
+			}
+		case <-favSendTicker.C:
+			select {
+			case _, ok := <-r.notifyFavsBuffer:
+				if !ok {
+					return
+				}
+				if err := r.config.KeybaseService().NotifyFavoritesChanged(
+					ctx); err != nil {
+					r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
+						"favorites changed notification: %s", err)
 				}
 			default:
 			}

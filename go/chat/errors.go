@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/ephemeral"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -27,7 +28,7 @@ type PermanentUnboxingError struct{ inner error }
 
 func (e PermanentUnboxingError) Error() string {
 	switch err := e.inner.(type) {
-	case EphemeralUnboxingError:
+	case EphemeralUnboxingError, NotAuthenticatedForThisDeviceError:
 		return err.Error()
 	default:
 		return fmt.Sprintf("Unable to decrypt chat message: %s", err.Error())
@@ -202,14 +203,20 @@ func (e PublicTeamEphemeralKeyError) Error() string {
 
 //=============================================================================
 
-type NotAuthenticatedForThisDeviceError struct{}
+type NotAuthenticatedForThisDeviceError struct{ inner ephemeral.EphemeralKeyError }
 
-func NewNotAuthenticatedForThisDeviceError() NotAuthenticatedForThisDeviceError {
-	return NotAuthenticatedForThisDeviceError{}
+func NewNotAuthenticatedForThisDeviceError(mctx libkb.MetaContext, tlfID chat1.TLFID,
+	contentCtime gregor1.Time) NotAuthenticatedForThisDeviceError {
+	inner := ephemeral.NewNotAuthenticatedForThisDeviceError(mctx, tlfID, contentCtime)
+	return NotAuthenticatedForThisDeviceError{inner: inner}
 }
 
 func (e NotAuthenticatedForThisDeviceError) Error() string {
-	return "Message is not authenticated for this device"
+	return e.inner.HumanError()
+}
+
+func (e NotAuthenticatedForThisDeviceError) InternalError() string {
+	return e.inner.Error()
 }
 
 //=============================================================================

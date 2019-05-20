@@ -8,6 +8,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/stellarcommon"
+	"github.com/keybase/stellarnet"
 )
 
 func SendPaymentLocal(mctx libkb.MetaContext, arg stellar1.SendPaymentLocalArg) (res stellar1.SendPaymentResLocal, err error) {
@@ -81,7 +82,7 @@ func SendPaymentLocal(mctx libkb.MetaContext, arg stellar1.SendPaymentLocalArg) 
 		Amount:         arg.Amount,
 		DisplayBalance: displayBalance,
 		SecretNote:     arg.SecretNote,
-		PublicMemo:     arg.PublicMemo,
+		PublicMemo:     stellarnet.NewMemoText(arg.PublicMemo),
 		ForceRelay:     false,
 		QuickReturn:    arg.QuickReturn,
 	})

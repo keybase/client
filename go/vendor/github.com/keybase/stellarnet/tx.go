@@ -332,6 +332,25 @@ func (t *Tx) skipAddMemo() bool {
 	return false
 }
 
+// AddMemo adds a memo to the transaction.  There can only
+// be one memo.
+func (t *Tx) AddMemo(memo *Memo) {
+	if t.skipAddMemo() {
+		return
+	}
+	if memo == nil {
+		return
+	}
+
+	m, err := memo.toXDR()
+	if err != nil {
+		t.err = err
+		return
+	}
+
+	t.internal.Memo = m
+}
+
 // AddMemoText adds a text memo to the transaction.  There can only
 // be one memo.
 func (t *Tx) AddMemoText(memo string) {
