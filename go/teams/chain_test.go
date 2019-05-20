@@ -474,12 +474,13 @@ func TestMemberCtime(t *testing.T) {
 			},
 		})
 
-	// user joined later as an admin
+	// user left and joined later as an admin
 	tcs = newTeamChainState()
 	ctime = tcs.MemberCtime(uv)
 	require.NotNil(t, ctime)
 	require.EqualValues(t, 3, *ctime)
 
+	// user had a bunch of non-NONE roles, we should return the first join time
 	points = nil
 	for i := 0; i < 5; i++ {
 		points = append(points,
