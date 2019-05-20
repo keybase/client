@@ -127,6 +127,7 @@ const styles = Styles.styleSheetCreate({
     marginBottom: Styles.globalMargins.tiny,
   },
   membersContainer: {
+    flex: 1,
     paddingTop: Styles.globalMargins.tiny,
   },
   retentionContainerStyle: Styles.platformStyles({
@@ -148,6 +149,8 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   settingsContainer: {
+    height: '100%',
+    flex: 1,
     paddingTop: Styles.globalMargins.small,
   },
 })

@@ -6,7 +6,9 @@ import InfoPanelMenu from './menu/container'
 import * as ChatTypes from '../../../constants/types/chat2'
 
 type SmallProps = {
+  admin: boolean,
   teamname: string,
+  channelname?: string,
   conversationIDKey: ChatTypes.ConversationIDKey,
   participantCount: number,
   isSmallTeam: boolean,
@@ -14,77 +16,96 @@ type SmallProps = {
 
 const gearIconSize = Styles.isMobile ? 24 : 16
 
-const _SmallTeamHeader = (props: SmallProps) => {
+const _TeamHeader = (props: SmallProps) => {
+  let title = props.teamname
+  if (props.channelname) {
+    title += '#' + props.channelname
+  }
   return (
-    <Kb.Box style={styles.smallContainer}>
-      <InfoPanelMenu
-        attachTo={props.getAttachmentRef}
-        onHidden={props.toggleShowingMenu}
-        isSmallTeam={props.isSmallTeam}
-        teamname={props.teamname}
-        conversationIDKey={props.conversationIDKey}
-        visible={props.showingMenu}
-      />
-      <Kb.ConnectedNameWithIcon
-        containerStyle={styles.flexOne}
-        horizontal={true}
-        teamname={props.teamname}
-        onClick="profile"
-        title={props.teamname}
-        metaOne={props.participantCount.toString() + ' member' + (props.participantCount !== 1 ? 's' : '')}
-      />
-      <Kb.Icon
-        type="iconfont-gear"
-        onClick={props.toggleShowingMenu}
-        ref={props.setAttachmentRef}
-        style={Kb.iconCastPlatformStyles(styles.gear)}
-        fontSize={gearIconSize}
-      />
-    </Kb.Box>
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
+      <Kb.Box2 direction="horizontal" style={styles.smallContainer} fullWidth={true}>
+        <InfoPanelMenu
+          attachTo={props.getAttachmentRef}
+          onHidden={props.toggleShowingMenu}
+          isSmallTeam={props.isSmallTeam}
+          teamname={props.teamname}
+          conversationIDKey={props.conversationIDKey}
+          visible={props.showingMenu}
+        />
+        <Kb.ConnectedNameWithIcon
+          containerStyle={styles.flexOne}
+          horizontal={true}
+          teamname={props.teamname}
+          onClick="profile"
+          title={title}
+          metaOne={props.participantCount.toString() + ' member' + (props.participantCount !== 1 ? 's' : '')}
+        />
+        <Kb.Icon
+          type="iconfont-gear"
+          onClick={props.toggleShowingMenu}
+          ref={props.setAttachmentRef}
+          style={Kb.iconCastPlatformStyles(styles.gear)}
+          fontSize={gearIconSize}
+        />
+      </Kb.Box2>
+      {props.admin && props.isSmallTeam && (
+        <Kb.Button mode="Primary" type="Default" label="Add members to team" style={styles.addMembers} />
+      )}
+      {!props.isSmallTeam && (
+        <Kb.Button mode="Primary" type="Default" label="Add members to channel" style={styles.addMembers} />
+      )}
+    </Kb.Box2>
   )
 }
-const SmallTeamHeader = Kb.OverlayParentHOC(_SmallTeamHeader)
+const TeamHeader = Kb.OverlayParentHOC(_TeamHeader)
 
-// TODO probably factor this out into a connected component
-type BigProps = {|
-  canEditChannel: boolean,
-  channelname: string,
-  description: ?string,
-  teamname: string,
-  onEditChannel: () => void,
+type AdhocProps = {|
+  participants: Array<{
+    username: string,
+    fullname: string,
+  }>,
 |}
 
-type BigTeamHeaderProps = BigProps
-
-const EditBox = Styles.isMobile
-  ? Kb.ClickableBox
-  : Styles.styled(Kb.ClickableBox)({
-      '.header-row:hover &': {
-        opacity: 1,
-      },
-      opacity: 0,
-    })
-
-const BigTeamHeader = (props: BigTeamHeaderProps) => {
+export const AdhocHeader = (props: AdhocProps) => {
   return (
-    <Kb.Box2 direction={'vertical'} fullWidth={true} centerChildren={true} className="header-row">
-      <Kb.Box style={styles.channelnameContainer}>
-        <Kb.Text type="BodyBig">#{props.channelname}</Kb.Text>
-        {props.canEditChannel && (
-          <EditBox style={styles.editBox} onClick={props.onEditChannel}>
-            <Kb.Icon style={Kb.iconCastPlatformStyles(styles.editIcon)} type="iconfont-edit" />
-            <Kb.Text type="BodySmallPrimaryLink" className="hover-underline">
-              Edit
-            </Kb.Text>
-          </EditBox>
-        )}
-      </Kb.Box>
-      {!!props.description && <Kb.Markdown style={styles.description}>{props.description}</Kb.Markdown>}
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.adhocContainer} gap="tiny">
+      <Kb.ScrollView>
+        {props.participants.map(p => {
+          return (
+            <Kb.NameWithIcon
+              key={p.username}
+              colorFollowing={true}
+              containerStyle={styles.adhocPartContainer}
+              horizontal={true}
+              username={p.username}
+              metaOne={p.fullname}
+            />
+          )
+        })}
+      </Kb.ScrollView>
+      <Kb.Button mode="Primary" type="Default" label="Add people" style={styles.addMembers} />
+      <Kb.Text type="BodyTiny" center={true}>
+        A new conversation will be created.
+      </Kb.Text>
+      <Kb.Button mode="Secondary" type="Default" label="Turn into a team" style={styles.addMembers} />
+      <Kb.Text type="BodyTiny" center={true}>
+        Add and delete members as you wish.
+      </Kb.Text>
     </Kb.Box2>
   )
 }
 
 const styles = Styles.styleSheetCreate({
+  addMembers: {
+    marginLeft: Styles.globalMargins.small,
+    marginRight: Styles.globalMargins.small,
+  },
+  adhocContainer: {
+    maxHeight: 230,
+  },
+  adhocPartContainer: {
+    padding: Styles.globalMargins.tiny,
+  },
   channelnameContainer: {
     alignSelf: 'center',
     marginBottom: 2,
@@ -117,10 +138,9 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   smallContainer: {
-    ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    marginLeft: Styles.globalMargins.small,
+    paddingLeft: Styles.globalMargins.small,
   },
 })
 
-export {SmallTeamHeader, BigTeamHeader}
+export {TeamHeader}

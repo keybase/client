@@ -34,7 +34,10 @@ const moreThanOneSubscribedChannel = (metaMap, teamname) => {
   })
 }
 
-const mapStateToProps = (state, {teamname, conversationIDKey, isSmallTeam, visible}: OwnProps) => {
+const mapStateToProps = (
+  state,
+  {teamname, channelname, conversationIDKey, isSmallTeam, visible}: OwnProps
+) => {
   let convProps = null
   if (conversationIDKey && conversationIDKey !== ChatConstants.noConversationIDKey) {
     const meta = state.chat2.metaMap.get(conversationIDKey, ChatConstants.makeConversationMeta())
@@ -55,6 +58,7 @@ const mapStateToProps = (state, {teamname, conversationIDKey, isSmallTeam, visib
     return {
       badgeSubscribe: false,
       canAddPeople: false,
+      channelname,
       convProps,
       hasCanPerform: false,
       isSmallTeam: false,

@@ -43,6 +43,7 @@ type State = {|
   selectedView: RPCChatTypes.GalleryItemTyp,
 |}
 
+const rowSize = 4
 const maxThumbSize = 80
 const monthNames = [
   'January',
@@ -81,43 +82,23 @@ class MediaView extends React.Component<MediaProps> {
   }
 
   _formRows = thumbs => {
-    const rowSize = 4
     let row = []
-    const rows = thumbs.reduce((l, t, index) => {
+    return thumbs.reduce((l, t, index) => {
       if (index % rowSize === 0) {
         if (row.length > 0) {
           l.push(row)
         }
         row = []
       }
-      const sizing = this._resize(t)
-      row.push(
-        <Kb.ClickableBox onClick={t.onClick} style={{...sizing.margins}}>
-          <Kb.Image src={t.previewURL} style={{...sizing.dims}} />
-        </Kb.ClickableBox>
-      )
+      row.push({
+        thumb: t,
+        sizing: this._resize(t),
+      })
       if (index === thumbs.length - 1 && row.length > 0) {
         l.push(row)
       }
       return l
     }, [])
-    return (
-      <Kb.Box2 direction="vertical" fullWidth={true}>
-        {rows.map((row, index) => {
-          return (
-            <Kb.Box2 key={index} direction="horizontal" fullWidth={true}>
-              {row.map((thumb, index) => {
-                return (
-                  <Kb.Box2 key={index} direction="vertical" style={styles.thumbContainer}>
-                    {thumb}
-                  </Kb.Box2>
-                )
-              })}
-            </Kb.Box2>
-          )
-        })}
-      </Kb.Box2>
-    )
   }
 
   _getDateInfo = thumb => {
@@ -128,30 +109,35 @@ class MediaView extends React.Component<MediaProps> {
     }
   }
 
+  _finalizeMonth = month => {
+    month.data = this._formRows(month.thumbs)
+    return month
+  }
+
   _formMonths = thumbs => {
     if (thumbs.length === 0) {
       return []
     }
     let curMonth = {
       ...this._getDateInfo(thumbs[0]),
-      data: [[]],
+      thumbs: [],
     }
     const months = thumbs.reduce((l, t, index) => {
       const dateInfo = this._getDateInfo(t)
       if (dateInfo.month !== curMonth.month || dateInfo.year !== curMonth.year) {
-        if (curMonth.data.length > 0) {
-          l.push(curMonth)
+        if (curMonth.thumbs.length > 0) {
+          l.push(this._finalizeMonth(curMonth))
         }
         curMonth = {
-          data: [[t]],
+          thumbs: [t],
           month: dateInfo.month,
           year: dateInfo.year,
         }
       } else {
-        curMonth.data[0].push(t)
+        curMonth.thumbs.push(t)
       }
-      if (index === thumbs.length - 1 && curMonth.data.length > 0) {
-        l.push(curMonth)
+      if (index === thumbs.length - 1 && curMonth.thumbs.length > 0) {
+        l.push(this._finalizeMonth(curMonth))
       }
       return l
     }, [])
@@ -162,8 +148,20 @@ class MediaView extends React.Component<MediaProps> {
     const label = `${section.month} ${section.year}`
     return <Kb.SectionDivider label={label} />
   }
-  _renderMonth = ({section}) => {
-    return this._formRows(section.data[0])
+  _renderRow = ({item, index}) => {
+    return (
+      <Kb.Box2 key={index} direction="horizontal" fullWidth={true} style={styles.mediaRowContainer}>
+        {item.map((cell, index) => {
+          return (
+            <Kb.Box2 key={index} direction="vertical" style={styles.thumbContainer}>
+              <Kb.ClickableBox onClick={cell.thumb.onClick} style={{...cell.sizing.margins}}>
+                <Kb.Image src={cell.thumb.previewURL} style={{...cell.sizing.dims}} />
+              </Kb.ClickableBox>
+            </Kb.Box2>
+          )
+        })}
+      </Kb.Box2>
+    )
   }
 
   render() {
@@ -174,7 +172,7 @@ class MediaView extends React.Component<MediaProps> {
           stickySectionHeadersEnabled={true}
           renderSectionHeader={this._renderSectionHeader}
           keyboardShouldPersistTaps="handled"
-          renderItem={this._renderMonth}
+          renderItem={this._renderRow}
           sections={months}
         />
       </Kb.Box2>
@@ -197,16 +195,25 @@ class AttachmentPanel extends React.Component<Props, State> {
 
   render() {
     let content
+    let isLoading = false
     switch (this.state.selectedView) {
       case RPCChatTypes.localGalleryItemTyp.media:
         content = <MediaView media={this.props.media} />
+        isLoading = this.props.media.status === 'loading'
         break
       case RPCChatTypes.localGalleryItemTyp.docs:
         content = <DocView docs={this.props.docs} />
+        isLoading = this.props.docs.status === 'loading'
         break
     }
+    content = (
+      <Kb.Box2 direction="vertical">
+        {isLoading && <Kb.ProgressIndicator style={styles.progress} />}
+        {content}
+      </Kb.Box2>
+    )
     return (
-      <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
         <Kb.ButtonBar direction="row">
           <Kb.Button type="Default" mode="Secondary" small={true} label="Media" />
           <Kb.Button type="Default" mode="Secondary" small={true} label="Docs" />
@@ -220,6 +227,18 @@ class AttachmentPanel extends React.Component<Props, State> {
 }
 
 const styles = Styles.styleSheetCreate({
+  container: {
+    height: '100%',
+    flex: 1,
+  },
+  progress: {
+    alignSelf: 'center',
+    height: Styles.globalMargins.medium,
+    width: Styles.globalMargins.medium,
+  },
+  mediaRowContainer: {
+    minWidth: rowSize * maxThumbSize,
+  },
   thumbContainer: {
     overflow: 'hidden',
   },

@@ -5,7 +5,7 @@ import * as Flow from '../../../util/flow'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import type {Props as HeaderHocProps} from '../../../common-adapters/header-hoc/types'
-import {SmallTeamHeader, BigTeamHeader} from './header'
+import {AdhocHeader, TeamHeader} from './header'
 import Notifications from './notifications/container'
 import AddPeople from './add-people'
 import Participant from './participant'
@@ -259,18 +259,25 @@ class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
     return s === this.state.selectedPanel
   }
 
-  _getTabs = () => {
-    return [
+  _getTabs = entityType => {
+    const res = [
       <Kb.Box key="settings" style={styles.tabTextContainer}>
         <TabText selected={this._isSelected('settings')} text="Settings" />
       </Kb.Box>,
-      <Kb.Box key="members" style={styles.tabTextContainer}>
-        <TabText selected={this._isSelected('members')} text="Members" />
-      </Kb.Box>,
+    ]
+    if (entityType !== 'adhoc') {
+      res.push(
+        <Kb.Box key="members" style={styles.tabTextContainer}>
+          <TabText selected={this._isSelected('members')} text="Members" />
+        </Kb.Box>
+      )
+    }
+    res.push(
       <Kb.Box key="attachments" style={styles.tabTextContainer}>
         <TabText selected={this._isSelected('attachments')} text="Attachments" />
-      </Kb.Box>,
-    ]
+      </Kb.Box>
+    )
+    return res
   }
 
   _onSelectTab = tab => {
@@ -279,13 +286,26 @@ class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
 
   render() {
     const entityType = this._getEntityType()
-    const tabs = this._getTabs()
+    const tabs = this._getTabs(entityType)
     const selected = tabs.find(tab => this._isSelected(tab.key)) || null
-    return (
-      <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
-        <Kb.Box2 direction="vertical">
-          <Kb.Tabs tabs={tabs} selected={selected} onSelect={this._onSelectTab} />
-        </Kb.Box2>
+    const header = (
+      <>
+        {entityType === 'small team' || entityType === 'channel' ? (
+          <TeamHeader
+            admin={this.props.admin}
+            teamname={this.props.teamname}
+            channelname={this.props.channelname}
+            conversationIDKey={this.props.selectedConversationIDKey}
+            isSmallTeam={entityType === 'small team'}
+            participantCount={this.props.participants.length}
+          />
+        ) : (
+          <AdhocHeader participants={this.props.participants} />
+        )}
+      </>
+    )
+    const content = (
+      <>
         {this._isSelected('settings') && (
           <SettingsPanel
             canDeleteHistory={this.props.canDeleteHistory}
@@ -306,6 +326,15 @@ class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
         {this._isSelected('attachments') && (
           <AttachmentPanel conversationIDKey={this.props.selectedConversationIDKey} />
         )}
+      </>
+    )
+    return (
+      <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
+        {header}
+        <Kb.Box2 direction="vertical" fullWidth={true}>
+          <Kb.Tabs tabs={tabs} selected={selected} onSelect={this._onSelectTab} />
+        </Kb.Box2>
+        {content}
       </Kb.Box2>
     )
   }
