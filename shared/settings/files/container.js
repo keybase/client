@@ -28,7 +28,7 @@ export default (isMobile
       (s, d, o) => ({
         ...s,
         ...o,
-        onChangedSyncNotifications: (selectedIdx) => d._onEnableSyncNotifications(allowedNotificationThresholds[selectedIdx]),
+        onChangedSyncNotifications: (selectedIdx: number) => d._onEnableSyncNotifications(allowedNotificationThresholds[selectedIdx]),
         onDisable: d.onDisable,
         onDisableSyncNotifications: d.onDisableSyncNotifications,
         onEnable: d.onEnable,

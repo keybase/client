@@ -34,7 +34,8 @@ export const DropdownButton = (props: DropdownButtonProps) => (
 )
 
 type Props<N: React.Node> = {
-  onChanged: (selected: N) => void,
+  onChanged?: (selected: N) => void,
+  onChangedIdx?: (selectedIdx: number) => void,
   selected?: N,
   items: Array<N>,
   style?: Styles.StylesCrossPlatform,
@@ -92,6 +93,7 @@ class Dropdown<N: React.Node> extends React.Component<Props<N> & OverlayParentPr
                   // Bug in flow that doesn't let us just call this function
                   // this._onSelect(i)
                   this.props.onChanged && this.props.onChanged(i)
+                  this.props.onChangedIdx && this.props.onChangedIdx(idx)
                   this._onSelect()
                 }}
                 style={styles.itemClickBox}

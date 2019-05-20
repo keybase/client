@@ -83,7 +83,7 @@ const ThresholdDropdownDesktop = (props: Props) => (
     items={allowedNotificationThresholds.map(i => (
       <Kb.Text type="Body" key={i} >{Constants.humanizeBytes(i, 0)}</Kb.Text>
     ))}
-    onChanged={props.onChangedSyncNotifications}
+    onChangedIdx={props.onChangedSyncNotifications}
     selected={(
       <Kb.Box2 direction="horizontal" key={props.spaceAvailableNotificationThreshold || defaultNotificationThreshold}>
         <Kb.Text type="Body">{Constants.humanizeBytes(props.spaceAvailableNotificationThreshold || defaultNotificationThreshold, 0)}</Kb.Text>
