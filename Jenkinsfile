@@ -2,7 +2,7 @@
 
 import groovy.json.JsonSlurperClassic
 
-helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-helpers.git', 'pzduniak/log-split', null, 'linux')
+helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-helpers.git', 'master', null, 'linux')
 
 def withKbweb(closure) {
   try {
@@ -56,7 +56,7 @@ helpers.rootLinuxNode(env, {
   env.GOPATH="${env.BASEDIR}/go"
   def mysqlImage = docker.image("keybaseprivate/mysql")
   def gregorImage = docker.image("keybaseprivate/kbgregor")
-  def kbwebImage = docker.image("keybaseprivate/kbweb:log-split")
+  def kbwebImage = docker.image("keybaseprivate/kbweb")
   def glibcImage = docker.image("keybaseprivate/glibc")
   def clientImage = null
 

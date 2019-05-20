@@ -92,8 +92,6 @@ func TestCancelResetPipeline(t *testing.T) {
 	require.NoError(t, err)
 	assertResetBadgeState(t, ann, 0)
 
-	panic("hi") // clear failure here remove
-
 	// fail without a session
 	ann.logout()
 	uis = libkb.UIs{
