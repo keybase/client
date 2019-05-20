@@ -5,12 +5,12 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
 export type Props = {
-  device: Types.Device,
-  endangeredTLFs: Array<string>,
-  onCancel: () => void,
-  onSubmit: () => void,
+  device: Types.Device
+  endangeredTLFs: Array<string>
+  onCancel: () => void
+  onSubmit: () => void
   waiting: boolean
-};
+}
 
 class EndangeredTLFList extends React.Component<{
   endangeredTLFs: Array<string>

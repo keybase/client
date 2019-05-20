@@ -4,14 +4,14 @@ import * as Flow from '../../util/flow'
 import * as Styles from '../../styles'
 
 type Props = {
-  isCurrentDevice: boolean,
-  name: string,
-  isRevoked: boolean,
-  isNew: boolean,
-  type: "desktop" | "backup" | "mobile",
-  showExistingDevicePage: () => void,
+  isCurrentDevice: boolean
+  name: string
+  isRevoked: boolean
+  isNew: boolean
+  type: 'desktop' | 'backup' | 'mobile'
+  showExistingDevicePage: () => void
   firstItem: boolean
-};
+}
 
 const DeviceRow = (props: Props) => {
   let icon
