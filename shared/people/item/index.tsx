@@ -1,16 +1,15 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {formatTimeForPeopleItem} from '../../util/timestamp'
 
 export type Props = {
-  badged: boolean,
-  icon?: React.Node,
-  children: React.Node,
-  when?: Date,
-  contentStyle?: any,
-  format?: 'single' | 'multi',
+  badged: boolean
+  icon?: React.ReactNode
+  children: React.ReactNode
+  when?: Date
+  contentStyle?: any
+  format?: 'single' | 'multi'
 }
 
 export default (props: Props) => (

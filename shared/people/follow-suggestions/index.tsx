@@ -1,14 +1,14 @@
-// @flow
 import * as React from 'react'
+// ts-ignore codemod issue
 import * as Types from '../../constants/types/people'
 import {Box, ConnectedNameWithIcon, ScrollView, Text} from '../../common-adapters'
 import * as Styles from '../../styles'
 
 export type FollowSuggestion = Types.FollowSuggestion
 
-export type Props = {|
-  suggestions: Array<FollowSuggestion>,
-|}
+export type Props = {
+  suggestions: Array<FollowSuggestion>
+}
 
 export default (props: Props) => (
   <Box style={styles.container}>

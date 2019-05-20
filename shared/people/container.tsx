@@ -1,12 +1,11 @@
-// @flow
 import * as I from 'immutable'
 import * as React from 'react'
 import * as Constants from '../constants/people'
 import * as Types from '../constants/types/people'
 import * as Kb from '../common-adapters'
-import People, {Header} from '.'
+import People, {Header} from './types'
 import * as PeopleGen from '../actions/people-gen'
-import {connect, type RouteProps, isMobile} from '../util/container'
+import {connect, RouteProps, isMobile} from '../util/container'
 import {createSearchSuggestions} from '../actions/search-gen'
 import {createShowUserProfile} from '../actions/profile-gen'
 import * as WaitingConstants from '../constants/waiting'
@@ -32,14 +31,14 @@ const ConnectedHeader = connect<OwnProps, _, _, _, _>(
 )(Header)
 
 type Props = {
-  oldItems: I.List<Types.PeopleScreenItem>,
-  newItems: I.List<Types.PeopleScreenItem>,
-  followSuggestions: I.List<Types.FollowSuggestion>,
-  getData: (markViewed?: boolean) => void,
-  onClickUser: (username: string) => void,
-  showAirdrop: boolean,
-  myUsername: string,
-  waiting: boolean,
+  oldItems: I.List<Types.PeopleScreenItem>
+  newItems: I.List<Types.PeopleScreenItem>
+  followSuggestions: I.List<Types.FollowSuggestion>
+  getData: (markViewed?: boolean) => void
+  onClickUser: (username: string) => void
+  showAirdrop: boolean
+  myUsername: string
+  waiting: boolean
 }
 
 class LoadOnMount extends React.PureComponent<Props> {

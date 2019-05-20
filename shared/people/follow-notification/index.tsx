@@ -1,4 +1,3 @@
-// @flow
 import React from 'react'
 import PeopleItem from '../item'
 import * as Types from '../../constants/types/people'
@@ -18,7 +17,9 @@ const connectedUsernamesProps = {
 
 export type NewFollow = Types.FollowedNotification
 
-export type Props = Types.FollowedNotificationItem & {onClickUser: (username: string) => void}
+export type Props = Types.FollowedNotificationItem & {
+  onClickUser: (username: string) => void
+}
 
 // TODO remove this any type
 export default (props: any) => {

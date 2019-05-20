@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as Types from '../constants/types/people'
 import * as Kb from '../common-adapters'
@@ -7,10 +6,13 @@ import Todo from './todo/container'
 import FollowNotification from './follow-notification'
 import Announcement from './announcement/container'
 import FollowSuggestions from './follow-suggestions'
-import {type Props} from '.'
+import {Props} from './types'
 import AirdropBanner from '../wallets/airdrop/banner/container'
 
-export const itemToComponent: (Types.PeopleScreenItem, Props) => React.Node = (item, props) => {
+export const itemToComponent: (arg0: Types.PeopleScreenItem, props: Props) => React.ReactNode = (
+  item,
+  props
+) => {
   switch (item.type) {
     case 'todo':
       return (

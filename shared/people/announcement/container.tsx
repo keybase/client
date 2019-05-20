@@ -1,4 +1,3 @@
-// @flow
 import Announcement from '.'
 import * as PeopleGen from '../../actions/people-gen'
 import * as RouteTree from '../../actions/route-tree-gen'
@@ -8,16 +7,16 @@ import * as SettingsTabs from '../../constants/settings'
 import openURL from '../../util/open-url'
 import {namedConnect, isMobile} from '../../util/container'
 
-type OwnProps = {|
-  appLink: ?RPCTypes.AppLinkType,
-  badged: boolean,
-  confirmLabel: ?string,
-  dismissable: boolean,
-  iconUrl: ?string,
-  id: RPCTypes.HomeScreenAnnouncementID,
-  text: string,
-  url: ?string,
-|}
+type OwnProps = {
+  appLink: RPCTypes.AppLinkType | null
+  badged: boolean
+  confirmLabel: string | null
+  dismissable: boolean
+  iconUrl: string | null
+  id: RPCTypes.HomeScreenAnnouncementID
+  text: string
+  url: string | null
+}
 
 const mapStateToProps = () => ({})
 

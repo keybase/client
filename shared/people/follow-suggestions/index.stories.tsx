@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as Constants from '../../constants/people'
@@ -67,6 +66,7 @@ const props2 = {
   ].map(Constants.makeFollowSuggestion),
 }
 
+// ts-ignore codemod issue
 const props3 = {
   suggestions: props2.suggestions.concat(
     props2.suggestions.map(suggestion => suggestion.set('username', suggestion.username + '1'))
