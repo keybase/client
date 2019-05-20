@@ -14,8 +14,8 @@ import flags from '../../util/feature-flags'
 type Props = {|
   areSettingsLoading: boolean,
   driverStatus: Types.DriverStatus,
-  onEnable: () => void,
   onDisable: () => void,
+  onEnable: () => void,
   onShowKextPermissionPopup: () => void,
   spaceAvailableNotificationThreshold: number,
   onChangedSyncNotifications: (number) => void,

@@ -110,6 +110,9 @@ export const commonProvider = {
   RefreshDriverStatusOnMount: () => ({
     refresh: Sb.action('refresh'),
   }),
+  RefreshSettings: () => ({
+    refresh: Sb.action('refresh'),
+  }),
   SyncStatus: () => ({
     folder: false,
     status: 'online-only',
