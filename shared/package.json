@@ -153,6 +153,7 @@
     "react": "16.8.3",
     "react-dom": "16.8.3",
     "react-gateway": "3.0.0",
+    "react-is": "16.8.6",
     "react-list": "0.8.11",
     "react-measure": "2.2.2",
     "react-native": "0.59.8",

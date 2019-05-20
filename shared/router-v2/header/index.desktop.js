@@ -7,6 +7,7 @@ import * as Window from '../../util/window-management'
 import SyncingFolders from './syncing-folders'
 import flags from '../../util/feature-flags'
 import AppState from '../../app/app-state.desktop'
+import * as ReactIs from 'react-is'
 // A mobile-like header for desktop
 
 // Fix this as we figure out what this needs to be
@@ -79,19 +80,23 @@ class Header extends React.PureComponent<Props> {
       title = <PlainTitle title={opt.title} />
     }
 
-    if (typeof opt.headerTitle === 'function') {
-      const CustomTitle = opt.headerTitle
-      title = <CustomTitle>{opt.title}</CustomTitle>
+    if (opt.headerTitle) {
+      if (React.isValidElement(opt.headerTitle)) {
+        title = opt.headerTitle
+      } else if (ReactIs.isValidElementType(opt.headerTitle)) {
+        const CustomTitle = opt.headerTitle
+        title = <CustomTitle>{opt.title}</CustomTitle>
+      }
     }
 
     let rightActions = null
-    if (typeof opt.headerRightActions === 'function') {
+    if (ReactIs.isValidElementType(opt.headerRightActions)) {
       const CustomActions = opt.headerRightActions
       rightActions = <CustomActions />
     }
 
     let subHeader = null
-    if (typeof opt.subHeader === 'function') {
+    if (ReactIs.isValidElementType(opt.subHeader)) {
       const CustomSubHeader = opt.subHeader
       subHeader = <CustomSubHeader />
     }
