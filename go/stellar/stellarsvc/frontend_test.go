@@ -2670,7 +2670,7 @@ func TestSetMobileOnly(t *testing.T) {
 
 	// service_test verifies that `SetAccountMobileOnlyLocal` behaves correctly under the covers
 
-	// Provision new mobile to check DeviceModeEditable and AccountReadOnly
+	// Provision new mobile to check AccountModeEditable and DeviceReadOnly
 	tc2, cleanup2 := provisionNewDeviceForTest(t, tcs[0], libkb.DeviceTypeMobile)
 	defer cleanup2()
 	details, err = tc2.Srv.GetWalletAccountLocal(context.Background(), walletAcctLocalArg)
