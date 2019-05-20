@@ -1101,3 +1101,15 @@ func SubmitPathPayment(mctx libkb.MetaContext, post stellar1.PathPaymentPost) (s
 	}
 	return res.PaymentResult, nil
 }
+
+func PostAnyTransaction(mctx libkb.MetaContext, signedTx string) (err error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/postanytransaction",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"sig": libkb.S{Val: signedTx},
+		},
+	}
+	_, err = mctx.G().API.Post(mctx, apiArg)
+	return err
+}
