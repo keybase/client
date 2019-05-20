@@ -9,10 +9,9 @@ export const namedConnect = (
   mapDispatchToProps: any,
   mergeProps: any,
   displayName: string,
-  options?: {|forwardRef: boolean|}
+  options: Object = {}
 ): any =>
   compose(
-    // $FlowIssue options
     connect(
       mapStateToProps,
       mapDispatchToProps,
