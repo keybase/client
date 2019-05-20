@@ -2,7 +2,7 @@
 
 import groovy.json.JsonSlurperClassic
 
-helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-helpers.git', 'master', null, 'linux')
+helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-helpers.git', 'pzduniak/log-split', null, 'linux')
 
 def withKbweb(closure) {
   try {
@@ -134,7 +134,7 @@ helpers.rootLinuxNode(env, {
     }
 
     stage("Test") {
-      hewithKbweb() {
+      withKbweb() {
         parallel (
           test_linux_deps: {
             if (hasGoChanges) {
