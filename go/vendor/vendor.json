@@ -1073,16 +1073,16 @@
 			"revisionTime": "2018-03-22T21:26:26Z"
 		},
 		{
-			"checksumSHA1": "6LwXZI7kXm1C0h4Ui0Y52p9uQhk=",
+			"checksumSHA1": "IIsn0Wdi5rHU8xca+FzDd+YeYlc=",
 			"path": "github.com/stretchr/testify/assert",
-			"revision": "c679ae2cc0cb27ec3293fea7e254e47386f05d69",
-			"revisionTime": "2018-03-14T08:05:35Z"
+			"revision": "34c6fa2dc70986bccbbffcc6130f6920a924b075",
+			"revisionTime": "2019-03-04T09:57:49Z"
 		},
 		{
-			"checksumSHA1": "KqYmXUcuGwsvBL6XVsQnXsFb3LI=",
+			"checksumSHA1": "IL+W0JvlL7zRZFsSVHiX2hectIs=",
 			"path": "github.com/stretchr/testify/require",
-			"revision": "c679ae2cc0cb27ec3293fea7e254e47386f05d69",
-			"revisionTime": "2018-03-14T08:05:35Z"
+			"revision": "34c6fa2dc70986bccbbffcc6130f6920a924b075",
+			"revisionTime": "2019-03-04T09:57:49Z"
 		},
 		{
 			"checksumSHA1": "4NTmfUj7H5J59M2wCnp3/8FWt1I=",
