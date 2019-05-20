@@ -57,12 +57,10 @@ func memberCtime(mctx libkb.MetaContext, tlfID chat1.TLFID) (*keybase1.Time, err
 	if err != nil {
 		return nil, err
 	}
-	upak, _, err := mctx.G().GetUPAKLoader().LoadV2(
-		libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(mctx.G().Env.GetUID()))
+	uv, err := mctx.G().GetMeUV(mctx.Ctx())
 	if err != nil {
 		return nil, err
 	}
-	uv := upak.Current.ToUserVersion()
 	return team.MemberCtime(mctx.Ctx(), uv), nil
 }
 
