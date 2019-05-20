@@ -205,6 +205,7 @@ class ConversationList extends React.PureComponent<Props> {
             windowSize={5}
             forwardedRef={this._listRef}
             onScrollToIndexFailed={this._onScrollToIndexFailed}
+            removeClippedSubviews={Styles.isAndroid}
           />
           {!this.props.containsLatestMessage && this.props.messageOrdinals.size > 0 && (
             <JumpToRecent onClick={this._jumpToRecent} style={styles.jumpToRecent} />
