@@ -75,16 +75,7 @@ func (c *CmdWalletHandleURI) Run() (err error) {
 		ui.Printf("Message: %q\n\n", v.Message)
 	}
 	if v.Memo != "" {
-		if v.MemoType == "MEMO_TEXT" {
-			ui.Printf("Public memo: %q\n\n", v.Memo)
-		} else {
-			// CORE-10865 will remedy this situation...
-			ui.Printf("Request contains a public memo with an unsupported type (%s): %q\n", v.MemoType, v.Memo)
-			ui.Printf("At this time, Keybase does not support that memo type.\n")
-
-			// shouldn't proceed if we can't include it in the transaction.
-			return nil
-		}
+		ui.Printf("Public memo: %q\n\n", v.Memo)
 	}
 
 	switch v.Operation {
