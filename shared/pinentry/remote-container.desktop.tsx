@@ -1,18 +1,18 @@
-// @flow
 import {remoteConnect, compose, renderNothing, branch} from '../util/container'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as PinentryGen from '../actions/pinentry-gen'
 import Pinentry from './index.desktop'
 
-type OwnProps = {||}
-type State = {|
-  showTyping: RPCTypes.Feature,
-  type: RPCTypes.PassphraseType,
-  prompt: string,
-  retryLabel?: string,
-  submitLabel?: string,
-  sessionID: number,
-|}
+type OwnProps = {}
+
+type State = {
+  showTyping: RPCTypes.Feature
+  type: RPCTypes.PassphraseType
+  prompt: string
+  retryLabel?: string
+  submitLabel?: string
+  sessionID: number
+}
 
 // Props are handled by remote-proxy.desktop.js
 const mapDispatchToProps = dispatch => ({
@@ -28,6 +28,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...ownProps,
 })
 export default compose(
+  // @ts-ignore codemode issue
   remoteConnect<OwnProps, State, _, _, _, _>(state => state, mapDispatchToProps, mergeProps),
   branch(props => !props.type, renderNothing)
 )(Pinentry)

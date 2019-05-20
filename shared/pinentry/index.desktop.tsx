@@ -1,31 +1,30 @@
-// @flow
-import React, {Component} from 'react'
+import * as React from 'react'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {autoResize} from '../desktop/remote/util.desktop'
 import {Button, FormWithCheckbox, Header, Text, Box, Icon} from '../common-adapters'
 import * as RPCTypes from '../constants/types/rpc-gen'
 
 export type Props = {
-  onSubmit: (password: string) => void,
-  onCancel: () => void,
-  showTyping: RPCTypes.Feature,
-  type: RPCTypes.PassphraseType,
-  prompt: string,
-  retryLabel?: string,
-  submitLabel?: string,
+  onSubmit: (password: string) => void
+  onCancel: () => void
+  showTyping: RPCTypes.Feature
+  type: RPCTypes.PassphraseType
+  prompt: string
+  retryLabel?: string
+  submitLabel?: string
 }
 
 type DefaultProps = {
-  retryLabel: string,
-  submitLabel: string,
+  retryLabel: string
+  submitLabel: string
 }
 
 type State = {
-  password: string,
-  showTyping: boolean,
+  password: string
+  showTyping: boolean
 }
 
-class Pinentry extends Component<Props, State> {
+class Pinentry extends React.Component<Props, State> {
   static defaultProps: DefaultProps
   state: State
 
@@ -53,13 +52,7 @@ class Pinentry extends Component<Props, State> {
 
   render() {
     const isPaperKey = this.props.type === RPCTypes.passphraseCommonPassphraseType.paperKey
-    const typeStyle: {|
-      hintText: string,
-      style: Object,
-      multiline: boolean,
-      rowsMax: number,
-      floatingHintTextOverride: string,
-    |} = {
+    const typeStyle = {
       [RPCTypes.passphraseCommonPassphraseType.verifyPassPhrase]: {
         hintText: 'Verify Password',
         style: {marginBottom: 0},
