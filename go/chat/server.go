@@ -1264,7 +1264,7 @@ func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonbloc
 	defer h.Trace(ctx, func() error { return err }, "PostTextNonblock")()
 
 	if arg.ReplyTo != nil {
-		if os.Getenv("KEYBASE_CHAT_REPLYREACT") == "1" {
+		if true || os.Getenv("KEYBASE_CHAT_REPLYREACT") == "1" {
 			// Redirect replies to reactions.
 			return h.PostReactionNonblock(ctx, chat1.PostReactionNonblockArg{
 				ConversationID:   arg.ConversationID,
