@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {namedConnect} from '../../../../util/container'
+import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
@@ -32,33 +32,37 @@ export type WrapperProps = {|
   onOpenEmojiPicker: () => void,
 |}
 
-const Wrapper = (props: WrapperProps) =>
-  props.emoji ? (
-    <ReactButton
-      active={props.active}
-      className={props.className}
-      conversationIDKey={props.conversationIDKey}
-      count={props.count}
-      getAttachmentRef={props.getAttachmentRef}
-      emoji={props.emoji}
-      onClick={props.onClick}
-      onLongPress={props.onLongPress}
-      onMouseLeave={props.onMouseLeave}
-      onMouseOver={props.onMouseOver}
-      ordinal={props.ordinal}
-      style={props.style}
-    />
-  ) : (
-    <NewReactionButton
-      getAttachmentRef={props.getAttachmentRef}
-      onAddReaction={props.onAddReaction}
-      onLongPress={props.onLongPress}
-      onOpenEmojiPicker={props.onOpenEmojiPicker}
-      onShowPicker={props.onShowPicker}
-      showBorder={props.showBorder || false}
-      style={props.style}
-    />
-  )
+class Wrapper extends React.Component<WrapperProps> {
+  render() {
+    const props = this.props
+    return props.emoji ? (
+      <ReactButton
+        active={props.active}
+        className={props.className}
+        conversationIDKey={props.conversationIDKey}
+        count={props.count}
+        getAttachmentRef={props.getAttachmentRef}
+        emoji={props.emoji}
+        onClick={props.onClick}
+        onLongPress={props.onLongPress}
+        onMouseLeave={props.onMouseLeave}
+        onMouseOver={props.onMouseOver}
+        ordinal={props.ordinal}
+        style={props.style}
+      />
+    ) : (
+      <NewReactionButton
+        getAttachmentRef={props.getAttachmentRef}
+        onAddReaction={props.onAddReaction}
+        onLongPress={props.onLongPress}
+        onOpenEmojiPicker={props.onOpenEmojiPicker}
+        onShowPicker={props.onShowPicker}
+        showBorder={props.showBorder || false}
+        style={props.style}
+      />
+    )
+  }
+}
 
 const noEmoji = {
   active: false,
@@ -116,9 +120,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   style: ownProps.style,
 })
 
-export default namedConnect<OwnProps, _, _, _, _>(
+export default Container.namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,
-  'ReactButton'
+  'ReactButton',
+  {forwardRef: true}
 )(Wrapper)
