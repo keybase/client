@@ -220,6 +220,10 @@ func (t *Team) IsMember(ctx context.Context, uv keybase1.UserVersion) bool {
 	return true
 }
 
+func (t *Team) MemberCtime(ctx context.Context, uv keybase1.UserVersion) *keybase1.Time {
+	return t.chain().MemberCtime(uv)
+}
+
 func (t *Team) MemberRole(ctx context.Context, uv keybase1.UserVersion) (keybase1.TeamRole, error) {
 	return t.chain().GetUserRole(uv)
 }

@@ -130,6 +130,14 @@ func (t TeamSigChainState) GetUserRoleAtSeqno(user keybase1.UserVersion, seqno k
 	return role, nil
 }
 
+func (t TeamSigChainState) MemberCtime(user keybase1.UserVersion) *keybase1.Time {
+	points := t.inner.UserLog[user]
+	if len(points) == 0 {
+		return nil
+	}
+	return &points[0].SigMeta.Time
+}
+
 func (t TeamSigChainState) GetUserLogPoint(user keybase1.UserVersion) *keybase1.UserLogPoint {
 	points := t.inner.UserLog[user]
 	if len(points) == 0 {

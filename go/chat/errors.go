@@ -44,7 +44,7 @@ func (e PermanentUnboxingError) ExportType() chat1.MessageUnboxedErrorType {
 		return err.ExportType()
 	case EphemeralUnboxingError:
 		return chat1.MessageUnboxedErrorType_EPHEMERAL
-	case NotAuthenticatedForThisDeviceError, InvalidMACError:
+	case InvalidMACError:
 		return chat1.MessageUnboxedErrorType_PAIRWISE_MISSING
 	default:
 		return chat1.MessageUnboxedErrorType_MISC
@@ -198,18 +198,6 @@ func NewPublicTeamEphemeralKeyError() PublicTeamEphemeralKeyError {
 
 func (e PublicTeamEphemeralKeyError) Error() string {
 	return "Cannot use exploding messages for a public team."
-}
-
-//=============================================================================
-
-type NotAuthenticatedForThisDeviceError struct{}
-
-func NewNotAuthenticatedForThisDeviceError() NotAuthenticatedForThisDeviceError {
-	return NotAuthenticatedForThisDeviceError{}
-}
-
-func (e NotAuthenticatedForThisDeviceError) Error() string {
-	return "Message is not authenticated for this device"
 }
 
 //=============================================================================

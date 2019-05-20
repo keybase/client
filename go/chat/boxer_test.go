@@ -337,7 +337,7 @@ func TestChatMessageUnboxWithPairwiseMacsMissing(t *testing.T) {
 	// Check that we get the right failure type.
 	permErr, ok := err.(PermanentUnboxingError)
 	require.True(t, ok)
-	_, ok = permErr.Inner().(NotAuthenticatedForThisDeviceError)
+	_, ok = permErr.Inner().(EphemeralUnboxingError)
 	require.True(t, ok)
 }
 
