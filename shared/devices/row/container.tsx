@@ -1,11 +1,14 @@
-// @flow
 import * as Constants from '../../constants/devices'
 import * as DevicesGen from '../../actions/devices-gen'
 import * as Types from '../../constants/types/devices'
 import {namedConnect} from '../../util/container'
 import DeviceRow from '.'
 
-type OwnProps = {deviceID: Types.DeviceID, firstItem: boolean, navigation?: any}
+type OwnProps = {
+  deviceID: Types.DeviceID
+  firstItem: boolean
+  navigation?: any
+}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const device = Constants.getDevice(state, ownProps.deviceID)
@@ -35,6 +38,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   type: stateProps.type,
 })
 
+// @ts-ignore codemode issue
 export default namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,

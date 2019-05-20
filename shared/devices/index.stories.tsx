@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import {stringToDeviceID} from '../constants/types/devices'
@@ -50,8 +49,8 @@ const provider = Sb.createPropProviderWithCommon({
   DeviceRow: ({deviceID}) => ({
     firstItem: deviceID === '1',
     isCurrentDevice: deviceID === '1',
-    isNew: ['6', '7'].includes(deviceID),
-    isRevoked: !['1', '2', '3', '6'].includes(deviceID),
+    isNew: ['6', '7'].includes(String(deviceID)),
+    isRevoked: !['1', '2', '3', '6'].includes(String(deviceID)),
     name: {
       '1': 'laptop',
       '2': 'phone',

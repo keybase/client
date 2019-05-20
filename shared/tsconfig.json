@@ -5,7 +5,7 @@
         "noImplicitAny": false,
         "module": "commonjs",
         "noEmit": true,
-        "target": "es6",
+        "target": "es2017",
         "jsx": "preserve",
         "incremental": true
     },

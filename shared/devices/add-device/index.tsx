@@ -1,17 +1,16 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {isLargeScreen} from '../../constants/platform'
 
-type Props = {|
-  highlight?: ?Array<'computer' | 'phone' | 'paper key'>,
+type Props = {
+  highlight?: Array<"computer" | "phone" | "paper key"> | null,
   onAddComputer: () => void,
   onAddPaperKey: () => void,
   onAddPhone: () => void,
   onCancel: () => void,
-  title: string,
-|}
+  title: string
+};
 
 const AddDevice = (props: Props) => (
   <Kb.ScrollView alwaysBounceVertical={false}>

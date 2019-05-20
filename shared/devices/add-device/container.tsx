@@ -1,10 +1,9 @@
-// @flow
 import * as Container from '../../util/container'
 import * as DevicesGen from '../../actions/devices-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ProvisionGen from '../../actions/provision-gen'
 import AddDevice from '.'
-import type {RouteProps} from '../../route-tree/render-route'
+import {RouteProps} from '../../route-tree/render-route'
 
 const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   onAddComputer: () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'desktop'})),
@@ -13,13 +12,9 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
-export default Container.namedConnect<
-  RouteProps<{highlight: Array<'computer' | 'phone' | 'paper key'>}, {}>,
-  _,
-  _,
-  _,
-  _
->(
+type OwnProps = RouteProps<{highlight: Array<'computer' | 'phone' | 'paper key'>}, {}>
+// @ts-ignore codemode issue
+export default Container.namedConnect<OwnProps, _, _, _, _>(
   () => ({}),
   mapDispatchToProps,
   (s, d, o) => ({

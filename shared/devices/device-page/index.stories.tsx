@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/devices'
 import * as Constants from '../../constants/devices'
@@ -6,16 +5,15 @@ import * as Sb from '../../stories/storybook'
 import DevicePageReal from './container'
 
 type Props = {
-  _revoked?: boolean,
-  _type?: 'mobile' | 'desktop' | 'backup',
-  _current?: boolean,
-  _lastUsed?: boolean,
-  _revokedAt?: ?Date,
+  _revoked?: boolean
+  _type?: 'mobile' | 'desktop' | 'backup'
+  _current?: boolean
+  _lastUsed?: boolean
+  _revokedAt?: Date | null
 }
 
 const DevicePage = (props: Props) => {
-  // $ForceType
-  const p: void = props
+  const p: any = props
   return <DevicePageReal {...p} />
 }
 

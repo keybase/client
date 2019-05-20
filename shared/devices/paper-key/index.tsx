@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as Constants from '../../constants/devices'
 import * as Kb from '../../common-adapters'
@@ -7,12 +6,12 @@ import * as Styles from '../../styles'
 type Props = {
   paperkey: string,
   waiting: boolean,
-  onBack: () => void,
-}
+  onBack: () => void
+};
 
 type State = {
-  wroteItDown: boolean,
-}
+  wroteItDown: boolean
+};
 
 class PaperKey extends React.Component<Props, State> {
   state = {wroteItDown: false}

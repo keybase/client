@@ -1,11 +1,10 @@
-// @flow
 import * as WaitingConstants from '../../constants/waiting'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/devices'
 import PaperKey from '.'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 
-type OwnProps = {||}
+type OwnProps = {}
 
 const mapStateToProps = state => ({
   paperkey: state.devices.newPaperkey.stringValue(),
@@ -22,6 +21,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
   waiting: stateProps.waiting,
 })
 
+// @ts-ignore codemode issue
 export default Container.connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,

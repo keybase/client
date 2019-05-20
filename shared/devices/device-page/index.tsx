@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/devices'
 import * as Kb from '../../common-adapters'
@@ -6,9 +5,9 @@ import * as Styles from '../../styles'
 import {formatTimeForDeviceTimeline, formatTimeRelativeToNow} from '../../util/timestamp'
 
 type Props = {
-  device: Types.Device,
-  onBack: () => void,
-  showRevokeDevicePage: () => void,
+  device: Types.Device
+  onBack: () => void
+  showRevokeDevicePage: () => void
 }
 
 const TimelineMarker = ({first, last, closedCircle}) => (
@@ -128,23 +127,23 @@ const DevicePage = (props: Props) => {
   )
 }
 
-const circleCommon = {
-  borderRadius: 8 / 2,
-  borderStyle: 'solid',
-  borderWidth: 2,
-  height: 8,
-  width: 8,
-}
-
 const styles = Styles.styleSheetCreate({
   circleClosed: {
-    ...circleCommon,
     backgroundColor: Styles.globalColors.grey,
     borderColor: Styles.globalColors.white,
+    borderRadius: 8 / 2,
+    borderStyle: 'solid',
+    borderWidth: 2,
+    height: 8,
+    width: 8,
   },
   circleOpen: {
-    ...circleCommon,
     borderColor: Styles.globalColors.grey,
+    borderRadius: 8 / 2,
+    borderStyle: 'solid',
+    borderWidth: 2,
+    height: 8,
+    width: 8,
   },
   invisible: {opacity: 0},
   marker: {
