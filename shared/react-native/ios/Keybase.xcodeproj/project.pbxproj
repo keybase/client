@@ -11,7 +11,9 @@
 		00ECF9E0316E4A55A233DEBA /* libRNCWebView.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D14D63043FE44114B5101E02 /* libRNCWebView.a */; };
 		0981A80D0E424B60B1DDAA41 /* libRNReanimated.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C02768C928243F4826E6242 /* libRNReanimated.a */; };
 		12F4B45D43FA443E93CC4D30 /* libRNScreens.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1EBD58D856E94E219F42802B /* libRNScreens.a */; };
+		14515767FE3EE865C1C4ABED /* libPods-KeybaseShare.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D749A3FE3633F32F179E2F1 /* libPods-KeybaseShare.a */; };
 		2746CFFA1E9884BD00E579B0 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 274AFB721E972F5300615A64 /* libresolv.tbd */; };
+		2757C13BF00E835DF0A6DAAA /* libPods-Keybase For Tests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A008B47334A2B88FD8335977 /* libPods-Keybase For Tests.a */; };
 		279FB5A02139AB6A005E4864 /* ShareViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 279FB59F2139AB6A005E4864 /* ShareViewController.m */; };
 		279FB5A32139AB6A005E4864 /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 279FB5A12139AB6A005E4864 /* MainInterface.storyboard */; };
 		279FB5A72139AB6A005E4864 /* KeybaseShare.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 279FB59C2139AB6A005E4864 /* KeybaseShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -27,9 +29,20 @@
 		27F0BBB52142C19D007195B7 /* Pusher.m in Sources */ = {isa = PBXBuildFile; fileRef = 27EE26A720A140EF00F92CD1 /* Pusher.m */; };
 		27F0BD2A214750A2007195B7 /* InitFailedViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 27F0BD29214750A2007195B7 /* InitFailedViewController.m */; };
 		370EFC8E1FB3BDE1004DB3BB /* MessageUIManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 370EFC8D1FB3BDE1004DB3BB /* MessageUIManager.m */; };
+		373EE5E92293408F007C422C /* libRCTWebSocket.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1E21DE7D97900BB7989 /* libRCTWebSocket.a */; };
+		373EE5EA22934094007C422C /* libRCTLinking.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB0501031F10114D000B54AD /* libRCTLinking.a */; };
+		373EE5EB2293409A007C422C /* libRCTPushNotification.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1CF1DE7D97900BB7989 /* libRCTPushNotification.a */; };
+		373EE5EC229340FF007C422C /* libRCTText.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1D91DE7D97900BB7989 /* libRCTText.a */; };
+		373EE5ED22934105007C422C /* libRCTImage.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1BE1DE7D97900BB7989 /* libRCTImage.a */; };
+		373EE5EE2293410D007C422C /* libRCTNetwork.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1CA1DE7D97900BB7989 /* libRCTNetwork.a */; };
+		373EE5EF22934112007C422C /* libRCTAnimation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB6D0B7A1E5B9EB400410F3C /* libRCTAnimation.a */; };
+		373EE5F02293411A007C422C /* libRCTActionSheet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1961DE7D96200BB7989 /* libRCTActionSheet.a */; };
+		373EE5F122934123007C422C /* libRCTSettings.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1D31DE7D97900BB7989 /* libRCTSettings.a */; };
+		373EE5F222934128007C422C /* libRCTCameraRoll.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A9BB30C51E6A273A00E713E5 /* libRCTCameraRoll.a */; };
 		375CA6651FFD40D300210B11 /* Storybook.m in Sources */ = {isa = PBXBuildFile; fileRef = 375CA6641FFD40D300210B11 /* Storybook.m */; };
 		3791A8A120C71DC0001C2E86 /* PushPrompt.m in Sources */ = {isa = PBXBuildFile; fileRef = 3791A8A020C71DC0001C2E86 /* PushPrompt.m */; };
 		3791A8A320C71FE6001C2E86 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3791A8A220C71FE6001C2E86 /* UserNotifications.framework */; };
+		37BB431B22933C5100FE483D /* libRCTVideo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB346EB92284654200262644 /* libRCTVideo.a */; };
 		661EA797223ADD1D00471C8C /* keybase-medium-italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 661EA790223ADD1C00471C8C /* keybase-medium-italic.ttf */; };
 		661EA798223ADD1D00471C8C /* keybase-medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 661EA791223ADD1C00471C8C /* keybase-medium.ttf */; };
 		661EA799223ADD1D00471C8C /* keybase-semibold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 661EA792223ADD1C00471C8C /* keybase-semibold.ttf */; };
@@ -42,24 +55,13 @@
 		8828A757521849ACB90150D0 /* libRNGestureHandler.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B47606285394777AF241164 /* libRNGestureHandler.a */; };
 		A90CD4A81FCE1D0B00F97901 /* NativeLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = A90CD4A61FCE1D0A00F97901 /* NativeLogger.m */; };
 		A969A40A1CF65C9C00F273F2 /* LogSend.m in Sources */ = {isa = PBXBuildFile; fileRef = A969A4091CF65C9C00F273F2 /* LogSend.m */; };
-		A9BB30DF1E6A274900E713E5 /* libRCTCameraRoll.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A9BB30C51E6A273A00E713E5 /* libRCTCameraRoll.a */; };
 		C3A47BFE1E8B148A00974A63 /* keybasemessage.wav in Resources */ = {isa = PBXBuildFile; fileRef = C3A47BFD1E8B148A00974A63 /* keybasemessage.wav */; };
 		D6F56BD64EF142CDB89654C8 /* libRNCNetInfo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C1770B372F56457BB3A43574 /* libRNCNetInfo.a */; };
+		D8854842818FE31F55B33EE7 /* libPods-Keybase.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DF47FFF10AF737392AE69B0C /* libPods-Keybase.a */; };
 		DB0846051BA75DC800F54960 /* keybase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB0846041BA75DC800F54960 /* keybase.framework */; };
 		DB27DE571D747A6C003DE8BC /* Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = DB27DE561D747A6C003DE8BC /* Utils.m */; };
-		DB2BD1E51DE7D9A600BB7989 /* libRCTActionSheet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1961DE7D96200BB7989 /* libRCTActionSheet.a */; };
-		DB2BD1E71DE7D9A600BB7989 /* libRCTImage.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1BE1DE7D97900BB7989 /* libRCTImage.a */; };
-		DB2BD1E81DE7D9A600BB7989 /* libRCTLinking.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1C41DE7D97900BB7989 /* libRCTLinking.a */; };
-		DB2BD1E91DE7D9A600BB7989 /* libRCTNetwork.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1CA1DE7D97900BB7989 /* libRCTNetwork.a */; };
-		DB2BD1EA1DE7D9A600BB7989 /* libRCTPushNotification.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1CF1DE7D97900BB7989 /* libRCTPushNotification.a */; };
-		DB2BD1EB1DE7D9A600BB7989 /* libRCTSettings.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1D31DE7D97900BB7989 /* libRCTSettings.a */; };
-		DB2BD1EC1DE7D9A600BB7989 /* libRCTText.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1D91DE7D97900BB7989 /* libRCTText.a */; };
-		DB2BD1EF1DE7D9A600BB7989 /* libReact.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1841DE7D81C00BB7989 /* libReact.a */; };
 		DB59F9B72238A27E00E271C1 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB59F97B2238A27E00E271C1 /* JavaScriptCore.framework */; };
-		DB346EBC2284673C00262644 /* libRCTVideo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB346EB92284654200262644 /* libRCTVideo.a */; };
 		DB5E9BB2212A0CAC00F903B3 /* libRNFetchBlob.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB5E9BB1212A0C9700F903B3 /* libRNFetchBlob.a */; };
-		DB61D78F201BA2BD0008C059 /* libRCTWebSocket.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1E21DE7D97900BB7989 /* libRCTWebSocket.a */; };
-		DB6D0B961E5B9ED200410F3C /* libRCTAnimation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB6D0B7A1E5B9EB400410F3C /* libRCTAnimation.a */; };
 		DB7538FD1D776CC400AFA61B /* Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = DB27DE561D747A6C003DE8BC /* Utils.m */; };
 		DB75391B1D776CC400AFA61B /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */; };
 		DB75391D1D776CC400AFA61B /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */; };
@@ -389,13 +391,6 @@
 			remoteGlobalIDString = A15C300E1CD25C330074CB35;
 			remoteInfo = RNFetchBlob;
 		};
-		DB5F0735226E5FBE0089741B /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = F9F3DBE057644E129CA45B58 /* RNGestureHandler.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = B5C32A36220C603B000FFB8D;
-			remoteInfo = "RNGestureHandler-tvOS";
-		};
 		DB5F073C226E5FBE0089741B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 8F260D03D76246ACABB94DCA /* RNReanimated.xcodeproj */;
@@ -575,7 +570,10 @@
 		3791A87220C71DAA001C2E86 /* PushPrompt.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PushPrompt.h; sourceTree = "<group>"; };
 		3791A8A020C71DC0001C2E86 /* PushPrompt.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PushPrompt.m; sourceTree = "<group>"; };
 		3791A8A220C71FE6001C2E86 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
+		3A10C9689B0D1570A26568D2 /* Pods-Keybase For Tests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase For Tests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase For Tests/Pods-Keybase For Tests.debug.xcconfig"; sourceTree = "<group>"; };
+		3D749A3FE3633F32F179E2F1 /* libPods-KeybaseShare.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-KeybaseShare.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4C02768C928243F4826E6242 /* libRNReanimated.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNReanimated.a; sourceTree = "<group>"; };
+		516F19992C4FE5956E8043E8 /* Pods-Keybase.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase.release.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase/Pods-Keybase.release.xcconfig"; sourceTree = "<group>"; };
 		6266E16BBFF8461CAF2DDCB9 /* RCTContacts.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RCTContacts.xcodeproj; path = "../../node_modules/react-native-contacts/ios/RCTContacts.xcodeproj"; sourceTree = "<group>"; };
 		661EA790223ADD1C00471C8C /* keybase-medium-italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-medium-italic.ttf"; sourceTree = "<group>"; };
 		661EA791223ADD1C00471C8C /* keybase-medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-medium.ttf"; sourceTree = "<group>"; };
@@ -586,15 +584,20 @@
 		661EA796223ADD1D00471C8C /* keybase-bold-italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-bold-italic.ttf"; sourceTree = "<group>"; };
 		664073E9220A0B70009B2ED7 /* SourceCodePro-Semibold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SourceCodePro-Semibold.ttf"; sourceTree = "<group>"; };
 		664073EA220A0B70009B2ED7 /* SourceCodePro-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SourceCodePro-Medium.ttf"; sourceTree = "<group>"; };
+		835108C911C3BF1F7C4EDFE1 /* Pods-Keybase.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase/Pods-Keybase.debug.xcconfig"; sourceTree = "<group>"; };
 		8D1F643AB3B646C08A6F2B7E /* RNScreens.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNScreens.xcodeproj; path = "../../node_modules/react-native-screens/ios/RNScreens.xcodeproj"; sourceTree = "<group>"; };
 		8F260D03D76246ACABB94DCA /* RNReanimated.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNReanimated.xcodeproj; path = "../../node_modules/react-native-reanimated/ios/RNReanimated.xcodeproj"; sourceTree = "<group>"; };
 		9B47606285394777AF241164 /* libRNGestureHandler.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNGestureHandler.a; sourceTree = "<group>"; };
+		9FD201B6C957BE26318E0CA4 /* Pods-KeybaseShare.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KeybaseShare.release.xcconfig"; path = "Pods/Target Support Files/Pods-KeybaseShare/Pods-KeybaseShare.release.xcconfig"; sourceTree = "<group>"; };
+		A008B47334A2B88FD8335977 /* libPods-Keybase For Tests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Keybase For Tests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A76C0DB4F73E4C83A1521058 /* FastImage.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = FastImage.xcodeproj; path = "../../node_modules/react-native-fast-image/ios/FastImage.xcodeproj"; sourceTree = "<group>"; };
 		A90CD4A61FCE1D0A00F97901 /* NativeLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NativeLogger.m; sourceTree = "<group>"; };
 		A90CD4A71FCE1D0A00F97901 /* NativeLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NativeLogger.h; sourceTree = "<group>"; };
 		A969A4091CF65C9C00F273F2 /* LogSend.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LogSend.m; sourceTree = "<group>"; };
 		A969A4161CF65CB200F273F2 /* LogSend.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LogSend.h; sourceTree = "<group>"; };
 		A9BB30BC1E6A273A00E713E5 /* RCTCameraRoll.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTCameraRoll.xcodeproj; path = "../../node_modules/react-native/Libraries/CameraRoll/RCTCameraRoll.xcodeproj"; sourceTree = "<group>"; };
+		B9720B268B37B2853EA6A897 /* Pods-KeybaseShare.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KeybaseShare.debug.xcconfig"; path = "Pods/Target Support Files/Pods-KeybaseShare/Pods-KeybaseShare.debug.xcconfig"; sourceTree = "<group>"; };
+		BC0D5A12FE1E66CA19431EA7 /* Pods-Keybase For Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase For Tests.release.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase For Tests/Pods-Keybase For Tests.release.xcconfig"; sourceTree = "<group>"; };
 		C1770B372F56457BB3A43574 /* libRNCNetInfo.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNCNetInfo.a; sourceTree = "<group>"; };
 		C3A47BFD1E8B148A00974A63 /* keybasemessage.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = keybasemessage.wav; path = ../../../sounds/keybasemessage.wav; sourceTree = "<group>"; };
 		C57EB246A82A498E96C1AD22 /* RNCamera.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNCamera.xcodeproj; path = "../../node_modules/react-native-camera/ios/RNCamera.xcodeproj"; sourceTree = "<group>"; };
@@ -616,8 +619,8 @@
 		DB2BD1AC1DE7D97900BB7989 /* RCTText.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTText.xcodeproj; path = "../../node_modules/react-native/Libraries/Text/RCTText.xcodeproj"; sourceTree = "<group>"; };
 		DB2BD1AF1DE7D97900BB7989 /* RCTVibration.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTVibration.xcodeproj; path = "../../node_modules/react-native/Libraries/Vibration/RCTVibration.xcodeproj"; sourceTree = "<group>"; };
 		DB2BD1B21DE7D97900BB7989 /* RCTWebSocket.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTWebSocket.xcodeproj; path = "../../node_modules/react-native/Libraries/WebSocket/RCTWebSocket.xcodeproj"; sourceTree = "<group>"; };
-		DB59F97B2238A27E00E271C1 /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		DB346EB32284654200262644 /* RCTVideo.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTVideo.xcodeproj; path = "../../node_modules/react-native-video/ios/RCTVideo.xcodeproj"; sourceTree = "<group>"; };
+		DB59F97B2238A27E00E271C1 /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		DB5E9BAC212A0C9700F903B3 /* RNFetchBlob.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RNFetchBlob.xcodeproj; path = "../../node_modules/rn-fetch-blob/ios/RNFetchBlob.xcodeproj"; sourceTree = "<group>"; };
 		DB6D0B731E5B9EB400410F3C /* RCTAnimation.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTAnimation.xcodeproj; path = "../../node_modules/react-native/Libraries/NativeAnimation/RCTAnimation.xcodeproj"; sourceTree = "<group>"; };
 		DB7539221D776CC400AFA61B /* Keybase For Tests.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Keybase For Tests.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -654,6 +657,7 @@
 		DBEE307E1FE8511F0020EBA5 /* DDASLLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDASLLogger.h; sourceTree = "<group>"; };
 		DBEE307F1FE8511F0020EBA5 /* DDASLLogCapture.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDASLLogCapture.m; sourceTree = "<group>"; };
 		DBF65BA0219C7E8D001B6ED3 /* Lottie.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Lottie.xcodeproj; path = "../../node_modules/lottie-ios/Lottie.xcodeproj"; sourceTree = "<group>"; };
+		DF47FFF10AF737392AE69B0C /* libPods-Keybase.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Keybase.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F9F3DBE057644E129CA45B58 /* RNGestureHandler.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNGestureHandler.xcodeproj; path = "../../node_modules/react-native-gesture-handler/ios/RNGestureHandler.xcodeproj"; sourceTree = "<group>"; };
 		FE98B29CDF6C4C4085FF2315 /* RNImagePicker.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNImagePicker.xcodeproj; path = "../../node_modules/react-native-image-picker/ios/RNImagePicker.xcodeproj"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -663,8 +667,18 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				373EE5F222934128007C422C /* libRCTCameraRoll.a in Frameworks */,
+				373EE5F122934123007C422C /* libRCTSettings.a in Frameworks */,
+				373EE5F02293411A007C422C /* libRCTActionSheet.a in Frameworks */,
+				373EE5EF22934112007C422C /* libRCTAnimation.a in Frameworks */,
+				373EE5EE2293410D007C422C /* libRCTNetwork.a in Frameworks */,
+				373EE5ED22934105007C422C /* libRCTImage.a in Frameworks */,
+				373EE5EC229340FF007C422C /* libRCTText.a in Frameworks */,
+				373EE5EB2293409A007C422C /* libRCTPushNotification.a in Frameworks */,
+				373EE5EA22934094007C422C /* libRCTLinking.a in Frameworks */,
+				373EE5E92293408F007C422C /* libRCTWebSocket.a in Frameworks */,
+				37BB431B22933C5100FE483D /* libRCTVideo.a in Frameworks */,
 				DB59F9B72238A27E00E271C1 /* JavaScriptCore.framework in Frameworks */,
-				DB346EBC2284673C00262644 /* libRCTVideo.a in Frameworks */,
 				DBFCE8BC219F8F440006F35D /* libFastImage.a in Frameworks */,
 				DBF65BB3219C80A9001B6ED3 /* libLottieReactNative.a in Frameworks */,
 				DB0846051BA75DC800F54960 /* keybase.framework in Frameworks */,
@@ -672,25 +686,15 @@
 				DBF65BAF219C7E99001B6ED3 /* Lottie.framework in Frameworks */,
 				DB5E9BB2212A0CAC00F903B3 /* libRNFetchBlob.a in Frameworks */,
 				3791A8A320C71FE6001C2E86 /* UserNotifications.framework in Frameworks */,
-				DB61D78F201BA2BD0008C059 /* libRCTWebSocket.a in Frameworks */,
 				DBEE30D91FE8551E0020EBA5 /* libRCTContacts.a in Frameworks */,
 				DBEE30D71FE8550C0020EBA5 /* libRNImagePicker.a in Frameworks */,
 				2746CFFA1E9884BD00E579B0 /* libresolv.tbd in Frameworks */,
-				DB6D0B961E5B9ED200410F3C /* libRCTAnimation.a in Frameworks */,
-				DB2BD1E51DE7D9A600BB7989 /* libRCTActionSheet.a in Frameworks */,
-				DB2BD1E71DE7D9A600BB7989 /* libRCTImage.a in Frameworks */,
-				DB2BD1E81DE7D9A600BB7989 /* libRCTLinking.a in Frameworks */,
-				DB2BD1E91DE7D9A600BB7989 /* libRCTNetwork.a in Frameworks */,
-				DB2BD1EA1DE7D9A600BB7989 /* libRCTPushNotification.a in Frameworks */,
-				DB2BD1EB1DE7D9A600BB7989 /* libRCTSettings.a in Frameworks */,
-				DB2BD1EC1DE7D9A600BB7989 /* libRCTText.a in Frameworks */,
-				DB2BD1EF1DE7D9A600BB7989 /* libReact.a in Frameworks */,
-				A9BB30DF1E6A274900E713E5 /* libRCTCameraRoll.a in Frameworks */,
 				8828A757521849ACB90150D0 /* libRNGestureHandler.a in Frameworks */,
 				12F4B45D43FA443E93CC4D30 /* libRNScreens.a in Frameworks */,
 				D6F56BD64EF142CDB89654C8 /* libRNCNetInfo.a in Frameworks */,
 				00ECF9E0316E4A55A233DEBA /* libRNCWebView.a in Frameworks */,
 				0981A80D0E424B60B1DDAA41 /* libRNReanimated.a in Frameworks */,
+				D8854842818FE31F55B33EE7 /* libPods-Keybase.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -703,6 +707,7 @@
 				279FB6F021403A05005E4864 /* libresolv.tbd in Frameworks */,
 				279FB6EF214039DA005E4864 /* AVFoundation.framework in Frameworks */,
 				279FB6ED214037F6005E4864 /* keybase.framework in Frameworks */,
+				14515767FE3EE865C1C4ABED /* libPods-KeybaseShare.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -710,6 +715,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2757C13BF00E835DF0A6DAAA /* libPods-Keybase For Tests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -819,6 +825,7 @@
 				83CBBA001A601CBA00E9B192 /* Products */,
 				8B23D2F59C5F2B2FA28E899F /* Frameworks */,
 				DB090F7F1F719A2F007E4E1B /* Recovered References */,
+				FFB4E3D89A02AE7450A04343 /* Pods */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -843,6 +850,9 @@
 				279FB6EE214039DA005E4864 /* AVFoundation.framework */,
 				3791A8A220C71FE6001C2E86 /* UserNotifications.framework */,
 				274AFB721E972F5300615A64 /* libresolv.tbd */,
+				DF47FFF10AF737392AE69B0C /* libPods-Keybase.a */,
+				A008B47334A2B88FD8335977 /* libPods-Keybase For Tests.a */,
+				3D749A3FE3633F32F179E2F1 /* libPods-KeybaseShare.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -1173,6 +1183,19 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		FFB4E3D89A02AE7450A04343 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				835108C911C3BF1F7C4EDFE1 /* Pods-Keybase.debug.xcconfig */,
+				516F19992C4FE5956E8043E8 /* Pods-Keybase.release.xcconfig */,
+				3A10C9689B0D1570A26568D2 /* Pods-Keybase For Tests.debug.xcconfig */,
+				BC0D5A12FE1E66CA19431EA7 /* Pods-Keybase For Tests.release.xcconfig */,
+				B9720B268B37B2853EA6A897 /* Pods-KeybaseShare.debug.xcconfig */,
+				9FD201B6C957BE26318E0CA4 /* Pods-KeybaseShare.release.xcconfig */,
+			);
+			name = Pods;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -1180,12 +1203,15 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Keybase" */;
 			buildPhases = (
+				1DD0F3B8634EFB0022B211EC /* [CP] Check Pods Manifest.lock */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				DB229EE81BF697160081901A /* Bundle React Native code and images */,
 				A90CD56F1FD70F7E00F97901 /* Embed Frameworks */,
 				279FB5D82139AB6A005E4864 /* Embed App Extensions */,
+				945FB08071B7B6AAC7E75BE0 /* [CP] Embed Pods Frameworks */,
+				EA051C83B60C51B0E6C96516 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -1202,9 +1228,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 279FB5D72139AB6A005E4864 /* Build configuration list for PBXNativeTarget "KeybaseShare" */;
 			buildPhases = (
+				82C9F595F704EC376A253A30 /* [CP] Check Pods Manifest.lock */,
 				279FB5982139AB6A005E4864 /* Sources */,
 				279FB5992139AB6A005E4864 /* Frameworks */,
 				279FB59A2139AB6A005E4864 /* Resources */,
+				77B4CE332010CA89B3489E09 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -1219,13 +1247,13 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = DB75391F1D776CC400AFA61B /* Build configuration list for PBXNativeTarget "Keybase For Tests" */;
 			buildPhases = (
-				E13210D0FE28B7E7EB16FEA0 /* [CP] Check Pods Manifest.lock */,
+				46C97648F495C759DE5F5B47 /* [CP] Check Pods Manifest.lock */,
 				DB7538FC1D776CC400AFA61B /* Sources */,
 				DB7539061D776CC400AFA61B /* Frameworks */,
 				DB7539131D776CC400AFA61B /* Resources */,
 				DB75391E1D776CC400AFA61B /* Bundle React Native code and images */,
-				B64595940AD1C93ECE274CCF /* [CP] Embed Pods Frameworks */,
-				E80332A108B8C6A2190D8BA9 /* [CP] Copy Pods Resources */,
+				00135F253479E6E285117AC7 /* [CP] Embed Pods Frameworks */,
+				72B73D06A9A2A3AF755E0B90 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -1718,13 +1746,6 @@
 			remoteRef = DB5E9BB0212A0C9700F903B3 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		DB5F0736226E5FBE0089741B /* libRNGestureHandler-tvOS.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = "libRNGestureHandler-tvOS.a";
-			remoteRef = DB5F0735226E5FBE0089741B /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 		DB5F073D226E5FBE0089741B /* libRNReanimated.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
@@ -1881,7 +1902,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		B64595940AD1C93ECE274CCF /* [CP] Embed Pods Frameworks */ = {
+		00135F253479E6E285117AC7 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -1894,6 +1915,105 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Keybase For Tests/Pods-Keybase For Tests-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		1DD0F3B8634EFB0022B211EC /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Keybase-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		46C97648F495C759DE5F5B47 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Keybase For Tests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		72B73D06A9A2A3AF755E0B90 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Keybase For Tests/Pods-Keybase For Tests-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		77B4CE332010CA89B3489E09 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-KeybaseShare/Pods-KeybaseShare-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		82C9F595F704EC376A253A30 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-KeybaseShare-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		945FB08071B7B6AAC7E75BE0 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Keybase/Pods-Keybase-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		DB229EE81BF697160081901A /* Bundle React Native code and images */ = {
@@ -1924,22 +2044,7 @@
 			shellPath = /bin/sh;
 			shellScript = "export NODE_BINARY=node\n../node_modules/react-native/scripts/react-native-xcode.sh";
 		};
-		E13210D0FE28B7E7EB16FEA0 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
-			showEnvVarsInLog = 0;
-		};
-		E80332A108B8C6A2190D8BA9 /* [CP] Copy Pods Resources */ = {
+		EA051C83B60C51B0E6C96516 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -1951,7 +2056,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Keybase For Tests/Pods-Keybase For Tests-resources.sh\"\n";
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Keybase/Pods-Keybase-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -2033,6 +2138,7 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 835108C911C3BF1F7C4EDFE1 /* Pods-Keybase.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -2096,6 +2202,7 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 516F19992C4FE5956E8043E8 /* Pods-Keybase.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -2158,6 +2265,7 @@
 		};
 		279FB5A82139AB6A005E4864 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = B9720B268B37B2853EA6A897 /* Pods-KeybaseShare.debug.xcconfig */;
 			buildSettings = {
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -2198,6 +2306,7 @@
 		};
 		279FB5A92139AB6A005E4864 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9FD201B6C957BE26318E0CA4 /* Pods-KeybaseShare.release.xcconfig */;
 			buildSettings = {
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -2337,6 +2446,7 @@
 		};
 		DB7539201D776CC400AFA61B /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3A10C9689B0D1570A26568D2 /* Pods-Keybase For Tests.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -2386,6 +2496,7 @@
 		};
 		DB7539211D776CC400AFA61B /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = BC0D5A12FE1E66CA19431EA7 /* Pods-Keybase For Tests.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
