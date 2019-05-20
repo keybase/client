@@ -22,14 +22,15 @@ const commonSystemFileManagerIntegrationBannerActions = {
 }
 
 export const bannerProvider = {
-  ConflictBanner: ({conflictState}: {conflictState: Types.ConflictState}) => ({
-    conflictState: conflictState,
+  ConflictBanner: (p: any) => ({
+    conflictState: p.storyProps?.conflictState || 'none',
     isUnmergedView: false,
     onFeedback: Sb.action('onFeedback'),
     onFinishResolving: Sb.action('onFinishResolving'),
     onHelp: Sb.action('onHelp'),
     onSeeOtherView: Sb.action('onSeeOtherView'),
     onStartResolving: Sb.action('onStartResolving'),
+    tlfName: '/keybase/private/alice,bob',
   }),
   ResetBanner: ({path}: {path: Types.Path}) => ({
     ...resetBannerCommon,
@@ -115,22 +116,25 @@ export default () => {
     .add('Conflict Resolution - in conflict, not stuck', () => (
       <ConflictBanner
         path={Types.stringToPath('/keybase/team/keybasefriends')}
-        conflictState="in-conflict-not-stuck"
+        {...Sb.propOverridesForStory({conflictState: 'in-conflict-not-stuck'})}
       />
     ))
     .add('Conflict Resolution - in conflict, stuck', () => (
       <ConflictBanner
         path={Types.stringToPath('/keybase/team/keybasefriends')}
-        conflictState="in-conflict-stuck"
+        {...Sb.propOverridesForStory({conflictState: 'in-conflict-stuck'})}
       />
     ))
     .add('Conflict Resolution - in resolution, server view', () => (
       <ConflictBanner
         path={Types.stringToPath('/keybase/team/keybasefriends')}
-        conflictState="in-manual-resolution"
+        {...Sb.propOverridesForStory({conflictState: 'in-manual-resolution'})}
       />
     ))
     .add('Conflict Resolution - finishing', () => (
-      <ConflictBanner path={Types.stringToPath('/keybase/team/keybasefriends')} conflictState="finishing" />
+      <ConflictBanner
+        path={Types.stringToPath('/keybase/team/keybasefriends')}
+        {...Sb.propOverridesForStory({conflictState: 'finishing'})}
+      />
     ))
 }

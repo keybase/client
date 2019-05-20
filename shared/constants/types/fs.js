@@ -339,13 +339,6 @@ export type PathItems = I.Map<Path, PathItem>
 
 export type Edits = I.Map<EditID, Edit>
 
-export type ConflictState =
-  | 'in-conflict-stuck'
-  | 'in-conflict-not-stuck'
-  | 'in-manual-resolution'
-  | 'finishing'
-  | 'none'
-
 export type _MoveOrCopySource = {
   type: 'move-or-copy',
   path: Path,
