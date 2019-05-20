@@ -198,11 +198,15 @@ const config = (_, {mode}) => {
     main: 'desktop/renderer',
   }
 
+  const typeOverride = {
+    pinentry: 'tsx',
+  }
+
   // multiple entries so we can chunk shared parts
   const entries = ['main', 'menubar', 'pinentry', 'unlock-folders', 'tracker2']
   const viewConfig = merge(commonConfig, {
     entry: entries.reduce((map, name) => {
-      map[name] = `./${entryOverride[name] || name}/main.desktop.js`
+      map[name] = `./${entryOverride[name] || name}/main.desktop.${typeOverride[name] || 'js'}`
       return map
     }, {}),
     module: {rules: makeRules(false)},
