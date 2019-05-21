@@ -255,7 +255,7 @@ func (c *levelDbCleaner) clean(force bool) (err error) {
 			return err
 		}
 		// check db size, abort if small enough
-		if dbSize < c.config.HaltSize {
+		if !force && dbSize < c.config.HaltSize {
 			break
 		}
 		time.Sleep(c.config.SleepInterval)
