@@ -55,7 +55,6 @@ class Keybase extends Component<any> {
   }
 
   _handleOpenURL(event: {url: string}) {
-    console.warn('in _handleOpenURL with', event.url)
     this.store.dispatch(ConfigGen.createLink({link: event.url}))
   }
 

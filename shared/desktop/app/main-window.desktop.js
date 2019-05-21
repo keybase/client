@@ -63,7 +63,6 @@ export default function() {
 
   const app = SafeElectron.getApp()
 
-  // $FlowIssue missing type
   app.setAsDefaultProtocolClient('keybase')
   const openedAtLogin = app.getLoginItemSettings().wasOpenedAtLogin
   // app.getLoginItemSettings().restoreState is Mac only, so consider it always on in Windows
