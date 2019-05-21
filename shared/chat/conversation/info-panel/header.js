@@ -4,6 +4,7 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import InfoPanelMenu from './menu/container'
 import * as ChatTypes from '../../../constants/types/chat2'
+import AddPeople from './add-people'
 
 type SmallProps = {
   admin: boolean,
@@ -48,12 +49,12 @@ const _TeamHeader = (props: SmallProps) => {
           fontSize={gearIconSize}
         />
       </Kb.Box2>
-      {props.admin && props.isSmallTeam && (
-        <Kb.Button mode="Primary" type="Default" label="Add members to team" style={styles.addMembers} />
-      )}
-      {!props.isSmallTeam && (
-        <Kb.Button mode="Primary" type="Default" label="Add members to channel" style={styles.addMembers} />
-      )}
+      <AddPeople
+        isAdmin={props.admin}
+        isGeneralChannel={props.channelname && props.channelname === 'general'}
+        teamname={props.teamname}
+        conversationIDKey={props.conversationIDKey}
+      />
     </Kb.Box2>
   )
 }
