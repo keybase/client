@@ -17,7 +17,7 @@ const mapStateToProps = state => {
     ? state.wallets.builtRequest.readyToRequest
     : state.wallets.builtPayment.readyToReview
   const currencyWaiting = anyWaiting(state, Constants.getDisplayCurrencyWaitingKey(accountID))
-  const thisDeviceIsLockedOut = Constants.getThisDeviceIsLockedOut(state, accountID)
+  const thisDeviceIsLockedOut = Constants.getAccount(state, accountID).deviceReadOnly
   return {
     calculating: !!state.wallets.building.amount,
     disabled: !isReady || currencyWaiting || thisDeviceIsLockedOut,

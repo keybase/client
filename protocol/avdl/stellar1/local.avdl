@@ -15,6 +15,7 @@ protocol local {
     CurrencyLocal currencyLocal;// user configurable, defaults to USD and related details
     AccountMode accountMode;    // mobile only vs all devices
     boolean accountModeEditable;// is this device able to change it
+    boolean deviceReadOnly;     // is account read only for current device (because of mobileOnly mode)
     boolean isFunded;           // does the account have minimum amount of XLM to exist on the network
     boolean canSubmitTx;        // does the account have enough XLM to submit a transaction (enough for the fee)
   }
