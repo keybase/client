@@ -16,6 +16,7 @@ type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
   onBack?: () => void,
   onCancel?: () => void,
+  onSelectTab: string => void,
 |}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
@@ -35,6 +36,8 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     canSetRetention = yourOperations.setRetentionPolicy
     canDeleteHistory = yourOperations.deleteChatHistory
   }
+  const isPreview = meta.membershipType === 'youArePreviewing'
+  const selectedTab = ownProps.selectedTab || (isPreview ? 'members' : 'settings')
   return {
     _infoMap: state.users.infoMap,
     _participants: meta.participants,
@@ -47,8 +50,9 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     channelname: meta.channelname,
     description: meta.description,
     ignored: meta.status === RPCChatTypes.commonConversationStatus.ignored,
-    isPreview: meta.membershipType === 'youArePreviewing',
+    isPreview,
     selectedConversationIDKey: conversationIDKey,
+    selectedTab,
     smallTeam: meta.teamType !== 'big',
     spinnerForHide:
       state.waiting.counts.get(Constants.waitingKeyConvStatusChange(ownProps.conversationIDKey), 0) > 0,
@@ -121,6 +125,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   onHideConv: dispatchProps.onHideConv,
   onJoinChannel: dispatchProps.onJoinChannel,
   onLeaveConversation: dispatchProps.onLeaveConversation,
+  onSelectTab: ownProps.onSelectTab,
   onShowBlockConversationDialog: dispatchProps.onShowBlockConversationDialog,
   onShowClearConversationDialog: () => dispatchProps._onShowClearConversationDialog(),
   onShowNewTeamDialog: dispatchProps.onShowNewTeamDialog,
@@ -139,6 +144,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
     }))
     .toArray(),
   selectedConversationIDKey: stateProps.selectedConversationIDKey,
+  selectedTab: stateProps.selectedTab,
   smallTeam: stateProps.smallTeam,
   spinnerForHide: stateProps.spinnerForHide,
   teamname: stateProps.teamname,
@@ -155,22 +161,27 @@ type SelectorOwnProps = RouteProps<{conversationIDKey: Types.ConversationIDKey},
 const mapStateToSelectorProps = (state, ownProps: SelectorOwnProps) => {
   const conversationIDKey: Types.ConversationIDKey = getRouteProps(ownProps, 'conversationIDKey')
   const meta = Constants.getMeta(state, conversationIDKey)
+  const selectedTab = ownProps.navigation.getParam('tab')
   return {
     conversationIDKey,
+    selectedTab,
     shouldNavigateOut: meta.conversationIDKey === Constants.noConversationIDKey,
   }
 }
 
-const mapDispatchToSelectorProps = dispatch => ({
+const mapDispatchToSelectorProps = (dispatch, {navigation}) => ({
   // Used by HeaderHoc.
   onBack: () => dispatch(Chat2Gen.createToggleInfoPanel()),
   onGoToInbox: () => dispatch(Chat2Gen.createNavigateToInbox({findNewConversation: true})),
+  onSelectTab: tab => navigation.setParams({tab}),
 })
 
 const mergeSelectorProps = (stateProps, dispatchProps) => ({
   conversationIDKey: stateProps.conversationIDKey,
   onBack: dispatchProps.onBack,
   onGoToInbox: dispatchProps.onGoToInbox,
+  onSelectTab: dispatchProps.onSelectTab,
+  selectedTab: stateProps.selectedTab,
   shouldNavigateOut: stateProps.shouldNavigateOut,
 })
 
@@ -178,6 +189,8 @@ type Props = {|
   conversationIDKey: Types.ConversationIDKey,
   onBack: () => void,
   onGoToInbox: () => void,
+  onSelectTab: string => void,
+  selectedTab: ?string,
   shouldNavigateOut: boolean,
 |}
 
@@ -201,7 +214,13 @@ class InfoPanelSelector extends React.PureComponent<Props> {
     ) : (
       <Box onClick={this.props.onBack} style={clickCatcherStyle}>
         <Box style={panelContainerStyle} onClick={evt => evt.stopPropagation()}>
-          <ConnectedInfoPanel onBack={this.props.onBack} conversationIDKey={this.props.conversationIDKey} />
+          <ConnectedInfoPanel
+            navigation={this.props.navigation}
+            onBack={this.props.onBack}
+            onSelectTab={this.props.onSelectTab}
+            conversationIDKey={this.props.conversationIDKey}
+            selectedTab={this.props.selectedTab}
+          />
         </Box>
       </Box>
     )

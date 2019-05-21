@@ -19,32 +19,27 @@ const mapStateToProps = (state, {conversationIDKey}) => {
     [conversationIDKey, RPCChatTypes.localGalleryItemTyp.doc],
     Constants.makeAttachmentViewInfo()
   )
-  const selectedView = state.chat2.attachmentViewSelectionMap.get(
-    conversationIDKey,
-    RPCChatTypes.localGalleryItemTyp.media
-  )
   return {
-    _media: media,
     _docs: docs,
-    selectedView,
+    _media: media,
   }
 }
 
 const mapDispatchToProps = (dispatch, {conversationIDKey}) => ({
-  _onMediaClick: message => dispatch(Chat2Gen.createAttachmentPreviewSelect({message})),
   _onDocDownload: message => dispatch(Chat2Gen.createAttachmentDownload({message})),
+  _onMediaClick: message => dispatch(Chat2Gen.createAttachmentPreviewSelect({message})),
   onViewChange: viewType => dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, viewType})),
 })
 
 const mergeProps = (stateProps, dispatchProps, {conversationIDKey}) => ({
   docs: {
-    status: stateProps._docs.status,
     docs: stateProps._docs.messages.map(m => ({
       author: m.author,
       ctime: m.timestamp,
       name: m.fileName,
       onDownload: () => dispatchProps._onDocDownload(m),
     })),
+    status: stateProps._docs.status,
   },
   media: {
     status: stateProps._media.status,
@@ -60,7 +55,6 @@ const mergeProps = (stateProps, dispatchProps, {conversationIDKey}) => ({
       .toArray(),
   },
   onViewChange: dispatchProps.onViewChange,
-  selectedView: stateProps.selectedView,
 })
 
 export default namedConnect<OwnProps, _, _, _, _>(

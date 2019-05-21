@@ -2,10 +2,8 @@
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import {delegateUiCtlRegisterIdentifyUIRpcPromise} from '../../../../constants/types/rpc-gen'
 
 type Thumb = {|
   ctime: number,
@@ -73,10 +71,10 @@ class MediaView extends React.Component<MediaProps> {
     return {
       dims,
       margins: {
-        marginTop: -marginHeight,
         marginBottom: -marginHeight,
         marginLeft: -marginWidth,
         marginRight: -marginWidth,
+        marginTop: -marginHeight,
       },
     }
   }
@@ -91,8 +89,8 @@ class MediaView extends React.Component<MediaProps> {
         row = []
       }
       row.push({
-        thumb: t,
         sizing: this._resize(t),
+        thumb: t,
       })
       if (index === thumbs.length - 1 && row.length > 0) {
         l.push(row)
@@ -129,8 +127,8 @@ class MediaView extends React.Component<MediaProps> {
           l.push(this._finalizeMonth(curMonth))
         }
         curMonth = {
-          thumbs: [t],
           month: dateInfo.month,
+          thumbs: [t],
           year: dateInfo.year,
         }
       } else {
@@ -218,18 +216,24 @@ class AttachmentPanel extends React.Component<Props, State> {
     )
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-        <Kb.ButtonBar direction="row">
+        <Kb.ButtonBar direction="row" style={styles.buttons}>
           <Kb.Button
             type="Default"
             mode={this._getButtonMode(RPCChatTypes.localGalleryItemTyp.media)}
-            small={true}
             label="Media"
+            small={true}
+          />
+          <Kb.Button
+            type="Default"
+            mode={this._getButtonMode(RPCChatTypes.localGalleryItemTyp.link)}
+            label="Links"
+            small={true}
           />
           <Kb.Button
             type="Default"
             mode={this._getButtonMode(RPCChatTypes.localGalleryItemTyp.doc)}
+            label="Docs"
             small={true}
-            label="Documents"
           />
         </Kb.ButtonBar>
         <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -242,16 +246,16 @@ class AttachmentPanel extends React.Component<Props, State> {
 
 const styles = Styles.styleSheetCreate({
   container: {
-    height: '100%',
     flex: 1,
+    height: '100%',
+  },
+  mediaRowContainer: {
+    minWidth: rowSize * maxThumbSize,
   },
   progress: {
     alignSelf: 'center',
     height: Styles.globalMargins.medium,
     width: Styles.globalMargins.medium,
-  },
-  mediaRowContainer: {
-    minWidth: rowSize * maxThumbSize,
   },
   thumbContainer: {
     overflow: 'hidden',
