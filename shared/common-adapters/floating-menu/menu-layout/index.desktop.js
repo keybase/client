@@ -31,7 +31,6 @@ class MenuLayout extends Component<MenuLayoutProps> {
           if (this.props.closeOnClick && this.props.onHidden) {
             this.props.onHidden()
           }
-          event.stopPropagation()
         }}
       >
         {item.view}
@@ -84,7 +83,12 @@ class MenuLayout extends Component<MenuLayoutProps> {
     `
 
     return (
-      <Box>
+      <Box
+        onClick={event => {
+          // never allow a click to go through
+          event.stopPropagation()
+        }}
+      >
         <style>{realCSS}</style>
         <Box style={Styles.collapseStyles([styles.menuContainer, this.props.style])}>
           {/* Display header if there is one */}

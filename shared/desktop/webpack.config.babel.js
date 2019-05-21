@@ -117,7 +117,7 @@ const config = (_, {mode}) => {
         new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/), // Skip a bunch of crap moment pulls in
       ],
       resolve: {
-        extensions: ['.desktop.js', '.js', '.jsx', '.tsx', '.ts', '.json', '.flow'],
+        extensions: ['.desktop.js', '.desktop.tsx', '.js', '.jsx', '.tsx', '.ts', '.json', '.flow'],
       },
       stats: {
         ...(isDev
