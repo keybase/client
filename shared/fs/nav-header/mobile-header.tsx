@@ -16,6 +16,22 @@ type State = {
   filterExpanded: boolean
 }
 
+const showPublicTag = path => {
+  const parsedPath = Constants.parsePath(path)
+  switch (parsedPath.kind) {
+    case 'group-tlf':
+    case 'in-group-tlf':
+      if (parsedPath.tlfType === 'public') {
+        return true
+      }
+      break
+    default:
+  }
+  return false
+}
+const MaybePublicTag = ({path}) =>
+  showPublicTag(path) && <Kb.Meta title="public" backgroundColor={Styles.globalColors.green} />
+
 class NavMobileHeader extends React.PureComponent<Props, State> {
   state = {filterExpanded: false}
   _triggerFilterMobile = () => {
@@ -29,7 +45,11 @@ class NavMobileHeader extends React.PureComponent<Props, State> {
   }
   render() {
     return (
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+      <Kb.Box2
+        direction="vertical"
+        fullWidth={true}
+        style={Styles.collapseStyles([styles.container, getHeightStyle(getHeight(this.props.path))])}
+      >
         {this.state.filterExpanded ? (
           <Kbfs.FolderViewFilter path={this.props.path} onCancel={this._filterDone} />
         ) : (
@@ -45,10 +65,11 @@ class NavMobileHeader extends React.PureComponent<Props, State> {
             <Actions path={this.props.path} onTriggerFilterMobile={this._triggerFilterMobile} />
           </Kb.Box2>
         )}
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.expandedTitleContainer}>
-          <Kb.Text type="Header" lineClamp={1}>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.expandedTitleContainer}>
+          <Kb.Text type="BodyBig" lineClamp={1}>
             {this.props.path === Constants.defaultPath ? 'Files' : Types.getPathName(this.props.path)}
           </Kb.Text>
+          <MaybePublicTag path={this.props.path} />
         </Kb.Box2>
         <MainBanner />
       </Kb.Box2>
@@ -56,7 +77,10 @@ class NavMobileHeader extends React.PureComponent<Props, State> {
   }
 }
 
-export const height = Styles.statusBarHeight + 44 + (Styles.isAndroid ? 56 : 44)
+export const getHeight = (path: Types.Path) =>
+  Styles.statusBarHeight + 44 + (Styles.isAndroid ? 56 : 44) + (showPublicTag(path) ? 7 : 0)
+
+const getHeightStyle = (height: number) => ({height, maxHeight: height, minHeight: height})
 
 const styles = Styles.styleSheetCreate({
   backButton: Styles.platformStyles({
@@ -76,9 +100,6 @@ const styles = Styles.styleSheetCreate({
     borderBottomColor: Styles.globalColors.black_10,
     borderBottomWidth: 1,
     borderStyle: 'solid',
-    height,
-    maxHeight: height,
-    minHeight: height,
     paddingTop: Styles.isAndroid ? undefined : Styles.statusBarHeight,
   },
   expandedTitleContainer: {
