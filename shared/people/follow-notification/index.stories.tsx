@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as C from '../../constants/people'
 import * as Sb from '../../stories/storybook'
 import FollowNotification from '.'
-import moment from 'moment'
+import * as moment from 'moment'
 
 const singleFollowProps1 = {
   badged: true,

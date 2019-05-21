@@ -1,22 +1,16 @@
 {
-    "compilerOptions": {
-        "allowSyntheticDefaultImports": true,
-        "outDir": "./dist/",
-        "sourceMap": true,
-        "noImplicitAny": false,
-        "module": "commonjs",
-        "target": "es2017",
-        "jsx": "preserve",
-        "incremental": true,
-        "outDir": "./.tsOut/emit",
-        "tsBuildInfoFile": "./.tsOut/cache"
-    },
-    "include": [
-        "./**/*"
-    ],
-    "exclude": [
-        "node_modules",
-        "react-native",
-        "desktop/dist"
-    ]
+  "compilerOptions": {
+    "outDir": "./dist/",
+    "sourceMap": true,
+    "noImplicitAny": false,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "target": "es2017",
+    "jsx": "preserve",
+    "incremental": true,
+    "outDir": "./.tsOut/emit",
+    "tsBuildInfoFile": "./.tsOut/cache"
+  },
+  "include": ["./**/*"],
+  "exclude": ["node_modules", "react-native", "desktop/dist"]
 }
