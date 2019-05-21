@@ -61,8 +61,9 @@ const appShouldDieOnStartup = () => {
   return false
 }
 
-const focusSelfOnAnotherInstanceLaunching = commandLine => {
+const focusSelfOnAnotherInstanceLaunching = (_, commandLine) => {
   logger.info('in focusSelfOnAnotherInstanceLaunching with', commandLine)
+  console.warn('in focusSelfOnAnotherInstanceLaunching with', commandLine)
   if (!mainWindow) {
     return
   }
