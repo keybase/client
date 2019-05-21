@@ -498,8 +498,8 @@ type SendPaymentArg struct {
 	To             stellarcommon.RecipientInput
 	Amount         string // Amount of XLM to send.
 	DisplayBalance DisplayBalance
-	SecretNote     string // Optional.
-	PublicMemo     string // Optional.
+	SecretNote     string           // Optional.
+	PublicMemo     *stellarnet.Memo // Optional.
 	ForceRelay     bool
 	QuickReturn    bool
 }
@@ -612,7 +612,7 @@ func sendPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendP
 	var seqno uint64
 	if !funded {
 		// if no balance, create_account operation
-		sig, err := stellarnet.CreateAccountXLMTransaction(senderSeed2, *recipient.AccountID, sendArg.Amount, sendArg.PublicMemo, sp, tb, baseFee)
+		sig, err := stellarnet.CreateAccountXLMTransactionWithMemo(senderSeed2, *recipient.AccountID, sendArg.Amount, sendArg.PublicMemo, sp, tb, baseFee)
 		if err != nil {
 			return res, err
 		}
@@ -621,7 +621,7 @@ func sendPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendP
 		seqno = sig.Seqno
 	} else {
 		// if balance, payment operation
-		sig, err := stellarnet.PaymentXLMTransaction(senderSeed2, *recipient.AccountID, sendArg.Amount, sendArg.PublicMemo, sp, tb, baseFee)
+		sig, err := stellarnet.PaymentXLMTransactionWithMemo(senderSeed2, *recipient.AccountID, sendArg.Amount, sendArg.PublicMemo, sp, tb, baseFee)
 		if err != nil {
 			return res, err
 		}
@@ -701,7 +701,7 @@ type SendPathPaymentArg struct {
 	To          stellarcommon.RecipientInput
 	Path        stellar1.PaymentPath
 	SecretNote  string
-	PublicMemo  string
+	PublicMemo  *stellarnet.Memo
 	QuickReturn bool
 }
 
@@ -744,7 +744,7 @@ func PathPaymentTx(mctx libkb.MetaContext, walletState *WalletState, sendArg Sen
 	sp, unlock := NewSeqnoProvider(mctx, walletState)
 	defer unlock()
 
-	sig, err := stellarnet.PathPaymentTransaction(senderSeed, to, sendArg.Path.SourceAsset, sendArg.Path.SourceAmountMax, sendArg.Path.DestinationAsset, sendArg.Path.DestinationAmount, AssetSliceToAssetBase(sendArg.Path.Path), sendArg.PublicMemo, sp, nil, baseFee)
+	sig, err := stellarnet.PathPaymentTransactionWithMemo(senderSeed, to, sendArg.Path.SourceAsset, sendArg.Path.SourceAmountMax, sendArg.Path.DestinationAsset, sendArg.Path.DestinationAmount, AssetSliceToAssetBase(sendArg.Path.Path), sendArg.PublicMemo, sp, nil, baseFee)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -1173,7 +1173,7 @@ func prepareMiniChatPaymentRelay(mctx libkb.MetaContext, remoter remote.Remoter,
 // The balance of the relay account can be claimed by either party.
 func sendRelayPayment(mctx libkb.MetaContext, walletState *WalletState,
 	from stellar1.SecretKey, recipient stellarcommon.Recipient, amount string, displayBalance DisplayBalance,
-	secretNote string, publicMemo string, quickReturn bool, senderEntryPrimary bool, baseFee uint64) (res SendPaymentResult, err error) {
+	secretNote string, publicMemo *stellarnet.Memo, quickReturn bool, senderEntryPrimary bool, baseFee uint64) (res SendPaymentResult, err error) {
 	defer mctx.TraceTimed("Stellar.sendRelayPayment", func() error { return err })()
 	appKey, teamID, err := relays.GetKey(mctx, recipient)
 	if err != nil {

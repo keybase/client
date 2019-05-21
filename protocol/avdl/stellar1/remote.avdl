@@ -105,6 +105,9 @@ protocol remote {
     boolean unread;
     boolean isInflation;
     union { null, string } inflationSource;
+    string sourceAmountMax;
+    string sourceAmountActual;
+    Asset sourceAsset;
   }
 
   record PaymentSummaryDirect {

@@ -192,8 +192,16 @@ export type MessageTypes = {|
     inParam: void,
     outParam: void,
   |},
+  'keybase.1.SimpleFS.simpleFSClearConflictState': {|
+    inParam: $ReadOnly<{|path: Path|}>,
+    outParam: void,
+  |},
   'keybase.1.SimpleFS.simpleFSCopyRecursive': {|
     inParam: $ReadOnly<{|opID: OpID, src: Path, dest: Path|}>,
+    outParam: void,
+  |},
+  'keybase.1.SimpleFS.simpleFSFinishResolvingConflict': {|
+    inParam: $ReadOnly<{|path: Path|}>,
     outParam: void,
   |},
   'keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus': {|
@@ -203,6 +211,10 @@ export type MessageTypes = {|
   'keybase.1.SimpleFS.simpleFSList': {|
     inParam: $ReadOnly<{|opID: OpID, path: Path, filter: ListFilter, refreshSubscription: Boolean|}>,
     outParam: void,
+  |},
+  'keybase.1.SimpleFS.simpleFSListFavorites': {|
+    inParam: void,
+    outParam: FavoritesResult,
   |},
   'keybase.1.SimpleFS.simpleFSListRecursiveToDepth': {|
     inParam: $ReadOnly<{|opID: OpID, path: Path, filter: ListFilter, refreshSubscription: Boolean, depth: Int|}>,
@@ -347,6 +359,10 @@ export type MessageTypes = {|
   'keybase.1.config.helloIAm': {|
     inParam: $ReadOnly<{|details: ClientDetails|}>,
     outParam: void,
+  |},
+  'keybase.1.config.logSend': {|
+    inParam: $ReadOnly<{|statusJSON: String, feedback: String, sendLogs: Boolean|}>,
+    outParam: LogSendID,
   |},
   'keybase.1.config.setRememberPassphrase': {|
     inParam: $ReadOnly<{|remember: Boolean|}>,
@@ -1466,6 +1482,12 @@ export const ctlExitCode = {
   restart: 4,
 }
 
+export const favoriteConflictStateType = {
+  automaticresolving: 0,
+  manualresolvingserverview: 1,
+  manualresolvinglocalview: 2,
+}
+
 export const favoriteFolderConflictType = {
   none: 0,
   inConflict: 1,
@@ -2072,7 +2094,7 @@ export type AvatarUpdateType =
 
 export type AvatarUrl = String
 export type BadgeConversationInfo = $ReadOnly<{convID: ChatConversationID, badgeCounts: {[key: string]: Int}, unreadMessages: Int}>
-export type BadgeState = $ReadOnly<{newTlfs: Int, rekeysNeeded: Int, newFollowers: Int, inboxVers: Int, homeTodoItems: Int, newDevices?: ?Array<DeviceID>, revokedDevices?: ?Array<DeviceID>, conversations?: ?Array<BadgeConversationInfo>, newGitRepoGlobalUniqueIDs?: ?Array<String>, newTeamNames?: ?Array<String>, newTeamAccessRequests?: ?Array<String>, teamsWithResetUsers?: ?Array<TeamMemberOutReset>, unreadWalletAccounts?: ?Array<WalletAccountInfo>, resetState: ResetState}>
+export type BadgeState = $ReadOnly<{newTlfs: Int, rekeysNeeded: Int, newFollowers: Int, inboxVers: Int, homeTodoItems: Int, newDevices?: ?Array<DeviceID>, revokedDevices?: ?Array<DeviceID>, conversations?: ?Array<BadgeConversationInfo>, newGitRepoGlobalUniqueIDs?: ?Array<String>, newTeamNames?: ?Array<String>, deletedTeams?: ?Array<DeletedTeamInfo>, newTeamAccessRequests?: ?Array<String>, teamsWithResetUsers?: ?Array<TeamMemberOutReset>, unreadWalletAccounts?: ?Array<WalletAccountInfo>, resetState: ResetState}>
 export type BinaryKID = Bytes
 export type BlockIdCombo = $ReadOnly<{blockHash: String, chargedTo: UserOrTeamID, blockType: BlockType}>
 export type BlockIdCount = $ReadOnly<{id: BlockIdCombo, liveCount: Int}>
@@ -2137,7 +2159,16 @@ export type Config = $ReadOnly<{serverURI: String, socketFile: String, label: St
 export type ConfigValue = $ReadOnly<{isNull: Boolean, b?: ?Boolean, i?: ?Int, s?: ?String, o?: ?String}>
 export type ConfiguredAccount = $ReadOnly<{username: String, hasStoredSecret: Boolean}>
 export type ConfirmResult = $ReadOnly<{identityConfirmed: Boolean, remoteConfirmed: Boolean, expiringLocal: Boolean, autoConfirmed: Boolean}>
+export type ConflictAutomaticResolving = $ReadOnly<{isStuck: Boolean}>
 export type ConflictGeneration = Int
+export type ConflictManualResolvingLocalView = $ReadOnly<{serverView: Path}>
+export type ConflictManualResolvingServerView = $ReadOnly<{localViews?: ?Array<Path>}>
+export type ConflictState = {conflictStateType: 0, automaticresolving: ?ConflictAutomaticResolving} | {conflictStateType: 1, manualresolvingserverview: ?ConflictManualResolvingServerView} | {conflictStateType: 2, manualresolvinglocalview: ?ConflictManualResolvingLocalView}
+export type ConflictStateType =
+  | 0 // AutomaticResolving_0
+  | 1 // ManualResolvingServerView_1
+  | 2 // ManualResolvingLocalView_2
+
 export type Contact = $ReadOnly<{name: String, components?: ?Array<ContactComponent>}>
 export type ContactComponent = $ReadOnly<{label: String, phoneNumber?: ?RawPhoneNumber, email?: ?EmailAddress}>
 export type CopyArgs = $ReadOnly<{opID: OpID, src: Path, dest: Path}>
@@ -2151,6 +2182,7 @@ export type DbType =
   | 1 // CHAT_1
 
 export type DbValue = Bytes
+export type DeletedTeamInfo = $ReadOnly<{teamName: String, deletedBy: String, id: Gregor1.MsgID}>
 export type DesktopStatus = $ReadOnly<{version: String, running: Boolean, log: String}>
 export type Device = $ReadOnly<{type: String, name: String, deviceID: DeviceID, cTime: Time, mTime: Time, lastUsedTime: Time, encryptKey: KID, verifyKey: KID, status: Int}>
 export type DeviceDetail = $ReadOnly<{device: Device, eldest: Boolean, provisioner?: ?Device, provisionedAt?: ?Time, revokedAt?: ?Time, revokedBy: KID, revokedByDevice?: ?Device, currentDevice: Boolean}>
@@ -2261,7 +2293,7 @@ export type FileType =
 
 export type FindNextMDResponse = $ReadOnly<{kbfsRoot: MerkleRoot, merkleNodes?: ?Array<Bytes>, rootSeqno: Seqno, rootHash: HashMeta}>
 export type FirstStepResult = $ReadOnly<{valPlusTwo: Int}>
-export type Folder = $ReadOnly<{name: String, private: Boolean, created: Boolean, folderType: FolderType, team_id /* teamID */?: ?TeamID, reset_members /* resetMembers */?: ?Array<User>, mtime?: ?Time, conflictType: FolderConflictType}>
+export type Folder = $ReadOnly<{name: String, private: Boolean, created: Boolean, folderType: FolderType, team_id /* teamID */?: ?TeamID, reset_members /* resetMembers */?: ?Array<User>, mtime?: ?Time, conflictState?: ?ConflictState}>
 export type FolderConflictType =
   | 0 // NONE_0
   | 1 // IN_CONFLICT_1
@@ -3160,7 +3192,7 @@ export type TeamNamePart = String
 export type TeamNewlyAddedRow = $ReadOnly<{id: TeamID, name: String}>
 export type TeamOpenReqMsg = $ReadOnly<{teamID: TeamID, tars?: ?Array<TeamAccessRequest>}>
 export type TeamOpenSweepMsg = $ReadOnly<{teamID: TeamID, resetUsersUntrusted?: ?Array<TeamCLKRResetUser>}>
-export type TeamOperation = $ReadOnly<{manageMembers: Boolean, manageSubteams: Boolean, createChannel: Boolean, chat: Boolean, deleteChannel: Boolean, renameChannel: Boolean, editChannelDescription: Boolean, editTeamDescription: Boolean, setTeamShowcase: Boolean, setMemberShowcase: Boolean, setRetentionPolicy: Boolean, setMinWriterRole: Boolean, changeOpenTeam: Boolean, leaveTeam: Boolean, joinTeam: Boolean, setPublicityAny: Boolean, listFirst: Boolean, changeTarsDisabled: Boolean, deleteChatHistory: Boolean, deleteOtherMessages: Boolean}>
+export type TeamOperation = $ReadOnly<{manageMembers: Boolean, manageSubteams: Boolean, createChannel: Boolean, chat: Boolean, deleteChannel: Boolean, renameChannel: Boolean, editChannelDescription: Boolean, editTeamDescription: Boolean, setTeamShowcase: Boolean, setMemberShowcase: Boolean, setRetentionPolicy: Boolean, setMinWriterRole: Boolean, changeOpenTeam: Boolean, leaveTeam: Boolean, joinTeam: Boolean, setPublicityAny: Boolean, listFirst: Boolean, changeTarsDisabled: Boolean, deleteChatHistory: Boolean, deleteOtherMessages: Boolean, deleteTeam: Boolean}>
 export type TeamPlusApplicationKeys = $ReadOnly<{id: TeamID, name: String, implicit: Boolean, public: Boolean, application: TeamApplication, writers?: ?Array<UserVersion>, onlyReaders?: ?Array<UserVersion>, applicationKeys?: ?Array<TeamApplicationKey>}>
 export type TeamProfileAddEntry = $ReadOnly<{teamName: TeamName, open: Boolean, disabledReason: String}>
 export type TeamRefreshers = $ReadOnly<{needKeyGeneration: PerTeamKeyGeneration, needApplicationsAtGenerations: {[key: string]: ?Array<TeamApplication>}, needApplicationsAtGenerationsWithKBFS: {[key: string]: ?Array<TeamApplication>}, wantMembers?: ?Array<UserVersion>, wantMembersRole: TeamRole, needKBFSKeyGeneration: TeamKBFSKeyRefresher}>
@@ -3530,9 +3562,12 @@ declare export function SimpleFSSimpleFSAreWeConnectedToMDServerRpcPromise(param
 declare export function SimpleFSSimpleFSCancelRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCancel'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCancel'>, 'outParam'>>
 declare export function SimpleFSSimpleFSCheckReachabilityRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCheckReachability'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCheckReachability'>, 'outParam'>>
 declare export function SimpleFSSimpleFSCheckRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCheck'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCheck'>, 'outParam'>>
+declare export function SimpleFSSimpleFSClearConflictStateRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSClearConflictState'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSClearConflictState'>, 'outParam'>>
 declare export function SimpleFSSimpleFSCopyRecursiveRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCopyRecursive'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCopyRecursive'>, 'outParam'>>
+declare export function SimpleFSSimpleFSFinishResolvingConflictRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSFinishResolvingConflict'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSFinishResolvingConflict'>, 'outParam'>>
 declare export function SimpleFSSimpleFSFolderSyncConfigAndStatusRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus'>, 'outParam'>>
 declare export function SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.SimpleFSGetHTTPAddressAndToken'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.SimpleFSGetHTTPAddressAndToken'>, 'outParam'>>
+declare export function SimpleFSSimpleFSListFavoritesRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSListFavorites'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSListFavorites'>, 'outParam'>>
 declare export function SimpleFSSimpleFSListRecursiveToDepthRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSListRecursiveToDepth'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSListRecursiveToDepth'>, 'outParam'>>
 declare export function SimpleFSSimpleFSListRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSList'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSList'>, 'outParam'>>
 declare export function SimpleFSSimpleFSMoveRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSMove'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSMove'>, 'outParam'>>
@@ -3570,6 +3605,7 @@ declare export function configGetUpdateInfo2RpcPromise(params: $PropertyType<$Pr
 declare export function configGetUpdateInfoRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.getUpdateInfo'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.getUpdateInfo'>, 'outParam'>>
 declare export function configGetValueRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.getValue'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.getValue'>, 'outParam'>>
 declare export function configHelloIAmRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.helloIAm'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.helloIAm'>, 'outParam'>>
+declare export function configLogSendRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.logSend'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.logSend'>, 'outParam'>>
 declare export function configSetRememberPassphraseRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.setRememberPassphrase'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.setRememberPassphrase'>, 'outParam'>>
 declare export function configSetValueRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.setValue'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.setValue'>, 'outParam'>>
 declare export function configStartUpdateIfNeededRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.startUpdateIfNeeded'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.startUpdateIfNeeded'>, 'outParam'>>
@@ -3713,7 +3749,6 @@ declare export function userUploadUserAvatarRpcPromise(params: $PropertyType<$Pr
 // 'keybase.1.config.getCurrentStatus'
 // 'keybase.1.config.getClientStatus'
 // 'keybase.1.config.getFullStatus'
-// 'keybase.1.config.logSend'
 // 'keybase.1.config.setUserConfig'
 // 'keybase.1.config.setPath'
 // 'keybase.1.config.clearValue'
@@ -3998,10 +4033,8 @@ declare export function userUploadUserAvatarRpcPromise(params: $PropertyType<$Pr
 // 'keybase.1.SimpleFS.simpleFSClose'
 // 'keybase.1.SimpleFS.simpleFSGetOps'
 // 'keybase.1.SimpleFS.simpleFSDumpDebuggingInfo'
-// 'keybase.1.SimpleFS.simpleFSClearConflictState'
 // 'keybase.1.SimpleFS.simpleFSForceStuckConflict'
 // 'keybase.1.SimpleFS.simpleFSFolderEditHistory'
-// 'keybase.1.SimpleFS.simpleFSListFavorites'
 // 'keybase.1.SimpleFS.simpleFSGetUserQuotaUsage'
 // 'keybase.1.SimpleFS.simpleFSGetTeamQuotaUsage'
 // 'keybase.1.SimpleFS.simpleFSReset'

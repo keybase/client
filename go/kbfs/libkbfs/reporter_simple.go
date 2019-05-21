@@ -108,6 +108,12 @@ func (r *ReporterSimple) NotifySyncStatus(_ context.Context,
 	// ignore notifications
 }
 
+// NotifyFavoritesChanged implements the Reporter interface for
+// ReporterSimple.
+func (r *ReporterSimple) NotifyFavoritesChanged(_ context.Context) {
+	// ignore notifications
+}
+
 // NotifyOverallSyncStatus implements the Reporter interface for
 // ReporterSimple.
 func (r *ReporterSimple) NotifyOverallSyncStatus(

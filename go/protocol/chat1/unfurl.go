@@ -115,14 +115,20 @@ func (o UnfurlYoutubeRaw) DeepCopy() UnfurlYoutubeRaw {
 }
 
 type UnfurlGiphyRaw struct {
-	ImageUrl   string       `codec:"imageUrl" json:"imageUrl"`
+	ImageUrl   *string      `codec:"imageUrl,omitempty" json:"imageUrl,omitempty"`
 	Video      *UnfurlVideo `codec:"video,omitempty" json:"video,omitempty"`
 	FaviconUrl *string      `codec:"faviconUrl,omitempty" json:"faviconUrl,omitempty"`
 }
 
 func (o UnfurlGiphyRaw) DeepCopy() UnfurlGiphyRaw {
 	return UnfurlGiphyRaw{
-		ImageUrl: o.ImageUrl,
+		ImageUrl: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.ImageUrl),
 		Video: (func(x *UnfurlVideo) *UnfurlVideo {
 			if x == nil {
 				return nil

@@ -124,9 +124,9 @@ this is the one below.`,
   echo "foo";
 else echo "bar";
   // this should be *asterisk* \`\`\``,
-  transparentEmojis: ` 😀 😁 😍 ☝️ `,
-  transparentEmojis2: `these should be solid 😀 😁 😍 ☝️ `,
-  transparentEmojis3: `😶`,
+  transparentEmojis: ' 😀 😁 😍 ☝️ ',
+  transparentEmojis2: 'these should be solid 😀 😁 😍 ☝️ ',
+  transparentEmojis3: '😶',
   underscoreweirdness: `under_score the first, \`under_score the second\``, // <--- end of string
 }
 

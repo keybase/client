@@ -39,6 +39,7 @@ go/revision
 
 npm-debug.log
 yarn-error.log
+shared/dist
 shared/coverage
 shared/node_modules
 shared/.static-storybook

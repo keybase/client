@@ -105,6 +105,10 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
       return state.update('email', email => email.merge({error: action.payload.error}))
     case SettingsGen.waitingForResponse:
       return state.merge({waitingForResponse: action.payload.waiting})
+    case SettingsGen.feedbackSent:
+      return state.update('feedback', feedback => feedback.set('error', action.payload.error))
+    case SettingsGen.sendFeedback:
+      return state.update('feedback', feedback => feedback.set('error', null))
     case SettingsGen.unfurlSettingsRefreshed:
     case SettingsGen.unfurlSettingsSaved:
       return state.merge({

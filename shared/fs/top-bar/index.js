@@ -13,7 +13,7 @@ type Props = {|
   mode?: 'offline' | 'default',
 |}
 
-const TopBarContainer = (props: {|children: React.Node|}) => (
+const TopBar = (props: Props) => (
   <Kb.Box2
     direction="horizontal"
     style={styles.container}
@@ -23,25 +23,12 @@ const TopBarContainer = (props: {|children: React.Node|}) => (
     gapEnd={true}
     alignItems="center"
   >
-    {props.children}
+    {!Styles.isMobile && <Sort path={props.path} />}
+    <Loading path={props.path} />
+    <Kb.Box style={styles.flex} />
+    {Types.getPathLevel(props.path) === 3 && <SyncToggle tlfPath={props.path} />}
   </Kb.Box2>
 )
-
-const TopBar = (props: Props) =>
-  Styles.isMobile ? (
-    <TopBarContainer>
-      <Loading path={props.path} />
-      <Kb.Box style={styles.flex} />
-      {Types.getPathLevel(props.path) === 3 && <SyncToggle tlfPath={props.path} />}
-    </TopBarContainer>
-  ) : (
-    <TopBarContainer>
-      {Types.getPathLevel(props.path) === 3 && <SyncToggle tlfPath={props.path} />}
-      <Kb.Box style={styles.flex} />
-      <Loading path={props.path} />
-      <Sort path={props.path} />
-    </TopBarContainer>
-  )
 
 export const height = Styles.isMobile ? 40 : 32
 

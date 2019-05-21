@@ -28,17 +28,17 @@ const makeErrorHandler = (action: FsGen.Actions, path: ?Types.Path, retriable: b
       if (error.desc.includes('file does not exist')) {
         return [FsGen.createSetPathSoftError({path, softError: 'non-existent'})]
       }
-    }
-    if (error.desc.includes('KBFS client not found.')) {
-      return [
-        FsGen.createKbfsDaemonRpcStatusChanged({rpcStatus: 'wait-timeout'}),
-        // We don't retry actions when re-connected, so just route user back
-        // to root in case they get confused by orphan loading state.
-        //
-        // Although this seems impossible to do for nav2 as things are just
-        // pushed on top of each other, so just don't do anything for now.
-        // Perhaps it's OK.
-      ]
+      if (error.desc.includes('KBFS client not found.')) {
+        return [
+          FsGen.createKbfsDaemonRpcStatusChanged({rpcStatus: 'wait-timeout'}),
+          // We don't retry actions when re-connected, so just route user back
+          // to root in case they get confused by orphan loading state.
+          //
+          // Although this seems impossible to do for nav2 as things are just
+          // pushed on top of each other, so just don't do anything for now.
+          // Perhaps it's OK.
+        ]
+      }
     }
   }
   return [

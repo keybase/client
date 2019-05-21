@@ -74,6 +74,8 @@ export const unverifiedInboxUIItemToConversationMeta = (
     channelname,
     commands: i.commands,
     conversationIDKey: Types.stringToConversationIDKey(i.convID),
+    description: i.localMetadata?.headline ?? '',
+    descriptionDecorated: i.localMetadata?.headlineDecorated ?? '',
     inboxLocalVersion: i.localVersion,
     inboxVersion: i.version,
     isMuted: i.status === RPCChatTypes.commonConversationStatus.muted,
@@ -273,6 +275,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
     commands: i.commands,
     conversationIDKey: Types.stringToConversationIDKey(i.convID),
     description: i.headline,
+    descriptionDecorated: i.headlineDecorated,
     inboxLocalVersion: i.localVersion,
     inboxVersion: i.version,
     isMuted: i.status === RPCChatTypes.commonConversationStatus.muted,
@@ -308,6 +311,7 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   commands: {},
   conversationIDKey: noConversationIDKey,
   description: '',
+  descriptionDecorated: '',
   inboxLocalVersion: -1,
   inboxVersion: -1,
   isMuted: false,
@@ -378,6 +382,13 @@ export const getChannelSuggestions = (state: TypedState, teamname: string) => {
   return state.chat2.metaMap
     .filter(v => v.teamname === teamname)
     .map(v => v.channelname)
+    .toList()
+}
+
+export const getAllChannels = (state: TypedState) => {
+  return state.chat2.metaMap
+    .filter(v => v.teamname && v.channelname && v.teamType === 'big')
+    .map(({channelname, teamname}) => ({channelname, teamname}))
     .toList()
 }
 

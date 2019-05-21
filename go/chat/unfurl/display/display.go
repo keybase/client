@@ -74,7 +74,7 @@ func displayUnfurlGiphy(ctx context.Context, srv types.AttachmentURLSrv, convID 
 			res.Favicon = &fav
 		}
 	}
-	if unfurl.Image == nil && unfurl.Video == nil {
+	if res.Image == nil && res.Video == nil {
 		return res, errors.New("no image for video for giphy")
 	}
 	return res, nil

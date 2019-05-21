@@ -133,6 +133,9 @@ func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, 
 	loc.Unread = p.Unread
 	loc.IsInflation = p.IsInflation
 	loc.InflationSource = p.InflationSource
+	loc.SourceAsset = p.SourceAsset
+	loc.SourceAmountMax = p.SourceAmountMax
+	loc.SourceAmountActual = p.SourceAmountActual
 
 	return loc, nil
 }

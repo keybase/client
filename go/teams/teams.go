@@ -220,6 +220,10 @@ func (t *Team) IsMember(ctx context.Context, uv keybase1.UserVersion) bool {
 	return true
 }
 
+func (t *Team) MemberCtime(ctx context.Context, uv keybase1.UserVersion) *keybase1.Time {
+	return t.chain().MemberCtime(uv)
+}
+
 func (t *Team) MemberRole(ctx context.Context, uv keybase1.UserVersion) (keybase1.TeamRole, error) {
 	return t.chain().GetUserRole(uv)
 }
@@ -239,6 +243,10 @@ func (t *Team) UserVersionByUID(ctx context.Context, uid keybase1.UID) (keybase1
 
 func (t *Team) AllUserVersionsByUID(ctx context.Context, uid keybase1.UID) []keybase1.UserVersion {
 	return t.chain().GetAllUVsWithUID(uid)
+}
+
+func (t *Team) AllUserVersions(ctx context.Context) []keybase1.UserVersion {
+	return t.chain().GetAllUVs()
 }
 
 func (t *Team) UsersWithRole(role keybase1.TeamRole) ([]keybase1.UserVersion, error) {

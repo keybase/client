@@ -31,6 +31,7 @@ func (o UIPagination) DeepCopy() UIPagination {
 type UnverifiedInboxUIItemMetadata struct {
 	ChannelName       string   `codec:"channelName" json:"channelName"`
 	Headline          string   `codec:"headline" json:"headline"`
+	HeadlineDecorated string   `codec:"headlineDecorated" json:"headlineDecorated"`
 	Snippet           string   `codec:"snippet" json:"snippet"`
 	SnippetDecoration string   `codec:"snippetDecoration" json:"snippetDecoration"`
 	WriterNames       []string `codec:"writerNames" json:"writerNames"`
@@ -41,6 +42,7 @@ func (o UnverifiedInboxUIItemMetadata) DeepCopy() UnverifiedInboxUIItemMetadata 
 	return UnverifiedInboxUIItemMetadata{
 		ChannelName:       o.ChannelName,
 		Headline:          o.Headline,
+		HeadlineDecorated: o.HeadlineDecorated,
 		Snippet:           o.Snippet,
 		SnippetDecoration: o.SnippetDecoration,
 		WriterNames: (func(x []string) []string {
@@ -212,6 +214,7 @@ type InboxUIItem struct {
 	SnippetDecoration string                        `codec:"snippetDecoration" json:"snippetDecoration"`
 	Channel           string                        `codec:"channel" json:"channel"`
 	Headline          string                        `codec:"headline" json:"headline"`
+	HeadlineDecorated string                        `codec:"headlineDecorated" json:"headlineDecorated"`
 	Visibility        keybase1.TLFVisibility        `codec:"visibility" json:"visibility"`
 	Participants      []string                      `codec:"participants" json:"participants"`
 	FullNames         map[string]string             `codec:"fullNames" json:"fullNames"`
@@ -248,6 +251,7 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 		SnippetDecoration: o.SnippetDecoration,
 		Channel:           o.Channel,
 		Headline:          o.Headline,
+		HeadlineDecorated: o.HeadlineDecorated,
 		Visibility:        o.Visibility.DeepCopy(),
 		Participants: (func(x []string) []string {
 			if x == nil {

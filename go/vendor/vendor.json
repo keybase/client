@@ -613,10 +613,10 @@
 			"revisionTime": "2017-05-08T13:19:45Z"
 		},
 		{
-			"checksumSHA1": "XUhUnRs+MARPJEG13Q85CJctOUo=",
+			"checksumSHA1": "1emaUoEuBsHPxDJQD53Vmap9wxc=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc",
-			"revision": "a27a4f7712dd5021fa6f4f09f2f96f905e8b7747",
-			"revisionTime": "2018-12-10T15:01:50Z"
+			"revision": "004a9009320cecffb4c913139893827f3853ce13",
+			"revisionTime": "2019-05-16T14:45:25Z"
 		},
 		{
 			"checksumSHA1": "RLs8GIV4e+D350pyzZh5RC3mgQg=",
@@ -781,10 +781,10 @@
 			"revisionTime": "2018-03-22T21:11:54Z"
 		},
 		{
-			"checksumSHA1": "2/Mk1/A9nbq6EoXmh8ov+oWKI7M=",
+			"checksumSHA1": "WF18MKDppQi0uapm/q0+getTElE=",
 			"path": "github.com/keybase/stellarnet",
-			"revision": "1f3ed9b66f1ff9cfb715ee13f953e181981fe22b",
-			"revisionTime": "2019-05-10T19:25:19Z"
+			"revision": "27607f442a81e52fb2802c98b3dee6f7f510e908",
+			"revisionTime": "2019-05-20T16:34:51Z"
 		},
 		{
 			"checksumSHA1": "MucmIVwe9rnpJMJHeyZpve3GO3w=",
