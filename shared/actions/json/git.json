@@ -45,7 +45,7 @@
       "teamname": "string"
     },
     "clearBadges": {
-      "_description": "clears badges in the rows",
+      "_description": "clears badges in the rows"
     }
   }
 }

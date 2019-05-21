@@ -410,14 +410,14 @@
       "_description": "Turn participation in airdrop on/off",
       "accept": "boolean"
     },
-    "hideAirdropBanner": { },
-    "updateAirdropBannerState": { "show": "boolean" },
-    "updateAirdropState": { },
+    "hideAirdropBanner": {},
+    "updateAirdropBannerState": {"show": "boolean"},
+    "updateAirdropState": {},
     "updatedAirdropState": {
       "airdropQualifications": "Array<Types.AirdropQualification>",
-      "airdropState": "Types.AirdropState",
+      "airdropState": "Types.AirdropState"
     },
     "updateAirdropDetails": {},
-    "updatedAirdropDetails": { "details": "Types.AirdropDetails" },
+    "updatedAirdropDetails": {"details": "Types.AirdropDetails"}
   }
 }

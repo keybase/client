@@ -31,6 +31,6 @@
       "sessionID": "number",
       "password": "string"
     },
-    "onCancel": { "sessionID": "number" }
+    "onCancel": {"sessionID": "number"}
   }
 }

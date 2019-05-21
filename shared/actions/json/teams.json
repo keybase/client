@@ -77,15 +77,15 @@
     "saveChannelMembership": {
       "teamname": "string",
       "oldChannelState": "Types.ChannelMembershipState",
-      "newChannelState": "Types.ChannelMembershipState",
+      "newChannelState": "Types.ChannelMembershipState"
     },
     "addParticipant": {
       "teamname": "string",
-      "conversationIDKey": "ChatTypes.ConversationIDKey",
+      "conversationIDKey": "ChatTypes.ConversationIDKey"
     },
     "removeParticipant": {
       "teamname": "string",
-      "conversationIDKey": "ChatTypes.ConversationIDKey",
+      "conversationIDKey": "ChatTypes.ConversationIDKey"
     },
     "addPeopleToTeam": {
       "destSubPath?": "I.List<string>",

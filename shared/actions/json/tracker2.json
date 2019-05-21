@@ -53,7 +53,7 @@
       "_description": "Short term until new nav, a convenience to show a card from inside the app",
       "asTracker": "boolean",
       "username": "string",
-      "skipNav?": "boolean",
+      "skipNav?": "boolean"
     }
   }
 }
