@@ -243,6 +243,9 @@ func (c *levelDbCleaner) clean(force bool) (err error) {
 		if err != nil {
 			return err
 		}
+		if numPurged == 0 {
+			break
+		}
 		totalNumPurged += numPurged
 
 		if i%10 == 0 {
