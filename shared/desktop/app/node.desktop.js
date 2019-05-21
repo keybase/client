@@ -152,17 +152,14 @@ const createMainWindow = () => {
   })
 
   SafeElectron.getIpcMain().on('launchStartupURLIfPresent', () => {
-    logger.info('in launchStartupURLIfPresent', process.argv)
     if (startupURL) {
       // Mac calls open-url for a launch URL before redux is up, so we
       // stash a startupURL to be dispatched when we're ready for it.
-      logger.info('previously logged startupURL', startupURL)
       sendToMainWindow('dispatchAction', {payload: {link: startupURL}, type: ConfigGen.link})
       startupURL = null
     } else if (!isDarwin && process.argv.length > 0 && process.argv[1].startsWith('keybase://')) {
       // Windows instead stores a launch URL in argv.
-      logger.info('discovered startupURL in argv', process.argv[1])
-      sendToMainWindow('dispatchAction', {payload: {link: startupURL}, type: ConfigGen.link})
+      sendToMainWindow('dispatchAction', {payload: {link: process.argv[1]}, type: ConfigGen.link})
     }
   })
 }
@@ -204,10 +201,8 @@ const willFinishLaunching = () => {
   SafeElectron.getApp().on('open-url', (event, link) => {
     event.preventDefault()
     if (!startupURL && link) {
-      logger.info('setting startupURL to be seen later')
       startupURL = link
     }
-    logger.info('in open-url', link)
     sendToMainWindow('dispatchAction', {payload: {link}, type: ConfigGen.link})
   })
 }
