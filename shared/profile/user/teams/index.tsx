@@ -6,6 +6,8 @@ import OpenMeta from './openmeta'
 import TeamInfo from './teaminfo'
 
 type Props = {
+  // lint totally confused
+  // eslint-disable-next-line no-use-before-define
   teamShowcase: ReadonlyArray<Types._TeamShowcase>
   teamMeta: {
     [K in string]: {
