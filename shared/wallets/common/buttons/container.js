@@ -14,7 +14,7 @@ const mapStateToPropsSendButton = state => {
   const _account = Constants.getSelectedAccountData(state)
   return {
     _account,
-    thisDeviceIsLockedOut: Constants.getThisDeviceIsLockedOut(state, _account.accountID),
+    thisDeviceIsLockedOut: _account.deviceReadOnly,
   }
 }
 

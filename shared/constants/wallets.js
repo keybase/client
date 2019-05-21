@@ -197,6 +197,7 @@ export const accountResultToAccount = (w: RPCTypes.WalletAccountLocal) =>
     accountID: Types.stringToAccountID(w.accountID),
     balanceDescription: w.balanceDescription,
     canSubmitTx: w.canSubmitTx,
+    deviceReadOnly: w.deviceReadOnly,
     displayCurrency: currencyResultToCurrency(w.currencyLocal),
     isDefault: w.isDefault,
     mobileOnlyEditable: w.accountModeEditable,
@@ -301,6 +302,7 @@ export const makeAccount: I.RecordFactory<Types._Account> = I.Record({
   accountID: Types.noAccountID,
   balanceDescription: '',
   canSubmitTx: false,
+  deviceReadOnly: false,
   displayCurrency: unknownCurrency,
   isDefault: false,
   mobileOnlyEditable: false,
@@ -614,13 +616,6 @@ export const getCurrencyAndSymbol = (state: TypedState, code: string) => {
 }
 
 export const getAcceptedDisclaimer = (state: TypedState) => state.wallets.acceptedDisclaimer
-
-// The device is read-only if it's a desktop device and mobile-only is on, or it's a mobile device
-// that's less than seven days old.  TODO: Use a `deviceReadOnly` field insstead once it exists.
-export const getThisDeviceIsLockedOut = (state: TypedState, accountID: Types.AccountID) =>
-  Styles.isMobile
-    ? !getAccount(state, accountID).mobileOnlyEditable
-    : state.wallets.mobileOnlyMap.get(accountID, false)
 
 export const balanceChangeColor = (delta: Types.PaymentDelta, status: Types.StatusSimplified) => {
   let balanceChangeColor = Styles.globalColors.black
