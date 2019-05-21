@@ -73,8 +73,8 @@ const focusSelfOnAnotherInstanceLaunching = (_, commandLine) => {
 
   // The new instance might be due to a deeplink launch.
   logger.info('Launched with deeplink', commandLine)
-  if (commandLine[1].startsWith('keybase://')) {
-    sendToMainWindow('dispatchAction', {payload: {link: startupURL}, type: ConfigGen.link})
+  if (commandLine.length > 0 && commandLine[1] && commandLine[1].startsWith('keybase://')) {
+    sendToMainWindow('dispatchAction', {payload: {link: commandLine[1]}, type: ConfigGen.link})
   }
 }
 
