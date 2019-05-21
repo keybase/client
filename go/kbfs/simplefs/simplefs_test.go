@@ -1483,4 +1483,14 @@ func TestFavoriteConflicts(t *testing.T) {
 	listResult, err := sfs.SimpleFSReadList(ctx, opid)
 	require.NoError(t, err)
 	require.Len(t, listResult.Entries, 12)
+
+	t.Log("Finish resolving the conflict")
+	err = sfs.SimpleFSFinishResolvingConflict(ctx, pathLocalView)
+	require.NoError(t, err)
+	favs, err = sfs.SimpleFSListFavorites(ctx)
+	require.NoError(t, err)
+	require.Len(t, favs.FavoriteFolders, 2)
+	for _, f := range favs.FavoriteFolders {
+		require.Nil(t, f.ConflictState)
+	}
 }
