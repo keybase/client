@@ -28,7 +28,7 @@ const Filename = (props: Props) => {
     props.path ? Types.getPathName(props.path) : props.filename || ''
   )
   return (
-    <Kb.Box2 direction="horizontal" fullWidth={true}>
+    <Kb.Box2 direction="horizontal">
       <Kb.Text
         type={props.type}
         style={Styles.collapseStyles([props.style, styles.breakAll])}
