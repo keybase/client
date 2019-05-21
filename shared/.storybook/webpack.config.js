@@ -24,7 +24,7 @@ const babelRule = {
 
 module.exports = ({config, mode}) => {
   config.resolve = {
-    extensions: ['.desktop.js', '.js', '.jsx', '.json', '.flow', '.ts', '.tsx'],
+    extensions: ['.desktop.js', '.desktop.tsx', '.js', '.jsx', '.json', '.flow', '.ts', '.tsx'],
   }
 
   config.plugins = [
