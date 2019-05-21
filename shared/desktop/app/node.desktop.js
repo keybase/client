@@ -61,7 +61,8 @@ const appShouldDieOnStartup = () => {
   return false
 }
 
-const focusSelfOnAnotherInstanceLaunching = () => {
+const focusSelfOnAnotherInstanceLaunching = commandLine => {
+  logger.info('in focusSelfOnAnotherInstanceLaunching with', commandLine)
   if (!mainWindow) {
     return
   }
@@ -152,6 +153,9 @@ const createMainWindow = () => {
       startupURL = null
     } else {
       logger.info('no previously logged startupURL')
+      if (isWindows) {
+        logger.info('argv is', process.argv)
+      }
     }
   })
 }
