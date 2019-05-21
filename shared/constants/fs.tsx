@@ -615,12 +615,12 @@ export const getTlfFromTlfs = (tlfs: Types.Tlfs, tlfType: Types.TlfType, name: s
   }
 }
 
-export const isOwnPublic = (p: Types.Path, username: string) => {
+export const isOwnPublic = (p: Types.Path, pathItem: Types.PathItem) => {
   const parsedPath = parsePath(p)
   switch (parsedPath.kind) {
     case 'group-tlf':
     case 'in-group-tlf':
-      return parsedPath.writers.contains(username)
+      return pathItem.writable && parsedPath.tlfType === 'public'
     default:
       return false
   }

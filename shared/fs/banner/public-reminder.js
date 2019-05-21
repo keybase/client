@@ -28,6 +28,12 @@ class PublicBanner extends React.Component<Props, State> {
 
   _onClose = () => this.setState({closed: true})
 
+  componentDidUpdate(prevProps: Props) {
+    if (!Constants.pathsInSameTlf(prevProps.path, this.props.path)) {
+      this.setState({closed: false})
+    }
+  }
+
   render() {
     if (this.state.closed) {
       return null
