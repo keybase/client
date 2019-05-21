@@ -8,50 +8,48 @@ import {FloatingRolePicker} from '../../teams/role-picker'
 import * as Types from '../../constants/types/teams'
 
 type RowProps = {
-  canAddThem: boolean,
-  checked: boolean,
-  disabledReason: string,
-  name: Types.Teamname,
-  isOpen: boolean,
-  onCheck: (selected: boolean) => void,
+  canAddThem: boolean
+  checked: boolean
+  disabledReason: string
+  name: Types.Teamname
+  isOpen: boolean
+  onCheck: (selected: boolean) => void
   them: string
-};
+}
 
 type RolePickerProps = {
-  footerComponent: React.ElementType,
-  isRolePickerOpen: boolean,
-  onCancelRolePicker: () => void,
-  onConfirmRolePicker: (role: Types.TeamRoleType) => void,
-  onOpenRolePicker: () => void,
-  onSelectRole: (role: Types.TeamRoleType) => void,
-  selectedRole: Types.TeamRoleType,
-  disabledReasonsForRolePicker: {
-    [K in Types.TeamRoleType]: string;
-  }
-};
+  footerComponent: React.ElementType
+  isRolePickerOpen: boolean
+  onCancelRolePicker: () => void
+  onConfirmRolePicker: (role: Types.TeamRoleType) => void
+  onOpenRolePicker: () => void
+  onSelectRole: (role: Types.TeamRoleType) => void
+  selectedRole: Types.TeamRoleType
+  disabledReasonsForRolePicker: {[K in Types.TeamRoleType]: string}
+}
 
 // This state is handled by the state wrapper in the container
 export type ComponentState = {
-  selectedTeams: I.Set<string>,
-  onSave: () => void,
+  selectedTeams: I.Set<string>
+  onSave: () => void
   onToggle: (teamName: string, selected: boolean) => void
-};
+}
 
 export type AddToTeamProps = {
-  title: string,
-  addUserToTeamsResults: string,
-  addUserToTeamsState: Types.AddUserToTeamsState,
-  customComponent?: React.ElementType | null,
-  headerStyle?: Styles.StylesCrossPlatform,
-  loadTeamList: () => void,
-  onBack: () => void,
-  onCancel?: () => void,
-  teamProfileAddList: Array<Types.TeamProfileAddList>,
-  them: string,
+  title: string
+  addUserToTeamsResults: string
+  addUserToTeamsState: Types.AddUserToTeamsState
+  customComponent?: React.ElementType | null
+  headerStyle?: Styles.StylesCrossPlatform
+  loadTeamList: () => void
+  onBack: () => void
+  onCancel?: () => void
+  teamProfileAddList: Array<Types.TeamProfileAddList>
+  them: string
   waiting: boolean
-};
+}
 
-type Props = {} & AddToTeamProps & RolePickerProps & ComponentState;
+type Props = {} & AddToTeamProps & RolePickerProps & ComponentState
 
 const TeamRow = (props: RowProps) => (
   <Kb.ClickableBox onClick={props.canAddThem ? () => props.onCheck(!props.checked) : null}>

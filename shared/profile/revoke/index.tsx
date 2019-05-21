@@ -5,19 +5,19 @@ import * as Constants from '../../constants/profile'
 import {capitalize} from 'lodash-es'
 import {subtitle as platformSubtitle} from '../../util/platforms'
 import {SiteIcon} from '../generic/shared'
-import { PlatformsExpandedType } from '../../constants/types/more';
-import { SiteIconSet } from '../../constants/types/tracker2';
+import {PlatformsExpandedType} from '../../constants/types/more'
+import {SiteIconSet} from '../../constants/types/tracker2'
 import Modal from '../modal'
 
 type Props = {
-  icon: SiteIconSet,
-  platform: PlatformsExpandedType,
-  platformHandle: string,
-  errorMessage?: string | null,
-  onCancel: () => void,
-  onRevoke: () => void,
+  icon: SiteIconSet
+  platform: PlatformsExpandedType
+  platformHandle: string
+  errorMessage?: string | null
+  onCancel: () => void
+  onRevoke: () => void
   isWaiting: boolean
-};
+}
 
 const Revoke = (props: Props) => {
   const platformHandleSubtitle = platformSubtitle(props.platform)

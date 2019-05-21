@@ -3,7 +3,7 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import ProveEnterUsername from '.'
 import {connect} from '../../util/container'
 
-type OwnProps = {};
+type OwnProps = {}
 
 const mapStateToProps = state => {
   const profile = state.profile
@@ -46,7 +46,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   username: stateProps.username,
 })
 
-  // @ts-ignore codemode issue
+// @ts-ignore codemode issue
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,

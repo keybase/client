@@ -5,10 +5,10 @@ import * as Tracker2Types from '../../../constants/types/tracker2'
 import {SiteIcon} from '../shared'
 
 type Props = {
-  serviceIcon: Tracker2Types.SiteIconSet,
-  proofUsername: string,
+  serviceIcon: Tracker2Types.SiteIconSet
+  proofUsername: string
   onClose: () => void
-};
+}
 
 const _Success = (props: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>

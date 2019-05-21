@@ -3,11 +3,11 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 
 type Props = {
-  fullname: string,
-  onClick: () => void,
-  username: string,
+  fullname: string
+  onClick: () => void
+  username: string
   width: number
-};
+}
 
 class Friend extends React.PureComponent<Props> {
   render() {

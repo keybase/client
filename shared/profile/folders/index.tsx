@@ -3,11 +3,11 @@ import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 
 export type TlfProps = {
-  openInFilesTab: () => void,
-  isPublic: boolean,
-  isSelf: boolean,
+  openInFilesTab: () => void
+  isPublic: boolean
+  isSelf: boolean
   text: string
-};
+}
 
 const Tlf = (props: TlfProps) => (
   <Kb.ClickableBox onClick={props.openInFilesTab} style={styles.itemContainer}>
@@ -22,13 +22,13 @@ const Tlf = (props: TlfProps) => (
 )
 
 export type Props = {
-  tlfs: Array<TlfProps>,
+  tlfs: Array<TlfProps>
   loadTlfs: () => void
-};
+}
 
 export type State = {
   expanded: boolean
-};
+}
 
 const numFoldersShown = 4
 

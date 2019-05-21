@@ -3,7 +3,7 @@ import ResultsList from '../../search/results-list/container'
 import UserInput from '../../search/user-input/container'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as Styles from '../../styles'
-import { Props } from '.';
+import {Props} from '.'
 import {searchKey, placeholder} from './index.shared'
 
 const Search = (props: Props) => {

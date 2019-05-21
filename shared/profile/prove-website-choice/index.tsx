@@ -3,10 +3,10 @@ import * as Kb from '../../common-adapters'
 import Modal from '../modal'
 
 type Props = {
-  onFile: () => void,
-  onDNS: () => void,
+  onFile: () => void
+  onDNS: () => void
   onCancel: () => void
-};
+}
 
 const ProveWebsiteChoice = (p: Props) => (
   <Modal onCancel={p.onCancel}>

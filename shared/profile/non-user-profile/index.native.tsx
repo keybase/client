@@ -4,7 +4,7 @@ import {Avatar, Box, Button, Icon, Text, HeaderHoc} from '../../common-adapters'
 import {capitalize} from 'lodash-es'
 import {globalColors, globalStyles, globalMargins, platformStyles} from '../../styles'
 import {platformToLogo24} from '../../constants/search'
-import { Props } from '.';
+import {Props} from '.'
 
 const NonUserRender = (props: Props) => (
   <Box style={styleContainer}>

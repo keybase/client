@@ -4,25 +4,23 @@ import {Avatar, Box, Button, Meta, Text, Usernames, FloatingMenu} from '../../co
 import {globalColors, globalMargins, globalStyles, isMobile, platformStyles} from '../../styles'
 
 export type Props = {
-  attachTo: () => React.Component<any> | null,
-  description: string,
-  following: {
-    [K in string]: true;
-  },
-  memberCount: number,
-  onHidden: () => void,
-  onJoinTeam: (teamname: string) => void,
-  onUserClick: (username: string) => void,
-  openTeam: boolean,
-  publicAdmins: Array<string>,
-  publicAdminsOthers: number,
-  teamJoinError: string,
-  teamJoinSuccess: boolean,
-  teamname: string,
-  visible: boolean,
-  youAreInTeam: boolean,
+  attachTo: () => React.Component<any> | null
+  description: string
+  following: {[K in string]: true}
+  memberCount: number
+  onHidden: () => void
+  onJoinTeam: (teamname: string) => void
+  onUserClick: (username: string) => void
+  openTeam: boolean
+  publicAdmins: Array<string>
+  publicAdminsOthers: number
+  teamJoinError: string
+  teamJoinSuccess: boolean
+  teamname: string
+  visible: boolean
+  youAreInTeam: boolean
   youHaveRequestedAccess: boolean
-};
+}
 
 const TeamInfo = (props: Props) => (
   <Box

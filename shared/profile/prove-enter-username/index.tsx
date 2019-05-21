@@ -3,20 +3,20 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/profile'
 import Modal from '../modal'
-import { PlatformsExpandedType } from '../../constants/types/more';
+import {PlatformsExpandedType} from '../../constants/types/more'
 
 type Props = {
-  platform: PlatformsExpandedType,
-  username: string,
-  errorText: string,
-  onSubmit: (username: string) => void,
+  platform: PlatformsExpandedType
+  username: string
+  errorText: string
+  onSubmit: (username: string) => void
   onCancel: () => void
-};
+}
 
 type State = {
-  canSubmit: boolean,
+  canSubmit: boolean
   username: string
-};
+}
 
 class EnterUsername extends React.Component<Props, State> {
   state = {canSubmit: false, username: ''}

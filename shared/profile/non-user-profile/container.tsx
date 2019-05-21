@@ -1,19 +1,22 @@
 import * as FsConstants from '../../constants/fs'
 import * as FsTypes from '../../constants/types/fs'
 import * as Chat2Gen from '../../actions/chat2-gen'
-import { connect, RouteProps } from '../../util/container';
-import { Service } from '../../constants/types/search';
+import {connect, RouteProps} from '../../util/container'
+import {Service} from '../../constants/types/search'
 import {privateFolderWithUsers} from '../../constants/config'
 import NonUserProfile from '.'
 
-type OwnProps = RouteProps<{
-  username: string,
-  avatar: string | null,
-  fullname: string,
-  fullUsername: string,
-  profileUrl: string,
-  serviceName: Service
-}, {}>;
+type OwnProps = RouteProps<
+  {
+    username: string
+    avatar: string | null
+    fullname: string
+    fullUsername: string
+    profileUrl: string
+    serviceName: Service
+  },
+  {}
+>
 
 const mapStateToProps = (state, {routeProps}) => {
   const {avatar, fullname, fullUsername, profileUrl, serviceName, username} = routeProps.toObject()
@@ -48,7 +51,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
   onStartChat: () => dispatchProps._onStartChat(stateProps.fullUsername),
 })
 
-  // @ts-ignore codemode issue
+// @ts-ignore codemode issue
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,

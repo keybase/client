@@ -7,22 +7,22 @@ import * as Types from '../../../constants/types/tracker2'
 import FollowButton from './follow-button'
 
 type Props = {
-  followThem: boolean,
-  followsYou: boolean,
-  onAccept: () => void,
-  onAddToTeam: () => void,
-  onBrowsePublicFolder: () => void,
-  onChat: () => void,
-  onEditProfile: () => void | null,
-  onFollow: () => void,
-  onIgnoreFor24Hours: () => void,
-  onOpenPrivateFolder: () => void,
-  onReload: () => void,
-  onRequestLumens: () => void,
-  onSendLumens: () => void,
-  onUnfollow: () => void,
+  followThem: boolean
+  followsYou: boolean
+  onAccept: () => void
+  onAddToTeam: () => void
+  onBrowsePublicFolder: () => void
+  onChat: () => void
+  onEditProfile: () => void | null
+  onFollow: () => void
+  onIgnoreFor24Hours: () => void
+  onOpenPrivateFolder: () => void
+  onReload: () => void
+  onRequestLumens: () => void
+  onSendLumens: () => void
+  onUnfollow: () => void
   state: Types.DetailsState
-};
+}
 
 const Actions = (p: Props) => {
   let buttons = []

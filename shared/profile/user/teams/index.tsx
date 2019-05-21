@@ -6,16 +6,16 @@ import OpenMeta from './openmeta'
 import TeamInfo from './teaminfo'
 
 type Props = {
-  teamShowcase: ReadonlyArray<Types._TeamShowcase>,
+  teamShowcase: ReadonlyArray<Types._TeamShowcase>
   teamMeta: {
     [K in string]: {
       inTeam: boolean
-    };
-  },
-  onJoinTeam: (arg0: string) => void,
-  onViewTeam: (arg0: string) => void,
+    }
+  }
+  onJoinTeam: (arg0: string) => void
+  onViewTeam: (arg0: string) => void
   onEdit: () => void | null
-};
+}
 
 const _TeamShowcase = p => (
   <Kb.ClickableBox ref={p.setAttachmentRef} onClick={p.toggleShowingMenu}>

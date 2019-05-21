@@ -3,15 +3,15 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {subtitle} from '../../util/platforms'
 import Modal from '../modal'
-import { PlatformsExpandedType } from '../../constants/types/more';
+import {PlatformsExpandedType} from '../../constants/types/more'
 
 type Props = {
-  platform: PlatformsExpandedType,
-  isPending: boolean,
-  platformIconOverlayColor: string,
-  username: string,
+  platform: PlatformsExpandedType
+  isPending: boolean
+  platformIconOverlayColor: string
+  username: string
   onCancel: () => void
-};
+}
 
 const ConfirmOrPending = (props: Props) => {
   const message =
@@ -68,9 +68,7 @@ const styles = Styles.styleSheetCreate({
   grey: {color: Styles.globalColors.black_20},
 })
 
-const messageMap: {
-  [K in string]: string | null;
-} = {
+const messageMap: {[K in string]: string | null} = {
   btc: 'Your Bitcoin address has now been signed onto your profile.',
   dns: 'DNS proofs can take a few hours to recognize. Check back later.',
   hackernews:

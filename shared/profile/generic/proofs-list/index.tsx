@@ -6,20 +6,20 @@ import {SiteIcon} from '../shared'
 import {makeInsertMatcher} from '../../../util/string'
 
 export type IdentityProvider = {
-  name: string,
-  desc: string,
-  icon: Types.SiteIconSet,
-  key: string,
+  name: string
+  desc: string
+  icon: Types.SiteIconSet
+  key: string
   new: boolean
-};
+}
 
 export type Props = {
-  onCancel: () => void,
-  onClickLearn: () => void,
-  providerClicked: (key: string) => void,
-  providers: Array<IdentityProvider>,
+  onCancel: () => void
+  onClickLearn: () => void
+  providerClicked: (key: string) => void
+  providers: Array<IdentityProvider>
   title: string
-};
+}
 
 const HoverBox = Styles.isMobile
   ? Kb.ClickableBox
@@ -29,7 +29,7 @@ const HoverBox = Styles.isMobile
 
 type ProvidersProps = {
   filter: string
-} & Props;
+} & Props
 
 class Providers extends React.Component<ProvidersProps> {
   static _itemHeight = {
@@ -87,7 +87,7 @@ const filterProvider = (p, filter) => {
 
 type State = {
   filter: string
-};
+}
 
 class _ProofsList extends React.Component<Props, State> {
   state = {filter: ''}

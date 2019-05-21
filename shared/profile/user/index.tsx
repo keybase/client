@@ -15,28 +15,28 @@ import shallowEqual from 'shallowequal'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Flow from '../../util/flow'
 
-export type BackgroundColorType = "red" | "green" | "blue";
+export type BackgroundColorType = 'red' | 'green' | 'blue'
 
 export type Props = {
-  assertionKeys: Array<string> | null,
-  backgroundColorType: BackgroundColorType,
-  followThem: boolean,
-  followers: Array<string> | null,
-  followersCount: number,
-  following: Array<string> | null,
-  followingCount: number,
-  notAUser: boolean,
-  onAddIdentity: () => void | null,
-  onBack: () => void,
-  onReload: () => void,
-  onSearch: () => void,
-  onEditAvatar: () => void | null,
-  reason: string,
-  state: Types.DetailsState,
-  suggestionKeys: Array<string> | null,
-  userIsYou: boolean,
+  assertionKeys: Array<string> | null
+  backgroundColorType: BackgroundColorType
+  followThem: boolean
+  followers: Array<string> | null
+  followersCount: number
+  following: Array<string> | null
+  followingCount: number
+  notAUser: boolean
+  onAddIdentity: () => void | null
+  onBack: () => void
+  onReload: () => void
+  onSearch: () => void
+  onEditAvatar: () => void | null
+  reason: string
+  state: Types.DetailsState
+  suggestionKeys: Array<string> | null
+  userIsYou: boolean
   username: string
-};
+}
 
 const colorTypeToStyle = type => {
   switch (type) {
@@ -105,12 +105,12 @@ const Proofs = p => {
 }
 
 type FriendshipTabsProps = {
-  loading: boolean,
-  onChangeFollowing: (arg0: boolean) => void,
-  selectedFollowing: boolean,
-  numFollowers: number,
+  loading: boolean
+  onChangeFollowing: (arg0: boolean) => void
+  selectedFollowing: boolean
+  numFollowers: number
   numFollowing: number
-};
+}
 
 class FriendshipTabs extends React.Component<FriendshipTabsProps> {
   _onClickFollowing = () => this.props.onChangeFollowing(true)
@@ -154,9 +154,9 @@ const widthToDimentions = width => {
 }
 
 type FriendRowProps = {
-  usernames: Array<string>,
+  usernames: Array<string>
   itemWidth: number
-};
+}
 
 class FriendRow extends React.Component<FriendRowProps> {
   shouldComponentUpdate(nextProps: FriendRowProps) {
@@ -177,15 +177,15 @@ class FriendRow extends React.Component<FriendRowProps> {
 }
 
 export type BioTeamProofsProps = {
-  onAddIdentity: () => void | null,
-  assertionKeys: Array<string> | null,
-  backgroundColorType: BackgroundColorType,
-  onEditAvatar: () => void | null,
-  notAUser: boolean,
-  suggestionKeys: Array<string> | null,
-  username: string,
+  onAddIdentity: () => void | null
+  assertionKeys: Array<string> | null
+  backgroundColorType: BackgroundColorType
+  onEditAvatar: () => void | null
+  notAUser: boolean
+  suggestionKeys: Array<string> | null
+  username: string
   reason: string
-};
+}
 export class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
   render() {
     const addIdentity = this.props.onAddIdentity ? (
@@ -259,9 +259,9 @@ export class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
 }
 
 type State = {
-  selectedFollowing: boolean,
+  selectedFollowing: boolean
   width: number
-};
+}
 
 class User extends React.Component<Props, State> {
   constructor(props: Props) {

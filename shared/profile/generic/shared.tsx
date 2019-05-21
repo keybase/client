@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import { SiteIconSet } from '../../constants/types/tracker2';
+import {SiteIconSet} from '../../constants/types/tracker2'
 
 export const ProofSuccessIcon = <Kb.Icon type="icon-proof-success" color={Styles.globalColors.green} />
 export const MastadonIcon = (
@@ -18,10 +18,10 @@ const siteIconToNativeSrcSet = siteIcon =>
   siteIcon.map(si => ({height: si.width, uri: si.path, width: si.width}))
 
 type SiteIconProps = {
-  full: boolean,
-  set: SiteIconSet,
+  full: boolean
+  set: SiteIconSet
   style?: Styles.StylesCrossPlatform
-};
+}
 
 export const SiteIcon = (props: SiteIconProps) => {
   const style = props.full ? siteIconStyles.siteIconFull : siteIconStyles.siteIcon

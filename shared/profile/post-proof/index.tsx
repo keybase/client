@@ -4,41 +4,35 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {subtitle} from '../../util/platforms'
 import openUrl from '../../util/open-url'
-import { ProvablePlatformsType } from '../../constants/types/more';
+import {ProvablePlatformsType} from '../../constants/types/more'
 import Modal from '../modal'
 
 export type Props = {
-  copyToClipboard: (arg0: string) => void,
-  errorMessage: string,
-  onCancel: () => void,
-  onSubmit: () => void,
-  openLinkBeforeSubmit: boolean,
-  platform: ProvablePlatformsType,
-  platformUserName: string,
-  proofText: string,
+  copyToClipboard: (arg0: string) => void
+  errorMessage: string
+  onCancel: () => void
+  onSubmit: () => void
+  openLinkBeforeSubmit: boolean
+  platform: ProvablePlatformsType
+  platformUserName: string
+  proofText: string
   url: string
-};
+}
 
-const actionMap: {
-  [K in string]: string | null;
-} = {
+const actionMap: {[K in string]: string | null} = {
   github: 'Create gist now',
   hackernews: 'Go to Hacker News',
   reddit: 'Reddit form',
   twitter: 'Tweet it now',
 }
 
-const checkMap: {
-  [K in string]: string | null;
-} = {
+const checkMap: {[K in string]: string | null} = {
   twitter: 'OK tweeted! Check for it!',
 }
 
 const webNote = 'Note: If someone already verified this domain, just append to the existing keybase.txt file.'
 
-const noteMap: {
-  [K in string]: string | null;
-} = {
+const noteMap: {[K in string]: string | null} = {
   http: webNote,
   https: webNote,
   reddit: "Make sure you're signed in to Reddit, and don't edit the text or title before submitting.",
@@ -74,9 +68,7 @@ const WebDescription = ({platformUserName}) => {
   )
 }
 
-const descriptionMap: {
-  [K in string]: React.ComponentType<any>;
-} = {
+const descriptionMap: {[K in string]: React.ComponentType<any>} = {
   dns: () => (
     <Kb.Text center={true} type="BodySemibold">
       Enter the following as a TXT entry in your DNS zone,{' '}
@@ -120,7 +112,7 @@ const descriptionMap: {
 
 type State = {
   showSubmit: boolean
-};
+}
 
 class PostProof extends React.Component<Props, State> {
   state = {

@@ -1,4 +1,3 @@
-
 const searchKey = 'profileSearch'
 const placeholder = 'Type someone'
 

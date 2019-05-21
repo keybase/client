@@ -3,20 +3,20 @@ import {WaitingButton} from '../../../common-adapters'
 import * as Styles from '../../../styles'
 
 type Props = {
-  following?: boolean,
-  followsYou?: boolean,
-  waitingKey: string,
-  style?: Object,
-  onFollow?: () => void,
+  following?: boolean
+  followsYou?: boolean
+  waitingKey: string
+  style?: Object
+  onFollow?: () => void
   onUnfollow?: () => void
-};
+}
 
 type State = {
   mouseOver: boolean
-};
+}
 
 class FollowButton extends React.Component<Props, State> {
-  state: State;
+  state: State
 
   constructor(props: Props) {
     super(props)

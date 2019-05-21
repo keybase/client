@@ -3,17 +3,17 @@ import {Banner, Box, ButtonBar, StandardScreen, WaitingButton} from '../../commo
 import {NativeDimensions, NativeFastImage, ZoomableBox} from '../../common-adapters/mobile.native'
 import {collapseStyles, globalColors, globalMargins, padding, styleSheetCreate} from '../../styles'
 import {isIOS} from '../../constants/platform'
-import { Props } from '.';
+import {Props} from '.'
 
 const {width: screenWidth} = NativeDimensions.get('window')
 const AVATAR_SIZE = screenWidth - globalMargins.medium * 2
 
 class AvatarUpload extends React.Component<Props> {
-  _h: number = 0;
-  _w: number = 0;
-  _x: number = 0;
-  _y: number = 0;
-  _z: boolean = false;
+  _h: number = 0
+  _w: number = 0
+  _x: number = 0
+  _y: number = 0
+  _z: boolean = false
 
   _onSave = () => {
     if (!this.props.image) {
@@ -43,17 +43,7 @@ class AvatarUpload extends React.Component<Props> {
     }
   }
 
-  _onZoom = ({
-    height,
-    width,
-    x,
-    y
-  }: {
-    height: number,
-    width: number,
-    x: number,
-    y: number
-  }) => {
+  _onZoom = ({height, width, x, y}: {height: number; width: number; x: number; y: number}) => {
     this._h = height
     this._w = width
     this._x = x

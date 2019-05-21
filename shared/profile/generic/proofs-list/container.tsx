@@ -1,10 +1,10 @@
-import { namedConnect, RouteProps } from '../../../util/container';
+import {namedConnect, RouteProps} from '../../../util/container'
 import * as ProfileGen from '../../../actions/profile-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import ProofsList from '.'
 import openURL from '../../../util/open-url'
 
-type OwnProps = RouteProps<{}, {}>;
+type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = state => ({
   _proofSuggestions: state.tracker2.proofSuggestions,
@@ -31,7 +31,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   title: 'Prove your...',
 })
 
-  // @ts-ignore codemode issue
+// @ts-ignore codemode issue
 export default namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,

@@ -3,16 +3,19 @@ import * as ProfileGen from '../../actions/profile-gen'
 import Revoke from '.'
 import * as Constants from '../../constants/profile'
 import * as Waiting from '../../constants/waiting'
-import { connect, getRouteProps, RouteProps } from '../../util/container';
-import { PlatformsExpandedType } from '../../constants/types/more';
-import { SiteIconSet } from '../../constants/types/tracker2';
+import {connect, getRouteProps, RouteProps} from '../../util/container'
+import {PlatformsExpandedType} from '../../constants/types/more'
+import {SiteIconSet} from '../../constants/types/tracker2'
 
-type OwnProps = RouteProps<{
-  icon: SiteIconSet,
-  platform: PlatformsExpandedType,
-  platformHandle: string,
-  proofId: string
-}, {}>;
+type OwnProps = RouteProps<
+  {
+    icon: SiteIconSet
+    platform: PlatformsExpandedType
+    platformHandle: string
+    proofId: string
+  },
+  {}
+>
 
 const mapStateToProps = (state, ownProps) => ({
   errorMessage: state.profile.revokeError,
@@ -34,7 +37,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   },
 })
 
-  // @ts-ignore codemode issue
+// @ts-ignore codemode issue
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,

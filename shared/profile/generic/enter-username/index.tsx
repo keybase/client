@@ -2,21 +2,21 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import {SiteIcon} from '../shared'
-import { SiteIconSet } from '../../../constants/types/tracker2';
+import {SiteIconSet} from '../../../constants/types/tracker2'
 
 type InputProps = {
-  error: boolean,
-  onChangeUsername: (arg0: string) => void,
-  onEnterKeyDown: () => void,
-  serviceIcon: SiteIconSet,
-  serviceSuffix: string,
+  error: boolean
+  onChangeUsername: (arg0: string) => void
+  onEnterKeyDown: () => void
+  serviceIcon: SiteIconSet
+  serviceSuffix: string
   username: string
-};
+}
 
 type InputState = {
-  focus: boolean,
+  focus: boolean
   username: string
-};
+}
 
 class EnterUsernameInput extends React.Component<InputProps, InputState> {
   state = {focus: false, username: this.props.username}
@@ -32,7 +32,8 @@ class EnterUsernameInput extends React.Component<InputProps, InputState> {
 
   render() {
     // If ever there become more than 2 choices, this can be pushed into a protocol parameter.
-    let usernamePlaceholder = this.props.serviceSuffix === '@theqrl.org' ? 'Your QRL address' : 'Your username'
+    let usernamePlaceholder =
+      this.props.serviceSuffix === '@theqrl.org' ? 'Your QRL address' : 'Your username'
     return (
       <Kb.Box2
         direction="vertical"
@@ -122,22 +123,22 @@ const Unreachable = props => (
 )
 
 type Props = {
-  error: string,
-  onBack: () => void,
-  onCancel: () => void,
-  onChangeUsername: (arg0: string) => void,
-  onContinue: () => void,
-  onSubmit: () => void,
-  serviceIcon: SiteIconSet,
-  serviceIconFull: SiteIconSet,
-  serviceName: string,
-  serviceSub: string,
-  serviceSuffix: string,
-  submitButtonLabel: string,
-  unreachable: boolean,
-  username: string,
+  error: string
+  onBack: () => void
+  onCancel: () => void
+  onChangeUsername: (arg0: string) => void
+  onContinue: () => void
+  onSubmit: () => void
+  serviceIcon: SiteIconSet
+  serviceIconFull: SiteIconSet
+  serviceName: string
+  serviceSub: string
+  serviceSuffix: string
+  submitButtonLabel: string
+  unreachable: boolean
+  username: string
   waiting: boolean
-};
+}
 
 class _EnterUsername extends React.Component<Props> {
   _waitingButtonKey = 0
