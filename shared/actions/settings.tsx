@@ -237,7 +237,7 @@ function* sendInvite(_, action) {
 
 function* refreshNotifications() {
   // If the rpc is fast don't clear it out first
-  const delayThenEmptyTask = yield Saga._fork(function*(): Generator<any, void, any> {
+  const delayThenEmptyTask = yield Saga._fork(function*(): Iterable<any> {
     yield Saga.callUntyped(delay, 500)
     yield Saga.put(
       SettingsGen.createNotificationsRefreshed({
@@ -251,11 +251,11 @@ function* refreshNotifications() {
 
   try {
     const [
-      json: {
+      json,
+      _chatGlobalSettings
+    ]: [{
         body: string
-      } | null,
-      _chatGlobalSettings: ChatTypes.GlobalAppNotificationSettings,
-    ] = yield Saga.all([
+      } | null, ChatTypes.GlobalAppNotificationSettings] = yield Saga.all([
       Saga.callUntyped(
         RPCTypes.apiserverGetWithSessionRpcPromise,
         {

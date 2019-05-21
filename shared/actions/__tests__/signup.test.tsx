@@ -11,7 +11,7 @@ import reducer from '../../reducers/signup'
 
 jest.unmock('immutable')
 
-const makeTypedState = (signupState: Types.State): TypedState => {signup: signupState} as any
+const makeTypedState = (signupState: Types.State): TypedState => ({signup: signupState} as any)
 
 describe('goBackAndClearErrors', () => {
   it('errors get cleaned and we go back a level', () => {

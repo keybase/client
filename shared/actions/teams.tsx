@@ -415,7 +415,7 @@ const inviteToTeamByPhone = (_, action, logger) => {
   const {teamname, role, phoneNumber, fullName = ''} = action.payload
   return RPCTypes.teamsTeamCreateSeitanTokenV2RpcPromise(
     {
-      label: {sms: ({f: fullName || '', n: phoneNumber} as RPCTypes.SeitanKeyLabelSms), t: 1},
+      label: {sms: {f: fullName || '', n: phoneNumber} as RPCTypes.SeitanKeyLabelSms, t: 1},
       name: teamname,
       role: (!!role && RPCTypes.teamsTeamRole[role]) || 0,
     },
@@ -426,7 +426,7 @@ const inviteToTeamByPhone = (_, action, logger) => {
     return openSMS([phoneNumber], bodyText)
       .then(() => TeamsGen.createGetDetails({teamname}))
       .catch(err => logger.info('Error sending SMS', err))
-  });
+  })
 }
 
 const ignoreRequest = (_, action) => {
@@ -743,9 +743,7 @@ const getChannels = (_, action) => {
     Constants.getChannelsWaitingKey(teamname)
   ).then(results => {
     const convs = results.convs || []
-    const channelInfos: {
-      [K in ChatTypes.ConversationIDKey]: Types.ChannelInfo;
-    } = {}
+    const channelInfos: {[K in ChatTypes.ConversationIDKey]: Types.ChannelInfo} = {}
     convs.forEach(conv => {
       const convID = ChatTypes.stringToConversationIDKey(conv.convID)
       channelInfos[convID] = Constants.makeChannelInfo({
@@ -756,7 +754,7 @@ const getChannels = (_, action) => {
     })
 
     return TeamsGen.createSetTeamChannels({channelInfos: I.Map(channelInfos), teamname})
-  });
+  })
 }
 
 function* getTeams(state, action, logger) {
@@ -778,9 +776,7 @@ function* getTeams(state, action, logger) {
     const teams = results.teams || []
     const teamnames = []
     const teammembercounts = {}
-    const teamNameToRole: {
-      [K in Types.Teamname]: Types.MaybeTeamRoleType;
-    } = {}
+    const teamNameToRole: {[K in Types.Teamname]: Types.MaybeTeamRoleType} = {}
     const teamNameToIsOpen = {}
     const teamNameToAllowPromote = {}
     const teamNameToIsShowcasing = {}
@@ -958,8 +954,12 @@ function* createChannel(_, action, logger) {
     }
 
     // Dismiss the create channel dialog.
-    if (// Auto generated from flowToTs. Please clean me!
-    (Router2Constants.getVisibleScreen() === null || Router2Constants.getVisibleScreen() === undefined ? undefined : Router2Constants.getVisibleScreen().routeName) === 'chatCreateChannel') {
+    if (
+      // Auto generated from flowToTs. Please clean me!
+      (Router2Constants.getVisibleScreen() === null || Router2Constants.getVisibleScreen() === undefined
+        ? undefined
+        : Router2Constants.getVisibleScreen().routeName) === 'chatCreateChannel'
+    ) {
       yield Saga.put(RouteTreeGen.createClearModals())
     }
 
@@ -1191,19 +1191,26 @@ function* addTeamWithChosenChannels(state, action, logger) {
     return
   }
   const item =
-    pushState.items && pushState.items.find(i => // Auto generated from flowToTs. Please clean me!
-    (i.item === null || i.item === undefined ? undefined : i.item.category) === Constants.chosenChannelsGregorKey)
+    pushState.items &&
+    pushState.items.find(
+      (
+        i // Auto generated from flowToTs. Please clean me!
+      ) =>
+        (i.item === null || i.item === undefined ? undefined : i.item.category) ===
+        Constants.chosenChannelsGregorKey
+    )
   let teams = []
   let msgID
   if (item && item.item && item.item.body) {
     const body = item.item.body
-    msgID = // Auto generated from flowToTs. Please clean me!
-    item.md === null || item.md === undefined ? undefined : item.md.msgID
+    msgID = item.md === null || item.md === undefined ? undefined : item.md.msgID // Auto generated from flowToTs. Please clean me!
     teams = JSON.parse(body.toString())
   } else {
     logger.info(
-      `${logPrefix} No item in gregor state found, making new item. Total # of items: ${// Auto generated from flowToTs. Please clean me!
-      (pushState.items === null || pushState.items === undefined ? undefined : pushState.items.length) || 0}`
+      `${logPrefix} No item in gregor state found, making new item. Total # of items: ${
+        // Auto generated from flowToTs. Please clean me!
+        (pushState.items === null || pushState.items === undefined ? undefined : pushState.items.length) || 0
+      }`
     )
   }
   if (existingTeams.size > teams.length) {
@@ -1291,10 +1298,13 @@ const badgeAppForTeams = (state, action) => {
   }
 
   let actions = []
-  const newTeams = I.Set(action.payload.newTeamNames || [])
-  const newTeamRequests = I.List(action.payload.newTeamAccessRequests || [])
+  // TODO ts-migration remove any
+  const newTeams: I.Set<any> = I.Set(action.payload.newTeamNames || [])
+  // TODO ts-migration remove any
+  const newTeamRequests: I.List<any> = I.List(action.payload.newTeamAccessRequests || [])
 
-  const teamsWithResetUsers = I.List(action.payload.teamsWithResetUsers || [])
+  // TODO ts-migration remove any
+  const teamsWithResetUsers: I.List<any> = I.List(action.payload.teamsWithResetUsers || [])
   const teamsWithResetUsersMap = teamsWithResetUsers.reduce((res, entry) => {
     if (!res[entry.teamname]) {
       res[entry.teamname] = I.Set()
@@ -1323,8 +1333,10 @@ const badgeAppForTeams = (state, action) => {
     // Covers case where we have a badge appear on the requests
     // tab with no rows showing up
     const newTeamRequestsSet = I.Set(newTeamRequests)
+    // TODO ts-migration remove any
     const existingNewTeamRequestsSet = I.Set(existingNewTeamRequests)
-    const toLoad = newTeamRequestsSet.subtract(existingNewTeamRequestsSet)
+    // TODO ts-migration remove any
+    const toLoad: I.Set<any> = newTeamRequestsSet.subtract(existingNewTeamRequestsSet)
     const loadingCalls = toLoad.map(teamname => TeamsGen.createGetDetails({teamname})).toArray()
     actions = actions.concat(loadingCalls)
   }
@@ -1435,11 +1447,11 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
     'getChannelInfo'
   )
   yield* Saga.chainAction<TeamsGen.GetChannelsPayload>(TeamsGen.getChannels, getChannels, 'getChannels')
-  yield* Saga.chainGenerator<ConfigGen.BootstrapStatusLoadedPayload, TeamsGen.GetTeamsPayload, TeamsGen.LeftTeamPayload>(
-    [ConfigGen.bootstrapStatusLoaded, TeamsGen.getTeams, TeamsGen.leftTeam],
-    getTeams,
-    'getTeams'
-  )
+  yield* Saga.chainGenerator<
+    ConfigGen.BootstrapStatusLoadedPayload,
+    TeamsGen.GetTeamsPayload,
+    TeamsGen.LeftTeamPayload
+  >([ConfigGen.bootstrapStatusLoaded, TeamsGen.getTeams, TeamsGen.leftTeam], getTeams, 'getTeams')
   yield* Saga.chainGenerator<TeamsGen.SaveChannelMembershipPayload>(
     TeamsGen.saveChannelMembership,
     saveChannelMembership,

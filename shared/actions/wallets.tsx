@@ -21,6 +21,7 @@ import flags from '../util/feature-flags'
 import {RPCError} from '../util/errors'
 import {isMobile} from '../constants/platform'
 import {actionHasError} from '../util/container'
+import { Action } from 'redux';
 
 const stateToBuildRequestParams = state => ({
   amount: state.wallets.building.amount,
@@ -655,7 +656,7 @@ const navigateToAccount = (state, action) => {
 
 const navigateToTransaction = (state, action) => {
   const {accountID, paymentID} = action.payload
-  const actions = [WalletsGen.createSelectAccount({accountID, reason: 'show-transaction'})]
+  const actions: Array<Action> = [WalletsGen.createSelectAccount({accountID, reason: 'show-transaction'})]
   actions.push(
     RouteTreeGen.createNavigateAppend({
       path: [{props: {accountID, paymentID}, selected: 'transactionDetails'}],
@@ -824,7 +825,7 @@ const acceptDisclaimer = state =>
 const checkDisclaimer = (state, _, logger) =>
   RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise()
     .then(accepted => {
-      const actions = [WalletsGen.createWalletDisclaimerReceived({accepted})]
+      const actions: Array<Action> = [WalletsGen.createWalletDisclaimerReceived({accepted})]
       if (accepted) {
         // in new nav we could be in a modal anywhere in the app right now
         actions.push(RouteTreeGen.createClearModals())
