@@ -620,6 +620,10 @@ func (fbo *folderBranchOps) deleteFromFavorites(ctx context.Context) error {
 
 func (fbo *folderBranchOps) doFavoritesOp(
 	ctx context.Context, fop FavoritesOp, handle *tlfhandle.Handle) error {
+	if fbo.bType == conflict {
+		// Ignore local conflicts, they should never be added as real favorites.
+		return nil
+	}
 	switch fop {
 	case FavoritesOpNoChange:
 		return nil
@@ -8629,6 +8633,35 @@ func (fbo *folderBranchOps) ForceFastForward(ctx context.Context) {
 	})
 }
 
+func (fbo *folderBranchOps) invalidateAllNodesLocked(
+	ctx context.Context, lState *kbfssync.LockState) error {
+	fbo.mdWriterLock.AssertLocked(lState)
+	fbo.headLock.AssertLocked(lState)
+
+	changes, affectedNodeIDs, err := fbo.blocks.GetInvalidationChangesForAll(
+		ctx, lState)
+	if err != nil {
+		return err
+	}
+
+	// Invalidate all the affected nodes.
+	if len(changes) > 0 {
+		fbo.observers.batchChanges(ctx, changes, affectedNodeIDs)
+	}
+	return nil
+}
+
+func (fbo *folderBranchOps) invalidateAllNodes(ctx context.Context) error {
+	lState := makeFBOLockState()
+	fbo.mdWriterLock.Lock(lState)
+	defer fbo.mdWriterLock.Unlock(lState)
+	fbo.headLock.Lock(lState)
+	defer fbo.headLock.Unlock(lState)
+
+	fbo.log.CDebugf(ctx, "Inavlidating all nodes")
+	return fbo.invalidateAllNodesLocked(ctx, lState)
+}
+
 // Reset implements the KBFSOps interface for folderBranchOps.
 func (fbo *folderBranchOps) Reset(
 	ctx context.Context, handle *tlfhandle.Handle) error {
@@ -8654,15 +8687,9 @@ func (fbo *folderBranchOps) Reset(
 	defer fbo.headLock.Unlock(lState)
 
 	fbo.log.CDebugf(ctx, "Resetting")
-	changes, affectedNodeIDs, err := fbo.blocks.GetInvalidationChangesForAll(
-		ctx, lState)
+	err = fbo.invalidateAllNodesLocked(ctx, lState)
 	if err != nil {
 		return err
-	}
-
-	// Invalidate all the affected nodes.
-	if len(changes) > 0 {
-		fbo.observers.batchChanges(ctx, changes, affectedNodeIDs)
 	}
 
 	// Make up a finalized name for the old handle, and broadcast it

@@ -1553,7 +1553,7 @@ func (fs *KBFSOpsStandard) Reset(
 	return fs.resetTlfID(ctx, handle)
 }
 
-// ClearConflictView resets a TLF's jounral and conflict DB to a non
+// ClearConflictView resets a TLF's journal and conflict DB to a non
 // -conflicting state.
 func (fs *KBFSOpsStandard) ClearConflictView(ctx context.Context,
 	tlfID tlf.ID) error {
@@ -1562,6 +1562,59 @@ func (fs *KBFSOpsStandard) ClearConflictView(ctx context.Context,
 		Branch: data.MasterBranch,
 	})
 	return fbo.clearConflictView(ctx)
+}
+
+func (fs *KBFSOpsStandard) deleteOps(
+	ctx context.Context, ops *folderBranchOps, fb data.FolderBranch) error {
+	handle, err := ops.GetTLFHandle(ctx, nil)
+	if err != nil {
+		return err
+	}
+	fs.opsLock.Lock()
+	defer fs.opsLock.Unlock()
+	delete(fs.ops, fb)
+	fav := handle.ToFavorite()
+	delete(fs.opsByFav, fav)
+	return nil
+}
+
+// FinishResolvingConflict implements the KBFSOps interface for
+// KBFSOpsStandard.
+func (fs *KBFSOpsStandard) FinishResolvingConflict(
+	ctx context.Context, fb data.FolderBranch) (err error) {
+	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
+	defer timeTrackerDone()
+
+	fs.log.CDebugf(ctx, "FinishResolvingConflict(%v)", fb)
+	defer func() {
+		fs.deferLog.CDebugf(ctx, "Done: %+v", err)
+	}()
+
+	// First invalidate all its nodes and shut down the FBO.
+	ops := fs.getOpsIfExists(ctx, fb)
+	if ops != nil {
+		err := ops.invalidateAllNodes(ctx)
+		if err != nil {
+			return err
+		}
+		err = fs.deleteOps(ctx, ops, fb)
+		if err != nil {
+			return err
+		}
+		err = ops.Shutdown(ctx)
+		if err != nil {
+			return err
+		}
+	}
+
+	jManager, jErr := GetJournalManager(fs.config)
+	if jErr == nil {
+		err := jManager.FinishResolvingConflict(ctx, fb.Tlf)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // ForceStuckConflictForTesting implements the KBFSOps interface for
