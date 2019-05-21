@@ -54,6 +54,7 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 	require.Equal(t, "qq", accts[0].Name)
 	require.Equal(t, stellar1.AccountMode_USER, accts[0].AccountMode)
 	require.Equal(t, false, accts[0].AccountModeEditable)
+	require.Equal(t, false, accts[0].DeviceReadOnly)
 	require.Equal(t, "10,000.00 XLM", accts[0].BalanceDescription)
 	currencyLocal := accts[0].CurrencyLocal
 	require.Equal(t, stellar1.OutsideCurrencyCode("USD"), currencyLocal.Code)
@@ -66,6 +67,7 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 	require.Equal(t, firstAccountName(t, tcs[0]), accts[1].Name)
 	require.Equal(t, stellar1.AccountMode_USER, accts[1].AccountMode)
 	require.Equal(t, false, accts[1].AccountModeEditable)
+	require.Equal(t, false, accts[1].DeviceReadOnly)
 	require.Equal(t, "0 XLM", accts[1].BalanceDescription)
 	currencyLocal = accts[1].CurrencyLocal
 	require.Equal(t, stellar1.OutsideCurrencyCode("USD"), currencyLocal.Code)
@@ -78,6 +80,7 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 	require.Equal(t, "qq", details.Name)
 	require.Equal(t, stellar1.AccountMode_USER, details.AccountMode)
 	require.Equal(t, false, accts[1].AccountModeEditable)
+	require.Equal(t, false, accts[1].DeviceReadOnly)
 	require.True(t, details.IsDefault)
 	require.Equal(t, "10,000.00 XLM", details.BalanceDescription)
 	require.NotEmpty(t, details.Seqno)
@@ -2642,6 +2645,7 @@ func TestSetMobileOnly(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, stellar1.AccountMode_USER, details.AccountMode)
 	require.Equal(t, true, details.AccountModeEditable)
+	require.Equal(t, false, details.DeviceReadOnly)
 
 	err = tcs[0].Srv.SetAccountMobileOnlyLocal(context.Background(), stellar1.SetAccountMobileOnlyLocalArg{AccountID: accountID})
 	require.NoError(t, err)
@@ -2658,12 +2662,31 @@ func TestSetMobileOnly(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, stellar1.AccountMode_MOBILE, details.AccountMode)
 	require.Equal(t, true, details.AccountModeEditable)
+	require.Equal(t, false, details.DeviceReadOnly)
 
 	mode, err := tcs[0].Srv.walletState.AccountMode(accountID)
 	require.NoError(t, err)
 	require.Equal(t, stellar1.AccountMode_MOBILE, mode)
 
 	// service_test verifies that `SetAccountMobileOnlyLocal` behaves correctly under the covers
+
+	// Provision new mobile to check AccountModeEditable and DeviceReadOnly
+	tc2, cleanup2 := provisionNewDeviceForTest(t, tcs[0], libkb.DeviceTypeMobile)
+	defer cleanup2()
+	details, err = tc2.Srv.GetWalletAccountLocal(context.Background(), walletAcctLocalArg)
+	require.NoError(t, err)
+	require.Equal(t, stellar1.AccountMode_MOBILE, details.AccountMode)
+	require.Equal(t, false, details.AccountModeEditable)
+	require.Equal(t, true, details.DeviceReadOnly)
+
+	// Provision new desktop device.
+	tc3, cleanup3 := provisionNewDeviceForTest(t, tcs[0], libkb.DeviceTypeDesktop)
+	defer cleanup3()
+	details, err = tc3.Srv.GetWalletAccountLocal(context.Background(), walletAcctLocalArg)
+	require.NoError(t, err)
+	require.Equal(t, stellar1.AccountMode_MOBILE, details.AccountMode)
+	require.Equal(t, false, details.AccountModeEditable)
+	require.Equal(t, true, details.DeviceReadOnly)
 }
 
 const lumenautAccID = stellar1.AccountID("GCCD6AJOYZCUAQLX32ZJF2MKFFAUJ53PVCFQI3RHWKL3V47QYE2BNAUT")

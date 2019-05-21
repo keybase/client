@@ -465,6 +465,10 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 		return empty, err
 	}
 	isMobile := activeDeviceType == libkb.DeviceTypeMobile
+
+	// AccountModeEditable - can user change "account mode" to mobile only or
+	// back? This setting can only be changed from a mobile device that's over
+	// 7 days old (since provisioning).
 	editable := false
 	if isMobile {
 		ctime, err := mctx.G().ActiveDevice.Ctime(mctx)
@@ -475,6 +479,21 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 		deviceAge := mctx.G().Clock().Since(deviceProvisionedAt)
 		if deviceAge > 7*24*time.Hour {
 			editable = true
+		}
+	}
+
+	// AccountDeviceReadOnly - if account is mobileOnly and current device is
+	// either desktop, or mobile but not only enough (7 days since
+	// provisioning).
+	readOnly := false
+	if accountMode == stellar1.AccountMode_MOBILE {
+		if isMobile {
+			// Mobile devices eligible to edit are also eligible to do
+			// transactions.
+			readOnly = !editable
+		} else {
+			// All desktop devices are read only.
+			readOnly = true
 		}
 	}
 
@@ -502,6 +521,7 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 		Seqno:               details.Seqno,
 		AccountMode:         accountMode,
 		AccountModeEditable: editable,
+		DeviceReadOnly:      readOnly,
 		IsFunded:            isFunded,
 		CanSubmitTx:         canSubmitTx,
 	}

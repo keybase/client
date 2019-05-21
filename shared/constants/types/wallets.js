@@ -217,11 +217,12 @@ export type Currency = I.RecordOf<_LocalCurrency>
 export type _Account = {
   accountID: AccountID,
   balanceDescription: string,
+  canSubmitTx: boolean,
+  deviceReadOnly: boolean,
   displayCurrency: Currency,
   isDefault: boolean,
-  name: string,
   mobileOnlyEditable: boolean,
-  canSubmitTx: boolean,
+  name: string,
 }
 export type Account = I.RecordOf<_Account>
 
