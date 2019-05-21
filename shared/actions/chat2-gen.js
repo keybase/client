@@ -100,8 +100,8 @@ export const saveMinWriterRole = 'chat2:saveMinWriterRole'
 export const selectAttachmentView = 'chat2:selectAttachmentView'
 export const selectConversation = 'chat2:selectConversation'
 export const sendTyping = 'chat2:sendTyping'
-export const setAttachmentView = 'chat2:setAttachmentView'
 export const setAttachmentViewError = 'chat2:setAttachmentViewError'
+export const setAttachmentViewMessages = 'chat2:setAttachmentViewMessages'
 export const setCommandMarkdown = 'chat2:setCommandMarkdown'
 export const setContainsLastMessage = 'chat2:setContainsLastMessage'
 export const setConvExplodingMode = 'chat2:setConvExplodingMode'
@@ -184,7 +184,7 @@ type _InboxSearchTextResultPayload = $ReadOnly<{|result: Types.InboxSearchTextHi
 type _JoinConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _JumpToRecentPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _LeaveConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, dontNavigateToInbox?: boolean|}>
-type _LoadAttachmentViewPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, viewType: RPCChatTypes.GalleryItemTyp, fromMsgID?: Types.MessageID, clearSelection?: boolean|}>
+type _LoadAttachmentViewPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, viewType: RPCChatTypes.GalleryItemTyp, fromMsgID?: Types.MessageID|}>
 type _LoadMessagesCenteredPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, highlightMode: Types.CenterOrdinalHighlightMode|}>
 type _LoadNewerMessagesDueToScrollPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _LoadOlderMessagesDueToScrollPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
@@ -236,7 +236,7 @@ type _SelectConversationPayload = $ReadOnly<{|
 |}>
 type _SendTypingPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, typing: boolean|}>
 type _SetAttachmentViewErrorPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, viewType: RPCChatTypes.GalleryItemTyp|}>
-type _SetAttachmentViewPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, viewType: RPCChatTypes.GalleryItemTyp, messages: I.List<Types.Message>|}>
+type _SetAttachmentViewMessagesPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, viewType: RPCChatTypes.GalleryItemTyp, messages: I.List<Types.Message>|}>
 type _SetCommandMarkdownPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, md: ?RPCChatTypes.UICommandMarkdown|}>
 type _SetContainsLastMessagePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, contains: boolean|}>
 type _SetConvExplodingModePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, seconds: number|}>
@@ -415,7 +415,7 @@ export const createInboxSearchSetIndexPercent = (payload: _InboxSearchSetIndexPe
 /**
  * Set results for attachment view
  */
-export const createSetAttachmentView = (payload: _SetAttachmentViewPayload) => ({payload, type: setAttachmentView})
+export const createSetAttachmentViewMessages = (payload: _SetAttachmentViewMessagesPayload) => ({payload, type: setAttachmentViewMessages})
 /**
  * Set team mention info
  */
@@ -694,7 +694,7 @@ export type SelectAttachmentViewPayload = {|+payload: _SelectAttachmentViewPaylo
 export type SelectConversationPayload = {|+payload: _SelectConversationPayload, +type: 'chat2:selectConversation'|}
 export type SendTypingPayload = {|+payload: _SendTypingPayload, +type: 'chat2:sendTyping'|}
 export type SetAttachmentViewErrorPayload = {|+payload: _SetAttachmentViewErrorPayload, +type: 'chat2:setAttachmentViewError'|}
-export type SetAttachmentViewPayload = {|+payload: _SetAttachmentViewPayload, +type: 'chat2:setAttachmentView'|}
+export type SetAttachmentViewMessagesPayload = {|+payload: _SetAttachmentViewMessagesPayload, +type: 'chat2:setAttachmentViewMessages'|}
 export type SetCommandMarkdownPayload = {|+payload: _SetCommandMarkdownPayload, +type: 'chat2:setCommandMarkdown'|}
 export type SetContainsLastMessagePayload = {|+payload: _SetContainsLastMessagePayload, +type: 'chat2:setContainsLastMessage'|}
 export type SetConvExplodingModePayload = {|+payload: _SetConvExplodingModePayload, +type: 'chat2:setConvExplodingMode'|}
@@ -829,7 +829,7 @@ export type Actions =
   | SelectConversationPayload
   | SendTypingPayload
   | SetAttachmentViewErrorPayload
-  | SetAttachmentViewPayload
+  | SetAttachmentViewMessagesPayload
   | SetCommandMarkdownPayload
   | SetContainsLastMessagePayload
   | SetConvExplodingModePayload

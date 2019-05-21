@@ -142,7 +142,6 @@ export type _State = {
   replyToMap: I.Map<Common.ConversationIDKey, Message.Ordinal>,
   maybeMentionMap: I.Map<string, RPCChatTypes.UIMaybeMentionInfo>,
   attachmentViewMap: I.Map<Common.ConversationIDKey, I.Map<RPCChatTypes.GalleryItemTyp, AttachmentViewInfo>>,
-  attachmentViewSelectionMap: I.Map<Common.ConversationIDKey, RPCChatTypes.GalleryItemTyp>,
 } & TeamBuildingTypes.TeamBuildingSubState
 
 export type State = I.RecordOf<_State>

@@ -23,7 +23,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   accountsInfoMap: I.Map(),
   attachmentFullscreenMessage: null,
   attachmentViewMap: I.Map(),
-  attachmentViewSelectionMap: I.Map(),
   badgeMap: I.Map(),
   commandMarkdownMap: I.Map(),
   containsLatestMessageMap: I.Map(),

@@ -680,13 +680,7 @@
       "_description": "Load attachment view pane",
       "conversationIDKey": "Types.ConversationIDKey",
       "viewType": "RPCChatTypes.GalleryItemTyp",
-      "fromMsgID?": "Types.MessageID",
-      "clearSelection?": "boolean"
-    },
-    "selectAttachmentView": {
-      "_description": "Select attachment view pane",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "viewType": "RPCChatTypes.GalleryItemTyp"
+      "fromMsgID?": "Types.MessageID"
     },
     "setAttachmentViewMessages": {
       "_description": "Set results for attachment view",

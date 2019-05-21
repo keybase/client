@@ -39,6 +39,10 @@ type Props = {|
   onViewChange: RPCChatTypes.GalleryItemTyp => void,
 |}
 
+type State = {|
+  selectedView: RPCChatTypes.GalleryItemTyp,
+|}
+
 const rowSize = 4
 const maxThumbSize = 80
 const monthNames = [
@@ -182,7 +186,7 @@ class DocView extends React.Component<DocProps> {
   }
 }
 
-class AttachmentPanel extends React.Component<Props> {
+class AttachmentPanel extends React.Component<Props, State> {
   state = {selectedView: RPCChatTypes.localGalleryItemTyp.media}
 
   componentDidMount() {
