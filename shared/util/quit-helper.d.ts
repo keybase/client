@@ -1,0 +1,3 @@
+const quit = (reason: string) => {}
+const hideWindow = () => {}
+export {quit, hideWindow}

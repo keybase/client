@@ -1,0 +1,20 @@
+import {connect} from 'react-redux'
+import {compose, setDisplayName} from 'recompose'
+export default connect
+
+// typed for real in the js.flow file
+export const namedConnect = (
+  mapStateToProps: any,
+  mapDispatchToProps: any,
+  mergeProps: any,
+  displayName: string,
+  options: Object = {}
+): any => compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps,
+    options
+  ),
+  setDisplayName(displayName)
+)
