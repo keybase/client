@@ -19,9 +19,14 @@ const mapStateToProps = (state, {conversationIDKey}) => {
     [conversationIDKey, RPCChatTypes.localGalleryItemTyp.doc],
     Constants.makeAttachmentViewInfo()
   )
+  const selectedView = state.chat2.attachmentViewSelectionMap.get(
+    conversationIDKey,
+    RPCChatTypes.localGalleryItemTyp.media
+  )
   return {
     _media: media,
     _docs: docs,
+    selectedView,
   }
 }
 
@@ -55,6 +60,7 @@ const mergeProps = (stateProps, dispatchProps, {conversationIDKey}) => ({
       .toArray(),
   },
   onViewChange: dispatchProps.onViewChange,
+  selectedView: stateProps.selectedView,
 })
 
 export default namedConnect<OwnProps, _, _, _, _>(

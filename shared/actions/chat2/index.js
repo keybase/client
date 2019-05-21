@@ -1289,11 +1289,11 @@ const loadAttachmentView = (state, action) => {
   return RPCChatTypes.localLoadGalleryRpcPromise({
     convID: Types.keyToConversationID(conversationIDKey),
     typ: viewType,
-    num: 150,
+    num: 50,
     fromMsgID: action.payload.fromMsgID,
   })
     .then(results => {
-      return Chat2Gen.createSetAttachmentView({
+      return Chat2Gen.createSetAttachmentViewMessages({
         conversationIDKey,
         messages: results.messages.reduce((l, m) => {
           const uiMessage = Constants.uiMessageToMessage(state, conversationIDKey, m)

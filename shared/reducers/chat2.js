@@ -1143,8 +1143,8 @@ const rootReducer = (
           query: action.payload.query,
         })
       })
-    case Chat2Gen.loadAttachmentView:
-      return state.updateIn(
+    case Chat2Gen.loadAttachmentView: {
+      let nextState = state.updateIn(
         ['attachmentViewMap', action.payload.conversationIDKey, action.payload.viewType],
         (info = Constants.makeAttachmentViewInfo()) => {
           return info.merge({
@@ -1152,7 +1152,12 @@ const rootReducer = (
           })
         }
       )
-    case Chat2Gen.setAttachmentView:
+      if (action.payload.clearSelection) {
+        return nextState.attachmentViewSelectionMap.delete(action.payload.conversationIDKey)
+      }
+      return nextState
+    }
+    case Chat2Gen.setAttachmentViewMessages:
       return state.updateIn(
         ['attachmentViewMap', action.payload.conversationIDKey, action.payload.viewType],
         (info = Constants.makeAttachmentViewInfo()) => {
@@ -1162,6 +1167,8 @@ const rootReducer = (
           })
         }
       )
+    case Chat2Gen.selectAttachmentView:
+      return state.attachmentViewSelectionMap.set(action.payload.conversationIDKey, action.payload.viewType)
     case Chat2Gen.setAttachmentViewError:
       return state.updateIn(
         ['attachmentViewMap', action.payload.conversationIDKey, action.payload.viewType],

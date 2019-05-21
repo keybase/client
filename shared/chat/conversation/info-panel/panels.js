@@ -16,10 +16,12 @@ type SettingsPanelProps = {|
   ignored: boolean,
   onHideConv: () => void,
   onUnhideConv: () => void,
+  onLeaveConversation: () => void,
   onShowBlockConversationDialog: () => void,
   onShowClearConversationDialog: () => void,
   spinnerForHide: boolean,
   teamname: string,
+  channelname?: string,
 |}
 
 export const SettingsPanel = (props: SettingsPanelProps) => {
@@ -80,6 +82,13 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
               spinner={props.spinnerForHide}
             />
           ))}
+        {props.entityType === 'channel' && props.channelname !== 'general' && (
+          <CaptionedDangerIcon
+            onClick={props.onLeaveConversation}
+            caption="Leave channel"
+            icon="iconfont-leave"
+          />
+        )}
       </Kb.ScrollView>
     </Kb.Box2>
   )

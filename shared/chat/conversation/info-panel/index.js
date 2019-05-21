@@ -246,7 +246,7 @@ type InfoPanelState = {
 }
 
 class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
-  state = {selectedPanel: 'settings'}
+  state = {selectedPanel: this.props.isPreview ? 'members' : 'settings'}
 
   _getEntityType = () => {
     if (this.props.teamname && this.props.channelname) {
@@ -260,11 +260,14 @@ class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
   }
 
   _getTabs = entityType => {
-    const res = [
-      <Kb.Box key="settings" style={styles.tabTextContainer}>
-        <TabText selected={this._isSelected('settings')} text="Settings" />
-      </Kb.Box>,
-    ]
+    const res = []
+    if (!this.props.isPreview) {
+      res.push(
+        <Kb.Box key="settings" style={styles.tabTextContainer}>
+          <TabText selected={this._isSelected('settings')} text="Settings" />
+        </Kb.Box>
+      )
+    }
     if (entityType !== 'adhoc') {
       res.push(
         <Kb.Box key="members" style={styles.tabTextContainer}>
@@ -297,10 +300,15 @@ class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
             channelname={this.props.channelname}
             conversationIDKey={this.props.selectedConversationIDKey}
             isSmallTeam={entityType === 'small team'}
+            isPreview={this.props.isPreview}
             participantCount={this.props.participants.length}
+            onJoinChannel={this.props.onJoinChannel}
           />
         ) : (
-          <AdhocHeader participants={this.props.participants} />
+          <AdhocHeader
+            onShowNewTeamDialog={this.props.onShowNewTeamDialog}
+            participants={this.props.participants}
+          />
         )}
       </>
     )
@@ -314,10 +322,12 @@ class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
             key="settings"
             onHideConv={this.props.onHideConv}
             onUnhideConv={this.props.onUnhideConv}
+            onLeaveConversation={this.props.onLeaveConversation}
             onShowBlockConversationDialog={this.props.onShowBlockConversationDialog}
             onShowClearConversationDialog={this.props.onShowClearConversationDialog}
             spinnerForHide={this.props.spinnerForHide}
             teamname={this.props.teamname}
+            channelname={this.props.channelname}
           />
         )}
         {this._isSelected('members') && (

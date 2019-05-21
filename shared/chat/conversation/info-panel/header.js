@@ -12,7 +12,9 @@ type SmallProps = {
   channelname?: string,
   conversationIDKey: ChatTypes.ConversationIDKey,
   participantCount: number,
+  isPreview: boolean,
   isSmallTeam: boolean,
+  onJoinChannel: () => void,
 } & Kb.OverlayParentProps
 
 const gearIconSize = Styles.isMobile ? 24 : 16
@@ -22,6 +24,7 @@ const _TeamHeader = (props: SmallProps) => {
   if (props.channelname) {
     title += '#' + props.channelname
   }
+  const isGeneralChannel = props.channelname && props.channelname === 'general'
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
       <Kb.Box2 direction="horizontal" style={styles.smallContainer} fullWidth={true}>
@@ -49,18 +52,30 @@ const _TeamHeader = (props: SmallProps) => {
           fontSize={gearIconSize}
         />
       </Kb.Box2>
-      <AddPeople
-        isAdmin={props.admin}
-        isGeneralChannel={props.channelname && props.channelname === 'general'}
-        teamname={props.teamname}
-        conversationIDKey={props.conversationIDKey}
-      />
+      {props.isPreview && (
+        <Kb.Button
+          mode="Primary"
+          type="Default"
+          label="Join channel"
+          style={styles.addMembers}
+          onClick={props.onJoinChannel}
+        />
+      )}
+      {!props.isPreview && (props.admin || !isGeneralChannel) && (
+        <AddPeople
+          isAdmin={props.admin}
+          isGeneralChannel={isGeneralChannel}
+          teamname={props.teamname}
+          conversationIDKey={props.conversationIDKey}
+        />
+      )}
     </Kb.Box2>
   )
 }
 const TeamHeader = Kb.OverlayParentHOC(_TeamHeader)
 
 type AdhocProps = {|
+  onShowNewTeamDialog: () => void,
   participants: Array<{
     username: string,
     fullname: string,
@@ -84,11 +99,13 @@ export const AdhocHeader = (props: AdhocProps) => {
           )
         })}
       </Kb.ScrollView>
-      <Kb.Button mode="Primary" type="Default" label="Add people" style={styles.addMembers} />
-      <Kb.Text type="BodyTiny" center={true}>
-        A new conversation will be created.
-      </Kb.Text>
-      <Kb.Button mode="Secondary" type="Default" label="Turn into a team" style={styles.addMembers} />
+      <Kb.Button
+        mode="Primary"
+        type="Default"
+        label="Turn into a team"
+        style={styles.addMembers}
+        onClick={props.onShowNewTeamDialog}
+      />
       <Kb.Text type="BodyTiny" center={true}>
         Add and delete members as you wish.
       </Kb.Text>

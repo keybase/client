@@ -39,10 +39,6 @@ type Props = {|
   onViewChange: RPCChatTypes.GalleryItemTyp => void,
 |}
 
-type State = {|
-  selectedView: RPCChatTypes.GalleryItemTyp,
-|}
-
 const rowSize = 4
 const maxThumbSize = 80
 const monthNames = [
@@ -186,11 +182,15 @@ class DocView extends React.Component<DocProps> {
   }
 }
 
-class AttachmentPanel extends React.Component<Props, State> {
+class AttachmentPanel extends React.Component<Props> {
   state = {selectedView: RPCChatTypes.localGalleryItemTyp.media}
 
   componentDidMount() {
     this.props.onViewChange(this.state.selectedView)
+  }
+
+  _getButtonMode = typ => {
+    return this.state.selectedView === typ ? 'Primary' : 'Secondary'
   }
 
   render() {
@@ -215,8 +215,18 @@ class AttachmentPanel extends React.Component<Props, State> {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
         <Kb.ButtonBar direction="row">
-          <Kb.Button type="Default" mode="Secondary" small={true} label="Media" />
-          <Kb.Button type="Default" mode="Secondary" small={true} label="Docs" />
+          <Kb.Button
+            type="Default"
+            mode={this._getButtonMode(RPCChatTypes.localGalleryItemTyp.media)}
+            small={true}
+            label="Media"
+          />
+          <Kb.Button
+            type="Default"
+            mode={this._getButtonMode(RPCChatTypes.localGalleryItemTyp.doc)}
+            small={true}
+            label="Documents"
+          />
         </Kb.ButtonBar>
         <Kb.Box2 direction="vertical" fullWidth={true}>
           {content}
