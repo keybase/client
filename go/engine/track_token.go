@@ -131,24 +131,33 @@ func (e *TrackToken) Run(m libkb.MetaContext) (err error) {
 			e.removeLocalTracks(m)
 		}
 	}
+	if err != nil {
+		return err
+	}
+	themUPAK, err := e.them.ExportToUPKV2AllIncarnations()
+	if err != nil {
+		return err
+	}
+	err = m.G().Pegboard.TrackUPAK(m, themUPAK.Current)
+	if err != nil {
+		return err
+	}
 
-	if err == nil {
-		// Remove this after desktop notification change complete:
-		m.G().UserChanged(m.Ctx(), e.them.GetUID())
+	// Remove this after desktop notification change complete:
+	m.G().UserChanged(m.Ctx(), e.them.GetUID())
 
-		// Remove these after desktop notification change complete, but
-		// add in: m.G().BustLocalUserCache(e.arg.Me.GetUID())
-		m.G().UserChanged(m.Ctx(), e.arg.Me.GetUID())
+	// Remove these after desktop notification change complete, but
+	// add in: m.G().BustLocalUserCache(e.arg.Me.GetUID())
+	m.G().UserChanged(m.Ctx(), e.arg.Me.GetUID())
 
-		// Keep these:
-		m.G().NotifyRouter.HandleTrackingChanged(e.arg.Me.GetUID(), e.arg.Me.GetNormalizedName(), false)
-		m.G().NotifyRouter.HandleTrackingChanged(e.them.GetUID(), e.them.GetNormalizedName(), true)
+	// Keep these:
+	m.G().NotifyRouter.HandleTrackingChanged(e.arg.Me.GetUID(), e.arg.Me.GetNormalizedName(), false)
+	m.G().NotifyRouter.HandleTrackingChanged(e.them.GetUID(), e.them.GetNormalizedName(), true)
 
-		// Dismiss any associated gregor item.
-		if outcome.ResponsibleGregorItem != nil {
-			err = m.G().GregorState.DismissItem(m.Ctx(), nil,
-				outcome.ResponsibleGregorItem.Metadata().MsgID())
-		}
+	// Dismiss any associated gregor item.
+	if outcome.ResponsibleGregorItem != nil {
+		err = m.G().GregorState.DismissItem(m.Ctx(), nil,
+			outcome.ResponsibleGregorItem.Metadata().MsgID())
 	}
 
 	return err

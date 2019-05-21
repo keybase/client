@@ -24,7 +24,6 @@ import {
   StatusBar as NativeStatusBar,
   Switch as NativeSwitch,
   Text as NativeText,
-  TextInput as NativeTextInput,
   TouchableNativeFeedback as NativeTouchableNativeFeedback,
   TouchableWithoutFeedback as NativeTouchableWithoutFeedback,
   TouchableHighlight as NativeTouchableHighlight,
@@ -35,6 +34,7 @@ import NativeScrollView from './scroll-view.native'
 import {NativeImage, FastImage as NativeFastImage} from './native-image.native'
 import NativeVirtualizedList from './virtualized-list.native'
 import {WebView as NativeWebView} from 'react-native-webview'
+import NativeTextInput from './kb-text-input.native'
 
 // We set some useful default here
 export {

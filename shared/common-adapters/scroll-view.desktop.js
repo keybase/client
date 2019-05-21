@@ -5,12 +5,26 @@ import type {Props} from './scroll-view'
 
 const ScrollView = (props: Props) => {
   const {
-    contentContainerStyle,
-    style,
-    className,
-    ref,
-    hideVerticalScroll,
+    alwaysBounceHorizontal,
     alwaysBounceVertical,
+    bounces,
+    centerContent,
+    className,
+    contentContainerStyle,
+    hideVerticalScroll,
+    horizontal,
+    indicatorStyle,
+    maximumZoomScale,
+    minimumZoomScale,
+    onLayout,
+    ref,
+    refreshControl,
+    scrollEventThrottle,
+    scrollsToTop,
+    showsHorizontalScrollIndicator,
+    showsVerticalScrollIndicator,
+    snapToInterval,
+    style,
     ...rest
   } = props
   const cn = Styles.classNames(

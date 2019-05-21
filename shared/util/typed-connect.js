@@ -8,13 +8,15 @@ export const namedConnect = (
   mapStateToProps: any,
   mapDispatchToProps: any,
   mergeProps: any,
-  displayName: string
+  displayName: string,
+  options: Object = {}
 ): any =>
   compose(
     connect(
       mapStateToProps,
       mapDispatchToProps,
-      mergeProps
+      mergeProps,
+      options
     ),
     setDisplayName(displayName)
   )
