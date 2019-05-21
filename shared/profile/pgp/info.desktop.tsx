@@ -6,7 +6,7 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {namedConnect} from '../../util/container'
 import Modal from '../modal'
 
-type OwnProps = {};
+type OwnProps = {}
 
 const Info = props => (
   <Modal onCancel={props.onCancel} skipButton={true}>
@@ -90,6 +90,7 @@ const mapDispatchToProps = dispatch => ({
   onNext: () => dispatch(ProfileGen.createGeneratePgp()),
 })
 
+// @ts-ignore codemode issue
 export default namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
