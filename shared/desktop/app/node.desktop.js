@@ -138,10 +138,13 @@ const createMainWindow = () => {
     tellMainWindowAboutMenubar()
   })
 
-  SafeElectron.getApp().on('open-url', (event, link) => {
-    event.preventDefault()
-    console.warn('in open-url', link)
-    sendToMainWindow('dispatchAction', {payload: {link}, type: ConfigGen.link})
+  SafeElectron.getApp().on('will-finish-launching', () => {
+    console.warn('in will-finish-launching')
+    SafeElectron.getApp().on('open-url', (event, link) => {
+      event.preventDefault()
+      console.warn('in open-url', link)
+      sendToMainWindow('dispatchAction', {payload: {link}, type: ConfigGen.link})
+    })
   })
 
   // A remote window wants props
