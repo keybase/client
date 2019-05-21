@@ -15,6 +15,8 @@ import * as ConfigGen from '../../actions/config-gen'
 
 let mainWindow = null
 
+let startupURL = null
+
 const installCrashReporter = () => {
   if (process.env.KEYBASE_CRASH_REPORT) {
     console.log(
@@ -142,6 +144,12 @@ const createMainWindow = () => {
   SafeElectron.getIpcMain().on('remoteWindowWantsProps', (_, windowComponent, windowParam) => {
     mainWindow && mainWindow.window.webContents.send('remoteWindowWantsProps', windowComponent, windowParam)
   })
+
+  if (startupURL) {
+    console.warn('previously logged startupURL', startupURL)
+    sendToMainWindow('dispatchAction', {payload: {link: startupURL}, type: ConfigGen.link})
+    startupURL = null
+  }
 }
 
 const handleInstallCheck = (event, arg) => {
@@ -183,6 +191,9 @@ const willFinishLaunching = () => {
   sendToMainWindow('dispatchAction', {payload: {link: 'will finish launching'}, type: ConfigGen.link})
   SafeElectron.getApp().on('open-url', (event, link) => {
     event.preventDefault()
+    if (startupURL == null) {
+      startupURL = link
+    }
     console.warn('in open-url', link)
     sendToMainWindow('dispatchAction', {payload: {link}, type: ConfigGen.link})
   })
