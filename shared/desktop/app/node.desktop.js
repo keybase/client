@@ -138,15 +138,6 @@ const createMainWindow = () => {
     tellMainWindowAboutMenubar()
   })
 
-  SafeElectron.getApp().on('will-finish-launching', () => {
-    console.warn('in will-finish-launching')
-    SafeElectron.getApp().on('open-url', (event, link) => {
-      event.preventDefault()
-      console.warn('in open-url', link)
-      sendToMainWindow('dispatchAction', {payload: {link}, type: ConfigGen.link})
-    })
-  })
-
   // A remote window wants props
   SafeElectron.getIpcMain().on('remoteWindowWantsProps', (_, windowComponent, windowParam) => {
     mainWindow && mainWindow.window.webContents.send('remoteWindowWantsProps', windowComponent, windowParam)
@@ -186,6 +177,17 @@ const handleQuitting = event => {
   executeActionsForContext('beforeQuit')
 }
 
+const willFinishLaunching = () => {
+  console.warn('ready is', SafeElectron.getApp().isReady())
+  console.warn('in will-finish-launching')
+  sendToMainWindow('dispatchAction', {payload: {link: 'will finish launching'}, type: ConfigGen.link})
+  SafeElectron.getApp().on('open-url', (event, link) => {
+    event.preventDefault()
+    console.warn('in open-url', link)
+    sendToMainWindow('dispatchAction', {payload: {link}, type: ConfigGen.link})
+  })
+}
+
 const start = () => {
   handleCrashes()
   installCrashReporter()
@@ -207,6 +209,7 @@ const start = () => {
   // Load menubar and get its browser window id so we can tell the main window
   setupMenubar()
 
+  SafeElectron.getApp().once('will-finish-launching', willFinishLaunching)
   SafeElectron.getApp().once('ready', createMainWindow)
   SafeElectron.getIpcMain().on('install-check', handleInstallCheck)
   SafeElectron.getIpcMain().on('kb-service-check', handleKBServiceCheck)
