@@ -16,9 +16,10 @@ repos:
         ]
     -   id: tsc
         name: tsc
-        entry: shared/node_modules/.bin/tsc --noEmit
+        entry: shared/node_modules/.bin/tsc
         language: node
         files: \.(ts|tsx)$
+        pass_filenames: false
     -   id: prettier
         name: prettier
         entry: shared/node_modules/.bin/prettier --write
