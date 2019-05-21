@@ -4,10 +4,11 @@
         "sourceMap": true,
         "noImplicitAny": false,
         "module": "commonjs",
-        "noEmit": true,
         "target": "es2017",
         "jsx": "preserve",
-        "incremental": true
+        "incremental": true,
+        "outDir": "./.tsOut/emit",
+        "tsBuildInfoFile": "./.tsOut/cache"
     },
     "include": [
         "./**/*"
