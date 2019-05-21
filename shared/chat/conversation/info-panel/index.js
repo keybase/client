@@ -156,7 +156,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
         {header}
-        <Kb.Box2 direction="vertical" fullWidth={true}>
+        <Kb.Box2 direction="horizontal" fullWidth={true}>
           <Kb.Tabs tabs={tabs} selected={selected} onSelect={this._onSelectTab} />
         </Kb.Box2>
         {content}

@@ -37,7 +37,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     canDeleteHistory = yourOperations.deleteChatHistory
   }
   const isPreview = meta.membershipType === 'youArePreviewing'
-  const selectedTab = ownProps.selectedTab || (isPreview ? 'members' : 'settings')
+  const selectedTab = ownProps.selectedTab || (isPreview ? 'members' : 'attachments')
   return {
     _infoMap: state.users.infoMap,
     _participants: meta.participants,
@@ -210,12 +210,13 @@ class InfoPanelSelector extends React.PureComponent<Props> {
         onBack={undefined}
         onCancel={this.props.onBack}
         conversationIDKey={this.props.conversationIDKey}
+        onSelectTab={this.props.onSelectTab}
+        selectedTab={this.props.selectedTab}
       />
     ) : (
       <Box onClick={this.props.onBack} style={clickCatcherStyle}>
         <Box style={panelContainerStyle} onClick={evt => evt.stopPropagation()}>
           <ConnectedInfoPanel
-            navigation={this.props.navigation}
             onBack={this.props.onBack}
             onSelectTab={this.props.onSelectTab}
             conversationIDKey={this.props.conversationIDKey}
