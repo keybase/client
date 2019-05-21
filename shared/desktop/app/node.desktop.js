@@ -12,9 +12,9 @@ import startWinService from './start-win-service.desktop'
 import {isWindows, cacheRoot} from '../../constants/platform.desktop'
 import {sendToMainWindow} from '../remote/util.desktop'
 import * as ConfigGen from '../../actions/config-gen'
+import logger from '../../logger'
 
 let mainWindow = null
-
 let startupURL = null
 
 const installCrashReporter = () => {
@@ -146,9 +146,11 @@ const createMainWindow = () => {
   })
 
   if (startupURL) {
-    console.warn('previously logged startupURL', startupURL)
+    logger.info('previously logged startupURL', startupURL)
     sendToMainWindow('dispatchAction', {payload: {link: startupURL}, type: ConfigGen.link})
     startupURL = null
+  } else {
+    logger.info('no previously logged startupURL')
   }
 }
 
@@ -186,15 +188,16 @@ const handleQuitting = event => {
 }
 
 const willFinishLaunching = () => {
-  console.warn('ready is', SafeElectron.getApp().isReady())
-  console.warn('in will-finish-launching')
+  logger.info('ready is', SafeElectron.getApp().isReady())
+  logger.info('in will-finish-launching')
   sendToMainWindow('dispatchAction', {payload: {link: 'will finish launching'}, type: ConfigGen.link})
   SafeElectron.getApp().on('open-url', (event, link) => {
     event.preventDefault()
-    if (startupURL == null) {
+    if (!startupURL) {
+      logger.info('setting startupURL')
       startupURL = link
     }
-    console.warn('in open-url', link)
+    logger.info('in open-url', link)
     sendToMainWindow('dispatchAction', {payload: {link}, type: ConfigGen.link})
   })
 }
