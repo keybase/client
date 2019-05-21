@@ -145,13 +145,15 @@ const createMainWindow = () => {
     mainWindow && mainWindow.window.webContents.send('remoteWindowWantsProps', windowComponent, windowParam)
   })
 
-  if (startupURL) {
-    logger.info('previously logged startupURL', startupURL)
-    sendToMainWindow('dispatchAction', {payload: {link: startupURL}, type: ConfigGen.link})
-    startupURL = null
-  } else {
-    logger.info('no previously logged startupURL')
-  }
+  SafeElectron.getIpcMain().on('launchStartupURLIfPresent', () => {
+    if (startupURL) {
+      logger.info('previously logged startupURL', startupURL)
+      sendToMainWindow('dispatchAction', {payload: {link: startupURL}, type: ConfigGen.link})
+      startupURL = null
+    } else {
+      logger.info('no previously logged startupURL')
+    }
+  })
 }
 
 const handleInstallCheck = (event, arg) => {
