@@ -15,7 +15,7 @@ import shallowEqual from 'shallowequal'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Flow from '../../util/flow'
 
-type BackgroundColorType = "red" | "green" | "blue";
+export type BackgroundColorType = "red" | "green" | "blue";
 
 export type Props = {
   assertionKeys: Array<string> | null,

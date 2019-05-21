@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import * as TrackerConstants from '../constants/tracker2'
 import proofsList from './generic/proofs-list/index.stories'
-import {BioTeamProofs} from './user/index'
+import {BioTeamProofs, BackgroundColorType} from './user'
 
 const provider = (cfProps =>
   Sb.createPropProviderWithCommon({
@@ -66,7 +66,7 @@ const provider = (cfProps =>
 
 const bioProps = {
   assertionKeys: [],
-  backgroundColorType: 'green',
+  backgroundColorType: 'green' as BackgroundColorType,
   notAUser: false,
   onAddIdentity: Sb.action('onAddIdentity'),
   onEditAvatar: Sb.action('onEditAvatarClick'),

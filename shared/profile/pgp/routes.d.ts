@@ -1,1 +1,1 @@
-declare const newRoutes = {}
+export declare const newRoutes: {}

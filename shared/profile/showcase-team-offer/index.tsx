@@ -26,7 +26,7 @@ export type Props = {
   teamNameToIsOpen: {[K in string]: boolean}
   teamNameToAllowPromote: {[K in string]: boolean}
   teamNameToIsShowcasing: {[K in string]: boolean}
-  teamNameToRole: {[K in string]: boolean}
+  teamNameToRole: {[K in string]: 'reader' | 'writer' | 'admin' | 'owner' | 'none'}
   waiting: {[K in string]: number}
 }
 
