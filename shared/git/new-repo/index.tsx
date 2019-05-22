@@ -1,23 +1,22 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
 type Props = {
-  error: ?Error,
-  isTeam: boolean,
-  onClose: () => void,
-  onCreate: (name: string, teamname: ?string, notifyTeam: boolean) => void,
-  onNewTeam: () => void,
-  teams?: Array<string>,
-  waitingKey: string,
-  loadTeams: () => void,
+  error: Error | null
+  isTeam: boolean
+  onClose: () => void
+  onCreate: (name: string, teamname: string | null, notifyTeam: boolean) => void
+  onNewTeam: () => void
+  teams?: Array<string>
+  waitingKey: string
+  loadTeams: () => void
 }
 
 type State = {
-  name: string,
-  notifyTeam: boolean,
-  selectedTeam: ?string,
+  name: string
+  notifyTeam: boolean
+  selectedTeam: string | null
 }
 
 const NewTeamSentry = '---NewTeam---'
@@ -33,7 +32,7 @@ class NewRepo extends React.Component<Props, State> {
     return (this.props.teams || []).concat(NewTeamSentry).map(this._makeDropdownItem)
   }
 
-  _makeDropdownItem = (item: ?string) => {
+  _makeDropdownItem = (item: string | null) => {
     if (!item) {
       return (
         <Kb.Box style={Styles.globalStyles.flexBoxCenter}>
@@ -89,12 +88,11 @@ class NewRepo extends React.Component<Props, State> {
     )
   }
 
-  _dropdownChanged = (node: React.Node) => {
-    // $FlowIssue doesn't understand key will be string
+  _dropdownChanged = (node: React.ReactElement) => {
     if (node && node.key === NewTeamSentry) {
       this.props.onNewTeam()
     } else {
-      // $ForceType doesn't understand key will be string
+      // @ts-ignore doesn't understand key will be string
       const selectedTeam: string = node.key
       this.setState({selectedTeam})
     }

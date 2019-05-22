@@ -1,14 +1,18 @@
-// @flow
 import * as GitGen from '../../actions/git-gen'
 import * as Constants from '../../constants/git'
 import * as TeamsGen from '../../actions/teams-gen'
 import NewRepo from '.'
-import {connect, type RouteProps} from '../../util/container'
+import {connect, RouteProps} from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {teamsTab} from '../../constants/tabs'
 import {getSortedTeamnames} from '../../constants/teams'
 
-type OwnProps = RouteProps<{isTeam: boolean}, {}>
+type OwnProps = RouteProps<
+  {
+    isTeam: boolean
+  },
+  {}
+>
 
 const mapStateToProps = (state, {routeProps, navigation}) => ({
   error: Constants.getError(state),
@@ -21,7 +25,7 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp, routePro
   loadTeams: () => dispatch(TeamsGen.createGetTeams({clearNavBadges: false})),
   onCancel: () => dispatch(navigateUp()),
   onClose: () => dispatch(navigateUp()),
-  onCreate: (name: string, teamname: ?string, notifyTeam: boolean) => {
+  onCreate: (name: string, teamname: string | null, notifyTeam: boolean) => {
     const isTeam = navigation ? navigation.getParam('isTeam') : routeProps.get('isTeam')
     const createAction =
       isTeam && teamname
@@ -33,6 +37,7 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp, routePro
   onNewTeam: () => dispatch(RouteTreeGen.createNavigateTo({path: [teamsTab, 'teamNewTeamDialog']})),
 })
 
+// @ts-ignore codemod issue
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,

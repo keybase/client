@@ -1,25 +1,24 @@
-// @flow
 import * as GitGen from '../../actions/git-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import {getChannelsWaitingKey, getTeamChannelInfos} from '../../constants/teams'
 import {anyWaiting} from '../../constants/waiting'
 import {HeaderOrPopup} from '../../common-adapters'
-import {
-  connect,
-  compose,
-  lifecycle,
-  withHandlers,
-  withStateHandlers,
-  type RouteProps,
-} from '../../util/container'
+import {connect, compose, lifecycle, withHandlers, withStateHandlers, RouteProps} from '../../util/container'
 import SelectChannel from '.'
 
-type OwnProps = RouteProps<{teamname: string, selected: boolean, repoID: string}, {}>
+type OwnProps = RouteProps<
+  {
+    teamname: string
+    selected: boolean
+    repoID: string
+  },
+  {}
+>
 
 export type SelectChannelProps = {
-  teamname: string,
-  repoID: string,
-  selected: string,
+  teamname: string
+  repoID: string
+  selected: string
 }
 
 const mapStateToProps = (state, {routeProps}) => {
@@ -65,6 +64,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 }
 
 export default compose(
+  // @ts-ignore codemod issue
   connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,

@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
@@ -25,10 +24,11 @@ export const HeaderTitle = () => (
   </Kb.Box2>
 )
 
-type HeaderRightActionsProps = {|
-  onAddPersonal: () => void,
-  onAddTeam: () => void,
-|}
+type HeaderRightActionsProps = {
+  onAddPersonal: () => void
+  onAddTeam: () => void
+}
+
 const _HeaderRightActions = (props: Kb.PropsWithOverlay<HeaderRightActionsProps>) => (
   <>
     <Kb.Button

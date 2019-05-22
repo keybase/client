@@ -1,11 +1,15 @@
-// @flow
 import * as React from 'react'
 import * as GitGen from '../../actions/git-gen'
 import * as Constants from '../../constants/git'
 import DeleteRepo from '.'
-import {connect, type RouteProps} from '../../util/container'
+import {connect, RouteProps} from '../../util/container'
 
-type OwnProps = RouteProps<{id: string}, {}>
+type OwnProps = RouteProps<
+  {
+    id: string
+  },
+  {}
+>
 
 const mapStateToProps = (state, {routeProps}) => {
   const gitMap = Constants.getIdToGit(state)
@@ -20,7 +24,7 @@ const mapStateToProps = (state, {routeProps}) => {
 }
 
 const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp}) => ({
-  _onDelete: (teamname: ?string, name: string, notifyTeam: boolean) => {
+  _onDelete: (teamname: string | null, name: string, notifyTeam: boolean) => {
     const deleteAction = teamname
       ? GitGen.createDeleteTeamRepo({name, notifyTeam, teamname})
       : GitGen.createDeletePersonalRepo({name})
@@ -40,6 +44,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 
 const NullWrapper = props => (props.name ? <DeleteRepo {...props} /> : null)
 
+// @ts-ignore codemod issue
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
