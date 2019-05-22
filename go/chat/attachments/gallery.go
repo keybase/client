@@ -138,6 +138,11 @@ func (g *Gallery) NextMessages(ctx context.Context, uid gregor1.UID,
 	}
 
 	for {
+		select {
+		case <-ctx.Done():
+			return res, ctx.Err()
+		default:
+		}
 		g.Debug(ctx, "NextMessage: starting scan: p: %s pivot: %d", pagination, pivot)
 		tv, err := g.G().ConvSource.Pull(ctx, convID, uid, chat1.GetThreadReason_GENERAL,
 			&chat1.GetThreadQuery{

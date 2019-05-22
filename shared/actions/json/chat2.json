@@ -683,16 +683,17 @@
       "num": "number",
       "fromMsgID?": "Types.MessageID"
     },
-    "setAttachmentViewMessages": {
-      "_description": "Set results for attachment view",
+    "addAttachmentViewMessage": {
+      "_description": "Add result for attachment view",
       "conversationIDKey": "Types.ConversationIDKey",
       "viewType": "RPCChatTypes.GalleryItemTyp",
-      "messages": "I.List<Types.Message>"
+      "message": "Types.Message"
     },
-    "setAttachmentViewError": {
-      "_description": "Set attachment view error",
+    "setAttachmentViewStatus": {
+      "_description": "Set attachment view status",
       "conversationIDKey": "Types.ConversationIDKey",
-      "viewType": "RPCChatTypes.GalleryItemTyp"
+      "viewType": "RPCChatTypes.GalleryItemTyp",
+      "status": "Types.AttachmentViewStatus"
     },
     "clearAttachmentView": {
       "_description": "Clear attachment views",

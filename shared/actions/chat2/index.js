@@ -1283,29 +1283,33 @@ const messageRetry = (state, action) => {
   )
 }
 
-const loadAttachmentView = (state, action) => {
+function* loadAttachmentView(state, action, loggger) {
   const conversationIDKey = action.payload.conversationIDKey
   const viewType = action.payload.viewType
-  return RPCChatTypes.localLoadGalleryRpcPromise({
-    convID: Types.keyToConversationID(conversationIDKey),
-    typ: viewType,
-    num: action.payload.num,
-    fromMsgID: action.payload.fromMsgID,
-  })
-    .then(results => {
-      return Chat2Gen.createSetAttachmentViewMessages({
-        conversationIDKey,
-        messages: results.messages.reduce((l, m) => {
-          const uiMessage = Constants.uiMessageToMessage(state, conversationIDKey, m)
-          return uiMessage ? l.push(uiMessage) : l
-        }, I.List()),
-        viewType,
-      })
+
+  const onHit = hit => {
+    const message = Constants.uiMessageToMessage(state, conversationIDKey, hit.message)
+    return message
+      ? Saga.put(Chat2Gen.createAddAttachmentViewMessage({conversationIDKey, message, viewType}))
+      : []
+  }
+  try {
+    yield RPCChatTypes.localLoadGalleryRpcSaga({
+      incomingCallMap: {
+        'chat.1.chatUi.chatLoadGalleryHit': onHit,
+      },
+      params: {
+        convID: Types.keyToConversationID(conversationIDKey),
+        fromMsgID: action.payload.fromMsgID,
+        num: action.payload.num,
+        typ: viewType,
+      },
     })
-    .catch(e => {
-      logger.error('failed to load attachment view: ' + e.message)
-      return Chat2Gen.createSetAttachmentViewError({conversationIDKey, viewType})
-    })
+    yield Saga.put(Chat2Gen.createSetAttachmentViewStatus({conversationIDKey, status: 'done', viewType}))
+  } catch (e) {
+    logger.error('failed to load attachment view: ' + e.message)
+    yield Saga.put(Chat2Gen.createSetAttachmentViewStatus({conversationIDKey, status: 'error', viewType}))
+  }
 }
 
 const onToggleThreadSearch = (state, action) => {
@@ -3349,7 +3353,10 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     resolveMaybeMention
   )
 
-  yield* Saga.chainAction<Chat2Gen.LoadAttachmentViewPayload>(Chat2Gen.loadAttachmentView, loadAttachmentView)
+  yield* Saga.chainGenerator<Chat2Gen.LoadAttachmentViewPayload>(
+    Chat2Gen.loadAttachmentView,
+    loadAttachmentView
+  )
 
   yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnect, 'onConnect')
 

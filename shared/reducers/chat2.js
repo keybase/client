@@ -1155,22 +1155,24 @@ const rootReducer = (
           })
         }
       )
-    case Chat2Gen.setAttachmentViewMessages:
+    case Chat2Gen.addAttachmentViewMessage:
       return state.updateIn(
         ['attachmentViewMap', action.payload.conversationIDKey, action.payload.viewType],
         (info = Constants.makeAttachmentViewInfo()) => {
           return info.merge({
-            status: 'success',
-            messages: action.payload.messages,
+            messages:
+              info.messages.findIndex(item => item.id === action.payload.message.id) < 0
+                ? info.messages.push(action.payload.message)
+                : info.messages,
           })
         }
       )
-    case Chat2Gen.setAttachmentViewError:
+    case Chat2Gen.setAttachmentViewStatus:
       return state.updateIn(
         ['attachmentViewMap', action.payload.conversationIDKey, action.payload.viewType],
         (info = Constants.makeAttachmentViewInfo()) => {
           return info.merge({
-            status: 'error',
+            status: action.payload.status,
           })
         }
       )

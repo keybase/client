@@ -84,8 +84,8 @@ const formMonths = thumbs => {
         l.push(curMonth)
       }
       curMonth = {
-        month: dateInfo.month,
         data: [t],
+        month: dateInfo.month,
         year: dateInfo.year,
       }
     } else {
@@ -257,7 +257,7 @@ class AttachmentPanel extends React.Component<Props, State> {
       case RPCChatTypes.localGalleryItemTyp.link:
         return 20
       case RPCChatTypes.localGalleryItemTyp.doc:
-        return 2
+        return 25
     }
     return 10
   }
