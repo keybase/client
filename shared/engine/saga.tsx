@@ -3,24 +3,24 @@ import * as RS from 'redux-saga'
 import * as RSE from 'redux-saga/effects'
 import {getEngine} from './require'
 import {sequentially} from '../util/saga'
-import { CommonResponseHandler } from './types';
+import {CommonResponseHandler} from './types'
 import {RPCError} from '../util/errors'
 import {printOutstandingRPCs} from '../local-debug'
 import {isArray} from 'lodash-es'
 
-type WaitingKey = string | Array<string>;
+type WaitingKey = string | Array<string>
 
 type EmittedCall = {
-  method: string,
-  params: any,
+  method: string
+  params: any
   response: CommonResponseHandler | null
-};
+}
 
 type EmittedFinished = {
-  method: null,
-  params: any,
+  method: null
+  params: any
   error: RPCError | null
-};
+}
 
 // Wraps a response to update the waiting state
 const makeWaitingResponse = (r, waitingKey) => {
@@ -54,19 +54,13 @@ const makeWaitingResponse = (r, waitingKey) => {
 }
 
 // TODO could have a mechanism to ensure only one is in flight at a time. maybe by some key or something
-function* call(
-  p: {
-    method: string,
-    params: Object | null,
-    incomingCallMap?: {
-      [K in string]: any;
-    },
-    customResponseIncomingCallMap?: {
-      [K in string]: any;
-    },
-    waitingKey?: WaitingKey
-  }
-): Generator<any, any, any> {
+function* call(p: {
+  method: string
+  params: Object | null
+  incomingCallMap?: {[K in string]: any}
+  customResponseIncomingCallMap?: {[K in string]: any}
+  waitingKey?: WaitingKey
+}): Generator<any, any, any> {
   const {method, params, waitingKey} = p
   const incomingCallMap = p.incomingCallMap || {}
   const customResponseIncomingCallMap = p.customResponseIncomingCallMap || {}
@@ -177,7 +171,7 @@ function* call(
       const r = yield RSE.take(eventChannel)
 
       if (r.method) {
-        const res: EmittedCall = (r as EmittedCall)
+        const res: EmittedCall = r as EmittedCall
         let actions
 
         if (res.response) {
@@ -200,7 +194,7 @@ function* call(
           }
         }
       } else {
-        const res: EmittedFinished = (r as EmittedFinished)
+        const res: EmittedFinished = r as EmittedFinished
         // finished
         finalParams = res.params
         finalError = res.error

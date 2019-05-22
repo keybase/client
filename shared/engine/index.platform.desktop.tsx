@@ -2,7 +2,7 @@ import net from 'net'
 import logger from '../logger'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {isWindows, socketPath} from '../constants/platform.desktop'
-import { createClientType, incomingRPCCallbackType, connectDisconnectCB } from './index.platform';
+import {createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 import {printRPCBytes} from '../local-debug'
 
 class NativeTransport extends TransportShared {

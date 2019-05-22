@@ -1,5 +1,5 @@
 // Helper to get engine and break require loops
-import { Engine } from '.';
+import {Engine} from '.'
 
 let _engine: Engine
 export function initEngine(e: Engine) {
