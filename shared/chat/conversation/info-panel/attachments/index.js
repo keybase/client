@@ -22,8 +22,11 @@ type MediaProps = {|
 type Doc = {|
   author: string,
   ctime: number,
+  downloading: boolean,
   name: string,
-  onDownload: () => void,
+  progress: number,
+  onDownload: null | (() => void),
+  onShowInFinder: null | (() => void),
 |}
 
 type DocProps = {|
@@ -34,7 +37,7 @@ type DocProps = {|
 type Props = {|
   docs: DocProps,
   media: MediaProps,
-  onViewChange: RPCChatTypes.GalleryItemTyp => void,
+  onViewChange: (RPCChatTypes.GalleryItemTyp, number) => void,
 |}
 
 type State = {|
@@ -57,6 +60,44 @@ const monthNames = [
   'November',
   'December',
 ]
+
+const getDateInfo = thumb => {
+  const date = new Date(thumb.ctime)
+  return {
+    month: monthNames[date.getMonth()],
+    year: date.getFullYear(),
+  }
+}
+
+const formMonths = thumbs => {
+  if (thumbs.length === 0) {
+    return []
+  }
+  let curMonth = {
+    ...getDateInfo(thumbs[0]),
+    data: [],
+  }
+  const months = thumbs.reduce((l, t, index) => {
+    const dateInfo = getDateInfo(t)
+    if (dateInfo.month !== curMonth.month || dateInfo.year !== curMonth.year) {
+      if (curMonth.data.length > 0) {
+        l.push(curMonth)
+      }
+      curMonth = {
+        month: dateInfo.month,
+        data: [t],
+        year: dateInfo.year,
+      }
+    } else {
+      curMonth.data.push(t)
+    }
+    if (index === thumbs.length - 1 && curMonth.data.length > 0) {
+      l.push(curMonth)
+    }
+    return l
+  }, [])
+  return months
+}
 
 class MediaView extends React.Component<MediaProps> {
   _clamp = thumb => {
@@ -99,47 +140,9 @@ class MediaView extends React.Component<MediaProps> {
     }, [])
   }
 
-  _getDateInfo = thumb => {
-    const date = new Date(thumb.ctime)
-    return {
-      month: monthNames[date.getMonth()],
-      year: date.getFullYear(),
-    }
-  }
-
   _finalizeMonth = month => {
-    month.data = this._formRows(month.thumbs)
+    month.data = this._formRows(month.data)
     return month
-  }
-
-  _formMonths = thumbs => {
-    if (thumbs.length === 0) {
-      return []
-    }
-    let curMonth = {
-      ...this._getDateInfo(thumbs[0]),
-      thumbs: [],
-    }
-    const months = thumbs.reduce((l, t, index) => {
-      const dateInfo = this._getDateInfo(t)
-      if (dateInfo.month !== curMonth.month || dateInfo.year !== curMonth.year) {
-        if (curMonth.thumbs.length > 0) {
-          l.push(this._finalizeMonth(curMonth))
-        }
-        curMonth = {
-          month: dateInfo.month,
-          thumbs: [t],
-          year: dateInfo.year,
-        }
-      } else {
-        curMonth.thumbs.push(t)
-      }
-      if (index === thumbs.length - 1 && curMonth.thumbs.length > 0) {
-        l.push(this._finalizeMonth(curMonth))
-      }
-      return l
-    }, [])
-    return months
   }
 
   _renderSectionHeader = ({section}) => {
@@ -163,7 +166,10 @@ class MediaView extends React.Component<MediaProps> {
   }
 
   render() {
-    const months = this._formMonths(this.props.media.thumbs)
+    const months = formMonths(this.props.media.thumbs).reduce((l, m) => {
+      l.push(this._finalizeMonth(m))
+      return l
+    }, [])
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         <Kb.SectionList
@@ -179,8 +185,57 @@ class MediaView extends React.Component<MediaProps> {
 }
 
 class DocView extends React.Component<DocProps> {
+  _renderSectionHeader = ({section}) => {
+    const label = `${section.month} ${section.year}`
+    return <Kb.SectionDivider label={label} />
+  }
+  _renderItem = ({item, index}) => {
+    return (
+      <Kb.Box2 direction="vertical" fullWidth={true}>
+        <Kb.ClickableBox onClick={item.onDownload}>
+          <Kb.Box2
+            key={index}
+            direction="horizontal"
+            fullWidth={true}
+            style={styles.docRowContainer}
+            gap="xtiny"
+          >
+            <Kb.Icon type={'icon-file-32'} style={Kb.iconCastPlatformStyles(styles.docIcon)} />
+            <Kb.Box2 direction="vertical">
+              <Kb.Text type="BodySemibold">{item.name}</Kb.Text>
+              <Kb.Text type="BodySmall">Sent by {item.author}</Kb.Text>
+            </Kb.Box2>
+          </Kb.Box2>
+        </Kb.ClickableBox>
+        {item.downloading && (
+          <Kb.Box2 direction="horizontal" style={styles.docBottom} fullWidth={true} gap="tiny">
+            <Kb.Text type="BodySmall">Downloading...</Kb.Text>
+            <Kb.ProgressBar ratio={item.progress} style={styles.docProgress} />
+          </Kb.Box2>
+        )}
+        {item.onShowInFinder && (
+          <Kb.Box2 direction="horizontal" style={styles.docBottom} fullWidth={true}>
+            <Kb.Text type="BodySmallPrimaryLink" onClick={item.onShowInFinder}>
+              Show in {Styles.fileUIName}
+            </Kb.Text>
+          </Kb.Box2>
+        )}
+      </Kb.Box2>
+    )
+  }
   render() {
-    return null
+    const months = formMonths(this.props.docs.docs)
+    return (
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+        <Kb.SectionList
+          stickySectionHeadersEnabled={true}
+          renderSectionHeader={this._renderSectionHeader}
+          keyboardShouldPersistTaps="handled"
+          renderItem={this._renderItem}
+          sections={months}
+        />
+      </Kb.Box2>
+    )
   }
 }
 
@@ -188,11 +243,28 @@ class AttachmentPanel extends React.Component<Props, State> {
   state = {selectedView: RPCChatTypes.localGalleryItemTyp.media}
 
   componentDidMount() {
-    this.props.onViewChange(this.state.selectedView)
+    this.props.onViewChange(this.state.selectedView, this._getViewNum(this.state.selectedView))
   }
 
   _getButtonMode = typ => {
     return this.state.selectedView === typ ? 'Primary' : 'Secondary'
+  }
+
+  _getViewNum = view => {
+    switch (view) {
+      case RPCChatTypes.localGalleryItemTyp.media:
+        return 50
+      case RPCChatTypes.localGalleryItemTyp.link:
+        return 20
+      case RPCChatTypes.localGalleryItemTyp.doc:
+        return 2
+    }
+    return 10
+  }
+
+  _selectView = view => {
+    this.props.onViewChange(view, this._getViewNum(view))
+    this.setState({selectedView: view})
   }
 
   render() {
@@ -203,13 +275,13 @@ class AttachmentPanel extends React.Component<Props, State> {
         content = <MediaView media={this.props.media} />
         isLoading = this.props.media.status === 'loading'
         break
-      case RPCChatTypes.localGalleryItemTyp.docs:
+      case RPCChatTypes.localGalleryItemTyp.doc:
         content = <DocView docs={this.props.docs} />
         isLoading = this.props.docs.status === 'loading'
         break
     }
     content = (
-      <Kb.Box2 direction="vertical">
+      <Kb.Box2 direction="vertical" fullWidth={true}>
         {isLoading && <Kb.ProgressIndicator style={styles.progress} />}
         {content}
       </Kb.Box2>
@@ -222,18 +294,21 @@ class AttachmentPanel extends React.Component<Props, State> {
             mode={this._getButtonMode(RPCChatTypes.localGalleryItemTyp.media)}
             label="Media"
             small={true}
+            onClick={() => this._selectView(RPCChatTypes.localGalleryItemTyp.media)}
           />
           <Kb.Button
             type="Default"
             mode={this._getButtonMode(RPCChatTypes.localGalleryItemTyp.link)}
             label="Links"
             small={true}
+            onClick={() => this._selectView(RPCChatTypes.localGalleryItemTyp.link)}
           />
           <Kb.Button
             type="Default"
             mode={this._getButtonMode(RPCChatTypes.localGalleryItemTyp.doc)}
             label="Docs"
             small={true}
+            onClick={() => this._selectView(RPCChatTypes.localGalleryItemTyp.doc)}
           />
         </Kb.ButtonBar>
         <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -248,6 +323,18 @@ const styles = Styles.styleSheetCreate({
   container: {
     flex: 1,
     height: '100%',
+  },
+  docBottom: {
+    padding: Styles.globalMargins.tiny,
+  },
+  docIcon: {
+    height: 32,
+  },
+  docProgress: {
+    alignSelf: 'center',
+  },
+  docRowContainer: {
+    padding: Styles.globalMargins.tiny,
   },
   mediaRowContainer: {
     minWidth: rowSize * maxThumbSize,

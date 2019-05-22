@@ -232,17 +232,20 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         return message.set('transferProgress', action.payload.ratio).set('transferState', 'uploading')
       })
     case Chat2Gen.attachmentLoading:
-      return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
-        if (!message || message.type !== 'attachment') {
-          return message
+      return messageMap.updateIn(
+        [action.payload.conversationIDKey, action.payload.message.ordinal],
+        message => {
+          if (!message || message.type !== 'attachment') {
+            return message
+          }
+          return action.payload.isPreview
+            ? message.set('previewTransferState', 'downloading')
+            : message
+                .set('transferProgress', action.payload.ratio)
+                .set('transferState', 'downloading')
+                .set('transferErrMsg', null)
         }
-        return action.payload.isPreview
-          ? message.set('previewTransferState', 'downloading')
-          : message
-              .set('transferProgress', action.payload.ratio)
-              .set('transferState', 'downloading')
-              .set('transferErrMsg', null)
-      })
+      )
     case Chat2Gen.attachmentUploaded:
       return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
         if (!message || message.type !== 'attachment') {
@@ -1207,7 +1210,24 @@ const rootReducer = (
     case Chat2Gen.handleSeeingWallets: // fallthrough
     case Chat2Gen.setWalletsOld:
       return state.isWalletsNew ? state.set('isWalletsNew', false) : state
-    case Chat2Gen.attachmentDownloaded:
+    case Chat2Gen.attachmentLoading: {
+      let nextState = state.updateIn(
+        ['attachmentViewMap', action.payload.conversationIDKey, RPCChatTypes.localGalleryItemTyp.doc],
+        (info = Constants.makeAttachmentViewInfo()) =>
+          info.merge({
+            messages: info.messages.update(
+              info.messages.findIndex(item => item.id === action.payload.message.id),
+              item => item.set('transferState', 'downloading').set('transferProgress', action.payload.ratio)
+            ),
+          })
+      )
+      return nextState.withMutations(s => {
+        s.set('metaMap', metaMapReducer(state.metaMap, action))
+        s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))
+        s.set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
+      })
+    }
+    case Chat2Gen.attachmentDownloaded: {
       const {message} = action.payload
       let nextState = state
       // check fullscreen attachment message in case we downloaded it
@@ -1223,11 +1243,25 @@ const rootReducer = (
           message.set('downloadPath', action.payload.path)
         )
       }
+      nextState = state.updateIn(
+        ['attachmentViewMap', message.conversationIDKey, RPCChatTypes.localGalleryItemTyp.doc],
+        (info = Constants.makeAttachmentViewInfo()) =>
+          info.merge({
+            messages: info.messages.update(info.messages.findIndex(item => item.id === message.id), item =>
+              item
+                .set('transferState', null)
+                .set('transferProgress', 0)
+                .set('downloadPath', action.payload.path)
+                .set('fileURLCached', true)
+            ),
+          })
+      )
       return nextState.withMutations(s => {
         s.set('metaMap', metaMapReducer(state.metaMap, action))
         s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))
         s.set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
       })
+    }
     // metaMap/messageMap/messageOrdinalsList only actions
     case Chat2Gen.messageDelete:
     case Chat2Gen.messageEdit:
@@ -1236,7 +1270,6 @@ const rootReducer = (
     case Chat2Gen.messageAttachmentUploaded:
     case Chat2Gen.metaReceivedError:
     case Chat2Gen.metaRequestingTrusted:
-    case Chat2Gen.attachmentLoading:
     case Chat2Gen.attachmentUploading:
     case Chat2Gen.attachmentUploaded:
     case Chat2Gen.attachmentMobileSave:

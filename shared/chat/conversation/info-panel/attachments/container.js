@@ -3,7 +3,8 @@ import * as Types from '../../../../constants/types/chat2'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Constants from '../../../../constants/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import {namedConnect} from '../../../../util/container'
+import * as FsGen from '../../../../actions/fs-gen'
+import {isMobile, namedConnect} from '../../../../util/container'
 import AttachmentPanel from '.'
 
 type OwnProps = {|
@@ -28,17 +29,26 @@ const mapStateToProps = (state, {conversationIDKey}) => {
 const mapDispatchToProps = (dispatch, {conversationIDKey}) => ({
   _onDocDownload: message => dispatch(Chat2Gen.createAttachmentDownload({message})),
   _onMediaClick: message => dispatch(Chat2Gen.createAttachmentPreviewSelect({message})),
-  onViewChange: viewType => dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, viewType})),
+  _onShowInFinder: message =>
+    message.downloadPath &&
+    dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath})),
+  onViewChange: (viewType, num) =>
+    dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, num, viewType})),
 })
 
 const mergeProps = (stateProps, dispatchProps, {conversationIDKey}) => ({
   docs: {
-    docs: stateProps._docs.messages.map(m => ({
-      author: m.author,
-      ctime: m.timestamp,
-      name: m.fileName,
-      onDownload: () => dispatchProps._onDocDownload(m),
-    })),
+    docs: stateProps._docs.messages
+      .map(m => ({
+        author: m.author,
+        ctime: m.timestamp,
+        downloading: m.transferState === 'downloading',
+        name: m.title || m.fileName,
+        progress: m.transferProgress,
+        onDownload: !isMobile && !m.downloadPath ? () => dispatchProps._onDocDownload(m) : null,
+        onShowInFinder: !isMobile && m.downloadPath ? () => dispatchProps._onShowInFinder(m) : null,
+      }))
+      .toArray(),
     status: stateProps._docs.status,
   },
   media: {

@@ -1289,7 +1289,7 @@ const loadAttachmentView = (state, action) => {
   return RPCChatTypes.localLoadGalleryRpcPromise({
     convID: Types.keyToConversationID(conversationIDKey),
     typ: viewType,
-    num: 50,
+    num: action.payload.num,
     fromMsgID: action.payload.fromMsgID,
   })
     .then(results => {
@@ -1776,7 +1776,6 @@ const clearSearchResults = () => SearchGen.createClearSearchResults({searchKey: 
 function* downloadAttachment(fileName: string, message: Types.Message) {
   try {
     const conversationIDKey = message.conversationIDKey
-    const ordinal = message.ordinal
     let lastRatioSent = -1 // force the first update to show no matter what
     const onDownloadProgress = ({bytesComplete, bytesTotal}) => {
       const ratio = bytesComplete / bytesTotal
@@ -1784,7 +1783,7 @@ function* downloadAttachment(fileName: string, message: Types.Message) {
       if (ratio - lastRatioSent > 0.05) {
         lastRatioSent = ratio
         return Saga.put(
-          Chat2Gen.createAttachmentLoading({conversationIDKey, isPreview: false, ordinal, ratio})
+          Chat2Gen.createAttachmentLoading({conversationIDKey, isPreview: false, message, ratio})
         )
       }
     }

@@ -97,7 +97,6 @@ export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
 export const resolveMaybeMention = 'chat2:resolveMaybeMention'
 export const saveMinWriterRole = 'chat2:saveMinWriterRole'
-export const selectAttachmentView = 'chat2:selectAttachmentView'
 export const selectConversation = 'chat2:selectConversation'
 export const sendTyping = 'chat2:sendTyping'
 export const setAttachmentViewError = 'chat2:setAttachmentViewError'
@@ -150,7 +149,7 @@ type _AttachmentDownloadedPayload = $ReadOnly<{|message: Types.Message, path?: s
 type _AttachmentDownloadedPayloadError = $ReadOnly<{|error: string, message: Types.Message|}>
 type _AttachmentFullscreenNextPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, backInTime: boolean|}>
 type _AttachmentFullscreenSelectionPayload = $ReadOnly<{|message: Types.Message|}>
-type _AttachmentLoadingPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal, ratio: number, isPreview: boolean|}>
+type _AttachmentLoadingPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, message: Types.Message, ratio: number, isPreview: boolean|}>
 type _AttachmentMobileSavePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal|}>
 type _AttachmentMobileSavedPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal|}>
 type _AttachmentPastedPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, data: Buffer|}>
@@ -184,7 +183,7 @@ type _InboxSearchTextResultPayload = $ReadOnly<{|result: Types.InboxSearchTextHi
 type _JoinConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _JumpToRecentPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _LeaveConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, dontNavigateToInbox?: boolean|}>
-type _LoadAttachmentViewPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, viewType: RPCChatTypes.GalleryItemTyp, fromMsgID?: Types.MessageID|}>
+type _LoadAttachmentViewPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, viewType: RPCChatTypes.GalleryItemTyp, num: number, fromMsgID?: Types.MessageID|}>
 type _LoadMessagesCenteredPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, highlightMode: Types.CenterOrdinalHighlightMode|}>
 type _LoadNewerMessagesDueToScrollPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _LoadOlderMessagesDueToScrollPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
@@ -229,7 +228,6 @@ type _ResetChatWithoutThemPayload = $ReadOnly<{|conversationIDKey: Types.Convers
 type _ResetLetThemInPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, username: string|}>
 type _ResolveMaybeMentionPayload = $ReadOnly<{|name: string, channel: string|}>
 type _SaveMinWriterRolePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, role: TeamsTypes.TeamRoleType, cannotWrite: boolean|}>
-type _SelectAttachmentViewPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, viewType: RPCChatTypes.GalleryItemTyp|}>
 type _SelectConversationPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   reason: 'focused' | 'clearSelected' | 'desktopNotification' | 'createdMessagePrivately' | 'extension' | 'files' | 'findNewestConversation' | 'inboxBig' | 'inboxFilterArrow' | 'inboxFilterChanged' | 'inboxSmall' | 'inboxNewConversation' | 'inboxSearch' | 'jumpFromReset' | 'jumpToReset' | 'justCreated' | 'manageView' | 'previewResolved' | 'push' | 'savedLastState' | 'startFoundExisting' | 'teamChat' | 'addedToChannel' | 'teamMention',
@@ -392,10 +390,6 @@ export const createUnfurlResolvePrompt = (payload: _UnfurlResolvePromptPayload) 
  * Select an inbox search item
  */
 export const createInboxSearchSelect = (payload: _InboxSearchSelectPayload = Object.freeze({})) => ({payload, type: inboxSearchSelect})
-/**
- * Select attachment view pane
- */
-export const createSelectAttachmentView = (payload: _SelectAttachmentViewPayload) => ({payload, type: selectAttachmentView})
 /**
  * Set a lock on the exploding mode for a conversation.
  */
@@ -690,7 +684,6 @@ export type ResetChatWithoutThemPayload = {|+payload: _ResetChatWithoutThemPaylo
 export type ResetLetThemInPayload = {|+payload: _ResetLetThemInPayload, +type: 'chat2:resetLetThemIn'|}
 export type ResolveMaybeMentionPayload = {|+payload: _ResolveMaybeMentionPayload, +type: 'chat2:resolveMaybeMention'|}
 export type SaveMinWriterRolePayload = {|+payload: _SaveMinWriterRolePayload, +type: 'chat2:saveMinWriterRole'|}
-export type SelectAttachmentViewPayload = {|+payload: _SelectAttachmentViewPayload, +type: 'chat2:selectAttachmentView'|}
 export type SelectConversationPayload = {|+payload: _SelectConversationPayload, +type: 'chat2:selectConversation'|}
 export type SendTypingPayload = {|+payload: _SendTypingPayload, +type: 'chat2:sendTyping'|}
 export type SetAttachmentViewErrorPayload = {|+payload: _SetAttachmentViewErrorPayload, +type: 'chat2:setAttachmentViewError'|}
@@ -825,7 +818,6 @@ export type Actions =
   | ResetLetThemInPayload
   | ResolveMaybeMentionPayload
   | SaveMinWriterRolePayload
-  | SelectAttachmentViewPayload
   | SelectConversationPayload
   | SendTypingPayload
   | SetAttachmentViewErrorPayload
