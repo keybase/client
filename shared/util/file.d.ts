@@ -10,7 +10,7 @@ export type WriteStream = {
 
 export type Encoding = 'utf8' | 'ascii' | 'base64'
 
-export declare var downloadFolder: string
+export declare const downloadFolder: string
 export declare function tmpDir(): string
 export declare function tmpFile(suffix: string): string
 export declare function downloadFilePath(filename: string): Promise<string>

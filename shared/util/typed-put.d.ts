@@ -1,7 +1,7 @@
 import {PutEffect, Channel} from 'redux-saga'
 import {TypedActions} from '../actions/typed-actions-gen'
 
-declare var put: {
+declare const put: {
   resolve: {}
 }
 

@@ -1,3 +1,3 @@
-declare var dismiss: () => void
-declare var isOpen: () => boolean
+declare const dismiss: () => void
+declare const isOpen: () => boolean
 export {dismiss, isOpen}
