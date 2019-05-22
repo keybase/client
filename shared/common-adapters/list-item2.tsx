@@ -31,13 +31,16 @@ const HoverBox = Styles.isMobile
   ? Box2
   : Styles.styled(Box2)({
       '.hidden-no-hover': {
-        opacity: 0,
+        ...Styles.transition('max-width'),
+        justifyContent: 'flex-end',
+        maxWidth: 0,
+        overflow: 'hidden',
       },
       ':hover': {
         backgroundColor: Styles.globalColors.blueLighter2,
       },
       ':hover .hidden-no-hover': {
-        opacity: 1,
+        maxWidth: 64,
       },
     })
 
@@ -89,7 +92,10 @@ const ListItem = (props: Props) => (
         <Kb.Box2
           direction="horizontal"
           className={props.onlyShowActionOnHover ? 'hidden-no-hover' : null}
-          style={props.type === 'Small' ? styles.actionSmallContainer : styles.actionLargeContainer}
+          style={Styles.collapseStyles([
+            props.type === 'Small' ? styles.actionSmallContainer : styles.actionLargeContainer,
+            props.onlyShowActionOnHover ? styles.hiddenNoHoverAction : {},
+          ])}
         >
           {props.action}
         </Kb.Box2>
@@ -179,6 +185,9 @@ const styles = Styles.styleSheetCreate({
     position: 'absolute',
     right: 0,
     top: 0,
+  },
+  hiddenNoHoverAction: {
+    justifyContent: 'flex-end',
   },
   iconLarge: {
     position: 'absolute',

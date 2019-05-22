@@ -44,13 +44,18 @@ const Tlf = (props: TlfProps) => (
         {
           // TODO: if this is a team, use a team-style avatar
         }
-        <Kb.AvatarLine maxShown={4} size={32} layout="horizontal" usernames={props.usernames.toArray()} />
+        {!Styles.isMobile && (
+          <Kb.Box style={styles.avatarBox}>
+            <Kb.AvatarLine maxShown={4} size={32} layout="horizontal" usernames={props.usernames.toArray()} />
+          </Kb.Box>
+        )}
       </Kb.Box2>
     </Kb.Box>
   </StillCommon>
 )
 
 const styles = Styles.styleSheetCreate({
+  avatarBox: {marginRight: Styles.globalMargins.xsmall},
   kerning: {letterSpacing: 0.2},
   leftBox: {flex: 1, justifyContent: 'center', minWidth: 0},
   minWidth: {minWidth: 0},
