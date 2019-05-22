@@ -1,8 +1,0 @@
-// @flow
-import * as React from 'react'
-
-export type Props = {|
-  onMeasured: number => void,
-|}
-
-export default class Measure extends React.Component<Props> {}
