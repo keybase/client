@@ -5,4 +5,5 @@ export type Props = {
   onSubmitTextCode: (arg0: string) => void
   onOpenSettings: () => void
 }
-export declare class QRScan extends React.Component<Props> {}
+declare class QRScan extends React.Component<Props> {}
+export default QRScan
