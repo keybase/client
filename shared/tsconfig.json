@@ -8,7 +8,14 @@
         "jsx": "preserve",
         "incremental": true,
         "outDir": "./.tsOut/emit",
-        "tsBuildInfoFile": "./.tsOut/cache"
+        "allowSyntheticDefaultImports": true,
+        "tsBuildInfoFile": "./.tsOut/cache",
+        "baseUrl": ".",
+        "paths": {
+            "rn-fetch-blob": [
+                "custom-d.ts/rn-fetch-blob.d.ts"
+            ],
+        }
     },
     "include": [
         "./**/*"

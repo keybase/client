@@ -1,1 +1,1 @@
-export default function openURL(url: string | null): void {}
+export default function openURL(url: string | null): void

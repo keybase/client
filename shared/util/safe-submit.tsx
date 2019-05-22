@@ -9,7 +9,7 @@ import * as React from 'react'
 
 export function safeSubmit(submitProps: Array<string>, resetSafeProps: Array<string>) {
   return (BaseComponent: any) => {
-    const factory = React.createFactory(BaseComponent)
+    const factory: React.CFactory<any, React.Component<any, {}>> = React.createFactory(BaseComponent)
 
     class SafeSubmit extends React.Component<any> {
       // a map of name to boolean if we can call it safely
@@ -45,7 +45,7 @@ export function safeSubmit(submitProps: Array<string>, resetSafeProps: Array<str
       }
     }
     return SafeSubmit
-  };
+  }
 }
 
 // Similar to above but it never gets reset, useful for screens that want the safety while mounted

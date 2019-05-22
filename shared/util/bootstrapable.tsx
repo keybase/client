@@ -2,17 +2,20 @@ import * as React from 'react'
 import {Box, Text} from '../common-adapters'
 import {globalStyles} from '../styles'
 
-export type BootstrapableProp<P extends Object> = {
-  bootstrapDone: false,
-  onBootstrap: () => any
-} | {
-  bootstrapDone: true,
-  originalProps: P
-};
+export type BootstrapableProp<P extends Object> =
+  | {
+      bootstrapDone: false
+      onBootstrap: () => any
+    }
+  | {
+      bootstrapDone: true
+      originalProps: P
+    }
 
 export default function Bootstrapable<P extends Object>(ComposedComponent: React.ComponentType<P>): any {
   return class extends React.Component<BootstrapableProp<P>, void> {
     componentDidMount() {
+      // @ts-ignore codemod-issue
       !this.props.bootstrapDone && this.props.onBootstrap()
     }
 
@@ -29,5 +32,5 @@ export default function Bootstrapable<P extends Object>(ComposedComponent: React
         </Box>
       )
     }
-  };
+  }
 }

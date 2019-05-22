@@ -8,7 +8,7 @@ import {localLog} from './forward-logs'
  * invoked on every tick.
  */
 
-export type TickerID = number;
+export type TickerID = number
 
 // Global ID for refs
 let id: TickerID = 0
@@ -17,13 +17,13 @@ let id: TickerID = 0
 let logCounter = 0
 
 type Ref = {
-  id: TickerID,
+  id: TickerID
   fn: () => void
-};
+}
 
 class Ticker {
-  refs: Array<Ref> = [];
-  intervalID: number | null;
+  refs: Array<Ref> = []
+  intervalID: NodeJS.Timeout | null
 
   addObserver = (fn: () => void): TickerID => {
     if (!this.intervalID) {

@@ -135,4 +135,4 @@ if (!_Menu) {
   throw new Error('Should be impossible')
 }
 export const Menu = _Menu
-export type BrowserWindowType = electron$BrowserWindow;
+export type BrowserWindowType = Electron.BrowserWindow

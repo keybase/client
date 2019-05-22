@@ -1,6 +1,6 @@
-import { LogLineWithLevelISOTimestamp } from '../logger/types';
+import {LogLineWithLevelISOTimestamp} from '../logger/types'
 
-export const localLog = (...args: any) => {}
-export const localWarn = (...args: any) => {}
-export const localError = (...args: any) => {}
-export declare var writeLogLinesToFile: (lines: Array<LogLineWithLevelISOTimestamp>) => Promise<void>;
+export declare function localLog(...args: any): void
+export declare function localWarn(...args: any): void
+export declare function localError(...args: any): void
+export declare function writeLogLinesToFile(lines: Array<LogLineWithLevelISOTimestamp>): Promise<void>

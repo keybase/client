@@ -1,6 +1,6 @@
 import {noop} from 'lodash-es'
 import RNFetchBlob from 'rn-fetch-blob'
-import { LogLineWithLevelISOTimestamp } from '../logger/types';
+import {LogLineWithLevelISOTimestamp} from '../logger/types'
 import {writeStream, exists} from './file'
 import {serialPromises} from './promise'
 import {logFileName, logFileDir} from '../constants/platform.native'

@@ -1,9 +1,9 @@
 import {forceImmediateLogging} from '../local-debug'
 
 type TimeoutInfo = {
-  didTimeout: boolean,
+  didTimeout: boolean
   timeRemaining: () => number
-};
+}
 
 function immediateCallback(
   cb: (info: TimeoutInfo) => void,
@@ -21,6 +21,7 @@ function timeoutFallback(
     timeout: number
   }
 ): number {
+  // @ts-ignore codemod-issue
   return setTimeout(function() {
     cb({
       didTimeout: true,
@@ -38,6 +39,7 @@ const requestIdleCallback = forceImmediateLogging
   ? timeoutFallback
   : window.requestIdleCallback.bind(window)
 
-const onIdlePromise = (timeout: number = 100): Promise<TimeoutInfo> => new Promise(resolve => requestIdleCallback(resolve, {timeout}))
+const onIdlePromise = (timeout: number = 100): Promise<TimeoutInfo> =>
+  new Promise(resolve => requestIdleCallback(resolve, {timeout}))
 
 export {requestIdleCallback, onIdlePromise}

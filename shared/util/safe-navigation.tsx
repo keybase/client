@@ -3,36 +3,41 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import {getActiveKey} from '../router-v2/util'
 import {withNavigation} from '@react-navigation/core'
 
-type Path = Array<string | {
-  props?: any,
-  selected?: string
-}>;
+type Path = Array<
+  | string
+  | {
+      props?: any
+      selected?: string
+    }
+>
 
 type NavProps = {
   navigateAppend: (
     arg0: {
-      path: Path,
+      path: Path
       replace?: boolean
     }
-  ) => RouteTreeGen.NavigateAppendPayload | void,
+  ) => RouteTreeGen.NavigateAppendPayload | void
   navigateUp: () => RouteTreeGen.NavigateUpPayload | void
-};
+}
 
 export type PropsWithSafeNavigation<P> = {
   navigateAppend: (
     arg0: {
-      path: Path,
+      path: Path
       replace?: boolean
     }
-  ) => RouteTreeGen.NavigateAppendPayload,
+  ) => RouteTreeGen.NavigateAppendPayload
   navigateUp: () => RouteTreeGen.NavigateUpPayload
-} & P;
+} & P
 
-function withSafeNavigation<Config extends {}, Instance>(Component: React.AbstractComponent<Config, Instance>): React.AbstractComponent<Exclude<Config, NavProps>, Instance> {
+function withSafeNavigation<P extends {}>(
+  Component: React.ComponentType<P>
+): React.Component<Exclude<P, NavProps>> {
   type WithSafeNavigationProps = {
-    forwardedRef: React.Ref<React.AbstractComponent<Config, Instance>>,
+    forwardedRef: React.Ref<React.ComponentType<P>>
     navigation: any
-  } & Exclude<Config, NavProps>;
+  } & Exclude<P, NavProps>
 
   class WithSafeNavigation extends React.Component<WithSafeNavigationProps> {
     static displayName = `WithSafeNavigation(${Component.displayName || Component.name || 'Component'})`
@@ -47,14 +52,14 @@ function withSafeNavigation<Config extends {}, Instance>(Component: React.Abstra
       return (
         <Component
           ref={forwardedRef}
-          {...rest}
+          {...rest as P}
           navigateAppend={this._navigateAppend}
           navigateUp={this._navigateUp}
         />
       )
     }
   }
-  const WithForwardRef = React.forwardRef((props, ref) => (
+  const WithForwardRef = React.forwardRef((props: WithSafeNavigationProps, ref) => (
     <WithSafeNavigation {...props} forwardedRef={ref} />
   ))
   WithForwardRef.displayName = `ForwardRef(WithSafeNavigation)`

@@ -1,10 +1,11 @@
 import {publicAdminsLimit} from '../constants/teams'
-import { RetentionPolicy } from '../constants/types/retention-policy';
+// @ts-ignore codemod-issue
+import {RetentionPolicy} from '../constants/types/retention-policy'
 
 type SortedAdmins = {
-  publicAdmins: Array<string>,
+  publicAdmins: Array<string>
   publicAdminsOthers: number
-};
+}
 
 // Transforms an array of public admins for display on profile
 function parsePublicAdmins(publicAdmins: Array<string>, you: string | null): SortedAdmins {
@@ -26,7 +27,7 @@ function parsePublicAdmins(publicAdmins: Array<string>, you: string | null): Sor
 function makeRetentionNotice(
   policy: RetentionPolicy,
   teamPolicy: RetentionPolicy,
-  teamType: "adhoc" | "big" | "small"
+  teamType: 'adhoc' | 'big' | 'small'
 ): string | null {
   if (policy.type === 'retain' || (policy.type === 'inherit' && teamPolicy.type === 'retain')) {
     // Messages stick around forever; no explanation needed

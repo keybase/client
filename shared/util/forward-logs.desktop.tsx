@@ -1,7 +1,9 @@
-import { LogLineWithLevelISOTimestamp } from '../logger/types';
+import {LogLineWithLevelISOTimestamp} from '../logger/types'
 import {isWindows, logFileName} from '../constants/platform.desktop'
+// @ts-ignore codemod-issue
 import fs from 'fs'
 import {mkdirp} from '../util/file.desktop'
+// @ts-ignore codemod-issue
 import path from 'path'
 
 const fileDoesNotExist = err => {
@@ -29,6 +31,7 @@ const setupFileWritable = () => {
 
   // Check if we can write to log file
   try {
+    // @ts-ignore codemod-issue
     fs.accessSync(logFile, fs.W_OK)
   } catch (e) {
     if (!fileDoesNotExist(e)) {
@@ -59,7 +62,7 @@ const setupFileWritable = () => {
   return fs.openSync(logFile, 'a')
 }
 
-type Log = (...args: Array<any>) => void;
+type Log = (...args: Array<any>) => void
 
 const localLog: Log = console.log.bind(console)
 const localWarn: Log = console.warn.bind(console)
@@ -91,6 +94,7 @@ const writeLogLinesToFile: (lines: Array<LogLineWithLevelISOTimestamp>) => Promi
         const line = JSON.stringify(lines[i]) + '\n'
         // last time!
         if (i === lines.length - 1) {
+          // @ts-ignore codemod-issue
           writer.write(line, encoding, resolve)
         } else {
           // see if we should continue, or wait

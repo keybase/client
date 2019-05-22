@@ -4,9 +4,14 @@ import createSagaMiddleware from 'redux-saga'
 import rootReducer from '../reducers'
 
 // See https://github.com/pekala/test-problem-example
-export const flushPromises = <T>(result: T): Promise<T> => new Promise(resolve => setImmediate(() => resolve(result)))
+export const flushPromises = <T extends {}>(result: T): Promise<T> =>
+  new Promise(resolve => setImmediate(() => resolve(result)))
 
-export const makeStartReduxSaga = (rootSaga: any, initialStore: Object | null, init: (dispatch: any) => void) => {
+export const makeStartReduxSaga = (
+  rootSaga: any,
+  initialStore: Object | null,
+  init: (dispatch: any) => void
+) => {
   return (is: Object | null) => {
     const sagaMiddleware = createSagaMiddleware({
       onError: e => {
@@ -25,7 +30,7 @@ export const makeStartReduxSaga = (rootSaga: any, initialStore: Object | null, i
       dispatch,
       getState,
     }
-  };
+  }
 }
 
 export const getInitialStore = () => rootReducer(undefined, {type: 'MOCK'})

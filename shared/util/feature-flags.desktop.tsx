@@ -1,5 +1,5 @@
 import {featureFlagsOverride} from '../local-debug.desktop'
-import { FeatureFlags } from './feature-flags';
+import {FeatureFlags} from './feature-flags'
 
 if (process.env['KEYBASE_FEATURES']) {
   console.error('KEYBASE_FEATURES is no longer supported edit the json file instead')
@@ -23,9 +23,7 @@ const ff: FeatureFlags = {
   proofProviders: true,
 }
 
-const inAdmin: {
-  [K in keyof FeatureFlags]: boolean;
-} = {
+const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {
   chatIndexProfilingEnabled: true,
   dbCleanEnabled: true,
   moveOrCopy: true,
@@ -35,7 +33,7 @@ const inAdmin: {
 
 // load overrides
 Object.keys(ff).forEach(k => {
-  ff[k] = featureOn(k) || ff[k] || (featureOn('admin') && !!inAdmin[k])
+  ff[k] = featureOn(k as keyof FeatureFlags) || ff[k] || (featureOn('admin') && !!inAdmin[k])
 })
 
 if (__DEV__) {

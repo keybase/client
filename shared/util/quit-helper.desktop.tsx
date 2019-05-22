@@ -2,8 +2,8 @@ import * as SafeElectron from '../util/safe-electron.desktop'
 import {quit} from '../desktop/app/ctl.desktop'
 import {hideDockIcon} from '../desktop/app/dock-icon.desktop'
 
-export type Context = "uiWindow" | "mainThread" | "quitButton" | "beforeQuit";
-export type Action = "closePopups" | "quitMainWindow" | "quitApp";
+export type Context = 'uiWindow' | 'mainThread' | 'quitButton' | 'beforeQuit'
+export type Action = 'closePopups' | 'quitMainWindow' | 'quitApp'
 
 // Logic to figure out what to do given your context
 function quitOnContext(context: Context): Array<Action> {
@@ -62,7 +62,7 @@ export function setupExecuteActionsListener() {
   })
 }
 
-const crossplatformQuit = (reason: string) => {
+const crossplatformQuit = (reason: Context) => {
   // $FlowIssue don't want to really expose this correctly
   executeActionsForContext(reason)
 }

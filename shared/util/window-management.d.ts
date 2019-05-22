@@ -1,3 +1,3 @@
-export function closeWindow(): void {}
-export function minimizeWindow(): void {}
-export function toggleMaximizeWindow(): void {}
+export function closeWindow(): void
+export function minimizeWindow(): void
+export function toggleMaximizeWindow(): void

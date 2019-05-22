@@ -6,15 +6,14 @@ import {errors as transportErrors} from 'framed-msgpack-rpc'
 export class RPCError {
   // Fields to make RPCError 'look' like Error, since we don't want to
   // inherit from Error.
-  message: string;
-  name: string;
-  stack: string;
+  message: string
+  name: string
+  stack: string
 
-  code: number; // Consult type StatusCode in rpc-gen.js for what this means
-  fields: any;
-  desc: string;
-  name: string;
-  details: string; // Details w/ error code & method if it's present
+  code: number // Consult type StatusCode in rpc-gen.js for what this means
+  fields: any
+  desc: string
+  details: string // Details w/ error code & method if it's present
 
   constructor(message: string, code: number, fields: any, name: string | null, method: string | null) {
     const err = new Error(paramsToErrorMsg(message, code, fields, name, method))
@@ -59,6 +58,10 @@ const paramsToErrorMsg = (
   return msg
 }
 
+function isRPCErrorLike(err: Object): err is RPCErrorLike {
+  return err.hasOwnProperty('desc') && err.hasOwnProperty('code')
+}
+
 // convertToError converts an RPC error object (or any object) into an
 // Error or RPCError.
 export function convertToError(err: Object, method?: string): Error | RPCError {
@@ -66,22 +69,21 @@ export function convertToError(err: Object, method?: string): Error | RPCError {
     return err
   }
 
-  if (err.hasOwnProperty('desc') && err.hasOwnProperty('code')) {
+  if (isRPCErrorLike(err)) {
     return convertToRPCError(err, method)
   }
 
   return new Error(`Unknown error: ${JSON.stringify(err)}`)
 }
 
-export function convertToRPCError(
-  err: {
-    code: number,
-    desc: string,
-    fields?: any,
-    name?: string
-  },
-  method?: string | null
-): RPCError {
+type RPCErrorLike = {
+  code: number
+  desc: string
+  fields?: any
+  name?: string
+}
+
+export function convertToRPCError(err: RPCErrorLike, method?: string | null): RPCError {
   return new RPCError(err.desc, err.code, err.fields, err.name, method)
 }
 
@@ -134,6 +136,7 @@ export const niceError = (e: RPCError) => {
 
 export function isEOFError(error: RPCError | Error) {
   return (
+    // @ts-ignore codemod-issue
     error.code && error.code === transportErrors['EOF'] && error.message === transportErrors.msg[error.code]
   )
 }

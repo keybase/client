@@ -9,28 +9,26 @@ import logger from '../logger'
  * removed the timeout is cancelled and the key deleted
  */
 
-export type SharedTimerID = number;
+export type SharedTimerID = number
 
 // Global ID for refs to timers
 let id: SharedTimerID = 0
 
 type Ref = {
-  fn: () => void,
+  fn: () => void
   id: SharedTimerID
-};
+}
 
-type RefMap = {
-  [K in string]: Array<Ref>;
-};
+type RefMap = {[K in string]: Array<Ref>}
 
 type Timer = {
-  key: string,
-  timeoutID: number
-};
+  key: string
+  timeoutID: NodeJS.Timeout
+}
 
 class Timers {
-  _refs: RefMap = {};
-  _timers: Array<Timer> = [];
+  _refs: RefMap = {}
+  _timers: Array<Timer> = []
 
   constructor(debug: boolean) {
     if (debug) {
@@ -46,9 +44,9 @@ class Timers {
     fn: () => void,
     {
       key,
-      ms
+      ms,
     }: {
-      key: string,
+      key: string
       ms?: number
     }
   ): SharedTimerID => {

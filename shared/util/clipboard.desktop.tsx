@@ -1,11 +1,12 @@
 import * as SafeElectron from './safe-electron.desktop'
+// @ts-ignore codemod-issue
 import fs from 'fs'
 import {tmpRandFile} from './file.desktop'
 
 export type ClipboardData = {
-  path: string,
+  path: string
   title: string
-};
+}
 
 function readImage(): Promise<Buffer | null> {
   return new Promise((resolve, reject) => {
@@ -20,7 +21,10 @@ function readImage(): Promise<Buffer | null> {
   })
 }
 
-export function readImageFromClipboard(event: React.SyntheticEvent, willReadData: () => void): Promise<Buffer | null> {
+export function readImageFromClipboard(
+  event: React.SyntheticEvent,
+  willReadData: () => void
+): Promise<Buffer | null> {
   const formats = SafeElectron.getClipboard().availableFormats()
   console.log('Read clipboard, formats:', formats)
   const imageFormats = formats.filter(f => f.startsWith('image/'))
@@ -58,11 +62,13 @@ function readBlob(name: string, format: string, blob: any): Promise<ClipboardDat
       console.log('Saving clipboard to:', path)
       let reader = new FileReader() // eslint-disable-line
       reader.onload = e => {
+        // @ts-ignore codemod-issue
         fs.writeFile(path, Buffer.from(e.target.result), err => {
           if (err) {
             reject(err)
             return
           }
+          // @ts-ignore codemod-issue
           resolve({format, path, title: name})
         })
       }

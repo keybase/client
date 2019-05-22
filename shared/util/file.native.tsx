@@ -1,7 +1,7 @@
 import RNFetchBlob from 'rn-fetch-blob'
 import {findAvailableFilename} from './file.shared'
 
-import { StatResult, WriteStream, Encoding } from './file';
+import {StatResult, WriteStream, Encoding} from './file'
 
 export function tmpDir(): string {
   return RNFetchBlob.fs.dirs.CacheDir
@@ -28,6 +28,7 @@ export function exists(filepath: string): Promise<boolean> {
 }
 
 export function stat(filepath: string): Promise<StatResult> {
+  // @ts-ignore codemod-issue
   return RNFetchBlob.fs.stat(filepath).then(stats => ({lastModified: stats.lastModified, size: stats.size}))
 }
 
