@@ -1,12 +1,11 @@
 // TODO remove Container
 import Container from '../../login/forms/container'
-import React, {Component} from 'react'
+import * as React from 'react'
 import {Button, UserCard, Text, FormWithCheckbox} from '../../common-adapters'
 import {globalColors, globalMargins} from '../../styles'
+import {Props} from '.'
 
-import { Props } from '.';
-
-class Password extends Component<Props> {
+class Password extends React.Component<Props> {
   render() {
     const {showTyping, toggleShowTyping} = this.props
 

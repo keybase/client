@@ -3,35 +3,35 @@ import * as LoginGen from '../../actions/login-gen'
 import * as Constants from '../../constants/provision'
 import HiddenString from '../../util/hidden-string'
 import Password from '.'
-import React, {Component} from 'react'
+import * as React from 'react'
 import {connect} from '../../util/container'
-import { RouteProps } from '../../route-tree/render-route';
+import {RouteProps} from '../../route-tree/render-route'
 import * as WaitingConstants from '../../constants/waiting'
 
 type OwnProps = {
-  prompt: string,
-  username: string | null,
+  prompt: string
+  username: string | null
   waitingForResponse: boolean
-} & RouteProps<{}, {}>;
+} & RouteProps<{}, {}>
 
 type State = {
-  showTyping: boolean,
+  showTyping: boolean
   password: string | null
-};
+}
 
 type Props = {
-  prompt: string,
-  onSubmit: (password: string) => void,
-  onBack: () => void,
-  onForgotPassword: () => void,
-  waitingForResponse: boolean,
-  error?: string | null,
+  prompt: string
+  onSubmit: (password: string) => void
+  onBack: () => void
+  onForgotPassword: () => void
+  waitingForResponse: boolean
+  error?: string | null
   username: string | null
-};
+}
 
 // TODO remove this class
-class _Password extends Component<Props, State> {
-  state: State;
+class _Password extends React.Component<Props, State> {
+  state: State
 
   constructor(props: Props) {
     super(props)
@@ -77,6 +77,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
     dispatch(ProvisionGen.createSubmitPassword({password: new HiddenString(password)})),
 })
 
+// @ts-ignore codemode issue
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,

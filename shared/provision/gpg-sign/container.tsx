@@ -31,6 +31,7 @@ const mergeProps = ({importError}, dispatchProps) =>
         onSubmit: dispatchProps.onSubmitGpgMethod,
       }
 
+  // @ts-ignore codemode issue
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,

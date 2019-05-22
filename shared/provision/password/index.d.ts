@@ -1,17 +1,17 @@
-import {Component} from 'react'
+import * as React from 'react'
 
 export type Props = {
-  prompt: string,
-  onSubmit: () => void,
-  onChange: (password: string) => void,
-  password: string | null,
-  onBack: () => void,
-  onForgotPassword: () => void,
-  waitingForResponse: boolean,
-  error?: string | null,
-  username: string | null,
-  showTyping: boolean,
+  prompt: string
+  onSubmit: () => void
+  onChange: (password: string) => void
+  password: string | null
+  onBack: () => void
+  onForgotPassword: () => void
+  waitingForResponse: boolean
+  error?: string | null
+  username: string | null
+  showTyping: boolean
   toggleShowTyping: () => void
-};
+}
 
-export default class Password extends Component<Props> {}
+export default class Password extends React.Component<Props> {}

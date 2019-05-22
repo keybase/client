@@ -41,6 +41,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 })
 
 export default compose(
+  // @ts-ignore codemode issue
   connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,

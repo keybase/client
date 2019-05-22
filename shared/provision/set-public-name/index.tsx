@@ -4,12 +4,12 @@ import {Input, Box2, WaitingButton, Text, Icon} from '../../common-adapters'
 import {globalMargins, styleSheetCreate, isMobile, platformStyles} from '../../styles'
 
 type Props = {
-  onBack: () => void,
-  onChange: (deviceName: string) => void,
-  onSubmit: null | () => void,
-  deviceName: string,
+  onBack: () => void
+  onChange: (deviceName: string) => void
+  onSubmit: () => void | void
+  deviceName: string
   error: string
-};
+}
 
 const SetPublicName = (props: Props) => {
   return (

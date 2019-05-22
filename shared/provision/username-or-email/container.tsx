@@ -3,10 +3,10 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SignupGen from '../../actions/signup-gen'
 import Username from '.'
 import {compose, connect, safeSubmit} from '../../util/container'
-import { RouteProps } from '../../route-tree/render-route';
+import {RouteProps} from '../../route-tree/render-route'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 
-type OwnProps = RouteProps<{}, {}>;
+type OwnProps = RouteProps<{}, {}>
 
 const decodeInlineError = inlineRPCError => {
   let inlineError = ''
@@ -48,6 +48,7 @@ const dispatchToProps = dispatch => ({
 })
 
 export default compose(
+  // @ts-ignore codemode issue
   connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     dispatchToProps,

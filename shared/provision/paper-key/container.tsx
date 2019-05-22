@@ -2,9 +2,9 @@ import * as ProvisionGen from '../../actions/provision-gen'
 import PaperKey from '.'
 import {connect} from '../../util/container'
 import HiddenString from '../../util/hidden-string'
-import { RouteProps } from '../../route-tree/render-route';
+import {RouteProps} from '../../route-tree/render-route'
 
-type OwnProps = RouteProps<{}, {}>;
+type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = state => ({
   error: state.provision.error.stringValue(),
@@ -18,6 +18,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
     dispatch(ProvisionGen.createSubmitPaperkey({paperkey: new HiddenString(paperKey)})),
 })
 
+// @ts-ignore codemode issue
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,

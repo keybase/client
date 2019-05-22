@@ -2,9 +2,9 @@ import * as ProvisionGen from '../../actions/provision-gen'
 import * as LoginGen from '../../actions/login-gen'
 import SelectOtherDevice from '.'
 import {connect, compose, safeSubmitPerMount} from '../../util/container'
-import { RouteProps } from '../../route-tree/render-route';
+import {RouteProps} from '../../route-tree/render-route'
 
-type OwnProps = RouteProps<{}, {}>;
+type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = state => ({
   devices: state.provision.devices,
@@ -28,6 +28,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 })
 
 export default compose(
+  // @ts-ignore codemode issue
   connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,

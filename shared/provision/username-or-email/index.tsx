@@ -2,24 +2,22 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+// @ts-ignore codemode issue
 import Container from '../../login/forms/container'
 import * as Constants from '../../constants/provision'
 
 type Props = {
-  error: string,
-  inlineError: string,
-  inlineSignUpLink: boolean,
-  onBack: () => void,
-  onForgotUsername: () => void,
-  onGoToSignup: () => void,
-  onSubmit: (username: string) => void,
-  submittedUsername: string
-};
-
-const InlineError = (props: {
-  onGoToSignup: () => void | null,
   error: string
-}) => (
+  inlineError: string
+  inlineSignUpLink: boolean
+  onBack: () => void
+  onForgotUsername: () => void
+  onGoToSignup: () => void
+  onSubmit: (username: string) => void
+  submittedUsername: string
+}
+
+const InlineError = (props: {onGoToSignup: () => void | null; error: string}) => (
   <Kb.Box2 direction="vertical" centerChildren={true}>
     <Kb.Text type="BodySmallError" style={styles.error}>
       {props.error}
@@ -31,6 +29,10 @@ const InlineError = (props: {
     )}
   </Kb.Box2>
 )
+
+type State = {
+  username: string
+}
 
 class Username extends React.Component<Props, State> {
   state = {username: ''}

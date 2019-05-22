@@ -2,12 +2,12 @@ import * as ProvisionGen from '../../actions/provision-gen'
 import * as Constants from '../../constants/provision'
 import SetPublicName from '.'
 import {connect, withStateHandlers, compose, safeSubmit} from '../../util/container'
-import { RouteProps } from '../../route-tree/render-route';
+import {RouteProps} from '../../route-tree/render-route'
 
 type OwnProps = {
-  deviceName: string,
+  deviceName: string
   onChange: (text: string) => void
-} & RouteProps<{}, {}>;
+} & RouteProps<{}, {}>
 
 const mapStateToProps = state => ({
   _existingDevices: state.provision.existingDevices,
@@ -39,6 +39,7 @@ export default compose(
       onChange: () => (deviceName: string) => ({deviceName: Constants.cleanDeviceName(deviceName)}),
     }
   ),
+  // @ts-ignore codemode issue
   connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
