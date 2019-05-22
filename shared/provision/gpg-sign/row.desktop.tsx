@@ -1,11 +1,10 @@
 import * as React from 'react'
-import {Icon, Text} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import {globalStyles, globalColors, transition, desktopStyles} from '../../styles'
-import {IconType} from '../../common-adapters'
 
 type Props = {
   onClick: () => void
-  icon: IconType
+  icon: Kb.IconType
   title: string
   subTitle?: string
   style?: Object
@@ -30,7 +29,7 @@ const Row = ({onClick, icon, title, subTitle, children, style}: Props) => {
     <div className="register-row" style={{...stylesRowContainer, ...style}} onClick={onClick}>
       <div style={stylesIconContainer}>
         <div className="register-background" style={stylesIconBackground} />
-        <Icon
+        <Kb.Icon
           className="register-icon"
           type={icon}
           style={stylesIcon}
@@ -39,10 +38,10 @@ const Row = ({onClick, icon, title, subTitle, children, style}: Props) => {
         />
       </div>
       <div>
-        <Text type="Header" style={stylesHeader}>
+        <Kb.Text type="Header" style={stylesHeader}>
           {title}
-        </Text>
-        <Text type="BodySmall">{subTitle}</Text>
+        </Kb.Text>
+        <Kb.Text type="BodySmall">{subTitle}</Kb.Text>
         {children}
       </div>
     </div>
