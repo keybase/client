@@ -9,7 +9,7 @@ import FollowSuggestions from './follow-suggestions'
 import {Props} from '.'
 import AirdropBanner from '../wallets/airdrop/banner/container'
 
-export const itemToComponent: (arg0: Types.PeopleScreenItem, props: Props) => React.ReactNode = (
+export const itemToComponent: (item: Types.PeopleScreenItem, props: Props) => React.ReactNode = (
   item,
   props
 ) => {
