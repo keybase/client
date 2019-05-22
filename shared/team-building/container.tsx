@@ -202,7 +202,7 @@ const deriveOnDownArrowKeyDown = memoize(
   (maxIndex: number, incHighlightIndex: (maxIndex: number) => void) => () => incHighlightIndex(maxIndex)
 )
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
+const mergeProps = <MergedProps extends {}>(stateProps, dispatchProps, ownProps: OwnProps): MergedProps => {
   const {
     teamSoFar,
     searchResults,
@@ -291,8 +291,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 }
 
 const Connected = compose(
-  // @ts-ignore codemode issue
-  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'TeamBuilding'),
+  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'TeamBuilding'),
   isMobile ? HeaderHoc : PopupDialogHoc
 )(TeamBuilding)
 

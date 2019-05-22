@@ -7,7 +7,7 @@ class HiddenString {
     this._value = () => stringValue
   }
 
-  toString = (): string => {
+  toString(): string {
     return '[HiddenString]'
   }
 

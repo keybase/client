@@ -1,6 +1,5 @@
 import {LogLineWithLevelISOTimestamp} from '../logger/types'
 import {isWindows, logFileName} from '../constants/platform.desktop'
-// @ts-ignore codemod-issue
 import fs from 'fs'
 import {mkdirp} from '../util/file.desktop'
 // @ts-ignore codemod-issue
