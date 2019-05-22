@@ -2,18 +2,18 @@ import * as React from 'react'
 
 type GlobalProps = {
   children: React.ElementType | null
-};
+}
 
 type Props = {
-  onKeyDown?: (ev: KeyboardEvent) => void,
-  onKeyPress?: (ev: KeyboardEvent) => void,
+  onKeyDown?: (ev: KeyboardEvent) => void
+  onKeyPress?: (ev: KeyboardEvent) => void
   children: React.ElementType | null
-};
+}
 
 type HandlerProps = {
-  add: (receiver: KeyEventHandler) => void,
+  add: (receiver: KeyEventHandler) => void
   remove: (receiver: KeyEventHandler) => void
-};
+}
 
 const KeyEventContext = React.createContext<HandlerProps>({
   add: () => {},
@@ -49,7 +49,7 @@ class KeyEventHandler extends React.Component<Props & HandlerProps> {
 }
 
 class GlobalKeyEventHandler extends React.Component<GlobalProps> {
-  _stack: Array<KeyEventHandler> = [];
+  _stack: Array<KeyEventHandler> = []
 
   componentDidMount = () => {
     const body = document.body
@@ -105,9 +105,9 @@ class GlobalKeyEventHandler extends React.Component<GlobalProps> {
 }
 
 type EscapeHandlerProps = {
-  onESC: () => void | null,
+  onESC: () => void | null
   children: React.ElementType | null
-};
+}
 
 const handleESC = (onESC: () => void | null, ev: KeyboardEvent) => {
   if (ev.key !== 'Escape') {

@@ -1,4 +1,3 @@
-
 // Add pluralization rules as necessary
 export function pluralize(str: string, count?: number): string {
   return count === 1 ? str : str.endsWith('s') ? str : `${str}s`

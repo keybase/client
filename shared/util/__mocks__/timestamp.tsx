@@ -1,4 +1,3 @@
-
 export function formatTimeForConversationList(time: number, nowOverride?: number | null): string {
   return '[mocked]'
 }

@@ -2,12 +2,12 @@ import {requestIdleCallback} from './idle-callback'
 // Print stats. Useful for perf analysis
 
 export type StatSink = {
-  label: string,
-  totalTime: number,
-  totalActions: number,
-  timings: Array<number>,
+  label: string
+  totalTime: number
+  totalActions: number
+  timings: Array<number>
   startTime: number
-};
+}
 export function startTiming(shouldRun: boolean, statSink: StatSink) {
   if (shouldRun) {
     statSink.startTime = Date.now()

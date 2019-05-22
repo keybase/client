@@ -1,7 +1,9 @@
-
 import pathParse from 'path-parse'
 
-function findAvailableFilename(checkExists: (arg0: string) => Promise<boolean>, filepath: string): Promise<string> {
+function findAvailableFilename(
+  checkExists: (arg0: string) => Promise<boolean>,
+  filepath: string
+): Promise<string> {
   const {name, ext, dir} = pathParse(filepath)
 
   return new Promise((resolve, reject) => {

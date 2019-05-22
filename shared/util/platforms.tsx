@@ -1,5 +1,5 @@
-import { PlatformsExpandedType } from '../constants/types/more';
-import { IconType } from '../common-adapters';
+import {PlatformsExpandedType} from '../constants/types/more'
+import {IconType} from '../common-adapters'
 
 const ProveMessages = {
   btc: 'Set a Bitcoin address',
@@ -39,7 +39,7 @@ export function subtitle(platform: PlatformsExpandedType): string | null {
   }
 }
 
-export type ServiceId = "facebook" | "github" | "hackernews" | "keybase" | "pgp" | "reddit" | "twitter";
+export type ServiceId = 'facebook' | 'github' | 'hackernews' | 'keybase' | 'pgp' | 'reddit' | 'twitter'
 
 export function serviceIdToIcon(service: ServiceId): IconType {
   return {
@@ -67,10 +67,12 @@ export function serviceIdToLogo24(service: ServiceId): IconType {
 
 // a user id in the form of 'foo' if a keybase user
 // or 'foobar@github' if another service
-export type UserId = string;
+export type UserId = string
 
-export function parseUserId(id: UserId): {
-  username: string,
+export function parseUserId(
+  id: UserId
+): {
+  username: string
   serviceId: ServiceId
 } {
   const [username, maybeServiceId] = id.split('@')

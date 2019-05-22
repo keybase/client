@@ -1,9 +1,7 @@
 /* eslint-disable sort-keys */
-export type SMSResult = 0 | 1 | 2 | 3;
+export type SMSResult = 0 | 1 | 2 | 3
 
-export const smsResults: {
-  [K in string]: SMSResult;
-} = {
+export const smsResults: {[K in string]: SMSResult} = {
   CANCELLED: 0,
   SENT: 1,
   FAILED: 2,

@@ -1,4 +1,3 @@
-
 /**
  * The upper part of file uses google-liphonenumber@3.2.2.
  * Uncomment it and remove the lower part when that dependency is added.
@@ -61,7 +60,7 @@ export const countryData = {
 export const validateNumber = (rawNumber: string, region: string) => ({e164: '', valid: false})
 
 export class AsYouTypeFormatter {
-  region: string;
+  region: string
   constructor(region: string) {
     this.region = region
   }

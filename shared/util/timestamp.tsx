@@ -1,4 +1,3 @@
-
 import moment from 'moment'
 
 export function formatTimeForChat(time: number): string | null {
@@ -89,7 +88,8 @@ const calendarFormatsForFS = {
   },
 }
 
-export const formatTimeForFS = (time: number, dontUpperCase: boolean): string => moment(time).calendar(null, calendarFormatsForFS[dontUpperCase ? 'noUpperCaseFirst' : 'upperCaseFirst'])
+export const formatTimeForFS = (time: number, dontUpperCase: boolean): string =>
+  moment(time).calendar(null, calendarFormatsForFS[dontUpperCase ? 'noUpperCaseFirst' : 'upperCaseFirst'])
 
 export const formatDuration = (duration: number): string => {
   if (!duration) {
@@ -99,7 +99,8 @@ export const formatDuration = (duration: number): string => {
   return d.hours() ? `${d.hours()} hr` : d.minutes() ? `${d.minutes()} min` : `${d.seconds()} s`
 }
 
-export const formatDurationFromNowTo = (timeInFuture?: number): string => timeInFuture ? formatDuration(timeInFuture - Date.now()) : ''
+export const formatDurationFromNowTo = (timeInFuture?: number): string =>
+  timeInFuture ? formatDuration(timeInFuture - Date.now()) : ''
 
 export function formatTimeForPopup(time: number): string {
   const m = moment(time)

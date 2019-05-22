@@ -1,4 +1,4 @@
-import { UserList } from '../common-adapters/usernames';
+import {UserList} from '../common-adapters/usernames'
 
 // Parses the folder name and returns an array of usernames
 export function parseFolderNameToUsers(yourUsername: string | null, folderName: string): UserList {
@@ -19,9 +19,7 @@ export function parseFolderNameToUsers(yourUsername: string | null, folderName: 
   return writersParsed.concat(readersParsed).filter(u => !!u.username)
 }
 
-export function folderNameWithoutUsers(folderName: string, users: {
-  [K in string]: boolean;
-}) {
+export function folderNameWithoutUsers(folderName: string, users: {[K in string]: boolean}) {
   const [userList] = splitByFirstOccurrenceOf(folderName, ' ')
   const [writers, readers = undefined] = splitByFirstOccurrenceOf(userList, '#')
 

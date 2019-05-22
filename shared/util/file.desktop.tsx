@@ -4,7 +4,7 @@ import os from 'os'
 import path from 'path'
 import {findAvailableFilename} from './file.shared'
 import {cacheRoot} from '../constants/platform.desktop'
-import { StatResult, WriteStream, Encoding } from './file';
+import {StatResult, WriteStream, Encoding} from './file'
 
 export function tmpDir(): string {
   return cacheRoot
