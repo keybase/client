@@ -6,13 +6,13 @@ import {
 } from '../constants/types/rpc-gen'
 import path from 'path'
 import {parseFolderNameToUsers} from './kbfs'
-import { FSNotification } from '../constants/types/rpc-gen';
-import { TypedState } from '../constants/reducer';
+import {FSNotification} from '../constants/types/rpc-gen'
+import {TypedState} from '../constants/reducer'
 
 type DecodedKBFSError = {
-  title: string,
+  title: string
   body: string
-};
+}
 
 function usernamesForNotification(notification: FSNotification) {
   return parseFolderNameToUsers(null, notification.filename.split(path.sep)[3] || notification.filename).map(
