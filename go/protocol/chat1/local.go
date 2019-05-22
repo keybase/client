@@ -5529,6 +5529,7 @@ type ResolveMaybeMentionArg struct {
 }
 
 type LoadGalleryArg struct {
+	SessionID int            `codec:"sessionID" json:"sessionID"`
 	ConvID    ConversationID `codec:"convID" json:"convID"`
 	Typ       GalleryItemTyp `codec:"typ" json:"typ"`
 	Num       int            `codec:"num" json:"num"`

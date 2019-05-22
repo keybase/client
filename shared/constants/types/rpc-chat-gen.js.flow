@@ -156,6 +156,10 @@ export type MessageTypes = {|
     inParam: $ReadOnly<{|inbox: String|}>,
     outParam: void,
   |},
+  'chat.1.chatUi.chatLoadGalleryHit': {|
+    inParam: $ReadOnly<{|message: UIMessage|}>,
+    outParam: void,
+  |},
   'chat.1.chatUi.chatMaybeMentionUpdate': {|
     inParam: $ReadOnly<{|teamName: String, channel: String, info: UIMaybeMentionInfo|}>,
     outParam: void,
@@ -1441,6 +1445,7 @@ export type IncomingCallMapType = {|
   'chat.1.chatUi.chatCoinFlipStatus'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatCoinFlipStatus'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn,
   'chat.1.chatUi.chatCommandMarkdown'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatCommandMarkdown'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn,
   'chat.1.chatUi.chatMaybeMentionUpdate'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatMaybeMentionUpdate'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn,
+  'chat.1.chatUi.chatLoadGalleryHit'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatLoadGalleryHit'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn,
   'chat.1.NotifyChat.NewChatActivity'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.NewChatActivity'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn,
   'chat.1.NotifyChat.ChatIdentifyUpdate'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatIdentifyUpdate'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn,
   'chat.1.NotifyChat.ChatTLFFinalize'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatTLFFinalize'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn,
@@ -1492,6 +1497,7 @@ export type CustomResponseIncomingCallMap = {|
   'chat.1.chatUi.chatCoinFlipStatus'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatCoinFlipStatus'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatCoinFlipStatus'>, 'outParam'>) => void}) => IncomingReturn,
   'chat.1.chatUi.chatCommandMarkdown'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatCommandMarkdown'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatCommandMarkdown'>, 'outParam'>) => void}) => IncomingReturn,
   'chat.1.chatUi.chatMaybeMentionUpdate'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatMaybeMentionUpdate'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatMaybeMentionUpdate'>, 'outParam'>) => void}) => IncomingReturn,
+  'chat.1.chatUi.chatLoadGalleryHit'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatLoadGalleryHit'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatLoadGalleryHit'>, 'outParam'>) => void}) => IncomingReturn,
 |}
 declare export function localAddTeamMemberAfterResetRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.addTeamMemberAfterReset'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.addTeamMemberAfterReset'>, 'outParam'>>
 declare export function localBulkAddToConvRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.bulkAddToConv'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.bulkAddToConv'>, 'outParam'>>
@@ -1575,6 +1581,7 @@ declare export function localUpdateUnsentTextRpcPromise(params: $PropertyType<$P
 // 'chat.1.chatUi.chatCoinFlipStatus'
 // 'chat.1.chatUi.chatCommandMarkdown'
 // 'chat.1.chatUi.chatMaybeMentionUpdate'
+// 'chat.1.chatUi.chatLoadGalleryHit'
 // 'chat.1.local.getCachedThread'
 // 'chat.1.local.getInboxAndUnboxLocal'
 // 'chat.1.local.postLocal'

@@ -1060,5 +1060,5 @@ protocol local {
     array<RateLimit> rateLimits;
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
-  LoadGalleryRes loadGallery(ConversationID convID, GalleryItemTyp typ, int num, union { null, MessageID } fromMsgID);
+  LoadGalleryRes loadGallery(int sessionID, ConversationID convID, GalleryItemTyp typ, int num, union { null, MessageID } fromMsgID);
 }

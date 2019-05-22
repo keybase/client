@@ -423,4 +423,6 @@ protocol chatUi {
   void chatCommandMarkdown(int sessionID, string convID, union { null, UICommandMarkdown } md);
 
   void chatMaybeMentionUpdate(int sessionID, string teamName, string channel, UIMaybeMentionInfo info);
+
+  void chatLoadGalleryHit(int sessionID, UIMessage message);
 }

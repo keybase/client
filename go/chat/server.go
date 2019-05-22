@@ -53,8 +53,10 @@ type Server struct {
 
 	searchMu            sync.Mutex
 	searchInboxMu       sync.Mutex
+	loadGalleryMu       sync.Mutex
 	searchCancelFn      context.CancelFunc
 	searchInboxCancelFn context.CancelFunc
+	loadGalleryCancelFn context.CancelFunc
 
 	// Only for testing
 	rc                chat1.RemoteInterface
@@ -2875,6 +2877,18 @@ func (h *Server) ResolveMaybeMention(ctx context.Context, mention chat1.MaybeMen
 	return h.G().TeamMentionLoader.LoadTeamMention(ctx, uid, mention, nil, true)
 }
 
+func (h *Server) getLoadGalleryContext(ctx context.Context) context.Context {
+	// enforce a single search happening at a time
+	h.loadGalleryMu.Lock()
+	if h.loadGalleryCancelFn != nil {
+		h.loadGalleryCancelFn()
+		h.loadGalleryCancelFn = nil
+	}
+	ctx, h.loadGalleryCancelFn = context.WithCancel(ctx)
+	h.loadGalleryMu.Unlock()
+	return ctx
+}
+
 func (h *Server) LoadGallery(ctx context.Context, arg chat1.LoadGalleryArg) (res chat1.LoadGalleryRes, err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "LoadGallery")()
@@ -2885,6 +2899,8 @@ func (h *Server) LoadGallery(ctx context.Context, arg chat1.LoadGalleryArg) (res
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	defer h.suspendConvLoader(ctx)()
 
+	ctx = h.getLoadGalleryContext(ctx)
+	chatUI := h.getChatUI(arg.SessionID)
 	convID := arg.ConvID
 	var opts attachments.NextMessageOptions
 	opts.BackInTime = true
@@ -2912,8 +2928,14 @@ func (h *Server) LoadGallery(ctx context.Context, arg chat1.LoadGalleryArg) (res
 		msgID = conv.Conv.ReaderInfo.MaxMsgid
 	}
 
+	hitCh := make(chan chat1.MessageUnboxed)
+	go func(ctx context.Context) {
+		for msg := range hitCh {
+			chatUI.ChatLoadGalleryHit(ctx, utils.PresentMessageUnboxed(ctx, h.G(), msg, uid, convID))
+		}
+	}(ctx)
 	gallery := attachments.NewGallery(h.G())
-	msgs, err := gallery.NextMessages(ctx, uid, convID, msgID, arg.Num, opts)
+	msgs, err := gallery.NextMessages(ctx, uid, convID, msgID, arg.Num, opts, hitCh)
 	if err != nil {
 		return res, err
 	}

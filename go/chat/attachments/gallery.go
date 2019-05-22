@@ -27,7 +27,7 @@ func NewGallery(g *globals.Context) *Gallery {
 	return &Gallery{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Attachments.Gallery", false),
-		NextStride:   10,
+		NextStride:   5,
 		PrevStride:   50,
 	}
 }
@@ -61,7 +61,7 @@ func (g *Gallery) eligibleNextMessage(msg chat1.MessageUnboxed, typMap map[chat1
 
 func (g *Gallery) NextMessage(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msgID chat1.MessageID, opts NextMessageOptions) (res *chat1.MessageUnboxed, err error) {
-	msgs, err := g.NextMessages(ctx, uid, convID, msgID, 1, opts)
+	msgs, err := g.NextMessages(ctx, uid, convID, msgID, 1, opts, nil)
 	if err != nil {
 		return res, err
 	}
@@ -85,7 +85,14 @@ func (g *Gallery) makeMaps(opts NextMessageOptions) (typMap map[chat1.MessageTyp
 }
 
 func (g *Gallery) NextMessages(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, msgID chat1.MessageID, num int, opts NextMessageOptions) (res []chat1.MessageUnboxed, err error) {
+	convID chat1.ConversationID, msgID chat1.MessageID, num int, opts NextMessageOptions,
+	uiCh chan chat1.MessageUnboxed) (res []chat1.MessageUnboxed, err error) {
+	defer g.Trace(ctx, func() error { return err }, "NextMessages")()
+	defer func() {
+		if uiCh != nil {
+			close(uiCh)
+		}
+	}()
 	var reverseFn func(chat1.ThreadView) []chat1.MessageUnboxed
 	var nextPageFn func(*chat1.Pagination) *chat1.Pagination
 	pivot := msgID
@@ -145,6 +152,9 @@ func (g *Gallery) NextMessages(ctx context.Context, uid gregor1.UID,
 				continue
 			}
 			res = append(res, m)
+			if uiCh != nil {
+				uiCh <- m
+			}
 			if len(res) >= num {
 				return res, nil
 			}
