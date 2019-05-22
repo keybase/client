@@ -57,7 +57,7 @@ const stylesRowContainer = {
   minHeight: 100,
   padding: 20,
   transition: 'background 0.1s ease-out',
-}
+} as any
 const stylesHeader = {
   color: globalColors.blue,
 }
@@ -70,7 +70,7 @@ const stylesIconContainer = {
   maxWidth: 80,
   minHeight: 80,
   minWidth: 80,
-  position: 'relative',
+  position: 'relative' as 'relative',
 }
 const stylesIcon = {
   ...transition('transform'),
@@ -88,7 +88,7 @@ const stylesIconBackground = {
   maxWidth: 80,
   minHeight: 80,
   minWidth: 80,
-  position: 'absolute',
+  position: 'absolute' as 'absolute',
   top: 0,
 }
 

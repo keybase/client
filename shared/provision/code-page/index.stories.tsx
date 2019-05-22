@@ -110,7 +110,8 @@ const load = () => {
   s = Sb.storiesOf(`Provision/CodePage2`, module)
     .addDecorator(
       Sb.createPropProviderWithCommon({
-        QRScan: {...QRScanProps, waiting: true as any},
+        // @ts-ignore codemode issue
+        QRScan: {...QRScanProps, waiting: true},
       })
     )
     .add('QR Scan waiting', () => (
