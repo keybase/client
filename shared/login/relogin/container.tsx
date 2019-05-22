@@ -8,7 +8,7 @@ import {connect} from '../../util/container'
 
 type OwnProps = {
   navigateAppend: (...args: Array<any>) => any
-};
+}
 
 const mapStateToProps = state => ({
   _users: state.config.configuredAccounts,
@@ -41,22 +41,22 @@ const mergeProps = (stateProps, dispatchProps) => {
 }
 
 type State = {
-  password: string,
-  showTyping: boolean,
-  selectedUser: string,
+  password: string
+  showTyping: boolean
+  selectedUser: string
   inputKey: number
-};
+}
 
 type Props = {
-  users: Array<string>,
-  onForgotPassword: () => void,
-  onSignup: () => void,
-  onSomeoneElse: () => void,
-  error: string,
-  selectedUser: string,
-  onFeedback: () => void,
+  users: Array<string>
+  onForgotPassword: () => void
+  onSignup: () => void
+  onSomeoneElse: () => void
+  error: string
+  selectedUser: string
+  onFeedback: () => void
   onLogin: (user: string, password: string) => void
-};
+}
 
 class LoginWrapper extends React.Component<Props, State> {
   constructor(props: Props) {
@@ -102,6 +102,7 @@ class LoginWrapper extends React.Component<Props, State> {
   }
 }
 
+// @ts-ignore codemode issue
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,

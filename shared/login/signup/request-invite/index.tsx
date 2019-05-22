@@ -3,16 +3,16 @@ import {Text, Icon} from '../../../common-adapters'
 import {Wrapper, Input, ContinueButton} from '../common'
 
 type Props = {
-  emailError: string,
-  onBack: () => void,
-  onSubmit: (name: string, email: string) => void,
+  emailError: string
+  onBack: () => void
+  onSubmit: (name: string, email: string) => void
   nameError: string
-};
+}
 
 type State = {
-  name: string,
+  name: string
   email: string
-};
+}
 
 class RequestInvite extends React.Component<Props, State> {
   state = {email: '', name: ''}

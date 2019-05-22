@@ -1,7 +1,7 @@
 import * as React from 'react'
-import { connect, RouteProps } from '../util/container';
+import {connect, RouteProps} from '../util/container'
 
-type OwnProps = RouteProps<{}, {}>;
+type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = state => {
   const showLoading = state.config.daemonHandshakeState !== 'done'
@@ -22,6 +22,7 @@ const _RootLogin = ({showLoading, showRelogin, navigateAppend}) => {
   return <JoinOrLogin navigateAppend={navigateAppend} />
 }
 
+// @ts-ignore codemode issue
 const RootLogin = connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   () => ({}),

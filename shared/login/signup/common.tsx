@@ -11,9 +11,9 @@ import {
 import {styleSheetCreate, isMobile, globalMargins, globalColors} from '../../styles'
 
 type Props = {
-  children: React.ElementType,
+  children: React.ReactNode
   onBack: () => void
-};
+}
 
 export const Wrapper = (props: Props) => (
   <Box2 direction="vertical" fullWidth={true} fullHeight={true}>
@@ -37,10 +37,10 @@ export const BlankAvatar = () => (
 export const ContinueButton = ({
   disabled,
   label,
-  onClick
+  onClick,
 }: {
-  disabled?: boolean,
-  label?: string,
+  disabled?: boolean
+  label?: string
   onClick: () => void
 }) => (
   <ButtonBar fullWidth={true} style={styles.buttonBar}>

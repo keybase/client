@@ -2,7 +2,7 @@ import * as SignupGen from '../../../actions/signup-gen'
 import {connect} from '../../../util/container'
 import RequestInvite from '.'
 
-type OwnProps = {};
+type OwnProps = {}
 
 const mapStateToProps = state => ({
   emailError: state.signup.emailError,
@@ -13,6 +13,7 @@ const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(SignupGen.createGoBackAndClearErrors()),
   onSubmit: (email: string, name: string) => dispatch(SignupGen.createRequestInvite({email, name})),
 })
+// @ts-ignore codemode issue
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,

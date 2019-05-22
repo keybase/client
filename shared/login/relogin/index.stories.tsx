@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
-import Login, { Props } from '.';
+import Login, {Props} from '.'
 
 const commonProps: Props = {
   error: '',

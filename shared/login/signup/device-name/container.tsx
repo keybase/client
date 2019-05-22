@@ -2,7 +2,7 @@ import * as SignupGen from '../../../actions/signup-gen'
 import DeviceName from '.'
 import {connect} from '../../../util/container'
 
-type OwnProps = {};
+type OwnProps = {}
 
 const mapStateToProps = state => ({
   devicename: state.signup.devicename,
@@ -14,6 +14,7 @@ const mapDispatchToProps = dispatch => ({
   onSubmit: (devicename: string) => dispatch(SignupGen.createCheckDevicename({devicename})),
 })
 
+// @ts-ignore codemode issue
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,

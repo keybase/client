@@ -2,16 +2,16 @@ import * as React from 'react'
 import {BlankAvatar, Wrapper, Input, ContinueButton} from '../common'
 
 type Props = {
-  password: string,
-  error: string,
-  onBack: () => void,
-  onSubmit: (pass1: string, pass1: string) => void
-};
+  password: string
+  error: string
+  onBack: () => void
+  onSubmit: (pass1: string, pass2: string) => void
+}
 
 type State = {
-  pass1: string,
+  pass1: string
   pass2: string
-};
+}
 
 class Password extends React.Component<Props, State> {
   constructor(props: Props) {

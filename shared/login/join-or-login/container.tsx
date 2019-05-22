@@ -5,7 +5,7 @@ import {connect, isMobile} from '../../util/container'
 
 type OwnProps = {
   navigateAppend: (...args: Array<any>) => any
-};
+}
 
 const mapStateToProps = state => {
   let bannerMessage = null
@@ -19,9 +19,7 @@ const mapStateToProps = state => {
   return {bannerMessage}
 }
 
-const mapDispatchToProps = (dispatch, {
-  navigateAppend
-}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {navigateAppend}: OwnProps) => ({
   _onFeedback: () => dispatch(navigateAppend(['feedback'])),
   onLogin: () => dispatch(ProvisionGen.createStartProvision()),
   onSignup: () => dispatch(SignupGen.createRequestAutoInvite()),
@@ -34,6 +32,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   onSignup: dispatchProps.onSignup,
 })
 
+// @ts-ignore codemode issue
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,

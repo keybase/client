@@ -2,12 +2,11 @@ import * as React from 'react'
 import * as Constants from '../../constants/login'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-
-import { Props } from '.';
+import {Props} from '.'
 
 type State = {
   open: boolean
-};
+}
 
 const ItemBox = Styles.styled(Kb.Box)({
   ...Styles.globalStyles.flexBoxCenter,
@@ -39,7 +38,7 @@ class Login extends React.Component<Props, State> {
     this.setState(prevState => ({open: !prevState.open}))
   }
 
-  _onClickUser = (selected: React.Element<typeof UserRow>) => {
+  _onClickUser = (selected: React.ReactElement) => {
     if (selected.props.user === other) {
       this._toggleOpen()
       this.props.onSomeoneElse()

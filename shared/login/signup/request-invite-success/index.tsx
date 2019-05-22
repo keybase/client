@@ -4,7 +4,7 @@ import {Wrapper} from '../common'
 
 type Props = {
   onBack: () => void
-};
+}
 
 const RequestInviteSuccess = (props: Props) => (
   <Wrapper onBack={props.onBack}>

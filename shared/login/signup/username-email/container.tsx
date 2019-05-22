@@ -2,7 +2,7 @@ import * as SignupGen from '../../../actions/signup-gen'
 import {connect} from '../../../util/container'
 import UsernameEmail from '.'
 
-type OwnProps = {};
+type OwnProps = {}
 
 const mapStateToProps = state => ({
   email: state.signup.email,
@@ -17,6 +17,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(SignupGen.createCheckUsernameEmail({email, username})),
 })
 
+// @ts-ignore codemode issue
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,

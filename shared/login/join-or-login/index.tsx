@@ -3,11 +3,11 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
 type Props = {
-  bannerMessage: string | null,
-  onFeedback: () => void | null,
-  onLogin: () => void,
+  bannerMessage: string | null
+  onFeedback: () => void | null
+  onLogin: () => void
   onSignup: () => void
-};
+}
 
 const Feedback = ({onFeedback}) =>
   onFeedback ? (

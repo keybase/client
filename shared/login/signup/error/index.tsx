@@ -3,9 +3,9 @@ import {Text} from '../../../common-adapters'
 import {Wrapper, ContinueButton} from '../common'
 
 type Props = {
-  error: string,
+  error: string
   onBack: () => void
-};
+}
 
 const Error = (props: Props) => (
   <Wrapper onBack={() => {}}>

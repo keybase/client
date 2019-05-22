@@ -3,15 +3,15 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
 type Props = Kb.PropsWithTimer<{
-  failed: string,
-  status: string,
-  onRetry: () => void | null,
+  failed: string
+  status: string
+  onRetry: () => void | null
   onFeedback: () => void | null
-}>;
+}>
 
 type State = {
   showFeedback: boolean
-};
+}
 
 const Feedback = ({onFeedback}) =>
   onFeedback ? (

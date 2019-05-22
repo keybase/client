@@ -3,18 +3,18 @@ import {maxUsernameLength} from '../../../constants/signup'
 import {Wrapper, Input, BlankAvatar, ContinueButton} from '../common'
 
 type Props = {
-  email: string,
-  emailError: string,
-  onBack: () => void,
-  onSubmit: (username: string, email: string) => void,
-  username: string,
+  email: string
+  emailError: string
+  onBack: () => void
+  onSubmit: (username: string, email: string) => void
+  username: string
   usernameError: string
-};
+}
 
 type State = {
-  username: string,
+  username: string
   email: string
-};
+}
 
 class UsernameAndEmail extends React.Component<Props, State> {
   constructor(props: Props) {

@@ -12,14 +12,14 @@ import {borderRadius, globalStyles, globalColors} from '../../styles'
 import {isIOS} from '../../constants/platform'
 
 type Props = {
-  type: "Username" | "General",
-  options: Array<string>,
-  onClick: (option: string, index: number) => void,
-  onPress?: void,
-  onOther?: () => void,
-  value?: string | null,
+  type: 'Username' | 'General'
+  options: Array<string>
+  onClick: (option: string, index: number) => void
+  onPress?: void
+  onOther?: () => void
+  value?: string | null
   style?: Object
-};
+}
 
 /*
  * A dropdown on iOS and Android.
@@ -33,13 +33,13 @@ const otherItemValue = 'otherItemValue'
 const pickItemValue = 'pickItemValue'
 
 type State = {
-  modalVisible: boolean,
+  modalVisible: boolean
   value: string | null
-};
+}
 
 class Dropdown extends React.Component<Props, State> {
-  state: State;
-  showingPick: boolean;
+  state: State
+  showingPick: boolean
 
   constructor(props: Props) {
     super(props)
@@ -85,11 +85,11 @@ class Dropdown extends React.Component<Props, State> {
     }
   }
 
-  _itemStyle function(): Object {
+  _itemStyle() {
     return this.props.type === 'Username' ? {color: globalColors.orange} : {}
   }
 
-  _label function(value: string | null): string {
+  _label(value: string | null): string {
     if (!value) {
       return ''
     }
@@ -102,7 +102,7 @@ class Dropdown extends React.Component<Props, State> {
     )
   }
 
-  _renderLabelAndCaret function(): Array<React.ElementType> {
+  _renderLabelAndCaret() {
     return [
       <Text center={true} key="text" type="Header" style={{...styleText, ...this._itemStyle()}}>
         {this._label(this.state.value)}
@@ -111,7 +111,7 @@ class Dropdown extends React.Component<Props, State> {
     ]
   }
 
-  _renderPicker function(style: Object, selectOnChange: boolean): React.ElementType {
+  _renderPicker(style: Object, selectOnChange: boolean) {
     const pickItem = this.showingPick
       ? [{key: pickItemValue, label: this._label(pickItemValue), value: pickItemValue}]
       : []
@@ -142,7 +142,7 @@ class Dropdown extends React.Component<Props, State> {
     )
   }
 
-  _renderAndroid function(): React.ElementType {
+  _renderAndroid() {
     // MM: This is super tricky. _renderPicker is an invisible box that, when clicked, opens
     // the native picker. We need to make sure it's the last thing drawn so it lies on top of
     // everything else.
@@ -155,7 +155,7 @@ class Dropdown extends React.Component<Props, State> {
     )
   }
 
-  _renderIOS function(): React.ElementType {
+  _renderIOS() {
     return (
       <NativeTouchableWithoutFeedback onPress={() => this._showModal(true)}>
         <Box style={{...styleContainer, ...this.props.style}}>
@@ -178,7 +178,7 @@ class Dropdown extends React.Component<Props, State> {
     )
   }
 
-  render function(): React.ElementType {
+  render() {
     return isIOS ? this._renderIOS() : this._renderAndroid()
   }
 }

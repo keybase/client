@@ -4,20 +4,20 @@ import * as Styles from '../../../styles'
 import {Wrapper, Input, ContinueButton} from '../common'
 
 type Props = {
-  onBack: () => void,
-  onSubmit: (code: string) => void,
-  onRequestInvite: () => void,
+  onBack: () => void
+  onSubmit: (code: string) => void
+  onRequestInvite: () => void
   error: string
-};
+}
 
 type State = {
-  inviteCode: string,
+  inviteCode: string
   loading: boolean
-};
+}
 
 class InviteCode extends React.Component<Props, State> {
   state = {inviteCode: '', loading: !__STORYSHOT__}
-  _loadingID: number | null;
+  _loadingID: NodeJS.Timeout
   _doneLoading = () => this.setState({loading: false})
 
   componentDidMount() {

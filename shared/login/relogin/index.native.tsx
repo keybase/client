@@ -2,11 +2,11 @@ import * as Constants from '../../constants/login'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as Styles from '../../styles'
 import Dropdown from './dropdown.native'
-import React, {Component} from 'react'
+import * as React from 'react'
 import {isDeviceSecureAndroid, isAndroidNewerThanM, isAndroid} from '../../constants/platform.native'
-import { Props } from '.';
+import {Props} from '.'
 
-class LoginRender extends Component<Props> {
+class LoginRender extends React.Component<Props> {
   _inputRef = React.createRef<Kb.Input>()
 
   _focusInput = () => {

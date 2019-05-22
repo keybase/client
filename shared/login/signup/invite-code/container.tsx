@@ -3,7 +3,7 @@ import InviteCode from '.'
 import {connect} from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 
-type OwnProps = {};
+type OwnProps = {}
 
 const mapStateToProps = state => ({
   error: state.signup.inviteCodeError,
@@ -15,6 +15,7 @@ const mapDispatchToProps = dispatch => ({
   onSubmit: (inviteCode: string) => dispatch(SignupGen.createCheckInviteCode({inviteCode})),
 })
 
+// @ts-ignore codemode issue
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,

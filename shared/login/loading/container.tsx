@@ -5,7 +5,7 @@ import {connect, isMobile} from '../../util/container'
 
 type OwnProps = {
   navigateAppend: (...args: Array<any>) => any
-};
+}
 
 const mapStateToProps = state => ({
   _failedReason: state.config.daemonHandshakeFailedReason,
@@ -40,6 +40,7 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
+// @ts-ignore codemode issue
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,

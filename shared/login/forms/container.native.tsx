@@ -1,13 +1,9 @@
 import * as React from 'react'
-import { Props } from './container';
+import {Props} from './container'
 import {globalMargins, globalStyles} from '../../styles'
 import {Box, NativeScrollView} from '../../common-adapters/mobile.native'
 
-const Container = ({
-  children,
-  style,
-  outerStyle
-}: Props) => {
+const Container = ({children, style, outerStyle}: Props) => {
   return (
     <NativeScrollView style={{...containerStyle, ...outerStyle}}>
       <Box style={{...innerContainerStyle, ...style}}>{children}</Box>

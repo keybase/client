@@ -3,15 +3,15 @@ import {Text, Icon} from '../../../common-adapters'
 import {Wrapper, Input, ContinueButton} from '../common'
 
 type Props = {
-  error: string,
-  onBack: () => void,
-  onSubmit: (devicename: string) => void,
+  error: string
+  onBack: () => void
+  onSubmit: (devicename: string) => void
   devicename: string
-};
+}
 
 type State = {
   devicename: string
-};
+}
 
 class Devicename extends React.Component<Props, State> {
   state = {devicename: this.props.devicename}
