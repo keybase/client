@@ -10,14 +10,14 @@ import {resetClient, createClient, rpcLog} from './index.platform'
 import {createBatchChangeWaiting} from '../actions/waiting-gen'
 import engineSaga from './saga'
 import {throttle} from 'lodash-es'
-import { CancelHandlerType } from './session';
-import { createClientType } from './index.platform';
-import { CustomResponseIncomingCallMapType, IncomingCallMapType } from '.';
-import { SessionID, SessionIDKey, WaitingHandlerType, MethodKey } from './types';
-import { TypedState, Dispatch } from '../util/container';
-import { RPCError } from '../util/errors';
+import {CancelHandlerType} from './session'
+import {createClientType} from './index.platform'
+import {CustomResponseIncomingCallMapType, IncomingCallMapType} from '.'
+import {SessionID, SessionIDKey, WaitingHandlerType, MethodKey} from './types'
+import {TypedState, Dispatch} from '../util/container'
+import {RPCError} from '../util/errors'
 
-type WaitingKey = string | Array<string>;
+type WaitingKey = string | Array<string>
 
 function capitalize(s) {
   return s.charAt(0).toUpperCase() + s.slice(1)
@@ -25,29 +25,23 @@ function capitalize(s) {
 
 class Engine {
   // Bookkeep old sessions
-  _deadSessionsMap: {
-    [K in SessionIDKey]: true;
-  } = {};
+  _deadSessionsMap: {[K in SessionIDKey]: true} = {}
   // Tracking outstanding sessions
-  _sessionsMap: {
-    [K in SessionIDKey]: Session;
-  } = {};
+  _sessionsMap: {[K in SessionIDKey]: Session} = {}
   // Helper we delegate actual calls to
-  _rpcClient: createClientType;
+  _rpcClient: createClientType
   // Set which actions we don't auto respond with so sagas can themselves
-  _customResponseAction: {
-    [K in MethodKey]: true;
-  } = {};
+  _customResponseAction: {[K in MethodKey]: true} = {}
   // We generate sessionIDs monotonically
-  _nextSessionID: number = 123;
+  _nextSessionID: number = 123
   // We call onDisconnect handlers only if we've actually disconnected (ie connected once)
-  _hasConnected: boolean = isMobile; // mobile is always connected
+  _hasConnected: boolean = isMobile // mobile is always connected
   // App tells us when the sagas are done loading so we can start emitting events
-  _sagasAreReady: boolean = false;
+  _sagasAreReady: boolean = false
   // So we can dispatch actions
-  static _dispatch: Dispatch;
+  static _dispatch: Dispatch
   // Temporary helper for incoming call maps
-  static _getState: () => TypedState;
+  static _getState: () => TypedState
 
   _queuedChanges = []
   dispatchWaitingAction = (key: WaitingKey, waiting: boolean, error: RPCError) => {
@@ -136,7 +130,7 @@ class Engine {
   }
 
   // Create and return the next unique session id
-  _generateSessionID function(): number {
+  _generateSessionID() {
     this._nextSessionID++
     return this._nextSessionID
   }
@@ -166,11 +160,7 @@ class Engine {
   }
 
   // An incoming rpc call
-  _rpcIncoming(payload: {
-    method: MethodKey,
-    param: Array<Object>,
-    response: Object | null
-  }) {
+  _rpcIncoming(payload: {method: MethodKey; param: Array<Object>; response: Object | null}) {
     const {method, param: incomingParam, response} = payload
     const param = incomingParam && incomingParam.length ? incomingParam[0] : {}
     const {seqid, cancelled} = response || {cancelled: false, seqid: 0}
@@ -204,11 +194,11 @@ class Engine {
 
   // An outgoing call. ONLY called by the flow-type rpc helpers
   _rpcOutgoing(p: {
-    method: string,
-    params: Object,
-    callback: (...args: Array<any>) => void,
-    incomingCallMap?: any,
-    customResponseIncomingCallMap?: any,
+    method: string
+    params: Object
+    callback: (...args: Array<any>) => void
+    incomingCallMap?: any
+    customResponseIncomingCallMap?: any
     waitingKey?: WaitingKey
   }) {
     // Make a new session and start the request
@@ -225,15 +215,13 @@ class Engine {
   }
 
   // Make a new session. If the session hangs around forever set dangling to true
-  createSession function(
-    p: {
-      incomingCallMap?: IncomingCallMapType | null,
-      customResponseIncomingCallMap?: CustomResponseIncomingCallMapType | null,
-      cancelHandler?: CancelHandlerType,
-      dangling?: boolean,
-      waitingKey?: WaitingKey
-    }
-  ): Session {
+  createSession(p: {
+    incomingCallMap?: IncomingCallMapType | null
+    customResponseIncomingCallMap?: CustomResponseIncomingCallMapType | null
+    cancelHandler?: CancelHandlerType
+    dangling?: boolean
+    waitingKey?: WaitingKey
+  }): Session {
     const {customResponseIncomingCallMap, incomingCallMap, cancelHandler, dangling = false, waitingKey} = p
     const sessionID = this._generateSessionID()
 
@@ -309,12 +297,8 @@ class Engine {
 
 // Dummy engine for snapshotting
 class FakeEngine {
-  _deadSessionsMap: {
-    [K in SessionIDKey]: Session;
-  }; // just to bookkeep
-  _sessionsMap: {
-    [K in SessionIDKey]: Session;
-  };
+  _deadSessionsMap: {[K in SessionIDKey]: Session} // just to bookkeep
+  _sessionsMap: {[K in SessionIDKey]: Session}
   constructor() {
     logger.info('Engine disabled!')
     this._sessionsMap = {}
@@ -328,8 +312,8 @@ class FakeEngine {
     method: MethodKey,
     actionCreator: (
       arg0: {
-        param: Object,
-        response: Object | null,
+        param: Object
+        response: Object | null
         state: any
       }
     ) => any | null
@@ -347,13 +331,13 @@ class FakeEngine {
       sessionID: 0,
     })
   }
-  _channelMapRpcHelper function(configKeys: Array<string>, method: string, params: any): any {
+  _channelMapRpcHelper(configKeys: Array<string>, method: string, params: any) {
     return null
   }
   _rpcOutgoing(
     method: string,
     params: {
-      incomingCallMap?: any,
+      incomingCallMap?: any
       waitingHandler?: WaitingHandlerType
     } | null,
     callback: (...args: Array<any>) => void
@@ -370,7 +354,7 @@ const makeEngine = (dispatch: Dispatch, getState: () => TypedState) => {
   if (!engine) {
     engine = process.env.KEYBASE_NO_ENGINE || isTesting ? new FakeEngine() : new Engine(dispatch, getState)
     global._engine = engine
-    initEngine((engine as any))
+    initEngine(engine as any)
     initEngineSaga(engineSaga)
   }
   return engine
