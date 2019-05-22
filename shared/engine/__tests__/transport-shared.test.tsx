@@ -1,13 +1,12 @@
-// @flow
 /* eslint-env jest */
 import {TransportShared} from '../transport-shared'
-import {type SendArg} from '../index.platform'
+import { SendArg } from '../index.platform';
 
 describe('TransportShared', () => {
   // Extend TransportShared to fake out some methods.
   class FakeTransportShared extends TransportShared {
-    connected: boolean
-    lastMessage: ?SendArg
+    connected: boolean;
+    lastMessage: SendArg | null;
 
     constructor() {
       super({}, () => {}, () => {}, () => {})

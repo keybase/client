@@ -1,21 +1,20 @@
-// @flow
 // Incoming and outgoing requests that are in a session
-import type {MethodKey, ResponseType} from './types'
-import type {invokeType} from './index.platform'
-import type {RPCError} from '../util/errors'
+import { MethodKey, ResponseType } from './types';
+import { invokeType } from './index.platform';
+import { RPCError } from '../util/errors';
 
-type SimpleWaiting = (waiting: boolean, err: ?RPCError) => void
+type SimpleWaiting = (waiting: boolean, err: RPCError | null) => void;
 
 // Base class. Handles method and parameters. Waiting callback
 class Request {
   // RPC call name
-  method: MethodKey
+  method: MethodKey;
   // RPC parameters
-  param: Object
+  param: Object;
   // Let others know our waiting state
-  _waitingHandler: SimpleWaiting
+  _waitingHandler: SimpleWaiting;
   // If we're waiting for a response
-  _waiting: boolean = false
+  _waiting: boolean = false;
 
   constructor(method: MethodKey, param: Object, waitingHandler: SimpleWaiting) {
     this.method = method
@@ -23,7 +22,7 @@ class Request {
     this._waitingHandler = waitingHandler
   }
 
-  updateWaiting(waiting: boolean, err: ?RPCError): void {
+  updateWaiting function(waiting: boolean, err: RPCError | null): void {
     this._waiting = waiting
     this._waitingHandler(waiting, err)
   }
@@ -31,13 +30,13 @@ class Request {
 
 class IncomingRequest extends Request {
   // Callback in the incomingCallMap
-  _handler: (param: ?Object, request: ResponseType) => void
-  _response: ?ResponseType
+  _handler: (param: Object | null, request: ResponseType) => void;
+  _response: ResponseType | null;
 
   constructor(
     method: MethodKey,
     param: Object,
-    response: ?ResponseType,
+    response: ResponseType | null,
     waitingHandler: SimpleWaiting,
     handler: Function
   ) {
@@ -71,9 +70,9 @@ class IncomingRequest extends Request {
 
 class OutgoingRequest extends Request {
   // Callback when we've gotten a response
-  _callback: (err: any, data: any) => void
+  _callback: (err: any, data: any) => void;
   // How we make calls
-  _invoke: invokeType
+  _invoke: invokeType;
 
   constructor(
     method: MethodKey,
@@ -87,12 +86,12 @@ class OutgoingRequest extends Request {
     this._callback = callback
   }
 
-  send(): void {
+  send function(): void {
     this.updateWaiting(true)
     this._invoke(this.method, [this.param], (err, data) => this._sendCallback(err, data))
   }
 
-  _sendCallback(err: any, data: any): void {
+  _sendCallback function(err: any, data: any): void {
     this.updateWaiting(false, err)
     this._callback && this._callback(err, data)
   }

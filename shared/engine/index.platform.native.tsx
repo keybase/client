@@ -1,26 +1,25 @@
-// @flow
 import {NativeModules, NativeEventEmitter} from 'react-native'
 import logger from '../logger'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
-import {type SendArg} from './index.platform'
+import { SendArg } from './index.platform';
 import {pack} from 'purepack'
 import {toByteArray, fromByteArray} from 'base64-js'
 import toBuffer from 'typedarray-to-buffer'
 import {printRPCBytes} from '../local-debug'
 import {measureStart, measureStop} from '../util/user-timings'
 
-import type {createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
+import { createClientType, incomingRPCCallbackType, connectDisconnectCB } from './index.platform';
 
 const nativeBridge: {
-  runWithData: string => void,
+  runWithData: (arg0: string) => void,
   eventName: string,
   metaEventName: string,
   metaEventEngineReset: string,
   start: () => void,
-  reset: () => void,
+  reset: () => void
 } = NativeModules.KeybaseEngine
 const RNEmitter: {
-  addListener: (string, (string) => void) => void,
+  addListener: (arg0: string, arg0: (arg0: string) => void) => void
 } = new NativeEventEmitter(nativeBridge)
 
 class NativeTransport extends TransportShared {

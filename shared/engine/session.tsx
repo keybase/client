@@ -1,7 +1,6 @@
-// @flow
-import type {SessionID, EndHandlerType, MethodKey} from './types'
-import type {CustomResponseIncomingCallMap, IncomingCallMapType} from '../constants/types/rpc-gen'
-import type {invokeType} from './index.platform'
+import { SessionID, EndHandlerType, MethodKey } from './types';
+import { CustomResponseIncomingCallMap, IncomingCallMapType } from '../constants/types/rpc-gen';
+import { invokeType } from './index.platform';
 import {IncomingRequest, OutgoingRequest} from './request'
 import {constantsStatusCode} from '../constants/types/rpc-gen'
 import {rpcLog} from './index.platform'
@@ -10,48 +9,50 @@ import {measureStart, measureStop} from '../util/user-timings'
 import {getEngine} from './require'
 import {isArray} from 'lodash-es'
 
-type WaitingKey = string | Array<string>
+type WaitingKey = string | Array<string>;
 
 // A session is a series of calls back and forth tied together with a single sessionID
 class Session {
   // Our id
-  _id: SessionID
+  _id: SessionID;
   // Map of methods => callbacks
-  _incomingCallMap: IncomingCallMapType | {}
+  _incomingCallMap: IncomingCallMapType | {};
   // Map of methods => callbacks
-  _customResponseIncomingCallMap: CustomResponseIncomingCallMap | {}
+  _customResponseIncomingCallMap: CustomResponseIncomingCallMap | {};
   // Let the outside know we're waiting
-  _waitingKey: WaitingKey
+  _waitingKey: WaitingKey;
   // Tell engine we're done
-  _endHandler: ?EndHandlerType
+  _endHandler: EndHandlerType | null;
   // Sequence IDs we've seen. Value is true if we've responded (often we get cancel after we've replied)
-  _seqIDResponded: {[key: string]: boolean} = {}
+  _seqIDResponded: {
+    [K in string]: boolean;
+  } = {};
   // If you want to know about being cancelled
   // eslint-disable-next-line no-use-before-define
-  _cancelHandler: ?CancelHandlerType
+  _cancelHandler: CancelHandlerType | null;
   // If true this session exists forever
-  _dangling: boolean
+  _dangling: boolean;
   // Name of the start method, just to help debug
-  _startMethod: ?MethodKey
+  _startMethod: MethodKey | null;
   // Start callback so we can cancel our own callback
-  _startCallback: ?(err: RPCError, ...args: Array<any>) => void
+  _startCallback: (err: RPCError, ...args: Array<any>) => void | null;
 
   // Allow us to make calls
-  _invoke: invokeType
+  _invoke: invokeType;
 
   // Outstanding requests
-  _outgoingRequests: Array<Object> = []
-  _incomingRequests: Array<Object> = []
+  _outgoingRequests: Array<Object> = [];
+  _incomingRequests: Array<Object> = [];
 
   constructor(p: {
     sessionID: SessionID,
-    incomingCallMap: ?IncomingCallMapType,
-    customResponseIncomingCallMap: ?CustomResponseIncomingCallMap,
+    incomingCallMap: IncomingCallMapType | null,
+    customResponseIncomingCallMap: CustomResponseIncomingCallMap | null,
     waitingKey?: WaitingKey,
     invoke: invokeType,
     endHandler: EndHandlerType,
-    cancelHandler?: ?CancelHandlerType,
-    dangling?: boolean,
+    cancelHandler?: CancelHandlerType | null,
+    dangling?: boolean
   }) {
     this._id = p.sessionID
     this._incomingCallMap = p.incomingCallMap || {}
@@ -66,16 +67,16 @@ class Session {
   setId(sessionID: SessionID) {
     throw new Error("Can't set sessionID")
   }
-  getId(): SessionID {
+  getId function(): SessionID {
     return this._id
   }
-  getDangling(): boolean {
+  getDangling function(): boolean {
     return this._dangling
   }
 
   // Make a waiting handler for the request. We add additional data before calling the parent waitingHandler
   // and do internal bookkeeping if the request is done
-  _makeWaitingHandler(isOutgoing: boolean, method: MethodKey, seqid: ?number) {
+  _makeWaitingHandler(isOutgoing: boolean, method: MethodKey, seqid: number | null) {
     return (waiting: boolean, err: any) => {
       rpcLog({
         extra: {
@@ -105,7 +106,7 @@ class Session {
           requests.splice(idx, 1)
         }
       }
-    }
+    };
   }
 
   cancel() {
@@ -126,7 +127,7 @@ class Session {
   }
 
   // Start the session normally. Tells engine we're done at the end
-  start(method: MethodKey, param: Object, callback: ?() => void) {
+  start(method: MethodKey, param: Object, callback: () => void | null) {
     this._startMethod = method
     this._startCallback = callback
 
@@ -164,7 +165,7 @@ class Session {
   }
 
   // We have an incoming call tied to a sessionID, called only by engine
-  incomingCall(method: MethodKey, param: Object, response: ?Object): boolean {
+  incomingCall function(method: MethodKey, param: Object, response: Object | null): boolean {
     measureStart(`engine:${method}:${this.getId()}`)
     rpcLog({
       extra: {
@@ -215,5 +216,5 @@ class Session {
   }
 }
 
-export type CancelHandlerType = (session: Session) => void
+export type CancelHandlerType = (session: Session) => void;
 export default Session
