@@ -57,8 +57,11 @@ const load = () => {
 
   let s = Sb.storiesOf(`Provision/CodePage2`, module).addDecorator(
     Sb.createPropProviderWithCommon({
+      // @ts-ignore codemode issue
       QRScan: QRScanProps,
+      // @ts-ignore codemode issue
       QRScanNotAuthorized: {
+        // @ts-ignore codemode issue
         onOpenSettings: Sb.action('onOpenSettings'),
       },
     })
@@ -86,7 +89,7 @@ const load = () => {
     tabs.forEach(
       tab =>
         (s = s.add(`${storyName} (tab: ${tab || 'defaultTab'})`, () => (
-          <CodePage2 {...derivedProps(provisioned, current, otherName, otherType)} tabOverride={tab} />
+          <CodePage2 {...derivedProps(provisioned, current, otherName, otherType)} tabOverride={tab as any} />
         )))
     )
   })
@@ -107,7 +110,7 @@ const load = () => {
   s = Sb.storiesOf(`Provision/CodePage2`, module)
     .addDecorator(
       Sb.createPropProviderWithCommon({
-        QRScan: {...QRScanProps, waiting: true},
+        QRScan: {...QRScanProps, waiting: true as any},
       })
     )
     .add('QR Scan waiting', () => (

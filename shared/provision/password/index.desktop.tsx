@@ -1,12 +1,12 @@
 // TODO remove Container
+// @ts-ignore codemode issue
 import Container from '../../login/forms/container'
-import React, {Component} from 'react'
+import * as React from 'react'
 import {Text, Input, Button, UserCard} from '../../common-adapters'
 import {globalColors} from '../../styles'
+import {Props} from '.'
 
-import { Props } from '.';
-
-class Password extends Component<Props> {
+class Password extends React.Component<Props> {
   render() {
     return (
       <Container

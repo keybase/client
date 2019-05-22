@@ -10,25 +10,25 @@ import {isAndroid} from '../../constants/platform'
 const blueBackground = require('../../images/illustrations/bg-provisioning-blue.png')
 const greenBackground = require('../../images/illustrations/bg-provisioning-green.png')
 
-export type DeviceType = "mobile" | "desktop";
-export type Tab = "QR" | "enterText" | "viewText";
+export type DeviceType = 'mobile' | 'desktop'
+export type Tab = 'QR' | 'enterText' | 'viewText'
 
 type Props = {
-  error: string,
-  currentDeviceAlreadyProvisioned: boolean,
-  currentDeviceType: DeviceType,
-  currentDeviceName: string,
-  otherDeviceName: string,
-  otherDeviceType: DeviceType,
-  tabOverride?: Tab | null,
-  textCode: string,
-  onBack: () => void,
+  error: string
+  currentDeviceAlreadyProvisioned: boolean
+  currentDeviceType: DeviceType
+  currentDeviceName: string
+  otherDeviceName: string
+  otherDeviceType: DeviceType
+  tabOverride?: Tab | null
+  textCode: string
+  onBack: () => void
   onSubmitTextCode: (arg0: string) => void
-};
+}
 
 type State = {
   tab: Tab
-};
+}
 
 class CodePage2 extends React.Component<Props, State> {
   constructor(props: Props) {
@@ -146,9 +146,7 @@ class CodePage2 extends React.Component<Props, State> {
   }
 }
 
-const ErrorBanner = (props: {
-  error: string
-}) => (
+const ErrorBanner = (props: {error: string}) => (
   <Kb.Box2 direction="vertical" style={styles.errorContainer}>
     <Kb.Text center={true} type="Body" style={styles.errorText}>
       {props.error}
@@ -158,10 +156,12 @@ const ErrorBanner = (props: {
 
 const textType = Styles.isMobile ? 'BodyBig' : 'Header'
 
-const SwitchTab = (props: {
-  selected: Tab,
-  onSelect: (tab: Tab) => void
-} & Props) => {
+const SwitchTab = (
+  props: {
+    selected: Tab
+    onSelect: (tab: Tab) => void
+  } & Props
+) => {
   if (props.currentDeviceType === 'desktop' && props.otherDeviceType === 'desktop') {
     return <Kb.Box2 direction="horizontal" />
   }
@@ -216,9 +216,12 @@ const Qr = (props: Props) =>
     </Kb.Box2>
   )
 
-class EnterText extends React.Component<Props, {
-  code: string
-}> {
+class EnterText extends React.Component<
+  Props,
+  {
+    code: string
+  }
+> {
   state = {code: ''}
 
   _submit = () => {

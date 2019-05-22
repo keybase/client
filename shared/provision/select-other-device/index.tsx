@@ -5,11 +5,11 @@ import {ListItem2, Box2, List, Text, Icon} from '../../common-adapters'
 import {globalMargins, styleSheetCreate, platformStyles, isMobile} from '../../styles'
 
 type Props = {
-  devices: Array<Types.Device>,
-  onSelect: (name: string) => void,
-  onResetAccount: () => void,
+  devices: Array<Types.Device>
+  onSelect: (name: string) => void
+  onResetAccount: () => void
   onBack: () => void
-};
+}
 
 class SelectOtherDevice extends React.Component<Props> {
   _renderItem = (index, item) => {

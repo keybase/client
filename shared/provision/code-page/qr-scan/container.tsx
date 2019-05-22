@@ -6,7 +6,7 @@ import CodePage2 from '.'
 import {withProps, compose, withStateHandlers, namedConnect, safeSubmit} from '../../../util/container'
 import HiddenString from '../../../util/hidden-string'
 
-type OwnProps = {};
+type OwnProps = {}
 
 const mapStateToProps = state => ({
   error: state.provision.error.stringValue(),

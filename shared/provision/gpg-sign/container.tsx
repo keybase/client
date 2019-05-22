@@ -1,9 +1,9 @@
 import * as ProvisionGen from '../../actions/provision-gen'
 import {connect} from '../../util/container'
-import { RouteProps } from '../../route-tree/render-route';
+import {RouteProps} from '../../route-tree/render-route'
 import GPGSign from '.'
 
-type OwnProps = RouteProps<{}, {}>;
+type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = state => ({
   importError: state.provision.gpgImportError,
@@ -31,7 +31,7 @@ const mergeProps = ({importError}, dispatchProps) =>
         onSubmit: dispatchProps.onSubmitGpgMethod,
       }
 
-  // @ts-ignore codemode issue
+// @ts-ignore codemode issue
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,

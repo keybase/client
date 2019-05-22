@@ -1,16 +1,16 @@
 import * as React from 'react'
 import {Icon, Text} from '../../common-adapters'
 import {globalStyles, globalColors, transition, desktopStyles} from '../../styles'
-import { IconType } from '../../common-adapters';
+import {IconType} from '../../common-adapters'
 
 type Props = {
-  onClick: () => void,
-  icon: IconType,
-  title: string,
-  subTitle?: string,
-  style?: Object,
+  onClick: () => void
+  icon: IconType
+  title: string
+  subTitle?: string
+  style?: Object
   children?: any
-};
+}
 
 const realCSS = `
   .register-row { background-color: ${globalColors.white}; }
@@ -25,14 +25,7 @@ const realCSS = `
 
 const RowCSS = () => <style>{realCSS}</style>
 
-const Row = ({
-  onClick,
-  icon,
-  title,
-  subTitle,
-  children,
-  style
-}: Props) => {
+const Row = ({onClick, icon, title, subTitle, children, style}: Props) => {
   return (
     <div className="register-row" style={{...stylesRowContainer, ...style}} onClick={onClick}>
       <div style={stylesIconContainer}>

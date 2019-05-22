@@ -2,7 +2,7 @@ import * as React from 'react'
 import {RNCamera} from 'react-native-camera'
 import {Box2, ProgressIndicator, QRLines, QRNotAuthorized} from '../../../common-adapters'
 import {globalColors, styleSheetCreate, globalStyles} from '../../../styles'
-import { Props } from '.';
+import {Props} from '.'
 
 const QRScan = (props: Props) => (
   <Box2 direction="vertical" style={styles.container}>

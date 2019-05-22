@@ -1,12 +1,13 @@
 // TODO remove Container
+// @ts-ignore codemode issue
 import Container from '../../login/forms/container'
-import React, {Component} from 'react'
+import * as React from 'react'
 import Row, {RowCSS} from './row.desktop'
 import {Text, Box2} from '../../common-adapters'
 
-import { Props } from '.';
+import {Props} from '.'
 
-class GPGSign extends Component<Props> {
+class GPGSign extends React.Component<Props> {
   render() {
     return (
       <Container style={styles.container} onBack={() => this.props.onBack()}>

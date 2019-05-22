@@ -7,12 +7,12 @@ import {Box2, Text, Markdown} from '../../common-adapters'
 import {styleSheetCreate, globalStyles, globalMargins, isMobile} from '../../styles'
 
 type Props = {
-  error: RPCError | null,
-  onAccountReset: () => void,
-  onBack: () => void,
-  onKBHome: () => void,
+  error: RPCError | null
+  onAccountReset: () => void
+  onBack: () => void
+  onKBHome: () => void
   onPasswordReset: () => void
-};
+}
 
 const List = p => (
   <Box2 direction="vertical" style={styles.list}>
@@ -20,10 +20,7 @@ const List = p => (
   </Box2>
 )
 
-const Wrapper = (p: {
-  onBack: () => void,
-  children: React.ElementType
-}) => (
+const Wrapper = (p: {onBack: () => void; children: React.ElementType}) => (
   <Container onBack={p.onBack}>
     <Text type="Header" style={styles.header}>
       There was an error provisioning
@@ -40,13 +37,7 @@ const rewriteErrorDesc = {
 }
 
 // Normally this would be a component but I want the children to be flat so i can use a Box2 as the parent and have nice gaps
-const Render = ({
-  error,
-  onBack,
-  onAccountReset,
-  onPasswordReset,
-  onKBHome
-}: Props) => {
+const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Props) => {
   if (!error) {
     return (
       <Wrapper onBack={onBack}>

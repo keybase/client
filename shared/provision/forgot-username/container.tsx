@@ -2,9 +2,9 @@ import * as ProvisionGen from '../../actions/provision-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import ForgotUsername from '.'
 import {connect} from '../../util/container'
-import { RouteProps } from '../../route-tree/render-route';
+import {RouteProps} from '../../route-tree/render-route'
 
-type OwnProps = RouteProps<{}, {}>;
+type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = state => ({
   forgotUsernameResult: state.provision.forgotUsernameResult,
@@ -15,7 +15,7 @@ const dispatchToProps = dispatch => ({
   onSubmit: (email: string) => dispatch(ProvisionGen.createForgotUsername({email})),
 })
 
-  // @ts-ignore codemode issue
+// @ts-ignore codemode issue
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   dispatchToProps,

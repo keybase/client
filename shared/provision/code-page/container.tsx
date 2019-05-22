@@ -3,9 +3,9 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import CodePage2 from '.'
 import {compose, connect, isMobile, safeSubmit} from '../../util/container'
 import HiddenString from '../../util/hidden-string'
-import { RouteProps } from '../../route-tree/render-route';
+import {RouteProps} from '../../route-tree/render-route'
 
-type OwnProps = RouteProps<{}, {}>;
+type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const currentDeviceAlreadyProvisioned = !!state.config.deviceName

@@ -6,14 +6,14 @@ import Container from '../../login/forms/container'
 import * as Constants from '../../constants/provision'
 
 type Props = {
-  forgotUsernameResult: string,
-  onBack: () => void,
+  forgotUsernameResult: string
+  onBack: () => void
   onSubmit: (email: string) => void
-};
+}
 
 type State = {
   email: string
-};
+}
 
 class ForgotUsername extends React.Component<Props, State> {
   state = {email: ''}

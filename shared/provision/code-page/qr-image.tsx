@@ -3,9 +3,9 @@ import {Image} from '../../common-adapters'
 import QRCodeGen from 'qrcode-generator'
 
 type Props = {
-  code: string,
+  code: string
   cellSize: 8 | 10
-};
+}
 
 class QrImage extends React.PureComponent<Props> {
   static defaultProps = {cellSize: 8}

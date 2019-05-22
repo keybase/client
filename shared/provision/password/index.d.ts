@@ -11,7 +11,7 @@ export type Props = {
   error?: string | null
   username: string | null
   showTyping: boolean
-  toggleShowTyping: () => void
+  toggleShowTyping: (on: boolean) => void
 }
 
 export default class Password extends React.Component<Props> {}

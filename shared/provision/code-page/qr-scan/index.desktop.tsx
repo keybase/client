@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {Box2, ProgressIndicator, QRLines} from '../../../common-adapters'
 import {globalColors, styleSheetCreate} from '../../../styles'
-import { Props } from '.';
+import {Props} from '.'
 // Basically only used for storybook
 
 const QRScan = (props: Props) => (
