@@ -1,20 +1,19 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
 type Props = {
-  error: ?Error,
-  teamname?: string,
-  name: string,
-  onDelete: (notifyTeam: boolean) => void,
-  onClose: () => void,
-  waitingKey: string,
+  error: Error | null
+  teamname?: string
+  name: string
+  onDelete: (notifyTeam: boolean) => void
+  onClose: () => void
+  waitingKey: string
 }
 
 type State = {
-  name: string,
-  notifyTeam: boolean,
+  name: string
+  notifyTeam: boolean
 }
 
 class DeleteRepo extends React.Component<Props, State> {

@@ -1,4 +1,3 @@
-// @flow
 import Row from '.'
 import * as Constants from '../../constants/git'
 import * as FsTypes from '../../constants/types/fs'
@@ -13,10 +12,10 @@ import {gitTab as settingsGitTab} from '../../constants/settings'
 import openURL from '../../util/open-url'
 
 type OwnProps = {
-  id: string,
-  expanded: boolean,
-  onShowDelete: string => void,
-  onToggleExpand: string => void,
+  id: string
+  expanded: boolean
+  onShowDelete: (arg0: string) => void
+  onToggleExpand: (arg0: string) => void
 }
 
 const mapStateToProps = (state, {id, expanded}: OwnProps) => {
@@ -32,14 +31,14 @@ const mapStateToProps = (state, {id, expanded}: OwnProps) => {
 
 const mapDispatchToProps = dispatch => ({
   _onBrowseGitRepo: (path: FsTypes.Path) => dispatch(FsConstants.makeActionForOpenPathInFilesTab(path)),
-  _onOpenChannelSelection: (repoID: string, teamname: ?string, selected: string) =>
+  _onOpenChannelSelection: (repoID: string, teamname: string | null, selected: string) =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
         parentPath: isMobile ? [settingsTab, settingsGitTab] : [gitTab],
         path: [{props: {repoID, selected, teamname}, selected: 'gitSelectChannel'}],
       })
     ),
-  _setDisableChat: (disabled: boolean, repoID: string, teamname: ?string) =>
+  _setDisableChat: (disabled: boolean, repoID: string, teamname: string | null) =>
     dispatch(
       GitGen.createSetTeamRepoSettings({
         channelName: null,
@@ -90,6 +89,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 }
 
 const ConnectedRow = compose(
+  // @ts-ignore codemod issue
   namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'GitRow'),
   withHandlers({
     onChannelClick: ({chatDisabled, _onOpenChannelSelection}) => e => {

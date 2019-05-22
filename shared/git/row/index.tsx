@@ -1,37 +1,36 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
 type Props = {
-  canDelete: boolean,
-  canEdit: boolean,
-  channelName: ?string,
-  chatDisabled: boolean,
-  devicename: string,
-  expanded: boolean,
-  lastEditTime: string,
-  lastEditUser: string,
-  lastEditUserFollowing: boolean,
-  name: string,
-  you: ?string,
-  teamname: ?string,
-  url: string,
-  isNew: boolean,
-  onBrowseGitRepo: () => void,
-  onCopy: () => void,
-  onClickDevice: () => void,
-  onShowDelete: () => void,
-  onChannelClick: (SyntheticEvent<>) => void,
-  onToggleChatEnabled: () => void,
-  onToggleExpand: () => void,
-  openUserTracker: (username: string) => void,
-  _onOpenChannelSelection: () => void,
+  canDelete: boolean
+  canEdit: boolean
+  channelName: string | null
+  chatDisabled: boolean
+  devicename: string
+  expanded: boolean
+  lastEditTime: string
+  lastEditUser: string
+  lastEditUserFollowing: boolean
+  name: string
+  you: string | null
+  teamname: string | null
+  url: string
+  isNew: boolean
+  onBrowseGitRepo: () => void
+  onCopy: () => void
+  onClickDevice: () => void
+  onShowDelete: () => void
+  onChannelClick: (syntheticEvent: React.SyntheticEvent) => void
+  onToggleChatEnabled: () => void
+  onToggleExpand: () => void
+  openUserTracker: (username: string) => void
+  _onOpenChannelSelection: () => void
 }
 
 // TODO use ListItem2
 class Row extends React.Component<Props> {
-  _channelNameToString = (channelName: ?string) => {
+  _channelNameToString = (channelName: string | null) => {
     return channelName ? `#${channelName}` : '#general'
   }
 

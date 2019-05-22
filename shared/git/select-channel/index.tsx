@@ -1,14 +1,13 @@
-// @flow
 import * as React from 'react'
 import {Button, ScrollView, RadioButton, Text, Box} from '../../common-adapters'
 import {globalMargins, globalStyles} from '../../styles'
 
 export type Props = {
-  channelNames: Array<string>,
-  selected: string,
-  onSelect: (channel: string) => void,
-  onSubmit: () => void,
-  waiting: boolean,
+  channelNames: Array<string>
+  selected: string
+  onSelect: (channel: string) => void
+  onSubmit: () => void
+  waiting: boolean
 }
 
 export default (props: Props) => (
