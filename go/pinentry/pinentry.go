@@ -123,7 +123,6 @@ func (pi *pinentryInstance) Set(cmd, val string, errp *error) {
 	if string(line) != "OK" {
 		*errp = fmt.Errorf("Response to " + cmd + " was " + string(line))
 	}
-	return
 }
 
 func (pi *pinentryInstance) Init() (err error) {
