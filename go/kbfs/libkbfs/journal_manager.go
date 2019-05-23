@@ -646,6 +646,12 @@ func (j *JournalManager) EnableExistingJournals(
 						groupCtx, "Skipping misnamed dir %s: %+v", dir, err)
 					continue
 				}
+
+				// Take a lock while inserting the conflict journal
+				// (even though we already have `journalLock`), since
+				// multiple workers could be running at once and we
+				// need to protect the cleared conflct TLF map from
+				// concurrent access.
 				conflictLock.Lock()
 				j.insertConflictJournalLocked(groupCtx, tj, fakeTlfID, t)
 				conflictLock.Unlock()

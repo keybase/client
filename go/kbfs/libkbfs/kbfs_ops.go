@@ -279,10 +279,6 @@ func (fs *KBFSOpsStandard) GetFavorites(ctx context.Context) (
 		return nil, err
 	}
 
-	if len(cleared) == 0 {
-		return favs, nil
-	}
-
 	for _, c := range cleared {
 		favs = append(favs, favorites.Folder{
 			Name: string(c.Name),

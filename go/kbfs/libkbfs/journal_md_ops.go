@@ -238,11 +238,8 @@ func (j journalMDOps) GetIDForHandle(
 	id = handle.TlfID()
 	if id == tlf.NullID {
 		id, err = j.MDOps.GetIDForHandle(ctx, handle)
-		if err != nil {
+		if err != nil || id == tlf.NullID {
 			return tlf.NullID, err
-		}
-		if id == tlf.NullID {
-			return id, nil
 		}
 	}
 
