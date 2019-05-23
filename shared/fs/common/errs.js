@@ -4,7 +4,6 @@ import * as Kb from '../../common-adapters'
 
 type ErrProps = {
   dismiss: () => void,
-  error: string,
   msg: string,
   onFeedback?: () => void,
   retry?: () => void,

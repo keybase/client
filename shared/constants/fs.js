@@ -186,7 +186,7 @@ export const makeTlfs: I.RecordFactory<Types._Tlfs> = I.Record({
 const placeholderAction = FsGen.createPlaceholderAction()
 
 const _makeError: I.RecordFactory<Types._FsError> = I.Record({
-  error: 'unknown error',
+  errorMessage: 'unknown error',
   erroredAction: placeholderAction,
   retriableAction: undefined,
   time: 0,
@@ -201,7 +201,7 @@ export const makeError = (record?: {
 }): I.RecordOf<Types._FsError> => {
   let {time, error, erroredAction, retriableAction} = record || {}
   return _makeError({
-    error: !error ? 'unknown error' : error.message || JSON.stringify(error),
+    errorMessage: !error ? 'unknown error' : error.message || JSON.stringify(error),
     erroredAction,
     retriableAction,
     time: time || Date.now(),
@@ -1013,7 +1013,7 @@ export const showSortSetting = (
 ) =>
   !isMobile &&
   path !== defaultPath &&
-  (Types.getPathLevel(path) === 2 || (pathItem.type === 'folder' && !!pathItem.size)) &&
+  (Types.getPathLevel(path) === 2 || (pathItem.type === 'folder' && !!pathItem.children.size)) &&
   !isOfflineUnsynced(kbfsDaemonStatus, pathItem, path)
 
 export const getSoftError = (softErrors: Types.SoftErrors, path: Types.Path): ?Types.SoftError => {
@@ -1029,6 +1029,10 @@ export const getSoftError = (softErrors: Types.SoftErrors, path: Types.Path): ?T
 }
 
 export const erroredActionToMessage = (action: FsGen.Actions, error: string): string => {
+  // We have FsError.expectedIfOffline now to take care of real offline
+  // scenarios, but we still need to keep this timeout check here in case we
+  // get a timeout error when we think we think we're online. In this case it's
+  // likely bad network condition.
   const errorIsTimeout = error.includes('context deadline exceeded')
   const timeoutExplain = 'An operation took too long to complete. Are you connected to the Internet?'
   const suffix = errorIsTimeout ? ` ${timeoutExplain}` : ''
