@@ -53,10 +53,6 @@ const mapDispatchToProps = dispatch => ({
   onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
-// @ts-ignore codemode issue
-export default namedConnect<OwnProps, _, _, _, _>(
-  () => ({}),
-  mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d}),
-  'Import'
-)(Import)
+export default namedConnect(() => ({}), mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}), 'Import')(
+  Import
+)
