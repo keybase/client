@@ -120,6 +120,45 @@ const createLoadMoreSection = onLoadMore => {
   }
 }
 
+type Sizing = {
+  marginBottom: number,
+  marginLeft: number,
+  marginRight: number,
+  marginTop: number,
+}
+
+type MediaThumbProps = {
+  thumb: Thumb,
+  sizing: Sizing,
+}
+
+type MediaThumbState = {
+  loading: boolean,
+}
+
+class MediaThumb extends React.Component<MediaThumbProps, MediaThumbState> {
+  state = {loading: true}
+  _setLoaded = () => {
+    this.setState({loading: false})
+  }
+  render() {
+    const {sizing, thumb} = this.props
+    return (
+      <Kb.Box2 direction="vertical" style={styles.thumbContainer}>
+        <Kb.ClickableBox onClick={thumb.onClick} style={{...sizing.margins}}>
+          <Kb.Image src={thumb.previewURL} style={{...sizing.dims}} onLoad={this._setLoaded} />
+        </Kb.ClickableBox>
+        {!!thumb.isVideo && (
+          <Kb.Box style={styles.durationContainer}>
+            <Kb.Icon type="icon-film-64" style={Kb.iconCastPlatformStyles(styles.filmIcon)} />
+          </Kb.Box>
+        )}
+        {this.state.loading && <Kb.ProgressIndicator style={styles.loading} />}
+      </Kb.Box2>
+    )
+  }
+}
+
 class MediaView extends React.Component<MediaProps> {
   _clamp = thumb => {
     return thumb.height > thumb.width
@@ -177,18 +216,7 @@ class MediaView extends React.Component<MediaProps> {
     return (
       <Kb.Box2 key={index} direction="horizontal" fullWidth={true} style={styles.mediaRowContainer}>
         {item.map((cell, index) => {
-          return (
-            <Kb.Box2 key={index} direction="vertical" style={styles.thumbContainer}>
-              <Kb.ClickableBox onClick={cell.thumb.onClick} style={{...cell.sizing.margins}}>
-                <Kb.Image src={cell.thumb.previewURL} style={{...cell.sizing.dims}} />
-              </Kb.ClickableBox>
-              {!!cell.thumb.isVideo && (
-                <Kb.Box style={styles.durationContainer}>
-                  <Kb.Icon type="icon-film-64" style={Kb.iconCastPlatformStyles(styles.filmIcon)} />
-                </Kb.Box>
-              )}
-            </Kb.Box2>
-          )
+          return <MediaThumb key={index} sizing={cell.sizing} thumb={cell.thumb} />
         })}
       </Kb.Box2>
     )
@@ -369,6 +397,18 @@ const styles = Styles.styleSheetCreate({
   },
   loadMore: {
     margin: Styles.globalMargins.tiny,
+  },
+  loading: {
+    bottom: '50%',
+    left: '50%',
+    marginBottom: -12,
+    marginLeft: -12,
+    marginRight: -12,
+    marginTop: -12,
+    position: 'absolute',
+    right: '50%',
+    top: '50%',
+    width: 24,
   },
   mediaRowContainer: {
     minWidth: rowSize * maxThumbSize,

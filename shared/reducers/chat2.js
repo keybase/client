@@ -1180,7 +1180,7 @@ const rootReducer = (
         }
       )
     case Chat2Gen.clearAttachmentView:
-      return state.attachmentViewMap.delete(action.payload.conversationIDKey)
+      return state.deleteIn(['attachmentViewMap', action.payload.conversationIDKey])
     case Chat2Gen.staticConfigLoaded:
       return state.set('staticConfig', action.payload.staticConfig)
     case Chat2Gen.metasReceived: {
