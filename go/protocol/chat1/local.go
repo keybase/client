@@ -5012,6 +5012,40 @@ func (o UnfurlPromptResult) DeepCopy() UnfurlPromptResult {
 	}
 }
 
+type LoadFlipRes struct {
+	Status           UICoinFlipStatus              `codec:"status" json:"status"`
+	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+}
+
+func (o LoadFlipRes) DeepCopy() LoadFlipRes {
+	return LoadFlipRes{
+		Status: o.Status.DeepCopy(),
+		RateLimits: (func(x []RateLimit) []RateLimit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]RateLimit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RateLimits),
+		IdentifyFailures: (func(x []keybase1.TLFIdentifyFailure) []keybase1.TLFIdentifyFailure {
+			if x == nil {
+				return nil
+			}
+			ret := make([]keybase1.TLFIdentifyFailure, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.IdentifyFailures),
+	}
+}
+
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Reason           GetThreadReason              `codec:"reason" json:"reason"`
@@ -5532,7 +5566,7 @@ type LocalInterface interface {
 	BulkAddToConv(context.Context, BulkAddToConvArg) error
 	PutReacjiSkinTone(context.Context, keybase1.ReacjiSkinTone) (keybase1.UserReacjis, error)
 	ResolveMaybeMention(context.Context, MaybeMention) error
-	LoadFlip(context.Context, LoadFlipArg) (UICoinFlipStatus, error)
+	LoadFlip(context.Context, LoadFlipArg) (LoadFlipRes, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -6924,7 +6958,7 @@ func (c LocalClient) ResolveMaybeMention(ctx context.Context, mention MaybeMenti
 	return
 }
 
-func (c LocalClient) LoadFlip(ctx context.Context, __arg LoadFlipArg) (res UICoinFlipStatus, err error) {
+func (c LocalClient) LoadFlip(ctx context.Context, __arg LoadFlipArg) (res LoadFlipRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.loadFlip", []interface{}{__arg}, &res)
 	return
 }

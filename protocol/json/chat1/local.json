@@ -3070,6 +3070,30 @@
           "body": "string"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "LoadFlipRes",
+      "fields": [
+        {
+          "type": "UICoinFlipStatus",
+          "name": "status"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
+        }
+      ]
     }
   ],
   "messages": {
@@ -4491,7 +4515,7 @@
           "type": "FlipGameID"
         }
       ],
-      "response": "UICoinFlipStatus"
+      "response": "LoadFlipRes"
     }
   },
   "namespace": "chat.1"
