@@ -633,7 +633,7 @@ protocol teams {
   @typedef("string")
   record SeitanIKey {}
 
-  @typedef("KID")
+  @typedef("string")
   record SeitanPubKey {}
 
   // The secret shared with the recipient.
