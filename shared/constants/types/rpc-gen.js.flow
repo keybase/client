@@ -2376,6 +2376,9 @@ export type HasServerKeysRes = $ReadOnly<{hasServerKeys: Boolean}>
 export type HashMeta = Bytes
 export type Hello2Res = $ReadOnly<{encryptionKey: KID, sigPayload: HelloRes, deviceEkKID: KID}>
 export type HelloRes = String
+export type HiddenTeamChain = $ReadOnly<{v /* subversion */: Int, data: HiddenTeamChainData, perTeamKeys: {[key: string]: Seqno}, ratchet?: ?LinkTriple, cachedAt: Time}>
+export type HiddenTeamChainData = $ReadOnly<{ID: TeamID, public: Boolean, last: Seqno, outer: {[key: string]: LinkID}, inner: {[key: string]: HiddenTeamChainLink}}>
+export type HiddenTeamChainLink = $ReadOnly<{m /* merkleRoot */: MerkleRootV2, p /* parentChain */: LinkTriple, s /* signer */: Signer, k /* ptk */: PerTeamKey}>
 export type HomeScreen = $ReadOnly<{lastViewed: Time, version: Int, visits: Int, items?: ?Array<HomeScreenItem>, followSuggestions?: ?Array<HomeUserSummary>, announcementsVersion: Int}>
 export type HomeScreenAnnouncement = $ReadOnly<{id: HomeScreenAnnouncementID, version: HomeScreenAnnouncementVersion, appLink: AppLinkType, confirmLabel: String, dismissable: Boolean, iconUrl: String, text: String, url: String}>
 export type HomeScreenAnnouncementID = Int
@@ -2877,6 +2880,7 @@ export type SignMode =
   | 2 // CLEAR_2
 
 export type SignatureMetadata = $ReadOnly<{signingKID: KID, prevMerkleRootSigned: MerkleRootV2, firstAppearedUnverified: Seqno, time: Time, sigChainLocation: SigChainLocation}>
+export type Signer = $ReadOnly<{e: Seqno, k: KID, u: UID}>
 export type SignupRes = $ReadOnly<{passphraseOk: Boolean, postOk: Boolean, writeOk: Boolean}>
 export type SimpleFSGetHTTPAddressAndTokenResponse = $ReadOnly<{address: String, token: String}>
 export type SimpleFSListResult = $ReadOnly<{entries?: ?Array<Dirent>, progress: Progress}>

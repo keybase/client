@@ -25,8 +25,9 @@ import (
 type Team struct {
 	libkb.Contextified
 
-	ID   keybase1.TeamID
-	Data *keybase1.TeamData
+	ID     keybase1.TeamID
+	Data   *keybase1.TeamData
+	Hidden *keybase1.HiddenTeamChain
 
 	keyManager *TeamKeyManager
 
@@ -463,6 +464,10 @@ func addSummaryHash(section *SCTeamSection, boxes *PerTeamSharedSecretBoxes) err
 }
 
 func (t *Team) Rotate(ctx context.Context) (err error) {
+	return t.rotate(ctx, false /* hidden */)
+}
+
+func (t *Team) rotate(ctx context.Context, hidden bool) (err error) {
 
 	// initialize key manager
 	if _, err := t.SharedSecret(ctx); err != nil {
@@ -519,14 +524,31 @@ func (t *Team) Rotate(ctx context.Context) (err error) {
 		secretBoxes:   secretBoxes,
 		teamEKPayload: teamEKPayload,
 	}
-	latestSeqno, err := t.postChangeItem(ctx, section, libkb.LinkTypeRotateKey, mr, payloadArgs)
+
+	if !hidden {
+		err = t.rotatePostVisible(ctx, section, mr, payloadArgs)
+	} else {
+		err = t.rotatePostHidden(ctx, section, mr, payloadArgs)
+	}
 	if err != nil {
 		return err
 	}
 
-	t.notify(ctx, keybase1.TeamChangeSet{KeyRotated: true}, latestSeqno)
 	t.storeTeamEKPayload(ctx, teamEKPayload)
 
+	return nil
+}
+
+func (t *Team) rotatePostVisible(ctx context.Context, section SCTeamSection, mr *libkb.MerkleRoot, payloadArgs sigPayloadArgs) error {
+	latestSeqno, err := t.postChangeItem(ctx, section, libkb.LinkTypeRotateKey, mr, payloadArgs)
+	if err != nil {
+		return err
+	}
+	t.notify(ctx, keybase1.TeamChangeSet{KeyRotated: true}, latestSeqno)
+	return nil
+}
+
+func (t *Team) rotatePostHidden(ctx context.Context, section SCTeamSection, mr *libkb.MerkleRoot, payloadArgs sigPayloadArgs) error {
 	return nil
 }
 
