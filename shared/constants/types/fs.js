@@ -21,7 +21,7 @@ export type ProgressType = 'pending' | 'loaded'
 // not naming Error because it has meaning in js.
 export type _FsError = {
   time: number,
-  error: string,
+  errorMessage: string,
   erroredAction: FsGen.Actions,
   retriableAction?: ?FsGen.Actions,
 }
