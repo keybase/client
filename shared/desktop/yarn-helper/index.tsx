@@ -1,4 +1,3 @@
-// @flow
 // Helper for cross platform yarn run script commands
 import buildCommands from './build'
 import electronComands from './electron'

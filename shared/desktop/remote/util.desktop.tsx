@@ -1,4 +1,3 @@
-// @flow
 import * as SafeElectron from '../../util/safe-electron.desktop'
 
 function autoResize() {
@@ -54,7 +53,7 @@ function autoResize() {
   }, 1)
 }
 
-const getMainWindow = (): ?SafeElectron.BrowserWindowType => {
+const getMainWindow = (): SafeElectron.BrowserWindowType | null => {
   const w = SafeElectron.BrowserWindow.getAllWindows().find(
     w => w.webContents.getURL().indexOf('/main.') !== -1
   )

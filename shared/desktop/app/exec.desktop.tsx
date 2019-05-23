@@ -1,4 +1,3 @@
-// @flow
 import {exec} from 'child_process'
 import fs from 'fs'
 import os from 'os'
@@ -13,10 +12,10 @@ import {runMode} from '../../constants/platform.desktop'
 // Callback is optional and accepts (error, boolean), where boolean is if we
 // attempted to execute.
 export default function(
-  path: ?string,
+  path: string | null,
   args: any,
   platformOnly: any,
-  runModeOnly: ?string,
+  runModeOnly: string | null,
   killOnExit: boolean,
   callback: (err: any, attempted: boolean, stdout: string, stderr: string) => void
 ): void {

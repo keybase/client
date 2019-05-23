@@ -1,4 +1,3 @@
-// @flow
 import path from 'path'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {isWindows} from '../../constants/platform'

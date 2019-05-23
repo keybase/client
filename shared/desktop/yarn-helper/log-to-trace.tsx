@@ -1,4 +1,3 @@
-// @flow
 // A utility to convert our log sends to something consumable by chrome://tracing
 const [, , guiOrCore, logfile, outfile, ..._swimlanes] = process.argv
 // Good params?

@@ -1,4 +1,3 @@
-// @flow
 // This loads up a remote component. It makes a pass-through store which accepts its props from the main window through ipc
 // Also protects it with an error boundary
 import * as React from 'react'
@@ -16,20 +15,20 @@ disableDragDrop()
 
 module.hot && module.hot.accept()
 
-type RemoteComponents = 'unlock-folders' | 'menubar' | 'pinentry' | 'tracker' | 'tracker2'
+type RemoteComponents = "unlock-folders" | "menubar" | "pinentry" | "tracker" | "tracker2";
 
-type Props = {|
-  children: React.Node,
-  deserialize: (any, any) => any,
+type Props = {
+  children: React.ElementType,
+  deserialize: (arg0: any, arg1: any) => any,
   name: RemoteComponents,
   params: string,
   showOnProps: boolean,
-  style: ?Styles.StylesDesktop,
-|}
+  style: Styles.StylesDesktop | null
+};
 
 class RemoteComponentLoader extends React.Component<Props> {
-  _store: any
-  _window: ?SafeElectron.BrowserWindowType
+  _store: any;
+  _window: SafeElectron.BrowserWindowType | null;
 
   constructor(props) {
     super(props)
@@ -82,12 +81,12 @@ const styles = {
 }
 
 export default function(options: {
-  child: React.Node,
-  deserialize: (any, any) => any,
+  child: React.ElementType,
+  deserialize: (arg0: any, arg1: any) => any,
   name: RemoteComponents,
   params?: string,
   style?: Styles.StylesDesktop,
-  showOnProps?: boolean,
+  showOnProps?: boolean
 }) {
   initDesktopStyles()
   const node = document.getElementById('root')
@@ -97,7 +96,8 @@ export default function(options: {
         name={options.name}
         params={options.params || ''}
         style={options.style}
-        showOnProps={options.showOnProps ?? true}
+        showOnProps={// Auto generated from flowToTs. Please clean me!
+        options.showOnProps !== null && options.showOnProps !== undefined ? options.showOnProps : true}
         deserialize={options.deserialize}
       >
         {options.child}

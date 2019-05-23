@@ -1,4 +1,3 @@
-// @flow
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import fs from 'fs'
 import path from 'path'
@@ -80,12 +79,7 @@ const checkErrors = (result, errors, errorTypes) => {
   })
 }
 
-// To test the installer from dev (on MacOS), you can point KEYBASE_GET_APP_PATH
-// to a place where keybase bin is bundled, for example:
-//   KEYBASE_GET_APP_PATH=/Applications/Keybase.app/Contents/Resources/app/ yarn run start
-//
-// Reminder: hot-server doesn't reload code in here (/desktop)
-type CB = (err: any) => void
+type CB = (err: any) => void;
 const darwinInstall = (callback: CB) => {
   logger.info('[Installer]: Installer check starting now')
   const keybaseBin = keybaseBinPath()

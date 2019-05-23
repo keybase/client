@@ -1,4 +1,3 @@
-// @flow
 import os from 'os'
 
 const webpackCmd = 'webpack --config ./desktop/webpack.config.babel.js'

@@ -1,4 +1,3 @@
-// @flow
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {executeActionsForContext} from '../../util/quit-helper.desktop'
 import {isDarwin} from '../../constants/platform'

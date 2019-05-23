@@ -1,4 +1,3 @@
-// @flow
 // Entry point to the chrome part of the app
 import '../../util/user-timings'
 import Main from '../../app/main.desktop'
@@ -122,7 +121,8 @@ function render(store, MainComponent) {
 }
 
 function setupHMR(store) {
-  const accept = module.hot?.accept
+  const accept = // Auto generated from flowToTs. Please clean me!
+  module.hot === null || module.hot === undefined ? undefined : module.hot.accept
   if (!accept) {
     return
   }

@@ -1,4 +1,3 @@
-// @flow
 // This HOC wraps a component that represents a remote window. When this component is mounted anywhere it'll make a BrowserWindow
 import * as React from 'react'
 import * as SafeElectron from '../../util/safe-electron.desktop'
@@ -11,8 +10,8 @@ type Props = {
   windowPositionBottomRight: boolean,
   windowComponent: string,
   windowTitle: string,
-  windowParam: string,
-}
+  windowParam: string
+};
 
 const defaultWindowOpts = {
   frame: false,
@@ -29,14 +28,14 @@ const defaultWindowOpts = {
 }
 
 type State = {
-  remoteWindow: ?SafeElectron.BrowserWindowType,
-}
+  remoteWindow: SafeElectron.BrowserWindowType | null
+};
 
 function SyncBrowserWindow(ComposedComponent: any) {
   class RemoteWindowComponent extends React.PureComponent<Props, State> {
-    _remoteWindow: ?SafeElectron.BrowserWindowType = null
-    _remoteWindowId: ?number = null
-    _mounted: boolean = false
+    _remoteWindow: SafeElectron.BrowserWindowType | null = null;
+    _remoteWindowId: number | null = null;
+    _mounted: boolean = false;
 
     // We only have state to force re-renders and to pass down to the child. We usually want to just use the raw _remoteWindow to avoid races
     state = {
@@ -57,7 +56,10 @@ function SyncBrowserWindow(ComposedComponent: any) {
       return w
     }
 
-    _positionBrowserWindow = (windowOpts: {width: number, height: number}) => {
+    _positionBrowserWindow = (windowOpts: {
+      width: number,
+      height: number
+    }) => {
       if (this.props.windowPositionBottomRight && SafeElectron.getScreen().getPrimaryDisplay()) {
         const {width, height} = SafeElectron.getScreen().getPrimaryDisplay().workAreaSize
         this._remoteWindow &&

@@ -1,4 +1,3 @@
-// @flow
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {showDevTools} from '../../local-debug.desktop'
 import flags from '../../util/feature-flags'

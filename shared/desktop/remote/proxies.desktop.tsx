@@ -1,4 +1,3 @@
-// @flow
 import React from 'react'
 import RemoteMenubar from '../../menubar/remote-proxy.desktop'
 import RemoteProfile from '../../tracker2/remote-proxy.desktop'

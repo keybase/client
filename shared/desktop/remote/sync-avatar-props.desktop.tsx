@@ -1,4 +1,3 @@
-// @flow
 // This HOC wraps a RemoteWindow so it can send avatar related props
 // It listens for avatar related actions and bookkeeps them to send them back over the wire
 import * as ConfigGen from '../../actions/config-gen'
@@ -8,24 +7,24 @@ import * as SafeElectron from '../../util/safe-electron.desktop'
 import {connect} from '../../util/container'
 import {memoize} from '../../util/memoize'
 
-type OwnProps = {|
+type OwnProps = {
   usernames: I.Set<string>,
-  setUsernames: (I.Set<string>) => void,
-  remoteWindow: ?SafeElectron.BrowserWindowType,
+  setUsernames: (arg0: I.Set<string>) => void,
+  remoteWindow: SafeElectron.BrowserWindowType | null,
   windowComponent: string,
-  windowParam: string,
-|}
+  windowParam: string
+};
 
 type Props = {
   avatars: Object,
   followers: I.Set<string>,
   following: I.Set<string>,
-  remoteWindow: ?SafeElectron.BrowserWindowType,
-  setUsernames: (I.Set<string>) => void,
+  remoteWindow: SafeElectron.BrowserWindowType | null,
+  setUsernames: (arg0: I.Set<string>) => void,
   usernames: I.Set<string>,
   windowComponent: string,
-  windowParam: string,
-}
+  windowParam: string
+};
 
 export const serialize = {
   avatars: (v: any, o: any) => {
@@ -73,7 +72,10 @@ function SyncAvatarProps(ComposedComponent: any) {
   class RemoteAvatarConnected extends React.PureComponent<Props> {
     _onRemoteActionFired = (
       event: any,
-      action: {type: string, payload: Object},
+      action: {
+        type: string,
+        payload: Object
+      },
       windowComponent: string,
       windowParam: string
     ) => {
@@ -126,11 +128,14 @@ function SyncAvatarProps(ComposedComponent: any) {
   )(RemoteAvatarConnected)
 
   type WrapperProps = {
-    remoteWindow: ?SafeElectron.BrowserWindowType,
+    remoteWindow: SafeElectron.BrowserWindowType | null,
     windowComponent: string,
-    windowParam: string,
-  }
-  class Wrapper extends React.PureComponent<WrapperProps, {usernames: I.Set<string>}> {
+    windowParam: string
+  };
+
+  class Wrapper extends React.PureComponent<WrapperProps, {
+    usernames: I.Set<string>
+  }> {
     state = {usernames: I.Set()}
     setUsernames = (usernames: I.Set<string>) => this.setState({usernames})
     render() {

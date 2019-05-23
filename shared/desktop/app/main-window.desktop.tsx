@@ -1,4 +1,3 @@
-// @flow
 import URL from 'url-parse'
 import AppState from '../../app/app-state.desktop'
 import Window from './window.desktop'
@@ -37,7 +36,8 @@ export default function() {
 
   const mainWindow = new Window(htmlFile, {
     backgroundThrottling: false,
-    frame: appState.state.useNativeFrame ?? defaultUseNativeFrame,
+    frame: // Auto generated from flowToTs. Please clean me!
+    appState.state.useNativeFrame !== null && appState.state.useNativeFrame !== undefined ? appState.state.useNativeFrame : defaultUseNativeFrame,
     height: appState.state.height,
     minHeight: 600,
     minWidth: 400,

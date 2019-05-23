@@ -1,13 +1,12 @@
-// @flow
 import {showDockIcon, hideDockIcon} from './dock-icon.desktop'
 import menuHelper from './menu-helper.desktop'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 
 export default class Window {
-  filename: string
-  opts: any
-  window: any
-  initiallyVisible: boolean
+  filename: string;
+  opts: any;
+  window: any;
+  initiallyVisible: boolean;
 
   constructor(filename: string, opts: any) {
     this.filename = filename

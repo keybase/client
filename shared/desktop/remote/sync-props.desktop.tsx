@@ -1,4 +1,3 @@
-// @flow
 // This HOC wraps a RemoteWindow so it can send props over the wire
 // Listens for requests from the main process (which proxies requests from other windows) to kick off an update
 // If asked we'll send all props, otherwise we do a shallow compare and send the different ones
@@ -13,21 +12,20 @@ if (debugSerializer) {
 }
 
 type Props = {
-  // increment to kill cache
   clearCacheTrigger: number,
-  windowParam: ?string,
+  windowParam: string | null,
   windowComponent: string,
-  remoteWindow: ?SafeElectron.BrowserWindowType,
-}
+  remoteWindow: SafeElectron.BrowserWindowType | null
+};
 
-// Before sending we need to get a small diff to serialize. Do NOT send immutable over the wire. You pass an object
-// for each matching prop which converts to a serializable format. Do smart diffing w/ the old value to minimize traffic
-type Serializer = {[key: string]: (value: any, oldValue: any) => ?Object}
+type Serializer = {
+  [K in string]: (value: any, oldValue: any) => Object | null;
+};
 
 function SyncPropsFactory(serializer: Serializer) {
   return function SyncProps(ComposedComponent: any) {
     class RemoteConnected extends React.PureComponent<Props> {
-      _lastProps: any
+      _lastProps: any;
 
       _sendProps = () => {
         if (this.props.remoteWindow) {
@@ -119,7 +117,7 @@ function SyncPropsFactory(serializer: Serializer) {
     }
 
     return RemoteConnected
-  }
+  };
 }
 
 export default SyncPropsFactory
