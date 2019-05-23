@@ -39,13 +39,12 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (stateProps, dispatchProps) => ({
   errs: stateProps._errors
     .reduce(
-      (errs, {error, erroredAction, retriableAction, time}, key) => [
+      (errs, {errorMessage, erroredAction, retriableAction, time}, key) => [
         ...errs,
         {
           dismiss: () => dispatchProps._dismiss(key),
-          error,
           key,
-          msg: Constants.erroredActionToMessage(erroredAction, error),
+          msg: Constants.erroredActionToMessage(erroredAction, errorMessage),
           onFeedback: isMobile ? () => dispatchProps._onFeedback(stateProps._loggedIn) : undefined,
           retry: retriableAction
             ? () => {

@@ -77,10 +77,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   state: stateProps.state,
 })
 
-// @ts-ignore codemode issue
-export default Container.namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'Actions'
-)(Actions)
+export default Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Actions')(Actions)

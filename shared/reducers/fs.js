@@ -158,7 +158,10 @@ const updateTlfList = (oldTlfList: Types.TlfList, newTlfList: Types.TlfList): Ty
 
 const withFsErrorBar = (state: Types.State, action: FsGen.FsErrorPayload): Types.State => {
   const fsError = action.payload.error
-  logger.error('error (fs)', fsError.erroredAction.type, fsError.error)
+  if (!state.kbfsDaemonStatus.online && action.payload.expectedIfOffline) {
+    return state
+  }
+  logger.error('error (fs)', fsError.erroredAction.type, fsError.errorMessage)
   return state.update('errors', errors => errors.set(Constants.makeUUID(), fsError))
 }
 
@@ -573,7 +576,9 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         )
       )
     case FsGen.settingsLoaded:
-      return action.payload.settings ? state.set('settings', action.payload.settings) : state.update('settings', s => s.set('isLoading', false))
+      return action.payload.settings
+        ? state.set('settings', action.payload.settings)
+        : state.update('settings', s => s.set('isLoading', false))
     case FsGen.loadSettings:
       return state.update('settings', s => s.set('isLoading', true))
 
