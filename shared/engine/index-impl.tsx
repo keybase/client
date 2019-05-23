@@ -1,24 +1,20 @@
-// @flow
 // Handles sending requests to the daemon
+// @ts-ignore codemode issue
 import logger from '../logger'
-import Session from './session'
+import Session, {CancelHandlerType} from './session'
 import {initEngine, initEngineSaga} from './require'
-import {convertToError} from '../util/errors'
+import {RPCError, convertToError} from '../util/errors'
 import {isMobile} from '../constants/platform'
 import {localLog} from '../util/forward-logs'
 import {printOutstandingRPCs, isTesting} from '../local-debug'
-import {resetClient, createClient, rpcLog} from './index.platform'
+import {resetClient, createClient, rpcLog, createClientType} from './index.platform'
 import {createBatchChangeWaiting} from '../actions/waiting-gen'
 import engineSaga from './saga'
 import {throttle} from 'lodash-es'
-import type {CancelHandlerType} from './session'
-import type {createClientType} from './index.platform'
-import type {CustomResponseIncomingCallMapType, IncomingCallMapType} from '.'
-import type {SessionID, SessionIDKey, WaitingHandlerType, MethodKey} from './types'
-import type {TypedState, Dispatch} from '../util/container'
-import type {RPCError} from '../util/errors'
+import {CustomResponseIncomingCallMapType, IncomingCallMapType} from '.'
+import {SessionID, SessionIDKey, WaitingHandlerType, MethodKey} from './types'
+import {TypedState, Dispatch} from '../util/container'
 
-// Not the real type here to reduce merge time. This file has a .js.flow for importers
 type WaitingKey = string | Array<string>
 
 function capitalize(s) {
@@ -27,13 +23,13 @@ function capitalize(s) {
 
 class Engine {
   // Bookkeep old sessions
-  _deadSessionsMap: {[key: SessionIDKey]: true} = {}
+  _deadSessionsMap: {[K in SessionIDKey]: true} = {}
   // Tracking outstanding sessions
-  _sessionsMap: {[key: SessionIDKey]: Session} = {}
+  _sessionsMap: {[K in SessionIDKey]: Session} = {}
   // Helper we delegate actual calls to
   _rpcClient: createClientType
   // Set which actions we don't auto respond with so sagas can themselves
-  _customResponseAction: {[key: MethodKey]: true} = {}
+  _customResponseAction: {[K in MethodKey]: true} = {}
   // We generate sessionIDs monotonically
   _nextSessionID: number = 123
   // We call onDisconnect handlers only if we've actually disconnected (ie connected once)
@@ -90,6 +86,7 @@ class Engine {
 
     if (typeof window !== 'undefined') {
       logger.info('DEV MODE ENGINE AVAILABLE AS window.DEBUGengine')
+      // @ts-ignore codemode issue
       window.DEBUGengine = this
     }
 
@@ -132,7 +129,7 @@ class Engine {
   }
 
   // Create and return the next unique session id
-  _generateSessionID(): number {
+  _generateSessionID() {
     this._nextSessionID++
     return this._nextSessionID
   }
@@ -162,10 +159,14 @@ class Engine {
   }
 
   // An incoming rpc call
-  _rpcIncoming(payload: {method: MethodKey, param: Array<Object>, response: ?Object}) {
+  _rpcIncoming(payload: {method: MethodKey; param: Array<Object>; response: Object | null}) {
+    // @ts-ignore codemode issue
     const {method, param: incomingParam, response} = payload
+    // @ts-ignore codemode issue
     const param = incomingParam && incomingParam.length ? incomingParam[0] : {}
+    // @ts-ignore codemode issue
     const {seqid, cancelled} = response || {cancelled: false, seqid: 0}
+    // @ts-ignore codemode issue
     const {sessionID} = param
 
     if (cancelled) {
@@ -178,9 +179,11 @@ class Engine {
         // Dispatch as an action
         const extra = {}
         if (this._customResponseAction[method]) {
+          // @ts-ignore codemode issue
           extra.response = response
         } else {
           // Not a custom response so we auto handle it
+          // @ts-ignore codemode issue
           response && response.result()
         }
         const type = method
@@ -196,12 +199,12 @@ class Engine {
 
   // An outgoing call. ONLY called by the flow-type rpc helpers
   _rpcOutgoing(p: {
-    method: string,
-    params: Object,
-    callback: (...args: Array<any>) => void,
-    incomingCallMap?: any, // IncomingCallMapType, actually a mix of all the incomingcallmap types, which we don't handle yet TODO we could mix them all
-    customResponseIncomingCallMap?: any,
-    waitingKey?: WaitingKey,
+    method: string
+    params: Object
+    callback: (...args: Array<any>) => void
+    incomingCallMap?: any
+    customResponseIncomingCallMap?: any
+    waitingKey?: WaitingKey
   }) {
     // Make a new session and start the request
     const session = this.createSession({
@@ -218,11 +221,11 @@ class Engine {
 
   // Make a new session. If the session hangs around forever set dangling to true
   createSession(p: {
-    incomingCallMap?: ?IncomingCallMapType,
-    customResponseIncomingCallMap?: ?CustomResponseIncomingCallMapType,
-    cancelHandler?: CancelHandlerType,
-    dangling?: boolean,
-    waitingKey?: WaitingKey,
+    incomingCallMap?: IncomingCallMapType | null
+    customResponseIncomingCallMap?: CustomResponseIncomingCallMapType | null
+    cancelHandler?: CancelHandlerType
+    dangling?: boolean
+    waitingKey?: WaitingKey
   }): Session {
     const {customResponseIncomingCallMap, incomingCallMap, cancelHandler, dangling = false, waitingKey} = p
     const sessionID = this._generateSessionID()
@@ -299,8 +302,8 @@ class Engine {
 
 // Dummy engine for snapshotting
 class FakeEngine {
-  _deadSessionsMap: {[key: SessionIDKey]: Session} // just to bookkeep
-  _sessionsMap: {[key: SessionIDKey]: Session}
+  _deadSessionsMap: {[K in SessionIDKey]: Session} // just to bookkeep
+  _sessionsMap: {[K in SessionIDKey]: Session}
   constructor() {
     logger.info('Engine disabled!')
     this._sessionsMap = {}
@@ -312,13 +315,19 @@ class FakeEngine {
   hasEverConnected() {}
   setIncomingActionCreator(
     method: MethodKey,
-    actionCreator: ({param: Object, response: ?Object, state: any}) => ?any
+    actionCreator: (
+      arg0: {
+        param: Object
+        response: Object | null
+        state: any
+      }
+    ) => any | null
   ) {}
   createSession(
-    incomingCallMap: ?IncomingCallMapType,
-    waitingHandler: ?WaitingHandlerType,
-    cancelHandler: ?CancelHandlerType,
-    dangling?: boolean = false
+    incomingCallMap: IncomingCallMapType | null,
+    waitingHandler: WaitingHandlerType | null,
+    cancelHandler: CancelHandlerType | null,
+    dangling: boolean = false
   ) {
     return new Session({
       endHandler: () => {},
@@ -327,20 +336,21 @@ class FakeEngine {
       sessionID: 0,
     })
   }
-  _channelMapRpcHelper(configKeys: Array<string>, method: string, params: any): any {
+  _channelMapRpcHelper(configKeys: Array<string>, method: string, params: any) {
     return null
   }
   _rpcOutgoing(
     method: string,
-    params: ?{
-      incomingCallMap?: any, // IncomingCallMapType, actually a mix of all the incomingcallmap types, which we don't handle yet TODO we could mix them all
-      waitingHandler?: WaitingHandlerType,
-    },
+    params: {
+      incomingCallMap?: any
+      waitingHandler?: WaitingHandlerType
+    } | null,
     callback: (...args: Array<any>) => void
   ) {}
 }
 
 // don't overwrite this on HMR
+// @ts-ignore codemode issue
 let engine = global._engine
 const makeEngine = (dispatch: Dispatch, getState: () => TypedState) => {
   if (__DEV__ && engine) {
@@ -349,8 +359,9 @@ const makeEngine = (dispatch: Dispatch, getState: () => TypedState) => {
 
   if (!engine) {
     engine = process.env.KEYBASE_NO_ENGINE || isTesting ? new FakeEngine() : new Engine(dispatch, getState)
+    // @ts-ignore codemode issue
     global._engine = engine
-    initEngine((engine: any))
+    initEngine(engine as any)
     initEngineSaga(engineSaga)
   }
   return engine

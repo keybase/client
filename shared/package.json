@@ -7,7 +7,7 @@
     "_node": "cross-env-shell BABEL_ENV=yarn babel-node --extensions='.tsx' ",
     "help": "yarn run _helper help",
     "lint": "yarn run lint-specific .",
-    "lint-specific": "cd .. && shared/node_modules/.bin/eslint --quiet --ext js --ext ts --ext tsx",
+    "lint-specific": "cd .. && shared/node_modules/.bin/eslint --quiet --ext js --ext ts --ext tsx --ext d.ts",
     "postinstall": "yarn run _helper postinstall",
     "prettier": "./node_modules/.bin/prettier --write ",
     "prettier-check": "git ls-files | grep \"\\.js\\(.flow\\)\\?\\$\" | xargs ./node_modules/.bin/prettier --debug-check",

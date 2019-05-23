@@ -1,4 +1,3 @@
-// @flow
 // Classes used to handle RPCs. Ability to inject delays into calls to/from server
 import rpc from 'framed-msgpack-rpc'
 import {printRPC, printRPCWaitingSession} from '../local-debug'
@@ -10,18 +9,18 @@ const RobustTransport = rpc.transport.RobustTransport
 const RpcClient = rpc.client.Client
 
 // We basically always log/ensure once all the calls back and forth
-function _wrap<A1, A2, A3, A4, A5, F: (A1, A2, A3, A4, A5) => void>(options: {|
-  handler: F,
-  type: string,
-  method: string | ((...Array<any>) => string),
-  reason: string,
-  extra: Object | ((...Array<any>) => Object),
-  // we only want to enfoce a single callback on some wrapped things
-  enforceOnlyOnce: boolean,
-|}): F {
+function _wrap<A1, A2, A3, A4, A5, F extends (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5) => void>(options: {
+  handler: F
+  type: string
+  method: string | ((...args: Array<any>) => string)
+  reason: string
+  extra: Object | ((...args: Array<any>) => Object)
+  enforceOnlyOnce: boolean
+}): F {
   const {handler, extra, method, type, enforceOnlyOnce, reason} = options
   let once = false
-  // $ForceType
+
+  // @ts-ignore codemode issue
   const wrapped: F = (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5): void => {
     const m = typeof method === 'string' ? method : method && method(a1, a2, a3, a4, a5)
     const e = typeof extra === 'object' ? extra : extra && extra(a1, a2, a3, a4, a5)
@@ -47,7 +46,7 @@ function _wrap<A1, A2, A3, A4, A5, F: (A1, A2, A3, A4, A5) => void>(options: {|
 }
 
 // Logging for rpcs
-function rpcLog(info: {method: string, reason: string, extra?: Object, type: string}): void {
+function rpcLog(info: {method: string; reason: string; extra?: Object; type: string}): void {
   if (!printRPC) {
     return
   }
@@ -71,7 +70,12 @@ function rpcLog(info: {method: string, reason: string, extra?: Object, type: str
   )
 }
 
-type InvokeArgs = {|program: string, method: string, args: [Object], notify: boolean|}
+type InvokeArgs = {
+  program: string
+  method: string
+  args: [Object]
+  notify: boolean
+}
 
 class TransportShared extends RobustTransport {
   constructor(
@@ -82,8 +86,10 @@ class TransportShared extends RobustTransport {
   ) {
     super(opts)
 
+    // @ts-ignore codemode issue
     this.hooks = {
       connected: () => {
+        // @ts-ignore codemode issue
         this.needsConnect = false
         connectCallback && connectCallback()
       },
@@ -99,6 +105,7 @@ class TransportShared extends RobustTransport {
         incomingRPCCallback(payload)
       }
 
+      // @ts-ignore codemode issue
       this.set_generic_handler(
         _wrap({
           enforceOnlyOnce: false,
