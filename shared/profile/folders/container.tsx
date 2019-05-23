@@ -103,16 +103,10 @@ const mergeProps = (stateProps, dispatchProps, {profileUsername}) => ({
             })),
         ],
 })
-// @ts-ignore codemode issue
-const hasFolders = namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'ConnectedFolders'
-)(Folders)
+const hasFolders = namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedFolders')(Folders)
 
-// @ts-ignore codemode issue
-const noFolders = namedConnect<OwnProps, _, _, _, _>(
+// @ts-ignore
+const noFolders: typeof hasFolders = namedConnect(
   () => ({}),
   () => ({}),
   () => ({loadTlfs: () => {}, tlfs: []}),
