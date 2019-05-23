@@ -585,7 +585,7 @@ func TestSimpleFSRemoteSrcDir(t *testing.T) {
 	destPath, err = makeDestPath(
 		context.TODO(),
 		tc.G,
-		SimpleFSMock{},
+		testStatter,
 		srcPathInitial,
 		destPathInitial,
 		true,
