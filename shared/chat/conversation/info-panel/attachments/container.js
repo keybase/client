@@ -72,8 +72,8 @@ const mergeProps = (stateProps, dispatchProps, {conversationIDKey}) => ({
     thumbs: stateProps._media.messages
       .map(m => ({
         ctime: m.timestamp,
-        duration: m.videoDuration,
         height: m.previewHeight,
+        isVideo: !!m.videoDuration,
         onClick: () => dispatchProps._onMediaClick(m),
         previewURL: m.previewURL,
         width: m.previewWidth,

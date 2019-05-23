@@ -1162,7 +1162,9 @@ const rootReducer = (
           return info.merge({
             messages:
               info.messages.findIndex(item => item.id === action.payload.message.id) < 0
-                ? info.messages.push(action.payload.message)
+                ? info.messages.push(action.payload.message).sort((l, r) => {
+                    return r.id - l.id
+                  })
                 : info.messages,
           })
         }

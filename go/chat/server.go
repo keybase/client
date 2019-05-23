@@ -2925,7 +2925,7 @@ func (h *Server) LoadGallery(ctx context.Context, arg chat1.LoadGalleryArg) (res
 		if err != nil {
 			return res, err
 		}
-		msgID = conv.Conv.ReaderInfo.MaxMsgid
+		msgID = conv.Conv.ReaderInfo.MaxMsgid + 1
 	}
 
 	hitCh := make(chan chat1.MessageUnboxed)

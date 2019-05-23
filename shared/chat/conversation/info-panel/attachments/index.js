@@ -7,8 +7,8 @@ import * as Styles from '../../../../styles'
 
 type Thumb = {|
   ctime: number,
-  duration?: string,
   height: number,
+  isVideo: boolean,
   onClick: () => void,
   previewURL: string,
   width: number,
@@ -182,6 +182,11 @@ class MediaView extends React.Component<MediaProps> {
               <Kb.ClickableBox onClick={cell.thumb.onClick} style={{...cell.sizing.margins}}>
                 <Kb.Image src={cell.thumb.previewURL} style={{...cell.sizing.dims}} />
               </Kb.ClickableBox>
+              {!!cell.thumb.isVideo && (
+                <Kb.Box style={styles.durationContainer}>
+                  <Kb.Icon type="icon-film-64" style={Kb.iconCastPlatformStyles(styles.filmIcon)} />
+                </Kb.Box>
+              )}
             </Kb.Box2>
           )
         })}
@@ -353,6 +358,15 @@ const styles = Styles.styleSheetCreate({
   docRowContainer: {
     padding: Styles.globalMargins.tiny,
   },
+  durationContainer: {
+    alignSelf: 'flex-start',
+    bottom: Styles.globalMargins.xtiny,
+    position: 'absolute',
+    right: Styles.globalMargins.xtiny,
+  },
+  filmIcon: {
+    height: 16,
+  },
   loadMore: {
     margin: Styles.globalMargins.tiny,
   },
@@ -366,6 +380,7 @@ const styles = Styles.styleSheetCreate({
   },
   thumbContainer: {
     overflow: 'hidden',
+    position: 'relative',
   },
 })
 
