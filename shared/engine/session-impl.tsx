@@ -1,10 +1,11 @@
-// @flow
-import type {SessionID, EndHandlerType, MethodKey} from './types'
-import type {CustomResponseIncomingCallMap, IncomingCallMapType} from '../constants/types/rpc-gen'
-import type {invokeType} from './index.platform'
+import {SessionID, EndHandlerType, MethodKey} from './types'
+import {
+  constantsStatusCode,
+  CustomResponseIncomingCallMap,
+  IncomingCallMapType,
+} from '../constants/types/rpc-gen'
+import {rpcLog, invokeType} from './index.platform'
 import {IncomingRequest, OutgoingRequest} from './request'
-import {constantsStatusCode} from '../constants/types/rpc-gen'
-import {rpcLog} from './index.platform'
 import {RPCError} from '../util/errors'
 import {measureStart, measureStop} from '../util/user-timings'
 import {getEngine} from './require'
@@ -23,35 +24,35 @@ class Session {
   // Let the outside know we're waiting
   _waitingKey: WaitingKey
   // Tell engine we're done
-  _endHandler: ?EndHandlerType
+  _endHandler: EndHandlerType | null
   // Sequence IDs we've seen. Value is true if we've responded (often we get cancel after we've replied)
-  _seqIDResponded: {[key: string]: boolean} = {}
+  _seqIDResponded: {[K in string]: boolean} = {}
   // If you want to know about being cancelled
   // eslint-disable-next-line no-use-before-define
-  _cancelHandler: ?CancelHandlerType
+  _cancelHandler: CancelHandlerType | null
   // If true this session exists forever
   _dangling: boolean
   // Name of the start method, just to help debug
-  _startMethod: ?MethodKey
+  _startMethod: MethodKey | null
   // Start callback so we can cancel our own callback
-  _startCallback: ?(err: RPCError, ...args: Array<any>) => void
+  _startCallback: (err?: RPCError, ...args: Array<any>) => void | null
 
   // Allow us to make calls
   _invoke: invokeType
 
   // Outstanding requests
-  _outgoingRequests: Array<Object> = []
-  _incomingRequests: Array<Object> = []
+  _outgoingRequests: Array<any> = []
+  _incomingRequests: Array<any> = []
 
   constructor(p: {
-    sessionID: SessionID,
-    incomingCallMap: ?IncomingCallMapType,
-    customResponseIncomingCallMap: ?CustomResponseIncomingCallMap,
-    waitingKey?: WaitingKey,
-    invoke: invokeType,
-    endHandler: EndHandlerType,
-    cancelHandler?: ?CancelHandlerType,
-    dangling?: boolean,
+    sessionID: SessionID
+    incomingCallMap: IncomingCallMapType | null
+    customResponseIncomingCallMap: CustomResponseIncomingCallMap | null
+    waitingKey?: WaitingKey
+    invoke: invokeType
+    endHandler: EndHandlerType
+    cancelHandler?: CancelHandlerType | null
+    dangling?: boolean
   }) {
     this._id = p.sessionID
     this._incomingCallMap = p.incomingCallMap || {}
@@ -75,7 +76,7 @@ class Session {
 
   // Make a waiting handler for the request. We add additional data before calling the parent waitingHandler
   // and do internal bookkeeping if the request is done
-  _makeWaitingHandler(isOutgoing: boolean, method: MethodKey, seqid: ?number) {
+  _makeWaitingHandler(isOutgoing: boolean, method: MethodKey, seqid?: number | null) {
     return (waiting: boolean, err: any) => {
       rpcLog({
         extra: {
@@ -126,7 +127,7 @@ class Session {
   }
 
   // Start the session normally. Tells engine we're done at the end
-  start(method: MethodKey, param: Object, callback: ?() => void) {
+  start(method: MethodKey, param: Object, callback: () => void | null) {
     this._startMethod = method
     this._startCallback = callback
 
@@ -164,7 +165,7 @@ class Session {
   }
 
   // We have an incoming call tied to a sessionID, called only by engine
-  incomingCall(method: MethodKey, param: Object, response: ?Object): boolean {
+  incomingCall(method: MethodKey, param: Object, response: any): boolean {
     measureStart(`engine:${method}:${this.getId()}`)
     rpcLog({
       extra: {
@@ -187,18 +188,22 @@ class Session {
       return false
     }
 
+    // @ts-ignore codemode issue
     if (response && response.seqid) {
       this._seqIDResponded[String(response.seqid)] = false
     }
 
+    // @ts-ignore codemode issue
     const waitingHandler = this._makeWaitingHandler(false, method, response && response.seqid)
+    // @ts-ignore codemode issue
     const incomingRequest = new IncomingRequest(method, param, response, waitingHandler, handler)
     this._incomingRequests.push(incomingRequest)
     const actions = incomingRequest.handle()
 
     const arr = isArray(actions) ? actions : [actions]
-    // $FlowIssue private api
+    // @ts-ignore codemode issue
     const dispatch = getEngine().deprecatedGetDispatch()
+    // @ts-ignore codemode issue
     arr.forEach(a => !!a && dispatch(a))
 
     return true

@@ -16,4 +16,4 @@
 /shared/node_modules
 /shared/test/setupTestFrameworkScriptFile.js
 /shared/react-native/react-native-contacts
-/shared/custom-d.ts/rn-fetch-blob.d.ts
+*.d.ts
