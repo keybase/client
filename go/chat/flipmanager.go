@@ -1375,6 +1375,8 @@ func (m *FlipManager) LoadFlip(ctx context.Context, uid gregor1.UID, hostConvID 
 			// do nothing here, just replay if we are storing an error
 		default:
 			m.queueDirtyGameID(ctx, gameID, true)
+			res = make(chan chat1.UICoinFlipStatus, 1)
+			res <- stored.(chat1.UICoinFlipStatus)
 			return res
 		}
 	}
