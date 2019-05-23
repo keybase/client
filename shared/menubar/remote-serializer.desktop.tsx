@@ -1,4 +1,3 @@
-// @flow
 import * as Avatar from '../desktop/remote/sync-avatar-props.desktop'
 import {
   serialize as conversationSerialize,

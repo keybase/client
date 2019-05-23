@@ -1,17 +1,16 @@
-// @flow
 import * as FsTypes from '../constants/types/fs'
 import * as FsGen from '../actions/fs-gen'
 import * as ProfileGen from '../actions/profile-gen'
 import * as FsUtil from '../util/kbfs'
 import * as TimestampUtil from '../util/timestamp'
-import {type RemoteTlfUpdates} from '../fs/remote-container'
+import {RemoteTlfUpdates} from '../fs/remote-container'
 import {FilesPreview} from './files.desktop'
 import {remoteConnect, setDisplayName} from '../util/container'
 
-type State = {|
-  username: string,
-  fileRows: Array<RemoteTlfUpdates>,
-|}
+type State = {
+  username: string
+  fileRows: Array<RemoteTlfUpdates>
+}
 
 const mapStateToProps = (state: State) => ({
   _userTlfUpdates: state.fileRows,
@@ -53,6 +52,6 @@ const mergeProps = (stateProps, dispatchProps) => ({
   }),
 })
 
-export default remoteConnect<{||}, State, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps)(
+export default remoteConnect(mapStateToProps, mapDispatchToProps, mergeProps)(
   setDisplayName('FilesPreview')(FilesPreview)
 )

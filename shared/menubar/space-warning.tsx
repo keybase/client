@@ -1,13 +1,13 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 
-export type BannerType = 'warning' | 'failure' | 'none'
+export type BannerType = "warning" | "failure" | "none";
+
 type Props = {
   onClose: () => void,
   onRetry: () => void,
-  bannerType: BannerType,
-}
+  bannerType: BannerType
+};
 
 const Banner = (props: Props) =>
   props.bannerType !== 'none' && (

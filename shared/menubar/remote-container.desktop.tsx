@@ -1,4 +1,3 @@
-// @flow
 import * as ConfigGen from '../actions/config-gen'
 import * as FsGen from '../actions/fs-gen'
 import Menubar from './index.desktop'
@@ -6,7 +5,7 @@ import openUrl from '../util/open-url'
 import {remoteConnect} from '../util/container'
 import {createOpenPopup as createOpenRekeyPopup} from '../actions/unlock-folders-gen'
 import {quit, hideWindow} from '../util/quit-helper.desktop'
-import {loginTab, type AppTab} from '../constants/tabs'
+import {loginTab, AppTab} from '../constants/tabs'
 import {throttle} from 'lodash-es'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as SafeElectron from '../util/safe-electron.desktop'
@@ -77,4 +76,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     ...ownProps,
   }
 }
-export default remoteConnect<{||}, any, _, _, _, _>(state => state, mapDispatchToProps, mergeProps)(Menubar)
+export default remoteConnect(state => state, mapDispatchToProps, mergeProps)(Menubar)

@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
@@ -6,18 +5,21 @@ import * as ChatTypes from '../constants/types/chat2'
 import * as SmallTeam from '../chat/inbox/row/small-team'
 import * as RemoteContainer from '../chat/inbox/container/remote'
 
-type ConvRow = {|
-  ...$Exact<RemoteContainer.RemoteConvMeta>,
+type ConvRow = {
   conversationIDKey: ChatTypes.ConversationIDKey,
-  onSelectConversation: () => void,
-|}
+  onSelectConversation: () => void
+} & RemoteContainer.RemoteConvMeta;
 
 type ChatPreviewProps = {
   onViewAll: () => void,
-  convRows: Array<ConvRow>,
-}
+  convRows: Array<ConvRow>
+};
 
-export const ChatPreview = ({onViewAll, onSelectConversation, convRows}: ChatPreviewProps) => (
+export const ChatPreview = ({
+  onViewAll,
+  onSelectConversation,
+  convRows
+}: ChatPreviewProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.chatContainer}>
     {convRows.map(r => {
       return <SmallTeam.SmallTeam key={r.conversationIDKey} {...r} />

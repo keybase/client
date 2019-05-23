@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as ConfigTypes from '../constants/types/config'
@@ -11,9 +10,9 @@ import {isDarwin} from '../constants/platform'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import OutOfDate from './out-of-date'
 import Upload from '../fs/footer/upload'
-import UploadCountdownHOC, {type UploadCountdownHOCProps} from '../fs/footer/upload-countdown-hoc'
+import UploadCountdownHOC, { UploadCountdownHOCProps } from '../fs/footer/upload-countdown-hoc';
 import KbfsDaemonNotRunning from '../fs/common/kbfs-daemon-not-running'
-import type {DaemonHandshakeState} from '../constants/types/config'
+import { DaemonHandshakeState } from '../constants/types/config';
 
 export type Props = {
   daemonHandshakeState: DaemonHandshakeState,
@@ -23,28 +22,30 @@ export type Props = {
   kbfsEnabled: boolean,
   updateNow: () => void,
   onRekey: (path: string) => void,
-  openApp: (tab: ?string) => void,
+  openApp: (tab: string | null) => void,
   outOfDate?: ConfigTypes.OutOfDate,
   showInFinder: () => void,
   quit: () => void,
   refreshUserFileEdits: () => void,
   showBug: () => void,
   showHelp: () => void,
-  showUser: (username: ?string) => void,
-  username: ?string,
+  showUser: (username: string | null) => void,
+  username: string | null,
   waitForKbfsDaemon: () => void,
-  badgeInfo: {[string]: number},
-} & UploadCountdownHOCProps
+  badgeInfo: {
+    [K in string]: number;
+  }
+} & UploadCountdownHOCProps;
 
-type State = {|
-  showingMenu: boolean,
-|}
+type State = {
+  showingMenu: boolean
+};
 
 const ArrowTick = () => <Kb.Box style={styles.arrowTick} />
 const UploadWithCountdown = UploadCountdownHOC(Upload)
 
 class MenubarRender extends React.Component<Props, State> {
-  state: State = {showingMenu: false}
+  state: State = {showingMenu: false};
   attachmentRef = React.createRef<Kb.Icon>()
 
   _refreshUserFileEditsOrWaitForKbfsDaemon = () =>

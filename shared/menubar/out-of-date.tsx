@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
@@ -7,14 +6,17 @@ import flags from '../util/feature-flags'
 
 type Props = {
   outOfDate?: ConfigTypes.OutOfDate,
-  updateNow?: () => void,
-}
+  updateNow?: () => void
+};
 
 const getOutOfDateText = (outOfDate: ConfigTypes.OutOfDate) =>
   `Your Keybase app is ${outOfDate.critical ? 'critically ' : ''}out of date` +
   (outOfDate.message ? `: ${outOfDate.message}` : '.')
 
-const OutOfDate = ({outOfDate, updateNow}: Props) =>
+const OutOfDate = ({
+  outOfDate,
+  updateNow
+}: Props) =>
   flags.outOfDateBanner &&
   !!outOfDate && (
     <Kb.Box2

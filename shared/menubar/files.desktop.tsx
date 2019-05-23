@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
@@ -6,18 +5,18 @@ import * as FsTypes from '../constants/types/fs'
 import {Filename} from '../fs/common'
 import ConnectedUsernames from '../common-adapters/usernames/remote-container'
 
-type FileUpdateProps = {|
+type FileUpdateProps = {
   path: FsTypes.Path,
   tlfType: FsTypes.TlfType,
   uploading: boolean,
-  onClick: () => void,
-|}
+  onClick: () => void
+};
 
-type FileUpdatesProps = {|
-  updates: Array<FileUpdateProps>,
-|}
+type FileUpdatesProps = {
+  updates: Array<FileUpdateProps>
+};
 
-export type UserTlfUpdateRowProps = {|
+export type UserTlfUpdateRowProps = {
   onClickAvatar: () => void,
   onSelectPath: () => void,
   path: FsTypes.Path,
@@ -28,12 +27,12 @@ export type UserTlfUpdateRowProps = {|
   timestamp: string,
   tlf: string,
   updates: Array<FileUpdateProps>,
-  username: string,
-|}
+  username: string
+};
 
-type FilesPreviewProps = {|
-  userTlfUpdates: Array<UserTlfUpdateRowProps>,
-|}
+type FilesPreviewProps = {
+  userTlfUpdates: Array<UserTlfUpdateRowProps>
+};
 
 export const FileUpdate = (props: FileUpdateProps) => (
   <Kb.ClickableBox onClick={props.onClick} style={styles.fullWidth}>
@@ -50,11 +49,11 @@ export const FileUpdate = (props: FileUpdateProps) => (
 )
 
 type FileUpdatesState = {
-  isShowingAll: boolean,
-}
+  isShowingAll: boolean
+};
 
 const FileUpdatesHoc = (ComposedComponent: React.ComponentType<any>) =>
-  class extends React.PureComponent<FileUpdatesProps, FileUpdatesState> {
+  (class extends React.PureComponent<FileUpdatesProps, FileUpdatesState> {
     state = {
       isShowingAll: false,
     }
@@ -67,16 +66,16 @@ const FileUpdatesHoc = (ComposedComponent: React.ComponentType<any>) =>
         />
       )
     }
-  }
+  })
 
-type FileUpdatesHocProps = {|
+type FileUpdatesHocProps = {
   onShowAll: () => void,
-  isShowingAll: boolean,
-|}
+  isShowingAll: boolean
+};
 
-type ShowAllProps = FileUpdatesHocProps & {|
-  numUpdates: number,
-|}
+type ShowAllProps = FileUpdatesHocProps & {
+  numUpdates: number
+};
 
 const FileUpdatesShowAll = (props: ShowAllProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={false} style={styles.buttonContainer}>

@@ -1,20 +1,20 @@
-// @flow
 import React, {Component} from 'react'
 import {Box, Button, Input, Icon} from '../common-adapters'
 import {globalColors, globalStyles, desktopStyles, platformStyles} from '../styles'
 import {defaultKBFSPath} from '../constants/config'
 
-export type Props = {|
-  isPublic: boolean,
-  onAdded: (path: string) => void,
-  username: ?string,
-|}
-type State = {|
-  showingInput: boolean,
-  text: string,
-|}
+export type Props = {
+  isPublic: boolean
+  onAdded: (path: string) => void
+  username: string | null
+}
 
-const UserButton = ({isPublic, onClick}: {isPublic: boolean, onClick: () => void}) => (
+type State = {
+  showingInput: boolean
+  text: string
+}
+
+const UserButton = ({isPublic, onClick}: {isPublic: boolean; onClick: () => void}) => (
   <Box
     style={{
       ...stylesButtonContainer,
@@ -34,12 +34,12 @@ const UserButton = ({isPublic, onClick}: {isPublic: boolean, onClick: () => void
 )
 
 type UserInputProps = {
-  isPublic: boolean,
-  onSubmit: () => void,
-  onCancel: () => void,
-  onUpdateText: () => void,
-  username: ?string,
-  text: string,
+  isPublic: boolean
+  onSubmit: () => void
+  onCancel: () => void
+  onUpdateText: (string) => void
+  username: string | null
+  text: string
 }
 
 const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username, text}: UserInputProps) => {

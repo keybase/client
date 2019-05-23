@@ -1,4 +1,3 @@
-// @flow
 // A mirror of the remote menubar windows.
 import * as React from 'react'
 import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
@@ -12,12 +11,12 @@ import {uploadsToUploadCountdownHOCProps} from '../fs/footer/upload-container'
 const windowOpts = {}
 
 type Props = {
-  externalRemoteWindow: SafeElectron.BrowserWindowType,
-  windowComponent: string,
-  windowOpts?: Object,
-  windowParam: string,
-  windowPositionBottomRight?: boolean,
-  windowTitle: string,
+  externalRemoteWindow: SafeElectron.BrowserWindowType
+  windowComponent: string
+  windowOpts?: Object
+  windowParam: string
+  windowPositionBottomRight?: boolean
+  windowTitle: string
 }
 
 // Like RemoteWindow but the browserWindow is handled by the 3rd party menubar class and mostly lets it handle things
@@ -84,14 +83,13 @@ const mergeProps = stateProps => {
 }
 
 const RenderExternalWindowBranch = (ComposedComponent: React.ComponentType<any>) =>
-  class extends React.PureComponent<{externalRemoteWindow: ?Object}> {
+  class extends React.PureComponent<{
+    externalRemoteWindow: Object | null
+  }> {
     render = () => (this.props.externalRemoteWindow ? <ComposedComponent {...this.props} /> : null)
   }
 
 // Actions are handled by remote-container
-export default namedConnect<Props | {}, _, _, _, _>(
-  mapStateToProps,
-  () => ({}),
-  mergeProps,
-  'MenubarRemoteProxy'
-)(RenderExternalWindowBranch(RemoteMenubarWindow(SyncAvatarProps(SyncProps(serialize)(NullComponent)))))
+export default namedConnect(mapStateToProps, () => ({}), mergeProps, 'MenubarRemoteProxy')(
+  RenderExternalWindowBranch(RemoteMenubarWindow(SyncAvatarProps(SyncProps(serialize)(NullComponent))))
+)
