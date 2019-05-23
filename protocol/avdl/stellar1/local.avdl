@@ -193,10 +193,10 @@ protocol local {
 
   // accountID should be the accountID that you want the details for.
   // This is used for formatting the `amountDescription` to know if it
-  // is a payment that increases or decreases the balance. 
+  // is a payment that increases or decreases the balance.
   PaymentDetailsLocal getPaymentDetailsLocal(int sessionID, AccountID accountID, PaymentID id);
- 
-  // only use getGenericPaymentDetailsLocal if you don't know the account ID. 
+
+  // only use getGenericPaymentDetailsLocal if you don't know the account ID.
   // Without account ID, we can't fill in a variety of information and we
   // can't handle multi-operation transactions.
   PaymentDetailsLocal getGenericPaymentDetailsLocal(int sessionID, PaymentID id);
@@ -306,7 +306,7 @@ protocol local {
 
     // Optional. Error to show with the amount field.
     // Example: "russel doesn't accept *BTC/Stronghold.com*\nPlease pick another asset."
-    // Example: "You have *128.4567890 XLM* available to send."
+    // Example: "You only have *128.4567890 XLM* available to send."
     string amountErrMsg;
 
     // Optional. Error to show with the encrypted note field.
@@ -540,7 +540,7 @@ protocol local {
   array<Balance> getTrustlinesLocal(int sessionID, AccountID accountID);
 
   record PaymentPathLocal {
-    string sourceDisplay;               // for display purposes 
+    string sourceDisplay;               // for display purposes
     string sourceMaxDisplay;
     string destinationDisplay;
     AccountID destinationAccount;

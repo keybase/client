@@ -1446,6 +1446,29 @@ func TestBuildPaymentLocal(t *testing.T) {
 		Message: fmt.Sprintf("Because it's %v's first transaction, you must send at least 1 XLM.", tcs[1].Fu.Username),
 	}})
 
+	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+		From:     senderAccountID,
+		To:       tcs[1].Fu.Username,
+		Amount:   "30",
+		Currency: &usd,
+	})
+	require.NoError(t, err)
+	t.Logf(spew.Sdump(bres))
+	require.Equal(t, false, bres.ReadyToReview)
+	require.Equal(t, "", bres.ToErrMsg)
+	require.Equal(t, "You have *$0.00 USD* worth of Lumens available to send.", bres.AmountErrMsg)
+	require.Equal(t, "", bres.SecretNoteErrMsg)
+	require.Equal(t, "", bres.PublicMemoErrMsg)
+	require.Equal(t, "94.2424166 XLM", bres.WorthDescription)
+	require.Equal(t, worthInfo, bres.WorthInfo)
+	require.False(t, bres.SendingIntentionXLM)
+	require.Equal(t, "94.2424166 XLM", bres.DisplayAmountXLM)
+	require.Equal(t, "$30.00 USD", bres.DisplayAmountFiat)
+	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
+		Level:   "info",
+		Message: fmt.Sprintf("Because it's %v's first transaction, you must send at least 1 XLM.", tcs[1].Fu.Username),
+	}})
+
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(senderAccountID, "20")
 	tcs[0].Backend.Gift(senderSecondaryAccountID, "30")
@@ -1463,7 +1486,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	t.Logf(spew.Sdump(bres))
 	require.Equal(t, false, bres.ReadyToReview)
 	require.Equal(t, "", bres.ToErrMsg)
-	require.Equal(t, "You have *18.9999900 XLM* available to send.", bres.AmountErrMsg)
+	require.Equal(t, "You only have *18.9999900 XLM* available to send.", bres.AmountErrMsg)
 	require.Equal(t, "", bres.SecretNoteErrMsg)
 	require.Equal(t, "", bres.PublicMemoErrMsg)
 	require.Equal(t, "$9.55 USD", bres.WorthDescription)
@@ -1490,7 +1513,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	t.Logf(spew.Sdump(bres))
 	require.Equal(t, false, bres.ReadyToReview)
 	require.Equal(t, "", bres.ToErrMsg)
-	require.Equal(t, "You have *$6.04 USD* available to send.", bres.AmountErrMsg)
+	require.Equal(t, "You only have *$6.04 USD* worth of Lumens available to send.", bres.AmountErrMsg)
 	require.Equal(t, "", bres.SecretNoteErrMsg)
 	require.Equal(t, "", bres.PublicMemoErrMsg)
 	require.Equal(t, "19.0055540 XLM", bres.WorthDescription)
@@ -1603,7 +1626,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	t.Logf(spew.Sdump(bres))
 	require.Equal(t, false, bres.ReadyToReview)
 	require.Equal(t, "", bres.ToErrMsg)
-	require.Equal(t, "You have *3.9999800 XLM* available to send.", bres.AmountErrMsg)
+	require.Equal(t, "You only have *3.9999800 XLM* available to send.", bres.AmountErrMsg)
 	require.Equal(t, "", bres.SecretNoteErrMsg)
 	require.Equal(t, "Memo is too long.", bres.PublicMemoErrMsg) // too many potatoes
 	require.Equal(t, "$4.77 USD", bres.WorthDescription)
@@ -1635,7 +1658,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	t.Logf(spew.Sdump(bres))
 	require.Equal(t, false, bres.ReadyToReview)
 	require.Equal(t, "", bres.ToErrMsg)
-	require.Equal(t, "You have *3.9999800 XLM* available to send.", bres.AmountErrMsg)
+	require.Equal(t, "You only have *3.9999800 XLM* available to send.", bres.AmountErrMsg)
 	require.Equal(t, "", bres.SecretNoteErrMsg)
 	require.Equal(t, "", bres.PublicMemoErrMsg)
 	require.Equal(t, "$1.27 USD", bres.WorthDescription)
