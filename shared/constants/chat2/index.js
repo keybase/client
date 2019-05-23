@@ -114,8 +114,9 @@ export const makeInboxSearchTextHit: I.RecordFactory<Types._InboxSearchTextHit> 
 })
 
 export const makeAttachmentViewInfo: I.RecordFactory<Types._AttachmentViewInfo> = I.Record({
-  status: 'loading',
+  last: false,
   messages: I.List(),
+  status: 'loading',
 })
 
 export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {

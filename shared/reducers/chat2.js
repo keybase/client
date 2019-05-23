@@ -1172,6 +1172,7 @@ const rootReducer = (
         ['attachmentViewMap', action.payload.conversationIDKey, action.payload.viewType],
         (info = Constants.makeAttachmentViewInfo()) => {
           return info.merge({
+            last: action.payload.last,
             status: action.payload.status,
           })
         }

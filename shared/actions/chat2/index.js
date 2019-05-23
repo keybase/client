@@ -1294,18 +1294,20 @@ function* loadAttachmentView(state, action, loggger) {
       : []
   }
   try {
-    yield RPCChatTypes.localLoadGalleryRpcSaga({
+    const res = yield RPCChatTypes.localLoadGalleryRpcSaga({
       incomingCallMap: {
         'chat.1.chatUi.chatLoadGalleryHit': onHit,
       },
       params: {
         convID: Types.keyToConversationID(conversationIDKey),
         fromMsgID: action.payload.fromMsgID,
-        num: action.payload.num,
+        num: 50,
         typ: viewType,
       },
     })
-    yield Saga.put(Chat2Gen.createSetAttachmentViewStatus({conversationIDKey, status: 'done', viewType}))
+    yield Saga.put(
+      Chat2Gen.createSetAttachmentViewStatus({conversationIDKey, last: res.last, status: 'success', viewType})
+    )
   } catch (e) {
     logger.error('failed to load attachment view: ' + e.message)
     yield Saga.put(Chat2Gen.createSetAttachmentViewStatus({conversationIDKey, status: 'error', viewType}))

@@ -60,15 +60,15 @@ func (g *Gallery) eligibleNextMessage(msg chat1.MessageUnboxed, typMap map[chat1
 }
 
 func (g *Gallery) NextMessage(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, msgID chat1.MessageID, opts NextMessageOptions) (res *chat1.MessageUnboxed, err error) {
-	msgs, err := g.NextMessages(ctx, uid, convID, msgID, 1, opts, nil)
+	convID chat1.ConversationID, msgID chat1.MessageID, opts NextMessageOptions) (res *chat1.MessageUnboxed, last bool, err error) {
+	msgs, last, err := g.NextMessages(ctx, uid, convID, msgID, 1, opts, nil)
 	if err != nil {
-		return res, err
+		return res, false, err
 	}
 	if len(msgs) == 0 {
-		return nil, nil
+		return nil, true, nil
 	}
-	return &msgs[0], nil
+	return &msgs[0], last, nil
 }
 
 func (g *Gallery) makeMaps(opts NextMessageOptions) (typMap map[chat1.MessageType]bool,
@@ -86,7 +86,7 @@ func (g *Gallery) makeMaps(opts NextMessageOptions) (typMap map[chat1.MessageTyp
 
 func (g *Gallery) NextMessages(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msgID chat1.MessageID, num int, opts NextMessageOptions,
-	uiCh chan chat1.MessageUnboxed) (res []chat1.MessageUnboxed, err error) {
+	uiCh chan chat1.MessageUnboxed) (res []chat1.MessageUnboxed, last bool, err error) {
 	defer g.Trace(ctx, func() error { return err }, "NextMessages")()
 	defer func() {
 		if uiCh != nil {
@@ -140,7 +140,7 @@ func (g *Gallery) NextMessages(ctx context.Context, uid gregor1.UID,
 	for {
 		select {
 		case <-ctx.Done():
-			return res, ctx.Err()
+			return res, false, ctx.Err()
 		default:
 		}
 		g.Debug(ctx, "NextMessage: starting scan: p: %s pivot: %d", pagination, pivot)
@@ -149,7 +149,7 @@ func (g *Gallery) NextMessages(ctx context.Context, uid gregor1.UID,
 				MessageTypes: opts.MessageTypes,
 			}, pagination)
 		if err != nil {
-			return res, err
+			return res, false, err
 		}
 		messages := reverseFn(tv)
 		for _, m := range messages {
@@ -161,7 +161,7 @@ func (g *Gallery) NextMessages(ctx context.Context, uid gregor1.UID,
 				uiCh <- m
 			}
 			if len(res) >= num {
-				return res, nil
+				return res, false, nil
 			}
 		}
 		g.Debug(ctx, "NextMessages: still need more (%d < %d): len: %d", len(res), num, len(tv.Messages))
@@ -170,5 +170,5 @@ func (g *Gallery) NextMessages(ctx context.Context, uid gregor1.UID,
 		}
 		pagination = nextPageFn(tv.Pagination)
 	}
-	return res, nil
+	return res, true, nil
 }

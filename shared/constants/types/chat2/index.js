@@ -95,6 +95,7 @@ export type AttachmentViewStatus = 'loading' | 'success' | 'error'
 export type _AttachmentViewInfo = {
   status: AttachmentViewStatus,
   messages: I.List<Message.Message>,
+  last: boolean,
 }
 
 export type AttachmentViewInfo = I.RecordOf<_AttachmentViewInfo>

@@ -5043,6 +5043,7 @@ func (e GalleryItemTyp) String() string {
 
 type LoadGalleryRes struct {
 	Messages         []UIMessage                   `codec:"messages" json:"messages"`
+	Last             bool                          `codec:"last" json:"last"`
 	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
@@ -5060,6 +5061,7 @@ func (o LoadGalleryRes) DeepCopy() LoadGalleryRes {
 			}
 			return ret
 		})(o.Messages),
+		Last: o.Last,
 		RateLimits: (func(x []RateLimit) []RateLimit {
 			if x == nil {
 				return nil

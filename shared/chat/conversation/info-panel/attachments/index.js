@@ -15,6 +15,7 @@ type Thumb = {|
 |}
 
 type MediaProps = {|
+  onLoadMore: null | (() => void),
   thumbs: Array<Thumb>,
   status: Types.AttachmentViewStatus,
 |}
@@ -31,13 +32,14 @@ type Doc = {|
 
 type DocProps = {|
   docs: Array<Doc>,
+  onLoadMore: null | (() => void),
   status: Types.AttachmentViewStatus,
 |}
 
 type Props = {|
   docs: DocProps,
   media: MediaProps,
-  onViewChange: (RPCChatTypes.GalleryItemTyp, number) => void,
+  onViewChange: RPCChatTypes.GalleryItemTyp => void,
 |}
 
 type State = {|
@@ -99,6 +101,25 @@ const formMonths = thumbs => {
   return months
 }
 
+const createLoadMoreSection = onLoadMore => {
+  return {
+    data: ['load more'],
+    renderItem: () => {
+      return (
+        !!onLoadMore && (
+          <Kb.Button
+            type="Default"
+            mode="Secondary"
+            label="Load more"
+            onClick={onLoadMore}
+            style={styles.loadMore}
+          />
+        )
+      )
+    },
+  }
+}
+
 class MediaView extends React.Component<MediaProps> {
   _clamp = thumb => {
     return thumb.height > thumb.width
@@ -146,6 +167,9 @@ class MediaView extends React.Component<MediaProps> {
   }
 
   _renderSectionHeader = ({section}) => {
+    if (!section.month) {
+      return null
+    }
     const label = `${section.month} ${section.year}`
     return <Kb.SectionDivider label={label} />
   }
@@ -170,6 +194,7 @@ class MediaView extends React.Component<MediaProps> {
       l.push(this._finalizeMonth(m))
       return l
     }, [])
+    const sections = months.concat(createLoadMoreSection(this.props.media.onLoadMore))
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         <Kb.SectionList
@@ -177,7 +202,7 @@ class MediaView extends React.Component<MediaProps> {
           renderSectionHeader={this._renderSectionHeader}
           keyboardShouldPersistTaps="handled"
           renderItem={this._renderRow}
-          sections={months}
+          sections={sections}
         />
       </Kb.Box2>
     )
@@ -186,6 +211,9 @@ class MediaView extends React.Component<MediaProps> {
 
 class DocView extends React.Component<DocProps> {
   _renderSectionHeader = ({section}) => {
+    if (!section.month) {
+      return null
+    }
     const label = `${section.month} ${section.year}`
     return <Kb.SectionDivider label={label} />
   }
@@ -225,6 +253,7 @@ class DocView extends React.Component<DocProps> {
   }
   render() {
     const months = formMonths(this.props.docs.docs)
+    const sections = months.concat(createLoadMoreSection(this.props.docs.onLoadMore))
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         <Kb.SectionList
@@ -232,7 +261,7 @@ class DocView extends React.Component<DocProps> {
           renderSectionHeader={this._renderSectionHeader}
           keyboardShouldPersistTaps="handled"
           renderItem={this._renderItem}
-          sections={months}
+          sections={sections}
         />
       </Kb.Box2>
     )
@@ -243,27 +272,15 @@ class AttachmentPanel extends React.Component<Props, State> {
   state = {selectedView: RPCChatTypes.localGalleryItemTyp.media}
 
   componentDidMount() {
-    this.props.onViewChange(this.state.selectedView, this._getViewNum(this.state.selectedView))
+    this.props.onViewChange(this.state.selectedView)
   }
 
   _getButtonMode = typ => {
     return this.state.selectedView === typ ? 'Primary' : 'Secondary'
   }
 
-  _getViewNum = view => {
-    switch (view) {
-      case RPCChatTypes.localGalleryItemTyp.media:
-        return 50
-      case RPCChatTypes.localGalleryItemTyp.link:
-        return 20
-      case RPCChatTypes.localGalleryItemTyp.doc:
-        return 25
-    }
-    return 10
-  }
-
   _selectView = view => {
-    this.props.onViewChange(view, this._getViewNum(view))
+    this.props.onViewChange(view)
     this.setState({selectedView: view})
   }
 
@@ -335,6 +352,9 @@ const styles = Styles.styleSheetCreate({
   },
   docRowContainer: {
     padding: Styles.globalMargins.tiny,
+  },
+  loadMore: {
+    margin: Styles.globalMargins.tiny,
   },
   mediaRowContainer: {
     minWidth: rowSize * maxThumbSize,

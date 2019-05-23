@@ -184,7 +184,7 @@ type _InboxSearchTextResultPayload = $ReadOnly<{|result: Types.InboxSearchTextHi
 type _JoinConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _JumpToRecentPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _LeaveConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, dontNavigateToInbox?: boolean|}>
-type _LoadAttachmentViewPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, viewType: RPCChatTypes.GalleryItemTyp, num: number, fromMsgID?: Types.MessageID|}>
+type _LoadAttachmentViewPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, viewType: RPCChatTypes.GalleryItemTyp, fromMsgID?: Types.MessageID|}>
 type _LoadMessagesCenteredPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, highlightMode: Types.CenterOrdinalHighlightMode|}>
 type _LoadNewerMessagesDueToScrollPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _LoadOlderMessagesDueToScrollPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
@@ -234,7 +234,7 @@ type _SelectConversationPayload = $ReadOnly<{|
   reason: 'focused' | 'clearSelected' | 'desktopNotification' | 'createdMessagePrivately' | 'extension' | 'files' | 'findNewestConversation' | 'inboxBig' | 'inboxFilterArrow' | 'inboxFilterChanged' | 'inboxSmall' | 'inboxNewConversation' | 'inboxSearch' | 'jumpFromReset' | 'jumpToReset' | 'justCreated' | 'manageView' | 'previewResolved' | 'push' | 'savedLastState' | 'startFoundExisting' | 'teamChat' | 'addedToChannel' | 'teamMention',
 |}>
 type _SendTypingPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, typing: boolean|}>
-type _SetAttachmentViewStatusPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, viewType: RPCChatTypes.GalleryItemTyp, status: Types.AttachmentViewStatus|}>
+type _SetAttachmentViewStatusPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, viewType: RPCChatTypes.GalleryItemTyp, status: Types.AttachmentViewStatus, last?: boolean|}>
 type _SetCommandMarkdownPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, md: ?RPCChatTypes.UICommandMarkdown|}>
 type _SetContainsLastMessagePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, contains: boolean|}>
 type _SetConvExplodingModePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, seconds: number|}>

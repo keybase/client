@@ -1081,7 +1081,7 @@ func (h *Server) GetNextAttachmentMessageLocal(ctx context.Context,
 		return res, err
 	}
 	gallery := attachments.NewGallery(h.G())
-	unboxed, err := gallery.NextMessage(ctx, uid, arg.ConvID, arg.MessageID,
+	unboxed, _, err := gallery.NextMessage(ctx, uid, arg.ConvID, arg.MessageID,
 		attachments.NextMessageOptions{
 			BackInTime: arg.BackInTime,
 			AssetTypes: arg.AssetTypes,
@@ -2935,11 +2935,12 @@ func (h *Server) LoadGallery(ctx context.Context, arg chat1.LoadGalleryArg) (res
 		}
 	}(ctx)
 	gallery := attachments.NewGallery(h.G())
-	msgs, err := gallery.NextMessages(ctx, uid, convID, msgID, arg.Num, opts, hitCh)
+	msgs, last, err := gallery.NextMessages(ctx, uid, convID, msgID, arg.Num, opts, hitCh)
 	if err != nil {
 		return res, err
 	}
 	return chat1.LoadGalleryRes{
+		Last:     last,
 		Messages: utils.PresentMessagesUnboxed(ctx, h.G(), msgs, uid, convID),
 	}, nil
 }

@@ -680,7 +680,6 @@
       "_description": "Load attachment view pane",
       "conversationIDKey": "Types.ConversationIDKey",
       "viewType": "RPCChatTypes.GalleryItemTyp",
-      "num": "number",
       "fromMsgID?": "Types.MessageID"
     },
     "addAttachmentViewMessage": {
@@ -693,7 +692,8 @@
       "_description": "Set attachment view status",
       "conversationIDKey": "Types.ConversationIDKey",
       "viewType": "RPCChatTypes.GalleryItemTyp",
-      "status": "Types.AttachmentViewStatus"
+      "status": "Types.AttachmentViewStatus",
+      "last?": "boolean"
     },
     "clearAttachmentView": {
       "_description": "Clear attachment views",

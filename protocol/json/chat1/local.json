@@ -3092,6 +3092,10 @@
           "name": "messages"
         },
         {
+          "type": "boolean",
+          "name": "last"
+        },
+        {
           "type": {
             "type": "array",
             "items": "RateLimit"
