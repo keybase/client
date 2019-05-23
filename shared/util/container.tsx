@@ -15,8 +15,8 @@ export const networkErrorCodes = [
 
 export const getRouteProps = (ownProps: any, key: string) => ownProps.navigation.getParam(key)
 
-type TypedDispatch = (action: TypedActions) => void
-type Dispatch = TypedDispatch
+export type TypedDispatch = (action: TypedActions) => void
+export type Dispatch = TypedDispatch
 
 export {
   branch,
@@ -39,4 +39,4 @@ export {isMobile} from '../constants/platform'
 export {anyWaiting, anyErrors} from '../constants/waiting'
 export {safeSubmit, safeSubmitPerMount} from './safe-submit'
 export {default as withSafeNavigation} from './safe-navigation'
-export {RouteProps, TypedActions, TypedState, TypedDispatch, Dispatch, PropsWithSafeNavigation}
+export {RouteProps, TypedActions, TypedState, PropsWithSafeNavigation}
