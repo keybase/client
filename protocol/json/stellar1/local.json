@@ -263,6 +263,14 @@
         },
         {
           "type": "boolean",
+          "name": "isadvancedtx"
+        },
+        {
+          "type": "string",
+          "name": "advancedsummary"
+        },
+        {
+          "type": "boolean",
           "name": "unread"
         },
         {
@@ -454,6 +462,21 @@
         {
           "type": "Asset",
           "name": "sourceAsset"
+        },
+        {
+          "type": "boolean",
+          "name": "isAdvancedTx"
+        },
+        {
+          "type": "string",
+          "name": "advancedSummary"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "operations"
         },
         {
           "type": "string",

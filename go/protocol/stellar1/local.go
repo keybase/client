@@ -211,6 +211,8 @@ type PaymentLocal struct {
 	SourceAmountMax     string          `codec:"sourceAmountMax" json:"sourceAmountMax"`
 	SourceAmountActual  string          `codec:"sourceAmountActual" json:"sourceAmountActual"`
 	SourceAsset         Asset           `codec:"sourceAsset" json:"sourceAsset"`
+	Isadvancedtx        bool            `codec:"isadvancedtx" json:"isadvancedtx"`
+	Advancedsummary     string          `codec:"advancedsummary" json:"advancedsummary"`
 	Unread              bool            `codec:"unread" json:"unread"`
 	BatchID             string          `codec:"batchID" json:"batchID"`
 	FromAirdrop         bool            `codec:"fromAirdrop" json:"fromAirdrop"`
@@ -259,6 +261,8 @@ func (o PaymentLocal) DeepCopy() PaymentLocal {
 		SourceAmountMax:     o.SourceAmountMax,
 		SourceAmountActual:  o.SourceAmountActual,
 		SourceAsset:         o.SourceAsset.DeepCopy(),
+		Isadvancedtx:        o.Isadvancedtx,
+		Advancedsummary:     o.Advancedsummary,
 		Unread:              o.Unread,
 		BatchID:             o.BatchID,
 		FromAirdrop:         o.FromAirdrop,
@@ -362,6 +366,9 @@ type PaymentDetailsLocal struct {
 	SourceAmountMax     string          `codec:"sourceAmountMax" json:"sourceAmountMax"`
 	SourceAmountActual  string          `codec:"sourceAmountActual" json:"sourceAmountActual"`
 	SourceAsset         Asset           `codec:"sourceAsset" json:"sourceAsset"`
+	IsAdvancedTx        bool            `codec:"isAdvancedTx" json:"isAdvancedTx"`
+	AdvancedSummary     string          `codec:"advancedSummary" json:"advancedSummary"`
+	Operations          []string        `codec:"operations" json:"operations"`
 	PublicNote          string          `codec:"publicNote" json:"publicNote"`
 	PublicNoteType      string          `codec:"publicNoteType" json:"publicNoteType"`
 	ExternalTxURL       string          `codec:"externalTxURL" json:"externalTxURL"`
@@ -413,12 +420,25 @@ func (o PaymentDetailsLocal) DeepCopy() PaymentDetailsLocal {
 		SourceAmountMax:     o.SourceAmountMax,
 		SourceAmountActual:  o.SourceAmountActual,
 		SourceAsset:         o.SourceAsset.DeepCopy(),
-		PublicNote:          o.PublicNote,
-		PublicNoteType:      o.PublicNoteType,
-		ExternalTxURL:       o.ExternalTxURL,
-		BatchID:             o.BatchID,
-		FromAirdrop:         o.FromAirdrop,
-		IsInflation:         o.IsInflation,
+		IsAdvancedTx:        o.IsAdvancedTx,
+		AdvancedSummary:     o.AdvancedSummary,
+		Operations: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Operations),
+		PublicNote:     o.PublicNote,
+		PublicNoteType: o.PublicNoteType,
+		ExternalTxURL:  o.ExternalTxURL,
+		BatchID:        o.BatchID,
+		FromAirdrop:    o.FromAirdrop,
+		IsInflation:    o.IsInflation,
 		InflationSource: (func(x *string) *string {
 			if x == nil {
 				return nil

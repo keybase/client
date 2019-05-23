@@ -110,6 +110,10 @@ protocol local {
     string sourceAmountActual;
     Asset sourceAsset;
 
+    // for non-payment txs, multiple ops:
+    boolean isadvancedtx;
+    string advancedsummary;         // if isadvancedtx is true, just show this string
+
     boolean unread;                 // true if user hasn't seen the payment yet (sourceType STELLAR only)
 
     string batchID;                 // if payment sent via batch, will contain the batch id
@@ -178,6 +182,11 @@ protocol local {
     string sourceAmountMax;
     string sourceAmountActual;
     Asset sourceAsset;
+    
+    // for non-payment txs, multiple ops:
+    boolean isAdvancedTx;
+    string advancedSummary;         // if isAdvancedTx is true, just show this string
+    array<string> operations;       // string summary of each operation in the transaction
 
     string publicNote;              // public memo for the payment
     string publicNoteType;          // public memo type: "text", "id", "hash", "return"

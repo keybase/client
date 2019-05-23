@@ -108,6 +108,9 @@ protocol remote {
     string sourceAmountMax;
     string sourceAmountActual;
     Asset sourceAsset;
+    boolean isAdvanced;     // true for non-payment transactions
+    string summaryAdvanced;   // one-line summary of the advanced tx
+    array<string> operations;   // string representations of each operation in the tx
   }
 
   record PaymentSummaryDirect {
