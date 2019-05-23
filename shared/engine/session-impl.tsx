@@ -1,5 +1,9 @@
 import {SessionID, EndHandlerType, MethodKey} from './types'
-import {constantsStatusCode, CustomResponseIncomingCallMap, Incomi} from '../constants/types/rpc-gen'
+import {
+  constantsStatusCode,
+  CustomResponseIncomingCallMap,
+  IncomingCallMapType,
+} from '../constants/types/rpc-gen'
 import {rpcLog, invokeType} from './index.platform'
 import {IncomingRequest, OutgoingRequest} from './request'
 import {RPCError} from '../util/errors'
