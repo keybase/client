@@ -888,18 +888,20 @@ type BalancesArg struct {
 }
 
 type DetailsArg struct {
-	Caller       keybase1.UserVersion `codec:"caller" json:"caller"`
-	AccountID    AccountID            `codec:"accountID" json:"accountID"`
-	IncludeMulti bool                 `codec:"includeMulti" json:"includeMulti"`
+	Caller          keybase1.UserVersion `codec:"caller" json:"caller"`
+	AccountID       AccountID            `codec:"accountID" json:"accountID"`
+	IncludeMulti    bool                 `codec:"includeMulti" json:"includeMulti"`
+	IncludeAdvanced bool                 `codec:"includeAdvanced" json:"includeAdvanced"`
 }
 
 type RecentPaymentsArg struct {
-	Caller       keybase1.UserVersion `codec:"caller" json:"caller"`
-	AccountID    AccountID            `codec:"accountID" json:"accountID"`
-	Cursor       *PageCursor          `codec:"cursor,omitempty" json:"cursor,omitempty"`
-	Limit        int                  `codec:"limit" json:"limit"`
-	SkipPending  bool                 `codec:"skipPending" json:"skipPending"`
-	IncludeMulti bool                 `codec:"includeMulti" json:"includeMulti"`
+	Caller          keybase1.UserVersion `codec:"caller" json:"caller"`
+	AccountID       AccountID            `codec:"accountID" json:"accountID"`
+	Cursor          *PageCursor          `codec:"cursor,omitempty" json:"cursor,omitempty"`
+	Limit           int                  `codec:"limit" json:"limit"`
+	SkipPending     bool                 `codec:"skipPending" json:"skipPending"`
+	IncludeMulti    bool                 `codec:"includeMulti" json:"includeMulti"`
+	IncludeAdvanced bool                 `codec:"includeAdvanced" json:"includeAdvanced"`
 }
 
 type PendingPaymentsArg struct {

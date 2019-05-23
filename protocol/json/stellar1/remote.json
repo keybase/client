@@ -965,6 +965,10 @@
         {
           "name": "includeMulti",
           "type": "boolean"
+        },
+        {
+          "name": "includeAdvanced",
+          "type": "boolean"
         }
       ],
       "response": "AccountDetails"
@@ -996,6 +1000,10 @@
         },
         {
           "name": "includeMulti",
+          "type": "boolean"
+        },
+        {
+          "name": "includeAdvanced",
           "type": "boolean"
         }
       ],
