@@ -160,7 +160,7 @@ const config = (_, {mode}) => {
 
   const commonConfig = makeCommonConfig()
   const nodeConfig = merge(commonConfig, {
-    entry: {node: './desktop/app/node.desktop.js'},
+    entry: {node: './desktop/app/node.desktop.tsx'},
     module: {rules: makeRules(true)},
     name: 'node',
     plugins: [
@@ -200,6 +200,7 @@ const config = (_, {mode}) => {
 
   const typeOverride = {
     pinentry: 'tsx',
+    main: 'tsx',
   }
 
   // multiple entries so we can chunk shared parts
