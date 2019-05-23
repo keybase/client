@@ -1013,7 +1013,7 @@ export const showSortSetting = (
 ) =>
   !isMobile &&
   path !== defaultPath &&
-  (Types.getPathLevel(path) === 2 || (pathItem.type === 'folder' && !!pathItem.size)) &&
+  (Types.getPathLevel(path) === 2 || (pathItem.type === 'folder' && !!pathItem.children.size)) &&
   !isOfflineUnsynced(kbfsDaemonStatus, pathItem, path)
 
 export const getSoftError = (softErrors: Types.SoftErrors, path: Types.Path): ?Types.SoftError => {
