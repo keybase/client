@@ -714,6 +714,19 @@ type FastTeamLoader interface {
 	Tombstone(MetaContext, keybase1.TeamID) error
 }
 
+type HiddenTeamChainManager interface {
+	// We got gossip about what the latest chain-tail should be, so racthet the
+	// chain forward; the next call to Advance() has to match.
+	Ratchet(MetaContext, keybase1.TeamID, keybase1.LinkTriple) error
+	// We got a bunch of new links downloaded via slow or fast loader, so add them
+	// onto the HiddenTeamChain state.
+	Advance(MetaContext, keybase1.HiddenTeamChainData) error
+	// Acceess the previously advanced state; lookup a PerTeamKey given the PerTeamKeyGeneration
+	PerTeamKeyAtGeneration(MetaContext, keybase1.TeamID, keybase1.PerTeamKeyGeneration) (*keybase1.PerTeamKey, error)
+	// Access the tail of the HiddenTeamChain, for embedding into gossip vectors.
+	Tail(MetaContext, keybase1.TeamID) (*keybase1.LinkTriple, error)
+}
+
 type TeamAuditor interface {
 	AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno) (err error)
 }
