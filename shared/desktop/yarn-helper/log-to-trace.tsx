@@ -23,7 +23,7 @@ const actionReg = /type: ([^ ]+) (.*)/
 const actionPayloadReg = /\\"/g
 
 const getSwimlane = line => {
-  const matched = swimlanesReg.find(s => s.exec(line) && s.toString())
+  const matched = swimlanesReg.find(s => s.exec(line) && !!s.toString())
   return matched && matched.toString()
 }
 

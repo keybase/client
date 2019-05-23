@@ -58,11 +58,15 @@ const mapPaths = skipUnmatchedFile => path => {
   const score = Number(counter)
   return !isNaN(score) ? {filePath: path, counter: score, name, size} : null
 }
-const getSvgNames = skipUnmatchedFile =>
+const getSvgNames = (
+  skipUnmatchedFile: boolean
+): Array<{filePath: string; counter: number; name: string; size: string}> =>
+  // @ts-ignore codemode issue
   fs
     .readdirSync(paths.iconfont)
     .map(mapPaths(skipUnmatchedFile))
     .filter(Boolean)
+    // @ts-ignore codemode issue
     .sort((x, y) => x.counter - y.counter)
 
 const getSvgPaths = skipUnmatchedFile =>

@@ -36,8 +36,11 @@ export default function() {
 
   const mainWindow = new Window(htmlFile, {
     backgroundThrottling: false,
-    frame: // Auto generated from flowToTs. Please clean me!
-    appState.state.useNativeFrame !== null && appState.state.useNativeFrame !== undefined ? appState.state.useNativeFrame : defaultUseNativeFrame,
+    // Auto generated from flowToTs. Please clean me!
+    frame:
+      appState.state.useNativeFrame !== null && appState.state.useNativeFrame !== undefined
+        ? appState.state.useNativeFrame
+        : defaultUseNativeFrame,
     height: appState.state.height,
     minHeight: 600,
     minWidth: 400,

@@ -33,6 +33,7 @@ export default function makeMenu(window: any) {
             // eslint-disable-line no-undef
             {
               accelerator: 'CmdOrCtrl+R',
+              // @ts-ignore codemode issue
               click: (item, focusedWindow) => focusedWindow && focusedWindow.reload(),
               label: 'Reload',
             },

@@ -36,6 +36,7 @@ export default function(
     return
   }
 
+  // @ts-ignore codemode issue
   fs.access(path, fs.X_OK, function(err) {
     if (err) {
       console.log('Exec path not found (or accessible as executable):', path)

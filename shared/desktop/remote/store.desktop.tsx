@@ -4,15 +4,15 @@
 // We start up and send a 'remoteWindowWantsProps' to the main window which then sends us 'props'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {sendToMainWindow} from './util.desktop'
-import { createStore, applyMiddleware, Store } from 'redux';
+import {createStore, applyMiddleware, Store} from 'redux'
 
 const updateStore = 'remoteStore:update'
 
 class RemoteStore {
-  _window: SafeElectron.BrowserWindowType | null;
-  _store: Store<any, any, any>;
-  _gotPropsCallback: () => void | null; // let component know it loaded once so it can show itself. Set to null after calling once
-  _deserialize: (arg0: any, arg1: any) => any;
+  _window: SafeElectron.BrowserWindowType | null
+  _store: Store<any, any>
+  _gotPropsCallback: () => void | null // let component know it loaded once so it can show itself. Set to null after calling once
+  _deserialize: (arg0: any, arg1: any) => any
 
   getStore = () => this._store
 
@@ -52,9 +52,9 @@ class RemoteStore {
   }
 
   constructor(props: {
-    windowComponent: string,
-    windowParam: string,
-    gotPropsCallback: () => void,
+    windowComponent: string
+    windowParam: string
+    gotPropsCallback: () => void
     deserialize: (arg0: any, arg1: any) => any
   }) {
     this._store = createStore(

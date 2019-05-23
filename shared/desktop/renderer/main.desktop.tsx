@@ -18,7 +18,9 @@ import {dumpLogs} from '../../actions/platform-specific/index.desktop'
 import {initDesktopStyles} from '../../styles/index.desktop'
 
 // Top level HMR accept
+// @ts-ignore codemode issue
 if (module.hot) {
+  // @ts-ignore codemode issue
   module.hot.accept()
 }
 
@@ -34,6 +36,7 @@ function setupStore() {
 
     _store = store
     if (__DEV__ && flags.admin) {
+      // @ts-ignore codemode issue
       window.DEBUGStore = _store
     }
   }
@@ -44,7 +47,7 @@ function setupStore() {
 function setupApp(store, runSagas) {
   disableDragDrop()
   const eng = makeEngine(store.dispatch, store.getState)
-  runSagas?.()
+  runSagas && runSagas()
   eng.sagasAreReady()
 
   setupContextMenu(SafeElectron.getRemote().getCurrentWindow())
@@ -121,8 +124,8 @@ function render(store, MainComponent) {
 }
 
 function setupHMR(store) {
-  const accept = // Auto generated from flowToTs. Please clean me!
-  module.hot === null || module.hot === undefined ? undefined : module.hot.accept
+  // @ts-ignore codemode issue
+  const accept = module.hot === null || module.hot === undefined ? undefined : module.hot.accept // Auto generated from flowToTs. Please clean me!
   if (!accept) {
     return
   }
@@ -139,11 +142,13 @@ function setupHMR(store) {
 }
 
 function load() {
+  // @ts-ignore codemode issue
   if (global.loaded) {
     // only load once
     console.log('Bail on load() on HMR')
     return
   }
+  // @ts-ignore codemode issue
   global.loaded = true
   initDesktopStyles()
   const {store, runSagas} = setupStore()

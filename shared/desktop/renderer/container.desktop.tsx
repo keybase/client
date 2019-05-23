@@ -6,10 +6,7 @@ import {GatewayProvider} from 'react-gateway'
 import '../renderer/style.css'
 
 // TODO put back <React.StrictMode> when we go to react-redux7
-const Root = ({
-  store,
-  children
-}: any) => (
+const Root = ({store, children}: any) => (
   <GlobalKeyEventHandler>
     <GatewayProvider>
       <Provider store={store}>{children}</Provider>

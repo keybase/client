@@ -13,22 +13,23 @@ import {initDesktopStyles} from '../../styles/index.desktop'
 
 disableDragDrop()
 
+// @ts-ignore codemode issue
 module.hot && module.hot.accept()
 
-type RemoteComponents = "unlock-folders" | "menubar" | "pinentry" | "tracker" | "tracker2";
+type RemoteComponents = 'unlock-folders' | 'menubar' | 'pinentry' | 'tracker' | 'tracker2'
 
 type Props = {
-  children: React.ElementType,
-  deserialize: (arg0: any, arg1: any) => any,
-  name: RemoteComponents,
-  params: string,
-  showOnProps: boolean,
+  children: React.ReactNode
+  deserialize: (arg0: any, arg1: any) => any
+  name: RemoteComponents
+  params: string
+  showOnProps: boolean
   style: Styles.StylesDesktop | null
-};
+}
 
 class RemoteComponentLoader extends React.Component<Props> {
-  _store: any;
-  _window: SafeElectron.BrowserWindowType | null;
+  _store: any
+  _window: SafeElectron.BrowserWindowType | null
 
   constructor(props) {
     super(props)
@@ -67,25 +68,27 @@ class RemoteComponentLoader extends React.Component<Props> {
   }
 }
 
-const styles = {
-  container: {
-    backgroundColor: Styles.globalColors.white,
-    display: 'block',
-    height: '100%',
-    overflow: 'hidden',
-    width: '100%',
-  },
+const styles = Styles.styleSheetCreate({
+  container: Styles.platformStyles({
+    isElectron: {
+      backgroundColor: Styles.globalColors.white,
+      display: 'block' as 'block',
+      height: '100%',
+      overflow: 'hidden',
+      width: '100%',
+    },
+  }),
   loading: {
     backgroundColor: Styles.globalColors.greyDark,
   },
-}
+})
 
 export default function(options: {
-  child: React.ElementType,
-  deserialize: (arg0: any, arg1: any) => any,
-  name: RemoteComponents,
-  params?: string,
-  style?: Styles.StylesDesktop,
+  child: React.ReactNode
+  deserialize: (arg0: any, arg1: any) => any
+  name: RemoteComponents
+  params?: string
+  style?: Styles.StylesDesktop
   showOnProps?: boolean
 }) {
   initDesktopStyles()
@@ -96,8 +99,10 @@ export default function(options: {
         name={options.name}
         params={options.params || ''}
         style={options.style}
-        showOnProps={// Auto generated from flowToTs. Please clean me!
-        options.showOnProps !== null && options.showOnProps !== undefined ? options.showOnProps : true}
+        showOnProps={
+          // Auto generated from flowToTs. Please clean me!
+          options.showOnProps !== null && options.showOnProps !== undefined ? options.showOnProps : true
+        }
         deserialize={options.deserialize}
       >
         {options.child}

@@ -79,7 +79,7 @@ const checkErrors = (result, errors, errorTypes) => {
   })
 }
 
-type CB = (err: any) => void;
+type CB = (err: any) => void
 const darwinInstall = (callback: CB) => {
   logger.info('[Installer]: Installer check starting now')
   const keybaseBin = keybaseBinPath()
@@ -102,15 +102,17 @@ const darwinInstall = (callback: CB) => {
       new Promise((resolve, reject) =>
         zlib.gzip(stderr, (error, res) => (error ? reject(error) : resolve(res)))
       ),
-    ]).then(([zStdout, zStderr]) =>
-      logger.info(
-        '[Installer]: got result from install-auto. To read, pipe the base64 strings to "| base64 -d | gzip -d".',
-        `stdout=${zStdout.toString('base64')}`,
-        `stderr=${zStderr.toString('base64')}`
+    ])
+      .then(([zStdout, zStderr]) =>
+        logger.info(
+          '[Installer]: got result from install-auto. To read, pipe the base64 strings to "| base64 -d | gzip -d".',
+          // @ts-ignore codemode issue
+          `stdout=${zStdout.toString('base64')}`,
+          // @ts-ignore codemode issue
+          `stderr=${zStderr.toString('base64')}`
+        )
       )
-    ).catch(err =>
-      logger.error('[Installer]: Error zipping up logs: ', err)
-    )
+      .catch(err => logger.error('[Installer]: Error zipping up logs: ', err))
 
   const handleResults = (err, attempted, stdout, stderr) => {
     const loggingPromise = logOutput(stdout, stderr)

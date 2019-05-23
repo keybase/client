@@ -3,36 +3,28 @@ import path from 'path'
 import json5 from 'json5'
 import fs from 'fs'
 
-type Payload = Object;
+type Payload = Object
 
 type ErrorPayload = {
   canError: string
-} & Payload;
+} & Payload
 
-type ActionNS = string;
-type ActionName = string;
-type ActionDesc = Payload | ErrorPayload;
+type ActionNS = string
+type ActionName = string
+type ActionDesc = any
 
-type Actions = {
-  [K in ActionName]: ActionDesc;
-};
+type Actions = {[K in ActionName]: ActionDesc}
 
 type FileDesc = {
-  prelude: Array<string>,
+  prelude: Array<string>
   actions: Actions
-};
+}
 
-type CompileActionFn = (ns: ActionNS, actionName: ActionName, desc: ActionDesc) => string;
+type CompileActionFn = (ns: ActionNS, actionName: ActionName, desc: ActionDesc) => string
 
 const reservedPayloadKeys = ['_description']
 
-function compile(
-  ns: ActionNS,
-  {
-    prelude,
-    actions
-  }: FileDesc
-): string {
+function compile(ns: ActionNS, {prelude, actions}: FileDesc): string {
   return `// @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 /* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
@@ -64,6 +56,7 @@ function compileAllActionsType(ns: ActionNS, actions: Actions): string {
   const actionsTypes = Object.keys(actions)
     .map(
       (name: ActionName) =>
+        // @ts-ignore codemode issue
         `${capitalize(name)}Payload` + (actions[name].canError ? `\n  | ${capitalize(name)}PayloadError` : '')
     )
     .sort()
@@ -78,7 +71,7 @@ function compileActions(ns: ActionNS, actions: Actions, compileActionFn: Compile
   return Object.keys(actions)
     .map((actionName: ActionName) => compileActionFn(ns, actionName, actions[actionName]))
     .sort()
-    .join('\n');
+    .join('\n')
 }
 
 function capitalize(s: string): string {

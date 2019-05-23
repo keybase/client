@@ -12,20 +12,18 @@ if (debugSerializer) {
 }
 
 type Props = {
-  clearCacheTrigger: number,
-  windowParam: string | null,
-  windowComponent: string,
+  clearCacheTrigger: number
+  windowParam: string | null
+  windowComponent: string
   remoteWindow: SafeElectron.BrowserWindowType | null
-};
+}
 
-type Serializer = {
-  [K in string]: (value: any, oldValue: any) => Object | null;
-};
+type Serializer = {[K in string]: (value: any, oldValue: any) => Object | null}
 
 function SyncPropsFactory(serializer: Serializer) {
   return function SyncProps(ComposedComponent: any) {
     class RemoteConnected extends React.PureComponent<Props> {
-      _lastProps: any;
+      _lastProps: any
 
       _sendProps = () => {
         if (this.props.remoteWindow) {
@@ -117,7 +115,7 @@ function SyncPropsFactory(serializer: Serializer) {
     }
 
     return RemoteConnected
-  };
+  }
 }
 
 export default SyncPropsFactory

@@ -8,23 +8,23 @@ import {connect} from '../../util/container'
 import {memoize} from '../../util/memoize'
 
 type OwnProps = {
-  usernames: I.Set<string>,
-  setUsernames: (arg0: I.Set<string>) => void,
-  remoteWindow: SafeElectron.BrowserWindowType | null,
-  windowComponent: string,
+  usernames: I.Set<string>
+  setUsernames: (arg0: I.Set<string>) => void
+  remoteWindow: SafeElectron.BrowserWindowType | null
+  windowComponent: string
   windowParam: string
-};
+}
 
 type Props = {
-  avatars: Object,
-  followers: I.Set<string>,
-  following: I.Set<string>,
-  remoteWindow: SafeElectron.BrowserWindowType | null,
-  setUsernames: (arg0: I.Set<string>) => void,
-  usernames: I.Set<string>,
-  windowComponent: string,
+  avatars: Object
+  followers: I.Set<string>
+  following: I.Set<string>
+  remoteWindow: SafeElectron.BrowserWindowType | null
+  setUsernames: (arg0: I.Set<string>) => void
+  usernames: I.Set<string>
+  windowComponent: string
   windowParam: string
-};
+}
 
 export const serialize = {
   avatars: (v: any, o: any) => {
@@ -73,8 +73,8 @@ function SyncAvatarProps(ComposedComponent: any) {
     _onRemoteActionFired = (
       event: any,
       action: {
-        type: string,
-        payload: Object
+        type: string
+        payload: any
       },
       windowComponent: string,
       windowParam: string
@@ -121,6 +121,7 @@ function SyncAvatarProps(ComposedComponent: any) {
       newAvatars.equals(oldAvatars) && newFollowers.equals(oldFollowers) && newFollowing.equals(oldFollowing)
   )
 
+  // @ts-ignore codemode issue
   const Connected = connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     () => ({}),
@@ -128,14 +129,17 @@ function SyncAvatarProps(ComposedComponent: any) {
   )(RemoteAvatarConnected)
 
   type WrapperProps = {
-    remoteWindow: SafeElectron.BrowserWindowType | null,
-    windowComponent: string,
+    remoteWindow: SafeElectron.BrowserWindowType | null
+    windowComponent: string
     windowParam: string
-  };
+  }
 
-  class Wrapper extends React.PureComponent<WrapperProps, {
-    usernames: I.Set<string>
-  }> {
+  class Wrapper extends React.PureComponent<
+    WrapperProps,
+    {
+      usernames: I.Set<string>
+    }
+  > {
     state = {usernames: I.Set()}
     setUsernames = (usernames: I.Set<string>) => this.setState({usernames})
     render() {
