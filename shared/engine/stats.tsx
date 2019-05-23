@@ -1,4 +1,3 @@
-// @flow
 // RPC stats. Not keeping this in redux so we don't get any thrashing
 
 const _stats = {

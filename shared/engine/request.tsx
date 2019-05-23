@@ -1,10 +1,9 @@
-// @flow
 // Incoming and outgoing requests that are in a session
-import type {MethodKey, ResponseType} from './types'
-import type {invokeType} from './index.platform'
-import type {RPCError} from '../util/errors'
+import {MethodKey, ResponseType} from './types'
+import {invokeType} from './index.platform'
+import {RPCError} from '../util/errors'
 
-type SimpleWaiting = (waiting: boolean, err: ?RPCError) => void
+type SimpleWaiting = (waiting: boolean, err: RPCError | null) => void
 
 // Base class. Handles method and parameters. Waiting callback
 class Request {
@@ -23,7 +22,7 @@ class Request {
     this._waitingHandler = waitingHandler
   }
 
-  updateWaiting(waiting: boolean, err: ?RPCError): void {
+  updateWaiting(waiting: boolean, err?: RPCError | null) {
     this._waiting = waiting
     this._waitingHandler(waiting, err)
   }
@@ -31,15 +30,15 @@ class Request {
 
 class IncomingRequest extends Request {
   // Callback in the incomingCallMap
-  _handler: (param: ?Object, request: ResponseType) => void
-  _response: ?ResponseType
+  _handler: (param: Object | null, request: ResponseType) => void
+  _response: ResponseType | null
 
   constructor(
     method: MethodKey,
     param: Object,
-    response: ?ResponseType,
+    response: ResponseType | null,
     waitingHandler: SimpleWaiting,
-    handler: Function
+    handler: any
   ) {
     super(method, param, waitingHandler)
 
@@ -87,12 +86,12 @@ class OutgoingRequest extends Request {
     this._callback = callback
   }
 
-  send(): void {
+  send() {
     this.updateWaiting(true)
     this._invoke(this.method, [this.param], (err, data) => this._sendCallback(err, data))
   }
 
-  _sendCallback(err: any, data: any): void {
+  _sendCallback(err: any, data: any) {
     this.updateWaiting(false, err)
     this._callback && this._callback(err, data)
   }
