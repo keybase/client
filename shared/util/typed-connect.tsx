@@ -17,7 +17,7 @@ export const namedConnect = <TOwnProps, TStateProps, TDispatchProps, TMergedProp
   mergeProps: MergeProps<TStateProps, TDispatchProps, TOwnProps, TMergedProps>,
   displayName: string,
   options?: Options<State, TStateProps, TOwnProps, TMergedProps>
-): InferableComponentEnhancerWithProps<TStateProps & ResolveThunks<TDispatchProps>, TOwnProps> =>
+): InferableComponentEnhancerWithProps<TMergedProps, TOwnProps> =>
   setDisplayName(displayName)(
     connect(
       mapStateToProps,
