@@ -1048,4 +1048,6 @@ protocol local {
   keybase1.UserReacjis putReacjiSkinTone(keybase1.ReacjiSkinTone skinTone);
 
   void resolveMaybeMention(MaybeMention mention);
+
+  UICoinFlipStatus loadFlip(ConversationID hostConvID, MessageID hostMsgID, ConversationID flipConvID, FlipGameID gameID);
 }

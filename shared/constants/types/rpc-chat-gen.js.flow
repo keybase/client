@@ -1574,6 +1574,7 @@ declare export function localUpdateUnsentTextRpcPromise(params: $PropertyType<$P
 // 'chat.1.local.joinConversationLocal'
 // 'chat.1.local.upgradeKBFSConversationToImpteam'
 // 'chat.1.local.putReacjiSkinTone'
+// 'chat.1.local.loadFlip'
 // 'chat.1.NotifyChat.NewChatActivity'
 // 'chat.1.NotifyChat.ChatIdentifyUpdate'
 // 'chat.1.NotifyChat.ChatTLFFinalize'

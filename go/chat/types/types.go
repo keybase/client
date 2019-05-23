@@ -489,7 +489,8 @@ func (d DummyCoinFlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedM
 }
 
 func (d DummyCoinFlipManager) LoadFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID,
-	hostMsgID chat1.MessageID, flipConvID chat1.ConversationID, gameID chat1.FlipGameID) {
+	hostMsgID chat1.MessageID, flipConvID chat1.ConversationID, gameID chat1.FlipGameID) chan chat1.UICoinFlipStatus {
+	return nil
 }
 
 func (d DummyCoinFlipManager) DescribeFlipText(ctx context.Context, text string) string { return "" }

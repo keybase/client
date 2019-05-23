@@ -2874,3 +2874,15 @@ func (h *Server) ResolveMaybeMention(ctx context.Context, mention chat1.MaybeMen
 	// Try to load as team
 	return h.G().TeamMentionLoader.LoadTeamMention(ctx, uid, mention, nil, true)
 }
+
+func (h *Server) LoadFlip(ctx context.Context, arg chat1.LoadFlipArg) (res chat1.UICoinFlipStatus, err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "LoadFlip")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	statusCh := h.G().CoinFlipManager.LoadFlip(ctx, uid, arg.HostConvID, arg.HostMsgID, arg.FlipConvID,
+		arg.GameID)
+	return <-statusCh, nil
+}
