@@ -203,6 +203,7 @@ const start = () => {
   SafeElectron.getApp().on('activate', handleActivate)
 
   // Don't quit the app, instead try to close all windows
+  // @ts-ignore not in the docs so maybe it doesn't exist anymore? scared to change it now
   SafeElectron.getApp().on('close-windows', handleCloseWindows)
 
   // quit through dock. only listen once

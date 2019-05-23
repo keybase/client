@@ -60,10 +60,10 @@ const getMainWindow = (): SafeElectron.BrowserWindowType | null => {
   return w
 }
 
-const sendToMainWindow = (...args: Array<any>): boolean => {
+const sendToMainWindow = (channel: string, ...args: Array<any>): boolean => {
   const mw = getMainWindow()
   if (mw) {
-    mw.webContents.send(...args)
+    mw.webContents.send(channel, ...args)
     return true
   }
   return false
