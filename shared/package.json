@@ -86,7 +86,8 @@
       "tsx",
       "jsx",
       "node",
-      "desktop.js"
+      "desktop.js",
+      "desktop.tsx"
     ],
     "transform": {
       "^.+\\.(js|jsx|ts|tsx)$": "babel-jest"
