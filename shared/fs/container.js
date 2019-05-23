@@ -9,9 +9,8 @@ import * as Types from '../constants/types/fs'
 import {isMobile} from '../constants/platform'
 import Folder from './folder/container'
 import {NormalPreview} from './filepreview'
-import Loading from './common/loading'
+import * as Kbfs from './common'
 import KbfsDaemonNotRunning from './common/kbfs-daemon-not-running'
-import LoadPathMetadataWhenNeeded from './common/load-path-metadata-when-needed'
 import Oops from './oops'
 import {Actions, MainBanner, MobileHeader, mobileHeaderHeight, Title} from './nav-header'
 
@@ -100,15 +99,15 @@ class ChooseComponent extends React.PureComponent<ChooseComponentProps> {
       case 'folder':
         return <Folder path={this.props.path} routePath={this.props.routePath} />
       case 'unknown':
-        return <Loading path={this.props.path} />
+        return <Kbfs.Loading path={this.props.path} />
       default:
         if (!this.props.mimeType) {
           // We don't have it yet, so don't render.
-          return <Loading path={this.props.path} />
+          return <Kbfs.Loading path={this.props.path} />
         }
         return useBare(this.props.mimeType) ? (
           // doesn't matter here as we do a navigateAppend for bare views
-          <Loading path={this.props.path} />
+          <Kbfs.Loading path={this.props.path} />
         ) : (
           <NormalPreview path={this.props.path} routePath={this.props.routePath} />
         )
@@ -118,12 +117,7 @@ class ChooseComponent extends React.PureComponent<ChooseComponentProps> {
     if (this.props.kbfsDaemonStatus.rpcStatus !== 'connected') {
       return <KbfsDaemonNotRunning />
     }
-    return (
-      <>
-        <LoadPathMetadataWhenNeeded path={this.props.path} refreshTag="main" />
-        {this.getContent()}
-      </>
-    )
+    return this.getContent()
   }
 }
 

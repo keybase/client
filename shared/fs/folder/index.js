@@ -53,21 +53,28 @@ const SelfReset = (props: Props) => (
   </Kb.Box2>
 )
 
-const Folder = (props: Props) => (
-  <Kb.BoxGrow>
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-      <Kbfs.Errs />
-      {props.resetBannerType === 'self' ? (
-        <SelfReset {...props} />
-      ) : props.offline ? (
-        <OfflineFolder path={props.path} />
-      ) : (
-        <WithContent {...props} />
-      )}
-      <Footer />
-    </Kb.Box2>
-  </Kb.BoxGrow>
-)
+const Folder = (props: Props) => {
+  Kbfs.useFsLoadEffect({
+    path: props.path,
+    refreshTag: 'main',
+    wantChildren: true,
+  })
+  return (
+    <Kb.BoxGrow>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+        <Kbfs.Errs />
+        {props.resetBannerType === 'self' ? (
+          <SelfReset {...props} />
+        ) : props.offline ? (
+          <OfflineFolder path={props.path} />
+        ) : (
+          <WithContent {...props} />
+        )}
+        <Footer />
+      </Kb.Box2>
+    </Kb.BoxGrow>
+  )
+}
 
 const styles = Styles.styleSheetCreate({
   contentContainer: {

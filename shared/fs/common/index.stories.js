@@ -24,7 +24,6 @@ const PathItemActionMenuHeaderProps = (props: any) => ({
   childrenFiles: 0,
   childrenFolders: 0,
   loadFolderList: Sb.action('loadFolderList'),
-  loadPathMetadata: Sb.action('loadPathMetadata'),
   path: props.path,
   size: 0,
   type: 'folder',
@@ -75,12 +74,6 @@ export const commonProvider = {
     onUpdate: Sb.action('onUpdate'),
     pathItem: Constants.makeFolder(),
     ...props,
-  }),
-  LoadPathMetadataWhenNeeded: ({path}: {path: Types.Path}) => ({
-    loadPathMetadataWithRefreshTag: Sb.action('loadPathMetadataWithRefreshTag'),
-    loadPathMetadataWithoutRefreshTag: Sb.action('loadPathMetadataWithoutRefreshTag'),
-    path,
-    syncingFoldersProgress: Constants.makeSyncingFoldersProgress(),
   }),
   NewFolder: ({path}: {path: Types.Path}) => ({
     canCreateNewFolder: Types.getPathLevel(path) > 2,

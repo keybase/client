@@ -3,7 +3,6 @@ import * as I from 'immutable'
 import React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
 import {isMobile} from '../../constants/platform'
 import {Box} from '../../common-adapters'
 import {WrapRow} from './rows'
@@ -95,13 +94,6 @@ export const rowsProvider = {
       type: 'folder',
     }
   },
-  LoadFilesWhenNeeded: ({path}: any) => ({
-    loadFavorites: Sb.action('loadFavorites'),
-    loadFolderListWithRefreshTag: Sb.action('loadFolderListWithRefreshTag'),
-    loadFolderListWithoutRefreshTag: Sb.action('loadFolderListWithoutRefreshTag'),
-    path,
-    syncingFoldersProgress: Constants.makeSyncingFoldersProgress(),
-  }),
   SortBar: ({path}: {path: Types.Path}) => ({
     folderIsPending: true,
     sortSetting: {

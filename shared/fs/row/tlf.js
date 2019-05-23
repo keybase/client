@@ -5,7 +5,7 @@ import * as Styles from '../../styles'
 import * as Constants from '../../constants/fs'
 import {rowStyles, StillCommon, type StillCommonProps} from './common'
 import * as Kb from '../../common-adapters'
-import {TlfInfo, LoadPathMetadataWhenNeeded} from '../common'
+import * as Kbfs from '../common'
 
 type TlfProps = StillCommonProps & {
   isNew: boolean,
@@ -16,34 +16,39 @@ type TlfProps = StillCommonProps & {
   routePath: I.List<string>,
 }
 
-const Tlf = (props: TlfProps) => (
-  <StillCommon
-    name={props.name}
-    path={props.path}
-    onOpen={props.onOpen}
-    inDestinationPicker={props.inDestinationPicker}
-    badge={props.isNew ? 'new' : null}
-    routePath={props.routePath}
-  >
-    {props.loadPathMetadata && <LoadPathMetadataWhenNeeded path={props.path} />}
-    <Kb.Box style={rowStyles.itemBox}>
-      <Kb.Box2 direction="horizontal" fullWidth={true}>
-        <Kb.Text
-          type={Constants.pathTypeToTextType('folder')}
-          style={Styles.collapseStyles([
-            rowStyles.rowText,
-            {color: Constants.getPathTextColor(props.path)},
-            styles.kerning,
-          ])}
-          lineClamp={Styles.isMobile ? 1 : undefined}
-        >
-          {props.name}
-        </Kb.Text>
-      </Kb.Box2>
-      <TlfInfo path={props.path} mode="row" />
-    </Kb.Box>
-  </StillCommon>
-)
+const Tlf = (props: TlfProps) => {
+  Kbfs.useFsLoadEffect({
+    path: props.path,
+    wantPathMetadata: !!props.loadPathMetadata,
+  })
+  return (
+    <StillCommon
+      name={props.name}
+      path={props.path}
+      onOpen={props.onOpen}
+      inDestinationPicker={props.inDestinationPicker}
+      badge={props.isNew ? 'new' : null}
+      routePath={props.routePath}
+    >
+      <Kb.Box style={rowStyles.itemBox}>
+        <Kb.Box2 direction="horizontal" fullWidth={true}>
+          <Kb.Text
+            type={Constants.pathTypeToTextType('folder')}
+            style={Styles.collapseStyles([
+              rowStyles.rowText,
+              {color: Constants.getPathTextColor(props.path)},
+              styles.kerning,
+            ])}
+            lineClamp={Styles.isMobile ? 1 : undefined}
+          >
+            {props.name}
+          </Kb.Text>
+        </Kb.Box2>
+        <Kbfs.TlfInfo path={props.path} mode="row" />
+      </Kb.Box>
+    </StillCommon>
+  )
+}
 
 const styles = Styles.styleSheetCreate({
   kerning: {letterSpacing: 0.2},
