@@ -1,23 +1,19 @@
 // Handles sending requests to the daemon
 // @ts-ignore codemode issue
 import logger from '../logger'
-import Session from './session'
+import Session, {CancelHandlerType} from './session'
 import {initEngine, initEngineSaga} from './require'
-import {convertToError} from '../util/errors'
+import {RPCError, convertToError} from '../util/errors'
 import {isMobile} from '../constants/platform'
-// @ts-ignore codemode issue
 import {localLog} from '../util/forward-logs'
 import {printOutstandingRPCs, isTesting} from '../local-debug'
-import {resetClient, createClient, rpcLog} from './index.platform'
+import {resetClient, createClient, rpcLog, createClientType} from './index.platform'
 import {createBatchChangeWaiting} from '../actions/waiting-gen'
 import engineSaga from './saga'
 import {throttle} from 'lodash-es'
-import {CancelHandlerType} from './session'
-import {createClientType} from './index.platform'
 import {CustomResponseIncomingCallMapType, IncomingCallMapType} from '.'
 import {SessionID, SessionIDKey, WaitingHandlerType, MethodKey} from './types'
 import {TypedState, Dispatch} from '../util/container'
-import {RPCError} from '../util/errors'
 
 type WaitingKey = string | Array<string>
 
