@@ -95,11 +95,11 @@ function payloadOptional(p: Object) {
 
 function printPayload(p: Object) {
   return payloadKeys(p).length
-    ? '$ReadOnly<{|' +
+    ? '{' +
         payloadKeys(p)
-          .map(key => `${key}: ${Array.isArray(p[key]) ? p[key].join(' | ') : p[key]}`)
+          .map(key => `readonly ${key}: ${Array.isArray(p[key]) ? p[key].join(' | ') : p[key]}`)
           .join(',\n') +
-        '|}>'
+        '}'
     : 'void'
 }
 
@@ -157,13 +157,11 @@ function compileReduxTypeConstant(ns: ActionNS, actionName: ActionName, desc: Ac
 
 const cleanName = c => c.replace(/-/g, '')
 function makeTypedActions(created) {
-  return `// @flow
-// NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
+  return `// NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 /* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
-  ${created.map(c => `import type {Actions as ${cleanName(c)}Actions} from './${c}-gen'`).join('\n')}
+  ${created.map(c => `import {Actions as ${cleanName(c)}Actions} from './${c}-gen'`).join('\n')}
 
-  export type TypedActions =
-    ${created.map(c => `| ${cleanName(c)}Actions`).join('')}
+  export type TypedActions = ${created.map(c => `${cleanName(c)}Actions`).join(' | ')}
 `
 }
 
@@ -178,19 +176,20 @@ function main() {
       created.push(ns)
       console.log(`Generating ${ns}`)
       const desc = json5.parse(fs.readFileSync(path.join(root, file)))
-      const outPath = path.join(root, '..', ns + '-gen.js')
+      const outPath = path.join(root, '..', ns + '-gen.tsx')
       // $FlowIssue
-      const generated = prettier.format(compile(ns, desc), prettier.resolveConfig.sync(outPath))
-      console.log(generated)
+      const generated = prettier.format(compile(ns, desc), {
+        ...prettier.resolveConfig.sync(outPath),
+        parser: 'typescript',
+      })
       fs.writeFileSync(outPath, generated)
     })
 
   console.log(`Generating typed-actions-gen`)
-  const outPath = path.join(root, '..', 'typed-actions-gen.js')
+  const outPath = path.join(root, '..', 'typed-actions-gen.tsx')
   const typedActions = makeTypedActions(created)
   // $FlowIssue
   const generated = prettier.format(typedActions, prettier.resolveConfig.sync(outPath))
-  console.log(generated)
   fs.writeFileSync(outPath, generated)
 }
 

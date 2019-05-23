@@ -5,7 +5,9 @@ import {PropsWithSafeNavigation} from './safe-navigation'
 import {constantsStatusCode} from '../constants/types/rpc-gen'
 
 export const NullComponent = () => null
-export const actionHasError = (a: Object) => a.hasOwnProperty('error')
+export const actionHasError = <NoError extends {}, HasError extends {error: boolean}>(
+  a: NoError | HasError
+): a is HasError => a.hasOwnProperty('error')
 
 export const networkErrorCodes = [
   constantsStatusCode.scgenericapierror,

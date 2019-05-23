@@ -404,11 +404,11 @@ function writeActions() {
 
             let response = ''
             if (projects[p].customResponseIncomingMaps[method]) {
-              response = `, response: {error: ${p}Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<${p}Types.MessageTypes, ${method}>, 'outParam'>) => void}`
+              response = `, response: {error: ${p}Types.IncomingErrorCallback, result: (param: Pick<Pick<${p}Types.MessageTypes, ${method}>, 'outParam'>) => void}`
             }
 
             map[name] = {
-              params: `$Exact<$PropertyType<$PropertyType<${p}Types.MessageTypes, ${method}>, 'inParam'>> & {|sessionID: number|}${response}`,
+              params: `Pick<Pick<${p}Types.MessageTypes, ${method}>, 'inParam'> & {sessionID: number}${response}`,
             }
             return map
           }, map)

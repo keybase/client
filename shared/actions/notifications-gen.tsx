@@ -1,3 +1,4 @@
+// @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 /* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
@@ -15,55 +16,54 @@ export const listenForNotifications = 'notifications:listenForNotifications'
 export const receivedBadgeState = 'notifications:receivedBadgeState'
 export const setBadgeCounts = 'notifications:setBadgeCounts'
 
-type _BadgeAppPayload = {
-  readonly key: Types.NotificationKeys,
-  readonly on: boolean,
-  readonly count?: number
-};
-
-type _ListenForKBFSNotificationsPayload = void;
-type _ListenForNotificationsPayload = void;
-
-type _ReceivedBadgeStatePayload = {
-  readonly badgeState: RPCTypes.BadgeState
-};
-
-type _SetBadgeCountsPayload = {
-  readonly counts: I.Map<Tabs.Tab, number>
-};
+// Payload Types
+type _BadgeAppPayload = {readonly key: Types.NotificationKeys; readonly on: boolean; readonly count?: number}
+type _ListenForKBFSNotificationsPayload = void
+type _ListenForNotificationsPayload = void
+type _ReceivedBadgeStatePayload = {readonly badgeState: RPCTypes.BadgeState}
+type _SetBadgeCountsPayload = {readonly counts: I.Map<Tabs.Tab, number>}
 
 // Action Creators
 export const createBadgeApp = (payload: _BadgeAppPayload) => ({payload, type: badgeApp})
-export const createListenForKBFSNotifications = (payload: _ListenForKBFSNotificationsPayload) => ({payload, type: listenForKBFSNotifications})
-export const createListenForNotifications = (payload: _ListenForNotificationsPayload) => ({payload, type: listenForNotifications})
-export const createReceivedBadgeState = (payload: _ReceivedBadgeStatePayload) => ({payload, type: receivedBadgeState})
+export const createListenForKBFSNotifications = (payload: _ListenForKBFSNotificationsPayload) => ({
+  payload,
+  type: listenForKBFSNotifications,
+})
+export const createListenForNotifications = (payload: _ListenForNotificationsPayload) => ({
+  payload,
+  type: listenForNotifications,
+})
+export const createReceivedBadgeState = (payload: _ReceivedBadgeStatePayload) => ({
+  payload,
+  type: receivedBadgeState,
+})
 export const createSetBadgeCounts = (payload: _SetBadgeCountsPayload) => ({payload, type: setBadgeCounts})
 
 // Action Payloads
-export type BadgeAppPayload = {
-  readonly payload: _BadgeAppPayload,
-  readonly type: "notifications:badgeApp"
-};
+export type BadgeAppPayload = {readonly payload: _BadgeAppPayload; readonly type: 'notifications:badgeApp'}
 export type ListenForKBFSNotificationsPayload = {
-  readonly payload: _ListenForKBFSNotificationsPayload,
-  readonly type: "notifications:listenForKBFSNotifications"
-};
+  readonly payload: _ListenForKBFSNotificationsPayload
+  readonly type: 'notifications:listenForKBFSNotifications'
+}
 export type ListenForNotificationsPayload = {
-  readonly payload: _ListenForNotificationsPayload,
-  readonly type: "notifications:listenForNotifications"
-};
+  readonly payload: _ListenForNotificationsPayload
+  readonly type: 'notifications:listenForNotifications'
+}
 export type ReceivedBadgeStatePayload = {
-  readonly payload: _ReceivedBadgeStatePayload,
-  readonly type: "notifications:receivedBadgeState"
-};
+  readonly payload: _ReceivedBadgeStatePayload
+  readonly type: 'notifications:receivedBadgeState'
+}
 export type SetBadgeCountsPayload = {
-  readonly payload: _SetBadgeCountsPayload,
-  readonly type: "notifications:setBadgeCounts"
-};
+  readonly payload: _SetBadgeCountsPayload
+  readonly type: 'notifications:setBadgeCounts'
+}
 
 // All Actions
 // prettier-ignore
-export type Actions = BadgeAppPayload | ListenForKBFSNotificationsPayload | ListenForNotificationsPayload | ReceivedBadgeStatePayload | SetBadgeCountsPayload | {
-  type: "common:resetStore",
-  payload: null
-};
+export type Actions =
+  | BadgeAppPayload
+  | ListenForKBFSNotificationsPayload
+  | ListenForNotificationsPayload
+  | ReceivedBadgeStatePayload
+  | SetBadgeCountsPayload
+  | {type: 'common:resetStore', payload: null}

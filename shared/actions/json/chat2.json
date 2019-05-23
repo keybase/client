@@ -4,7 +4,7 @@
     "import * as Types from '../constants/types/chat2'",
     "import * as TeamsTypes from '../constants/types/teams'",
     "import HiddenString from '../util/hidden-string'",
-    "import type {RetentionPolicy} from '../constants/types/retention-policy'"
+    "import {RetentionPolicy} from '../constants/types/retention-policy'"
   ],
   "actions": {
     "toggleSmallTeamsExpanded": {},
@@ -127,8 +127,8 @@
     // Got some inbox errors
     "metaReceivedError": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "error": "?RPCChatTypes.InboxUIItemError",
-      "username": "?string"
+      "error": "RPCChatTypes.InboxUIItemError | null",
+      "username": "string | null"
     },
     // We got a status update saying it was blocked or ignored
     "metaDelete": {
@@ -165,7 +165,7 @@
     // Start editing a message / or edit the last message / or clear editing
     "messageSetEditing": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "?Types.Ordinal",
+      "ordinal": "Types.Ordinal | null",
       "editLastUser?": "string"
     },
     // Start quoting a message / or clear quoting
@@ -549,7 +549,7 @@
     "setUnsentText": {
       "_description": "Set unsent text for a conversation",
       "conversationIDKey": "Types.ConversationIDKey",
-      "text": "?HiddenString"
+      "text": "HiddenString | null"
     },
     "updateUnreadline": {
       "_description": "Update the unreadline line position for a conversation",
@@ -570,7 +570,7 @@
     "setCommandMarkdown": {
       "_description": "Set command markdown for a conversation",
       "conversationIDKey": "Types.ConversationIDKey",
-      "md": "?RPCChatTypes.UICommandMarkdown"
+      "md": "RPCChatTypes.UICommandMarkdown | null"
     },
     "addUsersToChannel": {
       "_description": "Add a list of users to a conversation. Creates a SystemBulkAddToConv message.",

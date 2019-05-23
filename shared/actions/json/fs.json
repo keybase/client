@@ -52,7 +52,7 @@
     },
     "loadPathMetadata": {
       "path": "Types.Path",
-      "refreshTag?": "?Types.RefreshTag"
+      "refreshTag?": "Types.RefreshTag | null"
     },
     "sortSetting": {
       "path": "Types.Path",
@@ -107,7 +107,7 @@
     "journalUpdate": {
       "syncingPaths": "Array<Types.Path>",
       "totalSyncingBytes": "number",
-      "endEstimate?": "?number"
+      "endEstimate?": "number | null"
     },
     "openLocalPathInSystemFileManager": {
       "localPath": "string"
@@ -124,7 +124,7 @@
     "hideSystemFileManagerIntegrationBanner": {},
     "showSystemFileManagerIntegrationBanner": {},
     "driverEnable": {
-      "isRetry?": "?boolean"
+      "isRetry?": "boolean | null"
     },
     "driverDisable": {},
     "driverDisabling": {},
@@ -238,7 +238,7 @@
       "view": "Types.PathItemActionMenuView"
     },
     "setPathItemActionMenuDownloadKey": {
-      "key": "?string"
+      "key": "string | null"
     },
     "waitForKbfsDaemon": {},
     "kbfsDaemonRpcStatusChanged": {
@@ -252,11 +252,11 @@
     },
     "setPathSoftError": {
       "path": "Types.Path",
-      "softError": "?Types.SoftError"
+      "softError": "Types.SoftError | null"
     },
     "setTlfSoftError": {
       "path": "Types.Path",
-      "softError": "?Types.SoftError"
+      "softError": "Types.SoftError | null"
     },
     "loadSettings": {},
     "settingsLoaded": {

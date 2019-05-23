@@ -23,9 +23,9 @@
       "sessionID": "number",
       "prompt": "string",
       "windowTitle": "string",
-      "submitLabel": "?string",
-      "cancelLabel": "?string",
-      "retryLabel": "?string"
+      "submitLabel": "string | null",
+      "cancelLabel": "string | null",
+      "retryLabel": "string | null"
     },
     "onSubmit": {
       "sessionID": "number",

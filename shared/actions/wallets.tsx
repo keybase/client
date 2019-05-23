@@ -21,7 +21,7 @@ import flags from '../util/feature-flags'
 import {RPCError} from '../util/errors'
 import {isMobile} from '../constants/platform'
 import {actionHasError} from '../util/container'
-import { Action } from 'redux';
+import {Action} from 'redux'
 
 const stateToBuildRequestParams = state => ({
   amount: state.wallets.building.amount,
@@ -261,7 +261,7 @@ const loadWalletDisclaimer = state =>
     .then(accepted => WalletsGen.createWalletDisclaimerReceived({accepted}))
     .catch(() => {}) // handled by reloadable
 
-const loadAccounts = (state, action, logger) => {
+const loadAccounts = (state, action: WalletsGen.Actions, logger) => {
   if (!state.config.loggedIn) {
     logger.error('not logged in')
     return
@@ -269,6 +269,7 @@ const loadAccounts = (state, action, logger) => {
   if (actionHasError(action)) {
     return
   }
+
   return RPCStellarTypes.localGetWalletAccountsLocalRpcPromise(undefined, [
     Constants.checkOnlineWaitingKey,
     Constants.loadAccountsWaitingKey,
@@ -312,10 +313,11 @@ const handleSelectAccountError = (action, msg, err) => {
   }
 }
 
-const loadAssets = (state, action, logger) => {
+const loadAssets = (state, action: WalletsGen.Actions, logger) => {
   if (actionHasError(action)) {
     return
   }
+
   if (!state.config.loggedIn) {
     logger.error('not logged in')
     return
@@ -337,8 +339,7 @@ const loadAssets = (state, action, logger) => {
       accountID = state.wallets.selectedAccount
       break
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
-      return
+      return Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
   }
   // check that we've loaded the account, don't load assets if we don't have the account
   accountID = Constants.getAccount(state, accountID).accountID
@@ -369,7 +370,7 @@ const createPaymentsReceived = (accountID, payments, pending) =>
       .filter(Boolean),
   })
 
-const loadPayments = (state, action, logger) => {
+const loadPayments = (state, action: WalletsGen.Actions, logger) => {
   if (!state.config.loggedIn) {
     logger.error('not logged in')
     return
@@ -612,19 +613,22 @@ const deletedAccount = state =>
     show: true,
   })
 
-const createdOrLinkedAccount = (state, action) => {
+export const hasShowOnCreation = <F, T extends {}, G extends {showOnCreation: F}>(a: T | G): a is G =>
+  a && a.hasOwnProperty('showOnCreation')
+
+const createdOrLinkedAccount = (state, action: WalletsGen.Actions) => {
   if (actionHasError(action)) {
     // Create new account failed, don't nav
     return
   }
-  if (action.payload.showOnCreation) {
+  if (action.payload && hasShowOnCreation(action.payload)) {
     return WalletsGen.createSelectAccount({
       accountID: action.payload.accountID,
       reason: 'auto-selected',
       show: true,
     })
   }
-  if (action.payload.setBuildingTo) {
+  if (action.payload && typeof action.payload.setBuildingTo) {
     return WalletsGen.createSetBuildingTo({to: action.payload.accountID})
   }
   return RouteTreeGen.createNavigateUp()
@@ -747,7 +751,7 @@ const accountDetailsUpdate = (_, action) =>
     account: Constants.accountResultToAccount(action.payload.params.account),
   })
 
-const accountsUpdate = (_, action, logger) =>
+const accountsUpdate = (_, action: EngineGen.Stellar1NotifyRecentPaymentsUpdatePayload, logger) =>
   WalletsGen.createAccountsReceived({
     accounts: (action.payload.params.accounts || []).map(account => {
       if (!account.accountID) {
@@ -916,18 +920,18 @@ const changeAirdrop = (_, action) =>
 
 type AirdropDetailsJSONType = {
   header?: {
-    body?: string | null,
+    body?: string | null
     title?: string | null
-  } | null,
+  } | null
   sections?: Array<{
-    icon?: string | null,
-    section?: string | null,
+    icon?: string | null
+    section?: string | null
     lines?: Array<{
-      bullet?: boolean | null,
+      bullet?: boolean | null
       text?: string | null
     } | null> | null
   } | null> | null
-} | null;
+} | null
 
 const updateAirdropDetails = (_, __, logger) =>
   RPCStellarTypes.localAirdropDetailsLocalRpcPromise(undefined, Constants.airdropWaitingKey)
@@ -936,32 +940,43 @@ const updateAirdropDetails = (_, __, logger) =>
       return WalletsGen.createUpdatedAirdropDetails({
         details: Constants.makeAirdropDetails({
           header: Constants.makeAirdropDetailsHeader({
-            body: // Auto generated from flowToTs. Please clean me!
-            ((json === null || json === undefined ? undefined : json.header) === null || (json === null || json === undefined ? undefined : json.header) === undefined ? undefined : (json === null || json === undefined ? undefined : json.header).body) || '',
-            title: // Auto generated from flowToTs. Please clean me!
-            ((json === null || json === undefined ? undefined : json.header) === null || (json === null || json === undefined ? undefined : json.header) === undefined ? undefined : (json === null || json === undefined ? undefined : json.header).title) || '',
+            // Auto generated from flowToTs. Please clean me!
+            body:
+              ((json === null || json === undefined ? undefined : json.header) === null ||
+              (json === null || json === undefined ? undefined : json.header) === undefined
+                ? undefined
+                : (json === null || json === undefined ? undefined : json.header).body) || '',
+            // Auto generated from flowToTs. Please clean me!
+            title:
+              ((json === null || json === undefined ? undefined : json.header) === null ||
+              (json === null || json === undefined ? undefined : json.header) === undefined
+                ? undefined
+                : (json === null || json === undefined ? undefined : json.header).title) || '',
           }),
           sections: I.List(
-            (// Auto generated from flowToTs. Please clean me!
-            (json === null || json === undefined ? undefined : json.sections) || []).map(section =>
+            // Auto generated from flowToTs. Please clean me!
+            ((json === null || json === undefined ? undefined : json.sections) || []).map(section =>
               Constants.makeAirdropDetailsSection({
-                icon: // Auto generated from flowToTs. Please clean me!
-                (section === null || section === undefined ? undefined : section.icon) || '',
+                // Auto generated from flowToTs. Please clean me!
+                icon: (section === null || section === undefined ? undefined : section.icon) || '',
                 lines: I.List(
-                  (// Auto generated from flowToTs. Please clean me!
-                  (section === null || section === undefined ? undefined : section.lines) || []).map(l =>
-                    Constants.makeAirdropDetailsLine({bullet: // Auto generated from flowToTs. Please clean me!
-                    (l === null || l === undefined ? undefined : l.bullet) || false, text: // Auto generated from flowToTs. Please clean me!
-                    (l === null || l === undefined ? undefined : l.text) || ''})
+                  // Auto generated from flowToTs. Please clean me!
+                  ((section === null || section === undefined ? undefined : section.lines) || []).map(l =>
+                    Constants.makeAirdropDetailsLine({
+                      // Auto generated from flowToTs. Please clean me!
+                      bullet: (l === null || l === undefined ? undefined : l.bullet) || false,
+                      // Auto generated from flowToTs. Please clean me!
+                      text: (l === null || l === undefined ? undefined : l.text) || '',
+                    })
                   )
                 ),
-                section: // Auto generated from flowToTs. Please clean me!
-                (section === null || section === undefined ? undefined : section.section) || '',
+                // Auto generated from flowToTs. Please clean me!
+                section: (section === null || section === undefined ? undefined : section.section) || '',
               })
             )
           ),
         }),
-      });
+      })
     })
     .catch(e => {
       logger.info(e)
@@ -1353,11 +1368,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     accountDetailsUpdate,
     'accountDetailsUpdate'
   )
-  yield* Saga.chainAction<EngineGen.Stellar1NotifyAccountsUpdatePayload>(
-    EngineGen.stellar1NotifyAccountsUpdate,
-    accountsUpdate,
-    'accountsUpdate'
-  )
+  yield* Saga.chainAction(EngineGen.stellar1NotifyAccountsUpdate, accountsUpdate, 'accountsUpdate')
   yield* Saga.chainAction<EngineGen.Stellar1NotifyPendingPaymentsUpdatePayload>(
     EngineGen.stellar1NotifyPendingPaymentsUpdate,
     pendingPaymentsUpdate,

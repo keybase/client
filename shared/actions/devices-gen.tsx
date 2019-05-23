@@ -1,3 +1,4 @@
+// @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 /* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
@@ -22,109 +23,88 @@ export const showDevicePage = 'devices:showDevicePage'
 export const showPaperKeyPage = 'devices:showPaperKeyPage'
 export const showRevokePage = 'devices:showRevokePage'
 
-type _BadgeAppForDevicesPayload = {
-  readonly ids: Array<string>
-};
-
-type _ClearBadgesPayload = void;
-
-type _EndangeredTLFsLoadedPayload = {
-  readonly deviceID: Types.DeviceID,
-  readonly tlfs: Array<string>
-};
-
-type _LoadPayload = void;
-
-type _LoadedPayload = {
-  readonly devices: Array<Types.Device>
-};
-
-type _PaperKeyCreatedPayload = {
-  readonly paperKey: HiddenString
-};
-
-type _RevokePayload = {
-  readonly deviceID: Types.DeviceID
-};
-
+// Payload Types
+type _BadgeAppForDevicesPayload = {readonly ids: Array<string>}
+type _ClearBadgesPayload = void
+type _EndangeredTLFsLoadedPayload = {readonly deviceID: Types.DeviceID; readonly tlfs: Array<string>}
+type _LoadPayload = void
+type _LoadedPayload = {readonly devices: Array<Types.Device>}
+type _PaperKeyCreatedPayload = {readonly paperKey: HiddenString}
+type _RevokePayload = {readonly deviceID: Types.DeviceID}
 type _RevokedPayload = {
-  readonly deviceID: Types.DeviceID,
-  readonly wasCurrentDevice: boolean,
+  readonly deviceID: Types.DeviceID
+  readonly wasCurrentDevice: boolean
   readonly deviceName: string
-};
-
-type _ShowDevicePagePayload = {
-  readonly deviceID: Types.DeviceID
-};
-
-type _ShowPaperKeyPagePayload = void;
-
-type _ShowRevokePagePayload = {
-  readonly deviceID: Types.DeviceID
-};
+}
+type _ShowDevicePagePayload = {readonly deviceID: Types.DeviceID}
+type _ShowPaperKeyPagePayload = void
+type _ShowRevokePagePayload = {readonly deviceID: Types.DeviceID}
 
 // Action Creators
-export const createBadgeAppForDevices = (payload: _BadgeAppForDevicesPayload) => ({payload, type: badgeAppForDevices})
+export const createBadgeAppForDevices = (payload: _BadgeAppForDevicesPayload) => ({
+  payload,
+  type: badgeAppForDevices,
+})
 export const createClearBadges = (payload: _ClearBadgesPayload) => ({payload, type: clearBadges})
-export const createEndangeredTLFsLoaded = (payload: _EndangeredTLFsLoadedPayload) => ({payload, type: endangeredTLFsLoaded})
+export const createEndangeredTLFsLoaded = (payload: _EndangeredTLFsLoadedPayload) => ({
+  payload,
+  type: endangeredTLFsLoaded,
+})
 export const createLoad = (payload: _LoadPayload) => ({payload, type: load})
 export const createLoaded = (payload: _LoadedPayload) => ({payload, type: loaded})
 export const createPaperKeyCreated = (payload: _PaperKeyCreatedPayload) => ({payload, type: paperKeyCreated})
 export const createRevoke = (payload: _RevokePayload) => ({payload, type: revoke})
 export const createRevoked = (payload: _RevokedPayload) => ({payload, type: revoked})
 export const createShowDevicePage = (payload: _ShowDevicePagePayload) => ({payload, type: showDevicePage})
-export const createShowPaperKeyPage = (payload: _ShowPaperKeyPagePayload) => ({payload, type: showPaperKeyPage})
+export const createShowPaperKeyPage = (payload: _ShowPaperKeyPagePayload) => ({
+  payload,
+  type: showPaperKeyPage,
+})
 export const createShowRevokePage = (payload: _ShowRevokePagePayload) => ({payload, type: showRevokePage})
 
 // Action Payloads
 export type BadgeAppForDevicesPayload = {
-  readonly payload: _BadgeAppForDevicesPayload,
-  readonly type: "devices:badgeAppForDevices"
-};
-export type ClearBadgesPayload = {
-  readonly payload: _ClearBadgesPayload,
-  readonly type: "devices:clearBadges"
-};
+  readonly payload: _BadgeAppForDevicesPayload
+  readonly type: 'devices:badgeAppForDevices'
+}
+export type ClearBadgesPayload = {readonly payload: _ClearBadgesPayload; readonly type: 'devices:clearBadges'}
 export type EndangeredTLFsLoadedPayload = {
-  readonly payload: _EndangeredTLFsLoadedPayload,
-  readonly type: "devices:endangeredTLFsLoaded"
-};
-export type LoadPayload = {
-  readonly payload: _LoadPayload,
-  readonly type: "devices:load"
-};
-export type LoadedPayload = {
-  readonly payload: _LoadedPayload,
-  readonly type: "devices:loaded"
-};
+  readonly payload: _EndangeredTLFsLoadedPayload
+  readonly type: 'devices:endangeredTLFsLoaded'
+}
+export type LoadPayload = {readonly payload: _LoadPayload; readonly type: 'devices:load'}
+export type LoadedPayload = {readonly payload: _LoadedPayload; readonly type: 'devices:loaded'}
 export type PaperKeyCreatedPayload = {
-  readonly payload: _PaperKeyCreatedPayload,
-  readonly type: "devices:paperKeyCreated"
-};
-export type RevokePayload = {
-  readonly payload: _RevokePayload,
-  readonly type: "devices:revoke"
-};
-export type RevokedPayload = {
-  readonly payload: _RevokedPayload,
-  readonly type: "devices:revoked"
-};
+  readonly payload: _PaperKeyCreatedPayload
+  readonly type: 'devices:paperKeyCreated'
+}
+export type RevokePayload = {readonly payload: _RevokePayload; readonly type: 'devices:revoke'}
+export type RevokedPayload = {readonly payload: _RevokedPayload; readonly type: 'devices:revoked'}
 export type ShowDevicePagePayload = {
-  readonly payload: _ShowDevicePagePayload,
-  readonly type: "devices:showDevicePage"
-};
+  readonly payload: _ShowDevicePagePayload
+  readonly type: 'devices:showDevicePage'
+}
 export type ShowPaperKeyPagePayload = {
-  readonly payload: _ShowPaperKeyPagePayload,
-  readonly type: "devices:showPaperKeyPage"
-};
+  readonly payload: _ShowPaperKeyPagePayload
+  readonly type: 'devices:showPaperKeyPage'
+}
 export type ShowRevokePagePayload = {
-  readonly payload: _ShowRevokePagePayload,
-  readonly type: "devices:showRevokePage"
-};
+  readonly payload: _ShowRevokePagePayload
+  readonly type: 'devices:showRevokePage'
+}
 
 // All Actions
 // prettier-ignore
-export type Actions = BadgeAppForDevicesPayload | ClearBadgesPayload | EndangeredTLFsLoadedPayload | LoadPayload | LoadedPayload | PaperKeyCreatedPayload | RevokePayload | RevokedPayload | ShowDevicePagePayload | ShowPaperKeyPagePayload | ShowRevokePagePayload | {
-  type: "common:resetStore",
-  payload: null
-};
+export type Actions =
+  | BadgeAppForDevicesPayload
+  | ClearBadgesPayload
+  | EndangeredTLFsLoadedPayload
+  | LoadPayload
+  | LoadedPayload
+  | PaperKeyCreatedPayload
+  | RevokePayload
+  | RevokedPayload
+  | ShowDevicePagePayload
+  | ShowPaperKeyPagePayload
+  | ShowRevokePagePayload
+  | {type: 'common:resetStore', payload: null}

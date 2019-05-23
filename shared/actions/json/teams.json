@@ -2,7 +2,7 @@
   "prelude": [
     "import * as ChatTypes from '../constants/types/chat2'",
     "import * as Types from '../constants/types/teams'",
-    "import type {RetentionPolicy} from '../constants/types/retention-policy'"
+    "import {RetentionPolicy} from '../constants/types/retention-policy'"
   ],
   "actions": {
     "addUserToTeams": {
@@ -25,7 +25,7 @@
     "createChannel": {
       "teamname": "string",
       "channelname": "string",
-      "description": "?string",
+      "description": "string | null",
       "rootPath?": "I.List<string>",
       "sourceSubPath?": "I.List<string>",
       "destSubPath?": "I.List<string>"

@@ -1,3 +1,4 @@
+// @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 /* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
@@ -14,61 +15,54 @@ export const markViewed = 'people:markViewed'
 export const peopleDataProcessed = 'people:peopleDataProcessed'
 export const skipTodo = 'people:skipTodo'
 
-type _DismissAnnouncementPayload = {
-  readonly id: RPCTypes.HomeScreenAnnouncementID
-};
-
-type _GetPeopleDataPayload = {
-  readonly markViewed: boolean,
-  readonly numFollowSuggestionsWanted: number
-};
-
-type _MarkViewedPayload = void;
-
+// Payload Types
+type _DismissAnnouncementPayload = {readonly id: RPCTypes.HomeScreenAnnouncementID}
+type _GetPeopleDataPayload = {readonly markViewed: boolean; readonly numFollowSuggestionsWanted: number}
+type _MarkViewedPayload = void
 type _PeopleDataProcessedPayload = {
-  readonly oldItems: I.List<Types.PeopleScreenItem>,
-  readonly newItems: I.List<Types.PeopleScreenItem>,
-  readonly followSuggestions: I.List<Types.FollowSuggestion>,
-  readonly lastViewed: Date,
+  readonly oldItems: I.List<Types.PeopleScreenItem>
+  readonly newItems: I.List<Types.PeopleScreenItem>
+  readonly followSuggestions: I.List<Types.FollowSuggestion>
+  readonly lastViewed: Date
   readonly version: number
-};
-
-type _SkipTodoPayload = {
-  readonly type: Types.TodoType
-};
+}
+type _SkipTodoPayload = {readonly type: Types.TodoType}
 
 // Action Creators
-export const createDismissAnnouncement = (payload: _DismissAnnouncementPayload) => ({payload, type: dismissAnnouncement})
+export const createDismissAnnouncement = (payload: _DismissAnnouncementPayload) => ({
+  payload,
+  type: dismissAnnouncement,
+})
 export const createGetPeopleData = (payload: _GetPeopleDataPayload) => ({payload, type: getPeopleData})
 export const createMarkViewed = (payload: _MarkViewedPayload) => ({payload, type: markViewed})
-export const createPeopleDataProcessed = (payload: _PeopleDataProcessedPayload) => ({payload, type: peopleDataProcessed})
+export const createPeopleDataProcessed = (payload: _PeopleDataProcessedPayload) => ({
+  payload,
+  type: peopleDataProcessed,
+})
 export const createSkipTodo = (payload: _SkipTodoPayload) => ({payload, type: skipTodo})
 
 // Action Payloads
 export type DismissAnnouncementPayload = {
-  readonly payload: _DismissAnnouncementPayload,
-  readonly type: "people:dismissAnnouncement"
-};
+  readonly payload: _DismissAnnouncementPayload
+  readonly type: 'people:dismissAnnouncement'
+}
 export type GetPeopleDataPayload = {
-  readonly payload: _GetPeopleDataPayload,
-  readonly type: "people:getPeopleData"
-};
-export type MarkViewedPayload = {
-  readonly payload: _MarkViewedPayload,
-  readonly type: "people:markViewed"
-};
+  readonly payload: _GetPeopleDataPayload
+  readonly type: 'people:getPeopleData'
+}
+export type MarkViewedPayload = {readonly payload: _MarkViewedPayload; readonly type: 'people:markViewed'}
 export type PeopleDataProcessedPayload = {
-  readonly payload: _PeopleDataProcessedPayload,
-  readonly type: "people:peopleDataProcessed"
-};
-export type SkipTodoPayload = {
-  readonly payload: _SkipTodoPayload,
-  readonly type: "people:skipTodo"
-};
+  readonly payload: _PeopleDataProcessedPayload
+  readonly type: 'people:peopleDataProcessed'
+}
+export type SkipTodoPayload = {readonly payload: _SkipTodoPayload; readonly type: 'people:skipTodo'}
 
 // All Actions
 // prettier-ignore
-export type Actions = DismissAnnouncementPayload | GetPeopleDataPayload | MarkViewedPayload | PeopleDataProcessedPayload | SkipTodoPayload | {
-  type: "common:resetStore",
-  payload: null
-};
+export type Actions =
+  | DismissAnnouncementPayload
+  | GetPeopleDataPayload
+  | MarkViewedPayload
+  | PeopleDataProcessedPayload
+  | SkipTodoPayload
+  | {type: 'common:resetStore', payload: null}

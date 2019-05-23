@@ -1,3 +1,4 @@
+// @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 /* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
@@ -54,172 +55,82 @@ export const updateInfo = 'config:updateInfo'
 export const updateMenubarWindowID = 'config:updateMenubarWindowID'
 export const updateNow = 'config:updateNow'
 
+// Payload Types
 type _BootstrapStatusLoadedPayload = {
- readonly deviceID: string,
- readonly deviceName: string,
- readonly followers: Array<string>,
- readonly following: Array<string>,
- readonly fullname: string,
- readonly loggedIn: boolean,
- readonly registered: boolean,
- readonly uid: string,
- readonly username: string
-};
-
-type _ChangedActivePayload = {
- readonly userActive: boolean
-};
-
-type _ChangedFocusPayload = {
- readonly appFocused: boolean
-};
-
-type _CheckForUpdatePayload = void;
-
-type _CopyToClipboardPayload = {
- readonly text: string
-};
-
-type _DaemonErrorPayload = {
- readonly daemonError: Error | null
-};
-
-type _DaemonHandshakeDonePayload = void;
-
-type _DaemonHandshakePayload = {
- readonly firstTimeConnecting: boolean,
- readonly version: number
-};
-
+  readonly deviceID: string
+  readonly deviceName: string
+  readonly followers: Array<string>
+  readonly following: Array<string>
+  readonly fullname: string
+  readonly loggedIn: boolean
+  readonly registered: boolean
+  readonly uid: string
+  readonly username: string
+}
+type _ChangedActivePayload = {readonly userActive: boolean}
+type _ChangedFocusPayload = {readonly appFocused: boolean}
+type _CheckForUpdatePayload = void
+type _CopyToClipboardPayload = {readonly text: string}
+type _DaemonErrorPayload = {readonly daemonError: Error | null}
+type _DaemonHandshakeDonePayload = void
+type _DaemonHandshakePayload = {readonly firstTimeConnecting: boolean; readonly version: number}
 type _DaemonHandshakeWaitPayload = {
- readonly name: string,
- readonly version: number,
- readonly increment: boolean,
- readonly failedReason?: string | null,
- readonly failedFatal?: true
-};
-
-type _DumpLogsPayload = {
- readonly reason: "quitting through menu"
-};
-
-type _FilePickerErrorPayload = {
- readonly error: Error
-};
-
-type _GlobalErrorPayload = {
- readonly globalError: null | Error | RPCError
-};
-
-type _InstallerRanPayload = void;
-
-type _LinkPayload = {
- readonly link: string
-};
-
-type _LoadAvatarsPayload = {
- readonly usernames: Array<string>
-};
-
-type _LoadTeamAvatarsPayload = {
- readonly teamnames: Array<string>
-};
-
-type _LoadedAvatarsPayload = {
- readonly avatars: I.Map<string, I.Map<number, string>>
-};
-
-type _LoggedInPayload = {
- readonly causedByStartup: boolean
-};
-
-type _LoggedOutPayload = void;
-
-type _LogoutHandshakePayload = {
- readonly version: number
-};
-
+  readonly name: string
+  readonly version: number
+  readonly increment: boolean
+  readonly failedReason?: string | null
+  readonly failedFatal?: true
+}
+type _DumpLogsPayload = {readonly reason: 'quitting through menu'}
+type _FilePickerErrorPayload = {readonly error: Error}
+type _GlobalErrorPayload = {readonly globalError: null | Error | RPCError}
+type _InstallerRanPayload = void
+type _LinkPayload = {readonly link: string}
+type _LoadAvatarsPayload = {readonly usernames: Array<string>}
+type _LoadTeamAvatarsPayload = {readonly teamnames: Array<string>}
+type _LoadedAvatarsPayload = {readonly avatars: I.Map<string, I.Map<number, string>>}
+type _LoggedInPayload = {readonly causedByStartup: boolean}
+type _LoggedOutPayload = void
+type _LogoutHandshakePayload = {readonly version: number}
 type _LogoutHandshakeWaitPayload = {
- readonly name: string,
- readonly version: number,
- readonly increment: boolean
-};
-
-type _LogoutPayload = void;
-
-type _MobileAppStatePayload = {
- readonly nextAppState: "active" | "background" | "inactive"
-};
-
-type _OpenAppSettingsPayload = void;
-type _OpenAppStorePayload = void;
-
-type _OsNetworkStatusChangedPayload = {
- readonly online: boolean,
- readonly isInit?: boolean
-};
-
-type _PersistRoutePayload = {
- readonly path: Array<any>
-};
-
-type _PushLoadedPayload = {
- readonly pushLoaded: boolean
-};
-
-type _RestartHandshakePayload = void;
-
-type _SetAccountsPayload = {
- readonly defaultUsername: string,
- readonly usernames: Array<string>
-};
-
-type _SetDeletedSelfPayload = {
- readonly deletedUsername: string
-};
-
-type _SetNavigatorPayload = {
- readonly navigator: any
-};
-
-type _SetNotifySoundPayload = {
- readonly sound: boolean,
- readonly writeFile: boolean
-};
-
-type _SetOpenAtLoginPayload = {
- readonly open: boolean,
- readonly writeFile: boolean
-};
-
+  readonly name: string
+  readonly version: number
+  readonly increment: boolean
+}
+type _LogoutPayload = void
+type _MobileAppStatePayload = {readonly nextAppState: 'active' | 'background' | 'inactive'}
+type _OpenAppSettingsPayload = void
+type _OpenAppStorePayload = void
+type _OsNetworkStatusChangedPayload = {readonly online: boolean; readonly isInit?: boolean}
+type _PersistRoutePayload = {readonly path: Array<any>}
+type _PushLoadedPayload = {readonly pushLoaded: boolean}
+type _RestartHandshakePayload = void
+type _SetAccountsPayload = {readonly defaultUsername: string; readonly usernames: Array<string>}
+type _SetDeletedSelfPayload = {readonly deletedUsername: string}
+type _SetNavigatorPayload = {readonly navigator: any}
+type _SetNotifySoundPayload = {readonly sound: boolean; readonly writeFile: boolean}
+type _SetOpenAtLoginPayload = {readonly open: boolean; readonly writeFile: boolean}
 type _SetStartupDetailsPayload = {
- readonly startupWasFromPush: boolean,
- readonly startupConversation: ChatTypes.ConversationIDKey | null,
- readonly startupLink: string,
- readonly startupTab: Tabs.Tab | null,
- readonly startupFollowUser: string,
- readonly startupSharePath: FsTypes.LocalPath | null
-};
-
-type _ShowMainPayload = void;
-type _StartHandshakePayload = void;
-
+  readonly startupWasFromPush: boolean
+  readonly startupConversation: ChatTypes.ConversationIDKey | null
+  readonly startupLink: string
+  readonly startupTab: Tabs.Tab | null
+  readonly startupFollowUser: string
+  readonly startupSharePath: FsTypes.LocalPath | null
+}
+type _ShowMainPayload = void
+type _StartHandshakePayload = void
 type _UpdateCriticalCheckStatusPayload = {
- readonly status: "critical" | "suggested" | "ok",
- readonly message: string
-};
-
+  readonly status: 'critical' | 'suggested' | 'ok'
+  readonly message: string
+}
 type _UpdateInfoPayload = {
- readonly isOutOfDate: boolean,
- readonly critical: boolean,
- readonly message?: string
-};
-
-type _UpdateMenubarWindowIDPayload = {
- readonly id: number
-};
-
-type _UpdateNowPayload = void;
+  readonly isOutOfDate: boolean
+  readonly critical: boolean
+  readonly message?: string
+}
+type _UpdateMenubarWindowIDPayload = {readonly id: number}
+type _UpdateNowPayload = void
 
 // Action Creators
 /**
@@ -229,7 +140,10 @@ export const createOpenAppStore = (payload: _OpenAppStorePayload) => ({payload, 
 /**
  * Save critical check status
  */
-export const createUpdateCriticalCheckStatus = (payload: _UpdateCriticalCheckStatusPayload) => ({payload, type: updateCriticalCheckStatus})
+export const createUpdateCriticalCheckStatus = (payload: _UpdateCriticalCheckStatusPayload) => ({
+  payload,
+  type: updateCriticalCheckStatus,
+})
 /**
  * Sent whenever the mobile file picker encounters an error.
  */
@@ -245,7 +159,10 @@ export const createInstallerRan = (payload: _InstallerRanPayload) => ({payload, 
 /**
  * internal to config. should restart the handshake process
  */
-export const createRestartHandshake = (payload: _RestartHandshakePayload) => ({payload, type: restartHandshake})
+export const createRestartHandshake = (payload: _RestartHandshakePayload) => ({
+  payload,
+  type: restartHandshake,
+})
 /**
  * internal to config. should start the handshake process
  */
@@ -257,7 +174,10 @@ export const createOpenAppSettings = (payload: _OpenAppSettingsPayload) => ({pay
 /**
  * ready to show the app
  */
-export const createDaemonHandshakeDone = (payload: _DaemonHandshakeDonePayload) => ({payload, type: daemonHandshakeDone})
+export const createDaemonHandshakeDone = (payload: _DaemonHandshakeDonePayload) => ({
+  payload,
+  type: daemonHandshakeDone,
+})
 /**
  * someone wants to log out
  */
@@ -273,12 +193,21 @@ export const createLogoutHandshake = (payload: _LogoutHandshakePayload) => ({pay
 /**
  * subsystems that need to do things during boot need to call this to register that we should wait.
  */
-export const createDaemonHandshakeWait = (payload: _DaemonHandshakeWaitPayload) => ({payload, type: daemonHandshakeWait})
+export const createDaemonHandshakeWait = (payload: _DaemonHandshakeWaitPayload) => ({
+  payload,
+  type: daemonHandshakeWait,
+})
 /**
  * subsystems that need to do things during logout need to call this to register that we should wait.
  */
-export const createLogoutHandshakeWait = (payload: _LogoutHandshakeWaitPayload) => ({payload, type: logoutHandshakeWait})
-export const createBootstrapStatusLoaded = (payload: _BootstrapStatusLoadedPayload) => ({payload, type: bootstrapStatusLoaded})
+export const createLogoutHandshakeWait = (payload: _LogoutHandshakeWaitPayload) => ({
+  payload,
+  type: logoutHandshakeWait,
+})
+export const createBootstrapStatusLoaded = (payload: _BootstrapStatusLoadedPayload) => ({
+  payload,
+  type: bootstrapStatusLoaded,
+})
 export const createChangedActive = (payload: _ChangedActivePayload) => ({payload, type: changedActive})
 export const createChangedFocus = (payload: _ChangedFocusPayload) => ({payload, type: changedFocus})
 export const createCheckForUpdate = (payload: _CheckForUpdatePayload) => ({payload, type: checkForUpdate})
@@ -292,7 +221,10 @@ export const createLoadTeamAvatars = (payload: _LoadTeamAvatarsPayload) => ({pay
 export const createLoadedAvatars = (payload: _LoadedAvatarsPayload) => ({payload, type: loadedAvatars})
 export const createLoggedOut = (payload: _LoggedOutPayload) => ({payload, type: loggedOut})
 export const createMobileAppState = (payload: _MobileAppStatePayload) => ({payload, type: mobileAppState})
-export const createOsNetworkStatusChanged = (payload: _OsNetworkStatusChangedPayload) => ({payload, type: osNetworkStatusChanged})
+export const createOsNetworkStatusChanged = (payload: _OsNetworkStatusChangedPayload) => ({
+  payload,
+  type: osNetworkStatusChanged,
+})
 export const createPersistRoute = (payload: _PersistRoutePayload) => ({payload, type: persistRoute})
 export const createPushLoaded = (payload: _PushLoadedPayload) => ({payload, type: pushLoaded})
 export const createSetAccounts = (payload: _SetAccountsPayload) => ({payload, type: setAccounts})
@@ -300,181 +232,187 @@ export const createSetDeletedSelf = (payload: _SetDeletedSelfPayload) => ({paylo
 export const createSetNavigator = (payload: _SetNavigatorPayload) => ({payload, type: setNavigator})
 export const createSetNotifySound = (payload: _SetNotifySoundPayload) => ({payload, type: setNotifySound})
 export const createSetOpenAtLogin = (payload: _SetOpenAtLoginPayload) => ({payload, type: setOpenAtLogin})
-export const createSetStartupDetails = (payload: _SetStartupDetailsPayload) => ({payload, type: setStartupDetails})
+export const createSetStartupDetails = (payload: _SetStartupDetailsPayload) => ({
+  payload,
+  type: setStartupDetails,
+})
 export const createShowMain = (payload: _ShowMainPayload) => ({payload, type: showMain})
 export const createUpdateInfo = (payload: _UpdateInfoPayload) => ({payload, type: updateInfo})
-export const createUpdateMenubarWindowID = (payload: _UpdateMenubarWindowIDPayload) => ({payload, type: updateMenubarWindowID})
+export const createUpdateMenubarWindowID = (payload: _UpdateMenubarWindowIDPayload) => ({
+  payload,
+  type: updateMenubarWindowID,
+})
 export const createUpdateNow = (payload: _UpdateNowPayload) => ({payload, type: updateNow})
 
 // Action Payloads
 export type BootstrapStatusLoadedPayload = {
- readonly payload: _BootstrapStatusLoadedPayload,
- readonly type: "config:bootstrapStatusLoaded"
-};
+  readonly payload: _BootstrapStatusLoadedPayload
+  readonly type: 'config:bootstrapStatusLoaded'
+}
 export type ChangedActivePayload = {
- readonly payload: _ChangedActivePayload,
- readonly type: "config:changedActive"
-};
+  readonly payload: _ChangedActivePayload
+  readonly type: 'config:changedActive'
+}
 export type ChangedFocusPayload = {
- readonly payload: _ChangedFocusPayload,
- readonly type: "config:changedFocus"
-};
+  readonly payload: _ChangedFocusPayload
+  readonly type: 'config:changedFocus'
+}
 export type CheckForUpdatePayload = {
- readonly payload: _CheckForUpdatePayload,
- readonly type: "config:checkForUpdate"
-};
+  readonly payload: _CheckForUpdatePayload
+  readonly type: 'config:checkForUpdate'
+}
 export type CopyToClipboardPayload = {
- readonly payload: _CopyToClipboardPayload,
- readonly type: "config:copyToClipboard"
-};
-export type DaemonErrorPayload = {
- readonly payload: _DaemonErrorPayload,
- readonly type: "config:daemonError"
-};
+  readonly payload: _CopyToClipboardPayload
+  readonly type: 'config:copyToClipboard'
+}
+export type DaemonErrorPayload = {readonly payload: _DaemonErrorPayload; readonly type: 'config:daemonError'}
 export type DaemonHandshakeDonePayload = {
- readonly payload: _DaemonHandshakeDonePayload,
- readonly type: "config:daemonHandshakeDone"
-};
+  readonly payload: _DaemonHandshakeDonePayload
+  readonly type: 'config:daemonHandshakeDone'
+}
 export type DaemonHandshakePayload = {
- readonly payload: _DaemonHandshakePayload,
- readonly type: "config:daemonHandshake"
-};
+  readonly payload: _DaemonHandshakePayload
+  readonly type: 'config:daemonHandshake'
+}
 export type DaemonHandshakeWaitPayload = {
- readonly payload: _DaemonHandshakeWaitPayload,
- readonly type: "config:daemonHandshakeWait"
-};
-export type DumpLogsPayload = {
- readonly payload: _DumpLogsPayload,
- readonly type: "config:dumpLogs"
-};
+  readonly payload: _DaemonHandshakeWaitPayload
+  readonly type: 'config:daemonHandshakeWait'
+}
+export type DumpLogsPayload = {readonly payload: _DumpLogsPayload; readonly type: 'config:dumpLogs'}
 export type FilePickerErrorPayload = {
- readonly payload: _FilePickerErrorPayload,
- readonly type: "config:filePickerError"
-};
-export type GlobalErrorPayload = {
- readonly payload: _GlobalErrorPayload,
- readonly type: "config:globalError"
-};
+  readonly payload: _FilePickerErrorPayload
+  readonly type: 'config:filePickerError'
+}
+export type GlobalErrorPayload = {readonly payload: _GlobalErrorPayload; readonly type: 'config:globalError'}
 export type InstallerRanPayload = {
- readonly payload: _InstallerRanPayload,
- readonly type: "config:installerRan"
-};
-export type LinkPayload = {
- readonly payload: _LinkPayload,
- readonly type: "config:link"
-};
-export type LoadAvatarsPayload = {
- readonly payload: _LoadAvatarsPayload,
- readonly type: "config:loadAvatars"
-};
+  readonly payload: _InstallerRanPayload
+  readonly type: 'config:installerRan'
+}
+export type LinkPayload = {readonly payload: _LinkPayload; readonly type: 'config:link'}
+export type LoadAvatarsPayload = {readonly payload: _LoadAvatarsPayload; readonly type: 'config:loadAvatars'}
 export type LoadTeamAvatarsPayload = {
- readonly payload: _LoadTeamAvatarsPayload,
- readonly type: "config:loadTeamAvatars"
-};
+  readonly payload: _LoadTeamAvatarsPayload
+  readonly type: 'config:loadTeamAvatars'
+}
 export type LoadedAvatarsPayload = {
- readonly payload: _LoadedAvatarsPayload,
- readonly type: "config:loadedAvatars"
-};
-export type LoggedInPayload = {
- readonly payload: _LoggedInPayload,
- readonly type: "config:loggedIn"
-};
-export type LoggedOutPayload = {
- readonly payload: _LoggedOutPayload,
- readonly type: "config:loggedOut"
-};
+  readonly payload: _LoadedAvatarsPayload
+  readonly type: 'config:loadedAvatars'
+}
+export type LoggedInPayload = {readonly payload: _LoggedInPayload; readonly type: 'config:loggedIn'}
+export type LoggedOutPayload = {readonly payload: _LoggedOutPayload; readonly type: 'config:loggedOut'}
 export type LogoutHandshakePayload = {
- readonly payload: _LogoutHandshakePayload,
- readonly type: "config:logoutHandshake"
-};
+  readonly payload: _LogoutHandshakePayload
+  readonly type: 'config:logoutHandshake'
+}
 export type LogoutHandshakeWaitPayload = {
- readonly payload: _LogoutHandshakeWaitPayload,
- readonly type: "config:logoutHandshakeWait"
-};
-export type LogoutPayload = {
- readonly payload: _LogoutPayload,
- readonly type: "config:logout"
-};
+  readonly payload: _LogoutHandshakeWaitPayload
+  readonly type: 'config:logoutHandshakeWait'
+}
+export type LogoutPayload = {readonly payload: _LogoutPayload; readonly type: 'config:logout'}
 export type MobileAppStatePayload = {
- readonly payload: _MobileAppStatePayload,
- readonly type: "config:mobileAppState"
-};
+  readonly payload: _MobileAppStatePayload
+  readonly type: 'config:mobileAppState'
+}
 export type OpenAppSettingsPayload = {
- readonly payload: _OpenAppSettingsPayload,
- readonly type: "config:openAppSettings"
-};
+  readonly payload: _OpenAppSettingsPayload
+  readonly type: 'config:openAppSettings'
+}
 export type OpenAppStorePayload = {
- readonly payload: _OpenAppStorePayload,
- readonly type: "config:openAppStore"
-};
+  readonly payload: _OpenAppStorePayload
+  readonly type: 'config:openAppStore'
+}
 export type OsNetworkStatusChangedPayload = {
- readonly payload: _OsNetworkStatusChangedPayload,
- readonly type: "config:osNetworkStatusChanged"
-};
+  readonly payload: _OsNetworkStatusChangedPayload
+  readonly type: 'config:osNetworkStatusChanged'
+}
 export type PersistRoutePayload = {
- readonly payload: _PersistRoutePayload,
- readonly type: "config:persistRoute"
-};
-export type PushLoadedPayload = {
- readonly payload: _PushLoadedPayload,
- readonly type: "config:pushLoaded"
-};
+  readonly payload: _PersistRoutePayload
+  readonly type: 'config:persistRoute'
+}
+export type PushLoadedPayload = {readonly payload: _PushLoadedPayload; readonly type: 'config:pushLoaded'}
 export type RestartHandshakePayload = {
- readonly payload: _RestartHandshakePayload,
- readonly type: "config:restartHandshake"
-};
-export type SetAccountsPayload = {
- readonly payload: _SetAccountsPayload,
- readonly type: "config:setAccounts"
-};
+  readonly payload: _RestartHandshakePayload
+  readonly type: 'config:restartHandshake'
+}
+export type SetAccountsPayload = {readonly payload: _SetAccountsPayload; readonly type: 'config:setAccounts'}
 export type SetDeletedSelfPayload = {
- readonly payload: _SetDeletedSelfPayload,
- readonly type: "config:setDeletedSelf"
-};
+  readonly payload: _SetDeletedSelfPayload
+  readonly type: 'config:setDeletedSelf'
+}
 export type SetNavigatorPayload = {
- readonly payload: _SetNavigatorPayload,
- readonly type: "config:setNavigator"
-};
+  readonly payload: _SetNavigatorPayload
+  readonly type: 'config:setNavigator'
+}
 export type SetNotifySoundPayload = {
- readonly payload: _SetNotifySoundPayload,
- readonly type: "config:setNotifySound"
-};
+  readonly payload: _SetNotifySoundPayload
+  readonly type: 'config:setNotifySound'
+}
 export type SetOpenAtLoginPayload = {
- readonly payload: _SetOpenAtLoginPayload,
- readonly type: "config:setOpenAtLogin"
-};
+  readonly payload: _SetOpenAtLoginPayload
+  readonly type: 'config:setOpenAtLogin'
+}
 export type SetStartupDetailsPayload = {
- readonly payload: _SetStartupDetailsPayload,
- readonly type: "config:setStartupDetails"
-};
-export type ShowMainPayload = {
- readonly payload: _ShowMainPayload,
- readonly type: "config:showMain"
-};
+  readonly payload: _SetStartupDetailsPayload
+  readonly type: 'config:setStartupDetails'
+}
+export type ShowMainPayload = {readonly payload: _ShowMainPayload; readonly type: 'config:showMain'}
 export type StartHandshakePayload = {
- readonly payload: _StartHandshakePayload,
- readonly type: "config:startHandshake"
-};
+  readonly payload: _StartHandshakePayload
+  readonly type: 'config:startHandshake'
+}
 export type UpdateCriticalCheckStatusPayload = {
- readonly payload: _UpdateCriticalCheckStatusPayload,
- readonly type: "config:updateCriticalCheckStatus"
-};
-export type UpdateInfoPayload = {
- readonly payload: _UpdateInfoPayload,
- readonly type: "config:updateInfo"
-};
+  readonly payload: _UpdateCriticalCheckStatusPayload
+  readonly type: 'config:updateCriticalCheckStatus'
+}
+export type UpdateInfoPayload = {readonly payload: _UpdateInfoPayload; readonly type: 'config:updateInfo'}
 export type UpdateMenubarWindowIDPayload = {
- readonly payload: _UpdateMenubarWindowIDPayload,
- readonly type: "config:updateMenubarWindowID"
-};
-export type UpdateNowPayload = {
- readonly payload: _UpdateNowPayload,
- readonly type: "config:updateNow"
-};
+  readonly payload: _UpdateMenubarWindowIDPayload
+  readonly type: 'config:updateMenubarWindowID'
+}
+export type UpdateNowPayload = {readonly payload: _UpdateNowPayload; readonly type: 'config:updateNow'}
 
 // All Actions
 // prettier-ignore
-export type Actions = BootstrapStatusLoadedPayload | ChangedActivePayload | ChangedFocusPayload | CheckForUpdatePayload | CopyToClipboardPayload | DaemonErrorPayload | DaemonHandshakeDonePayload | DaemonHandshakePayload | DaemonHandshakeWaitPayload | DumpLogsPayload | FilePickerErrorPayload | GlobalErrorPayload | InstallerRanPayload | LinkPayload | LoadAvatarsPayload | LoadTeamAvatarsPayload | LoadedAvatarsPayload | LoggedInPayload | LoggedOutPayload | LogoutHandshakePayload | LogoutHandshakeWaitPayload | LogoutPayload | MobileAppStatePayload | OpenAppSettingsPayload | OpenAppStorePayload | OsNetworkStatusChangedPayload | PersistRoutePayload | PushLoadedPayload | RestartHandshakePayload | SetAccountsPayload | SetDeletedSelfPayload | SetNavigatorPayload | SetNotifySoundPayload | SetOpenAtLoginPayload | SetStartupDetailsPayload | ShowMainPayload | StartHandshakePayload | UpdateCriticalCheckStatusPayload | UpdateInfoPayload | UpdateMenubarWindowIDPayload | UpdateNowPayload | {
- type: "common:resetStore",
- payload: null
-};
+export type Actions =
+  | BootstrapStatusLoadedPayload
+  | ChangedActivePayload
+  | ChangedFocusPayload
+  | CheckForUpdatePayload
+  | CopyToClipboardPayload
+  | DaemonErrorPayload
+  | DaemonHandshakeDonePayload
+  | DaemonHandshakePayload
+  | DaemonHandshakeWaitPayload
+  | DumpLogsPayload
+  | FilePickerErrorPayload
+  | GlobalErrorPayload
+  | InstallerRanPayload
+  | LinkPayload
+  | LoadAvatarsPayload
+  | LoadTeamAvatarsPayload
+  | LoadedAvatarsPayload
+  | LoggedInPayload
+  | LoggedOutPayload
+  | LogoutHandshakePayload
+  | LogoutHandshakeWaitPayload
+  | LogoutPayload
+  | MobileAppStatePayload
+  | OpenAppSettingsPayload
+  | OpenAppStorePayload
+  | OsNetworkStatusChangedPayload
+  | PersistRoutePayload
+  | PushLoadedPayload
+  | RestartHandshakePayload
+  | SetAccountsPayload
+  | SetDeletedSelfPayload
+  | SetNavigatorPayload
+  | SetNotifySoundPayload
+  | SetOpenAtLoginPayload
+  | SetStartupDetailsPayload
+  | ShowMainPayload
+  | StartHandshakePayload
+  | UpdateCriticalCheckStatusPayload
+  | UpdateInfoPayload
+  | UpdateMenubarWindowIDPayload
+  | UpdateNowPayload
+  | {type: 'common:resetStore', payload: null}

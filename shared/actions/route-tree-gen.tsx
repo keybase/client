@@ -1,3 +1,4 @@
+// @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 /* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
@@ -19,54 +20,26 @@ export const switchRouteDef = 'route-tree:switchRouteDef'
 export const switchTab = 'route-tree:switchTab'
 export const switchTo = 'route-tree:switchTo'
 
-type _ClearModalsPayload = void;
-
-type _NavUpToScreenPayload = {
- readonly routeName: string
-};
-
+// Payload Types
+type _ClearModalsPayload = void
+type _NavUpToScreenPayload = {readonly routeName: string}
 type _NavigateAppendPayload = {
- readonly fromKey?: string,
- readonly path: any,
- readonly parentPath?: any,
- readonly replace?: boolean
-};
-
-type _NavigateToPayload = {
- readonly path: any,
- readonly parentPath?: any,
- readonly replace?: boolean
-};
-
-type _NavigateUpPayload = {
- readonly fromKey?: string
-};
-
+  readonly fromKey?: string
+  readonly path: any
+  readonly parentPath?: any
+  readonly replace?: boolean
+}
+type _NavigateToPayload = {readonly path: any; readonly parentPath?: any; readonly replace?: boolean}
+type _NavigateUpPayload = {readonly fromKey?: string}
 type _PutActionIfOnPathPayload = {
- readonly expectedPath: any,
- readonly otherAction: any,
- readonly parentPath?: any
-};
-
-type _ResetStackPayload = {
- readonly tab: Tabs.AppTab,
- readonly actions: Array<any>,
- readonly index: number
-};
-
-type _SwitchRouteDefPayload = {
- readonly loggedIn: boolean,
- readonly path?: any
-};
-
-type _SwitchTabPayload = {
- readonly tab: Tabs.AppTab
-};
-
-type _SwitchToPayload = {
- readonly path: any,
- readonly parentPath?: any
-};
+  readonly expectedPath: any
+  readonly otherAction: any
+  readonly parentPath?: any
+}
+type _ResetStackPayload = {readonly tab: Tabs.AppTab; readonly actions: Array<any>; readonly index: number}
+type _SwitchRouteDefPayload = {readonly loggedIn: boolean; readonly path?: any}
+type _SwitchTabPayload = {readonly tab: Tabs.AppTab}
+type _SwitchToPayload = {readonly path: any; readonly parentPath?: any}
 
 // Action Creators
 /**
@@ -91,55 +64,54 @@ export const createResetStack = (payload: _ResetStackPayload) => ({payload, type
 export const createSwitchRouteDef = (payload: _SwitchRouteDefPayload) => ({payload, type: switchRouteDef})
 export const createNavigateAppend = (payload: _NavigateAppendPayload) => ({payload, type: navigateAppend})
 export const createNavigateTo = (payload: _NavigateToPayload) => ({payload, type: navigateTo})
-export const createNavigateUp = (payload: _NavigateUpPayload = Object.freeze({})) => ({payload, type: navigateUp})
-export const createPutActionIfOnPath = (payload: _PutActionIfOnPathPayload) => ({payload, type: putActionIfOnPath})
+export const createNavigateUp = (payload: _NavigateUpPayload = Object.freeze({})) => ({
+  payload,
+  type: navigateUp,
+})
+export const createPutActionIfOnPath = (payload: _PutActionIfOnPathPayload) => ({
+  payload,
+  type: putActionIfOnPath,
+})
 export const createSwitchTo = (payload: _SwitchToPayload) => ({payload, type: switchTo})
 
 // Action Payloads
 export type ClearModalsPayload = {
- readonly payload: _ClearModalsPayload,
- readonly type: "route-tree:clearModals"
-};
+  readonly payload: _ClearModalsPayload
+  readonly type: 'route-tree:clearModals'
+}
 export type NavUpToScreenPayload = {
- readonly payload: _NavUpToScreenPayload,
- readonly type: "route-tree:navUpToScreen"
-};
+  readonly payload: _NavUpToScreenPayload
+  readonly type: 'route-tree:navUpToScreen'
+}
 export type NavigateAppendPayload = {
- readonly payload: _NavigateAppendPayload,
- readonly type: "route-tree:navigateAppend"
-};
-export type NavigateToPayload = {
- readonly payload: _NavigateToPayload,
- readonly type: "route-tree:navigateTo"
-};
-export type NavigateUpPayload = {
- readonly payload: _NavigateUpPayload,
- readonly type: "route-tree:navigateUp"
-};
+  readonly payload: _NavigateAppendPayload
+  readonly type: 'route-tree:navigateAppend'
+}
+export type NavigateToPayload = {readonly payload: _NavigateToPayload; readonly type: 'route-tree:navigateTo'}
+export type NavigateUpPayload = {readonly payload: _NavigateUpPayload; readonly type: 'route-tree:navigateUp'}
 export type PutActionIfOnPathPayload = {
- readonly payload: _PutActionIfOnPathPayload,
- readonly type: "route-tree:putActionIfOnPath"
-};
-export type ResetStackPayload = {
- readonly payload: _ResetStackPayload,
- readonly type: "route-tree:resetStack"
-};
+  readonly payload: _PutActionIfOnPathPayload
+  readonly type: 'route-tree:putActionIfOnPath'
+}
+export type ResetStackPayload = {readonly payload: _ResetStackPayload; readonly type: 'route-tree:resetStack'}
 export type SwitchRouteDefPayload = {
- readonly payload: _SwitchRouteDefPayload,
- readonly type: "route-tree:switchRouteDef"
-};
-export type SwitchTabPayload = {
- readonly payload: _SwitchTabPayload,
- readonly type: "route-tree:switchTab"
-};
-export type SwitchToPayload = {
- readonly payload: _SwitchToPayload,
- readonly type: "route-tree:switchTo"
-};
+  readonly payload: _SwitchRouteDefPayload
+  readonly type: 'route-tree:switchRouteDef'
+}
+export type SwitchTabPayload = {readonly payload: _SwitchTabPayload; readonly type: 'route-tree:switchTab'}
+export type SwitchToPayload = {readonly payload: _SwitchToPayload; readonly type: 'route-tree:switchTo'}
 
 // All Actions
 // prettier-ignore
-export type Actions = ClearModalsPayload | NavUpToScreenPayload | NavigateAppendPayload | NavigateToPayload | NavigateUpPayload | PutActionIfOnPathPayload | ResetStackPayload | SwitchRouteDefPayload | SwitchTabPayload | SwitchToPayload | {
- type: "common:resetStore",
- payload: null
-};
+export type Actions =
+  | ClearModalsPayload
+  | NavUpToScreenPayload
+  | NavigateAppendPayload
+  | NavigateToPayload
+  | NavigateUpPayload
+  | PutActionIfOnPathPayload
+  | ResetStackPayload
+  | SwitchRouteDefPayload
+  | SwitchTabPayload
+  | SwitchToPayload
+  | {type: 'common:resetStore', payload: null}

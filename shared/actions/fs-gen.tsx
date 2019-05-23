@@ -1,3 +1,4 @@
+// @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 /* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
@@ -96,356 +97,135 @@ export const userFileEditsLoad = 'fs:userFileEditsLoad'
 export const userFileEditsLoaded = 'fs:userFileEditsLoaded'
 export const waitForKbfsDaemon = 'fs:waitForKbfsDaemon'
 
-type _CancelDownloadPayload = {
-  readonly key: string
-};
-
-type _ClearRefreshTagPayload = {
-  readonly refreshTag: Types.RefreshTag
-};
-
-type _CloseDestinationPickerPayload = void;
-
-type _CommitEditPayload = {
-  readonly editID: Types.EditID
-};
-
-type _CopyPayload = {
-  readonly destinationParentPath: Types.Path
-};
-
-type _DeleteFilePayload = {
-  readonly path: Types.Path
-};
-
-type _DiscardEditPayload = {
-  readonly editID: Types.EditID
-};
-
-type _DismissDownloadPayload = {
-  readonly key: string
-};
-
-type _DismissFsErrorPayload = {
-  readonly key: string
-};
-
-type _DownloadPayload = {
-  readonly path: Types.Path,
-  readonly key: string
-};
-
+// Payload Types
+type _CancelDownloadPayload = {readonly key: string}
+type _ClearRefreshTagPayload = {readonly refreshTag: Types.RefreshTag}
+type _CloseDestinationPickerPayload = void
+type _CommitEditPayload = {readonly editID: Types.EditID}
+type _CopyPayload = {readonly destinationParentPath: Types.Path}
+type _DeleteFilePayload = {readonly path: Types.Path}
+type _DiscardEditPayload = {readonly editID: Types.EditID}
+type _DismissDownloadPayload = {readonly key: string}
+type _DismissFsErrorPayload = {readonly key: string}
+type _DownloadPayload = {readonly path: Types.Path; readonly key: string}
 type _DownloadProgressPayload = {
-  readonly key: string,
-  readonly completePortion: number,
+  readonly key: string
+  readonly completePortion: number
   readonly endEstimate?: number
-};
-
+}
 type _DownloadStartedPayload = {
-  readonly entryType?: Types.PathType,
-  readonly key: string,
-  readonly path: Types.Path,
-  readonly localPath: Types.LocalPath,
-  readonly intent: Types.DownloadIntent,
-  readonly opID: RPCTypes.OpID
-};
-
-type _DownloadSuccessPayload = {
-  readonly intent: Types.DownloadIntent,
-  readonly key: string,
-  readonly mimeType: string
-};
-
-type _DriverDisablePayload = void;
-type _DriverDisablingPayload = void;
-
-type _DriverEnablePayload = {
-  readonly isRetry?: boolean | null
-};
-
-type _DriverKextPermissionErrorPayload = void;
-
-type _EditSuccessPayload = {
-  readonly editID: Types.EditID,
-  readonly parentPath: Types.Path
-};
-
-type _FavoriteIgnoreErrorPayload = {
-  readonly path: Types.Path,
-  readonly error: Types.FsError
-};
-
-type _FavoriteIgnorePayload = {
-  readonly path: Types.Path
-};
-
-type _FavoritesLoadPayload = void;
-
-type _FavoritesLoadedPayload = {
-  readonly private: I.Map<string, Types.Tlf>,
-  readonly public: I.Map<string, Types.Tlf>,
-  readonly team: I.Map<string, Types.Tlf>
-};
-
-type _FolderListLoadPayload = {
-  readonly path: Types.Path,
-  readonly refreshTag?: Types.RefreshTag
-};
-
-type _FolderListLoadedPayload = {
-  readonly path: Types.Path,
-  readonly pathItems: I.Map<Types.Path, Types.PathItem>
-};
-
-type _FsErrorPayload = {
-  readonly error: Types.FsError
-};
-
-type _HideSystemFileManagerIntegrationBannerPayload = void;
-
-type _InitSendAttachmentToChatPayload = {
-  readonly path: Types.Path
-};
-
-type _InitSendLinkToChatPayload = {
-  readonly path: Types.Path
-};
-
-type _JournalUpdatePayload = {
-  readonly syncingPaths: Array<Types.Path>,
-  readonly totalSyncingBytes: number,
-  readonly endEstimate?: number | null
-};
-
-type _KbfsDaemonOnlineStatusChangedPayload = {
-  readonly online: boolean
-};
-
-type _KbfsDaemonRpcStatusChangedPayload = {
-  readonly rpcStatus: Types.KbfsDaemonRpcStatus
-};
-
-type _LetResetUserBackInPayload = {
-  readonly id: RPCTypes.TeamID,
-  readonly username: string
-};
-
-type _LoadPathMetadataPayload = {
-  readonly path: Types.Path,
-  readonly refreshTag?: Types.RefreshTag | null
-};
-
-type _LoadSettingsPayload = void;
-
-type _LoadTlfSyncConfigPayload = {
-  readonly tlfPath: Types.Path
-};
-
-type _LoadingPathPayload = {
-  readonly path: Types.Path,
-  readonly id: string,
-  readonly done: boolean
-};
-
-type _LocalHTTPServerInfoPayload = {
-  readonly address: string,
-  readonly token: string
-};
-
-type _MovePayload = {
-  readonly destinationParentPath: Types.Path
-};
-
-type _NewFolderNamePayload = {
-  readonly editID: Types.EditID,
-  readonly name: string
-};
-
-type _NewFolderRowPayload = {
-  readonly parentPath: Types.Path
-};
-
-type _NotifyTlfUpdatePayload = {
-  readonly tlfPath: Types.Path
-};
-
-type _OpenAndUploadPayload = {
-  readonly type: Types.OpenDialogType,
-  readonly parentPath: Types.Path
-};
-
-type _OpenFilesFromWidgetPayload = {
-  readonly path: Types.Path,
-  readonly type: Types.PathType
-};
-
-type _OpenLocalPathInSystemFileManagerPayload = {
-  readonly localPath: string
-};
-
-type _OpenPathInSystemFileManagerPayload = {
-  readonly path: Types.Path
-};
-
-type _OpenSecurityPreferencesPayload = void;
-
-type _OverallSyncStatusChangedPayload = {
-  readonly progress: Types.SyncingFoldersProgress
-};
-
-type _PathItemLoadedPayload = {
-  readonly path: Types.Path,
-  readonly pathItem: Types.PathItem
-};
-
-type _PickAndUploadPayload = {
-  readonly type: Types.MobilePickType,
-  readonly parentPath: Types.Path
-};
-
-type _PlaceholderActionPayload = void;
-type _RefreshDriverStatusPayload = void;
-type _RefreshLocalHTTPServerInfoPayload = void;
-
-type _SaveMediaPayload = {
-  readonly path: Types.Path,
+  readonly entryType?: Types.PathType
   readonly key: string
-};
-
-type _SentAttachmentToChatPayload = void;
-
-type _SentLinkToChatPayload = {
-  readonly convID: ChatTypes.ConversationIDKey
-};
-
-type _SetDestinationPickerParentPathPayload = {
-  readonly index: number,
   readonly path: Types.Path
-};
-
-type _SetDriverStatusPayload = {
-  readonly driverStatus: Types.DriverStatus
-};
-
-type _SetFolderViewFilterPayload = {
-  readonly filter: string
-};
-
-type _SetIncomingShareLocalPathPayload = {
   readonly localPath: Types.LocalPath
-};
-
-type _SetMoveOrCopySourcePayload = {
-  readonly path: Types.Path
-};
-
-type _SetPathItemActionMenuDownloadKeyPayload = {
-  readonly key: string | null
-};
-
-type _SetPathItemActionMenuViewPayload = {
-  readonly view: Types.PathItemActionMenuView
-};
-
-type _SetPathSoftErrorPayload = {
-  readonly path: Types.Path,
-  readonly softError: Types.SoftError | null
-};
-
-type _SetSendAttachmentToChatConvIDPayload = {
-  readonly convID: ChatTypes.ConversationIDKey
-};
-
-type _SetSendAttachmentToChatFilterPayload = {
-  readonly filter: string
-};
-
-type _SetSendLinkToChatChannelsPayload = {
-  readonly channels: I.Map<ChatTypes.ConversationIDKey, string>
-};
-
-type _SetSendLinkToChatConvIDPayload = {
-  readonly convID: ChatTypes.ConversationIDKey
-};
-
-type _SetSpaceAvailableNotificationThresholdPayload = {
-  readonly spaceAvailableNotificationThreshold: number
-};
-
-type _SetTlfSoftErrorPayload = {
-  readonly path: Types.Path,
-  readonly softError: Types.SoftError | null
-};
-
-type _SetTlfSyncConfigPayload = {
-  readonly enabled: boolean,
-  readonly tlfPath: Types.Path
-};
-
-type _SettingsLoadedPayload = {
-  readonly settings?: Types.Settings
-};
-
-type _ShareNativePayload = {
-  readonly path: Types.Path,
+  readonly intent: Types.DownloadIntent
+  readonly opID: RPCTypes.OpID
+}
+type _DownloadSuccessPayload = {
+  readonly intent: Types.DownloadIntent
   readonly key: string
-};
-
-type _ShowIncomingSharePayload = {
-  readonly initialDestinationParentPath: Types.Path
-};
-
-type _ShowMoveOrCopyPayload = {
-  readonly initialDestinationParentPath: Types.Path
-};
-
-type _ShowSystemFileManagerIntegrationBannerPayload = void;
-
-type _SortSettingPayload = {
-  readonly path: Types.Path,
-  readonly sortSetting: Types.SortSetting
-};
-
+  readonly mimeType: string
+}
+type _DriverDisablePayload = void
+type _DriverDisablingPayload = void
+type _DriverEnablePayload = {readonly isRetry?: boolean | null}
+type _DriverKextPermissionErrorPayload = void
+type _EditSuccessPayload = {readonly editID: Types.EditID; readonly parentPath: Types.Path}
+type _FavoriteIgnoreErrorPayload = {readonly path: Types.Path; readonly error: Types.FsError}
+type _FavoriteIgnorePayload = {readonly path: Types.Path}
+type _FavoritesLoadPayload = void
+type _FavoritesLoadedPayload = {
+  readonly private: I.Map<string, Types.Tlf>
+  readonly public: I.Map<string, Types.Tlf>
+  readonly team: I.Map<string, Types.Tlf>
+}
+type _FolderListLoadPayload = {readonly path: Types.Path; readonly refreshTag?: Types.RefreshTag}
+type _FolderListLoadedPayload = {
+  readonly path: Types.Path
+  readonly pathItems: I.Map<Types.Path, Types.PathItem>
+}
+type _FsErrorPayload = {readonly error: Types.FsError; readonly expectedIfOffline: boolean}
+type _HideSystemFileManagerIntegrationBannerPayload = void
+type _InitSendAttachmentToChatPayload = {readonly path: Types.Path}
+type _InitSendLinkToChatPayload = {readonly path: Types.Path}
+type _JournalUpdatePayload = {
+  readonly syncingPaths: Array<Types.Path>
+  readonly totalSyncingBytes: number
+  readonly endEstimate?: number | null
+}
+type _KbfsDaemonOnlineStatusChangedPayload = {readonly online: boolean}
+type _KbfsDaemonRpcStatusChangedPayload = {readonly rpcStatus: Types.KbfsDaemonRpcStatus}
+type _LetResetUserBackInPayload = {readonly id: RPCTypes.TeamID; readonly username: string}
+type _LoadPathMetadataPayload = {readonly path: Types.Path; readonly refreshTag?: Types.RefreshTag | null}
+type _LoadSettingsPayload = void
+type _LoadTlfSyncConfigPayload = {readonly tlfPath: Types.Path}
+type _LoadingPathPayload = {readonly path: Types.Path; readonly id: string; readonly done: boolean}
+type _LocalHTTPServerInfoPayload = {readonly address: string; readonly token: string}
+type _MovePayload = {readonly destinationParentPath: Types.Path}
+type _NewFolderNamePayload = {readonly editID: Types.EditID; readonly name: string}
+type _NewFolderRowPayload = {readonly parentPath: Types.Path}
+type _NotifyTlfUpdatePayload = {readonly tlfPath: Types.Path}
+type _OpenAndUploadPayload = {readonly type: Types.OpenDialogType; readonly parentPath: Types.Path}
+type _OpenFilesFromWidgetPayload = {readonly path: Types.Path; readonly type: Types.PathType}
+type _OpenLocalPathInSystemFileManagerPayload = {readonly localPath: string}
+type _OpenPathInSystemFileManagerPayload = {readonly path: Types.Path}
+type _OpenSecurityPreferencesPayload = void
+type _OverallSyncStatusChangedPayload = {readonly progress: Types.SyncingFoldersProgress}
+type _PathItemLoadedPayload = {readonly path: Types.Path; readonly pathItem: Types.PathItem}
+type _PickAndUploadPayload = {readonly type: Types.MobilePickType; readonly parentPath: Types.Path}
+type _PlaceholderActionPayload = void
+type _RefreshDriverStatusPayload = void
+type _RefreshLocalHTTPServerInfoPayload = void
+type _SaveMediaPayload = {readonly path: Types.Path; readonly key: string}
+type _SentAttachmentToChatPayload = void
+type _SentLinkToChatPayload = {readonly convID: ChatTypes.ConversationIDKey}
+type _SetDestinationPickerParentPathPayload = {readonly index: number; readonly path: Types.Path}
+type _SetDriverStatusPayload = {readonly driverStatus: Types.DriverStatus}
+type _SetFolderViewFilterPayload = {readonly filter: string}
+type _SetIncomingShareLocalPathPayload = {readonly localPath: Types.LocalPath}
+type _SetMoveOrCopySourcePayload = {readonly path: Types.Path}
+type _SetPathItemActionMenuDownloadKeyPayload = {readonly key: string | null}
+type _SetPathItemActionMenuViewPayload = {readonly view: Types.PathItemActionMenuView}
+type _SetPathSoftErrorPayload = {readonly path: Types.Path; readonly softError: Types.SoftError | null}
+type _SetSendAttachmentToChatConvIDPayload = {readonly convID: ChatTypes.ConversationIDKey}
+type _SetSendAttachmentToChatFilterPayload = {readonly filter: string}
+type _SetSendLinkToChatChannelsPayload = {readonly channels: I.Map<ChatTypes.ConversationIDKey, string>}
+type _SetSendLinkToChatConvIDPayload = {readonly convID: ChatTypes.ConversationIDKey}
+type _SetSpaceAvailableNotificationThresholdPayload = {readonly spaceAvailableNotificationThreshold: number}
+type _SetTlfSoftErrorPayload = {readonly path: Types.Path; readonly softError: Types.SoftError | null}
+type _SetTlfSyncConfigPayload = {readonly enabled: boolean; readonly tlfPath: Types.Path}
+type _SettingsLoadedPayload = {readonly settings?: Types.Settings}
+type _ShareNativePayload = {readonly path: Types.Path; readonly key: string}
+type _ShowIncomingSharePayload = {readonly initialDestinationParentPath: Types.Path}
+type _ShowMoveOrCopyPayload = {readonly initialDestinationParentPath: Types.Path}
+type _ShowSystemFileManagerIntegrationBannerPayload = void
+type _SortSettingPayload = {readonly path: Types.Path; readonly sortSetting: Types.SortSetting}
 type _TlfSyncConfigLoadedPayload = {
-  readonly tlfType: Types.TlfType,
-  readonly tlfName: string,
+  readonly tlfType: Types.TlfType
+  readonly tlfName: string
   readonly syncConfig: Types.TlfSyncConfig
-};
-
+}
 type _TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload = {
-  readonly private: I.Map<string, Types.TlfSyncConfig>,
-  readonly public: I.Map<string, Types.TlfSyncConfig>,
+  readonly private: I.Map<string, Types.TlfSyncConfig>
+  readonly public: I.Map<string, Types.TlfSyncConfig>
   readonly team: I.Map<string, Types.TlfSyncConfig>
-};
-
-type _TriggerSendLinkToChatPayload = void;
-type _UninstallKBFSConfirmPayload = void;
-
-type _UploadPayload = {
-  readonly parentPath: Types.Path,
-  readonly localPath: string
-};
-
-type _UploadStartedPayload = {
-  readonly path: Types.Path
-};
-
-type _UploadWritingSuccessPayload = {
-  readonly path: Types.Path
-};
-
-type _UserFileEditsLoadPayload = void;
-
-type _UserFileEditsLoadedPayload = {
-  readonly tlfUpdates: Types.UserTlfUpdates
-};
-
-type _WaitForKbfsDaemonPayload = void;
+}
+type _TriggerSendLinkToChatPayload = void
+type _UninstallKBFSConfirmPayload = void
+type _UploadPayload = {readonly parentPath: Types.Path; readonly localPath: string}
+type _UploadStartedPayload = {readonly path: Types.Path}
+type _UploadWritingSuccessPayload = {readonly path: Types.Path}
+type _UserFileEditsLoadPayload = void
+type _UserFileEditsLoadedPayload = {readonly tlfUpdates: Types.UserTlfUpdates}
+type _WaitForKbfsDaemonPayload = void
 
 // Action Creators
 export const createCancelDownload = (payload: _CancelDownloadPayload) => ({payload, type: cancelDownload})
 export const createClearRefreshTag = (payload: _ClearRefreshTagPayload) => ({payload, type: clearRefreshTag})
-export const createCloseDestinationPicker = (payload: _CloseDestinationPickerPayload) => ({payload, type: closeDestinationPicker})
+export const createCloseDestinationPicker = (payload: _CloseDestinationPickerPayload) => ({
+  payload,
+  type: closeDestinationPicker,
+})
 export const createCommitEdit = (payload: _CommitEditPayload) => ({payload, type: commitEdit})
 export const createCopy = (payload: _CopyPayload) => ({payload, type: copy})
 export const createDeleteFile = (payload: _DeleteFilePayload) => ({payload, type: deleteFile})
@@ -453,432 +233,603 @@ export const createDiscardEdit = (payload: _DiscardEditPayload) => ({payload, ty
 export const createDismissDownload = (payload: _DismissDownloadPayload) => ({payload, type: dismissDownload})
 export const createDismissFsError = (payload: _DismissFsErrorPayload) => ({payload, type: dismissFsError})
 export const createDownload = (payload: _DownloadPayload) => ({payload, type: download})
-export const createDownloadProgress = (payload: _DownloadProgressPayload) => ({payload, type: downloadProgress})
+export const createDownloadProgress = (payload: _DownloadProgressPayload) => ({
+  payload,
+  type: downloadProgress,
+})
 export const createDownloadStarted = (payload: _DownloadStartedPayload) => ({payload, type: downloadStarted})
 export const createDownloadSuccess = (payload: _DownloadSuccessPayload) => ({payload, type: downloadSuccess})
 export const createDriverDisable = (payload: _DriverDisablePayload) => ({payload, type: driverDisable})
 export const createDriverDisabling = (payload: _DriverDisablingPayload) => ({payload, type: driverDisabling})
-export const createDriverEnable = (payload: _DriverEnablePayload = Object.freeze({})) => ({payload, type: driverEnable})
-export const createDriverKextPermissionError = (payload: _DriverKextPermissionErrorPayload) => ({payload, type: driverKextPermissionError})
+export const createDriverEnable = (payload: _DriverEnablePayload = Object.freeze({})) => ({
+  payload,
+  type: driverEnable,
+})
+export const createDriverKextPermissionError = (payload: _DriverKextPermissionErrorPayload) => ({
+  payload,
+  type: driverKextPermissionError,
+})
 export const createEditSuccess = (payload: _EditSuccessPayload) => ({payload, type: editSuccess})
 export const createFavoriteIgnore = (payload: _FavoriteIgnorePayload) => ({payload, type: favoriteIgnore})
-export const createFavoriteIgnoreError = (payload: _FavoriteIgnoreErrorPayload) => ({payload, type: favoriteIgnoreError})
+export const createFavoriteIgnoreError = (payload: _FavoriteIgnoreErrorPayload) => ({
+  payload,
+  type: favoriteIgnoreError,
+})
 export const createFavoritesLoad = (payload: _FavoritesLoadPayload) => ({payload, type: favoritesLoad})
 export const createFavoritesLoaded = (payload: _FavoritesLoadedPayload) => ({payload, type: favoritesLoaded})
 export const createFolderListLoad = (payload: _FolderListLoadPayload) => ({payload, type: folderListLoad})
-export const createFolderListLoaded = (payload: _FolderListLoadedPayload) => ({payload, type: folderListLoaded})
+export const createFolderListLoaded = (payload: _FolderListLoadedPayload) => ({
+  payload,
+  type: folderListLoaded,
+})
 export const createFsError = (payload: _FsErrorPayload) => ({payload, type: fsError})
-export const createHideSystemFileManagerIntegrationBanner = (payload: _HideSystemFileManagerIntegrationBannerPayload) => ({payload, type: hideSystemFileManagerIntegrationBanner})
-export const createInitSendAttachmentToChat = (payload: _InitSendAttachmentToChatPayload) => ({payload, type: initSendAttachmentToChat})
-export const createInitSendLinkToChat = (payload: _InitSendLinkToChatPayload) => ({payload, type: initSendLinkToChat})
+export const createHideSystemFileManagerIntegrationBanner = (
+  payload: _HideSystemFileManagerIntegrationBannerPayload
+) => ({payload, type: hideSystemFileManagerIntegrationBanner})
+export const createInitSendAttachmentToChat = (payload: _InitSendAttachmentToChatPayload) => ({
+  payload,
+  type: initSendAttachmentToChat,
+})
+export const createInitSendLinkToChat = (payload: _InitSendLinkToChatPayload) => ({
+  payload,
+  type: initSendLinkToChat,
+})
 export const createJournalUpdate = (payload: _JournalUpdatePayload) => ({payload, type: journalUpdate})
-export const createKbfsDaemonOnlineStatusChanged = (payload: _KbfsDaemonOnlineStatusChangedPayload) => ({payload, type: kbfsDaemonOnlineStatusChanged})
-export const createKbfsDaemonRpcStatusChanged = (payload: _KbfsDaemonRpcStatusChangedPayload) => ({payload, type: kbfsDaemonRpcStatusChanged})
-export const createLetResetUserBackIn = (payload: _LetResetUserBackInPayload) => ({payload, type: letResetUserBackIn})
-export const createLoadPathMetadata = (payload: _LoadPathMetadataPayload) => ({payload, type: loadPathMetadata})
+export const createKbfsDaemonOnlineStatusChanged = (payload: _KbfsDaemonOnlineStatusChangedPayload) => ({
+  payload,
+  type: kbfsDaemonOnlineStatusChanged,
+})
+export const createKbfsDaemonRpcStatusChanged = (payload: _KbfsDaemonRpcStatusChangedPayload) => ({
+  payload,
+  type: kbfsDaemonRpcStatusChanged,
+})
+export const createLetResetUserBackIn = (payload: _LetResetUserBackInPayload) => ({
+  payload,
+  type: letResetUserBackIn,
+})
+export const createLoadPathMetadata = (payload: _LoadPathMetadataPayload) => ({
+  payload,
+  type: loadPathMetadata,
+})
 export const createLoadSettings = (payload: _LoadSettingsPayload) => ({payload, type: loadSettings})
-export const createLoadTlfSyncConfig = (payload: _LoadTlfSyncConfigPayload) => ({payload, type: loadTlfSyncConfig})
+export const createLoadTlfSyncConfig = (payload: _LoadTlfSyncConfigPayload) => ({
+  payload,
+  type: loadTlfSyncConfig,
+})
 export const createLoadingPath = (payload: _LoadingPathPayload) => ({payload, type: loadingPath})
-export const createLocalHTTPServerInfo = (payload: _LocalHTTPServerInfoPayload) => ({payload, type: localHTTPServerInfo})
+export const createLocalHTTPServerInfo = (payload: _LocalHTTPServerInfoPayload) => ({
+  payload,
+  type: localHTTPServerInfo,
+})
 export const createMove = (payload: _MovePayload) => ({payload, type: move})
 export const createNewFolderName = (payload: _NewFolderNamePayload) => ({payload, type: newFolderName})
 export const createNewFolderRow = (payload: _NewFolderRowPayload) => ({payload, type: newFolderRow})
 export const createNotifyTlfUpdate = (payload: _NotifyTlfUpdatePayload) => ({payload, type: notifyTlfUpdate})
 export const createOpenAndUpload = (payload: _OpenAndUploadPayload) => ({payload, type: openAndUpload})
-export const createOpenFilesFromWidget = (payload: _OpenFilesFromWidgetPayload) => ({payload, type: openFilesFromWidget})
-export const createOpenLocalPathInSystemFileManager = (payload: _OpenLocalPathInSystemFileManagerPayload) => ({payload, type: openLocalPathInSystemFileManager})
-export const createOpenPathInSystemFileManager = (payload: _OpenPathInSystemFileManagerPayload) => ({payload, type: openPathInSystemFileManager})
-export const createOpenSecurityPreferences = (payload: _OpenSecurityPreferencesPayload) => ({payload, type: openSecurityPreferences})
-export const createOverallSyncStatusChanged = (payload: _OverallSyncStatusChangedPayload) => ({payload, type: overallSyncStatusChanged})
+export const createOpenFilesFromWidget = (payload: _OpenFilesFromWidgetPayload) => ({
+  payload,
+  type: openFilesFromWidget,
+})
+export const createOpenLocalPathInSystemFileManager = (
+  payload: _OpenLocalPathInSystemFileManagerPayload
+) => ({payload, type: openLocalPathInSystemFileManager})
+export const createOpenPathInSystemFileManager = (payload: _OpenPathInSystemFileManagerPayload) => ({
+  payload,
+  type: openPathInSystemFileManager,
+})
+export const createOpenSecurityPreferences = (payload: _OpenSecurityPreferencesPayload) => ({
+  payload,
+  type: openSecurityPreferences,
+})
+export const createOverallSyncStatusChanged = (payload: _OverallSyncStatusChangedPayload) => ({
+  payload,
+  type: overallSyncStatusChanged,
+})
 export const createPathItemLoaded = (payload: _PathItemLoadedPayload) => ({payload, type: pathItemLoaded})
 export const createPickAndUpload = (payload: _PickAndUploadPayload) => ({payload, type: pickAndUpload})
-export const createPlaceholderAction = (payload: _PlaceholderActionPayload) => ({payload, type: placeholderAction})
-export const createRefreshDriverStatus = (payload: _RefreshDriverStatusPayload) => ({payload, type: refreshDriverStatus})
-export const createRefreshLocalHTTPServerInfo = (payload: _RefreshLocalHTTPServerInfoPayload) => ({payload, type: refreshLocalHTTPServerInfo})
+export const createPlaceholderAction = (payload: _PlaceholderActionPayload) => ({
+  payload,
+  type: placeholderAction,
+})
+export const createRefreshDriverStatus = (payload: _RefreshDriverStatusPayload) => ({
+  payload,
+  type: refreshDriverStatus,
+})
+export const createRefreshLocalHTTPServerInfo = (payload: _RefreshLocalHTTPServerInfoPayload) => ({
+  payload,
+  type: refreshLocalHTTPServerInfo,
+})
 export const createSaveMedia = (payload: _SaveMediaPayload) => ({payload, type: saveMedia})
-export const createSentAttachmentToChat = (payload: _SentAttachmentToChatPayload) => ({payload, type: sentAttachmentToChat})
+export const createSentAttachmentToChat = (payload: _SentAttachmentToChatPayload) => ({
+  payload,
+  type: sentAttachmentToChat,
+})
 export const createSentLinkToChat = (payload: _SentLinkToChatPayload) => ({payload, type: sentLinkToChat})
-export const createSetDestinationPickerParentPath = (payload: _SetDestinationPickerParentPathPayload) => ({payload, type: setDestinationPickerParentPath})
+export const createSetDestinationPickerParentPath = (payload: _SetDestinationPickerParentPathPayload) => ({
+  payload,
+  type: setDestinationPickerParentPath,
+})
 export const createSetDriverStatus = (payload: _SetDriverStatusPayload) => ({payload, type: setDriverStatus})
-export const createSetFolderViewFilter = (payload: _SetFolderViewFilterPayload) => ({payload, type: setFolderViewFilter})
-export const createSetIncomingShareLocalPath = (payload: _SetIncomingShareLocalPathPayload) => ({payload, type: setIncomingShareLocalPath})
-export const createSetMoveOrCopySource = (payload: _SetMoveOrCopySourcePayload) => ({payload, type: setMoveOrCopySource})
-export const createSetPathItemActionMenuDownloadKey = (payload: _SetPathItemActionMenuDownloadKeyPayload) => ({payload, type: setPathItemActionMenuDownloadKey})
-export const createSetPathItemActionMenuView = (payload: _SetPathItemActionMenuViewPayload) => ({payload, type: setPathItemActionMenuView})
-export const createSetPathSoftError = (payload: _SetPathSoftErrorPayload) => ({payload, type: setPathSoftError})
-export const createSetSendAttachmentToChatConvID = (payload: _SetSendAttachmentToChatConvIDPayload) => ({payload, type: setSendAttachmentToChatConvID})
-export const createSetSendAttachmentToChatFilter = (payload: _SetSendAttachmentToChatFilterPayload) => ({payload, type: setSendAttachmentToChatFilter})
-export const createSetSendLinkToChatChannels = (payload: _SetSendLinkToChatChannelsPayload) => ({payload, type: setSendLinkToChatChannels})
-export const createSetSendLinkToChatConvID = (payload: _SetSendLinkToChatConvIDPayload) => ({payload, type: setSendLinkToChatConvID})
-export const createSetSpaceAvailableNotificationThreshold = (payload: _SetSpaceAvailableNotificationThresholdPayload) => ({payload, type: setSpaceAvailableNotificationThreshold})
+export const createSetFolderViewFilter = (payload: _SetFolderViewFilterPayload) => ({
+  payload,
+  type: setFolderViewFilter,
+})
+export const createSetIncomingShareLocalPath = (payload: _SetIncomingShareLocalPathPayload) => ({
+  payload,
+  type: setIncomingShareLocalPath,
+})
+export const createSetMoveOrCopySource = (payload: _SetMoveOrCopySourcePayload) => ({
+  payload,
+  type: setMoveOrCopySource,
+})
+export const createSetPathItemActionMenuDownloadKey = (
+  payload: _SetPathItemActionMenuDownloadKeyPayload
+) => ({payload, type: setPathItemActionMenuDownloadKey})
+export const createSetPathItemActionMenuView = (payload: _SetPathItemActionMenuViewPayload) => ({
+  payload,
+  type: setPathItemActionMenuView,
+})
+export const createSetPathSoftError = (payload: _SetPathSoftErrorPayload) => ({
+  payload,
+  type: setPathSoftError,
+})
+export const createSetSendAttachmentToChatConvID = (payload: _SetSendAttachmentToChatConvIDPayload) => ({
+  payload,
+  type: setSendAttachmentToChatConvID,
+})
+export const createSetSendAttachmentToChatFilter = (payload: _SetSendAttachmentToChatFilterPayload) => ({
+  payload,
+  type: setSendAttachmentToChatFilter,
+})
+export const createSetSendLinkToChatChannels = (payload: _SetSendLinkToChatChannelsPayload) => ({
+  payload,
+  type: setSendLinkToChatChannels,
+})
+export const createSetSendLinkToChatConvID = (payload: _SetSendLinkToChatConvIDPayload) => ({
+  payload,
+  type: setSendLinkToChatConvID,
+})
+export const createSetSpaceAvailableNotificationThreshold = (
+  payload: _SetSpaceAvailableNotificationThresholdPayload
+) => ({payload, type: setSpaceAvailableNotificationThreshold})
 export const createSetTlfSoftError = (payload: _SetTlfSoftErrorPayload) => ({payload, type: setTlfSoftError})
-export const createSetTlfSyncConfig = (payload: _SetTlfSyncConfigPayload) => ({payload, type: setTlfSyncConfig})
-export const createSettingsLoaded = (payload: _SettingsLoadedPayload = Object.freeze({})) => ({payload, type: settingsLoaded})
+export const createSetTlfSyncConfig = (payload: _SetTlfSyncConfigPayload) => ({
+  payload,
+  type: setTlfSyncConfig,
+})
+export const createSettingsLoaded = (payload: _SettingsLoadedPayload = Object.freeze({})) => ({
+  payload,
+  type: settingsLoaded,
+})
 export const createShareNative = (payload: _ShareNativePayload) => ({payload, type: shareNative})
-export const createShowIncomingShare = (payload: _ShowIncomingSharePayload) => ({payload, type: showIncomingShare})
+export const createShowIncomingShare = (payload: _ShowIncomingSharePayload) => ({
+  payload,
+  type: showIncomingShare,
+})
 export const createShowMoveOrCopy = (payload: _ShowMoveOrCopyPayload) => ({payload, type: showMoveOrCopy})
-export const createShowSystemFileManagerIntegrationBanner = (payload: _ShowSystemFileManagerIntegrationBannerPayload) => ({payload, type: showSystemFileManagerIntegrationBanner})
+export const createShowSystemFileManagerIntegrationBanner = (
+  payload: _ShowSystemFileManagerIntegrationBannerPayload
+) => ({payload, type: showSystemFileManagerIntegrationBanner})
 export const createSortSetting = (payload: _SortSettingPayload) => ({payload, type: sortSetting})
-export const createTlfSyncConfigLoaded = (payload: _TlfSyncConfigLoadedPayload) => ({payload, type: tlfSyncConfigLoaded})
-export const createTlfSyncConfigsForAllSyncEnabledTlfsLoaded = (payload: _TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload) => ({payload, type: tlfSyncConfigsForAllSyncEnabledTlfsLoaded})
-export const createTriggerSendLinkToChat = (payload: _TriggerSendLinkToChatPayload) => ({payload, type: triggerSendLinkToChat})
-export const createUninstallKBFSConfirm = (payload: _UninstallKBFSConfirmPayload) => ({payload, type: uninstallKBFSConfirm})
+export const createTlfSyncConfigLoaded = (payload: _TlfSyncConfigLoadedPayload) => ({
+  payload,
+  type: tlfSyncConfigLoaded,
+})
+export const createTlfSyncConfigsForAllSyncEnabledTlfsLoaded = (
+  payload: _TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload
+) => ({payload, type: tlfSyncConfigsForAllSyncEnabledTlfsLoaded})
+export const createTriggerSendLinkToChat = (payload: _TriggerSendLinkToChatPayload) => ({
+  payload,
+  type: triggerSendLinkToChat,
+})
+export const createUninstallKBFSConfirm = (payload: _UninstallKBFSConfirmPayload) => ({
+  payload,
+  type: uninstallKBFSConfirm,
+})
 export const createUpload = (payload: _UploadPayload) => ({payload, type: upload})
 export const createUploadStarted = (payload: _UploadStartedPayload) => ({payload, type: uploadStarted})
-export const createUploadWritingSuccess = (payload: _UploadWritingSuccessPayload) => ({payload, type: uploadWritingSuccess})
-export const createUserFileEditsLoad = (payload: _UserFileEditsLoadPayload) => ({payload, type: userFileEditsLoad})
-export const createUserFileEditsLoaded = (payload: _UserFileEditsLoadedPayload) => ({payload, type: userFileEditsLoaded})
-export const createWaitForKbfsDaemon = (payload: _WaitForKbfsDaemonPayload) => ({payload, type: waitForKbfsDaemon})
+export const createUploadWritingSuccess = (payload: _UploadWritingSuccessPayload) => ({
+  payload,
+  type: uploadWritingSuccess,
+})
+export const createUserFileEditsLoad = (payload: _UserFileEditsLoadPayload) => ({
+  payload,
+  type: userFileEditsLoad,
+})
+export const createUserFileEditsLoaded = (payload: _UserFileEditsLoadedPayload) => ({
+  payload,
+  type: userFileEditsLoaded,
+})
+export const createWaitForKbfsDaemon = (payload: _WaitForKbfsDaemonPayload) => ({
+  payload,
+  type: waitForKbfsDaemon,
+})
 
 // Action Payloads
 export type CancelDownloadPayload = {
-  readonly payload: _CancelDownloadPayload,
-  readonly type: "fs:cancelDownload"
-};
+  readonly payload: _CancelDownloadPayload
+  readonly type: 'fs:cancelDownload'
+}
 export type ClearRefreshTagPayload = {
-  readonly payload: _ClearRefreshTagPayload,
-  readonly type: "fs:clearRefreshTag"
-};
+  readonly payload: _ClearRefreshTagPayload
+  readonly type: 'fs:clearRefreshTag'
+}
 export type CloseDestinationPickerPayload = {
-  readonly payload: _CloseDestinationPickerPayload,
-  readonly type: "fs:closeDestinationPicker"
-};
-export type CommitEditPayload = {
-  readonly payload: _CommitEditPayload,
-  readonly type: "fs:commitEdit"
-};
-export type CopyPayload = {
-  readonly payload: _CopyPayload,
-  readonly type: "fs:copy"
-};
-export type DeleteFilePayload = {
-  readonly payload: _DeleteFilePayload,
-  readonly type: "fs:deleteFile"
-};
-export type DiscardEditPayload = {
-  readonly payload: _DiscardEditPayload,
-  readonly type: "fs:discardEdit"
-};
+  readonly payload: _CloseDestinationPickerPayload
+  readonly type: 'fs:closeDestinationPicker'
+}
+export type CommitEditPayload = {readonly payload: _CommitEditPayload; readonly type: 'fs:commitEdit'}
+export type CopyPayload = {readonly payload: _CopyPayload; readonly type: 'fs:copy'}
+export type DeleteFilePayload = {readonly payload: _DeleteFilePayload; readonly type: 'fs:deleteFile'}
+export type DiscardEditPayload = {readonly payload: _DiscardEditPayload; readonly type: 'fs:discardEdit'}
 export type DismissDownloadPayload = {
-  readonly payload: _DismissDownloadPayload,
-  readonly type: "fs:dismissDownload"
-};
+  readonly payload: _DismissDownloadPayload
+  readonly type: 'fs:dismissDownload'
+}
 export type DismissFsErrorPayload = {
-  readonly payload: _DismissFsErrorPayload,
-  readonly type: "fs:dismissFsError"
-};
-export type DownloadPayload = {
-  readonly payload: _DownloadPayload,
-  readonly type: "fs:download"
-};
+  readonly payload: _DismissFsErrorPayload
+  readonly type: 'fs:dismissFsError'
+}
+export type DownloadPayload = {readonly payload: _DownloadPayload; readonly type: 'fs:download'}
 export type DownloadProgressPayload = {
-  readonly payload: _DownloadProgressPayload,
-  readonly type: "fs:downloadProgress"
-};
+  readonly payload: _DownloadProgressPayload
+  readonly type: 'fs:downloadProgress'
+}
 export type DownloadStartedPayload = {
-  readonly payload: _DownloadStartedPayload,
-  readonly type: "fs:downloadStarted"
-};
+  readonly payload: _DownloadStartedPayload
+  readonly type: 'fs:downloadStarted'
+}
 export type DownloadSuccessPayload = {
-  readonly payload: _DownloadSuccessPayload,
-  readonly type: "fs:downloadSuccess"
-};
+  readonly payload: _DownloadSuccessPayload
+  readonly type: 'fs:downloadSuccess'
+}
 export type DriverDisablePayload = {
-  readonly payload: _DriverDisablePayload,
-  readonly type: "fs:driverDisable"
-};
+  readonly payload: _DriverDisablePayload
+  readonly type: 'fs:driverDisable'
+}
 export type DriverDisablingPayload = {
-  readonly payload: _DriverDisablingPayload,
-  readonly type: "fs:driverDisabling"
-};
-export type DriverEnablePayload = {
-  readonly payload: _DriverEnablePayload,
-  readonly type: "fs:driverEnable"
-};
+  readonly payload: _DriverDisablingPayload
+  readonly type: 'fs:driverDisabling'
+}
+export type DriverEnablePayload = {readonly payload: _DriverEnablePayload; readonly type: 'fs:driverEnable'}
 export type DriverKextPermissionErrorPayload = {
-  readonly payload: _DriverKextPermissionErrorPayload,
-  readonly type: "fs:driverKextPermissionError"
-};
-export type EditSuccessPayload = {
-  readonly payload: _EditSuccessPayload,
-  readonly type: "fs:editSuccess"
-};
+  readonly payload: _DriverKextPermissionErrorPayload
+  readonly type: 'fs:driverKextPermissionError'
+}
+export type EditSuccessPayload = {readonly payload: _EditSuccessPayload; readonly type: 'fs:editSuccess'}
 export type FavoriteIgnoreErrorPayload = {
-  readonly payload: _FavoriteIgnoreErrorPayload,
-  readonly type: "fs:favoriteIgnoreError"
-};
+  readonly payload: _FavoriteIgnoreErrorPayload
+  readonly type: 'fs:favoriteIgnoreError'
+}
 export type FavoriteIgnorePayload = {
-  readonly payload: _FavoriteIgnorePayload,
-  readonly type: "fs:favoriteIgnore"
-};
+  readonly payload: _FavoriteIgnorePayload
+  readonly type: 'fs:favoriteIgnore'
+}
 export type FavoritesLoadPayload = {
-  readonly payload: _FavoritesLoadPayload,
-  readonly type: "fs:favoritesLoad"
-};
+  readonly payload: _FavoritesLoadPayload
+  readonly type: 'fs:favoritesLoad'
+}
 export type FavoritesLoadedPayload = {
-  readonly payload: _FavoritesLoadedPayload,
-  readonly type: "fs:favoritesLoaded"
-};
+  readonly payload: _FavoritesLoadedPayload
+  readonly type: 'fs:favoritesLoaded'
+}
 export type FolderListLoadPayload = {
-  readonly payload: _FolderListLoadPayload,
-  readonly type: "fs:folderListLoad"
-};
+  readonly payload: _FolderListLoadPayload
+  readonly type: 'fs:folderListLoad'
+}
 export type FolderListLoadedPayload = {
-  readonly payload: _FolderListLoadedPayload,
-  readonly type: "fs:folderListLoaded"
-};
-export type FsErrorPayload = {
-  readonly payload: _FsErrorPayload,
-  readonly type: "fs:fsError"
-};
+  readonly payload: _FolderListLoadedPayload
+  readonly type: 'fs:folderListLoaded'
+}
+export type FsErrorPayload = {readonly payload: _FsErrorPayload; readonly type: 'fs:fsError'}
 export type HideSystemFileManagerIntegrationBannerPayload = {
-  readonly payload: _HideSystemFileManagerIntegrationBannerPayload,
-  readonly type: "fs:hideSystemFileManagerIntegrationBanner"
-};
+  readonly payload: _HideSystemFileManagerIntegrationBannerPayload
+  readonly type: 'fs:hideSystemFileManagerIntegrationBanner'
+}
 export type InitSendAttachmentToChatPayload = {
-  readonly payload: _InitSendAttachmentToChatPayload,
-  readonly type: "fs:initSendAttachmentToChat"
-};
+  readonly payload: _InitSendAttachmentToChatPayload
+  readonly type: 'fs:initSendAttachmentToChat'
+}
 export type InitSendLinkToChatPayload = {
-  readonly payload: _InitSendLinkToChatPayload,
-  readonly type: "fs:initSendLinkToChat"
-};
+  readonly payload: _InitSendLinkToChatPayload
+  readonly type: 'fs:initSendLinkToChat'
+}
 export type JournalUpdatePayload = {
-  readonly payload: _JournalUpdatePayload,
-  readonly type: "fs:journalUpdate"
-};
+  readonly payload: _JournalUpdatePayload
+  readonly type: 'fs:journalUpdate'
+}
 export type KbfsDaemonOnlineStatusChangedPayload = {
-  readonly payload: _KbfsDaemonOnlineStatusChangedPayload,
-  readonly type: "fs:kbfsDaemonOnlineStatusChanged"
-};
+  readonly payload: _KbfsDaemonOnlineStatusChangedPayload
+  readonly type: 'fs:kbfsDaemonOnlineStatusChanged'
+}
 export type KbfsDaemonRpcStatusChangedPayload = {
-  readonly payload: _KbfsDaemonRpcStatusChangedPayload,
-  readonly type: "fs:kbfsDaemonRpcStatusChanged"
-};
+  readonly payload: _KbfsDaemonRpcStatusChangedPayload
+  readonly type: 'fs:kbfsDaemonRpcStatusChanged'
+}
 export type LetResetUserBackInPayload = {
-  readonly payload: _LetResetUserBackInPayload,
-  readonly type: "fs:letResetUserBackIn"
-};
+  readonly payload: _LetResetUserBackInPayload
+  readonly type: 'fs:letResetUserBackIn'
+}
 export type LoadPathMetadataPayload = {
-  readonly payload: _LoadPathMetadataPayload,
-  readonly type: "fs:loadPathMetadata"
-};
-export type LoadSettingsPayload = {
-  readonly payload: _LoadSettingsPayload,
-  readonly type: "fs:loadSettings"
-};
+  readonly payload: _LoadPathMetadataPayload
+  readonly type: 'fs:loadPathMetadata'
+}
+export type LoadSettingsPayload = {readonly payload: _LoadSettingsPayload; readonly type: 'fs:loadSettings'}
 export type LoadTlfSyncConfigPayload = {
-  readonly payload: _LoadTlfSyncConfigPayload,
-  readonly type: "fs:loadTlfSyncConfig"
-};
-export type LoadingPathPayload = {
-  readonly payload: _LoadingPathPayload,
-  readonly type: "fs:loadingPath"
-};
+  readonly payload: _LoadTlfSyncConfigPayload
+  readonly type: 'fs:loadTlfSyncConfig'
+}
+export type LoadingPathPayload = {readonly payload: _LoadingPathPayload; readonly type: 'fs:loadingPath'}
 export type LocalHTTPServerInfoPayload = {
-  readonly payload: _LocalHTTPServerInfoPayload,
-  readonly type: "fs:localHTTPServerInfo"
-};
-export type MovePayload = {
-  readonly payload: _MovePayload,
-  readonly type: "fs:move"
-};
+  readonly payload: _LocalHTTPServerInfoPayload
+  readonly type: 'fs:localHTTPServerInfo'
+}
+export type MovePayload = {readonly payload: _MovePayload; readonly type: 'fs:move'}
 export type NewFolderNamePayload = {
-  readonly payload: _NewFolderNamePayload,
-  readonly type: "fs:newFolderName"
-};
-export type NewFolderRowPayload = {
-  readonly payload: _NewFolderRowPayload,
-  readonly type: "fs:newFolderRow"
-};
+  readonly payload: _NewFolderNamePayload
+  readonly type: 'fs:newFolderName'
+}
+export type NewFolderRowPayload = {readonly payload: _NewFolderRowPayload; readonly type: 'fs:newFolderRow'}
 export type NotifyTlfUpdatePayload = {
-  readonly payload: _NotifyTlfUpdatePayload,
-  readonly type: "fs:notifyTlfUpdate"
-};
+  readonly payload: _NotifyTlfUpdatePayload
+  readonly type: 'fs:notifyTlfUpdate'
+}
 export type OpenAndUploadPayload = {
-  readonly payload: _OpenAndUploadPayload,
-  readonly type: "fs:openAndUpload"
-};
+  readonly payload: _OpenAndUploadPayload
+  readonly type: 'fs:openAndUpload'
+}
 export type OpenFilesFromWidgetPayload = {
-  readonly payload: _OpenFilesFromWidgetPayload,
-  readonly type: "fs:openFilesFromWidget"
-};
+  readonly payload: _OpenFilesFromWidgetPayload
+  readonly type: 'fs:openFilesFromWidget'
+}
 export type OpenLocalPathInSystemFileManagerPayload = {
-  readonly payload: _OpenLocalPathInSystemFileManagerPayload,
-  readonly type: "fs:openLocalPathInSystemFileManager"
-};
+  readonly payload: _OpenLocalPathInSystemFileManagerPayload
+  readonly type: 'fs:openLocalPathInSystemFileManager'
+}
 export type OpenPathInSystemFileManagerPayload = {
-  readonly payload: _OpenPathInSystemFileManagerPayload,
-  readonly type: "fs:openPathInSystemFileManager"
-};
+  readonly payload: _OpenPathInSystemFileManagerPayload
+  readonly type: 'fs:openPathInSystemFileManager'
+}
 export type OpenSecurityPreferencesPayload = {
-  readonly payload: _OpenSecurityPreferencesPayload,
-  readonly type: "fs:openSecurityPreferences"
-};
+  readonly payload: _OpenSecurityPreferencesPayload
+  readonly type: 'fs:openSecurityPreferences'
+}
 export type OverallSyncStatusChangedPayload = {
-  readonly payload: _OverallSyncStatusChangedPayload,
-  readonly type: "fs:overallSyncStatusChanged"
-};
+  readonly payload: _OverallSyncStatusChangedPayload
+  readonly type: 'fs:overallSyncStatusChanged'
+}
 export type PathItemLoadedPayload = {
-  readonly payload: _PathItemLoadedPayload,
-  readonly type: "fs:pathItemLoaded"
-};
+  readonly payload: _PathItemLoadedPayload
+  readonly type: 'fs:pathItemLoaded'
+}
 export type PickAndUploadPayload = {
-  readonly payload: _PickAndUploadPayload,
-  readonly type: "fs:pickAndUpload"
-};
+  readonly payload: _PickAndUploadPayload
+  readonly type: 'fs:pickAndUpload'
+}
 export type PlaceholderActionPayload = {
-  readonly payload: _PlaceholderActionPayload,
-  readonly type: "fs:placeholderAction"
-};
+  readonly payload: _PlaceholderActionPayload
+  readonly type: 'fs:placeholderAction'
+}
 export type RefreshDriverStatusPayload = {
-  readonly payload: _RefreshDriverStatusPayload,
-  readonly type: "fs:refreshDriverStatus"
-};
+  readonly payload: _RefreshDriverStatusPayload
+  readonly type: 'fs:refreshDriverStatus'
+}
 export type RefreshLocalHTTPServerInfoPayload = {
-  readonly payload: _RefreshLocalHTTPServerInfoPayload,
-  readonly type: "fs:refreshLocalHTTPServerInfo"
-};
-export type SaveMediaPayload = {
-  readonly payload: _SaveMediaPayload,
-  readonly type: "fs:saveMedia"
-};
+  readonly payload: _RefreshLocalHTTPServerInfoPayload
+  readonly type: 'fs:refreshLocalHTTPServerInfo'
+}
+export type SaveMediaPayload = {readonly payload: _SaveMediaPayload; readonly type: 'fs:saveMedia'}
 export type SentAttachmentToChatPayload = {
-  readonly payload: _SentAttachmentToChatPayload,
-  readonly type: "fs:sentAttachmentToChat"
-};
+  readonly payload: _SentAttachmentToChatPayload
+  readonly type: 'fs:sentAttachmentToChat'
+}
 export type SentLinkToChatPayload = {
-  readonly payload: _SentLinkToChatPayload,
-  readonly type: "fs:sentLinkToChat"
-};
+  readonly payload: _SentLinkToChatPayload
+  readonly type: 'fs:sentLinkToChat'
+}
 export type SetDestinationPickerParentPathPayload = {
-  readonly payload: _SetDestinationPickerParentPathPayload,
-  readonly type: "fs:setDestinationPickerParentPath"
-};
+  readonly payload: _SetDestinationPickerParentPathPayload
+  readonly type: 'fs:setDestinationPickerParentPath'
+}
 export type SetDriverStatusPayload = {
-  readonly payload: _SetDriverStatusPayload,
-  readonly type: "fs:setDriverStatus"
-};
+  readonly payload: _SetDriverStatusPayload
+  readonly type: 'fs:setDriverStatus'
+}
 export type SetFolderViewFilterPayload = {
-  readonly payload: _SetFolderViewFilterPayload,
-  readonly type: "fs:setFolderViewFilter"
-};
+  readonly payload: _SetFolderViewFilterPayload
+  readonly type: 'fs:setFolderViewFilter'
+}
 export type SetIncomingShareLocalPathPayload = {
-  readonly payload: _SetIncomingShareLocalPathPayload,
-  readonly type: "fs:setIncomingShareLocalPath"
-};
+  readonly payload: _SetIncomingShareLocalPathPayload
+  readonly type: 'fs:setIncomingShareLocalPath'
+}
 export type SetMoveOrCopySourcePayload = {
-  readonly payload: _SetMoveOrCopySourcePayload,
-  readonly type: "fs:setMoveOrCopySource"
-};
+  readonly payload: _SetMoveOrCopySourcePayload
+  readonly type: 'fs:setMoveOrCopySource'
+}
 export type SetPathItemActionMenuDownloadKeyPayload = {
-  readonly payload: _SetPathItemActionMenuDownloadKeyPayload,
-  readonly type: "fs:setPathItemActionMenuDownloadKey"
-};
+  readonly payload: _SetPathItemActionMenuDownloadKeyPayload
+  readonly type: 'fs:setPathItemActionMenuDownloadKey'
+}
 export type SetPathItemActionMenuViewPayload = {
-  readonly payload: _SetPathItemActionMenuViewPayload,
-  readonly type: "fs:setPathItemActionMenuView"
-};
+  readonly payload: _SetPathItemActionMenuViewPayload
+  readonly type: 'fs:setPathItemActionMenuView'
+}
 export type SetPathSoftErrorPayload = {
-  readonly payload: _SetPathSoftErrorPayload,
-  readonly type: "fs:setPathSoftError"
-};
+  readonly payload: _SetPathSoftErrorPayload
+  readonly type: 'fs:setPathSoftError'
+}
 export type SetSendAttachmentToChatConvIDPayload = {
-  readonly payload: _SetSendAttachmentToChatConvIDPayload,
-  readonly type: "fs:setSendAttachmentToChatConvID"
-};
+  readonly payload: _SetSendAttachmentToChatConvIDPayload
+  readonly type: 'fs:setSendAttachmentToChatConvID'
+}
 export type SetSendAttachmentToChatFilterPayload = {
-  readonly payload: _SetSendAttachmentToChatFilterPayload,
-  readonly type: "fs:setSendAttachmentToChatFilter"
-};
+  readonly payload: _SetSendAttachmentToChatFilterPayload
+  readonly type: 'fs:setSendAttachmentToChatFilter'
+}
 export type SetSendLinkToChatChannelsPayload = {
-  readonly payload: _SetSendLinkToChatChannelsPayload,
-  readonly type: "fs:setSendLinkToChatChannels"
-};
+  readonly payload: _SetSendLinkToChatChannelsPayload
+  readonly type: 'fs:setSendLinkToChatChannels'
+}
 export type SetSendLinkToChatConvIDPayload = {
-  readonly payload: _SetSendLinkToChatConvIDPayload,
-  readonly type: "fs:setSendLinkToChatConvID"
-};
+  readonly payload: _SetSendLinkToChatConvIDPayload
+  readonly type: 'fs:setSendLinkToChatConvID'
+}
 export type SetSpaceAvailableNotificationThresholdPayload = {
-  readonly payload: _SetSpaceAvailableNotificationThresholdPayload,
-  readonly type: "fs:setSpaceAvailableNotificationThreshold"
-};
+  readonly payload: _SetSpaceAvailableNotificationThresholdPayload
+  readonly type: 'fs:setSpaceAvailableNotificationThreshold'
+}
 export type SetTlfSoftErrorPayload = {
-  readonly payload: _SetTlfSoftErrorPayload,
-  readonly type: "fs:setTlfSoftError"
-};
+  readonly payload: _SetTlfSoftErrorPayload
+  readonly type: 'fs:setTlfSoftError'
+}
 export type SetTlfSyncConfigPayload = {
-  readonly payload: _SetTlfSyncConfigPayload,
-  readonly type: "fs:setTlfSyncConfig"
-};
+  readonly payload: _SetTlfSyncConfigPayload
+  readonly type: 'fs:setTlfSyncConfig'
+}
 export type SettingsLoadedPayload = {
-  readonly payload: _SettingsLoadedPayload,
-  readonly type: "fs:settingsLoaded"
-};
-export type ShareNativePayload = {
-  readonly payload: _ShareNativePayload,
-  readonly type: "fs:shareNative"
-};
+  readonly payload: _SettingsLoadedPayload
+  readonly type: 'fs:settingsLoaded'
+}
+export type ShareNativePayload = {readonly payload: _ShareNativePayload; readonly type: 'fs:shareNative'}
 export type ShowIncomingSharePayload = {
-  readonly payload: _ShowIncomingSharePayload,
-  readonly type: "fs:showIncomingShare"
-};
+  readonly payload: _ShowIncomingSharePayload
+  readonly type: 'fs:showIncomingShare'
+}
 export type ShowMoveOrCopyPayload = {
-  readonly payload: _ShowMoveOrCopyPayload,
-  readonly type: "fs:showMoveOrCopy"
-};
+  readonly payload: _ShowMoveOrCopyPayload
+  readonly type: 'fs:showMoveOrCopy'
+}
 export type ShowSystemFileManagerIntegrationBannerPayload = {
-  readonly payload: _ShowSystemFileManagerIntegrationBannerPayload,
-  readonly type: "fs:showSystemFileManagerIntegrationBanner"
-};
-export type SortSettingPayload = {
-  readonly payload: _SortSettingPayload,
-  readonly type: "fs:sortSetting"
-};
+  readonly payload: _ShowSystemFileManagerIntegrationBannerPayload
+  readonly type: 'fs:showSystemFileManagerIntegrationBanner'
+}
+export type SortSettingPayload = {readonly payload: _SortSettingPayload; readonly type: 'fs:sortSetting'}
 export type TlfSyncConfigLoadedPayload = {
-  readonly payload: _TlfSyncConfigLoadedPayload,
-  readonly type: "fs:tlfSyncConfigLoaded"
-};
+  readonly payload: _TlfSyncConfigLoadedPayload
+  readonly type: 'fs:tlfSyncConfigLoaded'
+}
 export type TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload = {
-  readonly payload: _TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload,
-  readonly type: "fs:tlfSyncConfigsForAllSyncEnabledTlfsLoaded"
-};
+  readonly payload: _TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload
+  readonly type: 'fs:tlfSyncConfigsForAllSyncEnabledTlfsLoaded'
+}
 export type TriggerSendLinkToChatPayload = {
-  readonly payload: _TriggerSendLinkToChatPayload,
-  readonly type: "fs:triggerSendLinkToChat"
-};
+  readonly payload: _TriggerSendLinkToChatPayload
+  readonly type: 'fs:triggerSendLinkToChat'
+}
 export type UninstallKBFSConfirmPayload = {
-  readonly payload: _UninstallKBFSConfirmPayload,
-  readonly type: "fs:uninstallKBFSConfirm"
-};
-export type UploadPayload = {
-  readonly payload: _UploadPayload,
-  readonly type: "fs:upload"
-};
+  readonly payload: _UninstallKBFSConfirmPayload
+  readonly type: 'fs:uninstallKBFSConfirm'
+}
+export type UploadPayload = {readonly payload: _UploadPayload; readonly type: 'fs:upload'}
 export type UploadStartedPayload = {
-  readonly payload: _UploadStartedPayload,
-  readonly type: "fs:uploadStarted"
-};
+  readonly payload: _UploadStartedPayload
+  readonly type: 'fs:uploadStarted'
+}
 export type UploadWritingSuccessPayload = {
-  readonly payload: _UploadWritingSuccessPayload,
-  readonly type: "fs:uploadWritingSuccess"
-};
+  readonly payload: _UploadWritingSuccessPayload
+  readonly type: 'fs:uploadWritingSuccess'
+}
 export type UserFileEditsLoadPayload = {
-  readonly payload: _UserFileEditsLoadPayload,
-  readonly type: "fs:userFileEditsLoad"
-};
+  readonly payload: _UserFileEditsLoadPayload
+  readonly type: 'fs:userFileEditsLoad'
+}
 export type UserFileEditsLoadedPayload = {
-  readonly payload: _UserFileEditsLoadedPayload,
-  readonly type: "fs:userFileEditsLoaded"
-};
+  readonly payload: _UserFileEditsLoadedPayload
+  readonly type: 'fs:userFileEditsLoaded'
+}
 export type WaitForKbfsDaemonPayload = {
-  readonly payload: _WaitForKbfsDaemonPayload,
-  readonly type: "fs:waitForKbfsDaemon"
-};
+  readonly payload: _WaitForKbfsDaemonPayload
+  readonly type: 'fs:waitForKbfsDaemon'
+}
 
 // All Actions
 // prettier-ignore
-export type Actions = CancelDownloadPayload | ClearRefreshTagPayload | CloseDestinationPickerPayload | CommitEditPayload | CopyPayload | DeleteFilePayload | DiscardEditPayload | DismissDownloadPayload | DismissFsErrorPayload | DownloadPayload | DownloadProgressPayload | DownloadStartedPayload | DownloadSuccessPayload | DriverDisablePayload | DriverDisablingPayload | DriverEnablePayload | DriverKextPermissionErrorPayload | EditSuccessPayload | FavoriteIgnoreErrorPayload | FavoriteIgnorePayload | FavoritesLoadPayload | FavoritesLoadedPayload | FolderListLoadPayload | FolderListLoadedPayload | FsErrorPayload | HideSystemFileManagerIntegrationBannerPayload | InitSendAttachmentToChatPayload | InitSendLinkToChatPayload | JournalUpdatePayload | KbfsDaemonOnlineStatusChangedPayload | KbfsDaemonRpcStatusChangedPayload | LetResetUserBackInPayload | LoadPathMetadataPayload | LoadSettingsPayload | LoadTlfSyncConfigPayload | LoadingPathPayload | LocalHTTPServerInfoPayload | MovePayload | NewFolderNamePayload | NewFolderRowPayload | NotifyTlfUpdatePayload | OpenAndUploadPayload | OpenFilesFromWidgetPayload | OpenLocalPathInSystemFileManagerPayload | OpenPathInSystemFileManagerPayload | OpenSecurityPreferencesPayload | OverallSyncStatusChangedPayload | PathItemLoadedPayload | PickAndUploadPayload | PlaceholderActionPayload | RefreshDriverStatusPayload | RefreshLocalHTTPServerInfoPayload | SaveMediaPayload | SentAttachmentToChatPayload | SentLinkToChatPayload | SetDestinationPickerParentPathPayload | SetDriverStatusPayload | SetFolderViewFilterPayload | SetIncomingShareLocalPathPayload | SetMoveOrCopySourcePayload | SetPathItemActionMenuDownloadKeyPayload | SetPathItemActionMenuViewPayload | SetPathSoftErrorPayload | SetSendAttachmentToChatConvIDPayload | SetSendAttachmentToChatFilterPayload | SetSendLinkToChatChannelsPayload | SetSendLinkToChatConvIDPayload | SetSpaceAvailableNotificationThresholdPayload | SetTlfSoftErrorPayload | SetTlfSyncConfigPayload | SettingsLoadedPayload | ShareNativePayload | ShowIncomingSharePayload | ShowMoveOrCopyPayload | ShowSystemFileManagerIntegrationBannerPayload | SortSettingPayload | TlfSyncConfigLoadedPayload | TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload | TriggerSendLinkToChatPayload | UninstallKBFSConfirmPayload | UploadPayload | UploadStartedPayload | UploadWritingSuccessPayload | UserFileEditsLoadPayload | UserFileEditsLoadedPayload | WaitForKbfsDaemonPayload | {
-  type: "common:resetStore",
-  payload: null
-};
+export type Actions =
+  | CancelDownloadPayload
+  | ClearRefreshTagPayload
+  | CloseDestinationPickerPayload
+  | CommitEditPayload
+  | CopyPayload
+  | DeleteFilePayload
+  | DiscardEditPayload
+  | DismissDownloadPayload
+  | DismissFsErrorPayload
+  | DownloadPayload
+  | DownloadProgressPayload
+  | DownloadStartedPayload
+  | DownloadSuccessPayload
+  | DriverDisablePayload
+  | DriverDisablingPayload
+  | DriverEnablePayload
+  | DriverKextPermissionErrorPayload
+  | EditSuccessPayload
+  | FavoriteIgnoreErrorPayload
+  | FavoriteIgnorePayload
+  | FavoritesLoadPayload
+  | FavoritesLoadedPayload
+  | FolderListLoadPayload
+  | FolderListLoadedPayload
+  | FsErrorPayload
+  | HideSystemFileManagerIntegrationBannerPayload
+  | InitSendAttachmentToChatPayload
+  | InitSendLinkToChatPayload
+  | JournalUpdatePayload
+  | KbfsDaemonOnlineStatusChangedPayload
+  | KbfsDaemonRpcStatusChangedPayload
+  | LetResetUserBackInPayload
+  | LoadPathMetadataPayload
+  | LoadSettingsPayload
+  | LoadTlfSyncConfigPayload
+  | LoadingPathPayload
+  | LocalHTTPServerInfoPayload
+  | MovePayload
+  | NewFolderNamePayload
+  | NewFolderRowPayload
+  | NotifyTlfUpdatePayload
+  | OpenAndUploadPayload
+  | OpenFilesFromWidgetPayload
+  | OpenLocalPathInSystemFileManagerPayload
+  | OpenPathInSystemFileManagerPayload
+  | OpenSecurityPreferencesPayload
+  | OverallSyncStatusChangedPayload
+  | PathItemLoadedPayload
+  | PickAndUploadPayload
+  | PlaceholderActionPayload
+  | RefreshDriverStatusPayload
+  | RefreshLocalHTTPServerInfoPayload
+  | SaveMediaPayload
+  | SentAttachmentToChatPayload
+  | SentLinkToChatPayload
+  | SetDestinationPickerParentPathPayload
+  | SetDriverStatusPayload
+  | SetFolderViewFilterPayload
+  | SetIncomingShareLocalPathPayload
+  | SetMoveOrCopySourcePayload
+  | SetPathItemActionMenuDownloadKeyPayload
+  | SetPathItemActionMenuViewPayload
+  | SetPathSoftErrorPayload
+  | SetSendAttachmentToChatConvIDPayload
+  | SetSendAttachmentToChatFilterPayload
+  | SetSendLinkToChatChannelsPayload
+  | SetSendLinkToChatConvIDPayload
+  | SetSpaceAvailableNotificationThresholdPayload
+  | SetTlfSoftErrorPayload
+  | SetTlfSyncConfigPayload
+  | SettingsLoadedPayload
+  | ShareNativePayload
+  | ShowIncomingSharePayload
+  | ShowMoveOrCopyPayload
+  | ShowSystemFileManagerIntegrationBannerPayload
+  | SortSettingPayload
+  | TlfSyncConfigLoadedPayload
+  | TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload
+  | TriggerSendLinkToChatPayload
+  | UninstallKBFSConfirmPayload
+  | UploadPayload
+  | UploadStartedPayload
+  | UploadWritingSuccessPayload
+  | UserFileEditsLoadPayload
+  | UserFileEditsLoadedPayload
+  | WaitForKbfsDaemonPayload
+  | {type: 'common:resetStore', payload: null}

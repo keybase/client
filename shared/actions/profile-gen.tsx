@@ -1,3 +1,4 @@
+// @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 /* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
@@ -43,300 +44,282 @@ export const updateSigID = 'profile:updateSigID'
 export const updateUsername = 'profile:updateUsername'
 export const uploadAvatar = 'profile:uploadAvatar'
 
-type _AddProofPayload = {
- readonly platform: string
-};
-
-type _BackToProfilePayload = void;
-type _CancelAddProofPayload = void;
-type _CancelPgpGenPayload = void;
-type _CheckProofPayload = void;
-type _CleanupUsernamePayload = void;
-type _ClearPlatformGenericPayload = void;
-type _EditAvatarPayload = void;
-
-type _EditProfilePayload = {
- readonly bio: string,
- readonly fullname: string,
- readonly location: string
-};
-
-type _FinishRevokingPayload = void;
-
-type _FinishedWithKeyGenPayload = {
- readonly shouldStoreKeyOnServer: boolean
-};
-
-type _GeneratePgpPayload = void;
-
-type _OnClickAvatarPayload = {
- readonly username: string,
- readonly openWebsite?: boolean | null
-};
-
-type _ProofParamsReceivedPayload = {
- readonly params: Types.ProveGenericParams
-};
-
-type _RecheckProofPayload = {
- readonly sigID: string
-};
-
-type _RevokeFinishPayload = void;
-
-type _RevokeFinishPayloadError = {
- readonly error: string
-};
-
-type _ShowUserProfilePayload = {
- readonly username: string
-};
-
-type _SubmitBTCAddressPayload = void;
-
-type _SubmitRevokeProofPayload = {
- readonly proofId: string
-};
-
-type _SubmitUsernamePayload = void;
-type _SubmitZcashAddressPayload = void;
-
-type _UpdateErrorTextPayload = {
- readonly errorText: string,
- readonly errorCode: number | null
-};
-
+// Payload Types
+type _AddProofPayload = {readonly platform: string}
+type _BackToProfilePayload = void
+type _CancelAddProofPayload = void
+type _CancelPgpGenPayload = void
+type _CheckProofPayload = void
+type _CleanupUsernamePayload = void
+type _ClearPlatformGenericPayload = void
+type _EditAvatarPayload = void
+type _EditProfilePayload = {readonly bio: string; readonly fullname: string; readonly location: string}
+type _FinishRevokingPayload = void
+type _FinishedWithKeyGenPayload = {readonly shouldStoreKeyOnServer: boolean}
+type _GeneratePgpPayload = void
+type _OnClickAvatarPayload = {readonly username: string; readonly openWebsite?: boolean | null}
+type _ProofParamsReceivedPayload = {readonly params: Types.ProveGenericParams}
+type _RecheckProofPayload = {readonly sigID: string}
+type _RevokeFinishPayload = void
+type _RevokeFinishPayloadError = {readonly error: string}
+type _ShowUserProfilePayload = {readonly username: string}
+type _SubmitBTCAddressPayload = void
+type _SubmitRevokeProofPayload = {readonly proofId: string}
+type _SubmitUsernamePayload = void
+type _SubmitZcashAddressPayload = void
+type _UpdateErrorTextPayload = {readonly errorText: string; readonly errorCode: number | null}
 type _UpdatePgpInfoPayload = {
- readonly pgpEmail1?: string,
- readonly pgpEmail2?: string,
- readonly pgpEmail3?: string,
- readonly pgpErrorText?: string,
- readonly pgpFullName?: string
-};
-
-type _UpdatePgpPublicKeyPayload = {
- readonly publicKey: string
-};
-
-type _UpdatePlatformGenericCheckingPayload = {
- readonly checking: boolean
-};
-
-type _UpdatePlatformGenericURLPayload = {
- readonly url: string
-};
-
-type _UpdatePlatformPayload = {
- readonly platform: More.PlatformsExpandedType
-};
-
-type _UpdatePromptShouldStoreKeyOnServerPayload = {
- readonly promptShouldStoreKeyOnServer: boolean
-};
-
-type _UpdateProofStatusPayload = {
- readonly found: boolean,
- readonly status: RPCTypes.ProofStatus
-};
-
-type _UpdateProofTextPayload = {
- readonly proof: string
-};
-
-type _UpdateSigIDPayload = {
- readonly sigID: RPCTypes.SigID | null
-};
-
-type _UpdateUsernamePayload = {
- readonly username: string
-};
-
-type _UploadAvatarPayload = {
- readonly filename: string,
- readonly crop?: RPCTypes.ImageCropRect
-};
+  readonly pgpEmail1?: string
+  readonly pgpEmail2?: string
+  readonly pgpEmail3?: string
+  readonly pgpErrorText?: string
+  readonly pgpFullName?: string
+}
+type _UpdatePgpPublicKeyPayload = {readonly publicKey: string}
+type _UpdatePlatformGenericCheckingPayload = {readonly checking: boolean}
+type _UpdatePlatformGenericURLPayload = {readonly url: string}
+type _UpdatePlatformPayload = {readonly platform: More.PlatformsExpandedType}
+type _UpdatePromptShouldStoreKeyOnServerPayload = {readonly promptShouldStoreKeyOnServer: boolean}
+type _UpdateProofStatusPayload = {readonly found: boolean; readonly status: RPCTypes.ProofStatus}
+type _UpdateProofTextPayload = {readonly proof: string}
+type _UpdateSigIDPayload = {readonly sigID: RPCTypes.SigID | null}
+type _UpdateUsernamePayload = {readonly username: string}
+type _UploadAvatarPayload = {readonly filename: string; readonly crop?: RPCTypes.ImageCropRect}
 
 // Action Creators
 /**
  * Update any fields
  */
-export const createUpdatePgpInfo = (payload: _UpdatePgpInfoPayload = Object.freeze({})) => ({payload, type: updatePgpInfo})
+export const createUpdatePgpInfo = (payload: _UpdatePgpInfoPayload = Object.freeze({})) => ({
+  payload,
+  type: updatePgpInfo,
+})
 export const createAddProof = (payload: _AddProofPayload) => ({payload, type: addProof})
 export const createBackToProfile = (payload: _BackToProfilePayload) => ({payload, type: backToProfile})
 export const createCancelAddProof = (payload: _CancelAddProofPayload) => ({payload, type: cancelAddProof})
 export const createCancelPgpGen = (payload: _CancelPgpGenPayload) => ({payload, type: cancelPgpGen})
 export const createCheckProof = (payload: _CheckProofPayload) => ({payload, type: checkProof})
 export const createCleanupUsername = (payload: _CleanupUsernamePayload) => ({payload, type: cleanupUsername})
-export const createClearPlatformGeneric = (payload: _ClearPlatformGenericPayload) => ({payload, type: clearPlatformGeneric})
+export const createClearPlatformGeneric = (payload: _ClearPlatformGenericPayload) => ({
+  payload,
+  type: clearPlatformGeneric,
+})
 export const createEditAvatar = (payload: _EditAvatarPayload) => ({payload, type: editAvatar})
 export const createEditProfile = (payload: _EditProfilePayload) => ({payload, type: editProfile})
 export const createFinishRevoking = (payload: _FinishRevokingPayload) => ({payload, type: finishRevoking})
-export const createFinishedWithKeyGen = (payload: _FinishedWithKeyGenPayload) => ({payload, type: finishedWithKeyGen})
+export const createFinishedWithKeyGen = (payload: _FinishedWithKeyGenPayload) => ({
+  payload,
+  type: finishedWithKeyGen,
+})
 export const createGeneratePgp = (payload: _GeneratePgpPayload) => ({payload, type: generatePgp})
 export const createOnClickAvatar = (payload: _OnClickAvatarPayload) => ({payload, type: onClickAvatar})
-export const createProofParamsReceived = (payload: _ProofParamsReceivedPayload) => ({payload, type: proofParamsReceived})
+export const createProofParamsReceived = (payload: _ProofParamsReceivedPayload) => ({
+  payload,
+  type: proofParamsReceived,
+})
 export const createRecheckProof = (payload: _RecheckProofPayload) => ({payload, type: recheckProof})
 export const createRevokeFinish = (payload: _RevokeFinishPayload) => ({payload, type: revokeFinish})
-export const createRevokeFinishError = (payload: _RevokeFinishPayloadError) => ({error: true, payload, type: revokeFinish})
+export const createRevokeFinishError = (payload: _RevokeFinishPayloadError) => ({
+  error: true,
+  payload,
+  type: revokeFinish,
+})
 export const createShowUserProfile = (payload: _ShowUserProfilePayload) => ({payload, type: showUserProfile})
-export const createSubmitBTCAddress = (payload: _SubmitBTCAddressPayload) => ({payload, type: submitBTCAddress})
-export const createSubmitRevokeProof = (payload: _SubmitRevokeProofPayload) => ({payload, type: submitRevokeProof})
+export const createSubmitBTCAddress = (payload: _SubmitBTCAddressPayload) => ({
+  payload,
+  type: submitBTCAddress,
+})
+export const createSubmitRevokeProof = (payload: _SubmitRevokeProofPayload) => ({
+  payload,
+  type: submitRevokeProof,
+})
 export const createSubmitUsername = (payload: _SubmitUsernamePayload) => ({payload, type: submitUsername})
-export const createSubmitZcashAddress = (payload: _SubmitZcashAddressPayload) => ({payload, type: submitZcashAddress})
+export const createSubmitZcashAddress = (payload: _SubmitZcashAddressPayload) => ({
+  payload,
+  type: submitZcashAddress,
+})
 export const createUpdateErrorText = (payload: _UpdateErrorTextPayload) => ({payload, type: updateErrorText})
-export const createUpdatePgpPublicKey = (payload: _UpdatePgpPublicKeyPayload) => ({payload, type: updatePgpPublicKey})
+export const createUpdatePgpPublicKey = (payload: _UpdatePgpPublicKeyPayload) => ({
+  payload,
+  type: updatePgpPublicKey,
+})
 export const createUpdatePlatform = (payload: _UpdatePlatformPayload) => ({payload, type: updatePlatform})
-export const createUpdatePlatformGenericChecking = (payload: _UpdatePlatformGenericCheckingPayload) => ({payload, type: updatePlatformGenericChecking})
-export const createUpdatePlatformGenericURL = (payload: _UpdatePlatformGenericURLPayload) => ({payload, type: updatePlatformGenericURL})
-export const createUpdatePromptShouldStoreKeyOnServer = (payload: _UpdatePromptShouldStoreKeyOnServerPayload) => ({payload, type: updatePromptShouldStoreKeyOnServer})
-export const createUpdateProofStatus = (payload: _UpdateProofStatusPayload) => ({payload, type: updateProofStatus})
+export const createUpdatePlatformGenericChecking = (payload: _UpdatePlatformGenericCheckingPayload) => ({
+  payload,
+  type: updatePlatformGenericChecking,
+})
+export const createUpdatePlatformGenericURL = (payload: _UpdatePlatformGenericURLPayload) => ({
+  payload,
+  type: updatePlatformGenericURL,
+})
+export const createUpdatePromptShouldStoreKeyOnServer = (
+  payload: _UpdatePromptShouldStoreKeyOnServerPayload
+) => ({payload, type: updatePromptShouldStoreKeyOnServer})
+export const createUpdateProofStatus = (payload: _UpdateProofStatusPayload) => ({
+  payload,
+  type: updateProofStatus,
+})
 export const createUpdateProofText = (payload: _UpdateProofTextPayload) => ({payload, type: updateProofText})
 export const createUpdateSigID = (payload: _UpdateSigIDPayload) => ({payload, type: updateSigID})
 export const createUpdateUsername = (payload: _UpdateUsernamePayload) => ({payload, type: updateUsername})
 export const createUploadAvatar = (payload: _UploadAvatarPayload) => ({payload, type: uploadAvatar})
 
 // Action Payloads
-export type AddProofPayload = {
- readonly payload: _AddProofPayload,
- readonly type: "profile:addProof"
-};
+export type AddProofPayload = {readonly payload: _AddProofPayload; readonly type: 'profile:addProof'}
 export type BackToProfilePayload = {
- readonly payload: _BackToProfilePayload,
- readonly type: "profile:backToProfile"
-};
+  readonly payload: _BackToProfilePayload
+  readonly type: 'profile:backToProfile'
+}
 export type CancelAddProofPayload = {
- readonly payload: _CancelAddProofPayload,
- readonly type: "profile:cancelAddProof"
-};
+  readonly payload: _CancelAddProofPayload
+  readonly type: 'profile:cancelAddProof'
+}
 export type CancelPgpGenPayload = {
- readonly payload: _CancelPgpGenPayload,
- readonly type: "profile:cancelPgpGen"
-};
-export type CheckProofPayload = {
- readonly payload: _CheckProofPayload,
- readonly type: "profile:checkProof"
-};
+  readonly payload: _CancelPgpGenPayload
+  readonly type: 'profile:cancelPgpGen'
+}
+export type CheckProofPayload = {readonly payload: _CheckProofPayload; readonly type: 'profile:checkProof'}
 export type CleanupUsernamePayload = {
- readonly payload: _CleanupUsernamePayload,
- readonly type: "profile:cleanupUsername"
-};
+  readonly payload: _CleanupUsernamePayload
+  readonly type: 'profile:cleanupUsername'
+}
 export type ClearPlatformGenericPayload = {
- readonly payload: _ClearPlatformGenericPayload,
- readonly type: "profile:clearPlatformGeneric"
-};
-export type EditAvatarPayload = {
- readonly payload: _EditAvatarPayload,
- readonly type: "profile:editAvatar"
-};
-export type EditProfilePayload = {
- readonly payload: _EditProfilePayload,
- readonly type: "profile:editProfile"
-};
+  readonly payload: _ClearPlatformGenericPayload
+  readonly type: 'profile:clearPlatformGeneric'
+}
+export type EditAvatarPayload = {readonly payload: _EditAvatarPayload; readonly type: 'profile:editAvatar'}
+export type EditProfilePayload = {readonly payload: _EditProfilePayload; readonly type: 'profile:editProfile'}
 export type FinishRevokingPayload = {
- readonly payload: _FinishRevokingPayload,
- readonly type: "profile:finishRevoking"
-};
+  readonly payload: _FinishRevokingPayload
+  readonly type: 'profile:finishRevoking'
+}
 export type FinishedWithKeyGenPayload = {
- readonly payload: _FinishedWithKeyGenPayload,
- readonly type: "profile:finishedWithKeyGen"
-};
-export type GeneratePgpPayload = {
- readonly payload: _GeneratePgpPayload,
- readonly type: "profile:generatePgp"
-};
+  readonly payload: _FinishedWithKeyGenPayload
+  readonly type: 'profile:finishedWithKeyGen'
+}
+export type GeneratePgpPayload = {readonly payload: _GeneratePgpPayload; readonly type: 'profile:generatePgp'}
 export type OnClickAvatarPayload = {
- readonly payload: _OnClickAvatarPayload,
- readonly type: "profile:onClickAvatar"
-};
+  readonly payload: _OnClickAvatarPayload
+  readonly type: 'profile:onClickAvatar'
+}
 export type ProofParamsReceivedPayload = {
- readonly payload: _ProofParamsReceivedPayload,
- readonly type: "profile:proofParamsReceived"
-};
+  readonly payload: _ProofParamsReceivedPayload
+  readonly type: 'profile:proofParamsReceived'
+}
 export type RecheckProofPayload = {
- readonly payload: _RecheckProofPayload,
- readonly type: "profile:recheckProof"
-};
+  readonly payload: _RecheckProofPayload
+  readonly type: 'profile:recheckProof'
+}
 export type RevokeFinishPayload = {
- readonly payload: _RevokeFinishPayload,
- readonly type: "profile:revokeFinish"
-};
+  readonly payload: _RevokeFinishPayload
+  readonly type: 'profile:revokeFinish'
+}
 export type RevokeFinishPayloadError = {
- readonly error: true,
- readonly payload: _RevokeFinishPayloadError,
- readonly type: "profile:revokeFinish"
-};
+  readonly error: true
+  readonly payload: _RevokeFinishPayloadError
+  readonly type: 'profile:revokeFinish'
+}
 export type ShowUserProfilePayload = {
- readonly payload: _ShowUserProfilePayload,
- readonly type: "profile:showUserProfile"
-};
+  readonly payload: _ShowUserProfilePayload
+  readonly type: 'profile:showUserProfile'
+}
 export type SubmitBTCAddressPayload = {
- readonly payload: _SubmitBTCAddressPayload,
- readonly type: "profile:submitBTCAddress"
-};
+  readonly payload: _SubmitBTCAddressPayload
+  readonly type: 'profile:submitBTCAddress'
+}
 export type SubmitRevokeProofPayload = {
- readonly payload: _SubmitRevokeProofPayload,
- readonly type: "profile:submitRevokeProof"
-};
+  readonly payload: _SubmitRevokeProofPayload
+  readonly type: 'profile:submitRevokeProof'
+}
 export type SubmitUsernamePayload = {
- readonly payload: _SubmitUsernamePayload,
- readonly type: "profile:submitUsername"
-};
+  readonly payload: _SubmitUsernamePayload
+  readonly type: 'profile:submitUsername'
+}
 export type SubmitZcashAddressPayload = {
- readonly payload: _SubmitZcashAddressPayload,
- readonly type: "profile:submitZcashAddress"
-};
+  readonly payload: _SubmitZcashAddressPayload
+  readonly type: 'profile:submitZcashAddress'
+}
 export type UpdateErrorTextPayload = {
- readonly payload: _UpdateErrorTextPayload,
- readonly type: "profile:updateErrorText"
-};
+  readonly payload: _UpdateErrorTextPayload
+  readonly type: 'profile:updateErrorText'
+}
 export type UpdatePgpInfoPayload = {
- readonly payload: _UpdatePgpInfoPayload,
- readonly type: "profile:updatePgpInfo"
-};
+  readonly payload: _UpdatePgpInfoPayload
+  readonly type: 'profile:updatePgpInfo'
+}
 export type UpdatePgpPublicKeyPayload = {
- readonly payload: _UpdatePgpPublicKeyPayload,
- readonly type: "profile:updatePgpPublicKey"
-};
+  readonly payload: _UpdatePgpPublicKeyPayload
+  readonly type: 'profile:updatePgpPublicKey'
+}
 export type UpdatePlatformGenericCheckingPayload = {
- readonly payload: _UpdatePlatformGenericCheckingPayload,
- readonly type: "profile:updatePlatformGenericChecking"
-};
+  readonly payload: _UpdatePlatformGenericCheckingPayload
+  readonly type: 'profile:updatePlatformGenericChecking'
+}
 export type UpdatePlatformGenericURLPayload = {
- readonly payload: _UpdatePlatformGenericURLPayload,
- readonly type: "profile:updatePlatformGenericURL"
-};
+  readonly payload: _UpdatePlatformGenericURLPayload
+  readonly type: 'profile:updatePlatformGenericURL'
+}
 export type UpdatePlatformPayload = {
- readonly payload: _UpdatePlatformPayload,
- readonly type: "profile:updatePlatform"
-};
+  readonly payload: _UpdatePlatformPayload
+  readonly type: 'profile:updatePlatform'
+}
 export type UpdatePromptShouldStoreKeyOnServerPayload = {
- readonly payload: _UpdatePromptShouldStoreKeyOnServerPayload,
- readonly type: "profile:updatePromptShouldStoreKeyOnServer"
-};
+  readonly payload: _UpdatePromptShouldStoreKeyOnServerPayload
+  readonly type: 'profile:updatePromptShouldStoreKeyOnServer'
+}
 export type UpdateProofStatusPayload = {
- readonly payload: _UpdateProofStatusPayload,
- readonly type: "profile:updateProofStatus"
-};
+  readonly payload: _UpdateProofStatusPayload
+  readonly type: 'profile:updateProofStatus'
+}
 export type UpdateProofTextPayload = {
- readonly payload: _UpdateProofTextPayload,
- readonly type: "profile:updateProofText"
-};
-export type UpdateSigIDPayload = {
- readonly payload: _UpdateSigIDPayload,
- readonly type: "profile:updateSigID"
-};
+  readonly payload: _UpdateProofTextPayload
+  readonly type: 'profile:updateProofText'
+}
+export type UpdateSigIDPayload = {readonly payload: _UpdateSigIDPayload; readonly type: 'profile:updateSigID'}
 export type UpdateUsernamePayload = {
- readonly payload: _UpdateUsernamePayload,
- readonly type: "profile:updateUsername"
-};
+  readonly payload: _UpdateUsernamePayload
+  readonly type: 'profile:updateUsername'
+}
 export type UploadAvatarPayload = {
- readonly payload: _UploadAvatarPayload,
- readonly type: "profile:uploadAvatar"
-};
+  readonly payload: _UploadAvatarPayload
+  readonly type: 'profile:uploadAvatar'
+}
 
 // All Actions
 // prettier-ignore
-export type Actions = AddProofPayload | BackToProfilePayload | CancelAddProofPayload | CancelPgpGenPayload | CheckProofPayload | CleanupUsernamePayload | ClearPlatformGenericPayload | EditAvatarPayload | EditProfilePayload | FinishRevokingPayload | FinishedWithKeyGenPayload | GeneratePgpPayload | OnClickAvatarPayload | ProofParamsReceivedPayload | RecheckProofPayload | RevokeFinishPayload | RevokeFinishPayloadError | ShowUserProfilePayload | SubmitBTCAddressPayload | SubmitRevokeProofPayload | SubmitUsernamePayload | SubmitZcashAddressPayload | UpdateErrorTextPayload | UpdatePgpInfoPayload | UpdatePgpPublicKeyPayload | UpdatePlatformGenericCheckingPayload | UpdatePlatformGenericURLPayload | UpdatePlatformPayload | UpdatePromptShouldStoreKeyOnServerPayload | UpdateProofStatusPayload | UpdateProofTextPayload | UpdateSigIDPayload | UpdateUsernamePayload | UploadAvatarPayload | {
- type: "common:resetStore",
- payload: null
-};
+export type Actions =
+  | AddProofPayload
+  | BackToProfilePayload
+  | CancelAddProofPayload
+  | CancelPgpGenPayload
+  | CheckProofPayload
+  | CleanupUsernamePayload
+  | ClearPlatformGenericPayload
+  | EditAvatarPayload
+  | EditProfilePayload
+  | FinishRevokingPayload
+  | FinishedWithKeyGenPayload
+  | GeneratePgpPayload
+  | OnClickAvatarPayload
+  | ProofParamsReceivedPayload
+  | RecheckProofPayload
+  | RevokeFinishPayload
+  | RevokeFinishPayloadError
+  | ShowUserProfilePayload
+  | SubmitBTCAddressPayload
+  | SubmitRevokeProofPayload
+  | SubmitUsernamePayload
+  | SubmitZcashAddressPayload
+  | UpdateErrorTextPayload
+  | UpdatePgpInfoPayload
+  | UpdatePgpPublicKeyPayload
+  | UpdatePlatformGenericCheckingPayload
+  | UpdatePlatformGenericURLPayload
+  | UpdatePlatformPayload
+  | UpdatePromptShouldStoreKeyOnServerPayload
+  | UpdateProofStatusPayload
+  | UpdateProofTextPayload
+  | UpdateSigIDPayload
+  | UpdateUsernamePayload
+  | UploadAvatarPayload
+  | {type: 'common:resetStore', payload: null}

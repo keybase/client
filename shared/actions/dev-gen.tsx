@@ -1,3 +1,4 @@
+// @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 /* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
@@ -11,31 +12,31 @@ export const typePrefix = 'dev:'
 export const debugCount = 'dev:debugCount'
 export const updateDebugConfig = 'dev:updateDebugConfig'
 
-type _DebugCountPayload = void;
-
+// Payload Types
+type _DebugCountPayload = void
 type _UpdateDebugConfigPayload = {
-  readonly dumbFilter: string,
-  readonly dumbFullscreen: boolean,
+  readonly dumbFilter: string
+  readonly dumbFullscreen: boolean
   readonly dumbIndex: number
-};
+}
 
 // Action Creators
 export const createDebugCount = (payload: _DebugCountPayload) => ({payload, type: debugCount})
-export const createUpdateDebugConfig = (payload: _UpdateDebugConfigPayload) => ({payload, type: updateDebugConfig})
+export const createUpdateDebugConfig = (payload: _UpdateDebugConfigPayload) => ({
+  payload,
+  type: updateDebugConfig,
+})
 
 // Action Payloads
-export type DebugCountPayload = {
-  readonly payload: _DebugCountPayload,
-  readonly type: "dev:debugCount"
-};
+export type DebugCountPayload = {readonly payload: _DebugCountPayload; readonly type: 'dev:debugCount'}
 export type UpdateDebugConfigPayload = {
-  readonly payload: _UpdateDebugConfigPayload,
-  readonly type: "dev:updateDebugConfig"
-};
+  readonly payload: _UpdateDebugConfigPayload
+  readonly type: 'dev:updateDebugConfig'
+}
 
 // All Actions
 // prettier-ignore
-export type Actions = DebugCountPayload | UpdateDebugConfigPayload | {
-  type: "common:resetStore",
-  payload: null
-};
+export type Actions =
+  | DebugCountPayload
+  | UpdateDebugConfigPayload
+  | {type: 'common:resetStore', payload: null}
