@@ -1,10 +1,9 @@
-// @flow
 // Helper to deal with service calls in a saga friendly way
 import * as RS from 'redux-saga'
 import * as RSE from 'redux-saga/effects'
 import {getEngine} from './require'
 import {sequentially} from '../util/saga'
-import type {CommonResponseHandler} from './types'
+import {CommonResponseHandler} from './types'
 import {RPCError} from '../util/errors'
 import {printOutstandingRPCs} from '../local-debug'
 import {isArray} from 'lodash-es'
@@ -12,15 +11,15 @@ import {isArray} from 'lodash-es'
 type WaitingKey = string | Array<string>
 
 type EmittedCall = {
-  method: string,
-  params: any,
-  response: ?CommonResponseHandler,
+  method: string
+  params: any
+  response: CommonResponseHandler | null
 }
 
 type EmittedFinished = {
-  method: null,
-  params: any,
-  error: ?RPCError,
+  method: null
+  params: any
+  error: RPCError | null
 }
 
 // Wraps a response to update the waiting state
@@ -32,6 +31,7 @@ const makeWaitingResponse = (r, waitingKey) => {
   const response = {}
 
   if (r.result) {
+    // @ts-ignore codemode issue
     response.error = (...args) => {
       // Waiting on the server again
       if (waitingKey) {
@@ -42,6 +42,7 @@ const makeWaitingResponse = (r, waitingKey) => {
   }
 
   if (r.error) {
+    // @ts-ignore codemode issue
     response.result = (...args) => {
       // Waiting on the server again
       if (waitingKey) {
@@ -56,12 +57,12 @@ const makeWaitingResponse = (r, waitingKey) => {
 
 // TODO could have a mechanism to ensure only one is in flight at a time. maybe by some key or something
 function* call(p: {
-  method: string,
-  params: ?Object,
-  incomingCallMap?: {[method: string]: any}, // this is typed by the generated helpers
-  customResponseIncomingCallMap?: {[method: string]: any},
-  waitingKey?: WaitingKey,
-}): Generator<any, any, any> {
+  method: string
+  params: Object | null
+  incomingCallMap?: {[K in string]: any}
+  customResponseIncomingCallMap?: {[K in string]: any}
+  waitingKey?: WaitingKey
+}) {
   const {method, params, waitingKey} = p
   const incomingCallMap = p.incomingCallMap || {}
   const customResponseIncomingCallMap = p.customResponseIncomingCallMap || {}
@@ -88,6 +89,7 @@ function* call(p: {
   const buffer = RS.buffers.expanding(10)
 
   // Event channel lets you use emitter to 'put' things onto a channel in a callback compatible form
+  // @ts-ignore codemode issue
   const eventChannel: RS.Channel = yield RS.eventChannel(emitter => {
     // convert call map
     const callMap = bothCallMaps.reduce((map, {method, custom, handler}) => {
@@ -134,7 +136,7 @@ function* call(p: {
     }
 
     getEngine()._rpcOutgoing({
-      callback: (error?: RPCError, params: any) => {
+      callback: (error?: RPCError, params?: any) => {
         if (printOutstandingRPCs) {
           clearInterval(outstandingIntervalID)
         }
@@ -155,6 +157,7 @@ function* call(p: {
           }
         }, 500)
       },
+      // @ts-ignore codemode issue
       incomingCallMap: callMap,
       method,
       params,
@@ -165,14 +168,14 @@ function* call(p: {
   }, buffer) // allow the buffer to grow always
 
   let finalParams: any
-  let finalError: ?RPCError | ?Error
+  let finalError: RPCError | null | Error | null
   try {
     while (true) {
       // Take things that we put into the eventChannel above
       const r = yield RSE.take(eventChannel)
 
       if (r.method) {
-        const res: EmittedCall = (r: EmittedCall)
+        const res: EmittedCall = r as EmittedCall
         let actions
 
         if (res.response) {
@@ -195,7 +198,7 @@ function* call(p: {
           }
         }
       } else {
-        const res: EmittedFinished = (r: EmittedFinished)
+        const res: EmittedFinished = r as EmittedFinished
         // finished
         finalParams = res.params
         finalError = res.error
