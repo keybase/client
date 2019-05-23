@@ -971,7 +971,7 @@ func TestHandleResolvesTo(t *testing.T) {
 
 	h2, err = ParseHandle(
 		ctx, kbpki, ConstIDGetter{idPub}, nil, name1, tlf.Public)
-	require.Error(t, err)
+	require.NoError(t, err)
 	info = tlf.HandleExtension{
 		Date:   100,
 		Number: 50,
