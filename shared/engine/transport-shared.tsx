@@ -19,7 +19,8 @@ function _wrap<A1, A2, A3, A4, A5, F extends (a1: A1, a2: A2, a3: A3, a4: A4, a5
 }): F {
   const {handler, extra, method, type, enforceOnlyOnce, reason} = options
   let once = false
-  // $ForceType
+
+  // @ts-ignore codemode issue
   const wrapped: F = (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5): void => {
     const m = typeof method === 'string' ? method : method && method(a1, a2, a3, a4, a5)
     const e = typeof extra === 'object' ? extra : extra && extra(a1, a2, a3, a4, a5)
@@ -85,8 +86,10 @@ class TransportShared extends RobustTransport {
   ) {
     super(opts)
 
+    // @ts-ignore codemode issue
     this.hooks = {
       connected: () => {
+        // @ts-ignore codemode issue
         this.needsConnect = false
         connectCallback && connectCallback()
       },
@@ -102,6 +105,7 @@ class TransportShared extends RobustTransport {
         incomingRPCCallback(payload)
       }
 
+      // @ts-ignore codemode issue
       this.set_generic_handler(
         _wrap({
           enforceOnlyOnce: false,

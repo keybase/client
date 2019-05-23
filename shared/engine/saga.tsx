@@ -31,6 +31,7 @@ const makeWaitingResponse = (r, waitingKey) => {
   const response = {}
 
   if (r.result) {
+    // @ts-ignore codemode issue
     response.error = (...args) => {
       // Waiting on the server again
       if (waitingKey) {
@@ -41,6 +42,7 @@ const makeWaitingResponse = (r, waitingKey) => {
   }
 
   if (r.error) {
+    // @ts-ignore codemode issue
     response.result = (...args) => {
       // Waiting on the server again
       if (waitingKey) {
@@ -60,7 +62,7 @@ function* call(p: {
   incomingCallMap?: {[K in string]: any}
   customResponseIncomingCallMap?: {[K in string]: any}
   waitingKey?: WaitingKey
-}): Generator<any, any, any> {
+}) {
   const {method, params, waitingKey} = p
   const incomingCallMap = p.incomingCallMap || {}
   const customResponseIncomingCallMap = p.customResponseIncomingCallMap || {}
@@ -87,6 +89,7 @@ function* call(p: {
   const buffer = RS.buffers.expanding(10)
 
   // Event channel lets you use emitter to 'put' things onto a channel in a callback compatible form
+  // @ts-ignore codemode issue
   const eventChannel: RS.Channel = yield RS.eventChannel(emitter => {
     // convert call map
     const callMap = bothCallMaps.reduce((map, {method, custom, handler}) => {
@@ -133,7 +136,7 @@ function* call(p: {
     }
 
     getEngine()._rpcOutgoing({
-      callback: (error?: RPCError, params: any) => {
+      callback: (error?: RPCError, params?: any) => {
         if (printOutstandingRPCs) {
           clearInterval(outstandingIntervalID)
         }
@@ -154,6 +157,7 @@ function* call(p: {
           }
         }, 500)
       },
+      // @ts-ignore codemode issue
       incomingCallMap: callMap,
       method,
       params,

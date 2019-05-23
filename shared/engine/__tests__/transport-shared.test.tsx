@@ -41,6 +41,7 @@ describe('TransportShared', () => {
 
     t.connected = true
     // Since connected is true, this should call send.
+    // @ts-ignore codemode issue
     t.invoke(invokeArg, () => {})
     expect(t.lastMessage).toEqual(expectedMessage)
   })
@@ -50,6 +51,7 @@ describe('TransportShared', () => {
 
     t.connected = false
     // Since connected is false, this should queue up the message.
+    // @ts-ignore codemode issue
     t.invoke(invokeArg, () => {})
     expect(t.lastMessage).toBe(null)
 
@@ -59,7 +61,7 @@ describe('TransportShared', () => {
     //
     // Since connected is true, this should call send.
     //
-    // $FlowIssue Deliberately overriding private method.
+    // @ts-ignore codemode issue
     t._flush_queue()
     expect(t.lastMessage).toEqual(expectedMessage)
   })

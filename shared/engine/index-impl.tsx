@@ -1,9 +1,11 @@
 // Handles sending requests to the daemon
+// @ts-ignore codemode issue
 import logger from '../logger'
 import Session from './session'
 import {initEngine, initEngineSaga} from './require'
 import {convertToError} from '../util/errors'
 import {isMobile} from '../constants/platform'
+// @ts-ignore codemode issue
 import {localLog} from '../util/forward-logs'
 import {printOutstandingRPCs, isTesting} from '../local-debug'
 import {resetClient, createClient, rpcLog} from './index.platform'
@@ -88,6 +90,7 @@ class Engine {
 
     if (typeof window !== 'undefined') {
       logger.info('DEV MODE ENGINE AVAILABLE AS window.DEBUGengine')
+      // @ts-ignore codemode issue
       window.DEBUGengine = this
     }
 
@@ -161,9 +164,13 @@ class Engine {
 
   // An incoming rpc call
   _rpcIncoming(payload: {method: MethodKey; param: Array<Object>; response: Object | null}) {
+    // @ts-ignore codemode issue
     const {method, param: incomingParam, response} = payload
+    // @ts-ignore codemode issue
     const param = incomingParam && incomingParam.length ? incomingParam[0] : {}
+    // @ts-ignore codemode issue
     const {seqid, cancelled} = response || {cancelled: false, seqid: 0}
+    // @ts-ignore codemode issue
     const {sessionID} = param
 
     if (cancelled) {
@@ -176,9 +183,11 @@ class Engine {
         // Dispatch as an action
         const extra = {}
         if (this._customResponseAction[method]) {
+          // @ts-ignore codemode issue
           extra.response = response
         } else {
           // Not a custom response so we auto handle it
+          // @ts-ignore codemode issue
           response && response.result()
         }
         const type = method
@@ -322,7 +331,7 @@ class FakeEngine {
     incomingCallMap: IncomingCallMapType | null,
     waitingHandler: WaitingHandlerType | null,
     cancelHandler: CancelHandlerType | null,
-    dangling?: boolean = false
+    dangling: boolean = false
   ) {
     return new Session({
       endHandler: () => {},
@@ -345,6 +354,7 @@ class FakeEngine {
 }
 
 // don't overwrite this on HMR
+// @ts-ignore codemode issue
 let engine = global._engine
 const makeEngine = (dispatch: Dispatch, getState: () => TypedState) => {
   if (__DEV__ && engine) {
@@ -353,6 +363,7 @@ const makeEngine = (dispatch: Dispatch, getState: () => TypedState) => {
 
   if (!engine) {
     engine = process.env.KEYBASE_NO_ENGINE || isTesting ? new FakeEngine() : new Engine(dispatch, getState)
+    // @ts-ignore codemode issue
     global._engine = engine
     initEngine(engine as any)
     initEngineSaga(engineSaga)

@@ -33,14 +33,14 @@ class Session {
   // Name of the start method, just to help debug
   _startMethod: MethodKey | null
   // Start callback so we can cancel our own callback
-  _startCallback: (err: RPCError, ...args: Array<any>) => void | null
+  _startCallback: (err?: RPCError, ...args: Array<any>) => void | null
 
   // Allow us to make calls
   _invoke: invokeType
 
   // Outstanding requests
-  _outgoingRequests: Array<Object> = []
-  _incomingRequests: Array<Object> = []
+  _outgoingRequests: Array<any> = []
+  _incomingRequests: Array<any> = []
 
   constructor(p: {
     sessionID: SessionID
@@ -74,7 +74,7 @@ class Session {
 
   // Make a waiting handler for the request. We add additional data before calling the parent waitingHandler
   // and do internal bookkeeping if the request is done
-  _makeWaitingHandler(isOutgoing: boolean, method: MethodKey, seqid: number | null) {
+  _makeWaitingHandler(isOutgoing: boolean, method: MethodKey, seqid?: number | null) {
     return (waiting: boolean, err: any) => {
       rpcLog({
         extra: {
@@ -163,7 +163,7 @@ class Session {
   }
 
   // We have an incoming call tied to a sessionID, called only by engine
-  incomingCall(method: MethodKey, param: Object, response: Object | null): boolean {
+  incomingCall(method: MethodKey, param: Object, response: any): boolean {
     measureStart(`engine:${method}:${this.getId()}`)
     rpcLog({
       extra: {
@@ -186,18 +186,22 @@ class Session {
       return false
     }
 
+    // @ts-ignore codemode issue
     if (response && response.seqid) {
       this._seqIDResponded[String(response.seqid)] = false
     }
 
+    // @ts-ignore codemode issue
     const waitingHandler = this._makeWaitingHandler(false, method, response && response.seqid)
+    // @ts-ignore codemode issue
     const incomingRequest = new IncomingRequest(method, param, response, waitingHandler, handler)
     this._incomingRequests.push(incomingRequest)
     const actions = incomingRequest.handle()
 
     const arr = isArray(actions) ? actions : [actions]
-    // $FlowIssue private api
+    // @ts-ignore codemode issue
     const dispatch = getEngine().deprecatedGetDispatch()
+    // @ts-ignore codemode issue
     arr.forEach(a => !!a && dispatch(a))
 
     return true

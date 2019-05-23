@@ -19,7 +19,7 @@ const nativeBridge: {
   reset: () => void
 } = NativeModules.KeybaseEngine
 const RNEmitter: {
-  addListener: (arg0: string, arg0: (arg0: string) => void) => void
+  addListener: (arg0: string, arg1: (arg0: string) => void) => void
 } = new NativeEventEmitter(nativeBridge)
 
 class NativeTransport extends TransportShared {
@@ -27,6 +27,7 @@ class NativeTransport extends TransportShared {
     super({}, connectCallback, disconnectCallback, incomingRPCCallback)
 
     // We're connected locally so we never get disconnected
+    // @ts-ignore codemode issue
     this.needsConnect = false
   }
 

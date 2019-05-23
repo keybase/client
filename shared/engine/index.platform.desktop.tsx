@@ -1,3 +1,4 @@
+// @ts-ignore codemode issue
 import net from 'net'
 import logger from '../logger'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
@@ -9,12 +10,13 @@ class NativeTransport extends TransportShared {
   constructor(incomingRPCCallback, connectCallback, disconnectCallback) {
     console.log('Transport using', socketPath)
     super({path: socketPath}, connectCallback, disconnectCallback, incomingRPCCallback)
+    // @ts-ignore codemode issue
     this.needsConnect = true
   }
 
   _connect_critical_section(cb: any) {
     // eslint-disable-line camelcase
-    // $FlowIssue
+    // @ts-ignore codemode issue
     super._connect_critical_section(cb)
     windowsHack()
   }
@@ -26,7 +28,7 @@ class NativeTransport extends TransportShared {
       const b = Buffer.from(msg, encoding)
       logger.debug('[RPC] Writing', b.length, 'bytes:', b.toString('hex'))
     }
-    // $FlowIssue Deliberately overriding private method.
+    // @ts-ignore codemode issue
     super._raw_write(msg, encoding)
   }
 
@@ -36,6 +38,7 @@ class NativeTransport extends TransportShared {
     if (printRPCBytes) {
       logger.debug('[RPC] Read', m.length, 'bytes:', m.toString('hex'))
     }
+    // @ts-ignore codemode issue
     super.packetize_data(m)
   }
 }
@@ -47,7 +50,7 @@ function windowsHack() {
   // hangs until other random net module operations, at which point it
   // unblocks.  Could be Electron, could be a node-framed-msgpack-rpc
   // bug, who knows.
-  // $FlowIssue doens't know about process.type
+  // @ts-ignore codemode issue
   if (!isWindows || process.type !== 'renderer') {
     return
   }

@@ -23,7 +23,27 @@ type CustomResponseIncomingCallMap = {} & KBCustomResponseIncomingCallMap &
   ChatCustomResponseIncomingCallMap &
   GregorCustomResponseIncomingCallMap &
   SellarCustomResponseIncomingCallMap
-declare class Session {}
+declare class Session {
+  id: number
+  getId: () => number
+  end: () => void
+  getDangling: () => boolean
+  hasSeqID: (seqID: number) => boolean
+  _startMethod: string | null
+  cancel: () => void
+  incomingCall: (method: string, param: Object, response: Object | null) => boolean
+  start: (method: string, param: Object | null, callback: null | (() => void)) => void
+  constructor(arg0: {
+    sessionID: number
+    incomingCallMap?: IncomingCallMap | null
+    customResponseIncomingCallMap?: CustomResponseIncomingCallMap | null
+    waitingKey?: string | Array<string>
+    invoke: (method: string, param: [Object] | null, cb: (err?: any, data?: any) => void) => void
+    endHandler: (session: Object) => void
+    cancelHandler?: (session: Session) => void
+    dangling?: boolean
+  })
+}
 
 export default Session
 

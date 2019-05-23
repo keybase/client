@@ -22,7 +22,7 @@ class Request {
     this._waitingHandler = waitingHandler
   }
 
-  updateWaiting(waiting: boolean, err: RPCError | null) {
+  updateWaiting(waiting: boolean, err?: RPCError | null) {
     this._waiting = waiting
     this._waitingHandler(waiting, err)
   }
@@ -38,7 +38,7 @@ class IncomingRequest extends Request {
     param: Object,
     response: ResponseType | null,
     waitingHandler: SimpleWaiting,
-    handler: Function
+    handler: any
   ) {
     super(method, param, waitingHandler)
 
