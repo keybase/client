@@ -395,7 +395,7 @@ func getGregorClient(ctx context.Context, gc *globals.Context) (res chat1.Remote
 		func(nist *libkb.NIST) rpc.ConnectionHandler {
 			return newExtensionGregorHandler(gc, nist)
 		})
-	return chat1.RemoteClient{Cli: chat.NewRemoteClient(gc, conn.GetClient())}, nil
+	return chat1.RemoteClient{Cli: chat.NewRemoteClient(gc, conn.GetClient())}, err
 }
 
 func restoreName(gc *globals.Context, name string, membersType chat1.ConversationMembersType) string {

@@ -5094,6 +5094,7 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 				TlfVisibility: keybase1.TLFVisibility_PRIVATE,
 				MembersType:   chat1.ConversationMembersType_TEAM,
 			})
+		require.NoError(t, err)
 		channelInfo := channel.Conv.Info
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_JOIN)
 		consumeNewConversation(t, listener1, channelInfo.Id)
