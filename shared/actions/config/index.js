@@ -367,6 +367,7 @@ const routeToInitialScreen = state => {
 
 const handleAppLink = (_, action) => {
   const url = new URL(action.payload.link)
+  console.warn('Link is', action.payload.link)
   if (action.payload.link.startsWith('keybase://')) {
     console.warn('Got keybase link:', action.payload.link)
   } else {

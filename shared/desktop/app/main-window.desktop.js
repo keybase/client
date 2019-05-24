@@ -63,7 +63,7 @@ export default function() {
 
   const app = SafeElectron.getApp()
 
-  app.setAsDefaultProtocolClient('keybase')
+  app.setAsDefaultProtocolClient('web+stellar')
   const openedAtLogin = app.getLoginItemSettings().wasOpenedAtLogin
   // app.getLoginItemSettings().restoreState is Mac only, so consider it always on in Windows
   const isRestore =
