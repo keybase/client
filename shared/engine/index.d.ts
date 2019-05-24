@@ -17,9 +17,9 @@ export declare class Engine {
     cancelHandler?: any
     dangling?: boolean
   }): Session
-  _rpcOutgoing(arg0: {
+  _rpcOutgoing<T>(arg0: {
     method: string
-    params: Object | null
+    params: T
     callback: (...args: Array<any>) => void
     waitingKey?: WaitingKey
   }): void
