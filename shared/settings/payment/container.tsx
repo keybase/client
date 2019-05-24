@@ -30,8 +30,8 @@ type Props = {
 
 class PaymentStateHolder extends Component<Props, State> {
   state: State
-  constructor() {
-    super()
+  constructor(props) {
+    super(props)
     this.state = {
       cardNumber: null,
       expiration: null,
@@ -104,6 +104,7 @@ export default connect<OwnProps, _, _, _, _>(
     },
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
+    // @ts-ignore codemod issue
     if (stateProps.bootstrapDone === false) {
       return {
         bootstrapDone: false,
@@ -114,6 +115,7 @@ export default connect<OwnProps, _, _, _, _>(
     return {
       bootstrapDone: true,
       originalProps: {
+        // @ts-ignore codemod issue
         ...stateProps.originalProps,
         clearBillingError: dispatchProps.clearBillingError,
         onSubmit: (

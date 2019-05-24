@@ -1,14 +1,14 @@
 import logger from '../../logger'
 import * as React from 'react'
-import {HOCTimers} from '../../common-adapters'
+import {HOCTimers, PropsWithTimer} from '../../common-adapters'
 import Feedback from './index'
+// @ts-ignore not typed yet
 import logSend from '../../native/log-send'
 import {compose, connect, RouteProps} from '../../util/container'
 import {isAndroid, version, logFileName, pprofDir} from '../../constants/platform'
 import {writeLogLinesToFile} from '../../util/forward-logs'
 import {Platform, NativeModules} from 'react-native'
 import {getExtraChatLogsForLogSend, getPushTokenForLogSend} from '../../constants/settings'
-import {PropsWithTimer} from '../../common-adapters'
 
 type OwnProps = RouteProps<{}, {}>
 

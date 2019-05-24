@@ -7,8 +7,11 @@ import * as Styles from '../../styles/index'
 export const getOtherErrorInfo = (err: Error) => {
   const info = {}
   for (const k in err) info[k] = (err as Object)[k]
+  // @ts-ignore
   delete info.name
+  // @ts-ignore
   delete info.message
+  // @ts-ignore
   delete info.stack
   return info
 }
