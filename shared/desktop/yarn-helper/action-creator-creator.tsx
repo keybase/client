@@ -27,8 +27,7 @@ type CompileActionFn = (ns: ActionNS, actionName: ActionName, desc: ActionDesc) 
 const reservedPayloadKeys = ['_description']
 
 function compile(ns: ActionNS, {prelude, actions}: FileDesc): string {
-  return `// @flow
-// NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
+  return `// NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 /* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
 import * as I from 'immutable'

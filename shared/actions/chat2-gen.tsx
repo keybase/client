@@ -1,4 +1,3 @@
-// @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 /* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
@@ -8,6 +7,7 @@ import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as Types from '../constants/types/chat2'
 import * as TeamsTypes from '../constants/types/teams'
 import HiddenString from '../util/hidden-string'
+// @ts-ignore until constants is converted
 import {RetentionPolicy} from '../constants/types/retention-policy'
 
 // Constants
