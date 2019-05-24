@@ -3882,6 +3882,9 @@ func TestProvisionAfterPasswordChange(t *testing.T) {
 		}),
 	))
 
+	// REMOVE BELOW TO BREAK TESTS
+	simulateServiceRestart(t, tcY, userX)
+
 	// Now provision Z from Y
 	t.Logf("kex#2 starting")
 
@@ -3928,7 +3931,7 @@ func TestProvisionAfterPasswordChange(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	t.Logf("kex#1 finished")
+	t.Logf("kex#2 finished")
 }
 
 type testProvisionUI struct {

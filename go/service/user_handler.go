@@ -69,6 +69,10 @@ func (r *userHandler) passwordChange(m libkb.MetaContext, cli gregor1.IncomingIn
 		m.Debug("Unable to add HasRandomPW state to KVStore after %s notification", category)
 	}
 
+	if _, err := m.SyncSecrets(); err != nil {
+		m.Debug("Unable to sync secrets after a %s notification: %s", category, err)
+	}
+
 	r.G().NotifyRouter.HandlePasswordChanged(m.Ctx())
 	return r.G().GregorState.DismissItem(m.Ctx(), cli, item.Metadata().MsgID())
 }

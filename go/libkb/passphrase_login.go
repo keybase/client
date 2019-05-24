@@ -295,6 +295,10 @@ func StoreSecretAfterLoginWithLKSWithOptions(m MetaContext, n NormalizedUsername
 }
 
 func getStoredPassphraseStream(m MetaContext) (*PassphraseStream, error) {
+	if _, err := m.G().ActiveDevice.SyncSecrets(m); err != nil {
+		return nil, err
+	}
+
 	fullSecret, err := m.G().SecretStore().RetrieveSecret(m, m.CurrentUsername())
 	if err != nil {
 		return nil, err
