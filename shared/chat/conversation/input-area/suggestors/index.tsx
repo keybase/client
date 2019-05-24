@@ -89,9 +89,9 @@ export type PropsWithSuggestorOuter<P> = {} & P & AddSuggestorsProps
 
 export type PropsWithSuggestor<P> = {} & P & SuggestorHooks
 
-const AddSuggestors = <WrappedOwnProps extends {}, WrappedState>(
-  WrappedComponent: Class<React.Component<PropsWithSuggestor<WrappedOwnProps>, WrappedState>>
-): React.AbstractComponent<PropsWithSuggestorOuter<WrappedOwnProps>> => {
+const AddSuggestors = <WrappedOwnProps extends {}>(
+  WrappedComponent: React.ComponentType<PropsWithSuggestor<WrappedOwnProps>>
+): React.Component<PropsWithSuggestorOuter<WrappedOwnProps>> => {
   type SuggestorsComponentProps = {
     forwardedRef: React.Ref<typeof WrappedComponent> | null
   } & PropsWithSuggestorOuter<WrappedOwnProps>
