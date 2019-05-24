@@ -61,7 +61,7 @@
     "setupTestFrameworkScriptFile": "<rootDir>/test/setupTestFrameworkScriptFile.js",
     "testPathIgnorePatterns": [
       "/node_modules/",
-      "\.tsOut"
+      "/.tsOut/"
     ],
     "snapshotSerializers": [
       "jest-emotion"
