@@ -47,7 +47,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
 }
 
-export default namedConnect<OwnProps, _, _, _, _>(
+export default namedConnect(
   mapStateToProps,
   (d, o) => ({}),
   (s, d, o) => ({...o, ...s, ...d}),

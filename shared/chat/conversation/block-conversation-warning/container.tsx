@@ -42,7 +42,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   participants: stateProps._participants.filter(p => p !== stateProps._you).join(','),
 })
 
-export default Container.connect<OwnProps, _, _, _, _>(
+export default Container.connect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

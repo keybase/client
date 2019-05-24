@@ -91,7 +91,7 @@ const loadMoreMessages = (state, props, loadFn) => ordinal => {
 }
 
 export default compose(
-  connect<OwnProps, _, _, _, _>(
+  connect(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps

@@ -160,7 +160,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   showCoinsIcon: stateProps.showCoinsIcon,
 })
 
-const ConnectedAccountPayment = Container.connect<OwnProps, _, _, _, _>(
+const ConnectedAccountPayment = Container.connect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

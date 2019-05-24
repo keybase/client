@@ -143,7 +143,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   teamname: stateProps.teamname,
 })
 
-const ConnectedInfoPanel = connect<OwnProps, _, _, _, _>(
+const ConnectedInfoPanel = connect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps
@@ -229,7 +229,7 @@ const panelContainerStyle = {
   width: 320,
 }
 
-const InfoConnected = connect<SelectorOwnProps, _, _, _, _>(
+const InfoConnected = connect(
   mapStateToSelectorProps,
   mapDispatchToSelectorProps,
   mergeSelectorProps

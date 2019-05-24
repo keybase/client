@@ -39,6 +39,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   emojis: getOrderedReactions(stateProps._reactions),
 })
 
-export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, () => ({}), mergeProps, 'ReactionsRow')(
+export default namedConnect(mapStateToProps, () => ({}), mergeProps, 'ReactionsRow')(
   ReactionsRow
 )

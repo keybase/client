@@ -59,7 +59,7 @@ const Wrapper = (props: WrapperProps) =>
     />
   )
 
-const Connected = Container.namedConnect<OwnProps, _, _, _, _>(
+const Connected = Container.namedConnect(
   mapStateToProps,
   () => ({}),
   mergeProps,

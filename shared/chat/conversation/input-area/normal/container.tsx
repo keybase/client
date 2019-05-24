@@ -214,7 +214,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   unsentTextRefresh: !!stateProps.unsentText,
 })
 
-export default connect<OwnProps, _, _, _, _>(
+export default connect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

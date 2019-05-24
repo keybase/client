@@ -45,7 +45,7 @@ const mapDispatchToProps = (dispatch, {conversationIDKey, text}: OwnProps) => ({
   onFlipAgain: () => dispatch(Chat2Gen.createMessageSend({conversationIDKey, text})),
 })
 
-export default namedConnect<OwnProps, _, _, _, _>(
+export default namedConnect(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({...s, ...d}),

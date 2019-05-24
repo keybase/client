@@ -35,7 +35,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   style: ownProps.style,
 })
 
-const ConnectedEmojiRow = Container.namedConnect<OwnProps, _, _, _, _>(
+const ConnectedEmojiRow = Container.namedConnect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,

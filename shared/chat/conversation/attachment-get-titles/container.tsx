@@ -57,7 +57,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   title: 'Attachments',
 })
 
-export default connect<OwnProps, _, _, _, _>(
+export default connect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

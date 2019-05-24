@@ -47,7 +47,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-const WalletsIcon = Container.namedConnect<OwnProps, _, _, _, _>(
+const WalletsIcon = Container.namedConnect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,

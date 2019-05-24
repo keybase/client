@@ -23,7 +23,7 @@ const mapStateToProps = state => ({
   searchEnabled: !!state.chat2.inboxSearch,
 })
 
-const InboxSwitchConnected = namedConnect<Props, _, _, _, _>(
+const InboxSwitchConnected = namedConnect(
   mapStateToProps,
   () => ({}),
   (s, d, o) => ({...o, ...s}),

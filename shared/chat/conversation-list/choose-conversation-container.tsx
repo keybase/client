@@ -34,9 +34,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   selectedText: stateProps._conv ? getConversationText(stateProps._conv) : 'Choose a conversation',
 })
 
-export default namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'ChooseConversation'
-)(ChooseConversation)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ChooseConversation')(
+  ChooseConversation
+)

@@ -31,7 +31,7 @@ const mapStateToProps = state => ({
   infoPanelOpen: Constants.isInfoPanelOpen(state),
 })
 
-const Connected = connect<OwnProps, _, _, _, _>(
+const Connected = connect(
   mapStateToProps,
   () => ({}),
   (s, d, o) => ({...o, ...s, ...d})

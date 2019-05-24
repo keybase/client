@@ -62,7 +62,7 @@ class InputArea extends React.PureComponent<Props> {
   }
 }
 
-export default connect<OwnProps, _, _, _, _>(
+export default connect(
   mapStateToProps,
   () => ({}),
   (s, d, o) => ({...o, ...s, ...d})

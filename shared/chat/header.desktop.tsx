@@ -225,7 +225,7 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
-const Connected = Container.connect<OwnProps, _, _, _, _>(
+const Connected = Container.connect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

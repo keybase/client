@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
-import * as Flow from '../../../util/flow'
 import {Box, Divider, HeaderOnMobile, List} from '../../../common-adapters'
 import {Props as HeaderHocProps} from '../../../common-adapters/header-hoc/types'
 import {globalColors, globalMargins, globalStyles, isMobile, platformStyles} from '../../../styles'
@@ -411,7 +410,6 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         )
 
       default:
-        Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(row.type)
         throw new Error(`Impossible case encountered: ${row.type}`)
     }
   }

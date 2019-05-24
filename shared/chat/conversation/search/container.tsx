@@ -68,9 +68,6 @@ const mergeProps = (stateProps, dispatchProps, {conversationIDKey, style}) => ({
   style,
 })
 
-export default namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'ThreadSearch'
-)(KeyHandler(ThreadSearch))
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ThreadSearch')(
+  KeyHandler(ThreadSearch)
+)

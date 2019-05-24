@@ -47,7 +47,7 @@ const UsersAddedToConversation = (props: SwitcherProps) => {
   )
 }
 
-export default Container.namedConnect<OwnProps, _, _, _, _>(
+export default Container.namedConnect(
   mapStateToProps,
   () => ({}),
   mergeProps,

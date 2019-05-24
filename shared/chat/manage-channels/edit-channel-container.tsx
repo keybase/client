@@ -104,7 +104,7 @@ const mergeProps = (stateProps, dispatchProps): Props => {
   }
 }
 
-const ConnectedEditChannel = connect<OwnProps, _, _, _, _>(
+const ConnectedEditChannel = connect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

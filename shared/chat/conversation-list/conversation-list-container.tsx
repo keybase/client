@@ -2,7 +2,6 @@ import {namedConnect} from '../../util/container'
 import {memoize} from '../../util/memoize'
 import * as Types from '../../constants/types/chat2'
 import * as Constants from '../../constants/chat2'
-import * as Flow from '../../util/flow'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {isMobile} from '../../constants/platform'
 import ConversationList, {SmallTeamRowItem, BigTeamChannelRowItem} from './conversation-list'
@@ -26,7 +25,6 @@ const notificationsTypeToNumber = (t: Types.NotificationsType): number => {
     case 'never':
       return 3
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(t)
       return 0
   }
 }

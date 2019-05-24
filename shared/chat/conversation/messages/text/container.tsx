@@ -65,7 +65,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   type: ownProps.message.errorReason ? 'error' : ownProps.message.submitState === null ? 'sent' : 'pending',
 })
 
-export default namedConnect<OwnProps, _, _, _, _>(
+export default namedConnect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,

@@ -171,7 +171,7 @@ class InboxWrapper extends React.PureComponent<Props> {
   }
 }
 
-const Connected = namedConnect<OwnProps, _, _, _, _>(
+const Connected = namedConnect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,

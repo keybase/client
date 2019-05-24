@@ -143,7 +143,7 @@ const sendMergeProps = (stateProps, dispatchProps, ownProps: SendOwnProps) => {
   }
 }
 
-export const SendPaymentPopup = Container.connect<SendOwnProps, _, _, _, _>(
+export const SendPaymentPopup = Container.connect(
   sendMapStateToProps,
   sendMapDispatchToProps,
   sendMergeProps
@@ -232,7 +232,7 @@ const requestMergeProps = (stateProps, dispatchProps, ownProps: RequestOwnProps)
   }
 }
 
-const RequestPaymentPopup = Container.connect<RequestOwnProps, _, _, _, _>(
+const RequestPaymentPopup = Container.connect(
   requestMapStateToProps,
   requestMapDispatchToProps,
   requestMergeProps

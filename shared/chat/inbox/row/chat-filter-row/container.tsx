@@ -60,7 +60,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 const KeyHandler = isMobile ? c => c : require('../../../../util/key-handler.desktop').default
 
 export default compose(
-  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'ChatFilterRow'),
+  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ChatFilterRow'),
   withProps<any, any, any>(props => ({
     onHotkey: (cmd: string) => props._onHotkey(cmd),
   }))

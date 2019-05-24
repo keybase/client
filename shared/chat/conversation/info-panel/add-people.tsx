@@ -84,7 +84,7 @@ const mapDispatchToProps = dispatch => {
 }
 
 const AddPeople = compose(
-  connect<OwnProps, _, _, _, _>(
+  connect(
     () => ({}),
     mapDispatchToProps,
     (s, d, o) => ({

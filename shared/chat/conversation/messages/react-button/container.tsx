@@ -118,10 +118,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   style: ownProps.style,
 })
 
-export default Container.namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'ReactButton',
-  {forwardRef: true}
-)(Wrapper)
+export default Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ReactButton', {
+  forwardRef: true,
+})(Wrapper)
