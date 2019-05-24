@@ -33,6 +33,7 @@ class RemoteStore {
 
   _registerForRemoteUpdate = () => {
     this._window = SafeElectron.getRemote().getCurrentWindow()
+    // @ts-ignore custom event
     this._window.on('props', this._onPropsUpdated)
   }
 

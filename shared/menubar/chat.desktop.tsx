@@ -6,20 +6,15 @@ import * as SmallTeam from '../chat/inbox/row/small-team'
 import * as RemoteContainer from '../chat/inbox/container/remote'
 
 type ConvRow = {
-  conversationIDKey: ChatTypes.ConversationIDKey,
-  onSelectConversation: () => void
-} & RemoteContainer.RemoteConvMeta;
+  conversationIDKey: ChatTypes.ConversationIDKey
+} & RemoteContainer.RemoteConvMeta
 
 type ChatPreviewProps = {
-  onViewAll: () => void,
+  onViewAll: () => void
   convRows: Array<ConvRow>
-};
+}
 
-export const ChatPreview = ({
-  onViewAll,
-  onSelectConversation,
-  convRows
-}: ChatPreviewProps) => (
+export const ChatPreview = ({onViewAll, convRows}: ChatPreviewProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.chatContainer}>
     {convRows.map(r => {
       return <SmallTeam.SmallTeam key={r.conversationIDKey} {...r} />

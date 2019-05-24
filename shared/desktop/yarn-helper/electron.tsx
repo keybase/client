@@ -63,7 +63,7 @@ function startHot() {
     var req = http.get('http://localhost:4000/dist/node.dev.bundle.js', () => {
       // require in case we're trying to yarn install electron!
       const electron = require('electron')
-      // $FlowIssue
+      // @ts-ignore
       spawn(electron, [...params, ...(isLinux ? ['--disable-gpu'] : [])], {env, stdio: 'inherit'})
     })
     req.on('error', e => {

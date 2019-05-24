@@ -84,7 +84,7 @@ const mergeProps = stateProps => {
 
 const RenderExternalWindowBranch = (ComposedComponent: React.ComponentType<any>) =>
   class extends React.PureComponent<{
-    externalRemoteWindow: Object | null
+    externalRemoteWindow?: SafeElectron.BrowserWindowType
   }> {
     render = () => (this.props.externalRemoteWindow ? <ComposedComponent {...this.props} /> : null)
   }

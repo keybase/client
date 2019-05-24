@@ -15,7 +15,7 @@ export class RPCError {
   desc: string
   details: string // Details w/ error code & method if it's present
 
-  constructor(message: string, code: number, fields: any, name: string | null, method: string | null) {
+  constructor(message: string, code: number, fields?: any, name?: string | null, method?: string | null) {
     const err = new Error(paramsToErrorMsg(message, code, fields, name, method))
     this.message = err.message
     this.name = 'RPCError'
