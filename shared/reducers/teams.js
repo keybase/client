@@ -121,12 +121,12 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
     case TeamsGen.addParticipant:
       return state.updateIn(
         ['teamNameToChannelInfos', action.payload.teamname, action.payload.conversationIDKey, 'memberStatus'],
-        memberStatus => RPCChatTypes.commonConversationMemberStatus.active
+        memberStatus => RPCChatTypes.ConversationMemberStatus.active
       )
     case TeamsGen.removeParticipant:
       return state.updateIn(
         ['teamNameToChannelInfos', action.payload.teamname, action.payload.conversationIDKey, 'memberStatus'],
-        memberStatus => RPCChatTypes.commonConversationMemberStatus.left
+        memberStatus => RPCChatTypes.ConversationMemberStatus.left
       )
     // Saga-only actions
     case TeamsGen.addPeopleToTeam:

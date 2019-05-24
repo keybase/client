@@ -430,56 +430,58 @@ export type MessageTypes = {
   }
 }
 
-export enum chatUiMessageUnboxedState {
-  valid = 1,
-  error = 2,
-  outbox = 3,
-  placeholder = 4,
+export enum AssetMetadataType {
+  none = 0,
+  image = 1,
+  video = 2,
+  audio = 3,
 }
 
-export enum chatUiUICoinFlipErrorTyp {
-  generic = 0,
-  absentee = 1,
-  timeout = 2,
-  aborted = 3,
-  dupreg = 4,
-  dupcommitcomplete = 5,
-  dupreveal = 6,
-  commitmismatch = 7,
+export enum AssetTag {
+  primary = 0,
 }
 
-export enum chatUiUICoinFlipPhase {
-  commitment = 0,
-  reveals = 1,
-  complete = 2,
-  error = 3,
+export enum BodyPlaintextVersion {
+  v1 = 1,
+  v2 = 2,
+  v3 = 3,
+  v4 = 4,
+  v5 = 5,
+  v6 = 6,
+  v7 = 7,
+  v8 = 8,
+  v9 = 9,
+  v10 = 10,
 }
 
-export enum chatUiUICoinFlipResultTyp {
-  number = 0,
-  shuffle = 1,
-  deck = 2,
-  hands = 3,
-  coin = 4,
+export enum ChannelMention {
+  none = 0,
+  all = 1,
+  here = 2,
 }
 
-export enum chatUiUIMaybeMentionStatus {
-  unknown = 0,
-  user = 1,
-  team = 2,
-  nothing = 3,
+export enum ChatActivitySource {
+  local = 0,
+  remote = 1,
 }
 
-export enum chatUiUITextDecorationTyp {
-  payment = 0,
-  atmention = 1,
-  channelnamemention = 2,
-  maybemention = 3,
-  link = 4,
-  mailto = 5,
+export enum ChatActivityType {
+  reserved = 0,
+  incomingMessage = 1,
+  readMessage = 2,
+  newConversation = 3,
+  setStatus = 4,
+  failedMessage = 5,
+  membersUpdate = 6,
+  setAppNotificationSettings = 7,
+  teamtype = 8,
+  expunge = 9,
+  ephemeralPurge = 10,
+  reactionUpdate = 11,
+  messagesUpdated = 12,
 }
 
-export enum commandsConversationBuiltinCommandTyp {
+export enum ConversationBuiltinCommandTyp {
   none = 0,
   adhoc = 1,
   smallteam = 2,
@@ -487,30 +489,29 @@ export enum commandsConversationBuiltinCommandTyp {
   bigteamgeneral = 4,
 }
 
-export enum commandsConversationCommandGroupsTyp {
+export enum ConversationCommandGroupsTyp {
   builtin = 0,
   custom = 1,
 }
 
-export enum commonAssetMetadataType {
-  none = 0,
-  image = 1,
-  video = 2,
-  audio = 3,
+export enum ConversationErrorType {
+  permanent = 0,
+  missinginfo = 1,
+  selfrekeyneeded = 2,
+  otherrekeyneeded = 3,
+  identify = 4,
+  transient = 5,
+  none = 6,
 }
 
-export enum commonAssetTag {
-  primary = 0,
-}
-
-export enum commonConversationExistence {
+export enum ConversationExistence {
   active = 0,
   archived = 1,
   deleted = 2,
   abandoned = 3,
 }
 
-export enum commonConversationMemberStatus {
+export enum ConversationMemberStatus {
   active = 0,
   removed = 1,
   left = 2,
@@ -519,14 +520,14 @@ export enum commonConversationMemberStatus {
   neverJoined = 5,
 }
 
-export enum commonConversationMembersType {
+export enum ConversationMembersType {
   kbfs = 0,
   team = 1,
   impteamnative = 2,
   impteamupgrade = 3,
 }
 
-export enum commonConversationStatus {
+export enum ConversationStatus {
   unfiled = 0,
   favorite = 1,
   ignored = 2,
@@ -535,7 +536,17 @@ export enum commonConversationStatus {
   reported = 5,
 }
 
-export enum commonGetThreadReason {
+export enum GetThreadNonblockCbMode {
+  full = 0,
+  incremental = 1,
+}
+
+export enum GetThreadNonblockPgMode {
+  default = 0,
+  server = 1,
+}
+
+export enum GetThreadReason {
   general = 0,
   push = 1,
   foreground = 2,
@@ -548,7 +559,7 @@ export enum commonGetThreadReason {
   coinflip = 9,
 }
 
-export enum commonGlobalAppNotificationSetting {
+export enum GlobalAppNotificationSetting {
   newmessages = 0,
   plaintextmobile = 1,
   plaintextdesktop = 2,
@@ -556,12 +567,51 @@ export enum commonGlobalAppNotificationSetting {
   disabletyping = 4,
 }
 
-export enum commonInboxResType {
+export enum HeaderPlaintextVersion {
+  v1 = 1,
+  v2 = 2,
+  v3 = 3,
+  v4 = 4,
+  v5 = 5,
+  v6 = 6,
+  v7 = 7,
+  v8 = 8,
+  v9 = 9,
+  v10 = 10,
+}
+
+export enum InboxResType {
   versionhit = 0,
   full = 1,
 }
 
-export enum commonMessageType {
+export enum MessageBoxedVersion {
+  vnone = 0,
+  v1 = 1,
+  v2 = 2,
+  v3 = 3,
+  v4 = 4,
+}
+
+export enum MessageIDControlMode {
+  oldermessages = 0,
+  newermessages = 1,
+  centered = 2,
+  unreadline = 3,
+}
+
+export enum MessageSystemType {
+  addedtoteam = 0,
+  inviteaddedtoteam = 1,
+  complexteam = 2,
+  createteam = 3,
+  gitpush = 4,
+  changeavatar = 5,
+  changeretention = 6,
+  bulkaddtoconv = 7,
+}
+
+export enum MessageType {
   none = 0,
   text = 1,
   attachment = 2,
@@ -582,109 +632,7 @@ export enum commonMessageType {
   flip = 17,
 }
 
-export enum commonNotificationKind {
-  generic = 0,
-  atmention = 1,
-}
-
-export enum commonReIndexingMode {
-  none = 0,
-  presearchSync = 1,
-  postsearchSync = 2,
-}
-
-export enum commonRetentionPolicyType {
-  none = 0,
-  retain = 1,
-  expire = 2,
-  inherit = 3,
-  ephemeral = 4,
-}
-
-export enum commonSyncInboxResType {
-  current = 0,
-  incremental = 1,
-  clear = 2,
-}
-
-export enum commonTeamType {
-  none = 0,
-  simple = 1,
-  complex = 2,
-}
-
-export enum commonTopicType {
-  none = 0,
-  chat = 1,
-  dev = 2,
-  kbfsfileedit = 3,
-}
-
-export enum localBodyPlaintextVersion {
-  v1 = 1,
-  v2 = 2,
-  v3 = 3,
-  v4 = 4,
-  v5 = 5,
-  v6 = 6,
-  v7 = 7,
-  v8 = 8,
-  v9 = 9,
-  v10 = 10,
-}
-
-export enum localConversationErrorType {
-  permanent = 0,
-  missinginfo = 1,
-  selfrekeyneeded = 2,
-  otherrekeyneeded = 3,
-  identify = 4,
-  transient = 5,
-  none = 6,
-}
-
-export enum localGetThreadNonblockCbMode {
-  full = 0,
-  incremental = 1,
-}
-
-export enum localGetThreadNonblockPgMode {
-  default = 0,
-  server = 1,
-}
-
-export enum localHeaderPlaintextVersion {
-  v1 = 1,
-  v2 = 2,
-  v3 = 3,
-  v4 = 4,
-  v5 = 5,
-  v6 = 6,
-  v7 = 7,
-  v8 = 8,
-  v9 = 9,
-  v10 = 10,
-}
-
-export enum localMessageIDControlMode {
-  oldermessages = 0,
-  newermessages = 1,
-  centered = 2,
-  unreadline = 3,
-}
-
-export enum localMessageSystemType {
-  addedtoteam = 0,
-  inviteaddedtoteam = 1,
-  complexteam = 2,
-  createteam = 3,
-  gitpush = 4,
-  changeavatar = 5,
-  changeretention = 6,
-  bulkaddtoconv = 7,
-}
-
-export enum localMessageUnboxedErrorType {
+export enum MessageUnboxedErrorType {
   misc = 0,
   badversionCritical = 1,
   badversion = 2,
@@ -693,7 +641,19 @@ export enum localMessageUnboxedErrorType {
   pairwiseMissing = 5,
 }
 
-export enum localOutboxErrorType {
+export enum MessageUnboxedState {
+  valid = 1,
+  error = 2,
+  outbox = 3,
+  placeholder = 4,
+}
+
+export enum NotificationKind {
+  generic = 0,
+  atmention = 1,
+}
+
+export enum OutboxErrorType {
   misc = 0,
   offline = 1,
   identify = 2,
@@ -705,23 +665,120 @@ export enum localOutboxErrorType {
   uploadfailed = 8,
 }
 
-export enum localOutboxStateType {
+export enum OutboxStateType {
   sending = 0,
   error = 1,
 }
 
-export enum localPreviewLocationTyp {
+export enum PreviewLocationTyp {
   url = 0,
   file = 1,
   bytes = 2,
 }
 
-export enum localTextPaymentResultTyp {
+export enum ReIndexingMode {
+  none = 0,
+  presearchSync = 1,
+  postsearchSync = 2,
+}
+
+export enum RetentionPolicyType {
+  none = 0,
+  retain = 1,
+  expire = 2,
+  inherit = 3,
+  ephemeral = 4,
+}
+
+export enum StaleUpdateType {
+  clear = 0,
+  newactivity = 1,
+  convupdate = 2,
+}
+
+export enum SyncAllNotificationType {
+  state = 0,
+  incremental = 1,
+}
+
+export enum SyncAllProtVers {
+  v0 = 0,
+  v1 = 1,
+}
+
+export enum SyncInboxResType {
+  current = 0,
+  incremental = 1,
+  clear = 2,
+}
+
+export enum TeamType {
+  none = 0,
+  simple = 1,
+  complex = 2,
+}
+
+export enum TextPaymentResultTyp {
   sent = 0,
   error = 1,
 }
 
-export enum localUnfurlPromptAction {
+export enum TopicType {
+  none = 0,
+  chat = 1,
+  dev = 2,
+  kbfsfileedit = 3,
+}
+
+export enum UICoinFlipErrorTyp {
+  generic = 0,
+  absentee = 1,
+  timeout = 2,
+  aborted = 3,
+  dupreg = 4,
+  dupcommitcomplete = 5,
+  dupreveal = 6,
+  commitmismatch = 7,
+}
+
+export enum UICoinFlipPhase {
+  commitment = 0,
+  reveals = 1,
+  complete = 2,
+  error = 3,
+}
+
+export enum UICoinFlipResultTyp {
+  number = 0,
+  shuffle = 1,
+  deck = 2,
+  hands = 3,
+  coin = 4,
+}
+
+export enum UIMaybeMentionStatus {
+  unknown = 0,
+  user = 1,
+  team = 2,
+  nothing = 3,
+}
+
+export enum UITextDecorationTyp {
+  payment = 0,
+  atmention = 1,
+  channelnamemention = 2,
+  maybemention = 3,
+  link = 4,
+  mailto = 5,
+}
+
+export enum UnfurlMode {
+  always = 0,
+  never = 1,
+  whitelisted = 2,
+}
+
+export enum UnfurlPromptAction {
   always = 0,
   never = 1,
   accept = 2,
@@ -729,64 +786,7 @@ export enum localUnfurlPromptAction {
   onetime = 4,
 }
 
-export enum notifyChatChatActivitySource {
-  local = 0,
-  remote = 1,
-}
-
-export enum notifyChatChatActivityType {
-  reserved = 0,
-  incomingMessage = 1,
-  readMessage = 2,
-  newConversation = 3,
-  setStatus = 4,
-  failedMessage = 5,
-  membersUpdate = 6,
-  setAppNotificationSettings = 7,
-  teamtype = 8,
-  expunge = 9,
-  ephemeralPurge = 10,
-  reactionUpdate = 11,
-  messagesUpdated = 12,
-}
-
-export enum notifyChatStaleUpdateType {
-  clear = 0,
-  newactivity = 1,
-  convupdate = 2,
-}
-
-export enum remoteChannelMention {
-  none = 0,
-  all = 1,
-  here = 2,
-}
-
-export enum remoteMessageBoxedVersion {
-  vnone = 0,
-  v1 = 1,
-  v2 = 2,
-  v3 = 3,
-  v4 = 4,
-}
-
-export enum remoteSyncAllNotificationType {
-  state = 0,
-  incremental = 1,
-}
-
-export enum remoteSyncAllProtVers {
-  v0 = 0,
-  v1 = 1,
-}
-
-export enum unfurlUnfurlMode {
-  always = 0,
-  never = 1,
-  whitelisted = 2,
-}
-
-export enum unfurlUnfurlType {
+export enum UnfurlType {
   generic = 0,
   youtube = 1,
   giphy = 2,
@@ -796,58 +796,14 @@ export type Asset = {readonly filename: String; readonly region: String; readonl
 export type AssetMetadata = {assetType: 1; image: AssetMetadataImage | null} | {assetType: 2; video: AssetMetadataVideo | null} | {assetType: 3; audio: AssetMetadataAudio | null}
 export type AssetMetadataAudio = {readonly durationMs: Int}
 export type AssetMetadataImage = {readonly width: Int; readonly height: Int}
-export type AssetMetadataType =
-  | 0 // NONE_0
-  | 1 // IMAGE_1
-  | 2 // VIDEO_2
-  | 3 // AUDIO_3
-
 export type AssetMetadataVideo = {readonly width: Int; readonly height: Int; readonly durationMs: Int}
-export type AssetTag = 0 // PRIMARY_0
-
 export type BodyPlaintext = {version: 1; v1: BodyPlaintextV1 | null} | {version: 2; v2: BodyPlaintextUnsupported | null} | {version: 3; v3: BodyPlaintextUnsupported | null} | {version: 4; v4: BodyPlaintextUnsupported | null} | {version: 5; v5: BodyPlaintextUnsupported | null} | {version: 6; v6: BodyPlaintextUnsupported | null} | {version: 7; v7: BodyPlaintextUnsupported | null} | {version: 8; v8: BodyPlaintextUnsupported | null} | {version: 9; v9: BodyPlaintextUnsupported | null} | {version: 10; v10: BodyPlaintextUnsupported | null}
 export type BodyPlaintextMetaInfo = {readonly crit: Boolean}
 export type BodyPlaintextUnsupported = {readonly mi: BodyPlaintextMetaInfo}
 export type BodyPlaintextV1 = {readonly messageBody: MessageBody}
-export type BodyPlaintextVersion =
-  | 1 // V1_1
-  | 2 // V2_2
-  | 3 // V3_3
-  | 4 // V4_4
-  | 5 // V5_5
-  | 6 // V6_6
-  | 7 // V7_7
-  | 8 // V8_8
-  | 9 // V9_9
-  | 10 // V10_10
-
 export type BuiltinCommandGroup = {readonly typ: ConversationBuiltinCommandTyp; readonly commands?: Array<ConversationCommand> | null}
-export type ChannelMention =
-  | 0 // NONE_0
-  | 1 // ALL_1
-  | 2 // HERE_2
-
 export type ChannelNameMention = {readonly convID: ConversationID; readonly topicName: String}
 export type ChatActivity = {activityType: 1; incomingMessage: IncomingMessage | null} | {activityType: 2; readMessage: ReadMessageInfo | null} | {activityType: 3; newConversation: NewConversationInfo | null} | {activityType: 4; setStatus: SetStatusInfo | null} | {activityType: 5; failedMessage: FailedMessageInfo | null} | {activityType: 6; membersUpdate: MembersUpdateInfo | null} | {activityType: 7; setAppNotificationSettings: SetAppNotificationSettingsInfo | null} | {activityType: 8; teamtype: TeamTypeInfo | null} | {activityType: 9; expunge: ExpungeInfo | null} | {activityType: 10; ephemeralPurge: EphemeralPurgeNotifInfo | null} | {activityType: 11; reactionUpdate: ReactionUpdateNotif | null} | {activityType: 12; messagesUpdated: MessagesUpdated | null}
-export type ChatActivitySource =
-  | 0 // LOCAL_0
-  | 1 // REMOTE_1
-
-export type ChatActivityType =
-  | 0 // RESERVED_0
-  | 1 // INCOMING_MESSAGE_1
-  | 2 // READ_MESSAGE_2
-  | 3 // NEW_CONVERSATION_3
-  | 4 // SET_STATUS_4
-  | 5 // FAILED_MESSAGE_5
-  | 6 // MEMBERS_UPDATE_6
-  | 7 // SET_APP_NOTIFICATION_SETTINGS_7
-  | 8 // TEAMTYPE_8
-  | 9 // EXPUNGE_9
-  | 10 // EPHEMERAL_PURGE_10
-  | 11 // REACTION_UPDATE_11
-  | 12 // MESSAGES_UPDATED_12
-
 export type ChatSearchHit = {readonly beforeMessages?: Array<UIMessage> | null; readonly hitMessage: UIMessage; readonly afterMessages?: Array<UIMessage> | null; readonly matches?: Array<ChatSearchMatch> | null}
 export type ChatSearchInboxDone = {readonly numHits: Int; readonly numConvs: Int; readonly percentIndexed: Int; readonly delegated: Boolean}
 export type ChatSearchInboxHit = {readonly convID: ConversationID; readonly teamType: TeamType; readonly convName: String; readonly query: String; readonly time: Gregor1.Time; readonly hits?: Array<ChatSearchHit> | null}
@@ -859,39 +815,13 @@ export type ChatSyncIncrementalInfo = {readonly items?: Array<ChatSyncIncrementa
 export type ChatSyncResult = {syncType: 0} | {syncType: 2} | {syncType: 1; incremental: ChatSyncIncrementalInfo | null}
 export type ConvTypingUpdate = {readonly convID: ConversationID; readonly typers?: Array<TyperInfo> | null}
 export type Conversation = {readonly metadata: ConversationMetadata; readonly readerInfo?: ConversationReaderInfo | null; readonly notifications?: ConversationNotificationInfo | null; readonly maxMsgs?: Array<MessageBoxed> | null; readonly maxMsgSummaries?: Array<MessageSummary> | null; readonly creatorInfo?: ConversationCreatorInfo | null; readonly expunge: Expunge; readonly convRetention?: RetentionPolicy | null; readonly teamRetention?: RetentionPolicy | null; readonly cs /* convSettings */?: ConversationSettings | null}
-export type ConversationBuiltinCommandTyp =
-  | 0 // NONE_0
-  | 1 // ADHOC_1
-  | 2 // SMALLTEAM_2
-  | 3 // BIGTEAM_3
-  | 4 // BIGTEAMGENERAL_4
-
 export type ConversationCommand = {readonly description: String; readonly name: String; readonly usage: String; readonly hasHelpText: Boolean; readonly username?: String | null}
 export type ConversationCommandGroups = {typ: 0; builtin: ConversationBuiltinCommandTyp | null} | {typ: 1; custom: ConversationCommandGroupsCustom | null}
 export type ConversationCommandGroupsCustom = {readonly commands?: Array<ConversationCommand> | null}
-export type ConversationCommandGroupsTyp =
-  | 0 // BUILTIN_0
-  | 1 // CUSTOM_1
-
 export type ConversationCreatorInfo = {readonly ctime: Gregor1.Time; readonly uid: Gregor1.UID}
 export type ConversationCreatorInfoLocal = {readonly ctime: Gregor1.Time; readonly username: String}
 export type ConversationErrorLocal = {readonly typ: ConversationErrorType; readonly message: String; readonly remoteConv: Conversation; readonly unverifiedTLFName: String; readonly rekeyInfo?: ConversationErrorRekey | null}
 export type ConversationErrorRekey = {readonly tlfName: String; readonly tlfPublic: Boolean; readonly rekeyers?: Array<String> | null; readonly writerNames?: Array<String> | null; readonly readerNames?: Array<String> | null}
-export type ConversationErrorType =
-  | 0 // PERMANENT_0
-  | 1 // MISSINGINFO_1
-  | 2 // SELFREKEYNEEDED_2
-  | 3 // OTHERREKEYNEEDED_3
-  | 4 // IDENTIFY_4
-  | 5 // TRANSIENT_5
-  | 6 // NONE_6
-
-export type ConversationExistence =
-  | 0 // ACTIVE_0
-  | 1 // ARCHIVED_1
-  | 2 // DELETED_2
-  | 3 // ABANDONED_3
-
 export type ConversationFinalizeInfo = {readonly resetUser: String; readonly resetDate: String; readonly resetFull: String; readonly resetTimestamp: Gregor1.Time}
 export type ConversationID = Bytes
 export type ConversationIDMessageIDPair = {readonly convID: ConversationID; readonly msgID: MessageID}
@@ -901,20 +831,6 @@ export type ConversationInfoLocal = {readonly id: ConversationID; readonly tripl
 export type ConversationLocal = {readonly error?: ConversationErrorLocal | null; readonly info: ConversationInfoLocal; readonly readerInfo: ConversationReaderInfo; readonly creatorInfo?: ConversationCreatorInfoLocal | null; readonly notifications?: ConversationNotificationInfo | null; readonly supersedes?: Array<ConversationMetadata> | null; readonly supersededBy?: Array<ConversationMetadata> | null; readonly maxMessages?: Array<MessageSummary> | null; readonly isEmpty: Boolean; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null; readonly expunge: Expunge; readonly convRetention?: RetentionPolicy | null; readonly teamRetention?: RetentionPolicy | null; readonly convSettings?: ConversationSettingsLocal | null; readonly commands: ConversationCommandGroups}
 export type ConversationLocalParticipant = {readonly username: String; readonly fullname?: String | null}
 export type ConversationMember = {readonly uid: Gregor1.UID; readonly convID: ConversationID; readonly topicType: TopicType}
-export type ConversationMemberStatus =
-  | 0 // ACTIVE_0
-  | 1 // REMOVED_1
-  | 2 // LEFT_2
-  | 3 // PREVIEW_3
-  | 4 // RESET_4
-  | 5 // NEVER_JOINED_5
-
-export type ConversationMembersType =
-  | 0 // KBFS_0
-  | 1 // TEAM_1
-  | 2 // IMPTEAMNATIVE_2
-  | 3 // IMPTEAMUPGRADE_3
-
 export type ConversationMetadata = {readonly idTriple: ConversationIDTriple; readonly conversationID: ConversationID; readonly visibility: Keybase1.TLFVisibility; readonly status: ConversationStatus; readonly membersType: ConversationMembersType; readonly teamType: TeamType; readonly existence: ConversationExistence; readonly version: ConversationVers; readonly localVersion: LocalConversationVers; readonly finalizeInfo?: ConversationFinalizeInfo | null; readonly supersedes?: Array<ConversationMetadata> | null; readonly supersededBy?: Array<ConversationMetadata> | null; readonly activeList?: Array<Gregor1.UID> | null; readonly allList?: Array<Gregor1.UID> | null; readonly resetList?: Array<Gregor1.UID> | null}
 export type ConversationMinWriterRoleInfo = {readonly uid: Gregor1.UID; readonly role: Keybase1.TeamRole}
 export type ConversationMinWriterRoleInfoLocal = {readonly changedBy: String; readonly cannotWrite: Boolean; readonly role: Keybase1.TeamRole}
@@ -924,14 +840,6 @@ export type ConversationResolveInfo = {readonly newTLFName: String}
 export type ConversationSettings = {readonly mwr /* minWriterRoleInfo */?: ConversationMinWriterRoleInfo | null}
 export type ConversationSettingsLocal = {readonly minWriterRoleInfo?: ConversationMinWriterRoleInfoLocal | null}
 export type ConversationStaleUpdate = {readonly convID: ConversationID; readonly updateType: StaleUpdateType}
-export type ConversationStatus =
-  | 0 // UNFILED_0
-  | 1 // FAVORITE_1
-  | 2 // IGNORED_2
-  | 3 // BLOCKED_3
-  | 4 // MUTED_4
-  | 5 // REPORTED_5
-
 export type ConversationUpdate = {readonly convID: ConversationID; readonly existence: ConversationExistence}
 export type ConversationVers = Uint64
 export type DeleteConversationLocalRes = {readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null}
@@ -969,60 +877,17 @@ export type GetPublicConversationsRes = {readonly conversations?: Array<Conversa
 export type GetTLFConversationsLocalRes = {readonly convs?: Array<InboxUIItem> | null; readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null}
 export type GetTLFConversationsRes = {readonly conversations?: Array<Conversation> | null; readonly rateLimit?: RateLimit | null}
 export type GetThreadLocalRes = {readonly thread: ThreadView; readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
-export type GetThreadNonblockCbMode =
-  | 0 // FULL_0
-  | 1 // INCREMENTAL_1
-
-export type GetThreadNonblockPgMode =
-  | 0 // DEFAULT_0
-  | 1 // SERVER_1
-
 export type GetThreadQuery = {readonly markAsRead: Boolean; readonly messageTypes?: Array<MessageType> | null; readonly disableResolveSupersedes: Boolean; readonly enableDeletePlaceholders: Boolean; readonly disablePostProcessThread: Boolean; readonly before?: Gregor1.Time | null; readonly after?: Gregor1.Time | null; readonly messageIDControl?: MessageIDControl | null}
-export type GetThreadReason =
-  | 0 // GENERAL_0
-  | 1 // PUSH_1
-  | 2 // FOREGROUND_2
-  | 3 // BACKGROUNDCONVLOAD_3
-  | 4 // FIXRETRY_4
-  | 5 // PREPARE_5
-  | 6 // SEARCHER_6
-  | 7 // INDEXED_SEARCH_7
-  | 8 // KBFSFILEACTIVITY_8
-  | 9 // COINFLIP_9
-
 export type GetThreadRemoteRes = {readonly thread: ThreadViewBoxed; readonly membersType: ConversationMembersType; readonly visibility: Keybase1.TLFVisibility; readonly rateLimit?: RateLimit | null}
 export type GetUnreadlineRemoteRes = {readonly unreadlineID?: MessageID | null; readonly rateLimit?: RateLimit | null}
 export type GiphySearchResult = {readonly targetUrl: String; readonly previewUrl: String; readonly previewWidth: Int; readonly previewHeight: Int; readonly previewIsVideo: Boolean}
 export type GiphySearchResults = {readonly results?: Array<GiphySearchResult> | null; readonly galleryUrl: String}
-export type GlobalAppNotificationSetting =
-  | 0 // NEWMESSAGES_0
-  | 1 // PLAINTEXTMOBILE_1
-  | 2 // PLAINTEXTDESKTOP_2
-  | 3 // DEFAULTSOUNDMOBILE_3
-  | 4 // DISABLETYPING_4
-
 export type GlobalAppNotificationSettings = {readonly settings: {[key: string]: Bool}}
 export type Hash = Bytes
 export type HeaderPlaintext = {version: 1; v1: HeaderPlaintextV1 | null} | {version: 2; v2: HeaderPlaintextUnsupported | null} | {version: 3; v3: HeaderPlaintextUnsupported | null} | {version: 4; v4: HeaderPlaintextUnsupported | null} | {version: 5; v5: HeaderPlaintextUnsupported | null} | {version: 6; v6: HeaderPlaintextUnsupported | null} | {version: 7; v7: HeaderPlaintextUnsupported | null} | {version: 8; v8: HeaderPlaintextUnsupported | null} | {version: 9; v9: HeaderPlaintextUnsupported | null} | {version: 10; v10: HeaderPlaintextUnsupported | null}
 export type HeaderPlaintextMetaInfo = {readonly crit: Boolean}
 export type HeaderPlaintextUnsupported = {readonly mi: HeaderPlaintextMetaInfo}
 export type HeaderPlaintextV1 = {readonly conv: ConversationIDTriple; readonly tlfName: String; readonly tlfPublic: Boolean; readonly messageType: MessageType; readonly prev?: Array<MessagePreviousPointer> | null; readonly sender: Gregor1.UID; readonly senderDevice: Gregor1.DeviceID; readonly kbfsCryptKeysUsed?: Boolean | null; readonly bodyHash: Hash; readonly outboxInfo?: OutboxInfo | null; readonly outboxID?: OutboxID | null; readonly headerSignature?: SignatureInfo | null; readonly merkleRoot?: MerkleRoot | null; readonly em /* ephemeralMetadata */?: MsgEphemeralMetadata | null}
-export type HeaderPlaintextVersion =
-  | 1 // V1_1
-  | 2 // V2_2
-  | 3 // V3_3
-  | 4 // V4_4
-  | 5 // V5_5
-  | 6 // V6_6
-  | 7 // V7_7
-  | 8 // V8_8
-  | 9 // V9_9
-  | 10 // V10_10
-
-export type InboxResType =
-  | 0 // VERSIONHIT_0
-  | 1 // FULL_1
-
 export type InboxUIItem = {readonly convID: String; readonly topicType: TopicType; readonly isPublic: Boolean; readonly isEmpty: Boolean; readonly name: String; readonly snippet: String; readonly snippetDecoration: String; readonly channel: String; readonly headline: String; readonly headlineDecorated: String; readonly visibility: Keybase1.TLFVisibility; readonly participants?: Array<String> | null; readonly fullNames: {[key: string]: String}; readonly resetParticipants?: Array<String> | null; readonly status: ConversationStatus; readonly membersType: ConversationMembersType; readonly memberStatus: ConversationMemberStatus; readonly teamType: TeamType; readonly time: Gregor1.Time; readonly notifications?: ConversationNotificationInfo | null; readonly creatorInfo?: ConversationCreatorInfoLocal | null; readonly version: ConversationVers; readonly localVersion: LocalConversationVers; readonly maxMsgID: MessageID; readonly maxVisibleMsgID: MessageID; readonly readMsgID: MessageID; readonly convRetention?: RetentionPolicy | null; readonly teamRetention?: RetentionPolicy | null; readonly convSettings?: ConversationSettingsLocal | null; readonly finalizeInfo?: ConversationFinalizeInfo | null; readonly supersedes?: Array<ConversationMetadata> | null; readonly supersededBy?: Array<ConversationMetadata> | null; readonly commands: ConversationCommandGroups}
 export type InboxUIItemError = {readonly typ: ConversationErrorType; readonly message: String; readonly unverifiedTLFName: String; readonly rekeyInfo?: ConversationErrorRekey | null; readonly remoteConv: UnverifiedInboxUIItem}
 export type InboxUIItems = {readonly items?: Array<InboxUIItem> | null; readonly pagination?: UIPagination | null; readonly offline: Boolean}
@@ -1048,13 +913,6 @@ export type MessageAttachment = {readonly object: Asset; readonly preview?: Asse
 export type MessageAttachmentUploaded = {readonly messageID: MessageID; readonly object: Asset; readonly previews?: Array<Asset> | null; readonly metadata: Bytes}
 export type MessageBody = {messageType: 1; text: MessageText | null} | {messageType: 2; attachment: MessageAttachment | null} | {messageType: 3; edit: MessageEdit | null} | {messageType: 4; delete: MessageDelete | null} | {messageType: 5; metadata: MessageConversationMetadata | null} | {messageType: 7; headline: MessageHeadline | null} | {messageType: 8; attachmentuploaded: MessageAttachmentUploaded | null} | {messageType: 9; join: MessageJoin | null} | {messageType: 10; leave: MessageLeave | null} | {messageType: 11; system: MessageSystem | null} | {messageType: 12; deletehistory: MessageDeleteHistory | null} | {messageType: 13; reaction: MessageReaction | null} | {messageType: 14; sendpayment: MessageSendPayment | null} | {messageType: 15; requestpayment: MessageRequestPayment | null} | {messageType: 16; unfurl: MessageUnfurl | null} | {messageType: 17; flip: MessageFlip | null}
 export type MessageBoxed = {readonly version: MessageBoxedVersion; readonly serverHeader?: MessageServerHeader | null; readonly clientHeader: MessageClientHeader; readonly headerCiphertext: SealedData; readonly bodyCiphertext: EncryptedData; readonly verifyKey: Bytes; readonly keyGeneration: Int}
-export type MessageBoxedVersion =
-  | 0 // VNONE_0
-  | 1 // V1_1
-  | 2 // V2_2
-  | 3 // V3_3
-  | 4 // V4_4
-
 export type MessageClientHeader = {readonly conv: ConversationIDTriple; readonly tlfName: String; readonly tlfPublic: Boolean; readonly messageType: MessageType; readonly supersedes: MessageID; readonly kbfsCryptKeysUsed?: Boolean | null; readonly deletes?: Array<MessageID> | null; readonly prev?: Array<MessagePreviousPointer> | null; readonly deleteHistory?: MessageDeleteHistory | null; readonly sender: Gregor1.UID; readonly senderDevice: Gregor1.DeviceID; readonly merkleRoot?: MerkleRoot | null; readonly outboxID?: OutboxID | null; readonly outboxInfo?: OutboxInfo | null; readonly em /* ephemeralMetadata */?: MsgEphemeralMetadata | null; readonly pm: /* pairwiseMacs */ {[key: string]: Bytes}}
 export type MessageClientHeaderVerified = {readonly conv: ConversationIDTriple; readonly tlfName: String; readonly tlfPublic: Boolean; readonly messageType: MessageType; readonly prev?: Array<MessagePreviousPointer> | null; readonly sender: Gregor1.UID; readonly senderDevice: Gregor1.DeviceID; readonly kbfsCryptKeysUsed?: Boolean | null; readonly merkleRoot?: MerkleRoot | null; readonly outboxID?: OutboxID | null; readonly outboxInfo?: OutboxInfo | null; readonly em /* ephemeralMetadata */?: MsgEphemeralMetadata | null; readonly rt: /* rtime */ Gregor1.Time; readonly pm: /* hasPairwiseMacs */ Boolean}
 export type MessageConversationMetadata = {readonly conversationTitle: String}
@@ -1065,12 +923,6 @@ export type MessageFlip = {readonly text: String; readonly gameID: FlipGameID; r
 export type MessageHeadline = {readonly headline: String}
 export type MessageID = Uint
 export type MessageIDControl = {readonly pivot?: MessageID | null; readonly mode: MessageIDControlMode; readonly num: Int}
-export type MessageIDControlMode =
-  | 0 // OLDERMESSAGES_0
-  | 1 // NEWERMESSAGES_1
-  | 2 // CENTERED_2
-  | 3 // UNREADLINE_3
-
 export type MessageJoin = {}
 export type MessageLeave = {}
 export type MessagePlaintext = {readonly clientHeader: MessageClientHeader; readonly messageBody: MessageBody; readonly supersedesOutboxID?: OutboxID | null}
@@ -1089,54 +941,10 @@ export type MessageSystemComplexTeam = {readonly team: String}
 export type MessageSystemCreateTeam = {readonly team: String; readonly creator: String}
 export type MessageSystemGitPush = {readonly team: String; readonly pusher: String; readonly repoName: String; readonly repoID: Keybase1.RepoID; readonly refs?: Array<Keybase1.GitRefMetadata> | null; readonly pushType: Keybase1.GitPushType; readonly previousRepoName: String}
 export type MessageSystemInviteAddedToTeam = {readonly team: String; readonly inviter: String; readonly invitee: String; readonly adder: String; readonly inviteType: Keybase1.TeamInviteCategory}
-export type MessageSystemType =
-  | 0 // ADDEDTOTEAM_0
-  | 1 // INVITEADDEDTOTEAM_1
-  | 2 // COMPLEXTEAM_2
-  | 3 // CREATETEAM_3
-  | 4 // GITPUSH_4
-  | 5 // CHANGEAVATAR_5
-  | 6 // CHANGERETENTION_6
-  | 7 // BULKADDTOCONV_7
-
 export type MessageText = {readonly body: String; readonly payments?: Array<TextPayment> | null; readonly replyTo?: MessageID | null; readonly userMentions?: Array<KnownUserMention> | null; readonly teamMentions?: Array<KnownTeamMention> | null}
-export type MessageType =
-  | 0 // NONE_0
-  | 1 // TEXT_1
-  | 2 // ATTACHMENT_2
-  | 3 // EDIT_3
-  | 4 // DELETE_4
-  | 5 // METADATA_5
-  | 6 // TLFNAME_6
-  | 7 // HEADLINE_7
-  | 8 // ATTACHMENTUPLOADED_8
-  | 9 // JOIN_9
-  | 10 // LEAVE_10
-  | 11 // SYSTEM_11
-  | 12 // DELETEHISTORY_12
-  | 13 // REACTION_13
-  | 14 // SENDPAYMENT_14
-  | 15 // REQUESTPAYMENT_15
-  | 16 // UNFURL_16
-  | 17 // FLIP_17
-
 export type MessageUnboxed = {state: 1; valid: MessageUnboxedValid | null} | {state: 2; error: MessageUnboxedError | null} | {state: 3; outbox: OutboxRecord | null} | {state: 4; placeholder: MessageUnboxedPlaceholder | null}
 export type MessageUnboxedError = {readonly errType: MessageUnboxedErrorType; readonly errMsg: String; readonly internalErrMsg: String; readonly versionKind: VersionKind; readonly versionNumber: Int; readonly isCritical: Boolean; readonly senderUsername: String; readonly senderDeviceName: String; readonly senderDeviceType: String; readonly messageID: MessageID; readonly messageType: MessageType; readonly ctime: Gregor1.Time; readonly isEphemeral: Boolean; readonly isEphemeralExpired: Boolean; readonly etime: Gregor1.Time}
-export type MessageUnboxedErrorType =
-  | 0 // MISC_0
-  | 1 // BADVERSION_CRITICAL_1
-  | 2 // BADVERSION_2
-  | 3 // IDENTIFY_3
-  | 4 // EPHEMERAL_4
-  | 5 // PAIRWISE_MISSING_5
-
 export type MessageUnboxedPlaceholder = {readonly messageID: MessageID; readonly hidden: Boolean}
-export type MessageUnboxedState =
-  | 1 // VALID_1
-  | 2 // ERROR_2
-  | 3 // OUTBOX_3
-  | 4 // PLACEHOLDER_4
-
 export type MessageUnboxedValid = {readonly clientHeader: MessageClientHeaderVerified; readonly serverHeader: MessageServerHeader; readonly messageBody: MessageBody; readonly senderUsername: String; readonly senderDeviceName: String; readonly senderDeviceType: String; readonly bodyHash: Hash; readonly headerHash: Hash; readonly headerSignature?: SignatureInfo | null; readonly verificationKey?: Bytes | null; readonly senderDeviceRevokedAt?: Gregor1.Time | null; readonly atMentionUsernames?: Array<String> | null; readonly atMentions?: Array<Gregor1.UID> | null; readonly channelMention: ChannelMention; readonly maybeMentions?: Array<MaybeMention> | null; readonly channelNameMentions?: Array<ChannelNameMention> | null; readonly reactions: ReactionMap; readonly unfurls: {[key: string]: UnfurlResult}; readonly replyTo?: MessageUnboxed | null}
 export type MessageUnfurl = {readonly unfurl: UnfurlResult; readonly messageID: MessageID}
 export type MessagesUpdated = {readonly convID: ConversationID; readonly updates?: Array<UIMessage> | null}
@@ -1148,48 +956,19 @@ export type NewConversationPayload = {readonly Action: String; readonly convID: 
 export type NewConversationRemoteRes = {readonly convID: ConversationID; readonly createdComplexTeam: Boolean; readonly rateLimit?: RateLimit | null}
 export type NewMessagePayload = {readonly Action: String; readonly convID: ConversationID; readonly message: MessageBoxed; readonly inboxVers: InboxVers; readonly topicType: TopicType; readonly unreadUpdate?: UnreadUpdate | null; readonly maxMsgs?: Array<MessageSummary> | null}
 export type NonblockFetchRes = {readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
-export type NotificationKind =
-  | 0 // GENERIC_0
-  | 1 // ATMENTION_1
-
-export type OutboxErrorType =
-  | 0 // MISC_0
-  | 1 // OFFLINE_1
-  | 2 // IDENTIFY_2
-  | 3 // TOOLONG_3
-  | 4 // DUPLICATE_4
-  | 5 // EXPIRED_5
-  | 6 // TOOMANYATTEMPTS_6
-  | 7 // ALREADY_DELETED_7
-  | 8 // UPLOADFAILED_8
-
 export type OutboxID = Bytes
 export type OutboxInfo = {readonly prev: MessageID; readonly composeTime: Gregor1.Time}
 export type OutboxRecord = {readonly state: OutboxState; readonly outboxID: OutboxID; readonly convID: ConversationID; readonly ctime: Gregor1.Time; readonly Msg: MessagePlaintext; readonly identifyBehavior: Keybase1.TLFIdentifyBehavior; readonly prepareOpts?: SenderPrepareOptions | null; readonly sendOpts?: SenderSendOptions | null; readonly ordinal: Int; readonly preview?: MakePreviewRes | null; readonly replyTo?: MessageUnboxed | null}
 export type OutboxState = {state: 0; sending: Int | null} | {state: 1; error: OutboxStateError | null}
 export type OutboxStateError = {readonly message: String; readonly typ: OutboxErrorType}
-export type OutboxStateType =
-  | 0 // SENDING_0
-  | 1 // ERROR_1
-
 export type Pagination = {readonly next: Bytes; readonly previous: Bytes; readonly num: Int; readonly last: Boolean; readonly forceFirstPage: Boolean}
 export type PostFileAttachmentArg = {readonly conversationID: ConversationID; readonly tlfName: String; readonly visibility: Keybase1.TLFVisibility; readonly filename: String; readonly title: String; readonly metadata: Bytes; readonly identifyBehavior: Keybase1.TLFIdentifyBehavior; readonly callerPreview?: MakePreviewRes | null; readonly outboxID?: OutboxID | null; readonly ephemeralLifetime?: Gregor1.DurationSec | null}
 export type PostLocalNonblockRes = {readonly rateLimits?: Array<RateLimit> | null; readonly outboxID: OutboxID; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type PostLocalRes = {readonly rateLimits?: Array<RateLimit> | null; readonly messageID: MessageID; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type PostRemoteRes = {readonly msgHeader: MessageServerHeader; readonly rateLimit?: RateLimit | null}
 export type PreviewLocation = {ltyp: 0; url: String | null} | {ltyp: 1; file: String | null} | {ltyp: 2; bytes: Bytes | null}
-export type PreviewLocationTyp =
-  | 0 // URL_0
-  | 1 // FILE_1
-  | 2 // BYTES_2
-
 export type ProfileSearchConvStats = {readonly err: String; readonly convName: String; readonly minConvID: MessageID; readonly maxConvID: MessageID; readonly numMissing: Int; readonly numMessages: Int; readonly indexSizeDisk: Int; readonly indexSizeMem: Int64; readonly durationMsec: Gregor1.DurationMsec; readonly percentIndexed: Int}
 export type RateLimit = {readonly name: String; readonly callsRemaining: Int; readonly windowReset: Int; readonly maxCalls: Int}
-export type ReIndexingMode =
-  | 0 // NONE_0
-  | 1 // PRESEARCH_SYNC_1
-  | 2 // POSTSEARCH_SYNC_2
-
 export type Reaction = {readonly ctime: Gregor1.Time; readonly reactionMsgID: MessageID}
 export type ReactionMap = {readonly reactions: {[key: string]: {[key: string]: Reaction}}}
 export type ReactionUpdate = {readonly reactions: ReactionMap; readonly targetMsgID: MessageID}
@@ -1198,13 +977,6 @@ export type ReadMessageInfo = {readonly convID: ConversationID; readonly msgID: 
 export type ReadMessagePayload = {readonly Action: String; readonly convID: ConversationID; readonly msgID: MessageID; readonly inboxVers: InboxVers; readonly topicType: TopicType; readonly unreadUpdate?: UnreadUpdate | null}
 export type RemoteUserTypingUpdate = {readonly uid: Gregor1.UID; readonly deviceID: Gregor1.DeviceID; readonly convID: ConversationID; readonly typing: Boolean}
 export type RetentionPolicy = {typ: 1; retain: RpRetain | null} | {typ: 2; expire: RpExpire | null} | {typ: 3; inherit: RpInherit | null} | {typ: 4; ephemeral: RpEphemeral | null}
-export type RetentionPolicyType =
-  | 0 // NONE_0
-  | 1 // RETAIN_1
-  | 2 // EXPIRE_2
-  | 3 // INHERIT_3
-  | 4 // EPHEMERAL_4
-
 export type RpEphemeral = {readonly age: Gregor1.DurationSec}
 export type RpExpire = {readonly age: Gregor1.DurationSec}
 export type RpInherit = {}
@@ -1233,61 +1005,28 @@ export type SetStatusPayload = {readonly Action: String; readonly convID: Conver
 export type SetTeamRetentionUpdate = {readonly inboxVers: InboxVers; readonly teamID: Keybase1.TeamID; readonly policy: RetentionPolicy}
 export type SignEncryptedData = {readonly v: Int; readonly e: Bytes; readonly n: Bytes}
 export type SignatureInfo = {readonly v: Int; readonly s: Bytes; readonly k: Bytes}
-export type StaleUpdateType =
-  | 0 // CLEAR_0
-  | 1 // NEWACTIVITY_1
-  | 2 // CONVUPDATE_2
-
 export type StaticConfig = {readonly deletableByDeleteHistory?: Array<MessageType> | null; readonly builtinCommands?: Array<BuiltinCommandGroup> | null}
 export type SubteamRenameUpdate = {readonly convIDs?: Array<ConversationID> | null; readonly inboxVers: InboxVers}
 export type SweepRes = {readonly foundTask: Boolean; readonly deletedMessages: Boolean; readonly expunge: Expunge}
 export type SyncAllNotificationRes = {typ: 0; state: Gregor1.State | null} | {typ: 1; incremental: Gregor1.SyncResult | null}
-export type SyncAllNotificationType =
-  | 0 // STATE_0
-  | 1 // INCREMENTAL_1
-
-export type SyncAllProtVers =
-  | 0 // V0_0
-  | 1 // V1_1
-
 export type SyncAllResult = {readonly auth: Gregor1.AuthResult; readonly chat: SyncChatRes; readonly notification: SyncAllNotificationRes; readonly badge: UnreadUpdateFull}
 export type SyncChatRes = {readonly cacheVers: ServerCacheVers; readonly inboxRes: SyncInboxRes}
 export type SyncInboxRes = {typ: 0} | {typ: 1; incremental: SyncIncrementalRes | null} | {typ: 2}
-export type SyncInboxResType =
-  | 0 // CURRENT_0
-  | 1 // INCREMENTAL_1
-  | 2 // CLEAR_2
-
 export type SyncIncrementalRes = {readonly vers: InboxVers; readonly convs?: Array<Conversation> | null}
 export type TLFConvOrdinal = Uint
 export type TLFFinalizeUpdate = {readonly finalizeInfo: ConversationFinalizeInfo; readonly convIDs?: Array<ConversationID> | null; readonly inboxVers: InboxVers}
 export type TLFID = Bytes
 export type TLFResolveUpdate = {readonly convID: ConversationID; readonly inboxVers: InboxVers}
 export type TeamChannelUpdate = {readonly teamID: TLFID}
-export type TeamType =
-  | 0 // NONE_0
-  | 1 // SIMPLE_1
-  | 2 // COMPLEX_2
-
 export type TeamTypeInfo = {readonly convID: ConversationID; readonly teamType: TeamType; readonly conv?: InboxUIItem | null}
 export type TeamTypePayload = {readonly Action: String; readonly convID: ConversationID; readonly teamType: TeamType; readonly inboxVers: InboxVers; readonly topicType: TopicType; readonly unreadUpdate?: UnreadUpdate | null}
 export type TextPayment = {readonly username: String; readonly paymentText: String; readonly result: TextPaymentResult}
 export type TextPaymentResult = {resultTyp: 1; error: String | null} | {resultTyp: 0; sent: Stellar1.PaymentID | null}
-export type TextPaymentResultTyp =
-  | 0 // SENT_0
-  | 1 // ERROR_1
-
 export type ThreadID = Bytes
 export type ThreadView = {readonly messages?: Array<MessageUnboxed> | null; readonly pagination?: Pagination | null}
 export type ThreadViewBoxed = {readonly messages?: Array<MessageBoxed> | null; readonly pagination?: Pagination | null}
 export type TopicID = Bytes
 export type TopicNameState = Bytes
-export type TopicType =
-  | 0 // NONE_0
-  | 1 // CHAT_1
-  | 2 // DEV_2
-  | 3 // KBFSFILEEDIT_3
-
 export type TyperInfo = {readonly uid: Keybase1.UID; readonly username: String; readonly deviceID: Keybase1.DeviceID; readonly deviceName: String; readonly deviceType: String}
 export type UIAssetUrlInfo = {readonly previewUrl: String; readonly fullUrl: String; readonly fullUrlCached: Boolean; readonly mimeType: String; readonly videoDuration?: String | null; readonly inlineVideoPlayable: Boolean}
 export type UIChannelNameMention = {readonly name: String; readonly convID: String}
@@ -1298,42 +1037,13 @@ export type UIChatSearchConvHits = {readonly hits?: Array<UIChatSearchConvHit> |
 export type UICoinFlipAbsenteeError = {readonly absentees?: Array<UICoinFlipErrorParticipant> | null}
 export type UICoinFlipError = {typ: 0; generic: String | null} | {typ: 1; absentee: UICoinFlipAbsenteeError | null} | {typ: 2} | {typ: 3} | {typ: 4; dupreg: UICoinFlipErrorParticipant | null} | {typ: 5; dupcommitcomplete: UICoinFlipErrorParticipant | null} | {typ: 6; dupreveal: UICoinFlipErrorParticipant | null} | {typ: 7; commitmismatch: UICoinFlipErrorParticipant | null}
 export type UICoinFlipErrorParticipant = {readonly user: String; readonly device: String}
-export type UICoinFlipErrorTyp =
-  | 0 // GENERIC_0
-  | 1 // ABSENTEE_1
-  | 2 // TIMEOUT_2
-  | 3 // ABORTED_3
-  | 4 // DUPREG_4
-  | 5 // DUPCOMMITCOMPLETE_5
-  | 6 // DUPREVEAL_6
-  | 7 // COMMITMISMATCH_7
-
 export type UICoinFlipHand = {readonly target: String; readonly hand?: Array<Int> | null}
 export type UICoinFlipParticipant = {readonly uid: String; readonly deviceID: String; readonly username: String; readonly deviceName: String; readonly commitment: String; readonly reveal?: String | null}
-export type UICoinFlipPhase =
-  | 0 // COMMITMENT_0
-  | 1 // REVEALS_1
-  | 2 // COMPLETE_2
-  | 3 // ERROR_3
-
 export type UICoinFlipResult = {typ: 0; number: String | null} | {typ: 1; shuffle: Array<String> | null} | {typ: 2; deck: Array<Int> | null} | {typ: 3; hands: Array<UICoinFlipHand> | null} | {typ: 4; coin: Bool | null}
-export type UICoinFlipResultTyp =
-  | 0 // NUMBER_0
-  | 1 // SHUFFLE_1
-  | 2 // DECK_2
-  | 3 // HANDS_3
-  | 4 // COIN_4
-
 export type UICoinFlipStatus = {readonly gameID: String; readonly phase: UICoinFlipPhase; readonly progressText: String; readonly resultText: String; readonly commitmentVisualization: String; readonly revealVisualization: String; readonly participants?: Array<UICoinFlipParticipant> | null; readonly errorInfo?: UICoinFlipError | null; readonly resultInfo?: UICoinFlipResult | null}
 export type UICommandMarkdown = {readonly body: String; readonly title?: String | null}
 export type UILinkDecoration = {readonly display: String; readonly url: String}
 export type UIMaybeMentionInfo = {status: 0} | {status: 1} | {status: 2; team: UITeamMention | null} | {status: 3}
-export type UIMaybeMentionStatus =
-  | 0 // UNKNOWN_0
-  | 1 // USER_1
-  | 2 // TEAM_2
-  | 3 // NOTHING_3
-
 export type UIMessage = {state: 1; valid: UIMessageValid | null} | {state: 2; error: MessageUnboxedError | null} | {state: 3; outbox: UIMessageOutbox | null} | {state: 4; placeholder: MessageUnboxedPlaceholder | null}
 export type UIMessageOutbox = {readonly state: OutboxState; readonly outboxID: String; readonly messageType: MessageType; readonly body: String; readonly decoratedTextBody?: String | null; readonly ctime: Gregor1.Time; readonly ordinal: Double; readonly isEphemeral: Boolean; readonly flipGameID?: String | null; readonly replyTo?: UIMessage | null; readonly filename: String; readonly title: String; readonly preview?: MakePreviewRes | null}
 export type UIMessageUnfurlInfo = {readonly unfurlMessageID: MessageID; readonly url: String; readonly unfurl: UnfurlDisplay; readonly isCollapsed: Boolean}
@@ -1344,14 +1054,6 @@ export type UIPaymentInfo = {readonly accountID?: Stellar1.AccountID | null; rea
 export type UIRequestInfo = {readonly amount: String; readonly amountDescription: String; readonly asset?: Stellar1.Asset | null; readonly currency?: Stellar1.OutsideCurrencyCode | null; readonly worthAtRequestTime: String; readonly status: Stellar1.RequestStatus}
 export type UITeamMention = {readonly inTeam: Boolean; readonly open: Boolean; readonly description?: String | null; readonly numMembers?: Int | null; readonly publicAdmins?: Array<String> | null; readonly convID?: String | null}
 export type UITextDecoration = {typ: 0; payment: TextPayment | null} | {typ: 1; atmention: String | null} | {typ: 2; channelnamemention: UIChannelNameMention | null} | {typ: 3; maybemention: MaybeMention | null} | {typ: 4; link: UILinkDecoration | null} | {typ: 5; mailto: UILinkDecoration | null}
-export type UITextDecorationTyp =
-  | 0 // PAYMENT_0
-  | 1 // ATMENTION_1
-  | 2 // CHANNELNAMEMENTION_2
-  | 3 // MAYBEMENTION_3
-  | 4 // LINK_4
-  | 5 // MAILTO_5
-
 export type Unfurl = {unfurlType: 0; generic: UnfurlGeneric | null} | {unfurlType: 1; youtube: UnfurlYoutube | null} | {unfurlType: 2; giphy: UnfurlGiphy | null}
 export type UnfurlDisplay = {unfurlType: 0; generic: UnfurlGenericDisplay | null} | {unfurlType: 1; youtube: UnfurlYoutubeDisplay | null} | {unfurlType: 2; giphy: UnfurlGiphyDisplay | null}
 export type UnfurlGeneric = {readonly title: String; readonly url: String; readonly siteName: String; readonly favicon?: Asset | null; readonly image?: Asset | null; readonly publishTime?: Int | null; readonly description?: String | null}
@@ -1361,28 +1063,11 @@ export type UnfurlGiphy = {readonly favicon?: Asset | null; readonly image?: Ass
 export type UnfurlGiphyDisplay = {readonly favicon?: UnfurlImageDisplay | null; readonly image?: UnfurlImageDisplay | null; readonly video?: UnfurlImageDisplay | null}
 export type UnfurlGiphyRaw = {readonly imageUrl?: String | null; readonly video?: UnfurlVideo | null; readonly faviconUrl?: String | null}
 export type UnfurlImageDisplay = {readonly url: String; readonly height: Int; readonly width: Int; readonly isVideo: Boolean}
-export type UnfurlMode =
-  | 0 // ALWAYS_0
-  | 1 // NEVER_1
-  | 2 // WHITELISTED_2
-
-export type UnfurlPromptAction =
-  | 0 // ALWAYS_0
-  | 1 // NEVER_1
-  | 2 // ACCEPT_2
-  | 3 // NOTNOW_3
-  | 4 // ONETIME_4
-
 export type UnfurlPromptResult = {actionType: 0} | {actionType: 1} | {actionType: 3} | {actionType: 2; accept: String | null} | {actionType: 4; onetime: String | null}
 export type UnfurlRaw = {unfurlType: 0; generic: UnfurlGenericRaw | null} | {unfurlType: 1; youtube: UnfurlYoutubeRaw | null} | {unfurlType: 2; giphy: UnfurlGiphyRaw | null}
 export type UnfurlResult = {readonly unfurl: Unfurl; readonly url: String}
 export type UnfurlSettings = {readonly mode: UnfurlMode; readonly whitelist: {[key: string]: Boolean}}
 export type UnfurlSettingsDisplay = {readonly mode: UnfurlMode; readonly whitelist?: Array<String> | null}
-export type UnfurlType =
-  | 0 // GENERIC_0
-  | 1 // YOUTUBE_1
-  | 2 // GIPHY_2
-
 export type UnfurlVideo = {readonly url: String; readonly mimeType: String; readonly height: Int; readonly width: Int}
 export type UnfurlYoutube = {}
 export type UnfurlYoutubeDisplay = {}

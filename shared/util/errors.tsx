@@ -97,36 +97,36 @@ export const niceError = (e: RPCError) => {
   }
 
   switch (e.code) {
-    case RPCTypes.constantsStatusCode.scnotfound:
+    case RPCTypes.StatusCode.scnotfound:
       return "Sorry, can't find that username"
-    case RPCTypes.constantsStatusCode.scbadloginusernotfound:
+    case RPCTypes.StatusCode.scbadloginusernotfound:
       return 'Looks like an incorrect user'
-    case RPCTypes.constantsStatusCode.scbadloginpassword:
+    case RPCTypes.StatusCode.scbadloginpassword:
       return 'Looks like a bad password.'
-    case RPCTypes.constantsStatusCode.scdeleted:
+    case RPCTypes.StatusCode.scdeleted:
       return 'This user looks deleted.'
-    case RPCTypes.constantsStatusCode.scalreadyloggedin:
+    case RPCTypes.StatusCode.scalreadyloggedin:
       return 'You seem to be already logged in'
-    case RPCTypes.constantsStatusCode.screloginrequired:
+    case RPCTypes.StatusCode.screloginrequired:
       return 'You need to re-login'
-    case RPCTypes.constantsStatusCode.scnospaceondevice:
+    case RPCTypes.StatusCode.scnospaceondevice:
       return "Spaces aren't allowed in device names"
-    case RPCTypes.constantsStatusCode.scbademail:
+    case RPCTypes.StatusCode.scbademail:
       return "This doesn't seem like a valid email"
-    case RPCTypes.constantsStatusCode.scbadsignupusernametaken:
+    case RPCTypes.StatusCode.scbadsignupusernametaken:
       return 'This username is already taken'
-    case RPCTypes.constantsStatusCode.scbadinvitationcode:
+    case RPCTypes.StatusCode.scbadinvitationcode:
       return "This invite code doesn't look right"
-    case RPCTypes.constantsStatusCode.scdevicebadname:
+    case RPCTypes.StatusCode.scdevicebadname:
       return 'Seems like an invalid device name'
-    case RPCTypes.constantsStatusCode.scdevicenameinuse:
-    case RPCTypes.constantsStatusCode.scgenericapierror:
-    case RPCTypes.constantsStatusCode.sctimeout:
-    case RPCTypes.constantsStatusCode.scapinetworkerror:
+    case RPCTypes.StatusCode.scdevicenameinuse:
+    case RPCTypes.StatusCode.scgenericapierror:
+    case RPCTypes.StatusCode.sctimeout:
+    case RPCTypes.StatusCode.scapinetworkerror:
       return 'Looks like the internet is gone...'
-    case RPCTypes.constantsStatusCode.scbadsignupusernamedeleted:
+    case RPCTypes.StatusCode.scbadsignupusernamedeleted:
       return 'Looks like this user was deleted, or something'
-    case RPCTypes.constantsStatusCode.scstreameof:
+    case RPCTypes.StatusCode.scstreameof:
       return 'Looks like we took too long. Try again, but a little bit quicker maybe'
   }
 

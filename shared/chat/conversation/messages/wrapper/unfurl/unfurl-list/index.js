@@ -28,7 +28,7 @@ export type UnfurlProps = {
 class Unfurl extends React.PureComponent<UnfurlProps> {
   render() {
     switch (this.props.unfurl.unfurlType) {
-      case RPCChatTypes.unfurlUnfurlType.generic:
+      case RPCChatTypes.UnfurlType.generic:
         return this.props.unfurl.generic ? (
           <UnfurlGeneric
             unfurl={this.props.unfurl.generic}
@@ -37,7 +37,7 @@ class Unfurl extends React.PureComponent<UnfurlProps> {
             onCollapse={this.props.onCollapse}
           />
         ) : null
-      case RPCChatTypes.unfurlUnfurlType.giphy:
+      case RPCChatTypes.UnfurlType.giphy:
         return this.props.unfurl.giphy ? (
           <UnfurlGiphy
             unfurl={this.props.unfurl.giphy}

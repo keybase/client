@@ -383,13 +383,13 @@ export const makeTlfEdit: I.RecordFactory<Types._TlfEdit> = I.Record({
 
 const fsNotificationTypeToEditType = (fsNotificationType: number): Types.FileEditType => {
   switch (fsNotificationType) {
-    case RPCTypes.kbfsCommonFSNotificationType.fileCreated:
+    case RPCTypes.FSNotificationType.fileCreated:
       return 'created'
-    case RPCTypes.kbfsCommonFSNotificationType.fileModified:
+    case RPCTypes.FSNotificationType.fileModified:
       return 'modified'
-    case RPCTypes.kbfsCommonFSNotificationType.fileDeleted:
+    case RPCTypes.FSNotificationType.fileDeleted:
       return 'deleted'
-    case RPCTypes.kbfsCommonFSNotificationType.fileRenamed:
+    case RPCTypes.FSNotificationType.fileRenamed:
       return 'renamed'
     default:
       return 'unknown'
@@ -505,7 +505,7 @@ export const folderRPCFromPath = (path: Types.Path): ?RPCTypes.Folder => {
   if (name === '') return null
 
   return {
-    conflictType: RPCTypes.favoriteFolderConflictType.none,
+    conflictType: RPCTypes.FolderConflictType.none,
     created: false,
     folderType: Types.getRPCFolderTypeFromVisibility(visibility),
     name,

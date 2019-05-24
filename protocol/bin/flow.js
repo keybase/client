@@ -126,12 +126,12 @@ function analyzeEnums(json, project) {
       project.enums[t.name] = en
 
       return {
-        name: `${json.protocol}${t.name}`,
+        name: t.name,
         map: en,
       }
     })
     .reduce((map, t) => {
-      map[decapitalize(t.name)] = `\nexport enum ${decapitalize(t.name)} {
+      map[decapitalize(t.name)] = `\nexport enum ${t.name} {
   ${Object.keys(t.map)
     .map(k => `${k} = ${t.map[k]}`)
     .join(',\n  ')},
@@ -153,7 +153,8 @@ function analyzeTypes(json, project) {
         map[t.name] = `export type ${t.name} = ${parseRecord(t)}`
         break
       case 'enum':
-        map[t.name] = `export type ${t.name} =${parseEnum(t)}`
+        // no separate enum type needed in ts
+        // map[t.name] = `export type ${t.name} =${parseEnum(t)}`
         break
       case 'variant':
         {

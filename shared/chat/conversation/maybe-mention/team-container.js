@@ -20,7 +20,7 @@ const mapStateToProps = (state, {allowFontScaling, name, channel, style}) => {
   const maybeMentionInfo = state.chat2.maybeMentionMap.get(Constants.getTeamMentionName(name, channel))
   const mentionInfo =
     maybeMentionInfo &&
-    maybeMentionInfo.status === RPCChatTypes.chatUiUIMaybeMentionStatus.team &&
+    maybeMentionInfo.status === RPCChatTypes.UIMaybeMentionStatus.team &&
     maybeMentionInfo.team
       ? maybeMentionInfo.team
       : null

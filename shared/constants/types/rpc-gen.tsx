@@ -1150,14 +1150,62 @@ export type MessageTypes = {
   }
 }
 
-export enum appStateMobileAppState {
-  foreground = 0,
-  background = 1,
-  inactive = 2,
-  backgroundactive = 3,
+export enum AppLinkType {
+  none = 0,
+  people = 1,
+  chat = 2,
+  files = 3,
+  wallet = 4,
+  git = 5,
+  devices = 6,
+  settings = 7,
+  teams = 8,
 }
 
-export enum auditBoxAuditAttemptResult {
+export enum AsyncOps {
+  list = 0,
+  listRecursive = 1,
+  read = 2,
+  write = 3,
+  copy = 4,
+  move = 5,
+  remove = 6,
+  listRecursiveToDepth = 7,
+  getRevisions = 8,
+}
+
+export enum AuditVersion {
+  v0 = 0,
+  v1 = 1,
+  v2 = 2,
+  v3 = 3,
+}
+
+export enum AuthenticityType {
+  signed = 0,
+  repudiable = 1,
+  anonymous = 2,
+}
+
+export enum AvatarUpdateType {
+  none = 0,
+  user = 1,
+  team = 2,
+}
+
+export enum BlockStatus {
+  unknown = 0,
+  live = 1,
+  archived = 2,
+}
+
+export enum BlockType {
+  data = 0,
+  md = 1,
+  git = 2,
+}
+
+export enum BoxAuditAttemptResult {
   failureRetryable = 0,
   failureMaliciousServer = 1,
   okVerified = 2,
@@ -1166,19 +1214,18 @@ export enum auditBoxAuditAttemptResult {
   okNotAttemptedSubteam = 5,
 }
 
-export enum backendCommonBlockType {
-  data = 0,
-  md = 1,
-  git = 2,
+export enum CheckResultFreshness {
+  fresh = 0,
+  aged = 1,
+  rancid = 2,
 }
 
-export enum blockBlockStatus {
-  unknown = 0,
-  live = 1,
-  archived = 2,
+export enum ChooseType {
+  existingDevice = 0,
+  newDevice = 1,
 }
 
-export enum commonClientType {
+export enum ClientType {
   none = 0,
   cli = 1,
   guiMain = 2,
@@ -1186,23 +1233,246 @@ export enum commonClientType {
   guiHelper = 4,
 }
 
-export enum commonDeviceType {
+export enum ConflictStateType {
+  automaticresolving = 0,
+  manualresolvingserverview = 1,
+  manualresolvinglocalview = 2,
+}
+
+export enum DbType {
+  main = 0,
+  chat = 1,
+}
+
+export enum DeviceType {
   desktop = 0,
   mobile = 1,
 }
 
-export enum commonFullNamePackageVersion {
+export enum DirentType {
+  file = 0,
+  dir = 1,
+  sym = 2,
+  exec = 3,
+}
+
+export enum DismissReasonType {
+  none = 0,
+  handledElsewhere = 1,
+}
+
+export enum ExitCode {
+  ok = 0,
+  notok = 2,
+  restart = 4,
+}
+
+export enum FSErrorType {
+  accessDenied = 0,
+  userNotFound = 1,
+  revokedDataDetected = 2,
+  notLoggedIn = 3,
+  timeout = 4,
+  rekeyNeeded = 5,
+  badFolder = 6,
+  notImplemented = 7,
+  oldVersion = 8,
+  overQuota = 9,
+  noSigChain = 10,
+  tooManyFolders = 11,
+  exdevNotSupported = 12,
+  diskLimitReached = 13,
+  diskCacheErrorLogSend = 14,
+  offlineArchived = 15,
+  offlineUnsynced = 16,
+}
+
+export enum FSNotificationType {
+  encrypting = 0,
+  decrypting = 1,
+  signing = 2,
+  verifying = 3,
+  rekeying = 4,
+  connection = 5,
+  mdReadSuccess = 6,
+  fileCreated = 7,
+  fileModified = 8,
+  fileDeleted = 9,
+  fileRenamed = 10,
+  initialized = 11,
+  syncConfigChanged = 12,
+}
+
+export enum FSStatusCode {
+  start = 0,
+  finish = 1,
+  error = 2,
+}
+
+export enum FileType {
+  unknown = 0,
+  directory = 1,
+  file = 2,
+}
+
+export enum FolderConflictType {
+  none = 0,
+  inConflict = 1,
+  inConflictAndStuck = 2,
+}
+
+export enum FolderSyncMode {
+  disabled = 0,
+  enabled = 1,
+  partial = 2,
+}
+
+export enum FolderType {
+  unknown = 0,
+  private = 1,
+  public = 2,
+  team = 3,
+}
+
+export enum ForkType {
+  none = 0,
+  auto = 1,
+  watchdog = 2,
+  launchd = 3,
+  systemd = 4,
+}
+
+export enum FullNamePackageVersion {
   v0 = 0,
   v1 = 1,
   v2 = 2,
 }
 
-export enum commonIdentityVisibility {
+export enum GPGMethod {
+  gpgNone = 0,
+  gpgImport = 1,
+  gpgSign = 2,
+}
+
+export enum GitLocalMetadataVersion {
+  v1 = 1,
+}
+
+export enum GitPushType {
+  default = 0,
+  createrepo = 1,
+  renamerepo = 3,
+}
+
+export enum GitRepoResultState {
+  err = 0,
+  ok = 1,
+}
+
+export enum HomeScreenItemType {
+  todo = 1,
+  people = 2,
+  announcement = 3,
+}
+
+export enum HomeScreenPeopleNotificationType {
+  followed = 1,
+  followedMulti = 2,
+}
+
+export enum HomeScreenTodoType {
+  none = 0,
+  bio = 1,
+  proof = 2,
+  device = 3,
+  follow = 4,
+  chat = 5,
+  paperkey = 6,
+  team = 7,
+  folder = 8,
+  gitRepo = 9,
+  teamShowcase = 10,
+  avatarUser = 11,
+  avatarTeam = 12,
+  annoncementPlaceholder = 10000,
+}
+
+export enum Identify3ResultType {
+  ok = 0,
+  broken = 1,
+  needsUpgrade = 2,
+  canceled = 3,
+}
+
+export enum Identify3RowColor {
+  blue = 1,
+  red = 2,
+  black = 3,
+  green = 4,
+  gray = 5,
+  yellow = 6,
+  orange = 7,
+}
+
+export enum Identify3RowState {
+  checking = 1,
+  valid = 2,
+  error = 3,
+  warning = 4,
+  revoked = 5,
+}
+
+export enum IdentifyReasonType {
+  none = 0,
+  id = 1,
+  track = 2,
+  encrypt = 3,
+  decrypt = 4,
+  verify = 5,
+  resource = 6,
+  background = 7,
+}
+
+export enum IdentityVisibility {
   private = 0,
   public = 1,
 }
 
-export enum commonLogLevel {
+export enum InstallAction {
+  unknown = 0,
+  none = 1,
+  upgrade = 2,
+  reinstall = 3,
+  install = 4,
+}
+
+export enum InstallStatus {
+  unknown = 0,
+  error = 1,
+  notInstalled = 2,
+  installed = 4,
+}
+
+export enum KBFSArchivedType {
+  revision = 0,
+  time = 1,
+  timeString = 2,
+  relTimeString = 3,
+}
+
+export enum KeyType {
+  none = 0,
+  nacl = 1,
+  pgp = 2,
+}
+
+export enum ListFilter {
+  noFilter = 0,
+  filterAllHidden = 1,
+  filterSystemHidden = 2,
+}
+
+export enum LogLevel {
   none = 0,
   debug = 1,
   info = 2,
@@ -1213,63 +1483,238 @@ export enum commonLogLevel {
   fatal = 7,
 }
 
-export enum commonMerkleTreeID {
+export enum MerkleTreeID {
   master = 0,
   kbfsPublic = 1,
   kbfsPrivate = 2,
   kbfsPrivateteam = 3,
 }
 
-export enum commonOfflineAvailability {
+export enum MobileAppState {
+  foreground = 0,
+  background = 1,
+  inactive = 2,
+  backgroundactive = 3,
+}
+
+export enum OfflineAvailability {
   none = 0,
   bestEffort = 1,
 }
 
-export enum commonSeqType {
+export enum OpenFlags {
+  read = 0,
+  replace = 1,
+  existing = 2,
+  write = 4,
+  append = 8,
+  directory = 16,
+}
+
+export enum Outcome {
+  none = 0,
+  fixed = 1,
+  ignored = 2,
+}
+
+export enum PassphraseRecoveryPromptType {
+  encryptedPgpKeys = 0,
+}
+
+export enum PassphraseType {
+  none = 0,
+  paperKey = 1,
+  passPhrase = 2,
+  verifyPassPhrase = 3,
+}
+
+export enum PathType {
+  local = 0,
+  kbfs = 1,
+  kbfsArchived = 2,
+}
+
+export enum PrefetchStatus {
+  notStarted = 0,
+  inProgress = 1,
+  complete = 2,
+}
+
+export enum PromptDefault {
+  none = 0,
+  yes = 1,
+  no = 2,
+}
+
+export enum PromptOverwriteType {
+  social = 0,
+  site = 1,
+}
+
+export enum ProofState {
+  none = 0,
+  ok = 1,
+  tempFailure = 2,
+  permFailure = 3,
+  looking = 4,
+  superseded = 5,
+  posted = 6,
+  revoked = 7,
+  deleted = 8,
+  unknownType = 9,
+  sigHintMissing = 10,
+  unchecked = 11,
+}
+
+export enum ProofStatus {
+  none = 0,
+  ok = 1,
+  local = 2,
+  found = 3,
+  baseError = 100,
+  hostUnreachable = 101,
+  permissionDenied = 103,
+  failedParse = 106,
+  dnsError = 107,
+  authFailed = 108,
+  http429 = 129,
+  http500 = 150,
+  timeout = 160,
+  internalError = 170,
+  unchecked = 171,
+  missingPvl = 172,
+  baseHardError = 200,
+  notFound = 201,
+  contentFailure = 202,
+  badUsername = 203,
+  badRemoteId = 204,
+  textNotFound = 205,
+  badArgs = 206,
+  contentMissing = 207,
+  titleNotFound = 208,
+  serviceError = 209,
+  torSkipped = 210,
+  torIncompatible = 211,
+  http300 = 230,
+  http400 = 240,
+  httpOther = 260,
+  emptyJson = 270,
+  deleted = 301,
+  serviceDead = 302,
+  badSignature = 303,
+  badApiUrl = 304,
+  unknownType = 305,
+  noHint = 306,
+  badHintText = 307,
+  invalidPvl = 308,
+}
+
+export enum ProofType {
+  none = 0,
+  keybase = 1,
+  twitter = 2,
+  github = 3,
+  reddit = 4,
+  coinbase = 5,
+  hackernews = 6,
+  facebook = 8,
+  genericSocial = 9,
+  genericWebSite = 1000,
+  dns = 1001,
+  pgp = 1002,
+  rooter = 100001,
+}
+
+export enum ProvisionMethod {
+  device = 0,
+  paperKey = 1,
+  passphrase = 2,
+  gpgImport = 3,
+  gpgSign = 4,
+}
+
+export enum PushReason {
+  none = 0,
+  reconnected = 1,
+  newData = 2,
+}
+
+export enum Reachable {
+  unknown = 0,
+  yes = 1,
+  no = 2,
+}
+
+export enum RekeyEventType {
+  none = 0,
+  notLoggedIn = 1,
+  apiError = 2,
+  noProblems = 3,
+  loadMeError = 4,
+  currentDeviceCanRekey = 5,
+  deviceLoadError = 6,
+  harass = 7,
+  noGregorMessages = 8,
+}
+
+export enum ResetPromptType {
+  complete = 0,
+  enterNoDevices = 1,
+  enterForgotPw = 2,
+}
+
+export enum ResetType {
+  none = 0,
+  reset = 1,
+  delete = 2,
+}
+
+export enum RevisionSpanType {
+  default = 0,
+  lastFive = 1,
+}
+
+export enum RuntimeGroup {
+  unknown = 0,
+  linuxlike = 1,
+  darwinlike = 2,
+  windowslike = 3,
+}
+
+export enum SaltpackSenderType {
+  notTracked = 0,
+  unknown = 1,
+  anonymous = 2,
+  trackingBroke = 3,
+  trackingOk = 4,
+  self = 5,
+  revoked = 6,
+  expired = 7,
+}
+
+export enum SeitanKeyAndLabelVersion {
+  v1 = 1,
+  v2 = 2,
+}
+
+export enum SeitanKeyLabelType {
+  sms = 1,
+}
+
+export enum SeqType {
   none = 0,
   public = 1,
   private = 2,
   semiprivate = 3,
 }
 
-export enum commonTLFVisibility {
-  any = 0,
-  public = 1,
-  private = 2,
+export enum SignMode {
+  attached = 0,
+  detached = 1,
+  clear = 2,
 }
 
-export enum commonTeamType {
-  none = 0,
-  legacy = 1,
-  modern = 2,
-}
-
-export enum commonUserOrTeamResult {
-  user = 1,
-  team = 2,
-}
-
-export enum configForkType {
-  none = 0,
-  auto = 1,
-  watchdog = 2,
-  launchd = 3,
-  systemd = 4,
-}
-
-export enum configUpdateInfoStatus {
-  upToDate = 0,
-  needUpdate = 1,
-  criticallyOutOfDate = 2,
-}
-
-export enum configUpdateInfoStatus2 {
-  ok = 0,
-  suggested = 1,
-  critical = 2,
-}
-
-export enum constantsStatusCode {
+export enum StatusCode {
   scok = 0,
   scinputerror = 100,
   scloginrequired = 201,
@@ -1475,533 +1920,7 @@ export enum constantsStatusCode {
   scnopaperkeys = 3605,
 }
 
-export enum ctlDbType {
-  main = 0,
-  chat = 1,
-}
-
-export enum ctlExitCode {
-  ok = 0,
-  notok = 2,
-  restart = 4,
-}
-
-export enum favoriteConflictStateType {
-  automaticresolving = 0,
-  manualresolvingserverview = 1,
-  manualresolvinglocalview = 2,
-}
-
-export enum favoriteFolderConflictType {
-  none = 0,
-  inConflict = 1,
-  inConflictAndStuck = 2,
-}
-
-export enum favoriteFolderType {
-  unknown = 0,
-  private = 1,
-  public = 2,
-  team = 3,
-}
-
-export enum gitGitLocalMetadataVersion {
-  v1 = 1,
-}
-
-export enum gitGitPushType {
-  default = 0,
-  createrepo = 1,
-  renamerepo = 3,
-}
-
-export enum gitGitRepoResultState {
-  err = 0,
-  ok = 1,
-}
-
-export enum gregorUIPushReason {
-  none = 0,
-  reconnected = 1,
-  newData = 2,
-}
-
-export enum homeAppLinkType {
-  none = 0,
-  people = 1,
-  chat = 2,
-  files = 3,
-  wallet = 4,
-  git = 5,
-  devices = 6,
-  settings = 7,
-  teams = 8,
-}
-
-export enum homeHomeScreenItemType {
-  todo = 1,
-  people = 2,
-  announcement = 3,
-}
-
-export enum homeHomeScreenPeopleNotificationType {
-  followed = 1,
-  followedMulti = 2,
-}
-
-export enum homeHomeScreenTodoType {
-  none = 0,
-  bio = 1,
-  proof = 2,
-  device = 3,
-  follow = 4,
-  chat = 5,
-  paperkey = 6,
-  team = 7,
-  folder = 8,
-  gitRepo = 9,
-  teamShowcase = 10,
-  avatarUser = 11,
-  avatarTeam = 12,
-  annoncementPlaceholder = 10000,
-}
-
-export enum identify3UiIdentify3ResultType {
-  ok = 0,
-  broken = 1,
-  needsUpgrade = 2,
-  canceled = 3,
-}
-
-export enum identify3UiIdentify3RowColor {
-  blue = 1,
-  red = 2,
-  black = 3,
-  green = 4,
-  gray = 5,
-  yellow = 6,
-  orange = 7,
-}
-
-export enum identify3UiIdentify3RowState {
-  checking = 1,
-  valid = 2,
-  error = 3,
-  warning = 4,
-  revoked = 5,
-}
-
-export enum identifyCommonIdentifyReasonType {
-  none = 0,
-  id = 1,
-  track = 2,
-  encrypt = 3,
-  decrypt = 4,
-  verify = 5,
-  resource = 6,
-  background = 7,
-}
-
-export enum identifyCommonTrackDiffType {
-  none = 0,
-  error = 1,
-  clash = 2,
-  revoked = 3,
-  upgraded = 4,
-  new = 5,
-  remoteFail = 6,
-  remoteWorking = 7,
-  remoteChanged = 8,
-  newEldest = 9,
-  noneViaTemporary = 10,
-}
-
-export enum identifyCommonTrackStatus {
-  newOk = 1,
-  newZeroProofs = 2,
-  newFailProofs = 3,
-  updateBrokenFailedProofs = 4,
-  updateNewProofs = 5,
-  updateOk = 6,
-  updateBrokenRevoked = 7,
-}
-
-export enum identifyUiCheckResultFreshness {
-  fresh = 0,
-  aged = 1,
-  rancid = 2,
-}
-
-export enum identifyUiDismissReasonType {
-  none = 0,
-  handledElsewhere = 1,
-}
-
-export enum installInstallAction {
-  unknown = 0,
-  none = 1,
-  upgrade = 2,
-  reinstall = 3,
-  install = 4,
-}
-
-export enum installInstallStatus {
-  unknown = 0,
-  error = 1,
-  notInstalled = 2,
-  installed = 4,
-}
-
-export enum kbfsCommonFSErrorType {
-  accessDenied = 0,
-  userNotFound = 1,
-  revokedDataDetected = 2,
-  notLoggedIn = 3,
-  timeout = 4,
-  rekeyNeeded = 5,
-  badFolder = 6,
-  notImplemented = 7,
-  oldVersion = 8,
-  overQuota = 9,
-  noSigChain = 10,
-  tooManyFolders = 11,
-  exdevNotSupported = 12,
-  diskLimitReached = 13,
-  diskCacheErrorLogSend = 14,
-  offlineArchived = 15,
-  offlineUnsynced = 16,
-}
-
-export enum kbfsCommonFSNotificationType {
-  encrypting = 0,
-  decrypting = 1,
-  signing = 2,
-  verifying = 3,
-  rekeying = 4,
-  connection = 5,
-  mdReadSuccess = 6,
-  fileCreated = 7,
-  fileModified = 8,
-  fileDeleted = 9,
-  fileRenamed = 10,
-  initialized = 11,
-  syncConfigChanged = 12,
-}
-
-export enum kbfsCommonFSStatusCode {
-  start = 0,
-  finish = 1,
-  error = 2,
-}
-
-export enum loginUiPassphraseRecoveryPromptType {
-  encryptedPgpKeys = 0,
-}
-
-export enum loginUiResetPromptType {
-  complete = 0,
-  enterNoDevices = 1,
-  enterForgotPw = 2,
-}
-
-export enum notifyTeamAvatarUpdateType {
-  none = 0,
-  user = 1,
-  team = 2,
-}
-
-export enum passphraseCommonPassphraseType {
-  none = 0,
-  paperKey = 1,
-  passPhrase = 2,
-  verifyPassPhrase = 3,
-}
-
-export enum pgpSignMode {
-  attached = 0,
-  detached = 1,
-  clear = 2,
-}
-
-export enum processFileType {
-  unknown = 0,
-  directory = 1,
-  file = 2,
-}
-
-export enum proveCommonProofState {
-  none = 0,
-  ok = 1,
-  tempFailure = 2,
-  permFailure = 3,
-  looking = 4,
-  superseded = 5,
-  posted = 6,
-  revoked = 7,
-  deleted = 8,
-  unknownType = 9,
-  sigHintMissing = 10,
-  unchecked = 11,
-}
-
-export enum proveCommonProofStatus {
-  none = 0,
-  ok = 1,
-  local = 2,
-  found = 3,
-  baseError = 100,
-  hostUnreachable = 101,
-  permissionDenied = 103,
-  failedParse = 106,
-  dnsError = 107,
-  authFailed = 108,
-  http429 = 129,
-  http500 = 150,
-  timeout = 160,
-  internalError = 170,
-  unchecked = 171,
-  missingPvl = 172,
-  baseHardError = 200,
-  notFound = 201,
-  contentFailure = 202,
-  badUsername = 203,
-  badRemoteId = 204,
-  textNotFound = 205,
-  badArgs = 206,
-  contentMissing = 207,
-  titleNotFound = 208,
-  serviceError = 209,
-  torSkipped = 210,
-  torIncompatible = 211,
-  http300 = 230,
-  http400 = 240,
-  httpOther = 260,
-  emptyJson = 270,
-  deleted = 301,
-  serviceDead = 302,
-  badSignature = 303,
-  badApiUrl = 304,
-  unknownType = 305,
-  noHint = 306,
-  badHintText = 307,
-  invalidPvl = 308,
-}
-
-export enum proveCommonProofType {
-  none = 0,
-  keybase = 1,
-  twitter = 2,
-  github = 3,
-  reddit = 4,
-  coinbase = 5,
-  hackernews = 6,
-  facebook = 8,
-  genericSocial = 9,
-  genericWebSite = 1000,
-  dns = 1001,
-  pgp = 1002,
-  rooter = 100001,
-}
-
-export enum proveUiPromptOverwriteType {
-  social = 0,
-  site = 1,
-}
-
-export enum provisionUiChooseType {
-  existingDevice = 0,
-  newDevice = 1,
-}
-
-export enum provisionUiGPGMethod {
-  gpgNone = 0,
-  gpgImport = 1,
-  gpgSign = 2,
-}
-
-export enum provisionUiProvisionMethod {
-  device = 0,
-  paperKey = 1,
-  passphrase = 2,
-  gpgImport = 3,
-  gpgSign = 4,
-}
-
-export enum reachabilityReachable {
-  unknown = 0,
-  yes = 1,
-  no = 2,
-}
-
-export enum rekeyOutcome {
-  none = 0,
-  fixed = 1,
-  ignored = 2,
-}
-
-export enum rekeyUIRekeyEventType {
-  none = 0,
-  notLoggedIn = 1,
-  apiError = 2,
-  noProblems = 3,
-  loadMeError = 4,
-  currentDeviceCanRekey = 5,
-  deviceLoadError = 6,
-  harass = 7,
-  noGregorMessages = 8,
-}
-
-export enum resetResetType {
-  none = 0,
-  reset = 1,
-  delete = 2,
-}
-
-export enum runtimeRuntimeGroup {
-  unknown = 0,
-  linuxlike = 1,
-  darwinlike = 2,
-  windowslike = 3,
-}
-
-export enum saltpackAuthenticityType {
-  signed = 0,
-  repudiable = 1,
-  anonymous = 2,
-}
-
-export enum saltpackUiSaltpackSenderType {
-  notTracked = 0,
-  unknown = 1,
-  anonymous = 2,
-  trackingBroke = 3,
-  trackingOk = 4,
-  self = 5,
-  revoked = 6,
-  expired = 7,
-}
-
-export enum simpleFSAsyncOps {
-  list = 0,
-  listRecursive = 1,
-  read = 2,
-  write = 3,
-  copy = 4,
-  move = 5,
-  remove = 6,
-  listRecursiveToDepth = 7,
-  getRevisions = 8,
-}
-
-export enum simpleFSDirentType {
-  file = 0,
-  dir = 1,
-  sym = 2,
-  exec = 3,
-}
-
-export enum simpleFSFolderSyncMode {
-  disabled = 0,
-  enabled = 1,
-  partial = 2,
-}
-
-export enum simpleFSKBFSArchivedType {
-  revision = 0,
-  time = 1,
-  timeString = 2,
-  relTimeString = 3,
-}
-
-export enum simpleFSListFilter {
-  noFilter = 0,
-  filterAllHidden = 1,
-  filterSystemHidden = 2,
-}
-
-export enum simpleFSOpenFlags {
-  read = 0,
-  replace = 1,
-  existing = 2,
-  write = 4,
-  append = 8,
-  directory = 16,
-}
-
-export enum simpleFSPathType {
-  local = 0,
-  kbfs = 1,
-  kbfsArchived = 2,
-}
-
-export enum simpleFSPrefetchStatus {
-  notStarted = 0,
-  inProgress = 1,
-  complete = 2,
-}
-
-export enum simpleFSRevisionSpanType {
-  default = 0,
-  lastFive = 1,
-}
-
-export enum teamsAuditVersion {
-  v0 = 0,
-  v1 = 1,
-  v2 = 2,
-  v3 = 3,
-}
-
-export enum teamsSeitanKeyAndLabelVersion {
-  v1 = 1,
-  v2 = 2,
-}
-
-export enum teamsSeitanKeyLabelType {
-  sms = 1,
-}
-
-export enum teamsTeamApplication {
-  kbfs = 1,
-  chat = 2,
-  saltpack = 3,
-  gitMetadata = 4,
-  seitanInviteToken = 5,
-  stellarRelay = 6,
-}
-
-export enum teamsTeamInviteCategory {
-  none = 0,
-  unknown = 1,
-  keybase = 2,
-  email = 3,
-  sbs = 4,
-  seitan = 5,
-  phone = 6,
-}
-
-export enum teamsTeamMemberStatus {
-  active = 0,
-  reset = 1,
-  deleted = 2,
-}
-
-export enum teamsTeamRole {
-  none = 0,
-  reader = 1,
-  writer = 2,
-  admin = 3,
-  owner = 4,
-}
-
-export enum teamsTeamStatus {
-  none = 0,
-  live = 1,
-  deleted = 2,
-  abandoned = 3,
-}
-
-export enum tlfKeysTLFIdentifyBehavior {
+export enum TLFIdentifyBehavior {
   unset = 0,
   chatCli = 1,
   chatGui = 2,
@@ -2019,18 +1938,88 @@ export enum tlfKeysTLFIdentifyBehavior {
   kbfsInit = 14,
 }
 
-export enum uPKKeyType {
-  none = 0,
-  nacl = 1,
-  pgp = 2,
+export enum TLFVisibility {
+  any = 0,
+  public = 1,
+  private = 2,
 }
 
-export enum uPKUPAKVersion {
+export enum TeamApplication {
+  kbfs = 1,
+  chat = 2,
+  saltpack = 3,
+  gitMetadata = 4,
+  seitanInviteToken = 5,
+  stellarRelay = 6,
+}
+
+export enum TeamInviteCategory {
+  none = 0,
+  unknown = 1,
+  keybase = 2,
+  email = 3,
+  sbs = 4,
+  seitan = 5,
+  phone = 6,
+}
+
+export enum TeamMemberStatus {
+  active = 0,
+  reset = 1,
+  deleted = 2,
+}
+
+export enum TeamRole {
+  none = 0,
+  reader = 1,
+  writer = 2,
+  admin = 3,
+  owner = 4,
+}
+
+export enum TeamStatus {
+  none = 0,
+  live = 1,
+  deleted = 2,
+  abandoned = 3,
+}
+
+export enum TeamType {
+  none = 0,
+  legacy = 1,
+  modern = 2,
+}
+
+export enum TrackDiffType {
+  none = 0,
+  error = 1,
+  clash = 2,
+  revoked = 3,
+  upgraded = 4,
+  new = 5,
+  remoteFail = 6,
+  remoteWorking = 7,
+  remoteChanged = 8,
+  newEldest = 9,
+  noneViaTemporary = 10,
+}
+
+export enum TrackStatus {
+  newOk = 1,
+  newZeroProofs = 2,
+  newFailProofs = 3,
+  updateBrokenFailedProofs = 4,
+  updateNewProofs = 5,
+  updateOk = 6,
+  updateBrokenRevoked = 7,
+}
+
+export enum UPAKVersion {
   v1 = 1,
   v2 = 2,
 }
 
-export enum uPKUPK2MinorVersion {
+export enum UPK2MinorVersion {
   v0 = 0,
   v1 = 1,
   v2 = 2,
@@ -2040,62 +2029,35 @@ export enum uPKUPK2MinorVersion {
   v6 = 6,
 }
 
-export enum uPKUPKLiteMinorVersion {
+export enum UPKLiteMinorVersion {
   v0 = 0,
 }
 
-export enum uiPromptDefault {
-  none = 0,
-  yes = 1,
-  no = 2,
+export enum UpdateInfoStatus {
+  upToDate = 0,
+  needUpdate = 1,
+  criticallyOutOfDate = 2,
+}
+
+export enum UpdateInfoStatus2 {
+  ok = 0,
+  suggested = 1,
+  critical = 2,
+}
+
+export enum UserOrTeamResult {
+  user = 1,
+  team = 2,
 }
 export type APIRes = {readonly status: String; readonly body: String; readonly httpStatus: Int; readonly appStatus: String}
 export type AllProvisionedUsernames = {readonly defaultUsername: String; readonly provisionedUsernames?: Array<String> | null; readonly hasProvisionedUser: Boolean}
 export type AnnotatedMemberInfo = {readonly userID: UID; readonly teamID: TeamID; readonly username: String; readonly fullName: String; readonly fqName: String; readonly isImplicitTeam: Boolean; readonly impTeamDisplayName: String; readonly isOpenTeam: Boolean; readonly role: TeamRole; readonly implicit?: ImplicitRole | null; readonly needsPUK: Boolean; readonly memberCount: Int; readonly eldestSeqno: Seqno; readonly allowProfilePromote: Boolean; readonly isMemberShowcased: Boolean; readonly status: TeamMemberStatus}
 export type AnnotatedTeamInvite = {readonly role: TeamRole; readonly id: TeamInviteID; readonly type: TeamInviteType; readonly name: TeamInviteName; readonly uv: UserVersion; readonly inviter: UserVersion; readonly inviterUsername: String; readonly teamName: String; readonly status: TeamMemberStatus}
 export type AnnotatedTeamList = {readonly teams?: Array<AnnotatedMemberInfo> | null; readonly annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite}}
-export type AppLinkType =
-  | 0 // NONE_0
-  | 1 // PEOPLE_1
-  | 2 // CHAT_2
-  | 3 // FILES_3
-  | 4 // WALLET_4
-  | 5 // GIT_5
-  | 6 // DEVICES_6
-  | 7 // SETTINGS_7
-  | 8 // TEAMS_8
-
-export type AsyncOps =
-  | 0 // LIST_0
-  | 1 // LIST_RECURSIVE_1
-  | 2 // READ_2
-  | 3 // WRITE_3
-  | 4 // COPY_4
-  | 5 // MOVE_5
-  | 6 // REMOVE_6
-  | 7 // LIST_RECURSIVE_TO_DEPTH_7
-  | 8 // GET_REVISIONS_8
-
 export type Audit = {readonly time: Time; readonly mms: /* maxMerkleSeqno */ Seqno; readonly mcs: /* maxChainSeqno */ Seqno; readonly mmp: /* maxMerkleProbe */ Seqno}
 export type AuditHistory = {readonly ID: TeamID; readonly public: Boolean; readonly priorMerkleSeqno: Seqno; readonly version: AuditVersion; readonly audits?: Array<Audit> | null; readonly preProbes: {[key: string]: Probe}; readonly postProbes: {[key: string]: Probe}; readonly tails: {[key: string]: LinkID}}
-export type AuditVersion =
-  | 0 // V0_0
-  | 1 // V1_1
-  | 2 // V2_2
-  | 3 // V3_3
-
-export type AuthenticityType =
-  | 0 // SIGNED_0
-  | 1 // REPUDIABLE_1
-  | 2 // ANONYMOUS_2
-
 export type AvatarClearCacheMsg = {readonly name: String; readonly formats?: Array<AvatarFormat> | null; readonly typ: AvatarUpdateType}
 export type AvatarFormat = String
-export type AvatarUpdateType =
-  | 0 // NONE_0
-  | 1 // USER_1
-  | 2 // TEAM_2
-
 export type AvatarUrl = String
 export type BadgeConversationInfo = {readonly convID: ChatConversationID; readonly badgeCounts: {[key: string]: Int}; readonly unreadMessages: Int}
 export type BadgeState = {readonly newTlfs: Int; readonly rekeysNeeded: Int; readonly newFollowers: Int; readonly inboxVers: Int; readonly homeTodoItems: Int; readonly newDevices?: Array<DeviceID> | null; readonly revokedDevices?: Array<DeviceID> | null; readonly conversations?: Array<BadgeConversationInfo> | null; readonly newGitRepoGlobalUniqueIDs?: Array<String> | null; readonly newTeamNames?: Array<String> | null; readonly deletedTeams?: Array<DeletedTeamInfo> | null; readonly newTeamAccessRequests?: Array<String> | null; readonly teamsWithResetUsers?: Array<TeamMemberOutReset> | null; readonly unreadWalletAccounts?: Array<WalletAccountInfo> | null; readonly resetState: ResetState}
@@ -2106,26 +2068,8 @@ export type BlockPingResponse = {}
 export type BlockRefNonce = string | null
 export type BlockReference = {readonly bid: BlockIdCombo; readonly nonce: BlockRefNonce; readonly chargedTo: UserOrTeamID}
 export type BlockReferenceCount = {readonly ref: BlockReference; readonly liveCount: Int}
-export type BlockStatus =
-  | 0 // UNKNOWN_0
-  | 1 // LIVE_1
-  | 2 // ARCHIVED_2
-
-export type BlockType =
-  | 0 // DATA_0
-  | 1 // MD_1
-  | 2 // GIT_2
-
 export type BootstrapStatus = {readonly registered: Boolean; readonly loggedIn: Boolean; readonly uid: UID; readonly username: String; readonly deviceID: DeviceID; readonly deviceName: String; readonly fullname: FullName; readonly following?: Array<String> | null; readonly followers?: Array<String> | null; readonly userReacjis: UserReacjis}
 export type BoxAuditAttempt = {readonly ctime: UnixTime; readonly error?: String | null; readonly result: BoxAuditAttemptResult; readonly generation?: PerTeamKeyGeneration | null; readonly rotated: Boolean}
-export type BoxAuditAttemptResult =
-  | 0 // FAILURE_RETRYABLE_0
-  | 1 // FAILURE_MALICIOUS_SERVER_1
-  | 2 // OK_VERIFIED_2
-  | 3 // OK_NOT_ATTEMPTED_ROLE_3
-  | 4 // OK_NOT_ATTEMPTED_OPENTEAM_4
-  | 5 // OK_NOT_ATTEMPTED_SUBTEAM_5
-
 export type BoxNonce = string | null
 export type BoxPublicKey = string | null
 export type BoxSummaryHash = String
@@ -2138,25 +2082,9 @@ export type ChallengeInfo = {readonly now: Long; readonly challenge: String}
 export type ChatConversationID = Bytes
 export type CheckProofStatus = {readonly found: Boolean; readonly status: ProofStatus; readonly proofText: String; readonly state: ProofState}
 export type CheckResult = {readonly proofResult: ProofResult; readonly time: Time; readonly freshness: CheckResultFreshness}
-export type CheckResultFreshness =
-  | 0 // FRESH_0
-  | 1 // AGED_1
-  | 2 // RANCID_2
-
-export type ChooseType =
-  | 0 // EXISTING_DEVICE_0
-  | 1 // NEW_DEVICE_1
-
 export type CiphertextBundle = {readonly kid: KID; readonly ciphertext: EncryptedBytes32; readonly nonce: BoxNonce; readonly publicKey: BoxPublicKey}
 export type ClientDetails = {readonly pid: Int; readonly clientType: ClientType; readonly argv?: Array<String> | null; readonly desc: String; readonly version: String}
 export type ClientStatus = {readonly details: ClientDetails; readonly connectionID: Int; readonly notificationChannels: NotificationChannels}
-export type ClientType =
-  | 0 // NONE_0
-  | 1 // CLI_1
-  | 2 // GUI_MAIN_2
-  | 3 // KBFS_3
-  | 4 // GUI_HELPER_4
-
 export type CompatibilityTeamID = {typ: 1; legacy: TLFID | null} | {typ: 2; modern: TeamID | null}
 export type ComponentResult = {readonly name: String; readonly status: Status; readonly exitCode: Int}
 export type Config = {readonly serverURI: String; readonly socketFile: String; readonly label: String; readonly runMode: String; readonly gpgExists: Boolean; readonly gpgPath: String; readonly version: String; readonly path: String; readonly binaryRealpath: String; readonly configPath: String; readonly versionShort: String; readonly versionFull: String; readonly isAutoForked: Boolean; readonly forkType: ForkType}
@@ -2168,11 +2096,6 @@ export type ConflictGeneration = Int
 export type ConflictManualResolvingLocalView = {readonly serverView: Path}
 export type ConflictManualResolvingServerView = {readonly localViews?: Array<Path> | null}
 export type ConflictState = {conflictStateType: 0; automaticresolving: ConflictAutomaticResolving | null} | {conflictStateType: 1; manualresolvingserverview: ConflictManualResolvingServerView | null} | {conflictStateType: 2; manualresolvinglocalview: ConflictManualResolvingLocalView | null}
-export type ConflictStateType =
-  | 0 // AutomaticResolving_0
-  | 1 // ManualResolvingServerView_1
-  | 2 // ManualResolvingLocalView_2
-
 export type Contact = {readonly name: String; readonly components?: Array<ContactComponent> | null}
 export type ContactComponent = {readonly label: String; readonly phoneNumber?: RawPhoneNumber | null; readonly email?: EmailAddress | null}
 export type CopyArgs = {readonly opID: OpID; readonly src: Path; readonly dest: Path}
@@ -2181,10 +2104,6 @@ export type Cryptocurrency = {readonly rowId: Int; readonly pkhash: Bytes; reado
 export type CsrfToken = String
 export type CurrentStatus = {readonly configured: Boolean; readonly registered: Boolean; readonly loggedIn: Boolean; readonly sessionIsValid: Boolean; readonly user?: User | null}
 export type DbKey = {readonly dbType: DbType; readonly objType: Int; readonly key: String}
-export type DbType =
-  | 0 // MAIN_0
-  | 1 // CHAT_1
-
 export type DbValue = Bytes
 export type DeletedTeamInfo = {readonly teamName: String; readonly deletedBy: String; readonly id: Gregor1.MsgID}
 export type DesktopStatus = {readonly version: String; readonly running: Boolean; readonly log: String}
@@ -2194,24 +2113,10 @@ export type DeviceEk = {readonly seed: Bytes32; readonly metadata: DeviceEkMetad
 export type DeviceEkMetadata = {readonly kid: KID; readonly hashMeta: HashMeta; readonly generation: EkGeneration; readonly ctime: Time; readonly deviceCtime: Time}
 export type DeviceEkStatement = {readonly currentDeviceEkMetadata: DeviceEkMetadata}
 export type DeviceID = String
-export type DeviceType =
-  | 0 // DESKTOP_0
-  | 1 // MOBILE_1
-
 export type DirSizeInfo = {readonly numFiles: Int; readonly name: String; readonly humanSize: String}
 export type Dirent = {readonly time: Time; readonly size: Int; readonly name: String; readonly direntType: DirentType; readonly lastWriterUnverified: User; readonly writable: Boolean; readonly prefetchStatus: PrefetchStatus; readonly prefetchProgress: PrefetchProgress}
-export type DirentType =
-  | 0 // FILE_0
-  | 1 // DIR_1
-  | 2 // SYM_2
-  | 3 // EXEC_3
-
 export type DirentWithRevision = {readonly entry: Dirent; readonly revision: KBFSRevision}
 export type DismissReason = {readonly type: DismissReasonType; readonly reason: String; readonly resource: String}
-export type DismissReasonType =
-  | 0 // NONE_0
-  | 1 // HANDLED_ELSEWHERE_1
-
 export type DownPointer = {readonly id: TeamID; readonly nameComponent: String; readonly isDeleted: Boolean}
 export type DowngradeReferenceRes = {readonly completed?: Array<BlockReferenceCount> | null; readonly failed: BlockReference}
 export type DurationSec = Double
@@ -2226,59 +2131,15 @@ export type EmailLookupResult = {readonly email: EmailAddress; readonly uid?: UI
 export type EncryptedBytes32 = string | null
 export type EncryptedGitMetadata = {readonly v: Int; readonly e: Bytes; readonly n: BoxNonce; readonly gen: PerTeamKeyGeneration}
 export type ErrorNum = Int
-export type ExitCode =
-  | 0 // OK_0
-  | 2 // NOTOK_2
-  | 4 // RESTART_4
-
 export type ExtendedStatus = {readonly standalone: Boolean; readonly passphraseStreamCached: Boolean; readonly tsecCached: Boolean; readonly deviceSigKeyCached: Boolean; readonly deviceEncKeyCached: Boolean; readonly paperSigKeyCached: Boolean; readonly paperEncKeyCached: Boolean; readonly storedSecret: Boolean; readonly secretPromptSkip: Boolean; readonly rememberPassphrase: Boolean; readonly device?: Device | null; readonly deviceErr?: LoadDeviceErr | null; readonly logDir: String; readonly session?: SessionStatus | null; readonly defaultUsername: String; readonly provisionedUsernames?: Array<String> | null; readonly Clients?: Array<ClientStatus> | null; readonly deviceEkNames?: Array<String> | null; readonly platformInfo: PlatformInfo; readonly defaultDeviceID: DeviceID; readonly localDbStats?: Array<String> | null; readonly localChatDbStats?: Array<String> | null; readonly cacheDirSizeInfo?: Array<DirSizeInfo> | null; readonly uiRouterMapping: {[key: string]: Int}}
 export type ExternalServiceConfig = {readonly schemaVersion: Int; readonly display?: ServiceDisplayConfig | null; readonly config?: ParamProofServiceConfig | null}
 export type FSEditListRequest = {readonly folder: Folder; readonly requestID: Int}
-export type FSErrorType =
-  | 0 // ACCESS_DENIED_0
-  | 1 // USER_NOT_FOUND_1
-  | 2 // REVOKED_DATA_DETECTED_2
-  | 3 // NOT_LOGGED_IN_3
-  | 4 // TIMEOUT_4
-  | 5 // REKEY_NEEDED_5
-  | 6 // BAD_FOLDER_6
-  | 7 // NOT_IMPLEMENTED_7
-  | 8 // OLD_VERSION_8
-  | 9 // OVER_QUOTA_9
-  | 10 // NO_SIG_CHAIN_10
-  | 11 // TOO_MANY_FOLDERS_11
-  | 12 // EXDEV_NOT_SUPPORTED_12
-  | 13 // DISK_LIMIT_REACHED_13
-  | 14 // DISK_CACHE_ERROR_LOG_SEND_14
-  | 15 // OFFLINE_ARCHIVED_15
-  | 16 // OFFLINE_UNSYNCED_16
-
 export type FSFolderEditHistory = {readonly folder: Folder; readonly serverTime: Time; readonly history?: Array<FSFolderWriterEditHistory> | null}
 export type FSFolderWriterEdit = {readonly filename: String; readonly notificationType: FSNotificationType; readonly serverTime: Time}
 export type FSFolderWriterEditHistory = {readonly writerName: String; readonly edits?: Array<FSFolderWriterEdit> | null; readonly deletes?: Array<FSFolderWriterEdit> | null}
 export type FSNotification = {readonly filename: String; readonly status: String; readonly statusCode: FSStatusCode; readonly notificationType: FSNotificationType; readonly errorType: FSErrorType; readonly params: {[key: string]: String}; readonly writerUid: UID; readonly localTime: Time; readonly folderType: FolderType}
-export type FSNotificationType =
-  | 0 // ENCRYPTING_0
-  | 1 // DECRYPTING_1
-  | 2 // SIGNING_2
-  | 3 // VERIFYING_3
-  | 4 // REKEYING_4
-  | 5 // CONNECTION_5
-  | 6 // MD_READ_SUCCESS_6
-  | 7 // FILE_CREATED_7
-  | 8 // FILE_MODIFIED_8
-  | 9 // FILE_DELETED_9
-  | 10 // FILE_RENAMED_10
-  | 11 // INITIALIZED_11
-  | 12 // SYNC_CONFIG_CHANGED_12
-
 export type FSPathSyncStatus = {readonly folderType: FolderType; readonly path: String; readonly syncingBytes: Int64; readonly syncingOps: Int64; readonly syncedBytes: Int64}
 export type FSSettings = {readonly spaceAvailableNotificationThreshold: Int64}
-export type FSStatusCode =
-  | 0 // START_0
-  | 1 // FINISH_1
-  | 2 // ERROR_2
-
 export type FSSyncStatus = {readonly totalSyncingBytes: Int64; readonly syncingPaths?: Array<String> | null; readonly endEstimate?: Time | null}
 export type FSSyncStatusRequest = {readonly requestID: Int}
 export type FastTeamData = {readonly frozen: Boolean; readonly tombstoned: Boolean; readonly name: TeamName; readonly chain: FastTeamSigChainState; readonly perTeamKeySeeds: /* perTeamKeySeedsUnverified */ {[key: string]: PerTeamKeySeed}; readonly latestKeyGeneration: PerTeamKeyGeneration; readonly readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}; readonly latestSeqnoHint: Seqno; readonly cachedAt: Time; readonly loadedLatest: Boolean}
@@ -2290,57 +2151,19 @@ export type Feature = {readonly allow: Boolean; readonly defaultValue: Boolean; 
 export type File = {readonly path: String}
 export type FileContent = {readonly data: Bytes; readonly progress: Progress}
 export type FileDescriptor = {readonly name: String; readonly type: FileType}
-export type FileType =
-  | 0 // UNKNOWN_0
-  | 1 // DIRECTORY_1
-  | 2 // FILE_2
-
 export type FindNextMDResponse = {readonly kbfsRoot: MerkleRoot; readonly merkleNodes?: Array<Bytes> | null; readonly rootSeqno: Seqno; readonly rootHash: HashMeta}
 export type FirstStepResult = {readonly valPlusTwo: Int}
 export type Folder = {readonly name: String; readonly private: Boolean; readonly created: Boolean; readonly folderType: FolderType; readonly team_id /* teamID */?: TeamID | null; readonly reset_members /* resetMembers */?: Array<User> | null; readonly mtime?: Time | null; readonly conflictState?: ConflictState | null}
-export type FolderConflictType =
-  | 0 // NONE_0
-  | 1 // IN_CONFLICT_1
-  | 2 // IN_CONFLICT_AND_STUCK_2
-
 export type FolderSyncConfig = {readonly mode: FolderSyncMode; readonly paths?: Array<String> | null}
 export type FolderSyncConfigAndStatus = {readonly config: FolderSyncConfig; readonly status: FolderSyncStatus}
 export type FolderSyncConfigAndStatusWithFolder = {readonly folder: Folder; readonly config: FolderSyncConfig; readonly status: FolderSyncStatus}
-export type FolderSyncMode =
-  | 0 // DISABLED_0
-  | 1 // ENABLED_1
-  | 2 // PARTIAL_2
-
 export type FolderSyncStatus = {readonly localDiskBytesAvailable: Int64; readonly localDiskBytesTotal: Int64; readonly prefetchStatus: PrefetchStatus; readonly prefetchProgress: PrefetchProgress; readonly storedBytesTotal: Int64; readonly outOfSyncSpace: Boolean}
-export type FolderType =
-  | 0 // UNKNOWN_0
-  | 1 // PRIVATE_1
-  | 2 // PUBLIC_2
-  | 3 // TEAM_3
-
-export type ForkType =
-  | 0 // NONE_0
-  | 1 // AUTO_1
-  | 2 // WATCHDOG_2
-  | 3 // LAUNCHD_3
-  | 4 // SYSTEMD_4
-
 export type FullName = String
 export type FullNamePackage = {readonly version: FullNamePackageVersion; readonly fullName: FullName; readonly eldestSeqno: Seqno; readonly status: StatusCode; readonly cachedAt: Time}
-export type FullNamePackageVersion =
-  | 0 // V0_0
-  | 1 // V1_1
-  | 2 // V2_2
-
 export type FullStatus = {readonly username: String; readonly configPath: String; readonly curStatus: CurrentStatus; readonly extStatus: ExtendedStatus; readonly client: KbClientStatus; readonly service: KbServiceStatus; readonly kbfs: KBFSStatus; readonly desktop: DesktopStatus; readonly updater: UpdaterStatus; readonly start: StartStatus; readonly git: GitStatus}
 export type FuseMountInfo = {readonly path: String; readonly fstype: String; readonly output: String}
 export type FuseStatus = {readonly version: String; readonly bundleVersion: String; readonly kextID: String; readonly path: String; readonly kextStarted: Boolean; readonly installStatus: InstallStatus; readonly installAction: InstallAction; readonly mountInfos?: Array<FuseMountInfo> | null; readonly status: Status}
 export type GPGKey = {readonly algorithm: String; readonly keyID: String; readonly creation: String; readonly expiration: String; readonly identities?: Array<PGPIdentity> | null}
-export type GPGMethod =
-  | 0 // GPG_NONE_0
-  | 1 // GPG_IMPORT_1
-  | 2 // GPG_SIGN_2
-
 export type GUIEntryArg = {readonly windowTitle: String; readonly prompt: String; readonly username: String; readonly submitLabel: String; readonly cancelLabel: String; readonly retryLabel: String; readonly type: PassphraseType; readonly features: GUIEntryFeatures}
 export type GUIEntryFeatures = {readonly showTyping: Feature}
 export type GcOptions = {readonly maxLooseRefs: Int; readonly pruneMinLooseObjects: Int; readonly pruneExpireTime: Time; readonly maxObjectPacks: Int}
@@ -2353,22 +2176,11 @@ export type GetTLFCryptKeysRes = {readonly nameIDBreaks: CanonicalTLFNameAndIDWi
 export type GitCommit = {readonly commitHash: String; readonly message: String; readonly authorName: String; readonly authorEmail: String; readonly ctime: Time}
 export type GitLocalMetadata = {readonly repoName: GitRepoName; readonly refs?: Array<GitRefMetadata> | null; readonly pushType: GitPushType; readonly previousRepoName: GitRepoName}
 export type GitLocalMetadataV1 = {readonly repoName: GitRepoName}
-export type GitLocalMetadataVersion = 1 // V1_1
-
 export type GitLocalMetadataVersioned = {version: 1; v1: GitLocalMetadataV1 | null}
-export type GitPushType =
-  | 0 // DEFAULT_0
-  | 1 // CREATEREPO_1
-  | 3 // RENAMEREPO_3
-
 export type GitRefMetadata = {readonly refName: String; readonly commits?: Array<GitCommit> | null; readonly moreCommitsAvailable: Boolean; readonly isDelete: Boolean}
 export type GitRepoInfo = {readonly folder: Folder; readonly repoID: RepoID; readonly localMetadata: GitLocalMetadata; readonly serverMetadata: GitServerMetadata; readonly repoUrl: String; readonly globalUniqueID: String; readonly canDelete: Boolean; readonly teamRepoSettings?: GitTeamRepoSettings | null}
 export type GitRepoName = String
 export type GitRepoResult = {state: 0; err: String | null} | {state: 1; ok: GitRepoInfo | null}
-export type GitRepoResultState =
-  | 0 // ERR_0
-  | 1 // OK_1
-
 export type GitServerMetadata = {readonly ctime: Time; readonly mtime: Time; readonly lastModifyingUsername: String; readonly lastModifyingDeviceID: DeviceID; readonly lastModifyingDeviceName: String}
 export type GitStatus = {readonly log: String}
 export type GitTeamRepoSettings = {readonly channelName?: String | null; readonly chatDisabled: Boolean}
@@ -2383,114 +2195,34 @@ export type HomeScreenAnnouncementVersion = Int
 export type HomeScreenItem = {readonly badged: Boolean; readonly data: HomeScreenItemData}
 export type HomeScreenItemData = {t: 1; todo: HomeScreenTodo | null} | {t: 2; people: HomeScreenPeopleNotification | null} | {t: 3; announcement: HomeScreenAnnouncement | null}
 export type HomeScreenItemID = String
-export type HomeScreenItemType =
-  | 1 // TODO_1
-  | 2 // PEOPLE_2
-  | 3 // ANNOUNCEMENT_3
-
 export type HomeScreenPeopleNotification = {t: 1; followed: HomeScreenPeopleNotificationFollowed | null} | {t: 2; followedMulti: HomeScreenPeopleNotificationFollowedMulti | null}
 export type HomeScreenPeopleNotificationFollowed = {readonly followTime: Time; readonly followedBack: Boolean; readonly user: UserSummary}
 export type HomeScreenPeopleNotificationFollowedMulti = {readonly followers?: Array<HomeScreenPeopleNotificationFollowed> | null; readonly numOthers: Int}
-export type HomeScreenPeopleNotificationType =
-  | 1 // FOLLOWED_1
-  | 2 // FOLLOWED_MULTI_2
-
 export type HomeScreenTodo = void
-export type HomeScreenTodoType =
-  | 0 // NONE_0
-  | 1 // BIO_1
-  | 2 // PROOF_2
-  | 3 // DEVICE_3
-  | 4 // FOLLOW_4
-  | 5 // CHAT_5
-  | 6 // PAPERKEY_6
-  | 7 // TEAM_7
-  | 8 // FOLDER_8
-  | 9 // GIT_REPO_9
-  | 10 // TEAM_SHOWCASE_10
-  | 11 // AVATAR_USER_11
-  | 12 // AVATAR_TEAM_12
-  | 10000 // ANNONCEMENT_PLACEHOLDER_10000
-
 export type HomeUserSummary = {readonly uid: UID; readonly username: String; readonly bio: String; readonly fullName: String; readonly pics?: Pics | null}
 export type Identify2Res = {readonly upk: UserPlusKeys; readonly identifiedAt: Time; readonly trackBreaks?: IdentifyTrackBreaks | null}
 export type Identify2ResUPK2 = {readonly upk: UserPlusKeysV2AllIncarnations; readonly identifiedAt: Time; readonly trackBreaks?: IdentifyTrackBreaks | null}
 export type Identify3Assertion = String
 export type Identify3GUIID = String
-export type Identify3ResultType =
-  | 0 // OK_0
-  | 1 // BROKEN_1
-  | 2 // NEEDS_UPGRADE_2
-  | 3 // CANCELED_3
-
 export type Identify3Row = {readonly guiID: Identify3GUIID; readonly key: String; readonly value: String; readonly priority: Int; readonly siteURL: String; readonly siteIcon?: Array<SizedImage> | null; readonly siteIconFull?: Array<SizedImage> | null; readonly proofURL: String; readonly sigID: SigID; readonly ctime: Time; readonly state: Identify3RowState; readonly metas?: Array<Identify3RowMeta> | null; readonly color: Identify3RowColor; readonly kid?: KID | null}
-export type Identify3RowColor =
-  | 1 // BLUE_1
-  | 2 // RED_2
-  | 3 // BLACK_3
-  | 4 // GREEN_4
-  | 5 // GRAY_5
-  | 6 // YELLOW_6
-  | 7 // ORANGE_7
-
 export type Identify3RowMeta = {readonly color: Identify3RowColor; readonly label: String}
-export type Identify3RowState =
-  | 1 // CHECKING_1
-  | 2 // VALID_2
-  | 3 // ERROR_3
-  | 4 // WARNING_4
-  | 5 // REVOKED_5
-
 export type IdentifyKey = {readonly pgpFingerprint: Bytes; readonly KID: KID; readonly trackDiff?: TrackDiff | null; readonly breaksTracking: Boolean; readonly sigID: SigID}
 export type IdentifyLiteRes = {readonly ul: UserOrTeamLite; readonly trackBreaks?: IdentifyTrackBreaks | null}
 export type IdentifyOutcome = {readonly username: String; readonly status?: Status | null; readonly warnings?: Array<String> | null; readonly trackUsed?: TrackSummary | null; readonly trackStatus: TrackStatus; readonly numTrackFailures: Int; readonly numTrackChanges: Int; readonly numProofFailures: Int; readonly numRevoked: Int; readonly numProofSuccesses: Int; readonly revoked?: Array<TrackDiff> | null; readonly trackOptions: TrackOptions; readonly forPGPPull: Boolean; readonly reason: IdentifyReason}
 export type IdentifyProofBreak = {readonly remoteProof: RemoteProof; readonly lcr: LinkCheckResult}
 export type IdentifyReason = {readonly type: IdentifyReasonType; readonly reason: String; readonly resource: String}
-export type IdentifyReasonType =
-  | 0 // NONE_0
-  | 1 // ID_1
-  | 2 // TRACK_2
-  | 3 // ENCRYPT_3
-  | 4 // DECRYPT_4
-  | 5 // VERIFY_5
-  | 6 // RESOURCE_6
-  | 7 // BACKGROUND_7
-
 export type IdentifyRow = {readonly rowId: Int; readonly proof: RemoteProof; readonly trackDiff?: TrackDiff | null}
 export type IdentifyTrackBreaks = {readonly keys?: Array<IdentifyKey> | null; readonly proofs?: Array<IdentifyProofBreak> | null}
 export type Identity = {readonly status?: Status | null; readonly whenLastTracked: Time; readonly proofs?: Array<IdentifyRow> | null; readonly cryptocurrency?: Array<Cryptocurrency> | null; readonly revoked?: Array<TrackDiff> | null; readonly revokedDetails?: Array<RevokedProof> | null; readonly breaksTracking: Boolean}
-export type IdentityVisibility =
-  | 0 // PRIVATE_0
-  | 1 // PUBLIC_1
-
 export type ImageCropRect = {readonly x0: Int; readonly y0: Int; readonly x1: Int; readonly y1: Int}
 export type ImplicitRole = {readonly role: TeamRole; readonly ancestor: TeamID}
 export type ImplicitTeamConflictInfo = {readonly generation: ConflictGeneration; readonly time: Time}
 export type ImplicitTeamDisplayName = {readonly isPublic: Boolean; readonly writers: ImplicitTeamUserSet; readonly readers: ImplicitTeamUserSet; readonly conflictInfo?: ImplicitTeamConflictInfo | null}
 export type ImplicitTeamUserSet = {readonly keybaseUsers?: Array<String> | null; readonly unresolvedUsers?: Array<SocialAssertion> | null}
-export type InstallAction =
-  | 0 // UNKNOWN_0
-  | 1 // NONE_1
-  | 2 // UPGRADE_2
-  | 3 // REINSTALL_3
-  | 4 // INSTALL_4
-
 export type InstallResult = {readonly componentResults?: Array<ComponentResult> | null; readonly status: Status; readonly fatal: Boolean}
-export type InstallStatus =
-  | 0 // UNKNOWN_0
-  | 1 // ERROR_1
-  | 2 // NOT_INSTALLED_2
-  | 4 // INSTALLED_4
-
 export type InterestingPerson = {readonly uid: UID; readonly username: String; readonly fullname: String}
 export type KBFSArchivedParam = {KBFSArchivedType: 0; revision: KBFSRevision | null} | {KBFSArchivedType: 1; time: Time | null} | {KBFSArchivedType: 2; timeString: String | null} | {KBFSArchivedType: 3; relTimeString: String | null}
 export type KBFSArchivedPath = {readonly path: String; readonly archivedParam: KBFSArchivedParam}
-export type KBFSArchivedType =
-  | 0 // REVISION_0
-  | 1 // TIME_1
-  | 2 // TIME_STRING_2
-  | 3 // REL_TIME_STRING_3
-
 export type KBFSRevision = Int64
 export type KBFSRoot = {readonly treeID: MerkleTreeID; readonly root: KBFSRootHash}
 export type KBFSRootHash = Bytes
@@ -2503,22 +2235,12 @@ export type KeyBundle = {readonly version: Int; readonly bundle: Bytes}
 export type KeyBundleResponse = {readonly WriterBundle: KeyBundle; readonly ReaderBundle: KeyBundle}
 export type KeyHalf = {readonly user: UID; readonly deviceKID: KID; readonly key: Bytes}
 export type KeyInfo = {readonly fingerprint: String; readonly key: String; readonly desc: String}
-export type KeyType =
-  | 0 // NONE_0
-  | 1 // NACL_1
-  | 2 // PGP_2
-
 export type KeybaseTime = {readonly unix: Time; readonly chain: Seqno}
 export type LeaseID = String
 export type LinkCheckResult = {readonly proofId: Int; readonly proofResult: ProofResult; readonly snoozedResult: ProofResult; readonly torWarning: Boolean; readonly tmpTrackExpireTime: Time; readonly cached?: CheckResult | null; readonly diff?: TrackDiff | null; readonly remoteDiff?: TrackDiff | null; readonly hint?: SigHint | null; readonly breaksTracking: Boolean}
 export type LinkID = String
 export type LinkTriple = {readonly seqno: Seqno; readonly seqType: SeqType; readonly linkID: LinkID}
 export type ListArgs = {readonly opID: OpID; readonly path: Path; readonly filter: ListFilter}
-export type ListFilter =
-  | 0 // NO_FILTER_0
-  | 1 // FILTER_ALL_HIDDEN_1
-  | 2 // FILTER_SYSTEM_HIDDEN_2
-
 export type ListResult = {readonly files?: Array<File> | null}
 export type ListToDepthArgs = {readonly opID: OpID; readonly path: Path; readonly filter: ListFilter; readonly depth: Int}
 export type LoadAvatarsRes = {readonly picmap: {[key: string]: {[key: string]: AvatarUrl}}}
@@ -2527,16 +2249,6 @@ export type LoadTeamArg = {readonly ID: TeamID; readonly name: String; readonly 
 export type LockContext = {readonly requireLockID: LockID; readonly releaseAfterSuccess: Boolean}
 export type LockID = Long
 export type LockdownHistory = {readonly status: Boolean; readonly creationTime: Time; readonly deviceID: DeviceID; readonly deviceName: String}
-export type LogLevel =
-  | 0 // NONE_0
-  | 1 // DEBUG_1
-  | 2 // INFO_2
-  | 3 // NOTICE_3
-  | 4 // WARN_4
-  | 5 // ERROR_5
-  | 6 // CRITICAL_6
-  | 7 // FATAL_7
-
 export type LogSendID = String
 export type LookupImplicitTeamRes = {readonly teamID: TeamID; readonly name: TeamName; readonly displayName: ImplicitTeamDisplayName; readonly tlfID: TLFID}
 export type MDBlock = {readonly version: Int; readonly timestamp: Time; readonly block: Bytes}
@@ -2551,20 +2263,8 @@ export type MerkleStoreEntryString = String
 export type MerkleStoreKit = String
 export type MerkleStoreKitHash = String
 export type MerkleStoreSupportedVersion = Int
-export type MerkleTreeID =
-  | 0 // MASTER_0
-  | 1 // KBFS_PUBLIC_1
-  | 2 // KBFS_PRIVATE_2
-  | 3 // KBFS_PRIVATETEAM_3
-
 export type MerkleTreeLocation = {readonly leaf: UserOrTeamID; readonly loc: SigChainLocation}
 export type MetadataResponse = {readonly folderID: String; readonly mdBlocks?: Array<MDBlock> | null}
-export type MobileAppState =
-  | 0 // FOREGROUND_0
-  | 1 // BACKGROUND_1
-  | 2 // INACTIVE_2
-  | 3 // BACKGROUNDACTIVE_3
-
 export type MoveArgs = {readonly opID: OpID; readonly src: Path; readonly dest: Path}
 export type NaclDHKeyPrivate = string | null
 export type NaclDHKeyPublic = string | null
@@ -2572,27 +2272,10 @@ export type NaclSigningKeyPrivate = string | null
 export type NaclSigningKeyPublic = string | null
 export type NextMerkleRootRes = {readonly res?: MerkleRootV2 | null}
 export type NotificationChannels = {readonly session: Boolean; readonly users: Boolean; readonly kbfs: Boolean; readonly kbfsdesktop: Boolean; readonly kbfslegacy: Boolean; readonly tracking: Boolean; readonly favorites: Boolean; readonly paperkeys: Boolean; readonly keyfamily: Boolean; readonly service: Boolean; readonly app: Boolean; readonly chat: Boolean; readonly pgp: Boolean; readonly kbfsrequest: Boolean; readonly badges: Boolean; readonly reachability: Boolean; readonly team: Boolean; readonly ephemeral: Boolean; readonly chatkbfsedits: Boolean; readonly chatdev: Boolean; readonly deviceclone: Boolean; readonly chatattachments: Boolean; readonly wallet: Boolean; readonly audit: Boolean}
-export type OfflineAvailability =
-  | 0 // NONE_0
-  | 1 // BEST_EFFORT_1
-
 export type OpDescription = {asyncOp: 0; list: ListArgs | null} | {asyncOp: 1; listRecursive: ListArgs | null} | {asyncOp: 7; listRecursiveToDepth: ListToDepthArgs | null} | {asyncOp: 2; read: ReadArgs | null} | {asyncOp: 3; write: WriteArgs | null} | {asyncOp: 4; copy: CopyArgs | null} | {asyncOp: 5; move: MoveArgs | null} | {asyncOp: 6; remove: RemoveArgs | null} | {asyncOp: 8; getRevisions: GetRevisionsArgs | null}
 export type OpID = string | null
 export type OpProgress = {readonly start: Time; readonly endEstimate: Time; readonly opType: AsyncOps; readonly bytesTotal: Int64; readonly bytesRead: Int64; readonly bytesWritten: Int64; readonly filesTotal: Int64; readonly filesRead: Int64; readonly filesWritten: Int64}
-export type OpenFlags =
-  | 0 // READ_0
-  | 1 // REPLACE_1
-  | 2 // EXISTING_2
-  | 4 // WRITE_4
-  | 8 // APPEND_8
-  | 16 // DIRECTORY_16
-
 export type OutOfDateInfo = {readonly upgradeTo: String; readonly upgradeURI: String; readonly customMessage: String; readonly criticalClockSkew: Long}
-export type Outcome =
-  | 0 // NONE_0
-  | 1 // FIXED_1
-  | 2 // IGNORED_2
-
 export type PGPCreateUids = {readonly useDefault: Boolean; readonly ids?: Array<PGPIdentity> | null}
 export type PGPDecryptOptions = {readonly assertSigned: Boolean; readonly signedBy: String}
 export type PGPEncryptOptions = {readonly recipients?: Array<String> | null; readonly noSign: Boolean; readonly noSelf: Boolean; readonly binaryOut: Boolean; readonly keyQuery: String}
@@ -2607,21 +2290,8 @@ export type ParamProofJSON = {readonly sigHash: SigID; readonly kbUsername: Stri
 export type ParamProofLogoConfig = {readonly svgBlack: String; readonly svgFull: String}
 export type ParamProofServiceConfig = {readonly version: Int; readonly domain: String; readonly displayName: String; readonly logo?: ParamProofLogoConfig | null; readonly description: String; readonly usernameConfig: ParamProofUsernameConfig; readonly brandColor: String; readonly prefillUrl: String; readonly profileUrl: String; readonly checkUrl: String; readonly checkPath?: Array<SelectorEntry> | null; readonly avatarPath?: Array<SelectorEntry> | null}
 export type ParamProofUsernameConfig = {readonly re: String; readonly min: Int; readonly max: Int}
-export type PassphraseRecoveryPromptType = 0 // ENCRYPTED_PGP_KEYS_0
-
 export type PassphraseStream = {readonly passphraseStream: Bytes; readonly generation: Int}
-export type PassphraseType =
-  | 0 // NONE_0
-  | 1 // PAPER_KEY_1
-  | 2 // PASS_PHRASE_2
-  | 3 // VERIFY_PASS_PHRASE_3
-
 export type Path = {PathType: 0; local: String | null} | {PathType: 1; kbfs: String | null} | {PathType: 2; kbfsArchived: KBFSArchivedPath | null}
-export type PathType =
-  | 0 // LOCAL_0
-  | 1 // KBFS_1
-  | 2 // KBFS_ARCHIVED_2
-
 export type PerTeamKey = {readonly gen: PerTeamKeyGeneration; readonly seqno: Seqno; readonly sigKID: KID; readonly encKID: KID}
 export type PerTeamKeyGeneration = Int
 export type PerTeamKeySeed = string | null
@@ -2639,11 +2309,6 @@ export type Pics = {readonly square40: String; readonly square200: String; reado
 export type PingResponse = {readonly timestamp: Time}
 export type PlatformInfo = {readonly os: String; readonly osVersion: String; readonly arch: String; readonly goVersion: String}
 export type PrefetchProgress = {readonly start: Time; readonly endEstimate: Time; readonly bytesTotal: Int64; readonly bytesFetched: Int64}
-export type PrefetchStatus =
-  | 0 // NOT_STARTED_0
-  | 1 // IN_PROGRESS_1
-  | 2 // COMPLETE_2
-
 export type Probe = {readonly i: /* index */ Int; readonly s: /* teamSeqno */ Seqno}
 export type ProblemSet = {readonly user: User; readonly kid: KID; readonly tlfs?: Array<ProblemTLF> | null}
 export type ProblemSetDevices = {readonly problemSet: ProblemSet; readonly devices?: Array<Device> | null}
@@ -2652,115 +2317,18 @@ export type Process = {readonly pid: String; readonly command: String; readonly 
 export type ProcessedContact = {readonly contactIndex: Int; readonly contactName: String; readonly component: ContactComponent; readonly resolved: Boolean; readonly uid: UID; readonly username: String; readonly fullName: String; readonly following: Boolean; readonly displayName: String; readonly displayLabel: String}
 export type ProfileTeamLoadRes = {readonly loadTimeNsec: Long}
 export type Progress = Int
-export type PromptDefault =
-  | 0 // NONE_0
-  | 1 // YES_1
-  | 2 // NO_2
-
-export type PromptOverwriteType =
-  | 0 // SOCIAL_0
-  | 1 // SITE_1
-
 export type ProofResult = {readonly state: ProofState; readonly status: ProofStatus; readonly desc: String}
-export type ProofState =
-  | 0 // NONE_0
-  | 1 // OK_1
-  | 2 // TEMP_FAILURE_2
-  | 3 // PERM_FAILURE_3
-  | 4 // LOOKING_4
-  | 5 // SUPERSEDED_5
-  | 6 // POSTED_6
-  | 7 // REVOKED_7
-  | 8 // DELETED_8
-  | 9 // UNKNOWN_TYPE_9
-  | 10 // SIG_HINT_MISSING_10
-  | 11 // UNCHECKED_11
-
-export type ProofStatus =
-  | 0 // NONE_0
-  | 1 // OK_1
-  | 2 // LOCAL_2
-  | 3 // FOUND_3
-  | 100 // BASE_ERROR_100
-  | 101 // HOST_UNREACHABLE_101
-  | 103 // PERMISSION_DENIED_103
-  | 106 // FAILED_PARSE_106
-  | 107 // DNS_ERROR_107
-  | 108 // AUTH_FAILED_108
-  | 129 // HTTP_429_129
-  | 150 // HTTP_500_150
-  | 160 // TIMEOUT_160
-  | 170 // INTERNAL_ERROR_170
-  | 171 // UNCHECKED_171
-  | 172 // MISSING_PVL_172
-  | 200 // BASE_HARD_ERROR_200
-  | 201 // NOT_FOUND_201
-  | 202 // CONTENT_FAILURE_202
-  | 203 // BAD_USERNAME_203
-  | 204 // BAD_REMOTE_ID_204
-  | 205 // TEXT_NOT_FOUND_205
-  | 206 // BAD_ARGS_206
-  | 207 // CONTENT_MISSING_207
-  | 208 // TITLE_NOT_FOUND_208
-  | 209 // SERVICE_ERROR_209
-  | 210 // TOR_SKIPPED_210
-  | 211 // TOR_INCOMPATIBLE_211
-  | 230 // HTTP_300_230
-  | 240 // HTTP_400_240
-  | 260 // HTTP_OTHER_260
-  | 270 // EMPTY_JSON_270
-  | 301 // DELETED_301
-  | 302 // SERVICE_DEAD_302
-  | 303 // BAD_SIGNATURE_303
-  | 304 // BAD_API_URL_304
-  | 305 // UNKNOWN_TYPE_305
-  | 306 // NO_HINT_306
-  | 307 // BAD_HINT_TEXT_307
-  | 308 // INVALID_PVL_308
-
 export type ProofSuggestion = {readonly key: String; readonly belowFold: Boolean; readonly profileText: String; readonly profileIcon?: Array<SizedImage> | null; readonly pickerText: String; readonly pickerSubtext: String; readonly pickerIcon?: Array<SizedImage> | null; readonly metas?: Array<Identify3RowMeta> | null}
 export type ProofSuggestionsRes = {readonly suggestions?: Array<ProofSuggestion> | null; readonly showMore: Boolean}
-export type ProofType =
-  | 0 // NONE_0
-  | 1 // KEYBASE_1
-  | 2 // TWITTER_2
-  | 3 // GITHUB_3
-  | 4 // REDDIT_4
-  | 5 // COINBASE_5
-  | 6 // HACKERNEWS_6
-  | 8 // FACEBOOK_8
-  | 9 // GENERIC_SOCIAL_9
-  | 1000 // GENERIC_WEB_SITE_1000
-  | 1001 // DNS_1001
-  | 1002 // PGP_1002
-  | 100001 // ROOTER_100001
-
 export type Proofs = {readonly social?: Array<TrackProof> | null; readonly web?: Array<WebProof> | null; readonly publicKeys?: Array<PublicKey> | null}
 export type ProveParameters = {readonly logoFull?: Array<SizedImage> | null; readonly logoBlack?: Array<SizedImage> | null; readonly title: String; readonly subtext: String; readonly suffix: String; readonly buttonLabel: String}
-export type ProvisionMethod =
-  | 0 // DEVICE_0
-  | 1 // PAPER_KEY_1
-  | 2 // PASSPHRASE_2
-  | 3 // GPG_IMPORT_3
-  | 4 // GPG_SIGN_4
-
 export type PublicKey = {readonly KID: KID; readonly PGPFingerprint: String; readonly PGPIdentities?: Array<PGPIdentity> | null; readonly isSibkey: Boolean; readonly isEldest: Boolean; readonly parentID: String; readonly deviceID: DeviceID; readonly deviceDescription: String; readonly deviceType: String; readonly cTime: Time; readonly eTime: Time; readonly isRevoked: Boolean}
 export type PublicKeyV2 = {keyType: 1; nacl: PublicKeyV2NaCl | null} | {keyType: 2; pgp: PublicKeyV2PGPSummary | null}
 export type PublicKeyV2Base = {readonly kid: KID; readonly isSibkey: Boolean; readonly isEldest: Boolean; readonly cTime: Time; readonly eTime: Time; readonly provisioning: SignatureMetadata; readonly revocation?: SignatureMetadata | null}
 export type PublicKeyV2NaCl = {readonly base: PublicKeyV2Base; readonly parent?: KID | null; readonly deviceID: DeviceID; readonly deviceDescription: String; readonly deviceType: String}
 export type PublicKeyV2PGPSummary = {readonly base: PublicKeyV2Base; readonly fingerprint: PGPFingerprint; readonly identities?: Array<PGPIdentity> | null}
-export type PushReason =
-  | 0 // NONE_0
-  | 1 // RECONNECTED_1
-  | 2 // NEW_DATA_2
-
 export type RawPhoneNumber = String
 export type Reachability = {readonly reachable: Reachable}
-export type Reachable =
-  | 0 // UNKNOWN_0
-  | 1 // YES_1
-  | 2 // NO_2
-
 export type ReacjiSkinTone = Int
 export type ReadArgs = {readonly opID: OpID; readonly path: Path; readonly offset: Long; readonly size: Int}
 export type ReaderKeyMask = {readonly application: TeamApplication; readonly generation: PerTeamKeyGeneration; readonly mask: MaskB64}
@@ -2768,17 +2336,6 @@ export type ReferenceCountRes = {readonly counts?: Array<BlockIdCount> | null}
 export type RegionCode = String
 export type RegisterAddressRes = {readonly type: String; readonly family: String}
 export type RekeyEvent = {readonly eventType: RekeyEventType; readonly interruptType: Int}
-export type RekeyEventType =
-  | 0 // NONE_0
-  | 1 // NOT_LOGGED_IN_1
-  | 2 // API_ERROR_2
-  | 3 // NO_PROBLEMS_3
-  | 4 // LOAD_ME_ERROR_4
-  | 5 // CURRENT_DEVICE_CAN_REKEY_5
-  | 6 // DEVICE_LOAD_ERROR_6
-  | 7 // HARASS_7
-  | 8 // NO_GREGOR_MESSAGES_8
-
 export type RekeyRequest = {readonly folderID: String; readonly revision: Long}
 export type RemoteProof = {readonly proofType: ProofType; readonly key: String; readonly value: String; readonly displayMarkup: String; readonly sigID: SigID; readonly mTime: Time}
 export type RemoteTrack = {readonly username: String; readonly uid: UID; readonly linkID: LinkID}
@@ -2787,47 +2344,17 @@ export type RepoID = String
 export type ResetLink = {readonly ctime: UnixTime; readonly merkleRoot: ResetMerkleRoot; readonly prev: ResetPrev; readonly resetSeqno: Seqno; readonly type: ResetType; readonly uid: UID}
 export type ResetMerkleRoot = {readonly hashMeta: HashMeta; readonly seqno: Seqno}
 export type ResetPrev = {readonly eldestKID?: KID | null; readonly lastSeqno: Seqno; readonly reset: SHA512}
-export type ResetPromptType =
-  | 0 // COMPLETE_0
-  | 1 // ENTER_NO_DEVICES_1
-  | 2 // ENTER_FORGOT_PW_2
-
 export type ResetState = {readonly endTime: Time; readonly active: Boolean}
 export type ResetSummary = {readonly ctime: UnixTime; readonly merkleRoot: ResetMerkleRoot; readonly resetSeqno: Seqno; readonly eldestSeqno: Seqno; readonly type: ResetType}
-export type ResetType =
-  | 0 // NONE_0
-  | 1 // RESET_1
-  | 2 // DELETE_2
-
 export type ResolveIdentifyImplicitTeamRes = {readonly displayName: String; readonly teamID: TeamID; readonly writers?: Array<UserVersion> | null; readonly trackBreaks: {[key: string]: IdentifyTrackBreaks}; readonly folderID: TLFID}
-export type RevisionSpanType =
-  | 0 // DEFAULT_0
-  | 1 // LAST_FIVE_1
-
 export type RevokeWarning = {readonly endangeredTLFs?: Array<TLF> | null}
 export type RevokedKey = {readonly key: PublicKey; readonly time: KeybaseTime; readonly by: KID}
 export type RevokedProof = {readonly proof: RemoteProof; readonly diff: TrackDiff; readonly snoozed: Boolean}
-export type RuntimeGroup =
-  | 0 // UNKNOWN_0
-  | 1 // LINUXLIKE_1
-  | 2 // DARWINLIKE_2
-  | 3 // WINDOWSLIKE_3
-
 export type SHA512 = Bytes
 export type SaltpackDecryptOptions = {readonly interactive: Boolean; readonly forceRemoteCheck: Boolean; readonly usePaperKey: Boolean}
 export type SaltpackEncryptOptions = {readonly recipients?: Array<String> | null; readonly teamRecipients?: Array<String> | null; readonly authenticityType: AuthenticityType; readonly useEntityKeys: Boolean; readonly useDeviceKeys: Boolean; readonly usePaperKeys: Boolean; readonly noSelfEncrypt: Boolean; readonly binary: Boolean; readonly saltpackVersion: Int; readonly useKBFSKeysOnlyForTesting: Boolean}
 export type SaltpackEncryptedMessageInfo = {readonly devices?: Array<Device> | null; readonly numAnonReceivers: Int; readonly receiverIsAnon: Boolean; readonly sender: SaltpackSender}
 export type SaltpackSender = {readonly uid: UID; readonly username: String; readonly senderType: SaltpackSenderType}
-export type SaltpackSenderType =
-  | 0 // NOT_TRACKED_0
-  | 1 // UNKNOWN_1
-  | 2 // ANONYMOUS_2
-  | 3 // TRACKING_BROKE_3
-  | 4 // TRACKING_OK_4
-  | 5 // SELF_5
-  | 6 // REVOKED_6
-  | 7 // EXPIRED_7
-
 export type SaltpackSignOptions = {readonly detached: Boolean; readonly binary: Boolean; readonly saltpackVersion: Int}
 export type SaltpackVerifyOptions = {readonly signedBy: String; readonly signature: Bytes}
 export type SecretEntryArg = {readonly desc: String; readonly prompt: String; readonly err: String; readonly cancel: String; readonly ok: String; readonly reason: String; readonly showTyping: Boolean}
@@ -2838,25 +2365,13 @@ export type SeitanAKey = String
 export type SeitanIKey = String
 export type SeitanIKeyV2 = String
 export type SeitanKeyAndLabel = {v: 1; v1: SeitanKeyAndLabelVersion1 | null} | {v: 2; v2: SeitanKeyAndLabelVersion2 | null}
-export type SeitanKeyAndLabelVersion =
-  | 1 // V1_1
-  | 2 // V2_2
-
 export type SeitanKeyAndLabelVersion1 = {readonly i: SeitanIKey; readonly l: SeitanKeyLabel}
 export type SeitanKeyAndLabelVersion2 = {readonly k: SeitanPubKey; readonly l: SeitanKeyLabel}
 export type SeitanKeyLabel = {t: 1; sms: SeitanKeyLabelSms | null}
 export type SeitanKeyLabelSms = {readonly f: String; readonly n: String}
-export type SeitanKeyLabelType = 1 // SMS_1
-
 export type SeitanPubKey = KID
 export type SelectKeyRes = {readonly keyID: String; readonly doSecretPush: Boolean}
 export type SelectorEntry = {readonly isIndex: Boolean; readonly index: Int; readonly isKey: Boolean; readonly key: String; readonly isAll: Boolean; readonly isContents: Boolean}
-export type SeqType =
-  | 0 // NONE_0
-  | 1 // PUBLIC_1
-  | 2 // PRIVATE_2
-  | 3 // SEMIPRIVATE_3
-
 export type Seqno = Int64
 export type ServiceDisplayConfig = {readonly creationDisabled: Boolean; readonly priority: Int; readonly key: String; readonly group?: String | null; readonly new: Boolean; readonly logoKey: String}
 export type ServiceStatus = {readonly version: String; readonly label: String; readonly pid: String; readonly lastExitStatus: String; readonly bundleVersion: String; readonly installStatus: InstallStatus; readonly installAction: InstallAction; readonly status: Status}
@@ -2871,11 +2386,6 @@ export type SigID = String
 export type SigListArgs = {readonly sessionID: Int; readonly username: String; readonly allKeys: Boolean; readonly types?: SigTypes | null; readonly filterx: String; readonly verbose: Boolean; readonly revoked: Boolean}
 export type SigTypes = {readonly track: Boolean; readonly proof: Boolean; readonly cryptocurrency: Boolean; readonly isSelf: Boolean}
 export type SigVersion = Int
-export type SignMode =
-  | 0 // ATTACHED_0
-  | 1 // DETACHED_1
-  | 2 // CLEAR_2
-
 export type SignatureMetadata = {readonly signingKID: KID; readonly prevMerkleRootSigned: MerkleRootV2; readonly firstAppearedUnverified: Seqno; readonly time: Time; readonly sigChainLocation: SigChainLocation}
 export type SignupRes = {readonly passphraseOk: Boolean; readonly postOk: Boolean; readonly writeOk: Boolean}
 export type SimpleFSGetHTTPAddressAndTokenResponse = {readonly address: String; readonly token: String}
@@ -2887,211 +2397,6 @@ export type SocialAssertionService = String
 export type StartProofResult = {readonly sigID: SigID}
 export type StartStatus = {readonly log: String}
 export type Status = {readonly code: Int; readonly name: String; readonly desc: String; readonly fields?: Array<StringKVPair> | null}
-export type StatusCode =
-  | 0 // SCOk_0
-  | 100 // SCInputError_100
-  | 201 // SCLoginRequired_201
-  | 202 // SCBadSession_202
-  | 203 // SCBadLoginUserNotFound_203
-  | 204 // SCBadLoginPassword_204
-  | 205 // SCNotFound_205
-  | 210 // SCThrottleControl_210
-  | 216 // SCDeleted_216
-  | 218 // SCGeneric_218
-  | 235 // SCAlreadyLoggedIn_235
-  | 230 // SCExists_230
-  | 237 // SCCanceled_237
-  | 239 // SCInputCanceled_239
-  | 243 // SCBadUsername_243
-  | 267 // SCOffline_267
-  | 274 // SCReloginRequired_274
-  | 275 // SCResolutionFailed_275
-  | 276 // SCProfileNotPublic_276
-  | 277 // SCIdentifyFailed_277
-  | 278 // SCTrackingBroke_278
-  | 279 // SCWrongCryptoFormat_279
-  | 280 // SCDecryptionError_280
-  | 281 // SCInvalidAddress_281
-  | 283 // SCNoSession_283
-  | 290 // SCAccountReset_290
-  | 295 // SCIdentifiesFailed_295
-  | 297 // SCNoSpaceOnDevice_297
-  | 299 // SCMerkleClientError_299
-  | 472 // SCBadEmail_472
-  | 602 // SCRateLimit_602
-  | 701 // SCBadSignupUsernameTaken_701
-  | 707 // SCBadInvitationCode_707
-  | 712 // SCFeatureFlag_712
-  | 801 // SCMissingResult_801
-  | 901 // SCKeyNotFound_901
-  | 905 // SCKeyCorrupted_905
-  | 907 // SCKeyInUse_907
-  | 913 // SCKeyBadGen_913
-  | 914 // SCKeyNoSecret_914
-  | 915 // SCKeyBadUIDs_915
-  | 916 // SCKeyNoActive_916
-  | 917 // SCKeyNoSig_917
-  | 918 // SCKeyBadSig_918
-  | 919 // SCKeyBadEldest_919
-  | 920 // SCKeyNoEldest_920
-  | 921 // SCKeyDuplicateUpdate_921
-  | 922 // SCSibkeyAlreadyExists_922
-  | 924 // SCDecryptionKeyNotFound_924
-  | 927 // SCKeyNoPGPEncryption_927
-  | 928 // SCKeyNoNaClEncryption_928
-  | 929 // SCKeySyncedPGPNotFound_929
-  | 930 // SCKeyNoMatchingGPG_930
-  | 931 // SCKeyRevoked_931
-  | 1002 // SCSigCannotVerify_1002
-  | 1008 // SCSigWrongKey_1008
-  | 1010 // SCSigOldSeqno_1010
-  | 1016 // SCSigCreationDisallowed_1016
-  | 1301 // SCBadTrackSession_1301
-  | 1404 // SCDeviceBadName_1404
-  | 1408 // SCDeviceNameInUse_1408
-  | 1409 // SCDeviceNotFound_1409
-  | 1410 // SCDeviceMismatch_1410
-  | 1411 // SCDeviceRequired_1411
-  | 1413 // SCDevicePrevProvisioned_1413
-  | 1414 // SCDeviceNoProvision_1414
-  | 1415 // SCDeviceProvisionViaDevice_1415
-  | 1416 // SCRevokeCurrentDevice_1416
-  | 1417 // SCRevokeLastDevice_1417
-  | 1418 // SCDeviceProvisionOffline_1418
-  | 1419 // SCRevokeLastDevicePGP_1419
-  | 1501 // SCStreamExists_1501
-  | 1502 // SCStreamNotFound_1502
-  | 1503 // SCStreamWrongKind_1503
-  | 1504 // SCStreamEOF_1504
-  | 1600 // SCGenericAPIError_1600
-  | 1601 // SCAPINetworkError_1601
-  | 1602 // SCTimeout_1602
-  | 1701 // SCProofError_1701
-  | 1702 // SCIdentificationExpired_1702
-  | 1703 // SCSelfNotFound_1703
-  | 1704 // SCBadKexPhrase_1704
-  | 1705 // SCNoUIDelegation_1705
-  | 1706 // SCNoUI_1706
-  | 1707 // SCGPGUnavailable_1707
-  | 1800 // SCInvalidVersionError_1800
-  | 1801 // SCOldVersionError_1801
-  | 1802 // SCInvalidLocationError_1802
-  | 1803 // SCServiceStatusError_1803
-  | 1804 // SCInstallError_1804
-  | 1810 // SCLoadKextError_1810
-  | 1811 // SCLoadKextPermError_1811
-  | 2300 // SCGitInternal_2300
-  | 2301 // SCGitRepoAlreadyExists_2301
-  | 2302 // SCGitInvalidRepoName_2302
-  | 2303 // SCGitCannotDelete_2303
-  | 2304 // SCGitRepoDoesntExist_2304
-  | 2400 // SCLoginStateTimeout_2400
-  | 2500 // SCChatInternal_2500
-  | 2501 // SCChatRateLimit_2501
-  | 2502 // SCChatConvExists_2502
-  | 2503 // SCChatUnknownTLFID_2503
-  | 2504 // SCChatNotInConv_2504
-  | 2505 // SCChatBadMsg_2505
-  | 2506 // SCChatBroadcast_2506
-  | 2507 // SCChatAlreadySuperseded_2507
-  | 2508 // SCChatAlreadyDeleted_2508
-  | 2509 // SCChatTLFFinalized_2509
-  | 2510 // SCChatCollision_2510
-  | 2511 // SCIdentifySummaryError_2511
-  | 2512 // SCNeedSelfRekey_2512
-  | 2513 // SCNeedOtherRekey_2513
-  | 2514 // SCChatMessageCollision_2514
-  | 2515 // SCChatDuplicateMessage_2515
-  | 2516 // SCChatClientError_2516
-  | 2517 // SCChatNotInTeam_2517
-  | 2518 // SCChatStalePreviousState_2518
-  | 2519 // SCChatEphemeralRetentionPolicyViolatedError_2519
-  | 2604 // SCTeamBadMembership_2604
-  | 2607 // SCTeamSelfNotOwner_2607
-  | 2614 // SCTeamNotFound_2614
-  | 2619 // SCTeamExists_2619
-  | 2623 // SCTeamReadError_2623
-  | 2625 // SCTeamWritePermDenied_2625
-  | 2638 // SCNoOp_2638
-  | 2646 // SCTeamInviteBadToken_2646
-  | 2663 // SCTeamTarDuplicate_2663
-  | 2664 // SCTeamTarNotFound_2664
-  | 2665 // SCTeamMemberExists_2665
-  | 2666 // SCTeamNotReleased_2666
-  | 2667 // SCTeamPermanentlyLeft_2667
-  | 2668 // SCTeamNeedRootId_2668
-  | 2669 // SCTeamHasLiveChildren_2669
-  | 2670 // SCTeamDeleteError_2670
-  | 2671 // SCTeamBadRootTeam_2671
-  | 2672 // SCTeamNameConflictsWithUser_2672
-  | 2673 // SCTeamDeleteNoUpPointer_2673
-  | 2674 // SCTeamNeedOwner_2674
-  | 2675 // SCTeamNoOwnerAllowed_2675
-  | 2676 // SCTeamImplicitNoNonSbs_2676
-  | 2677 // SCTeamImplicitBadHash_2677
-  | 2678 // SCTeamImplicitBadName_2678
-  | 2679 // SCTeamImplicitClash_2679
-  | 2680 // SCTeamImplicitDuplicate_2680
-  | 2681 // SCTeamImplicitBadOp_2681
-  | 2682 // SCTeamImplicitBadRole_2682
-  | 2683 // SCTeamImplicitNotFound_2683
-  | 2684 // SCTeamBadAdminSeqnoType_2684
-  | 2685 // SCTeamImplicitBadAdd_2685
-  | 2686 // SCTeamImplicitBadRemove_2686
-  | 2696 // SCTeamInviteTokenReused_2696
-  | 2697 // SCTeamKeyMaskNotFound_2697
-  | 2702 // SCTeamBanned_2702
-  | 2703 // SCTeamInvalidBan_2703
-  | 2711 // SCTeamShowcasePermDenied_2711
-  | 2721 // SCTeamProvisionalCanKey_2721
-  | 2722 // SCTeamProvisionalCannotKey_2722
-  | 2736 // SCTeamFTLOutdated_2736
-  | 2900 // SCEphemeralKeyBadGeneration_2900
-  | 2901 // SCEphemeralKeyUnexpectedBox_2901
-  | 2902 // SCEphemeralKeyMissingBox_2902
-  | 2903 // SCEphemeralKeyWrongNumberOfKeys_2903
-  | 2904 // SCEphemeralKeyMismatchedKey_2904
-  | 2905 // SCEphemeralPairwiseMACsMissingUIDs_2905
-  | 2906 // SCEphemeralDeviceAfterEK_2906
-  | 2907 // SCEphemeralMemberAfterEK_2907
-  | 2908 // SCEphemeralDeviceStale_2908
-  | 2909 // SCEphemeralUserStale_2909
-  | 3100 // SCStellarError_3100
-  | 3101 // SCStellarBadInput_3101
-  | 3102 // SCStellarWrongRevision_3102
-  | 3103 // SCStellarMissingBundle_3103
-  | 3104 // SCStellarBadPuk_3104
-  | 3105 // SCStellarMissingAccount_3105
-  | 3106 // SCStellarBadPrev_3106
-  | 3107 // SCStellarWrongPrimary_3107
-  | 3108 // SCStellarUnsupportedCurrency_3108
-  | 3109 // SCStellarNeedDisclaimer_3109
-  | 3110 // SCStellarDeviceNotMobile_3110
-  | 3111 // SCStellarMobileOnlyPurgatory_3111
-  | 3112 // SCStellarIncompatibleVersion_3112
-  | 3201 // SCNISTWrongSize_3201
-  | 3202 // SCNISTBadMode_3202
-  | 3203 // SCNISTHashWrongSize_3203
-  | 3204 // SCNISTSigWrongSize_3204
-  | 3205 // SCNISTSigBadInput_3205
-  | 3206 // SCNISTSigBadUID_3206
-  | 3207 // SCNISTSigBadDeviceID_3207
-  | 3208 // SCNISTSigBadNonce_3208
-  | 3209 // SCNISTNoSigOrHash_3209
-  | 3210 // SCNISTExpired_3210
-  | 3211 // SCNISTSigRevoked_3211
-  | 3212 // SCNISTKeyRevoked_3212
-  | 3213 // SCNISTUserDeleted_3213
-  | 3214 // SCNISTNoDevice_3214
-  | 3215 // SCNISTSigCannot_verify_3215
-  | 3216 // SCNISTReplay_3216
-  | 3217 // SCNISTSigBadLifetime_3217
-  | 3218 // SCNISTNotFound_3218
-  | 3219 // SCNISTBadClock_3219
-  | 3220 // SCNISTSigBadCtime_3220
-  | 3221 // SCBadSignupUsernameDeleted_3221
-  | 3605 // SCNoPaperKeys_3605
-
 export type StellarAccount = {readonly accountID: String; readonly federationAddress: String; readonly sigID: SigID}
 export type Stream = {readonly fd: Int}
 export type StringKVPair = {readonly key: String; readonly value: String}
@@ -3102,42 +2407,12 @@ export type SyncConfigAndStatusRes = {readonly folders?: Array<FolderSyncConfigA
 export type TLF = {readonly id: TLFID; readonly name: String; readonly writers?: Array<String> | null; readonly readers?: Array<String> | null; readonly isPrivate: Boolean}
 export type TLFBreak = {readonly breaks?: Array<TLFIdentifyFailure> | null}
 export type TLFID = String
-export type TLFIdentifyBehavior =
-  | 0 // UNSET_0
-  | 1 // CHAT_CLI_1
-  | 2 // CHAT_GUI_2
-  | 3 // REMOVED_AND_UNUSED_3
-  | 4 // KBFS_REKEY_4
-  | 5 // KBFS_QR_5
-  | 6 // CHAT_SKIP_6
-  | 7 // SALTPACK_7
-  | 8 // CLI_8
-  | 9 // GUI_9
-  | 10 // DEFAULT_KBFS_10
-  | 11 // KBFS_CHAT_11
-  | 12 // RESOLVE_AND_CHECK_12
-  | 13 // GUI_PROFILE_13
-  | 14 // KBFS_INIT_14
-
 export type TLFIdentifyFailure = {readonly user: User; readonly breaks?: IdentifyTrackBreaks | null}
 export type TLFQuery = {readonly tlfName: String; readonly identifyBehavior: TLFIdentifyBehavior}
-export type TLFVisibility =
-  | 0 // ANY_0
-  | 1 // PUBLIC_1
-  | 2 // PRIVATE_2
-
 export type TeamAcceptOrRequestResult = {readonly wasToken: Boolean; readonly wasSeitan: Boolean; readonly wasTeamName: Boolean; readonly wasOpenTeam: Boolean}
 export type TeamAccessRequest = {readonly uid: UID; readonly eldestSeqno: Seqno}
 export type TeamAddMemberResult = {readonly invited: Boolean; readonly user?: User | null; readonly emailSent: Boolean; readonly chatSending: Boolean}
 export type TeamAndMemberShowcase = {readonly teamShowcase: TeamShowcase; readonly isMemberShowcased: Boolean}
-export type TeamApplication =
-  | 1 // KBFS_1
-  | 2 // CHAT_2
-  | 3 // SALTPACK_3
-  | 4 // GIT_METADATA_4
-  | 5 // SEITAN_INVITE_TOKEN_5
-  | 6 // STELLAR_RELAY_6
-
 export type TeamApplicationKey = {readonly application: TeamApplication; readonly keyGeneration: PerTeamKeyGeneration; readonly key: Bytes32}
 export type TeamCLKRMsg = {readonly teamID: TeamID; readonly generation: PerTeamKeyGeneration; readonly score: Int; readonly resetUsersUntrusted?: Array<TeamCLKRResetUser> | null}
 export type TeamCLKRResetUser = {readonly uid: UID; readonly userEldestSeqno: Seqno; readonly memberEldestSeqno: Seqno}
@@ -3161,15 +2436,6 @@ export type TeamID = String
 export type TeamIDAndName = {readonly id: TeamID; readonly name: TeamName}
 export type TeamIDWithVisibility = {readonly teamID: TeamID; readonly visibility: TLFVisibility}
 export type TeamInvite = {readonly role: TeamRole; readonly id: TeamInviteID; readonly type: TeamInviteType; readonly name: TeamInviteName; readonly inviter: UserVersion}
-export type TeamInviteCategory =
-  | 0 // NONE_0
-  | 1 // UNKNOWN_1
-  | 2 // KEYBASE_2
-  | 3 // EMAIL_3
-  | 4 // SBS_4
-  | 5 // SEITAN_5
-  | 6 // PHONE_6
-
 export type TeamInviteID = String
 export type TeamInviteName = String
 export type TeamInviteSocialNetwork = String
@@ -3183,11 +2449,6 @@ export type TeamMember = {readonly uid: UID; readonly role: TeamRole; readonly e
 export type TeamMemberDetails = {readonly uv: UserVersion; readonly username: String; readonly fullName: FullName; readonly needsPUK: Boolean; readonly status: TeamMemberStatus}
 export type TeamMemberOutFromReset = {readonly teamName: String; readonly resetUser: TeamResetUser}
 export type TeamMemberOutReset = {readonly teamname: String; readonly username: String; readonly uid: UID; readonly id: Gregor1.MsgID}
-export type TeamMemberStatus =
-  | 0 // ACTIVE_0
-  | 1 // RESET_1
-  | 2 // DELETED_2
-
 export type TeamMembers = {readonly owners?: Array<UserVersion> | null; readonly admins?: Array<UserVersion> | null; readonly writers?: Array<UserVersion> | null; readonly readers?: Array<UserVersion> | null}
 export type TeamMembersDetails = {readonly owners?: Array<TeamMemberDetails> | null; readonly admins?: Array<TeamMemberDetails> | null; readonly writers?: Array<TeamMemberDetails> | null; readonly readers?: Array<TeamMemberDetails> | null}
 export type TeamName = {readonly parts?: Array<TeamNamePart> | null}
@@ -3202,80 +2463,25 @@ export type TeamProfileAddEntry = {readonly teamName: TeamName; readonly open: B
 export type TeamRefreshers = {readonly needKeyGeneration: PerTeamKeyGeneration; readonly needApplicationsAtGenerations: {[key: string]: Array<TeamApplication> | null}; readonly needApplicationsAtGenerationsWithKBFS: {[key: string]: Array<TeamApplication> | null}; readonly wantMembers?: Array<UserVersion> | null; readonly wantMembersRole: TeamRole; readonly needKBFSKeyGeneration: TeamKBFSKeyRefresher}
 export type TeamRequestAccessResult = {readonly open: Boolean}
 export type TeamResetUser = {readonly username: String; readonly uid: UID; readonly eldestSeqno: Seqno; readonly isDelete: Boolean}
-export type TeamRole =
-  | 0 // NONE_0
-  | 1 // READER_1
-  | 2 // WRITER_2
-  | 3 // ADMIN_3
-  | 4 // OWNER_4
-
 export type TeamSBSMsg = {readonly teamID: TeamID; readonly score: Int; readonly invitees?: Array<TeamInvitee> | null}
 export type TeamSeitanMsg = {readonly teamID: TeamID; readonly seitans?: Array<TeamSeitanRequest> | null}
 export type TeamSeitanRequest = {readonly inviteID: TeamInviteID; readonly uid: UID; readonly eldestSeqno: Seqno; readonly akey: SeitanAKey; readonly role: TeamRole; readonly unixCTime: Int64}
 export type TeamSettings = {readonly open: Boolean; readonly joinAs: TeamRole}
 export type TeamShowcase = {readonly isShowcased: Boolean; readonly description?: String | null; readonly setByUID?: UID | null; readonly anyMemberShowcase: Boolean}
 export type TeamSigChainState = {readonly reader: UserVersion; readonly id: TeamID; readonly implicit: Boolean; readonly public: Boolean; readonly rootAncestor: TeamName; readonly nameDepth: Int; readonly nameLog?: Array<TeamNameLogPoint> | null; readonly lastSeqno: Seqno; readonly lastLinkID: LinkID; readonly lastHighSeqno: Seqno; readonly lastHighLinkID: LinkID; readonly parentID?: TeamID | null; readonly userLog: {[key: string]: Array<UserLogPoint> | null}; readonly subteamLog: {[key: string]: Array<SubteamLogPoint> | null}; readonly perTeamKeys: {[key: string]: PerTeamKey}; readonly perTeamKeyCTime: UnixTime; readonly linkIDs: {[key: string]: LinkID}; readonly stubbedLinks: {[key: string]: Boolean}; readonly activeInvites: {[key: string]: TeamInvite}; readonly obsoleteInvites: {[key: string]: TeamInvite}; readonly open: Boolean; readonly openTeamJoinAs: TeamRole; readonly tlfIDs?: Array<TLFID> | null; readonly tlfLegacyUpgrade: {[key: string]: TeamLegacyTLFUpgradeChainInfo}; readonly headMerkle?: MerkleRootV2 | null; readonly merkleRoots: {[key: string]: MerkleRootV2}}
-export type TeamStatus =
-  | 0 // NONE_0
-  | 1 // LIVE_1
-  | 2 // DELETED_2
-  | 3 // ABANDONED_3
-
 export type TeamTreeEntry = {readonly name: TeamName; readonly admin: Boolean}
 export type TeamTreeResult = {readonly entries?: Array<TeamTreeEntry> | null}
-export type TeamType =
-  | 0 // NONE_0
-  | 1 // LEGACY_1
-  | 2 // MODERN_2
-
 export type Test = {readonly reply: String}
 export type Text = {readonly data: String; readonly markup: Boolean}
 export type Time = Long
 export type TrackDiff = {readonly type: TrackDiffType; readonly displayMarkup: String}
-export type TrackDiffType =
-  | 0 // NONE_0
-  | 1 // ERROR_1
-  | 2 // CLASH_2
-  | 3 // REVOKED_3
-  | 4 // UPGRADED_4
-  | 5 // NEW_5
-  | 6 // REMOTE_FAIL_6
-  | 7 // REMOTE_WORKING_7
-  | 8 // REMOTE_CHANGED_8
-  | 9 // NEW_ELDEST_9
-  | 10 // NONE_VIA_TEMPORARY_10
-
 export type TrackOptions = {readonly localOnly: Boolean; readonly bypassConfirm: Boolean; readonly forceRetrack: Boolean; readonly expiringLocal: Boolean; readonly forPGPPull: Boolean; readonly sigVersion?: SigVersion | null}
 export type TrackProof = {readonly proofType: String; readonly proofName: String; readonly idString: String}
-export type TrackStatus =
-  | 1 // NEW_OK_1
-  | 2 // NEW_ZERO_PROOFS_2
-  | 3 // NEW_FAIL_PROOFS_3
-  | 4 // UPDATE_BROKEN_FAILED_PROOFS_4
-  | 5 // UPDATE_NEW_PROOFS_5
-  | 6 // UPDATE_OK_6
-  | 7 // UPDATE_BROKEN_REVOKED_7
-
 export type TrackSummary = {readonly username: String; readonly time: Time; readonly isRemote: Boolean}
 export type TrackToken = String
 export type Tracker = {readonly tracker: UID; readonly status: Int; readonly mTime: Time}
 export type UID = String
-export type UPAKVersion =
-  | 1 // V1_1
-  | 2 // V2_2
-
 export type UPAKVersioned = {v: 1; v1: UserPlusAllKeys | null} | {v: 2; v2: UserPlusKeysV2AllIncarnations | null}
-export type UPK2MinorVersion =
-  | 0 // V0_0
-  | 1 // V1_1
-  | 2 // V2_2
-  | 3 // V3_3
-  | 4 // V4_4
-  | 5 // V5_5
-  | 6 // V6_6
-
-export type UPKLiteMinorVersion = 0 // V0_0
-
 export type UPKLiteV1 = {readonly uid: UID; readonly username: String; readonly eldestSeqno: Seqno; readonly status: StatusCode; readonly deviceKeys: {[key: string]: PublicKeyV2NaCl}; readonly reset?: ResetSummary | null}
 export type UPKLiteV1AllIncarnations = {readonly current: UPKLiteV1; readonly pastIncarnations?: Array<UPKLiteV1> | null; readonly seqnoLinkIDs: {[key: string]: LinkID}; readonly minorVersion: UPKLiteMinorVersion}
 export type UnboxAnyRes = {readonly kid: KID; readonly plaintext: Bytes32; readonly index: Int}
@@ -3285,16 +2491,6 @@ export type UpPointer = {readonly ourSeqno: Seqno; readonly parentID: TeamID; re
 export type UpdateDetails = {readonly message: String}
 export type UpdateInfo = {readonly status: UpdateInfoStatus; readonly message: String}
 export type UpdateInfo2 = {status: 0} | {status: 1; suggested: UpdateDetails | null} | {status: 2; critical: UpdateDetails | null}
-export type UpdateInfoStatus =
-  | 0 // UP_TO_DATE_0
-  | 1 // NEED_UPDATE_1
-  | 2 // CRITICALLY_OUT_OF_DATE_2
-
-export type UpdateInfoStatus2 =
-  | 0 // OK_0
-  | 1 // SUGGESTED_1
-  | 2 // CRITICAL_2
-
 export type UpdaterStatus = {readonly log: String}
 export type User = {readonly uid: UID; readonly username: String}
 export type UserCard = {readonly following: Int; readonly followers: Int; readonly uid: UID; readonly fullName: String; readonly location: String; readonly bio: String; readonly website: String; readonly twitter: String; readonly youFollowThem: Boolean; readonly theyFollowYou: Boolean; readonly teamShowcase?: Array<UserTeamShowcase> | null; readonly registeredForAirdrop: Boolean}
@@ -3307,10 +2503,6 @@ export type UserEkStatement = {readonly currentUserEkMetadata: UserEkMetadata}
 export type UserLogPoint = {readonly role: TeamRole; readonly sigMeta: SignatureMetadata}
 export type UserOrTeamID = String
 export type UserOrTeamLite = {readonly id: UserOrTeamID; readonly name: String}
-export type UserOrTeamResult =
-  | 1 // USER_1
-  | 2 // TEAM_2
-
 export type UserPhoneNumber = {readonly phoneNumber: PhoneNumber; readonly verified: Boolean; readonly visibility: IdentityVisibility; readonly ctime: UnixTime}
 export type UserPlusAllKeys = {readonly base: UserPlusKeys; readonly pgpKeys?: Array<PublicKey> | null; readonly remoteTracks?: Array<RemoteTrack> | null}
 export type UserPlusKeys = {readonly uid: UID; readonly username: String; readonly eldestSeqno: Seqno; readonly status: StatusCode; readonly deviceKeys?: Array<PublicKey> | null; readonly revokedDeviceKeys?: Array<RevokedKey> | null; readonly pgpKeyCount: Int; readonly uvv: UserVersionVector; readonly deletedDeviceKeys?: Array<PublicKey> | null; readonly perUserKeys?: Array<PerUserKey> | null; readonly resets?: Array<ResetSummary> | null}

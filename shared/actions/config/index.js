@@ -443,13 +443,13 @@ function* criticalOutOfDateCheck() {
       let status = 'ok'
       let message = ''
       switch (s.status) {
-        case RPCTypes.configUpdateInfoStatus2.ok:
+        case RPCTypes.UpdateInfoStatus2.ok:
           break
-        case RPCTypes.configUpdateInfoStatus2.suggested:
+        case RPCTypes.UpdateInfoStatus2.suggested:
           status = 'suggested'
           message = s.suggested?.message
           break
-        case RPCTypes.configUpdateInfoStatus2.critical:
+        case RPCTypes.UpdateInfoStatus2.critical:
           status = 'critical'
           message = s.critical?.message
           break

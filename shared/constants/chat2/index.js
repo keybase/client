@@ -280,12 +280,12 @@ export const makeInboxQuery = (
     computeActiveList: true,
     convIDs: convIDKeys.map(Types.keyToConversationID),
     readOnly: false,
-    status: Object.keys(RPCChatTypes.commonConversationStatus)
-      .filter(k => typeof RPCChatTypes.commonConversationStatus[k] === 'number')
+    status: Object.keys(RPCChatTypes.ConversationStatus)
+      .filter(k => typeof RPCChatTypes.ConversationStatus[k] === 'number')
       .filter(k => !['ignored', 'blocked', 'reported'].includes(k))
-      .map(k => RPCChatTypes.commonConversationStatus[k]),
+      .map(k => RPCChatTypes.ConversationStatus[k]),
     tlfVisibility: RPCTypes.commonTLFVisibility.private,
-    topicType: RPCChatTypes.commonTopicType.chat,
+    topicType: RPCChatTypes.TopicType.chat,
     unreadOnly: false,
   }
 }
@@ -293,14 +293,14 @@ export const makeInboxQuery = (
 export const anyToConversationMembersType = (a: any): ?RPCChatTypes.ConversationMembersType => {
   const membersTypeNumber: number = typeof a === 'string' ? parseInt(a, 10) : a || -1
   switch (membersTypeNumber) {
-    case RPCChatTypes.commonConversationMembersType.kbfs:
-      return RPCChatTypes.commonConversationMembersType.kbfs
-    case RPCChatTypes.commonConversationMembersType.team:
-      return RPCChatTypes.commonConversationMembersType.team
-    case RPCChatTypes.commonConversationMembersType.impteamnative:
-      return RPCChatTypes.commonConversationMembersType.impteamnative
-    case RPCChatTypes.commonConversationMembersType.impteamupgrade:
-      return RPCChatTypes.commonConversationMembersType.impteamupgrade
+    case RPCChatTypes.ConversationMembersType.kbfs:
+      return RPCChatTypes.ConversationMembersType.kbfs
+    case RPCChatTypes.ConversationMembersType.team:
+      return RPCChatTypes.ConversationMembersType.team
+    case RPCChatTypes.ConversationMembersType.impteamnative:
+      return RPCChatTypes.ConversationMembersType.impteamnative
+    case RPCChatTypes.ConversationMembersType.impteamupgrade:
+      return RPCChatTypes.ConversationMembersType.impteamupgrade
     default:
       return null
   }
@@ -314,11 +314,11 @@ const numMessagesOnScrollback = isMobile ? 100 : 100
 
 export const flipPhaseToString = (phase: number) => {
   switch (phase) {
-    case RPCChatTypes.chatUiUICoinFlipPhase.commitment:
+    case RPCChatTypes.UICoinFlipPhase.commitment:
       return 'commitments'
-    case RPCChatTypes.chatUiUICoinFlipPhase.reveals:
+    case RPCChatTypes.UICoinFlipPhase.reveals:
       return 'secrets'
-    case RPCChatTypes.chatUiUICoinFlipPhase.complete:
+    case RPCChatTypes.UICoinFlipPhase.complete:
       return 'complete'
     default:
       return 'loading'

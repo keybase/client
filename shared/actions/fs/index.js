@@ -23,11 +23,11 @@ import flags from '../../util/feature-flags'
 
 const rpcFolderTypeToTlfType = (rpcFolderType: RPCTypes.FolderType) => {
   switch (rpcFolderType) {
-    case RPCTypes.favoriteFolderType.private:
+    case RPCTypes.FolderType.private:
       return 'private'
-    case RPCTypes.favoriteFolderType.public:
+    case RPCTypes.FolderType.public:
       return 'public'
-    case RPCTypes.favoriteFolderType.team:
+    case RPCTypes.FolderType.team:
       return 'team'
     default:
       return null
@@ -180,13 +180,12 @@ const loadSettings = (state, action) =>
         }),
       })
     )
-    .catch(() =>
-      FsGen.createSettingsLoaded({})
-    )
+    .catch(() => FsGen.createSettingsLoaded({}))
 
 const setSpaceNotificationThreshold = (state, action) =>
-  RPCTypes.SimpleFSSimpleFSSetNotificationThresholdRpcPromise({threshold: action.payload.spaceAvailableNotificationThreshold})
-    .then(() => FsGen.createLoadSettings())
+  RPCTypes.SimpleFSSimpleFSSetNotificationThresholdRpcPromise({
+    threshold: action.payload.spaceAvailableNotificationThreshold,
+  }).then(() => FsGen.createLoadSettings())
 
 const getPrefetchStatusFromRPC = (
   prefetchStatus: RPCTypes.PrefetchStatus,
@@ -836,12 +835,12 @@ const initSendLinkToChat = (state, action) => {
   if (elems[1] !== 'team') {
     // It's an impl team conversation. So resolve to a convID directly.
     return RPCChatTypes.localFindConversationsLocalRpcPromise({
-      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-      membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
+      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+      membersType: RPCChatTypes.ConversationMembersType.impteamnative,
       oneChatPerTLF: false,
       tlfName: elems[2].replace('#', ','),
       topicName: '',
-      topicType: RPCChatTypes.commonTopicType.chat,
+      topicType: RPCChatTypes.TopicType.chat,
       visibility: RPCTypes.commonTLFVisibility.private,
     }).then(result =>
       // This action, no matter setting a real idKey or
@@ -864,9 +863,9 @@ const initSendLinkToChat = (state, action) => {
   // out to feel slow, we can probably cahce the results.
 
   return RPCChatTypes.localGetTLFConversationsLocalRpcPromise({
-    membersType: RPCChatTypes.commonConversationMembersType.team,
+    membersType: RPCChatTypes.ConversationMembersType.team,
     tlfName: elems[2],
-    topicType: RPCChatTypes.commonTopicType.chat,
+    topicType: RPCChatTypes.TopicType.chat,
   }).then(result =>
     !result.convs || !result.convs.length
       ? null // TODO: is this possible for teams at all?
@@ -874,7 +873,7 @@ const initSendLinkToChat = (state, action) => {
           FsGen.createSetSendLinkToChatChannels({
             channels: I.Map(
               result.convs
-                .filter(conv => conv.memberStatus === RPCChatTypes.commonConversationMemberStatus.active)
+                .filter(conv => conv.memberStatus === RPCChatTypes.ConversationMemberStatus.active)
                 .map(conv => [ChatTypes.stringToConversationIDKey(conv.convID), conv.channel])
             ),
           }),
@@ -905,11 +904,11 @@ const triggerSendLinkToChat = (state, action) => {
       })
     : RPCChatTypes.localNewConversationLocalRpcPromise({
         // It's an impl team conversation. So first make sure it exists.
-        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-        membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
+        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+        membersType: RPCChatTypes.ConversationMembersType.impteamnative,
         tlfName: elems[2].replace('#', ','),
         tlfVisibility: RPCTypes.commonTLFVisibility.private,
-        topicType: RPCChatTypes.commonTopicType.chat,
+        topicType: RPCChatTypes.TopicType.chat,
       }).then(result => ({
         conversationIDKey: ChatTypes.conversationIDToKey(result.conv.info.id),
         tlfName: result.conv.info.tlfName,
@@ -922,7 +921,7 @@ const triggerSendLinkToChat = (state, action) => {
         clientPrev: ChatConstants.getClientPrev(state, conversationIDKey),
         conversationID: ChatTypes.keyToConversationID(conversationIDKey),
         ephemeralLifetime: ChatConstants.getConversationExplodingMode(state, conversationIDKey) || undefined,
-        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
         outboxID: null,
         replyTo: null,
         tlfName,
@@ -1064,7 +1063,10 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
       onFSOverallSyncSyncStatusChanged
     )
     yield* Saga.chainAction<FsGen.LoadSettingsPayload>(FsGen.loadSettings, loadSettings)
-    yield* Saga.chainAction<FsGen.SetSpaceAvailableNotificationThresholdPayload>(FsGen.setSpaceAvailableNotificationThreshold, setSpaceNotificationThreshold)
+    yield* Saga.chainAction<FsGen.SetSpaceAvailableNotificationThresholdPayload>(
+      FsGen.setSpaceAvailableNotificationThreshold,
+      setSpaceNotificationThreshold
+    )
   }
 
   yield Saga.spawn(platformSpecificSaga)

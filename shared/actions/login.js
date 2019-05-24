@@ -14,12 +14,12 @@ import HiddenString from '../util/hidden-string'
 
 const cancelDesc = 'Canceling RPC'
 const cancelOnCallback = (params, response) => {
-  response.error({code: RPCTypes.constantsStatusCode.scgeneric, desc: cancelDesc})
+  response.error({code: RPCTypes.StatusCode.scgeneric, desc: cancelDesc})
 }
 const ignoreCallback = params => {}
 
 const getPasswordHandler = passphrase => (params, response) => {
-  if (params.pinentry.type === RPCTypes.passphraseCommonPassphraseType.passPhrase) {
+  if (params.pinentry.type === RPCTypes.PassphraseType.passPhrase) {
     // Service asking us again due to a bad passphrase?
     if (params.pinentry.retryLabel) {
       cancelOnCallback(params, response)

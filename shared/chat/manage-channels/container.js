@@ -32,7 +32,7 @@ const mapStateToProps = (state, ownProps) => {
       convID,
       description: info.description,
       name: info.channelname,
-      selected: info.memberStatus === RPCChatTypes.commonConversationMemberStatus.active,
+      selected: info.memberStatus === RPCChatTypes.ConversationMemberStatus.active,
     }))
     .valueSeq()
     .toArray()

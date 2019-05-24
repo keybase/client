@@ -9,25 +9,25 @@ type Props = {|
 |}
 
 const CoinFlipError = (props: Props) => {
-  if (props.error.typ === RPCChatTypes.chatUiUICoinFlipErrorTyp.generic && props.error.generic) {
+  if (props.error.typ === RPCChatTypes.UICoinFlipErrorTyp.generic && props.error.generic) {
     return <CoinFlipGenericError error={props.error.generic} />
-  } else if (props.error.typ === RPCChatTypes.chatUiUICoinFlipErrorTyp.absentee && props.error.absentee) {
+  } else if (props.error.typ === RPCChatTypes.UICoinFlipErrorTyp.absentee && props.error.absentee) {
     return <CoinFlipAbsenteeError error={props.error.absentee} />
-  } else if (props.error.typ === RPCChatTypes.chatUiUICoinFlipErrorTyp.timeout) {
+  } else if (props.error.typ === RPCChatTypes.UICoinFlipErrorTyp.timeout) {
     return <CoinFlipTimeoutError />
-  } else if (props.error.typ === RPCChatTypes.chatUiUICoinFlipErrorTyp.aborted) {
+  } else if (props.error.typ === RPCChatTypes.UICoinFlipErrorTyp.aborted) {
     return <CoinFlipAbortedError />
-  } else if (props.error.typ === RPCChatTypes.chatUiUICoinFlipErrorTyp.dupreg && props.error.dupreg) {
+  } else if (props.error.typ === RPCChatTypes.UICoinFlipErrorTyp.dupreg && props.error.dupreg) {
     return <CoinFlipDupError offender={props.error.dupreg} desc="registration" />
   } else if (
-    props.error.typ === RPCChatTypes.chatUiUICoinFlipErrorTyp.dupcommitcomplete &&
+    props.error.typ === RPCChatTypes.UICoinFlipErrorTyp.dupcommitcomplete &&
     props.error.dupcommitcomplete
   ) {
     return <CoinFlipDupError offender={props.error.dupcommitcomplete} desc="commitment list" />
-  } else if (props.error.typ === RPCChatTypes.chatUiUICoinFlipErrorTyp.dupreveal && props.error.dupreveal) {
+  } else if (props.error.typ === RPCChatTypes.UICoinFlipErrorTyp.dupreveal && props.error.dupreveal) {
     return <CoinFlipDupError offender={props.error.dupreveal} desc="secret reveal" />
   } else if (
-    props.error.typ === RPCChatTypes.chatUiUICoinFlipErrorTyp.commitmismatch &&
+    props.error.typ === RPCChatTypes.UICoinFlipErrorTyp.commitmismatch &&
     props.error.commitmismatch
   ) {
     return <CoinFlipCommitMismatchError offender={props.error.commitmismatch} />

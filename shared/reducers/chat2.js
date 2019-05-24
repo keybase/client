@@ -64,8 +64,8 @@ const metaMapReducer = (metaMap, action) => {
       const {error} = action.payload
       if (error) {
         switch (error.typ) {
-          case RPCChatTypes.localConversationErrorType.otherrekeyneeded: // fallthrough
-          case RPCChatTypes.localConversationErrorType.selfrekeyneeded: {
+          case RPCChatTypes.ConversationErrorType.otherrekeyneeded: // fallthrough
+          case RPCChatTypes.ConversationErrorType.selfrekeyneeded: {
             const {username, conversationIDKey} = action.payload
             const participants = error.rekeyInfo
               ? I.Set(
@@ -74,7 +74,7 @@ const metaMapReducer = (metaMap, action) => {
               : I.OrderedSet(error.unverifiedTLFName.split(',')).toList()
 
             const rekeyers = I.Set(
-              error.typ === RPCChatTypes.localConversationErrorType.selfrekeyneeded
+              error.typ === RPCChatTypes.ConversationErrorType.selfrekeyneeded
                 ? [username || '']
                 : (error.rekeyInfo && error.rekeyInfo.rekeyers) || []
             )

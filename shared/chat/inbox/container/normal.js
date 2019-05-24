@@ -21,7 +21,7 @@ const splitMetas = memoize((metaMap: Types.MetaMap, selectedConversation) => {
         bigMetas.push(meta)
       } else {
         if (
-          meta.status !== RPCChatTypes.commonConversationStatus.ignored ||
+          meta.status !== RPCChatTypes.ConversationStatus.ignored ||
           meta.conversationIDKey === selectedConversation
         ) {
           smallMetas.push(meta)

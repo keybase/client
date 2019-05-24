@@ -46,7 +46,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     canSetRetention,
     channelname: meta.channelname,
     description: meta.description,
-    ignored: meta.status === RPCChatTypes.commonConversationStatus.ignored,
+    ignored: meta.status === RPCChatTypes.ConversationStatus.ignored,
     isPreview: meta.membershipType === 'youArePreviewing',
     selectedConversationIDKey: conversationIDKey,
     smallTeam: meta.teamType !== 'big',

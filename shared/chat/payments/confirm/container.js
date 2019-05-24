@@ -12,7 +12,7 @@ type OwnProps = {||}
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const pinfo = state.chat2.paymentConfirmInfo
   const payments = pinfo?.summary?.payments || []
-  const errorIsNoWallet = pinfo?.error?.code === RPCTypes.constantsStatusCode.scstellarmissingbundle
+  const errorIsNoWallet = pinfo?.error?.code === RPCTypes.StatusCode.scstellarmissingbundle
   return {
     displayTotal: pinfo?.summary?.displayTotal,
     error: errorIsNoWallet ? 'Wallet needed to send money in chat.' : pinfo?.error?.desc,

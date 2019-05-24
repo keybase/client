@@ -3,7 +3,7 @@
 import Container from '../../login/forms/container'
 import * as React from 'react'
 import {RPCError} from '../../util/errors'
-import {constantsStatusCode} from '../../constants/types/rpc-gen'
+import {StatusCode} from '../../constants/types/rpc-gen'
 import {Box2, Text, Markdown} from '../../common-adapters'
 import {styleSheetCreate, globalStyles, globalMargins, isMobile} from '../../styles'
 
@@ -52,15 +52,15 @@ const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Prop
     return acc
   }, {})
   switch (error.code) {
-    case constantsStatusCode.scdeviceprovisionoffline:
-    case constantsStatusCode.scapinetworkerror:
+    case StatusCode.scdeviceprovisionoffline:
+    case StatusCode.scapinetworkerror:
       return (
         <Wrapper onBack={onBack}>
           <Text type="Body">Device provisioning failed because this device went offline.</Text>
           <Text type="Body">Please check your network connection and try again.</Text>
         </Wrapper>
       )
-    case constantsStatusCode.scdevicenoprovision:
+    case StatusCode.scdevicenoprovision:
       return (
         <Wrapper onBack={onBack}>
           <Text center={true} type="Body">
@@ -75,14 +75,14 @@ const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Prop
           </Text>
         </Wrapper>
       )
-    case constantsStatusCode.scdeviceprevprovisioned:
+    case StatusCode.scdeviceprevprovisioned:
       return (
         <Wrapper onBack={onBack}>
           <Text type="Body">You have already provisioned this device. </Text>
           <Text type="Body">Please use 'keybase login [username]' to log in. </Text>
         </Wrapper>
       )
-    case constantsStatusCode.sckeynomatchinggpg:
+    case StatusCode.sckeynomatchinggpg:
       if (fields.has_active_device) {
         return (
           <Wrapper onBack={onBack}>
@@ -143,7 +143,7 @@ const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Prop
           </Wrapper>
         )
       }
-    case constantsStatusCode.sckeynotfound:
+    case StatusCode.sckeynotfound:
       return error.desc ? (
         <Wrapper onBack={onBack}>
           <Markdown>{error.desc}</Markdown>
@@ -159,7 +159,7 @@ const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Prop
           </Text>
         </Wrapper>
       )
-    case constantsStatusCode.scbadloginpassword:
+    case StatusCode.scbadloginpassword:
       return (
         <Wrapper onBack={onBack}>
           <Text type="Body">Looks like that's a bad password.</Text>
@@ -168,9 +168,9 @@ const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Prop
           </Text>
         </Wrapper>
       )
-    case constantsStatusCode.sckeysyncedpgpnotfound:
-    case constantsStatusCode.scgpgunavailable:
-    case constantsStatusCode.sckeynosecret:
+    case StatusCode.sckeysyncedpgpnotfound:
+    case StatusCode.scgpgunavailable:
+    case StatusCode.sckeynosecret:
       return (
         <Wrapper onBack={onBack}>
           <Text center={true} type="Body">
@@ -200,13 +200,13 @@ const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Prop
           </List>
         </Wrapper>
       )
-    case constantsStatusCode.scinputcanceled:
+    case StatusCode.scinputcanceled:
       return (
         <Wrapper onBack={onBack}>
           <Text type="Body">Login Cancelled</Text>
         </Wrapper>
       )
-    case constantsStatusCode.sckeycorrupted:
+    case StatusCode.sckeycorrupted:
       return (
         <Wrapper onBack={onBack}>
           <Text type="Body">{error.message}</Text>
@@ -221,7 +221,7 @@ const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Prop
           </Text>
         </Wrapper>
       )
-    case constantsStatusCode.scdeleted:
+    case StatusCode.scdeleted:
       return (
         <Wrapper onBack={onBack}>
           <Text type="Body">User has been deleted.</Text>

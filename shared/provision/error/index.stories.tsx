@@ -20,30 +20,30 @@ const load = () => {
   let s = storiesOf('Provision/Error', module).add('Normal', () => <Error {...props} />)
 
   const codes = [
-    RPCTypes.constantsStatusCode.scdeviceprovisionoffline,
-    RPCTypes.constantsStatusCode.scapinetworkerror,
-    RPCTypes.constantsStatusCode.scdevicenoprovision,
-    RPCTypes.constantsStatusCode.scdeviceprevprovisioned,
-    RPCTypes.constantsStatusCode.sckeynomatchinggpg,
-    RPCTypes.constantsStatusCode.sckeynotfound,
-    RPCTypes.constantsStatusCode.scnotfound,
-    RPCTypes.constantsStatusCode.scbadloginpassword,
-    RPCTypes.constantsStatusCode.sckeysyncedpgpnotfound,
-    RPCTypes.constantsStatusCode.scgpgunavailable,
-    RPCTypes.constantsStatusCode.sckeynosecret,
-    RPCTypes.constantsStatusCode.scinputcanceled,
-    RPCTypes.constantsStatusCode.sckeycorrupted,
-    RPCTypes.constantsStatusCode.scdeleted,
+    RPCTypes.StatusCode.scdeviceprovisionoffline,
+    RPCTypes.StatusCode.scapinetworkerror,
+    RPCTypes.StatusCode.scdevicenoprovision,
+    RPCTypes.StatusCode.scdeviceprevprovisioned,
+    RPCTypes.StatusCode.sckeynomatchinggpg,
+    RPCTypes.StatusCode.sckeynotfound,
+    RPCTypes.StatusCode.scnotfound,
+    RPCTypes.StatusCode.scbadloginpassword,
+    RPCTypes.StatusCode.sckeysyncedpgpnotfound,
+    RPCTypes.StatusCode.scgpgunavailable,
+    RPCTypes.StatusCode.sckeynosecret,
+    RPCTypes.StatusCode.scinputcanceled,
+    RPCTypes.StatusCode.sckeycorrupted,
+    RPCTypes.StatusCode.scdeleted,
   ]
-  const names = invert(RPCTypes.constantsStatusCode)
+  const names = invert(RPCTypes.StatusCode)
 
   codes.forEach(code => {
     s = s.add(names[code], () => <Error {...props} error={convertToRPCError({code, desc: ''})} />)
   })
 
-  let e = convertToRPCError({code: RPCTypes.constantsStatusCode.sckeynomatchinggpg, desc: ''})
+  let e = convertToRPCError({code: RPCTypes.StatusCode.sckeynomatchinggpg, desc: ''})
   e.fields = [{key: 'has_active_device', value: true}]
-  s = s.add(names[RPCTypes.constantsStatusCode.sckeynomatchinggpg] + ':has_active_device', () => (
+  s = s.add(names[RPCTypes.StatusCode.sckeynomatchinggpg] + ':has_active_device', () => (
     <Error {...props} error={e} />
   ))
 }

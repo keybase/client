@@ -10,13 +10,13 @@ type Props = {|
 |}
 const CoinFlipResult = (props: Props) => {
   switch (props.result.typ) {
-    case RPCChatTypes.chatUiUICoinFlipResultTyp.shuffle:
+    case RPCChatTypes.UICoinFlipResultTyp.shuffle:
       return <CoinFlipResultShuffle shuffle={props.result.shuffle} />
-    case RPCChatTypes.chatUiUICoinFlipResultTyp.deck:
+    case RPCChatTypes.UICoinFlipResultTyp.deck:
       return <CoinFlipResultDeck deck={props.result.deck} />
-    case RPCChatTypes.chatUiUICoinFlipResultTyp.hands:
+    case RPCChatTypes.UICoinFlipResultTyp.hands:
       return <CoinFlipResultHands hands={props.result.hands} />
-    case RPCChatTypes.chatUiUICoinFlipResultTyp.coin:
+    case RPCChatTypes.UICoinFlipResultTyp.coin:
       return <CoinFlipResultCoin coin={props.result.coin} />
     default:
       return <CoinFlipResultNumber number={props.result.number} />

@@ -572,16 +572,16 @@ export const pathsAreInSameTlf = (path1: Path, path2: Path) =>
     .slice(0, 3)
     .join('/')
 export const getRPCFolderTypeFromVisibility = (v: Visibility): RPCTypes.FolderType => {
-  if (v === null) return RPCTypes.favoriteFolderType.unknown
-  return RPCTypes.favoriteFolderType[v]
+  if (v === null) return RPCTypes.FolderType.unknown
+  return RPCTypes.FolderType[v]
 }
 export const getVisibilityFromRPCFolderType = (folderType: RPCTypes.FolderType): Visibility => {
   switch (folderType) {
-    case RPCTypes.favoriteFolderType.private:
+    case RPCTypes.FolderType.private:
       return 'private'
-    case RPCTypes.favoriteFolderType.public:
+    case RPCTypes.FolderType.public:
       return 'public'
-    case RPCTypes.favoriteFolderType.team:
+    case RPCTypes.FolderType.team:
       return 'team'
     default:
       return null

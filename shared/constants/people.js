@@ -10,7 +10,7 @@ export const defaultNumFollowSuggestions = 10
 export const getPeopleDataWaitingKey = 'getPeopleData'
 
 export const todoTypeEnumToType: {[key: Types.TodoTypeEnum]: Types.TodoType} = invert(
-  RPCTypes.homeHomeScreenTodoType
+  RPCTypes.HomeScreenTodoType
 )
 
 export const todoTypes: {[key: Types.TodoType]: Types.TodoType} = {
@@ -97,7 +97,7 @@ export const reduceRPCItemToPeopleItem = (
   item: RPCTypes.HomeScreenItem
 ): I.List<Types.PeopleScreenItem> => {
   const badged = item.badged
-  if (item.data.t === RPCTypes.homeHomeScreenItemType.todo) {
+  if (item.data.t === RPCTypes.HomeScreenItemType.todo) {
     // Todo item
     const todoType = todoTypeEnumToType[(item.data.todo && item.data.todo.t) || 0]
     return list.push(
@@ -111,10 +111,10 @@ export const reduceRPCItemToPeopleItem = (
         type: 'todo',
       })
     )
-  } else if (item.data.t === RPCTypes.homeHomeScreenItemType.people) {
+  } else if (item.data.t === RPCTypes.HomeScreenItemType.people) {
     // Follow notification
     const notification = item.data.people
-    if (notification && notification.t === RPCTypes.homeHomeScreenPeopleNotificationType.followed) {
+    if (notification && notification.t === RPCTypes.HomeScreenPeopleNotificationType.followed) {
       // Single follow notification
       const follow = notification.followed
       if (!follow) {
@@ -128,10 +128,7 @@ export const reduceRPCItemToPeopleItem = (
           type: 'notification',
         })
       )
-    } else if (
-      notification &&
-      notification.t === RPCTypes.homeHomeScreenPeopleNotificationType.followedMulti
-    ) {
+    } else if (notification && notification.t === RPCTypes.HomeScreenPeopleNotificationType.followedMulti) {
       // Multiple follows notification
       const multiFollow = notification.followedMulti
       if (!multiFollow) {
@@ -158,7 +155,7 @@ export const reduceRPCItemToPeopleItem = (
         })
       )
     }
-  } else if (item.data.t === RPCTypes.homeHomeScreenItemType.announcement) {
+  } else if (item.data.t === RPCTypes.HomeScreenItemType.announcement) {
     const a = item.data.announcement
     if (a) {
       return list.push(

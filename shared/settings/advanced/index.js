@@ -181,7 +181,7 @@ class Developer extends React.Component<Props, State> {
               this.setState({indexTook: -1})
               const start = Date.now()
               RPCChatTypes.localProfileChatSearchRpcPromise({
-                identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+                identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
               }).then(() => this.setState({indexTook: Date.now() - start}))
             }}
           />
@@ -193,7 +193,7 @@ class Developer extends React.Component<Props, State> {
               this.setState({cleanTook: -1})
               const start = Date.now()
               RPCTypes.ctlDbCleanRpcPromise({
-                dbType: RPCTypes.ctlDbType.main, // core db
+                dbType: RPCTypes.DbType.main, // core db
                 force: true,
               }).then(() => this.setState({cleanTook: Date.now() - start}))
             }}

@@ -18,7 +18,7 @@ describe('teams reducer', () => {
     const channelInfo = Constants.makeChannelInfo({
       channelname: 'somechannel',
       description: 'some topic',
-      memberStatus: RPCChatTypes.commonConversationMemberStatus.active,
+      memberStatus: RPCChatTypes.ConversationMemberStatus.active,
     })
 
     const setAction = TeamsGen.createSetTeamChannelInfo({

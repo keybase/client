@@ -26,13 +26,13 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
 })
 
 const parseRepoResult = (result: RPCTypes.GitRepoResult): ?Types.GitInfo => {
-  if (result.state === RPCTypes.gitGitRepoResultState.ok && result.ok) {
+  if (result.state === RPCTypes.GitRepoResultState.ok && result.ok) {
     const r: RPCTypes.GitRepoInfo = result.ok
     if (!r.folder.private) {
       // Skip public repos
       return null
     }
-    const teamname = r.folder.folderType === RPCTypes.favoriteFolderType.team ? r.folder.name : null
+    const teamname = r.folder.folderType === RPCTypes.FolderType.team ? r.folder.name : null
     return makeGitInfo({
       canDelete: r.canDelete,
       channelName: (r.teamRepoSettings && r.teamRepoSettings.channelName) || null,
@@ -52,7 +52,7 @@ const parseRepoResult = (result: RPCTypes.GitRepoResult): ?Types.GitInfo => {
 
 const parseRepoError = (result: RPCTypes.GitRepoResult): Error => {
   let errStr: string = 'unknown'
-  if (result.state === RPCTypes.gitGitRepoResultState.err && result.err) {
+  if (result.state === RPCTypes.GitRepoResultState.err && result.err) {
     errStr = result.err
   }
   return new Error(`Git repo error: ${errStr}`)
@@ -64,7 +64,7 @@ export const parseRepos = (
   let errors = []
   let repos = {}
   results.forEach(result => {
-    if (result.state === RPCTypes.gitGitRepoResultState.ok && result.ok) {
+    if (result.state === RPCTypes.GitRepoResultState.ok && result.ok) {
       const parsedRepo = parseRepoResult(result)
       if (parsedRepo) {
         repos[parsedRepo.id] = parsedRepo

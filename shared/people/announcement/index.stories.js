@@ -48,23 +48,23 @@ const load = () => {
       <Announcement {...props} confirmLabel="Ok!" text="Text only confirm/dismiss" />
     ))
     .add('Go to chat', () => (
-      <Announcement {...props} appLink={RPCTypes.homeAppLinkType.chat} text="Go to chat" />
+      <Announcement {...props} appLink={RPCTypes.AppLinkType.chat} text="Go to chat" />
     ))
     .add('Go to chat confirm', () => (
       <Announcement
         {...props}
-        appLink={RPCTypes.homeAppLinkType.chat}
+        appLink={RPCTypes.AppLinkType.chat}
         confirmLabel="I did it"
         text="Go to chat confirm"
       />
     ))
     .add('Go to chat dismiss', () => (
-      <Announcement {...props} appLink={RPCTypes.homeAppLinkType.chat} text="Go to chat dismiss" />
+      <Announcement {...props} appLink={RPCTypes.AppLinkType.chat} text="Go to chat dismiss" />
     ))
     .add('Go to chat confirm/dismiss', () => (
       <Announcement
         {...props}
-        appLink={RPCTypes.homeAppLinkType.chat}
+        appLink={RPCTypes.AppLinkType.chat}
         confirmLabel="I did it"
         text="Go to chat confirm/dismiss"
       />
