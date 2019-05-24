@@ -705,44 +705,46 @@ const onChatChatTLFFinalizePayload = (_, action) => {
 const onChatThreadStale = (_, action, logger) => {
   const {updates} = action.payload.params
   let actions = []
-  Object.keys(RPCChatTypes.notifyChatStaleUpdateType).forEach(function(key) {
-    const conversationIDKeys = (updates || []).reduce((arr, u) => {
-      if (u.updateType === RPCChatTypes.notifyChatStaleUpdateType[key]) {
-        arr.push(Types.conversationIDToKey(u.convID))
+  Object.keys(RPCChatTypes.notifyChatStaleUpdateType)
+    .filter(k => typeof RPCChatTypes.notifyChatStaleUpdateType[k] === 'number')
+    .forEach(function(key) {
+      const conversationIDKeys = (updates || []).reduce((arr, u) => {
+        if (u.updateType === RPCChatTypes.notifyChatStaleUpdateType[key]) {
+          arr.push(Types.conversationIDToKey(u.convID))
+        }
+        return arr
+      }, [])
+      // load the inbox instead
+      if (key === 'convupdate') {
+        logger.info(
+          `onChatThreadStale: dispatching inbox unbox actions for ${
+            conversationIDKeys.length
+          } convs of type ${key}`
+        )
+        actions = actions.concat([
+          Chat2Gen.createMetaRequestTrusted({
+            conversationIDKeys,
+            force: true,
+          }),
+        ])
+      } else if (conversationIDKeys.length > 0) {
+        logger.info(
+          `onChatThreadStale: dispatching thread reload actions for ${
+            conversationIDKeys.length
+          } convs of type ${key}`
+        )
+        actions = actions.concat([
+          Chat2Gen.createMarkConversationsStale({
+            conversationIDKeys,
+            updateType: RPCChatTypes.notifyChatStaleUpdateType[key],
+          }),
+          Chat2Gen.createMetaRequestTrusted({
+            conversationIDKeys,
+            force: true,
+          }),
+        ])
       }
-      return arr
-    }, [])
-    // load the inbox instead
-    if (key === 'convupdate') {
-      logger.info(
-        `onChatThreadStale: dispatching inbox unbox actions for ${
-          conversationIDKeys.length
-        } convs of type ${key}`
-      )
-      actions = actions.concat([
-        Chat2Gen.createMetaRequestTrusted({
-          conversationIDKeys,
-          force: true,
-        }),
-      ])
-    } else if (conversationIDKeys.length > 0) {
-      logger.info(
-        `onChatThreadStale: dispatching thread reload actions for ${
-          conversationIDKeys.length
-        } convs of type ${key}`
-      )
-      actions = actions.concat([
-        Chat2Gen.createMarkConversationsStale({
-          conversationIDKeys,
-          updateType: RPCChatTypes.notifyChatStaleUpdateType[key],
-        }),
-        Chat2Gen.createMetaRequestTrusted({
-          conversationIDKeys,
-          force: true,
-        }),
-      ])
-    }
-  })
+    })
   return actions
 }
 
@@ -837,22 +839,24 @@ const onNewChatActivity = (state, action, logger) => {
   return actions
 }
 
-const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduce((arr, key) => {
-  switch (key) {
-    case 'none':
-    case 'edit': // daemon filters this out for us so we can ignore
-    case 'delete':
-    case 'attachmentuploaded':
-    case 'reaction':
-    case 'unfurl':
-      break
-    default:
-      arr.push(RPCChatTypes.commonMessageType[key])
-      break
-  }
+const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType)
+  .filter(k => typeof RPCChatTypes.commonMessageType[k] === 'number')
+  .reduce((arr, key) => {
+    switch (key) {
+      case 'none':
+      case 'edit': // daemon filters this out for us so we can ignore
+      case 'delete':
+      case 'attachmentuploaded':
+      case 'reaction':
+      case 'unfurl':
+        break
+      default:
+        arr.push(RPCChatTypes.commonMessageType[key])
+        break
+    }
 
-  return arr
-}, [])
+    return arr
+  }, [])
 
 const reasonToRPCReason = (reason: string): RPCChatTypes.GetThreadReason => {
   switch (reason) {
