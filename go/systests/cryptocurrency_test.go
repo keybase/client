@@ -32,9 +32,6 @@ func TestProveCapitalizedBech32Address(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 	alice := tt.addUser("abc")
-	m := libkb.NewMetaContextForTest(*alice.tc)
-	err := m.G().FeatureFlags.EnableImmediately(m, libkb.CreateBTCBech32)
-	require.NoError(t, err)
 
 	bech32Test := []struct {
 		address string
