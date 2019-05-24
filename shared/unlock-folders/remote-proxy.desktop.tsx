@@ -4,7 +4,7 @@ import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
 import {NullComponent, connect, compose} from '../util/container'
 import {serialize} from './remote-serializer.desktop'
 
-type OwnProps = {};
+type OwnProps = {}
 
 const windowOpts = {height: 300, width: 500}
 
@@ -47,7 +47,7 @@ const UnlockFolder = compose(
 
 type Props = {
   show: boolean
-};
+}
 
 class UnlockFolders extends React.PureComponent<Props> {
   render() {

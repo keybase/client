@@ -2,8 +2,8 @@ import UnlockFolders from './index.desktop'
 import {remoteConnect} from '../util/container'
 import * as UnlockFoldersGen from '../actions/unlock-folders-gen'
 
-type State = any;
-type OwnProps = any;
+type State = any
+type OwnProps = any
 
 // Props are handled by remote-proxy.desktop.js
 const mapDispatchToProps = dispatch => ({
