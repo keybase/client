@@ -118,11 +118,11 @@ const styles = Styles.styleSheetCreate({
     marginLeft: Styles.globalMargins.small,
     marginRight: Styles.globalMargins.small,
   },
-  adhocScrollContainer: {
-    maxHeight: 230,
-  },
   adhocPartContainer: {
     padding: Styles.globalMargins.tiny,
+  },
+  adhocScrollContainer: {
+    maxHeight: 120,
   },
   channelnameContainer: {
     alignSelf: 'center',

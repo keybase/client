@@ -5,6 +5,7 @@ import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import {imgMaxWidth} from '../../messages/attachment/image/image-render'
+import {formatTimeForChat} from '../../../../util/timestamp'
 
 type Thumb = {|
   ctime: number,
@@ -38,6 +39,7 @@ type DocProps = {|
 |}
 
 type Link = {|
+  author: string,
   ctime: number,
   snippet: string,
   title: string,
@@ -55,9 +57,6 @@ type Props = {|
   links: LinkProps,
   media: MediaProps,
   onViewChange: RPCChatTypes.GalleryItemTyp => void,
-|}
-
-type State = {|
   selectedView: RPCChatTypes.GalleryItemTyp,
 |}
 
@@ -273,7 +272,9 @@ class DocView extends React.Component<DocProps> {
             <Kb.Icon type={'icon-file-32'} style={Kb.iconCastPlatformStyles(styles.docIcon)} />
             <Kb.Box2 direction="vertical">
               <Kb.Text type="BodySemibold">{item.name}</Kb.Text>
-              <Kb.Text type="BodySmall">Sent by {item.author}</Kb.Text>
+              <Kb.Text type="BodySmall">
+                Sent by {item.author} • {formatTimeForChat(item.ctime)}
+              </Kb.Text>
             </Kb.Box2>
           </Kb.Box2>
         </Kb.ClickableBox>
@@ -321,6 +322,12 @@ class LinkView extends React.Component<LinkProps> {
   _renderItem = ({item}) => {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.linkContainer}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
+          <Kb.NameWithIcon colorFollowing={true} username={item.author} horizontal={true} />
+          <Kb.Text type="BodyTiny" style={styles.linkTime}>
+            {formatTimeForChat(item.ctime)}
+          </Kb.Text>
+        </Kb.Box2>
         <Kb.Text type="BodySmall" lineClamp={2}>
           {item.snippet}
         </Kb.Text>
@@ -348,44 +355,36 @@ class LinkView extends React.Component<LinkProps> {
   }
 }
 
-class AttachmentPanel extends React.Component<Props, State> {
-  state = {selectedView: RPCChatTypes.localGalleryItemTyp.media}
-
+class AttachmentPanel extends React.Component<Props> {
   componentDidMount() {
-    this.props.onViewChange(this.state.selectedView)
+    this.props.onViewChange(this.props.selectedView)
   }
 
   _getButtonMode = typ => {
-    return this.state.selectedView === typ ? 'Primary' : 'Secondary'
+    return this.props.selectedView === typ ? 'Primary' : 'Secondary'
   }
 
   _selectView = view => {
     this.props.onViewChange(view)
-    this.setState({selectedView: view})
   }
 
   render() {
     let content
-    let isLoading = false
-    switch (this.state.selectedView) {
+    switch (this.props.selectedView) {
       case RPCChatTypes.localGalleryItemTyp.media:
         content = <MediaView media={this.props.media} />
-        isLoading = this.props.media.status === 'loading'
         break
       case RPCChatTypes.localGalleryItemTyp.doc:
         content = <DocView docs={this.props.docs} />
-        isLoading = this.props.docs.status === 'loading'
         break
       case RPCChatTypes.localGalleryItemTyp.link:
         content = <LinkView links={this.props.links} />
-        isLoading = this.props.links.status === 'loading'
         break
       default:
         return null
     }
     content = (
       <Kb.Box2 direction="vertical" fullWidth={true}>
-        {isLoading && <Kb.ProgressIndicator style={styles.progress} />}
         {content}
       </Kb.Box2>
     )
@@ -451,6 +450,9 @@ const styles = Styles.styleSheetCreate({
   linkContainer: {
     padding: Styles.globalMargins.tiny,
   },
+  linkTime: {
+    alignSelf: 'center',
+  },
   loadMore: {
     margin: Styles.globalMargins.tiny,
   },
@@ -468,11 +470,6 @@ const styles = Styles.styleSheetCreate({
   },
   mediaRowContainer: {
     minWidth: rowSize * maxThumbSize,
-  },
-  progress: {
-    alignSelf: 'center',
-    height: Styles.globalMargins.medium,
-    width: Styles.globalMargins.medium,
   },
   thumbContainer: {
     overflow: 'hidden',

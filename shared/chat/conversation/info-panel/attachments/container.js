@@ -9,6 +9,8 @@ import AttachmentPanel from '.'
 
 type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
+  selectedView: RPCChatTypes.GalleryItemTyp,
+  setAttachmentView: (viewType: RPCChatTypes.GalleryItemTyp) => void,
 |}
 
 const getFromMsgID = info => {
@@ -41,7 +43,7 @@ const mapStateToProps = (state, {conversationIDKey}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {conversationIDKey}) => ({
+const mapDispatchToProps = (dispatch, {conversationIDKey, setAttachmentView}) => ({
   _onDocDownload: message => dispatch(Chat2Gen.createAttachmentDownload({message})),
   _onLoadMore: (viewType, fromMsgID) =>
     dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, fromMsgID, viewType})),
@@ -49,10 +51,13 @@ const mapDispatchToProps = (dispatch, {conversationIDKey}) => ({
   _onShowInFinder: message =>
     message.downloadPath &&
     dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath})),
-  onViewChange: viewType => dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, viewType})),
+  onViewChange: viewType => {
+    dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, viewType}))
+    setAttachmentView(viewType)
+  },
 })
 
-const mergeProps = (stateProps, dispatchProps, {conversationIDKey}) => ({
+const mergeProps = (stateProps, dispatchProps, {conversationIDKey, selectedView}) => ({
   docs: {
     docs: stateProps._docs.messages
       .map(m => ({
@@ -75,6 +80,7 @@ const mergeProps = (stateProps, dispatchProps, {conversationIDKey}) => ({
       m.unfurls.toList().map(u => {
         if (u.unfurl.unfurlType === RPCChatTypes.unfurlUnfurlType.generic && u.unfurl.generic) {
           l.push({
+            author: m.author,
             ctime: m.timestamp,
             snippet: m.bodySummary.stringValue(),
             title: u.unfurl.generic.title,
@@ -106,6 +112,7 @@ const mergeProps = (stateProps, dispatchProps, {conversationIDKey}) => ({
       .toArray(),
   },
   onViewChange: dispatchProps.onViewChange,
+  selectedView,
 })
 
 export default namedConnect<OwnProps, _, _, _, _>(

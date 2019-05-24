@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
+import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import type {Props as HeaderHocProps} from '../../../common-adapters/header-hoc/types'
 import {AdhocHeader, TeamHeader} from './header'
 import {MembersPanel, SettingsPanel} from './panels'
@@ -62,7 +63,13 @@ const TabText = ({selected, text}: {selected: boolean, text: string}) => (
   </Kb.Text>
 )
 
-class _InfoPanel extends React.Component<InfoPanelProps> {
+type InfoPanelState = {
+  selectedAttachmentView: RPCChatTypes.GalleryItemTyp,
+}
+
+class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
+  state = {selectedAttachmentView: RPCChatTypes.localGalleryItemTyp.media}
+
   _getEntityType = () => {
     if (this.props.teamname && this.props.channelname) {
       return this.props.smallTeam ? 'small team' : 'channel'
@@ -78,28 +85,35 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
     const res = []
     if (!this.props.isPreview) {
       res.push(
-        <Kb.Box key="settings" style={styles.tabTextContainer}>
+        <Kb.Box2 key="settings" style={styles.tabTextContainer} direction="horizontal">
           <TabText selected={this._isSelected('settings')} text="Settings" />
-        </Kb.Box>
+        </Kb.Box2>
       )
     }
     if (entityType !== 'adhoc') {
       res.push(
-        <Kb.Box key="members" style={styles.tabTextContainer}>
+        <Kb.Box2 key="members" style={styles.tabTextContainer} direction="horizontal">
           <TabText selected={this._isSelected('members')} text="Members" />
-        </Kb.Box>
+        </Kb.Box2>
       )
     }
     res.push(
-      <Kb.Box key="attachments" style={styles.tabTextContainer}>
+      <Kb.Box2 key="attachments" style={styles.tabTextContainer} direction="horizontal">
         <TabText selected={this._isSelected('attachments')} text="Attachments" />
-      </Kb.Box>
+      </Kb.Box2>
     )
+    if (this.props.attachmentsLoading) {
+      res.push(<Kb.ProgressIndicator style={styles.attachmentsLoading} />)
+    }
     return res
   }
 
   _onSelectTab = tab => {
     this.props.onSelectTab(tab.key)
+  }
+
+  _setAttachmentView = viewType => {
+    this.setState({selectedAttachmentView: viewType})
   }
 
   render() {
@@ -149,7 +163,11 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           <MembersPanel onShowProfile={this.props.onShowProfile} participants={this.props.participants} />
         )}
         {this._isSelected('attachments') && (
-          <AttachmentPanel conversationIDKey={this.props.selectedConversationIDKey} />
+          <AttachmentPanel
+            conversationIDKey={this.props.selectedConversationIDKey}
+            selectedView={this.state.selectedAttachmentView}
+            setAttachmentView={this._setAttachmentView}
+          />
         )}
       </>
     )
@@ -167,6 +185,10 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
 
 const border = `1px solid ${Styles.globalColors.black_10}`
 const styles = Styles.styleSheetCreate({
+  attachmentsLoading: {
+    height: Styles.globalMargins.small,
+    width: Styles.globalMargins.small,
+  },
   container: Styles.platformStyles({
     common: {alignItems: 'stretch', flex: 1, paddingBottom: Styles.globalMargins.medium},
     isElectron: {
@@ -175,7 +197,6 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   tabTextContainer: {
-    ...Styles.globalStyles.flexBoxRow,
     justifyContent: 'center',
   },
   tabTextSelected: {color: Styles.globalColors.black},
