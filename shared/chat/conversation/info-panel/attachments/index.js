@@ -355,6 +355,56 @@ class LinkView extends React.Component<LinkProps> {
   }
 }
 
+type SelectorProps = {
+  selectedView: RPCChatTypes.GalleryItemTyp,
+  onSelectView: RPCChatTypes.GalleryItemTyp => void,
+}
+
+class AttachmentTypeSelector extends React.Component<SelectorProps> {
+  _getColors = typ => {
+    return typ === this.props.selectedView
+      ? {backgroundColor: Styles.globalColors.blue, color: Styles.globalColors.white}
+      : {backgroundColor: undefined, color: Styles.globalColors.blue}
+  }
+  render() {
+    return (
+      <Kb.Box2 direction="horizontal" style={styles.selectorContainer} alignItems="center">
+        <Kb.Text
+          onClick={() => this.props.onSelectView(RPCChatTypes.localGalleryItemTyp.media)}
+          type="BodySemibold"
+          style={Styles.collapseStyles([
+            styles.selectorItemContainer,
+            this._getColors(RPCChatTypes.localGalleryItemTyp.media),
+          ])}
+        >
+          Media
+        </Kb.Text>
+        <Kb.Text
+          onClick={() => this.props.onSelectView(RPCChatTypes.localGalleryItemTyp.doc)}
+          type="BodySemibold"
+          style={Styles.collapseStyles([
+            styles.selectorItemContainer,
+            styles.selectorDocContainer,
+            this._getColors(RPCChatTypes.localGalleryItemTyp.doc),
+          ])}
+        >
+          Docs
+        </Kb.Text>
+        <Kb.Text
+          onClick={() => this.props.onSelectView(RPCChatTypes.localGalleryItemTyp.link)}
+          type="BodySemibold"
+          style={Styles.collapseStyles([
+            styles.selectorItemContainer,
+            this._getColors(RPCChatTypes.localGalleryItemTyp.link),
+          ])}
+        >
+          Links
+        </Kb.Text>
+      </Kb.Box2>
+    )
+  }
+}
+
 class AttachmentPanel extends React.Component<Props> {
   componentDidMount() {
     this.props.onViewChange(this.props.selectedView)
@@ -390,29 +440,7 @@ class AttachmentPanel extends React.Component<Props> {
     )
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-        <Kb.ButtonBar direction="row" style={styles.buttons}>
-          <Kb.Button
-            type="Default"
-            mode={this._getButtonMode(RPCChatTypes.localGalleryItemTyp.media)}
-            label="Media"
-            small={true}
-            onClick={() => this._selectView(RPCChatTypes.localGalleryItemTyp.media)}
-          />
-          <Kb.Button
-            type="Default"
-            mode={this._getButtonMode(RPCChatTypes.localGalleryItemTyp.link)}
-            label="Links"
-            small={true}
-            onClick={() => this._selectView(RPCChatTypes.localGalleryItemTyp.link)}
-          />
-          <Kb.Button
-            type="Default"
-            mode={this._getButtonMode(RPCChatTypes.localGalleryItemTyp.doc)}
-            label="Docs"
-            small={true}
-            onClick={() => this._selectView(RPCChatTypes.localGalleryItemTyp.doc)}
-          />
-        </Kb.ButtonBar>
+        <AttachmentTypeSelector selectedView={this.props.selectedView} onSelectView={this._selectView} />
         <Kb.Box2 direction="vertical" fullWidth={true}>
           {content}
         </Kb.Box2>
@@ -470,6 +498,26 @@ const styles = Styles.styleSheetCreate({
   },
   mediaRowContainer: {
     minWidth: rowSize * maxThumbSize,
+  },
+  selectorContainer: {
+    borderColor: Styles.globalColors.blue,
+    borderRadius: Styles.borderRadius,
+    borderStyle: 'solid',
+    borderWidth: 1,
+    flexShrink: 0,
+    justifyContent: 'space-between',
+    marginBottom: Styles.globalMargins.tiny,
+    marginTop: Styles.globalMargins.tiny,
+  },
+  selectorDocContainer: {
+    borderColor: Styles.globalColors.blue,
+    borderLeftStyle: 'solid',
+    borderRightStyle: 'solid',
+    borderWidth: 1,
+  },
+  selectorItemContainer: {
+    ...Styles.globalStyles.flexBoxColumn,
+    ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.small),
   },
   thumbContainer: {
     overflow: 'hidden',
