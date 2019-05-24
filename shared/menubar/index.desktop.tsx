@@ -13,10 +13,9 @@ import OutOfDate from './out-of-date'
 import Upload from '../fs/footer/upload'
 import UploadCountdownHOC, {UploadCountdownHOCProps} from '../fs/footer/upload-countdown-hoc'
 import KbfsDaemonNotRunning from '../fs/common/kbfs-daemon-not-running'
-import {DaemonHandshakeState} from '../constants/types/config'
 
 export type Props = {
-  daemonHandshakeState: DaemonHandshakeState
+  daemonHandshakeState: ConfigTypes.DaemonHandshakeState
   logIn: () => void
   loggedIn: boolean
   kbfsDaemonStatus: FsTypes.KbfsDaemonStatus

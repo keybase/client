@@ -5,6 +5,7 @@ import * as ConfigTypes from '../constants/types/config'
 import flags from '../util/feature-flags'
 
 type Props = {
+  // eslint-disable-next-line no-use-before-define
   outOfDate?: ConfigTypes.OutOfDate
   updateNow?: () => void
 }
