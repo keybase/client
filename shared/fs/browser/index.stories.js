@@ -4,7 +4,7 @@ import React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Sb from '../../stories/storybook'
 import DestinationPicker from './destination-picker'
-import Folder from '.'
+import Browser from '.'
 import * as Kb from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
 import {rowsProvider} from './rows/index.stories'
@@ -28,11 +28,11 @@ const provider = Sb.createPropProviderWithCommon({
 })
 
 export default () => {
-  Sb.storiesOf('Files/Folder', module)
+  Sb.storiesOf('Files/Browser', module)
     .addDecorator(provider)
     .add('normal', () => (
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
-        <Folder
+        <Browser
           path={Types.stringToPath('/keybase/private/foo')}
           routePath={I.List([])}
           shouldShowSFMIBanner={false}
@@ -43,7 +43,7 @@ export default () => {
     ))
     .add('with SystemFileManagerIntegrationBanner', () => (
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
-        <Folder
+        <Browser
           path={Types.stringToPath('/keybase/private/foo')}
           routePath={I.List([])}
           shouldShowSFMIBanner={true}
@@ -54,7 +54,7 @@ export default () => {
     ))
     .add('I am reset', () => (
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
-        <Folder
+        <Browser
           path={Types.stringToPath('/keybase/private/me,reset')}
           routePath={I.List([])}
           shouldShowSFMIBanner={false}
@@ -65,7 +65,7 @@ export default () => {
     ))
     .add('others reset', () => (
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
-        <Folder
+        <Browser
           path={Types.stringToPath('/keybase/private/others,reset')}
           routePath={I.List([])}
           shouldShowSFMIBanner={false}
@@ -76,7 +76,7 @@ export default () => {
     ))
     .add('offline and not synced', () => (
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
-        <Folder
+        <Browser
           path={Types.stringToPath('/keybase/private/others,reset')}
           routePath={I.List([])}
           shouldShowSFMIBanner={false}

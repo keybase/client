@@ -7,7 +7,7 @@ import * as FsGen from '../actions/fs-gen'
 import * as Constants from '../constants/fs'
 import * as Types from '../constants/types/fs'
 import {isMobile} from '../constants/platform'
-import Folder from './folder/container'
+import Browser from './browser/container'
 import {NormalPreview} from './filepreview'
 import {LoadPathMetadataWhenNeeded} from './common'
 import * as SimpleScreens from './simple-screens'
@@ -96,7 +96,7 @@ class ChooseComponent extends React.PureComponent<ChooseComponentProps> {
     }
     switch (this.props.pathType) {
       case 'folder':
-        return <Folder path={this.props.path} routePath={this.props.routePath} />
+        return <Browser path={this.props.path} routePath={this.props.routePath} />
       case 'unknown':
         return <SimpleScreens.Loading path={this.props.path} />
       default:

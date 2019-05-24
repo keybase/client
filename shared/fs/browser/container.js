@@ -1,7 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import {namedConnect} from '../../util/container'
-import Folder from '.'
+import Browser from '.'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
@@ -35,6 +35,6 @@ type OwnProps = {|
 |}
 
 // flow can't figure out type when compose is used.
-export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'Folder')(
-  Folder
+export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'Browser')(
+  Browser
 )

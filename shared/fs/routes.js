@@ -12,7 +12,7 @@ export const newModalRoutes = {
     upgraded: true,
   },
   destinationPicker: {
-    getScreen: () => require('./folder/destination-picker/container').default,
+    getScreen: () => require('./browser/destination-picker/container').default,
     upgraded: true,
   },
   sendAttachmentToChat: {

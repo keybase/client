@@ -53,7 +53,7 @@ const SelfReset = (props: Props) => (
   </Kb.Box2>
 )
 
-const Folder = (props: Props) => (
+const Browser = (props: Props) => (
   <Kb.BoxGrow>
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       <Kbfs.Errs />
@@ -75,4 +75,4 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-export default Folder
+export default Browser
