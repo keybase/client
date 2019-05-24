@@ -529,7 +529,8 @@ export const getPathFromRelative = (tlfName: string, tlfType: TlfType, inTlfPath
   '/keybase/' + tlfType + '/' + tlfName + '/' + inTlfPath
 export const stringToEditID = (s: string): EditID => s
 export const editIDToString = (s: EditID): string => s
-export const stringToPath = (s: string): Path => (s.indexOf('/') === 0 ? s : null)
+export const stringToPath = (s: string): Path =>
+  s.indexOf('/') === 0 ? s.replace(/\/+/g, '/').replace(/\/$/, '') : null
 export const pathToString = (p: Path): string => (!p ? '' : p)
 export const stringToLocalPath = (s: string): LocalPath => s
 export const localPathToString = (p: LocalPath): string => p
