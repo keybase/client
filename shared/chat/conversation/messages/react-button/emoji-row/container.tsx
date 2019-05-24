@@ -2,7 +2,7 @@ import * as Container from '../../../../../util/container'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Types from '../../../../../constants/types/chat2'
 import getEmojis from './data'
-import { StylesCrossPlatform } from '../../../../../styles';
+import {StylesCrossPlatform} from '../../../../../styles'
 import EmojiRow from '.'
 
 const hr = 1000 * 60 * 60
@@ -10,12 +10,12 @@ const min = 1000 * 60
 const currentMinute = () => Math.floor((Date.now() % hr) / min)
 
 type OwnProps = {
-  className?: string,
-  conversationIDKey: Types.ConversationIDKey,
-  onShowingEmojiPicker?: (arg0: boolean) => void,
-  ordinal: Types.Ordinal,
+  className?: string
+  conversationIDKey: Types.ConversationIDKey
+  onShowingEmojiPicker?: (arg0: boolean) => void
+  ordinal: Types.Ordinal
   style?: StylesCrossPlatform
-};
+}
 
 const mapStateToProps = () => ({})
 

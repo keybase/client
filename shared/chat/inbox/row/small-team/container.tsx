@@ -6,7 +6,7 @@ import {connect, isMobile} from '../../../../util/container'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
-};
+}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const _conversationIDKey = ownProps.conversationIDKey
@@ -32,9 +32,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {
-  conversationIDKey
-}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => ({
   onSelectConversation: () =>
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSmall'})),
 })

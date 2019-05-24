@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
-import { TickerID, addTicker, removeTicker } from '../../../../../util/second-timer';
+import {TickerID, addTicker, removeTicker} from '../../../../../util/second-timer'
 import {formatDurationShort} from '../../../../../util/timestamp'
-import SharedTimer, { SharedTimerID } from '../../../../../util/shared-timers';
+import SharedTimer, {SharedTimerID} from '../../../../../util/shared-timers'
 import {animationDuration} from '../exploding-height-retainer'
 
 const oneMinuteInMs = 60 * 1000
@@ -11,24 +11,24 @@ const oneHourInMs = oneMinuteInMs * 60
 const oneDayInMs = oneHourInMs * 24
 
 export type _Props = {
-  exploded: boolean,
-  explodesAt: number,
-  messageKey: string,
-  onClick: () => void | null,
-  pending: boolean,
+  exploded: boolean
+  explodesAt: number
+  messageKey: string
+  onClick: () => void | null
+  pending: boolean
   style?: Styles.StylesCrossPlatform
-};
-type Props = Kb.PropsWithTimer<_Props>;
+}
+type Props = Kb.PropsWithTimer<_Props>
 
 type State = {
-  mode: "none" | "countdown" | "boom" | "hidden"
-};
+  mode: 'none' | 'countdown' | 'boom' | 'hidden'
+}
 
 class ExplodingMeta extends React.Component<Props, State> {
   state = {mode: 'none'}
-  tickerID: TickerID;
-  sharedTimerID: SharedTimerID;
-  sharedTimerKey: string;
+  tickerID: TickerID
+  sharedTimerID: SharedTimerID
+  sharedTimerKey: string
 
   componentDidMount() {
     this._hideOrStart()

@@ -3,9 +3,9 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 
 type Props = {
-  onBuildTeam: () => void,
+  onBuildTeam: () => void
   showBuildATeam: boolean
-};
+}
 
 const DividerBox = Styles.styled(Kb.Box)({
   ...Styles.globalStyles.flexBoxRow,
@@ -29,11 +29,7 @@ const DividerBox = Styles.styled(Kb.Box)({
   width: '100%',
 })
 
-const BuildTeam = ({
-  loaded,
-  showBuildATeam,
-  onBuildTeam
-}: Props) =>
+const BuildTeam = ({loaded, showBuildATeam, onBuildTeam}: Props) =>
   showBuildATeam ? (
     <Kb.ClickableBox title="Make a new team" onClick={onBuildTeam} style={styles.container}>
       <DividerBox>

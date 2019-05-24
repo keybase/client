@@ -4,11 +4,9 @@ import {globalColors, globalStyles, globalMargins} from '../../../styles'
 
 type Props = {
   onShowNewTeamDialog: () => void
-};
+}
 
-const CreateTeamHeader = ({
-  onShowNewTeamDialog
-}: Props) => (
+const CreateTeamHeader = ({onShowNewTeamDialog}: Props) => (
   <Box style={stylesContainer}>
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
       <Text center={true} type="BodySmallSemibold" negative={true}>

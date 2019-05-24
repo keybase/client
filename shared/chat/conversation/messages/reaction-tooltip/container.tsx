@@ -13,15 +13,15 @@ import {ReactionTooltip} from '.'
  */
 
 export type OwnProps = {
-  attachmentRef?: () => React.Component<any> | null,
-  conversationIDKey: Types.ConversationIDKey,
-  emoji?: string,
-  onHidden: () => void,
-  onMouseLeave?: (syntheticEvent: React.SyntheticEvent) => void,
-  onMouseOver?: (syntheticEvent: React.SyntheticEvent) => void,
-  ordinal: Types.Ordinal,
+  attachmentRef?: () => React.Component<any> | null
+  conversationIDKey: Types.ConversationIDKey
+  emoji?: string
+  onHidden: () => void
+  onMouseLeave?: (syntheticEvent: React.SyntheticEvent) => void
+  onMouseOver?: (syntheticEvent: React.SyntheticEvent) => void
+  ordinal: Types.Ordinal
   visible: boolean
-};
+}
 
 const emptyStateProps = {
   _reactions: I.Map(),
@@ -42,12 +42,14 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   onAddReaction: () => {
     ownProps.onHidden()
     dispatch(
-      RouteTreeGen.createNavigateAppend({path: [
-        {
-          props: {conversationIDKey: ownProps.conversationIDKey, ordinal: ownProps.ordinal},
-          selected: 'chatChooseEmoji',
-        },
-      ]})
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {conversationIDKey: ownProps.conversationIDKey, ordinal: ownProps.ordinal},
+            selected: 'chatChooseEmoji',
+          },
+        ],
+      })
     )
   },
 })

@@ -3,11 +3,11 @@ import * as Kb from '../../../../../../common-adapters/index'
 import * as Styles from '../../../../../../styles'
 import logger from '../../../../../../logger'
 import RNVideo from 'react-native-video'
-import { Props } from './video.types';
+import {Props} from './video.types'
 
 type State = {
   playingVideo: boolean
-};
+}
 
 export class Video extends React.Component<Props, State> {
   state = {playingVideo: this.props.autoPlay}

@@ -8,7 +8,7 @@ import {connect} from '../../../../util/container'
 
 type OwnProps = {
   message: Types.MessageSystemAddedToTeam
-};
+}
 
 const mapStateToProps = (state, ownProps) => {
   const teamname = Constants.getMeta(state, ownProps.message.conversationIDKey).teamname

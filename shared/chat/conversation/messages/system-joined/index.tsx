@@ -5,15 +5,15 @@ import UserNotice from '../user-notice'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 
 type Props = {
-  author: string,
-  authorIsYou: boolean,
-  channelname: string,
-  isBigTeam: boolean,
-  onManageChannels: () => void,
-  onManageNotifications: () => void,
-  teamname: string,
+  author: string
+  authorIsYou: boolean
+  channelname: string
+  isBigTeam: boolean
+  onManageChannels: () => void
+  onManageNotifications: () => void
+  teamname: string
   timestamp: number
-};
+}
 
 const textType = 'BodySmallSemiboldPrimaryLink'
 

@@ -3,13 +3,11 @@ import {Box, CopyableText, HeaderOnMobile, Text} from '../../../common-adapters'
 import {globalStyles, globalMargins} from '../../../styles'
 
 type Props = {
-  onBack: () => void,
+  onBack: () => void
   text: string
-};
+}
 
-const ConversationError = ({
-  text
-}: Props) => (
+const ConversationError = ({text}: Props) => (
   <Box style={styleContainer}>
     <Text type="Header">There was an error loading this conversation.</Text>
     <Text style={styleBody} type="Body">

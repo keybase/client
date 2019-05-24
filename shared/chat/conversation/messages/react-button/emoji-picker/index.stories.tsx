@@ -3,9 +3,12 @@ import {Box, Box2, NewInput} from '../../../../../common-adapters'
 import {action, storiesOf} from '../../../../../stories/storybook'
 import ChooseEmoji from '.'
 
-class WithFilter extends React.Component<{}, {
-  filter: string
-}> {
+class WithFilter extends React.Component<
+  {},
+  {
+    filter: string
+  }
+> {
   state = {filter: ''}
   render() {
     return (

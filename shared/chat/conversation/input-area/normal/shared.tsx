@@ -3,11 +3,7 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import {formatDurationShort} from '../../../../util/timestamp'
 
-export const ExplodingMeta = ({
-  explodingModeSeconds
-}: {
-  explodingModeSeconds: number
-}) => {
+export const ExplodingMeta = ({explodingModeSeconds}: {explodingModeSeconds: number}) => {
   if (explodingModeSeconds === 0) {
     // nothing to show
     return null

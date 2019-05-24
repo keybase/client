@@ -10,13 +10,13 @@ import {InfoPanelMenu} from '.'
 import * as ChatTypes from '../../../../constants/types/chat2'
 
 export type OwnProps = {
-  attachTo: () => React.Component<any> | null,
-  onHidden: () => void,
-  isSmallTeam: boolean,
-  teamname: string,
-  conversationIDKey: ChatTypes.ConversationIDKey,
+  attachTo: () => React.Component<any> | null
+  onHidden: () => void
+  isSmallTeam: boolean
+  teamname: string
+  conversationIDKey: ChatTypes.ConversationIDKey
   visible: boolean
-};
+}
 
 // can be expensive, don't run if not visible
 const moreThanOneSubscribedChannel = (metaMap, teamname) => {
@@ -33,12 +33,7 @@ const moreThanOneSubscribedChannel = (metaMap, teamname) => {
   })
 }
 
-const mapStateToProps = (state, {
-  teamname,
-  conversationIDKey,
-  isSmallTeam,
-  visible
-}: OwnProps) => {
+const mapStateToProps = (state, {teamname, conversationIDKey, isSmallTeam, visible}: OwnProps) => {
   let convProps = null
   if (conversationIDKey && conversationIDKey !== ChatConstants.noConversationIDKey) {
     const meta = state.chat2.metaMap.get(conversationIDKey, ChatConstants.makeConversationMeta())
@@ -92,10 +87,7 @@ const mapStateToProps = (state, {
   }
 }
 
-const mapDispatchToProps = (dispatch, {
-  teamname,
-  conversationIDKey
-}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {teamname, conversationIDKey}: OwnProps) => ({
   loadOperations: () => dispatch(TeamsGen.createGetTeamOperations({teamname})),
   onAddPeople: () =>
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamAddPeople'}]})),

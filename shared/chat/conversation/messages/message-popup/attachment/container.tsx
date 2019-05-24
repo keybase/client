@@ -7,18 +7,18 @@ import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import {getCanPerform} from '../../../../../constants/teams'
 import {connect} from '../../../../../util/container'
 import {isMobile, isIOS} from '../../../../../constants/platform'
-import { Position } from '../../../../../common-adapters/relative-popup-hoc.types';
-import { StylesCrossPlatform } from '../../../../../styles/css';
+import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
+import {StylesCrossPlatform} from '../../../../../styles/css'
 import Attachment from '.'
 
 type OwnProps = {
-  attachTo: () => React.Component<any> | null,
-  message: Types.MessageAttachment,
-  onHidden: () => void,
-  position: Position,
-  style?: StylesCrossPlatform,
+  attachTo: () => React.Component<any> | null
+  message: Types.MessageAttachment
+  onHidden: () => void
+  position: Position
+  style?: StylesCrossPlatform
   visible: boolean
-};
+}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const message = ownProps.message

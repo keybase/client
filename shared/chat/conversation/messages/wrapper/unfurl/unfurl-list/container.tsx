@@ -5,14 +5,11 @@ import {namedConnect} from '../../../../../../util/container'
 import UnfurlList from '.'
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey,
+  conversationIDKey: Types.ConversationIDKey
   ordinal: Types.Ordinal
-};
+}
 
-const mapStateToProps = (state, {
-  conversationIDKey,
-  ordinal
-}: OwnProps) => {
+const mapStateToProps = (state, {conversationIDKey, ordinal}: OwnProps) => {
   const message = Constants.getMessage(state, conversationIDKey, ordinal)
   return {
     _unfurls: message && message.type === 'text' ? message.unfurls : null,
@@ -20,9 +17,7 @@ const mapStateToProps = (state, {
   }
 }
 
-const mapDispatchToProps = (dispatch, {
-  conversationIDKey
-}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => ({
   onClose: (messageID: Types.MessageID) =>
     dispatch(Chat2Gen.createUnfurlRemove({conversationIDKey, messageID})),
   onCollapse: (messageID: Types.MessageID, collapse: boolean) =>

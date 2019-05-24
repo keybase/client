@@ -5,8 +5,8 @@ import * as Sb from '../../../../stories/storybook'
 import {propProvider as ReactButton} from '../react-button/index.stories'
 import {upperFirst} from 'lodash-es'
 import ReactionTooltip from '.'
-import { Props } from '.';
-import { OwnProps } from './container';
+import {Props} from '.'
+import {OwnProps} from './container'
 
 const provider = Sb.createPropProviderWithCommon(ReactButton)
 
@@ -142,7 +142,7 @@ export const propProvider = {
     // we can mock this out better later if wanted
     reactions: examples[0].reactions,
 
-    visible: ownProps.visible
+    visible: ownProps.visible,
   }),
 }
 

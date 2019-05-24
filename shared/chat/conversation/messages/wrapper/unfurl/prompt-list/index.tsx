@@ -1,10 +1,10 @@
 import * as React from 'react'
 import {Box2} from '../../../../../../common-adapters/index'
-import Prompt, { Props as PromptProps } from '../prompt';
+import Prompt, {Props as PromptProps} from '../prompt'
 
 export type Props = {
   prompts: Array<PromptProps>
-};
+}
 
 class UnfurlPromptList extends React.PureComponent<Props> {
   render() {

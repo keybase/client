@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { Props } from './picker';
+import {Props} from './picker'
 
 class Picker extends React.Component<Props> {
   render() {

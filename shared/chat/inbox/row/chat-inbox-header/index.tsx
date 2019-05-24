@@ -3,19 +3,19 @@ import ChatFilterRow from '../chat-filter-row/container'
 import StartNewChat from '../start-new-chat'
 
 type Props = {
-  isSearching: boolean,
-  onBack: () => void,
-  onNewChat: () => void,
-  showNewChat: boolean,
-  onSelectUp: () => void,
-  onSelectDown: () => void,
-  onEnsureSelection: () => void,
+  isSearching: boolean
+  onBack: () => void
+  onNewChat: () => void
+  showNewChat: boolean
+  onSelectUp: () => void
+  onSelectDown: () => void
+  onEnsureSelection: () => void
   onQueryChanged: (arg0: string) => void
-};
+}
 
 type State = {
   query: string
-};
+}
 
 class ChatInboxHeader extends React.Component<Props, State> {
   state = {

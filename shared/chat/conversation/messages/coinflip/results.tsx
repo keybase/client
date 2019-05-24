@@ -6,7 +6,7 @@ import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 
 type Props = {
   result: RPCChatTypes.UICoinFlipResult
-};
+}
 
 const CoinFlipResult = (props: Props) => {
   switch (props.result.typ) {
@@ -99,9 +99,9 @@ const suits = {
 }
 
 type CardType = {
-  card: number,
+  card: number
   hand?: boolean
-};
+}
 
 const Card = (props: CardType) => (
   <Kb.Box2 direction="vertical" centerChildren={true} style={styles.card}>
@@ -126,9 +126,9 @@ const Card = (props: CardType) => (
 )
 
 type DeckType = {
-  deck: Array<number> | null,
+  deck: Array<number> | null
   hand?: boolean
-};
+}
 
 const CoinFlipResultDeck = (props: DeckType) => (
   <Kb.Box2
@@ -142,7 +142,7 @@ const CoinFlipResultDeck = (props: DeckType) => (
 
 type CoinType = {
   coin: boolean | null
-};
+}
 
 const CoinFlipResultCoin = (props: CoinType) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.commonContainer}>
@@ -159,7 +159,7 @@ const CoinFlipResultCoin = (props: CoinType) => (
 
 type HandType = {
   hands: Array<RPCChatTypes.UICoinFlipHand> | null
-};
+}
 
 const CoinFlipResultHands = (props: HandType) => {
   if (!props.hands) return null
@@ -203,7 +203,7 @@ const CoinFlipResultHands = (props: HandType) => {
 
 type NumberType = {
   number: string | null
-};
+}
 
 const CoinFlipResultNumber = (props: NumberType) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.commonContainer}>
@@ -215,7 +215,7 @@ const CoinFlipResultNumber = (props: NumberType) => (
 
 type ShuffleType = {
   shuffle: Array<string> | null
-};
+}
 
 const CoinFlipResultShuffle = (props: ShuffleType) => (
   <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xtiny" style={styles.listContainer}>

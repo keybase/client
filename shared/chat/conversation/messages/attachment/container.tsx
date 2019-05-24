@@ -4,9 +4,9 @@ import FileAttachment from './file/container'
 import ImageAttachment from './image/container'
 
 type Props = {
-  message: Types.MessageAttachment,
+  message: Types.MessageAttachment
   toggleMessageMenu: () => void
-};
+}
 
 class Attachment extends React.PureComponent<Props> {
   render() {

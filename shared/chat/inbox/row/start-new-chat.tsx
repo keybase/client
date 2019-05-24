@@ -3,9 +3,9 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 
 type Props = {
-  onBack: () => void,
+  onBack: () => void
   onNewChat: () => void
-};
+}
 
 const StartNewChat = (props: Props) => {
   if (Styles.isMobile) {

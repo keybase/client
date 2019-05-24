@@ -7,10 +7,10 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import Inbox from '..'
 import {isMobile} from '../../../constants/platform'
 import {namedConnect} from '../../../util/container'
-import { Props as _Props, RowItemSmall, RowItemBig } from '../index.types';
+import {Props as _Props, RowItemSmall, RowItemBig} from '../index.types'
 import normalRowData from './normal'
 
-type OwnProps = {};
+type OwnProps = {}
 
 const mapStateToProps = state => {
   const metaMap = state.chat2.metaMap
@@ -127,12 +127,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 }
 
 type Props = {
-  _hasLoadedTrusted: boolean,
-  _onInitialLoad: (array: Array<Types.ConversationIDKey>) => void,
-  _refreshInbox: () => void,
-  _canRefreshOnMount: boolean,
+  _hasLoadedTrusted: boolean
+  _onInitialLoad: (array: Array<Types.ConversationIDKey>) => void
+  _refreshInbox: () => void
+  _canRefreshOnMount: boolean
   _onMountedDesktop: () => void
-} & _Props;
+} & _Props
 
 class InboxWrapper extends React.PureComponent<Props> {
   _onSelectUp = () => this.props.onSelectUp()

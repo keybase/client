@@ -3,24 +3,17 @@ import {Avatar, Box, ClickableBox} from '../../../common-adapters'
 import {globalStyles, globalMargins, isMobile, desktopStyles, platformStyles} from '../../../styles'
 
 export type Props = {
-  bgColor: string,
-  username?: string,
-  teamname?: string,
-  children?: React.ElementType,
-  style?: Object | null,
+  bgColor: string
+  username?: string
+  teamname?: string
+  children?: React.ElementType
+  style?: Object | null
   onClickAvatar?: () => void
-};
+}
 
 const AVATAR_SIZE = 32
 
-const UserNotice = ({
-  bgColor,
-  username,
-  teamname,
-  children,
-  style,
-  onClickAvatar
-}: Props) => (
+const UserNotice = ({bgColor, username, teamname, children, style, onClickAvatar}: Props) => (
   <Box style={{...styleOuterBox, ...style}}>
     {!!(username || teamname) && (
       <ClickableBox style={stylesAvatarWrapper(AVATAR_SIZE)} onClick={onClickAvatar}>
@@ -32,12 +25,12 @@ const UserNotice = ({
 )
 
 export type SmallProps = {
-  avatarUsername: string,
-  bottomLine: React.ElementType,
-  onAvatarClicked: () => void,
-  title?: string,
+  avatarUsername: string
+  bottomLine: React.ElementType
+  onAvatarClicked: () => void
+  title?: string
   topLine: React.ElementType
-};
+}
 
 const SmallUserNotice = (props: SmallProps) => (
   <Box style={styleSmallNotice} title={props.title}>

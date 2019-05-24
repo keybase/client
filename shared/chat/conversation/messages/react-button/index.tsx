@@ -15,19 +15,19 @@ import {backgroundImageFn} from '../../../../common-adapters/emoji'
 import DelayInterval from './delay-interval'
 
 export type Props = {
-  active: boolean,
-  className?: string,
-  conversationIDKey: Types.ConversationIDKey,
-  count: number,
-  emoji: string,
-  onClick: () => void,
-  onLongPress?: () => void,
-  onMouseLeave?: (evt: React.SyntheticEvent) => void,
-  onMouseOver?: (evt: React.SyntheticEvent) => void,
-  getAttachmentRef?: () => React.Component<any> | null,
-  ordinal: Types.Ordinal,
+  active: boolean
+  className?: string
+  conversationIDKey: Types.ConversationIDKey
+  count: number
+  emoji: string
+  onClick: () => void
+  onLongPress?: () => void
+  onMouseLeave?: (evt: React.SyntheticEvent) => void
+  onMouseOver?: (evt: React.SyntheticEvent) => void
+  getAttachmentRef?: () => React.Component<any> | null
+  ordinal: Types.Ordinal
   style?: Styles.StylesCrossPlatform
-};
+}
 
 let bounceIn, bounceOut
 if (!Styles.isMobile) {
@@ -46,7 +46,12 @@ const ButtonBox = Styles.styled(ClickableBox)(props =>
     ? {borderColor: Styles.globalColors.black_10}
     : {
         ...(props.border
-          ? {':hover': {backgroundColor: Styles.globalColors.blueLighter2, borderColor: Styles.globalColors.blue}}
+          ? {
+              ':hover': {
+                backgroundColor: Styles.globalColors.blueLighter2,
+                borderColor: Styles.globalColors.blue,
+              },
+            }
           : {}),
         '& .centered': {animation: `${bounceIn} 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards`},
         '& .offscreen': {animation: `${bounceOut} 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards`},
@@ -89,38 +94,41 @@ const iconCycle = [
   'iconfont-reacji-sheep',
 ]
 export type NewReactionButtonProps = {
-  getAttachmentRef?: () => React.Component<any> | null,
-  onAddReaction: (emoji: string) => void,
-  onLongPress?: () => void,
-  onOpenEmojiPicker: () => void,
-  onShowPicker?: (showing: boolean) => void,
-  showBorder: boolean,
+  getAttachmentRef?: () => React.Component<any> | null
+  onAddReaction: (emoji: string) => void
+  onLongPress?: () => void
+  onOpenEmojiPicker: () => void
+  onShowPicker?: (showing: boolean) => void
+  showBorder: boolean
   style?: Styles.StylesCrossPlatform
-};
+}
 
 type NewReactionButtonState = {
-  applyClasses: boolean,
-  hovering: boolean,
-  iconIndex: number,
+  applyClasses: boolean
+  hovering: boolean
+  iconIndex: number
   showingPicker: boolean
-};
+}
 
 export class NewReactionButton extends React.Component<NewReactionButtonProps, NewReactionButtonState> {
   state = {applyClasses: false, hovering: false, iconIndex: 0, showingPicker: false}
   _delayInterval = new DelayInterval(1000, 400)
-  _intervalID: number | null;
-  _attachmentRef: React.Component<any> | null;
+  _intervalID: number | null
+  _attachmentRef: React.Component<any> | null
 
   _setShowingPicker = (showingPicker: boolean) => {
     this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
     this.props.onShowPicker && this.props.onShowPicker(showingPicker)
   }
 
-  _onAddReaction = ({
-    colons
-  }: {
-    colons: string
-  }, evt: Event) => {
+  _onAddReaction = (
+    {
+      colons,
+    }: {
+      colons: string
+    },
+    evt: Event
+  ) => {
     evt.stopPropagation()
     this.props.onAddReaction(colons)
     this._setShowingPicker(false)

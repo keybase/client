@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { EmojiData } from './data';
+import {EmojiData} from './data'
 import {ClickableBox, Box2, Emoji, SectionList, Text} from '../../../../../common-adapters'
 import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../../../../styles'
 import {isAndroid} from '../../../../../constants/platform'
@@ -49,23 +49,23 @@ const cacheSections = (width: number, sections: Array<Section>) => {
 }
 
 type Section = {
-  category: string,
+  category: string
   data: Array<{
-    emojis: Array<EmojiData>,
+    emojis: Array<EmojiData>
     key: string
-  }>,
+  }>
   key: string
-};
+}
 
 type Props = {
-  filter?: string,
-  onChoose: (emoji: EmojiData) => void,
+  filter?: string
+  onChoose: (emoji: EmojiData) => void
   width: number
-};
+}
 
 type State = {
   sections: Array<Section> | null
-};
+}
 
 class EmojiPicker extends React.Component<Props, State> {
   state = {sections: cachedSections}
@@ -151,9 +151,9 @@ class EmojiPicker extends React.Component<Props, State> {
 
 const EmojiRow = (props: {
   item: {
-    emojis: Array<EmojiData>,
+    emojis: Array<EmojiData>
     key: string
-  },
+  }
   onChoose: (emojiData: EmojiData) => void
 }) => (
   <Box2 key={props.item.key} fullWidth={true} style={styles.alignItemsCenter} direction="horizontal">
@@ -163,23 +163,13 @@ const EmojiRow = (props: {
   </Box2>
 )
 
-const EmojiRender = ({
-  emoji,
-  onChoose
-}: {
-  emoji: EmojiData,
-  onChoose: (emojiData: EmojiData) => void
-}) => (
+const EmojiRender = ({emoji, onChoose}: {emoji: EmojiData; onChoose: (emojiData: EmojiData) => void}) => (
   <ClickableBox onClick={() => onChoose(emoji)} style={styles.emoji} key={emoji.short_name}>
     <Emoji size={isAndroid ? singleEmojiWidth - 5 : singleEmojiWidth} emojiName={`:${emoji.short_name}:`} />
   </ClickableBox>
 )
 
-const HeaderRow = ({
-  section
-}: {
-  section: Section
-}) => (
+const HeaderRow = ({section}: {section: Section}) => (
   <Box2 direction="horizontal" fullWidth={true} style={styles.sectionHeader}>
     <Text type="BodySmallSemibold">{section.category}</Text>
   </Box2>

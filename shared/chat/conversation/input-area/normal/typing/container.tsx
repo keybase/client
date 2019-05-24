@@ -5,11 +5,9 @@ import {Typing} from '.'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
-};
+}
 
-const mapStateToProps = (state, {
-  conversationIDKey
-}: OwnProps) => ({
+const mapStateToProps = (state, {conversationIDKey}: OwnProps) => ({
   names: Constants.getTyping(state, conversationIDKey),
 })
 

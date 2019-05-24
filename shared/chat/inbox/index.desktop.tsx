@@ -12,14 +12,14 @@ import BigTeamsDivider from './row/big-teams-divider/container'
 import TeamsDivider from './row/teams-divider/container'
 import {debounce} from 'lodash-es'
 import UnreadShortcut from './unread-shortcut'
-import { Props, RowItem, RowItemSmall, RowItemBig, RouteState } from './index.types';
+import {Props, RowItem, RowItemSmall, RowItemBig, RouteState} from './index.types'
 import {virtualListMarks} from '../../local-debug'
 import {inboxWidth, getRowHeight} from './row/sizes'
 
 type State = {
-  showFloating: boolean,
+  showFloating: boolean
   showUnread: boolean
-};
+}
 
 class Inbox extends React.PureComponent<Props, State> {
   state = {
@@ -27,13 +27,13 @@ class Inbox extends React.PureComponent<Props, State> {
     showUnread: false,
   }
 
-  _mounted: boolean = false;
-  _list: VariableSizeList<any> | null;
-  _selectedVisible: boolean = false;
+  _mounted: boolean = false
+  _list: VariableSizeList<any> | null
+  _selectedVisible: boolean = false
 
   // stuff for UnreadShortcut
-  _firstOffscreenIdx: number = -1;
-  _lastVisibleIdx: number = -1;
+  _firstOffscreenIdx: number = -1
+  _lastVisibleIdx: number = -1
   _scrollDiv = React.createRef()
 
   componentDidUpdate(prevProps: Props) {
@@ -234,4 +234,4 @@ const styles = Styles.styleSheetCreate({
 })
 
 export default Inbox
-export { RowItem, RowItemSmall, RowItemBig, RouteState };
+export {RowItem, RowItemSmall, RowItemBig, RouteState}

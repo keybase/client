@@ -4,7 +4,7 @@ import * as Styles from '../../styles'
 
 type Props = {
   onClick: () => void
-};
+}
 
 const UnreadShortcut = (props: Props) => (
   <Kb.ClickableBox onClick={props.onClick} style={styles.container}>

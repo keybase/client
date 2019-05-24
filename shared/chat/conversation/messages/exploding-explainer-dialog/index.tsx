@@ -3,9 +3,9 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 
 type Props = {
-  onBack?: () => void,
+  onBack?: () => void
   onCancel: () => void
-};
+}
 
 export const ExplodingExplainerElement = (props: Props) => (
   <Kb.MaybePopup onClose={props.onCancel}>

@@ -9,16 +9,17 @@ import * as FsConstants from '../../../../constants/fs'
 
 type OwnProps = {
   message: Types.MessageSystemGitPush
-};
+}
 
-const getAutogitPath = (commitHash: string, ownProps: OwnProps): FsTypes.Path => FsTypes.stringToPath(
-  '/keybase/team/' +
-    ownProps.message.team +
-    '/.kbfs_autogit/' +
-    ownProps.message.repo +
-    '/.kbfs_autogit_commit_' +
-    commitHash
-)
+const getAutogitPath = (commitHash: string, ownProps: OwnProps): FsTypes.Path =>
+  FsTypes.stringToPath(
+    '/keybase/team/' +
+      ownProps.message.team +
+      '/.kbfs_autogit/' +
+      ownProps.message.repo +
+      '/.kbfs_autogit_commit_' +
+      commitHash
+  )
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
   onClickCommit: (commitHash: string) =>

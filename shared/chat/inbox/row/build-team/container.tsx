@@ -3,7 +3,7 @@ import {teamsTab} from '../../../../constants/tabs'
 import {namedConnect} from '../../../../util/container'
 import BuildTeam from '.'
 
-type OwnProps = {};
+type OwnProps = {}
 
 const mapStateToProps = state => ({
   metaMap: state.chat2.metaMap,

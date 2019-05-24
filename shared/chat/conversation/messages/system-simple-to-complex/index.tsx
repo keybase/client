@@ -6,11 +6,11 @@ import {globalStyles, globalColors, globalMargins} from '../../../../styles'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 
 type Props = {
-  message: Types.MessageSystemSimpleToComplex,
-  onManageChannels: () => void,
-  onViewTeam: (teamname: string) => void,
+  message: Types.MessageSystemSimpleToComplex
+  onManageChannels: () => void
+  onViewTeam: (teamname: string) => void
   you: string
-};
+}
 
 const bullet = '\u2022'
 

@@ -5,7 +5,7 @@ import {styleSheetCreate, isMobile} from '../../../../styles'
 
 type Props = {
   ordinal: Types.Ordinal
-};
+}
 
 const baseWidth = isMobile ? 100 : 150
 const mult = isMobile ? 5 : 10

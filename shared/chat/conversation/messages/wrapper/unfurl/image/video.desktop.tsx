@@ -1,11 +1,11 @@
 import * as React from 'react'
 import * as Kb from '../../../../../../common-adapters/index'
 import * as Styles from '../../../../../../styles'
-import { Props } from './video.types';
+import {Props} from './video.types'
 
 type State = {
   playingVideo: boolean
-};
+}
 
 export class Video extends React.Component<Props, State> {
   _videoRef = React.createRef()

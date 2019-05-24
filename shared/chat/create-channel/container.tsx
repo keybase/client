@@ -8,13 +8,16 @@ import {
   connect,
   getRouteProps,
   RouteProps,
-} from '../../util/container';
+} from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {upperFirst} from 'lodash-es'
 
-type OwnProps = RouteProps<{
-  teamname: string
-}, {}>;
+type OwnProps = RouteProps<
+  {
+    teamname: string
+  },
+  {}
+>
 
 const mapStateToProps = (state, ownProps) => {
   return {

@@ -17,11 +17,11 @@ const getOrderedReactions = (reactions: Types.Reactions | null) => {
 }
 
 export type OwnProps = {
-  btnClassName?: string,
-  newBtnClassName?: string,
-  conversationIDKey: Types.ConversationIDKey,
+  btnClassName?: string
+  newBtnClassName?: string
+  conversationIDKey: Types.ConversationIDKey
   ordinal: Types.Ordinal
-};
+}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const message = Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal)

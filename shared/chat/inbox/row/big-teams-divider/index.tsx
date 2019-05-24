@@ -5,9 +5,9 @@ import * as RowSizes from '../sizes'
 import {BigTeamsLabel} from '../big-teams-label'
 
 type Props = {
-  badgeCount: number,
+  badgeCount: number
   toggle: () => void
-};
+}
 
 const DividerBox = Styles.styled(Kb.Box)({
   ...Styles.globalStyles.flexBoxRow,
@@ -31,10 +31,7 @@ const DividerBox = Styles.styled(Kb.Box)({
   width: '100%',
 })
 
-const BigTeamsDivider = ({
-  toggle,
-  badgeCount
-}: Props) => (
+const BigTeamsDivider = ({toggle, badgeCount}: Props) => (
   <Kb.ClickableBox title="Teams with multiple channels." onClick={toggle} style={styles.container}>
     <DividerBox>
       <BigTeamsLabel isFiltered={false} />

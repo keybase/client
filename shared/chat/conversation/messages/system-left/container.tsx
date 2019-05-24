@@ -5,7 +5,7 @@ import {connect} from '../../../../util/container'
 
 type OwnProps = {
   message: Types.MessageSystemLeft
-};
+}
 
 const mapStateToProps = (state, {message}) => {
   const meta = Constants.getMeta(state, message.conversationIDKey)

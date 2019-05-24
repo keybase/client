@@ -9,7 +9,7 @@ import {
   ClickableBox,
 } from '../../../common-adapters/mobile.native'
 import {globalColors, globalStyles, globalMargins, desktopStyles} from '../../../styles'
-import { Props } from './participant-rekey.types';
+import {Props} from './participant-rekey.types'
 
 const Row = ({username, onUsernameClicked}) => (
   <ClickableBox onClick={() => onUsernameClicked(username)}>
@@ -25,10 +25,7 @@ const Row = ({username, onUsernameClicked}) => (
   </ClickableBox>
 )
 
-const ParticipantRekey = ({
-  rekeyers,
-  onShowProfile: onUsernameClicked
-}: Props) => (
+const ParticipantRekey = ({rekeyers, onShowProfile: onUsernameClicked}: Props) => (
   <Box style={containerStyle}>
     <Box style={{...globalStyles.flexBoxRow, backgroundColor: globalColors.red, justifyContent: 'center'}}>
       <Text

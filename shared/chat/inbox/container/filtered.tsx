@@ -3,14 +3,9 @@ import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
 import {memoize} from '../../../util/memoize'
 import {makeInsertMatcher} from '../../../util/string'
-import { RowItem } from '../index.types';
+import {RowItem} from '../index.types'
 
-const score = (
-  lcFilter: string,
-  lcYou: string,
-  names: Array<string>,
-  insertMatcher: RegExp
-): number => {
+const score = (lcFilter: string, lcYou: string, names: Array<string>, insertMatcher: RegExp): number => {
   // special case, looking for yourself
   if (names.length === 1 && names[0] === lcYou) {
     return lcYou.indexOf(lcFilter) !== -1 ? 100000 : 0
@@ -129,7 +124,7 @@ const getFilteredRowsAndMetadata = memoize<Types.MetaMap, string, string, void, 
       .sort((a, b) => {
         return a.score === b.score ? b.timestamp - a.timestamp : b.score - a.score
       })
-      .map(({data}) => (data as RowItem))
+      .map(({data}) => data as RowItem)
 
     return {
       allowShowFloatingButton: false,

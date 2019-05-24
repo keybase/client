@@ -1,20 +1,14 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import { Props, RowProps } from './index.types';
+import {Props, RowProps} from './index.types'
 
 const HoverBox = Styles.styled(Kb.Box)({
   '.channel-row:hover &': {opacity: 1},
   opacity: 0,
 })
 
-const Edit = ({
-  onClick,
-  style
-}: {
-  onClick: () => void,
-  style: Object
-}) => (
+const Edit = ({onClick, style}: {onClick: () => void; style: Object}) => (
   <HoverBox style={style} onClick={onClick}>
     <Kb.Icon style={{marginRight: Styles.globalMargins.xtiny}} type="iconfont-edit" />
     <Kb.Text type="BodySmallPrimaryLink">Edit</Kb.Text>
@@ -23,11 +17,11 @@ const Edit = ({
 
 const Row = (
   props: RowProps & {
-    canEditChannels: boolean,
-    selected: boolean,
-    onToggle: () => void,
-    showEdit: boolean,
-    onEdit: () => void,
+    canEditChannels: boolean
+    selected: boolean
+    onToggle: () => void
+    showEdit: boolean
+    onEdit: () => void
     onClickChannel: () => void
   }
 ) => (

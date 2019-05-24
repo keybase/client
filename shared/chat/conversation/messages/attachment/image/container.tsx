@@ -8,9 +8,9 @@ import ImageAttachment from '.'
 import {imgMaxWidth} from './image-render'
 
 type OwnProps = {
-  message: Types.MessageAttachment,
+  message: Types.MessageAttachment
   toggleMessageMenu: () => void
-};
+}
 
 const mapStateToProps = state => ({})
 
@@ -101,7 +101,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     toggleMessageMenu: ownProps.toggleMessageMenu,
     videoDuration: message.videoDuration || '',
     width,
-  };
+  }
 }
 
 export default connect<OwnProps, _, _, _, _>(

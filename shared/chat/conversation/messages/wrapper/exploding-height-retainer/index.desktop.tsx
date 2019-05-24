@@ -3,8 +3,8 @@ import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import {resolveRootAsURL} from '../../../../../desktop/app/resolve-root.desktop'
 import {urlsToImgSet} from '../../../../../common-adapters/icon.desktop'
-import { Props } from './index.types';
-import SharedTimer, { SharedTimerID } from '../../../../../util/shared-timers';
+import {Props} from './index.types'
+import SharedTimer, {SharedTimerID} from '../../../../../util/shared-timers'
 
 const explodedIllustration = resolveRootAsURL('../images/icons/pattern-ashes-desktop-400-68.png')
 const explodedIllustrationUrl = urlsToImgSet({'68': explodedIllustration}, 68)
@@ -17,15 +17,15 @@ export const animationDuration = 1500
 const retainedHeights = {}
 
 type State = {
-  animating: boolean,
-  children: React.ElementType | null,
+  animating: boolean
+  children: React.ElementType | null
   height: number
-};
+}
 
 class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
   _boxRef = React.createRef()
   state = {animating: false, children: copyChildren(this.props.children), height: 17}
-  timerID: SharedTimerID;
+  timerID: SharedTimerID
 
   static getDerivedStateFromProps(nextProps: Props, prevState: State) {
     return nextProps.retainHeight ? null : {children: copyChildren(nextProps.children)}
@@ -120,9 +120,9 @@ const AshBox = Styles.styled.div({
   width: 0,
 })
 const Ashes = (props: {
-  doneExploding: boolean,
-  exploded: boolean,
-  explodedBy: string | null,
+  doneExploding: boolean
+  exploded: boolean
+  explodedBy: string | null
   height: number
 }) => {
   let explodedTag = null
@@ -156,10 +156,7 @@ const Ashes = (props: {
 
 const maxFlameWidth = 10
 const flameOffset = 5
-const FlameFront = (props: {
-  height: number,
-  stop: boolean
-}) => {
+const FlameFront = (props: {height: number; stop: boolean}) => {
   if (props.stop) {
     return null
   }
@@ -179,13 +176,16 @@ const colors = ['yellow', 'red', Styles.globalColors.greyDark, Styles.globalColo
 const randWidth = () => Math.round(Math.random() * maxFlameWidth) + flameOffset
 const randColor = () => colors[Math.floor(Math.random() * colors.length)]
 
-class Flame extends React.Component<{}, {
-  color: string,
-  timer: number,
-  width: number
-}> {
+class Flame extends React.Component<
+  {},
+  {
+    color: string
+    timer: number
+    width: number
+  }
+> {
   state = {color: randColor(), timer: 0, width: randWidth()}
-  intervalID: number | null;
+  intervalID: number | null
 
   componentDidMount() {
     this.intervalID = setInterval(this._randomize, 100)

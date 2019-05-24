@@ -6,7 +6,7 @@ import * as Constants from '../../../../constants/chat2'
 import {emojiIndex} from 'emoji-mart'
 import PlatformInput from './platform-input'
 import {standardTransformer} from '../suggestors'
-import { InputProps } from './types';
+import {InputProps} from './types'
 import {debounce, throttle} from 'lodash-es'
 import {memoize} from '../../../../util/memoize'
 import CommandMarkdown from '../../command-markdown/container'
@@ -92,18 +92,16 @@ const suggestorToMarker = {
 
 const suggestorKeyExtractors = {
   commands: (c: RPCChatTypes.ConversationCommand) => c.name,
-  emoji: (item: {
-    id: string
-  }) => item.id,
+  emoji: (item: {id: string}) => item.id,
   users: ({
     username,
     fullName,
     teamname,
-    channelname
+    channelname,
   }: {
-    username: string,
-    fullName: string,
-    teamname?: string,
+    username: string
+    fullName: string
+    teamname?: string
     channelname?: string
   }) => {
     if (teamname) {
@@ -137,22 +135,27 @@ const emojiRenderer = (item, selected: boolean) => (
     <Kb.Text type="BodySmallSemibold">{item.colons}</Kb.Text>
   </Kb.Box2>
 )
-const emojiTransformer = (emoji: {
-  colons: string,
-  native: string
-}, marker, tData, preview) => {
+const emojiTransformer = (
+  emoji: {
+    colons: string
+    native: string
+  },
+  marker,
+  tData,
+  preview
+) => {
   const toInsert = Styles.isMobile ? emoji.native : emoji.colons
   return standardTransformer(toInsert, tData, preview)
 }
 
 type InputState = {
   inputHeight: number
-};
+}
 
 class Input extends React.Component<InputProps, InputState> {
-  _lastQuote: number;
-  _input: Kb.PlainInput | null;
-  _lastText: string | null;
+  _lastQuote: number
+  _input: Kb.PlainInput | null
+  _lastText: string | null
   _suggestorDatasource = {}
   _suggestorRenderer = {}
   _suggestorTransformer = {}
@@ -367,11 +370,11 @@ class Input extends React.Component<InputProps, InputState> {
       username,
       fullName,
       teamname,
-      channelname
+      channelname,
     }: {
-      username: string,
-      fullName: string,
-      teamname?: string,
+      username: string
+      fullName: string
+      teamname?: string
       channelname?: string
     },
     selected: boolean
@@ -414,9 +417,9 @@ class Input extends React.Component<InputProps, InputState> {
 
   _transformUserSuggestion = (
     input: {
-      fullName: string,
-      username: string,
-      teamname?: string,
+      fullName: string
+      username: string
+      teamname?: string
       channelname?: string
     },
     marker,
@@ -562,6 +565,6 @@ const styles = Styles.styleSheetCreate({
   }),
 })
 
-export { InputProps as Props };
+export {InputProps as Props}
 
 export default Input

@@ -4,24 +4,24 @@ import * as Styles from '../styles'
 import * as Platforms from '../constants/platform'
 
 export type Props = {
-  filter: string,
-  isLoading: boolean,
-  isSearching: boolean,
-  showNewTag: boolean,
-  onBack: () => void,
-  noShortcut: boolean | null,
-  onEnsureSelection: () => void,
-  onNewChat?: () => void,
-  onSelectDown: () => void,
-  onSelectUp: () => void,
-  onSetFilter: (filter: string) => void,
-  onStartSearch: () => void,
-  onStopSearch: () => void,
+  filter: string
+  isLoading: boolean
+  isSearching: boolean
+  showNewTag: boolean
+  onBack: () => void
+  noShortcut: boolean | null
+  onEnsureSelection: () => void
+  onNewChat?: () => void
+  onSelectDown: () => void
+  onSelectUp: () => void
+  onSetFilter: (filter: string) => void
+  onStartSearch: () => void
+  onStopSearch: () => void
   style?: Styles.StylesCrossPlatform
-};
+}
 
 class ConversationFilterInput extends React.PureComponent<Props> {
-  _input: any;
+  _input: any
 
   _onKeyDown = (e: React.KeyboardEvent, isComposingIME: boolean) => {
     if (e.key === 'Escape' && !isComposingIME) {

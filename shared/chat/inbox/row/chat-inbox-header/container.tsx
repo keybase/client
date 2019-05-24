@@ -7,7 +7,7 @@ import HiddenString from '../../../../util/hidden-string'
 
 type OwnProps = {
   onNewChat: () => void
-};
+}
 
 const mapStateToProps = (state, ownProps: OwnProps) => ({
   isSearching: !!state.chat2.inboxSearch,

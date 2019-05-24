@@ -5,27 +5,27 @@ import * as Styles from '../../../styles'
 
 export type PathToInfo = {
   [K in string]: {
-    type: "image" | "file",
-    title: string,
-    filename: string,
+    type: 'image' | 'file'
+    title: string
+    filename: string
     outboxID: RPCChatTypes.OutboxID
-  };
-};
+  }
+}
 
 type Props = {
-  pathToInfo: PathToInfo,
-  onCancel: () => void,
+  pathToInfo: PathToInfo
+  onCancel: () => void
   onSubmit: (pathToInfo: PathToInfo) => void
-};
+}
 
 type State = {
-  index: number,
+  index: number
   pathToInfo: PathToInfo
-};
+}
 
 class GetTitles extends React.Component<Props, State> {
-  state: State;
-  _input: Kb.Input | null;
+  state: State
+  _input: Kb.Input | null
 
   constructor(props: Props) {
     super(props)

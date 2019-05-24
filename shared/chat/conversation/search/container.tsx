@@ -7,9 +7,9 @@ import HiddenString from '../../../util/hidden-string'
 import ThreadSearch from '.'
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey,
+  conversationIDKey: Types.ConversationIDKey
   style?: Styles.StylesCrossPlatform
-};
+}
 
 let KeyHandler: any = c => c
 if (!isMobile) {

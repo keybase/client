@@ -4,7 +4,7 @@ import {makeMessageAttachment, makeMessageText} from '../../../../constants/chat
 import TextPopupMenu from './text/index'
 import AttachmentPopupMenu from './attachment/index'
 import paymentPopupStories from './payment/index.stories'
-import ExplodingPopupMenu, { OwnProps as ExplodingOwnProps } from './exploding/container';
+import ExplodingPopupMenu, {OwnProps as ExplodingOwnProps} from './exploding/container'
 import HiddenString from '../../../../util/hidden-string'
 
 const textMessage = makeMessageText({

@@ -6,7 +6,7 @@ import {connect} from '../../../../util/container'
 
 type OwnProps = {
   message: Types.MessageSystemSimpleToComplex
-};
+}
 
 const mapStateToProps = state => ({
   you: state.config.username || '',

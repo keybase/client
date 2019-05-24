@@ -6,25 +6,44 @@ import * as WalletsTypes from '../../../constants/types/wallets'
 import PaymentsConfirm from '.'
 import {namedConnect} from '../../../util/container'
 
-type OwnProps = {};
+type OwnProps = {}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const pinfo = state.chat2.paymentConfirmInfo
   const payments = // Auto generated from flowToTs. Please clean me!
-  ((pinfo === null || pinfo === undefined ? undefined : pinfo.summary) === null || (pinfo === null || pinfo === undefined ? undefined : pinfo.summary) === undefined ? undefined : (pinfo === null || pinfo === undefined ? undefined : pinfo.summary).payments) || []
+    ((pinfo === null || pinfo === undefined ? undefined : pinfo.summary) === null ||
+    (pinfo === null || pinfo === undefined ? undefined : pinfo.summary) === undefined
+      ? undefined
+      : (pinfo === null || pinfo === undefined ? undefined : pinfo.summary).payments) || []
   const errorIsNoWallet = // Auto generated from flowToTs. Please clean me!
-  ((pinfo === null || pinfo === undefined ? undefined : pinfo.error) === null || (pinfo === null || pinfo === undefined ? undefined : pinfo.error) === undefined ? undefined : (pinfo === null || pinfo === undefined ? undefined : pinfo.error).code) === RPCTypes.constantsStatusCode.scstellarmissingbundle
+    ((pinfo === null || pinfo === undefined ? undefined : pinfo.error) === null ||
+    (pinfo === null || pinfo === undefined ? undefined : pinfo.error) === undefined
+      ? undefined
+      : (pinfo === null || pinfo === undefined ? undefined : pinfo.error).code) ===
+    RPCTypes.constantsStatusCode.scstellarmissingbundle
   return {
-    displayTotal: // Auto generated from flowToTs. Please clean me!
-    (pinfo === null || pinfo === undefined ? undefined : pinfo.summary) === null || (pinfo === null || pinfo === undefined ? undefined : pinfo.summary) === undefined ? undefined : (pinfo === null || pinfo === undefined ? undefined : pinfo.summary).displayTotal,
-    error: errorIsNoWallet ? 'Wallet needed to send money in chat.' : // Auto generated from flowToTs. Please clean me!
-    (pinfo === null || pinfo === undefined ? undefined : pinfo.error) === null || (pinfo === null || pinfo === undefined ? undefined : pinfo.error) === undefined ? undefined : (pinfo === null || pinfo === undefined ? undefined : pinfo.error).desc,
+    // Auto generated from flowToTs. Please clean me!
+    displayTotal:
+      (pinfo === null || pinfo === undefined ? undefined : pinfo.summary) === null ||
+      (pinfo === null || pinfo === undefined ? undefined : pinfo.summary) === undefined
+        ? undefined
+        : (pinfo === null || pinfo === undefined ? undefined : pinfo.summary).displayTotal,
+    error: errorIsNoWallet
+      ? 'Wallet needed to send money in chat.' // Auto generated from flowToTs. Please clean me!
+      : (pinfo === null || pinfo === undefined ? undefined : pinfo.error) === null ||
+        (pinfo === null || pinfo === undefined ? undefined : pinfo.error) === undefined
+      ? undefined
+      : (pinfo === null || pinfo === undefined ? undefined : pinfo.error).desc,
     errorIsNoWallet,
     loading: !pinfo,
     payments,
-    xlmTotal: // Auto generated from flowToTs. Please clean me!
-    (pinfo === null || pinfo === undefined ? undefined : pinfo.summary) === null || (pinfo === null || pinfo === undefined ? undefined : pinfo.summary) === undefined ? undefined : (pinfo === null || pinfo === undefined ? undefined : pinfo.summary).xlmTotal,
-  };
+    // Auto generated from flowToTs. Please clean me!
+    xlmTotal:
+      (pinfo === null || pinfo === undefined ? undefined : pinfo.summary) === null ||
+      (pinfo === null || pinfo === undefined ? undefined : pinfo.summary) === undefined
+        ? undefined
+        : (pinfo === null || pinfo === undefined ? undefined : pinfo.summary).xlmTotal,
+  }
 }
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({

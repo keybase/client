@@ -5,11 +5,11 @@ import UserNotice from '../user-notice'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 
 type YouAddedProps = {
-  author: string,
-  channelname: string,
-  otherUsers: Array<string>,
+  author: string
+  channelname: string
+  otherUsers: Array<string>
   timestamp: number
-};
+}
 
 const YouAdded = (props: YouAddedProps) => (
   <UserNotice username={props.author} bgColor={Styles.globalColors.blueLighter2}>
@@ -66,11 +66,11 @@ const getAddedUsernames = (usernames: Array<string>) => {
 }
 
 type OthersAddedProps = {
-  author: string,
-  channelname: string,
-  added: Array<string>,
+  author: string
+  channelname: string
+  added: Array<string>
   timestamp: number
-};
+}
 
 const OthersAdded = (props: OthersAddedProps) => (
   <Kb.Text type="BodySmall" style={styles.text}>

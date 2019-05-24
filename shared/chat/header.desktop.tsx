@@ -8,23 +8,23 @@ import * as Styles from '../styles'
 import * as Container from '../util/container'
 import ChatInboxHeader from './inbox/row/chat-inbox-header/container'
 
-type OwnProps = {};
+type OwnProps = {}
 
 type Props = {
-  canEditDesc: boolean,
-  channel: string | null,
-  desc: string,
-  infoPanelOpen: boolean,
-  isTeam: boolean,
-  muted: boolean,
-  onOpenFolder: () => void,
-  onNewChat: () => void,
-  onToggleInfoPanel: () => void,
-  onToggleThreadSearch: () => void,
-  participants: Array<string> | null,
-  showActions: boolean,
+  canEditDesc: boolean
+  channel: string | null
+  desc: string
+  infoPanelOpen: boolean
+  isTeam: boolean
+  muted: boolean
+  onOpenFolder: () => void
+  onNewChat: () => void
+  onToggleInfoPanel: () => void
+  onToggleThreadSearch: () => void
+  participants: Array<string> | null
+  showActions: boolean
   unMuteConversation: () => void
-};
+}
 
 const descStyle = {fontSize: 13, lineHeight: '17px', wordBreak: 'break-all'}
 const descStyleOverride = {

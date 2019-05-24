@@ -7,18 +7,15 @@ import {namedConnect} from '../../../../util/container'
 import HiddenString from '../../../../util/hidden-string'
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey,
-  isSendError: boolean,
-  flipGameID: string,
+  conversationIDKey: Types.ConversationIDKey
+  isSendError: boolean
+  flipGameID: string
   text: HiddenString
-};
+}
 
 const noParticipants = []
 
-const mapStateToProps = (state, {
-  flipGameID,
-  isSendError
-}: OwnProps) => {
+const mapStateToProps = (state, {flipGameID, isSendError}: OwnProps) => {
   const status = state.chat2.getIn(['flipStatusMap', flipGameID])
   return !status
     ? {
@@ -44,10 +41,7 @@ const mapStateToProps = (state, {
       }
 }
 
-const mapDispatchToProps = (dispatch, {
-  conversationIDKey,
-  text
-}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {conversationIDKey, text}: OwnProps) => ({
   onFlipAgain: () => dispatch(Chat2Gen.createMessageSend({conversationIDKey, text})),
 })
 

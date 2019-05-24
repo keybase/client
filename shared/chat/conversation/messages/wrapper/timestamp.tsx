@@ -4,7 +4,7 @@ import {globalStyles, globalMargins, globalColors} from '../../../../styles'
 
 export type Props = {
   timestamp: string
-};
+}
 
 class Timestamp extends React.PureComponent<Props> {
   render() {

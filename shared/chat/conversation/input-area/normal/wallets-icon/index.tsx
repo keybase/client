@@ -3,12 +3,12 @@ import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 
 export type WalletsIconProps = {
-  isNew: boolean,
-  onSend: () => void,
-  onRequest: () => void,
-  size: number,
+  isNew: boolean
+  onSend: () => void
+  onRequest: () => void
+  size: number
   style?: Styles.StylesCrossPlatform
-};
+}
 const WalletsIcon = (props: WalletsIconProps & Kb.OverlayParentProps) => (
   <Kb.Box2
     ref={props.setAttachmentRef}

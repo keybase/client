@@ -1,13 +1,13 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../../styles'
-import { Props } from '.';
+import {Props} from '.'
 
 const patternImage = require('../../../../../images/payment-pattern-80.png')
 
 type State = {
   yOffset: Kb.NativeAnimated.Value
-};
+}
 
 class PendingBackground extends React.Component<Props, State> {
   state = {yOffset: new Kb.NativeAnimated.Value(0)}

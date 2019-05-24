@@ -5,9 +5,9 @@ import {BigTeamChannel} from '.'
 import {connect, isMobile} from '../../../../util/container'
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey,
+  conversationIDKey: Types.ConversationIDKey
   channelname: string
-};
+}
 
 const mapStateToProps = (state, ownProps) => {
   const _conversationIDKey = ownProps.conversationIDKey

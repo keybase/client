@@ -12,7 +12,7 @@ import {debounce} from 'lodash-es'
 import UnreadShortcut from './unread-shortcut'
 import * as RowSizes from './row/sizes'
 import InboxSearch from '../inbox-search/container'
-import { Props, RowItem, RowItemSmall } from './index.types';
+import {Props, RowItem, RowItemSmall} from './index.types'
 
 const NoChats = () => (
   <Kb.Box
@@ -32,19 +32,19 @@ const NoChats = () => (
 )
 
 type State = {
-  showFloating: boolean,
+  showFloating: boolean
   showUnread: boolean
-};
+}
 
 class Inbox extends React.PureComponent<Props, State> {
-  _list: any;
+  _list: any
   // Help us calculate row heights and offsets quickly
-  _dividerIndex: number = -1;
+  _dividerIndex: number = -1
   // 2 different sizes
-  _dividerShowButton: boolean = false;
+  _dividerShowButton: boolean = false
   // stash first offscreen index for callback
-  _firstOffscreenIdx: number = -1;
-  _lastVisibleIdx: number = -1;
+  _firstOffscreenIdx: number = -1
+  _lastVisibleIdx: number = -1
 
   state = {showFloating: false, showUnread: false}
 
@@ -118,7 +118,10 @@ class Inbox extends React.PureComponent<Props, State> {
     this._onScrollUnbox(data)
 
     const lastVisibleIdx = // Auto generated from flowToTs. Please clean me!
-    data.viewableItems[data.viewableItems.length - 1] === null || data.viewableItems[data.viewableItems.length - 1] === undefined ? undefined : data.viewableItems[data.viewableItems.length - 1].index
+      data.viewableItems[data.viewableItems.length - 1] === null ||
+      data.viewableItems[data.viewableItems.length - 1] === undefined
+        ? undefined
+        : data.viewableItems[data.viewableItems.length - 1].index
     this._lastVisibleIdx = lastVisibleIdx || -1
     this._updateShowUnread()
     this._updateShowFloating()
@@ -270,4 +273,4 @@ const styles = Styles.styleSheetCreate({
 })
 
 export default Inbox
-export { RowItem, RowItemSmall };
+export {RowItem, RowItemSmall}

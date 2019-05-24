@@ -7,23 +7,21 @@ import {connect, isMobile} from '../../../util/container'
 import ThreadSearch from '../search/container'
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey,
-  focusInputCounter: number,
-  jumpToRecent: () => void,
-  onRequestScrollDown: () => void,
-  onRequestScrollToBottom: () => void,
+  conversationIDKey: Types.ConversationIDKey
+  focusInputCounter: number
+  jumpToRecent: () => void
+  onRequestScrollDown: () => void
+  onRequestScrollToBottom: () => void
   onRequestScrollUp: () => void
-};
+}
 
 type Props = {
-  isPreview: boolean,
-  noInput: boolean,
+  isPreview: boolean
+  noInput: boolean
   showThreadSearch: boolean
-} & OwnProps;
+} & OwnProps
 
-const mapStateToProps = (state, {
-  conversationIDKey
-}: OwnProps) => {
+const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const meta = Constants.getMeta(state, conversationIDKey)
   let noInput = !meta.resetParticipants.isEmpty() || !!meta.wasFinalizedBy
   const showThreadSearch = Constants.getThreadSearchInfo(state, conversationIDKey).visible

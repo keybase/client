@@ -6,11 +6,11 @@ import UserNotice from '../user-notice'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 
 type Props = {
-  message: Types.MessageSystemInviteAccepted,
-  onViewTeam: () => void,
-  teamname: string,
+  message: Types.MessageSystemInviteAccepted
+  onViewTeam: () => void
+  teamname: string
   you: string
-};
+}
 
 const connectedUsernamesProps = {
   colorFollowing: true,

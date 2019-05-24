@@ -7,9 +7,12 @@ import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {anyErrors} from '../../../../constants/waiting'
 import AddToChannel from '.'
 
-type OwnProps = Container.RouteProps<{
-  conversationIDKey: Types.ConversationIDKey
-}, {}>;
+type OwnProps = Container.RouteProps<
+  {
+    conversationIDKey: Types.ConversationIDKey
+  },
+  {}
+>
 
 const mapStateToProps = (state, ownProps) => {
   const conversationIDKey = Container.getRouteProps(ownProps, 'conversationIDKey')

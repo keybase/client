@@ -1,17 +1,17 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
 import * as Styles from '../../../styles'
-import { Box2, Button, FloatingMenu, OverlayParentHOC, OverlayParentProps } from '../../../common-adapters';
+import {Box2, Button, FloatingMenu, OverlayParentHOC, OverlayParentProps} from '../../../common-adapters'
 import {compose, connect} from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {teamsTab} from '../../../constants/tabs'
 
 type Props = {
-  isAdmin: boolean,
-  isGeneralChannel: boolean,
-  onAddPeople: () => void,
+  isAdmin: boolean
+  isGeneralChannel: boolean
+  onAddPeople: () => void
   onAddToChannel: () => void
-} & OverlayParentProps;
+} & OverlayParentProps
 
 const _AddPeople = (props: Props) => {
   let menu = null
@@ -56,11 +56,11 @@ const _AddPeople = (props: Props) => {
 _AddPeople.displayName = 'AddPeople'
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey,
-  isAdmin: boolean,
-  isGeneralChannel: boolean,
+  conversationIDKey: Types.ConversationIDKey
+  isAdmin: boolean
+  isGeneralChannel: boolean
   teamname: string
-};
+}
 
 const mapDispatchToProps = dispatch => {
   return {

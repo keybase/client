@@ -8,19 +8,19 @@ import SetExplodingMessagePopup from '../../messages/set-explode-popup/container
 import {formatDurationShort} from '../../../../util/timestamp'
 import {KeyEventHandler} from '../../../../util/key-event-handler.desktop'
 import WalletsIcon from './wallets-icon/container'
-import { PlatformInputPropsInternal } from './platform-input';
+import {PlatformInputPropsInternal} from './platform-input'
 import Typing from './typing/container'
 import AddSuggestors from '../suggestors'
 
 type State = {
-  emojiPickerOpen: boolean,
+  emojiPickerOpen: boolean
   hasText: boolean
-};
+}
 
 class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> {
-  _input: Kb.PlainInput | null;
-  _lastText: string | null;
-  _fileInput: HTMLInputElement | null;
+  _input: Kb.PlainInput | null
+  _lastText: string | null
+  _fileInput: HTMLInputElement | null
 
   constructor(props: PlatformInputPropsInternal) {
     super(props)
@@ -246,8 +246,12 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
             <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputBox}>
               <Kb.PlainInput
                 className={'mousetrap' /* className needed so key handler doesn't ignore hotkeys */}
-                disabled={// Auto generated from flowToTs. Please clean me!
-                this.props.cannotWrite !== null && this.props.cannotWrite !== undefined ? this.props.cannotWrite : false}
+                disabled={
+                  // Auto generated from flowToTs. Please clean me!
+                  this.props.cannotWrite !== null && this.props.cannotWrite !== undefined
+                    ? this.props.cannotWrite
+                    : false
+                }
                 autoFocus={false}
                 ref={this._inputSetRef}
                 placeholder={hintText}
@@ -304,7 +308,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
           </Kb.Box>
         </Kb.Box>
       </KeyEventHandler>
-    );
+    )
   }
 }
 const PlatformInput = AddSuggestors(_PlatformInput)

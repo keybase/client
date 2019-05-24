@@ -7,24 +7,24 @@ import TeamInfo from '../../../profile/user/teams/teaminfo'
 const Kb = {Box2, Text}
 
 export type Props = {
-  allowFontScaling?: boolean,
-  channel: string,
-  description: string,
-  inTeam: boolean,
-  isOpen: boolean,
-  name: string,
-  onChat?: () => void,
-  onJoinTeam: (arg0: string) => void,
-  onViewTeam: (arg0: string) => void,
-  resolved: boolean,
-  numMembers: number,
-  publicAdmins: Array<string>,
+  allowFontScaling?: boolean
+  channel: string
+  description: string
+  inTeam: boolean
+  isOpen: boolean
+  name: string
+  onChat?: () => void
+  onJoinTeam: (arg0: string) => void
+  onViewTeam: (arg0: string) => void
+  resolved: boolean
+  numMembers: number
+  publicAdmins: Array<string>
   style?: Styles.StylesCrossPlatform
-};
+}
 
 type State = {
   showPopup: boolean
-};
+}
 
 class TeamMention extends React.Component<Props, State> {
   state = {showPopup: false}

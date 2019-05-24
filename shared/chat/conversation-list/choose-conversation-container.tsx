@@ -5,12 +5,12 @@ import * as Styles from '../../styles'
 import ChooseConversation from './choose-conversation'
 
 type OwnProps = {
-  dropdownButtonStyle?: Styles.StylesCrossPlatform | null,
-  filter?: string,
-  onSelect: (conversationIDKey: Types.ConversationIDKey) => void,
-  onSetFilter?: (filter: string) => void,
+  dropdownButtonStyle?: Styles.StylesCrossPlatform | null
+  filter?: string
+  onSelect: (conversationIDKey: Types.ConversationIDKey) => void
+  onSetFilter?: (filter: string) => void
   selected: Types.ConversationIDKey
-};
+}
 
 const mapStateToProps = (state, ownProps) => ({
   _conv: state.chat2.metaMap.get(ownProps.selected),

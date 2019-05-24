@@ -8,26 +8,26 @@ import * as WalletGen from '../../../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import {formatTimeForMessages} from '../../../../../util/timestamp'
 import PaymentPopup from '.'
-import { Position } from '../../../../../common-adapters/relative-popup-hoc.types';
-import { StylesCrossPlatform } from '../../../../../styles/css';
+import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
+import {StylesCrossPlatform} from '../../../../../styles/css'
 
 type OwnProps = {
-  attachTo: () => React.Component<any> | null,
-  message: Types.MessageRequestPayment | Types.MessageSendPayment | Types.MessageText,
-  paymentID?: WalletTypes.PaymentID,
-  onHidden: () => void,
-  position: Position,
-  style?: StylesCrossPlatform,
+  attachTo: () => React.Component<any> | null
+  message: Types.MessageRequestPayment | Types.MessageSendPayment | Types.MessageText
+  paymentID?: WalletTypes.PaymentID
+  onHidden: () => void
+  position: Position
+  style?: StylesCrossPlatform
   visible: boolean
-};
+}
 
 type SendOwnProps = {
   message: Types.MessageSendPayment | Types.MessageText
-} & OwnProps;
+} & OwnProps
 
 type RequestOwnProps = {
   message: Types.MessageRequestPayment
-} & OwnProps;
+} & OwnProps
 
 const commonLoadingProps = {
   amountNominal: '',

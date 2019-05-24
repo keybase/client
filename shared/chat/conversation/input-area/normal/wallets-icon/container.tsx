@@ -7,9 +7,9 @@ import logger from '../../../../../logger'
 import WalletsIconRender from '.'
 
 type OwnProps = {
-  size: number,
+  size: number
   style?: Styles.StylesCrossPlatform
-};
+}
 
 const mapStateToProps = state => ({
   _meta: Constants.getMeta(state, Constants.getSelectedConversation(state)),

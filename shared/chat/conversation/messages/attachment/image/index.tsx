@@ -5,37 +5,37 @@ import {ImageRender} from './image-render'
 import {isMobile} from '../../../../../util/container'
 
 type Props = {
-  arrowColor: string,
-  hasProgress: boolean,
-  height: number,
-  isCollapsed: boolean,
-  onClick: () => void,
-  onCollapse: () => void,
-  onShowInFinder: null | (e: React.SyntheticEvent) => void,
-  onDoubleClick: () => void,
-  path: string,
-  fullPath: string,
-  fileName: string,
-  progress: number,
-  progressLabel: string,
-  showButton: null | "play" | "film",
-  title: string,
-  toggleMessageMenu: () => void,
-  videoDuration: string,
-  inlineVideoPlayable: boolean,
+  arrowColor: string
+  hasProgress: boolean
+  height: number
+  isCollapsed: boolean
+  onClick: () => void
+  onCollapse: () => void
+  onShowInFinder: null | ((e: React.SyntheticEvent) => void)
+  onDoubleClick: () => void
+  path: string
+  fullPath: string
+  fileName: string
+  progress: number
+  progressLabel: string
+  showButton: null | 'play' | 'film'
+  title: string
+  toggleMessageMenu: () => void
+  videoDuration: string
+  inlineVideoPlayable: boolean
   width: number
-};
+}
 
 type State = {
-  loaded: boolean,
-  loadingVideo: "notloaded" | "loading" | "loaded",
+  loaded: boolean
+  loadingVideo: 'notloaded' | 'loading' | 'loaded'
   playingVideo: boolean
-};
+}
 
 // TODO the relationship between this class and the image renderer is very messy. This thing holds a ton of state
 // that it itself doesnt' know about so it has to proxy it and feed it back into the child
 class ImageAttachment extends React.PureComponent<Props, State> {
-  imageRef: any;
+  imageRef: any
 
   state = {loaded: false, loadingVideo: 'notloaded', playingVideo: false}
   _setLoaded = () => this.setState({loaded: true})

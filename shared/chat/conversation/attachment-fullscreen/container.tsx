@@ -5,11 +5,11 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as FsGen from '../../../actions/fs-gen'
 import Fullscreen from './'
 import {compose, withStateHandlers, connect, withProps} from '../../../util/container'
-import { RouteProps } from '../../../route-tree/render-route';
+import {RouteProps} from '../../../route-tree/render-route'
 
 const blankMessage = Constants.makeMessageAttachment({})
 
-type OwnProps = RouteProps<{}, {}>;
+type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = state => {
   const message = state.chat2.attachmentFullscreenMessage || blankMessage
@@ -65,7 +65,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     progress: message.transferProgress,
     progressLabel: message.fileURL ? undefined : 'Loading',
     title: message.title,
-  };
+  }
 }
 
 export default compose(

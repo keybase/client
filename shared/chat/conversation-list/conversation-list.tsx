@@ -9,40 +9,40 @@ import {rowHeight} from '../selectable-big-team-channel'
 import {rowHeight as shouldEqualToRowHeight} from '../selectable-small-team'
 
 export type SmallTeamRowItem = {
-  conversationIDKey: Types.ConversationIDKey,
-  isSelected: boolean,
-  onSelectConversation: () => void,
-  type: "small"
-};
+  conversationIDKey: Types.ConversationIDKey
+  isSelected: boolean
+  onSelectConversation: () => void
+  type: 'small'
+}
 
 export type BigTeamChannelRowItem = {
-  conversationIDKey: Types.ConversationIDKey,
-  isSelected: boolean,
-  onSelectConversation: () => void,
-  type: "big"
-};
+  conversationIDKey: Types.ConversationIDKey
+  isSelected: boolean
+  onSelectConversation: () => void
+  type: 'big'
+}
 
 type ToggleMoreRowItem = {
-  type: "more-less",
-  onClick: () => void,
+  type: 'more-less'
+  onClick: () => void
   hiddenCount: number
-};
+}
 
-type RowItem = SmallTeamRowItem | BigTeamChannelRowItem | ToggleMoreRowItem;
+type RowItem = SmallTeamRowItem | BigTeamChannelRowItem | ToggleMoreRowItem
 
 type Props = {
-  rows: Array<RowItem>,
+  rows: Array<RowItem>
   filter?: {
-    isLoading: boolean,
-    filter: string,
+    isLoading: boolean
+    filter: string
     onSetFilter: (filter: string) => void
-  },
-  focusFilterOnMount?: boolean | null,
-  onBack: () => void,
-  onEnsureSelection: () => void,
-  onSelectDown: () => void,
+  }
+  focusFilterOnMount?: boolean | null
+  onBack: () => void
+  onEnsureSelection: () => void
+  onSelectDown: () => void
   onSelectUp: () => void
-};
+}
 
 const _itemRenderer = (index, row) => {
   switch (row.type) {

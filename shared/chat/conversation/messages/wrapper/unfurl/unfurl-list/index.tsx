@@ -6,23 +6,23 @@ import UnfurlGeneric from '../generic/container'
 import UnfurlGiphy from '../giphy/container'
 
 export type UnfurlListItem = {
-  unfurl: RPCChatTypes.UnfurlDisplay,
-  url: string,
-  isCollapsed: boolean,
-  onClose?: () => void,
+  unfurl: RPCChatTypes.UnfurlDisplay
+  url: string
+  isCollapsed: boolean
+  onClose?: () => void
   onCollapse: () => void
-};
+}
 
 export type ListProps = {
   unfurls: Array<UnfurlListItem>
-};
+}
 
 export type UnfurlProps = {
-  unfurl: RPCChatTypes.UnfurlDisplay,
-  isCollapsed: boolean,
-  onClose?: () => void,
+  unfurl: RPCChatTypes.UnfurlDisplay
+  isCollapsed: boolean
+  onClose?: () => void
   onCollapse: () => void
-};
+}
 
 class Unfurl extends React.PureComponent<UnfurlProps> {
   render() {

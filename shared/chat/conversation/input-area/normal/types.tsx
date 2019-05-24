@@ -4,63 +4,63 @@ import * as Types from '../../../../constants/types/chat2'
 import {PlainInput} from '../../../../common-adapters'
 
 type CommonProps = {
-  cannotWrite: boolean | null,
-  conversationIDKey: Types.ConversationIDKey,
-  isEditExploded: boolean,
-  isEditing: boolean,
-  isExploding: boolean,
-  isSearching: boolean,
-  explodingModeSeconds: number,
-  focusInputCounter: number,
-  clearInboxFilter: () => void,
-  minWriterRole: string,
-  onAttach: (paths: Array<string>) => void,
-  onEditLastMessage: () => void,
-  onCancelEditing: () => void,
-  onFilePickerError: (error: Error) => void,
-  onRequestScrollDown: () => void,
-  onRequestScrollUp: () => void,
-  onSubmit: (text: string) => void,
-  showCommandMarkdown: boolean,
-  showGiphySearch: boolean,
-  showReplyPreview: boolean,
-  showTypingStatus: boolean,
-  showWalletsIcon: boolean,
-  editText: string,
-  quoteCounter: number,
-  quoteText: string,
-  getUnsentText: () => string,
-  setUnsentText: (text: string) => void,
-  sendTyping: (typing: boolean) => void,
-  unsentTextChanged: (text: string) => void,
+  cannotWrite: boolean | null
+  conversationIDKey: Types.ConversationIDKey
+  isEditExploded: boolean
+  isEditing: boolean
+  isExploding: boolean
+  isSearching: boolean
+  explodingModeSeconds: number
+  focusInputCounter: number
+  clearInboxFilter: () => void
+  minWriterRole: string
+  onAttach: (paths: Array<string>) => void
+  onEditLastMessage: () => void
+  onCancelEditing: () => void
+  onFilePickerError: (error: Error) => void
+  onRequestScrollDown: () => void
+  onRequestScrollUp: () => void
+  onSubmit: (text: string) => void
+  showCommandMarkdown: boolean
+  showGiphySearch: boolean
+  showReplyPreview: boolean
+  showTypingStatus: boolean
+  showWalletsIcon: boolean
+  editText: string
+  quoteCounter: number
+  quoteText: string
+  getUnsentText: () => string
+  setUnsentText: (text: string) => void
+  sendTyping: (typing: boolean) => void
+  unsentTextChanged: (text: string) => void
   unsentTextRefresh: boolean
-};
+}
 
 type InputProps = {
-  isActiveForFocus: boolean,
+  isActiveForFocus: boolean
   suggestTeams: Array<{
-    username: string,
-    fullName: string,
+    username: string
+    fullName: string
     teamname: string
-  }>,
+  }>
   suggestUsers: I.List<{
-    username: string,
-    fullName: string,
+    username: string
+    fullName: string
     teamname?: string
-  }>,
-  suggestChannels: I.List<string>,
+  }>
+  suggestChannels: I.List<string>
   suggestAllChannels: I.List<{
-    teamname: string,
+    teamname: string
     channelname: string
-  }>,
+  }>
   suggestCommands: Array<RPCChatTypes.ConversationCommand>
-} & CommonProps;
+} & CommonProps
 
 type PlatformInputProps = {
-  inputSetRef: (r: null | PlainInput) => void,
-  onChangeText: (newText: string) => void,
-  onKeyDown: (evt: React.KeyboardEvent, isComposingIME: boolean) => void,
+  inputSetRef: (r: null | PlainInput) => void
+  onChangeText: (newText: string) => void
+  onKeyDown: (evt: React.KeyboardEvent, isComposingIME: boolean) => void
   setHeight: (inputHeight: number) => void
-} & CommonProps;
+} & CommonProps
 
-export { InputProps, PlatformInputProps };
+export {InputProps, PlatformInputProps}

@@ -4,7 +4,7 @@ import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import CreateTeamNotice from '.'
 import {connect} from '../../../../util/container'
 
-type OwnProps = {};
+type OwnProps = {}
 
 const mapStateToProps = state => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)

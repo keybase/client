@@ -7,7 +7,7 @@ import {chatTab} from '../../../../constants/tabs'
 
 type OwnProps = {
   message: Types.MessageSystemJoined
-};
+}
 
 const mapStateToProps = (state, {message}) => ({
   _meta: Constants.getMeta(state, message.conversationIDKey),

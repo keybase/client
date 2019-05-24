@@ -9,7 +9,7 @@ import {
   ProgressIndicator,
   OverlayParentHOC,
   OverlayParentProps,
-} from '../../../common-adapters';
+} from '../../../common-adapters'
 import MessagePopup from '../messages/message-popup/'
 import {
   collapseStyles,
@@ -19,12 +19,12 @@ import {
   fileUIName,
   platformStyles,
 } from '../../../styles'
-import { Props } from './index.types';
+import {Props} from './index.types'
 import KeyHandler from '../../../util/key-handler.desktop'
 
 type State = {
   loaded: string
-};
+}
 
 class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
   _mounted = false
@@ -126,7 +126,7 @@ class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
     )
   }
 }
-const Fullscreen: any = KeyHandler(OverlayParentHOC((_Fullscreen as any)))
+const Fullscreen: any = KeyHandler(OverlayParentHOC(_Fullscreen as any))
 
 const linkStyle = platformStyles({
   isElectron: {color: globalColors.black_50, cursor: 'pointer'},

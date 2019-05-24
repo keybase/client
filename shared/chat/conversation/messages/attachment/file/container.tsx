@@ -9,7 +9,7 @@ const mapStateToProps = state => ({})
 
 type OwnProps = {
   message: Types.MessageAttachment
-};
+}
 
 const mapDispatchToProps = dispatch => ({
   _onDownload: (message: Types.MessageAttachment) => {

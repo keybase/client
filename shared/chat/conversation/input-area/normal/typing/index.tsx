@@ -3,11 +3,7 @@ import * as I from 'immutable'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 
-const Names = ({
-  names
-}: {
-  names: I.Set<string>
-}) => {
+const Names = ({names}: {names: I.Set<string>}) => {
   const textType = 'BodyTinySemibold'
   let ret
   switch (names.size) {
@@ -64,7 +60,7 @@ const Names = ({
 
 type Props = {
   names: I.Set<string>
-};
+}
 
 export const Typing = (props: Props) => (
   <Kb.Box style={styles.isTypingContainer}>

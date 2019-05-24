@@ -5,21 +5,21 @@ import {formatTimeForMessages} from '../../../../../../util/timestamp'
 import UnfurlImage from '../image'
 
 export type Props = {
-  isCollapsed: boolean,
-  title: string,
-  url: string,
-  siteName: string,
-  description?: string,
-  publishTime?: number,
-  imageURL?: string,
-  imageHeight?: number,
-  imageWidth?: number,
-  imageIsVideo?: boolean,
-  faviconURL?: string,
-  onClose?: () => void,
-  onCollapse: () => void,
+  isCollapsed: boolean
+  title: string
+  url: string
+  siteName: string
+  description?: string
+  publishTime?: number
+  imageURL?: string
+  imageHeight?: number
+  imageWidth?: number
+  imageIsVideo?: boolean
+  faviconURL?: string
+  onClose?: () => void
+  onCollapse: () => void
   showImageOnSide: boolean
-};
+}
 
 class UnfurlGeneric extends React.Component<Props> {
   render() {

@@ -6,10 +6,10 @@ import ResetUser from './reset-user/container'
 import {namedConnect} from '../../../util/container'
 
 type Props = {
-  showResetParticipants: Types.ConversationIDKey | null,
-  showSuperseded: Types.ConversationIDKey | null,
+  showResetParticipants: Types.ConversationIDKey | null
+  showSuperseded: Types.ConversationIDKey | null
   measure: () => void | null
-};
+}
 
 class BottomMessage extends React.PureComponent<Props> {
   componentDidUpdate(prevProps: Props) {
@@ -33,9 +33,9 @@ class BottomMessage extends React.PureComponent<Props> {
 }
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey,
+  conversationIDKey: Types.ConversationIDKey
   measure: () => void | null
-};
+}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const meta = Constants.getMeta(state, ownProps.conversationIDKey)

@@ -5,21 +5,24 @@ import {Picker} from '../picker'
 import {backgroundImageFn} from '../../../../../common-adapters/emoji'
 
 type Props = {
-  className?: string,
-  emojis: Array<string>,
-  onReact: (arg0: string) => void,
-  onReply: () => void,
-  onShowingEmojiPicker?: (arg0: boolean) => void,
+  className?: string
+  emojis: Array<string>
+  onReact: (arg0: string) => void
+  onReply: () => void
+  onShowingEmojiPicker?: (arg0: boolean) => void
   style?: Styles.StylesCrossPlatform
-};
+}
 
-class HoverEmoji extends React.Component<{
-  name: string,
-  onClick: () => void,
-  isReacjiIcon?: boolean
-}, {
-  hovering: boolean
-}> {
+class HoverEmoji extends React.Component<
+  {
+    name: string
+    onClick: () => void
+    isReacjiIcon?: boolean
+  },
+  {
+    hovering: boolean
+  }
+> {
   state = {hovering: false}
   _setHovering = () => this.setState(s => (s.hovering ? null : {hovering: true}))
   _setNotHovering = () => this.setState(s => (s.hovering ? {hovering: false} : null))
@@ -52,9 +55,12 @@ class HoverEmoji extends React.Component<{
   }
 }
 
-class EmojiRow extends React.Component<Props, {
-  showingPicker: boolean
-}> {
+class EmojiRow extends React.Component<
+  Props,
+  {
+    showingPicker: boolean
+  }
+> {
   state = {showingPicker: false}
   _attachmentRef = React.createRef<Kb.Box2>()
   _setShowingPicker = showingPicker => {
@@ -63,11 +69,7 @@ class EmojiRow extends React.Component<Props, {
   }
   _showPicker = () => this._setShowingPicker(true)
   _hidePicker = () => this._setShowingPicker(false)
-  _onAddReaction = ({
-    colons
-  }: {
-    colons: string
-  }) => {
+  _onAddReaction = ({colons}: {colons: string}) => {
     this.props.onReact(colons)
     this._setShowingPicker(false)
   }

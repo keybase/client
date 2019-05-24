@@ -4,12 +4,12 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 
 type ReplyProps = {
-  deleted: boolean,
-  edited: boolean,
-  onClick: () => void,
-  text: string,
+  deleted: boolean
+  edited: boolean
+  onClick: () => void
+  text: string
   username: string
-};
+}
 
 const Reply = (props: ReplyProps) => {
   return (
@@ -48,20 +48,14 @@ const Reply = (props: ReplyProps) => {
 }
 
 export type Props = {
-  isEditing: boolean,
-  message: Types.MessageText,
-  reply?: ReplyProps,
-  text: string,
-  type: "error" | "pending" | "sent"
-};
+  isEditing: boolean
+  message: Types.MessageText
+  reply?: ReplyProps
+  text: string
+  type: 'error' | 'pending' | 'sent'
+}
 
-const MessageText = ({
-  isEditing,
-  message,
-  reply,
-  text,
-  type
-}: Props) => {
+const MessageText = ({isEditing, message, reply, text, type}: Props) => {
   const markdown = (
     <Kb.Markdown
       style={getStyle(type, isEditing)}

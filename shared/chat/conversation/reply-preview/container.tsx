@@ -6,7 +6,7 @@ import ReplyPreview from '.'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
-};
+}
 
 const mapStateToProps = (state, {conversationIDKey}) => {
   const ordinal = Constants.getReplyToOrdinal(state, conversationIDKey)
@@ -14,9 +14,9 @@ const mapStateToProps = (state, {conversationIDKey}) => {
   const text = message && message.type === 'text' ? message.text.stringValue() : ''
   return {
     text,
-    username: // Auto generated from flowToTs. Please clean me!
-    (message === null || message === undefined ? undefined : message.author) || '',
-  };
+    // Auto generated from flowToTs. Please clean me!
+    username: (message === null || message === undefined ? undefined : message.author) || '',
+  }
 }
 
 const mapDispatchToProps = (dispatch, {conversationIDKey}) => ({

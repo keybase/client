@@ -1,12 +1,9 @@
 import * as React from 'react'
 import {Box, Text, Button, StandardScreen} from '../../../common-adapters/mobile.native'
 import {globalColors, globalStyles, globalMargins} from '../../../styles'
-import { Props } from './you-rekey.types';
+import {Props} from './you-rekey.types'
 
-const YouRekey = ({
-  onEnterPaperkey,
-  onBack
-}: Props) => {
+const YouRekey = ({onEnterPaperkey, onBack}: Props) => {
   const bannerEl = (
     <Box
       style={{

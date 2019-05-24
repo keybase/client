@@ -17,12 +17,12 @@ const makeItems = (meta: Types.ConversationMeta) => {
 }
 
 type OwnProps = {
-  attachTo: () => React.Component<any> | null,
-  conversationIDKey: Types.ConversationIDKey,
-  onAfterSelect?: (s: number) => void,
-  onHidden: () => void,
+  attachTo: () => React.Component<any> | null
+  conversationIDKey: Types.ConversationIDKey
+  onAfterSelect?: (s: number) => void
+  onHidden: () => void
   visible: boolean
-};
+}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const meta = Constants.getMeta(state, ownProps.conversationIDKey)

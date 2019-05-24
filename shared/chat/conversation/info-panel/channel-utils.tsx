@@ -3,10 +3,10 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 
 const CaptionedButton = (props: {
-  label: string,
-  caption: string,
-  onClick: () => void,
-  style?: Styles.StylesCrossPlatform,
+  label: string
+  caption: string
+  onClick: () => void
+  style?: Styles.StylesCrossPlatform
   waitOnClick?: boolean
 }) => (
   <Kb.Box2
@@ -25,10 +25,7 @@ const CaptionedButton = (props: {
   </Kb.Box2>
 )
 
-const DangerButton = (props: {
-  label: string,
-  onClick: () => void
-}) => (
+const DangerButton = (props: {label: string; onClick: () => void}) => (
   <Kb.ButtonBar small={true}>
     <Kb.Button type="Danger" small={true} label={props.label} onClick={props.onClick} />
   </Kb.ButtonBar>
@@ -39,12 +36,12 @@ const CaptionedDangerIcon = ({
   caption,
   noDanger,
   onClick,
-  spinner
+  spinner,
 }: {
-  icon?: Kb.IconType,
-  caption: string,
-  noDanger?: boolean,
-  onClick: () => void,
+  icon?: Kb.IconType
+  caption: string
+  noDanger?: boolean
+  onClick: () => void
   spinner?: boolean
 }) => {
   const color = noDanger ? null : Styles.globalColors.red

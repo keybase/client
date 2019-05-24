@@ -1,34 +1,34 @@
 import * as React from 'react'
 import MessagePopupHeader from '../header'
 import {FloatingMenu} from '../../../../../common-adapters/'
-import { DeviceType } from '../../../../../constants/types/devices';
-import { Position } from '../../../../../common-adapters/relative-popup-hoc.types';
-import { StylesCrossPlatform } from '../../../../../styles/css';
+import {DeviceType} from '../../../../../constants/types/devices'
+import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
+import {StylesCrossPlatform} from '../../../../../styles/css'
 
 type Props = {
-  attachTo: () => React.Component<any> | null,
-  author: string,
-  deviceName: string,
-  deviceRevokedAt: number | null,
-  deviceType: DeviceType,
-  onAddReaction: null | () => void,
-  onCopy: () => void,
-  onDelete: null | () => void,
-  onDeleteMessageHistory: null | () => void,
-  onEdit: null | () => void,
-  onHidden: () => void,
-  onReply: null | () => void,
-  onReplyPrivately: null | () => void,
-  onViewProfile: null | () => void,
-  position: Position,
-  showDivider: boolean,
-  style?: StylesCrossPlatform,
-  timestamp: number,
-  visible: boolean,
-  yourMessage: boolean,
-  isDeleteable: boolean,
+  attachTo: () => React.Component<any> | null
+  author: string
+  deviceName: string
+  deviceRevokedAt: number | null
+  deviceType: DeviceType
+  onAddReaction: null | (() => void)
+  onCopy: () => void
+  onDelete: null | (() => void)
+  onDeleteMessageHistory: null | (() => void)
+  onEdit: null | (() => void)
+  onHidden: () => void
+  onReply: null | (() => void)
+  onReplyPrivately: null | (() => void)
+  onViewProfile: null | (() => void)
+  position: Position
+  showDivider: boolean
+  style?: StylesCrossPlatform
+  timestamp: number
+  visible: boolean
+  yourMessage: boolean
+  isDeleteable: boolean
   isEditable: boolean
-};
+}
 
 const TextPopupMenu = (props: Props) => {
   const items = [

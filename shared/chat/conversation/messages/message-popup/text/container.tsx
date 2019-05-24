@@ -7,18 +7,18 @@ import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as Container from '../../../../../util/container'
 import {createShowUserProfile} from '../../../../../actions/profile-gen'
 import {getCanPerform} from '../../../../../constants/teams'
-import { Position } from '../../../../../common-adapters/relative-popup-hoc.types';
-import { StylesCrossPlatform } from '../../../../../styles/css';
+import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
+import {StylesCrossPlatform} from '../../../../../styles/css'
 import Text from '.'
 
 type OwnProps = {
-  attachTo: () => React.Component<any> | null,
-  message: Types.MessageText,
-  onHidden: () => void,
-  position: Position,
-  style?: StylesCrossPlatform,
+  attachTo: () => React.Component<any> | null
+  message: Types.MessageText
+  onHidden: () => void
+  position: Position
+  style?: StylesCrossPlatform
   visible: boolean
-};
+}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const message = ownProps.message

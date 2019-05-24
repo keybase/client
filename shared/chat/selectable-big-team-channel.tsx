@@ -5,19 +5,19 @@ import {TeamAvatar} from './avatars'
 import {pluralize} from '../util/string'
 
 type Props = {
-  isSelected: boolean,
-  numSearchHits?: number,
-  maxSearchHits?: number,
-  teamname: string,
-  channelname: string,
-  onSelectConversation: () => void,
-  showBadge: boolean,
+  isSelected: boolean
+  numSearchHits?: number
+  maxSearchHits?: number
+  teamname: string
+  channelname: string
+  onSelectConversation: () => void
+  showBadge: boolean
   showBold: boolean
-};
+}
 
 type State = {
   isHovered: boolean
-};
+}
 
 class SelectableBigTeamChannel extends PureComponent<Props, State> {
   state = {

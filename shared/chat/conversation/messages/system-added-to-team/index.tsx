@@ -5,16 +5,16 @@ import UserNotice from '../user-notice'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 
 type Props = {
-  isAdmin: boolean,
-  addee: string,
-  adder: string,
-  onManageChannels: () => void,
-  onManageNotifications: () => void,
-  onViewTeam: () => void,
-  teamname: string,
-  timestamp: number,
+  isAdmin: boolean
+  addee: string
+  adder: string
+  onManageChannels: () => void
+  onManageNotifications: () => void
+  onViewTeam: () => void
+  teamname: string
+  timestamp: number
   you: string
-};
+}
 
 const connectedUsernamesProps = {
   colorFollowing: true,
@@ -52,12 +52,7 @@ const ManageComponent = (props: Props) => {
   }
 }
 
-const YouOrUsername = (props: {
-  username: string,
-  you: string,
-  capitalize: boolean,
-  adder?: string
-}) => {
+const YouOrUsername = (props: {username: string; you: string; capitalize: boolean; adder?: string}) => {
   if (props.adder === props.you) return 'yourself'
   if (props.username === props.you) {
     return props.capitalize ? 'You' : 'you'

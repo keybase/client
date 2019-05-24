@@ -6,21 +6,22 @@ import ListComponent from '.'
 import {connect, compose, lifecycle, withStateHandlers} from '../../../../util/container'
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey,
-  debug?: boolean,
-  onFocusInput: () => void,
-  scrollListDownCounter: number,
-  scrollListToBottomCounter: number,
+  conversationIDKey: Types.ConversationIDKey
+  debug?: boolean
+  onFocusInput: () => void
+  scrollListDownCounter: number
+  scrollListToBottomCounter: number
   scrollListUpCounter: number
-};
+}
 
-const mapStateToProps = (state, {
-  conversationIDKey
-}: OwnProps) => {
+const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const messageOrdinals = Constants.getMessageOrdinals(state, conversationIDKey)
   const lastOrdinal = messageOrdinals.last()
   const centeredOrdinal = // Auto generated from flowToTs. Please clean me!
-  Constants.getMessageCenterOrdinal(state, conversationIDKey) === null || Constants.getMessageCenterOrdinal(state, conversationIDKey) === undefined ? undefined : Constants.getMessageCenterOrdinal(state, conversationIDKey).ordinal
+    Constants.getMessageCenterOrdinal(state, conversationIDKey) === null ||
+    Constants.getMessageCenterOrdinal(state, conversationIDKey) === undefined
+      ? undefined
+      : Constants.getMessageCenterOrdinal(state, conversationIDKey).ordinal
   const containsLatestMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey, false)
   const showThreadSearch = Constants.getThreadSearchInfo(state, conversationIDKey).visible
   let lastMessageIsOurs = false
@@ -40,9 +41,7 @@ const mapStateToProps = (state, {
   }
 }
 
-const mapDispatchToProps = (dispatch, {
-  conversationIDKey
-}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => ({
   _loadNewerMessages: () => dispatch(Chat2Gen.createLoadNewerMessagesDueToScroll({conversationIDKey})),
   _loadOlderMessages: () => dispatch(Chat2Gen.createLoadOlderMessagesDueToScroll({conversationIDKey})),
   _markInitiallyLoadedThreadAsRead: () =>

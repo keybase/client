@@ -9,11 +9,11 @@ import * as Types from '../../../../constants/types/chat2'
 import {namedConnect, isMobile} from '../../../../util/container'
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey,
-  measure: () => void | null,
-  ordinal: Types.Ordinal,
+  conversationIDKey: Types.ConversationIDKey
+  measure: () => void | null
+  ordinal: Types.Ordinal
   previous: Types.Ordinal | null
-};
+}
 
 // If there is no matching message treat it like a deleted
 const missingMessage = MessageConstants.makeMessageDeleted({})

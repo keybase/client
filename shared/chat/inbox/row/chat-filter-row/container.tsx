@@ -6,13 +6,13 @@ import {namedConnect, compose, withProps} from '../../../../util/container'
 import ConversationFilterInput from '../../../conversation-filter-input'
 
 type OwnProps = {
-  onEnsureSelection: () => void,
-  onNewChat: () => void,
-  onSelectDown: () => void,
-  onSelectUp: () => void,
-  onQueryChanged: (arg0: string) => void,
+  onEnsureSelection: () => void
+  onNewChat: () => void
+  onSelectDown: () => void
+  onSelectUp: () => void
+  onQueryChanged: (arg0: string) => void
   query: string
-};
+}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   return {

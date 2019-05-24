@@ -6,9 +6,9 @@ import {BigTeamHeader} from '.'
 import * as ChatTypes from '../../../../constants/types/chat2'
 
 type OwnProps = {
-  conversationIDKey: ChatTypes.ConversationIDKey,
+  conversationIDKey: ChatTypes.ConversationIDKey
   teamname: string
-};
+}
 
 const mapStateToProps = (state, {teamname, conversationIDKey}) => ({
   badgeSubscribe: !isTeamWithChosenChannels(state, teamname),

@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import {NativeWebView} from '../../../common-adapters/native-wrappers.native'
 import * as Styles from '../../../styles'
-import { Props } from './index.types';
+import {Props} from './index.types'
 
 class GiphySearch extends React.Component<Props, State> {
   render() {

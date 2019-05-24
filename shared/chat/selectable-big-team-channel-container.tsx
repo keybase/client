@@ -4,12 +4,12 @@ import * as Types from '../constants/types/chat2'
 import {namedConnect} from '../util/container'
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey,
-  isSelected: boolean,
-  maxSearchHits?: number,
-  numSearchHits?: number,
+  conversationIDKey: Types.ConversationIDKey
+  isSelected: boolean
+  maxSearchHits?: number
+  numSearchHits?: number
   onSelectConversation: () => void
-};
+}
 
 const mapStateToProps = (state, {conversationIDKey}) => {
   const showBold = Constants.getHasUnread(state, conversationIDKey)

@@ -9,11 +9,11 @@ import {globalStyles, globalMargins, isMobile} from '../../../styles'
 import * as Types from '../../../constants/types/chat2'
 
 type MakeRowOptions = {
-  channelname: string,
-  conversationIDKey: Types.ConversationIDKey,
-  teamname: string,
-  type: "small" | "bigHeader" | "bigTeamsLabel" | "big"
-};
+  channelname: string
+  conversationIDKey: Types.ConversationIDKey
+  teamname: string
+  type: 'small' | 'bigHeader' | 'bigTeamsLabel' | 'big'
+}
 
 const makeRow = (options: MakeRowOptions) => {
   if (options.type === 'bigTeamsLabel') {

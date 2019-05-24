@@ -10,11 +10,11 @@ import {formatTimeForMessages} from '../../../../util/timestamp'
 const branchRefPrefix = 'refs/heads/'
 
 type Props = {
-  message: Types.MessageSystemGitPush,
-  onClickCommit: (commitHash: string) => void,
-  onClickUserAvatar: (username: string) => void,
+  message: Types.MessageSystemGitPush
+  onClickCommit: (commitHash: string) => void
+  onClickUserAvatar: (username: string) => void
   onViewGitRepo: (repoID: string, teamname: string) => void
-};
+}
 
 // Map [int] -> 'push type string'
 const gitPushType = invert(RPCTypes.gitGitPushType)
@@ -117,18 +117,13 @@ const GitPushDefault = ({
 }
 
 type PushCommonProps = {
-  children: React.ElementType,
-  pusher: string,
-  timestamp: number,
+  children: React.ElementType
+  pusher: string
+  timestamp: number
   onClickUserAvatar: (arg0: string) => void
-};
+}
 
-const GitPushCommon = ({
-  children,
-  pusher,
-  timestamp,
-  onClickUserAvatar
-}: PushCommonProps) => (
+const GitPushCommon = ({children, pusher, timestamp, onClickUserAvatar}: PushCommonProps) => (
   <UserNotice
     username={pusher}
     style={{marginTop: globalMargins.small}}

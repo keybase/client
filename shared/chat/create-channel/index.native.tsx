@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Constants from '../../constants/teams'
 import * as Kb from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
-import { Props } from './index.types';
+import {Props} from './index.types'
 
 const errorHeader = (errorText: string) => {
   if (!errorText) {

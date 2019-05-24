@@ -4,31 +4,31 @@ import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-import { StylesCrossPlatform } from '../../../../styles';
+import {StylesCrossPlatform} from '../../../../styles'
 import ReactButton, {NewReactionButton} from '.'
 
 export type OwnProps = {
-  className?: string,
-  conversationIDKey: Types.ConversationIDKey,
-  emoji?: string,
-  onMouseLeave?: (evt: React.SyntheticEvent) => void,
-  onMouseOver?: (evt: React.SyntheticEvent) => void,
-  getAttachmentRef?: () => React.Component<any> | null,
-  onLongPress?: () => void,
-  onShowPicker?: (showing: boolean) => void,
-  ordinal: Types.Ordinal,
-  showBorder?: boolean,
+  className?: string
+  conversationIDKey: Types.ConversationIDKey
+  emoji?: string
+  onMouseLeave?: (evt: React.SyntheticEvent) => void
+  onMouseOver?: (evt: React.SyntheticEvent) => void
+  getAttachmentRef?: () => React.Component<any> | null
+  onLongPress?: () => void
+  onShowPicker?: (showing: boolean) => void
+  ordinal: Types.Ordinal
+  showBorder?: boolean
   style?: StylesCrossPlatform
-};
+}
 
 export type WrapperProps = {
-  active: boolean,
-  count: number,
-  emoji: string,
-  onAddReaction: (emoji: string) => void,
-  onClick: () => void,
+  active: boolean
+  count: number
+  emoji: string
+  onAddReaction: (emoji: string) => void
+  onClick: () => void
   onOpenEmojiPicker: () => void
-} & OwnProps;
+} & OwnProps
 
 class Wrapper extends React.Component<WrapperProps> {
   render() {
@@ -86,11 +86,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {
-  conversationIDKey,
-  emoji,
-  ordinal
-}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {conversationIDKey, emoji, ordinal}: OwnProps) => ({
   onAddReaction: (emoji: string) =>
     dispatch(Chat2Gen.createToggleMessageReaction({conversationIDKey, emoji, ordinal})),
   onClick: () =>

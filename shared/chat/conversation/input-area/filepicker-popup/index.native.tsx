@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {FloatingMenu} from '../../../../common-adapters'
 import {Box2, Text} from '../../../../common-adapters/mobile.native'
-import { Props } from './index.types';
+import {Props} from './index.types'
 import {isIOS} from '../../../../constants/platform'
 
 const Prompt = () => (

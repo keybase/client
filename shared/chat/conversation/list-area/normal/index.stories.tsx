@@ -8,8 +8,8 @@ import * as Types from '../../../../constants/types/chat2'
 import {propProvider as ReactionsRowProvider} from '../../messages/reactions-row/index.stories'
 import {propProvider as ReactButtonProvider} from '../../messages/react-button/index.stories'
 import {propProvider as ReactionTooltipProvider} from '../../messages/reaction-tooltip/index.stories'
-import { OwnProps as ExplodingMetaOwnProps } from '../../messages/wrapper/exploding-meta/container';
-import { _Props as ExplodingMetaViewProps } from '../../messages/wrapper/exploding-meta/';
+import {OwnProps as ExplodingMetaOwnProps} from '../../messages/wrapper/exploding-meta/container'
+import {_Props as ExplodingMetaViewProps} from '../../messages/wrapper/exploding-meta/'
 import Thread from '.'
 import * as Message from '../../../../constants/chat2/message'
 import HiddenString from '../../../../util/hidden-string'
@@ -18,7 +18,7 @@ import JumpToRecent from './jump-to-recent'
 const firstOrdinal = 10000
 const makeMoreOrdinals = (
   ordinals: I.List<Types.Ordinal>,
-  direction: "append" | "prepend",
+  direction: 'append' | 'prepend',
   num = __STORYSHOT__ ? 10 : 100
 ): I.List<Types.Ordinal> => {
   if (direction === 'prepend') {
@@ -97,7 +97,7 @@ const makeTimestampGen = (days: number = 7, threshold: number = 10) => {
     }
 
     return currentTimestamp
-  };
+  }
 }
 
 const generateTimestamp = makeTimestampGen()
@@ -142,7 +142,7 @@ const provider = Sb.createPropProviderWithCommon({
     explodesAt: 0,
     messageKey: '',
     onClick: null,
-    pending: false
+    pending: false,
   }),
   Mention: p => ({username: p.username}),
   BottomMessage: p => ({
@@ -214,22 +214,22 @@ const provider = Sb.createPropProviderWithCommon({
 
 const loadMore = Sb.action('onLoadMoreMessages')
 
-type Props = {};
+type Props = {}
 
 type State = {
-  conversationIDKey: Types.ConversationIDKey,
-  loadMoreEnabled: boolean,
-  messageInjectionEnabled: boolean,
-  messageOrdinals: I.List<Types.Ordinal>,
-  scrollListDownCounter: number,
-  scrollListToBottomCounter: number,
+  conversationIDKey: Types.ConversationIDKey
+  loadMoreEnabled: boolean
+  messageInjectionEnabled: boolean
+  messageOrdinals: I.List<Types.Ordinal>
+  scrollListDownCounter: number
+  scrollListToBottomCounter: number
   scrollListUpCounter: number
-};
+}
 
 class ThreadWrapper extends React.Component<Props, State> {
-  _injectMessagesIntervalID: number | null;
-  _loadMoreTimeoutID: number | null;
-  _loadConvoTimeoutID: number | null;
+  _injectMessagesIntervalID: number | null
+  _loadMoreTimeoutID: number | null
+  _loadConvoTimeoutID: number | null
   constructor(props) {
     super(props)
     this.state = {

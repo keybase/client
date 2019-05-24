@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
 import * as Flow from '../../../util/flow'
 import {Box, Divider, HeaderOnMobile, List} from '../../../common-adapters'
-import { Props as HeaderHocProps } from '../../../common-adapters/header-hoc/types';
+import {Props as HeaderHocProps} from '../../../common-adapters/header-hoc/types'
 import {globalColors, globalMargins, globalStyles, isMobile, platformStyles} from '../../../styles'
 import {SmallTeamHeader, BigTeamHeader} from './header'
 import Notifications from './notifications/container'
@@ -30,68 +30,64 @@ const styleTurnIntoTeam = {
   paddingLeft: globalMargins.small,
   paddingRight: globalMargins.small,
 }
-const Spacer = ({
-  height
-}: {
-  height: number
-}) => <Box style={{height, width: 1}} />
+const Spacer = ({height}: {height: number}) => <Box style={{height, width: 1}} />
 
 type InfoPanelProps = {
-  selectedConversationIDKey: Types.ConversationIDKey,
+  selectedConversationIDKey: Types.ConversationIDKey
   participants: Array<{
-    username: string,
-    fullname: string,
-    isAdmin: boolean,
+    username: string
+    fullname: string
+    isAdmin: boolean
     isOwner: boolean
-  }>,
-  isPreview: boolean,
-  teamname: string | null,
-  channelname: string | null,
-  smallTeam: boolean,
-  admin: boolean,
-  ignored: boolean,
-  spinnerForHide: boolean,
-  onBack: () => void,
-  onShowProfile: (username: string) => void,
-  onShowBlockConversationDialog: () => void,
-  onShowClearConversationDialog: () => void,
-  onShowNewTeamDialog: () => void,
-  onHideConv: () => void,
-  onUnhideConv: () => void,
-  canSetMinWriterRole: boolean,
-  canSetRetention: boolean,
-  canEditChannel: boolean,
-  canDeleteHistory: boolean,
-  description: string | null,
-  onEditChannel: () => void,
-  onLeaveConversation: () => void,
+  }>
+  isPreview: boolean
+  teamname: string | null
+  channelname: string | null
+  smallTeam: boolean
+  admin: boolean
+  ignored: boolean
+  spinnerForHide: boolean
+  onBack: () => void
+  onShowProfile: (username: string) => void
+  onShowBlockConversationDialog: () => void
+  onShowClearConversationDialog: () => void
+  onShowNewTeamDialog: () => void
+  onHideConv: () => void
+  onUnhideConv: () => void
+  canSetMinWriterRole: boolean
+  canSetRetention: boolean
+  canEditChannel: boolean
+  canDeleteHistory: boolean
+  description: string | null
+  onEditChannel: () => void
+  onLeaveConversation: () => void
   onJoinChannel: () => void
-} & HeaderHocProps;
+} & HeaderHocProps
 
 type AddPeopleRow = {
-  type: "add people",
-  key: "add people",
-  teamname: string,
-  isAdmin: boolean,
+  type: 'add people'
+  key: 'add people'
+  teamname: string
+  isAdmin: boolean
   isGeneralChannel: boolean
-};
+}
 
 type ParticipantRow = {
-  type: "participant",
-  key: string,
-  username: string,
-  fullname: string,
-  isAdmin: boolean,
-  isOwner: boolean,
+  type: 'participant'
+  key: string
+  username: string
+  fullname: string
+  isAdmin: boolean
+  isOwner: boolean
   onShowProfile: (arg0: string) => void
-};
+}
 
 type DividerRow = {
-  type: "divider",
-  key: string,
-  marginTop?: number,
+  type: 'divider'
+  key: string
+  marginTop?: number
   marginBottom?: number
-};
+}
 
 const getDividerStyle = (row: DividerRow) => ({
   marginBottom: 'marginBottom' in row ? row.marginBottom : globalMargins.small,
@@ -99,12 +95,12 @@ const getDividerStyle = (row: DividerRow) => ({
 })
 
 type RetentionRow = {
-  type: "retention",
-  key: "retention",
-  teamname?: string,
-  canSetRetention: boolean,
-  entityType: "adhoc" | "channel" | "small team" | "big team"
-};
+  type: 'retention'
+  key: 'retention'
+  teamname?: string
+  canSetRetention: boolean
+  entityType: 'adhoc' | 'channel' | 'small team' | 'big team'
+}
 
 const retentionStyles = {
   containerStyle: platformStyles({
@@ -128,93 +124,117 @@ const retentionStyles = {
 }
 
 type SpacerRow = {
-  type: "spacer",
-  key: string,
+  type: 'spacer'
+  key: string
   height: number
-};
+}
 
 type NotificationsRow = {
-  type: "notifications",
-  key: "notifications"
-};
+  type: 'notifications'
+  key: 'notifications'
+}
 
 type TurnIntoTeamRow = {
-  type: "turn into team",
-  key: "turn into team",
+  type: 'turn into team'
+  key: 'turn into team'
   onShowNewTeamDialog: () => void
-};
+}
 
 type BlockThisConversationRow = {
-  type: "block this conversation",
-  key: "block this conversation",
+  type: 'block this conversation'
+  key: 'block this conversation'
   onShowBlockConversationDialog: () => void
-};
+}
 
 type ClearThisConversationRow = {
-  type: "clear entire conversation",
-  key: "clear entire conversation",
+  type: 'clear entire conversation'
+  key: 'clear entire conversation'
   onShowClearConversationDialog: () => void
-};
+}
 
 type HideThisConversationRow = {
-  type: "hide this conversation",
-  key: "hide this conversation",
+  type: 'hide this conversation'
+  key: 'hide this conversation'
   onHideConv: () => void
-};
+}
 
 type UnhideThisConversationRow = {
-  type: "unhide this conversation",
-  key: "unhide this conversation",
+  type: 'unhide this conversation'
+  key: 'unhide this conversation'
   onUnhideConv: () => void
-};
+}
 
 type ParticipantCountRow = {
-  type: "participant count",
-  key: "participant count",
-  label: string,
+  type: 'participant count'
+  key: 'participant count'
+  label: string
   participantCount: number
-};
+}
 
 type SmallTeamHeaderRow = {
-  type: "small team header",
-  key: "small team header",
-  isSmallTeam: boolean,
-  teamname: string,
+  type: 'small team header'
+  key: 'small team header'
+  isSmallTeam: boolean
+  teamname: string
   participantCount: number
-};
+}
 
 type BigTeamHeaderRow = {
-  type: "big team header",
-  key: "big team header",
-  canEditChannel: boolean,
-  onEditChannel: () => void,
-  description: string | null,
-  teamname: string,
+  type: 'big team header'
+  key: 'big team header'
+  canEditChannel: boolean
+  onEditChannel: () => void
+  description: string | null
+  teamname: string
   channelname: string
-};
+}
 
 type JoinChannelRow = {
-  type: "join channel",
-  key: "join channel",
-  teamname: string,
+  type: 'join channel'
+  key: 'join channel'
+  teamname: string
   onJoinChannel: () => void
-};
+}
 
 type LeaveChannelRow = {
-  type: "leave channel",
-  key: "leave channel",
+  type: 'leave channel'
+  key: 'leave channel'
   onLeaveConversation: () => void
-};
+}
 
 type MinWriterRoleRow = {
-  type: "min writer role",
-  key: "min writer role",
-  canSetMinWriterRole: boolean,
+  type: 'min writer role'
+  key: 'min writer role'
+  canSetMinWriterRole: boolean
   isSmallTeam: boolean
-};
+}
 
-type TeamHeaderRow = DividerRow | SpacerRow | NotificationsRow | ParticipantCountRow | RetentionRow | ClearThisConversationRow | HideThisConversationRow | UnhideThisConversationRow | SmallTeamHeaderRow | BigTeamHeaderRow | JoinChannelRow | LeaveChannelRow | MinWriterRoleRow | AddPeopleRow;
-type Row = ParticipantRow | SpacerRow | DividerRow | NotificationsRow | TurnIntoTeamRow | ClearThisConversationRow | BlockThisConversationRow | HideThisConversationRow | UnhideThisConversationRow | TeamHeaderRow;
+type TeamHeaderRow =
+  | DividerRow
+  | SpacerRow
+  | NotificationsRow
+  | ParticipantCountRow
+  | RetentionRow
+  | ClearThisConversationRow
+  | HideThisConversationRow
+  | UnhideThisConversationRow
+  | SmallTeamHeaderRow
+  | BigTeamHeaderRow
+  | JoinChannelRow
+  | LeaveChannelRow
+  | MinWriterRoleRow
+  | AddPeopleRow
+type Row =
+  | ParticipantRow
+  | SpacerRow
+  | DividerRow
+  | NotificationsRow
+  | TurnIntoTeamRow
+  | ClearThisConversationRow
+  | BlockThisConversationRow
+  | HideThisConversationRow
+  | UnhideThisConversationRow
+  | TeamHeaderRow
 
 const typeSizeEstimator = (row: Row): number => {
   // Don't bother adding more estimates to this.
@@ -761,5 +781,5 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
 
 const InfoPanel = HeaderOnMobile(_InfoPanel)
 
-export { InfoPanelProps };
+export {InfoPanelProps}
 export {InfoPanel}

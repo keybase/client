@@ -7,9 +7,9 @@ import * as TeamConstants from '../../../../constants/teams'
 import MinWriterRole from '.'
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey,
+  conversationIDKey: Types.ConversationIDKey
   isSmallTeam: boolean
-};
+}
 
 const emptyProps = {
   canSetMinWriterRole: false,

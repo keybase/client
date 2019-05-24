@@ -13,23 +13,23 @@ import {
 import {globalStyles, globalMargins, isMobile} from '../../styles'
 
 type Props = {
-  teamname: string,
-  channelName: string,
-  topic: string,
-  loadChannelInfo: () => void,
-  onCancel: () => void,
-  onSave: (channelName: string, topic: string) => void,
-  onConfirmedDelete: () => void,
-  showDelete: boolean,
-  title: string,
-  deleteRenameDisabled: boolean,
+  teamname: string
+  channelName: string
+  topic: string
+  loadChannelInfo: () => void
+  onCancel: () => void
+  onSave: (channelName: string, topic: string) => void
+  onConfirmedDelete: () => void
+  showDelete: boolean
+  title: string
+  deleteRenameDisabled: boolean
   waitingForGetInfo: boolean
-};
+}
 
 type State = {
-  newChannelName: string,
+  newChannelName: string
   newTopic: string
-};
+}
 
 class _EditChannel extends React.Component<Props, State> {
   state = {newChannelName: this.props.channelName, newTopic: this.props.topic}
@@ -159,5 +159,5 @@ const _bottomRowStyle = {
   ...(isMobile ? {} : {minWidth: '500px'}),
 }
 
-export { Props };
+export {Props}
 export default EditChannel

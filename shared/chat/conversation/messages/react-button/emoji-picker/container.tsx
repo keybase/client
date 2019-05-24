@@ -4,24 +4,27 @@ import * as Kb from '../../../../../common-adapters'
 import * as Types from '../../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
-import { RouteProps } from '../../../../../route-tree/render-route';
+import {RouteProps} from '../../../../../route-tree/render-route'
 import {globalColors, globalMargins, styleSheetCreate} from '../../../../../styles'
 import EmojiPicker from '.'
 
-type OwnProps = RouteProps<{
-  conversationIDKey: Types.ConversationIDKey,
-  ordinal: Types.Ordinal
-}, {}>;
+type OwnProps = RouteProps<
+  {
+    conversationIDKey: Types.ConversationIDKey
+    ordinal: Types.Ordinal
+  },
+  {}
+>
 
 type WrapperProps = {
-  onAddReaction: (emoji: string) => void,
+  onAddReaction: (emoji: string) => void
   onCancel: () => void
-};
+}
 
 type WrapperState = {
-  filter: string,
+  filter: string
   width: number
-};
+}
 
 const mapStateToProps = () => ({})
 
@@ -34,7 +37,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => {
       dispatch(RouteTreeGen.createNavigateUp())
     },
     onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
-  };
+  }
 }
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({

@@ -4,13 +4,13 @@ import * as React from 'react'
 // give it focus.
 
 export type Props = {
-  backgroundImageFn: (set: string, sheetSize: string) => string,
+  backgroundImageFn: (set: string, sheetSize: string) => string
   onClick: (
     arg0: {
       colons: string
     },
     evt: Event
   ) => void
-};
+}
 
 export declare class Picker extends React.Component<Props> {}

@@ -3,7 +3,7 @@ import * as Sb from '../../../../stories/storybook'
 import {List, Set} from 'immutable'
 import {Box2} from '../../../../common-adapters/box'
 import {platformStyles} from '../../../../styles'
-import Input, { Props as InputProps } from '.';
+import Input, {Props as InputProps} from '.'
 import {isMobile} from '../../../../constants/platform'
 import {stringToConversationIDKey} from '../../../../constants/types/chat2'
 
@@ -59,14 +59,14 @@ const provider = Sb.createPropProviderWithCommon({
 })
 
 type Props = {
-  cannotWrite?: boolean,
-  isEditExploded: boolean,
-  isEditing: boolean,
-  isExploding: boolean,
-  explodingModeSeconds: number,
-  minWriterRole?: string,
+  cannotWrite?: boolean
+  isEditExploded: boolean
+  isEditing: boolean
+  isExploding: boolean
+  explodingModeSeconds: number
+  minWriterRole?: string
   pendingWaiting: boolean
-};
+}
 
 // On mobile, we want full width and height. On desktop, we we want to
 // manually set dimensions. Not sure why fullHeight doesn't work on

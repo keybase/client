@@ -3,7 +3,7 @@ import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as Sb from '../../../../stories/storybook'
 import {Box} from '../../../../common-adapters'
-import { OwnProps, WrapperProps } from './container';
+import {OwnProps, WrapperProps} from './container'
 import ReactButton, {NewReactionButton} from '.'
 
 // Common props for these stories and fallbacks for the prop provider
@@ -29,7 +29,7 @@ const propMapper = (props: OwnProps): WrapperProps => ({
   onMouseLeave: props.onMouseLeave || common.onMouseLeave,
   onMouseOver: props.onMouseOver || common.onMouseOver,
   onOpenEmojiPicker: Sb.action('onOpenEmojiPicker'),
-  showBorder: props.showBorder
+  showBorder: props.showBorder,
 })
 export const propProvider = {
   ReactButton: propMapper,

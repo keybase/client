@@ -9,18 +9,18 @@ import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import {namedConnect, isMobile} from '../../../../../util/container'
 import {isIOS} from '../../../../../constants/platform'
 
-import { Position } from '../../../../../common-adapters/relative-popup-hoc.types';
-import { StylesCrossPlatform } from '../../../../../styles/css';
+import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
+import {StylesCrossPlatform} from '../../../../../styles/css'
 import Exploding from '.'
 
 export type OwnProps = {
-  attachTo: () => React.Component<any> | null,
-  message: Types.MessageAttachment | Types.MessageText,
-  onHidden: () => void,
-  position: Position,
-  style?: StylesCrossPlatform,
+  attachTo: () => React.Component<any> | null
+  message: Types.MessageAttachment | Types.MessageText
+  onHidden: () => void
+  position: Position
+  style?: StylesCrossPlatform
   visible: boolean
-};
+}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const yourMessage = ownProps.message.author === state.config.username

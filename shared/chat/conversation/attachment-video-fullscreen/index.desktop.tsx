@@ -6,17 +6,17 @@ import {
   ProgressIndicator,
   OverlayParentHOC,
   OverlayParentProps,
-} from '../../../common-adapters';
+} from '../../../common-adapters'
 import {collapseStyles, globalColors, globalMargins, globalStyles} from '../../../styles'
-import { Props } from './index.types';
+import {Props} from './index.types'
 
 type State = {
   loaded: boolean
-};
+}
 
 class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
-  vidRef: any;
-  playingVideo: boolean;
+  vidRef: any
+  playingVideo: boolean
   state = {loaded: false}
   _setLoaded = () => this.setState({loaded: true})
 

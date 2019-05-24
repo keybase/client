@@ -2,8 +2,8 @@ import {Rnd} from '../../../../stories/storybook'
 import * as I from 'immutable'
 import * as Types from '../../../../constants/types/chat2'
 import {emojiIndexByName} from '../../../../common-adapters/markdown/emoji-gen'
-import { OwnProps } from './container';
-import { Props as ViewProps } from '.';
+import {OwnProps} from './container'
+import {Props as ViewProps} from '.'
 
 const emojiNames = Object.keys(emojiIndexByName)
 const numEmojis = emojiNames.length
@@ -26,6 +26,6 @@ export const propProvider = {
   ReactionsRow: (props: OwnProps): ViewProps => ({
     conversationIDKey: props.conversationIDKey,
     emojis: ordinalToEmojis(props.ordinal),
-    ordinal: props.ordinal
+    ordinal: props.ordinal,
   }),
 }

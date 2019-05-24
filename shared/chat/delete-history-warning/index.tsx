@@ -3,15 +3,12 @@ import {Box, Button, HeaderOnMobile, Icon, MaybePopup, Text} from '../../common-
 import {globalColors, globalMargins, globalStyles, isMobile, platformStyles} from '../../styles'
 
 type Props = {
-  onBack: () => void | null,
-  onCancel: () => void,
+  onBack: () => void | null
+  onCancel: () => void
   onDeleteHistory: () => void
-};
+}
 
-const DeleteHistoryWarning = ({
-  onCancel,
-  onDeleteHistory
-}: Props) => (
+const DeleteHistoryWarning = ({onCancel, onDeleteHistory}: Props) => (
   <MaybePopup onClose={onCancel}>
     <Box
       style={{

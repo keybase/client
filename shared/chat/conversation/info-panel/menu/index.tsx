@@ -5,42 +5,42 @@ import * as ChatTypes from '../../../../constants/types/chat2'
 import {Avatars, TeamAvatar} from '../../../avatars'
 
 export type ConvProps = {
-  fullname: string,
-  teamType: ChatTypes.TeamType,
-  ignored: boolean,
-  muted: boolean,
+  fullname: string
+  teamType: ChatTypes.TeamType
+  ignored: boolean
+  muted: boolean
   participants: Array<string>
-};
+}
 
 export type Props = {
-  attachTo: () => React.Component<any> | null,
-  badgeSubscribe: boolean,
-  canAddPeople: boolean,
-  convProps: ConvProps | null,
-  isSmallTeam: boolean,
-  manageChannelsSubtitle: string,
-  manageChannelsTitle: string,
-  memberCount: number,
-  teamname: string,
-  visible: boolean,
-  hasCanPerform: boolean,
-  loadOperations: () => void,
-  onAddPeople: () => void,
-  onHidden: () => void,
-  onInvite: () => void,
-  onLeaveTeam: () => void,
-  onHideConv: () => void,
-  onMuteConv: (muted: boolean) => void,
-  onUnhideConv: () => void,
-  onManageChannels: () => void,
+  attachTo: () => React.Component<any> | null
+  badgeSubscribe: boolean
+  canAddPeople: boolean
+  convProps: ConvProps | null
+  isSmallTeam: boolean
+  manageChannelsSubtitle: string
+  manageChannelsTitle: string
+  memberCount: number
+  teamname: string
+  visible: boolean
+  hasCanPerform: boolean
+  loadOperations: () => void
+  onAddPeople: () => void
+  onHidden: () => void
+  onInvite: () => void
+  onLeaveTeam: () => void
+  onHideConv: () => void
+  onMuteConv: (muted: boolean) => void
+  onUnhideConv: () => void
+  onManageChannels: () => void
   onViewTeam: () => void
-};
+}
 
 type AdhocHeaderProps = {
-  fullname: string,
-  isMuted: boolean,
+  fullname: string
+  isMuted: boolean
   participants: Array<string>
-};
+}
 
 const AdhocHeader = (props: AdhocHeaderProps) => (
   <Kb.Box2 direction="vertical" gap="tiny" gapStart={false} gapEnd={true} style={styles.headerContainer}>
@@ -69,10 +69,10 @@ const AdhocHeader = (props: AdhocHeaderProps) => (
 )
 
 type TeamHeaderProps = {
-  isMuted: boolean,
-  memberCount: number,
+  isMuted: boolean
+  memberCount: number
   teamname: string
-};
+}
 
 const TeamHeader = (props: TeamHeaderProps) => (
   <Kb.Box2 direction="vertical" gap="tiny" gapStart={false} gapEnd={true} style={styles.headerContainer}>
@@ -148,8 +148,10 @@ class InfoPanelMenu extends React.Component<Props> {
           />
         ) : (
           <TeamHeader
-            isMuted={!!// Auto generated from flowToTs. Please clean me!
-            (props.convProps === null || props.convProps === undefined ? undefined : props.convProps.muted)}
+            isMuted={
+              !!// Auto generated from flowToTs. Please clean me!
+              (props.convProps === null || props.convProps === undefined ? undefined : props.convProps.muted)
+            }
             teamname={props.teamname}
             memberCount={props.memberCount}
           />

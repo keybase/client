@@ -2,11 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
-const PopupHeader = ({
-  channelName
-}: {
-  channelName: string
-}) => {
+const PopupHeader = ({channelName}: {channelName: string}) => {
   return (
     <Kb.Box style={styles.headerContainer}>
       <Kb.Text center={true} type="BodySemibold" style={styles.headerTextTop}>
@@ -20,12 +16,12 @@ const PopupHeader = ({
 }
 
 type Props = {
-  channelName: string,
-  disabled: boolean,
+  channelName: string
+  disabled: boolean
   onConfirmedDelete: () => void
-} & Kb.OverlayParentProps;
+} & Kb.OverlayParentProps
 
-type State = {};
+type State = {}
 
 class _DeleteChannel extends React.Component<Props, State> {
   render() {

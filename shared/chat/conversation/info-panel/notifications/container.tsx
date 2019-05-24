@@ -6,11 +6,9 @@ import {compose, namedConnect, lifecycle, withStateHandlers} from '../../../../u
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
-};
+}
 
-const mapStateToProps = (state, {
-  conversationIDKey
-}: OwnProps) => {
+const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const meta = Constants.getMeta(state, conversationIDKey)
 
   return {
@@ -22,9 +20,7 @@ const mapStateToProps = (state, {
   }
 }
 
-const mapDispatchToProps = (dispatch, {
-  conversationIDKey
-}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => ({
   _onMuteConversation: (muted: boolean) =>
     dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted})),
   _updateNotifications: (
@@ -54,7 +50,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
       mobile: Types.NotificationsType,
       channelWide: boolean
     ) => dispatchProps._updateNotifications(desktop, mobile, channelWide),
-  };
+  }
 }
 
 export default compose(

@@ -6,11 +6,9 @@ import Error from '.'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
-};
+}
 
-const mapStateToProps = (state, {
-  conversationIDKey
-}: OwnProps) => ({
+const mapStateToProps = (state, {conversationIDKey}: OwnProps) => ({
   text: Constants.getMeta(state, conversationIDKey).snippet,
 })
 

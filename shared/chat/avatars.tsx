@@ -17,13 +17,13 @@ function rowBorderColor(idx: number, isLastParticipant: boolean, backgroundColor
 }
 
 type AvatarProps = {
-  participants: Array<string>,
-  isHovered: boolean,
-  isLocked: boolean,
-  isMuted: boolean,
-  isSelected: boolean,
+  participants: Array<string>
+  isHovered: boolean
+  isLocked: boolean
+  isMuted: boolean
+  isSelected: boolean
   backgroundColor: string | null
-};
+}
 
 const MutedIcon = ({isHovered, isMuted, isSelected, isLocked}) => {
   let icon = null
@@ -121,9 +121,9 @@ const avatarInnerBoxStyle = {
 }
 
 class TeamAvatar extends React.Component<{
-  teamname: string,
-  isHovered: boolean,
-  isMuted: boolean,
+  teamname: string
+  isHovered: boolean
+  isMuted: boolean
   isSelected: boolean
 }> {
   render() {

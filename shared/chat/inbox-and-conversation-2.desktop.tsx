@@ -9,11 +9,11 @@ import {namedConnect} from '../util/container'
 
 type Props = {
   navigation?: any
-};
+}
 
 type InboxSwitchProps = Props & {
   searchEnabled: boolean
-};
+}
 
 const InboxSwitch = (props: InboxSwitchProps) => {
   return props.searchEnabled ? <InboxSearch /> : <Inbox />

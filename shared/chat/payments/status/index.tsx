@@ -15,22 +15,22 @@ const Kb = {
   Text,
 }
 
-type Status = "error" | "pending" | "completed";
+type Status = 'error' | 'pending' | 'completed'
 
 type State = {
   showPopup: boolean
-};
+}
 
 type Props = {
-  allowFontScaling?: boolean | null,
-  allowPopup: boolean,
-  errorDetail?: string,
-  isSendError: boolean,
-  message: Types.MessageText,
-  paymentID?: WalletTypes.PaymentID,
-  status: Status,
+  allowFontScaling?: boolean | null
+  allowPopup: boolean
+  errorDetail?: string
+  isSendError: boolean
+  message: Types.MessageText
+  paymentID?: WalletTypes.PaymentID
+  status: Status
   text: string
-};
+}
 
 const getIcon = status => {
   switch (status) {
@@ -46,7 +46,7 @@ const getIcon = status => {
 }
 
 class PaymentStatus extends React.Component<Props, State> {
-  statusRef: any;
+  statusRef: any
   state = {showPopup: false}
   constructor(props: Props) {
     super(props)

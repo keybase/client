@@ -6,21 +6,19 @@ import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import HiddenString from '../../../../util/hidden-string'
 import {connect} from '../../../../util/container'
 import {memoize} from '../../../../util/memoize'
-import Input, { Props } from '.';
+import Input, {Props} from '.'
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey,
-  focusInputCounter: number,
-  jumpToRecent: () => void,
-  onRequestScrollDown: () => void,
-  onRequestScrollToBottom: () => void,
+  conversationIDKey: Types.ConversationIDKey
+  focusInputCounter: number
+  jumpToRecent: () => void
+  onRequestScrollDown: () => void
+  onRequestScrollToBottom: () => void
   onRequestScrollUp: () => void
-};
+}
 
 // We used to store this in the route state but that's so complicated. We just want a map of id => text if we haven't sent
-const unsentText: {
-  [K in Types.ConversationIDKey]: string;
-} = {}
+const unsentText: {[K in Types.ConversationIDKey]: string} = {}
 
 const getUnsentText = (conversationIDKey: Types.ConversationIDKey): string => {
   return unsentText[conversationIDKey] || ''
@@ -30,9 +28,7 @@ const setUnsentText = (conversationIDKey: Types.ConversationIDKey, text: string)
   unsentText[conversationIDKey] = text
 }
 
-const mapStateToProps = (state, {
-  conversationIDKey
-}: OwnProps) => {
+const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const editInfo = Constants.getEditInfo(state, conversationIDKey)
   const quoteInfo = Constants.getQuoteInfo(state, conversationIDKey)
   const meta = Constants.getMeta(state, conversationIDKey)
@@ -114,7 +110,11 @@ const mapDispatchToProps = dispatch => ({
         text: new HiddenString(body),
       })
     ),
-  _onPostMessage: (conversationIDKey: Types.ConversationIDKey, text: string, replyTo: Types.MessageID | null) =>
+  _onPostMessage: (
+    conversationIDKey: Types.ConversationIDKey,
+    text: string,
+    replyTo: Types.MessageID | null
+  ) =>
     dispatch(
       Chat2Gen.createMessageSend({
         conversationIDKey,
@@ -211,7 +211,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
     dispatchProps._unsentTextChanged(stateProps.conversationIDKey, text)
   },
 
-  unsentTextRefresh: !!stateProps.unsentText
+  unsentTextRefresh: !!stateProps.unsentText,
 })
 
 export default connect<OwnProps, _, _, _, _>(

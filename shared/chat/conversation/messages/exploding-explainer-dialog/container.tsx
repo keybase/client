@@ -1,8 +1,8 @@
 import ExplodingExplainer from '.'
-import { RouteProps } from '../../../../route-tree/render-route';
+import {RouteProps} from '../../../../route-tree/render-route'
 import {compose, connect} from '../../../../util/container'
 
-type OwnProps = RouteProps<{}, {}>;
+type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = (state, ownProps: OwnProps) => ({})
 

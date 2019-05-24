@@ -1,5 +1,13 @@
 import * as React from 'react'
-import { Box2, Button, Icon, ProgressIndicator, Text, WaitingButton, IconType } from '../../../../common-adapters';
+import {
+  Box2,
+  Button,
+  Icon,
+  ProgressIndicator,
+  Text,
+  WaitingButton,
+  IconType,
+} from '../../../../common-adapters'
 import {
   collapseStyles,
   globalColors,
@@ -11,30 +19,27 @@ import {
 import {MarkdownMemo} from '../../../../wallets/common'
 
 export type Props = {
-  action: string,
-  approxWorth: string,
-  amount: string,
-  balanceChange: string,
-  balanceChangeColor: string,
-  cancelButtonInfo: string,
-  cancelButtonLabel: string,
-  canceled: boolean,
-  claimButtonLabel: string,
-  icon: IconType | null,
-  loading: boolean,
-  memo: string,
-  onCancel: () => void,
-  onClaim: () => void,
-  onSend: () => void,
-  pending: boolean,
-  sendButtonLabel: string,
-  showCoinsIcon: boolean
-};
-
-const ButtonText = (props: {
-  text: string,
+  action: string
+  approxWorth: string
   amount: string
-}) => (
+  balanceChange: string
+  balanceChangeColor: string
+  cancelButtonInfo: string
+  cancelButtonLabel: string
+  canceled: boolean
+  claimButtonLabel: string
+  icon: IconType | null
+  loading: boolean
+  memo: string
+  onCancel: () => void
+  onClaim: () => void
+  onSend: () => void
+  pending: boolean
+  sendButtonLabel: string
+  showCoinsIcon: boolean
+}
+
+const ButtonText = (props: {text: string; amount: string}) => (
   <Text style={styles.buttonText} type="BodySemibold">
     {props.text}{' '}
     <Text style={styles.buttonText} type="BodyExtrabold">

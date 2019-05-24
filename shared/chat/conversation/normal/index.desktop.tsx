@@ -5,12 +5,12 @@ import ListArea from '../list-area/container'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import {readImageFromClipboard} from '../../../util/clipboard.desktop'
-import { Props } from './index.types';
+import {Props} from './index.types'
 import '../conversation.css'
 
 type State = {
   showDropOverlay: boolean
-};
+}
 
 const Offline = () => (
   <Kb.Box style={styles.offline}>

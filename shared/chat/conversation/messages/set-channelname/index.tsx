@@ -5,7 +5,7 @@ import * as Styles from '../../../../styles'
 
 type Props = {
   message: Types.MessageSetChannelname
-};
+}
 
 export default (props: Props) => (
   <Kb.Text type="BodySmall" style={styles.text} selectable={true}>

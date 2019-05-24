@@ -15,26 +15,24 @@ import {
 } from '../../../../styles'
 
 export type Props = {
-  btnClassName?: string,
-  newBtnClassName?: string,
-  conversationIDKey: Types.ConversationIDKey,
-  emojis: Array<string>,
+  btnClassName?: string
+  newBtnClassName?: string
+  conversationIDKey: Types.ConversationIDKey
+  emojis: Array<string>
   ordinal: Types.Ordinal
-};
+}
 
 type State = {
-  activeEmoji: string,
+  activeEmoji: string
   showMobileTooltip: boolean
-};
+}
 
 class ReactionsRow extends React.Component<Props, State> {
   state = {
     activeEmoji: '',
     showMobileTooltip: false,
   }
-  _attachmentRefs: {
-    [K in string]: React.Component<any> | null;
-  } = {};
+  _attachmentRefs: {[K in string]: React.Component<any> | null} = {}
 
   _setHoveringButton = (hovering: boolean, emojiName: string) => {
     this._setActiveEmoji(hovering ? emojiName : '')
@@ -46,7 +44,7 @@ class ReactionsRow extends React.Component<Props, State> {
   _setShowMobileTooltip = (showMobileTooltip: boolean) =>
     this.setState(s => (s.showMobileTooltip === showMobileTooltip ? null : {showMobileTooltip}))
 
-  _newAttachmentRef: any = null;
+  _newAttachmentRef: any = null
   _getNewAttachmentRef = () => this._newAttachmentRef
   _setNewAttachmentRef = r => (this._newAttachmentRef = r)
 

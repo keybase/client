@@ -6,7 +6,7 @@ import {namedConnect} from '../../../../util/container'
 
 type OwnProps = {
   message: Types.MessageText
-};
+}
 
 const replyNoop = () => {}
 
@@ -45,9 +45,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   return {isEditing}
 }
 
-const mapDispatchToProps = (dispatch, {
-  message
-}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {message}: OwnProps) => ({
   _onReplyClick: messageID =>
     dispatch(
       Chat2Gen.createReplyJump({

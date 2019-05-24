@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {toUpper, upperFirst} from 'lodash-es'
 import * as Styles from '../../../../../styles'
-import { Position } from '../../../../../common-adapters/relative-popup-hoc.types';
+import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import {Box2} from '../../../../../common-adapters/box'
 import Text from '../../../../../common-adapters/text'
 import Icon, {castPlatformStyles as iconCastPlatformStyles} from '../../../../../common-adapters/icon'
@@ -35,33 +35,33 @@ const receiveIcon = Styles.isMobile
 const headerIconHeight = Styles.isMobile ? 129 : 86
 
 type HeaderProps = {
-  amountNominal: string,
-  approxWorth: string,
-  balanceChange: string,
-  balanceChangeColor: string,
-  bottomLine: string,
-  errorDetails?: string,
-  icon: "sending" | "receiving",
-  loading: boolean,
-  sender: string,
-  senderDeviceName: string,
-  status: string,
-  timestamp: string,
-  topLine: string,
-  txVerb: "sent" | "requested"
-};
+  amountNominal: string
+  approxWorth: string
+  balanceChange: string
+  balanceChangeColor: string
+  bottomLine: string
+  errorDetails?: string
+  icon: 'sending' | 'receiving'
+  loading: boolean
+  sender: string
+  senderDeviceName: string
+  status: string
+  timestamp: string
+  topLine: string
+  txVerb: 'sent' | 'requested'
+}
 
 type Props = {
-  attachTo?: () => React.Component<any> | null,
-  cancelButtonLabel: string,
-  onCancel: () => void | null,
-  onClaimLumens: () => void | null,
-  onHidden: () => void,
-  onSeeDetails: () => void | null,
-  position: Position,
-  style?: Styles.StylesCrossPlatform,
+  attachTo?: () => React.Component<any> | null
+  cancelButtonLabel: string
+  onCancel: () => void | null
+  onClaimLumens: () => void | null
+  onHidden: () => void
+  onSeeDetails: () => void | null
+  position: Position
+  style?: Styles.StylesCrossPlatform
   visible: boolean
-} & HeaderProps;
+} & HeaderProps
 
 const Header = (props: HeaderProps) =>
   props.loading ? (

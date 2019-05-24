@@ -3,10 +3,10 @@ import {Box, Icon, Text} from '../../../../common-adapters/'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../../styles'
 
 export type Props = {
-  canChange: boolean,
-  onChange: () => void,
+  canChange: boolean
+  onChange: () => void
   explanation: string
-};
+}
 
 const iconType = isMobile ? 'icon-message-retention-48' : 'icon-message-retention-32'
 
@@ -14,7 +14,7 @@ export default (props: Props) => {
   return (
     <Box style={containerStyle}>
       <Icon type={iconType} style={iconStyle} />
-      <Text center={true} type="BodySmallSemibold" >
+      <Text center={true} type="BodySmallSemibold">
         {props.explanation}
       </Text>
       {props.canChange && (

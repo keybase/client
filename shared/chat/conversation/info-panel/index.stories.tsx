@@ -4,7 +4,7 @@ import * as Constants from '../../../constants/chat2'
 import {retentionPolicies} from '../../../constants/teams'
 import {Box} from '../../../common-adapters'
 import {globalStyles} from '../../../styles'
-import { InfoPanel, InfoPanelProps } from '.';
+import {InfoPanel, InfoPanelProps} from '.'
 import addToChannel from './add-to-channel/index.stories'
 import {CaptionedDangerIcon} from './channel-utils'
 

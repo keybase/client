@@ -2,46 +2,54 @@ import * as Constants from '../../../constants/chat2'
 import * as Styles from '../../../styles'
 import * as SmallTeam from '../row/small-team'
 import * as ChatTypes from '../../../constants/types/chat2'
-import { TypedState } from '../../../constants/reducer';
+import {TypedState} from '../../../constants/reducer'
 import {memoize} from '../../../util/memoize'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 
 export const maxShownConversations = 3
 
-export type RemoteConvMeta = Exclude<{
-  conversationIDKey: ChatTypes.ConversationIDKey
-} & SmallTeam.Props, {
-  onSelectConversation: () => void
-}>;
+export type RemoteConvMeta = Exclude<
+  {
+    conversationIDKey: ChatTypes.ConversationIDKey
+  } & SmallTeam.Props,
+  {
+    onSelectConversation: () => void
+  }
+>
 
 // To cache the list
 const valuesCached = memoize(
-  (badgeMap, unreadMap, metaMap): Array<{
-    hasBadge: boolean,
-    hasUnread: boolean,
+  (
+    badgeMap,
+    unreadMap,
+    metaMap
+  ): Array<{
+    hasBadge: boolean
+    hasUnread: boolean
     conversation: ChatTypes.ConversationMeta
-  }> => metaMap
-    .filter(
-      (v, id) =>
-        Constants.isValidConversationIDKey(id) && v.status !== RPCChatTypes.commonConversationStatus.ignored
-    )
-    .map(v => ({
-      conversation: v,
-      hasBadge: badgeMap.get(v.conversationIDKey, 0) > 0,
-      hasUnread: unreadMap.get(v.conversationIDKey, 0) > 0,
-    }))
-    .sort((a, b) =>
-      a.hasBadge
-        ? b.hasBadge
-          ? b.conversation.timestamp - a.conversation.timestamp
-          : -1
-        : b.hasBadge
-        ? 1
-        : b.conversation.timestamp - a.conversation.timestamp
-    )
-    .take(maxShownConversations)
-    .valueSeq()
-    .toArray()
+  }> =>
+    metaMap
+      .filter(
+        (v, id) =>
+          Constants.isValidConversationIDKey(id) && v.status !== RPCChatTypes.commonConversationStatus.ignored
+      )
+      .map(v => ({
+        conversation: v,
+        hasBadge: badgeMap.get(v.conversationIDKey, 0) > 0,
+        hasUnread: unreadMap.get(v.conversationIDKey, 0) > 0,
+      }))
+      .sort((a, b) =>
+        a.hasBadge
+          ? b.hasBadge
+            ? b.conversation.timestamp - a.conversation.timestamp
+            : -1
+          : b.hasBadge
+          ? 1
+          : b.conversation.timestamp - a.conversation.timestamp
+      )
+      .take(maxShownConversations)
+      .valueSeq()
+      .toArray()
 )
 
 // A hack to store the username to avoid plumbing.
@@ -69,17 +77,15 @@ export const changeAffectsWidget = (
     oldConv.membershipType === newConv.membershipType
   )
 
-export const serialize = (
-  {
-    hasBadge,
-    hasUnread,
-    conversation
-  }: {
-    hasBadge: boolean,
-    hasUnread: boolean,
-    conversation: ChatTypes.ConversationMeta
-  }
-): RemoteConvMeta => {
+export const serialize = ({
+  hasBadge,
+  hasUnread,
+  conversation,
+}: {
+  hasBadge: boolean
+  hasUnread: boolean
+  conversation: ChatTypes.ConversationMeta
+}): RemoteConvMeta => {
   const styles = Constants.getRowStyles(conversation, false, hasUnread)
   const participantNeedToRekey = conversation.rekeyers.size > 0
   const youNeedToRekey = !!participantNeedToRekey && conversation.rekeyers.has(_username)

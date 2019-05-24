@@ -7,17 +7,17 @@ import {formatTimeForMessages} from '../../../../util/timestamp'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 
 type Props = {
-  canManage: boolean,
-  isTeam: boolean,
-  isInherit: boolean,
-  membersType: RPCChatTypes.ConversationMembersType,
-  onClickUserAvatar: () => void,
-  onManageRetention: () => void,
-  policy: RPCChatTypes.RetentionPolicy | null,
-  user: string,
-  you: string,
+  canManage: boolean
+  isTeam: boolean
+  isInherit: boolean
+  membersType: RPCChatTypes.ConversationMembersType
+  onClickUserAvatar: () => void
+  onManageRetention: () => void
+  policy: RPCChatTypes.RetentionPolicy | null
+  user: string
+  you: string
   timestamp: number
-};
+}
 
 const getPolicySummary = props => {
   if (!props.policy) {
@@ -28,15 +28,29 @@ const getPolicySummary = props => {
     case RPCChatTypes.commonRetentionPolicyType.retain:
       return 'be retained indefinitely'
     case RPCChatTypes.commonRetentionPolicyType.expire:
-      const expireDuration = moment.duration(// Auto generated from flowToTs. Please clean me!
-      props.policy.expire === null || props.policy.expire === undefined ? undefined : props.policy.expire.age, 'seconds').humanize()
+      const expireDuration = moment
+        .duration(
+          // Auto generated from flowToTs. Please clean me!
+          props.policy.expire === null || props.policy.expire === undefined
+            ? undefined
+            : props.policy.expire.age,
+          'seconds'
+        )
+        .humanize()
       if (expireDuration !== '') {
         return `expire after ${expireDuration}`
       }
       break
     case RPCChatTypes.commonRetentionPolicyType.ephemeral:
-      const ephemeralDuration = moment.duration(// Auto generated from flowToTs. Please clean me!
-      props.policy.ephemeral === null || props.policy.ephemeral === undefined ? undefined : props.policy.ephemeral.age, 'seconds').humanize()
+      const ephemeralDuration = moment
+        .duration(
+          // Auto generated from flowToTs. Please clean me!
+          props.policy.ephemeral === null || props.policy.ephemeral === undefined
+            ? undefined
+            : props.policy.ephemeral.age,
+          'seconds'
+        )
+        .humanize()
       if (ephemeralDuration !== '') {
         return `explode after ${ephemeralDuration} by default`
       }

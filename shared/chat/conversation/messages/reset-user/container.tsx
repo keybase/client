@@ -7,7 +7,7 @@ import {compose, connect} from '../../../../util/container'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
-};
+}
 
 const mapStateToProps = (state, {conversationIDKey}) => {
   const meta = Constants.getMeta(state, conversationIDKey)

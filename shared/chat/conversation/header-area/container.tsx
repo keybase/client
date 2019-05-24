@@ -6,13 +6,13 @@ import {isMobile} from '../../../styles'
 import ConversationHeader from './normal/container'
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey,
+  conversationIDKey: Types.ConversationIDKey
   onToggleInfoPanel: () => void
-};
+}
 
 type Props = {
   infoPanelOpen: boolean
-} & OwnProps;
+} & OwnProps
 
 class HeaderArea extends React.PureComponent<Props> {
   render() {

@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked} from '../../../../util/timestamp'
-import { DeviceType } from '../../../../constants/types/devices';
+import {DeviceType} from '../../../../constants/types/devices'
 
 const iconNameForDeviceType = Styles.isMobile
   ? (deviceType: string, isRevoked: boolean): Kb.IconType => {
@@ -33,12 +33,12 @@ const iconNameForDeviceType = Styles.isMobile
 const headerIconHeight = Styles.isMobile ? 96 : 72
 
 const MessagePopupHeader = (props: {
-  author: string,
-  deviceName: string,
-  deviceRevokedAt: number | null,
-  deviceType: DeviceType,
-  isLast?: boolean,
-  timestamp: number,
+  author: string
+  deviceName: string
+  deviceRevokedAt: number | null
+  deviceType: DeviceType
+  isLast?: boolean
+  timestamp: number
   yourMessage: boolean
 }) => {
   const {author, deviceName, deviceRevokedAt, deviceType, isLast, timestamp, yourMessage} = props

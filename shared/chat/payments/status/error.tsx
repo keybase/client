@@ -14,11 +14,11 @@ const Kb = {
 }
 
 type Props = {
-  attachTo: () => React.Component<any> | null,
-  onHidden: () => void,
-  error: string,
+  attachTo: () => React.Component<any> | null
+  onHidden: () => void
+  error: string
   visible: boolean
-};
+}
 
 const items = []
 

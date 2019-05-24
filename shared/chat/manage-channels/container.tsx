@@ -3,16 +3,19 @@ import * as ChatTypes from '../../constants/types/chat2'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as TeamsGen from '../../actions/teams-gen'
-import { ChannelMembershipState } from '../../constants/types/teams';
+import {ChannelMembershipState} from '../../constants/types/teams'
 import ManageChannels from '.'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {anyWaiting} from '../../constants/waiting'
 import {getChannelsWaitingKey, getCanPerform, getTeamChannelInfos, hasCanPerform} from '../../constants/teams'
 
-type OwnProps = Container.RouteProps<{
-  teamname: string
-}, {}>;
+type OwnProps = Container.RouteProps<
+  {
+    teamname: string
+  },
+  {}
+>
 
 const mapStateToProps = (state, ownProps) => {
   const teamname = Container.getRouteProps(ownProps, 'teamname')
@@ -110,7 +113,7 @@ const mapDispatchToProps = (dispatch, ownProps) => {
           path: [{props: {conversationIDKey, teamname}, selected: 'chatEditChannel'}],
         })
       ),
-  };
+  }
 }
 
 export default Container.compose(

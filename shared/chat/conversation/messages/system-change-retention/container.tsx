@@ -9,7 +9,7 @@ import * as Constants from '../../../../constants/chat2'
 
 type OwnProps = {
   message: Types.MessageSystemChangeRetention
-};
+}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const meta = Constants.getMeta(state, ownProps.message.conversationIDKey)

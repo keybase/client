@@ -2,13 +2,16 @@ import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {compose, connect, getRouteProps} from '../../../util/container'
-import { RouteProps } from '../../../route-tree/render-route';
+import {RouteProps} from '../../../route-tree/render-route'
 import VideoFullscreen from './'
 
-type OwnProps = RouteProps<{
-  conversationIDKey: Types.ConversationIDKey,
-  ordinal: Types.Ordinal
-}, {}>;
+type OwnProps = RouteProps<
+  {
+    conversationIDKey: Types.ConversationIDKey
+    ordinal: Types.Ordinal
+  },
+  {}
+>
 
 const blankMessage = Constants.makeMessageAttachment({})
 

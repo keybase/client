@@ -7,7 +7,7 @@ import {connect} from '../../../../util/container'
 
 type OwnProps = {
   message: Types.MessageSystemInviteAccepted
-};
+}
 
 const mapStateToProps = (state, ownProps) => ({
   teamname: Constants.getMeta(state, ownProps.message.conversationIDKey).teamname,

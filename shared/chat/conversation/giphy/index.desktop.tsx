@@ -4,13 +4,13 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import UnfurlImage from '../messages/wrapper/unfurl/image'
 import {getMargins, scaledWidth} from './width'
-import { Props } from './index.types';
+import {Props} from './index.types'
 
 const gridHeight = 100
 
 type State = {
   width: number | null
-};
+}
 
 class GiphySearch extends React.Component<Props, State> {
   container = null

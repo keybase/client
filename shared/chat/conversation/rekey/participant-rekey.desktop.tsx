@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {Box, Avatar, Usernames, Text} from '../../../common-adapters'
 import {globalColors, globalStyles, globalMargins, platformStyles, desktopStyles} from '../../../styles'
-import { Props } from './participant-rekey.types';
+import {Props} from './participant-rekey.types'
 
 const Row = ({username, onUsernameClicked}) => (
   <Box style={rowStyle} onClick={() => onUsernameClicked(username)}>
@@ -15,10 +15,7 @@ const Row = ({username, onUsernameClicked}) => (
   </Box>
 )
 
-const ParticipantRekey = ({
-  rekeyers,
-  onShowProfile: onUsernameClicked
-}: Props) => {
+const ParticipantRekey = ({rekeyers, onShowProfile: onUsernameClicked}: Props) => {
   return (
     <Box style={containerStyle}>
       <Box style={{...globalStyles.flexBoxRow, backgroundColor: globalColors.red, justifyContent: 'center'}}>

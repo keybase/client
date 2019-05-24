@@ -9,14 +9,16 @@ import {
   ConnectedUsernames,
 } from '../../../../common-adapters'
 import {collapseStyles, globalColors, globalMargins, isMobile, styleSheetCreate} from '../../../../styles'
-import { Props } from './index.types';
+import {Props} from './index.types'
 
 const shhIconColor = globalColors.black_20
 const shhIconFontSize = 24
 
-const Wrapper = (props: {
-  children: React.ElementType
-} & Props) => (
+const Wrapper = (
+  props: {
+    children: React.ElementType
+  } & Props
+) => (
   <HeaderHocHeader
     badgeNumber={props.badgeNumber}
     onLeftAction={props.onBack}

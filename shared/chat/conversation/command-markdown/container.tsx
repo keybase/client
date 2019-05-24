@@ -4,7 +4,7 @@ import CommandMarkdown from '.'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
-};
+}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const md = state.chat2.commandMarkdownMap.get(ownProps.conversationIDKey, null)

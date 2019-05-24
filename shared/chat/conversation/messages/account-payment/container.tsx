@@ -47,7 +47,7 @@ const makeSendPaymentVerb = (status: WalletTypes.StatusSimplified, youAreSender:
 
 type OwnProps = {
   message: Types.MessageSendPayment | Types.MessageRequestPayment
-};
+}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const acceptedDisclaimer = WalletConstants.getAcceptedDisclaimer(state)

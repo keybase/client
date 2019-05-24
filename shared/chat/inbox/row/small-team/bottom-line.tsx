@@ -11,19 +11,19 @@ import {
 import {isMobile} from '../../../../constants/platform'
 
 type Props = {
-  backgroundColor: string | null,
-  participantNeedToRekey: boolean,
-  showBold: boolean,
-  snippet: string | null,
-  snippetDecoration: string | null,
-  subColor: string,
-  youNeedToRekey: boolean,
-  youAreReset: boolean,
-  hasResetUsers: boolean,
-  isSelected: boolean,
-  isDecryptingSnippet: boolean,
+  backgroundColor: string | null
+  participantNeedToRekey: boolean
+  showBold: boolean
+  snippet: string | null
+  snippetDecoration: string | null
+  subColor: string
+  youNeedToRekey: boolean
+  youAreReset: boolean
+  hasResetUsers: boolean
+  isSelected: boolean
+  isDecryptingSnippet: boolean
   isTypingSnippet: boolean
-};
+}
 
 class BottomLine extends PureComponent<Props> {
   render() {

@@ -2,15 +2,18 @@ import * as Constants from '../../constants/teams'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Types from '../../constants/types/chat2'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import EditChannel, { Props } from './edit-channel';
-import { connect, getRouteProps, RouteProps } from '../../util/container';
+import EditChannel, {Props} from './edit-channel'
+import {connect, getRouteProps, RouteProps} from '../../util/container'
 
-type OwnProps = RouteProps<{
-  conversationIDKey: Types.ConversationIDKey,
-  teamname: string
-}, {
-  waitingForSave: number
-}>;
+type OwnProps = RouteProps<
+  {
+    conversationIDKey: Types.ConversationIDKey
+    teamname: string
+  },
+  {
+    waitingForSave: number
+  }
+>
 
 const mapStateToProps = (state, ownProps) => {
   const conversationIDKey = getRouteProps(ownProps, 'conversationIDKey')
@@ -67,7 +70,7 @@ const mapDispatchToProps = dispatch => {
     ) => dispatch(TeamsGen.createUpdateChannelName({conversationIDKey, newChannelName, teamname})),
     _updateTopic: (teamname: string, conversationIDKey: Types.ConversationIDKey, newTopic: string) =>
       dispatch(TeamsGen.createUpdateTopic({conversationIDKey, newTopic, teamname})),
-  };
+  }
 }
 
 const mergeProps = (stateProps, dispatchProps): Props => {
@@ -98,7 +101,7 @@ const mergeProps = (stateProps, dispatchProps): Props => {
     title: `Edit #${channelName}`,
     topic,
     waitingForGetInfo: stateProps.waitingForGetInfo,
-  };
+  }
 }
 
 const ConnectedEditChannel = connect<OwnProps, _, _, _, _>(

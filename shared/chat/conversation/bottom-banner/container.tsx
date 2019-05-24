@@ -8,13 +8,13 @@ import {connect, isMobile} from '../../../util/container'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
-};
+}
 
 type Props = {
-  type: "invite" | "none" | "broken",
-  onClick: (username: string) => void,
+  type: 'invite' | 'none' | 'broken'
+  onClick: (username: string) => void
   users: Array<string>
-};
+}
 
 class BannerContainer extends React.PureComponent<Props> {
   render() {

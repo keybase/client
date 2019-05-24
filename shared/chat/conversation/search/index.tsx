@@ -1,4 +1,3 @@
-
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
 import * as Kb from '../../../common-adapters'
@@ -8,33 +7,33 @@ import {formatTimeForMessages} from '../../../util/timestamp'
 const hitHeight = 30
 
 type SearchHit = {
-  author: string,
-  summary: string,
+  author: string
+  summary: string
   timestamp: number
-};
+}
 
 export type Props = {
-  clearInitialText: () => void,
-  conversationIDKey: Types.ConversationIDKey,
-  hits: Array<SearchHit>,
-  initialText?: string,
-  loadSearchHit: (arg0: number) => void,
-  onCancel: () => void,
-  onSearch: (arg0: string) => void,
-  selfHide: () => void,
-  status: Types.ThreadSearchStatus,
+  clearInitialText: () => void
+  conversationIDKey: Types.ConversationIDKey
+  hits: Array<SearchHit>
+  initialText?: string
+  loadSearchHit: (arg0: number) => void
+  onCancel: () => void
+  onSearch: (arg0: string) => void
+  selfHide: () => void
+  status: Types.ThreadSearchStatus
   style?: Styles.StylesCrossPlatform
-};
+}
 
 type State = {
-  selectedIndex: number,
+  selectedIndex: number
   text: string
-};
+}
 
 const ThreadSearch = ThreadSearcher => {
   return class extends React.Component<Props, State> {
     state = {selectedIndex: 0, text: ''}
-    _lastSearch: string;
+    _lastSearch: string
 
     _submitSearch = () => {
       this._lastSearch = this.state.text
@@ -117,23 +116,23 @@ const ThreadSearch = ThreadSearcher => {
         />
       )
     }
-  };
+  }
 }
 
 type SearchProps = {
-  conversationIDKey: Types.ConversationIDKey,
-  submitSearch: () => void,
-  selectResult: (arg0: number) => void,
-  onEnter: () => void,
-  onUp: () => void,
-  onDown: () => void,
-  onChangedText: (arg0: string) => void,
-  inProgress: () => boolean,
-  hasResults: () => boolean,
-  placeholder?: string,
-  selectedIndex: number,
+  conversationIDKey: Types.ConversationIDKey
+  submitSearch: () => void
+  selectResult: (arg0: number) => void
+  onEnter: () => void
+  onUp: () => void
+  onDown: () => void
+  onChangedText: (arg0: string) => void
+  inProgress: () => boolean
+  hasResults: () => boolean
+  placeholder?: string
+  selectedIndex: number
   text: string
-};
+}
 
 class ThreadSearchDesktop extends React.Component<SearchProps & Props> {
   _inputRef = React.createRef()

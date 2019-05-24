@@ -10,16 +10,16 @@ import {createOpenPopup} from '../../../actions/unlock-folders-gen'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
-};
+}
 
 type Props = {
-  onBack: () => void,
-  onEnterPaperkey: () => void,
-  onRekey: () => void,
-  onShowProfile: (username: string) => void,
-  rekeyers: Array<string>,
+  onBack: () => void
+  onEnterPaperkey: () => void
+  onRekey: () => void
+  onShowProfile: (username: string) => void
+  rekeyers: Array<string>
   youRekey: boolean
-};
+}
 
 const mapStateToProps = (state, {conversationIDKey}) => ({
   _you: state.config.username || '',

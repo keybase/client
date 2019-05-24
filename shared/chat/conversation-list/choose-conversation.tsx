@@ -5,17 +5,17 @@ import * as Styles from '../../styles'
 import ConversationList from './conversation-list-container'
 
 type Props = {
-  dropdownButtonStyle?: Styles.StylesCrossPlatform | null,
-  filter?: string,
-  onSelect: (conversationIDKey: Types.ConversationIDKey) => void,
-  onSetFilter?: (filter: string) => void,
-  selected: Types.ConversationIDKey,
+  dropdownButtonStyle?: Styles.StylesCrossPlatform | null
+  filter?: string
+  onSelect: (conversationIDKey: Types.ConversationIDKey) => void
+  onSetFilter?: (filter: string) => void
+  selected: Types.ConversationIDKey
   selectedText: string
-};
+}
 
 type State = {
   expanded: boolean
-};
+}
 
 class ChooseConversation extends React.Component<Props & Kb.OverlayParentProps, State> {
   state = {

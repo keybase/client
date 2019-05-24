@@ -7,10 +7,10 @@ import * as Container from '../../../../util/container'
 import {createShowUserProfile} from '../../../../actions/profile-gen'
 
 type OwnProps = Container.PropsWithSafeNavigation<{
-  conversationIDKey: Types.ConversationIDKey,
-  infoPanelOpen: boolean,
+  conversationIDKey: Types.ConversationIDKey
+  infoPanelOpen: boolean
   onToggleInfoPanel: () => void
-}>;
+}>
 
 const mapStateToProps = (state, {infoPanelOpen, conversationIDKey}) => {
   const meta = Constants.getMeta(state, conversationIDKey)

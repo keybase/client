@@ -5,19 +5,16 @@ import {invert} from 'lodash-es'
 import SuggestionList from './suggestion-list'
 
 type TransformerData = {
-  text: string,
+  text: string
   position: {
-    start: number,
+    start: number
     end: number
   }
-};
+}
 
 const standardTransformer = (
   toInsert: string,
-  {
-    text,
-    position: {start, end}
-  }: TransformerData,
+  {text, position: {start, end}}: TransformerData,
   preview: boolean
 ) => {
   const newText = `${text.substring(0, start)}${toInsert}${preview ? '' : ' '}${text.substring(end)}`
@@ -25,8 +22,11 @@ const standardTransformer = (
   return {selection: {end: newSelection, start: newSelection}, text: newText}
 }
 
-const matchesMarker = (word: string, marker: string | RegExp): {
-  marker: string,
+const matchesMarker = (
+  word: string,
+  marker: string | RegExp
+): {
+  marker: string
   matches: boolean
 } => {
   if (typeof marker === 'string') {
@@ -40,64 +40,61 @@ const matchesMarker = (word: string, marker: string | RegExp): {
 }
 
 type AddSuggestorsProps = {
-  dataSources: {
-    [K in string]: (filter: string) => Array<any>;
-  },
-  keyExtractors?: {
-    [K in string]: (item: any) => string | number;
-  },
-  renderers: {
-    [K in string]: (item: any, selected: boolean) => React.ElementType;
-  },
-  suggestionListStyle?: Styles.StylesCrossPlatform,
-  suggestionOverlayStyle?: Styles.StylesCrossPlatform,
-  suggestorToMarker: {
-    [K in string]: string | RegExp;
-  },
+  dataSources: {[K in string]: (filter: string) => Array<any>}
+  keyExtractors?: {[K in string]: (item: any) => string | number}
+  renderers: {[K in string]: (item: any, selected: boolean) => React.ElementType}
+  suggestionListStyle?: Styles.StylesCrossPlatform
+  suggestionOverlayStyle?: Styles.StylesCrossPlatform
+  suggestorToMarker: {[K in string]: string | RegExp}
   transformers: {
-    [K in string]: (item: any, marker: string, tData: TransformerData, preview: boolean) => {
-      text: string,
+    [K in string]: (
+      item: any,
+      marker: string,
+      tData: TransformerData,
+      preview: boolean
+    ) => {
+      text: string
       selection: {
-        start: number,
+        start: number
         end: number
       }
-    };
+    }
   }
-};
+}
 
 type AddSuggestorsState = {
-  active: string | null,
-  filter: string,
+  active: string | null
+  filter: string
   selected: number
-};
+}
 
 type SuggestorHooks = {
-  suggestionsVisible: boolean,
+  suggestionsVisible: boolean
   inputRef: {
     current: React.ElementRef<typeof Kb.PlainInput> | null
-  },
-  onChangeText: (arg0: string) => void,
-  onKeyDown: (event: React.KeyboardEvent, isComposingIME: boolean) => void,
-  onBlur: () => void,
-  onFocus: () => void,
+  }
+  onChangeText: (arg0: string) => void
+  onKeyDown: (event: React.KeyboardEvent, isComposingIME: boolean) => void
+  onBlur: () => void
+  onFocus: () => void
   onSelectionChange: (
     arg0: {
-      start: number,
+      start: number
       end: number
     }
   ) => void
-};
+}
 
-export type PropsWithSuggestorOuter<P> = {} & P & AddSuggestorsProps;
+export type PropsWithSuggestorOuter<P> = {} & P & AddSuggestorsProps
 
-export type PropsWithSuggestor<P> = {} & P & SuggestorHooks;
+export type PropsWithSuggestor<P> = {} & P & SuggestorHooks
 
 const AddSuggestors = <WrappedOwnProps extends {}, WrappedState>(
   WrappedComponent: Class<React.Component<PropsWithSuggestor<WrappedOwnProps>, WrappedState>>
 ): React.AbstractComponent<PropsWithSuggestorOuter<WrappedOwnProps>> => {
   type SuggestorsComponentProps = {
     forwardedRef: React.Ref<typeof WrappedComponent> | null
-  } & PropsWithSuggestorOuter<WrappedOwnProps>;
+  } & PropsWithSuggestorOuter<WrappedOwnProps>
 
   class SuggestorsComponent extends React.Component<SuggestorsComponentProps, AddSuggestorsState> {
     state = {active: null, filter: '', selected: 0}
@@ -105,10 +102,8 @@ const AddSuggestors = <WrappedOwnProps extends {}, WrappedState>(
     _attachmentRef = React.createRef()
     _lastText = null
     _suggestors = Object.keys(this.props.suggestorToMarker)
-    _markerToSuggestor: {
-      [K in string]: string;
-    } = invert(this.props.suggestorToMarker);
-    _timeoutID: number;
+    _markerToSuggestor: {[K in string]: string} = invert(this.props.suggestorToMarker)
+    _timeoutID: number
 
     componentWillUnmount() {
       clearTimeout(this._timeoutID)

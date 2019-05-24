@@ -1,8 +1,8 @@
 import * as React from 'react'
-import { MessageExplodeDescription } from '../../../../constants/types/chat2';
+import {MessageExplodeDescription} from '../../../../constants/types/chat2'
 import {Box2, Icon, Text, FloatingMenu} from '../../../../common-adapters'
 import {platformStyles, globalColors} from '../../../../styles'
-import { Props } from './index.types';
+import {Props} from './index.types'
 
 const quantityTextStyle = platformStyles({
   common: {
@@ -16,9 +16,9 @@ const quantityTextStyle = platformStyles({
 })
 
 type ItemProps = {
-  desc: MessageExplodeDescription,
+  desc: MessageExplodeDescription
   selected: boolean
-};
+}
 
 const Item = (props: ItemProps) => {
   let content

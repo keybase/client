@@ -6,22 +6,22 @@ import TeamMenu from '../../../conversation/info-panel/menu/container'
 import * as ChatTypes from '../../../../constants/types/chat2'
 
 type Props = {
-  channelname?: string,
-  teamname?: string,
-  conversationIDKey: ChatTypes.ConversationIDKey,
-  forceShowMenu: boolean,
-  hasUnread: boolean,
-  iconHoverColor: string,
-  onForceHideMenu: () => void,
-  participants: Array<string>,
-  showBold: boolean,
-  showGear: boolean,
-  backgroundColor: string | null,
-  subColor: string,
-  timestamp: string | null,
-  usernameColor: string | null,
+  channelname?: string
+  teamname?: string
+  conversationIDKey: ChatTypes.ConversationIDKey
+  forceShowMenu: boolean
+  hasUnread: boolean
+  iconHoverColor: string
+  onForceHideMenu: () => void
+  participants: Array<string>
+  showBold: boolean
+  showGear: boolean
+  backgroundColor: string | null
+  subColor: string
+  timestamp: string | null
+  usernameColor: string | null
   hasBadge: boolean
-} & Kb.OverlayParentProps;
+} & Kb.OverlayParentProps
 
 class _SimpleTopLine extends React.Component<Props> {
   shouldComponentUpdate(nextProps: Props) {

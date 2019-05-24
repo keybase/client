@@ -8,22 +8,22 @@ import CoinFlipError from './errors'
 import CoinFlipResult from './results'
 
 export type Props = {
-  commitmentVis: string,
-  isSendError: boolean,
-  onFlipAgain: () => void,
-  revealVis: string,
-  resultText: string,
-  errorInfo?: RPCChatTypes.UICoinFlipError | null,
-  participants: Array<RPCChatTypes.UICoinFlipParticipant>,
-  phase: "commitments" | "secrets" | "complete" | "loading",
-  progressText: string,
-  resultInfo?: RPCChatTypes.UICoinFlipResult | null,
+  commitmentVis: string
+  isSendError: boolean
+  onFlipAgain: () => void
+  revealVis: string
+  resultText: string
+  errorInfo?: RPCChatTypes.UICoinFlipError | null
+  participants: Array<RPCChatTypes.UICoinFlipParticipant>
+  phase: 'commitments' | 'secrets' | 'complete' | 'loading'
+  progressText: string
+  resultInfo?: RPCChatTypes.UICoinFlipResult | null
   showParticipants: boolean
-};
+}
 
 type State = {
   showPopup: boolean
-};
+}
 
 class CoinFlip extends React.Component<Props, State> {
   _partRef = React.createRef()

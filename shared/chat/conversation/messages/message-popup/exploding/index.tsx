@@ -10,40 +10,40 @@ import {
   Text,
   PropsWithTimer,
   PopupHeaderText,
-} from '../../../../../common-adapters/';
+} from '../../../../../common-adapters/'
 import * as Styles from '../../../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked, msToDHMS} from '../../../../../util/timestamp'
-import { addTicker, removeTicker, TickerID } from '../../../../../util/second-timer';
-import { MenuItem } from '../../../../../common-adapters/floating-menu/menu-layout';
-import { DeviceType } from '../../../../../constants/types/devices';
-import { Position } from '../../../../../common-adapters/relative-popup-hoc.types';
+import {addTicker, removeTicker, TickerID} from '../../../../../util/second-timer'
+import {MenuItem} from '../../../../../common-adapters/floating-menu/menu-layout'
+import {DeviceType} from '../../../../../constants/types/devices'
+import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 
 const headerIconType = Styles.isMobile ? 'icon-fancy-bomb-mobile-226-96' : 'icon-fancy-bomb-desktop-150-72'
 const headerIconHeight = Styles.isMobile ? 96 : 72
 
 type Props = {
-  attachTo: () => React.Component<any> | null,
-  author: string,
-  deviceName: string,
-  deviceRevokedAt: number | null,
-  deviceType: DeviceType,
-  explodesAt: number,
-  hideTimer: boolean,
-  items: Array<MenuItem | "Divider" | null>,
-  onHidden: () => void,
-  position: Position,
-  style?: Styles.StylesCrossPlatform,
-  timestamp: number,
-  visible: boolean,
+  attachTo: () => React.Component<any> | null
+  author: string
+  deviceName: string
+  deviceRevokedAt: number | null
+  deviceType: DeviceType
+  explodesAt: number
+  hideTimer: boolean
+  items: Array<MenuItem | 'Divider' | null>
+  onHidden: () => void
+  position: Position
+  style?: Styles.StylesCrossPlatform
+  timestamp: number
+  visible: boolean
   yourMessage: boolean
-};
+}
 
 type State = {
   secondsLeft: number
-};
+}
 
 class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State> {
-  timer: TickerID;
+  timer: TickerID
   state = {
     secondsLeft: this.secondsLeft(),
   }

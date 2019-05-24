@@ -2,10 +2,8 @@ import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 
-type IconStatus = "encrypting" | "sending" | "sent" | "error";
-const statusToIcon: {
-  [K in IconStatus]: Kb.IconType;
-} = {
+type IconStatus = 'encrypting' | 'sending' | 'sent' | 'error'
+const statusToIcon: {[K in IconStatus]: Kb.IconType} = {
   encrypting: 'icon-message-status-encrypting-24',
   error: 'icon-message-status-error-24',
   sending: 'icon-message-status-sending-24',
@@ -18,27 +16,27 @@ const sentTimeout = 400
 const shownEncryptingSet = new Set()
 
 type Props = Kb.PropsWithTimer<{
-  sent: boolean,
-  failed: boolean,
-  id?: number,
+  sent: boolean
+  failed: boolean
+  id?: number
   style?: any
-}>;
+}>
 
 type State = {
-  iconStatus: IconStatus,
+  iconStatus: IconStatus
   visible: boolean
-};
+}
 
 class SendIndicator extends React.Component<Props, State> {
-  state: State;
+  state: State
 
   constructor(props: Props) {
     super(props)
     this.state = {iconStatus: 'encrypting', visible: !props.sent}
   }
 
-  encryptingTimeoutID: number;
-  sentTimeoutID: number;
+  encryptingTimeoutID: number
+  sentTimeoutID: number
 
   _setStatus(iconStatus: IconStatus) {
     this.setState({iconStatus})

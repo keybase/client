@@ -6,16 +6,16 @@ import * as Style from '../../../../styles'
 import {upperFirst} from 'lodash-es'
 
 type Props = {
-  canSetMinWriterRole: boolean,
-  isSmallTeam: boolean,
-  minWriterRole: TeamTypes.TeamRoleType,
+  canSetMinWriterRole: boolean
+  isSmallTeam: boolean
+  minWriterRole: TeamTypes.TeamRoleType
   onSetNewRole: (newRole: TeamTypes.TeamRoleType) => void
-};
+}
 
 type State = {
-  saving: boolean,
+  saving: boolean
   selected: TeamTypes.TeamRoleType
-};
+}
 
 class MinWriterRole extends React.Component<Props, State> {
   state = {saving: false, selected: this.props.minWriterRole}
@@ -66,10 +66,10 @@ class MinWriterRole extends React.Component<Props, State> {
 }
 
 type DropdownProps = Kb.OverlayParentProps & {
-  minWriterRole: TeamTypes.TeamRoleType,
-  items: Kb.MenuItems,
+  minWriterRole: TeamTypes.TeamRoleType
+  items: Kb.MenuItems
   saving: boolean
-};
+}
 
 const _Dropdown = ({
   getAttachmentRef,
@@ -78,7 +78,7 @@ const _Dropdown = ({
   saving,
   setAttachmentRef,
   showingMenu,
-  toggleShowingMenu
+  toggleShowingMenu,
 }: DropdownProps) => (
   <React.Fragment>
     <Kb.ClickableBox
@@ -90,7 +90,7 @@ const _Dropdown = ({
       <Kb.Box2 direction="horizontal" style={styles.label}>
         <Kb.Text type="BodySemibold">{upperFirst(minWriterRole)}</Kb.Text>
       </Kb.Box2>
-      <Kb.Icon type="iconfont-caret-down" inheritColor={true} fontSize={7} sizeType='Tiny' />
+      <Kb.Icon type="iconfont-caret-down" inheritColor={true} fontSize={7} sizeType="Tiny" />
     </Kb.ClickableBox>
     <Kb.FloatingMenu
       attachTo={getAttachmentRef}

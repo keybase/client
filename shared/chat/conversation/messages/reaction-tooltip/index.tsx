@@ -5,22 +5,22 @@ import * as Styles from '../../../../styles'
 import ReactButton from '../react-button/container'
 
 export type Props = {
-  attachmentRef?: () => React.Component<any> | null,
-  conversationIDKey: Types.ConversationIDKey,
-  onAddReaction: () => void,
-  onHidden: () => void,
-  onMouseLeave?: (syntheticEvent: React.SyntheticEvent) => void,
-  onMouseOver?: (syntheticEvent: React.SyntheticEvent) => void,
-  ordinal: Types.Ordinal,
+  attachmentRef?: () => React.Component<any> | null
+  conversationIDKey: Types.ConversationIDKey
+  onAddReaction: () => void
+  onHidden: () => void
+  onMouseLeave?: (syntheticEvent: React.SyntheticEvent) => void
+  onMouseOver?: (syntheticEvent: React.SyntheticEvent) => void
+  ordinal: Types.Ordinal
   reactions: Array<{
-    emoji: string,
+    emoji: string
     users: Array<{
-      fullName: string,
+      fullName: string
       username: string
     }>
-  }>,
+  }>
   visible: boolean
-};
+}
 
 export const ReactionTooltip = (props: Props) => {
   if (!props.visible) {
@@ -83,16 +83,12 @@ export const ReactionTooltip = (props: Props) => {
 }
 
 type ListItem = {
-  fullName: string,
-  key: string,
+  fullName: string
+  key: string
   username: string
-};
+}
 
-const renderItem = ({
-  item
-}: {
-  item: ListItem
-}) => {
+const renderItem = ({item}: {item: ListItem}) => {
   return (
     <Kb.NameWithIcon
       key={item.key}
@@ -106,12 +102,12 @@ const renderItem = ({
 }
 
 const renderSectionHeader = ({
-  section
+  section,
 }: {
   section: {
-    conversationIDKey: Types.ConversationIDKey,
-    data: Array<any>,
-    ordinal: Types.Ordinal,
+    conversationIDKey: Types.ConversationIDKey
+    data: Array<any>
+    ordinal: Types.Ordinal
     title: string
   }
 }) => (

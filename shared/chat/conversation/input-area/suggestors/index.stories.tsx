@@ -5,8 +5,8 @@ import * as Styles from '../../../../styles'
 import AddSuggestors, * as Suggestors from '.'
 
 type TestAreaProps = Suggestors.PropsWithSuggestor<{
-  somethingElse: "this"
-}>;
+  somethingElse: 'this'
+}>
 
 class _TestArea extends React.Component<TestAreaProps> {
   render() {

@@ -12,15 +12,9 @@ import {
   WaitingButton,
 } from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
-import { Props, RowProps } from './index.types';
+import {Props, RowProps} from './index.types'
 
-const Edit = ({
-  onClick,
-  style
-}: {
-  onClick: () => void,
-  style: Object
-}) => (
+const Edit = ({onClick, style}: {onClick: () => void; style: Object}) => (
   <ClickableBox style={style} onClick={onClick}>
     <Icon style={{marginRight: globalMargins.xtiny}} type="iconfont-edit" sizeType="Small" />
     <Text type="BodySmallPrimaryLink">Edit</Text>
@@ -29,11 +23,11 @@ const Edit = ({
 
 const Row = (
   props: RowProps & {
-    canEditChannels: boolean,
-    selected: boolean,
-    onToggle: () => void,
-    showEdit: boolean,
-    onEdit: () => void,
+    canEditChannels: boolean
+    selected: boolean
+    onToggle: () => void
+    showEdit: boolean
+    onEdit: () => void
     onClickChannel: () => void
   }
 ) => (

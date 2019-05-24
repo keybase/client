@@ -4,13 +4,13 @@ import {globalStyles, globalColors} from '../../../styles'
 import {intersperseFn} from '../../../util/arrays'
 
 export type BrokenTrackerProps = {
-  users: Array<string>,
+  users: Array<string>
   onClick: (user: string) => void
-};
+}
 
 export type InviteProps = {
   users: Array<string>
-};
+}
 
 const commonBannerStyle = {
   ...globalStyles.flexBoxColumn,
@@ -24,10 +24,7 @@ const commonBannerStyle = {
   paddingTop: 8,
 }
 
-const BannerBox = (props: {
-  children: React.ElementType,
-  color: string
-}) => (
+const BannerBox = (props: {children: React.ElementType; color: string}) => (
   <Box style={{...commonBannerStyle, backgroundColor: props.color}}>{props.children}</Box>
 )
 
@@ -48,10 +45,7 @@ function brokenSeparator(idx, item, arr) {
   }
 }
 
-const BrokenTrackerBanner = ({
-  users,
-  onClick
-}: BrokenTrackerProps) =>
+const BrokenTrackerBanner = ({users, onClick}: BrokenTrackerProps) =>
   users.length === 1 ? (
     <BannerBox color={globalColors.red}>
       <BannerText>
@@ -78,9 +72,7 @@ const BrokenTrackerBanner = ({
     </BannerBox>
   )
 
-const InviteBanner = ({
-  users
-}: InviteProps) => (
+const InviteBanner = ({users}: InviteProps) => (
   <BannerBox color={globalColors.blue}>
     <BannerText>Your messages to {users.join(' & ')} will unlock when they join Keybase.</BannerText>
   </BannerBox>

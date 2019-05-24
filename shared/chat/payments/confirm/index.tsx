@@ -3,7 +3,7 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import ConfirmForm from '../../../wallets/confirm-form'
 
-type LoadingProps = {};
+type LoadingProps = {}
 
 const PaymentsConfirmLoading = (props: LoadingProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
@@ -14,11 +14,11 @@ const PaymentsConfirmLoading = (props: LoadingProps) => (
 )
 
 type ErrorProps = {
-  error: string,
-  errorIsNoWallet: boolean,
-  onCancel: () => void,
+  error: string
+  errorIsNoWallet: boolean
+  onCancel: () => void
   onWallet: () => void
-};
+}
 
 const _PaymentsConfirmError = (props: ErrorProps) => {
   if (props.errorIsNoWallet) {
@@ -69,12 +69,12 @@ const _PaymentsConfirmErrorNoWallet = (props: ErrorProps) => (
 const PaymentsConfirmError = Kb.HeaderOnMobile(_PaymentsConfirmError)
 
 type PaymentProps = {
-  readonly displayAmount?: string | null,
-  readonly error?: string | null,
-  readonly fullName: string,
-  readonly username: string,
+  readonly displayAmount?: string | null
+  readonly error?: string | null
+  readonly fullName: string
+  readonly username: string
   readonly xlmAmount: string
-};
+}
 
 const PaymentRow = (props: PaymentProps) => (
   <React.Fragment>
@@ -95,16 +95,16 @@ const PaymentRow = (props: PaymentProps) => (
 )
 
 type Props = {
-  displayTotal: string,
-  error?: string,
-  errorIsNoWallet?: boolean,
-  loading: boolean,
-  onAccept: () => void,
-  onCancel: () => void,
-  onWallet: () => void,
-  payments: Array<PaymentProps>,
+  displayTotal: string
+  error?: string
+  errorIsNoWallet?: boolean
+  loading: boolean
+  onAccept: () => void
+  onCancel: () => void
+  onWallet: () => void
+  payments: Array<PaymentProps>
   xlmTotal: string
-};
+}
 
 const PaymentsConfirm = (props: Props) => {
   if (props.loading) {

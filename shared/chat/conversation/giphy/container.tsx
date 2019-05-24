@@ -6,25 +6,27 @@ import GiphySearch from '.'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
-};
+}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const {conversationIDKey} = ownProps
   const giphy = state.chat2.giphyResultMap.get(conversationIDKey, null)
   return {
-    galleryURL: // Auto generated from flowToTs. Please clean me!
     // Auto generated from flowToTs. Please clean me!
-    (giphy === null || giphy === undefined ? undefined : giphy.galleryUrl) !== null && // Auto generated from flowToTs. Please clean me!
-    (giphy === null || giphy === undefined ? undefined : giphy.galleryUrl) !== undefined ? // Auto generated from flowToTs. Please clean me!
-    giphy === null || giphy === undefined ? undefined : giphy.galleryUrl : '',
-    previews: // Auto generated from flowToTs. Please clean me!
-    giphy === null || giphy === undefined ? undefined : giphy.results,
-  };
+    galleryURL:
+      // Auto generated from flowToTs. Please clean me!
+      (giphy === null || giphy === undefined ? undefined : giphy.galleryUrl) !== null && // Auto generated from flowToTs. Please clean me!
+      (giphy === null || giphy === undefined ? undefined : giphy.galleryUrl) !== undefined // Auto generated from flowToTs. Please clean me!
+        ? giphy === null || giphy === undefined
+          ? undefined
+          : giphy.galleryUrl
+        : '',
+    // Auto generated from flowToTs. Please clean me!
+    previews: giphy === null || giphy === undefined ? undefined : giphy.results,
+  }
 }
 
-const mapDispatchToProps = (dispatch, {
-  conversationIDKey
-}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => ({
   onClick: (url: string) => {
     dispatch(Chat2Gen.createGiphySend({conversationIDKey, url: new HiddenString(url)}))
   },

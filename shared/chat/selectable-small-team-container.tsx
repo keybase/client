@@ -4,13 +4,13 @@ import SelectableSmallTeam from './selectable-small-team'
 import {namedConnect} from '../util/container'
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey,
-  filter?: string,
-  numSearchHits?: number,
-  maxSearchHits?: number,
-  isSelected: boolean,
+  conversationIDKey: Types.ConversationIDKey
+  filter?: string
+  numSearchHits?: number
+  maxSearchHits?: number
+  isSelected: boolean
   onSelectConversation: () => void
-};
+}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const conversationIDKey = ownProps.conversationIDKey

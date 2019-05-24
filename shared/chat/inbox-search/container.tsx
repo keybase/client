@@ -7,7 +7,7 @@ import InboxSearch from '.'
 
 type OwnProps = {
   header?: React.ElementType
-};
+}
 
 const mapStateToProps = state => {
   const inboxSearch = state.chat2.inboxSearch || Constants.makeInboxSearchInfo()

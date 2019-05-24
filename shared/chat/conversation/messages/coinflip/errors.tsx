@@ -5,7 +5,7 @@ import * as Styles from '../../../../styles'
 
 type Props = {
   error: RPCChatTypes.UICoinFlipError
-};
+}
 
 const CoinFlipError = (props: Props) => {
   if (props.error.typ === RPCChatTypes.chatUiUICoinFlipErrorTyp.generic && props.error.generic) {
@@ -37,7 +37,7 @@ const CoinFlipError = (props: Props) => {
 
 type GenericProps = {
   error: string
-};
+}
 
 const CoinFlipGenericError = (props: GenericProps) => (
   <Kb.Text selectable={true} style={styles.error} type="BodySmall">
@@ -47,7 +47,7 @@ const CoinFlipGenericError = (props: GenericProps) => (
 
 type AbsenteeProps = {
   error: RPCChatTypes.UICoinFlipAbsenteeError
-};
+}
 
 const CoinFlipAbsenteeError = (props: AbsenteeProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.bordered}>
@@ -83,9 +83,9 @@ const CoinFlipAbortedError = () => (
 )
 
 type DupProps = {
-  desc: string,
+  desc: string
   offender: RPCChatTypes.UICoinFlipErrorParticipant
-};
+}
 
 const CoinFlipDupError = (props: DupProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.bordered}>
@@ -100,7 +100,7 @@ const CoinFlipDupError = (props: DupProps) => (
 
 type CommitMismatchProps = {
   offender: RPCChatTypes.UICoinFlipErrorParticipant
-};
+}
 
 const CoinFlipCommitMismatchError = (props: CommitMismatchProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.bordered}>

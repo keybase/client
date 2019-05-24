@@ -53,16 +53,12 @@ const selectableBigs = {
   bigB9: {channelname: 'random9', teamname: 'slackers'},
 }
 
-const smallProvider = (props: {
-  conversationIDKey: Types.ConversationIDKey
-}) => ({
+const smallProvider = (props: {conversationIDKey: Types.ConversationIDKey}) => ({
   ...(selectableSmalls[s(props.conversationIDKey)] || {}),
   ...props,
 })
 
-const bigProvider = (props: {
-  conversationIDKey: Types.ConversationIDKey
-}) => ({
+const bigProvider = (props: {conversationIDKey: Types.ConversationIDKey}) => ({
   ...(selectableBigs[s(props.conversationIDKey)] || {}),
   ...props,
 })
@@ -125,11 +121,7 @@ const filter = {
 
 export const provider = {
   ChooseConversation: (props: {}) => ({...props, selectedText: 'Choose a conversation'}),
-  ConversationList: ({
-    onSelect
-  }: {
-    onSelect?: () => void
-  }) => ({
+  ConversationList: ({onSelect}: {onSelect?: () => void}) => ({
     filter,
     rows: getRows(undefined, onSelect),
   }),

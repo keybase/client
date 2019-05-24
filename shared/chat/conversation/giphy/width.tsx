@@ -1,4 +1,3 @@
-
 const minWidth = 100
 const maxWidth = 200
 

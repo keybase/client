@@ -1,31 +1,31 @@
 import * as React from 'react'
 import MessagePopupHeader from '../header'
 import {FloatingMenu} from '../../../../../common-adapters/'
-import { fileUIName, StylesCrossPlatform } from '../../../../../styles';
-import { DeviceType } from '../../../../../constants/types/devices';
-import { Position } from '../../../../../common-adapters/relative-popup-hoc.types';
+import {fileUIName, StylesCrossPlatform} from '../../../../../styles'
+import {DeviceType} from '../../../../../constants/types/devices'
+import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 
 type Props = {
-  attachTo: () => React.Component<any> | null,
-  author: string,
-  deviceName: string,
-  deviceType: DeviceType,
-  deviceRevokedAt: number | null,
-  onAddReaction: null | () => void,
-  onDelete: null | () => void,
-  onDownload: null | () => void,
-  onHidden: () => void,
-  onSaveAttachment: null | () => void,
-  onShareAttachment: null | () => void,
-  onShowInFinder: null | () => void,
-  pending: boolean,
-  position: Position,
-  style?: StylesCrossPlatform,
-  timestamp: number,
-  visible: boolean,
-  yourMessage: boolean,
+  attachTo: () => React.Component<any> | null
+  author: string
+  deviceName: string
+  deviceType: DeviceType
+  deviceRevokedAt: number | null
+  onAddReaction: null | (() => void)
+  onDelete: null | (() => void)
+  onDownload: null | (() => void)
+  onHidden: () => void
+  onSaveAttachment: null | (() => void)
+  onShareAttachment: null | (() => void)
+  onShowInFinder: null | (() => void)
+  pending: boolean
+  position: Position
+  style?: StylesCrossPlatform
+  timestamp: number
+  visible: boolean
+  yourMessage: boolean
   isDeleteable: boolean
-};
+}
 
 const AttachmentPopupMenu = (props: Props) => {
   const items = [

@@ -10,14 +10,14 @@ import {namedConnect} from '../../../util/container'
 import {globalStyles, globalMargins, isMobile} from '../../../styles'
 
 type Props = {
-  conversationIDKey: Types.ConversationIDKey,
-  hasOlderResetConversation: boolean,
-  showRetentionNotice: boolean,
-  loadMoreType: "moreToLoad" | "noMoreToLoad",
-  showTeamOffer: boolean,
-  measure: () => void | null,
+  conversationIDKey: Types.ConversationIDKey
+  hasOlderResetConversation: boolean
+  showRetentionNotice: boolean
+  loadMoreType: 'moreToLoad' | 'noMoreToLoad'
+  showTeamOffer: boolean
+  measure: () => void | null
   pendingWaiting: boolean
-};
+}
 
 class TopMessage extends React.PureComponent<Props> {
   componentDidUpdate(prevProps: Props) {
@@ -83,9 +83,9 @@ const moreStyle = {
 }
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey,
+  conversationIDKey: Types.ConversationIDKey
   measure: () => void | null
-};
+}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const hasLoadedEver = state.chat2.messageOrdinals.get(ownProps.conversationIDKey) !== undefined

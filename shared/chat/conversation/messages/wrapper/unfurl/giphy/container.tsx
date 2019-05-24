@@ -3,11 +3,11 @@ import * as RPCChatTypes from '../../../../../../constants/types/rpc-chat-gen'
 import UnfurlGiphy from '.'
 
 type Props = {
-  unfurl: RPCChatTypes.UnfurlGiphyDisplay,
-  isCollapsed: boolean,
-  onClose?: () => void,
+  unfurl: RPCChatTypes.UnfurlGiphyDisplay
+  isCollapsed: boolean
+  onClose?: () => void
   onCollapse: () => void
-};
+}
 
 class Wrapper extends React.PureComponent<Props> {
   render() {

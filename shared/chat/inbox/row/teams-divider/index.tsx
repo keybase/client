@@ -4,12 +4,12 @@ import * as Styles from '../../../../styles'
 import * as RowSizes from '../sizes'
 
 type Props = {
-  badgeCount: number,
-  hiddenCount: number,
-  style: Styles.StylesCrossPlatform | null,
-  showButton: boolean,
+  badgeCount: number
+  hiddenCount: number
+  style: Styles.StylesCrossPlatform | null
+  showButton: boolean
   toggle: () => void
-};
+}
 
 class TeamsDivider extends React.PureComponent<Props> {
   render() {

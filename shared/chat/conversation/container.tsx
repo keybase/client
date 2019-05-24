@@ -14,15 +14,15 @@ import Rekey from './rekey/container'
 
 type OwnProps = {
   navigation?: any
-};
+}
 
 type SwitchProps = {
-  conversationIDKey: Types.ConversationIDKey,
-  isFocused?: boolean,
-  selectConversation: () => void,
-  deselectConversation: () => void,
-  type: "error" | "noConvo" | "rekey" | "youAreReset" | "normal" | "rekey"
-};
+  conversationIDKey: Types.ConversationIDKey
+  isFocused?: boolean
+  selectConversation: () => void
+  deselectConversation: () => void
+  type: 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rekey'
+}
 
 class Conversation extends React.PureComponent<SwitchProps> {
   _onDidFocus = () => {

@@ -166,7 +166,7 @@ const load = () => {
 
 type State = {
   ref: Kb.Box | null
-};
+}
 
 class PaymentPopupMoved extends React.Component<React.ElementProps<typeof PaymentPopup>, State> {
   state = {ref: null}

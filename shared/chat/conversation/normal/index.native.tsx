@@ -5,7 +5,7 @@ import InputArea from '../input-area/container'
 import ListArea from '../list-area/container'
 import {Box, LoadingLine, Text} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
-import { Props } from './index.types';
+import {Props} from './index.types'
 
 const Offline = () => (
   <Box

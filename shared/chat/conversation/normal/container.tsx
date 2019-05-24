@@ -10,7 +10,7 @@ import {compose, connect, isMobile, withStateHandlers} from '../../../util/conta
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
-};
+}
 
 let KeyHandler: any = c => c
 if (!isMobile) {
@@ -71,7 +71,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
     showLoader: stateProps.showLoader,
     threadLoadedOffline: stateProps.threadLoadedOffline,
-  };
+  }
 }
 
 export default compose(

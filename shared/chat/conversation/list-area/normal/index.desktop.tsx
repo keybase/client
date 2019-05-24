@@ -14,7 +14,7 @@ import SpecialBottomMessage from '../../messages/special-bottom-message'
 import {ErrorBoundary} from '../../../../common-adapters'
 import {debounce, throttle, chunk} from 'lodash-es'
 import {globalStyles} from '../../../../styles'
-import { Props } from './index.types';
+import {Props} from './index.types'
 import shallowEqual from 'shallowequal'
 import {globalMargins} from '../../../../styles/shared'
 import logger from '../../../../logger'
@@ -35,9 +35,9 @@ const scrollOrdinalKey = 'scroll-ordinal-key'
 
 type State = {
   lockedToBottom: boolean
-};
+}
 
-type Snapshot = number | null;
+type Snapshot = number | null
 
 const debug = __STORYBOOK__
 
@@ -63,7 +63,7 @@ class Thread extends React.PureComponent<Props, State> {
   _ignoreScrollOnetime = false
 
   // last height we saw from resize
-  _scrollHeight: number = 0;
+  _scrollHeight: number = 0
 
   _logIgnoreScroll = debug
     ? (name, fn) => {
@@ -537,11 +537,11 @@ class Thread extends React.PureComponent<Props, State> {
 
 type TopBottomItemProps = {
   conversationIDKey: Types.ConversationIDKey
-};
+}
 
 type TopBottomItemState = {
   keyCount: number
-};
+}
 
 class TopItem extends React.PureComponent<TopBottomItemProps, TopBottomItemState> {
   state = {keyCount: 0}
@@ -566,22 +566,22 @@ class BottomItem extends React.PureComponent<TopBottomItemProps, TopBottomItemSt
 }
 
 type OrdinalWaypointProps = {
-  id: string,
+  id: string
   rowRenderer: (
     ordinal: Types.Ordinal,
     previous: Types.Ordinal | null,
     measure: () => void
-  ) => React.ElementType,
-  ordinals: Array<Types.Ordinal>,
+  ) => React.ElementType
+  ordinals: Array<Types.Ordinal>
   previous: Types.Ordinal | null
-};
+}
 
 type OrdinalWaypointState = {
-  height: number | null,
-  heightForOrdinals: Array<Types.Ordinal>,
-  isVisible: boolean,
+  height: number | null
+  heightForOrdinals: Array<Types.Ordinal>
+  isVisible: boolean
   width: number | null
-};
+}
 
 class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypointState> {
   state = {
@@ -590,7 +590,7 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
     isVisible: true,
     width: null,
   }
-  _animID: number;
+  _animID: number
 
   componentWillUnmount() {
     this._onResize.cancel()

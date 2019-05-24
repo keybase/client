@@ -2,8 +2,8 @@ import * as React from 'react'
 import * as Kb from '../../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../../styles'
 import {throttle} from 'lodash-es'
-import { Props } from './index.types';
-import SharedTimer, { SharedTimerID } from '../../../../../util/shared-timers';
+import {Props} from './index.types'
+import SharedTimer, {SharedTimerID} from '../../../../../util/shared-timers'
 
 // If this image changes, some hard coded dimensions
 // in this file also need to change.
@@ -15,10 +15,10 @@ const copyChildren = children =>
   React.Children.map(children, child => (child ? React.cloneElement(child) : child))
 
 type State = {
-  children: React.ElementType | null,
-  height: number | null,
+  children: React.ElementType | null
+  height: number | null
   numImages: number
-};
+}
 
 class ExplodingHeightRetainer extends React.Component<Props, State> {
   state = {
@@ -26,7 +26,7 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
     height: 20,
     numImages: 1,
   }
-  timeoutID: number | null;
+  timeoutID: number | null
 
   static getDerivedStateFromProps(nextProps: Props, prevState: State) {
     return nextProps.retainHeight ? null : {children: copyChildren(nextProps.children)}
@@ -88,23 +88,23 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
 }
 
 type AshTowerProps = {
-  exploded: boolean,
-  explodedBy: string | null,
-  messageKey: string,
+  exploded: boolean
+  explodedBy: string | null
+  messageKey: string
   numImages: number
-};
+}
 
 type AshTowerState = {
-  showExploded: boolean,
+  showExploded: boolean
   width: Kb.NativeAnimated.Value
-};
+}
 
 class AnimatedAshTower extends React.Component<AshTowerProps, AshTowerState> {
   state = {
     showExploded: this.props.exploded,
     width: this.props.exploded ? new Kb.NativeAnimated.Value(100) : new Kb.NativeAnimated.Value(0),
   }
-  timerID: SharedTimerID;
+  timerID: SharedTimerID
 
   componentDidUpdate(prevProps: AshTowerProps) {
     if (!prevProps.exploded && this.props.exploded) {
@@ -144,12 +144,15 @@ class AnimatedAshTower extends React.Component<AshTowerProps, AshTowerState> {
   }
 }
 
-class EmojiTower extends React.Component<{
-  numImages: number,
-  animatedValue: Kb.NativeAnimated.Value
-}, {
-  running: boolean
-}> {
+class EmojiTower extends React.Component<
+  {
+    numImages: number
+    animatedValue: Kb.NativeAnimated.Value
+  },
+  {
+    running: boolean
+  }
+> {
   state = {running: false}
   componentDidMount() {
     this.props.animatedValue.addListener(this._listener)
@@ -160,9 +163,7 @@ class EmojiTower extends React.Component<{
     this.props.animatedValue.removeAllListeners()
   }
 
-  _listener = (evt: {
-    value: number
-  }) => {
+  _listener = (evt: {value: number}) => {
     if ([0, 100].includes(evt.value)) {
       this.setState({running: false})
       return
@@ -200,11 +201,7 @@ class EmojiTower extends React.Component<{
     return <Kb.Box style={styles.emojiTower}>{children}</Kb.Box>
   }
 }
-const AshTower = (props: {
-  explodedBy: string | null,
-  numImages: number,
-  showExploded: boolean
-}) => {
+const AshTower = (props: {explodedBy: string | null; numImages: number; showExploded: boolean}) => {
   const children = []
   for (let i = 0; i < props.numImages; i++) {
     children.push(<Kb.NativeImage key={i} source={explodedIllustrationURL} style={styles.ashes} />)

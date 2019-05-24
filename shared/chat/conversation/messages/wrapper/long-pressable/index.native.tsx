@@ -3,9 +3,7 @@ import * as Kb from '../../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../../styles'
 
 // See '.js.flow' for explanation
-const LongPressable = (props: {
-  children: React.ElementType
-}) => {
+const LongPressable = (props: {children: React.ElementType}) => {
   const {children, ...rest} = props
   return (
     <Kb.NativeTouchableHighlight key="longPressbale" {...rest}>

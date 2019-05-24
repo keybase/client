@@ -4,20 +4,14 @@ import {globalColors, globalMargins, globalStyles} from '../../../../styles'
 import {isMobile} from '../../../../constants/platform'
 
 type Props = {
-  allowChatWithoutThem: boolean,
-  username: string,
-  viewProfile: () => void,
-  chatWithoutThem: () => void,
+  allowChatWithoutThem: boolean
+  username: string
+  viewProfile: () => void
+  chatWithoutThem: () => void
   letThemIn: () => void
-};
+}
 
-const ResetUser = ({
-  username,
-  viewProfile,
-  letThemIn,
-  allowChatWithoutThem,
-  chatWithoutThem
-}: Props) => (
+const ResetUser = ({username, viewProfile, letThemIn, allowChatWithoutThem, chatWithoutThem}: Props) => (
   <Box style={containerStyle}>
     <Icon
       type={isMobile ? 'icon-skull-64' : 'icon-skull-48'}

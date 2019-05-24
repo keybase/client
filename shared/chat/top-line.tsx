@@ -4,12 +4,12 @@ import {globalStyles} from '../styles'
 import {pluralize} from '../util/string'
 
 type Props = {
-  numSearchHits?: number,
-  maxSearchHits?: number,
-  participants: Array<string>,
-  showBold: boolean,
+  numSearchHits?: number
+  maxSearchHits?: number
+  participants: Array<string>
+  showBold: boolean
   usernameColor: string | null
-};
+}
 
 class FilteredTopLine extends PureComponent<Props> {
   _getSearchHits = () => {

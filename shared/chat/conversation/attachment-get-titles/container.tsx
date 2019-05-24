@@ -5,13 +5,16 @@ import * as FsTypes from '../../../constants/types/fs'
 import GetTitles from './'
 import {connect, getRouteProps} from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import { RouteProps } from '../../../route-tree/render-route';
-import { PathToInfo } from '.';
+import {RouteProps} from '../../../route-tree/render-route'
+import {PathToInfo} from '.'
 
-type OwnProps = RouteProps<{
-  pathAndOutboxIDs: Array<Types.PathAndOutboxID>,
-  conversationIDKey: Types.ConversationIDKey
-}, {}>;
+type OwnProps = RouteProps<
+  {
+    pathAndOutboxIDs: Array<Types.PathAndOutboxID>
+    conversationIDKey: Types.ConversationIDKey
+  },
+  {}
+>
 
 const mapStateToProps = (state, ownProps: OwnProps) => ({
   _conversationIDKey: getRouteProps(ownProps, 'conversationIDKey'),

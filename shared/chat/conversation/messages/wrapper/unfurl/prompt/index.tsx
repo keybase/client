@@ -3,13 +3,13 @@ import * as Kb from '../../../../../../common-adapters/index'
 import * as Styles from '../../../../../../styles'
 
 export type Props = {
-  domain: string,
-  onAlways: () => void,
-  onAccept: () => void,
-  onOnetime: () => void,
-  onNotnow: () => void,
+  domain: string
+  onAlways: () => void
+  onAccept: () => void
+  onOnetime: () => void
+  onNotnow: () => void
   onNever: () => void
-};
+}
 
 const promptIcon = Styles.isMobile
   ? 'icon-fancy-unfurl-preview-mobile-128-128'

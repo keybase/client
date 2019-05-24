@@ -3,15 +3,15 @@ import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 
 type Props = {
-  arrowColor: string,
-  onDownload: null | () => void,
-  onShowInFinder: null | () => void,
-  title: string,
-  progress: number,
-  progressLabel: string,
-  hasProgress: boolean,
+  arrowColor: string
+  onDownload: null | (() => void)
+  onShowInFinder: null | (() => void)
+  title: string
+  progress: number
+  progressLabel: string
+  hasProgress: boolean
   errorMsg: string
-};
+}
 
 class FileAttachment extends React.PureComponent<Props> {
   render() {

@@ -12,13 +12,13 @@ import UnknownMention from './unknown'
 const Kb = {Text}
 
 type Props = {
-  allowFontScaling?: boolean,
-  channel: string,
-  info: RPCChatTypes.UIMaybeMentionInfo | null,
-  name: string,
-  onResolve: () => void,
+  allowFontScaling?: boolean
+  channel: string
+  info: RPCChatTypes.UIMaybeMentionInfo | null
+  name: string
+  onResolve: () => void
   style?: Styles.StylesCrossPlatform
-};
+}
 
 const MaybeMention = (props: Props) => {
   if (!props.info || props.info.status === RPCChatTypes.chatUiUIMaybeMentionStatus.nothing) {
@@ -59,11 +59,11 @@ const MaybeMention = (props: Props) => {
 }
 
 type OwnProps = {
-  allowFontScaling?: boolean,
-  channel: string,
-  name: string,
+  allowFontScaling?: boolean
+  channel: string
+  name: string
   style?: Styles.StylesCrossPlatform
-};
+}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const info = state.chat2.maybeMentionMap.get(Constants.getTeamMentionName(ownProps.name, ownProps.channel))

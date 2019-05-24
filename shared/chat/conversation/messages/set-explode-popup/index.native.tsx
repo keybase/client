@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {Box2, Text, FloatingPicker} from '../../../../common-adapters/mobile.native'
-import { Props } from './index.types';
+import {Props} from './index.types'
 
 const Prompt = () => (
   <Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={promptContainerStyle}>
@@ -15,7 +15,7 @@ const promptContainerStyle = {
 
 type State = {
   selected: number
-};
+}
 
 class SetExplodePopup extends React.Component<Props, State> {
   constructor(props: Props) {

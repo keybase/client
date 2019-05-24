@@ -5,11 +5,9 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
-};
+}
 
-const mapStateToProps = (state, {
-  conversationIDKey
-}: OwnProps) => ({
+const mapStateToProps = (state, {conversationIDKey}: OwnProps) => ({
   conversationIDKey,
 })
 

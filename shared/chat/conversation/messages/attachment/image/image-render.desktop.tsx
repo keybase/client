@@ -1,9 +1,9 @@
 import * as React from 'react'
-import { Props } from './image-render.types';
+import {Props} from './image-render.types'
 import {collapseStyles} from '../../../../../styles'
 
 export class ImageRender extends React.Component<Props> {
-  videoRef: any;
+  videoRef: any
 
   constructor(props: Props) {
     super(props)

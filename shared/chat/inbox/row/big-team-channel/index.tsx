@@ -4,19 +4,19 @@ import * as Styles from '../../../../styles'
 import * as RowSizes from '../sizes'
 
 type Props = {
-  isSelected: boolean,
-  channelname: string,
-  isMuted: boolean,
-  isError: boolean,
-  showBold: boolean,
-  hasUnread: boolean,
-  hasBadge: boolean,
+  isSelected: boolean
+  channelname: string
+  isMuted: boolean
+  isError: boolean
+  showBold: boolean
+  hasUnread: boolean
+  hasBadge: boolean
   onSelectConversation: () => void
-};
+}
 
 type State = {
   isHovered: boolean
-};
+}
 
 class BigTeamChannel extends PureComponent<Props, State> {
   state = {

@@ -6,11 +6,11 @@ import * as RowSizes from '../sizes'
 import * as ChatTypes from '../../../../constants/types/chat2'
 
 type Props = {
-  badgeSubscribe: boolean,
-  onClick: () => void,
-  teamname: string,
+  badgeSubscribe: boolean
+  onClick: () => void
+  teamname: string
   conversationIDKey: ChatTypes.ConversationIDKey
-} & Kb.OverlayParentProps;
+} & Kb.OverlayParentProps
 
 class _BigTeamHeader extends React.PureComponent<Props> {
   render() {

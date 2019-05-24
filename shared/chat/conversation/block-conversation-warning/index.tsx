@@ -4,20 +4,14 @@ import {Box, Button, PopupDialog, Text, StandardScreen, ButtonBar} from '../../.
 import {globalMargins, globalStyles, globalColors, isMobile} from '../../../styles'
 
 type Props = {
-  conversationIDKey: Types.ConversationIDKey,
-  onBack: () => void,
-  onBlock: () => void,
-  onBlockAndReport: () => void,
+  conversationIDKey: Types.ConversationIDKey
+  onBack: () => void
+  onBlock: () => void
+  onBlockAndReport: () => void
   participants: string
-};
+}
 
-const _Contents = ({
-  conversationIDKey,
-  onBack,
-  participants,
-  onBlock,
-  onBlockAndReport
-}: Props) => (
+const _Contents = ({conversationIDKey, onBack, participants, onBlock, onBlockAndReport}: Props) => (
   <StandardScreen
     onBack={isMobile ? onBack : null}
     style={{

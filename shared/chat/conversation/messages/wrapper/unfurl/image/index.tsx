@@ -7,16 +7,16 @@ import {Video} from './video'
 import openURL from '../../../../../../util/open-url'
 
 export type Props = {
-  autoplayVideo: boolean,
-  height: number,
-  isVideo: boolean,
-  linkURL?: string,
-  onClick?: () => void,
-  style?: Object,
-  url: string,
-  width: number,
+  autoplayVideo: boolean
+  height: number
+  isVideo: boolean
+  linkURL?: string
+  onClick?: () => void
+  style?: Object
+  url: string
+  width: number
   widthPadding?: number
-};
+}
 
 class UnfurlImage extends React.Component<Props> {
   _getDimensions() {

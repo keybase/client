@@ -6,7 +6,7 @@ import {YouAdded, OthersAdded} from '.'
 
 type OwnProps = {
   message: Types.MessageSystemUsersAddedToConversation
-};
+}
 
 const mapStateToProps = (state, {message}) => ({
   channelname: Constants.getMeta(state, message.conversationIDKey).channelname,
@@ -22,12 +22,12 @@ const mergeProps = (stateProps, _, ownProps) => ({
 })
 
 type SwitcherProps = {
-  added: Array<string>,
-  author: string,
-  channelname: string,
-  timestamp: number,
+  added: Array<string>
+  author: string
+  channelname: string
+  timestamp: number
   you: string
-};
+}
 
 const UsersAddedToConversation = (props: SwitcherProps) => {
   const common = {

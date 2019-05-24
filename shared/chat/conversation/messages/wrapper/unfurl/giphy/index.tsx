@@ -4,15 +4,15 @@ import * as Styles from '../../../../../../styles'
 import UnfurlImage from '../image'
 
 export type Props = {
-  imageHeight: number,
-  imageWidth: number,
-  imageURL: string,
-  isCollapsed: boolean,
-  isVideo: boolean,
-  faviconURL?: string,
-  onClose?: () => void,
+  imageHeight: number
+  imageWidth: number
+  imageURL: string
+  isCollapsed: boolean
+  isVideo: boolean
+  faviconURL?: string
+  onClose?: () => void
   onCollapse: () => void
-};
+}
 
 class UnfurlGiphy extends React.Component<Props> {
   render() {
@@ -28,7 +28,7 @@ class UnfurlGiphy extends React.Component<Props> {
                 boxStyle={styles.collapseBox}
                 style={styles.collapse}
                 onClick={this.props.onCollapse}
-sizeType='Tiny'
+                sizeType="Tiny"
                 type={this.props.isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
               />
             </Kb.Box2>

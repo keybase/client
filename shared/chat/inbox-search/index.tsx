@@ -9,35 +9,35 @@ import {inboxWidth} from '../inbox/row/sizes'
 import {Owl} from '../inbox/owl'
 
 type NameResult = {
-  conversationIDKey: Types.ConversationIDKey,
-  type: "big" | "small"
-};
+  conversationIDKey: Types.ConversationIDKey
+  type: 'big' | 'small'
+}
 
 type TextResult = {
-  conversationIDKey: Types.ConversationIDKey,
-  type: "big" | "small",
-  numHits: number,
+  conversationIDKey: Types.ConversationIDKey
+  type: 'big' | 'small'
+  numHits: number
   query: string
-};
+}
 
 type Props = {
-  header?: React.ElementType,
-  indexPercent: number,
-  nameStatus: Types.InboxSearchStatus,
-  nameResults: Array<NameResult>,
-  nameResultsUnread: boolean,
-  onCancel: () => void,
-  onSelectConversation: (arg0: Types.ConversationIDKey, arg1: number, arg2: string) => void,
-  selectedIndex: number,
-  textStatus: Types.InboxSearchStatus,
-  textResults: Array<TextResult>,
+  header?: React.ElementType
+  indexPercent: number
+  nameStatus: Types.InboxSearchStatus
+  nameResults: Array<NameResult>
+  nameResultsUnread: boolean
+  onCancel: () => void
+  onSelectConversation: (arg0: Types.ConversationIDKey, arg1: number, arg2: string) => void
+  selectedIndex: number
+  textStatus: Types.InboxSearchStatus
+  textResults: Array<TextResult>
   query: string
-};
+}
 
 type State = {
-  nameCollapsed: boolean,
+  nameCollapsed: boolean
   textCollapsed: boolean
-};
+}
 
 class InboxSearch extends React.Component<Props, State> {
   state = {nameCollapsed: false, textCollapsed: false}
@@ -48,11 +48,16 @@ class InboxSearch extends React.Component<Props, State> {
       <SelectableBigTeamChannel
         conversationIDKey={item.conversationIDKey}
         isSelected={!Styles.isMobile && this.props.selectedIndex === realIndex}
-        numSearchHits={// Auto generated from flowToTs. Please clean me!
-        // Auto generated from flowToTs. Please clean me!
-        (item === null || item === undefined ? undefined : item.numHits) !== null && // Auto generated from flowToTs. Please clean me!
-        (item === null || item === undefined ? undefined : item.numHits) !== undefined ? // Auto generated from flowToTs. Please clean me!
-        item === null || item === undefined ? undefined : item.numHits : undefined}
+        numSearchHits={
+          // Auto generated from flowToTs. Please clean me!
+          // Auto generated from flowToTs. Please clean me!
+          (item === null || item === undefined ? undefined : item.numHits) !== null && // Auto generated from flowToTs. Please clean me!
+          (item === null || item === undefined ? undefined : item.numHits) !== undefined // Auto generated from flowToTs. Please clean me!
+            ? item === null || item === undefined
+              ? undefined
+              : item.numHits
+            : undefined
+        }
         maxSearchHits={Constants.inboxSearchMaxTextMessages}
         onSelectConversation={() => section.onSelect(item, realIndex)}
       />
@@ -60,15 +65,20 @@ class InboxSearch extends React.Component<Props, State> {
       <SelectableSmallTeam
         conversationIDKey={item.conversationIDKey}
         isSelected={!Styles.isMobile && this.props.selectedIndex === realIndex}
-        numSearchHits={// Auto generated from flowToTs. Please clean me!
-        // Auto generated from flowToTs. Please clean me!
-        (item === null || item === undefined ? undefined : item.numHits) !== null && // Auto generated from flowToTs. Please clean me!
-        (item === null || item === undefined ? undefined : item.numHits) !== undefined ? // Auto generated from flowToTs. Please clean me!
-        item === null || item === undefined ? undefined : item.numHits : undefined}
+        numSearchHits={
+          // Auto generated from flowToTs. Please clean me!
+          // Auto generated from flowToTs. Please clean me!
+          (item === null || item === undefined ? undefined : item.numHits) !== null && // Auto generated from flowToTs. Please clean me!
+          (item === null || item === undefined ? undefined : item.numHits) !== undefined // Auto generated from flowToTs. Please clean me!
+            ? item === null || item === undefined
+              ? undefined
+              : item.numHits
+            : undefined
+        }
         maxSearchHits={Constants.inboxSearchMaxTextMessages}
         onSelectConversation={() => section.onSelect(item, realIndex)}
       />
-    );
+    )
   }
   _toggleCollapseName = () => {
     this.setState({nameCollapsed: !this.state.nameCollapsed})

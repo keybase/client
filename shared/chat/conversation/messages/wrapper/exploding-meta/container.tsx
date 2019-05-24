@@ -2,8 +2,8 @@ import * as React from 'react'
 import * as Container from '../../../../../util/container'
 import * as Types from '../../../../../constants/types/chat2'
 import * as Constants from '../../../../../constants/chat2'
-import { StylesCrossPlatform } from '../../../../../styles';
-import ExplodingMeta, { _Props as ViewProps } from '.';
+import {StylesCrossPlatform} from '../../../../../styles'
+import ExplodingMeta, {_Props as ViewProps} from '.'
 
 const emptyProps = {
   exploded: true,
@@ -14,11 +14,11 @@ const emptyProps = {
 }
 
 export type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey,
-  onClick: () => void | null,
-  ordinal: Types.Ordinal,
+  conversationIDKey: Types.ConversationIDKey
+  onClick: () => void | null
+  ordinal: Types.Ordinal
   style?: StylesCrossPlatform
-};
+}
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const message = Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal)
   if (!message || (message.type !== 'text' && message.type !== 'attachment') || !message.exploding) {
@@ -45,7 +45,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
 
 type WrapperProps = {
   exploding: boolean
-} & ViewProps;
+} & ViewProps
 
 const Wrapper = (props: WrapperProps) =>
   !props.exploding ? null : (

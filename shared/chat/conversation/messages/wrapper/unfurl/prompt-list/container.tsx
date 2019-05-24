@@ -7,17 +7,14 @@ import {namedConnect} from '../../../../../../util/container'
 import UnfurlPromptList from '.'
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey,
+  conversationIDKey: Types.ConversationIDKey
   ordinal: Types.Ordinal
-};
+}
 
 const noPrompts = I.Set()
 const noMessageID = Types.numberToMessageID(0)
 
-const mapStateToProps = (state, {
-  conversationIDKey,
-  ordinal
-}: OwnProps) => {
+const mapStateToProps = (state, {conversationIDKey, ordinal}: OwnProps) => {
   const message = Constants.getMessage(state, conversationIDKey, ordinal)
   const messageID = message && message.type === 'text' ? message.id : noMessageID
   const promptDomains = state.chat2.unfurlPromptMap.getIn([conversationIDKey, messageID]) || noPrompts
@@ -27,9 +24,7 @@ const mapStateToProps = (state, {
   }
 }
 
-const mapDispatchToProps = (dispatch, {
-  conversationIDKey
-}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => ({
   _setPolicy: (messageID: Types.MessageID, domain: string, result: RPCChatTypes.UnfurlPromptResult) => {
     dispatch(
       Chat2Gen.createUnfurlResolvePrompt({

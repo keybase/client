@@ -7,13 +7,17 @@ import {formatTimeForMessages} from '../../../../util/timestamp'
 
 type Props = {
   message: Types.MessageSystemText
-};
+}
 
 class SystemText extends React.PureComponent<Props> {
   render() {
     const {author, timestamp, text} = this.props.message
     return (
-      <UserNotice style={{marginTop: globalMargins.small}} username={author} bgColor={globalColors.blueLighter2}>
+      <UserNotice
+        style={{marginTop: globalMargins.small}}
+        username={author}
+        bgColor={globalColors.blueLighter2}
+      >
         <Text type="BodySmallSemibold" negative={true} style={{color: globalColors.black_50}}>
           {formatTimeForMessages(timestamp)}
         </Text>

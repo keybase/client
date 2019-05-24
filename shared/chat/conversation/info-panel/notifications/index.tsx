@@ -4,18 +4,18 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import SaveIndicator from '../../../../common-adapters/save-indicator'
 
-export type SaveStateType = "same" | "saving" | "justSaved";
+export type SaveStateType = 'same' | 'saving' | 'justSaved'
 export type Props = {
-  channelWide: boolean,
-  desktop: Types.NotificationsType,
-  mobile: Types.NotificationsType,
-  muted: boolean,
-  saving: boolean,
-  toggleMuted: () => void,
-  updateDesktop: (arg0: Types.NotificationsType) => void,
-  updateMobile: (arg0: Types.NotificationsType) => void,
+  channelWide: boolean
+  desktop: Types.NotificationsType
+  mobile: Types.NotificationsType
+  muted: boolean
+  saving: boolean
+  toggleMuted: () => void
+  updateDesktop: (arg0: Types.NotificationsType) => void
+  updateMobile: (arg0: Types.NotificationsType) => void
   toggleChannelWide: () => void
-};
+}
 
 const UnmutedNotificationPrefs = (props: Props) => {
   const allNotifsEnabled = props.desktop === 'onAnyActivity' && props.mobile === 'onAnyActivity'

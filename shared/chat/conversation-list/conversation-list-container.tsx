@@ -5,17 +5,17 @@ import * as Constants from '../../constants/chat2'
 import * as Flow from '../../util/flow'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {isMobile} from '../../constants/platform'
-import ConversationList, { SmallTeamRowItem, BigTeamChannelRowItem } from './conversation-list';
+import ConversationList, {SmallTeamRowItem, BigTeamChannelRowItem} from './conversation-list'
 import getFilteredRowsAndMetadata from '../inbox/container/filtered'
 
 type OwnProps = {
-  filter?: string,
-  focusFilterOnMount?: boolean | null,
-  onDone?: () => void | null,
-  onSelect: (conversationIDKey: Types.ConversationIDKey) => void,
-  onSetFilter?: (filter: string) => void,
+  filter?: string
+  focusFilterOnMount?: boolean | null
+  onDone?: () => void | null
+  onSelect: (conversationIDKey: Types.ConversationIDKey) => void
+  onSetFilter?: (filter: string) => void
   selected: Types.ConversationIDKey
-};
+}
 
 const notificationsTypeToNumber = (t: Types.NotificationsType): number => {
   switch (t) {
@@ -31,7 +31,7 @@ const notificationsTypeToNumber = (t: Types.NotificationsType): number => {
   }
 }
 
-const boolToNumber = (b: boolean): number => b ? 1 : 0
+const boolToNumber = (b: boolean): number => (b ? 1 : 0)
 
 const staleToNumber = (convTime: number, staleCutoff: number) => (convTime < staleCutoff ? 1 : 0)
 
@@ -41,9 +41,11 @@ const getAWeekAgo = () => {
 }
 
 const getSortedConversationIDKeys = memoize(
-  (metaMap: Types.MetaMap): Array<{
-    conversationIDKey: Types.ConversationIDKey,
-    type: "small" | "big"
+  (
+    metaMap: Types.MetaMap
+  ): Array<{
+    conversationIDKey: Types.ConversationIDKey
+    type: 'small' | 'big'
   }> => {
     const staleCutoff = getAWeekAgo()
     return metaMap
@@ -108,7 +110,7 @@ const getRows = (stateProps, ownProps: OwnProps) => {
             : ({
                 ...common,
                 type: 'small',
-              } as SmallTeamRowItem);
+              } as SmallTeamRowItem)
         }
       )
     : getSortedConversationIDKeys(stateProps._metaMap).map(({conversationIDKey, type}, index) => {
@@ -131,7 +133,7 @@ const getRows = (stateProps, ownProps: OwnProps) => {
           : ({
               ...common,
               type: 'small',
-            } as SmallTeamRowItem);
+            } as SmallTeamRowItem)
       })
   return {rows, selectedIndex}
 }

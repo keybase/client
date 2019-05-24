@@ -5,11 +5,11 @@ import InfoPanelMenu from './menu/container'
 import * as ChatTypes from '../../../constants/types/chat2'
 
 type SmallProps = {
-  teamname: string,
-  conversationIDKey: ChatTypes.ConversationIDKey,
-  participantCount: number,
+  teamname: string
+  conversationIDKey: ChatTypes.ConversationIDKey
+  participantCount: number
   isSmallTeam: boolean
-} & Kb.OverlayParentProps;
+} & Kb.OverlayParentProps
 
 const gearIconSize = Styles.isMobile ? 24 : 16
 
@@ -45,14 +45,14 @@ const _SmallTeamHeader = (props: SmallProps) => {
 const SmallTeamHeader = Kb.OverlayParentHOC(_SmallTeamHeader)
 
 type BigProps = {
-  canEditChannel: boolean,
-  channelname: string,
-  description: string | null,
-  teamname: string,
+  canEditChannel: boolean
+  channelname: string
+  description: string | null
+  teamname: string
   onEditChannel: () => void
-};
+}
 
-type BigTeamHeaderProps = BigProps;
+type BigTeamHeaderProps = BigProps
 
 const EditBox = Styles.isMobile
   ? Kb.ClickableBox

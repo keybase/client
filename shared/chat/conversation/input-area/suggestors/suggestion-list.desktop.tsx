@@ -2,7 +2,7 @@ import * as React from 'react'
 import ReactList from 'react-list'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import { Props } from './suggestion-list';
+import {Props} from './suggestion-list'
 
 class SuggestionList extends React.Component<Props> {
   _listRef = React.createRef<ReactList>()

@@ -5,11 +5,9 @@ import {globalColors} from '../../../../styles'
 
 type Props = {
   onShowNewTeamDialog: () => void
-};
+}
 
-const CreateTeamNotice = ({
-  onShowNewTeamDialog
-}: Props) => (
+const CreateTeamNotice = ({onShowNewTeamDialog}: Props) => (
   <UserNotice username="" bgColor={globalColors.blueLighter2}>
     <Text type="BodySmallSemibold" center={true}>
       Make it a team? You'll be able to add and delete members as you wish.{' '}

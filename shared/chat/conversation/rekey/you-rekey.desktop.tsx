@@ -1,11 +1,9 @@
 import * as React from 'react'
 import {Box, Button, Text, ButtonBar} from '../../../common-adapters'
 import {globalColors, globalStyles} from '../../../styles'
-import { Props } from './you-rekey.types';
+import {Props} from './you-rekey.types'
 
-const YouRekey = ({
-  onRekey
-}: Props) => {
+const YouRekey = ({onRekey}: Props) => {
   return (
     <Box style={containerStyle}>
       <Box style={{...globalStyles.flexBoxRow, backgroundColor: globalColors.red, justifyContent: 'center'}}>

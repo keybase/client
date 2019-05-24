@@ -5,12 +5,12 @@ import Normal from './normal/container'
 import {connect, isMobile} from '../../../util/container'
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey,
-  scrollListDownCounter: number,
-  scrollListToBottomCounter: number,
-  scrollListUpCounter: number,
+  conversationIDKey: Types.ConversationIDKey
+  scrollListDownCounter: number
+  scrollListToBottomCounter: number
+  scrollListUpCounter: number
   onFocusInput: () => void
-};
+}
 
 const mapStateToProps = (state, {conversationIDKey}) => ({conversationIDKey})
 

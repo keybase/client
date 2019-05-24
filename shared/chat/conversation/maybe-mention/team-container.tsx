@@ -9,11 +9,11 @@ import {namedConnect} from '../../../util/container'
 import TeamMention from './team'
 
 type OwnProps = {
-  allowFontScaling?: boolean,
-  channel: string,
-  name: string,
+  allowFontScaling?: boolean
+  channel: string
+  name: string
   style?: Styles.StylesCrossPlatform
-};
+}
 
 const mapStateToProps = (state, {allowFontScaling, name, channel, style}) => {
   const maybeMentionInfo = state.chat2.maybeMentionMap.get(Constants.getTeamMentionName(name, channel))
@@ -24,30 +24,39 @@ const mapStateToProps = (state, {allowFontScaling, name, channel, style}) => {
       ? maybeMentionInfo.team
       : null
   return {
-    _convID: // Auto generated from flowToTs. Please clean me!
-    mentionInfo === null || mentionInfo === undefined ? undefined : mentionInfo.convID,
+    // Auto generated from flowToTs. Please clean me!
+    _convID: mentionInfo === null || mentionInfo === undefined ? undefined : mentionInfo.convID,
     allowFontScaling,
     channel,
-    description: // Auto generated from flowToTs. Please clean me!
-    (mentionInfo === null || mentionInfo === undefined ? undefined : mentionInfo.description) || '',
-    inTeam: // Auto generated from flowToTs. Please clean me!
     // Auto generated from flowToTs. Please clean me!
-    (mentionInfo === null || mentionInfo === undefined ? undefined : mentionInfo.inTeam) !== null && // Auto generated from flowToTs. Please clean me!
-    (mentionInfo === null || mentionInfo === undefined ? undefined : mentionInfo.inTeam) !== undefined ? // Auto generated from flowToTs. Please clean me!
-    mentionInfo === null || mentionInfo === undefined ? undefined : mentionInfo.inTeam : false,
-    isOpen: // Auto generated from flowToTs. Please clean me!
-    (mentionInfo === null || mentionInfo === undefined ? undefined : mentionInfo.open) || false,
+    description:
+      (mentionInfo === null || mentionInfo === undefined ? undefined : mentionInfo.description) || '',
+    // Auto generated from flowToTs. Please clean me!
+    inTeam:
+      // Auto generated from flowToTs. Please clean me!
+      (mentionInfo === null || mentionInfo === undefined ? undefined : mentionInfo.inTeam) !== null && // Auto generated from flowToTs. Please clean me!
+      (mentionInfo === null || mentionInfo === undefined ? undefined : mentionInfo.inTeam) !== undefined // Auto generated from flowToTs. Please clean me!
+        ? mentionInfo === null || mentionInfo === undefined
+          ? undefined
+          : mentionInfo.inTeam
+        : false,
+    // Auto generated from flowToTs. Please clean me!
+    isOpen: (mentionInfo === null || mentionInfo === undefined ? undefined : mentionInfo.open) || false,
     name,
-    numMembers: // Auto generated from flowToTs. Please clean me!
-    (mentionInfo === null || mentionInfo === undefined ? undefined : mentionInfo.numMembers) || 0,
-    publicAdmins: // Auto generated from flowToTs. Please clean me!
     // Auto generated from flowToTs. Please clean me!
-    (mentionInfo === null || mentionInfo === undefined ? undefined : mentionInfo.publicAdmins) !== null && // Auto generated from flowToTs. Please clean me!
-    (mentionInfo === null || mentionInfo === undefined ? undefined : mentionInfo.publicAdmins) !== undefined ? // Auto generated from flowToTs. Please clean me!
-    mentionInfo === null || mentionInfo === undefined ? undefined : mentionInfo.publicAdmins : [],
+    numMembers: (mentionInfo === null || mentionInfo === undefined ? undefined : mentionInfo.numMembers) || 0,
+    // Auto generated from flowToTs. Please clean me!
+    publicAdmins:
+      // Auto generated from flowToTs. Please clean me!
+      (mentionInfo === null || mentionInfo === undefined ? undefined : mentionInfo.publicAdmins) !== null && // Auto generated from flowToTs. Please clean me!
+      (mentionInfo === null || mentionInfo === undefined ? undefined : mentionInfo.publicAdmins) !== undefined // Auto generated from flowToTs. Please clean me!
+        ? mentionInfo === null || mentionInfo === undefined
+          ? undefined
+          : mentionInfo.publicAdmins
+        : [],
     resolved: !!mentionInfo,
     style,
-  };
+  }
 }
 
 const mapDispatchToProps = dispatch => ({

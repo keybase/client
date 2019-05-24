@@ -3,14 +3,14 @@ import {Box, Box2, Text} from '../../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../../styles'
 
 type Props = {
-  channelname: string,
-  onJoinChannel: () => void,
+  channelname: string
+  onJoinChannel: () => void
   onLeaveChannel: () => void
-};
+}
 
 type State = {
-  clicked: null | "join" | "leave"
-};
+  clicked: null | 'join' | 'leave'
+}
 
 export default class ChannelPreview extends React.Component<Props, State> {
   state = {clicked: null}

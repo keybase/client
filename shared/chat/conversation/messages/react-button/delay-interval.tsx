@@ -1,13 +1,12 @@
-
 // The first emoji should stay on screen for less time so the user has a better chance of seeing it.
 // Set the interval after a shorter initial delay.
 // Convenience wrapper around interval + timeout
 class DelayInterval {
-  _intervalMS: number;
-  _delayMS: number;
+  _intervalMS: number
+  _delayMS: number
 
-  _intervalID: number | null;
-  _delayID: number | null;
+  _intervalID: number | null
+  _delayID: number | null
 
   constructor(intervalMS: number, delayMS: number) {
     this._intervalMS = intervalMS

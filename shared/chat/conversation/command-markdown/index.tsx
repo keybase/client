@@ -3,9 +3,9 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 
 type Props = {
-  body: string,
+  body: string
   title: string | null
-};
+}
 
 const CommandMarkdown = (props: Props) => {
   return (

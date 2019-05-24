@@ -39,38 +39,38 @@ import {formatTimeForChat} from '../../../../util/timestamp'
  */
 
 export type Props = {
-  authorIsAdmin: boolean | null,
-  authorIsOwner: boolean | null,
-  centeredOrdinal: Types.CenterOrdinalHighlightMode,
-  conversationIDKey: Types.ConversationIDKey,
-  decorate: boolean,
-  exploded: boolean,
-  failureDescription: string,
-  forceAsh: boolean,
-  hasUnfurlPrompts: boolean,
-  isLastInThread: boolean,
-  isPendingPayment: boolean,
-  isRevoked: boolean,
-  showCoinsIcon: boolean,
-  showUsername: string,
-  measure: () => void | null,
-  message: Types.Message,
-  onAuthorClick: () => void,
-  onCancel: () => void | null,
-  onEdit: () => void | null,
-  onRetry: () => void | null,
-  orangeLineAbove: boolean,
-  previous: Types.Message | null,
-  shouldShowPopup: boolean,
-  showCrowns: boolean,
+  authorIsAdmin: boolean | null
+  authorIsOwner: boolean | null
+  centeredOrdinal: Types.CenterOrdinalHighlightMode
+  conversationIDKey: Types.ConversationIDKey
+  decorate: boolean
+  exploded: boolean
+  failureDescription: string
+  forceAsh: boolean
+  hasUnfurlPrompts: boolean
+  isLastInThread: boolean
+  isPendingPayment: boolean
+  isRevoked: boolean
+  showCoinsIcon: boolean
+  showUsername: string
+  measure: () => void | null
+  message: Types.Message
+  onAuthorClick: () => void
+  onCancel: () => void | null
+  onEdit: () => void | null
+  onRetry: () => void | null
+  orangeLineAbove: boolean
+  previous: Types.Message | null
+  shouldShowPopup: boolean
+  showCrowns: boolean
   showSendIndicator: boolean
-};
+}
 
 type State = {
-  disableCenteredHighlight: boolean,
-  showingPicker: boolean,
+  disableCenteredHighlight: boolean
+  showingPicker: boolean
   showMenuButton: boolean
-};
+}
 
 class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, State> {
   _mounted = false

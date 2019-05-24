@@ -8,38 +8,38 @@ import * as RowSizes from '../sizes'
 import * as ChatTypes from '../../../../constants/types/chat2'
 
 export type Props = {
-  backgroundColor: string | null,
-  channelname?: string,
-  hasBadge: boolean,
-  hasBottomLine: boolean,
-  hasResetUsers: boolean,
-  hasUnread: boolean,
-  iconHoverColor: string,
-  isDecryptingSnippet: boolean,
-  isFinalized: boolean,
-  isMuted: boolean,
-  isSelected: boolean,
-  isTypingSnippet: boolean,
-  onSelectConversation: () => void,
-  participantNeedToRekey: boolean,
-  participants: Array<string>,
-  showBold: boolean,
-  snippet: string,
-  snippetDecoration: string,
-  subColor: string,
-  teamname: string,
-  conversationIDKey: ChatTypes.ConversationIDKey,
-  timestamp: string,
-  usernameColor: string,
-  youAreReset: boolean,
-  youNeedToRekey: boolean,
+  backgroundColor: string | null
+  channelname?: string
+  hasBadge: boolean
+  hasBottomLine: boolean
+  hasResetUsers: boolean
+  hasUnread: boolean
+  iconHoverColor: string
+  isDecryptingSnippet: boolean
+  isFinalized: boolean
+  isMuted: boolean
+  isSelected: boolean
+  isTypingSnippet: boolean
+  onSelectConversation: () => void
+  participantNeedToRekey: boolean
+  participants: Array<string>
+  showBold: boolean
+  snippet: string
+  snippetDecoration: string
+  subColor: string
+  teamname: string
+  conversationIDKey: ChatTypes.ConversationIDKey
+  timestamp: string
+  usernameColor: string
+  youAreReset: boolean
+  youNeedToRekey: boolean
   isInWidget?: boolean
-};
+}
 
 type State = {
-  isHovered: boolean,
+  isHovered: boolean
   showMenu: boolean
-};
+}
 
 const SmallTeamBox = Styles.isMobile
   ? Kb.ClickableBox

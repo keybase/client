@@ -13,19 +13,19 @@ import {ExplodingMeta} from './shared'
 import Typing from './typing/container'
 import FilePickerPopup from '../filepicker-popup'
 import WalletsIcon from './wallets-icon/container'
-import { PlatformInputPropsInternal } from './platform-input';
+import {PlatformInputPropsInternal} from './platform-input'
 import AddSuggestors, {standardTransformer} from '../suggestors'
 
-type menuType = "exploding" | "filepickerpopup";
+type menuType = 'exploding' | 'filepickerpopup'
 
 type State = {
   hasText: boolean
-};
+}
 
 class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
-  _input: null | Kb.PlainInput;
-  _lastText: string | null;
-  _whichMenu: menuType;
+  _input: null | Kb.PlainInput
+  _lastText: string | null
+  _whichMenu: menuType
 
   constructor(props: PlatformInputPropsInternal) {
     super(props)
@@ -44,7 +44,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     this._toggleShowingMenu('filepickerpopup')
   }
 
-  _launchNativeImagePicker = (mediaType: "photo" | "video" | "mixed", location: string) => {
+  _launchNativeImagePicker = (mediaType: 'photo' | 'video' | 'mixed', location: string) => {
     let title = 'Select a Photo'
     let takePhotoButtonTitle = 'Take Photo...'
     let permDeniedText = 'Allow Keybase to take photos and choose images from your library?'
@@ -182,8 +182,12 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
           <Kb.PlainInput
             autoCorrect={true}
             autoCapitalize="sentences"
-            disabled={// Auto generated from flowToTs. Please clean me!
-            this.props.cannotWrite !== null && this.props.cannotWrite !== undefined ? this.props.cannotWrite : false}
+            disabled={
+              // Auto generated from flowToTs. Please clean me!
+              this.props.cannotWrite !== null && this.props.cannotWrite !== undefined
+                ? this.props.cannotWrite
+                : false
+            }
             placeholder={hintText}
             multiline={true}
             onBlur={this.props.onBlur}
@@ -213,7 +217,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
           )}
         </Kb.Box>
       </Kb.Box>
-    );
+    )
   }
 }
 const PlatformInput = AddSuggestors(_PlatformInput)

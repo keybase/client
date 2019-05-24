@@ -2,13 +2,13 @@ import * as React from 'react'
 import * as Kb from '../../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../../styles'
 import logger from '../../../../../logger'
-import { Props } from './image-render.types';
+import {Props} from './image-render.types'
 import Video from 'react-native-video'
 
 type State = {
-  paused: boolean,
+  paused: boolean
   showVideo: boolean
-};
+}
 
 export class ImageRender extends React.Component<Props, State> {
   state = {

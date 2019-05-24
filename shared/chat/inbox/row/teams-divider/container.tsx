@@ -1,17 +1,17 @@
 import {TeamsDivider} from '.'
 import {connect} from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
-import { StylesCrossPlatform } from '../../../../styles';
-import { RowItem } from '../../index.types';
+import {StylesCrossPlatform} from '../../../../styles'
+import {RowItem} from '../../index.types'
 import {memoize} from '../../../../util/memoize'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 
 type OwnProps = {
-  rows: Array<RowItem>,
-  showButton: boolean,
-  toggle: () => void,
+  rows: Array<RowItem>
+  showButton: boolean
+  toggle: () => void
   style?: StylesCrossPlatform
-};
+}
 
 const mapStateToProps = state => ({_badges: state.chat2.badgeMap, _metaMap: state.chat2.metaMap})
 

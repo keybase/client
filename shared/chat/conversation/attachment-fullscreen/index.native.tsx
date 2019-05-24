@@ -2,17 +2,20 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters/mobile.native'
 import * as Styles from '../../../styles'
 import MessagePopup from '../messages/message-popup/'
-import { Props } from './index.types';
+import {Props} from './index.types'
 
 const {width: screenWidth, height: screenHeight} = Kb.NativeDimensions.get('window')
 
-class AutoMaxSizeImage extends React.Component<any, {
-  width: number,
-  height: number,
-  loaded: boolean
-}> {
+class AutoMaxSizeImage extends React.Component<
+  any,
+  {
+    width: number
+    height: number
+    loaded: boolean
+  }
+> {
   state = {height: 0, loaded: false, width: 0}
-  _mounted: boolean = false;
+  _mounted: boolean = false
 
   componentWillUnmount() {
     this._mounted = false
@@ -53,9 +56,12 @@ class AutoMaxSizeImage extends React.Component<any, {
   }
 }
 
-class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {
-  loaded: boolean
-}> {
+class _Fullscreen extends React.Component<
+  Props & Kb.OverlayParentProps,
+  {
+    loaded: boolean
+  }
+> {
   state = {loaded: false}
   _setLoaded = () => this.setState({loaded: true})
   render() {

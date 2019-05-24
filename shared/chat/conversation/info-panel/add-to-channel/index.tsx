@@ -5,21 +5,21 @@ import * as Styles from '../../../../styles'
 import {pluralize} from '../../../../util/string'
 
 type Props = {
-  error: string | null,
-  onCancel: () => void,
-  onSubmit: (usernames: Array<string>) => void,
-  title: string,
+  error: string | null
+  onCancel: () => void
+  onSubmit: (usernames: Array<string>) => void
+  title: string
   users: Array<{
-    alreadyAdded: boolean,
-    fullname: string,
+    alreadyAdded: boolean
+    fullname: string
     username: string
-  }>,
+  }>
   waitingKey: string
-};
+}
 
 type State = {
   selected: I.Set<string>
-};
+}
 
 class AddToChannel extends React.Component<Props, State> {
   state = {selected: I.Set()}

@@ -5,23 +5,23 @@ import {FilteredTopLine} from './top-line'
 import {Avatars, TeamAvatar} from './avatars'
 
 type Props = {
-  backgroundColor: string | null,
-  isMuted: boolean,
-  isSelected: boolean,
-  onSelectConversation: () => void,
-  isLocked: boolean,
-  numSearchHits?: number,
-  maxSearchHits?: number,
-  participants: Array<string>,
-  showBadge: boolean,
-  showBold: boolean,
-  teamname: string,
+  backgroundColor: string | null
+  isMuted: boolean
+  isSelected: boolean
+  onSelectConversation: () => void
+  isLocked: boolean
+  numSearchHits?: number
+  maxSearchHits?: number
+  participants: Array<string>
+  showBadge: boolean
+  showBold: boolean
+  teamname: string
   usernameColor: string
-};
+}
 
 type State = {
   isHovered: boolean
-};
+}
 
 class SelectableSmallTeam extends React.PureComponent<Props, State> {
   state = {

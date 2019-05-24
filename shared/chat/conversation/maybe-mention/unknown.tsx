@@ -8,12 +8,12 @@ import * as Styles from '../../../styles'
 const Kb = {Box2, Button, FloatingMenu, Text}
 
 type PopupProps = {
-  attachTo: () => React.Component<any> | null,
-  onHidden: () => void,
-  onResolve: () => void,
-  text: string,
+  attachTo: () => React.Component<any> | null
+  onHidden: () => void
+  onResolve: () => void
+  text: string
   visible: boolean
-};
+}
 
 const items = []
 
@@ -43,16 +43,16 @@ const UnknownMentionPopup = (props: PopupProps) => {
 }
 
 type Props = {
-  allowFontScaling?: boolean,
-  channel: string,
-  name: string,
-  onResolve: () => void,
+  allowFontScaling?: boolean
+  channel: string
+  name: string
+  onResolve: () => void
   style?: Styles.StylesCrossPlatform
-};
+}
 
 type State = {
   showPopup: boolean
-};
+}
 
 class UnknownMention extends React.Component<Props, State> {
   _mentionRef = React.createRef()

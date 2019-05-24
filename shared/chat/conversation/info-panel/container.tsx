@@ -6,16 +6,16 @@ import * as React from 'react'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Types from '../../../constants/types/chat2'
 import {InfoPanel} from '.'
-import { connect, getRouteProps, isMobile, RouteProps } from '../../../util/container';
+import {connect, getRouteProps, isMobile, RouteProps} from '../../../util/container'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {Box} from '../../../common-adapters'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey,
-  onBack?: () => void,
+  conversationIDKey: Types.ConversationIDKey
+  onBack?: () => void
   onCancel?: () => void
-};
+}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const conversationIDKey = ownProps.conversationIDKey
@@ -55,10 +55,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {
-  conversationIDKey,
-  onBack
-}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {conversationIDKey, onBack}: OwnProps) => ({
   _navToRootChat: () => dispatch(Chat2Gen.createNavigateToInbox({findNewConversation: false})),
   _onEditChannel: (teamname: string) =>
     dispatch(
@@ -152,9 +149,12 @@ const ConnectedInfoPanel = connect<OwnProps, _, _, _, _>(
   mergeProps
 )(InfoPanel)
 
-type SelectorOwnProps = RouteProps<{
-  conversationIDKey: Types.ConversationIDKey
-}, {}>;
+type SelectorOwnProps = RouteProps<
+  {
+    conversationIDKey: Types.ConversationIDKey
+  },
+  {}
+>
 
 const mapStateToSelectorProps = (state, ownProps: SelectorOwnProps) => {
   const conversationIDKey: Types.ConversationIDKey = getRouteProps(ownProps, 'conversationIDKey')
@@ -179,11 +179,11 @@ const mergeSelectorProps = (stateProps, dispatchProps) => ({
 })
 
 type Props = {
-  conversationIDKey: Types.ConversationIDKey,
-  onBack: () => void,
-  onGoToInbox: () => void,
+  conversationIDKey: Types.ConversationIDKey
+  onBack: () => void
+  onGoToInbox: () => void
   shouldNavigateOut: boolean
-};
+}
 
 class InfoPanelSelector extends React.PureComponent<Props> {
   componentDidUpdate(prevProps) {
