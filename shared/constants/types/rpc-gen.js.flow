@@ -2848,7 +2848,7 @@ export type SeitanKeyLabel = {t: 1, sms: ?SeitanKeyLabelSms}
 export type SeitanKeyLabelSms = $ReadOnly<{f: String, n: String}>
 export type SeitanKeyLabelType = 1 // SMS_1
 
-export type SeitanPubKey = KID
+export type SeitanPubKey = String
 export type SelectKeyRes = $ReadOnly<{keyID: String, doSecretPush: Boolean}>
 export type SelectorEntry = $ReadOnly<{isIndex: Boolean, index: Int, isKey: Boolean, key: String, isAll: Boolean, isContents: Boolean}>
 export type SeqType =

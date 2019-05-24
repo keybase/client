@@ -87,8 +87,6 @@ func TestPGPImportAndExport(t *testing.T) {
 	if len(xe.Results()) != 2 {
 		t.Fatalf("Expected two keys back out; got %d", len(xe.Results()))
 	}
-
-	return
 }
 
 // TestPGPImportPrivImport - import the same key twice, only importing the private key
@@ -188,8 +186,6 @@ func TestPGPImportPrivImport(t *testing.T) {
 	if len(xe.Results()) != 1 {
 		t.Fatalf("Expected 1 key back out")
 	}
-
-	return
 }
 
 // Test for issue 325.

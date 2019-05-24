@@ -34,7 +34,6 @@ func (fn *FakeObserver) BatchChanges(
 
 func (fn *FakeObserver) TlfHandleChange(ctx context.Context,
 	newHandle *tlfhandle.Handle) {
-	return
 }
 
 type ConfigMock struct {

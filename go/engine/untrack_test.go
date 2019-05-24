@@ -57,7 +57,6 @@ func untrackAlice(tc libkb.TestContext, fu *FakeUser, sigVersion libkb.SigVersio
 	if err != nil {
 		tc.T.Fatal(err)
 	}
-	return
 }
 
 func untrackBob(tc libkb.TestContext, fu *FakeUser, sigVersion libkb.SigVersion) {
@@ -65,7 +64,6 @@ func untrackBob(tc libkb.TestContext, fu *FakeUser, sigVersion libkb.SigVersion)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
-	return
 }
 
 func TestUntrack(t *testing.T) {
@@ -110,7 +108,6 @@ func _testUntrack(t *testing.T, sigVersion libkb.SigVersion) {
 	} else if _, ok := err.(libkb.UntrackError); !ok {
 		t.Fatalf("expected an UntrackError; got %s", err)
 	}
-	return
 }
 
 func TestUntrackRemoteOnly(t *testing.T) {

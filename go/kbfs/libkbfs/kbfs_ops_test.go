@@ -614,7 +614,6 @@ func fillInNewMD(t *testing.T, config *ConfigMock, rmd *RootMetadata) {
 			Size: 3,
 		},
 	}
-	return
 }
 
 func testKBFSOpsGetRootNodeCreateNewSuccess(t *testing.T, ty tlf.Type) {

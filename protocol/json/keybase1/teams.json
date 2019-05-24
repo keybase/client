@@ -1453,7 +1453,7 @@
       "type": "record",
       "name": "SeitanPubKey",
       "fields": [],
-      "typedef": "KID"
+      "typedef": "string"
     },
     {
       "type": "record",
