@@ -1,3 +1,2 @@
-export const ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch = (e: never): never => {
-  // throw new Error('Should be impossible')
-}
+// @ts-ignore codemod-issue
+export const ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch = (e: never): never => {}
