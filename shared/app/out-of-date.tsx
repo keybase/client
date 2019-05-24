@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
@@ -6,12 +5,13 @@ import * as ConfigGen from '../actions/config-gen'
 import * as Container from '../util/container'
 import * as Types from '../constants/types/config'
 
-type OwnProps = {||}
-type Props = {|
-  message: string,
-  onOpenAppStore: () => void,
-  status: Types.AppOutOfDateStatus,
-|}
+type OwnProps = {}
+
+type Props = {
+  message: string
+  onOpenAppStore: () => void
+  status: Types.AppOutOfDateStatus
+}
 
 const OutOfDate = (p: Props) =>
   p.status !== 'critical' ? null : (
@@ -50,7 +50,7 @@ const mapDispatchToProps = dispatch => ({
 })
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({...stateProps, ...dispatchProps})
 
-export default Container.connect<OwnProps, _, _, _, _>(
+export default Container.connect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

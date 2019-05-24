@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as Constants from '../constants/push'
 import * as PushGen from '../actions/push-gen'
@@ -6,11 +5,11 @@ import * as Kb from '../common-adapters/mobile.native'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
 
-type OwnProps = {||}
+type OwnProps = {}
 
 type Props = {
-  onRequestPermissions: () => void,
-  onNoPermissions: () => void,
+  onRequestPermissions: () => void
+  onNoPermissions: () => void
 }
 
 const PushPrompt = (props: Props) => (
@@ -82,7 +81,7 @@ const mapDispatchToProps = dispatch => ({
 })
 
 export default Container.compose(
-  Container.namedConnect<OwnProps, _, _, _, _>(
+  Container.namedConnect(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d}),

@@ -1,4 +1,3 @@
-// @flow
 import GlobalError from '.'
 import {connect} from '../../util/container'
 import * as ConfigGen from '../../actions/config-gen'
@@ -6,7 +5,7 @@ import {settingsTab} from '../../constants/tabs'
 import {feedbackTab} from '../../constants/settings'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 
-type OwnProps = {||}
+type OwnProps = {}
 
 const mapStateToProps = state => ({
   _loggedIn: state.config.loggedIn,
@@ -48,7 +47,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onFeedback: () => dispatchProps.onFeedback(stateProps._loggedIn),
 })
 
-const Connected = connect<OwnProps, _, _, _, _>(
+const Connected = connect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

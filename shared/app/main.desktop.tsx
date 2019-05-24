@@ -1,4 +1,3 @@
-// @flow
 import {hot} from 'react-hot-loader/root'
 import * as React from 'react'
 import RouterSwitcheroo from '../router-v2/switcheroo'
@@ -7,16 +6,12 @@ import * as SafeElectron from '../util/safe-electron.desktop'
 import {isWindows} from '../constants/platform'
 import {resolveImage} from '../desktop/app/resolve-root.desktop'
 import {getMainWindow} from '../desktop/remote/util.desktop'
-// Uncomment to get more info on hot loading
-// import {setConfig} from 'react-hot-loader'
-// setConfig({logLevel: 'debug'})
-
-type OwnProps = any // the types here and RouteProps don't agree
+type OwnProps = any
 
 type Props = {
-  widgetBadge: boolean,
-  desktopAppBadgeCount: number,
-  username: string,
+  widgetBadge: boolean
+  desktopAppBadgeCount: number
+  username: string
 }
 
 // TODO likely remove this class
@@ -29,7 +24,7 @@ class Main extends React.PureComponent<Props> {
       const mw = getMainWindow()
       const overlay =
         this.props.desktopAppBadgeCount > 0 ? resolveImage('icons', 'icon-windows-badge.png') : null
-      // $FlowIssue setOverlayIcon docs say null overlay's fine, flow disagrees
+      // @ts-ignore
       mw && mw.setOverlayIcon(overlay, 'new activity')
     }
   }
@@ -61,7 +56,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({})
 
 export default hot(
-  connect<OwnProps, _, _, _, _>(
+  connect(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})
