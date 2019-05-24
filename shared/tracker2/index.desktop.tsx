@@ -1,34 +1,33 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Constants from '../constants/tracker2'
 import * as Types from '../constants/types/tracker2'
 import * as Styles from '../styles'
-import * as Flow from '../util/flow'
 import Assertion from './assertion/remote-container'
 import Bio from './bio/remote-container'
 
-type Props = {|
-  assertionKeys: ?$ReadOnlyArray<string>,
-  bio: ?string,
-  followThem: ?boolean,
-  followersCount: ?number,
-  followingCount: ?number,
-  followsYou: ?boolean,
-  guiID: ?string,
-  isYou: boolean,
-  location: ?string,
-  onFollow: () => void,
-  onChat: () => void,
-  onClose: () => void,
-  onIgnoreFor24Hours: () => void,
-  onAccept: () => void,
-  onReload: () => void,
-  reason: string,
-  state: Types.DetailsState,
-  teamShowcase: ?$ReadOnlyArray<Types._TeamShowcase>,
-  username: string,
-|}
+type Props = {
+  assertionKeys: ReadonlyArray<string> | null
+  bio: string | null
+  followThem: boolean | null
+  followersCount: number | null
+  followingCount: number | null
+  followsYou: boolean | null
+  guiID: string | null
+  isYou: boolean
+  location: string | null
+  onFollow: () => void
+  onChat: () => void
+  onClose: () => void
+  onIgnoreFor24Hours: () => void
+  onAccept: () => void
+  onReload: () => void
+  // eslint-disable-next-line no-use-before-define
+  reason: string
+  state: Types.DetailsState
+  teamShowcase: ReadonlyArray<Types._TeamShowcase> | null
+  username: string
+}
 
 const getButtons = (props: Props) => {
   const buttonClose = (
@@ -99,8 +98,6 @@ const getButtons = (props: Props) => {
           onClick={props.onReload}
         />,
       ]
-    default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.state)
   }
   return []
 }
@@ -192,14 +189,14 @@ const Tracker = (props: Props) => {
 const avatarSize = 96
 const barHeight = 62
 const reason = {
-  alignSelf: 'center',
+  alignSelf: 'center' as 'center',
   color: Styles.globalColors.white,
   flexShrink: 0,
   paddingBottom: Styles.globalMargins.small,
   paddingLeft: Styles.globalMargins.medium,
   paddingRight: Styles.globalMargins.medium,
   paddingTop: Styles.globalMargins.small,
-  textAlign: 'center',
+  textAlign: 'center' as 'center',
 }
 
 const styles = Styles.styleSheetCreate({

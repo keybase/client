@@ -1,10 +1,9 @@
-// @flow
 import * as Container from '../../util/container'
 import Bio from '.'
 
-type OwnProps = {|
-  username: string,
-|}
+type OwnProps = {
+  username: string
+}
 
 const mapDispatchToProps = dispatch => ({})
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
@@ -19,6 +18,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   registeredForAirdrop: stateProps.registeredForAirdrop,
 })
 
-export default Container.remoteConnect<OwnProps, State, _, _, _, _>(s => s, mapDispatchToProps, mergeProps)(
-  Bio
-)
+export default Container.remoteConnect(s => s, mapDispatchToProps, mergeProps)(Bio)

@@ -1,36 +1,34 @@
-// @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/tracker2'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Flow from '../../util/flow'
 import {SiteIcon} from '../../profile/generic/shared'
 import {formatTimeForAssertionPopup} from '../../util/timestamp'
 
-type Props = {|
-  color: Types.AssertionColor,
-  isSuggestion: boolean,
-  isYours: boolean,
-  metas: $ReadOnlyArray<Types._AssertionMeta>,
-  notAUser: boolean,
-  onCopyAddress: () => void,
-  onRequestLumens: () => void,
-  onRecheck: ?() => void,
-  onRevoke: ?() => void,
-  onSendLumens: () => void,
-  onShowProof: ?() => void,
-  onShowSite: ?() => void,
-  onCreateProof: ?() => void,
-  onWhatIsStellar: () => void,
-  proofURL: string,
-  siteIcon: ?Types.SiteIconSet,
-  siteIconFull: ?Types.SiteIconSet,
-  siteURL: string,
-  state: Types.AssertionState,
-  timestamp: number,
-  type: string,
-  value: string,
-|}
+type Props = {
+  color: Types.AssertionColor
+  isSuggestion: boolean
+  isYours: boolean
+  metas: ReadonlyArray<Types._AssertionMeta>
+  notAUser: boolean
+  onCopyAddress: () => void
+  onRequestLumens: () => void
+  onRecheck: () => void | null
+  onRevoke: () => void | null
+  onSendLumens: () => void
+  onShowProof: () => void | null
+  onShowSite: () => void | null
+  onCreateProof: () => void | null
+  onWhatIsStellar: () => void
+  proofURL: string
+  siteIcon: Types.SiteIconSet | null
+  siteIconFull: Types.SiteIconSet | null
+  siteURL: string
+  state: Types.AssertionState
+  timestamp: number
+  type: string
+  value: string
+}
 
 const proofTypeToDesc = proofType => {
   switch (proofType) {
@@ -55,7 +53,6 @@ const stateToIcon = state => {
     case 'suggestion':
       return 'iconfont-proof-placeholder'
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(state)
       throw new Error('Impossible')
   }
 }
@@ -74,7 +71,6 @@ const stateToDecorationIcon = state => {
     case 'suggestion':
       return 'icon-proof-unfinished'
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(state)
       throw new Error('impossible')
   }
 }
@@ -90,7 +86,6 @@ const stateToValueTextStyle = state => {
     case 'suggestion':
       return null
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(state)
       throw new Error('Impossible')
   }
 }
@@ -116,7 +111,9 @@ const assertionColorToColor = (c: Types.AssertionColor) => {
 
 class _StellarValue extends React.PureComponent<
   Props & Kb.OverlayParentProps,
-  {storedAttachmentRef: ?Kb.Box}
+  {
+    storedAttachmentRef: Kb.Box | null
+  }
 > {
   state = {storedAttachmentRef: null}
   // only set this once ever
@@ -212,7 +209,10 @@ const HoverOpacity = Styles.styled(Kb.Box)({
   opacity: 0.5,
 })
 
-type State = {|showingMenu: boolean|}
+type State = {
+  showingMenu: boolean
+}
+
 class Assertion extends React.PureComponent<Props, State> {
   state = {showingMenu: false}
   _toggleMenu = () => this.setState(s => ({showingMenu: !s.showingMenu}))

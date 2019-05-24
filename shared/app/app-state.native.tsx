@@ -1,5 +1,4 @@
-// @flow
-import type {State} from './app-state'
+import {State} from './app-state'
 
 export default class AppState {
   state: State

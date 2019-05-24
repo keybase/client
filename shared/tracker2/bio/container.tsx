@@ -1,12 +1,11 @@
-// @flow
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/tracker2'
 import Bio from '.'
 
-type OwnProps = {|
-  inTracker: boolean,
-  username: string,
-|}
+type OwnProps = {
+  inTracker: boolean
+  username: string
+}
 
 const mapStateToProps = (state, ownProps) => {
   const d = Constants.getDetails(state, ownProps.username)
@@ -34,9 +33,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   registeredForAirdrop: stateProps.registeredForAirdrop,
 })
 
-export default Container.namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'Bio'
-)(Bio)
+export default Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Bio')(Bio)

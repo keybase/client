@@ -202,6 +202,7 @@ const config = (_, {mode}) => {
     main: 'tsx',
     menubar: 'tsx',
     pinentry: 'tsx',
+    tracker2: 'tsx',
     'unlock-folders': 'tsx',
   }
 
