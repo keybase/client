@@ -26,6 +26,7 @@ import chatTeamBuildingSaga from './team-building'
 import * as TeamsConstants from '../../constants/teams'
 import logger from '../../logger'
 import {isMobile} from '../../constants/platform'
+// @ts-ignore codemod-issue
 import {NotifyPopup} from '../../native/notifications'
 import {saveAttachmentToCameraRoll, showShareActionSheetFromFile} from '../platform-specific'
 import {downloadFilePath} from '../../util/file'
@@ -40,7 +41,15 @@ const onConnect = () => {
 }
 
 // Ask the service to refresh the inbox
-function* inboxRefresh(state, action, logger) {
+function* inboxRefresh(
+  state,
+  action:
+    | Chat2Gen.InboxRefreshPayload
+    | EngineGen.Chat1NotifyChatChatInboxStalePayload
+    | EngineGen.Chat1NotifyChatChatJoinedConversationPayload
+    | EngineGen.Chat1NotifyChatChatLeftConversationPayload,
+  logger
+) {
   if (!state.config.loggedIn) {
     return
   }
@@ -377,9 +386,12 @@ const onIncomingMessage = (state, incoming, logger) => {
 }
 
 // Helper to handle incoming inbox updates that piggy back on various calls
-const chatActivityToMetasAction = (payload: {
-  readonly conv?: RPCChatTypes.InboxUIItem | null
-} | null, ignoreDelete) => {
+const chatActivityToMetasAction = (
+  payload: {
+    readonly conv?: RPCChatTypes.InboxUIItem | null
+  } | null,
+  ignoreDelete
+) => {
   const conv = payload ? payload.conv : null
   const meta = conv && Constants.inboxUIItemToConversationMeta(conv)
   const conversationIDKey = meta
@@ -594,8 +606,11 @@ const onChatInboxSynced = (state, action) => {
         }
         return arr
       }, [])
-      const removals = (// Auto generated from flowToTs. Please clean me!
-      (syncRes.incremental === null || syncRes.incremental === undefined ? undefined : syncRes.incremental.removals) || []).map(Types.stringToConversationIDKey)
+      const removals = ( // Auto generated from flowToTs. Please clean me!
+        (syncRes.incremental === null || syncRes.incremental === undefined
+          ? undefined
+          : syncRes.incremental.removals) || []
+      ).map(Types.stringToConversationIDKey)
       // Update new untrusted
       if (metas.length || removals.length) {
         actions.push(Chat2Gen.createMetasReceived({metas, removals}))
@@ -668,10 +683,36 @@ const onChatSetConvSettings = (_, action, logger) => {
   const {conv, convID} = action.payload.params
   const conversationIDKey = Types.conversationIDToKey(convID)
   const newRole = // Auto generated from flowToTs. Please clean me!
-  ((conv === null || conv === undefined ? undefined : conv.convSettings) === null || (conv === null || conv === undefined ? undefined : conv.convSettings) === undefined ? undefined : (conv === null || conv === undefined ? undefined : conv.convSettings).minWriterRoleInfo) === null || ((conv === null || conv === undefined ? undefined : conv.convSettings) === null || (conv === null || conv === undefined ? undefined : conv.convSettings) === undefined ? undefined : (conv === null || conv === undefined ? undefined : conv.convSettings).minWriterRoleInfo) === undefined ? undefined : ((conv === null || conv === undefined ? undefined : conv.convSettings) === null || (conv === null || conv === undefined ? undefined : conv.convSettings) === undefined ? undefined : (conv === null || conv === undefined ? undefined : conv.convSettings).minWriterRoleInfo).role
+    ((conv === null || conv === undefined ? undefined : conv.convSettings) === null ||
+    (conv === null || conv === undefined ? undefined : conv.convSettings) === undefined
+      ? undefined
+      : (conv === null || conv === undefined ? undefined : conv.convSettings).minWriterRoleInfo) === null ||
+    ((conv === null || conv === undefined ? undefined : conv.convSettings) === null ||
+    (conv === null || conv === undefined ? undefined : conv.convSettings) === undefined
+      ? undefined
+      : (conv === null || conv === undefined ? undefined : conv.convSettings).minWriterRoleInfo) === undefined
+      ? undefined
+      : ((conv === null || conv === undefined ? undefined : conv.convSettings) === null ||
+        (conv === null || conv === undefined ? undefined : conv.convSettings) === undefined
+          ? undefined
+          : (conv === null || conv === undefined ? undefined : conv.convSettings).minWriterRoleInfo
+        ).role
   const role = newRole && TeamsConstants.teamRoleByEnum[newRole]
   const cannotWrite = // Auto generated from flowToTs. Please clean me!
-  ((conv === null || conv === undefined ? undefined : conv.convSettings) === null || (conv === null || conv === undefined ? undefined : conv.convSettings) === undefined ? undefined : (conv === null || conv === undefined ? undefined : conv.convSettings).minWriterRoleInfo) === null || ((conv === null || conv === undefined ? undefined : conv.convSettings) === null || (conv === null || conv === undefined ? undefined : conv.convSettings) === undefined ? undefined : (conv === null || conv === undefined ? undefined : conv.convSettings).minWriterRoleInfo) === undefined ? undefined : ((conv === null || conv === undefined ? undefined : conv.convSettings) === null || (conv === null || conv === undefined ? undefined : conv.convSettings) === undefined ? undefined : (conv === null || conv === undefined ? undefined : conv.convSettings).minWriterRoleInfo).cannotWrite
+    ((conv === null || conv === undefined ? undefined : conv.convSettings) === null ||
+    (conv === null || conv === undefined ? undefined : conv.convSettings) === undefined
+      ? undefined
+      : (conv === null || conv === undefined ? undefined : conv.convSettings).minWriterRoleInfo) === null ||
+    ((conv === null || conv === undefined ? undefined : conv.convSettings) === null ||
+    (conv === null || conv === undefined ? undefined : conv.convSettings) === undefined
+      ? undefined
+      : (conv === null || conv === undefined ? undefined : conv.convSettings).minWriterRoleInfo) === undefined
+      ? undefined
+      : ((conv === null || conv === undefined ? undefined : conv.convSettings) === null ||
+        (conv === null || conv === undefined ? undefined : conv.convSettings) === undefined
+          ? undefined
+          : (conv === null || conv === undefined ? undefined : conv.convSettings).minWriterRoleInfo
+        ).cannotWrite
   logger.info(`got new minWriterRole ${role || ''} for convID ${conversationIDKey}`)
   if (role && role !== 'none' && cannotWrite !== undefined) {
     return Chat2Gen.createSaveMinWriterRole({cannotWrite, conversationIDKey, role})
@@ -870,7 +911,7 @@ const reasonToRPCReason = (reason: string): RPCChatTypes.GetThreadReason => {
   }
 }
 
-type scrollDirection = "none" | "back" | "forward";
+type scrollDirection = 'none' | 'back' | 'forward'
 
 const scrollDirectionToPagination = (sd: scrollDirection, numberOfMessagesToLoad) => {
   let pagination = {
@@ -1005,11 +1046,14 @@ function* loadMoreMessages(state, action, logger) {
   const loadingKey = Constants.waitingKeyThreadLoad(conversationIDKey)
 
   let calledClear = false
-  const onGotThread = ({
-    thread
-  }: {
-    readonly thread: string | null
-  }, context: "full" | "cached") => {
+  const onGotThread = (
+    {
+      thread,
+    }: {
+      readonly thread: string | null
+    },
+    context: 'full' | 'cached'
+  ) => {
     if (!thread) {
       return
     }
@@ -1377,12 +1421,17 @@ const onInboxSearchSelect = (state, action) => {
   const conversationIDKey = action.payload.conversationIDKey
     ? action.payload.conversationIDKey
     : // Auto generated from flowToTs. Please clean me!
-  selected === null || selected === undefined ? undefined : selected.conversationIDKey
+    selected === null || selected === undefined
+    ? undefined
+    : selected.conversationIDKey
   if (!conversationIDKey) {
     return
   }
-  const query = action.payload.query ? action.payload.query : // Auto generated from flowToTs. Please clean me!
-  selected === null || selected === undefined ? undefined : selected.query
+  const query = action.payload.query
+    ? action.payload.query // Auto generated from flowToTs. Please clean me!
+    : selected === null || selected === undefined
+    ? undefined
+    : selected.query
   const actions = [Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSearch'})]
   if (query) {
     actions.push(Chat2Gen.createSetThreadSearchQuery({conversationIDKey, query}))
@@ -1515,8 +1564,12 @@ function* messageSend(state, action, logger) {
   ]
   const onHideConfirm = ({canceled}) =>
     Saga.callUntyped(function*() {
-      if (// Auto generated from flowToTs. Please clean me!
-      (Router2Constants.getVisibleScreen() === null || Router2Constants.getVisibleScreen() === undefined ? undefined : Router2Constants.getVisibleScreen().routeName) === confirmRouteName) {
+      if (
+        // Auto generated from flowToTs. Please clean me!
+        (Router2Constants.getVisibleScreen() === null || Router2Constants.getVisibleScreen() === undefined
+          ? undefined
+          : Router2Constants.getVisibleScreen().routeName) === confirmRouteName
+      ) {
         yield Saga.put(RouteTreeGen.createClearModals())
       }
       if (canceled) {
@@ -1645,7 +1698,18 @@ const previewConversationTeam = (state, action) => {
 const startupInboxLoad = state =>
   !!state.config.username && Chat2Gen.createInboxRefresh({reason: 'bootstrap'})
 
-const changeSelectedConversation = (state, action, logger) => {
+const changeSelectedConversation = (
+  state,
+  action:
+    | Chat2Gen.MetasReceivedPayload
+    | Chat2Gen.LeaveConversationPayload
+    | Chat2Gen.MetaDeletePayload
+    | Chat2Gen.MessageSendPayload
+    | Chat2Gen.AttachmentsUploadPayload
+    | Chat2Gen.BlockConversationPayload
+    | TeamsGen.LeaveTeamPayload,
+  logger
+) => {
   if (!isMobile) {
     return _maybeAutoselectNewestConversation(state, action, logger)
   }
@@ -2091,8 +2155,10 @@ const navigateToThreadRoute = conversationIDKey => {
 
   const visible = Router2Constants.getVisibleScreen()
 
-  if (!isMobile && // Auto generated from flowToTs. Please clean me!
-  (visible === null || visible === undefined ? undefined : visible.routeName) === 'chatRoot') {
+  if (
+    !isMobile && // Auto generated from flowToTs. Please clean me!
+    (visible === null || visible === undefined ? undefined : visible.routeName) === 'chatRoot'
+  ) {
     // Don't append; we don't want to increase the size of the stack on desktop
     return
   }
@@ -2102,7 +2168,11 @@ const navigateToThreadRoute = conversationIDKey => {
     // Auto generated from flowToTs. Please clean me!
     (visible === null || visible === undefined ? undefined : visible.routeName) === 'chatConversation' &&
     // Auto generated from flowToTs. Please clean me!
-    ((visible === null || visible === undefined ? undefined : visible.params) === null || (visible === null || visible === undefined ? undefined : visible.params) === undefined ? undefined : (visible === null || visible === undefined ? undefined : visible.params).conversationIDKey) === Constants.pendingWaitingConversationIDKey
+    ((visible === null || visible === undefined ? undefined : visible.params) === null ||
+    (visible === null || visible === undefined ? undefined : visible.params) === undefined
+      ? undefined
+      : (visible === null || visible === undefined ? undefined : visible.params).conversationIDKey) ===
+      Constants.pendingWaitingConversationIDKey
   ) {
     replace = true
   }
@@ -2130,7 +2200,7 @@ const deselectConversation = (state, action) => {
   }
 }
 
-const mobileNavigateOnSelect = (state, action) => {
+const mobileNavigateOnSelect = (state, action: Chat2Gen.SelectConversationPayload) => {
   if (Constants.isValidConversationIDKey(action.payload.conversationIDKey)) {
     if (action.payload.reason === 'focused') {
       return // never nav if this is from a nav
@@ -2147,7 +2217,7 @@ const desktopNavigateOnSelect = (state, action) => {
 }
 
 // Native share sheet for attachments
-function* mobileMessageAttachmentShare(state, action, logger) {
+function* mobileMessageAttachmentShare(state, action: Chat2Gen.MessageAttachmentNativeSharePayload, logger) {
   const {conversationIDKey, ordinal} = action.payload
   let message = Constants.getMessage(state, conversationIDKey, ordinal)
   if (!message || message.type !== 'attachment') {
@@ -2162,7 +2232,7 @@ function* mobileMessageAttachmentShare(state, action, logger) {
 }
 
 // Native save to camera roll
-function* mobileMessageAttachmentSave(state, action, logger) {
+function* mobileMessageAttachmentSave(state, action: Chat2Gen.MessageAttachmentNativeSavePayload, logger) {
   const {conversationIDKey, ordinal} = action.payload
   let message = Constants.getMessage(state, conversationIDKey, ordinal)
   if (!message || message.type !== 'attachment') {
@@ -2455,8 +2525,14 @@ function* setConvExplodingMode(state, action, logger) {
 function* handleSeeingWallets(_, action, logger) {
   const gregorState = yield* Saga.callPromise(RPCTypes.gregorGetStateRpcPromise)
   const seenWallets =
-    gregorState.items && gregorState.items.some(i => // Auto generated from flowToTs. Please clean me!
-    (i.item === null || i.item === undefined ? undefined : i.item.category) === Constants.seenWalletsGregorKey)
+    gregorState.items &&
+    gregorState.items.some(
+      (
+        i // Auto generated from flowToTs. Please clean me!
+      ) =>
+        (i.item === null || i.item === undefined ? undefined : i.item.category) ===
+        Constants.seenWalletsGregorKey
+    )
   if (seenWallets) {
     logger.info('handleSeeingWallets: gregor state already think wallets is old; skipping update.')
     return
@@ -2627,8 +2703,12 @@ const unfurlResolvePrompt = (state, action) => {
 }
 
 const toggleInfoPanel = (state, action) => {
-  if (// Auto generated from flowToTs. Please clean me!
-  (Router2Constants.getVisibleScreen() === null || Router2Constants.getVisibleScreen() === undefined ? undefined : Router2Constants.getVisibleScreen().routeName) === 'chatInfoPanel') {
+  if (
+    // Auto generated from flowToTs. Please clean me!
+    (Router2Constants.getVisibleScreen() === null || Router2Constants.getVisibleScreen() === undefined
+      ? undefined
+      : Router2Constants.getVisibleScreen().routeName) === 'chatInfoPanel'
+  ) {
     return RouteTreeGen.createNavigateUp()
   } else {
     return RouteTreeGen.createNavigateAppend({

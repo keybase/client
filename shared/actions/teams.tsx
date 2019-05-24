@@ -222,7 +222,7 @@ const updateTeamRetentionPolicy = (state, action, logger) => {
   }
 }
 
-function* inviteByEmail(_, action, logger) {
+function* inviteByEmail(_, action: TeamsGen.InviteToTeamByEmailPayload, logger) {
   const {invitees, role, teamname} = action.payload
   yield Saga.put(TeamsGen.createSetTeamLoadingInvites({invitees, loadingInvites: true, teamname}))
   try {
@@ -232,7 +232,7 @@ function* inviteByEmail(_, action, logger) {
         emails: invitees,
         name: teamname,
         role: role ? RPCTypes.teamsTeamRole[role] : RPCTypes.teamsTeamRole.none,
-      },
+      } as any, // codemod-issue
       [Constants.teamWaitingKey(teamname), Constants.addToTeamByEmailWaitingKey(teamname)]
     )
     if (res.malformed && res.malformed.length > 0) {
@@ -386,7 +386,7 @@ function* removeMemberOrPendingInvite(_, action, logger) {
         inviteID,
         name: teamname,
         username,
-      },
+      } as any, // codemod-issue
       [
         Constants.teamWaitingKey(teamname),
         // only one of (username, email, inviteID) is truth-y
@@ -492,7 +492,7 @@ function* createNewTeamFromConversation(state, action) {
   }
 }
 
-function* getDetails(_, action, logger) {
+function* getDetails(_, action: TeamsGen.GetDetailsPayload, logger) {
   const {teamname} = action.payload
   yield Saga.put(TeamsGen.createGetTeamOperations({teamname}))
   yield Saga.put(TeamsGen.createGetTeamPublicity({teamname}))
@@ -504,7 +504,7 @@ function* getDetails(_, action, logger) {
       RPCTypes.teamsTeamGetRpcPromise,
       {
         name: teamname,
-      },
+      } as any,
       waitingKeys
     )
 
@@ -526,7 +526,8 @@ function* getDetails(_, action, logger) {
     if (Constants.getCanPerform(state, teamname).manageMembers) {
       // TODO (DESKTOP-6478) move this somewhere else
       requests = yield* Saga.callPromise(
-        RPCTypes.teamsTeamListRequestsRpcPromise,
+        // @ts-ignore codemod issue
+        RPCTypes.teamsTeamListRequestsRpcPromise as (arg: any) => any,
         {
           teamName: teamname,
         },
@@ -576,7 +577,8 @@ function* getDetails(_, action, logger) {
 
     // Get the subteam map for this team.
     const {entries} = yield* Saga.callPromise(
-      RPCTypes.teamsTeamGetSubteamsRpcPromise,
+      // @ts-ignore codemod-issue
+      RPCTypes.teamsTeamGetSubteamsRpcPromise as (args: any) => any,
       {name: {parts: teamname.split('.')}},
       waitingKeys
     )
@@ -609,7 +611,8 @@ function* addUserToTeams(state, action) {
   for (const team of teams) {
     try {
       yield* Saga.callPromise(
-        RPCTypes.teamsTeamAddMemberRpcPromise,
+        // @ts-ignore codemod-issue
+        RPCTypes.teamsTeamAddMemberRpcPromise as (args: any) => any,
         {
           email: '',
           name: team,
@@ -1237,7 +1240,8 @@ function* addTeamWithChosenChannels(state, action, logger) {
     logger.info(`${logPrefix} Creating teamsWithChosenChannels`)
   }
   yield* Saga.callPromise(
-    RPCTypes.gregorUpdateCategoryRpcPromise,
+    // @ts-ignore codemod-issue
+    RPCTypes.gregorUpdateCategoryRpcPromise as (args: any) => any,
     {
       body: JSON.stringify(teams),
       category: Constants.chosenChannelsGregorKey,
@@ -1448,8 +1452,8 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainAction<TeamsGen.GetChannelsPayload>(TeamsGen.getChannels, getChannels, 'getChannels')
   yield* Saga.chainGenerator<
-    ConfigGen.BootstrapStatusLoadedPayload,
-    TeamsGen.GetTeamsPayload,
+    ConfigGen.BootstrapStatusLoadedPayload |
+    TeamsGen.GetTeamsPayload |
     TeamsGen.LeftTeamPayload
   >([ConfigGen.bootstrapStatusLoaded, TeamsGen.getTeams, TeamsGen.leftTeam], getTeams, 'getTeams')
   yield* Saga.chainGenerator<TeamsGen.SaveChannelMembershipPayload>(
