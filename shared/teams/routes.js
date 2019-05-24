@@ -13,6 +13,7 @@ export const newModalRoutes = {
     upgraded: true,
   },
   teamAddPeople: {getScreen: () => require('./add-people/container').default, upgraded: true},
+  teamDeleteTeam: {getScreen: () => require('./delete-team/container').default, upgraded: true},
   teamEditTeamAvatar: {getScreen: () => require('../profile/edit-avatar/container').default, upgraded: true},
   teamEditTeamDescription: {
     getScreen: () => MaybePopupHoc(false)(require('./edit-team-description/container').default),

@@ -33,6 +33,7 @@ const load = () => {
       <Box style={{display: 'flex', flexDirection: 'column', height: '100%', maxWidth: 320}}>
         <TeamList
           teamnames={teamnames}
+          deletedTeams={[]}
           newTeams={[]}
           loaded={true}
           onReadMore={Sb.action('onReadMore')}

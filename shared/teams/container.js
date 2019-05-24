@@ -18,6 +18,7 @@ import {memoize} from '../util/memoize'
 type OwnProps = Container.PropsWithSafeNavigation<{}>
 
 const mapStateToProps = state => ({
+  _deletedTeams: state.teams.deletedTeams,
   _newTeamRequests: state.teams.getIn(['newTeamRequests'], I.List()),
   _newTeams: state.teams.getIn(['newTeams'], I.Set()),
   _teamNameToIsOpen: state.teams.getIn(['teamNameToIsOpen'], I.Map()),
@@ -66,6 +67,7 @@ const makeTeamToRequest = memoize(tr =>
 
 const mergeProps = (stateProps, dispatchProps) => {
   return {
+    deletedTeams: stateProps._deletedTeams.toArray(),
     loaded: stateProps.loaded,
     newTeams: stateProps._newTeams.toArray(),
     sawChatBanner: stateProps.sawChatBanner,
