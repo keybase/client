@@ -721,3 +721,8 @@ const (
 )
 
 const ProfileProofSuggestions = true
+
+const (
+	ExternalURLsBaseKey          = "external_urls"
+	ExternalURLsStellarExchanges = "stellar_exchanges"
+)

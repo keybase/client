@@ -2,6 +2,7 @@ package stellarsvc
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -1253,6 +1254,57 @@ func TestMakeAccountMobileOnlyOnRecentMobile(t *testing.T) {
 	bundle, err = remote.FetchAccountBundle(libkb.NewMetaContext(context.Background(), tc2.G), a1)
 	require.NoError(t, err)
 	checker.assertBundle(t, bundle, 4, 3, stellar1.AccountMode_USER)
+}
+
+type DummyMerkleStore struct {
+	Entry keybase1.MerkleStoreEntry
+}
+
+func (dm DummyMerkleStore) GetLatestEntry(m libkb.MetaContext) (e keybase1.MerkleStoreEntry, err error) {
+	return dm.Entry, nil
+}
+func (dm DummyMerkleStore) GetLatestEntryWithKnown(m libkb.MetaContext, mskh *keybase1.MerkleStoreKitHash) (entry *keybase1.MerkleStoreEntry, err error) {
+	return nil, nil
+}
+
+var _ libkb.MerkleStore = (*DummyMerkleStore)(nil)
+
+func TestGetExchangeUrlsLocal(t *testing.T) {
+	// inject some fake data into the merkle store hanging off G
+	// and then verify that the stellar exchange urls are extracted correctly
+	tc, cleanup := setupMobileTest(t)
+	defer cleanup()
+	ctx := context.Background()
+	g := tc.G
+	firstExchangeURL := "billtop.com/%{accountID}"
+	secondExchangeURL := "https://bitwat.com/keybase"
+	jsonEntry := json.RawMessage(fmt.Sprintf(`
+	{"external_urls":{
+		"stellar_exchanges":[
+			{"admin_only":false,"description":"buy from billtop","extra":"{\"superfun\":true}","icon_filename":"first.png","title":"BillTop","url":"%s"}
+			, {"admin_only":true,"description":"buy from bitwat","extra":"{\"superfun\":false}","icon_filename":"second.png","title":"BitWat","url":"%s"}
+		],
+		"something_unrelated":[
+			{"something":"else entirely","url":"dunno.pizza/txID"}
+		]
+	}}
+	`, firstExchangeURL, secondExchangeURL))
+	injectedEntry := keybase1.MerkleStoreEntry{
+		Hash:  "000this-is-tested-elsewhere000",
+		Entry: keybase1.MerkleStoreEntryString(jsonEntry),
+	}
+	injectedStore := DummyMerkleStore{injectedEntry}
+	g.SetExternalURLStore(injectedStore)
+
+	res, err := tc.Srv.GetExchangeUrlsLocal(ctx)
+	require.NoError(t, err)
+	require.Equal(t, len(res), 2)
+	require.Equal(t, res[0].Url, firstExchangeURL)
+	require.Equal(t, res[0].Extra, `{"superfun":true}`)
+	require.False(t, res[0].AdminOnly)
+	require.Equal(t, res[1].Url, secondExchangeURL)
+	require.Equal(t, res[1].Extra, `{"superfun":false}`)
+	require.True(t, res[1].AdminOnly)
 }
 
 func TestAutoClaimLoop(t *testing.T) {

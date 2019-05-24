@@ -1081,6 +1081,26 @@ func (o ValidateStellarURIResultLocal) DeepCopy() ValidateStellarURIResultLocal 
 	}
 }
 
+type ExchangeUrl struct {
+	Url          string `codec:"url" json:"url"`
+	Title        string `codec:"title" json:"title"`
+	Description  string `codec:"description" json:"description"`
+	IconFilename string `codec:"iconFilename" json:"icon_filename"`
+	AdminOnly    bool   `codec:"adminOnly" json:"admin_only"`
+	Extra        string `codec:"extra" json:"extra"`
+}
+
+func (o ExchangeUrl) DeepCopy() ExchangeUrl {
+	return ExchangeUrl{
+		Url:          o.Url,
+		Title:        o.Title,
+		Description:  o.Description,
+		IconFilename: o.IconFilename,
+		AdminOnly:    o.AdminOnly,
+		Extra:        o.Extra,
+	}
+}
+
 type GetWalletAccountsLocalArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -1488,6 +1508,10 @@ type ApprovePathURILocalArg struct {
 	FromCLI   bool        `codec:"fromCLI" json:"fromCLI"`
 }
 
+type GetExchangeUrlsLocalArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type LocalInterface interface {
 	GetWalletAccountsLocal(context.Context, int) ([]WalletAccountLocal, error)
 	GetWalletAccountLocal(context.Context, GetWalletAccountLocalArg) (WalletAccountLocal, error)
@@ -1561,6 +1585,7 @@ type LocalInterface interface {
 	ApproveTxURILocal(context.Context, ApproveTxURILocalArg) (TransactionID, error)
 	ApprovePayURILocal(context.Context, ApprovePayURILocalArg) (TransactionID, error)
 	ApprovePathURILocal(context.Context, ApprovePathURILocalArg) (TransactionID, error)
+	GetExchangeUrlsLocal(context.Context, int) ([]ExchangeUrl, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -2627,6 +2652,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getExchangeUrlsLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]GetExchangeUrlsLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetExchangeUrlsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetExchangeUrlsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetExchangeUrlsLocal(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
 		},
 	}
 }
@@ -3007,5 +3047,11 @@ func (c LocalClient) ApprovePayURILocal(ctx context.Context, __arg ApprovePayURI
 
 func (c LocalClient) ApprovePathURILocal(ctx context.Context, __arg ApprovePathURILocalArg) (res TransactionID, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.approvePathURILocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetExchangeUrlsLocal(ctx context.Context, sessionID int) (res []ExchangeUrl, err error) {
+	__arg := GetExchangeUrlsLocalArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "stellar.1.local.getExchangeUrlsLocal", []interface{}{__arg}, &res)
 	return
 }

@@ -372,6 +372,7 @@ export type EncryptedAccountBundle = $ReadOnly<{v: Int, e: Bytes, n: Keybase1.Bo
 export type EncryptedBundle = $ReadOnly<{v: Int, e: Bytes, n: Keybase1.BoxNonce, gen: Keybase1.PerUserKeyGeneration}>
 export type EncryptedNote = $ReadOnly<{v: Int, e: Bytes, n: Keybase1.BoxNonce, sender: NoteRecipient, recipient?: ?NoteRecipient}>
 export type EncryptedRelaySecret = $ReadOnly<{v: Int, e: Bytes, n: Keybase1.BoxNonce, gen: Keybase1.PerTeamKeyGeneration}>
+export type ExchangeUrl = $ReadOnly<{url: String, title: String, description: String, iconFilename: String, adminOnly: Boolean, extra: String}>
 export type Hash = Bytes
 export type InflationDestinationResultLocal = $ReadOnly<{destination?: ?AccountID, knownDestination?: ?PredefinedInflationDestination, self: Boolean}>
 export type InflationDestinationTag = String
@@ -565,6 +566,7 @@ declare export function localValidateSecretKeyLocalRpcPromise(params: $PropertyT
 // 'stellar.1.local.approveTxURILocal'
 // 'stellar.1.local.approvePayURILocal'
 // 'stellar.1.local.approvePathURILocal'
+// 'stellar.1.local.getExchangeUrlsLocal'
 // 'stellar.1.notify.paymentNotification'
 // 'stellar.1.notify.paymentStatusNotification'
 // 'stellar.1.notify.requestStatusNotification'

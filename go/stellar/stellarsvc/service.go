@@ -3,6 +3,7 @@ package stellarsvc
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -807,6 +808,39 @@ func (s *Server) ApprovePayURILocal(ctx context.Context, arg stellar1.ApprovePay
 	// TODO: handle callback path
 
 	return res.TxID, nil
+}
+
+func (s *Server) GetExchangeUrlsLocal(ctx context.Context) (res []stellar1.ExchangeUrl, err error) {
+	// Pull back all of the external_urls, but only look at the exchange_urls.
+	// To ensure we have flexibility in the future, only type check the objects
+	// under the key we care about here.
+	mctx := libkb.NewMetaContext(ctx, s.G())
+	entry, err := s.G().GetExternalURLStore().GetLatestEntry(mctx)
+	if err != nil {
+		return nil, err
+	}
+	b := []byte(entry.Entry)
+	var externalURLs map[string]map[string][]interface{}
+	if err := json.Unmarshal(b, &externalURLs); err != nil {
+		return nil, err
+	}
+	externalURLGroups, ok := externalURLs[libkb.ExternalURLsBaseKey]
+	if !ok {
+		return nil, fmt.Errorf("no external URLs to parse")
+	}
+	for _, asInterface := range externalURLGroups[libkb.ExternalURLsStellarExchanges] {
+		asData, err := json.Marshal(asInterface)
+		if err != nil {
+			return nil, err
+		}
+		var s stellar1.ExchangeUrl
+		err = json.Unmarshal(asData, &s)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, s)
+	}
+	return res, nil
 }
 
 func (s *Server) ApprovePathURILocal(ctx context.Context, arg stellar1.ApprovePathURILocalArg) (txID stellar1.TransactionID, err error) {

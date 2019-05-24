@@ -95,7 +95,7 @@ type GlobalContext struct {
 	fullSelfer       FullSelfer       // a loader that gets the full self object
 	pvlSource        MerkleStore      // a cache and fetcher for pvl
 	paramProofStore  MerkleStore      // a cache and fetcher for param proofs
-	externalURLStore  MerkleStore      // a cache and fetcher for external urls
+	externalURLStore MerkleStore      // a cache and fetcher for external urls
 	PayloadCache     *PayloadCache    // cache of ChainLink payload json wrappers
 	Pegboard         *Pegboard
 
