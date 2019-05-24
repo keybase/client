@@ -1024,6 +1024,10 @@ export type MessageTypes = {
     inParam: {readonly name: String; readonly role: TeamRole; readonly label: SeitanKeyLabel}
     outParam: SeitanIKeyV2
   }
+  'keybase.1.teams.teamDelete': {
+    inParam: {readonly name: String}
+    outParam: void
+  }
   'keybase.1.teams.teamEditMember': {
     inParam: {readonly name: String; readonly username: String; readonly role: TeamRole}
     outParam: void
@@ -3692,6 +3696,8 @@ export const teamsTeamAddMemberRpcPromise = (params: MessageTypes['keybase.1.tea
 export const teamsTeamAddMembersRpcPromise = (params: MessageTypes['keybase.1.teams.teamAddMembers']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamAddMembers']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamAddMembers', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamCreateRpcPromise = (params: MessageTypes['keybase.1.teams.teamCreate']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamCreate']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamCreate', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamCreateSeitanTokenV2RpcPromise = (params: MessageTypes['keybase.1.teams.teamCreateSeitanTokenV2']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamCreateSeitanTokenV2']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamCreateSeitanTokenV2', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const teamsTeamDeleteRpcPromise = (params: MessageTypes['keybase.1.teams.teamDelete']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamDelete']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamDelete', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const teamsTeamDeleteRpcSaga = (p: {params: MessageTypes['keybase.1.teams.teamDelete']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}) => call(getEngineSaga(), {method: 'keybase.1.teams.teamDelete', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const teamsTeamEditMemberRpcPromise = (params: MessageTypes['keybase.1.teams.teamEditMember']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamEditMember']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamEditMember', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamGetMembersRpcPromise = (params: MessageTypes['keybase.1.teams.teamGetMembers']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamGetMembers']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamGetMembers', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamGetRpcPromise = (params: MessageTypes['keybase.1.teams.teamGet']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamGet']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamGet', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -4053,7 +4059,6 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // 'keybase.1.teams.teamAcceptInvite'
 // 'keybase.1.teams.teamRequestAccess'
 // 'keybase.1.teams.teamTree'
-// 'keybase.1.teams.teamDelete'
 // 'keybase.1.teams.teamCreateSeitanToken'
 // 'keybase.1.teams.lookupImplicitTeam'
 // 'keybase.1.teams.lookupOrCreateImplicitTeam'
