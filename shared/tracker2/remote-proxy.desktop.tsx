@@ -12,7 +12,7 @@ import {serialize} from './remote-serializer.desktop'
 
 type OwnProps = {
   username: string
-};
+}
 
 const MAX_TRACKERS = 5
 const windowOpts = {hasShadow: false, height: 470, transparent: true, width: 320}
@@ -81,7 +81,7 @@ const RemoteTracker2 = compose(
 
 type Props = {
   users: Array<string>
-};
+}
 
 class RemoteTracker2s extends React.PureComponent<Props> {
   render() {
@@ -105,7 +105,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
     .toArray(),
 })
 
-export default connect<{||}, _, _, _, _>(
+export default connect(
   mapStateToProps,
   () => ({}),
   mergeProps

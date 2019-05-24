@@ -7,11 +7,11 @@ import openUrl from '../../util/open-url'
 
 type State = {
   assertions?: I.Map<string, Types.Assertion>
-};
+}
 
 type OwnProps = {
   assertionKey: string
-};
+}
 
 const mapStateToProps = (state, ownProps) => {
   const a = state.assertions

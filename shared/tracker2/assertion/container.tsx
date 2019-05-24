@@ -10,10 +10,10 @@ import Assertion from '.'
 import openUrl from '../../util/open-url'
 
 type OwnProps = {
-  isSuggestion?: boolean,
-  username: string,
+  isSuggestion?: boolean
+  username: string
   assertionKey: string
-};
+}
 
 const notAUserAssertion = {
   color: 'gray',

@@ -8,26 +8,26 @@ import Assertion from './assertion/remote-container'
 import Bio from './bio/remote-container'
 
 type Props = {
-  assertionKeys: ReadonlyArray<string> | null,
-  bio: string | null,
-  followThem: boolean | null,
-  followersCount: number | null,
-  followingCount: number | null,
-  followsYou: boolean | null,
-  guiID: string | null,
-  isYou: boolean,
-  location: string | null,
-  onFollow: () => void,
-  onChat: () => void,
-  onClose: () => void,
-  onIgnoreFor24Hours: () => void,
-  onAccept: () => void,
-  onReload: () => void,
-  reason: string,
-  state: Types.DetailsState,
-  teamShowcase: ReadonlyArray<Types._TeamShowcase> | null,
+  assertionKeys: ReadonlyArray<string> | null
+  bio: string | null
+  followThem: boolean | null
+  followersCount: number | null
+  followingCount: number | null
+  followsYou: boolean | null
+  guiID: string | null
+  isYou: boolean
+  location: string | null
+  onFollow: () => void
+  onChat: () => void
+  onClose: () => void
+  onIgnoreFor24Hours: () => void
+  onAccept: () => void
+  onReload: () => void
+  reason: string
+  state: Types.DetailsState
+  teamShowcase: ReadonlyArray<Types._TeamShowcase> | null
   username: string
-};
+}
 
 const getButtons = (props: Props) => {
   const buttonClose = (

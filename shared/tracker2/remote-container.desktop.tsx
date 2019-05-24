@@ -10,23 +10,23 @@ import Tracker from './index.desktop'
 import {remoteConnect} from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
 
-type OwnProps = {};
+type OwnProps = {}
 
 type State = {
-  assertions: I.Map<string, Types.Assertion> | null,
-  bio: string | null,
-  followThem: boolean | null,
-  followersCount: number | null,
-  followingCount: number | null,
-  followsYou: boolean | null,
-  guiID: string,
-  isYou: boolean,
-  location: string | null,
-  reason: string,
-  state: Types.DetailsState,
-  teamShowcase: I.List<Types.TeamShowcase> | null,
+  assertions: I.Map<string, Types.Assertion> | null
+  bio: string | null
+  followThem: boolean | null
+  followersCount: number | null
+  followingCount: number | null
+  followsYou: boolean | null
+  guiID: string
+  isYou: boolean
+  location: string | null
+  reason: string
+  state: Types.DetailsState
+  teamShowcase: I.List<Types.TeamShowcase> | null
   username: string
-};
+}
 
 // Props are handled by remote-proxy.desktop.js
 const mapDispatchToProps = dispatch => ({

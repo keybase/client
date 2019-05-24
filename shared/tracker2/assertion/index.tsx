@@ -7,29 +7,29 @@ import {SiteIcon} from '../../profile/generic/shared'
 import {formatTimeForAssertionPopup} from '../../util/timestamp'
 
 type Props = {
-  color: Types.AssertionColor,
-  isSuggestion: boolean,
-  isYours: boolean,
-  metas: ReadonlyArray<Types._AssertionMeta>,
-  notAUser: boolean,
-  onCopyAddress: () => void,
-  onRequestLumens: () => void,
-  onRecheck: () => void | null,
-  onRevoke: () => void | null,
-  onSendLumens: () => void,
-  onShowProof: () => void | null,
-  onShowSite: () => void | null,
-  onCreateProof: () => void | null,
-  onWhatIsStellar: () => void,
-  proofURL: string,
-  siteIcon: Types.SiteIconSet | null,
-  siteIconFull: Types.SiteIconSet | null,
-  siteURL: string,
-  state: Types.AssertionState,
-  timestamp: number,
-  type: string,
+  color: Types.AssertionColor
+  isSuggestion: boolean
+  isYours: boolean
+  metas: ReadonlyArray<Types._AssertionMeta>
+  notAUser: boolean
+  onCopyAddress: () => void
+  onRequestLumens: () => void
+  onRecheck: () => void | null
+  onRevoke: () => void | null
+  onSendLumens: () => void
+  onShowProof: () => void | null
+  onShowSite: () => void | null
+  onCreateProof: () => void | null
+  onWhatIsStellar: () => void
+  proofURL: string
+  siteIcon: Types.SiteIconSet | null
+  siteIconFull: Types.SiteIconSet | null
+  siteURL: string
+  state: Types.AssertionState
+  timestamp: number
+  type: string
   value: string
-};
+}
 
 const proofTypeToDesc = proofType => {
   switch (proofType) {
@@ -113,9 +113,12 @@ const assertionColorToColor = (c: Types.AssertionColor) => {
   }
 }
 
-class _StellarValue extends React.PureComponent<Props & Kb.OverlayParentProps, {
-  storedAttachmentRef: Kb.Box | null
-}> {
+class _StellarValue extends React.PureComponent<
+  Props & Kb.OverlayParentProps,
+  {
+    storedAttachmentRef: Kb.Box | null
+  }
+> {
   state = {storedAttachmentRef: null}
   // only set this once ever
   _storeAttachmentRef = storedAttachmentRef =>
@@ -212,7 +215,7 @@ const HoverOpacity = Styles.styled(Kb.Box)({
 
 type State = {
   showingMenu: boolean
-};
+}
 
 class Assertion extends React.PureComponent<Props, State> {
   state = {showingMenu: false}

@@ -3,7 +3,7 @@ import Bio from '.'
 
 type OwnProps = {
   username: string
-};
+}
 
 const mapDispatchToProps = dispatch => ({})
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({

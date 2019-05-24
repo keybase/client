@@ -11,8 +11,8 @@ load({
   child: <Tracker2 />,
   deserialize,
   name: 'tracker2',
-  params: // Auto generated from flowToTs. Please clean me!
-  (username === null || username === undefined ? undefined : username[1]) || '',
+  // Auto generated from flowToTs. Please clean me!
+  params: (username === null || username === undefined ? undefined : username[1]) || '',
   style: {
     backgroundColor: Styles.globalColors.transparent,
     borderRadius: 8,

@@ -3,9 +3,9 @@ import * as Constants from '../../constants/tracker2'
 import Bio from '.'
 
 type OwnProps = {
-  inTracker: boolean,
+  inTracker: boolean
   username: string
-};
+}
 
 const mapStateToProps = (state, ownProps) => {
   const d = Constants.getDetails(state, ownProps.username)
