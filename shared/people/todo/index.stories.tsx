@@ -1,5 +1,4 @@
-// @flow
-import React from 'react'
+import * as React from 'react'
 import {storiesOf, action} from '../../stories/storybook'
 import {Task} from '.'
 

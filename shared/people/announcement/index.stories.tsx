@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as RPCTypes from '../../constants/types/rpc-gen'

@@ -1,9 +1,8 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import {PeoplePageList} from './index.shared'
-import {type Props} from '.'
+import {Props} from '.'
 import ProfileSearch from '../profile/search/bar-container'
 
 export const Header = (props: Props) => (

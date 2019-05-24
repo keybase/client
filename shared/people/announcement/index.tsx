@@ -1,18 +1,17 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import PeopleItem from '../item'
 
-type Props = {|
-  badged: boolean,
-  confirmLabel: ?string,
-  iconUrl: ?string,
-  onConfirm: () => void,
-  onDismiss: ?() => void,
-  text: string,
-  url: ?string,
-|}
+type Props = {
+  badged: boolean
+  confirmLabel: string | null
+  iconUrl: string | null
+  onConfirm: () => void
+  onDismiss: () => void | null
+  text: string
+  url: string | null
+}
 
 const Announcement = (props: Props) => {
   return (

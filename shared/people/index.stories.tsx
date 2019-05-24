@@ -1,4 +1,3 @@
-// @flow
 import todo from './todo/index.stories'
 import announcement from './announcement/index.stories'
 import followNotification from './follow-notification/index.stories'

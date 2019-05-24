@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as C from '../../constants/people'
 import * as Sb from '../../stories/storybook'

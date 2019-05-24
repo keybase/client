@@ -1,19 +1,18 @@
-// @flow
-import React from 'react'
+import * as React from 'react'
 import PeopleItem from '../item'
-import {Box, Button, Icon, Text, type IconType} from '../../common-adapters'
+import {Box, Button, Icon, Text, IconType} from '../../common-adapters'
 import PeopleSearch from '../../profile/search/bar-container'
 import * as Styles from '../../styles'
 
 export type Props = {
-  badged: boolean,
-  icon: IconType,
-  instructions: string,
-  confirmLabel: string,
-  dismissable: boolean,
-  onConfirm: () => void,
-  onDismiss: () => void,
-  showSearchBar?: boolean,
+  badged: boolean
+  icon: IconType
+  instructions: string
+  confirmLabel: string
+  dismissable: boolean
+  onConfirm: () => void
+  onDismiss: () => void
+  showSearchBar?: boolean
 }
 
 export const Task = (props: Props) => (
