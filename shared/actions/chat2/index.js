@@ -585,7 +585,7 @@ const onChatInboxSynced = (state, action) => {
             actions.unshift(
               Chat2Gen.createMarkConversationsStale({
                 conversationIDKeys: [selectedConversation],
-                updateType: RPCChatTypes.notifyChatStaleUpdateType.newactivity,
+                updateType: RPCChatTypes.StaleUpdateType.newactivity,
               })
             )
           }
@@ -705,11 +705,11 @@ const onChatChatTLFFinalizePayload = (_, action) => {
 const onChatThreadStale = (_, action, logger) => {
   const {updates} = action.payload.params
   let actions = []
-  Object.keys(RPCChatTypes.notifyChatStaleUpdateType)
-    .filter(k => typeof RPCChatTypes.notifyChatStaleUpdateType[k] === 'number')
+  Object.keys(RPCChatTypes.StaleUpdateType)
+    .filter(k => typeof RPCChatTypes.StaleUpdateType[k] === 'number')
     .forEach(function(key) {
       const conversationIDKeys = (updates || []).reduce((arr, u) => {
-        if (u.updateType === RPCChatTypes.notifyChatStaleUpdateType[key]) {
+        if (u.updateType === RPCChatTypes.StaleUpdateType[key]) {
           arr.push(Types.conversationIDToKey(u.convID))
         }
         return arr
@@ -736,7 +736,7 @@ const onChatThreadStale = (_, action, logger) => {
         actions = actions.concat([
           Chat2Gen.createMarkConversationsStale({
             conversationIDKeys,
-            updateType: RPCChatTypes.notifyChatStaleUpdateType[key],
+            updateType: RPCChatTypes.StaleUpdateType[key],
           }),
           Chat2Gen.createMetaRequestTrusted({
             conversationIDKeys,
@@ -758,7 +758,7 @@ const onNewChatActivity = (state, action, logger) => {
   logger.info(`Got new chat activity of type: ${activity.activityType}`)
   let actions
   switch (activity.activityType) {
-    case RPCChatTypes.notifyChatChatActivityType.incomingMessage: {
+    case RPCChatTypes.ChatActivityType.incomingMessage: {
       const incomingMessage = activity.incomingMessage
       if (incomingMessage) {
         actions = [
@@ -768,16 +768,16 @@ const onNewChatActivity = (state, action, logger) => {
       }
       break
     }
-    case RPCChatTypes.notifyChatChatActivityType.setStatus:
+    case RPCChatTypes.ChatActivityType.setStatus:
       actions = chatActivityToMetasAction(activity.setStatus)
       break
-    case RPCChatTypes.notifyChatChatActivityType.readMessage:
+    case RPCChatTypes.ChatActivityType.readMessage:
       actions = chatActivityToMetasAction(activity.readMessage)
       break
-    case RPCChatTypes.notifyChatChatActivityType.newConversation:
+    case RPCChatTypes.ChatActivityType.newConversation:
       actions = chatActivityToMetasAction(activity.newConversation, true)
       break
-    case RPCChatTypes.notifyChatChatActivityType.failedMessage: {
+    case RPCChatTypes.ChatActivityType.failedMessage: {
       const failedMessage: ?RPCChatTypes.FailedMessageInfo = activity.failedMessage
       const outboxRecords = failedMessage && failedMessage.outboxRecords
       if (outboxRecords) {
@@ -785,7 +785,7 @@ const onNewChatActivity = (state, action, logger) => {
       }
       break
     }
-    case RPCChatTypes.notifyChatChatActivityType.membersUpdate:
+    case RPCChatTypes.ChatActivityType.membersUpdate:
       const convID = activity.membersUpdate && activity.membersUpdate.convID
       if (convID) {
         actions = [
@@ -796,7 +796,7 @@ const onNewChatActivity = (state, action, logger) => {
         ]
       }
       break
-    case RPCChatTypes.notifyChatChatActivityType.setAppNotificationSettings:
+    case RPCChatTypes.ChatActivityType.setAppNotificationSettings:
       const setAppNotificationSettings = activity.setAppNotificationSettings
       if (setAppNotificationSettings) {
         actions = [
@@ -807,27 +807,27 @@ const onNewChatActivity = (state, action, logger) => {
         ]
       }
       break
-    case RPCChatTypes.notifyChatChatActivityType.teamtype:
+    case RPCChatTypes.ChatActivityType.teamtype:
       actions = [Chat2Gen.createInboxRefresh({reason: 'teamTypeChanged'})]
       break
-    case RPCChatTypes.notifyChatChatActivityType.expunge: {
+    case RPCChatTypes.ChatActivityType.expunge: {
       const expunge = activity.expunge
       if (expunge) {
         actions = expungeToActions(state, expunge)
       }
       break
     }
-    case RPCChatTypes.notifyChatChatActivityType.ephemeralPurge:
+    case RPCChatTypes.ChatActivityType.ephemeralPurge:
       if (activity.ephemeralPurge) {
         actions = ephemeralPurgeToActions(activity.ephemeralPurge)
       }
       break
-    case RPCChatTypes.notifyChatChatActivityType.reactionUpdate:
+    case RPCChatTypes.ChatActivityType.reactionUpdate:
       if (activity.reactionUpdate) {
         actions = reactionUpdateToActions(activity.reactionUpdate)
       }
       break
-    case RPCChatTypes.notifyChatChatActivityType.messagesUpdated: {
+    case RPCChatTypes.ChatActivityType.messagesUpdated: {
       const messagesUpdated = activity.messagesUpdated
       if (messagesUpdated) {
         actions = messagesUpdatedToActions(state, messagesUpdated)
@@ -1617,7 +1617,7 @@ const previewConversationTeam = (state, action) => {
     tlfName: teamname,
     topicName: channelname,
     topicType: RPCChatTypes.TopicType.chat,
-    visibility: RPCTypes.commonTLFVisibility.private,
+    visibility: RPCTypes.TLFVisibility.private,
   }).then(results => {
     const resultMetas = (results.uiConversations || [])
       .map(row => Constants.inboxUIItemToConversationMeta(row))
@@ -1919,7 +1919,7 @@ function* attachmentsUpload(state, action, logger) {
           outboxID: outboxIDs[i],
           title: titles[i],
           tlfName: meta.tlfname,
-          visibility: RPCTypes.commonTLFVisibility.private,
+          visibility: RPCTypes.TLFVisibility.private,
         },
         clientPrev,
       })
@@ -2211,22 +2211,22 @@ const updateNotificationSettings = (_, action) =>
     convID: Types.keyToConversationID(action.payload.conversationIDKey),
     settings: [
       {
-        deviceType: RPCTypes.commonDeviceType.desktop,
+        deviceType: RPCTypes.DeviceType.desktop,
         enabled: action.payload.notificationsDesktop === 'onWhenAtMentioned',
         kind: RPCChatTypes.NotificationKind.atmention,
       },
       {
-        deviceType: RPCTypes.commonDeviceType.desktop,
+        deviceType: RPCTypes.DeviceType.desktop,
         enabled: action.payload.notificationsDesktop === 'onAnyActivity',
         kind: RPCChatTypes.NotificationKind.generic,
       },
       {
-        deviceType: RPCTypes.commonDeviceType.mobile,
+        deviceType: RPCTypes.DeviceType.mobile,
         enabled: action.payload.notificationsMobile === 'onWhenAtMentioned',
         kind: RPCChatTypes.NotificationKind.atmention,
       },
       {
-        deviceType: RPCTypes.commonDeviceType.mobile,
+        deviceType: RPCTypes.DeviceType.mobile,
         enabled: action.payload.notificationsMobile === 'onAnyActivity',
         kind: RPCChatTypes.NotificationKind.generic,
       },
@@ -2327,7 +2327,7 @@ function* createConversation(state, action, logger) {
         tlfName: I.Set([username])
           .concat(action.payload.participants)
           .join(','),
-        tlfVisibility: RPCTypes.commonTLFVisibility.private,
+        tlfVisibility: RPCTypes.TLFVisibility.private,
         topicType: RPCChatTypes.TopicType.chat,
       },
       Constants.waitingKeyCreating
@@ -2365,7 +2365,7 @@ const messageReplyPrivately = (state, action, logger) => {
       identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
       membersType: RPCChatTypes.ConversationMembersType.impteamnative,
       tlfName: I.Set([username, message.author]).join(','),
-      tlfVisibility: RPCTypes.commonTLFVisibility.private,
+      tlfVisibility: RPCTypes.TLFVisibility.private,
       topicType: RPCChatTypes.TopicType.chat,
     },
     Constants.waitingKeyCreating

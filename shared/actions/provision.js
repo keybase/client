@@ -115,10 +115,10 @@ class ProvisioningManager {
       let type
       switch (state.provision.codePageOtherDeviceType) {
         case 'mobile':
-          type = RPCTypes.commonDeviceType.mobile
+          type = RPCTypes.DeviceType.mobile
           break
         case 'desktop':
-          type = RPCTypes.commonDeviceType.desktop
+          type = RPCTypes.DeviceType.desktop
           break
         default:
           response.error()
@@ -395,7 +395,7 @@ function* startProvisioning(state) {
       customResponseIncomingCallMap: ProvisioningManager.getSingleton().getCustomResponseIncomingCallMap(),
       incomingCallMap: ProvisioningManager.getSingleton().getIncomingCallMap(),
       params: {
-        clientType: RPCTypes.commonClientType.guiMain,
+        clientType: RPCTypes.ClientType.guiMain,
         deviceName: '',
         deviceType: isMobile ? 'mobile' : 'desktop',
         paperKey: '',

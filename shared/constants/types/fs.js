@@ -514,12 +514,12 @@ export type Visibility = TlfType | null
 
 export const direntToPathType = (d: RPCTypes.Dirent): PathType => {
   switch (d.direntType) {
-    case RPCTypes.simpleFSDirentType.dir:
+    case RPCTypes.DirentType.dir:
       return 'folder'
-    case RPCTypes.simpleFSDirentType.sym:
+    case RPCTypes.DirentType.sym:
       return 'symlink'
-    case RPCTypes.simpleFSDirentType.file:
-    case RPCTypes.simpleFSDirentType.exec:
+    case RPCTypes.DirentType.file:
+    case RPCTypes.DirentType.exec:
       return 'file'
     default:
       return 'unknown'

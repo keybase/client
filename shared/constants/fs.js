@@ -316,7 +316,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
 export const makeUUID = () => uuidv1({}, Buffer.alloc(16), 0)
 
 export const pathToRPCPath = (path: Types.Path): RPCTypes.Path => ({
-  PathType: RPCTypes.simpleFSPathType.kbfs,
+  PathType: RPCTypes.PathType.kbfs,
   kbfs: Types.pathToString(path).substring('/keybase'.length) || '/',
 })
 

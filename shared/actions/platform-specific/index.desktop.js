@@ -247,7 +247,7 @@ const onConnected = () => {
   RPCTypes.configHelloIAmRpcPromise({
     details: {
       argv: process.argv,
-      clientType: RPCTypes.commonClientType.guiMain,
+      clientType: RPCTypes.ClientType.guiMain,
       desc: 'Main Renderer',
       pid: SafeElectron.getRemote().process.pid,
       version: __VERSION__, // eslint-disable-line no-undef

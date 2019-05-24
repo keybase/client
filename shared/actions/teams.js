@@ -937,7 +937,7 @@ function* createChannel(_, action, logger) {
         identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
         membersType: RPCChatTypes.ConversationMembersType.team,
         tlfName: teamname,
-        tlfVisibility: RPCTypes.commonTLFVisibility.private,
+        tlfVisibility: RPCTypes.TLFVisibility.private,
         topicName: channelname,
         topicType: RPCChatTypes.TopicType.chat,
       },
@@ -1125,15 +1125,15 @@ function* setPublicity(state, action) {
 const teamAvatarUpdated = (_, action) => {
   const {name, typ} = action.payload.params
   switch (typ) {
-    case RPCTypes.notifyTeamAvatarUpdateType.none:
+    case RPCTypes.AvatarUpdateType.none:
       // don't know what it is, so try both
       return [
         ConfigGen.createLoadTeamAvatars({teamnames: [name]}),
         ConfigGen.createLoadAvatars({usernames: [name]}),
       ]
-    case RPCTypes.notifyTeamAvatarUpdateType.user:
+    case RPCTypes.AvatarUpdateType.user:
       return [ConfigGen.createLoadAvatars({usernames: [name]})]
-    case RPCTypes.notifyTeamAvatarUpdateType.team:
+    case RPCTypes.AvatarUpdateType.team:
       return [ConfigGen.createLoadTeamAvatars({teamnames: [name]})]
   }
 }

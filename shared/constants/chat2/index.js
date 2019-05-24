@@ -284,7 +284,7 @@ export const makeInboxQuery = (
       .filter(k => typeof RPCChatTypes.ConversationStatus[k] === 'number')
       .filter(k => !['ignored', 'blocked', 'reported'].includes(k))
       .map(k => RPCChatTypes.ConversationStatus[k]),
-    tlfVisibility: RPCTypes.commonTLFVisibility.private,
+    tlfVisibility: RPCTypes.TLFVisibility.private,
     topicType: RPCChatTypes.TopicType.chat,
     unreadOnly: false,
   }

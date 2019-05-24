@@ -36,7 +36,7 @@ export const unverifiedInboxUIItemToConversationMeta = (
   username: string
 ) => {
   // Private chats only
-  if (i.visibility !== RPCTypes.commonTLFVisibility.private) {
+  if (i.visibility !== RPCTypes.TLFVisibility.private) {
     return null
   }
 
@@ -168,7 +168,7 @@ const parseNotificationSettings = (notifications: ?RPCChatTypes.ConversationNoti
     notificationsGlobalIgnoreMentions = notifications.channelWide
     const s = notifications.settings
     if (s) {
-      const desktop = s[String(RPCTypes.commonDeviceType.desktop)]
+      const desktop = s[String(RPCTypes.DeviceType.desktop)]
       if (desktop) {
         if (desktop[String(RPCChatTypes.NotificationKind.generic)]) {
           notificationsDesktop = 'onAnyActivity'
@@ -176,7 +176,7 @@ const parseNotificationSettings = (notifications: ?RPCChatTypes.ConversationNoti
           notificationsDesktop = 'onWhenAtMentioned'
         }
       }
-      const mobile = s[String(RPCTypes.commonDeviceType.mobile)]
+      const mobile = s[String(RPCTypes.DeviceType.mobile)]
       if (mobile) {
         if (mobile[String(RPCChatTypes.NotificationKind.generic)]) {
           notificationsMobile = 'onAnyActivity'
@@ -227,7 +227,7 @@ const UIItemToRetentionPolicies = (i, isTeam) => {
 
 export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allowEmpty?: boolean) => {
   // Private chats only
-  if (i.visibility !== RPCTypes.commonTLFVisibility.private) {
+  if (i.visibility !== RPCTypes.TLFVisibility.private) {
     return null
   }
   // Ignore empty unless we explicitly allow it (making new conversations)

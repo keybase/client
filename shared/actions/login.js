@@ -70,7 +70,7 @@ function* login(state, action) {
           'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
         },
         params: {
-          clientType: RPCTypes.commonClientType.guiMain,
+          clientType: RPCTypes.ClientType.guiMain,
           deviceName: '',
           deviceType: isMobile ? 'mobile' : 'desktop',
           paperKey: '',
