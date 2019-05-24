@@ -25,6 +25,7 @@ const Tlf = (props: TlfProps) => (
     inDestinationPicker={props.inDestinationPicker}
     badge={props.isNew ? Types.PathItemBadgeType.New : null}
     routePath={props.routePath}
+    animateActions={true}
   >
     {props.loadPathMetadata && <LoadPathMetadataWhenNeeded path={props.path} />}
     <Kb.Box style={rowStyles.itemBox}>
@@ -41,12 +42,18 @@ const Tlf = (props: TlfProps) => (
             <TlfInfo path={props.path} mode="row" />
           </Kb.Box2>
         </Kb.BoxGrow>
-        {
-          // TODO: if this is a team, use a team-style avatar
-        }
         {!Styles.isMobile && (
           <Kb.Box style={styles.avatarBox}>
-            <Kb.AvatarLine maxShown={4} size={32} layout="horizontal" usernames={props.usernames.toArray()} />
+            {Constants.isTeamPath(props.path) ? (
+              <Kb.Avatar size={32} isTeam={true} teamname={props.usernames.get(0)} />
+            ) : (
+              <Kb.AvatarLine
+                maxShown={4}
+                size={32}
+                layout="horizontal"
+                usernames={props.usernames.toArray()}
+              />
+            )}
           </Kb.Box>
         )}
       </Kb.Box2>

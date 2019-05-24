@@ -16,23 +16,24 @@ const AvatarLine = (props: Props) => {
   const usernamesToShow = props.usernames.slice(0, props.maxShown)
   const extra = props.usernames.length - usernamesToShow.length
   const reverse = {horizontal: 'horizontalReverse', vertical: 'verticalReverse'}
+  const styles = styleMap[props.size][props.layout]
   return (
-    <Kb.Box2 direction={reverse[props.layout]} style={getOverallStyle(props, extra)}>
+    <Kb.Box2 direction={reverse[props.layout]} style={styles.container}>
       {!!extra && (
-        <Kb.Box2 direction={props.layout} alignItems="center" style={getOverflowBoxStyle(props)}>
-          <Kb.Text type={getTextSize(props.size)} style={getOverflowTextStyle(props)}>
+        <Kb.Box2 direction={props.layout} alignItems="center" style={styles.overflowBox}>
+          <Kb.Text type={getTextSize(props.size)} style={styles.text}>
             +{extra}
           </Kb.Text>
         </Kb.Box2>
       )}
       {usernamesToShow
-        .map((username, i) => (
+        .map(username => (
           <Kb.Avatar
             size={props.size}
             username={username}
-            key={i}
+            key={username}
             borderColor="white"
-            style={getAvatarStyle(props)}
+            style={styles.avatar}
           />
         ))
         .reverse()}
@@ -40,55 +41,54 @@ const AvatarLine = (props: Props) => {
   )
 }
 
-const getAvatarStyle = props =>
-  props.layout === 'horizontal' ? {marginRight: -props.size / 3} : {marginBottom: -props.size / 3}
-
-const getOverallStyle = (props, extra) =>
-  Styles.collapseStyles([
-    styles.container,
-    extra
-      ? {}
-      : props.layout === 'horizontal'
-      ? {marginRight: props.size / 3 + 2}
-      : {marginBottom: props.size / 3 + 2},
-  ])
-
-const getOverflowBoxStyle = props =>
-  Styles.collapseStyles([
-    styles.overflowBox,
-    props.layout === 'horizontal'
-      ? {
-          borderBottomRightRadius: props.size,
-          borderTopRightRadius: props.size,
-          height: props.size,
-          paddingLeft: props.size / 2,
-        }
-      : {
-          borderBottomLeftRadius: props.size,
-          borderBottomRightRadius: props.size,
-          paddingTop: props.size / 2,
-          width: props.size,
-        },
-  ])
-
-const getOverflowTextStyle = props =>
-  Styles.collapseStyles([
-    styles.text,
-    props.layout === 'horizontal' ? {paddingRight: props.size / 5} : {paddingBottom: props.size / 5},
-  ])
-
 const getTextSize = size => (size >= 48 ? 'BodySmallBold' : 'BodyTinyBold')
-const styles = Styles.styleSheetCreate({
-  container: {
-    marginLeft: 2,
-  },
-  overflowBox: {
-    backgroundColor: Styles.globalColors.grey,
-    justifyContent: 'flex-end',
-  },
-  text: {
-    color: Styles.globalColors.black_40,
-  },
-})
+
+const styleMap = [128, 96, 64, 48, 32, 24, 16, 12].reduce(function(styles, size) {
+  styles[size] = {
+    horizontal: Styles.styleSheetCreate({
+      avatar: {
+        marginRight: -size / 3,
+      },
+      container: {
+        marginLeft: 2,
+        marginRight: size / 3 + 2,
+      },
+      overflowBox: {
+        backgroundColor: Styles.globalColors.grey,
+        borderBottomRightRadius: size,
+        borderTopRightRadius: size,
+        height: size,
+        justifyContent: 'flex-end',
+        paddingLeft: size / 2,
+      },
+      text: {
+        color: Styles.globalColors.black_40,
+        paddingRight: size / 5,
+      },
+    }),
+    vertical: Styles.styleSheetCreate({
+      avatar: {
+        marginBottom: -size / 3,
+      },
+      container: {
+        marginBottom: size / 3 + 2,
+        marginTop: 2,
+      },
+      overflowBox: {
+        backgroundColor: Styles.globalColors.grey,
+        borderBottomLeftRadius: size,
+        borderBottomRightRadius: size,
+        justifyContent: 'flex-end',
+        paddingTop: size / 2,
+        width: size,
+      },
+      text: {
+        color: Styles.globalColors.black_40,
+        paddingBottom: size / 5,
+      },
+    }),
+  }
+  return styles
+}, {})
 
 export default AvatarLine
