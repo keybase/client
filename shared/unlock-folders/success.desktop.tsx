@@ -1,9 +1,12 @@
-// @flow
 import * as React from 'react'
 import {globalStyles} from '../styles'
 import {Text, Button, Icon, Box, ButtonBar} from '../common-adapters'
 
-const PaperKeyInput = ({onClose}: {onClose: () => void}) => (
+const PaperKeyInput = ({
+  onClose
+}: {
+  onClose: () => void
+}) => (
   <div style={containerStyle}>
     <Icon type="icon-folder-success-48" />
     <Box style={globalStyles.flexBoxColumn}>

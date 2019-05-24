@@ -1,16 +1,17 @@
-// @flow
 import React, {Component} from 'react'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 import {Text, Button, Icon} from '../common-adapters'
 
-import type {_Device} from '../constants/types/unlock-folders'
+import { _Device } from '../constants/types/unlock-folders';
 
 export type Props = {
-  devices: ?Array<_Device>,
-  toPaperKeyInput: () => void,
-}
+  devices: Array<_Device> | null,
+  toPaperKeyInput: () => void
+};
 
-class DeviceRow extends Component<{device: _Device}, void> {
+class DeviceRow extends Component<{
+  device: _Device
+}, void> {
   render() {
     const icon = {
       backup: 'icon-paper-key-32',

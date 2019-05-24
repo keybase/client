@@ -1,4 +1,3 @@
-// @flow
 
 import React, {Component} from 'react'
 import {globalStyles} from '../styles'
@@ -7,18 +6,18 @@ import {Text, Button, BackButton, Icon, Input} from '../common-adapters'
 export type Props = {
   onBack: () => void,
   onContinue: (paperkey: string) => void,
-  paperkeyError: ?string,
-  waiting: boolean,
-}
+  paperkeyError: string | null,
+  waiting: boolean
+};
 
 type State = {
-  paperkey: string,
-}
+  paperkey: string
+};
 
 class PaperKeyInput extends Component<Props, State> {
   state: State = {
     paperkey: '',
-  }
+  };
 
   render() {
     const errorText = this.props.paperkeyError

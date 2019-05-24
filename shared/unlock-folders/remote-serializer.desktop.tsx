@@ -1,4 +1,3 @@
-// @flow
 export const serialize = {
   devices: (v: any) => v,
   paperkeyError: (v: any) => v,

@@ -1,11 +1,10 @@
-// @flow
 import * as React from 'react'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
 import {NullComponent, connect, compose} from '../util/container'
 import {serialize} from './remote-serializer.desktop'
 
-type OwnProps = {||}
+type OwnProps = {};
 
 const windowOpts = {height: 300, width: 500}
 
@@ -47,8 +46,9 @@ const UnlockFolder = compose(
 )(NullComponent)
 
 type Props = {
-  show: boolean,
-}
+  show: boolean
+};
+
 class UnlockFolders extends React.PureComponent<Props> {
   render() {
     return this.props.show ? <UnlockFolder /> : null
