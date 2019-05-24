@@ -26,8 +26,7 @@ const installLinkURL = 'https://keybase.io/download'
 const onSkipTodo = (type: Types.TodoType, dispatch) => () => dispatch(PeopleGen.createSkipTodo({type}))
 const mapStateToProps = state => ({myUsername: state.config.username || ''})
 
-// @ts-ignore codemod issue
-const AvatarTeamConnector = connect<TodoOwnProps, _, _, _, _>(
+const AvatarTeamConnector = connect(
   mapStateToProps,
   dispatch => ({
     onConfirm: () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.teamsTab})),
@@ -40,8 +39,7 @@ const AvatarTeamConnector = connect<TodoOwnProps, _, _, _, _>(
   })
 )(Task)
 
-// @ts-ignore codemod issue
-const AvatarUserConnector = connect<TodoOwnProps, _, _, _, _>(
+const AvatarUserConnector = connect(
   mapStateToProps,
   dispatch => ({
     _onConfirm: username => dispatch(ProfileGen.createEditAvatar()),
@@ -54,8 +52,7 @@ const AvatarUserConnector = connect<TodoOwnProps, _, _, _, _>(
   })
 )(Task)
 
-// @ts-ignore codemod issue
-const BioConnector = connect<TodoOwnProps, _, _, _, _>(
+const BioConnector = connect(
   mapStateToProps,
   dispatch => ({
     _onConfirm: (username: string) => {
@@ -71,8 +68,7 @@ const BioConnector = connect<TodoOwnProps, _, _, _, _>(
   })
 )(Task)
 
-// @ts-ignore codemod issue
-const ProofConnector = connect<TodoOwnProps, _, _, _, _>(
+const ProofConnector = connect(
   mapStateToProps,
   dispatch => ({
     _onConfirm: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
@@ -85,8 +81,7 @@ const ProofConnector = connect<TodoOwnProps, _, _, _, _>(
   })
 )(Task)
 
-// @ts-ignore codemod issue
-const DeviceConnector = connect<TodoOwnProps, _, _, _, _>(
+const DeviceConnector = connect(
   () => ({}),
   dispatch => ({
     onConfirm: () => openURL(installLinkURL),
@@ -95,8 +90,7 @@ const DeviceConnector = connect<TodoOwnProps, _, _, _, _>(
   (s, d, o) => ({...o, ...s, ...d})
 )(Task)
 
-// @ts-ignore codemod issue
-const FollowConnector = connect<TodoOwnProps, _, _, _, _>(
+const FollowConnector = connect(
   () => ({}),
   dispatch => ({
     onConfirm: () =>
@@ -106,8 +100,7 @@ const FollowConnector = connect<TodoOwnProps, _, _, _, _>(
   (s, d, o) => ({...o, ...s, ...d, showSearchBar: true})
 )(Task)
 
-// @ts-ignore codemod issue
-const ChatConnector = connect<TodoOwnProps, _, _, _, _>(
+const ChatConnector = connect(
   () => ({}),
   dispatch => ({
     onConfirm: () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.chatTab})),
@@ -116,8 +109,7 @@ const ChatConnector = connect<TodoOwnProps, _, _, _, _>(
   (s, d, o) => ({...o, ...s, ...d})
 )(Task)
 
-// @ts-ignore codemod issue
-const PaperKeyConnector = connect<TodoOwnProps, _, _, _, _>(
+const PaperKeyConnector = connect(
   () => ({}),
   dispatch => ({
     onConfirm: () =>
@@ -131,8 +123,7 @@ const PaperKeyConnector = connect<TodoOwnProps, _, _, _, _>(
   (s, d, o) => ({...o, ...s, ...d})
 )(Task)
 
-// @ts-ignore codemod issue
-const TeamConnector = connect<TodoOwnProps, _, _, _, _>(
+const TeamConnector = connect(
   () => ({}),
   dispatch => ({
     onConfirm: () => {
@@ -144,8 +135,7 @@ const TeamConnector = connect<TodoOwnProps, _, _, _, _>(
   (s, d, o) => ({...o, ...s, ...d})
 )(Task)
 
-// @ts-ignore codemod issue
-const FolderConnector = connect<TodoOwnProps, _, _, _, _>(
+const FolderConnector = connect(
   () => ({}),
   dispatch => ({
     onConfirm: () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.fsTab})),
@@ -154,8 +144,7 @@ const FolderConnector = connect<TodoOwnProps, _, _, _, _>(
   (s, d, o) => ({...o, ...s, ...d})
 )(Task)
 
-// @ts-ignore codemod issue
-const GitRepoConnector = connect<TodoOwnProps, _, _, _, _>(
+const GitRepoConnector = connect(
   () => ({}),
   dispatch => ({
     onConfirm: () => {
@@ -171,8 +160,7 @@ const GitRepoConnector = connect<TodoOwnProps, _, _, _, _>(
   (s, d, o) => ({...o, ...s, ...d})
 )(Task)
 
-// @ts-ignore codemod issue
-const TeamShowcaseConnector = connect<TodoOwnProps, _, _, _, _>(
+const TeamShowcaseConnector = connect(
   () => ({}),
   dispatch => ({
     onConfirm: () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.teamsTab})),
@@ -183,28 +171,40 @@ const TeamShowcaseConnector = connect<TodoOwnProps, _, _, _, _>(
 
 const TaskChooser = (props: TodoOwnProps) => {
   switch (props.todoType) {
+    // @ts-ignore codemod issue
     case todoTypes.avatarTeam:
       return <AvatarTeamConnector {...props} />
+    // @ts-ignore codemod issue
     case todoTypes.avatarUser:
       return <AvatarUserConnector {...props} />
+    // @ts-ignore codemod issue
     case todoTypes.bio:
       return <BioConnector {...props} />
+    // @ts-ignore codemod issue
     case todoTypes.proof:
       return <ProofConnector {...props} />
+    // @ts-ignore codemod issue
     case todoTypes.device:
       return <DeviceConnector {...props} />
+    // @ts-ignore codemod issue
     case todoTypes.follow:
       return <FollowConnector {...props} />
+    // @ts-ignore codemod issue
     case todoTypes.chat:
       return <ChatConnector {...props} />
+    // @ts-ignore codemod issue
     case todoTypes.paperkey:
       return <PaperKeyConnector {...props} />
+    // @ts-ignore codemod issue
     case todoTypes.team:
       return <TeamConnector {...props} />
+    // @ts-ignore codemod issue
     case todoTypes.folder:
       return <FolderConnector {...props} />
+    // @ts-ignore codemod issue
     case todoTypes.gitRepo:
       return <GitRepoConnector {...props} />
+    // @ts-ignore codemod issue
     case todoTypes.teamShowcase:
       return <TeamShowcaseConnector {...props} />
   }

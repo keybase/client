@@ -98,17 +98,15 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
-// @ts-ignore codemod issue
-const connected = connect<OwnProps, _, _, _, _>(
+const connected = connect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps
 )(LoadOnMount)
 
-// $FlowIssue lets fix this
+// @ts-ignore lets fix this
 connected.navigationOptions = {
   header: undefined,
-  // $FlowIssue lets fix this
   headerTitle: hp => <ConnectedHeader />,
   headerTitleContainerStyle: {
     left: 40,
