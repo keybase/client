@@ -3,7 +3,6 @@ import * as Kb from '../common-adapters'
 import * as Constants from '../constants/tracker2'
 import * as Types from '../constants/types/tracker2'
 import * as Styles from '../styles'
-import * as Flow from '../util/flow'
 import Assertion from './assertion/remote-container'
 import Bio from './bio/remote-container'
 
@@ -23,6 +22,7 @@ type Props = {
   onIgnoreFor24Hours: () => void
   onAccept: () => void
   onReload: () => void
+  // eslint-disable-next-line no-use-before-define
   reason: string
   state: Types.DetailsState
   teamShowcase: ReadonlyArray<Types._TeamShowcase> | null
@@ -98,8 +98,6 @@ const getButtons = (props: Props) => {
           onClick={props.onReload}
         />,
       ]
-    default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.state)
   }
   return []
 }
@@ -191,14 +189,14 @@ const Tracker = (props: Props) => {
 const avatarSize = 96
 const barHeight = 62
 const reason = {
-  alignSelf: 'center',
+  alignSelf: 'center' as 'center',
   color: Styles.globalColors.white,
   flexShrink: 0,
   paddingBottom: Styles.globalMargins.small,
   paddingLeft: Styles.globalMargins.medium,
   paddingRight: Styles.globalMargins.medium,
   paddingTop: Styles.globalMargins.small,
-  textAlign: 'center',
+  textAlign: 'center' as 'center',
 }
 
 const styles = Styles.styleSheetCreate({

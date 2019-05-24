@@ -78,4 +78,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   username: stateProps.username,
 })
 
-export default remoteConnect<OwnProps, State, _, _, _, _>(s => s, mapDispatchToProps, mergeProps)(Tracker)
+export default remoteConnect(s => s, mapDispatchToProps, mergeProps)(Tracker)

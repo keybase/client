@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Types from '../../constants/types/tracker2'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Flow from '../../util/flow'
 import {SiteIcon} from '../../profile/generic/shared'
 import {formatTimeForAssertionPopup} from '../../util/timestamp'
 
@@ -54,7 +53,6 @@ const stateToIcon = state => {
     case 'suggestion':
       return 'iconfont-proof-placeholder'
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(state)
       throw new Error('Impossible')
   }
 }
@@ -73,7 +71,6 @@ const stateToDecorationIcon = state => {
     case 'suggestion':
       return 'icon-proof-unfinished'
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(state)
       throw new Error('impossible')
   }
 }
@@ -89,7 +86,6 @@ const stateToValueTextStyle = state => {
     case 'suggestion':
       return null
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(state)
       throw new Error('Impossible')
   }
 }

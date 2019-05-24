@@ -18,6 +18,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   registeredForAirdrop: stateProps.registeredForAirdrop,
 })
 
-export default Container.remoteConnect<OwnProps, State, _, _, _, _>(s => s, mapDispatchToProps, mergeProps)(
-  Bio
-)
+export default Container.remoteConnect(s => s, mapDispatchToProps, mergeProps)(Bio)

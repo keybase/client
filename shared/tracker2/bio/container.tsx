@@ -33,9 +33,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   registeredForAirdrop: stateProps.registeredForAirdrop,
 })
 
-export default Container.namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'Bio'
-)(Bio)
+export default Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Bio')(Bio)

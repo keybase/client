@@ -59,8 +59,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   value: stateProps.value,
 })
 
-export default Container.remoteConnect<OwnProps, State, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(Assertion)
+export default Container.remoteConnect(mapStateToProps, mapDispatchToProps, mergeProps)(Assertion)

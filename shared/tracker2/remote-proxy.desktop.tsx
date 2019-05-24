@@ -69,7 +69,7 @@ const Empty = () => null
 
 // Actions are handled by remote-container
 const RemoteTracker2 = compose(
-  connect<OwnProps, _, _, _, _>(
+  connect(
     trackerMapStateToProps,
     () => ({}),
     trackerMergeProps
