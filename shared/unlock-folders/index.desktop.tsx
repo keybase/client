@@ -1,10 +1,10 @@
-import React, {Component} from 'react'
-
+import * as React from 'react'
 import DeviceList from './device-list.desktop'
 import PaperKeyInput from './paper-key-input.desktop'
 import Success from './success.desktop'
 import {Header} from '../common-adapters'
 import {State, _Device} from '../constants/types/unlock-folders'
+import * as Styles from '../styles'
 
 export type Props = {
   phase: State['phase']
@@ -18,7 +18,7 @@ export type Props = {
   onFinish: () => void
 }
 
-export default class UnlockFoldersRender extends Component<Props> {
+export default class UnlockFoldersRender extends React.Component<Props> {
   render() {
     let innerComponent
 
@@ -32,7 +32,6 @@ export default class UnlockFoldersRender extends Component<Props> {
       case 'paperKeyInput':
         innerComponent = (
           <PaperKeyInput
-            toPaperKeyInput={this.props.toPaperKeyInput}
             onBack={this.props.onBackFromPaperKey}
             onContinue={this.props.onContinueFromPaperKey}
             paperkeyError={this.props.paperkeyError}
@@ -56,7 +55,7 @@ export default class UnlockFoldersRender extends Component<Props> {
   }
 }
 
-const styles = {
+const styles = Styles.styleSheetCreate({
   container: {
     height: 300,
     position: 'relative',
@@ -67,4 +66,4 @@ const styles = {
     position: 'absolute',
     width: '100%',
   },
-}
+})
