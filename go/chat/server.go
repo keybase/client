@@ -2911,6 +2911,7 @@ func (h *Server) LoadGallery(ctx context.Context, arg chat1.LoadGalleryArg) (res
 			chat1.AssetMetadataType_VIDEO}
 	case chat1.GalleryItemTyp_LINK:
 		opts.MessageTypes = []chat1.MessageType{chat1.MessageType_UNFURL}
+		opts.UnfurlTypes = []chat1.UnfurlType{chat1.UnfurlType_GENERIC}
 	case chat1.GalleryItemTyp_DOC:
 		opts.MessageTypes = []chat1.MessageType{chat1.MessageType_ATTACHMENT}
 		opts.AssetTypes = []chat1.AssetMetadataType{chat1.AssetMetadataType_NONE}

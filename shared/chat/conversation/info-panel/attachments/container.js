@@ -27,9 +27,15 @@ const mapStateToProps = (state, {conversationIDKey}) => {
     [conversationIDKey, RPCChatTypes.localGalleryItemTyp.doc],
     Constants.makeAttachmentViewInfo()
   )
+  const links = state.chat2.attachmentViewMap.getIn(
+    [conversationIDKey, RPCChatTypes.localGalleryItemTyp.link],
+    Constants.makeAttachmentViewInfo()
+  )
   return {
     _docs: docs,
     _docsFromMsgID: getFromMsgID(docs),
+    _links: links,
+    _linksFromMsgID: getFromMsgID(links),
     _media: media,
     _mediaFromMsgID: getFromMsgID(media),
   }
@@ -59,10 +65,29 @@ const mergeProps = (stateProps, dispatchProps, {conversationIDKey}) => ({
         progress: m.transferProgress,
       }))
       .toArray(),
-    onLoadMore: stateProps._docFromMsgID
-      ? () => dispatchProps._onLoadMore(RPCChatTypes.localGalleryItemTyp.doc, stateProps._docFromMsgID)
+    onLoadMore: stateProps._docsFromMsgID
+      ? () => dispatchProps._onLoadMore(RPCChatTypes.localGalleryItemTyp.doc, stateProps._docsFromMsgID)
       : null,
     status: stateProps._docs.status,
+  },
+  links: {
+    links: stateProps._links.messages.reduce((l, m) => {
+      m.unfurls.toList().map(u => {
+        if (u.unfurl.unfurlType === RPCChatTypes.unfurlUnfurlType.generic && u.unfurl.generic) {
+          l.push({
+            ctime: m.timestamp,
+            snippet: m.bodySummary.stringValue(),
+            title: u.unfurl.generic.title,
+            url: u.unfurl.generic.url,
+          })
+        }
+      })
+      return l
+    }, []),
+    onLoadMore: stateProps._linksFromMsgID
+      ? () => dispatchProps._onLoadMore(RPCChatTypes.localGalleryItemTyp.link, stateProps._linksFromMsgID)
+      : null,
+    status: stateProps._links.status,
   },
   media: {
     onLoadMore: stateProps._mediaFromMsgID

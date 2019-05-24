@@ -14,6 +14,7 @@ type NextMessageOptions struct {
 	BackInTime   bool
 	MessageTypes []chat1.MessageType
 	AssetTypes   []chat1.AssetMetadataType
+	UnfurlTypes  []chat1.UnfurlType
 }
 
 type Gallery struct {
@@ -33,7 +34,7 @@ func NewGallery(g *globals.Context) *Gallery {
 }
 
 func (g *Gallery) eligibleNextMessage(msg chat1.MessageUnboxed, typMap map[chat1.MessageType]bool,
-	assetMap map[chat1.AssetMetadataType]bool) bool {
+	assetMap map[chat1.AssetMetadataType]bool, unfurlMap map[chat1.UnfurlType]bool) bool {
 	if !msg.IsValid() {
 		return false
 	}
@@ -55,6 +56,15 @@ func (g *Gallery) eligibleNextMessage(msg chat1.MessageUnboxed, typMap map[chat1
 		if len(assetMap) > 0 && !assetMap[atyp] {
 			return false
 		}
+	case chat1.MessageType_UNFURL:
+		unfurl := body.Unfurl().Unfurl.Unfurl
+		typ, err := unfurl.UnfurlType()
+		if err != nil {
+			return false
+		}
+		if len(unfurlMap) > 0 && !unfurlMap[typ] {
+			return false
+		}
 	}
 	return true
 }
@@ -72,16 +82,32 @@ func (g *Gallery) NextMessage(ctx context.Context, uid gregor1.UID,
 }
 
 func (g *Gallery) makeMaps(opts NextMessageOptions) (typMap map[chat1.MessageType]bool,
-	assetMap map[chat1.AssetMetadataType]bool) {
+	assetMap map[chat1.AssetMetadataType]bool, unfurlMap map[chat1.UnfurlType]bool) {
 	typMap = make(map[chat1.MessageType]bool)
 	assetMap = make(map[chat1.AssetMetadataType]bool)
+	unfurlMap = make(map[chat1.UnfurlType]bool)
 	for _, typ := range opts.MessageTypes {
 		typMap[typ] = true
 	}
 	for _, atyp := range opts.AssetTypes {
 		assetMap[atyp] = true
 	}
-	return typMap, assetMap
+	for _, utyp := range opts.UnfurlTypes {
+		unfurlMap[utyp] = true
+	}
+	return typMap, assetMap, unfurlMap
+}
+
+func (g *Gallery) getUnfurlHost(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	msg chat1.MessageUnboxed) (res chat1.MessageUnboxed, err error) {
+	if !msg.IsValid() {
+		return msg, nil
+	}
+	if !msg.Valid().MessageBody.IsType(chat1.MessageType_UNFURL) {
+		return msg, nil
+	}
+	hostMsgID := msg.Valid().MessageBody.Unfurl().MessageID
+	return g.G().ChatHelper.GetMessage(ctx, uid, convID, hostMsgID, true, nil)
 }
 
 func (g *Gallery) NextMessages(ctx context.Context, uid gregor1.UID,
@@ -103,7 +129,7 @@ func (g *Gallery) NextMessages(ctx context.Context, uid gregor1.UID,
 	if len(opts.MessageTypes) == 0 {
 		opts.MessageTypes = []chat1.MessageType{chat1.MessageType_ATTACHMENT}
 	}
-	typMap, assetMap := g.makeMaps(opts)
+	typMap, assetMap, unfurlMap := g.makeMaps(opts)
 	pagination := utils.MessageIDControlToPagination(ctx, g.DebugLabeler, &chat1.MessageIDControl{
 		Pivot: &pivot,
 		Mode:  mode,
@@ -153,8 +179,11 @@ func (g *Gallery) NextMessages(ctx context.Context, uid gregor1.UID,
 		}
 		messages := reverseFn(tv)
 		for _, m := range messages {
-			if !g.eligibleNextMessage(m, typMap, assetMap) {
+			if !g.eligibleNextMessage(m, typMap, assetMap, unfurlMap) {
 				continue
+			}
+			if m, err = g.getUnfurlHost(ctx, uid, convID, m); err != nil {
+				return res, false, err
 			}
 			res = append(res, m)
 			if uiCh != nil {

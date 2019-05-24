@@ -4,6 +4,7 @@ import * as Types from '../../../../constants/types/chat2'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
+import {imgMaxWidth} from '../../messages/attachment/image/image-render'
 
 type Thumb = {|
   ctime: number,
@@ -36,8 +37,22 @@ type DocProps = {|
   status: Types.AttachmentViewStatus,
 |}
 
+type Link = {|
+  ctime: number,
+  snippet: string,
+  title: string,
+  url: string,
+|}
+
+type LinkProps = {|
+  links: Array<Link>,
+  onLoadMore: null | (() => void),
+  status: Types.AttachmentViewStatus,
+|}
+
 type Props = {|
   docs: DocProps,
+  links: LinkProps,
   media: MediaProps,
   onViewChange: RPCChatTypes.GalleryItemTyp => void,
 |}
@@ -47,7 +62,7 @@ type State = {|
 |}
 
 const rowSize = 4
-const maxThumbSize = 80
+const maxThumbSize = Styles.isMobile ? imgMaxWidth() / rowSize : 80
 const monthNames = [
   'January',
   'February',
@@ -250,17 +265,11 @@ class DocView extends React.Component<DocProps> {
     const label = `${section.month} ${section.year}`
     return <Kb.SectionDivider label={label} />
   }
-  _renderItem = ({item, index}) => {
+  _renderItem = ({item}) => {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true}>
         <Kb.ClickableBox onClick={item.onDownload}>
-          <Kb.Box2
-            key={index}
-            direction="horizontal"
-            fullWidth={true}
-            style={styles.docRowContainer}
-            gap="xtiny"
-          >
+          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.docRowContainer} gap="xtiny">
             <Kb.Icon type={'icon-file-32'} style={Kb.iconCastPlatformStyles(styles.docIcon)} />
             <Kb.Box2 direction="vertical">
               <Kb.Text type="BodySemibold">{item.name}</Kb.Text>
@@ -287,6 +296,44 @@ class DocView extends React.Component<DocProps> {
   render() {
     const months = formMonths(this.props.docs.docs)
     const sections = months.concat(createLoadMoreSection(this.props.docs.onLoadMore))
+    return (
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+        <Kb.SectionList
+          stickySectionHeadersEnabled={true}
+          renderSectionHeader={this._renderSectionHeader}
+          keyboardShouldPersistTaps="handled"
+          renderItem={this._renderItem}
+          sections={sections}
+        />
+      </Kb.Box2>
+    )
+  }
+}
+
+class LinkView extends React.Component<LinkProps> {
+  _renderSectionHeader = ({section}) => {
+    if (!section.month) {
+      return null
+    }
+    const label = `${section.month} ${section.year}`
+    return <Kb.SectionDivider label={label} />
+  }
+  _renderItem = ({item}) => {
+    return (
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.linkContainer}>
+        <Kb.Text type="BodySmall" lineClamp={2}>
+          {item.snippet}
+        </Kb.Text>
+        <Kb.Text type="BodySmallPrimaryLink" onClickURL={item.url}>
+          {item.title}
+        </Kb.Text>
+        <Kb.Divider />
+      </Kb.Box2>
+    )
+  }
+  render() {
+    const months = formMonths(this.props.links.links)
+    const sections = months.concat(createLoadMoreSection(this.props.links.onLoadMore))
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         <Kb.SectionList
@@ -329,6 +376,12 @@ class AttachmentPanel extends React.Component<Props, State> {
         content = <DocView docs={this.props.docs} />
         isLoading = this.props.docs.status === 'loading'
         break
+      case RPCChatTypes.localGalleryItemTyp.link:
+        content = <LinkView links={this.props.links} />
+        isLoading = this.props.links.status === 'loading'
+        break
+      default:
+        return null
     }
     content = (
       <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -394,6 +447,9 @@ const styles = Styles.styleSheetCreate({
   },
   filmIcon: {
     height: 16,
+  },
+  linkContainer: {
+    padding: Styles.globalMargins.tiny,
   },
   loadMore: {
     margin: Styles.globalMargins.tiny,
