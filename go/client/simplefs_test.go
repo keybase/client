@@ -596,6 +596,7 @@ func TestSimpleFSRemoteSrcDir(t *testing.T) {
 	pathType, err = destPath.PathType()
 	require.NoError(tc.T, err, "bad path type")
 	assert.Equal(tc.T, keybase1.PathType_LOCAL, pathType, "Expected remote path, got local")
+
 }
 
 func TestSimpleFSLocalExists(t *testing.T) {
