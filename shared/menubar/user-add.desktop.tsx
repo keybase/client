@@ -37,7 +37,7 @@ type UserInputProps = {
   isPublic: boolean
   onSubmit: () => void
   onCancel: () => void
-  onUpdateText: (string) => void
+  onUpdateText: (text: string) => void
   username: string | null
   text: string
 }
