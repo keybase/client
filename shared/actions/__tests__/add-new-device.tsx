@@ -13,15 +13,7 @@ import createSagaMiddleware from 'redux-saga'
 const noError = new HiddenString('')
 
 // Sets up redux and the provision manager. Starts by making an incoming call into the manager
-const makeInit = ({
-  method,
-  payload,
-  initialStore
-}: {
-  method: string,
-  payload: any,
-  initialStore?: Object
-}) => {
+const makeInit = ({method, payload, initialStore}: {method: string; payload: any; initialStore?: Object}) => {
   const {dispatch, getState, sagaMiddleware} = startReduxSaga(initialStore)
   const manager = _testing.makeProvisioningManager(true)
   const callMap = manager.getCustomResponseIncomingCallMap()
@@ -30,11 +22,11 @@ const makeInit = ({
     throw new Error('No call')
   }
   const response = {error: jest.fn(), result: jest.fn()}
-  const effect: any = mockIncomingCall((payload as any), (response as any))
+  const effect: any = mockIncomingCall(payload as any, response as any)
   if (effect) {
     // Throws in the generator only, so we have to stash it
     let thrown
-    sagaMiddleware.run(function*(): Generator<any, any, any> {
+    sagaMiddleware.run(function*(): IterableIterator<any> {
       try {
         yield effect
       } catch (e) {

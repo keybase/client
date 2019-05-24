@@ -23,7 +23,10 @@ const addToAvatarQueue = (state, action: ConfigGen.LoadAvatarsPayload | ConfigGe
 }
 
 const avatarSizes = [960, 256, 192]
-function* avatarCallAndHandle(names: Array<string>, method: Function) {
+function* avatarCallAndHandle<T, Args extends {formats: string[]; names: string[]}>(
+  names: Array<string>,
+  method: (...args: Array<Args>) => Promise<T>
+) {
   try {
     const resp = yield* Saga.callPromise(method, {
       formats: avatarSizes.map(s => `square_${s}`),

@@ -9,7 +9,7 @@ import {TypedActions} from '../actions/typed-actions-gen'
 import put from './typed-put'
 import {isArray} from 'lodash-es'
 
-export type SagaGenerator<Yield, Actions> = Iterable<Yield | Actions>
+export type SagaGenerator<Yield, Actions> = IterableIterator<Yield | Actions>
 
 class SagaLogger {
   error: LogFn

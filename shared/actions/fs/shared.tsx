@@ -62,7 +62,7 @@ const makeErrorHandler = (action: FsGen.Actions, path: Types.Path | null, retria
   ]
 }
 
-export const makeRetriableErrorHandler = (action: FsGen.Actions, path: Types.Path | null) =>
+export const makeRetriableErrorHandler = (action: FsGen.Actions, path?: Types.Path | null) =>
   makeErrorHandler(action, path, true)
 
 export const makeUnretriableErrorHandler = (action: FsGen.Actions, path: Types.Path | null) =>

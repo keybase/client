@@ -43,7 +43,7 @@ function* generatePgp(state) {
       )
       const action: ProfileGen.FinishedWithKeyGenPayload = yield Saga.take(ProfileGen.finishedWithKeyGen)
       response.result(action.payload.shouldStoreKeyOnServer)
-    });
+    })
   }
   const onFinished = () => {}
 
@@ -75,7 +75,7 @@ function* generatePgp(state) {
   cancelTask.cancel()
 }
 
-function* pgpSaga(): Generator<any, void, any> {
+function* pgpSaga(): Iterable<any> {
   yield* Saga.chainGenerator<ProfileGen.GeneratePgpPayload>(ProfileGen.generatePgp, generatePgp)
 }
 

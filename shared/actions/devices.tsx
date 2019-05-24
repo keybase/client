@@ -6,7 +6,7 @@ import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
 import * as Tabs from '../constants/tabs'
 import HiddenString from '../util/hidden-string'
-import { logError, RPCError } from '../util/errors';
+import {logError, RPCError} from '../util/errors'
 
 const load = state =>
   state.config.loggedIn
@@ -18,7 +18,7 @@ const load = state =>
         .catch(() => {})
     : false
 
-function* requestPaperKey(): Generator<any, void, any> {
+function* requestPaperKey(): Iterable<any> {
   yield* Saga.callRPCs(
     RPCTypes.loginPaperKeyRpcSaga({
       customResponseIncomingCallMap: {
@@ -49,7 +49,7 @@ const requestEndangeredTLFsLoad = (state, action: DevicesGen.ShowRevokePagePaylo
       )
       .catch((e: RPCError) => {
         console.error(e)
-      });
+      })
   }
 }
 

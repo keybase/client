@@ -10,26 +10,26 @@ import * as Selectors from '../constants/selectors'
 import {keyBy, trim} from 'lodash-es'
 import {onIdlePromise} from '../util/idle-callback'
 import {serviceIdToIcon, serviceIdToLogo24} from '../util/platforms'
-import { ServiceId } from '../util/platforms';
+import {ServiceId} from '../util/platforms'
 
 type RawResult = {
-  score: number,
+  score: number
   keybase: {
-    username: string,
-    uid: string,
-    picture_url: string | null,
-    full_name: string | null,
+    username: string
+    uid: string
+    picture_url: string | null
+    full_name: string | null
     is_followee: boolean
-  } | null,
+  } | null
   service: {
-    service_name: ServiceId,
-    username: string,
-    picture_url: string | null,
-    bio: string | null,
-    location: string | null,
+    service_name: ServiceId
+    username: string
+    picture_url: string | null
+    bio: string | null
+    location: string | null
     full_name: string | null
   } | null
-};
+}
 
 function _serviceToApiServiceName(service: Types.Service): string {
   return (
@@ -253,7 +253,7 @@ function* search(state, {payload: {term, service, searchKey}}) {
   }
 }
 
-const searchSuggestions = (_, {payload: {maxUsers, searchKey}}) =>
+const searchSuggestions = (_, {payload: {maxUsers, searchKey}}: SearchGen.SearchSuggestionsPayload) =>
   RPCTypes.userInterestingPeopleRpcPromise({
     maxUsers: maxUsers || 50,
   }).then(suggestions => {
@@ -371,9 +371,7 @@ const maybeNewSearch = (state, {payload: {searchKey}}) => {
   return [SearchGen.createClearSearchResults({searchKey}), SearchGen.createSearchSuggestions({searchKey})]
 }
 
-const clearSearchTextInput = (state, {
-  payload: {searchKey}
-}: SearchGen.UserInputItemsUpdatedPayload) => {
+const clearSearchTextInput = (state, {payload: {searchKey}}: SearchGen.UserInputItemsUpdatedPayload) => {
   const clearSearchTextInput = Constants.getClearSearchTextInput(state, searchKey)
   return EntitiesGen.createReplaceEntity({
     entities: I.Map({

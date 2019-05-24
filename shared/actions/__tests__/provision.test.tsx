@@ -18,15 +18,7 @@ jest.mock('../../engine/require')
 const noError = new HiddenString('')
 
 // Sets up redux and the provision manager. Starts by making an incoming call into the manager
-const makeInit = ({
-  method,
-  payload,
-  initialStore
-}: {
-  method: string,
-  payload: any,
-  initialStore?: Object
-}) => {
+const makeInit = ({method, payload, initialStore}: {method: string; payload: any; initialStore?: Object}) => {
   const {dispatch, getState, sagaMiddleware} = startReduxSaga(initialStore)
   const manager = _testing.makeProvisioningManager(false)
   const callMap = manager.getCustomResponseIncomingCallMap()
@@ -35,11 +27,11 @@ const makeInit = ({
     throw new Error('No call')
   }
   const response = {error: jest.fn(), result: jest.fn()}
-  const effect: any = mockIncomingCall((payload as any), (response as any))
+  const effect: any = mockIncomingCall(payload as any, response as any)
   if (effect) {
     // Throws in the generator only, so we have to stash it
     let thrown
-    sagaMiddleware.run(function*(): Generator<any, any, any> {
+    sagaMiddleware.run(function*(): IterableIterator<any> {
       try {
         yield effect
       } catch (e) {
@@ -65,7 +57,8 @@ const startReduxSaga = (initialStore = undefined) => {
     },
   })
   const store = createStore(rootReducer, initialStore, applyMiddleware(sagaMiddleware))
-  const getState = store.getState
+  // @ts-ignore codemod-issue
+  const getState: () => any = store.getState
   const dispatch = store.dispatch
   sagaMiddleware.run(provisionSaga)
 
@@ -88,7 +81,7 @@ describe('provisioningManagerProvisioning', () => {
     keys.forEach(k => {
       const response = {error: jest.fn(), result: jest.fn()}
       // $FlowIssue flow is correct in complaining here
-      callMap[k]((undefined as any), response)
+      callMap[k](undefined as any, response)
       expect(response.result).not.toHaveBeenCalled()
       expect(response.error).toHaveBeenCalledWith({
         code: RPCTypes.constantsStatusCode.scinputcanceled,
@@ -204,7 +197,8 @@ describe('device name empty', () => {
     payload: {errorMessage: '', existingDevices: null},
   })
 
-  const {getState} = init
+  // @ts-ignore codemod-issue
+  const {getState}: {getState: () => any} = init
   expect(getState().provision.existingDevices).toEqual(existingDevices)
   expect(getState().provision.error).toEqual(noError)
 })
@@ -281,9 +275,9 @@ describe('device name error path', () => {
 })
 
 describe('other device happy path', () => {
-  const mobile = ({deviceID: '0', name: 'mobile', type: 'mobile'} as any)
-  const desktop = ({deviceID: '1', name: 'desktop', type: 'desktop'} as any)
-  const backup = ({deviceID: '2', name: 'backup', type: 'backup'} as any)
+  const mobile = {deviceID: '0', name: 'mobile', type: 'mobile'} as any
+  const desktop = {deviceID: '1', name: 'desktop', type: 'desktop'} as any
+  const backup = {deviceID: '2', name: 'backup', type: 'backup'} as any
   const rpcDevices = [mobile, desktop, backup]
   const devices = I.List(rpcDevices.map(Constants.rpcDeviceToDevice))
   let init

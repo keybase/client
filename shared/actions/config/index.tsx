@@ -22,7 +22,7 @@ import * as FsConstants from '../../constants/fs'
 import URL from 'url-parse'
 import avatarSaga from './avatar'
 import {isMobile} from '../../constants/platform'
-import { TypedState } from '../../constants/reducer';
+import {TypedState} from '../../constants/reducer'
 import {updateServerConfigLastLoggedIn} from '../../app/server-config'
 
 const onLoggedIn = (state, action: EngineGen.Keybase1NotifySessionLoggedInPayload) => {
@@ -51,7 +51,10 @@ const onDisconnected = () => {
   return ConfigGen.createDaemonError({daemonError: new Error('Disconnected')})
 }
 
-function* loadDaemonBootstrapStatus(state, action: ConfigGen.LoggedInPayload | ConfigGen.DaemonHandshakePayload | GregorGen.UpdateReachablePayload) {
+function* loadDaemonBootstrapStatus(
+  state,
+  action: ConfigGen.LoggedInPayload | ConfigGen.DaemonHandshakePayload | GregorGen.UpdateReachablePayload
+) {
   // Ignore the 'fake' loggedIn cause we'll get the daemonHandshake and we don't want to do this twice
   if (action.type === ConfigGen.loggedIn && action.payload.causedByStartup) {
     return
@@ -62,10 +65,10 @@ function* loadDaemonBootstrapStatus(state, action: ConfigGen.LoggedInPayload | C
     const loadedAction = ConfigGen.createBootstrapStatusLoaded({
       deviceID: s.deviceID,
       deviceName: s.deviceName,
-      followers: // Auto generated from flowToTs. Please clean me!
-      s.followers !== null && s.followers !== undefined ? s.followers : [],
-      following: // Auto generated from flowToTs. Please clean me!
-      s.following !== null && s.following !== undefined ? s.following : [],
+      // Auto generated from flowToTs. Please clean me!
+      followers: s.followers !== null && s.followers !== undefined ? s.followers : [],
+      // Auto generated from flowToTs. Please clean me!
+      following: s.following !== null && s.following !== undefined ? s.following : [],
       fullname: s.fullname || '',
       loggedIn: s.loggedIn,
       registered: s.registered,
@@ -112,6 +115,7 @@ function* loadDaemonBootstrapStatus(state, action: ConfigGen.LoggedInPayload | C
       if (!action.payload.reachable) break
     // else fall through
     case ConfigGen.loggedIn: // fallthrough
+    // @ts-ignore codemod-issue this probably is correct
     case ConfigGen.loggedOut:
       yield* makeCall()
       break
@@ -160,7 +164,10 @@ const maybeDoneWithDaemonHandshake = (state, action: ConfigGen.DaemonHandshakeWa
 // normally this wouldn't be worth it but this is startup
 const getAccountsWaitKey = 'config.getAccounts'
 
-function* loadDaemonAccounts(state, action: DevicesGen.RevokedPayload | ConfigGen.DaemonHandshakePayload | ConfigGen.LoggedOutPayload) {
+function* loadDaemonAccounts(
+  state,
+  action: DevicesGen.RevokedPayload | ConfigGen.DaemonHandshakePayload | ConfigGen.LoggedOutPayload
+) {
   let handshakeWait = false
   let handshakeVersion = 0
 
@@ -236,7 +243,7 @@ const switchRouteDef = (state, action: ConfigGen.LoggedInPayload | ConfigGen.Log
   }
 }
 
-const resetGlobalStore = () => ({payload: null, type: 'common:resetStore'})
+const resetGlobalStore = (): any => ({payload: null, type: 'common:resetStore'})
 
 // Figure out whether we can log out using CanLogout, if so,
 // startLogoutHandshake, else do what's needed - right now only
@@ -412,9 +419,9 @@ const updateServerConfig = (state: TypedState) =>
       } = JSON.parse(str.body)
       const features = Object.keys(obj.features).reduce((map, key) => {
         map[key] = // Auto generated from flowToTs. Please clean me!
-        obj.features[key] === null || obj.features[key] === undefined ? undefined : obj.features[key].value
+          obj.features[key] === null || obj.features[key] === undefined ? undefined : obj.features[key].value
         return map
-      }, {})
+      }, {}) as {[K in string]: boolean}
 
       const serverConfig = {
         chatIndexProfilingEnabled: !!features.admin,
@@ -434,15 +441,19 @@ const setNavigator = (state, action: ConfigGen.SetNavigatorPayload) => {
   Router2._setNavigator(navigator)
 }
 
-const newNavigation = (_, action: RouteTreeGen.NavigateAppendPayload
-  | RouteTreeGen.NavigateToPayload
-  | RouteTreeGen.NavigateUpPayload
-  | RouteTreeGen.SwitchToPayload
-  | RouteTreeGen.SwitchRouteDefPayload
-  | RouteTreeGen.ClearModalsPayload
-  | RouteTreeGen.NavUpToScreenPayload
-  | RouteTreeGen.SwitchTabPayload
-  | RouteTreeGen.ResetStackPayload) => {
+const newNavigation = (
+  _,
+  action:
+    | RouteTreeGen.NavigateAppendPayload
+    | RouteTreeGen.NavigateToPayload
+    | RouteTreeGen.NavigateUpPayload
+    | RouteTreeGen.SwitchToPayload
+    | RouteTreeGen.SwitchRouteDefPayload
+    | RouteTreeGen.ClearModalsPayload
+    | RouteTreeGen.NavUpToScreenPayload
+    | RouteTreeGen.SwitchTabPayload
+    | RouteTreeGen.ResetStackPayload
+) => {
   const n = Router2._getNavigator()
   n && n.dispatchOldAction(action)
 }
@@ -452,22 +463,21 @@ function* criticalOutOfDateCheck() {
   while (true) {
     try {
       const s = yield* Saga.callPromise(RPCTypes.configGetUpdateInfo2RpcPromise, {})
-      let status = 'ok'
+      let status: ConfigGen.UpdateCriticalCheckStatusPayload['payload']['status'] = 'ok'
       let message = ''
       switch (s.status) {
         case RPCTypes.configUpdateInfoStatus2.ok:
           break
         case RPCTypes.configUpdateInfoStatus2.suggested:
           status = 'suggested'
-          message = // Auto generated from flowToTs. Please clean me!
-          s.suggested === null || s.suggested === undefined ? undefined : s.suggested.message
+          message = s.suggested === null || s.suggested === undefined ? undefined : s.suggested.message // Auto generated from flowToTs. Please clean me!
           break
         case RPCTypes.configUpdateInfoStatus2.critical:
           status = 'critical'
-          message = // Auto generated from flowToTs. Please clean me!
-          s.critical === null || s.critical === undefined ? undefined : s.critical.message
+          message = s.critical === null || s.critical === undefined ? undefined : s.critical.message // Auto generated from flowToTs. Please clean me!
           break
         default:
+          // @ts-ignore codemod-issue
           Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(s.status)
       }
       yield Saga.put(ConfigGen.createUpdateCriticalCheckStatus({message: message || '', status}))

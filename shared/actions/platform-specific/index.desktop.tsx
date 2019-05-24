@@ -7,6 +7,7 @@ import * as SafeElectron from '../../util/safe-electron.desktop'
 import * as Saga from '../../util/saga'
 import logger from '../../logger'
 import path from 'path'
+// @ts-ignore codemod-issue
 import {NotifyPopup} from '../../native/notifications'
 import {execFile} from 'child_process'
 import {getEngine} from '../../engine'
@@ -20,12 +21,7 @@ import InputMonitor from './input-monitor.desktop'
 import {skipAppFocusActions} from '../../local-debug.desktop'
 import AppState from '../../app/app-state.desktop'
 
-export function showShareActionSheetFromURL(
-  options: {
-    url?: any | null,
-    message?: any | null
-  }
-): void {
+export function showShareActionSheetFromURL(options: {url?: any | null; message?: any | null}): void {
   throw new Error('Show Share Action - unsupported on this platform')
 }
 export function showShareActionSheetFromFile(fileURL: string): Promise<void> {
@@ -62,9 +58,9 @@ export const getContentTypeFromURL = (
   url: string,
   cb: (
     arg0: {
-      error?: any,
-      statusCode?: number,
-      contentType?: string,
+      error?: any
+      statusCode?: number
+      contentType?: string
       disposition?: string
     }
   ) => void
@@ -93,7 +89,7 @@ const writeElectronSettingsNotifySound = (_, action: ConfigGen.SetNotifySoundPay
   action.payload.writeFile &&
   SafeElectron.getIpcRenderer().send('setAppState', {notifySound: action.payload.sound})
 
-function* handleWindowFocusEvents(): Generator<any, void, any> {
+function* handleWindowFocusEvents(): Iterable<any> {
   const channel = Saga.eventChannel(emitter => {
     window.addEventListener('focus', () => emitter('focus'))
     window.addEventListener('blur', () => emitter('blur'))
@@ -116,7 +112,7 @@ function* handleWindowFocusEvents(): Generator<any, void, any> {
   }
 }
 
-function* initializeInputMonitor(): Generator<any, void, any> {
+function* initializeInputMonitor(): Iterable<any> {
   const channel = Saga.eventChannel(emitter => {
     // eslint-disable-next-line no-new
     new InputMonitor(isActive => emitter(isActive ? 'active' : 'inactive'))
@@ -134,7 +130,7 @@ function* initializeInputMonitor(): Generator<any, void, any> {
 }
 
 // get this value from electron and update our store version
-function* initializeAppSettingsState(): Generator<any, void, any> {
+function* initializeAppSettingsState(): Iterable<any> {
   const getAppState = () =>
     new Promise((resolve, reject) => {
       SafeElectron.getIpcRenderer().once('getAppStateReply', (event, data) => resolve(data))
@@ -148,7 +144,7 @@ function* initializeAppSettingsState(): Generator<any, void, any> {
   }
 }
 
-export const dumpLogs = (_: any, action: ConfigGen.DumpLogsPayload) =>
+export const dumpLogs = (_?: any, action?: ConfigGen.DumpLogsPayload) =>
   logger
     .dump()
     .then(fromRender => {
@@ -278,6 +274,7 @@ const onOutOfDate = (_, action: EngineGen.Keybase1NotifySessionClientOutOfDatePa
 const prepareLogSend = (_, action: EngineGen.Keybase1LogsendPrepareLogsendPayload) => {
   const response = action.payload.response
   dumpLogs().then(() => {
+    // @ts-ignore codemod-issue
     response && response.result()
   })
 }
@@ -358,8 +355,11 @@ const setUseNativeFrame = state =>
 function* initializeUseNativeFrame() {
   yield Saga.put(
     SettingsGen.createOnChangeUseNativeFrame({
-      enabled: // Auto generated from flowToTs. Please clean me!
-      new AppState().state.useNativeFrame !== null && new AppState().state.useNativeFrame !== undefined ? new AppState().state.useNativeFrame : defaultUseNativeFrame,
+      // Auto generated from flowToTs. Please clean me!
+      enabled:
+        new AppState().state.useNativeFrame !== null && new AppState().state.useNativeFrame !== undefined
+          ? new AppState().state.useNativeFrame
+          : defaultUseNativeFrame,
     })
   )
 }

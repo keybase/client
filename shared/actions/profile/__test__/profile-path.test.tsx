@@ -2,7 +2,8 @@
 /* eslint-env jest */
 import {getProfilePath} from '../../../constants/profile'
 import * as I from 'immutable'
-import { PropsPath } from '../../../route-tree/index';
+// @ts-ignore codemod-issue
+import {PropsPath} from '../../../route-tree/index'
 import {peopleTab} from '../../../constants/tabs'
 
 describe('getProfilePath', () => {
@@ -35,7 +36,7 @@ describe('getProfilePath', () => {
 
   function check(
     peopleRouteProps: I.List<{
-      node: string | null,
+      node: string | null
       props: I.Map<string, any>
     }>,
     username: string,

@@ -22,9 +22,11 @@ import RNFetchBlob from 'rn-fetch-blob'
 import * as PushNotifications from 'react-native-push-notification'
 import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
-import { showImagePicker, Response } from 'react-native-image-picker';
+// @ts-ignore codemod-issue
+import {showImagePicker, Response} from 'react-native-image-picker'
+import { TypedActions } from 'util/container';
 
-type NextURI = string;
+type NextURI = string
 function saveAttachmentDialog(filePath: string): Promise<NextURI> {
   let goodPath = filePath
   logger.debug('saveAttachment: ', goodPath)
@@ -65,14 +67,12 @@ async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): P
   }
 }
 
-function showShareActionSheetFromURL(
-  options: {
-    url?: any | null,
-    message?: any | null,
-    mimeType?: string | null
-  }
-): Promise<{
-  completed: boolean,
+function showShareActionSheetFromURL(options: {
+  url?: any | null
+  message?: any | null
+  mimeType?: string | null
+}): Promise<{
+  completed: boolean
   method: string
 }> {
   if (isIOS) {
@@ -111,9 +111,9 @@ const getContentTypeFromURL = (
   url: string,
   cb: (
     arg0: {
-      error?: any,
-      statusCode?: number,
-      contentType?: string,
+      error?: any
+      statusCode?: number
+      contentType?: string
       disposition?: string
     }
   ) => void
@@ -183,21 +183,26 @@ const updateChangedFocus = (_, action: ConfigGen.MobileAppStatePayload) => {
   return ConfigGen.createChangedFocus({appFocused})
 }
 
-const getStartupDetailsFromShare = (): Promise<null | {
-  localPath: FsTypes.LocalPath
-} | {
-  text: string
-}> => isAndroid
-  ? NativeModules.IntentHandler.getShareData().then(p => {
-      if (!p) return null
-      if (p.localPath) {
-        return {localPath: FsTypes.stringToLocalPath(p.localPath)}
-      }
-      if (p.text) {
-        return {text: p.text}
-      }
-    })
-  : Promise.resolve(null)
+const getStartupDetailsFromShare = (): Promise<
+  | null
+  | {
+      localPath: FsTypes.LocalPath
+    }
+  | {
+      text: string
+    }
+> =>
+  isAndroid
+    ? NativeModules.IntentHandler.getShareData().then(p => {
+        if (!p) return null
+        if (p.localPath) {
+          return {localPath: FsTypes.stringToLocalPath(p.localPath)}
+        }
+        if (p.text) {
+          return {text: p.text}
+        }
+      })
+    : Promise.resolve(null)
 
 function* clearRouteState() {
   yield Saga.spawn(() =>
@@ -310,7 +315,7 @@ function* loadStartupDetails() {
       const item = JSON.parse(routeState)
       if (item) {
         startupConversation = // Auto generated from flowToTs. Please clean me!
-        item.param === null || item.param === undefined ? undefined : item.param.selectedConversationIDKey
+          item.param === null || item.param === undefined ? undefined : item.param.selectedConversationIDKey
         startupTab = item.routeName
       }
 
@@ -365,7 +370,7 @@ const handleFilePickerError = (_, action: ConfigGen.FilePickerErrorPayload) => {
   Alert.alert('Error', action.payload.error.message)
 }
 
-const editAvatar = () =>
+const editAvatar = (): Promise<TypedActions> =>
   new Promise((resolve, reject) => {
     showImagePicker({mediaType: 'photo'}, (response: Response) => {
       if (response.didCancel) {

@@ -27,6 +27,7 @@ function copyToDownloadDir(path: string, mimeType: string) {
     })
     .then(() => {
       stage = 'addCompleteDownload'
+      // @ts-ignore codemod-issue
       return RNFetchBlob.android.addCompleteDownload({
         description: `Keybase downloaded ${fileName}`,
         mime: mimeType,
@@ -43,7 +44,7 @@ function copyToDownloadDir(path: string, mimeType: string) {
         stage,
       })
       throw err
-    });
+    })
 }
 
 const downloadSuccessAndroid = (state, action: FsGen.DownloadSuccessPayload) => {
