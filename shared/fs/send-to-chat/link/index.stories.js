@@ -28,7 +28,7 @@ const channels = [
 const makePathTextToCopy = (pathString: string) => `${Constants.escapePath(Types.stringToPath(pathString))} ` // append space
 
 const load = () =>
-  Sb.storiesOf('Files/SendLinkToChat', module)
+  Sb.storiesOf('Files/SendToChat/Link', module)
     .addDecorator(provider)
     .add('no conversation', () => (
       <SendLinkToChat

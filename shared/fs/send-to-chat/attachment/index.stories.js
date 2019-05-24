@@ -27,7 +27,7 @@ const common = {
 }
 
 const load = () =>
-  Sb.storiesOf('Files/SendAttachmentToChat', module)
+  Sb.storiesOf('Files/SendToChat/Attachment', module)
     .addDecorator(provider)
     .add('no conversation', () => (
       <SendAttachmentToChat
