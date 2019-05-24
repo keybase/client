@@ -38,6 +38,7 @@ export const addMemberWaitingKey = (teamname: Types.Teamname, username: string) 
 export const removeMemberWaitingKey = (teamname: Types.Teamname, id: string) => `teamRemove:${teamname};${id}`
 export const addToTeamSearchKey = 'addToTeamSearch'
 export const teamProfileAddListWaitingKey = 'teamProfileAddList'
+export const deleteTeamWaitingKey = (teamname: Types.Teamname) => `teamDelete:${teamname}`
 export const leaveTeamWaitingKey = (teamname: Types.Teamname) => `teamLeave:${teamname}`
 export const teamRenameWaitingKey = 'teams:rename'
 
@@ -135,6 +136,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   addUserToTeamsResults: '',
   addUserToTeamsState: 'notStarted',
   channelCreationError: '',
+  deletedTeams: I.List(),
   emailInviteError: makeEmailInviteError(),
   newTeamRequests: I.List(),
   newTeams: I.Set(),

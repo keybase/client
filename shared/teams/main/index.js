@@ -8,8 +8,14 @@ import Banner from './banner'
 import BetaNote from './beta-note'
 import {memoize} from '../../util/memoize'
 
+type DeletedTeam = {
+  teamName: string,
+  deletedBy: string,
+}
+
 type Props = {|
   loaded: boolean,
+  deletedTeams: $ReadOnlyArray<DeletedTeam>,
   newTeams: $ReadOnlyArray<string>,
   onBack?: () => void,
   onCreateTeam: () => void,
@@ -104,8 +110,9 @@ type State = {
 class Teams extends React.PureComponent<Props, State> {
   state = {sawChatBanner: this.props.sawChatBanner}
 
-  _teamsAndExtras = memoize((sawChatBanner, teamnames) => [
+  _teamsAndExtras = memoize((deletedTeams, sawChatBanner, teamnames) => [
     {key: '_banner', type: '_banner'},
+    ...deletedTeams.map(t => ({key: 'deletedTeam' + t.teamName, team: t, type: 'deletedTeam'})),
     ...teamnames.map(t => ({key: t, team: t, type: 'team'})),
     {key: '_note', type: '_note'},
   ])
@@ -126,6 +133,15 @@ class Teams extends React.PureComponent<Props, State> {
         )
       case '_note':
         return <BetaNote onReadMore={this.props.onReadMore} />
+      case 'deletedTeam':
+        const {deletedBy, teamName} = item.team
+        return (
+          <Kb.Banner
+            color="blue"
+            key={'deletedTeamBannerFor' + teamName}
+            text={`The ${teamName} team was deleted by ${deletedBy}.`}
+          />
+        )
       case 'team':
         const name = item.team
         const resetUserCount = (this.props.teamresetusers[name] && this.props.teamresetusers[name].size) || 0
@@ -168,7 +184,11 @@ class Teams extends React.PureComponent<Props, State> {
           />
         )}
         <Kb.List
-          items={this._teamsAndExtras(this.state.sawChatBanner, this.props.teamnames)}
+          items={this._teamsAndExtras(
+            this.props.deletedTeams,
+            this.state.sawChatBanner,
+            this.props.teamnames
+          )}
           renderItem={this._renderItem}
         />
       </Kb.Box2>

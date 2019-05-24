@@ -1,9 +1,0 @@
-// @flow
-type UnaryFn<A, R> = (a: A) => R
-type Component<A> = React$ComponentType<A>
-type HOC<Base, Enhanced> = UnaryFn<Component<Base>, Component<Enhanced>>
-declare export function safeSubmit<Base>(
-  submitProps: Array<$Keys<Base>>,
-  resetSafeProps: Array<$Keys<Base>>
-): HOC<Base, Base>
-declare export function safeSubmitPerMount<Base>(submitProps: Array<$Keys<Base>>): HOC<Base, Base>

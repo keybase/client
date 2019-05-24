@@ -1,16 +1,18 @@
 {
   "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
-    "outDir": "./dist/",
     "sourceMap": true,
     "noImplicitAny": false,
     "module": "commonjs",
-    "moduleResolution": "node",
     "target": "es2017",
     "jsx": "preserve",
     "incremental": true,
     "outDir": "./.tsOut/emit",
-    "tsBuildInfoFile": "./.tsOut/cache"
+    "allowSyntheticDefaultImports": true,
+    "tsBuildInfoFile": "./.tsOut/cache",
+    "baseUrl": ".",
+    "paths": {
+      "rn-fetch-blob": ["custom-d.ts/rn-fetch-blob.d.ts"]
+    }
   },
   "include": ["./**/*"],
   "exclude": ["node_modules", "react-native", "desktop/dist"]
