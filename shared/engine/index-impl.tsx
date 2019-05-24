@@ -50,6 +50,7 @@ class Engine {
   _throttledDispatchWaitingAction = throttle(() => {
     const changes = this._queuedChanges
     this._queuedChanges = []
+    // @ts-ignore codemod-issue
     Engine._dispatch(createBatchChangeWaiting({changes}))
   }, 500)
 

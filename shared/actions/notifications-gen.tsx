@@ -24,20 +24,21 @@ type _ReceivedBadgeStatePayload = {readonly badgeState: RPCTypes.BadgeState}
 type _SetBadgeCountsPayload = {readonly counts: I.Map<Tabs.Tab, number>}
 
 // Action Creators
-export const createBadgeApp = (payload: _BadgeAppPayload) => ({payload, type: badgeApp})
-export const createListenForKBFSNotifications = (payload: _ListenForKBFSNotificationsPayload) => ({
-  payload,
-  type: listenForKBFSNotifications,
-})
-export const createListenForNotifications = (payload: _ListenForNotificationsPayload) => ({
-  payload,
-  type: listenForNotifications,
-})
-export const createReceivedBadgeState = (payload: _ReceivedBadgeStatePayload) => ({
+export const createBadgeApp = (payload: _BadgeAppPayload): BadgeAppPayload => ({payload, type: badgeApp})
+export const createListenForKBFSNotifications = (
+  payload: _ListenForKBFSNotificationsPayload
+): ListenForKBFSNotificationsPayload => ({payload, type: listenForKBFSNotifications})
+export const createListenForNotifications = (
+  payload: _ListenForNotificationsPayload
+): ListenForNotificationsPayload => ({payload, type: listenForNotifications})
+export const createReceivedBadgeState = (payload: _ReceivedBadgeStatePayload): ReceivedBadgeStatePayload => ({
   payload,
   type: receivedBadgeState,
 })
-export const createSetBadgeCounts = (payload: _SetBadgeCountsPayload) => ({payload, type: setBadgeCounts})
+export const createSetBadgeCounts = (payload: _SetBadgeCountsPayload): SetBadgeCountsPayload => ({
+  payload,
+  type: setBadgeCounts,
+})
 
 // Action Payloads
 export type BadgeAppPayload = {readonly payload: _BadgeAppPayload; readonly type: 'notifications:badgeApp'}

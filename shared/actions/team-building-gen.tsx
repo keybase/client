@@ -38,29 +38,31 @@ type _SearchResultsLoadedPayload = {
 }
 
 // Action Creators
-export const createAddUsersToTeamSoFar = (payload: _AddUsersToTeamSoFarPayload) => ({
-  payload,
-  type: addUsersToTeamSoFar,
-})
-export const createCancelTeamBuilding = (payload: _CancelTeamBuildingPayload) => ({
+export const createAddUsersToTeamSoFar = (
+  payload: _AddUsersToTeamSoFarPayload
+): AddUsersToTeamSoFarPayload => ({payload, type: addUsersToTeamSoFar})
+export const createCancelTeamBuilding = (payload: _CancelTeamBuildingPayload): CancelTeamBuildingPayload => ({
   payload,
   type: cancelTeamBuilding,
 })
-export const createFetchUserRecs = (payload: _FetchUserRecsPayload) => ({payload, type: fetchUserRecs})
-export const createFetchedUserRecs = (payload: _FetchedUserRecsPayload) => ({payload, type: fetchedUserRecs})
-export const createFinishedTeamBuilding = (payload: _FinishedTeamBuildingPayload) => ({
+export const createFetchUserRecs = (payload: _FetchUserRecsPayload): FetchUserRecsPayload => ({
   payload,
-  type: finishedTeamBuilding,
+  type: fetchUserRecs,
 })
-export const createRemoveUsersFromTeamSoFar = (payload: _RemoveUsersFromTeamSoFarPayload) => ({
+export const createFetchedUserRecs = (payload: _FetchedUserRecsPayload): FetchedUserRecsPayload => ({
   payload,
-  type: removeUsersFromTeamSoFar,
+  type: fetchedUserRecs,
 })
-export const createSearch = (payload: _SearchPayload) => ({payload, type: search})
-export const createSearchResultsLoaded = (payload: _SearchResultsLoadedPayload) => ({
-  payload,
-  type: searchResultsLoaded,
-})
+export const createFinishedTeamBuilding = (
+  payload: _FinishedTeamBuildingPayload
+): FinishedTeamBuildingPayload => ({payload, type: finishedTeamBuilding})
+export const createRemoveUsersFromTeamSoFar = (
+  payload: _RemoveUsersFromTeamSoFarPayload
+): RemoveUsersFromTeamSoFarPayload => ({payload, type: removeUsersFromTeamSoFar})
+export const createSearch = (payload: _SearchPayload): SearchPayload => ({payload, type: search})
+export const createSearchResultsLoaded = (
+  payload: _SearchResultsLoadedPayload
+): SearchResultsLoadedPayload => ({payload, type: searchResultsLoaded})
 
 // Action Payloads
 export type AddUsersToTeamSoFarPayload = {

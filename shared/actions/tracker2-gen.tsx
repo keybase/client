@@ -66,23 +66,39 @@ type _UpdatedDetailsPayload = {
 /**
  * Short term until new nav, a convenience to show a card from inside the app
  */
-export const createShowUser = (payload: _ShowUserPayload) => ({payload, type: showUser})
-export const createChangeFollow = (payload: _ChangeFollowPayload) => ({payload, type: changeFollow})
-export const createCloseTracker = (payload: _CloseTrackerPayload) => ({payload, type: closeTracker})
-export const createGetProofSuggestions = (payload: _GetProofSuggestionsPayload) => ({
+export const createShowUser = (payload: _ShowUserPayload): ShowUserPayload => ({payload, type: showUser})
+export const createChangeFollow = (payload: _ChangeFollowPayload): ChangeFollowPayload => ({
   payload,
-  type: getProofSuggestions,
+  type: changeFollow,
 })
-export const createIgnore = (payload: _IgnorePayload) => ({payload, type: ignore})
-export const createLoad = (payload: _LoadPayload) => ({payload, type: load})
-export const createProofSuggestionsUpdated = (payload: _ProofSuggestionsUpdatedPayload) => ({
+export const createCloseTracker = (payload: _CloseTrackerPayload): CloseTrackerPayload => ({
   payload,
-  type: proofSuggestionsUpdated,
+  type: closeTracker,
 })
-export const createUpdateAssertion = (payload: _UpdateAssertionPayload) => ({payload, type: updateAssertion})
-export const createUpdateFollowers = (payload: _UpdateFollowersPayload) => ({payload, type: updateFollowers})
-export const createUpdateResult = (payload: _UpdateResultPayload) => ({payload, type: updateResult})
-export const createUpdatedDetails = (payload: _UpdatedDetailsPayload) => ({payload, type: updatedDetails})
+export const createGetProofSuggestions = (
+  payload: _GetProofSuggestionsPayload
+): GetProofSuggestionsPayload => ({payload, type: getProofSuggestions})
+export const createIgnore = (payload: _IgnorePayload): IgnorePayload => ({payload, type: ignore})
+export const createLoad = (payload: _LoadPayload): LoadPayload => ({payload, type: load})
+export const createProofSuggestionsUpdated = (
+  payload: _ProofSuggestionsUpdatedPayload
+): ProofSuggestionsUpdatedPayload => ({payload, type: proofSuggestionsUpdated})
+export const createUpdateAssertion = (payload: _UpdateAssertionPayload): UpdateAssertionPayload => ({
+  payload,
+  type: updateAssertion,
+})
+export const createUpdateFollowers = (payload: _UpdateFollowersPayload): UpdateFollowersPayload => ({
+  payload,
+  type: updateFollowers,
+})
+export const createUpdateResult = (payload: _UpdateResultPayload): UpdateResultPayload => ({
+  payload,
+  type: updateResult,
+})
+export const createUpdatedDetails = (payload: _UpdatedDetailsPayload): UpdatedDetailsPayload => ({
+  payload,
+  type: updatedDetails,
+})
 
 // Action Payloads
 export type ChangeFollowPayload = {

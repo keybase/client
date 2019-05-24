@@ -20,7 +20,7 @@ import * as I from 'immutable'
 import flags from '../util/feature-flags'
 import {RPCError} from '../util/errors'
 import {isMobile} from '../constants/platform'
-import {actionHasError} from '../util/container'
+import {actionHasError, TypedActions} from '../util/container'
 import {Action} from 'redux'
 
 const stateToBuildRequestParams = state => ({
@@ -165,7 +165,7 @@ const sendPayment = state => {
     .catch(err => WalletsGen.createSentPaymentError({error: err.desc}))
 }
 
-const setLastSentXLM = (state, action) =>
+const setLastSentXLM = (state, action: WalletsGen.SentPaymentPayload | WalletsGen.RequestedPaymentPayload) =>
   WalletsGen.createSetLastSentXLM({
     lastSentXLM: action.payload.lastSentXLM,
     writeFile: true,
@@ -313,7 +313,13 @@ const handleSelectAccountError = (action, msg, err) => {
   }
 }
 
-const loadAssets = (state, action: WalletsGen.Actions, logger) => {
+type LoadAssetsActions =
+  | WalletsGen.LoadAssetsPayload
+  | WalletsGen.SelectAccountPayload
+  | WalletsGen.LinkedExistingAccountPayload
+  | WalletsGen.AccountUpdateReceivedPayload
+  | WalletsGen.AccountsReceivedPayload
+const loadAssets = (state, action: LoadAssetsActions, logger) => {
   if (actionHasError(action)) {
     return
   }
@@ -370,7 +376,11 @@ const createPaymentsReceived = (accountID, payments, pending) =>
       .filter(Boolean),
   })
 
-const loadPayments = (state, action: WalletsGen.Actions, logger) => {
+type LoadPaymentsActions =
+  | WalletsGen.LoadPaymentsPayload
+  | WalletsGen.SelectAccountPayload
+  | WalletsGen.LinkedExistingAccountPayload
+const loadPayments = (state, action: LoadPaymentsActions, logger) => {
   if (!state.config.loggedIn) {
     logger.error('not logged in')
     return
@@ -616,7 +626,10 @@ const deletedAccount = state =>
 export const hasShowOnCreation = <F, T extends {}, G extends {showOnCreation: F}>(a: T | G): a is G =>
   a && a.hasOwnProperty('showOnCreation')
 
-const createdOrLinkedAccount = (state, action: WalletsGen.Actions) => {
+const createdOrLinkedAccount = (
+  state,
+  action: WalletsGen.CreatedNewAccountPayload | WalletsGen.LinkedExistingAccountPayload
+) => {
   if (actionHasError(action)) {
     // Create new account failed, don't nav
     return
@@ -634,7 +647,10 @@ const createdOrLinkedAccount = (state, action: WalletsGen.Actions) => {
   return RouteTreeGen.createNavigateUp()
 }
 
-const navigateUp = (state, action) => {
+const navigateUp = (
+  state,
+  action: WalletsGen.DidSetAccountAsDefaultPayload | WalletsGen.ChangedAccountNamePayload
+) => {
   if (actionHasError(action)) {
     // we don't want to nav on error
     return
@@ -642,7 +658,7 @@ const navigateUp = (state, action) => {
   return RouteTreeGen.createNavigateUp()
 }
 
-const navigateToAccount = (state, action) => {
+const navigateToAccount = (state, action: WalletsGen.SelectAccountPayload): Array<TypedActions> => {
   if (action.type === WalletsGen.selectAccount && !action.payload.show) {
     // we don't want to show, don't nav
     return
@@ -658,9 +674,11 @@ const navigateToAccount = (state, action) => {
   ]
 }
 
-const navigateToTransaction = (state, action) => {
+const navigateToTransaction = (state, action: WalletsGen.ShowTransactionPayload) => {
   const {accountID, paymentID} = action.payload
-  const actions: Array<Action> = [WalletsGen.createSelectAccount({accountID, reason: 'show-transaction'})]
+  const actions: Array<TypedActions> = [
+    WalletsGen.createSelectAccount({accountID, reason: 'show-transaction'}),
+  ]
   actions.push(
     RouteTreeGen.createNavigateAppend({
       path: [{props: {accountID, paymentID}, selected: 'transactionDetails'}],
@@ -753,6 +771,7 @@ const accountDetailsUpdate = (_, action) =>
 
 const accountsUpdate = (_, action: EngineGen.Stellar1NotifyRecentPaymentsUpdatePayload, logger) =>
   WalletsGen.createAccountsReceived({
+    // @ts-ignore codemod-issue
     accounts: (action.payload.params.accounts || []).map(account => {
       if (!account.accountID) {
         logger.error(`Found empty accountID, name: ${account.name} isDefault: ${String(account.isDefault)}`)
@@ -1010,7 +1029,7 @@ const updateAirdropState = (_, __, logger) =>
       logger.info(e)
     })
 
-const hideAirdropBanner = () =>
+const hideAirdropBanner = (): TypedActions =>
   GregorGen.createUpdateCategory({body: 'true', category: Constants.airdropBannerKey})
 const gregorPushState = (_, action) =>
   WalletsGen.createUpdateAirdropBannerState({
@@ -1057,9 +1076,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     loadAssets,
     'loadAssets'
   )
-  yield* Saga.chainAction<
-    WalletsGen.LoadPaymentsPayload | WalletsGen.SelectAccountPayload | WalletsGen.LinkedExistingAccountPayload
-  >(
+  yield* Saga.chainAction(
     [WalletsGen.loadPayments, WalletsGen.selectAccount, WalletsGen.linkedExistingAccount],
     loadPayments,
     'loadPayments'
@@ -1100,7 +1117,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     exportSecretKey,
     'exportSecretKey'
   )
-  yield* Saga.chainAction<WalletsGen.LoadDisplayCurrenciesPayload, WalletsGen.OpenSendRequestFormPayload>(
+  yield* Saga.chainAction<WalletsGen.LoadDisplayCurrenciesPayload | WalletsGen.OpenSendRequestFormPayload>(
     [WalletsGen.loadDisplayCurrencies, WalletsGen.openSendRequestForm],
     loadDisplayCurrencies,
     'loadDisplayCurrencies'
@@ -1150,17 +1167,12 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     navigateToAccount,
     'navigateToAccount'
   )
-  yield* Saga.chainAction<WalletsGen.SelectAccountPayload>(
-    WalletsGen.selectAccount,
-    navigateToAccount,
-    'navigateToAccount'
-  )
   yield* Saga.chainAction<WalletsGen.ShowTransactionPayload>(
     WalletsGen.showTransaction,
     navigateToTransaction,
     'navigateToTransaction'
   )
-  yield* Saga.chainAction<WalletsGen.DidSetAccountAsDefaultPayload, WalletsGen.ChangedAccountNamePayload>(
+  yield* Saga.chainAction<WalletsGen.DidSetAccountAsDefaultPayload | WalletsGen.ChangedAccountNamePayload>(
     [WalletsGen.didSetAccountAsDefault, WalletsGen.changedAccountName],
     navigateUp,
     'navigateUp'
@@ -1232,7 +1244,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   )
 
   yield* Saga.chainAction<WalletsGen.SendPaymentPayload>(WalletsGen.sendPayment, sendPayment, 'sendPayment')
-  yield* Saga.chainAction<WalletsGen.SentPaymentPayload, WalletsGen.RequestedPaymentPayload>(
+  yield* Saga.chainAction<WalletsGen.SentPaymentPayload | WalletsGen.RequestedPaymentPayload>(
     [WalletsGen.sentPayment, WalletsGen.requestedPayment],
     setLastSentXLM,
     'setLastSentXLM'
@@ -1343,7 +1355,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     'rejectDisclaimer'
   )
 
-  yield* Saga.chainAction<WalletsGen.LoadMobileOnlyModePayload, WalletsGen.SelectAccountPayload>(
+  yield* Saga.chainAction<WalletsGen.LoadMobileOnlyModePayload | WalletsGen.SelectAccountPayload>(
     [WalletsGen.loadMobileOnlyMode, WalletsGen.selectAccount],
     loadMobileOnlyMode,
     'loadMobileOnlyMode'
@@ -1406,7 +1418,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       updateAirdropState,
       'updateAirdropState'
     )
-    yield* Saga.chainAction<WalletsGen.HideAirdropBannerPayload | WalletsGen.ChangeAirdropPayload>(
+    yield* Saga.chainAction(
       [WalletsGen.hideAirdropBanner, WalletsGen.changeAirdrop],
       hideAirdropBanner,
       'hideAirdropBanner'

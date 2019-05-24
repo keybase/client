@@ -23,16 +23,19 @@ type _DecrementWaitingPayload = {readonly key: string | Array<string>; readonly 
 type _IncrementWaitingPayload = {readonly key: string | Array<string>}
 
 // Action Creators
-export const createBatchChangeWaiting = (payload: _BatchChangeWaitingPayload) => ({
+export const createBatchChangeWaiting = (payload: _BatchChangeWaitingPayload): BatchChangeWaitingPayload => ({
   payload,
   type: batchChangeWaiting,
 })
-export const createClearWaiting = (payload: _ClearWaitingPayload) => ({payload, type: clearWaiting})
-export const createDecrementWaiting = (payload: _DecrementWaitingPayload) => ({
+export const createClearWaiting = (payload: _ClearWaitingPayload): ClearWaitingPayload => ({
+  payload,
+  type: clearWaiting,
+})
+export const createDecrementWaiting = (payload: _DecrementWaitingPayload): DecrementWaitingPayload => ({
   payload,
   type: decrementWaiting,
 })
-export const createIncrementWaiting = (payload: _IncrementWaitingPayload) => ({
+export const createIncrementWaiting = (payload: _IncrementWaitingPayload): IncrementWaitingPayload => ({
   payload,
   type: incrementWaiting,
 })

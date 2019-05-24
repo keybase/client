@@ -31,14 +31,20 @@ type _UpdateCategoryPayload = {
 type _UpdateReachablePayload = {readonly reachable: RPCTypes.Reachable}
 
 // Action Creators
-export const createCheckReachability = (payload: _CheckReachabilityPayload) => ({
+export const createCheckReachability = (payload: _CheckReachabilityPayload): CheckReachabilityPayload => ({
   payload,
   type: checkReachability,
 })
-export const createPushOOBM = (payload: _PushOOBMPayload) => ({payload, type: pushOOBM})
-export const createPushState = (payload: _PushStatePayload) => ({payload, type: pushState})
-export const createUpdateCategory = (payload: _UpdateCategoryPayload) => ({payload, type: updateCategory})
-export const createUpdateReachable = (payload: _UpdateReachablePayload) => ({payload, type: updateReachable})
+export const createPushOOBM = (payload: _PushOOBMPayload): PushOOBMPayload => ({payload, type: pushOOBM})
+export const createPushState = (payload: _PushStatePayload): PushStatePayload => ({payload, type: pushState})
+export const createUpdateCategory = (payload: _UpdateCategoryPayload): UpdateCategoryPayload => ({
+  payload,
+  type: updateCategory,
+})
+export const createUpdateReachable = (payload: _UpdateReachablePayload): UpdateReachablePayload => ({
+  payload,
+  type: updateReachable,
+})
 
 // Action Payloads
 export type CheckReachabilityPayload = {

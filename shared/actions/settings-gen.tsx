@@ -120,174 +120,180 @@ type _WaitingForResponsePayload = {readonly waiting: boolean}
 /**
  * An error occurred on the unfurl settings screen
  */
-export const createUnfurlSettingsError = (payload: _UnfurlSettingsErrorPayload) => ({
-  payload,
-  type: unfurlSettingsError,
-})
+export const createUnfurlSettingsError = (
+  payload: _UnfurlSettingsErrorPayload
+): UnfurlSettingsErrorPayload => ({payload, type: unfurlSettingsError})
 /**
  * An error occurred while trying to send feedback to Keybase
  */
-export const createFeedbackSent = (payload: _FeedbackSentPayload) => ({payload, type: feedbackSent})
+export const createFeedbackSent = (payload: _FeedbackSentPayload): FeedbackSentPayload => ({
+  payload,
+  type: feedbackSent,
+})
 /**
  * Refresh unfurl settings
  */
-export const createUnfurlSettingsRefresh = (payload: _UnfurlSettingsRefreshPayload) => ({
-  payload,
-  type: unfurlSettingsRefresh,
-})
+export const createUnfurlSettingsRefresh = (
+  payload: _UnfurlSettingsRefreshPayload
+): UnfurlSettingsRefreshPayload => ({payload, type: unfurlSettingsRefresh})
 /**
  * Refreshed unfurl settings available
  */
-export const createUnfurlSettingsRefreshed = (payload: _UnfurlSettingsRefreshedPayload) => ({
-  payload,
-  type: unfurlSettingsRefreshed,
-})
+export const createUnfurlSettingsRefreshed = (
+  payload: _UnfurlSettingsRefreshedPayload
+): UnfurlSettingsRefreshedPayload => ({payload, type: unfurlSettingsRefreshed})
 /**
  * Update unfurl settings from settings screen
  */
-export const createUnfurlSettingsSaved = (payload: _UnfurlSettingsSavedPayload) => ({
+export const createUnfurlSettingsSaved = (
+  payload: _UnfurlSettingsSavedPayload
+): UnfurlSettingsSavedPayload => ({payload, type: unfurlSettingsSaved})
+export const createCheckPassword = (payload: _CheckPasswordPayload): CheckPasswordPayload => ({
   payload,
-  type: unfurlSettingsSaved,
+  type: checkPassword,
 })
-export const createCheckPassword = (payload: _CheckPasswordPayload) => ({payload, type: checkPassword})
-export const createDbNuke = (payload: _DbNukePayload) => ({payload, type: dbNuke})
-export const createDeleteAccountForever = (payload: _DeleteAccountForeverPayload) => ({
-  payload,
-  type: deleteAccountForever,
-})
-export const createInvitesClearError = (payload: _InvitesClearErrorPayload) => ({
+export const createDbNuke = (payload: _DbNukePayload): DbNukePayload => ({payload, type: dbNuke})
+export const createDeleteAccountForever = (
+  payload: _DeleteAccountForeverPayload
+): DeleteAccountForeverPayload => ({payload, type: deleteAccountForever})
+export const createInvitesClearError = (payload: _InvitesClearErrorPayload): InvitesClearErrorPayload => ({
   payload,
   type: invitesClearError,
 })
-export const createInvitesReclaim = (payload: _InvitesReclaimPayload) => ({payload, type: invitesReclaim})
-export const createInvitesReclaimed = (payload: _InvitesReclaimedPayload) => ({
+export const createInvitesReclaim = (payload: _InvitesReclaimPayload): InvitesReclaimPayload => ({
+  payload,
+  type: invitesReclaim,
+})
+export const createInvitesReclaimed = (payload: _InvitesReclaimedPayload): InvitesReclaimedPayload => ({
   payload,
   type: invitesReclaimed,
 })
-export const createInvitesReclaimedError = (payload: _InvitesReclaimedPayloadError) => ({
-  error: true,
+export const createInvitesReclaimedError = (
+  payload: _InvitesReclaimedPayloadError
+): InvitesReclaimedPayloadError => ({error: true, payload, type: invitesReclaimed})
+export const createInvitesRefresh = (payload: _InvitesRefreshPayload): InvitesRefreshPayload => ({
   payload,
-  type: invitesReclaimed,
+  type: invitesRefresh,
 })
-export const createInvitesRefresh = (payload: _InvitesRefreshPayload) => ({payload, type: invitesRefresh})
-export const createInvitesRefreshed = (payload: _InvitesRefreshedPayload) => ({
+export const createInvitesRefreshed = (payload: _InvitesRefreshedPayload): InvitesRefreshedPayload => ({
   payload,
   type: invitesRefreshed,
 })
-export const createInvitesSend = (payload: _InvitesSendPayload) => ({payload, type: invitesSend})
-export const createInvitesSent = (payload: _InvitesSentPayload) => ({payload, type: invitesSent})
-export const createInvitesSentError = (payload: _InvitesSentPayloadError) => ({
+export const createInvitesSend = (payload: _InvitesSendPayload): InvitesSendPayload => ({
+  payload,
+  type: invitesSend,
+})
+export const createInvitesSent = (payload: _InvitesSentPayload): InvitesSentPayload => ({
+  payload,
+  type: invitesSent,
+})
+export const createInvitesSentError = (payload: _InvitesSentPayloadError): InvitesSentPayloadError => ({
   error: true,
   payload,
   type: invitesSent,
 })
-export const createLoadHasRandomPw = (payload: _LoadHasRandomPwPayload) => ({payload, type: loadHasRandomPw})
-export const createLoadLockdownMode = (payload: _LoadLockdownModePayload) => ({
+export const createLoadHasRandomPw = (payload: _LoadHasRandomPwPayload): LoadHasRandomPwPayload => ({
+  payload,
+  type: loadHasRandomPw,
+})
+export const createLoadLockdownMode = (payload: _LoadLockdownModePayload): LoadLockdownModePayload => ({
   payload,
   type: loadLockdownMode,
 })
-export const createLoadRememberPassword = (payload: _LoadRememberPasswordPayload) => ({
+export const createLoadRememberPassword = (
+  payload: _LoadRememberPasswordPayload
+): LoadRememberPasswordPayload => ({payload, type: loadRememberPassword})
+export const createLoadSettings = (payload: _LoadSettingsPayload): LoadSettingsPayload => ({
   payload,
-  type: loadRememberPassword,
+  type: loadSettings,
 })
-export const createLoadSettings = (payload: _LoadSettingsPayload) => ({payload, type: loadSettings})
-export const createLoadedCheckPassword = (payload: _LoadedCheckPasswordPayload) => ({
-  payload,
-  type: loadedCheckPassword,
-})
-export const createLoadedHasRandomPw = (payload: _LoadedHasRandomPwPayload) => ({
+export const createLoadedCheckPassword = (
+  payload: _LoadedCheckPasswordPayload
+): LoadedCheckPasswordPayload => ({payload, type: loadedCheckPassword})
+export const createLoadedHasRandomPw = (payload: _LoadedHasRandomPwPayload): LoadedHasRandomPwPayload => ({
   payload,
   type: loadedHasRandomPw,
 })
-export const createLoadedLockdownMode = (payload: _LoadedLockdownModePayload) => ({
+export const createLoadedLockdownMode = (payload: _LoadedLockdownModePayload): LoadedLockdownModePayload => ({
   payload,
   type: loadedLockdownMode,
 })
-export const createLoadedRememberPassword = (payload: _LoadedRememberPasswordPayload) => ({
+export const createLoadedRememberPassword = (
+  payload: _LoadedRememberPasswordPayload
+): LoadedRememberPasswordPayload => ({payload, type: loadedRememberPassword})
+export const createLoadedSettings = (payload: _LoadedSettingsPayload): LoadedSettingsPayload => ({
   payload,
-  type: loadedRememberPassword,
+  type: loadedSettings,
 })
-export const createLoadedSettings = (payload: _LoadedSettingsPayload) => ({payload, type: loadedSettings})
-export const createNotificationsRefresh = (payload: _NotificationsRefreshPayload) => ({
-  payload,
-  type: notificationsRefresh,
-})
-export const createNotificationsRefreshed = (payload: _NotificationsRefreshedPayload) => ({
-  payload,
-  type: notificationsRefreshed,
-})
-export const createNotificationsSaved = (payload: _NotificationsSavedPayload) => ({
+export const createNotificationsRefresh = (
+  payload: _NotificationsRefreshPayload
+): NotificationsRefreshPayload => ({payload, type: notificationsRefresh})
+export const createNotificationsRefreshed = (
+  payload: _NotificationsRefreshedPayload
+): NotificationsRefreshedPayload => ({payload, type: notificationsRefreshed})
+export const createNotificationsSaved = (payload: _NotificationsSavedPayload): NotificationsSavedPayload => ({
   payload,
   type: notificationsSaved,
 })
-export const createNotificationsToggle = (payload: _NotificationsTogglePayload) => ({
-  payload,
-  type: notificationsToggle,
-})
-export const createOnChangeLockdownMode = (payload: _OnChangeLockdownModePayload) => ({
-  payload,
-  type: onChangeLockdownMode,
-})
-export const createOnChangeNewEmail = (payload: _OnChangeNewEmailPayload) => ({
+export const createNotificationsToggle = (
+  payload: _NotificationsTogglePayload
+): NotificationsTogglePayload => ({payload, type: notificationsToggle})
+export const createOnChangeLockdownMode = (
+  payload: _OnChangeLockdownModePayload
+): OnChangeLockdownModePayload => ({payload, type: onChangeLockdownMode})
+export const createOnChangeNewEmail = (payload: _OnChangeNewEmailPayload): OnChangeNewEmailPayload => ({
   payload,
   type: onChangeNewEmail,
 })
-export const createOnChangeNewPassword = (payload: _OnChangeNewPasswordPayload) => ({
-  payload,
-  type: onChangeNewPassword,
-})
-export const createOnChangeNewPasswordConfirm = (payload: _OnChangeNewPasswordConfirmPayload) => ({
-  payload,
-  type: onChangeNewPasswordConfirm,
-})
-export const createOnChangeRememberPassword = (payload: _OnChangeRememberPasswordPayload) => ({
-  payload,
-  type: onChangeRememberPassword,
-})
-export const createOnChangeShowPassword = (payload: _OnChangeShowPasswordPayload) => ({
-  payload,
-  type: onChangeShowPassword,
-})
-export const createOnChangeUseNativeFrame = (payload: _OnChangeUseNativeFramePayload) => ({
-  payload,
-  type: onChangeUseNativeFrame,
-})
-export const createOnSubmitNewEmail = (payload: _OnSubmitNewEmailPayload) => ({
+export const createOnChangeNewPassword = (
+  payload: _OnChangeNewPasswordPayload
+): OnChangeNewPasswordPayload => ({payload, type: onChangeNewPassword})
+export const createOnChangeNewPasswordConfirm = (
+  payload: _OnChangeNewPasswordConfirmPayload
+): OnChangeNewPasswordConfirmPayload => ({payload, type: onChangeNewPasswordConfirm})
+export const createOnChangeRememberPassword = (
+  payload: _OnChangeRememberPasswordPayload
+): OnChangeRememberPasswordPayload => ({payload, type: onChangeRememberPassword})
+export const createOnChangeShowPassword = (
+  payload: _OnChangeShowPasswordPayload
+): OnChangeShowPasswordPayload => ({payload, type: onChangeShowPassword})
+export const createOnChangeUseNativeFrame = (
+  payload: _OnChangeUseNativeFramePayload
+): OnChangeUseNativeFramePayload => ({payload, type: onChangeUseNativeFrame})
+export const createOnSubmitNewEmail = (payload: _OnSubmitNewEmailPayload): OnSubmitNewEmailPayload => ({
   payload,
   type: onSubmitNewEmail,
 })
-export const createOnSubmitNewPassword = (payload: _OnSubmitNewPasswordPayload) => ({
-  payload,
-  type: onSubmitNewPassword,
-})
-export const createOnUpdateEmailError = (payload: _OnUpdateEmailErrorPayload) => ({
+export const createOnSubmitNewPassword = (
+  payload: _OnSubmitNewPasswordPayload
+): OnSubmitNewPasswordPayload => ({payload, type: onSubmitNewPassword})
+export const createOnUpdateEmailError = (payload: _OnUpdateEmailErrorPayload): OnUpdateEmailErrorPayload => ({
   payload,
   type: onUpdateEmailError,
 })
-export const createOnUpdatePGPSettings = (payload: _OnUpdatePGPSettingsPayload) => ({
-  payload,
-  type: onUpdatePGPSettings,
-})
-export const createOnUpdatePasswordError = (payload: _OnUpdatePasswordErrorPayload) => ({
-  payload,
-  type: onUpdatePasswordError,
-})
-export const createOnUpdatedPGPSettings = (payload: _OnUpdatedPGPSettingsPayload) => ({
-  payload,
-  type: onUpdatedPGPSettings,
-})
-export const createProcessorProfile = (payload: _ProcessorProfilePayload) => ({
+export const createOnUpdatePGPSettings = (
+  payload: _OnUpdatePGPSettingsPayload
+): OnUpdatePGPSettingsPayload => ({payload, type: onUpdatePGPSettings})
+export const createOnUpdatePasswordError = (
+  payload: _OnUpdatePasswordErrorPayload
+): OnUpdatePasswordErrorPayload => ({payload, type: onUpdatePasswordError})
+export const createOnUpdatedPGPSettings = (
+  payload: _OnUpdatedPGPSettingsPayload
+): OnUpdatedPGPSettingsPayload => ({payload, type: onUpdatedPGPSettings})
+export const createProcessorProfile = (payload: _ProcessorProfilePayload): ProcessorProfilePayload => ({
   payload,
   type: processorProfile,
 })
-export const createSendFeedback = (payload: _SendFeedbackPayload) => ({payload, type: sendFeedback})
-export const createSetAllowDeleteAccount = (payload: _SetAllowDeleteAccountPayload) => ({
+export const createSendFeedback = (payload: _SendFeedbackPayload): SendFeedbackPayload => ({
   payload,
-  type: setAllowDeleteAccount,
+  type: sendFeedback,
 })
-export const createStop = (payload: _StopPayload) => ({payload, type: stop})
-export const createTrace = (payload: _TracePayload) => ({payload, type: trace})
-export const createWaitingForResponse = (payload: _WaitingForResponsePayload) => ({
+export const createSetAllowDeleteAccount = (
+  payload: _SetAllowDeleteAccountPayload
+): SetAllowDeleteAccountPayload => ({payload, type: setAllowDeleteAccount})
+export const createStop = (payload: _StopPayload): StopPayload => ({payload, type: stop})
+export const createTrace = (payload: _TracePayload): TracePayload => ({payload, type: trace})
+export const createWaitingForResponse = (payload: _WaitingForResponsePayload): WaitingForResponsePayload => ({
   payload,
   type: waitingForResponse,
 })

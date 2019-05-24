@@ -597,602 +597,615 @@ type _UpdateUnreadlinePayload = {
 /**
  * Actually start a conversation
  */
-export const createCreateConversation = (payload: _CreateConversationPayload) => ({
+export const createCreateConversation = (payload: _CreateConversationPayload): CreateConversationPayload => ({
   payload,
   type: createConversation,
 })
 /**
  * Add a list of users to a conversation. Creates a SystemBulkAddToConv message.
  */
-export const createAddUsersToChannel = (payload: _AddUsersToChannelPayload) => ({
+export const createAddUsersToChannel = (payload: _AddUsersToChannelPayload): AddUsersToChannelPayload => ({
   payload,
   type: addUsersToChannel,
 })
 /**
  * Add an unfurl prompt to a message
  */
-export const createUnfurlTogglePrompt = (payload: _UnfurlTogglePromptPayload) => ({
+export const createUnfurlTogglePrompt = (payload: _UnfurlTogglePromptPayload): UnfurlTogglePromptPayload => ({
   payload,
   type: unfurlTogglePrompt,
 })
 /**
  * Change selected index of inbox search
  */
-export const createInboxSearchMoveSelectedIndex = (payload: _InboxSearchMoveSelectedIndexPayload) => ({
-  payload,
-  type: inboxSearchMoveSelectedIndex,
-})
+export const createInboxSearchMoveSelectedIndex = (
+  payload: _InboxSearchMoveSelectedIndexPayload
+): InboxSearchMoveSelectedIndexPayload => ({payload, type: inboxSearchMoveSelectedIndex})
 /**
  * Clear data for payment confirm modal
  */
-export const createClearPaymentConfirmInfo = (payload: _ClearPaymentConfirmInfoPayload) => ({
-  payload,
-  type: clearPaymentConfirmInfo,
-})
+export const createClearPaymentConfirmInfo = (
+  payload: _ClearPaymentConfirmInfoPayload
+): ClearPaymentConfirmInfoPayload => ({payload, type: clearPaymentConfirmInfo})
 /**
  * Consume a service notification that a conversation's retention policy has been updated
  */
-export const createUpdateConvRetentionPolicy = (payload: _UpdateConvRetentionPolicyPayload) => ({
-  payload,
-  type: updateConvRetentionPolicy,
-})
+export const createUpdateConvRetentionPolicy = (
+  payload: _UpdateConvRetentionPolicyPayload
+): UpdateConvRetentionPolicyPayload => ({payload, type: updateConvRetentionPolicy})
 /**
  * Consume a service notification that a team retention policy was updated
  */
-export const createUpdateTeamRetentionPolicy = (payload: _UpdateTeamRetentionPolicyPayload) => ({
-  payload,
-  type: updateTeamRetentionPolicy,
-})
+export const createUpdateTeamRetentionPolicy = (
+  payload: _UpdateTeamRetentionPolicyPayload
+): UpdateTeamRetentionPolicyPayload => ({payload, type: updateTeamRetentionPolicy})
 /**
  * Desktop changed tab to chat
  */
-export const createTabSelected = (payload: _TabSelectedPayload) => ({payload, type: tabSelected})
+export const createTabSelected = (payload: _TabSelectedPayload): TabSelectedPayload => ({
+  payload,
+  type: tabSelected,
+})
 /**
  * Explicitly set whether a thread is loaded to the most recent message
  */
-export const createSetContainsLastMessage = (payload: _SetContainsLastMessagePayload) => ({
-  payload,
-  type: setContainsLastMessage,
-})
+export const createSetContainsLastMessage = (
+  payload: _SetContainsLastMessagePayload
+): SetContainsLastMessagePayload => ({payload, type: setContainsLastMessage})
 /**
  * Exploding messages expired or were manually detonated.
  */
-export const createMessagesExploded = (payload: _MessagesExplodedPayload) => ({
+export const createMessagesExploded = (payload: _MessagesExplodedPayload): MessagesExplodedPayload => ({
   payload,
   type: messagesExploded,
 })
 /**
  * Giphy search results obtained
  */
-export const createGiphyGotSearchResult = (payload: _GiphyGotSearchResultPayload) => ({
-  payload,
-  type: giphyGotSearchResult,
-})
+export const createGiphyGotSearchResult = (
+  payload: _GiphyGotSearchResultPayload
+): GiphyGotSearchResultPayload => ({payload, type: giphyGotSearchResult})
 /**
  * Handle an update to our conversation exploding modes.
  */
-export const createUpdateConvExplodingModes = (payload: _UpdateConvExplodingModesPayload) => ({
-  payload,
-  type: updateConvExplodingModes,
-})
+export const createUpdateConvExplodingModes = (
+  payload: _UpdateConvExplodingModesPayload
+): UpdateConvExplodingModesPayload => ({payload, type: updateConvExplodingModes})
 /**
  * Inbox search has started
  */
-export const createInboxSearchStarted = (payload: _InboxSearchStartedPayload) => ({
+export const createInboxSearchStarted = (payload: _InboxSearchStartedPayload): InboxSearchStartedPayload => ({
   payload,
   type: inboxSearchStarted,
 })
 /**
  * Inbox search name results received
  */
-export const createInboxSearchNameResults = (payload: _InboxSearchNameResultsPayload) => ({
-  payload,
-  type: inboxSearchNameResults,
-})
+export const createInboxSearchNameResults = (
+  payload: _InboxSearchNameResultsPayload
+): InboxSearchNameResultsPayload => ({payload, type: inboxSearchNameResults})
 /**
  * Inbox text result has arrived
  */
-export const createInboxSearchTextResult = (payload: _InboxSearchTextResultPayload) => ({
-  payload,
-  type: inboxSearchTextResult,
-})
+export const createInboxSearchTextResult = (
+  payload: _InboxSearchTextResultPayload
+): InboxSearchTextResultPayload => ({payload, type: inboxSearchTextResult})
 /**
  * Jump to a replied to message
  */
-export const createReplyJump = (payload: _ReplyJumpPayload) => ({payload, type: replyJump})
+export const createReplyJump = (payload: _ReplyJumpPayload): ReplyJumpPayload => ({payload, type: replyJump})
 /**
  * Jump to most recent messages in a conversation
  */
-export const createJumpToRecent = (payload: _JumpToRecentPayload) => ({payload, type: jumpToRecent})
+export const createJumpToRecent = (payload: _JumpToRecentPayload): JumpToRecentPayload => ({
+  payload,
+  type: jumpToRecent,
+})
 /**
  * Perform a search in a thread
  */
-export const createThreadSearch = (payload: _ThreadSearchPayload) => ({payload, type: threadSearch})
+export const createThreadSearch = (payload: _ThreadSearchPayload): ThreadSearchPayload => ({
+  payload,
+  type: threadSearch,
+})
 /**
  * Perform an inbox search
  */
-export const createInboxSearch = (payload: _InboxSearchPayload) => ({payload, type: inboxSearch})
+export const createInboxSearch = (payload: _InboxSearchPayload): InboxSearchPayload => ({
+  payload,
+  type: inboxSearch,
+})
 /**
  * Prime data to fulfill this message's request and navigate to the send form.
  */
-export const createPrepareFulfillRequestForm = (payload: _PrepareFulfillRequestFormPayload) => ({
-  payload,
-  type: prepareFulfillRequestForm,
-})
+export const createPrepareFulfillRequestForm = (
+  payload: _PrepareFulfillRequestFormPayload
+): PrepareFulfillRequestFormPayload => ({payload, type: prepareFulfillRequestForm})
 /**
  * Record a new thread search result
  */
-export const createThreadSearchResults = (payload: _ThreadSearchResultsPayload) => ({
-  payload,
-  type: threadSearchResults,
-})
+export const createThreadSearchResults = (
+  payload: _ThreadSearchResultsPayload
+): ThreadSearchResultsPayload => ({payload, type: threadSearchResults})
 /**
  * Remove an unfurl
  */
-export const createUnfurlRemove = (payload: _UnfurlRemovePayload) => ({payload, type: unfurlRemove})
+export const createUnfurlRemove = (payload: _UnfurlRemovePayload): UnfurlRemovePayload => ({
+  payload,
+  type: unfurlRemove,
+})
 /**
  * Reply to a message publicly
  */
-export const createToggleReplyToMessage = (payload: _ToggleReplyToMessagePayload) => ({
-  payload,
-  type: toggleReplyToMessage,
-})
+export const createToggleReplyToMessage = (
+  payload: _ToggleReplyToMessagePayload
+): ToggleReplyToMessagePayload => ({payload, type: toggleReplyToMessage})
 /**
  * Resolve an unknown @ mention
  */
-export const createResolveMaybeMention = (payload: _ResolveMaybeMentionPayload) => ({
-  payload,
-  type: resolveMaybeMention,
-})
+export const createResolveMaybeMention = (
+  payload: _ResolveMaybeMentionPayload
+): ResolveMaybeMentionPayload => ({payload, type: resolveMaybeMention})
 /**
  * Response to an unfurl prompt
  */
-export const createUnfurlResolvePrompt = (payload: _UnfurlResolvePromptPayload) => ({
-  payload,
-  type: unfurlResolvePrompt,
-})
+export const createUnfurlResolvePrompt = (
+  payload: _UnfurlResolvePromptPayload
+): UnfurlResolvePromptPayload => ({payload, type: unfurlResolvePrompt})
 /**
  * Select an inbox search item
  */
-export const createInboxSearchSelect = (payload: _InboxSearchSelectPayload = Object.freeze({})) => ({
-  payload,
-  type: inboxSearchSelect,
-})
+export const createInboxSearchSelect = (
+  payload: _InboxSearchSelectPayload = Object.freeze({})
+): InboxSearchSelectPayload => ({payload, type: inboxSearchSelect})
 /**
  * Set a lock on the exploding mode for a conversation.
  */
-export const createSetExplodingModeLock = (payload: _SetExplodingModeLockPayload) => ({
-  payload,
-  type: setExplodingModeLock,
-})
+export const createSetExplodingModeLock = (
+  payload: _SetExplodingModeLockPayload
+): SetExplodingModeLockPayload => ({payload, type: setExplodingModeLock})
 /**
  * Set command markdown for a conversation
  */
-export const createSetCommandMarkdown = (payload: _SetCommandMarkdownPayload) => ({
+export const createSetCommandMarkdown = (payload: _SetCommandMarkdownPayload): SetCommandMarkdownPayload => ({
   payload,
   type: setCommandMarkdown,
 })
 /**
  * Set index percent complete
  */
-export const createInboxSearchSetIndexPercent = (payload: _InboxSearchSetIndexPercentPayload) => ({
-  payload,
-  type: inboxSearchSetIndexPercent,
-})
+export const createInboxSearchSetIndexPercent = (
+  payload: _InboxSearchSetIndexPercentPayload
+): InboxSearchSetIndexPercentPayload => ({payload, type: inboxSearchSetIndexPercent})
 /**
  * Set team mention info
  */
-export const createSetMaybeMentionInfo = (payload: _SetMaybeMentionInfoPayload) => ({
-  payload,
-  type: setMaybeMentionInfo,
-})
+export const createSetMaybeMentionInfo = (
+  payload: _SetMaybeMentionInfoPayload
+): SetMaybeMentionInfoPayload => ({payload, type: setMaybeMentionInfo})
 /**
  * Set that wallets in chat is not new.
  */
-export const createSetWalletsOld = (payload: _SetWalletsOldPayload) => ({payload, type: setWalletsOld})
+export const createSetWalletsOld = (payload: _SetWalletsOldPayload): SetWalletsOldPayload => ({
+  payload,
+  type: setWalletsOld,
+})
 /**
  * Set the collapse status of a message
  */
-export const createToggleMessageCollapse = (payload: _ToggleMessageCollapsePayload) => ({
-  payload,
-  type: toggleMessageCollapse,
-})
+export const createToggleMessageCollapse = (
+  payload: _ToggleMessageCollapsePayload
+): ToggleMessageCollapsePayload => ({payload, type: toggleMessageCollapse})
 /**
  * Set the minimum role required to write into a conversation. Valid only for team conversations.
  */
-export const createSetMinWriterRole = (payload: _SetMinWriterRolePayload) => ({
+export const createSetMinWriterRole = (payload: _SetMinWriterRolePayload): SetMinWriterRolePayload => ({
   payload,
   type: setMinWriterRole,
 })
 /**
  * Set the payment confirm modal payment data
  */
-export const createSetPaymentConfirmInfo = (payload: _SetPaymentConfirmInfoPayload) => ({
-  payload,
-  type: setPaymentConfirmInfo,
-})
-export const createSetPaymentConfirmInfoError = (payload: _SetPaymentConfirmInfoPayloadError) => ({
-  error: true,
-  payload,
-  type: setPaymentConfirmInfo,
-})
+export const createSetPaymentConfirmInfo = (
+  payload: _SetPaymentConfirmInfoPayload
+): SetPaymentConfirmInfoPayload => ({payload, type: setPaymentConfirmInfo})
+export const createSetPaymentConfirmInfoError = (
+  payload: _SetPaymentConfirmInfoPayloadError
+): SetPaymentConfirmInfoPayloadError => ({error: true, payload, type: setPaymentConfirmInfo})
 /**
  * Set the remote exploding mode for a conversation.
  */
-export const createSetConvExplodingMode = (payload: _SetConvExplodingModePayload) => ({
-  payload,
-  type: setConvExplodingMode,
-})
+export const createSetConvExplodingMode = (
+  payload: _SetConvExplodingModePayload
+): SetConvExplodingModePayload => ({payload, type: setConvExplodingMode})
 /**
  * Set the status of a thread search
  */
-export const createSetThreadSearchStatus = (payload: _SetThreadSearchStatusPayload) => ({
-  payload,
-  type: setThreadSearchStatus,
-})
+export const createSetThreadSearchStatus = (
+  payload: _SetThreadSearchStatusPayload
+): SetThreadSearchStatusPayload => ({payload, type: setThreadSearchStatus})
 /**
  * Set the status of the inbox text search
  */
-export const createInboxSearchSetTextStatus = (payload: _InboxSearchSetTextStatusPayload) => ({
-  payload,
-  type: inboxSearchSetTextStatus,
-})
+export const createInboxSearchSetTextStatus = (
+  payload: _InboxSearchSetTextStatusPayload
+): InboxSearchSetTextStatusPayload => ({payload, type: inboxSearchSetTextStatus})
 /**
  * Set thread search query (used from inbox search to initialize it)
  */
-export const createSetThreadSearchQuery = (payload: _SetThreadSearchQueryPayload) => ({
-  payload,
-  type: setThreadSearchQuery,
-})
+export const createSetThreadSearchQuery = (
+  payload: _SetThreadSearchQueryPayload
+): SetThreadSearchQueryPayload => ({payload, type: setThreadSearchQuery})
 /**
  * Set unsent text for a conversation
  */
-export const createSetUnsentText = (payload: _SetUnsentTextPayload) => ({payload, type: setUnsentText})
+export const createSetUnsentText = (payload: _SetUnsentTextPayload): SetUnsentTextPayload => ({
+  payload,
+  type: setUnsentText,
+})
 /**
  * Sets the retention policy for a conversation.
  */
-export const createSetConvRetentionPolicy = (payload: _SetConvRetentionPolicyPayload) => ({
-  payload,
-  type: setConvRetentionPolicy,
-})
+export const createSetConvRetentionPolicy = (
+  payload: _SetConvRetentionPolicyPayload
+): SetConvRetentionPolicyPayload => ({payload, type: setConvRetentionPolicy})
 /**
  * Static configuration info was loaded from the service.
  */
-export const createStaticConfigLoaded = (payload: _StaticConfigLoadedPayload) => ({
+export const createStaticConfigLoaded = (payload: _StaticConfigLoadedPayload): StaticConfigLoadedPayload => ({
   payload,
   type: staticConfigLoaded,
 })
 /**
  * Tell the service to toggle a reaction on a message.
  */
-export const createToggleMessageReaction = (payload: _ToggleMessageReactionPayload) => ({
-  payload,
-  type: toggleMessageReaction,
-})
+export const createToggleMessageReaction = (
+  payload: _ToggleMessageReactionPayload
+): ToggleMessageReactionPayload => ({payload, type: toggleMessageReaction})
 /**
  * The service sent us an update for the reaction map of a message.
  */
-export const createUpdateReactions = (payload: _UpdateReactionsPayload) => ({payload, type: updateReactions})
+export const createUpdateReactions = (payload: _UpdateReactionsPayload): UpdateReactionsPayload => ({
+  payload,
+  type: updateReactions,
+})
 /**
  * The user has interacted with wallets in chat.
  */
-export const createHandleSeeingWallets = (payload: _HandleSeeingWalletsPayload) => ({
-  payload,
-  type: handleSeeingWallets,
-})
+export const createHandleSeeingWallets = (
+  payload: _HandleSeeingWalletsPayload
+): HandleSeeingWalletsPayload => ({payload, type: handleSeeingWallets})
 /**
  * Toggle Giphy search preview window
  */
-export const createGiphyToggleWindow = (payload: _GiphyToggleWindowPayload) => ({
+export const createGiphyToggleWindow = (payload: _GiphyToggleWindowPayload): GiphyToggleWindowPayload => ({
   payload,
   type: giphyToggleWindow,
 })
 /**
  * Toggle a reaction in the store.
  */
-export const createToggleLocalReaction = (payload: _ToggleLocalReactionPayload) => ({
-  payload,
-  type: toggleLocalReaction,
-})
+export const createToggleLocalReaction = (
+  payload: _ToggleLocalReactionPayload
+): ToggleLocalReactionPayload => ({payload, type: toggleLocalReaction})
 /**
  * Toggle inbox search view
  */
-export const createToggleInboxSearch = (payload: _ToggleInboxSearchPayload) => ({
+export const createToggleInboxSearch = (payload: _ToggleInboxSearchPayload): ToggleInboxSearchPayload => ({
   payload,
   type: toggleInboxSearch,
 })
 /**
  * Toggle the display of the thread search window
  */
-export const createToggleThreadSearch = (payload: _ToggleThreadSearchPayload) => ({
+export const createToggleThreadSearch = (payload: _ToggleThreadSearchPayload): ToggleThreadSearchPayload => ({
   payload,
   type: toggleThreadSearch,
 })
 /**
  * Unsent text changed
  */
-export const createUnsentTextChanged = (payload: _UnsentTextChangedPayload) => ({
+export const createUnsentTextChanged = (payload: _UnsentTextChangedPayload): UnsentTextChangedPayload => ({
   payload,
   type: unsentTextChanged,
 })
 /**
  * Update messages that we might have in the store
  */
-export const createUpdateMessages = (payload: _UpdateMessagesPayload) => ({payload, type: updateMessages})
+export const createUpdateMessages = (payload: _UpdateMessagesPayload): UpdateMessagesPayload => ({
+  payload,
+  type: updateMessages,
+})
 /**
  * Update status of a coin flip game
  */
-export const createUpdateCoinFlipStatus = (payload: _UpdateCoinFlipStatusPayload) => ({
-  payload,
-  type: updateCoinFlipStatus,
-})
+export const createUpdateCoinFlipStatus = (
+  payload: _UpdateCoinFlipStatusPayload
+): UpdateCoinFlipStatusPayload => ({payload, type: updateCoinFlipStatus})
 /**
  * Update the minWriterRole stored with the conversation metadata.
  */
-export const createSaveMinWriterRole = (payload: _SaveMinWriterRolePayload) => ({
+export const createSaveMinWriterRole = (payload: _SaveMinWriterRolePayload): SaveMinWriterRolePayload => ({
   payload,
   type: saveMinWriterRole,
 })
 /**
  * Update the unreadline line position for a conversation
  */
-export const createUpdateUnreadline = (payload: _UpdateUnreadlinePayload) => ({
+export const createUpdateUnreadline = (payload: _UpdateUnreadlinePayload): UpdateUnreadlinePayload => ({
   payload,
   type: updateUnreadline,
 })
 /**
  * User responded to the chat Stellar confirm screen
  */
-export const createConfirmScreenResponse = (payload: _ConfirmScreenResponsePayload) => ({
-  payload,
-  type: confirmScreenResponse,
-})
+export const createConfirmScreenResponse = (
+  payload: _ConfirmScreenResponsePayload
+): ConfirmScreenResponsePayload => ({payload, type: confirmScreenResponse})
 /**
  * We received payment info for a sendPayment message
  */
-export const createPaymentInfoReceived = (payload: _PaymentInfoReceivedPayload) => ({
-  payload,
-  type: paymentInfoReceived,
-})
+export const createPaymentInfoReceived = (
+  payload: _PaymentInfoReceivedPayload
+): PaymentInfoReceivedPayload => ({payload, type: paymentInfoReceived})
 /**
  * We received request info for a requestPayment message
  */
-export const createRequestInfoReceived = (payload: _RequestInfoReceivedPayload) => ({
-  payload,
-  type: requestInfoReceived,
-})
+export const createRequestInfoReceived = (
+  payload: _RequestInfoReceivedPayload
+): RequestInfoReceivedPayload => ({payload, type: requestInfoReceived})
 /**
  * We've seen chat search before
  */
-export const createSetInboxShowIsNew = (payload: _SetInboxShowIsNewPayload) => ({
+export const createSetInboxShowIsNew = (payload: _SetInboxShowIsNewPayload): SetInboxShowIsNewPayload => ({
   payload,
   type: setInboxShowIsNew,
 })
 /**
  * Where we want our focus for keypresses
  */
-export const createChangeFocus = (payload: _ChangeFocusPayload) => ({payload, type: changeFocus})
+export const createChangeFocus = (payload: _ChangeFocusPayload): ChangeFocusPayload => ({
+  payload,
+  type: changeFocus,
+})
 /**
  * send a message from Giphy search
  */
-export const createGiphySend = (payload: _GiphySendPayload) => ({payload, type: giphySend})
-export const createAttachmentDownload = (payload: _AttachmentDownloadPayload) => ({
+export const createGiphySend = (payload: _GiphySendPayload): GiphySendPayload => ({payload, type: giphySend})
+export const createAttachmentDownload = (payload: _AttachmentDownloadPayload): AttachmentDownloadPayload => ({
   payload,
   type: attachmentDownload,
 })
-export const createAttachmentDownloaded = (payload: _AttachmentDownloadedPayload) => ({
-  payload,
-  type: attachmentDownloaded,
-})
-export const createAttachmentDownloadedError = (payload: _AttachmentDownloadedPayloadError) => ({
-  error: true,
-  payload,
-  type: attachmentDownloaded,
-})
-export const createAttachmentFullscreenNext = (payload: _AttachmentFullscreenNextPayload) => ({
-  payload,
-  type: attachmentFullscreenNext,
-})
-export const createAttachmentFullscreenSelection = (payload: _AttachmentFullscreenSelectionPayload) => ({
-  payload,
-  type: attachmentFullscreenSelection,
-})
-export const createAttachmentLoading = (payload: _AttachmentLoadingPayload) => ({
+export const createAttachmentDownloaded = (
+  payload: _AttachmentDownloadedPayload
+): AttachmentDownloadedPayload => ({payload, type: attachmentDownloaded})
+export const createAttachmentDownloadedError = (
+  payload: _AttachmentDownloadedPayloadError
+): AttachmentDownloadedPayloadError => ({error: true, payload, type: attachmentDownloaded})
+export const createAttachmentFullscreenNext = (
+  payload: _AttachmentFullscreenNextPayload
+): AttachmentFullscreenNextPayload => ({payload, type: attachmentFullscreenNext})
+export const createAttachmentFullscreenSelection = (
+  payload: _AttachmentFullscreenSelectionPayload
+): AttachmentFullscreenSelectionPayload => ({payload, type: attachmentFullscreenSelection})
+export const createAttachmentLoading = (payload: _AttachmentLoadingPayload): AttachmentLoadingPayload => ({
   payload,
   type: attachmentLoading,
 })
-export const createAttachmentMobileSave = (payload: _AttachmentMobileSavePayload) => ({
-  payload,
-  type: attachmentMobileSave,
-})
-export const createAttachmentMobileSaved = (payload: _AttachmentMobileSavedPayload) => ({
-  payload,
-  type: attachmentMobileSaved,
-})
-export const createAttachmentPasted = (payload: _AttachmentPastedPayload) => ({
+export const createAttachmentMobileSave = (
+  payload: _AttachmentMobileSavePayload
+): AttachmentMobileSavePayload => ({payload, type: attachmentMobileSave})
+export const createAttachmentMobileSaved = (
+  payload: _AttachmentMobileSavedPayload
+): AttachmentMobileSavedPayload => ({payload, type: attachmentMobileSaved})
+export const createAttachmentPasted = (payload: _AttachmentPastedPayload): AttachmentPastedPayload => ({
   payload,
   type: attachmentPasted,
 })
-export const createAttachmentPreviewSelect = (payload: _AttachmentPreviewSelectPayload) => ({
-  payload,
-  type: attachmentPreviewSelect,
-})
-export const createAttachmentUploaded = (payload: _AttachmentUploadedPayload) => ({
+export const createAttachmentPreviewSelect = (
+  payload: _AttachmentPreviewSelectPayload
+): AttachmentPreviewSelectPayload => ({payload, type: attachmentPreviewSelect})
+export const createAttachmentUploaded = (payload: _AttachmentUploadedPayload): AttachmentUploadedPayload => ({
   payload,
   type: attachmentUploaded,
 })
-export const createAttachmentUploading = (payload: _AttachmentUploadingPayload) => ({
-  payload,
-  type: attachmentUploading,
-})
-export const createAttachmentsUpload = (payload: _AttachmentsUploadPayload) => ({
+export const createAttachmentUploading = (
+  payload: _AttachmentUploadingPayload
+): AttachmentUploadingPayload => ({payload, type: attachmentUploading})
+export const createAttachmentsUpload = (payload: _AttachmentsUploadPayload): AttachmentsUploadPayload => ({
   payload,
   type: attachmentsUpload,
 })
-export const createBadgesUpdated = (payload: _BadgesUpdatedPayload) => ({payload, type: badgesUpdated})
-export const createBlockConversation = (payload: _BlockConversationPayload) => ({
+export const createBadgesUpdated = (payload: _BadgesUpdatedPayload): BadgesUpdatedPayload => ({
+  payload,
+  type: badgesUpdated,
+})
+export const createBlockConversation = (payload: _BlockConversationPayload): BlockConversationPayload => ({
   payload,
   type: blockConversation,
 })
-export const createDeselectConversation = (payload: _DeselectConversationPayload) => ({
-  payload,
-  type: deselectConversation,
-})
-export const createDesktopNotification = (payload: _DesktopNotificationPayload) => ({
-  payload,
-  type: desktopNotification,
-})
-export const createHideConversation = (payload: _HideConversationPayload) => ({
+export const createDeselectConversation = (
+  payload: _DeselectConversationPayload
+): DeselectConversationPayload => ({payload, type: deselectConversation})
+export const createDesktopNotification = (
+  payload: _DesktopNotificationPayload
+): DesktopNotificationPayload => ({payload, type: desktopNotification})
+export const createHideConversation = (payload: _HideConversationPayload): HideConversationPayload => ({
   payload,
   type: hideConversation,
 })
-export const createInboxRefresh = (payload: _InboxRefreshPayload) => ({payload, type: inboxRefresh})
-export const createJoinConversation = (payload: _JoinConversationPayload) => ({
+export const createInboxRefresh = (payload: _InboxRefreshPayload): InboxRefreshPayload => ({
+  payload,
+  type: inboxRefresh,
+})
+export const createJoinConversation = (payload: _JoinConversationPayload): JoinConversationPayload => ({
   payload,
   type: joinConversation,
 })
-export const createLeaveConversation = (payload: _LeaveConversationPayload) => ({
+export const createLeaveConversation = (payload: _LeaveConversationPayload): LeaveConversationPayload => ({
   payload,
   type: leaveConversation,
 })
-export const createLoadMessagesCentered = (payload: _LoadMessagesCenteredPayload) => ({
+export const createLoadMessagesCentered = (
+  payload: _LoadMessagesCenteredPayload
+): LoadMessagesCenteredPayload => ({payload, type: loadMessagesCentered})
+export const createLoadNewerMessagesDueToScroll = (
+  payload: _LoadNewerMessagesDueToScrollPayload
+): LoadNewerMessagesDueToScrollPayload => ({payload, type: loadNewerMessagesDueToScroll})
+export const createLoadOlderMessagesDueToScroll = (
+  payload: _LoadOlderMessagesDueToScrollPayload
+): LoadOlderMessagesDueToScrollPayload => ({payload, type: loadOlderMessagesDueToScroll})
+export const createMarkConversationsStale = (
+  payload: _MarkConversationsStalePayload
+): MarkConversationsStalePayload => ({payload, type: markConversationsStale})
+export const createMarkInitiallyLoadedThreadAsRead = (
+  payload: _MarkInitiallyLoadedThreadAsReadPayload
+): MarkInitiallyLoadedThreadAsReadPayload => ({payload, type: markInitiallyLoadedThreadAsRead})
+export const createMessageAttachmentNativeSave = (
+  payload: _MessageAttachmentNativeSavePayload
+): MessageAttachmentNativeSavePayload => ({payload, type: messageAttachmentNativeSave})
+export const createMessageAttachmentNativeShare = (
+  payload: _MessageAttachmentNativeSharePayload
+): MessageAttachmentNativeSharePayload => ({payload, type: messageAttachmentNativeShare})
+export const createMessageAttachmentUploaded = (
+  payload: _MessageAttachmentUploadedPayload
+): MessageAttachmentUploadedPayload => ({payload, type: messageAttachmentUploaded})
+export const createMessageDelete = (payload: _MessageDeletePayload): MessageDeletePayload => ({
   payload,
-  type: loadMessagesCentered,
+  type: messageDelete,
 })
-export const createLoadNewerMessagesDueToScroll = (payload: _LoadNewerMessagesDueToScrollPayload) => ({
+export const createMessageDeleteHistory = (
+  payload: _MessageDeleteHistoryPayload
+): MessageDeleteHistoryPayload => ({payload, type: messageDeleteHistory})
+export const createMessageEdit = (payload: _MessageEditPayload): MessageEditPayload => ({
   payload,
-  type: loadNewerMessagesDueToScroll,
+  type: messageEdit,
 })
-export const createLoadOlderMessagesDueToScroll = (payload: _LoadOlderMessagesDueToScrollPayload) => ({
+export const createMessageErrored = (payload: _MessageErroredPayload): MessageErroredPayload => ({
   payload,
-  type: loadOlderMessagesDueToScroll,
+  type: messageErrored,
 })
-export const createMarkConversationsStale = (payload: _MarkConversationsStalePayload) => ({
+export const createMessageReplyPrivately = (
+  payload: _MessageReplyPrivatelyPayload
+): MessageReplyPrivatelyPayload => ({payload, type: messageReplyPrivately})
+export const createMessageRetry = (payload: _MessageRetryPayload): MessageRetryPayload => ({
   payload,
-  type: markConversationsStale,
+  type: messageRetry,
 })
-export const createMarkInitiallyLoadedThreadAsRead = (payload: _MarkInitiallyLoadedThreadAsReadPayload) => ({
+export const createMessageSend = (payload: _MessageSendPayload): MessageSendPayload => ({
   payload,
-  type: markInitiallyLoadedThreadAsRead,
+  type: messageSend,
 })
-export const createMessageAttachmentNativeSave = (payload: _MessageAttachmentNativeSavePayload) => ({
-  payload,
-  type: messageAttachmentNativeSave,
-})
-export const createMessageAttachmentNativeShare = (payload: _MessageAttachmentNativeSharePayload) => ({
-  payload,
-  type: messageAttachmentNativeShare,
-})
-export const createMessageAttachmentUploaded = (payload: _MessageAttachmentUploadedPayload) => ({
-  payload,
-  type: messageAttachmentUploaded,
-})
-export const createMessageDelete = (payload: _MessageDeletePayload) => ({payload, type: messageDelete})
-export const createMessageDeleteHistory = (payload: _MessageDeleteHistoryPayload) => ({
-  payload,
-  type: messageDeleteHistory,
-})
-export const createMessageEdit = (payload: _MessageEditPayload) => ({payload, type: messageEdit})
-export const createMessageErrored = (payload: _MessageErroredPayload) => ({payload, type: messageErrored})
-export const createMessageReplyPrivately = (payload: _MessageReplyPrivatelyPayload) => ({
-  payload,
-  type: messageReplyPrivately,
-})
-export const createMessageRetry = (payload: _MessageRetryPayload) => ({payload, type: messageRetry})
-export const createMessageSend = (payload: _MessageSendPayload) => ({payload, type: messageSend})
-export const createMessageSetEditing = (payload: _MessageSetEditingPayload) => ({
+export const createMessageSetEditing = (payload: _MessageSetEditingPayload): MessageSetEditingPayload => ({
   payload,
   type: messageSetEditing,
 })
-export const createMessageSetQuoting = (payload: _MessageSetQuotingPayload) => ({
+export const createMessageSetQuoting = (payload: _MessageSetQuotingPayload): MessageSetQuotingPayload => ({
   payload,
   type: messageSetQuoting,
 })
-export const createMessageWasEdited = (payload: _MessageWasEditedPayload) => ({
+export const createMessageWasEdited = (payload: _MessageWasEditedPayload): MessageWasEditedPayload => ({
   payload,
   type: messageWasEdited,
 })
-export const createMessagesAdd = (payload: _MessagesAddPayload) => ({payload, type: messagesAdd})
-export const createMessagesWereDeleted = (payload: _MessagesWereDeletedPayload) => ({
+export const createMessagesAdd = (payload: _MessagesAddPayload): MessagesAddPayload => ({
   payload,
-  type: messagesWereDeleted,
+  type: messagesAdd,
 })
-export const createMetaDelete = (payload: _MetaDeletePayload) => ({payload, type: metaDelete})
-export const createMetaHandleQueue = (payload: _MetaHandleQueuePayload) => ({payload, type: metaHandleQueue})
-export const createMetaNeedsUpdating = (payload: _MetaNeedsUpdatingPayload) => ({
+export const createMessagesWereDeleted = (
+  payload: _MessagesWereDeletedPayload
+): MessagesWereDeletedPayload => ({payload, type: messagesWereDeleted})
+export const createMetaDelete = (payload: _MetaDeletePayload): MetaDeletePayload => ({
+  payload,
+  type: metaDelete,
+})
+export const createMetaHandleQueue = (payload: _MetaHandleQueuePayload): MetaHandleQueuePayload => ({
+  payload,
+  type: metaHandleQueue,
+})
+export const createMetaNeedsUpdating = (payload: _MetaNeedsUpdatingPayload): MetaNeedsUpdatingPayload => ({
   payload,
   type: metaNeedsUpdating,
 })
-export const createMetaReceivedError = (payload: _MetaReceivedErrorPayload) => ({
+export const createMetaReceivedError = (payload: _MetaReceivedErrorPayload): MetaReceivedErrorPayload => ({
   payload,
   type: metaReceivedError,
 })
-export const createMetaRequestTrusted = (payload: _MetaRequestTrustedPayload) => ({
+export const createMetaRequestTrusted = (payload: _MetaRequestTrustedPayload): MetaRequestTrustedPayload => ({
   payload,
   type: metaRequestTrusted,
 })
-export const createMetaRequestingTrusted = (payload: _MetaRequestingTrustedPayload) => ({
+export const createMetaRequestingTrusted = (
+  payload: _MetaRequestingTrustedPayload
+): MetaRequestingTrustedPayload => ({payload, type: metaRequestingTrusted})
+export const createMetasReceived = (payload: _MetasReceivedPayload): MetasReceivedPayload => ({
   payload,
-  type: metaRequestingTrusted,
+  type: metasReceived,
 })
-export const createMetasReceived = (payload: _MetasReceivedPayload) => ({payload, type: metasReceived})
-export const createMuteConversation = (payload: _MuteConversationPayload) => ({
+export const createMuteConversation = (payload: _MuteConversationPayload): MuteConversationPayload => ({
   payload,
   type: muteConversation,
 })
-export const createNavigateToInbox = (payload: _NavigateToInboxPayload) => ({payload, type: navigateToInbox})
-export const createNavigateToThread = (payload: _NavigateToThreadPayload) => ({
+export const createNavigateToInbox = (payload: _NavigateToInboxPayload): NavigateToInboxPayload => ({
+  payload,
+  type: navigateToInbox,
+})
+export const createNavigateToThread = (payload: _NavigateToThreadPayload): NavigateToThreadPayload => ({
   payload,
   type: navigateToThread,
 })
-export const createNotificationSettingsUpdated = (payload: _NotificationSettingsUpdatedPayload) => ({
+export const createNotificationSettingsUpdated = (
+  payload: _NotificationSettingsUpdatedPayload
+): NotificationSettingsUpdatedPayload => ({payload, type: notificationSettingsUpdated})
+export const createOpenChatFromWidget = (
+  payload: _OpenChatFromWidgetPayload = Object.freeze({})
+): OpenChatFromWidgetPayload => ({payload, type: openChatFromWidget})
+export const createOpenFolder = (payload: _OpenFolderPayload): OpenFolderPayload => ({
   payload,
-  type: notificationSettingsUpdated,
+  type: openFolder,
 })
-export const createOpenChatFromWidget = (payload: _OpenChatFromWidgetPayload = Object.freeze({})) => ({
+export const createPendingMessageWasEdited = (
+  payload: _PendingMessageWasEditedPayload
+): PendingMessageWasEditedPayload => ({payload, type: pendingMessageWasEdited})
+export const createPreviewConversation = (
+  payload: _PreviewConversationPayload
+): PreviewConversationPayload => ({payload, type: previewConversation})
+export const createResetChatWithoutThem = (
+  payload: _ResetChatWithoutThemPayload
+): ResetChatWithoutThemPayload => ({payload, type: resetChatWithoutThem})
+export const createResetLetThemIn = (payload: _ResetLetThemInPayload): ResetLetThemInPayload => ({
   payload,
-  type: openChatFromWidget,
+  type: resetLetThemIn,
 })
-export const createOpenFolder = (payload: _OpenFolderPayload) => ({payload, type: openFolder})
-export const createPendingMessageWasEdited = (payload: _PendingMessageWasEditedPayload) => ({
-  payload,
-  type: pendingMessageWasEdited,
-})
-export const createPreviewConversation = (payload: _PreviewConversationPayload) => ({
-  payload,
-  type: previewConversation,
-})
-export const createResetChatWithoutThem = (payload: _ResetChatWithoutThemPayload) => ({
-  payload,
-  type: resetChatWithoutThem,
-})
-export const createResetLetThemIn = (payload: _ResetLetThemInPayload) => ({payload, type: resetLetThemIn})
-export const createSelectConversation = (payload: _SelectConversationPayload) => ({
+export const createSelectConversation = (payload: _SelectConversationPayload): SelectConversationPayload => ({
   payload,
   type: selectConversation,
 })
-export const createSendTyping = (payload: _SendTypingPayload) => ({payload, type: sendTyping})
-export const createSetConversationOffline = (payload: _SetConversationOfflinePayload) => ({
+export const createSendTyping = (payload: _SendTypingPayload): SendTypingPayload => ({
   payload,
-  type: setConversationOffline,
+  type: sendTyping,
 })
-export const createToggleInfoPanel = (payload: _ToggleInfoPanelPayload) => ({payload, type: toggleInfoPanel})
-export const createToggleSmallTeamsExpanded = (payload: _ToggleSmallTeamsExpandedPayload) => ({
+export const createSetConversationOffline = (
+  payload: _SetConversationOfflinePayload
+): SetConversationOfflinePayload => ({payload, type: setConversationOffline})
+export const createToggleInfoPanel = (payload: _ToggleInfoPanelPayload): ToggleInfoPanelPayload => ({
   payload,
-  type: toggleSmallTeamsExpanded,
+  type: toggleInfoPanel,
 })
-export const createUnhideConversation = (payload: _UnhideConversationPayload) => ({
+export const createToggleSmallTeamsExpanded = (
+  payload: _ToggleSmallTeamsExpandedPayload
+): ToggleSmallTeamsExpandedPayload => ({payload, type: toggleSmallTeamsExpanded})
+export const createUnhideConversation = (payload: _UnhideConversationPayload): UnhideConversationPayload => ({
   payload,
   type: unhideConversation,
 })
-export const createUpdateMoreToLoad = (payload: _UpdateMoreToLoadPayload) => ({
+export const createUpdateMoreToLoad = (payload: _UpdateMoreToLoadPayload): UpdateMoreToLoadPayload => ({
   payload,
   type: updateMoreToLoad,
 })
-export const createUpdateNotificationSettings = (payload: _UpdateNotificationSettingsPayload) => ({
-  payload,
-  type: updateNotificationSettings,
-})
+export const createUpdateNotificationSettings = (
+  payload: _UpdateNotificationSettingsPayload
+): UpdateNotificationSettingsPayload => ({payload, type: updateNotificationSettings})
 
 // Action Payloads
 export type AddUsersToChannelPayload = {

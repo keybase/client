@@ -29,17 +29,21 @@ type _PeopleDataProcessedPayload = {
 type _SkipTodoPayload = {readonly type: Types.TodoType}
 
 // Action Creators
-export const createDismissAnnouncement = (payload: _DismissAnnouncementPayload) => ({
+export const createDismissAnnouncement = (
+  payload: _DismissAnnouncementPayload
+): DismissAnnouncementPayload => ({payload, type: dismissAnnouncement})
+export const createGetPeopleData = (payload: _GetPeopleDataPayload): GetPeopleDataPayload => ({
   payload,
-  type: dismissAnnouncement,
+  type: getPeopleData,
 })
-export const createGetPeopleData = (payload: _GetPeopleDataPayload) => ({payload, type: getPeopleData})
-export const createMarkViewed = (payload: _MarkViewedPayload) => ({payload, type: markViewed})
-export const createPeopleDataProcessed = (payload: _PeopleDataProcessedPayload) => ({
+export const createMarkViewed = (payload: _MarkViewedPayload): MarkViewedPayload => ({
   payload,
-  type: peopleDataProcessed,
+  type: markViewed,
 })
-export const createSkipTodo = (payload: _SkipTodoPayload) => ({payload, type: skipTodo})
+export const createPeopleDataProcessed = (
+  payload: _PeopleDataProcessedPayload
+): PeopleDataProcessedPayload => ({payload, type: peopleDataProcessed})
+export const createSkipTodo = (payload: _SkipTodoPayload): SkipTodoPayload => ({payload, type: skipTodo})
 
 // Action Payloads
 export type DismissAnnouncementPayload = {

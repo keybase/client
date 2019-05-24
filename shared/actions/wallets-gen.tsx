@@ -292,566 +292,601 @@ type _WalletDisclaimerReceivedPayload = {readonly accepted: boolean}
 /**
  * A response from the service after an account is deleted.
  */
-export const createDeletedAccount = (payload: _DeletedAccountPayload) => ({payload, type: deletedAccount})
+export const createDeletedAccount = (payload: _DeletedAccountPayload): DeletedAccountPayload => ({
+  payload,
+  type: deletedAccount,
+})
 /**
  * A response from the service after an account is set as the default
  */
-export const createDidSetAccountAsDefault = (payload: _DidSetAccountAsDefaultPayload) => ({
-  payload,
-  type: didSetAccountAsDefault,
-})
+export const createDidSetAccountAsDefault = (
+  payload: _DidSetAccountAsDefaultPayload
+): DidSetAccountAsDefaultPayload => ({payload, type: didSetAccountAsDefault})
 /**
  * A response from the service after an account's name is changed
  */
-export const createChangedAccountName = (payload: _ChangedAccountNamePayload) => ({
+export const createChangedAccountName = (payload: _ChangedAccountNamePayload): ChangedAccountNamePayload => ({
   payload,
   type: changedAccountName,
 })
-export const createChangedAccountNameError = (payload: _ChangedAccountNamePayloadError) => ({
-  error: true,
-  payload,
-  type: changedAccountName,
-})
+export const createChangedAccountNameError = (
+  payload: _ChangedAccountNamePayloadError
+): ChangedAccountNamePayloadError => ({error: true, payload, type: changedAccountName})
 /**
  * Accept the Stellar account disclaimer
  */
-export const createAcceptDisclaimer = (payload: _AcceptDisclaimerPayload) => ({
+export const createAcceptDisclaimer = (payload: _AcceptDisclaimerPayload): AcceptDisclaimerPayload => ({
   payload,
   type: acceptDisclaimer,
 })
 /**
  * Add a new wallet to your account
  */
-export const createCreateNewAccount = (payload: _CreateNewAccountPayload) => ({
+export const createCreateNewAccount = (payload: _CreateNewAccountPayload): CreateNewAccountPayload => ({
   payload,
   type: createNewAccount,
 })
 /**
  * Ask the service for current mobile only mode for Stellar account.
  */
-export const createLoadMobileOnlyMode = (payload: _LoadMobileOnlyModePayload) => ({
+export const createLoadMobileOnlyMode = (payload: _LoadMobileOnlyModePayload): LoadMobileOnlyModePayload => ({
   payload,
   type: loadMobileOnlyMode,
 })
 /**
  * Ask the service to validate an account name.
  */
-export const createValidateAccountName = (payload: _ValidateAccountNamePayload) => ({
-  payload,
-  type: validateAccountName,
-})
+export const createValidateAccountName = (
+  payload: _ValidateAccountNamePayload
+): ValidateAccountNamePayload => ({payload, type: validateAccountName})
 /**
  * Ask the service to validate an account secret key.
  */
-export const createValidateSecretKey = (payload: _ValidateSecretKeyPayload) => ({
+export const createValidateSecretKey = (payload: _ValidateSecretKeyPayload): ValidateSecretKeyPayload => ({
   payload,
   type: validateSecretKey,
 })
 /**
  * Cancel a payment. Valid for payments of status 'claimable'. If showAccount is true, nav to the currently selected account when done.
  */
-export const createCancelPayment = (payload: _CancelPaymentPayload) => ({payload, type: cancelPayment})
+export const createCancelPayment = (payload: _CancelPaymentPayload): CancelPaymentPayload => ({
+  payload,
+  type: cancelPayment,
+})
 /**
  * Cancel a request. Optionally delete an associated message
  */
-export const createCancelRequest = (payload: _CancelRequestPayload) => ({payload, type: cancelRequest})
+export const createCancelRequest = (payload: _CancelRequestPayload): CancelRequestPayload => ({
+  payload,
+  type: cancelRequest,
+})
 /**
  * Change display currency for an account
  */
-export const createChangeDisplayCurrency = (payload: _ChangeDisplayCurrencyPayload) => ({
-  payload,
-  type: changeDisplayCurrency,
-})
+export const createChangeDisplayCurrency = (
+  payload: _ChangeDisplayCurrencyPayload
+): ChangeDisplayCurrencyPayload => ({payload, type: changeDisplayCurrency})
 /**
  * Change mobile only mode for Stellar account.
  */
-export const createChangeMobileOnlyMode = (payload: _ChangeMobileOnlyModePayload) => ({
-  payload,
-  type: changeMobileOnlyMode,
-})
+export const createChangeMobileOnlyMode = (
+  payload: _ChangeMobileOnlyModePayload
+): ChangeMobileOnlyModePayload => ({payload, type: changeMobileOnlyMode})
 /**
  * Change the default account
  */
-export const createSetAccountAsDefault = (payload: _SetAccountAsDefaultPayload) => ({
-  payload,
-  type: setAccountAsDefault,
-})
+export const createSetAccountAsDefault = (
+  payload: _SetAccountAsDefaultPayload
+): SetAccountAsDefaultPayload => ({payload, type: setAccountAsDefault})
 /**
  * Change the name of an account
  */
-export const createChangeAccountName = (payload: _ChangeAccountNamePayload) => ({
+export const createChangeAccountName = (payload: _ChangeAccountNamePayload): ChangeAccountNamePayload => ({
   payload,
   type: changeAccountName,
 })
 /**
  * Clear a payment or request that was being prepared
  */
-export const createClearBuilding = (payload: _ClearBuildingPayload) => ({payload, type: clearBuilding})
+export const createClearBuilding = (payload: _ClearBuildingPayload): ClearBuildingPayload => ({
+  payload,
+  type: clearBuilding,
+})
 /**
  * Clear a prepared payment once it has been sent or canceled
  */
-export const createClearBuiltPayment = (payload: _ClearBuiltPaymentPayload) => ({
+export const createClearBuiltPayment = (payload: _ClearBuiltPaymentPayload): ClearBuiltPaymentPayload => ({
   payload,
   type: clearBuiltPayment,
 })
 /**
  * Clear a prepared request once it has been sent or canceled
  */
-export const createClearBuiltRequest = (payload: _ClearBuiltRequestPayload) => ({
+export const createClearBuiltRequest = (payload: _ClearBuiltRequestPayload): ClearBuiltRequestPayload => ({
   payload,
   type: clearBuiltRequest,
 })
 /**
  * Clear errors from the store at times like opening or closing a form dialog.
  */
-export const createClearErrors = (payload: _ClearErrorsPayload) => ({payload, type: clearErrors})
+export const createClearErrors = (payload: _ClearErrorsPayload): ClearErrorsPayload => ({
+  payload,
+  type: clearErrors,
+})
 /**
  * Clear exported secret keys from our store once they've been seen
  */
-export const createSecretKeySeen = (payload: _SecretKeySeenPayload) => ({payload, type: secretKeySeen})
+export const createSecretKeySeen = (payload: _SecretKeySeenPayload): SecretKeySeenPayload => ({
+  payload,
+  type: secretKeySeen,
+})
 /**
  * Clear our idea of which payments have not been seen by the user yet
  */
-export const createClearNewPayments = (payload: _ClearNewPaymentsPayload) => ({
+export const createClearNewPayments = (payload: _ClearNewPaymentsPayload): ClearNewPaymentsPayload => ({
   payload,
   type: clearNewPayments,
 })
 /**
  * Close the send form and show the user their transactions so they can review.
  */
-export const createExitFailedPayment = (payload: _ExitFailedPaymentPayload) => ({
+export const createExitFailedPayment = (payload: _ExitFailedPaymentPayload): ExitFailedPaymentPayload => ({
   payload,
   type: exitFailedPayment,
 })
 /**
  * Delete an account
  */
-export const createDeleteAccount = (payload: _DeleteAccountPayload) => ({payload, type: deleteAccount})
+export const createDeleteAccount = (payload: _DeleteAccountPayload): DeleteAccountPayload => ({
+  payload,
+  type: deleteAccount,
+})
 /**
  * Discover whether the user has accepted the Stellar disclaimer
  */
-export const createCheckDisclaimer = (payload: _CheckDisclaimerPayload) => ({payload, type: checkDisclaimer})
+export const createCheckDisclaimer = (payload: _CheckDisclaimerPayload): CheckDisclaimerPayload => ({
+  payload,
+  type: checkDisclaimer,
+})
 /**
  * Export a Stellar account's secret key
  */
-export const createExportSecretKey = (payload: _ExportSecretKeyPayload) => ({payload, type: exportSecretKey})
+export const createExportSecretKey = (payload: _ExportSecretKeyPayload): ExportSecretKeyPayload => ({
+  payload,
+  type: exportSecretKey,
+})
 /**
  * Failed to send a payment
  */
-export const createSentPaymentError = (payload: _SentPaymentErrorPayload) => ({
+export const createSentPaymentError = (payload: _SentPaymentErrorPayload): SentPaymentErrorPayload => ({
   payload,
   type: sentPaymentError,
 })
 /**
  * Got inflation destination
  */
-export const createInflationDestinationReceived = (payload: _InflationDestinationReceivedPayload) => ({
-  payload,
-  type: inflationDestinationReceived,
-})
+export const createInflationDestinationReceived = (
+  payload: _InflationDestinationReceivedPayload
+): InflationDestinationReceivedPayload => ({payload, type: inflationDestinationReceived})
 export const createInflationDestinationReceivedError = (
   payload: _InflationDestinationReceivedPayloadError
-) => ({error: true, payload, type: inflationDestinationReceived})
+): InflationDestinationReceivedPayloadError => ({error: true, payload, type: inflationDestinationReceived})
 /**
  * Initialize and navigate to the send or request form. See docs for `setBuilding*` for param semantics.
  */
-export const createOpenSendRequestForm = (payload: _OpenSendRequestFormPayload = Object.freeze({})) => ({
-  payload,
-  type: openSendRequestForm,
-})
+export const createOpenSendRequestForm = (
+  payload: _OpenSendRequestFormPayload = Object.freeze({})
+): OpenSendRequestFormPayload => ({payload, type: openSendRequestForm})
 /**
  * Link an existing Stellar account with this Keybase user.
  */
-export const createLinkExistingAccount = (payload: _LinkExistingAccountPayload) => ({
-  payload,
-  type: linkExistingAccount,
-})
+export const createLinkExistingAccount = (
+  payload: _LinkExistingAccountPayload
+): LinkExistingAccountPayload => ({payload, type: linkExistingAccount})
 /**
  * Load display currency for an account
  */
-export const createLoadDisplayCurrency = (payload: _LoadDisplayCurrencyPayload) => ({
-  payload,
-  type: loadDisplayCurrency,
-})
+export const createLoadDisplayCurrency = (
+  payload: _LoadDisplayCurrencyPayload
+): LoadDisplayCurrencyPayload => ({payload, type: loadDisplayCurrency})
 /**
  * Load extra detail for one given payment
  */
-export const createLoadPaymentDetail = (payload: _LoadPaymentDetailPayload) => ({
+export const createLoadPaymentDetail = (payload: _LoadPaymentDetailPayload): LoadPaymentDetailPayload => ({
   payload,
   type: loadPaymentDetail,
 })
 /**
  * Load valid assets for sending to user
  */
-export const createLoadSendAssetChoices = (payload: _LoadSendAssetChoicesPayload) => ({
-  payload,
-  type: loadSendAssetChoices,
-})
+export const createLoadSendAssetChoices = (
+  payload: _LoadSendAssetChoicesPayload
+): LoadSendAssetChoicesPayload => ({payload, type: loadSendAssetChoices})
 /**
  * Load valid display currencies to choose from
  */
-export const createLoadDisplayCurrencies = (payload: _LoadDisplayCurrenciesPayload) => ({
-  payload,
-  type: loadDisplayCurrencies,
-})
+export const createLoadDisplayCurrencies = (
+  payload: _LoadDisplayCurrenciesPayload
+): LoadDisplayCurrenciesPayload => ({payload, type: loadDisplayCurrencies})
 /**
  * Load wallet disclaimer
  */
-export const createLoadWalletDisclaimer = (payload: _LoadWalletDisclaimerPayload) => ({
-  payload,
-  type: loadWalletDisclaimer,
-})
+export const createLoadWalletDisclaimer = (
+  payload: _LoadWalletDisclaimerPayload
+): LoadWalletDisclaimerPayload => ({payload, type: loadWalletDisclaimer})
 /**
  * Mark a payment we were just notified about as being unseen
  */
-export const createAddNewPayment = (payload: _AddNewPaymentPayload) => ({payload, type: addNewPayment})
+export const createAddNewPayment = (payload: _AddNewPaymentPayload): AddNewPaymentPayload => ({
+  payload,
+  type: addNewPayment,
+})
 /**
  * Mark the given payment ID and anything older as read.
  */
-export const createMarkAsRead = (payload: _MarkAsReadPayload) => ({payload, type: markAsRead})
+export const createMarkAsRead = (payload: _MarkAsReadPayload): MarkAsReadPayload => ({
+  payload,
+  type: markAsRead,
+})
 /**
  * Move to the confirm screen on a built payment.
  */
-export const createReviewPayment = (payload: _ReviewPaymentPayload) => ({payload, type: reviewPayment})
+export const createReviewPayment = (payload: _ReviewPaymentPayload): ReviewPaymentPayload => ({
+  payload,
+  type: reviewPayment,
+})
 /**
  * Navigate to the details page for the given transaction.
  */
-export const createShowTransaction = (payload: _ShowTransactionPayload) => ({payload, type: showTransaction})
+export const createShowTransaction = (payload: _ShowTransactionPayload): ShowTransactionPayload => ({
+  payload,
+  type: showTransaction,
+})
 /**
  * Perform sending a payment
  */
-export const createSendPayment = (payload: _SendPaymentPayload) => ({payload, type: sendPayment})
+export const createSendPayment = (payload: _SendPaymentPayload): SendPaymentPayload => ({
+  payload,
+  type: sendPayment,
+})
 /**
  * Received a fresh first page of recent payments
  */
-export const createRecentPaymentsReceived = (payload: _RecentPaymentsReceivedPayload) => ({
-  payload,
-  type: recentPaymentsReceived,
-})
+export const createRecentPaymentsReceived = (
+  payload: _RecentPaymentsReceivedPayload
+): RecentPaymentsReceivedPayload => ({payload, type: recentPaymentsReceived})
 /**
  * Received a new set of pending payments; replace existing ones with these
  */
-export const createPendingPaymentsReceived = (payload: _PendingPaymentsReceivedPayload) => ({
-  payload,
-  type: pendingPaymentsReceived,
-})
+export const createPendingPaymentsReceived = (
+  payload: _PendingPaymentsReceivedPayload
+): PendingPaymentsReceivedPayload => ({payload, type: pendingPaymentsReceived})
 /**
  * Received wallet disclaimer
  */
-export const createWalletDisclaimerReceived = (payload: _WalletDisclaimerReceivedPayload) => ({
-  payload,
-  type: walletDisclaimerReceived,
-})
+export const createWalletDisclaimerReceived = (
+  payload: _WalletDisclaimerReceivedPayload
+): WalletDisclaimerReceivedPayload => ({payload, type: walletDisclaimerReceived})
 /**
  * Refresh inflation destination and options
  */
-export const createLoadInflationDestination = (payload: _LoadInflationDestinationPayload) => ({
-  payload,
-  type: loadInflationDestination,
-})
+export const createLoadInflationDestination = (
+  payload: _LoadInflationDestinationPayload
+): LoadInflationDestinationPayload => ({payload, type: loadInflationDestination})
 /**
  * Refresh our list of accounts
  */
-export const createLoadAccounts = (payload: _LoadAccountsPayload) => ({payload, type: loadAccounts})
+export const createLoadAccounts = (payload: _LoadAccountsPayload): LoadAccountsPayload => ({
+  payload,
+  type: loadAccounts,
+})
 /**
  * Refresh our list of assets for a given account
  */
-export const createLoadAssets = (payload: _LoadAssetsPayload) => ({payload, type: loadAssets})
+export const createLoadAssets = (payload: _LoadAssetsPayload): LoadAssetsPayload => ({
+  payload,
+  type: loadAssets,
+})
 /**
  * Refresh our list of payments for a given account
  */
-export const createLoadPayments = (payload: _LoadPaymentsPayload) => ({payload, type: loadPayments})
+export const createLoadPayments = (payload: _LoadPaymentsPayload): LoadPaymentsPayload => ({
+  payload,
+  type: loadPayments,
+})
 /**
  * Reject (temporarily) the Stellar account disclaimer
  */
-export const createRejectDisclaimer = (payload: _RejectDisclaimerPayload) => ({
+export const createRejectDisclaimer = (payload: _RejectDisclaimerPayload): RejectDisclaimerPayload => ({
   payload,
   type: rejectDisclaimer,
 })
 /**
  * Request payment
  */
-export const createRequestPayment = (payload: _RequestPaymentPayload) => ({payload, type: requestPayment})
+export const createRequestPayment = (payload: _RequestPaymentPayload): RequestPaymentPayload => ({
+  payload,
+  type: requestPayment,
+})
 /**
  * Reset to the pre-accepting-disclaimer state.
  */
-export const createResetAcceptingDisclaimer = (payload: _ResetAcceptingDisclaimerPayload) => ({
-  payload,
-  type: resetAcceptingDisclaimer,
-})
+export const createResetAcceptingDisclaimer = (
+  payload: _ResetAcceptingDisclaimerPayload
+): ResetAcceptingDisclaimerPayload => ({payload, type: resetAcceptingDisclaimer})
 /**
  * Scrolled down the list of payments for a given account
  */
-export const createLoadMorePayments = (payload: _LoadMorePaymentsPayload) => ({
+export const createLoadMorePayments = (payload: _LoadMorePaymentsPayload): LoadMorePaymentsPayload => ({
   payload,
   type: loadMorePayments,
 })
 /**
  * Select an account. Optionally navigate to the account page.
  */
-export const createSelectAccount = (payload: _SelectAccountPayload) => ({payload, type: selectAccount})
+export const createSelectAccount = (payload: _SelectAccountPayload): SelectAccountPayload => ({
+  payload,
+  type: selectAccount,
+})
 /**
  * Send a potential payment to the service for validation
  */
-export const createBuildPayment = (payload: _BuildPaymentPayload) => ({payload, type: buildPayment})
+export const createBuildPayment = (payload: _BuildPaymentPayload): BuildPaymentPayload => ({
+  payload,
+  type: buildPayment,
+})
 /**
  * Set building amount
  */
-export const createSetBuildingAmount = (payload: _SetBuildingAmountPayload) => ({
+export const createSetBuildingAmount = (payload: _SetBuildingAmountPayload): SetBuildingAmountPayload => ({
   payload,
   type: setBuildingAmount,
 })
 /**
  * Set building currency
  */
-export const createSetBuildingCurrency = (payload: _SetBuildingCurrencyPayload) => ({
-  payload,
-  type: setBuildingCurrency,
-})
+export const createSetBuildingCurrency = (
+  payload: _SetBuildingCurrencyPayload
+): SetBuildingCurrencyPayload => ({payload, type: setBuildingCurrency})
 /**
  * Set building from
  */
-export const createSetBuildingFrom = (payload: _SetBuildingFromPayload) => ({payload, type: setBuildingFrom})
+export const createSetBuildingFrom = (payload: _SetBuildingFromPayload): SetBuildingFromPayload => ({
+  payload,
+  type: setBuildingFrom,
+})
 /**
  * Set building isRequest
  */
-export const createSetBuildingIsRequest = (payload: _SetBuildingIsRequestPayload) => ({
-  payload,
-  type: setBuildingIsRequest,
-})
+export const createSetBuildingIsRequest = (
+  payload: _SetBuildingIsRequestPayload
+): SetBuildingIsRequestPayload => ({payload, type: setBuildingIsRequest})
 /**
  * Set building public memo
  */
-export const createSetBuildingPublicMemo = (payload: _SetBuildingPublicMemoPayload) => ({
-  payload,
-  type: setBuildingPublicMemo,
-})
+export const createSetBuildingPublicMemo = (
+  payload: _SetBuildingPublicMemoPayload
+): SetBuildingPublicMemoPayload => ({payload, type: setBuildingPublicMemo})
 /**
  * Set building recipient type
  */
-export const createSetBuildingRecipientType = (payload: _SetBuildingRecipientTypePayload) => ({
-  payload,
-  type: setBuildingRecipientType,
-})
+export const createSetBuildingRecipientType = (
+  payload: _SetBuildingRecipientTypePayload
+): SetBuildingRecipientTypePayload => ({payload, type: setBuildingRecipientType})
 /**
  * Set building secret note
  */
-export const createSetBuildingSecretNote = (payload: _SetBuildingSecretNotePayload) => ({
-  payload,
-  type: setBuildingSecretNote,
-})
+export const createSetBuildingSecretNote = (
+  payload: _SetBuildingSecretNotePayload
+): SetBuildingSecretNotePayload => ({payload, type: setBuildingSecretNote})
 /**
  * Set building to -- depends on recipientType
  */
-export const createSetBuildingTo = (payload: _SetBuildingToPayload) => ({payload, type: setBuildingTo})
+export const createSetBuildingTo = (payload: _SetBuildingToPayload): SetBuildingToPayload => ({
+  payload,
+  type: setBuildingTo,
+})
 /**
  * Set our inflation destination
  */
-export const createSetInflationDestination = (payload: _SetInflationDestinationPayload) => ({
-  payload,
-  type: setInflationDestination,
-})
+export const createSetInflationDestination = (
+  payload: _SetInflationDestinationPayload
+): SetInflationDestinationPayload => ({payload, type: setInflationDestination})
 /**
  * Set whether last currency used to send was XLM
  */
-export const createSetLastSentXLM = (payload: _SetLastSentXLMPayload) => ({payload, type: setLastSentXLM})
+export const createSetLastSentXLM = (payload: _SetLastSentXLMPayload): SetLastSentXLMPayload => ({
+  payload,
+  type: setLastSentXLM,
+})
 /**
  * Set whether the payment is ready to review
  */
-export const createSetReadyToReview = (payload: _SetReadyToReviewPayload) => ({
+export const createSetReadyToReview = (payload: _SetReadyToReviewPayload): SetReadyToReviewPayload => ({
   payload,
   type: setReadyToReview,
 })
 /**
  * Signal that a payment being built is abandoned and reset the form fields to their initial states.
  */
-export const createAbandonPayment = (payload: _AbandonPaymentPayload) => ({payload, type: abandonPayment})
+export const createAbandonPayment = (payload: _AbandonPaymentPayload): AbandonPaymentPayload => ({
+  payload,
+  type: abandonPayment,
+})
 /**
  * Successfully request payment
  */
-export const createRequestedPayment = (payload: _RequestedPaymentPayload) => ({
+export const createRequestedPayment = (payload: _RequestedPaymentPayload): RequestedPaymentPayload => ({
   payload,
   type: requestedPayment,
 })
 /**
  * Successfully sent a payment
  */
-export const createSentPayment = (payload: _SentPaymentPayload) => ({payload, type: sentPayment})
+export const createSentPayment = (payload: _SentPaymentPayload): SentPaymentPayload => ({
+  payload,
+  type: sentPayment,
+})
 /**
  * The service has responded with mobile only mode for Stellar account.
  */
-export const createLoadedMobileOnlyMode = (payload: _LoadedMobileOnlyModePayload) => ({
-  payload,
-  type: loadedMobileOnlyMode,
-})
+export const createLoadedMobileOnlyMode = (
+  payload: _LoadedMobileOnlyModePayload
+): LoadedMobileOnlyModePayload => ({payload, type: loadedMobileOnlyMode})
 /**
  * The service responded with an error or that the account name is valid.
  */
-export const createValidatedAccountName = (payload: _ValidatedAccountNamePayload) => ({
-  payload,
-  type: validatedAccountName,
-})
-export const createValidatedAccountNameError = (payload: _ValidatedAccountNamePayloadError) => ({
-  error: true,
-  payload,
-  type: validatedAccountName,
-})
+export const createValidatedAccountName = (
+  payload: _ValidatedAccountNamePayload
+): ValidatedAccountNamePayload => ({payload, type: validatedAccountName})
+export const createValidatedAccountNameError = (
+  payload: _ValidatedAccountNamePayloadError
+): ValidatedAccountNamePayloadError => ({error: true, payload, type: validatedAccountName})
 /**
  * The service responded with an error or that the create new account operation succeeded
  */
-export const createCreatedNewAccount = (payload: _CreatedNewAccountPayload) => ({
+export const createCreatedNewAccount = (payload: _CreatedNewAccountPayload): CreatedNewAccountPayload => ({
   payload,
   type: createdNewAccount,
 })
-export const createCreatedNewAccountError = (payload: _CreatedNewAccountPayloadError) => ({
-  error: true,
-  payload,
-  type: createdNewAccount,
-})
+export const createCreatedNewAccountError = (
+  payload: _CreatedNewAccountPayloadError
+): CreatedNewAccountPayloadError => ({error: true, payload, type: createdNewAccount})
 /**
  * The service responded with an error or that the link existing operation succeeded
  */
-export const createLinkedExistingAccount = (payload: _LinkedExistingAccountPayload) => ({
-  payload,
-  type: linkedExistingAccount,
-})
-export const createLinkedExistingAccountError = (payload: _LinkedExistingAccountPayloadError) => ({
-  error: true,
-  payload,
-  type: linkedExistingAccount,
-})
+export const createLinkedExistingAccount = (
+  payload: _LinkedExistingAccountPayload
+): LinkedExistingAccountPayload => ({payload, type: linkedExistingAccount})
+export const createLinkedExistingAccountError = (
+  payload: _LinkedExistingAccountPayloadError
+): LinkedExistingAccountPayloadError => ({error: true, payload, type: linkedExistingAccount})
 /**
  * The service responded with an error or that the secret key is valid.
  */
-export const createValidatedSecretKey = (payload: _ValidatedSecretKeyPayload) => ({
+export const createValidatedSecretKey = (payload: _ValidatedSecretKeyPayload): ValidatedSecretKeyPayload => ({
   payload,
   type: validatedSecretKey,
 })
-export const createValidatedSecretKeyError = (payload: _ValidatedSecretKeyPayloadError) => ({
-  error: true,
-  payload,
-  type: validatedSecretKey,
-})
+export const createValidatedSecretKeyError = (
+  payload: _ValidatedSecretKeyPayloadError
+): ValidatedSecretKeyPayloadError => ({error: true, payload, type: validatedSecretKey})
 /**
  * Turn participation in airdrop on/off
  */
-export const createChangeAirdrop = (payload: _ChangeAirdropPayload) => ({payload, type: changeAirdrop})
+export const createChangeAirdrop = (payload: _ChangeAirdropPayload): ChangeAirdropPayload => ({
+  payload,
+  type: changeAirdrop,
+})
 /**
  * Update a payment with additional detail
  */
-export const createPaymentDetailReceived = (payload: _PaymentDetailReceivedPayload) => ({
-  payload,
-  type: paymentDetailReceived,
-})
+export const createPaymentDetailReceived = (
+  payload: _PaymentDetailReceivedPayload
+): PaymentDetailReceivedPayload => ({payload, type: paymentDetailReceived})
 /**
  * Update badges in the nav
  */
-export const createBadgesUpdated = (payload: _BadgesUpdatedPayload) => ({payload, type: badgesUpdated})
+export const createBadgesUpdated = (payload: _BadgesUpdatedPayload): BadgesUpdatedPayload => ({
+  payload,
+  type: badgesUpdated,
+})
 /**
  * Update display currency for a certain account
  */
-export const createDisplayCurrencyReceived = (payload: _DisplayCurrencyReceivedPayload) => ({
-  payload,
-  type: displayCurrencyReceived,
-})
+export const createDisplayCurrencyReceived = (
+  payload: _DisplayCurrencyReceivedPayload
+): DisplayCurrencyReceivedPayload => ({payload, type: displayCurrencyReceived})
 /**
  * Update our store of account data
  */
-export const createAccountsReceived = (payload: _AccountsReceivedPayload) => ({
+export const createAccountsReceived = (payload: _AccountsReceivedPayload): AccountsReceivedPayload => ({
   payload,
   type: accountsReceived,
 })
 /**
  * Update our store of assets data
  */
-export const createAssetsReceived = (payload: _AssetsReceivedPayload) => ({payload, type: assetsReceived})
+export const createAssetsReceived = (payload: _AssetsReceivedPayload): AssetsReceivedPayload => ({
+  payload,
+  type: assetsReceived,
+})
 /**
  * Update our store of payments data
  */
-export const createPaymentsReceived = (payload: _PaymentsReceivedPayload) => ({
+export const createPaymentsReceived = (payload: _PaymentsReceivedPayload): PaymentsReceivedPayload => ({
   payload,
   type: paymentsReceived,
 })
 /**
  * Update our store with a prepared payment
  */
-export const createBuiltPaymentReceived = (payload: _BuiltPaymentReceivedPayload) => ({
-  payload,
-  type: builtPaymentReceived,
-})
+export const createBuiltPaymentReceived = (
+  payload: _BuiltPaymentReceivedPayload
+): BuiltPaymentReceivedPayload => ({payload, type: builtPaymentReceived})
 /**
  * Update our store with a prepared payment
  */
-export const createBuiltRequestReceived = (payload: _BuiltRequestReceivedPayload) => ({
-  payload,
-  type: builtRequestReceived,
-})
+export const createBuiltRequestReceived = (
+  payload: _BuiltRequestReceivedPayload
+): BuiltRequestReceivedPayload => ({payload, type: builtRequestReceived})
 /**
  * Update our store with an ID for a new building payment
  */
-export const createBuildingPaymentIDReceived = (payload: _BuildingPaymentIDReceivedPayload) => ({
-  payload,
-  type: buildingPaymentIDReceived,
-})
+export const createBuildingPaymentIDReceived = (
+  payload: _BuildingPaymentIDReceivedPayload
+): BuildingPaymentIDReceivedPayload => ({payload, type: buildingPaymentIDReceived})
 /**
  * Update our store with an exported secret key
  */
-export const createSecretKeyReceived = (payload: _SecretKeyReceivedPayload) => ({
+export const createSecretKeyReceived = (payload: _SecretKeyReceivedPayload): SecretKeyReceivedPayload => ({
   payload,
   type: secretKeyReceived,
 })
 /**
  * Update our store with the results of reviewing a built payment
  */
-export const createReviewedPaymentReceived = (payload: _ReviewedPaymentReceivedPayload) => ({
-  payload,
-  type: reviewedPaymentReceived,
-})
+export const createReviewedPaymentReceived = (
+  payload: _ReviewedPaymentReceivedPayload
+): ReviewedPaymentReceivedPayload => ({payload, type: reviewedPaymentReceived})
 /**
  * Update valid display currencies to choose from
  */
-export const createDisplayCurrenciesReceived = (payload: _DisplayCurrenciesReceivedPayload) => ({
-  payload,
-  type: displayCurrenciesReceived,
-})
+export const createDisplayCurrenciesReceived = (
+  payload: _DisplayCurrenciesReceivedPayload
+): DisplayCurrenciesReceivedPayload => ({payload, type: displayCurrenciesReceived})
 /**
  * Update valid send assets to choose from
  */
-export const createSendAssetChoicesReceived = (payload: _SendAssetChoicesReceivedPayload) => ({
-  payload,
-  type: sendAssetChoicesReceived,
-})
+export const createSendAssetChoicesReceived = (
+  payload: _SendAssetChoicesReceivedPayload
+): SendAssetChoicesReceivedPayload => ({payload, type: sendAssetChoicesReceived})
 /**
  * We received an updated account record
  */
-export const createAccountUpdateReceived = (payload: _AccountUpdateReceivedPayload) => ({
-  payload,
-  type: accountUpdateReceived,
-})
-export const createHideAirdropBanner = (payload: _HideAirdropBannerPayload) => ({
+export const createAccountUpdateReceived = (
+  payload: _AccountUpdateReceivedPayload
+): AccountUpdateReceivedPayload => ({payload, type: accountUpdateReceived})
+export const createHideAirdropBanner = (payload: _HideAirdropBannerPayload): HideAirdropBannerPayload => ({
   payload,
   type: hideAirdropBanner,
 })
-export const createUpdateAirdropBannerState = (payload: _UpdateAirdropBannerStatePayload) => ({
-  payload,
-  type: updateAirdropBannerState,
-})
-export const createUpdateAirdropDetails = (payload: _UpdateAirdropDetailsPayload) => ({
-  payload,
-  type: updateAirdropDetails,
-})
-export const createUpdateAirdropState = (payload: _UpdateAirdropStatePayload) => ({
+export const createUpdateAirdropBannerState = (
+  payload: _UpdateAirdropBannerStatePayload
+): UpdateAirdropBannerStatePayload => ({payload, type: updateAirdropBannerState})
+export const createUpdateAirdropDetails = (
+  payload: _UpdateAirdropDetailsPayload
+): UpdateAirdropDetailsPayload => ({payload, type: updateAirdropDetails})
+export const createUpdateAirdropState = (payload: _UpdateAirdropStatePayload): UpdateAirdropStatePayload => ({
   payload,
   type: updateAirdropState,
 })
-export const createUpdatedAirdropDetails = (payload: _UpdatedAirdropDetailsPayload) => ({
-  payload,
-  type: updatedAirdropDetails,
-})
-export const createUpdatedAirdropState = (payload: _UpdatedAirdropStatePayload) => ({
-  payload,
-  type: updatedAirdropState,
-})
+export const createUpdatedAirdropDetails = (
+  payload: _UpdatedAirdropDetailsPayload
+): UpdatedAirdropDetailsPayload => ({payload, type: updatedAirdropDetails})
+export const createUpdatedAirdropState = (
+  payload: _UpdatedAirdropStatePayload
+): UpdatedAirdropStatePayload => ({payload, type: updatedAirdropState})
 
 // Action Payloads
 export type AbandonPaymentPayload = {

@@ -52,36 +52,35 @@ type _UserInputItemsUpdatedPayload = {
 }
 
 // Action Creators
-export const createAddResultsToUserInput = (payload: _AddResultsToUserInputPayload) => ({
-  payload,
-  type: addResultsToUserInput,
-})
-export const createClearSearchResults = (payload: _ClearSearchResultsPayload) => ({
+export const createAddResultsToUserInput = (
+  payload: _AddResultsToUserInputPayload
+): AddResultsToUserInputPayload => ({payload, type: addResultsToUserInput})
+export const createClearSearchResults = (payload: _ClearSearchResultsPayload): ClearSearchResultsPayload => ({
   payload,
   type: clearSearchResults,
 })
-export const createFinishedSearch = (payload: _FinishedSearchPayload) => ({payload, type: finishedSearch})
-export const createRemoveResultsToUserInput = (payload: _RemoveResultsToUserInputPayload) => ({
+export const createFinishedSearch = (payload: _FinishedSearchPayload): FinishedSearchPayload => ({
   payload,
-  type: removeResultsToUserInput,
+  type: finishedSearch,
 })
-export const createSearch = (payload: _SearchPayload) => ({payload, type: search})
-export const createSearchSuggestions = (payload: _SearchSuggestionsPayload) => ({
+export const createRemoveResultsToUserInput = (
+  payload: _RemoveResultsToUserInputPayload
+): RemoveResultsToUserInputPayload => ({payload, type: removeResultsToUserInput})
+export const createSearch = (payload: _SearchPayload): SearchPayload => ({payload, type: search})
+export const createSearchSuggestions = (payload: _SearchSuggestionsPayload): SearchSuggestionsPayload => ({
   payload,
   type: searchSuggestions,
 })
-export const createSetUserInputItems = (payload: _SetUserInputItemsPayload) => ({
+export const createSetUserInputItems = (payload: _SetUserInputItemsPayload): SetUserInputItemsPayload => ({
   payload,
   type: setUserInputItems,
 })
-export const createUpdateSelectedSearchResult = (payload: _UpdateSelectedSearchResultPayload) => ({
-  payload,
-  type: updateSelectedSearchResult,
-})
-export const createUserInputItemsUpdated = (payload: _UserInputItemsUpdatedPayload) => ({
-  payload,
-  type: userInputItemsUpdated,
-})
+export const createUpdateSelectedSearchResult = (
+  payload: _UpdateSelectedSearchResultPayload
+): UpdateSelectedSearchResultPayload => ({payload, type: updateSelectedSearchResult})
+export const createUserInputItemsUpdated = (
+  payload: _UserInputItemsUpdatedPayload
+): UserInputItemsUpdatedPayload => ({payload, type: userInputItemsUpdated})
 
 // Action Payloads
 export type AddResultsToUserInputPayload = {

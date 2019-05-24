@@ -24,10 +24,22 @@ type _ReplaceEntityPayload = {
 type _SubtractEntityPayload = {readonly keyPath: Array<string>; readonly entities: I.List<any>}
 
 // Action Creators
-export const createDeleteEntity = (payload: _DeleteEntityPayload) => ({payload, type: deleteEntity})
-export const createMergeEntity = (payload: _MergeEntityPayload) => ({payload, type: mergeEntity})
-export const createReplaceEntity = (payload: _ReplaceEntityPayload) => ({payload, type: replaceEntity})
-export const createSubtractEntity = (payload: _SubtractEntityPayload) => ({payload, type: subtractEntity})
+export const createDeleteEntity = (payload: _DeleteEntityPayload): DeleteEntityPayload => ({
+  payload,
+  type: deleteEntity,
+})
+export const createMergeEntity = (payload: _MergeEntityPayload): MergeEntityPayload => ({
+  payload,
+  type: mergeEntity,
+})
+export const createReplaceEntity = (payload: _ReplaceEntityPayload): ReplaceEntityPayload => ({
+  payload,
+  type: replaceEntity,
+})
+export const createSubtractEntity = (payload: _SubtractEntityPayload): SubtractEntityPayload => ({
+  payload,
+  type: subtractEntity,
+})
 
 // Action Payloads
 export type DeleteEntityPayload = {

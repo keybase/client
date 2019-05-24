@@ -220,227 +220,296 @@ type _UserFileEditsLoadedPayload = {readonly tlfUpdates: Types.UserTlfUpdates}
 type _WaitForKbfsDaemonPayload = void
 
 // Action Creators
-export const createCancelDownload = (payload: _CancelDownloadPayload) => ({payload, type: cancelDownload})
-export const createClearRefreshTag = (payload: _ClearRefreshTagPayload) => ({payload, type: clearRefreshTag})
-export const createCloseDestinationPicker = (payload: _CloseDestinationPickerPayload) => ({
+export const createCancelDownload = (payload: _CancelDownloadPayload): CancelDownloadPayload => ({
   payload,
-  type: closeDestinationPicker,
+  type: cancelDownload,
 })
-export const createCommitEdit = (payload: _CommitEditPayload) => ({payload, type: commitEdit})
-export const createCopy = (payload: _CopyPayload) => ({payload, type: copy})
-export const createDeleteFile = (payload: _DeleteFilePayload) => ({payload, type: deleteFile})
-export const createDiscardEdit = (payload: _DiscardEditPayload) => ({payload, type: discardEdit})
-export const createDismissDownload = (payload: _DismissDownloadPayload) => ({payload, type: dismissDownload})
-export const createDismissFsError = (payload: _DismissFsErrorPayload) => ({payload, type: dismissFsError})
-export const createDownload = (payload: _DownloadPayload) => ({payload, type: download})
-export const createDownloadProgress = (payload: _DownloadProgressPayload) => ({
+export const createClearRefreshTag = (payload: _ClearRefreshTagPayload): ClearRefreshTagPayload => ({
+  payload,
+  type: clearRefreshTag,
+})
+export const createCloseDestinationPicker = (
+  payload: _CloseDestinationPickerPayload
+): CloseDestinationPickerPayload => ({payload, type: closeDestinationPicker})
+export const createCommitEdit = (payload: _CommitEditPayload): CommitEditPayload => ({
+  payload,
+  type: commitEdit,
+})
+export const createCopy = (payload: _CopyPayload): CopyPayload => ({payload, type: copy})
+export const createDeleteFile = (payload: _DeleteFilePayload): DeleteFilePayload => ({
+  payload,
+  type: deleteFile,
+})
+export const createDiscardEdit = (payload: _DiscardEditPayload): DiscardEditPayload => ({
+  payload,
+  type: discardEdit,
+})
+export const createDismissDownload = (payload: _DismissDownloadPayload): DismissDownloadPayload => ({
+  payload,
+  type: dismissDownload,
+})
+export const createDismissFsError = (payload: _DismissFsErrorPayload): DismissFsErrorPayload => ({
+  payload,
+  type: dismissFsError,
+})
+export const createDownload = (payload: _DownloadPayload): DownloadPayload => ({payload, type: download})
+export const createDownloadProgress = (payload: _DownloadProgressPayload): DownloadProgressPayload => ({
   payload,
   type: downloadProgress,
 })
-export const createDownloadStarted = (payload: _DownloadStartedPayload) => ({payload, type: downloadStarted})
-export const createDownloadSuccess = (payload: _DownloadSuccessPayload) => ({payload, type: downloadSuccess})
-export const createDriverDisable = (payload: _DriverDisablePayload) => ({payload, type: driverDisable})
-export const createDriverDisabling = (payload: _DriverDisablingPayload) => ({payload, type: driverDisabling})
-export const createDriverEnable = (payload: _DriverEnablePayload = Object.freeze({})) => ({
+export const createDownloadStarted = (payload: _DownloadStartedPayload): DownloadStartedPayload => ({
   payload,
-  type: driverEnable,
+  type: downloadStarted,
 })
-export const createDriverKextPermissionError = (payload: _DriverKextPermissionErrorPayload) => ({
+export const createDownloadSuccess = (payload: _DownloadSuccessPayload): DownloadSuccessPayload => ({
   payload,
-  type: driverKextPermissionError,
+  type: downloadSuccess,
 })
-export const createEditSuccess = (payload: _EditSuccessPayload) => ({payload, type: editSuccess})
-export const createFavoriteIgnore = (payload: _FavoriteIgnorePayload) => ({payload, type: favoriteIgnore})
-export const createFavoriteIgnoreError = (payload: _FavoriteIgnoreErrorPayload) => ({
+export const createDriverDisable = (payload: _DriverDisablePayload): DriverDisablePayload => ({
   payload,
-  type: favoriteIgnoreError,
+  type: driverDisable,
 })
-export const createFavoritesLoad = (payload: _FavoritesLoadPayload) => ({payload, type: favoritesLoad})
-export const createFavoritesLoaded = (payload: _FavoritesLoadedPayload) => ({payload, type: favoritesLoaded})
-export const createFolderListLoad = (payload: _FolderListLoadPayload) => ({payload, type: folderListLoad})
-export const createFolderListLoaded = (payload: _FolderListLoadedPayload) => ({
+export const createDriverDisabling = (payload: _DriverDisablingPayload): DriverDisablingPayload => ({
+  payload,
+  type: driverDisabling,
+})
+export const createDriverEnable = (
+  payload: _DriverEnablePayload = Object.freeze({})
+): DriverEnablePayload => ({payload, type: driverEnable})
+export const createDriverKextPermissionError = (
+  payload: _DriverKextPermissionErrorPayload
+): DriverKextPermissionErrorPayload => ({payload, type: driverKextPermissionError})
+export const createEditSuccess = (payload: _EditSuccessPayload): EditSuccessPayload => ({
+  payload,
+  type: editSuccess,
+})
+export const createFavoriteIgnore = (payload: _FavoriteIgnorePayload): FavoriteIgnorePayload => ({
+  payload,
+  type: favoriteIgnore,
+})
+export const createFavoriteIgnoreError = (
+  payload: _FavoriteIgnoreErrorPayload
+): FavoriteIgnoreErrorPayload => ({payload, type: favoriteIgnoreError})
+export const createFavoritesLoad = (payload: _FavoritesLoadPayload): FavoritesLoadPayload => ({
+  payload,
+  type: favoritesLoad,
+})
+export const createFavoritesLoaded = (payload: _FavoritesLoadedPayload): FavoritesLoadedPayload => ({
+  payload,
+  type: favoritesLoaded,
+})
+export const createFolderListLoad = (payload: _FolderListLoadPayload): FolderListLoadPayload => ({
+  payload,
+  type: folderListLoad,
+})
+export const createFolderListLoaded = (payload: _FolderListLoadedPayload): FolderListLoadedPayload => ({
   payload,
   type: folderListLoaded,
 })
-export const createFsError = (payload: _FsErrorPayload) => ({payload, type: fsError})
+export const createFsError = (payload: _FsErrorPayload): FsErrorPayload => ({payload, type: fsError})
 export const createHideSystemFileManagerIntegrationBanner = (
   payload: _HideSystemFileManagerIntegrationBannerPayload
-) => ({payload, type: hideSystemFileManagerIntegrationBanner})
-export const createInitSendAttachmentToChat = (payload: _InitSendAttachmentToChatPayload) => ({
-  payload,
-  type: initSendAttachmentToChat,
-})
-export const createInitSendLinkToChat = (payload: _InitSendLinkToChatPayload) => ({
+): HideSystemFileManagerIntegrationBannerPayload => ({payload, type: hideSystemFileManagerIntegrationBanner})
+export const createInitSendAttachmentToChat = (
+  payload: _InitSendAttachmentToChatPayload
+): InitSendAttachmentToChatPayload => ({payload, type: initSendAttachmentToChat})
+export const createInitSendLinkToChat = (payload: _InitSendLinkToChatPayload): InitSendLinkToChatPayload => ({
   payload,
   type: initSendLinkToChat,
 })
-export const createJournalUpdate = (payload: _JournalUpdatePayload) => ({payload, type: journalUpdate})
-export const createKbfsDaemonOnlineStatusChanged = (payload: _KbfsDaemonOnlineStatusChangedPayload) => ({
+export const createJournalUpdate = (payload: _JournalUpdatePayload): JournalUpdatePayload => ({
   payload,
-  type: kbfsDaemonOnlineStatusChanged,
+  type: journalUpdate,
 })
-export const createKbfsDaemonRpcStatusChanged = (payload: _KbfsDaemonRpcStatusChangedPayload) => ({
-  payload,
-  type: kbfsDaemonRpcStatusChanged,
-})
-export const createLetResetUserBackIn = (payload: _LetResetUserBackInPayload) => ({
+export const createKbfsDaemonOnlineStatusChanged = (
+  payload: _KbfsDaemonOnlineStatusChangedPayload
+): KbfsDaemonOnlineStatusChangedPayload => ({payload, type: kbfsDaemonOnlineStatusChanged})
+export const createKbfsDaemonRpcStatusChanged = (
+  payload: _KbfsDaemonRpcStatusChangedPayload
+): KbfsDaemonRpcStatusChangedPayload => ({payload, type: kbfsDaemonRpcStatusChanged})
+export const createLetResetUserBackIn = (payload: _LetResetUserBackInPayload): LetResetUserBackInPayload => ({
   payload,
   type: letResetUserBackIn,
 })
-export const createLoadPathMetadata = (payload: _LoadPathMetadataPayload) => ({
+export const createLoadPathMetadata = (payload: _LoadPathMetadataPayload): LoadPathMetadataPayload => ({
   payload,
   type: loadPathMetadata,
 })
-export const createLoadSettings = (payload: _LoadSettingsPayload) => ({payload, type: loadSettings})
-export const createLoadTlfSyncConfig = (payload: _LoadTlfSyncConfigPayload) => ({
+export const createLoadSettings = (payload: _LoadSettingsPayload): LoadSettingsPayload => ({
+  payload,
+  type: loadSettings,
+})
+export const createLoadTlfSyncConfig = (payload: _LoadTlfSyncConfigPayload): LoadTlfSyncConfigPayload => ({
   payload,
   type: loadTlfSyncConfig,
 })
-export const createLoadingPath = (payload: _LoadingPathPayload) => ({payload, type: loadingPath})
-export const createLocalHTTPServerInfo = (payload: _LocalHTTPServerInfoPayload) => ({
+export const createLoadingPath = (payload: _LoadingPathPayload): LoadingPathPayload => ({
   payload,
-  type: localHTTPServerInfo,
+  type: loadingPath,
 })
-export const createMove = (payload: _MovePayload) => ({payload, type: move})
-export const createNewFolderName = (payload: _NewFolderNamePayload) => ({payload, type: newFolderName})
-export const createNewFolderRow = (payload: _NewFolderRowPayload) => ({payload, type: newFolderRow})
-export const createNotifyTlfUpdate = (payload: _NotifyTlfUpdatePayload) => ({payload, type: notifyTlfUpdate})
-export const createOpenAndUpload = (payload: _OpenAndUploadPayload) => ({payload, type: openAndUpload})
-export const createOpenFilesFromWidget = (payload: _OpenFilesFromWidgetPayload) => ({
+export const createLocalHTTPServerInfo = (
+  payload: _LocalHTTPServerInfoPayload
+): LocalHTTPServerInfoPayload => ({payload, type: localHTTPServerInfo})
+export const createMove = (payload: _MovePayload): MovePayload => ({payload, type: move})
+export const createNewFolderName = (payload: _NewFolderNamePayload): NewFolderNamePayload => ({
   payload,
-  type: openFilesFromWidget,
+  type: newFolderName,
 })
+export const createNewFolderRow = (payload: _NewFolderRowPayload): NewFolderRowPayload => ({
+  payload,
+  type: newFolderRow,
+})
+export const createNotifyTlfUpdate = (payload: _NotifyTlfUpdatePayload): NotifyTlfUpdatePayload => ({
+  payload,
+  type: notifyTlfUpdate,
+})
+export const createOpenAndUpload = (payload: _OpenAndUploadPayload): OpenAndUploadPayload => ({
+  payload,
+  type: openAndUpload,
+})
+export const createOpenFilesFromWidget = (
+  payload: _OpenFilesFromWidgetPayload
+): OpenFilesFromWidgetPayload => ({payload, type: openFilesFromWidget})
 export const createOpenLocalPathInSystemFileManager = (
   payload: _OpenLocalPathInSystemFileManagerPayload
-) => ({payload, type: openLocalPathInSystemFileManager})
-export const createOpenPathInSystemFileManager = (payload: _OpenPathInSystemFileManagerPayload) => ({
+): OpenLocalPathInSystemFileManagerPayload => ({payload, type: openLocalPathInSystemFileManager})
+export const createOpenPathInSystemFileManager = (
+  payload: _OpenPathInSystemFileManagerPayload
+): OpenPathInSystemFileManagerPayload => ({payload, type: openPathInSystemFileManager})
+export const createOpenSecurityPreferences = (
+  payload: _OpenSecurityPreferencesPayload
+): OpenSecurityPreferencesPayload => ({payload, type: openSecurityPreferences})
+export const createOverallSyncStatusChanged = (
+  payload: _OverallSyncStatusChangedPayload
+): OverallSyncStatusChangedPayload => ({payload, type: overallSyncStatusChanged})
+export const createPathItemLoaded = (payload: _PathItemLoadedPayload): PathItemLoadedPayload => ({
   payload,
-  type: openPathInSystemFileManager,
+  type: pathItemLoaded,
 })
-export const createOpenSecurityPreferences = (payload: _OpenSecurityPreferencesPayload) => ({
+export const createPickAndUpload = (payload: _PickAndUploadPayload): PickAndUploadPayload => ({
   payload,
-  type: openSecurityPreferences,
+  type: pickAndUpload,
 })
-export const createOverallSyncStatusChanged = (payload: _OverallSyncStatusChangedPayload) => ({
-  payload,
-  type: overallSyncStatusChanged,
-})
-export const createPathItemLoaded = (payload: _PathItemLoadedPayload) => ({payload, type: pathItemLoaded})
-export const createPickAndUpload = (payload: _PickAndUploadPayload) => ({payload, type: pickAndUpload})
-export const createPlaceholderAction = (payload: _PlaceholderActionPayload) => ({
+export const createPlaceholderAction = (payload: _PlaceholderActionPayload): PlaceholderActionPayload => ({
   payload,
   type: placeholderAction,
 })
-export const createRefreshDriverStatus = (payload: _RefreshDriverStatusPayload) => ({
+export const createRefreshDriverStatus = (
+  payload: _RefreshDriverStatusPayload
+): RefreshDriverStatusPayload => ({payload, type: refreshDriverStatus})
+export const createRefreshLocalHTTPServerInfo = (
+  payload: _RefreshLocalHTTPServerInfoPayload
+): RefreshLocalHTTPServerInfoPayload => ({payload, type: refreshLocalHTTPServerInfo})
+export const createSaveMedia = (payload: _SaveMediaPayload): SaveMediaPayload => ({payload, type: saveMedia})
+export const createSentAttachmentToChat = (
+  payload: _SentAttachmentToChatPayload
+): SentAttachmentToChatPayload => ({payload, type: sentAttachmentToChat})
+export const createSentLinkToChat = (payload: _SentLinkToChatPayload): SentLinkToChatPayload => ({
   payload,
-  type: refreshDriverStatus,
+  type: sentLinkToChat,
 })
-export const createRefreshLocalHTTPServerInfo = (payload: _RefreshLocalHTTPServerInfoPayload) => ({
+export const createSetDestinationPickerParentPath = (
+  payload: _SetDestinationPickerParentPathPayload
+): SetDestinationPickerParentPathPayload => ({payload, type: setDestinationPickerParentPath})
+export const createSetDriverStatus = (payload: _SetDriverStatusPayload): SetDriverStatusPayload => ({
   payload,
-  type: refreshLocalHTTPServerInfo,
+  type: setDriverStatus,
 })
-export const createSaveMedia = (payload: _SaveMediaPayload) => ({payload, type: saveMedia})
-export const createSentAttachmentToChat = (payload: _SentAttachmentToChatPayload) => ({
-  payload,
-  type: sentAttachmentToChat,
-})
-export const createSentLinkToChat = (payload: _SentLinkToChatPayload) => ({payload, type: sentLinkToChat})
-export const createSetDestinationPickerParentPath = (payload: _SetDestinationPickerParentPathPayload) => ({
-  payload,
-  type: setDestinationPickerParentPath,
-})
-export const createSetDriverStatus = (payload: _SetDriverStatusPayload) => ({payload, type: setDriverStatus})
-export const createSetFolderViewFilter = (payload: _SetFolderViewFilterPayload) => ({
-  payload,
-  type: setFolderViewFilter,
-})
-export const createSetIncomingShareLocalPath = (payload: _SetIncomingShareLocalPathPayload) => ({
-  payload,
-  type: setIncomingShareLocalPath,
-})
-export const createSetMoveOrCopySource = (payload: _SetMoveOrCopySourcePayload) => ({
-  payload,
-  type: setMoveOrCopySource,
-})
+export const createSetFolderViewFilter = (
+  payload: _SetFolderViewFilterPayload
+): SetFolderViewFilterPayload => ({payload, type: setFolderViewFilter})
+export const createSetIncomingShareLocalPath = (
+  payload: _SetIncomingShareLocalPathPayload
+): SetIncomingShareLocalPathPayload => ({payload, type: setIncomingShareLocalPath})
+export const createSetMoveOrCopySource = (
+  payload: _SetMoveOrCopySourcePayload
+): SetMoveOrCopySourcePayload => ({payload, type: setMoveOrCopySource})
 export const createSetPathItemActionMenuDownloadKey = (
   payload: _SetPathItemActionMenuDownloadKeyPayload
-) => ({payload, type: setPathItemActionMenuDownloadKey})
-export const createSetPathItemActionMenuView = (payload: _SetPathItemActionMenuViewPayload) => ({
-  payload,
-  type: setPathItemActionMenuView,
-})
-export const createSetPathSoftError = (payload: _SetPathSoftErrorPayload) => ({
+): SetPathItemActionMenuDownloadKeyPayload => ({payload, type: setPathItemActionMenuDownloadKey})
+export const createSetPathItemActionMenuView = (
+  payload: _SetPathItemActionMenuViewPayload
+): SetPathItemActionMenuViewPayload => ({payload, type: setPathItemActionMenuView})
+export const createSetPathSoftError = (payload: _SetPathSoftErrorPayload): SetPathSoftErrorPayload => ({
   payload,
   type: setPathSoftError,
 })
-export const createSetSendAttachmentToChatConvID = (payload: _SetSendAttachmentToChatConvIDPayload) => ({
-  payload,
-  type: setSendAttachmentToChatConvID,
-})
-export const createSetSendAttachmentToChatFilter = (payload: _SetSendAttachmentToChatFilterPayload) => ({
-  payload,
-  type: setSendAttachmentToChatFilter,
-})
-export const createSetSendLinkToChatChannels = (payload: _SetSendLinkToChatChannelsPayload) => ({
-  payload,
-  type: setSendLinkToChatChannels,
-})
-export const createSetSendLinkToChatConvID = (payload: _SetSendLinkToChatConvIDPayload) => ({
-  payload,
-  type: setSendLinkToChatConvID,
-})
+export const createSetSendAttachmentToChatConvID = (
+  payload: _SetSendAttachmentToChatConvIDPayload
+): SetSendAttachmentToChatConvIDPayload => ({payload, type: setSendAttachmentToChatConvID})
+export const createSetSendAttachmentToChatFilter = (
+  payload: _SetSendAttachmentToChatFilterPayload
+): SetSendAttachmentToChatFilterPayload => ({payload, type: setSendAttachmentToChatFilter})
+export const createSetSendLinkToChatChannels = (
+  payload: _SetSendLinkToChatChannelsPayload
+): SetSendLinkToChatChannelsPayload => ({payload, type: setSendLinkToChatChannels})
+export const createSetSendLinkToChatConvID = (
+  payload: _SetSendLinkToChatConvIDPayload
+): SetSendLinkToChatConvIDPayload => ({payload, type: setSendLinkToChatConvID})
 export const createSetSpaceAvailableNotificationThreshold = (
   payload: _SetSpaceAvailableNotificationThresholdPayload
-) => ({payload, type: setSpaceAvailableNotificationThreshold})
-export const createSetTlfSoftError = (payload: _SetTlfSoftErrorPayload) => ({payload, type: setTlfSoftError})
-export const createSetTlfSyncConfig = (payload: _SetTlfSyncConfigPayload) => ({
+): SetSpaceAvailableNotificationThresholdPayload => ({payload, type: setSpaceAvailableNotificationThreshold})
+export const createSetTlfSoftError = (payload: _SetTlfSoftErrorPayload): SetTlfSoftErrorPayload => ({
+  payload,
+  type: setTlfSoftError,
+})
+export const createSetTlfSyncConfig = (payload: _SetTlfSyncConfigPayload): SetTlfSyncConfigPayload => ({
   payload,
   type: setTlfSyncConfig,
 })
-export const createSettingsLoaded = (payload: _SettingsLoadedPayload = Object.freeze({})) => ({
+export const createSettingsLoaded = (
+  payload: _SettingsLoadedPayload = Object.freeze({})
+): SettingsLoadedPayload => ({payload, type: settingsLoaded})
+export const createShareNative = (payload: _ShareNativePayload): ShareNativePayload => ({
   payload,
-  type: settingsLoaded,
+  type: shareNative,
 })
-export const createShareNative = (payload: _ShareNativePayload) => ({payload, type: shareNative})
-export const createShowIncomingShare = (payload: _ShowIncomingSharePayload) => ({
+export const createShowIncomingShare = (payload: _ShowIncomingSharePayload): ShowIncomingSharePayload => ({
   payload,
   type: showIncomingShare,
 })
-export const createShowMoveOrCopy = (payload: _ShowMoveOrCopyPayload) => ({payload, type: showMoveOrCopy})
+export const createShowMoveOrCopy = (payload: _ShowMoveOrCopyPayload): ShowMoveOrCopyPayload => ({
+  payload,
+  type: showMoveOrCopy,
+})
 export const createShowSystemFileManagerIntegrationBanner = (
   payload: _ShowSystemFileManagerIntegrationBannerPayload
-) => ({payload, type: showSystemFileManagerIntegrationBanner})
-export const createSortSetting = (payload: _SortSettingPayload) => ({payload, type: sortSetting})
-export const createTlfSyncConfigLoaded = (payload: _TlfSyncConfigLoadedPayload) => ({
+): ShowSystemFileManagerIntegrationBannerPayload => ({payload, type: showSystemFileManagerIntegrationBanner})
+export const createSortSetting = (payload: _SortSettingPayload): SortSettingPayload => ({
   payload,
-  type: tlfSyncConfigLoaded,
+  type: sortSetting,
 })
+export const createTlfSyncConfigLoaded = (
+  payload: _TlfSyncConfigLoadedPayload
+): TlfSyncConfigLoadedPayload => ({payload, type: tlfSyncConfigLoaded})
 export const createTlfSyncConfigsForAllSyncEnabledTlfsLoaded = (
   payload: _TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload
-) => ({payload, type: tlfSyncConfigsForAllSyncEnabledTlfsLoaded})
-export const createTriggerSendLinkToChat = (payload: _TriggerSendLinkToChatPayload) => ({
+): TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload => ({
   payload,
-  type: triggerSendLinkToChat,
+  type: tlfSyncConfigsForAllSyncEnabledTlfsLoaded,
 })
-export const createUninstallKBFSConfirm = (payload: _UninstallKBFSConfirmPayload) => ({
+export const createTriggerSendLinkToChat = (
+  payload: _TriggerSendLinkToChatPayload
+): TriggerSendLinkToChatPayload => ({payload, type: triggerSendLinkToChat})
+export const createUninstallKBFSConfirm = (
+  payload: _UninstallKBFSConfirmPayload
+): UninstallKBFSConfirmPayload => ({payload, type: uninstallKBFSConfirm})
+export const createUpload = (payload: _UploadPayload): UploadPayload => ({payload, type: upload})
+export const createUploadStarted = (payload: _UploadStartedPayload): UploadStartedPayload => ({
   payload,
-  type: uninstallKBFSConfirm,
+  type: uploadStarted,
 })
-export const createUpload = (payload: _UploadPayload) => ({payload, type: upload})
-export const createUploadStarted = (payload: _UploadStartedPayload) => ({payload, type: uploadStarted})
-export const createUploadWritingSuccess = (payload: _UploadWritingSuccessPayload) => ({
-  payload,
-  type: uploadWritingSuccess,
-})
-export const createUserFileEditsLoad = (payload: _UserFileEditsLoadPayload) => ({
+export const createUploadWritingSuccess = (
+  payload: _UploadWritingSuccessPayload
+): UploadWritingSuccessPayload => ({payload, type: uploadWritingSuccess})
+export const createUserFileEditsLoad = (payload: _UserFileEditsLoadPayload): UserFileEditsLoadPayload => ({
   payload,
   type: userFileEditsLoad,
 })
-export const createUserFileEditsLoaded = (payload: _UserFileEditsLoadedPayload) => ({
-  payload,
-  type: userFileEditsLoaded,
-})
-export const createWaitForKbfsDaemon = (payload: _WaitForKbfsDaemonPayload) => ({
+export const createUserFileEditsLoaded = (
+  payload: _UserFileEditsLoadedPayload
+): UserFileEditsLoadedPayload => ({payload, type: userFileEditsLoaded})
+export const createWaitForKbfsDaemon = (payload: _WaitForKbfsDaemonPayload): WaitForKbfsDaemonPayload => ({
   payload,
   type: waitForKbfsDaemon,
 })

@@ -16,11 +16,14 @@ type _UpdateBrokenStatePayload = {readonly newlyBroken: Array<string>; readonly 
 type _UpdateFullnamesPayload = {readonly usernameToFullname: {[username: string]: string}}
 
 // Action Creators
-export const createUpdateBrokenState = (payload: _UpdateBrokenStatePayload) => ({
+export const createUpdateBrokenState = (payload: _UpdateBrokenStatePayload): UpdateBrokenStatePayload => ({
   payload,
   type: updateBrokenState,
 })
-export const createUpdateFullnames = (payload: _UpdateFullnamesPayload) => ({payload, type: updateFullnames})
+export const createUpdateFullnames = (payload: _UpdateFullnamesPayload): UpdateFullnamesPayload => ({
+  payload,
+  type: updateFullnames,
+})
 
 // Action Payloads
 export type UpdateBrokenStatePayload = {

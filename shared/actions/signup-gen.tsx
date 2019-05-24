@@ -57,67 +57,72 @@ type _SignedupPayload = void
 type _SignedupPayloadError = {readonly error: HiddenString}
 
 // Action Creators
-export const createCheckDevicename = (payload: _CheckDevicenamePayload) => ({payload, type: checkDevicename})
-export const createCheckInviteCode = (payload: _CheckInviteCodePayload) => ({payload, type: checkInviteCode})
-export const createCheckPassword = (payload: _CheckPasswordPayload) => ({payload, type: checkPassword})
-export const createCheckUsernameEmail = (payload: _CheckUsernameEmailPayload) => ({
+export const createCheckDevicename = (payload: _CheckDevicenamePayload): CheckDevicenamePayload => ({
+  payload,
+  type: checkDevicename,
+})
+export const createCheckInviteCode = (payload: _CheckInviteCodePayload): CheckInviteCodePayload => ({
+  payload,
+  type: checkInviteCode,
+})
+export const createCheckPassword = (payload: _CheckPasswordPayload): CheckPasswordPayload => ({
+  payload,
+  type: checkPassword,
+})
+export const createCheckUsernameEmail = (payload: _CheckUsernameEmailPayload): CheckUsernameEmailPayload => ({
   payload,
   type: checkUsernameEmail,
 })
-export const createCheckedDevicename = (payload: _CheckedDevicenamePayload) => ({
+export const createCheckedDevicename = (payload: _CheckedDevicenamePayload): CheckedDevicenamePayload => ({
   payload,
   type: checkedDevicename,
 })
-export const createCheckedDevicenameError = (payload: _CheckedDevicenamePayloadError) => ({
-  error: true,
-  payload,
-  type: checkedDevicename,
-})
-export const createCheckedInviteCode = (payload: _CheckedInviteCodePayload) => ({
+export const createCheckedDevicenameError = (
+  payload: _CheckedDevicenamePayloadError
+): CheckedDevicenamePayloadError => ({error: true, payload, type: checkedDevicename})
+export const createCheckedInviteCode = (payload: _CheckedInviteCodePayload): CheckedInviteCodePayload => ({
   payload,
   type: checkedInviteCode,
 })
-export const createCheckedInviteCodeError = (payload: _CheckedInviteCodePayloadError) => ({
-  error: true,
-  payload,
-  type: checkedInviteCode,
-})
-export const createCheckedUsernameEmail = (payload: _CheckedUsernameEmailPayload) => ({
-  payload,
-  type: checkedUsernameEmail,
-})
-export const createCheckedUsernameEmailError = (payload: _CheckedUsernameEmailPayloadError) => ({
-  error: true,
-  payload,
-  type: checkedUsernameEmail,
-})
-export const createGoBackAndClearErrors = (payload: _GoBackAndClearErrorsPayload) => ({
-  payload,
-  type: goBackAndClearErrors,
-})
-export const createRequestAutoInvite = (payload: _RequestAutoInvitePayload) => ({
+export const createCheckedInviteCodeError = (
+  payload: _CheckedInviteCodePayloadError
+): CheckedInviteCodePayloadError => ({error: true, payload, type: checkedInviteCode})
+export const createCheckedUsernameEmail = (
+  payload: _CheckedUsernameEmailPayload
+): CheckedUsernameEmailPayload => ({payload, type: checkedUsernameEmail})
+export const createCheckedUsernameEmailError = (
+  payload: _CheckedUsernameEmailPayloadError
+): CheckedUsernameEmailPayloadError => ({error: true, payload, type: checkedUsernameEmail})
+export const createGoBackAndClearErrors = (
+  payload: _GoBackAndClearErrorsPayload
+): GoBackAndClearErrorsPayload => ({payload, type: goBackAndClearErrors})
+export const createRequestAutoInvite = (payload: _RequestAutoInvitePayload): RequestAutoInvitePayload => ({
   payload,
   type: requestAutoInvite,
 })
-export const createRequestInvite = (payload: _RequestInvitePayload) => ({payload, type: requestInvite})
-export const createRequestedAutoInvite = (payload: _RequestedAutoInvitePayload) => ({
+export const createRequestInvite = (payload: _RequestInvitePayload): RequestInvitePayload => ({
   payload,
-  type: requestedAutoInvite,
+  type: requestInvite,
 })
-export const createRequestedAutoInviteError = (payload: _RequestedAutoInvitePayloadError) => ({
-  error: true,
-  payload,
-  type: requestedAutoInvite,
-})
-export const createRequestedInvite = (payload: _RequestedInvitePayload) => ({payload, type: requestedInvite})
-export const createRequestedInviteError = (payload: _RequestedInvitePayloadError) => ({
-  error: true,
+export const createRequestedAutoInvite = (
+  payload: _RequestedAutoInvitePayload
+): RequestedAutoInvitePayload => ({payload, type: requestedAutoInvite})
+export const createRequestedAutoInviteError = (
+  payload: _RequestedAutoInvitePayloadError
+): RequestedAutoInvitePayloadError => ({error: true, payload, type: requestedAutoInvite})
+export const createRequestedInvite = (payload: _RequestedInvitePayload): RequestedInvitePayload => ({
   payload,
   type: requestedInvite,
 })
-export const createRestartSignup = (payload: _RestartSignupPayload) => ({payload, type: restartSignup})
-export const createSignedup = (payload: _SignedupPayload) => ({payload, type: signedup})
-export const createSignedupError = (payload: _SignedupPayloadError) => ({
+export const createRequestedInviteError = (
+  payload: _RequestedInvitePayloadError
+): RequestedInvitePayloadError => ({error: true, payload, type: requestedInvite})
+export const createRestartSignup = (payload: _RestartSignupPayload): RestartSignupPayload => ({
+  payload,
+  type: restartSignup,
+})
+export const createSignedup = (payload: _SignedupPayload): SignedupPayload => ({payload, type: signedup})
+export const createSignedupError = (payload: _SignedupPayloadError): SignedupPayloadError => ({
   error: true,
   payload,
   type: signedup,

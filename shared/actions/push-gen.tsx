@@ -25,24 +25,28 @@ type _UpdateHasPermissionsPayload = {readonly hasPermissions: boolean}
 type _UpdatePushTokenPayload = {readonly token: string}
 
 // Action Creators
-export const createNotification = (payload: _NotificationPayload) => ({payload, type: notification})
-export const createRejectPermissions = (payload: _RejectPermissionsPayload) => ({
+export const createNotification = (payload: _NotificationPayload): NotificationPayload => ({
+  payload,
+  type: notification,
+})
+export const createRejectPermissions = (payload: _RejectPermissionsPayload): RejectPermissionsPayload => ({
   payload,
   type: rejectPermissions,
 })
-export const createRequestPermissions = (payload: _RequestPermissionsPayload) => ({
+export const createRequestPermissions = (payload: _RequestPermissionsPayload): RequestPermissionsPayload => ({
   payload,
   type: requestPermissions,
 })
-export const createShowPermissionsPrompt = (payload: _ShowPermissionsPromptPayload) => ({
+export const createShowPermissionsPrompt = (
+  payload: _ShowPermissionsPromptPayload
+): ShowPermissionsPromptPayload => ({payload, type: showPermissionsPrompt})
+export const createUpdateHasPermissions = (
+  payload: _UpdateHasPermissionsPayload
+): UpdateHasPermissionsPayload => ({payload, type: updateHasPermissions})
+export const createUpdatePushToken = (payload: _UpdatePushTokenPayload): UpdatePushTokenPayload => ({
   payload,
-  type: showPermissionsPrompt,
+  type: updatePushToken,
 })
-export const createUpdateHasPermissions = (payload: _UpdateHasPermissionsPayload) => ({
-  payload,
-  type: updateHasPermissions,
-})
-export const createUpdatePushToken = (payload: _UpdatePushTokenPayload) => ({payload, type: updatePushToken})
 
 // Action Payloads
 export type NotificationPayload = {readonly payload: _NotificationPayload; readonly type: 'push:notification'}

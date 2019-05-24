@@ -90,79 +90,134 @@ type _UploadAvatarPayload = {readonly filename: string; readonly crop?: RPCTypes
 /**
  * Update any fields
  */
-export const createUpdatePgpInfo = (payload: _UpdatePgpInfoPayload = Object.freeze({})) => ({
+export const createUpdatePgpInfo = (
+  payload: _UpdatePgpInfoPayload = Object.freeze({})
+): UpdatePgpInfoPayload => ({payload, type: updatePgpInfo})
+export const createAddProof = (payload: _AddProofPayload): AddProofPayload => ({payload, type: addProof})
+export const createBackToProfile = (payload: _BackToProfilePayload): BackToProfilePayload => ({
   payload,
-  type: updatePgpInfo,
+  type: backToProfile,
 })
-export const createAddProof = (payload: _AddProofPayload) => ({payload, type: addProof})
-export const createBackToProfile = (payload: _BackToProfilePayload) => ({payload, type: backToProfile})
-export const createCancelAddProof = (payload: _CancelAddProofPayload) => ({payload, type: cancelAddProof})
-export const createCancelPgpGen = (payload: _CancelPgpGenPayload) => ({payload, type: cancelPgpGen})
-export const createCheckProof = (payload: _CheckProofPayload) => ({payload, type: checkProof})
-export const createCleanupUsername = (payload: _CleanupUsernamePayload) => ({payload, type: cleanupUsername})
-export const createClearPlatformGeneric = (payload: _ClearPlatformGenericPayload) => ({
+export const createCancelAddProof = (payload: _CancelAddProofPayload): CancelAddProofPayload => ({
   payload,
-  type: clearPlatformGeneric,
+  type: cancelAddProof,
 })
-export const createEditAvatar = (payload: _EditAvatarPayload) => ({payload, type: editAvatar})
-export const createEditProfile = (payload: _EditProfilePayload) => ({payload, type: editProfile})
-export const createFinishRevoking = (payload: _FinishRevokingPayload) => ({payload, type: finishRevoking})
-export const createFinishedWithKeyGen = (payload: _FinishedWithKeyGenPayload) => ({
+export const createCancelPgpGen = (payload: _CancelPgpGenPayload): CancelPgpGenPayload => ({
+  payload,
+  type: cancelPgpGen,
+})
+export const createCheckProof = (payload: _CheckProofPayload): CheckProofPayload => ({
+  payload,
+  type: checkProof,
+})
+export const createCleanupUsername = (payload: _CleanupUsernamePayload): CleanupUsernamePayload => ({
+  payload,
+  type: cleanupUsername,
+})
+export const createClearPlatformGeneric = (
+  payload: _ClearPlatformGenericPayload
+): ClearPlatformGenericPayload => ({payload, type: clearPlatformGeneric})
+export const createEditAvatar = (payload: _EditAvatarPayload): EditAvatarPayload => ({
+  payload,
+  type: editAvatar,
+})
+export const createEditProfile = (payload: _EditProfilePayload): EditProfilePayload => ({
+  payload,
+  type: editProfile,
+})
+export const createFinishRevoking = (payload: _FinishRevokingPayload): FinishRevokingPayload => ({
+  payload,
+  type: finishRevoking,
+})
+export const createFinishedWithKeyGen = (payload: _FinishedWithKeyGenPayload): FinishedWithKeyGenPayload => ({
   payload,
   type: finishedWithKeyGen,
 })
-export const createGeneratePgp = (payload: _GeneratePgpPayload) => ({payload, type: generatePgp})
-export const createOnClickAvatar = (payload: _OnClickAvatarPayload) => ({payload, type: onClickAvatar})
-export const createProofParamsReceived = (payload: _ProofParamsReceivedPayload) => ({
+export const createGeneratePgp = (payload: _GeneratePgpPayload): GeneratePgpPayload => ({
   payload,
-  type: proofParamsReceived,
+  type: generatePgp,
 })
-export const createRecheckProof = (payload: _RecheckProofPayload) => ({payload, type: recheckProof})
-export const createRevokeFinish = (payload: _RevokeFinishPayload) => ({payload, type: revokeFinish})
-export const createRevokeFinishError = (payload: _RevokeFinishPayloadError) => ({
+export const createOnClickAvatar = (payload: _OnClickAvatarPayload): OnClickAvatarPayload => ({
+  payload,
+  type: onClickAvatar,
+})
+export const createProofParamsReceived = (
+  payload: _ProofParamsReceivedPayload
+): ProofParamsReceivedPayload => ({payload, type: proofParamsReceived})
+export const createRecheckProof = (payload: _RecheckProofPayload): RecheckProofPayload => ({
+  payload,
+  type: recheckProof,
+})
+export const createRevokeFinish = (payload: _RevokeFinishPayload): RevokeFinishPayload => ({
+  payload,
+  type: revokeFinish,
+})
+export const createRevokeFinishError = (payload: _RevokeFinishPayloadError): RevokeFinishPayloadError => ({
   error: true,
   payload,
   type: revokeFinish,
 })
-export const createShowUserProfile = (payload: _ShowUserProfilePayload) => ({payload, type: showUserProfile})
-export const createSubmitBTCAddress = (payload: _SubmitBTCAddressPayload) => ({
+export const createShowUserProfile = (payload: _ShowUserProfilePayload): ShowUserProfilePayload => ({
+  payload,
+  type: showUserProfile,
+})
+export const createSubmitBTCAddress = (payload: _SubmitBTCAddressPayload): SubmitBTCAddressPayload => ({
   payload,
   type: submitBTCAddress,
 })
-export const createSubmitRevokeProof = (payload: _SubmitRevokeProofPayload) => ({
+export const createSubmitRevokeProof = (payload: _SubmitRevokeProofPayload): SubmitRevokeProofPayload => ({
   payload,
   type: submitRevokeProof,
 })
-export const createSubmitUsername = (payload: _SubmitUsernamePayload) => ({payload, type: submitUsername})
-export const createSubmitZcashAddress = (payload: _SubmitZcashAddressPayload) => ({
+export const createSubmitUsername = (payload: _SubmitUsernamePayload): SubmitUsernamePayload => ({
+  payload,
+  type: submitUsername,
+})
+export const createSubmitZcashAddress = (payload: _SubmitZcashAddressPayload): SubmitZcashAddressPayload => ({
   payload,
   type: submitZcashAddress,
 })
-export const createUpdateErrorText = (payload: _UpdateErrorTextPayload) => ({payload, type: updateErrorText})
-export const createUpdatePgpPublicKey = (payload: _UpdatePgpPublicKeyPayload) => ({
+export const createUpdateErrorText = (payload: _UpdateErrorTextPayload): UpdateErrorTextPayload => ({
+  payload,
+  type: updateErrorText,
+})
+export const createUpdatePgpPublicKey = (payload: _UpdatePgpPublicKeyPayload): UpdatePgpPublicKeyPayload => ({
   payload,
   type: updatePgpPublicKey,
 })
-export const createUpdatePlatform = (payload: _UpdatePlatformPayload) => ({payload, type: updatePlatform})
-export const createUpdatePlatformGenericChecking = (payload: _UpdatePlatformGenericCheckingPayload) => ({
+export const createUpdatePlatform = (payload: _UpdatePlatformPayload): UpdatePlatformPayload => ({
   payload,
-  type: updatePlatformGenericChecking,
+  type: updatePlatform,
 })
-export const createUpdatePlatformGenericURL = (payload: _UpdatePlatformGenericURLPayload) => ({
-  payload,
-  type: updatePlatformGenericURL,
-})
+export const createUpdatePlatformGenericChecking = (
+  payload: _UpdatePlatformGenericCheckingPayload
+): UpdatePlatformGenericCheckingPayload => ({payload, type: updatePlatformGenericChecking})
+export const createUpdatePlatformGenericURL = (
+  payload: _UpdatePlatformGenericURLPayload
+): UpdatePlatformGenericURLPayload => ({payload, type: updatePlatformGenericURL})
 export const createUpdatePromptShouldStoreKeyOnServer = (
   payload: _UpdatePromptShouldStoreKeyOnServerPayload
-) => ({payload, type: updatePromptShouldStoreKeyOnServer})
-export const createUpdateProofStatus = (payload: _UpdateProofStatusPayload) => ({
+): UpdatePromptShouldStoreKeyOnServerPayload => ({payload, type: updatePromptShouldStoreKeyOnServer})
+export const createUpdateProofStatus = (payload: _UpdateProofStatusPayload): UpdateProofStatusPayload => ({
   payload,
   type: updateProofStatus,
 })
-export const createUpdateProofText = (payload: _UpdateProofTextPayload) => ({payload, type: updateProofText})
-export const createUpdateSigID = (payload: _UpdateSigIDPayload) => ({payload, type: updateSigID})
-export const createUpdateUsername = (payload: _UpdateUsernamePayload) => ({payload, type: updateUsername})
-export const createUploadAvatar = (payload: _UploadAvatarPayload) => ({payload, type: uploadAvatar})
+export const createUpdateProofText = (payload: _UpdateProofTextPayload): UpdateProofTextPayload => ({
+  payload,
+  type: updateProofText,
+})
+export const createUpdateSigID = (payload: _UpdateSigIDPayload): UpdateSigIDPayload => ({
+  payload,
+  type: updateSigID,
+})
+export const createUpdateUsername = (payload: _UpdateUsernamePayload): UpdateUsernamePayload => ({
+  payload,
+  type: updateUsername,
+})
+export const createUploadAvatar = (payload: _UploadAvatarPayload): UploadAvatarPayload => ({
+  payload,
+  type: uploadAvatar,
+})
 
 // Action Payloads
 export type AddProofPayload = {readonly payload: _AddProofPayload; readonly type: 'profile:addProof'}

@@ -213,2382 +213,2077 @@ export const stellar1UiPaymentReviewed = 'engine-gen:stellar1UiPaymentReviewed'
 
 // Payload Types
 type _Chat1ChatUiChatAttachmentDownloadDonePayload = {
-  readonly params: Pick<
-    Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadDone'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatAttachmentDownloadDone']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: chat1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadDone'>, 'outParam'>
-    ) => void
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatAttachmentDownloadDone']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatAttachmentDownloadProgressPayload = {
-  readonly params: Pick<
-    Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadProgress'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatAttachmentDownloadProgress']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: chat1Types.IncomingErrorCallback
     result: (
-      param: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadProgress'>, 'outParam'>
+      param: chat1Types.MessageTypes['chat.1.chatUi.chatAttachmentDownloadProgress']['outParam']
     ) => void
   }
 }
 type _Chat1ChatUiChatAttachmentDownloadStartPayload = {
-  readonly params: Pick<
-    Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadStart'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatAttachmentDownloadStart']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: chat1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadStart'>, 'outParam'>
-    ) => void
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatAttachmentDownloadStart']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatCoinFlipStatusPayload = {
-  readonly params: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatCoinFlipStatus'>, 'inParam'> & {
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatCoinFlipStatus']['inParam'] & {
     sessionID: number
   }
   response: {
     error: chat1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatCoinFlipStatus'>, 'outParam'>
-    ) => void
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatCoinFlipStatus']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatCommandMarkdownPayload = {
-  readonly params: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatCommandMarkdown'>, 'inParam'> & {
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatCommandMarkdown']['inParam'] & {
     sessionID: number
   }
   response: {
     error: chat1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatCommandMarkdown'>, 'outParam'>
-    ) => void
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatCommandMarkdown']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatConfirmChannelDeletePayload = {
-  readonly params: Pick<
-    Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatConfirmChannelDelete'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatConfirmChannelDelete']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: chat1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatConfirmChannelDelete'>, 'outParam'>
-    ) => void
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatConfirmChannelDelete']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatGiphySearchResultsPayload = {
-  readonly params: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatGiphySearchResults'>, 'inParam'> & {
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatGiphySearchResults']['inParam'] & {
     sessionID: number
   }
   response: {
     error: chat1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatGiphySearchResults'>, 'outParam'>
-    ) => void
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatGiphySearchResults']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatGiphyToggleResultWindowPayload = {
-  readonly params: Pick<
-    Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatGiphyToggleResultWindow'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatGiphyToggleResultWindow']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: chat1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatGiphyToggleResultWindow'>, 'outParam'>
-    ) => void
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatGiphyToggleResultWindow']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatInboxConversationPayload = {
-  readonly params: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatInboxConversation'>, 'inParam'> & {
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatInboxConversation']['inParam'] & {
     sessionID: number
   }
   response: {
     error: chat1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatInboxConversation'>, 'outParam'>
-    ) => void
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatInboxConversation']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatInboxFailedPayload = {
-  readonly params: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatInboxFailed'>, 'inParam'> & {
-    sessionID: number
-  }
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatInboxFailed']['inParam'] & {sessionID: number}
   response: {
     error: chat1Types.IncomingErrorCallback
-    result: (param: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatInboxFailed'>, 'outParam'>) => void
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatInboxFailed']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatInboxUnverifiedPayload = {
-  readonly params: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatInboxUnverified'>, 'inParam'> & {
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatInboxUnverified']['inParam'] & {
     sessionID: number
   }
   response: {
     error: chat1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatInboxUnverified'>, 'outParam'>
-    ) => void
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatInboxUnverified']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatMaybeMentionUpdatePayload = {
-  readonly params: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatMaybeMentionUpdate'>, 'inParam'> & {
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatMaybeMentionUpdate']['inParam'] & {
     sessionID: number
   }
   response: {
     error: chat1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatMaybeMentionUpdate'>, 'outParam'>
-    ) => void
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatMaybeMentionUpdate']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatSearchConvHitsPayload = {
-  readonly params: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchConvHits'>, 'inParam'> & {
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatSearchConvHits']['inParam'] & {
     sessionID: number
   }
   response: {
     error: chat1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchConvHits'>, 'outParam'>
-    ) => void
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatSearchConvHits']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatSearchDonePayload = {
-  readonly params: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchDone'>, 'inParam'> & {
-    sessionID: number
-  }
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatSearchDone']['inParam'] & {sessionID: number}
   response: {
     error: chat1Types.IncomingErrorCallback
-    result: (param: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchDone'>, 'outParam'>) => void
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatSearchDone']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatSearchHitPayload = {
-  readonly params: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchHit'>, 'inParam'> & {
-    sessionID: number
-  }
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatSearchHit']['inParam'] & {sessionID: number}
   response: {
     error: chat1Types.IncomingErrorCallback
-    result: (param: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchHit'>, 'outParam'>) => void
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatSearchHit']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatSearchInboxDonePayload = {
-  readonly params: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchInboxDone'>, 'inParam'> & {
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatSearchInboxDone']['inParam'] & {
     sessionID: number
   }
   response: {
     error: chat1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchInboxDone'>, 'outParam'>
-    ) => void
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatSearchInboxDone']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatSearchInboxHitPayload = {
-  readonly params: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchInboxHit'>, 'inParam'> & {
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatSearchInboxHit']['inParam'] & {
     sessionID: number
   }
   response: {
     error: chat1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchInboxHit'>, 'outParam'>
-    ) => void
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatSearchInboxHit']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatSearchInboxStartPayload = {
-  readonly params: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchInboxStart'>, 'inParam'> & {
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatSearchInboxStart']['inParam'] & {
     sessionID: number
   }
   response: {
     error: chat1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchInboxStart'>, 'outParam'>
-    ) => void
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatSearchInboxStart']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatSearchIndexStatusPayload = {
-  readonly params: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchIndexStatus'>, 'inParam'> & {
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatSearchIndexStatus']['inParam'] & {
     sessionID: number
   }
   response: {
     error: chat1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchIndexStatus'>, 'outParam'>
-    ) => void
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatSearchIndexStatus']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatShowManageChannelsPayload = {
-  readonly params: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatShowManageChannels'>, 'inParam'> & {
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatShowManageChannels']['inParam'] & {
     sessionID: number
   }
   response: {
     error: chat1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatShowManageChannels'>, 'outParam'>
-    ) => void
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatShowManageChannels']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatStellarDataConfirmPayload = {
-  readonly params: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarDataConfirm'>, 'inParam'> & {
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatStellarDataConfirm']['inParam'] & {
     sessionID: number
   }
   response: {
     error: chat1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarDataConfirm'>, 'outParam'>
-    ) => void
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatStellarDataConfirm']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatStellarDataErrorPayload = {
-  readonly params: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarDataError'>, 'inParam'> & {
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatStellarDataError']['inParam'] & {
     sessionID: number
   }
   response: {
     error: chat1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarDataError'>, 'outParam'>
-    ) => void
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatStellarDataError']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatStellarDonePayload = {
-  readonly params: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarDone'>, 'inParam'> & {
-    sessionID: number
-  }
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatStellarDone']['inParam'] & {sessionID: number}
   response: {
     error: chat1Types.IncomingErrorCallback
-    result: (param: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarDone'>, 'outParam'>) => void
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatStellarDone']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatStellarShowConfirmPayload = {
-  readonly params: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarShowConfirm'>, 'inParam'> & {
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatStellarShowConfirm']['inParam'] & {
     sessionID: number
   }
   response: {
     error: chat1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarShowConfirm'>, 'outParam'>
-    ) => void
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatStellarShowConfirm']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatThreadCachedPayload = {
-  readonly params: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatThreadCached'>, 'inParam'> & {
-    sessionID: number
-  }
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatThreadCached']['inParam'] & {sessionID: number}
   response: {
     error: chat1Types.IncomingErrorCallback
-    result: (param: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatThreadCached'>, 'outParam'>) => void
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatThreadCached']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatThreadFullPayload = {
-  readonly params: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatThreadFull'>, 'inParam'> & {
-    sessionID: number
-  }
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatThreadFull']['inParam'] & {sessionID: number}
   response: {
     error: chat1Types.IncomingErrorCallback
-    result: (param: Pick<Pick<chat1Types.MessageTypes, 'chat.1.chatUi.chatThreadFull'>, 'outParam'>) => void
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatThreadFull']['outParam']) => void
   }
 }
 type _Chat1NotifyChatChatAttachmentUploadProgressPayload = {
-  readonly params: Pick<
-    Pick<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatAttachmentUploadProgress'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatAttachmentUploadProgress']['inParam'] & {
+    sessionID: number
+  }
 }
 type _Chat1NotifyChatChatAttachmentUploadStartPayload = {
-  readonly params: Pick<
-    Pick<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatAttachmentUploadStart'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatAttachmentUploadStart']['inParam'] & {
+    sessionID: number
+  }
 }
 type _Chat1NotifyChatChatIdentifyUpdatePayload = {
-  readonly params: Pick<Pick<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatIdentifyUpdate'>, 'inParam'> & {
+  readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatIdentifyUpdate']['inParam'] & {
     sessionID: number
   }
 }
 type _Chat1NotifyChatChatInboxStalePayload = {
-  readonly params: Pick<Pick<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatInboxStale'>, 'inParam'> & {
+  readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatInboxStale']['inParam'] & {
     sessionID: number
   }
 }
 type _Chat1NotifyChatChatInboxSyncStartedPayload = {
-  readonly params: Pick<
-    Pick<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatInboxSyncStarted'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatInboxSyncStarted']['inParam'] & {
+    sessionID: number
+  }
 }
 type _Chat1NotifyChatChatInboxSyncedPayload = {
-  readonly params: Pick<Pick<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatInboxSynced'>, 'inParam'> & {
+  readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatInboxSynced']['inParam'] & {
     sessionID: number
   }
 }
 type _Chat1NotifyChatChatJoinedConversationPayload = {
-  readonly params: Pick<
-    Pick<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatJoinedConversation'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatJoinedConversation']['inParam'] & {
+    sessionID: number
+  }
 }
 type _Chat1NotifyChatChatKBFSToImpteamUpgradePayload = {
-  readonly params: Pick<
-    Pick<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatKBFSToImpteamUpgrade'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatKBFSToImpteamUpgrade']['inParam'] & {
+    sessionID: number
+  }
 }
 type _Chat1NotifyChatChatLeftConversationPayload = {
-  readonly params: Pick<
-    Pick<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatLeftConversation'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatLeftConversation']['inParam'] & {
+    sessionID: number
+  }
 }
 type _Chat1NotifyChatChatPaymentInfoPayload = {
-  readonly params: Pick<Pick<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatPaymentInfo'>, 'inParam'> & {
+  readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatPaymentInfo']['inParam'] & {
     sessionID: number
   }
 }
 type _Chat1NotifyChatChatPromptUnfurlPayload = {
-  readonly params: Pick<Pick<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatPromptUnfurl'>, 'inParam'> & {
+  readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatPromptUnfurl']['inParam'] & {
     sessionID: number
   }
 }
 type _Chat1NotifyChatChatRequestInfoPayload = {
-  readonly params: Pick<Pick<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatRequestInfo'>, 'inParam'> & {
+  readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatRequestInfo']['inParam'] & {
     sessionID: number
   }
 }
 type _Chat1NotifyChatChatResetConversationPayload = {
-  readonly params: Pick<
-    Pick<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatResetConversation'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatResetConversation']['inParam'] & {
+    sessionID: number
+  }
 }
 type _Chat1NotifyChatChatSetConvRetentionPayload = {
-  readonly params: Pick<
-    Pick<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatSetConvRetention'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatSetConvRetention']['inParam'] & {
+    sessionID: number
+  }
 }
 type _Chat1NotifyChatChatSetConvSettingsPayload = {
-  readonly params: Pick<Pick<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatSetConvSettings'>, 'inParam'> & {
+  readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatSetConvSettings']['inParam'] & {
     sessionID: number
   }
 }
 type _Chat1NotifyChatChatSetTeamRetentionPayload = {
-  readonly params: Pick<
-    Pick<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatSetTeamRetention'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatSetTeamRetention']['inParam'] & {
+    sessionID: number
+  }
 }
 type _Chat1NotifyChatChatSubteamRenamePayload = {
-  readonly params: Pick<Pick<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatSubteamRename'>, 'inParam'> & {
+  readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatSubteamRename']['inParam'] & {
     sessionID: number
   }
 }
 type _Chat1NotifyChatChatTLFFinalizePayload = {
-  readonly params: Pick<Pick<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatTLFFinalize'>, 'inParam'> & {
+  readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatTLFFinalize']['inParam'] & {
     sessionID: number
   }
 }
 type _Chat1NotifyChatChatTLFResolvePayload = {
-  readonly params: Pick<Pick<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatTLFResolve'>, 'inParam'> & {
+  readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatTLFResolve']['inParam'] & {
     sessionID: number
   }
 }
 type _Chat1NotifyChatChatThreadsStalePayload = {
-  readonly params: Pick<Pick<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatThreadsStale'>, 'inParam'> & {
+  readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatThreadsStale']['inParam'] & {
     sessionID: number
   }
 }
 type _Chat1NotifyChatChatTypingUpdatePayload = {
-  readonly params: Pick<Pick<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatTypingUpdate'>, 'inParam'> & {
+  readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatTypingUpdate']['inParam'] & {
     sessionID: number
   }
 }
 type _Chat1NotifyChatNewChatActivityPayload = {
-  readonly params: Pick<Pick<chat1Types.MessageTypes, 'chat.1.NotifyChat.NewChatActivity'>, 'inParam'> & {
+  readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.NewChatActivity']['inParam'] & {
     sessionID: number
   }
 }
 type _ConnectedPayload = void
 type _DisconnectedPayload = void
 type _Keybase1GpgUiConfirmDuplicateKeyChosenPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.gpgUi.confirmDuplicateKeyChosen'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.gpgUi.confirmDuplicateKeyChosen']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.gpgUi.confirmDuplicateKeyChosen'>, 'outParam'>
+      param: keybase1Types.MessageTypes['keybase.1.gpgUi.confirmDuplicateKeyChosen']['outParam']
     ) => void
   }
 }
 type _Keybase1GpgUiConfirmImportSecretToExistingKeyPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.gpgUi.confirmImportSecretToExistingKey'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.gpgUi.confirmImportSecretToExistingKey']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: Pick<
-        Pick<keybase1Types.MessageTypes, 'keybase.1.gpgUi.confirmImportSecretToExistingKey'>,
-        'outParam'
-      >
+      param: keybase1Types.MessageTypes['keybase.1.gpgUi.confirmImportSecretToExistingKey']['outParam']
     ) => void
   }
 }
 type _Keybase1GpgUiGetTTYPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.gpgUi.getTTY'>, 'inParam'> & {
-    sessionID: number
-  }
+  readonly params: keybase1Types.MessageTypes['keybase.1.gpgUi.getTTY']['inParam'] & {sessionID: number}
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.gpgUi.getTTY'>, 'outParam'>) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.gpgUi.getTTY']['outParam']) => void
   }
 }
 type _Keybase1GpgUiSelectKeyAndPushOptionPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.gpgUi.selectKeyAndPushOption'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.gpgUi.selectKeyAndPushOption']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.gpgUi.selectKeyAndPushOption'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.gpgUi.selectKeyAndPushOption']['outParam']) => void
   }
 }
 type _Keybase1GpgUiSelectKeyPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.gpgUi.selectKey'>, 'inParam'> & {
-    sessionID: number
-  }
+  readonly params: keybase1Types.MessageTypes['keybase.1.gpgUi.selectKey']['inParam'] & {sessionID: number}
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.gpgUi.selectKey'>, 'outParam'>) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.gpgUi.selectKey']['outParam']) => void
   }
 }
 type _Keybase1GpgUiSignPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.gpgUi.sign'>, 'inParam'> & {
-    sessionID: number
-  }
+  readonly params: keybase1Types.MessageTypes['keybase.1.gpgUi.sign']['inParam'] & {sessionID: number}
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.gpgUi.sign'>, 'outParam'>) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.gpgUi.sign']['outParam']) => void
   }
 }
 type _Keybase1GpgUiWantToAddGPGKeyPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.gpgUi.wantToAddGPGKey'>, 'inParam'> & {
+  readonly params: keybase1Types.MessageTypes['keybase.1.gpgUi.wantToAddGPGKey']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (param: keybase1Types.MessageTypes['keybase.1.gpgUi.wantToAddGPGKey']['outParam']) => void
+  }
+}
+type _Keybase1GregorUIPushOutOfBandMessagesPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.gregorUI.pushOutOfBandMessages']['inParam'] & {
     sessionID: number
   }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.gpgUi.wantToAddGPGKey'>, 'outParam'>
-    ) => void
-  }
-}
-type _Keybase1GregorUIPushOutOfBandMessagesPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.gregorUI.pushOutOfBandMessages'>,
-    'inParam'
-  > & {sessionID: number}
-  response: {
-    error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.gregorUI.pushOutOfBandMessages'>, 'outParam'>
+      param: keybase1Types.MessageTypes['keybase.1.gregorUI.pushOutOfBandMessages']['outParam']
     ) => void
   }
 }
 type _Keybase1GregorUIPushStatePayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.gregorUI.pushState'>, 'inParam'> & {
-    sessionID: number
-  }
+  readonly params: keybase1Types.MessageTypes['keybase.1.gregorUI.pushState']['inParam'] & {sessionID: number}
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.gregorUI.pushState'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.gregorUI.pushState']['outParam']) => void
   }
 }
 type _Keybase1HomeUIHomeUIRefreshPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.homeUI.homeUIRefresh'>, 'inParam'> & {
+  readonly params: keybase1Types.MessageTypes['keybase.1.homeUI.homeUIRefresh']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (param: keybase1Types.MessageTypes['keybase.1.homeUI.homeUIRefresh']['outParam']) => void
+  }
+}
+type _Keybase1Identify3UiIdentify3ResultPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.identify3Ui.identify3Result']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (param: keybase1Types.MessageTypes['keybase.1.identify3Ui.identify3Result']['outParam']) => void
+  }
+}
+type _Keybase1Identify3UiIdentify3ShowTrackerPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.identify3Ui.identify3ShowTracker']['inParam'] & {
     sessionID: number
   }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.homeUI.homeUIRefresh'>, 'outParam'>
-    ) => void
-  }
-}
-type _Keybase1Identify3UiIdentify3ResultPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3Result'>,
-    'inParam'
-  > & {sessionID: number}
-  response: {
-    error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3Result'>, 'outParam'>
-    ) => void
-  }
-}
-type _Keybase1Identify3UiIdentify3ShowTrackerPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3ShowTracker'>,
-    'inParam'
-  > & {sessionID: number}
-  response: {
-    error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3ShowTracker'>, 'outParam'>
+      param: keybase1Types.MessageTypes['keybase.1.identify3Ui.identify3ShowTracker']['outParam']
     ) => void
   }
 }
 type _Keybase1Identify3UiIdentify3TrackerTimedOutPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3TrackerTimedOut'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.identify3Ui.identify3TrackerTimedOut']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: Pick<
-        Pick<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3TrackerTimedOut'>,
-        'outParam'
-      >
+      param: keybase1Types.MessageTypes['keybase.1.identify3Ui.identify3TrackerTimedOut']['outParam']
     ) => void
   }
 }
 type _Keybase1Identify3UiIdentify3UpdateRowPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3UpdateRow'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.identify3Ui.identify3UpdateRow']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3UpdateRow'>, 'outParam'>
+      param: keybase1Types.MessageTypes['keybase.1.identify3Ui.identify3UpdateRow']['outParam']
     ) => void
   }
 }
 type _Keybase1Identify3UiIdentify3UpdateUserCardPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3UpdateUserCard'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.identify3Ui.identify3UpdateUserCard']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: Pick<
-        Pick<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3UpdateUserCard'>,
-        'outParam'
-      >
+      param: keybase1Types.MessageTypes['keybase.1.identify3Ui.identify3UpdateUserCard']['outParam']
     ) => void
   }
 }
 type _Keybase1Identify3UiIdentify3UserResetPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3UserReset'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.identify3Ui.identify3UserReset']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3UserReset'>, 'outParam'>
+      param: keybase1Types.MessageTypes['keybase.1.identify3Ui.identify3UserReset']['outParam']
     ) => void
   }
 }
 type _Keybase1IdentifyUiCancelPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.identifyUi.cancel'>, 'inParam'> & {
-    sessionID: number
-  }
+  readonly params: keybase1Types.MessageTypes['keybase.1.identifyUi.cancel']['inParam'] & {sessionID: number}
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.identifyUi.cancel'>, 'outParam'>) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.identifyUi.cancel']['outParam']) => void
   }
 }
 type _Keybase1IdentifyUiConfirmPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.identifyUi.confirm'>, 'inParam'> & {
-    sessionID: number
-  }
+  readonly params: keybase1Types.MessageTypes['keybase.1.identifyUi.confirm']['inParam'] & {sessionID: number}
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.identifyUi.confirm'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.identifyUi.confirm']['outParam']) => void
   }
 }
 type _Keybase1IdentifyUiDelegateIdentifyUIPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.identifyUi.delegateIdentifyUI'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.identifyUi.delegateIdentifyUI']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.identifyUi.delegateIdentifyUI'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.identifyUi.delegateIdentifyUI']['outParam']) => void
   }
 }
 type _Keybase1IdentifyUiDismissPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.identifyUi.dismiss'>, 'inParam'> & {
+  readonly params: keybase1Types.MessageTypes['keybase.1.identifyUi.dismiss']['inParam'] & {sessionID: number}
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (param: keybase1Types.MessageTypes['keybase.1.identifyUi.dismiss']['outParam']) => void
+  }
+}
+type _Keybase1IdentifyUiDisplayCryptocurrencyPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.identifyUi.displayCryptocurrency']['inParam'] & {
     sessionID: number
   }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.identifyUi.dismiss'>, 'outParam'>
-    ) => void
-  }
-}
-type _Keybase1IdentifyUiDisplayCryptocurrencyPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayCryptocurrency'>,
-    'inParam'
-  > & {sessionID: number}
-  response: {
-    error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayCryptocurrency'>, 'outParam'>
+      param: keybase1Types.MessageTypes['keybase.1.identifyUi.displayCryptocurrency']['outParam']
     ) => void
   }
 }
 type _Keybase1IdentifyUiDisplayKeyPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayKey'>, 'inParam'> & {
+  readonly params: keybase1Types.MessageTypes['keybase.1.identifyUi.displayKey']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (param: keybase1Types.MessageTypes['keybase.1.identifyUi.displayKey']['outParam']) => void
+  }
+}
+type _Keybase1IdentifyUiDisplayStellarAccountPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.identifyUi.displayStellarAccount']['inParam'] & {
     sessionID: number
   }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayKey'>, 'outParam'>
-    ) => void
-  }
-}
-type _Keybase1IdentifyUiDisplayStellarAccountPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayStellarAccount'>,
-    'inParam'
-  > & {sessionID: number}
-  response: {
-    error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayStellarAccount'>, 'outParam'>
+      param: keybase1Types.MessageTypes['keybase.1.identifyUi.displayStellarAccount']['outParam']
     ) => void
   }
 }
 type _Keybase1IdentifyUiDisplayTLFCreateWithInvitePayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayTLFCreateWithInvite'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.identifyUi.displayTLFCreateWithInvite']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: Pick<
-        Pick<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayTLFCreateWithInvite'>,
-        'outParam'
-      >
+      param: keybase1Types.MessageTypes['keybase.1.identifyUi.displayTLFCreateWithInvite']['outParam']
     ) => void
   }
 }
 type _Keybase1IdentifyUiDisplayTrackStatementPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayTrackStatement'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.identifyUi.displayTrackStatement']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayTrackStatement'>, 'outParam'>
+      param: keybase1Types.MessageTypes['keybase.1.identifyUi.displayTrackStatement']['outParam']
     ) => void
   }
 }
 type _Keybase1IdentifyUiDisplayUserCardPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayUserCard'>,
-    'inParam'
-  > & {sessionID: number}
-  response: {
-    error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayUserCard'>, 'outParam'>
-    ) => void
-  }
-}
-type _Keybase1IdentifyUiFinishPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.identifyUi.finish'>, 'inParam'> & {
+  readonly params: keybase1Types.MessageTypes['keybase.1.identifyUi.displayUserCard']['inParam'] & {
     sessionID: number
   }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.identifyUi.finish'>, 'outParam'>) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.identifyUi.displayUserCard']['outParam']) => void
+  }
+}
+type _Keybase1IdentifyUiFinishPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.identifyUi.finish']['inParam'] & {sessionID: number}
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (param: keybase1Types.MessageTypes['keybase.1.identifyUi.finish']['outParam']) => void
   }
 }
 type _Keybase1IdentifyUiFinishSocialProofCheckPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.identifyUi.finishSocialProofCheck'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.identifyUi.finishSocialProofCheck']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.identifyUi.finishSocialProofCheck'>, 'outParam'>
+      param: keybase1Types.MessageTypes['keybase.1.identifyUi.finishSocialProofCheck']['outParam']
     ) => void
   }
 }
 type _Keybase1IdentifyUiFinishWebProofCheckPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.identifyUi.finishWebProofCheck'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.identifyUi.finishWebProofCheck']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.identifyUi.finishWebProofCheck'>, 'outParam'>
+      param: keybase1Types.MessageTypes['keybase.1.identifyUi.finishWebProofCheck']['outParam']
     ) => void
   }
 }
 type _Keybase1IdentifyUiLaunchNetworkChecksPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.identifyUi.launchNetworkChecks'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.identifyUi.launchNetworkChecks']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.identifyUi.launchNetworkChecks'>, 'outParam'>
+      param: keybase1Types.MessageTypes['keybase.1.identifyUi.launchNetworkChecks']['outParam']
     ) => void
   }
 }
 type _Keybase1IdentifyUiReportLastTrackPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.identifyUi.reportLastTrack'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.identifyUi.reportLastTrack']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.identifyUi.reportLastTrack'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.identifyUi.reportLastTrack']['outParam']) => void
   }
 }
 type _Keybase1IdentifyUiReportTrackTokenPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.identifyUi.reportTrackToken'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.identifyUi.reportTrackToken']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.identifyUi.reportTrackToken'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.identifyUi.reportTrackToken']['outParam']) => void
   }
 }
 type _Keybase1IdentifyUiStartPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.identifyUi.start'>, 'inParam'> & {
-    sessionID: number
-  }
+  readonly params: keybase1Types.MessageTypes['keybase.1.identifyUi.start']['inParam'] & {sessionID: number}
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.identifyUi.start'>, 'outParam'>) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.identifyUi.start']['outParam']) => void
   }
 }
 type _Keybase1LogUiLogPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.logUi.log'>, 'inParam'> & {
+  readonly params: keybase1Types.MessageTypes['keybase.1.logUi.log']['inParam'] & {sessionID: number}
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (param: keybase1Types.MessageTypes['keybase.1.logUi.log']['outParam']) => void
+  }
+}
+type _Keybase1LoginUiDisplayPaperKeyPhrasePayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.loginUi.displayPaperKeyPhrase']['inParam'] & {
     sessionID: number
   }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.logUi.log'>, 'outParam'>) => void
-  }
-}
-type _Keybase1LoginUiDisplayPaperKeyPhrasePayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayPaperKeyPhrase'>,
-    'inParam'
-  > & {sessionID: number}
-  response: {
-    error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayPaperKeyPhrase'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.loginUi.displayPaperKeyPhrase']['outParam']) => void
   }
 }
 type _Keybase1LoginUiDisplayPrimaryPaperKeyPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayPrimaryPaperKey'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.loginUi.displayPrimaryPaperKey']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayPrimaryPaperKey'>, 'outParam'>
+      param: keybase1Types.MessageTypes['keybase.1.loginUi.displayPrimaryPaperKey']['outParam']
     ) => void
   }
 }
 type _Keybase1LoginUiDisplayResetProgressPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayResetProgress'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.loginUi.displayResetProgress']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayResetProgress'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.loginUi.displayResetProgress']['outParam']) => void
   }
 }
 type _Keybase1LoginUiExplainDeviceRecoveryPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.loginUi.explainDeviceRecovery'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.loginUi.explainDeviceRecovery']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.loginUi.explainDeviceRecovery'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.loginUi.explainDeviceRecovery']['outParam']) => void
   }
 }
 type _Keybase1LoginUiGetEmailOrUsernamePayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.loginUi.getEmailOrUsername'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.loginUi.getEmailOrUsername']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.loginUi.getEmailOrUsername'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.loginUi.getEmailOrUsername']['outParam']) => void
   }
 }
 type _Keybase1LoginUiPromptPassphraseRecoveryPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.loginUi.promptPassphraseRecovery'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.loginUi.promptPassphraseRecovery']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.loginUi.promptPassphraseRecovery'>, 'outParam'>
+      param: keybase1Types.MessageTypes['keybase.1.loginUi.promptPassphraseRecovery']['outParam']
     ) => void
   }
 }
 type _Keybase1LoginUiPromptResetAccountPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.loginUi.promptResetAccount'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.loginUi.promptResetAccount']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.loginUi.promptResetAccount'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.loginUi.promptResetAccount']['outParam']) => void
   }
 }
 type _Keybase1LoginUiPromptRevokePaperKeysPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.loginUi.promptRevokePaperKeys'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.loginUi.promptRevokePaperKeys']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.loginUi.promptRevokePaperKeys'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.loginUi.promptRevokePaperKeys']['outParam']) => void
   }
 }
 type _Keybase1LogsendPrepareLogsendPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.logsend.prepareLogsend'>, 'inParam'> & {
+  readonly params: keybase1Types.MessageTypes['keybase.1.logsend.prepareLogsend']['inParam'] & {
     sessionID: number
   }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.logsend.prepareLogsend'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.logsend.prepareLogsend']['outParam']) => void
   }
 }
 type _Keybase1NotifyAppExitPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyApp.exit'>, 'inParam'> & {
-    sessionID: number
-  }
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyApp.exit']['inParam'] & {sessionID: number}
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyApp.exit'>, 'outParam'>) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.NotifyApp.exit']['outParam']) => void
   }
 }
 type _Keybase1NotifyAuditBoxAuditErrorPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyAudit.boxAuditError'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyAudit.boxAuditError']['inParam'] & {
+    sessionID: number
+  }
 }
 type _Keybase1NotifyAuditRootAuditErrorPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyAudit.rootAuditError'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyAudit.rootAuditError']['inParam'] & {
+    sessionID: number
+  }
 }
 type _Keybase1NotifyBadgesBadgeStatePayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyBadges.badgeState'>, 'inParam'> & {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyBadges.badgeState']['inParam'] & {
     sessionID: number
   }
 }
 type _Keybase1NotifyCanUserPerformCanUserPerformChangedPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyCanUserPerform.canUserPerformChanged'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyCanUserPerform.canUserPerformChanged']['inParam'] & {
+    sessionID: number
+  }
 }
 type _Keybase1NotifyDeviceCloneDeviceCloneCountChangedPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyDeviceClone.deviceCloneCountChanged'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyDeviceClone.deviceCloneCountChanged']['inParam'] & {
+    sessionID: number
+  }
 }
 type _Keybase1NotifyEmailAddressEmailAddressVerifiedPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyEmailAddress.emailAddressVerified'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyEmailAddress.emailAddressVerified']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: Pick<
-        Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyEmailAddress.emailAddressVerified'>,
-        'outParam'
-      >
+      param: keybase1Types.MessageTypes['keybase.1.NotifyEmailAddress.emailAddressVerified']['outParam']
     ) => void
   }
 }
 type _Keybase1NotifyEphemeralNewTeamEkPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyEphemeral.newTeamEk'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyEphemeral.newTeamEk']['inParam'] & {
+    sessionID: number
+  }
 }
 type _Keybase1NotifyFSFSActivityPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSActivity'>, 'inParam'> & {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyFS.FSActivity']['inParam'] & {
     sessionID: number
   }
 }
 type _Keybase1NotifyFSFSEditListResponsePayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSEditListResponse'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyFS.FSEditListResponse']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSEditListResponse'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.NotifyFS.FSEditListResponse']['outParam']) => void
   }
 }
 type _Keybase1NotifyFSFSFavoritesChangedPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSFavoritesChanged'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyFS.FSFavoritesChanged']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSFavoritesChanged'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.NotifyFS.FSFavoritesChanged']['outParam']) => void
   }
 }
 type _Keybase1NotifyFSFSOnlineStatusChangedPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSOnlineStatusChanged'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyFS.FSOnlineStatusChanged']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSOnlineStatusChanged'>, 'outParam'>
+      param: keybase1Types.MessageTypes['keybase.1.NotifyFS.FSOnlineStatusChanged']['outParam']
     ) => void
   }
 }
 type _Keybase1NotifyFSFSOverallSyncStatusChangedPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSOverallSyncStatusChanged'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyFS.FSOverallSyncStatusChanged']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: Pick<
-        Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSOverallSyncStatusChanged'>,
-        'outParam'
-      >
+      param: keybase1Types.MessageTypes['keybase.1.NotifyFS.FSOverallSyncStatusChanged']['outParam']
     ) => void
   }
 }
 type _Keybase1NotifyFSFSPathUpdatedPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSPathUpdated'>, 'inParam'> & {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyFS.FSPathUpdated']['inParam'] & {
     sessionID: number
   }
 }
 type _Keybase1NotifyFSFSSyncActivityPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSSyncActivity'>, 'inParam'> & {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyFS.FSSyncActivity']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (param: keybase1Types.MessageTypes['keybase.1.NotifyFS.FSSyncActivity']['outParam']) => void
+  }
+}
+type _Keybase1NotifyFSFSSyncStatusResponsePayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyFS.FSSyncStatusResponse']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (param: keybase1Types.MessageTypes['keybase.1.NotifyFS.FSSyncStatusResponse']['outParam']) => void
+  }
+}
+type _Keybase1NotifyFavoritesFavoritesChangedPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyFavorites.favoritesChanged']['inParam'] & {
+    sessionID: number
+  }
+}
+type _Keybase1NotifyKeyfamilyKeyfamilyChangedPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyKeyfamily.keyfamilyChanged']['inParam'] & {
     sessionID: number
   }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSSyncActivity'>, 'outParam'>
-    ) => void
-  }
-}
-type _Keybase1NotifyFSFSSyncStatusResponsePayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSSyncStatusResponse'>,
-    'inParam'
-  > & {sessionID: number}
-  response: {
-    error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSSyncStatusResponse'>, 'outParam'>
-    ) => void
-  }
-}
-type _Keybase1NotifyFavoritesFavoritesChangedPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyFavorites.favoritesChanged'>,
-    'inParam'
-  > & {sessionID: number}
-}
-type _Keybase1NotifyKeyfamilyKeyfamilyChangedPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyKeyfamily.keyfamilyChanged'>,
-    'inParam'
-  > & {sessionID: number}
-  response: {
-    error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyKeyfamily.keyfamilyChanged'>, 'outParam'>
+      param: keybase1Types.MessageTypes['keybase.1.NotifyKeyfamily.keyfamilyChanged']['outParam']
     ) => void
   }
 }
 type _Keybase1NotifyPGPPgpKeyInSecretStoreFilePayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyPGP.pgpKeyInSecretStoreFile']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'>, 'outParam'>
+      param: keybase1Types.MessageTypes['keybase.1.NotifyPGP.pgpKeyInSecretStoreFile']['outParam']
     ) => void
   }
 }
 type _Keybase1NotifyPaperKeyPaperKeyCachedPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyPaperKey.paperKeyCached'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyPaperKey.paperKeyCached']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyPaperKey.paperKeyCached'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.NotifyPaperKey.paperKeyCached']['outParam']) => void
   }
 }
 type _Keybase1NotifyPhoneNumberPhoneNumberAddedPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyPhoneNumber.phoneNumberAdded'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumberAdded']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: Pick<
-        Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyPhoneNumber.phoneNumberAdded'>,
-        'outParam'
-      >
+      param: keybase1Types.MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumberAdded']['outParam']
     ) => void
   }
 }
 type _Keybase1NotifyPhoneNumberPhoneNumberSupersededPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyPhoneNumber.phoneNumberSuperseded'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumberSuperseded']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: Pick<
-        Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyPhoneNumber.phoneNumberSuperseded'>,
-        'outParam'
-      >
+      param: keybase1Types.MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumberSuperseded']['outParam']
     ) => void
   }
 }
 type _Keybase1NotifyPhoneNumberPhoneNumberVerifiedPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyPhoneNumber.phoneNumberVerified'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumberVerified']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: Pick<
-        Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyPhoneNumber.phoneNumberVerified'>,
-        'outParam'
-      >
+      param: keybase1Types.MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumberVerified']['outParam']
     ) => void
   }
 }
 type _Keybase1NotifyServiceShutdownPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyService.shutdown'>, 'inParam'> & {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyService.shutdown']['inParam'] & {
     sessionID: number
   }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyService.shutdown'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.NotifyService.shutdown']['outParam']) => void
   }
 }
 type _Keybase1NotifySessionClientOutOfDatePayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.NotifySession.clientOutOfDate'>,
-    'inParam'
-  > & {sessionID: number}
-  response: {
-    error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.NotifySession.clientOutOfDate'>, 'outParam'>
-    ) => void
-  }
-}
-type _Keybase1NotifySessionLoggedInPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.NotifySession.loggedIn'>, 'inParam'> & {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifySession.clientOutOfDate']['inParam'] & {
     sessionID: number
   }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.NotifySession.loggedIn'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.NotifySession.clientOutOfDate']['outParam']) => void
+  }
+}
+type _Keybase1NotifySessionLoggedInPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifySession.loggedIn']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (param: keybase1Types.MessageTypes['keybase.1.NotifySession.loggedIn']['outParam']) => void
   }
 }
 type _Keybase1NotifySessionLoggedOutPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.NotifySession.loggedOut'>, 'inParam'> & {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifySession.loggedOut']['inParam'] & {
     sessionID: number
   }
 }
 type _Keybase1NotifyTeamAvatarUpdatedPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.avatarUpdated'>, 'inParam'> & {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyTeam.avatarUpdated']['inParam'] & {
     sessionID: number
   }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.avatarUpdated'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.avatarUpdated']['outParam']) => void
   }
 }
 type _Keybase1NotifyTeamNewlyAddedToTeamPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.newlyAddedToTeam'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyTeam.newlyAddedToTeam']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.newlyAddedToTeam'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.newlyAddedToTeam']['outParam']) => void
   }
 }
 type _Keybase1NotifyTeamTeamAbandonedPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.teamAbandoned'>, 'inParam'> & {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamAbandoned']['inParam'] & {
     sessionID: number
   }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.teamAbandoned'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamAbandoned']['outParam']) => void
   }
 }
 type _Keybase1NotifyTeamTeamChangedByIDPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.teamChangedByID'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamChangedByID']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.teamChangedByID'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamChangedByID']['outParam']) => void
   }
 }
 type _Keybase1NotifyTeamTeamChangedByNamePayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.teamChangedByName'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamChangedByName']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.teamChangedByName'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamChangedByName']['outParam']) => void
   }
 }
 type _Keybase1NotifyTeamTeamDeletedPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.teamDeleted'>, 'inParam'> & {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamDeleted']['inParam'] & {
     sessionID: number
   }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.teamDeleted'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamDeleted']['outParam']) => void
   }
 }
 type _Keybase1NotifyTeamTeamExitPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.teamExit'>, 'inParam'> & {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamExit']['inParam'] & {
     sessionID: number
   }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.teamExit'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamExit']['outParam']) => void
   }
 }
 type _Keybase1NotifyTrackingTrackingChangedPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyTracking.trackingChanged'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyTracking.trackingChanged']['inParam'] & {
+    sessionID: number
+  }
 }
 type _Keybase1NotifyUnverifiedTeamListTeamListUnverifiedChangedPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyUnverifiedTeamList.teamListUnverifiedChanged'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyUnverifiedTeamList.teamListUnverifiedChanged']['inParam'] & {
+    sessionID: number
+  }
 }
 type _Keybase1NotifyUsersPasswordChangedPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyUsers.passwordChanged'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyUsers.passwordChanged']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyUsers.passwordChanged'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.NotifyUsers.passwordChanged']['outParam']) => void
   }
 }
 type _Keybase1NotifyUsersUserChangedPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.NotifyUsers.userChanged'>, 'inParam'> & {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyUsers.userChanged']['inParam'] & {
     sessionID: number
   }
 }
 type _Keybase1PgpUiFinishedPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.pgpUi.finished'>, 'inParam'> & {
-    sessionID: number
-  }
+  readonly params: keybase1Types.MessageTypes['keybase.1.pgpUi.finished']['inParam'] & {sessionID: number}
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.pgpUi.finished'>, 'outParam'>) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.pgpUi.finished']['outParam']) => void
   }
 }
 type _Keybase1PgpUiKeyGeneratedPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.pgpUi.keyGenerated'>, 'inParam'> & {
+  readonly params: keybase1Types.MessageTypes['keybase.1.pgpUi.keyGenerated']['inParam'] & {sessionID: number}
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (param: keybase1Types.MessageTypes['keybase.1.pgpUi.keyGenerated']['outParam']) => void
+  }
+}
+type _Keybase1PgpUiOutputSignatureSuccessNonKeybasePayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.pgpUi.outputSignatureSuccessNonKeybase']['inParam'] & {
     sessionID: number
   }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.pgpUi.keyGenerated'>, 'outParam'>
-    ) => void
-  }
-}
-type _Keybase1PgpUiOutputSignatureSuccessNonKeybasePayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.pgpUi.outputSignatureSuccessNonKeybase'>,
-    'inParam'
-  > & {sessionID: number}
-  response: {
-    error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<
-        Pick<keybase1Types.MessageTypes, 'keybase.1.pgpUi.outputSignatureSuccessNonKeybase'>,
-        'outParam'
-      >
+      param: keybase1Types.MessageTypes['keybase.1.pgpUi.outputSignatureSuccessNonKeybase']['outParam']
     ) => void
   }
 }
 type _Keybase1PgpUiOutputSignatureSuccessPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.pgpUi.outputSignatureSuccess'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.pgpUi.outputSignatureSuccess']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.pgpUi.outputSignatureSuccess'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.pgpUi.outputSignatureSuccess']['outParam']) => void
   }
 }
 type _Keybase1PgpUiShouldPushPrivatePayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.pgpUi.shouldPushPrivate'>, 'inParam'> & {
+  readonly params: keybase1Types.MessageTypes['keybase.1.pgpUi.shouldPushPrivate']['inParam'] & {
     sessionID: number
   }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.pgpUi.shouldPushPrivate'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.pgpUi.shouldPushPrivate']['outParam']) => void
   }
 }
 type _Keybase1ProveUiCheckingPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.proveUi.checking'>, 'inParam'> & {
-    sessionID: number
-  }
+  readonly params: keybase1Types.MessageTypes['keybase.1.proveUi.checking']['inParam'] & {sessionID: number}
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.proveUi.checking'>, 'outParam'>) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.proveUi.checking']['outParam']) => void
   }
 }
 type _Keybase1ProveUiContinueCheckingPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.proveUi.continueChecking'>, 'inParam'> & {
+  readonly params: keybase1Types.MessageTypes['keybase.1.proveUi.continueChecking']['inParam'] & {
     sessionID: number
   }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.proveUi.continueChecking'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.proveUi.continueChecking']['outParam']) => void
   }
 }
 type _Keybase1ProveUiDisplayRecheckWarningPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.proveUi.displayRecheckWarning'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.proveUi.displayRecheckWarning']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.proveUi.displayRecheckWarning'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.proveUi.displayRecheckWarning']['outParam']) => void
   }
 }
 type _Keybase1ProveUiOkToCheckPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.proveUi.okToCheck'>, 'inParam'> & {
-    sessionID: number
-  }
+  readonly params: keybase1Types.MessageTypes['keybase.1.proveUi.okToCheck']['inParam'] & {sessionID: number}
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.proveUi.okToCheck'>, 'outParam'>) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.proveUi.okToCheck']['outParam']) => void
   }
 }
 type _Keybase1ProveUiOutputInstructionsPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.proveUi.outputInstructions'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.proveUi.outputInstructions']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.proveUi.outputInstructions'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.proveUi.outputInstructions']['outParam']) => void
   }
 }
 type _Keybase1ProveUiOutputPrechecksPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.proveUi.outputPrechecks'>, 'inParam'> & {
+  readonly params: keybase1Types.MessageTypes['keybase.1.proveUi.outputPrechecks']['inParam'] & {
     sessionID: number
   }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.proveUi.outputPrechecks'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.proveUi.outputPrechecks']['outParam']) => void
   }
 }
 type _Keybase1ProveUiPreProofWarningPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.proveUi.preProofWarning'>, 'inParam'> & {
+  readonly params: keybase1Types.MessageTypes['keybase.1.proveUi.preProofWarning']['inParam'] & {
     sessionID: number
   }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.proveUi.preProofWarning'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.proveUi.preProofWarning']['outParam']) => void
   }
 }
 type _Keybase1ProveUiPromptOverwritePayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.proveUi.promptOverwrite'>, 'inParam'> & {
+  readonly params: keybase1Types.MessageTypes['keybase.1.proveUi.promptOverwrite']['inParam'] & {
     sessionID: number
   }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.proveUi.promptOverwrite'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.proveUi.promptOverwrite']['outParam']) => void
   }
 }
 type _Keybase1ProveUiPromptUsernamePayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.proveUi.promptUsername'>, 'inParam'> & {
+  readonly params: keybase1Types.MessageTypes['keybase.1.proveUi.promptUsername']['inParam'] & {
     sessionID: number
   }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.proveUi.promptUsername'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.proveUi.promptUsername']['outParam']) => void
   }
 }
 type _Keybase1ProvisionUiChooseDevicePayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.provisionUi.chooseDevice'>, 'inParam'> & {
+  readonly params: keybase1Types.MessageTypes['keybase.1.provisionUi.chooseDevice']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (param: keybase1Types.MessageTypes['keybase.1.provisionUi.chooseDevice']['outParam']) => void
+  }
+}
+type _Keybase1ProvisionUiChooseDeviceTypePayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.provisionUi.chooseDeviceType']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (param: keybase1Types.MessageTypes['keybase.1.provisionUi.chooseDeviceType']['outParam']) => void
+  }
+}
+type _Keybase1ProvisionUiChooseGPGMethodPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.provisionUi.chooseGPGMethod']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (param: keybase1Types.MessageTypes['keybase.1.provisionUi.chooseGPGMethod']['outParam']) => void
+  }
+}
+type _Keybase1ProvisionUiChooseProvisioningMethodPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.provisionUi.chooseProvisioningMethod']['inParam'] & {
     sessionID: number
   }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.provisionUi.chooseDevice'>, 'outParam'>
-    ) => void
-  }
-}
-type _Keybase1ProvisionUiChooseDeviceTypePayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.provisionUi.chooseDeviceType'>,
-    'inParam'
-  > & {sessionID: number}
-  response: {
-    error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.provisionUi.chooseDeviceType'>, 'outParam'>
-    ) => void
-  }
-}
-type _Keybase1ProvisionUiChooseGPGMethodPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.provisionUi.chooseGPGMethod'>,
-    'inParam'
-  > & {sessionID: number}
-  response: {
-    error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.provisionUi.chooseGPGMethod'>, 'outParam'>
-    ) => void
-  }
-}
-type _Keybase1ProvisionUiChooseProvisioningMethodPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.provisionUi.chooseProvisioningMethod'>,
-    'inParam'
-  > & {sessionID: number}
-  response: {
-    error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<
-        Pick<keybase1Types.MessageTypes, 'keybase.1.provisionUi.chooseProvisioningMethod'>,
-        'outParam'
-      >
+      param: keybase1Types.MessageTypes['keybase.1.provisionUi.chooseProvisioningMethod']['outParam']
     ) => void
   }
 }
 type _Keybase1ProvisionUiDisplayAndPromptSecretPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.provisionUi.DisplayAndPromptSecret'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.provisionUi.DisplayAndPromptSecret']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: Pick<
-        Pick<keybase1Types.MessageTypes, 'keybase.1.provisionUi.DisplayAndPromptSecret'>,
-        'outParam'
-      >
+      param: keybase1Types.MessageTypes['keybase.1.provisionUi.DisplayAndPromptSecret']['outParam']
     ) => void
   }
 }
 type _Keybase1ProvisionUiDisplaySecretExchangedPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.provisionUi.DisplaySecretExchanged'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.provisionUi.DisplaySecretExchanged']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: Pick<
-        Pick<keybase1Types.MessageTypes, 'keybase.1.provisionUi.DisplaySecretExchanged'>,
-        'outParam'
-      >
+      param: keybase1Types.MessageTypes['keybase.1.provisionUi.DisplaySecretExchanged']['outParam']
     ) => void
   }
 }
 type _Keybase1ProvisionUiPromptNewDeviceNamePayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.provisionUi.PromptNewDeviceName'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.provisionUi.PromptNewDeviceName']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.provisionUi.PromptNewDeviceName'>, 'outParam'>
+      param: keybase1Types.MessageTypes['keybase.1.provisionUi.PromptNewDeviceName']['outParam']
     ) => void
   }
 }
 type _Keybase1ProvisionUiProvisioneeSuccessPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.provisionUi.ProvisioneeSuccess'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.provisionUi.ProvisioneeSuccess']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.provisionUi.ProvisioneeSuccess'>, 'outParam'>
+      param: keybase1Types.MessageTypes['keybase.1.provisionUi.ProvisioneeSuccess']['outParam']
     ) => void
   }
 }
 type _Keybase1ProvisionUiProvisionerSuccessPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.provisionUi.ProvisionerSuccess'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.provisionUi.ProvisionerSuccess']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.provisionUi.ProvisionerSuccess'>, 'outParam'>
+      param: keybase1Types.MessageTypes['keybase.1.provisionUi.ProvisionerSuccess']['outParam']
     ) => void
   }
 }
 type _Keybase1ProvisionUiSwitchToGPGSignOKPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.provisionUi.switchToGPGSignOK'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.provisionUi.switchToGPGSignOK']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.provisionUi.switchToGPGSignOK'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.provisionUi.switchToGPGSignOK']['outParam']) => void
   }
 }
 type _Keybase1ReachabilityReachabilityChangedPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.reachability.reachabilityChanged'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.reachability.reachabilityChanged']['inParam'] & {
+    sessionID: number
+  }
 }
 type _Keybase1RekeyUIDelegateRekeyUIPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.rekeyUI.delegateRekeyUI'>, 'inParam'> & {
+  readonly params: keybase1Types.MessageTypes['keybase.1.rekeyUI.delegateRekeyUI']['inParam'] & {
     sessionID: number
   }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.rekeyUI.delegateRekeyUI'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.rekeyUI.delegateRekeyUI']['outParam']) => void
   }
 }
 type _Keybase1RekeyUIRefreshPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.rekeyUI.refresh'>, 'inParam'> & {
-    sessionID: number
-  }
+  readonly params: keybase1Types.MessageTypes['keybase.1.rekeyUI.refresh']['inParam'] & {sessionID: number}
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.rekeyUI.refresh'>, 'outParam'>) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.rekeyUI.refresh']['outParam']) => void
   }
 }
 type _Keybase1RekeyUIRekeySendEventPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.rekeyUI.rekeySendEvent'>, 'inParam'> & {
+  readonly params: keybase1Types.MessageTypes['keybase.1.rekeyUI.rekeySendEvent']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (param: keybase1Types.MessageTypes['keybase.1.rekeyUI.rekeySendEvent']['outParam']) => void
+  }
+}
+type _Keybase1SaltpackUiSaltpackPromptForDecryptPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.saltpackUi.saltpackPromptForDecrypt']['inParam'] & {
     sessionID: number
   }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.rekeyUI.rekeySendEvent'>, 'outParam'>
-    ) => void
-  }
-}
-type _Keybase1SaltpackUiSaltpackPromptForDecryptPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.saltpackUi.saltpackPromptForDecrypt'>,
-    'inParam'
-  > & {sessionID: number}
-  response: {
-    error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<
-        Pick<keybase1Types.MessageTypes, 'keybase.1.saltpackUi.saltpackPromptForDecrypt'>,
-        'outParam'
-      >
+      param: keybase1Types.MessageTypes['keybase.1.saltpackUi.saltpackPromptForDecrypt']['outParam']
     ) => void
   }
 }
 type _Keybase1SaltpackUiSaltpackVerifyBadSenderPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.saltpackUi.saltpackVerifyBadSender'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.saltpackUi.saltpackVerifyBadSender']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: Pick<
-        Pick<keybase1Types.MessageTypes, 'keybase.1.saltpackUi.saltpackVerifyBadSender'>,
-        'outParam'
-      >
+      param: keybase1Types.MessageTypes['keybase.1.saltpackUi.saltpackVerifyBadSender']['outParam']
     ) => void
   }
 }
 type _Keybase1SaltpackUiSaltpackVerifySuccessPayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.saltpackUi.saltpackVerifySuccess'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: keybase1Types.MessageTypes['keybase.1.saltpackUi.saltpackVerifySuccess']['inParam'] & {
+    sessionID: number
+  }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.saltpackUi.saltpackVerifySuccess'>, 'outParam'>
+      param: keybase1Types.MessageTypes['keybase.1.saltpackUi.saltpackVerifySuccess']['outParam']
     ) => void
   }
 }
 type _Keybase1SecretUiGetPassphrasePayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.secretUi.getPassphrase'>, 'inParam'> & {
+  readonly params: keybase1Types.MessageTypes['keybase.1.secretUi.getPassphrase']['inParam'] & {
     sessionID: number
   }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.secretUi.getPassphrase'>, 'outParam'>
-    ) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.secretUi.getPassphrase']['outParam']) => void
   }
 }
 type _Keybase1StreamUiClosePayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.streamUi.close'>, 'inParam'> & {
-    sessionID: number
-  }
+  readonly params: keybase1Types.MessageTypes['keybase.1.streamUi.close']['inParam'] & {sessionID: number}
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.streamUi.close'>, 'outParam'>) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.streamUi.close']['outParam']) => void
   }
 }
 type _Keybase1StreamUiReadPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.streamUi.read'>, 'inParam'> & {
-    sessionID: number
-  }
+  readonly params: keybase1Types.MessageTypes['keybase.1.streamUi.read']['inParam'] & {sessionID: number}
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.streamUi.read'>, 'outParam'>) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.streamUi.read']['outParam']) => void
   }
 }
 type _Keybase1StreamUiResetPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.streamUi.reset'>, 'inParam'> & {
-    sessionID: number
-  }
+  readonly params: keybase1Types.MessageTypes['keybase.1.streamUi.reset']['inParam'] & {sessionID: number}
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.streamUi.reset'>, 'outParam'>) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.streamUi.reset']['outParam']) => void
   }
 }
 type _Keybase1StreamUiWritePayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.streamUi.write'>, 'inParam'> & {
-    sessionID: number
-  }
+  readonly params: keybase1Types.MessageTypes['keybase.1.streamUi.write']['inParam'] & {sessionID: number}
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.streamUi.write'>, 'outParam'>) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.streamUi.write']['outParam']) => void
   }
 }
 type _Keybase1TeamsUiConfirmRootTeamDeletePayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.teamsUi.confirmRootTeamDelete'>,
-    'inParam'
-  > & {sessionID: number}
-  response: {
-    error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.teamsUi.confirmRootTeamDelete'>, 'outParam'>
-    ) => void
-  }
-}
-type _Keybase1TeamsUiConfirmSubteamDeletePayload = {
-  readonly params: Pick<
-    Pick<keybase1Types.MessageTypes, 'keybase.1.teamsUi.confirmSubteamDelete'>,
-    'inParam'
-  > & {sessionID: number}
-  response: {
-    error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.teamsUi.confirmSubteamDelete'>, 'outParam'>
-    ) => void
-  }
-}
-type _Keybase1UiPromptYesNoPayload = {
-  readonly params: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.ui.promptYesNo'>, 'inParam'> & {
+  readonly params: keybase1Types.MessageTypes['keybase.1.teamsUi.confirmRootTeamDelete']['inParam'] & {
     sessionID: number
   }
   response: {
     error: keybase1Types.IncomingErrorCallback
-    result: (param: Pick<Pick<keybase1Types.MessageTypes, 'keybase.1.ui.promptYesNo'>, 'outParam'>) => void
+    result: (param: keybase1Types.MessageTypes['keybase.1.teamsUi.confirmRootTeamDelete']['outParam']) => void
+  }
+}
+type _Keybase1TeamsUiConfirmSubteamDeletePayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.teamsUi.confirmSubteamDelete']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (param: keybase1Types.MessageTypes['keybase.1.teamsUi.confirmSubteamDelete']['outParam']) => void
+  }
+}
+type _Keybase1UiPromptYesNoPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.ui.promptYesNo']['inParam'] & {sessionID: number}
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (param: keybase1Types.MessageTypes['keybase.1.ui.promptYesNo']['outParam']) => void
   }
 }
 type _Stellar1NotifyAccountDetailsUpdatePayload = {
-  readonly params: Pick<
-    Pick<stellar1Types.MessageTypes, 'stellar.1.notify.accountDetailsUpdate'>,
-    'inParam'
-  > & {sessionID: number}
+  readonly params: stellar1Types.MessageTypes['stellar.1.notify.accountDetailsUpdate']['inParam'] & {
+    sessionID: number
+  }
 }
 type _Stellar1NotifyAccountsUpdatePayload = {
-  readonly params: Pick<Pick<stellar1Types.MessageTypes, 'stellar.1.notify.accountsUpdate'>, 'inParam'> & {
+  readonly params: stellar1Types.MessageTypes['stellar.1.notify.accountsUpdate']['inParam'] & {
     sessionID: number
   }
 }
 type _Stellar1NotifyPaymentNotificationPayload = {
-  readonly params: Pick<
-    Pick<stellar1Types.MessageTypes, 'stellar.1.notify.paymentNotification'>,
-    'inParam'
-  > & {sessionID: number}
-}
-type _Stellar1NotifyPaymentStatusNotificationPayload = {
-  readonly params: Pick<
-    Pick<stellar1Types.MessageTypes, 'stellar.1.notify.paymentStatusNotification'>,
-    'inParam'
-  > & {sessionID: number}
-}
-type _Stellar1NotifyPendingPaymentsUpdatePayload = {
-  readonly params: Pick<
-    Pick<stellar1Types.MessageTypes, 'stellar.1.notify.pendingPaymentsUpdate'>,
-    'inParam'
-  > & {sessionID: number}
-}
-type _Stellar1NotifyRecentPaymentsUpdatePayload = {
-  readonly params: Pick<
-    Pick<stellar1Types.MessageTypes, 'stellar.1.notify.recentPaymentsUpdate'>,
-    'inParam'
-  > & {sessionID: number}
-}
-type _Stellar1NotifyRequestStatusNotificationPayload = {
-  readonly params: Pick<
-    Pick<stellar1Types.MessageTypes, 'stellar.1.notify.requestStatusNotification'>,
-    'inParam'
-  > & {sessionID: number}
-}
-type _Stellar1UiPaymentReviewedPayload = {
-  readonly params: Pick<Pick<stellar1Types.MessageTypes, 'stellar.1.ui.paymentReviewed'>, 'inParam'> & {
+  readonly params: stellar1Types.MessageTypes['stellar.1.notify.paymentNotification']['inParam'] & {
     sessionID: number
   }
+}
+type _Stellar1NotifyPaymentStatusNotificationPayload = {
+  readonly params: stellar1Types.MessageTypes['stellar.1.notify.paymentStatusNotification']['inParam'] & {
+    sessionID: number
+  }
+}
+type _Stellar1NotifyPendingPaymentsUpdatePayload = {
+  readonly params: stellar1Types.MessageTypes['stellar.1.notify.pendingPaymentsUpdate']['inParam'] & {
+    sessionID: number
+  }
+}
+type _Stellar1NotifyRecentPaymentsUpdatePayload = {
+  readonly params: stellar1Types.MessageTypes['stellar.1.notify.recentPaymentsUpdate']['inParam'] & {
+    sessionID: number
+  }
+}
+type _Stellar1NotifyRequestStatusNotificationPayload = {
+  readonly params: stellar1Types.MessageTypes['stellar.1.notify.requestStatusNotification']['inParam'] & {
+    sessionID: number
+  }
+}
+type _Stellar1UiPaymentReviewedPayload = {
+  readonly params: stellar1Types.MessageTypes['stellar.1.ui.paymentReviewed']['inParam'] & {sessionID: number}
   response: {
     error: stellar1Types.IncomingErrorCallback
-    result: (
-      param: Pick<Pick<stellar1Types.MessageTypes, 'stellar.1.ui.paymentReviewed'>, 'outParam'>
-    ) => void
+    result: (param: stellar1Types.MessageTypes['stellar.1.ui.paymentReviewed']['outParam']) => void
   }
 }
 
 // Action Creators
 export const createChat1ChatUiChatAttachmentDownloadDone = (
   payload: _Chat1ChatUiChatAttachmentDownloadDonePayload
-) => ({payload, type: chat1ChatUiChatAttachmentDownloadDone})
+): Chat1ChatUiChatAttachmentDownloadDonePayload => ({payload, type: chat1ChatUiChatAttachmentDownloadDone})
 export const createChat1ChatUiChatAttachmentDownloadProgress = (
   payload: _Chat1ChatUiChatAttachmentDownloadProgressPayload
-) => ({payload, type: chat1ChatUiChatAttachmentDownloadProgress})
+): Chat1ChatUiChatAttachmentDownloadProgressPayload => ({
+  payload,
+  type: chat1ChatUiChatAttachmentDownloadProgress,
+})
 export const createChat1ChatUiChatAttachmentDownloadStart = (
   payload: _Chat1ChatUiChatAttachmentDownloadStartPayload
-) => ({payload, type: chat1ChatUiChatAttachmentDownloadStart})
-export const createChat1ChatUiChatCoinFlipStatus = (payload: _Chat1ChatUiChatCoinFlipStatusPayload) => ({
-  payload,
-  type: chat1ChatUiChatCoinFlipStatus,
-})
-export const createChat1ChatUiChatCommandMarkdown = (payload: _Chat1ChatUiChatCommandMarkdownPayload) => ({
-  payload,
-  type: chat1ChatUiChatCommandMarkdown,
-})
+): Chat1ChatUiChatAttachmentDownloadStartPayload => ({payload, type: chat1ChatUiChatAttachmentDownloadStart})
+export const createChat1ChatUiChatCoinFlipStatus = (
+  payload: _Chat1ChatUiChatCoinFlipStatusPayload
+): Chat1ChatUiChatCoinFlipStatusPayload => ({payload, type: chat1ChatUiChatCoinFlipStatus})
+export const createChat1ChatUiChatCommandMarkdown = (
+  payload: _Chat1ChatUiChatCommandMarkdownPayload
+): Chat1ChatUiChatCommandMarkdownPayload => ({payload, type: chat1ChatUiChatCommandMarkdown})
 export const createChat1ChatUiChatConfirmChannelDelete = (
   payload: _Chat1ChatUiChatConfirmChannelDeletePayload
-) => ({payload, type: chat1ChatUiChatConfirmChannelDelete})
+): Chat1ChatUiChatConfirmChannelDeletePayload => ({payload, type: chat1ChatUiChatConfirmChannelDelete})
 export const createChat1ChatUiChatGiphySearchResults = (
   payload: _Chat1ChatUiChatGiphySearchResultsPayload
-) => ({payload, type: chat1ChatUiChatGiphySearchResults})
+): Chat1ChatUiChatGiphySearchResultsPayload => ({payload, type: chat1ChatUiChatGiphySearchResults})
 export const createChat1ChatUiChatGiphyToggleResultWindow = (
   payload: _Chat1ChatUiChatGiphyToggleResultWindowPayload
-) => ({payload, type: chat1ChatUiChatGiphyToggleResultWindow})
+): Chat1ChatUiChatGiphyToggleResultWindowPayload => ({payload, type: chat1ChatUiChatGiphyToggleResultWindow})
 export const createChat1ChatUiChatInboxConversation = (
   payload: _Chat1ChatUiChatInboxConversationPayload
-) => ({payload, type: chat1ChatUiChatInboxConversation})
-export const createChat1ChatUiChatInboxFailed = (payload: _Chat1ChatUiChatInboxFailedPayload) => ({
-  payload,
-  type: chat1ChatUiChatInboxFailed,
-})
-export const createChat1ChatUiChatInboxUnverified = (payload: _Chat1ChatUiChatInboxUnverifiedPayload) => ({
-  payload,
-  type: chat1ChatUiChatInboxUnverified,
-})
+): Chat1ChatUiChatInboxConversationPayload => ({payload, type: chat1ChatUiChatInboxConversation})
+export const createChat1ChatUiChatInboxFailed = (
+  payload: _Chat1ChatUiChatInboxFailedPayload
+): Chat1ChatUiChatInboxFailedPayload => ({payload, type: chat1ChatUiChatInboxFailed})
+export const createChat1ChatUiChatInboxUnverified = (
+  payload: _Chat1ChatUiChatInboxUnverifiedPayload
+): Chat1ChatUiChatInboxUnverifiedPayload => ({payload, type: chat1ChatUiChatInboxUnverified})
 export const createChat1ChatUiChatMaybeMentionUpdate = (
   payload: _Chat1ChatUiChatMaybeMentionUpdatePayload
-) => ({payload, type: chat1ChatUiChatMaybeMentionUpdate})
-export const createChat1ChatUiChatSearchConvHits = (payload: _Chat1ChatUiChatSearchConvHitsPayload) => ({
-  payload,
-  type: chat1ChatUiChatSearchConvHits,
-})
-export const createChat1ChatUiChatSearchDone = (payload: _Chat1ChatUiChatSearchDonePayload) => ({
-  payload,
-  type: chat1ChatUiChatSearchDone,
-})
-export const createChat1ChatUiChatSearchHit = (payload: _Chat1ChatUiChatSearchHitPayload) => ({
-  payload,
-  type: chat1ChatUiChatSearchHit,
-})
-export const createChat1ChatUiChatSearchInboxDone = (payload: _Chat1ChatUiChatSearchInboxDonePayload) => ({
-  payload,
-  type: chat1ChatUiChatSearchInboxDone,
-})
-export const createChat1ChatUiChatSearchInboxHit = (payload: _Chat1ChatUiChatSearchInboxHitPayload) => ({
-  payload,
-  type: chat1ChatUiChatSearchInboxHit,
-})
-export const createChat1ChatUiChatSearchInboxStart = (payload: _Chat1ChatUiChatSearchInboxStartPayload) => ({
-  payload,
-  type: chat1ChatUiChatSearchInboxStart,
-})
+): Chat1ChatUiChatMaybeMentionUpdatePayload => ({payload, type: chat1ChatUiChatMaybeMentionUpdate})
+export const createChat1ChatUiChatSearchConvHits = (
+  payload: _Chat1ChatUiChatSearchConvHitsPayload
+): Chat1ChatUiChatSearchConvHitsPayload => ({payload, type: chat1ChatUiChatSearchConvHits})
+export const createChat1ChatUiChatSearchDone = (
+  payload: _Chat1ChatUiChatSearchDonePayload
+): Chat1ChatUiChatSearchDonePayload => ({payload, type: chat1ChatUiChatSearchDone})
+export const createChat1ChatUiChatSearchHit = (
+  payload: _Chat1ChatUiChatSearchHitPayload
+): Chat1ChatUiChatSearchHitPayload => ({payload, type: chat1ChatUiChatSearchHit})
+export const createChat1ChatUiChatSearchInboxDone = (
+  payload: _Chat1ChatUiChatSearchInboxDonePayload
+): Chat1ChatUiChatSearchInboxDonePayload => ({payload, type: chat1ChatUiChatSearchInboxDone})
+export const createChat1ChatUiChatSearchInboxHit = (
+  payload: _Chat1ChatUiChatSearchInboxHitPayload
+): Chat1ChatUiChatSearchInboxHitPayload => ({payload, type: chat1ChatUiChatSearchInboxHit})
+export const createChat1ChatUiChatSearchInboxStart = (
+  payload: _Chat1ChatUiChatSearchInboxStartPayload
+): Chat1ChatUiChatSearchInboxStartPayload => ({payload, type: chat1ChatUiChatSearchInboxStart})
 export const createChat1ChatUiChatSearchIndexStatus = (
   payload: _Chat1ChatUiChatSearchIndexStatusPayload
-) => ({payload, type: chat1ChatUiChatSearchIndexStatus})
+): Chat1ChatUiChatSearchIndexStatusPayload => ({payload, type: chat1ChatUiChatSearchIndexStatus})
 export const createChat1ChatUiChatShowManageChannels = (
   payload: _Chat1ChatUiChatShowManageChannelsPayload
-) => ({payload, type: chat1ChatUiChatShowManageChannels})
+): Chat1ChatUiChatShowManageChannelsPayload => ({payload, type: chat1ChatUiChatShowManageChannels})
 export const createChat1ChatUiChatStellarDataConfirm = (
   payload: _Chat1ChatUiChatStellarDataConfirmPayload
-) => ({payload, type: chat1ChatUiChatStellarDataConfirm})
-export const createChat1ChatUiChatStellarDataError = (payload: _Chat1ChatUiChatStellarDataErrorPayload) => ({
-  payload,
-  type: chat1ChatUiChatStellarDataError,
-})
-export const createChat1ChatUiChatStellarDone = (payload: _Chat1ChatUiChatStellarDonePayload) => ({
-  payload,
-  type: chat1ChatUiChatStellarDone,
-})
+): Chat1ChatUiChatStellarDataConfirmPayload => ({payload, type: chat1ChatUiChatStellarDataConfirm})
+export const createChat1ChatUiChatStellarDataError = (
+  payload: _Chat1ChatUiChatStellarDataErrorPayload
+): Chat1ChatUiChatStellarDataErrorPayload => ({payload, type: chat1ChatUiChatStellarDataError})
+export const createChat1ChatUiChatStellarDone = (
+  payload: _Chat1ChatUiChatStellarDonePayload
+): Chat1ChatUiChatStellarDonePayload => ({payload, type: chat1ChatUiChatStellarDone})
 export const createChat1ChatUiChatStellarShowConfirm = (
   payload: _Chat1ChatUiChatStellarShowConfirmPayload
-) => ({payload, type: chat1ChatUiChatStellarShowConfirm})
-export const createChat1ChatUiChatThreadCached = (payload: _Chat1ChatUiChatThreadCachedPayload) => ({
-  payload,
-  type: chat1ChatUiChatThreadCached,
-})
-export const createChat1ChatUiChatThreadFull = (payload: _Chat1ChatUiChatThreadFullPayload) => ({
-  payload,
-  type: chat1ChatUiChatThreadFull,
-})
+): Chat1ChatUiChatStellarShowConfirmPayload => ({payload, type: chat1ChatUiChatStellarShowConfirm})
+export const createChat1ChatUiChatThreadCached = (
+  payload: _Chat1ChatUiChatThreadCachedPayload
+): Chat1ChatUiChatThreadCachedPayload => ({payload, type: chat1ChatUiChatThreadCached})
+export const createChat1ChatUiChatThreadFull = (
+  payload: _Chat1ChatUiChatThreadFullPayload
+): Chat1ChatUiChatThreadFullPayload => ({payload, type: chat1ChatUiChatThreadFull})
 export const createChat1NotifyChatChatAttachmentUploadProgress = (
   payload: _Chat1NotifyChatChatAttachmentUploadProgressPayload
-) => ({payload, type: chat1NotifyChatChatAttachmentUploadProgress})
+): Chat1NotifyChatChatAttachmentUploadProgressPayload => ({
+  payload,
+  type: chat1NotifyChatChatAttachmentUploadProgress,
+})
 export const createChat1NotifyChatChatAttachmentUploadStart = (
   payload: _Chat1NotifyChatChatAttachmentUploadStartPayload
-) => ({payload, type: chat1NotifyChatChatAttachmentUploadStart})
+): Chat1NotifyChatChatAttachmentUploadStartPayload => ({
+  payload,
+  type: chat1NotifyChatChatAttachmentUploadStart,
+})
 export const createChat1NotifyChatChatIdentifyUpdate = (
   payload: _Chat1NotifyChatChatIdentifyUpdatePayload
-) => ({payload, type: chat1NotifyChatChatIdentifyUpdate})
-export const createChat1NotifyChatChatInboxStale = (payload: _Chat1NotifyChatChatInboxStalePayload) => ({
-  payload,
-  type: chat1NotifyChatChatInboxStale,
-})
+): Chat1NotifyChatChatIdentifyUpdatePayload => ({payload, type: chat1NotifyChatChatIdentifyUpdate})
+export const createChat1NotifyChatChatInboxStale = (
+  payload: _Chat1NotifyChatChatInboxStalePayload
+): Chat1NotifyChatChatInboxStalePayload => ({payload, type: chat1NotifyChatChatInboxStale})
 export const createChat1NotifyChatChatInboxSyncStarted = (
   payload: _Chat1NotifyChatChatInboxSyncStartedPayload
-) => ({payload, type: chat1NotifyChatChatInboxSyncStarted})
-export const createChat1NotifyChatChatInboxSynced = (payload: _Chat1NotifyChatChatInboxSyncedPayload) => ({
-  payload,
-  type: chat1NotifyChatChatInboxSynced,
-})
+): Chat1NotifyChatChatInboxSyncStartedPayload => ({payload, type: chat1NotifyChatChatInboxSyncStarted})
+export const createChat1NotifyChatChatInboxSynced = (
+  payload: _Chat1NotifyChatChatInboxSyncedPayload
+): Chat1NotifyChatChatInboxSyncedPayload => ({payload, type: chat1NotifyChatChatInboxSynced})
 export const createChat1NotifyChatChatJoinedConversation = (
   payload: _Chat1NotifyChatChatJoinedConversationPayload
-) => ({payload, type: chat1NotifyChatChatJoinedConversation})
+): Chat1NotifyChatChatJoinedConversationPayload => ({payload, type: chat1NotifyChatChatJoinedConversation})
 export const createChat1NotifyChatChatKBFSToImpteamUpgrade = (
   payload: _Chat1NotifyChatChatKBFSToImpteamUpgradePayload
-) => ({payload, type: chat1NotifyChatChatKBFSToImpteamUpgrade})
+): Chat1NotifyChatChatKBFSToImpteamUpgradePayload => ({
+  payload,
+  type: chat1NotifyChatChatKBFSToImpteamUpgrade,
+})
 export const createChat1NotifyChatChatLeftConversation = (
   payload: _Chat1NotifyChatChatLeftConversationPayload
-) => ({payload, type: chat1NotifyChatChatLeftConversation})
-export const createChat1NotifyChatChatPaymentInfo = (payload: _Chat1NotifyChatChatPaymentInfoPayload) => ({
-  payload,
-  type: chat1NotifyChatChatPaymentInfo,
-})
-export const createChat1NotifyChatChatPromptUnfurl = (payload: _Chat1NotifyChatChatPromptUnfurlPayload) => ({
-  payload,
-  type: chat1NotifyChatChatPromptUnfurl,
-})
-export const createChat1NotifyChatChatRequestInfo = (payload: _Chat1NotifyChatChatRequestInfoPayload) => ({
-  payload,
-  type: chat1NotifyChatChatRequestInfo,
-})
+): Chat1NotifyChatChatLeftConversationPayload => ({payload, type: chat1NotifyChatChatLeftConversation})
+export const createChat1NotifyChatChatPaymentInfo = (
+  payload: _Chat1NotifyChatChatPaymentInfoPayload
+): Chat1NotifyChatChatPaymentInfoPayload => ({payload, type: chat1NotifyChatChatPaymentInfo})
+export const createChat1NotifyChatChatPromptUnfurl = (
+  payload: _Chat1NotifyChatChatPromptUnfurlPayload
+): Chat1NotifyChatChatPromptUnfurlPayload => ({payload, type: chat1NotifyChatChatPromptUnfurl})
+export const createChat1NotifyChatChatRequestInfo = (
+  payload: _Chat1NotifyChatChatRequestInfoPayload
+): Chat1NotifyChatChatRequestInfoPayload => ({payload, type: chat1NotifyChatChatRequestInfo})
 export const createChat1NotifyChatChatResetConversation = (
   payload: _Chat1NotifyChatChatResetConversationPayload
-) => ({payload, type: chat1NotifyChatChatResetConversation})
+): Chat1NotifyChatChatResetConversationPayload => ({payload, type: chat1NotifyChatChatResetConversation})
 export const createChat1NotifyChatChatSetConvRetention = (
   payload: _Chat1NotifyChatChatSetConvRetentionPayload
-) => ({payload, type: chat1NotifyChatChatSetConvRetention})
+): Chat1NotifyChatChatSetConvRetentionPayload => ({payload, type: chat1NotifyChatChatSetConvRetention})
 export const createChat1NotifyChatChatSetConvSettings = (
   payload: _Chat1NotifyChatChatSetConvSettingsPayload
-) => ({payload, type: chat1NotifyChatChatSetConvSettings})
+): Chat1NotifyChatChatSetConvSettingsPayload => ({payload, type: chat1NotifyChatChatSetConvSettings})
 export const createChat1NotifyChatChatSetTeamRetention = (
   payload: _Chat1NotifyChatChatSetTeamRetentionPayload
-) => ({payload, type: chat1NotifyChatChatSetTeamRetention})
+): Chat1NotifyChatChatSetTeamRetentionPayload => ({payload, type: chat1NotifyChatChatSetTeamRetention})
 export const createChat1NotifyChatChatSubteamRename = (
   payload: _Chat1NotifyChatChatSubteamRenamePayload
-) => ({payload, type: chat1NotifyChatChatSubteamRename})
-export const createChat1NotifyChatChatTLFFinalize = (payload: _Chat1NotifyChatChatTLFFinalizePayload) => ({
+): Chat1NotifyChatChatSubteamRenamePayload => ({payload, type: chat1NotifyChatChatSubteamRename})
+export const createChat1NotifyChatChatTLFFinalize = (
+  payload: _Chat1NotifyChatChatTLFFinalizePayload
+): Chat1NotifyChatChatTLFFinalizePayload => ({payload, type: chat1NotifyChatChatTLFFinalize})
+export const createChat1NotifyChatChatTLFResolve = (
+  payload: _Chat1NotifyChatChatTLFResolvePayload
+): Chat1NotifyChatChatTLFResolvePayload => ({payload, type: chat1NotifyChatChatTLFResolve})
+export const createChat1NotifyChatChatThreadsStale = (
+  payload: _Chat1NotifyChatChatThreadsStalePayload
+): Chat1NotifyChatChatThreadsStalePayload => ({payload, type: chat1NotifyChatChatThreadsStale})
+export const createChat1NotifyChatChatTypingUpdate = (
+  payload: _Chat1NotifyChatChatTypingUpdatePayload
+): Chat1NotifyChatChatTypingUpdatePayload => ({payload, type: chat1NotifyChatChatTypingUpdate})
+export const createChat1NotifyChatNewChatActivity = (
+  payload: _Chat1NotifyChatNewChatActivityPayload
+): Chat1NotifyChatNewChatActivityPayload => ({payload, type: chat1NotifyChatNewChatActivity})
+export const createConnected = (payload: _ConnectedPayload): ConnectedPayload => ({payload, type: connected})
+export const createDisconnected = (payload: _DisconnectedPayload): DisconnectedPayload => ({
   payload,
-  type: chat1NotifyChatChatTLFFinalize,
+  type: disconnected,
 })
-export const createChat1NotifyChatChatTLFResolve = (payload: _Chat1NotifyChatChatTLFResolvePayload) => ({
-  payload,
-  type: chat1NotifyChatChatTLFResolve,
-})
-export const createChat1NotifyChatChatThreadsStale = (payload: _Chat1NotifyChatChatThreadsStalePayload) => ({
-  payload,
-  type: chat1NotifyChatChatThreadsStale,
-})
-export const createChat1NotifyChatChatTypingUpdate = (payload: _Chat1NotifyChatChatTypingUpdatePayload) => ({
-  payload,
-  type: chat1NotifyChatChatTypingUpdate,
-})
-export const createChat1NotifyChatNewChatActivity = (payload: _Chat1NotifyChatNewChatActivityPayload) => ({
-  payload,
-  type: chat1NotifyChatNewChatActivity,
-})
-export const createConnected = (payload: _ConnectedPayload) => ({payload, type: connected})
-export const createDisconnected = (payload: _DisconnectedPayload) => ({payload, type: disconnected})
 export const createKeybase1GpgUiConfirmDuplicateKeyChosen = (
   payload: _Keybase1GpgUiConfirmDuplicateKeyChosenPayload
-) => ({payload, type: keybase1GpgUiConfirmDuplicateKeyChosen})
+): Keybase1GpgUiConfirmDuplicateKeyChosenPayload => ({payload, type: keybase1GpgUiConfirmDuplicateKeyChosen})
 export const createKeybase1GpgUiConfirmImportSecretToExistingKey = (
   payload: _Keybase1GpgUiConfirmImportSecretToExistingKeyPayload
-) => ({payload, type: keybase1GpgUiConfirmImportSecretToExistingKey})
-export const createKeybase1GpgUiGetTTY = (payload: _Keybase1GpgUiGetTTYPayload) => ({
+): Keybase1GpgUiConfirmImportSecretToExistingKeyPayload => ({
   payload,
-  type: keybase1GpgUiGetTTY,
+  type: keybase1GpgUiConfirmImportSecretToExistingKey,
 })
-export const createKeybase1GpgUiSelectKey = (payload: _Keybase1GpgUiSelectKeyPayload) => ({
-  payload,
-  type: keybase1GpgUiSelectKey,
-})
+export const createKeybase1GpgUiGetTTY = (
+  payload: _Keybase1GpgUiGetTTYPayload
+): Keybase1GpgUiGetTTYPayload => ({payload, type: keybase1GpgUiGetTTY})
+export const createKeybase1GpgUiSelectKey = (
+  payload: _Keybase1GpgUiSelectKeyPayload
+): Keybase1GpgUiSelectKeyPayload => ({payload, type: keybase1GpgUiSelectKey})
 export const createKeybase1GpgUiSelectKeyAndPushOption = (
   payload: _Keybase1GpgUiSelectKeyAndPushOptionPayload
-) => ({payload, type: keybase1GpgUiSelectKeyAndPushOption})
-export const createKeybase1GpgUiSign = (payload: _Keybase1GpgUiSignPayload) => ({
+): Keybase1GpgUiSelectKeyAndPushOptionPayload => ({payload, type: keybase1GpgUiSelectKeyAndPushOption})
+export const createKeybase1GpgUiSign = (payload: _Keybase1GpgUiSignPayload): Keybase1GpgUiSignPayload => ({
   payload,
   type: keybase1GpgUiSign,
 })
-export const createKeybase1GpgUiWantToAddGPGKey = (payload: _Keybase1GpgUiWantToAddGPGKeyPayload) => ({
-  payload,
-  type: keybase1GpgUiWantToAddGPGKey,
-})
+export const createKeybase1GpgUiWantToAddGPGKey = (
+  payload: _Keybase1GpgUiWantToAddGPGKeyPayload
+): Keybase1GpgUiWantToAddGPGKeyPayload => ({payload, type: keybase1GpgUiWantToAddGPGKey})
 export const createKeybase1GregorUIPushOutOfBandMessages = (
   payload: _Keybase1GregorUIPushOutOfBandMessagesPayload
-) => ({payload, type: keybase1GregorUIPushOutOfBandMessages})
-export const createKeybase1GregorUIPushState = (payload: _Keybase1GregorUIPushStatePayload) => ({
-  payload,
-  type: keybase1GregorUIPushState,
-})
-export const createKeybase1HomeUIHomeUIRefresh = (payload: _Keybase1HomeUIHomeUIRefreshPayload) => ({
-  payload,
-  type: keybase1HomeUIHomeUIRefresh,
-})
+): Keybase1GregorUIPushOutOfBandMessagesPayload => ({payload, type: keybase1GregorUIPushOutOfBandMessages})
+export const createKeybase1GregorUIPushState = (
+  payload: _Keybase1GregorUIPushStatePayload
+): Keybase1GregorUIPushStatePayload => ({payload, type: keybase1GregorUIPushState})
+export const createKeybase1HomeUIHomeUIRefresh = (
+  payload: _Keybase1HomeUIHomeUIRefreshPayload
+): Keybase1HomeUIHomeUIRefreshPayload => ({payload, type: keybase1HomeUIHomeUIRefresh})
 export const createKeybase1Identify3UiIdentify3Result = (
   payload: _Keybase1Identify3UiIdentify3ResultPayload
-) => ({payload, type: keybase1Identify3UiIdentify3Result})
+): Keybase1Identify3UiIdentify3ResultPayload => ({payload, type: keybase1Identify3UiIdentify3Result})
 export const createKeybase1Identify3UiIdentify3ShowTracker = (
   payload: _Keybase1Identify3UiIdentify3ShowTrackerPayload
-) => ({payload, type: keybase1Identify3UiIdentify3ShowTracker})
+): Keybase1Identify3UiIdentify3ShowTrackerPayload => ({
+  payload,
+  type: keybase1Identify3UiIdentify3ShowTracker,
+})
 export const createKeybase1Identify3UiIdentify3TrackerTimedOut = (
   payload: _Keybase1Identify3UiIdentify3TrackerTimedOutPayload
-) => ({payload, type: keybase1Identify3UiIdentify3TrackerTimedOut})
+): Keybase1Identify3UiIdentify3TrackerTimedOutPayload => ({
+  payload,
+  type: keybase1Identify3UiIdentify3TrackerTimedOut,
+})
 export const createKeybase1Identify3UiIdentify3UpdateRow = (
   payload: _Keybase1Identify3UiIdentify3UpdateRowPayload
-) => ({payload, type: keybase1Identify3UiIdentify3UpdateRow})
+): Keybase1Identify3UiIdentify3UpdateRowPayload => ({payload, type: keybase1Identify3UiIdentify3UpdateRow})
 export const createKeybase1Identify3UiIdentify3UpdateUserCard = (
   payload: _Keybase1Identify3UiIdentify3UpdateUserCardPayload
-) => ({payload, type: keybase1Identify3UiIdentify3UpdateUserCard})
+): Keybase1Identify3UiIdentify3UpdateUserCardPayload => ({
+  payload,
+  type: keybase1Identify3UiIdentify3UpdateUserCard,
+})
 export const createKeybase1Identify3UiIdentify3UserReset = (
   payload: _Keybase1Identify3UiIdentify3UserResetPayload
-) => ({payload, type: keybase1Identify3UiIdentify3UserReset})
-export const createKeybase1IdentifyUiCancel = (payload: _Keybase1IdentifyUiCancelPayload) => ({
-  payload,
-  type: keybase1IdentifyUiCancel,
-})
-export const createKeybase1IdentifyUiConfirm = (payload: _Keybase1IdentifyUiConfirmPayload) => ({
-  payload,
-  type: keybase1IdentifyUiConfirm,
-})
+): Keybase1Identify3UiIdentify3UserResetPayload => ({payload, type: keybase1Identify3UiIdentify3UserReset})
+export const createKeybase1IdentifyUiCancel = (
+  payload: _Keybase1IdentifyUiCancelPayload
+): Keybase1IdentifyUiCancelPayload => ({payload, type: keybase1IdentifyUiCancel})
+export const createKeybase1IdentifyUiConfirm = (
+  payload: _Keybase1IdentifyUiConfirmPayload
+): Keybase1IdentifyUiConfirmPayload => ({payload, type: keybase1IdentifyUiConfirm})
 export const createKeybase1IdentifyUiDelegateIdentifyUI = (
   payload: _Keybase1IdentifyUiDelegateIdentifyUIPayload
-) => ({payload, type: keybase1IdentifyUiDelegateIdentifyUI})
-export const createKeybase1IdentifyUiDismiss = (payload: _Keybase1IdentifyUiDismissPayload) => ({
-  payload,
-  type: keybase1IdentifyUiDismiss,
-})
+): Keybase1IdentifyUiDelegateIdentifyUIPayload => ({payload, type: keybase1IdentifyUiDelegateIdentifyUI})
+export const createKeybase1IdentifyUiDismiss = (
+  payload: _Keybase1IdentifyUiDismissPayload
+): Keybase1IdentifyUiDismissPayload => ({payload, type: keybase1IdentifyUiDismiss})
 export const createKeybase1IdentifyUiDisplayCryptocurrency = (
   payload: _Keybase1IdentifyUiDisplayCryptocurrencyPayload
-) => ({payload, type: keybase1IdentifyUiDisplayCryptocurrency})
-export const createKeybase1IdentifyUiDisplayKey = (payload: _Keybase1IdentifyUiDisplayKeyPayload) => ({
+): Keybase1IdentifyUiDisplayCryptocurrencyPayload => ({
   payload,
-  type: keybase1IdentifyUiDisplayKey,
+  type: keybase1IdentifyUiDisplayCryptocurrency,
 })
+export const createKeybase1IdentifyUiDisplayKey = (
+  payload: _Keybase1IdentifyUiDisplayKeyPayload
+): Keybase1IdentifyUiDisplayKeyPayload => ({payload, type: keybase1IdentifyUiDisplayKey})
 export const createKeybase1IdentifyUiDisplayStellarAccount = (
   payload: _Keybase1IdentifyUiDisplayStellarAccountPayload
-) => ({payload, type: keybase1IdentifyUiDisplayStellarAccount})
+): Keybase1IdentifyUiDisplayStellarAccountPayload => ({
+  payload,
+  type: keybase1IdentifyUiDisplayStellarAccount,
+})
 export const createKeybase1IdentifyUiDisplayTLFCreateWithInvite = (
   payload: _Keybase1IdentifyUiDisplayTLFCreateWithInvitePayload
-) => ({payload, type: keybase1IdentifyUiDisplayTLFCreateWithInvite})
+): Keybase1IdentifyUiDisplayTLFCreateWithInvitePayload => ({
+  payload,
+  type: keybase1IdentifyUiDisplayTLFCreateWithInvite,
+})
 export const createKeybase1IdentifyUiDisplayTrackStatement = (
   payload: _Keybase1IdentifyUiDisplayTrackStatementPayload
-) => ({payload, type: keybase1IdentifyUiDisplayTrackStatement})
+): Keybase1IdentifyUiDisplayTrackStatementPayload => ({
+  payload,
+  type: keybase1IdentifyUiDisplayTrackStatement,
+})
 export const createKeybase1IdentifyUiDisplayUserCard = (
   payload: _Keybase1IdentifyUiDisplayUserCardPayload
-) => ({payload, type: keybase1IdentifyUiDisplayUserCard})
-export const createKeybase1IdentifyUiFinish = (payload: _Keybase1IdentifyUiFinishPayload) => ({
-  payload,
-  type: keybase1IdentifyUiFinish,
-})
+): Keybase1IdentifyUiDisplayUserCardPayload => ({payload, type: keybase1IdentifyUiDisplayUserCard})
+export const createKeybase1IdentifyUiFinish = (
+  payload: _Keybase1IdentifyUiFinishPayload
+): Keybase1IdentifyUiFinishPayload => ({payload, type: keybase1IdentifyUiFinish})
 export const createKeybase1IdentifyUiFinishSocialProofCheck = (
   payload: _Keybase1IdentifyUiFinishSocialProofCheckPayload
-) => ({payload, type: keybase1IdentifyUiFinishSocialProofCheck})
+): Keybase1IdentifyUiFinishSocialProofCheckPayload => ({
+  payload,
+  type: keybase1IdentifyUiFinishSocialProofCheck,
+})
 export const createKeybase1IdentifyUiFinishWebProofCheck = (
   payload: _Keybase1IdentifyUiFinishWebProofCheckPayload
-) => ({payload, type: keybase1IdentifyUiFinishWebProofCheck})
+): Keybase1IdentifyUiFinishWebProofCheckPayload => ({payload, type: keybase1IdentifyUiFinishWebProofCheck})
 export const createKeybase1IdentifyUiLaunchNetworkChecks = (
   payload: _Keybase1IdentifyUiLaunchNetworkChecksPayload
-) => ({payload, type: keybase1IdentifyUiLaunchNetworkChecks})
+): Keybase1IdentifyUiLaunchNetworkChecksPayload => ({payload, type: keybase1IdentifyUiLaunchNetworkChecks})
 export const createKeybase1IdentifyUiReportLastTrack = (
   payload: _Keybase1IdentifyUiReportLastTrackPayload
-) => ({payload, type: keybase1IdentifyUiReportLastTrack})
+): Keybase1IdentifyUiReportLastTrackPayload => ({payload, type: keybase1IdentifyUiReportLastTrack})
 export const createKeybase1IdentifyUiReportTrackToken = (
   payload: _Keybase1IdentifyUiReportTrackTokenPayload
-) => ({payload, type: keybase1IdentifyUiReportTrackToken})
-export const createKeybase1IdentifyUiStart = (payload: _Keybase1IdentifyUiStartPayload) => ({
-  payload,
-  type: keybase1IdentifyUiStart,
-})
-export const createKeybase1LogUiLog = (payload: _Keybase1LogUiLogPayload) => ({
+): Keybase1IdentifyUiReportTrackTokenPayload => ({payload, type: keybase1IdentifyUiReportTrackToken})
+export const createKeybase1IdentifyUiStart = (
+  payload: _Keybase1IdentifyUiStartPayload
+): Keybase1IdentifyUiStartPayload => ({payload, type: keybase1IdentifyUiStart})
+export const createKeybase1LogUiLog = (payload: _Keybase1LogUiLogPayload): Keybase1LogUiLogPayload => ({
   payload,
   type: keybase1LogUiLog,
 })
 export const createKeybase1LoginUiDisplayPaperKeyPhrase = (
   payload: _Keybase1LoginUiDisplayPaperKeyPhrasePayload
-) => ({payload, type: keybase1LoginUiDisplayPaperKeyPhrase})
+): Keybase1LoginUiDisplayPaperKeyPhrasePayload => ({payload, type: keybase1LoginUiDisplayPaperKeyPhrase})
 export const createKeybase1LoginUiDisplayPrimaryPaperKey = (
   payload: _Keybase1LoginUiDisplayPrimaryPaperKeyPayload
-) => ({payload, type: keybase1LoginUiDisplayPrimaryPaperKey})
+): Keybase1LoginUiDisplayPrimaryPaperKeyPayload => ({payload, type: keybase1LoginUiDisplayPrimaryPaperKey})
 export const createKeybase1LoginUiDisplayResetProgress = (
   payload: _Keybase1LoginUiDisplayResetProgressPayload
-) => ({payload, type: keybase1LoginUiDisplayResetProgress})
+): Keybase1LoginUiDisplayResetProgressPayload => ({payload, type: keybase1LoginUiDisplayResetProgress})
 export const createKeybase1LoginUiExplainDeviceRecovery = (
   payload: _Keybase1LoginUiExplainDeviceRecoveryPayload
-) => ({payload, type: keybase1LoginUiExplainDeviceRecovery})
+): Keybase1LoginUiExplainDeviceRecoveryPayload => ({payload, type: keybase1LoginUiExplainDeviceRecovery})
 export const createKeybase1LoginUiGetEmailOrUsername = (
   payload: _Keybase1LoginUiGetEmailOrUsernamePayload
-) => ({payload, type: keybase1LoginUiGetEmailOrUsername})
+): Keybase1LoginUiGetEmailOrUsernamePayload => ({payload, type: keybase1LoginUiGetEmailOrUsername})
 export const createKeybase1LoginUiPromptPassphraseRecovery = (
   payload: _Keybase1LoginUiPromptPassphraseRecoveryPayload
-) => ({payload, type: keybase1LoginUiPromptPassphraseRecovery})
+): Keybase1LoginUiPromptPassphraseRecoveryPayload => ({
+  payload,
+  type: keybase1LoginUiPromptPassphraseRecovery,
+})
 export const createKeybase1LoginUiPromptResetAccount = (
   payload: _Keybase1LoginUiPromptResetAccountPayload
-) => ({payload, type: keybase1LoginUiPromptResetAccount})
+): Keybase1LoginUiPromptResetAccountPayload => ({payload, type: keybase1LoginUiPromptResetAccount})
 export const createKeybase1LoginUiPromptRevokePaperKeys = (
   payload: _Keybase1LoginUiPromptRevokePaperKeysPayload
-) => ({payload, type: keybase1LoginUiPromptRevokePaperKeys})
-export const createKeybase1LogsendPrepareLogsend = (payload: _Keybase1LogsendPrepareLogsendPayload) => ({
-  payload,
-  type: keybase1LogsendPrepareLogsend,
-})
-export const createKeybase1NotifyAppExit = (payload: _Keybase1NotifyAppExitPayload) => ({
-  payload,
-  type: keybase1NotifyAppExit,
-})
+): Keybase1LoginUiPromptRevokePaperKeysPayload => ({payload, type: keybase1LoginUiPromptRevokePaperKeys})
+export const createKeybase1LogsendPrepareLogsend = (
+  payload: _Keybase1LogsendPrepareLogsendPayload
+): Keybase1LogsendPrepareLogsendPayload => ({payload, type: keybase1LogsendPrepareLogsend})
+export const createKeybase1NotifyAppExit = (
+  payload: _Keybase1NotifyAppExitPayload
+): Keybase1NotifyAppExitPayload => ({payload, type: keybase1NotifyAppExit})
 export const createKeybase1NotifyAuditBoxAuditError = (
   payload: _Keybase1NotifyAuditBoxAuditErrorPayload
-) => ({payload, type: keybase1NotifyAuditBoxAuditError})
+): Keybase1NotifyAuditBoxAuditErrorPayload => ({payload, type: keybase1NotifyAuditBoxAuditError})
 export const createKeybase1NotifyAuditRootAuditError = (
   payload: _Keybase1NotifyAuditRootAuditErrorPayload
-) => ({payload, type: keybase1NotifyAuditRootAuditError})
-export const createKeybase1NotifyBadgesBadgeState = (payload: _Keybase1NotifyBadgesBadgeStatePayload) => ({
-  payload,
-  type: keybase1NotifyBadgesBadgeState,
-})
+): Keybase1NotifyAuditRootAuditErrorPayload => ({payload, type: keybase1NotifyAuditRootAuditError})
+export const createKeybase1NotifyBadgesBadgeState = (
+  payload: _Keybase1NotifyBadgesBadgeStatePayload
+): Keybase1NotifyBadgesBadgeStatePayload => ({payload, type: keybase1NotifyBadgesBadgeState})
 export const createKeybase1NotifyCanUserPerformCanUserPerformChanged = (
   payload: _Keybase1NotifyCanUserPerformCanUserPerformChangedPayload
-) => ({payload, type: keybase1NotifyCanUserPerformCanUserPerformChanged})
+): Keybase1NotifyCanUserPerformCanUserPerformChangedPayload => ({
+  payload,
+  type: keybase1NotifyCanUserPerformCanUserPerformChanged,
+})
 export const createKeybase1NotifyDeviceCloneDeviceCloneCountChanged = (
   payload: _Keybase1NotifyDeviceCloneDeviceCloneCountChangedPayload
-) => ({payload, type: keybase1NotifyDeviceCloneDeviceCloneCountChanged})
+): Keybase1NotifyDeviceCloneDeviceCloneCountChangedPayload => ({
+  payload,
+  type: keybase1NotifyDeviceCloneDeviceCloneCountChanged,
+})
 export const createKeybase1NotifyEmailAddressEmailAddressVerified = (
   payload: _Keybase1NotifyEmailAddressEmailAddressVerifiedPayload
-) => ({payload, type: keybase1NotifyEmailAddressEmailAddressVerified})
+): Keybase1NotifyEmailAddressEmailAddressVerifiedPayload => ({
+  payload,
+  type: keybase1NotifyEmailAddressEmailAddressVerified,
+})
 export const createKeybase1NotifyEphemeralNewTeamEk = (
   payload: _Keybase1NotifyEphemeralNewTeamEkPayload
-) => ({payload, type: keybase1NotifyEphemeralNewTeamEk})
-export const createKeybase1NotifyFSFSActivity = (payload: _Keybase1NotifyFSFSActivityPayload) => ({
-  payload,
-  type: keybase1NotifyFSFSActivity,
-})
+): Keybase1NotifyEphemeralNewTeamEkPayload => ({payload, type: keybase1NotifyEphemeralNewTeamEk})
+export const createKeybase1NotifyFSFSActivity = (
+  payload: _Keybase1NotifyFSFSActivityPayload
+): Keybase1NotifyFSFSActivityPayload => ({payload, type: keybase1NotifyFSFSActivity})
 export const createKeybase1NotifyFSFSEditListResponse = (
   payload: _Keybase1NotifyFSFSEditListResponsePayload
-) => ({payload, type: keybase1NotifyFSFSEditListResponse})
+): Keybase1NotifyFSFSEditListResponsePayload => ({payload, type: keybase1NotifyFSFSEditListResponse})
 export const createKeybase1NotifyFSFSFavoritesChanged = (
   payload: _Keybase1NotifyFSFSFavoritesChangedPayload
-) => ({payload, type: keybase1NotifyFSFSFavoritesChanged})
+): Keybase1NotifyFSFSFavoritesChangedPayload => ({payload, type: keybase1NotifyFSFSFavoritesChanged})
 export const createKeybase1NotifyFSFSOnlineStatusChanged = (
   payload: _Keybase1NotifyFSFSOnlineStatusChangedPayload
-) => ({payload, type: keybase1NotifyFSFSOnlineStatusChanged})
+): Keybase1NotifyFSFSOnlineStatusChangedPayload => ({payload, type: keybase1NotifyFSFSOnlineStatusChanged})
 export const createKeybase1NotifyFSFSOverallSyncStatusChanged = (
   payload: _Keybase1NotifyFSFSOverallSyncStatusChangedPayload
-) => ({payload, type: keybase1NotifyFSFSOverallSyncStatusChanged})
-export const createKeybase1NotifyFSFSPathUpdated = (payload: _Keybase1NotifyFSFSPathUpdatedPayload) => ({
+): Keybase1NotifyFSFSOverallSyncStatusChangedPayload => ({
   payload,
-  type: keybase1NotifyFSFSPathUpdated,
+  type: keybase1NotifyFSFSOverallSyncStatusChanged,
 })
-export const createKeybase1NotifyFSFSSyncActivity = (payload: _Keybase1NotifyFSFSSyncActivityPayload) => ({
-  payload,
-  type: keybase1NotifyFSFSSyncActivity,
-})
+export const createKeybase1NotifyFSFSPathUpdated = (
+  payload: _Keybase1NotifyFSFSPathUpdatedPayload
+): Keybase1NotifyFSFSPathUpdatedPayload => ({payload, type: keybase1NotifyFSFSPathUpdated})
+export const createKeybase1NotifyFSFSSyncActivity = (
+  payload: _Keybase1NotifyFSFSSyncActivityPayload
+): Keybase1NotifyFSFSSyncActivityPayload => ({payload, type: keybase1NotifyFSFSSyncActivity})
 export const createKeybase1NotifyFSFSSyncStatusResponse = (
   payload: _Keybase1NotifyFSFSSyncStatusResponsePayload
-) => ({payload, type: keybase1NotifyFSFSSyncStatusResponse})
+): Keybase1NotifyFSFSSyncStatusResponsePayload => ({payload, type: keybase1NotifyFSFSSyncStatusResponse})
 export const createKeybase1NotifyFavoritesFavoritesChanged = (
   payload: _Keybase1NotifyFavoritesFavoritesChangedPayload
-) => ({payload, type: keybase1NotifyFavoritesFavoritesChanged})
+): Keybase1NotifyFavoritesFavoritesChangedPayload => ({
+  payload,
+  type: keybase1NotifyFavoritesFavoritesChanged,
+})
 export const createKeybase1NotifyKeyfamilyKeyfamilyChanged = (
   payload: _Keybase1NotifyKeyfamilyKeyfamilyChangedPayload
-) => ({payload, type: keybase1NotifyKeyfamilyKeyfamilyChanged})
+): Keybase1NotifyKeyfamilyKeyfamilyChangedPayload => ({
+  payload,
+  type: keybase1NotifyKeyfamilyKeyfamilyChanged,
+})
 export const createKeybase1NotifyPGPPgpKeyInSecretStoreFile = (
   payload: _Keybase1NotifyPGPPgpKeyInSecretStoreFilePayload
-) => ({payload, type: keybase1NotifyPGPPgpKeyInSecretStoreFile})
+): Keybase1NotifyPGPPgpKeyInSecretStoreFilePayload => ({
+  payload,
+  type: keybase1NotifyPGPPgpKeyInSecretStoreFile,
+})
 export const createKeybase1NotifyPaperKeyPaperKeyCached = (
   payload: _Keybase1NotifyPaperKeyPaperKeyCachedPayload
-) => ({payload, type: keybase1NotifyPaperKeyPaperKeyCached})
+): Keybase1NotifyPaperKeyPaperKeyCachedPayload => ({payload, type: keybase1NotifyPaperKeyPaperKeyCached})
 export const createKeybase1NotifyPhoneNumberPhoneNumberAdded = (
   payload: _Keybase1NotifyPhoneNumberPhoneNumberAddedPayload
-) => ({payload, type: keybase1NotifyPhoneNumberPhoneNumberAdded})
+): Keybase1NotifyPhoneNumberPhoneNumberAddedPayload => ({
+  payload,
+  type: keybase1NotifyPhoneNumberPhoneNumberAdded,
+})
 export const createKeybase1NotifyPhoneNumberPhoneNumberSuperseded = (
   payload: _Keybase1NotifyPhoneNumberPhoneNumberSupersededPayload
-) => ({payload, type: keybase1NotifyPhoneNumberPhoneNumberSuperseded})
+): Keybase1NotifyPhoneNumberPhoneNumberSupersededPayload => ({
+  payload,
+  type: keybase1NotifyPhoneNumberPhoneNumberSuperseded,
+})
 export const createKeybase1NotifyPhoneNumberPhoneNumberVerified = (
   payload: _Keybase1NotifyPhoneNumberPhoneNumberVerifiedPayload
-) => ({payload, type: keybase1NotifyPhoneNumberPhoneNumberVerified})
-export const createKeybase1NotifyServiceShutdown = (payload: _Keybase1NotifyServiceShutdownPayload) => ({
+): Keybase1NotifyPhoneNumberPhoneNumberVerifiedPayload => ({
   payload,
-  type: keybase1NotifyServiceShutdown,
+  type: keybase1NotifyPhoneNumberPhoneNumberVerified,
 })
+export const createKeybase1NotifyServiceShutdown = (
+  payload: _Keybase1NotifyServiceShutdownPayload
+): Keybase1NotifyServiceShutdownPayload => ({payload, type: keybase1NotifyServiceShutdown})
 export const createKeybase1NotifySessionClientOutOfDate = (
   payload: _Keybase1NotifySessionClientOutOfDatePayload
-) => ({payload, type: keybase1NotifySessionClientOutOfDate})
-export const createKeybase1NotifySessionLoggedIn = (payload: _Keybase1NotifySessionLoggedInPayload) => ({
-  payload,
-  type: keybase1NotifySessionLoggedIn,
-})
-export const createKeybase1NotifySessionLoggedOut = (payload: _Keybase1NotifySessionLoggedOutPayload) => ({
-  payload,
-  type: keybase1NotifySessionLoggedOut,
-})
-export const createKeybase1NotifyTeamAvatarUpdated = (payload: _Keybase1NotifyTeamAvatarUpdatedPayload) => ({
-  payload,
-  type: keybase1NotifyTeamAvatarUpdated,
-})
+): Keybase1NotifySessionClientOutOfDatePayload => ({payload, type: keybase1NotifySessionClientOutOfDate})
+export const createKeybase1NotifySessionLoggedIn = (
+  payload: _Keybase1NotifySessionLoggedInPayload
+): Keybase1NotifySessionLoggedInPayload => ({payload, type: keybase1NotifySessionLoggedIn})
+export const createKeybase1NotifySessionLoggedOut = (
+  payload: _Keybase1NotifySessionLoggedOutPayload
+): Keybase1NotifySessionLoggedOutPayload => ({payload, type: keybase1NotifySessionLoggedOut})
+export const createKeybase1NotifyTeamAvatarUpdated = (
+  payload: _Keybase1NotifyTeamAvatarUpdatedPayload
+): Keybase1NotifyTeamAvatarUpdatedPayload => ({payload, type: keybase1NotifyTeamAvatarUpdated})
 export const createKeybase1NotifyTeamNewlyAddedToTeam = (
   payload: _Keybase1NotifyTeamNewlyAddedToTeamPayload
-) => ({payload, type: keybase1NotifyTeamNewlyAddedToTeam})
-export const createKeybase1NotifyTeamTeamAbandoned = (payload: _Keybase1NotifyTeamTeamAbandonedPayload) => ({
-  payload,
-  type: keybase1NotifyTeamTeamAbandoned,
-})
+): Keybase1NotifyTeamNewlyAddedToTeamPayload => ({payload, type: keybase1NotifyTeamNewlyAddedToTeam})
+export const createKeybase1NotifyTeamTeamAbandoned = (
+  payload: _Keybase1NotifyTeamTeamAbandonedPayload
+): Keybase1NotifyTeamTeamAbandonedPayload => ({payload, type: keybase1NotifyTeamTeamAbandoned})
 export const createKeybase1NotifyTeamTeamChangedByID = (
   payload: _Keybase1NotifyTeamTeamChangedByIDPayload
-) => ({payload, type: keybase1NotifyTeamTeamChangedByID})
+): Keybase1NotifyTeamTeamChangedByIDPayload => ({payload, type: keybase1NotifyTeamTeamChangedByID})
 export const createKeybase1NotifyTeamTeamChangedByName = (
   payload: _Keybase1NotifyTeamTeamChangedByNamePayload
-) => ({payload, type: keybase1NotifyTeamTeamChangedByName})
-export const createKeybase1NotifyTeamTeamDeleted = (payload: _Keybase1NotifyTeamTeamDeletedPayload) => ({
-  payload,
-  type: keybase1NotifyTeamTeamDeleted,
-})
-export const createKeybase1NotifyTeamTeamExit = (payload: _Keybase1NotifyTeamTeamExitPayload) => ({
-  payload,
-  type: keybase1NotifyTeamTeamExit,
-})
+): Keybase1NotifyTeamTeamChangedByNamePayload => ({payload, type: keybase1NotifyTeamTeamChangedByName})
+export const createKeybase1NotifyTeamTeamDeleted = (
+  payload: _Keybase1NotifyTeamTeamDeletedPayload
+): Keybase1NotifyTeamTeamDeletedPayload => ({payload, type: keybase1NotifyTeamTeamDeleted})
+export const createKeybase1NotifyTeamTeamExit = (
+  payload: _Keybase1NotifyTeamTeamExitPayload
+): Keybase1NotifyTeamTeamExitPayload => ({payload, type: keybase1NotifyTeamTeamExit})
 export const createKeybase1NotifyTrackingTrackingChanged = (
   payload: _Keybase1NotifyTrackingTrackingChangedPayload
-) => ({payload, type: keybase1NotifyTrackingTrackingChanged})
+): Keybase1NotifyTrackingTrackingChangedPayload => ({payload, type: keybase1NotifyTrackingTrackingChanged})
 export const createKeybase1NotifyUnverifiedTeamListTeamListUnverifiedChanged = (
   payload: _Keybase1NotifyUnverifiedTeamListTeamListUnverifiedChangedPayload
-) => ({payload, type: keybase1NotifyUnverifiedTeamListTeamListUnverifiedChanged})
+): Keybase1NotifyUnverifiedTeamListTeamListUnverifiedChangedPayload => ({
+  payload,
+  type: keybase1NotifyUnverifiedTeamListTeamListUnverifiedChanged,
+})
 export const createKeybase1NotifyUsersPasswordChanged = (
   payload: _Keybase1NotifyUsersPasswordChangedPayload
-) => ({payload, type: keybase1NotifyUsersPasswordChanged})
-export const createKeybase1NotifyUsersUserChanged = (payload: _Keybase1NotifyUsersUserChangedPayload) => ({
-  payload,
-  type: keybase1NotifyUsersUserChanged,
-})
-export const createKeybase1PgpUiFinished = (payload: _Keybase1PgpUiFinishedPayload) => ({
-  payload,
-  type: keybase1PgpUiFinished,
-})
-export const createKeybase1PgpUiKeyGenerated = (payload: _Keybase1PgpUiKeyGeneratedPayload) => ({
-  payload,
-  type: keybase1PgpUiKeyGenerated,
-})
+): Keybase1NotifyUsersPasswordChangedPayload => ({payload, type: keybase1NotifyUsersPasswordChanged})
+export const createKeybase1NotifyUsersUserChanged = (
+  payload: _Keybase1NotifyUsersUserChangedPayload
+): Keybase1NotifyUsersUserChangedPayload => ({payload, type: keybase1NotifyUsersUserChanged})
+export const createKeybase1PgpUiFinished = (
+  payload: _Keybase1PgpUiFinishedPayload
+): Keybase1PgpUiFinishedPayload => ({payload, type: keybase1PgpUiFinished})
+export const createKeybase1PgpUiKeyGenerated = (
+  payload: _Keybase1PgpUiKeyGeneratedPayload
+): Keybase1PgpUiKeyGeneratedPayload => ({payload, type: keybase1PgpUiKeyGenerated})
 export const createKeybase1PgpUiOutputSignatureSuccess = (
   payload: _Keybase1PgpUiOutputSignatureSuccessPayload
-) => ({payload, type: keybase1PgpUiOutputSignatureSuccess})
+): Keybase1PgpUiOutputSignatureSuccessPayload => ({payload, type: keybase1PgpUiOutputSignatureSuccess})
 export const createKeybase1PgpUiOutputSignatureSuccessNonKeybase = (
   payload: _Keybase1PgpUiOutputSignatureSuccessNonKeybasePayload
-) => ({payload, type: keybase1PgpUiOutputSignatureSuccessNonKeybase})
-export const createKeybase1PgpUiShouldPushPrivate = (payload: _Keybase1PgpUiShouldPushPrivatePayload) => ({
+): Keybase1PgpUiOutputSignatureSuccessNonKeybasePayload => ({
   payload,
-  type: keybase1PgpUiShouldPushPrivate,
+  type: keybase1PgpUiOutputSignatureSuccessNonKeybase,
 })
-export const createKeybase1ProveUiChecking = (payload: _Keybase1ProveUiCheckingPayload) => ({
-  payload,
-  type: keybase1ProveUiChecking,
-})
-export const createKeybase1ProveUiContinueChecking = (payload: _Keybase1ProveUiContinueCheckingPayload) => ({
-  payload,
-  type: keybase1ProveUiContinueChecking,
-})
+export const createKeybase1PgpUiShouldPushPrivate = (
+  payload: _Keybase1PgpUiShouldPushPrivatePayload
+): Keybase1PgpUiShouldPushPrivatePayload => ({payload, type: keybase1PgpUiShouldPushPrivate})
+export const createKeybase1ProveUiChecking = (
+  payload: _Keybase1ProveUiCheckingPayload
+): Keybase1ProveUiCheckingPayload => ({payload, type: keybase1ProveUiChecking})
+export const createKeybase1ProveUiContinueChecking = (
+  payload: _Keybase1ProveUiContinueCheckingPayload
+): Keybase1ProveUiContinueCheckingPayload => ({payload, type: keybase1ProveUiContinueChecking})
 export const createKeybase1ProveUiDisplayRecheckWarning = (
   payload: _Keybase1ProveUiDisplayRecheckWarningPayload
-) => ({payload, type: keybase1ProveUiDisplayRecheckWarning})
-export const createKeybase1ProveUiOkToCheck = (payload: _Keybase1ProveUiOkToCheckPayload) => ({
-  payload,
-  type: keybase1ProveUiOkToCheck,
-})
+): Keybase1ProveUiDisplayRecheckWarningPayload => ({payload, type: keybase1ProveUiDisplayRecheckWarning})
+export const createKeybase1ProveUiOkToCheck = (
+  payload: _Keybase1ProveUiOkToCheckPayload
+): Keybase1ProveUiOkToCheckPayload => ({payload, type: keybase1ProveUiOkToCheck})
 export const createKeybase1ProveUiOutputInstructions = (
   payload: _Keybase1ProveUiOutputInstructionsPayload
-) => ({payload, type: keybase1ProveUiOutputInstructions})
-export const createKeybase1ProveUiOutputPrechecks = (payload: _Keybase1ProveUiOutputPrechecksPayload) => ({
-  payload,
-  type: keybase1ProveUiOutputPrechecks,
-})
-export const createKeybase1ProveUiPreProofWarning = (payload: _Keybase1ProveUiPreProofWarningPayload) => ({
-  payload,
-  type: keybase1ProveUiPreProofWarning,
-})
-export const createKeybase1ProveUiPromptOverwrite = (payload: _Keybase1ProveUiPromptOverwritePayload) => ({
-  payload,
-  type: keybase1ProveUiPromptOverwrite,
-})
-export const createKeybase1ProveUiPromptUsername = (payload: _Keybase1ProveUiPromptUsernamePayload) => ({
-  payload,
-  type: keybase1ProveUiPromptUsername,
-})
-export const createKeybase1ProvisionUiChooseDevice = (payload: _Keybase1ProvisionUiChooseDevicePayload) => ({
-  payload,
-  type: keybase1ProvisionUiChooseDevice,
-})
+): Keybase1ProveUiOutputInstructionsPayload => ({payload, type: keybase1ProveUiOutputInstructions})
+export const createKeybase1ProveUiOutputPrechecks = (
+  payload: _Keybase1ProveUiOutputPrechecksPayload
+): Keybase1ProveUiOutputPrechecksPayload => ({payload, type: keybase1ProveUiOutputPrechecks})
+export const createKeybase1ProveUiPreProofWarning = (
+  payload: _Keybase1ProveUiPreProofWarningPayload
+): Keybase1ProveUiPreProofWarningPayload => ({payload, type: keybase1ProveUiPreProofWarning})
+export const createKeybase1ProveUiPromptOverwrite = (
+  payload: _Keybase1ProveUiPromptOverwritePayload
+): Keybase1ProveUiPromptOverwritePayload => ({payload, type: keybase1ProveUiPromptOverwrite})
+export const createKeybase1ProveUiPromptUsername = (
+  payload: _Keybase1ProveUiPromptUsernamePayload
+): Keybase1ProveUiPromptUsernamePayload => ({payload, type: keybase1ProveUiPromptUsername})
+export const createKeybase1ProvisionUiChooseDevice = (
+  payload: _Keybase1ProvisionUiChooseDevicePayload
+): Keybase1ProvisionUiChooseDevicePayload => ({payload, type: keybase1ProvisionUiChooseDevice})
 export const createKeybase1ProvisionUiChooseDeviceType = (
   payload: _Keybase1ProvisionUiChooseDeviceTypePayload
-) => ({payload, type: keybase1ProvisionUiChooseDeviceType})
+): Keybase1ProvisionUiChooseDeviceTypePayload => ({payload, type: keybase1ProvisionUiChooseDeviceType})
 export const createKeybase1ProvisionUiChooseGPGMethod = (
   payload: _Keybase1ProvisionUiChooseGPGMethodPayload
-) => ({payload, type: keybase1ProvisionUiChooseGPGMethod})
+): Keybase1ProvisionUiChooseGPGMethodPayload => ({payload, type: keybase1ProvisionUiChooseGPGMethod})
 export const createKeybase1ProvisionUiChooseProvisioningMethod = (
   payload: _Keybase1ProvisionUiChooseProvisioningMethodPayload
-) => ({payload, type: keybase1ProvisionUiChooseProvisioningMethod})
+): Keybase1ProvisionUiChooseProvisioningMethodPayload => ({
+  payload,
+  type: keybase1ProvisionUiChooseProvisioningMethod,
+})
 export const createKeybase1ProvisionUiDisplayAndPromptSecret = (
   payload: _Keybase1ProvisionUiDisplayAndPromptSecretPayload
-) => ({payload, type: keybase1ProvisionUiDisplayAndPromptSecret})
+): Keybase1ProvisionUiDisplayAndPromptSecretPayload => ({
+  payload,
+  type: keybase1ProvisionUiDisplayAndPromptSecret,
+})
 export const createKeybase1ProvisionUiDisplaySecretExchanged = (
   payload: _Keybase1ProvisionUiDisplaySecretExchangedPayload
-) => ({payload, type: keybase1ProvisionUiDisplaySecretExchanged})
+): Keybase1ProvisionUiDisplaySecretExchangedPayload => ({
+  payload,
+  type: keybase1ProvisionUiDisplaySecretExchanged,
+})
 export const createKeybase1ProvisionUiPromptNewDeviceName = (
   payload: _Keybase1ProvisionUiPromptNewDeviceNamePayload
-) => ({payload, type: keybase1ProvisionUiPromptNewDeviceName})
+): Keybase1ProvisionUiPromptNewDeviceNamePayload => ({payload, type: keybase1ProvisionUiPromptNewDeviceName})
 export const createKeybase1ProvisionUiProvisioneeSuccess = (
   payload: _Keybase1ProvisionUiProvisioneeSuccessPayload
-) => ({payload, type: keybase1ProvisionUiProvisioneeSuccess})
+): Keybase1ProvisionUiProvisioneeSuccessPayload => ({payload, type: keybase1ProvisionUiProvisioneeSuccess})
 export const createKeybase1ProvisionUiProvisionerSuccess = (
   payload: _Keybase1ProvisionUiProvisionerSuccessPayload
-) => ({payload, type: keybase1ProvisionUiProvisionerSuccess})
+): Keybase1ProvisionUiProvisionerSuccessPayload => ({payload, type: keybase1ProvisionUiProvisionerSuccess})
 export const createKeybase1ProvisionUiSwitchToGPGSignOK = (
   payload: _Keybase1ProvisionUiSwitchToGPGSignOKPayload
-) => ({payload, type: keybase1ProvisionUiSwitchToGPGSignOK})
+): Keybase1ProvisionUiSwitchToGPGSignOKPayload => ({payload, type: keybase1ProvisionUiSwitchToGPGSignOK})
 export const createKeybase1ReachabilityReachabilityChanged = (
   payload: _Keybase1ReachabilityReachabilityChangedPayload
-) => ({payload, type: keybase1ReachabilityReachabilityChanged})
-export const createKeybase1RekeyUIDelegateRekeyUI = (payload: _Keybase1RekeyUIDelegateRekeyUIPayload) => ({
+): Keybase1ReachabilityReachabilityChangedPayload => ({
   payload,
-  type: keybase1RekeyUIDelegateRekeyUI,
+  type: keybase1ReachabilityReachabilityChanged,
 })
-export const createKeybase1RekeyUIRefresh = (payload: _Keybase1RekeyUIRefreshPayload) => ({
-  payload,
-  type: keybase1RekeyUIRefresh,
-})
-export const createKeybase1RekeyUIRekeySendEvent = (payload: _Keybase1RekeyUIRekeySendEventPayload) => ({
-  payload,
-  type: keybase1RekeyUIRekeySendEvent,
-})
+export const createKeybase1RekeyUIDelegateRekeyUI = (
+  payload: _Keybase1RekeyUIDelegateRekeyUIPayload
+): Keybase1RekeyUIDelegateRekeyUIPayload => ({payload, type: keybase1RekeyUIDelegateRekeyUI})
+export const createKeybase1RekeyUIRefresh = (
+  payload: _Keybase1RekeyUIRefreshPayload
+): Keybase1RekeyUIRefreshPayload => ({payload, type: keybase1RekeyUIRefresh})
+export const createKeybase1RekeyUIRekeySendEvent = (
+  payload: _Keybase1RekeyUIRekeySendEventPayload
+): Keybase1RekeyUIRekeySendEventPayload => ({payload, type: keybase1RekeyUIRekeySendEvent})
 export const createKeybase1SaltpackUiSaltpackPromptForDecrypt = (
   payload: _Keybase1SaltpackUiSaltpackPromptForDecryptPayload
-) => ({payload, type: keybase1SaltpackUiSaltpackPromptForDecrypt})
+): Keybase1SaltpackUiSaltpackPromptForDecryptPayload => ({
+  payload,
+  type: keybase1SaltpackUiSaltpackPromptForDecrypt,
+})
 export const createKeybase1SaltpackUiSaltpackVerifyBadSender = (
   payload: _Keybase1SaltpackUiSaltpackVerifyBadSenderPayload
-) => ({payload, type: keybase1SaltpackUiSaltpackVerifyBadSender})
+): Keybase1SaltpackUiSaltpackVerifyBadSenderPayload => ({
+  payload,
+  type: keybase1SaltpackUiSaltpackVerifyBadSender,
+})
 export const createKeybase1SaltpackUiSaltpackVerifySuccess = (
   payload: _Keybase1SaltpackUiSaltpackVerifySuccessPayload
-) => ({payload, type: keybase1SaltpackUiSaltpackVerifySuccess})
-export const createKeybase1SecretUiGetPassphrase = (payload: _Keybase1SecretUiGetPassphrasePayload) => ({
+): Keybase1SaltpackUiSaltpackVerifySuccessPayload => ({
   payload,
-  type: keybase1SecretUiGetPassphrase,
+  type: keybase1SaltpackUiSaltpackVerifySuccess,
 })
-export const createKeybase1StreamUiClose = (payload: _Keybase1StreamUiClosePayload) => ({
-  payload,
-  type: keybase1StreamUiClose,
-})
-export const createKeybase1StreamUiRead = (payload: _Keybase1StreamUiReadPayload) => ({
-  payload,
-  type: keybase1StreamUiRead,
-})
-export const createKeybase1StreamUiReset = (payload: _Keybase1StreamUiResetPayload) => ({
-  payload,
-  type: keybase1StreamUiReset,
-})
-export const createKeybase1StreamUiWrite = (payload: _Keybase1StreamUiWritePayload) => ({
-  payload,
-  type: keybase1StreamUiWrite,
-})
+export const createKeybase1SecretUiGetPassphrase = (
+  payload: _Keybase1SecretUiGetPassphrasePayload
+): Keybase1SecretUiGetPassphrasePayload => ({payload, type: keybase1SecretUiGetPassphrase})
+export const createKeybase1StreamUiClose = (
+  payload: _Keybase1StreamUiClosePayload
+): Keybase1StreamUiClosePayload => ({payload, type: keybase1StreamUiClose})
+export const createKeybase1StreamUiRead = (
+  payload: _Keybase1StreamUiReadPayload
+): Keybase1StreamUiReadPayload => ({payload, type: keybase1StreamUiRead})
+export const createKeybase1StreamUiReset = (
+  payload: _Keybase1StreamUiResetPayload
+): Keybase1StreamUiResetPayload => ({payload, type: keybase1StreamUiReset})
+export const createKeybase1StreamUiWrite = (
+  payload: _Keybase1StreamUiWritePayload
+): Keybase1StreamUiWritePayload => ({payload, type: keybase1StreamUiWrite})
 export const createKeybase1TeamsUiConfirmRootTeamDelete = (
   payload: _Keybase1TeamsUiConfirmRootTeamDeletePayload
-) => ({payload, type: keybase1TeamsUiConfirmRootTeamDelete})
+): Keybase1TeamsUiConfirmRootTeamDeletePayload => ({payload, type: keybase1TeamsUiConfirmRootTeamDelete})
 export const createKeybase1TeamsUiConfirmSubteamDelete = (
   payload: _Keybase1TeamsUiConfirmSubteamDeletePayload
-) => ({payload, type: keybase1TeamsUiConfirmSubteamDelete})
-export const createKeybase1UiPromptYesNo = (payload: _Keybase1UiPromptYesNoPayload) => ({
-  payload,
-  type: keybase1UiPromptYesNo,
-})
+): Keybase1TeamsUiConfirmSubteamDeletePayload => ({payload, type: keybase1TeamsUiConfirmSubteamDelete})
+export const createKeybase1UiPromptYesNo = (
+  payload: _Keybase1UiPromptYesNoPayload
+): Keybase1UiPromptYesNoPayload => ({payload, type: keybase1UiPromptYesNo})
 export const createStellar1NotifyAccountDetailsUpdate = (
   payload: _Stellar1NotifyAccountDetailsUpdatePayload
-) => ({payload, type: stellar1NotifyAccountDetailsUpdate})
-export const createStellar1NotifyAccountsUpdate = (payload: _Stellar1NotifyAccountsUpdatePayload) => ({
-  payload,
-  type: stellar1NotifyAccountsUpdate,
-})
+): Stellar1NotifyAccountDetailsUpdatePayload => ({payload, type: stellar1NotifyAccountDetailsUpdate})
+export const createStellar1NotifyAccountsUpdate = (
+  payload: _Stellar1NotifyAccountsUpdatePayload
+): Stellar1NotifyAccountsUpdatePayload => ({payload, type: stellar1NotifyAccountsUpdate})
 export const createStellar1NotifyPaymentNotification = (
   payload: _Stellar1NotifyPaymentNotificationPayload
-) => ({payload, type: stellar1NotifyPaymentNotification})
+): Stellar1NotifyPaymentNotificationPayload => ({payload, type: stellar1NotifyPaymentNotification})
 export const createStellar1NotifyPaymentStatusNotification = (
   payload: _Stellar1NotifyPaymentStatusNotificationPayload
-) => ({payload, type: stellar1NotifyPaymentStatusNotification})
+): Stellar1NotifyPaymentStatusNotificationPayload => ({
+  payload,
+  type: stellar1NotifyPaymentStatusNotification,
+})
 export const createStellar1NotifyPendingPaymentsUpdate = (
   payload: _Stellar1NotifyPendingPaymentsUpdatePayload
-) => ({payload, type: stellar1NotifyPendingPaymentsUpdate})
+): Stellar1NotifyPendingPaymentsUpdatePayload => ({payload, type: stellar1NotifyPendingPaymentsUpdate})
 export const createStellar1NotifyRecentPaymentsUpdate = (
   payload: _Stellar1NotifyRecentPaymentsUpdatePayload
-) => ({payload, type: stellar1NotifyRecentPaymentsUpdate})
+): Stellar1NotifyRecentPaymentsUpdatePayload => ({payload, type: stellar1NotifyRecentPaymentsUpdate})
 export const createStellar1NotifyRequestStatusNotification = (
   payload: _Stellar1NotifyRequestStatusNotificationPayload
-) => ({payload, type: stellar1NotifyRequestStatusNotification})
-export const createStellar1UiPaymentReviewed = (payload: _Stellar1UiPaymentReviewedPayload) => ({
+): Stellar1NotifyRequestStatusNotificationPayload => ({
   payload,
-  type: stellar1UiPaymentReviewed,
+  type: stellar1NotifyRequestStatusNotification,
 })
+export const createStellar1UiPaymentReviewed = (
+  payload: _Stellar1UiPaymentReviewedPayload
+): Stellar1UiPaymentReviewedPayload => ({payload, type: stellar1UiPaymentReviewed})
 
 // Action Payloads
 export type Chat1ChatUiChatAttachmentDownloadDonePayload = {

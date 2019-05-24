@@ -22,16 +22,17 @@ type _LoginErrorPayload = {readonly error: HiddenString | null}
 type _LoginPayload = {readonly username: string; readonly password: HiddenString}
 
 // Action Creators
-export const createLaunchAccountResetWebPage = (payload: _LaunchAccountResetWebPagePayload) => ({
+export const createLaunchAccountResetWebPage = (
+  payload: _LaunchAccountResetWebPagePayload
+): LaunchAccountResetWebPagePayload => ({payload, type: launchAccountResetWebPage})
+export const createLaunchForgotPasswordWebPage = (
+  payload: _LaunchForgotPasswordWebPagePayload
+): LaunchForgotPasswordWebPagePayload => ({payload, type: launchForgotPasswordWebPage})
+export const createLogin = (payload: _LoginPayload): LoginPayload => ({payload, type: login})
+export const createLoginError = (payload: _LoginErrorPayload): LoginErrorPayload => ({
   payload,
-  type: launchAccountResetWebPage,
+  type: loginError,
 })
-export const createLaunchForgotPasswordWebPage = (payload: _LaunchForgotPasswordWebPagePayload) => ({
-  payload,
-  type: launchForgotPasswordWebPage,
-})
-export const createLogin = (payload: _LoginPayload) => ({payload, type: login})
-export const createLoginError = (payload: _LoginErrorPayload) => ({payload, type: loginError})
 
 // Action Payloads
 export type LaunchAccountResetWebPagePayload = {

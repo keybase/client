@@ -138,13 +138,13 @@ function compileActionCreator(ns: ActionNS, actionName: ActionName, desc: Action
       : '') +
     `export const create${capitalize(actionName)} = (payload: _${capitalize(actionName)}Payload${
       payloadOptional(noErrorPayload) ? ' = Object.freeze({})' : ''
-    }) => (
+    }): ${capitalize(actionName)}Payload => (
   { payload, type: ${actionName}, }
 )` +
     (canError(desc)
       ? `\n export const create${capitalize(actionName)}Error = (payload: _${capitalize(
           actionName
-        )}PayloadError) => (
+        )}PayloadError): ${capitalize(actionName)}PayloadError  => (
     { error: true, payload, type: ${actionName}, }
   )`
       : '')

@@ -45,34 +45,52 @@ type _SwitchToPayload = {readonly path: any; readonly parentPath?: any}
 /**
  * ONLY used by the new nav. Navigates up to this route if it already exists, noops otherwise.
  */
-export const createNavUpToScreen = (payload: _NavUpToScreenPayload) => ({payload, type: navUpToScreen})
+export const createNavUpToScreen = (payload: _NavUpToScreenPayload): NavUpToScreenPayload => ({
+  payload,
+  type: navUpToScreen,
+})
 /**
  * ONLY used by the new nav. Switch to a different tab.
  */
-export const createSwitchTab = (payload: _SwitchTabPayload) => ({payload, type: switchTab})
+export const createSwitchTab = (payload: _SwitchTabPayload): SwitchTabPayload => ({payload, type: switchTab})
 /**
  * ONLY used by the new nav. use this to clear any modal routes
  */
-export const createClearModals = (payload: _ClearModalsPayload) => ({payload, type: clearModals})
+export const createClearModals = (payload: _ClearModalsPayload): ClearModalsPayload => ({
+  payload,
+  type: clearModals,
+})
 /**
  * Reset a specific stack. actions is route tree actions TODO better typing
  */
-export const createResetStack = (payload: _ResetStackPayload) => ({payload, type: resetStack})
+export const createResetStack = (payload: _ResetStackPayload): ResetStackPayload => ({
+  payload,
+  type: resetStack,
+})
 /**
  * TODO for this whole json. replace all these actions with a cleaned up version
  */
-export const createSwitchRouteDef = (payload: _SwitchRouteDefPayload) => ({payload, type: switchRouteDef})
-export const createNavigateAppend = (payload: _NavigateAppendPayload) => ({payload, type: navigateAppend})
-export const createNavigateTo = (payload: _NavigateToPayload) => ({payload, type: navigateTo})
-export const createNavigateUp = (payload: _NavigateUpPayload = Object.freeze({})) => ({
+export const createSwitchRouteDef = (payload: _SwitchRouteDefPayload): SwitchRouteDefPayload => ({
+  payload,
+  type: switchRouteDef,
+})
+export const createNavigateAppend = (payload: _NavigateAppendPayload): NavigateAppendPayload => ({
+  payload,
+  type: navigateAppend,
+})
+export const createNavigateTo = (payload: _NavigateToPayload): NavigateToPayload => ({
+  payload,
+  type: navigateTo,
+})
+export const createNavigateUp = (payload: _NavigateUpPayload = Object.freeze({})): NavigateUpPayload => ({
   payload,
   type: navigateUp,
 })
-export const createPutActionIfOnPath = (payload: _PutActionIfOnPathPayload) => ({
+export const createPutActionIfOnPath = (payload: _PutActionIfOnPathPayload): PutActionIfOnPathPayload => ({
   payload,
   type: putActionIfOnPath,
 })
-export const createSwitchTo = (payload: _SwitchToPayload) => ({payload, type: switchTo})
+export const createSwitchTo = (payload: _SwitchToPayload): SwitchToPayload => ({payload, type: switchTo})
 
 // Action Payloads
 export type ClearModalsPayload = {

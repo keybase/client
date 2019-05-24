@@ -21,8 +21,11 @@ type _UpdateDebugConfigPayload = {
 }
 
 // Action Creators
-export const createDebugCount = (payload: _DebugCountPayload) => ({payload, type: debugCount})
-export const createUpdateDebugConfig = (payload: _UpdateDebugConfigPayload) => ({
+export const createDebugCount = (payload: _DebugCountPayload): DebugCountPayload => ({
+  payload,
+  type: debugCount,
+})
+export const createUpdateDebugConfig = (payload: _UpdateDebugConfigPayload): UpdateDebugConfigPayload => ({
   payload,
   type: updateDebugConfig,
 })
