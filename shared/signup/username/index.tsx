@@ -1,17 +1,16 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {maxUsernameLength} from '../../constants/signup'
 import {SignupScreen} from '../common'
 
-type Props = {|
-  onBack: () => void,
-  onChangeUsername: string => void,
-  onContinue: () => void,
-  onLogin: () => void, // route to login screen if username is taken
-  usernameTaken: ?string,
-|}
+type Props = {
+  onBack: () => void
+  onChangeUsername: (arg0: string) => void
+  onContinue: () => void
+  onLogin: () => void
+  usernameTaken: string | null
+}
 
 const EnterUsername = (props: Props) => (
   <SignupScreen

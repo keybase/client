@@ -1,18 +1,17 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {SignupScreen} from '../common'
 import PhoneInput from './phone-input'
 
-type Props = {|
-  allowSearch: boolean,
-  onChangeAllowSearch: boolean => void,
-  onChangePhoneNumber: string => void,
-  onChangeValidity: boolean => void,
-  onContinue: () => void,
-  onSkip: () => void,
-|}
+type Props = {
+  allowSearch: boolean
+  onChangeAllowSearch: (arg0: boolean) => void
+  onChangePhoneNumber: (arg0: string) => void
+  onChangeValidity: (arg0: boolean) => void
+  onContinue: () => void
+  onSkip: () => void
+}
 
 const EnterPhoneNumber = (props: Props) => (
   <SignupScreen

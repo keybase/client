@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Sb from '../stories/storybook'
@@ -26,5 +25,6 @@ const propProvider = Sb.createPropProviderWithCommon({
   }),
 })
 export const storyDecorator = (story: Function) => (
+  // @ts-ignore
   <Kb.Box style={decoratorStyle}>{propProvider(story)}</Kb.Box>
 )

@@ -1,20 +1,24 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {SignupScreen} from '../common'
 
-type Props = {|
-  error: string,
-  onBack: () => void,
-  onChangeCode: string => void,
-  onContinue: () => void,
-  onResend: () => void,
-  phoneNumber: string,
-  resendWaiting: boolean,
-|}
+type Props = {
+  error: string
+  onBack: () => void
+  onChangeCode: (code: string) => void
+  onContinue: () => void
+  onResend: () => void
+  phoneNumber: string
+  resendWaiting: boolean
+}
 
-class VerifyPhoneNumber extends React.Component<Props, {value: string}> {
+class VerifyPhoneNumber extends React.Component<
+  Props,
+  {
+    value: string
+  }
+> {
   state = {value: ''}
   _onChangeText = value => {
     this.props.onChangeCode(value)
