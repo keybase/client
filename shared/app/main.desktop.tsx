@@ -1,4 +1,3 @@
-// @flow
 import {hot} from 'react-hot-loader/root'
 import * as React from 'react'
 import RouterSwitcheroo from '../router-v2/switcheroo'
@@ -7,16 +6,12 @@ import * as SafeElectron from '../util/safe-electron.desktop'
 import {isWindows} from '../constants/platform'
 import {resolveImage} from '../desktop/app/resolve-root.desktop'
 import {getMainWindow} from '../desktop/remote/util.desktop'
-// Uncomment to get more info on hot loading
-// import {setConfig} from 'react-hot-loader'
-// setConfig({logLevel: 'debug'})
-
-type OwnProps = any // the types here and RouteProps don't agree
+type OwnProps = any
 
 type Props = {
-  widgetBadge: boolean,
-  desktopAppBadgeCount: number,
-  username: string,
+  widgetBadge: boolean
+  desktopAppBadgeCount: number
+  username: string
 }
 
 // TODO likely remove this class

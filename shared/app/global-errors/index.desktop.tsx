@@ -1,25 +1,25 @@
-// @flow
 import React, {Component} from 'react'
 import logger from '../../logger'
-import {Box, Text, Icon, HOCTimers, type PropsWithTimer} from '../../common-adapters'
+import {Box, Text, Icon, HOCTimers, PropsWithTimer} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, platformStyles, transition} from '../../styles'
 import {ignoreDisconnectOverlay} from '../../local-debug.desktop'
 import {RPCError} from '../../util/errors'
 
-import type {Props as _Props} from './index.types'
+import {Props as _Props} from './index.types'
 
 type Size = 'Closed' | 'Small' | 'Big'
+
 type State = {
-  size: Size,
-  cachedSummary: ?string,
-  cachedDetails: ?string,
+  size: Size
+  cachedSummary: string | null
+  cachedDetails: string | null
 }
 
 type Props = PropsWithTimer<_Props>
 
 class GlobalError extends Component<Props, State> {
   state: State
-  timerID: ?TimeoutID
+  timerID: number | null
   _mounted: boolean = false
 
   constructor(props: Props) {
@@ -64,11 +64,11 @@ class GlobalError extends Component<Props, State> {
     }
   }
 
-  _summaryForError(err: null | Error | RPCError): ?string {
+  _summaryForError(err: null | Error | RPCError): string | null {
     return err ? err.message : null
   }
 
-  _detailsForError(err: null | Error | RPCError): ?string {
+  _detailsForError(err: null | Error | RPCError): string | null {
     return err ? err.stack : null
   }
 

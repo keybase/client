@@ -1,4 +1,3 @@
-// @flow
 import * as File from '../util/file'
 import {serverConfigFileName} from '../constants/platform'
 import logger from '../logger'

@@ -1,4 +1,3 @@
-// @flow
 // Component to help debug rpc issues. Shows counts of incoming/outgoing rpcs. Turned on by default for kb employees
 import * as React from 'react'
 import {ClickableBox, Box2, Text} from '../common-adapters'
@@ -8,17 +7,15 @@ import * as Stats from '../engine/stats'
 import {isIPhoneX} from '../constants/platform'
 
 type Props = {}
+
 type State = {
-  // mark* means to make it bold for a single render cause it changed
-  markIn: boolean,
-  markOut: boolean,
-  markEOF: boolean,
-  // counts
-  inCount: number,
-  outCount: number,
-  eofCount: number,
-  // clicking hides it
-  visible: boolean,
+  markIn: boolean
+  markOut: boolean
+  markEOF: boolean
+  inCount: number
+  outCount: number
+  eofCount: number
+  visible: boolean
 }
 
 class RpcStats extends React.Component<Props, State> {
@@ -33,7 +30,7 @@ class RpcStats extends React.Component<Props, State> {
   }
 
   _mounted = false
-  _intervalID: ?IntervalID
+  _intervalID: number | null
 
   _cleanup = () => {
     if (this._intervalID) {

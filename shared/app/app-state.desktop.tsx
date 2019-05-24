@@ -1,30 +1,29 @@
-// @flow
 // This is modified from https://github.com/mawie81/electron-window-state
 import * as SafeElectron from '../util/safe-electron.desktop'
 import fs from 'fs'
 import path from 'path'
 import {isEqual} from 'lodash-es'
 import logger from '../logger'
-import type {State} from './app-state'
+import {State} from './app-state'
 
 export type Config = {
-  path: string,
-  eventHandlingDelay: number,
+  path: string
+  eventHandlingDelay: number
 }
 
 export type Options = {
-  defaultWidth: number,
-  defaultHeight: number,
+  defaultWidth: number
+  defaultHeight: number
 }
 
 export type Managed = {
-  winRef: ?any,
-  debounceChangeTimer: ?TimeoutID,
-  showHandlers: Array<Function>,
-  resizeHandlers: Array<Function>,
-  moveHandlers: Array<Function>,
-  closeHandlers: Array<Function>,
-  closedHandlers: Array<Function>,
+  winRef: any | null
+  debounceChangeTimer: number | null
+  showHandlers: Array<Function>
+  resizeHandlers: Array<Function>
+  moveHandlers: Array<Function>
+  closeHandlers: Array<Function>
+  closedHandlers: Array<Function>
 }
 
 export default class AppState {
@@ -217,6 +216,7 @@ export default class AppState {
   _loadStateSync() {
     let configPath = this.config.path
     try {
+      // @ts-ignore codemod issue
       fs.accessSync(configPath, fs.F_OK)
     } catch (e) {
       logger.info('No app state')

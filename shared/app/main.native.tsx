@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../common-adapters/mobile.native'
 import * as Styles from '../styles'
@@ -8,10 +7,10 @@ import {connect} from '../util/container'
 import {GatewayDest} from 'react-gateway'
 import {View} from 'react-native'
 
-type OwnProps = {||}
+type OwnProps = {}
 
 type Props = {
-  showPushPrompt: any,
+  showPushPrompt: any
 }
 
 class Main extends React.Component<Props> {
@@ -43,7 +42,7 @@ class Main extends React.Component<Props> {
     )
   }
 }
-const ViewForGatewayDest = <T>(props: T) => <View {...props} />
+const ViewForGatewayDest = (props: any) => <View {...props} />
 
 const styles = Styles.styleSheetCreate({
   gatewayDest: {flexGrow: 1, width: '100%'},

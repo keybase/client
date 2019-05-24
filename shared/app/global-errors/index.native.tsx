@@ -1,15 +1,15 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as Styles from '../../styles'
 import {RPCError} from '../../util/errors'
-import type {Props as _Props} from './index.types'
+import {Props as _Props} from './index.types'
 
 type Size = 'Closed' | 'Small' | 'Big'
+
 type State = {
-  size: Size,
-  cachedSummary: ?string,
-  cachedDetails: ?string,
+  size: Size
+  cachedSummary: string | null
+  cachedDetails: string | null
 }
 
 type Props = Kb.PropsWithTimer<_Props>
@@ -39,11 +39,11 @@ class GlobalError extends React.Component<Props, State> {
     this.setState({size: newError ? 'Small' : 'Closed'})
   }
 
-  _summaryForError(err: null | Error | RPCError): ?string {
+  _summaryForError(err: null | Error | RPCError): string | null {
     return err ? err.message : null
   }
 
-  _detailsForError(err: null | Error | RPCError): ?string {
+  _detailsForError(err: null | Error | RPCError): string | null {
     return err ? err.stack : null
   }
 

@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
-import type {Props} from './index.types'
+import {Props} from './index.types'
 export default class GlobalError extends React.Component<Props> {}

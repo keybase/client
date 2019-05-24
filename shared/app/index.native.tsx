@@ -1,4 +1,3 @@
-// @flow
 import * as ConfigGen from '../actions/config-gen'
 import Main from './main.native'
 import React, {Component} from 'react'
