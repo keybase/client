@@ -138,13 +138,13 @@ const refreshInvites = () =>
   }).then(json => {
     const results: {
       invitations: Array<{
-        assertion: string | null,
-        ctime: number,
-        email: string,
-        invitation_id: string,
-        short_code: string,
-        type: string,
-        uid: string,
+        assertion: string | null
+        ctime: number
+        email: string
+        invitation_id: string
+        short_code: string
+        type: string
+        uid: string
         username: string
       }>
     } = JSON.parse((json && json.body) || '')
@@ -250,12 +250,12 @@ function* refreshNotifications() {
   let chatGlobalSettings: ChatTypes.GlobalAppNotificationSettings
 
   try {
-    const [
-      json,
-      _chatGlobalSettings
-    ]: [{
+    const [json, _chatGlobalSettings]: [
+      {
         body: string
-      } | null, ChatTypes.GlobalAppNotificationSettings] = yield Saga.all([
+      } | null,
+      ChatTypes.GlobalAppNotificationSettings
+    ] = yield Saga.all([
       Saga.callUntyped(
         RPCTypes.apiserverGetWithSessionRpcPromise,
         {
@@ -286,18 +286,18 @@ function* refreshNotifications() {
     notifications: {
       email: {
         settings: Array<{
-          name: string,
-          description: string,
+          name: string
+          description: string
           subscribed: boolean
-        }>,
+        }>
         unsub: boolean
-      },
+      }
       security: {
         settings: Array<{
-          name: string,
-          description: string,
+          name: string
+          description: string
           subscribed: boolean
-        }>,
+        }>
         unsub: boolean
       }
     }
@@ -514,7 +514,8 @@ const loadHasRandomPW = state =>
 // Mark that we are not randomPW anymore if we got a password change.
 const passwordChanged = () => SettingsGen.createLoadedHasRandomPw({randomPW: false})
 
-const stop = (_, action: SettingsGen.StopPayload) => RPCTypes.ctlStopRpcPromise({exitCode: action.payload.exitCode})
+const stop = (_, action: SettingsGen.StopPayload) =>
+  RPCTypes.ctlStopRpcPromise({exitCode: action.payload.exitCode})
 
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<SettingsGen.InvitesReclaimPayload>(SettingsGen.invitesReclaim, reclaimInvite)

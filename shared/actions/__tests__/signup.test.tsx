@@ -2,7 +2,7 @@
 import * as Types from '../../constants/types/signup'
 import * as Constants from '../../constants/signup'
 import * as SignupGen from '../signup-gen'
-import { TypedState } from '../../constants/reducer';
+import {TypedState} from '../../constants/reducer'
 import {loginTab} from '../../constants/tabs'
 import HiddenString from '../../util/hidden-string'
 import * as RouteTreeGen from '../route-tree-gen'

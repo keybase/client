@@ -8,7 +8,7 @@ import {isMobile} from '../constants/platform'
 import {loginTab} from '../constants/tabs'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import {RPCError} from '../util/errors'
-import { TypedState } from '../constants/reducer';
+import {TypedState} from '../constants/reducer'
 
 // Helpers ///////////////////////////////////////////////////////////
 // returns true if there are no errors, we check all errors at every transition just to be extra careful

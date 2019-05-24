@@ -8,12 +8,24 @@ import * as Tabs from '../constants/tabs'
 import logger from '../logger'
 import {isMobile} from '../constants/platform'
 import HiddenString from '../util/hidden-string'
-import { TypedState } from '../constants/reducer';
+import {TypedState} from '../constants/reducer'
 import {devicesTab as settingsDevicesTab} from '../constants/settings'
 
 const devicesRoot = isMobile ? [Tabs.settingsTab, settingsDevicesTab] : [Tabs.devicesTab, 'devicesRoot']
 
-type ValidCallback = "keybase.1.gpgUi.selectKey" | "keybase.1.loginUi.displayPrimaryPaperKey" | "keybase.1.loginUi.getEmailOrUsername" | "keybase.1.provisionUi.DisplayAndPromptSecret" | "keybase.1.provisionUi.DisplaySecretExchanged" | "keybase.1.provisionUi.PromptNewDeviceName" | "keybase.1.provisionUi.ProvisioneeSuccess" | "keybase.1.provisionUi.ProvisionerSuccess" | "keybase.1.provisionUi.chooseDevice" | "keybase.1.provisionUi.chooseGPGMethod" | "keybase.1.provisionUi.switchToGPGSignOK" | "keybase.1.secretUi.getPassphrase";
+type ValidCallback =
+  | 'keybase.1.gpgUi.selectKey'
+  | 'keybase.1.loginUi.displayPrimaryPaperKey'
+  | 'keybase.1.loginUi.getEmailOrUsername'
+  | 'keybase.1.provisionUi.DisplayAndPromptSecret'
+  | 'keybase.1.provisionUi.DisplaySecretExchanged'
+  | 'keybase.1.provisionUi.PromptNewDeviceName'
+  | 'keybase.1.provisionUi.ProvisioneeSuccess'
+  | 'keybase.1.provisionUi.ProvisionerSuccess'
+  | 'keybase.1.provisionUi.chooseDevice'
+  | 'keybase.1.provisionUi.chooseGPGMethod'
+  | 'keybase.1.provisionUi.switchToGPGSignOK'
+  | 'keybase.1.secretUi.getPassphrase'
 
 const ignoreCallback = (_: any) => {}
 
@@ -21,7 +33,7 @@ const ignoreCallback = (_: any) => {}
 // We only allow one manager to be alive at a time
 // Can be made for a regular provision or if we're adding a device
 class ProvisioningManager {
-  static singleton: ProvisioningManager | null = null;
+  static singleton: ProvisioningManager | null = null
   static getSingleton = (): ProvisioningManager => {
     if (!ProvisioningManager.singleton) {
       throw new Error('No ProvisioningManager')
@@ -29,11 +41,11 @@ class ProvisioningManager {
     return ProvisioningManager.singleton
   }
   _stashedResponse = null
-  _stashedResponseKey: ValidCallback | null = null;
-  _addingANewDevice: boolean;
-  _done: boolean = false;
+  _stashedResponseKey: ValidCallback | null = null
+  _addingANewDevice: boolean
+  _done: boolean = false
 
-  constructor(addingANewDevice: boolean, onlyCallThisFromTheHelper: "ONLY_CALL_THIS_FROM_HELPER") {
+  constructor(addingANewDevice: boolean, onlyCallThisFromTheHelper: 'ONLY_CALL_THIS_FROM_HELPER') {
     this._addingANewDevice = addingANewDevice
     ProvisioningManager.singleton = this
   }
@@ -367,7 +379,8 @@ class ProvisioningManager {
   }
 }
 
-const makeProvisioningManager = (addingANewDevice: boolean): ProvisioningManager => new ProvisioningManager(addingANewDevice, 'ONLY_CALL_THIS_FROM_HELPER')
+const makeProvisioningManager = (addingANewDevice: boolean): ProvisioningManager =>
+  new ProvisioningManager(addingANewDevice, 'ONLY_CALL_THIS_FROM_HELPER')
 
 /**
  * We are starting the provisioning process. This is largely controlled by the daemon. We get a callback to show various
@@ -439,10 +452,14 @@ function* addNewDevice(state) {
 const submitDeviceSelect = state => ProvisioningManager.getSingleton().submitDeviceSelect(state)
 const submitDeviceName = state => ProvisioningManager.getSingleton().submitDeviceName(state)
 const submitTextCode = state => ProvisioningManager.getSingleton().submitTextCode(state)
-const submitGPGMethod = (state, action: ProvisionGen.SubmitGPGMethodPayload) => ProvisioningManager.getSingleton().submitGPGMethod(state, action)
-const submitGPGSignOK = (state, action: ProvisionGen.SubmitGPGSignOKPayload) => ProvisioningManager.getSingleton().submitGPGSignOK(state, action)
-const submitPasswordOrPaperkey = (state, action: ProvisionGen.SubmitPasswordPayload | ProvisionGen.SubmitPaperkeyPayload) =>
-  ProvisioningManager.getSingleton().submitPasswordOrPaperkey(state, action)
+const submitGPGMethod = (state, action: ProvisionGen.SubmitGPGMethodPayload) =>
+  ProvisioningManager.getSingleton().submitGPGMethod(state, action)
+const submitGPGSignOK = (state, action: ProvisionGen.SubmitGPGSignOKPayload) =>
+  ProvisioningManager.getSingleton().submitGPGSignOK(state, action)
+const submitPasswordOrPaperkey = (
+  state,
+  action: ProvisionGen.SubmitPasswordPayload | ProvisionGen.SubmitPaperkeyPayload
+) => ProvisioningManager.getSingleton().submitPasswordOrPaperkey(state, action)
 const maybeCancelProvision = (state: TypedState) =>
   ProvisioningManager.getSingleton().maybeCancelProvision(state)
 

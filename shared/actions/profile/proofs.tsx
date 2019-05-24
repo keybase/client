@@ -1,6 +1,6 @@
 import logger from '../../logger'
 import * as Constants from '../../constants/profile'
-import { RPCError } from '../../util/errors';
+import {RPCError} from '../../util/errors'
 import * as ProfileGen from '../profile-gen'
 import * as Saga from '../../util/saga'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -50,7 +50,7 @@ const checkProof = (state, action: ProfileGen.CheckProofPayload) => {
         errorCode: null,
         errorText: "We couldn't verify your proof. Please retry!",
       })
-    });
+    })
 }
 
 const recheckProof = (state, action: ProfileGen.RecheckProofPayload) =>
@@ -274,7 +274,10 @@ function* addProof(state, action: ProfileGen.AddProofPayload) {
   addProofInProgress = false
 }
 
-const submitCryptoAddress = (state, action: ProfileGen.SubmitBTCAddressPayload | ProfileGen.SubmitZcashAddressPayload) => {
+const submitCryptoAddress = (
+  state,
+  action: ProfileGen.SubmitBTCAddressPayload | ProfileGen.SubmitZcashAddressPayload
+) => {
   if (!state.profile.usernameValid) {
     return ProfileGen.createUpdateErrorText({errorCode: 0, errorText: 'Invalid address format'})
   }
@@ -304,7 +307,7 @@ const submitCryptoAddress = (state, action: ProfileGen.SubmitBTCAddressPayload |
     .catch((error: RPCError) => {
       logger.warn('Error making proof')
       return ProfileGen.createUpdateErrorText({errorCode: error.code, errorText: error.desc})
-    });
+    })
 }
 
 function* proofsSaga(): Saga.SagaGenerator<any, any> {

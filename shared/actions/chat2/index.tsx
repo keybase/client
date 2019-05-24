@@ -44,7 +44,8 @@ const onConnect = () => {
 // Ask the service to refresh the inbox
 function* inboxRefresh(
   state,
-  action: Chat2Gen.InboxRefreshPayload
+  action:
+    | Chat2Gen.InboxRefreshPayload
     | EngineGen.Chat1NotifyChatChatInboxStalePayload
     | EngineGen.Chat1NotifyChatChatJoinedConversationPayload
     | EngineGen.Chat1NotifyChatChatLeftConversationPayload,
@@ -199,7 +200,10 @@ const rpcMetaRequestConversationIDKeys = (
 // We want to unbox rows that have scroll into view
 function* unboxRows(
   state,
-  action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload | Chat2Gen.MetasReceivedPayload,
+  action:
+    | Chat2Gen.MetaRequestTrustedPayload
+    | Chat2Gen.SelectConversationPayload
+    | Chat2Gen.MetasReceivedPayload,
   logger
 ) {
   if (!state.config.loggedIn) {
@@ -624,8 +628,7 @@ const onChatInboxSynced = (state, action: EngineGen.Chat1NotifyChatChatInboxSync
         }
         return arr
       }, [])
-      const removals = // Auto generated from flowToTs. Please clean me!
-      (
+      const removals = (
         (syncRes.incremental === null || syncRes.incremental === undefined
           ? undefined
           : syncRes.incremental.removals) || []
@@ -956,7 +959,8 @@ const scrollDirectionToPagination = (sd: scrollDirection, numberOfMessagesToLoad
 // messages
 function* loadMoreMessages(
   state,
-  action: Chat2Gen.SelectConversationPayload
+  action:
+    | Chat2Gen.SelectConversationPayload
     | Chat2Gen.JumpToRecentPayload
     | Chat2Gen.LoadOlderMessagesDueToScrollPayload
     | Chat2Gen.LoadNewerMessagesDueToScrollPayload
@@ -1452,8 +1456,7 @@ const onInboxSearchSelect = (state, action: Chat2Gen.InboxSearchSelectPayload) =
   const selected = Constants.getInboxSearchSelected(inboxSearch)
   const conversationIDKey = action.payload.conversationIDKey
     ? action.payload.conversationIDKey
-    : // Auto generated from flowToTs. Please clean me!
-    selected === null || selected === undefined
+    : selected === null || selected === undefined
     ? undefined
     : selected.conversationIDKey
   if (!conversationIDKey) {
@@ -1464,7 +1467,9 @@ const onInboxSearchSelect = (state, action: Chat2Gen.InboxSearchSelectPayload) =
     : selected === null || selected === undefined
     ? undefined
     : selected.query
-  const actions: Array<TypedActions> = [Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSearch'})]
+  const actions: Array<TypedActions> = [
+    Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSearch'}),
+  ]
   if (query) {
     actions.push(Chat2Gen.createSetThreadSearchQuery({conversationIDKey, query}))
     actions.push(Chat2Gen.createToggleThreadSearch({conversationIDKey}))
@@ -1732,7 +1737,8 @@ const startupInboxLoad = state =>
 
 const changeSelectedConversation = (
   state,
-  action: Chat2Gen.MetasReceivedPayload
+  action:
+    | Chat2Gen.MetasReceivedPayload
     | Chat2Gen.LeaveConversationPayload
     | Chat2Gen.MetaDeletePayload
     | Chat2Gen.MessageSendPayload
@@ -2059,7 +2065,8 @@ const resetLetThemIn = (_, action: Chat2Gen.ResetLetThemInPayload) =>
 
 const markThreadAsRead = (
   state,
-  action: Chat2Gen.MessagesAddPayload
+  action:
+    | Chat2Gen.MessagesAddPayload
     | Chat2Gen.UpdateUnreadlinePayload
     | Chat2Gen.MarkInitiallyLoadedThreadAsReadPayload
     | Chat2Gen.UpdateReactionsPayload
@@ -2182,7 +2189,8 @@ function* loadChannelInfos(state, action: Chat2Gen.SelectConversationPayload) {
 // Helpers to nav you to the right place
 const navigateToInbox = (
   state,
-  action: Chat2Gen.NavigateToInboxPayload
+  action:
+    | Chat2Gen.NavigateToInboxPayload
     | Chat2Gen.LeaveConversationPayload
     | TeamsGen.LeaveTeamPayload
     | TeamsGen.LeftTeamPayload,

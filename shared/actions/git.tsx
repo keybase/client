@@ -6,7 +6,7 @@ import * as NotificationsGen from './notifications-gen'
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
-import { TypedState } from '../util/container';
+import {TypedState} from '../util/container'
 import {logError} from '../util/errors'
 
 const load = (state: TypedState) =>
@@ -17,9 +17,7 @@ const load = (state: TypedState) =>
     )
     .catch(() => {})
 
-const surfaceGlobalErrors = (_, {
-  payload: {errors}
-}: GitGen.LoadedPayload) =>
+const surfaceGlobalErrors = (_, {payload: {errors}}: GitGen.LoadedPayload) =>
   errors.map(globalError => ConfigGen.createGlobalError({globalError}))
 
 const createPersonalRepo = (_, action: GitGen.CreatePersonalRepoPayload) =>

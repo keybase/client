@@ -86,7 +86,7 @@ const getPeopleData = (state, action: PeopleGen.GetPeopleDataPayload) => {
       })
       // never throw black bars
     })
-    .catch(e => {});
+    .catch(e => {})
 }
 
 const dismissAnnouncement = (_, action: PeopleGen.DismissAnnouncementPayload) =>

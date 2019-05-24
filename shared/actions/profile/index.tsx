@@ -9,7 +9,7 @@ import * as Tracker2Gen from '../tracker2-gen'
 import keybaseUrl from '../../constants/urls'
 import logger from '../../logger'
 import openURL from '../../util/open-url'
-import { RPCError } from '../../util/errors';
+import {RPCError} from '../../util/errors'
 import {peopleTab} from '../../constants/tabs'
 import {pgpSaga} from './pgp'
 import {proofsSaga} from './proofs'
@@ -95,7 +95,7 @@ const submitRevokeProof = (state, action: ProfileGen.SubmitRevokeProofPayload) =
         return ProfileGen.createRevokeFinishError({
           error: 'There was an error revoking your proof. You can click the button to try again.',
         })
-      });
+      })
   }
 }
 

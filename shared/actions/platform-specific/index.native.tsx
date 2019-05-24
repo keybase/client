@@ -24,7 +24,7 @@ import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
 // @ts-ignore codemod-issue
 import {showImagePicker, Response} from 'react-native-image-picker'
-import { TypedActions } from 'util/container';
+import {TypedActions} from 'util/container'
 
 type NextURI = string
 function saveAttachmentDialog(filePath: string): Promise<NextURI> {

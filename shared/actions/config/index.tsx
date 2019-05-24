@@ -53,7 +53,11 @@ const onDisconnected = () => {
 
 function* loadDaemonBootstrapStatus(
   state,
-  action: ConfigGen.LoggedInPayload | ConfigGen.DaemonHandshakePayload | GregorGen.UpdateReachablePayload
+  action:
+    | ConfigGen.LoggedInPayload
+    | ConfigGen.DaemonHandshakePayload
+    | GregorGen.UpdateReachablePayload
+    | ConfigGen.LoggedOutPayload
 ) {
   // Ignore the 'fake' loggedIn cause we'll get the daemonHandshake and we don't want to do this twice
   if (action.type === ConfigGen.loggedIn && action.payload.causedByStartup) {
@@ -115,7 +119,6 @@ function* loadDaemonBootstrapStatus(
       if (!action.payload.reachable) break
     // else fall through
     case ConfigGen.loggedIn: // fallthrough
-    // @ts-ignore codemod-issue this probably is correct
     case ConfigGen.loggedOut:
       yield* makeCall()
       break

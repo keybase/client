@@ -7,7 +7,7 @@ import * as Chat2Gen from '../chat2-gen'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Saga from '../../util/saga'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import { TypedState } from '../../constants/reducer';
+import {TypedState} from '../../constants/reducer'
 
 const closeTeamBuilding = () => RouteTreeGen.createClearModals()
 
@@ -16,24 +16,25 @@ const apiSearch = (
   service: TeamBuildingTypes.ServiceIdWithContact,
   limit: number,
   includeServicesSummary: boolean
-): Promise<Array<TeamBuildingTypes.User>> => RPCTypes.apiserverGetWithSessionRpcPromise({
-  args: [
-    {key: 'q', value: query},
-    {key: 'num_wanted', value: String(limit)},
-    {key: 'service', value: service === 'keybase' ? '' : service},
-    {key: 'include_services_summary', value: includeServicesSummary ? '1' : '0'},
-  ],
-  endpoint: 'user/user_search',
-})
-  .then(results =>
-    JSON.parse(results.body)
-      .list.map(r => Constants.parseRawResultToUser(r, service))
-      .filter(u => !!u)
-  )
-  .catch(err => {
-    logger.error(`Error in searching for ${query} on ${service}. ${err.message}`)
-    return []
+): Promise<Array<TeamBuildingTypes.User>> =>
+  RPCTypes.apiserverGetWithSessionRpcPromise({
+    args: [
+      {key: 'q', value: query},
+      {key: 'num_wanted', value: String(limit)},
+      {key: 'service', value: service === 'keybase' ? '' : service},
+      {key: 'include_services_summary', value: includeServicesSummary ? '1' : '0'},
+    ],
+    endpoint: 'user/user_search',
   })
+    .then(results =>
+      JSON.parse(results.body)
+        .list.map(r => Constants.parseRawResultToUser(r, service))
+        .filter(u => !!u)
+    )
+    .catch(err => {
+      logger.error(`Error in searching for ${query} on ${service}. ${err.message}`)
+      return []
+    })
 
 function* searchResultCounts(state) {
   const {teamBuildingSearchQuery, teamBuildingSelectedService} = state.chat2
@@ -49,8 +50,9 @@ function* searchResultCounts(state) {
     .filter(s => s !== teamBuildingSelectedService && s !== 'contact')
     .filter(s => !state.chat2.teamBuildingSearchResults.hasIn([teamBuildingSearchQuery, s]))
 
-  const isStillInSameQuery = (state: TypedState): boolean => state.chat2.teamBuildingSearchQuery === teamBuildingSearchQuery &&
-  state.chat2.teamBuildingSelectedService === teamBuildingSelectedService
+  const isStillInSameQuery = (state: TypedState): boolean =>
+    state.chat2.teamBuildingSearchQuery === teamBuildingSearchQuery &&
+    state.chat2.teamBuildingSelectedService === teamBuildingSelectedService
 
   // Defer so we aren't conflicting with the main search
   yield Saga.callUntyped(Saga.delay, 100)
@@ -121,7 +123,7 @@ const fetchUserRecs = state =>
         ({username, fullname}): TeamBuildingTypes.User => ({
           id: username,
           prettyName: fullname,
-          serviceMap: {keybase: username}
+          serviceMap: {keybase: username},
         })
       )
     )
