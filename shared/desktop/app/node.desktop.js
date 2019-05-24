@@ -73,7 +73,7 @@ const focusSelfOnAnotherInstanceLaunching = (_, commandLine) => {
 
   // The new instance might be due to a deeplink launch.
   logger.info('Launched with deeplink', commandLine)
-  if (commandLine.length > 0 && commandLine[1] && commandLine[1].startsWith('keybase://')) {
+  if (commandLine.length > 0 && commandLine[1] && commandLine[1].startsWith('web+stellar:')) {
     sendToMainWindow('dispatchAction', {payload: {link: commandLine[1]}, type: ConfigGen.link})
   }
 }
@@ -157,7 +157,7 @@ const createMainWindow = () => {
       // stash a startupURL to be dispatched when we're ready for it.
       sendToMainWindow('dispatchAction', {payload: {link: startupURL}, type: ConfigGen.link})
       startupURL = null
-    } else if (!isDarwin && process.argv.length > 0 && process.argv[1].startsWith('keybase://')) {
+    } else if (!isDarwin && process.argv.length > 0 && process.argv[1].startsWith('web+stellar:')) {
       // Windows instead stores a launch URL in argv.
       sendToMainWindow('dispatchAction', {payload: {link: process.argv[1]}, type: ConfigGen.link})
     }
