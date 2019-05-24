@@ -199,8 +199,8 @@ const config = (_, {mode}) => {
   }
 
   const typeOverride = {
-    pinentry: 'tsx',
     main: 'tsx',
+    pinentry: 'tsx',
   }
 
   // multiple entries so we can chunk shared parts
