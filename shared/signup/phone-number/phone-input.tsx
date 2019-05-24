@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
@@ -34,16 +33,16 @@ const MenuItem = props => (
 )
 
 type Props = {
-  defaultCountry?: string, // TODO get this from core. ISO 3166-1 alpha-2 format (e.g. 'US')
-  error: string,
-  onChangeNumber: (number: string) => void, // E.164 format (e.g. '+18002667883').
-  onChangeValidity: boolean => void,
-  style?: Styles.StylesCrossPlatform,
+  defaultCountry?: string
+  error: string
+  onChangeNumber: (number: string) => void
+  onChangeValidity: (arg0: boolean) => void
+  style?: Styles.StylesCrossPlatform
 }
 
 type State = {
-  country: string,
-  formatted: string,
+  country: string
+  formatted: string
 }
 
 class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
@@ -136,17 +135,17 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
 }
 const PhoneInput = Kb.OverlayParentHOC(_PhoneInput)
 
-type CountrySelectorProps = {|
-  attachTo: () => ?React.Component<any>,
-  onSelect: string => void,
-  onHidden: () => void,
-  selected: string,
-  visible: boolean,
-|}
+type CountrySelectorProps = {
+  attachTo: () => React.Component<any> | null
+  onSelect: (arg0: string) => void
+  onHidden: () => void
+  selected: string
+  visible: boolean
+}
 
-type CountrySelectorState = {|
-  selected: string,
-|}
+type CountrySelectorState = {
+  selected: string
+}
 
 class CountrySelector extends React.Component<CountrySelectorProps, CountrySelectorState> {
   state = {selected: this.props.selected}

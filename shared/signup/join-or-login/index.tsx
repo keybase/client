@@ -1,15 +1,14 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {InfoIcon} from '../common'
 
-type Props = {|
-  onCreateAccount: () => void,
-  onDocumentation: () => void,
-  onFeedback: () => void,
-  onLogin: () => void,
-|}
+type Props = {
+  onCreateAccount: () => void
+  onDocumentation: () => void
+  onFeedback: () => void
+  onLogin: () => void
+}
 
 const JoinOrLogin = (props: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} alignItems="center">

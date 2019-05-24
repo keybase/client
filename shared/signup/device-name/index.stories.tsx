@@ -1,22 +1,18 @@
-// @flow
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import {storyDecorator} from '../common-stories'
-import EnterUsername from '.'
+import EnterDevicename from '.'
 
 const props = {
   onBack: Sb.action('onBack'),
-  onChangeUsername: Sb.action('onChangeUsername'),
+  onChangeDevicename: Sb.action('onChangeDeviceName'),
   onContinue: Sb.action('onContinue'),
-  onLogin: Sb.action('onLogin'),
-  usernameTaken: null,
 }
 
 const load = () => {
   Sb.storiesOf('New signup', module)
     .addDecorator(storyDecorator)
-    .add('Enter username', () => <EnterUsername {...props} />)
-    .add('Enter username - taken', () => <EnterUsername {...props} usernameTaken="chris" />)
+    .add('Enter devicename', () => <EnterDevicename {...props} />)
 }
 
 export default load

@@ -1,15 +1,14 @@
-// @flow
 import * as React from 'react'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
-import type {Props as ButtonProps} from '../common-adapters/button'
+import {Props as ButtonProps} from '../common-adapters/button'
 import * as Styles from '../styles'
 
-type InfoIconProps = {|
-  invisible: boolean,
-  onDocumentation: () => void,
-  onFeedback: () => void,
-|}
+type InfoIconProps = {
+  invisible: boolean
+  onDocumentation: () => void
+  onFeedback: () => void
+}
 
 const _InfoIcon = (props: Kb.PropsWithOverlay<InfoIconProps>) => (
   <>
@@ -32,7 +31,7 @@ const _InfoIcon = (props: Kb.PropsWithOverlay<InfoIconProps>) => (
   </>
 )
 export const InfoIcon = Container.compose(
-  Container.namedConnect<{invisible?: boolean}, _, _, _, _>(
+  Container.namedConnect(
     () => ({}),
     () => ({onDocumentation: () => {}, onFeedback: () => {}}),
     (s, d, o) => ({...o, ...s, ...d}),
@@ -72,33 +71,30 @@ const Header = props => (
   </Kb.Box2>
 )
 
-type ButtonMeta = {|
-  disabled?: boolean,
-  label: string,
-  onClick: () => void,
-  type: $PropertyType<ButtonProps, 'type'>,
-|}
-type SignupScreenProps = {|
-  banners?: React.Node,
-  buttons: Array<ButtonMeta>,
-  children: React.Node,
-  negativeHeader?: boolean, // desktop only
-  onBack?: () => void,
-  skipMobileHeader?: boolean, // skip adding HeaderHoc
-  headerStyle?: Styles.StylesCrossPlatform, // mobile goes into HeaderHoc
-  containerStyle?: Styles.StylesCrossPlatform,
-  title?: string,
-  titleComponent?: React.Node,
+type ButtonMeta = {
+  disabled?: boolean
+  label: string
+  onClick: () => void
+  type: ButtonProps['type']
+}
 
-  // HACK - HeaderHoc isn't typed to add props correctly (and we're only using it conditionally here)
-  // add props from HeaderHoc as necessary
-  // Mobile only
-  header?: React.Node,
-  rightActionLabel?: string,
-  onRightAction?: ?() => void,
-  leftAction?: 'back' | 'cancel',
-  leftActionText?: string,
-|}
+type SignupScreenProps = {
+  banners?: React.ReactNode
+  buttons: Array<ButtonMeta>
+  children: React.ReactNode
+  negativeHeader?: boolean
+  onBack?: () => void
+  skipMobileHeader?: boolean
+  headerStyle?: Styles.StylesCrossPlatform
+  containerStyle?: Styles.StylesCrossPlatform
+  title?: string
+  titleComponent?: React.ReactNode
+  header?: React.ReactNode
+  rightActionLabel?: string
+  onRightAction?: () => void | null
+  leftAction?: 'back' | 'cancel'
+  leftActionText?: string
+}
 
 // Screens with header + body bg color (i.e. all but join-or-login)
 const _SignupScreen = (props: SignupScreenProps) => (

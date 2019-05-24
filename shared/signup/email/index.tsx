@@ -1,16 +1,15 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {SignupScreen} from '../common'
 
-type Props = {|
-  allowSearch: boolean,
-  onChangeAllowSearch: boolean => void,
-  onChangeEmail: string => void,
-  onFinish: () => void,
-  onSkip: () => void,
-|}
+type Props = {
+  allowSearch: boolean
+  onChangeAllowSearch: (arg0: boolean) => void
+  onChangeEmail: (arg0: string) => void
+  onFinish: () => void
+  onSkip: () => void
+}
 
 const EnterEmail = (props: Props) => (
   <SignupScreen

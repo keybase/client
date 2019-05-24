@@ -1,14 +1,13 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {SignupScreen} from '../common'
 
-type Props = {|
-  onBack: () => void,
-  onChangeDevicename: () => void,
-  onContinue: () => void,
-|}
+type Props = {
+  onBack: () => void
+  onChangeDevicename: () => void
+  onContinue: () => void
+}
 
 const EnterDevicename = (props: Props) => (
   <SignupScreen
