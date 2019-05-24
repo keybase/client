@@ -757,6 +757,7 @@ const maybeNavigateAwayFromSendForm = state => {
 }
 
 const maybeNavigateToConversation = (state, action, logger) => {
+  const f: ReadonlyArray<number> = [1,2,3]
   logger.info('Navigating to conversation because we requested a payment')
   return Chat2Gen.createPreviewConversation({
     participants: [action.payload.requestee],

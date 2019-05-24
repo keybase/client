@@ -273,7 +273,7 @@
     "badgeAppForTeams": {
       "newTeamNames": "Array<string>",
       "newTeamAccessRequests": "Array<string>",
-      "teamsWithResetUsers": "Array<$ReadOnly<{id: Buffer, teamname: string, username: string, uid: string}>>"
+      "teamsWithResetUsers": "ReadonlyArray<{id: Buffer, teamname: string, username: string, uid: string}>"
     },
     "checkRequestedAccess": {
       "teamname": "string"

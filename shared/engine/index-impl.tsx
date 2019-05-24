@@ -192,7 +192,7 @@ class Engine {
           .split('.')
           .map((p, idx) => (idx ? capitalize(p) : p))
           .join('')
-        // $ForceType can't really type this easily
+        // @ts-ignore can't really type this easily
         Engine._dispatch({payload: {params: param, ...extra}, type: `engine-gen:${type}`})
       }
     }

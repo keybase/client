@@ -35,7 +35,7 @@ type _LoadPayload = {
   readonly reason: string
   readonly inTracker: boolean
 }
-type _ProofSuggestionsUpdatedPayload = {readonly suggestions: $ReadOnlyArray<Types.Assertion>}
+type _ProofSuggestionsUpdatedPayload = {readonly suggestions: ReadonlyArray<Types.Assertion>}
 type _ShowUserPayload = {readonly asTracker: boolean; readonly username: string; readonly skipNav?: boolean}
 type _UpdateAssertionPayload = {readonly assertion: Types.Assertion; readonly guiID: string}
 type _UpdateFollowersPayload = {
