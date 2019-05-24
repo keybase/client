@@ -25,7 +25,7 @@ import {isMobile} from '../../constants/platform'
 import { TypedState } from '../../constants/reducer';
 import {updateServerConfigLastLoggedIn} from '../../app/server-config'
 
-const onLoggedIn = (state, action) => {
+const onLoggedIn = (state, action: EngineGen.Keybase1NotifySessionLoggedInPayload) => {
   logger.info('keybase.1.NotifySession.loggedIn')
   // only send this if we think we're not logged in
   if (!state.config.loggedIn) {
@@ -33,7 +33,7 @@ const onLoggedIn = (state, action) => {
   }
 }
 
-const onLoggedOut = (state, action) => {
+const onLoggedOut = (state, action: EngineGen.Keybase1NotifySessionLoggedOutPayload) => {
   logger.info('keybase.1.NotifySession.loggedOut')
   // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
   if (state.config.loggedIn) {
@@ -41,7 +41,7 @@ const onLoggedOut = (state, action) => {
   }
 }
 
-const onLog = (_, action) => {
+const onLog = (_, action: EngineGen.Keybase1LogUiLogPayload) => {
   log(action.payload.params)
 }
 
@@ -51,7 +51,7 @@ const onDisconnected = () => {
   return ConfigGen.createDaemonError({daemonError: new Error('Disconnected')})
 }
 
-function* loadDaemonBootstrapStatus(state, action) {
+function* loadDaemonBootstrapStatus(state, action: ConfigGen.LoggedInPayload | ConfigGen.DaemonHandshakePayload | GregorGen.UpdateReachablePayload) {
   // Ignore the 'fake' loggedIn cause we'll get the daemonHandshake and we don't want to do this twice
   if (action.type === ConfigGen.loggedIn && action.payload.causedByStartup) {
     return
@@ -134,7 +134,7 @@ const startHandshake = state => {
 }
 
 let _firstTimeBootstrapDone = true
-const maybeDoneWithDaemonHandshake = (state, action) => {
+const maybeDoneWithDaemonHandshake = (state, action: ConfigGen.DaemonHandshakeWaitPayload) => {
   if (action.payload.version !== state.config.daemonHandshakeVersion) {
     // ignore out of date actions
     return
@@ -160,7 +160,7 @@ const maybeDoneWithDaemonHandshake = (state, action) => {
 // normally this wouldn't be worth it but this is startup
 const getAccountsWaitKey = 'config.getAccounts'
 
-function* loadDaemonAccounts(state, action) {
+function* loadDaemonAccounts(state, action: DevicesGen.RevokedPayload | ConfigGen.DaemonHandshakePayload | ConfigGen.LoggedOutPayload) {
   let handshakeWait = false
   let handshakeVersion = 0
 
@@ -225,7 +225,7 @@ const showDeletedSelfRootPage = () => [
   RouteTreeGen.createNavigateTo({path: [Tabs.loginTab]}),
 ]
 
-const switchRouteDef = (state, action) => {
+const switchRouteDef = (state, action: ConfigGen.LoggedInPayload | ConfigGen.LoggedOutPayload) => {
   if (state.config.loggedIn) {
     if (action.type === ConfigGen.loggedIn && !action.payload.causedByStartup) {
       // only do this if we're not handling the initial loggedIn event, cause its handled by routeToInitialScreenOnce
@@ -366,7 +366,7 @@ const routeToInitialScreen = state => {
   }
 }
 
-const handleAppLink = (_, action) => {
+const handleAppLink = (_, action: ConfigGen.LinkPayload) => {
   const url = new URL(action.payload.link)
   const username = Constants.urlToUsername(url)
   if (username) {
@@ -380,7 +380,7 @@ const handleAppLink = (_, action) => {
 const emitInitialLoggedIn = state =>
   state.config.loggedIn && ConfigGen.createLoggedIn({causedByStartup: true})
 
-function* allowLogoutWaiters(_, action) {
+function* allowLogoutWaiters(_, action: ConfigGen.LogoutHandshakePayload) {
   yield Saga.put(
     ConfigGen.createLogoutHandshakeWait({
       increment: true,
@@ -429,12 +429,20 @@ const updateServerConfig = (state: TypedState) =>
       logger.info('updateServerConfig fail', e)
     })
 
-const setNavigator = (state, action) => {
+const setNavigator = (state, action: ConfigGen.SetNavigatorPayload) => {
   const navigator = action.payload.navigator
   Router2._setNavigator(navigator)
 }
 
-const newNavigation = (_, action) => {
+const newNavigation = (_, action: RouteTreeGen.NavigateAppendPayload
+  | RouteTreeGen.NavigateToPayload
+  | RouteTreeGen.NavigateUpPayload
+  | RouteTreeGen.SwitchToPayload
+  | RouteTreeGen.SwitchRouteDefPayload
+  | RouteTreeGen.ClearModalsPayload
+  | RouteTreeGen.NavUpToScreenPayload
+  | RouteTreeGen.SwitchTabPayload
+  | RouteTreeGen.ResetStackPayload) => {
   const n = Router2._getNavigator()
   n && n.dispatchOldAction(action)
 }

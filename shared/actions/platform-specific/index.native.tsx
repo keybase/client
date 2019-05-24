@@ -157,7 +157,7 @@ const getContentTypeFromURL = (
           cb({error})
         })
 
-const updateChangedFocus = (_, action) => {
+const updateChangedFocus = (_, action: ConfigGen.MobileAppStatePayload) => {
   let appFocused
   let logState
   switch (action.payload.nextAppState) {
@@ -206,7 +206,7 @@ function* clearRouteState() {
 }
 
 let _lastPersist = ''
-function* persistRoute(state, action) {
+function* persistRoute(state, action: ConfigGen.PersistRoutePayload) {
   const path = action.payload.path
   const tab = path[2] // real top is the root of the tab (aka chatRoot) and not the tab itself
   if (!tab) return
@@ -334,7 +334,7 @@ function* loadStartupDetails() {
   )
 }
 
-function* waitForStartupDetails(state, action) {
+function* waitForStartupDetails(state, action: ConfigGen.DaemonHandshakePayload) {
   // loadStartupDetails finished already
   if (state.config.startupDetailsLoaded) {
     return
@@ -357,11 +357,11 @@ function* waitForStartupDetails(state, action) {
   )
 }
 
-const copyToClipboard = (_, action) => {
+const copyToClipboard = (_, action: ConfigGen.CopyToClipboardPayload) => {
   Clipboard.setString(action.payload.text)
 }
 
-const handleFilePickerError = (_, action) => {
+const handleFilePickerError = (_, action: ConfigGen.FilePickerErrorPayload) => {
   Alert.alert('Error', action.payload.error.message)
 }
 

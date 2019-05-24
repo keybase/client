@@ -32,7 +32,7 @@ const pickAndUploadToPromise = (state: TypedState, action: FsGen.PickAndUploadPa
   .then(localPath => localPath && FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
   .catch(makeRetriableErrorHandler(action))
 
-const downloadSuccess = (state, action) => {
+const downloadSuccess = (state, action: FsGen.DownloadSuccessPayload) => {
   const {key, mimeType} = action.payload
   const download = state.fs.downloads.get(key)
   if (!download) {

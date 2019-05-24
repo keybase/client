@@ -19,7 +19,7 @@ import {NativeModules, NativeEventEmitter} from 'react-native'
 import {isIOS} from '../../constants/platform'
 
 let lastCount = -1
-const updateAppBadge = (_, action) => {
+const updateAppBadge = (_, action: NotificationsGen.ReceivedBadgeStatePayload) => {
   const count = (action.payload.badgeState.conversations || []).reduce(
     (total, c) => (c.badgeCounts ? total + c.badgeCounts[`${RPCTypes.commonDeviceType.mobile}`] : total),
     0
@@ -149,7 +149,7 @@ function* handleLoudMessage(notification) {
 }
 
 // on iOS the go side handles a lot of push details
-function* handlePush(_, action) {
+function* handlePush(_, action: PushGen.NotificationPayload) {
   try {
     const notification = action.payload.notification
     logger.info('[Push]: ' + notification.type || 'unknown')
@@ -209,7 +209,7 @@ const uploadPushToken = state =>
       logger.error("[PushToken] Couldn't save a push token", e)
     })
 
-function* deletePushToken(state, action) {
+function* deletePushToken(state, action: ConfigGen.LogoutHandshakePayload) {
   const waitKey = 'push:deleteToken'
   yield Saga.put(
     ConfigGen.createLogoutHandshakeWait({increment: true, name: waitKey, version: action.payload.version})
@@ -315,7 +315,7 @@ function* initialPermissionsCheck(): Saga.SagaGenerator<any, any> {
   }
 }
 
-function* checkPermissions(_, action: ConfigGen.MobileAppStatePayload | null) {
+function* checkPermissions(_, action: ConfigGen.MobileAppStatePayload) {
   yield* _checkPermissions(action)
 }
 // Call when we foreground and on app start, action is null on app start. Returns if you have permissions

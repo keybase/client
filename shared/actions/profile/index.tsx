@@ -15,7 +15,7 @@ import {pgpSaga} from './pgp'
 import {proofsSaga} from './proofs'
 import {isMobile} from '../../constants/platform'
 
-const editProfile = (state, action) =>
+const editProfile = (state, action: ProfileGen.EditProfilePayload) =>
   RPCTypes.userProfileEditRpcPromise(
     {
       bio: action.payload.bio,
@@ -25,7 +25,7 @@ const editProfile = (state, action) =>
     TrackerConstants.waitingKey
   ).then(() => Tracker2Gen.createShowUser({asTracker: false, username: state.config.username}))
 
-const uploadAvatar = (_, action) =>
+const uploadAvatar = (_, action: ProfileGen.UploadAvatarPayload) =>
   RPCTypes.userUploadUserAvatarRpcPromise(
     {
       crop: action.payload.crop,
@@ -50,7 +50,7 @@ const finishRevoking = state => [
   ProfileGen.createRevokeFinish(),
 ]
 
-const showUserProfile = (state, action) => {
+const showUserProfile = (state, action: ProfileGen.ShowUserProfilePayload) => {
   const {username: userId} = action.payload
   // TODO search itself should handle this
   const username = SearchConstants.maybeUpgradeSearchResultIdToKeybaseId(
@@ -64,7 +64,7 @@ const showUserProfile = (state, action) => {
   ]
 }
 
-const onClickAvatar = (_, action) => {
+const onClickAvatar = (_, action: ProfileGen.OnClickAvatarPayload) => {
   if (!action.payload.username) {
     return
   }
@@ -76,7 +76,7 @@ const onClickAvatar = (_, action) => {
   }
 }
 
-const submitRevokeProof = (state, action) => {
+const submitRevokeProof = (state, action: ProfileGen.SubmitRevokeProofPayload) => {
   const you = TrackerConstants.getDetails(state, state.config.username)
   if (!you || !you.assertions) return null
   const proof = you.assertions.find(a => a.sigID === action.payload.proofId)

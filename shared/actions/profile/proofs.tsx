@@ -11,7 +11,7 @@ import * as Tracker2Constants from '../../constants/tracker2'
 import {peopleTab} from '../../constants/tabs'
 import openURL from '../../util/open-url'
 
-const checkProof = (state, action) => {
+const checkProof = (state, action: ProfileGen.CheckProofPayload) => {
   const sigID = state.profile.sigID
   const isGeneric = !!state.profile.platformGeneric
   if (!sigID) {
@@ -53,14 +53,14 @@ const checkProof = (state, action) => {
     });
 }
 
-const recheckProof = (state, action) =>
+const recheckProof = (state, action: ProfileGen.RecheckProofPayload) =>
   RPCTypes.proveCheckProofRpcPromise({sigID: action.payload.sigID}, Constants.waitingKey).then(() =>
     Tracker2Gen.createShowUser({asTracker: false, username: state.config.username})
   )
 
 // only let one of these happen at a time
 let addProofInProgress = false
-function* addProof(state, action) {
+function* addProof(state, action: ProfileGen.AddProofPayload) {
   const service = More.isPlatformsExpandedType(action.payload.platform)
   const genericService = service ? null : action.payload.platform
   // Special cases
@@ -274,7 +274,7 @@ function* addProof(state, action) {
   addProofInProgress = false
 }
 
-const submitCryptoAddress = (state, action) => {
+const submitCryptoAddress = (state, action: ProfileGen.SubmitBTCAddressPayload | ProfileGen.SubmitZcashAddressPayload) => {
   if (!state.profile.usernameValid) {
     return ProfileGen.createUpdateErrorText({errorCode: 0, errorText: 'Invalid address format'})
   }

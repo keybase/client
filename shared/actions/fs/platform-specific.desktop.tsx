@@ -28,7 +28,7 @@ function pathToURL(p: string): string {
     goodPath = '/' + goodPath
   }
 
-  return encodeURI('file://' + goodPath).replace(/#/g, '%23')
+  return encodeURI('file://' + goodPath).replace(/#/g, '%23');
 }
 
 function openInDefaultDirectory(openPath: string) {
@@ -96,7 +96,7 @@ const _openPathInSystemFileManagerPromise = (openPath: string, isFolder: boolean
       : reject(new Error('unable to open item in folder'))
   )
 
-const openLocalPathInSystemFileManager = (state, action) =>
+const openLocalPathInSystemFileManager = (state, action: FsGen.OpenLocalPathInSystemFileManagerPayload) =>
   getPathType(action.payload.localPath)
     .then(pathType => _openPathInSystemFileManagerPromise(action.payload.localPath, pathType === 'directory'))
     .catch(makeUnretriableErrorHandler(action, null))
@@ -109,7 +109,7 @@ const _rebaseKbfsPathToMountLocation = (kbfsPath: Types.Path, mountLocation: str
       .join(path.sep)
   )
 
-const openPathInSystemFileManager = (state, action) =>
+const openPathInSystemFileManager = (state, action: FsGen.OpenPathInSystemFileManagerPayload) =>
   state.fs.sfmi.driverStatus.type === 'enabled'
     ? RPCTypes.kbfsMountGetCurrentMountDirRpcPromise()
         .then(mountLocation =>
@@ -204,7 +204,7 @@ const windowsCheckMountFromOtherDokanInstall = status =>
       : status
   )
 
-const refreshDriverStatus = (state, action) =>
+const refreshDriverStatus = (state, action: FsGen.KbfsDaemonRpcStatusChangedPayload | FsGen.RefreshDriverStatusPayload) =>
   (action.type !== FsGen.kbfsDaemonRpcStatusChanged || action.payload.rpcStatus === 'connected') &&
   RPCTypes.installFuseStatusRpcPromise({bundleVersion: ''})
     .then(status =>
@@ -221,7 +221,7 @@ const fuseInstallResultIsKextPermissionError = result =>
     c => c.name === 'fuse' && c.exitCode === Constants.ExitCodeFuseKextPermissionError
   ) !== -1
 
-const driverEnableFuse = (state, action) =>
+const driverEnableFuse = (state, action: FsGen.DriverEnablePayload) =>
   RPCTypes.installInstallFuseRpcPromise().then(result =>
     fuseInstallResultIsKextPermissionError(result)
       ? [
@@ -307,7 +307,7 @@ const openSecurityPreferences = () => {
 // Invoking the cached installer package has to happen from the topmost process
 // or it won't be visible to the user. The service also does this to support command line
 // operations.
-const installCachedDokan = (state, action) =>
+const installCachedDokan = (state, action: FsGen.DriverEnablePayload) =>
   new Promise((resolve, reject) => {
     logger.info('Invoking dokan installer')
     const dokanPath = path.resolve(String(process.env.LOCALAPPDATA), 'Keybase', 'DokanSetup_redist.exe')
@@ -353,12 +353,12 @@ const openAndUploadToPromise = (state: TypedState, action: FsGen.OpenAndUploadPa
     )
   )
 
-const openAndUpload = (state, action) =>
+const openAndUpload = (state, action: FsGen.OpenAndUploadPayload) =>
   openAndUploadToPromise(state, action).then(localPaths =>
     localPaths.map(localPath => FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
   )
 
-const loadUserFileEdits = (state, action) =>
+const loadUserFileEdits = (state, action: FsGen.UserFileEditsLoadPayload | FsGen.KbfsDaemonRpcStatusChangedPayload) =>
   state.fs.kbfsDaemonStatus.rpcStatus === 'connected' &&
   RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise().then(writerEdits =>
     FsGen.createUserFileEditsLoaded({
@@ -373,7 +373,7 @@ const openFilesFromWidget = (state, {payload: {path, type}}) => [
     : [RouteTreeGen.createSwitchTo({path: [Tabs.fsTab]})]),
 ]
 
-const changedFocus = (state, action) =>
+const changedFocus = (state, action: ConfigGen.ChangedFocusPayload) =>
   action.payload.appFocused &&
   state.fs.sfmi.driverStatus.type === 'disabled' &&
   state.fs.sfmi.driverStatus.kextPermissionError &&

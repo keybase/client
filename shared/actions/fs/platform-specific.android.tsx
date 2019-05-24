@@ -43,10 +43,10 @@ function copyToDownloadDir(path: string, mimeType: string) {
         stage,
       })
       throw err
-    })
+    });
 }
 
-const downloadSuccessAndroid = (state, action) => {
+const downloadSuccessAndroid = (state, action: FsGen.DownloadSuccessPayload) => {
   const {key, mimeType} = action.payload
   const download = state.fs.downloads.get(key)
   if (!download) {

@@ -85,11 +85,11 @@ export const getContentTypeFromURL = (
   req.end()
 }
 
-const writeElectronSettingsOpenAtLogin = (_, action) =>
+const writeElectronSettingsOpenAtLogin = (_, action: ConfigGen.SetOpenAtLoginPayload) =>
   action.payload.writeFile &&
   SafeElectron.getIpcRenderer().send('setAppState', {openAtLogin: action.payload.open})
 
-const writeElectronSettingsNotifySound = (_, action) =>
+const writeElectronSettingsNotifySound = (_, action: ConfigGen.SetNotifySoundPayload) =>
   action.payload.writeFile &&
   SafeElectron.getIpcRenderer().send('setAppState', {notifySound: action.payload.sound})
 
@@ -148,7 +148,7 @@ function* initializeAppSettingsState(): Generator<any, void, any> {
   }
 }
 
-export const dumpLogs = (_: any, action: ConfigGen.DumpLogsPayload | null) =>
+export const dumpLogs = (_: any, action: ConfigGen.DumpLogsPayload) =>
   logger
     .dump()
     .then(fromRender => {
@@ -163,7 +163,7 @@ export const dumpLogs = (_: any, action: ConfigGen.DumpLogsPayload | null) =>
       }
     })
 
-function* checkRPCOwnership(_, action) {
+function* checkRPCOwnership(_, action: ConfigGen.DaemonHandshakePayload) {
   const waitKey = 'pipeCheckFail'
   yield Saga.put(
     ConfigGen.createDaemonHandshakeWait({increment: true, name: waitKey, version: action.payload.version})
@@ -235,7 +235,7 @@ const onExit = () => {
   SafeElectron.getApp().exit(0)
 }
 
-const onFSActivity = (state, action) => {
+const onFSActivity = (state, action: EngineGen.Keybase1NotifyFSFSActivityPayload) => {
   kbfsNotification(action.payload.params.notification, NotifyPopup, state)
 }
 
@@ -244,7 +244,7 @@ const onPgpgKeySecret = () =>
     console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
   })
 
-const onShutdown = (_, action) => {
+const onShutdown = (_, action: EngineGen.Keybase1NotifyServiceShutdownPayload) => {
   const {code} = action.payload.params
   if (isWindows && code !== RPCTypes.ctlExitCode.restart) {
     console.log('Quitting due to service shutdown with code: ', code)
@@ -266,7 +266,7 @@ const onConnected = () => {
   }).catch(_ => {})
 }
 
-const onOutOfDate = (_, action) => {
+const onOutOfDate = (_, action: EngineGen.Keybase1NotifySessionClientOutOfDatePayload) => {
   const {upgradeTo, upgradeURI, upgradeMsg} = action.payload.params
   const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
   NotifyPopup('Client out of date!', {body}, 60 * 60)
@@ -275,18 +275,18 @@ const onOutOfDate = (_, action) => {
   return ConfigGen.createUpdateInfo({critical: true, isOutOfDate: true, message: upgradeMsg})
 }
 
-const prepareLogSend = (_, action) => {
+const prepareLogSend = (_, action: EngineGen.Keybase1LogsendPrepareLogsendPayload) => {
   const response = action.payload.response
   dumpLogs().then(() => {
     response && response.result()
   })
 }
 
-const copyToClipboard = (_, action) => {
+const copyToClipboard = (_, action: ConfigGen.CopyToClipboardPayload) => {
   SafeElectron.getClipboard().writeText(action.payload.text)
 }
 
-const sendKBServiceCheck = (state, action) => {
+const sendKBServiceCheck = (state, action: ConfigGen.DaemonHandshakeWaitPayload) => {
   if (
     action.payload.version === state.config.daemonHandshakeVersion &&
     state.config.daemonHandshakeWaiters.size === 0 &&

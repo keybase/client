@@ -44,8 +44,7 @@ const onConnect = () => {
 // Ask the service to refresh the inbox
 function* inboxRefresh(
   state,
-  action:
-    | Chat2Gen.InboxRefreshPayload
+  action: Chat2Gen.InboxRefreshPayload
     | EngineGen.Chat1NotifyChatChatInboxStalePayload
     | EngineGen.Chat1NotifyChatChatJoinedConversationPayload
     | EngineGen.Chat1NotifyChatChatLeftConversationPayload,
@@ -200,10 +199,7 @@ const rpcMetaRequestConversationIDKeys = (
 // We want to unbox rows that have scroll into view
 function* unboxRows(
   state,
-  action:
-    | Chat2Gen.MetaRequestTrustedPayload
-    | Chat2Gen.SelectConversationPayload
-    | Chat2Gen.MetasReceivedPayload,
+  action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload | Chat2Gen.MetasReceivedPayload,
   logger
 ) {
   if (!state.config.loggedIn) {
@@ -960,8 +956,7 @@ const scrollDirectionToPagination = (sd: scrollDirection, numberOfMessagesToLoad
 // messages
 function* loadMoreMessages(
   state,
-  action:
-    | Chat2Gen.SelectConversationPayload
+  action: Chat2Gen.SelectConversationPayload
     | Chat2Gen.JumpToRecentPayload
     | Chat2Gen.LoadOlderMessagesDueToScrollPayload
     | Chat2Gen.LoadNewerMessagesDueToScrollPayload
@@ -1737,8 +1732,7 @@ const startupInboxLoad = state =>
 
 const changeSelectedConversation = (
   state,
-  action:
-    | Chat2Gen.MetasReceivedPayload
+  action: Chat2Gen.MetasReceivedPayload
     | Chat2Gen.LeaveConversationPayload
     | Chat2Gen.MetaDeletePayload
     | Chat2Gen.MessageSendPayload
@@ -2065,8 +2059,7 @@ const resetLetThemIn = (_, action: Chat2Gen.ResetLetThemInPayload) =>
 
 const markThreadAsRead = (
   state,
-  action:
-    | Chat2Gen.MessagesAddPayload
+  action: Chat2Gen.MessagesAddPayload
     | Chat2Gen.UpdateUnreadlinePayload
     | Chat2Gen.MarkInitiallyLoadedThreadAsReadPayload
     | Chat2Gen.UpdateReactionsPayload
@@ -2189,8 +2182,7 @@ function* loadChannelInfos(state, action: Chat2Gen.SelectConversationPayload) {
 // Helpers to nav you to the right place
 const navigateToInbox = (
   state,
-  action:
-    | Chat2Gen.NavigateToInboxPayload
+  action: Chat2Gen.NavigateToInboxPayload
     | Chat2Gen.LeaveConversationPayload
     | TeamsGen.LeaveTeamPayload
     | TeamsGen.LeftTeamPayload,
