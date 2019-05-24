@@ -149,7 +149,7 @@ const Services = ({
           .map(service => (
             <Kb.WithTooltip key={service} text={services[service]} position="top center">
               <Kb.Icon
-                type={serviceIdToIconFont(service)}
+                type={serviceIdToIconFont(service as ServiceIdWithContact)}
                 style={Kb.iconCastPlatformStyles(styles.serviceIcon)}
               />
             </Kb.WithTooltip>

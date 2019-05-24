@@ -1,5 +1,6 @@
 // Helper to get engine and break require loops
 import {Engine} from '.'
+import {CallEffectNamedFn} from 'redux-saga/effects'
 
 let _engine: Engine
 export function initEngine(e: Engine) {
@@ -9,8 +10,11 @@ export function getEngine(): Engine {
   return _engine
 }
 
-let _engineSaga: Function
-export function initEngineSaga(es: Function) {
+type WaitingKey = string | Array<string>
+type EngineSaga = CallEffectNamedFn
+
+let _engineSaga: EngineSaga
+export function initEngineSaga(es: EngineSaga) {
   _engineSaga = es
 }
 export function getEngineSaga() {

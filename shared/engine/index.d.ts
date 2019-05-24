@@ -19,7 +19,7 @@ export declare class Engine {
   }): Session
   _rpcOutgoing(arg0: {
     method: string
-    params: Object | null
+    params: Object | void
     callback: (...args: Array<any>) => void
     waitingKey?: WaitingKey
   }): void
