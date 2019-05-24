@@ -240,6 +240,7 @@
       "accessRequestsPending": "I.Set<Types.Teamname>"
     },
     "setNewTeamInfo": {
+      "deletedTeams": "I.List<Types.DeletedTeam>",
       "newTeams": "I.Set<string>",
       "newTeamRequests": "I.List<string>",
       "teamNameToResetUsers": "I.Map<Types.Teamname, I.Set<Types.ResetUser>>"
@@ -275,9 +276,9 @@
       "conversationIDKey": "ChatTypes.ConversationIDKey"
     },
     "badgeAppForTeams": {
-      "deletedTeams": "Array<Types.DeletedTeamInfo>",
-      "newTeamNames": "Array<string>",
-      "newTeamAccessRequests": "Array<string>",
+      "deletedTeams": "I.List<Types.DeletedTeam>",
+      "newTeamNames": "I.List<string>",
+      "newTeamAccessRequests": "I.List<string>",
       "teamsWithResetUsers": "ReadonlyArray<{id: Buffer, teamname: string, username: string, uid: string}>"
     },
     "checkRequestedAccess": {

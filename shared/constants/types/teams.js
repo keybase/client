@@ -9,6 +9,8 @@ export type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner'
 export type DisabledReasonsForRolePicker = {[key: TeamRoleType]: string}
 export type MaybeTeamRoleType = 'none' | TeamRoleType
 export type TeamOperations = RPCTypes.TeamOperation
+export type DeletedTeam = RPCTypes.DeletedTeamInfo
+
 export type PublicitySettings = {
   ignoreAccessRequests: boolean,
   openTeam: boolean,
@@ -111,7 +113,7 @@ export type _State = {
   addUserToTeamsState: AddUserToTeamsState,
   addUserToTeamsResults: string,
   channelCreationError: string,
-  deletedTeams: I.List<RPCTypes.DeletedTeamInfo>,
+  deletedTeams: I.List<DeletedTeamInfo>,
   emailInviteError: EmailInviteError,
   teamsWithChosenChannels: I.Set<Teamname>,
   sawChatBanner: boolean,

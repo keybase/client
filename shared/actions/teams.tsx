@@ -1373,7 +1373,6 @@ const badgeAppForTeams = (state, action: TeamsGen.BadgeAppForTeamsPayload) => {
   // if the user wasn't on the teams tab, loads will be triggered by navigation around the app
   actions.push(
     TeamsGen.createSetNewTeamInfo({
-      // @ts-ignore a legit error. todo fix
       deletedTeams,
       newTeamRequests,
       newTeams,
