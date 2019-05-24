@@ -16,6 +16,7 @@ export const badgeStateToBadgeCounts = (
     newDevices,
     revokedDevices,
     newGitRepoGlobalUniqueIDs,
+    deletedTeams,
     newTeamNames,
     newTeamAccessRequests,
     teamsWithResetUsers,
@@ -39,7 +40,10 @@ export const badgeStateToBadgeCounts = (
 
   const newGit = (newGitRepoGlobalUniqueIDs || []).length
   const newTeams =
-    (newTeamNames || []).length + (newTeamAccessRequests || []).length + (teamsWithResetUsers || []).length
+    (newTeamNames || []).length +
+    (newTeamAccessRequests || []).length +
+    (teamsWithResetUsers || []).length +
+    (deletedTeams || []).length
 
   return {
     counts: I.Map([

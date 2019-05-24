@@ -26,6 +26,7 @@ export const createNewTeam = 'teams:createNewTeam'
 export const createNewTeamFromConversation = 'teams:createNewTeamFromConversation'
 export const deleteChannelConfirmed = 'teams:deleteChannelConfirmed'
 export const deleteChannelInfo = 'teams:deleteChannelInfo'
+export const deleteTeam = 'teams:deleteTeam'
 export const editMembership = 'teams:editMembership'
 export const editTeamDescription = 'teams:editTeamDescription'
 export const getChannelInfo = 'teams:getChannelInfo'
@@ -86,7 +87,7 @@ type _AddPeopleToTeamPayload = $ReadOnly<{|destSubPath?: I.List<string>, role: s
 type _AddTeamWithChosenChannelsPayload = $ReadOnly<{|teamname: string|}>
 type _AddToTeamPayload = $ReadOnly<{|teamname: string, username: string, role: Types.TeamRoleType, sendChatNotification: boolean|}>
 type _AddUserToTeamsPayload = $ReadOnly<{|role: Types.TeamRoleType, teams: Array<string>, user: string|}>
-type _BadgeAppForTeamsPayload = $ReadOnly<{|newTeamNames: Array<string>, newTeamAccessRequests: Array<string>, teamsWithResetUsers: Array<$ReadOnly<{id: Buffer, teamname: string, username: string, uid: string}>>|}>
+type _BadgeAppForTeamsPayload = $ReadOnly<{|deletedTeams: Array<Types.DeletedTeamInfo>, newTeamNames: Array<string>, newTeamAccessRequests: Array<string>, teamsWithResetUsers: Array<$ReadOnly<{id: Buffer, teamname: string, username: string, uid: string}>>|}>
 type _CheckRequestedAccessPayload = $ReadOnly<{|teamname: string|}>
 type _ClearAddUserToTeamsResultsPayload = void
 type _ClearNavBadgesPayload = void
@@ -96,6 +97,7 @@ type _CreateNewTeamFromConversationPayload = $ReadOnly<{|conversationIDKey: Chat
 type _CreateNewTeamPayload = $ReadOnly<{|joinSubteam: boolean, teamname: string, rootPath?: I.List<string>, sourceSubPath?: I.List<string>, destSubPath?: I.List<string>|}>
 type _DeleteChannelConfirmedPayload = $ReadOnly<{|teamname: Types.Teamname, conversationIDKey: ChatTypes.ConversationIDKey|}>
 type _DeleteChannelInfoPayload = $ReadOnly<{|teamname: Types.Teamname, conversationIDKey: ChatTypes.ConversationIDKey|}>
+type _DeleteTeamPayload = $ReadOnly<{|teamname: string|}>
 type _EditMembershipPayload = $ReadOnly<{|teamname: string, username: string, role: Types.TeamRoleType|}>
 type _EditTeamDescriptionPayload = $ReadOnly<{|teamname: string, description: string|}>
 type _GetChannelInfoPayload = $ReadOnly<{|conversationIDKey: ChatTypes.ConversationIDKey, teamname: string|}>
@@ -190,6 +192,7 @@ export const createCreateNewTeam = (payload: _CreateNewTeamPayload) => ({payload
 export const createCreateNewTeamFromConversation = (payload: _CreateNewTeamFromConversationPayload) => ({payload, type: createNewTeamFromConversation})
 export const createDeleteChannelConfirmed = (payload: _DeleteChannelConfirmedPayload) => ({payload, type: deleteChannelConfirmed})
 export const createDeleteChannelInfo = (payload: _DeleteChannelInfoPayload) => ({payload, type: deleteChannelInfo})
+export const createDeleteTeam = (payload: _DeleteTeamPayload) => ({payload, type: deleteTeam})
 export const createEditMembership = (payload: _EditMembershipPayload) => ({payload, type: editMembership})
 export const createEditTeamDescription = (payload: _EditTeamDescriptionPayload) => ({payload, type: editTeamDescription})
 export const createGetDetails = (payload: _GetDetailsPayload) => ({payload, type: getDetails})
@@ -254,6 +257,7 @@ export type CreateNewTeamFromConversationPayload = {|+payload: _CreateNewTeamFro
 export type CreateNewTeamPayload = {|+payload: _CreateNewTeamPayload, +type: 'teams:createNewTeam'|}
 export type DeleteChannelConfirmedPayload = {|+payload: _DeleteChannelConfirmedPayload, +type: 'teams:deleteChannelConfirmed'|}
 export type DeleteChannelInfoPayload = {|+payload: _DeleteChannelInfoPayload, +type: 'teams:deleteChannelInfo'|}
+export type DeleteTeamPayload = {|+payload: _DeleteTeamPayload, +type: 'teams:deleteTeam'|}
 export type EditMembershipPayload = {|+payload: _EditMembershipPayload, +type: 'teams:editMembership'|}
 export type EditTeamDescriptionPayload = {|+payload: _EditTeamDescriptionPayload, +type: 'teams:editTeamDescription'|}
 export type GetChannelInfoPayload = {|+payload: _GetChannelInfoPayload, +type: 'teams:getChannelInfo'|}
@@ -326,6 +330,7 @@ export type Actions =
   | CreateNewTeamPayload
   | DeleteChannelConfirmedPayload
   | DeleteChannelInfoPayload
+  | DeleteTeamPayload
   | EditMembershipPayload
   | EditTeamDescriptionPayload
   | GetChannelInfoPayload
