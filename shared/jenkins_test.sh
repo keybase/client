@@ -61,6 +61,7 @@ js_tests() {
     check_rc $? 'unexpected generated actions changes, did you forget to run yarn build-actions?' 1
 
     echo 'yarn tsc'
+    rm -rf ./tsOut
     yarn tsc
     check_rc $? 'tsc failed!' 1
 
