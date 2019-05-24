@@ -8,6 +8,7 @@ import type {Props as HeaderHocProps} from '../../../common-adapters/header-hoc/
 import {AdhocHeader, TeamHeader} from './header'
 import {MembersPanel, SettingsPanel} from './panels'
 import AttachmentPanel from './attachments/container'
+import {compose, withProps} from 'recompose'
 
 export type Panel = 'settings' | 'members' | 'attachments'
 
@@ -102,7 +103,7 @@ class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
         <TabText selected={this._isSelected('attachments')} text="Attachments" />
       </Kb.Box2>
     )
-    if (this.props.attachmentsLoading) {
+    if (!Styles.isMobile && this.props.attachmentsLoading) {
       res.push(<Kb.ProgressIndicator style={styles.attachmentsLoading} />)
     }
     return res
@@ -173,7 +174,9 @@ class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
     )
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
-        {header}
+        <Kb.Box2 direction="vertical" gapStart={true} gap="xtiny" fullWidth={true}>
+          {header}
+        </Kb.Box2>
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           <Kb.Tabs tabs={tabs} selected={selected} onSelect={this._onSelectTab} />
         </Kb.Box2>
@@ -202,7 +205,15 @@ const styles = Styles.styleSheetCreate({
   tabTextSelected: {color: Styles.globalColors.black},
 })
 
-const InfoPanel = Kb.HeaderOnMobile(_InfoPanel)
+const InfoPanel = compose(
+  withProps<any, any, any>((props: InfoPanelProps) => ({
+    titleComponent:
+      Styles.isMobile && props.attachmentsLoading ? (
+        <Kb.ProgressIndicator style={styles.attachmentsLoading} />
+      ) : null,
+  })),
+  Kb.HeaderOnMobile
+)(_InfoPanel)
 
 export type {InfoPanelProps}
 export {InfoPanel}

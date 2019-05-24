@@ -4,64 +4,9 @@ import * as Types from '../../../../constants/types/chat2'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import {imgMaxWidth} from '../../messages/attachment/image/image-render'
+import {imgMaxWidthRaw} from '../../messages/attachment/image/image-render'
 import {formatTimeForChat} from '../../../../util/timestamp'
 
-type Thumb = {|
-  ctime: number,
-  height: number,
-  isVideo: boolean,
-  onClick: () => void,
-  previewURL: string,
-  width: number,
-|}
-
-type MediaProps = {|
-  onLoadMore: null | (() => void),
-  thumbs: Array<Thumb>,
-  status: Types.AttachmentViewStatus,
-|}
-
-type Doc = {|
-  author: string,
-  ctime: number,
-  downloading: boolean,
-  name: string,
-  progress: number,
-  onDownload: null | (() => void),
-  onShowInFinder: null | (() => void),
-|}
-
-type DocProps = {|
-  docs: Array<Doc>,
-  onLoadMore: null | (() => void),
-  status: Types.AttachmentViewStatus,
-|}
-
-type Link = {|
-  author: string,
-  ctime: number,
-  snippet: string,
-  title: string,
-  url: string,
-|}
-
-type LinkProps = {|
-  links: Array<Link>,
-  onLoadMore: null | (() => void),
-  status: Types.AttachmentViewStatus,
-|}
-
-type Props = {|
-  docs: DocProps,
-  links: LinkProps,
-  media: MediaProps,
-  onViewChange: RPCChatTypes.GalleryItemTyp => void,
-  selectedView: RPCChatTypes.GalleryItemTyp,
-|}
-
-const rowSize = 4
-const maxThumbSize = Styles.isMobile ? imgMaxWidth() / rowSize : 80
 const monthNames = [
   'January',
   'February',
@@ -141,6 +86,15 @@ type Sizing = {
   marginTop: number,
 }
 
+type Thumb = {|
+  ctime: number,
+  height: number,
+  isVideo: boolean,
+  onClick: () => void,
+  previewURL: string,
+  width: number,
+|}
+
 type MediaThumbProps = {
   thumb: Thumb,
   sizing: Sizing,
@@ -173,14 +127,23 @@ class MediaThumb extends React.Component<MediaThumbProps, MediaThumbState> {
   }
 }
 
+const rowSize = 4
+
+type MediaProps = {|
+  onLoadMore: null | (() => void),
+  thumbs: Array<Thumb>,
+  status: Types.AttachmentViewStatus,
+|}
+
 class MediaView extends React.Component<MediaProps> {
-  _clamp = thumb => {
+  _clamp = (thumb, maxThumbSize) => {
     return thumb.height > thumb.width
       ? {height: (maxThumbSize * thumb.height) / thumb.width, width: maxThumbSize}
       : {height: maxThumbSize, width: (maxThumbSize * thumb.width) / thumb.height}
   }
   _resize = thumb => {
-    const dims = this._clamp(thumb)
+    const maxThumbSize = Styles.isMobile ? imgMaxWidthRaw() / rowSize : 80
+    const dims = this._clamp(thumb, maxThumbSize)
     const marginHeight = dims.height > maxThumbSize ? (dims.height - maxThumbSize) / 2 : 0
     const marginWidth = dims.width > maxThumbSize ? (dims.width - maxThumbSize) / 2 : 0
     return {
@@ -228,7 +191,7 @@ class MediaView extends React.Component<MediaProps> {
   }
   _renderRow = ({item, index}) => {
     return (
-      <Kb.Box2 key={index} direction="horizontal" fullWidth={true} style={styles.mediaRowContainer}>
+      <Kb.Box2 key={index} direction="horizontal" fullWidth={true}>
         {item.map((cell, index) => {
           return <MediaThumb key={index} sizing={cell.sizing} thumb={cell.thumb} />
         })}
@@ -255,6 +218,22 @@ class MediaView extends React.Component<MediaProps> {
     )
   }
 }
+
+type Doc = {|
+  author: string,
+  ctime: number,
+  downloading: boolean,
+  name: string,
+  progress: number,
+  onDownload: null | (() => void),
+  onShowInFinder: null | (() => void),
+|}
+
+type DocProps = {|
+  docs: Array<Doc>,
+  onLoadMore: null | (() => void),
+  status: Types.AttachmentViewStatus,
+|}
 
 class DocView extends React.Component<DocProps> {
   _renderSectionHeader = ({section}) => {
@@ -311,6 +290,20 @@ class DocView extends React.Component<DocProps> {
   }
 }
 
+type Link = {|
+  author: string,
+  ctime: number,
+  snippet: string,
+  title: string,
+  url: string,
+|}
+
+type LinkProps = {|
+  links: Array<Link>,
+  onLoadMore: null | (() => void),
+  status: Types.AttachmentViewStatus,
+|}
+
 class LinkView extends React.Component<LinkProps> {
   _renderSectionHeader = ({section}) => {
     if (!section.month) {
@@ -323,7 +316,7 @@ class LinkView extends React.Component<LinkProps> {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.linkContainer}>
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
-          <Kb.NameWithIcon colorFollowing={true} username={item.author} horizontal={true} />
+          <Kb.NameWithIcon avatarSize={32} colorFollowing={true} username={item.author} horizontal={true} />
           <Kb.Text type="BodyTiny" style={styles.linkTime}>
             {formatTimeForChat(item.ctime)}
           </Kb.Text>
@@ -361,57 +354,71 @@ type SelectorProps = {
 }
 
 class AttachmentTypeSelector extends React.Component<SelectorProps> {
-  _getColors = typ => {
+  _getBkgColor = typ => {
     return typ === this.props.selectedView
-      ? {backgroundColor: Styles.globalColors.blue, color: Styles.globalColors.white}
-      : {backgroundColor: undefined, color: Styles.globalColors.blue}
+      ? {backgroundColor: Styles.globalColors.blue}
+      : {backgroundColor: undefined}
+  }
+  _getColor = typ => {
+    return typ === this.props.selectedView
+      ? {color: Styles.globalColors.white}
+      : {color: Styles.globalColors.blue}
   }
   render() {
     return (
       <Kb.Box2 direction="horizontal" style={styles.selectorContainer} alignItems="center">
-        <Kb.Text
+        <Kb.ClickableBox
           onClick={() => this.props.onSelectView(RPCChatTypes.localGalleryItemTyp.media)}
-          type="BodySemibold"
           style={Styles.collapseStyles([
             styles.selectorItemContainer,
-            this._getColors(RPCChatTypes.localGalleryItemTyp.media),
+            styles.selectorMediaContainer,
+            this._getBkgColor(RPCChatTypes.localGalleryItemTyp.media),
           ])}
         >
-          Media
-        </Kb.Text>
-        <Kb.Text
+          <Kb.Text type="BodySemibold" style={this._getColor(RPCChatTypes.localGalleryItemTyp.media)}>
+            Media
+          </Kb.Text>
+        </Kb.ClickableBox>
+        <Kb.ClickableBox
           onClick={() => this.props.onSelectView(RPCChatTypes.localGalleryItemTyp.doc)}
-          type="BodySemibold"
           style={Styles.collapseStyles([
-            styles.selectorItemContainer,
             styles.selectorDocContainer,
-            this._getColors(RPCChatTypes.localGalleryItemTyp.doc),
+            styles.selectorItemContainer,
+            this._getBkgColor(RPCChatTypes.localGalleryItemTyp.doc),
           ])}
         >
-          Docs
-        </Kb.Text>
-        <Kb.Text
+          <Kb.Text type="BodySemibold" style={this._getColor(RPCChatTypes.localGalleryItemTyp.doc)}>
+            Docs
+          </Kb.Text>
+        </Kb.ClickableBox>
+        <Kb.ClickableBox
           onClick={() => this.props.onSelectView(RPCChatTypes.localGalleryItemTyp.link)}
-          type="BodySemibold"
           style={Styles.collapseStyles([
             styles.selectorItemContainer,
-            this._getColors(RPCChatTypes.localGalleryItemTyp.link),
+            styles.selectorLinkContainer,
+            this._getBkgColor(RPCChatTypes.localGalleryItemTyp.link),
           ])}
         >
-          Links
-        </Kb.Text>
+          <Kb.Text type="BodySemibold" style={this._getColor(RPCChatTypes.localGalleryItemTyp.link)}>
+            Links
+          </Kb.Text>
+        </Kb.ClickableBox>
       </Kb.Box2>
     )
   }
 }
 
+type Props = {|
+  docs: DocProps,
+  links: LinkProps,
+  media: MediaProps,
+  onViewChange: RPCChatTypes.GalleryItemTyp => void,
+  selectedView: RPCChatTypes.GalleryItemTyp,
+|}
+
 class AttachmentPanel extends React.Component<Props> {
   componentDidMount() {
     this.props.onViewChange(this.props.selectedView)
-  }
-
-  _getButtonMode = typ => {
-    return this.props.selectedView === typ ? 'Primary' : 'Secondary'
   }
 
   _selectView = view => {
@@ -433,11 +440,6 @@ class AttachmentPanel extends React.Component<Props> {
       default:
         return null
     }
-    content = (
-      <Kb.Box2 direction="vertical" fullWidth={true}>
-        {content}
-      </Kb.Box2>
-    )
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
         <AttachmentTypeSelector selectedView={this.props.selectedView} onSelectView={this._selectView} />
@@ -496,14 +498,7 @@ const styles = Styles.styleSheetCreate({
     top: '50%',
     width: 24,
   },
-  mediaRowContainer: {
-    minWidth: rowSize * maxThumbSize,
-  },
   selectorContainer: {
-    borderColor: Styles.globalColors.blue,
-    borderRadius: Styles.borderRadius,
-    borderStyle: 'solid',
-    borderWidth: 1,
     flexShrink: 0,
     justifyContent: 'space-between',
     marginBottom: Styles.globalMargins.tiny,
@@ -511,13 +506,31 @@ const styles = Styles.styleSheetCreate({
   },
   selectorDocContainer: {
     borderColor: Styles.globalColors.blue,
-    borderLeftStyle: 'solid',
-    borderRightStyle: 'solid',
-    borderWidth: 1,
+    borderLeftWidth: 1,
+    borderRadius: 0,
+    borderRightWidth: 1,
   },
   selectorItemContainer: {
     ...Styles.globalStyles.flexBoxColumn,
     ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.small),
+    borderBottomWidth: 1,
+    borderColor: Styles.globalColors.blue,
+    borderStyle: 'solid',
+    borderTopWidth: 1,
+  },
+  selectorLinkContainer: {
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: Styles.borderRadius,
+    borderRightWidth: 1,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: Styles.borderRadius,
+  },
+  selectorMediaContainer: {
+    borderBottomLeftRadius: Styles.borderRadius,
+    borderBottomRightRadius: 0,
+    borderLeftWidth: 1,
+    borderTopLeftRadius: Styles.borderRadius,
+    borderTopRightRadius: 0,
   },
   thumbContainer: {
     overflow: 'hidden',
