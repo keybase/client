@@ -9,9 +9,7 @@ import * as Types from '../constants/types/fs'
 import {isMobile} from '../constants/platform'
 import Folder from './folder/container'
 import {NormalPreview} from './filepreview'
-import Loading from './common/loading'
-import KbfsDaemonNotRunning from './common/kbfs-daemon-not-running'
-import LoadPathMetadataWhenNeeded from './common/load-path-metadata-when-needed'
+import {Loading, LoadPathMetadataWhenNeeded} from './common'
 import Oops from './oops'
 import {Actions, MainBanner, MobileHeader, mobileHeaderHeight, Title} from './nav-header'
 
@@ -116,7 +114,7 @@ class ChooseComponent extends React.PureComponent<ChooseComponentProps> {
   }
   render() {
     if (this.props.kbfsDaemonStatus.rpcStatus !== 'connected') {
-      return <KbfsDaemonNotRunning />
+      return <Loading path={this.props.path} />
     }
     return (
       <>

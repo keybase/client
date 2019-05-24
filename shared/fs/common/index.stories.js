@@ -12,7 +12,6 @@ import PathItemIcon, {type Size} from './path-item-icon'
 import PathItemInfo from './path-item-info'
 import TlfInfo from './tlf-info'
 import Loading from './loading'
-import KbfsDaemonNotRunning from './kbfs-daemon-not-running'
 import Errs from './errs'
 import OpenInSystemFileManager from './open-in-system-file-manager'
 import {type OwnProps as PathItemIconOwnProps} from './path-item-icon-container'
@@ -282,7 +281,6 @@ const load = () => {
         <PathItemInfo mode="menu" lastModifiedTimestamp={1545110765} lastWriter="songgao_test" />
       </Kb.Box2>
     ))
-    .add('KbfsDaemonNotRunning', () => <KbfsDaemonNotRunning />)
     .add('OpenInSystemFileManager', () => (
       <Kb.Box2 direction="vertical" gap="small">
         <Kb.Text type="Body">disabled</Kb.Text>

@@ -5,12 +5,11 @@ import * as Types from '../../constants/types/fs'
 import * as Sb from '../../stories/storybook'
 import Folder from '.'
 import * as Kb from '../../common-adapters'
-import {rowsProvider} from '../row/index.stories'
+import {rowsProvider} from './rows/index.stories'
 import {commonProvider} from '../common/index.stories'
 import {topBarProvider} from '../top-bar/index.stories'
 import {footerProvider} from '../footer/index.stories'
 import {bannerProvider} from '../banner/index.stories'
-import {headerProvider} from '../header/index.stories'
 
 const provider = Sb.createPropProviderWithCommon({
   ...rowsProvider,
@@ -18,7 +17,6 @@ const provider = Sb.createPropProviderWithCommon({
   ...topBarProvider,
   ...footerProvider,
   ...bannerProvider,
-  ...headerProvider,
 })
 
 export default () => {
