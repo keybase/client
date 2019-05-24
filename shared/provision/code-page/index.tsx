@@ -23,7 +23,7 @@ type Props = {
   tabOverride?: Tab | null
   textCode: string
   onBack: () => void
-  onSubmitTextCode: (arg0: string) => void
+  onSubmitTextCode: (code: string) => void
 }
 
 type State = {

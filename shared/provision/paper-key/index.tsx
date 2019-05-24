@@ -5,7 +5,7 @@ import * as Styles from '../../styles'
 
 type Props = {
   onBack: () => void
-  onSubmit: (arg0: string) => void
+  onSubmit: (paperKey: string) => void
   hint: string
   error: string
   waitingForResponse?: boolean | null
