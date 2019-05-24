@@ -88,6 +88,7 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
       return state.merge({teamAccessRequestsPending: action.payload.accessRequestsPending})
     case TeamsGen.setNewTeamInfo:
       return state.merge({
+        deletedTeams: action.payload.deletedTeams,
         newTeamRequests: action.payload.newTeamRequests,
         newTeams: action.payload.newTeams,
         teamNameToResetUsers: action.payload.teamNameToResetUsers,
@@ -139,6 +140,7 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
     case TeamsGen.createNewTeam:
     case TeamsGen.createNewTeamFromConversation:
     case TeamsGen.deleteChannelConfirmed:
+    case TeamsGen.deleteTeam:
     case TeamsGen.editMembership:
     case TeamsGen.editTeamDescription:
     case TeamsGen.uploadTeamAvatar:

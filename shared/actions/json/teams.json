@@ -96,6 +96,9 @@
       "sourceSubPath?": "I.List<string>",
       "teamname": "string"
     },
+    "deleteTeam": {
+      "teamname": "string"
+    },
     "inviteToTeamByEmail": {
       "destSubPath?": "I.List<string>",
       "invitees": "string",
@@ -272,6 +275,7 @@
       "conversationIDKey": "ChatTypes.ConversationIDKey"
     },
     "badgeAppForTeams": {
+      "deletedTeams": "Array<Types.DeletedTeamInfo>",
       "newTeamNames": "Array<string>",
       "newTeamAccessRequests": "Array<string>",
       "teamsWithResetUsers": "ReadonlyArray<{id: Buffer, teamname: string, username: string, uid: string}>"

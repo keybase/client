@@ -26,6 +26,7 @@ export const createNewTeam = 'teams:createNewTeam'
 export const createNewTeamFromConversation = 'teams:createNewTeamFromConversation'
 export const deleteChannelConfirmed = 'teams:deleteChannelConfirmed'
 export const deleteChannelInfo = 'teams:deleteChannelInfo'
+export const deleteTeam = 'teams:deleteTeam'
 export const editMembership = 'teams:editMembership'
 export const editTeamDescription = 'teams:editTeamDescription'
 export const getChannelInfo = 'teams:getChannelInfo'
@@ -106,6 +107,7 @@ type _AddUserToTeamsPayload = {
   readonly user: string
 }
 type _BadgeAppForTeamsPayload = {
+  readonly deletedTeams: Array<Types.DeletedTeamInfo>
   readonly newTeamNames: Array<string>
   readonly newTeamAccessRequests: Array<string>
   readonly teamsWithResetUsers: ReadonlyArray<{id: Buffer; teamname: string; username: string; uid: string}>
@@ -141,6 +143,7 @@ type _DeleteChannelInfoPayload = {
   readonly teamname: Types.Teamname
   readonly conversationIDKey: ChatTypes.ConversationIDKey
 }
+type _DeleteTeamPayload = {readonly teamname: string}
 type _EditMembershipPayload = {
   readonly teamname: string
   readonly username: string
@@ -370,6 +373,10 @@ export const createDeleteChannelInfo = (payload: _DeleteChannelInfoPayload): Del
   payload,
   type: deleteChannelInfo,
 })
+export const createDeleteTeam = (payload: _DeleteTeamPayload): DeleteTeamPayload => ({
+  payload,
+  type: deleteTeam,
+})
 export const createEditMembership = (payload: _EditMembershipPayload): EditMembershipPayload => ({
   payload,
   type: editMembership,
@@ -591,6 +598,7 @@ export type DeleteChannelInfoPayload = {
   readonly payload: _DeleteChannelInfoPayload
   readonly type: 'teams:deleteChannelInfo'
 }
+export type DeleteTeamPayload = {readonly payload: _DeleteTeamPayload; readonly type: 'teams:deleteTeam'}
 export type EditMembershipPayload = {
   readonly payload: _EditMembershipPayload
   readonly type: 'teams:editMembership'
@@ -786,6 +794,7 @@ export type Actions =
   | CreateNewTeamPayload
   | DeleteChannelConfirmedPayload
   | DeleteChannelInfoPayload
+  | DeleteTeamPayload
   | EditMembershipPayload
   | EditTeamDescriptionPayload
   | GetChannelInfoPayload

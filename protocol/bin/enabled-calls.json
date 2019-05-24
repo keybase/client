@@ -194,6 +194,7 @@
   "keybase.1.teams.teamGetMembers": {"promise": true},
   "keybase.1.teams.teamGetSubteams": {"promise": true},
   "keybase.1.teams.teamIgnoreRequest": {"promise": true},
+  "keybase.1.teams.teamDelete": {"engineSaga": true, "promise": true},
   "keybase.1.teams.teamLeave": {"promise": true},
   "keybase.1.teams.teamListMyAccessRequests": {"promise": true},
   "keybase.1.teams.teamListRequests": {"promise": true},
