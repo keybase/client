@@ -810,7 +810,7 @@ func (s *Server) ApprovePayURILocal(ctx context.Context, arg stellar1.ApprovePay
 	return res.TxID, nil
 }
 
-func (s *Server) GetExchangeUrlsLocal(ctx context.Context) (res []stellar1.ExchangeUrl, err error) {
+func (s *Server) GetExchangeUrlsLocal(ctx context.Context, sessionID int) (res []stellar1.ExchangeUrl, err error) {
 	// Pull back all of the external_urls, but only look at the exchange_urls.
 	// To ensure we have flexibility in the future, only type check the objects
 	// under the key we care about here.

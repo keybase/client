@@ -1296,7 +1296,7 @@ func TestGetExchangeUrlsLocal(t *testing.T) {
 	injectedStore := DummyMerkleStore{injectedEntry}
 	g.SetExternalURLStore(injectedStore)
 
-	res, err := tc.Srv.GetExchangeUrlsLocal(ctx)
+	res, err := tc.Srv.GetExchangeUrlsLocal(ctx, 0)
 	require.NoError(t, err)
 	require.Equal(t, len(res), 2)
 	require.Equal(t, res[0].Url, firstExchangeURL)
