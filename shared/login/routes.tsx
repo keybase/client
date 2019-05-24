@@ -29,7 +29,7 @@ const RootLogin = connect<OwnProps, _, _, _, _>(
   (s, d, o) => ({...o, ...s, ...d})
 )(_RootLogin)
 
-// $FlowIssue lets fix this
+// @ts-ignore
 RootLogin.navigationOptions = {
   header: null,
 }

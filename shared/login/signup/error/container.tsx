@@ -19,7 +19,7 @@ const ConnectedSignupError = connect<OwnProps, _, _, _, _>(
   (s, d, o) => ({...o, ...s, ...d})
 )(Error)
 
-// $FlowIssue lets fix this
+// @ts-ignore
 ConnectedSignupError.navigationOptions = {
   gesturesEnabled: false,
   headerLeft: null,
