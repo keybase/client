@@ -6,33 +6,33 @@ import {Filename} from '../fs/common'
 import ConnectedUsernames from '../common-adapters/usernames/remote-container'
 
 type FileUpdateProps = {
-  path: FsTypes.Path,
-  tlfType: FsTypes.TlfType,
-  uploading: boolean,
+  path: FsTypes.Path
+  tlfType: FsTypes.TlfType
+  uploading: boolean
   onClick: () => void
-};
+}
 
 type FileUpdatesProps = {
   updates: Array<FileUpdateProps>
-};
+}
 
 export type UserTlfUpdateRowProps = {
-  onClickAvatar: () => void,
-  onSelectPath: () => void,
-  path: FsTypes.Path,
-  writer: string,
-  tlfType: FsTypes.TlfType,
-  participants: Array<string>,
-  teamname: string,
-  timestamp: string,
-  tlf: string,
-  updates: Array<FileUpdateProps>,
+  onClickAvatar: () => void
+  onSelectPath: () => void
+  path: FsTypes.Path
+  writer: string
+  tlfType: FsTypes.TlfType
+  participants: Array<string>
+  teamname: string
+  timestamp: string
+  tlf: string
+  updates: Array<FileUpdateProps>
   username: string
-};
+}
 
 type FilesPreviewProps = {
   userTlfUpdates: Array<UserTlfUpdateRowProps>
-};
+}
 
 export const FileUpdate = (props: FileUpdateProps) => (
   <Kb.ClickableBox onClick={props.onClick} style={styles.fullWidth}>
@@ -50,10 +50,10 @@ export const FileUpdate = (props: FileUpdateProps) => (
 
 type FileUpdatesState = {
   isShowingAll: boolean
-};
+}
 
 const FileUpdatesHoc = (ComposedComponent: React.ComponentType<any>) =>
-  (class extends React.PureComponent<FileUpdatesProps, FileUpdatesState> {
+  class extends React.PureComponent<FileUpdatesProps, FileUpdatesState> {
     state = {
       isShowingAll: false,
     }
@@ -66,16 +66,16 @@ const FileUpdatesHoc = (ComposedComponent: React.ComponentType<any>) =>
         />
       )
     }
-  })
+  }
 
 type FileUpdatesHocProps = {
-  onShowAll: () => void,
+  onShowAll: () => void
   isShowingAll: boolean
-};
+}
 
 type ShowAllProps = FileUpdatesHocProps & {
   numUpdates: number
-};
+}
 
 const FileUpdatesShowAll = (props: ShowAllProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={false} style={styles.buttonContainer}>
