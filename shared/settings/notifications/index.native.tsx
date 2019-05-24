@@ -4,7 +4,7 @@ import {globalStyles} from '../../styles'
 import Notifications from './render'
 import TurnOnNotifications from './turn-on-notifications.native'
 
-import { Props } from '.';
+import {Props} from '.'
 
 const MobileNotifications = (props: Props) => (
   <NativeScrollView style={{...globalStyles.flexBoxColumn, flex: 1}}>

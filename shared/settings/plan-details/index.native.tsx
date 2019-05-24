@@ -1,4 +1,4 @@
-import { Props } from './index';
+import {Props} from './index'
 
 function PlanDetails(props: Props) {
   return null

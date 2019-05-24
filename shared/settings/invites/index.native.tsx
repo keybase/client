@@ -1,4 +1,4 @@
-import { Props } from './index';
+import {Props} from './index'
 
 function Invites(props: Props) {}
 

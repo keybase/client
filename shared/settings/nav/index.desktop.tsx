@@ -4,7 +4,7 @@ import {globalStyles, globalColors, globalMargins, platformStyles, styleSheetCre
 import {Box} from '../../common-adapters'
 import SettingsItem from './settings-item'
 
-import { Props } from './index';
+import {Props} from './index'
 
 function SettingsNav(props: Props) {
   return (

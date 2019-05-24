@@ -1,15 +1,14 @@
-
 import * as React from 'react'
 import {globalStyles, globalMargins} from '../styles'
 import {Box, Icon, Text} from '../common-adapters/mobile.native'
 
-import { Props } from './about';
+type Props = {
+  onShowPrivacyPolicy: () => void
+  onShowTerms: () => void
+  version: string
+}
 
-const About = ({
-  version,
-  onShowTerms,
-  onShowPrivacyPolicy
-}: Props) => (
+const About = ({version, onShowTerms, onShowPrivacyPolicy}: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flexGrow: 1, justifyContent: 'center'}}>
     <Icon type="icon-keybase-logo-64" />
     <Text

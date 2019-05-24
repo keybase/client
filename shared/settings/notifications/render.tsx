@@ -2,14 +2,14 @@ import * as React from 'react'
 import {Box, Checkbox, ProgressIndicator, Text} from '../../common-adapters'
 import {globalStyles, globalMargins, isMobile, desktopStyles} from '../../styles'
 import * as Types from '../../constants/types/settings'
-import { Props } from './index';
+import {Props} from './index'
 
 const SubscriptionCheckbox = (props: {
-  allowEdit: boolean,
-  description: string,
-  groupName: string,
-  name: string,
-  onToggle: (groupName: string, name: string) => void,
+  allowEdit: boolean
+  description: string
+  groupName: string
+  name: string
+  onToggle: (groupName: string, name: string) => void
   subscribed: boolean
 }) => (
   <Checkbox
@@ -23,13 +23,13 @@ const SubscriptionCheckbox = (props: {
 )
 
 const Group = (props: {
-  allowEdit: boolean,
-  groupName: string,
-  onToggle: (groupName: string, name: string) => void,
-  onToggleUnsubscribeAll?: () => void,
-  settings: Array<Types._NotificationsSettingsState> | null,
-  title: string,
-  unsub?: string,
+  allowEdit: boolean
+  groupName: string
+  onToggle: (groupName: string, name: string) => void
+  onToggleUnsubscribeAll?: () => void
+  settings: Array<Types._NotificationsSettingsState> | null
+  title: string
+  unsub?: string
   unsubscribedFromAll: boolean
 }) => (
   <Box style={{...globalStyles.flexBoxColumn, marginBottom: globalMargins.medium}}>

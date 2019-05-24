@@ -3,7 +3,7 @@ import SettingsNav from './nav'
 import {Box} from '../common-adapters'
 import {globalStyles} from '../styles'
 
-import { Props } from './render';
+import {Props} from './render'
 
 function SettingsRender(props: Props) {
   return (

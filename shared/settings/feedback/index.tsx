@@ -1,4 +1,3 @@
-
 import React from 'react'
 import {globalMargins} from '../../styles'
 import * as Kb from '../../common-adapters'
@@ -15,18 +14,18 @@ export const getOtherErrorInfo = (err: Error) => {
 }
 
 type Props = {
-  loggedOut: boolean,
-  onSendFeedback: (feedback: string, sendLogs: boolean) => void,
-  sending: boolean,
+  loggedOut: boolean
+  onSendFeedback: (feedback: string, sendLogs: boolean) => void
+  sending: boolean
   sendError: Error | null
-};
+}
 
 type State = {
-  email: string | null,
-  showSuccessBanner: boolean,
-  sendLogs: boolean,
+  email: string | null
+  showSuccessBanner: boolean
+  sendLogs: boolean
   feedback: string
-};
+}
 
 class Feedback extends React.Component<Props, State> {
   state = {

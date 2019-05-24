@@ -6,30 +6,32 @@ import {globalStyles, globalColors, globalMargins, desktopStyles} from '../../st
 import {priceToString, planToStars, comparePlans} from '../../constants/plan-billing'
 import flags from '../../util/feature-flags'
 
-import { Props, AccountProps, PlanProps } from './index';
-import { PlanLevel } from '../../constants/types/settings';
-import { PaymentInfo as PaymentInfoType, AvailablePlan, ChangeType } from '../../constants/types/plan-billing';
+import {Props, AccountProps, PlanProps} from './index'
+import {PlanLevel} from '../../constants/types/settings'
+import {PaymentInfo as PaymentInfoType, AvailablePlan, ChangeType} from '../../constants/types/plan-billing'
 
 const ROW_HEIGHT = 48
 
-type PlanActionVariantsProps = {
-  type: "change",
-  changeType: ChangeType
-} | {
-  type: "spaceInfo",
-  freeSpace: string,
-  freeSpacePercentage: number,
-  lowSpaceWarning: boolean
-};
+type PlanActionVariantsProps =
+  | {
+      type: 'change'
+      changeType: ChangeType
+    }
+  | {
+      type: 'spaceInfo'
+      freeSpace: string
+      freeSpacePercentage: number
+      lowSpaceWarning: boolean
+    }
 
 type PlanLevelProps = {
-  style?: Object,
-  level: PlanLevel,
-  price: string,
-  gigabytes: number,
-  onInfo: () => void,
+  style?: Object
+  level: PlanLevel
+  price: string
+  gigabytes: number
+  onInfo: () => void
   variants: PlanActionVariantsProps
-};
+}
 
 function variantPropsHelper(
   selectedLevel: PlanLevel,
@@ -57,10 +59,10 @@ function variantPropsHelper(
 function SpaceInfo({
   freeSpace,
   freeSpacePercentage,
-  lowSpaceWarning
+  lowSpaceWarning,
 }: {
-  freeSpace: string,
-  freeSpacePercentage: number,
+  freeSpace: string
+  freeSpacePercentage: number
   lowSpaceWarning: boolean
 }) {
   return (
@@ -85,13 +87,7 @@ function SpaceInfo({
   )
 }
 
-const UpgradeButton = ({
-  onClick,
-  type
-}: {
-  onClick: () => void,
-  type: "upgrade" | "change"
-}) => (
+const UpgradeButton = ({onClick, type}: {onClick: () => void; type: 'upgrade' | 'change'}) => (
   <Button
     style={{marginRight: 0}}
     type="Success"
@@ -116,13 +112,7 @@ const DowngradeLink = ({onClick}) => (
   </Text>
 )
 
-function PlanActionVariants({
-  variants,
-  onClick
-}: {
-  variants: PlanActionVariantsProps,
-  onClick: () => void
-}) {
+function PlanActionVariants({variants, onClick}: {variants: PlanActionVariantsProps; onClick: () => void}) {
   switch (variants.type) {
     case 'change':
       return variants.changeType === 'downgrade' ? (
@@ -136,14 +126,7 @@ function PlanActionVariants({
   return null
 }
 
-function PlanLevelRow({
-  level,
-  price,
-  onInfo,
-  variants,
-  style,
-  gigabytes
-}: PlanLevelProps) {
+function PlanLevelRow({level, price, onInfo, variants, style, gigabytes}: PlanLevelProps) {
   const selected = variants.type === 'spaceInfo'
   return (
     <Box
@@ -182,7 +165,7 @@ function PaymentInfo({
   name,
   last4Digits,
   isBroken,
-  onChangePaymentInfo
+  onChangePaymentInfo,
 }: PaymentInfoType & {
   onChangePaymentInfo: () => void
 }) {
@@ -220,7 +203,7 @@ function Plan({
   paymentInfo,
   onChangePaymentInfo,
   lowSpaceWarning,
-  plans
+  plans,
 }: PlanProps & {
   plans: Array<AvailablePlan>
 }) {
@@ -264,10 +247,10 @@ function Plan({
 function AccountEmail({
   email,
   onChangeEmail,
-  isVerified
+  isVerified,
 }: {
-  email: string,
-  isVerified: boolean,
+  email: string
+  isVerified: boolean
   onChangeEmail: () => void
 }) {
   return (
@@ -289,11 +272,7 @@ function AccountEmail({
   )
 }
 
-function AccountFirstEmail({
-  onChangeEmail
-}: {
-  onChangeEmail: () => void
-}) {
+function AccountFirstEmail({onChangeEmail}: {onChangeEmail: () => void}) {
   return (
     <Box
       style={{
@@ -311,11 +290,7 @@ function AccountFirstEmail({
   )
 }
 
-function AccountPassword({
-  onChangePassword
-}: {
-  onChangePassword: () => void
-}) {
+function AccountPassword({onChangePassword}: {onChangePassword: () => void}) {
   return (
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minHeight: ROW_HEIGHT}}>
       <Text type="Body" style={{marginRight: globalMargins.xtiny}}>
@@ -331,11 +306,7 @@ function AccountPassword({
   )
 }
 
-function AccountFirstPassword({
-  onChangePassword
-}: {
-  onChangePassword: () => void
-}) {
+function AccountFirstPassword({onChangePassword}: {onChangePassword: () => void}) {
   return (
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minHeight: ROW_HEIGHT}}>
       <Text type="Body" style={{marginRight: globalMargins.xtiny}}>
@@ -353,7 +324,7 @@ function Account({
   onChangePassword,
   onChangeRememberPassword,
   rememberPassword,
-  hasRandomPW
+  hasRandomPW,
 }: AccountProps) {
   const Password = hasRandomPW ? AccountFirstPassword : AccountPassword
   const Email = email ? AccountEmail : AccountFirstEmail

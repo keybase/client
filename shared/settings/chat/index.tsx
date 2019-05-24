@@ -5,19 +5,17 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
 export type Props = {
-  unfurlMode?: RPCChatTypes.UnfurlMode,
-  unfurlWhitelist?: Array<string>,
-  unfurlError?: string,
-  onUnfurlSave: (arg0: RPCChatTypes.UnfurlMode, array: Array<string>) => void,
+  unfurlMode?: RPCChatTypes.UnfurlMode
+  unfurlWhitelist?: Array<string>
+  unfurlError?: string
+  onUnfurlSave: (arg0: RPCChatTypes.UnfurlMode, array: Array<string>) => void
   onRefresh: () => void
-};
+}
 
 type State = {
-  unfurlSelected?: RPCChatTypes.UnfurlMode,
-  unfurlWhitelistRemoved: {
-    [K in string]: boolean;
-  }
-};
+  unfurlSelected?: RPCChatTypes.UnfurlMode
+  unfurlWhitelistRemoved: {[K in string]: boolean}
+}
 
 class Chat extends React.Component<Props, State> {
   state = {unfurlSelected: undefined, unfurlWhitelistRemoved: {}}

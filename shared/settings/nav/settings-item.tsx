@@ -1,17 +1,17 @@
 import React from 'react'
-import { Badge, ClickableBox, Text, Icon, IconType, ProgressIndicator } from '../../common-adapters';
+import {Badge, ClickableBox, Text, Icon, IconType, ProgressIndicator} from '../../common-adapters'
 import * as Styles from '../../styles'
 
 type SettingsItemProps = {
-  badgeNumber?: number,
-  icon?: IconType,
-  inProgress?: boolean,
-  largerBadgeMinWidthFix?: boolean,
-  onClick: () => void,
-  text: string,
-  textColor?: Styles.Color,
+  badgeNumber?: number
+  icon?: IconType
+  inProgress?: boolean
+  largerBadgeMinWidthFix?: boolean
+  onClick: () => void
+  text: string
+  textColor?: Styles.Color
   selected?: boolean
-};
+}
 
 export default function SettingsItem(props: SettingsItemProps) {
   return (

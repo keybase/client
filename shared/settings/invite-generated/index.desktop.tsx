@@ -9,7 +9,7 @@ import {
 } from '../../styles'
 import {Box, Button, Icon, Text} from '../../common-adapters'
 
-import { Props } from './index';
+import {Props} from './index'
 
 class InviteGeneratedRender extends Component<Props> {
   render() {

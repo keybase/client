@@ -1,4 +1,3 @@
-
 import React, {Component} from 'react'
 import {globalStyles, globalMargins} from '../styles'
 import {Box, Text, Checkbox, HeaderHoc} from '../common-adapters'
@@ -7,10 +6,10 @@ import {isAndroid} from '../constants/platform'
 
 type State = {
   secureFlag: boolean
-};
+}
 
 class Screenprotector extends Component<{}, State> {
-  state: State = {secureFlag: false};
+  state: State = {secureFlag: false}
   mounted = false
 
   componentWillUnmount() {

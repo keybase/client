@@ -4,13 +4,13 @@ import * as Styles from '../../styles'
 import EmailPhoneRow from './email-phone-row'
 
 type Props = {
-  contactKeys: Array<string>,
-  hasPassword: boolean,
-  onAddEmail: () => void,
-  onAddPhone: () => void,
-  onDeleteAccount: () => void,
+  contactKeys: Array<string>
+  hasPassword: boolean
+  onAddEmail: () => void
+  onAddPhone: () => void
+  onDeleteAccount: () => void
   onSetPassword: () => void
-};
+}
 
 const EmailPhone = props => (
   <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>

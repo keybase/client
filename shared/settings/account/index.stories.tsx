@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
-import { Props as ContactRowProps, OwnProps as ContactRowOwnProps } from './email-phone-row';
+import {Props as ContactRowProps, OwnProps as ContactRowOwnProps} from './email-phone-row'
 import AccountSettings from '.'
 import ConfirmDelete from './confirm-delete'
 
@@ -39,9 +39,7 @@ const confirmDeleteProps = {
 }
 
 const provider = Sb.createPropProviderWithCommon({
-  ConnectedEmailPhoneRow: ({
-    contactKey
-  }: ContactRowOwnProps) => contacts[contactKey],
+  ConnectedEmailPhoneRow: ({contactKey}: ContactRowOwnProps) => contacts[contactKey],
 })
 
 const load = () => {

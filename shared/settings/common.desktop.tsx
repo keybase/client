@@ -3,11 +3,7 @@ import {Box, Icon} from '../common-adapters'
 import {range} from 'lodash-es'
 import {globalStyles, globalColors} from '../styles'
 
-function Stars({
-  count
-}: {
-  count: number
-}) {
+function Stars({count}: {count: number}) {
   return (
     <Box style={globalStyles.flexBoxRow}>
       {range(count).map(i => (

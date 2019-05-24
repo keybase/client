@@ -4,17 +4,17 @@ import * as Types from '../../constants/types/settings'
 import React, {Component} from 'react'
 import SubHeading from '../subheading'
 import moment from 'moment'
-import { Props } from '.';
+import {Props} from '.'
 import {intersperseFn} from '../../util/arrays'
 
 type State = {
-  inviteEmail: string,
-  inviteMessage: string,
+  inviteEmail: string
+  inviteMessage: string
   showMessageField: boolean
-};
+}
 
 class Invites extends Component<Props, State> {
-  state: State;
+  state: State
 
   constructor(props: Props) {
     super(props)
@@ -123,10 +123,10 @@ function intersperseDividers(arr) {
 function PendingInviteItem({
   invite,
   onReclaimInvitation,
-  onSelectPendingInvite
+  onSelectPendingInvite,
 }: {
-  invite: Types.PendingInvite,
-  onReclaimInvitation: (id: string) => void,
+  invite: Types.PendingInvite
+  onReclaimInvitation: (id: string) => void
   onSelectPendingInvite: (invite: Types.PendingInvite) => void
 }) {
   return (
@@ -150,9 +150,9 @@ function PendingInviteItem({
 
 function PendingEmailContent({
   invite,
-  onSelectPendingInvite
+  onSelectPendingInvite,
 }: {
-  invite: Types.PendingInvite,
+  invite: Types.PendingInvite
   onSelectPendingInvite: (invite: Types.PendingInvite) => void
 }) {
   return (
@@ -168,11 +168,7 @@ function PendingEmailContent({
   )
 }
 
-function PendingURLContent({
-  invite
-}: {
-  invite: Types.PendingInvite
-}) {
+function PendingURLContent({invite}: {invite: Types.PendingInvite}) {
   return (
     <Kb.Box style={{...Styles.globalStyles.flexBoxRow, alignItems: 'center'}}>
       <Kb.Icon
@@ -193,9 +189,9 @@ function PendingURLContent({
 
 function AcceptedInviteItem({
   invite,
-  onClick
+  onClick,
 }: {
-  invite: Types.AcceptedInvite,
+  invite: Types.AcceptedInvite
   onClick: (username: string) => void
 }) {
   return (

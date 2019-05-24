@@ -3,9 +3,9 @@ import {globalStyles, globalMargins} from '../../styles'
 import {Box, Button, Text, ButtonBar} from '../../common-adapters'
 
 export type Props = {
-  onCancel: () => void,
+  onCancel: () => void
   onDBNuke: () => void
-};
+}
 
 function DBNukeConfirm(props: Props) {
   return (

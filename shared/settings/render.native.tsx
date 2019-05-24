@@ -1,7 +1,7 @@
 import * as React from 'react'
 import SettingsNav from './nav'
 
-import { Props } from './render';
+import {Props} from './render'
 
 function SettingsRender(props: Props) {
   return (

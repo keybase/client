@@ -1,9 +1,0 @@
-import {Component} from 'react'
-
-export type Props = {
-  version: string,
-  onShowTerms: () => void,
-  onShowPrivacyPolicy: () => void
-};
-
-export default class About extends Component<Props> {}

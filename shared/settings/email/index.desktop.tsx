@@ -2,16 +2,16 @@ import React, {Component} from 'react'
 import {globalMargins} from '../../styles'
 import {Button, Input, StandardScreen, Text} from '../../common-adapters'
 
-import { Props } from './index';
+import {Props} from './index'
 
 type State = {
-  email: string,
-  originalEmail: string,
+  email: string
+  originalEmail: string
   edited: boolean
-};
+}
 
 class UpdateEmail extends Component<Props, State> {
-  state: State;
+  state: State
 
   constructor(props: Props) {
     super(props)

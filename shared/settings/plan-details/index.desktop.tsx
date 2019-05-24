@@ -3,13 +3,9 @@ import {globalStyles, globalMargins} from '../../styles'
 import {Box, Button, Text, StandardScreen} from '../../common-adapters'
 import {Stars} from '../common.desktop'
 
-import { Props, PaymentVariants } from './';
+import {Props, PaymentVariants} from './'
 
-function PaymentOption({
-  paymentOption
-}: {
-  paymentOption: PaymentVariants
-}) {
+function PaymentOption({paymentOption}: {paymentOption: PaymentVariants}) {
   switch (paymentOption.type) {
     case 'credit-card-no-past':
       const {onAddCreditCard} = paymentOption
@@ -46,14 +42,7 @@ function PaymentOption({
   return null
 }
 
-function PlanDetails({
-  plan,
-  price,
-  paymentOption,
-  onBack,
-  gigabytes,
-  numStars
-}: Props) {
+function PlanDetails({plan, price, paymentOption, onBack, gigabytes, numStars}: Props) {
   return (
     <StandardScreen onBack={onBack}>
       <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center'}}>

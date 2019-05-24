@@ -2,7 +2,7 @@ import * as React from 'react'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {Box, Button, Icon, Text, Avatar, ButtonBar} from '../../common-adapters'
 
-import { Props } from './index';
+import {Props} from './index'
 
 function DeleteConfirm(props: Props) {
   return (

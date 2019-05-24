@@ -2,7 +2,7 @@ import * as React from 'react'
 import {globalStyles, globalMargins} from '../../styles'
 import {Box, Button, Text} from '../../common-adapters'
 
-import { Props } from './index';
+import {Props} from './index'
 
 function DeleteMe(props: Props) {
   return (

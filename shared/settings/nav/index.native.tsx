@@ -6,7 +6,7 @@ import {NativeSectionList, Text} from '../../common-adapters/mobile.native'
 import {isAndroid} from '../../constants/platform'
 import SettingsItem from './settings-item'
 
-import { Props } from './index';
+import {Props} from './index'
 
 const renderItem = ({item}) => {
   return item.text ? <SettingsItem {...item} /> : null

@@ -9,25 +9,27 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import AppState from '../../app/app-state'
 
 type Props = {
-  openAtLogin: boolean,
-  lockdownModeEnabled: boolean | null,
-  onChangeLockdownMode: (arg0: boolean) => void,
-  onSetOpenAtLogin: (open: boolean) => void,
-  onDBNuke: () => void,
-  onTrace: (durationSeconds: number) => void,
-  onProcessorProfile: (durationSeconds: number) => void,
-  onBack: () => void,
-  setLockdownModeError: string,
-  settingLockdownMode: boolean,
-  traceInProgress: boolean,
-  processorProfileInProgress: boolean,
-  hasRandomPW: boolean,
-  useNativeFrame: boolean,
+  openAtLogin: boolean
+  lockdownModeEnabled: boolean | null
+  onChangeLockdownMode: (arg0: boolean) => void
+  onSetOpenAtLogin: (open: boolean) => void
+  onDBNuke: () => void
+  onTrace: (durationSeconds: number) => void
+  onProcessorProfile: (durationSeconds: number) => void
+  onBack: () => void
+  setLockdownModeError: string
+  settingLockdownMode: boolean
+  traceInProgress: boolean
+  processorProfileInProgress: boolean
+  hasRandomPW: boolean
+  useNativeFrame: boolean
   onChangeUseNativeFrame: (arg0: boolean) => void
-};
+}
 
 const initialUseNativeFrame = // Auto generated from flowToTs. Please clean me!
-new AppState().state.useNativeFrame !== null && new AppState().state.useNativeFrame !== undefined ? new AppState().state.useNativeFrame : defaultUseNativeFrame
+  new AppState().state.useNativeFrame !== null && new AppState().state.useNativeFrame !== undefined
+    ? new AppState().state.useNativeFrame
+    : defaultUseNativeFrame
 
 const UseNativeFrame = (props: Props) => {
   return (
@@ -91,10 +93,10 @@ const Advanced = (props: Props) => {
 }
 
 type StartButtonProps = {
-  label: string,
-  inProgress: boolean,
+  label: string
+  inProgress: boolean
   onStart: () => void
-};
+}
 
 const StartButton = (props: StartButtonProps) => (
   <Kb.Button
@@ -107,10 +109,10 @@ const StartButton = (props: StartButtonProps) => (
 )
 
 type State = {
-  cleanTook: number,
-  clickCount: number,
+  cleanTook: number
+  clickCount: number
   indexTook: number
-};
+}
 
 const clickThreshold = 7
 const traceDurationSeconds = 30

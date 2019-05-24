@@ -5,27 +5,27 @@ import * as Constants from '../../constants/settings'
 import {UpdatePassword} from '../../settings/password'
 
 export type Props = {
-  checkPasswordIsCorrect: boolean | null,
-  hasRandomPW: boolean | null,
-  onBootstrap: () => void,
-  onCancel: () => void,
-  onCheckPassword: (password: string) => void,
-  onLogout: () => void,
-  onSavePassword: (password: string, passwordConfirm: string) => void,
+  checkPasswordIsCorrect: boolean | null
+  hasRandomPW: boolean | null
+  onBootstrap: () => void
+  onCancel: () => void
+  onCheckPassword: (password: string) => void
+  onLogout: () => void
+  onSavePassword: (password: string, passwordConfirm: string) => void
   waitingForResponse: boolean
-};
+}
 
 type TestProps = {
-  checkPasswordIsCorrect: boolean | null,
-  onCancel: () => void,
-  onCheckPassword: (password: string) => void,
+  checkPasswordIsCorrect: boolean | null
+  onCancel: () => void
+  onCheckPassword: (password: string) => void
   onLogout: () => void
-};
+}
 
 type State = {
-  password: string,
+  password: string
   showTyping: boolean
-};
+}
 
 class OfferToCheckPassword extends React.Component<TestProps, State> {
   state = {

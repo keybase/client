@@ -7,11 +7,11 @@ import SystemFileManagerIntegrationBanner from '../../fs/banner/system-file-mana
 import RefreshDriverStatusOnMount from '../../fs/common/refresh-driver-status-on-mount'
 
 type Props = {
-  driverStatus: Types.DriverStatus,
-  onEnable: () => void,
-  onDisable: () => void,
+  driverStatus: Types.DriverStatus
+  onEnable: () => void
+  onDisable: () => void
   onShowKextPermissionPopup: () => void
-};
+}
 
 const EnableSystemFileManagerIntegration = (props: Props) => (
   <Kb.Box style={Styles.globalStyles.flexBoxColumn}>

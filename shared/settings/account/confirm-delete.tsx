@@ -3,11 +3,11 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
 type Props = {
-  address: string,
-  onCancel: () => void,
-  onConfirm: () => void,
-  type: "email" | "phone"
-};
+  address: string
+  onCancel: () => void
+  onConfirm: () => void
+  type: 'email' | 'phone'
+}
 
 const getIcon = props => {
   if (props.type === 'email') {
