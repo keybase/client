@@ -1,4 +1,5 @@
 /* eslint-env browser */
+// @ts-ignore
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker'
 import React, {PureComponent} from 'react'
 import * as Kb from '../../../../common-adapters'
@@ -87,9 +88,11 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
 
     switch (location) {
       case 'camera':
+        // @ts-ignore
         launchCamera({mediaType, permissionDenied, takePhotoButtonTitle, title}, handleSelection)
         break
       case 'library':
+        // @ts-ignore
         launchImageLibrary({mediaType, permissionDenied, takePhotoButtonTitle, title}, handleSelection)
         break
     }

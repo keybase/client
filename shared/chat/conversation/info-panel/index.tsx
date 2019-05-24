@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
 import {Box, Divider, HeaderOnMobile, List} from '../../../common-adapters'
+// @ts-ignore
 import {Props as HeaderHocProps} from '../../../common-adapters/header-hoc/types'
 import {globalColors, globalMargins, globalStyles, isMobile, platformStyles} from '../../../styles'
 import {SmallTeamHeader, BigTeamHeader} from './header'
@@ -208,7 +209,9 @@ type MinWriterRoleRow = {
   isSmallTeam: boolean
 }
 
-type TeamHeaderRow =
+type Row =
+  | TurnIntoTeamRow
+  | BlockThisConversationRow
   | DividerRow
   | SpacerRow
   | NotificationsRow
@@ -223,17 +226,7 @@ type TeamHeaderRow =
   | LeaveChannelRow
   | MinWriterRoleRow
   | AddPeopleRow
-type Row =
   | ParticipantRow
-  | SpacerRow
-  | DividerRow
-  | NotificationsRow
-  | TurnIntoTeamRow
-  | ClearThisConversationRow
-  | BlockThisConversationRow
-  | HideThisConversationRow
-  | UnhideThisConversationRow
-  | TeamHeaderRow
 
 const typeSizeEstimator = (row: Row): number => {
   // Don't bother adding more estimates to this.
@@ -247,7 +240,7 @@ const typeSizeEstimator = (row: Row): number => {
 }
 
 class _InfoPanel extends React.Component<InfoPanelProps> {
-  _renderRow = (i: number, row: Row): React.ElementType => {
+  _renderRow = (i: number, row: Row): React.ReactNode => {
     switch (row.type) {
       case 'add people':
         return (
@@ -408,9 +401,6 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             isSmallTeam={row.isSmallTeam}
           />
         )
-
-      default:
-        throw new Error(`Impossible case encountered: ${row.type}`)
     }
   }
 
@@ -419,13 +409,13 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
     // mobile uses the `key` prop supplied on these row objects
     // use this to ensure we don't repeat a number for the arbitrary keys
     let keyState = 0
-    const nextKey = () => {
+    const nextKey = (): string => {
       keyState++
       return keyState.toString()
     }
 
     const props = this.props
-    const participants: Array<ParticipantRow> = props.participants.map(p => ({
+    const participants: Array<any> = props.participants.map(p => ({
       fullname: p.fullname,
       isAdmin: p.isAdmin,
       isOwner: p.isOwner,
@@ -437,11 +427,11 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
 
     const participantCount = participants.length
 
-    let rows: Array<Row>
+    let rows: Array<any>
     const {teamname, channelname} = props
     if (teamname && channelname) {
-      let headerRows: Array<TeamHeaderRow>
-      const subHeaderRows = [
+      let headerRows: any
+      const subHeaderRows: Array<Row> = [
         {
           isSmallTeam: props.smallTeam,
           key: 'small team header',
@@ -560,16 +550,16 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           canEditChannel: props.canEditChannel,
           channelname,
           description: props.description,
-          key: 'big team header',
+          key: 'big team header' as 'big team header',
           onEditChannel: props.onEditChannel,
           teamname,
-          type: 'big team header',
+          type: 'big team header' as 'big team header',
         }
         const participantCountRow = {
-          key: 'participant count',
+          key: 'participant count' as 'participant count',
           label: 'In this channel',
           participantCount,
-          type: 'participant count',
+          type: 'participant count' as 'participant count',
         }
 
         if (props.isPreview) {
@@ -693,9 +683,9 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           type: 'divider',
         },
         {
-          key: 'turn into team',
+          key: 'turn into team' as 'turn into team',
           onShowNewTeamDialog: props.onShowNewTeamDialog,
-          type: 'turn into team',
+          type: 'turn into team' as 'turn into team',
         },
         {
           key: nextKey(),

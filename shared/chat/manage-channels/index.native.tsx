@@ -177,8 +177,6 @@ const _createIcon = {
   marginRight: globalMargins.xtiny,
 }
 
-const Wrapper = (p: Props) => (
-  <ManageChannels {...p} onClose={undefined} onBack={p.onClose} customComponent={<Header {...p} />} />
-)
+const Wrapper = (p: Props) => <ManageChannels {...p} onClose={undefined} />
 
 export default HeaderHoc(Wrapper)

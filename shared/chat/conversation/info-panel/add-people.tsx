@@ -87,7 +87,7 @@ const AddPeople = compose(
   connect(
     () => ({}),
     mapDispatchToProps,
-    (s, d, o) => ({
+    (s, d, o: any) => ({
       isAdmin: o.isAdmin,
       isGeneralChannel: o.isGeneralChannel,
       onAddPeople: () => d._onAddPeople(o.teamname),

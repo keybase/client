@@ -16,7 +16,7 @@ const shhIconFontSize = 24
 
 const Wrapper = (
   props: {
-    children: React.ElementType
+    children: React.ReactNode
   } & Props
 ) => (
   <HeaderHocHeader

@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/chat2'
 import * as Styles from '../../styles'
-import * as Flow from '../../util/flow'
 import SelectableSmallTeam from '../selectable-small-team-container'
 import SelectableBigTeamChannel from '../selectable-big-team-channel-container'
 import {rowHeight} from '../selectable-big-team-channel'
@@ -28,7 +27,7 @@ type ToggleMoreRowItem = {
   hiddenCount: number
 }
 
-type RowItem = SmallTeamRowItem | BigTeamChannelRowItem | ToggleMoreRowItem
+export type RowItem = SmallTeamRowItem | BigTeamChannelRowItem | ToggleMoreRowItem
 
 type Props = {
   rows: Array<RowItem>
@@ -74,7 +73,6 @@ const _itemRenderer = (index, row) => {
         </Kb.Box2>
       )
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(row.type)
       return null
   }
 }

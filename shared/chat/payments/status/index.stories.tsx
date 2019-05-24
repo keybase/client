@@ -27,19 +27,19 @@ const common = {
 
 const successProps = {
   ...common,
-  status: 'completed',
+  status: 'completed' as 'completed',
   text: '+1XLM@patrick',
 }
 
 const pendingProps = {
   ...common,
-  status: 'pending',
+  status: 'pending' as 'pending',
   text: '+10XLM@chris',
 }
 
 const errorProps = {
   ...common,
-  status: 'error',
+  status: 'error' as 'error',
   text: '+5USD@mikem',
 }
 

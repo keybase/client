@@ -3,27 +3,26 @@ import * as React from 'react'
 import * as I from 'immutable'
 import * as Types from '../../constants/types/chat2'
 import * as Sb from '../../stories/storybook'
-
 import {isDarwin} from '../../constants/platform'
 import {isMobile, globalColors, globalMargins} from '../../styles'
-
 import Inbox from '.'
+import {RowItem, RowItemSmall, RowItemBigHeader, RowItemBig, RowItemDivider} from './index.types'
 
 /*
  * Rows
  */
-const makeRowItemSmall = (conversationIDKey: string = '') => ({
+const makeRowItemSmall = (conversationIDKey: string = ''): RowItemSmall => ({
   type: 'small',
   conversationIDKey: Types.stringToConversationIDKey(conversationIDKey),
 })
-const makeRowItemBigHeader = (teamname: string = '') => ({type: 'bigHeader', teamname})
-const makeRowItemBigChannel = (conversationIDKey, teamname, channelname) => ({
+const makeRowItemBigHeader = (teamname: string = ''): RowItemBigHeader => ({type: 'bigHeader', teamname})
+const makeRowItemBigChannel = (conversationIDKey, teamname, channelname): RowItemBig => ({
   type: 'big',
   teamname,
   channelname,
   conversationIDKey: Types.stringToConversationIDKey(conversationIDKey),
 })
-const makeRowItemDivider = (showButton: boolean = false) => ({type: 'divider', showButton})
+const makeRowItemDivider = (showButton: boolean = false): RowItemDivider => ({type: 'divider', showButton})
 
 /*
  * Component Prop Map

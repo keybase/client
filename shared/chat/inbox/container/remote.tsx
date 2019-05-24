@@ -8,14 +8,15 @@ import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 
 export const maxShownConversations = 3
 
-export type RemoteConvMeta = Exclude<
+export type RemoteConvMeta = any
+/*Exclude<
   {
     conversationIDKey: ChatTypes.ConversationIDKey
   } & SmallTeam.Props,
   {
     onSelectConversation: () => void
   }
->
+>*/
 
 // To cache the list
 const valuesCached = memoize(

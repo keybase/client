@@ -105,34 +105,32 @@ const makeBigItem = (meta, filter, insertMatcher) => {
 }
 
 // Ignore headers, score based on matches of participants, ignore total non matches
-const getFilteredRowsAndMetadata = memoize<Types.MetaMap, string, string, void, _>(
-  (metaMap: Types.MetaMap, filter: string, username: string) => {
-    const metas = metaMap.valueSeq().toArray()
-    const lcFilter = filter.toLowerCase()
-    const lcYou = username.toLowerCase()
-    const insertMatcher = makeInsertMatcher(filter)
-    const rows: Array<RowItem> = metas
-      .map(meta => {
-        if (!Constants.isValidConversationIDKey(meta.conversationIDKey)) {
-          return null
-        }
-        return meta.teamType !== 'big'
-          ? makeSmallItem(meta, lcFilter, lcYou, insertMatcher)
-          : makeBigItem(meta, lcFilter, insertMatcher)
-      })
-      .filter(Boolean)
-      .sort((a, b) => {
-        return a.score === b.score ? b.timestamp - a.timestamp : b.score - a.score
-      })
-      .map(({data}) => data as RowItem)
+const getFilteredRowsAndMetadata = memoize((metaMap: Types.MetaMap, filter: string, username: string) => {
+  const metas = metaMap.valueSeq().toArray()
+  const lcFilter = filter.toLowerCase()
+  const lcYou = username.toLowerCase()
+  const insertMatcher = makeInsertMatcher(filter)
+  const rows: Array<RowItem> = metas
+    .map(meta => {
+      if (!Constants.isValidConversationIDKey(meta.conversationIDKey)) {
+        return null
+      }
+      return meta.teamType !== 'big'
+        ? makeSmallItem(meta, lcFilter, lcYou, insertMatcher)
+        : makeBigItem(meta, lcFilter, insertMatcher)
+    })
+    .filter(Boolean)
+    .sort((a, b) => {
+      return a.score === b.score ? b.timestamp - a.timestamp : b.score - a.score
+    })
+    .map(({data}) => data as RowItem)
 
-    return {
-      allowShowFloatingButton: false,
-      rows,
-      smallTeamsExpanded: true,
-    }
+  return {
+    allowShowFloatingButton: false,
+    rows,
+    smallTeamsExpanded: true,
   }
-)
+})
 
 export default getFilteredRowsAndMetadata
 

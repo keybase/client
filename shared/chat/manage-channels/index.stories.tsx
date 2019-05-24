@@ -63,7 +63,6 @@ const load = () => {
       <Box style={{minWidth: isMobile ? undefined : 400, width: '100%'}}>
         <ManageChannels
           teamname="stripe.usa"
-          numChannels={23}
           canEditChannels={true}
           canCreateChannels={true}
           channels={channels}
@@ -84,7 +83,6 @@ const load = () => {
       <Box style={{minWidth: isMobile ? undefined : 400, width: '100%'}}>
         <ManageChannels
           teamname="stripe.usa"
-          numChannels={23}
           canEditChannels={true}
           canCreateChannels={true}
           channels={[]}
@@ -105,7 +103,6 @@ const load = () => {
       <Box style={{minWidth: isMobile ? undefined : 400, width: '100%'}}>
         <ManageChannels
           teamname="stripe.usa"
-          numChannels={23}
           canEditChannels={false}
           canCreateChannels={false}
           channels={channels}

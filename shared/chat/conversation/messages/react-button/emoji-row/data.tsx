@@ -3,7 +3,7 @@ import {isMobile} from '../../../../../constants/platform'
 
 const getFrequently = memoize(() => require('emoji-mart').frequently)
 
-const getEmojis = memoize<number, void, void, void, Array<string>>(() =>
+const getEmojis = memoize(() =>
   isMobile
     ? []
     : getFrequently()

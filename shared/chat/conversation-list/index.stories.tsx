@@ -5,7 +5,7 @@ import * as Styles from '../../styles'
 import * as Types from '../../constants/types/chat2'
 import * as Constants from '../../constants/chat2'
 import ChooseConversation from './choose-conversation'
-import ConversationList from './conversation-list'
+import ConversationList, {RowItem} from './conversation-list'
 
 const id = Types.stringToConversationIDKey
 const s = Types.conversationIDKeyToString
@@ -63,7 +63,7 @@ const bigProvider = (props: {conversationIDKey: Types.ConversationIDKey}) => ({
   ...props,
 })
 
-const getRows = (numShown, upstreamOnSelect) => {
+const getRows = (numShown?: number, upstreamOnSelect?: () => void): Array<RowItem> => {
   const sbOnSelect = Sb.action('onSelect')
   const onSelectConversation = function() {
     upstreamOnSelect && upstreamOnSelect()
@@ -95,7 +95,7 @@ const getRows = (numShown, upstreamOnSelect) => {
       onClick: Sb.action('onClick'),
       type: 'more-less',
     },
-  ]
+  ] as Array<RowItem>
 }
 
 const actions = {

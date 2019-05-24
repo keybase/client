@@ -91,7 +91,7 @@ const styleImageFit = {
   display: 'block',
   margin: 'auto',
   maxWidth: '100%',
-  objectFit: 'scale-down',
+  objectFit: 'scale-down' as 'scale-down',
   padding: '5px',
 }
 

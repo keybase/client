@@ -71,7 +71,7 @@ type AddSuggestorsState = {
 type SuggestorHooks = {
   suggestionsVisible: boolean
   inputRef: {
-    current: React.ElementRef<typeof Kb.PlainInput> | null
+    current: React.RefObject<typeof Kb.PlainInput> | null
   }
   onChangeText: (arg0: string) => void
   onKeyDown: (event: React.KeyboardEvent, isComposingIME: boolean) => void

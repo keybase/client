@@ -4,7 +4,7 @@ import {NativeWebView} from '../../../common-adapters/native-wrappers.native'
 import * as Styles from '../../../styles'
 import {Props} from './index.types'
 
-class GiphySearch extends React.Component<Props, State> {
+class GiphySearch extends React.Component<Props> {
   render() {
     const source = {
       uri: this.props.galleryURL,
@@ -30,9 +30,7 @@ class GiphySearch extends React.Component<Props, State> {
 }
 
 const styles = Styles.styleSheetCreate({
-  container: {
-    height: 80,
-  },
+  container: {height: 80},
 })
 
 export default GiphySearch

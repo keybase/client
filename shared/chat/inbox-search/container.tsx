@@ -6,7 +6,7 @@ import HiddenString from '../../util/hidden-string'
 import InboxSearch from '.'
 
 type OwnProps = {
-  header?: React.ElementType
+  header?: React.ReactNode
 }
 
 const mapStateToProps = state => {
@@ -54,9 +54,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   textStatus: stateProps._inboxSearch.textStatus,
 })
 
-export default namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'InboxSearch'
-)(InboxSearch)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'InboxSearch')(InboxSearch)

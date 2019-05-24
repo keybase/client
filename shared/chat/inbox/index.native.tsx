@@ -154,7 +154,7 @@ class Inbox extends React.PureComponent<Props, State> {
     })
   }
 
-  _updateShowFloating = data => {
+  _updateShowFloating = () => {
     if (this._lastVisibleIdx < 0) {
       return
     }

@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as I from 'immutable'
 import {ConversationIDKey} from '../../constants/types/chat2'
 
@@ -32,7 +33,7 @@ export type RouteState = I.RecordOf<{
 
 export type Props = {
   allowShowFloatingButton: boolean
-  children?: React$Element<any>
+  children?: React.ReactNode
   neverLoaded: boolean
   nowOverride?: number
   onEnsureSelection: () => void

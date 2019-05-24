@@ -24,7 +24,7 @@ const commonBannerStyle = {
   paddingTop: 8,
 }
 
-const BannerBox = (props: {children: React.ElementType; color: string}) => (
+const BannerBox = (props: {children: React.ReactNode; color: string}) => (
   <Box style={{...commonBannerStyle, backgroundColor: props.color}}>{props.children}</Box>
 )
 

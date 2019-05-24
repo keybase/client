@@ -87,7 +87,7 @@ const getBigRows = memoize(
 
 // Get smallIDs and big RowItems. Figure out the divider if it exists and truncate the small list.
 // Convert the smallIDs to the Small RowItems
-const getRowsAndMetadata = memoize<Types.MetaMap, boolean, Types.ConversationIDKey, void, _>(
+const getRowsAndMetadata = memoize(
   (metaMap: Types.MetaMap, smallTeamsExpanded: boolean, selectedConversation: Types.ConversationIDKey) => {
     const {bigMetas, smallMetas} = splitMetas(metaMap, selectedConversation)
     const showAllSmallRows = smallTeamsExpanded || !bigMetas.length

@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Constants from '../../constants/chat2'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Types from '../../constants/types/chat2'
-import * as Flow from '../../util/flow'
 import * as Kb from '../../common-adapters'
 import {isMobile, isIOS} from '../../constants/platform'
 import {connect, getRouteProps} from '../../util/container'
@@ -68,7 +67,6 @@ class Conversation extends React.PureComponent<SwitchProps> {
       case 'rekey':
         return <Rekey conversationIDKey={this.props.conversationIDKey} />
       default:
-        Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(this.props.type)
         return <NoConversation />
     }
   }

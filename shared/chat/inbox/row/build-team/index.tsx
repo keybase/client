@@ -29,7 +29,7 @@ const DividerBox = Styles.styled(Kb.Box)({
   width: '100%',
 })
 
-const BuildTeam = ({loaded, showBuildATeam, onBuildTeam}: Props) =>
+const BuildTeam = ({showBuildATeam, onBuildTeam}: Props) =>
   showBuildATeam ? (
     <Kb.ClickableBox title="Make a new team" onClick={onBuildTeam} style={styles.container}>
       <DividerBox>

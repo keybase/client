@@ -34,7 +34,7 @@ const DividerBox = Styles.styled(Kb.Box)({
 const BigTeamsDivider = ({toggle, badgeCount}: Props) => (
   <Kb.ClickableBox title="Teams with multiple channels." onClick={toggle} style={styles.container}>
     <DividerBox>
-      <BigTeamsLabel isFiltered={false} />
+      <BigTeamsLabel />
       {badgeCount > 0 && <Kb.Badge badgeStyle={styles.badge} badgeNumber={badgeCount} />}
       <Kb.Box style={styles.icon}>
         <Kb.Icon type="iconfont-arrow-up" inheritColor={true} fontSize={Styles.isMobile ? 20 : 16} />
