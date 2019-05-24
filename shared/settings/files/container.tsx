@@ -15,21 +15,16 @@ const mapDispatchToProps = dispatch => ({
   onShowKextPermissionPopup: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['kextPermission']})),
 })
 
-const Render = () => {
-  if (isMobile) {
-    return () => null
-  }
-  // @ts-ignore codemod-issue
-  return namedConnect<OwnProps, _, _, _, _>(
-    mapStateToProps,
-    mapDispatchToProps,
-    (s, d, o) => ({
-      ...s,
-      ...d,
-      ...o,
-    }),
-    'SettingsFiles'
-  )(Files)
-}
+// @ts-ignore codemod-issue
+const SettingsFiles = namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({
+    ...s,
+    ...d,
+    ...o,
+  }),
+  'SettingsFiles'
+)(Files)
 
-export default Render
+export default (isMobile ? () => null : SettingsFiles)
