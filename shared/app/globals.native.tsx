@@ -4,6 +4,7 @@
 // what's happening
 //
 // Needed for purepack
+// @ts-ignore
 window.Buffer = require('buffer').Buffer
 const {NativeModules} = require('react-native')
 

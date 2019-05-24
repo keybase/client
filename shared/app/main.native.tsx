@@ -54,7 +54,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({})
 
-const Connected = connect<OwnProps, _, _, _, _>(
+const Connected = connect(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d})

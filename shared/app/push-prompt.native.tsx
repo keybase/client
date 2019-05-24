@@ -81,7 +81,7 @@ const mapDispatchToProps = dispatch => ({
 })
 
 export default Container.compose(
-  Container.namedConnect<OwnProps, _, _, _, _>(
+  Container.namedConnect(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d}),

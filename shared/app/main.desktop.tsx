@@ -24,7 +24,7 @@ class Main extends React.PureComponent<Props> {
       const mw = getMainWindow()
       const overlay =
         this.props.desktopAppBadgeCount > 0 ? resolveImage('icons', 'icon-windows-badge.png') : null
-      // $FlowIssue setOverlayIcon docs say null overlay's fine, flow disagrees
+      // @ts-ignore
       mw && mw.setOverlayIcon(overlay, 'new activity')
     }
   }
@@ -56,7 +56,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({})
 
 export default hot(
-  connect<OwnProps, _, _, _, _>(
+  connect(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})

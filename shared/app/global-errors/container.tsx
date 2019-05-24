@@ -47,7 +47,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onFeedback: () => dispatchProps.onFeedback(stateProps._loggedIn),
 })
 
-const Connected = connect<OwnProps, _, _, _, _>(
+const Connected = connect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

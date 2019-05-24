@@ -18,7 +18,7 @@ export type Options = {
 
 export type Managed = {
   winRef: any | null
-  debounceChangeTimer: number | null
+  debounceChangeTimer: NodeJS.Timer
   showHandlers: Array<Function>
   resizeHandlers: Array<Function>
   moveHandlers: Array<Function>
@@ -285,11 +285,13 @@ export default class AppState {
   }
 
   _loadAppListeners() {
+    // @ts-ignore
     SafeElectron.getApp().on('-keybase-dock-showing', () => {
       this.state.dockHidden = false
       this.saveState()
     })
 
+    // @ts-ignore
     SafeElectron.getApp().on('-keybase-dock-hide', () => {
       this.state.dockHidden = true
       this.saveState()
