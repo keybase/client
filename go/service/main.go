@@ -331,6 +331,7 @@ func (d *Service) SetupCriticalSubServices() error {
 	stellar.ServiceInit(d.G(), d.walletState, d.badger)
 	pvl.NewPvlSourceAndInstall(d.G())
 	externals.NewParamProofStoreAndInstall(d.G())
+	externals.NewExternalURLStoreAndInstall(d.G())
 	ephemeral.ServiceInit(d.MetaContext(context.TODO()))
 	avatars.ServiceInit(d.G(), d.avatarLoader)
 	return nil

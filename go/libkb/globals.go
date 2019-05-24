@@ -95,6 +95,7 @@ type GlobalContext struct {
 	fullSelfer       FullSelfer       // a loader that gets the full self object
 	pvlSource        MerkleStore      // a cache and fetcher for pvl
 	paramProofStore  MerkleStore      // a cache and fetcher for param proofs
+	externalURLStore  MerkleStore      // a cache and fetcher for external urls
 	PayloadCache     *PayloadCache    // cache of ChainLink payload json wrappers
 	Pegboard         *Pegboard
 
@@ -635,6 +636,10 @@ func (g *GlobalContext) GetParamProofStore() MerkleStore {
 	return g.paramProofStore
 }
 
+func (g *GlobalContext) GetExternalURLStore() MerkleStore {
+	return g.externalURLStore
+}
+
 // to implement ProofContext
 func (g *GlobalContext) GetPvlSource() MerkleStore {
 	return g.pvlSource
@@ -1147,6 +1152,12 @@ func (g *GlobalContext) SetParamProofStore(s MerkleStore) {
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
 	g.paramProofStore = s
+}
+
+func (g *GlobalContext) SetExternalURLStore(s MerkleStore) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.externalURLStore = s
 }
 
 func (g *GlobalContext) SetPvlSource(s MerkleStore) {
