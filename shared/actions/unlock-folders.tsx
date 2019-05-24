@@ -6,7 +6,7 @@ import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import {getEngine} from '../engine/require'
 
-function* checkPaperKey(_, action) {
+function* checkPaperKey(_, action: UnlockFoldersGen.CheckPaperKeyPayload) {
   const {paperKey} = action.payload
   yield Saga.put(UnlockFoldersGen.createWaiting({waiting: true}))
   try {
@@ -28,7 +28,7 @@ const closePopup = () => {
   return UnlockFoldersGen.createCloseDone()
 }
 
-const refresh = (_, action) => {
+const refresh = (_, action: EngineGen.Keybase1RekeyUIRefreshPayload) => {
   const {problemSetDevices} = action.payload.params
   const sessionID = action.payload.params.sessionID
   logger.info('Asked for rekey')
@@ -50,7 +50,7 @@ const registerRekeyUI = () =>
     })
 
 // we get this with sessionID == 0 if we call openDialog
-const delegateRekeyUI = (_, action) => {
+const delegateRekeyUI = (_, action: EngineGen.Keybase1RekeyUIDelegateRekeyUIPayload) => {
   // Dangling, never gets closed
   const session = getEngine().createSession({
     dangling: true,

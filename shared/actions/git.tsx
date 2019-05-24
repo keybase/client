@@ -22,7 +22,7 @@ const surfaceGlobalErrors = (_, {
 }: GitGen.LoadedPayload) =>
   errors.map(globalError => ConfigGen.createGlobalError({globalError}))
 
-const createPersonalRepo = (_, action) =>
+const createPersonalRepo = (_, action: GitGen.CreatePersonalRepoPayload) =>
   RPCTypes.gitCreatePersonalRepoRpcPromise(
     {
       repoName: action.payload.name,
@@ -32,7 +32,7 @@ const createPersonalRepo = (_, action) =>
     .then(() => GitGen.createRepoCreated())
     .catch(error => GitGen.createSetError({error}))
 
-const createTeamRepo = (_, action) =>
+const createTeamRepo = (_, action: GitGen.CreateTeamRepoPayload) =>
   RPCTypes.gitCreateTeamRepoRpcPromise(
     {
       notifyTeam: action.payload.notifyTeam,
@@ -46,7 +46,7 @@ const createTeamRepo = (_, action) =>
     .then(() => GitGen.createRepoCreated())
     .catch(error => GitGen.createSetError({error}))
 
-const deletePersonalRepo = (_, action) =>
+const deletePersonalRepo = (_, action: GitGen.DeletePersonalRepoPayload) =>
   RPCTypes.gitDeletePersonalRepoRpcPromise(
     {
       repoName: action.payload.name,
@@ -56,7 +56,7 @@ const deletePersonalRepo = (_, action) =>
     .then(() => GitGen.createRepoDeleted())
     .catch(error => GitGen.createSetError({error}))
 
-const deleteTeamRepo = (_, action) =>
+const deleteTeamRepo = (_, action: GitGen.DeleteTeamRepoPayload) =>
   RPCTypes.gitDeleteTeamRepoRpcPromise(
     {
       notifyTeam: action.payload.notifyTeam,
@@ -70,7 +70,7 @@ const deleteTeamRepo = (_, action) =>
     .then(() => GitGen.createRepoDeleted())
     .catch(error => GitGen.createSetError({error}))
 
-const setTeamRepoSettings = (_, action) =>
+const setTeamRepoSettings = (_, action: GitGen.SetTeamRepoSettingsPayload) =>
   RPCTypes.gitSetTeamRepoSettingsRpcPromise({
     channelName: action.payload.channelName,
     chatDisabled: action.payload.chatDisabled,
@@ -90,7 +90,7 @@ const clearNavBadges = () =>
     category: 'new_git_repo',
   }).catch(logError)
 
-const handleIncomingGregor = (_, action) => {
+const handleIncomingGregor = (_, action: GregorGen.PushOOBMPayload) => {
   const gitMessages = action.payload.messages.filter(i => i.system === 'git')
   const msgs = gitMessages.map(msg => JSON.parse(msg.body.toString()))
   for (let body of msgs) {
@@ -101,7 +101,7 @@ const handleIncomingGregor = (_, action) => {
   }
 }
 
-function* navigateToTeamRepo(state, action) {
+function* navigateToTeamRepo(state, action: GitGen.NavigateToTeamRepoPayload) {
   const {teamname, repoID} = action.payload
   let id = Constants.repoIDTeamnameToId(state, repoID, teamname)
   if (!id) {
@@ -116,7 +116,7 @@ function* navigateToTeamRepo(state, action) {
   }
 }
 
-const receivedBadgeState = (_, action) =>
+const receivedBadgeState = (_, action: NotificationsGen.ReceivedBadgeStatePayload) =>
   GitGen.createBadgeAppForGit({ids: action.payload.badgeState.newGitRepoGlobalUniqueIDs || []})
 
 function* gitSaga(): Saga.SagaGenerator<any, any> {

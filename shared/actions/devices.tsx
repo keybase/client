@@ -36,7 +36,7 @@ function* requestPaperKey(): Generator<any, void, any> {
   )
 }
 
-const requestEndangeredTLFsLoad = (state, action) => {
+const requestEndangeredTLFsLoad = (state, action: DevicesGen.ShowRevokePagePayload) => {
   const actingDevice = state.config.deviceID
   const targetDevice = action.payload.deviceID
   if (actingDevice && targetDevice) {
@@ -53,7 +53,7 @@ const requestEndangeredTLFsLoad = (state, action) => {
   }
 }
 
-const revoke = (state, action) => {
+const revoke = (state, action: DevicesGen.RevokePayload) => {
   const {deviceID} = action.payload
   const device = Constants.getDevice(state, deviceID)
   if (!device) {
@@ -78,7 +78,7 @@ const revoke = (state, action) => {
   }
 }
 
-const navigateAfterRevoked = (state, action) => {
+const navigateAfterRevoked = (state, action: DevicesGen.RevokedPayload) => {
   if (!action.payload.wasCurrentDevice) {
     return RouteTreeGen.createNavUpToScreen({
       routeName: Constants.devicesTabLocation[Constants.devicesTabLocation.length - 1],
@@ -105,7 +105,7 @@ const showPaperKeyPage = () =>
 
 const clearNavBadges = state => RPCTypes.deviceDismissDeviceChangeNotificationsRpcPromise().catch(logError)
 
-const receivedBadgeState = (state, action) =>
+const receivedBadgeState = (state, action: NotificationsGen.ReceivedBadgeStatePayload) =>
   DevicesGen.createBadgeAppForDevices({
     ids: (action.payload.badgeState.newDevices || []).concat(action.payload.badgeState.revokedDevices || []),
   })

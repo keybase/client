@@ -39,7 +39,7 @@ const buildErrCatcher = err => {
   }
 }
 
-const buildPayment = (state, action) =>
+const buildPayment = (state, action: WalletsGen.BuildPaymentPayload) =>
   (state.wallets.building.isRequest
     ? RPCStellarTypes.localBuildRequestLocalRpcPromise(
         stateToBuildRequestParams(state),
@@ -75,7 +75,13 @@ const buildPayment = (state, action) =>
       )
   ).catch(buildErrCatcher)
 
-const spawnBuildPayment = (state, action, logger) => {
+const spawnBuildPayment = (state, action: WalletsGen.SetBuildingAmountPayload
+  | WalletsGen.SetBuildingCurrencyPayload
+  | WalletsGen.SetBuildingFromPayload
+  | WalletsGen.SetBuildingIsRequestPayload
+  | WalletsGen.SetBuildingToPayload
+  | WalletsGen.DisplayCurrencyReceivedPayload
+  | WalletsGen.BuildingPaymentIDReceivedPayload, logger) => {
   if (!state.config.loggedIn) {
     logger.error('not logged in')
     return
@@ -87,7 +93,7 @@ const spawnBuildPayment = (state, action, logger) => {
   return WalletsGen.createBuildPayment()
 }
 
-const openSendRequestForm = (state, action) => {
+const openSendRequestForm = (state, action: WalletsGen.OpenSendRequestFormPayload) => {
   if (!state.wallets.acceptedDisclaimer) {
     // redirect to disclaimer
     return RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']})
@@ -101,12 +107,12 @@ const openSendRequestForm = (state, action) => {
   ]
 }
 
-const maybePopulateBuildingCurrency = (state, action) =>
+const maybePopulateBuildingCurrency = (state, action: WalletsGen.AccountsReceivedPayload) =>
   (state.wallets.building.bid || state.wallets.building.isRequest) && !state.wallets.building.currency // building a payment and haven't set currency yet
     ? WalletsGen.createSetBuildingCurrency({currency: Constants.getDefaultDisplayCurrency(state).code})
     : null
 
-const createNewAccount = (state, action, logger) => {
+const createNewAccount = (state, action: WalletsGen.CreateNewAccountPayload, logger) => {
   const {name} = action.payload
   return RPCStellarTypes.localCreateWalletAccountLocalRpcPromise({name}, Constants.createNewAccountWaitingKey)
     .then(accountIDString => Types.stringToAccountID(accountIDString))
@@ -171,7 +177,7 @@ const setLastSentXLM = (state, action: WalletsGen.SentPaymentPayload | WalletsGe
     writeFile: true,
   })
 
-function* requestPayment(state, _, logger) {
+function* requestPayment(state, _: WalletsGen.RequestPaymentPayload, logger) {
   let buildRes
   try {
     buildRes = yield* Saga.callPromise(
@@ -245,7 +251,7 @@ const reviewPayment = state =>
     }
   })
 
-const stopPayment = (state, action) =>
+const stopPayment = (state, action: WalletsGen.AbandonPaymentPayload) =>
   RPCStellarTypes.localStopBuildPaymentLocalRpcPromise({bid: state.wallets.building.bid})
 
 const clearBuiltPayment = () => WalletsGen.createClearBuiltPayment()
@@ -261,7 +267,11 @@ const loadWalletDisclaimer = state =>
     .then(accepted => WalletsGen.createWalletDisclaimerReceived({accepted}))
     .catch(() => {}) // handled by reloadable
 
-const loadAccounts = (state, action: WalletsGen.Actions, logger) => {
+const loadAccounts = (state, action: WalletsGen.LoadAccountsPayload
+  | WalletsGen.CreatedNewAccountPayload
+  | WalletsGen.LinkedExistingAccountPayload
+  | WalletsGen.ChangedAccountNamePayload
+  | WalletsGen.DeletedAccountPayload, logger) => {
   if (!state.config.loggedIn) {
     logger.error('not logged in')
     return
@@ -319,7 +329,11 @@ type LoadAssetsActions =
   | WalletsGen.LinkedExistingAccountPayload
   | WalletsGen.AccountUpdateReceivedPayload
   | WalletsGen.AccountsReceivedPayload
-const loadAssets = (state, action: LoadAssetsActions, logger) => {
+const loadAssets = (state, action: WalletsGen.LoadAssetsPayload
+  | WalletsGen.SelectAccountPayload
+  | WalletsGen.LinkedExistingAccountPayload
+  | WalletsGen.AccountUpdateReceivedPayload
+  | WalletsGen.AccountsReceivedPayload, logger) => {
   if (actionHasError(action)) {
     return
   }
@@ -402,7 +416,7 @@ const loadPayments = (state, action: LoadPaymentsActions, logger) => {
   )
 }
 
-const loadMorePayments = (state, action, logger) => {
+const loadMorePayments = (state, action: WalletsGen.LoadMorePaymentsPayload, logger) => {
   if (!state.config.loggedIn) {
     logger.error('not logged in')
     return
@@ -417,7 +431,7 @@ const loadMorePayments = (state, action, logger) => {
 }
 
 // We only need to load these once per session
-const loadDisplayCurrencies = (state, action) =>
+const loadDisplayCurrencies = (state, action: WalletsGen.LoadDisplayCurrenciesPayload | WalletsGen.OpenSendRequestFormPayload) =>
   !Constants.displayCurrenciesLoaded(state) &&
   RPCStellarTypes.localGetDisplayCurrenciesLocalRpcPromise().then(res =>
     WalletsGen.createDisplayCurrenciesReceived({
@@ -425,7 +439,7 @@ const loadDisplayCurrencies = (state, action) =>
     })
   )
 
-const loadSendAssetChoices = (state, action) =>
+const loadSendAssetChoices = (state, action: WalletsGen.LoadSendAssetChoicesPayload) =>
   RPCStellarTypes.localGetSendAssetChoicesLocalRpcPromise({
     from: action.payload.from,
     to: action.payload.to,
@@ -433,7 +447,7 @@ const loadSendAssetChoices = (state, action) =>
     res && WalletsGen.createSendAssetChoicesReceived({sendAssetChoices: res})
   })
 
-const loadDisplayCurrency = (state, action) => {
+const loadDisplayCurrency = (state, action: WalletsGen.LoadDisplayCurrencyPayload) => {
   let accountID = action.payload.accountID
   if (accountID && !Types.isValidAccountID(accountID)) {
     accountID = null
@@ -449,7 +463,7 @@ const loadDisplayCurrency = (state, action) => {
     })
   )
 }
-const setInflationDestination = (_, action) => {
+const setInflationDestination = (_, action: WalletsGen.SetInflationDestinationPayload) => {
   const accountID = action.payload.accountID
   if (!accountID || !Types.isValidAccountID(accountID)) {
     return
@@ -477,7 +491,7 @@ const setInflationDestination = (_, action) => {
       })
     )
 }
-const loadInflationDestination = (_, action) => {
+const loadInflationDestination = (_, action: WalletsGen.LoadInflationDestinationPayload) => {
   const accountID = action.payload.accountID
   if (!accountID || !Types.isValidAccountID(accountID)) {
     return
@@ -503,10 +517,10 @@ const loadInflationDestination = (_, action) => {
   })
 }
 
-const refreshAssets = (state, action) =>
+const refreshAssets = (state, action: WalletsGen.DisplayCurrencyReceivedPayload) =>
   action.payload.accountID ? WalletsGen.createLoadAssets({accountID: action.payload.accountID}) : undefined
 
-const changeDisplayCurrency = (state, action) =>
+const changeDisplayCurrency = (state, action: WalletsGen.ChangeDisplayCurrencyPayload) =>
   RPCStellarTypes.localChangeDisplayCurrencyLocalRpcPromise(
     {
       accountID: action.payload.accountID,
@@ -515,7 +529,7 @@ const changeDisplayCurrency = (state, action) =>
     Constants.changeDisplayCurrencyWaitingKey
   ).then(_ => WalletsGen.createLoadDisplayCurrency({accountID: action.payload.accountID}))
 
-const changeAccountName = (state, action) =>
+const changeAccountName = (state, action: WalletsGen.ChangeAccountNamePayload) =>
   RPCStellarTypes.localChangeWalletAccountNameLocalRpcPromise(
     {
       accountID: action.payload.accountID,
@@ -524,7 +538,7 @@ const changeAccountName = (state, action) =>
     Constants.changeAccountNameWaitingKey
   ).then(res => WalletsGen.createChangedAccountName({accountID: action.payload.accountID}))
 
-const deleteAccount = (state, action) =>
+const deleteAccount = (state, action: WalletsGen.DeleteAccountPayload) =>
   RPCStellarTypes.localDeleteWalletAccountLocalRpcPromise(
     {
       accountID: action.payload.accountID,
@@ -533,13 +547,13 @@ const deleteAccount = (state, action) =>
     Constants.deleteAccountWaitingKey
   ).then(res => WalletsGen.createDeletedAccount())
 
-const setAccountAsDefault = (state, action) =>
+const setAccountAsDefault = (state, action: WalletsGen.SetAccountAsDefaultPayload) =>
   RPCStellarTypes.localSetWalletAccountAsDefaultLocalRpcPromise(
     {accountID: action.payload.accountID},
     Constants.setAccountAsDefaultWaitingKey
   ).then(res => WalletsGen.createDidSetAccountAsDefault({accountID: action.payload.accountID}))
 
-const loadPaymentDetail = (state, action, logger) =>
+const loadPaymentDetail = (state, action: WalletsGen.LoadPaymentDetailPayload, logger) =>
   RPCStellarTypes.localGetPaymentDetailsLocalRpcPromise(
     {
       accountID: action.payload.accountID,
@@ -558,7 +572,7 @@ const loadPaymentDetail = (state, action, logger) =>
       logger.warn(err.desc)
     })
 
-const markAsRead = (state, action, logger) =>
+const markAsRead = (state, action: WalletsGen.MarkAsReadPayload, logger) =>
   RPCStellarTypes.localMarkAsReadLocalRpcPromise({
     accountID: action.payload.accountID,
     mostRecentID: Types.paymentIDToRPCPaymentID(action.payload.mostRecentID),
@@ -567,7 +581,7 @@ const markAsRead = (state, action, logger) =>
     logger.warn(err.desc)
   })
 
-const linkExistingAccount = (state, action, logger) => {
+const linkExistingAccount = (state, action: WalletsGen.LinkExistingAccountPayload, logger) => {
   const {name, secretKey} = action.payload
   return RPCStellarTypes.localLinkNewWalletAccountLocalRpcPromise(
     {
@@ -590,7 +604,7 @@ const linkExistingAccount = (state, action, logger) => {
     })
 }
 
-const validateAccountName = (state, action, logger) => {
+const validateAccountName = (state, action: WalletsGen.ValidateAccountNamePayload, logger) => {
   const {name} = action.payload
   return RPCStellarTypes.localValidateAccountNameLocalRpcPromise(
     {name},
@@ -603,7 +617,7 @@ const validateAccountName = (state, action, logger) => {
     })
 }
 
-const validateSecretKey = (state, action, logger) => {
+const validateSecretKey = (state, action: WalletsGen.ValidateSecretKeyPayload, logger) => {
   const {secretKey} = action.payload
   return RPCStellarTypes.localValidateSecretKeyLocalRpcPromise(
     {secretKey: secretKey.stringValue()},
@@ -687,7 +701,7 @@ const navigateToTransaction = (state, action: WalletsGen.ShowTransactionPayload)
   return actions
 }
 
-const exportSecretKey = (state, action) =>
+const exportSecretKey = (state, action: WalletsGen.ExportSecretKeyPayload) =>
   RPCStellarTypes.localGetWalletAccountSecretKeyLocalRpcPromise({accountID: action.payload.accountID}).then(
     res =>
       WalletsGen.createSecretKeyReceived({
@@ -696,7 +710,7 @@ const exportSecretKey = (state, action) =>
       })
   )
 
-const maybeSelectDefaultAccount = (state, action, logger) => {
+const maybeSelectDefaultAccount = (state, action: WalletsGen.AccountsReceivedPayload, logger) => {
   if (!state.config.loggedIn) {
     logger.error('not logged in')
     return
@@ -712,7 +726,7 @@ const maybeSelectDefaultAccount = (state, action, logger) => {
   }
 }
 
-const cancelPayment = (state, action, logger) => {
+const cancelPayment = (state, action: WalletsGen.CancelPaymentPayload, logger) => {
   const {paymentID, showAccount} = action.payload
   const pid = Types.paymentIDToString(paymentID)
   logger.info(`cancelling payment with ID ${pid}`)
@@ -736,7 +750,7 @@ const cancelPayment = (state, action, logger) => {
     })
 }
 
-const cancelRequest = (state, action, logger) =>
+const cancelRequest = (state, action: WalletsGen.CancelRequestPayload, logger) =>
   RPCStellarTypes.localCancelRequestLocalRpcPromise({reqID: action.payload.requestID}).catch(err =>
     logger.error(`Error: ${err.message}`)
   )
@@ -756,7 +770,7 @@ const maybeNavigateAwayFromSendForm = state => {
   return actions
 }
 
-const maybeNavigateToConversation = (state, action, logger) => {
+const maybeNavigateToConversation = (state, action: WalletsGen.RequestedPaymentPayload, logger) => {
   logger.info('Navigating to conversation because we requested a payment')
   return Chat2Gen.createPreviewConversation({
     participants: [action.payload.requestee],
@@ -764,7 +778,7 @@ const maybeNavigateToConversation = (state, action, logger) => {
   })
 }
 
-const accountDetailsUpdate = (_, action) =>
+const accountDetailsUpdate = (_, action: EngineGen.Stellar1NotifyAccountDetailsUpdatePayload) =>
   WalletsGen.createAccountUpdateReceived({
     account: Constants.accountResultToAccount(action.payload.params.account),
   })
@@ -780,7 +794,7 @@ const accountsUpdate = (_, action: EngineGen.Stellar1NotifyRecentPaymentsUpdateP
     }),
   })
 
-const pendingPaymentsUpdate = (_, action, logger) => {
+const pendingPaymentsUpdate = (_, action: EngineGen.Stellar1NotifyPendingPaymentsUpdatePayload, logger) => {
   const {accountID: _accountID, pending: _pending} = action.payload.params
   if (!_pending) {
     logger.warn(`no pending payments in payload`)
@@ -791,7 +805,7 @@ const pendingPaymentsUpdate = (_, action, logger) => {
   return WalletsGen.createPendingPaymentsReceived({accountID, pending})
 }
 
-const recentPaymentsUpdate = (_, action) => {
+const recentPaymentsUpdate = (_, action: EngineGen.Stellar1NotifyRecentPaymentsUpdatePayload) => {
   const {
     accountID,
     firstPage: {payments, cursor, oldestUnread},
@@ -806,7 +820,7 @@ const recentPaymentsUpdate = (_, action) => {
   })
 }
 
-const paymentReviewed = (_, action) => {
+const paymentReviewed = (_, action: EngineGen.Stellar1UiPaymentReviewedPayload) => {
   const {
     msg: {bid, reviewID, seqno, banners, nextButton},
   } = action.payload.params
@@ -816,7 +830,7 @@ const paymentReviewed = (_, action) => {
 // maybe just clear always?
 const maybeClearErrors = state => WalletsGen.createClearErrors()
 
-const maybeClearNewTxs = (state, action) => {
+const maybeClearNewTxs = (state, action: RouteTreeGen.SwitchToPayload) => {
   // TODO fix
   // const rootTab = I.List(action.payload.path).first()
   // // If we're leaving from the Wallets tab, and the Wallets tab route
@@ -833,7 +847,7 @@ const maybeClearNewTxs = (state, action) => {
   // }
 }
 
-const receivedBadgeState = (state, action) =>
+const receivedBadgeState = (state, action: NotificationsGen.ReceivedBadgeStatePayload) =>
   WalletsGen.createBadgesUpdated({accounts: action.payload.badgeState.unreadWalletAccounts || []})
 
 const acceptDisclaimer = state =>
@@ -845,7 +859,7 @@ const acceptDisclaimer = state =>
     }
   )
 
-const checkDisclaimer = (state, _, logger) =>
+const checkDisclaimer = (state, _: WalletsGen.CheckDisclaimerPayload, logger) =>
   RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise()
     .then(accepted => {
       const actions: Array<Action> = [WalletsGen.createWalletDisclaimerReceived({accepted})]
@@ -861,16 +875,16 @@ const checkDisclaimer = (state, _, logger) =>
     })
     .catch(err => logger.error(`Error checking wallet disclaimer: ${err.message}`))
 
-const maybeNavToLinkExisting = (state, action) =>
+const maybeNavToLinkExisting = (state, action: WalletsGen.CheckDisclaimerPayload) =>
   action.payload.nextScreen === 'linkExisting' &&
   RouteTreeGen.createNavigateTo({
     path: [...Constants.rootWalletPath, ...(isMobile ? ['linkExisting'] : ['wallet', 'linkExisting'])],
   })
 
-const rejectDisclaimer = (state, action) =>
+const rejectDisclaimer = (state, action: WalletsGen.RejectDisclaimerPayload) =>
   isMobile ? RouteTreeGen.createNavigateUp() : RouteTreeGen.createClearModals()
 
-const loadMobileOnlyMode = (state, action, logger) => {
+const loadMobileOnlyMode = (state, action: WalletsGen.LoadMobileOnlyModePayload | WalletsGen.SelectAccountPayload, logger) => {
   let accountID = action.payload.accountID
   if (!accountID || accountID === Types.noAccountID) {
     logger.warn('invalid account ID, bailing')
@@ -888,7 +902,7 @@ const loadMobileOnlyMode = (state, action, logger) => {
     .catch(err => handleSelectAccountError(action, 'loading mobile only mode', err))
 }
 
-const changeMobileOnlyMode = (state, action) => {
+const changeMobileOnlyMode = (state, action: WalletsGen.ChangeMobileOnlyModePayload) => {
   let accountID = action.payload.accountID
   let f = action.payload.enabled
     ? RPCStellarTypes.localSetAccountMobileOnlyLocalRpcPromise
@@ -899,7 +913,7 @@ const changeMobileOnlyMode = (state, action) => {
   ])
 }
 
-const writeLastSentXLM = (state, action, logger) => {
+const writeLastSentXLM = (state, action: WalletsGen.SetLastSentXLMPayload, logger) => {
   if (action.payload.writeFile) {
     logger.info(`Writing config stellar.lastSentXLM: ${String(state.wallets.lastSentXLM)}`)
     return RPCTypes.configSetValueRpcPromise({
@@ -909,7 +923,7 @@ const writeLastSentXLM = (state, action, logger) => {
   }
 }
 
-const readLastSentXLM = (_, __, logger) => {
+const readLastSentXLM = (_, __: ConfigGen.DaemonHandshakeDonePayload, logger) => {
   logger.info(`Reading config`)
   return RPCTypes.configGetValueRpcPromise({path: 'stellar.lastSentXLM'})
     .then(result => {
@@ -922,7 +936,7 @@ const readLastSentXLM = (_, __, logger) => {
     })
 }
 
-const exitFailedPayment = (state, action) => {
+const exitFailedPayment = (state, action: WalletsGen.ExitFailedPaymentPayload) => {
   const accountID = state.wallets.builtPayment.from
   return [
     WalletsGen.createAbandonPayment(),
@@ -931,7 +945,7 @@ const exitFailedPayment = (state, action) => {
   ]
 }
 
-const changeAirdrop = (_, action) =>
+const changeAirdrop = (_, action: WalletsGen.ChangeAirdropPayload) =>
   RPCStellarTypes.localAirdropRegisterLocalRpcPromise(
     {register: action.payload.accept},
     Constants.airdropWaitingKey
@@ -952,7 +966,7 @@ type AirdropDetailsJSONType = {
   } | null> | null
 } | null
 
-const updateAirdropDetails = (_, __, logger) =>
+const updateAirdropDetails = (_, __: WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload, logger) =>
   RPCStellarTypes.localAirdropDetailsLocalRpcPromise(undefined, Constants.airdropWaitingKey)
     .then(s => {
       const json: AirdropDetailsJSONType = JSON.parse(s)
@@ -1001,7 +1015,7 @@ const updateAirdropDetails = (_, __, logger) =>
       logger.info(e)
     })
 
-const updateAirdropState = (_, __, logger) =>
+const updateAirdropState = (_, __: WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload, logger) =>
   RPCStellarTypes.localAirdropStatusLocalRpcPromise(undefined, Constants.airdropWaitingKey)
     .then(({state, rows}) => {
       let airdropState = 'loading'
@@ -1031,7 +1045,7 @@ const updateAirdropState = (_, __, logger) =>
 
 const hideAirdropBanner = (): TypedActions =>
   GregorGen.createUpdateCategory({body: 'true', category: Constants.airdropBannerKey})
-const gregorPushState = (_, action) =>
+const gregorPushState = (_, action: GregorGen.PushStatePayload) =>
   WalletsGen.createUpdateAirdropBannerState({
     show: !action.payload.state.find(i => i.item.category === Constants.airdropBannerKey),
   })

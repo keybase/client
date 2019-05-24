@@ -22,7 +22,7 @@ const onConnect = () => {
     })
 }
 
-const onGetPassword = (state, action) => {
+const onGetPassword = (state, action: EngineGen.Keybase1SecretUiGetPassphrasePayload) => {
   logger.info('Asked for password')
   const {pinentry} = action.payload.params
   const {prompt, submitLabel, cancelLabel, windowTitle, features, type} = pinentry
@@ -43,13 +43,13 @@ const onGetPassword = (state, action) => {
   })
 }
 
-const onNewPinentry = (_, action) =>
+const onNewPinentry = (_, action: PinentryGen.NewPinentryPayload) =>
   PinentryGen.createReplaceEntity({
     entities: I.Map([[action.payload.sessionID, action.payload]]),
     keyPath: ['sessionIDToPinentry'],
   })
 
-const onSubmit = (_, action) => {
+const onSubmit = (_, action: PinentryGen.OnSubmitPayload) => {
   const {password} = action.payload
   if (_response) {
     // $FlowIssue flow is correct in that we need store secret but we weren't sending it before and i don't want to change any existing behavior
@@ -63,7 +63,7 @@ const onSubmit = (_, action) => {
   })
 }
 
-const onCancel = (_, action) => {
+const onCancel = (_, action: PinentryGen.OnCancelPayload) => {
   if (_response) {
     _response.error({code: RPCTypes.constantsStatusCode.scinputcanceled, desc: 'Input canceled'})
     _response = null

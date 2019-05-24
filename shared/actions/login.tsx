@@ -48,7 +48,7 @@ const moveToProvisioning = (username: string) => (params, response) => {
 }
 
 // Actually do a user/pass login. Don't get sucked into a provisioning flow
-function* login(state, action) {
+function* login(state, action: LoginGen.LoginPayload) {
   try {
     yield* Saga.callRPCs(
       RPCTypes.loginLoginRpcSaga({

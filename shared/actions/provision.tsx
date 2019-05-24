@@ -439,9 +439,9 @@ function* addNewDevice(state) {
 const submitDeviceSelect = state => ProvisioningManager.getSingleton().submitDeviceSelect(state)
 const submitDeviceName = state => ProvisioningManager.getSingleton().submitDeviceName(state)
 const submitTextCode = state => ProvisioningManager.getSingleton().submitTextCode(state)
-const submitGPGMethod = (state, action) => ProvisioningManager.getSingleton().submitGPGMethod(state, action)
-const submitGPGSignOK = (state, action) => ProvisioningManager.getSingleton().submitGPGSignOK(state, action)
-const submitPasswordOrPaperkey = (state, action) =>
+const submitGPGMethod = (state, action: ProvisionGen.SubmitGPGMethodPayload) => ProvisioningManager.getSingleton().submitGPGMethod(state, action)
+const submitGPGSignOK = (state, action: ProvisionGen.SubmitGPGSignOKPayload) => ProvisioningManager.getSingleton().submitGPGSignOK(state, action)
+const submitPasswordOrPaperkey = (state, action: ProvisionGen.SubmitPasswordPayload | ProvisionGen.SubmitPaperkeyPayload) =>
   ProvisioningManager.getSingleton().submitPasswordOrPaperkey(state, action)
 const maybeCancelProvision = (state: TypedState) =>
   ProvisioningManager.getSingleton().maybeCancelProvision(state)
@@ -473,7 +473,7 @@ const showPaperkeyPage = state =>
   !state.provision.error.stringValue() &&
   RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['paperkey'], replace: true})
 
-const showFinalErrorPage = (state, action) => {
+const showFinalErrorPage = (state, action: ProvisionGen.ShowFinalErrorPagePayload) => {
   const parentPath = action.payload.fromDeviceAdd ? devicesRoot : ['login']
   let path
   if (state.provision.finalError && !Constants.errorCausedByUsCanceling(state.provision.finalError)) {
@@ -488,7 +488,7 @@ const showFinalErrorPage = (state, action) => {
 const showUsernameEmailPage = () =>
   RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['username']})
 
-const forgotUsername = (state, action) =>
+const forgotUsername = (state, action: ProvisionGen.ForgotUsernamePayload) =>
   RPCTypes.accountRecoverUsernameWithEmailRpcPromise(
     {email: action.payload.email},
     Constants.forgotUsernameWaitingKey

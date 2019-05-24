@@ -10,7 +10,7 @@ import logger from '../logger'
 // set this to true to have all todo items show up all the time
 const debugTodo = false
 
-const getPeopleData = (state, action) => {
+const getPeopleData = (state, action: PeopleGen.GetPeopleDataPayload) => {
   // more logging to understand why this fails so much
   logger.info(
     'getPeopleData: appFocused:',
@@ -89,7 +89,7 @@ const getPeopleData = (state, action) => {
     .catch(e => {});
 }
 
-const dismissAnnouncement = (_, action) =>
+const dismissAnnouncement = (_, action: PeopleGen.DismissAnnouncementPayload) =>
   RPCTypes.homeHomeDismissAnnouncementRpcPromise({
     i: action.payload.id,
   }).then(() => {})
@@ -103,7 +103,7 @@ const markViewed = () =>
     }
   })
 
-const skipTodo = (_, action) =>
+const skipTodo = (_, action: PeopleGen.SkipTodoPayload) =>
   RPCTypes.homeHomeSkipTodoTypeRpcPromise({
     t: RPCTypes.homeHomeScreenTodoType[action.payload.type],
   }).then(() =>
@@ -115,7 +115,7 @@ const skipTodo = (_, action) =>
   )
 
 let _wasOnPeopleTab = false
-const homeUIRefresh = (_, action) =>
+const homeUIRefresh = (_, action: EngineGen.Keybase1HomeUIHomeUIRefreshPayload) =>
   _wasOnPeopleTab &&
   PeopleGen.createGetPeopleData({
     markViewed: false,

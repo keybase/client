@@ -37,7 +37,7 @@ function* onSubmitNewEmail(state) {
   }
 }
 
-function* onSubmitNewPassword(state, action) {
+function* onSubmitNewPassword(state, action: SettingsGen.OnSubmitNewPasswordPayload) {
   try {
     yield Saga.put(SettingsGen.createWaitingForResponse({waiting: true}))
     const {newPassword, newPasswordConfirm} = state.settings.password
@@ -117,7 +117,7 @@ function* toggleNotifications(state) {
   }
 }
 
-const reclaimInvite = (_, action) =>
+const reclaimInvite = (_, action: SettingsGen.InvitesReclaimPayload) =>
   RPCTypes.apiserverPostRpcPromise({
     args: [{key: 'invitation_id', value: action.payload.inviteId}],
     endpoint: 'cancel_invitation',
@@ -186,7 +186,7 @@ const refreshInvites = () =>
     })
   })
 
-function* sendInvite(_, action) {
+function* sendInvite(_, action: SettingsGen.InvitesSendPayload) {
   try {
     yield Saga.put(SettingsGen.createWaitingForResponse({waiting: true}))
     const {email, message} = action.payload
@@ -363,7 +363,7 @@ function* refreshNotifications() {
 
 const dbNuke = () => RPCTypes.ctlDbNukeRpcPromise()
 
-const deleteAccountForever = (state, action) => {
+const deleteAccountForever = (state, action: SettingsGen.DeleteAccountForeverPayload) => {
   const username = state.config.username
   const allowDeleteAccount = state.settings.allowDeleteAccount
 
@@ -394,7 +394,7 @@ const getRememberPassword = () =>
     SettingsGen.createLoadedRememberPassword({remember})
   )
 
-function* trace(_, action) {
+function* trace(_, action: SettingsGen.TracePayload) {
   const durationSeconds = action.payload.durationSeconds
   yield Saga.callUntyped(RPCTypes.pprofLogTraceRpcPromise, {
     logDirForMobile: pprofDir,
@@ -405,7 +405,7 @@ function* trace(_, action) {
   yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.traceInProgressKey}))
 }
 
-function* processorProfile(_, action) {
+function* processorProfile(_, action: SettingsGen.ProcessorProfilePayload) {
   const durationSeconds = action.payload.durationSeconds
   yield Saga.callUntyped(RPCTypes.pprofLogProcessorProfileRpcPromise, {
     logDirForMobile: pprofDir,
@@ -416,10 +416,10 @@ function* processorProfile(_, action) {
   yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.processorProfileInProgressKey}))
 }
 
-const rememberPassword = (_, action) =>
+const rememberPassword = (_, action: SettingsGen.OnChangeRememberPasswordPayload) =>
   RPCTypes.configSetRememberPassphraseRpcPromise({remember: action.payload.remember})
 
-const checkPassword = (_, action) =>
+const checkPassword = (_, action: SettingsGen.CheckPasswordPayload) =>
   RPCTypes.accountPassphraseCheckRpcPromise(
     {
       passphrase: action.payload.password.stringValue(),
@@ -435,7 +435,7 @@ const loadLockdownMode = state =>
     )
     .catch(() => SettingsGen.createLoadedLockdownMode({status: null}))
 
-const setLockdownMode = (state, action) =>
+const setLockdownMode = (state, action: SettingsGen.OnChangeLockdownModePayload) =>
   state.config.loggedIn &&
   RPCTypes.accountSetLockdownModeRpcPromise(
     {enabled: action.payload.enabled},
@@ -444,7 +444,7 @@ const setLockdownMode = (state, action) =>
     .then(() => SettingsGen.createLoadedLockdownMode({status: action.payload.enabled}))
     .catch(() => SettingsGen.createLoadLockdownMode())
 
-const sendFeedback = (state, action) => {
+const sendFeedback = (state, action: SettingsGen.SendFeedbackPayload) => {
   const {feedback, sendLogs} = action.payload
   const maybeDump = sendLogs ? logger.dump().then(writeLogLinesToFile) : Promise.resolve('')
   const status = {version}
@@ -470,7 +470,7 @@ const sendFeedback = (state, action) => {
     })
 }
 
-const unfurlSettingsRefresh = (state, action) =>
+const unfurlSettingsRefresh = (state, action: SettingsGen.UnfurlSettingsRefreshPayload) =>
   state.config.loggedIn &&
   ChatTypes.localGetUnfurlSettingsRpcPromise(undefined, Constants.chatUnfurlWaitingKey)
     .then((result: ChatTypes.UnfurlSettingsDisplay) =>
@@ -485,7 +485,7 @@ const unfurlSettingsRefresh = (state, action) =>
       })
     )
 
-const unfurlSettingsSaved = (state, action) =>
+const unfurlSettingsSaved = (state, action: SettingsGen.UnfurlSettingsSavedPayload) =>
   state.config.loggedIn &&
   ChatTypes.localSaveUnfurlSettingsRpcPromise(
     {
@@ -514,7 +514,7 @@ const loadHasRandomPW = state =>
 // Mark that we are not randomPW anymore if we got a password change.
 const passwordChanged = () => SettingsGen.createLoadedHasRandomPw({randomPW: false})
 
-const stop = (_, action) => RPCTypes.ctlStopRpcPromise({exitCode: action.payload.exitCode})
+const stop = (_, action: SettingsGen.StopPayload) => RPCTypes.ctlStopRpcPromise({exitCode: action.payload.exitCode})
 
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<SettingsGen.InvitesReclaimPayload>(SettingsGen.invitesReclaim, reclaimInvite)

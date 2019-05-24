@@ -6,12 +6,12 @@ import * as Constants from '../constants/tracker2'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
 
-const identify3Result = (_, action) => {
+const identify3Result = (_, action: EngineGen.Keybase1Identify3UiIdentify3ResultPayload) => {
   const {guiID, result} = action.payload.params
   return Tracker2Gen.createUpdateResult({guiID, reason: null, result: Constants.rpcResultToStatus(result)})
 }
 
-const identify3ShowTracker = (_, action) => {
+const identify3ShowTracker = (_, action: EngineGen.Keybase1Identify3UiIdentify3ShowTrackerPayload) => {
   const {guiID, assertion, reason, forceDisplay} = action.payload.params
   return Tracker2Gen.createLoad({
     assertion,
@@ -24,7 +24,7 @@ const identify3ShowTracker = (_, action) => {
   })
 }
 
-const identify3UpdateRow = (_, action) =>
+const identify3UpdateRow = (_, action: EngineGen.Keybase1Identify3UiIdentify3UpdateRowPayload) =>
   Tracker2Gen.createUpdateAssertion({
     assertion: Constants.rpcAssertionToAssertion(action.payload.params.row),
     guiID: action.payload.params.row.guiID,
@@ -40,7 +40,7 @@ const connected = () =>
     })
 
 // only refresh if we have tracked them before
-const refreshChanged = (state, action) =>
+const refreshChanged = (state, action: EngineGen.Keybase1NotifyTrackingTrackingChangedPayload) =>
   !!state.tracker2.usernameToDetails.get(action.payload.params.username) &&
   Tracker2Gen.createLoad({
     assertion: action.payload.params.username,
@@ -51,7 +51,7 @@ const refreshChanged = (state, action) =>
     reason: '',
   })
 
-const updateUserCard = (state, action) => {
+const updateUserCard = (state, action: EngineGen.Keybase1Identify3UiIdentify3UpdateUserCardPayload) => {
   const {guiID, card} = action.payload.params
   const username = Constants.guiIDToUsername(state.tracker2, guiID)
   if (!username) {
@@ -80,7 +80,7 @@ const updateUserCard = (state, action) => {
   })
 }
 
-const changeFollow = (_, action) =>
+const changeFollow = (_, action: Tracker2Gen.ChangeFollowPayload) =>
   RPCTypes.identify3Identify3FollowUserRpcPromise(
     {
       follow: action.payload.follow,
@@ -103,7 +103,7 @@ const changeFollow = (_, action) =>
       })
     )
 
-const ignore = (_, action) =>
+const ignore = (_, action: Tracker2Gen.IgnorePayload) =>
   RPCTypes.identify3Identify3IgnoreUserRpcPromise({guiID: action.payload.guiID}, Constants.waitingKey)
     .then(() =>
       Tracker2Gen.createUpdateResult({
@@ -120,7 +120,7 @@ const ignore = (_, action) =>
       })
     )
 
-function* load(state, action) {
+function* load(state, action: Tracker2Gen.LoadPayload) {
   if (action.payload.fromDaemon) {
     return
   }
@@ -151,7 +151,7 @@ function* load(state, action) {
   }
 }
 
-const loadFollow = (_, action) => {
+const loadFollow = (_, action: Tracker2Gen.LoadPayload) => {
   const {assertion} = action.payload
   const convert = fs =>
     (fs.users || []).map(f => ({
@@ -186,7 +186,7 @@ const getProofSuggestions = () =>
     )
     .catch(e => logger.error(`Error loading proof suggestions: ${e.message}`))
 
-const showUser = (_, action) => {
+const showUser = (_, action: Tracker2Gen.ShowUserPayload) => {
   const load = Tracker2Gen.createLoad({
     assertion: action.payload.username,
     // with new nav we never show trackers from inside the app
@@ -206,7 +206,7 @@ const showUser = (_, action) => {
 }
 
 // if we mutated somehow reload ourselves and reget the suggestions
-const refreshSelf = (state, action) =>
+const refreshSelf = (state, action: EngineGen.Keybase1NotifyUsersUserChangedPayload) =>
   state.config.uid === action.payload.params.uid && [
     Tracker2Gen.createLoad({
       assertion: state.config.username,

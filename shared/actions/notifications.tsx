@@ -42,10 +42,10 @@ const setupNotifications = () =>
     }
   })
 
-const createBadgeState = (_, action) =>
+const createBadgeState = (_, action: EngineGen.Keybase1NotifyBadgesBadgeStatePayload) =>
   NotificationsGen.createReceivedBadgeState({badgeState: action.payload.params.badgeState})
 
-const receivedBadgeState = (state, action) => {
+const receivedBadgeState = (state, action: NotificationsGen.ReceivedBadgeStatePayload) => {
   const payload = Constants.badgeStateToBadgeCounts(action.payload.badgeState, state)
   return [
     payload && NotificationsGen.createSetBadgeCounts(payload),
@@ -53,12 +53,12 @@ const receivedBadgeState = (state, action) => {
   ]
 }
 
-const receivedRootAuditError = (state, action) =>
+const receivedRootAuditError = (state, action: EngineGen.Keybase1NotifyAuditRootAuditErrorPayload) =>
   ConfigGen.createGlobalError({
     globalError: new Error(`Keybase is buggy, please report this: ${action.payload.params.message}`),
   })
 
-const receivedBoxAuditError = (state, action) =>
+const receivedBoxAuditError = (state, action: EngineGen.Keybase1NotifyAuditBoxAuditErrorPayload) =>
   ConfigGen.createGlobalError({
     globalError: new Error(`Keybase had a problem loading a team, please report this with \`keybase log send\`: ${action.payload.params.message}`),
   })

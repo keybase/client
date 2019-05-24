@@ -5,7 +5,7 @@ import * as EngineGen from './engine-gen-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 
-const pushOutOfBandMessages = (_, action) => {
+const pushOutOfBandMessages = (_, action: EngineGen.Keybase1GregorUIPushOutOfBandMessagesPayload) => {
   const {oobm} = action.payload.params
   const filteredOOBM = (oobm || []).filter(Boolean)
   if (filteredOOBM.length) {
@@ -13,7 +13,7 @@ const pushOutOfBandMessages = (_, action) => {
   }
 }
 
-const pushState = (_, action) => {
+const pushState = (_, action: EngineGen.Keybase1GregorUIPushStatePayload) => {
   const {reason, state} = action.payload.params
   const items = state.items || []
 
@@ -29,7 +29,7 @@ const pushState = (_, action) => {
 }
 
 // Gregor reachability is only valid if we're logged in
-const reachabilityChanged = (state, action) =>
+const reachabilityChanged = (state, action: EngineGen.Keybase1ReachabilityReachabilityChangedPayload) =>
   state.config.loggedIn &&
   GregorGen.createUpdateReachable({reachable: action.payload.params.reachability.reachable})
 
@@ -59,7 +59,7 @@ const checkReachability = () =>
     GregorGen.createUpdateReachable({reachable: reachability.reachable})
   )
 
-const updateCategory = (_, action) =>
+const updateCategory = (_, action: GregorGen.UpdateCategoryPayload) =>
   RPCTypes.gregorUpdateCategoryRpcPromise({
     body: action.payload.body,
     category: action.payload.category,
