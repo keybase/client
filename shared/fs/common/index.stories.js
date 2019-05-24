@@ -18,6 +18,7 @@ import {type OwnProps as PathItemIconOwnProps} from './path-item-icon-container'
 import {type OwnProps as PathItemInfoOwnProps} from './path-item-info-container'
 import SyncStatus from './sync-status'
 import PieSlice from './pie-slice'
+import ConfirmDelete from './path-item-action/confirm-delete'
 
 const PathItemActionMenuHeaderProps = (props: any) => ({
   childrenFiles: 0,
@@ -314,6 +315,14 @@ const load = () => {
           <PieSliceWrapper initialDegrees={deg} key={deg} />
         ))}
       </Kb.Box2>
+    ))
+    .add('ConfirmDelete', () => (
+      <ConfirmDelete
+        onBack={Sb.action('onBack')}
+        onDelete={Sb.action('onDelete')}
+        path={Types.stringToPath('/keybase/private/alice/my_folder')}
+        title="foo"
+      />
     ))
 
   Sb.storiesOf('Files/PathItemIcon', module)
