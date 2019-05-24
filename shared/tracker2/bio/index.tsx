@@ -1,20 +1,19 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import flags from '../../util/feature-flags'
 
-type Props = {|
-  bio: ?string,
-  followThem: ?boolean,
-  followersCount: ?number,
-  followingCount: ?number,
-  followsYou: ?boolean,
-  fullname: ?string,
+type Props = {
+  bio: string | null,
+  followThem: boolean | null,
+  followersCount: number | null,
+  followingCount: number | null,
+  followsYou: boolean | null,
+  fullname: string | null,
   inTracker: boolean,
-  location: ?string,
-  registeredForAirdrop: ?boolean,
-|}
+  location: string | null,
+  registeredForAirdrop: boolean | null
+};
 
 const Bio = (p: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} centerChildren={true} gap="xtiny">

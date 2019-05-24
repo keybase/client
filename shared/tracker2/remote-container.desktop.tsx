@@ -1,4 +1,3 @@
-// @flow
 // Inside tracker we use an embedded Avatar which is connected. This assumes its connected and uses immutable stuff.
 // We convert the over-the-wire plain json to immutable in the remote-store helper
 import * as Constants from '../constants/tracker2'
@@ -11,22 +10,23 @@ import Tracker from './index.desktop'
 import {remoteConnect} from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
 
-type OwnProps = {||}
-type State = {|
-  assertions: ?I.Map<string, Types.Assertion>,
-  bio: ?string,
-  followThem: ?boolean,
-  followersCount: ?number,
-  followingCount: ?number,
-  followsYou: ?boolean,
+type OwnProps = {};
+
+type State = {
+  assertions: I.Map<string, Types.Assertion> | null,
+  bio: string | null,
+  followThem: boolean | null,
+  followersCount: number | null,
+  followingCount: number | null,
+  followsYou: boolean | null,
   guiID: string,
   isYou: boolean,
-  location: ?string,
+  location: string | null,
   reason: string,
   state: Types.DetailsState,
-  teamShowcase: ?I.List<Types.TeamShowcase>,
-  username: string,
-|}
+  teamShowcase: I.List<Types.TeamShowcase> | null,
+  username: string
+};
 
 // Props are handled by remote-proxy.desktop.js
 const mapDispatchToProps = dispatch => ({

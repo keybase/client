@@ -1,4 +1,3 @@
-// @flow
 import * as Container from '../../util/container'
 import * as ConfigGen from '../../actions/config-gen'
 import * as ProfileGen from '../../actions/profile-gen'
@@ -10,11 +9,11 @@ import * as Types from '../../constants/types/tracker2'
 import Assertion from '.'
 import openUrl from '../../util/open-url'
 
-type OwnProps = {|
+type OwnProps = {
   isSuggestion?: boolean,
   username: string,
-  assertionKey: string,
-|}
+  assertionKey: string
+};
 
 const notAUserAssertion = {
   color: 'gray',

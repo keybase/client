@@ -1,10 +1,9 @@
-// @flow
 import * as Container from '../../util/container'
 import Bio from '.'
 
-type OwnProps = {|
-  username: string,
-|}
+type OwnProps = {
+  username: string
+};
 
 const mapDispatchToProps = dispatch => ({})
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({

@@ -1,4 +1,3 @@
-// @flow
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/tracker2'
 import * as I from 'immutable'
@@ -6,13 +5,13 @@ import * as Types from '../../constants/types/tracker2'
 import Assertion from '.'
 import openUrl from '../../util/open-url'
 
-type State = {|
-  assertions?: I.Map<string, Types.Assertion>,
-|}
+type State = {
+  assertions?: I.Map<string, Types.Assertion>
+};
 
-type OwnProps = {|
-  assertionKey: string,
-|}
+type OwnProps = {
+  assertionKey: string
+};
 
 const mapStateToProps = (state, ownProps) => {
   const a = state.assertions

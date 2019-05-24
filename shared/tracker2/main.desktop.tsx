@@ -1,4 +1,3 @@
-// @flow
 // Entry point for the tracker render window
 import * as React from 'react'
 import * as Styles from '../styles'
@@ -12,7 +11,8 @@ load({
   child: <Tracker2 />,
   deserialize,
   name: 'tracker2',
-  params: username?.[1] || '',
+  params: // Auto generated from flowToTs. Please clean me!
+  (username === null || username === undefined ? undefined : username[1]) || '',
   style: {
     backgroundColor: Styles.globalColors.transparent,
     borderRadius: 8,

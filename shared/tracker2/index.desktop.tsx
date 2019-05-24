@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Constants from '../constants/tracker2'
@@ -8,16 +7,16 @@ import * as Flow from '../util/flow'
 import Assertion from './assertion/remote-container'
 import Bio from './bio/remote-container'
 
-type Props = {|
-  assertionKeys: ?$ReadOnlyArray<string>,
-  bio: ?string,
-  followThem: ?boolean,
-  followersCount: ?number,
-  followingCount: ?number,
-  followsYou: ?boolean,
-  guiID: ?string,
+type Props = {
+  assertionKeys: ReadonlyArray<string> | null,
+  bio: string | null,
+  followThem: boolean | null,
+  followersCount: number | null,
+  followingCount: number | null,
+  followsYou: boolean | null,
+  guiID: string | null,
   isYou: boolean,
-  location: ?string,
+  location: string | null,
   onFollow: () => void,
   onChat: () => void,
   onClose: () => void,
@@ -26,9 +25,9 @@ type Props = {|
   onReload: () => void,
   reason: string,
   state: Types.DetailsState,
-  teamShowcase: ?$ReadOnlyArray<Types._TeamShowcase>,
-  username: string,
-|}
+  teamShowcase: ReadonlyArray<Types._TeamShowcase> | null,
+  username: string
+};
 
 const getButtons = (props: Props) => {
   const buttonClose = (

@@ -1,12 +1,11 @@
-// @flow
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/tracker2'
 import Bio from '.'
 
-type OwnProps = {|
+type OwnProps = {
   inTracker: boolean,
-  username: string,
-|}
+  username: string
+};
 
 const mapStateToProps = (state, ownProps) => {
   const d = Constants.getDetails(state, ownProps.username)

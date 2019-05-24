@@ -1,4 +1,3 @@
-// @flow
 // A mirror of the remote tracker windows.
 // RemoteTrackers renders up to MAX_TRACKERS
 // RemoteTracker is a single tracker popup
@@ -11,7 +10,9 @@ import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
 import {connect, compose} from '../util/container'
 import {serialize} from './remote-serializer.desktop'
 
-type OwnProps = {|username: string|}
+type OwnProps = {
+  username: string
+};
 
 const MAX_TRACKERS = 5
 const windowOpts = {hasShadow: false, height: 470, transparent: true, width: 320}
@@ -79,8 +80,9 @@ const RemoteTracker2 = compose(
 )(Empty)
 
 type Props = {
-  users: Array<string>,
-}
+  users: Array<string>
+};
+
 class RemoteTracker2s extends React.PureComponent<Props> {
   render() {
     return this.props.users.map(username => <RemoteTracker2 username={username} key={username} />)
