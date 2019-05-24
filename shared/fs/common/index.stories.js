@@ -11,7 +11,6 @@ import PathItemAction from './path-item-action'
 import PathItemIcon, {type Size} from './path-item-icon'
 import PathItemInfo from './path-item-info'
 import TlfInfo from './tlf-info'
-import Loading from './loading'
 import Errs from './errs'
 import OpenInSystemFileManager from './open-in-system-file-manager'
 import {type OwnProps as PathItemIconOwnProps} from './path-item-icon-container'
@@ -257,7 +256,6 @@ const load = () => {
         ]}
       />
     ))
-    .add('Loading', () => <Loading path={Types.stringToPath('/keybase/team/kbkbfstest')} />)
     .add('TlfInfo', () => (
       <Kb.Box2 direction="vertical" gap="small" gapStart={true} fullWidth={true}>
         <Kb.Text type="Body">mode=default reset=false</Kb.Text>

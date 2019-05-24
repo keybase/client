@@ -12,7 +12,7 @@ import * as SafeElectron from '../util/safe-electron.desktop'
 import OutOfDate from './out-of-date'
 import Upload from '../fs/footer/upload'
 import UploadCountdownHOC, {type UploadCountdownHOCProps} from '../fs/footer/upload-countdown-hoc'
-import {Loading} from '../fs/common'
+import {Loading} from '../fs/simple-screens'
 import type {DaemonHandshakeState} from '../constants/types/config'
 
 export type Props = {
