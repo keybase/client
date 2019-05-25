@@ -5,7 +5,7 @@ import ReactList from 'react-list'
 import {Box2} from './box'
 import ScrollView from './scroll-view'
 import type {Props} from './section-list'
-import {throttle, once} from 'lodash-es'
+import {debounce, throttle, once} from 'lodash-es'
 import {memoize} from '../util/memoize'
 
 /*
@@ -92,7 +92,7 @@ class SectionList extends React.Component<Props, State> {
   // This matches the way onEndReached works for sectionlist on RN
   _onEndReached = once(() => this.props.onEndReached && this.props.onEndReached())
 
-  _checkSticky = () => {
+  _checkSticky = debounce(() => {
     // need to defer this as the list itself is changing after scroll
     if (this._listRef.current) {
       const [firstIndex] = this._listRef.current.getVisibleRange()
@@ -105,11 +105,11 @@ class SectionList extends React.Component<Props, State> {
         )
       }
     }
-  }
+  }, 20)
 
   _onScroll = e => {
     e.currentTarget && this._checkOnEndReached(e.currentTarget)
-    setTimeout(this._checkSticky, 20)
+    this._checkSticky()
   }
 
   _flatten = memoize(sections => {
