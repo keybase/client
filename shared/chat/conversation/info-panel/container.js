@@ -22,6 +22,13 @@ type OwnProps = {|
   selectedAttachmentView: RPCChatTypes.GalleryItemTyp,
 |}
 
+const getFromMsgID = info => {
+  if (info.last || info.status !== 'success') {
+    return null
+  }
+  return info.messages.size > 0 ? info.messages.last().id : null
+}
+
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const conversationIDKey = ownProps.conversationIDKey
   const meta = Constants.getMeta(state, conversationIDKey)
@@ -42,13 +49,32 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   const isPreview = meta.membershipType === 'youArePreviewing'
   const selectedTab = ownProps.selectedTab || (isPreview ? 'members' : 'settings')
   const selectedAttachmentView = ownProps.selectedAttachmentView || RPCChatTypes.localGalleryItemTyp.media
+  console.log('VIEW: ' + selectedAttachmentView)
   const attachmentsLoading =
     selectedTab === 'attachments' &&
     state.chat2.attachmentViewMap.getIn(
       [conversationIDKey, selectedAttachmentView],
       Constants.makeAttachmentViewInfo()
     ).status === 'loading'
+  const media = state.chat2.attachmentViewMap.getIn(
+    [conversationIDKey, RPCChatTypes.localGalleryItemTyp.media],
+    Constants.makeAttachmentViewInfo()
+  )
+  const docs = state.chat2.attachmentViewMap.getIn(
+    [conversationIDKey, RPCChatTypes.localGalleryItemTyp.doc],
+    Constants.makeAttachmentViewInfo()
+  )
+  const links = state.chat2.attachmentViewMap.getIn(
+    [conversationIDKey, RPCChatTypes.localGalleryItemTyp.link],
+    Constants.makeAttachmentViewInfo()
+  )
   return {
+    _docs: docs,
+    _docsFromMsgID: getFromMsgID(docs),
+    _links: links,
+    _linksFromMsgID: getFromMsgID(links),
+    _media: media,
+    _mediaFromMsgID: getFromMsgID(media),
     _infoMap: state.users.infoMap,
     _participants: meta.participants,
     _teamMembers: state.teams.teamNameToMembers.get(meta.teamname, I.Map()),
@@ -62,6 +88,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     description: meta.description,
     ignored: meta.status === RPCChatTypes.commonConversationStatus.ignored,
     isPreview,
+    selectedAttachmentView,
     selectedConversationIDKey: conversationIDKey,
     selectedTab,
     smallTeam: meta.teamType !== 'big',
@@ -71,7 +98,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {conversationIDKey, onBack}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {conversationIDKey, onBack, onSelectAttachmentView}: OwnProps) => ({
   _navToRootChat: () => dispatch(Chat2Gen.createNavigateToInbox({findNewConversation: false})),
   _onEditChannel: (teamname: string) =>
     dispatch(
@@ -116,6 +143,17 @@ const mapDispatchToProps = (dispatch, {conversationIDKey, onBack}: OwnProps) => 
   },
   onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
   onUnhideConv: () => dispatch(Chat2Gen.createUnhideConversation({conversationIDKey})),
+  _onDocDownload: message => dispatch(Chat2Gen.createAttachmentDownload({message})),
+  _onLoadMore: (viewType, fromMsgID) =>
+    dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, fromMsgID, viewType})),
+  _onMediaClick: message => dispatch(Chat2Gen.createAttachmentPreviewSelect({message})),
+  _onShowInFinder: message =>
+    message.downloadPath &&
+    dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath})),
+  onAttachmentViewChange: viewType => {
+    dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, viewType}))
+    onSelectAttachmentView(viewType)
+  },
 })
 
 // state props
@@ -160,6 +198,62 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   smallTeam: stateProps.smallTeam,
   spinnerForHide: stateProps.spinnerForHide,
   teamname: stateProps.teamname,
+
+  docs: {
+    docs: stateProps._docs.messages
+      .map(m => ({
+        author: m.author,
+        ctime: m.timestamp,
+        downloading: m.transferState === 'downloading',
+        name: m.title || m.fileName,
+        onDownload: !isMobile && !m.downloadPath ? () => dispatchProps._onDocDownload(m) : null,
+        onShowInFinder: !isMobile && m.downloadPath ? () => dispatchProps._onShowInFinder(m) : null,
+        progress: m.transferProgress,
+      }))
+      .toArray(),
+    onLoadMore: stateProps._docsFromMsgID
+      ? () => dispatchProps._onLoadMore(RPCChatTypes.localGalleryItemTyp.doc, stateProps._docsFromMsgID)
+      : null,
+    status: stateProps._docs.status,
+  },
+  links: {
+    links: stateProps._links.messages.reduce((l, m) => {
+      m.unfurls.toList().map(u => {
+        if (u.unfurl.unfurlType === RPCChatTypes.unfurlUnfurlType.generic && u.unfurl.generic) {
+          l.push({
+            author: m.author,
+            ctime: m.timestamp,
+            snippet: m.bodySummary.stringValue(),
+            title: u.unfurl.generic.title,
+            url: u.unfurl.generic.url,
+          })
+        }
+      })
+      return l
+    }, []),
+    onLoadMore: stateProps._linksFromMsgID
+      ? () => dispatchProps._onLoadMore(RPCChatTypes.localGalleryItemTyp.link, stateProps._linksFromMsgID)
+      : null,
+    status: stateProps._links.status,
+  },
+  media: {
+    onLoadMore: stateProps._mediaFromMsgID
+      ? () => dispatchProps._onLoadMore(RPCChatTypes.localGalleryItemTyp.media, stateProps._mediaFromMsgID)
+      : null,
+    status: stateProps._media.status,
+    thumbs: stateProps._media.messages
+      .map(m => ({
+        ctime: m.timestamp,
+        height: m.previewHeight,
+        isVideo: !!m.videoDuration,
+        onClick: () => dispatchProps._onMediaClick(m),
+        previewURL: m.previewURL,
+        width: m.previewWidth,
+      }))
+      .toArray(),
+  },
+  onAttachmentViewChange: dispatchProps.onAttachmentViewChange,
+  selectedAttachmentView: stateProps.selectedAttachmentView,
 })
 
 const ConnectedInfoPanel = connect<OwnProps, _, _, _, _>(
@@ -187,7 +281,7 @@ const mapDispatchToSelectorProps = (dispatch, {navigation}) => ({
   // Used by HeaderHoc.
   onBack: () => dispatch(Chat2Gen.createToggleInfoPanel()),
   onGoToInbox: () => dispatch(Chat2Gen.createNavigateToInbox({findNewConversation: true})),
-  onSelectAttachmentView: attachmentview => navigation.setPrams({attachmentview}),
+  onSelectAttachmentView: view => navigation.setParams({attachmentview: view}),
   onSelectTab: tab => navigation.setParams({tab}),
 })
 
@@ -197,6 +291,7 @@ const mergeSelectorProps = (stateProps, dispatchProps) => ({
   onGoToInbox: dispatchProps.onGoToInbox,
   onSelectAttachmentView: dispatchProps.onSelectAttachmentView,
   onSelectTab: dispatchProps.onSelectTab,
+  selectedAttachmentView: stateProps.selectedAttachmentView,
   selectedTab: stateProps.selectedTab,
   shouldNavigateOut: stateProps.shouldNavigateOut,
 })

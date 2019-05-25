@@ -76,6 +76,9 @@ const createLoadMoreSection = onLoadMore => {
         )
       )
     },
+    renderSectionHeader: () => {
+      return null
+    },
   }
 }
 
@@ -135,7 +138,7 @@ type MediaProps = {|
   status: Types.AttachmentViewStatus,
 |}
 
-class MediaView extends React.Component<MediaProps> {
+export class MediaView {
   _clamp = (thumb, maxThumbSize) => {
     return thumb.height > thumb.width
       ? {height: (maxThumbSize * thumb.height) / thumb.width, width: maxThumbSize}
@@ -179,6 +182,8 @@ class MediaView extends React.Component<MediaProps> {
 
   _finalizeMonth = month => {
     month.data = this._formRows(month.data)
+    month.renderSectionHeader = this._renderSectionHeader
+    month.renderItem = this._renderRow
     return month
   }
 
@@ -199,23 +204,12 @@ class MediaView extends React.Component<MediaProps> {
     )
   }
 
-  render() {
-    const months = formMonths(this.props.media.thumbs).reduce((l, m) => {
+  getSections = (thumbs: Array<Thumb>, onLoadMore: null | (() => void)) => {
+    const months = formMonths(thumbs).reduce((l, m) => {
       l.push(this._finalizeMonth(m))
       return l
     }, [])
-    const sections = months.concat(createLoadMoreSection(this.props.media.onLoadMore))
-    return (
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        <Kb.SectionList
-          stickySectionHeadersEnabled={true}
-          renderSectionHeader={this._renderSectionHeader}
-          keyboardShouldPersistTaps="handled"
-          renderItem={this._renderRow}
-          sections={sections}
-        />
-      </Kb.Box2>
-    )
+    return months.concat(createLoadMoreSection(onLoadMore))
   }
 }
 
@@ -235,13 +229,18 @@ type DocProps = {|
   status: Types.AttachmentViewStatus,
 |}
 
-class DocView extends React.Component<DocProps> {
+export class DocView {
   _renderSectionHeader = ({section}) => {
     if (!section.month) {
       return null
     }
     const label = `${section.month} ${section.year}`
     return <Kb.SectionDivider label={label} />
+  }
+  _finalizeMonth = month => {
+    month.renderSectionHeader = this._renderSectionHeader
+    month.renderItem = this._renderItem
+    return month
   }
   _renderItem = ({item}) => {
     return (
@@ -273,20 +272,12 @@ class DocView extends React.Component<DocProps> {
       </Kb.Box2>
     )
   }
-  render() {
-    const months = formMonths(this.props.docs.docs)
-    const sections = months.concat(createLoadMoreSection(this.props.docs.onLoadMore))
-    return (
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        <Kb.SectionList
-          stickySectionHeadersEnabled={true}
-          renderSectionHeader={this._renderSectionHeader}
-          keyboardShouldPersistTaps="handled"
-          renderItem={this._renderItem}
-          sections={sections}
-        />
-      </Kb.Box2>
-    )
+  getSections = (docs: Array<Doc>, onLoadMore: null | (() => void)) => {
+    const months = formMonths(docs).reduce((l, m) => {
+      l.push(this._finalizeMonth(m))
+      return l
+    }, [])
+    return months.concat(createLoadMoreSection(onLoadMore))
   }
 }
 
@@ -304,13 +295,18 @@ type LinkProps = {|
   status: Types.AttachmentViewStatus,
 |}
 
-class LinkView extends React.Component<LinkProps> {
+export class LinkView extends React.Component<LinkProps> {
   _renderSectionHeader = ({section}) => {
     if (!section.month) {
       return null
     }
     const label = `${section.month} ${section.year}`
     return <Kb.SectionDivider label={label} />
+  }
+  _finalizeMonth = month => {
+    month.renderSectionHeader = this._renderSectionHeader
+    month.renderItem = this._renderItem
+    return month
   }
   _renderItem = ({item}) => {
     return (
@@ -331,20 +327,12 @@ class LinkView extends React.Component<LinkProps> {
       </Kb.Box2>
     )
   }
-  render() {
-    const months = formMonths(this.props.links.links)
-    const sections = months.concat(createLoadMoreSection(this.props.links.onLoadMore))
-    return (
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        <Kb.SectionList
-          stickySectionHeadersEnabled={true}
-          renderSectionHeader={this._renderSectionHeader}
-          keyboardShouldPersistTaps="handled"
-          renderItem={this._renderItem}
-          sections={sections}
-        />
-      </Kb.Box2>
-    )
+  getSections = (links: Array<Link>, onLoadMore: null | (() => void)) => {
+    const months = formMonths(links).reduce((l, m) => {
+      l.push(this._finalizeMonth(m))
+      return l
+    }, [])
+    return months.concat(createLoadMoreSection(onLoadMore))
   }
 }
 
@@ -353,7 +341,7 @@ type SelectorProps = {
   onSelectView: RPCChatTypes.GalleryItemTyp => void,
 }
 
-class AttachmentTypeSelector extends React.Component<SelectorProps> {
+export class AttachmentTypeSelector extends React.Component<SelectorProps> {
   _getBkgColor = typ => {
     return typ === this.props.selectedView
       ? {backgroundColor: Styles.globalColors.blue}

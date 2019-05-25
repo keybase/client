@@ -10,6 +10,7 @@ import {MembersPanel, SettingsPanel} from './panels'
 import AttachmentPanel from './attachments/container'
 import {compose, withProps} from 'recompose'
 import Participant from './participant'
+import {AttachmentTypeSelector, DocView, LinkView, MediaView} from './attachments'
 
 export type Panel = 'settings' | 'members' | 'attachments'
 
@@ -65,12 +66,10 @@ const TabText = ({selected, text}: {selected: boolean, text: string}) => (
   </Kb.Text>
 )
 
-type InfoPanelState = {
-  selectedAttachmentView: RPCChatTypes.GalleryItemTyp,
-}
-
 class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
-  state = {selectedAttachmentView: RPCChatTypes.localGalleryItemTyp.media}
+  componentDidMount() {
+    this.props.onAttachmentViewChange(this.props.selectedAttachmentView)
+  }
 
   _getEntityType = () => {
     if (this.props.teamname && this.props.channelname) {
@@ -113,11 +112,6 @@ class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
   _onSelectTab = tab => {
     this.props.onSelectTab(tab.key)
   }
-
-  _setAttachmentView = viewType => {
-    this.setState({selectedAttachmentView: viewType})
-  }
-
   _renderHeader = () => {
     const entityType = this._getEntityType()
     const header = (
@@ -153,6 +147,24 @@ class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
     }
   }
 
+  _renderAttachmentViewSelector = () => {
+    return (
+      <AttachmentTypeSelector
+        selectedView={this.props.selectedAttachmentView}
+        onSelectView={this.props.onAttachmentViewChange}
+      />
+    )
+  }
+  _attachmentViewSelectorSection = () => {
+    return {
+      data: ['avselector'],
+      renderItem: this._renderAttachmentViewSelector,
+      renderSectionHeader: () => {
+        return null
+      },
+    }
+  }
+
   _renderTabs = () => {
     const tabs = this._getTabs(this._getEntityType())
     const selected = tabs.find(tab => this._isSelected(tab.key)) || null
@@ -171,12 +183,12 @@ class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
   }
 
   _renderSectionHeader = ({section}) => {
-    return section.renderSectionHeader()
+    return section.renderSectionHeader({section})
   }
 
   render() {
     const entityType = this._getEntityType()
-    const sections = []
+    let sections = []
     let tabsSection = this._tabsSection()
     sections.push(this._headerSection())
 
@@ -199,6 +211,7 @@ class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
           />
         )
       }
+      sections.push(tabsSection)
     } else if (this._isSelected('members')) {
       tabsSection.data = tabsSection.data.concat(this.props.participants)
       tabsSection.renderItem = ({item}) => {
@@ -215,16 +228,27 @@ class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
           />
         )
       }
+      sections.push(tabsSection)
+    } else if (this._isSelected('attachments')) {
+      let attachmentSections
+      switch (this.props.selectedAttachmentView) {
+        case RPCChatTypes.localGalleryItemTyp.media:
+          attachmentSections = new MediaView().getSections(
+            this.props.media.thumbs,
+            this.props.media.onLoadMore
+          )
+          break
+        case RPCChatTypes.localGalleryItemTyp.doc:
+          attachmentSections = new DocView().getSections(this.props.docs.docs, this.props.docs.onLoadMore)
+          break
+        case RPCChatTypes.localGalleryItemTyp.link:
+          attachmentSections = new LinkView().getSections(this.props.links.links, this.props.links.onLoadMore)
+          break
+      }
+      sections.push(tabsSection)
+      sections.push(this._attachmentViewSelectorSection())
+      sections = sections.concat(attachmentSections)
     }
-    /*
-        {this._isSelected('attachments') && (
-          <AttachmentPanel
-            conversationIDKey={this.props.selectedConversationIDKey}
-            selectedView={this.state.selectedAttachmentView}
-            setAttachmentView={this._setAttachmentView}
-          />
-        )}*/
-    sections.push(tabsSection)
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
         <Kb.SectionList
