@@ -9,6 +9,7 @@ import {AdhocHeader, TeamHeader} from './header'
 import {MembersPanel, SettingsPanel} from './panels'
 import AttachmentPanel from './attachments/container'
 import {compose, withProps} from 'recompose'
+import Participant from './participant'
 
 export type Panel = 'settings' | 'members' | 'attachments'
 
@@ -117,10 +118,8 @@ class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
     this.setState({selectedAttachmentView: viewType})
   }
 
-  render() {
+  _renderHeader = () => {
     const entityType = this._getEntityType()
-    const tabs = this._getTabs(entityType)
-    const selected = tabs.find(tab => this._isSelected(tab.key)) || null
     const header = (
       <>
         {entityType === 'small team' || entityType === 'channel' ? (
@@ -142,9 +141,48 @@ class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
         )}
       </>
     )
-    const content = (
-      <>
-        {this._isSelected('settings') && (
+    return header
+  }
+  _headerSection = () => {
+    return {
+      data: ['header'],
+      renderItem: this._renderHeader,
+      renderSectionHeader: () => {
+        return null
+      },
+    }
+  }
+
+  _renderTabs = () => {
+    const tabs = this._getTabs(this._getEntityType())
+    const selected = tabs.find(tab => this._isSelected(tab.key)) || null
+    return (
+      <Kb.Box2 direction="horizontal" fullWidth={true}>
+        <Kb.Tabs tabs={tabs} selected={selected} onSelect={this._onSelectTab} />
+      </Kb.Box2>
+    )
+  }
+  _tabsSection = () => {
+    return {
+      data: ['tabs'],
+      renderItem: () => null,
+      renderSectionHeader: this._renderTabs,
+    }
+  }
+
+  _renderSectionHeader = ({section}) => {
+    return section.renderSectionHeader()
+  }
+
+  render() {
+    const entityType = this._getEntityType()
+    const sections = []
+    let tabsSection = this._tabsSection()
+    sections.push(this._headerSection())
+
+    if (this._isSelected('settings')) {
+      tabsSection.renderItem = () => {
+        return (
           <SettingsPanel
             canDeleteHistory={this.props.canDeleteHistory}
             conversationIDKey={this.props.selectedConversationIDKey}
@@ -159,28 +197,42 @@ class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
             teamname={this.props.teamname}
             channelname={this.props.channelname}
           />
-        )}
-        {this._isSelected('members') && (
-          <MembersPanel onShowProfile={this.props.onShowProfile} participants={this.props.participants} />
-        )}
+        )
+      }
+    } else if (this._isSelected('members')) {
+      tabsSection.data = tabsSection.data.concat(this.props.participants)
+      tabsSection.renderItem = ({item}) => {
+        if (!item.username) {
+          return null
+        }
+        return (
+          <Participant
+            fullname={item.fullname}
+            isAdmin={item.isAdmin}
+            isOwner={item.isOwner}
+            username={item.username}
+            onShowProfile={this.props.onShowProfile}
+          />
+        )
+      }
+    }
+    /*
         {this._isSelected('attachments') && (
           <AttachmentPanel
             conversationIDKey={this.props.selectedConversationIDKey}
             selectedView={this.state.selectedAttachmentView}
             setAttachmentView={this._setAttachmentView}
           />
-        )}
-      </>
-    )
+        )}*/
+    sections.push(tabsSection)
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
-        <Kb.Box2 direction="vertical" gapStart={true} gap="xtiny" fullWidth={true}>
-          {header}
-        </Kb.Box2>
-        <Kb.Box2 direction="horizontal" fullWidth={true}>
-          <Kb.Tabs tabs={tabs} selected={selected} onSelect={this._onSelectTab} />
-        </Kb.Box2>
-        {content}
+        <Kb.SectionList
+          stickySectionHeadersEnabled={true}
+          keyboardShouldPersistTaps="handled"
+          renderSectionHeader={this._renderSectionHeader}
+          sections={sections}
+        />
       </Kb.Box2>
     )
   }
@@ -217,3 +269,13 @@ const InfoPanel = compose(
 
 export type {InfoPanelProps}
 export {InfoPanel}
+
+/*
+        <Kb.Box2 direction="vertical" gapStart={true} gap="xtiny" fullWidth={true}>
+          {header}
+        </Kb.Box2>
+        <Kb.Box2 direction="horizontal" fullWidth={true}>
+          <Kb.Tabs tabs={tabs} selected={selected} onSelect={this._onSelectTab} />
+        </Kb.Box2>
+        {content}
+        */
