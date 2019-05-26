@@ -114,7 +114,7 @@ class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
   _renderHeader = () => {
     const entityType = this._getEntityType()
     const header = (
-      <>
+      <Kb.Box2 direction="vertical" gap="xtiny" gapStart={true} fullWidth={true}>
         {entityType === 'small team' || entityType === 'channel' ? (
           <TeamHeader
             admin={this.props.admin}
@@ -132,7 +132,7 @@ class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
             participants={this.props.participants}
           />
         )}
-      </>
+      </Kb.Box2>
     )
     return header
   }

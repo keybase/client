@@ -21,7 +21,7 @@ const gearIconSize = Styles.isMobile ? 24 : 16
 
 const _TeamHeader = (props: SmallProps) => {
   let title = props.teamname
-  if (props.channelname) {
+  if (props.channelname && !props.isSmallTeam) {
     title += '#' + props.channelname
   }
   const isGeneralChannel = props.channelname && props.channelname === 'general'
@@ -151,7 +151,6 @@ const styles = Styles.styleSheetCreate({
       width: gearIconSize,
     },
     isMobile: {
-      marginRight: 16,
       width: gearIconSize + 32,
     },
   }),
