@@ -3827,7 +3827,6 @@ func TestProvisionAfterPasswordChange(t *testing.T) {
 		eng := NewLogin(tcY.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 		if err := RunEngine2(m, eng); err != nil {
 			t.Errorf("provisionee login error: %s", err)
-			panic(err)
 			return
 		}
 	}()
@@ -3842,7 +3841,6 @@ func TestProvisionAfterPasswordChange(t *testing.T) {
 		m := NewMetaContextForTest(tcX).WithUIs(uis)
 		if err := RunEngine2(m, provisioner); err != nil {
 			t.Errorf("provisioner error: %s", err)
-			panic(err)
 			return
 		}
 	}()
@@ -3868,7 +3866,7 @@ func TestProvisionAfterPasswordChange(t *testing.T) {
 	// 1) the initial provisioner
 	// 2) an already provisioned device with a cached passphrase stream
 	// 3) a totally clean device
-	// in order to trigger the bug we have to make the cached ppstream in (2) outdated
+	// in order to trigger the race we have to make the cached ppstream in (2) outdated
 
 	// Change the password on device 1 to modify ppgen
 	newPassphrase := "password1234"
@@ -3882,9 +3880,6 @@ func TestProvisionAfterPasswordChange(t *testing.T) {
 		}),
 	))
 
-	// REMOVE BELOW TO BREAK TESTS
-	// simulateServiceRestart(t, tcY, userX)
-
 	// Now provision Z from Y
 	t.Logf("kex#2 starting")
 
@@ -3896,7 +3891,6 @@ func TestProvisionAfterPasswordChange(t *testing.T) {
 		eng := NewLogin(tcZ.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 		if err := RunEngine2(m, eng); err != nil {
 			t.Errorf("provisionee login error: %s", err)
-			panic(err)
 			return
 		}
 	}()
@@ -3916,7 +3910,6 @@ func TestProvisionAfterPasswordChange(t *testing.T) {
 		// m.ActiveDevice().ClearPassphraseStreamCache()
 		if err := RunEngine2(m, provisioner); err != nil {
 			t.Errorf("provisioner error: %s", err)
-			panic(err)
 			return
 		}
 	}()
