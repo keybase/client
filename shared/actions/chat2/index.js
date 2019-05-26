@@ -1871,7 +1871,7 @@ function* attachmentFullscreenNext(state, action) {
 
 const attachmentPreviewSelect = (_, action) => {
   const message = action.payload.message
-  if (Constants.isVideoAttachment(message)) {
+  if (Constants.isVideoAttachment(message) && !isMobile) {
     // Start up the fullscreen video view
     return RouteTreeGen.createNavigateAppend({
       path: [

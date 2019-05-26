@@ -7,6 +7,7 @@ import * as FsGen from '../../../actions/fs-gen'
 import Fullscreen from './'
 import {compose, withStateHandlers, connect, withProps} from '../../../util/container'
 import {type RouteProps} from '../../../route-tree/render-route'
+import {imgMaxWidthRaw} from '../messages/attachment/image/image-render'
 
 const blankMessage = Constants.makeMessageAttachment({})
 
@@ -52,6 +53,11 @@ const mapDispatchToProps = dispatch => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const message = stateProps.message
+  const {height, width} = Constants.clampImageSize(
+    message.previewWidth,
+    message.previewHeight,
+    imgMaxWidthRaw()
+  )
   return {
     hotkeys: ['left', 'right'],
     isVideo: Constants.isVideoAttachment(message),
@@ -63,6 +69,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onHotkey: (cmd: string) => dispatchProps._onHotkey(message.conversationIDKey, message.id, cmd),
     onShowInFinder: message.downloadPath ? () => dispatchProps._onShowInFinder(message) : undefined,
     path: message.fileURL || message.previewURL,
+    previewHeight: height,
+    previewWidth: width,
     progress: message.transferProgress,
     progressLabel: message.fileURL ? undefined : 'Loading',
     title: message.title,

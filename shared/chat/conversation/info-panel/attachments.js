@@ -119,9 +119,9 @@ class MediaThumb extends React.Component<MediaThumbProps, MediaThumbState> {
           <Kb.Image src={thumb.previewURL} style={{...sizing.dims}} onLoad={this._setLoaded} />
         </Kb.ClickableBox>
         {!!thumb.isVideo && (
-          <Kb.Box style={styles.durationContainer}>
+          <Kb.Box2 direction="vertical" style={styles.durationContainer}>
             <Kb.Icon type="icon-film-64" style={Kb.iconCastPlatformStyles(styles.filmIcon)} />
-          </Kb.Box>
+          </Kb.Box2>
         )}
         {this.state.loading && <Kb.ProgressIndicator style={styles.loading} />}
       </Kb.Box2>
@@ -402,6 +402,7 @@ const styles = Styles.styleSheetCreate({
   },
   filmIcon: {
     height: 16,
+    width: 16,
   },
   linkContainer: {
     padding: Styles.globalMargins.tiny,
