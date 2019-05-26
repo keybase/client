@@ -3883,7 +3883,7 @@ func TestProvisionAfterPasswordChange(t *testing.T) {
 	))
 
 	// REMOVE BELOW TO BREAK TESTS
-	simulateServiceRestart(t, tcY, userX)
+	// simulateServiceRestart(t, tcY, userX)
 
 	// Now provision Z from Y
 	t.Logf("kex#2 starting")
@@ -3913,6 +3913,7 @@ func TestProvisionAfterPasswordChange(t *testing.T) {
 
 		// We're reusing the m from the PGP key generation
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
+		// m.ActiveDevice().ClearPassphraseStreamCache()
 		if err := RunEngine2(m, provisioner); err != nil {
 			t.Errorf("provisioner error: %s", err)
 			panic(err)

@@ -151,3 +151,25 @@ func (ps PassphraseStream) Export() keybase1.PassphraseStream {
 		Generation:       int(ps.gen),
 	}
 }
+
+type apiGenerationRes struct {
+	Status     AppStatus            `json:"status"`
+	Generation PassphraseGeneration `json:"generation"`
+}
+
+func (a apiGenerationRes) GetAppStatus() *AppStatus {
+	return &a.Status
+}
+
+func (ps PassphraseStream) IsOutdated(mctx MetaContext) (bool, error) {
+	var res apiGenerationRes
+	if err := mctx.G().API.GetDecode(mctx, APIArg{
+		Endpoint:       "passphrase/generation",
+		SessionType:    APISessionTypeREQUIRED,
+		AppStatusCodes: []int{SCOk},
+	}, &res); err != nil {
+		return false, err
+	}
+
+	return res.Generation > ps.Generation(), nil
+}

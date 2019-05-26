@@ -72,12 +72,14 @@ func (e *Kex2Provisioner) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the provisioner engine.
 func (e *Kex2Provisioner) Run(m libkb.MetaContext) error {
-
 	// The guard is acquired later, after the potentially long pause by the user.
 	defer m.G().LocalSigchainGuard().Clear(m.Ctx(), "Kex2Provisioner")
 
 	// before starting provisioning, need to load some information:
 	if err := e.loadMe(); err != nil {
+		return err
+	}
+	if err := m.ActiveDevice().ClearPassphraseStreamCacheIfOutdated(m); err != nil {
 		return err
 	}
 	if err := e.loadSecretKeys(m); err != nil {
