@@ -6,8 +6,7 @@ import * as Kb from '../../../common-adapters'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import type {Props as HeaderHocProps} from '../../../common-adapters/header-hoc/types'
 import {AdhocHeader, TeamHeader} from './header'
-import {MembersPanel, SettingsPanel} from './panels'
-import AttachmentPanel from './attachments/container'
+import {SettingsPanel} from './panels'
 import {compose, withProps} from 'recompose'
 import Participant from './participant'
 import {AttachmentTypeSelector, DocView, LinkView, MediaView} from './attachments'
@@ -170,7 +169,7 @@ class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
     const selected = tabs.find(tab => this._isSelected(tab.key)) || null
     return (
       <Kb.Box2 direction="horizontal" fullWidth={true}>
-        <Kb.Tabs tabs={tabs} selected={selected} onSelect={this._onSelectTab} />
+        <Kb.Tabs tabs={tabs} selected={selected} onSelect={this._onSelectTab} style={styles.tabStyle} />
       </Kb.Box2>
     )
   }
@@ -275,6 +274,9 @@ const styles = Styles.styleSheetCreate({
       borderLeft: border,
     },
   }),
+  tabStyle: {
+    backgroundColor: Styles.globalColors.white,
+  },
   tabTextContainer: {
     justifyContent: 'center',
   },
@@ -293,13 +295,3 @@ const InfoPanel = compose(
 
 export type {InfoPanelProps}
 export {InfoPanel}
-
-/*
-        <Kb.Box2 direction="vertical" gapStart={true} gap="xtiny" fullWidth={true}>
-          {header}
-        </Kb.Box2>
-        <Kb.Box2 direction="horizontal" fullWidth={true}>
-          <Kb.Tabs tabs={tabs} selected={selected} onSelect={this._onSelectTab} />
-        </Kb.Box2>
-        {content}
-        */

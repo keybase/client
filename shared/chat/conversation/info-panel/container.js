@@ -1,6 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as Chat2Gen from '../../../actions/chat2-gen'
+import * as FsGen from '../../../actions/fs-gen'
 import * as Constants from '../../../constants/chat2'
 import * as TeamConstants from '../../../constants/teams'
 import * as React from 'react'
@@ -49,32 +50,14 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   const isPreview = meta.membershipType === 'youArePreviewing'
   const selectedTab = ownProps.selectedTab || (isPreview ? 'members' : 'settings')
   const selectedAttachmentView = ownProps.selectedAttachmentView || RPCChatTypes.localGalleryItemTyp.media
-  console.log('VIEW: ' + selectedAttachmentView)
-  const attachmentsLoading =
-    selectedTab === 'attachments' &&
-    state.chat2.attachmentViewMap.getIn(
-      [conversationIDKey, selectedAttachmentView],
-      Constants.makeAttachmentViewInfo()
-    ).status === 'loading'
-  const media = state.chat2.attachmentViewMap.getIn(
-    [conversationIDKey, RPCChatTypes.localGalleryItemTyp.media],
+  const attachmentInfo = state.chat2.attachmentViewMap.getIn(
+    [conversationIDKey, selectedAttachmentView],
     Constants.makeAttachmentViewInfo()
   )
-  const docs = state.chat2.attachmentViewMap.getIn(
-    [conversationIDKey, RPCChatTypes.localGalleryItemTyp.doc],
-    Constants.makeAttachmentViewInfo()
-  )
-  const links = state.chat2.attachmentViewMap.getIn(
-    [conversationIDKey, RPCChatTypes.localGalleryItemTyp.link],
-    Constants.makeAttachmentViewInfo()
-  )
+  const attachmentsLoading = selectedTab === 'attachments' && attachmentInfo.status === 'loading'
   return {
-    _docs: docs,
-    _docsFromMsgID: getFromMsgID(docs),
-    _links: links,
-    _linksFromMsgID: getFromMsgID(links),
-    _media: media,
-    _mediaFromMsgID: getFromMsgID(media),
+    _attachmentInfo: attachmentInfo,
+    _fromMsgID: getFromMsgID(attachmentInfo),
     _infoMap: state.users.infoMap,
     _participants: meta.participants,
     _teamMembers: state.teams.teamNameToMembers.get(meta.teamname, I.Map()),
@@ -100,12 +83,16 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 
 const mapDispatchToProps = (dispatch, {conversationIDKey, onBack, onSelectAttachmentView}: OwnProps) => ({
   _navToRootChat: () => dispatch(Chat2Gen.createNavigateToInbox({findNewConversation: false})),
+  _onDocDownload: message => dispatch(Chat2Gen.createAttachmentDownload({message})),
   _onEditChannel: (teamname: string) =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
         path: [{props: {conversationIDKey, teamname}, selected: 'chatEditChannel'}],
       })
     ),
+  _onLoadMore: (viewType, fromMsgID) =>
+    dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, fromMsgID, viewType})),
+  _onMediaClick: message => dispatch(Chat2Gen.createAttachmentPreviewSelect({message})),
   _onShowClearConversationDialog: () => {
     dispatch(Chat2Gen.createNavigateToThread())
     dispatch(
@@ -113,6 +100,13 @@ const mapDispatchToProps = (dispatch, {conversationIDKey, onBack, onSelectAttach
         path: [{props: {conversationIDKey}, selected: 'chatDeleteHistoryWarning'}],
       })
     )
+  },
+  _onShowInFinder: message =>
+    message.downloadPath &&
+    dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath})),
+  onAttachmentViewChange: viewType => {
+    dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, viewType}))
+    onSelectAttachmentView(viewType)
   },
   onHideConv: () => dispatch(Chat2Gen.createHideConversation({conversationIDKey})),
   onJoinChannel: () => dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),
@@ -143,17 +137,6 @@ const mapDispatchToProps = (dispatch, {conversationIDKey, onBack, onSelectAttach
   },
   onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
   onUnhideConv: () => dispatch(Chat2Gen.createUnhideConversation({conversationIDKey})),
-  _onDocDownload: message => dispatch(Chat2Gen.createAttachmentDownload({message})),
-  _onLoadMore: (viewType, fromMsgID) =>
-    dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, fromMsgID, viewType})),
-  _onMediaClick: message => dispatch(Chat2Gen.createAttachmentPreviewSelect({message})),
-  _onShowInFinder: message =>
-    message.downloadPath &&
-    dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath})),
-  onAttachmentViewChange: viewType => {
-    dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, viewType}))
-    onSelectAttachmentView(viewType)
-  },
 })
 
 // state props
@@ -167,8 +150,71 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   channelname: stateProps.channelname,
   customCancelText: 'Done',
   description: stateProps.description,
+  docs:
+    stateProps.selectedAttachmentView === RPCChatTypes.localGalleryItemTyp.doc
+      ? {
+          docs: stateProps._attachmentInfo.messages
+            .map(m => ({
+              author: m.author,
+              ctime: m.timestamp,
+              downloading: m.transferState === 'downloading',
+              name: m.title || m.fileName,
+              onDownload: !isMobile && !m.downloadPath ? () => dispatchProps._onDocDownload(m) : null,
+              onShowInFinder: !isMobile && m.downloadPath ? () => dispatchProps._onShowInFinder(m) : null,
+              progress: m.transferProgress,
+            }))
+            .toArray(),
+          onLoadMore: stateProps._fromMsgID
+            ? () => dispatchProps._onLoadMore(RPCChatTypes.localGalleryItemTyp.doc, stateProps._fromMsgID)
+            : null,
+          status: stateProps._attachmentInfo.status,
+        }
+      : {docs: [], onLoadMore: () => {}, status: 'loading'},
   ignored: stateProps.ignored,
   isPreview: stateProps.isPreview,
+  links:
+    stateProps.selectedAttachmentView === RPCChatTypes.localGalleryItemTyp.link
+      ? {
+          links: stateProps._attachmentInfo.messages.reduce((l, m) => {
+            m.unfurls.toList().map(u => {
+              if (u.unfurl.unfurlType === RPCChatTypes.unfurlUnfurlType.generic && u.unfurl.generic) {
+                l.push({
+                  author: m.author,
+                  ctime: m.timestamp,
+                  snippet: m.bodySummary.stringValue(),
+                  title: u.unfurl.generic.title,
+                  url: u.unfurl.generic.url,
+                })
+              }
+            })
+            return l
+          }, []),
+          onLoadMore: stateProps._fromMsgID
+            ? () => dispatchProps._onLoadMore(RPCChatTypes.localGalleryItemTyp.link, stateProps._fromMsgID)
+            : null,
+          status: stateProps._attachmentInfo.status,
+        }
+      : {links: [], onLoadMore: () => {}, status: 'loading'},
+  media:
+    stateProps.selectedAttachmentView === RPCChatTypes.localGalleryItemTyp.media
+      ? {
+          onLoadMore: stateProps._fromMsgID
+            ? () => dispatchProps._onLoadMore(RPCChatTypes.localGalleryItemTyp.media, stateProps._fromMsgID)
+            : null,
+          status: stateProps._attachmentInfo.status,
+          thumbs: stateProps._attachmentInfo.messages
+            .map(m => ({
+              ctime: m.timestamp,
+              height: m.previewHeight,
+              isVideo: !!m.videoDuration,
+              onClick: () => dispatchProps._onMediaClick(m),
+              previewURL: m.previewURL,
+              width: m.previewWidth,
+            }))
+            .toArray(),
+        }
+      : {onLoadMore: () => {}, status: 'loading', thumbs: []},
+  onAttachmentViewChange: dispatchProps.onAttachmentViewChange,
   onBack: ownProps.onBack,
   onCancel: ownProps.onCancel,
   onEditChannel: () => dispatchProps._onEditChannel(stateProps.teamname),
@@ -193,67 +239,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
       username: p,
     }))
     .toArray(),
+  selectedAttachmentView: stateProps.selectedAttachmentView,
   selectedConversationIDKey: stateProps.selectedConversationIDKey,
   selectedTab: stateProps.selectedTab,
   smallTeam: stateProps.smallTeam,
   spinnerForHide: stateProps.spinnerForHide,
   teamname: stateProps.teamname,
-
-  docs: {
-    docs: stateProps._docs.messages
-      .map(m => ({
-        author: m.author,
-        ctime: m.timestamp,
-        downloading: m.transferState === 'downloading',
-        name: m.title || m.fileName,
-        onDownload: !isMobile && !m.downloadPath ? () => dispatchProps._onDocDownload(m) : null,
-        onShowInFinder: !isMobile && m.downloadPath ? () => dispatchProps._onShowInFinder(m) : null,
-        progress: m.transferProgress,
-      }))
-      .toArray(),
-    onLoadMore: stateProps._docsFromMsgID
-      ? () => dispatchProps._onLoadMore(RPCChatTypes.localGalleryItemTyp.doc, stateProps._docsFromMsgID)
-      : null,
-    status: stateProps._docs.status,
-  },
-  links: {
-    links: stateProps._links.messages.reduce((l, m) => {
-      m.unfurls.toList().map(u => {
-        if (u.unfurl.unfurlType === RPCChatTypes.unfurlUnfurlType.generic && u.unfurl.generic) {
-          l.push({
-            author: m.author,
-            ctime: m.timestamp,
-            snippet: m.bodySummary.stringValue(),
-            title: u.unfurl.generic.title,
-            url: u.unfurl.generic.url,
-          })
-        }
-      })
-      return l
-    }, []),
-    onLoadMore: stateProps._linksFromMsgID
-      ? () => dispatchProps._onLoadMore(RPCChatTypes.localGalleryItemTyp.link, stateProps._linksFromMsgID)
-      : null,
-    status: stateProps._links.status,
-  },
-  media: {
-    onLoadMore: stateProps._mediaFromMsgID
-      ? () => dispatchProps._onLoadMore(RPCChatTypes.localGalleryItemTyp.media, stateProps._mediaFromMsgID)
-      : null,
-    status: stateProps._media.status,
-    thumbs: stateProps._media.messages
-      .map(m => ({
-        ctime: m.timestamp,
-        height: m.previewHeight,
-        isVideo: !!m.videoDuration,
-        onClick: () => dispatchProps._onMediaClick(m),
-        previewURL: m.previewURL,
-        width: m.previewWidth,
-      }))
-      .toArray(),
-  },
-  onAttachmentViewChange: dispatchProps.onAttachmentViewChange,
-  selectedAttachmentView: stateProps.selectedAttachmentView,
 })
 
 const ConnectedInfoPanel = connect<OwnProps, _, _, _, _>(

@@ -6,8 +6,7 @@ import * as Styles from '../../../styles'
 import RetentionPicker from '../../../teams/team/settings-tab/retention/container'
 import MinWriterRole from './min-writer-role/container'
 import Notifications from './notifications/container'
-import {CaptionedButton, CaptionedDangerIcon} from './channel-utils'
-import Participant from './participant'
+import {CaptionedDangerIcon} from './channel-utils'
 
 type SettingsPanelProps = {|
   canDeleteHistory: boolean,
@@ -94,48 +93,10 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
   )
 }
 
-type MembersPanelProps = {|
-  onShowProfile: (username: string) => void,
-  participants: Array<{
-    username: string,
-    fullname: string,
-    isAdmin: boolean,
-    isOwner: boolean,
-  }>,
-|}
-
-const participantHeight = 56
-
-export class MembersPanel extends React.Component<MembersPanelProps> {
-  _renderHit = (index, item) => {
-    return (
-      <Participant
-        fullname={item.fullname}
-        isAdmin={item.isAdmin}
-        isOwner={item.isOwner}
-        username={item.username}
-        onShowProfile={this.props.onShowProfile}
-      />
-    )
-  }
-  render() {
-    return (
-      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.membersContainer}>
-        <Kb.List2
-          indexAsKey={true}
-          items={this.props.participants}
-          itemHeight={{height: participantHeight, type: 'fixed'}}
-          renderItem={this._renderHit}
-        />
-      </Kb.Box2>
-    )
-  }
-}
-
 const styles = Styles.styleSheetCreate({
   divider: {
-    marginTop: Styles.globalMargins.tiny,
     marginBottom: Styles.globalMargins.tiny,
+    marginTop: Styles.globalMargins.tiny,
   },
   membersContainer: {
     flex: 1,
@@ -160,8 +121,8 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   settingsContainer: {
-    height: '100%',
     flex: 1,
+    height: '100%',
     paddingTop: Styles.globalMargins.small,
   },
 })
