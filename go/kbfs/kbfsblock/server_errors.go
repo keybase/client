@@ -305,13 +305,10 @@ func (eu ServerErrorUnwrapper) UnwrapError(arg interface{}) (appError error, dis
 	switch s.Code {
 	case StatusCodeServerError:
 		appError = ServerError{Msg: s.Desc}
-		break
 	case StatusCodeServerErrorBadRequest:
 		appError = ServerErrorBadRequest{Msg: s.Desc}
-		break
 	case StatusCodeServerErrorUnauthorized:
 		appError = ServerErrorUnauthorized{Msg: s.Desc}
-		break
 	case StatusCodeServerErrorOverQuota:
 		quotaErr := ServerErrorOverQuota{Msg: s.Desc}
 		for _, f := range s.Fields {
@@ -324,28 +321,20 @@ func (eu ServerErrorUnwrapper) UnwrapError(arg interface{}) (appError error, dis
 			}
 		}
 		appError = quotaErr
-		break
 	case StatusCodeServerErrorBlockNonExistent:
 		appError = ServerErrorBlockNonExistent{Msg: s.Desc}
-		break
 	case StatusCodeServerErrorBlockArchived:
 		appError = ServerErrorBlockArchived{Msg: s.Desc}
-		break
 	case StatusCodeServerErrorNoPermission:
 		appError = ServerErrorNoPermission{Msg: s.Desc}
-		break
 	case StatusCodeServerErrorThrottle:
 		appError = ServerErrorThrottle{Msg: s.Desc}
-		break
 	case StatusCodeServerErrorBlockDeleted:
 		appError = ServerErrorBlockDeleted{Msg: s.Desc}
-		break
 	case StatusCodeServerErrorNonceNonExistent:
 		appError = ServerErrorNonceNonExistent{Msg: s.Desc}
-		break
 	case StatusCodeServerErrorMaxRefExceeded:
 		appError = ServerErrorMaxRefExceeded{Msg: s.Desc}
-		break
 	default:
 		ase := libkb.AppStatusError{
 			Code:   s.Code,

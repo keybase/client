@@ -14,12 +14,6 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-const mergeProps = (_, dispatchProps, ownProps) => ({...ownProps, ...dispatchProps})
+const mergeProps = (_, dispatchProps, ownProps: OwnProps) => ({...ownProps, onSearch: dispatchProps.onSearch})
 
-// @ts-ignore codemode issue
-export default Container.namedConnect<OwnProps, _, _, _, _>(
-  () => ({}),
-  mapDispatchToProps,
-  mergeProps,
-  'PeopleTabSearch'
-)(Bar)
+export default Container.namedConnect(() => ({}), mapDispatchToProps, mergeProps, 'PeopleTabSearch')(Bar)
