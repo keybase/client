@@ -54,9 +54,11 @@ const _TeamHeader = (props: SmallProps) => {
         />
       </Kb.Box2>
       {!!props.description && (
-        <Kb.Text type="BodySmall" style={styles.description}>
-          {props.description}
-        </Kb.Text>
+        <Kb.Box2 direction="horizontal" style={styles.description}>
+          <Kb.Markdown smallStandaloneEmoji={true} selectable={true}>
+            {props.description}
+          </Kb.Markdown>
+        </Kb.Box2>
       )}
       {props.isPreview && (
         <Kb.Button
@@ -139,7 +141,6 @@ const styles = Styles.styleSheetCreate({
   description: {
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
-    textAlign: 'center',
   },
   editBox: {
     ...Styles.globalStyles.flexBoxRow,
