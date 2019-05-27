@@ -192,6 +192,7 @@ class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
     let sections = []
     let tabsSection = this._tabsSection()
     sections.push(this._headerSection())
+    let itemSizeEstimator
 
     if (this._isSelected('settings')) {
       tabsSection.renderItem = () => {
@@ -214,6 +215,11 @@ class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
       }
       sections.push(tabsSection)
     } else if (this._isSelected('members')) {
+      if (!Styles.isMobile) {
+        itemSizeEstimator = () => {
+          return 56
+        }
+      }
       tabsSection.data = tabsSection.data.concat(this.props.participants)
       tabsSection.renderItem = ({item}) => {
         if (!item.username) {
@@ -265,6 +271,7 @@ class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
         <Kb.SectionList
+          itemSizeEstimator={itemSizeEstimator}
           stickySectionHeadersEnabled={true}
           keyboardShouldPersistTaps="handled"
           renderSectionHeader={this._renderSectionHeader}
