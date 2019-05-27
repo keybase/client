@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
 import * as Kb from '../../../common-adapters'
@@ -14,37 +13,43 @@ import * as Styles from '../../../styles'
  */
 export const height = 176
 
-type Props = {|
-  alwaysShow?: ?boolean,
-  driverStatus: Types.DriverStatus,
-  onDismiss: () => void,
-  onEnable: () => void,
-  onDisable: () => void,
-|}
-
-type Background = 'blue' | 'green' | 'yellow' | 'black'
-type BannerProps = {
-  background: Background,
-  okIcon: boolean,
-  onDismiss?: ?() => void,
-  title: string,
-  body?: ?string,
-  button?: ?{
-    action: () => void,
-    buttonText: string,
-    inProgress: boolean,
-  },
+type Props = {
+  alwaysShow?: boolean | null
+  driverStatus: Types.DriverStatus
+  onDismiss: () => void
+  onEnable: () => void
+  onDisable: () => void
 }
 
-const backgroundToTextStyle = background => {
+enum Background {
+  Blue = 1,
+  Green,
+  Yellow,
+  Black,
+}
+
+type BannerProps = {
+  background: Background
+  okIcon: boolean
+  onDismiss?: () => void | null
+  title: string
+  body?: string | null
+  button?: {
+    action: () => void
+    buttonText: string
+    inProgress: boolean
+  } | null
+}
+
+const backgroundToTextStyle = (background: Background) => {
   switch (background) {
-    case 'blue':
+    case Background.Blue:
       return styles.textWhite
-    case 'green':
+    case Background.Green:
       return styles.textWhite
-    case 'yellow':
+    case Background.Yellow:
       return styles.textBrown
-    case 'black':
+    case Background.Black:
       return styles.textWhite
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(background)
@@ -52,15 +57,15 @@ const backgroundToTextStyle = background => {
   }
 }
 
-const backgroundToBackgroundColor = background => {
+const backgroundToBackgroundColor = (background: Background) => {
   switch (background) {
-    case 'blue':
+    case Background.Blue:
       return Styles.globalColors.blue
-    case 'green':
+    case Background.Green:
       return Styles.globalColors.green
-    case 'yellow':
+    case Background.Yellow:
       return Styles.globalColors.yellow
-    case 'black':
+    case Background.Black:
       return Styles.globalColors.black
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(background)
@@ -127,7 +132,9 @@ const Banner = (props: BannerProps) => (
   </Kb.Box2>
 )
 
-const ThisShouldNotHappen = () => <Banner background="black" okIcon={false} title="This should not happen." />
+const ThisShouldNotHappen = () => (
+  <Banner background={Background.Black} okIcon={false} title="This should not happen." />
+)
 
 const Enabled = (props: Props) => {
   if (props.driverStatus.type !== 'enabled') {
@@ -136,7 +143,7 @@ const Enabled = (props: Props) => {
   if (props.driverStatus.dokanOutdated) {
     return (
       <Banner
-        background="yellow"
+        background={Background.Yellow}
         okIcon={false}
         title="Dokan is outdated."
         body={
@@ -160,11 +167,13 @@ const Enabled = (props: Props) => {
     // We already covered the dokan-uninstall disable case above, so this'd be
     // the rare case where user disables finder integration, and goes to Files
     // tab before it's done. Just show a simple banner in this case.
-    return <Banner background="blue" okIcon={false} title={`Disabling Keybase in ${fileUIName} ...`} />
+    return (
+      <Banner background={Background.Blue} okIcon={false} title={`Disabling Keybase in ${fileUIName} ...`} />
+    )
   }
   return (
     <Banner
-      background="green"
+      background={Background.Green}
       okIcon={true}
       title={`Keybase is enabled in your ${fileUIName}.`}
       onDismiss={props.alwaysShow ? null : props.onDismiss}
@@ -177,7 +186,7 @@ export default (props: Props) => {
     case 'disabled':
       return (
         <Banner
-          background="blue"
+          background={Background.Blue}
           okIcon={false}
           title={`Enable Keybase in ${fileUIName}?`}
           body="Get access to your files and folders just like you normally do with your local files. It's encrypted and secure."
@@ -194,7 +203,7 @@ export default (props: Props) => {
     case 'unknown':
       return props.alwaysShow ? (
         <Banner
-          background="blue"
+          background={Background.Blue}
           okIcon={false}
           title={'Loading'}
           body={`Trying to find out if Keybase is enabled in ${fileUIName} ...`}
@@ -203,7 +212,7 @@ export default (props: Props) => {
         <ThisShouldNotHappen />
       )
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.driverStatus.type)
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.driverStatus)
       return <ThisShouldNotHappen />
   }
 }

@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
@@ -18,11 +17,12 @@ const baseHeight = isMobile ? 440 : 378 // Change this when layout changes
 export const getHeight = (numResetUsers: number) => baseHeight + numResetUsers * addedHeightPerResetUser
 
 type Props = {
-  resetParticipants: Array<string>,
-  onReAddToTeam: (username: string) => () => void,
-  onViewProfile: (username: string) => () => void,
-  onOpenWithoutResetUsers: () => void,
+  resetParticipants: Array<string>
+  onReAddToTeam: (username: string) => () => void
+  onViewProfile: (username: string) => () => void
+  onOpenWithoutResetUsers: () => void
 }
+
 const Banner = ({resetParticipants, onReAddToTeam, onViewProfile, onOpenWithoutResetUsers}: Props) => (
   <Kb.Box2
     direction="vertical"

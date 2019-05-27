@@ -1,4 +1,3 @@
-// @flow
 import React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
@@ -43,7 +42,7 @@ export default () => {
     .addDecorator(provider)
     .addDecorator(Sb.scrollViewDecorator)
     .add('ResetBanner - other', () => (
-      <ResetBanner isUserReset={false} resetParticipants={['reset1', 'reset3']} {...resetBannerCommon} />
+      <ResetBanner resetParticipants={['reset1', 'reset3']} {...resetBannerCommon} />
     ))
     .add('SystemFileManagerIntegrationBanner - disabled', () => (
       <SystemFileManagerIntegrationBanner

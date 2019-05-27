@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as ProfileGen from '../../../actions/profile-gen'
 import * as Tracker2Gen from '../../../actions/tracker2-gen'
@@ -11,7 +10,9 @@ import {folderNameWithoutUsers} from '../../../util/kbfs'
 import Banner, {getHeight} from '.'
 import * as RowTypes from '../../browser/rows/types'
 
-type OwnProps = {|path: Types.Path|}
+type OwnProps = {
+  path: Types.Path
+}
 
 const mapStateToProps = (state, {path}: OwnProps) => ({
   _tlf: Constants.getTlfFromPath(state.fs.tlfs, path),
@@ -19,7 +20,7 @@ const mapStateToProps = (state, {path}: OwnProps) => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  _onOpenWithoutResetUsers: (currPath: Types.Path, users: {[string]: boolean}) => {
+  _onOpenWithoutResetUsers: (currPath: Types.Path, users: {[K in string]: boolean}) => {
     const pathElems = Types.getPathElements(currPath)
     if (pathElems.length < 3) return
     const filteredPathName = folderNameWithoutUsers(pathElems[2], users)
@@ -57,12 +58,7 @@ const mergeProps = (
   }
 }
 
-const ConnectedBanner = namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'ResetBanner'
-)(Banner)
+const ConnectedBanner = namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ResetBanner')(Banner)
 
 export default ConnectedBanner
 

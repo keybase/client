@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import Banner, {height} from './index'
 import * as FsGen from '../../../actions/fs-gen'
@@ -7,9 +6,9 @@ import * as RowTypes from '../../browser/rows/types'
 import {namedConnect} from '../../../util/container'
 import {isMobile} from '../../../constants/platform'
 
-type OwnProps = {|
-  alwaysShow?: ?boolean,
-|}
+type OwnProps = {
+  alwaysShow?: boolean | null
+}
 
 const mapStateToProps = state => ({
   driverStatus: state.fs.sfmi.driverStatus,
@@ -21,7 +20,7 @@ const mapDispatchToProps = dispatch => ({
   onEnable: () => dispatch(FsGen.createDriverEnable({})),
 })
 
-const ConnectedBanner = namedConnect<OwnProps, _, _, _, _>(
+const ConnectedBanner = namedConnect(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d}),

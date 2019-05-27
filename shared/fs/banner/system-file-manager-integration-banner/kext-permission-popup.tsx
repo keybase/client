@@ -1,14 +1,13 @@
-// @flow
 import React from 'react'
 import * as Types from '../../../constants/types/fs'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 
-type Props = {|
-  driverStatus: Types.DriverStatus,
-  onCancel: () => void, // must be ownProps.navigateUp() or idempotent in a way
-  openSecurityPrefs: () => void,
-|}
+type Props = {
+  driverStatus: Types.DriverStatus
+  onCancel: () => void // must be ownProps.navigateUp() or idempotent in a way,
+  openSecurityPrefs: () => void
+}
 
 const securityPreferenceIllustration = require('../../../images/illustrations/security-preferences.png')
 

@@ -1,9 +1,8 @@
-// @flow
-import {namedConnect, type RouteProps} from '../../../util/container'
+import {namedConnect, RouteProps} from '../../../util/container'
 import * as FsGen from '../../../actions/fs-gen'
 import KextPermissionPopup from './kext-permission-popup'
 
-type OwnProps = RouteProps<{||}, {||}>
+type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = state => ({
   driverStatus: state.fs.sfmi.driverStatus,
@@ -14,7 +13,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   openSecurityPrefs: () => dispatch(FsGen.createOpenSecurityPreferences()),
 })
 
-export default namedConnect<OwnProps, _, _, _, _>(
+export default namedConnect(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({
