@@ -1,8 +1,7 @@
-// @flow
 import * as ChatGen from '../../../actions/chat2-gen'
 import * as FsGen from '../../../actions/fs-gen'
 import * as Types from '../../../constants/types/fs'
-import {type RouteProps} from '../../../route-tree/render-route'
+import {RouteProps} from '../../../route-tree/render-route'
 import {namedConnect} from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import SendAttachmentToChat from '.'
@@ -48,9 +47,6 @@ const mergeProps = (stateProps, dispatchProps, ownPropps) => ({
   sendAttachmentToChatState: stateProps._sendAttachmentToChat.state,
 })
 
-export default namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'SendAttachmentToChat'
-)(SendAttachmentToChat)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'SendAttachmentToChat')(
+  SendAttachmentToChat
+)

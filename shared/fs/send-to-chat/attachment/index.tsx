@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
 import * as Kb from '../../../common-adapters'
@@ -8,19 +7,14 @@ import ChooseConversationHOC from './choose-conversation-hoc'
 import ConversationList from '../../../chat/conversation-list/conversation-list-container'
 import ChooseConversation from '../../../chat/conversation-list/choose-conversation-container'
 
-type Props = {|
-  onCancel: () => void,
-  send?: ?() => void,
-  path: Types.Path,
-  sendAttachmentToChatState: Types.SendAttachmentToChatState,
-|}
+type Props = {
+  onCancel: () => void
+  send?: () => void | null
+  path: Types.Path
+  sendAttachmentToChatState: Types.SendAttachmentToChatState
+}
 
-const MobileWithHeader = Kb.HeaderHoc(
-  ChooseConversationHOC<{
-    onDone?: ?() => void,
-    focusFilterOnMount?: ?boolean,
-  }>(ConversationList)
-)
+const MobileWithHeader = Kb.HeaderHoc(ChooseConversationHOC(ConversationList))
 
 const MobileHeader = (props: Props) => (
   <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true} style={mobileStyles.headerContainer}>
@@ -38,9 +32,7 @@ const MobileHeader = (props: Props) => (
   </Kb.Box2>
 )
 
-const DesktopConversationDropdown = ChooseConversationHOC<{|
-  dropdownButtonStyle?: ?Styles.StylesCrossPlatform,
-|}>(ChooseConversation)
+const DesktopConversationDropdown = ChooseConversationHOC(ChooseConversation)
 
 const DesktopSendAttachmentToChat = (props: Props) => (
   <>

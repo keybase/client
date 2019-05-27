@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as Flow from '../../../util/flow'
 import * as Types from '../../../constants/types/fs'
@@ -6,43 +5,46 @@ import * as ChatTypes from '../../../constants/types/chat2'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 
-type Person = {|
-  type: 'person',
-  name: string,
-|}
+type Person = {
+  type: 'person'
+  name: string
+}
 
-type Group = {|
-  type: 'group',
-  name: string,
-|}
+type Group = {
+  type: 'group'
+  name: string
+}
 
-type SmallTeam = {|
-  type: 'small-team',
-  name: string,
-|}
+type SmallTeam = {
+  type: 'small-team'
+  name: string
+}
 
-type Channel = {|convID: ChatTypes.ConversationIDKey, channelname: string|}
+type Channel = {
+  convID: ChatTypes.ConversationIDKey
+  channelname: string
+}
 
-type BigTeam = {|
-  type: 'big-team',
-  name: string,
-  channels: Array<Channel>,
-  selectChannel: (convID: ChatTypes.ConversationIDKey) => void,
-  selectedChannel?: ?Channel,
-|}
+type BigTeam = {
+  type: 'big-team'
+  name: string
+  channels: Array<Channel>
+  selectChannel: (convID: ChatTypes.ConversationIDKey) => void
+  selectedChannel?: Channel | null
+}
 
-type None = {|
-  type: 'none',
-|}
+type None = {
+  type: 'none'
+}
 
-type Props = {|
-  onCancel: () => void,
-  onSent: () => void,
-  conversation: Person | Group | SmallTeam | BigTeam | None,
-  pathTextToCopy: string,
-  send?: ?() => void,
-  sendLinkToChatState: Types.SendLinkToChatState,
-|}
+type Props = {
+  onCancel: () => void
+  onSent: () => void
+  conversation: Person | Group | SmallTeam | BigTeam | None
+  pathTextToCopy: string
+  send?: () => void | null
+  sendLinkToChatState: Types.SendLinkToChatState
+}
 
 const getPermissionText = (props: Props) => {
   switch (props.conversation.type) {
@@ -57,12 +59,17 @@ const getPermissionText = (props: Props) => {
     case 'none':
       return ''
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.conversation.type)
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.conversation)
       return 'this should not happen'
   }
 }
 
-class BigTeamChannelDropdownMobile extends React.PureComponent<BigTeam, {visible: boolean}> {
+class BigTeamChannelDropdownMobile extends React.PureComponent<
+  BigTeam,
+  {
+    visible: boolean
+  }
+> {
   state = {visible: false}
   _show = () => this.setState({visible: true})
   _hide = () => this.setState({visible: false})
@@ -142,12 +149,9 @@ const BigTeamChannelDropdownDesktop = (conversation: BigTeam) => (
         </Kb.Text>
       )
     }
-    onChanged={(node: React.Node) => {
+    onChanged={(node: React.ReactNode) => {
       if (React.isValidElement(node)) {
-        // $FlowIssue React.isValidElement refinement doesn't happen, see https://github.com/facebook/flow/issues/6392
-        const element = (node: React.Element<any>)
-        // $FlowIssue flow doesn't know key is string
-        conversation.selectChannel(ChatTypes.stringToConversationIDKey(element.key))
+        conversation.selectChannel(ChatTypes.stringToConversationIDKey(node.key))
       }
     }}
   />

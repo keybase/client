@@ -1,4 +1,3 @@
-// @flow
 import * as I from 'immutable'
 import {namedConnect} from '../../../util/container'
 import * as Types from '../../../constants/types/fs'
@@ -11,7 +10,7 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import SendLinkToChat from '.'
 
 type OwnProps = {
-  routePath: I.List<string>,
+  routePath: I.List<string>
 }
 
 const mapStateToProps = state => ({
@@ -135,9 +134,4 @@ const mergeProps = (stateProps, {onCancel, _onSent, _send, _selectChannel}, ownP
   }
 }
 
-export default namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'SendLinkToChat'
-)(SendLinkToChat)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'SendLinkToChat')(SendLinkToChat)

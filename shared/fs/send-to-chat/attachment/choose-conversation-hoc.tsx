@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as FsGen from '../../../actions/fs-gen'
 import * as ChatTypes from '../../../constants/types/chat2'
@@ -24,24 +23,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 })
 
 type InjectedProps = {
-  filter?: string,
-  onSelect: (convID: ChatTypes.ConversationIDKey) => void,
-  onSetFilter?: (filter: string) => void,
-  selected: ChatTypes.ConversationIDKey,
+  filter?: string
+  onSelect: (convID: ChatTypes.ConversationIDKey) => void
+  onSetFilter?: (filter: string) => void
+  selected: ChatTypes.ConversationIDKey
 }
 
-type WithInjectedProps<OriginalProps> = {|
-  ...$Exact<OriginalProps>,
-  ...$Exact<InjectedProps>,
-|}
+type WithInjectedProps<OriginalProps> = {} & OriginalProps & InjectedProps
 
-export default function<WrappedOwnProps>(
-  component: React.ComponentType<WithInjectedProps<WrappedOwnProps>>
-): React.AbstractComponent<WrappedOwnProps> {
-  return namedConnect<WrappedOwnProps, _, _, _, _>(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps,
-    'ChooseConversationHOC'
-  )(component)
+export default function(component: React.ComponentType) {
+  return namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ChooseConversationHOC')(component)
 }
