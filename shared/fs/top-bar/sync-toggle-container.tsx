@@ -1,4 +1,3 @@
-// @flow
 import {namedConnect} from '../../util/container'
 import SyncToggle from './sync-toggle'
 import * as Types from '../../constants/types/fs'
@@ -7,9 +6,9 @@ import * as FsGen from '../../actions/fs-gen'
 import {anyWaiting} from '../../constants/waiting'
 import flags from '../../util/feature-flags'
 
-type OwnProps = {|
-  tlfPath: Types.Path,
-|}
+type OwnProps = {
+  tlfPath: Types.Path
+}
 
 const mapStateToProps = (state, {tlfPath}: OwnProps) => ({
   _tlfs: state.fs.tlfs,
@@ -28,7 +27,5 @@ const mergeProps = (stateProps, dispatchProps, {tlfPath}: OwnProps) => ({
 })
 
 export default (flags.kbfsOfflineMode
-  ? namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'SyncToggle')(
-      SyncToggle
-    )
+  ? namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'SyncToggle')(SyncToggle)
   : () => null)

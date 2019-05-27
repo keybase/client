@@ -1,13 +1,12 @@
-// @flow
 import {namedConnect} from '../../util/container'
 import Sort from './sort'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
 
-type OwnProps = {|
-  path: Types.Path,
-|}
+type OwnProps = {
+  path: Types.Path
+}
 
 const mapStateToProps = (state, {path}: OwnProps) => ({
   _kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
@@ -41,9 +40,4 @@ const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => ({
   ...dispatchProps,
 })
 
-export default namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'TopBarSort'
-)(Sort)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'TopBarSort')(Sort)

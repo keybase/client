@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import {namedConnect} from '../../util/container'
 import * as I from 'immutable'
@@ -6,7 +5,7 @@ import * as Types from '../../constants/types/fs'
 import * as Kb from '../../common-adapters'
 
 type OwnProps = {
-  path: Types.Path,
+  path: Types.Path
 }
 
 const mapStateToProps = (state, {path}: OwnProps) => ({
@@ -21,6 +20,4 @@ const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => ({
 
 const Loading = props => props.loading && <Kb.ProgressIndicator type="Small" />
 
-export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, () => ({}), mergeProps, 'TopBarLoading')(
-  Loading
-)
+export default namedConnect(mapStateToProps, () => ({}), mergeProps, 'TopBarLoading')(Loading)

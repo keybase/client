@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
@@ -8,10 +7,10 @@ import Loading from './loading'
 import Sort from './sort-container'
 import SyncToggle from './sync-toggle-container'
 
-type Props = {|
-  path: Types.Path,
-  mode?: 'offline' | 'default',
-|}
+type Props = {
+  path: Types.Path
+  mode?: 'offline' | 'default'
+}
 
 const TopBar = (props: Props) => (
   <Kb.Box2

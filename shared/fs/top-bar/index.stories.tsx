@@ -1,4 +1,3 @@
-// @flow
 import React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as Kb from '../../common-adapters'

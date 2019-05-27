@@ -1,17 +1,16 @@
-// @flow
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/fs'
 import * as Flow from '../../util/flow'
 
-export type SortBarProps = {|
-  sortByNameAsc?: ?() => void,
-  sortByNameDesc?: ?() => void,
-  sortByTimeAsc?: ?() => void,
-  sortByTimeDesc?: ?() => void,
-  sortSetting?: ?Types.SortSetting,
-|}
+export type SortBarProps = {
+  sortByNameAsc?: () => void | null
+  sortByNameDesc?: () => void | null
+  sortByTimeAsc?: () => void | null
+  sortByTimeDesc?: () => void | null
+  sortSetting?: Types.SortSetting | null
+}
 
 const getTextFromSortSetting = (sortSetting: Types.SortSetting) => {
   switch (sortSetting) {
