@@ -126,6 +126,7 @@ class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
             isPreview={this.props.isPreview}
             participantCount={this.props.participants.length}
             onJoinChannel={this.props.onJoinChannel}
+            description={this.props.description}
           />
         ) : (
           <AdhocHeader

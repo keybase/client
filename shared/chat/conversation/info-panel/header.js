@@ -11,6 +11,7 @@ type SmallProps = {
   teamname: string,
   channelname?: string,
   conversationIDKey: ChatTypes.ConversationIDKey,
+  description: ?string,
   participantCount: number,
   isPreview: boolean,
   isSmallTeam: boolean,
@@ -52,6 +53,11 @@ const _TeamHeader = (props: SmallProps) => {
           fontSize={gearIconSize}
         />
       </Kb.Box2>
+      {!!props.description && (
+        <Kb.Text type="BodySmall" style={styles.description}>
+          {props.description}
+        </Kb.Text>
+      )}
       {props.isPreview && (
         <Kb.Button
           mode="Primary"
