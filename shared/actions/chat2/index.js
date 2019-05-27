@@ -1309,10 +1309,8 @@ function* loadAttachmentView(state, action, loggger) {
       Chat2Gen.createSetAttachmentViewStatus({conversationIDKey, last: res.last, status: 'success', viewType})
     )
   } catch (e) {
-    if (!(e instanceof RPCError && e.code === RPCTypes.constantsStatusCode.sccanceled)) {
-      logger.error('failed to load attachment view: ' + e.message)
-      yield Saga.put(Chat2Gen.createSetAttachmentViewStatus({conversationIDKey, status: 'error', viewType}))
-    }
+    logger.error('failed to load attachment view: ' + e.message)
+    yield Saga.put(Chat2Gen.createSetAttachmentViewStatus({conversationIDKey, status: 'error', viewType}))
   }
 }
 

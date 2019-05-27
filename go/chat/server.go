@@ -110,6 +110,13 @@ func (h *Server) shouldSquashError(err error) bool {
 	return false
 }
 
+func (h *Server) squashSquashableErrors(err error) error {
+	if h.shouldSquashError(err) {
+		return nil
+	}
+	return err
+}
+
 func (h *Server) handleOfflineError(ctx context.Context, err error,
 	res chat1.OfflinableResult) error {
 	if err == nil {
@@ -2892,6 +2899,7 @@ func (h *Server) getLoadGalleryContext(ctx context.Context) context.Context {
 func (h *Server) LoadGallery(ctx context.Context, arg chat1.LoadGalleryArg) (res chat1.LoadGalleryRes, err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "LoadGallery")()
+	defer func() { err = h.squashSquashableErrors(err) }()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
