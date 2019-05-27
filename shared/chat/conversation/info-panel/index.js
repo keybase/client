@@ -7,7 +7,6 @@ import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import type {Props as HeaderHocProps} from '../../../common-adapters/header-hoc/types'
 import {AdhocHeader, TeamHeader} from './header'
 import {SettingsPanel} from './panels'
-import {compose, withProps} from 'recompose'
 import Participant from './participant'
 import {AttachmentTypeSelector, DocView, LinkView, MediaView} from './attachments'
 
@@ -67,6 +66,10 @@ const TabText = ({selected, text}: {selected: boolean, text: string}) => (
 
 class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
   componentDidMount() {
+    this._retryLoad()
+  }
+
+  _retryLoad = () => {
     this.props.onAttachmentViewChange(this.props.selectedAttachmentView)
   }
 
@@ -83,13 +86,6 @@ class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
 
   _getTabs = entityType => {
     const res = []
-    if (!this.props.isPreview) {
-      res.push(
-        <Kb.Box2 key="settings" style={styles.tabTextContainer} direction="horizontal">
-          <TabText selected={this._isSelected('settings')} text="Settings" />
-        </Kb.Box2>
-      )
-    }
     if (entityType !== 'adhoc') {
       res.push(
         <Kb.Box2 key="members" style={styles.tabTextContainer} direction="horizontal">
@@ -102,9 +98,14 @@ class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
         <TabText selected={this._isSelected('attachments')} text="Attachments" />
       </Kb.Box2>
     )
-    if (!Styles.isMobile && this.props.attachmentsLoading) {
-      res.push(<Kb.ProgressIndicator style={styles.attachmentsLoading} />)
+    if (!this.props.isPreview) {
+      res.push(
+        <Kb.Box2 key="settings" style={styles.tabTextContainer} direction="horizontal">
+          <TabText selected={this._isSelected('settings')} text="Settings" />
+        </Kb.Box2>
+      )
     }
+
     return res
   }
 
@@ -234,14 +235,26 @@ class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
         case RPCChatTypes.localGalleryItemTyp.media:
           attachmentSections = new MediaView().getSections(
             this.props.media.thumbs,
-            this.props.media.onLoadMore
+            this.props.media.onLoadMore,
+            this._retryLoad,
+            this.props.media.status
           )
           break
         case RPCChatTypes.localGalleryItemTyp.doc:
-          attachmentSections = new DocView().getSections(this.props.docs.docs, this.props.docs.onLoadMore)
+          attachmentSections = new DocView().getSections(
+            this.props.docs.docs,
+            this.props.docs.onLoadMore,
+            this._retryLoad,
+            this.props.docs.status
+          )
           break
         case RPCChatTypes.localGalleryItemTyp.link:
-          attachmentSections = new LinkView().getSections(this.props.links.links, this.props.links.onLoadMore)
+          attachmentSections = new LinkView().getSections(
+            this.props.links.links,
+            this.props.links.onLoadMore,
+            this._retryLoad,
+            this.props.links.status
+          )
           break
       }
       sections.push(tabsSection)
@@ -283,15 +296,7 @@ const styles = Styles.styleSheetCreate({
   tabTextSelected: {color: Styles.globalColors.black},
 })
 
-const InfoPanel = compose(
-  withProps<any, any, any>((props: InfoPanelProps) => ({
-    titleComponent:
-      Styles.isMobile && props.attachmentsLoading ? (
-        <Kb.ProgressIndicator style={styles.attachmentsLoading} />
-      ) : null,
-  })),
-  Kb.HeaderOnMobile
-)(_InfoPanel)
+const InfoPanel = Kb.HeaderOnMobile(_InfoPanel)
 
 export type {InfoPanelProps}
 export {InfoPanel}

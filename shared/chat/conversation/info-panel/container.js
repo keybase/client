@@ -48,7 +48,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     canDeleteHistory = yourOperations.deleteChatHistory
   }
   const isPreview = meta.membershipType === 'youArePreviewing'
-  const selectedTab = ownProps.selectedTab || (isPreview ? 'members' : 'settings')
+  const selectedTab = ownProps.selectedTab || (meta.teamname ? 'members' : 'attachments')
   const selectedAttachmentView = ownProps.selectedAttachmentView || RPCChatTypes.localGalleryItemTyp.media
   const attachmentInfo = state.chat2.attachmentViewMap.getIn(
     [conversationIDKey, selectedAttachmentView],

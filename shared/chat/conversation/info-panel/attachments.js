@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as Types from '../../../constants/types/chat2'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
@@ -59,12 +60,12 @@ const formMonths = thumbs => {
   return months
 }
 
-const createLoadMoreSection = onLoadMore => {
+const createLoadMoreSection = (onLoadMore, onRetry, status) => {
   return {
     data: ['load more'],
     renderItem: () => {
-      return (
-        !!onLoadMore && (
+      if (onLoadMore && status !== 'loading') {
+        return (
           <Kb.Button
             type="Default"
             mode="Secondary"
@@ -73,7 +74,20 @@ const createLoadMoreSection = onLoadMore => {
             style={styles.loadMore}
           />
         )
-      )
+      } else if (status === 'loading') {
+        return <Kb.ProgressIndicator style={styles.loadMoreProgress} />
+      } else if (status === 'error') {
+        return (
+          <Kb.Button
+            type="Danger"
+            mode="Secondary"
+            label="Error loading, try again"
+            onClick={onRetry}
+            style={styles.loadMore}
+          />
+        )
+      }
+      return null
     },
     renderSectionHeader: () => {
       return null
@@ -197,12 +211,17 @@ export class MediaView {
     )
   }
 
-  getSections = (thumbs: Array<Thumb>, onLoadMore: null | (() => void)) => {
+  getSections = (
+    thumbs: Array<Thumb>,
+    onLoadMore: null | (() => void),
+    onRetry: () => void,
+    status: TypeCheck.AttachmentViewStatus
+  ) => {
     const months = formMonths(thumbs).reduce((l, m) => {
       l.push(this._finalizeMonth(m))
       return l
     }, [])
-    return months.concat(createLoadMoreSection(onLoadMore))
+    return months.concat(createLoadMoreSection(onLoadMore, onRetry, status))
   }
 }
 
@@ -259,12 +278,17 @@ export class DocView {
       </Kb.Box2>
     )
   }
-  getSections = (docs: Array<Doc>, onLoadMore: null | (() => void)) => {
+  getSections = (
+    docs: Array<Doc>,
+    onLoadMore: null | (() => void),
+    onRetry: () => void,
+    status: Types.AttachmentViewStatus
+  ) => {
     const months = formMonths(docs).reduce((l, m) => {
       l.push(this._finalizeMonth(m))
       return l
     }, [])
-    return months.concat(createLoadMoreSection(onLoadMore))
+    return months.concat(createLoadMoreSection(onLoadMore, onRetry, status))
   }
 }
 
@@ -308,12 +332,17 @@ export class LinkView {
       </Kb.Box2>
     )
   }
-  getSections = (links: Array<Link>, onLoadMore: null | (() => void)) => {
+  getSections = (
+    links: Array<Link>,
+    onLoadMore: null | (() => void),
+    onRetry: () => void,
+    status: Types.AttachmentViewStatus
+  ) => {
     const months = formMonths(links).reduce((l, m) => {
       l.push(this._finalizeMonth(m))
       return l
     }, [])
-    return months.concat(createLoadMoreSection(onLoadMore))
+    return months.concat(createLoadMoreSection(onLoadMore, onRetry, status))
   }
 }
 
@@ -412,6 +441,12 @@ const styles = Styles.styleSheetCreate({
   },
   loadMore: {
     margin: Styles.globalMargins.tiny,
+  },
+  loadMoreProgress: {
+    alignSelf: 'center',
+    height: 16,
+    marginTop: Styles.globalMargins.tiny,
+    width: 16,
   },
   loading: {
     bottom: '50%',
