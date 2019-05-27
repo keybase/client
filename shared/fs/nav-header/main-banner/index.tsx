@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Types from '../../../constants/types/fs'
@@ -14,8 +13,8 @@ import * as Types from '../../../constants/types/fs'
 //   bannerType === 'out-of-space' ? 56 : bannerType === 'offline' ? 24 : 0
 
 type Props = {
-  onRetry: () => void,
-  bannerType: Types.MainBannerType,
+  onRetry: () => void
+  bannerType: Types.MainBannerType
 }
 
 const Banner = (props: Props) =>

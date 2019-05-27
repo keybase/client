@@ -1,14 +1,13 @@
-// @flow
 import * as Types from '../../constants/types/fs'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Kbfs from '../common'
 import * as Styles from '../../styles'
 
-type Props = {|
-  onTriggerFilterMobile: () => void,
-  path: Types.Path,
-|}
+type Props = {
+  onTriggerFilterMobile: () => void
+  path: Types.Path
+}
 
 const FsNavHeaderRightActions = (props: Props) => (
   <Kb.Box2 direction="horizontal" style={styles.container} centerChildren={true}>

@@ -1,4 +1,3 @@
-// @flow
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import {namedConnect} from '../../util/container'
@@ -7,10 +6,10 @@ import Title from './title'
 
 // TODO destination-picker
 
-type OwnProps = {|
-  path: Types.Path,
-  inDestinationPicker?: ?boolean,
-|}
+type OwnProps = {
+  path: Types.Path
+  inDestinationPicker?: boolean | null
+}
 
 const mapStateToProps = state => ({})
 
@@ -31,9 +30,4 @@ const mergeProps = (s, d, o) => ({
   ...d,
 })
 
-export default namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'NavHeaderTitle'
-)(Title)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'NavHeaderTitle')(Title)

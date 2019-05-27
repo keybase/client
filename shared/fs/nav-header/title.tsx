@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
@@ -8,10 +7,10 @@ import * as Styles from '../../styles'
 import {memoize} from '../../util/memoize'
 import flags from '../../util/feature-flags'
 
-type Props = {|
-  path: Types.Path,
-  onOpenPath: (path: Types.Path) => void,
-|}
+type Props = {
+  path: Types.Path
+  onOpenPath: (path: Types.Path) => void
+}
 
 // /keybase/b/c => [/keybase, /keybase/b, /keybase/b/c]
 const getAncestors = memoize(path =>

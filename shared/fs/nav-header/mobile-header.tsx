@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
@@ -8,13 +7,14 @@ import Actions from './actions'
 import * as Kbfs from '../common'
 import MainBanner from './main-banner/container'
 
-type Props = {|
-  onBack: ?() => void,
-  path: Types.Path,
-|}
-type State = {|
-  filterExpanded: boolean,
-|}
+type Props = {
+  onBack: () => void | null
+  path: Types.Path
+}
+
+type State = {
+  filterExpanded: boolean
+}
 
 class NavMobileHeader extends React.PureComponent<Props, State> {
   state = {filterExpanded: false}

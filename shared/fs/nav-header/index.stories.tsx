@@ -1,4 +1,3 @@
-// @flow
 import React from 'react'
 import {isMobile} from '../../constants/platform'
 import * as Types from '../../constants/types/fs'
@@ -11,10 +10,12 @@ import FilesContainer from '../container'
 
 export const headerProvider = {
   MainBanner: (p: any) => ({
-    bannerType: p.storyProps?.bannerType || 'none',
+    // Auto generated from flowToTs. Please clean me!
+    bannerType:
+      (p.storyProps === null || p.storyProps === undefined ? undefined : p.storyProps.bannerType) || 'none',
     onRetry: Sb.action('onRetry'),
   }),
-  NavHeaderMobile: ({onBack, path}: {onBack: () => void, path: Types.Path}) => ({
+  NavHeaderMobile: ({onBack, path}: {onBack: () => void; path: Types.Path}) => ({
     onBack,
     path,
   }),
@@ -29,7 +30,7 @@ const provider = Sb.createPropProviderWithCommon({
   ...headerProvider,
 })
 
-const TestWrapper = ({path, offline}: {path: Types.Path, offline?: ?boolean}) =>
+const TestWrapper = ({path, offline}: {path: Types.Path; offline?: boolean | null}) =>
   isMobile ? (
     <MobileHeader path={path} onBack={Sb.action('onBack')} />
   ) : (
