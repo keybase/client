@@ -129,9 +129,14 @@ const styles = Styles.styleSheetCreate({
   adhocPartContainer: {
     padding: Styles.globalMargins.tiny,
   },
-  adhocScrollContainer: {
-    maxHeight: 120,
-  },
+  adhocScrollContainer: Styles.platformStyles({
+    isElectron: {
+      maxHeight: 230,
+    },
+    isMobile: {
+      maxHeight: 220,
+    },
+  }),
   channelnameContainer: {
     alignSelf: 'center',
     marginBottom: 2,
