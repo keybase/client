@@ -1,16 +1,15 @@
-// @flow
 import * as Flow from '../../util/flow'
 import * as React from 'react'
 import {formatDuration} from '../../util/timestamp'
-import {HOCTimers, type PropsWithTimer} from '../../common-adapters'
-import {type UploadProps} from './upload'
+import {HOCTimers, PropsWithTimer} from '../../common-adapters'
+import {UploadProps} from './upload'
 
 export type UploadCountdownHOCProps = {
-  endEstimate?: number,
-  files: number,
-  fileName: ?string,
-  totalSyncingBytes: number,
-  debugToggleShow?: () => void,
+  endEstimate?: number
+  files: number
+  fileName: string | null
+  totalSyncingBytes: number
+  debugToggleShow?: () => void
 }
 
 type Props = PropsWithTimer<UploadCountdownHOCProps>
@@ -18,22 +17,23 @@ type Props = PropsWithTimer<UploadCountdownHOCProps>
 // Cosider this component as a state machine with following four states. 1Hz
 // Ticks (from _tick() calls by setInterval) and props changes (through
 // componentDidUpdate() calls) are two possible inputs.
-type Mode =
+enum Mode {
   // The upload banner isn't shown.
-  | 'hidden'
+  Hidden = 1,
   // Normal count-down. If upload is finished during this state while glueTTL
   // is smaller than or equal to 0, transition to hidden. If upload is finished
   // during this state while glueTTL is greater than 0, transition to sticky.
-  | 'count-down'
+  CountDown,
   // The upload banner should have been hidden but we are still showing it
   // because it hasn't been showed for long enough. When glueTTL hits 0,
   // transition to 0.
-  | 'sticky'
+  Sticky,
+}
 
 type State = {
-  displayDuration: number,
-  mode: Mode,
-  glueTTL: number,
+  displayDuration: number
+  mode: Mode
+  glueTTL: number
 }
 
 const tickInterval = 1000
@@ -41,7 +41,7 @@ const initialGlueTTL = 2
 
 const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
   class extends React.PureComponent<Props, State> {
-    _tickerID: ?IntervalID = null
+    _tickerID: number | null = null
 
     _tick = () =>
       this.setState(prevState => {
@@ -49,23 +49,24 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
         const newDisplayDuration = displayDuration > 1000 ? displayDuration - 1000 : 0
         const newGlueTTL = glueTTL > 1 ? glueTTL - 1 : 0
         switch (mode) {
-          case 'hidden':
+          case Mode.Hidden:
             this._stopTicker()
-            return {}
-          case 'count-down':
+            return null
+          case Mode.CountDown:
             return {
               displayDuration: newDisplayDuration,
               glueTTL: newGlueTTL,
+              mode,
             }
-          case 'sticky':
+          case Mode.Sticky:
             return {
               displayDuration: newDisplayDuration,
               glueTTL: newGlueTTL,
-              mode: newGlueTTL > 0 ? 'sticky' : 'hidden',
+              mode: newGlueTTL > 0 ? Mode.Sticky : Mode.Hidden,
             }
           default:
             Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(mode)
-            return {}
+            return null
         }
       })
 
@@ -88,22 +89,22 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
       this._tickerID = null
     }
 
-    _updateState = (prevState, props) => {
+    _updateState = (prevState: Readonly<State>, props: Readonly<Props>) => {
       const isUploading = !!props.files || !!props.totalSyncingBytes
       const newDisplayDuration = props.endEstimate ? props.endEstimate - Date.now() : 0
       const {mode, glueTTL} = prevState
       switch (mode) {
-        case 'hidden':
+        case Mode.Hidden:
           if (isUploading) {
             this._startTicker()
             return {
               displayDuration: newDisplayDuration,
               glueTTL: initialGlueTTL,
-              mode: 'count-down',
+              mode: Mode.CountDown,
             }
           }
-          return prevState
-        case 'count-down':
+          return null
+        case Mode.CountDown:
           if (isUploading) {
             return {
               displayDuration: newDisplayDuration,
@@ -114,14 +115,14 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
           return {
             displayDuration: newDisplayDuration,
             glueTTL,
-            mode: glueTTL > 0 ? 'sticky' : 'hidden',
+            mode: glueTTL > 0 ? Mode.Sticky : Mode.Hidden,
           }
-        case 'sticky':
+        case Mode.Sticky:
           return isUploading
             ? {
                 displayDuration: newDisplayDuration,
                 glueTTL: initialGlueTTL,
-                mode: 'count-down',
+                mode: Mode.CountDown,
               }
             : {
                 displayDuration: newDisplayDuration,
@@ -130,7 +131,7 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
               }
         default:
           Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(mode)
-          return prevState
+          return null
       }
     }
 
@@ -138,7 +139,7 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
       {
         displayDuration: 0,
         glueTTL: 0,
-        mode: 'hidden',
+        mode: Mode.Hidden,
       },
       this.props
     )
@@ -159,7 +160,7 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
       const {displayDuration, mode} = this.state
       return (
         <Upload
-          showing={mode !== 'hidden'}
+          showing={mode !== Mode.Hidden}
           files={files}
           fileName={fileName}
           totalSyncingBytes={totalSyncingBytes}

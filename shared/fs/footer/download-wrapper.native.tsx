@@ -1,10 +1,9 @@
-// @flow
 import * as React from 'react'
-import Download, {type Props} from './download'
+import Download, {Props} from './download'
 import {NativeAnimated, NativeEasing} from '../../common-adapters/mobile.native'
 
 type State = {
-  opacity: NativeAnimated.AnimatedValue,
+  opacity: NativeAnimated.AnimatedValue
 }
 
 export default class DownloadNativeWrapper extends React.PureComponent<Props, State> {

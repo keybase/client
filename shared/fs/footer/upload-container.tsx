@@ -1,9 +1,8 @@
-// @flow
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 import {compose, namedConnect} from '../../util/container'
 import Upload from './upload'
-import UploadCountdownHOC, {type UploadCountdownHOCProps} from './upload-countdown-hoc'
+import UploadCountdownHOC, {UploadCountdownHOCProps} from './upload-countdown-hoc'
 import {unknownPathItem} from '../../constants/fs'
 
 const mapStateToProps = state => ({
@@ -41,7 +40,7 @@ export const uploadsToUploadCountdownHOCProps = (
   edits: Types.Edits,
   pathItems: Types.PathItems,
   uploads: Types.Uploads
-): $Exact<UploadCountdownHOCProps> => {
+): UploadCountdownHOCProps => {
   // We just use syncingPaths rather than merging with writingToJournal here
   // since journal status comes a bit slower, and merging the two causes
   // flakes on our perception of overall upload status.
@@ -77,7 +76,7 @@ const mergeProps = ({_edits, _pathItems, _uploads}, {debugToggleShow}) =>
     ...uploadsToUploadCountdownHOCProps(_edits, _pathItems, _uploads),
     debugToggleShow,
     // $FlowIssue
-  }: UploadCountdownHOCProps)
+  } as UploadCountdownHOCProps)
 
 export default compose(
   // $FlowIssue @jzila

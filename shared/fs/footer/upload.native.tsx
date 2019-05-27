@@ -1,16 +1,15 @@
-// @flow
 import * as React from 'react'
 import {globalStyles, globalColors, platformStyles} from '../../styles'
 import {Button, Text, Box} from '../../common-adapters'
-import {type UploadProps} from './upload'
+import {UploadProps} from './upload'
 import {NativeAnimated, NativeEasing} from '../../common-adapters/native-wrappers.native'
 
 const patternRequire = require('../../images/upload-pattern-2-80.png')
 
 type UploadState = {
-  backgroundTop: NativeAnimated.AnimatedValue,
-  uploadTop: NativeAnimated.AnimatedValue,
-  showing: boolean,
+  backgroundTop: NativeAnimated.AnimatedValue
+  uploadTop: NativeAnimated.AnimatedValue
+  showing: boolean
 }
 
 const easing = NativeEasing.bezier(0.13, 0.72, 0.31, 0.95)

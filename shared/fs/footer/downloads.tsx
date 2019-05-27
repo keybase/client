@@ -1,12 +1,11 @@
-// @flow
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import Download from './download-container'
 
 export type DownloadsProps = {
-  downloadKeys: Array<string>,
-  openDownloadFolder?: () => void,
+  downloadKeys: Array<string>
+  openDownloadFolder?: () => void
 }
 
 const Mobile = (props: DownloadsProps) =>

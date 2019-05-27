@@ -1,9 +1,8 @@
-// @flow
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import {CSSTransition} from 'react-transition-group'
-import {type UploadProps} from './upload'
+import {UploadProps} from './upload'
 
 const patternImage = 'upload-pattern-2-80.png'
 

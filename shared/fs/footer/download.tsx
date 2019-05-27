@@ -1,19 +1,18 @@
-// @flow
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
 
 export type Props = {
-  error?: ?boolean,
-  filename: string,
-  completePortion: number,
-  progressText: string,
-  isDone: boolean,
-  isFirst: boolean,
-  open?: () => void,
-  dismiss: () => void,
-  cancel: () => void,
+  error?: boolean | null
+  filename: string
+  completePortion: number
+  progressText: string
+  isDone: boolean
+  isFirst: boolean
+  open?: () => void
+  dismiss: () => void
+  cancel: () => void
 }
 
 const Progress = props => (

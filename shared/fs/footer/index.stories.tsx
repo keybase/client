@@ -1,4 +1,3 @@
-// @flow
 import React from 'react'
 import * as Sb from '../../stories/storybook'
 import {Box2, Text} from '../../common-adapters'
@@ -7,7 +6,7 @@ import Download from './download'
 import Upload from './upload'
 
 export const footerProvider = {
-  ConnectedDownload: ({downloadKey, isFirst}: {downloadKey: string, isFirst: boolean}) => ({
+  ConnectedDownload: ({downloadKey, isFirst}: {downloadKey: string; isFirst: boolean}) => ({
     cancel: Sb.action('cancel'),
     completePortion:
       downloadKey === 'completed'
@@ -39,33 +38,22 @@ const load = () =>
     .add('Downloads', () => (
       <Box2 direction="vertical">
         <Text type="Header">1 item</Text>
-        <Downloads
-          downloadKeys={['file 1']}
-          thereAreMore={false}
-          openDownloadFolder={Sb.action('openDownloadFolder')}
-        />
+        <Downloads downloadKeys={['file 1']} openDownloadFolder={Sb.action('openDownloadFolder')} />
         <Text type="Header">2 items</Text>
-        <Downloads
-          downloadKeys={['file 1', 'blah 2']}
-          thereAreMore={false}
-          openDownloadFolder={Sb.action('openDownloadFolder')}
-        />
+        <Downloads downloadKeys={['file 1', 'blah 2']} openDownloadFolder={Sb.action('openDownloadFolder')} />
         <Text type="Header">3 items</Text>
         <Downloads
           downloadKeys={['file 1', 'blah 2', 'yo 3']}
-          thereAreMore={false}
           openDownloadFolder={Sb.action('openDownloadFolder')}
         />
         <Text type="Header">4+ items</Text>
         <Downloads
           downloadKeys={['file 1', 'blah 2', 'yo 3', 'bla 4', 'blah 5']}
-          thereAreMore={true}
           openDownloadFolder={Sb.action('openDownloadFolder')}
         />
         <Text type="Header">4+ items with completed</Text>
         <Downloads
           downloadKeys={['completed', 'file 1', 'blah 2', 'yo 3', 'bla 4', 'blah 5']}
-          thereAreMore={true}
           openDownloadFolder={Sb.action('openDownloadFolder')}
         />
       </Box2>

@@ -1,7 +1,6 @@
-// @flow
 import {namedConnect} from '../../util/container'
 import * as FsGen from '../../actions/fs-gen'
-import Downloads, {type DownloadsProps} from './downloads'
+import Downloads, {DownloadsProps} from './downloads'
 import {isMobile} from '../../constants/platform'
 import {downloadFolder} from '../../util/file'
 
@@ -24,15 +23,10 @@ const mergeProps = ({_downloads}, {openDownloadFolder}) => {
       return b.state.startedAt - a.state.startedAt // newer first
     })
     .map(([key, download]) => key)
-  return ({
+  return {
     downloadKeys,
     openDownloadFolder,
-  }: DownloadsProps)
+  } as DownloadsProps
 }
 
-export default namedConnect<{||}, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'ConnectedDownloads'
-)(Downloads)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedDownloads')(Downloads)

@@ -1,4 +1,3 @@
-// @flow
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import {namedConnect} from '../../util/container'
@@ -7,8 +6,8 @@ import * as FsGen from '../../actions/fs-gen'
 import {formatDurationFromNowTo} from '../../util/timestamp'
 
 type OwnProps = {
-  downloadKey: string,
-  isFirst: boolean,
+  downloadKey: string
+  isFirst: boolean
 }
 
 const mapStateToProps = (state, {downloadKey}: OwnProps) => ({
@@ -36,9 +35,4 @@ const mergeProps = ({_download}, {_opener, _dismisser, _canceler}, ownProps) => 
   progressText: formatDurationFromNowTo(_download.state.endEstimate),
 })
 
-export default namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'ConnectedDownload'
-)(Download)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedDownload')(Download)
