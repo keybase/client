@@ -1,11 +1,10 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/fs'
 import * as Styles from '../../styles'
 
 type Props = {
-  path: Types.Path,
+  path: Types.Path
 }
 
 export default ({path}: Props) => (

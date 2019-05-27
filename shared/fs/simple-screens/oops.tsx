@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Kb from '../../common-adapters'
@@ -7,8 +6,8 @@ import * as Flow from '../../util/flow'
 import {isMobile} from '../../constants/platform'
 
 type Props = {
-  path: Types.Path,
-  reason: Types.SoftError,
+  path: Types.Path
+  reason: Types.SoftError
 }
 
 const Explain = (props: Props) => {
