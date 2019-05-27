@@ -2166,8 +2166,7 @@ const desktopNavigateOnSelect = (state, action) => {
 
 // Native share sheet for attachments
 function* mobileMessageAttachmentShare(state, action, logger) {
-  const {conversationIDKey, ordinal} = action.payload
-  let message = Constants.getMessage(state, conversationIDKey, ordinal)
+  const {message} = action.payload
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
   }
@@ -2181,8 +2180,7 @@ function* mobileMessageAttachmentShare(state, action, logger) {
 
 // Native save to camera roll
 function* mobileMessageAttachmentSave(state, action, logger) {
-  const {conversationIDKey, ordinal} = action.payload
-  let message = Constants.getMessage(state, conversationIDKey, ordinal)
+  const {message} = action.payload
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
   }

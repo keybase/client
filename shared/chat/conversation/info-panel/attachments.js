@@ -6,6 +6,7 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import {imgMaxWidthRaw} from '../messages/attachment/image/image-render'
 import {formatTimeForChat} from '../../../util/timestamp'
+import MessagePopup from '../messages/message-popup'
 
 const monthNames = [
   'January',
@@ -229,29 +230,19 @@ type Doc = {|
   author: string,
   ctime: number,
   downloading: boolean,
+  message: Types.Message,
   name: string,
   progress: number,
   onDownload: null | (() => void),
   onShowInFinder: null | (() => void),
 |}
 
-export class DocView {
-  _renderSectionHeader = ({section}) => {
-    if (!section.month) {
-      return null
-    }
-    const label = `${section.month} ${section.year}`
-    return <Kb.SectionDivider label={label} />
-  }
-  _finalizeMonth = month => {
-    month.renderSectionHeader = this._renderSectionHeader
-    month.renderItem = this._renderItem
-    return month
-  }
-  _renderItem = ({item}) => {
+class _DocViewRow extends React.Component<Doc> {
+  render() {
+    const item = this.props.item
     return (
       <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.ClickableBox onClick={item.onDownload}>
+        <Kb.ClickableBox onClick={item.onDownload} onLongPress={this.props.toggleShowingMenu}>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.docRowContainer} gap="xtiny">
             <Kb.Icon type={'icon-file-32'} style={Kb.iconCastPlatformStyles(styles.docIcon)} />
             <Kb.Box2 direction="vertical">
@@ -275,8 +266,37 @@ export class DocView {
             </Kb.Text>
           </Kb.Box2>
         )}
+        {Styles.isMobile && this.props.showingMenu && (
+          <MessagePopup
+            attachTo={this.props.getAttachmentRef}
+            message={item.message}
+            onHidden={this.props.toggleShowingMenu}
+            position="top right"
+            visible={this.props.showingMenu}
+          />
+        )}
       </Kb.Box2>
     )
+  }
+}
+
+const DocViewRow = Kb.OverlayParentHOC(_DocViewRow)
+
+export class DocView {
+  _renderSectionHeader = ({section}) => {
+    if (!section.month) {
+      return null
+    }
+    const label = `${section.month} ${section.year}`
+    return <Kb.SectionDivider label={label} />
+  }
+  _finalizeMonth = month => {
+    month.renderSectionHeader = this._renderSectionHeader
+    month.renderItem = this._renderItem
+    return month
+  }
+  _renderItem = ({item}) => {
+    return <DocViewRow item={item} />
   }
   getSections = (
     docs: Array<Doc>,
@@ -364,7 +384,7 @@ export class AttachmentTypeSelector extends React.Component<SelectorProps> {
   }
   render() {
     return (
-      <Kb.Box2 direction="horizontal" style={styles.selectorContainer} alignItems="center">
+      <Kb.Box2 direction="horizontal" style={styles.selectorContainer} fullWidth={true}>
         <Kb.ClickableBox
           onClick={() => this.props.onSelectView(RPCChatTypes.localGalleryItemTyp.media)}
           style={Styles.collapseStyles([
@@ -461,10 +481,7 @@ const styles = Styles.styleSheetCreate({
     width: 24,
   },
   selectorContainer: {
-    flexShrink: 0,
-    justifyContent: 'space-between',
-    marginBottom: Styles.globalMargins.tiny,
-    marginTop: Styles.globalMargins.tiny,
+    padding: Styles.globalMargins.small,
   },
   selectorDocContainer: {
     borderColor: Styles.globalColors.blue,
@@ -472,14 +489,21 @@ const styles = Styles.styleSheetCreate({
     borderRadius: 0,
     borderRightWidth: 1,
   },
-  selectorItemContainer: {
-    ...Styles.globalStyles.flexBoxColumn,
-    ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.small),
-    borderBottomWidth: 1,
-    borderColor: Styles.globalColors.blue,
-    borderStyle: 'solid',
-    borderTopWidth: 1,
-  },
+  selectorItemContainer: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxColumn,
+      ...Styles.globalStyles.flexBoxCenter,
+      borderBottomWidth: 1,
+      borderColor: Styles.globalColors.blue,
+      borderStyle: 'solid',
+      borderTopWidth: 1,
+      flex: 1,
+      height: 32,
+    },
+    isMobile: {
+      paddingTop: Styles.globalMargins.xxtiny,
+    },
+  }),
   selectorLinkContainer: {
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: Styles.borderRadius,

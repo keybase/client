@@ -382,13 +382,11 @@
     "navigateToThread": {},
     // Share to external app on mobile
     "messageAttachmentNativeShare": {
-      "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal"
+      "message": "Types.Message"
     },
     // Save on mobile (camera roll)
     "messageAttachmentNativeSave": {
-      "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal"
+      "message": "Types.Message"
     },
     // We're changing the notification settings
     "updateNotificationSettings": {

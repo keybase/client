@@ -68,16 +68,14 @@ const mapDispatchToProps = dispatch => ({
   _onSaveAttachment: (message: Types.MessageAttachment) => {
     dispatch(
       Chat2Gen.createMessageAttachmentNativeSave({
-        conversationIDKey: message.conversationIDKey,
-        ordinal: message.ordinal,
+        message,
       })
     )
   },
   _onShareAttachment: (message: Types.MessageAttachment) => {
     dispatch(
       Chat2Gen.createMessageAttachmentNativeShare({
-        conversationIDKey: message.conversationIDKey,
-        ordinal: message.ordinal,
+        message,
       })
     )
   },

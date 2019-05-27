@@ -93,15 +93,13 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   _onSaveAttachment: () =>
     dispatch(
       Chat2Gen.createMessageAttachmentNativeSave({
-        conversationIDKey: ownProps.message.conversationIDKey,
-        ordinal: ownProps.message.ordinal,
+        message: ownProps.message,
       })
     ),
   _onShareAttachment: () =>
     dispatch(
       Chat2Gen.createMessageAttachmentNativeShare({
-        conversationIDKey: ownProps.message.conversationIDKey,
-        ordinal: ownProps.message.ordinal,
+        message: ownProps.message,
       })
     ),
   _onShowInFinder: () => {
