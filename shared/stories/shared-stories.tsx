@@ -1,4 +1,3 @@
-// @flow
 import chat from '../chat/index.stories'
 import common from '../common-adapters/index.stories'
 import devices from '../devices/index.stories'

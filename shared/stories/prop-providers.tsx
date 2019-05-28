@@ -1,19 +1,18 @@
-// @flow
 import * as _Avatar from '../common-adapters/avatar'
 import * as _Usernames from '../common-adapters/usernames'
-import type {OwnProps as ReloadableOwnProps, Props as ReloadableProps} from '../common-adapters/reload'
-import type {ConnectedProps as _UsernamesConnectedProps} from '../common-adapters/usernames/container'
+import {OwnProps as ReloadableOwnProps, Props as ReloadableProps} from '../common-adapters/reload'
+import {ConnectedProps as _UsernamesConnectedProps} from '../common-adapters/usernames/container'
 import * as _WaitingButton from '../common-adapters/waiting-button'
-import type {OwnProps as TeamDropdownMenuOwnProps} from '../chat/conversation/info-panel/menu/container'
-import type {Props as TeamDropdownMenuProps} from '../chat/conversation/info-panel/menu'
+import {OwnProps as TeamDropdownMenuOwnProps} from '../chat/conversation/info-panel/menu/container'
+import {Props as TeamDropdownMenuProps} from '../chat/conversation/info-panel/menu'
 import * as _CopyText from '../common-adapters/copy-text'
-import type {NameWithIconProps} from '../common-adapters/name-with-icon'
-import type {ConnectedNameWithIconProps} from '../common-adapters/name-with-icon/container'
+import {NameWithIconProps} from '../common-adapters/name-with-icon'
+import {ConnectedNameWithIconProps} from '../common-adapters/name-with-icon/container'
 import {createPropProvider, action} from './storybook.shared'
 import {isMobile} from '../constants/platform'
 import {isSpecialMention} from '../constants/chat2'
 import {unescapePath} from '../constants/fs'
-import {type OwnProps as KbfsPathProps} from '../common-adapters/markdown/kbfs-path-container.js'
+import {OwnProps as KbfsPathProps} from '../common-adapters/markdown/kbfs-path-container.js'
 
 /*
  * Some common prop factory creators.
@@ -64,11 +63,12 @@ export const Avatar = (following: string[] = defaultFollowing, followers: string
   Avatar: (ownProps: _Avatar.Props) => _Avatar.mockOwnToViewProps(ownProps, following, followers, action),
 })
 
-export const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[key: string]: number}) => ({
+export const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[K in string]: number}) => ({
   TeamDropdownMenu: (ownProps: TeamDropdownMenuOwnProps): TeamDropdownMenuProps => ({
     attachTo: ownProps.attachTo,
     badgeSubscribe: false,
     canAddPeople: (adminTeams && adminTeams.includes(ownProps.teamname)) || true,
+
     convProps: {
       fullname: '',
       ignored: false,
@@ -76,6 +76,7 @@ export const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[key
       participants: [],
       teamType: ownProps.isSmallTeam ? 'small' : 'big',
     },
+
     hasCanPerform: true,
     isSmallTeam: ownProps.isSmallTeam,
     loadOperations: action('_loadOperations'),
@@ -174,7 +175,8 @@ export const Common = () => ({
   Mention,
 })
 
-export const createPropProviderWithCommon = (custom: ?Object) =>
+export const createPropProviderWithCommon = (custom: Object | null) =>
+  // @ts-ignore not sure
   createPropProvider({
     ...Common(),
     ...(custom || {}),
