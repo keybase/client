@@ -6,7 +6,7 @@ import {AccountID} from '../../constants/types/wallets'
 import WalletRow from './wallet-row/container'
 import flags from '../../util/feature-flags'
 
-export type AddProps = {
+type AddProps = {
   onAddNew: () => void
   onLinkExisting: () => void
 }
@@ -80,7 +80,7 @@ const WhatIsStellar = (props: {onWhatIsStellar: () => void}) => (
   </Kb.ClickableBox>
 )
 
-type Props = {
+export type Props = {
   accountIDs: Array<AccountID>
   airdropSelected: boolean
   style?: Styles.StylesCrossPlatform
