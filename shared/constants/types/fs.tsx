@@ -15,8 +15,16 @@ import {memoize} from '../../util/memoize'
 
 export type Path = string | null
 
-export type PathType = 'folder' | 'file' | 'symlink' | 'unknown'
-export type ProgressType = 'pending' | 'loaded'
+export const enum PathType {
+  Folder,
+  File,
+  Symlink,
+  Unknown,
+}
+export const enum ProgressType {
+  Pending,
+  Loaded,
+}
 
 // not naming Error because it has meaning in js.
 export type _FsError = {
@@ -45,32 +53,43 @@ export type ResetMember = {
 
 // TODO: make structs above immutable
 
-export type TlfType = 'private' | 'public' | 'team'
+export const enum TlfType {
+  Public,
+  Private,
+  Team,
+}
+
+export const enum TlfSyncMode {
+  Enabled,
+  Disabled,
+  Partial,
+}
 
 export type _TlfSyncEnabled = {
-  mode: 'enabled'
+  mode: TlfSyncMode.Enabled
 }
 export type TlfSyncEnabled = I.RecordOf<_TlfSyncEnabled>
 
 export type _TlfSyncDisabled = {
-  mode: 'disabled'
+  mode: TlfSyncMode.Disabled
 }
 export type TlfSyncDisabled = I.RecordOf<_TlfSyncDisabled>
 
 export type _TlfSyncPartial = {
-  mode: 'partial'
+  mode: TlfSyncMode.Partial
   enabledPaths: I.List<Path>
 }
 export type TlfSyncPartial = I.RecordOf<_TlfSyncPartial>
 
 export type TlfSyncConfig = TlfSyncEnabled | TlfSyncDisabled | TlfSyncPartial
 
-export type ConflictState =
-  | 'in-conflict-stuck'
-  | 'in-conflict-not-stuck'
-  | 'in-manual-resolution'
-  | 'finishing'
-  | 'none'
+export const enum ConflictState {
+  InConflictStuck,
+  InCondlictNotStuck,
+  InManualResolution,
+  Finishing,
+  None,
+}
 
 export type _TlfConflict = {
   state: ConflictState
@@ -101,38 +120,47 @@ export type _Tlfs = {
 }
 export type Tlfs = I.RecordOf<_Tlfs>
 
+export const enum PathKind {
+  Root,
+  TlfList,
+  GroupTlf,
+  TeamTlf,
+  InGroupTlf,
+  InTeamTlf,
+}
+
 export type _ParsedPathRoot = {
-  kind: 'root'
+  kind: PathKind.Root
 }
 export type ParsedPathRoot = I.RecordOf<_ParsedPathRoot>
 
 export type _ParsedPathTlfList = {
-  kind: 'tlf-list'
+  kind: PathKind.TlfList
   tlfType: TlfType
 }
 export type ParsedPathTlfList = I.RecordOf<_ParsedPathTlfList>
 
 export type _ParsedPathGroupTlf = {
-  kind: 'group-tlf'
+  kind: PathKind.GroupTlf
   tlfName: string
-  tlfType: 'private' | 'public'
+  tlfType: TlfType.Private | TlfType.Public
   writers: I.List<string>
   readers: I.List<string> | null
 }
 export type ParsedPathGroupTlf = I.RecordOf<_ParsedPathGroupTlf>
 
 export type _ParsedPathTeamTlf = {
-  kind: 'team-tlf'
+  kind: PathKind.TeamTlf
   tlfName: string
-  tlfType: 'team'
+  tlfType: TlfType.Team
   team: string
 }
 export type ParsedPathTeamTlf = I.RecordOf<_ParsedPathTeamTlf>
 
 export type _ParsedPathInGroupTlf = {
-  kind: 'in-group-tlf'
+  kind: PathKind.InGroupTlf
   tlfName: string
-  tlfType: 'private' | 'public'
+  tlfType: TlfType.Private | TlfType.Public
   writers: I.List<string>
   readers: I.List<string> | null
   rest: I.List<string>
@@ -140,9 +168,9 @@ export type _ParsedPathInGroupTlf = {
 export type ParsedPathInGroupTlf = I.RecordOf<_ParsedPathInGroupTlf>
 
 export type _ParsedPathInTeamTlf = {
-  kind: 'in-team-tlf'
+  kind: PathKind.InTeamTlf
   tlfName: string
-  tlfType: 'team'
+  tlfType: TlfType.Team
   team: string
   rest: I.List<string>
 }
@@ -156,13 +184,19 @@ export type ParsedPath =
   | ParsedPathInGroupTlf
   | ParsedPathInTeamTlf
 
+export const enum PrefetchState {
+  NotStarted,
+  InProgress,
+  Complete,
+}
+
 export type _PrefetchNotStarted = {
-  state: 'not-started'
+  state: PrefetchState.NotStarted
 }
 export type PrefetchNotStarted = I.RecordOf<_PrefetchNotStarted>
 
 export type _PrefetchInProgress = {
-  state: 'in-progress'
+  state: PrefetchState.InProgress
   startTime: number
   endEstimate: number
   bytesTotal: number
@@ -171,7 +205,7 @@ export type _PrefetchInProgress = {
 export type PrefetchInProgress = I.RecordOf<_PrefetchInProgress>
 
 export type _PrefetchComplete = {
-  state: 'complete'
+  state: PrefetchState.Complete
 }
 export type PrefetchComplete = I.RecordOf<_PrefetchComplete>
 
@@ -187,14 +221,14 @@ type _PathItemMetadata = {
 }
 
 export type _FolderPathItem = {
-  type: 'folder'
+  type: PathType.Folder
   children: I.Set<string>
   progress: ProgressType
 } & _PathItemMetadata
 export type FolderPathItem = I.RecordOf<_FolderPathItem>
 
 export type _SymlinkPathItem = {
-  type: 'symlink'
+  type: PathType.Symlink
   linkTarget: string
 } & _PathItemMetadata
 export type SymlinkPathItem = I.RecordOf<_SymlinkPathItem>
@@ -206,34 +240,41 @@ export type _Mime = {
 export type Mime = I.RecordOf<_Mime>
 
 export type _FilePathItem = {
-  type: 'file'
+  type: PathType.File
   mimeType: Mime | null
 } & _PathItemMetadata
 export type FilePathItem = I.RecordOf<_FilePathItem>
 
 export type _UnknownPathItem = {
-  type: 'unknown'
+  type: PathType.Unknown
 } & _PathItemMetadata
 export type UnknownPathItem = I.RecordOf<_UnknownPathItem>
 
 export type PathItem = FolderPathItem | SymlinkPathItem | FilePathItem | UnknownPathItem
 
-export type SyncStatus =
-  | 'unknown'
-  | 'awaiting-to-sync'
-  | 'awaiting-to-upload'
-  | 'online-only'
-  | 'synced'
-  | 'sync-error'
-  | 'uploading'
-  | number // percentage<1. not uploading, and we're syncing down
+export const enum SyncStatusStatic {
+  Unknown,
+  AwaitingToSync,
+  AwaitingToUpload,
+  OnlineOnly,
+  Synced,
+  SyncError,
+  Uploading,
+}
+export type SyncStatus = SyncStatusStatic | number // percentage<1. not uploading, and we're syncing down
 
 export type EditID = string
-export type EditType = 'new-folder'
-export type EditStatusType = 'editing' | 'saving' | 'failed'
+export const enum EditType {
+  NewFolder,
+}
+export const enum EditStatusType {
+  Editing,
+  Saving,
+  Failed,
+}
 
 export type _NewFolder = {
-  type: 'new-folder'
+  type: EditType.NewFolder
   parentPath: Path
   name: string
   hint: string
@@ -243,7 +284,12 @@ export type NewFolder = I.RecordOf<_NewFolder>
 
 export type Edit = NewFolder
 
-export type SortSetting = 'name-asc' | 'name-desc' | 'time-asc' | 'time-desc'
+export const enum SortSetting {
+  NameAsc,
+  NameDesc,
+  TimeAsc,
+  TimeDesc,
+}
 
 export type _PathUserSetting = {
   sort: SortSetting
@@ -252,8 +298,17 @@ export type PathUserSetting = I.RecordOf<_PathUserSetting>
 
 export type LocalPath = string
 
-export type DownloadIntentMobile = 'camera-roll' | 'share'
-export type DownloadIntent = 'none' | DownloadIntentMobile
+export const enum DownloadIntentMobile {
+  CameraRoll,
+  Share,
+}
+// TODO: what to do here
+
+const enum DownloadIntentEnum {
+  None,
+}
+export const DownloadIntentNone = DownloadIntentEnum.None
+export type DownloadIntent = DownloadIntentEnum | DownloadIntentMobile
 
 export type _DownloadMeta = {
   entryType: PathType
@@ -292,8 +347,16 @@ export type _Uploads = {
 export type Uploads = I.RecordOf<_Uploads>
 
 // 'both' is only supported on macOS
-export type OpenDialogType = 'file' | 'directory' | 'both'
-export type MobilePickType = 'photo' | 'video' | 'mixed'
+export const enum OpenDialogType {
+  File,
+  Directory,
+  Both,
+}
+export const enum MobilePickType {
+  Photo,
+  Video,
+  Mixed,
+}
 
 export type _LocalHTTPServer = {
   address: string
@@ -301,7 +364,13 @@ export type _LocalHTTPServer = {
 }
 export type LocalHTTPServer = I.RecordOf<_LocalHTTPServer>
 
-export type FileEditType = 'created' | 'modified' | 'deleted' | 'renamed' | 'unknown'
+export const enum FileEditType {
+  Created,
+  Modified,
+  Deleted,
+  Renamed,
+  Unknown,
+}
 
 export type _TlfEdit = {
   filename: string
@@ -326,21 +395,27 @@ export type PathItems = I.Map<Path, PathItem>
 
 export type Edits = I.Map<EditID, Edit>
 
+export const enum DestinationPickerSource {
+  MoveOrCopy,
+  IncomingShare,
+  None,
+}
+
 export type _MoveOrCopySource = {
-  type: 'move-or-copy'
+  type: DestinationPickerSource.MoveOrCopy
   path: Path
 }
 export type MoveOrCopySource = I.RecordOf<_MoveOrCopySource>
 
 export type _IncomingShareSource = {
-  type: 'incoming-share'
+  type: DestinationPickerSource.IncomingShare
   localPath: LocalPath
 }
 
 export type IncomingShareSource = I.RecordOf<_IncomingShareSource>
 
 export type _NoSource = {
-  type: 'none'
+  type: DestinationPickerSource.None
 }
 
 export type NoSource = I.RecordOf<_NoSource>
@@ -352,7 +427,12 @@ export type _DestinationPicker = {
 
 export type DestinationPicker = I.RecordOf<_DestinationPicker>
 
-export type SendAttachmentToChatState = 'none' | 'pending-select-conversation' | 'ready-to-send' | 'sent'
+export const enum SendAttachmentToChatState {
+  None,
+  PendingSelectConversation,
+  ReadyToSend,
+  Sent,
+}
 
 export type _SendAttachmentToChat = {
   filter: string
@@ -362,13 +442,14 @@ export type _SendAttachmentToChat = {
 }
 export type SendAttachmentToChat = I.RecordOf<_SendAttachmentToChat>
 
-export type SendLinkToChatState =
-  | 'none'
-  | 'locating-conversation'
-  | 'pending-select-conversation'
-  | 'ready-to-send'
-  | 'sending'
-  | 'sent'
+export const enum SendLinkToChatState {
+  None,
+  LocatingConversation,
+  PendingSelectConversation,
+  ReadyToSend,
+  Sending,
+  Sent,
+}
 
 export type _SendLinkToChat = {
   channels: I.Map<ChatTypes.ConversationIDKey, string>
@@ -378,7 +459,12 @@ export type _SendLinkToChat = {
 }
 export type SendLinkToChat = I.RecordOf<_SendLinkToChat>
 
-export type PathItemActionMenuView = 'root' | 'share' | 'confirm-save-media' | 'confirm-send-to-other-app'
+export const enum PathItemActionMenuView {
+  Root,
+  Share,
+  ConfirmSaveMedia,
+  ConfirmSendToOtherApp,
+}
 export type _PathItemActionMenu = {
   view: PathItemActionMenuView
   previousView: PathItemActionMenuView
@@ -386,13 +472,18 @@ export type _PathItemActionMenu = {
 }
 export type PathItemActionMenu = I.RecordOf<_PathItemActionMenu>
 
+export const enum DriverStatusType {
+  Unknown,
+  Disabled,
+  Enabled,
+}
 export type _DriverStatusUnknown = {
-  type: 'unknown'
+  type: DriverStatusType.Unknown
 }
 export type DriverStatusUnknown = I.RecordOf<_DriverStatusUnknown>
 
 export type _DriverStatusDisabled = {
-  type: 'disabled'
+  type: DriverStatusType.Disabled
   isEnabling: boolean
   isDismissed: boolean
   kextPermissionError: boolean
@@ -400,7 +491,7 @@ export type _DriverStatusDisabled = {
 export type DriverStatusDisabled = I.RecordOf<_DriverStatusDisabled>
 
 export type _DriverStatusEnabled = {
-  type: 'enabled'
+  type: DriverStatusType.Enabled
   isDisabling: boolean
   isNew: boolean
   dokanOutdated: boolean
@@ -416,7 +507,12 @@ export type _SystemFileManagerIntegration = {
 }
 export type SystemFileManagerIntegration = I.RecordOf<_SystemFileManagerIntegration>
 
-export type KbfsDaemonRpcStatus = 'unknown' | 'waiting' | 'connected' | 'wait-timeout'
+export const enum KbfsDaemonRpcStatus {
+  Unknown,
+  Connected,
+  Waiting,
+  WaitTimeout,
+}
 export type _KbfsDaemonStatus = {
   rpcStatus: KbfsDaemonRpcStatus
   online: boolean
@@ -431,7 +527,10 @@ export type _SyncingFoldersProgress = {
 }
 export type SyncingFoldersProgress = I.RecordOf<_SyncingFoldersProgress>
 
-export type SoftError = 'no-access' | 'non-existent'
+export const enum SoftError {
+  NoAccess,
+  Nonexistent,
+}
 
 export type _SoftErrors = {
   pathErrors: I.Map<Path, SoftError>
@@ -474,15 +573,15 @@ export type Visibility = TlfType | null
 
 export const direntToPathType = (d: RPCTypes.Dirent): PathType => {
   switch (d.direntType) {
-    case RPCTypes.DirentType.dir:
-      return 'folder'
-    case RPCTypes.DirentType.sym:
-      return 'symlink'
-    case RPCTypes.DirentType.file:
-    case RPCTypes.DirentType.exec:
-      return 'file'
+    case RPCTypes.simpleFSDirentType.dir:
+      return PathType.Folder
+    case RPCTypes.simpleFSDirentType.sym:
+      return PathType.Symlink
+    case RPCTypes.simpleFSDirentType.file:
+    case RPCTypes.simpleFSDirentType.exec:
+      return PathType.File
     default:
-      return 'unknown'
+      return PathType.Unknown
   }
 }
 export const getPathFromRelative = (tlfName: string, tlfType: TlfType, inTlfPath: string): Path =>
@@ -514,9 +613,11 @@ export const getVisibilityFromElems = (elems: Array<string>) => {
   const visibility = elems[1]
   switch (visibility) {
     case 'private':
+      return TlfType.Private
     case 'public':
+      return TlfType.Public
     case 'team':
-      return visibility
+      return TlfType.Team
     default:
       // We don't do a flow check here because by now flow knows that we can't
       // be an empty string, so asserting empty will always fail.
@@ -536,12 +637,12 @@ export const getRPCFolderTypeFromVisibility = (v: Visibility): RPCTypes.FolderTy
 }
 export const getVisibilityFromRPCFolderType = (folderType: RPCTypes.FolderType): Visibility => {
   switch (folderType) {
-    case RPCTypes.FolderType.private:
-      return 'private'
-    case RPCTypes.FolderType.public:
-      return 'public'
-    case RPCTypes.FolderType.team:
-      return 'team'
+    case RPCTypes.favoriteFolderType.private:
+      return TlfType.Private
+    case RPCTypes.favoriteFolderType.public:
+      return TlfType.Public
+    case RPCTypes.favoriteFolderType.team:
+      return TlfType.Team
     default:
       return null
   }
@@ -553,17 +654,33 @@ export const getPathVisibility = (p: Path): Visibility => {
 export const stringToPathType = (s: string): PathType => {
   switch (s) {
     case 'folder':
+      return PathType.Folder
     case 'file':
+      return PathType.File
     case 'symlink':
+      return PathType.Symlink
     case 'unknown':
-      return s
+      return PathType.Unknown
     default:
       // We don't do a flow check here because by now flow knows that we can't
       // be an empty string, so asserting empty will always fail.
       throw new Error('Invalid path type')
   }
 }
-export const pathTypeToString = (p: PathType): string => p
+export const pathTypeToString = (p: PathType): string => {
+  switch (p) {
+    case PathType.Unknown:
+      return 'unknown'
+    case PathType.Symlink:
+      return 'symlink'
+    case PathType.File:
+      return 'file'
+    case PathType.Folder:
+      return 'folder'
+    default:
+      throw new Error('Invalid path type')
+  }
+}
 export const pathConcat = (p: Path, s: string): Path =>
   s === '' ? p : p === '/' ? stringToPath('/' + s) : stringToPath(pathToString(p) + '/' + s)
 export const pathIsNonTeamTLFList = (p: Path): boolean => {
@@ -588,21 +705,28 @@ export const getLocalPathDir = (p: LocalPath): string => p.slice(0, p.lastIndexO
 export const getNormalizedLocalPath = (p: LocalPath): LocalPath =>
   localSep === '\\' ? p.replace(/\\/g, '/') : p
 
+export const enum PathItemIconType {
+  TeamAvatar,
+  Avatar,
+  Avatars,
+  Basic,
+}
+
 export type PathItemIconSpec =
   | {
-      type: 'teamAvatar'
+      type: PathItemIconType.TeamAvatar
       teamName: string
     }
   | {
-      type: 'avatar'
+      type: PathItemIconType.Avatar
       username: string
     }
   | {
-      type: 'avatars'
+      type: PathItemIconType.Avatars
       usernames: Array<string>
     }
   | {
-      type: 'basic'
+      type: PathItemIconType.Basic
       iconType: IconType
       iconColor: string
     }
@@ -645,7 +769,13 @@ export type FavoriteFolder = {
   reset_members: Array<ResetMember> | null
 }
 
-export type FileViewType = 'text' | 'image' | 'av' | 'pdf' | 'default'
+export const enum FileViewType {
+  Text,
+  Image,
+  Av,
+  Pdf,
+  Default,
+}
 
 export type ResetMetadata = {
   badgeIDKey: TeamsTypes.ResetUserBadgeIDKey
@@ -661,9 +791,27 @@ export type ResetMetadata = {
 // unsubscribe when it's not interested anymore. Instead, we use a simple
 // heuristic where Saga only keeps track of latest call from each component and
 // refresh only the most recently reuested paths for each component.
-export type RefreshTag = 'main' | 'path-item-action-popup' | 'destination-picker'
+export const enum RefreshTag {
+  Main,
+  PathItemActionPopup,
+  DestinationPicker,
+}
 
-export type PathItemBadge = 'upload' | 'download' | 'new' | 'rekey' | number
+export const enum PathItemBadgeType {
+  Upload,
+  Download,
+  New,
+  Rekey,
+}
+export type PathItemBadge = PathItemBadgeType | number
 
-export type ResetBannerType = 'none' | 'self' | number
-export type MainBannerType = 'offline' | 'out-of-space' | 'none'
+export const enum ResetBannerNoOthersType {
+  None,
+  Self,
+}
+export type ResetBannerType = ResetBannerNoOthersType | number
+export const enum MainBannerType {
+  Offline,
+  OutOfSpace,
+  None,
+}
