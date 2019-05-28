@@ -55,7 +55,7 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-export default Container.namedConnect<{||}, _, _, _, _>(
+export default Container.namedConnect(
   () => ({}),
   mapDispatchToProps,
   (_, d) => d,

@@ -5,7 +5,7 @@ import chooseAsset from './choose-asset/index.stories'
 import footers from './footer/index.stories'
 import noteAndMemo from './note-and-memo/index.stories'
 import participants from './participants/index.stories'
-import { Props as AvailableProps } from './available';
+import {Props as AvailableProps} from './available'
 
 import SendRequestForm from '.'
 
@@ -17,7 +17,9 @@ const provider = Sb.createPropProviderWithCommon({
   // TODO mock out meaningful values once type `OwnProps` is defined
   AssetInput: props => assetInputProps,
 
-  Available: props => {amountErrMsg: ''} as AvailableProps,
+  Available: props => {
+    amountErrMsg: ''
+  },
   Banner: props => ({}),
   ConnectedPublicMemo: props => ({onChangePublicMemo: Sb.action('onChangePublicMemo')}),
 
@@ -52,8 +54,8 @@ const provider = Sb.createPropProviderWithCommon({
     onShowProfile: Sb.action('onShowProfile'),
     onShowSuggestions: Sb.action('onShowSuggestions'),
     recipientUsername: 'chris',
-  })
-});
+  }),
+})
 
 const load = () => {
   // dumb component stories

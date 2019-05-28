@@ -3,11 +3,13 @@ import * as Sb from '../../../stories/storybook'
 import {Box} from '../../../common-adapters'
 import {withStateHandlers} from '../../../util/container'
 import AssetInput from '.'
-import { Props as AvailableProps } from '../available';
+import {Props as AvailableProps} from '../available'
 
 const provider = Sb.createPropProvider({
-  Available: () => {amountErrMsg: ''} as AvailableProps
-});
+  Available: () => {
+    amountErrMsg: ''
+  },
+})
 
 const common = {
   currencyLoading: false,

@@ -19,7 +19,7 @@ const mergePropsHeaderTitle = s => ({
   username: s.username,
 })
 
-export const HeaderTitle = Container.namedConnect<{||}, _, _, _, _>(
+export const HeaderTitle = Container.namedConnect(
   mapStateToPropsHeaderTitle,
   () => ({}),
   mergePropsHeaderTitle,
@@ -48,7 +48,7 @@ const mergePropsHeaderRightActions = (s, d, o) => ({
   onReceive: () => d._onReceive(s._accountID),
 })
 
-export const HeaderRightActions = Container.namedConnect<{||}, _, _, _, _>(
+export const HeaderRightActions = Container.namedConnect(
   mapStateToPropsHeaderRightActions,
   mapDispatchToPropsHeaderRightActions,
   mergePropsHeaderRightActions,
