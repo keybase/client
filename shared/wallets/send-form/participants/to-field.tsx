@@ -8,7 +8,7 @@ import Search from './search'
 import {Account} from '.'
 import {debounce} from 'lodash-es'
 
-type ToKeybaseUserProps = {
+export type ToKeybaseUserProps = {
   isRequest: boolean
   recipientUsername: string
   errorMessage?: string
@@ -72,7 +72,7 @@ const ToKeybaseUser = (props: ToKeybaseUserProps) => {
   )
 }
 
-type ToStellarPublicKeyProps = {
+export type ToStellarPublicKeyProps = {
   recipientPublicKey: string
   errorMessage?: string
   onChangeRecipient: (recipient: string) => void
@@ -160,7 +160,7 @@ class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps, ToStel
   )
 }
 
-type ToOtherAccountProps = {
+export type ToOtherAccountProps = {
   user: string
   toAccount?: Account
   allAccounts: Account[]
@@ -334,7 +334,5 @@ const styles = Styles.styleSheetCreate({
     minHeight: 52,
   },
 })
-
-export {ToKeybaseUserProps, ToStellarPublicKeyProps}
 
 export {ToKeybaseUser, ToStellarPublicKey, ToOtherAccount}
