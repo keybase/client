@@ -1,4 +1,4 @@
-package sigchain3
+package sig3
 
 import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -12,23 +12,33 @@ type LinkID [32]byte
 type Seqno = keybase1.Seqno
 type Time = keybase1.Time
 type IgnoreIfUnsupported bool
-type KID []byte
+type KID = keybase1.BinaryKID
 type TeamID [16]byte
 type PerTeamKeyGeneration = keybase1.PerTeamKeyGeneration
 type Entropy []byte
 type Sig [64]byte
+type PTKType int
+
+const (
+	SigVersion3 SigVersion = 3
+)
 
 // These values are picked so they don't conflict with Sigchain V1 and V2 link types
 const (
-	LinkTypeNone           LinkType = 0
-	LinkTypeUserPeg        LinkType = 65
-	LinkTypeTeamPerTeamKey LinkType = 81
+	LinkTypeNone      LinkType = 0
+	LinkTypeUserPeg   LinkType = 65
+	LinkTypeRotateKey LinkType = 81
 )
 
 // The values are picked so they don't conflict with Sigchain V1 and V2 SeqType's
 const (
-	ChainTypeUserPrivateOffTree ChainType = 16
-	ChainTypeTeamPrivateOffTree ChainType = 17
+	ChainTypeUserPrivateHidden ChainType = 16
+	ChainTypeTeamPrivateHidden ChainType = 17
+)
+
+const (
+	// The default, legacy type. All users, including the readers, can access it.
+	PTKTypeReader PTKType = 0
 )
 
 // OuterLink V3 is the third version of Keybase sigchain signatures, it roughly approximates
@@ -37,7 +47,7 @@ type OuterLink struct {
 	_struct             bool                `codec:",toarray"`
 	Version             SigVersion          `codec:"version"` // should be 3
 	Seqno               Seqno               `codec:"seqno"`
-	Prev                LinkID              `codec:"prev"`
+	Prev                *LinkID             `codec:"prev"`
 	InnerLink           LinkID              `codec:"curr"` // hash of the msgpack of the InnerLink
 	LinkType            LinkType            `codec:"type"` // hash of the msgpack of the previous OuterLink
 	ChainType           ChainType           `codec:"chaintype"`
@@ -95,10 +105,29 @@ type Tail struct {
 	ChainType ChainType `codec:"t"`
 }
 
-type PerTeamKeyBody struct {
+type RotateKeyBody struct {
+	PTKs []PerTeamKey `codec:"k"`
+}
+
+type PerTeamKey struct {
 	AppkeyDerivationVersion int                  `codec:"a"`
 	EncryptionKID           KID                  `codec:"e"`
 	Generation              PerTeamKeyGeneration `codec:"g"`
-	ReverseSig              Sig                  `codec:"r"`
+	ReverseSig              *Sig                 `codec:"r"` // Can be null if we are checking sigs
 	SigningKID              KID                  `codec:"s"`
+	PTKType                 PTKType              `codec:"t"`
+}
+
+// Sig3ExportJSON is for communicating with the API server.
+type Sig3ExportJSON struct {
+	Inner string `json:"i,omitempty"`
+	Outer string `json:"o,omitempty"`
+	Sig   string `json:"s,omitempty"`
+}
+
+// Sig3Bundle is for storing sig3 links locally
+type Sig3Bundle struct {
+	Inner *InnerLink `json:"i,omitempty"`
+	Outer OuterLink  `json:"o"`
+	Sig   *Sig       `json:"s,omitempty"`
 }

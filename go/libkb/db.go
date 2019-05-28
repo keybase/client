@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/keybase/client/go/msgpack"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -220,7 +221,7 @@ func jsonLocalDbLookupIntoMsgpack(ops LocalDbOps, obj interface{}, alias DbKey) 
 	if err != nil || !found {
 		return found, err
 	}
-	err = MsgpackDecode(obj, buf)
+	err = msgpack.Decode(obj, buf)
 	return true, err
 }
 
@@ -230,12 +231,12 @@ func jsonLocalDbGetIntoMsgpack(ops LocalDbOps, obj interface{}, id DbKey) (found
 	if err != nil || !found {
 		return found, err
 	}
-	err = MsgpackDecode(obj, buf)
+	err = msgpack.Decode(obj, buf)
 	return true, err
 }
 
 func jsonLocalDbPutObjMsgpack(ops LocalDbOps, id DbKey, aliases []DbKey, obj interface{}) error {
-	bytes, err := MsgpackEncode(obj)
+	bytes, err := msgpack.Encode(obj)
 	if err != nil {
 		return err
 	}

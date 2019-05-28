@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	libkb "github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/msgpack"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -152,8 +153,8 @@ func TestParseImplicitTeamTLFNameEvenMore(t *testing.T) {
 	}
 
 	deepEq := func(a, b keybase1.ImplicitTeamDisplayName) bool {
-		x, _ := libkb.MsgpackEncode(a)
-		y, _ := libkb.MsgpackEncode(b)
+		x, _ := msgpack.Encode(a)
+		y, _ := msgpack.Encode(b)
 		fmt.Printf("%s\n", hex.EncodeToString(x))
 		fmt.Printf("%s\n", hex.EncodeToString(y))
 		return bytes.Equal(x, y)

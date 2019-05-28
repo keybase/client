@@ -1,7 +1,7 @@
 // Copyright 2018 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-package libkb
+package msgpack
 
 import (
 	"fmt"
@@ -10,12 +10,12 @@ import (
 	"github.com/keybase/go-codec/codec"
 )
 
-func MsgpackDecode(dst interface{}, src []byte) (err error) {
+func Decode(dst interface{}, src []byte) (err error) {
 	ch := kbcrypto.CodecHandle()
 	return codec.NewDecoderBytes(src, ch).Decode(dst)
 }
 
-func MsgpackEncode(src interface{}) (dst []byte, err error) {
+func Encode(src interface{}) (dst []byte, err error) {
 	ch := kbcrypto.CodecHandle()
 	err = codec.NewEncoderBytes(&dst, ch).Encode(src)
 	return dst, err
@@ -23,7 +23,7 @@ func MsgpackEncode(src interface{}) (dst []byte, err error) {
 
 // Decode data into out, but make sure that all bytes in data are
 // used.
-func MsgpackDecodeAll(data []byte, handle *codec.MsgpackHandle, out interface{}) error {
+func DecodeAll(data []byte, handle *codec.MsgpackHandle, out interface{}) error {
 	decoder := codec.NewDecoderBytes(data, handle)
 	err := decoder.Decode(out)
 	if err != nil {

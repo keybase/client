@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/keybase/client/go/msgpack"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 )
@@ -207,7 +208,7 @@ type OuterLinkV2 struct {
 }
 
 func (o OuterLinkV2) Encode() ([]byte, error) {
-	return MsgpackEncode(o)
+	return msgpack.Encode(o)
 }
 
 type OuterLinkV2WithMetadata struct {
@@ -287,7 +288,7 @@ func encodeOuterLink(
 		// for arrays. So, we send up the serialization of the
 		// appropriate struct depending on whether we are making a 2.3 link.
 		// When 2.3 links are mandatory, this struct can be deleted.
-		encodedOuterLink, err = MsgpackEncode(
+		encodedOuterLink, err = msgpack.Encode(
 			struct {
 				_struct             bool                   `codec:",toarray"`
 				Version             int                    `codec:"version"`
@@ -347,11 +348,11 @@ func DecodeStubbedOuterLinkV2(b64encoded string) (*OuterLinkV2WithMetadata, erro
 	if err != nil {
 		return nil, err
 	}
-	if !IsEncodedMsgpackArray(payload) {
+	if !msgpack.IsEncodedMsgpackArray(payload) {
 		return nil, ChainLinkError{"expected a msgpack array but got leading junk"}
 	}
 	var ol OuterLinkV2
-	if err = MsgpackDecode(&ol, payload); err != nil {
+	if err = msgpack.Decode(&ol, payload); err != nil {
 		return nil, err
 	}
 	return &OuterLinkV2WithMetadata{OuterLinkV2: ol, raw: payload}, nil
@@ -390,12 +391,12 @@ func DecodeOuterLinkV2(armored string) (*OuterLinkV2WithMetadata, error) {
 	if err != nil {
 		return nil, err
 	}
-	if !IsEncodedMsgpackArray(payload) {
+	if !msgpack.IsEncodedMsgpackArray(payload) {
 		return nil, ChainLinkError{"expected a msgpack array but got leading junk"}
 	}
 
 	var ol OuterLinkV2
-	if err := MsgpackDecode(&ol, payload); err != nil {
+	if err := msgpack.Decode(&ol, payload); err != nil {
 		return nil, err
 	}
 	ret := OuterLinkV2WithMetadata{
