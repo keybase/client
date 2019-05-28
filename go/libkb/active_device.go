@@ -600,7 +600,7 @@ func (a *ActiveDevice) ClearPassphraseStreamCacheIfOutdated(mctx MetaContext) er
 		return nil
 	}
 
-	outdated, err := pps.IsOutdated(mctx)
+	outdated, err := pps.SyncAndCheckIfOutdated(mctx)
 	if err != nil {
 		return err
 	}
