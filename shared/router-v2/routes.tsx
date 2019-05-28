@@ -18,13 +18,11 @@ import * as Tabs from '../constants/tabs'
 export const nameToTab = {}
 // TODO could make a stronger type
 export type Route = {
-  getScreen: () => React.ComponentType<any>,
-  screen?: React.ComponentType<any>,
+  getScreen: () => React.ComponentType<any>
+  screen?: React.ComponentType<any>
   upgraded?: boolean
-};
-export const routes: {
-  [K in string]: Route;
-} = {}
+}
+export const routes: {[K in string]: Route} = {}
 
 const _newRoutes = [
   {route: deviceNewRoutes, tab: isMobile ? Tabs.settingsTab : Tabs.devicesTab},

@@ -11,10 +11,12 @@ import * as ReactIs from 'react-is'
 // A mobile-like header for desktop
 
 // Fix this as we figure out what this needs to be
-type Props = any;
+type Props = any
 
 const initialUseNativeFrame = // Auto generated from flowToTs. Please clean me!
-new AppState().state.useNativeFrame !== null && new AppState().state.useNativeFrame !== undefined ? new AppState().state.useNativeFrame : Platform.defaultUseNativeFrame
+  new AppState().state.useNativeFrame !== null && new AppState().state.useNativeFrame !== undefined
+    ? new AppState().state.useNativeFrame
+    : Platform.defaultUseNativeFrame
 
 const PlainTitle = ({title}) => (
   <Kb.Box2 direction="horizontal" style={styles.plainContainer}>

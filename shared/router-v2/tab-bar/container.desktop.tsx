@@ -17,9 +17,9 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as SettingsGen from '../../actions/settings-gen'
 
 type OwnProps = {
-  navigation: any,
+  navigation: any
   selectedTab: Tabs.AppTab
-};
+}
 
 const mapStateToProps = state => ({
   _badgeNumbers: state.notifications.navBadges,
@@ -86,7 +86,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   username: stateProps.username,
 })
 
-export default connect<OwnProps, _, _, _, _>(
+export default connect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

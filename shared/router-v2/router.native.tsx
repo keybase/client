@@ -9,6 +9,7 @@ import {createBottomTabNavigator} from 'react-navigation-tabs'
 import {createStackNavigator} from 'react-navigation-stack'
 import * as Tabs from '../constants/tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
+// @ts-ignore
 import {LeftAction} from '../common-adapters/header-hoc'
 import * as Constants from '../constants/router2'
 import * as Shared from './router.shared'
@@ -75,10 +76,13 @@ const getBadgeNumber = (navBadges, routeName) =>
     ? settingsTabChildren.reduce((res, tab) => res + (navBadges.get(tab) || 0), 0)
     : navBadges.get(routeName)
 
-const ConnectedTabBarIcon = connect<{|focused: boolean, routeName: Tabs.Tab|}, _, _, _, _>(
-  (state, {routeName}) => ({badgeNumber: getBadgeNumber(state.notifications.navBadges, routeName)}),
+type OwnProps = {focused: boolean; routeName: Tabs.Tab}
+const ConnectedTabBarIcon = connect(
+  (state: any, {routeName}: OwnProps) => ({
+    badgeNumber: getBadgeNumber(state.notifications.navBadges, routeName),
+  }),
   () => ({}),
-  (s, _, o) => ({
+  (s, _, o: OwnProps) => ({
     badgeNumber: s.badgeNumber,
     focused: o.focused,
     routeName: o.routeName,
@@ -248,8 +252,12 @@ class RNApp extends React.PureComponent<any, any> {
     }
   }
 
-  getNavState = () => // Auto generated from flowToTs. Please clean me!
-  (this._nav === null || this._nav === undefined ? undefined : this._nav.state) === null || (this._nav === null || this._nav === undefined ? undefined : this._nav.state) === undefined ? undefined : (this._nav === null || this._nav === undefined ? undefined : this._nav.state).nav
+  getNavState = () =>
+    // Auto generated from flowToTs. Please clean me!
+    (this._nav === null || this._nav === undefined ? undefined : this._nav.state) === null ||
+    (this._nav === null || this._nav === undefined ? undefined : this._nav.state) === undefined
+      ? undefined
+      : (this._nav === null || this._nav === undefined ? undefined : this._nav.state).nav
 
   render() {
     return (
