@@ -1846,8 +1846,8 @@ function* attachmentFullscreenNext(state, action) {
   if (conversationIDKey === blankMessage.conversationIDKey) {
     return
   }
-  const currentFullscreen = state.chat2.attachmentFullscreenMessage || blankMessage
-  yield Saga.put(Chat2Gen.createAttachmentFullscreenSelection({message: blankMessage}))
+  const currentFullscreen = state.chat2.attachmentFullscreenSelection?.message ?? blankMessage
+  yield Saga.put(Chat2Gen.createAttachmentFullscreenSelection({autoPlay: false, message: blankMessage}))
   const nextAttachmentRes = yield* Saga.callPromise(
     RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise,
     {
@@ -1866,34 +1866,22 @@ function* attachmentFullscreenNext(state, action) {
       nextMsg = uiMsg
     }
   }
-  yield Saga.put(Chat2Gen.createAttachmentFullscreenSelection({message: nextMsg}))
+  yield Saga.put(Chat2Gen.createAttachmentFullscreenSelection({autoPlay: false, message: nextMsg}))
 }
 
 const attachmentPreviewSelect = (_, action) => {
   const message = action.payload.message
-  if (Constants.isVideoAttachment(message) && !isMobile) {
-    // Start up the fullscreen video view
-    return RouteTreeGen.createNavigateAppend({
+  return [
+    Chat2Gen.createAttachmentFullscreenSelection({autoPlay: true, message}),
+    RouteTreeGen.createNavigateAppend({
       path: [
         {
-          props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
-          selected: 'chatAttachmentVideoFullscreen',
+          props: {},
+          selected: 'chatAttachmentFullscreen',
         },
       ],
-    })
-  } else {
-    return [
-      Chat2Gen.createAttachmentFullscreenSelection({message}),
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {},
-            selected: 'chatAttachmentFullscreen',
-          },
-        ],
-      }),
-    ]
-  }
+    }),
+  ]
 }
 
 // Handle an image pasted into a conversation

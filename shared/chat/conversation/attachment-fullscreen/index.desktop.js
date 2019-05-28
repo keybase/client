@@ -25,6 +25,7 @@ import KeyHandler from '../../../util/key-handler.desktop'
 
 type State = {loaded: string}
 class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
+  _vidRef = React.createRef()
   _mounted = false
   state = {loaded: ''}
   _setLoaded = (path: string) => this.setState({loaded: path})
@@ -32,6 +33,9 @@ class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
 
   componentDidMount() {
     this._mounted = true
+    if (this._vidRef.current && this.props.autoPlay) {
+      this._vidRef.current.play()
+    }
   }
 
   componentWillUnmount() {
@@ -93,6 +97,7 @@ class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
                   onLoadedMetadata={() => this._setLoaded(this.props.path)}
                   controlsList="nodownload nofullscreen noremoteplayback"
                   controls={true}
+                  ref={this._vidRef}
                 >
                   <source src={this.props.path} />
                   <style>{showPlayButton}</style>

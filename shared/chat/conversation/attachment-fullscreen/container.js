@@ -13,9 +13,10 @@ const blankMessage = Constants.makeMessageAttachment({})
 
 type OwnProps = RouteProps<{}, {}>
 
-const mapStateToProps = state => {
-  const message = state.chat2.attachmentFullscreenMessage || blankMessage
+const mapStateToProps = (state, ownProps: OwnProps) => {
+  const message = state.chat2.attachmentFullscreenSelection?.message ?? blankMessage
   return {
+    autoPlay: state.chat2.attachmentFullscreenSelection?.autoPlay ?? false,
     message: message.type === 'attachment' ? message : blankMessage,
   }
 }
@@ -59,6 +60,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     imgMaxWidthRaw()
   )
   return {
+    autoPlay: stateProps.autoPlay,
     hotkeys: ['left', 'right'],
     isVideo: Constants.isVideoAttachment(message),
     message,

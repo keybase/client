@@ -100,6 +100,11 @@ export type _AttachmentViewInfo = {
 
 export type AttachmentViewInfo = I.RecordOf<_AttachmentViewInfo>
 
+export type AttachmentFullscreenSelection = {
+  autoPlay: boolean,
+  message: Types.Message,
+}
+
 export type _State = {
   accountsInfoMap: I.Map<
     Common.ConversationIDKey,
@@ -131,7 +136,7 @@ export type _State = {
   giphyWindowMap: I.Map<Common.ConversationIDKey, boolean>,
   giphyResultMap: I.Map<Common.ConversationIDKey, ?RPCChatTypes.GiphySearchResults>,
   pendingOutboxToOrdinal: I.Map<Common.ConversationIDKey, I.Map<Message.OutboxID, Message.Ordinal>>, // messages waiting to be sent
-  attachmentFullscreenMessage: ?Message.Message,
+  attachmentFullscreenSelection: ?AttachmentFullscreenSelection,
   paymentConfirmInfo: ?PaymentConfirmInfo, // chat payment confirm screen data
   paymentStatusMap: I.Map<Wallet.PaymentID, Message.ChatPaymentInfo>,
   unsentTextMap: I.Map<Common.ConversationIDKey, ?HiddenString>,

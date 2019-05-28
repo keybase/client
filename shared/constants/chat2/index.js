@@ -21,7 +21,7 @@ import HiddenString from '../../util/hidden-string'
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   accountsInfoMap: I.Map(),
-  attachmentFullscreenMessage: null,
+  attachmentFullscreenSelection: null,
   attachmentViewMap: I.Map(),
   badgeMap: I.Map(),
   commandMarkdownMap: I.Map(),

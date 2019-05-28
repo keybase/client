@@ -1209,20 +1209,36 @@ const rootReducer = (
       return state.update('accountsInfoMap', old => old.setIn([conversationIDKey, messageID], requestInfo))
     }
     case Chat2Gen.attachmentFullscreenSelection: {
-      const {message} = action.payload
-      return state.set('attachmentFullscreenMessage', message)
+      const {autoPlay, message} = action.payload
+      return state.set('attachmentFullscreenSelection', {autoPlay, message})
     }
     case Chat2Gen.handleSeeingWallets: // fallthrough
     case Chat2Gen.setWalletsOld:
       return state.isWalletsNew ? state.set('isWalletsNew', false) : state
     case Chat2Gen.attachmentLoading: {
-      let nextState = state.updateIn(
+      const {message} = action.payload
+      let nextState = state
+      if (
+        state.attachmentFullscreenSelection &&
+        state.attachmentFullscreenSelection.message.conversationIDKey === message.conversationIDKey &&
+        state.attachmentFullscreenSelection.message.id === message.id &&
+        message.type === 'attachment'
+      ) {
+        nextState = nextState.set('attachmentFullscreenSelection', {
+          autoPlay: state.attachmentFullscreenSelection.autoPlay,
+          message: message.set('transferState', 'downloading').set('transferProgress', action.payload.ratio),
+        })
+      }
+      nextState = nextState.updateIn(
         ['attachmentViewMap', action.payload.conversationIDKey, RPCChatTypes.localGalleryItemTyp.doc],
         (info = Constants.makeAttachmentViewInfo()) =>
           info.merge({
             messages: info.messages.update(
               info.messages.findIndex(item => item.id === action.payload.message.id),
-              item => item.set('transferState', 'downloading').set('transferProgress', action.payload.ratio)
+              item =>
+                item
+                  ? item.set('transferState', 'downloading').set('transferProgress', action.payload.ratio)
+                  : item
             ),
           })
       )
@@ -1235,29 +1251,30 @@ const rootReducer = (
     case Chat2Gen.attachmentDownloaded: {
       const {message} = action.payload
       let nextState = state
-      // check fullscreen attachment message in case we downloaded it
       if (
         !action.error &&
-        state.attachmentFullscreenMessage &&
-        state.attachmentFullscreenMessage.conversationIDKey === message.conversationIDKey &&
-        state.attachmentFullscreenMessage.id === message.id &&
+        state.attachmentFullscreenSelection &&
+        state.attachmentFullscreenSelection.message.conversationIDKey === message.conversationIDKey &&
+        state.attachmentFullscreenSelection.message.id === message.id &&
         message.type === 'attachment'
       ) {
-        nextState = nextState.set(
-          'attachmentFullscreenMessage',
-          message.set('downloadPath', action.payload.path)
-        )
+        nextState = nextState.set('attachmentFullscreenSelection', {
+          autoPlay: state.attachmentFullscreenSelection.autoPlay,
+          message: message.set('downloadPath', action.payload.path),
+        })
       }
-      nextState = state.updateIn(
+      nextState = nextState.updateIn(
         ['attachmentViewMap', message.conversationIDKey, RPCChatTypes.localGalleryItemTyp.doc],
         (info = Constants.makeAttachmentViewInfo()) =>
           info.merge({
             messages: info.messages.update(info.messages.findIndex(item => item.id === message.id), item =>
               item
-                .set('transferState', null)
-                .set('transferProgress', 0)
-                .set('downloadPath', action.payload.path)
-                .set('fileURLCached', true)
+                ? item
+                    .set('transferState', null)
+                    .set('transferProgress', 0)
+                    .set('downloadPath', action.payload.path)
+                    .set('fileURLCached', true)
+                : item
             ),
           })
       )

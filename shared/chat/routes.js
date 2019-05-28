@@ -27,10 +27,6 @@ export const newModalRoutes = {
     getScreen: () => require('./conversation/attachment-get-titles/container').default,
     upgraded: true,
   },
-  chatAttachmentVideoFullscreen: {
-    getScreen: () => require('./conversation/attachment-video-fullscreen/container').default,
-    upgraded: true,
-  },
   chatChooseEmoji: {
     getScreen: () => require('./conversation/messages/react-button/emoji-picker/container').default,
     upgraded: true,

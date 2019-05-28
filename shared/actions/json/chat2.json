@@ -346,6 +346,7 @@
       "data": "Buffer"
     },
     "attachmentFullscreenSelection": {
+      "autoPlay": "boolean",
       "message": "Types.Message"
     },
     "attachmentFullscreenNext": {
