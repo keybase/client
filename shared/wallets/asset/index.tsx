@@ -4,16 +4,16 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
 export type Props = {
-  availableToSend: string // non-empty only if native currency,
+  availableToSend: string // non-empty only if native currency
   balance: string
-  code: string // The same as `name` except for XLM,
-  equivAvailableToSend: string // non-empty only if native currency e.g. '$123.45 USD',
-  equivBalance: string // non-empty only if native currency,
-  expanded?: boolean // for testing,
-  issuerName: string // verified issuer domain name, 'Stellar network' or 'Unknown',
-  issuerAccountID: string // issuing public key,
-  name: string // Asset code or 'Lumens',
-  reserves: Array<Types.Reserve> // non-empty only if native currency,
+  code: string // The same as `name` except for XLM
+  equivAvailableToSend: string // non-empty only if native currency e.g. '$123.45 USD'
+  equivBalance: string // non-empty only if native currency
+  expanded?: boolean // for testing
+  issuerName: string // verified issuer domain name, 'Stellar network' or 'Unknown'
+  issuerAccountID: string // issuing public key
+  name: string // Asset code or 'Lumens'
+  reserves: Array<Types.Reserve> // non-empty only if native currency
   openStellarURL: () => void
 }
 
