@@ -2,7 +2,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-// @ts-ignore codemode issue
 import Container from '../../login/forms/container'
 import * as Constants from '../../constants/provision'
 

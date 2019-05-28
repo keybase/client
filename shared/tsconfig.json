@@ -15,5 +15,10 @@
     }
   },
   "include": ["./**/*"],
-  "exclude": ["node_modules", "react-native", "desktop/dist"]
+  "exclude": [
+    "node_modules",
+    "react-native",
+    "desktop/dist",
+    "desktop/build"
+  ]
 }
