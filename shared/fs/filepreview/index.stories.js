@@ -9,7 +9,6 @@ import * as Kb from '../../common-adapters'
 import {commonProvider} from '../common/index.stories'
 import {footerProvider} from '../footer/index.stories'
 import {bannerProvider} from '../banner/index.stories'
-import {headerProvider} from '../header/index.stories'
 
 export const filepreviewProvider = {
   FilePreviewDefaultView: () => ({
@@ -83,7 +82,6 @@ const provider = Sb.createPropProviderWithCommon({
   ...commonProvider,
   ...footerProvider,
   ...bannerProvider,
-  ...headerProvider,
   ...filepreviewProvider,
 })
 

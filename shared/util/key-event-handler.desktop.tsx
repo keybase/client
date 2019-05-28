@@ -1,13 +1,13 @@
 import * as React from 'react'
 
 type GlobalProps = {
-  children: React.ReactNode | null
+  children: React.ReactNode
 }
 
 type Props = {
   onKeyDown?: (ev: KeyboardEvent) => void
   onKeyPress?: (ev: KeyboardEvent) => void
-  children: React.ReactNode | null
+  children: React.ReactNode
 }
 
 type HandlerProps = {

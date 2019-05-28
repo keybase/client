@@ -11,14 +11,13 @@ import PathItemAction from './path-item-action'
 import PathItemIcon, {type Size} from './path-item-icon'
 import PathItemInfo from './path-item-info'
 import TlfInfo from './tlf-info'
-import Loading from './loading'
-import KbfsDaemonNotRunning from './kbfs-daemon-not-running'
 import Errs from './errs'
 import OpenInSystemFileManager from './open-in-system-file-manager'
 import {type OwnProps as PathItemIconOwnProps} from './path-item-icon-container'
 import {type OwnProps as PathItemInfoOwnProps} from './path-item-info-container'
 import SyncStatus from './sync-status'
 import PieSlice from './pie-slice'
+import ConfirmDelete from './path-item-action/confirm-delete'
 
 const PathItemActionMenuHeaderProps = (props: any) => ({
   childrenFiles: 0,
@@ -257,7 +256,6 @@ const load = () => {
         ]}
       />
     ))
-    .add('Loading', () => <Loading path={Types.stringToPath('/keybase/team/kbkbfstest')} />)
     .add('TlfInfo', () => (
       <Kb.Box2 direction="vertical" gap="small" gapStart={true} fullWidth={true}>
         <Kb.Text type="Body">mode=default reset=false</Kb.Text>
@@ -282,7 +280,6 @@ const load = () => {
         <PathItemInfo mode="menu" lastModifiedTimestamp={1545110765} lastWriter="songgao_test" />
       </Kb.Box2>
     ))
-    .add('KbfsDaemonNotRunning', () => <KbfsDaemonNotRunning />)
     .add('OpenInSystemFileManager', () => (
       <Kb.Box2 direction="vertical" gap="small">
         <Kb.Text type="Body">disabled</Kb.Text>
@@ -316,6 +313,14 @@ const load = () => {
           <PieSliceWrapper initialDegrees={deg} key={deg} />
         ))}
       </Kb.Box2>
+    ))
+    .add('ConfirmDelete', () => (
+      <ConfirmDelete
+        onBack={Sb.action('onBack')}
+        onDelete={Sb.action('onDelete')}
+        path={Types.stringToPath('/keybase/private/alice/my_folder')}
+        title="foo"
+      />
     ))
 
   Sb.storiesOf('Files/PathItemIcon', module)

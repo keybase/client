@@ -57,7 +57,6 @@ func (t *testCRObserver) BatchChanges(ctx context.Context,
 
 func (t *testCRObserver) TlfHandleChange(ctx context.Context,
 	newHandle *tlfhandle.Handle) {
-	return
 }
 
 func checkStatus(t *testing.T, ctx context.Context, kbfsOps KBFSOps,

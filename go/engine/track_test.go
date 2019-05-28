@@ -87,7 +87,6 @@ func trackAliceWithOptions(tc libkb.TestContext, fu *FakeUser, options keybase1.
 	require.NoError(tc.T, err)
 	checkAliceProofs(tc.T, idUI, &upk.Current)
 	assertTracking(tc, "t_alice")
-	return
 }
 
 func trackBob(tc libkb.TestContext, fu *FakeUser, sigVersion libkb.SigVersion) {
@@ -107,7 +106,6 @@ func trackBobWithOptions(tc libkb.TestContext, fu *FakeUser, options keybase1.Tr
 	require.NoError(tc.T, err)
 	checkBobProofs(tc.T, idUI, &upk.Current)
 	assertTracking(tc, "t_bob")
-	return
 }
 
 func TestTrack(t *testing.T) {
