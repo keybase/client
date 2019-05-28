@@ -54,6 +54,7 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 	require.Equal(t, "qq", accts[0].Name)
 	require.Equal(t, stellar1.AccountMode_USER, accts[0].AccountMode)
 	require.Equal(t, false, accts[0].AccountModeEditable)
+	require.Equal(t, false, accts[0].DeviceReadOnly)
 	require.Equal(t, "10,000.00 XLM", accts[0].BalanceDescription)
 	currencyLocal := accts[0].CurrencyLocal
 	require.Equal(t, stellar1.OutsideCurrencyCode("USD"), currencyLocal.Code)
@@ -66,6 +67,7 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 	require.Equal(t, firstAccountName(t, tcs[0]), accts[1].Name)
 	require.Equal(t, stellar1.AccountMode_USER, accts[1].AccountMode)
 	require.Equal(t, false, accts[1].AccountModeEditable)
+	require.Equal(t, false, accts[1].DeviceReadOnly)
 	require.Equal(t, "0 XLM", accts[1].BalanceDescription)
 	currencyLocal = accts[1].CurrencyLocal
 	require.Equal(t, stellar1.OutsideCurrencyCode("USD"), currencyLocal.Code)
@@ -78,6 +80,7 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 	require.Equal(t, "qq", details.Name)
 	require.Equal(t, stellar1.AccountMode_USER, details.AccountMode)
 	require.Equal(t, false, accts[1].AccountModeEditable)
+	require.Equal(t, false, accts[1].DeviceReadOnly)
 	require.True(t, details.IsDefault)
 	require.Equal(t, "10,000.00 XLM", details.BalanceDescription)
 	require.NotEmpty(t, details.Seqno)
@@ -1443,6 +1446,29 @@ func TestBuildPaymentLocal(t *testing.T) {
 		Message: fmt.Sprintf("Because it's %v's first transaction, you must send at least 1 XLM.", tcs[1].Fu.Username),
 	}})
 
+	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+		From:     senderAccountID,
+		To:       tcs[1].Fu.Username,
+		Amount:   "30",
+		Currency: &usd,
+	})
+	require.NoError(t, err)
+	t.Logf(spew.Sdump(bres))
+	require.Equal(t, false, bres.ReadyToReview)
+	require.Equal(t, "", bres.ToErrMsg)
+	require.Equal(t, "You have *$0.00 USD* worth of Lumens available to send.", bres.AmountErrMsg)
+	require.Equal(t, "", bres.SecretNoteErrMsg)
+	require.Equal(t, "", bres.PublicMemoErrMsg)
+	require.Equal(t, "94.2424166 XLM", bres.WorthDescription)
+	require.Equal(t, worthInfo, bres.WorthInfo)
+	require.False(t, bres.SendingIntentionXLM)
+	require.Equal(t, "94.2424166 XLM", bres.DisplayAmountXLM)
+	require.Equal(t, "$30.00 USD", bres.DisplayAmountFiat)
+	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
+		Level:   "info",
+		Message: fmt.Sprintf("Because it's %v's first transaction, you must send at least 1 XLM.", tcs[1].Fu.Username),
+	}})
+
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(senderAccountID, "20")
 	tcs[0].Backend.Gift(senderSecondaryAccountID, "30")
@@ -1460,7 +1486,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	t.Logf(spew.Sdump(bres))
 	require.Equal(t, false, bres.ReadyToReview)
 	require.Equal(t, "", bres.ToErrMsg)
-	require.Equal(t, "You have *18.9999900 XLM* available to send.", bres.AmountErrMsg)
+	require.Equal(t, "You only have *18.9999900 XLM* available to send.", bres.AmountErrMsg)
 	require.Equal(t, "", bres.SecretNoteErrMsg)
 	require.Equal(t, "", bres.PublicMemoErrMsg)
 	require.Equal(t, "$9.55 USD", bres.WorthDescription)
@@ -1487,7 +1513,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	t.Logf(spew.Sdump(bres))
 	require.Equal(t, false, bres.ReadyToReview)
 	require.Equal(t, "", bres.ToErrMsg)
-	require.Equal(t, "You have *$6.04 USD* available to send.", bres.AmountErrMsg)
+	require.Equal(t, "You only have *$6.04 USD* worth of Lumens available to send.", bres.AmountErrMsg)
 	require.Equal(t, "", bres.SecretNoteErrMsg)
 	require.Equal(t, "", bres.PublicMemoErrMsg)
 	require.Equal(t, "19.0055540 XLM", bres.WorthDescription)
@@ -1600,7 +1626,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	t.Logf(spew.Sdump(bres))
 	require.Equal(t, false, bres.ReadyToReview)
 	require.Equal(t, "", bres.ToErrMsg)
-	require.Equal(t, "You have *3.9999800 XLM* available to send.", bres.AmountErrMsg)
+	require.Equal(t, "You only have *3.9999800 XLM* available to send.", bres.AmountErrMsg)
 	require.Equal(t, "", bres.SecretNoteErrMsg)
 	require.Equal(t, "Memo is too long.", bres.PublicMemoErrMsg) // too many potatoes
 	require.Equal(t, "$4.77 USD", bres.WorthDescription)
@@ -1632,7 +1658,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	t.Logf(spew.Sdump(bres))
 	require.Equal(t, false, bres.ReadyToReview)
 	require.Equal(t, "", bres.ToErrMsg)
-	require.Equal(t, "You have *3.9999800 XLM* available to send.", bres.AmountErrMsg)
+	require.Equal(t, "You only have *3.9999800 XLM* available to send.", bres.AmountErrMsg)
 	require.Equal(t, "", bres.SecretNoteErrMsg)
 	require.Equal(t, "", bres.PublicMemoErrMsg)
 	require.Equal(t, "$1.27 USD", bres.WorthDescription)
@@ -1885,6 +1911,7 @@ func reviewPaymentExpectQuickSuccess(t testing.TB, tc *TestContext, arg stellar1
 		mockUI.PaymentReviewedHandler = original
 	}()
 	reviewSuccessCh := make(chan struct{}, 1)
+	reviewExitedCh := make(chan struct{}, 1)
 	mockUI.PaymentReviewedHandler = func(ctx context.Context, notification stellar1.PaymentReviewedArg) error {
 		assert.Equal(t, arg.Bid, notification.Msg.Bid)
 		// Allow the not-following warning banner.
@@ -1915,11 +1942,17 @@ func reviewPaymentExpectQuickSuccess(t testing.TB, tc *TestContext, arg stellar1
 	go func() {
 		err := tc.Srv.ReviewPaymentLocal(context.Background(), arg)
 		assert.NoError(t, err) // Use 'assert' since 'require' can only be used from the main goroutine.
+		reviewExitedCh <- struct{}{}
 	}()
 	select {
 	case <-timeoutCh:
 		assert.Fail(t, "timed out")
 	case <-reviewSuccessCh:
+	}
+	select {
+	case <-timeoutCh:
+		assert.Fail(t, "timed out")
+	case <-reviewExitedCh:
 	}
 	t.Logf("review ran for %v", time.Since(start))
 	check(t)
@@ -2642,6 +2675,7 @@ func TestSetMobileOnly(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, stellar1.AccountMode_USER, details.AccountMode)
 	require.Equal(t, true, details.AccountModeEditable)
+	require.Equal(t, false, details.DeviceReadOnly)
 
 	err = tcs[0].Srv.SetAccountMobileOnlyLocal(context.Background(), stellar1.SetAccountMobileOnlyLocalArg{AccountID: accountID})
 	require.NoError(t, err)
@@ -2658,12 +2692,31 @@ func TestSetMobileOnly(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, stellar1.AccountMode_MOBILE, details.AccountMode)
 	require.Equal(t, true, details.AccountModeEditable)
+	require.Equal(t, false, details.DeviceReadOnly)
 
 	mode, err := tcs[0].Srv.walletState.AccountMode(accountID)
 	require.NoError(t, err)
 	require.Equal(t, stellar1.AccountMode_MOBILE, mode)
 
 	// service_test verifies that `SetAccountMobileOnlyLocal` behaves correctly under the covers
+
+	// Provision new mobile to check AccountModeEditable and DeviceReadOnly
+	tc2, cleanup2 := provisionNewDeviceForTest(t, tcs[0], libkb.DeviceTypeMobile)
+	defer cleanup2()
+	details, err = tc2.Srv.GetWalletAccountLocal(context.Background(), walletAcctLocalArg)
+	require.NoError(t, err)
+	require.Equal(t, stellar1.AccountMode_MOBILE, details.AccountMode)
+	require.Equal(t, false, details.AccountModeEditable)
+	require.Equal(t, true, details.DeviceReadOnly)
+
+	// Provision new desktop device.
+	tc3, cleanup3 := provisionNewDeviceForTest(t, tcs[0], libkb.DeviceTypeDesktop)
+	defer cleanup3()
+	details, err = tc3.Srv.GetWalletAccountLocal(context.Background(), walletAcctLocalArg)
+	require.NoError(t, err)
+	require.Equal(t, stellar1.AccountMode_MOBILE, details.AccountMode)
+	require.Equal(t, false, details.AccountModeEditable)
+	require.Equal(t, true, details.DeviceReadOnly)
 }
 
 const lumenautAccID = stellar1.AccountID("GCCD6AJOYZCUAQLX32ZJF2MKFFAUJ53PVCFQI3RHWKL3V47QYE2BNAUT")

@@ -132,7 +132,7 @@ func (t smuTerminalUI) PromptPasswordMaybeScripted(libkb.PromptDescriptor, strin
 func (t smuTerminalUI) PromptYesNo(libkb.PromptDescriptor, string, libkb.PromptDefault) (bool, error) {
 	return false, nil
 }
-func (t smuTerminalUI) Tablify(headings []string, rowfunc func() []string) { return }
+func (t smuTerminalUI) Tablify(headings []string, rowfunc func() []string) {}
 func (t smuTerminalUI) TerminalSize() (width int, height int)              { return }
 
 type signupInfoSecretUI struct {

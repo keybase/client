@@ -2855,7 +2855,6 @@ func (t *testMountObserver) BatchChanges(ctx context.Context,
 
 func (t *testMountObserver) TlfHandleChange(ctx context.Context,
 	newHandle *tlfhandle.Handle) {
-	return
 }
 
 func TestInvalidateAcrossMounts(t *testing.T) {

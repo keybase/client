@@ -77,15 +77,15 @@
     "saveChannelMembership": {
       "teamname": "string",
       "oldChannelState": "Types.ChannelMembershipState",
-      "newChannelState": "Types.ChannelMembershipState",
+      "newChannelState": "Types.ChannelMembershipState"
     },
     "addParticipant": {
       "teamname": "string",
-      "conversationIDKey": "ChatTypes.ConversationIDKey",
+      "conversationIDKey": "ChatTypes.ConversationIDKey"
     },
     "removeParticipant": {
       "teamname": "string",
-      "conversationIDKey": "ChatTypes.ConversationIDKey",
+      "conversationIDKey": "ChatTypes.ConversationIDKey"
     },
     "addPeopleToTeam": {
       "destSubPath?": "I.List<string>",
@@ -93,6 +93,9 @@
       "rootPath?": "I.List<string>",
       "sendChatNotification": "boolean",
       "sourceSubPath?": "I.List<string>",
+      "teamname": "string"
+    },
+    "deleteTeam": {
       "teamname": "string"
     },
     "inviteToTeamByEmail": {
@@ -271,6 +274,7 @@
       "conversationIDKey": "ChatTypes.ConversationIDKey"
     },
     "badgeAppForTeams": {
+      "deletedTeams": "Array<Types.DeletedTeamInfo>",
       "newTeamNames": "Array<string>",
       "newTeamAccessRequests": "Array<string>",
       "teamsWithResetUsers": "Array<$ReadOnly<{id: Buffer, teamname: string, username: string, uid: string}>>"

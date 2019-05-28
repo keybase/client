@@ -172,7 +172,6 @@ func (md *MDCacheStandard) ChangeHandleForID(
 	md.idLRU.Remove(oldKey)
 	newKey := newHandle.GetCanonicalPath()
 	md.idLRU.Add(newKey, tmp)
-	return
 }
 
 type mdcacheNextMDKey struct {

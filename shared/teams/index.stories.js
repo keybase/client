@@ -1,5 +1,6 @@
 // @flow
 import main from './main/index.stories'
+import deleteTeam from './delete-team/index.stories'
 import editTeamDescription from './edit-team-description/index.stories'
 import settings from './team/settings-tab/index.stories'
 import reallyLeaveTeam from './really-leave-team/index.stories'
@@ -11,6 +12,7 @@ import rename from './rename-team/index.stories'
 
 const load = () => {
   main()
+  deleteTeam()
   editTeamDescription()
   settings()
   reallyLeaveTeam()

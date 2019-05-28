@@ -117,7 +117,7 @@ const config = (_, {mode}) => {
         new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/), // Skip a bunch of crap moment pulls in
       ],
       resolve: {
-        extensions: ['.desktop.js', '.js', '.jsx', '.tsx', '.ts', '.json', '.flow'],
+        extensions: ['.desktop.js', '.desktop.tsx', '.js', '.jsx', '.tsx', '.ts', '.json', '.flow'],
       },
       stats: {
         ...(isDev
@@ -160,7 +160,7 @@ const config = (_, {mode}) => {
 
   const commonConfig = makeCommonConfig()
   const nodeConfig = merge(commonConfig, {
-    entry: {node: './desktop/app/node.desktop.js'},
+    entry: {node: './desktop/app/node.desktop.tsx'},
     module: {rules: makeRules(true)},
     name: 'node',
     plugins: [
@@ -199,7 +199,11 @@ const config = (_, {mode}) => {
   }
 
   const typeOverride = {
+    main: 'tsx',
+    menubar: 'tsx',
     pinentry: 'tsx',
+    tracker2: 'tsx',
+    'unlock-folders': 'tsx',
   }
 
   // multiple entries so we can chunk shared parts

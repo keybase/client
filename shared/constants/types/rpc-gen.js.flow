@@ -1024,6 +1024,10 @@ export type MessageTypes = {|
     inParam: $ReadOnly<{|name: String, role: TeamRole, label: SeitanKeyLabel|}>,
     outParam: SeitanIKeyV2,
   |},
+  'keybase.1.teams.teamDelete': {|
+    inParam: $ReadOnly<{|name: String|}>,
+    outParam: void,
+  |},
   'keybase.1.teams.teamEditMember': {|
     inParam: $ReadOnly<{|name: String, username: String, role: TeamRole|}>,
     outParam: void,
@@ -2844,7 +2848,7 @@ export type SeitanKeyLabel = {t: 1, sms: ?SeitanKeyLabelSms}
 export type SeitanKeyLabelSms = $ReadOnly<{f: String, n: String}>
 export type SeitanKeyLabelType = 1 // SMS_1
 
-export type SeitanPubKey = KID
+export type SeitanPubKey = String
 export type SelectKeyRes = $ReadOnly<{keyID: String, doSecretPush: Boolean}>
 export type SelectorEntry = $ReadOnly<{isIndex: Boolean, index: Int, isKey: Boolean, key: String, isAll: Boolean, isContents: Boolean}>
 export type SeqType =
@@ -3692,6 +3696,8 @@ declare export function teamsTeamAddMemberRpcPromise(params: $PropertyType<$Prop
 declare export function teamsTeamAddMembersRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.teams.teamAddMembers'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.teams.teamAddMembers'>, 'outParam'>>
 declare export function teamsTeamCreateRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.teams.teamCreate'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.teams.teamCreate'>, 'outParam'>>
 declare export function teamsTeamCreateSeitanTokenV2RpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.teams.teamCreateSeitanTokenV2'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.teams.teamCreateSeitanTokenV2'>, 'outParam'>>
+declare export function teamsTeamDeleteRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.teams.teamDelete'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.teams.teamDelete'>, 'outParam'>>
+declare export function teamsTeamDeleteRpcSaga(p: {params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.teams.teamDelete'>, 'inParam'>, incomingCallMap: IncomingCallMapType, customResponseIncomingCallMap?: CustomResponseIncomingCallMap, waitingKey?: WaitingKey}): CallEffect<void, () => void, Array<void>>
 declare export function teamsTeamEditMemberRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.teams.teamEditMember'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.teams.teamEditMember'>, 'outParam'>>
 declare export function teamsTeamGetMembersRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.teams.teamGetMembers'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.teams.teamGetMembers'>, 'outParam'>>
 declare export function teamsTeamGetRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.teams.teamGet'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.teams.teamGet'>, 'outParam'>>
@@ -4053,7 +4059,6 @@ declare export function userUploadUserAvatarRpcPromise(params: $PropertyType<$Pr
 // 'keybase.1.teams.teamAcceptInvite'
 // 'keybase.1.teams.teamRequestAccess'
 // 'keybase.1.teams.teamTree'
-// 'keybase.1.teams.teamDelete'
 // 'keybase.1.teams.teamCreateSeitanToken'
 // 'keybase.1.teams.lookupImplicitTeam'
 // 'keybase.1.teams.lookupOrCreateImplicitTeam'

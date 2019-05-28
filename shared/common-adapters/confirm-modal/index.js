@@ -5,6 +5,7 @@ import {Box, Box2} from '../box'
 import HeaderOrPopup from '../header-or-popup'
 import ButtonBar from '../button-bar'
 import Icon from '../icon'
+import ScrollView from '../scroll-view'
 import Text from '../text'
 import * as Styles from '../../styles'
 import type {IconType} from '../icon.constants'
@@ -16,8 +17,8 @@ export type Props = {|
   description: string,
   header?: React.Node,
   icon?: IconType,
-  onCancel: () => void,
-  onConfirm: () => void,
+  onCancel: ?() => void,
+  onConfirm: ?() => void,
   prompt: string,
   waitingKey?: string,
 |}
@@ -28,40 +29,43 @@ class _ConfirmModal extends React.PureComponent<Props> {
     return (
       <Box style={styles.mobileFlex}>
         <Box2 direction="vertical" style={styles.container}>
-          <Box2
-            alignItems="center"
-            direction="vertical"
-            fullWidth={true}
-            fullHeight={true}
-            style={styles.inner}
-          >
-            {this.props.icon && (
-              <Icon
-                boxStyle={styles.icon}
-                color={Styles.globalColors.black_50}
-                fontSize={Styles.isMobile ? 64 : 48}
-                style={styles.icon}
-                type={iconType}
-              />
-            )}
-            {this.props.header && (
-              <Box2 alignItems="center" direction="vertical" style={styles.icon}>
-                {this.props.header}
-              </Box2>
-            )}
-            <Text center={true} style={styles.text} type="HeaderBig">
-              {this.props.prompt}
-            </Text>
-            <Text center={true} style={styles.text} type="Body">
-              {this.props.description}
-            </Text>
-            {this.props.content}
-          </Box2>
+          <ScrollView>
+            <Box2
+              alignItems="center"
+              direction="vertical"
+              fullWidth={true}
+              fullHeight={true}
+              style={styles.inner}
+            >
+              {this.props.icon && (
+                <Icon
+                  boxStyle={styles.icon}
+                  color={Styles.globalColors.black_50}
+                  fontSize={Styles.isMobile ? 64 : 48}
+                  style={styles.icon}
+                  type={iconType}
+                />
+              )}
+              {this.props.header && (
+                <Box2 alignItems="center" direction="vertical" style={styles.icon}>
+                  {this.props.header}
+                </Box2>
+              )}
+              <Text center={true} style={styles.text} type="HeaderBig">
+                {this.props.prompt}
+              </Text>
+              <Text center={true} style={styles.text} type="Body">
+                {this.props.description}
+              </Text>
+              {this.props.content}
+            </Box2>
+          </ScrollView>
         </Box2>
         <Box2 direction="horizontal" style={styles.buttonBox}>
           <ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
             {!Styles.isMobile && (
               <WaitingButton
+                disabled={!this.props.onCancel}
                 type="Dim"
                 label="Cancel"
                 onClick={this.props.onCancel}
@@ -70,6 +74,7 @@ class _ConfirmModal extends React.PureComponent<Props> {
               />
             )}
             <WaitingButton
+              disabled={!this.props.onConfirm}
               type="Danger"
               label={this.props.confirmText || 'Confirm'}
               onClick={this.props.onConfirm}
@@ -111,8 +116,8 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {
       flex: 1,
-      paddingBottom: 64,
-      paddingTop: 64,
+      paddingBottom: Styles.globalMargins.small,
+      paddingTop: Styles.globalMargins.small,
       width: '100%',
     },
   }),

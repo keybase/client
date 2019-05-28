@@ -283,8 +283,6 @@ func ProvisionNewDeviceKex(tcX *libkb.TestContext, tcY *libkb.TestContext, userX
 	}()
 
 	wg.Wait()
-
-	return
 }
 
 type TestProvisionUI struct {

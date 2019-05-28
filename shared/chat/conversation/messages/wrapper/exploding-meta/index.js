@@ -31,6 +31,7 @@ class ExplodingMeta extends React.Component<Props, State> {
   state = {mode: 'none'}
   tickerID: TickerID
   sharedTimerID: SharedTimerID
+  sharedTimerKey: string
 
   componentDidMount() {
     this._hideOrStart()
@@ -44,8 +45,9 @@ class ExplodingMeta extends React.Component<Props, State> {
     if (this.props.exploded && !prevProps.exploded) {
       this.setState({mode: 'boom'})
       SharedTimer.removeObserver(this.props.messageKey, this.sharedTimerID)
+      this.sharedTimerKey = this.props.messageKey
       this.sharedTimerID = SharedTimer.addObserver(() => this.setState({mode: 'hidden'}), {
-        key: this.props.messageKey,
+        key: this.sharedTimerKey,
         ms: animationDuration,
       })
     }
@@ -65,7 +67,7 @@ class ExplodingMeta extends React.Component<Props, State> {
 
   componentWillUnmount() {
     removeTicker(this.tickerID)
-    SharedTimer.removeObserver(this.props.messageKey, this.sharedTimerID)
+    SharedTimer.removeObserver(this.sharedTimerKey, this.sharedTimerID)
   }
 
   _updateLoop = () => {
@@ -80,6 +82,7 @@ class ExplodingMeta extends React.Component<Props, State> {
     }
     const interval = getLoopInterval(difference)
     if (interval < 1000) {
+      removeTicker(this.tickerID)
       // switch to 'seconds' mode
       this.tickerID = addTicker(this._secondLoop)
       return
