@@ -160,8 +160,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   verified: false,
 })
 
-// @ts-ignore codemod-issue
-const ConnectedEmailPhoneRow = Container.namedConnect<OwnProps, _, _, _, _>(
+const ConnectedEmailPhoneRow = Container.namedConnect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,

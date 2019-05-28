@@ -26,10 +26,6 @@ const mapDispatchToProps = (dispatch: any, ownProps: {}) => ({
     dispatch(SettingsGen.createUnfurlSettingsSaved({mode, whitelist: I.List(whitelist)})),
 })
 
-// @ts-ignore codemod-issue
-export default namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d}),
-  'Chat'
-)(Chat)
+export default namedConnect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}), 'Chat')(
+  Chat
+)

@@ -23,10 +23,4 @@ const mergeProps = (s, d, o) => ({
   ...d,
 })
 
-// @ts-ignore codemod-issue
-export default namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'Feedback'
-)(Feedback)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Feedback')(Feedback)

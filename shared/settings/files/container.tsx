@@ -15,8 +15,7 @@ const mapDispatchToProps = dispatch => ({
   onShowKextPermissionPopup: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['kextPermission']})),
 })
 
-// @ts-ignore codemod-issue
-const SettingsFiles = namedConnect<OwnProps, _, _, _, _>(
+const SettingsFiles = namedConnect(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({
