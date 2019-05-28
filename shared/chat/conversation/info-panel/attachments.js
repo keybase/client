@@ -230,7 +230,7 @@ type Doc = {|
   author: string,
   ctime: number,
   downloading: boolean,
-  message: Types.Message,
+  message?: Types.Message,
   name: string,
   progress: number,
   onDownload: null | (() => void),
@@ -266,7 +266,7 @@ class _DocViewRow extends React.Component<Doc> {
             </Kb.Text>
           </Kb.Box2>
         )}
-        {Styles.isMobile && this.props.showingMenu && (
+        {Styles.isMobile && this.props.showingMenu && item.message && (
           <MessagePopup
             attachTo={this.props.getAttachmentRef}
             message={item.message}

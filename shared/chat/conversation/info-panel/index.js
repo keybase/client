@@ -12,6 +12,51 @@ import {AttachmentTypeSelector, DocView, LinkView, MediaView} from './attachment
 
 export type Panel = 'settings' | 'members' | 'attachments'
 
+type Thumb = {|
+  ctime: number,
+  height: number,
+  isVideo: boolean,
+  onClick: () => void,
+  previewURL: string,
+  width: number,
+|}
+
+type MediaProps = {|
+  onLoadMore: null | (() => void),
+  thumbs: Array<Thumb>,
+  status: Types.AttachmentViewStatus,
+|}
+
+type Doc = {|
+  author: string,
+  ctime: number,
+  downloading: boolean,
+  name: string,
+  progress: number,
+  onDownload: null | (() => void),
+  onShowInFinder: null | (() => void),
+|}
+
+type DocProps = {|
+  docs: Array<Doc>,
+  onLoadMore: null | (() => void),
+  status: Types.AttachmentViewStatus,
+|}
+
+type Link = {|
+  author: string,
+  ctime: number,
+  snippet: string,
+  title: string,
+  url: string,
+|}
+
+type LinkProps = {|
+  links: Array<Link>,
+  onLoadMore: null | (() => void),
+  status: Types.AttachmentViewStatus,
+|}
+
 type InfoPanelProps = {|
   selectedConversationIDKey: Types.ConversationIDKey,
   participants: Array<{
@@ -27,6 +72,14 @@ type InfoPanelProps = {|
   admin: boolean,
   ignored: boolean,
   spinnerForHide: boolean,
+  selectedAttachmentView: RPCChatTypes.GalleryItemTyp,
+  selectedTab: Panel,
+
+  // Attachment stuff
+  docs: DocProps,
+  links: LinkProps,
+  media: MediaProps,
+  onAttachmentViewChange: RPCChatTypes.GalleryItemTyp => void,
 
   // Used by HeaderHoc.
   onBack: () => void,
@@ -201,6 +254,7 @@ class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
             canDeleteHistory={this.props.canDeleteHistory}
             conversationIDKey={this.props.selectedConversationIDKey}
             entityType={entityType}
+            ignored={this.props.ignored}
             key="settings"
             onHideConv={this.props.onHideConv}
             onUnhideConv={this.props.onUnhideConv}

@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
 import * as Constants from '../../../constants/chat2'
+import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import {retentionPolicies} from '../../../constants/teams'
 import {Box} from '../../../common-adapters'
 import {globalStyles} from '../../../styles'
@@ -63,10 +64,97 @@ const provider = Sb.createPropProviderWithCommon({
   RetentionPicker: retentionPickerPropSelector,
 })
 
+const makeThumbs = () => {
+  const thumb = {
+    ctime: 1542241021655,
+    height: 320,
+    isVideo: false,
+    onClick: Sb.action('onMediaClick'),
+    previewURL: require('../../../images/mock/wsj_image.jpg').default,
+    width: 180,
+  }
+  const l = []
+  for (let i = 0; i < 60; i++) {
+    l.push(thumb)
+  }
+  return l
+}
+
+const makeDocs = () => {
+  const doc = {
+    author: 'mikem',
+    ctime: 1542241021655,
+    downloading: false,
+    name: 'End of the Year Report',
+    onDownload: Sb.action('onDownload'),
+    onShowInFinder: null,
+    progress: 0,
+  }
+  const downloadingDoc = {
+    author: 'mikem',
+    ctime: 1542241021655,
+    downloading: true,
+    name: 'End of the Year Report',
+    onDownload: Sb.action('onDownload'),
+    onShowInFinder: null,
+    progress: 0.4,
+  }
+  const downloadedDoc = {
+    author: 'mikem',
+    ctime: 1542241021655,
+    downloading: false,
+    name: 'End of the Year Report',
+    onDownload: Sb.action('onDownload'),
+    onShowInFinder: Sb.action('onShowInFinder'),
+    progress: 0,
+  }
+  const docs = []
+  docs.push(doc)
+  docs.push(downloadingDoc)
+  docs.push(downloadedDoc)
+  return docs
+}
+
+const makeLinks = () => {
+  const bareLink = {
+    author: 'mikem',
+    ctime: 1542241021655,
+    snippet:
+      'TestImplicitTeamResetAll` flake known? $>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6Imh0dHBzOi8vY2kua2V5YmEuc2Uvam9iL2NsaWVudC9qb2IvUFItMTc2ODgvNy9leGVjdXRpb24vbm9kZS80NzAvbG9nLz9jb25zb2xlRnVsbCIsInVybCI6Imh0dHBzOi8vY2kua2V5YmEuc2Uvam9iL2NsaWVudC9qb2IvUFItMTc2ODgvNy9leGVjdXRpb24vbm9kZS80NzAvbG9nLz9jb25zb2xlRnVsbCJ9fQ==$<kb$',
+  }
+  const unfurlLink = {
+    author: 'mikem',
+    ctime: 1542241021655,
+    snippet:
+      'TestImplicitTeamResetAll` flake known? $>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6Imh0dHBzOi8vY2kua2V5YmEuc2Uvam9iL2NsaWVudC9qb2IvUFItMTc2ODgvNy9leGVjdXRpb24vbm9kZS80NzAvbG9nLz9jb25zb2xlRnVsbCIsInVybCI6Imh0dHBzOi8vY2kua2V5YmEuc2Uvam9iL2NsaWVudC9qb2IvUFItMTc2ODgvNy9leGVjdXRpb24vbm9kZS80NzAvbG9nLz9jb25zb2xlRnVsbCJ9fQ==$<kb$',
+    title: 'Google this failure',
+    url: 'https://www.google.com',
+  }
+  const links = []
+  links.push(bareLink)
+  links.push(unfurlLink)
+  return links
+}
+
 const commonProps = {
   canDeleteHistory: true,
   canSetMinWriterRole: false,
+  docs: {
+    docs: makeDocs(),
+    onLoadMore: Sb.action('onLoadMore'),
+    status: 'success',
+  },
   ignored: false,
+  links: {
+    links: makeLinks(),
+    onLoadMore: Sb.action('onLoadMore'),
+    status: 'success',
+  },
+  media: {
+    onLoadMore: Sb.action('onLoadMore'),
+    status: 'success',
+    thumbs: makeThumbs(),
+  },
   onBack: Sb.unexpected('onBack'),
   onHideConv: Sb.action(`onHideConv`),
   onShowProfile: (username: string) => Sb.action(`onShowProfile(${username})`),
@@ -103,14 +191,16 @@ const conversationProps = {
   channelname: null,
   description: "You shouldn't be seeing this",
   isPreview: false,
+  onAttachmentViewChange: Sb.action('onAttachmentViewChange'),
   onEditChannel: Sb.unexpected('onEditChannel'),
   onJoinChannel: Sb.unexpected('onJoinChannel'),
-
   onLeaveConversation: Sb.unexpected('onLeaveConversation'),
+  onSelectTab: Sb.action('onSelectTab'),
   onShowBlockConversationDialog: Sb.action('onShowBlockConversationDialog'),
   onShowClearConversationDialog: Sb.action('onShowClearConversationDialog'),
-
   onShowNewTeamDialog: Sb.action('onShowNewTeamDialog'),
+  selectedAttachmentView: RPCChatTypes.localGalleryItemTyp.media,
+  selectedTab: 'attachments',
   smallTeam: false,
   teamname: null,
 }
@@ -120,10 +210,14 @@ const teamCommonProps = {
   canEditChannel: true,
   canSetRetention: true,
   channelname: 'somechannel',
+  onAttachmentViewChange: Sb.action('onAttachmentViewChange'),
+  onSelectTab: Sb.action('onSelectTab'),
   onShowBlockConversationDialog: Sb.unexpected('onShowBlockConversationDialog'),
 
   onShowClearConversationDialog: Sb.unexpected('onShowClearConversationDialog'),
   onShowNewTeamDialog: Sb.unexpected('onShowNewTeamDialog'),
+  selectedAttachmentView: RPCChatTypes.localGalleryItemTyp.media,
+  selectedTab: 'settings',
   teamname: 'someteam',
 }
 
@@ -131,10 +225,9 @@ const smallTeamProps = {
   ...teamCommonProps,
   admin: false,
   channelname: 'general',
-  description: "You shouldn't be seeing this",
+  description: 'You should be seeing this',
   isPreview: false,
   onEditChannel: Sb.unexpected('onEditChannel'),
-
   onJoinChannel: Sb.unexpected('onJoinChannel'),
   onLeaveConversation: Sb.unexpected('onLeaveConversation'),
   smallTeam: true,
@@ -223,14 +316,33 @@ const load = () => {
     .addDecorator(story => (
       <Box style={{...globalStyles.flexBoxColumn, height: 500, width: 320}}>{story()}</Box>
     ))
-    .add('Adhoc conv', () => <InfoPanel {...conversationProps} />)
-    .add('Adhoc conv (hidden)', () => <InfoPanel {...conversationProps} ignored={true} />)
-    .add('Adhoc conv (spinning hide)', () => <InfoPanel {...conversationProps} spinnerForHide={true} />)
+    .add('Adhoc conv (settings)', () => <InfoPanel {...conversationProps} selectedTab="settings" />)
+    .add('Adhoc conv (settings/hidden)', () => (
+      <InfoPanel {...conversationProps} selectedTab="settings" ignored={true} />
+    ))
+    .add('Adhoc conv (settings/spinning hide)', () => (
+      <InfoPanel {...conversationProps} selectedTab="settings" spinnerForHide={true} />
+    ))
     .add('Small team', () => <InfoPanel {...smallTeamProps} />)
     .add('Small team (hidden)', () => <InfoPanel {...smallTeamProps} ignored={true} />)
-    .add('Big team lotsa users', () => <InfoPanel {...bigTeamLotsaUsersCommonProps} />)
-    .add('Big team preview', () => <InfoPanel {...bigTeamPreviewProps} />)
-    .add('Big team no preview', () => <InfoPanel {...bigTeamNoPreviewProps} />)
+    .add('Small team (attach/media)', () => <InfoPanel {...smallTeamProps} selectedTab="attachments" />)
+    .add('Small team (attach/docs)', () => (
+      <InfoPanel
+        {...smallTeamProps}
+        selectedAttachmentView={RPCChatTypes.localGalleryItemTyp.doc}
+        selectedTab="attachments"
+      />
+    ))
+    .add('Small team (attach/links)', () => (
+      <InfoPanel
+        {...smallTeamProps}
+        selectedAttachmentView={RPCChatTypes.localGalleryItemTyp.link}
+        selectedTab="attachments"
+      />
+    ))
+    .add('Big team lotsa users', () => <InfoPanel {...bigTeamLotsaUsersCommonProps} selectedTab="members" />)
+    .add('Big team preview', () => <InfoPanel {...bigTeamPreviewProps} selectedTab="members" />)
+    .add('Big team no preview', () => <InfoPanel {...bigTeamNoPreviewProps} selectedTab="members" />)
     .add('Hide/unhide spinner layout', hideSpinnerLayout)
 }
 
