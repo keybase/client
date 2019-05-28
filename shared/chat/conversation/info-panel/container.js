@@ -177,17 +177,25 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
     stateProps.selectedAttachmentView === RPCChatTypes.localGalleryItemTyp.link
       ? {
           links: stateProps._attachmentInfo.messages.reduce((l, m) => {
-            m.unfurls.toList().map(u => {
-              if (u.unfurl.unfurlType === RPCChatTypes.unfurlUnfurlType.generic && u.unfurl.generic) {
-                l.push({
-                  author: m.author,
-                  ctime: m.timestamp,
-                  snippet: m.bodySummary.stringValue(),
-                  title: u.unfurl.generic.title,
-                  url: u.unfurl.generic.url,
-                })
-              }
-            })
+            if (!m.unfurls.size) {
+              l.push({
+                author: m.author,
+                ctime: m.timestamp,
+                snippet: m.decoratedText.stringValue(),
+              })
+            } else {
+              m.unfurls.toList().map(u => {
+                if (u.unfurl.unfurlType === RPCChatTypes.unfurlUnfurlType.generic && u.unfurl.generic) {
+                  l.push({
+                    author: m.author,
+                    ctime: m.timestamp,
+                    snippet: m.decoratedText.stringValue(),
+                    title: u.unfurl.generic.title,
+                    url: u.unfurl.generic.url,
+                  })
+                }
+              })
+            }
             return l
           }, []),
           onLoadMore: stateProps._fromMsgID

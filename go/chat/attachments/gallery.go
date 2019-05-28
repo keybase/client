@@ -7,14 +7,16 @@ import (
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/xurls"
 	"golang.org/x/net/context"
 )
 
 type NextMessageOptions struct {
-	BackInTime   bool
-	MessageTypes []chat1.MessageType
-	AssetTypes   []chat1.AssetMetadataType
-	UnfurlTypes  []chat1.UnfurlType
+	BackInTime  bool
+	MessageType chat1.MessageType
+	AssetTypes  []chat1.AssetMetadataType
+	UnfurlTypes []chat1.UnfurlType
+	FilterLinks bool
 }
 
 type Gallery struct {
@@ -69,6 +71,27 @@ func (g *Gallery) eligibleNextMessage(msg chat1.MessageUnboxed, typMap map[chat1
 	return true
 }
 
+var linkRegexp = xurls.Strict()
+
+func (g *Gallery) searchForLinks(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	num int, uiCh chan chat1.UIMessage) (res []chat1.MessageUnboxed, last bool, err error) {
+	hitCh := make(chan chat1.ChatSearchHit)
+	doneCh := make(chan struct{})
+	defer func() { <-doneCh }()
+	go func() {
+		for hit := range hitCh {
+			uiCh <- hit.HitMessage
+		}
+		close(doneCh)
+	}()
+	if _, res, err = g.G().RegexpSearcher.Search(ctx, uid, convID, linkRegexp, hitCh, chat1.SearchOpts{
+		MaxHits: num,
+	}); err != nil {
+		return res, false, err
+	}
+	return res, len(res) == 0, nil
+}
+
 func (g *Gallery) NextMessage(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msgID chat1.MessageID, opts NextMessageOptions) (res *chat1.MessageUnboxed, last bool, err error) {
 	msgs, last, err := g.NextMessages(ctx, uid, convID, msgID, 1, opts, nil)
@@ -86,9 +109,7 @@ func (g *Gallery) makeMaps(opts NextMessageOptions) (typMap map[chat1.MessageTyp
 	typMap = make(map[chat1.MessageType]bool)
 	assetMap = make(map[chat1.AssetMetadataType]bool)
 	unfurlMap = make(map[chat1.UnfurlType]bool)
-	for _, typ := range opts.MessageTypes {
-		typMap[typ] = true
-	}
+	typMap[opts.MessageType] = true
 	for _, atyp := range opts.AssetTypes {
 		assetMap[atyp] = true
 	}
@@ -112,7 +133,7 @@ func (g *Gallery) getUnfurlHost(ctx context.Context, uid gregor1.UID, convID cha
 
 func (g *Gallery) NextMessages(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msgID chat1.MessageID, num int, opts NextMessageOptions,
-	uiCh chan chat1.MessageUnboxed) (res []chat1.MessageUnboxed, last bool, err error) {
+	uiCh chan chat1.UIMessage) (res []chat1.MessageUnboxed, last bool, err error) {
 	defer g.Trace(ctx, func() error { return err }, "NextMessages")()
 	defer func() {
 		if uiCh != nil {
@@ -126,8 +147,10 @@ func (g *Gallery) NextMessages(ctx context.Context, uid gregor1.UID,
 	if opts.BackInTime {
 		mode = chat1.MessageIDControlMode_OLDERMESSAGES
 	}
-	if len(opts.MessageTypes) == 0 {
-		opts.MessageTypes = []chat1.MessageType{chat1.MessageType_ATTACHMENT}
+	if opts.MessageType == chat1.MessageType_NONE {
+		opts.MessageType = chat1.MessageType_ATTACHMENT
+	} else if opts.MessageType == chat1.MessageType_TEXT && opts.FilterLinks && uiCh != nil {
+		return g.searchForLinks(ctx, uid, convID, num, uiCh)
 	}
 	typMap, assetMap, unfurlMap := g.makeMaps(opts)
 	pagination := utils.MessageIDControlToPagination(ctx, g.DebugLabeler, &chat1.MessageIDControl{
@@ -172,7 +195,7 @@ func (g *Gallery) NextMessages(ctx context.Context, uid gregor1.UID,
 		g.Debug(ctx, "NextMessage: starting scan: p: %s pivot: %d", pagination, pivot)
 		tv, err := g.G().ConvSource.Pull(ctx, convID, uid, chat1.GetThreadReason_GENERAL,
 			&chat1.GetThreadQuery{
-				MessageTypes: opts.MessageTypes,
+				MessageTypes: []chat1.MessageType{opts.MessageType},
 			}, pagination)
 		if err != nil {
 			return res, false, err
@@ -187,7 +210,7 @@ func (g *Gallery) NextMessages(ctx context.Context, uid gregor1.UID,
 			}
 			res = append(res, m)
 			if uiCh != nil {
-				uiCh <- m
+				uiCh <- utils.PresentMessageUnboxed(ctx, g.G(), m, uid, convID)
 			}
 			if len(res) >= num {
 				return res, false, nil

@@ -2342,7 +2342,7 @@ func (h *Server) SearchRegexp(ctx context.Context, arg chat1.SearchRegexpArg) (r
 		}
 		close(ch)
 	}()
-	hits, err := h.G().RegexpSearcher.Search(ctx, uid, arg.ConvID, re, uiCh, opts)
+	hits, _, err := h.G().RegexpSearcher.Search(ctx, uid, arg.ConvID, re, uiCh, opts)
 	if err != nil {
 		return res, err
 	}
@@ -2415,7 +2415,7 @@ func (h *Server) delegateInboxSearch(ctx context.Context, uid gregor1.UID, query
 			}
 			close(ch)
 		}()
-		hits, err := h.G().RegexpSearcher.Search(ctx, uid, conv.GetConvID(), re, uiCh, opts)
+		hits, _, err := h.G().RegexpSearcher.Search(ctx, uid, conv.GetConvID(), re, uiCh, opts)
 		if err != nil {
 			h.Debug(ctx, "delegateInboxSearch: failed to search conv: %s", err)
 			continue
@@ -2914,14 +2914,14 @@ func (h *Server) LoadGallery(ctx context.Context, arg chat1.LoadGalleryArg) (res
 	opts.BackInTime = true
 	switch arg.Typ {
 	case chat1.GalleryItemTyp_MEDIA:
-		opts.MessageTypes = []chat1.MessageType{chat1.MessageType_ATTACHMENT}
+		opts.MessageType = chat1.MessageType_ATTACHMENT
 		opts.AssetTypes = []chat1.AssetMetadataType{chat1.AssetMetadataType_IMAGE,
 			chat1.AssetMetadataType_VIDEO}
 	case chat1.GalleryItemTyp_LINK:
-		opts.MessageTypes = []chat1.MessageType{chat1.MessageType_UNFURL}
-		opts.UnfurlTypes = []chat1.UnfurlType{chat1.UnfurlType_GENERIC}
+		opts.MessageType = chat1.MessageType_TEXT
+		opts.FilterLinks = true
 	case chat1.GalleryItemTyp_DOC:
-		opts.MessageTypes = []chat1.MessageType{chat1.MessageType_ATTACHMENT}
+		opts.MessageType = chat1.MessageType_ATTACHMENT
 		opts.AssetTypes = []chat1.AssetMetadataType{chat1.AssetMetadataType_NONE}
 	default:
 		return res, errors.New("invalid gallery type")
@@ -2937,10 +2937,10 @@ func (h *Server) LoadGallery(ctx context.Context, arg chat1.LoadGalleryArg) (res
 		msgID = conv.Conv.ReaderInfo.MaxMsgid + 1
 	}
 
-	hitCh := make(chan chat1.MessageUnboxed)
+	hitCh := make(chan chat1.UIMessage)
 	go func(ctx context.Context) {
 		for msg := range hitCh {
-			chatUI.ChatLoadGalleryHit(ctx, utils.PresentMessageUnboxed(ctx, h.G(), msg, uid, convID))
+			chatUI.ChatLoadGalleryHit(ctx, msg)
 		}
 	}(ctx)
 	gallery := attachments.NewGallery(h.G())

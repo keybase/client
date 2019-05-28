@@ -34,7 +34,7 @@ func (s *RegexpSearcher) SetPageSize(pageSize int) {
 }
 
 func (s *RegexpSearcher) Search(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	queryRe *regexp.Regexp, uiCh chan chat1.ChatSearchHit, opts chat1.SearchOpts) (hits []chat1.ChatSearchHit, err error) {
+	queryRe *regexp.Regexp, uiCh chan chat1.ChatSearchHit, opts chat1.SearchOpts) (hits []chat1.ChatSearchHit, msgHits []chat1.MessageUnboxed, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Search")()
 	defer func() {
 		if uiCh != nil {
@@ -145,7 +145,7 @@ func (s *RegexpSearcher) Search(ctx context.Context, uid gregor1.UID, convID cha
 		if nextPage == nil {
 			curPage, err = getNextPage()
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			} else if curPage == nil {
 				break
 			}
@@ -170,7 +170,7 @@ func (s *RegexpSearcher) Search(ctx context.Context, uid gregor1.UID, convID cha
 				afterMsgs := getAfterMsgs(i, prevPage, curPage)
 				newThread, beforeMsgs, err := getBeforeMsgs(i, curPage, nextPage)
 				if err != nil {
-					return nil, err
+					return nil, nil, err
 				}
 				nextPage = newThread
 				searchHit := chat1.ChatSearchHit{
@@ -183,16 +183,17 @@ func (s *RegexpSearcher) Search(ctx context.Context, uid gregor1.UID, convID cha
 					// Stream search hits back to the UI channel
 					select {
 					case <-ctx.Done():
-						return nil, ctx.Err()
+						return nil, nil, ctx.Err()
 					case uiCh <- searchHit:
 					}
 				}
 				hits = append(hits, searchHit)
+				msgHits = append(msgHits, msg)
 			}
 			if numHits >= maxHits || numMessages >= maxMessages {
 				break
 			}
 		}
 	}
-	return hits, nil
+	return hits, msgHits, nil
 }

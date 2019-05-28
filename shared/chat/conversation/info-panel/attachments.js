@@ -316,8 +316,8 @@ type Link = {|
   author: string,
   ctime: number,
   snippet: string,
-  title: string,
-  url: string,
+  title?: string,
+  url?: string,
 |}
 
 export class LinkView {
@@ -335,19 +335,29 @@ export class LinkView {
   }
   _renderItem = ({item}) => {
     return (
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.linkContainer}>
-        <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
-          <Kb.NameWithIcon avatarSize={32} colorFollowing={true} username={item.author} horizontal={true} />
-          <Kb.Text type="BodyTiny" style={styles.linkTime}>
-            {formatTimeForChat(item.ctime)}
-          </Kb.Text>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.linkContainer} gap="tiny">
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="xxtiny">
+          <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
+            <Kb.NameWithIcon avatarSize={32} colorFollowing={true} username={item.author} horizontal={true} />
+            <Kb.Text type="BodyTiny" style={styles.linkTime}>
+              {formatTimeForChat(item.ctime)}
+            </Kb.Text>
+          </Kb.Box2>
+          <Kb.Markdown
+            serviceOnly={true}
+            smallStandaloneEmoji={true}
+            selectable={true}
+            styleOverride={linkStyleOverride}
+            style={styles.linkStyle}
+          >
+            {item.snippet}
+          </Kb.Markdown>
         </Kb.Box2>
-        <Kb.Text type="BodySmall" lineClamp={2}>
-          {item.snippet}
-        </Kb.Text>
-        <Kb.Text type="BodySmallPrimaryLink" onClickURL={item.url}>
-          {item.title}
-        </Kb.Text>
+        {!!item.title && (
+          <Kb.Text type="BodySmallPrimaryLink" onClickURL={item.url}>
+            {item.title}
+          </Kb.Text>
+        )}
         <Kb.Divider />
       </Kb.Box2>
     )
@@ -456,6 +466,17 @@ const styles = Styles.styleSheetCreate({
   linkContainer: {
     padding: Styles.globalMargins.tiny,
   },
+  linkStyle: Styles.platformStyles({
+    common: {
+      color: Styles.globalColors.black_50,
+      fontSize: 13,
+    },
+    isElectron: {
+      lineHeight: 17,
+      whiteSpace: 'pre-wrap',
+      wordBreak: 'break-word',
+    },
+  }),
   linkTime: {
     alignSelf: 'center',
   },
@@ -523,3 +544,7 @@ const styles = Styles.styleSheetCreate({
     position: 'relative',
   },
 })
+
+const linkStyleOverride = {
+  link: Styles.collapseStyles([styles.linkStyle, {color: Styles.globalColors.blue}]),
+}

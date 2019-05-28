@@ -113,7 +113,7 @@ type MessageDeliverer interface {
 
 type RegexpSearcher interface {
 	Search(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-		re *regexp.Regexp, uiCh chan chat1.ChatSearchHit, opts chat1.SearchOpts) ([]chat1.ChatSearchHit, error)
+		re *regexp.Regexp, uiCh chan chat1.ChatSearchHit, opts chat1.SearchOpts) ([]chat1.ChatSearchHit, []chat1.MessageUnboxed, error)
 }
 
 type Indexer interface {

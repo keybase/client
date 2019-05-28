@@ -6,7 +6,7 @@ import Text from '../text'
 import logger from '../../logger'
 import type {Props as MarkdownProps} from '.'
 import {emojiIndexByChar, emojiRegex, commonTlds} from './emoji-gen'
-import {reactOutput, previewOutput, bigEmojiOutput, markdownStyles} from './react'
+import {reactOutput, previewOutput, bigEmojiOutput, markdownStyles, serviceOnlyOutput} from './react'
 
 function createKbfsPathRegex(): ?RegExp {
   const username = `(?:[a-zA-Z0-9]+_?)+` // from go/kbun/username.go
@@ -308,7 +308,9 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
         styleOverride,
       }
 
-      output = this.props.preview
+      output = this.props.serviceOnly
+        ? serviceOnlyOutput(parseTree, state)
+        : this.props.preview
         ? previewOutput(parseTree)
         : isAllEmoji(parseTree) && !this.props.smallStandaloneEmoji
         ? bigEmojiOutput(parseTree, state)
