@@ -84,11 +84,11 @@ export type TlfSyncPartial = I.RecordOf<_TlfSyncPartial>
 export type TlfSyncConfig = TlfSyncEnabled | TlfSyncDisabled | TlfSyncPartial
 
 export const enum ConflictState {
+  None,
   InConflictStuck,
   InCondlictNotStuck,
   InManualResolution,
   Finishing,
-  None,
 }
 
 export type _TlfConflict = {
@@ -315,15 +315,11 @@ export type PathUserSetting = I.RecordOf<_PathUserSetting>
 
 export type LocalPath = string
 
-export const enum DownloadIntentMobile {
+export const enum DownloadIntent {
+  None,
   CameraRoll,
   Share,
 }
-const enum DownloadIntentEnum {
-  None,
-}
-export const DownloadIntentNone = DownloadIntentEnum.None
-export type DownloadIntent = DownloadIntentEnum | DownloadIntentMobile
 
 export type _DownloadMeta = {
   entryType: PathType
@@ -411,9 +407,9 @@ export type PathItems = I.Map<Path, PathItem>
 export type Edits = I.Map<EditID, Edit>
 
 export const enum DestinationPickerSource {
+  None,
   MoveOrCopy,
   IncomingShare,
-  None,
 }
 
 export type _MoveOrCopySource = {
@@ -842,7 +838,7 @@ export const enum ResetBannerNoOthersType {
 }
 export type ResetBannerType = ResetBannerNoOthersType | number
 export const enum MainBannerType {
+  None,
   Offline,
   OutOfSpace,
-  None,
 }

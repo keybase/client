@@ -376,8 +376,8 @@ export const getDownloadIntentFromAction = (
   action.type === FsGen.download
     ? Types.DownloadIntentNone
     : action.type === FsGen.shareNative
-    ? Types.DownloadIntentMobile.Share
-    : Types.DownloadIntentMobile.CameraRoll
+    ? Types.DownloadIntent.Share
+    : Types.DownloadIntent.CameraRoll
 
 export const downloadFilePathFromPath = (p: Types.Path): Promise<Types.LocalPath> =>
   downloadFilePath(Types.getPathName(p))
@@ -861,9 +861,9 @@ export const getChatTarget = (path: Types.Path, me: string): string => {
 
 const humanizeDownloadIntent = (intent: Types.DownloadIntent) => {
   switch (intent) {
-    case Types.DownloadIntentMobile.CameraRoll:
+    case Types.DownloadIntent.CameraRoll:
       return 'save'
-    case Types.DownloadIntentMobile.Share:
+    case Types.DownloadIntent.Share:
       return 'prepare to share'
     case Types.DownloadIntentNone:
       return 'download'
