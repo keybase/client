@@ -810,8 +810,8 @@ func (s *Server) ApprovePayURILocal(ctx context.Context, arg stellar1.ApprovePay
 	return res.TxID, nil
 }
 
-func (s *Server) GetExchangeUrlsLocal(ctx context.Context, sessionID int) (res []stellar1.ExchangeUrl, err error) {
-	// Pull back all of the external_urls, but only look at the exchange_urls.
+func (s *Server) GetPartnerUrlsLocal(ctx context.Context, sessionID int) (res []stellar1.PartnerUrl, err error) {
+	// Pull back all of the external_urls, but only look at the partner_urls.
 	// To ensure we have flexibility in the future, only type check the objects
 	// under the key we care about here.
 	mctx := libkb.NewMetaContext(ctx, s.G())
@@ -828,12 +828,12 @@ func (s *Server) GetExchangeUrlsLocal(ctx context.Context, sessionID int) (res [
 	if !ok {
 		return nil, fmt.Errorf("no external URLs to parse")
 	}
-	for _, asInterface := range externalURLGroups[libkb.ExternalURLsStellarExchanges] {
+	for _, asInterface := range externalURLGroups[libkb.ExternalURLsStellarPartners] {
 		asData, err := json.Marshal(asInterface)
 		if err != nil {
 			return nil, err
 		}
-		var s stellar1.ExchangeUrl
+		var s stellar1.PartnerUrl
 		err = json.Unmarshal(asData, &s)
 		if err != nil {
 			return nil, err

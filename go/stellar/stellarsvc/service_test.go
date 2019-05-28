@@ -1269,18 +1269,18 @@ func (dm DummyMerkleStore) GetLatestEntryWithKnown(m libkb.MetaContext, mskh *ke
 
 var _ libkb.MerkleStore = (*DummyMerkleStore)(nil)
 
-func TestGetExchangeUrlsLocal(t *testing.T) {
+func TestGetPartnerUrlsLocal(t *testing.T) {
 	// inject some fake data into the merkle store hanging off G
 	// and then verify that the stellar exchange urls are extracted correctly
 	tc, cleanup := setupMobileTest(t)
 	defer cleanup()
 	ctx := context.Background()
 	g := tc.G
-	firstExchangeURL := "billtop.com/%{accountID}"
-	secondExchangeURL := "https://bitwat.com/keybase"
+	firstPartnerURL := "billtop.com/%{accountID}"
+	secondPartnerURL := "https://bitwat.com/keybase"
 	jsonEntry := json.RawMessage(fmt.Sprintf(`
 	{"external_urls":{
-		"stellar_exchanges":[
+		"stellar_partners":[
 			{"admin_only":false,"description":"buy from billtop","extra":"{\"superfun\":true}","icon_filename":"first.png","title":"BillTop","url":"%s"}
 			, {"admin_only":true,"description":"buy from bitwat","extra":"{\"superfun\":false}","icon_filename":"second.png","title":"BitWat","url":"%s"}
 		],
@@ -1288,7 +1288,7 @@ func TestGetExchangeUrlsLocal(t *testing.T) {
 			{"something":"else entirely","url":"dunno.pizza/txID"}
 		]
 	}}
-	`, firstExchangeURL, secondExchangeURL))
+	`, firstPartnerURL, secondPartnerURL))
 	injectedEntry := keybase1.MerkleStoreEntry{
 		Hash:  "000this-is-tested-elsewhere000",
 		Entry: keybase1.MerkleStoreEntryString(jsonEntry),
@@ -1296,13 +1296,13 @@ func TestGetExchangeUrlsLocal(t *testing.T) {
 	injectedStore := DummyMerkleStore{injectedEntry}
 	g.SetExternalURLStore(injectedStore)
 
-	res, err := tc.Srv.GetExchangeUrlsLocal(ctx, 0)
+	res, err := tc.Srv.GetPartnerUrlsLocal(ctx, 0)
 	require.NoError(t, err)
 	require.Equal(t, len(res), 2)
-	require.Equal(t, res[0].Url, firstExchangeURL)
+	require.Equal(t, res[0].Url, firstPartnerURL)
 	require.Equal(t, res[0].Extra, `{"superfun":true}`)
 	require.False(t, res[0].AdminOnly)
-	require.Equal(t, res[1].Url, secondExchangeURL)
+	require.Equal(t, res[1].Url, secondPartnerURL)
 	require.Equal(t, res[1].Extra, `{"superfun":false}`)
 	require.True(t, res[1].AdminOnly)
 }

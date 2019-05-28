@@ -720,8 +720,8 @@ func (s *stellarRetryClient) ValidateStellarURILocal(ctx context.Context, arg st
 	return s.cli.ValidateStellarURILocal(ctx, arg)
 }
 
-func (s *stellarRetryClient) GetExchangeUrlsLocal(ctx context.Context, sessionID int) ([]stellar1.ExchangeUrl, error) {
-	return s.cli.GetExchangeUrlsLocal(ctx, sessionID)
+func (s *stellarRetryClient) GetPartnerUrlsLocal(ctx context.Context, sessionID int) ([]stellar1.PartnerUrl, error) {
+	return s.cli.GetPartnerUrlsLocal(ctx, sessionID)
 }
 
 var _ stellar1.LocalInterface = (*stellarRetryClient)(nil)

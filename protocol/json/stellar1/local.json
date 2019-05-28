@@ -1315,7 +1315,7 @@
     },
     {
       "type": "record",
-      "name": "ExchangeUrl",
+      "name": "PartnerUrl",
       "fields": [
         {
           "type": "string",
@@ -2543,7 +2543,7 @@
       ],
       "response": "TransactionID"
     },
-    "getExchangeUrlsLocal": {
+    "getPartnerUrlsLocal": {
       "request": [
         {
           "name": "sessionID",
@@ -2552,7 +2552,7 @@
       ],
       "response": {
         "type": "array",
-        "items": "ExchangeUrl"
+        "items": "PartnerUrl"
       }
     }
   },

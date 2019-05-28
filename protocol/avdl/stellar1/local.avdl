@@ -734,7 +734,7 @@ protocol local {
   TransactionID approvePayURILocal(int sessionID, string inputURI, string amount, boolean fromCLI);
   TransactionID approvePathURILocal(int sessionID, string inputURI, PaymentPath fullPath, boolean fromCLI);
 
-  record ExchangeUrl {
+  record PartnerUrl {
     string url;
     string title;
     string description;
@@ -745,5 +745,5 @@ protocol local {
     string extra; // extra json tbd
   }
 
-  array<ExchangeUrl> getExchangeUrlsLocal(int sessionID);
+  array<PartnerUrl> getPartnerUrlsLocal(int sessionID);
 }
