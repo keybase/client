@@ -1,4 +1,3 @@
-// @flow
 import * as ConfigGen from '../config-gen'
 import * as FsGen from '../fs-gen'
 import * as Saga from '../../util/saga'
@@ -9,7 +8,7 @@ import * as Constants from '../../constants/fs'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import * as Tabs from '../../constants/tabs'
 import fs from 'fs'
-import type {TypedState} from '../../constants/reducer'
+import {TypedState} from '../../constants/reducer'
 import {fileUIName, isWindows, isLinux} from '../../constants/platform'
 import logger from '../../logger'
 import {spawn, execFile, exec} from 'child_process'
@@ -116,8 +115,9 @@ const openPathInSystemFileManager = (state, action) =>
         .then(mountLocation =>
           _openPathInSystemFileManagerPromise(
             _rebaseKbfsPathToMountLocation(action.payload.path, mountLocation),
-            !['in-group-tlf', 'in-team-tlf'].includes(Constants.parsePath(action.payload.path).kind) ||
-              state.fs.pathItems.get(action.payload.path, Constants.unknownPathItem).type === 'folder'
+            ![Types.PathKind.InGroupTlf, Types.PathKind.InTeamTlf].includes(
+              Constants.parsePath(action.payload.path).kind
+            ) || state.fs.pathItems.get(action.payload.path, Constants.unknownPathItem).type === 'folder'
           )
         )
         .catch(err => {
@@ -157,10 +157,10 @@ const fuseStatusToUninstallExecPath = isWindows
         status.status.fields.find(({key}) => key === 'uninstallString')
       return field && field.value
     }
-  : (status: ?RPCTypes.FuseStatus) => null
+  : (status: RPCTypes.FuseStatus | null) => null
 
 const fuseStatusToActions = (previousStatusType: 'enabled' | 'disabled' | 'unknown') => (
-  status: ?RPCTypes.FuseStatus
+  status: RPCTypes.FuseStatus | null
 ) => {
   if (!status) {
     return FsGen.createSetDriverStatus({driverStatus: Constants.defaultDriverStatus})
@@ -342,6 +342,7 @@ const openAndUploadToPromise = (state: TypedState, action: FsGen.OpenAndUploadPa
     SafeElectron.getDialog().showOpenDialog(
       SafeElectron.getCurrentWindowFromRemote(),
       {
+        // @ts-ignore
         properties: [
           'multiSelections',
           ...(['file', 'both'].includes(action.payload.type) ? ['openFile'] : []),
@@ -349,12 +350,12 @@ const openAndUploadToPromise = (state: TypedState, action: FsGen.OpenAndUploadPa
         ],
         title: 'Select a file or folder to upload',
       },
-      filePaths => resolve(filePaths || [])
+      (filePaths: Array<string>) => resolve(filePaths || [])
     )
   )
 
 const openAndUpload = (state, action) =>
-  openAndUploadToPromise(state, action).then(localPaths =>
+  openAndUploadToPromise(state, action).then((localPaths: Array<string>) =>
     localPaths.map(localPath => FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
   )
 

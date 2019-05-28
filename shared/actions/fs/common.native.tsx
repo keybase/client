@@ -1,17 +1,19 @@
-// @flow
 import logger from '../../logger'
 import * as FsGen from '../fs-gen'
+import * as Types from '../../constants/types/fs'
 import * as Saga from '../../util/saga'
 import * as Flow from '../../util/flow'
-import type {TypedState} from '../../constants/reducer'
-import {showImagePicker} from 'react-native-image-picker'
+import {TypedState} from '../../constants/reducer'
+import ImagePicker from 'react-native-image-picker'
 import {isIOS} from '../../constants/platform'
 import {makeRetriableErrorHandler} from './shared'
+// @ts-ignore
 import {saveAttachmentDialog, showShareActionSheetFromURL} from '../platform-specific'
+import {types} from '@babel/core'
 
 const pickAndUploadToPromise = (state: TypedState, action: FsGen.PickAndUploadPayload): Promise<any> =>
   new Promise((resolve, reject) =>
-    showImagePicker(
+    ImagePicker.showImagePicker(
       {
         mediaType: action.payload.type,
         quality: 1,
@@ -21,14 +23,14 @@ const pickAndUploadToPromise = (state: TypedState, action: FsGen.PickAndUploadPa
         response.didCancel
           ? resolve()
           : response.error
-            ? reject(response.error)
-            : isIOS
-              ? response.uri
-                ? resolve(response.uri.replace('file://', ''))
-                : reject(new Error('uri field is missing from response'))
-              : response.path
-                ? resolve(response.path)
-                : reject(new Error('path field is missing from response'))
+          ? reject(response.error)
+          : isIOS
+          ? response.uri
+            ? resolve(response.uri.replace('file://', ''))
+            : reject(new Error('uri field is missing from response'))
+          : response.path
+          ? resolve(response.path)
+          : reject(new Error('path field is missing from response'))
     )
   )
     .then(localPath => localPath && FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
@@ -41,17 +43,17 @@ const downloadSuccess = (state, action) => {
     logger.warn('missing download key', key)
     return
   }
-  const {intent, localPath} = download.meta
+  const {intent, localPath} = download.meta as Types.DownloadMeta
   switch (intent) {
-    case 'camera-roll':
+    case Types.DownloadIntent.CameraRoll:
       return saveAttachmentDialog(localPath)
         .then(() => FsGen.createDismissDownload({key}))
         .catch(makeRetriableErrorHandler(action))
-    case 'share':
+    case Types.DownloadIntent.Share:
       return showShareActionSheetFromURL({mimeType, url: localPath})
         .then(() => FsGen.createDismissDownload({key}))
         .catch(makeRetriableErrorHandler(action))
-    case 'none':
+    case Types.DownloadIntent.None:
       return
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(intent)

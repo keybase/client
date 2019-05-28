@@ -153,7 +153,7 @@ export const defaultTlfListPathUserSetting = makePathUserSetting({
 
 export const makeDownloadMeta: I.Record.Factory<Types._DownloadMeta> = I.Record({
   entryType: Types.PathType.Unknown,
-  intent: Types.DownloadIntentNone,
+  intent: Types.DownloadIntent.None,
   localPath: '',
   opID: null,
   path: Types.stringToPath(''),
@@ -374,7 +374,7 @@ export const getDownloadIntentFromAction = (
   action: FsGen.DownloadPayload | FsGen.ShareNativePayload | FsGen.SaveMediaPayload
 ): Types.DownloadIntent =>
   action.type === FsGen.download
-    ? Types.DownloadIntentNone
+    ? Types.DownloadIntent.None
     : action.type === FsGen.shareNative
     ? Types.DownloadIntent.Share
     : Types.DownloadIntent.CameraRoll
@@ -865,7 +865,7 @@ const humanizeDownloadIntent = (intent: Types.DownloadIntent) => {
       return 'save'
     case Types.DownloadIntent.Share:
       return 'prepare to share'
-    case Types.DownloadIntentNone:
+    case Types.DownloadIntent.None:
       return 'download'
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(intent)

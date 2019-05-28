@@ -28,7 +28,7 @@ type ClickableIcon = {
 
 export type Clickable = ClickableComponent | ClickableIcon
 
-type Props = {
+export type Props = {
   clickable: Clickable
   init: () => void
   mode: 'row' | 'screen'

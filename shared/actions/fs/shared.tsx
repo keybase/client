@@ -1,9 +1,8 @@
-// @flow
 import * as Types from '../../constants/types/fs'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/fs'
 import * as FsGen from '../fs-gen'
-import type {TypedActions} from '../typed-actions-gen'
+import {TypedActions} from '../typed-actions-gen'
 
 const expectedOfflineErrorMatchers = [
   /write: can't assign requested address/,
@@ -13,7 +12,7 @@ const expectedOfflineErrorMatchers = [
 
 const expectedOfflineErrorCodes = [RPCTypes.StatusCode.scapinetworkerror]
 
-const makeErrorHandler = (action: FsGen.Actions, path: ?Types.Path, retriable: boolean) => (
+const makeErrorHandler = (action: FsGen.Actions, path: Types.Path | null, retriable: boolean) => (
   error: any
 ): Array<TypedActions> => {
   const errorDesc = typeof error.desc === 'string' ? error.desc : ''
@@ -63,8 +62,8 @@ const makeErrorHandler = (action: FsGen.Actions, path: ?Types.Path, retriable: b
   ]
 }
 
-export const makeRetriableErrorHandler = (action: FsGen.Actions, path: ?Types.Path) =>
+export const makeRetriableErrorHandler = (action: FsGen.Actions, path?: Types.Path) =>
   makeErrorHandler(action, path, true)
 
-export const makeUnretriableErrorHandler = (action: FsGen.Actions, path: ?Types.Path) =>
+export const makeUnretriableErrorHandler = (action: FsGen.Actions, path?: Types.Path) =>
   makeErrorHandler(action, path, false)

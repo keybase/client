@@ -1,4 +1,3 @@
-// @flow
 import logger from '../../logger'
 import * as Saga from '../../util/saga'
 import * as FsGen from '../fs-gen'
@@ -28,6 +27,7 @@ function copyToDownloadDir(path: string, mimeType: string) {
     })
     .then(() => {
       stage = 'addCompleteDownload'
+      // @ts-ignore
       return RNFetchBlob.android.addCompleteDownload({
         description: `Keybase downloaded ${fileName}`,
         mime: mimeType,

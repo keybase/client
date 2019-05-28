@@ -1,8 +1,8 @@
 import * as I from 'immutable'
 import * as Types from '../../../constants/types/fs'
 import * as FsGen from '../../../actions/fs-gen'
-import {namedConnect} from '../../../util/container'
-import PathItemAction, {Clickable} from '.'
+import {namedConnect, TypedState} from '../../../util/container'
+import PathItemAction, {Props, Clickable} from '.'
 
 type OwnProps = {
   clickable: Clickable
@@ -34,4 +34,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   routePath: ownProps.routePath || I.List(),
 })
 
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'PathItemAction')(PathItemAction)
+export default namedConnect<OwnProps, any, any, Props, TypedState>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'PathItemAction'
+)(PathItemAction)

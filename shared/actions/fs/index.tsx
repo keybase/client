@@ -1,4 +1,3 @@
-// @flow
 import * as Constants from '../../constants/fs'
 import * as EngineGen from '../engine-gen-gen'
 import * as FsGen from '../fs-gen'
@@ -15,6 +14,7 @@ import * as NotificationsGen from '../notifications-gen'
 import * as Types from '../../constants/types/fs'
 import logger from '../../logger'
 import platformSpecificSaga from './platform-specific'
+// @ts-ignore
 import {getContentTypeFromURL} from '../platform-specific'
 import * as RouteTreeGen from '../route-tree-gen'
 import {tlfToPreferredOrder} from '../../util/kbfs'
@@ -98,7 +98,7 @@ const getSyncConfigFromRPC = (tlfName, tlfType, config: RPCTypes.FolderSyncConfi
           : I.List(),
       })
     default:
-      // $FlowIssue the const objects aren't flow-friendly.
+      // @ts-ignore
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(config.mode)
       return Constants.tlfSyncDisabled
   }
@@ -138,7 +138,7 @@ const loadSyncConfigForAllTlfs = (state, action) =>
 const loadTlfSyncConfig = (state, action) => {
   const tlfPath = action.type === FsGen.loadPathMetadata ? action.payload.path : action.payload.tlfPath
   const parsedPath = Constants.parsePath(tlfPath)
-  if (parsedPath.kind !== 'group-tlf' && parsedPath.kind !== 'team-tlf') {
+  if (parsedPath.kind !== Types.PathKind.GroupTlf && parsedPath.kind !== Types.PathKind.TeamTlf) {
     return null
   }
   return RPCTypes.SimpleFSSimpleFSFolderSyncConfigAndStatusRpcPromise({
@@ -202,7 +202,7 @@ const getPrefetchStatusFromRPC = (
     case RPCTypes.PrefetchStatus.complete:
       return Constants.prefetchComplete
     default:
-      // $FlowIssue the const objects aren't flow-friendly.
+      // @ts-ignore
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(prefetchStatus)
       return Constants.prefetchNotStarted
   }
@@ -223,7 +223,7 @@ const makeEntry = (d: RPCTypes.Dirent, children?: Set<string>) => {
       return Constants.makeFolder({
         ...direntToMetadata(d),
         children: I.Set(children),
-        progress: children ? 'loaded' : undefined,
+        progress: children ? Types.ProgressType.Loaded : undefined,
       })
     case RPCTypes.DirentType.sym:
       return Constants.makeSymlink({
@@ -315,10 +315,10 @@ function* folderList(_, action) {
     const direntToPathAndPathItem = (d: RPCTypes.Dirent) => {
       const path = Types.pathConcat(rootPath, d.name)
       const entry = makeEntry(d, childMap.get(path))
-      if (entry.type === 'folder' && Types.getPathLevel(path) > 3 && d.name.indexOf('/') < 0) {
+      if (entry.type === Types.PathType.Folder && Types.getPathLevel(path) > 3 && d.name.indexOf('/') < 0) {
         // Since we are loading with a depth of 2, first level directories are
         // considered "loaded".
-        return [path, entry.set('progress', 'loaded')]
+        return [path, entry.set('progress', Types.ProgressType.Loaded)]
       }
       return [path, entry]
     }
@@ -327,10 +327,12 @@ function* folderList(_, action) {
     // avoid overriding them.
     const state = yield* Saga.selectState()
     const rootPathItem = state.fs.pathItems.get(rootPath, Constants.unknownPathItem)
-    const rootFolder: Types.FolderPathItem = (rootPathItem.type === 'folder'
+    const rootFolder: Types.FolderPathItem = (rootPathItem.type === Types.PathType.Folder
       ? rootPathItem
       : Constants.makeFolder({name: Types.getPathName(rootPath)})
-    ).withMutations(f => f.set('children', I.Set(childMap.get(rootPath))).set('progress', 'loaded'))
+    ).withMutations(f =>
+      f.set('children', I.Set(childMap.get(rootPath))).set('progress', Types.ProgressType.Loaded)
+    )
 
     const pathItems = [
       ...(Types.getPathLevel(rootPath) > 2 ? [[rootPath, rootFolder]] : []),
@@ -379,22 +381,18 @@ function* download(state, action) {
   // Figure out the local path we are downloading into.
   let localPath = ''
   switch (intent) {
-    case 'none':
+    case Types.DownloadIntent.None:
       // This adds " (1)" suffix to the base name, if the destination path
       // already exists.
       localPath = yield* Saga.callPromise(Constants.downloadFilePathFromPath, path)
       break
-    case 'camera-roll':
-    case 'share':
+    case Types.DownloadIntent.CameraRoll:
+    case Types.DownloadIntent.Share:
       // For saving to camera roll or sharing to other apps, we are
       // downloading to the app's local storage. So don't bother trying to
       // avoid overriding existing files. Just download over them.
       localPath = Constants.downloadFilePathFromPathNoSearch(path)
       break
-    case 'web-view':
-    case 'web-view-text':
-      // TODO
-      return
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(intent)
       localPath = yield* Saga.callPromise(Constants.downloadFilePathFromPath, path)
@@ -432,13 +430,20 @@ function* download(state, action) {
     yield Saga.put(FsGen.createDownloadProgress({completePortion: 1, key}))
 
     const mimeType = yield* _loadMimeType(path)
-    yield Saga.put(FsGen.createDownloadSuccess({intent, key, mimeType: mimeType?.mimeType || ''}))
+    yield Saga.put(
+      FsGen.createDownloadSuccess({
+        intent,
+        key,
+        // Auto generated from flowToTs. Please clean me!
+        mimeType: (mimeType === null || mimeType === undefined ? undefined : mimeType.mimeType) || '',
+      })
+    )
   } catch (error) {
     // This needs to be before the dismiss below, so that if it's a legit
     // error we'd show the red bar.
     yield makeRetriableErrorHandler(action, path)(error).map(action => Saga.put(action))
   } finally {
-    if (intent !== 'none') {
+    if (intent !== Types.DownloadIntent.None) {
       // If it's a normal download, we show a red card for the user to dismiss.
       // TODO: when we get rid of download cards on Android, check isMobile
       // here.
@@ -484,7 +489,7 @@ const cancelDownload = (state, action) => {
   return RPCTypes.SimpleFSSimpleFSCancelRpcPromise({opID}).then(() => {})
 }
 
-const getWaitDuration = (endEstimate: ?number, lower: number, upper: number): number => {
+const getWaitDuration = (endEstimate: number | null, lower: number, upper: number): number => {
   if (!endEstimate) {
     return upper
   }
@@ -613,6 +618,7 @@ const getMimeTypePromise = (localHTTPServerInfo: Types.LocalHTTPServer, path: Ty
   new Promise((resolve, reject) =>
     getContentTypeFromURL(
       Constants.generateFileURL(path, localHTTPServerInfo),
+      // @ts-ignore TODO fix this when actions/platform-specific is converted
       ({error, statusCode, contentType, disposition}) => {
         if (error) {
           reject(error)
@@ -687,9 +693,9 @@ const commitEdit = (state, action) => {
   if (!edit) {
     return null
   }
-  const {parentPath, name, type} = edit
+  const {parentPath, name, type} = edit as Types.Edit
   switch (type) {
-    case 'new-folder':
+    case Types.EditType.NewFolder:
       return RPCTypes.SimpleFSSimpleFSOpenRpcPromise({
         dest: Constants.pathToRPCPath(Types.pathConcat(parentPath, name)),
         flags: RPCTypes.OpenFlags.directory,
@@ -725,7 +731,7 @@ function* loadPathMetadata(state, action) {
       refreshSubscription: !!refreshTag,
     })
     let pathItem = makeEntry(dirent)
-    if (pathItem.type === 'file') {
+    if (pathItem.type === Types.PathType.File) {
       const mimeType = yield* _loadMimeType(path)
       pathItem = pathItem.set('mimeType', mimeType)
     }

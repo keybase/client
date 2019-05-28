@@ -18,7 +18,7 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
 })
 
 // @ts-ignore codemode issue
-const connected = namedConnect<OwnProps, _, _, _, _>(
+const connected = namedConnect(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({...s, ...d}),

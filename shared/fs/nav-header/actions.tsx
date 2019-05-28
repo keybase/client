@@ -18,7 +18,12 @@ const FsNavHeaderRightActions = (props: Props) => (
       <Kbfs.FolderViewFilter path={props.path} style={styles.folderViewFilter} />
     )}
     <Kbfs.OpenInSystemFileManager path={props.path} />
-    <Kbfs.PathItemAction path={props.path} clickable={{type: 'icon'}} initView="root" mode="screen" />
+    <Kbfs.PathItemAction
+      path={props.path}
+      clickable={{type: 'icon'}}
+      initView={Types.PathItemActionMenuView.Root}
+      mode="screen"
+    />
   </Kb.Box2>
 )
 

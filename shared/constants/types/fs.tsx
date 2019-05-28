@@ -270,7 +270,7 @@ export type UnknownPathItem = I.RecordOf<_UnknownPathItem>
 export type PathItem = FolderPathItem | SymlinkPathItem | FilePathItem | UnknownPathItem
 
 export const enum SyncStatusStatic {
-  Unknown, // trying to figure out what it is
+  Unknown = 2, // trying to figure out what it is
   AwaitingToSync, // sync enabled but we're offline
   AwaitingToUpload, // has local changes but we're offline
   OnlineOnly, // sync disabled
