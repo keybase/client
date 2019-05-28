@@ -1,15 +1,14 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/fs'
 import {namedConnect} from '../../util/typed-connect'
 import PieSlice from '../../fs/common/pie-slice'
 
-type Props = {|
+type Props = {
   progress: number,
   show: boolean,
-  tooltip: string,
-|}
+  tooltip: string
+};
 
 const SyncingFolders = (props: Props) =>
   props.show && props.progress !== 1.0 ? (
@@ -44,7 +43,7 @@ const mergeProps = (s, d, o) => {
   }
 }
 
-type OwnProps = {||}
+type OwnProps = {};
 
 export default namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,

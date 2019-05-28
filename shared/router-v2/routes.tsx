@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import {newRoutes as chatNewRoutes, newModalRoutes as chatNewModalRoutes} from '../chat/routes'
 import {newRoutes as deviceNewRoutes, newModalRoutes as deviceNewModalRoutes} from '../devices/routes'
@@ -21,9 +20,11 @@ export const nameToTab = {}
 export type Route = {
   getScreen: () => React.ComponentType<any>,
   screen?: React.ComponentType<any>,
-  upgraded?: boolean,
-}
-export const routes: {[key: string]: Route} = {}
+  upgraded?: boolean
+};
+export const routes: {
+  [K in string]: Route;
+} = {}
 
 const _newRoutes = [
   {route: deviceNewRoutes, tab: isMobile ? Tabs.settingsTab : Tabs.devicesTab},

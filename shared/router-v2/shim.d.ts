@@ -1,2 +1,1 @@
-// @flow
 export const shim = (routes: any) => routes

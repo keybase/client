@@ -1,4 +1,3 @@
-// @flow
 import * as I from 'immutable'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as React from 'react'

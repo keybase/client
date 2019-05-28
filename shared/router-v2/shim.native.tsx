@@ -1,4 +1,3 @@
-// @flow
 import * as Kb from '../common-adapters/mobile.native'
 import * as React from 'react'
 import * as Styles from '../styles'

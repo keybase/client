@@ -1,4 +1,3 @@
-// @flow
 import * as Kb from '../common-adapters/mobile.native'
 import * as Styles from '../styles'
 import * as React from 'react'
@@ -249,7 +248,8 @@ class RNApp extends React.PureComponent<any, any> {
     }
   }
 
-  getNavState = () => this._nav?.state?.nav
+  getNavState = () => // Auto generated from flowToTs. Please clean me!
+  (this._nav === null || this._nav === undefined ? undefined : this._nav.state) === null || (this._nav === null || this._nav === undefined ? undefined : this._nav.state) === undefined ? undefined : (this._nav === null || this._nav === undefined ? undefined : this._nav.state).nav
 
   render() {
     return (
