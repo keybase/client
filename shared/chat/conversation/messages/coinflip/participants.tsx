@@ -3,7 +3,7 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 
-type Props = {
+export type Props = {
   attachTo: () => React.Component<any> | null
   onHidden: () => void
   participants: Array<RPCChatTypes.UICoinFlipParticipant>

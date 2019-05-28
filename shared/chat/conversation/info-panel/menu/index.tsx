@@ -149,8 +149,7 @@ class InfoPanelMenu extends React.Component<Props> {
         ) : (
           <TeamHeader
             isMuted={
-              !!// Auto generated from flowToTs. Please clean me!
-              (props.convProps === null || props.convProps === undefined ? undefined : props.convProps.muted)
+              props.convProps === null || props.convProps === undefined ? undefined : props.convProps.muted
             }
             teamname={props.teamname}
             memberCount={props.memberCount}

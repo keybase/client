@@ -49,6 +49,7 @@ const Reply = (props: ReplyProps) => {
 
 export type Props = {
   isEditing: boolean
+  // eslint-disable-next-line
   message: Types.MessageText
   reply?: ReplyProps
   text: string

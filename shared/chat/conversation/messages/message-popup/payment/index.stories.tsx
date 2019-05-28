@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Sb from '../../../../../stories/storybook'
 import * as S from '../../../../../styles'
-import PaymentPopup from '.'
+import PaymentPopup, {Props} from '.'
 
 const receiveIcon = 'receiving'
 const sendIcon = 'sending'
@@ -35,7 +35,7 @@ const theyRequestProps = {
   sender: 'kamel',
   topLine: 'requested Lumens worth',
   txVerb: 'requested',
-}
+} as Props
 
 const youReceiveProps = {
   ...commonProps,
@@ -47,7 +47,7 @@ const youReceiveProps = {
   sender: 'kamel',
   topLine: 'you received Lumens worth',
   txVerb: 'sent',
-}
+} as Props
 
 const youRequestProps = {
   ...commonProps,
@@ -60,7 +60,7 @@ const youRequestProps = {
   sender: 'cecileb',
   topLine: 'you requested Lumens worth',
   txVerb: 'requested',
-}
+} as Props
 
 const youSendProps = {
   ...commonProps,
@@ -72,7 +72,7 @@ const youSendProps = {
   sender: 'cecileb',
   topLine: 'you sent Lumens worth',
   txVerb: 'sent',
-}
+} as Props
 
 const youRequestBTCProps = {
   ...commonProps,
@@ -86,7 +86,7 @@ const youRequestBTCProps = {
   sender: 'cecileb',
   topLine: 'you requested',
   txVerb: 'requested',
-}
+} as Props
 
 const youReceiveBTCProps = {
   ...commonProps,
@@ -99,7 +99,7 @@ const youReceiveBTCProps = {
   sender: 'kamel',
   topLine: 'you received',
   txVerb: 'sent',
-}
+} as Props
 
 const youSendBTCProps = {
   ...commonProps,
@@ -112,7 +112,7 @@ const youSendBTCProps = {
   sender: 'cecileb',
   topLine: 'you sent',
   txVerb: 'sent',
-}
+} as Props
 
 const youSendXLMProps = {
   ...commonProps,
@@ -125,7 +125,7 @@ const youSendXLMProps = {
   sender: 'cecileb',
   topLine: 'you sent',
   txVerb: 'sent',
-}
+} as Props
 
 const loadingProps = {
   ...commonProps,
@@ -137,17 +137,17 @@ const loadingProps = {
   sender: '',
   topLine: '',
   txVerb: 'sent',
-}
+} as Props
 
 const completedProps = {
   ...theyRequestProps,
   status: 'completed',
-}
+} as Props
 
 const canceledProps = {
   ...theyRequestProps,
   status: 'canceled',
-}
+} as Props
 
 const load = () => {
   Sb.storiesOf('Chat/Conversation/Message popup/Payments', module)
@@ -168,7 +168,7 @@ type State = {
   ref: Kb.Box | null
 }
 
-class PaymentPopupMoved extends React.Component<React.ComponentType<typeof PaymentPopup>, State> {
+class PaymentPopupMoved extends React.Component<Props, State> {
   state = {ref: null}
   render() {
     return (
@@ -177,7 +177,7 @@ class PaymentPopupMoved extends React.Component<React.ComponentType<typeof Payme
           style={{left: 20, position: 'absolute', top: 20}}
           ref={ref => this.setState(s => (s.ref ? null : {ref}))}
         />
-        <PaymentPopup {...this.props} attachTo={() => this.state.ref} />
+        <PaymentPopup {...this.props as Props} attachTo={() => this.state.ref} />
       </React.Fragment>
     )
   }

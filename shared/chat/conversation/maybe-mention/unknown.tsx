@@ -59,7 +59,7 @@ type State = {
 }
 
 class UnknownMention extends React.Component<Props, State> {
-  _mentionRef = React.createRef<Kb.Text>()
+  _mentionRef = React.createRef<Text>()
   state = {showPopup: false}
   _getAttachmentRef = () => {
     return this._mentionRef.current

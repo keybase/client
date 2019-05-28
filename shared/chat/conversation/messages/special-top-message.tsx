@@ -115,10 +115,9 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     showTeamOffer,
   }
 }
-const mapDispatchToProps = dispatch => ({})
+const mapDispatchToProps = () => ({})
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   ...stateProps,
-  ...dispatchProps,
 })
 
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'TopMessage')(TopMessage)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'TopMessage')(TopMessage) as any

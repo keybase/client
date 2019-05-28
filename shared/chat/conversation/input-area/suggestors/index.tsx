@@ -97,8 +97,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     forwardedRef: React.Ref<typeof WrappedComponent> | null
   } & PropsWithSuggestorOuter<WrappedOwnProps>
 
-  class SuggestorsComponent extends React.Component<any, AddSuggestorsState> {
-    //SuggestorsComponentProps, AddSuggestorsState> {
+  class SuggestorsComponent extends React.Component<any /* SuggestorsComponentProps */, AddSuggestorsState> {
     state = {active: null, filter: '', selected: 0}
     _inputRef = React.createRef<Kb.PlainInput>()
     _attachmentRef = React.createRef()

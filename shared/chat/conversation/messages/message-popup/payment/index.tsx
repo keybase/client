@@ -60,7 +60,7 @@ type HeaderProps = {
   txVerb: 'sent' | 'requested'
 }
 
-type Props = {
+export type Props = {
   attachTo?: () => React.Component<any> | null
   cancelButtonLabel: string
   onCancel: () => void | null

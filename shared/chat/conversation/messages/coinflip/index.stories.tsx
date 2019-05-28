@@ -2,9 +2,8 @@ import * as React from 'react'
 import {Box} from '../../../../common-adapters/index'
 import * as Sb from '../../../../stories/storybook'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-
-import CoinFlip from '.'
-import CoinFlipParticipants from './participants'
+import CoinFlip, {Props} from '.'
+import CoinFlipParticipants, {Props as PProps} from './participants'
 
 const commitmentVis =
   'iVBORw0KGgoAAAANSUhEUgAAAQAAAABkCAIAAADmAnnJAAACxklEQVR4nOzdr2vVfxTH8buxL+wrihN/YDAoKiw4WRgy/QNExBURFCw24TZXtInJYbdYDVoMBrEMcSgoQxCDsomI+AMMDgYaDEP9B84Jy6/HIx70fT/3/dmTG8/Y7pm/g8qOlXI8uHiont//Uc+/1+PBlX31/PVGPV9dr+cfx+v53a/1/N3+ej49Vs8fNvdwYW89f/y7nq8097PcPM/ch3q+Ol3Pt7+q50sz9fx48zwvJur51ea93Gvu+fpkPb/d3POwubfl5h6693iqOb97ztF6DBkEQDQBEE0ARBMA0QRANAEQTQBEEwDRBEA0ARBNAEQTANEEQDQBEE0ARBMA0QRANAEQTQBEEwDRBEA0ARBNAEQTANEEQDQBEE0ARBMA0QRANAEQTQBEGzk3qBdknJit/8NaszBiofmAxSP1fO55PZ/f5AKLN818vdnM8a1ZtNHsuxg8bZ7/bLPQYaFZJHGy+ff/NYtCppoFFk+aRQ9ndtXzxWY+07zHB819/t8s5hh9Wc8/N+/xRnP/a8093Npaz6/V48GB5vy3zff1C0A0ARBNAEQTANEEQDQBEE0ARBMA0QRANAEQTQBEEwDRBEA0ARBNAEQTANEEQDQBEE0ARBMA0QRANAEQTQBEEwDRBEA0ARBNAEQTANEEQDQBEE0ARBMA0QRAtJHhbL0hptuwcn6inn9qNnBsTNbzqV/1/FmzSeVgs3nlUvOcc83GkT3N+UvNRpbu+35pvtfOZoPLluZzu+97rNmwcnh8c597szn/aDP/2dzzo2ZTzp/mnNPNc15u3tf75u9hW3POneZ+hs05882mGb8ARBMA0QRANAEQTQBEEwDRBEA0ARBNAEQTANEEQDQBEE0ARBMA0QRANAEQTQBEEwDRBEA0ARBNAEQTANEEQDQBEE0ARBMA0QRANAEQTQBEEwDRBEA0ARDtXwAAAP//CXFl07CQj7gAAAAASUVORK5CYII='
@@ -53,7 +52,7 @@ const gathering = {
   resultText: '',
   revealVis: '',
   showParticipants: false,
-}
+} as Props
 
 const partialGather = {
   commitmentVis,
@@ -65,7 +64,7 @@ const partialGather = {
   resultText: '',
   revealVis: '',
   showParticipants: false,
-}
+} as Props
 
 const result = {
   commitmentVis,
@@ -77,7 +76,7 @@ const result = {
   resultText: 'HEADS',
   revealVis,
   showParticipants: true,
-}
+} as Props
 
 const error = {
   commitmentVis: '',
@@ -94,7 +93,7 @@ const error = {
   resultText: '',
   revealVis: '',
   showParticipants: false,
-}
+} as Props
 
 const absentee: RPCChatTypes.UICoinFlipAbsenteeError = {
   absentees: [
@@ -120,7 +119,7 @@ const absenteeError = {
     // $FlowIssue variant types with void don't work
     typ: RPCChatTypes.chatUiUICoinFlipErrorTyp.absentee,
   },
-}
+} as Props
 
 const timeoutError = {
   ...error,
@@ -128,7 +127,7 @@ const timeoutError = {
     // $FlowIssue variant types with void don't work
     typ: RPCChatTypes.chatUiUICoinFlipErrorTyp.timeout,
   },
-}
+} as Props
 
 const abortedError = {
   ...error,
@@ -136,7 +135,7 @@ const abortedError = {
     // $FlowIssue variant types with void don't work
     typ: RPCChatTypes.chatUiUICoinFlipErrorTyp.aborted,
   },
-}
+} as Props
 
 const dupRegError = {
   ...error,
@@ -148,7 +147,7 @@ const dupRegError = {
     // $FlowIssue variant types with void don't work
     typ: RPCChatTypes.chatUiUICoinFlipErrorTyp.dupreg,
   },
-}
+} as Props
 
 const dupCommitCompleteError = {
   ...error,
@@ -160,7 +159,7 @@ const dupCommitCompleteError = {
     // $FlowIssue variant types with void don't work
     typ: RPCChatTypes.chatUiUICoinFlipErrorTyp.dupcommitcomplete,
   },
-}
+} as Props
 
 const dupRevealError = {
   ...error,
@@ -172,7 +171,7 @@ const dupRevealError = {
     // $FlowIssue variant types with void don't work
     typ: RPCChatTypes.chatUiUICoinFlipErrorTyp.dupreveal,
   },
-}
+} as Props
 
 const dupCommitMismatchError = {
   ...error,
@@ -184,14 +183,14 @@ const dupCommitMismatchError = {
     // $FlowIssue variant types with void don't work
     typ: RPCChatTypes.chatUiUICoinFlipErrorTyp.commitmismatch,
   },
-}
+} as Props
 
 const participantProps = {
   attachTo: Sb.action('mocked'),
   onHidden: Sb.action('onHidden'),
   participants: parts,
   visible: true,
-}
+} as PProps
 
 const load = () => {
   Sb.storiesOf('Chat/Conversation/Coinflip', module)

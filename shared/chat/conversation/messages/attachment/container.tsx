@@ -13,7 +13,7 @@ class Attachment extends React.PureComponent<Props> {
     if (this.props.message.attachmentType === 'image') {
       return <ImageAttachment message={this.props.message} toggleMessageMenu={this.props.toggleMessageMenu} />
     }
-    return <FileAttachment message={this.props.message} toggleMessageMenu={this.props.toggleMessageMenu} />
+    return <FileAttachment message={this.props.message} />
   }
 }
 

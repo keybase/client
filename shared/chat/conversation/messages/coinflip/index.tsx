@@ -82,9 +82,6 @@ class CoinFlip extends React.Component<Props, State> {
             <Kb.Text selectable={true} type="BodySmallSemibold">
               {!Styles.isMobile && 'Collecting '}secrets: {this._revealSummary()}
             </Kb.Text>
-            {this.props.phase === 'complete' && (
-              <Kb.Icon type="iconfont-check" color={Styles.globalColors.green} sizeType="Small" />
-            )}
           </Kb.Box2>
         )}
       </Kb.Box2>

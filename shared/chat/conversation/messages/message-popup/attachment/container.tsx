@@ -7,6 +7,7 @@ import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import {getCanPerform} from '../../../../../constants/teams'
 import {connect} from '../../../../../util/container'
 import {isMobile, isIOS} from '../../../../../constants/platform'
+// @ts-ignore
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import {StylesCrossPlatform} from '../../../../../styles/css'
 import Attachment from '.'
