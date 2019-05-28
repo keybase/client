@@ -38,6 +38,11 @@ type State = {
 
 const tickInterval = 1000
 const initialGlueTTL = 2
+const initState = {
+  displayDuration: 0,
+  glueTTL: 0,
+  mode: Mode.Hidden,
+}
 
 const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
   class extends React.PureComponent<Props, State> {
@@ -135,14 +140,7 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
       }
     }
 
-    state = this._updateState(
-      {
-        displayDuration: 0,
-        glueTTL: 0,
-        mode: Mode.Hidden,
-      },
-      this.props
-    )
+    state = {...initState, ...this._updateState(initState, this.props)}
 
     componentDidUpdate(prevProps: Props) {
       if (
