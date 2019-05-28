@@ -8,7 +8,7 @@ import * as Kbfs from '../common'
 import MainBanner from './main-banner/container'
 
 type Props = {
-  onBack: () => void | null
+  onBack?: () => void
   path: Types.Path
 }
 

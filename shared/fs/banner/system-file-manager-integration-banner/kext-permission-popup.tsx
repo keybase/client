@@ -5,7 +5,7 @@ import * as Styles from '../../../styles'
 
 type Props = {
   driverStatus: Types.DriverStatus
-  onCancel: () => void // must be ownProps.navigateUp() or idempotent in a way,
+  onCancel: () => void // must be ownProps.navigateUp() or idempotent in a way
   openSecurityPrefs: () => void
 }
 

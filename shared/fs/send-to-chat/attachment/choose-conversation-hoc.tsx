@@ -29,7 +29,7 @@ type InjectedProps = {
   selected: ChatTypes.ConversationIDKey
 }
 
-type WithInjectedProps<OriginalProps> = {} & OriginalProps & InjectedProps
+type WithInjectedProps<OriginalProps> = OriginalProps & InjectedProps
 
 export default function(component: React.ComponentType) {
   return namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ChooseConversationHOC')(component)

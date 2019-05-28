@@ -19,7 +19,7 @@ type Props = PropsWithTimer<UploadCountdownHOCProps>
 // componentDidUpdate() calls) are two possible inputs.
 enum Mode {
   // The upload banner isn't shown.
-  Hidden = 1,
+  Hidden,
   // Normal count-down. If upload is finished during this state while glueTTL
   // is smaller than or equal to 0, transition to hidden. If upload is finished
   // during this state while glueTTL is greater than 0, transition to sticky.

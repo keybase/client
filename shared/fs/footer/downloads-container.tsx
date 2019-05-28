@@ -16,7 +16,7 @@ const mapDispatchToProps = dispatch => ({
     : () => dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: downloadFolder})),
 })
 
-const mergeProps = ({_downloads}, {openDownloadFolder}) => {
+const mergeProps = ({_downloads}, {openDownloadFolder}): DownloadsProps => {
   const downloadKeys = Array.from(
     _downloads.filter(download => download.meta.intent === Types.DownloadIntent.None)
   )
@@ -30,7 +30,7 @@ const mergeProps = ({_downloads}, {openDownloadFolder}) => {
   return {
     downloadKeys,
     openDownloadFolder,
-  } as DownloadsProps
+  }
 }
 
 export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedDownloads')(Downloads)
