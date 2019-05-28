@@ -54,9 +54,9 @@ export type ResetMember = {
 // TODO: make structs above immutable
 
 export const enum TlfType {
-  Public,
-  Private,
-  Team,
+  Public = 'public',
+  Private = 'private',
+  Team = 'team',
 }
 
 export const enum TlfSyncMode {
