@@ -1,4 +1,3 @@
-// @flow
 import * as Tabs from '../../constants/tabs'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as ConfigGen from '../../actions/config-gen'
@@ -17,10 +16,10 @@ import {tabRoots} from '../routes'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as SettingsGen from '../../actions/settings-gen'
 
-type OwnProps = {|
-  navigation: any,
-  selectedTab: Tabs.AppTab,
-|}
+type OwnProps = {
+  navigation: any
+  selectedTab: Tabs.AppTab
+}
 
 const mapStateToProps = state => ({
   _badgeNumbers: state.notifications.navBadges,
@@ -87,7 +86,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   username: stateProps.username,
 })
 
-export default connect<OwnProps, _, _, _, _>(
+export default connect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

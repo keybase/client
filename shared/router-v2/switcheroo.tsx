@@ -1,16 +1,15 @@
-// @flow
 // Switches between the route-tree router and the new router, will go away
 import * as React from 'react'
 import Router from './router'
 import {connect} from '../util/container'
 import * as ConfigGen from '../actions/config-gen'
 
-type OwnProps = {||}
+type OwnProps = {}
 
-type Props = {|
-  updateNavigator: any => void,
-  persistRoute: any => void,
-|}
+type Props = {
+  updateNavigator: (arg0: any) => void
+  persistRoute: (arg0: any) => void
+}
 
 // TODO remove this class
 class RouterSwitcheroo extends React.PureComponent<Props> {
@@ -24,7 +23,7 @@ const mapDispatchToProps = dispatch => ({
   updateNavigator: navigator => dispatch(ConfigGen.createSetNavigator({navigator})),
 })
 
-export default connect<OwnProps, _, _, _, _>(
+export default connect(
   () => ({}),
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d})

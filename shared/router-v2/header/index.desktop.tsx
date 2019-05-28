@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Platform from '../../constants/platform'
@@ -8,12 +7,16 @@ import SyncingFolders from './syncing-folders'
 import flags from '../../util/feature-flags'
 import AppState from '../../app/app-state.desktop'
 import * as ReactIs from 'react-is'
+
 // A mobile-like header for desktop
 
 // Fix this as we figure out what this needs to be
 type Props = any
 
-const initialUseNativeFrame = new AppState().state.useNativeFrame ?? Platform.defaultUseNativeFrame
+const initialUseNativeFrame = // Auto generated from flowToTs. Please clean me!
+  new AppState().state.useNativeFrame !== null && new AppState().state.useNativeFrame !== undefined
+    ? new AppState().state.useNativeFrame
+    : Platform.defaultUseNativeFrame
 
 const PlainTitle = ({title}) => (
   <Kb.Box2 direction="horizontal" style={styles.plainContainer}>

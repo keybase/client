@@ -1,4 +1,3 @@
-// @flow
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as React from 'react'

@@ -1,4 +1,3 @@
-// @flow
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../styles'
@@ -7,20 +6,20 @@ import KeyHandler from '../../util/key-handler.desktop'
 import {isDarwin} from '../../constants/platform'
 import './tab-bar.css'
 
-type Props = {|
-  badgeNumbers: {[key: string]: number},
-  fullname: string,
-  isWalletsNew?: boolean,
-  onHelp: () => void,
-  onProfileClick: () => void,
-  onQuit: () => void,
-  onSettings: () => void,
-  onSignOut: () => void,
-  onTabClick: (tab: Tabs.AppTab) => void,
-  selectedTab: Tabs.Tab,
-  uploading: boolean,
-  username: string,
-|}
+type Props = {
+  badgeNumbers: {[K in string]: number}
+  fullname: string
+  isWalletsNew?: boolean
+  onHelp: () => void
+  onProfileClick: () => void
+  onQuit: () => void
+  onSettings: () => void
+  onSignOut: () => void
+  onTabClick: (tab: Tabs.AppTab) => void
+  selectedTab: Tabs.Tab
+  uploading: boolean
+  username: string
+}
 
 const data = {
   [Tabs.chatTab]: {icon: 'iconfont-nav-2-chat', label: 'Chat'},
@@ -35,9 +34,9 @@ const data = {
 
 const tabs = Tabs.desktopTabOrder
 
-type State = {|
-  showingMenu: boolean,
-|}
+type State = {
+  showingMenu: boolean
+}
 
 class TabBar extends React.PureComponent<Props, State> {
   state = {showingMenu: false}

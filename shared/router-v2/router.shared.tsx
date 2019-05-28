@@ -1,4 +1,3 @@
-// @flow
 import {StackActions, NavigationActions} from '@react-navigation/core'
 import shallowEqual from 'shallowequal'
 import * as RouteTreeGen from '../actions/route-tree-gen'
@@ -112,7 +111,9 @@ export const oldActionToNewActions = (action: any, navigation: any, allowAppendD
 
       // validate sa
       if (
-        !sa.every(a => a.routeName === 'loggedIn' || routes[a.routeName] || mobileTabs.includes(a.routeName))
+        !sa.every(
+          a => a.routeName === 'loggedIn' || !!routes[a.routeName] || mobileTabs.includes(a.routeName)
+        )
       ) {
         logger.error('Invalid route found, bailing on push', sa)
         sa = []

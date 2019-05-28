@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import {newRoutes as chatNewRoutes, newModalRoutes as chatNewModalRoutes} from '../chat/routes'
 import {newRoutes as deviceNewRoutes, newModalRoutes as deviceNewModalRoutes} from '../devices/routes'
@@ -19,11 +18,11 @@ import * as Tabs from '../constants/tabs'
 export const nameToTab = {}
 // TODO could make a stronger type
 export type Route = {
-  getScreen: () => React.ComponentType<any>,
-  screen?: React.ComponentType<any>,
-  upgraded?: boolean,
+  getScreen: () => React.ComponentType<any>
+  screen?: React.ComponentType<any>
+  upgraded?: boolean
 }
-export const routes: {[key: string]: Route} = {}
+export const routes: {[K in string]: Route} = {}
 
 const _newRoutes = [
   {route: deviceNewRoutes, tab: isMobile ? Tabs.settingsTab : Tabs.devicesTab},
