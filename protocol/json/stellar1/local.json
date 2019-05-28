@@ -1312,6 +1312,38 @@
           "name": "memoType"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "PartnerUrl",
+      "fields": [
+        {
+          "type": "string",
+          "name": "url"
+        },
+        {
+          "type": "string",
+          "name": "title"
+        },
+        {
+          "type": "string",
+          "name": "description"
+        },
+        {
+          "type": "string",
+          "name": "iconFilename",
+          "jsonkey": "icon_filename"
+        },
+        {
+          "type": "boolean",
+          "name": "adminOnly",
+          "jsonkey": "admin_only"
+        },
+        {
+          "type": "string",
+          "name": "extra"
+        }
+      ]
     }
   ],
   "messages": {
@@ -2510,6 +2542,18 @@
         }
       ],
       "response": "TransactionID"
+    },
+    "getPartnerUrlsLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "PartnerUrl"
+      }
     }
   },
   "namespace": "stellar.1"

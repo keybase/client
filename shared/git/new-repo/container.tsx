@@ -37,8 +37,7 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp, routePro
   onNewTeam: () => dispatch(RouteTreeGen.createNavigateTo({path: [teamsTab, 'teamNewTeamDialog']})),
 })
 
-// @ts-ignore codemod issue
-export default connect<OwnProps, _, _, _, _>(
+export default connect(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d})

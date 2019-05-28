@@ -246,6 +246,12 @@ func (e *PaperKeyGen) push(m libkb.MetaContext) (err error) {
 	// purposes.
 	m.Dump()
 
+	// Clear the passphrase stream if it's outdated, just in case some
+	// other device changed the passphrase.
+	if err := m.G().ActiveDevice.ClearPassphraseStreamCacheIfOutdated(m); err != nil {
+		return err
+	}
+
 	var ppgen libkb.PassphraseGeneration
 	var clientHalf libkb.LKSecClientHalf
 	if stream := m.PassphraseStream(); stream != nil {

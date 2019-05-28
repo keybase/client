@@ -1001,6 +1001,31 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-onboarding-computer-48.png'),
   },
+  'icon-onboarding-email-add-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-onboarding-email-add-32.png'),
+  },
+  'icon-onboarding-email-add-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-onboarding-email-add-48.png'),
+  },
+  'icon-onboarding-email-searchable-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-onboarding-email-searchable-48.png'),
+  },
+  'icon-onboarding-email-verify-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-onboarding-email-verify-32.png'),
+  },
+  'icon-onboarding-email-verify-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-onboarding-email-verify-48.png'),
+  },
   'icon-onboarding-folder-32': {
     extension: 'png',
     isFont: false,
@@ -1031,6 +1056,26 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-onboarding-git-48.png'),
   },
+  'icon-onboarding-number-new-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-onboarding-number-new-32.png'),
+  },
+  'icon-onboarding-number-new-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-onboarding-number-new-48.png'),
+  },
+  'icon-onboarding-number-verify-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-onboarding-number-verify-32.png'),
+  },
+  'icon-onboarding-number-verify-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-onboarding-number-verify-48.png'),
+  },
   'icon-onboarding-paper-key-32': {
     extension: 'png',
     isFont: false,
@@ -1045,6 +1090,11 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-onboarding-phone-32.png'),
+  },
+  'icon-onboarding-phone-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-onboarding-phone-48.png'),
   },
   'icon-onboarding-proofs-32': {
     extension: 'png',
