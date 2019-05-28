@@ -6,7 +6,7 @@ import {AccountID} from '../../constants/types/wallets'
 import WalletRow from './wallet-row/container'
 import flags from '../../util/feature-flags'
 
-type AddProps = {
+export type AddProps = {
   onAddNew: () => void
   onLinkExisting: () => void
 }
@@ -196,5 +196,4 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-export {Props}
 export {WalletList}
