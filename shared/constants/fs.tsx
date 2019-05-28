@@ -545,7 +545,7 @@ export const showIgnoreFolder = (path: Types.Path, username?: string): boolean =
 }
 
 export const syntheticEventToTargetRect = (evt?: React.SyntheticEvent): ClientRect | null =>
-  isMobile ? null : evt ? (evt.target as window.HTMLElement).getBoundingClientRect() : null
+  isMobile ? null : evt ? (evt.target as HTMLElement).getBoundingClientRect() : null
 
 export const invalidTokenError = new Error('invalid token')
 export const notFoundError = new Error('not found')
