@@ -12,7 +12,7 @@ import {
 } from '../../common-adapters'
 import {globalStyles, globalMargins, isMobile} from '../../styles'
 
-type Props = {
+export type Props = {
   teamname: string
   channelName: string
   topic: string
@@ -159,5 +159,4 @@ const _bottomRowStyle = {
   ...(isMobile ? {} : {minWidth: '500px'}),
 }
 
-export {Props}
 export default EditChannel

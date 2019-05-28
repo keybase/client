@@ -36,7 +36,7 @@ type CommonProps = {
   unsentTextRefresh: boolean
 }
 
-type InputProps = {
+export type InputProps = {
   isActiveForFocus: boolean
   suggestTeams: Array<{
     username: string
@@ -56,11 +56,9 @@ type InputProps = {
   suggestCommands: Array<RPCChatTypes.ConversationCommand>
 } & CommonProps
 
-type PlatformInputProps = {
+export type PlatformInputProps = {
   inputSetRef: (r: null | PlainInput) => void
   onChangeText: (newText: string) => void
   onKeyDown: (evt: React.KeyboardEvent, isComposingIME: boolean) => void
   setHeight: (inputHeight: number) => void
 } & CommonProps
-
-export {InputProps, PlatformInputProps}

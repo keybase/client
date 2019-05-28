@@ -32,7 +32,7 @@ const styleTurnIntoTeam = {
 }
 const Spacer = ({height}: {height: number}) => <Box style={{height, width: 1}} />
 
-type InfoPanelProps = {
+export type InfoPanelProps = {
   selectedConversationIDKey: Types.ConversationIDKey
   participants: Array<{
     username: string
@@ -768,6 +768,4 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
 }
 
 const InfoPanel = HeaderOnMobile(_InfoPanel)
-
-export {InfoPanelProps}
 export {InfoPanel}
