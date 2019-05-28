@@ -5,7 +5,7 @@ import ReactList from 'react-list'
 import {Box2} from './box'
 import ScrollView from './scroll-view'
 import type {Props} from './section-list'
-import {throttle, once} from 'lodash-es'
+import {debounce, throttle, once} from 'lodash-es'
 import {memoize} from '../util/memoize'
 
 /*
@@ -92,8 +92,7 @@ class SectionList extends React.Component<Props, State> {
   // This matches the way onEndReached works for sectionlist on RN
   _onEndReached = once(() => this.props.onEndReached && this.props.onEndReached())
 
-  _checkSticky = throttle(() => {
-    // need to defer this as the list itself is changing after scroll
+  _checkSticky = () => {
     if (this._listRef.current) {
       const [firstIndex] = this._listRef.current.getVisibleRange()
       const item = this._flat[firstIndex]
@@ -105,11 +104,20 @@ class SectionList extends React.Component<Props, State> {
         )
       }
     }
-  }, 20)
+  }
+  // We use two "throttled" functions here to check the status of the viewable items in the
+  // list for the purposes of the sticky header feature. A single throttle isn't good enough,
+  // since the last scroll could end up on a throttle border and only be delayed a small amount. If that
+  // happens we can render the header twice, since we will think we are in the wrong section. The debounce
+  // fixes this, since it will always send one last call out on the time interval. We can't just use a
+  // single debounce though, since we need events as the user is scrolling.
+  _checkStickyDebounced = debounce(this._checkSticky, 20)
+  _checkStickyThrottled = throttle(this._checkSticky, 20)
 
   _onScroll = e => {
     e.currentTarget && this._checkOnEndReached(e.currentTarget)
-    this._checkSticky()
+    this._checkStickyDebounced()
+    this._checkStickyThrottled()
   }
 
   _flatten = memoize(sections => {
