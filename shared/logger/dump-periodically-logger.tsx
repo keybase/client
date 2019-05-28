@@ -1,6 +1,11 @@
-// @flow
-import type {Logger, LogFn, LogLevel, LogLineWithLevel, LogLineWithLevelISOTimestamp} from './types'
-import {toISOTimestamp} from './types'
+import {
+  toISOTimestamp,
+  Logger,
+  LogFn,
+  LogLevel,
+  LogLineWithLevel,
+  LogLineWithLevelISOTimestamp,
+} from './types'
 import {requestIdleCallback} from '../util/idle-callback'
 
 type FileWriterFn = (lines: Array<LogLineWithLevelISOTimestamp>) => Promise<void>
@@ -12,11 +17,9 @@ class DumpPeriodicallyLogger implements Logger {
   _innerLogger: Logger
   _periodInMs: number
   _fileWriterFn: FileWriterFn
-  _lastTimeoutId: ?TimeoutID
+  _lastTimeoutId: NodeJS.Timer
   _levelPrefix: LogLevel
   _ok: boolean = true
-  log: LogFn
-  dump: (levelPrefix: LogLevel) => Promise<Array<LogLineWithLevel>> // Should return an ordered array of log lines (ordered by timestamp)
 
   constructor(innerLogger: Logger, periodInMs: number, fileWriterFn: FileWriterFn, levelPrefix: LogLevel) {
     this._innerLogger = innerLogger

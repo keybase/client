@@ -1,14 +1,14 @@
-// @flow
-import type {
+import {
   AggregateLogger,
   LogLevel,
   Logger,
   LogFn,
   LogLineWithLevel,
   LogLineWithLevelISOTimestamp,
+  Loggers,
+  toISOTimestamp,
 } from './types'
 import {isMobile, logFileName} from '../constants/platform'
-import {toISOTimestamp} from './types'
 import ConsoleLogger from './console-logger'
 import TeeLogger from './tee-logger'
 import RingLogger from './ring-logger'
@@ -47,21 +47,9 @@ class AggregateLoggerImpl implements AggregateLogger {
   info: LogFn
   action: LogFn
   debug: LogFn
-  _allLoggers: {[key: LogLevel]: Logger}
+  _allLoggers: {[K in LogLevel]: Logger}
 
-  constructor({
-    error,
-    warn,
-    info,
-    action,
-    debug,
-  }: {
-    error: Logger,
-    warn: Logger,
-    info: Logger,
-    action: Logger,
-    debug: Logger,
-  }) {
+  constructor({error, warn, info, action, debug}: Loggers) {
     this._error = error
     this._warn = warn
     this._info = info
@@ -89,7 +77,7 @@ class AggregateLoggerImpl implements AggregateLogger {
   }
 
   dump(filter?: Array<LogLevel>) {
-    const allKeys: Array<LogLevel> = Object.keys(this._allLoggers)
+    const allKeys = Object.keys(this._allLoggers) as Array<LogLevel>
     const filterKeys = filter || allKeys
     const logDumpPromises = filterKeys.map((level: LogLevel) => this._allLoggers[level].dump(level))
     const p: Promise<Array<LogLineWithLevelISOTimestamp>> = Promise.all(logDumpPromises).then(
@@ -104,7 +92,7 @@ class AggregateLoggerImpl implements AggregateLogger {
   }
 
   flush() {
-    const allKeys: Array<LogLevel> = Object.keys(this._allLoggers)
+    const allKeys = Object.keys(this._allLoggers) as Array<LogLevel>
     allKeys.map(level => this._allLoggers[level].flush())
     const p: Promise<void> = Promise.all(allKeys).then(() => {})
     return p
@@ -152,6 +140,7 @@ const theOnlyLogger = new AggregateLoggerImpl(logSetup)
 
 if (!isMobile && typeof global !== 'undefined') {
   // So we can easily grab this from the main renderer
+  // @ts-ignore
   global.globalLogger = theOnlyLogger
 }
 
