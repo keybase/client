@@ -202,15 +202,15 @@ const _makeError: I.Record.Factory<Types._FsError> = I.Record({
   time: 0,
 })
 
-type Record = {
+type _MakeErrorArgs = {
   time?: number
   error: any
   erroredAction: FsGen.Actions
   retriableAction?: FsGen.Actions
 }
-export const makeError = (record?: Record): I.RecordOf<Types._FsError> => {
+export const makeError = (args?: _MakeErrorArgs): I.RecordOf<Types._FsError> => {
   // TS Issue: https://github.com/microsoft/TypeScript/issues/26235
-  let {time, error, erroredAction, retriableAction} = (record || {}) as Partial<NonNullable<Record>>
+  let {time, error, erroredAction, retriableAction} = (args || {}) as Partial<NonNullable<_MakeErrorArgs>>
   return _makeError({
     errorMessage: !error ? 'unknown error' : error.message || JSON.stringify(error),
     erroredAction,
