@@ -173,11 +173,11 @@ func (e *Login) restoreSession(m libkb.MetaContext, username libkb.NormalizedUse
 
 	loggedInOK, err := e.loginProvisionedDevice(m, username.String())
 	if err != nil {
-		m.Debug("Login#restoreSession-loginProvisionedDevice to restore error: %s", err)
+		m.Debug("Login#restoreSession-loginProvisionedDevice error: %s", err)
 		return
 	}
 	if loggedInOK {
-		m.Debug("login#restoreSession-loginProvisionedDevice success")
+		m.Debug("Login#restoreSession-loginProvisionedDevice success")
 	}
 }
 
