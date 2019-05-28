@@ -134,7 +134,7 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 	// clear out any existing session:
 	m.Debug("clearing any existing login session with Logout before loading user for login")
 	// If the doUserSwitch flag is specified, we don't want to kill the existing session
-	m.G().LogoutWithSecretKill(m, libkb.NewNormalizedUsername(e.username), !e.doUserSwitch)
+	m.G().LogoutCurrentUserWithSecretKill(m, !e.doUserSwitch)
 
 	// Set up a provisional login context for the purposes of running provisioning.
 	// This is where we'll store temporary session tokens, etc, that are useful
@@ -274,7 +274,7 @@ func (e *Login) checkLoggedInAndNotRevoked(m libkb.MetaContext) (bool, error) {
 		return false, err
 	case libkb.KeyRevokedError, libkb.DeviceNotFoundError:
 		m.Debug("Login on revoked or reset device: %s", err.Error())
-		if err = m.G().Logout(m.Ctx()); err != nil {
+		if err = m.G().LogoutUsernameWithSecretKill(m, username, true); err != nil {
 			m.Debug("logout error: %s", err)
 		}
 		return false, err

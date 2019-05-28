@@ -26,7 +26,6 @@ type loginProvision struct {
 	gpgCli         gpgInterface
 	username       string
 	devname        string
-	cleanupOnErr   bool
 	hasPGP         bool
 	hasDevice      bool
 	perUserKeyring *libkb.PerUserKeyring
@@ -108,13 +107,9 @@ func (e *loginProvision) Run(m libkb.MetaContext) error {
 		return err
 	}
 
-	e.cleanupOnErr = true
 	// based on information in e.arg.User, route the user
 	// through the provisioning options.
 	if err := e.route(m); err != nil {
-		// cleanup state because there was an error:
-		e.cleanup(m)
-
 		switch err.(type) {
 		case libkb.APINetError:
 			m.Debug("provision failed with an APINetError: %s, returning ProvisionFailedOfflineError", err)
@@ -1183,16 +1178,6 @@ func (e *loginProvision) displaySuccess(m libkb.MetaContext) error {
 		DeviceName: e.devname,
 	}
 	return m.UIs().ProvisionUI.ProvisioneeSuccess(m.Ctx(), sarg)
-}
-
-func (e *loginProvision) cleanup(m libkb.MetaContext) {
-	if !e.cleanupOnErr {
-		return
-	}
-
-	// the best way to cleanup is to logout...
-	m.Debug("an error occurred during provisioning, logging out")
-	m.G().LogoutWithSecretKill(m, e.arg.User.GetNormalizedName(), true)
 }
 
 func (e *loginProvision) LoggedIn() bool {
