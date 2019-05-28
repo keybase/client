@@ -111,6 +111,7 @@ export type _State = {
   addUserToTeamsState: AddUserToTeamsState,
   addUserToTeamsResults: string,
   channelCreationError: string,
+  deletedTeams: I.List<RPCTypes.DeletedTeamInfo>,
   emailInviteError: EmailInviteError,
   teamsWithChosenChannels: I.Set<Teamname>,
   sawChatBanner: boolean,

@@ -12,7 +12,7 @@ import OutOfDate from './out-of-date'
 // @ts-ignore codemod issue
 import Upload from '../fs/footer/upload'
 import UploadCountdownHOC, {UploadCountdownHOCProps} from '../fs/footer/upload-countdown-hoc'
-import KbfsDaemonNotRunning from '../fs/common/kbfs-daemon-not-running'
+import {Loading} from '../fs/simple-screens'
 
 export type Props = {
   daemonHandshakeState: ConfigTypes.DaemonHandshakeState
@@ -326,7 +326,7 @@ class MenubarRender extends React.Component<Props, State> {
             <FilesPreview />
           ) : (
             <Kb.Box2 direction="vertical" fullWidth={true} style={{height: 200}}>
-              <KbfsDaemonNotRunning />
+              <Loading path={FsTypes.defaultPath} />
             </Kb.Box2>
           )}
         </Kb.ScrollView>

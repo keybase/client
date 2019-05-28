@@ -46,7 +46,7 @@ const mapDispatchToProps = (dispatch, {mode, path, routePath}: OwnProps) => ({
     dispatch(
       RouteTreeGen.createNavigateTo({
         parentPath: [fsTab],
-        path: [{props: {mode, path}, selected: 'reallyDelete'}],
+        path: [{props: {mode, path}, selected: 'confirmDelete'}],
       })
     )
   },

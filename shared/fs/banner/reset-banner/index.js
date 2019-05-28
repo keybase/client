@@ -5,10 +5,10 @@ import * as Styles from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 
 /*
- * This banner is used as part of a List2 in fs/row/rows.js, so it's important
- * to keep height stable, thus all the height/minHeight/maxHeight in styles.
- * Please make sure the height is still calculated in getHeight when layout
- * changes.
+ * This banner is used as part of a List2 in fs/folder/rows/rows.js, so it's
+ * important to keep height stable, thus all the height/minHeight/maxHeight in
+ * styles.  Please make sure the height is still calculated in getHeight when
+ * layout changes.
  *
  */
 const addedHeightPerResetUser = isMobile
@@ -95,7 +95,7 @@ const Banner = ({resetParticipants, onReAddToTeam, onViewProfile, onOpenWithoutR
     <Kb.Text type="BodySemibold" negative={true} style={styles.textOrUntil}>
       Or until you're sure,{' '}
       <Kb.Text type="BodySemiboldLink" negative={true} onClick={onOpenWithoutResetUsers}>
-        open a folder without any of them.
+        open a folder without {resetParticipants.length > 1 ? 'any of them' : 'them'}.
       </Kb.Text>
     </Kb.Text>
   </Kb.Box2>

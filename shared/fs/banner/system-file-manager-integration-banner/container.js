@@ -3,7 +3,7 @@ import * as React from 'react'
 import Banner, {height} from './index'
 import * as FsGen from '../../../actions/fs-gen'
 import * as Types from '../../../constants/types/fs'
-import * as RowTypes from '../../row/types'
+import * as RowTypes from '../../browser/rows/types'
 import {namedConnect} from '../../../util/container'
 import {isMobile} from '../../../constants/platform'
 

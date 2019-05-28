@@ -1194,8 +1194,6 @@ func (l *SigChainLoader) maybeDiscardStubbedLinks() {
 
 	// The only links we're leaving are the unstubbed links.
 	l.links = l.links[0:firstStubbedLink]
-
-	return
 }
 
 //========================================================================

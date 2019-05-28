@@ -7,7 +7,6 @@ import {connect} from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {type MenuItem} from '../../common-adapters/floating-menu/menu-layout'
 import {FloatingMenu} from '../../common-adapters'
-import {teamsTab} from '../../constants/tabs'
 
 type OwnProps = {
   attachTo: () => ?React.Component<any>,
@@ -21,6 +20,7 @@ const mapStateToProps = (state, {teamname}: OwnProps) => {
   const isBigTeam = Constants.isBigTeam(state, teamname)
   return {
     canCreateSubteam: yourOperations.manageSubteams,
+    canDeleteTeam: yourOperations.deleteTeam && Constants.getTeamSubteams(state, teamname).count() === 0,
     canLeaveTeam: yourOperations.leaveTeam,
     canManageChat: yourOperations.renameChannel,
     canViewFolder: !yourOperations.joinTeam,
@@ -31,22 +31,25 @@ const mapStateToProps = (state, {teamname}: OwnProps) => {
 const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
   onCreateSubteam: () =>
     dispatch(
-      RouteTreeGen.createNavigateTo({
-        parentPath: [teamsTab, 'team'],
+      RouteTreeGen.createNavigateAppend({
         path: [{props: {makeSubteam: true, name: teamname}, selected: 'teamNewTeamDialog'}],
+      })
+    ),
+  onDeleteTeam: () =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {teamname}, selected: 'teamDeleteTeam'}],
       })
     ),
   onLeaveTeam: () =>
     dispatch(
-      RouteTreeGen.createNavigateTo({
-        parentPath: [teamsTab, 'team'],
+      RouteTreeGen.createNavigateAppend({
         path: [{props: {teamname}, selected: 'teamReallyLeaveTeam'}],
       })
     ),
   onManageChat: () =>
     dispatch(
-      RouteTreeGen.createNavigateTo({
-        parentPath: [teamsTab, 'team'],
+      RouteTreeGen.createNavigateAppend({
         path: [{props: {teamname}, selected: 'chatManageChannels'}],
       })
     ),
@@ -72,6 +75,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   if (stateProps.canViewFolder) {
     items.push({onClick: dispatchProps.onOpenFolder, title: 'Open folder'})
   }
+  if (stateProps.canDeleteTeam) {
+    items.push({danger: true, onClick: dispatchProps.onDeleteTeam, title: 'Delete team'})
+  }
+
   return {
     attachTo: ownProps.attachTo,
     items,

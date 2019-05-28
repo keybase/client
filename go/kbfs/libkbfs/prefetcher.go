@@ -1419,7 +1419,6 @@ func (p *blockPrefetcher) triggerPrefetch(req *prefetchRequest) {
 		p.log.Warning("Skipping prefetch for block %v since "+
 			"the prefetcher is shutdown", req.ptr.ID)
 	}
-	return
 }
 
 func (p *blockPrefetcher) cacheOrCancelPrefetch(ctx context.Context,
