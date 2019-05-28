@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 
+	"github.com/keybase/client/go/msgpack"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/go-crypto/openpgp"
@@ -29,7 +30,7 @@ func TestDecode0(t *testing.T) {
 	require.NoError(t, err)
 	var h codec.MsgpackHandle
 	var foo Foo
-	err = MsgpackDecodeAll(bytes, &h, &foo)
+	err = msgpack.DecodeAll(bytes, &h, &foo)
 	require.NoError(t, err)
 	require.Equal(t, 10, foo.Bar)
 }

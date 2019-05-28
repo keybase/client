@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/client/go/kex2"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/msgpack"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	jsonw "github.com/keybase/go-jsonw"
@@ -276,7 +277,7 @@ func (e *Kex2Provisioner) CounterSign2(input keybase1.Hello2Res) (output keybase
 	}
 
 	var ppsPacked []byte
-	ppsPacked, err = libkb.MsgpackEncode(e.pps)
+	ppsPacked, err = msgpack.Encode(e.pps)
 	if err != nil {
 		return output, err
 	}
