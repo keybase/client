@@ -326,7 +326,7 @@ class MenubarRender extends React.Component<Props, State> {
             <FilesPreview />
           ) : (
             <Kb.Box2 direction="vertical" fullWidth={true} style={{height: 200}}>
-              <Loading path={FsTypes.defaultPath} />
+              <Loading path={undefined /* NOT here? TODO FS FIX FsTypes.defaultPath */} />
             </Kb.Box2>
           )}
         </Kb.ScrollView>
