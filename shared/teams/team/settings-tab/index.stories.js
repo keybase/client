@@ -25,6 +25,7 @@ const commonProps = {
     deleteChannel: true,
     deleteChatHistory: true,
     deleteOtherMessages: true,
+    deleteTeam: true,
     editChannelDescription: true,
     editTeamDescription: true,
     joinTeam: true,

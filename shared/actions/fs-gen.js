@@ -43,6 +43,7 @@ export const kbfsDaemonOnlineStatusChanged = 'fs:kbfsDaemonOnlineStatusChanged'
 export const kbfsDaemonRpcStatusChanged = 'fs:kbfsDaemonRpcStatusChanged'
 export const letResetUserBackIn = 'fs:letResetUserBackIn'
 export const loadPathMetadata = 'fs:loadPathMetadata'
+export const loadSettings = 'fs:loadSettings'
 export const loadTlfSyncConfig = 'fs:loadTlfSyncConfig'
 export const loadingPath = 'fs:loadingPath'
 export const localHTTPServerInfo = 'fs:localHTTPServerInfo'
@@ -76,8 +77,10 @@ export const setSendAttachmentToChatConvID = 'fs:setSendAttachmentToChatConvID'
 export const setSendAttachmentToChatFilter = 'fs:setSendAttachmentToChatFilter'
 export const setSendLinkToChatChannels = 'fs:setSendLinkToChatChannels'
 export const setSendLinkToChatConvID = 'fs:setSendLinkToChatConvID'
+export const setSpaceAvailableNotificationThreshold = 'fs:setSpaceAvailableNotificationThreshold'
 export const setTlfSoftError = 'fs:setTlfSoftError'
 export const setTlfSyncConfig = 'fs:setTlfSyncConfig'
+export const settingsLoaded = 'fs:settingsLoaded'
 export const shareNative = 'fs:shareNative'
 export const showIncomingShare = 'fs:showIncomingShare'
 export const showMoveOrCopy = 'fs:showMoveOrCopy'
@@ -119,7 +122,7 @@ type _FavoritesLoadPayload = void
 type _FavoritesLoadedPayload = $ReadOnly<{|private: I.Map<string, Types.Tlf>, public: I.Map<string, Types.Tlf>, team: I.Map<string, Types.Tlf>|}>
 type _FolderListLoadPayload = $ReadOnly<{|path: Types.Path, refreshTag?: Types.RefreshTag|}>
 type _FolderListLoadedPayload = $ReadOnly<{|path: Types.Path, pathItems: I.Map<Types.Path, Types.PathItem>|}>
-type _FsErrorPayload = $ReadOnly<{|error: Types.FsError|}>
+type _FsErrorPayload = $ReadOnly<{|error: Types.FsError, expectedIfOffline: boolean|}>
 type _HideSystemFileManagerIntegrationBannerPayload = void
 type _InitSendAttachmentToChatPayload = $ReadOnly<{|path: Types.Path|}>
 type _InitSendLinkToChatPayload = $ReadOnly<{|path: Types.Path|}>
@@ -128,6 +131,7 @@ type _KbfsDaemonOnlineStatusChangedPayload = $ReadOnly<{|online: boolean|}>
 type _KbfsDaemonRpcStatusChangedPayload = $ReadOnly<{|rpcStatus: Types.KbfsDaemonRpcStatus|}>
 type _LetResetUserBackInPayload = $ReadOnly<{|id: RPCTypes.TeamID, username: string|}>
 type _LoadPathMetadataPayload = $ReadOnly<{|path: Types.Path, refreshTag?: ?Types.RefreshTag|}>
+type _LoadSettingsPayload = void
 type _LoadTlfSyncConfigPayload = $ReadOnly<{|tlfPath: Types.Path|}>
 type _LoadingPathPayload = $ReadOnly<{|path: Types.Path, id: string, done: boolean|}>
 type _LocalHTTPServerInfoPayload = $ReadOnly<{|address: string, token: string|}>
@@ -161,8 +165,10 @@ type _SetSendAttachmentToChatConvIDPayload = $ReadOnly<{|convID: ChatTypes.Conve
 type _SetSendAttachmentToChatFilterPayload = $ReadOnly<{|filter: string|}>
 type _SetSendLinkToChatChannelsPayload = $ReadOnly<{|channels: I.Map<ChatTypes.ConversationIDKey, string>|}>
 type _SetSendLinkToChatConvIDPayload = $ReadOnly<{|convID: ChatTypes.ConversationIDKey|}>
+type _SetSpaceAvailableNotificationThresholdPayload = $ReadOnly<{|spaceAvailableNotificationThreshold: number|}>
 type _SetTlfSoftErrorPayload = $ReadOnly<{|path: Types.Path, softError: ?Types.SoftError|}>
 type _SetTlfSyncConfigPayload = $ReadOnly<{|enabled: boolean, tlfPath: Types.Path|}>
+type _SettingsLoadedPayload = $ReadOnly<{|settings?: Types.Settings|}>
 type _ShareNativePayload = $ReadOnly<{|path: Types.Path, key: string|}>
 type _ShowIncomingSharePayload = $ReadOnly<{|initialDestinationParentPath: Types.Path|}>
 type _ShowMoveOrCopyPayload = $ReadOnly<{|initialDestinationParentPath: Types.Path|}>
@@ -213,6 +219,7 @@ export const createKbfsDaemonOnlineStatusChanged = (payload: _KbfsDaemonOnlineSt
 export const createKbfsDaemonRpcStatusChanged = (payload: _KbfsDaemonRpcStatusChangedPayload) => ({payload, type: kbfsDaemonRpcStatusChanged})
 export const createLetResetUserBackIn = (payload: _LetResetUserBackInPayload) => ({payload, type: letResetUserBackIn})
 export const createLoadPathMetadata = (payload: _LoadPathMetadataPayload) => ({payload, type: loadPathMetadata})
+export const createLoadSettings = (payload: _LoadSettingsPayload) => ({payload, type: loadSettings})
 export const createLoadTlfSyncConfig = (payload: _LoadTlfSyncConfigPayload) => ({payload, type: loadTlfSyncConfig})
 export const createLoadingPath = (payload: _LoadingPathPayload) => ({payload, type: loadingPath})
 export const createLocalHTTPServerInfo = (payload: _LocalHTTPServerInfoPayload) => ({payload, type: localHTTPServerInfo})
@@ -246,8 +253,10 @@ export const createSetSendAttachmentToChatConvID = (payload: _SetSendAttachmentT
 export const createSetSendAttachmentToChatFilter = (payload: _SetSendAttachmentToChatFilterPayload) => ({payload, type: setSendAttachmentToChatFilter})
 export const createSetSendLinkToChatChannels = (payload: _SetSendLinkToChatChannelsPayload) => ({payload, type: setSendLinkToChatChannels})
 export const createSetSendLinkToChatConvID = (payload: _SetSendLinkToChatConvIDPayload) => ({payload, type: setSendLinkToChatConvID})
+export const createSetSpaceAvailableNotificationThreshold = (payload: _SetSpaceAvailableNotificationThresholdPayload) => ({payload, type: setSpaceAvailableNotificationThreshold})
 export const createSetTlfSoftError = (payload: _SetTlfSoftErrorPayload) => ({payload, type: setTlfSoftError})
 export const createSetTlfSyncConfig = (payload: _SetTlfSyncConfigPayload) => ({payload, type: setTlfSyncConfig})
+export const createSettingsLoaded = (payload: _SettingsLoadedPayload = Object.freeze({})) => ({payload, type: settingsLoaded})
 export const createShareNative = (payload: _ShareNativePayload) => ({payload, type: shareNative})
 export const createShowIncomingShare = (payload: _ShowIncomingSharePayload) => ({payload, type: showIncomingShare})
 export const createShowMoveOrCopy = (payload: _ShowMoveOrCopyPayload) => ({payload, type: showMoveOrCopy})
@@ -298,6 +307,7 @@ export type KbfsDaemonOnlineStatusChangedPayload = {|+payload: _KbfsDaemonOnline
 export type KbfsDaemonRpcStatusChangedPayload = {|+payload: _KbfsDaemonRpcStatusChangedPayload, +type: 'fs:kbfsDaemonRpcStatusChanged'|}
 export type LetResetUserBackInPayload = {|+payload: _LetResetUserBackInPayload, +type: 'fs:letResetUserBackIn'|}
 export type LoadPathMetadataPayload = {|+payload: _LoadPathMetadataPayload, +type: 'fs:loadPathMetadata'|}
+export type LoadSettingsPayload = {|+payload: _LoadSettingsPayload, +type: 'fs:loadSettings'|}
 export type LoadTlfSyncConfigPayload = {|+payload: _LoadTlfSyncConfigPayload, +type: 'fs:loadTlfSyncConfig'|}
 export type LoadingPathPayload = {|+payload: _LoadingPathPayload, +type: 'fs:loadingPath'|}
 export type LocalHTTPServerInfoPayload = {|+payload: _LocalHTTPServerInfoPayload, +type: 'fs:localHTTPServerInfo'|}
@@ -331,8 +341,10 @@ export type SetSendAttachmentToChatConvIDPayload = {|+payload: _SetSendAttachmen
 export type SetSendAttachmentToChatFilterPayload = {|+payload: _SetSendAttachmentToChatFilterPayload, +type: 'fs:setSendAttachmentToChatFilter'|}
 export type SetSendLinkToChatChannelsPayload = {|+payload: _SetSendLinkToChatChannelsPayload, +type: 'fs:setSendLinkToChatChannels'|}
 export type SetSendLinkToChatConvIDPayload = {|+payload: _SetSendLinkToChatConvIDPayload, +type: 'fs:setSendLinkToChatConvID'|}
+export type SetSpaceAvailableNotificationThresholdPayload = {|+payload: _SetSpaceAvailableNotificationThresholdPayload, +type: 'fs:setSpaceAvailableNotificationThreshold'|}
 export type SetTlfSoftErrorPayload = {|+payload: _SetTlfSoftErrorPayload, +type: 'fs:setTlfSoftError'|}
 export type SetTlfSyncConfigPayload = {|+payload: _SetTlfSyncConfigPayload, +type: 'fs:setTlfSyncConfig'|}
+export type SettingsLoadedPayload = {|+payload: _SettingsLoadedPayload, +type: 'fs:settingsLoaded'|}
 export type ShareNativePayload = {|+payload: _ShareNativePayload, +type: 'fs:shareNative'|}
 export type ShowIncomingSharePayload = {|+payload: _ShowIncomingSharePayload, +type: 'fs:showIncomingShare'|}
 export type ShowMoveOrCopyPayload = {|+payload: _ShowMoveOrCopyPayload, +type: 'fs:showMoveOrCopy'|}
@@ -385,6 +397,7 @@ export type Actions =
   | KbfsDaemonRpcStatusChangedPayload
   | LetResetUserBackInPayload
   | LoadPathMetadataPayload
+  | LoadSettingsPayload
   | LoadTlfSyncConfigPayload
   | LoadingPathPayload
   | LocalHTTPServerInfoPayload
@@ -418,8 +431,10 @@ export type Actions =
   | SetSendAttachmentToChatFilterPayload
   | SetSendLinkToChatChannelsPayload
   | SetSendLinkToChatConvIDPayload
+  | SetSpaceAvailableNotificationThresholdPayload
   | SetTlfSoftErrorPayload
   | SetTlfSyncConfigPayload
+  | SettingsLoadedPayload
   | ShareNativePayload
   | ShowIncomingSharePayload
   | ShowMoveOrCopyPayload

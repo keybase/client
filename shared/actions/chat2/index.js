@@ -665,15 +665,12 @@ const onChatSetConvRetention = (_, action, logger) => {
 const onChatSetConvSettings = (_, action, logger) => {
   const {conv, convID} = action.payload.params
   const conversationIDKey = Types.conversationIDToKey(convID)
-  const newRole =
-    conv &&
-    conv.convSettings &&
-    conv.convSettings.minWriterRoleInfo &&
-    conv.convSettings.minWriterRoleInfo.role
+  const newRole = conv?.convSettings?.minWriterRoleInfo?.role
   const role = newRole && TeamsConstants.teamRoleByEnum[newRole]
+  const cannotWrite = conv?.convSettings?.minWriterRoleInfo?.cannotWrite
   logger.info(`got new minWriterRole ${role || ''} for convID ${conversationIDKey}`)
-  if (role && role !== 'none') {
-    return Chat2Gen.createSaveMinWriterRole({conversationIDKey, role})
+  if (role && role !== 'none' && cannotWrite !== undefined) {
+    return Chat2Gen.createSaveMinWriterRole({cannotWrite, conversationIDKey, role})
   }
   logger.warn(
     `got NotifyChat.ChatSetConvSettings with no valid minWriterRole for convID ${conversationIDKey}. The local version may be out of date.`
@@ -1342,6 +1339,7 @@ function* threadSearch(state, action, logger) {
           convID: Types.keyToConversationID(conversationIDKey),
           forceReindex: false,
           isRegex: false,
+          matchMentions: false,
           maxConvsHit: 0,
           maxConvsSearched: 0,
           maxHits: 1000,
@@ -1451,6 +1449,7 @@ function* inboxSearch(state, action, logger) {
           afterContext: 0,
           beforeContext: 0,
           isRegex: false,
+          matchMentions: false,
           maxConvsHit: Constants.inboxSearchMaxTextResults,
           maxConvsSearched: 0,
           maxHits: Constants.inboxSearchMaxTextMessages,

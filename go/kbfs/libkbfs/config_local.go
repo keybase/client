@@ -152,6 +152,9 @@ type ConfigLocal struct {
 	// conflictResolutionDB stores information about failed CRs
 	conflictResolutionDB *LevelDb
 
+	// settingsDB stores information about local KBFS settings
+	settingsDB *SettingsDB
+
 	mode InitMode
 
 	quotaUsage      map[keybase1.UserOrTeamID]*EventuallyConsistentQuotaUsage
@@ -290,6 +293,7 @@ func NewConfigLocal(mode InitMode,
 	config.blockCryptVersion = defaultBlockCryptVersion
 
 	config.conflictResolutionDB = openCRDB(config)
+	config.settingsDB = openSettingsDB(config)
 
 	return config
 }
@@ -1115,6 +1119,11 @@ func (c *ConfigLocal) Shutdown(ctx context.Context) error {
 			errorList = append(errorList, err)
 		}
 	}
+	if c.settingsDB != nil {
+		if err := c.settingsDB.Close(); err != nil {
+			errorList = append(errorList, err)
+		}
+	}
 	kbfsServ := c.kbfsService
 	if kbfsServ != nil {
 		kbfsServ.Shutdown()
@@ -1671,6 +1680,11 @@ func (c *ConfigLocal) GetRekeyFSMLimiter() *OngoingWorkLimiter {
 // GetConflictResolutionDB implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) GetConflictResolutionDB() (db *LevelDb) {
 	return c.conflictResolutionDB
+}
+
+// GetSettingsDB implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) GetSettingsDB() (db *SettingsDB) {
+	return c.settingsDB
 }
 
 // SetKBFSService sets the KBFSService for this ConfigLocal.

@@ -464,6 +464,13 @@ func (m MessageUnboxed) AtMentionUsernames() []string {
 	return m.Valid().AtMentionUsernames
 }
 
+func (m MessageUnboxed) ChannelMention() ChannelMention {
+	if !m.IsValid() {
+		return ChannelMention_NONE
+	}
+	return m.Valid().ChannelMention
+}
+
 func (m *MessageUnboxed) DebugString() string {
 	if m == nil {
 		return "[nil]"
@@ -2082,7 +2089,14 @@ func (o SearchOpts) Matches(msg MessageUnboxed) bool {
 	if o.SentBy != "" && msg.SenderUsername() != o.SentBy {
 		return false
 	}
+	// Check if the user was @mentioned or there was a @here/@channel.
 	if o.SentTo != "" {
+		if o.MatchMentions {
+			switch msg.ChannelMention() {
+			case ChannelMention_ALL, ChannelMention_HERE:
+				return true
+			}
+		}
 		for _, username := range msg.AtMentionUsernames() {
 			if o.SentTo == username {
 				return true
@@ -2134,7 +2148,9 @@ func (u UnfurlRaw) GetUrl() string {
 	case UnfurlType_GENERIC:
 		return u.Generic().Url
 	case UnfurlType_GIPHY:
-		return u.Giphy().ImageUrl
+		if u.Giphy().ImageUrl != nil {
+			return *u.Giphy().ImageUrl
+		}
 	}
 	return ""
 }
@@ -2182,7 +2198,7 @@ func (g UnfurlGiphyRaw) UnsafeDebugString() string {
 	return fmt.Sprintf(`GIPHY SPECIAL
 FaviconUrl: %s
 ImageUrl: %s
-Video: %s`, yieldStr(g.FaviconUrl), g.ImageUrl, g.Video)
+Video: %s`, yieldStr(g.FaviconUrl), yieldStr(g.ImageUrl), g.Video)
 }
 
 func (v UnfurlVideo) String() string {

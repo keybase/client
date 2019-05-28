@@ -67,6 +67,10 @@ func (c Contextified) G() *Context {
 	return c.gc
 }
 
+func (c Contextified) MetaContext(ctx context.Context) libkb.MetaContext {
+	return libkb.NewMetaContext(ctx, c.G().ExternalG())
+}
+
 type ChatContextified struct {
 	gc *ChatContext
 }

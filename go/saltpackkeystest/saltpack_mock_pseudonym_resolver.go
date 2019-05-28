@@ -42,7 +42,6 @@ func (r *MockPseudonymResolver) ResolveKeys(identifiers [][]byte) ([]*saltpack.S
 func (r *MockPseudonymResolver) AddPseudonym(pnym [32]byte, key *saltpack.SymmetricKey) {
 	r.T.Logf("MockPseudonymResolver: adding pnym %s, key %s", hex.EncodeToString(pnym[:]), hex.EncodeToString(key[:]))
 	r.pnymMap[pnym] = key
-	return
 }
 
 func NewMockPseudonymResolver(t *testing.T) saltpack.SymmetricKeyResolver {

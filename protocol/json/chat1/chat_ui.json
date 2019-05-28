@@ -66,6 +66,10 @@
         },
         {
           "type": "string",
+          "name": "headlineDecorated"
+        },
+        {
+          "type": "string",
           "name": "snippet"
         },
         {
@@ -270,6 +274,10 @@
         {
           "type": "string",
           "name": "headline"
+        },
+        {
+          "type": "string",
+          "name": "headlineDecorated"
         },
         {
           "type": "keybase1.TLFVisibility",

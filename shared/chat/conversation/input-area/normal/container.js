@@ -53,6 +53,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     _metaMap: state.chat2.metaMap,
     _replyTo,
     _you,
+    cannotWrite: meta.cannotWrite,
     conversationIDKey,
     editText: editInfo ? editInfo.text : '',
     explodingModeSeconds,
@@ -60,6 +61,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     isEditExploded: editInfo ? editInfo.exploded : false,
     isExploding,
     isSearching,
+    minWriterRole: meta.minWriterRole,
     quoteCounter: quoteInfo ? quoteInfo.counter : 0,
     quoteText: quoteInfo ? quoteInfo.text : '',
     showCommandMarkdown,
@@ -67,6 +69,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     showTypingStatus:
       Constants.getTyping(state, conversationIDKey).size !== 0 && !showGiphySearch && !showCommandMarkdown,
     showWalletsIcon: Constants.shouldShowWalletsIcon(state, conversationIDKey),
+    suggestAllChannels: Constants.getAllChannels(state),
     suggestChannels: Constants.getChannelSuggestions(state, teamname),
     suggestCommands: Constants.getCommands(state, conversationIDKey),
     suggestUsers: Constants.getParticipantSuggestions(state, conversationIDKey),
@@ -134,6 +137,7 @@ const getTeams = memoize(metaMap =>
 )
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
+  cannotWrite: stateProps.cannotWrite,
   clearInboxFilter: dispatchProps.clearInboxFilter,
   conversationIDKey: stateProps.conversationIDKey,
   editText: stateProps.editText,
@@ -146,6 +150,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   isEditing: !!stateProps._editOrdinal,
   isExploding: stateProps.isExploding,
   isSearching: stateProps.isSearching,
+  minWriterRole: stateProps.minWriterRole,
   onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
   onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
   onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
@@ -186,6 +191,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   showReplyPreview: !!stateProps._replyTo,
   showTypingStatus: stateProps.showTypingStatus,
   showWalletsIcon: stateProps.showWalletsIcon,
+  suggestAllChannels: stateProps.suggestAllChannels,
   suggestChannels: stateProps.suggestChannels,
   suggestCommands: stateProps.suggestCommands,
   suggestTeams: getTeams(stateProps._metaMap),

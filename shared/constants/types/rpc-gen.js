@@ -342,6 +342,12 @@ export const ctlExitCode = {
   restart: 4,
 }
 
+export const favoriteConflictStateType = {
+  automaticresolving: 0,
+  manualresolvingserverview: 1,
+  manualresolvinglocalview: 2,
+}
+
 export const favoriteFolderConflictType = {
   none: 0,
   inConflict: 1,
@@ -903,9 +909,12 @@ export const SimpleFSSimpleFSAreWeConnectedToMDServerRpcPromise = (params, waiti
 export const SimpleFSSimpleFSCancelRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSCancel', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSCheckReachabilityRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSCheckReachability', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSCheckRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSCheck', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const SimpleFSSimpleFSClearConflictStateRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSClearConflictState', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSCopyRecursiveRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSCopyRecursive', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const SimpleFSSimpleFSFinishResolvingConflictRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSFinishResolvingConflict', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSFolderSyncConfigAndStatusRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.SimpleFSGetHTTPAddressAndToken', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const SimpleFSSimpleFSListFavoritesRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSListFavorites', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSListRecursiveToDepthRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSListRecursiveToDepth', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSListRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSList', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSMoveRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSMove', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -913,6 +922,8 @@ export const SimpleFSSimpleFSOpenRpcPromise = (params, waitingKey) => new Promis
 export const SimpleFSSimpleFSReadListRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSReadList', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSRemoveRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSRemove', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSSetFolderSyncConfigRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSetFolderSyncConfig', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const SimpleFSSimpleFSSetNotificationThresholdRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSetNotificationThreshold', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const SimpleFSSimpleFSSettingsRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSettings', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSStatRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSStat', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSSyncConfigAndStatusRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSyncConfigAndStatus', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSSyncStatusRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSyncStatus', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -941,6 +952,7 @@ export const configGetUpdateInfo2RpcPromise = (params, waitingKey) => new Promis
 export const configGetUpdateInfoRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.getUpdateInfo', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configGetValueRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.getValue', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configHelloIAmRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.helloIAm', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const configLogSendRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.logSend', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configSetRememberPassphraseRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.setRememberPassphrase', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configSetValueRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.setValue', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configStartUpdateIfNeededRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.startUpdateIfNeeded', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -1027,6 +1039,8 @@ export const teamsTeamAddMemberRpcPromise = (params, waitingKey) => new Promise(
 export const teamsTeamAddMembersRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamAddMembers', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamCreateRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamCreate', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamCreateSeitanTokenV2RpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamCreateSeitanTokenV2', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const teamsTeamDeleteRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamDelete', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const teamsTeamDeleteRpcSaga = p => call(getEngineSaga(), {method: 'keybase.1.teams.teamDelete', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const teamsTeamEditMemberRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamEditMember', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamGetMembersRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamGetMembers', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamGetRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamGet', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

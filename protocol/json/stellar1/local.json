@@ -45,6 +45,10 @@
         },
         {
           "type": "boolean",
+          "name": "deviceReadOnly"
+        },
+        {
+          "type": "boolean",
           "name": "isFunded"
         },
         {

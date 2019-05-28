@@ -38,13 +38,14 @@ export const addMemberWaitingKey = (teamname: Types.Teamname, username: string) 
 export const removeMemberWaitingKey = (teamname: Types.Teamname, id: string) => `teamRemove:${teamname};${id}`
 export const addToTeamSearchKey = 'addToTeamSearch'
 export const teamProfileAddListWaitingKey = 'teamProfileAddList'
+export const deleteTeamWaitingKey = (teamname: Types.Teamname) => `teamDelete:${teamname}`
 export const leaveTeamWaitingKey = (teamname: Types.Teamname) => `teamLeave:${teamname}`
 export const teamRenameWaitingKey = 'teams:rename'
 
 export const makeChannelInfo: I.RecordFactory<Types._ChannelInfo> = I.Record({
   channelname: '',
   description: '',
-  participants: I.Set(),
+  memberStatus: RPCChatTypes.commonConversationMemberStatus.active,
 })
 
 export const makeMemberInfo: I.RecordFactory<Types._MemberInfo> = I.Record({
@@ -135,6 +136,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   addUserToTeamsResults: '',
   addUserToTeamsState: 'notStarted',
   channelCreationError: '',
+  deletedTeams: I.List(),
   emailInviteError: makeEmailInviteError(),
   newTeamRequests: I.List(),
   newTeams: I.Set(),
@@ -177,6 +179,7 @@ export const initialCanUserPerform: RPCTypes.TeamOperation = {
   deleteChannel: false,
   deleteChatHistory: false,
   deleteOtherMessages: false,
+  deleteTeam: false,
   editChannelDescription: false,
   editTeamDescription: false,
   joinTeam: false,
@@ -325,16 +328,21 @@ const getDisabledReasonsForRolePicker = (
   memberToModify: ?string
 ): Types.DisabledReasonsForRolePicker => {
   const canManageMembers = getCanPerform(state, teamname).manageMembers
-  if (canManageMembers) {
-    // If you're an implicit admin, the tests below will fail for you, but you can still change roles.
-    return isSubteam(teamname) ? {owner: 'Subteams cannot have owners.'} : {}
-  }
   const members = getTeamMembers(state, teamname)
   const member = memberToModify ? members.get(memberToModify) : null
   const theyAreOwner = member ? member.type === 'owner' : false
   const you = members.get(state.config.username)
   // Fallback to the lowest role, although this shouldn't happen
   const yourRole = you ? you.type : 'reader'
+
+  if (canManageMembers) {
+    // If you're an implicit admin, the tests below will fail for you, but you can still change roles.
+    return isSubteam(teamname)
+      ? {owner: 'Subteams cannot have owners.'}
+      : yourRole !== 'owner'
+      ? {owner: 'Only owners can turn team members into owners.'}
+      : {}
+  }
 
   // We shouldn't get here, but in case we do this is correct.
   if (yourRole !== 'owner' && yourRole !== 'admin') {

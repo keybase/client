@@ -459,7 +459,7 @@ func (k *SimpleFS) doneOp(ctx context.Context, opid keybase1.OpID, err error) {
 		w.done <- err
 		close(w.done)
 	}
-	k.log.CDebugf(ctx, "done op %X, status=%v", opid, err)
+	k.log.CDebugf(ctx, "done op %X, status=%+v", opid, err)
 	if ctx != nil {
 		libcontext.CleanupCancellationDelayer(ctx)
 	}
@@ -1350,7 +1350,7 @@ func (k *SimpleFS) startOpWrapContext(outer context.Context) (context.Context, e
 }
 
 func (k *SimpleFS) doneSyncOp(ctx context.Context, err error) {
-	k.log.CDebugf(ctx, "done sync op, status=%v", err)
+	k.log.CDebugf(ctx, "done sync op, status=%+v", err)
 	if ctx != nil {
 		libcontext.CleanupCancellationDelayer(ctx)
 	}
@@ -2486,6 +2486,12 @@ func (k *SimpleFS) SimpleFSClearConflictState(ctx context.Context,
 	return k.config.KBFSOps().ClearConflictView(ctx, tlfID)
 }
 
+// SimpleFSFinishResolvingConflict implements the SimpleFS interface.
+func (k *SimpleFS) SimpleFSFinishResolvingConflict(ctx context.Context,
+	path keybase1.Path) error {
+	return errors.New("not implemented")
+}
+
 // SimpleFSForceStuckConflict implements the SimpleFS interface.
 func (k *SimpleFS) SimpleFSForceStuckConflict(
 	ctx context.Context, path keybase1.Path) error {
@@ -2533,4 +2539,22 @@ func (k *SimpleFS) SimpleFSSetDebugLevel(
 	_ context.Context, level string) error {
 	k.config.SetVLogLevel(level)
 	return nil
+}
+
+// SimpleFSSettings implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSSettings(ctx context.Context) (keybase1.FSSettings, error) {
+	db := k.config.GetSettingsDB()
+	if db == nil {
+		return keybase1.FSSettings{}, libkbfs.ErrNoSettingsDB
+	}
+	return db.Settings(ctx)
+}
+
+// SimpleFSSetNotificationThreshold implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSSetNotificationThreshold(ctx context.Context, threshold int64) error {
+	db := k.config.GetSettingsDB()
+	if db == nil {
+		return libkbfs.ErrNoSettingsDB
+	}
+	return db.SetNotificationThreshold(ctx, threshold)
 }

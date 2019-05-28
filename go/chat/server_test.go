@@ -4285,6 +4285,114 @@ func TestChatSrvTeamChannels(t *testing.T) {
 	})
 }
 
+func TestChatSrvTLFConversationsLocal(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		ctc := makeChatTestContext(t, "TestChatSrvTLFConversationsLocal", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		// Only run this test for teams
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+		default:
+			return
+		}
+
+		ctx := ctc.as(t, users[0]).startCtx
+		ctx1 := ctc.as(t, users[1]).startCtx
+
+		listener0 := newServerChatListener()
+		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
+		ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
+
+		listener1 := newServerChatListener()
+		ctc.as(t, users[1]).h.G().NotifyRouter.AddListener(listener1)
+		ctc.world.Tcs[users[1].Username].ChatG.Syncer.(*Syncer).isConnected = true
+
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+			mt, ctc.as(t, users[1]).user())
+		t.Logf("first conv: %s", conv.Id)
+		t.Logf("create a conversation, and join user 1 into by sending a message")
+		topicName := "zjoinonsend"
+		ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
+			chat1.NewConversationLocalArg{
+				TlfName:       conv.TlfName,
+				TopicName:     &topicName,
+				TopicType:     chat1.TopicType_CHAT,
+				TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+				MembersType:   chat1.ConversationMembersType_TEAM,
+			})
+		require.NoError(t, err)
+
+		_, err = postLocalForTest(t, ctc, users[1], ncres.Conv.Info, chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: fmt.Sprintf("JOINME"),
+		}))
+		require.NoError(t, err)
+
+		getTLFRes, err := ctc.as(t, users[1]).chatLocalHandler().GetTLFConversationsLocal(ctx1,
+			chat1.GetTLFConversationsLocalArg{
+				TlfName:     conv.TlfName,
+				TopicType:   chat1.TopicType_CHAT,
+				MembersType: chat1.ConversationMembersType_TEAM,
+			})
+		require.NoError(t, err)
+		require.Equal(t, 2, len(getTLFRes.Convs))
+		require.Equal(t, globals.DefaultTeamTopic, getTLFRes.Convs[0].Channel)
+		require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, getTLFRes.Convs[1].MemberStatus)
+		require.Equal(t, 2, len(getTLFRes.Convs[1].Participants))
+
+		_, err = ctc.as(t, users[1]).chatLocalHandler().LeaveConversationLocal(ctx1,
+			ncres.Conv.GetConvID())
+		require.NoError(t, err)
+		ignoreTypes := []chat1.MessageType{chat1.MessageType_SYSTEM, chat1.MessageType_JOIN, chat1.MessageType_TEXT}
+		consumeNewMsgWhileIgnoring(t, listener0, chat1.MessageType_LEAVE, ignoreTypes, chat1.ChatActivitySource_REMOTE)
+
+		// make sure both users have processed the leave in their inbox
+		for i, user := range users {
+			getTLFRes, err = ctc.as(t, user).chatLocalHandler().GetTLFConversationsLocal(ctc.as(t, user).startCtx,
+				chat1.GetTLFConversationsLocalArg{
+					TlfName:     conv.TlfName,
+					TopicType:   chat1.TopicType_CHAT,
+					MembersType: chat1.ConversationMembersType_TEAM,
+				})
+			require.NoError(t, err)
+			require.Equal(t, 2, len(getTLFRes.Convs))
+			require.Equal(t, globals.DefaultTeamTopic, getTLFRes.Convs[0].Channel)
+			if i == 1 {
+				require.Equal(t, chat1.ConversationMemberStatus_LEFT, getTLFRes.Convs[1].MemberStatus)
+			} else {
+				require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, getTLFRes.Convs[1].MemberStatus)
+			}
+			require.Equal(t, 1, len(getTLFRes.Convs[1].Participants))
+			require.Equal(t, users[0].Username, getTLFRes.Convs[1].Participants[0])
+		}
+
+		// delete the channel make sure it's gone from both inboxes
+		_, err = ctc.as(t, users[0]).chatLocalHandler().DeleteConversationLocal(ctx,
+			chat1.DeleteConversationLocalArg{
+				ConvID:    ncres.Conv.GetConvID(),
+				Confirmed: true,
+			})
+		require.NoError(t, err)
+		consumeLeaveConv(t, listener0)
+		consumeTeamType(t, listener0)
+		consumeLeaveConv(t, listener1)
+		consumeTeamType(t, listener1)
+
+		for _, user := range users {
+			getTLFRes, err = ctc.as(t, user).chatLocalHandler().GetTLFConversationsLocal(ctc.as(t, user).startCtx,
+				chat1.GetTLFConversationsLocalArg{
+					TlfName:     conv.TlfName,
+					TopicType:   chat1.TopicType_CHAT,
+					MembersType: chat1.ConversationMembersType_TEAM,
+				})
+			require.NoError(t, err)
+			require.Equal(t, 1, len(getTLFRes.Convs))
+			require.Equal(t, globals.DefaultTeamTopic, getTLFRes.Convs[0].Channel)
+		}
+	})
+}
+
 func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		ctc := makeChatTestContext(t, "TestChatSrvSetAppNotificationSettings", 2)
@@ -5427,7 +5535,7 @@ func TestChatSrvTeamTypeChanged(t *testing.T) {
 			conv.Id, types.InboxSourceDataSourceRemoteOnly)
 		require.NoError(t, err)
 		require.NotNil(t, uconv.Conv.Notifications)
-		require.False(t,
+		require.True(t,
 			uconv.Conv.Notifications.Settings[keybase1.DeviceType_DESKTOP][chat1.NotificationKind_GENERIC])
 
 		inboxRes, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(ctx,
@@ -5440,9 +5548,8 @@ func TestChatSrvTeamTypeChanged(t *testing.T) {
 		require.Equal(t, 1, len(inboxRes.Conversations))
 		require.Equal(t, chat1.TeamType_COMPLEX, inboxRes.Conversations[0].Info.TeamType)
 		require.NotNil(t, inboxRes.Conversations[0].Notifications)
-		require.False(t, inboxRes.Conversations[0].Notifications.Settings[keybase1.DeviceType_DESKTOP][chat1.NotificationKind_GENERIC])
+		require.True(t, inboxRes.Conversations[0].Notifications.Settings[keybase1.DeviceType_DESKTOP][chat1.NotificationKind_GENERIC])
 	})
-
 }
 
 func TestChatSrvDeleteConversation(t *testing.T) {

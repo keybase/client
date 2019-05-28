@@ -139,6 +139,10 @@ type blockRetrieverGetter interface {
 	BlockRetriever() BlockRetriever
 }
 
+type settingsDBGetter interface {
+	GetSettingsDB() *SettingsDB
+}
+
 // NodeID is a unique but transient ID for a Node. That is, two Node
 // objects in memory at the same time represent the same file or
 // directory if and only if their NodeIDs are equal (by pointer).
@@ -876,6 +880,8 @@ type Reporter interface {
 	// status to any sink.
 	NotifyOverallSyncStatus(
 		ctx context.Context, status keybase1.FolderSyncStatus)
+	// NotifyFavoritesChanged sends the a favorites invalidation to any sink.
+	NotifyFavoritesChanged(ctx context.Context)
 	// Shutdown frees any resources allocated by a Reporter.
 	Shutdown()
 }
@@ -1940,6 +1946,7 @@ type Config interface {
 	diskLimiterGetter
 	syncedTlfGetterSetter
 	initModeGetter
+	settingsDBGetter
 	SetMode(mode InitMode)
 	Tracer
 	KBFSOps() KBFSOps

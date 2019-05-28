@@ -129,28 +129,26 @@ const updateTlf = (oldTlf?: ?Types.Tlf, newTlf: Types.Tlf): Types.Tlf => {
   }
   // TODO: Ideally this should come in with other data from the same RPC.
   const newTlfDontClearSyncConfig = newTlf.syncConfig ? newTlf : newTlf.set('syncConfig', oldTlf.syncConfig)
-  if (!newTlf.resetParticipants.equals(oldTlf.resetParticipants)) {
-    return newTlfDontClearSyncConfig
-  }
-  if (!I.is(newTlfDontClearSyncConfig.waitingForParticipantUnlock, oldTlf.waitingForParticipantUnlock)) {
-    return newTlfDontClearSyncConfig
-  }
-  if (!I.is(newTlfDontClearSyncConfig.youCanUnlock, oldTlf.youCanUnlock)) {
-    return newTlfDontClearSyncConfig
-  }
   if (
     !I.is(newTlfDontClearSyncConfig.syncConfig, oldTlf.syncConfig) &&
     !haveSamePartialSyncConfig(oldTlf, newTlfDontClearSyncConfig)
   ) {
     return newTlfDontClearSyncConfig
   }
+  if (!newTlf.resetParticipants.equals(oldTlf.resetParticipants)) {
+    return newTlfDontClearSyncConfig
+  }
+  if (!newTlf.conflict.equals(oldTlf.conflict)) {
+    return newTlfDontClearSyncConfig
+  }
+  // syncConfig, resetParticipants, and conflict all stayed thte same in value,
+  // so just reuse old reference.
   return oldTlf.merge(
     newTlfDontClearSyncConfig.withMutations(n =>
       n
-        .set('resetParticipants', oldTlf.resetParticipants)
-        .set('waitingForParticipantUnlock', oldTlf.waitingForParticipantUnlock)
-        .set('youCanUnlock', oldTlf.youCanUnlock)
         .set('syncConfig', oldTlf.syncConfig)
+        .set('resetParticipants', oldTlf.resetParticipants)
+        .set('conflict', oldTlf.conflict)
     )
   )
 }
@@ -160,7 +158,10 @@ const updateTlfList = (oldTlfList: Types.TlfList, newTlfList: Types.TlfList): Ty
 
 const withFsErrorBar = (state: Types.State, action: FsGen.FsErrorPayload): Types.State => {
   const fsError = action.payload.error
-  logger.error('error (fs)', fsError.erroredAction.type, fsError.error)
+  if (!state.kbfsDaemonStatus.online && action.payload.expectedIfOffline) {
+    return state
+  }
+  logger.error('error (fs)', fsError.erroredAction.type, fsError.errorMessage)
   return state.update('errors', errors => errors.set(Constants.makeUUID(), fsError))
 }
 
@@ -574,6 +575,12 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
             : tlfErrors.remove(action.payload.path)
         )
       )
+    case FsGen.settingsLoaded:
+      return action.payload.settings
+        ? state.set('settings', action.payload.settings)
+        : state.update('settings', s => s.set('isLoading', false))
+    case FsGen.loadSettings:
+      return state.update('settings', s => s.set('isLoading', true))
 
     case FsGen.driverDisable:
     case FsGen.folderListLoad:
@@ -604,6 +611,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.refreshDriverStatus:
     case FsGen.loadTlfSyncConfig:
     case FsGen.setTlfSyncConfig:
+    case FsGen.setSpaceAvailableNotificationThreshold:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

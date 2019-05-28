@@ -346,6 +346,18 @@
             "string"
           ],
           "name": "inflationSource"
+        },
+        {
+          "type": "string",
+          "name": "sourceAmountMax"
+        },
+        {
+          "type": "string",
+          "name": "sourceAmountActual"
+        },
+        {
+          "type": "Asset",
+          "name": "sourceAsset"
         }
       ]
     },

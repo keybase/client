@@ -2,8 +2,8 @@
 /* eslint-env jest */
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Constants from '../../constants/teams'
-import * as I from 'immutable'
 import * as Types from '../../constants/types/chat2'
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import reducer from '../teams'
 
 jest.unmock('immutable')
@@ -18,7 +18,7 @@ describe('teams reducer', () => {
     const channelInfo = Constants.makeChannelInfo({
       channelname: 'somechannel',
       description: 'some topic',
-      participants: I.Set(['chris', 'mike']),
+      memberStatus: RPCChatTypes.commonConversationMemberStatus.active,
     })
 
     const setAction = TeamsGen.createSetTeamChannelInfo({

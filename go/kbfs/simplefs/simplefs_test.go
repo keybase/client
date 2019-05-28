@@ -1409,7 +1409,7 @@ func TestFavoriteConflicts(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, favs.FavoriteFolders, 2)
 	for _, f := range favs.FavoriteFolders {
-		require.Equal(t, keybase1.FolderConflictType_NONE, f.ConflictType)
+		require.Nil(t, f.ConflictState)
 	}
 
 	t.Log("Force a stuck conflict and make sure it's captured correctly")
@@ -1421,12 +1421,14 @@ func TestFavoriteConflicts(t *testing.T) {
 	stuck, notStuck := 0, 0
 	for _, f := range favs.FavoriteFolders {
 		if f.FolderType == keybase1.FolderType_PUBLIC {
-			require.Equal(
-				t, keybase1.FolderConflictType_IN_CONFLICT_AND_STUCK,
-				f.ConflictType)
+			require.NotNil(t, f.ConflictState)
+			conflictStateType, err := f.ConflictState.ConflictStateType()
+			require.NoError(t, err)
+			require.Equal(t, keybase1.ConflictStateType_AutomaticResolving,
+				conflictStateType)
 			stuck++
 		} else {
-			require.Equal(t, keybase1.FolderConflictType_NONE, f.ConflictType)
+			require.Nil(t, f.ConflictState)
 			notStuck++
 		}
 	}
@@ -1440,6 +1442,6 @@ func TestFavoriteConflicts(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, favs.FavoriteFolders, 2)
 	for _, f := range favs.FavoriteFolders {
-		require.Equal(t, keybase1.FolderConflictType_NONE, f.ConflictType)
+		require.Nil(t, f.ConflictState)
 	}
 }

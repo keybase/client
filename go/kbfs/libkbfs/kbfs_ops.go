@@ -314,7 +314,12 @@ func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (
 		if err != nil {
 			return keybase1.FavoritesResult{}, err
 		}
-		favs.FavoriteFolders[i].ConflictType = status
+		if status != keybase1.FolderConflictType_NONE {
+			stk := status == keybase1.FolderConflictType_IN_CONFLICT_AND_STUCK
+			conflictState := keybase1.NewConflictStateWithAutomaticresolving(
+				keybase1.ConflictAutomaticResolving{IsStuck: stk})
+			favs.FavoriteFolders[i].ConflictState = &conflictState
+		}
 		fs.log.CDebugf(ctx, "Conflict status for %s: %s", tlfID, status)
 		found++
 		if found == len(conflictMap) {
@@ -402,7 +407,7 @@ func (fs *KBFSOpsStandard) DeleteFavorite(ctx context.Context,
 	// Let this ops remove itself, if we have one available.
 	ops := fs.getOpsByFav(fav)
 	if ops != nil {
-		err := ops.doFavoritesOp(ctx, fs.favs, FavoritesOpRemove, nil)
+		err := ops.doFavoritesOp(ctx, FavoritesOpRemove, nil)
 		if _, ok := err.(OpsCantHandleFavorite); !ok {
 			return err
 		}
@@ -456,7 +461,7 @@ func (fs *KBFSOpsStandard) getOpsNoAdd(
 		}
 		ops = newFolderBranchOps(
 			ctx, fs.appStateUpdater, fs.config, fb, bType, quotaUsage,
-			fs.currentStatus)
+			fs.currentStatus, fs.favs)
 		fs.ops[fb] = ops
 	}
 	return ops
@@ -476,7 +481,7 @@ func (fs *KBFSOpsStandard) getOpsIfExists(
 func (fs *KBFSOpsStandard) getOps(ctx context.Context,
 	fb data.FolderBranch, fop FavoritesOp) *folderBranchOps {
 	ops := fs.getOpsNoAdd(ctx, fb)
-	if err := ops.doFavoritesOp(ctx, fs.favs, fop, nil); err != nil {
+	if err := ops.doFavoritesOp(ctx, fop, nil); err != nil {
 		// Failure to favorite shouldn't cause a failure.  Just log
 		// and move on.
 		fs.log.CDebugf(ctx, "Couldn't add favorite: %v", err)
@@ -492,7 +497,7 @@ func (fs *KBFSOpsStandard) getOpsByNode(ctx context.Context,
 func (fs *KBFSOpsStandard) getOpsByHandle(ctx context.Context,
 	handle *tlfhandle.Handle, fb data.FolderBranch, fop FavoritesOp) *folderBranchOps {
 	ops := fs.getOpsNoAdd(ctx, fb)
-	if err := ops.doFavoritesOp(ctx, fs.favs, fop, handle); err != nil {
+	if err := ops.doFavoritesOp(ctx, fop, handle); err != nil {
 		// Failure to favorite shouldn't cause a failure.  Just log
 		// and move on.
 		fs.log.CDebugf(ctx, "Couldn't add favorite: %v", err)
@@ -780,7 +785,7 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 		h.GetCanonicalPath(), branch, create)
 	defer func() {
 		err = fs.transformReadError(ctx, h, err)
-		fs.deferLog.CDebugf(ctx, "Done: %#v", err)
+		fs.deferLog.CDebugf(ctx, "Done: %+v", err)
 	}()
 
 	if branch != data.MasterBranch && create {
@@ -891,7 +896,7 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 		return nil, data.EntryInfo{}, err
 	}
 
-	if err := ops.doFavoritesOp(ctx, fs.favs, FavoritesOpAdd, h); err != nil {
+	if err := ops.doFavoritesOp(ctx, FavoritesOpAdd, h); err != nil {
 		// Failure to favorite shouldn't cause a failure.  Just log
 		// and move on.
 		fs.log.CDebugf(ctx, "Couldn't add favorite: %v", err)
@@ -1426,6 +1431,7 @@ func (fs *KBFSOpsStandard) NewNotificationChannel(
 			"Handle %s for existing folder unexpectedly has no TLF ID",
 			handle.GetCanonicalName())
 	}
+	fs.favs.RefreshCacheWhenMTimeChanged(ctx)
 }
 
 // Reset implements the KBFSOps interface for KBFSOpsStandard.

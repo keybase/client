@@ -11,14 +11,13 @@ import PathItemAction from './path-item-action'
 import PathItemIcon, {type Size} from './path-item-icon'
 import PathItemInfo from './path-item-info'
 import TlfInfo from './tlf-info'
-import Loading from './loading'
-import KbfsDaemonNotRunning from './kbfs-daemon-not-running'
 import Errs from './errs'
 import OpenInSystemFileManager from './open-in-system-file-manager'
 import {type OwnProps as PathItemIconOwnProps} from './path-item-icon-container'
 import {type OwnProps as PathItemInfoOwnProps} from './path-item-info-container'
 import SyncStatus from './sync-status'
 import PieSlice from './pie-slice'
+import ConfirmDelete from './path-item-action/confirm-delete'
 
 const PathItemActionMenuHeaderProps = (props: any) => ({
   childrenFiles: 0,
@@ -217,14 +216,12 @@ const load = () => {
         errs={[
           {
             dismiss: Sb.action('dismiss'),
-            error: 'long error detail blah blah SimpleFS.SimpleFSCopyRecursive has blown up',
             key: '1',
             msg: 'Error when downloading file blah 1.jpg',
             time: 1534362428795,
           },
           {
             dismiss: Sb.action('dismiss'),
-            error: 'long error detail blah blah SimpleFS.SimpleFSCopyRecursive has blown up',
             key: '2',
             msg: 'Error when downloading file blah 2.jpg',
             retry: Sb.action('retry'),
@@ -232,7 +229,6 @@ const load = () => {
           },
           {
             dismiss: Sb.action('dismiss'),
-            error: 'long error detail blah blah SimpleFS.SimpleFSCopyRecursive has blown up',
             key: '3',
             msg: 'Error when downloading file blah 99.jpg',
             onFeedback: Sb.action('onFeedback'),
@@ -241,8 +237,6 @@ const load = () => {
           },
           {
             dismiss: Sb.action('dismiss'),
-            error:
-              'error details: foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo',
             key: '4',
             msg:
               'foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo',
@@ -252,8 +246,6 @@ const load = () => {
           },
           {
             dismiss: Sb.action('dismiss'),
-            error:
-              'error details: foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar',
             key: '5',
             msg:
               'foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar',
@@ -264,7 +256,6 @@ const load = () => {
         ]}
       />
     ))
-    .add('Loading', () => <Loading path={Types.stringToPath('/keybase/team/kbkbfstest')} />)
     .add('TlfInfo', () => (
       <Kb.Box2 direction="vertical" gap="small" gapStart={true} fullWidth={true}>
         <Kb.Text type="Body">mode=default reset=false</Kb.Text>
@@ -289,7 +280,6 @@ const load = () => {
         <PathItemInfo mode="menu" lastModifiedTimestamp={1545110765} lastWriter="songgao_test" />
       </Kb.Box2>
     ))
-    .add('KbfsDaemonNotRunning', () => <KbfsDaemonNotRunning />)
     .add('OpenInSystemFileManager', () => (
       <Kb.Box2 direction="vertical" gap="small">
         <Kb.Text type="Body">disabled</Kb.Text>
@@ -323,6 +313,14 @@ const load = () => {
           <PieSliceWrapper initialDegrees={deg} key={deg} />
         ))}
       </Kb.Box2>
+    ))
+    .add('ConfirmDelete', () => (
+      <ConfirmDelete
+        onBack={Sb.action('onBack')}
+        onDelete={Sb.action('onDelete')}
+        path={Types.stringToPath('/keybase/private/alice/my_folder')}
+        title="foo"
+      />
     ))
 
   Sb.storiesOf('Files/PathItemIcon', module)

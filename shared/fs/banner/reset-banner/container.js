@@ -9,7 +9,7 @@ import * as RPCTypes from '../../../constants/types/rpc-gen'
 import {namedConnect, isMobile} from '../../../util/container'
 import {folderNameWithoutUsers} from '../../../util/kbfs'
 import Banner, {getHeight} from '.'
-import * as RowTypes from '../../row/types'
+import * as RowTypes from '../../browser/rows/types'
 
 type OwnProps = {|path: Types.Path|}
 
@@ -39,7 +39,7 @@ const mergeProps = (
   {_onReAddToTeam, _onOpenWithoutResetUsers, onViewProfile},
   {path}: OwnProps
 ) => {
-  const resetParticipants = stateProps._tlf.resetParticipants.map(i => i.username).toArray()
+  const resetParticipants = stateProps._tlf.resetParticipants.toArray()
   return {
     onOpenWithoutResetUsers: () =>
       _onOpenWithoutResetUsers(

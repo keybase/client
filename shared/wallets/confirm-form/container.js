@@ -5,6 +5,7 @@ import * as ProfileGen from '../../actions/profile-gen'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import Participants from './participants/container'
 import {anyWaiting} from '../../constants/waiting'
 import {connect, isMobile, type RouteProps} from '../../util/container'
 
@@ -86,6 +87,7 @@ export default connect<OwnProps, _, _, _, _>(
       onBack,
       onClose: onBack,
       onSendClick: dispatchProps.onSendClick,
+      participantsComp: Participants,
       publicMemo: stateProps.publicMemo,
       readyToSend: stateProps.readyToSend,
       sendFailed: !!_sentPaymentError,

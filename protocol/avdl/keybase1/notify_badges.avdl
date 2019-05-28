@@ -12,6 +12,12 @@ protocol NotifyBadges {
     gregor1.MsgID id;
   }
 
+  record DeletedTeamInfo {
+    string teamName;
+    string deletedBy;
+    gregor1.MsgID id;
+  }
+
   record WalletAccountInfo {
     string accountID;
     int numUnread;
@@ -36,6 +42,7 @@ protocol NotifyBadges {
     array<BadgeConversationInfo> conversations;
     array<string> newGitRepoGlobalUniqueIDs;
     array<string> newTeamNames;
+    array<DeletedTeamInfo> deletedTeams;
     array<string> newTeamAccessRequests;
     array<TeamMemberOutReset> teamsWithResetUsers;
     array<WalletAccountInfo> unreadWalletAccounts;

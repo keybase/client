@@ -4,6 +4,7 @@ import * as Constants from '../constants/teams'
 import * as I from 'immutable'
 import * as Types from '../constants/types/teams'
 import * as Flow from '../util/flow'
+import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -87,6 +88,7 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
       return state.merge({teamAccessRequestsPending: action.payload.accessRequestsPending})
     case TeamsGen.setNewTeamInfo:
       return state.merge({
+        deletedTeams: action.payload.deletedTeams,
         newTeamRequests: action.payload.newTeamRequests,
         newTeams: action.payload.newTeams,
         teamNameToResetUsers: action.payload.teamNameToResetUsers,
@@ -118,17 +120,14 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
       ])
     case TeamsGen.addParticipant:
       return state.updateIn(
-        ['teamNameToChannelInfos', action.payload.teamname, action.payload.conversationIDKey, 'participants'],
-        set => set.add(action.payload.participant)
+        ['teamNameToChannelInfos', action.payload.teamname, action.payload.conversationIDKey, 'memberStatus'],
+        memberStatus => RPCChatTypes.commonConversationMemberStatus.active
       )
     case TeamsGen.removeParticipant:
-      return state.deleteIn([
-        'teamNameToChannelInfos',
-        action.payload.teamname,
-        action.payload.conversationIDKey,
-        'participants',
-        action.payload.participant,
-      ])
+      return state.updateIn(
+        ['teamNameToChannelInfos', action.payload.teamname, action.payload.conversationIDKey, 'memberStatus'],
+        memberStatus => RPCChatTypes.commonConversationMemberStatus.left
+      )
     // Saga-only actions
     case TeamsGen.addPeopleToTeam:
     case TeamsGen.addUserToTeams:
@@ -141,6 +140,7 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
     case TeamsGen.createNewTeam:
     case TeamsGen.createNewTeamFromConversation:
     case TeamsGen.deleteChannelConfirmed:
+    case TeamsGen.deleteTeam:
     case TeamsGen.editMembership:
     case TeamsGen.editTeamDescription:
     case TeamsGen.uploadTeamAvatar:

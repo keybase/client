@@ -163,7 +163,8 @@
       "editID": "Types.EditID"
     },
     "fsError": {
-      "error": "Types.FsError"
+      "error": "Types.FsError",
+      "expectedIfOffline": "boolean"
     },
     "dismissFsError": {
       "key": "string"
@@ -255,6 +256,13 @@
     "setTlfSoftError": {
       "path": "Types.Path",
       "softError": "?Types.SoftError",
+    },
+    "loadSettings": {},
+    "settingsLoaded": {
+      "settings?": "Types.Settings",
+    },
+    "setSpaceAvailableNotificationThreshold": {
+      "spaceAvailableNotificationThreshold": "number",
     },
 
     "placeholderAction": {}

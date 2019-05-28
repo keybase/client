@@ -1683,10 +1683,10 @@ func (o SeitanIKey) DeepCopy() SeitanIKey {
 	return o
 }
 
-type SeitanPubKey KID
+type SeitanPubKey string
 
 func (o SeitanPubKey) DeepCopy() SeitanPubKey {
-	return o.DeepCopy()
+	return o
 }
 
 type SeitanIKeyV2 string
@@ -2663,6 +2663,7 @@ type TeamOperation struct {
 	ChangeTarsDisabled     bool `codec:"changeTarsDisabled" json:"changeTarsDisabled"`
 	DeleteChatHistory      bool `codec:"deleteChatHistory" json:"deleteChatHistory"`
 	DeleteOtherMessages    bool `codec:"deleteOtherMessages" json:"deleteOtherMessages"`
+	DeleteTeam             bool `codec:"deleteTeam" json:"deleteTeam"`
 }
 
 func (o TeamOperation) DeepCopy() TeamOperation {
@@ -2687,6 +2688,7 @@ func (o TeamOperation) DeepCopy() TeamOperation {
 		ChangeTarsDisabled:     o.ChangeTarsDisabled,
 		DeleteChatHistory:      o.DeleteChatHistory,
 		DeleteOtherMessages:    o.DeleteOtherMessages,
+		DeleteTeam:             o.DeleteTeam,
 	}
 }
 

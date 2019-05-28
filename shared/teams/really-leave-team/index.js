@@ -52,5 +52,5 @@ const _ReallyLeaveTeam = (props: Props) => (
   />
 )
 
-export default HeaderOnMobile(_ReallyLeaveTeam)
+export default _ReallyLeaveTeam
 export {Spinner}

@@ -21,7 +21,7 @@ export type ProgressType = 'pending' | 'loaded'
 // not naming Error because it has meaning in js.
 export type _FsError = {
   time: number,
-  error: string,
+  errorMessage: string,
   erroredAction: FsGen.Actions,
   retriableAction?: ?FsGen.Actions,
 }
@@ -81,25 +81,32 @@ export type _TlfConflict = {
 export type TlfConflict = I.RecordOf<_TlfConflict>
 
 export type _Tlf = {
-  name: string,
+  conflict: TlfConflict,
   isFavorite: boolean,
   isIgnored: boolean,
   isNew: boolean,
-  conflict: TlfConflict,
-  needsRekey: boolean,
-  resetParticipants: I.List<ResetMember>,
-  teamId: RPCTypes.TeamID,
-  // Following two fields are calculated but not in-use today yet.
-  //
-  // waitingForParticipantUnlock is the list of participants that can unlock
-  // this folder, when this folder needs a rekey.
-  waitingForParticipantUnlock?: I.List<ParticipantUnlock>,
-  // youCanUnlock has a list of devices that can unlock this folder, when this
-  // folder needs a rekey.
-  youCanUnlock?: I.List<Device>,
+  name: string,
+  resetParticipants: I.List<string>, // usernames
   // TODO: when we move favorites stuff into SimpleFS, this should no longer
   // need to be optional.
   syncConfig: ?TlfSyncConfig,
+  teamId: RPCTypes.TeamID,
+  tlfMtime: number, // tlf mtime stored in core db based on notification from mdserver
+  /*
+   * Disabled because SimpleFS API doesn't have problem_set yet. We might never
+   * need these.
+   *
+   * needsRekey: boolean,
+   *
+   * // Following two fields are calculated but not in-use today yet.
+   * //
+   * // waitingForParticipantUnlock is the list of participants that can unlock
+   * // this folder, when this folder needs a rekey.
+   * waitingForParticipantUnlock?: I.List<ParticipantUnlock>,
+   * // youCanUnlock has a list of devices that can unlock this folder, when this
+   * // folder needs a rekey.
+   * youCanUnlock?: I.List<Device>,
+   */
 }
 export type Tlf = I.RecordOf<_Tlf>
 
@@ -472,6 +479,13 @@ export type _SoftErrors = {
 }
 export type SoftErrors = I.RecordOf<_SoftErrors>
 
+export type _Settings = {
+  spaceAvailableNotificationThreshold: number,
+  isLoading: boolean,
+}
+
+export type Settings = I.RecordOf<_Settings>
+
 export type _State = {|
   downloads: Downloads,
   edits: Edits,
@@ -492,6 +506,7 @@ export type _State = {|
   tlfUpdates: UserTlfUpdates,
   tlfs: Tlfs,
   uploads: Uploads,
+  settings: Settings,
 |}
 export type State = I.RecordOf<_State>
 
@@ -514,7 +529,8 @@ export const getPathFromRelative = (tlfName: string, tlfType: TlfType, inTlfPath
   '/keybase/' + tlfType + '/' + tlfName + '/' + inTlfPath
 export const stringToEditID = (s: string): EditID => s
 export const editIDToString = (s: EditID): string => s
-export const stringToPath = (s: string): Path => (s.indexOf('/') === 0 ? s : null)
+export const stringToPath = (s: string): Path =>
+  s.indexOf('/') === 0 ? s.replace(/\/+/g, '/').replace(/\/$/, '') : null
 export const pathToString = (p: Path): string => (!p ? '' : p)
 export const stringToLocalPath = (s: string): LocalPath => s
 export const localPathToString = (p: LocalPath): string => p

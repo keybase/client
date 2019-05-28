@@ -840,7 +840,7 @@ func (s *Server) SendPathLocal(ctx context.Context, arg stellar1.SendPathLocalAr
 		To:          stellarcommon.RecipientInput(arg.Recipient),
 		Path:        arg.Path,
 		SecretNote:  arg.Note,
-		PublicMemo:  arg.PublicNote,
+		PublicMemo:  stellarnet.NewMemoText(arg.PublicNote),
 		QuickReturn: true,
 	})
 	if err != nil {

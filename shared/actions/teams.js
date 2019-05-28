@@ -105,6 +105,22 @@ const getTeamProfileAddList = (state, action) =>
     return TeamsGen.createSetTeamProfileAddList({teamlist: I.List(teamlist || [])})
   })
 
+function* deleteTeam(_, action) {
+  yield* Saga.callRPCs(
+    RPCTypes.teamsTeamDeleteRpcSaga({
+      customResponseIncomingCallMap: {
+        'keybase.1.teamsUi.confirmRootTeamDelete': (_, response) => response.result(true),
+        'keybase.1.teamsUi.confirmSubteamDelete': (_, response) => response.result(true),
+      },
+      incomingCallMap: {},
+      params: {
+        name: action.payload.teamname,
+      },
+      waitingKey: Constants.deleteTeamWaitingKey(action.payload.teamname),
+    })
+  )
+}
+
 const leaveTeam = (state, action, logger) => {
   const {context, teamname} = action.payload
   logger.info(`leaveTeam: Leaving ${teamname} from context ${context}`)
@@ -726,7 +742,7 @@ const getChannelInfo = (_, action, logger) => {
     const channelInfo = Constants.makeChannelInfo({
       channelname: meta.channelname,
       description: meta.description,
-      participants: meta.participants.toSet(),
+      memberStatus: convs[0].memberStatus,
     })
 
     return TeamsGen.createSetTeamChannelInfo({channelInfo, conversationIDKey, teamname})
@@ -750,7 +766,7 @@ const getChannels = (_, action) => {
       channelInfos[convID] = Constants.makeChannelInfo({
         channelname: conv.channel,
         description: conv.headline,
-        participants: I.Set(conv.participants || []),
+        memberStatus: conv.memberStatus,
       })
     })
 
@@ -845,8 +861,7 @@ const checkRequestedAccess = (_, action) =>
 
 const _joinConversation = function*(
   teamname: Types.Teamname,
-  conversationIDKey: ChatTypes.ConversationIDKey,
-  participant: string
+  conversationIDKey: ChatTypes.ConversationIDKey
 ) {
   try {
     const convID = ChatTypes.keyToConversationID(conversationIDKey)
@@ -860,7 +875,6 @@ const _joinConversation = function*(
     yield Saga.put(
       TeamsGen.createAddParticipant({
         conversationIDKey,
-        participant,
         teamname,
       })
     )
@@ -871,8 +885,7 @@ const _joinConversation = function*(
 
 const _leaveConversation = function*(
   teamname: Types.Teamname,
-  conversationIDKey: ChatTypes.ConversationIDKey,
-  participant: string
+  conversationIDKey: ChatTypes.ConversationIDKey
 ) {
   try {
     const convID = ChatTypes.keyToConversationID(conversationIDKey)
@@ -886,7 +899,6 @@ const _leaveConversation = function*(
     yield Saga.put(
       TeamsGen.createRemoveParticipant({
         conversationIDKey,
-        participant,
         teamname,
       })
     )
@@ -906,9 +918,9 @@ function* saveChannelMembership(state, action) {
     }
 
     if (newChannelState[convIDKey]) {
-      calls.push(Saga.callUntyped(_joinConversation, teamname, convIDKey, action.payload.you))
+      calls.push(Saga.callUntyped(_joinConversation, teamname, convIDKey))
     } else {
-      calls.push(Saga.callUntyped(_leaveConversation, teamname, convIDKey, action.payload.you))
+      calls.push(Saga.callUntyped(_leaveConversation, teamname, convIDKey))
     }
   }
 
@@ -1289,6 +1301,7 @@ const badgeAppForTeams = (state, action) => {
   }
 
   let actions = []
+  const deletedTeams = I.List(action.payload.deletedTeams || [])
   const newTeams = I.Set(action.payload.newTeamNames || [])
   const newTeamRequests = I.List(action.payload.newTeamAccessRequests || [])
 
@@ -1306,7 +1319,7 @@ const badgeAppForTeams = (state, action) => {
     return res
   }, {})
 
-  if (_wasOnTeamsTab() && (newTeams.size > 0 || newTeamRequests.size > 0)) {
+  if (_wasOnTeamsTab() && (newTeams.size > 0 || newTeamRequests.size > 0 || deletedTeams.size > 0)) {
     // Call getTeams if new teams come in.
     // Covers the case when we're staring at the teams page so
     // we don't miss a notification we clear when we tab away
@@ -1330,6 +1343,7 @@ const badgeAppForTeams = (state, action) => {
   // if the user wasn't on the teams tab, loads will be triggered by navigation around the app
   actions.push(
     TeamsGen.createSetNewTeamInfo({
+      deletedTeams,
       newTeamRequests,
       newTeams,
       teamNameToResetUsers: I.Map(teamsWithResetUsersMap),
@@ -1342,6 +1356,7 @@ let _wasOnTeamsTab = () => Constants.isOnTeamsTab()
 
 const receivedBadgeState = (state, action) =>
   TeamsGen.createBadgeAppForTeams({
+    deletedTeams: action.payload.badgeState.deletedTeams || [],
     newTeamAccessRequests: action.payload.badgeState.newTeamAccessRequests || [],
     newTeamNames: action.payload.badgeState.newTeamNames || [],
     teamsWithResetUsers: action.payload.badgeState.teamsWithResetUsers || [],
@@ -1389,10 +1404,12 @@ const clearNavBadges = () =>
         category: 'team.request_access',
       })
     )
+    .then(() => RPCTypes.gregorDismissCategoryRpcPromise({category: 'team.delete'}))
     .catch(err => logError(err))
 
 const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<TeamsGen.LeaveTeamPayload>(TeamsGen.leaveTeam, leaveTeam, 'leaveTeam')
+  yield* Saga.chainGenerator<TeamsGen.DeleteTeamPayload>(TeamsGen.deleteTeam, deleteTeam, 'deleteTeam')
   yield* Saga.chainAction<TeamsGen.GetTeamProfileAddListPayload>(
     TeamsGen.getTeamProfileAddList,
     getTeamProfileAddList,
@@ -1433,11 +1450,11 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
     'getChannelInfo'
   )
   yield* Saga.chainAction<TeamsGen.GetChannelsPayload>(TeamsGen.getChannels, getChannels, 'getChannels')
-  yield* Saga.chainGenerator<ConfigGen.BootstrapStatusLoadedPayload, TeamsGen.GetTeamsPayload, TeamsGen.LeftTeamPayload>(
-    [ConfigGen.bootstrapStatusLoaded, TeamsGen.getTeams, TeamsGen.leftTeam],
-    getTeams,
-    'getTeams'
-  )
+  yield* Saga.chainGenerator<
+    ConfigGen.BootstrapStatusLoadedPayload |
+    TeamsGen.GetTeamsPayload |
+    TeamsGen.LeftTeamPayload
+  >([ConfigGen.bootstrapStatusLoaded, TeamsGen.getTeams, TeamsGen.leftTeam], getTeams, 'getTeams')
   yield* Saga.chainGenerator<TeamsGen.SaveChannelMembershipPayload>(
     TeamsGen.saveChannelMembership,
     saveChannelMembership,

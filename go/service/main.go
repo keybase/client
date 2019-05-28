@@ -423,6 +423,8 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 		ri = d.gregor.GetClient
 	}
 
+	// Add OnLogout/OnDbNuke hooks for any in-memory sources
+	storage.SetupGlobalHooks(g)
 	// Set up main chat data sources
 	boxer := chat.NewBoxer(g)
 	chatStorage := storage.New(g, nil)
@@ -548,12 +550,10 @@ func (d *Service) runTLFUpgrade() {
 
 func (d *Service) runTeamUpgrader(ctx context.Context) {
 	d.teamUpgrader.Run(libkb.NewMetaContext(ctx, d.G()))
-	return
 }
 
 func (d *Service) runHomePoller(ctx context.Context) {
 	d.home.RunUpdateLoop(libkb.NewMetaContext(ctx, d.G()))
-	return
 }
 
 func (d *Service) runMerkleAudit(ctx context.Context) {

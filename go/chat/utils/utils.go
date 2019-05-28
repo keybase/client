@@ -1088,6 +1088,7 @@ func PresentRemoteConversation(ctx context.Context, g *globals.Context, rc types
 		res.LocalMetadata = &chat1.UnverifiedInboxUIItemMetadata{
 			ChannelName:       rc.LocalMetadata.TopicName,
 			Headline:          rc.LocalMetadata.Headline,
+			HeadlineDecorated: DecorateWithLinks(ctx, EscapeForDecorate(ctx, rc.LocalMetadata.Headline)),
 			Snippet:           rc.LocalMetadata.Snippet,
 			SnippetDecoration: rc.LocalMetadata.SnippetDecoration,
 			WriterNames:       rc.LocalMetadata.WriterNames,
@@ -1160,7 +1161,8 @@ func PresentConversationLocal(ctx context.Context, rawConv chat1.ConversationLoc
 	res.Name = rawConv.Info.TlfName
 	res.Snippet, res.SnippetDecoration = GetConvSnippet(rawConv, currentUsername)
 	res.Channel = rawConv.Info.TopicName
-	res.Headline = DecorateWithLinks(ctx, EscapeForDecorate(ctx, rawConv.Info.Headline))
+	res.Headline = rawConv.Info.Headline
+	res.HeadlineDecorated = DecorateWithLinks(ctx, EscapeForDecorate(ctx, rawConv.Info.Headline))
 	res.Participants = writerNames
 	res.FullNames = fullNames
 	res.ResetParticipants = rawConv.Info.ResetNames
@@ -2075,8 +2077,23 @@ func DecorateBody(ctx context.Context, body string, offset, length int, decorati
 	return res, added
 }
 
-var linkRegexp = xurls.RelaxedAtDomain()
+var linkRegexp = xurls.Relaxed()
+
+// These indices correspond to the named capture groups in the xurls regexes
+var linkRelaxedGroupIndex = 0
+var linkStrictGroupIndex = 0
 var mailtoRegexp = regexp.MustCompile(`(?:(?:[\w-_.]+)@(?:[\w-]+(?:\.[\w-]+)+))\b`)
+
+func init() {
+	for index, name := range linkRegexp.SubexpNames() {
+		if name == "relaxed" {
+			linkRelaxedGroupIndex = index + 1
+		}
+		if name == "strict" {
+			linkStrictGroupIndex = index + 1
+		}
+	}
+}
 
 func DecorateWithLinks(ctx context.Context, body string) string {
 	var added int
@@ -2097,12 +2114,20 @@ func DecorateWithLinks(ctx context.Context, body string) string {
 		}
 		return false
 	}
-	allMatches := linkRegexp.FindAllStringIndex(ReplaceQuotedSubstrings(body, true), -1)
+	allMatches := linkRegexp.FindAllStringSubmatchIndex(ReplaceQuotedSubstrings(body, true), -1)
 	for _, match := range allMatches {
-		if len(match) < 2 {
+		var lowhit, highhit int
+		if len(match) >= linkRelaxedGroupIndex*2 && match[linkRelaxedGroupIndex*2-2] >= 0 {
+			lowhit = linkRelaxedGroupIndex*2 - 2
+			highhit = linkRelaxedGroupIndex*2 - 1
+		} else if len(match) >= linkStrictGroupIndex*2 && match[linkStrictGroupIndex*2-2] >= 0 {
+			lowhit = linkStrictGroupIndex*2 - 2
+			highhit = linkStrictGroupIndex*2 - 1
+		} else {
 			continue
 		}
-		bodyMatch := origBody[match[0]:match[1]]
+
+		bodyMatch := origBody[match[lowhit]:match[highhit]]
 		url := bodyMatch
 		if shouldSkipLink(bodyMatch) {
 			continue
@@ -2110,7 +2135,7 @@ func DecorateWithLinks(ctx context.Context, body string) string {
 		if !(strings.HasPrefix(bodyMatch, "http://") || strings.HasPrefix(bodyMatch, "https://")) {
 			url = "http://" + bodyMatch
 		}
-		body, added = DecorateBody(ctx, body, match[0]+offset, match[1]-match[0],
+		body, added = DecorateBody(ctx, body, match[lowhit]+offset, match[highhit]-match[lowhit],
 			chat1.NewUITextDecorationWithLink(chat1.UILinkDecoration{
 				Display: bodyMatch,
 				Url:     url,
@@ -2275,4 +2300,17 @@ func GetVerifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 			inbox.Convs[0].GetConvID(), convID)
 	}
 	return inbox.Convs[0], nil
+}
+
+func DedupStringLists(lists ...[]string) (res []string) {
+	seen := make(map[string]struct{})
+	for _, list := range lists {
+		for _, x := range list {
+			if _, ok := seen[x]; !ok {
+				seen[x] = struct{}{}
+				res = append(res, x)
+			}
+		}
+	}
+	return res
 }

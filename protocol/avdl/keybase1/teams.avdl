@@ -633,7 +633,7 @@ protocol teams {
   @typedef("string")
   record SeitanIKey {}
 
-  @typedef("KID")
+  @typedef("string")
   record SeitanPubKey {}
 
   // The secret shared with the recipient.
@@ -1096,6 +1096,7 @@ protocol teams {
     boolean changeTarsDisabled;
     boolean deleteChatHistory;
     boolean deleteOtherMessages;
+    boolean deleteTeam;
   }
 
   record ProfileTeamLoadRes {

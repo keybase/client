@@ -10,10 +10,9 @@ type OwnProps = {|
 |}
 
 const mapStateToProps = (state, {path}: OwnProps) => ({
-  _isEmpty: Constants.isEmptyFolder(state.fs.pathItems, path),
   _kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
   _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
-  _sortSetting: state.fs.pathUserSettings.get(path, Constants.defaultPathUserSetting).sort,
+  _sortSetting: Constants.getPathUserSetting(state.fs.pathUserSettings, path).sort,
 })
 
 const mapDispatchToProps = (dispatch, {path}) => ({
@@ -26,22 +25,19 @@ const mapDispatchToProps = (dispatch, {path}) => ({
       ? undefined
       : () => dispatch(FsGen.createSortSetting({path, sortSetting: 'name-desc'})),
   sortByTimeAsc:
-    Types.getPathLevel(path) < 3
+    path === Constants.defaultPath
       ? undefined
       : () => dispatch(FsGen.createSortSetting({path, sortSetting: 'time-asc'})),
   sortByTimeDesc:
-    Types.getPathLevel(path) < 3
+    path === Constants.defaultPath
       ? undefined
       : () => dispatch(FsGen.createSortSetting({path, sortSetting: 'time-desc'})),
 })
 
 const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => ({
-  sortSetting:
-    path === Constants.defaultPath ||
-    stateProps._isEmpty ||
-    Constants.isOfflineUnsynced(stateProps._kbfsDaemonStatus, stateProps._pathItem, path)
-      ? undefined
-      : stateProps._sortSetting,
+  sortSetting: Constants.showSortSetting(path, stateProps._pathItem, stateProps._kbfsDaemonStatus)
+    ? stateProps._sortSetting
+    : undefined,
   ...dispatchProps,
 })
 

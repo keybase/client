@@ -1206,7 +1206,6 @@ func (c *ChainLink) PutSigCheckCache(cki *ComputedKeyInfos) {
 	c.dirty = true
 	c.cki = cki
 	c.G().LinkCache().Mutate(c.id, func(c *ChainLink) { c.cki = cki })
-	return
 }
 
 func (c *ChainLink) VerifySigWithKeyFamily(ckf ComputedKeyFamily) (err error) {

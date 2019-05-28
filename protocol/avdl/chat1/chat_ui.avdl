@@ -19,6 +19,7 @@ protocol chatUi {
   record UnverifiedInboxUIItemMetadata {
     string channelName;
     string headline;
+    string headlineDecorated;
     string snippet;
     string snippetDecoration; // One of: "", "💣" (bomb), "💥" (exploded)
     array<string> writerNames;
@@ -69,6 +70,7 @@ protocol chatUi {
     string snippetDecoration; // One of: "", "💣" (bomb), "💥" (exploded)
     string channel;
     string headline;
+    string headlineDecorated;
     keybase1.TLFVisibility visibility;
     array<string> participants;
     map<string, string> fullNames;

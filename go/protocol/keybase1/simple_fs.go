@@ -1223,6 +1223,16 @@ func (o SyncConfigAndStatusRes) DeepCopy() SyncConfigAndStatusRes {
 	}
 }
 
+type FSSettings struct {
+	SpaceAvailableNotificationThreshold int64 `codec:"spaceAvailableNotificationThreshold" json:"spaceAvailableNotificationThreshold"`
+}
+
+func (o FSSettings) DeepCopy() FSSettings {
+	return FSSettings{
+		SpaceAvailableNotificationThreshold: o.SpaceAvailableNotificationThreshold,
+	}
+}
+
 type SimpleFSListArg struct {
 	OpID                OpID       `codec:"opID" json:"opID"`
 	Path                Path       `codec:"path" json:"path"`
@@ -1351,6 +1361,10 @@ type SimpleFSClearConflictStateArg struct {
 	Path Path `codec:"path" json:"path"`
 }
 
+type SimpleFSFinishResolvingConflictArg struct {
+	Path Path `codec:"path" json:"path"`
+}
+
 type SimpleFSForceStuckConflictArg struct {
 	Path Path `codec:"path" json:"path"`
 }
@@ -1403,6 +1417,13 @@ type SimpleFSCheckReachabilityArg struct {
 
 type SimpleFSSetDebugLevelArg struct {
 	Level string `codec:"level" json:"level"`
+}
+
+type SimpleFSSettingsArg struct {
+}
+
+type SimpleFSSetNotificationThresholdArg struct {
+	Threshold int64 `codec:"threshold" json:"threshold"`
 }
 
 type SimpleFSInterface interface {
@@ -1473,8 +1494,8 @@ type SimpleFSInterface interface {
 	SimpleFSWait(context.Context, OpID) error
 	// Instructs KBFS to dump debugging info into its logs.
 	SimpleFSDumpDebuggingInfo(context.Context) error
-	// Clear the conflict state of a TLF.
 	SimpleFSClearConflictState(context.Context, Path) error
+	SimpleFSFinishResolvingConflict(context.Context, Path) error
 	// Force a TLF into a stuck conflict state (for testing).
 	SimpleFSForceStuckConflict(context.Context, Path) error
 	// Get sync status.
@@ -1519,6 +1540,8 @@ type SimpleFSInterface interface {
 	SimpleFSAreWeConnectedToMDServer(context.Context) (bool, error)
 	SimpleFSCheckReachability(context.Context) error
 	SimpleFSSetDebugLevel(context.Context, string) error
+	SimpleFSSettings(context.Context) (FSSettings, error)
+	SimpleFSSetNotificationThreshold(context.Context, int64) error
 }
 
 func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
@@ -1885,6 +1908,21 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSFinishResolvingConflict": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSFinishResolvingConflictArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSFinishResolvingConflictArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSFinishResolvingConflictArg)(nil), args)
+						return
+					}
+					err = i.SimpleFSFinishResolvingConflict(ctx, typedArgs[0].Path)
+					return
+				},
+			},
 			"simpleFSForceStuckConflict": {
 				MakeArg: func() interface{} {
 					var ret [1]SimpleFSForceStuckConflictArg
@@ -2075,6 +2113,31 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSSettings": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSSettingsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.SimpleFSSettings(ctx)
+					return
+				},
+			},
+			"simpleFSSetNotificationThreshold": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSSetNotificationThresholdArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSSetNotificationThresholdArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSSetNotificationThresholdArg)(nil), args)
+						return
+					}
+					err = i.SimpleFSSetNotificationThreshold(ctx, typedArgs[0].Threshold)
+					return
+				},
+			},
 		},
 	}
 }
@@ -2252,10 +2315,15 @@ func (c SimpleFSClient) SimpleFSDumpDebuggingInfo(ctx context.Context) (err erro
 	return
 }
 
-// Clear the conflict state of a TLF.
 func (c SimpleFSClient) SimpleFSClearConflictState(ctx context.Context, path Path) (err error) {
 	__arg := SimpleFSClearConflictStateArg{Path: path}
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSClearConflictState", []interface{}{__arg}, nil)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSFinishResolvingConflict(ctx context.Context, path Path) (err error) {
+	__arg := SimpleFSFinishResolvingConflictArg{Path: path}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSFinishResolvingConflict", []interface{}{__arg}, nil)
 	return
 }
 
@@ -2367,5 +2435,16 @@ func (c SimpleFSClient) SimpleFSCheckReachability(ctx context.Context) (err erro
 func (c SimpleFSClient) SimpleFSSetDebugLevel(ctx context.Context, level string) (err error) {
 	__arg := SimpleFSSetDebugLevelArg{Level: level}
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSetDebugLevel", []interface{}{__arg}, nil)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSSettings(ctx context.Context) (res FSSettings, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSettings", []interface{}{SimpleFSSettingsArg{}}, &res)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSSetNotificationThreshold(ctx context.Context, threshold int64) (err error) {
+	__arg := SimpleFSSetNotificationThresholdArg{Threshold: threshold}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSetNotificationThreshold", []interface{}{__arg}, nil)
 	return
 }

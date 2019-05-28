@@ -60,10 +60,12 @@ const provider = Sb.createPropProviderWithCommon({
 })
 
 type Props = {
+  cannotWrite?: boolean,
   isEditExploded: boolean,
   isEditing: boolean,
   isExploding: boolean,
   explodingModeSeconds: number,
+  minWriterRole?: string,
   pendingWaiting: boolean,
 }
 
@@ -82,6 +84,7 @@ const boxProps = {
 
 const InputContainer = (props: Props) => {
   const inputProps: InputProps = {
+    cannotWrite: props.cannotWrite || false,
     clearInboxFilter: Sb.action('clearInboxFilter'),
     conversationIDKey: stringToConversationIDKey('fake conversation id key'),
     editText: '',
@@ -96,6 +99,7 @@ const InputContainer = (props: Props) => {
     isEditing: props.isEditing,
     isExploding: props.isExploding,
     isSearching: false,
+    minWriterRole: props.minWriterRole || 'writer',
     onAttach: (paths: Array<string>) => {
       // This will always be called with an empty array, since some
       // browsers don't have the path property set on File.
@@ -118,13 +122,22 @@ const InputContainer = (props: Props) => {
     showReplyPreview: false,
     showTypingStatus: false,
     showWalletsIcon: !props.isEditing,
+    suggestAllChannels: List([
+      {channelname: 'general', teamname: 'keybase'},
+      {channelname: 'spooner', teamname: 'keybase'},
+      {channelname: 'general', teamname: 'got'},
+      {channelname: 'live', teamname: 'got'},
+    ]),
     suggestChannels: List(['general', 'random', 'spelunky', 'music', 'vidya-games']),
     suggestCommands: [
       {description: 'Hide current or given conv', hasHelpText: false, name: 'hide', usage: '[conversation]'},
       {description: 'Message a user', hasHelpText: false, name: 'msg', usage: '<conversation> <msg>'},
       {description: 'Send a shrug', hasHelpText: false, name: 'shrug', usage: ''},
     ],
-    suggestTeams: [{fullName: '', teamname: 'keybase', username: ''}],
+    suggestTeams: [
+      {fullName: '', teamname: 'keybase', username: ''},
+      {fullName: '', teamname: 'got', username: ''},
+    ],
     suggestUsers: List([
       {fullName: 'Danny Ayoub', username: 'ayoubd'},
       {fullName: 'Chris Nojima', username: 'chrisnojima'},
@@ -178,6 +191,17 @@ const load = () => {
         isEditExploded={false}
         pendingWaiting={false}
         isExploding={true}
+        explodingModeSeconds={0}
+      />
+    ))
+    .add('Can’t write', () => (
+      <InputContainer
+        cannotWrite={true}
+        isEditing={false}
+        isEditExploded={false}
+        minWriterRole="admin"
+        pendingWaiting={false}
+        isExploding={false}
         explodingModeSeconds={0}
       />
     ))

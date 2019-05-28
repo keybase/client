@@ -14,7 +14,8 @@ import * as SettingsGen from '../actions/settings-gen'
 import * as WaitingGen from '../actions/waiting-gen'
 import {mapValues, trim} from 'lodash-es'
 import {delay} from 'redux-saga'
-import {isAndroidNewerThanN, pprofDir} from '../constants/platform'
+import {isAndroidNewerThanN, pprofDir, version} from '../constants/platform'
+import {writeLogLinesToFile} from '../util/forward-logs'
 
 const onUpdatePGPSettings = () =>
   RPCTypes.accountHasServerKeysRpcPromise()
@@ -442,6 +443,32 @@ const setLockdownMode = (state, action) =>
     .then(() => SettingsGen.createLoadedLockdownMode({status: action.payload.enabled}))
     .catch(() => SettingsGen.createLoadLockdownMode())
 
+const sendFeedback = (state, action) => {
+  const {feedback, sendLogs} = action.payload
+  const maybeDump = sendLogs ? logger.dump().then(writeLogLinesToFile) : Promise.resolve('')
+  const status = {version}
+  return maybeDump
+    .then(() => {
+      logger.info(`Sending ${sendLogs ? 'log' : 'feedback'} to daemon`)
+      const extra = sendLogs ? {...status, ...Constants.getExtraChatLogsForLogSend(state)} : status
+      return RPCTypes.configLogSendRpcPromise(
+        {
+          feedback: feedback || '',
+          sendLogs: sendLogs,
+          statusJSON: JSON.stringify(extra),
+        },
+        Constants.sendFeedbackWaitingKey
+      )
+    })
+    .then(logSendId => {
+      logger.info('logSendId is', logSendId)
+    })
+    .catch(error => {
+      logger.warn('err in sending logs', error)
+      return SettingsGen.createFeedbackSent({error})
+    })
+}
+
 const unfurlSettingsRefresh = (state, action) =>
   state.config.loggedIn &&
   ChatTypes.localGetUnfurlSettingsRpcPromise(undefined, Constants.chatUnfurlWaitingKey)
@@ -536,6 +563,7 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     SettingsGen.onChangeLockdownMode,
     setLockdownMode
   )
+  yield* Saga.chainAction<SettingsGen.SendFeedbackPayload>(SettingsGen.sendFeedback, sendFeedback)
   yield* Saga.chainAction<SettingsGen.UnfurlSettingsRefreshPayload>(
     SettingsGen.unfurlSettingsRefresh,
     unfurlSettingsRefresh

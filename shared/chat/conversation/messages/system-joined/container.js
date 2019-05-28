@@ -29,6 +29,12 @@ const mapDispatchToProps = dispatch => ({
       : dispatch(
           RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
         ),
+  _onManageNotifications: conversationIDKey =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {conversationIDKey: conversationIDKey}, selected: 'chatInfoPanel'}],
+      })
+    ),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
@@ -39,6 +45,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     channelname: _meta.channelname,
     isBigTeam: _meta.teamType === 'big',
     onManageChannels: () => dispatchProps._onManageChannels(_meta.teamname),
+    onManageNotifications: () => dispatchProps._onManageNotifications(_meta.conversationIDKey),
     teamname: _meta.teamname,
     timestamp: stateProps.timestamp,
   }

@@ -203,7 +203,7 @@ const mergeProps = (stateProps, dispatchProps) => {
   const desc =
     meta.teamType === 'adhoc' && otherParticipants.length === 1
       ? stateProps._fullnames.get(otherParticipants[0], {fullname: ''}).fullname
-      : meta.description
+      : meta.descriptionDecorated
   return {
     canEditDesc: stateProps.canEditDesc,
     channel:

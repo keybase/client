@@ -19,8 +19,6 @@ const reacjiDiskVersion = 2
 // If the user has less than 5 favorite reacjis we stuff these defaults in.
 var DefaultTopReacjis = []string{":+1:", ":-1:", ":tada:", ":joy:", ":sunglasses:"}
 
-var addReacjiMemCacheHookOnce sync.Once
-
 type ReacjiInternalStorage struct {
 	FrequencyMap map[string]int
 	SkinTone     keybase1.ReacjiSkinTone
@@ -112,11 +110,6 @@ func NewReacjiStore(g *globals.Context) *ReacjiStore {
 	dbFn := func(g *libkb.GlobalContext) *libkb.JSONLocalDb {
 		return g.LocalChatDb
 	}
-	// add a logout hook to clear the in-memory cache, but only add it once:
-	addReacjiMemCacheHookOnce.Do(func() {
-		g.ExternalG().AddLogoutHook(reacjiMemCache, "reacjiMemCache")
-		g.ExternalG().AddDbNukeHook(reacjiMemCache, "reacjiMemCache")
-	})
 	return &ReacjiStore{
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "ReacjiStore", false),
 		encryptedDB:  encrypteddb.New(g.ExternalG(), dbFn, keyFn),

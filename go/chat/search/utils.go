@@ -188,6 +188,9 @@ func UpgradeSearchOptsFromQuery(query string, opts chat1.SearchOpts, username st
 			opts.SentTo = sender
 		}
 	}
+	if opts.SentTo == username {
+		opts.MatchMentions = true
+	}
 
 	matches = dateRangeRegex.FindAllStringSubmatch(query, 2)
 	for _, match := range matches {
