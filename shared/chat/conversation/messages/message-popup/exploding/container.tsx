@@ -8,7 +8,7 @@ import * as FsGen from '../../../../../actions/fs-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import {namedConnect, isMobile} from '../../../../../util/container'
 import {isIOS} from '../../../../../constants/platform'
-
+// @ts-ignore
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import {StylesCrossPlatform} from '../../../../../styles/css'
 import Exploding from '.'
@@ -167,9 +167,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'ExplodingPopup'
-)(Exploding)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ExplodingPopup')(Exploding)

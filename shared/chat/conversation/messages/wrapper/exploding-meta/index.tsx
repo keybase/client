@@ -20,12 +20,12 @@ export type _Props = {
 }
 type Props = Kb.PropsWithTimer<_Props>
 
-type State = {
-  mode: 'none' | 'countdown' | 'boom' | 'hidden'
+interface State {
+  readonly mode: 'none' | 'countdown' | 'boom' | 'hidden'
 }
 
 class ExplodingMeta extends React.Component<Props, State> {
-  state = {mode: 'none' as 'none'}
+  state = {mode: 'none'} as State
   tickerID: TickerID
   sharedTimerID: SharedTimerID
   sharedTimerKey: string

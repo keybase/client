@@ -1,4 +1,5 @@
 import {emojiIndex} from 'emoji-mart'
+// @ts-ignore
 import emojidata from 'emoji-datasource'
 import {groupBy} from 'lodash-es'
 
@@ -14,6 +15,7 @@ const sorted = {}
 for (let cat in categorized) {
   sorted[cat] = categorized[cat].sort((a, b) => a.sort_order - b.sort_order)
 }
+// @ts-ignore
 delete sorted.undefined
 const categoryOrder = [
   'Smileys & People',

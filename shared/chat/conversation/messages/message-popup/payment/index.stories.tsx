@@ -168,7 +168,7 @@ type State = {
   ref: Kb.Box | null
 }
 
-class PaymentPopupMoved extends React.Component<React.ElementProps<typeof PaymentPopup>, State> {
+class PaymentPopupMoved extends React.Component<React.ComponentType<typeof PaymentPopup>, State> {
   state = {ref: null}
   render() {
     return (

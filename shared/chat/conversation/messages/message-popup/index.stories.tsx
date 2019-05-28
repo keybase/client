@@ -52,7 +52,7 @@ const explodingSoonText = makeMessageText({
   explodingTime: 2000000100000,
 })
 
-const explodingLaterText = deviceRevokedAt =>
+const explodingLaterText = (deviceRevokedAt?: number) =>
   makeMessageText({
     author: 'cjb',
     deviceName: 'device',

@@ -10,13 +10,13 @@ type OwnProps = {
   teamname: string
 }
 
-const mapStateToProps = (state, {teamname, conversationIDKey}) => ({
+const mapStateToProps = (state, {teamname, conversationIDKey}: OwnProps) => ({
   badgeSubscribe: !isTeamWithChosenChannels(state, teamname),
   conversationIDKey,
   teamname,
 })
 
-const mapDispatchToProps = (dispatch, {teamname}) => ({
+const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
   onClick: () =>
     dispatch(RouteTreeGen.createNavigateTo({path: [teamsTab, {props: {teamname}, selected: 'team'}]})),
 })
@@ -28,9 +28,6 @@ const mergeProps = (stateProps, dispatchProps) => ({
   teamname: stateProps.teamname,
 })
 
-export default namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'InboxBigTeamHeader'
-)(BigTeamHeader)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'InboxBigTeamHeader')(
+  BigTeamHeader
+)

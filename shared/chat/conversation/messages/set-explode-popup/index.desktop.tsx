@@ -49,12 +49,14 @@ const Item = (props: ItemProps) => {
 const SetExplodePopup = (props: Props) => {
   const selected = props.selected || {seconds: 0, text: 'Never'}
   const listItems = props.items.map(it => ({
+    disabled: false,
     onClick: () => props.onSelect(it.seconds),
     title: it.text,
     view: <Item desc={it} selected={selected === it.seconds} />,
   }))
   listItems.unshift({
     disabled: true,
+    onClick: undefined,
     title: 'Explode message after:',
     view: <Text type="BodySmallSemibold">Explode messages after:</Text>,
   })

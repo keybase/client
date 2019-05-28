@@ -30,7 +30,7 @@ type State = {
 
 class TeamMention extends React.Component<Props, State> {
   state = {showPopup: false}
-  _mentionRef = React.createRef()
+  _mentionRef = React.createRef<Text>()
   _getAttachmentRef = () => {
     return this._mentionRef.current
   }

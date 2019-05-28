@@ -87,13 +87,6 @@ const _inputStyle = {
   marginTop: globalMargins.large,
 }
 
-const Wrapper = (props: Props) => (
-  <CreateChannel
-    {...props}
-    onBack={undefined}
-    onCancel={props.onBack}
-    customComponent={<Header {...props} />}
-  />
-)
+const Wrapper = (props: Props) => <CreateChannel {...props} onBack={undefined} />
 
 export default Kb.HeaderHoc(Wrapper)

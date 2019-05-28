@@ -41,7 +41,7 @@ export class ImageRender extends React.Component<Props> {
     ) : (
       <img
         onLoad={this.props.onLoad}
-        draggable="false"
+        draggable={false}
         src={this.props.src}
         style={collapseStyles([this.props.style, !this.props.loaded && {display: 'none'}])}
       />

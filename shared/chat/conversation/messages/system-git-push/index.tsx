@@ -117,7 +117,7 @@ const GitPushDefault = ({
 }
 
 type PushCommonProps = {
-  children: React.ElementType
+  children: React.ReactNode
   pusher: string
   timestamp: number
   onClickUserAvatar: (arg0: string) => void
@@ -164,7 +164,6 @@ class GitPush extends React.PureComponent<Props> {
                     commitRef={ref}
                     branchName={branchName}
                     pusher={pusher}
-                    timestamp={timestamp}
                     repo={repo}
                     repoID={repoID}
                     team={team}
@@ -185,7 +184,6 @@ class GitPush extends React.PureComponent<Props> {
           >
             <GitPushCreate
               pusher={pusher}
-              timestamp={timestamp}
               repo={repo}
               repoID={repoID}
               team={team}

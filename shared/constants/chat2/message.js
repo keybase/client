@@ -531,8 +531,6 @@ const uiMessageToSystemMessage = (minimum, body, reactions): ?Types.Message => {
           inviteType = 'text'
           break
         default:
-          // $FlowIssue need these to be opaque types
-          Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(iType)
           inviteType = 'unknown'
           break
       }
@@ -610,7 +608,6 @@ const uiMessageToSystemMessage = (minimum, body, reactions): ?Types.Message => {
     }
 
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(body.systemType)
       return null
   }
 }
@@ -859,8 +856,6 @@ const validUIMessagetoMessage = (
     case RPCChatTypes.commonMessageType.deletehistory:
       return null
     default:
-      // $FlowIssue need these to be opaque types
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(m.messageBody.messageType)
       return null
   }
 }
@@ -1008,7 +1003,6 @@ export const uiMessageToMessage = (
       }
       return null
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(uiMessage.state)
       return null
   }
 }

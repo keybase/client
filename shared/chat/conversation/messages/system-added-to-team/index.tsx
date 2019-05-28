@@ -52,7 +52,7 @@ const ManageComponent = (props: Props) => {
   }
 }
 
-const YouOrUsername = (props: {username: string; you: string; capitalize: boolean; adder?: string}) => {
+const youOrUsername = (props: {username: string; you: string; capitalize: boolean; adder?: string}) => {
   if (props.adder === props.you) return 'yourself'
   if (props.username === props.you) {
     return props.capitalize ? 'You' : 'you'
@@ -66,7 +66,7 @@ const AddedToTeam = (props: Props) => {
   }
   return (
     <Kb.Text type="BodySmall" style={{flex: 1}}>
-      was added by <YouOrUsername username={props.adder} you={props.you} capitalize={false} />.{' '}
+      was added by {youOrUsername({capitalize: false, username: props.adder, you: props.you})}.{' '}
       <ManageComponent {...props} />
     </Kb.Text>
   )
@@ -92,8 +92,8 @@ const YouAddedToTeam = (props: Props) => {
           negative={true}
           style={{color: Styles.globalColors.black_50}}
         >
-          <YouOrUsername username={adder} you={you} capitalize={true} /> added{' '}
-          <YouOrUsername username={addee} adder={adder} you={you} capitalize={false} /> to{' '}
+          {youOrUsername({capitalize: true, username: adder, you})} added{' '}
+          {youOrUsername({adder, capitalize: false, username: addee, you})} to{' '}
           <Kb.Text
             onClick={onViewTeam}
             style={{color: Styles.globalColors.black_50}}

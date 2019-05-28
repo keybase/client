@@ -2,7 +2,7 @@ import * as React from 'react'
 import {MessageExplodeDescription} from '../../../../constants/types/chat2'
 
 export type Props = {
-  attachTo: () => React.ElementRef<any> | null
+  attachTo: () => React.Ref<any> | null
   visible: boolean
   onHidden: () => void
   selected: number

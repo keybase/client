@@ -26,7 +26,7 @@ type State = {
 }
 
 class CoinFlip extends React.Component<Props, State> {
-  _partRef = React.createRef()
+  _partRef = React.createRef<Kb.Box2>()
   state = {showPopup: false}
   _showPopup = () => {
     this.setState({showPopup: true})

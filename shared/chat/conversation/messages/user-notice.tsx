@@ -6,7 +6,7 @@ export type Props = {
   bgColor: string
   username?: string
   teamname?: string
-  children?: React.ElementType
+  children?: React.ReactNode
   style?: Object | null
   onClickAvatar?: () => void
 }

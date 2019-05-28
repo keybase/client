@@ -37,7 +37,7 @@ type State = {
 class ImageAttachment extends React.PureComponent<Props, State> {
   imageRef: any
 
-  state = {loaded: false, loadingVideo: 'notloaded', playingVideo: false}
+  state = {loaded: false, loadingVideo: 'notloaded', playingVideo: false} as State
   _setLoaded = () => this.setState({loaded: true})
   _setVideoLoaded = () => this.setState({loadingVideo: 'loaded'})
 

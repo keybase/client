@@ -12,7 +12,7 @@ import BigTeamsDivider from './row/big-teams-divider/container'
 import TeamsDivider from './row/teams-divider/container'
 import {debounce} from 'lodash-es'
 import UnreadShortcut from './unread-shortcut'
-import {Props, RowItem, RowItemSmall, RowItemBig, RouteState} from './index.types'
+import {Props, RowItem, RowItemSmall, RowItemBig, RouteState} from './index.types.d'
 import {virtualListMarks} from '../../local-debug'
 import {inboxWidth, getRowHeight} from './row/sizes'
 

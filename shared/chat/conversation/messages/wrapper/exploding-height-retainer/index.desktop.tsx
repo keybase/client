@@ -59,7 +59,7 @@ class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
 
   setHeight() {
     const node = this._boxRef.current
-    if (node instanceof window.HTMLElement) {
+    if (node instanceof HTMLElement) {
       const height = node.clientHeight
       if (height && height !== this.state.height) {
         retainedHeights[this.props.messageKey] = true
@@ -164,7 +164,7 @@ const FlameFront = (props: {height: number; stop: boolean}) => {
   const numBoxes = Math.ceil(props.height / 15)
   const children = []
   for (let i = 0; i < numBoxes; i++) {
-    children.push(<Flame key={i} stop={props.stop} />)
+    children.push(<Flame key={i} />)
   }
   return (
     <Kb.Box className="flame-container" style={styles.flameContainer}>
