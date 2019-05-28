@@ -75,15 +75,18 @@ var linkRegexp = xurls.Strict()
 
 func (g *Gallery) searchForLinks(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgID chat1.MessageID, num int, uiCh chan chat1.UIMessage) (res []chat1.MessageUnboxed, last bool, err error) {
-	hitCh := make(chan chat1.ChatSearchHit)
-	doneCh := make(chan struct{})
-	defer func() { <-doneCh }()
-	go func() {
-		for hit := range hitCh {
-			uiCh <- hit.HitMessage
-		}
-		close(doneCh)
-	}()
+	var hitCh chan chat1.ChatSearchHit
+	if uiCh != nil {
+		hitCh = make(chan chat1.ChatSearchHit)
+		doneCh := make(chan struct{})
+		defer func() { <-doneCh }()
+		go func() {
+			for hit := range hitCh {
+				uiCh <- hit.HitMessage
+			}
+			close(doneCh)
+		}()
+	}
 	idcontrol := &chat1.MessageIDControl{
 		Pivot: &msgID,
 		Mode:  chat1.MessageIDControlMode_OLDERMESSAGES,
@@ -154,7 +157,7 @@ func (g *Gallery) NextMessages(ctx context.Context, uid gregor1.UID,
 	}
 	if opts.MessageType == chat1.MessageType_NONE {
 		opts.MessageType = chat1.MessageType_ATTACHMENT
-	} else if opts.MessageType == chat1.MessageType_TEXT && opts.FilterLinks && uiCh != nil {
+	} else if opts.MessageType == chat1.MessageType_TEXT && opts.FilterLinks {
 		return g.searchForLinks(ctx, uid, convID, msgID, num, uiCh)
 	}
 	typMap, assetMap, unfurlMap := g.makeMaps(opts)
@@ -218,11 +221,13 @@ func (g *Gallery) NextMessages(ctx context.Context, uid gregor1.UID,
 				uiCh <- utils.PresentMessageUnboxed(ctx, g.G(), m, uid, convID)
 			}
 			if len(res) >= num {
+				g.Debug(ctx, "NextMessages: stopping on satisfied")
 				return res, false, nil
 			}
 		}
 		g.Debug(ctx, "NextMessages: still need more (%d < %d): len: %d", len(res), num, len(tv.Messages))
 		if tv.Pagination.Last {
+			g.Debug(ctx, "NextMessages: stopping on last page")
 			break
 		}
 		pagination = nextPageFn(tv.Pagination)
