@@ -92,7 +92,7 @@ class SectionList extends React.Component<Props, State> {
   // This matches the way onEndReached works for sectionlist on RN
   _onEndReached = once(() => this.props.onEndReached && this.props.onEndReached())
 
-  _checkSticky = debounce(() => {
+  _checkSticky = () => {
     // need to defer this as the list itself is changing after scroll
     if (this._listRef.current) {
       const [firstIndex] = this._listRef.current.getVisibleRange()
@@ -105,11 +105,14 @@ class SectionList extends React.Component<Props, State> {
         )
       }
     }
-  }, 20)
+  }
+  _checkStickyDebounced = debounce(this._checkSticky, 20)
+  _checkStickyThrottled = throttle(this._checkSticky, 20)
 
   _onScroll = e => {
     e.currentTarget && this._checkOnEndReached(e.currentTarget)
-    this._checkSticky()
+    this._checkStickyDebounced()
+    this._checkStickyThrottled()
   }
 
   _flatten = memoize(sections => {
