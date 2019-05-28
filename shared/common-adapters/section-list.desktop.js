@@ -156,7 +156,7 @@ class SectionList extends React.Component<Props, State> {
         )
       } else {
         // These placeholders allow us to get the first section's sticky header back on the screen if
-        // the it has no body items. Since we don't draw it in _itemRenderer (to avoid duplicating it
+        // the item has no body items. Since we don't draw it in _itemRenderer (to avoid duplicating it
         // all the time), we need something in the ReactList to trigger the flatSectionIndex check
         // to get the sticky header back on the screen.
         arr.push({
