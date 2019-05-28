@@ -111,8 +111,9 @@ protocol local {
     Asset sourceAsset;
 
     // for non-payment txs, multiple ops:
-    boolean isadvancedtx;
-    string advancedsummary;         // if isadvancedtx is true, just show this string
+    boolean isAdvanced;
+    string summaryAdvanced;         // if isAdvanced is true, just show this string
+    array<string> operations;
 
     boolean unread;                 // true if user hasn't seen the payment yet (sourceType STELLAR only)
 
@@ -184,8 +185,8 @@ protocol local {
     Asset sourceAsset;
     
     // for non-payment txs, multiple ops:
-    boolean isAdvancedTx;
-    string advancedSummary;         // if isAdvancedTx is true, just show this string
+    boolean isAdvanced;
+    string summaryAdvanced;         // if isAdvanced is true, just show this string
     array<string> operations;       // string summary of each operation in the transaction
 
     string publicNote;              // public memo for the payment
@@ -600,6 +601,11 @@ protocol local {
     string sourceAmountMax;
     string sourceAmountActual;
     Asset sourceAsset;
+
+    // for non-payment txs, multiple ops:
+    boolean isAdvanced;
+    string summaryAdvanced;         // if isAdvanced is true, just show this string
+    array<string> operations;       // string summary of each operation in the transaction
 
     AccountID fromStellar;
     union { null, AccountID } toStellar;

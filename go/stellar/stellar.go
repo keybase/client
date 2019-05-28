@@ -223,7 +223,12 @@ func ImportSecretKey(mctx libkb.MetaContext, secretKey stellar1.SecretKey, makeP
 		mctx.Debug("ImportSecretKey, failed to parse secret key after import: %s", err)
 		return nil
 	}
-	page, err := remote.RecentPayments(mctx.Ctx(), mctx.G(), accountID, nil, 0, true)
+	arg := remote.RecentPaymentsArg{
+		AccountID:       accountID,
+		SkipPending:     true,
+		IncludeAdvanced: true,
+	}
+	page, err := remote.RecentPayments(mctx.Ctx(), mctx.G(), arg)
 	if err != nil {
 		mctx.Debug("ImportSecretKey, RecentPayments error: %s", err)
 		return nil
@@ -1390,7 +1395,11 @@ func GetOwnPrimaryAccountID(mctx libkb.MetaContext) (res stellar1.AccountID, err
 
 func RecentPaymentsCLILocal(mctx libkb.MetaContext, remoter remote.Remoter, accountID stellar1.AccountID) (res []stellar1.PaymentOrErrorCLILocal, err error) {
 	defer mctx.TraceTimed("Stellar.RecentPaymentsCLILocal", func() error { return err })()
-	page, err := remoter.RecentPayments(mctx.Ctx(), accountID, nil, 0, false)
+	arg := remote.RecentPaymentsArg{
+		AccountID:       accountID,
+		IncludeAdvanced: true,
+	}
+	page, err := remoter.RecentPayments(mctx.Ctx(), arg)
 	if err != nil {
 		return nil, err
 	}
@@ -1437,14 +1446,17 @@ func localizePayment(mctx libkb.MetaContext, p stellar1.PaymentSummary) (res ste
 	case stellar1.PaymentSummaryType_STELLAR:
 		p := p.Stellar()
 		return stellar1.PaymentCLILocal{
-			TxID:        p.TxID,
-			Time:        p.Ctime,
-			Status:      "Completed",
-			Amount:      p.Amount,
-			Asset:       p.Asset,
-			FromStellar: p.From,
-			ToStellar:   &p.To,
-			Unread:      p.Unread,
+			TxID:            p.TxID,
+			Time:            p.Ctime,
+			Status:          "Completed",
+			Amount:          p.Amount,
+			Asset:           p.Asset,
+			FromStellar:     p.From,
+			ToStellar:       &p.To,
+			Unread:          p.Unread,
+			IsAdvanced:      p.IsAdvanced,
+			SummaryAdvanced: p.SummaryAdvanced,
+			Operations:      p.Operations,
 		}, nil
 	case stellar1.PaymentSummaryType_DIRECT:
 		p := p.Direct()

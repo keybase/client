@@ -263,11 +263,18 @@
         },
         {
           "type": "boolean",
-          "name": "isadvancedtx"
+          "name": "isAdvanced"
         },
         {
           "type": "string",
-          "name": "advancedsummary"
+          "name": "summaryAdvanced"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "operations"
         },
         {
           "type": "boolean",
@@ -465,11 +472,11 @@
         },
         {
           "type": "boolean",
-          "name": "isAdvancedTx"
+          "name": "isAdvanced"
         },
         {
           "type": "string",
-          "name": "advancedSummary"
+          "name": "summaryAdvanced"
         },
         {
           "type": {
@@ -986,6 +993,21 @@
         {
           "type": "Asset",
           "name": "sourceAsset"
+        },
+        {
+          "type": "boolean",
+          "name": "isAdvanced"
+        },
+        {
+          "type": "string",
+          "name": "summaryAdvanced"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "operations"
         },
         {
           "type": "AccountID",

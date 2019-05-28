@@ -211,8 +211,9 @@ type PaymentLocal struct {
 	SourceAmountMax     string          `codec:"sourceAmountMax" json:"sourceAmountMax"`
 	SourceAmountActual  string          `codec:"sourceAmountActual" json:"sourceAmountActual"`
 	SourceAsset         Asset           `codec:"sourceAsset" json:"sourceAsset"`
-	Isadvancedtx        bool            `codec:"isadvancedtx" json:"isadvancedtx"`
-	Advancedsummary     string          `codec:"advancedsummary" json:"advancedsummary"`
+	IsAdvanced          bool            `codec:"isAdvanced" json:"isAdvanced"`
+	SummaryAdvanced     string          `codec:"summaryAdvanced" json:"summaryAdvanced"`
+	Operations          []string        `codec:"operations" json:"operations"`
 	Unread              bool            `codec:"unread" json:"unread"`
 	BatchID             string          `codec:"batchID" json:"batchID"`
 	FromAirdrop         bool            `codec:"fromAirdrop" json:"fromAirdrop"`
@@ -261,12 +262,23 @@ func (o PaymentLocal) DeepCopy() PaymentLocal {
 		SourceAmountMax:     o.SourceAmountMax,
 		SourceAmountActual:  o.SourceAmountActual,
 		SourceAsset:         o.SourceAsset.DeepCopy(),
-		Isadvancedtx:        o.Isadvancedtx,
-		Advancedsummary:     o.Advancedsummary,
-		Unread:              o.Unread,
-		BatchID:             o.BatchID,
-		FromAirdrop:         o.FromAirdrop,
-		IsInflation:         o.IsInflation,
+		IsAdvanced:          o.IsAdvanced,
+		SummaryAdvanced:     o.SummaryAdvanced,
+		Operations: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Operations),
+		Unread:      o.Unread,
+		BatchID:     o.BatchID,
+		FromAirdrop: o.FromAirdrop,
+		IsInflation: o.IsInflation,
 		InflationSource: (func(x *string) *string {
 			if x == nil {
 				return nil
@@ -366,8 +378,8 @@ type PaymentDetailsLocal struct {
 	SourceAmountMax     string          `codec:"sourceAmountMax" json:"sourceAmountMax"`
 	SourceAmountActual  string          `codec:"sourceAmountActual" json:"sourceAmountActual"`
 	SourceAsset         Asset           `codec:"sourceAsset" json:"sourceAsset"`
-	IsAdvancedTx        bool            `codec:"isAdvancedTx" json:"isAdvancedTx"`
-	AdvancedSummary     string          `codec:"advancedSummary" json:"advancedSummary"`
+	IsAdvanced          bool            `codec:"isAdvanced" json:"isAdvanced"`
+	SummaryAdvanced     string          `codec:"summaryAdvanced" json:"summaryAdvanced"`
 	Operations          []string        `codec:"operations" json:"operations"`
 	PublicNote          string          `codec:"publicNote" json:"publicNote"`
 	PublicNoteType      string          `codec:"publicNoteType" json:"publicNoteType"`
@@ -420,8 +432,8 @@ func (o PaymentDetailsLocal) DeepCopy() PaymentDetailsLocal {
 		SourceAmountMax:     o.SourceAmountMax,
 		SourceAmountActual:  o.SourceAmountActual,
 		SourceAsset:         o.SourceAsset.DeepCopy(),
-		IsAdvancedTx:        o.IsAdvancedTx,
-		AdvancedSummary:     o.AdvancedSummary,
+		IsAdvanced:          o.IsAdvanced,
+		SummaryAdvanced:     o.SummaryAdvanced,
 		Operations: (func(x []string) []string {
 			if x == nil {
 				return nil
@@ -801,6 +813,9 @@ type PaymentCLILocal struct {
 	SourceAmountMax    string        `codec:"sourceAmountMax" json:"sourceAmountMax"`
 	SourceAmountActual string        `codec:"sourceAmountActual" json:"sourceAmountActual"`
 	SourceAsset        Asset         `codec:"sourceAsset" json:"sourceAsset"`
+	IsAdvanced         bool          `codec:"isAdvanced" json:"isAdvanced"`
+	SummaryAdvanced    string        `codec:"summaryAdvanced" json:"summaryAdvanced"`
+	Operations         []string      `codec:"operations" json:"operations"`
 	FromStellar        AccountID     `codec:"fromStellar" json:"fromStellar"`
 	ToStellar          *AccountID    `codec:"toStellar,omitempty" json:"toStellar,omitempty"`
 	FromUsername       *string       `codec:"fromUsername,omitempty" json:"fromUsername,omitempty"`
@@ -836,7 +851,20 @@ func (o PaymentCLILocal) DeepCopy() PaymentCLILocal {
 		SourceAmountMax:    o.SourceAmountMax,
 		SourceAmountActual: o.SourceAmountActual,
 		SourceAsset:        o.SourceAsset.DeepCopy(),
-		FromStellar:        o.FromStellar.DeepCopy(),
+		IsAdvanced:         o.IsAdvanced,
+		SummaryAdvanced:    o.SummaryAdvanced,
+		Operations: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Operations),
+		FromStellar: o.FromStellar.DeepCopy(),
 		ToStellar: (func(x *AccountID) *AccountID {
 			if x == nil {
 				return nil
