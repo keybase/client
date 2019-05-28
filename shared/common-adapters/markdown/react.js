@@ -402,7 +402,7 @@ const serviceOnlyOutput = SimpleMarkdown.reactFor(
           />
         )
       default:
-        return output(ast.content, state)
+        return <Text type="Body">{output(ast.content, state)}</Text>
     }
   }
 )
