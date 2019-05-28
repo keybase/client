@@ -5,7 +5,7 @@ import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import {imgMaxWidthRaw} from '../messages/attachment/image/image-render'
-import {formatTimeForChat} from '../../../util/timestamp'
+import {formatTimeForMessages} from '../../../util/timestamp'
 import MessagePopup from '../messages/message-popup'
 
 const monthNames = [
@@ -248,7 +248,7 @@ class _DocViewRow extends React.Component<Doc> {
             <Kb.Box2 direction="vertical">
               <Kb.Text type="BodySemibold">{item.name}</Kb.Text>
               <Kb.Text type="BodySmall">
-                Sent by {item.author} • {formatTimeForChat(item.ctime)}
+                Sent by {item.author} • {formatTimeForMessages(item.ctime)}
               </Kb.Text>
             </Kb.Box2>
           </Kb.Box2>
@@ -346,7 +346,7 @@ export class LinkView {
               horizontal={true}
             />
             <Kb.Text type="BodyTiny" style={styles.linkTime}>
-              {formatTimeForChat(item.ctime)}
+              {formatTimeForMessages(item.ctime)}
             </Kb.Text>
           </Kb.Box2>
           <Kb.Markdown
