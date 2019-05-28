@@ -30,7 +30,7 @@ export const todoTypes: {[key: Types.TodoType]: Types.TodoType} = {
 
 export const todoTypeToInstructions: {[key: Types.TodoType]: string} = {
   avatarTeam: 'NEW! Change your team’s avatar from within the Keybase app.',
-  avatarUser: 'NEW! Change your photo from within the Keybase app.',
+  avatarUser: 'NEW! Change your avatar from within the Keybase app.',
   bio: 'Add your name, bio, and location to complete your profile.',
   chat: 'Start a chat! All conversations on Keybase are end-to-end encrypted.',
   device: `Install Keybase on your ${
@@ -78,18 +78,18 @@ export const todoTypeToDismissable: {[key: Types.TodoType]: boolean} = {
   teamShowcase: true,
 }
 export const todoTypeToIcon: {[key: Types.TodoType]: IconType} = {
-  avatarTeam: isMobile ? 'icon-onboarding-team-avatar-48' : 'icon-onboarding-team-avatar-32',
-  avatarUser: isMobile ? 'icon-onboarding-user-avatar-48' : 'icon-onboarding-user-avatar-32',
-  bio: isMobile ? 'icon-onboarding-user-info-48' : 'icon-onboarding-user-info-32',
-  chat: isMobile ? 'icon-onboarding-chat-48' : 'icon-onboarding-chat-32',
-  device: isMobile ? 'icon-onboarding-computer-48' : 'icon-onboarding-phone-32',
-  folder: isMobile ? 'icon-onboarding-folder-48' : 'icon-onboarding-folder-32',
-  follow: isMobile ? 'icon-onboarding-follow-48' : 'icon-onboarding-follow-32',
-  gitRepo: isMobile ? 'icon-onboarding-git-48' : 'icon-onboarding-git-32',
-  paperkey: isMobile ? 'icon-onboarding-paper-key-48' : 'icon-onboarding-paper-key-32',
-  proof: isMobile ? 'icon-onboarding-proofs-48' : 'icon-onboarding-proofs-32',
-  team: isMobile ? 'icon-onboarding-team-48' : 'icon-onboarding-team-32',
-  teamShowcase: isMobile ? 'icon-onboarding-team-publicity-48' : 'icon-onboarding-team-publicity-32',
+  avatarTeam: 'icon-onboarding-team-avatar-48',
+  avatarUser: 'icon-onboarding-user-avatar-48',
+  bio: 'icon-onboarding-user-info-48',
+  chat: 'icon-onboarding-chat-48',
+  device: isMobile ? 'icon-onboarding-computer-48' : 'icon-onboarding-phone-48',
+  folder: 'icon-onboarding-folder-48',
+  follow: 'icon-onboarding-follow-48',
+  gitRepo: 'icon-onboarding-git-48',
+  paperkey: 'icon-onboarding-paper-key-48',
+  proof: 'icon-onboarding-proofs-48',
+  team: 'icon-onboarding-team-48',
+  teamShowcase: 'icon-onboarding-team-publicity-48',
 }
 
 export const reduceRPCItemToPeopleItem = (
