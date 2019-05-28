@@ -60,6 +60,4 @@ const mergeProps = (s, d, o) => ({
   worthDescription: s.worthDescription,
 })
 
-export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'Footer')(
-  Footer
-)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Footer')(Footer)

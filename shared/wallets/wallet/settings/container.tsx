@@ -95,6 +95,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps): SettingsProps => ({
 })
 
 export default Container.compose(
-  Container.namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'Settings'),
+  Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Settings'),
   Container.safeSubmit(['onCurrencyChange'], ['currencyWaiting'])
 )(Settings)

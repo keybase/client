@@ -51,7 +51,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
   options: stateProps._options.toArray().map(o => o.toObject()),
 })
 
-export default Container.namedConnect<OwnProps, _, _, _, _>(
+export default Container.namedConnect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,

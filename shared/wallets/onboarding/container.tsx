@@ -38,7 +38,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
   onClose: dispatchProps.onClose,
 })
 
-export default connect<OwnProps, _, _, _, _>(
+export default connect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

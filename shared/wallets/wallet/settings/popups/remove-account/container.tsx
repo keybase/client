@@ -45,9 +45,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onDelete: () => dispatchProps._onDelete(stateProps.accountID),
 })
 
-export default Container.namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'RemoveAccountPopup'
-)(RemoveAccountPopup)
+export default Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'RemoveAccountPopup')(
+  RemoveAccountPopup
+)

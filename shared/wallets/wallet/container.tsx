@@ -97,7 +97,7 @@ const sortAndStripTimestamps = (
 const WalletOrOnboarding = (props: Props) =>
   !isMobile || props.acceptedDisclaimer ? <Wallet {...props} /> : <Onboarding />
 
-export default connect<OwnProps, _, _, _, _>(
+export default connect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

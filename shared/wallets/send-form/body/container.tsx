@@ -24,14 +24,11 @@ const mergeProps = (stateProps, dispatchProps) => ({
   onReviewPayments: stateProps._failed ? dispatchProps._onReviewPayments : null,
 })
 
-export const SendBody = namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'ConnectedSendBody'
-)(SendBodyComponent)
+export const SendBody = namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedSendBody')(
+  SendBodyComponent
+)
 
-export const RequestBody = namedConnect<OwnProps, _, _, _, _>(
+export const RequestBody = namedConnect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,

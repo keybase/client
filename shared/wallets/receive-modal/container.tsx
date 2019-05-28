@@ -43,7 +43,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
   onRequest: dispatchProps.onRequest,
 })
 
-export default Container.connect<OwnProps, _, _, _, _>(
+export default Container.connect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

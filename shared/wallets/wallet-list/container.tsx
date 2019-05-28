@@ -51,7 +51,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
   title: 'Wallets',
 })
 
-export default connect<OwnProps, _, _, _, _>(
+export default connect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

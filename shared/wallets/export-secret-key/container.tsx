@@ -37,7 +37,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
   onSecretKeySeen: () => dispatchProps._onSecretKeySeen(stateProps.accountID),
 })
 
-export default Container.connect<OwnProps, _, _, _, _>(
+export default Container.connect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

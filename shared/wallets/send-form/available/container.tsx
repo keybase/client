@@ -11,7 +11,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({})
 
-export default namedConnect<OwnProps, _, _, _, _>(
+export default namedConnect(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d}),

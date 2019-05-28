@@ -70,7 +70,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   waiting: stateProps.waiting,
 })
 
-export default Container.connect<OwnProps, _, _, _, _>(
+export default Container.connect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

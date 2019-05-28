@@ -20,7 +20,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
 })
 
 export default Container.compose(
-  Container.connect<OwnProps, _, _, _, _>(
+  Container.connect(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps

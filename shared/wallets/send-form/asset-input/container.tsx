@@ -48,9 +48,4 @@ const mergeProps = (stateProps, dispatchProps) => ({
   value: stateProps.value,
 })
 
-export default namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'AssetInput'
-)(AssetInput)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'AssetInput')(AssetInput)

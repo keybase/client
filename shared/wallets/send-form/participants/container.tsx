@@ -48,7 +48,7 @@ const mergePropsKeybaseUser = (stateProps, dispatchProps) => {
   }
 }
 
-const ConnectedParticipantsKeybaseUser = namedConnect<OwnProps, _, _, _, _>(
+const ConnectedParticipantsKeybaseUser = namedConnect(
   mapStateToPropsKeybaseUser,
   mapDispatchToPropsKeybaseUser,
   mergePropsKeybaseUser,
@@ -90,7 +90,7 @@ const mapDispatchToPropsStellarPublicKey = dispatch => ({
   },
 })
 
-const ConnectedParticipantsStellarPublicKey = namedConnect<OwnProps, _, _, _, _>(
+const ConnectedParticipantsStellarPublicKey = namedConnect(
   mapStateToPropsStellarPublicKey,
   mapDispatchToPropsStellarPublicKey,
   (s, d, o) => ({...o, ...s, ...d}),
@@ -150,7 +150,7 @@ const mapDispatchToPropsOtherAccount = dispatch => ({
     ),
 })
 
-const ConnectedParticipantsOtherAccount = namedConnect<OwnProps, _, _, _, _>(
+const ConnectedParticipantsOtherAccount = namedConnect(
   mapStateToPropsOtherAccount,
   mapDispatchToPropsOtherAccount,
   (s, d, o) => ({...o, ...s, ...d}),
@@ -178,7 +178,7 @@ const ParticipantsChooser = props => {
   }
 }
 
-const ConnectedParticipantsChooser = namedConnect<OwnProps, _, _, _, _>(
+const ConnectedParticipantsChooser = namedConnect(
   mapStateToPropsChooser,
   () => ({}),
   (s, d, o) => ({...o, ...s, ...d}),

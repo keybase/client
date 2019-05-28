@@ -41,14 +41,14 @@ const publicMemoConnector = {
   },
 }
 
-export const SecretNote = namedConnect<OwnProps, _, _, _, _>(
+export const SecretNote = namedConnect(
   secretNoteConnector.mapStateToProps,
   secretNoteConnector.mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d}),
   'ConnectedSecretNote'
 )(SecretNoteComponent)
 
-export const PublicMemo = namedConnect<OwnProps, _, _, _, _>(
+export const PublicMemo = namedConnect(
   publicMemoConnector.mapStateToProps,
   publicMemoConnector.mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d}),

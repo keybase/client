@@ -38,9 +38,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onReload: dispatchProps.onReload,
 })
 
-export default namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'AccountReloader'
-)(AccountReloader)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'AccountReloader')(
+  AccountReloader
+)
