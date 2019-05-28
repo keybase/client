@@ -39,19 +39,6 @@ func NewUserHandler(xp rpc.Transporter, g *libkb.GlobalContext, chatG *globals.C
 	}
 }
 
-func (h *UserHandler) listTrackers(ctx context.Context, sessionID int, eng *engine.ListTrackersEngine) ([]keybase1.Tracker, error) {
-	uis := libkb.UIs{
-		LogUI:     h.getLogUI(sessionID),
-		SessionID: sessionID,
-	}
-	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
-	if err := engine.RunEngine2(m, eng); err != nil {
-		return nil, err
-	}
-	res := eng.ExportedList()
-	return res, nil
-}
-
 func (h *UserHandler) LoadUncheckedUserSummaries(ctx context.Context, arg keybase1.LoadUncheckedUserSummariesArg) ([]keybase1.UserSummary, error) {
 	eng := engine.NewUserSummary(h.G(), arg.Uids)
 	m := libkb.NewMetaContext(ctx, h.G())
