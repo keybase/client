@@ -93,7 +93,6 @@ class SectionList extends React.Component<Props, State> {
   _onEndReached = once(() => this.props.onEndReached && this.props.onEndReached())
 
   _checkSticky = () => {
-    // need to defer this as the list itself is changing after scroll
     if (this._listRef.current) {
       const [firstIndex] = this._listRef.current.getVisibleRange()
       const item = this._flat[firstIndex]
@@ -106,6 +105,12 @@ class SectionList extends React.Component<Props, State> {
       }
     }
   }
+  // We use two "throttled" functions here to check the status of the viewable items in the
+  // list for the purposes of the sticky header feature. A single throttle isn't good enough,
+  // since the last scroll could end up on a throttle border and only be delayed a small amount. If that
+  // happens we can render the header twice, since we will think we are in the wrong section. The debounce
+  // fixes this, since it will always send one last call out on the time interval. We can't just use a
+  // single debounce though, since we need events as the user is scrolling.
   _checkStickyDebounced = debounce(this._checkSticky, 20)
   _checkStickyThrottled = throttle(this._checkSticky, 20)
 
