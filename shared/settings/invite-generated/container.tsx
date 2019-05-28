@@ -19,8 +19,7 @@ const mapDispatchToProps = (dispatch: any) => ({
   onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
-// @ts-ignore codemod-issue
-export default connect<OwnProps, _, _, _, _>(
+export default connect(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d})

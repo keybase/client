@@ -71,8 +71,7 @@ class PaymentStateHolder extends Component<Props, State> {
   }
 }
 
-// @ts-ignore codemod-issue
-export default connect<OwnProps, _, _, _, _>(
+export default connect(
   (state: TypedState, ownProps: OwnProps) => {
     const {
       // $FlowIssue

@@ -1,4 +1,5 @@
 import {HeaderHoc, NativeWebView} from '../common-adapters/mobile.native'
+import {TypedState} from '../constants/reducer'
 import {connect, compose, defaultProps, RouteProps} from '../util/container'
 
 type OwnProps = RouteProps<
@@ -9,9 +10,9 @@ type OwnProps = RouteProps<
   {}
 >
 
-const mapStateToProps = (state, {routeProps}) => ({
-  source: routeProps.get('source'),
-  title: routeProps.get('title'),
+const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
+  source: ownProps.routeProps.get('source'),
+  title: ownProps.routeProps.get('title'),
 })
 
 const mapDispatchToProps = (dispatch, {navigateUp}) => ({
@@ -19,8 +20,7 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
 })
 
 const WebLinks = compose(
-  // @ts-ignore codemod-issue
-  connect<OwnProps, _, _, _, _>(
+  connect(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})

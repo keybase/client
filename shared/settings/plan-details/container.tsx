@@ -15,8 +15,7 @@ type OwnProps = RouteProps<
   {}
 >
 
-// @ts-ignore codemod-issue
-export default connect<OwnProps, _, _, _, _>(
+export default connect(
   (state: TypedState, ownProps: OwnProps) => {
     const selectedLevel = ownProps.routeProps.get('selectedLevel')
     // $FlowIssue
@@ -49,4 +48,5 @@ export default connect<OwnProps, _, _, _, _>(
       onAddCreditCard: () => logger.debug('onadd credit'), // TODO
     },
   })
+  // @ts-ignore codemod-issue
 )(PlanDetails)

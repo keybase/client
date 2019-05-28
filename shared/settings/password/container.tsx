@@ -31,8 +31,7 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
 })
 
 export default compose(
-  // @ts-ignore codemod-issue
-  connect<OwnProps, _, _, _, _>(
+  connect(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})
