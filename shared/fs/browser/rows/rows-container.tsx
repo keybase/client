@@ -1,21 +1,20 @@
-// @flow
 import * as I from 'immutable'
 import {namedConnect} from '../../../util/container'
 import * as Types from '../../../constants/types/fs'
 import * as RowTypes from './types'
 import * as Constants from '../../../constants/fs'
 import {isMobile} from '../../../constants/platform'
-import {sortRowItems, type SortableRowItem} from './sort'
+import {sortRowItems, SortableRowItem} from './sort'
 import Rows from './rows'
 import {asRows as topBarAsRow} from '../../top-bar'
 import {memoize} from '../../../util/memoize'
 
-type OwnProps = {|
-  path: Types.Path, // path to the parent folder containering the rows
-  routePath: I.List<string>,
-  destinationPickerIndex?: number,
-  headerRows?: ?Array<RowTypes.HeaderRowItem>,
-|}
+type OwnProps = {
+  path: Types.Path // path to the parent folder containering the rows,
+  routePath: I.List<string>
+  destinationPickerIndex?: number
+  headerRows?: Array<RowTypes.HeaderRowItem> | null
+}
 
 const getEditingRows = memoize(
   (edits: I.Map<Types.EditID, Types.Edit>, parentPath: Types.Path): I.List<RowTypes.EditingRowItem> =>
@@ -29,8 +28,8 @@ const getEditingRows = memoize(
           key: `edit:${Types.editIDToString(editID)}`,
           name: edit.name,
           // fields for sortable
-          rowType: 'editing',
-          type: 'folder',
+          rowType: RowTypes.RowType.Editing,
+          type: Types.PathType.Folder,
         }))
     )
 )
@@ -66,7 +65,7 @@ const amendStillRowsWithUploads = memoize(
   (stills: I.List<RowTypes.StillRowItem>, uploads: Types.Uploads): I.List<SortableRowItem> =>
     stills.map(still => {
       const {name, type, path} = still
-      if (type === 'folder') {
+      if (type === Types.PathType.Folder) {
         // Don't show an upload row for folders.
         return still
       }
@@ -74,22 +73,22 @@ const amendStillRowsWithUploads = memoize(
         // The entry is absent from uploads. So just show a still row.
         return still
       }
-      return ({
+      return {
         key: `uploading:${name}`,
         name,
         path,
-        rowType: 'uploading',
+        rowType: RowTypes.RowType.Uploading,
         // field for sortable
         type,
-      }: RowTypes.UploadingRowItem)
+      } as RowTypes.UploadingRowItem
     })
 )
 
 const _getPlaceholderRows = (type): I.List<RowTypes.PlaceholderRowItem> =>
   I.List([
-    {key: 'placeholder:1', name: '1', rowType: 'placeholder', type},
-    {key: 'placeholder:2', name: '2', rowType: 'placeholder', type},
-    {key: 'placeholder:3', name: '3', rowType: 'placeholder', type},
+    {key: 'placeholder:1', name: '1', rowType: RowTypes.RowType.Placeholder, type},
+    {key: 'placeholder:2', name: '2', rowType: RowTypes.RowType.Placeholder, type},
+    {key: 'placeholder:3', name: '3', rowType: RowTypes.RowType.Placeholder, type},
   ])
 const filePlaceholderRows = _getPlaceholderRows('file')
 const folderPlaceholderRows = _getPlaceholderRows('folder')
@@ -118,9 +117,24 @@ const getInTlfItemsFromStateProps = (stateProps, path: Types.Path): I.List<RowTy
 
 const getRootRows = (stateProps): I.List<RowTypes.TlfTypeRowItem> =>
   I.List([
-    {key: 'tlfType:private', name: 'private', rowType: 'tlf-type', type: 'folder'},
-    {key: 'tlfType:public', name: 'public', rowType: 'tlf-type', type: 'folder'},
-    {key: 'tlfType:team', name: 'team', rowType: 'tlf-type', type: 'folder'},
+    {
+      key: 'tlfType:private',
+      name: Types.TlfType.Private,
+      rowType: RowTypes.RowType.TlfType,
+      type: Types.PathType.Folder,
+    },
+    {
+      key: 'tlfType:public',
+      name: Types.TlfType.Public,
+      rowType: RowTypes.RowType.TlfType,
+      type: Types.PathType.Folder,
+    },
+    {
+      key: 'tlfType:team',
+      name: Types.TlfType.Team,
+      rowType: RowTypes.RowType.TlfType,
+      type: Types.PathType.Folder,
+    },
   ])
 
 const getTlfRowsFromTlfs = memoize(
@@ -177,7 +191,7 @@ const filterable = new Set(['tlf-type', 'tlf', 'still'])
 const filterRowItems = (rows, filter) =>
   filter ? rows.filter(row => !filterable.has(row.rowType) || row.name.includes(filter)) : rows
 
-const mapStateToProps = (state, {path}) => ({
+const mapStateToProps = (state, {path}: OwnProps) => ({
   _edits: state.fs.edits,
   _filter: state.fs.folderViewFilter,
   _pathItems: state.fs.pathItems,
@@ -222,9 +236,4 @@ const mergeProps = (s, d, o: OwnProps) => {
   }
 }
 
-export default namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'ConnectedRows'
-)(Rows)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedRows')(Rows)

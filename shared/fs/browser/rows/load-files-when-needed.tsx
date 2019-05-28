@@ -1,19 +1,24 @@
-// @flow
 import * as React from 'react'
 import {namedConnect} from '../../../util/container'
 import * as FsGen from '../../../actions/fs-gen'
 import * as Types from '../../../constants/types/fs'
 
-type OwnProps = {|
-  path: Types.Path,
-  destinationPickerIndex?: number,
-|}
-
+type OwnProps = {
+  path: Types.Path
+  destinationPickerIndex?: number
+}
+type StateProps = {
+  syncingFoldersProgress: Types.SyncingFoldersProgress
+}
 const mapStateToProps = state => ({
   syncingFoldersProgress: state.fs.syncingFoldersProgress,
 })
-
-const mapDispatchToProps = (dispatch, {path, destinationPickerIndex}) => ({
+type DispatchProps = {
+  loadFavorites: () => void
+  loadFolderListWithRefreshTag: () => void
+  loadFolderListWithoutRefreshTag: () => void
+}
+const mapDispatchToProps = (dispatch, {path, destinationPickerIndex}: OwnProps) => ({
   loadFavorites: () => dispatch(FsGen.createFavoritesLoad()),
   loadFolderListWithRefreshTag: () =>
     dispatch(
@@ -30,19 +35,19 @@ const mapDispatchToProps = (dispatch, {path, destinationPickerIndex}) => ({
     ),
 })
 
-const mergeProps = (s, d, {path}) => ({
+const mergeProps = (s, d, {path}: OwnProps) => ({
   ...s,
   ...d,
   path,
 })
 
-type Props = {|
-  loadFolderListWithRefreshTag: () => void,
-  loadFolderListWithoutRefreshTag: () => void,
-  loadFavorites: () => void,
-  path: Types.Path,
-  syncingFoldersProgress: Types.SyncingFoldersProgress,
-|}
+type Props = {
+  loadFolderListWithRefreshTag: () => void
+  loadFolderListWithoutRefreshTag: () => void
+  loadFavorites: () => void
+  path: Types.Path
+  syncingFoldersProgress: Types.SyncingFoldersProgress
+}
 
 class LoadFilesWhenNeeded extends React.PureComponent<Props> {
   _load = withRefreshTag => {
@@ -81,7 +86,7 @@ class LoadFilesWhenNeeded extends React.PureComponent<Props> {
   }
 }
 
-export default namedConnect<OwnProps, _, _, _, _>(
+export default namedConnect<OwnProps, StateProps, DispatchProps, Props, {}>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,

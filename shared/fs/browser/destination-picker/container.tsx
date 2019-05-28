@@ -1,6 +1,5 @@
-// @flow
 import * as I from 'immutable'
-import {getRouteProps, namedConnect, type RouteProps} from '../../../util/container'
+import {getRouteProps, namedConnect, RouteProps} from '../../../util/container'
 import {memoize} from '../../../util/memoize'
 import DestinationPicker from '.'
 import * as Types from '../../../constants/types/fs'
@@ -10,10 +9,10 @@ import {isMobile} from '../../../constants/platform'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 
 type OwnProps = RouteProps<
-  {|
-    index: number,
-  |},
-  {||}
+  {
+    index: number
+  },
+  {}
 >
 
 const mapStateToProps = state => ({
@@ -119,11 +118,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 }
 
-const Connected = namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'ConnectedDestinationPicker'
-)(DestinationPicker)
+const Connected = namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedDestinationPicker')(
+  DestinationPicker
+)
 
 export default Connected

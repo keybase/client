@@ -1,4 +1,3 @@
-// @flow
 import * as I from 'immutable'
 import * as React from 'react'
 import * as Flow from '../../../util/flow'
@@ -17,14 +16,14 @@ import {normalRowHeight} from './common'
 import {memoize} from '../../../util/memoize'
 
 type Props = {
-  emptyMode: 'empty' | 'not-empty-but-no-match' | 'not-empty',
-  destinationPickerIndex?: number,
-  items: I.List<RowTypes.RowItem>,
-  path: Types.Path,
-  routePath: I.List<string>,
+  emptyMode: 'empty' | 'not-empty-but-no-match' | 'not-empty'
+  destinationPickerIndex?: number
+  items: I.List<RowTypes.RowItem>
+  path: Types.Path
+  routePath: I.List<string>
 }
 
-export const WrapRow = ({children}: {children: React.Node}) => (
+export const WrapRow = ({children}: {children: React.ReactNode}) => (
   <Kb.Box style={styles.rowContainer}>
     {children}
     <Kb.Divider key="divider" style={styles.divider} />
@@ -36,13 +35,13 @@ export const EmptyRow = () => <Kb.Box style={styles.rowContainer} />
 class Rows extends React.PureComponent<Props> {
   _rowRenderer = (index: number, item: RowTypes.RowItem) => {
     switch (item.rowType) {
-      case 'placeholder':
+      case RowTypes.RowType.Placeholder:
         return (
           <WrapRow>
             <Placeholder type={item.type} />
           </WrapRow>
         )
-      case 'tlf-type':
+      case RowTypes.RowType.TlfType:
         return (
           <WrapRow>
             <TlfType
@@ -52,7 +51,7 @@ class Rows extends React.PureComponent<Props> {
             />
           </WrapRow>
         )
-      case 'tlf':
+      case RowTypes.RowType.Tlf:
         return (
           <WrapRow>
             <Tlf
@@ -63,7 +62,7 @@ class Rows extends React.PureComponent<Props> {
             />
           </WrapRow>
         )
-      case 'still':
+      case RowTypes.RowType.Still:
         return (
           <WrapRow>
             <Still
@@ -74,27 +73,27 @@ class Rows extends React.PureComponent<Props> {
             />
           </WrapRow>
         )
-      case 'uploading':
+      case RowTypes.RowType.Uploading:
         return (
           <WrapRow>
-            <Uploading name={item.name} path={item.path} />
+            <Uploading path={item.path} />
           </WrapRow>
         )
-      case 'editing':
+      case RowTypes.RowType.Editing:
         return (
           <WrapRow>
             <Editing editID={item.editID} routePath={this.props.routePath} />
           </WrapRow>
         )
-      case 'empty':
+      case RowTypes.RowType.Empty:
         return <EmptyRow />
-      case 'header':
+      case RowTypes.RowType.Header:
         return item.node
       default:
-        Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(item.rowType)
+        Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(item)
         return (
           <WrapRow>
-            <Kb.Text type="BodySmallError">This should not happen. {item.rowType}</Kb.Text>
+            <Kb.Text type="BodySmallError">This should not happen. {item}</Kb.Text>
           </WrapRow>
         )
     }
@@ -140,7 +139,7 @@ class Rows extends React.PureComponent<Props> {
       this.props.emptyMode !== 'not-empty' ? (
         <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
           {// The folder is empty so these should all be header rows.
-          this.props.items.map(item => item.rowType === 'header' && item.node)}
+          this.props.items.map(item => item.rowType === RowTypes.RowType.Header && item.node)}
           <Kb.Box2 direction="vertical" style={styles.emptyContainer} centerChildren={true}>
             <Kb.Text type="BodySmall">
               {this.props.emptyMode === 'empty'
@@ -190,11 +189,12 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-const getRowHeight = (row: RowTypes.RowItem) => (row.rowType === 'header' ? row.height : normalRowHeight)
+const getRowHeight = (row: RowTypes.RowItem) =>
+  row.rowType === RowTypes.RowType.Header ? row.height : normalRowHeight
 
-const _unknownEmptyRowItem = {
+const _unknownEmptyRowItem: RowTypes.EmptyRowItem = {
   key: 'unknown-empty-row-item',
-  rowType: 'empty',
+  rowType: RowTypes.RowType.Empty,
 }
 
 export default Rows

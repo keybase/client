@@ -1,11 +1,11 @@
-// @flow
 import * as React from 'react'
 import {rowStyles} from './common'
 import * as Styles from '../../../styles'
+import * as Types from '../../../constants/types/fs'
 import * as Kb from '../../../common-adapters'
 
 type PlaceholderProps = {
-  type: 'folder' | 'file',
+  type: Types.PathType.Folder | Types.PathType.File
 }
 
 export default ({type}: PlaceholderProps) => (
@@ -14,7 +14,7 @@ export default ({type}: PlaceholderProps) => (
     firstItem={true /* we add divider in Rows */}
     icon={
       <Kb.Icon
-        type={type === 'folder' ? 'icon-folder-placeholder-32' : 'icon-file-placeholder-32'}
+        type={type === Types.PathType.Folder ? 'icon-folder-placeholder-32' : 'icon-file-placeholder-32'}
         style={rowStyles.pathItemIcon}
       />
     }

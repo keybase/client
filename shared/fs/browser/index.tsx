@@ -1,4 +1,3 @@
-// @flow
 import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
@@ -12,14 +11,14 @@ import {asRows as sfmiBannerAsRows} from '../banner/system-file-manager-integrat
 import {asRows as resetBannerAsRows} from '../banner/reset-banner/container'
 import OfflineFolder from './offline'
 
-type Props = {|
-  onAttach?: ?(paths: Array<string>) => void,
-  path: Types.Path,
-  routePath: I.List<string>,
-  shouldShowSFMIBanner: boolean,
-  resetBannerType: Types.ResetBannerType,
-  offline: boolean,
-|}
+type Props = {
+  onAttach?: (paths: Array<string>) => void | null
+  path: Types.Path
+  routePath: I.List<string>
+  shouldShowSFMIBanner: boolean
+  resetBannerType: Types.ResetBannerType
+  offline: boolean
+}
 
 const WithContent = (props: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.contentContainer}>
@@ -57,7 +56,7 @@ const Browser = (props: Props) => (
   <Kb.BoxGrow>
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       <Kbfs.Errs />
-      {props.resetBannerType === 'self' ? (
+      {props.resetBannerType === Types.ResetBannerNoOthersType.Self ? (
         <SelfReset {...props} />
       ) : props.offline ? (
         <OfflineFolder path={props.path} />

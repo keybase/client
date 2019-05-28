@@ -1,26 +1,25 @@
-// @flow
 import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
 import * as Flow from '../../../util/flow'
 import * as Styles from '../../../styles'
-import {rowStyles, StillCommon, type StillCommonProps} from './common'
+import {rowStyles, StillCommon, StillCommonProps} from './common'
 import * as Kb from '../../../common-adapters'
 import {PathItemInfo, Filename} from '../../common'
 
 type StillProps = StillCommonProps & {
-  intentIfDownloading?: ?Types.DownloadIntent,
-  isEmpty: boolean,
-  type: Types.PathType,
+  intentIfDownloading?: Types.DownloadIntent | null
+  isEmpty: boolean
+  type: Types.PathType
 }
 
 const getDownloadingText = (intent: Types.DownloadIntent) => {
   switch (intent) {
-    case 'none':
+    case Types.DownloadIntent.None:
       return 'Downloading ...'
-    case 'camera-roll':
+    case Types.DownloadIntent.CameraRoll:
       return 'Saving ...'
-    case 'share':
+    case Types.DownloadIntent.Share:
       return 'Preparing to send to other app ...'
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(intent)
@@ -34,7 +33,7 @@ const Still = (props: StillProps) => (
     path={props.path}
     onOpen={props.onOpen}
     inDestinationPicker={props.inDestinationPicker}
-    badge={props.intentIfDownloading ? 'download' : null}
+    badge={props.intentIfDownloading ? Types.PathItemBadgeType.Download : null}
     routePath={props.routePath}
   >
     <Kb.Box style={rowStyles.itemBox}>
@@ -55,7 +54,7 @@ const Still = (props: StillProps) => (
       {props.intentIfDownloading ? (
         <Kb.Text type="BodySmall">{getDownloadingText(props.intentIfDownloading)}</Kb.Text>
       ) : (
-        props.type !== 'folder' && <PathItemInfo path={props.path} mode="row" />
+        props.type !== Types.PathType.Folder && <PathItemInfo path={props.path} mode="row" />
       )}
     </Kb.Box>
   </StillCommon>

@@ -1,4 +1,3 @@
-// @flow
 import * as I from 'immutable'
 import React from 'react'
 import * as Types from '../../constants/types/fs'
@@ -36,7 +35,7 @@ export default () => {
           path={Types.stringToPath('/keybase/private/foo')}
           routePath={I.List([])}
           shouldShowSFMIBanner={false}
-          resetBannerType="none"
+          resetBannerType={Types.ResetBannerNoOthersType.None}
           offline={false}
         />
       </Kb.Box2>
@@ -47,7 +46,7 @@ export default () => {
           path={Types.stringToPath('/keybase/private/foo')}
           routePath={I.List([])}
           shouldShowSFMIBanner={true}
-          resetBannerType="none"
+          resetBannerType={Types.ResetBannerNoOthersType.None}
           offline={false}
         />
       </Kb.Box2>
@@ -58,7 +57,7 @@ export default () => {
           path={Types.stringToPath('/keybase/private/me,reset')}
           routePath={I.List([])}
           shouldShowSFMIBanner={false}
-          resetBannerType="self"
+          resetBannerType={Types.ResetBannerNoOthersType.Self}
           offline={false}
         />
       </Kb.Box2>
@@ -80,7 +79,7 @@ export default () => {
           path={Types.stringToPath('/keybase/private/others,reset')}
           routePath={I.List([])}
           shouldShowSFMIBanner={false}
-          resetBannerType="none"
+          resetBannerType={Types.ResetBannerNoOthersType.None}
           offline={true}
         />
       </Kb.Box2>

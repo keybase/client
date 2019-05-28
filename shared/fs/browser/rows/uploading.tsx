@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
@@ -8,11 +7,11 @@ import * as Kb from '../../../common-adapters'
 import {Filename, PathItemIcon} from '../../common'
 
 type UploadingProps = {
-  path: Types.Path,
-  type: Types.PathType,
-  errorRetry?: ?() => void,
-  writingToJournal: boolean,
-  syncing: boolean,
+  path: Types.Path
+  type: Types.PathType
+  errorRetry?: () => void | null
+  writingToJournal: boolean
+  syncing: boolean
 }
 
 const getStatusText = ({writingToJournal, syncing}: UploadingProps): string => {

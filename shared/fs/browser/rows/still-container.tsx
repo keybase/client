@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as I from 'immutable'
 import * as Types from '../../../constants/types/fs'
@@ -7,12 +6,12 @@ import {namedConnect} from '../../../util/container'
 import OpenHOC from '../../common/open-hoc'
 import Still from './still'
 
-type OwnProps = {|
-  destinationPickerIndex?: number,
-  name: string,
-  path: Types.Path,
-  routePath: I.List<string>,
-|}
+type OwnProps = {
+  destinationPickerIndex?: number
+  name: string
+  path: Types.Path
+  routePath: I.List<string>
+}
 
 const mapStateToProps = (state, {path}: OwnProps) => ({
   _downloads: state.fs.downloads,
@@ -34,6 +33,6 @@ const mergeProps = (stateProps, dispatchProps, {name, path, routePath, destinati
 }
 
 export default ((ComposedComponent: React.ComponentType<any>) =>
-  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, () => ({}), mergeProps, 'ConnectedStillRow')(
-    OpenHOC(ComposedComponent)
-  ))(Still)
+  namedConnect(mapStateToProps, () => ({}), mergeProps, 'ConnectedStillRow')(OpenHOC(ComposedComponent)))(
+  Still
+)

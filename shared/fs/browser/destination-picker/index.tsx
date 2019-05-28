@@ -1,4 +1,3 @@
-// @flow
 import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
@@ -11,15 +10,15 @@ import * as RowCommon from '../rows/common'
 import NavHeaderTitle from '../../nav-header/title-container'
 
 type Props = {
-  index: number,
-  parentPath: Types.Path,
-  routePath: I.List<string>,
-  targetName: string,
-  onCancel: (() => void) | null,
-  onCopyHere?: ?() => void,
-  onMoveHere?: ?() => void,
-  onNewFolder?: ?() => void,
-  onBackUp?: ?() => void,
+  index: number
+  parentPath: Types.Path
+  routePath: I.List<string>
+  targetName: string
+  onCancel: () => void | null
+  onCopyHere?: () => void | null
+  onMoveHere?: () => void | null
+  onNewFolder?: () => void | null
+  onBackUp?: () => void | null
 }
 
 const NewFolder = ({onNewFolder}) => (
@@ -104,28 +103,29 @@ const DestinationPicker = (props: Props) => (
   </Kb.Box2>
 )
 
-export default (Styles.isMobile
-  ? withProps<_, any>(props => ({
-      customComponent: (
-        <Kb.Box2 direction="horizontal" fullWidth={true}>
-          <Kb.ClickableBox style={styles.mobileHeaderButton} onClick={props.onCancel}>
-            <Kb.Text type="BodyBigLink">Cancel</Kb.Text>
-          </Kb.ClickableBox>
-          <Kb.Box2 direction="vertical" centerChildren={true} style={styles.mobileHeaderContent}>
-            <Kb.Box2 direction="horizontal" centerChildren={true} gap="xtiny">
-              <FsCommon.PathItemIcon size={12} path={Types.pathConcat(props.parentPath, props.targetName)} />
-              <FsCommon.Filename type="BodySmallSemibold" filename={props.targetName} />
-            </Kb.Box2>
-            <Kb.Text type="Header" lineClamp={1}>
-              {Types.getPathName(props.parentPath)}
-            </Kb.Text>
-          </Kb.Box2>
+const HighOrderDestinationPickerDesktop = Kb.HeaderOrPopup(DestinationPicker)
+const HighOrderDestinationPickerMobile = withProps(props => ({
+  customComponent: (
+    <Kb.Box2 direction="horizontal" fullWidth={true}>
+      <Kb.ClickableBox style={styles.mobileHeaderButton} onClick={props.onCancel}>
+        <Kb.Text type="BodyBigLink">Cancel</Kb.Text>
+      </Kb.ClickableBox>
+      <Kb.Box2 direction="vertical" centerChildren={true} style={styles.mobileHeaderContent}>
+        <Kb.Box2 direction="horizontal" centerChildren={true} gap="xtiny">
+          <FsCommon.PathItemIcon size={12} path={Types.pathConcat(props.parentPath, props.targetName)} />
+          <FsCommon.Filename type="BodySmallSemibold" filename={props.targetName} />
         </Kb.Box2>
-      ),
-      headerStyle: {paddingRight: 0},
-      onCancel: null, // unset this to avoid onCancel button from HeaderHoc
-    }))(Kb.HeaderHoc(DestinationPicker))
-  : Kb.HeaderOrPopup(DestinationPicker))
+        <Kb.Text type="Header" lineClamp={1}>
+          {Types.getPathName(props.parentPath)}
+        </Kb.Text>
+      </Kb.Box2>
+    </Kb.Box2>
+  ),
+  headerStyle: {paddingRight: 0},
+  onCancel: null, // unset this to avoid onCancel button from HeaderHoc
+}))(Kb.HeaderHoc(DestinationPicker))
+
+export default (Styles.isMobile ? HighOrderDestinationPickerMobile : HighOrderDestinationPickerDesktop)
 
 const styles = Styles.styleSheetCreate({
   actionRowContainer: {

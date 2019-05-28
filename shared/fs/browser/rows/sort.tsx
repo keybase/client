@@ -1,4 +1,3 @@
-// @flow
 import * as I from 'immutable'
 import * as Types from '../../../constants/types/fs'
 import * as RowTypes from './types'
@@ -10,15 +9,14 @@ export type SortableRowItem =
   | RowTypes.StillRowItem
   | RowTypes.EditingRowItem
   | RowTypes.UploadingRowItem
-  | RowTypes.TlfTypeRowItem
   | RowTypes.TlfRowItem
 
 type PathItemComparer = (a: SortableRowItem, b: SortableRowItem) => number
 
 const getSortBy = (sortSetting: Types.SortSetting) =>
-  sortSetting === 'name-asc' || sortSetting === 'name-desc' ? 'name' : 'time'
+  sortSetting === Types.SortSetting.NameAsc || sortSetting === Types.SortSetting.NameDesc ? 'name' : 'time'
 const getOrder = (sortSetting: Types.SortSetting) =>
-  sortSetting === 'name-asc' || sortSetting === 'time-asc' ? 'asc' : 'desc'
+  sortSetting === Types.SortSetting.NameAsc || sortSetting === Types.SortSetting.TimeAsc ? 'asc' : 'desc'
 
 const getLastModifiedTimeStamp = (a: SortableRowItem) =>
   a.rowType === 'still' ? a.lastModifiedTimestamp : a.rowType === 'tlf' ? a.tlfMtime : Date.now()
@@ -27,8 +25,8 @@ const getLastModifiedTimeStamp = (a: SortableRowItem) =>
 const getCommonComparer = memoize(
   (meUsername: string) => (a: SortableRowItem, b: SortableRowItem): number => {
     // See if any of them are newly created folders.
-    const aIsNewFolder = a.rowType === 'editing' && a.editType === 'new-folder'
-    const bIsNewFolder = b.rowType === 'editing' && b.editType === 'new-folder'
+    const aIsNewFolder = a.rowType === 'editing' && a.editType === Types.EditType.NewFolder
+    const bIsNewFolder = b.rowType === 'editing' && b.editType === Types.EditType.NewFolder
     if (aIsNewFolder && !bIsNewFolder) {
       return -1
     }

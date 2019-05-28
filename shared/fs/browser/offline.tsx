@@ -1,4 +1,3 @@
-// @flow
 import * as Kb from '../../common-adapters'
 import React from 'react'
 import * as Styles from '../../styles/index'
@@ -7,10 +6,10 @@ import TopBar from '../top-bar'
 import * as Constants from '../../constants/fs'
 import {namedConnect} from '../../util/typed-connect'
 
-type Props = {|
-  path: Types.Path,
-  syncEnabled: boolean,
-|}
+type Props = {
+  path: Types.Path
+  syncEnabled: boolean
+}
 
 const OfflineFolder = (props: Props) => (
   <Kb.Box2 direction="vertical" style={styles.contentContainer} fullWidth={true} alignItems="stretch">
@@ -41,19 +40,17 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-type OwnProps = {|
-  path: Types.Path,
-|}
+type OwnProps = {
+  path: Types.Path
+}
 
 const mapStateToProps = (state, {path}) => ({
   syncConfig: Constants.getTlfFromPath(state.fs.tlfs, path).syncConfig,
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   ...ownProps,
   syncEnabled: !!stateProps.syncConfig && stateProps.syncConfig.mode === 'enabled',
 })
 
-export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, () => ({}), mergeProps, 'OfflineFolder')(
-  OfflineFolder
-)
+export default namedConnect(mapStateToProps, () => ({}), mergeProps, 'OfflineFolder')(OfflineFolder)

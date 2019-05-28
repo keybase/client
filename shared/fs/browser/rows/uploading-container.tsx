@@ -1,11 +1,10 @@
-// @flow
 import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
 import {namedConnect} from '../../../util/container'
 import Uploading from './uploading'
 
 type OwnProps = {
-  path: Types.Path,
+  path: Types.Path
 }
 
 const mapStateToProps = (state, {path}: OwnProps) => ({
@@ -14,7 +13,7 @@ const mapStateToProps = (state, {path}: OwnProps) => ({
 })
 const mapDispatchToProps = dispatch => ({_retry: dispatch})
 
-const getErrorRetry = (stateProps, dispatchProps, ownProps) => {
+const getErrorRetry = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const fsError = stateProps._uploads.errors.get(ownProps.path)
   if (!fsError) {
     return null
@@ -26,7 +25,7 @@ const getErrorRetry = (stateProps, dispatchProps, ownProps) => {
   return () => dispatchProps._retry(retriableAction)
 }
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const writingToJournal = stateProps._uploads.writingToJournal.has(ownProps.path)
   const syncing = stateProps._uploads.syncingPaths.has(ownProps.path)
 
@@ -39,9 +38,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'ConnectedUploadingRow'
-)(Uploading)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedUploadingRow')(
+  Uploading
+)

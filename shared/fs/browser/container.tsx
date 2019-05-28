@@ -1,4 +1,3 @@
-// @flow
 import * as I from 'immutable'
 import {namedConnect} from '../../util/container'
 import Browser from '.'
@@ -6,7 +5,12 @@ import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
 
-const mapStateToProps = (state, {path}) => ({
+type OwnProps = {
+  path: Types.Path
+  routePath: I.List<string>
+}
+
+const mapStateToProps = (state, {path}: OwnProps) => ({
   _kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
   _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
   _username: state.config.username,
@@ -20,7 +24,7 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, {path, routePath}) => ({
+const mergeProps = (stateProps, dispatchProps, {path, routePath}: OwnProps) => ({
   offline: Constants.isOfflineUnsynced(stateProps._kbfsDaemonStatus, stateProps._pathItem, path),
   onAttach: stateProps._pathItem.writable ? dispatchProps.onAttach : null,
   path,
@@ -29,12 +33,4 @@ const mergeProps = (stateProps, dispatchProps, {path, routePath}) => ({
   shouldShowSFMIBanner: stateProps.shouldShowSFMIBanner,
 })
 
-type OwnProps = {|
-  path: Types.Path,
-  routePath: I.List<string>,
-|}
-
-// flow can't figure out type when compose is used.
-export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'Browser')(
-  Browser
-)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Browser')(Browser)

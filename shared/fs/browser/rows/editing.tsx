@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
 import * as Styles from '../../../styles'
@@ -7,14 +6,14 @@ import {rowStyles} from './common'
 import PathItemIcon from '../../common/path-item-icon'
 
 type EditingProps = {
-  name: string,
-  projectedPath: Types.Path,
-  hint: string,
-  status: Types.EditStatusType,
-  isCreate: boolean,
-  onSubmit: () => void,
-  onUpdate: (name: string) => void,
-  onCancel: () => void,
+  name: string
+  projectedPath: Types.Path
+  hint: string
+  status: Types.EditStatusType
+  isCreate: boolean
+  onSubmit: () => void
+  onUpdate: (name: string) => void
+  onCancel: () => void
 }
 
 const Editing = (props: EditingProps) => (
@@ -25,7 +24,7 @@ const Editing = (props: EditingProps) => (
       <PathItemIcon
         path={props.projectedPath}
         size={32}
-        type="folder"
+        type={Types.PathType.Folder}
         username=""
         style={rowStyles.pathItemIcon}
       />
@@ -47,14 +46,14 @@ const Editing = (props: EditingProps) => (
     }
     action={
       <Kb.Box key="right" style={styles.rightBox}>
-        {props.status === 'failed' && <Kb.Text type="BodySmallError">Failed</Kb.Text>}
+        {props.status === Types.EditStatusType.Failed && <Kb.Text type="BodySmallError">Failed</Kb.Text>}
         <Kb.Button
           key="create"
           style={styles.button}
           small={true}
-          label={props.status === 'failed' ? 'Retry' : props.isCreate ? 'Create' : 'Save'}
-          waiting={props.status === 'saving'}
-          onClick={props.status === 'saving' ? undefined : props.onSubmit}
+          label={props.status === Types.EditStatusType.Failed ? 'Retry' : props.isCreate ? 'Create' : 'Save'}
+          waiting={props.status === Types.EditStatusType.Saving}
+          onClick={props.status === Types.EditStatusType.Saving ? undefined : props.onSubmit}
         />
         <Kb.Icon
           onClick={props.onCancel}

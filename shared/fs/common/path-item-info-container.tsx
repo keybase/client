@@ -8,11 +8,11 @@ export type OwnProps = {
   mode: 'row' | 'default' | 'menu'
 }
 
-const mapStateToProps = (state, {path}) => ({
+const mapStateToProps = (state, {path, mode}) => ({
   _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
 })
 
-const mergeProps = (stateProps, dispatchProps, {path, mode}) => ({
+const mergeProps = (stateProps, dispatchProps, {path, mode}: OwnProps) => ({
   lastModifiedTimestamp:
     stateProps._pathItem === Constants.unknownPathItem
       ? undefined

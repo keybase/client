@@ -16,7 +16,7 @@ const mapStateToProps = state => ({
   _downloadKey: state.fs.pathItemActionMenu.downloadKey,
 })
 
-const mapDispatchToProps = (dispatch, {initView}) => ({
+const mapDispatchToProps = (dispatch, {initView}: OwnProps) => ({
   _onHidden: (toCancel: string | null) => {
     dispatch(FsGen.createClearRefreshTag({refreshTag: 'path-item-action-popup'}))
     dispatch(FsGen.createSetPathItemActionMenuDownloadKey({key: null}))

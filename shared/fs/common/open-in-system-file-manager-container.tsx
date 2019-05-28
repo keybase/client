@@ -17,7 +17,6 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
   openInSystemFileManager: () => dispatch(FsGen.createOpenPathInSystemFileManager({path})),
 })
 
-// @ts-ignore codemode issue
 const connected = namedConnect(
   mapStateToProps,
   mapDispatchToProps,

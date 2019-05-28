@@ -1,4 +1,3 @@
-// @flow
 import * as I from 'immutable'
 import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/fs'
@@ -8,17 +7,17 @@ import {OpenInSystemFileManager, PathItemIcon, PathItemAction, SyncStatus} from 
 import flags from '../../../util/feature-flags'
 
 export type StillCommonProps = {
-  name: string,
-  path: Types.Path,
-  inDestinationPicker?: boolean,
-  onOpen: () => void,
-  routePath: I.List<string>,
+  name: string
+  path: Types.Path
+  inDestinationPicker?: boolean
+  onOpen: () => void
+  routePath: I.List<string>
 }
 
 export const StillCommon = (
   props: StillCommonProps & {
-    children: React.Node,
-    badge?: ?Types.PathItemBadge,
+    children: React.ReactNode
+    badge?: Types.PathItemBadge | null
   }
 ) => (
   <Kb.ListItem2
@@ -40,7 +39,7 @@ export const StillCommon = (
             path={props.path}
             clickable={{type: 'icon'}}
             routePath={props.routePath}
-            initView="root"
+            initView={Types.PathItemActionMenuView.Root}
             mode="row"
           />
         </Kb.Box2>

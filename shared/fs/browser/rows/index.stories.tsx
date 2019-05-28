@@ -1,4 +1,3 @@
-// @flow
 import * as I from 'immutable'
 import React from 'react'
 import * as Sb from '../../../stories/storybook'
@@ -81,9 +80,9 @@ export const rowsProvider = {
     path,
     destinationPickerIndex,
   }: {
-    destinationPickerIndex?: number,
-    path: Types.Path,
-    routePath: I.List<string>,
+    destinationPickerIndex?: number
+    path: Types.Path
+    routePath: I.List<string>
   }) => {
     const pathStr = Types.pathToString(path)
     return {
@@ -140,7 +139,7 @@ const load = () =>
         <WrapRow key="2">
           <EditingRow
             {...makeEditingRowNameProps('New Folder (editing)')}
-            status="editing"
+            status={Types.EditStatusType.Editing}
             isCreate={true}
             {...commonRowProps}
           />
@@ -148,7 +147,7 @@ const load = () =>
         <WrapRow key="3">
           <EditingRow
             {...makeEditingRowNameProps('From Dropbox (rename) (editing)')}
-            status="editing"
+            status={Types.EditStatusType.Editing}
             isCreate={false}
             {...commonRowProps}
           />
@@ -156,7 +155,7 @@ const load = () =>
         <WrapRow key="4">
           <EditingRow
             {...makeEditingRowNameProps('New Folder (saving)')}
-            status="saving"
+            status={Types.EditStatusType.Saving}
             isCreate={true}
             {...commonRowProps}
           />
@@ -164,7 +163,7 @@ const load = () =>
         <WrapRow key="5">
           <EditingRow
             {...makeEditingRowNameProps('New Folder (failed)')}
-            status="failed"
+            status={Types.EditStatusType.Failed}
             isCreate={true}
             {...commonRowProps}
           />
@@ -172,8 +171,7 @@ const load = () =>
         <WrapRow key="6">
           <UploadingRow
             path={Types.stringToPath('/keybase/team/kbkbfstest/foo')}
-            type="folder"
-            name="foo"
+            type={Types.PathType.Folder}
             writingToJournal={true}
             syncing={false}
           />
@@ -181,8 +179,7 @@ const load = () =>
         <WrapRow key="7">
           <UploadingRow
             path={Types.stringToPath('/keybase/team/kbkbfstest/dir/foo')}
-            type="file"
-            name="foo"
+            type={Types.PathType.File}
             writingToJournal={true}
             syncing={false}
           />
@@ -190,8 +187,7 @@ const load = () =>
         <WrapRow key="8">
           <UploadingRow
             path={Types.stringToPath('/keybase/team/kbkbfstest/dir/foo')}
-            type="file"
-            name="foo"
+            type={Types.PathType.File}
             writingToJournal={true}
             syncing={true}
           />
@@ -201,8 +197,7 @@ const load = () =>
             path={Types.stringToPath(
               '/keybase/team/kbkbfstest/dir/foo-obnoxiously-long-aslkdjhfalskjdhfaklsjdfhalksdjfhasdf-asdflkasjdfhlaksdjfh-asdhflaksjdhfaskd.mpeg4'
             )}
-            type="file"
-            name="foo"
+            type={Types.PathType.File}
             writingToJournal={false}
             syncing={true}
           />
@@ -210,8 +205,7 @@ const load = () =>
         <WrapRow key="10">
           <UploadingRow
             path={Types.stringToPath('/keybase/team/kbkbfstest/dir/foo')}
-            type="file"
-            name="foo"
+            type={Types.PathType.File}
             writingToJournal={false}
             syncing={false}
           />
@@ -219,8 +213,7 @@ const load = () =>
         <WrapRow key="11">
           <UploadingRow
             path={Types.stringToPath('/keybase/team/kbkbfstest/dir/foo')}
-            type="file"
-            name="foo"
+            type={Types.PathType.File}
             writingToJournal={false}
             syncing={false}
             errorRetry={Sb.action('errorRetry')}
@@ -230,10 +223,9 @@ const load = () =>
           <StillRow
             path={Types.stringToPath('/keybase/private/foo/dir/bar')}
             name="bar"
-            type="file"
-            intentIfDownloading="none"
+            type={Types.PathType.File}
+            intentIfDownloading={Types.DownloadIntent.None}
             onOpen={Sb.action('onOpen')}
-            onAction={Sb.action('onAction')}
             isEmpty={false}
             routePath={I.List([])}
           />
@@ -242,10 +234,9 @@ const load = () =>
           <StillRow
             path={Types.stringToPath('/keybase/private/foo/dir/bar')}
             name="bar"
-            type="file"
-            intentIfDownloading="camera-roll"
+            type={Types.PathType.File}
+            intentIfDownloading={Types.DownloadIntent.CameraRoll}
             onOpen={Sb.action('onOpen')}
-            onAction={Sb.action('onAction')}
             isEmpty={false}
             routePath={I.List([])}
           />
@@ -254,19 +245,18 @@ const load = () =>
           <StillRow
             path={Types.stringToPath('/keybase/private/foo/dir/bar')}
             name="bar"
-            type="file"
-            intentIfDownloading="share"
+            type={Types.PathType.File}
+            intentIfDownloading={Types.DownloadIntent.Share}
             onOpen={Sb.action('onOpen')}
-            onAction={Sb.action('onAction')}
             isEmpty={false}
             routePath={I.List([])}
           />
         </WrapRow>
         <WrapRow key="13">
-          <PlaceholderRow type="folder" />
+          <PlaceholderRow type={Types.PathType.Folder} />
         </WrapRow>
         <WrapRow key="14">
-          <PlaceholderRow type="file" />
+          <PlaceholderRow type={Types.PathType.File} />
         </WrapRow>
         <WrapRow key="15">
           <ConnectedStillRow
@@ -279,9 +269,8 @@ const load = () =>
           <StillRow
             path={Types.stringToPath('/keybase/private/foo/bar/baz')}
             name="qux"
-            type="file"
+            type={Types.PathType.File}
             onOpen={Sb.action('onOpen')}
-            onAction={Sb.action('onAction')}
             isEmpty={false}
             routePath={I.List([])}
           />
@@ -292,7 +281,6 @@ const load = () =>
             path={Types.stringToPath('/keybase/private')}
             badgeCount={0}
             onOpen={Sb.action('onOpen')}
-            onAction={Sb.action('onAction')}
             routePath={I.List([])}
           />
         </WrapRow>
@@ -302,7 +290,6 @@ const load = () =>
             path={Types.stringToPath('/keybase/private')}
             badgeCount={3}
             onOpen={Sb.action('onOpen')}
-            onAction={Sb.action('onAction')}
             routePath={I.List([])}
           />
         </WrapRow>
@@ -310,11 +297,9 @@ const load = () =>
           <TlfRow
             name="alice,bob,charlie"
             path={Types.stringToPath('/keybase/private/alice,bob,charlie')}
-            needsRekey={false}
             isIgnored={false}
             isNew={true}
             onOpen={Sb.action('onOpen')}
-            onAction={Sb.action('onAction')}
             routePath={I.List([])}
           />
         </WrapRow>
@@ -322,11 +307,9 @@ const load = () =>
           <TlfRow
             name="alice,bob,charlie"
             path={Types.stringToPath('/keybase/private/alice,bob,charlie')}
-            needsRekey={false}
             isIgnored={false}
             isNew={true}
             onOpen={Sb.action('onOpen')}
-            onAction={Sb.action('onAction')}
             routePath={I.List([])}
           />
         </WrapRow>
@@ -334,11 +317,9 @@ const load = () =>
           <TlfRow
             name="alice,bob,charlie"
             path={Types.stringToPath('/keybase/private/alice,bob,charlie')}
-            needsRekey={false}
             isIgnored={false}
             isNew={true}
             onOpen={Sb.action('onOpen')}
-            onAction={Sb.action('onAction')}
             routePath={I.List([])}
           />
         </WrapRow>
