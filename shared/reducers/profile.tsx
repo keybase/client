@@ -1,9 +1,7 @@
-// @flow
 import * as ProfileGen from '../actions/profile-gen'
 import * as Types from '../constants/types/profile'
 import * as More from '../constants/types/more'
 import * as Constants from '../constants/profile'
-import * as Flow from '../util/flow'
 import * as Validators from '../util/simple-validators'
 
 const updateUsername = state => {
@@ -133,7 +131,6 @@ export default function(state: Types.State = initialState, action: ProfileGen.Ac
     case ProfileGen.editAvatar:
       return state
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

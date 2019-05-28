@@ -1,16 +1,14 @@
-// @flow
 // Used in the chat reducer
 import * as I from 'immutable'
 import * as Constants from '../constants/team-building'
 import * as Types from '../constants/types/team-building'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import {trim} from 'lodash-es'
-import * as Flow from '../util/flow'
 
-export default function<X: Object, S: I.RecordOf<X & Types.TeamBuildingSubState>>(
-  state: S,
+export default function<X>(
+  state: I.RecordOf<X & Types.TeamBuildingSubState>,
   action: TeamBuildingGen.Actions
-): S {
+): I.RecordOf<X & Types.TeamBuildingSubState> {
   switch (action.type) {
     case TeamBuildingGen.resetStore:
     case TeamBuildingGen.cancelTeamBuilding:
@@ -49,7 +47,6 @@ export default function<X: Object, S: I.RecordOf<X & Types.TeamBuildingSubState>
       return state
 
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

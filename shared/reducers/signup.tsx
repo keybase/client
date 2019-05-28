@@ -1,11 +1,9 @@
-// @flow
 import * as Types from '../constants/types/signup'
 import * as Constants from '../constants/signup'
 import * as SignupGen from '../actions/signup-gen'
 import HiddenString from '../util/hidden-string'
 import {trim} from 'lodash-es'
 import {isValidEmail, isValidName, isValidUsername} from '../util/simple-validators'
-import * as Flow from '../util/flow'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -95,7 +93,6 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
     case SignupGen.requestAutoInvite:
       return state
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

@@ -1,10 +1,8 @@
-// @flow
 import * as I from 'immutable'
 import * as Constants from '../constants/tracker2'
 import * as Types from '../constants/types/tracker2'
 import * as ConfigGen from '../actions/config-gen'
 import * as Tracker2Gen from '../actions/tracker2-gen'
-import * as Flow from '../util/flow'
 import logger from '../logger'
 
 const initialState: Types.State = Constants.makeState()
@@ -131,7 +129,6 @@ export default function(
     case Tracker2Gen.ignore:
       return state
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

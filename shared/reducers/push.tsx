@@ -1,8 +1,6 @@
-// @flow
 import * as PushGen from '../actions/push-gen'
 import * as Types from '../constants/types/push'
 import * as Constants from '../constants/push'
-import * as Flow from '../util/flow'
 
 const initialState = Constants.makeInitialState()
 
@@ -28,7 +26,6 @@ function reducer(state: Types.State = initialState, action: PushGen.Actions): Ty
     case PushGen.notification:
       return state
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

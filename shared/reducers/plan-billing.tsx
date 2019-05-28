@@ -1,9 +1,9 @@
 // @noflow
 import logger from '../logger'
+// @ts-ignore
 import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/plan-billing'
 import * as Types from '../constants/types/plan-billing'
-import * as Flow from '../util/flow'
 
 const initialState: Types.State = {
   availablePlans: null,
@@ -60,7 +60,6 @@ export default function(
         errorMessage: null,
       }
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

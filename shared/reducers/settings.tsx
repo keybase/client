@@ -1,10 +1,8 @@
-// @flow
 import logger from '../logger'
 import * as I from 'immutable'
 import * as SettingsGen from '../actions/settings-gen'
 import * as Types from '../constants/types/settings'
 import * as Constants from '../constants/settings'
-import * as Flow from '../util/flow'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -153,7 +151,6 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
     case SettingsGen.loadHasRandomPw:
       return state
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

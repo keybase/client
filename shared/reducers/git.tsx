@@ -1,9 +1,7 @@
-// @flow
 import * as I from 'immutable'
 import * as Constants from '../constants/git'
 import * as Types from '../constants/types/git'
 import * as GitGen from '../actions/git-gen'
-import * as Flow from '../util/flow'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -41,7 +39,6 @@ export default function(state: Types.State = initialState, action: GitGen.Action
     case GitGen.setTeamRepoSettings:
       return state
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

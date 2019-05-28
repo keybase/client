@@ -1,4 +1,3 @@
-// @flow
 /* eslint-env jest */
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'

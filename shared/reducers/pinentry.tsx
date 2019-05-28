@@ -1,8 +1,6 @@
-// @flow
 import * as Types from '../constants/types/pinentry'
 import * as Constants from '../constants/pinentry'
 import * as PinentryGen from '../actions/pinentry-gen'
-import * as Flow from '../util/flow'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -34,7 +32,6 @@ export default function(state: Types.State = initialState, action: PinentryGen.A
     case PinentryGen.onSubmit:
       return state
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

@@ -1,4 +1,3 @@
-// @flow
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
@@ -13,7 +12,6 @@ import logger from '../logger'
 import HiddenString from '../util/hidden-string'
 import {partition} from 'lodash-es'
 import {actionHasError} from '../util/container'
-import * as Flow from '../util/flow'
 
 type EngineActions = EngineGen.Chat1NotifyChatChatTypingUpdatePayload
 
@@ -556,13 +554,13 @@ const rootReducer = (
       const previousMessageMap = state.messageMap
 
       // first group into convoid
-      const convoToMessages: {[cid: string]: Array<Types.Message>} = messages.reduce((map, m) => {
+      const convoToMessages: {[K in string]: Array<Types.Message>} = messages.reduce((map, m) => {
         const key = String(m.conversationIDKey)
         map[key] = map[key] || []
         map[key].push(m)
         return map
       }, {})
-      const convoToDeletedOrdinals: {[cid: string]: Set<Types.Ordinal>} = deletedMessages.reduce((map, m) => {
+      const convoToDeletedOrdinals: {[K in string]: Set<Types.Ordinal>} = deletedMessages.reduce((map, m) => {
         const key = String(m.conversationIDKey)
         map[key] = map[key] || new Set()
         map[key].add(m.ordinal)
@@ -582,7 +580,7 @@ const rootReducer = (
       }
 
       // Types we can send and have to deal with outbox ids
-      const canSendType = (m: Types.Message): ?Types.MessageText | ?Types.MessageAttachment =>
+      const canSendType = (m: Types.Message): Types.MessageText | null | Types.MessageAttachment | null =>
         m.type === 'text' || m.type === 'attachment' ? m : null
 
       // Update any pending messages
@@ -1288,7 +1286,6 @@ const rootReducer = (
     case Chat2Gen.resolveMaybeMention:
       return state
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }
