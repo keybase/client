@@ -1192,7 +1192,7 @@ func (e *loginProvision) cleanup(m libkb.MetaContext) {
 
 	// the best way to cleanup is to logout...
 	m.Debug("an error occurred during provisioning, logging out")
-	m.G().Logout(m.Ctx())
+	m.G().LogoutWithSecretKill(m, e.arg.User.GetNormalizedName(), true)
 }
 
 func (e *loginProvision) LoggedIn() bool {

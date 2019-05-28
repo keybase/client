@@ -276,11 +276,13 @@ func (g *GlobalContext) simulateServiceRestart() {
 func (g *GlobalContext) Logout(ctx context.Context) (err error) {
 	mctx := NewMetaContext(ctx, g).WithLogTag("LOGOUT")
 	defer mctx.Trace("GlobalContext#Logout", func() error { return err })()
-	return g.LogoutWithSecretKill(mctx, true)
+	username := g.ActiveDevice.Username(mctx)
+	return g.LogoutWithSecretKill(mctx, username, true)
 }
 
 func (g *GlobalContext) ClearStateForSwitchUsers(mctx MetaContext) (err error) {
-	return g.LogoutWithSecretKill(mctx, false)
+	username := g.ActiveDevice.Username(mctx)
+	return g.LogoutWithSecretKill(mctx, username, false)
 }
 
 func (g *GlobalContext) logoutSecretStore(mctx MetaContext, username NormalizedUsername, killSecrets bool) {
@@ -307,11 +309,10 @@ func (g *GlobalContext) logoutSecretStore(mctx MetaContext, username NormalizedU
 	delete(g.switchedUsers, username)
 }
 
-func (g *GlobalContext) LogoutWithSecretKill(mctx MetaContext, killSecrets bool) (err error) {
+func (g *GlobalContext) LogoutWithSecretKill(mctx MetaContext, username NormalizedUsername, killSecrets bool) (err error) {
 
 	defer g.switchUserMu.Acquire(mctx, "Logout")()
 
-	username := g.ActiveDevice.Username(mctx)
 	mctx.Debug("GlobalContext#logoutWithSecretKill: after switchUserMu acquisition (username: %s, secretKill: %v)", username, killSecrets)
 
 	g.ActiveDevice.Clear()
