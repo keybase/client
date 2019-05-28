@@ -103,10 +103,27 @@ export type _Tlf = {
   isIgnored: boolean
   isNew: boolean
   name: string
-  resetParticipants: I.List<string>
+  resetParticipants: I.List<string> // usernames
+  // TODO: when we move this stuff into SimpleFS, this should no longer need
+  //  to be nullable
   syncConfig: TlfSyncConfig | null
   teamId: RPCTypes.TeamID
-  tlfMtime: number
+  tlfMtime: number // tlf mtime stored in core db based on notification from mdserver
+  /*
+   * Disabled because SimpleFS API doesn't have problem_set yet. We might never
+   * need these.
+   *
+   * needsRekey: boolean
+   *
+   * // Following two fields are calculated but not in-use today yet.
+   * //
+   * // waitingForParticipantUnlock is the list of participants that can unlock
+   * // this folder, when this folder needs a rekey.
+   * waitingForParticipantUnlock?: I.List<ParticipantUnlock>
+   * // youCanUnlock has a list of devices that can unlock this folder, when this
+   * // folder needs a rekey.
+   * youCanUnlock?: I.List<Device>
+   */
 }
 export type Tlf = I.RecordOf<_Tlf>
 
@@ -253,13 +270,13 @@ export type UnknownPathItem = I.RecordOf<_UnknownPathItem>
 export type PathItem = FolderPathItem | SymlinkPathItem | FilePathItem | UnknownPathItem
 
 export const enum SyncStatusStatic {
-  Unknown,
-  AwaitingToSync,
-  AwaitingToUpload,
-  OnlineOnly,
-  Synced,
-  SyncError,
-  Uploading,
+  Unknown, // trying to figure out what it is
+  AwaitingToSync, // sync enabled but we're offline
+  AwaitingToUpload, // has local changes but we're offline
+  OnlineOnly, // sync disabled
+  Synced, // sync enabled and fully synced
+  SyncError, // uh oh
+  Uploading, // flushing or writing into journal and we're online
 }
 export type SyncStatus = SyncStatusStatic | number // percentage<1. not uploading, and we're syncing down
 
@@ -302,8 +319,6 @@ export const enum DownloadIntentMobile {
   CameraRoll,
   Share,
 }
-// TODO: what to do here
-
 const enum DownloadIntentEnum {
   None,
 }
@@ -421,6 +436,11 @@ export type _NoSource = {
 export type NoSource = I.RecordOf<_NoSource>
 
 export type _DestinationPicker = {
+  // id -> Path mapping. This is useful for mobile when we have multiple layers
+  // stacked on top of each other, and we need to keep track of them for the
+  // back button. We don't put this in routeProps directly as that'd
+  // complicate stuff for desktop because we don't have something like a
+  // routeToSibling.
   destinationParentPath: I.List<Path>
   source: MoveOrCopySource | IncomingShareSource | NoSource
 }
@@ -430,7 +450,7 @@ export type DestinationPicker = I.RecordOf<_DestinationPicker>
 export const enum SendAttachmentToChatState {
   None,
   PendingSelectConversation,
-  ReadyToSend,
+  ReadyToSend, // a conversation is selected
   Sent,
 }
 
@@ -444,15 +464,22 @@ export type SendAttachmentToChat = I.RecordOf<_SendAttachmentToChat>
 
 export const enum SendLinkToChatState {
   None,
+  // when the modal is just shown and we don't know the convID(s) yet
   LocatingConversation,
+  // only applicable to big teams with multiple channels
   PendingSelectConversation,
+  // possibly without a convID, in which case we'll create it
   ReadyToSend,
   Sending,
   Sent,
 }
 
 export type _SendLinkToChat = {
+  // populated for teams only
   channels: I.Map<ChatTypes.ConversationIDKey, string>
+  // This is the convID that we are sending into. So for group chats or small
+  // teams, this is the conversation. For big teams, this is the selected
+  // channel.
   convID: ChatTypes.ConversationIDKey
   path: Path
   state: SendLinkToChatState
@@ -486,6 +513,7 @@ export type _DriverStatusDisabled = {
   type: DriverStatusType.Disabled
   isEnabling: boolean
   isDismissed: boolean
+  // macOS only
   kextPermissionError: boolean
 }
 export type DriverStatusDisabled = I.RecordOf<_DriverStatusDisabled>
@@ -494,6 +522,7 @@ export type _DriverStatusEnabled = {
   type: DriverStatusType.Enabled
   isDisabling: boolean
   isNew: boolean
+  // windows only
   dokanOutdated: boolean
   dokanUninstallExecPath?: string | null
 }
@@ -503,6 +532,8 @@ export type DriverStatus = DriverStatusUnknown | DriverStatusDisabled | DriverSt
 
 export type _SystemFileManagerIntegration = {
   driverStatus: DriverStatus
+  // This only controls if system-file-manager-integration-banner is shown in
+  // Folders view. The banner always shows in Settings/Files screen.
   showingBanner: boolean
 }
 export type SystemFileManagerIntegration = I.RecordOf<_SystemFileManagerIntegration>
