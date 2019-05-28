@@ -1,0 +1,7 @@
+import {Props} from './index'
+
+function InviteGenerated(props: Props) {
+  return null
+}
+
+export default InviteGenerated
