@@ -41,6 +41,7 @@ type configGetter interface {
 	GetChatDbFilename() string
 	GetPvlKitFilename() string
 	GetParamProofKitFilename() string
+	GetExternalURLKitFilename() string
 	GetProveBypass() (bool, bool)
 	GetCodeSigningKIDs() []string
 	GetConfigFilename() string

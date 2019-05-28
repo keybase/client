@@ -44,8 +44,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 
 const NullWrapper = props => (props.name ? <DeleteRepo {...props} /> : null)
 
-// @ts-ignore codemod issue
-export default connect<OwnProps, _, _, _, _>(
+export default connect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps
