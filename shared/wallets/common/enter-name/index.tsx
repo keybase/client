@@ -6,7 +6,7 @@ type EnterNameProps = {
   error?: string
   name: string
   onEnterKeyDown?: () => void
-  onNameChange: (arg0: string) => void
+  onNameChange: (name: string) => void
 }
 
 const EnterName = (props: EnterNameProps) => {

@@ -79,16 +79,12 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (stateProps, dispatchProps, ownProps): SettingsProps => ({
   ...stateProps,
   onBack: () => dispatchProps._onBack(stateProps.accountID),
-
   onCurrencyChange: (code: Types.CurrencyCode) =>
     dispatchProps._onSetDisplayCurrency(stateProps.accountID, code),
-
   onDelete: () => dispatchProps._onDelete(stateProps.accountID),
   onEditName: () => dispatchProps._onEditName(stateProps.accountID),
-
   onMobileOnlyModeChange: (enabled: boolean) =>
     dispatchProps._onChangeMobileOnlyMode(stateProps.accountID, enabled),
-
   onSetDefault: () => dispatchProps._onSetDefault(stateProps.accountID),
   onSetupInflation: () => dispatchProps._onSetupInflation(stateProps.accountID),
   refresh: () => dispatchProps._refresh(stateProps.accountID),

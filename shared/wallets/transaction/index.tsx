@@ -18,7 +18,7 @@ import {MarkdownMemo} from '../common'
 type CounterpartyIconProps = {
   detailView?: boolean
   large: boolean
-  onShowProfile: (arg0: string) => void
+  onShowProfile: (username: string) => void
   counterparty: string
   counterpartyType: Types.CounterpartyType
 }
@@ -59,7 +59,7 @@ const CounterpartyIcon = (props: CounterpartyIconProps) => {
 type CounterpartyTextProps = {
   counterparty: string
   counterpartyType: Types.CounterpartyType
-  onShowProfile: (arg0: string) => void
+  onShowProfile: (username: string) => void
   textType: 'Body' | 'BodySmall'
   textTypeSemibold: 'BodySemibold' | 'BodySmallSemibold'
   textTypeItalic: 'BodyItalic' | 'BodySmallItalic'
@@ -104,7 +104,7 @@ type DetailProps = {
   counterpartyType: Types.CounterpartyType
   amountUser: string
   isXLM: boolean
-  onShowProfile: (arg0: string) => void
+  onShowProfile: (username: string) => void
   selectableText: boolean
   sourceAmount: string
   sourceAsset: string
@@ -365,7 +365,7 @@ const TimestampLine = (props: TimestampLineProps) => {
 type ReadState = 'read' | 'unread' | 'oldestUnread'
 
 export type Props = {
-  amountUser: string // empty if sent with no display currency,
+  amountUser: string // empty if sent with no display currency
   amountXLM: string
   approxWorth: string
   counterparty: string
@@ -378,7 +378,7 @@ export type Props = {
   onCancelPaymentWaitingKey: string
   // onShowProfile is used only when counterpartyType === 'keybaseUser'.
   onSelectTransaction?: () => void | null
-  onShowProfile: (arg0: string) => void
+  onShowProfile: (username: string) => void
   readState: ReadState
   selectableText: boolean
   sourceAmount: string

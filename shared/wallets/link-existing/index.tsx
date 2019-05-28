@@ -17,8 +17,8 @@ type LinkWalletProps = {
   onCheckName: (name: string) => void
   onClearErrors: () => void
   onDone: () => void
-  onNameChange: (arg0: string) => void
-  onKeyChange: (arg0: string) => void
+  onNameChange: (name: string) => void
+  onKeyChange: (key: string) => void
   keyError: string
   name: string
   nameError: string

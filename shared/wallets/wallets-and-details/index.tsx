@@ -6,7 +6,7 @@ import {globalColors, styleSheetCreate} from '../../styles'
 
 type Props = {
   children: React.ReactNode
-  navigateAppend: (arg0: any) => void
+  navigateAppend: (append: any) => void
   navigateUp: () => void
 }
 

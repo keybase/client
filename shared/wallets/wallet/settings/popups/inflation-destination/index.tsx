@@ -42,8 +42,8 @@ class InflationDestinationPopup extends React.Component<Props, State> {
     // choose first recommended
     if (!Types.isValidAccountID(address)) {
       const reco = props.options.find(o => o.recommended)
-      address = (reco === null || reco === undefined ? undefined : reco.address) || '' // Auto generated from flowToTs. Please clean me!
-      name = (reco === null || reco === undefined ? undefined : reco.name) || '' // Auto generated from flowToTs. Please clean me!
+      address = reco && reco.address ? reco.address : ''
+      name = reco && reco.name ? reco.name : ''
     }
 
     this.state = {address, name, otherAddress}

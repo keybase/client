@@ -6,16 +6,16 @@ import {backgroundImageFn} from '../../../common-adapters/emoji'
 import {Picker} from 'emoji-mart'
 
 type SecretNoteProps = {
-  secretNote: string // Initial value only,
+  secretNote: string // Initial value only
   secretNoteError?: string
-  onChangeSecretNote: (arg0: string) => void
+  onChangeSecretNote: (note: string) => void
   toSelf: boolean
 }
 
 type PublicMemoProps = {
-  publicMemo: string // Initial value only,
+  publicMemo: string // Initial value only
   publicMemoError?: string
-  onChangePublicMemo: (arg0: string) => void
+  onChangePublicMemo: (memo: string) => void
 }
 
 // TODO use wallet staticConfig to keep in sync with the service

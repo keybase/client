@@ -50,13 +50,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
   isSelected: !isMobile && stateProps.isSelected,
   keybaseUser: stateProps.keybaseUser,
   name: stateProps.name,
-
   onSelect: () => {
     // First clear any new payments on the currently selected acct.
     dispatchProps._onClearNewPayments(stateProps.selectedAccount)
     dispatchProps._onSelectAccount(ownProps.accountID)
   },
-
   unreadPayments: stateProps.unreadPayments,
 })
 

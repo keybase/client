@@ -9,7 +9,7 @@ import {compose, withProps} from 'recompose'
 // Handles platform split between desktop modal / native screen + header
 
 type WalletPopupProps = {
-  onExit?: () => void // called onExit so to avoid name conflict with other header props,
+  onExit?: () => void // called onExit so to avoid name conflict with other header props
   // Buttons to be placed in the bottom Button Bar.
   // If none are included, the bar is not rendered.
   bottomButtons?: Array<React.ReactNode>
@@ -19,7 +19,7 @@ type WalletPopupProps = {
   containerStyle?: Styles.StylesCrossPlatform
   // Header props, only applies on mobile. backButtonType === 'back' renders back button on desktop
   accountName?: string
-  backButtonType: 'back' | 'cancel' | 'close' // 'back' -> '<' ; 'cancel' -> 'Cancel' ; 'close' -> 'Close',
+  backButtonType: 'back' | 'cancel' | 'close' // 'back' -> '<' ; 'cancel' -> 'Cancel' ; 'close' -> 'Close'
   headerStyle?: Styles.StylesCrossPlatform
   headerTitle?: string
   safeAreaViewBottomStyle?: Styles.StylesCrossPlatform
@@ -121,20 +121,14 @@ const styles = Styles.styleSheetCreate({
 
 export default compose(
   withProps((props: WalletPopupProps) => ({
-    // cast to any for flow "incompatible with undefined"
-    [backButtonTypeToFcnHandle[props.backButtonType]]: props.onExit as any,
-
+    [backButtonTypeToFcnHandle[props.backButtonType]]: props.onExit,
     customCancelText: props.backButtonType === 'close' ? 'Close' : '',
-
     customComponent: props.headerTitle && (
       <AccountPageHeader accountName={props.accountName} title={props.headerTitle} />
     ),
-
     customSafeAreaBottomStyle: props.safeAreaViewBottomStyle,
     customSafeAreaTopStyle: props.safeAreaViewTopStyle,
-
-    // cast to any for flow complaining about every possible style
-    style: styles.popup as any,
+    style: styles.popup,
   })),
   Kb.HeaderOrPopupWithHeader
 )(WalletPopup)

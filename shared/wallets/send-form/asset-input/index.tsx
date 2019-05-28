@@ -32,7 +32,7 @@ type Props = {
   inputPlaceholder: string
   currencyLoading: boolean
   numDecimalsAllowed: number
-  onChangeAmount: (arg0: string) => void
+  onChangeAmount: (amount: string) => void
   onChangeDisplayUnit: () => void
   topLabel: string
   value: string

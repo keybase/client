@@ -36,7 +36,7 @@ type ParticipantsOtherAccountProps = {
   toAccount?: Account
   allAccounts: Account[]
   onChangeFromAccount: (accountID: AccountID) => void
-  onChangeRecipient: (arg0: string) => void
+  onChangeRecipient: (recipient: string) => void
   onLinkAccount: () => void
   onCreateNewAccount: () => void
   showSpinner: boolean

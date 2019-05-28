@@ -10,15 +10,7 @@ type OwnProps = {}
 const mapStateToProps = state => {
   const error = anyErrors(state, Constants.acceptDisclaimerWaitingKey)
   return {
-    // Auto generated from flowToTs. Please clean me!
-    acceptDisclaimerError:
-      // Auto generated from flowToTs. Please clean me!
-      (error === null || error === undefined ? undefined : error.message) !== null && // Auto generated from flowToTs. Please clean me!
-      (error === null || error === undefined ? undefined : error.message) !== undefined // Auto generated from flowToTs. Please clean me!
-        ? error === null || error === undefined
-          ? undefined
-          : error.message
-        : '',
+    acceptDisclaimerError: error && error.message ? error.message : '',
     acceptingDisclaimerDelay: state.wallets.acceptingDisclaimerDelay,
   }
 }

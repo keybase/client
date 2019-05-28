@@ -25,9 +25,9 @@ export type NotLoadingProps = {
   onCancelPaymentWaitingKey: string
   title: string
   // onChat is used only when counterpartyType === 'keybaseUser'.
-  onChat: (arg0: string) => void
+  onChat: (username: string) => void
   onLoadPaymentDetail: () => void
-  onShowProfile: (arg0: string) => void
+  onShowProfile: (username: string) => void
   onViewTransaction?: () => void
   publicMemo?: string
   recipientAccountID: Types.AccountID | null
@@ -82,8 +82,8 @@ type CounterpartyProps = {
   counterpartyType: Types.CounterpartyType
   // onChat and onShowProfile are used only when counterpartyType ===
   // 'keybaseUser'.
-  onChat: (arg0: string) => void
-  onShowProfile: (arg0: string) => void
+  onChat: (username: string) => void
+  onShowProfile: (username: string) => void
 }
 
 const Counterparty = (props: CounterpartyProps) => {
@@ -127,10 +127,8 @@ const Counterparty = (props: CounterpartyProps) => {
     case 'otherAccount':
       return <PartyAccount accountID={props.accountID} accountName={props.counterparty} />
     default:
-      console.warn('unknown counterpartyType ', props.counterpartyType)
-      break
+      throw new Error(`unknown counterpartyType: ${props}`)
   }
-  return null
 }
 
 const AccountMeta = ({counterpartyMeta, accountID}) => (
@@ -150,7 +148,7 @@ type YourAccountProps = {
   accountID: Types.AccountID | null
   accountName: string | null
   you: string
-  onShowProfile: (arg0: string) => void
+  onShowProfile: (username: string) => void
 }
 
 const YourAccount = (props: YourAccountProps) => {

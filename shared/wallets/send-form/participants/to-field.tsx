@@ -12,10 +12,10 @@ type ToKeybaseUserProps = {
   isRequest: boolean
   recipientUsername: string
   errorMessage?: string
-  onShowProfile: (arg0: string) => void
+  onShowProfile: (username: string) => void
   onShowSuggestions: () => void
   onRemoveProfile: () => void
-  onChangeRecipient: (arg0: string) => void
+  onChangeRecipient: (recipient: string) => void
   onScanQRCode: () => void | null
 }
 
@@ -75,9 +75,9 @@ const ToKeybaseUser = (props: ToKeybaseUserProps) => {
 type ToStellarPublicKeyProps = {
   recipientPublicKey: string
   errorMessage?: string
-  onChangeRecipient: (arg0: string) => void
+  onChangeRecipient: (recipient: string) => void
   onScanQRCode: () => void | null
-  setReadyToReview: (arg0: boolean) => void
+  setReadyToReview: (ready: boolean) => void
   keyCounter: number
 }
 
@@ -164,7 +164,7 @@ type ToOtherAccountProps = {
   user: string
   toAccount?: Account
   allAccounts: Account[]
-  onChangeRecipient: (arg0: string) => void
+  onChangeRecipient: (recipient: string) => void
   onLinkAccount: () => void
   onCreateNewAccount: () => void
   showSpinner: boolean

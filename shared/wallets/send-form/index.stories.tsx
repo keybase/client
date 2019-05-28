@@ -22,31 +22,24 @@ const provider = Sb.createPropProviderWithCommon({
   },
   Banner: props => ({}),
   ConnectedPublicMemo: props => ({onChangePublicMemo: Sb.action('onChangePublicMemo')}),
-
   ConnectedRequestBody: props => ({
     banners: [],
     isProcessing: props.isProcessing,
   }),
-
   ConnectedSecretNote: props => ({onChangeSecretNote: Sb.action('onChangeSecretNote')}),
-
   ConnectedSendBody: props => ({
     banners: [],
     isProcessing: props.isProcessing,
   }),
-
   Footer: props => ({
     isRequest: props.isRequest,
     onClickRequest: props.isRequest ? Sb.action('onClickRequest') : undefined,
     onClickSend: props.isRequest ? undefined : Sb.action('onClickSend'),
   }),
-
   Header: props => ({}),
-
   Participants: props => ({
     recipientType: 'keybaseUser',
   }),
-
   ParticipantsKeybaseUser: props => ({
     isRequest: false,
     onChangeRecipient: Sb.action('onChangeRecipient'),

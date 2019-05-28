@@ -4,7 +4,7 @@ import * as Styles from '../../styles'
 
 type EnterKeyProps = {
   error: string
-  onKeyChange: (arg0: string) => void
+  onKeyChange: (key: string) => void
   secretKey: string
 }
 
