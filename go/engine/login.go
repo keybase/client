@@ -165,13 +165,13 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 	return nil
 }
 
-func (e *Login) restoreSession(m libkb.MetaContext, username libkb.NormalizedUsername, errfn func() error) {
+func (e *Login) restoreSession(m libkb.MetaContext, originalUsername libkb.NormalizedUsername, errfn func() error) {
 	err := errfn()
 	if err == nil {
 		return
 	}
 
-	loggedInOK, err := e.loginProvisionedDevice(m, username.String())
+	loggedInOK, err := e.loginProvisionedDevice(m, originalUsername.String())
 	if err != nil {
 		m.Debug("Login#restoreSession-loginProvisionedDevice error: %s", err)
 		return
