@@ -69,6 +69,15 @@ class SectionList extends React.Component<Props, State> {
           {this.props.renderSectionHeader({section: section.section})}
         </Box2>
       )
+    } else if (item.type === 'placeholder') {
+      return (
+        <Box2
+          direction="vertical"
+          key={`blankPlaceholder${item.flatSectionIndex}`}
+          style={{height: 1}}
+          fullWidth={true}
+        />
+      )
     } else {
       return (
         <Box2 direction="vertical" key={`${section.key}:${item.key}`} style={styles.box}>
@@ -132,7 +141,7 @@ class SectionList extends React.Component<Props, State> {
         section,
         type: 'header',
       })
-      section.data.length &&
+      if (section.data.length) {
         arr.push(
           ...section.data.map((item, indexWithinSection) => ({
             flatSectionIndex,
@@ -145,6 +154,20 @@ class SectionList extends React.Component<Props, State> {
             type: 'body',
           }))
         )
+      } else {
+        // These placeholders allow us to get the first section's sticky header back on the screen if
+        // the it has no body items. Since we don't draw it in _itemRenderer (to avoid duplicating it
+        // all the time), we need something in the ReactList to trigger the flatSectionIndex check
+        // to get the sticky header back on the screen.
+        arr.push({
+          flatSectionIndex,
+          key: 1,
+          section: {
+            data: [],
+          },
+          type: 'placeholder',
+        })
+      }
       return arr
     }, [])
   })
