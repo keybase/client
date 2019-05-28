@@ -94,8 +94,6 @@ class ChooseAsset extends React.Component<Props, State> {
             </Kb.Box2>
           </Kb.ClickableBox>
         )
-      default:
-        throw new Error(`ChooseAsset: impossible item type encountered: ${item.type}`)
     }
   }
 
@@ -136,6 +134,7 @@ class ChooseAsset extends React.Component<Props, State> {
         key: 'expander',
         onClick: () => this.setState({expanded: true}),
         text: `+${this.props.displayChoices.length - unexpandedNumDisplayOptions} display currencies`,
+        // @ts-ignore When coming from props, displayChoicesData is pure DisplayItem
         type: 'expander',
       })
     }

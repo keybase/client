@@ -24,7 +24,7 @@ const props = {
   counterpartyType: 'keybaseUser',
   issuerAccountID: null,
   issuerDescription: '',
-  loading: false,
+  loading: false as false,
   memo,
   onBack: Sb.action('onBack'),
   onCancelPayment: null,

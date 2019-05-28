@@ -165,6 +165,7 @@ const mapStateToPropsChooser = state => {
 const ParticipantsChooser = props => {
   switch (props.recipientType) {
     case 'keybaseUser':
+      // @ts-ignore not sure what's up here
       return <ConnectedParticipantsKeybaseUser />
     case 'stellarPublicKey':
       return <ConnectedParticipantsStellarPublicKey />
@@ -173,7 +174,6 @@ const ParticipantsChooser = props => {
       return <ConnectedParticipantsOtherAccount />
 
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.recipientType)
       throw new Error(`Unexpected recipientType ${props.recipientType}`)
   }
 }

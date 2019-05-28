@@ -128,8 +128,7 @@ class WalletList extends React.Component<Props> {
           />
         )
       default:
-        Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(row.type)
-        throw new Error(`Impossible case encountered: ${row.type}`)
+        throw new Error(`Impossible case encountered: ${row}`)
     }
   }
 
@@ -146,7 +145,7 @@ class WalletList extends React.Component<Props> {
 
     if (flags.airdrop) {
       const joinAirdrop = 'join airdrop'
-      rows.push({key: joinAirdrop, type: joinAirdrop})
+      rows.push({accountID: null, key: joinAirdrop, type: joinAirdrop})
     }
 
     return (

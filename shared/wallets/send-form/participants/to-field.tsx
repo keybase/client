@@ -173,8 +173,7 @@ type ToOtherAccountProps = {
 class ToOtherAccount extends React.Component<ToOtherAccountProps> {
   onAccountDropdownChange = (node: React.ReactNode) => {
     if (React.isValidElement(node)) {
-      // $FlowIssue React.isValidElement refinement doesn't happen, see https://github.com/facebook/flow/issues/6392
-      const element = node as React.Element<any>
+      const element: React.ReactElement = node
       if (element.key === 'create-new') {
         this.props.onCreateNewAccount()
       } else if (element.key === 'link-existing') {

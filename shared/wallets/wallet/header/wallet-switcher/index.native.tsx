@@ -85,8 +85,7 @@ const renderItem = (item: MenuItem, isLast: boolean, hideMenu: () => void) => {
         </Row>
       )
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(item.type)
-      throw new Error(`Invalid type ${item.type} passed to renderItem`)
+      throw new Error(`Invalid type ${item} passed to renderItem`)
   }
 }
 

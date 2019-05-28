@@ -43,7 +43,7 @@ const DisplayCurrencyDropdown = (props: Props) => {
         items={makeDropdownItems(props.currencies, props.selected)}
         selected={makeDropdownItem(props.selected, false, props.waiting)}
         onChanged={(node: React.ReactNode) => {
-          // $ForceType doesn't understand key will be string
+          // @ts-ignore doesn't understand key will be string
           const selectedCode: Types.CurrencyCode = node.key
           if (selectedCode !== props.selected.code && selectedCode !== headerKey) {
             props.onCurrencyChange(selectedCode)

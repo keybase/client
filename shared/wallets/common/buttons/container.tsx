@@ -39,7 +39,7 @@ const mergePropsSendButton = (stateProps, dispatchProps, ownProps) => ({
   thisDeviceIsLockedOut: stateProps.thisDeviceIsLockedOut,
 })
 
-export const SendButton = Container.namedConnect<SendButtonOwnProps, _, _, _, _>(
+export const SendButton = Container.namedConnect(
   mapStateToPropsSendButton,
   mapDispatchToPropsSendButton,
   mergePropsSendButton,
@@ -86,7 +86,7 @@ const mergePropsDropdownButton = (stateProps, dispatchProps, ownProps) => ({
   small: ownProps.small,
 })
 
-export const DropdownButton = Container.namedConnect<DropdownButtonOwnProps, _, _, _, _>(
+export const DropdownButton = Container.namedConnect(
   mapStateToPropsDropdownButton,
   mapDispatchToPropsDropdownButton,
   mergePropsDropdownButton,

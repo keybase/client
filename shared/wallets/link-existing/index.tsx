@@ -123,7 +123,6 @@ class LinkWallet extends React.Component<LinkWalletProps, LinkWalletState> {
         )
         break
       default:
-        Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(this.state.view)
         throw new Error('LinkExistingWallet: Unexpected value for `view` encountered: ' + this.state.view)
     }
     return (

@@ -127,7 +127,7 @@ const Counterparty = (props: CounterpartyProps) => {
     case 'otherAccount':
       return <PartyAccount accountID={props.accountID} accountName={props.counterparty} />
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.counterpartyType)
+      console.warn('unknown counterpartyType ', props.counterpartyType)
       break
   }
   return null
@@ -199,7 +199,6 @@ const descriptionForStatus = (status: Types.StatusSimplified, yourRole: Types.Ro
         case 'senderAndReceiver':
           return 'Sent'
         default:
-          Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(yourRole)
           throw new Error(`Unexpected role ${yourRole}`)
       }
     case 'error':
@@ -249,7 +248,6 @@ const propsToParties = (props: NotLoadingProps) => {
       // account details as the recipient.
       return {receiver: counterparty, sender: you}
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.yourRole)
       throw new Error(`Unexpected role ${props.yourRole}`)
   }
 }
@@ -432,10 +430,15 @@ class LoadTransactionDetails extends React.Component<Props> {
   componentDidUpdate(prevProps: Props) {
     // An erased transaction ID likely means the payment was updated,
     // which means details need to be retrieved again
+    if (this.props.loading || prevProps.loading) {
+      return
+    }
+    const props = this.props as NotLoadingProps
+    const prev = prevProps as NotLoadingProps
     if (
-      (!this.props.transactionID || !this.props.senderAccountID) &&
-      prevProps.transactionID &&
-      prevProps.senderAccountID &&
+      (!props.transactionID || !props.senderAccountID) &&
+      prev.transactionID &&
+      prev.senderAccountID &&
       !this.props.loading
     ) {
       this.props.onLoadPaymentDetail()
@@ -449,7 +452,7 @@ class LoadTransactionDetails extends React.Component<Props> {
         </Kb.Box2>
       )
     }
-    const props: NotLoadingProps = this.props
+    const props = this.props as NotLoadingProps
     return <TransactionDetails {...props} />
   }
 }

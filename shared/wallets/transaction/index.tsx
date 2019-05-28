@@ -52,8 +52,7 @@ const CounterpartyIcon = (props: CounterpartyIconProps) => {
         </Box2>
       )
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.counterpartyType)
-      return null
+      throw new Error(`Unexpected counterpartyType ${props.counterpartyType}`)
   }
 }
 
@@ -90,10 +89,8 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
     case 'otherAccount':
       return <Text type={props.textTypeItalic}>{props.counterparty}</Text>
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.counterpartyType)
-      break
+      throw new Error(`Unexpected counterpartyType ${props.counterpartyType}`)
   }
-  return null
 }
 
 type DetailProps = {
@@ -242,7 +239,6 @@ const Detail = (props: DetailProps) => {
         </Text>
       )
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.yourRole)
       throw new Error(`Unexpected role ${props.yourRole}`)
   }
 }
@@ -264,7 +260,6 @@ const roleToColor = (role: Types.Role): string => {
     case 'senderAndReceiver':
       return globalColors.black
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(role)
       throw new Error(`Unexpected role ${role}`)
   }
 }
@@ -278,7 +273,6 @@ const getAmount = (role: Types.Role, amountXLM: string): string => {
     case 'senderAndReceiver':
       return '0 XLM'
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(role)
       throw new Error(`Unexpected role ${role}`)
   }
 }
@@ -415,7 +409,6 @@ export const Transaction = (props: Props) => {
       showMemo = !!props.memo
       break
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.counterpartyType)
       throw new Error(`Unexpected counterpartyType ${props.counterpartyType}`)
   }
   const pending = !props.timestamp || ['pending', 'claimable'].includes(props.status)

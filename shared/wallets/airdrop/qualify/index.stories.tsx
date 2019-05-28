@@ -66,7 +66,7 @@ class Transitions extends React.Component<any, any> {
   render() {
     return (
       <>
-        <Qualify {...this.props} rows={this.state.rows} state={this.state.state} />
+        <Qualify {...props} {...this.props} rows={this.state.rows} state={this.state.state} />
         <Kb.Button
           label={`state: ${this.state.machineState}`}
           onClick={this._next}

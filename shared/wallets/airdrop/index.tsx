@@ -32,7 +32,7 @@ class Loading extends React.Component<
   }
 > {
   state = {waited: false}
-  _id: number
+  _id: NodeJS.Timeout
 
   componentDidMount() {
     this._id = setTimeout(() => this.setState({waited: true}), 1000)

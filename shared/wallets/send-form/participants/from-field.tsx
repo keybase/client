@@ -24,8 +24,7 @@ class FromField extends React.Component<FromFieldProps, FromFieldState> {
 
   onDropdownChange = (node: React.ReactNode) => {
     if (React.isValidElement(node)) {
-      // $FlowIssue React.isValidElement refinement doesn't happen, see https://github.com/facebook/flow/issues/6392
-      const element = node as React.Element<any>
+      const element: React.ReactElement = node
       this.setState({selectedAccount: element.props.account})
       this.props.onChangeSelectedAccount(element.props.account.id)
     }

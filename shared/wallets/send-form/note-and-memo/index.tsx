@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
+// @ts-ignore not typed yet
 import {backgroundImageFn} from '../../../common-adapters/emoji'
 import {Picker} from 'emoji-mart'
 
@@ -38,8 +39,8 @@ class SecretNote extends React.Component<SecretNoteProps, SecretNoteState> {
     emojiPickerOpen: false,
     secretNote: this.props.secretNote,
   }
-  _emojiIcon = React.createRef()
-  _note = React.createRef()
+  _emojiIcon = React.createRef<Kb.Icon>()
+  _note = React.createRef<Kb.Input>()
 
   _onChangeSecretNote = (secretNote: string) => {
     this.props.onChangeSecretNote(secretNote)
