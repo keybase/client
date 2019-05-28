@@ -24,19 +24,7 @@ const mapStateToProps = state => {
     lockdownModeEnabled: state.settings.lockdownModeEnabled,
     openAtLogin: state.config.openAtLogin,
     processorProfileInProgress: Constants.processorProfileInProgress(state),
-    // Auto generated from flowToTs. Please clean me!
-    setLockdownModeError:
-      // Auto generated from flowToTs. Please clean me!
-      (setLockdownModeError === null || setLockdownModeError === undefined
-        ? undefined
-        : setLockdownModeError.message) !== null && // Auto generated from flowToTs. Please clean me!
-      (setLockdownModeError === null || setLockdownModeError === undefined
-        ? undefined
-        : setLockdownModeError.message) !== undefined // Auto generated from flowToTs. Please clean me!
-        ? setLockdownModeError === null || setLockdownModeError === undefined
-          ? undefined
-          : setLockdownModeError.message
-        : '',
+    setLockdownModeError: (setLockdownModeError && setLockdownModeError.message) || '',
     settingLockdownMode,
     traceInProgress: Constants.traceInProgress(state),
     useNativeFrame: state.settings.useNativeFrame,
