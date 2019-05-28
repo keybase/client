@@ -26,12 +26,12 @@ const mapDispatchToProps = (dispatch, {path, destinationPickerIndex, routePath}:
 
 const isFolder = (stateProps, ownProps: OwnProps) =>
   Types.getPathLevel(ownProps.path) <= 3 ||
-  stateProps._pathItems.get(ownProps.path, Constants.unknownPathItem).type === 'folder'
+  stateProps._pathItems.get(ownProps.path, Constants.unknownPathItem).type === Types.PathType.Folder
 
 const canOpenInDestinationPicker = (stateProps, ownProps) =>
   isFolder(stateProps, ownProps) &&
-  (stateProps._destinationPicker.source.type === 'incoming-share' ||
-    (stateProps._destinationPicker.source.type === 'move-or-copy' &&
+  (stateProps._destinationPicker.source.type === Types.DestinationPickerSource.IncomingShare ||
+    (stateProps._destinationPicker.source.type === Types.DestinationPickerSource.MoveOrCopy &&
       stateProps._destinationPicker.source.path !== ownProps.path))
 
 type MergedProps = OwnProps & {

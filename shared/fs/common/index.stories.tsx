@@ -25,7 +25,7 @@ const PathItemActionMenuHeaderProps = (props: any) => ({
   loadPathMetadata: Sb.action('loadPathMetadata'),
   path: props.path,
   size: 0,
-  type: 'folder',
+  type: Types.PathType.Folder,
 })
 
 const pathItemActionProps = (props: any) => ({
@@ -36,7 +36,7 @@ const pathItemActionProps = (props: any) => ({
 
 const pathItemActionChooseViewProps = (props: any) => ({
   ...props,
-  view: 'root',
+  view: Types.PathItemActionMenuView.Root,
 })
 
 const PathItemActionMenuProps = (props: any) => ({
@@ -97,7 +97,7 @@ export const commonProvider = {
   PathItemActionMenuHeader: PathItemActionMenuHeaderProps,
   PathItemIcon: (ownProps: PathItemIconOwnProps) => ({
     ...ownProps,
-    type: Types.getPathElements(ownProps.path).length > 4 ? 'file' : 'folder',
+    type: Types.getPathElements(ownProps.path).length > 4 ? Types.PathType.File : Types.PathType.Folder,
     username: 'songgao_test',
   }),
   PathItemInfo: ({path, mode}: PathItemInfoOwnProps) => ({

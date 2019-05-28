@@ -18,7 +18,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = (dispatch, {initView}: OwnProps) => ({
   _onHidden: (toCancel: string | null) => {
-    dispatch(FsGen.createClearRefreshTag({refreshTag: 'path-item-action-popup'}))
+    dispatch(FsGen.createClearRefreshTag({refreshTag: Types.RefreshTag.PathItemActionPopup}))
     dispatch(FsGen.createSetPathItemActionMenuDownloadKey({key: null}))
     toCancel && dispatch(FsGen.createCancelDownload({key: toCancel}))
   },

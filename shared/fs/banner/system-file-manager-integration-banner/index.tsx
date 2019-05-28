@@ -205,7 +205,7 @@ export default (props: Props) => {
         <Banner
           background={Background.Blue}
           okIcon={false}
-          title={'Loading'}
+          title="Loading"
           body={`Trying to find out if Keybase is enabled in ${fileUIName} ...`}
         />
       ) : (

@@ -34,7 +34,7 @@ const DefaultView = (props: DefaultViewProps) => (
       </Kb.Text>
       <Kb.Text type="BodySmall">{Constants.humanReadableFileSize(props.pathItem.size)}</Kb.Text>
       {isMobile && <PathItemInfo path={props.path} mode="default" />}
-      {props.pathItem.type === 'symlink' && (
+      {props.pathItem.type === Types.PathType.Symlink && (
         <Kb.Text type="BodySmall" style={stylesSymlink}>
           {'This is a symlink' + (props.pathItem.linkTarget ? ` to: ${props.pathItem.linkTarget}.` : '.')}
         </Kb.Text>

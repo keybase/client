@@ -41,7 +41,7 @@ export const filepreviewProvider = {
       lastModifiedTimestamp: 0,
       onLoadingStateChange: Sb.action('onLoadingStateChange'),
       path,
-      type: 'file',
+      type: Types.PathType.File,
       url: '',
     }
     if (Types.pathToString(path).endsWith('/loading')) {

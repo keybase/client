@@ -72,7 +72,7 @@ export const asRows = (
           height: getHeight(resetBannerType),
           key: 'reset-banner',
           node: <ConnectedBanner path={path} />,
-          rowType: 'header',
+          rowType: RowTypes.RowType.Header,
         },
       ]
     : []

@@ -22,7 +22,7 @@ const mapDispatchToProps = (dispatch, {editID, routePath}: OwnProps) => ({
 
 const mergeProps = ({_edit, _username}, {onSubmit, onCancel, onUpdate}) => ({
   hint: _edit.hint,
-  isCreate: _edit.type === 'new-folder',
+  isCreate: _edit.type === Types.EditType.NewFolder,
   name: _edit.name,
   onCancel,
   onSubmit,

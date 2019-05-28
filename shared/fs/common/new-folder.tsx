@@ -43,7 +43,7 @@ const mapDispatchToProps = (dispatch, {path}) => ({
 })
 
 const mergeProps = (s, d, o) => ({
-  canCreateNewFolder: s._pathItem.type === 'folder' && s._pathItem.writable,
+  canCreateNewFolder: s._pathItem.type === Types.PathType.Folder && s._pathItem.writable,
   ...d,
 })
 

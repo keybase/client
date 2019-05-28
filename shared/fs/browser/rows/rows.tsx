@@ -104,7 +104,7 @@ class Rows extends React.PureComponent<Props> {
     offset: items.slice(0, index).reduce((offset, row) => offset + getRowHeight(row), 0),
   })
   _getTopVariableRowCountAndTotalHeight = memoize(items => {
-    const index = items.findIndex(row => row !== 'header')
+    const index = items.findIndex(row => row.rowType !== RowTypes.RowType.Header)
     return index === -1
       ? {count: items.size, totalHeight: -1}
       : {count: index, totalHeight: this._getVariableRowLayout(items, index).offset}
@@ -125,7 +125,7 @@ class Rows extends React.PureComponent<Props> {
   // this, otherwise we'd get taller-than content rows when going into a
   // smaller folder from a larger one.
   _getListKey = memoize(items => {
-    const index = items.findIndex(row => row.rowType !== 'header')
+    const index = items.findIndex(row => row.rowType !== RowTypes.RowType.Header)
     return (
       items
         .slice(0, index === -1 ? items.size : index)

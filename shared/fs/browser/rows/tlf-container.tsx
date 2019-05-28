@@ -31,7 +31,9 @@ const mergeProps = (
     isIgnored: stateProps._tlf.isIgnored,
     isNew: shouldBadge && stateProps._tlf.isNew,
     loadPathMetadata:
-      flags.kbfsOfflineMode && stateProps._tlf.syncConfig && stateProps._tlf.syncConfig.mode !== 'disabled',
+      flags.kbfsOfflineMode &&
+      stateProps._tlf.syncConfig &&
+      stateProps._tlf.syncConfig.mode !== Types.TlfSyncMode.Disabled,
     name,
     path,
     routePath,

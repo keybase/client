@@ -26,7 +26,7 @@ const mapStateToProps = (state, {path}) => ({
   _downloadKey: state.fs.pathItemActionMenu.downloadKey,
   _downloads: state.fs.downloads,
   _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
-  _sfmiEnabled: state.fs.sfmi.driverStatus === 'enabled',
+  _sfmiEnabled: state.fs.sfmi.driverStatus === Types.DriverStatusType.Enabled,
   _username: state.config.username,
   _view: state.fs.pathItemActionMenu.view,
 })
@@ -34,9 +34,11 @@ const mapStateToProps = (state, {path}) => ({
 const mapDispatchToProps = (dispatch, {mode, path, routePath}: OwnProps) => ({
   _cancel: (key: string) => dispatch(FsGen.createCancelDownload({key})),
   _confirmSaveMedia: (toCancel: string | null) =>
-    dispatch(FsGen.createSetPathItemActionMenuView({view: 'confirm-save-media'})),
+    dispatch(FsGen.createSetPathItemActionMenuView({view: Types.PathItemActionMenuView.ConfirmSaveMedia})),
   _confirmSendToOtherApp: () =>
-    dispatch(FsGen.createSetPathItemActionMenuView({view: 'confirm-send-to-other-app'})),
+    dispatch(
+      FsGen.createSetPathItemActionMenuView({view: Types.PathItemActionMenuView.ConfirmSendToOtherApp})
+    ),
   _copyPath: () => dispatch(ConfigGen.createCopyToClipboard({text: Constants.escapePath(path)})),
   _delete: () => {
     dispatch(
@@ -85,7 +87,7 @@ const mapDispatchToProps = (dispatch, {mode, path, routePath}: OwnProps) => ({
     dispatch(FsGen.createShareNative({key, path}))
     dispatch(FsGen.createSetPathItemActionMenuDownloadKey({key}))
   },
-  _share: () => dispatch(FsGen.createSetPathItemActionMenuView({view: 'share'})),
+  _share: () => dispatch(FsGen.createSetPathItemActionMenuView({view: Types.PathItemActionMenuView.Share})),
   _showInSystemFileManager: () => dispatch(FsGen.createOpenPathInSystemFileManager({path})),
 })
 

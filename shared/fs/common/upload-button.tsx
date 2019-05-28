@@ -88,24 +88,28 @@ const mapStateToProps = (state, ownProps: OwnProps) => ({
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   openAndUploadBoth: Platforms.isDarwin
-    ? () => dispatch(FsGen.createOpenAndUpload({parentPath: ownProps.path, type: 'both'}))
+    ? () => dispatch(FsGen.createOpenAndUpload({parentPath: ownProps.path, type: Types.OpenDialogType.Both}))
     : null,
   openAndUploadDirectory:
     Platforms.isElectron && !Platforms.isDarwin
-      ? () => dispatch(FsGen.createOpenAndUpload({parentPath: ownProps.path, type: 'directory'}))
+      ? () =>
+          dispatch(
+            FsGen.createOpenAndUpload({parentPath: ownProps.path, type: Types.OpenDialogType.Directory})
+          )
       : null,
   openAndUploadFile:
     Platforms.isElectron && !Platforms.isDarwin
-      ? () => dispatch(FsGen.createOpenAndUpload({parentPath: ownProps.path, type: 'file'}))
+      ? () =>
+          dispatch(FsGen.createOpenAndUpload({parentPath: ownProps.path, type: Types.OpenDialogType.File}))
       : null,
   pickAndUploadMixed: Platforms.isIOS
-    ? () => dispatch(FsGen.createPickAndUpload({parentPath: ownProps.path, type: 'mixed'}))
+    ? () => dispatch(FsGen.createPickAndUpload({parentPath: ownProps.path, type: Types.MobilePickType.Mixed}))
     : null,
   pickAndUploadPhoto: Platforms.isAndroid
-    ? () => dispatch(FsGen.createPickAndUpload({parentPath: ownProps.path, type: 'photo'}))
+    ? () => dispatch(FsGen.createPickAndUpload({parentPath: ownProps.path, type: Types.MobilePickType.Photo}))
     : null,
   pickAndUploadVideo: Platforms.isAndroid
-    ? () => dispatch(FsGen.createPickAndUpload({parentPath: ownProps.path, type: 'video'}))
+    ? () => dispatch(FsGen.createPickAndUpload({parentPath: ownProps.path, type: Types.MobilePickType.Video}))
     : null,
 })
 

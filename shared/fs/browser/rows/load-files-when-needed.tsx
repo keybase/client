@@ -24,7 +24,10 @@ const mapDispatchToProps = (dispatch, {path, destinationPickerIndex}: OwnProps) 
     dispatch(
       FsGen.createFolderListLoad({
         path,
-        refreshTag: typeof destinationPickerIndex === 'number' ? 'destination-picker' : 'main',
+        refreshTag:
+          typeof destinationPickerIndex === 'number'
+            ? Types.RefreshTag.DestinationPicker
+            : Types.RefreshTag.Main,
       })
     ),
   loadFolderListWithoutRefreshTag: () =>

@@ -38,7 +38,7 @@ export const asRows = isMobile
               height,
               key: 'file-ui-banner',
               node: <ConnectedBanner />,
-              rowType: 'header',
+              rowType: RowTypes.RowType.Header,
             },
           ]
         : []

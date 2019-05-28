@@ -45,6 +45,6 @@ export const asRows = (path: Types.Path): Array<RowTypes.HeaderRowItem> => [
     height,
     key: 'top-bar',
     node: <TopBar key="topbar" path={path} />,
-    rowType: 'header',
+    rowType: RowTypes.RowType.Header,
   },
 ] // We always show this, but just fill with blank at /keybase

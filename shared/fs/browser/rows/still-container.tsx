@@ -24,7 +24,10 @@ const mergeProps = (stateProps, dispatchProps, {name, path, routePath, destinati
   return {
     destinationPickerIndex,
     intentIfDownloading: download && !download.state.error ? download.meta.intent : null,
-    isEmpty: _pathItem.type === 'folder' && _pathItem.progress === 'loaded' && _pathItem.children.isEmpty(),
+    isEmpty:
+      _pathItem.type === Types.PathType.Folder &&
+      _pathItem.progress === Types.ProgressType.Loaded &&
+      _pathItem.children.isEmpty(),
     name,
     path,
     routePath,

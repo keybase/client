@@ -13,6 +13,7 @@ import StillRow from './still'
 import EditingRow from './editing'
 import PlaceholderRow from './placeholder'
 import UploadingRow from './uploading'
+import * as RowTypes from './types'
 import {commonProvider} from '../../common/index.stories'
 import {topBarProvider} from '../../top-bar/index.stories'
 import {asRows as topBarAsRow} from '../../top-bar'
@@ -33,43 +34,88 @@ export const rowsProvider = {
         key: 'me,abc',
         name: 'me,abc',
         path: Types.stringToPath('/keybase/private/me,empty'),
-        rowType: 'still',
+        rowType: RowTypes.RowType.Still,
       },
       {
         key: 'me,abc,def',
         name: 'me,abc,def',
         path: Types.stringToPath('/keybase/private/me,abc,def'),
-        rowType: 'still',
+        rowType: RowTypes.RowType.Still,
       },
       {
         key: 'me,abc,def,ghi',
         name: 'me,abc,def,ghi',
         path: Types.stringToPath('/keybase/private/me,abc,def,ghi'),
-        rowType: 'still',
+        rowType: RowTypes.RowType.Still,
       },
       {key: 'me,def', name: 'me,def', path: Types.stringToPath('/keybase/private/me,def'), rowType: 'still'},
       {
         key: 'me,def,ghi',
         name: 'me,def,ghi',
         path: Types.stringToPath('/keybase/private/me,def,ghi'),
-        rowType: 'still',
+        rowType: RowTypes.RowType.Still,
       },
       {key: 'me,ghi', name: 'me,ghi', path: Types.stringToPath('/keybase/private/me,ghi'), rowType: 'still'},
       {
         key: 'me,abc,ghi',
         name: 'me,abc,ghi',
         path: Types.stringToPath('/keybase/private/me,abc,ghi'),
-        rowType: 'still',
+        rowType: RowTypes.RowType.Still,
       },
-      {key: '1', name: '1', path: Types.stringToPath('/keybase/private/meatball/1'), rowType: 'still'},
-      {key: '2', name: '2', path: Types.stringToPath('/keybase/private/meatball/2'), rowType: 'still'},
-      {key: '3', name: '3', path: Types.stringToPath('/keybase/private/meatball/3'), rowType: 'still'},
-      {key: '4', name: '4', path: Types.stringToPath('/keybase/private/meatball/4'), rowType: 'still'},
-      {key: '5', name: '5', path: Types.stringToPath('/keybase/private/meatball/5'), rowType: 'still'},
-      {key: '6', name: '6', path: Types.stringToPath('/keybase/private/meatball/dir/6'), rowType: 'still'},
-      {key: '7', name: '7', path: Types.stringToPath('/keybase/private/meatball/dir/7'), rowType: 'still'},
-      {key: '8', name: '8', path: Types.stringToPath('/keybase/private/meatball/dir/8'), rowType: 'still'},
-      {key: '9', name: '9', path: Types.stringToPath('/keybase/private/meatball/dir/9'), rowType: 'still'},
+      {
+        key: '1',
+        name: '1',
+        path: Types.stringToPath('/keybase/private/meatball/1'),
+        rowType: RowTypes.RowType.Still,
+      },
+      {
+        key: '2',
+        name: '2',
+        path: Types.stringToPath('/keybase/private/meatball/2'),
+        rowType: RowTypes.RowType.Still,
+      },
+      {
+        key: '3',
+        name: '3',
+        path: Types.stringToPath('/keybase/private/meatball/3'),
+        rowType: RowTypes.RowType.Still,
+      },
+      {
+        key: '4',
+        name: '4',
+        path: Types.stringToPath('/keybase/private/meatball/4'),
+        rowType: RowTypes.RowType.Still,
+      },
+      {
+        key: '5',
+        name: '5',
+        path: Types.stringToPath('/keybase/private/meatball/5'),
+        rowType: RowTypes.RowType.Still,
+      },
+      {
+        key: '6',
+        name: '6',
+        path: Types.stringToPath('/keybase/private/meatball/dir/6'),
+        rowType: RowTypes.RowType.Still,
+      },
+      {
+        key: '7',
+        name: '7',
+        path: Types.stringToPath('/keybase/private/meatball/dir/7'),
+        rowType: RowTypes.RowType.Still,
+      },
+      {
+        key: '8',
+        name: '8',
+        path: Types.stringToPath('/keybase/private/meatball/dir/8'),
+        rowType: RowTypes.RowType.Still,
+      },
+      {
+        key: '9',
+        name: '9',
+        path: Types.stringToPath('/keybase/private/meatball/dir/9'),
+        rowType: RowTypes.RowType.Still,
+      },
       ...(!isMobile && typeof o.destinationPickerIndex === 'number'
         ? [{key: 'empty:0', rowType: 'empty'}, {key: 'empty:1', rowType: 'empty'}]
         : []),
@@ -91,7 +137,7 @@ export const rowsProvider = {
       name: Types.getPathName(path),
       path,
       routePath: I.List(),
-      type: 'folder',
+      type: Types.PathType.Folder,
     }
   },
   LoadFilesWhenNeeded: ({path}: any) => ({
@@ -103,10 +149,7 @@ export const rowsProvider = {
   }),
   SortBar: ({path}: {path: Types.Path}) => ({
     folderIsPending: true,
-    sortSetting: {
-      sortBy: 'name',
-      sortOrder: 'asc',
-    },
+    sortSetting: Types.SortSetting.NameAsc,
     sortSettingToAction: Sb.action('sortSettingToAction'),
   }),
 }

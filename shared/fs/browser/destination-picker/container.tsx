@@ -23,7 +23,7 @@ const mapStateToProps = state => ({
 const getDestinationParentPath = memoize((stateProps, ownProps: OwnProps) =>
   stateProps._destinationPicker.destinationParentPath.get(
     getRouteProps(ownProps, 'index') || 0,
-    stateProps._destinationPicker.source.type === 'move-or-copy'
+    stateProps._destinationPicker.source.type === Types.DestinationPickerSource.MoveOrCopy
       ? Types.getPathParent(stateProps._destinationPicker.source.path)
       : Types.stringToPath('/keybase')
   )
@@ -38,12 +38,12 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
     ).forEach(action => dispatch(action)),
   _onCopyHere: destinationParentPath => {
     dispatch(FsGen.createCopy({destinationParentPath}))
-    dispatch(FsGen.createClearRefreshTag({refreshTag: 'destination-picker'}))
+    dispatch(FsGen.createClearRefreshTag({refreshTag: Types.RefreshTag.DestinationPicker}))
     dispatch(RouteTreeGen.createClearModals())
   },
   _onMoveHere: destinationParentPath => {
     dispatch(FsGen.createMove({destinationParentPath}))
-    dispatch(FsGen.createClearRefreshTag({refreshTag: 'destination-picker'}))
+    dispatch(FsGen.createClearRefreshTag({refreshTag: Types.RefreshTag.DestinationPicker}))
     dispatch(RouteTreeGen.createClearModals())
     dispatch(
       RouteTreeGen.createNavigateAppend({path: [{props: {path: destinationParentPath}, selected: 'main'}]})
@@ -52,7 +52,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   _onNewFolder: destinationParentPath =>
     dispatch(FsGen.createNewFolderRow({parentPath: destinationParentPath})),
   onCancel: () => {
-    dispatch(FsGen.createClearRefreshTag({refreshTag: 'destination-picker'}))
+    dispatch(FsGen.createClearRefreshTag({refreshTag: Types.RefreshTag.DestinationPicker}))
     dispatch(RouteTreeGen.createClearModals())
   },
 })
@@ -68,10 +68,10 @@ const canCopy = memoize((stateProps, ownProps: OwnProps) => {
   if (!canWrite(stateProps, ownProps)) {
     return false
   }
-  if (stateProps._destinationPicker.source.type === 'incoming-share') {
+  if (stateProps._destinationPicker.source.type === Types.DestinationPickerSource.IncomingShare) {
     return true
   }
-  if (stateProps._destinationPicker.source.type === 'move-or-copy') {
+  if (stateProps._destinationPicker.source.type === Types.DestinationPickerSource.MoveOrCopy) {
     const source: Types.MoveOrCopySource = stateProps._destinationPicker.source
     return getDestinationParentPath(stateProps, ownProps) !== Types.getPathParent(source.path)
   }
@@ -80,7 +80,7 @@ const canCopy = memoize((stateProps, ownProps: OwnProps) => {
 const canMove = memoize(
   (stateProps, ownProps: OwnProps) =>
     canCopy(stateProps, ownProps) &&
-    stateProps._destinationPicker.source.type === 'move-or-copy' &&
+    stateProps._destinationPicker.source.type === Types.DestinationPickerSource.MoveOrCopy &&
     Constants.pathsInSameTlf(
       stateProps._destinationPicker.source.path,
       getDestinationParentPath(stateProps, ownProps)

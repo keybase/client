@@ -18,19 +18,19 @@ const mapDispatchToProps = (dispatch, {path}) => ({
   sortByNameAsc:
     path === Constants.defaultPath
       ? undefined
-      : () => dispatch(FsGen.createSortSetting({path, sortSetting: 'name-asc'})),
+      : () => dispatch(FsGen.createSortSetting({path, sortSetting: Types.SortSetting.NameAsc})),
   sortByNameDesc:
     path === Constants.defaultPath
       ? undefined
-      : () => dispatch(FsGen.createSortSetting({path, sortSetting: 'name-desc'})),
+      : () => dispatch(FsGen.createSortSetting({path, sortSetting: Types.SortSetting.NameDesc})),
   sortByTimeAsc:
     path === Constants.defaultPath
       ? undefined
-      : () => dispatch(FsGen.createSortSetting({path, sortSetting: 'time-asc'})),
+      : () => dispatch(FsGen.createSortSetting({path, sortSetting: Types.SortSetting.TimeAsc})),
   sortByTimeDesc:
     path === Constants.defaultPath
       ? undefined
-      : () => dispatch(FsGen.createSortSetting({path, sortSetting: 'time-desc'})),
+      : () => dispatch(FsGen.createSortSetting({path, sortSetting: Types.SortSetting.TimeDesc})),
 })
 
 const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => ({

@@ -90,18 +90,18 @@ const _getPlaceholderRows = (type): I.List<RowTypes.PlaceholderRowItem> =>
     {key: 'placeholder:2', name: '2', rowType: RowTypes.RowType.Placeholder, type},
     {key: 'placeholder:3', name: '3', rowType: RowTypes.RowType.Placeholder, type},
   ])
-const filePlaceholderRows = _getPlaceholderRows('file')
-const folderPlaceholderRows = _getPlaceholderRows('folder')
+const filePlaceholderRows = _getPlaceholderRows(Types.PathType.File)
+const folderPlaceholderRows = _getPlaceholderRows(Types.PathType.Folder)
 
 const _makeInTlfRows = memoize((editingRows, amendedStillRows) => editingRows.concat(amendedStillRows))
 
 const getInTlfItemsFromStateProps = (stateProps, path: Types.Path): I.List<RowTypes.NamedRowItem> => {
   const _pathItem = stateProps._pathItems.get(path, Constants.unknownPathItem)
-  if (_pathItem.type !== 'folder') {
+  if (_pathItem.type !== Types.PathType.Folder) {
     return filePlaceholderRows
   }
 
-  if (_pathItem.progress === 'pending') {
+  if (_pathItem.progress === Types.ProgressType.Pending) {
     return filePlaceholderRows
   }
 
@@ -148,10 +148,10 @@ const getTlfRowsFromTlfs = memoize(
                 isNew,
                 key: `tlf:${name}`,
                 name,
-                rowType: 'tlf',
+                rowType: RowTypes.RowType.Tlf,
                 tlfMtime,
                 tlfType,
-                type: 'folder',
+                type: Types.PathType.Folder,
               }),
         list
       )
@@ -187,7 +187,7 @@ const getNormalRowItemsFromStateProps = (stateProps, path): I.List<RowTypes.Name
   }
 }
 
-const filterable = new Set(['tlf-type', 'tlf', 'still'])
+const filterable = new Set([RowTypes.RowType.TlfType, RowTypes.RowType.Tlf, RowTypes.RowType.Still])
 const filterRowItems = (rows, filter) =>
   filter ? rows.filter(row => !filterable.has(row.rowType) || row.name.includes(filter)) : rows
 

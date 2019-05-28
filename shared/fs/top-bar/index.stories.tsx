@@ -21,7 +21,7 @@ export const topBarProvider = {
     sortByNameDesc: path === Constants.defaultPath ? undefined : Sb.action('sortByNameDesc'),
     sortByTimeAsc: Types.getPathLevel(path) < 3 ? undefined : Sb.action('sortByTimeAsc'),
     sortByTimeDesc: Types.getPathLevel(path) < 3 ? undefined : Sb.action('sortByTimeDesc'),
-    sortSetting: 'name-asc',
+    sortSetting: Types.SortSetting.NameAsc,
   }),
 }
 

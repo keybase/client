@@ -62,6 +62,10 @@ export default () => {
 
   Sb.storiesOf('Files/Banners', module)
     .addDecorator(provider)
-    .add('Out of space', () => <MainBanner {...Sb.propOverridesForStory({bannerType: 'out-of-space'})} />)
-    .add('Offline', () => <MainBanner {...Sb.propOverridesForStory({bannerType: 'offline'})} />)
+    .add('Out of space', () => (
+      <MainBanner {...Sb.propOverridesForStory({bannerType: Types.MainBannerType.OutOfSpace})} />
+    ))
+    .add('Offline', () => (
+      <MainBanner {...Sb.propOverridesForStory({bannerType: Types.MainBannerType.Offline})} />
+    ))
 }

@@ -45,11 +45,11 @@ export default class FilePreviewView extends React.PureComponent<Props, State> {
   }
 
   render() {
-    if (this.props.type === 'symlink') {
+    if (this.props.type === Types.PathType.Symlink) {
       return <DefaultView path={this.props.path} routePath={this.props.routePath} />
     }
 
-    if (this.props.type !== 'file') {
+    if (this.props.type !== Types.PathType.File) {
       return <Kb.Text type="BodySmallError">This shouldn't happen type={this.props.type}</Kb.Text>
     }
 
@@ -80,16 +80,16 @@ export default class FilePreviewView extends React.PureComponent<Props, State> {
     const url = this.props.url + `&unused_field_ts=${this.state.loadedLastModifiedTimestamp}`
 
     switch (Constants.viewTypeFromMimeType(this.props.mime)) {
-      case 'default':
+      case Types.FileViewType.Default:
         return <DefaultView path={this.props.path} routePath={this.props.routePath} />
-      case 'text':
+      case Types.FileViewType.Text:
         return (
           <>
             {reloadBanner}
             <TextView url={url} onLoadingStateChange={this.props.onLoadingStateChange} />
           </>
         )
-      case 'image':
+      case Types.FileViewType.Image:
         return (
           <>
             {reloadBanner}
@@ -100,7 +100,7 @@ export default class FilePreviewView extends React.PureComponent<Props, State> {
             />
           </>
         )
-      case 'av':
+      case Types.FileViewType.Av:
         return (
           <>
             {reloadBanner}
@@ -111,7 +111,7 @@ export default class FilePreviewView extends React.PureComponent<Props, State> {
             />
           </>
         )
-      case 'pdf':
+      case Types.FileViewType.Pdf:
         // Security risks to links in PDF viewing. See DESKTOP-6888.
         return <DefaultView path={this.props.path} routePath={this.props.routePath} />
       default:

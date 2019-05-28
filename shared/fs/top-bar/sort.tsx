@@ -87,10 +87,18 @@ const Sort = (props: SortBarProps & Kb.OverlayParentProps) =>
         position="bottom right"
         closeOnSelect={true}
         items={[
-          ...(props.sortByNameAsc ? [makeSortOptionItem('name-asc', props.sortByNameAsc)] : []),
-          ...(props.sortByNameDesc ? [makeSortOptionItem('name-desc', props.sortByNameDesc)] : []),
-          ...(props.sortByTimeAsc ? [makeSortOptionItem('time-asc', props.sortByTimeAsc)] : []),
-          ...(props.sortByTimeDesc ? [makeSortOptionItem('time-desc', props.sortByTimeDesc)] : []),
+          ...(props.sortByNameAsc
+            ? [makeSortOptionItem(Types.SortSetting.NameAsc, props.sortByNameAsc)]
+            : []),
+          ...(props.sortByNameDesc
+            ? [makeSortOptionItem(Types.SortSetting.NameDesc, props.sortByNameDesc)]
+            : []),
+          ...(props.sortByTimeAsc
+            ? [makeSortOptionItem(Types.SortSetting.TimeAsc, props.sortByTimeAsc)]
+            : []),
+          ...(props.sortByTimeDesc
+            ? [makeSortOptionItem(Types.SortSetting.TimeDesc, props.sortByTimeDesc)]
+            : []),
         ]}
       />
     </>

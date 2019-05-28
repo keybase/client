@@ -25,7 +25,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     ownProps.path
   )
   return {
-    folder: stateProps._pathItem.type === 'folder',
+    folder: stateProps._pathItem.type === Types.PathType.Folder,
     status,
   }
 }

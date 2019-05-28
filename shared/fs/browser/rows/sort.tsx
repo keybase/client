@@ -19,14 +19,18 @@ const getOrder = (sortSetting: Types.SortSetting) =>
   sortSetting === Types.SortSetting.NameAsc || sortSetting === Types.SortSetting.TimeAsc ? 'asc' : 'desc'
 
 const getLastModifiedTimeStamp = (a: SortableRowItem) =>
-  a.rowType === 'still' ? a.lastModifiedTimestamp : a.rowType === 'tlf' ? a.tlfMtime : Date.now()
+  a.rowType === RowTypes.RowType.Still
+    ? a.lastModifiedTimestamp
+    : a.rowType === RowTypes.RowType.Tlf
+    ? a.tlfMtime
+    : Date.now()
 
 // This handles comparisons that aren't affected by asc/desc setting.
 const getCommonComparer = memoize(
   (meUsername: string) => (a: SortableRowItem, b: SortableRowItem): number => {
     // See if any of them are newly created folders.
-    const aIsNewFolder = a.rowType === 'editing' && a.editType === Types.EditType.NewFolder
-    const bIsNewFolder = b.rowType === 'editing' && b.editType === Types.EditType.NewFolder
+    const aIsNewFolder = a.rowType === RowTypes.RowType.Editing && a.editType === Types.EditType.NewFolder
+    const bIsNewFolder = b.rowType === RowTypes.RowType.Editing && b.editType === Types.EditType.NewFolder
     if (aIsNewFolder && !bIsNewFolder) {
       return -1
     }
@@ -34,7 +38,7 @@ const getCommonComparer = memoize(
       return 1
     }
 
-    if (a.rowType === 'tlf' && b.rowType === 'tlf') {
+    if (a.rowType === RowTypes.RowType.Tlf && b.rowType === RowTypes.RowType.Tlf) {
       // Both are TLFs.
 
       // First, if meUsername is set (i.e. user logged in), try to put user's
@@ -69,10 +73,10 @@ const getComparerBySortBy = (sortBy: 'name' | 'time'): PathItemComparer => {
     case 'name':
       return (a: SortableRowItem, b: SortableRowItem): number => {
         // If different type, folder goes first.
-        if (a.type === 'folder' && b.type !== 'folder') {
+        if (a.type === Types.PathType.Folder && b.type !== Types.PathType.Folder) {
           return -1
         }
-        if (a.type !== 'folder' && b.type === 'folder') {
+        if (a.type !== Types.PathType.Folder && b.type === Types.PathType.Folder) {
           return 1
         }
 
@@ -89,7 +93,7 @@ const getComparerBySortBy = (sortBy: 'name' | 'time'): PathItemComparer => {
 }
 
 const editingRowItemTieBreaker = (a: SortableRowItem, b: SortableRowItem): number => {
-  if (a.rowType !== 'editing' || b.rowType !== 'editing') {
+  if (a.rowType !== RowTypes.RowType.Editing || b.rowType !== RowTypes.RowType.Editing) {
     return 0
   }
   return Types.editIDToString(a.editID).localeCompare(Types.editIDToString(b.editID))

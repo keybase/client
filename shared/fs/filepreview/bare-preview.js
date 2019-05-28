@@ -45,7 +45,7 @@ export default class extends React.PureComponent<Props, State> {
             path={this.props.path}
             clickable={{actionIconWhite: true, type: 'icon'}}
             routePath={this.props.routePath}
-            initView="root"
+            initView={Types.PathItemActionMenuView.Root}
             mode="screen"
           />
         </Kb.Box>

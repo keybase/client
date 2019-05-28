@@ -50,7 +50,7 @@ const mapStateToProps = (state, {path}) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   ...ownProps,
-  syncEnabled: !!stateProps.syncConfig && stateProps.syncConfig.mode === 'enabled',
+  syncEnabled: !!stateProps.syncConfig && stateProps.syncConfig.mode === Types.TlfSyncMode.Enabled,
 })
 
 export default namedConnect(mapStateToProps, () => ({}), mergeProps, 'OfflineFolder')(OfflineFolder)

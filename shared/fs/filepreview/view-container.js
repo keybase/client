@@ -20,7 +20,7 @@ const mapStateToProps = (state, {path}) => {
 
 const mergeProps = (s, d, {path, routePath, onLoadingStateChange}) => ({
   lastModifiedTimestamp: s._pathItem.lastModifiedTimestamp,
-  mime: s._pathItem.type === 'file' ? s._pathItem.mimeType : null,
+  mime: s._pathItem.type === Types.PathType.File ? s._pathItem.mimeType : null,
   onLoadingStateChange,
   path,
   routePath,

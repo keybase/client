@@ -20,17 +20,19 @@ const mapStateToProps = (state, {path}: OwnProps): StateProps => ({
 })
 
 const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
-  loadFolderList: () => dispatch(FsGen.createFolderListLoad({path, refreshTag: 'path-item-action-popup'})),
+  loadFolderList: () =>
+    dispatch(FsGen.createFolderListLoad({path, refreshTag: Types.RefreshTag.PathItemActionPopup})),
   loadPathMetadata: () =>
-    dispatch(FsGen.createLoadPathMetadata({path, refreshTag: 'path-item-action-popup'})),
+    dispatch(FsGen.createLoadPathMetadata({path, refreshTag: Types.RefreshTag.PathItemActionPopup})),
 })
 
 const getChildrenNumbers = (_pathItems, _pathItem, path) =>
-  _pathItem.type === 'folder' && _pathItem.children
+  _pathItem.type === Types.PathType.Folder && _pathItem.children
     ? _pathItem.children.reduce(
         ({childrenFolders, childrenFiles}, p) => {
           const isFolder =
-            _pathItems.get(Types.pathConcat(path, p), Constants.unknownPathItem).type === 'folder'
+            _pathItems.get(Types.pathConcat(path, p), Constants.unknownPathItem).type ===
+            Types.PathType.Folder
           return {
             childrenFiles: childrenFiles + (isFolder ? 0 : 1),
             childrenFolders: childrenFolders + (isFolder ? 1 : 0),
@@ -49,7 +51,7 @@ const mergeProps = (s: StateProps, d: DispatchProps, o: OwnProps): Props => {
     ...o,
 
     size: _pathItem.size,
-    type: Types.getPathLevel(o.path) <= 3 ? 'folder' : _pathItem.type,
+    type: Types.getPathLevel(o.path) <= 3 ? Types.PathType.Folder : _pathItem.type,
   }
 }
 
