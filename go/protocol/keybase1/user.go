@@ -8,20 +8,6 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type Tracker struct {
-	Tracker UID  `codec:"tracker" json:"tracker"`
-	Status  int  `codec:"status" json:"status"`
-	MTime   Time `codec:"mTime" json:"mTime"`
-}
-
-func (o Tracker) DeepCopy() Tracker {
-	return Tracker{
-		Tracker: o.Tracker.DeepCopy(),
-		Status:  o.Status,
-		MTime:   o.MTime.DeepCopy(),
-	}
-}
-
 type TrackProof struct {
 	ProofType string `codec:"proofType" json:"proofType"`
 	ProofName string `codec:"proofName" json:"proofName"`

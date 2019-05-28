@@ -3258,7 +3258,6 @@ export type TrackStatus =
 
 export type TrackSummary = $ReadOnly<{username: String, time: Time, isRemote: Boolean}>
 export type TrackToken = String
-export type Tracker = $ReadOnly<{tracker: UID, status: Int, mTime: Time}>
 export type UID = String
 export type UPAKVersion =
   | 1 // V1_1

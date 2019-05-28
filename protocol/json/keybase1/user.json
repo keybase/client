@@ -9,24 +9,6 @@
   "types": [
     {
       "type": "record",
-      "name": "Tracker",
-      "fields": [
-        {
-          "type": "UID",
-          "name": "tracker"
-        },
-        {
-          "type": "int",
-          "name": "status"
-        },
-        {
-          "type": "Time",
-          "name": "mTime"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "TrackProof",
       "fields": [
         {
