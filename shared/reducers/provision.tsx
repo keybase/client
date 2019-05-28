@@ -1,10 +1,8 @@
-// @flow
 import * as I from 'immutable'
 import * as Constants from '../constants/provision'
 import * as Types from '../constants/types/provision'
 import * as ProvisionGen from '../actions/provision-gen'
 import HiddenString from '../util/hidden-string'
-import * as Flow from '../util/flow'
 
 const initialState = Constants.makeState()
 
@@ -99,7 +97,6 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
     case ProvisionGen.submitGPGMethod:
       return state
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

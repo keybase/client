@@ -1,17 +1,15 @@
-// @flow
 import logger from '../logger'
 import * as I from 'immutable'
 import * as FsGen from '../actions/fs-gen'
 import * as Constants from '../constants/fs'
 import * as ChatConstants from '../constants/chat2'
-import * as Flow from '../util/flow'
 import * as Types from '../constants/types/fs'
 
 const initialState = Constants.makeState()
 
 const updatePathItem = (
-  oldPathItem?: ?Types.PathItem,
-  newPathItemFromAction: Types.PathItem
+  oldPathItem?: Types.PathItem | null,
+  newPathItemFromAction?: Types.PathItem
 ): Types.PathItem => {
   if (!oldPathItem || oldPathItem.type !== newPathItemFromAction.type) {
     return newPathItemFromAction
@@ -111,7 +109,6 @@ const updatePathItem = (
         )
       )
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(newPathItem.type)
       return newPathItem
   }
 }
@@ -123,7 +120,7 @@ const haveSamePartialSyncConfig = (tlf1: Types.Tlf, tlf2: Types.Tlf) =>
   tlf1.syncConfig.mode === 'partial' &&
   tlf2.syncConfig.enabledPaths.equals(tlf1.syncConfig.enabledPaths)
 
-const updateTlf = (oldTlf?: ?Types.Tlf, newTlf: Types.Tlf): Types.Tlf => {
+const updateTlf = (oldTlf?: Types.Tlf | null, newTlf?: Types.Tlf): Types.Tlf => {
   if (!oldTlf) {
     return newTlf
   }
@@ -614,7 +611,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.setSpaceAvailableNotificationThreshold:
       return state
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

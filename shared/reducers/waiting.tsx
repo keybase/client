@@ -1,8 +1,6 @@
-// @flow
 import * as Constants from '../constants/waiting'
 import * as Types from '../constants/types/waiting'
 import * as Waiting from '../actions/waiting-gen'
-import * as Flow from '../util/flow'
 
 // set to true to see helpful debug info
 const debugWaiting = false && __DEV__
@@ -65,7 +63,6 @@ function reducer(state: Types.State = initialState, action: Waiting.Actions): Ty
       }, state)
     }
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

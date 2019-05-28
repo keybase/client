@@ -1,8 +1,6 @@
-// @flow
 import * as DevGen from '../actions/dev-gen'
 import * as Constants from '../constants/dev'
 import * as Types from '../constants/types/dev'
-import * as Flow from '../util/flow'
 
 const initialState = Constants.makeState()
 
@@ -17,7 +15,6 @@ export default function(state: Types.State = initialState, action: DevGen.Action
     case DevGen.debugCount:
       return state.merge({debugCount: state.debugCount + 1})
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

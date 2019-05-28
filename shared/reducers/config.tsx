@@ -1,4 +1,3 @@
-// @flow
 import logger from '../logger'
 import * as I from 'immutable'
 import * as Types from '../constants/types/config'
@@ -10,7 +9,6 @@ import * as EngineGen from '../actions/engine-gen-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as Stats from '../engine/stats'
 import {isEOFError, isErrorTransient} from '../util/errors'
-import * as Flow from '../util/flow'
 import {isMobile} from '../constants/platform'
 
 const initialState = Constants.makeState()
@@ -265,7 +263,6 @@ export default function(state: Types.State = initialState, action: Actions): Typ
     case ConfigGen.setNavigator:
       return state
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

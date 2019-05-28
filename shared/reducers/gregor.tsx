@@ -1,8 +1,6 @@
-// @flow
 import * as Types from '../constants/types/gregor'
 import * as Constants from '../constants/gregor'
 import * as GregorGen from '../actions/gregor-gen'
-import * as Flow from '../util/flow'
 
 const initialState = Constants.makeState()
 
@@ -19,7 +17,6 @@ export default function(state: Types.State = initialState, action: GregorGen.Act
     case GregorGen.updateCategory:
       return state
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

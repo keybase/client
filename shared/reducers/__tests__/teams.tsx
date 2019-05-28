@@ -1,4 +1,3 @@
-// @flow
 /* eslint-env jest */
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Constants from '../../constants/teams'

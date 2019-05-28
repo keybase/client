@@ -1,4 +1,3 @@
-// @flow
 import chat2 from './chat2'
 import config from './config'
 import dev from './dev'
@@ -25,7 +24,7 @@ import wallets from './wallets'
 import {combineReducers} from 'redux'
 import {reducerTimer} from '../util/user-timings'
 
-import type {TypedState} from '../constants/reducer'
+import {TypedState} from '../constants/reducer'
 
 const reducers = {
   chat2,

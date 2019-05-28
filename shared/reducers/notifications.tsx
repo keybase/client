@@ -1,9 +1,7 @@
-// @flow
 import * as Tabs from '../constants/tabs'
 import * as Types from '../constants/types/notifications'
 import * as Constants from '../constants/notifications'
 import * as NotificationsGen from '../actions/notifications-gen'
-import * as Flow from '../util/flow'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -57,7 +55,6 @@ export default function(state: Types.State = initialState, action: Notifications
     case NotificationsGen.receivedBadgeState:
       return state
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

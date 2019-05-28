@@ -1,10 +1,8 @@
-// @flow
 import * as I from 'immutable'
 import * as Constants from '../constants/devices'
 import * as Types from '../constants/types/devices'
 import * as DevicesGen from '../actions/devices-gen'
 import * as ProvisionGen from '../actions/provision-gen'
-import * as Flow from '../util/flow'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -43,7 +41,6 @@ export default function(
     case DevicesGen.load:
       return state
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

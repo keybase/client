@@ -1,9 +1,7 @@
-// @flow
 import * as TeamsGen from '../actions/teams-gen'
 import * as Constants from '../constants/teams'
 import * as I from 'immutable'
 import * as Types from '../constants/types/teams'
-import * as Flow from '../util/flow'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 
 const initialState: Types.State = Constants.makeState()
@@ -171,7 +169,6 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
     case TeamsGen.updateTopic:
       return state
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }
