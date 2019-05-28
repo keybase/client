@@ -1,5 +1,4 @@
-// @flow
-import type {NativeLog, NativeLogDump} from './logger'
+import {NativeLog, NativeLogDump} from './logger'
 
 const log: NativeLog = (tagPrefix, toLog) => {
   console.error('not supported on desktop!')

@@ -1,4 +1,3 @@
-// @flow
 import {NativeModules} from 'react-native'
 
 const m = __STORYBOOK__

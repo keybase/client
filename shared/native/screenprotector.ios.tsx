@@ -1,5 +1,3 @@
-// @flow
-
 const setSecureFlagSetting = () => {
   Promise.resolve(true)
 }

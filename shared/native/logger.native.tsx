@@ -1,6 +1,5 @@
-// @flow
 import {NativeModules} from 'react-native'
-import type {NativeLogDump} from './logger'
+import {NativeLogDump} from './logger'
 import {debounce} from 'lodash-es'
 
 export type RealNativeLog = (tagsAndLogs: Array<Array<string>>) => void

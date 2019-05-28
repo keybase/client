@@ -1,5 +1,3 @@
-// @flow
-
 declare function setSecureFlagSetting(nextValue: boolean): Promise<boolean>
 declare function getSecureFlagSetting(): Promise<boolean>
 
