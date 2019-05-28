@@ -12,7 +12,7 @@ import {debounce} from 'lodash-es'
 import UnreadShortcut from './unread-shortcut'
 import * as RowSizes from './row/sizes'
 import InboxSearch from '../inbox-search/container'
-import {Props, RowItem, RowItemSmall} from './index.types'
+import {Props, RowItem, RowItemSmall} from './index.types.d'
 
 const NoChats = () => (
   <Kb.Box
