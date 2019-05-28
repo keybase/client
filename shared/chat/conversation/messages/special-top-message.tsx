@@ -15,7 +15,7 @@ type Props = {
   showRetentionNotice: boolean
   loadMoreType: 'moreToLoad' | 'noMoreToLoad'
   showTeamOffer: boolean
-  measure: () => void | null
+  measure: (() => void) | null
   pendingWaiting: boolean
 }
 
@@ -84,7 +84,7 @@ const moreStyle = {
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
-  measure: () => void | null
+  measure: (() => void) | null
 }
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
@@ -109,6 +109,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     conversationIDKey: ownProps.conversationIDKey,
     hasOlderResetConversation,
     loadMoreType,
+    measure: ownProps.measure,
     pendingWaiting,
     showRetentionNotice,
     showTeamOffer,
@@ -118,12 +119,6 @@ const mapDispatchToProps = dispatch => ({})
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   ...stateProps,
   ...dispatchProps,
-  measure: ownProps.measure,
 })
 
-export default namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'TopMessage'
-)(TopMessage)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'TopMessage')(TopMessage)

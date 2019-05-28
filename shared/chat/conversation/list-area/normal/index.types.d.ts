@@ -9,8 +9,8 @@ export type Props = {
   messageOrdinals: I.List<Types.Ordinal>
   onFocusInput: () => void
   onJumpToRecent: () => void
-  loadNewerMessages: (ordinal: Types.Ordinal | null) => void
-  loadOlderMessages: (ordinal: Types.Ordinal | null) => void
+  loadNewerMessages: (ordinal?: Types.Ordinal | null) => void
+  loadOlderMessages: (ordinal?: Types.Ordinal | null) => void
   editingOrdinal: Types.Ordinal | null
   lastMessageIsOurs: boolean
   lastLoadMoreOrdinal: Types.Ordinal | null

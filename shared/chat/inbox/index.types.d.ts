@@ -4,15 +4,19 @@ import {ConversationIDKey} from '../../constants/types/chat2'
 
 export type RowItemSmall = {
   type: 'small'
+  teamname?: never
   conversationIDKey: ConversationIDKey
 }
 export type RowItemBigTeamsLabel = {
   type: 'bigTeamsLabel'
   isFiltered: boolean
+  teamname?: never
+  conversationIDKey?: never
 }
 export type RowItemBigHeader = {
   type: 'bigHeader'
   teamname: string
+  conversationIDKey?: never
 }
 export type RowItemBig = {
   type: 'big'
@@ -21,6 +25,8 @@ export type RowItemBig = {
   channelname: string
 }
 export type RowItemDivider = {
+  conversationIDKey?: never
+  teamname?: never
   showButton: boolean
   type: 'divider'
 }

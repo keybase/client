@@ -16,7 +16,7 @@ if (!isMobile) {
   KeyHandler = require('../../../util/key-handler.desktop').default
 }
 
-const mapStateToProps = (state, {conversationIDKey}) => {
+const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const info = Constants.getThreadSearchInfo(state, conversationIDKey)
   return {
     _hits: info.hits,
@@ -25,7 +25,7 @@ const mapStateToProps = (state, {conversationIDKey}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {conversationIDKey}) => ({
+const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => ({
   _loadSearchHit: messageID =>
     dispatch(Chat2Gen.createLoadMessagesCentered({conversationIDKey, highlightMode: 'always', messageID})),
   clearInitialText: () =>
@@ -42,7 +42,7 @@ const mapDispatchToProps = (dispatch, {conversationIDKey}) => ({
   selfHide: () => dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
 })
 
-const mergeProps = (stateProps, dispatchProps, {conversationIDKey, style}) => ({
+const mergeProps = (stateProps, dispatchProps, {conversationIDKey, style}: OwnProps) => ({
   clearInitialText: dispatchProps.clearInitialText,
   conversationIDKey,
   hits: stateProps._hits

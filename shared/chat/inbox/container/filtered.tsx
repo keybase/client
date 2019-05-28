@@ -5,7 +5,7 @@ import {memoize} from '../../../util/memoize'
 import {makeInsertMatcher} from '../../../util/string'
 import {RowItem} from '../index.types'
 
-const score = (lcFilter: string, lcYou: string, names: Array<string>, insertMatcher: RegExp): number => {
+const score = (lcFilter: string, lcYou: string, names: Array<string>, insertMatcher?: RegExp): number => {
   // special case, looking for yourself
   if (names.length === 1 && names[0] === lcYou) {
     return lcYou.indexOf(lcFilter) !== -1 ? 100000 : 0

@@ -18,12 +18,12 @@ const retainedHeights = {}
 
 type State = {
   animating: boolean
-  children: React.ElementType | null
+  children: React.ReactNode | null
   height: number
 }
 
 class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
-  _boxRef = React.createRef()
+  _boxRef = React.createRef<HTMLDivElement>()
   state = {animating: false, children: copyChildren(this.props.children), height: 17}
   timerID: SharedTimerID
 
@@ -101,6 +101,7 @@ class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
   }
 }
 
+// @ts-ignore
 const AshBox = Styles.styled.div({
   '&.full-width': {
     overflow: 'visible',
@@ -185,7 +186,7 @@ class Flame extends React.Component<
   }
 > {
   state = {color: randColor(), timer: 0, width: randWidth()}
-  intervalID: number | null
+  intervalID: NodeJS.Timer
 
   componentDidMount() {
     this.intervalID = setInterval(this._randomize, 100)

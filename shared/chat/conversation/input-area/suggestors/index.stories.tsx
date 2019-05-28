@@ -41,9 +41,9 @@ const TestArea = AddSuggestors(_TestArea)
 const typingTests = () => {
   // eslint-disable-next-line no-unused-vars
   let test
-  // $FlowIssue should error (bad other prop)
+  // @ts-ignore should error (bad other prop)
   test = <TestArea {...props} somethingElse="not this" />
-  // $FlowIssue should error (bad suggestor prop)
+  // @ts-ignore should error (bad suggestor prop)
   test = <TestArea {...props} dataSources={[1, 2]} />
 
   const missingSug = {
@@ -52,7 +52,7 @@ const typingTests = () => {
     suggestorToMarker: {},
     transformers: {},
   }
-  // $FlowIssue should error (missing suggestor prop)
+  // @ts-ignore should error (missing suggestor prop)
   test = <TestArea {...missingSug} />
 
   const missingOther = {
@@ -61,18 +61,18 @@ const typingTests = () => {
     suggestorToMarker: {},
     transformers: {},
   }
-  // $FlowIssue should error (missing other prop)
+  // @ts-ignore should error (missing other prop)
   test = <TestArea {...missingOther} />
 
   const extraJunk = {
     ...props,
     extra: 'oops',
   }
-  // $FlowIssue should error (extra prop)
+  // @ts-ignore should error (extra prop)
   test = <TestArea {...extraJunk} />
 
   const testAreaFunc = (props: TestAreaProps) => {}
-  // $FlowIssue should error (not a class)
+  // @ts-ignore should error (not a class)
   AddSuggestors(testAreaFunc)
 }
 
@@ -121,6 +121,7 @@ const props = {
 
 const availableTriggers = Object.values(props.suggestorToMarker)
 
+// @ts-ignore
 const load = () => Sb.storiesOf('Chat/Suggestors', module).add('Basic', () => <TestArea {...props} />)
 
 export default load

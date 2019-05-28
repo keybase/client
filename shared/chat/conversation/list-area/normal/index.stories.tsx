@@ -227,9 +227,9 @@ type State = {
 }
 
 class ThreadWrapper extends React.Component<Props, State> {
-  _injectMessagesIntervalID: number | null
-  _loadMoreTimeoutID: number | null
-  _loadConvoTimeoutID: number | null
+  _injectMessagesIntervalID: NodeJS.Timer
+  _loadMoreTimeoutID: NodeJS.Timer
+  _loadConvoTimeoutID: NodeJS.Timer
   constructor(props) {
     super(props)
     this.state = {

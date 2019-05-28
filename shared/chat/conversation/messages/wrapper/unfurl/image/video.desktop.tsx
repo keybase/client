@@ -8,7 +8,7 @@ type State = {
 }
 
 export class Video extends React.Component<Props, State> {
-  _videoRef = React.createRef()
+  _videoRef = React.createRef<HTMLVideoElement>()
   state = {playingVideo: this.props.autoPlay}
   _onClick = () => {
     if (this.props.onClick) {

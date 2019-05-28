@@ -25,7 +25,7 @@ type State = {
 }
 
 class ExplodingMeta extends React.Component<Props, State> {
-  state = {mode: 'none'}
+  state = {mode: 'none' as 'none'}
   tickerID: TickerID
   sharedTimerID: SharedTimerID
   sharedTimerKey: string

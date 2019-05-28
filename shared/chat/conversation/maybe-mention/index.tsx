@@ -3,6 +3,7 @@ import * as Styles from '../../../styles'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as Constants from '../../../constants/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
+// @ts-ignore
 import Text from '../../../common-adapters/text'
 import {namedConnect} from '../../../util/container'
 import Mention from '../../../common-adapters/mention-container'
@@ -78,9 +79,6 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
     dispatch(Chat2Gen.createResolveMaybeMention({channel: ownProps.channel, name: ownProps.name})),
 })
 
-export default namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  (s, d) => ({...s, ...d}),
-  'MaybeMention'
-)(MaybeMention)
+export default namedConnect(mapStateToProps, mapDispatchToProps, (s, d) => ({...s, ...d}), 'MaybeMention')(
+  MaybeMention
+)

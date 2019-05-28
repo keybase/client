@@ -17,7 +17,7 @@ const _debug = debugEnabled ? s => logger.debug('_scroll: ' + s) : s => {}
 const targetHitArea = 1
 
 class ConversationList extends React.PureComponent<Props> {
-  _listRef = React.createRef()
+  _listRef = React.createRef<NativeVirtualizedList>()
   _scrollCenterTarget = null
 
   _renderItem = ({index, item}) => {

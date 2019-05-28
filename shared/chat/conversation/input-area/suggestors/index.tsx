@@ -90,30 +90,35 @@ export type PropsWithSuggestorOuter<P> = {} & P & AddSuggestorsProps
 export type PropsWithSuggestor<P> = {} & P & SuggestorHooks
 
 const AddSuggestors = <WrappedOwnProps extends {}>(
-  WrappedComponent: React.ComponentType<PropsWithSuggestor<WrappedOwnProps>>
+  // ts is losing the types here anyways
+  WrappedComponent: any // React.ComponentType<PropsWithSuggestor<WrappedOwnProps>>
 ): React.Component<PropsWithSuggestorOuter<WrappedOwnProps>> => {
   type SuggestorsComponentProps = {
     forwardedRef: React.Ref<typeof WrappedComponent> | null
   } & PropsWithSuggestorOuter<WrappedOwnProps>
 
-  class SuggestorsComponent extends React.Component<SuggestorsComponentProps, AddSuggestorsState> {
+  class SuggestorsComponent extends React.Component<any, AddSuggestorsState> {
+    //SuggestorsComponentProps, AddSuggestorsState> {
     state = {active: null, filter: '', selected: 0}
     _inputRef = React.createRef<Kb.PlainInput>()
     _attachmentRef = React.createRef()
     _lastText = null
     _suggestors = Object.keys(this.props.suggestorToMarker)
     _markerToSuggestor: {[K in string]: string} = invert(this.props.suggestorToMarker)
-    _timeoutID: number
+    _timeoutID: NodeJS.Timer
 
     componentWillUnmount() {
       clearTimeout(this._timeoutID)
     }
 
-    _setAttachmentRef = (r: null | WrappedComponent) => {
+    _setAttachmentRef = (r: null | typeof WrappedComponent) => {
+      // @ts-ignore thinks this is ready only: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/31065
       this._attachmentRef.current = r
       if (typeof this.props.forwardedRef === 'function') {
+        // @ts-ignore thinks this is ready only: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/31065
         this.props.forwardedRef(r)
       } else if (this.props.forwardedRef && typeof this.props.forwardedRef !== 'string') {
+        // @ts-ignore thinks this is ready only: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/31065
         this.props.forwardedRef.current = r
       } // intentionally not supporting string refs
     }
@@ -167,10 +172,11 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
             return
           }
         }
-        // $FlowIssue we know entries will give this type
+        // @ts-ignore we know entries will give this type
         for (let [suggestor, marker]: [string, string | RegExp] of Object.entries(
           this.props.suggestorToMarker
         )) {
+          // @ts-ignore
           const matchInfo = matchesMarker(word, marker)
           if (matchInfo.matches && this._inputRef.current && this._inputRef.current.isFocused()) {
             this.setState({active: suggestor, filter: word.substring(matchInfo.marker.length)})
@@ -302,7 +308,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       }
     }
 
-    _itemRenderer = (index, value) =>
+    _itemRenderer = (index: number, value: string): React.ReactNode =>
       !this.state.active ? null : (
         <Kb.ClickableBox
           key={
@@ -403,6 +409,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     }
   }
 
+  // @ts-ignore TODO fix these types
   return React.forwardRef((props, ref) => <SuggestorsComponent {...props} forwardedRef={ref} />)
 }
 

@@ -15,7 +15,7 @@ const copyChildren = children =>
   React.Children.map(children, child => (child ? React.cloneElement(child) : child))
 
 type State = {
-  children: React.ElementType | null
+  children: React.ReactNode
   height: number | null
   numImages: number
 }
@@ -26,7 +26,7 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
     height: 20,
     numImages: 1,
   }
-  timeoutID: number | null
+  timeoutID: NodeJS.Timer
 
   static getDerivedStateFromProps(nextProps: Props, prevState: State) {
     return nextProps.retainHeight ? null : {children: copyChildren(nextProps.children)}

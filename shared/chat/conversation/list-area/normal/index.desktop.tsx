@@ -23,7 +23,9 @@ import JumpToRecent from './jump-to-recent'
 import ThreadSearch from '../../search/container'
 
 // hot reload isn't supported with debouncing currently so just ignore hot here
+// @ts-ignore
 if (module.hot) {
+  // @ts-ignore
   module.hot.decline()
 }
 
@@ -43,9 +45,9 @@ const debug = __STORYBOOK__
 
 class Thread extends React.PureComponent<Props, State> {
   state = {lockedToBottom: true}
-  _listRef = React.createRef()
+  _listRef = React.createRef<HTMLDivElement>()
   // so we can turn pointer events on / off
-  _pointerWrapperRef = React.createRef()
+  _pointerWrapperRef = React.createRef<HTMLDivElement>()
   // Not a state so we don't rerender, just mutate the dom
   _isScrolling = false
 
@@ -277,9 +279,9 @@ class Thread extends React.PureComponent<Props, State> {
         const toFind = Types.ordinalToNumber(ordinal)
         const found = Array.from(waypoints)
           .reverse()
-          .find(w => parseInt(w.dataset.key, 10) < toFind)
+          .find(w => parseInt((w as HTMLElement).dataset.key, 10) < toFind)
         if (found) {
-          found.scrollIntoView({behavior: 'smooth', block: 'center'})
+          ;(found as HTMLElement).scrollIntoView({behavior: 'smooth', block: 'center'})
         }
       }
     }
@@ -571,7 +573,7 @@ type OrdinalWaypointProps = {
     ordinal: Types.Ordinal,
     previous: Types.Ordinal | null,
     measure: () => void
-  ) => React.ElementType
+  ) => React.ReactNode
   ordinals: Array<Types.Ordinal>
   previous: Types.Ordinal | null
 }
@@ -607,7 +609,7 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
 
   // We ran into an issue where this was being called tremendously fast with inside/below. To stop that behavior
   // we defer settings things invisible for a little bit, which seems enough to fix it
-  _handlePositionChange = ({currentPosition, event}) => {
+  _handlePositionChange = ({currentPosition, event = null}) => {
     // lets ignore when this happens, this seems like a large source of jiggliness
     if (this.state.isVisible && !event) {
       return
@@ -731,28 +733,28 @@ const realCSS = `
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
   // containment hints so we can scroll faster
-  contain: 'strict',
+  contain: 'strict' as 'strict',
   flex: 1,
-  position: 'relative',
+  position: 'relative' as 'relative',
 }
 
 const listStyle = {
   ...globalStyles.fillAbsolute,
   outline: 'none',
-  overflowX: 'hidden',
-  overflowY: 'auto',
+  overflowX: 'hidden' as 'hidden',
+  overflowY: 'auto' as 'auto',
   paddingBottom: globalMargins.small,
   // get our own layer so we can scroll faster
-  willChange: 'transform',
+  willChange: 'transform' as 'transform',
 }
 
 const jumpToRecentStyle = {
   bottom: 0,
-  position: 'absolute',
+  position: 'absolute' as 'absolute',
 }
 
 const threadSearchStyle = {
-  position: 'absolute',
+  position: 'absolute' as 'absolute',
   top: 0,
 }
 

@@ -4,7 +4,7 @@ import * as Styles from '../../../../styles'
 export type Props = {
   items: Array<string>
   keyExtractor: (item: any) => string | number | null
-  renderItem: (index: number, item: string) => React.ElementType
+  renderItem: (index: number, item: string) => React.ReactNode
   selectedIndex: number
   style?: Styles.StylesCrossPlatform
 }

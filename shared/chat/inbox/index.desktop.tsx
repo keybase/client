@@ -34,7 +34,7 @@ class Inbox extends React.PureComponent<Props, State> {
   // stuff for UnreadShortcut
   _firstOffscreenIdx: number = -1
   _lastVisibleIdx: number = -1
-  _scrollDiv = React.createRef()
+  _scrollDiv = React.createRef<HTMLDivElement>()
 
   componentDidUpdate(prevProps: Props) {
     let listRowsResized = false

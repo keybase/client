@@ -135,7 +135,7 @@ type SearchProps = {
 }
 
 class ThreadSearchDesktop extends React.Component<SearchProps & Props> {
-  _inputRef = React.createRef()
+  _inputRef = React.createRef<Kb.PlainInput>()
   _onKeydown = e => {
     switch (e.key) {
       case 'Escape':
