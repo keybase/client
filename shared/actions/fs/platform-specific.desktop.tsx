@@ -110,14 +110,16 @@ const _rebaseKbfsPathToMountLocation = (kbfsPath: Types.Path, mountLocation: str
   )
 
 const openPathInSystemFileManager = (state, action) =>
-  state.fs.sfmi.driverStatus.type === 'enabled'
+  state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Enabled
     ? RPCTypes.kbfsMountGetCurrentMountDirRpcPromise()
         .then(mountLocation =>
           _openPathInSystemFileManagerPromise(
             _rebaseKbfsPathToMountLocation(action.payload.path, mountLocation),
             ![Types.PathKind.InGroupTlf, Types.PathKind.InTeamTlf].includes(
               Constants.parsePath(action.payload.path).kind
-            ) || state.fs.pathItems.get(action.payload.path, Constants.unknownPathItem).type === 'folder'
+            ) ||
+              state.fs.pathItems.get(action.payload.path, Constants.unknownPathItem).type ===
+                Types.PathType.Folder
           )
         )
         .catch(err => {
@@ -159,7 +161,7 @@ const fuseStatusToUninstallExecPath = isWindows
     }
   : (status: RPCTypes.FuseStatus | null) => null
 
-const fuseStatusToActions = (previousStatusType: 'enabled' | 'disabled' | 'unknown') => (
+const fuseStatusToActions = (previousStatusType: Types.DriverStatusType) => (
   status: RPCTypes.FuseStatus | null
 ) => {
   if (!status) {
@@ -173,17 +175,22 @@ const fuseStatusToActions = (previousStatusType: 'enabled' | 'disabled' | 'unkno
             dokanUninstallExecPath: fuseStatusToUninstallExecPath(status),
           }),
         }),
-        ...(previousStatusType === 'disabled' || status.installAction === RPCTypes.InstallAction.upgrade
+        ...(previousStatusType === Types.DriverStatusType.Disabled ||
+        status.installAction === RPCTypes.installInstallAction.upgrade
           ? [FsGen.createShowSystemFileManagerIntegrationBanner()]
           : []), // show banner for newly enabled
-        ...(previousStatusType === 'disabled'
+        ...(previousStatusType === Types.DriverStatusType.Disabled
           ? [FsGen.createOpenPathInSystemFileManager({path: Types.stringToPath('/keybase')})]
           : []), // open Finder/Explorer/etc for newly enabled
       ]
     : [
         FsGen.createSetDriverStatus({driverStatus: Constants.makeDriverStatusDisabled()}),
-        ...(previousStatusType === 'enabled' ? [FsGen.createHideSystemFileManagerIntegrationBanner()] : []), // hide banner for newly disabled
-        ...(previousStatusType === 'unknown' ? [FsGen.createShowSystemFileManagerIntegrationBanner()] : []), // show banner for disabled on first load
+        ...(previousStatusType === Types.DriverStatusType.Enabled
+          ? [FsGen.createHideSystemFileManagerIntegrationBanner()]
+          : []), // hide banner for newly disabled
+        ...(previousStatusType === Types.DriverStatusType.Unknown
+          ? [FsGen.createShowSystemFileManagerIntegrationBanner()]
+          : []), // show banner for disabled on first load
       ]
 }
 
@@ -205,7 +212,8 @@ const windowsCheckMountFromOtherDokanInstall = status =>
   )
 
 const refreshDriverStatus = (state, action) =>
-  (action.type !== FsGen.kbfsDaemonRpcStatusChanged || action.payload.rpcStatus === 'connected') &&
+  (action.type !== FsGen.kbfsDaemonRpcStatusChanged ||
+    action.payload.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) &&
   RPCTypes.installFuseStatusRpcPromise({bundleVersion: ''})
     .then(status =>
       isWindows && status.installStatus !== RPCTypes.InstallStatus.installed
@@ -256,7 +264,7 @@ const uninstallKBFS = () =>
   })
 
 const uninstallDokanConfirm = state => {
-  if (state.fs.sfmi.driverStatus.type !== 'enabled') {
+  if (state.fs.sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) {
     return
   }
   if (!state.fs.sfmi.driverStatus.dokanUninstallExecPath) {
@@ -278,7 +286,7 @@ const uninstallDokanConfirm = state => {
 }
 
 const uninstallDokan = state => {
-  if (state.fs.sfmi.driverStatus.type !== 'enabled') return
+  if (state.fs.sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) return
   const execPath: string = state.fs.sfmi.driverStatus.dokanUninstallExecPath || ''
   logger.info('Invoking dokan uninstaller', execPath)
   return new Promise(resolve => {
@@ -360,7 +368,7 @@ const openAndUpload = (state, action) =>
   )
 
 const loadUserFileEdits = (state, action) =>
-  state.fs.kbfsDaemonStatus.rpcStatus === 'connected' &&
+  state.fs.kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected &&
   RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise().then(writerEdits =>
     FsGen.createUserFileEditsLoaded({
       tlfUpdates: Constants.userTlfHistoryRPCToState(writerEdits || []),
@@ -376,7 +384,7 @@ const openFilesFromWidget = (state, {payload: {path, type}}) => [
 
 const changedFocus = (state, action) =>
   action.payload.appFocused &&
-  state.fs.sfmi.driverStatus.type === 'disabled' &&
+  state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Disabled &&
   state.fs.sfmi.driverStatus.kextPermissionError &&
   FsGen.createDriverEnable({isRetry: true})
 

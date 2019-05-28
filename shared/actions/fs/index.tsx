@@ -768,14 +768,14 @@ const deleteFile = (state, action) => {
 }
 
 const moveOrCopy = (state, action) => {
-  if (state.fs.destinationPicker.source.type === 'none') {
+  if (state.fs.destinationPicker.source.type === Types.DestinationPickerSource.None) {
     return
   }
   const params = {
     dest: Constants.pathToRPCPath(
       Types.pathConcat(
         action.payload.destinationParentPath,
-        state.fs.destinationPicker.source.type === 'move-or-copy'
+        state.fs.destinationPicker.source.type === Types.DestinationPickerSource.MoveOrCopy
           ? Types.getPathName(state.fs.destinationPicker.source.path)
           : Types.getLocalPathName(state.fs.destinationPicker.source.localPath)
         // We use the local path name here since we only care about file name.
@@ -783,9 +783,9 @@ const moveOrCopy = (state, action) => {
     ),
     opID: Constants.makeUUID(),
     src:
-      state.fs.destinationPicker.source.type === 'move-or-copy'
+      state.fs.destinationPicker.source.type === Types.DestinationPickerSource.MoveOrCopy
         ? Constants.pathToRPCPath(state.fs.destinationPicker.source.path)
-        : state.fs.destinationPicker.source.type === 'incoming-share'
+        : state.fs.destinationPicker.source.type === Types.DestinationPickerSource.IncomingShare
         ? {
             PathType: RPCTypes.PathType.local,
             local: Types.localPathToString(state.fs.destinationPicker.source.localPath),
@@ -956,19 +956,19 @@ const waitForKbfsDaemon = (state, action) => {
     .then(connected => {
       waitForKbfsDaemonOnFly = false
       return FsGen.createKbfsDaemonRpcStatusChanged({
-        rpcStatus: connected ? 'connected' : 'wait-timeout',
+        rpcStatus: connected ? Types.KbfsDaemonRpcStatus.Connected : Types.KbfsDaemonRpcStatus.WaitTimeout,
       })
     })
     .catch(() => {
       waitForKbfsDaemonOnFly = false
       return FsGen.createKbfsDaemonRpcStatusChanged({
-        rpcStatus: 'wait-timeout',
+        rpcStatus: Types.KbfsDaemonRpcStatus.WaitTimeout,
       })
     })
 }
 
 const updateKbfsDaemonOnlineStatus = (state, action) =>
-  state.fs.kbfsDaemonStatus.rpcStatus === 'connected' && state.config.osNetworkOnline
+  state.fs.kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected && state.config.osNetworkOnline
     ? RPCTypes.SimpleFSSimpleFSAreWeConnectedToMDServerRpcPromise().then(connectedToMDServer =>
         FsGen.createKbfsDaemonOnlineStatusChanged({online: connectedToMDServer})
       )
