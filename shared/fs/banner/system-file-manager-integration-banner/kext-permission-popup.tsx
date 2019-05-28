@@ -36,7 +36,8 @@ const Illustration = () => (
 )
 
 class CancelWhenEnabled extends React.PureComponent<Props> {
-  _cancelOnEnabled = () => this.props.driverStatus.type === 'enabled' && this.props.onCancel()
+  _cancelOnEnabled = () =>
+    this.props.driverStatus.type === Types.DriverStatusType.Enabled && this.props.onCancel()
   componentDidMount() {
     this._cancelOnEnabled()
   }
@@ -81,7 +82,7 @@ const InstallSecurityPrefs = (props: Props) => (
         Open Security & Privacy Settings
       </Kb.Text>
     </Kb.Box2>
-    {props.driverStatus.type === 'disabled' && props.driverStatus.isEnabling && (
+    {props.driverStatus.type === Types.DriverStatusType.Disabled && props.driverStatus.isEnabling && (
       <Kb.Box style={styles.enablingContainer}>
         <Kb.Box2 direction="vertical" gap="small" fullWidth={true} fullHeight={true} centerChildren={true}>
           <Kb.ProgressIndicator white={true} />

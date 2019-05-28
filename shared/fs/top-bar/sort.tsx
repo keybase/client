@@ -14,13 +14,13 @@ export type SortBarProps = {
 
 const getTextFromSortSetting = (sortSetting: Types.SortSetting) => {
   switch (sortSetting) {
-    case 'name-asc':
+    case Types.SortSetting.NameAsc:
       return 'Name A to Z'
-    case 'name-desc':
+    case Types.SortSetting.NameDesc:
       return 'Name Z to A'
-    case 'time-asc':
+    case Types.SortSetting.TimeAsc:
       return 'Recent first'
-    case 'time-desc':
+    case Types.SortSetting.TimeDesc:
       return 'Older first'
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(sortSetting)
@@ -30,13 +30,13 @@ const getTextFromSortSetting = (sortSetting: Types.SortSetting) => {
 
 const getIconFromSortSetting = (sortSetting: Types.SortSetting) => {
   switch (sortSetting) {
-    case 'name-asc':
+    case Types.SortSetting.NameAsc:
       return 'iconfont-arrow-full-down'
-    case 'name-desc':
+    case Types.SortSetting.NameDesc:
       return 'iconfont-arrow-full-up'
-    case 'time-asc':
+    case Types.SortSetting.TimeAsc:
       return 'iconfont-time'
-    case 'time-desc':
+    case Types.SortSetting.TimeDesc:
       return 'iconfont-time-reversed'
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(sortSetting)

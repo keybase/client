@@ -83,9 +83,9 @@ const NonExistent = (props: Props) => (
 
 const Oops = (props: Props) => {
   switch (props.reason) {
-    case 'no-access':
+    case Types.SoftError.NoAccess:
       return <NoAccess {...props} />
-    case 'non-existent':
+    case Types.SoftError.Nonexistent:
       return <NonExistent {...props} />
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.reason)

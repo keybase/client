@@ -137,7 +137,7 @@ const ThisShouldNotHappen = () => (
 )
 
 const Enabled = (props: Props) => {
-  if (props.driverStatus.type !== 'enabled') {
+  if (props.driverStatus.type !== Types.DriverStatusType.Enabled) {
     return <ThisShouldNotHappen />
   }
   if (props.driverStatus.dokanOutdated) {
@@ -183,7 +183,7 @@ const Enabled = (props: Props) => {
 
 export default (props: Props) => {
   switch (props.driverStatus.type) {
-    case 'disabled':
+    case Types.DriverStatusType.Disabled:
       return (
         <Banner
           background={Background.Blue}
@@ -198,9 +198,9 @@ export default (props: Props) => {
           onDismiss={props.alwaysShow ? null : props.onDismiss}
         />
       )
-    case 'enabled':
+    case Types.DriverStatusType.Enabled:
       return <Enabled {...props} />
-    case 'unknown':
+    case Types.DriverStatusType.Unknown:
       return props.alwaysShow ? (
         <Banner
           background={Background.Blue}

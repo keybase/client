@@ -18,7 +18,8 @@ type Props = {
 }
 
 const Banner = (props: Props) =>
-  props.bannerType === 'none' ? null : props.bannerType === 'offline' ? (
+  props.bannerType === Types.MainBannerType.None ? null : props.bannerType ===
+    Types.MainBannerType.Offline ? (
     <Kb.Banner text="You are offline." color="blue" />
   ) : (
     <Kb.Banner

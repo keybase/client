@@ -53,11 +53,12 @@ export const uploadsToUploadCountdownHOCProps = (
     // folderList RPC triggered by editSuccess yet. So check that. If we know
     // about this pathType from state.fs.pathItems, it must have been loaded
     // from an RPC. So just use that to make sure this is not a folder.
-    return pathType === 'unknown'
+    return pathType === Types.PathType.Unknown
       ? !edits.find(
-          edit => edit.type === 'new-folder' && Types.pathConcat(edit.parentPath, edit.name) === path
+          edit =>
+            edit.type === Types.EditType.NewFolder && Types.pathConcat(edit.parentPath, edit.name) === path
         )
-      : pathType !== 'folder'
+      : pathType !== Types.PathType.Folder
   })
 
   return {

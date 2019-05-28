@@ -70,7 +70,7 @@ const DesktopSendAttachmentToChat = (props: Props) => (
         <Kb.Button
           label="Send in conversation"
           onClick={props.send}
-          disabled={props.sendAttachmentToChatState !== 'ready-to-send'}
+          disabled={props.sendAttachmentToChatState !== Types.SendAttachmentToChatState.ReadyToSend}
         />
       </Kb.Box2>
     </Kb.Box2>

@@ -185,8 +185,10 @@ const Footer = (props: Props) => (
     {props.conversation.type !== 'none' && (
       <Kb.Button
         label="Send in conversation"
-        disabled={props.sendLinkToChatState !== 'ready-to-send'}
-        waiting={['locating-conversation', 'sending'].includes(props.sendLinkToChatState)}
+        disabled={props.sendLinkToChatState !== Types.SendLinkToChatState.ReadyToSend}
+        waiting={[Types.SendLinkToChatState.LocatingConversation, Types.SendLinkToChatState.Sending].includes(
+          props.sendLinkToChatState
+        )}
         onClick={props.send}
       />
     )}
@@ -195,8 +197,8 @@ const Footer = (props: Props) => (
 
 class TriggerActionsWhenNeeded extends React.PureComponent<Props> {
   componentDidUpdate(prevProps) {
-    prevProps.sendLinkToChatState === 'sending' &&
-      this.props.sendLinkToChatState === 'sent' &&
+    prevProps.sendLinkToChatState === Types.SendLinkToChatState.Sending &&
+      this.props.sendLinkToChatState === Types.SendLinkToChatState.Sent &&
       this.props.onSent()
   }
   render() {

@@ -13,17 +13,20 @@ const load = () => {
     .addDecorator(provider)
     .add('no-access team', () => (
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
-        <Oops path={Types.stringToPath('/keybase/team/kbkbfstest')} reason="no-access" />
+        <Oops path={Types.stringToPath('/keybase/team/kbkbfstest')} reason={Types.SoftError.NoAccess} />
       </Kb.Box2>
     ))
     .add('no-access private', () => (
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
-        <Oops path={Types.stringToPath('/keybase/private/foo,bar')} reason="no-access" />
+        <Oops path={Types.stringToPath('/keybase/private/foo,bar')} reason={Types.SoftError.NoAccess} />
       </Kb.Box2>
     ))
     .add('non-existent', () => (
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
-        <Oops path={Types.stringToPath('/keybase/team/kbkbfstest/non-existent')} reason="non-existent" />
+        <Oops
+          path={Types.stringToPath('/keybase/team/kbkbfstest/non-existent')}
+          reason={Types.SoftError.Nonexistent}
+        />
       </Kb.Box2>
     ))
   Sb.storiesOf('Files/SimpleScreens', module).add('Loading', () => (
