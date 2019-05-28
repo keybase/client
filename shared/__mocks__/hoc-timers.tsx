@@ -1,4 +1,3 @@
-// @noflow
 import * as React from 'react'
 
 if (!__STORYBOOK__) {
@@ -9,10 +8,8 @@ function getDisplayName(WrappedComponent): string {
   return WrappedComponent.displayName || WrappedComponent.name || 'Component'
 }
 
-function HOCTimers<Props: TimerProps>(
-  WrappedComponent: React.ComponentType<Props>
-): React.ComponentType<$Diff<Props, TimerProps>> {
-  class TimersComponent extends React.Component<$Diff<Props, TimerProps>> {
+function HOCTimers(WrappedComponent) {
+  class TimersComponent extends React.Component {
     static displayName = `HOCTimers(${getDisplayName(WrappedComponent)})`
     setTimeout = (f, n) => 0
     clearTimeout = id => {}

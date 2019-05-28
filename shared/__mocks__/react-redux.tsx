@@ -1,4 +1,3 @@
-// @noflow
 import * as redux from '../node_modules/react-redux'
 
 if (!__STORYBOOK__) {

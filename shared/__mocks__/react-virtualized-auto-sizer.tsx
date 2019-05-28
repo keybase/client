@@ -1,12 +1,16 @@
-// @noflow
 import * as React from 'react'
 if (!__STORYBOOK__) {
   throw new Error('Invalid load of mock')
 }
 
-type Props = {|
-  children: ({height: number, width: number}) => React.Node,
-|}
+type Props = {
+  children: (
+    arg0: {
+      height: number
+      width: number
+    }
+  ) => React.ReactNode
+}
 
 const mockSize = {height: 300, width: 300}
 

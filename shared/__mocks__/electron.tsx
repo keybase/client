@@ -1,4 +1,3 @@
-// @noflow
 import {action} from '@storybook/addon-actions'
 
 if (!__STORYBOOK__) {
