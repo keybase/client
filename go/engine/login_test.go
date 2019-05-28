@@ -49,8 +49,6 @@ func TestLoginAndSwitchWithLogout(t *testing.T) {
 	Logout(tc)
 	t.Logf("second logging back in")
 	u2.LoginOrBust(tc)
-
-	return
 }
 
 func TestLoginTwiceLogoutOnce(t *testing.T) {
@@ -97,8 +95,6 @@ func TestLoginAndSwitchWithoutLogout(t *testing.T) {
 		swtch(u1)
 		swtch(u2)
 	}
-
-	return
 }
 
 func TestLoginUsernameWhitespace(t *testing.T) {

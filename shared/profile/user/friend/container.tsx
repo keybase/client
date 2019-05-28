@@ -23,10 +23,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   width: ownProps.width,
 })
 
-// @ts-ignore codemode issue
-export default Container.namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'Friend'
-)(Friend)
+export default Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Friend')(Friend)

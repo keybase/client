@@ -38,7 +38,7 @@ export type Props = {
   username: string
 }
 
-const colorTypeToStyle = type => {
+const colorTypeToStyle = (type: 'red' | 'green' | 'blue') => {
   switch (type) {
     case 'red':
       return styles.typedBackgroundRed

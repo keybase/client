@@ -438,25 +438,18 @@ func (eu ServerErrorUnwrapper) UnwrapError(arg interface{}) (appError error, dis
 	switch s.Code {
 	case StatusCodeServerError:
 		appError = ServerError{errors.New(s.Desc)}
-		break
 	case StatusCodeServerErrorBadRequest:
 		appError = ServerErrorBadRequest{Reason: s.Desc}
-		break
 	case StatusCodeServerErrorConflictRevision:
 		appError = ServerErrorConflictRevision{Desc: s.Desc}
-		break
 	case StatusCodeServerErrorConflictPrevRoot:
 		appError = ServerErrorConflictPrevRoot{Desc: s.Desc}
-		break
 	case StatusCodeServerErrorConflictDiskUsage:
 		appError = ServerErrorConflictDiskUsage{Desc: s.Desc}
-		break
 	case StatusCodeServerErrorLocked:
 		appError = ServerErrorLocked{}
-		break
 	case StatusCodeServerErrorUnauthorized:
 		appError = ServerErrorUnauthorized{}
-		break
 	case StatusCodeServerErrorThrottle:
 		var suggestedRetryIn *time.Duration
 		for _, kv := range s.Fields {
@@ -472,7 +465,6 @@ func (eu ServerErrorUnwrapper) UnwrapError(arg interface{}) (appError error, dis
 			Err:              errors.New(s.Desc),
 			SuggestedRetryIn: suggestedRetryIn,
 		}
-		break
 	case StatusCodeServerErrorConditionFailed:
 		shouldThrottle := false
 		for _, kv := range s.Fields {
@@ -485,13 +477,10 @@ func (eu ServerErrorUnwrapper) UnwrapError(arg interface{}) (appError error, dis
 			Err:            errors.New(s.Desc),
 			ShouldThrottle: shouldThrottle,
 		}
-		break
 	case StatusCodeServerErrorWriteAccess:
 		appError = ServerErrorWriteAccess{}
-		break
 	case StatusCodeServerErrorConflictFolderMapping:
 		appError = ServerErrorConflictFolderMapping{Desc: s.Desc}
-		break
 	case StatusCodeServerErrorTooManyFoldersCreated:
 		err := ServerErrorTooManyFoldersCreated{}
 		for _, f := range s.Fields {
@@ -503,19 +492,14 @@ func (eu ServerErrorUnwrapper) UnwrapError(arg interface{}) (appError error, dis
 			}
 		}
 		appError = err
-		break
 	case StatusCodeServerErrorCannotReadFinalizedTLF:
 		appError = ServerErrorCannotReadFinalizedTLF{}
-		break
 	case StatusCodeServerErrorLockConflict:
 		appError = ServerErrorLockConflict{}
-		break
 	case StatusCodeServerErrorClassicTLFDoesNotExist:
 		appError = ServerErrorClassicTLFDoesNotExist{}
-		break
 	case StatusCodeServerErrorMissingFolderHandle:
 		appError = ServerErrorMissingFolderHandle{}
-		break
 	default:
 		ase := libkb.AppStatusError{
 			Code:   s.Code,
