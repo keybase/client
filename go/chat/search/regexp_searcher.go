@@ -41,8 +41,12 @@ func (s *RegexpSearcher) Search(ctx context.Context, uid gregor1.UID, convID cha
 			close(uiCh)
 		}
 	}()
-	pagination := &chat1.Pagination{Num: s.pageSize}
-
+	pagination := opts.InitialPagination
+	if pagination == nil {
+		pagination = &chat1.Pagination{Num: s.pageSize}
+	} else {
+		pagination.Num = s.pageSize
+	}
 	maxHits := opts.MaxHits
 	maxMessages := opts.MaxMessages
 	beforeContext := opts.BeforeContext

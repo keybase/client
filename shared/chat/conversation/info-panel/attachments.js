@@ -338,7 +338,13 @@ export class LinkView {
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.linkContainer} gap="tiny">
         <Kb.Box2 direction="vertical" fullWidth={true} gap="xxtiny">
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
-            <Kb.NameWithIcon avatarSize={32} colorFollowing={true} username={item.author} horizontal={true} />
+            <Kb.NameWithIcon
+              avatarSize={32}
+              avatarStyle={styles.avatar}
+              colorFollowing={true}
+              username={item.author}
+              horizontal={true}
+            />
             <Kb.Text type="BodyTiny" style={styles.linkTime}>
               {formatTimeForChat(item.ctime)}
             </Kb.Text>
@@ -437,6 +443,9 @@ export class AttachmentTypeSelector extends React.Component<SelectorProps> {
 }
 
 const styles = Styles.styleSheetCreate({
+  avatar: {
+    marginRight: Styles.globalMargins.tiny,
+  },
   container: {
     flex: 1,
     height: '100%',

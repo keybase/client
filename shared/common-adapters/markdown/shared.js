@@ -324,7 +324,11 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
         </Text>
       )
     }
-    const inner = this.props.preview ? (
+    const inner = this.props.serviceOnly ? (
+      <Text type="Body" style={this.props.style}>
+        {output}
+      </Text>
+    ) : this.props.preview ? (
       <Text
         type={Styles.isMobile ? 'Body' : 'BodySmall'}
         style={Styles.collapseStyles([

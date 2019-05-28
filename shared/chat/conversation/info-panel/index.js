@@ -237,6 +237,11 @@ class _InfoPanel extends React.Component<InfoPanelProps, InfoPanelState> {
       }
       sections.push(tabsSection)
     } else if (this._isSelected('attachments')) {
+      if (!Styles.isMobile) {
+        itemSizeEstimator = () => {
+          return 80
+        }
+      }
       let attachmentSections
       switch (this.props.selectedAttachmentView) {
         case RPCChatTypes.localGalleryItemTyp.media:

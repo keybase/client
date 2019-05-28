@@ -74,7 +74,7 @@ func (g *Gallery) eligibleNextMessage(msg chat1.MessageUnboxed, typMap map[chat1
 var linkRegexp = xurls.Strict()
 
 func (g *Gallery) searchForLinks(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	num int, uiCh chan chat1.UIMessage) (res []chat1.MessageUnboxed, last bool, err error) {
+	msgID chat1.MessageID, num int, uiCh chan chat1.UIMessage) (res []chat1.MessageUnboxed, last bool, err error) {
 	hitCh := make(chan chat1.ChatSearchHit)
 	doneCh := make(chan struct{})
 	defer func() { <-doneCh }()
@@ -84,12 +84,17 @@ func (g *Gallery) searchForLinks(ctx context.Context, uid gregor1.UID, convID ch
 		}
 		close(doneCh)
 	}()
+	idcontrol := &chat1.MessageIDControl{
+		Pivot: &msgID,
+		Mode:  chat1.MessageIDControlMode_OLDERMESSAGES,
+	}
 	if _, res, err = g.G().RegexpSearcher.Search(ctx, uid, convID, linkRegexp, hitCh, chat1.SearchOpts{
-		MaxHits: num,
+		InitialPagination: utils.MessageIDControlToPagination(ctx, g.DebugLabeler, idcontrol, nil),
+		MaxHits:           num,
 	}); err != nil {
 		return res, false, err
 	}
-	return res, len(res) == 0, nil
+	return res, len(res) < num, nil
 }
 
 func (g *Gallery) NextMessage(ctx context.Context, uid gregor1.UID,
@@ -150,7 +155,7 @@ func (g *Gallery) NextMessages(ctx context.Context, uid gregor1.UID,
 	if opts.MessageType == chat1.MessageType_NONE {
 		opts.MessageType = chat1.MessageType_ATTACHMENT
 	} else if opts.MessageType == chat1.MessageType_TEXT && opts.FilterLinks && uiCh != nil {
-		return g.searchForLinks(ctx, uid, convID, num, uiCh)
+		return g.searchForLinks(ctx, uid, convID, msgID, num, uiCh)
 	}
 	typMap, assetMap, unfurlMap := g.makeMaps(opts)
 	pagination := utils.MessageIDControlToPagination(ctx, g.DebugLabeler, &chat1.MessageIDControl{
