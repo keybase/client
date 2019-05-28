@@ -594,6 +594,23 @@ func (a *ActiveDevice) ClearPassphraseStreamCache() {
 	a.passphrase = nil
 }
 
+func (a *ActiveDevice) ClearPassphraseStreamCacheIfOutdated(mctx MetaContext) error {
+	pps := a.PassphraseStream()
+	if pps == nil {
+		return nil
+	}
+
+	outdated, err := pps.SyncAndCheckIfOutdated(mctx)
+	if err != nil {
+		return err
+	}
+
+	if outdated {
+		a.ClearPassphraseStreamCache()
+	}
+	return nil
+}
+
 func (a *ActiveDevice) SigningKeyForUID(u keybase1.UID) GenericKey {
 	a.RLock()
 	defer a.RUnlock()

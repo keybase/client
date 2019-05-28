@@ -22,8 +22,7 @@ const _RootLogin = ({showLoading, showRelogin, navigateAppend}) => {
   return <JoinOrLogin navigateAppend={navigateAppend} />
 }
 
-// @ts-ignore codemode issue
-const RootLogin = connect<OwnProps, _, _, _, _>(
+const RootLogin = connect(
   mapStateToProps,
   () => ({}),
   (s, d, o) => ({...o, ...s, ...d})

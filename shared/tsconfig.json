@@ -13,6 +13,11 @@
     "target": "es2017",
     "tsBuildInfoFile": "./.tsOut/cache"
   },
-  "exclude": ["node_modules", "react-native", "desktop/dist"],
-  "include": ["./**/*"]
+  "include": ["./**/*"],
+  "exclude": [
+    "node_modules",
+    "react-native",
+    "desktop/dist",
+    "desktop/build"
+  ]
 }
