@@ -82,6 +82,7 @@ const ThresholdDropdownDesktop = (props: Props) => (
       </Kb.Text>
     ))}
     onChangedIdx={props.onChangedSyncNotifications}
+    overlayStyle={styles.syncNotificationDropdownOverlay}
     selected={
       <Kb.Box2
         direction="horizontal"
@@ -96,7 +97,7 @@ const ThresholdDropdownDesktop = (props: Props) => (
       </Kb.Box2>
     }
     style={styles.syncNotificationSettingDropdown}
-    selectedBoxStyle={styles.syncNotificationDropdownItem}
+    itemBoxStyle={styles.syncNotificationDropdownItem}
     disabled={props.areSettingsLoading || props.spaceAvailableNotificationThreshold === 0}
   />
 )
@@ -202,7 +203,11 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'center',
   },
   syncNotificationDropdownItem: {
-    width: 2 * Styles.globalMargins.xlarge,
+    alignItems: 'center',
+    paddingLeft: Styles.globalMargins.small,
+  },
+  syncNotificationDropdownOverlay: {
+    width: Styles.globalMargins.xlarge + Styles.globalMargins.medium,
   },
   syncNotificationSettingDropdown: {
     marginLeft: Styles.globalMargins.tiny,

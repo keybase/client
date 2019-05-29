@@ -34,14 +34,16 @@ export const DropdownButton = (props: DropdownButtonProps) => (
 )
 
 type Props<N: React.Node> = {
+  disabled?: boolean,
+  itemBoxStyle?: Styles.StylesCrossPlatform,
+  items: Array<N>,
   onChanged?: (selected: N) => void,
   onChangedIdx?: (selectedIdx: number) => void,
-  selected?: N,
-  items: Array<N>,
-  style?: Styles.StylesCrossPlatform,
-  selectedBoxStyle?: Styles.StylesCrossPlatform,
+  overlayStyle?: Styles.StylesCrossPlatform,
   position?: Position,
-  disabled?: boolean,
+  selected?: N,
+  selectedBoxStyle?: Styles.StylesCrossPlatform,
+  style?: Styles.StylesCrossPlatform,
 }
 type State = {
   expanded: boolean,
@@ -77,7 +79,7 @@ class Dropdown<N: React.Node> extends React.Component<Props<N> & OverlayParentPr
           toggleOpen={this._toggleOpen}
         />
         <Overlay
-          style={styles.overlay}
+          style={Styles.collapseStyles([styles.overlay, this.props.overlayStyle])}
           attachTo={this.props.getAttachmentRef}
           visible={this.state.expanded}
           onHidden={this._toggleOpen}
@@ -98,7 +100,7 @@ class Dropdown<N: React.Node> extends React.Component<Props<N> & OverlayParentPr
                 }}
                 style={styles.itemClickBox}
               >
-                <ItemBox>{i}</ItemBox>
+                <ItemBox style={this.props.itemBoxStyle}>{i}</ItemBox>
               </ClickableBox>
             ))}
           </ScrollView>
