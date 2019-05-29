@@ -40,9 +40,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     emitBarePreview: () => dispatchProps._emitBarePreview(path),
     kbfsDaemonStatus: stateProps.kbfsDaemonStatus,
     mimeType:
-      !isDefinitelyFolder && stateProps._pathItem.type === 'file' ? stateProps._pathItem.mimeType : null,
+      !isDefinitelyFolder && stateProps._pathItem.type === Types.PathType.File
+        ? stateProps._pathItem.mimeType
+        : null,
     path,
-    pathType: isDefinitelyFolder ? 'folder' : stateProps._pathItem.type,
+    pathType: isDefinitelyFolder ? Types.PathType.Folder : stateProps._pathItem.type,
     routePath: I.List(), // not a valid value anymore TODO fix
     softError: Constants.getSoftError(stateProps._softErrors, path),
     waitForKbfsDaemon: dispatchProps.waitForKbfsDaemon,
@@ -117,7 +119,7 @@ class ChooseComponent extends React.PureComponent<ChooseComponentProps> {
     }
     return (
       <>
-        <LoadPathMetadataWhenNeeded path={this.props.path} refreshTag="main" />
+        <LoadPathMetadataWhenNeeded path={this.props.path} refreshTag={Types.RefreshTag.Main} />
         {this.getContent()}
       </>
     )

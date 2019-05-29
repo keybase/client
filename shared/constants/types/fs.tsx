@@ -16,14 +16,14 @@ import {memoize} from '../../util/memoize'
 export type Path = string | null
 
 export enum PathType {
-  Folder,
-  File,
-  Symlink,
-  Unknown,
+  Folder = 'folder',
+  File = 'file',
+  Symlink = 'symlink',
+  Unknown = 'unknown',
 }
 export enum ProgressType {
-  Pending,
-  Loaded,
+  Pending = 'pending',
+  Loaded = 'loaded',
 }
 
 // not naming Error because it has meaning in js.
@@ -60,9 +60,9 @@ export enum TlfType {
 }
 
 export enum TlfSyncMode {
-  Enabled,
-  Disabled,
-  Partial,
+  Enabled = 'enabled',
+  Disabled = 'disabled',
+  Partial = 'partial',
 }
 
 export type _TlfSyncEnabled = {
@@ -84,11 +84,11 @@ export type TlfSyncPartial = I.RecordOf<_TlfSyncPartial>
 export type TlfSyncConfig = TlfSyncEnabled | TlfSyncDisabled | TlfSyncPartial
 
 export enum ConflictState {
-  None,
-  InConflictStuck,
-  InCondlictNotStuck,
-  InManualResolution,
-  Finishing,
+  None = 'none',
+  InConflictStuck = 'in-conflict-stuck',
+  InCondlictNotStuck = 'in-conflict-not-stuck',
+  InManualResolution = 'in-manual-resolution',
+  Finishing = 'finishing',
 }
 
 export type _TlfConflict = {
@@ -138,12 +138,12 @@ export type _Tlfs = {
 export type Tlfs = I.RecordOf<_Tlfs>
 
 export enum PathKind {
-  Root,
-  TlfList,
-  GroupTlf,
-  TeamTlf,
-  InGroupTlf,
-  InTeamTlf,
+  Root = 'root',
+  TlfList = 'tlf-list',
+  GroupTlf = 'group-tlf',
+  TeamTlf = 'team-tlf',
+  InGroupTlf = 'in-group-tlf',
+  InTeamTlf = 'in-team-tlf',
 }
 
 export type _ParsedPathRoot = {
@@ -202,9 +202,9 @@ export type ParsedPath =
   | ParsedPathInTeamTlf
 
 export enum PrefetchState {
-  NotStarted,
-  InProgress,
-  Complete,
+  NotStarted = 'not-started',
+  InProgress = 'in-progress',
+  Complete = 'complete',
 }
 
 export type _PrefetchNotStarted = {
@@ -270,24 +270,24 @@ export type UnknownPathItem = I.RecordOf<_UnknownPathItem>
 export type PathItem = FolderPathItem | SymlinkPathItem | FilePathItem | UnknownPathItem
 
 export enum SyncStatusStatic {
-  Unknown = 2, // trying to figure out what it is
-  AwaitingToSync, // sync enabled but we're offline
-  AwaitingToUpload, // has local changes but we're offline
-  OnlineOnly, // sync disabled
-  Synced, // sync enabled and fully synced
-  SyncError, // uh oh
-  Uploading, // flushing or writing into journal and we're online
+  Unknown = 'unknown', // trying to figure out what it is
+  AwaitingToSync = 'awaiting-to-sync', // sync enabled but we're offline
+  AwaitingToUpload = 'awaiting-to-upload', // has local changes but we're offline
+  OnlineOnly = 'online-only', // sync disabled
+  Synced = 'synced', // sync enabled and fully synced
+  SyncError = 'sync-error', // uh oh
+  Uploading = 'uploading', // flushing or writing into journal and we're online
 }
 export type SyncStatus = SyncStatusStatic | number // percentage<1. not uploading, and we're syncing down
 
 export type EditID = string
 export enum EditType {
-  NewFolder,
+  NewFolder = 'new-folder',
 }
 export enum EditStatusType {
-  Editing,
-  Saving,
-  Failed,
+  Editing = 'editing',
+  Saving = 'saving',
+  Failed = 'failed',
 }
 
 export type _NewFolder = {
@@ -302,10 +302,10 @@ export type NewFolder = I.RecordOf<_NewFolder>
 export type Edit = NewFolder
 
 export enum SortSetting {
-  NameAsc,
-  NameDesc,
-  TimeAsc,
-  TimeDesc,
+  NameAsc = 'name-asc',
+  NameDesc = 'name-desc',
+  TimeAsc = 'time-asc',
+  TimeDesc = 'time-desc',
 }
 
 export type _PathUserSetting = {
@@ -316,9 +316,9 @@ export type PathUserSetting = I.RecordOf<_PathUserSetting>
 export type LocalPath = string
 
 export enum DownloadIntent {
-  None,
-  CameraRoll,
-  Share,
+  None = 'none',
+  CameraRoll = 'camera-roll',
+  Share = 'share',
 }
 
 export type _DownloadMeta = {
@@ -359,14 +359,14 @@ export type Uploads = I.RecordOf<_Uploads>
 
 // 'both' is only supported on macOS
 export enum OpenDialogType {
-  File,
-  Directory,
-  Both,
+  File = 'file',
+  Directory = 'directory',
+  Both = 'both',
 }
 export enum MobilePickType {
-  Photo,
-  Video,
-  Mixed,
+  Photo = 'photo',
+  Video = 'video',
+  Mixed = 'mixed',
 }
 
 export type _LocalHTTPServer = {
@@ -376,11 +376,11 @@ export type _LocalHTTPServer = {
 export type LocalHTTPServer = I.RecordOf<_LocalHTTPServer>
 
 export enum FileEditType {
-  Created,
-  Modified,
-  Deleted,
-  Renamed,
-  Unknown,
+  Created = 'created',
+  Modified = 'modified',
+  Deleted = 'deleted',
+  Renamed = 'renamed',
+  Unknown = 'unknown',
 }
 
 export type _TlfEdit = {
@@ -407,9 +407,9 @@ export type PathItems = I.Map<Path, PathItem>
 export type Edits = I.Map<EditID, Edit>
 
 export enum DestinationPickerSource {
-  None,
-  MoveOrCopy,
-  IncomingShare,
+  None = 'none',
+  MoveOrCopy = 'move-or-copy',
+  IncomingShare = 'incoming-share',
 }
 
 export type _MoveOrCopySource = {
@@ -444,10 +444,10 @@ export type _DestinationPicker = {
 export type DestinationPicker = I.RecordOf<_DestinationPicker>
 
 export enum SendAttachmentToChatState {
-  None,
-  PendingSelectConversation,
-  ReadyToSend, // a conversation is selected
-  Sent,
+  None = 'none',
+  PendingSelectConversation = 'pending-select-conversation',
+  ReadyToSend = 'ready-to-send', // a conversation is selected
+  Sent = 'sent',
 }
 
 export type _SendAttachmentToChat = {
@@ -459,15 +459,15 @@ export type _SendAttachmentToChat = {
 export type SendAttachmentToChat = I.RecordOf<_SendAttachmentToChat>
 
 export enum SendLinkToChatState {
-  None,
+  None = 'none',
   // when the modal is just shown and we don't know the convID(s) yet
-  LocatingConversation,
+  LocatingConversation = 'locating-conversation',
   // only applicable to big teams with multiple channels
-  PendingSelectConversation,
+  PendingSelectConversation = 'pending-select-conversation',
   // possibly without a convID, in which case we'll create it
-  ReadyToSend,
-  Sending,
-  Sent,
+  ReadyToSend = 'ready-to-send',
+  Sending = 'sending',
+  Sent = 'sent',
 }
 
 export type _SendLinkToChat = {
@@ -483,10 +483,10 @@ export type _SendLinkToChat = {
 export type SendLinkToChat = I.RecordOf<_SendLinkToChat>
 
 export enum PathItemActionMenuView {
-  Root,
-  Share,
-  ConfirmSaveMedia,
-  ConfirmSendToOtherApp,
+  Root = 'root',
+  Share = 'share',
+  ConfirmSaveMedia = 'confirm-save-media',
+  ConfirmSendToOtherApp = 'confirm-send-to-other-app',
 }
 export type _PathItemActionMenu = {
   view: PathItemActionMenuView
@@ -496,9 +496,9 @@ export type _PathItemActionMenu = {
 export type PathItemActionMenu = I.RecordOf<_PathItemActionMenu>
 
 export enum DriverStatusType {
-  Unknown,
-  Disabled,
-  Enabled,
+  Unknown = 'unknown',
+  Disabled = 'disabled',
+  Enabled = 'enabled',
 }
 export type _DriverStatusUnknown = {
   type: DriverStatusType.Unknown
@@ -535,10 +535,10 @@ export type _SystemFileManagerIntegration = {
 export type SystemFileManagerIntegration = I.RecordOf<_SystemFileManagerIntegration>
 
 export enum KbfsDaemonRpcStatus {
-  Unknown,
-  Connected,
-  Waiting,
-  WaitTimeout,
+  Unknown = 'unknown',
+  Connected = 'connected',
+  Waiting = 'waiting',
+  WaitTimeout = 'wait-timeout',
 }
 export type _KbfsDaemonStatus = {
   rpcStatus: KbfsDaemonRpcStatus
@@ -555,8 +555,8 @@ export type _SyncingFoldersProgress = {
 export type SyncingFoldersProgress = I.RecordOf<_SyncingFoldersProgress>
 
 export enum SoftError {
-  NoAccess,
-  Nonexistent,
+  NoAccess = 'no-access',
+  Nonexistent = 'non-existent',
 }
 
 export type _SoftErrors = {
@@ -733,10 +733,10 @@ export const getNormalizedLocalPath = (p: LocalPath): LocalPath =>
   localSep === '\\' ? p.replace(/\\/g, '/') : p
 
 export enum PathItemIconType {
-  TeamAvatar,
-  Avatar,
-  Avatars,
-  Basic,
+  TeamAvatar = 'team-avatar',
+  Avatar = 'avatar',
+  Avatars = 'avatars',
+  Basic = 'basic',
 }
 
 export type PathItemIconSpec =
@@ -797,11 +797,11 @@ export type FavoriteFolder = {
 }
 
 export enum FileViewType {
-  Text,
-  Image,
-  Av,
-  Pdf,
-  Default,
+  Text = 'text',
+  Image = 'image',
+  Av = 'av',
+  Pdf = 'pdf',
+  Default = 'default',
 }
 
 export type ResetMetadata = {
@@ -819,26 +819,26 @@ export type ResetMetadata = {
 // heuristic where Saga only keeps track of latest call from each component and
 // refresh only the most recently reuested paths for each component.
 export enum RefreshTag {
-  Main,
-  PathItemActionPopup,
-  DestinationPicker,
+  Main = 'main',
+  PathItemActionPopup = 'path-item-action-popup',
+  DestinationPicker = 'destination-picker',
 }
 
 export enum PathItemBadgeType {
-  Upload,
-  Download,
-  New,
-  Rekey,
+  Upload = 'upload',
+  Download = 'download',
+  New = 'new',
+  Rekey = 'rekey',
 }
 export type PathItemBadge = PathItemBadgeType | number
 
 export enum ResetBannerNoOthersType {
-  None,
-  Self,
+  None = 'none',
+  Self = 'self',
 }
 export type ResetBannerType = ResetBannerNoOthersType | number
 export enum MainBannerType {
-  None,
-  Offline,
-  OutOfSpace,
+  None = 'none',
+  Offline = 'offline',
+  OutOfSpace = 'out-of-space',
 }

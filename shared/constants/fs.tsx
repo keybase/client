@@ -28,15 +28,16 @@ export const ExitCodeFuseKextPermissionError = 5
 // See Installer.m: KBExitAuthCanceledError
 export const ExitCodeAuthCanceledError = 6
 
-export const makeNewFolder: I.Record.Factory<Types._NewFolder> = I.Record({
-  ...{
-    hint: 'New Folder',
-    name: 'New Folder',
-    parentPath: Types.stringToPath('/keybase'),
-    status: Types.EditStatusType.Editing,
-    type: Types.EditType.NewFolder,
-  },
-})
+const newFolderTempGetRidOfMeWhenWeSupportAsConst = {
+  hint: 'New Folder',
+  name: 'New Folder',
+  parentPath: Types.stringToPath('/keybase'),
+  status: Types.EditStatusType.Editing,
+  type: Types.EditType.NewFolder,
+}
+export const makeNewFolder: I.Record.Factory<Types._NewFolder> = I.Record(
+  newFolderTempGetRidOfMeWhenWeSupportAsConst
+)
 export const emptyFolder = makeNewFolder()
 
 const makePrefetchNotStarted: I.Record.Factory<Types._PrefetchNotStarted> = I.Record({

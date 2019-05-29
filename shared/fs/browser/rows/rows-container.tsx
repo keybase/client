@@ -52,7 +52,7 @@ const getStillRows = memoize(
             name: item.name,
             path,
             // fields for sortable
-            rowType: 'still',
+            rowType: RowTypes.RowType.Still,
             type: item.type,
           },
         ]
@@ -228,7 +228,10 @@ const mergeProps = (s, d, o: OwnProps) => {
         // Rows componenet don't need to worry about whether it's in
         // destinationPicker mode or not.
         !isMobile && typeof o.destinationPickerIndex === 'number'
-          ? [{key: 'empty:0', rowType: 'empty'}, {key: 'empty:1', rowType: 'empty'}]
+          ? [
+              {key: 'empty:0', rowType: RowTypes.RowType.Empty},
+              {key: 'empty:1', rowType: RowTypes.RowType.Empty},
+            ]
           : []
       ),
     path: o.path,

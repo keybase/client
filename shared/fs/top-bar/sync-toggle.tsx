@@ -63,8 +63,10 @@ const SyncToggle = (props: Props) =>
     <>
       <Kb.Switch
         align="right"
-        onClick={props.syncConfig.mode === 'enabled' ? props.toggleShowingMenu : props.enableSync}
-        on={props.syncConfig.mode === 'enabled'}
+        onClick={
+          props.syncConfig.mode === Types.TlfSyncMode.Enabled ? props.toggleShowingMenu : props.enableSync
+        }
+        on={props.syncConfig.mode === Types.TlfSyncMode.Enabled}
         color="green"
         label={'Sync on this device'}
         ref={props.setAttachmentRef}
