@@ -1,6 +1,7 @@
-// @flow
 import fs from 'fs'
 import path from 'path'
+// TODO: is there something better to do that ignore this?
+// @ts-ignore
 import emojiData from 'emoji-datasource'
 import {escapeRegExp} from 'lodash'
 import tlds from 'tlds'
@@ -49,7 +50,7 @@ function genEmojiData() {
   const emojiIndexByChar = {}
   const emojiIndexByName = {}
   const emojiLiterals = []
-  function addEmojiLiteral(unified, name, skinTone) {
+  function addEmojiLiteral(unified, name, skinTone?) {
     const chars = unified.split('-').map(c => String.fromCodePoint(parseInt(c, 16)))
     const literals = chars.map(c => UTF162JSON(c)).join('')
 
@@ -96,10 +97,9 @@ function genEmojiData() {
 }
 
 function buildEmojiFile() {
-  const p = path.join(__dirname, 'emoji-gen.js')
+  const p = path.join(__dirname, 'emoji-gen.tsx')
   const {emojiLiterals, emojiIndexByName, emojiIndexByChar} = genEmojiData()
-  const data = `// @noflow
-/* eslint-disable */
+  const data = `/* eslint-disable */
 export const emojiRegex = /^(${emojiLiterals.join('|')}|${Object.keys(emojiIndexByName)
     .map(escapeRegExp)
     .join('|')})/

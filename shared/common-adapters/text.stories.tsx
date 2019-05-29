@@ -1,9 +1,10 @@
-// @flow
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
+// @ts-ignore
 import Box from './box'
+// @ts-ignore
 import Icon from './icon'
-import Text, {allTextTypes} from './text'
+import Text, {allTextTypes, TextType} from './text'
 import {globalColors, globalMargins, globalStyles, isMobile, platformStyles} from '../styles'
 
 const SmallGap = () => <Box style={{minHeight: 24}} />
@@ -49,7 +50,7 @@ const Container = ({backgroundColor, children}) => (
   </Box>
 )
 
-const groups = [
+const groups: Array<Array<{label: string; action?: boolean; type: TextType; normalOnly?: boolean}>> = [
   [{label: 'Header big Header big', type: 'HeaderBig'}],
   [{label: 'Header big extrabold', type: 'HeaderBigExtrabold'}],
   [
@@ -135,7 +136,7 @@ const load = () => {
     ))
     .add('Text all', () => (
       <>
-        {Object.keys(allTextTypes).map(t => (
+        {Object.keys(allTextTypes).map((t: TextType) => (
           <Box key={t}>
             <Text type={t}>{t}</Text>
           </Box>

@@ -1,11 +1,10 @@
-// @flow
 import React, {Component} from 'react'
 import openURL from '../util/open-url'
 import {fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.native'
 import * as Styles from '../styles'
 import shallowEqual from 'shallowequal'
 import {NativeClipboard, NativeText, NativeStyleSheet, NativeAlert} from './native-wrappers.native'
-import type {Props, TextType} from './text'
+import {Props, TextType} from './text'
 
 const StyledText = Styles.styled(NativeText)({}, props => props.style)
 
@@ -52,7 +51,7 @@ class Text extends Component<Props> {
     openURL(this.props.onClickURL)
   }
 
-  _urlCopy = (url: ?string) => {
+  _urlCopy = (url: string | null) => {
     if (!url) return
     NativeClipboard.setString(url)
   }
@@ -84,10 +83,10 @@ class Text extends Component<Props> {
     const dynamicStyle = this.props.negative
       ? _getStyle(
           this.props.type,
+          !!this.props.underline,
           this.props.negative,
           this.props.lineClamp,
-          !!this.props.onClick,
-          !!this.props.underline
+          !!this.props.onClick
         )
       : {}
 
@@ -133,10 +132,10 @@ class Text extends Component<Props> {
 // external things call this so leave the original alone
 function _getStyle(
   type: TextType,
+  forceUnderline: boolean,
   negative?: boolean,
-  lineClampNum?: ?number,
-  clickable?: ?boolean,
-  forceUnderline: boolean
+  lineClampNum?: number | null,
+  clickable?: boolean | null
 ) {
   if (!negative) {
     return forceUnderline ? {textDecorationLine: 'underline'} : {}
@@ -151,7 +150,12 @@ function _getStyle(
     ...textDecoration,
   }
 }
-function getStyle(type: TextType, negative?: boolean, lineClampNum?: ?number, clickable?: ?boolean) {
+function getStyle(
+  type: TextType,
+  negative?: boolean,
+  lineClampNum?: number | null,
+  clickable?: boolean | null
+) {
   const meta = metaData[type]
   const sizeStyle = fontSizeToSizeStyle(meta.fontSize)
   const colorStyle = {color: meta.colorForBackground[negative ? 'negative' : 'positive']}

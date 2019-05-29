@@ -1,30 +1,23 @@
-// @flow
 import * as React from 'react'
 import * as Styles from '../../styles'
-import type {MessageText} from '../../constants/types/chat2'
+import { MessageText } from '../../constants/types/chat2';
 
-type MarkdownComponentType =
-  | 'inline-code'
-  | 'code-block'
-  | 'link'
-  | 'text'
-  | 'bold'
-  | 'italic'
-  | 'strike'
-  | 'emoji'
-  | 'native-emoji'
-  | 'quote-block'
+type MarkdownComponentType = "inline-code" | "code-block" | "link" | "text" | "bold" | "italic" | "strike" | "emoji" | "native-emoji" | "quote-block";
 
 export type MarkdownCreateComponent = (
   type: MarkdownComponentType,
   key: string,
-  children: Array<React.Node>,
-  options: {href?: string, convID?: string, bigEmoji?: boolean}
-) => ?React.Node
+  children: Array<React.ReactNode>,
+  options: {
+    href?: string,
+    convID?: string,
+    bigEmoji?: boolean
+  }
+) => React.ReactNode | null;
 
-export type MarkdownMeta = {|
-  message: MessageText,
-|}
+export type MarkdownMeta = {
+  message: MessageText
+};
 
 export type StyleOverride = {
   paragraph?: Styles.StylesCrossPlatform,
@@ -36,15 +29,15 @@ export type StyleOverride = {
   link?: Styles.StylesCrossPlatform,
   mailto?: Styles.StylesCrossPlatform,
   preview?: Styles.StylesCrossPlatform,
-  kbfsPath?: Styles.StylesCrossPlatform,
-}
+  kbfsPath?: Styles.StylesCrossPlatform
+};
 
-export type Props = {|
+export type Props = {
   children?: string,
   lineClamp?: number,
-  selectable?: boolean, // desktop - applies to outer container only
-  smallStandaloneEmoji?: boolean, // don't increase font size for a standalone emoji
-  preview?: boolean, // if true render a simplified version
+  selectable?: boolean // desktop - applies to outer container only,
+  smallStandaloneEmoji?: boolean // don't increase font size for a standalone emoji,
+  preview?: boolean // if true render a simplified version,
   // Style only styles the top level container.
   // This is only useful in desktop because of cascading styles and there is a top level wrapper.
   // Mobile doesn't have this wrapper (on purpose), so if you want to style the container, do it
@@ -56,11 +49,11 @@ export type Props = {|
   // TODO type this up or remove it
   style?: any,
   allowFontScaling?: boolean,
-  meta?: ?MarkdownMeta,
+  meta?: MarkdownMeta | null,
   // This changes the specific style for specific types of text
   // for example you may want to make paragraphs, italics, etc to be black_50
   // but want blue_30 for the inline code
-  styleOverride?: StyleOverride,
-|}
+  styleOverride?: StyleOverride
+};
 
 export default class Markdown extends React.Component<Props> {}

@@ -1,8 +1,7 @@
-// @flow
 import {globalStyles, globalColors} from '../styles'
-import type {MetaType, TextType, Background} from './text'
+import {MetaType, TextType, Background} from './text'
 
-function defaultColor(backgroundMode: ?Background) {
+function defaultColor(backgroundMode: Background | null) {
   return {
     Announcements: globalColors.white,
     Documentation: globalColors.white,
@@ -23,7 +22,7 @@ const lineClamp = (lines: number) => ({
   wordBreak: 'break-word',
 })
 
-function fontSizeToSizeStyle(fontSize: number): ?Object {
+function fontSizeToSizeStyle(fontSize: number): Object | null {
   const height = {
     '12': 16,
     '13': 17,
@@ -50,7 +49,7 @@ const _blueLink = {
   positive: globalColors.blue,
 }
 
-const metaData: {[key: TextType]: MetaType} = {
+const metaData: {[K in TextType]: MetaType} = {
   Body: {
     colorForBackground: whiteNegative,
     fontSize: 14,

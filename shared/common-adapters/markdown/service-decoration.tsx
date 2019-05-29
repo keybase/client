@@ -1,4 +1,3 @@
-// @flow
 import React from 'react'
 import * as Types from '../../constants/types/chat2'
 import * as WalletTypes from '../../constants/types/wallets'
@@ -10,16 +9,18 @@ import Mention from '../mention-container'
 import Channel from '../channel-container'
 import MaybeMention from '../../chat/conversation/maybe-mention'
 import Text from '../text'
-import {type StyleOverride} from '.'
+import { StyleOverride } from '.';
 
 export type Props = {
   json: string,
   onClick?: () => void,
-  allowFontScaling?: ?boolean,
+  allowFontScaling?: boolean | null,
   message?: Types.MessageText,
   styleOverride: StyleOverride,
-  styles: {[key: string]: Styles.StylesCrossPlatform},
-}
+  styles: {
+    [K in string]: Styles.StylesCrossPlatform;
+  }
+};
 
 const ServiceDecoration = (props: Props) => {
   // Parse JSON to get the type of the decoration

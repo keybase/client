@@ -1,4 +1,3 @@
-// @flow
 import React from 'react'
 import * as Styles from '../../styles'
 import Text from '../text'
@@ -7,9 +6,9 @@ import * as Types from '../../constants/types/fs'
 export type Props = {
   path: Types.Path,
   onClick: () => void,
-  allowFontScaling?: ?boolean,
-  style?: Styles.StylesCrossPlatform,
-}
+  allowFontScaling?: boolean | null,
+  style?: Styles.StylesCrossPlatform
+};
 
 export default (props: Props) => (
   <Text

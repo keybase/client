@@ -1,14 +1,13 @@
-// @flow
 import * as Styles from '../../styles'
 import React, {PureComponent} from 'react'
 import SimpleMarkdown from 'simple-markdown'
 import Text from '../text'
 import logger from '../../logger'
-import type {Props as MarkdownProps} from '.'
+import { Props as MarkdownProps } from '.';
 import {emojiIndexByChar, emojiRegex, commonTlds} from './emoji-gen'
 import {reactOutput, previewOutput, bigEmojiOutput, markdownStyles} from './react'
 
-function createKbfsPathRegex(): ?RegExp {
+function createKbfsPathRegex(): RegExp | null {
   const username = `(?:[a-zA-Z0-9]+_?)+` // from go/kbun/username.go
   const socialAssertion = `[-_a-zA-Z0-9.]+@[a-zA-Z.]+`
   const user = `(?:(?:${username})|(?:${socialAssertion}))`
@@ -24,7 +23,7 @@ const kbfsPathMatcher = SimpleMarkdown.inlineRegex(createKbfsPathRegex())
 
 const serviceBeginDecorationTag = '\\$\\>kb\\$'
 const serviceEndDecorationTag = '\\$\\<kb\\$'
-function createServiceDecorationRegex(): ?RegExp {
+function createServiceDecorationRegex(): RegExp | null {
   return new RegExp(
     `^${serviceBeginDecorationTag}(((?!${serviceEndDecorationTag}).)*)${serviceEndDecorationTag}`
   )
@@ -269,7 +268,9 @@ const isAllEmoji = ast => {
   return false
 }
 
-class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: boolean}> {
+class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {
+  hasError: boolean
+}> {
   state = {hasError: false}
 
   static getDerivedStateFromError() {

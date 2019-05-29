@@ -1,9 +1,8 @@
-// @flow
 import {globalStyles, globalColors} from '../styles'
 
-import type {MetaType, TextType, Background} from './text'
+import { MetaType, TextType, Background } from './text';
 
-function defaultColor(backgroundMode: ?Background) {
+function defaultColor(backgroundMode: Background | null) {
   return {
     Announcements: globalColors.white,
     Documentation: globalColors.white,
@@ -15,13 +14,13 @@ function defaultColor(backgroundMode: ?Background) {
   }[backgroundMode || 'Normal']
 }
 
-function lineClamp(lines: ?number, mode: ?string): Object {
+function lineClamp(lines: number | null, mode: string | null): Object {
   return {
     ...(lines ? {ellipsizeMode: mode, numberOfLines: lines} : null),
   }
 }
 
-function fontSizeToSizeStyle(fontSize: number): ?Object {
+function fontSizeToSizeStyle(fontSize: number): Object | null {
   const lineHeight = {
     '13': 17,
     '15': 19,
@@ -47,7 +46,9 @@ const _blueLink = {
   positive: globalColors.blue,
 }
 
-const metaData: {[key: TextType]: MetaType} = {
+const metaData: {
+  [K in K]: any;
+} = {
   Body: {
     colorForBackground: whiteNegative,
     fontSize: 16,

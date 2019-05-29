@@ -1,4 +1,3 @@
-// @flow
 import * as Styles from '../styles'
 import * as React from 'react'
 // TODO remove this from this component, hook it in externally so we don't have these types of dependencies in storybook
@@ -6,7 +5,7 @@ import openURL from '../util/open-url'
 import {fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.desktop'
 import shallowEqual from 'shallowequal'
 
-import type {Props, TextType} from './text'
+import {Props, TextType} from './text'
 
 class Text extends React.Component<Props> {
   _spanRef = React.createRef()
@@ -14,7 +13,7 @@ class Text extends React.Component<Props> {
   highlightText() {
     const el = this._spanRef.current
     const range = document.createRange()
-    // $FlowIssue
+    // @ts-ignore
     range.selectNodeContents(el)
 
     const sel = window.getSelection()
@@ -60,10 +59,10 @@ class Text extends React.Component<Props> {
     const style = Styles.collapseStyles([
       fastGetStyle(
         this.props.type,
+        this.props.selectable,
         this.props.negative,
         this.props.lineClamp,
-        !!this.props.onClick,
-        this.props.selectable
+        !!this.props.onClick
       ),
       this.props.style,
     ])
@@ -71,7 +70,7 @@ class Text extends React.Component<Props> {
     return (
       <span
         title={this.props.title}
-        ref={this.props.allowHighlightText ? this._spanRef : undefined}
+        ref={this.props.allowHighlightText ? this._spanRef : null}
         className={this._className(this.props)}
         onClick={this.props.onClick || (this.props.onClickURL && this._urlClick)}
         style={style}
@@ -85,10 +84,10 @@ class Text extends React.Component<Props> {
 // Only used by this file, other things (input etc) refer to this. TODO likely discuss and change how this works
 function fastGetStyle(
   type: TextType,
+  selectable: boolean | null,
   negative?: boolean,
-  lineClampNum?: ?number,
-  clickable?: ?boolean,
-  selectable: ?boolean
+  lineClampNum?: number | null,
+  clickable?: boolean | null
 ) {
   const meta = metaData[type]
   // positive color is in css
@@ -115,10 +114,10 @@ function fastGetStyle(
 // Only used by external components
 function externalGetStyle(
   type: TextType,
+  selectable: boolean | null,
   negative?: boolean,
-  lineClampNum?: ?number,
-  clickable?: ?boolean,
-  selectable: ?boolean
+  lineClampNum?: number | null,
+  clickable?: boolean | null
 ) {
   const meta = metaData[type]
   const sizeStyle = fontSizeToSizeStyle(meta.fontSize)

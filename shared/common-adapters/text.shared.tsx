@@ -1,5 +1,4 @@
-// @flow
-import type {Background} from './text'
+import { Background } from './text';
 /* eslint-disable sort-keys */
 export const allTextTypes = {
   Body: 'Body',
@@ -43,4 +42,4 @@ export const allTextTypes = {
   TerminalInline: 'TerminalInline',
 }
 
-export const backgroundModeIsNegative = (bm: ?Background) => !!bm && !['Normal', 'Information'].includes(bm)
+export const backgroundModeIsNegative = (bm: Background | null) => !!bm && !['Normal', 'Information'].includes(bm)
