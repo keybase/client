@@ -5,6 +5,7 @@ import {Box, Icon, ClickableBox, Text, IconType} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, transition, isMobile, platformStyles} from '../../styles'
 
 type Props = {
+  // eslint-disable-next-line
   selectedService: Types.Service
   onSelectService: (service: Types.Service) => void
 }
