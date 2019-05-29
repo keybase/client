@@ -30,16 +30,16 @@ const ServiceDecoration = (props: Props) => {
   } catch (e) {
     return null
   }
-  if (parsed.typ === RPCChatTypes.chatUiUITextDecorationTyp.payment && parsed.payment && props.message) {
+  if (parsed.typ === RPCChatTypes.UITextDecorationTyp.payment && parsed.payment && props.message) {
     let paymentID: WalletTypes.PaymentID
     let error
     if (
-      parsed.payment.result.resultTyp === RPCChatTypes.localTextPaymentResultTyp.sent &&
+      parsed.payment.result.resultTyp === RPCChatTypes.TextPaymentResultTyp.sent &&
       parsed.payment.result.sent
     ) {
       paymentID = WalletTypes.rpcPaymentIDToPaymentID(parsed.payment.result.sent)
     } else if (
-      parsed.payment.result.resultTyp === RPCChatTypes.localTextPaymentResultTyp.error &&
+      parsed.payment.result.resultTyp === RPCChatTypes.TextPaymentResultTyp.error &&
       parsed.payment.result.error
     ) {
       error = parsed.payment.result.error
@@ -55,7 +55,7 @@ const ServiceDecoration = (props: Props) => {
         message={props.message}
       />
     )
-  } else if (parsed.typ === RPCChatTypes.chatUiUITextDecorationTyp.atmention && parsed.atmention) {
+  } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.atmention && parsed.atmention) {
     return (
       <Mention
         allowFontScaling={props.allowFontScaling || false}
@@ -63,7 +63,7 @@ const ServiceDecoration = (props: Props) => {
         username={parsed.atmention}
       />
     )
-  } else if (parsed.typ === RPCChatTypes.chatUiUITextDecorationTyp.maybemention && parsed.maybemention) {
+  } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.maybemention && parsed.maybemention) {
     return (
       <MaybeMention
         allowFontScaling={props.allowFontScaling || false}
@@ -72,7 +72,7 @@ const ServiceDecoration = (props: Props) => {
         channel={parsed.maybemention.channel}
       />
     )
-  } else if (parsed.typ === RPCChatTypes.chatUiUITextDecorationTyp.link && parsed.link) {
+  } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.link && parsed.link) {
     return (
       <Text
         className="hover-underline"
@@ -85,7 +85,7 @@ const ServiceDecoration = (props: Props) => {
         {parsed.link.display}
       </Text>
     )
-  } else if (parsed.typ === RPCChatTypes.chatUiUITextDecorationTyp.mailto && parsed.mailto) {
+  } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.mailto && parsed.mailto) {
     return (
       <Text
         className="hover-underline"
@@ -99,7 +99,7 @@ const ServiceDecoration = (props: Props) => {
       </Text>
     )
   } else if (
-    parsed.typ === RPCChatTypes.chatUiUITextDecorationTyp.channelnamemention &&
+    parsed.typ === RPCChatTypes.UITextDecorationTyp.channelnamemention &&
     parsed.channelnamemention
   ) {
     return (

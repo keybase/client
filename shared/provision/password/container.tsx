@@ -77,8 +77,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
     dispatch(ProvisionGen.createSubmitPassword({password: new HiddenString(password)})),
 })
 
-// @ts-ignore codemode issue
-export default connect<OwnProps, _, _, _, _>(
+export default connect(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d})

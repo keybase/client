@@ -77,9 +77,7 @@ function* toggleNotifications(state) {
         // Special case this since it will go to chat settings endpoint
         group.settings.forEach(
           setting =>
-            (chatGlobalArg[
-              `${ChatTypes.commonGlobalAppNotificationSetting[setting.name]}`
-            ] = !!setting.subscribed)
+            (chatGlobalArg[`${ChatTypes.GlobalAppNotificationSetting[setting.name]}`] = !!setting.subscribed)
         )
       } else {
         group.settings.forEach(setting =>
@@ -309,22 +307,20 @@ function* refreshNotifications() {
         description: 'Display mobile plaintext notifications',
         name: 'plaintextmobile',
         subscribed: !!chatGlobalSettings.settings[
-          `${ChatTypes.commonGlobalAppNotificationSetting.plaintextmobile}`
+          `${ChatTypes.GlobalAppNotificationSetting.plaintextmobile}`
         ],
       },
       {
         description: 'Display desktop plaintext notifications',
         name: 'plaintextdesktop',
         subscribed: !!chatGlobalSettings.settings[
-          `${ChatTypes.commonGlobalAppNotificationSetting.plaintextdesktop}`
+          `${ChatTypes.GlobalAppNotificationSetting.plaintextdesktop}`
         ],
       },
       {
         description: 'Disable sending/receiving typing notifications',
         name: 'disabletyping',
-        subscribed: !!chatGlobalSettings.settings[
-          `${ChatTypes.commonGlobalAppNotificationSetting.disabletyping}`
-        ],
+        subscribed: !!chatGlobalSettings.settings[`${ChatTypes.GlobalAppNotificationSetting.disabletyping}`],
       },
       ...(isAndroidNewerThanN
         ? []
@@ -333,7 +329,7 @@ function* refreshNotifications() {
               description: 'Use mobile system default notification sound',
               name: 'defaultsoundmobile',
               subscribed: !!chatGlobalSettings.settings[
-                `${ChatTypes.commonGlobalAppNotificationSetting.defaultsoundmobile}`
+                `${ChatTypes.GlobalAppNotificationSetting.defaultsoundmobile}`
               ],
             },
           ]),

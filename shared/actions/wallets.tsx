@@ -31,7 +31,7 @@ const stateToBuildRequestParams = state => ({
 })
 
 const buildErrCatcher = err => {
-  if (err instanceof RPCError && err.code === RPCTypes.constantsStatusCode.sccanceled) {
+  if (err instanceof RPCError && err.code === RPCTypes.StatusCode.sccanceled) {
     // ignore cancellation
   } else {
     logger.error(`buildPayment error: ${err.message}`)
@@ -75,13 +75,18 @@ const buildPayment = (state, action: WalletsGen.BuildPaymentPayload) =>
       )
   ).catch(buildErrCatcher)
 
-const spawnBuildPayment = (state, action: WalletsGen.SetBuildingAmountPayload
-  | WalletsGen.SetBuildingCurrencyPayload
-  | WalletsGen.SetBuildingFromPayload
-  | WalletsGen.SetBuildingIsRequestPayload
-  | WalletsGen.SetBuildingToPayload
-  | WalletsGen.DisplayCurrencyReceivedPayload
-  | WalletsGen.BuildingPaymentIDReceivedPayload, logger) => {
+const spawnBuildPayment = (
+  state,
+  action:
+    | WalletsGen.SetBuildingAmountPayload
+    | WalletsGen.SetBuildingCurrencyPayload
+    | WalletsGen.SetBuildingFromPayload
+    | WalletsGen.SetBuildingIsRequestPayload
+    | WalletsGen.SetBuildingToPayload
+    | WalletsGen.DisplayCurrencyReceivedPayload
+    | WalletsGen.BuildingPaymentIDReceivedPayload,
+  logger
+) => {
   if (!state.config.loggedIn) {
     logger.error('not logged in')
     return
@@ -243,7 +248,7 @@ const reviewPayment = state =>
     bid: state.wallets.building.bid,
     reviewID: state.wallets.reviewCounter,
   }).catch(error => {
-    if (error instanceof RPCError && error.code === RPCTypes.constantsStatusCode.sccanceled) {
+    if (error instanceof RPCError && error.code === RPCTypes.StatusCode.sccanceled) {
       // ignore cancellation, which is expected in the case where we have a
       // failing review and then we build or stop a payment
     } else {
@@ -267,11 +272,16 @@ const loadWalletDisclaimer = state =>
     .then(accepted => WalletsGen.createWalletDisclaimerReceived({accepted}))
     .catch(() => {}) // handled by reloadable
 
-const loadAccounts = (state, action: WalletsGen.LoadAccountsPayload
-  | WalletsGen.CreatedNewAccountPayload
-  | WalletsGen.LinkedExistingAccountPayload
-  | WalletsGen.ChangedAccountNamePayload
-  | WalletsGen.DeletedAccountPayload, logger) => {
+const loadAccounts = (
+  state,
+  action:
+    | WalletsGen.LoadAccountsPayload
+    | WalletsGen.CreatedNewAccountPayload
+    | WalletsGen.LinkedExistingAccountPayload
+    | WalletsGen.ChangedAccountNamePayload
+    | WalletsGen.DeletedAccountPayload,
+  logger
+) => {
   if (!state.config.loggedIn) {
     logger.error('not logged in')
     return
@@ -329,11 +339,16 @@ type LoadAssetsActions =
   | WalletsGen.LinkedExistingAccountPayload
   | WalletsGen.AccountUpdateReceivedPayload
   | WalletsGen.AccountsReceivedPayload
-const loadAssets = (state, action: WalletsGen.LoadAssetsPayload
-  | WalletsGen.SelectAccountPayload
-  | WalletsGen.LinkedExistingAccountPayload
-  | WalletsGen.AccountUpdateReceivedPayload
-  | WalletsGen.AccountsReceivedPayload, logger) => {
+const loadAssets = (
+  state,
+  action:
+    | WalletsGen.LoadAssetsPayload
+    | WalletsGen.SelectAccountPayload
+    | WalletsGen.LinkedExistingAccountPayload
+    | WalletsGen.AccountUpdateReceivedPayload
+    | WalletsGen.AccountsReceivedPayload,
+  logger
+) => {
   if (actionHasError(action)) {
     return
   }
@@ -431,7 +446,10 @@ const loadMorePayments = (state, action: WalletsGen.LoadMorePaymentsPayload, log
 }
 
 // We only need to load these once per session
-const loadDisplayCurrencies = (state, action: WalletsGen.LoadDisplayCurrenciesPayload | WalletsGen.OpenSendRequestFormPayload) =>
+const loadDisplayCurrencies = (
+  state,
+  action: WalletsGen.LoadDisplayCurrenciesPayload | WalletsGen.OpenSendRequestFormPayload
+) =>
   !Constants.displayCurrenciesLoaded(state) &&
   RPCStellarTypes.localGetDisplayCurrenciesLocalRpcPromise().then(res =>
     WalletsGen.createDisplayCurrenciesReceived({
@@ -884,7 +902,11 @@ const maybeNavToLinkExisting = (state, action: WalletsGen.CheckDisclaimerPayload
 const rejectDisclaimer = (state, action: WalletsGen.RejectDisclaimerPayload) =>
   isMobile ? RouteTreeGen.createNavigateUp() : RouteTreeGen.createClearModals()
 
-const loadMobileOnlyMode = (state, action: WalletsGen.LoadMobileOnlyModePayload | WalletsGen.SelectAccountPayload, logger) => {
+const loadMobileOnlyMode = (
+  state,
+  action: WalletsGen.LoadMobileOnlyModePayload | WalletsGen.SelectAccountPayload,
+  logger
+) => {
   let accountID = action.payload.accountID
   if (!accountID || accountID === Types.noAccountID) {
     logger.warn('invalid account ID, bailing')
@@ -966,7 +988,11 @@ type AirdropDetailsJSONType = {
   } | null> | null
 } | null
 
-const updateAirdropDetails = (_, __: WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload, logger) =>
+const updateAirdropDetails = (
+  _,
+  __: WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload,
+  logger
+) =>
   RPCStellarTypes.localAirdropDetailsLocalRpcPromise(undefined, Constants.airdropWaitingKey)
     .then(s => {
       const json: AirdropDetailsJSONType = JSON.parse(s)
@@ -1015,7 +1041,11 @@ const updateAirdropDetails = (_, __: WalletsGen.UpdateAirdropStatePayload | Conf
       logger.info(e)
     })
 
-const updateAirdropState = (_, __: WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload, logger) =>
+const updateAirdropState = (
+  _,
+  __: WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload,
+  logger
+) =>
   RPCStellarTypes.localAirdropStatusLocalRpcPromise(undefined, Constants.airdropWaitingKey)
     .then(({state, rows}) => {
       let airdropState = 'loading'

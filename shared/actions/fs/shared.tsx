@@ -10,7 +10,7 @@ const expectedOfflineErrorMatchers = [
   /context deadline exceeded/,
 ]
 
-const expectedOfflineErrorCodes = [RPCTypes.constantsStatusCode.scapinetworkerror]
+const expectedOfflineErrorCodes = [RPCTypes.StatusCode.scapinetworkerror]
 
 const makeErrorHandler = (action: FsGen.Actions, path: Types.Path | null, retriable: boolean) => (
   error: any

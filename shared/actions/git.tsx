@@ -73,9 +73,9 @@ const setTeamRepoSettings = (_, action: GitGen.SetTeamRepoSettingsPayload) =>
     channelName: action.payload.channelName,
     chatDisabled: action.payload.chatDisabled,
     folder: {
-      conflictType: RPCTypes.favoriteFolderConflictType.none,
+      conflictType: RPCTypes.FolderConflictType.none,
       created: false,
-      folderType: RPCTypes.favoriteFolderType.team,
+      folderType: RPCTypes.FolderType.team,
       name: action.payload.teamname,
       notificationsOn: false,
       private: true,

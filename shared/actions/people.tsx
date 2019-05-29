@@ -34,10 +34,10 @@ const getPeopleData = (state, action: PeopleGen.GetPeopleDataPayload) => {
       const following = state.config.following
       const followers = state.config.followers
       const oldItems: I.List<Types.PeopleScreenItem> = (data.items || [])
-        .filter(item => !item.badged && item.data.t !== RPCTypes.homeHomeScreenItemType.todo)
+        .filter(item => !item.badged && item.data.t !== RPCTypes.HomeScreenItemType.todo)
         .reduce(Constants.reduceRPCItemToPeopleItem, I.List())
       let newItems: I.List<Types.PeopleScreenItem> = (data.items || [])
-        .filter(item => item.badged || item.data.t === RPCTypes.homeHomeScreenItemType.todo)
+        .filter(item => item.badged || item.data.t === RPCTypes.HomeScreenItemType.todo)
         .reduce(Constants.reduceRPCItemToPeopleItem, I.List())
 
       if (debugTodo) {
@@ -105,7 +105,7 @@ const markViewed = () =>
 
 const skipTodo = (_, action: PeopleGen.SkipTodoPayload) =>
   RPCTypes.homeHomeSkipTodoTypeRpcPromise({
-    t: RPCTypes.homeHomeScreenTodoType[action.payload.type],
+    t: RPCTypes.HomeScreenTodoType[action.payload.type],
   }).then(() =>
     // TODO get rid of this load and have core send us a homeUIRefresh
     PeopleGen.createGetPeopleData({
@@ -129,9 +129,9 @@ const connected = () => {
 }
 
 const networkErrors = [
-  RPCTypes.constantsStatusCode.scgenericapierror,
-  RPCTypes.constantsStatusCode.scapinetworkerror,
-  RPCTypes.constantsStatusCode.sctimeout,
+  RPCTypes.StatusCode.scgenericapierror,
+  RPCTypes.StatusCode.scapinetworkerror,
+  RPCTypes.StatusCode.sctimeout,
 ]
 
 const peopleSaga = function*(): Saga.SagaGenerator<any, any> {

@@ -477,7 +477,6 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 				if err == nil {
 					maxAge = gregor1.ToDurationSec(dur)
 				}
-				break
 			}
 		}
 		return ChatEphemeralRetentionPolicyViolatedError{maxAge}
@@ -1532,7 +1531,6 @@ func (a PGPGenArg) ExportTo(ret *keybase1.PGPKeyGenArg) {
 	ret.PrimaryBits = a.PrimaryBits
 	ret.SubkeyBits = a.SubkeyBits
 	ret.CreateUids = keybase1.PGPCreateUids{Ids: a.Ids.Export()}
-	return
 }
 
 //=============================================================================
@@ -1541,7 +1539,7 @@ func ImportKeyGenArg(a keybase1.PGPKeyGenArg) (ret PGPGenArg) {
 	ret.PrimaryBits = a.PrimaryBits
 	ret.SubkeyBits = a.SubkeyBits
 	ret.Ids = ImportPGPIdentities(a.CreateUids.Ids)
-	return
+	return ret
 }
 
 //=============================================================================
@@ -1550,30 +1548,30 @@ func (t Tracker) Export() keybase1.Tracker { return keybase1.Tracker(t) }
 
 //=============================================================================
 
-func (e BadInvitationCodeError) ToStatus(s keybase1.Status) {
+func (e BadInvitationCodeError) ToStatus() (s keybase1.Status) {
 	s.Code = SCBadInvitationCode
 	s.Name = "BAD_INVITATION_CODE"
-	return
+	return s
 }
 
 //=============================================================================
 
-func (e StreamExistsError) ToStatus(s keybase1.Status) {
+func (e StreamExistsError) ToStatus() (s keybase1.Status) {
 	s.Code = SCStreamExists
 	s.Name = "STREAM_EXISTS"
-	return
+	return s
 }
 
-func (e StreamNotFoundError) ToStatus(s keybase1.Status) {
+func (e StreamNotFoundError) ToStatus() (s keybase1.Status) {
 	s.Code = SCStreamNotFound
 	s.Name = "SC_STREAM_NOT_FOUND"
-	return
+	return s
 }
 
-func (e StreamWrongKindError) ToStatus(s keybase1.Status) {
+func (e StreamWrongKindError) ToStatus() (s keybase1.Status) {
 	s.Code = SCStreamWrongKind
 	s.Name = "STREAM_WRONG_KIND"
-	return
+	return s
 }
 
 //=============================================================================
@@ -1581,7 +1579,7 @@ func (e StreamWrongKindError) ToStatus(s keybase1.Status) {
 func (u NoSecretKeyError) ToStatus() (s keybase1.Status) {
 	s.Code = SCKeyNoSecret
 	s.Name = "KEY_NO_SECRET"
-	return
+	return s
 }
 
 //=============================================================================
@@ -1590,7 +1588,7 @@ func (u LoginRequiredError) ToStatus() (s keybase1.Status) {
 	s.Code = SCLoginRequired
 	s.Name = "LOGIN_REQUIRED"
 	s.Desc = u.Context
-	return
+	return s
 }
 
 //=============================================================================
@@ -1598,7 +1596,7 @@ func (u LoginRequiredError) ToStatus() (s keybase1.Status) {
 func (u NoSessionError) ToStatus() (s keybase1.Status) {
 	s.Code = SCNoSession
 	s.Name = "NO_SESSION"
-	return
+	return s
 }
 
 //=============================================================================
@@ -1607,35 +1605,35 @@ func (e APINetError) ToStatus() (s keybase1.Status) {
 	s.Code = SCAPINetworkError
 	s.Name = "API_NETWORK_ERROR"
 	s.Desc = e.Error()
-	return
+	return s
 }
 
 func (e ProofNotFoundForServiceError) ToStatus() (s keybase1.Status) {
 	s.Code = SCProofError
 	s.Name = "PROOF_ERROR"
 	s.Desc = e.Error()
-	return
+	return s
 }
 
 func (e ProofNotFoundForUsernameError) ToStatus() (s keybase1.Status) {
 	s.Code = SCProofError
 	s.Name = "PROOF_ERROR"
 	s.Desc = e.Error()
-	return
+	return s
 }
 
 func (e NoDecryptionKeyError) ToStatus() (s keybase1.Status) {
 	s.Code = SCDecryptionKeyNotFound
 	s.Name = "KEY_NOT_FOUND_DECRYPTION"
 	s.Desc = e.Msg
-	return
+	return s
 }
 
 func (e NoKeyError) ToStatus() (s keybase1.Status) {
 	s.Code = SCKeyNotFound
 	s.Name = "KEY_NOT_FOUND"
 	s.Desc = e.Msg
-	return
+	return s
 }
 
 func (e NoSyncedPGPKeyError) ToStatus() keybase1.Status {

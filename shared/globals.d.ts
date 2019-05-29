@@ -1,8 +1,8 @@
+declare var __VERSION__: string
 declare var __DEV__: boolean
 declare var __STORYBOOK__: boolean
 declare var __STORYSHOT__: boolean
 declare var __VERSION__: any
-type Omit<T, K> = Pick<T, Exclude<keyof T, K>>
 
 type RequestIdleCallbackHandle = any
 type RequestIdleCallbackOptions = {

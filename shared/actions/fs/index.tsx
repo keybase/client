@@ -12,6 +12,7 @@ import * as Flow from '../../util/flow'
 import * as Tabs from '../../constants/tabs'
 import * as NotificationsGen from '../notifications-gen'
 import * as Types from '../../constants/types/fs'
+import {TypedActions} from '../typed-actions-gen'
 import logger from '../../logger'
 import platformSpecificSaga from './platform-specific'
 import {getContentTypeFromURL} from '../platform-specific'
@@ -22,11 +23,11 @@ import flags from '../../util/feature-flags'
 
 const rpcFolderTypeToTlfType = (rpcFolderType: RPCTypes.FolderType) => {
   switch (rpcFolderType) {
-    case RPCTypes.favoriteFolderType.private:
+    case RPCTypes.FolderType.private:
       return 'private'
-    case RPCTypes.favoriteFolderType.public:
+    case RPCTypes.FolderType.public:
       return 'public'
-    case RPCTypes.favoriteFolderType.team:
+    case RPCTypes.FolderType.team:
       return 'team'
     default:
       return null
@@ -78,19 +79,22 @@ const loadFavorites = (state, action: FsGen.FavoritesLoadPayload) =>
       }
     )
     return FsGen.createFavoritesLoaded({
+      // @ts-ignore asImmutable returns a weak type
       private: mutablePayload.private.asImmutable(),
+      // @ts-ignore asImmutable returns a weak type
       public: mutablePayload.public.asImmutable(),
+      // @ts-ignore asImmutable returns a weak type
       team: mutablePayload.team.asImmutable(),
     })
   })
 
 const getSyncConfigFromRPC = (tlfName, tlfType, config: RPCTypes.FolderSyncConfig): Types.TlfSyncConfig => {
   switch (config.mode) {
-    case RPCTypes.simpleFSFolderSyncMode.disabled:
+    case RPCTypes.FolderSyncMode.disabled:
       return Constants.tlfSyncDisabled
-    case RPCTypes.simpleFSFolderSyncMode.enabled:
+    case RPCTypes.FolderSyncMode.enabled:
       return Constants.tlfSyncEnabled
-    case RPCTypes.simpleFSFolderSyncMode.partial:
+    case RPCTypes.FolderSyncMode.partial:
       return Constants.makeTlfSyncPartial({
         enabledPaths: config.paths
           ? I.List(config.paths.map(str => Types.getPathFromRelative(tlfName, tlfType, str)))
@@ -128,8 +132,11 @@ const loadSyncConfigForAllTlfs = (state, action: FsGen.FavoritesLoadedPayload) =
       }
     )
     return FsGen.createTlfSyncConfigsForAllSyncEnabledTlfsLoaded({
+      // @ts-ignore asImmutable returns a weak type
       private: payloadMutable.private.asImmutable(),
+      // @ts-ignore asImmutable returns a weak type
       public: payloadMutable.public.asImmutable(),
+      // @ts-ignore asImmutable returns a weak type
       team: payloadMutable.team.asImmutable(),
     })
   })
@@ -158,9 +165,7 @@ const setTlfSyncConfig = (state, action: FsGen.SetTlfSyncConfigPayload) =>
   RPCTypes.SimpleFSSimpleFSSetFolderSyncConfigRpcPromise(
     {
       config: {
-        mode: action.payload.enabled
-          ? RPCTypes.simpleFSFolderSyncMode.enabled
-          : RPCTypes.simpleFSFolderSyncMode.disabled,
+        mode: action.payload.enabled ? RPCTypes.FolderSyncMode.enabled : RPCTypes.FolderSyncMode.disabled,
       },
       path: Constants.pathToRPCPath(action.payload.tlfPath),
     },
@@ -192,16 +197,16 @@ const getPrefetchStatusFromRPC = (
   prefetchProgress: RPCTypes.PrefetchProgress
 ) => {
   switch (prefetchStatus) {
-    case RPCTypes.simpleFSPrefetchStatus.notStarted:
+    case RPCTypes.PrefetchStatus.notStarted:
       return Constants.prefetchNotStarted
-    case RPCTypes.simpleFSPrefetchStatus.inProgress:
+    case RPCTypes.PrefetchStatus.inProgress:
       return Constants.makePrefetchInProgress({
         bytesFetched: prefetchProgress.bytesFetched,
         bytesTotal: prefetchProgress.bytesTotal,
         endEstimate: prefetchProgress.endEstimate,
         startTime: prefetchProgress.start,
       })
-    case RPCTypes.simpleFSPrefetchStatus.complete:
+    case RPCTypes.PrefetchStatus.complete:
       return Constants.prefetchComplete
     default:
       // @ts-ignore the const objects aren't flow-friendly.
@@ -221,19 +226,19 @@ const direntToMetadata = (d: RPCTypes.Dirent) => ({
 
 const makeEntry = (d: RPCTypes.Dirent, children?: Set<string>) => {
   switch (d.direntType) {
-    case RPCTypes.simpleFSDirentType.dir:
+    case RPCTypes.DirentType.dir:
       return Constants.makeFolder({
         ...direntToMetadata(d),
         children: I.Set(children),
         progress: children ? 'loaded' : undefined,
       })
-    case RPCTypes.simpleFSDirentType.sym:
+    case RPCTypes.DirentType.sym:
       return Constants.makeSymlink({
         ...direntToMetadata(d),
         // TODO: plumb link target
       })
-    case RPCTypes.simpleFSDirentType.file:
-    case RPCTypes.simpleFSDirentType.exec:
+    case RPCTypes.DirentType.file:
+    case RPCTypes.DirentType.exec:
       return Constants.makeFile(direntToMetadata(d))
     default:
       return Constants.makeUnknownPathItem(direntToMetadata(d))
@@ -273,7 +278,7 @@ function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessP
     const pathElems = Types.getPathElements(rootPath)
     if (pathElems.length < 3) {
       yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSListRpcPromise, {
-        filter: RPCTypes.simpleFSListFilter.filterSystemHidden,
+        filter: RPCTypes.ListFilter.filterSystemHidden,
         opID,
         path: Constants.pathToRPCPath(rootPath),
         refreshSubscription: !!refreshTag,
@@ -281,7 +286,7 @@ function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessP
     } else {
       yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSListRecursiveToDepthRpcPromise, {
         depth: 1,
-        filter: RPCTypes.simpleFSListFilter.filterSystemHidden,
+        filter: RPCTypes.ListFilter.filterSystemHidden,
         opID,
         path: Constants.pathToRPCPath(rootPath),
         refreshSubscription: !!refreshTag,
@@ -417,7 +422,7 @@ function* download(state, action: FsGen.DownloadPayload | FsGen.ShareNativePaylo
 
   yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise, {
     dest: {
-      PathType: RPCTypes.simpleFSPathType.local,
+      PathType: RPCTypes.PathType.local,
       local: localPath,
     },
     opID,
@@ -470,7 +475,7 @@ function* upload(_, action: FsGen.UploadPayload) {
     dest: Constants.pathToRPCPath(path),
     opID,
     src: {
-      PathType: RPCTypes.simpleFSPathType.local,
+      PathType: RPCTypes.PathType.local,
       local: Types.getNormalizedLocalPath(localPath),
     },
   })
@@ -514,7 +519,7 @@ function* pollJournalFlushStatusUntilDone(_, action: EngineGen.Keybase1NotifyFSF
       let {syncingPaths, totalSyncingBytes, endEstimate}: RPCTypes.FSSyncStatus = yield* Saga.callPromise(
         RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise,
         {
-          filter: RPCTypes.simpleFSListFilter.filterSystemHidden,
+          filter: RPCTypes.ListFilter.filterSystemHidden,
         }
       )
       yield Saga.sequentially([
@@ -702,7 +707,7 @@ const commitEdit = (state, action: FsGen.CommitEditPayload) => {
     case 'new-folder':
       return RPCTypes.SimpleFSSimpleFSOpenRpcPromise({
         dest: Constants.pathToRPCPath(Types.pathConcat(parentPath, name)),
-        flags: RPCTypes.simpleFSOpenFlags.directory,
+        flags: RPCTypes.OpenFlags.directory,
         opID: Constants.makeUUID(),
       })
         .then(() => FsGen.createEditSuccess({editID, parentPath}))
@@ -710,7 +715,7 @@ const commitEdit = (state, action: FsGen.CommitEditPayload) => {
     default:
       // @ts-ignore codemod-issue
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(type)
-      return new Promise(resolve => resolve())
+      return new Promise(resolve => resolve([]))
   }
 }
 
@@ -792,13 +797,13 @@ const moveOrCopy = (state, action: FsGen.MovePayload | FsGen.CopyPayload) => {
         ? Constants.pathToRPCPath(state.fs.destinationPicker.source.path)
         : state.fs.destinationPicker.source.type === 'incoming-share'
         ? {
-            PathType: RPCTypes.simpleFSPathType.local,
+            PathType: RPCTypes.PathType.local,
             local: Types.localPathToString(state.fs.destinationPicker.source.localPath),
           }
         : {
             // This case isn't possible but must be handled for Flow to be
             // happy.
-            PathType: RPCTypes.simpleFSPathType.kbfs,
+            PathType: RPCTypes.PathType.kbfs,
             kbfs: null,
           },
   }
@@ -844,13 +849,13 @@ const initSendLinkToChat = (state, action: FsGen.InitSendLinkToChatPayload) => {
   if (elems[1] !== 'team') {
     // It's an impl team conversation. So resolve to a convID directly.
     return RPCChatTypes.localFindConversationsLocalRpcPromise({
-      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-      membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
+      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+      membersType: RPCChatTypes.ConversationMembersType.impteamnative,
       oneChatPerTLF: false,
       tlfName: elems[2].replace('#', ','),
       topicName: '',
-      topicType: RPCChatTypes.commonTopicType.chat,
-      visibility: RPCTypes.commonTLFVisibility.private,
+      topicType: RPCChatTypes.TopicType.chat,
+      visibility: RPCTypes.TLFVisibility.private,
     }).then(result =>
       // This action, no matter setting a real idKey or
       // noConversationIDKey, causes a transition into 'read-to-send'
@@ -872,9 +877,9 @@ const initSendLinkToChat = (state, action: FsGen.InitSendLinkToChatPayload) => {
   // out to feel slow, we can probably cahce the results.
 
   return RPCChatTypes.localGetTLFConversationsLocalRpcPromise({
-    membersType: RPCChatTypes.commonConversationMembersType.team,
+    membersType: RPCChatTypes.ConversationMembersType.team,
     tlfName: elems[2],
-    topicType: RPCChatTypes.commonTopicType.chat,
+    topicType: RPCChatTypes.TopicType.chat,
   }).then(result =>
     !result.convs || !result.convs.length
       ? null // TODO: is this possible for teams at all?
@@ -882,7 +887,7 @@ const initSendLinkToChat = (state, action: FsGen.InitSendLinkToChatPayload) => {
           FsGen.createSetSendLinkToChatChannels({
             channels: I.Map(
               result.convs
-                .filter(conv => conv.memberStatus === RPCChatTypes.commonConversationMemberStatus.active)
+                .filter(conv => conv.memberStatus === RPCChatTypes.ConversationMemberStatus.active)
                 .map(conv => [ChatTypes.stringToConversationIDKey(conv.convID), conv.channel])
             ),
           }),
@@ -913,11 +918,11 @@ const triggerSendLinkToChat = (state, action: FsGen.TriggerSendLinkToChatPayload
       })
     : RPCChatTypes.localNewConversationLocalRpcPromise({
         // It's an impl team conversation. So first make sure it exists.
-        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-        membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
+        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+        membersType: RPCChatTypes.ConversationMembersType.impteamnative,
         tlfName: elems[2].replace('#', ','),
-        tlfVisibility: RPCTypes.commonTLFVisibility.private,
-        topicType: RPCChatTypes.commonTopicType.chat,
+        tlfVisibility: RPCTypes.TLFVisibility.private,
+        topicType: RPCChatTypes.TopicType.chat,
       }).then(result => ({
         conversationIDKey: ChatTypes.conversationIDToKey(result.conv.info.id),
         tlfName: result.conv.info.tlfName,
@@ -930,7 +935,7 @@ const triggerSendLinkToChat = (state, action: FsGen.TriggerSendLinkToChatPayload
         clientPrev: ChatConstants.getClientPrev(state, conversationIDKey),
         conversationID: ChatTypes.keyToConversationID(conversationIDKey),
         ephemeralLifetime: ChatConstants.getConversationExplodingMode(state, conversationIDKey) || undefined,
-        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
         outboxID: null,
         replyTo: null,
         tlfName,
@@ -955,7 +960,7 @@ const waitForKbfsDaemon = (state, action: ConfigGen.InstallerRanPayload | FsGen.
   }
   waitForKbfsDaemonOnFly = true
   return RPCTypes.configWaitForClientRpcPromise({
-    clientType: RPCTypes.commonClientType.kbfs,
+    clientType: RPCTypes.ClientType.kbfs,
     timeout: 20, // 20sec
   })
     .then(connected => {

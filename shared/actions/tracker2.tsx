@@ -141,7 +141,7 @@ function* load(state, action: Tracker2Gen.LoadPayload) {
       })
     )
   } catch (err) {
-    if (err.code === RPCTypes.constantsStatusCode.scresolutionfailed) {
+    if (err.code === RPCTypes.StatusCode.scresolutionfailed) {
       yield Saga.put(
         Tracker2Gen.createUpdateResult({guiID: action.payload.guiID, reason: null, result: 'notAUserYet'})
       )

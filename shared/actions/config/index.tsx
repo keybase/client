@@ -469,13 +469,13 @@ function* criticalOutOfDateCheck() {
       let status: ConfigGen.UpdateCriticalCheckStatusPayload['payload']['status'] = 'ok'
       let message = ''
       switch (s.status) {
-        case RPCTypes.configUpdateInfoStatus2.ok:
+        case RPCTypes.UpdateInfoStatus2.ok:
           break
-        case RPCTypes.configUpdateInfoStatus2.suggested:
+        case RPCTypes.UpdateInfoStatus2.suggested:
           status = 'suggested'
           message = s.suggested === null || s.suggested === undefined ? undefined : s.suggested.message // Auto generated from flowToTs. Please clean me!
           break
-        case RPCTypes.configUpdateInfoStatus2.critical:
+        case RPCTypes.UpdateInfoStatus2.critical:
           status = 'critical'
           message = s.critical === null || s.critical === undefined ? undefined : s.critical.message // Auto generated from flowToTs. Please clean me!
           break

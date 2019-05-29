@@ -1,8 +1,8 @@
 import {TypedActions} from '../actions/typed-actions-gen'
 import {TypedState} from '../constants/reducer'
-import {RouteProps} from '../route-tree/render-route'
-import {PropsWithSafeNavigation} from './safe-navigation'
-import {constantsStatusCode} from '../constants/types/rpc-gen'
+import {RouteProps as _RouteProps} from '../route-tree/render-route'
+import {PropsWithSafeNavigation as _PropsWithSafeNavigation} from './safe-navigation'
+import {StatusCode} from '../constants/types/rpc-gen'
 
 export const NullComponent = () => null
 export const actionHasError = <NoError extends {}, HasError extends {error: boolean}>(
@@ -10,9 +10,9 @@ export const actionHasError = <NoError extends {}, HasError extends {error: bool
 ): a is HasError => a.hasOwnProperty('error')
 
 export const networkErrorCodes = [
-  constantsStatusCode.scgenericapierror,
-  constantsStatusCode.scapinetworkerror,
-  constantsStatusCode.sctimeout,
+  StatusCode.scgenericapierror,
+  StatusCode.scapinetworkerror,
+  StatusCode.sctimeout,
 ]
 
 export const getRouteProps = (ownProps: any, key: string) => ownProps.navigation.getParam(key)
@@ -41,4 +41,6 @@ export {isMobile} from '../constants/platform'
 export {anyWaiting, anyErrors} from '../constants/waiting'
 export {safeSubmit, safeSubmitPerMount} from './safe-submit'
 export {default as withSafeNavigation} from './safe-navigation'
-export {RouteProps, TypedActions, TypedState, PropsWithSafeNavigation}
+export type RouteProps<P, S> = _RouteProps<P, S>
+export {TypedActions, TypedState}
+export type PropsWithSafeNavigation<P> = _PropsWithSafeNavigation<P>

@@ -9,7 +9,7 @@ export declare class Engine {
   reset(): void
   rpc(): void
   sagasAreReady(): void
-  hasEverConnected(): void
+  hasEverConnected(): boolean
   registerCustomResponse(any): void
   createSession(arg0: {
     incomingCallMap?: any
@@ -19,7 +19,7 @@ export declare class Engine {
   }): Session
   _rpcOutgoing(arg0: {
     method: string
-    params: Object | null
+    params: Object | void
     callback: (...args: Array<any>) => void
     waitingKey?: WaitingKey
   }): void

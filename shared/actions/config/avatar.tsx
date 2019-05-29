@@ -50,7 +50,7 @@ function* avatarCallAndHandle<T, Args extends {formats: string[]; names: string[
       yield Saga.put(ConfigGen.createLoadedAvatars({avatars: I.Map(vals)}))
     }
   } catch (error) {
-    if (error.code === RPCTypes.constantsStatusCode.scinputerror) {
+    if (error.code === RPCTypes.StatusCode.scinputerror) {
       yield Saga.put(ConfigGen.createGlobalError({globalError: error}))
     }
   }

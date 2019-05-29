@@ -13,7 +13,7 @@ type ErrorPayload = {
 
 type ActionNS = string
 type ActionName = string
-type ActionDesc = Payload | ErrorPayload
+type ActionDesc = any
 
 type Actions = {[K in ActionName]: ActionDesc}
 

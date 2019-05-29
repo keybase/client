@@ -114,10 +114,10 @@ class ProvisioningManager {
       let type
       switch (state.provision.codePageOtherDeviceType) {
         case 'mobile':
-          type = RPCTypes.commonDeviceType.mobile
+          type = RPCTypes.DeviceType.mobile
           break
         case 'desktop':
-          type = RPCTypes.commonDeviceType.desktop
+          type = RPCTypes.DeviceType.desktop
           break
         default:
           response.error()
@@ -232,11 +232,7 @@ class ProvisioningManager {
       throw new Error('Tried to submit gpg export but missing callback')
     }
 
-    response.result(
-      action.payload.exportKey
-        ? RPCTypes.provisionUiGPGMethod.gpgImport
-        : RPCTypes.provisionUiGPGMethod.gpgSign
-    )
+    response.result(action.payload.exportKey ? RPCTypes.GPGMethod.gpgImport : RPCTypes.GPGMethod.gpgSign)
   }
 
   switchToGPGSignOKHandler = (params, response) => {
@@ -279,9 +275,9 @@ class ProvisioningManager {
     }
 
     switch (params.pinentry.type) {
-      case RPCTypes.passphraseCommonPassphraseType.passPhrase:
+      case RPCTypes.PassphraseType.passPhrase:
         return Saga.put(ProvisionGen.createShowPasswordPage({error: error ? new HiddenString(error) : null}))
-      case RPCTypes.passphraseCommonPassphraseType.paperKey:
+      case RPCTypes.PassphraseType.paperKey:
         return Saga.put(ProvisionGen.createShowPaperkeyPage({error: error ? new HiddenString(error) : null}))
       default:
         throw new Error('Got confused about password entry. Please send a log to us!')
@@ -398,7 +394,7 @@ function* startProvisioning(state) {
       customResponseIncomingCallMap: ProvisioningManager.getSingleton().getCustomResponseIncomingCallMap(),
       incomingCallMap: ProvisioningManager.getSingleton().getIncomingCallMap(),
       params: {
-        clientType: RPCTypes.commonClientType.guiMain,
+        clientType: RPCTypes.ClientType.guiMain,
         deviceName: '',
         deviceType: isMobile ? 'mobile' : 'desktop',
         paperKey: '',
@@ -414,8 +410,8 @@ function* startProvisioning(state) {
     // If it's a non-existent username or invalid, allow the opportunity to
     // correct it right there on the page.
     switch (finalError.code) {
-      case RPCTypes.constantsStatusCode.scnotfound:
-      case RPCTypes.constantsStatusCode.scbadusername:
+      case RPCTypes.StatusCode.scnotfound:
+      case RPCTypes.StatusCode.scbadusername:
         yield Saga.put(ProvisionGen.createShowInlineError({inlineError: finalError}))
         break
       default:

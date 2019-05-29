@@ -1,4 +1,0 @@
-// @flow
-import * as React from 'react'
-import type {Props} from './index.types'
-declare export default class CreateChannel extends React.Component<Props> {}

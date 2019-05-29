@@ -21,7 +21,7 @@ const checkProof = (state, action: ProfileGen.CheckProofPayload) => {
   return RPCTypes.proveCheckProofRpcPromise({sigID}, Constants.waitingKey)
     .then(({found, status}) => {
       // Values higher than baseHardError are hard errors, below are soft errors (could eventually be resolved by doing nothing)
-      if (!found && status >= RPCTypes.proveCommonProofStatus.baseHardError) {
+      if (!found && status >= RPCTypes.ProofStatus.baseHardError) {
         return ProfileGen.createUpdateErrorText({
           errorCode: null,
           errorText: "We couldn't find your proof. Please retry!",
@@ -90,7 +90,7 @@ function* addProof(state, action: ProfileGen.AddProofPayload) {
   let _outputInstructionsResponse
 
   const inputCancelError = {
-    code: RPCTypes.constantsStatusCode.scinputcanceled,
+    code: RPCTypes.StatusCode.scinputcanceled,
     desc: 'Cancel Add Proof',
   }
 
@@ -301,7 +301,7 @@ const submitCryptoAddress = (
     Constants.waitingKey
   )
     .then(() => [
-      ProfileGen.createUpdateProofStatus({found: true, status: RPCTypes.proveCommonProofStatus.ok}),
+      ProfileGen.createUpdateProofStatus({found: true, status: RPCTypes.ProofStatus.ok}),
       RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['profileConfirmOrPending']}),
     ])
     .catch((error: RPCError) => {

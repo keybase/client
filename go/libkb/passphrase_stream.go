@@ -151,3 +151,17 @@ func (ps PassphraseStream) Export() keybase1.PassphraseStream {
 		Generation:       int(ps.gen),
 	}
 }
+
+func (ps PassphraseStream) SyncAndCheckIfOutdated(mctx MetaContext) (bool, error) {
+	ss, err := mctx.SyncSecrets()
+	if err != nil {
+		return false, err
+	}
+
+	key, err := ss.FindDevice(mctx.G().Env.GetDeviceID())
+	if err != nil {
+		return false, err
+	}
+
+	return key.PPGen > ps.Generation(), nil
+}

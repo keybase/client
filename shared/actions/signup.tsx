@@ -144,7 +144,7 @@ function* reallySignupOnNoErrors(state: TypedState): Saga.SagaGenerator<any, any
       },
       params: {
         deviceName: devicename,
-        deviceType: isMobile ? RPCTypes.commonDeviceType.mobile : RPCTypes.commonDeviceType.desktop,
+        deviceType: isMobile ? RPCTypes.DeviceType.mobile : RPCTypes.DeviceType.desktop,
         email,
         genPGPBatch: false,
         genPaper: false,

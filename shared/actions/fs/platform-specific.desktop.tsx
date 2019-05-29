@@ -169,12 +169,11 @@ const fuseStatusToActions = (previousStatusType: 'enabled' | 'disabled' | 'unkno
     ? [
         FsGen.createSetDriverStatus({
           driverStatus: Constants.makeDriverStatusEnabled({
-            dokanOutdated: status.installAction === RPCTypes.installInstallAction.upgrade,
+            dokanOutdated: status.installAction === RPCTypes.InstallAction.upgrade,
             dokanUninstallExecPath: fuseStatusToUninstallExecPath(status),
           }),
         }),
-        ...(previousStatusType === 'disabled' ||
-        status.installAction === RPCTypes.installInstallAction.upgrade
+        ...(previousStatusType === 'disabled' || status.installAction === RPCTypes.InstallAction.upgrade
           ? [FsGen.createShowSystemFileManagerIntegrationBanner()]
           : []), // show banner for newly enabled
         ...(previousStatusType === 'disabled'
@@ -196,8 +195,8 @@ const windowsCheckMountFromOtherDokanInstall = status =>
             mountExists
               ? {
                   ...status,
-                  installAction: RPCTypes.installInstallAction.none,
-                  installStatus: RPCTypes.installInstallStatus.installed,
+                  installAction: RPCTypes.InstallAction.none,
+                  installStatus: RPCTypes.InstallStatus.installed,
                   kextStarted: true,
                 }
               : status
@@ -212,7 +211,7 @@ const refreshDriverStatus = (
   (action.type !== FsGen.kbfsDaemonRpcStatusChanged || action.payload.rpcStatus === 'connected') &&
   RPCTypes.installFuseStatusRpcPromise({bundleVersion: ''})
     .then(status =>
-      isWindows && status.installStatus !== RPCTypes.installInstallStatus.installed
+      isWindows && status.installStatus !== RPCTypes.InstallStatus.installed
         ? windowsCheckMountFromOtherDokanInstall(status)
         : Promise.resolve(status)
     )

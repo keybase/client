@@ -79,7 +79,7 @@ function* joinTeam(_, action: TeamsGen.JoinTeamPayload) {
     )
   } catch (error) {
     const desc =
-      error.code === RPCTypes.constantsStatusCode.scteaminvitebadtoken
+      error.code === RPCTypes.StatusCode.scteaminvitebadtoken
         ? 'Sorry, that team name or token is not valid.'
         : error.desc
     yield Saga.put(TeamsGen.createSetTeamJoinError({error: desc}))
@@ -146,10 +146,7 @@ const addPeopleToTeam = (state, action: TeamsGen.AddPeopleToTeamPayload, logger)
     {
       assertions: ids,
       name: teamname,
-      role:
-        RPCTypes.teamsTeamRole[role] === undefined
-          ? RPCTypes.teamsTeamRole.none
-          : RPCTypes.teamsTeamRole[role],
+      role: RPCTypes.TeamRole[role] === undefined ? RPCTypes.TeamRole.none : RPCTypes.TeamRole[role],
       sendChatNotification,
     },
     [Constants.teamWaitingKey(teamname), Constants.addPeopleToTeamWaitingKey(teamname)]
@@ -248,8 +245,9 @@ function* inviteByEmail(_, action: TeamsGen.InviteToTeamByEmailPayload, logger) 
       {
         emails: invitees,
         name: teamname,
-        role: role ? RPCTypes.teamsTeamRole[role] : RPCTypes.teamsTeamRole.none,
-      } as any, // codemod-issue
+        // @ts-ignore codemod-issue
+        role: (role ? RPCTypes.TeamRole[role] : RPCTypes.TeamRole.none) as any,
+      },
       [Constants.teamWaitingKey(teamname), Constants.addToTeamByEmailWaitingKey(teamname)]
     )
     if (res.malformed && res.malformed.length > 0) {
@@ -292,7 +290,7 @@ const addToTeamWaitingKeys = (teamname, username) => [
 
 const addReAddErrorHandler = (username, e) => {
   // identify error
-  if (e.code === RPCTypes.constantsStatusCode.scidentifysummaryerror) {
+  if (e.code === RPCTypes.StatusCode.scidentifysummaryerror) {
     if (isMobile) {
       // show profile card on mobile
       return ProfileGen.createShowUserProfile({username})
@@ -309,7 +307,8 @@ const addToTeam = (_, action: TeamsGen.AddToTeamPayload) => {
     {
       email: '',
       name: teamname,
-      role: role ? RPCTypes.teamsTeamRole[role] : RPCTypes.teamsTeamRole.none,
+      // @ts-ignore codemod fix when constants is typed
+      role: role ? RPCTypes.TeamRole[role] : RPCTypes.TeamRole.none,
       sendChatNotification,
       username,
     },
@@ -375,7 +374,8 @@ const editMembership = (_, action: TeamsGen.EditMembershipPayload) => {
   return RPCTypes.teamsTeamEditMemberRpcPromise(
     {
       name: teamname,
-      role: role ? RPCTypes.teamsTeamRole[role] : RPCTypes.teamsTeamRole.none,
+      // @ts-ignore codemod fix when constants is typed
+      role: role ? RPCTypes.TeamRole[role] : RPCTypes.TeamRole.none,
       username,
     },
     Constants.teamWaitingKey(teamname)
@@ -434,7 +434,8 @@ const inviteToTeamByPhone = (_, action: TeamsGen.InviteToTeamByPhonePayload, log
     {
       label: {sms: {f: fullName || '', n: phoneNumber} as RPCTypes.SeitanKeyLabelSms, t: 1},
       name: teamname,
-      role: (!!role && RPCTypes.teamsTeamRole[role]) || 0,
+      // @ts-ignore codemod fix when constants is typed
+      role: (!!role && RPCTypes.TeamRole[role]) || RPCTypes.TeamRole.none,
     },
     Constants.teamWaitingKey(teamname)
   ).then(seitan => {
@@ -490,7 +491,7 @@ function* createNewTeamFromConversation(state, action: TeamsGen.CreateNewTeamFro
             {
               email: '',
               name: teamname,
-              role: username === me ? RPCTypes.teamsTeamRole.admin : RPCTypes.teamsTeamRole.writer,
+              role: username === me ? RPCTypes.TeamRole.admin : RPCTypes.TeamRole.writer,
               sendChatNotification: true,
               username,
             },
@@ -531,8 +532,8 @@ function* getDetails(_, action: TeamsGen.GetDetailsPayload, logger) {
       settings: {
         ...unsafeDetails.settings,
         joinAs:
-          unsafeDetails.settings.joinAs === RPCTypes.teamsTeamRole.none
-            ? RPCTypes.teamsTeamRole.reader
+          unsafeDetails.settings.joinAs === RPCTypes.TeamRole.none
+            ? RPCTypes.TeamRole.reader
             : unsafeDetails.settings.joinAs,
       },
     }
@@ -572,16 +573,18 @@ function* getDetails(_, action: TeamsGen.GetDetailsPayload, logger) {
       }
       const username = (() => {
         const t = invite.type
-        if (t.c !== RPCTypes.teamsTeamInviteCategory.sbs) {
+        if (t.c !== RPCTypes.TeamInviteCategory.sbs) {
           return ''
         }
         const sbs: RPCTypes.TeamInviteSocialNetwork = t.sbs || ''
         return `${invite.name}@${sbs}`
       })()
       return Constants.makeInviteInfo({
-        email: invite.type.c === RPCTypes.teamsTeamInviteCategory.email ? invite.name : '',
+        // @ts-ignore possibly a real issue
+        email: invite.type.c === RPCTypes.TeamInviteCategory.email ? invite.name : '',
         id: invite.id,
-        name: invite.type.c === RPCTypes.teamsTeamInviteCategory.seitan ? invite.name : '',
+        // @ts-ignore possibly a real issue
+        name: invite.type.c === RPCTypes.TeamInviteCategory.seitan ? invite.name : '',
         role,
         username,
       })
@@ -633,7 +636,7 @@ function* addUserToTeams(state, action: TeamsGen.AddUserToTeamsPayload) {
         {
           email: '',
           name: team,
-          role: RPCTypes.teamsTeamRole[role],
+          role: RPCTypes.TeamRole[role],
           sendChatNotification: true,
           username: user,
         },
@@ -725,7 +728,7 @@ const getChannelInfo = (_, action: TeamsGen.GetChannelInfoPayload, logger) => {
   const {teamname, conversationIDKey} = action.payload
   return RPCChatTypes.localGetInboxAndUnboxUILocalRpcPromise(
     {
-      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
       query: ChatConstants.makeInboxQuery([conversationIDKey]),
     },
     Constants.teamWaitingKey(teamname)
@@ -756,9 +759,9 @@ const getChannels = (_, action: TeamsGen.GetChannelsPayload) => {
   const teamname = action.payload.teamname
   return RPCChatTypes.localGetTLFConversationsLocalRpcPromise(
     {
-      membersType: RPCChatTypes.commonConversationMembersType.team,
+      membersType: RPCChatTypes.ConversationMembersType.team,
       tlfName: teamname,
-      topicType: RPCChatTypes.commonTopicType.chat,
+      topicType: RPCChatTypes.TopicType.chat,
     },
     Constants.getChannelsWaitingKey(teamname)
   ).then(results => {
@@ -850,7 +853,7 @@ function* getTeams(
       yield Saga.put(TeamsGen.createClearNavBadges())
     }
   } catch (err) {
-    if (err.code === RPCTypes.constantsStatusCode.scapinetworkerror) {
+    if (err.code === RPCTypes.StatusCode.scapinetworkerror) {
       // Ignore API errors due to offline
     } else {
       logger.error(err)
@@ -944,12 +947,12 @@ function* createChannel(_, action: TeamsGen.CreateChannelPayload, logger) {
     const result = yield* Saga.callPromise(
       RPCChatTypes.localNewConversationLocalRpcPromise,
       {
-        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-        membersType: RPCChatTypes.commonConversationMembersType.team,
+        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+        membersType: RPCChatTypes.ConversationMembersType.team,
         tlfName: teamname,
-        tlfVisibility: RPCTypes.commonTLFVisibility.private,
+        tlfVisibility: RPCTypes.TLFVisibility.private,
         topicName: channelname,
-        topicType: RPCChatTypes.commonTopicType.chat,
+        topicType: RPCChatTypes.TopicType.chat,
       },
       Constants.createChannelWaitingKey(teamname)
     )
@@ -969,7 +972,7 @@ function* createChannel(_, action: TeamsGen.CreateChannelPayload, logger) {
           clientPrev: 0,
           conversationID: result.conv.info.id,
           headline: description,
-          identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+          identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
           tlfName: teamname,
           tlfPublic: false,
         },
@@ -1032,7 +1035,7 @@ function* setPublicity(state, action: TeamsGen.SetPublicityPayload) {
   const teamSettings = state.teams.getIn(
     ['teamNameToSettings', teamname],
     Constants.makeTeamSettings({
-      joinAs: RPCTypes.teamsTeamRole['reader'],
+      joinAs: RPCTypes.TeamRole['reader'],
       open: false,
     })
   )
@@ -1054,7 +1057,8 @@ function* setPublicity(state, action: TeamsGen.SetPublicityPayload) {
           {
             name: teamname,
             settings: {
-              joinAs: RPCTypes.teamsTeamRole[settings.openTeamRole],
+              // @ts-ignore codemod fix when constants is typed
+              joinAs: RPCTypes.TeamRole[settings.openTeamRole],
               open: settings.openTeam,
             },
           },
@@ -1140,15 +1144,15 @@ function* setPublicity(state, action: TeamsGen.SetPublicityPayload) {
 const teamAvatarUpdated = (_, action: EngineGen.Keybase1NotifyTeamAvatarUpdatedPayload) => {
   const {name, typ} = action.payload.params
   switch (typ) {
-    case RPCTypes.notifyTeamAvatarUpdateType.none:
+    case RPCTypes.AvatarUpdateType.none:
       // don't know what it is, so try both
       return [
         ConfigGen.createLoadTeamAvatars({teamnames: [name]}),
         ConfigGen.createLoadAvatars({usernames: [name]}),
       ]
-    case RPCTypes.notifyTeamAvatarUpdateType.user:
+    case RPCTypes.AvatarUpdateType.user:
       return [ConfigGen.createLoadAvatars({usernames: [name]})]
-    case RPCTypes.notifyTeamAvatarUpdateType.team:
+    case RPCTypes.AvatarUpdateType.team:
       return [ConfigGen.createLoadTeamAvatars({teamnames: [name]})]
   }
 }
@@ -1186,7 +1190,7 @@ const updateTopic = (state, action: TeamsGen.UpdateTopicPayload) => {
   const param = {
     conversationID: ChatTypes.keyToConversationID(conversationIDKey),
     headline: newTopic,
-    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+    identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
     tlfName: teamname,
     tlfPublic: false,
   }
@@ -1280,7 +1284,7 @@ const updateChannelname = (state, action: TeamsGen.UpdateChannelNamePayload) => 
   const param = {
     channelName: newChannelName,
     conversationID: ChatTypes.keyToConversationID(conversationIDKey),
-    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+    identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
     tlfName: teamname,
     tlfPublic: false,
   }
@@ -1386,8 +1390,11 @@ let _wasOnTeamsTab = () => Constants.isOnTeamsTab()
 
 const receivedBadgeState = (state, action: NotificationsGen.ReceivedBadgeStatePayload) =>
   TeamsGen.createBadgeAppForTeams({
+    // @ts-ignore codemod-issue
     deletedTeams: action.payload.badgeState.deletedTeams || [],
+    // @ts-ignore codemod-issue
     newTeamAccessRequests: action.payload.badgeState.newTeamAccessRequests || [],
+    // @ts-ignore codemod-issue
     newTeamNames: action.payload.badgeState.newTeamNames || [],
     teamsWithResetUsers: action.payload.badgeState.teamsWithResetUsers || [],
   })

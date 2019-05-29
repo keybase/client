@@ -26,7 +26,8 @@ const onGetPassword = (state, action: EngineGen.Keybase1SecretUiGetPassphrasePay
   logger.info('Asked for password')
   const {pinentry} = action.payload.params
   const {prompt, submitLabel, cancelLabel, windowTitle, features, type} = pinentry
-  const retryLabel = pinentry.retryLabel === Constants.invalidPasswordErrorString ? 'Incorrect password.' : pinentry.retryLabel
+  const retryLabel =
+    pinentry.retryLabel === Constants.invalidPasswordErrorString ? 'Incorrect password.' : pinentry.retryLabel
 
   // Stash response
   _response = action.payload.response
@@ -65,7 +66,7 @@ const onSubmit = (_, action: PinentryGen.OnSubmitPayload) => {
 
 const onCancel = (_, action: PinentryGen.OnCancelPayload) => {
   if (_response) {
-    _response.error({code: RPCTypes.constantsStatusCode.scinputcanceled, desc: 'Input canceled'})
+    _response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
     _response = null
   }
   return PinentryGen.createDeleteEntity({

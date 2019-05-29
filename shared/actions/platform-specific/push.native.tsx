@@ -21,7 +21,7 @@ import {isIOS} from '../../constants/platform'
 let lastCount = -1
 const updateAppBadge = (_, action: NotificationsGen.ReceivedBadgeStatePayload) => {
   const count = (action.payload.badgeState.conversations || []).reduce(
-    (total, c) => (c.badgeCounts ? total + c.badgeCounts[`${RPCTypes.commonDeviceType.mobile}`] : total),
+    (total, c) => (c.badgeCounts ? total + c.badgeCounts[`${RPCTypes.DeviceType.mobile}`] : total),
     0
   )
 
@@ -271,9 +271,11 @@ function* requestPermissions() {
     logger.info('[PushRequesting] asking native')
     const permissions = yield* Saga.callPromise(requestPermissionsFromNative)
     logger.info('[PushRequesting] after prompt:', permissions)
-    if (// Auto generated from flowToTs. Please clean me!
-    (permissions === null || permissions === undefined ? undefined : permissions.alert) || // Auto generated from flowToTs. Please clean me!
-    (permissions === null || permissions === undefined ? undefined : permissions.badge)) {
+    if (
+      // Auto generated from flowToTs. Please clean me!
+      (permissions === null || permissions === undefined ? undefined : permissions.alert) || // Auto generated from flowToTs. Please clean me!
+      (permissions === null || permissions === undefined ? undefined : permissions.badge)
+    ) {
       logger.info('[PushRequesting] enabled')
       yield Saga.put(PushGen.createUpdateHasPermissions({hasPermissions: true}))
     } else {
@@ -345,31 +347,36 @@ function* _checkPermissions(action: ConfigGen.MobileAppStatePayload | null) {
   }
 }
 
-const getStartupDetailsFromInitialPush = (): Promise<null | {
-  startupFollowUser: string
-} | {
-  startupConversation: ChatTypes.ConversationIDKey
-}> => new Promise(resolve => {
-  PushNotifications.popInitialNotification(n => {
-    const notification = Constants.normalizePush(n)
-    if (!notification) {
+const getStartupDetailsFromInitialPush = (): Promise<
+  | null
+  | {
+      startupFollowUser: string
+    }
+  | {
+      startupConversation: ChatTypes.ConversationIDKey
+    }
+> =>
+  new Promise(resolve => {
+    PushNotifications.popInitialNotification(n => {
+      const notification = Constants.normalizePush(n)
+      if (!notification) {
+        resolve(null)
+        return
+      }
+      if (notification.type === 'follow') {
+        if (notification.username) {
+          resolve({startupFollowUser: notification.username})
+          return
+        }
+      } else if (notification.type === 'chat.newmessage') {
+        if (notification.conversationIDKey) {
+          resolve({startupConversation: notification.conversationIDKey})
+          return
+        }
+      }
       resolve(null)
-      return
-    }
-    if (notification.type === 'follow') {
-      if (notification.username) {
-        resolve({startupFollowUser: notification.username})
-        return
-      }
-    } else if (notification.type === 'chat.newmessage') {
-      if (notification.conversationIDKey) {
-        resolve({startupConversation: notification.conversationIDKey})
-        return
-      }
-    }
-    resolve(null)
+    })
   })
-})
 
 function* pushSaga(): Saga.SagaGenerator<any, any> {
   // Permissions
