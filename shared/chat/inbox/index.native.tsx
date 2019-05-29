@@ -12,7 +12,7 @@ import {debounce} from 'lodash-es'
 import UnreadShortcut from './unread-shortcut'
 import * as RowSizes from './row/sizes'
 import InboxSearch from '../inbox-search/container'
-import {Props, RowItem, RowItemSmall} from './index.types.d'
+import * as T from './index.types.d'
 
 const NoChats = () => (
   <Kb.Box
@@ -36,7 +36,7 @@ type State = {
   showUnread: boolean
 }
 
-class Inbox extends React.PureComponent<Props, State> {
+class Inbox extends React.PureComponent<T.Props, State> {
   _list: any
   // Help us calculate row heights and offsets quickly
   _dividerIndex: number = -1
@@ -48,7 +48,7 @@ class Inbox extends React.PureComponent<Props, State> {
 
   state = {showFloating: false, showUnread: false}
 
-  componentDidUpdate(prevProps: Props) {
+  componentDidUpdate(prevProps: T.Props) {
     if (!I.is(prevProps.unreadIndices, this.props.unreadIndices)) {
       this._updateShowUnread()
     }
@@ -101,7 +101,7 @@ class Inbox extends React.PureComponent<Props, State> {
     )
   }
 
-  _askForUnboxing = (rows: Array<RowItem>) => {
+  _askForUnboxing = (rows: Array<T.RowItem>) => {
     const toUnbox = rows.reduce((arr, r) => {
       if (r.type === 'small' && r.conversationIDKey) {
         arr.push(r.conversationIDKey)
@@ -273,4 +273,5 @@ const styles = Styles.styleSheetCreate({
 })
 
 export default Inbox
-export {RowItem, RowItemSmall}
+export type RowItem = T.RowItem
+export type RowItemSmall = T.RowItemSmall

@@ -11,8 +11,8 @@ import BuildTeam from './row/build-team/container'
 import BigTeamsDivider from './row/big-teams-divider/container'
 import TeamsDivider from './row/teams-divider/container'
 import {debounce} from 'lodash-es'
+import * as T from './index.types.d'
 import UnreadShortcut from './unread-shortcut'
-import {Props, RowItem, RowItemSmall, RowItemBig, RouteState} from './index.types.d'
 import {virtualListMarks} from '../../local-debug'
 import {inboxWidth, getRowHeight} from './row/sizes'
 
@@ -21,7 +21,7 @@ type State = {
   showUnread: boolean
 }
 
-class Inbox extends React.PureComponent<Props, State> {
+class Inbox extends React.PureComponent<T.Props, State> {
   state = {
     showFloating: false,
     showUnread: false,
@@ -36,7 +36,7 @@ class Inbox extends React.PureComponent<Props, State> {
   _lastVisibleIdx: number = -1
   _scrollDiv = React.createRef<HTMLDivElement>()
 
-  componentDidUpdate(prevProps: Props) {
+  componentDidUpdate(prevProps: T.Props) {
     let listRowsResized = false
     if (prevProps.smallTeamsExpanded !== this.props.smallTeamsExpanded) {
       listRowsResized = true
@@ -233,5 +233,8 @@ const styles = Styles.styleSheetCreate({
   list: {flex: 1},
 })
 
+export type RowItem = T.RowItem
+export type RowItemSmall = T.RowItemSmall
+export type RowItemBig = T.RowItemBig
+export type RouteState = T.RouteState
 export default Inbox
-export {RowItem, RowItemSmall, RowItemBig, RouteState}

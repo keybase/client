@@ -565,6 +565,5 @@ const styles = Styles.styleSheetCreate({
   }),
 })
 
-export {InputProps as Props}
-
+export type Props = InputProps
 export default Input
