@@ -48,7 +48,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
   const isPreview = meta.membershipType === 'youArePreviewing'
   const selectedTab = ownProps.selectedTab || (meta.teamname ? 'members' : 'attachments')
-  const selectedAttachmentView = ownProps.selectedAttachmentView || RPCChatTypes.localGalleryItemTyp.media
+  const selectedAttachmentView = ownProps.selectedAttachmentView || RPCChatTypes.GalleryItemTyp.media
   const attachmentInfo = state.chat2.attachmentViewMap.getIn(
     [conversationIDKey, selectedAttachmentView],
     Constants.makeAttachmentViewInfo()
@@ -150,7 +150,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   customCancelText: 'Done',
   description: stateProps.description,
   docs:
-    stateProps.selectedAttachmentView === RPCChatTypes.localGalleryItemTyp.doc
+    stateProps.selectedAttachmentView === RPCChatTypes.GalleryItemTyp.doc
       ? {
           docs: stateProps._attachmentInfo.messages
             .map(m => ({
@@ -165,7 +165,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
             }))
             .toArray(),
           onLoadMore: stateProps._fromMsgID
-            ? () => dispatchProps._onLoadMore(RPCChatTypes.localGalleryItemTyp.doc, stateProps._fromMsgID)
+            ? () => dispatchProps._onLoadMore(RPCChatTypes.GalleryItemTyp.doc, stateProps._fromMsgID)
             : null,
           status: stateProps._attachmentInfo.status,
         }
@@ -173,7 +173,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   ignored: stateProps.ignored,
   isPreview: stateProps.isPreview,
   links:
-    stateProps.selectedAttachmentView === RPCChatTypes.localGalleryItemTyp.link
+    stateProps.selectedAttachmentView === RPCChatTypes.GalleryItemTyp.link
       ? {
           links: stateProps._attachmentInfo.messages.reduce((l, m) => {
             if (!m.unfurls.size) {
@@ -184,7 +184,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
               })
             } else {
               m.unfurls.toList().map(u => {
-                if (u.unfurl.unfurlType === RPCChatTypes.unfurlUnfurlType.generic && u.unfurl.generic) {
+                if (u.unfurl.unfurlType === RPCChatTypes.UnfurlType.generic && u.unfurl.generic) {
                   l.push({
                     author: m.author,
                     ctime: m.timestamp,
@@ -198,16 +198,16 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
             return l
           }, []),
           onLoadMore: stateProps._fromMsgID
-            ? () => dispatchProps._onLoadMore(RPCChatTypes.localGalleryItemTyp.link, stateProps._fromMsgID)
+            ? () => dispatchProps._onLoadMore(RPCChatTypes.GalleryItemTyp.link, stateProps._fromMsgID)
             : null,
           status: stateProps._attachmentInfo.status,
         }
       : {links: [], onLoadMore: () => {}, status: 'loading'},
   media:
-    stateProps.selectedAttachmentView === RPCChatTypes.localGalleryItemTyp.media
+    stateProps.selectedAttachmentView === RPCChatTypes.GalleryItemTyp.media
       ? {
           onLoadMore: stateProps._fromMsgID
-            ? () => dispatchProps._onLoadMore(RPCChatTypes.localGalleryItemTyp.media, stateProps._fromMsgID)
+            ? () => dispatchProps._onLoadMore(RPCChatTypes.GalleryItemTyp.media, stateProps._fromMsgID)
             : null,
           status: stateProps._attachmentInfo.status,
           thumbs: stateProps._attachmentInfo.messages

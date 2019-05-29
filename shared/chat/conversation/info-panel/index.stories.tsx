@@ -198,7 +198,7 @@ const conversationProps = {
   onShowBlockConversationDialog: Sb.action('onShowBlockConversationDialog'),
   onShowClearConversationDialog: Sb.action('onShowClearConversationDialog'),
   onShowNewTeamDialog: Sb.action('onShowNewTeamDialog'),
-  selectedAttachmentView: RPCChatTypes.localGalleryItemTyp.media,
+  selectedAttachmentView: RPCChatTypes.GalleryItemTyp.media,
   selectedTab: 'attachments',
   smallTeam: false,
   teamname: null,
@@ -215,7 +215,7 @@ const teamCommonProps = {
 
   onShowClearConversationDialog: Sb.unexpected('onShowClearConversationDialog'),
   onShowNewTeamDialog: Sb.unexpected('onShowNewTeamDialog'),
-  selectedAttachmentView: RPCChatTypes.localGalleryItemTyp.media,
+  selectedAttachmentView: RPCChatTypes.GalleryItemTyp.media,
   selectedTab: 'settings',
   teamname: 'someteam',
 }
@@ -328,14 +328,14 @@ const load = () => {
     .add('Small team (attach/docs)', () => (
       <InfoPanel
         {...smallTeamProps}
-        selectedAttachmentView={RPCChatTypes.localGalleryItemTyp.doc}
+        selectedAttachmentView={RPCChatTypes.GalleryItemTyp.doc}
         selectedTab="attachments"
       />
     ))
     .add('Small team (attach/links)', () => (
       <InfoPanel
         {...smallTeamProps}
-        selectedAttachmentView={RPCChatTypes.localGalleryItemTyp.link}
+        selectedAttachmentView={RPCChatTypes.GalleryItemTyp.link}
         selectedTab="attachments"
       />
     ))

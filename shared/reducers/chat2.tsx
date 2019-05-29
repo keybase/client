@@ -1228,7 +1228,7 @@ const rootReducer = (
         })
       }
       nextState = nextState.updateIn(
-        ['attachmentViewMap', action.payload.conversationIDKey, RPCChatTypes.localGalleryItemTyp.doc],
+        ['attachmentViewMap', action.payload.conversationIDKey, RPCChatTypes.GalleryItemTyp.doc],
         (info = Constants.makeAttachmentViewInfo()) =>
           info.merge({
             messages: info.messages.update(
@@ -1262,7 +1262,7 @@ const rootReducer = (
         })
       }
       nextState = nextState.updateIn(
-        ['attachmentViewMap', message.conversationIDKey, RPCChatTypes.localGalleryItemTyp.doc],
+        ['attachmentViewMap', message.conversationIDKey, RPCChatTypes.GalleryItemTyp.doc],
         (info = Constants.makeAttachmentViewInfo()) =>
           info.merge({
             messages: info.messages.update(info.messages.findIndex(item => item.id === message.id), item =>

@@ -295,7 +295,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
       }
       let attachmentSections
       switch (this.props.selectedAttachmentView) {
-        case RPCChatTypes.localGalleryItemTyp.media:
+        case RPCChatTypes.GalleryItemTyp.media:
           attachmentSections = new MediaView().getSections(
             this.props.media.thumbs,
             this.props.media.onLoadMore,
@@ -303,7 +303,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             this.props.media.status
           )
           break
-        case RPCChatTypes.localGalleryItemTyp.doc:
+        case RPCChatTypes.GalleryItemTyp.doc:
           attachmentSections = new DocView().getSections(
             this.props.docs.docs,
             this.props.docs.onLoadMore,
@@ -311,7 +311,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             this.props.docs.status
           )
           break
-        case RPCChatTypes.localGalleryItemTyp.link:
+        case RPCChatTypes.GalleryItemTyp.link:
           attachmentSections = new LinkView().getSections(
             this.props.links.links,
             this.props.links.onLoadMore,

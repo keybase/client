@@ -417,38 +417,38 @@ export class AttachmentTypeSelector extends React.Component<SelectorProps> {
     return (
       <Kb.Box2 direction="horizontal" style={styles.selectorContainer} fullWidth={true}>
         <Kb.ClickableBox
-          onClick={() => this.props.onSelectView(RPCChatTypes.localGalleryItemTyp.media)}
+          onClick={() => this.props.onSelectView(RPCChatTypes.GalleryItemTyp.media)}
           style={Styles.collapseStyles([
             styles.selectorItemContainer,
             styles.selectorMediaContainer,
-            this._getBkgColor(RPCChatTypes.localGalleryItemTyp.media),
+            this._getBkgColor(RPCChatTypes.GalleryItemTyp.media),
           ])}
         >
-          <Kb.Text type="BodySemibold" style={this._getColor(RPCChatTypes.localGalleryItemTyp.media)}>
+          <Kb.Text type="BodySemibold" style={this._getColor(RPCChatTypes.GalleryItemTyp.media)}>
             Media
           </Kb.Text>
         </Kb.ClickableBox>
         <Kb.ClickableBox
-          onClick={() => this.props.onSelectView(RPCChatTypes.localGalleryItemTyp.doc)}
+          onClick={() => this.props.onSelectView(RPCChatTypes.GalleryItemTyp.doc)}
           style={Styles.collapseStyles([
             styles.selectorDocContainer,
             styles.selectorItemContainer,
-            this._getBkgColor(RPCChatTypes.localGalleryItemTyp.doc),
+            this._getBkgColor(RPCChatTypes.GalleryItemTyp.doc),
           ])}
         >
-          <Kb.Text type="BodySemibold" style={this._getColor(RPCChatTypes.localGalleryItemTyp.doc)}>
+          <Kb.Text type="BodySemibold" style={this._getColor(RPCChatTypes.GalleryItemTyp.doc)}>
             Docs
           </Kb.Text>
         </Kb.ClickableBox>
         <Kb.ClickableBox
-          onClick={() => this.props.onSelectView(RPCChatTypes.localGalleryItemTyp.link)}
+          onClick={() => this.props.onSelectView(RPCChatTypes.GalleryItemTyp.link)}
           style={Styles.collapseStyles([
             styles.selectorItemContainer,
             styles.selectorLinkContainer,
-            this._getBkgColor(RPCChatTypes.localGalleryItemTyp.link),
+            this._getBkgColor(RPCChatTypes.GalleryItemTyp.link),
           ])}
         >
-          <Kb.Text type="BodySemibold" style={this._getColor(RPCChatTypes.localGalleryItemTyp.link)}>
+          <Kb.Text type="BodySemibold" style={this._getColor(RPCChatTypes.GalleryItemTyp.link)}>
             Links
           </Kb.Text>
         </Kb.ClickableBox>
