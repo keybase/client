@@ -3,7 +3,7 @@ import * as DeviceTypes from './types/devices'
 import * as Types from './types/provision'
 import * as RPCTypes from './types/rpc-gen'
 import HiddenString from '../util/hidden-string'
-import { CommonResponseHandler, RPCError } from '../engine/types';
+import {CommonResponseHandler, RPCError} from '../engine/types'
 
 export const waitingKey = 'provision:waiting'
 export const forgotUsernameWaitingKey = 'provision:forgotUsername'
@@ -17,7 +17,7 @@ export const cancelOnCallback = (_: any, response: CommonResponseHandler) => {
   response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
 }
 
-export const makeState: I.RecordFactory<Types._State> = I.Record({
+export const makeState: I.Record.Factory<Types._State> = I.Record({
   codePageIncomingTextCode: new HiddenString(''),
   codePageOtherDeviceId: '',
   codePageOtherDeviceName: '',
@@ -36,7 +36,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   username: '',
 })
 
-const makeDevice: I.RecordFactory<Types._Device> = I.Record({
+const makeDevice: I.Record.Factory<Types._Device> = I.Record({
   id: DeviceTypes.stringToDeviceID(''),
   name: '',
   type: 'mobile',

@@ -1,54 +1,54 @@
 import * as Types from './types/settings'
 import HiddenString from '../util/hidden-string'
-import { TypedState } from './reducer';
+import {TypedState} from './reducer'
 import * as I from 'immutable'
 import * as WaitingConstants from './waiting'
 import {getMeta} from './chat2/meta'
 
-export const makeNotificationsGroup: I.RecordFactory<Types._NotificationsGroupState> = I.Record({
+export const makeNotificationsGroup: I.Record.Factory<Types._NotificationsGroupState> = I.Record({
   settings: I.List(),
   unsubscribedFromAll: false,
 })
 
-export const makeNotifications: I.RecordFactory<Types._NotificationsState> = I.Record({
+export const makeNotifications: I.Record.Factory<Types._NotificationsState> = I.Record({
   allowEdit: false,
   groups: I.Map(),
 })
 
-export const makeUnfurl: I.RecordFactory<Types._ChatUnfurlState> = I.Record({
+export const makeUnfurl: I.Record.Factory<Types._ChatUnfurlState> = I.Record({
   unfurlError: undefined,
   unfurlMode: null,
   unfurlWhitelist: I.List(),
 })
 
-export const makeChat: I.RecordFactory<Types._ChatState> = I.Record({
+export const makeChat: I.Record.Factory<Types._ChatState> = I.Record({
   unfurl: makeUnfurl(),
 })
 
-export const makeEmail: I.RecordFactory<Types._EmailState> = I.Record({
+export const makeEmail: I.Record.Factory<Types._EmailState> = I.Record({
   emails: null,
   error: null,
   newEmail: '',
 })
 
-export const makeEmailRow: I.RecordFactory<Types._EmailRow> = I.Record({
+export const makeEmailRow: I.Record.Factory<Types._EmailRow> = I.Record({
   email: '',
   isPrimary: false,
   isVerified: false,
   visibility: 0,
 })
 
-export const makeFeedback: I.RecordFactory<Types._FeedbackState> = I.Record({
+export const makeFeedback: I.Record.Factory<Types._FeedbackState> = I.Record({
   error: null,
 })
 
-export const makeInvites: I.RecordFactory<Types._InvitesState> = I.Record({
+export const makeInvites: I.Record.Factory<Types._InvitesState> = I.Record({
   acceptedInvites: I.List(),
   error: null,
   pendingInvites: I.List(),
 })
 
-export const makePassword: I.RecordFactory<Types._PasswordState> = I.Record({
+export const makePassword: I.Record.Factory<Types._PasswordState> = I.Record({
   error: null,
   hasPGPKeyOnServer: null,
   newPassword: new HiddenString(''),
@@ -59,7 +59,7 @@ export const makePassword: I.RecordFactory<Types._PasswordState> = I.Record({
   rememberPassword: true,
 })
 
-export const makeState: I.RecordFactory<Types._State> = I.Record({
+export const makeState: I.Record.Factory<Types._State> = I.Record({
   allowDeleteAccount: false,
   chat: makeChat(),
   checkPasswordIsCorrect: null,

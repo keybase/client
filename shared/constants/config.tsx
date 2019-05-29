@@ -17,18 +17,18 @@ export const publicFolderWithUsers = (users: Array<string>) =>
   `${defaultKBFSPath}${defaultPublicPrefix}${uniq(users).join(',')}`
 export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPrefix}${team}`
 
-export const makeOutOfDate: I.RecordFactory<Types._OutOfDate> = I.Record({
+export const makeOutOfDate: I.Record.Factory<Types._OutOfDate> = I.Record({
   critical: false,
   message: undefined,
   updating: false,
 })
 
 export const urlToUsername = (url: {
-  protocol: string,
-  username: string,
-  password: string,
-  hostname: string,
-  port: string,
+  protocol: string
+  username: string
+  password: string
+  hostname: string
+  port: string
   pathname: string
 }) => {
   const protocol = url.protocol
@@ -75,7 +75,7 @@ export const urlToUsername = (url: {
   return username
 }
 
-export const makeState: I.RecordFactory<Types._State> = I.Record({
+export const makeState: I.Record.Factory<Types._State> = I.Record({
   appFocused: true,
   appFocusedCount: 0,
   appOutOfDateMessage: '',

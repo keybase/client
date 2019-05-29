@@ -10,7 +10,7 @@ export const tokenType = isIOS ? (isDevApplePushToken ? 'appledev' : 'apple') : 
 export const androidSenderID = '9603251415'
 export const permissionsRequestingWaitingKey = 'push:permissionsRequesting'
 
-export const makeInitialState: I.RecordFactory<Types._State> = I.Record({
+export const makeInitialState: I.Record.Factory<Types._State> = I.Record({
   hasPermissions: true,
   showPushPrompt: false,
   token: '',

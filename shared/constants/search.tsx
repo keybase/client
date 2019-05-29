@@ -2,10 +2,10 @@ import * as I from 'immutable'
 import * as Types from './types/search'
 import * as SearchGen from '../actions/search-gen'
 import {amIFollowing} from './selectors'
-import { IconType } from '../common-adapters';
-import { TypedState } from './reducer';
+import {IconType} from '../common-adapters'
+import {TypedState} from './reducer'
 
-export const makeSearchResult: I.RecordFactory<Types.SearchResult> = I.Record({
+export const makeSearchResult: I.Record.Factory<Types.SearchResult> = I.Record({
   id: '',
   leftFullname: null,
   leftIcon: null,
@@ -73,16 +73,14 @@ function platformToLogo24(service: Types.Service): IconType {
 const isUserInputItemsUpdated = (searchKey: string) => (action: any) =>
   action.type === SearchGen.userInputItemsUpdated && action.payload && action.payload.searchKey === searchKey
 
-const getSearchResultIds = (state: TypedState, searchKey: string): I.List<Types.SearchResultId> | null => state.entities.getIn(['search', 'searchKeyToResults', searchKey])
+const getSearchResultIds = (state: TypedState, searchKey: string): I.List<Types.SearchResultId> | null =>
+  state.entities.getIn(['search', 'searchKeyToResults', searchKey])
 
-const getUserInputItemIds = (state: TypedState, searchKey: string): I.OrderedSet<Types.SearchResultId> => state.entities.getIn(['search', 'searchKeyToUserInputItemIds', searchKey], I.OrderedSet())
+const getUserInputItemIds = (state: TypedState, searchKey: string): I.OrderedSet<Types.SearchResultId> =>
+  state.entities.getIn(['search', 'searchKeyToUserInputItemIds', searchKey], I.OrderedSet())
 
-const getClearSearchTextInput = (
-  {
-    entities
-  }: TypedState,
-  searchKey: string
-): number => entities.getIn(['search', 'searchKeyToClearSearchTextInput', searchKey], 0)
+const getClearSearchTextInput = ({entities}: TypedState, searchKey: string): number =>
+  entities.getIn(['search', 'searchKeyToClearSearchTextInput', searchKey], 0)
 
 export {
   serviceIdToService,

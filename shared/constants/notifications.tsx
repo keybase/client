@@ -1,11 +1,14 @@
 import * as I from 'immutable'
 import * as RPCTypes from './types/rpc-gen'
-import { _State } from './types/notifications';
+import {_State} from './types/notifications'
 import * as Tabs from './tabs'
 import {isMobile} from './platform'
-import { TypedState } from './reducer';
+import {TypedState} from './reducer'
 
-export const badgeStateToBadgeCounts = (bs: RPCTypes.BadgeState, state: TypedState): {
+export const badgeStateToBadgeCounts = (
+  bs: RPCTypes.BadgeState,
+  state: TypedState
+): {
   counts: I.Map<Tabs.Tab, number>
 } | null => {
   const {
@@ -63,7 +66,7 @@ export const shouldTriggerTlfLoad = (bs: RPCTypes.BadgeState) => {
   return !same
 }
 
-export const makeState: I.RecordFactory<_State> = I.Record({
+export const makeState: I.Record.Factory<_State> = I.Record({
   badgeVersion: -1,
   desktopAppBadgeCount: 0,
   keyState: I.Map(),

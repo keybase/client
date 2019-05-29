@@ -7,8 +7,8 @@ import * as WalletConstants from '../wallets'
 import * as Types from '../types/chat2'
 import * as TeamConstants from '../teams'
 import {memoize} from '../../util/memoize'
-import { _ConversationMeta } from '../types/chat2/meta';
-import { TypedState } from '../reducer';
+import {_ConversationMeta} from '../types/chat2/meta'
+import {TypedState} from '../reducer'
 import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors} from '../../styles'
 import {isMobile} from '../platform'
@@ -28,7 +28,8 @@ const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMe
 }
 
 // This one call handles us getting a string or a buffer
-const supersededConversationIDToKey = (id: string | Buffer): string => typeof id === 'string' ? Buffer.from(toByteArray(id)).toString('hex') : id.toString('hex')
+const supersededConversationIDToKey = (id: string | Buffer): string =>
+  typeof id === 'string' ? Buffer.from(toByteArray(id)).toString('hex') : id.toString('hex')
 
 export const unverifiedInboxUIItemToConversationMeta = (
   i: RPCChatTypes.UnverifiedInboxUIItem,
@@ -73,16 +74,30 @@ export const unverifiedInboxUIItemToConversationMeta = (
     channelname,
     commands: i.commands,
     conversationIDKey: Types.stringToConversationIDKey(i.convID),
-    description: // Auto generated from flowToTs. Please clean me!
     // Auto generated from flowToTs. Please clean me!
-    (i.localMetadata === null || i.localMetadata === undefined ? undefined : i.localMetadata.headline) !== null && // Auto generated from flowToTs. Please clean me!
-    (i.localMetadata === null || i.localMetadata === undefined ? undefined : i.localMetadata.headline) !== undefined ? // Auto generated from flowToTs. Please clean me!
-    i.localMetadata === null || i.localMetadata === undefined ? undefined : i.localMetadata.headline : '',
-    descriptionDecorated: // Auto generated from flowToTs. Please clean me!
+    description:
+      // Auto generated from flowToTs. Please clean me!
+      (i.localMetadata === null || i.localMetadata === undefined ? undefined : i.localMetadata.headline) !==
+        null && // Auto generated from flowToTs. Please clean me!
+      (i.localMetadata === null || i.localMetadata === undefined ? undefined : i.localMetadata.headline) !==
+        undefined // Auto generated from flowToTs. Please clean me!
+        ? i.localMetadata === null || i.localMetadata === undefined
+          ? undefined
+          : i.localMetadata.headline
+        : '',
     // Auto generated from flowToTs. Please clean me!
-    (i.localMetadata === null || i.localMetadata === undefined ? undefined : i.localMetadata.headlineDecorated) !== null && // Auto generated from flowToTs. Please clean me!
-    (i.localMetadata === null || i.localMetadata === undefined ? undefined : i.localMetadata.headlineDecorated) !== undefined ? // Auto generated from flowToTs. Please clean me!
-    i.localMetadata === null || i.localMetadata === undefined ? undefined : i.localMetadata.headlineDecorated : '',
+    descriptionDecorated:
+      // Auto generated from flowToTs. Please clean me!
+      (i.localMetadata === null || i.localMetadata === undefined
+        ? undefined
+        : i.localMetadata.headlineDecorated) !== null && // Auto generated from flowToTs. Please clean me!
+      (i.localMetadata === null || i.localMetadata === undefined
+        ? undefined
+        : i.localMetadata.headlineDecorated) !== undefined // Auto generated from flowToTs. Please clean me!
+        ? i.localMetadata === null || i.localMetadata === undefined
+          ? undefined
+          : i.localMetadata.headlineDecorated
+        : '',
     inboxLocalVersion: i.localVersion,
     inboxVersion: i.version,
     isMuted: i.status === RPCChatTypes.ConversationStatus.muted,
@@ -108,7 +123,7 @@ export const unverifiedInboxUIItemToConversationMeta = (
     tlfname: i.name,
     trustedState: 'untrusted',
     wasFinalizedBy: i.finalizeInfo ? i.finalizeInfo.resetUser : '',
-  });
+  })
 }
 
 const conversationMetadataToMetaSupersedeInfo = (metas: Array<RPCChatTypes.ConversationMetadata> | null) => {
@@ -135,7 +150,10 @@ export const getEffectiveRetentionPolicy = (meta: Types.ConversationMeta) => {
 
 // Upgrade a meta, try and keep existing values if possible to reduce render thrashing in components
 // Enforce the verions only increase and we only go from untrusted to trusted, etc
-export const updateMeta = (oldMeta: Types.ConversationMeta, newMeta: Types.ConversationMeta): Types.ConversationMeta => {
+export const updateMeta = (
+  oldMeta: Types.ConversationMeta,
+  newMeta: Types.ConversationMeta
+): Types.ConversationMeta => {
   if (newMeta.inboxVersion < oldMeta.inboxVersion) {
     // new is older, keep old
     return oldMeta
@@ -207,8 +225,8 @@ export const updateMetaWithNotificationSettings = (
     notificationsDesktop: notificationsDesktop,
     notificationsGlobalIgnoreMentions: notificationsGlobalIgnoreMentions,
     notificationsMobile: notificationsMobile,
-  }) as Types.ConversationMeta;
-};
+  }) as Types.ConversationMeta
+}
 
 const UIItemToRetentionPolicies = (i, isTeam) => {
   // default inherit for teams, retain for ad-hoc
@@ -265,7 +283,17 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
   const {retentionPolicy, teamRetentionPolicy} = UIItemToRetentionPolicies(i, isTeam)
 
   const minWriterRoleEnum = // Auto generated from flowToTs. Please clean me!
-  (i.convSettings === null || i.convSettings === undefined ? undefined : i.convSettings.minWriterRoleInfo) === null || (i.convSettings === null || i.convSettings === undefined ? undefined : i.convSettings.minWriterRoleInfo) === undefined ? undefined : (i.convSettings === null || i.convSettings === undefined ? undefined : i.convSettings.minWriterRoleInfo).role
+    (i.convSettings === null || i.convSettings === undefined
+      ? undefined
+      : i.convSettings.minWriterRoleInfo) === null ||
+    (i.convSettings === null || i.convSettings === undefined
+      ? undefined
+      : i.convSettings.minWriterRoleInfo) === undefined
+      ? undefined
+      : (i.convSettings === null || i.convSettings === undefined
+          ? undefined
+          : i.convSettings.minWriterRoleInfo
+        ).role
   let minWriterRole = minWriterRoleEnum ? TeamConstants.teamRoleByEnum[minWriterRoleEnum] : 'reader'
   if (minWriterRole === 'none') {
     // means nothing. set it to reader.
@@ -273,7 +301,17 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
   }
 
   let cannotWrite = // Auto generated from flowToTs. Please clean me!
-  (i.convSettings === null || i.convSettings === undefined ? undefined : i.convSettings.minWriterRoleInfo) === null || (i.convSettings === null || i.convSettings === undefined ? undefined : i.convSettings.minWriterRoleInfo) === undefined ? undefined : (i.convSettings === null || i.convSettings === undefined ? undefined : i.convSettings.minWriterRoleInfo).cannotWrite
+    (i.convSettings === null || i.convSettings === undefined
+      ? undefined
+      : i.convSettings.minWriterRoleInfo) === null ||
+    (i.convSettings === null || i.convSettings === undefined
+      ? undefined
+      : i.convSettings.minWriterRoleInfo) === undefined
+      ? undefined
+      : (i.convSettings === null || i.convSettings === undefined
+          ? undefined
+          : i.convSettings.minWriterRoleInfo
+        ).cannotWrite
 
   return makeConversationMeta({
     cannotWrite,
@@ -311,7 +349,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
   })
 }
 
-export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record({
+export const makeConversationMeta: I.Record.Factory<_ConversationMeta> = I.Record({
   cannotWrite: false,
   channelname: '',
   commands: {},

@@ -5,7 +5,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as TeamBuildingConstants from '../../constants/team-building'
 import {clamp} from 'lodash-es'
 import {chatTab} from '../tabs'
-import { TypedState } from '../reducer';
+import {TypedState} from '../reducer'
 import {isMobile} from '../platform'
 import {
   noConversationIDKey,
@@ -18,7 +18,7 @@ import {formatTextForQuoting} from '../../util/chat'
 import * as Router2 from '../router2'
 import HiddenString from '../../util/hidden-string'
 
-export const makeState: I.RecordFactory<Types._State> = I.Record({
+export const makeState: I.Record.Factory<Types._State> = I.Record({
   accountsInfoMap: I.Map(),
   attachmentFullscreenMessage: null,
   badgeMap: I.Map(),
@@ -64,19 +64,19 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   ...TeamBuildingConstants.makeSubState(),
 })
 
-export const makeQuoteInfo: I.RecordFactory<Types._QuoteInfo> = I.Record({
+export const makeQuoteInfo: I.Record.Factory<Types._QuoteInfo> = I.Record({
   counter: 0,
   ordinal: Types.numberToOrdinal(0),
   sourceConversationIDKey: noConversationIDKey,
   targetConversationIDKey: noConversationIDKey,
 })
 
-export const makeStaticConfig: I.RecordFactory<Types._StaticConfig> = I.Record({
+export const makeStaticConfig: I.Record.Factory<Types._StaticConfig> = I.Record({
   builtinCommands: [],
   deletableByDeleteHistory: I.Set(),
 })
 
-export const makeThreadSearchInfo: I.RecordFactory<Types._ThreadSearchInfo> = I.Record({
+export const makeThreadSearchInfo: I.Record.Factory<Types._ThreadSearchInfo> = I.Record({
   hits: I.List(),
   status: 'initial',
   visible: false,
@@ -87,7 +87,7 @@ export const inboxSearchMaxTextResults = 50
 export const inboxSearchMaxNameResults = 7
 export const inboxSearchMaxUnreadNameResults = isMobile ? 5 : 10
 
-export const makeInboxSearchInfo: I.RecordFactory<Types._InboxSearchInfo> = I.Record({
+export const makeInboxSearchInfo: I.Record.Factory<Types._InboxSearchInfo> = I.Record({
   indexPercent: 0,
   nameResults: I.List(),
   nameResultsUnread: false,
@@ -98,12 +98,12 @@ export const makeInboxSearchInfo: I.RecordFactory<Types._InboxSearchInfo> = I.Re
   textStatus: 'initial',
 })
 
-export const makeInboxSearchConvHit: I.RecordFactory<Types._InboxSearchConvHit> = I.Record({
+export const makeInboxSearchConvHit: I.Record.Factory<Types._InboxSearchConvHit> = I.Record({
   conversationIDKey: noConversationIDKey,
   teamType: 'small',
 })
 
-export const makeInboxSearchTextHit: I.RecordFactory<Types._InboxSearchTextHit> = I.Record({
+export const makeInboxSearchTextHit: I.Record.Factory<Types._InboxSearchTextHit> = I.Record({
   conversationIDKey: noConversationIDKey,
   numHits: 0,
   query: '',
@@ -114,7 +114,10 @@ export const makeInboxSearchTextHit: I.RecordFactory<Types._InboxSearchTextHit> 
 export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
   if (inboxSearch.selectedIndex < inboxSearch.nameResults.size) {
     const conversationIDKey = // Auto generated from flowToTs. Please clean me!
-    inboxSearch.nameResults.get(inboxSearch.selectedIndex) === null || inboxSearch.nameResults.get(inboxSearch.selectedIndex) === undefined ? undefined : inboxSearch.nameResults.get(inboxSearch.selectedIndex).conversationIDKey
+      inboxSearch.nameResults.get(inboxSearch.selectedIndex) === null ||
+      inboxSearch.nameResults.get(inboxSearch.selectedIndex) === undefined
+        ? undefined
+        : inboxSearch.nameResults.get(inboxSearch.selectedIndex).conversationIDKey
     if (conversationIDKey) {
       return {
         conversationIDKey,
@@ -140,7 +143,11 @@ export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKe
   state.chat2.messageOrdinals.get(id, I.OrderedSet())
 export const getMessageCenterOrdinal = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.messageCenterOrdinals.get(id)
-export const getMessage = (state: TypedState, id: Types.ConversationIDKey, ordinal: Types.Ordinal): Types.Message | null => state.chat2.messageMap.getIn([id, ordinal])
+export const getMessage = (
+  state: TypedState,
+  id: Types.ConversationIDKey,
+  ordinal: Types.Ordinal
+): Types.Message | null => state.chat2.messageMap.getIn([id, ordinal])
 export const getMessageKey = (message: Types.Message) =>
   `${message.conversationIDKey}:${Types.ordinalToNumber(message.ordinal)}`
 export const getHasBadge = (state: TypedState, id: Types.ConversationIDKey) =>
@@ -153,8 +160,12 @@ export const getReplyToOrdinal = (state: TypedState, conversationIDKey: Types.Co
 }
 export const getReplyToMessageID = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
   const ordinal = getReplyToOrdinal(state, conversationIDKey)
-  return ordinal ? // Auto generated from flowToTs. Please clean me!
-  getMessage(state, conversationIDKey, ordinal) === null || getMessage(state, conversationIDKey, ordinal) === undefined ? undefined : getMessage(state, conversationIDKey, ordinal).id : null;
+  return ordinal // Auto generated from flowToTs. Please clean me!
+    ? getMessage(state, conversationIDKey, ordinal) === null ||
+      getMessage(state, conversationIDKey, ordinal) === undefined
+      ? undefined
+      : getMessage(state, conversationIDKey, ordinal).id
+    : null
 }
 
 export const getEditInfo = (state: TypedState, id: Types.ConversationIDKey) => {
@@ -200,7 +211,9 @@ export const isUserActivelyLookingAtThisThread = (
     chatThreadSelected = true // conversationIDKey === selectedConversationIDKey is the only thing that matters in the new router
   } else {
     chatThreadSelected = // Auto generated from flowToTs. Please clean me!
-    (Router2.getVisibleScreen() === null || Router2.getVisibleScreen() === undefined ? undefined : Router2.getVisibleScreen().routeName) === 'chatRoot'
+      (Router2.getVisibleScreen() === null || Router2.getVisibleScreen() === undefined
+        ? undefined
+        : Router2.getVisibleScreen().routeName) === 'chatRoot'
   }
 
   return (
@@ -216,7 +229,9 @@ export const isTeamConversationSelected = (state: TypedState, teamname: string) 
 }
 export const isInfoPanelOpen = (state: TypedState) =>
   // Auto generated from flowToTs. Please clean me!
-  (Router2.getVisibleScreen() === null || Router2.getVisibleScreen() === undefined ? undefined : Router2.getVisibleScreen().routeName) === 'chatInfoPanel'
+  (Router2.getVisibleScreen() === null || Router2.getVisibleScreen() === undefined
+    ? undefined
+    : Router2.getVisibleScreen().routeName) === 'chatInfoPanel'
 
 export const inboxSearchNewKey = 'chat:inboxSearchNew'
 export const waitingKeyJoinConversation = 'chat:joinConversation'
@@ -249,7 +264,8 @@ export const anyChatWaitingKeys = (state: TypedState) =>
  * Note: The core service also uses this value, so if it changes, please notify core
  */
 export const explodingModeGregorKeyPrefix = 'exploding:'
-export const explodingModeGregorKey = (c: Types.ConversationIDKey): string => `${explodingModeGregorKeyPrefix}${c}`
+export const explodingModeGregorKey = (c: Types.ConversationIDKey): string =>
+  `${explodingModeGregorKeyPrefix}${c}`
 export const getConversationExplodingMode = (state: TypedState, c: Types.ConversationIDKey): number => {
   let mode = state.chat2.getIn(['explodingModeLocks', c], null)
   if (mode === null) {
@@ -271,7 +287,9 @@ export const getTeamMentionName = (name: string, channel: string) => {
 // body of 'true'
 export const seenWalletsGregorKey = 'chat.seenWallets'
 
-export const makeInboxQuery = (convIDKeys: Array<Types.ConversationIDKey>): RPCChatTypes.GetInboxLocalQuery => {
+export const makeInboxQuery = (
+  convIDKeys: Array<Types.ConversationIDKey>
+): RPCChatTypes.GetInboxLocalQuery => {
   return {
     computeActiveList: true,
     convIDs: convIDKeys.map(Types.keyToConversationID),

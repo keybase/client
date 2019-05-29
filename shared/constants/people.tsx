@@ -2,21 +2,17 @@ import * as I from 'immutable'
 import * as Types from './types/people'
 import * as RPCTypes from './types/rpc-gen'
 import {invert} from 'lodash-es'
-import { IconType } from '../common-adapters';
+import {IconType} from '../common-adapters'
 import {isMobile} from '../constants/platform'
 
 export const defaultNumFollowSuggestions = 10
 export const getPeopleDataWaitingKey = 'getPeopleData'
 
-export const todoTypeEnumToType: {
-  [K in Types.TodoTypeEnum]: Types.TodoType;
-} = invert(
+export const todoTypeEnumToType: {[K in Types.TodoTypeEnum]: Types.TodoType} = invert(
   RPCTypes.HomeScreenTodoType
 )
 
-export const todoTypes: {
-  [K in Types.TodoType]: Types.TodoType;
-} = {
+export const todoTypes: {[K in Types.TodoType]: Types.TodoType} = {
   avatarTeam: 'avatarTeam',
   avatarUser: 'avatarUser',
   bio: 'bio',
@@ -31,9 +27,7 @@ export const todoTypes: {
   teamShowcase: 'teamShowcase',
 }
 
-export const todoTypeToInstructions: {
-  [K in Types.TodoType]: string;
-} = {
+export const todoTypeToInstructions: {[K in Types.TodoType]: string} = {
   avatarTeam: 'NEW! Change your team’s avatar from within the Keybase app.',
   avatarUser: 'NEW! Change your avatar from within the Keybase app.',
   bio: 'Add your name, bio, and location to complete your profile.',
@@ -54,9 +48,7 @@ export const todoTypeToInstructions: {
     'Create a team! Keybase team chats are end-to-end encrypted - unlike Slack - and work for any kind of group, from casual friends to large communities.',
   teamShowcase: `Tip: Keybase team chats are private, but you can choose to publish that you're an admin. Check out the team settings on any team you manage.`,
 }
-export const todoTypeToConfirmLabel: {
-  [K in Types.TodoType]: string;
-} = {
+export const todoTypeToConfirmLabel: {[K in Types.TodoType]: string} = {
   avatarTeam: 'Edit team avatar',
   avatarUser: 'Edit avatar',
   bio: 'Edit Profile',
@@ -70,9 +62,7 @@ export const todoTypeToConfirmLabel: {
   team: 'Create a team!',
   teamShowcase: 'Set publicity settings',
 }
-export const todoTypeToDismissable: {
-  [K in Types.TodoType]: boolean;
-} = {
+export const todoTypeToDismissable: {[K in Types.TodoType]: boolean} = {
   avatarTeam: false,
   avatarUser: false,
   bio: false,
@@ -86,9 +76,7 @@ export const todoTypeToDismissable: {
   team: true,
   teamShowcase: true,
 }
-export const todoTypeToIcon: {
-  [K in Types.TodoType]: IconType;
-} = {
+export const todoTypeToIcon: {[K in Types.TodoType]: IconType} = {
   avatarTeam: 'icon-onboarding-team-avatar-48',
   avatarUser: 'icon-onboarding-user-avatar-48',
   bio: 'icon-onboarding-user-info-48',
@@ -103,7 +91,10 @@ export const todoTypeToIcon: {
   teamShowcase: 'icon-onboarding-team-publicity-48',
 }
 
-export const reduceRPCItemToPeopleItem = (list: I.List<Types.PeopleScreenItem>, item: RPCTypes.HomeScreenItem): I.List<Types.PeopleScreenItem> => {
+export const reduceRPCItemToPeopleItem = (
+  list: I.List<Types.PeopleScreenItem>,
+  item: RPCTypes.HomeScreenItem
+): I.List<Types.PeopleScreenItem> => {
   const badged = item.badged
   if (item.data.t === RPCTypes.HomeScreenItemType.todo) {
     // Todo item
@@ -184,7 +175,7 @@ export const reduceRPCItemToPeopleItem = (list: I.List<Types.PeopleScreenItem>, 
   return list
 }
 
-export const makeAnnouncement: I.RecordFactory<Types._Announcement> = I.Record({
+export const makeAnnouncement: I.Record.Factory<Types._Announcement> = I.Record({
   appLink: null,
   badged: false,
   confirmLabel: null,
@@ -196,7 +187,7 @@ export const makeAnnouncement: I.RecordFactory<Types._Announcement> = I.Record({
   url: null,
 })
 
-export const makeTodo: I.RecordFactory<Types._Todo> = I.Record({
+export const makeTodo: I.Record.Factory<Types._Todo> = I.Record({
   badged: false,
   confirmLabel: '',
   dismissable: false,
@@ -206,11 +197,11 @@ export const makeTodo: I.RecordFactory<Types._Todo> = I.Record({
   type: 'todo',
 })
 
-export const makeFollowedNotification: I.RecordFactory<Types._FollowedNotification> = I.Record({
+export const makeFollowedNotification: I.Record.Factory<Types._FollowedNotification> = I.Record({
   username: '',
 })
 
-export const makeFollowedNotificationItem: I.RecordFactory<Types._FollowedNotificationItem> = I.Record({
+export const makeFollowedNotificationItem: I.Record.Factory<Types._FollowedNotificationItem> = I.Record({
   badged: false,
   newFollows: [],
   notificationTime: new Date(),
@@ -218,14 +209,14 @@ export const makeFollowedNotificationItem: I.RecordFactory<Types._FollowedNotifi
   type: 'notification',
 })
 
-export const makeFollowSuggestion: I.RecordFactory<Types._FollowSuggestion> = I.Record({
+export const makeFollowSuggestion: I.Record.Factory<Types._FollowSuggestion> = I.Record({
   followsMe: false,
   fullName: null,
   iFollow: false,
   username: '',
 })
 
-export const makeState: I.RecordFactory<Types._State> = I.Record({
+export const makeState: I.Record.Factory<Types._State> = I.Record({
   followSuggestions: I.List(),
   lastViewed: new Date(),
   newItems: I.List(),

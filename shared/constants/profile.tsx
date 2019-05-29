@@ -1,13 +1,13 @@
 import * as RPCGen from './types/rpc-gen'
 import * as Types from './types/profile'
 import * as I from 'immutable'
-import { TypedState } from '../util/container';
+import {TypedState} from '../util/container'
 import {peopleTab} from '../constants/tabs'
 import {serviceIdToService} from './search'
 import {parseUserId} from '../util/platforms'
 import {searchResultSelector} from './selectors'
 
-export const makeInitialState: I.RecordFactory<Types._State> = I.Record({
+export const makeInitialState: I.Record.Factory<Types._State> = I.Record({
   errorCode: null,
   errorText: '',
   pgpEmail1: '',
@@ -36,7 +36,7 @@ export const makeInitialState: I.RecordFactory<Types._State> = I.Record({
   usernameValid: true,
 })
 
-export const makeProveGenericParams: I.RecordFactory<Types._ProveGenericParams> = I.Record({
+export const makeProveGenericParams: I.Record.Factory<Types._ProveGenericParams> = I.Record({
   buttonLabel: '',
   logoBlack: [],
   logoFull: [],
@@ -67,7 +67,7 @@ export const EDIT_AVATAR_ZINDEX = SEARCH_CONTAINER_ZINDEX + 1
 
 export const getProfilePath = (
   peopleRouteProps: I.List<{
-    node: string | null,
+    node: string | null
     props: I.Map<string, any>
   }>,
   username: string,
@@ -78,7 +78,7 @@ export const getProfilePath = (
     [peopleTab, 'profile', 'profileNonUserProfile'].includes(segment.node)
   )
   const onlyProfilesPath: Array<{
-    selected: string | null,
+    selected: string | null
     props: any
   }> = onlyProfilesProps
     .map(segment => ({

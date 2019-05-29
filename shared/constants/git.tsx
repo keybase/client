@@ -2,9 +2,9 @@ import * as I from 'immutable'
 import * as Types from './types/git'
 import * as RPCTypes from './types/rpc-gen'
 import moment from 'moment'
-import { TypedState } from './reducer';
+import {TypedState} from './reducer'
 
-export const makeGitInfo: I.RecordFactory<Types._GitInfo> = I.Record({
+export const makeGitInfo: I.Record.Factory<Types._GitInfo> = I.Record({
   canDelete: false,
   channelName: null,
   chatDisabled: false,
@@ -18,7 +18,7 @@ export const makeGitInfo: I.RecordFactory<Types._GitInfo> = I.Record({
   url: '',
 })
 
-export const makeState: I.RecordFactory<Types._State> = I.Record({
+export const makeState: I.Record.Factory<Types._State> = I.Record({
   error: null,
   idToInfo: I.Map(),
   isNew: I.Set(),
@@ -57,10 +57,10 @@ const parseRepoError = (result: RPCTypes.GitRepoResult): Error => {
   return new Error(`Git repo error: ${errStr}`)
 }
 
-export const parseRepos = (results: Array<RPCTypes.GitRepoResult>): {
-  repos: {
-    [K in string]: Types.GitInfo;
-  },
+export const parseRepos = (
+  results: Array<RPCTypes.GitRepoResult>
+): {
+  repos: {[K in string]: Types.GitInfo}
   errors: Array<Error>
 } => {
   let errors = []

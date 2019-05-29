@@ -5,23 +5,24 @@ import * as Types from './types/devices'
 import * as WaitingConstants from './waiting'
 import * as RPCTypes from './types/rpc-gen'
 import {isMobile} from './platform'
-import { TypedState } from './reducer';
+import {TypedState} from './reducer'
 import HiddenString from '../util/hidden-string'
 
-export const rpcDeviceToDevice = (d: RPCTypes.DeviceDetail): Types.Device => makeDevice({
-  created: d.device.cTime,
-  currentDevice: d.currentDevice,
-  deviceID: Types.stringToDeviceID(d.device.deviceID),
-  lastUsed: d.device.lastUsedTime,
-  name: d.device.name,
-  provisionedAt: d.provisionedAt,
-  provisionerName: d.provisioner ? d.provisioner.name : '',
-  revokedAt: d.revokedAt,
-  revokedByName: d.revokedByDevice ? d.revokedByDevice.name : null,
-  type: Types.stringToDeviceType(d.device.type),
-})
+export const rpcDeviceToDevice = (d: RPCTypes.DeviceDetail): Types.Device =>
+  makeDevice({
+    created: d.device.cTime,
+    currentDevice: d.currentDevice,
+    deviceID: Types.stringToDeviceID(d.device.deviceID),
+    lastUsed: d.device.lastUsedTime,
+    name: d.device.name,
+    provisionedAt: d.provisionedAt,
+    provisionerName: d.provisioner ? d.provisioner.name : '',
+    revokedAt: d.revokedAt,
+    revokedByName: d.revokedByDevice ? d.revokedByDevice.name : null,
+    type: Types.stringToDeviceType(d.device.type),
+  })
 
-export const makeDevice: I.RecordFactory<Types._Device> = I.Record({
+export const makeDevice: I.Record.Factory<Types._Device> = I.Record({
   created: 0,
   currentDevice: false,
   deviceID: Types.stringToDeviceID(''),
@@ -34,7 +35,7 @@ export const makeDevice: I.RecordFactory<Types._Device> = I.Record({
   type: Types.stringToDeviceType('desktop'),
 })
 
-export const makeState: I.RecordFactory<Types._State> = I.Record({
+export const makeState: I.Record.Factory<Types._State> = I.Record({
   deviceMap: I.Map(),
   endangeredTLFMap: I.Map(),
   isNew: I.Set(),
@@ -56,7 +57,7 @@ export const getDevice = (state: TypedState, id: Types.DeviceID | null) =>
   id ? state.devices.deviceMap.get(id, emptyDevice) : emptyDevice
 export const getDeviceCounts = (state: TypedState) => ({
   numActive: state.devices.deviceMap.count(v => !v.revokedAt),
-  numRevoked: state.devices.deviceMap.count(v => v.revokedAt),
+  numRevoked: state.devices.deviceMap.count(v => !!v.revokedAt),
 })
 export const getEndangeredTLFs = (state: TypedState, id: Types.DeviceID | null) =>
   id ? state.devices.endangeredTLFMap.get(id, emptySet) : emptySet

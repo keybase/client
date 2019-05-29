@@ -1,14 +1,14 @@
 import * as Types from './types/tracker2'
 import * as RPCTypes from './types/rpc-gen'
 import * as I from 'immutable'
-import { TypedState } from './reducer';
+import {TypedState} from './reducer'
 
-export const makeState: I.RecordFactory<Types._State> = I.Record({
+export const makeState: I.Record.Factory<Types._State> = I.Record({
   proofSuggestions: I.List(),
   usernameToDetails: I.Map(),
 })
 
-export const makeDetails: I.RecordFactory<Types._Details> = I.Record({
+export const makeDetails: I.Record.Factory<Types._Details> = I.Record({
   assertions: I.Map(),
   bio: null,
   followers: null,
@@ -28,7 +28,7 @@ export const makeDetails: I.RecordFactory<Types._Details> = I.Record({
 
 export const generateGUIID = () => Math.floor(Math.random() * 0xfffffffffffff).toString(16)
 
-export const makeAssertion: I.RecordFactory<Types._Assertion> = I.Record({
+export const makeAssertion: I.Record.Factory<Types._Assertion> = I.Record({
   assertionKey: '',
   belowFold: false,
   color: 'gray',
@@ -49,12 +49,12 @@ export const makeAssertion: I.RecordFactory<Types._Assertion> = I.Record({
   value: '',
 })
 
-export const makeMeta: I.RecordFactory<Types._AssertionMeta> = I.Record({
+export const makeMeta: I.Record.Factory<Types._AssertionMeta> = I.Record({
   color: 'black',
   label: '',
 })
 
-export const makeTeamShowcase: I.RecordFactory<Types._TeamShowcase> = I.Record({
+export const makeTeamShowcase: I.Record.Factory<Types._TeamShowcase> = I.Record({
   description: '',
   isOpen: false,
   membersCount: 0,
@@ -117,22 +117,23 @@ export const rpcRowStateToAssertionState = (state: RPCTypes.Identify3RowState): 
   }
 }
 
-export const rpcAssertionToAssertion = (row: RPCTypes.Identify3Row): Types.Assertion => makeAssertion({
-  assertionKey: `${row.key}:${row.value}`,
-  color: rpcRowColorToColor(row.color),
-  kid: row.kid || ',',
-  metas: (row.metas || []).map(m => ({color: rpcRowColorToColor(m.color), label: m.label})).map(makeMeta),
-  priority: row.priority,
-  proofURL: row.proofURL,
-  sigID: row.sigID,
-  siteIcon: row.siteIcon || [],
-  siteIconFull: row.siteIconFull || [],
-  siteURL: row.siteURL,
-  state: rpcRowStateToAssertionState(row.state),
-  timestamp: row.ctime,
-  type: row.key,
-  value: row.value,
-})
+export const rpcAssertionToAssertion = (row: RPCTypes.Identify3Row): Types.Assertion =>
+  makeAssertion({
+    assertionKey: `${row.key}:${row.value}`,
+    color: rpcRowColorToColor(row.color),
+    kid: row.kid || ',',
+    metas: (row.metas || []).map(m => ({color: rpcRowColorToColor(m.color), label: m.label})).map(makeMeta),
+    priority: row.priority,
+    proofURL: row.proofURL,
+    sigID: row.sigID,
+    siteIcon: row.siteIcon || [],
+    siteIconFull: row.siteIconFull || [],
+    siteURL: row.siteURL,
+    state: rpcRowStateToAssertionState(row.state),
+    timestamp: row.ctime,
+    type: row.key,
+    value: row.value,
+  })
 
 export const rpcSuggestionToAssertion = (s: RPCTypes.ProofSuggestion): Types.Assertion => {
   const ourKey = s.key === 'web' ? 'dnsOrGenericWebSite' : s.key

@@ -12,7 +12,7 @@ import * as WalletConstants from '../wallets'
 import * as WalletTypes from '../types/wallets'
 import HiddenString from '../../util/hidden-string'
 import {isMobile} from '../platform'
-import { TypedState } from '../reducer';
+import {TypedState} from '../reducer'
 import {noConversationIDKey} from '../types/chat2/common'
 import logger from '../../logger'
 
@@ -29,7 +29,10 @@ export const getMessageID = (m: RPCChatTypes.UIMessage) => {
   }
 }
 
-export const getRequestMessageInfo = (state: TypedState, message: Types.MessageRequestPayment): MessageTypes.ChatRequestInfo | null => {
+export const getRequestMessageInfo = (
+  state: TypedState,
+  message: Types.MessageRequestPayment
+): MessageTypes.ChatRequestInfo | null => {
   const maybeRequestInfo = state.chat2.getIn(['accountsInfoMap', message.conversationIDKey, message.id], null)
   if (!maybeRequestInfo) {
     return message.requestInfo
@@ -44,7 +47,10 @@ export const getRequestMessageInfo = (state: TypedState, message: Types.MessageR
   )
 }
 
-export const getPaymentMessageInfo = (state: TypedState, message: Types.MessageSendPayment): MessageTypes.ChatPaymentInfo | null => {
+export const getPaymentMessageInfo = (
+  state: TypedState,
+  message: Types.MessageSendPayment
+): MessageTypes.ChatPaymentInfo | null => {
   const maybePaymentInfo = state.chat2.getIn(['accountsInfoMap', message.conversationIDKey, message.id], null)
   if (!maybePaymentInfo) {
     return message.paymentInfo
@@ -163,17 +169,17 @@ const makeMessageExplodable = {
 
 export const howLongBetweenTimestampsMs: number = 1000 * 60 * 15
 
-export const makeMessagePlaceholder: I.RecordFactory<MessageTypes._MessagePlaceholder> = I.Record({
+export const makeMessagePlaceholder: I.Record.Factory<MessageTypes._MessagePlaceholder> = I.Record({
   ...makeMessageCommon,
   type: 'placeholder',
 })
 
-export const makeMessageDeleted: I.RecordFactory<MessageTypes._MessageDeleted> = I.Record({
+export const makeMessageDeleted: I.Record.Factory<MessageTypes._MessageDeleted> = I.Record({
   ...makeMessageCommon,
   type: 'deleted',
 })
 
-export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Record({
+export const makeMessageText: I.Record.Factory<MessageTypes._MessageText> = I.Record({
   ...makeMessageCommon,
   ...makeMessageExplodable,
   decoratedText: null,
@@ -193,7 +199,7 @@ export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Rec
   unfurls: I.Map(),
 })
 
-export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachment> = I.Record({
+export const makeMessageAttachment: I.Record.Factory<MessageTypes._MessageAttachment> = I.Record({
   ...makeMessageCommon,
   ...makeMessageExplodable,
   attachmentType: 'file',
@@ -222,7 +228,7 @@ export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachm
   videoDuration: null,
 })
 
-export const makeChatRequestInfo: I.RecordFactory<MessageTypes._ChatRequestInfo> = I.Record({
+export const makeChatRequestInfo: I.Record.Factory<MessageTypes._ChatRequestInfo> = I.Record({
   amount: '',
   amountDescription: '',
   asset: 'native',
@@ -233,7 +239,7 @@ export const makeChatRequestInfo: I.RecordFactory<MessageTypes._ChatRequestInfo>
   worthAtRequestTime: '',
 })
 
-export const makeMessageRequestPayment: I.RecordFactory<MessageTypes._MessageRequestPayment> = I.Record({
+export const makeMessageRequestPayment: I.Record.Factory<MessageTypes._MessageRequestPayment> = I.Record({
   ...makeMessageCommon,
   note: new HiddenString(''),
   reactions: I.Map(),
@@ -242,7 +248,7 @@ export const makeMessageRequestPayment: I.RecordFactory<MessageTypes._MessageReq
   type: 'requestPayment',
 })
 
-export const makeChatPaymentInfo: I.RecordFactory<MessageTypes._ChatPaymentInfo> = I.Record({
+export const makeChatPaymentInfo: I.Record.Factory<MessageTypes._ChatPaymentInfo> = I.Record({
   accountID: WalletTypes.noAccountID,
   amountDescription: '',
   delta: 'none',
@@ -259,26 +265,26 @@ export const makeChatPaymentInfo: I.RecordFactory<MessageTypes._ChatPaymentInfo>
   worthAtSendTime: '',
 })
 
-export const makeMessageSendPayment: I.RecordFactory<MessageTypes._MessageSendPayment> = I.Record({
+export const makeMessageSendPayment: I.Record.Factory<MessageTypes._MessageSendPayment> = I.Record({
   ...makeMessageCommon,
   paymentInfo: null,
   reactions: I.Map(),
   type: 'sendPayment',
 })
 
-const makeMessageSystemJoined: I.RecordFactory<MessageTypes._MessageSystemJoined> = I.Record({
+const makeMessageSystemJoined: I.Record.Factory<MessageTypes._MessageSystemJoined> = I.Record({
   ...makeMessageMinimum,
   reactions: I.Map(),
   type: 'systemJoined',
 })
 
-const makeMessageSystemLeft: I.RecordFactory<MessageTypes._MessageSystemLeft> = I.Record({
+const makeMessageSystemLeft: I.Record.Factory<MessageTypes._MessageSystemLeft> = I.Record({
   ...makeMessageMinimum,
   reactions: I.Map(),
   type: 'systemLeft',
 })
 
-const makeMessageSystemAddedToTeam: I.RecordFactory<MessageTypes._MessageSystemAddedToTeam> = I.Record({
+const makeMessageSystemAddedToTeam: I.Record.Factory<MessageTypes._MessageSystemAddedToTeam> = I.Record({
   ...makeMessageMinimum,
   addee: '',
   adder: '',
@@ -288,35 +294,37 @@ const makeMessageSystemAddedToTeam: I.RecordFactory<MessageTypes._MessageSystemA
   type: 'systemAddedToTeam',
 })
 
-const makeMessageSystemInviteAccepted: I.RecordFactory<MessageTypes._MessageSystemInviteAccepted> = I.Record({
-  ...makeMessageMinimum,
-  adder: '',
-  author: '[Keybase]',
-  inviteType: 'none',
-  invitee: '',
-  inviter: '',
-  reactions: I.Map(),
-  team: '',
-  type: 'systemInviteAccepted',
-})
-
-const makeMessageSystemSimpleToComplex: I.RecordFactory<MessageTypes._MessageSystemSimpleToComplex> = I.Record(
+const makeMessageSystemInviteAccepted: I.Record.Factory<MessageTypes._MessageSystemInviteAccepted> = I.Record(
   {
     ...makeMessageMinimum,
+    adder: '',
+    author: '[Keybase]',
+    inviteType: 'none',
+    invitee: '',
+    inviter: '',
     reactions: I.Map(),
     team: '',
-    type: 'systemSimpleToComplex',
+    type: 'systemInviteAccepted',
   }
 )
 
-const makeMessageSystemText: I.RecordFactory<MessageTypes._MessageSystemText> = I.Record({
+const makeMessageSystemSimpleToComplex: I.Record.Factory<
+  MessageTypes._MessageSystemSimpleToComplex
+> = I.Record({
+  ...makeMessageMinimum,
+  reactions: I.Map(),
+  team: '',
+  type: 'systemSimpleToComplex',
+})
+
+const makeMessageSystemText: I.Record.Factory<MessageTypes._MessageSystemText> = I.Record({
   ...makeMessageMinimum,
   reactions: I.Map(),
   text: new HiddenString(''),
   type: 'systemText',
 })
 
-const makeMessageSystemGitPush: I.RecordFactory<MessageTypes._MessageSystemGitPush> = I.Record({
+const makeMessageSystemGitPush: I.Record.Factory<MessageTypes._MessageSystemGitPush> = I.Record({
   ...makeMessageMinimum,
   pushType: 0,
   pusher: '',
@@ -328,49 +336,51 @@ const makeMessageSystemGitPush: I.RecordFactory<MessageTypes._MessageSystemGitPu
   type: 'systemGitPush',
 })
 
-const makeMessageSetDescription: I.RecordFactory<MessageTypes._MessageSetDescription> = I.Record({
+const makeMessageSetDescription: I.Record.Factory<MessageTypes._MessageSetDescription> = I.Record({
   ...makeMessageMinimum,
   newDescription: new HiddenString(''),
   reactions: I.Map(),
   type: 'setDescription',
 })
 
-const makeMessageSetChannelname: I.RecordFactory<MessageTypes._MessageSetChannelname> = I.Record({
+const makeMessageSetChannelname: I.Record.Factory<MessageTypes._MessageSetChannelname> = I.Record({
   ...makeMessageMinimum,
   newChannelname: '',
   reactions: I.Map(),
   type: 'setChannelname',
 })
 
-const makeMessageSystemChangeRetention: I.RecordFactory<MessageTypes._MessageSystemChangeRetention> = I.Record(
-  {
-    ...makeMessageMinimum,
-    isInherit: false,
-    isTeam: false,
-    membersType: 0,
-    policy: null,
-    reactions: I.Map(),
-    type: 'systemChangeRetention',
-    user: '',
-    you: '',
-  }
-)
+const makeMessageSystemChangeRetention: I.Record.Factory<
+  MessageTypes._MessageSystemChangeRetention
+> = I.Record({
+  ...makeMessageMinimum,
+  isInherit: false,
+  isTeam: false,
+  membersType: 0,
+  policy: null,
+  reactions: I.Map(),
+  type: 'systemChangeRetention',
+  user: '',
+  you: '',
+})
 
-const makeMessageSystemUsersAddedToConversation: I.RecordFactory<MessageTypes._MessageSystemUsersAddedToConversation> = I.Record(
-  {
-    ...makeMessageMinimum,
-    reactions: I.Map(),
-    type: 'systemUsersAddedToConversation',
-    usernames: [],
-  }
-)
+const makeMessageSystemUsersAddedToConversation: I.Record.Factory<
+  MessageTypes._MessageSystemUsersAddedToConversation
+> = I.Record({
+  ...makeMessageMinimum,
+  reactions: I.Map(),
+  type: 'systemUsersAddedToConversation',
+  usernames: [],
+})
 
-export const makeReaction: I.RecordFactory<MessageTypes._Reaction> = I.Record({
+export const makeReaction: I.Record.Factory<MessageTypes._Reaction> = I.Record({
   timestamp: 0,
   username: '',
 })
 
-export const uiRequestInfoToChatRequestInfo = (r: RPCChatTypes.UIRequestInfo | null): MessageTypes.ChatRequestInfo | null => {
+export const uiRequestInfoToChatRequestInfo = (
+  r: RPCChatTypes.UIRequestInfo | null
+): MessageTypes.ChatRequestInfo | null => {
   if (!r) {
     return null
   }
@@ -402,7 +412,9 @@ export const uiRequestInfoToChatRequestInfo = (r: RPCChatTypes.UIRequestInfo | n
   })
 }
 
-export const uiPaymentInfoToChatPaymentInfo = (ps: Array<RPCChatTypes.UIPaymentInfo> | null): MessageTypes.ChatPaymentInfo | null => {
+export const uiPaymentInfoToChatPaymentInfo = (
+  ps: Array<RPCChatTypes.UIPaymentInfo> | null
+): MessageTypes.ChatPaymentInfo | null => {
   if (!ps || ps.length !== 1) {
     return null
   }
@@ -604,7 +616,10 @@ const uiMessageToSystemMessage = (minimum, body, reactions): Types.Message | nul
 
 export const isVideoAttachment = (message: Types.MessageAttachment) => message.fileType.startsWith('video')
 
-export const previewSpecs = (preview: RPCChatTypes.AssetMetadata | null, full: RPCChatTypes.AssetMetadata | null) => {
+export const previewSpecs = (
+  preview: RPCChatTypes.AssetMetadata | null,
+  full: RPCChatTypes.AssetMetadata | null
+) => {
   const res = {
     attachmentType: 'file',
     height: 0,
@@ -635,11 +650,17 @@ export const hasSuccessfulInlinePayments = (state: TypedState, message: Types.Me
   if (message.type !== 'text' || !message.inlinePaymentIDs) {
     return false
   }
-  return message.inlinePaymentSuccessful ||
-  message.inlinePaymentIDs.some(id =>
-    successfulInlinePaymentStatuses.includes(// Auto generated from flowToTs. Please clean me!
-    state.chat2.paymentStatusMap.get(id) === null || state.chat2.paymentStatusMap.get(id) === undefined ? undefined : state.chat2.paymentStatusMap.get(id).status)
-  );
+  return (
+    message.inlinePaymentSuccessful ||
+    message.inlinePaymentIDs.some(id =>
+      successfulInlinePaymentStatuses.includes(
+        // Auto generated from flowToTs. Please clean me!
+        state.chat2.paymentStatusMap.get(id) === null || state.chat2.paymentStatusMap.get(id) === undefined
+          ? undefined
+          : state.chat2.paymentStatusMap.get(id).status
+      )
+    )
+  )
 }
 
 const validUIMessagetoMessage = (
@@ -686,23 +707,37 @@ const validUIMessagetoMessage = (
       switch (m.messageBody.messageType) {
         case RPCChatTypes.MessageType.flip:
           rawText = // Auto generated from flowToTs. Please clean me!
-          // Auto generated from flowToTs. Please clean me!
-          (m.messageBody.flip === null || m.messageBody.flip === undefined ? undefined : m.messageBody.flip.text) !== null && // Auto generated from flowToTs. Please clean me!
-          (m.messageBody.flip === null || m.messageBody.flip === undefined ? undefined : m.messageBody.flip.text) !== undefined ? // Auto generated from flowToTs. Please clean me!
-          m.messageBody.flip === null || m.messageBody.flip === undefined ? undefined : m.messageBody.flip.text : ''
+            // Auto generated from flowToTs. Please clean me!
+            (m.messageBody.flip === null || m.messageBody.flip === undefined
+              ? undefined
+              : m.messageBody.flip.text) !== null && // Auto generated from flowToTs. Please clean me!
+            (m.messageBody.flip === null || m.messageBody.flip === undefined
+              ? undefined
+              : m.messageBody.flip.text) !== undefined // Auto generated from flowToTs. Please clean me!
+              ? m.messageBody.flip === null || m.messageBody.flip === undefined
+                ? undefined
+                : m.messageBody.flip.text
+              : ''
           break
         case RPCChatTypes.MessageType.text:
           const messageText = m.messageBody.text
           rawText = // Auto generated from flowToTs. Please clean me!
-          // Auto generated from flowToTs. Please clean me!
-          (messageText === null || messageText === undefined ? undefined : messageText.body) !== null && // Auto generated from flowToTs. Please clean me!
-          (messageText === null || messageText === undefined ? undefined : messageText.body) !== undefined ? // Auto generated from flowToTs. Please clean me!
-          messageText === null || messageText === undefined ? undefined : messageText.body : ''
+            // Auto generated from flowToTs. Please clean me!
+            (messageText === null || messageText === undefined ? undefined : messageText.body) !== null && // Auto generated from flowToTs. Please clean me!
+            (messageText === null || messageText === undefined ? undefined : messageText.body) !== undefined // Auto generated from flowToTs. Please clean me!
+              ? messageText === null || messageText === undefined
+                ? undefined
+                : messageText.body
+              : ''
           payments = // Auto generated from flowToTs. Please clean me!
-          // Auto generated from flowToTs. Please clean me!
-          (messageText === null || messageText === undefined ? undefined : messageText.payments) !== null && // Auto generated from flowToTs. Please clean me!
-          (messageText === null || messageText === undefined ? undefined : messageText.payments) !== undefined ? // Auto generated from flowToTs. Please clean me!
-          messageText === null || messageText === undefined ? undefined : messageText.payments : null
+            // Auto generated from flowToTs. Please clean me!
+            (messageText === null || messageText === undefined ? undefined : messageText.payments) !== null && // Auto generated from flowToTs. Please clean me!
+            (messageText === null || messageText === undefined ? undefined : messageText.payments) !==
+              undefined // Auto generated from flowToTs. Please clean me!
+              ? messageText === null || messageText === undefined
+                ? undefined
+                : messageText.payments
+              : null
           break
         default:
           rawText = ''
@@ -1147,7 +1182,7 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
     if (!validUpgrade(old, m)) {
       return old
     }
-    return m.set('ordinal', old.ordinal) as Types.MessageText;
+    return m.set('ordinal', old.ordinal) as Types.MessageText
   }
   if (old.type === 'attachment' && m.type === 'attachment') {
     if (!validUpgrade(old, m)) {
@@ -1163,7 +1198,7 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
       return m.merge({
         ordinal: old.ordinal,
         previewURL: old.previewURL,
-      }) as Types.MessageAttachment;
+      }) as Types.MessageAttachment
     }
     return m.withMutations((ret: Types.MessageAttachment) => {
       // We got an attachment-uploaded message. Hold on to the old ID
@@ -1180,17 +1215,21 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
         ret.set('transferState', old.transferState)
       }
       ret.set('transferProgress', old.transferProgress)
-    }) as Types.MessageAttachment;
+    }) as Types.MessageAttachment
   }
   return m
-};
+}
 
-export const enoughTimeBetweenMessages = (message: MessageTypes.Message, previous: MessageTypes.Message | null): boolean => Boolean(
-  previous &&
-    previous.timestamp &&
-    message.timestamp &&
-    message.timestamp - previous.timestamp > howLongBetweenTimestampsMs
-)
+export const enoughTimeBetweenMessages = (
+  message: MessageTypes.Message,
+  previous: MessageTypes.Message | null
+): boolean =>
+  Boolean(
+    previous &&
+      previous.timestamp &&
+      message.timestamp &&
+      message.timestamp - previous.timestamp > howLongBetweenTimestampsMs
+  )
 
 export const shouldShowPopup = (state: TypedState, message: Types.Message) => {
   switch (message.type) {
