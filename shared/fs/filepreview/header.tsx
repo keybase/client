@@ -1,4 +1,3 @@
-// @flow
 import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
@@ -7,12 +6,12 @@ import * as Kb from '../../common-adapters'
 import * as Kbfs from '../common'
 import {isMobile} from '../../constants/platform'
 
-type HeaderProps = {|
-  path: Types.Path,
-  name: string,
-  onBack: () => void,
-  routePath: I.List<string>,
-|}
+type HeaderProps = {
+  path: Types.Path
+  name: string
+  onBack: () => void
+  routePath: I.List<string>
+}
 
 const Header = (props: HeaderProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container} gap="xtiny">
@@ -31,7 +30,7 @@ const Header = (props: HeaderProps) => (
           type: 'icon',
         }}
         routePath={props.routePath}
-        initView="root"
+        initView={Types.PathItemActionMenuView.Root}
         mode="screen"
       />
     </Kb.Box>

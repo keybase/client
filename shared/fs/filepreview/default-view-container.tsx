@@ -1,4 +1,3 @@
-// @flow
 import {namedConnect} from '../../util/container'
 import * as I from 'immutable'
 import * as FsGen from '../../actions/fs-gen'
@@ -6,10 +5,10 @@ import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import DefaultView from './default-view'
 
-type OwnProps = {|
-  path: Types.Path,
-  routePath: I.List<string>,
-|}
+type OwnProps = {
+  path: Types.Path
+  routePath: I.List<string>
+}
 
 const mapStateToProps = (state, {path}: OwnProps) => ({
   pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
@@ -21,7 +20,7 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
   showInSystemFileManager: () => dispatch(FsGen.createOpenPathInSystemFileManager({path})),
 })
 
-const mergeProps = (stateProps, dispatchProps, {path, routePath}) => {
+const mergeProps = (stateProps, dispatchProps, {path, routePath}: OwnProps) => {
   const {sfmiEnabled, pathItem} = stateProps
   const {download, showInSystemFileManager} = dispatchProps
   return {
@@ -34,9 +33,6 @@ const mergeProps = (stateProps, dispatchProps, {path, routePath}) => {
   }
 }
 
-export default namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'FilePreviewDefaultView'
-)(DefaultView)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'FilePreviewDefaultView')(
+  DefaultView
+)

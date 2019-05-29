@@ -1,8 +1,7 @@
-// @flow
 import * as React from 'react'
 import * as Styles from '../../styles'
 import {Box2} from '../../common-adapters'
-import {type ImageViewProps} from './image-view'
+import {ImageViewProps} from './image-view'
 
 const ImageView = (props: ImageViewProps) => (
   <Box2

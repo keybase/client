@@ -1,4 +1,3 @@
-// @flow
 import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
@@ -9,12 +8,12 @@ import Footer from '../footer/footer'
 import View from './view-container'
 
 type NormalPreviewProps = {
-  path: Types.Path,
-  routePath: I.List<string>,
+  path: Types.Path
+  routePath: I.List<string>
 }
 
 type State = {
-  loading: boolean,
+  loading: boolean
 }
 
 export default class NormalPreview extends React.PureComponent<NormalPreviewProps, State> {

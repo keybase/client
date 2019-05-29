@@ -1,15 +1,19 @@
-// @flow
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters/mobile.native'
-import {type ImageViewProps} from './image-view'
+import {ImageViewProps} from './image-view'
 
 const {width: screenWidth, height: screenHeight} = Kb.NativeDimensions.get('window')
 
-class ImageView extends React.Component<
-  ImageViewProps,
-  {...ImageViewProps, width: number, height: number, loaded: boolean}
-> {
+type State = {
+  width: number
+  height: number
+  loaded: boolean
+}
+// TODO: I don't understand why the props were being included in the state
+//  so I took them out. Someone should sanity check that.
+
+class ImageView extends React.Component<ImageViewProps, State> {
   state = {height: 0, loaded: false, width: 0}
   _mounted: boolean = false
 

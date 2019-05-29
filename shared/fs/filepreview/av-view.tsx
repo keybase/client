@@ -1,11 +1,10 @@
-// @flow
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 
 type Props = {
-  url: string,
-  onLoadingStateChange?: (isLoading: boolean) => void,
+  url: string
+  onLoadingStateChange?: (isLoading: boolean) => void
 }
 
 export default (props: Props) => <Kb.Video url={props.url} style={styles.video} />

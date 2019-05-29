@@ -1,4 +1,3 @@
-// @flow
 import {compose, namedConnect, lifecycle} from '../../util/container'
 import * as I from 'immutable'
 import * as FsGen from '../../actions/fs-gen'
@@ -7,10 +6,10 @@ import * as Constants from '../../constants/fs'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import Header from './header'
 
-type OwnProps = {|
-  path: Types.Path,
-  routePath: I.List<string>,
-|}
+type OwnProps = {
+  path: Types.Path
+  routePath: I.List<string>
+}
 
 const mapStateToProps = (state, {path}: OwnProps) => ({
   _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
@@ -21,7 +20,7 @@ const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
-const mergeProps = (stateProps, dispatchProps, {path, routePath}) => ({
+const mergeProps = (stateProps, dispatchProps, {path, routePath}: OwnProps) => ({
   loadPathMetadata: dispatchProps.loadPathMetadata,
   name: stateProps._pathItem.name,
   onBack: dispatchProps.onBack,
@@ -30,7 +29,7 @@ const mergeProps = (stateProps, dispatchProps, {path, routePath}) => ({
 })
 
 export default compose(
-  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'FilePreviewHeader'),
+  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'FilePreviewHeader'),
   lifecycle({
     componentDidMount() {
       this.props.loadPathMetadata(this.props.path)

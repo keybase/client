@@ -1,4 +1,3 @@
-// @flow
 import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
@@ -11,12 +10,12 @@ import {fileUIName, isMobile, isIOS} from '../../constants/platform'
 import {hasShare} from '../common/path-item-action/layout'
 
 type DefaultViewProps = {
-  download: () => void,
-  sfmiEnabled: boolean,
-  path: Types.Path,
-  pathItem: Types.PathItem,
-  routePath: I.List<string>,
-  showInSystemFileManager: () => void,
+  download: () => void
+  sfmiEnabled: boolean
+  path: Types.Path
+  pathItem: Types.PathItem
+  routePath: I.List<string>
+  showInSystemFileManager: () => void
 }
 
 const DefaultView = (props: DefaultViewProps) => (
@@ -57,7 +56,7 @@ const DefaultView = (props: DefaultViewProps) => (
             }}
             path={props.path}
             routePath={props.routePath}
-            initView="share"
+            initView={Types.PathItemActionMenuView.Share}
             mode="screen"
           />
         </>

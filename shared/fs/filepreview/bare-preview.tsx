@@ -1,4 +1,3 @@
-// @flow
 import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
@@ -8,13 +7,13 @@ import View from './view-container'
 import {PathItemAction} from '../common'
 
 type Props = {
-  onBack: () => void,
-  path: Types.Path,
-  routePath: I.List<string>,
+  onBack: () => void
+  path: Types.Path
+  routePath: I.List<string>
 }
 
 type State = {
-  loading: boolean,
+  loading: boolean
 }
 
 export default class extends React.PureComponent<Props, State> {

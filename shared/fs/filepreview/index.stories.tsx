@@ -1,4 +1,3 @@
-// @flow
 import * as I from 'immutable'
 import React from 'react'
 import * as Types from '../../constants/types/fs'

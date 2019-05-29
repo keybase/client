@@ -1,4 +1,3 @@
-// @flow
 import * as I from 'immutable'
 import * as React from 'react'
 import * as Styles from '../../styles'
@@ -10,19 +9,19 @@ import TextView from './text-view'
 import AVView from './av-view'
 import * as Kb from '../../common-adapters'
 
-type Props = {|
-  lastModifiedTimestamp: number,
-  mime?: ?Types.Mime,
-  onLoadingStateChange: boolean => void,
-  path: Types.Path,
-  type: Types.PathType,
-  routePath: I.List<string>,
-  url: string,
-|}
+type Props = {
+  lastModifiedTimestamp: number
+  mime?: Types.Mime | null
+  onLoadingStateChange: (arg0: boolean) => void
+  path: Types.Path
+  type: Types.PathType
+  routePath: I.List<string>
+  url: string
+}
 
-type State = {|
-  loadedLastModifiedTimestamp: number,
-|}
+type State = {
+  loadedLastModifiedTimestamp: number
+}
 
 export default class FilePreviewView extends React.PureComponent<Props, State> {
   constructor(props: Props) {
@@ -104,11 +103,7 @@ export default class FilePreviewView extends React.PureComponent<Props, State> {
         return (
           <>
             {reloadBanner}
-            <AVView
-              url={url}
-              routePath={this.props.routePath}
-              onLoadingStateChange={this.props.onLoadingStateChange}
-            />
+            <AVView url={url} onLoadingStateChange={this.props.onLoadingStateChange} />
           </>
         )
       case Types.FileViewType.Pdf:
