@@ -25,7 +25,7 @@ type RolePickerProps = {
   onOpenRolePicker: () => void
   onSelectRole: (role: Types.TeamRoleType) => void
   selectedRole: Types.TeamRoleType
-  disabledReasonsForRolePicker: {[K in Types.TeamRoleType]: string}
+  disabledReasonsForRolePicker: {[K in Types.TeamRoleType]?: string}
 }
 
 // This state is handled by the state wrapper in the container

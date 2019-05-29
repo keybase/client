@@ -1059,8 +1059,9 @@ export const makePendingTextMessage = (
   // would cause the timer to count down while the message is still pending
   // and probably reset when we get the real message back.
 
-  const lastOrdinal =
-    state.chat2.messageOrdinals.get(conversationIDKey, I.List()).last() || Types.numberToOrdinal(0)
+  const lastOrdinal = state.chat2.messageOrdinals
+    .get(conversationIDKey, I.List())
+    .last(Types.numberToOrdinal(0))
   const ordinal = nextFractionalOrdinal(lastOrdinal)
 
   const explodeInfo = explodeTime ? {exploding: true, explodingTime: Date.now() + explodeTime * 1000} : {}
@@ -1092,8 +1093,9 @@ export const makePendingAttachmentMessage = (
   errorReason: string | null,
   explodeTime?: number
 ) => {
-  const lastOrdinal =
-    state.chat2.messageOrdinals.get(conversationIDKey, I.List()).last() || Types.numberToOrdinal(0)
+  const lastOrdinal = state.chat2.messageOrdinals
+    .get(conversationIDKey, I.List())
+    .last(Types.numberToOrdinal(0))
   const ordinal = !inOrdinal ? nextFractionalOrdinal(lastOrdinal) : inOrdinal
   const explodeInfo = explodeTime ? {exploding: true, explodingTime: Date.now() + explodeTime * 1000} : {}
 

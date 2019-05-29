@@ -18,7 +18,7 @@ import {formatTextForQuoting} from '../../util/chat'
 import * as Router2 from '../router2'
 import HiddenString from '../../util/hidden-string'
 
-export const makeState: I.Record.Factory<Types._State> = I.Record({
+export const makeState = I.Record<Types._State>({
   accountsInfoMap: I.Map(),
   attachmentFullscreenMessage: null,
   badgeMap: I.Map(),
@@ -62,14 +62,14 @@ export const makeState: I.Record.Factory<Types._State> = I.Record({
   ...TeamBuildingConstants.makeSubState(),
 })
 
-export const makeQuoteInfo: I.Record.Factory<Types._QuoteInfo> = I.Record({
+export const makeQuoteInfo = I.Record<Types._QuoteInfo>({
   counter: 0,
   ordinal: Types.numberToOrdinal(0),
   sourceConversationIDKey: noConversationIDKey,
   targetConversationIDKey: noConversationIDKey,
 })
 
-export const makeStaticConfig: I.Record.Factory<Types._StaticConfig> = I.Record({
+export const makeStaticConfig = I.Record<Types._StaticConfig>({
   builtinCommands: {
     [RPCChatTypes.ConversationBuiltinCommandTyp.adhoc]: [],
     [RPCChatTypes.ConversationBuiltinCommandTyp.bigteam]: [],
@@ -80,7 +80,7 @@ export const makeStaticConfig: I.Record.Factory<Types._StaticConfig> = I.Record(
   deletableByDeleteHistory: I.Set(),
 })
 
-export const makeThreadSearchInfo: I.Record.Factory<Types._ThreadSearchInfo> = I.Record({
+export const makeThreadSearchInfo = I.Record<Types._ThreadSearchInfo>({
   hits: I.List(),
   status: 'initial',
   visible: false,
@@ -91,7 +91,7 @@ export const inboxSearchMaxTextResults = 50
 export const inboxSearchMaxNameResults = 7
 export const inboxSearchMaxUnreadNameResults = isMobile ? 5 : 10
 
-export const makeInboxSearchInfo: I.Record.Factory<Types._InboxSearchInfo> = I.Record({
+export const makeInboxSearchInfo = I.Record<Types._InboxSearchInfo>({
   indexPercent: 0,
   nameResults: I.List(),
   nameResultsUnread: false,
@@ -102,12 +102,12 @@ export const makeInboxSearchInfo: I.Record.Factory<Types._InboxSearchInfo> = I.R
   textStatus: 'initial',
 })
 
-export const makeInboxSearchConvHit: I.Record.Factory<Types._InboxSearchConvHit> = I.Record({
+export const makeInboxSearchConvHit = I.Record<Types._InboxSearchConvHit>({
   conversationIDKey: noConversationIDKey,
   teamType: 'small',
 })
 
-export const makeInboxSearchTextHit: I.Record.Factory<Types._InboxSearchTextHit> = I.Record({
+export const makeInboxSearchTextHit = I.Record<Types._InboxSearchTextHit>({
   conversationIDKey: noConversationIDKey,
   numHits: 0,
   query: '',
