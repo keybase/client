@@ -114,7 +114,7 @@ const (
 )
 
 var tlfJournalBakRegexp = regexp.MustCompile(
-	`[/\\]([[:alnum:]]+)-([[:digit:]]+).bak$`)
+	`[/\\]([[:alnum:]]+)-([[:digit:]]+)\.bak$`)
 
 // TLFJournalStatus represents the status of a TLF's journal for
 // display in diagnostics. It is suitable for encoding directly as
