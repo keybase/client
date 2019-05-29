@@ -81,17 +81,8 @@ export const platformStyles = (options: {
 /* eslint-disable sort-keys */
 export const padding = (top: number, right?: number, bottom?: number, left?: number) => ({
   paddingTop: top,
-  // Auto generated from flowToTs. Please clean me!
-  paddingRight: right !== null && right !== undefined ? right : top,
-  // Auto generated from flowToTs. Please clean me!
-  paddingBottom: bottom !== null && bottom !== undefined ? bottom : top,
-  // Auto generated from flowToTs. Please clean me!
-  paddingLeft:
-    (left !== null && left !== undefined ? left : right) !== null &&
-    (left !== null && left !== undefined ? left : right) !== undefined
-      ? left !== null && left !== undefined
-        ? left
-        : right
-      : top,
+  paddingRight: right !== undefined ? right : top,
+  paddingBottom: bottom !== undefined ? bottom : top,
+  paddingLeft: left !== undefined ? left : right !== undefined ? right : top,
 })
 /* eslint-enable sort-keys */
