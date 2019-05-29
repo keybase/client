@@ -1062,4 +1062,12 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
   LoadGalleryRes loadGallery(int sessionID, ConversationID convID, GalleryItemTyp typ, int num, union { null, MessageID } fromMsgID);
+
+  // Flips in the API
+  record LoadFlipRes {
+    UICoinFlipStatus status;
+    array<RateLimit> rateLimits;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+  }
+  LoadFlipRes loadFlip(ConversationID hostConvID, MessageID hostMsgID, ConversationID flipConvID, FlipGameID gameID);
 }

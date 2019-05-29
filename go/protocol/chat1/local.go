@@ -5087,6 +5087,40 @@ func (o LoadGalleryRes) DeepCopy() LoadGalleryRes {
 	}
 }
 
+type LoadFlipRes struct {
+	Status           UICoinFlipStatus              `codec:"status" json:"status"`
+	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+}
+
+func (o LoadFlipRes) DeepCopy() LoadFlipRes {
+	return LoadFlipRes{
+		Status: o.Status.DeepCopy(),
+		RateLimits: (func(x []RateLimit) []RateLimit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]RateLimit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RateLimits),
+		IdentifyFailures: (func(x []keybase1.TLFIdentifyFailure) []keybase1.TLFIdentifyFailure {
+			if x == nil {
+				return nil
+			}
+			ret := make([]keybase1.TLFIdentifyFailure, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.IdentifyFailures),
+	}
+}
+
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Reason           GetThreadReason              `codec:"reason" json:"reason"`
@@ -5538,6 +5572,13 @@ type LoadGalleryArg struct {
 	FromMsgID *MessageID     `codec:"fromMsgID,omitempty" json:"fromMsgID,omitempty"`
 }
 
+type LoadFlipArg struct {
+	HostConvID ConversationID `codec:"hostConvID" json:"hostConvID"`
+	HostMsgID  MessageID      `codec:"hostMsgID" json:"hostMsgID"`
+	FlipConvID ConversationID `codec:"flipConvID" json:"flipConvID"`
+	GameID     FlipGameID     `codec:"gameID" json:"gameID"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
@@ -5609,6 +5650,7 @@ type LocalInterface interface {
 	PutReacjiSkinTone(context.Context, keybase1.ReacjiSkinTone) (keybase1.UserReacjis, error)
 	ResolveMaybeMention(context.Context, MaybeMention) error
 	LoadGallery(context.Context, LoadGalleryArg) (LoadGalleryRes, error)
+	LoadFlip(context.Context, LoadFlipArg) (LoadFlipRes, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -6635,6 +6677,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"loadFlip": {
+				MakeArg: func() interface{} {
+					var ret [1]LoadFlipArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]LoadFlipArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]LoadFlipArg)(nil), args)
+						return
+					}
+					ret, err = i.LoadFlip(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -7002,5 +7059,10 @@ func (c LocalClient) ResolveMaybeMention(ctx context.Context, mention MaybeMenti
 
 func (c LocalClient) LoadGallery(ctx context.Context, __arg LoadGalleryArg) (res LoadGalleryRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.loadGallery", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) LoadFlip(ctx context.Context, __arg LoadFlipArg) (res LoadFlipRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.loadFlip", []interface{}{__arg}, &res)
 	return
 }

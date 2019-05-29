@@ -2900,13 +2900,13 @@ func (h *Server) LoadGallery(ctx context.Context, arg chat1.LoadGalleryArg) (res
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "LoadGallery")()
 	defer func() { err = h.squashSquashableErrors(err) }()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	defer h.suspendConvLoader(ctx)()
+
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
-	defer func() { h.setResultRateLimit(ctx, &res) }()
-	defer h.suspendConvLoader(ctx)()
-
 	ctx = h.getLoadGalleryContext(ctx)
 	chatUI := h.getChatUI(arg.SessionID)
 	convID := arg.ConvID
@@ -2952,4 +2952,25 @@ func (h *Server) LoadGallery(ctx context.Context, arg chat1.LoadGalleryArg) (res
 		Last:     last,
 		Messages: utils.PresentMessagesUnboxed(ctx, h.G(), msgs, uid, convID),
 	}, nil
+}
+
+func (h *Server) LoadFlip(ctx context.Context, arg chat1.LoadFlipArg) (res chat1.LoadFlipRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "LoadFlip")()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	statusCh, errCh := h.G().CoinFlipManager.LoadFlip(ctx, uid, arg.HostConvID, arg.HostMsgID,
+		arg.FlipConvID, arg.GameID)
+	select {
+	case status := <-statusCh:
+		res.Status = status
+	case err = <-errCh:
+		return res, err
+	}
+	res.IdentifyFailures = identBreaks
+	return res, nil
 }

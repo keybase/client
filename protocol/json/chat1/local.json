@@ -3110,6 +3110,30 @@
           "name": "identifyFailures"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "LoadFlipRes",
+      "fields": [
+        {
+          "type": "UICoinFlipStatus",
+          "name": "status"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
+        }
+      ]
     }
   ],
   "messages": {
@@ -4539,6 +4563,27 @@
         }
       ],
       "response": "LoadGalleryRes"
+    },
+    "loadFlip": {
+      "request": [
+        {
+          "name": "hostConvID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "hostMsgID",
+          "type": "MessageID"
+        },
+        {
+          "name": "flipConvID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "gameID",
+          "type": "FlipGameID"
+        }
+      ],
+      "response": "LoadFlipRes"
     }
   },
   "namespace": "chat.1"

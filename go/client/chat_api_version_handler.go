@@ -64,6 +64,8 @@ func (d *ChatAPIVersionHandler) handleV1(ctx context.Context, c Call, w io.Write
 		return d.handler.JoinV1(ctx, c, w)
 	case methodLeave:
 		return d.handler.LeaveV1(ctx, c, w)
+	case methodLoadFlip:
+		return d.handler.LoadFlipV1(ctx, c, w)
 	default:
 		return ErrInvalidMethod{name: c.Method, version: 1}
 	}

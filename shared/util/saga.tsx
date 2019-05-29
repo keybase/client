@@ -155,7 +155,8 @@ function* selectState(): Iterable<TypedState> {
   return state
 }
 
-export {Effect, Channel} from 'redux-saga'
+export type Effect = RS.Effect
+export type Channel<T> = RS.Channel<T>
 export {buffers, channel, delay, eventChannel} from 'redux-saga'
 export {
   all,
