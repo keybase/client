@@ -317,6 +317,7 @@ class StateWrapperForTeamBuilding extends React.Component<{}, LocalState> {
 
   render() {
     return (
+      // @ts-ignore
       <Connected
         onChangeService={this.onChangeService}
         onChangeText={this.onChangeText}

@@ -28,13 +28,13 @@ const mergeProps = (stateProps, dispatchProps) => ({
 
 export default compose(
   // @ts-ignore codemode issue
-  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'QRScan'),
+  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'QRScan'),
   safeSubmit(['onSubmitTextCode'], ['error']),
   withStateHandlers(
     {mountKey: '0'},
     {incrementMountKey: ({mountKey}) => () => ({mountKey: String(Number(mountKey) + 1)})}
   ),
-  withProps(p => ({
+  withProps((p: any) => ({
     onOpenSettings: () => {
       // When they click open settings we force a remount
       p.onOpenSettings()

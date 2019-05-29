@@ -165,7 +165,7 @@ export type Props = _Props & {
 }
 
 const noResults = []
-const ConnectedUserInput = compose(
+const ConnectedUserInput: any = compose(
   namedConnect(
     mapStateToProps,
     mapDispatchToProps,
@@ -177,44 +177,43 @@ const ConnectedUserInput = compose(
     }),
     'UserInput'
   ),
-  withStateHandlers(
-    {searchText: '', selectedService: 'Keybase'},
-    {
-      _onSelectService: () => selectedService => ({selectedService}),
-      onChangeSearchText: (_, props) => searchText => {
-        if (props.onChangeSearchText) {
-          props.onChangeSearchText(searchText)
-        }
-        return {searchText}
-      },
-    }
-  ),
+  withStateHandlers({searchText: '', selectedService: 'Keybase'}, {
+    _onSelectService: () => selectedService => ({selectedService}),
+    onChangeSearchText: (_, props) => searchText => {
+      if (props.onChangeSearchText) {
+        props.onChangeSearchText(searchText)
+      }
+      return {searchText}
+    },
+  } as any),
   HocHelpers.onChangeSelectedSearchResultHoc,
   HocHelpers.clearSearchHoc,
   HocHelpers.placeholderServiceHoc,
-  withProps(props => ({
+  withProps((props: any) => ({
     showServiceFilter: (props.showServiceFilterIfInputEmpty || !!props.searchText) && props.showServiceFilter,
   })),
-  withHandlers(() => {
-    let input
-    return {
-      onClickAddButton: props => () => {
-        props.search('', props.selectedService)
-      },
-      onFocusInput: () => () => {
-        input && input.focus()
-      },
-      onSelectService: props => nextService => {
-        props._onSelectService(nextService)
-        props.clearSearchResults()
-        props.search(props.searchText, nextService)
-        input && input.focus()
-      },
-      setInputRef: () => el => {
-        input = el
-      },
+  withHandlers(
+    (): any => {
+      let input
+      return {
+        onClickAddButton: props => () => {
+          props.search('', props.selectedService)
+        },
+        onFocusInput: () => () => {
+          input && input.focus()
+        },
+        onSelectService: props => nextService => {
+          props._onSelectService(nextService)
+          props.clearSearchResults()
+          props.search(props.searchText, nextService)
+          input && input.focus()
+        },
+        setInputRef: () => el => {
+          input = el
+        },
+      }
     }
-  }),
+  ),
   lifecycle({
     componentDidUpdate(prevProps) {
       if (this.props.focusInputCounter !== prevProps.focusInputCounter) {
@@ -233,7 +232,7 @@ const ConnectedUserInput = compose(
         this.props.onChangeSearchText('')
       }
     },
-  })
+  } as any)
 )(UserInputWithServiceFilter)
 
 export default ConnectedUserInput

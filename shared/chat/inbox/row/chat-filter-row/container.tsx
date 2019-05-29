@@ -61,7 +61,7 @@ const KeyHandler = isMobile ? c => c : require('../../../../util/key-handler.des
 
 export default compose(
   namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ChatFilterRow'),
-  withProps<any, any, any>(props => ({
+  withProps<any, any>((props: any) => ({
     onHotkey: (cmd: string) => props._onHotkey(cmd),
   }))
-)(isMobile ? ConversationFilterInput : KeyHandler(ConversationFilterInput))
+)(isMobile ? ConversationFilterInput : KeyHandler(ConversationFilterInput)) as any

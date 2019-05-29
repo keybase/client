@@ -106,8 +106,8 @@ const onChangeSelectedSearchResultHoc: any = compose(
           props._searchDebounced(nextText, props.selectedService)
         }
       },
-      onMoveSelectDown: ({onMove}) => () => onMove('down'),
-      onMoveSelectUp: ({onMove}) => () => onMove('up'),
+      onMoveSelectDown: ({onMove}: any) => () => onMove('down'),
+      onMoveSelectUp: ({onMove}: any) => () => onMove('up'),
     }
   })
 )

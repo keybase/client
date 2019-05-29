@@ -38,6 +38,7 @@ export default compose(
   ),
   lifecycle({
     componentDidMount() {
+      // @ts-ignore NO recompose
       this.props.onUpdatePGPSettings()
     },
   })

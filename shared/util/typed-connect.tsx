@@ -7,7 +7,6 @@ import {
   InferableComponentEnhancerWithProps,
   ResolveThunks,
 } from 'react-redux'
-import {setDisplayName, compose} from 'recompose'
 export default connect
 
 export const namedConnect = <TOwnProps, TStateProps, TDispatchProps, TMergedProps, State>(
@@ -17,12 +16,9 @@ export const namedConnect = <TOwnProps, TStateProps, TDispatchProps, TMergedProp
   displayName: string,
   options?: Options<State, TStateProps, TOwnProps, TMergedProps>
 ): InferableComponentEnhancerWithProps<TMergedProps, TOwnProps> =>
-  compose(
-    connect(
-      mapStateToProps,
-      mapDispatchToProps,
-      mergeProps,
-      options
-    ),
-    setDisplayName(displayName)
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps,
+    {...options, getDisplayName: () => displayName}
   )
