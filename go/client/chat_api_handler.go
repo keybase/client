@@ -471,6 +471,34 @@ type loadFlipOptionsV1 struct {
 }
 
 func (o loadFlipOptionsV1) Check() error {
+	if len(o.ConversationID) == 0 {
+		return ErrInvalidOptions{
+			version: 1,
+			method:  methodLoadFlip,
+			err:     errors.New("missing conversation ID"),
+		}
+	}
+	if len(o.FlipConversationID) == 0 {
+		return ErrInvalidOptions{
+			version: 1,
+			method:  methodLoadFlip,
+			err:     errors.New("missing flip conversation ID"),
+		}
+	}
+	if o.MsgID == 0 {
+		return ErrInvalidOptions{
+			version: 1,
+			method:  methodLoadFlip,
+			err:     errors.New("missing flip message ID"),
+		}
+	}
+	if len(o.GameID) == 0 {
+		return ErrInvalidOptions{
+			version: 1,
+			method:  methodLoadFlip,
+			err:     errors.New("missing flip game ID"),
+		}
+	}
 	return nil
 }
 

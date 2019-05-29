@@ -2884,9 +2884,14 @@ func (h *Server) LoadFlip(ctx context.Context, arg chat1.LoadFlipArg) (res chat1
 	if err != nil {
 		return res, err
 	}
-	statusCh := h.G().CoinFlipManager.LoadFlip(ctx, uid, arg.HostConvID, arg.HostMsgID, arg.FlipConvID,
-		arg.GameID)
-	res.Status = <-statusCh
+	statusCh, errCh := h.G().CoinFlipManager.LoadFlip(ctx, uid, arg.HostConvID, arg.HostMsgID,
+		arg.FlipConvID, arg.GameID)
+	select {
+	case status := <-statusCh:
+		res.Status = status
+	case err = <-errCh:
+		return res, err
+	}
 	res.IdentifyFailures = identBreaks
 	return res, nil
 }

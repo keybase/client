@@ -115,6 +115,7 @@ type loadGameJob struct {
 	gameID     chat1.FlipGameID
 	flipConvID chat1.ConversationID
 	resCh      chan chat1.UICoinFlipStatus
+	errCh      chan error
 }
 
 type convParticipationsRateLimit struct {
@@ -1266,6 +1267,11 @@ func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error)
 	defer m.Trace(ctx, func() error { return err },
 		"loadGame: hostConvID: %s flipConvID: %s gameID: %s hostMsgID: %d",
 		job.hostConvID, job.flipConvID, job.gameID, job.hostMsgID)()
+	defer func() {
+		if err != nil {
+			job.errCh <- err
+		}
+	}()
 
 	// Check to make sure the flip conversation aligns with the host message
 	flipConvID := job.flipConvID
@@ -1366,7 +1372,7 @@ func (m *FlipManager) loadGameLoop(shutdownCh chan struct{}) {
 
 // LoadFlip implements the types.CoinFlipManager interface
 func (m *FlipManager) LoadFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID,
-	hostMsgID chat1.MessageID, flipConvID chat1.ConversationID, gameID chat1.FlipGameID) (res chan chat1.UICoinFlipStatus) {
+	hostMsgID chat1.MessageID, flipConvID chat1.ConversationID, gameID chat1.FlipGameID) (res chan chat1.UICoinFlipStatus, err chan error) {
 	defer m.Trace(ctx, func() error { return nil }, "LoadFlip")()
 	stored, ok := m.games.Get(gameID.String())
 	if ok {
@@ -1377,7 +1383,8 @@ func (m *FlipManager) LoadFlip(ctx context.Context, uid gregor1.UID, hostConvID 
 			m.queueDirtyGameID(ctx, gameID, true)
 			res = make(chan chat1.UICoinFlipStatus, 1)
 			res <- stored.(chat1.UICoinFlipStatus)
-			return res
+			err = make(chan error, 1)
+			return res, err
 		}
 	}
 	// If we miss the in-memory game storage, attempt to replay the game
@@ -1388,6 +1395,7 @@ func (m *FlipManager) LoadFlip(ctx context.Context, uid gregor1.UID, hostConvID 
 		flipConvID: flipConvID,
 		gameID:     gameID,
 		resCh:      make(chan chat1.UICoinFlipStatus, 1),
+		errCh:      make(chan error, 1),
 	}
 	select {
 	case m.loadGameCh <- job:
@@ -1395,7 +1403,7 @@ func (m *FlipManager) LoadFlip(ctx context.Context, uid gregor1.UID, hostConvID 
 		m.Debug(ctx, "LoadFlip: queue full: gameID: %s hostConvID %s flipConvID: %s", gameID, hostConvID,
 			flipConvID)
 	}
-	return job.resCh
+	return job.resCh, job.errCh
 }
 
 func (m *FlipManager) IsFlipConversationCreated(ctx context.Context, outboxID chat1.OutboxID) (convID chat1.ConversationID, status types.FlipSendStatus) {
