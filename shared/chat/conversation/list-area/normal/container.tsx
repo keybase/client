@@ -16,7 +16,7 @@ type OwnProps = {
 
 const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const messageOrdinals = Constants.getMessageOrdinals(state, conversationIDKey)
-  const lastOrdinal = messageOrdinals.last()
+  const lastOrdinal = messageOrdinals.last(null)
   const centeredOrdinal = // Auto generated from flowToTs. Please clean me!
     Constants.getMessageCenterOrdinal(state, conversationIDKey) === null ||
     Constants.getMessageCenterOrdinal(state, conversationIDKey) === undefined
