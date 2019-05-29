@@ -188,7 +188,7 @@ describe('reply with device type', () => {
     // we don't stash we reply immediately
     expect(manager._stashedResponse).toEqual(null)
     expect(manager._stashedResponseKey).toEqual(null)
-    expect(response.result).toHaveBeenCalledWith(RPCTypes.commonDeviceType.mobile)
+    expect(response.result).toHaveBeenCalledWith(RPCTypes.DeviceType.mobile)
     expect(response.error).not.toHaveBeenCalled()
   })
 
@@ -205,7 +205,7 @@ describe('reply with device type', () => {
     // we don't stash we reply immediately
     expect(manager._stashedResponse).toEqual(null)
     expect(manager._stashedResponseKey).toEqual(null)
-    expect(response.result).toHaveBeenCalledWith(RPCTypes.commonDeviceType.desktop)
+    expect(response.result).toHaveBeenCalledWith(RPCTypes.DeviceType.desktop)
     expect(response.error).not.toHaveBeenCalled()
   })
 

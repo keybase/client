@@ -3,8 +3,6 @@ declare var __DEV__: boolean
 declare var __STORYBOOK__: boolean
 declare var __STORYSHOT__: boolean
 
-type Omit<T, K> = Pick<T, Exclude<keyof T, K>>
-
 type RequestIdleCallbackHandle = any
 type RequestIdleCallbackOptions = {
   timeout: number

@@ -22,7 +22,7 @@ type Props = {
 }
 
 const MaybeMention = (props: Props) => {
-  if (!props.info || props.info.status === RPCChatTypes.chatUiUIMaybeMentionStatus.nothing) {
+  if (!props.info || props.info.status === RPCChatTypes.UIMaybeMentionStatus.nothing) {
     let text = `@${props.name}`
     if (props.channel.length > 0) {
       text += `#${props.channel}`
@@ -34,7 +34,7 @@ const MaybeMention = (props: Props) => {
     )
   }
   switch (props.info.status) {
-    case RPCChatTypes.chatUiUIMaybeMentionStatus.unknown:
+    case RPCChatTypes.UIMaybeMentionStatus.unknown:
       return (
         <UnknownMention
           allowFontScaling={props.allowFontScaling}
@@ -44,9 +44,9 @@ const MaybeMention = (props: Props) => {
           style={props.style}
         />
       )
-    case RPCChatTypes.chatUiUIMaybeMentionStatus.user:
+    case RPCChatTypes.UIMaybeMentionStatus.user:
       return <Mention username={props.name} />
-    case RPCChatTypes.chatUiUIMaybeMentionStatus.team:
+    case RPCChatTypes.UIMaybeMentionStatus.team:
       return (
         <TeamMention
           allowFontScaling={props.allowFontScaling}

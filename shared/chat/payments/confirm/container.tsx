@@ -20,7 +20,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     (pinfo === null || pinfo === undefined ? undefined : pinfo.error) === undefined
       ? undefined
       : (pinfo === null || pinfo === undefined ? undefined : pinfo.error).code) ===
-    RPCTypes.constantsStatusCode.scstellarmissingbundle
+    RPCTypes.StatusCode.scstellarmissingbundle
   return {
     // Auto generated from flowToTs. Please clean me!
     displayTotal:

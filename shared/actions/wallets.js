@@ -31,7 +31,7 @@ const stateToBuildRequestParams = state => ({
 })
 
 const buildErrCatcher = err => {
-  if (err instanceof RPCError && err.code === RPCTypes.constantsStatusCode.sccanceled) {
+  if (err instanceof RPCError && err.code === RPCTypes.StatusCode.sccanceled) {
     // ignore cancellation
   } else {
     logger.error(`buildPayment error: ${err.message}`)
@@ -237,7 +237,7 @@ const reviewPayment = state =>
     bid: state.wallets.building.bid,
     reviewID: state.wallets.reviewCounter,
   }).catch(error => {
-    if (error instanceof RPCError && error.code === RPCTypes.constantsStatusCode.sccanceled) {
+    if (error instanceof RPCError && error.code === RPCTypes.StatusCode.sccanceled) {
       // ignore cancellation, which is expected in the case where we have a
       // failing review and then we build or stop a payment
     } else {

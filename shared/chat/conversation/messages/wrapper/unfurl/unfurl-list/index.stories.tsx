@@ -45,7 +45,7 @@ const unfurls = [
         title: 'U.S. Stocks Jump as Tough Month Sets to Wrap',
         url: 'https://www.wsj.com/articles/global-stocks-rally-to-end-a-tough-month-1540976261',
       },
-      unfurlType: RPCChatTypes.unfurlUnfurlType.generic,
+      unfurlType: RPCChatTypes.UnfurlType.generic,
     },
     url: 'https://www.wsj.com/articles/global-stocks-rally-to-end-a-tough-month-1540976261',
   },
@@ -71,7 +71,7 @@ const unfurls = [
         title: 'keybase/client',
         url: 'https://github.com/keybase/client"',
       },
-      unfurlType: RPCChatTypes.unfurlUnfurlType.generic,
+      unfurlType: RPCChatTypes.UnfurlType.generic,
     },
     url: 'https://github.com/keybase/client"',
   },
@@ -85,6 +85,7 @@ const load = () => {
   Sb.storiesOf('Chat/Unfurl/Unfurl-List', module)
     .addDecorator(story => <Box style={{maxWidth: 600, padding: 5}}>{story()}</Box>)
     .addDecorator(provider)
+    // @ts-ignore codemod issue
     .add('Default', () => <UnfurlList {...props} />)
 }
 

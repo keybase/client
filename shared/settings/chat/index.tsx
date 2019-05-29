@@ -33,7 +33,7 @@ class Chat extends React.Component<Props, State> {
       ? this.state.unfurlSelected
       : this.props.unfurlMode !== undefined
       ? this.props.unfurlMode
-      : RPCChatTypes.unfurlUnfurlMode.whitelisted
+      : RPCChatTypes.UnfurlMode.whitelisted
   }
   _getUnfurlWhitelist(filtered: boolean) {
     return filtered
@@ -78,15 +78,15 @@ class Chat extends React.Component<Props, State> {
           <Kb.RadioButton
             key="rbalways"
             label="Always"
-            onSelect={() => this._setUnfurlMode(RPCChatTypes.unfurlUnfurlMode.always)}
-            selected={this._getUnfurlMode() === RPCChatTypes.unfurlUnfurlMode.always}
+            onSelect={() => this._setUnfurlMode(RPCChatTypes.UnfurlMode.always)}
+            selected={this._getUnfurlMode() === RPCChatTypes.UnfurlMode.always}
             disabled={this.props.unfurlMode === undefined}
           />
           <Kb.RadioButton
             key="rbwhitelist"
             label="Yes, but only for these sites:"
-            onSelect={() => this._setUnfurlMode(RPCChatTypes.unfurlUnfurlMode.whitelisted)}
-            selected={this._getUnfurlMode() === RPCChatTypes.unfurlUnfurlMode.whitelisted}
+            onSelect={() => this._setUnfurlMode(RPCChatTypes.UnfurlMode.whitelisted)}
+            selected={this._getUnfurlMode() === RPCChatTypes.UnfurlMode.whitelisted}
             disabled={this.props.unfurlMode === undefined}
           />
           <Kb.ScrollView style={styles.whitelist}>
@@ -119,8 +119,8 @@ class Chat extends React.Component<Props, State> {
           <Kb.RadioButton
             key="rbnever"
             label="Never"
-            onSelect={() => this._setUnfurlMode(RPCChatTypes.unfurlUnfurlMode.never)}
-            selected={this._getUnfurlMode() === RPCChatTypes.unfurlUnfurlMode.never}
+            onSelect={() => this._setUnfurlMode(RPCChatTypes.UnfurlMode.never)}
+            selected={this._getUnfurlMode() === RPCChatTypes.UnfurlMode.never}
             disabled={this.props.unfurlMode === undefined}
           />
         </Kb.Box2>
