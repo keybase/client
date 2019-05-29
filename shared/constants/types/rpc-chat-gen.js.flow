@@ -1036,6 +1036,7 @@ export type JoinLeaveConversationRemoteRes = $ReadOnly<{rateLimit?: ?RateLimit}>
 export type KBFSImpteamUpgradeUpdate = $ReadOnly<{convID: ConversationID, inboxVers: InboxVers, topicType: TopicType}>
 export type KnownTeamMention = $ReadOnly<{name: String, channel: String}>
 export type KnownUserMention = $ReadOnly<{text: String, uid: Gregor1.UID}>
+export type LoadFlipRes = $ReadOnly<{status: UICoinFlipStatus, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 export type LocalConversationVers = Uint64
 export type MakePreviewRes = $ReadOnly<{mimeType: String, previewMimeType?: ?String, location?: ?PreviewLocation, metadata?: ?AssetMetadata, baseMetadata?: ?AssetMetadata}>
 export type MarkAsReadLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>}>
@@ -1574,6 +1575,7 @@ declare export function localUpdateUnsentTextRpcPromise(params: $PropertyType<$P
 // 'chat.1.local.joinConversationLocal'
 // 'chat.1.local.upgradeKBFSConversationToImpteam'
 // 'chat.1.local.putReacjiSkinTone'
+// 'chat.1.local.loadFlip'
 // 'chat.1.NotifyChat.NewChatActivity'
 // 'chat.1.NotifyChat.ChatIdentifyUpdate'
 // 'chat.1.NotifyChat.ChatTLFFinalize'
