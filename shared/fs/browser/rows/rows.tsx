@@ -93,7 +93,7 @@ class Rows extends React.PureComponent<Props> {
         Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(item)
         return (
           <WrapRow>
-            <Kb.Text type="BodySmallError">This should not happen. {item}</Kb.Text>
+            <Kb.Text type="BodySmallError">This should not happen.</Kb.Text>
           </WrapRow>
         )
     }

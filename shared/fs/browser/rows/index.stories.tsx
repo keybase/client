@@ -29,7 +29,12 @@ export const rowsProvider = {
     items: I.List([
       ...(o.headerRows || []),
       ...topBarAsRow(o.path),
-      {key: 'me', name: 'me', path: Types.stringToPath('/keybase/private/me'), rowType: 'still'},
+      {
+        key: 'me',
+        name: 'me',
+        path: Types.stringToPath('/keybase/private/me'),
+        rowType: RowTypes.RowType.Still,
+      },
       {
         key: 'me,abc',
         name: 'me,abc',
@@ -48,14 +53,24 @@ export const rowsProvider = {
         path: Types.stringToPath('/keybase/private/me,abc,def,ghi'),
         rowType: RowTypes.RowType.Still,
       },
-      {key: 'me,def', name: 'me,def', path: Types.stringToPath('/keybase/private/me,def'), rowType: 'still'},
+      {
+        key: 'me,def',
+        name: 'me,def',
+        path: Types.stringToPath('/keybase/private/me,def'),
+        rowType: RowTypes.RowType.Still,
+      },
       {
         key: 'me,def,ghi',
         name: 'me,def,ghi',
         path: Types.stringToPath('/keybase/private/me,def,ghi'),
         rowType: RowTypes.RowType.Still,
       },
-      {key: 'me,ghi', name: 'me,ghi', path: Types.stringToPath('/keybase/private/me,ghi'), rowType: 'still'},
+      {
+        key: 'me,ghi',
+        name: 'me,ghi',
+        path: Types.stringToPath('/keybase/private/me,ghi'),
+        rowType: RowTypes.RowType.Still,
+      },
       {
         key: 'me,abc,ghi',
         name: 'me,abc,ghi',
@@ -117,7 +132,10 @@ export const rowsProvider = {
         rowType: RowTypes.RowType.Still,
       },
       ...(!isMobile && typeof o.destinationPickerIndex === 'number'
-        ? [{key: 'empty:0', rowType: 'empty'}, {key: 'empty:1', rowType: 'empty'}]
+        ? [
+            {key: 'empty:0', rowType: RowTypes.RowType.Empty},
+            {key: 'empty:1', rowType: RowTypes.RowType.Empty},
+          ]
         : []),
     ]),
     routePath: I.List(),

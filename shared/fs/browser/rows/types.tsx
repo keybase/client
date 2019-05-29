@@ -1,7 +1,7 @@
 import * as Types from '../../../constants/types/fs'
 import * as React from 'react'
 
-export const enum RowType {
+export enum RowType {
   TlfType,
   Tlf,
   Still,

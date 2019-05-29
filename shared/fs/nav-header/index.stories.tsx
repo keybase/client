@@ -38,7 +38,7 @@ const TestWrapper = ({path, offline}: {path: Types.Path; offline?: boolean | nul
       loggedIn={true}
       onPop={Sb.action('onPop')}
       options={
-        // $FlowIssue
+        // @ts-ignore
         FilesContainer.navigationOptions({
           navigation: {getParam: key => (key === 'path' ? path : null)},
         })

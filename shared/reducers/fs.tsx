@@ -72,7 +72,7 @@ const updatePathItem = (
       //    other fields from the new one if they change.
       // Either way, this can be done with a simple merge.
       return oldFilePathItem.merge(newFilePathItem)
-    case 'folder':
+    case Types.PathType.Folder:
       // @ts-ignore
       const oldFolderPathItem: Types.FolderPathItem = oldPathItem
       const newFolderPathItem: Types.FolderPathItem = newPathItem
@@ -278,7 +278,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
                 // Can't just use equal as flow would freak out on different
                 // types. Enable/disable are constants, so no need to deep
                 // compare for them; can just set.
-                return syncConfigFromAction.mode === 'partial' && syncConfigFromAction.equals(tlf.syncConfig)
+                return syncConfigFromAction.mode === Types.TlfSyncMode.Partial &&
+                  syncConfigFromAction.equals(tlf.syncConfig)
                   ? tlf
                   : tlf.set('syncConfig', syncConfigFromAction)
               })

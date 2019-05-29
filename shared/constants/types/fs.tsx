@@ -15,13 +15,13 @@ import {memoize} from '../../util/memoize'
 
 export type Path = string | null
 
-export const enum PathType {
+export enum PathType {
   Folder,
   File,
   Symlink,
   Unknown,
 }
-export const enum ProgressType {
+export enum ProgressType {
   Pending,
   Loaded,
 }
@@ -53,13 +53,13 @@ export type ResetMember = {
 
 // TODO: make structs above immutable
 
-export const enum TlfType {
+export enum TlfType {
   Public = 'public',
   Private = 'private',
   Team = 'team',
 }
 
-export const enum TlfSyncMode {
+export enum TlfSyncMode {
   Enabled,
   Disabled,
   Partial,
@@ -83,7 +83,7 @@ export type TlfSyncPartial = I.RecordOf<_TlfSyncPartial>
 
 export type TlfSyncConfig = TlfSyncEnabled | TlfSyncDisabled | TlfSyncPartial
 
-export const enum ConflictState {
+export enum ConflictState {
   None,
   InConflictStuck,
   InCondlictNotStuck,
@@ -137,7 +137,7 @@ export type _Tlfs = {
 }
 export type Tlfs = I.RecordOf<_Tlfs>
 
-export const enum PathKind {
+export enum PathKind {
   Root,
   TlfList,
   GroupTlf,
@@ -201,7 +201,7 @@ export type ParsedPath =
   | ParsedPathInGroupTlf
   | ParsedPathInTeamTlf
 
-export const enum PrefetchState {
+export enum PrefetchState {
   NotStarted,
   InProgress,
   Complete,
@@ -269,7 +269,7 @@ export type UnknownPathItem = I.RecordOf<_UnknownPathItem>
 
 export type PathItem = FolderPathItem | SymlinkPathItem | FilePathItem | UnknownPathItem
 
-export const enum SyncStatusStatic {
+export enum SyncStatusStatic {
   Unknown = 2, // trying to figure out what it is
   AwaitingToSync, // sync enabled but we're offline
   AwaitingToUpload, // has local changes but we're offline
@@ -281,10 +281,10 @@ export const enum SyncStatusStatic {
 export type SyncStatus = SyncStatusStatic | number // percentage<1. not uploading, and we're syncing down
 
 export type EditID = string
-export const enum EditType {
+export enum EditType {
   NewFolder,
 }
-export const enum EditStatusType {
+export enum EditStatusType {
   Editing,
   Saving,
   Failed,
@@ -301,7 +301,7 @@ export type NewFolder = I.RecordOf<_NewFolder>
 
 export type Edit = NewFolder
 
-export const enum SortSetting {
+export enum SortSetting {
   NameAsc,
   NameDesc,
   TimeAsc,
@@ -315,7 +315,7 @@ export type PathUserSetting = I.RecordOf<_PathUserSetting>
 
 export type LocalPath = string
 
-export const enum DownloadIntent {
+export enum DownloadIntent {
   None,
   CameraRoll,
   Share,
@@ -358,12 +358,12 @@ export type _Uploads = {
 export type Uploads = I.RecordOf<_Uploads>
 
 // 'both' is only supported on macOS
-export const enum OpenDialogType {
+export enum OpenDialogType {
   File,
   Directory,
   Both,
 }
-export const enum MobilePickType {
+export enum MobilePickType {
   Photo,
   Video,
   Mixed,
@@ -375,7 +375,7 @@ export type _LocalHTTPServer = {
 }
 export type LocalHTTPServer = I.RecordOf<_LocalHTTPServer>
 
-export const enum FileEditType {
+export enum FileEditType {
   Created,
   Modified,
   Deleted,
@@ -406,7 +406,7 @@ export type PathItems = I.Map<Path, PathItem>
 
 export type Edits = I.Map<EditID, Edit>
 
-export const enum DestinationPickerSource {
+export enum DestinationPickerSource {
   None,
   MoveOrCopy,
   IncomingShare,
@@ -443,7 +443,7 @@ export type _DestinationPicker = {
 
 export type DestinationPicker = I.RecordOf<_DestinationPicker>
 
-export const enum SendAttachmentToChatState {
+export enum SendAttachmentToChatState {
   None,
   PendingSelectConversation,
   ReadyToSend, // a conversation is selected
@@ -458,7 +458,7 @@ export type _SendAttachmentToChat = {
 }
 export type SendAttachmentToChat = I.RecordOf<_SendAttachmentToChat>
 
-export const enum SendLinkToChatState {
+export enum SendLinkToChatState {
   None,
   // when the modal is just shown and we don't know the convID(s) yet
   LocatingConversation,
@@ -482,7 +482,7 @@ export type _SendLinkToChat = {
 }
 export type SendLinkToChat = I.RecordOf<_SendLinkToChat>
 
-export const enum PathItemActionMenuView {
+export enum PathItemActionMenuView {
   Root,
   Share,
   ConfirmSaveMedia,
@@ -495,7 +495,7 @@ export type _PathItemActionMenu = {
 }
 export type PathItemActionMenu = I.RecordOf<_PathItemActionMenu>
 
-export const enum DriverStatusType {
+export enum DriverStatusType {
   Unknown,
   Disabled,
   Enabled,
@@ -534,7 +534,7 @@ export type _SystemFileManagerIntegration = {
 }
 export type SystemFileManagerIntegration = I.RecordOf<_SystemFileManagerIntegration>
 
-export const enum KbfsDaemonRpcStatus {
+export enum KbfsDaemonRpcStatus {
   Unknown,
   Connected,
   Waiting,
@@ -554,7 +554,7 @@ export type _SyncingFoldersProgress = {
 }
 export type SyncingFoldersProgress = I.RecordOf<_SyncingFoldersProgress>
 
-export const enum SoftError {
+export enum SoftError {
   NoAccess,
   Nonexistent,
 }
@@ -600,12 +600,12 @@ export type Visibility = TlfType | null
 
 export const direntToPathType = (d: RPCTypes.Dirent): PathType => {
   switch (d.direntType) {
-    case RPCTypes.simpleFSDirentType.dir:
+    case RPCTypes.DirentType.dir:
       return PathType.Folder
-    case RPCTypes.simpleFSDirentType.sym:
+    case RPCTypes.DirentType.sym:
       return PathType.Symlink
-    case RPCTypes.simpleFSDirentType.file:
-    case RPCTypes.simpleFSDirentType.exec:
+    case RPCTypes.DirentType.file:
+    case RPCTypes.DirentType.exec:
       return PathType.File
     default:
       return PathType.Unknown
@@ -664,11 +664,11 @@ export const getRPCFolderTypeFromVisibility = (v: Visibility): RPCTypes.FolderTy
 }
 export const getVisibilityFromRPCFolderType = (folderType: RPCTypes.FolderType): Visibility => {
   switch (folderType) {
-    case RPCTypes.favoriteFolderType.private:
+    case RPCTypes.FolderType.private:
       return TlfType.Private
-    case RPCTypes.favoriteFolderType.public:
+    case RPCTypes.FolderType.public:
       return TlfType.Public
-    case RPCTypes.favoriteFolderType.team:
+    case RPCTypes.FolderType.team:
       return TlfType.Team
     default:
       return null
@@ -732,7 +732,7 @@ export const getLocalPathDir = (p: LocalPath): string => p.slice(0, p.lastIndexO
 export const getNormalizedLocalPath = (p: LocalPath): LocalPath =>
   localSep === '\\' ? p.replace(/\\/g, '/') : p
 
-export const enum PathItemIconType {
+export enum PathItemIconType {
   TeamAvatar,
   Avatar,
   Avatars,
@@ -796,7 +796,7 @@ export type FavoriteFolder = {
   reset_members: Array<ResetMember> | null
 }
 
-export const enum FileViewType {
+export enum FileViewType {
   Text,
   Image,
   Av,
@@ -818,13 +818,13 @@ export type ResetMetadata = {
 // unsubscribe when it's not interested anymore. Instead, we use a simple
 // heuristic where Saga only keeps track of latest call from each component and
 // refresh only the most recently reuested paths for each component.
-export const enum RefreshTag {
+export enum RefreshTag {
   Main,
   PathItemActionPopup,
   DestinationPicker,
 }
 
-export const enum PathItemBadgeType {
+export enum PathItemBadgeType {
   Upload,
   Download,
   New,
@@ -832,12 +832,12 @@ export const enum PathItemBadgeType {
 }
 export type PathItemBadge = PathItemBadgeType | number
 
-export const enum ResetBannerNoOthersType {
+export enum ResetBannerNoOthersType {
   None,
   Self,
 }
 export type ResetBannerType = ResetBannerNoOthersType | number
-export const enum MainBannerType {
+export enum MainBannerType {
   None,
   Offline,
   OutOfSpace,

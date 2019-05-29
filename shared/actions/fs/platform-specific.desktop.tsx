@@ -176,7 +176,7 @@ const fuseStatusToActions = (previousStatusType: Types.DriverStatusType) => (
           }),
         }),
         ...(previousStatusType === Types.DriverStatusType.Disabled ||
-        status.installAction === RPCTypes.installInstallAction.upgrade
+        status.installAction === RPCTypes.InstallAction.upgrade
           ? [FsGen.createShowSystemFileManagerIntegrationBanner()]
           : []), // show banner for newly enabled
         ...(previousStatusType === Types.DriverStatusType.Disabled

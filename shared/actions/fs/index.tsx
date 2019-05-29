@@ -785,17 +785,10 @@ const moveOrCopy = (state, action) => {
     src:
       state.fs.destinationPicker.source.type === Types.DestinationPickerSource.MoveOrCopy
         ? Constants.pathToRPCPath(state.fs.destinationPicker.source.path)
-        : state.fs.destinationPicker.source.type === Types.DestinationPickerSource.IncomingShare
-        ? {
+        : ({
             PathType: RPCTypes.PathType.local,
             local: Types.localPathToString(state.fs.destinationPicker.source.localPath),
-          }
-        : {
-            // This case isn't possible but must be handled for Flow to be
-            // happy.
-            PathType: RPCTypes.PathType.kbfs,
-            kbfs: null,
-          },
+          } as RPCTypes.Path),
   }
   return (
     (action.type === FsGen.move

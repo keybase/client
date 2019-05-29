@@ -14,42 +14,33 @@ const folder0Path = Types.pathConcat(kbkbfstestPath, 'folder0')
 const getFolderOrFail = (pathItems, path): Types.FolderPathItem => {
   const pathItem = pathItems.get(path)
   expect(pathItem).toBeTruthy()
-  expect(pathItem ? pathItem.type : 'nope').toBe('folder')
-  return pathItem && pathItem.type === 'folder' ? pathItem : Constants.makeFolder()
+  expect(pathItem ? pathItem.type : 'nope').toBe(Types.PathType.Folder)
+  return pathItem && pathItem.type === Types.PathType.Folder ? pathItem : Constants.makeFolder()
 }
 
 const state0 = Constants.makeState({
-  pathItems: I.Map([
-    [
-      kbkbfstestPath,
-      Constants.makeFolder({
-        children: I.Set(['file0', 'folder0']),
-        name: 'kbkbfstest',
-        prefetchStatus: Constants.makePrefetchInProgress(),
-        progress: 'loaded',
+  pathItems: I.Map({
+    [file0Path]: Constants.makeFile({
+      lastModifiedTimestamp: 1,
+      lastWriter: 'foo',
+      mimeType: Constants.makeMime({
+        displayPreview: true,
+        mimeType: 'text/plain',
       }),
-    ],
-    [
-      file0Path,
-      Constants.makeFile({
-        lastModifiedTimestamp: 1,
-        lastWriter: 'foo',
-        mimeType: Constants.makeMime({
-          displayPreview: true,
-          mimeType: 'text/plain',
-        }),
-        name: 'file0',
-      }),
-    ],
-    [
-      folder0Path,
-      Constants.makeFolder({
-        children: I.Set(),
-        name: 'folder0',
-        progress: 'pending',
-      }),
-    ],
-  ]),
+      name: 'file0',
+    }),
+    [folder0Path]: Constants.makeFolder({
+      children: I.Set(),
+      name: 'folder0',
+      progress: Types.ProgressType.Pending,
+    }),
+    [kbkbfstestPath]: Constants.makeFolder({
+      children: I.Set(['file0', 'folder0']),
+      name: 'kbkbfstest',
+      prefetchStatus: Constants.makePrefetchInProgress(),
+      progress: Types.ProgressType.Loaded,
+    }),
+  }),
 })
 
 describe('fs reducer', () => {
@@ -131,7 +122,7 @@ describe('fs reducer', () => {
           children: I.Set(['file0', 'folder0']),
           name: 'kbkbfstest',
           prefetchStatus: Constants.makePrefetchInProgress(),
-          progress: 'loaded',
+          progress: Types.ProgressType.Loaded,
         }),
       })
     )
@@ -150,7 +141,7 @@ describe('fs reducer', () => {
               children: I.Set(['file1']),
               name: 'folder0',
               prefetchStatus: Constants.prefetchNotStarted,
-              progress: 'loaded',
+              progress: Types.ProgressType.Loaded,
             }),
           ],
         ]),

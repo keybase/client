@@ -19,7 +19,7 @@ export type Props = {
 // apart into 3-character groups.
 const CommaSeparatedName = (props: Props) => (
   <>
-    {...props.name.split(',').map<React.ReactElement>((elem, idx, {length}: Array<string>) => (
+    {props.name.split(',').map<React.ReactElement>((elem, idx, {length}: Array<string>) => (
       <Kb.Text
         selectable={props.selectable}
         key={idx.toString()}

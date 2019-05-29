@@ -7,7 +7,7 @@ import TlfOrPathItemInfo from '../tlf-or-path-item-info'
 import PathItemIcon from '../path-item-icon-container'
 import CommaSeparatedName from '../comma-separated-name'
 
-type Props = {
+export type Props = {
   size: number
   type: Types.PathType
   childrenFolders: number
@@ -85,7 +85,6 @@ class Header extends React.PureComponent<Props> {
 }
 
 export default Header
-export {Props}
 
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
