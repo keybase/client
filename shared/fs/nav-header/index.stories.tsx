@@ -11,8 +11,7 @@ import FilesContainer from '../container'
 export const headerProvider = {
   MainBanner: (p: any) => ({
     // Auto generated from flowToTs. Please clean me!
-    bannerType:
-      (p.storyProps === null || p.storyProps === undefined ? undefined : p.storyProps.bannerType) || 'none',
+    bannerType: (p.storyProps && p.storyProps.bannerType) || Types.MainBannerType.None,
     onRetry: Sb.action('onRetry'),
   }),
   NavHeaderMobile: ({onBack, path}: {onBack: () => void; path: Types.Path}) => ({
