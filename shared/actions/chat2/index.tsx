@@ -704,37 +704,20 @@ const onChatSetConvRetention = (_, action: EngineGen.Chat1NotifyChatChatSetConvR
 const onChatSetConvSettings = (_, action: EngineGen.Chat1NotifyChatChatSetConvSettingsPayload, logger) => {
   const {conv, convID} = action.payload.params
   const conversationIDKey = Types.conversationIDToKey(convID)
-  const newRole = // Auto generated from flowToTs. Please clean me!
-    ((conv === null || conv === undefined ? undefined : conv.convSettings) === null ||
-    (conv === null || conv === undefined ? undefined : conv.convSettings) === undefined
-      ? undefined
-      : (conv === null || conv === undefined ? undefined : conv.convSettings).minWriterRoleInfo) === null ||
-    ((conv === null || conv === undefined ? undefined : conv.convSettings) === null ||
-    (conv === null || conv === undefined ? undefined : conv.convSettings) === undefined
-      ? undefined
-      : (conv === null || conv === undefined ? undefined : conv.convSettings).minWriterRoleInfo) === undefined
-      ? undefined
-      : ((conv === null || conv === undefined ? undefined : conv.convSettings) === null ||
-        (conv === null || conv === undefined ? undefined : conv.convSettings) === undefined
-          ? undefined
-          : (conv === null || conv === undefined ? undefined : conv.convSettings).minWriterRoleInfo
-        ).role
+  // @ts-ignore nullish coalescing
+  const newRole =
+    (conv &&
+      conv.convSettings &&
+      conv.convSettings.minWriterRoleInfo &&
+      conv.convSettings.minWriterRoleInfo.role) ||
+    null
   const role = newRole && TeamsConstants.teamRoleByEnum[newRole]
-  const cannotWrite = // Auto generated from flowToTs. Please clean me!
-    ((conv === null || conv === undefined ? undefined : conv.convSettings) === null ||
-    (conv === null || conv === undefined ? undefined : conv.convSettings) === undefined
-      ? undefined
-      : (conv === null || conv === undefined ? undefined : conv.convSettings).minWriterRoleInfo) === null ||
-    ((conv === null || conv === undefined ? undefined : conv.convSettings) === null ||
-    (conv === null || conv === undefined ? undefined : conv.convSettings) === undefined
-      ? undefined
-      : (conv === null || conv === undefined ? undefined : conv.convSettings).minWriterRoleInfo) === undefined
-      ? undefined
-      : ((conv === null || conv === undefined ? undefined : conv.convSettings) === null ||
-        (conv === null || conv === undefined ? undefined : conv.convSettings) === undefined
-          ? undefined
-          : (conv === null || conv === undefined ? undefined : conv.convSettings).minWriterRoleInfo
-        ).cannotWrite
+  const cannotWrite =
+    (conv &&
+      conv.convSettings &&
+      conv.convSettings.minWriterRoleInfo &&
+      conv.convSettings.minWriterRoleInfo.cannotWrite) ||
+    null
   logger.info(`got new minWriterRole ${role || ''} for convID ${conversationIDKey}`)
   if (role && role !== 'none' && cannotWrite !== undefined) {
     return Chat2Gen.createSaveMinWriterRole({cannotWrite, conversationIDKey, role})
@@ -1601,12 +1584,8 @@ function* messageSend(state, action: Chat2Gen.MessageSendPayload, logger) {
   ]
   const onHideConfirm = ({canceled}) =>
     Saga.callUntyped(function*() {
-      if (
-        // Auto generated from flowToTs. Please clean me!
-        (Router2Constants.getVisibleScreen() === null || Router2Constants.getVisibleScreen() === undefined
-          ? undefined
-          : Router2Constants.getVisibleScreen().routeName) === confirmRouteName
-      ) {
+      const visibleScreen = Router2Constants.getVisibleScreen()
+      if (visibleScreen && visibleScreen.routeName === confirmRouteName) {
         yield Saga.put(RouteTreeGen.createClearModals())
       }
       if (canceled) {
@@ -2221,14 +2200,11 @@ const navigateToThreadRoute = conversationIDKey => {
 
   // looking at the pending screen?
   if (
-    // Auto generated from flowToTs. Please clean me!
-    (visible === null || visible === undefined ? undefined : visible.routeName) === 'chatConversation' &&
-    // Auto generated from flowToTs. Please clean me!
-    ((visible === null || visible === undefined ? undefined : visible.params) === null ||
-    (visible === null || visible === undefined ? undefined : visible.params) === undefined
-      ? undefined
-      : (visible === null || visible === undefined ? undefined : visible.params).conversationIDKey) ===
-      Constants.pendingWaitingConversationIDKey
+    visible.routeName &&
+    visible.routeName === 'chatConversation' &&
+    visible &&
+    visible.params &&
+    visible.params.conversationIDKey === Constants.pendingWaitingConversationIDKey
   ) {
     replace = true
   }
@@ -2759,12 +2735,8 @@ const unfurlResolvePrompt = (state, action: Chat2Gen.UnfurlResolvePromptPayload)
 }
 
 const toggleInfoPanel = (state, action: Chat2Gen.ToggleInfoPanelPayload) => {
-  if (
-    // Auto generated from flowToTs. Please clean me!
-    (Router2Constants.getVisibleScreen() === null || Router2Constants.getVisibleScreen() === undefined
-      ? undefined
-      : Router2Constants.getVisibleScreen().routeName) === 'chatInfoPanel'
-  ) {
+  const visibleScreen = Router2Constants.getVisibleScreen()
+  if (visibleScreen && visibleScreen.routeName === 'chatInfoPanel') {
     return RouteTreeGen.createNavigateUp()
   } else {
     return RouteTreeGen.createNavigateAppend({
