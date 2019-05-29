@@ -1,7 +1,8 @@
 import globalColors from './colors'
 import {isMobile, isIOS, isAndroid, isElectron} from '../constants/platform'
-import { _StylesCrossPlatform, _StylesMobile, _StylesDesktop } from './css';
-import { Background } from '../common-adapters/text';
+import {_StylesCrossPlatform, _StylesMobile, _StylesDesktop} from './css'
+// @ts-ignore
+import {Background} from '../common-adapters/text'
 
 /* eslint-disable sort-keys */
 export const globalMargins = {
@@ -27,7 +28,9 @@ export const backgroundModeToColor = {
   Terminal: globalColors.darkBlue3,
 }
 
-export const backgroundModeToTextColor = (backgroundMode: Background): typeof globalColors[keyof typeof globalColors] => {
+export const backgroundModeToTextColor = (
+  backgroundMode: Background
+): typeof globalColors[keyof typeof globalColors] => {
   switch (backgroundMode) {
     case 'Information':
       return globalColors.brown_75
@@ -40,11 +43,7 @@ export const backgroundModeToTextColor = (backgroundMode: Background): typeof gl
   }
 }
 
-export const util = ({
-  flexCommon
-}: {
-  flexCommon?: Object | null
-}) => ({
+export const util = ({flexCommon}: {flexCommon?: Object | null}) => ({
   fillAbsolute: {bottom: 0, left: 0, position: 'absolute', right: 0, top: 0},
   flexBoxCenter: {...flexCommon, alignItems: 'center', justifyContent: 'center'},
   flexBoxColumn: {...flexCommon, flexDirection: 'column'},
@@ -66,10 +65,10 @@ const unifyStyles = s => ({
 })
 
 export const platformStyles = (options: {
-  common?: _StylesCrossPlatform | null,
-  isIOS?: _StylesMobile,
-  isAndroid?: _StylesMobile,
-  isMobile?: _StylesMobile,
+  common?: _StylesCrossPlatform | null
+  isIOS?: _StylesMobile
+  isAndroid?: _StylesMobile
+  isMobile?: _StylesMobile
   isElectron?: _StylesDesktop
 }) => ({
   ...(options.common ? unifyStyles(options.common) : {}),
@@ -82,11 +81,17 @@ export const platformStyles = (options: {
 /* eslint-disable sort-keys */
 export const padding = (top: number, right?: number, bottom?: number, left?: number) => ({
   paddingTop: top,
-  paddingRight: // Auto generated from flowToTs. Please clean me!
-  right !== null && right !== undefined ? right : top,
-  paddingBottom: // Auto generated from flowToTs. Please clean me!
-  bottom !== null && bottom !== undefined ? bottom : top,
-  paddingLeft: // Auto generated from flowToTs. Please clean me!
-  (left !== null && left !== undefined ? left : right) !== null && (left !== null && left !== undefined ? left : right) !== undefined ? left !== null && left !== undefined ? left : right : top,
+  // Auto generated from flowToTs. Please clean me!
+  paddingRight: right !== null && right !== undefined ? right : top,
+  // Auto generated from flowToTs. Please clean me!
+  paddingBottom: bottom !== null && bottom !== undefined ? bottom : top,
+  // Auto generated from flowToTs. Please clean me!
+  paddingLeft:
+    (left !== null && left !== undefined ? left : right) !== null &&
+    (left !== null && left !== undefined ? left : right) !== undefined
+      ? left !== null && left !== undefined
+        ? left
+        : right
+      : top,
 })
 /* eslint-enable sort-keys */
