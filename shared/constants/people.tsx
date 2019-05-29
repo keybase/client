@@ -13,6 +13,7 @@ export const todoTypeEnumToType: {[K in Types.TodoTypeEnum]: Types.TodoType} = i
 )
 
 export const todoTypes: {[K in Types.TodoType]: Types.TodoType} = {
+  annoncementPlaceholder: 'annoncementPlaceholder', // misspelled in protocol
   avatarTeam: 'avatarTeam',
   avatarUser: 'avatarUser',
   bio: 'bio',
@@ -21,6 +22,7 @@ export const todoTypes: {[K in Types.TodoType]: Types.TodoType} = {
   folder: 'folder',
   follow: 'follow',
   gitRepo: 'gitRepo',
+  none: 'none',
   paperkey: 'paperkey',
   proof: 'proof',
   team: 'team',
@@ -28,6 +30,7 @@ export const todoTypes: {[K in Types.TodoType]: Types.TodoType} = {
 }
 
 export const todoTypeToInstructions: {[K in Types.TodoType]: string} = {
+  annoncementPlaceholder: '',
   avatarTeam: 'NEW! Change your team’s avatar from within the Keybase app.',
   avatarUser: 'NEW! Change your avatar from within the Keybase app.',
   bio: 'Add your name, bio, and location to complete your profile.',
@@ -41,6 +44,7 @@ export const todoTypeToInstructions: {[K in Types.TodoType]: string} = {
     'Follow at least one person on Keybase. A "follow" is a signed snapshot of someone. It strengthens Keybase and your own security.',
   gitRepo:
     'Create an encrypted Git repository! Only you will be able to decrypt any of it. And it’s so easy!',
+  none: '',
   paperkey:
     'Please make a paper key. Unlike your account password, paper keys can provision new devices and recover data, for ultimate safety.',
   proof: 'Add some proofs to your profile. The more you have, the stronger your cryptographic identity.',
@@ -49,6 +53,7 @@ export const todoTypeToInstructions: {[K in Types.TodoType]: string} = {
   teamShowcase: `Tip: Keybase team chats are private, but you can choose to publish that you're an admin. Check out the team settings on any team you manage.`,
 }
 export const todoTypeToConfirmLabel: {[K in Types.TodoType]: string} = {
+  annoncementPlaceholder: '',
   avatarTeam: 'Edit team avatar',
   avatarUser: 'Edit avatar',
   bio: 'Edit Profile',
@@ -57,12 +62,14 @@ export const todoTypeToConfirmLabel: {[K in Types.TodoType]: string} = {
   folder: 'Open a private folder',
   follow: 'Browse people',
   gitRepo: isMobile ? 'Create a repo' : 'Create a personal git repo',
+  none: '',
   paperkey: 'Create a paper key',
   proof: 'Prove your identities',
   team: 'Create a team!',
   teamShowcase: 'Set publicity settings',
 }
 export const todoTypeToDismissable: {[K in Types.TodoType]: boolean} = {
+  annoncementPlaceholder: false,
   avatarTeam: false,
   avatarUser: false,
   bio: false,
@@ -71,12 +78,14 @@ export const todoTypeToDismissable: {[K in Types.TodoType]: boolean} = {
   folder: true,
   follow: true,
   gitRepo: true,
+  none: false,
   paperkey: false,
   proof: true,
   team: true,
   teamShowcase: true,
 }
 export const todoTypeToIcon: {[K in Types.TodoType]: IconType} = {
+  annoncementPlaceholder: 'iconfont-delete',
   avatarTeam: 'icon-onboarding-team-avatar-48',
   avatarUser: 'icon-onboarding-user-avatar-48',
   bio: 'icon-onboarding-user-info-48',
@@ -85,6 +94,7 @@ export const todoTypeToIcon: {[K in Types.TodoType]: IconType} = {
   folder: 'icon-onboarding-folder-48',
   follow: 'icon-onboarding-follow-48',
   gitRepo: 'icon-onboarding-git-48',
+  none: 'iconfont-delete',
   paperkey: 'icon-onboarding-paper-key-48',
   proof: 'icon-onboarding-proofs-48',
   team: 'icon-onboarding-team-48',
@@ -98,6 +108,7 @@ export const reduceRPCItemToPeopleItem = (
   const badged = item.badged
   if (item.data.t === RPCTypes.HomeScreenItemType.todo) {
     // Todo item
+    // @ts-ignore todo is actually typed as void?
     const todoType = todoTypeEnumToType[(item.data.todo && item.data.todo.t) || 0]
     return list.push(
       makeTodo({

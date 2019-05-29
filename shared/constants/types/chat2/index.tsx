@@ -147,80 +147,50 @@ export const rpcOutboxIDToOutboxID = (outboxID: RPCChatTypes.OutboxID): Message.
 export const outboxIDToRpcOutboxID = (outboxID: Message.OutboxID): RPCChatTypes.OutboxID =>
   Buffer.from(Message.outboxIDToString(outboxID), 'hex')
 
-import {ConversationMeta, MetaTrustedState, NotificationsType, TeamType} from './meta'
-export type ConversationMeta = ConversationMeta
-export type MetaTrustedState = MetaTrustedState
-export type NotificationsType = NotificationsType
-export type TeamType = TeamType
-import {
-  AttachmentType,
-  ChatPaymentInfo,
-  ChatRequestInfo,
-  DecoratedMessage,
-  MentionsAt,
-  MentionsChannel,
-  MentionsChannelName,
-  Message as _Message,
-  MessageAttachment,
-  MessageExplodeDescription,
-  MessageID,
-  MessageRequestPayment,
-  MessageSendPayment,
-  MessageSetChannelname,
-  MessageSetDescription,
-  MessageSystemAddedToTeam,
-  MessageSystemChangeRetention,
-  MessageSystemGitPush,
-  MessageSystemInviteAccepted,
-  MessageSystemJoined,
-  MessageSystemLeft,
-  MessageSystemSimpleToComplex,
-  MessageSystemText,
-  MessageSystemUsersAddedToConversation,
-  MessageText,
-  MessageType,
-  Ordinal,
-  OutboxID,
-  PathAndOutboxID,
-  PreviewSpec,
-  Reaction,
-  Reactions,
-} from './message'
-export type AttachmentType = AttachmentType
-export type ChatPaymentInfo = ChatPaymentInfo
-export type ChatRequestInfo = ChatRequestInfo
-export type DecoratedMessage = DecoratedMessage
-export type MentionsAt = MentionsAt
-export type MentionsChannel = MentionsChannel
-export type MentionsChannelName = MentionsChannelName
-export type Message = _Message
-export type MessageAttachment = MessageAttachment
-export type MessageExplodeDescription = MessageExplodeDescription
-export type MessageID = MessageID
-export type MessageRequestPayment = MessageRequestPayment
-export type MessageSendPayment = MessageSendPayment
-export type MessageSetChannelname = MessageSetChannelname
-export type MessageSetDescription = MessageSetDescription
-export type MessageSystemAddedToTeam = MessageSystemAddedToTeam
-export type MessageSystemChangeRetention = MessageSystemChangeRetention
-export type MessageSystemGitPush = MessageSystemGitPush
-export type MessageSystemInviteAccepted = MessageSystemInviteAccepted
-export type MessageSystemJoined = MessageSystemJoined
-export type MessageSystemLeft = MessageSystemLeft
-export type MessageSystemSimpleToComplex = MessageSystemSimpleToComplex
-export type MessageSystemText = MessageSystemText
-export type MessageSystemUsersAddedToConversation = MessageSystemUsersAddedToConversation
-export type MessageText = MessageText
-export type MessageType = MessageType
-export type Ordinal = Ordinal
-export type OutboxID = OutboxID
-export type PathAndOutboxID = PathAndOutboxID
-export type PreviewSpec = PreviewSpec
-export type Reaction = Reaction
-export type Reactions = Reactions
+// meta passthroughs
+export type ConversationMeta = Meta.ConversationMeta
+export type MembershipType = Meta.MembershipType
+export type MetaTrustedState = Meta.MetaTrustedState
+export type NotificationsType = Meta.NotificationsType
+export type TeamRoleType = Meta.TeamRoleType
+export type TeamType = Meta.TeamType
 
-import {ConversationIDKey} from './common'
-export type ConversationIDKey = ConversationIDKey
+// message passthroughs
+export type AttachmentType = Message.AttachmentType
+export type ChatPaymentInfo = Message.ChatPaymentInfo
+export type ChatRequestInfo = Message.ChatRequestInfo
+export type DecoratedMessage = Message.DecoratedMessage
+export type MentionsAt = Message.MentionsAt
+export type MentionsChannel = Message.MentionsChannel
+export type MentionsChannelName = Message.MentionsChannelName
+export type Message = Message.Message
+export type MessageAttachment = Message.MessageAttachment
+export type MessageExplodeDescription = Message.MessageExplodeDescription
+export type MessageID = Message.MessageID
+export type MessageRequestPayment = Message.MessageRequestPayment
+export type MessageSendPayment = Message.MessageSendPayment
+export type MessageSetChannelname = Message.MessageSetChannelname
+export type MessageSetDescription = Message.MessageSetDescription
+export type MessageSystemAddedToTeam = Message.MessageSystemAddedToTeam
+export type MessageSystemChangeRetention = Message.MessageSystemChangeRetention
+export type MessageSystemGitPush = Message.MessageSystemGitPush
+export type MessageSystemInviteAccepted = Message.MessageSystemInviteAccepted
+export type MessageSystemJoined = Message.MessageSystemJoined
+export type MessageSystemLeft = Message.MessageSystemLeft
+export type MessageSystemSimpleToComplex = Message.MessageSystemSimpleToComplex
+export type MessageSystemText = Message.MessageSystemText
+export type MessageSystemUsersAddedToConversation = Message.MessageSystemUsersAddedToConversation
+export type MessageText = Message.MessageText
+export type MessageType = Message.MessageType
+export type Ordinal = Message.Ordinal
+export type OutboxID = Message.OutboxID
+export type PathAndOutboxID = Message.PathAndOutboxID
+export type PreviewSpec = Message.PreviewSpec
+export type Reaction = Message.Reaction
+export type Reactions = Message.Reactions
+
+// common passthroughs
+export type ConversationIDKey = Common.ConversationIDKey
 
 export {
   messageIDToNumber,

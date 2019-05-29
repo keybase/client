@@ -73,13 +73,13 @@ export const makeState: I.Record.Factory<Types._State> = I.Record({
   waitingForResponse: false,
 })
 
-export const getPushTokenForLogSend = (state: Object) => ({pushToken: state.push.token})
+export const getPushTokenForLogSend = (state: any) => ({pushToken: state.push.token})
 
-export const getExtraChatLogsForLogSend = (state: Object) => {
+export const getExtraChatLogsForLogSend = (state: any) => {
   const chat = state.chat2
   const c = state.chat2.selectedConversation
   if (c) {
-    const metaMap: Object = getMeta(state, c).toJS()
+    const metaMap = getMeta(state, c).toJS()
     return I.Map({
       badgeMap: chat.badgeMap.get(c),
       editingMap: chat.editingMap.get(c),

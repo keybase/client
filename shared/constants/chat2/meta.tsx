@@ -180,10 +180,17 @@ export const updateMeta = (
   return newMeta
 }
 
-const parseNotificationSettings = (notifications: RPCChatTypes.ConversationNotificationInfo | null) => {
-  let notificationsDesktop = 'never'
+type NotificationSettingsParsed = {
+  notificationsDesktop: Types.NotificationsType
+  notificationsGlobalIgnoreMentions: boolean
+  notificationsMobile: Types.NotificationsType
+}
+const parseNotificationSettings = (
+  notifications: RPCChatTypes.ConversationNotificationInfo | null
+): NotificationSettingsParsed => {
+  let notificationsDesktop = 'never' as Types.NotificationsType
   let notificationsGlobalIgnoreMentions = false
-  let notificationsMobile = 'never'
+  let notificationsMobile = 'never' as Types.NotificationsType
 
   // Map this weird structure from the daemon to something we want
   if (notifications) {
@@ -352,7 +359,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
 export const makeConversationMeta: I.Record.Factory<_ConversationMeta> = I.Record({
   cannotWrite: false,
   channelname: '',
-  commands: {},
+  commands: {} as RPCChatTypes.ConversationCommandGroups,
   conversationIDKey: noConversationIDKey,
   description: '',
   descriptionDecorated: '',
@@ -361,11 +368,11 @@ export const makeConversationMeta: I.Record.Factory<_ConversationMeta> = I.Recor
   isMuted: false,
   maxMsgID: -1,
   maxVisibleMsgID: -1,
-  membershipType: 'active',
-  minWriterRole: 'reader',
-  notificationsDesktop: 'never',
+  membershipType: 'active' as Types.MembershipType,
+  minWriterRole: 'reader' as Types.TeamRoleType,
+  notificationsDesktop: 'never' as Types.NotificationsType,
   notificationsGlobalIgnoreMentions: false,
-  notificationsMobile: 'never',
+  notificationsMobile: 'never' as Types.NotificationsType,
   offline: false,
   participants: I.List(),
   readMsgID: -1,
@@ -374,15 +381,15 @@ export const makeConversationMeta: I.Record.Factory<_ConversationMeta> = I.Recor
   retentionPolicy: TeamConstants.makeRetentionPolicy(),
   snippet: '',
   snippetDecoration: '',
-  status: RPCChatTypes.ConversationStatus.unfiled,
+  status: RPCChatTypes.ConversationStatus.unfiled as RPCChatTypes.ConversationStatus,
   supersededBy: noConversationIDKey,
   supersedes: noConversationIDKey,
   teamRetentionPolicy: TeamConstants.makeRetentionPolicy(),
-  teamType: 'adhoc',
+  teamType: 'adhoc' as Types.TeamType,
   teamname: '',
   timestamp: 0,
   tlfname: '',
-  trustedState: 'untrusted',
+  trustedState: 'untrusted' as Types.MetaTrustedState,
   wasFinalizedBy: '',
 })
 

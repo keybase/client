@@ -29,7 +29,6 @@ export const makeInitialState: I.Record.Factory<Types._State> = I.Record({
   proofStatus: null,
   proofText: '',
   revokeError: '',
-  searchResults: null,
   searchShowingSuggestions: false,
   sigID: null,
   username: '',
@@ -107,7 +106,7 @@ export const getProfilePath = (
   }
 
   // search for user first
-  let props = {}
+  let props: any = {}
   const searchResult = searchResultSelector(state, username)
   if (searchResult) {
     props = {

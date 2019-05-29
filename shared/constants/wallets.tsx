@@ -243,7 +243,7 @@ export const currencyResultToCurrency = (w: RPCTypes.CurrencyLocal) =>
 
 const _defaultPaymentCommon = {
   amountDescription: '',
-  delta: 'none' as 'none',
+  delta: 'none' as Types.PaymentDelta,
   error: '',
   id: Types.noPaymentID,
   issuerAccountID: null,
@@ -258,7 +258,7 @@ const _defaultPaymentCommon = {
   sourceType: '',
   statusDescription: '',
   statusDetail: '',
-  statusSimplified: 'none' as 'none',
+  statusSimplified: 'none' as Types.StatusSimplified,
   target: '',
   targetAccountID: '',
   targetType: '',
@@ -269,7 +269,7 @@ const _defaultPaymentCommon = {
 
 const _defaultPaymentResult = {
   ..._defaultPaymentCommon,
-  section: 'none' as 'none',
+  section: 'none' as Types.PaymentSection,
   unread: false,
 }
 

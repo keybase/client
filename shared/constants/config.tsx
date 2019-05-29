@@ -104,7 +104,6 @@ export const makeState: I.Record.Factory<Types._State> = I.Record({
   openAtLogin: true,
   osNetworkOnline: false,
   outOfDate: undefined,
-  pgpPopupOpen: false,
   pushLoaded: false,
   registered: false,
   startupConversation: ChatConstants.noConversationIDKey,

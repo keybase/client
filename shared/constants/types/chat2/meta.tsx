@@ -2,54 +2,54 @@
 import * as I from 'immutable'
 import * as Common from './common'
 import * as RPCChatTypes from '../rpc-chat-gen'
-import { RetentionPolicy } from '../retention-policy';
+import {RetentionPolicy} from '../retention-policy'
 
-type TeamRoleType = "reader" | "writer" | "admin" | "owner";
-type MembershipType = "active" | "youArePreviewing" | "youAreReset";
-export type TeamType = "small" | "big" | "adhoc";
+export type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner'
+export type MembershipType = 'active' | 'youArePreviewing' | 'youAreReset'
+export type TeamType = 'small' | 'big' | 'adhoc'
 
-export type MetaTrustedState = "untrusted" | "requesting" | "trusted" | "error";
-export type NotificationsType = "onAnyActivity" | "onWhenAtMentioned" | "never";
+export type MetaTrustedState = 'untrusted' | 'requesting' | 'trusted' | 'error'
+export type NotificationsType = 'onAnyActivity' | 'onWhenAtMentioned' | 'never'
 
 export type _ConversationMeta = {
-  cannotWrite: boolean,
-  channelname: string,
+  cannotWrite: boolean
+  channelname: string
+  commands: RPCChatTypes.ConversationCommandGroups
   conversationIDKey: Common.ConversationIDKey // should be the key for this meta EXCEPT for pendingConversationIDKey, in that case its the resolved conversation we're previewing,
-  commands: RPCChatTypes.ConversationCommandGroups,
-  description: string,
-  descriptionDecorated: string,
-  inboxLocalVersion: number,
-  inboxVersion: number,
-  isMuted: boolean,
-  wasFinalizedBy: string // a conversation can be finalized but not superseded,
-  membershipType: MembershipType,
+  description: string
+  descriptionDecorated: string
+  inboxLocalVersion: number
+  inboxVersion: number
+  isMuted: boolean
+  maxMsgID: number
+  maxVisibleMsgID: number
+  membershipType: MembershipType
   minWriterRole: TeamRoleType // minimum role to be able to write into a channel,
-  notificationsDesktop: NotificationsType,
-  notificationsMobile: NotificationsType,
-  notificationsGlobalIgnoreMentions: boolean,
-  offline: boolean,
+  notificationsDesktop: NotificationsType
+  notificationsGlobalIgnoreMentions: boolean
+  notificationsMobile: NotificationsType
+  offline: boolean
   participants: I.List<string> // was OrderedSet but is quite slow,
-  maxMsgID: number,
-  maxVisibleMsgID: number,
-  readMsgID: number,
-  rekeyers: I.Set<string>,
-  resetParticipants: I.Set<string>,
-  retentionPolicy: RetentionPolicy,
-  snippet: string,
-  snippetDecoration: string,
-  status: RPCChatTypes.ConversationStatus,
-  supersededBy: Common.ConversationIDKey,
-  supersedes: Common.ConversationIDKey,
-  teamType: TeamType,
-  teamname: string,
+  readMsgID: number
+  rekeyers: I.Set<string>
+  resetParticipants: I.Set<string>
+  retentionPolicy: RetentionPolicy
+  snippet: string
+  snippetDecoration: string
+  status: RPCChatTypes.ConversationStatus
+  supersededBy: Common.ConversationIDKey
+  supersedes: Common.ConversationIDKey
   // We have a place in the team store that also stores `teamRetentionPolicy`.
   // If you want to index by teamname and aren't writing a component that will
   // live in the conversation view you probably want to use the instance in the
   // team store, as it'll probably be more reliably updated
-  teamRetentionPolicy: RetentionPolicy,
-  timestamp: number,
+  teamRetentionPolicy: RetentionPolicy
+  teamType: TeamType
+  teamname: string
+  timestamp: number
   tlfname: string // just used for rpc calls,
   trustedState: MetaTrustedState
-};
+  wasFinalizedBy: string // a conversation can be finalized but not superseded,
+}
 
-export type ConversationMeta = I.RecordOf<_ConversationMeta>;
+export type ConversationMeta = I.RecordOf<_ConversationMeta>

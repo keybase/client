@@ -23,7 +23,6 @@ export const makeState: I.Record.Factory<Types._State> = I.Record({
   codePageOtherDeviceName: '',
   codePageOtherDeviceType: 'mobile',
   codePageOutgoingTextCode: new HiddenString(''),
-  configuredAccounts: I.List(),
   deviceName: '',
   devices: I.List(),
   error: new HiddenString(''),
@@ -32,7 +31,6 @@ export const makeState: I.Record.Factory<Types._State> = I.Record({
   forgotUsernameResult: '',
   gpgImportError: null,
   inlineError: null,
-  selectedDevice: null,
   username: '',
 })
 

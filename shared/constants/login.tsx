@@ -12,7 +12,5 @@ export const makeState: I.Record.Factory<Types._State> = I.Record({
   forgotPasswordError: null,
   forgotPasswordSubmitting: false,
   forgotPasswordSuccess: false,
-  justDeletedSelf: null,
-  justRevokedSelf: null,
   registerUserPassLoading: false,
 })

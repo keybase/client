@@ -77,10 +77,10 @@ const getSearchResultIds = (state: TypedState, searchKey: string): I.List<Types.
   state.entities.getIn(['search', 'searchKeyToResults', searchKey])
 
 const getUserInputItemIds = (state: TypedState, searchKey: string): I.OrderedSet<Types.SearchResultId> =>
-  state.entities.getIn(['search', 'searchKeyToUserInputItemIds', searchKey], I.OrderedSet())
+  state.entities.search.searchKeyToUserInputItemIds.get(searchKey, I.OrderedSet())
 
 const getClearSearchTextInput = ({entities}: TypedState, searchKey: string): number =>
-  entities.getIn(['search', 'searchKeyToClearSearchTextInput', searchKey], 0)
+  entities.search.searchKeyToClearSearchTextInput.get(searchKey, 0)
 
 export {
   serviceIdToService,

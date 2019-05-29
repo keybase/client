@@ -380,7 +380,10 @@ const getDisabledReasonsForRolePicker = (
 
 const isMultiOwnerTeam = (state: TypedState, teamname: Types.Teamname): boolean => {
   let countOfOwners = 0
-  const allTeamMembers = state.teams.teamNameToMembers.get(teamname, I.Map())
+  const allTeamMembers = state.teams.teamNameToMembers.get(
+    teamname,
+    I.Map<string, I.RecordOf<Types.MemberInfo>>()
+  )
   const moreThanOneOwner = allTeamMembers.some(tm => {
     if (isOwner(tm.type)) {
       countOfOwners++

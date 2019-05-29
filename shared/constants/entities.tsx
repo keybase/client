@@ -21,21 +21,8 @@ const makePaginationState = I.Record({
 })
 
 export const makeState: I.Record.Factory<Types._State> = I.Record({
-  attachmentDownloadProgress: I.Map(),
-  attachmentDownloadedPath: I.Map(),
-  attachmentPreviewPath: I.Map(),
-  attachmentPreviewProgress: I.Map(),
-  attachmentSavedPath: I.Map(),
-  attachmentUploadProgress: I.Map(),
-  conversationMessages: I.Map(),
-  deletedIDs: I.Map(),
-  devices: I.Map(),
   git: Git.makeState(),
-  messageUpdates: I.Map(),
-  messages: I.Map(),
-  pagination: makePaginationState(),
   search: makeSearchSubState(),
   searchQueryToResult: I.Map(),
   searchResults: I.Map(),
-  teams: Teams.makeState(),
 })

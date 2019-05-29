@@ -14,7 +14,6 @@ export const makeInitialState: I.Record.Factory<Types._State> = I.Record({
   hasPermissions: true,
   showPushPrompt: false,
   token: '',
-  tokenType: null,
 })
 
 export const normalizePush = (n: any): Types.PushNotification | null => {
