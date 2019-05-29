@@ -1,9 +1,8 @@
-// @flow
 import {StyleSheet, Dimensions} from 'react-native'
 import * as iPhoneXHelper from 'react-native-iphone-x-helper'
 import {isIOS} from '../constants/platform'
 import globalColors from './colors'
-import type {CollapsibleStyle} from './index.types'
+import { CollapsibleStyle } from './index.types';
 import * as Shared from './shared'
 
 const font = isIOS
@@ -51,9 +50,7 @@ export const globalStyles = {
 export const statusBarHeight = iPhoneXHelper.getStatusBarHeight(true)
 export const hairlineWidth = StyleSheet.hairlineWidth
 export const styleSheetCreate = (obj: Object) => StyleSheet.create(obj)
-export const collapseStyles = (
-  styles: $ReadOnlyArray<CollapsibleStyle>
-): $ReadOnlyArray<Object | null | false | void> => {
+export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): ReadonlyArray<Object | null | false | void> => {
   return styles
 }
 export const transition = (...properties: Array<string>) => ({})
