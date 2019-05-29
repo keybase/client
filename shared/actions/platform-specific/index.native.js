@@ -152,20 +152,20 @@ const updateChangedFocus = (_, action) => {
   switch (action.payload.nextAppState) {
     case 'active':
       appFocused = true
-      logState = RPCTypes.appStateMobileAppState.foreground
+      logState = RPCTypes.MobileAppState.foreground
       break
     case 'background':
       appFocused = false
-      logState = RPCTypes.appStateMobileAppState.background
+      logState = RPCTypes.MobileAppState.background
       break
     case 'inactive':
       appFocused = false
-      logState = RPCTypes.appStateMobileAppState.inactive
+      logState = RPCTypes.MobileAppState.inactive
       break
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action.payload.nextAppState)
       appFocused = false
-      logState = RPCTypes.appStateMobileAppState.foreground
+      logState = RPCTypes.MobileAppState.foreground
   }
 
   logger.info(`setting app state on service to: ${logState}`)

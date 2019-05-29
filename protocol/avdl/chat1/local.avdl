@@ -1048,4 +1048,11 @@ protocol local {
   keybase1.UserReacjis putReacjiSkinTone(keybase1.ReacjiSkinTone skinTone);
 
   void resolveMaybeMention(MaybeMention mention);
+
+  record LoadFlipRes {
+    UICoinFlipStatus status;
+    array<RateLimit> rateLimits;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+  }
+  LoadFlipRes loadFlip(ConversationID hostConvID, MessageID hostMsgID, ConversationID flipConvID, FlipGameID gameID);
 }

@@ -125,7 +125,7 @@ func testStellarRelayAutoClaims(t *testing.T, startWithPUK, skipPart2 bool) {
 	t.Logf("alice gets funded")
 	acceptDisclaimer(alice)
 
-	baseFeeStroops := int64(alice.tc.G.GetStellar().(*stellar.Stellar).WalletStateForTest(t).BaseFee(alice.tc.MetaContext()))
+	baseFeeStroops := int64(alice.tc.G.GetStellar().(*stellar.Stellar).WalletStateForTest().BaseFee(alice.tc.MetaContext()))
 
 	res, err := alice.stellarClient.GetWalletAccountsLocal(context.Background(), 0)
 	require.NoError(t, err)
@@ -280,7 +280,7 @@ func TestStellarRelayAutoClaimsSBS(t *testing.T) {
 		}
 	}
 	require.NoError(t, err)
-	baseFeeStroops := int64(alice.tc.G.GetStellar().(*stellar.Stellar).WalletStateForTest(t).BaseFee(alice.tc.MetaContext()))
+	baseFeeStroops := int64(alice.tc.G.GetStellar().(*stellar.Stellar).WalletStateForTest().BaseFee(alice.tc.MetaContext()))
 	t.Logf("baseFeeStroops %v", baseFeeStroops)
 
 	t.Logf("get the impteam seqno to wait on later")

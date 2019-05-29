@@ -728,9 +728,22 @@ protocol local {
     string memo;              // optional
     string memoType;          // required if memo exists
   }
-  
+
   ValidateStellarURIResultLocal validateStellarURILocal(int sessionID, string inputURI);
   TransactionID approveTxURILocal(int sessionID, string inputURI);
   TransactionID approvePayURILocal(int sessionID, string inputURI, string amount, boolean fromCLI);
   TransactionID approvePathURILocal(int sessionID, string inputURI, PaymentPath fullPath, boolean fromCLI);
+
+  record PartnerUrl {
+    string url;
+    string title;
+    string description;
+    @jsonkey("icon_filename")
+    string iconFilename;
+    @jsonkey("admin_only")
+    boolean adminOnly;
+    string extra; // extra json tbd
+  }
+
+  array<PartnerUrl> getPartnerUrlsLocal(int sessionID);
 }

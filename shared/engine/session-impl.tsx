@@ -1,9 +1,5 @@
 import {SessionID, EndHandlerType, MethodKey} from './types'
-import {
-  constantsStatusCode,
-  CustomResponseIncomingCallMap,
-  IncomingCallMapType,
-} from '../constants/types/rpc-gen'
+import {StatusCode, CustomResponseIncomingCallMap, IncomingCallMapType} from '../constants/types/rpc-gen'
 import {rpcLog, invokeType} from './index.platform'
 import {IncomingRequest, OutgoingRequest} from './request'
 import {RPCError} from '../util/errors'
@@ -113,7 +109,7 @@ class Session {
     if (this._cancelHandler) {
       this._cancelHandler(this)
     } else if (this._startCallback) {
-      this._startCallback(new RPCError('Received RPC cancel for session', constantsStatusCode.sccanceled))
+      this._startCallback(new RPCError('Received RPC cancel for session', StatusCode.sccanceled))
     }
 
     this.end()

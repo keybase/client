@@ -514,12 +514,12 @@ export type Visibility = TlfType | null
 
 export const direntToPathType = (d: RPCTypes.Dirent): PathType => {
   switch (d.direntType) {
-    case RPCTypes.simpleFSDirentType.dir:
+    case RPCTypes.DirentType.dir:
       return 'folder'
-    case RPCTypes.simpleFSDirentType.sym:
+    case RPCTypes.DirentType.sym:
       return 'symlink'
-    case RPCTypes.simpleFSDirentType.file:
-    case RPCTypes.simpleFSDirentType.exec:
+    case RPCTypes.DirentType.file:
+    case RPCTypes.DirentType.exec:
       return 'file'
     default:
       return 'unknown'
@@ -573,16 +573,16 @@ export const pathsAreInSameTlf = (path1: Path, path2: Path) =>
     .slice(0, 3)
     .join('/')
 export const getRPCFolderTypeFromVisibility = (v: Visibility): RPCTypes.FolderType => {
-  if (v === null) return RPCTypes.favoriteFolderType.unknown
-  return RPCTypes.favoriteFolderType[v]
+  if (v === null) return RPCTypes.FolderType.unknown
+  return RPCTypes.FolderType[v]
 }
 export const getVisibilityFromRPCFolderType = (folderType: RPCTypes.FolderType): Visibility => {
   switch (folderType) {
-    case RPCTypes.favoriteFolderType.private:
+    case RPCTypes.FolderType.private:
       return 'private'
-    case RPCTypes.favoriteFolderType.public:
+    case RPCTypes.FolderType.public:
       return 'public'
-    case RPCTypes.favoriteFolderType.team:
+    case RPCTypes.FolderType.team:
       return 'team'
     default:
       return null

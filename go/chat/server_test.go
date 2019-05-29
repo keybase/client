@@ -3703,9 +3703,11 @@ func TestChatSrvGetInboxNonblockError(t *testing.T) {
 		listener := newServerChatListener()
 		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener)
 
+		ctx := ctc.as(t, users[0]).startCtx
 		uid := users[0].User.GetUID().ToBytes()
 		ui := kbtest.NewChatUI()
 		ctc.as(t, users[0]).h.mockChatUI = ui
+		<-ctc.as(t, users[0]).h.G().ConvLoader.Stop(ctx)
 
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
 		numMsgs := 20
@@ -3721,7 +3723,6 @@ func TestChatSrvGetInboxNonblockError(t *testing.T) {
 			ctc.world.Tcs[users[0].Username].ChatG.ConvSource.Clear(context.TODO(), conv.Id, uid))
 		ri := ctc.as(t, users[0]).ri
 
-		ctx := ctc.as(t, users[0]).startCtx
 		_, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxNonblockLocal(ctx,
 			chat1.GetInboxNonblockLocalArg{
 				Query: &chat1.GetInboxLocalQuery{
@@ -5885,7 +5886,7 @@ func TestChatSrvUserResetAndDeleted(t *testing.T) {
 
 		t.Logf("delete user 3")
 		ctcForUser3 := ctc.as(t, users[3])
-		require.NoError(t, libkb.DeleteAccount(ctcForUser3.m, users[3].NormalizedUsername(), users[3].Passphrase))
+		require.NoError(t, libkb.DeleteAccount(ctcForUser3.m, users[3].NormalizedUsername(), &users[3].Passphrase))
 		select {
 		case <-listener0.membersUpdate:
 			require.Fail(t, "got members update after delete")

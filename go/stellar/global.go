@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"strings"
 	"sync"
-	"testing"
 	"time"
 
 	"github.com/keybase/client/go/badges"
@@ -543,7 +542,7 @@ func (s *Stellar) finalizeBuildPayment(mctx libkb.MetaContext, bid stellar1.Buil
 	return nil, fmt.Errorf("payment build not found")
 }
 
-func (s *Stellar) WalletStateForTest(t *testing.T) *WalletState {
+func (s *Stellar) WalletStateForTest() *WalletState {
 	return s.walletState
 }
 

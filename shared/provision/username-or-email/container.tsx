@@ -13,13 +13,13 @@ const decodeInlineError = inlineRPCError => {
   let inlineSignUpLink = false
   if (inlineRPCError) {
     switch (inlineRPCError.code) {
-      case RPCTypes.constantsStatusCode.scnotfound:
+      case RPCTypes.StatusCode.scnotfound:
         // If it's a "not found" error, we will show "go to signup" link,
         // otherwise just the error.
         inlineError = "This username doesn't exist."
         inlineSignUpLink = true
         break
-      case RPCTypes.constantsStatusCode.scbadusername:
+      case RPCTypes.StatusCode.scbadusername:
         inlineError = 'This username is not valid.'
         inlineSignUpLink = false
         break
@@ -48,8 +48,7 @@ const dispatchToProps = dispatch => ({
 })
 
 export default compose(
-  // @ts-ignore codemode issue
-  connect<OwnProps, _, _, _, _>(
+  connect(
     mapStateToProps,
     dispatchToProps,
     (s, d, _) => ({...s, ...d})
