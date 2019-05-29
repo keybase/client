@@ -44,15 +44,15 @@ const mapDispatchToProps = dispatch => ({
 })
 
 const networkErrorCodes = [
-  RPCTypes.constantsStatusCode.scgenericapierror,
-  RPCTypes.constantsStatusCode.scapinetworkerror,
-  RPCTypes.constantsStatusCode.sctimeout,
+  RPCTypes.StatusCode.scgenericapierror,
+  RPCTypes.StatusCode.scapinetworkerror,
+  RPCTypes.StatusCode.sctimeout,
 ]
 const mergeProps = (stateProps, dispatchProps) => {
   let error = ''
   if (stateProps.error) {
     error =
-      stateProps.error.code === RPCTypes.constantsStatusCode.scgeneric
+      stateProps.error.code === RPCTypes.StatusCode.scgeneric
         ? stateProps.error.desc
         : networkErrorCodes.includes(stateProps.error.code)
         ? "We're having trouble connecting to the internet. Check your network and try again."

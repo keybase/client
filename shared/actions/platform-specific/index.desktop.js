@@ -235,7 +235,7 @@ const onPgpgKeySecret = () =>
 
 const onShutdown = (_, action) => {
   const {code} = action.payload.params
-  if (isWindows && code !== RPCTypes.ctlExitCode.restart) {
+  if (isWindows && code !== RPCTypes.ExitCode.restart) {
     console.log('Quitting due to service shutdown with code: ', code)
     // Quit just the app, not the service
     SafeElectron.getApp().quit()
@@ -247,7 +247,7 @@ const onConnected = () => {
   RPCTypes.configHelloIAmRpcPromise({
     details: {
       argv: process.argv,
-      clientType: RPCTypes.commonClientType.guiMain,
+      clientType: RPCTypes.ClientType.guiMain,
       desc: 'Main Renderer',
       pid: SafeElectron.getRemote().process.pid,
       version: __VERSION__, // eslint-disable-line no-undef
@@ -301,8 +301,8 @@ function* startOutOfDateCheckLoop() {
 const checkForUpdate = () =>
   RPCTypes.configGetUpdateInfoRpcPromise().then(({status, message}) =>
     ConfigGen.createUpdateInfo({
-      critical: status === RPCTypes.configUpdateInfoStatus.criticallyOutOfDate,
-      isOutOfDate: status !== RPCTypes.configUpdateInfoStatus.upToDate,
+      critical: status === RPCTypes.UpdateInfoStatus.criticallyOutOfDate,
+      isOutOfDate: status !== RPCTypes.UpdateInfoStatus.upToDate,
       message,
     })
   )

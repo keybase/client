@@ -54,7 +54,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   onQuit: () => {
     if (!__DEV__) {
       if (isLinux) {
-        dispatch(SettingsGen.createStop({exitCode: RPCTypes.ctlExitCode.ok}))
+        dispatch(SettingsGen.createStop({exitCode: RPCTypes.ExitCode.ok}))
       } else {
         dispatch(ConfigGen.createDumpLogs({reason: 'quitting through menu'}))
       }

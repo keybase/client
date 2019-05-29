@@ -12,7 +12,7 @@ const actions = {
 }
 
 const props = {
-  unfurlMode: RPCChatTypes.unfurlUnfurlMode.whitelisted,
+  unfurlMode: RPCChatTypes.UnfurlMode.whitelisted,
   unfurlWhitelist: [
     'amazon.com',
     'wsj.com',

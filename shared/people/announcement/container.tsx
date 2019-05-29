@@ -29,39 +29,39 @@ const mapDispatchToProps = dispatch => ({
     }
 
     switch (appLink) {
-      case RPCTypes.homeAppLinkType.people:
+      case RPCTypes.AppLinkType.people:
         break
-      case RPCTypes.homeAppLinkType.chat:
+      case RPCTypes.AppLinkType.chat:
         dispatch(RouteTree.createSwitchTo({path: [Tabs.chatTab]}))
         break
-      case RPCTypes.homeAppLinkType.files:
+      case RPCTypes.AppLinkType.files:
         dispatch(
           RouteTree.createSwitchTo({path: isMobile ? [Tabs.settingsTab, SettingsTabs.fsTab] : [Tabs.fsTab]})
         )
         break
-      case RPCTypes.homeAppLinkType.wallet:
+      case RPCTypes.AppLinkType.wallet:
         dispatch(
           RouteTree.createSwitchTo({
             path: isMobile ? [Tabs.settingsTab, SettingsTabs.walletsTab] : [Tabs.walletsTab],
           })
         )
         break
-      case RPCTypes.homeAppLinkType.git:
+      case RPCTypes.AppLinkType.git:
         dispatch(
           RouteTree.createSwitchTo({path: isMobile ? [Tabs.settingsTab, SettingsTabs.gitTab] : [Tabs.gitTab]})
         )
         break
-      case RPCTypes.homeAppLinkType.devices:
+      case RPCTypes.AppLinkType.devices:
         dispatch(
           RouteTree.createSwitchTo({
             path: isMobile ? [Tabs.settingsTab, SettingsTabs.devicesTab] : [Tabs.devicesTab],
           })
         )
         break
-      case RPCTypes.homeAppLinkType.settings:
+      case RPCTypes.AppLinkType.settings:
         dispatch(RouteTree.createSwitchTo({path: [Tabs.settingsTab]}))
         break
-      case RPCTypes.homeAppLinkType.teams:
+      case RPCTypes.AppLinkType.teams:
         dispatch(RouteTree.createSwitchTo({path: [Tabs.teamsTab]}))
         break
     }
