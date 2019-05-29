@@ -1,8 +1,8 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Flow from '../../util/flow'
 import {map, capitalize} from 'lodash-es'
+// @ts-ignore not typed yet
 import {Position} from '../../common-adapters/relative-popup-hoc.types'
 import {TeamRoleType as Role} from '../../constants/types/teams'
 import {StylesCrossPlatform} from '../../styles/css'

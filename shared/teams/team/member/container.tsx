@@ -62,7 +62,7 @@ type DispatchProps = {
   _onEditRole: (teamname: string, username: string, role: Types.TeamRoleType) => void
   _onRemoveMember: (name: string, username: string) => void
   _onLeaveTeam: (teamname: string) => void
-  _onChat: (arg0: string, arg1: string | null) => void
+  _onChat: (username: string) => void
   onBack: () => void
 }
 
