@@ -6,18 +6,18 @@ import * as Tabs from './tabs'
 import * as Flow from '../util/flow'
 import * as SettingsConstants from './settings'
 import {invert} from 'lodash-es'
-import { TypedState } from './reducer';
+import {TypedState} from './reducer'
 import HiddenString from '../util/hidden-string'
 
 export const balanceDeltaToString: {
-  [K in RPCTypes.BalanceDelta]: keyof typeof RPCTypes.BalanceDelta;
+  [K in RPCTypes.BalanceDelta]: keyof typeof RPCTypes.BalanceDelta
 } = invert(RPCTypes.BalanceDelta)
 export const statusSimplifiedToString: {
-  [K in RPCTypes.PaymentStatus]: keyof typeof RPCTypes.PaymentStatus;
+  [K in RPCTypes.PaymentStatus]: keyof typeof RPCTypes.PaymentStatus
 } = invert(RPCTypes.PaymentStatus)
-const partyTypeToString: {
-  [K in RPCTypes.ParticipantType]: keyof typeof RPCTypes.ParticipantType;
-} = invert(RPCTypes.ParticipantType)
+const partyTypeToString: {[K in RPCTypes.ParticipantType]: keyof typeof RPCTypes.ParticipantType} = invert(
+  RPCTypes.ParticipantType
+)
 
 export const sendRequestFormRouteKey = 'sendReceiveForm'
 export const chooseAssetFormRouteKey = 'chooseAssetForm'
@@ -25,52 +25,54 @@ export const confirmFormRouteKey = 'confirmForm'
 export const sendRequestFormRoutes = [sendRequestFormRouteKey, confirmFormRouteKey]
 export const airdropBannerKey = 'stellarHideAirdropBanner'
 
-export const makeAirdropQualification: I.RecordFactory<Types._AirdropQualification> = I.Record({
+export const makeAirdropQualification: I.Record.Factory<Types._AirdropQualification> = I.Record({
   subTitle: '',
   title: '',
   valid: false,
 })
 
-export const makeAirdropDetailsLine: I.RecordFactory<Types._AirdropDetailsLine> = I.Record({
+export const makeAirdropDetailsLine: I.Record.Factory<Types._AirdropDetailsLine> = I.Record({
   bullet: false,
   text: '',
 })
 
-export const makeAirdropDetailsHeader: I.RecordFactory<Types._AirdropDetailsHeader> = I.Record({
+export const makeAirdropDetailsHeader: I.Record.Factory<Types._AirdropDetailsHeader> = I.Record({
   body: '',
   title: '',
 })
 
-export const makeAirdropDetailsSection: I.RecordFactory<Types._AirdropDetailsSection> = I.Record({
+export const makeAirdropDetailsSection: I.Record.Factory<Types._AirdropDetailsSection> = I.Record({
   icon: '',
   lines: I.List(),
   section: '',
 })
 
-export const makeAirdropDetails: I.RecordFactory<Types._AirdropDetails> = I.Record({
+export const makeAirdropDetails: I.Record.Factory<Types._AirdropDetails> = I.Record({
   header: makeAirdropDetailsHeader({}),
   sections: I.List(),
 })
 
-export const makeInflationDestination: I.RecordFactory<Types._InflationDestination> = I.Record({
+export const makeInflationDestination: I.Record.Factory<Types._InflationDestination> = I.Record({
   address: '',
   link: '',
   name: '',
   recommended: false,
 })
 
-export const makeAccountInflationDestination: I.RecordFactory<Types._AccountInflationDestination> = I.Record({
-  accountID: Types.noAccountID,
-  name: '',
-})
+export const makeAccountInflationDestination: I.Record.Factory<Types._AccountInflationDestination> = I.Record(
+  {
+    accountID: Types.noAccountID,
+    name: '',
+  }
+)
 export const noAccountInflationDestination = makeAccountInflationDestination()
 
-export const makeReserve: I.RecordFactory<Types._Reserve> = I.Record({
+export const makeReserve: I.Record.Factory<Types._Reserve> = I.Record({
   amount: '',
   description: '',
 })
 
-export const makeBuilding: I.RecordFactory<Types._Building> = I.Record({
+export const makeBuilding: I.Record.Factory<Types._Building> = I.Record({
   amount: '',
   bid: '',
   currency: 'XLM', // FIXME: Use default currency?
@@ -83,7 +85,7 @@ export const makeBuilding: I.RecordFactory<Types._Building> = I.Record({
   to: '',
 })
 
-export const makeBuiltPayment: I.RecordFactory<Types._BuiltPayment> = I.Record({
+export const makeBuiltPayment: I.Record.Factory<Types._BuiltPayment> = I.Record({
   amountAvailable: '',
   amountErrMsg: '',
   builtBanners: null,
@@ -103,7 +105,7 @@ export const makeBuiltPayment: I.RecordFactory<Types._BuiltPayment> = I.Record({
   worthInfo: '',
 })
 
-export const makeBuiltRequest: I.RecordFactory<Types._BuiltRequest> = I.Record({
+export const makeBuiltRequest: I.Record.Factory<Types._BuiltRequest> = I.Record({
   amountErrMsg: '',
   builtBanners: null,
   displayAmountFiat: '',
@@ -116,7 +118,7 @@ export const makeBuiltRequest: I.RecordFactory<Types._BuiltRequest> = I.Record({
   worthInfo: '',
 })
 
-export const makeState: I.RecordFactory<Types._State> = I.Record({
+export const makeState: I.Record.Factory<Types._State> = I.Record({
   acceptedDisclaimer: false,
   acceptingDisclaimerDelay: false,
   accountMap: I.OrderedMap(),
@@ -203,7 +205,7 @@ export const accountResultToAccount = (w: RPCTypes.WalletAccountLocal) =>
     name: w.name,
   })
 
-export const makeAssets: I.RecordFactory<Types._Assets> = I.Record({
+export const makeAssets: I.Record.Factory<Types._Assets> = I.Record({
   assetCode: '',
   availableToSendWorth: '',
   balanceAvailableToSend: '',
@@ -214,6 +216,7 @@ export const makeAssets: I.RecordFactory<Types._Assets> = I.Record({
   name: '',
   reserves: I.List(),
   worth: '',
+  worthCurrency: '',
 })
 
 export const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
@@ -283,13 +286,13 @@ const _defaultPayment = {
   ..._defaultPaymentDetail,
 }
 
-export const makePaymentResult: I.RecordFactory<Types._PaymentResult> = I.Record(_defaultPaymentResult)
+export const makePaymentResult: I.Record.Factory<Types._PaymentResult> = I.Record(_defaultPaymentResult)
 
-export const makePaymentDetail: I.RecordFactory<Types._PaymentDetail> = I.Record(_defaultPaymentDetail)
+export const makePaymentDetail: I.Record.Factory<Types._PaymentDetail> = I.Record(_defaultPaymentDetail)
 
-export const makePayment: I.RecordFactory<Types._Payment> = I.Record(_defaultPayment)
+export const makePayment: I.Record.Factory<Types._Payment> = I.Record(_defaultPayment)
 
-export const makeCurrency: I.RecordFactory<Types._LocalCurrency> = I.Record({
+export const makeCurrency: I.Record.Factory<Types._LocalCurrency> = I.Record({
   code: '',
   description: '',
   name: '',
@@ -297,7 +300,7 @@ export const makeCurrency: I.RecordFactory<Types._LocalCurrency> = I.Record({
 })
 export const unknownCurrency = makeCurrency()
 
-export const makeAccount: I.RecordFactory<Types._Account> = I.Record({
+export const makeAccount: I.Record.Factory<Types._Account> = I.Record({
   accountID: Types.noAccountID,
   balanceDescription: '',
   canSubmitTx: false,
@@ -395,7 +398,7 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal | RPCTypes.PaymentDe
   }
 }
 
-export const makeAssetDescription: I.RecordFactory<Types._AssetDescription> = I.Record({
+export const makeAssetDescription: I.Record.Factory<Types._AssetDescription> = I.Record({
   code: '',
   issuerAccountID: Types.noAccountID,
   issuerName: '',
@@ -429,10 +432,12 @@ const partyTypeToCounterpartyType = (t: string): Types.CounterpartyType => {
   }
 }
 
-export const paymentToYourInfoAndCounterparty = (p: Types.Payment): {
-  yourAccountName: string,
-  yourRole: Types.Role,
-  counterparty: string,
+export const paymentToYourInfoAndCounterparty = (
+  p: Types.Payment
+): {
+  yourAccountName: string
+  yourRole: Types.Role
+  counterparty: string
   counterpartyType: Types.CounterpartyType
 } => {
   switch (p.delta) {
@@ -498,9 +503,12 @@ export const inflationDestResultToAccountInflationDest = (res: RPCTypes.Inflatio
   }
   return makeAccountInflationDestination({
     accountID: Types.stringToAccountID(res.destination),
-    name: // Auto generated from flowToTs. Please clean me!
-    res.knownDestination === null || res.knownDestination === undefined ? undefined : res.knownDestination.name,
-  });
+    // Auto generated from flowToTs. Please clean me!
+    name:
+      res.knownDestination === null || res.knownDestination === undefined
+        ? undefined
+        : res.knownDestination.name,
+  })
 }
 
 export const airdropWaitingKey = 'wallets:airdrop'

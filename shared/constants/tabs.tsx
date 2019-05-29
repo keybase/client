@@ -1,32 +1,43 @@
 import {isMobile} from './platform'
 
-const chatTab = 'tabs.chatTab'
-const devicesTab = 'tabs.devicesTab'
-const folderTab = 'tabs.folderTab'
-const loginTab = 'tabs.loginTab'
-const peopleTab = 'tabs.peopleTab'
-const searchTab = 'tabs.searchTab'
-const settingsTab = 'tabs.settingsTab'
-const teamsTab = 'tabs.teamsTab'
-const gitTab = 'tabs.gitTab'
-const fsTab = 'tabs.fsTab'
-const walletsTab = 'tabs.walletsTab'
+type ChatTab = 'tabs.chatTab'
+type DevicesTab = 'tabs.devicesTab'
+type FolderTab = 'tabs.folderTab'
+type LoginTab = 'tabs.loginTab'
+type PeopleTab = 'tabs.peopleTab'
+type SearchTab = 'tabs.searchTab'
+type SettingsTab = 'tabs.settingsTab'
+type TeamsTab = 'tabs.teamsTab'
+type FsTab = 'tabs.fsTab'
+type GitTab = 'tabs.gitTab'
+type WalletsTab = 'tabs.walletsTab'
 
-type ChatTab = "tabs.chatTab";
-type DevicesTab = "tabs.devicesTab";
-type FolderTab = "tabs.folderTab";
-type LoginTab = "tabs.loginTab";
-type PeopleTab = "tabs.peopleTab";
-type SearchTab = "tabs.searchTab";
-type SettingsTab = "tabs.settingsTab";
-type TeamsTab = "tabs.teamsTab";
-type FsTab = "tabs.fsTab";
-type GitTab = "tabs.gitTab";
-type WalletsTab = "tabs.walletsTab";
+export type Tab =
+  | ChatTab
+  | DevicesTab
+  | FolderTab
+  | LoginTab
+  | PeopleTab
+  | SettingsTab
+  | SearchTab
+  | TeamsTab
+  | GitTab
+  | FsTab
+  | WalletsTab
 
-export type Tab = ChatTab | DevicesTab | FolderTab | LoginTab | PeopleTab | SettingsTab | SearchTab | TeamsTab | GitTab | FsTab | WalletsTab;
+const chatTab: Tab = 'tabs.chatTab'
+const devicesTab: Tab = 'tabs.devicesTab'
+const folderTab: Tab = 'tabs.folderTab'
+const loginTab: Tab = 'tabs.loginTab'
+const peopleTab: Tab = 'tabs.peopleTab'
+const searchTab: Tab = 'tabs.searchTab'
+const settingsTab: Tab = 'tabs.settingsTab'
+const teamsTab: Tab = 'tabs.teamsTab'
+const gitTab: Tab = 'tabs.gitTab'
+const fsTab: Tab = 'tabs.fsTab'
+const walletsTab: Tab = 'tabs.walletsTab'
 
-export type AppTab = PeopleTab | ChatTab | FsTab | TeamsTab | WalletsTab | GitTab | DevicesTab | SettingsTab;
+export type AppTab = PeopleTab | ChatTab | FsTab | TeamsTab | WalletsTab | GitTab | DevicesTab | SettingsTab
 
 // Canonical ordering for desktop tabs, used visually and for hotkeys
 const desktopTabOrder = [
