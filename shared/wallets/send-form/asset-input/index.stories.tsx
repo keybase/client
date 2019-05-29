@@ -6,9 +6,9 @@ import AssetInput from '.'
 import {Props as AvailableProps} from '../available'
 
 const provider = Sb.createPropProvider({
-  Available: () => {
-    amountErrMsg: ''
-  },
+  Available: () => ({
+    amountErrMsg: '',
+  }),
 })
 
 const common = {
