@@ -27,12 +27,13 @@ type Props = {
   onChangeUseNativeFrame: (arg0: boolean) => void
 }
 
-const initialUseNativeFrame = // Auto generated from flowToTs. Please clean me!
+const useNativeFrame = new AppState().state.useNativeFrame
+const initialUseNativeFrame =
   // @ts-ignore not typed yet
-  new AppState().state.useNativeFrame !== null && new AppState().state.useNativeFrame !== undefined
+  useNativeFrame !== null && useNativeFrame !== undefined
     ? // eslint-disable-line operator-linebreak
       // @ts-ignore not typed yet
-      new AppState().state.useNativeFrame
+      useNativeFrame
     : defaultUseNativeFrame
 
 const UseNativeFrame = (props: Props) => {
