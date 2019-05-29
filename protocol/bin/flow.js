@@ -374,7 +374,7 @@ function parseVariant(t, project) {
           bodyType = `Array<${capitalize(c.body.items)}>`
         }
         const bodyStr = c.body ? `, ${label}: ${bodyType} | null` : ''
-        return `{ ${t.switch.name}: ${project.enums[type][label]}${bodyStr} }`
+        return `{ ${t.switch.name}: ${type}.${label}${bodyStr} }`
       }
     })
     .filter(Boolean)

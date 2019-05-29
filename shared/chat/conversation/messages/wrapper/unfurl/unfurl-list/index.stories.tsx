@@ -85,6 +85,7 @@ const load = () => {
   Sb.storiesOf('Chat/Unfurl/Unfurl-List', module)
     .addDecorator(story => <Box style={{maxWidth: 600, padding: 5}}>{story()}</Box>)
     .addDecorator(provider)
+    // @ts-ignore codemod issue
     .add('Default', () => <UnfurlList {...props} />)
 }
 
