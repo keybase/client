@@ -81,7 +81,6 @@ Promise.all(
       }, {})
       .then(typeDefs => {
         writeFlow(typeDefs, project)
-        // write(typeDefs, project)
       })
   })
 ).then(() => {
@@ -153,8 +152,6 @@ function analyzeTypes(json, project) {
         map[t.name] = `export type ${t.name} = ${parseRecord(t)}`
         break
       case 'enum':
-        // no separate enum type needed in ts
-        // map[t.name] = `export type ${t.name} =${parseEnum(t)}`
         break
       case 'variant':
         {
