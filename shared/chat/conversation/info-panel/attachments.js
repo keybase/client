@@ -360,7 +360,11 @@ export class LinkView {
           </Kb.Markdown>
         </Kb.Box2>
         {!!item.title && (
-          <Kb.Text type="BodySmallPrimaryLink" onClickURL={item.url}>
+          <Kb.Text
+            type="BodySmallPrimaryLink"
+            onClickURL={item.url}
+            style={Styles.collapseStyles([styles.linkStyle, {color: Styles.globalColors.blue}])}
+          >
             {item.title}
           </Kb.Text>
         )}
@@ -478,12 +482,15 @@ const styles = Styles.styleSheetCreate({
   linkStyle: Styles.platformStyles({
     common: {
       color: Styles.globalColors.black_50,
-      fontSize: 13,
     },
     isElectron: {
+      fontSize: 13,
       lineHeight: 17,
       whiteSpace: 'pre-wrap',
       wordBreak: 'break-word',
+    },
+    isMobile: {
+      fontSize: 15,
     },
   }),
   linkTime: {

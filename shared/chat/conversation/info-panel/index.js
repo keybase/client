@@ -348,7 +348,7 @@ const styles = Styles.styleSheetCreate({
     width: Styles.globalMargins.small,
   },
   container: Styles.platformStyles({
-    common: {alignItems: 'stretch', flex: 1, paddingBottom: Styles.globalMargins.medium},
+    common: {alignItems: 'stretch', flex: 1, paddingBottom: Styles.globalMargins.tiny},
     isElectron: {
       backgroundColor: Styles.globalColors.white,
       borderLeft: border,
