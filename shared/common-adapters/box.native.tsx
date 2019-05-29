@@ -1,10 +1,9 @@
-// @flow
 import * as React from 'react'
 import {View} from 'react-native'
 import {globalStyles, collapseStyles, globalMargins} from '../styles'
 import {intersperseFn} from '../util/arrays'
 
-import type {Box2Props} from './box'
+import {Box2Props} from './box'
 
 const Box = View
 

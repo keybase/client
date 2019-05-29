@@ -1,7 +1,6 @@
-// @flow
 import * as React from 'react'
 import {intersperseFn} from '../util/arrays'
-import type {Box2Props} from './box'
+import {Box2Props} from './box'
 
 class Box extends React.PureComponent<any> {
   render() {
@@ -58,7 +57,7 @@ const box2 = (props: Box2Props) => {
       onMouseOver={props.onMouseOver}
       onCopyCapture={props.onCopyCapture}
       className={className}
-      style={style}
+      style={(style as unknown) as React.CSSProperties}
     >
       {injectGaps(horizontal ? hBoxGap : vBoxGap, props.children, props.gap, props.gapStart, props.gapEnd)}
     </div>

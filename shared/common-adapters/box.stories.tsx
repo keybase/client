@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import Box, {Box2} from './box'
 import Text from './text'

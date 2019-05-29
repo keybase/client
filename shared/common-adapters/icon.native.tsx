@@ -1,9 +1,8 @@
-// @flow
 import * as React from 'react'
 import * as Shared from './icon.shared'
 import * as Styles from '../styles'
 import logger from '../logger'
-import type {IconType, Props, DisallowedStyles, SizeType} from './icon'
+import {IconType, Props, DisallowedStyles, SizeType} from './icon'
 import {NativeImage, NativeText, NativeTouchableOpacity} from './native-wrappers.native'
 import {iconMeta} from './icon.constants'
 
@@ -13,28 +12,28 @@ const Kb = {
   NativeTouchableOpacity,
 }
 
-type TextProps = {|
-  children: React.Node,
-  color?: Styles.Color,
-  fontSize?: number,
-  onClick?: ?(event: SyntheticEvent<Element>) => void,
-  opacity?: boolean,
-  sizeType: SizeType,
-  style?: Styles.StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>,
-  type: IconType,
-|}
+type TextProps = {
+  children: React.ReactNode
+  color?: Styles.Color
+  fontSize?: number
+  onClick?: (event: React.SyntheticEvent) => void | null
+  opacity?: boolean
+  sizeType: SizeType
+  style?: Styles.StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>
+  type: IconType
+}
 
-let Text = (p: TextProps, ref) => {
-  const style = {}
+const _Text = (p: TextProps, ref) => {
+  const style: Styles.StylesCrossPlatform = {}
 
   // we really should disallow reaching into style like this but this is what the old code does.
   // TODO change this
-  // $FlowIssue
   const pStyle: any = p.style
 
   const color =
     p.color ||
-    // $FlowIssue flow is correct but we do actually pass in this color sometimes. TODO remove this
+    // @ts-ignore flow is correct but we do actually pass in this color
+    // sometimes. TODO remove this
     (pStyle && p.style.color) ||
     Shared.defaultColor(p.type) ||
     (p.opacity && Styles.globalColors.greyLight)
@@ -51,8 +50,9 @@ let Text = (p: TextProps, ref) => {
     }
   }
 
-  // $FlowIssue isn't in the type, but keeping this for now. TODO remove this
+  // @ts-ignore isn't in the type, but keeping this for now. TODO remove this
   if (p.textAlign !== undefined) {
+    // @ts-ignore see above
     style.textAlign = p.textAlign
   }
 
@@ -82,15 +82,15 @@ let Text = (p: TextProps, ref) => {
   )
 }
 
-Text = React.forwardRef(Text)
+const Text = React.forwardRef(_Text)
 Text.displayName = 'IconText'
 
-type ImageProps = {|
-  style?: Styles.StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>,
-  source: any,
-|}
+type ImageProps = {
+  style?: Styles.StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>
+  source: any
+}
 
-let Image = (p: ImageProps, ref) => {
+const _Image = (p: ImageProps, ref) => {
   let style
 
   // we really should disallow reaching into style like this but this is what the old code does.
@@ -113,7 +113,7 @@ let Image = (p: ImageProps, ref) => {
 
   return <Kb.NativeImage ref={ref} style={[style, pStyle]} source={p.source} resizeMode="contain" />
 }
-Image = React.forwardRef(Image)
+const Image = React.forwardRef(_Image)
 Image.displayName = 'IconImage'
 
 const _Icon = (p: Props, ref: any) => {
@@ -171,6 +171,8 @@ const _Icon = (p: Props, ref: any) => {
       activeOpacity={0.8}
       underlayColor={p.underlayColor || Styles.globalColors.white}
       ref={ref}
+      // @ts-ignore the TS compiler doesn't know enough about symbols to
+      // know whether they can be used as keys - see https://github.com/Microsoft/TypeScript/issues/24587
       style={Styles.collapseStyles([p.style, p.padding && Shared.paddingStyles[p.padding]])}
     >
       {icon}

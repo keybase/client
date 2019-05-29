@@ -8,7 +8,7 @@ import shallowEqual from 'shallowequal'
 import {Props, TextType} from './text'
 
 class Text extends React.Component<Props> {
-  _spanRef = React.createRef()
+  _spanRef = React.createRef<HTMLSpanElement>()
 
   highlightText() {
     const el = this._spanRef.current
@@ -43,7 +43,7 @@ class Text extends React.Component<Props> {
     })
   }
 
-  _urlClick = (e: MouseEvent) => {
+  _urlClick = (e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
     if (!this.props.onClickURL) {
       return
     }

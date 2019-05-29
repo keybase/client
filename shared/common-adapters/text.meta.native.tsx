@@ -1,6 +1,6 @@
 import {globalStyles, globalColors} from '../styles'
 
-import { MetaType, TextType, Background } from './text';
+import {MetaType, TextType, Background} from './text'
 
 function defaultColor(backgroundMode: Background | null) {
   return {
@@ -46,9 +46,7 @@ const _blueLink = {
   positive: globalColors.blue,
 }
 
-const metaData: {
-  [K in K]: any;
-} = {
+const metaData: {[K in TextType]: MetaType} = {
   Body: {
     colorForBackground: whiteNegative,
     fontSize: 16,

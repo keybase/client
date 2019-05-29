@@ -1,8 +1,7 @@
-// @flow
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import Box from './box'
-import Icon, {type IconType} from './icon'
+import Icon, {IconType} from './icon'
 import Text from './text'
 import * as Styles from '../styles'
 import {iconMeta} from './icon.constants'

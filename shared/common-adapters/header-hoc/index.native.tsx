@@ -1,18 +1,21 @@
-// @flow
 import * as React from 'react'
 import Text from '../text'
+// @ts-ignore
 import BackButton from '../back-button'
 import Box from '../box'
 import FloatingMenu from '../floating-menu'
 import Icon from '../icon'
+// @ts-ignore
 import SafeAreaView, {SafeAreaViewTop} from '../safe-area-view'
 import * as Styles from '../../styles'
-import type {Action, Props, LeftActionProps} from './types'
+import {Action, Props, LeftActionProps} from './types'
 
 const MAX_RIGHT_ACTIONS = 3
-type State = {|
-  floatingMenuVisible: boolean,
-|}
+
+type State = {
+  floatingMenuVisible: boolean
+}
+
 export class HeaderHocHeader extends React.Component<Props, State> {
   state = {
     floatingMenuVisible: false,
@@ -123,7 +126,7 @@ export const LeftAction = ({
   onLeftAction,
   theme,
   customIconColor,
-}: LeftActionProps): React.Node => (
+}: LeftActionProps): React.ReactElement => (
   <Box style={Styles.collapseStyles([styles.leftAction, hasTextTitle && styles.grow])}>
     {onLeftAction &&
       (leftAction === 'cancel' ? (
@@ -155,7 +158,7 @@ const RightActions = ({
   hideFloatingMenu,
   rightActions,
   showFloatingMenu,
-}): React.Node => (
+}): React.ReactElement => (
   <Box style={Styles.collapseStyles([styles.rightActions, hasTextTitle && styles.grow])}>
     <Box style={styles.rightActionsWrapper}>
       {rightActions &&
@@ -182,7 +185,7 @@ const RightActionsOverflow = ({
   hideFloatingMenu,
   rightActions,
   showFloatingMenu,
-}): React.Node =>
+}): React.ReactElement =>
   rightActions &&
   rightActions.length > MAX_RIGHT_ACTIONS && (
     <>
@@ -200,7 +203,7 @@ const RightActionsOverflow = ({
     </>
   )
 
-const renderAction = (action: Action, index: number): React.Node =>
+const renderAction = (action: Action, index: number): React.ReactNode =>
   action.custom ? (
     <Box key={action.label || index} style={styles.action}>
       {action.custom}
@@ -220,14 +223,14 @@ const renderAction = (action: Action, index: number): React.Node =>
     </Text>
   )
 
-function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
+function HeaderHoc<P extends {}>(WrappedComponent: React.ComponentType<P>) {
   const HeaderHocWrapper = (props: P & Props) => (
     <Box style={styles.container}>
       {!!props.customSafeAreaTopStyle && <SafeAreaViewTop style={props.customSafeAreaTopStyle} />}
       <HeaderHocHeader {...props} />
       <Box style={styles.grow}>
         <Box style={styles.innerWrapper}>
-          <WrappedComponent {...(props: P)} />
+          <WrappedComponent {...props as P} />
         </Box>
       </Box>
       {!!props.customSafeAreaBottomStyle && <SafeAreaView style={props.customSafeAreaBottomStyle} />}

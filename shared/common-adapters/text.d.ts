@@ -1,46 +1,53 @@
 import * as React from 'react'
-import { StylesCrossPlatform } from '../styles';
+import {StylesCrossPlatform} from '../styles'
 import {allTextTypes} from './text.shared'
 
-type Background = "Announcements" | "Documentation" | "HighRisk" | "Information" | "Normal" | "Success" | "Terminal";
-type TextType = keyof typeof allTextTypes;
+type Background =
+  | 'Announcements'
+  | 'Documentation'
+  | 'HighRisk'
+  | 'Information'
+  | 'Normal'
+  | 'Success'
+  | 'Terminal'
+type TextType = keyof typeof allTextTypes
 
 type Props = {
-  allowFontScaling?: boolean,
+  allowFontScaling?: boolean
   allowHighlightText?: boolean // if true, highlighttext through refs works,,
-  center?: boolean,
-  children?: React.ReactNode,
-  className?: string,
-  ellipsizeMode?: "head" | "middle" | "tail" | "clip" // mobile only, defines how ellipsis will be put in if `lineClamp` is supplied,,
-  lineClamp?: number | null,
-  negative?: boolean,
-  onClick?: ((e: React.SyntheticEvent) => void) | (() => void) | null,
-  onClickURL?: string | null,
-  onLongPress?: () => void,
-  onLongPressURL?: string | null,
-  onPress?: void,
-  plainText?: boolean,
-  selectable?: boolean,
-  style?: StylesCrossPlatform,
-  textBreakStrategy?: "simple" | "highQuality" | "balanced" // android only,,
-  title?: string | null,
-  type: TextType,
+  center?: boolean
+  children?: React.ReactNode
+  className?: string
+  ellipsizeMode?: 'head' | 'middle' | 'tail' | 'clip' // mobile only, defines how ellipsis will be put in if `lineClamp` is supplied,,
+  lineClamp?: number | null
+  negative?: boolean
+  onClick?: ((e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => void) | (() => void) | null
+  onClickURL?: string | null
+  onLongPress?: () => void
+  onLongPressURL?: string | null
+  onPress?: void
+  plainText?: boolean
+  selectable?: boolean
+  style?: StylesCrossPlatform
+  textBreakStrategy?: 'simple' | 'highQuality' | 'balanced' // android only,,
+  title?: string | null
+  type: TextType
   underline?: boolean
-};
+}
 
 type MetaType = {
-  fontSize: number,
+  fontSize: number
   colorForBackground: {
-    positive: string,
+    positive: string
     negative: string
-  },
-  isLink?: true,
-  styleOverride?: Object | null,
+  }
+  isLink?: true
+  styleOverride?: Object | null
   isTerminal?: true
-};
+}
 
 declare class Text extends React.Component<Props> {
-  highlightText: () => void;
+  highlightText: () => void
 }
 
 declare function getStyle(
@@ -51,5 +58,5 @@ declare function getStyle(
 ): Object
 
 export {getStyle, allTextTypes}
-export { Background, MetaType, Props, TextType };
+export {Background, MetaType, Props, TextType}
 export default Text

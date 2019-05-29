@@ -3,11 +3,11 @@ import SimpleMarkdown from 'simple-markdown'
 import * as Styles from '../../styles'
 import Text from '../text'
 import KbfsPath from './kbfs-path-container'
-import { MarkdownMeta, StyleOverride } from '.';
+import {MarkdownMeta, StyleOverride} from '.'
 import Box from '../box'
-import Emoji from '../emoji'
+// @ts-ignore
+import Emoji, {Props as EmojiProps} from '../emoji'
 import {emojiIndexByName} from './emoji-gen'
-import { Props as EmojiProps } from '../emoji';
 import ServiceDecoration from './service-decoration'
 
 const wrapStyle = Styles.platformStyles({
@@ -158,11 +158,14 @@ const markdownStyles = {
 }
 
 // TODO kill this when we remove the old markdown parser. This check is done at the parsing level.
-class EmojiIfExists extends PureComponent<EmojiProps & {
-  style?: any,
-  allowFontScaling?: boolean,
-  lineClamp?: number
-}, void> {
+class EmojiIfExists extends PureComponent<
+  EmojiProps & {
+    style?: any
+    allowFontScaling?: boolean
+    lineClamp?: number
+  },
+  void
+> {
   render() {
     const emojiNameLower = this.props.emojiName.toLowerCase()
     const exists = !!emojiIndexByName[emojiNameLower]
@@ -286,11 +289,20 @@ const reactComponentsForMarkdownType = {
       json={node.content}
       key={state.key}
       allowFontScaling={state.allowFontScaling}
-      message={// Auto generated from flowToTs. Please clean me!
-      // Auto generated from flowToTs. Please clean me!
-      (state.markdownMeta === null || state.markdownMeta === undefined ? undefined : state.markdownMeta.message) !== null && // Auto generated from flowToTs. Please clean me!
-      (state.markdownMeta === null || state.markdownMeta === undefined ? undefined : state.markdownMeta.message) !== undefined ? // Auto generated from flowToTs. Please clean me!
-      state.markdownMeta === null || state.markdownMeta === undefined ? undefined : state.markdownMeta.message : undefined}
+      message={
+        // Auto generated from flowToTs. Please clean me!
+        // Auto generated from flowToTs. Please clean me!
+        (state.markdownMeta === null || state.markdownMeta === undefined
+          ? undefined
+          : state.markdownMeta.message) !== null && // Auto generated from flowToTs. Please clean me!
+        (state.markdownMeta === null || state.markdownMeta === undefined
+          ? undefined
+          : state.markdownMeta.message) !== undefined // Auto generated from flowToTs. Please clean me!
+          ? state.markdownMeta === null || state.markdownMeta === undefined
+            ? undefined
+            : state.markdownMeta.message
+          : undefined
+      }
       styleOverride={state.styleOverride}
       styles={markdownStyles}
     />
@@ -311,35 +323,28 @@ const reactComponentsForMarkdownType = {
 }
 
 type State = {
-  allowFontScaling?: boolean,
-  inBlockQuote?: boolean,
-  inParagraph?: boolean,
-  key?: string,
-  markdownMeta: MarkdownMeta | null,
+  allowFontScaling?: boolean
+  inBlockQuote?: boolean
+  inParagraph?: boolean
+  key?: string
+  markdownMeta: MarkdownMeta | null
   styleOverride: StyleOverride
-};
+}
 
 // Ideally this would be a discriminated union keyed by type.
-type SingleASTNode = {
-  [K in string]: any;
-};
+type SingleASTNode = {[K in string]: any}
 
 // The types below are adapted from the simple-markdown types.
 
-type ASTNode = SingleASTNode | Array<SingleASTNode>;
+type ASTNode = SingleASTNode | Array<SingleASTNode>
 
-type Output<Result> = (node: ASTNode, state?: State | null) => Result;
-type NodeOutput<Result> = (node: SingleASTNode, nestedOutput: Output<Result>, state: State) => Result;
-type ReactElements = React$Node;
-type ReactNodeOutput = NodeOutput<ReactElements>;
+type Output<Result> = (node: ASTNode, state?: State | null) => Result
+type NodeOutput<Result> = (node: SingleASTNode, nestedOutput: Output<Result>, state: State) => Result
+type ReactElements = React.ReactNode
+type ReactNodeOutput = NodeOutput<ReactElements>
 
-const ruleOutput = (rules: {
-  [K in string]: ReactNodeOutput;
-}) => (
-  node,
-  output,
-  state
-) => rules[node.type](node, output, state)
+const ruleOutput = (rules: {[K in string]: ReactNodeOutput}) => (node, output, state) =>
+  rules[node.type](node, output, state)
 
 const bigEmojiOutput = SimpleMarkdown.reactFor(
   ruleOutput({

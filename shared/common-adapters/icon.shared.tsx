@@ -1,9 +1,8 @@
-// @flow
 import * as Styles from '../styles'
-import type {IconType, SizeType} from './icon'
+import {IconType, SizeType} from './icon'
 import {iconMeta} from './icon.constants'
 
-export function defaultColor(type: IconType): ?string {
+export function defaultColor(type: IconType): string | null {
   switch (type) {
     case 'iconfont-crown-admin':
       return Styles.globalColors.black_35
@@ -20,7 +19,7 @@ export function defaultColor(type: IconType): ?string {
   }
 }
 
-export function defaultHoverColor(type: IconType): ?string {
+export function defaultHoverColor(type: IconType): string | null {
   switch (type) {
     case 'iconfont-proof-broken':
     case 'iconfont-proof-pending':
@@ -62,13 +61,13 @@ export function typeExtension(type: IconType): string {
   return iconMeta[type].extension || 'png'
 }
 
-export function fontSize(type: IconType): ?Object {
+export function fontSize(type: IconType): {fontSize: number} | null {
   const meta = iconMeta[type]
   if (!meta) {
     throw new Error('Invalid icon type: ' + type)
   }
 
-  const fontSize: ?number = meta.gridSize
+  const fontSize: number | null = meta.gridSize
 
   if (fontSize) {
     return {fontSize}
@@ -163,5 +162,5 @@ const makePaddingStyles = () =>
   )
 
 export const paddingStyles: {
-  [$Keys<typeof Styles.globalMargins>]: Styles.StylesCrossPlatform,
+  [K in keyof typeof Styles.globalMargins]: Styles.StylesCrossPlatform
 } = makePaddingStyles()

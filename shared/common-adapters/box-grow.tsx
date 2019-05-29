@@ -1,12 +1,11 @@
-// @flow
 // A box that flex grows but constrains children
 import * as React from 'react'
 import * as Styles from '../styles'
 import Box from './box'
 
 type Props = {
-  children?: React.Node,
-  style?: Styles.StylesCrossPlatform,
+  children?: React.ReactNode
+  style?: Styles.StylesCrossPlatform
 }
 
 class BoxGrow extends React.Component<Props> {

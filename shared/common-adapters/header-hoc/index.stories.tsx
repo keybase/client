@@ -1,39 +1,39 @@
-// @flow
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as Kb from '../'
 import {HeaderHocHeader} from '.'
+import {Action} from './types'
 
 const onAction = Sb.action('onAction')
-const rightActions = (length: number = 3) =>
+const rightActions = (length: number = 3): Action[] =>
   [
     {
-      icon: 'iconfont-new',
+      icon: 'iconfont-new' as 'iconfont-new',
       label: 'Add new…',
       onPress: onAction,
     },
     {
-      icon: 'iconfont-chat',
+      icon: 'iconfont-chat' as 'iconfont-chat',
       label: 'Start a conversation',
       onPress: onAction,
     },
     {
-      icon: 'iconfont-upload',
+      icon: 'iconfont-upload' as 'iconfont-upload',
       label: 'Upload a file',
       onPress: onAction,
     },
     {
-      icon: 'iconfont-reacji',
+      icon: 'iconfont-reacji' as 'iconfont-reacji',
       label: 'Add a reaction',
       onPress: onAction,
     },
     {
-      icon: 'iconfont-bomb',
+      icon: 'iconfont-bomb' as 'iconfont-bomb',
       label: 'Blow something up',
       onPress: onAction,
     },
     {
-      icon: 'iconfont-time-reversed',
+      icon: 'iconfont-time-reversed' as 'iconfont-time-reversed',
       label: 'Movie trope',
       onPress: onAction,
     },

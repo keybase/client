@@ -1,4 +1,3 @@
-// @flow
 import * as Shared from './icon.shared'
 import * as Styles from '../styles'
 import logger from '../logger'
@@ -7,7 +6,7 @@ import shallowEqual from 'shallowequal'
 import {iconMeta} from './icon.constants'
 import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
 import {invert} from 'lodash-es'
-import type {Props, IconType} from './icon'
+import {Props, IconType} from './icon'
 
 const invertedColors = invert(Styles.globalColors)
 
@@ -90,7 +89,7 @@ class Icon extends Component<Props, void> {
       iconElement = (
         <img
           className={this.props.className}
-          draggable="false"
+          draggable={false}
           title={this.props.hint}
           style={imgStyle}
           onClick={onClick}
@@ -139,9 +138,10 @@ class Icon extends Component<Props, void> {
           ])}
         >
           <span
-            alt={this.props.hint}
             style={Styles.collapseStyles([
               style,
+              // @ts-ignore the TS compiler doesn't know enough about symbols to
+              // know whether they can be used as keys - see https://github.com/Microsoft/TypeScript/issues/24587
               this.props.padding && Shared.paddingStyles[this.props.padding],
             ])}
             className={Styles.classNames(
@@ -165,7 +165,7 @@ class Icon extends Component<Props, void> {
   }
 }
 
-const imgName = (type: IconType, ext: string, mult: number, prefix: ?string, postfix: ?string) =>
+const imgName = (type: IconType, ext: string, mult: number, prefix?: string, postfix?: string) =>
   `${prefix || ''}${resolveImageAsURL('icons', type)}${mult > 1 ? `@${mult}x` : ''}.${ext}${postfix ||
     ''} ${mult}x`
 

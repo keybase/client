@@ -1,11 +1,11 @@
-// @flow
 import * as React from 'react'
 import Text from '../text'
+// @ts-ignore
 import BackButton from '../back-button'
 import Box from '../box'
 import Icon from '../icon'
 import * as Styles from '../../styles'
-import type {Props, LeftActionProps} from './types'
+import {Props, LeftActionProps} from './types'
 
 export const HeaderHocHeader = ({
   headerStyle,
@@ -48,7 +48,7 @@ export const LeftAction = ({
   leftActionText,
   onLeftAction,
   theme,
-}: LeftActionProps): React.Node => (
+}: LeftActionProps): React.ReactNode => (
   <Box style={Styles.collapseStyles([styles.leftAction, hasTextTitle && styles.grow])}>
     {onLeftAction &&
       (leftAction === 'cancel' ? (
@@ -74,8 +74,8 @@ export const LeftAction = ({
   </Box>
 )
 
-function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
-  return (props: P & Props) => <WrappedComponent {...(props: P)} />
+function HeaderHoc<P extends {}>(WrappedComponent: React.ComponentType<P>) {
+  return (props: P & Props) => <WrappedComponent {...props as P} />
 }
 
 const _headerStyle = {

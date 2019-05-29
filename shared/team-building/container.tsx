@@ -202,7 +202,7 @@ const deriveOnDownArrowKeyDown = memoize(
   (maxIndex: number, incHighlightIndex: (maxIndex: number) => void) => () => incHighlightIndex(maxIndex)
 )
 
-const mergeProps = <MergedProps extends {}>(stateProps, dispatchProps, ownProps: OwnProps): MergedProps => {
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const {
     teamSoFar,
     searchResults,
