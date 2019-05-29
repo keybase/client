@@ -206,7 +206,16 @@ const createElectronApp = Component => {
   // Based on https://github.com/react-navigation/react-navigation-native/blob/master/src/createAppContainer.js
   class ElectronApp extends React.PureComponent<any, any> {
     _navState: any = null // always use this value and not whats in state since thats async
-    _actionEventSubscribers = new Set()
+    _actionEventSubscribers = new Set<
+      (
+        obj: {
+          action: Object
+          lastState: Object
+          state: any
+          type: string
+        }
+      ) => void
+    >()
     _navigation: any
     _initialAction = null
 
