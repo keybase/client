@@ -566,7 +566,7 @@ func (dl *DaemonLocal) RemoveAssertionForTest(assertion string) {
 // by tests.
 func (dl *DaemonLocal) AddTeamWriterForTest(
 	tid keybase1.TeamID, uid keybase1.UID) (
-	kbname.NormalizedUsername, bool, error) {
+	username kbname.NormalizedUsername, isImplicit bool, err error) {
 	dl.lock.Lock()
 	defer dl.lock.Unlock()
 	t, err := dl.localTeams.getLocalTeam(tid)
@@ -580,7 +580,7 @@ func (dl *DaemonLocal) AddTeamWriterForTest(
 	t.Writers[uid] = true
 	delete(t.Readers, uid)
 	dl.localTeams[tid] = t
-	_, isImplicit := dl.localImplicitTeams[tid]
+	_, isImplicit = dl.localImplicitTeams[tid]
 	return t.Name, isImplicit, nil
 }
 
