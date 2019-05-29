@@ -24,10 +24,10 @@ const getPolicySummary = props => {
     return 'be retained indefinitely'
   }
   switch (props.policy.typ) {
-    case RPCChatTypes.commonRetentionPolicyType.none:
-    case RPCChatTypes.commonRetentionPolicyType.retain:
+    case RPCChatTypes.RetentionPolicyType.none:
+    case RPCChatTypes.RetentionPolicyType.retain:
       return 'be retained indefinitely'
-    case RPCChatTypes.commonRetentionPolicyType.expire:
+    case RPCChatTypes.RetentionPolicyType.expire:
       const expireDuration = moment
         .duration(
           // Auto generated from flowToTs. Please clean me!
@@ -41,7 +41,7 @@ const getPolicySummary = props => {
         return `expire after ${expireDuration}`
       }
       break
-    case RPCChatTypes.commonRetentionPolicyType.ephemeral:
+    case RPCChatTypes.RetentionPolicyType.ephemeral:
       const ephemeralDuration = moment
         .duration(
           // Auto generated from flowToTs. Please clean me!
@@ -75,7 +75,7 @@ const ChangeRetention = (props: Props) => {
     )
   let convType = 'conversation'
   switch (props.membersType) {
-    case RPCChatTypes.commonConversationMembersType.team:
+    case RPCChatTypes.ConversationMembersType.team:
       convType = props.isTeam ? 'team' : 'channel'
   }
   const inheritDescription = props.isInherit ? ' to inherit from the team policy' : ''

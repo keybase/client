@@ -32,7 +32,7 @@ const valuesCached = memoize(
     metaMap
       .filter(
         (v, id) =>
-          Constants.isValidConversationIDKey(id) && v.status !== RPCChatTypes.commonConversationStatus.ignored
+          Constants.isValidConversationIDKey(id) && v.status !== RPCChatTypes.ConversationStatus.ignored
       )
       .map(v => ({
         conversation: v,

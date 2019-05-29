@@ -28,7 +28,7 @@ export const badgeStateToBadgeCounts = (
     return null
   }
 
-  const deviceType = isMobile ? RPCTypes.commonDeviceType.mobile : RPCTypes.commonDeviceType.desktop
+  const deviceType = isMobile ? RPCTypes.DeviceType.mobile : RPCTypes.DeviceType.desktop
   const allDeviceChanges = I.Set((newDevices || []).concat(revokedDevices || []))
   // don't see badges related to this device
   const deviceChanges = allDeviceChanges.remove(state.config.deviceID).size

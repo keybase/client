@@ -62,8 +62,8 @@ const metaMapReducer = (metaMap, action) => {
       const {error} = action.payload
       if (error) {
         switch (error.typ) {
-          case RPCChatTypes.localConversationErrorType.otherrekeyneeded: // fallthrough
-          case RPCChatTypes.localConversationErrorType.selfrekeyneeded: {
+          case RPCChatTypes.ConversationErrorType.otherrekeyneeded: // fallthrough
+          case RPCChatTypes.ConversationErrorType.selfrekeyneeded: {
             const {username, conversationIDKey} = action.payload
             const participants = error.rekeyInfo
               ? I.Set(
@@ -72,7 +72,7 @@ const metaMapReducer = (metaMap, action) => {
               : I.OrderedSet(error.unverifiedTLFName.split(',')).toList()
 
             const rekeyers = I.Set(
-              error.typ === RPCChatTypes.localConversationErrorType.selfrekeyneeded
+              error.typ === RPCChatTypes.ConversationErrorType.selfrekeyneeded
                 ? [username || '']
                 : (error.rekeyInfo && error.rekeyInfo.rekeyers) || []
             )
@@ -163,7 +163,7 @@ const metaMapReducer = (metaMap, action) => {
 const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
   switch (action.type) {
     case Chat2Gen.markConversationsStale:
-      return action.payload.updateType === RPCChatTypes.notifyChatStaleUpdateType.clear
+      return action.payload.updateType === RPCChatTypes.StaleUpdateType.clear
         ? messageMap.deleteAll(action.payload.conversationIDKeys)
         : messageMap
     case Chat2Gen.messageEdit: // fallthrough
@@ -355,7 +355,7 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
 const messageOrdinalsReducer = (messageOrdinals, action) => {
   switch (action.type) {
     case Chat2Gen.markConversationsStale:
-      return action.payload.updateType === RPCChatTypes.notifyChatStaleUpdateType.clear
+      return action.payload.updateType === RPCChatTypes.StaleUpdateType.clear
         ? messageOrdinals.deleteAll(action.payload.conversationIDKeys)
         : messageOrdinals
     case Chat2Gen.metasReceived:
@@ -365,7 +365,7 @@ const messageOrdinalsReducer = (messageOrdinals, action) => {
   }
 }
 
-const badgeKey = String(isMobile ? RPCTypes.commonDeviceType.mobile : RPCTypes.commonDeviceType.desktop)
+const badgeKey = String(isMobile ? RPCTypes.DeviceType.mobile : RPCTypes.DeviceType.desktop)
 
 const rootReducer = (
   state: Types.State = initialState,

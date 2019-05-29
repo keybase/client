@@ -17,7 +17,7 @@ type Props = {
 }
 
 // Map [int] -> 'push type string'
-const gitPushType = invert(RPCTypes.gitGitPushType)
+const gitPushType = invert(RPCTypes.GitPushType)
 
 const connectedUsernamesProps = {
   colorFollowing: true,

@@ -29,7 +29,7 @@ const mapStateToProps = (state, {flipGameID, isSendError}: OwnProps) => {
       }
     : {
         commitmentVis: status.commitmentVisualization,
-        errorInfo: status.phase === RPCChatTypes.chatUiUICoinFlipPhase.error ? status.errorInfo : null,
+        errorInfo: status.phase === RPCChatTypes.UICoinFlipPhase.error ? status.errorInfo : null,
         isSendError,
         participants: status.participants || [],
         phase: Constants.flipPhaseToString(status.phase),
@@ -45,9 +45,6 @@ const mapDispatchToProps = (dispatch, {conversationIDKey, text}: OwnProps) => ({
   onFlipAgain: () => dispatch(Chat2Gen.createMessageSend({conversationIDKey, text})),
 })
 
-export default namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  (s, d, o) => ({...s, ...d}),
-  'CoinFlip'
-)(CoinFlip)
+export default namedConnect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...s, ...d}), 'CoinFlip')(
+  CoinFlip
+)
