@@ -33,7 +33,7 @@ export const getRequestMessageInfo = (
   state: TypedState,
   message: Types.MessageRequestPayment
 ): MessageTypes.ChatRequestInfo | null => {
-  const maybeRequestInfo = state.chat2.getIn(['accountsInfoMap', message.conversationIDKey, message.id], null)
+  const maybeRequestInfo = state.chat2.accountsInfoMap.getIn([message.conversationIDKey, message.id], null)
   if (!maybeRequestInfo) {
     return message.requestInfo
   }
@@ -51,7 +51,7 @@ export const getPaymentMessageInfo = (
   state: TypedState,
   message: Types.MessageSendPayment
 ): MessageTypes.ChatPaymentInfo | null => {
-  const maybePaymentInfo = state.chat2.getIn(['accountsInfoMap', message.conversationIDKey, message.id], null)
+  const maybePaymentInfo = state.chat2.accountsInfoMap.getIn([message.conversationIDKey, message.id], null)
   if (!maybePaymentInfo) {
     return message.paymentInfo
   }
@@ -153,7 +153,7 @@ const makeMessageCommon = {
   ...makeMessageMinimum,
   deviceName: '',
   deviceRevokedAt: null,
-  deviceType: 'mobile',
+  deviceType: 'mobile' as DeviceTypes.DeviceType,
   errorReason: null,
   hasBeenEdited: false,
   outboxID: Types.stringToOutboxID(''),
@@ -170,7 +170,7 @@ const makeMessageExplodable = {
 export const howLongBetweenTimestampsMs: number = 1000 * 60 * 15
 
 export const makeMessagePlaceholder: I.Record.Factory<MessageTypes._MessagePlaceholder> = I.Record({
-  ...makeMessageCommon,
+  ...makeMessageMinimum,
   type: 'placeholder',
 })
 
@@ -384,7 +384,7 @@ export const uiRequestInfoToChatRequestInfo = (
   if (!r) {
     return null
   }
-  let asset = 'native'
+  let asset: WalletTypes.Asset = 'native'
   let currencyCode = ''
   if (!(r.asset || r.currency)) {
     logger.error('Received UIRequestInfo with no asset or currency code')
@@ -494,8 +494,8 @@ const uiMessageToSystemMessage = (minimum, body, reactions): Types.Message | nul
   switch (body.systemType) {
     case RPCChatTypes.MessageSystemType.addedtoteam: {
       // TODO @mikem admins is always empty?
-      const {adder = '', addee = '', team = '', admins} = body.addedtoteam || {}
-      const isAdmin = (admins || []).includes(minimum.author)
+      const {adder = '', addee = '', team = '', admins = []} = body.addedtoteam || {}
+      const isAdmin = admins.includes(minimum.author)
       return makeMessageSystemAddedToTeam({
         ...minimum,
         addee,
@@ -563,14 +563,14 @@ const uiMessageToSystemMessage = (minimum, body, reactions): Types.Message | nul
       })
     }
     case RPCChatTypes.MessageSystemType.gitpush: {
-      const {team = '???', pushType = 0, pusher = '???', repoName: repo = '???', repoID = '???', refs} =
+      const {team = '???', pushType = 0, pusher = '???', repoName: repo = '???', repoID = '???', refs = []} =
         body.gitpush || {}
       return makeMessageSystemGitPush({
         ...minimum,
         pushType,
         pusher,
         reactions,
-        refs: refs || [],
+        refs: refs,
         repo,
         repoID,
         team,
@@ -621,7 +621,7 @@ export const previewSpecs = (
   full: RPCChatTypes.AssetMetadata | null
 ) => {
   const res = {
-    attachmentType: 'file',
+    attachmentType: 'file' as Types.AttachmentType,
     height: 0,
     showPlayButton: false,
     width: 0,
@@ -781,25 +781,29 @@ const validUIMessagetoMessage = (
       // 2. On incoming we get attachment first (placeholder), then we get the full data (attachmentuploaded)
       // 3. When we send we place a pending attachment, then get the real attachment then attachmentuploaded
       // We treat all these like a pending text, so any data-less thing will have no message id and map to the same ordinal
-      let attachment = {}
+      let attachment = {} as RPCChatTypes.MessageAttachment | RPCChatTypes.MessageAttachmentUploaded | null
       let preview: RPCChatTypes.Asset | null
       let full: RPCChatTypes.Asset | null
       let transferState = null
 
       if (m.messageBody.messageType === RPCChatTypes.MessageType.attachment) {
-        attachment = m.messageBody.attachment || {}
-        preview =
-          attachment.preview ||
-          (attachment.previews && attachment.previews.length ? attachment.previews[0] : null)
-        full = attachment.object
-        if (!attachment.uploaded) {
-          transferState = 'remoteUploading'
+        attachment = m.messageBody.attachment
+        if (attachment) {
+          preview =
+            attachment.preview ||
+            (attachment.previews && attachment.previews.length ? attachment.previews[0] : null)
+          full = attachment.object
+          if (!attachment.uploaded) {
+            transferState = 'remoteUploading'
+          }
         }
       } else if (m.messageBody.messageType === RPCChatTypes.MessageType.attachmentuploaded) {
-        attachment = m.messageBody.attachmentuploaded || {}
-        preview = attachment.previews && attachment.previews.length ? attachment.previews[0] : null
-        full = attachment.object
-        transferState = null
+        attachment = m.messageBody.attachmentuploaded
+        if (attachment) {
+          preview = attachment.previews && attachment.previews.length ? attachment.previews[0] : null
+          full = attachment.object
+          transferState = null
+        }
       }
       const {filename, title, size} = attachment.object
 
@@ -881,13 +885,9 @@ const validUIMessagetoMessage = (
             requestInfo: uiRequestInfoToChatRequestInfo(m.requestInfo),
           })
         : null
-    case RPCChatTypes.MessageType.none:
-      return null
     case RPCChatTypes.MessageType.edit:
       return null
     case RPCChatTypes.MessageType.delete:
-      return null
-    case RPCChatTypes.MessageType.tlfname:
       return null
     case RPCChatTypes.MessageType.deletehistory:
       return null
@@ -1155,7 +1155,7 @@ export const mergeMessage = (old: Types.Message | null, m: Types.Message) => {
     return m
   }
 
-  // $FlowIssue doens't understand mergeWith
+  // @ts-ignore doens't understand mergeWith
   return old.mergeWith((oldVal, newVal, key) => {
     if (key === 'mentionsAt' || key === 'reactions' || key === 'mentionsChannelName') {
       return oldVal.equals(newVal) ? oldVal : newVal
