@@ -101,11 +101,11 @@ export const makeEmailInviteError: I.Record.Factory<Types._EmailInviteError> = I
 })
 
 export const teamRoleByEnum = ((m: {[K in Types.MaybeTeamRoleType]: RPCTypes.TeamRole}) => {
-  const mInv: {[K in RPCTypes.TeamRole]: Types.MaybeTeamRoleType} = {}
+  const mInv: {[K in RPCTypes.TeamRole]?: Types.MaybeTeamRoleType} = {}
   for (const roleStr in m) {
     // roleStr is typed as string; see
     // https://github.com/facebook/flow/issues/1736 .
-    // $ForceType
+    // @ts-ignore
     const role: Types.TeamRoleType = roleStr
     const e = m[role]
     mInv[e] = role
@@ -155,7 +155,6 @@ export const makeState: I.Record.Factory<Types._State> = I.Record({
   teamNameToIsOpen: I.Map(),
   teamNameToIsShowcasing: I.Map(),
   teamNameToLoadingInvites: I.Map(),
-  teamNameToMemberUsernames: I.Map(),
   teamNameToMembers: I.Map(),
   teamNameToPublicitySettings: I.Map(),
   teamNameToRequests: I.Map(),
@@ -294,7 +293,7 @@ const getTeamChannelInfos = (
   state: TypedState,
   teamname: Types.Teamname
 ): I.Map<ChatTypes.ConversationIDKey, Types.ChannelInfo> => {
-  return state.teams.getIn(['teamNameToChannelInfos', teamname], I.Map())
+  return state.teams.teamNameToChannelInfos.get(teamname, I.Map())
 }
 
 const getChannelInfoFromConvID = (
@@ -304,10 +303,10 @@ const getChannelInfoFromConvID = (
 ): Types.ChannelInfo | null => getTeamChannelInfos(state, teamname).get(conversationIDKey)
 
 const getRole = (state: TypedState, teamname: Types.Teamname): Types.MaybeTeamRoleType =>
-  state.teams.getIn(['teamNameToRole', teamname], 'none')
+  state.teams.teamNameToRole.get(teamname, 'none')
 
 const getCanPerform = (state: TypedState, teamname: Types.Teamname): RPCTypes.TeamOperation =>
-  state.teams.getIn(['teamNameToCanPerform', teamname], initialCanUserPerform)
+  state.teams.teamNameToCanPerform.get(teamname, initialCanUserPerform)
 
 const hasCanPerform = (state: TypedState, teamname: Types.Teamname): boolean =>
   state.teams.hasIn(['teamNameToCanPerform', teamname])
@@ -316,7 +315,7 @@ const hasChannelInfos = (state: TypedState, teamname: Types.Teamname): boolean =
   state.teams.hasIn(['teamNameToChannelInfos', teamname])
 
 const getTeamMemberCount = (state: TypedState, teamname: Types.Teamname): number =>
-  state.teams.getIn(['teammembercounts', teamname], 0)
+  state.teams.teammembercounts.get(teamname, 0)
 
 const isLastOwner = (state: TypedState, teamname: Types.Teamname): boolean =>
   isOwner(getRole(state, teamname)) && !isMultiOwnerTeam(state, teamname)
@@ -392,13 +391,13 @@ const isMultiOwnerTeam = (state: TypedState, teamname: Types.Teamname): boolean 
 }
 
 const getTeamID = (state: TypedState, teamname: Types.Teamname): string =>
-  state.teams.getIn(['teamNameToID', teamname], '')
+  state.teams.teamNameToID.get(teamname, '')
 
 const getTeamNameFromID = (state: TypedState, teamID: string): Types.Teamname | null =>
   state.teams.teamNameToID.findKey(value => value === teamID)
 
 const getTeamRetentionPolicy = (state: TypedState, teamname: Types.Teamname): RetentionPolicy | null =>
-  state.teams.getIn(['teamNameToRetentionPolicy', teamname], null)
+  state.teams.teamNameToRetentionPolicy.get(teamname, null)
 
 const getSelectedTeamNames = (state: TypedState): Types.Teamname[] => {
   const path = getFullRoute()
@@ -440,10 +439,10 @@ const isBigTeam = (state: TypedState, teamname: Types.Teamname): boolean =>
   getTeamType(state, teamname) === 'big'
 
 const getTeamMembers = (state: TypedState, teamname: Types.Teamname): I.Map<string, Types.MemberInfo> =>
-  state.teams.getIn(['teamNameToMembers', teamname], I.Map())
+  state.teams.teamNameToMembers.get(teamname, I.Map())
 
 const getTeamPublicitySettings = (state: TypedState, teamname: Types.Teamname): Types._PublicitySettings =>
-  state.teams.getIn(['teamNameToPublicitySettings', teamname], {
+  state.teams.teamNameToPublicitySettings.get(teamname, {
     anyMemberShowcase: false,
     description: '',
     ignoreAccessRequests: false,
@@ -452,7 +451,7 @@ const getTeamPublicitySettings = (state: TypedState, teamname: Types.Teamname): 
   })
 
 const getTeamInvites = (state: TypedState, teamname: Types.Teamname): I.Set<Types.InviteInfo> =>
-  state.teams.getIn(['teamNameToInvites', teamname], I.Set())
+  state.teams.teamNameToInvites.get(teamname, I.Set())
 
 // Note that for isInTeam and isInSomeTeam, we don't use 'teamnames',
 // since that may contain subteams you're not a member of.
@@ -466,19 +465,19 @@ const isAccessRequestPending = (state: TypedState, teamname: Types.Teamname): bo
   state.teams.hasIn(['teamNameAccessRequestsPending', teamname])
 
 const getTeamSubteams = (state: TypedState, teamname: Types.Teamname): I.Set<Types.Teamname> =>
-  state.teams.getIn(['teamNameToSubteams', teamname], I.Set())
+  state.teams.teamNameToSubteams.get(teamname, I.Set())
 
 const getTeamSettings = (state: TypedState, teamname: Types.Teamname): Types.TeamSettings =>
-  state.teams.getIn(['teamNameToSettings', teamname], makeTeamSettings())
+  state.teams.teamNameToSettings.get(teamname, makeTeamSettings())
 
 const getTeamResetUsers = (state: TypedState, teamname: Types.Teamname): I.Set<Types.ResetUser> =>
-  state.teams.getIn(['teamNameToResetUsers', teamname], I.Set())
+  state.teams.teamNameToResetUsers.get(teamname, I.Set())
 
 const getTeamLoadingInvites = (state: TypedState, teamname: Types.Teamname): I.Map<string, boolean> =>
-  state.teams.getIn(['teamNameToLoadingInvites', teamname], I.Map())
+  state.teams.teamNameToLoadingInvites.get(teamname, I.Map())
 
 const getTeamRequests = (state: TypedState, teamname: Types.Teamname): I.Set<Types.RequestInfo> =>
-  state.teams.getIn(['teamNameToRequests', teamname], I.Set())
+  state.teams.teamNameToRequests.get(teamname, I.Set())
 
 // Sorts teamnames canonically.
 function sortTeamnames(a: string, b: string) {

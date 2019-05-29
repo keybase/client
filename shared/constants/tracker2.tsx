@@ -79,7 +79,7 @@ export const rpcResultToStatus = (result: RPCTypes.Identify3ResultType) => {
   return 'error'
 }
 
-export const rpcRowColorToColor = (color: RPCTypes.Identify3RowColor) => {
+export const rpcRowColorToColor = (color: RPCTypes.Identify3RowColor): Types.AssertionColor => {
   switch (color) {
     case RPCTypes.Identify3RowColor.blue:
       return 'blue'

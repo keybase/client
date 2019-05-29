@@ -59,9 +59,9 @@ function isValidInitialTabString(tab: string | null) {
   // Keep this in left-to-right (for mobile) or top-to-bottom (for
   // desktop) order in the app.
   if (isMobile) {
-    return [peopleTab, chatTab, teamsTab, settingsTab, fsTab].includes(tab)
+    return [peopleTab, chatTab, teamsTab, settingsTab, fsTab].includes(tab as Tab)
   } else {
-    return [peopleTab, chatTab, folderTab, teamsTab, devicesTab, settingsTab].includes(tab)
+    return [peopleTab, chatTab, folderTab, teamsTab, devicesTab, settingsTab].includes(tab as Tab)
   }
 }
 
