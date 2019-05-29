@@ -15,14 +15,14 @@ type Props = {
   driverStatus: Types.DriverStatus
   onDisable: () => void
   onEnable: () => void
-  onShowKextPermissionPopup: () => void
-  spaceAvailableNotificationThreshold: number
-  onChangedSyncNotifications: (number) => void
   onEnableSyncNotifications: () => void
+  onShowKextPermissionPopup: () => void
+  onChangedSyncNotifications: (number) => void
   onDisableSyncNotifications: () => void
+  spaceAvailableNotificationThreshold: number
 }
 
-export const allowedNotificationThresholds = [100 * 1024 ** 2, 1024 ** 3, 10 * 1024 ** 3]
+export const allowedNotificationThresholds = [100 * 1024 ** 2, 1024 ** 3, 3 * 1024 ** 3, 10 * 1024 ** 3]
 
 export const defaultNotificationThreshold = 100 * 1024 ** 2
 
@@ -105,9 +105,9 @@ const ThresholdDropdown = Platform.isMobile ? ThresholdDropdownMobile : Threshol
 
 const SyncNotificationSetting = (props: Props) => (
   <Kb.Box2 direction="horizontal" alignItems="center">
-    <Kb.Text type="Body">Warn me if I only have less than </Kb.Text>
+    <Kb.Text type="Body">Warn me if I have less than </Kb.Text>
     <ThresholdDropdown {...props} />
-    <Kb.Text type="Body">of storage space</Kb.Text>
+    <Kb.Text type="Body">of storage space remaining</Kb.Text>
   </Kb.Box2>
 )
 
