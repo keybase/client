@@ -22,7 +22,7 @@ const getMetaCounts = memoize((badges, metaMap) => {
     if (meta.teamType === 'big') {
       return
     }
-    if (meta.status === RPCChatTypes.commonConversationStatus.ignored) {
+    if (meta.status === RPCChatTypes.ConversationStatus.ignored) {
       return
     }
     const id = meta.conversationIDKey

@@ -43,7 +43,7 @@ const mapStateToProps = (state, {teamname, conversationIDKey, isSmallTeam, visib
       participants.length === 1 ? state.users.infoMap.get(participants[0], {fullname: ''}).fullname : ''
     convProps = {
       fullname,
-      ignored: meta.status === RPCChatTypes.commonConversationStatus.ignored,
+      ignored: meta.status === RPCChatTypes.ConversationStatus.ignored,
       muted: meta.isMuted,
       participants,
       teamType: meta.teamType,

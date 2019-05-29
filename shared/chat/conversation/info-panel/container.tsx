@@ -68,7 +68,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     canSetRetention,
     channelname: meta.channelname,
     description: meta.descriptionDecorated,
-    ignored: meta.status === RPCChatTypes.commonConversationStatus.ignored,
+    ignored: meta.status === RPCChatTypes.ConversationStatus.ignored,
     isPreview,
     selectedAttachmentView,
     selectedConversationIDKey: conversationIDKey,

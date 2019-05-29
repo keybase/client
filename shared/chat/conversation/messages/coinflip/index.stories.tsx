@@ -83,7 +83,7 @@ const error = {
   errorInfo: {
     generic: 'Something went wrong: Somebody pulled the plug',
     // $FlowIssue variant types with void don't work
-    typ: RPCChatTypes.chatUiUICoinFlipErrorTyp.generic,
+    typ: RPCChatTypes.UICoinFlipErrorTyp.generic,
   },
   isSendError: false,
   onFlipAgain: Sb.action('again'),
@@ -117,7 +117,7 @@ const absenteeError = {
   errorInfo: {
     absentee,
     // $FlowIssue variant types with void don't work
-    typ: RPCChatTypes.chatUiUICoinFlipErrorTyp.absentee,
+    typ: RPCChatTypes.UICoinFlipErrorTyp.absentee,
   },
 } as Props
 
@@ -125,7 +125,7 @@ const timeoutError = {
   ...error,
   errorInfo: {
     // $FlowIssue variant types with void don't work
-    typ: RPCChatTypes.chatUiUICoinFlipErrorTyp.timeout,
+    typ: RPCChatTypes.UICoinFlipErrorTyp.timeout,
   },
 } as Props
 
@@ -133,7 +133,7 @@ const abortedError = {
   ...error,
   errorInfo: {
     // $FlowIssue variant types with void don't work
-    typ: RPCChatTypes.chatUiUICoinFlipErrorTyp.aborted,
+    typ: RPCChatTypes.UICoinFlipErrorTyp.aborted,
   },
 } as Props
 
@@ -145,7 +145,7 @@ const dupRegError = {
       user: 'mikem',
     },
     // $FlowIssue variant types with void don't work
-    typ: RPCChatTypes.chatUiUICoinFlipErrorTyp.dupreg,
+    typ: RPCChatTypes.UICoinFlipErrorTyp.dupreg,
   },
 } as Props
 
@@ -157,7 +157,7 @@ const dupCommitCompleteError = {
       user: 'mikem',
     },
     // $FlowIssue variant types with void don't work
-    typ: RPCChatTypes.chatUiUICoinFlipErrorTyp.dupcommitcomplete,
+    typ: RPCChatTypes.UICoinFlipErrorTyp.dupcommitcomplete,
   },
 } as Props
 
@@ -169,7 +169,7 @@ const dupRevealError = {
       user: 'mikem',
     },
     // $FlowIssue variant types with void don't work
-    typ: RPCChatTypes.chatUiUICoinFlipErrorTyp.dupreveal,
+    typ: RPCChatTypes.UICoinFlipErrorTyp.dupreveal,
   },
 } as Props
 
@@ -181,7 +181,7 @@ const dupCommitMismatchError = {
       user: 'mikem',
     },
     // $FlowIssue variant types with void don't work
-    typ: RPCChatTypes.chatUiUICoinFlipErrorTyp.commitmismatch,
+    typ: RPCChatTypes.UICoinFlipErrorTyp.commitmismatch,
   },
 } as Props
 

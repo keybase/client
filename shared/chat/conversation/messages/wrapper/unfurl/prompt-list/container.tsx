@@ -50,43 +50,40 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
           stateProps.messageID,
           domain,
           // $FlowIssue generated type hard to match
-          makeRes(RPCChatTypes.localUnfurlPromptAction.accept, domain)
+          makeRes(RPCChatTypes.UnfurlPromptAction.accept, domain)
         ),
       onAlways: () =>
         dispatchProps._setPolicy(
           stateProps.messageID,
           domain,
           // $FlowIssue generated type hard to match
-          makeRes(RPCChatTypes.localUnfurlPromptAction.always)
+          makeRes(RPCChatTypes.UnfurlPromptAction.always)
         ),
       onNever: () =>
         dispatchProps._setPolicy(
           stateProps.messageID,
           domain,
           // $FlowIssue generated type hard to match
-          makeRes(RPCChatTypes.localUnfurlPromptAction.never)
+          makeRes(RPCChatTypes.UnfurlPromptAction.never)
         ),
       onNotnow: () =>
         dispatchProps._setPolicy(
           stateProps.messageID,
           domain,
           // $FlowIssue generated type hard to match
-          makeRes(RPCChatTypes.localUnfurlPromptAction.notnow)
+          makeRes(RPCChatTypes.UnfurlPromptAction.notnow)
         ),
       onOnetime: () =>
         dispatchProps._setPolicy(
           stateProps.messageID,
           domain,
           // $FlowIssue generated type hard to match
-          makeRes(RPCChatTypes.localUnfurlPromptAction.onetime, domain)
+          makeRes(RPCChatTypes.UnfurlPromptAction.onetime, domain)
         ),
     }))
     .toArray(),
 })
 
-export default namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'UnfurlPromptList'
-)(UnfurlPromptList)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'UnfurlPromptList')(
+  UnfurlPromptList
+)
