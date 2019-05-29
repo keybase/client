@@ -55,13 +55,10 @@
       "<rootDir>/desktop/node_modules"
     ],
     "modulePathIgnorePatterns": [
-      "<rootDir>/.tsOut/.*"
+      "<rootDir>/.tsOut"
     ],
     "transformIgnorePatterns": [
       "node_modules/(?!universalify|fs-extra|react-redux|@storybook|lodash-es|@react-navigation/.*).+\\.js"
-    ],
-    "modulePathIgnorePatterns": [
-      "<rootDir>/.tsOut"
     ],
     "setupFiles": [],
     "setupFilesAfterEnv": [
@@ -208,6 +205,7 @@
     "@types/react": "16.8.17",
     "@types/react-dom": "16.8.4",
     "@types/react-redux": "7.0.9",
+    "@types/webpack-env": "1.13.9",
     "babel-core": "7.0.0-bridge.0",
     "babel-eslint": "11.0.0-beta.0",
     "babel-jest": "24.5.0",

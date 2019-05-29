@@ -18,9 +18,7 @@ import {dumpLogs} from '../../actions/platform-specific/index.desktop'
 import {initDesktopStyles} from '../../styles/index.desktop'
 
 // Top level HMR accept
-// @ts-ignore codemode issue
 if (module.hot) {
-  // @ts-ignore codemode issue
   module.hot.accept()
 }
 
@@ -124,8 +122,7 @@ function render(store, MainComponent) {
 }
 
 function setupHMR(store) {
-  // @ts-ignore codemode issue
-  const accept = module.hot === null || module.hot === undefined ? undefined : module.hot.accept // Auto generated from flowToTs. Please clean me!
+  const accept = module.hot && module.hot.accept
   if (!accept) {
     return
   }
@@ -142,14 +139,12 @@ function setupHMR(store) {
 }
 
 function load() {
-  // @ts-ignore codemode issue
-  if (global.loaded) {
+  if (global.DEBUGLoaded) {
     // only load once
     console.log('Bail on load() on HMR')
     return
   }
-  // @ts-ignore codemode issue
-  global.loaded = true
+  global.DEBUGLoaded = true
   initDesktopStyles()
   const {store, runSagas} = setupStore()
   setupApp(store, runSagas)
