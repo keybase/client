@@ -515,7 +515,6 @@ func (g *gregorHandler) iterateOverFirehoseHandlers(f func(h libkb.GregorFirehos
 		}
 	}
 	g.firehoseHandlers = freshHandlers
-	return
 }
 
 func (g *gregorHandler) pushState(r keybase1.PushReason) {

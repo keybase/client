@@ -58,7 +58,8 @@ class SmallTeam extends React.PureComponent<Props, State> {
 
   _onMouseLeave = () => this.setState({isHovered: false})
   _onMouseOver = () => this.setState({isHovered: true})
-  _onShowMenu = (showMenu: boolean) => this.setState({showMenu})
+  _onForceShowMenu = () => this.setState({showMenu: true})
+  _onForceHideMenu = () => this.setState({showMenu: false})
 
   _backgroundColor = () =>
     // props.backgroundColor should always override hover styles, otherwise, there's a
@@ -74,7 +75,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
     const props = this.props
     const clickProps = {
       onClick: props.onSelectConversation,
-      ...(Styles.isMobile ? {onLongPress: () => this._onShowMenu(true)} : {}),
+      ...(Styles.isMobile ? {onLongPress: this._onForceShowMenu} : {}),
       onMouseLeave: this._onMouseLeave,
       onMouseOver: this._onMouseOver,
     }
@@ -123,7 +124,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
                 showBold={props.showBold}
                 showGear={!props.isInWidget}
                 forceShowMenu={this.state.showMenu}
-                onForceHideMenu={() => this._onShowMenu(false)}
+                onForceHideMenu={this._onForceHideMenu}
                 subColor={props.subColor}
                 timestamp={props.timestamp}
                 usernameColor={props.usernameColor}

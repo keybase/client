@@ -1683,10 +1683,10 @@ func (o SeitanIKey) DeepCopy() SeitanIKey {
 	return o
 }
 
-type SeitanPubKey KID
+type SeitanPubKey string
 
 func (o SeitanPubKey) DeepCopy() SeitanPubKey {
-	return o.DeepCopy()
+	return o
 }
 
 type SeitanIKeyV2 string

@@ -259,8 +259,6 @@ func TestIssue280(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	return
 }
 
 func TestSignupGeneratesPaperKey(t *testing.T) {

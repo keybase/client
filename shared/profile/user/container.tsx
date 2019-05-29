@@ -154,7 +154,7 @@ const ConnectedHeader = Container.connect<{}, _, _, _, _>(
   (s, d, o) => ({...o, ...s, ...d})
 )(Header)
 
-// $FlowIssue lets fix this
+// @ts-ignore let's fix this
 connected.navigationOptions = p => ({
   header: undefined,
   headerBackIconColor: Styles.globalColors.white,

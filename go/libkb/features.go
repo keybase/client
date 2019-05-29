@@ -74,7 +74,6 @@ const (
 	FeatureIMPTOFU            = Feature("imptofu")
 	FeatureBoxAuditor         = Feature("box_auditor")
 	ExperimentalGenericProofs = Feature("experimental_generic_proofs")
-	CreateBTCBech32           = Feature("create_btc_bech32")
 )
 
 // NewFeatureFlagSet makes a new set of feature flags.

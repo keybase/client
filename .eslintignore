@@ -16,3 +16,4 @@
 /shared/node_modules
 /shared/test/setupTestFrameworkScriptFile.js
 /shared/react-native/react-native-contacts
+*.d.ts
