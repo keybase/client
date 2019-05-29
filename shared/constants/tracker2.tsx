@@ -3,12 +3,12 @@ import * as RPCTypes from './types/rpc-gen'
 import * as I from 'immutable'
 import {TypedState} from './reducer'
 
-export const makeState: I.Record.Factory<Types._State> = I.Record({
+export const makeState = I.Record<Types._State>({
   proofSuggestions: I.List(),
   usernameToDetails: I.Map(),
 })
 
-export const makeDetails: I.Record.Factory<Types._Details> = I.Record({
+export const makeDetails = I.Record<Types._Details>({
   assertions: I.Map(),
   bio: null,
   followers: null,
@@ -28,7 +28,7 @@ export const makeDetails: I.Record.Factory<Types._Details> = I.Record({
 
 export const generateGUIID = () => Math.floor(Math.random() * 0xfffffffffffff).toString(16)
 
-export const makeAssertion: I.Record.Factory<Types._Assertion> = I.Record({
+export const makeAssertion = I.Record<Types._Assertion>({
   assertionKey: '',
   belowFold: false,
   color: 'gray',
@@ -49,12 +49,12 @@ export const makeAssertion: I.Record.Factory<Types._Assertion> = I.Record({
   value: '',
 })
 
-export const makeMeta: I.Record.Factory<Types._AssertionMeta> = I.Record({
+export const makeMeta = I.Record<Types._AssertionMeta>({
   color: 'black',
   label: '',
 })
 
-export const makeTeamShowcase: I.Record.Factory<Types._TeamShowcase> = I.Record({
+export const makeTeamShowcase = I.Record<Types._TeamShowcase>({
   description: '',
   isOpen: false,
   membersCount: 0,

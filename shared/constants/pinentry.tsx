@@ -1,7 +1,7 @@
 import * as I from 'immutable'
 import * as Types from './types/pinentry'
 
-const makeState: I.Record.Factory<Types._State> = I.Record({
+const makeState = I.Record<Types._State>({
   sessionIDToPinentry: I.Map(),
 })
 

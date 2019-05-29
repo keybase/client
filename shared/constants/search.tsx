@@ -5,7 +5,7 @@ import {amIFollowing} from './selectors'
 import {IconType} from '../common-adapters'
 import {TypedState} from './reducer'
 
-export const makeSearchResult: I.Record.Factory<Types.SearchResult> = I.Record({
+export const makeSearchResult = I.Record<Types.SearchResult>({
   id: '',
   leftFullname: null,
   leftIcon: null,

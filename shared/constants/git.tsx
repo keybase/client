@@ -4,7 +4,7 @@ import * as RPCTypes from './types/rpc-gen'
 import moment from 'moment'
 import {TypedState} from './reducer'
 
-export const makeGitInfo: I.Record.Factory<Types._GitInfo> = I.Record({
+export const makeGitInfo = I.Record<Types._GitInfo>({
   canDelete: false,
   channelName: null,
   chatDisabled: false,
@@ -18,7 +18,7 @@ export const makeGitInfo: I.Record.Factory<Types._GitInfo> = I.Record({
   url: '',
 })
 
-export const makeState: I.Record.Factory<Types._State> = I.Record({
+export const makeState = I.Record<Types._State>({
   error: null,
   idToInfo: I.Map(),
   isNew: I.Set(),

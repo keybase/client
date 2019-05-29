@@ -3,7 +3,7 @@ import * as Teams from './teams'
 import * as Git from './git'
 import * as Types from './types/entities'
 
-const makeSearchSubState: I.Record.Factory<Types._SearchSubState> = I.Record({
+const makeSearchSubState = I.Record<Types._SearchSubState>({
   searchKeyToClearSearchTextInput: I.Map(),
   searchKeyToPending: I.Map(),
   searchKeyToResults: I.Map(),
@@ -20,7 +20,7 @@ const makePaginationState = I.Record({
   prev: I.Map(),
 })
 
-export const makeState: I.Record.Factory<Types._State> = I.Record({
+export const makeState = I.Record<Types._State>({
   git: Git.makeState(),
   search: makeSearchSubState(),
   searchQueryToResult: I.Map(),

@@ -186,7 +186,7 @@ export const reduceRPCItemToPeopleItem = (
   return list
 }
 
-export const makeAnnouncement: I.Record.Factory<Types._Announcement> = I.Record({
+export const makeAnnouncement = I.Record<Types._Announcement>({
   appLink: null,
   badged: false,
   confirmLabel: null,
@@ -198,7 +198,7 @@ export const makeAnnouncement: I.Record.Factory<Types._Announcement> = I.Record(
   url: null,
 })
 
-export const makeTodo: I.Record.Factory<Types._Todo> = I.Record({
+export const makeTodo = I.Record<Types._Todo>({
   badged: false,
   confirmLabel: '',
   dismissable: false,
@@ -208,11 +208,11 @@ export const makeTodo: I.Record.Factory<Types._Todo> = I.Record({
   type: 'todo',
 })
 
-export const makeFollowedNotification: I.Record.Factory<Types._FollowedNotification> = I.Record({
+export const makeFollowedNotification = I.Record<Types._FollowedNotification>({
   username: '',
 })
 
-export const makeFollowedNotificationItem: I.Record.Factory<Types._FollowedNotificationItem> = I.Record({
+export const makeFollowedNotificationItem = I.Record<Types._FollowedNotificationItem>({
   badged: false,
   newFollows: [],
   notificationTime: new Date(),
@@ -220,14 +220,14 @@ export const makeFollowedNotificationItem: I.Record.Factory<Types._FollowedNotif
   type: 'notification',
 })
 
-export const makeFollowSuggestion: I.Record.Factory<Types._FollowSuggestion> = I.Record({
+export const makeFollowSuggestion = I.Record<Types._FollowSuggestion>({
   followsMe: false,
   fullName: null,
   iFollow: false,
   username: '',
 })
 
-export const makeState: I.Record.Factory<Types._State> = I.Record({
+export const makeState = I.Record<Types._State>({
   followSuggestions: I.List(),
   lastViewed: new Date(),
   newItems: I.List(),

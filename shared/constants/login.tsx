@@ -7,7 +7,7 @@ export const invalidPasswordErrorString = 'Bad password: Invalid password. Serve
 
 export const waitingKey = 'login:waiting'
 
-export const makeState: I.Record.Factory<Types._State> = I.Record({
+export const makeState = I.Record<Types._State>({
   error: new HiddenString(''),
   forgotPasswordError: null,
   forgotPasswordSubmitting: false,

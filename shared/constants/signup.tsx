@@ -13,7 +13,7 @@ const devicename =
   (isLinux && 'My Linux Device') ||
   (isMobile ? 'Mobile Device' : 'Home Computer')
 
-export const makeState: I.Record.Factory<Types._State> = I.Record({
+export const makeState = I.Record<Types._State>({
   devicename,
   devicenameError: '',
   email: '',

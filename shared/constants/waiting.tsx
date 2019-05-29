@@ -25,7 +25,7 @@ export const anyErrors = (
   return keys.reduce((acc, k) => acc || state.waiting.errors.get(k, null), null)
 }
 
-export const makeState: I.Record.Factory<Types._State> = I.Record({
+export const makeState = I.Record<Types._State>({
   counts: I.Map(),
   errors: I.Map(),
 })

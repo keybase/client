@@ -7,7 +7,7 @@ import {serviceIdToService} from './search'
 import {parseUserId} from '../util/platforms'
 import {searchResultSelector} from './selectors'
 
-export const makeInitialState: I.Record.Factory<Types._State> = I.Record({
+export const makeInitialState = I.Record<Types._State>({
   errorCode: null,
   errorText: '',
   pgpEmail1: '',
@@ -35,7 +35,7 @@ export const makeInitialState: I.Record.Factory<Types._State> = I.Record({
   usernameValid: true,
 })
 
-export const makeProveGenericParams: I.Record.Factory<Types._ProveGenericParams> = I.Record({
+export const makeProveGenericParams = I.Record<Types._ProveGenericParams>({
   buttonLabel: '',
   logoBlack: [],
   logoFull: [],

@@ -356,7 +356,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
   })
 }
 
-export const makeConversationMeta: I.Record.Factory<_ConversationMeta> = I.Record({
+export const makeConversationMeta = I.Record<_ConversationMeta>({
   cannotWrite: false,
   channelname: '',
   commands: {} as RPCChatTypes.ConversationCommandGroups,

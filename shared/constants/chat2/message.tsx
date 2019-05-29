@@ -169,17 +169,17 @@ const makeMessageExplodable = {
 
 export const howLongBetweenTimestampsMs: number = 1000 * 60 * 15
 
-export const makeMessagePlaceholder: I.Record.Factory<MessageTypes._MessagePlaceholder> = I.Record({
+export const makeMessagePlaceholder = I.Record<MessageTypes._MessagePlaceholder>({
   ...makeMessageMinimum,
   type: 'placeholder',
 })
 
-export const makeMessageDeleted: I.Record.Factory<MessageTypes._MessageDeleted> = I.Record({
+export const makeMessageDeleted = I.Record<MessageTypes._MessageDeleted>({
   ...makeMessageCommon,
   type: 'deleted',
 })
 
-export const makeMessageText: I.Record.Factory<MessageTypes._MessageText> = I.Record({
+export const makeMessageText = I.Record<MessageTypes._MessageText>({
   ...makeMessageCommon,
   ...makeMessageExplodable,
   decoratedText: null,
@@ -199,7 +199,7 @@ export const makeMessageText: I.Record.Factory<MessageTypes._MessageText> = I.Re
   unfurls: I.Map(),
 })
 
-export const makeMessageAttachment: I.Record.Factory<MessageTypes._MessageAttachment> = I.Record({
+export const makeMessageAttachment = I.Record<MessageTypes._MessageAttachment>({
   ...makeMessageCommon,
   ...makeMessageExplodable,
   attachmentType: 'file',
@@ -228,7 +228,7 @@ export const makeMessageAttachment: I.Record.Factory<MessageTypes._MessageAttach
   videoDuration: null,
 })
 
-export const makeChatRequestInfo: I.Record.Factory<MessageTypes._ChatRequestInfo> = I.Record({
+export const makeChatRequestInfo = I.Record<MessageTypes._ChatRequestInfo>({
   amount: '',
   amountDescription: '',
   asset: 'native',
@@ -239,7 +239,7 @@ export const makeChatRequestInfo: I.Record.Factory<MessageTypes._ChatRequestInfo
   worthAtRequestTime: '',
 })
 
-export const makeMessageRequestPayment: I.Record.Factory<MessageTypes._MessageRequestPayment> = I.Record({
+export const makeMessageRequestPayment = I.Record<MessageTypes._MessageRequestPayment>({
   ...makeMessageCommon,
   note: new HiddenString(''),
   reactions: I.Map(),
@@ -248,7 +248,7 @@ export const makeMessageRequestPayment: I.Record.Factory<MessageTypes._MessageRe
   type: 'requestPayment',
 })
 
-export const makeChatPaymentInfo: I.Record.Factory<MessageTypes._ChatPaymentInfo> = I.Record({
+export const makeChatPaymentInfo = I.Record<MessageTypes._ChatPaymentInfo>({
   accountID: WalletTypes.noAccountID,
   amountDescription: '',
   delta: 'none',
@@ -265,26 +265,26 @@ export const makeChatPaymentInfo: I.Record.Factory<MessageTypes._ChatPaymentInfo
   worthAtSendTime: '',
 })
 
-export const makeMessageSendPayment: I.Record.Factory<MessageTypes._MessageSendPayment> = I.Record({
+export const makeMessageSendPayment = I.Record<MessageTypes._MessageSendPayment>({
   ...makeMessageCommon,
   paymentInfo: null,
   reactions: I.Map(),
   type: 'sendPayment',
 })
 
-const makeMessageSystemJoined: I.Record.Factory<MessageTypes._MessageSystemJoined> = I.Record({
+const makeMessageSystemJoined = I.Record<MessageTypes._MessageSystemJoined>({
   ...makeMessageMinimum,
   reactions: I.Map(),
   type: 'systemJoined',
 })
 
-const makeMessageSystemLeft: I.Record.Factory<MessageTypes._MessageSystemLeft> = I.Record({
+const makeMessageSystemLeft = I.Record<MessageTypes._MessageSystemLeft>({
   ...makeMessageMinimum,
   reactions: I.Map(),
   type: 'systemLeft',
 })
 
-const makeMessageSystemAddedToTeam: I.Record.Factory<MessageTypes._MessageSystemAddedToTeam> = I.Record({
+const makeMessageSystemAddedToTeam = I.Record<MessageTypes._MessageSystemAddedToTeam>({
   ...makeMessageMinimum,
   addee: '',
   adder: '',
@@ -294,7 +294,7 @@ const makeMessageSystemAddedToTeam: I.Record.Factory<MessageTypes._MessageSystem
   type: 'systemAddedToTeam',
 })
 
-const makeMessageSystemInviteAccepted: I.Record.Factory<MessageTypes._MessageSystemInviteAccepted> = I.Record(
+const makeMessageSystemInviteAccepted = I.Record<MessageTypes._MessageSystemInviteAccepted>(
   {
     ...makeMessageMinimum,
     adder: '',
@@ -317,14 +317,14 @@ const makeMessageSystemSimpleToComplex: I.Record.Factory<
   type: 'systemSimpleToComplex',
 })
 
-const makeMessageSystemText: I.Record.Factory<MessageTypes._MessageSystemText> = I.Record({
+const makeMessageSystemText = I.Record<MessageTypes._MessageSystemText>({
   ...makeMessageMinimum,
   reactions: I.Map(),
   text: new HiddenString(''),
   type: 'systemText',
 })
 
-const makeMessageSystemGitPush: I.Record.Factory<MessageTypes._MessageSystemGitPush> = I.Record({
+const makeMessageSystemGitPush = I.Record<MessageTypes._MessageSystemGitPush>({
   ...makeMessageMinimum,
   pushType: 0,
   pusher: '',
@@ -336,14 +336,14 @@ const makeMessageSystemGitPush: I.Record.Factory<MessageTypes._MessageSystemGitP
   type: 'systemGitPush',
 })
 
-const makeMessageSetDescription: I.Record.Factory<MessageTypes._MessageSetDescription> = I.Record({
+const makeMessageSetDescription = I.Record<MessageTypes._MessageSetDescription>({
   ...makeMessageMinimum,
   newDescription: new HiddenString(''),
   reactions: I.Map(),
   type: 'setDescription',
 })
 
-const makeMessageSetChannelname: I.Record.Factory<MessageTypes._MessageSetChannelname> = I.Record({
+const makeMessageSetChannelname = I.Record<MessageTypes._MessageSetChannelname>({
   ...makeMessageMinimum,
   newChannelname: '',
   reactions: I.Map(),
@@ -373,7 +373,7 @@ const makeMessageSystemUsersAddedToConversation: I.Record.Factory<
   usernames: [],
 })
 
-export const makeReaction: I.Record.Factory<MessageTypes._Reaction> = I.Record({
+export const makeReaction = I.Record<MessageTypes._Reaction>({
   timestamp: 0,
   username: '',
 })

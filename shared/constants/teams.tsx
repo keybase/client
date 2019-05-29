@@ -41,13 +41,13 @@ export const deleteTeamWaitingKey = (teamname: Types.Teamname) => `teamDelete:${
 export const leaveTeamWaitingKey = (teamname: Types.Teamname) => `teamLeave:${teamname}`
 export const teamRenameWaitingKey = 'teams:rename'
 
-export const makeChannelInfo: I.Record.Factory<Types._ChannelInfo> = I.Record({
+export const makeChannelInfo = I.Record<Types._ChannelInfo>({
   channelname: '',
   description: '',
   memberStatus: RPCChatTypes.ConversationMemberStatus.active,
 })
 
-export const makeMemberInfo: I.Record.Factory<Types._MemberInfo> = I.Record({
+export const makeMemberInfo = I.Record<Types._MemberInfo>({
   fullName: '',
   status: 'active',
   type: 'reader',
@@ -83,7 +83,7 @@ export const rpcDetailsToMemberInfos = (
   return I.Map(infos)
 }
 
-export const makeInviteInfo: I.Record.Factory<Types._InviteInfo> = I.Record({
+export const makeInviteInfo = I.Record<Types._InviteInfo>({
   email: '',
   id: '',
   name: '',
@@ -91,11 +91,11 @@ export const makeInviteInfo: I.Record.Factory<Types._InviteInfo> = I.Record({
   username: '',
 })
 
-export const makeRequestInfo: I.Record.Factory<Types._RequestInfo> = I.Record({
+export const makeRequestInfo = I.Record<Types._RequestInfo>({
   username: '',
 })
 
-export const makeEmailInviteError: I.Record.Factory<Types._EmailInviteError> = I.Record({
+export const makeEmailInviteError = I.Record<Types._EmailInviteError>({
   malformed: I.Set(),
   message: '',
 })
@@ -120,18 +120,18 @@ export const typeToLabel: Types.TypeMap = {
   writer: 'Writer',
 }
 
-export const makeTeamSettings: I.Record.Factory<Types._TeamSettings> = I.Record({
+export const makeTeamSettings = I.Record<Types._TeamSettings>({
   joinAs: RPCTypes.TeamRole.reader,
   open: false,
 })
 
-export const makeRetentionPolicy: I.Record.Factory<_RetentionPolicy> = I.Record({
+export const makeRetentionPolicy = I.Record<_RetentionPolicy>({
   seconds: 0,
   title: '',
   type: 'retain',
 })
 
-export const makeState: I.Record.Factory<Types._State> = I.Record({
+export const makeState = I.Record<Types._State>({
   addUserToTeamsResults: '',
   addUserToTeamsState: 'notStarted',
   channelCreationError: '',
@@ -590,7 +590,7 @@ export const resetUserBadgeIDToKey = (id: Types.ResetUserBadgeID): Types.ResetUs
 export const keyToResetUserBadgeID = (key: Types.ResetUserBadgeIDKey): Types.ResetUserBadgeID =>
   Buffer.from(key, 'hex')
 
-export const makeResetUser: I.Record.Factory<Types._ResetUser> = I.Record({
+export const makeResetUser = I.Record<Types._ResetUser>({
   badgeIDKey: '',
   username: '',
 })

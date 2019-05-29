@@ -66,7 +66,7 @@ export const shouldTriggerTlfLoad = (bs: RPCTypes.BadgeState) => {
   return !same
 }
 
-export const makeState: I.Record.Factory<_State> = I.Record({
+export const makeState = I.Record<_State>({
   badgeVersion: -1,
   desktopAppBadgeCount: 0,
   keyState: I.Map(),

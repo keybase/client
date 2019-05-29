@@ -8,11 +8,11 @@ export const getFullname = (state: TypedState, username: string): string | null 
 export const getIsBroken = (infoMap: Types.InfoMap, username: string): boolean | null =>
   infoMap.getIn([username, 'broken'], null)
 
-export const makeUserInfo: I.Record.Factory<Types._UserInfo> = I.Record({
+export const makeUserInfo = I.Record<Types._UserInfo>({
   broken: false,
   fullname: '',
 })
 
-export const makeState: I.Record.Factory<Types._State> = I.Record({
+export const makeState = I.Record<Types._State>({
   infoMap: I.Map(),
 })

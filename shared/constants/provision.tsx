@@ -17,7 +17,7 @@ export const cancelOnCallback = (_: any, response: CommonResponseHandler) => {
   response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
 }
 
-export const makeState: I.Record.Factory<Types._State> = I.Record({
+export const makeState = I.Record<Types._State>({
   codePageIncomingTextCode: new HiddenString(''),
   codePageOtherDeviceId: '',
   codePageOtherDeviceName: '',
@@ -34,7 +34,7 @@ export const makeState: I.Record.Factory<Types._State> = I.Record({
   username: '',
 })
 
-const makeDevice: I.Record.Factory<Types._Device> = I.Record({
+const makeDevice = I.Record<Types._Device>({
   id: DeviceTypes.stringToDeviceID(''),
   name: '',
   type: 'mobile',

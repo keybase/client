@@ -22,7 +22,7 @@ export const rpcDeviceToDevice = (d: RPCTypes.DeviceDetail): Types.Device =>
     type: Types.stringToDeviceType(d.device.type),
   })
 
-export const makeDevice: I.Record.Factory<Types._Device> = I.Record({
+export const makeDevice = I.Record<Types._Device>({
   created: 0,
   currentDevice: false,
   deviceID: Types.stringToDeviceID(''),
@@ -35,7 +35,7 @@ export const makeDevice: I.Record.Factory<Types._Device> = I.Record({
   type: Types.stringToDeviceType('desktop'),
 })
 
-export const makeState: I.Record.Factory<Types._State> = I.Record({
+export const makeState = I.Record<Types._State>({
   deviceMap: I.Map(),
   endangeredTLFMap: I.Map(),
   isNew: I.Set(),
