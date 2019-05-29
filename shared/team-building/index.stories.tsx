@@ -80,7 +80,7 @@ const load = () => {
         highlightedIndex={1}
         searchResults={[
           {
-            followingState: Types.FollowingState.Following,
+            followingState: 'Following',
             inTeam: true,
             prettyName: 'Chris Coyne',
             services: {
@@ -95,7 +95,7 @@ const load = () => {
             username: 'chris',
           },
           {
-            followingState: Types.FollowingState.NotFollowing,
+            followingState: 'NotFollowing',
             inTeam: false,
             prettyName: 'Chris Mikacle',
             services: {
@@ -109,7 +109,7 @@ const load = () => {
             username: 'chrismikacle',
           },
           {
-            followingState: Types.FollowingState.Following,
+            followingState: 'Following',
             inTeam: false,
             prettyName: 'Chris Nojima',
             services: {
@@ -171,7 +171,7 @@ const load = () => {
         highlightedIndex={1}
         searchResults={[
           {
-            followingState: Types.FollowingState.Following,
+            followingState: 'Following',
             inTeam: true,
             prettyName: 'Chris Coyne',
             services: {
@@ -186,7 +186,7 @@ const load = () => {
             username: 'chris',
           },
           {
-            followingState: Types.FollowingState.NotFollowing,
+            followingState: 'NotFollowing',
             inTeam: false,
             prettyName: 'Chris Mikacle',
             services: {
@@ -200,7 +200,7 @@ const load = () => {
             username: 'chrismikacle',
           },
           {
-            followingState: Types.FollowingState.Following,
+            followingState: 'Following',
             inTeam: false,
             prettyName: 'Chris Nojima',
             services: {
@@ -271,7 +271,7 @@ const load = () => {
         highlightedIndex={1}
         searchResults={[
           {
-            followingState: Types.FollowingState.Following,
+            followingState: 'Following',
             inTeam: true,
             prettyName: 'Chris Coyne',
             services: {
@@ -286,7 +286,7 @@ const load = () => {
             username: 'chris',
           },
           {
-            followingState: Types.FollowingState.NotFollowing,
+            followingState: 'NotFollowing',
             inTeam: false,
             prettyName: 'Chris Mikacle',
             services: {
@@ -300,7 +300,7 @@ const load = () => {
             username: 'chrismikacle',
           },
           {
-            followingState: Types.FollowingState.Following,
+            followingState: 'Following',
             inTeam: false,
             prettyName: 'Chris Nojima',
             services: {
@@ -343,7 +343,7 @@ const load = () => {
         highlightedIndex={1}
         searchResults={[
           {
-            followingState: Types.FollowingState.Following,
+            followingState: 'Following',
             inTeam: true,
             prettyName: 'Chris Coyne',
             services: {
@@ -358,7 +358,7 @@ const load = () => {
             username: 'chris',
           },
           {
-            followingState: Types.FollowingState.NotFollowing,
+            followingState: 'NotFollowing',
             inTeam: false,
             prettyName: 'Chris Mikacle',
             services: {
@@ -372,7 +372,7 @@ const load = () => {
             username: 'chrismikacle',
           },
           {
-            followingState: Types.FollowingState.Following,
+            followingState: 'Following',
             inTeam: false,
             prettyName: 'Chris Nojima',
             services: {
@@ -415,7 +415,7 @@ const load = () => {
         highlightedIndex={1}
         searchResults={[
           {
-            followingState: Types.FollowingState.Following,
+            followingState: 'Following',
             inTeam: true,
             prettyName: 'Chris Coyne',
             services: {
@@ -430,7 +430,7 @@ const load = () => {
             username: 'chris',
           },
           {
-            followingState: Types.FollowingState.NotFollowing,
+            followingState: 'NotFollowing',
             inTeam: false,
             prettyName: 'Chris Mikacle',
             services: {
@@ -444,7 +444,7 @@ const load = () => {
             username: 'chrismikacle',
           },
           {
-            followingState: Types.FollowingState.Following,
+            followingState: 'Following',
             inTeam: false,
             prettyName: 'Chris Nojima',
             services: {
@@ -571,7 +571,7 @@ const load = () => {
           twitter: 'malgorithms on Twitter',
         }}
         inTeam={false}
-        followingState={Types.FollowingState.Following}
+        followingState={'Following'}
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
       />
@@ -590,7 +590,7 @@ const load = () => {
           twitter: 'malgorithms on Twitter',
         }}
         inTeam={true}
-        followingState={Types.FollowingState.Following}
+        followingState={'Following'}
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
       />
@@ -603,7 +603,7 @@ const load = () => {
         highlight={false}
         services={{github: 'marcopolo', keybase: 'marcopolo'}}
         inTeam={true}
-        followingState={Types.FollowingState.Following}
+        followingState={'Following'}
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
       />
@@ -616,7 +616,7 @@ const load = () => {
         highlight={false}
         services={{github: 'marcopolo'}}
         inTeam={true}
-        followingState={Types.FollowingState.NoState}
+        followingState={'NoState'}
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
       />
@@ -633,7 +633,7 @@ const load = () => {
           twitter: 'malgorithms on Twitter',
         }}
         inTeam={true}
-        followingState={Types.FollowingState.Following}
+        followingState={'Following'}
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
         highlight={true}
