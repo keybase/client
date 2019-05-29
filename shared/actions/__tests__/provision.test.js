@@ -84,7 +84,7 @@ describe('provisioningManagerProvisioning', () => {
       callMap[k]((undefined: any), response)
       expect(response.result).not.toHaveBeenCalled()
       expect(response.error).toHaveBeenCalledWith({
-        code: RPCTypes.constantsStatusCode.scinputcanceled,
+        code: RPCTypes.StatusCode.scinputcanceled,
         desc: 'Input canceled',
       })
     })
@@ -414,7 +414,7 @@ describe('choose gpg happy path', () => {
   it('submit export key', () => {
     const {response, getState, dispatch} = init
     dispatch(ProvisionGen.createSubmitGPGMethod({exportKey: true}))
-    expect(response.result).toHaveBeenCalledWith(RPCTypes.provisionUiGPGMethod.gpgImport)
+    expect(response.result).toHaveBeenCalledWith(RPCTypes.GPGMethod.gpgImport)
     expect(response.error).not.toHaveBeenCalled()
     expect(getState().config.globalError).toEqual(null)
 
@@ -426,7 +426,7 @@ describe('choose gpg happy path', () => {
   it('submit sign key', () => {
     const {response, getState, dispatch} = init
     dispatch(ProvisionGen.createSubmitGPGMethod({exportKey: false}))
-    expect(response.result).toHaveBeenCalledWith(RPCTypes.provisionUiGPGMethod.gpgSign)
+    expect(response.result).toHaveBeenCalledWith(RPCTypes.GPGMethod.gpgSign)
     expect(response.error).not.toHaveBeenCalled()
     expect(getState().config.globalError).toEqual(null)
 
@@ -444,7 +444,7 @@ describe('password happy path', () => {
       payload: {
         pinentry: {
           retryLabel: null,
-          type: RPCTypes.passphraseCommonPassphraseType.passPhrase,
+          type: RPCTypes.PassphraseType.passPhrase,
         },
       },
     })
@@ -483,7 +483,7 @@ describe('passphrase error path', () => {
       payload: {
         pinentry: {
           retryLabel: error.stringValue(),
-          type: RPCTypes.passphraseCommonPassphraseType.passPhrase,
+          type: RPCTypes.PassphraseType.passPhrase,
         },
       },
     })
@@ -522,7 +522,7 @@ describe('paperkey happy path', () => {
       payload: {
         pinentry: {
           retryLabel: null,
-          type: RPCTypes.passphraseCommonPassphraseType.paperKey,
+          type: RPCTypes.PassphraseType.paperKey,
         },
       },
     })
@@ -561,7 +561,7 @@ describe('paperkey error path', () => {
       payload: {
         pinentry: {
           retryLabel: error.stringValue(),
-          type: RPCTypes.passphraseCommonPassphraseType.paperKey,
+          type: RPCTypes.PassphraseType.paperKey,
         },
       },
     })
@@ -605,7 +605,7 @@ describe('canceling provision', () => {
   // dispatch(RouteTreeGen.createNavigateUp())
   // expect(response.result).not.toHaveBeenCalled()
   // expect(response.error).toHaveBeenCalledWith({
-  // code: RPCTypes.constantsStatusCode.scinputcanceled,
+  // code: RPCTypes.StatusCode.scinputcanceled,
   // desc: 'Input canceled',
   // })
   // expect(manager._stashedResponse).toEqual(null)
@@ -663,7 +663,7 @@ describe('final errors show', () => {
 
   it('ignore cancel', () => {
     const {getState, dispatch} = startReduxSaga()
-    const error = new RPCError('Input canceled', RPCTypes.constantsStatusCode.scinputcanceled)
+    const error = new RPCError('Input canceled', RPCTypes.StatusCode.scinputcanceled)
     dispatch(ProvisionGen.createShowFinalErrorPage({finalError: error, fromDeviceAdd: false}))
     expect(getState().provision.finalError).toEqual(null)
     // expect(getRoutePath()).toEqual(I.List([Tabs.loginTab]))
@@ -684,7 +684,7 @@ describe('final errors show', () => {
     const {getState, dispatch} = startReduxSaga()
     dispatch(RouteTreeGen.createSwitchRouteDef({loggedIn: true}))
     dispatch(RouteTreeGen.createNavigateTo({path: [Tabs.devicesTab]}))
-    const error = new RPCError('Input canceled', RPCTypes.constantsStatusCode.scinputcanceled)
+    const error = new RPCError('Input canceled', RPCTypes.StatusCode.scinputcanceled)
     dispatch(ProvisionGen.createShowFinalErrorPage({finalError: error, fromDeviceAdd: true}))
     expect(getState().provision.finalError).toEqual(null)
     // expect(getRoutePath()).toEqual(I.List([Tabs.devicesTab]))

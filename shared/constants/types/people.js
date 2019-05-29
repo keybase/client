@@ -4,14 +4,14 @@ import * as RPCTypes from './rpc-gen'
 import type {IconType} from '../../common-adapters/icon.constants'
 
 export type ItemTypeEnum = RPCTypes.HomeScreenItemType
-export type ItemType = $Keys<typeof RPCTypes.homeHomeScreenItemType>
+export type ItemType = $Keys<typeof RPCTypes.HomeScreenItemType>
 
 export type ItemID = string
 export const itemIDToString: (id: ItemID) => string = id => id
 export const stringToItemID: (id: string) => ItemID = id => id
 
 export type TodoTypeEnum = RPCTypes.HomeScreenTodoType
-export type TodoType = $Keys<typeof RPCTypes.homeHomeScreenTodoType>
+export type TodoType = $Keys<typeof RPCTypes.HomeScreenTodoType>
 
 export type _Todo = {
   type: 'todo',

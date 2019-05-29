@@ -14,7 +14,7 @@ import {type TypedState} from './reducer'
 
 export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner']
 
-export const rpcMemberStatusToStatus = invert(RPCTypes.teamsTeamMemberStatus)
+export const rpcMemberStatusToStatus = invert(RPCTypes.TeamMemberStatus)
 
 // Waiting keys
 // Add granularity as necessary
@@ -45,7 +45,7 @@ export const teamRenameWaitingKey = 'teams:rename'
 export const makeChannelInfo: I.RecordFactory<Types._ChannelInfo> = I.Record({
   channelname: '',
   description: '',
-  memberStatus: RPCChatTypes.commonConversationMemberStatus.active,
+  memberStatus: RPCChatTypes.ConversationMemberStatus.active,
 })
 
 export const makeMemberInfo: I.RecordFactory<Types._MemberInfo> = I.Record({
@@ -112,7 +112,7 @@ export const teamRoleByEnum = ((m: {[Types.MaybeTeamRoleType]: RPCTypes.TeamRole
     mInv[e] = role
   }
   return mInv
-})(RPCTypes.teamsTeamRole)
+})(RPCTypes.TeamRole)
 
 export const typeToLabel: Types.TypeMap = {
   admin: 'Admin',
@@ -122,7 +122,7 @@ export const typeToLabel: Types.TypeMap = {
 }
 
 export const makeTeamSettings: I.RecordFactory<Types._TeamSettings> = I.Record({
-  joinAs: RPCTypes.teamsTeamRole.reader,
+  joinAs: RPCTypes.TeamRole.reader,
   open: false,
 })
 
@@ -511,10 +511,10 @@ const serviceRetentionPolicyToRetentionPolicy = (policy: ?RPCChatTypes.Retention
   if (policy) {
     // replace retentionPolicy with whatever is explicitly set
     switch (policy.typ) {
-      case RPCChatTypes.commonRetentionPolicyType.retain:
+      case RPCChatTypes.RetentionPolicyType.retain:
         retentionPolicy = makeRetentionPolicy({title: 'Never auto-delete', type: 'retain'})
         break
-      case RPCChatTypes.commonRetentionPolicyType.expire:
+      case RPCChatTypes.RetentionPolicyType.expire:
         if (!policy.expire) {
           throw new Error(`RPC returned retention policy of type 'expire' with no expire data`)
         }
@@ -525,7 +525,7 @@ const serviceRetentionPolicyToRetentionPolicy = (policy: ?RPCChatTypes.Retention
           type: 'expire',
         })
         break
-      case RPCChatTypes.commonRetentionPolicyType.ephemeral:
+      case RPCChatTypes.RetentionPolicyType.ephemeral:
         if (!policy.ephemeral) {
           throw new Error(`RPC returned retention policy of type 'ephemeral' with no ephemeral data`)
         }
@@ -537,7 +537,7 @@ const serviceRetentionPolicyToRetentionPolicy = (policy: ?RPCChatTypes.Retention
           type: 'explode',
         })
         break
-      case RPCChatTypes.commonRetentionPolicyType.inherit:
+      case RPCChatTypes.RetentionPolicyType.inherit:
         retentionPolicy = makeRetentionPolicy({type: 'inherit'})
     }
   }
@@ -548,16 +548,16 @@ const retentionPolicyToServiceRetentionPolicy = (policy: RetentionPolicy): RPCCh
   let res: ?RPCChatTypes.RetentionPolicy
   switch (policy.type) {
     case 'retain':
-      res = {retain: {}, typ: RPCChatTypes.commonRetentionPolicyType.retain}
+      res = {retain: {}, typ: RPCChatTypes.RetentionPolicyType.retain}
       break
     case 'expire':
-      res = {expire: {age: policy.seconds}, typ: RPCChatTypes.commonRetentionPolicyType.expire}
+      res = {expire: {age: policy.seconds}, typ: RPCChatTypes.RetentionPolicyType.expire}
       break
     case 'explode':
-      res = {ephemeral: {age: policy.seconds}, typ: RPCChatTypes.commonRetentionPolicyType.ephemeral}
+      res = {ephemeral: {age: policy.seconds}, typ: RPCChatTypes.RetentionPolicyType.ephemeral}
       break
     case 'inherit':
-      res = {inherit: {}, typ: RPCChatTypes.commonRetentionPolicyType.inherit}
+      res = {inherit: {}, typ: RPCChatTypes.RetentionPolicyType.inherit}
       break
   }
   if (!res) {

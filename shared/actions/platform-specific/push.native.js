@@ -22,7 +22,7 @@ import {isIOS} from '../../constants/platform'
 let lastCount = -1
 const updateAppBadge = (_, action) => {
   const count = (action.payload.badgeState.conversations || []).reduce(
-    (total, c) => (c.badgeCounts ? total + c.badgeCounts[`${RPCTypes.commonDeviceType.mobile}`] : total),
+    (total, c) => (c.badgeCounts ? total + c.badgeCounts[`${RPCTypes.DeviceType.mobile}`] : total),
     0
   )
 

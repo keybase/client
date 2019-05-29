@@ -13,7 +13,7 @@ export const forgotUsernameWaitingKey = 'provision:forgotUsername'
 export const errorCausedByUsCanceling = (e: ?RPCError) =>
   e?.desc === 'Input canceled' || e?.desc === 'kex canceled by caller'
 export const cancelOnCallback = (_: any, response: CommonResponseHandler) => {
-  response.error({code: RPCTypes.constantsStatusCode.scinputcanceled, desc: 'Input canceled'})
+  response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
 }
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
@@ -59,9 +59,9 @@ export const rpcDeviceToDevice = (d: RPCTypes.Device) => {
 
 export const decodeForgotUsernameError = (error: RPCError) => {
   switch (error.code) {
-    case RPCTypes.constantsStatusCode.scnotfound:
+    case RPCTypes.StatusCode.scnotfound:
       return "We couldn't find an account with that email address. Try again?"
-    case RPCTypes.constantsStatusCode.scinputerror:
+    case RPCTypes.StatusCode.scinputerror:
       return "That doesn't look like a valid email address. Try again?"
     default:
       return error.desc

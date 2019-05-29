@@ -1017,6 +1017,13 @@ func (j *JournalManager) JournalStatus(tlfID tlf.ID) (
 	return tlfJournal.getJournalStatus()
 }
 
+// JournalEnabled returns true if the given TLF ID has a journal
+// enabled for it.
+func (j *JournalManager) JournalEnabled(tlfID tlf.ID) bool {
+	_, ok := j.getTLFJournal(tlfID, nil)
+	return ok
+}
+
 // JournalStatusWithPaths returns a TLFServerStatus object for the
 // given TLF suitable for diagnostics, including paths for all the
 // unflushed entries.

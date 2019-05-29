@@ -65,13 +65,13 @@ export const makeTeamShowcase: I.RecordFactory<Types._TeamShowcase> = I.Record({
 
 export const rpcResultToStatus = (result: RPCTypes.Identify3ResultType) => {
   switch (result) {
-    case RPCTypes.identify3UiIdentify3ResultType.ok:
+    case RPCTypes.Identify3ResultType.ok:
       return 'valid'
-    case RPCTypes.identify3UiIdentify3ResultType.broken:
+    case RPCTypes.Identify3ResultType.broken:
       return 'broken'
-    case RPCTypes.identify3UiIdentify3ResultType.needsUpgrade:
+    case RPCTypes.Identify3ResultType.needsUpgrade:
       return 'needsUpgrade'
-    case RPCTypes.identify3UiIdentify3ResultType.canceled:
+    case RPCTypes.Identify3ResultType.canceled:
       return 'error'
     default:
     // flow is confused by number enums
@@ -82,19 +82,19 @@ export const rpcResultToStatus = (result: RPCTypes.Identify3ResultType) => {
 
 export const rpcRowColorToColor = (color: RPCTypes.Identify3RowColor) => {
   switch (color) {
-    case RPCTypes.identify3UiIdentify3RowColor.blue:
+    case RPCTypes.Identify3RowColor.blue:
       return 'blue'
-    case RPCTypes.identify3UiIdentify3RowColor.red:
+    case RPCTypes.Identify3RowColor.red:
       return 'red'
-    case RPCTypes.identify3UiIdentify3RowColor.black:
+    case RPCTypes.Identify3RowColor.black:
       return 'black'
-    case RPCTypes.identify3UiIdentify3RowColor.green:
+    case RPCTypes.Identify3RowColor.green:
       return 'green'
-    case RPCTypes.identify3UiIdentify3RowColor.gray:
+    case RPCTypes.Identify3RowColor.gray:
       return 'gray'
-    case RPCTypes.identify3UiIdentify3RowColor.yellow:
+    case RPCTypes.Identify3RowColor.yellow:
       return 'yellow'
-    case RPCTypes.identify3UiIdentify3RowColor.orange:
+    case RPCTypes.Identify3RowColor.orange:
       return 'orange'
     default:
       throw new Error('Invalid identifyv3 row color ' + color)
@@ -103,15 +103,15 @@ export const rpcRowColorToColor = (color: RPCTypes.Identify3RowColor) => {
 
 export const rpcRowStateToAssertionState = (state: RPCTypes.Identify3RowState): Types.AssertionState => {
   switch (state) {
-    case RPCTypes.identify3UiIdentify3RowState.checking:
+    case RPCTypes.Identify3RowState.checking:
       return 'checking'
-    case RPCTypes.identify3UiIdentify3RowState.valid:
+    case RPCTypes.Identify3RowState.valid:
       return 'valid'
-    case RPCTypes.identify3UiIdentify3RowState.error:
+    case RPCTypes.Identify3RowState.error:
       return 'error'
-    case RPCTypes.identify3UiIdentify3RowState.warning:
+    case RPCTypes.Identify3RowState.warning:
       return 'warning'
-    case RPCTypes.identify3UiIdentify3RowState.revoked:
+    case RPCTypes.Identify3RowState.revoked:
       return 'revoked'
     default:
       throw new Error('Invalid identifyv3 row state ' + state)

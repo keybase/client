@@ -15,6 +15,8 @@ export declare function createPropProviderWithCommon(
 export declare function unexpected(name: string): () => void
 export declare class Rnd {
   constructor(seed: number | string)
+  next(): number
+  randInt(low: number, high: number): number
   generateString(regex: RegExp): string
 }
 
