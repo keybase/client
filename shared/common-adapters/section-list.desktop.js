@@ -5,7 +5,7 @@ import ReactList from 'react-list'
 import {Box2} from './box'
 import ScrollView from './scroll-view'
 import type {Props} from './section-list'
-import {throttle, once} from 'lodash-es'
+import {debounce, throttle, once} from 'lodash-es'
 import {memoize} from '../util/memoize'
 
 /*
@@ -69,6 +69,15 @@ class SectionList extends React.Component<Props, State> {
           {this.props.renderSectionHeader({section: section.section})}
         </Box2>
       )
+    } else if (item.type === 'placeholder') {
+      return (
+        <Box2
+          direction="vertical"
+          key={`blankPlaceholder${item.flatSectionIndex}`}
+          style={{height: 1}}
+          fullWidth={true}
+        />
+      )
     } else {
       return (
         <Box2 direction="vertical" key={`${section.key}:${item.key}`} style={styles.box}>
@@ -92,8 +101,7 @@ class SectionList extends React.Component<Props, State> {
   // This matches the way onEndReached works for sectionlist on RN
   _onEndReached = once(() => this.props.onEndReached && this.props.onEndReached())
 
-  _checkSticky = throttle(() => {
-    // need to defer this as the list itself is changing after scroll
+  _checkSticky = () => {
     if (this._listRef.current) {
       const [firstIndex] = this._listRef.current.getVisibleRange()
       const item = this._flat[firstIndex]
@@ -105,11 +113,20 @@ class SectionList extends React.Component<Props, State> {
         )
       }
     }
-  }, 20)
+  }
+  // We use two "throttled" functions here to check the status of the viewable items in the
+  // list for the purposes of the sticky header feature. A single throttle isn't good enough,
+  // since the last scroll could end up on a throttle border and only be delayed a small amount. If that
+  // happens we can render the header twice, since we will think we are in the wrong section. The debounce
+  // fixes this, since it will always send one last call out on the time interval. We can't just use a
+  // single debounce though, since we need events as the user is scrolling.
+  _checkStickyDebounced = debounce(this._checkSticky, 20)
+  _checkStickyThrottled = throttle(this._checkSticky, 20)
 
   _onScroll = e => {
     e.currentTarget && this._checkOnEndReached(e.currentTarget)
-    this._checkSticky()
+    this._checkStickyDebounced()
+    this._checkStickyThrottled()
   }
 
   _flatten = memoize(sections => {
@@ -124,7 +141,7 @@ class SectionList extends React.Component<Props, State> {
         section,
         type: 'header',
       })
-      section.data.length &&
+      if (section.data.length) {
         arr.push(
           ...section.data.map((item, indexWithinSection) => ({
             flatSectionIndex,
@@ -137,6 +154,20 @@ class SectionList extends React.Component<Props, State> {
             type: 'body',
           }))
         )
+      } else {
+        // These placeholders allow us to get the first section's sticky header back on the screen if
+        // the item has no body items. Since we don't draw it in _itemRenderer (to avoid duplicating it
+        // all the time), we need something in the ReactList to trigger the flatSectionIndex check
+        // to get the sticky header back on the screen.
+        arr.push({
+          flatSectionIndex,
+          key: 1,
+          section: {
+            data: [],
+          },
+          type: 'placeholder',
+        })
+      }
       return arr
     }, [])
   })

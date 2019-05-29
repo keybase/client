@@ -232,12 +232,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 }
 
-const ConnectedAvatar = namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'Avatar'
-)(Avatar)
+const ConnectedAvatar = namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Avatar')(Avatar)
 
 const mockOwnToViewProps = (
   ownProps: OwnProps,

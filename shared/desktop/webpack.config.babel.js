@@ -49,7 +49,7 @@ const config = (_, {mode}) => {
         use: ['null-loader'],
       },
       {
-        exclude: /((node_modules\/(?!universalify|fs-extra|react-redux))|\/dist\/)/,
+        exclude: /((node_modules\/(?!universalify|fs-extra|react-redux|redux-saga))|\/dist\/)/,
         test: /\.(ts|js)x?$/,
         use: [babelRule],
       },
@@ -160,7 +160,7 @@ const config = (_, {mode}) => {
 
   const commonConfig = makeCommonConfig()
   const nodeConfig = merge(commonConfig, {
-    entry: {node: './desktop/app/node.desktop.js'},
+    entry: {node: './desktop/app/node.desktop.tsx'},
     module: {rules: makeRules(true)},
     name: 'node',
     plugins: [
@@ -199,7 +199,11 @@ const config = (_, {mode}) => {
   }
 
   const typeOverride = {
+    main: 'tsx',
+    menubar: 'tsx',
     pinentry: 'tsx',
+    tracker2: 'tsx',
+    'unlock-folders': 'tsx',
   }
 
   // multiple entries so we can chunk shared parts

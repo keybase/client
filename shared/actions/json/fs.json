@@ -163,7 +163,8 @@
       "editID": "Types.EditID"
     },
     "fsError": {
-      "error": "Types.FsError"
+      "error": "Types.FsError",
+      "expectedIfOffline": "boolean"
     },
     "dismissFsError": {
       "key": "string"

@@ -38,7 +38,7 @@ export type Props = {
   username: string
 }
 
-const colorTypeToStyle = type => {
+const colorTypeToStyle = (type: 'red' | 'green' | 'blue') => {
   switch (type) {
     case 'red':
       return styles.typedBackgroundRed
@@ -334,7 +334,7 @@ class User extends React.Component<Props, State> {
     }
   }
 
-  _errorFilter = e => e.code !== RPCTypes.constantsStatusCode.scresolutionfailed
+  _errorFilter = e => e.code !== RPCTypes.StatusCode.scresolutionfailed
 
   render() {
     const friends = this.state.selectedFollowing ? this.props.following : this.props.followers

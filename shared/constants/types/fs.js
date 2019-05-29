@@ -21,7 +21,7 @@ export type ProgressType = 'pending' | 'loaded'
 // not naming Error because it has meaning in js.
 export type _FsError = {
   time: number,
-  error: string,
+  errorMessage: string,
   erroredAction: FsGen.Actions,
   retriableAction?: ?FsGen.Actions,
 }
@@ -514,12 +514,12 @@ export type Visibility = TlfType | null
 
 export const direntToPathType = (d: RPCTypes.Dirent): PathType => {
   switch (d.direntType) {
-    case RPCTypes.simpleFSDirentType.dir:
+    case RPCTypes.DirentType.dir:
       return 'folder'
-    case RPCTypes.simpleFSDirentType.sym:
+    case RPCTypes.DirentType.sym:
       return 'symlink'
-    case RPCTypes.simpleFSDirentType.file:
-    case RPCTypes.simpleFSDirentType.exec:
+    case RPCTypes.DirentType.file:
+    case RPCTypes.DirentType.exec:
       return 'file'
     default:
       return 'unknown'
@@ -529,7 +529,8 @@ export const getPathFromRelative = (tlfName: string, tlfType: TlfType, inTlfPath
   '/keybase/' + tlfType + '/' + tlfName + '/' + inTlfPath
 export const stringToEditID = (s: string): EditID => s
 export const editIDToString = (s: EditID): string => s
-export const stringToPath = (s: string): Path => (s.indexOf('/') === 0 ? s : null)
+export const stringToPath = (s: string): Path =>
+  s.indexOf('/') === 0 ? s.replace(/\/+/g, '/').replace(/\/$/, '') : null
 export const pathToString = (p: Path): string => (!p ? '' : p)
 export const stringToLocalPath = (s: string): LocalPath => s
 export const localPathToString = (p: LocalPath): string => p
@@ -572,16 +573,16 @@ export const pathsAreInSameTlf = (path1: Path, path2: Path) =>
     .slice(0, 3)
     .join('/')
 export const getRPCFolderTypeFromVisibility = (v: Visibility): RPCTypes.FolderType => {
-  if (v === null) return RPCTypes.favoriteFolderType.unknown
-  return RPCTypes.favoriteFolderType[v]
+  if (v === null) return RPCTypes.FolderType.unknown
+  return RPCTypes.FolderType[v]
 }
 export const getVisibilityFromRPCFolderType = (folderType: RPCTypes.FolderType): Visibility => {
   switch (folderType) {
-    case RPCTypes.favoriteFolderType.private:
+    case RPCTypes.FolderType.private:
       return 'private'
-    case RPCTypes.favoriteFolderType.public:
+    case RPCTypes.FolderType.public:
       return 'public'
-    case RPCTypes.favoriteFolderType.team:
+    case RPCTypes.FolderType.team:
       return 'team'
     default:
       return null

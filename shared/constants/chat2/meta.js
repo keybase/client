@@ -18,9 +18,9 @@ import {getFullname} from '../users'
 
 const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMemberStatus) => {
   switch (m) {
-    case RPCChatTypes.commonConversationMemberStatus.active:
+    case RPCChatTypes.ConversationMemberStatus.active:
       return 'active'
-    case RPCChatTypes.commonConversationMemberStatus.reset:
+    case RPCChatTypes.ConversationMemberStatus.reset:
       return 'youAreReset'
     default:
       return 'youArePreviewing'
@@ -36,7 +36,7 @@ export const unverifiedInboxUIItemToConversationMeta = (
   username: string
 ) => {
   // Private chats only
-  if (i.visibility !== RPCTypes.commonTLFVisibility.private) {
+  if (i.visibility !== RPCTypes.TLFVisibility.private) {
     return null
   }
 
@@ -48,15 +48,15 @@ export const unverifiedInboxUIItemToConversationMeta = (
   // We only treat implicit adhoc teams as having resetParticipants
   const resetParticipants = I.Set(
     i.localMetadata &&
-      (i.membersType === RPCChatTypes.commonConversationMembersType.impteamnative ||
-        i.membersType === RPCChatTypes.commonConversationMembersType.impteamupgrade) &&
+      (i.membersType === RPCChatTypes.ConversationMembersType.impteamnative ||
+        i.membersType === RPCChatTypes.ConversationMembersType.impteamupgrade) &&
       i.localMetadata.resetParticipants
       ? i.localMetadata.resetParticipants
       : []
   )
 
   const participants = I.List(i.localMetadata ? i.localMetadata.writerNames || [] : (i.name || '').split(','))
-  const isTeam = i.membersType === RPCChatTypes.commonConversationMembersType.team
+  const isTeam = i.membersType === RPCChatTypes.ConversationMembersType.team
   const channelname = isTeam && i.localMetadata ? i.localMetadata.channelName : ''
 
   const supersededBy = conversationMetadataToMetaSupersedeInfo(i.supersededBy)
@@ -78,7 +78,7 @@ export const unverifiedInboxUIItemToConversationMeta = (
     descriptionDecorated: i.localMetadata?.headlineDecorated ?? '',
     inboxLocalVersion: i.localVersion,
     inboxVersion: i.version,
-    isMuted: i.status === RPCChatTypes.commonConversationStatus.muted,
+    isMuted: i.status === RPCChatTypes.ConversationStatus.muted,
     maxMsgID: i.maxMsgID,
     maxVisibleMsgID: i.maxVisibleMsgID,
     membershipType: conversationMemberStatusToMembershipType(i.memberStatus),
@@ -106,16 +106,16 @@ export const unverifiedInboxUIItemToConversationMeta = (
 
 const conversationMetadataToMetaSupersedeInfo = (metas: ?Array<RPCChatTypes.ConversationMetadata>) => {
   const meta: ?RPCChatTypes.ConversationMetadata = (metas || []).find(
-    m => m.idTriple.topicType === RPCChatTypes.commonTopicType.chat && m.finalizeInfo
+    m => m.idTriple.topicType === RPCChatTypes.TopicType.chat && m.finalizeInfo
   )
 
   return meta ? supersededConversationIDToKey(meta.conversationID) : null
 }
 
 const getTeamType = ({teamType, membersType}) => {
-  if (teamType === RPCChatTypes.commonTeamType.complex) {
+  if (teamType === RPCChatTypes.TeamType.complex) {
     return 'big'
-  } else if (membersType === RPCChatTypes.commonConversationMembersType.team) {
+  } else if (membersType === RPCChatTypes.ConversationMembersType.team) {
     return 'small'
   } else {
     return 'adhoc'
@@ -168,19 +168,19 @@ const parseNotificationSettings = (notifications: ?RPCChatTypes.ConversationNoti
     notificationsGlobalIgnoreMentions = notifications.channelWide
     const s = notifications.settings
     if (s) {
-      const desktop = s[String(RPCTypes.commonDeviceType.desktop)]
+      const desktop = s[String(RPCTypes.DeviceType.desktop)]
       if (desktop) {
-        if (desktop[String(RPCChatTypes.commonNotificationKind.generic)]) {
+        if (desktop[String(RPCChatTypes.NotificationKind.generic)]) {
           notificationsDesktop = 'onAnyActivity'
-        } else if (desktop[String(RPCChatTypes.commonNotificationKind.atmention)]) {
+        } else if (desktop[String(RPCChatTypes.NotificationKind.atmention)]) {
           notificationsDesktop = 'onWhenAtMentioned'
         }
       }
-      const mobile = s[String(RPCTypes.commonDeviceType.mobile)]
+      const mobile = s[String(RPCTypes.DeviceType.mobile)]
       if (mobile) {
-        if (mobile[String(RPCChatTypes.commonNotificationKind.generic)]) {
+        if (mobile[String(RPCChatTypes.NotificationKind.generic)]) {
           notificationsMobile = 'onAnyActivity'
-        } else if (mobile[String(RPCChatTypes.commonNotificationKind.atmention)]) {
+        } else if (mobile[String(RPCChatTypes.NotificationKind.atmention)]) {
           notificationsMobile = 'onWhenAtMentioned'
         }
       }
@@ -227,7 +227,7 @@ const UIItemToRetentionPolicies = (i, isTeam) => {
 
 export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allowEmpty?: boolean) => {
   // Private chats only
-  if (i.visibility !== RPCTypes.commonTLFVisibility.private) {
+  if (i.visibility !== RPCTypes.TLFVisibility.private) {
     return null
   }
   // Ignore empty unless we explicitly allow it (making new conversations)
@@ -241,8 +241,8 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
 
   // We only treat implied adhoc teams as having resetParticipants
   const resetParticipants = I.Set(
-    (i.membersType === RPCChatTypes.commonConversationMembersType.impteamnative ||
-      i.membersType === RPCChatTypes.commonConversationMembersType.impteamupgrade) &&
+    (i.membersType === RPCChatTypes.ConversationMembersType.impteamnative ||
+      i.membersType === RPCChatTypes.ConversationMembersType.impteamupgrade) &&
       i.resetParticipants
       ? i.resetParticipants
       : []
@@ -251,7 +251,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
   const supersededBy = conversationMetadataToMetaSupersedeInfo(i.supersededBy)
   const supersedes = conversationMetadataToMetaSupersedeInfo(i.supersedes)
 
-  const isTeam = i.membersType === RPCChatTypes.commonConversationMembersType.team
+  const isTeam = i.membersType === RPCChatTypes.ConversationMembersType.team
   const {
     notificationsDesktop,
     notificationsGlobalIgnoreMentions,
@@ -278,7 +278,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
     descriptionDecorated: i.headlineDecorated,
     inboxLocalVersion: i.localVersion,
     inboxVersion: i.version,
-    isMuted: i.status === RPCChatTypes.commonConversationStatus.muted,
+    isMuted: i.status === RPCChatTypes.ConversationStatus.muted,
     maxMsgID: i.maxMsgID,
     maxVisibleMsgID: i.maxVisibleMsgID,
     membershipType: conversationMemberStatusToMembershipType(i.memberStatus),
@@ -330,7 +330,7 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   retentionPolicy: TeamConstants.makeRetentionPolicy(),
   snippet: '',
   snippetDecoration: '',
-  status: RPCChatTypes.commonConversationStatus.unfiled,
+  status: RPCChatTypes.ConversationStatus.unfiled,
   supersededBy: noConversationIDKey,
   supersedes: noConversationIDKey,
   teamRetentionPolicy: TeamConstants.makeRetentionPolicy(),
@@ -401,7 +401,7 @@ export const getChannelForTeam = (state: TypedState, teamname: string, channelna
 
 export const getCommands = (state: TypedState, id: Types.ConversationIDKey) => {
   const {commands} = getMeta(state, id)
-  if (commands.typ === RPCChatTypes.commandsConversationCommandGroupsTyp.builtin && commands.builtin) {
+  if (commands.typ === RPCChatTypes.ConversationCommandGroupsTyp.builtin && commands.builtin) {
     return state.chat2.staticConfig ? state.chat2.staticConfig.builtinCommands[commands.builtin] : []
   } else {
     return []

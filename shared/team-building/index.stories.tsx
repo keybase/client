@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
+import * as Types from '../constants/types/team-building'
 import UserBubble from './user-bubble'
 import TeamBuilding from './index'
 import Input from './input'
@@ -570,7 +571,7 @@ const load = () => {
           twitter: 'malgorithms on Twitter',
         }}
         inTeam={false}
-        followingState="Following"
+        followingState={'Following'}
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
       />
@@ -589,7 +590,7 @@ const load = () => {
           twitter: 'malgorithms on Twitter',
         }}
         inTeam={true}
-        followingState="Following"
+        followingState={'Following'}
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
       />
@@ -602,7 +603,7 @@ const load = () => {
         highlight={false}
         services={{github: 'marcopolo', keybase: 'marcopolo'}}
         inTeam={true}
-        followingState="Following"
+        followingState={'Following'}
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
       />
@@ -615,7 +616,7 @@ const load = () => {
         highlight={false}
         services={{github: 'marcopolo'}}
         inTeam={true}
-        followingState="NoState"
+        followingState={'NoState'}
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
       />
@@ -632,7 +633,7 @@ const load = () => {
           twitter: 'malgorithms on Twitter',
         }}
         inTeam={true}
-        followingState="Following"
+        followingState={'Following'}
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
         highlight={true}

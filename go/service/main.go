@@ -331,6 +331,7 @@ func (d *Service) SetupCriticalSubServices() error {
 	stellar.ServiceInit(d.G(), d.walletState, d.badger)
 	pvl.NewPvlSourceAndInstall(d.G())
 	externals.NewParamProofStoreAndInstall(d.G())
+	externals.NewExternalURLStoreAndInstall(d.G())
 	ephemeral.ServiceInit(d.MetaContext(context.TODO()))
 	avatars.ServiceInit(d.G(), d.avatarLoader)
 	return nil
@@ -550,12 +551,10 @@ func (d *Service) runTLFUpgrade() {
 
 func (d *Service) runTeamUpgrader(ctx context.Context) {
 	d.teamUpgrader.Run(libkb.NewMetaContext(ctx, d.G()))
-	return
 }
 
 func (d *Service) runHomePoller(ctx context.Context) {
 	d.home.RunUpdateLoop(libkb.NewMetaContext(ctx, d.G()))
-	return
 }
 
 func (d *Service) runMerkleAudit(ctx context.Context) {

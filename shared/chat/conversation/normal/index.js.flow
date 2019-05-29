@@ -1,4 +1,0 @@
-// @flow
-import * as React from 'react'
-import type {Props} from './index.types'
-export default class Conversation extends React.Component<Props> {}

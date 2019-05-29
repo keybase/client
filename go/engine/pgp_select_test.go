@@ -66,5 +66,4 @@ func TestSelectEngine(t *testing.T) {
 	if !key.GetFingerprint().Eq(gpg.duplicatedFingerprints[0]) {
 		tc.T.Fatal("Our fingerprint ID wasn't returned as up to date")
 	}
-	return
 }

@@ -628,7 +628,6 @@ func (e *Identify2WithUID) maybeCacheResult(m libkb.MetaContext) {
 			m.Debug("| Error in storing slow cache to db: %s", err)
 		}
 	}
-	return
 }
 
 func (e *Identify2WithUID) insertTrackToken(m libkb.MetaContext, outcome *libkb.IdentifyOutcome) (err error) {

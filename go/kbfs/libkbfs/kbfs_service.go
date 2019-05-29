@@ -40,7 +40,6 @@ func (eu KBFSErrorUnwrapper) UnwrapError(arg interface{}) (appError error,
 	switch s.Code {
 	case StatusCodeDiskBlockCacheError:
 		appError = DiskBlockCacheError{Msg: s.Desc}
-		break
 	default:
 		ase := libkb.AppStatusError{
 			Code:   s.Code,

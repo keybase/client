@@ -38,10 +38,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   type: stateProps.type,
 })
 
-// @ts-ignore codemode issue
-export default namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'DeviceRow'
-)(DeviceRow)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'DeviceRow')(DeviceRow)

@@ -1,5 +1,0 @@
-// @flow
-import * as React from 'react'
-import type {Props, RouteState, RowItem, RowItemSmall, RowItemBig} from './index.types'
-export default class Inbox extends React.Component<Props> {}
-export type {RowItem, RowItemSmall, RowItemBig, RouteState}

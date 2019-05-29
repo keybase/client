@@ -4,19 +4,19 @@ import * as RPCChatTypes from '../../types/rpc-chat-gen'
 import {serviceMessageTypeToMessageTypes} from '../message'
 
 const cases = [
-  {in: RPCChatTypes.commonMessageType.none, out: []},
-  {in: RPCChatTypes.commonMessageType.text, out: ['text']},
-  {in: RPCChatTypes.commonMessageType.attachment, out: ['attachment']},
-  {in: RPCChatTypes.commonMessageType.edit, out: []},
-  {in: RPCChatTypes.commonMessageType.delete, out: []},
-  {in: RPCChatTypes.commonMessageType.metadata, out: ['setDescription']},
-  {in: RPCChatTypes.commonMessageType.tlfname, out: []},
-  {in: RPCChatTypes.commonMessageType.headline, out: ['setChannelname']},
-  {in: RPCChatTypes.commonMessageType.attachmentuploaded, out: ['attachment']},
-  {in: RPCChatTypes.commonMessageType.join, out: ['systemJoined']},
-  {in: RPCChatTypes.commonMessageType.leave, out: ['systemLeft']},
+  {in: RPCChatTypes.MessageType.none, out: []},
+  {in: RPCChatTypes.MessageType.text, out: ['text']},
+  {in: RPCChatTypes.MessageType.attachment, out: ['attachment']},
+  {in: RPCChatTypes.MessageType.edit, out: []},
+  {in: RPCChatTypes.MessageType.delete, out: []},
+  {in: RPCChatTypes.MessageType.metadata, out: ['setDescription']},
+  {in: RPCChatTypes.MessageType.tlfname, out: []},
+  {in: RPCChatTypes.MessageType.headline, out: ['setChannelname']},
+  {in: RPCChatTypes.MessageType.attachmentuploaded, out: ['attachment']},
+  {in: RPCChatTypes.MessageType.join, out: ['systemJoined']},
+  {in: RPCChatTypes.MessageType.leave, out: ['systemLeft']},
   {
-    in: RPCChatTypes.commonMessageType.system,
+    in: RPCChatTypes.MessageType.system,
     out: [
       'systemAddedToTeam',
       'systemChangeRetention',
@@ -27,12 +27,12 @@ const cases = [
       'systemUsersAddedToConversation',
     ],
   },
-  {in: RPCChatTypes.commonMessageType.deletehistory, out: []},
-  {in: RPCChatTypes.commonMessageType.reaction, out: []},
-  {in: RPCChatTypes.commonMessageType.unfurl, out: []},
-  {in: RPCChatTypes.commonMessageType.sendpayment, out: ['sendPayment']},
-  {in: RPCChatTypes.commonMessageType.requestpayment, out: ['requestPayment']},
-  {in: RPCChatTypes.commonMessageType.flip, out: []},
+  {in: RPCChatTypes.MessageType.deletehistory, out: []},
+  {in: RPCChatTypes.MessageType.reaction, out: []},
+  {in: RPCChatTypes.MessageType.unfurl, out: []},
+  {in: RPCChatTypes.MessageType.sendpayment, out: ['sendPayment']},
+  {in: RPCChatTypes.MessageType.requestpayment, out: ['requestPayment']},
+  {in: RPCChatTypes.MessageType.flip, out: []},
 ]
 
 describe('serviceMessageTypeToMessageTypes', () => {
@@ -41,7 +41,9 @@ describe('serviceMessageTypeToMessageTypes', () => {
   })
   it('handles all service message types', () => {
     const handledTypes = cases.map(c => c.in)
-    const serviceTypes = Object.values(RPCChatTypes.commonMessageType)
+    const serviceTypes = Object.values(RPCChatTypes.MessageType).filter(
+      k => typeof RPCChatTypes.MessageType[k] !== 'number'
+    )
     expect(handledTypes.sort()).toEqual(serviceTypes.sort())
   })
 })

@@ -7,11 +7,17 @@ export const newRoutes = {
 
 export const newModalRoutes = {
   barePreview: {getScreen: () => require('./filepreview').BarePreview},
-  destinationPicker: {getScreen: () => require('./destination-picker/container').default, upgraded: true},
-  reallyDelete: {getScreen: () => require('./really-delete/container').default, upgraded: true},
-  sendAttachmentToChat: {
-    getScreen: () => require('./send-attachment-to-chat/container').default,
+  confirmDelete: {
+    getScreen: () => require('./common/path-item-action/confirm-delete/container').default,
     upgraded: true,
   },
-  sendLinkToChat: {getScreen: () => require('./send-link-to-chat/container').default, upgraded: true},
+  destinationPicker: {
+    getScreen: () => require('./browser/destination-picker/container').default,
+    upgraded: true,
+  },
+  sendAttachmentToChat: {
+    getScreen: () => require('./send-to-chat/attachment/container').default,
+    upgraded: true,
+  },
+  sendLinkToChat: {getScreen: () => require('./send-to-chat/link/container').default, upgraded: true},
 }

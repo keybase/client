@@ -1719,8 +1719,6 @@ func (idt *IdentityTable) proofRemoteCheck(m MetaContext, hasPreviousTrack, forc
 	}
 
 	m.Debug("| Check status (%s) failed with error: %s", p.ToDebugString(), res.err.Error())
-
-	return
 }
 
 // VerifyReverseSig checks reverse signature using the key provided.
