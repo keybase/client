@@ -54,6 +54,9 @@
     "modulePaths": [
       "<rootDir>/desktop/node_modules"
     ],
+    "modulePathIgnorePatterns": [
+      "<rootDir>/.tsOut/.*"
+    ],
     "transformIgnorePatterns": [
       "node_modules/(?!universalify|fs-extra|react-redux|@storybook|lodash-es|@react-navigation/.*).+\\.js"
     ],
@@ -66,7 +69,7 @@
     ],
     "testPathIgnorePatterns": [
       "/node_modules/",
-      "/.tsOut/"
+      "<rootDir>/.tsOut/"
     ],
     "snapshotSerializers": [
       "jest-emotion"
