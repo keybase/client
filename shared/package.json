@@ -57,6 +57,9 @@
     "transformIgnorePatterns": [
       "node_modules/(?!universalify|fs-extra|react-redux|@storybook|lodash-es|@react-navigation/.*).+\\.js"
     ],
+    "modulePathIgnorePatterns": [
+      "<rootDir>/.tsOut"
+    ],
     "setupFiles": [],
     "setupFilesAfterEnv": [
       "<rootDir>/test/setupTestFrameworkScriptFile.js"
