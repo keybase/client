@@ -1,18 +1,17 @@
 {
   "compilerOptions": {
-    "sourceMap": true,
-    "noImplicitAny": false,
-    "module": "commonjs",
-    "target": "es2017",
-    "jsx": "preserve",
-    "incremental": true,
-    "outDir": "./.tsOut/emit",
     "allowSyntheticDefaultImports": true,
-    "tsBuildInfoFile": "./.tsOut/cache",
     "baseUrl": ".",
-    "paths": {
-      "rn-fetch-blob": ["custom-d.ts/rn-fetch-blob.d.ts"]
-    }
+    "incremental": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "module": "commonjs",
+    "noImplicitAny": false,
+    "outDir": "./.tsOut/emit",
+    "paths": { "rn-fetch-blob": ["custom-d.ts/rn-fetch-blob.d.ts"] },
+    "sourceMap": true,
+    "target": "es2017",
+    "tsBuildInfoFile": "./.tsOut/cache"
   },
   "include": ["./**/*"],
   "exclude": [

@@ -33,6 +33,7 @@ type handlerTracker struct {
 	listConvsOnNameV1 int
 	joinV1            int
 	leaveV1           int
+	loadFlipV1        int
 }
 
 func (h *handlerTracker) ListV1(context.Context, Call, io.Writer) error {
@@ -120,6 +121,11 @@ func (h *handlerTracker) LeaveV1(context.Context, Call, io.Writer) error {
 	return nil
 }
 
+func (h *handlerTracker) LoadFlipV1(context.Context, Call, io.Writer) error {
+	h.loadFlipV1++
+	return nil
+}
+
 type echoResult struct {
 	Status string `json:"status"`
 }
@@ -194,6 +200,10 @@ func (c *chatEcho) JoinV1(context.Context, joinOptionsV1) Reply {
 }
 
 func (c *chatEcho) LeaveV1(context.Context, leaveOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) LoadFlipV1(context.Context, loadFlipOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 

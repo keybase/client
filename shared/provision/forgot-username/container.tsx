@@ -15,8 +15,7 @@ const dispatchToProps = dispatch => ({
   onSubmit: (email: string) => dispatch(ProvisionGen.createForgotUsername({email})),
 })
 
-// @ts-ignore codemode issue
-export default connect<OwnProps, _, _, _, _>(
+export default connect(
   mapStateToProps,
   dispatchToProps,
   (s, d, _) => ({...s, ...d})
