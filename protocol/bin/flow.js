@@ -441,7 +441,7 @@ function writeAll() {
     .join(' & ')}
   `
   const toWrite = [imports, exports].join('\n')
-  const destinationFile = `types/all.js.flow` // Only used by prettier so we can set an override in .prettierrc
+  const destinationFile = `types/rpc-all-gen.tsx` // Only used by prettier so we can set an override in .prettierrc
   const formatted = prettier.format(toWrite, {
     ...prettier.resolveConfig.sync(destinationFile),
     parser: 'typescript',
