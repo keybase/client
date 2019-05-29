@@ -1,4 +1,3 @@
-// @flow
 declare function logSend(
   status: string,
   feedback: string,

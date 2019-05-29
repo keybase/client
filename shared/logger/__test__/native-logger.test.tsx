@@ -1,4 +1,3 @@
-// @flow
 /* eslint-env jest */
 import {dumpLine, parseLine} from '../native-logger'
 

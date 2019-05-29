@@ -1,5 +1,4 @@
-// @flow
-import type {Logger, LogLevel, LogLineWithLevel} from './types'
+import {Logger, LogLevel, LogLineWithLevel} from './types'
 
 class NullLogger implements Logger {
   log = (...s: Array<string>) => {}

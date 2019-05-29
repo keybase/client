@@ -1,9 +1,8 @@
-// @flow
 export function NotifyPopup(
   title: string,
-  opts: ?Object,
+  opts?: Object | null,
   rateLimitSeconds?: number,
   rateLimitKey?: string,
-  onClick: ?() => void,
-  onClose: ?() => void
-): void {}
+  onClick?: (() => void) | null,
+  onClose?: (() => void) | null
+): void

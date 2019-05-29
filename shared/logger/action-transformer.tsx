@@ -1,4 +1,3 @@
-// @flow
 // File to map action type to loggable action.
 // We don't want to log every part of the action, just the useful bits.
 
@@ -9,7 +8,7 @@ import * as GregorGen from '../actions/gregor-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as WaitingGen from '../actions/waiting-gen'
 import * as EntitiesGen from '../actions/entities-gen'
-import type {TypedState} from '../constants/reducer'
+import {TypedState} from '../constants/reducer'
 
 // If you use nullTransform it'll not be logged at all
 const nullTransform = action => {

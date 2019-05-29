@@ -1,6 +1,5 @@
-// @flow
 import {log, dump} from '../native/logger'
-import type {Logger, LogLine, LogLevel, Timestamp} from './types'
+import {Logger, LogLine, LogLevel, Timestamp} from './types'
 import {toStringForLog} from '../util/string'
 
 const dumpLine = (timestamp: Timestamp, toLog: string) => {
