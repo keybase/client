@@ -18,7 +18,7 @@ export const anyErrors = (
   },
   keys: string | Array<string>
 ): RPCError | null => {
-  if (isString(keys)) {
+  if (!Array.isArray(keys)) {
     return state.waiting.errors.get(keys, null)
   }
 

@@ -243,7 +243,7 @@ export const currencyResultToCurrency = (w: RPCTypes.CurrencyLocal) =>
 
 const _defaultPaymentCommon = {
   amountDescription: '',
-  delta: 'none',
+  delta: 'none' as 'none',
   error: '',
   id: Types.noPaymentID,
   issuerAccountID: null,
@@ -258,7 +258,7 @@ const _defaultPaymentCommon = {
   sourceType: '',
   statusDescription: '',
   statusDetail: '',
-  statusSimplified: 'none',
+  statusSimplified: 'none' as 'none',
   target: '',
   targetAccountID: '',
   targetType: '',
@@ -269,7 +269,7 @@ const _defaultPaymentCommon = {
 
 const _defaultPaymentResult = {
   ..._defaultPaymentCommon,
-  section: 'none',
+  section: 'none' as 'none',
   unread: false,
 }
 
@@ -555,6 +555,7 @@ export const getOldestUnread = (state: TypedState, accountID: Types.AccountID) =
   state.wallets.paymentOldestUnreadMap.get(accountID, Types.noPaymentID)
 
 export const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: Types.PaymentID) =>
+  // @ts-ignore codemod issue
   state.wallets.paymentsMap.get(accountID, I.Map()).get(paymentID, makePayment())
 
 export const getAccountInner = (state: Types.State, accountID: Types.AccountID) =>

@@ -1,4 +1,3 @@
-
 const provablePlatformsMap = {
   dns: true,
   facebook: true,
@@ -30,7 +29,7 @@ const platformsExpandedMap = {
   zcash: true,
 }
 
-export type ProvablePlatformsType = keyof typeof provablePlatformsMap;
+export type ProvablePlatformsType = keyof typeof provablePlatformsMap
 export const ProvablePlatforms = Object.keys(provablePlatformsMap).reduce((arr, p) => {
   if (provablePlatformsMap[p]) {
     arr.push(p)
@@ -38,7 +37,7 @@ export const ProvablePlatforms = Object.keys(provablePlatformsMap).reduce((arr, 
   return arr
 }, [])
 
-export type PlatformsExpandedType = keyof typeof platformsExpandedMap;
+export type PlatformsExpandedType = keyof typeof platformsExpandedMap
 export const PlatformsExpanded: Array<PlatformsExpandedType> = Object.keys(platformsExpandedMap).reduce(
   (arr, p) => {
     if (platformsExpandedMap[p]) {
@@ -50,9 +49,8 @@ export const PlatformsExpanded: Array<PlatformsExpandedType> = Object.keys(platf
 )
 
 export function isPlatformsExpandedType(str: string): PlatformsExpandedType | null {
-  if (PlatformsExpanded.includes(str)) {
-    // $ForceType flow can't figure this out
-    return str
+  if (PlatformsExpanded.includes(str as PlatformsExpandedType)) {
+    return str as PlatformsExpandedType
   }
   return null
 }

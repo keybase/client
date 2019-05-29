@@ -10,92 +10,95 @@ import HiddenString from '../../../util/hidden-string'
 
 export type _QuoteInfo = {
   // Always positive and monotonically increasing.
-  counter: number,
-  ordinal: Message.Ordinal,
-  sourceConversationIDKey: Common.ConversationIDKey,
+  counter: number
+  ordinal: Message.Ordinal
+  sourceConversationIDKey: Common.ConversationIDKey
   targetConversationIDKey: Common.ConversationIDKey
-};
-export type QuoteInfo = I.RecordOf<_QuoteInfo>;
+}
+export type QuoteInfo = I.RecordOf<_QuoteInfo>
 
 export type PaymentConfirmInfo = {
-  error?: RPCTypes.Status,
+  error?: RPCTypes.Status
   summary?: RPCChatTypes.UIChatPaymentSummary
-};
+}
 
 // Static config data we use for various things
 export type _StaticConfig = {
-  deletableByDeleteHistory: I.Set<Message.MessageType>,
+  deletableByDeleteHistory: I.Set<Message.MessageType>
   builtinCommands: {
-    [K in RPCChatTypes.ConversationBuiltinCommandTyp]: Array<RPCChatTypes.ConversationCommand>;
+    [K in RPCChatTypes.ConversationBuiltinCommandTyp]: Array<RPCChatTypes.ConversationCommand>
   }
-};
-export type StaticConfig = I.RecordOf<_StaticConfig>;
+}
+export type StaticConfig = I.RecordOf<_StaticConfig>
 
-export type MetaMap = I.Map<Common.ConversationIDKey, Meta.ConversationMeta>;
-export type ConversationCountMap = I.Map<Common.ConversationIDKey, number>;
+export type MetaMap = I.Map<Common.ConversationIDKey, Meta.ConversationMeta>
+export type ConversationCountMap = I.Map<Common.ConversationIDKey, number>
 
-export type ThreadSearchStatus = "initial" | "inprogress" | "done";
+export type ThreadSearchStatus = 'initial' | 'inprogress' | 'done'
 
 export type _ThreadSearchInfo = {
-  status: ThreadSearchStatus,
-  hits: I.List<Message.Message>,
+  status: ThreadSearchStatus
+  hits: I.List<Message.Message>
   visible: boolean
-};
+}
 
-export type ThreadSearchInfo = I.RecordOf<_ThreadSearchInfo>;
+export type ThreadSearchInfo = I.RecordOf<_ThreadSearchInfo>
 
-export type InboxSearchStatus = "initial" | "inprogress" | "success" | "error";
+export type InboxSearchStatus = 'initial' | 'inprogress' | 'success' | 'error'
 
 export type _InboxSearchTextHit = {
-  conversationIDKey: Common.ConversationIDKey,
-  numHits: number,
-  query: string,
-  teamType: "big" | "small",
+  conversationIDKey: Common.ConversationIDKey
+  numHits: number
+  query: string
+  teamType: 'big' | 'small'
   time: number
-};
+}
 
-export type InboxSearchTextHit = I.RecordOf<_InboxSearchTextHit>;
+export type InboxSearchTextHit = I.RecordOf<_InboxSearchTextHit>
 
 export type _InboxSearchConvHit = {
-  conversationIDKey: Common.ConversationIDKey,
-  teamType: "big" | "small"
-};
+  conversationIDKey: Common.ConversationIDKey
+  teamType: 'big' | 'small'
+}
 
-export type InboxSearchConvHit = I.RecordOf<_InboxSearchConvHit>;
+export type InboxSearchConvHit = I.RecordOf<_InboxSearchConvHit>
 
 export type _InboxSearchInfo = {
-  indexPercent: number,
-  nameResults: I.List<InboxSearchConvHit>,
-  nameStatus: InboxSearchStatus,
-  nameResultsUnread: boolean,
-  query: HiddenString,
-  selectedIndex: number,
-  textResults: I.List<InboxSearchTextHit>,
+  indexPercent: number
+  nameResults: I.List<InboxSearchConvHit>
+  nameStatus: InboxSearchStatus
+  nameResultsUnread: boolean
+  query: HiddenString
+  selectedIndex: number
+  textResults: I.List<InboxSearchTextHit>
   textStatus: InboxSearchStatus
-};
+}
 
-export type InboxSearchInfo = I.RecordOf<_InboxSearchInfo>;
+export type InboxSearchInfo = I.RecordOf<_InboxSearchInfo>
 
 // Where focus should be going to.
 // Null represents the default chat input.
 // This is very simple for now, but we can make
 // it fancier by using a stack and more types
-export type Focus = "filter" | null;
+export type Focus = 'filter' | null
 
-export type CenterOrdinalHighlightMode = "none" | "flash" | "always";
+export type CenterOrdinalHighlightMode = 'none' | 'flash' | 'always'
 
 export type CenterOrdinal = {
-  ordinal: Message.Ordinal,
+  ordinal: Message.Ordinal
   highlightMode: CenterOrdinalHighlightMode
-};
+}
 
 export type _State = {
-  accountsInfoMap: I.Map<Common.ConversationIDKey, I.Map<RPCChatTypes.MessageID, Message.ChatRequestInfo | Message.ChatPaymentInfo>> // temp cache for requestPayment and sendPayment message data,
+  accountsInfoMap: I.Map<
+    Common.ConversationIDKey,
+    I.Map<RPCChatTypes.MessageID, Message.ChatRequestInfo | Message.ChatPaymentInfo>
+  > // temp cache for requestPayment and sendPayment message data,
   badgeMap: ConversationCountMap // id to the badge count,
   editingMap: I.Map<Common.ConversationIDKey, Message.Ordinal> // current message being edited,
-  focus: Focus,
+  focus: Focus
   inboxHasLoaded: boolean // if we've ever loaded,
-  inboxSearch: InboxSearchInfo | null,
+  inboxSearch: InboxSearchInfo | null
   inboxShowNew: boolean // mark search as new,
   trustedInboxHasLoaded: boolean // if we've done initial trusted inbox load,
   smallTeamsExpanded: boolean // if we're showing all small teams,
@@ -113,36 +116,111 @@ export type _State = {
   staticConfig: StaticConfig | null // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded,
   typingMap: I.Map<Common.ConversationIDKey, I.Set<string>> // who's typing currently,
   unreadMap: ConversationCountMap // how many unread messages there are,
-  unfurlPromptMap: I.Map<Common.ConversationIDKey, I.Map<Message.MessageID, I.Set<string>>>,
-  giphyWindowMap: I.Map<Common.ConversationIDKey, boolean>,
-  giphyResultMap: I.Map<Common.ConversationIDKey, RPCChatTypes.GiphySearchResults | null>,
+  unfurlPromptMap: I.Map<Common.ConversationIDKey, I.Map<Message.MessageID, I.Set<string>>>
+  giphyWindowMap: I.Map<Common.ConversationIDKey, boolean>
+  giphyResultMap: I.Map<Common.ConversationIDKey, RPCChatTypes.GiphySearchResults | null>
   pendingOutboxToOrdinal: I.Map<Common.ConversationIDKey, I.Map<Message.OutboxID, Message.Ordinal>> // messages waiting to be sent,
-  attachmentFullscreenMessage: Message.Message | null,
+  attachmentFullscreenMessage: Message.Message | null
   paymentConfirmInfo: PaymentConfirmInfo | null // chat payment confirm screen data,
-  paymentStatusMap: I.Map<Wallet.PaymentID, Message.ChatPaymentInfo>,
-  unsentTextMap: I.Map<Common.ConversationIDKey, HiddenString | null>,
-  flipStatusMap: I.Map<string, RPCChatTypes.UICoinFlipStatus>,
-  commandMarkdownMap: I.Map<Common.ConversationIDKey, RPCChatTypes.UICommandMarkdown>,
-  containsLatestMessageMap: I.Map<Common.ConversationIDKey, boolean>,
-  threadSearchInfoMap: I.Map<Common.ConversationIDKey, ThreadSearchInfo>,
-  threadSearchQueryMap: I.Map<Common.ConversationIDKey, HiddenString | null>,
-  replyToMap: I.Map<Common.ConversationIDKey, Message.Ordinal>,
+  paymentStatusMap: I.Map<Wallet.PaymentID, Message.ChatPaymentInfo>
+  unsentTextMap: I.Map<Common.ConversationIDKey, HiddenString | null>
+  flipStatusMap: I.Map<string, RPCChatTypes.UICoinFlipStatus>
+  commandMarkdownMap: I.Map<Common.ConversationIDKey, RPCChatTypes.UICommandMarkdown>
+  containsLatestMessageMap: I.Map<Common.ConversationIDKey, boolean>
+  threadSearchInfoMap: I.Map<Common.ConversationIDKey, ThreadSearchInfo>
+  threadSearchQueryMap: I.Map<Common.ConversationIDKey, HiddenString | null>
+  replyToMap: I.Map<Common.ConversationIDKey, Message.Ordinal>
   maybeMentionMap: I.Map<string, RPCChatTypes.UIMaybeMentionInfo>
-} & TeamBuildingTypes.TeamBuildingSubState;
+} & TeamBuildingTypes.TeamBuildingSubState
 
-export type State = I.RecordOf<_State>;
+export type State = I.RecordOf<_State>
 
-export const conversationIDToKey = (conversationID: RPCChatTypes.ConversationID): Common.ConversationIDKey => Common.stringToConversationIDKey(conversationID.toString('hex'))
+export const conversationIDToKey = (conversationID: RPCChatTypes.ConversationID): Common.ConversationIDKey =>
+  Common.stringToConversationIDKey(conversationID.toString('hex'))
 
-export const keyToConversationID = (key: Common.ConversationIDKey): RPCChatTypes.ConversationID => Buffer.from(Common.conversationIDKeyToString(key), 'hex')
+export const keyToConversationID = (key: Common.ConversationIDKey): RPCChatTypes.ConversationID =>
+  Buffer.from(Common.conversationIDKeyToString(key), 'hex')
 
-export const rpcOutboxIDToOutboxID = (outboxID: RPCChatTypes.OutboxID): Message.OutboxID => Message.stringToOutboxID(outboxID.toString('hex'))
+export const rpcOutboxIDToOutboxID = (outboxID: RPCChatTypes.OutboxID): Message.OutboxID =>
+  Message.stringToOutboxID(outboxID.toString('hex'))
 
-export const outboxIDToRpcOutboxID = (outboxID: Message.OutboxID): RPCChatTypes.OutboxID => Buffer.from(Message.outboxIDToString(outboxID), 'hex')
+export const outboxIDToRpcOutboxID = (outboxID: Message.OutboxID): RPCChatTypes.OutboxID =>
+  Buffer.from(Message.outboxIDToString(outboxID), 'hex')
 
-export { ConversationMeta, MetaTrustedState, NotificationsType, TeamType } from './meta';
-export { AttachmentType, ChatPaymentInfo, ChatRequestInfo, DecoratedMessage, MentionsAt, MentionsChannel, MentionsChannelName, Message, MessageAttachment, MessageExplodeDescription, MessageID, MessageRequestPayment, MessageSendPayment, MessageSetChannelname, MessageSetDescription, MessageSystemAddedToTeam, MessageSystemChangeRetention, MessageSystemGitPush, MessageSystemInviteAccepted, MessageSystemJoined, MessageSystemLeft, MessageSystemSimpleToComplex, MessageSystemText, MessageSystemUsersAddedToConversation, MessageText, MessageType, Ordinal, OutboxID, PathAndOutboxID, PreviewSpec, Reaction, Reactions } from './message';
-export { ConversationIDKey } from './common';
+import {ConversationMeta, MetaTrustedState, NotificationsType, TeamType} from './meta'
+export type ConversationMeta = ConversationMeta
+export type MetaTrustedState = MetaTrustedState
+export type NotificationsType = NotificationsType
+export type TeamType = TeamType
+import {
+  AttachmentType,
+  ChatPaymentInfo,
+  ChatRequestInfo,
+  DecoratedMessage,
+  MentionsAt,
+  MentionsChannel,
+  MentionsChannelName,
+  Message as _Message,
+  MessageAttachment,
+  MessageExplodeDescription,
+  MessageID,
+  MessageRequestPayment,
+  MessageSendPayment,
+  MessageSetChannelname,
+  MessageSetDescription,
+  MessageSystemAddedToTeam,
+  MessageSystemChangeRetention,
+  MessageSystemGitPush,
+  MessageSystemInviteAccepted,
+  MessageSystemJoined,
+  MessageSystemLeft,
+  MessageSystemSimpleToComplex,
+  MessageSystemText,
+  MessageSystemUsersAddedToConversation,
+  MessageText,
+  MessageType,
+  Ordinal,
+  OutboxID,
+  PathAndOutboxID,
+  PreviewSpec,
+  Reaction,
+  Reactions,
+} from './message'
+export type AttachmentType = AttachmentType
+export type ChatPaymentInfo = ChatPaymentInfo
+export type ChatRequestInfo = ChatRequestInfo
+export type DecoratedMessage = DecoratedMessage
+export type MentionsAt = MentionsAt
+export type MentionsChannel = MentionsChannel
+export type MentionsChannelName = MentionsChannelName
+export type Message = _Message
+export type MessageAttachment = MessageAttachment
+export type MessageExplodeDescription = MessageExplodeDescription
+export type MessageID = MessageID
+export type MessageRequestPayment = MessageRequestPayment
+export type MessageSendPayment = MessageSendPayment
+export type MessageSetChannelname = MessageSetChannelname
+export type MessageSetDescription = MessageSetDescription
+export type MessageSystemAddedToTeam = MessageSystemAddedToTeam
+export type MessageSystemChangeRetention = MessageSystemChangeRetention
+export type MessageSystemGitPush = MessageSystemGitPush
+export type MessageSystemInviteAccepted = MessageSystemInviteAccepted
+export type MessageSystemJoined = MessageSystemJoined
+export type MessageSystemLeft = MessageSystemLeft
+export type MessageSystemSimpleToComplex = MessageSystemSimpleToComplex
+export type MessageSystemText = MessageSystemText
+export type MessageSystemUsersAddedToConversation = MessageSystemUsersAddedToConversation
+export type MessageText = MessageText
+export type MessageType = MessageType
+export type Ordinal = Ordinal
+export type OutboxID = OutboxID
+export type PathAndOutboxID = PathAndOutboxID
+export type PreviewSpec = PreviewSpec
+export type Reaction = Reaction
+export type Reactions = Reactions
+
+import {ConversationIDKey} from './common'
+export type ConversationIDKey = ConversationIDKey
 
 export {
   messageIDToNumber,
