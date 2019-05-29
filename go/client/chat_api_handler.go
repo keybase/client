@@ -37,6 +37,7 @@ const (
 	methodListConvsOnName = "listconvsonname"
 	methodJoin            = "join"
 	methodLeave           = "leave"
+	methodLoadFlip        = "loadflip"
 )
 
 type RateLimit struct {
@@ -69,6 +70,7 @@ type ChatAPIHandler interface {
 	ListConvsOnNameV1(context.Context, Call, io.Writer) error
 	JoinV1(context.Context, Call, io.Writer) error
 	LeaveV1(context.Context, Call, io.Writer) error
+	LoadFlipV1(context.Context, Call, io.Writer) error
 }
 
 // ChatAPI implements ChatAPIHandler and contains a ChatServiceHandler
@@ -461,6 +463,45 @@ func (o leaveOptionsV1) Check() error {
 	return nil
 }
 
+type loadFlipOptionsV1 struct {
+	ConversationID     string          `json:"conversation_id"`
+	FlipConversationID string          `json:"flip_conversation_id"`
+	MsgID              chat1.MessageID `json:"msg_id"`
+	GameID             string          `json:"game_id"`
+}
+
+func (o loadFlipOptionsV1) Check() error {
+	if len(o.ConversationID) == 0 {
+		return ErrInvalidOptions{
+			version: 1,
+			method:  methodLoadFlip,
+			err:     errors.New("missing conversation ID"),
+		}
+	}
+	if len(o.FlipConversationID) == 0 {
+		return ErrInvalidOptions{
+			version: 1,
+			method:  methodLoadFlip,
+			err:     errors.New("missing flip conversation ID"),
+		}
+	}
+	if o.MsgID == 0 {
+		return ErrInvalidOptions{
+			version: 1,
+			method:  methodLoadFlip,
+			err:     errors.New("missing flip message ID"),
+		}
+	}
+	if len(o.GameID) == 0 {
+		return ErrInvalidOptions{
+			version: 1,
+			method:  methodLoadFlip,
+			err:     errors.New("missing flip game ID"),
+		}
+	}
+	return nil
+}
+
 func (a *ChatAPI) ListV1(ctx context.Context, c Call, w io.Writer) error {
 	var opts listOptionsV1
 	// Options are optional for list
@@ -734,6 +775,20 @@ func (a *ChatAPI) LeaveV1(ctx context.Context, c Call, w io.Writer) error {
 		return err
 	}
 	return a.encodeReply(c, a.svcHandler.LeaveV1(ctx, opts), w)
+}
+
+func (a *ChatAPI) LoadFlipV1(ctx context.Context, c Call, w io.Writer) error {
+	if len(c.Params.Options) == 0 {
+		return ErrInvalidOptions{version: 1, method: methodLoadFlip, err: errors.New("empty options")}
+	}
+	var opts loadFlipOptionsV1
+	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
+		return err
+	}
+	if err := opts.Check(); err != nil {
+		return err
+	}
+	return a.encodeReply(c, a.svcHandler.LoadFlipV1(ctx, opts), w)
 }
 
 func (a *ChatAPI) encodeReply(call Call, reply Reply, w io.Writer) error {

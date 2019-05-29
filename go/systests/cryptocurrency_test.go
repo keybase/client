@@ -13,8 +13,6 @@ func TestBech32FeatureFlag(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 	jan := tt.addUser("abc")
-	m := libkb.NewMetaContextForTest(*jan.tc)
-
 	runEngine := func() error {
 		eng := engine.NewCryptocurrencyEngine(jan.MetaContext().G(), keybase1.RegisterAddressArg{
 			Address: "bc1qcerjvfmt8qr8xlp6pv4htjhwlj2wgdjnayc3cc",
@@ -27,12 +25,6 @@ func TestBech32FeatureFlag(t *testing.T) {
 		return err
 	}
 	err := runEngine()
-	require.Error(t, err)
-	require.Equal(t, err.Error(), "cannot sign bech32 bitcoin addresses yet")
-
-	err = m.G().FeatureFlags.EnableImmediately(m, libkb.CreateBTCBech32)
-	require.NoError(t, err)
-	err = runEngine()
 	require.NoError(t, err)
 }
 
@@ -40,9 +32,6 @@ func TestProveCapitalizedBech32Address(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 	alice := tt.addUser("abc")
-	m := libkb.NewMetaContextForTest(*alice.tc)
-	err := m.G().FeatureFlags.EnableImmediately(m, libkb.CreateBTCBech32)
-	require.NoError(t, err)
 
 	bech32Test := []struct {
 		address string

@@ -154,8 +154,7 @@ class AddToTeamStateWrapper extends React.Component<{} & ExtraProps & AddToTeamP
   }
 }
 
-// @ts-ignore codemode issue
-export default Container.connect<OwnProps, _, _, _, _>(
+export default Container.connect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

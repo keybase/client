@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "_helper": "yarn run _node desktop/yarn-helper",
-    "_node": "cross-env-shell BABEL_ENV=yarn babel-node",
+    "_node": "cross-env-shell BABEL_ENV=yarn babel-node --extensions='.tsx' ",
     "help": "yarn run _helper help",
     "lint": "yarn run lint-specific .",
     "lint-specific": "cd .. && shared/node_modules/.bin/eslint --quiet --ext js --ext ts --ext tsx --ext d.ts",
@@ -57,8 +57,13 @@
     "transformIgnorePatterns": [
       "node_modules/(?!universalify|fs-extra|react-redux|@storybook|lodash-es|@react-navigation/.*).+\\.js"
     ],
+    "modulePathIgnorePatterns": [
+      "<rootDir>/.tsOut"
+    ],
     "setupFiles": [],
-    "setupTestFrameworkScriptFile": "<rootDir>/test/setupTestFrameworkScriptFile.js",
+    "setupFilesAfterEnv": [
+      "<rootDir>/test/setupTestFrameworkScriptFile.js"
+    ],
     "testPathIgnorePatterns": [
       "/node_modules/",
       "/.tsOut/"
@@ -69,16 +74,16 @@
     "timers": "fake",
     "testEnvironment": "jsdom",
     "moduleNameMapper": {
-      "\\.(jpg|png|gif|ttf|css)$": "<rootDir>/__mocks__/file-mock.js",
-      "react-list": "<rootDir>/__mocks__/react-list.js",
-      "desktop/app/resolve-root": "<rootDir>/__mocks__/resolve-root.js",
-      "react-redux": "<rootDir>/__mocks__/react-redux.js",
-      "^electron$": "<rootDir>/__mocks__/electron.js",
-      "hidden-string": "<rootDir>/__mocks__/hidden-string.js",
-      "constants/platform": "<rootDir>/__mocks__/platform.js",
-      "local-debug": "<rootDir>/__mocks__/local-debug.js",
-      "feature-flags": "<rootDir>/__mocks__/feature-flags.js",
-      "engine/saga$": "<rootDir>/__mocks__/engine-saga.js"
+      "\\.(jpg|png|gif|ttf|css)$": "<rootDir>/__mocks__/file-mock.tsx",
+      "react-list": "<rootDir>/__mocks__/react-list.tsx",
+      "desktop/app/resolve-root": "<rootDir>/__mocks__/resolve-root.tsx",
+      "react-redux": "<rootDir>/__mocks__/react-redux.tsx",
+      "^electron$": "<rootDir>/__mocks__/electron.tsx",
+      "hidden-string": "<rootDir>/__mocks__/hidden-string.tsx",
+      "constants/platform": "<rootDir>/__mocks__/platform.tsx",
+      "local-debug": "<rootDir>/__mocks__/local-debug.tsx",
+      "feature-flags": "<rootDir>/__mocks__/feature-flags.tsx",
+      "engine/saga$": "<rootDir>/__mocks__/engine-saga.tsx"
     },
     "moduleFileExtensions": [
       "js",

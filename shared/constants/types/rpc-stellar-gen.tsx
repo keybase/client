@@ -352,6 +352,7 @@ export type OutsideCurrencyDefinition = {readonly name: String; readonly symbol:
 export type OutsideExchangeRate = {readonly currency: OutsideCurrencyCode; readonly rate: String}
 export type OwnAccountCLILocal = {readonly accountID: AccountID; readonly isPrimary: Boolean; readonly name: String; readonly balance?: Array<Balance> | null; readonly exchangeRate?: OutsideExchangeRate | null; readonly accountMode: AccountMode}
 export type PageCursor = {readonly horizonCursor: String; readonly directCursor: String; readonly relayCursor: String}
+export type PartnerUrl = {readonly url: String; readonly title: String; readonly description: String; readonly iconFilename: String; readonly adminOnly: Boolean; readonly extra: String}
 export type PathPaymentPost = {readonly fromDeviceID: Keybase1.DeviceID; readonly to?: Keybase1.UserVersion | null; readonly noteB64: String; readonly signedTransaction: String; readonly quickReturn: Boolean; readonly chatConversationID?: ChatConversationID | null}
 export type PaymentCLILocal = {readonly txID: TransactionID; readonly time: TimeMs; readonly status: String; readonly statusDetail: String; readonly amount: String; readonly asset: Asset; readonly displayAmount?: String | null; readonly displayCurrency?: String | null; readonly sourceAmountMax: String; readonly sourceAmountActual: String; readonly sourceAsset: Asset; readonly fromStellar: AccountID; readonly toStellar?: AccountID | null; readonly fromUsername?: String | null; readonly toUsername?: String | null; readonly toAssertion?: String | null; readonly note: String; readonly noteErr: String; readonly unread: Boolean}
 export type PaymentDetails = {readonly summary: PaymentSummary; readonly memo: String; readonly memoType: String; readonly externalTxURL: String}
@@ -488,6 +489,7 @@ export const localValidateSecretKeyLocalRpcPromise = (params: MessageTypes['stel
 // 'stellar.1.local.approveTxURILocal'
 // 'stellar.1.local.approvePayURILocal'
 // 'stellar.1.local.approvePathURILocal'
+// 'stellar.1.local.getPartnerUrlsLocal'
 // 'stellar.1.notify.paymentNotification'
 // 'stellar.1.notify.paymentStatusNotification'
 // 'stellar.1.notify.requestStatusNotification'

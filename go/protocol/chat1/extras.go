@@ -1711,6 +1711,14 @@ func (r *GetInboxAndUnboxLocalRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
+func (r *LoadFlipRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *LoadFlipRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
 func (r *GetInboxAndUnboxUILocalRes) GetRateLimit() []RateLimit {
 	return r.RateLimits
 }

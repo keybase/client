@@ -1081,6 +1081,26 @@ func (o ValidateStellarURIResultLocal) DeepCopy() ValidateStellarURIResultLocal 
 	}
 }
 
+type PartnerUrl struct {
+	Url          string `codec:"url" json:"url"`
+	Title        string `codec:"title" json:"title"`
+	Description  string `codec:"description" json:"description"`
+	IconFilename string `codec:"iconFilename" json:"icon_filename"`
+	AdminOnly    bool   `codec:"adminOnly" json:"admin_only"`
+	Extra        string `codec:"extra" json:"extra"`
+}
+
+func (o PartnerUrl) DeepCopy() PartnerUrl {
+	return PartnerUrl{
+		Url:          o.Url,
+		Title:        o.Title,
+		Description:  o.Description,
+		IconFilename: o.IconFilename,
+		AdminOnly:    o.AdminOnly,
+		Extra:        o.Extra,
+	}
+}
+
 type GetWalletAccountsLocalArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -1488,6 +1508,10 @@ type ApprovePathURILocalArg struct {
 	FromCLI   bool        `codec:"fromCLI" json:"fromCLI"`
 }
 
+type GetPartnerUrlsLocalArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type LocalInterface interface {
 	GetWalletAccountsLocal(context.Context, int) ([]WalletAccountLocal, error)
 	GetWalletAccountLocal(context.Context, GetWalletAccountLocalArg) (WalletAccountLocal, error)
@@ -1561,6 +1585,7 @@ type LocalInterface interface {
 	ApproveTxURILocal(context.Context, ApproveTxURILocalArg) (TransactionID, error)
 	ApprovePayURILocal(context.Context, ApprovePayURILocalArg) (TransactionID, error)
 	ApprovePathURILocal(context.Context, ApprovePathURILocalArg) (TransactionID, error)
+	GetPartnerUrlsLocal(context.Context, int) ([]PartnerUrl, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -2627,6 +2652,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getPartnerUrlsLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]GetPartnerUrlsLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetPartnerUrlsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetPartnerUrlsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetPartnerUrlsLocal(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
 		},
 	}
 }
@@ -3007,5 +3047,11 @@ func (c LocalClient) ApprovePayURILocal(ctx context.Context, __arg ApprovePayURI
 
 func (c LocalClient) ApprovePathURILocal(ctx context.Context, __arg ApprovePathURILocalArg) (res TransactionID, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.approvePathURILocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetPartnerUrlsLocal(ctx context.Context, sessionID int) (res []PartnerUrl, err error) {
+	__arg := GetPartnerUrlsLocalArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "stellar.1.local.getPartnerUrlsLocal", []interface{}{__arg}, &res)
 	return
 }

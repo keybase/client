@@ -429,6 +429,9 @@ func (f *JSONConfigFile) GetPvlKitFilename() string {
 func (f *JSONConfigFile) GetParamProofKitFilename() string {
 	return f.GetTopLevelString("paramproof_kit")
 }
+func (f *JSONConfigFile) GetExternalURLKitFilename() string {
+	return f.GetTopLevelString("externalurl_kit")
+}
 func (f *JSONConfigFile) GetProveBypass() (bool, bool) {
 	return f.GetBoolAtPath("prove_bypass")
 }

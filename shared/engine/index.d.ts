@@ -9,7 +9,7 @@ export declare class Engine {
   reset(): void
   rpc(): void
   sagasAreReady(): void
-  hasEverConnected(): void
+  hasEverConnected(): boolean
   registerCustomResponse(any): void
   createSession(arg0: {
     incomingCallMap?: any

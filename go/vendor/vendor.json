@@ -751,10 +751,10 @@
 			"revisionTime": "2018-08-24T13:24:23Z"
 		},
 		{
-			"checksumSHA1": "AdTewzl8bd3Il/9CHP/+b4hkhyw=",
+			"checksumSHA1": "1/YSDkbMqXyqNzNVUI+0Vt+lqtA=",
 			"path": "github.com/keybase/saltpack",
-			"revision": "4f6adfa39469a276a90a537ec95807901c72a0be",
-			"revisionTime": "2018-08-09T16:02:10Z"
+			"revision": "462a2685bf7c067c19169605745c7d538cd3d8a8",
+			"revisionTime": "2019-05-28T18:13:59Z"
 		},
 		{
 			"checksumSHA1": "hqQxqs30aFMN/MLPcg8O1OiqmMA=",
@@ -1073,16 +1073,16 @@
 			"revisionTime": "2018-03-22T21:26:26Z"
 		},
 		{
-			"checksumSHA1": "6LwXZI7kXm1C0h4Ui0Y52p9uQhk=",
+			"checksumSHA1": "IIsn0Wdi5rHU8xca+FzDd+YeYlc=",
 			"path": "github.com/stretchr/testify/assert",
-			"revision": "c679ae2cc0cb27ec3293fea7e254e47386f05d69",
-			"revisionTime": "2018-03-14T08:05:35Z"
+			"revision": "34c6fa2dc70986bccbbffcc6130f6920a924b075",
+			"revisionTime": "2019-03-04T09:57:49Z"
 		},
 		{
-			"checksumSHA1": "KqYmXUcuGwsvBL6XVsQnXsFb3LI=",
+			"checksumSHA1": "IL+W0JvlL7zRZFsSVHiX2hectIs=",
 			"path": "github.com/stretchr/testify/require",
-			"revision": "c679ae2cc0cb27ec3293fea7e254e47386f05d69",
-			"revisionTime": "2018-03-14T08:05:35Z"
+			"revision": "34c6fa2dc70986bccbbffcc6130f6920a924b075",
+			"revisionTime": "2019-03-04T09:57:49Z"
 		},
 		{
 			"checksumSHA1": "4NTmfUj7H5J59M2wCnp3/8FWt1I=",

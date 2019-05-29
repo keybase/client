@@ -48,8 +48,7 @@ const dispatchToProps = dispatch => ({
 })
 
 export default compose(
-  // @ts-ignore codemode issue
-  connect<OwnProps, _, _, _, _>(
+  connect(
     mapStateToProps,
     dispatchToProps,
     (s, d, _) => ({...s, ...d})
