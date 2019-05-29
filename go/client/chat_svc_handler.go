@@ -39,6 +39,8 @@ type ChatServiceHandler interface {
 	JoinV1(context.Context, joinOptionsV1) Reply
 	LeaveV1(context.Context, leaveOptionsV1) Reply
 	LoadFlipV1(context.Context, loadFlipOptionsV1) Reply
+	GetUnfurlSettingsV1(context.Context) Reply
+	SetUnfurlSettingsV1(context.Context, setUnfurlSettingsOptionsV1) Reply
 }
 
 // chatServiceHandler implements ChatServiceHandler.
@@ -234,6 +236,37 @@ func (c *chatServiceHandler) LoadFlipV1(ctx context.Context, opts loadFlipOption
 		return c.errReply(err)
 	}
 	return Reply{Result: res}
+}
+
+func (c *chatServiceHandler) GetUnfurlSettingsV1(ctx context.Context) Reply {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	res, err := client.GetUnfurlSettings(ctx)
+	if err != nil {
+		return c.errReply(err)
+	}
+	return Reply{
+		Result: map[string]interface{}{
+			"mode":      strings.ToLower(chat1.UnfurlModeRevMap[res.Mode]),
+			"whitelist": res.Whitelist,
+		},
+	}
+}
+
+func (c *chatServiceHandler) SetUnfurlSettingsV1(ctx context.Context, opts setUnfurlSettingsOptionsV1) Reply {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	if err := client.SaveUnfurlSettings(ctx, chat1.SaveUnfurlSettingsArg{
+		Mode:      opts.intMode,
+		Whitelist: opts.Whitelist,
+	}); err != nil {
+		return c.errReply(err)
+	}
+	return Reply{Result: true}
 }
 
 func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat1.MessageUnboxed,

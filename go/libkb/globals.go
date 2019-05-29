@@ -998,6 +998,10 @@ func (g *GlobalContext) CallLoginHooks(mctx MetaContext) {
 	// Do so outside the lock below
 	g.GetFullSelfer().OnLogin(mctx)
 
+	if _, err := LoadHasRandomPw(mctx, keybase1.LoadHasRandomPwArg{ForceRepoll: true}); err != nil {
+		mctx.Warning("failed to pre-fetch no-password state: %s", err)
+	}
+
 	g.hookMu.RLock()
 	defer g.hookMu.RUnlock()
 	for _, h := range g.loginHooks {
