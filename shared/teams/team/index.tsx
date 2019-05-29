@@ -48,9 +48,7 @@ class Team extends React.Component<Props> {
       case 'settings':
         return <Settings key="settings" teamname={this.props.teamname} />
       default: {
-        // $FlowIssue row is any!
-        Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(row.type)
-        throw new Error(`Impossible case encountered in team page list: ${row.type}`)
+        throw new Error(`Impossible case encountered in team page list: ${row}`)
       }
     }
   }

@@ -1,4 +1,5 @@
 import * as React from 'react'
+// @ts-ignore not typed yet
 import {Response} from 'react-native-image-picker'
 
 export type Props = {

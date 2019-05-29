@@ -64,6 +64,7 @@ const rolesMetaInfo = (
 ): {
   cans: Array<string>
   cants: Array<string>
+  extra?: Array<string>
   icon: React.ReactNode | null
 } => {
   switch (infoForRole) {
@@ -127,8 +128,7 @@ const rolesMetaInfo = (
         icon: null,
       }
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(infoForRole)
-      return {}
+      throw new Error(`Unexpected role: ${infoForRole}`)
   }
 }
 

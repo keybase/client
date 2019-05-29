@@ -23,9 +23,9 @@ export type CheckboxesProps = {
   box1: boolean
   box2: boolean
   box3: boolean
-  onSetBox1: () => void
-  onSetBox2: () => void
-  onSetBox3: () => void
+  onSetBox1: (checked: boolean) => void
+  onSetBox2: (checked: boolean) => void
+  onSetBox3: (checked: boolean) => void
 }
 
 const Checkboxes = (props: CheckboxesProps) => (

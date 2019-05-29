@@ -16,8 +16,8 @@ let rolePickerProps = toMerge => ({
 
 class StateWrapper extends React.Component<any, any> {
   state = {}
-  constructor() {
-    super()
+  constructor(props) {
+    super(props)
     this.state = {
       onSelectRole: role => {
         Sb.action('onSelectRole')(role)

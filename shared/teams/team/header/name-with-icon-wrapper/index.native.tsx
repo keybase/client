@@ -1,5 +1,6 @@
 import * as React from 'react'
 import {NameWithIcon} from '../../../../common-adapters'
+// @ts-ignore not typed yet
 import {showImagePicker, Response} from 'react-native-image-picker'
 import {Props} from '.'
 
