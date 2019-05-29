@@ -21,22 +21,22 @@ const updatePathItem = (
   // prefetchComplete and prefetchNotStarted this may not matter, since we are
   // using the same references anyway. But for PrefetchInProgress it's a
   // different record everytime, and this becomes useful.
-  // $FlowIssue
+  // @ts-ignore
   const newPathItem = newPathItemFromAction.update('prefetchStatus', newPrefetchStatus =>
     newPrefetchStatus.equals(oldPathItem.prefetchStatus) ? oldPathItem.prefetchStatus : newPrefetchStatus
   )
   switch (newPathItem.type) {
-    case 'unknown':
+    case Types.PathType.Unknown:
       return newPathItem
-    case 'symlink':
-      // $FlowIssue
+    case Types.PathType.Symlink:
+      // @ts-ignore
       const oldSymlinkPathItem: Types.SymlinkPathItem = oldPathItem
       const newSymlinkPathItem: Types.SymlinkPathItem = newPathItem
       // This returns oldPathItem if oldPathItem.equals(newPathItem), which is
       // what we want here.
       return oldSymlinkPathItem.merge(newSymlinkPathItem)
-    case 'file':
-      // $FlowIssue
+    case Types.PathType.File:
+      // @ts-ignore
       const oldFilePathItem: Types.FilePathItem = oldPathItem
       const newFilePathItem: Types.FilePathItem = newPathItem
       // There are two complications in this case:
@@ -73,15 +73,21 @@ const updatePathItem = (
       // Either way, this can be done with a simple merge.
       return oldFilePathItem.merge(newFilePathItem)
     case 'folder':
-      // $FlowIssue
+      // @ts-ignore
       const oldFolderPathItem: Types.FolderPathItem = oldPathItem
       const newFolderPathItem: Types.FolderPathItem = newPathItem
-      if (oldFolderPathItem.progress === 'pending' && newFolderPathItem.progress === 'loaded') {
+      if (
+        oldFolderPathItem.progress === Types.ProgressType.Pending &&
+        newFolderPathItem.progress === Types.ProgressType.Loaded
+      ) {
         // The new one has children loaded and the old one doesn't. There's no
         // way to reuse the old one so just return newFolderPathItem.
         return newFolderPathItem
       }
-      if (oldFolderPathItem.progress === 'loaded' && newFolderPathItem.progress === 'pending') {
+      if (
+        oldFolderPathItem.progress === Types.ProgressType.Loaded &&
+        newFolderPathItem.progress === Types.ProgressType.Pending
+      ) {
         // The new one doesn't have children, but the old one has. We don't
         // want to override a loaded folder into pending, because otherwise
         // next time user goes into that folder we'd show placeholders.  So
@@ -91,11 +97,14 @@ const updatePathItem = (
         // has changed.
         return oldFolderPathItem.merge(
           newFolderPathItem.withMutations(p =>
-            p.set('children', oldFolderPathItem.children).set('progress', 'loaded')
+            p.set('children', oldFolderPathItem.children).set('progress', Types.ProgressType.Loaded)
           )
         )
       }
-      if (oldFolderPathItem.progress === 'pending' && newFolderPathItem.progress === 'pending') {
+      if (
+        oldFolderPathItem.progress === Types.ProgressType.Pending &&
+        newFolderPathItem.progress === Types.ProgressType.Pending
+      ) {
         // Neither one has children, so just do a simple merge like simple
         // cases above for symlink/unknown types.
         return oldFolderPathItem.merge(newFolderPathItem)
@@ -116,8 +125,8 @@ const updatePathItem = (
 const haveSamePartialSyncConfig = (tlf1: Types.Tlf, tlf2: Types.Tlf) =>
   tlf2.syncConfig &&
   tlf1.syncConfig &&
-  tlf2.syncConfig.mode === 'partial' &&
-  tlf1.syncConfig.mode === 'partial' &&
+  tlf2.syncConfig.mode === Types.TlfSyncMode.Partial &&
+  tlf1.syncConfig.mode === Types.TlfSyncMode.Partial &&
   tlf2.syncConfig.enabledPaths.equals(tlf1.syncConfig.enabledPaths)
 
 const updateTlf = (oldTlf?: Types.Tlf | null, newTlf?: Types.Tlf): Types.Tlf => {
@@ -168,7 +177,7 @@ const reduceFsError = (state: Types.State, action: FsGen.FsErrorPayload): Types.
   switch (erroredAction.type) {
     case FsGen.commitEdit:
       return withFsErrorBar(state, action).update('edits', edits =>
-        edits.update(erroredAction.payload.editID, edit => edit.set('status', 'failed'))
+        edits.update(erroredAction.payload.editID, edit => edit.set('status', Types.EditStatusType.Failed))
       )
     case FsGen.upload:
       // Don't show error bar in this case, as the uploading row already shows
@@ -216,10 +225,10 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         const toSet =
           oldPathItem === Constants.unknownPathItem ? newPathItem : updatePathItem(oldPathItem, newPathItem)
 
-        oldPathItem.type === 'folder' &&
+        oldPathItem.type === Types.PathType.Folder &&
           oldPathItem.children.forEach(
             name =>
-              (toSet.type !== 'folder' || !toSet.children.includes(name)) &&
+              (toSet.type !== Types.PathType.Folder || !toSet.children.includes(name)) &&
               toRemove.add(Types.pathConcat(path, name))
           )
 
@@ -259,7 +268,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       // TLFs, and update their syncConfig as needed based on the incoming
       // payload. Note that if a TLF that we know of doesn't appear in the
       // payload, we assume it's sync-disable.
-      return ['private', 'public', 'team'].reduce((state, tlfType) => {
+      return [Types.TlfType.Private, Types.TlfType.Public, Types.TlfType.Team].reduce((state, tlfType) => {
         const tlfsFromAction = action.payload[tlfType] || I.Map()
         return state.update('tlfs', tlfs =>
           tlfs.update(tlfType, tlfList =>
@@ -366,7 +375,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.newFolderRow:
       const {parentPath} = action.payload
       const parentPathItem = state.pathItems.get(parentPath, Constants.unknownPathItem)
-      if (parentPathItem.type !== 'folder') {
+      if (parentPathItem.type !== Types.PathType.Folder) {
         console.warn(`bad parentPath: ${parentPathItem.type}`)
         return state
       }
@@ -406,7 +415,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       )
     case FsGen.commitEdit:
       return state.update('edits', edits =>
-        edits.update(action.payload.editID, edit => edit.set('status', 'saving'))
+        edits.update(action.payload.editID, edit => edit.set('status', Types.EditStatusType.Saving))
       )
     case FsGen.discardEdit:
       return state.update('edits', edits => edits.remove(action.payload.editID))
@@ -419,7 +428,12 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.showMoveOrCopy:
       return state.update('destinationPicker', dp =>
         dp
-          .set('source', dp.source.type === 'move-or-copy' ? dp.source : Constants.makeMoveOrCopySource())
+          .set(
+            'source',
+            dp.source.type === Types.DestinationPickerSource.MoveOrCopy
+              ? dp.source
+              : Constants.makeMoveOrCopySource()
+          )
           .set('destinationParentPath', I.List([action.payload.initialDestinationParentPath]))
       )
     case FsGen.setMoveOrCopySource:
@@ -435,7 +449,9 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         dp
           .set(
             'source',
-            dp.source.type === 'incoming-share' ? dp.source : Constants.makeIncomingShareSource()
+            dp.source.type === Types.DestinationPickerSource.IncomingShare
+              ? dp.source
+              : Constants.makeIncomingShareSource()
           )
           .set('destinationParentPath', I.List([action.payload.initialDestinationParentPath]))
       )
@@ -448,7 +464,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         'sendAttachmentToChat',
         Constants.makeSendAttachmentToChat({
           path: action.payload.path,
-          state: 'pending-select-conversation',
+          state: Types.SendAttachmentToChatState.PendingSelectConversation,
         })
       )
     case FsGen.setSendAttachmentToChatConvID:
@@ -458,8 +474,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           .set(
             'state',
             ChatConstants.isValidConversationIDKey(action.payload.convID)
-              ? 'ready-to-send'
-              : 'pending-select-conversation'
+              ? Types.SendAttachmentToChatState.ReadyToSend
+              : Types.SendAttachmentToChatState.PendingSelectConversation
           )
       )
     case FsGen.setSendAttachmentToChatFilter:
@@ -467,13 +483,13 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         sendAttachmentToChat.set('filter', action.payload.filter)
       )
     case FsGen.sentAttachmentToChat:
-      return state.update('sendAttachmentToChat', sendLinkToChat => sendLinkToChat.set('state', 'sent'))
+      return state.setIn(['sendAttachmentToChat', 'state'], Types.SendLinkToChatState.Sent)
     case FsGen.initSendLinkToChat:
       return state.set(
         'sendLinkToChat',
         Constants.makeSendLinkToChat({
           path: action.payload.path,
-          state: 'locating-conversation',
+          state: Types.SendLinkToChatState.LocatingConversation,
         })
       )
     case FsGen.setSendLinkToChatConvID:
@@ -483,7 +499,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           // Notably missing check on if convID is noConversationIDKey,
           // because it's possible we need to create such conversation. So
           // always treat this action as a transition to 'ready-to-send'.
-          .set('state', 'ready-to-send')
+          .set('state', Types.SendLinkToChatState.ReadyToSend)
       )
     case FsGen.setSendLinkToChatChannels:
       return state.update('sendLinkToChat', sendLinkToChat =>
@@ -492,17 +508,19 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           .set(
             'state',
             ChatConstants.isValidConversationIDKey(sendLinkToChat.convID)
-              ? 'ready-to-send'
-              : 'pending-select-conversation'
+              ? Types.SendLinkToChatState.ReadyToSend
+              : Types.SendLinkToChatState.PendingSelectConversation
           )
       )
     case FsGen.triggerSendLinkToChat:
-      return state.update('sendLinkToChat', sendLinkToChat => sendLinkToChat.set('state', 'sending'))
+      return state.update('sendLinkToChat', sendLinkToChat =>
+        sendLinkToChat.set('state', Types.SendLinkToChatState.Sending)
+      )
     case FsGen.sentLinkToChat:
       return state.update('sendLinkToChat', sendLinkToChat =>
         // We need to set convID here so component can navigate to the
         // conversation thread correctly.
-        sendLinkToChat.set('state', 'sent').set('convID', action.payload.convID)
+        sendLinkToChat.set('state', Types.SendLinkToChatState.Sent).set('convID', action.payload.convID)
       )
     case FsGen.setPathItemActionMenuView:
       return state.update('pathItemActionMenu', pathItemActionMenu =>
@@ -514,7 +532,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       )
     case FsGen.waitForKbfsDaemon:
       return state.update('kbfsDaemonStatus', kbfsDaemonStatus =>
-        kbfsDaemonStatus.set('rpcStatus', 'waiting')
+        kbfsDaemonStatus.set('rpcStatus', Types.KbfsDaemonRpcStatus.Waiting)
       )
     case FsGen.kbfsDaemonRpcStatusChanged:
       return state.update('kbfsDaemonStatus', kbfsDaemonStatus =>
@@ -539,13 +557,15 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.driverEnable:
       return state.update('sfmi', sfmi =>
         sfmi.update('driverStatus', driverStatus =>
-          driverStatus.type === 'disabled' ? driverStatus.set('isEnabling', true) : driverStatus
+          driverStatus.type === Types.DriverStatusType.Disabled
+            ? driverStatus.set('isEnabling', true)
+            : driverStatus
         )
       )
     case FsGen.driverKextPermissionError:
       return state.update('sfmi', sfmi =>
         sfmi.update('driverStatus', driverStatus =>
-          driverStatus.type === 'disabled'
+          driverStatus.type === Types.DriverStatusType.Disabled
             ? driverStatus.set('kextPermissionError', true).set('isEnabling', false)
             : driverStatus
         )
@@ -553,7 +573,9 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.driverDisabling:
       return state.update('sfmi', sfmi =>
         sfmi.update('driverStatus', driverStatus =>
-          driverStatus.type === 'enabled' ? driverStatus.set('isDisabling', true) : driverStatus
+          driverStatus.type === Types.DriverStatusType.Enabled
+            ? driverStatus.set('isDisabling', true)
+            : driverStatus
         )
       )
     case FsGen.setPathSoftError:
