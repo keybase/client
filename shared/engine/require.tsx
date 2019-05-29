@@ -24,5 +24,6 @@ export function initEngineSaga(es: EngineSaga) {
   _engineSaga = es
 }
 export function getEngineSaga() {
-  return _engineSaga
+  // TODO codemod issue
+  return _engineSaga as any
 }
