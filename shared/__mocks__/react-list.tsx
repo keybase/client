@@ -1,4 +1,3 @@
-// @noflow
 import * as React from 'react'
 import {clamp} from 'lodash-es'
 if (!__STORYBOOK__) {
@@ -6,8 +5,8 @@ if (!__STORYBOOK__) {
 }
 
 type Props = {
-  length: number,
-  itemRenderer: (index: number, key: number) => React.Node,
+  length: number
+  itemRenderer: (index: number, key: number) => React.ReactNode
 }
 
 class ReactListMock extends React.Component<Props, {}> {

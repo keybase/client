@@ -1,12 +1,8 @@
-// @flow
-
-import type {FeatureFlags} from '../util/feature-flags.js.flow'
-
 if (!__STORYBOOK__) {
   throw new Error('Invalid load of mock')
 }
 
-const ff: FeatureFlags = {
+const ff = {
   admin: false,
   airdrop: true,
   chatIndexProfilingEnabled: false,
