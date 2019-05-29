@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
@@ -7,6 +6,8 @@ import * as Styles from '../../../styles'
 import {imgMaxWidthRaw} from '../messages/attachment/image/image-render'
 import {formatTimeForMessages} from '../../../util/timestamp'
 import MessagePopup from '../messages/message-popup'
+// @ts-ignore
+import {Props as HeaderHocProps} from '../../../common-adapters/header-hoc/types'
 
 const monthNames = [
   'January',
@@ -97,28 +98,34 @@ const createLoadMoreSection = (onLoadMore, onRetry, status) => {
 }
 
 type Sizing = {
-  marginBottom: number,
-  marginLeft: number,
-  marginRight: number,
-  marginTop: number,
+  dims: {
+    height: number
+    width: number
+  }
+  margins: {
+    marginBottom: number
+    marginLeft: number
+    marginRight: number
+    marginTop: number
+  }
 }
 
-type Thumb = {|
-  ctime: number,
-  height: number,
-  isVideo: boolean,
-  onClick: () => void,
-  previewURL: string,
-  width: number,
-|}
+type Thumb = {
+  ctime: number
+  height: number
+  isVideo: boolean
+  onClick: () => void
+  previewURL: string
+  width: number
+}
 
 type MediaThumbProps = {
-  thumb: Thumb,
-  sizing: Sizing,
+  thumb: Thumb
+  sizing: Sizing
 }
 
 type MediaThumbState = {
-  loading: boolean,
+  loading: boolean
 }
 
 class MediaThumb extends React.Component<MediaThumbProps, MediaThumbState> {
@@ -216,7 +223,7 @@ export class MediaView {
     thumbs: Array<Thumb>,
     onLoadMore: null | (() => void),
     onRetry: () => void,
-    status: TypeCheck.AttachmentViewStatus
+    status: Types.AttachmentViewStatus
   ) => {
     const months = formMonths(thumbs).reduce((l, m) => {
       l.push(this._finalizeMonth(m))
@@ -226,18 +233,22 @@ export class MediaView {
   }
 }
 
-type Doc = {|
-  author: string,
-  ctime: number,
-  downloading: boolean,
-  message?: Types.Message,
-  name: string,
-  progress: number,
-  onDownload: null | (() => void),
-  onShowInFinder: null | (() => void),
-|}
+type Doc = {
+  author: string
+  ctime: number
+  downloading: boolean
+  message?: Types.Message
+  name: string
+  progress: number
+  onDownload: null | (() => void)
+  onShowInFinder: null | (() => void)
+}
 
-class _DocViewRow extends React.Component<Doc> {
+type DocViewRowProps = {
+  item: Doc
+} & HeaderHocProps
+
+class _DocViewRow extends React.Component<DocViewRowProps> {
   render() {
     const item = this.props.item
     return (
@@ -312,13 +323,13 @@ export class DocView {
   }
 }
 
-type Link = {|
-  author: string,
-  ctime: number,
-  snippet: string,
-  title?: string,
-  url?: string,
-|}
+type Link = {
+  author: string
+  ctime: number
+  snippet: string
+  title?: string
+  url?: string
+}
 
 export class LinkView {
   _renderSectionHeader = ({section}) => {
@@ -387,8 +398,8 @@ export class LinkView {
 }
 
 type SelectorProps = {
-  selectedView: RPCChatTypes.GalleryItemTyp,
-  onSelectView: RPCChatTypes.GalleryItemTyp => void,
+  selectedView: RPCChatTypes.GalleryItemTyp
+  onSelectView: (typ: RPCChatTypes.GalleryItemTyp) => void
 }
 
 export class AttachmentTypeSelector extends React.Component<SelectorProps> {

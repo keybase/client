@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
 import * as Kb from '../../../common-adapters'
@@ -8,20 +7,20 @@ import MinWriterRole from './min-writer-role/container'
 import Notifications from './notifications/container'
 import {CaptionedDangerIcon} from './channel-utils'
 
-type SettingsPanelProps = {|
-  canDeleteHistory: boolean,
-  conversationIDKey: Types.ConversationIDToKey,
-  entityType: 'adhoc' | 'channel' | 'small team',
-  ignored: boolean,
-  onHideConv: () => void,
-  onUnhideConv: () => void,
-  onLeaveConversation: () => void,
-  onShowBlockConversationDialog: () => void,
-  onShowClearConversationDialog: () => void,
-  spinnerForHide: boolean,
-  teamname: string,
-  channelname?: string,
-|}
+type SettingsPanelProps = {
+  canDeleteHistory: boolean
+  conversationIDKey: Types.ConversationIDToKey
+  entityType: 'adhoc' | 'channel' | 'small team'
+  ignored: boolean
+  onHideConv: () => void
+  onUnhideConv: () => void
+  onLeaveConversation: () => void
+  onShowBlockConversationDialog: () => void
+  onShowClearConversationDialog: () => void
+  spinnerForHide: boolean
+  teamname: string
+  channelname?: string
+}
 
 export const SettingsPanel = (props: SettingsPanelProps) => {
   return (
