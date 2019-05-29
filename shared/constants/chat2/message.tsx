@@ -294,23 +294,19 @@ const makeMessageSystemAddedToTeam = I.Record<MessageTypes._MessageSystemAddedTo
   type: 'systemAddedToTeam',
 })
 
-const makeMessageSystemInviteAccepted = I.Record<MessageTypes._MessageSystemInviteAccepted>(
-  {
-    ...makeMessageMinimum,
-    adder: '',
-    author: '[Keybase]',
-    inviteType: 'none',
-    invitee: '',
-    inviter: '',
-    reactions: I.Map(),
-    team: '',
-    type: 'systemInviteAccepted',
-  }
-)
+const makeMessageSystemInviteAccepted = I.Record<MessageTypes._MessageSystemInviteAccepted>({
+  ...makeMessageMinimum,
+  adder: '',
+  author: '[Keybase]',
+  inviteType: 'none',
+  invitee: '',
+  inviter: '',
+  reactions: I.Map(),
+  team: '',
+  type: 'systemInviteAccepted',
+})
 
-const makeMessageSystemSimpleToComplex: I.Record.Factory<
-  MessageTypes._MessageSystemSimpleToComplex
-> = I.Record({
+const makeMessageSystemSimpleToComplex = I.Record<MessageTypes._MessageSystemSimpleToComplex>({
   ...makeMessageMinimum,
   reactions: I.Map(),
   team: '',
@@ -350,9 +346,7 @@ const makeMessageSetChannelname = I.Record<MessageTypes._MessageSetChannelname>(
   type: 'setChannelname',
 })
 
-const makeMessageSystemChangeRetention: I.Record.Factory<
-  MessageTypes._MessageSystemChangeRetention
-> = I.Record({
+const makeMessageSystemChangeRetention = I.Record<MessageTypes._MessageSystemChangeRetention>({
   ...makeMessageMinimum,
   isInherit: false,
   isTeam: false,
@@ -364,9 +358,9 @@ const makeMessageSystemChangeRetention: I.Record.Factory<
   you: '',
 })
 
-const makeMessageSystemUsersAddedToConversation: I.Record.Factory<
+const makeMessageSystemUsersAddedToConversation = I.Record<
   MessageTypes._MessageSystemUsersAddedToConversation
-> = I.Record({
+>({
   ...makeMessageMinimum,
   reactions: I.Map(),
   type: 'systemUsersAddedToConversation',
