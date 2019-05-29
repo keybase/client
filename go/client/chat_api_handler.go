@@ -20,24 +20,26 @@ import (
 )
 
 const (
-	methodList            = "list"
-	methodRead            = "read"
-	methodGet             = "get"
-	methodSend            = "send"
-	methodEdit            = "edit"
-	methodReaction        = "reaction"
-	methodDelete          = "delete"
-	methodAttach          = "attach"
-	methodDownload        = "download"
-	methodSetStatus       = "setstatus"
-	methodMark            = "mark"
-	methodSearchInbox     = "searchinbox"
-	methodSearchRegexp    = "searchregexp"
-	methodNewConv         = "newconv"
-	methodListConvsOnName = "listconvsonname"
-	methodJoin            = "join"
-	methodLeave           = "leave"
-	methodLoadFlip        = "loadflip"
+	methodList              = "list"
+	methodRead              = "read"
+	methodGet               = "get"
+	methodSend              = "send"
+	methodEdit              = "edit"
+	methodReaction          = "reaction"
+	methodDelete            = "delete"
+	methodAttach            = "attach"
+	methodDownload          = "download"
+	methodSetStatus         = "setstatus"
+	methodMark              = "mark"
+	methodSearchInbox       = "searchinbox"
+	methodSearchRegexp      = "searchregexp"
+	methodNewConv           = "newconv"
+	methodListConvsOnName   = "listconvsonname"
+	methodJoin              = "join"
+	methodLeave             = "leave"
+	methodLoadFlip          = "loadflip"
+	methodGetUnfurlSettings = "getunfurlsettings"
+	methodSetUnfurlSettings = "setunfurlsettings"
 )
 
 type RateLimit struct {
@@ -71,6 +73,8 @@ type ChatAPIHandler interface {
 	JoinV1(context.Context, Call, io.Writer) error
 	LeaveV1(context.Context, Call, io.Writer) error
 	LoadFlipV1(context.Context, Call, io.Writer) error
+	GetUnfurlSettingsV1(context.Context, Call, io.Writer) error
+	SetUnfurlSettingsV1(context.Context, Call, io.Writer) error
 }
 
 // ChatAPI implements ChatAPIHandler and contains a ChatServiceHandler
@@ -502,6 +506,25 @@ func (o loadFlipOptionsV1) Check() error {
 	return nil
 }
 
+type setUnfurlSettingsOptionsV1 struct {
+	Mode      string           `json:"mode"`
+	intMode   chat1.UnfurlMode `json:"-"`
+	Whitelist []string         `json:"whitelist"`
+}
+
+func (o setUnfurlSettingsOptionsV1) Check() error {
+	if val, ok := chat1.UnfurlModeMap[strings.ToUpper(o.Mode)]; ok {
+		o.intMode = val
+	} else {
+		return ErrInvalidOptions{
+			version: 1,
+			method:  methodSetUnfurlSettings,
+			err:     errors.New("invalid unfurl mode"),
+		}
+	}
+	return nil
+}
+
 func (a *ChatAPI) ListV1(ctx context.Context, c Call, w io.Writer) error {
 	var opts listOptionsV1
 	// Options are optional for list
@@ -789,6 +812,24 @@ func (a *ChatAPI) LoadFlipV1(ctx context.Context, c Call, w io.Writer) error {
 		return err
 	}
 	return a.encodeReply(c, a.svcHandler.LoadFlipV1(ctx, opts), w)
+}
+
+func (a *ChatAPI) GetUnfurlSettingsV1(ctx context.Context, c Call, w io.Writer) error {
+	return a.encodeReply(c, a.svcHandler.GetUnfurlSettingsV1(ctx), w)
+}
+
+func (a *ChatAPI) SetUnfurlSettingsV1(ctx context.Context, c Call, w io.Writer) error {
+	if len(c.Params.Options) == 0 {
+		return ErrInvalidOptions{version: 1, method: methodLoadFlip, err: errors.New("empty options")}
+	}
+	var opts setUnfurlSettingsOptionsV1
+	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
+		return err
+	}
+	if err := opts.Check(); err != nil {
+		return err
+	}
+	return a.encodeReply(c, a.svcHandler.SetUnfurlSettingsV1(ctx, opts), w)
 }
 
 func (a *ChatAPI) encodeReply(call Call, reply Reply, w io.Writer) error {
