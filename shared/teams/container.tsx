@@ -105,7 +105,7 @@ class Reloadable extends React.PureComponent<
 
 const Connected = Container.compose(
   Container.withSafeNavigation,
-  Container.connect<OwnProps, _, _, _, _>(
+  Container.connect(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps
@@ -119,7 +119,7 @@ const Connected = Container.compose(
 
 const ConnectedHeaderRightActions = Container.compose(
   Container.withSafeNavigation,
-  Container.connect<OwnProps, _, _, _, _>(
+  Container.connect(
     () => ({}),
     headerActions,
     (s, d, o) => ({...o, ...s, ...d})

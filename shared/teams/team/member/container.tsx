@@ -169,7 +169,7 @@ class TeamMemberStateWrapper extends React.Component<Props, State> {
 }
 
 export default compose(
-  Container.connect<OwnProps, _, _, _, _>(
+  Container.connect(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps

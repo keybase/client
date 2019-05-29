@@ -38,7 +38,7 @@ const mapDispatchToProps = (dispatch, ownProps) => {
   }
 }
 
-export default Container.connect<OwnProps, _, _, _, _>(
+export default Container.connect(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d})

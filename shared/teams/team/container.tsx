@@ -137,7 +137,7 @@ class TabsState extends React.PureComponent<React.ElementConfig<typeof Team>, St
 }
 
 const Connected = compose(
-  connect<OwnProps, _, _, _, _>(
+  connect(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps

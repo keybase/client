@@ -35,7 +35,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   teamname: ownProps.teamname,
 })
 
-export const HeaderRightActions = Container.namedConnect<OwnProps, _, _, _, _>(
+export const HeaderRightActions = Container.namedConnect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,
@@ -83,7 +83,7 @@ const mergePropsTitle = (stateProps, dispatchProps) => ({
   teamname: stateProps.teamname,
 })
 
-export const HeaderTitle = Container.namedConnect<OwnProps, _, _, _, _>(
+export const HeaderTitle = Container.namedConnect(
   mapStateToPropsTitle,
   mapDispatchToPropsTitle,
   mergePropsTitle,
@@ -106,7 +106,7 @@ const mergePropsSub = (stateProps, dispatchProps, {teamname}) => ({
   onAddSelf: stateProps._canAddSelf ? () => dispatchProps.onAddSelf(stateProps._you, teamname) : null,
 })
 
-export const SubHeader = Container.namedConnect<OwnProps, _, _, _, _>(
+export const SubHeader = Container.namedConnect(
   mapStateToPropsSub,
   mapDispatchToPropsSub,
   mergePropsSub,

@@ -151,7 +151,7 @@ const mapDispatchToProps = (
 })
 
 export default compose(
-  namedConnect<OwnProps, _, _, _, _>(
+  namedConnect(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d}),

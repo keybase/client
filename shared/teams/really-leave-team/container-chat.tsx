@@ -74,7 +74,7 @@ class Switcher extends React.PureComponent<Props> {
 }
 
 export default Container.compose(
-  Container.connect<OwnProps, _, _, _, _>(
+  Container.connect(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps
