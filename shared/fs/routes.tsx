@@ -1,4 +1,3 @@
-// @flow
 export const newRoutes = {
   fsRoot: {getScreen: () => require('./container').default, upgraded: true},
   main: {getScreen: () => require('./container').default, upgraded: true},

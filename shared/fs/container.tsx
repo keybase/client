@@ -1,7 +1,6 @@
-// @flow
 import * as React from 'react'
 import * as I from 'immutable'
-import {getRouteProps, namedConnect, type RouteProps} from '../util/container'
+import {getRouteProps, namedConnect, RouteProps} from '../util/container'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as FsGen from '../actions/fs-gen'
 import * as Constants from '../constants/fs'
@@ -13,7 +12,7 @@ import {LoadPathMetadataWhenNeeded} from './common'
 import * as SimpleScreens from './simple-screens'
 import {Actions, MainBanner, MobileHeader, mobileHeaderHeight, Title} from './nav-header'
 
-const mapStateToProps = (state, ownProps) => {
+const mapStateToProps = (state, ownProps: OwnProps) => {
   const path = getRouteProps(ownProps, 'path') || Constants.defaultPath
   return {
     _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
@@ -34,7 +33,7 @@ const mapDispatchToProps = dispatch => ({
   waitForKbfsDaemon: () => dispatch(FsGen.createWaitForKbfsDaemon()),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const path = getRouteProps(ownProps, 'path') || Constants.defaultPath
   const isDefinitelyFolder = Types.getPathElements(path).length <= 3
   return {
@@ -50,28 +49,28 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-type ChooseComponentProps = {|
-  emitBarePreview: () => void,
-  kbfsDaemonStatus: Types.KbfsDaemonStatus,
-  mimeType: ?Types.Mime,
-  path: Types.Path,
-  pathType: Types.PathType,
-  routePath: I.List<string>,
-  softError: ?Types.SoftError,
-  waitForKbfsDaemon: () => void,
-|}
+type ChooseComponentProps = {
+  emitBarePreview: () => void
+  kbfsDaemonStatus: Types.KbfsDaemonStatus
+  mimeType: Types.Mime | null
+  path: Types.Path
+  pathType: Types.PathType
+  routePath: I.List<string>
+  softError: Types.SoftError | null
+  waitForKbfsDaemon: () => void
+}
 
 const useBare = isMobile
-  ? (mimeType: ?Types.Mime) => {
-      return Constants.viewTypeFromMimeType(mimeType) === 'image'
+  ? (mimeType: Types.Mime | null) => {
+      return Constants.viewTypeFromMimeType(mimeType) === Types.FileViewType.Image
     }
-  : (mimeType: ?Types.Mime) => {
+  : (mimeType: Types.Mime | null) => {
       return false
     }
 
 class ChooseComponent extends React.PureComponent<ChooseComponentProps> {
   waitForKbfsDaemonIfNeeded() {
-    if (this.props.kbfsDaemonStatus.rpcStatus !== 'connected') {
+    if (this.props.kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected) {
       // Always triggers whenever something changes if we are not connected.
       // Saga deduplicates redundant checks.
       this.props.waitForKbfsDaemon()
@@ -95,9 +94,9 @@ class ChooseComponent extends React.PureComponent<ChooseComponentProps> {
       return <SimpleScreens.Oops path={this.props.path} reason={this.props.softError} />
     }
     switch (this.props.pathType) {
-      case 'folder':
+      case Types.PathType.Folder:
         return <Browser path={this.props.path} routePath={this.props.routePath} />
-      case 'unknown':
+      case Types.PathType.Unknown:
         return <SimpleScreens.Loading path={this.props.path} />
       default:
         if (!this.props.mimeType) {
@@ -113,7 +112,7 @@ class ChooseComponent extends React.PureComponent<ChooseComponentProps> {
     }
   }
   render() {
-    if (this.props.kbfsDaemonStatus.rpcStatus !== 'connected') {
+    if (this.props.kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected) {
       return <SimpleScreens.Loading path={this.props.path} />
     }
     return (
@@ -125,16 +124,16 @@ class ChooseComponent extends React.PureComponent<ChooseComponentProps> {
   }
 }
 
-type OwnProps = RouteProps<{|path: Types.Path|}, {||}>
+type OwnProps = RouteProps<
+  {
+    path: Types.Path
+  },
+  {}
+>
 
-const Connected = namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'FsMain'
-)(ChooseComponent)
+const Connected = namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'FsMain')(ChooseComponent)
 
-// $FlowIssue lets fix this
+// @ts-ignore
 Connected.navigationOptions = ({navigation}: {navigation: any}) => {
   const path = navigation.getParam('path') || Constants.defaultPath
   return isMobile

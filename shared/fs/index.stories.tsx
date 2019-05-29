@@ -1,4 +1,3 @@
-// @flow
 import bannerStories from './banner/index.stories'
 import commonStories from './common/index.stories'
 import filepreviewStories from './filepreview/index.stories'
