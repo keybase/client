@@ -16,7 +16,7 @@ type OwnProps = {
 type StateProps = {view: Types.PathItemActionMenuView}
 type Props = OwnProps & StateProps
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state, ownProps: OwnProps) => ({
   view: state.fs.pathItemActionMenu.view,
 })
 

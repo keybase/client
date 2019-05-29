@@ -10,11 +10,11 @@ type OwnProps = {
   alwaysShow?: boolean | null
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state, ownProps: OwnProps) => ({
   driverStatus: state.fs.sfmi.driverStatus,
 })
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   onDisable: () => dispatch(FsGen.createDriverDisable()),
   onDismiss: () => dispatch(FsGen.createHideSystemFileManagerIntegrationBanner()),
   onEnable: () => dispatch(FsGen.createDriverEnable({})),

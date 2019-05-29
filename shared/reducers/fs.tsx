@@ -219,7 +219,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         pathItems.update(action.payload.path, original => updatePathItem(original, action.payload.pathItem))
       )
     case FsGen.folderListLoaded: {
-      const toRemove = new Set()
+      const toRemove = []
       const toMerge = action.payload.pathItems.map((newPathItem, path) => {
         const oldPathItem = state.pathItems.get(path, Constants.unknownPathItem)
         const toSet =
@@ -229,7 +229,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           oldPathItem.children.forEach(
             name =>
               (toSet.type !== Types.PathType.Folder || !toSet.children.includes(name)) &&
-              toRemove.add(Types.pathConcat(path, name))
+              toRemove.push(Types.pathConcat(path, name))
           )
 
         return toSet

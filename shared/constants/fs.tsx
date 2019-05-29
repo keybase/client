@@ -29,11 +29,13 @@ export const ExitCodeFuseKextPermissionError = 5
 export const ExitCodeAuthCanceledError = 6
 
 export const makeNewFolder: I.Record.Factory<Types._NewFolder> = I.Record({
-  hint: 'New Folder',
-  name: 'New Folder',
-  parentPath: Types.stringToPath('/keybase'),
-  status: Types.EditStatusType.Editing,
-  type: Types.EditType.NewFolder,
+  ...{
+    hint: 'New Folder',
+    name: 'New Folder',
+    parentPath: Types.stringToPath('/keybase'),
+    status: Types.EditStatusType.Editing,
+    type: Types.EditType.NewFolder,
+  },
 })
 export const emptyFolder = makeNewFolder()
 
