@@ -1,4 +1,4 @@
-import * as redux from '../node_modules/react-redux'
+import * as redux from '../node_modules/react-redux/lib/index'
 
 if (!__STORYBOOK__) {
   throw new Error('Invalid load of mock')
