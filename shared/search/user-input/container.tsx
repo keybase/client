@@ -19,7 +19,7 @@ export type OwnProps = {
   placeholder?: string
   onFocus?: () => void
   onChangeSearchText?: (searchText: string) => void
-  onExitSearch: () => void | null
+  onExitSearch: (() => void) | null
   onSelectUser?: (id: string) => void
   hideAddButton?: boolean
   disableListBuilding?: boolean
