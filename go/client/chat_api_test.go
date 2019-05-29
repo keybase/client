@@ -16,24 +16,26 @@ import (
 )
 
 type handlerTracker struct {
-	listV1            int
-	readV1            int
-	getV1             int
-	sendV1            int
-	editV1            int
-	reactionV1        int
-	deleteV1          int
-	attachV1          int
-	downloadV1        int
-	setstatusV1       int
-	markV1            int
-	searchInboxV1     int
-	searchRegexpV1    int
-	newConvV1         int
-	listConvsOnNameV1 int
-	joinV1            int
-	leaveV1           int
-	loadFlipV1        int
+	listV1              int
+	readV1              int
+	getV1               int
+	sendV1              int
+	editV1              int
+	reactionV1          int
+	deleteV1            int
+	attachV1            int
+	downloadV1          int
+	setstatusV1         int
+	markV1              int
+	searchInboxV1       int
+	searchRegexpV1      int
+	newConvV1           int
+	listConvsOnNameV1   int
+	joinV1              int
+	leaveV1             int
+	loadFlipV1          int
+	getUnfurlSettingsV1 int
+	setUnfurlSettingsV1 int
 }
 
 func (h *handlerTracker) ListV1(context.Context, Call, io.Writer) error {
@@ -126,6 +128,16 @@ func (h *handlerTracker) LoadFlipV1(context.Context, Call, io.Writer) error {
 	return nil
 }
 
+func (h *handlerTracker) GetUnfurlSettingsV1(context.Context, Call, io.Writer) error {
+	h.getUnfurlSettingsV1++
+	return nil
+}
+
+func (h *handlerTracker) SetUnfurlSettingsV1(context.Context, Call, io.Writer) error {
+	h.setUnfurlSettingsV1++
+	return nil
+}
+
 type echoResult struct {
 	Status string `json:"status"`
 }
@@ -204,6 +216,14 @@ func (c *chatEcho) LeaveV1(context.Context, leaveOptionsV1) Reply {
 }
 
 func (c *chatEcho) LoadFlipV1(context.Context, loadFlipOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) GetUnfurlSettingsV1(context.Context) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) SetUnfurlSettingsV1(context.Context, setUnfurlSettingsOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 
