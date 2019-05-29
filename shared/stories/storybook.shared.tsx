@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
@@ -6,14 +5,15 @@ import {Provider} from 'react-redux'
 import {createStore} from 'redux'
 import {GatewayProvider, GatewayDest} from 'react-gateway'
 import {action} from '@storybook/addon-actions'
+// @ts-ignore
 import Box from '../common-adapters/box'
+// @ts-ignore
 import Text from '../common-adapters/text'
+// @ts-ignore
 import ClickableBox from '../common-adapters/clickable-box'
 import RandExp from 'randexp'
 
-type SelectorMap = {
-  [componentDisplayName: string]: (any => any) | Object,
-}
+export type SelectorMap = {[K in string]: (arg0: any) => any | Object}
 
 const unexpected = (name: string) => () => {
   throw new Error(`unexpected ${name}`)
@@ -55,7 +55,8 @@ const createPropProvider = (...maps: SelectorMap[]) => {
    * React.Fragment is used to render StorybookErrorBoundary and GatewayDest as
    * children to GatewayProvider which only takes one child
    */
-  return (story: () => React.Node) => (
+  return (story: () => React.ReactNode) => (
+    // @ts-ignore complains about merged
     <Provider
       key={`provider:${uniqueProviderKey++}`}
       store={createStore(state => state, merged)}
@@ -73,21 +74,31 @@ const createPropProvider = (...maps: SelectorMap[]) => {
 
 class StorybookErrorBoundary extends React.Component<
   any,
-  {hasError: boolean, error: ?Error, info: ?{componentStack: string}}
+  {
+    hasError: boolean
+    error: Error | null
+    info: {
+      componentStack: string
+    } | null
+  }
 > {
-  // $FlowIssue doesn't like us overriding the definition
-  componentDidCatch: ?Function
-
   constructor(props: any) {
     super(props)
     this.state = {error: null, hasError: false, info: null}
 
     // Disallow catching errors when snapshot testing
     if (!__STORYSHOT__) {
-      this.componentDidCatch = (error: Error, info: {componentStack: string}) => {
+      // @ts-ignore
+      this.componentDidCatch = (
+        error: Error,
+        info: {
+          componentStack: string
+        }
+      ) => {
         this.setState({error, hasError: true, info})
       }
     } else {
+      // @ts-ignore
       this.componentDidCatch = undefined
     }
   }
@@ -161,7 +172,15 @@ const scrollViewDecorator = (story: any) => (
   <Kb.ScrollView style={{height: '100%', width: '100%'}}>{story()}</Kb.ScrollView>
 )
 
-class PerfBox extends React.Component<{copiesToRender: number, children: React.Node}, {key: number}> {
+class PerfBox extends React.Component<
+  {
+    copiesToRender: number
+    children: React.ReactNode
+  },
+  {
+    key: number
+  }
+> {
   state = {key: 1}
   _text = null
   _startTime = 0
@@ -200,7 +219,9 @@ const perfDecorator = (copiesToRender: number = 100) => (story: any) => (
 )
 
 // Used to pass extra props to a component in a story without flow typing
-const propOverridesForStory = (p: any): {} => ({storyProps: p})
+const propOverridesForStory = (p: any): {} => ({
+  storyProps: p,
+})
 
 export {
   unexpected,
