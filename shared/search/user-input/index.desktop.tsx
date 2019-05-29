@@ -1,16 +1,18 @@
-// @flow
 import {trim, last} from 'lodash-es'
 import React, {Component} from 'react'
+// @ts-ignore
 import {Box, Text, Icon} from '../../common-adapters'
 import AutosizeInput from './autosize-input.desktop'
 import {globalColors, globalMargins, globalStyles, platformStyles, collapseStyles} from '../../styles'
 import IconOrAvatar from '../icon-or-avatar'
 import {followingStateToStyle} from '../shared'
+// @ts-ignore
 import {getStyle as getTextStyle} from '../../common-adapters/text'
+import {UserDetails, Props} from '.'
 
-import type {UserDetails, Props} from './'
-
-type UserItemProps = UserDetails & {onRemoveUser: (id: string) => void}
+type UserItemProps = UserDetails & {
+  onRemoveUser: (id: string) => void
+}
 
 class UserItem extends Component<UserItemProps> {
   _onRemoveUser = () => {
@@ -54,10 +56,12 @@ class UserItem extends Component<UserItemProps> {
   }
 }
 
-type State = {isFocused: boolean}
+type State = {
+  isFocused: boolean
+}
 
 class UserInput extends Component<Props, State> {
-  _textInput: ?AutosizeInput
+  _textInput: AutosizeInput | null
 
   state = {
     isFocused: false,

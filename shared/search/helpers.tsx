@@ -1,4 +1,3 @@
-// @flow
 import {compose, withHandlers, withPropsOnChange} from 'recompose'
 import * as Types from '../constants/types/search'
 import {isMobile} from '../constants/platform'
@@ -7,14 +6,14 @@ import {debounce} from 'lodash-es'
 const debounceTimeout = 1e3
 
 type OwnProps = {
-  onChangeSearchText: ?(s: string) => void,
-  search: (term: string, service: Types.Service) => void,
-  selectedService: Types.Service,
-  searchResultIds: Array<Types.SearchResultId>,
-  selectedSearchId: ?Types.SearchResultId,
-  onUpdateSelectedSearchResult: (id: ?Types.SearchResultId) => void,
-  onAddUser: (id: Types.SearchResultId) => void,
-  searchResultTerm: string,
+  onChangeSearchText: (s: string) => void | null
+  search: (term: string, service: Types.Service) => void
+  selectedService: Types.Service
+  searchResultIds: Array<Types.SearchResultId>
+  selectedSearchId: Types.SearchResultId | null
+  onUpdateSelectedSearchResult: (id: Types.SearchResultId | null) => void
+  onAddUser: (id: Types.SearchResultId) => void
+  searchResultTerm: string
 }
 
 // TODO hook up this type
@@ -39,7 +38,9 @@ const clearSearchHoc: any = withHandlers({
     onClearSearch ? () => onClearSearch() : () => onExitSearch(),
 })
 
-type OwnPropsWithSearchDebounced = OwnProps & {_searchDebounced: $PropertyType<OwnProps, 'search'>}
+type OwnPropsWithSearchDebounced = OwnProps & {
+  _searchDebounced: OwnProps['search']
+}
 
 const onChangeSelectedSearchResultHoc: any = compose(
   withHandlers({
@@ -68,19 +69,23 @@ const onChangeSelectedSearchResultHoc: any = compose(
       // is typed, or on mobile when 'Next' is tapped, so we expedite
       // the current search, if any
       onAddSelectedUser: (props: OwnPropsWithSearchDebounced) => () => {
+        // @ts-ignore
         props._searchDebounced.flush()
         // See whether the current search result term matches the last one submitted
         // -- unless we're showing search suggestions, which don't have a term.
-        // $FlowIssue
+        // @ts-ignore
         if (lastSearchTerm === props.searchResultTerm || props.showingSearchSuggestions) {
-          // $FlowIssue
+          // @ts-ignore
           if (props.disableListBuilding) {
+            // @ts-ignore
             if (props.onSelectUser && props.selectedSearchId) {
+              // @ts-ignore
               props.onSelectUser(props.selectedSearchId)
               props.onChangeSearchText && props.onChangeSearchText('')
             } else if (isMobile) {
               // On mobile, this function is called if the user taps
               // 'Next', which means the keyboard is going away.
+              // @ts-ignore
               props.onExitSearch()
             }
           } else {
@@ -94,6 +99,7 @@ const onChangeSelectedSearchResultHoc: any = compose(
         props.onChangeSearchText && props.onChangeSearchText(nextText)
         if (nextText === '') {
           // In case we have a search that would fire after our other search
+          // @ts-ignore
           props._searchDebounced.cancel()
           props.search(nextText, props.selectedService)
         } else {

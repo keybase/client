@@ -1,44 +1,38 @@
-// @flow
 import React, {Component} from 'react'
-import ReactList from 'react-list'
 import Row from '../result-row/container'
-import {Box, Text} from '../../common-adapters'
+import {Box, Text, NativeFlatList} from '../../common-adapters/mobile.native'
 import {globalColors, globalMargins} from '../../styles'
 import EmptyResults from './empty'
 
-import type {Props} from '.'
+import {Props} from '.'
 
 class SearchResultsList extends Component<Props> {
-  _itemRenderer = index => {
-    const id = this.props.items[index]
-    const {onClick, onMouseOver, onShowTracker, searchKey} = this.props
+  _keyExtractor = id => id
+
+  _renderItem = ({item: id}) => {
+    const {disableIfInTeamName, onClick, onShowTracker, searchKey} = this.props
     return (
       <Row
+        disableIfInTeamName={disableIfInTeamName}
         id={id}
-        key={id}
+        selected={false}
         onClick={() => onClick(id)}
-        onMouseOver={() => onMouseOver && onMouseOver(id)}
         onShowTracker={onShowTracker ? () => onShowTracker(id) : undefined}
         searchKey={searchKey}
-        selected={this.props.selectedId === id}
-        disableIfInTeamName={this.props.disableIfInTeamName}
       />
     )
   }
 
-  _list = null
-  _setRef = r => (this._list = r)
-  _itemSizeGetter = () => 48
-
   render() {
     const {showSearchSuggestions, style, items} = this.props
     if (items == null) {
-      return <Box style={{height: 240, ...style}} />
+      return <Box />
     } else if (!items.length) {
       return <EmptyResults style={style} />
     }
+
     return (
-      <Box style={{height: 240, width: '100%', ...style}}>
+      <Box style={{width: '100%', ...style}}>
         {showSearchSuggestions && (
           <Box style={{padding: globalMargins.tiny}}>
             <Text type="BodySmallSemibold" style={{color: globalColors.black_50}}>
@@ -46,14 +40,12 @@ class SearchResultsList extends Component<Props> {
             </Text>
           </Box>
         )}
-        <ReactList
-          useTranslate3d={true}
-          useStaticSize={true}
-          itemRenderer={this._itemRenderer}
-          ref={this._setRef}
-          length={items.length}
-          itemSizeGetter={this._itemSizeGetter}
-          type="variable"
+        <NativeFlatList
+          data={items}
+          renderItem={this._renderItem}
+          keyExtractor={this._keyExtractor}
+          keyboardDismissMode={this.props.keyboardDismissMode}
+          keyboardShouldPersistTaps="handled"
         />
       </Box>
     )

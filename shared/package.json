@@ -201,6 +201,7 @@
     "@storybook/react": "5.0.1",
     "@storybook/react-native": "4.1.14",
     "@storybook/theming": "5.0.1",
+    "@types/lodash-es": "4.17.3",
     "@types/moment": "2.13.0",
     "@types/react": "16.8.19",
     "@types/react-dom": "16.8.4",

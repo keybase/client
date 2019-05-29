@@ -1,4 +1,3 @@
-// @flow
 import resultRow from './result-row/index.stories'
 import servicesFilter from './services-filter/index.stories'
 import resultsList from './results-list/index.stories'

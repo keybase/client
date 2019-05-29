@@ -1,41 +1,34 @@
-// @flow
 import * as Constants from '../../constants/search'
 import * as HocHelpers from '../helpers'
 import * as SearchGen from '../../actions/search-gen'
 import React from 'react'
 import ServiceFilter from '../services-filter'
-import UserInput, {type Props as _Props} from '.'
+import UserInput, {Props as _Props} from '.'
 import {Box, Text} from '../../common-adapters'
 import {namedConnect} from '../../util/container'
-import {
-  globalStyles,
-  globalMargins,
-  globalColors,
-  collapseStyles,
-  type StylesCrossPlatform,
-} from '../../styles'
+import {globalStyles, globalMargins, globalColors, collapseStyles, StylesCrossPlatform} from '../../styles'
 import {parseUserId, serviceIdToIcon} from '../../util/platforms'
 import {withStateHandlers, withHandlers, withProps, compose, lifecycle} from 'recompose'
 
-import type {TypedState} from '../../constants/reducer'
+import {TypedState} from '../../constants/reducer'
 
-export type OwnProps = {|
-  searchKey: string,
-  autoFocus?: boolean,
-  focusInputCounter?: number,
-  placeholder?: string,
-  onFocus?: () => void,
-  onChangeSearchText?: (searchText: string) => void,
-  onExitSearch: ?() => void,
-  onSelectUser?: (id: string) => void,
-  hideAddButton?: boolean,
-  disableListBuilding?: boolean,
-  showServiceFilter: boolean,
-  style?: StylesCrossPlatform,
+export type OwnProps = {
+  searchKey: string
+  autoFocus?: boolean
+  focusInputCounter?: number
+  placeholder?: string
+  onFocus?: () => void
+  onChangeSearchText?: (searchText: string) => void
+  onExitSearch: () => void | null
+  onSelectUser?: (id: string) => void
+  hideAddButton?: boolean
+  disableListBuilding?: boolean
+  showServiceFilter: boolean
+  style?: StylesCrossPlatform
   // Defaults to true. Desktop only, as clearSearch isn't used on mobile.
   // Note that the way that user input is super wonky with all these HOCs. If we ever refactor, we probably won't need this prop.
-  hideClearSearch?: boolean,
-|}
+  hideClearSearch?: boolean
+}
 
 const UserInputWithServiceFilter = props => (
   <Box
@@ -87,7 +80,14 @@ const UserInputWithServiceFilter = props => (
   </Box>
 )
 
-const getSearchResultTerm = ({entities}: TypedState, {searchKey}: {searchKey: string}) => {
+const getSearchResultTerm = (
+  {entities}: TypedState,
+  {
+    searchKey,
+  }: {
+    searchKey: string
+  }
+) => {
   const searchResultQuery = entities.getIn(['search', 'searchKeyToSearchResultQuery', searchKey], null)
   return searchResultQuery && searchResultQuery.text
 }
@@ -161,12 +161,12 @@ const mapDispatchToProps = (dispatch, {searchKey}) => ({
 
 export type Props = _Props & {
   // From onChangeSelectedSearchResultHoc.
-  search: Function,
+  search: Function
 }
 
 const noResults = []
 const ConnectedUserInput = compose(
-  namedConnect<OwnProps, _, _, _, _>(
+  namedConnect(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o: OwnProps) => ({

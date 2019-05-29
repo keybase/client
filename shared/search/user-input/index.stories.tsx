@@ -1,8 +1,7 @@
-// @flow
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
-import UserInput, {type UserDetails} from '.'
-import ConnectedUserInput, {type OwnProps, type Props} from './container'
+import UserInput, {UserDetails} from '.'
+import ConnectedUserInput, {OwnProps, Props} from './container'
 import {Box, Box2, Text} from '../../common-adapters'
 import {collapseStyles} from '../../styles'
 import {compose, withStateHandlers} from 'recompose'

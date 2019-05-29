@@ -1,13 +1,12 @@
-// @flow
 // The filter bar for search. Lets you select a search provider
 import * as Types from '../../constants/types/search'
 import React, {Component} from 'react'
-import {Box, Icon, ClickableBox, Text, type IconType} from '../../common-adapters'
+import {Box, Icon, ClickableBox, Text, IconType} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, transition, isMobile, platformStyles} from '../../styles'
 
 type Props = {
-  selectedService: Types.Service,
-  onSelectService: (service: Types.Service) => void,
+  selectedService: Types.Service
+  onSelectService: (service: Types.Service) => void
 }
 
 const bubbleColors = {
@@ -21,7 +20,7 @@ const bubbleColors = {
 
 const servicesOrder = ['Keybase', 'Twitter', 'Facebook', 'GitHub', 'Reddit', 'Hacker News']
 
-const selectedIconMap: {[service: Types.Service]: IconType} = {
+const selectedIconMap: {[K in Types.Service]: IconType} = {
   Facebook: isMobile ? 'icon-search-facebook-active-40' : 'icon-search-facebook-active-32',
   GitHub: isMobile ? 'icon-search-github-active-40' : 'icon-search-github-active-32',
   'Hacker News': isMobile ? 'icon-search-hacker-news-active-40' : 'icon-search-hacker-news-active-32',
@@ -30,7 +29,7 @@ const selectedIconMap: {[service: Types.Service]: IconType} = {
   Twitter: isMobile ? 'icon-search-twitter-active-40' : 'icon-search-twitter-active-32',
 }
 
-const unselectedIconMap: {[service: Types.Service]: IconType} = {
+const unselectedIconMap: {[K in Types.Service]: IconType} = {
   Facebook: isMobile ? 'icon-search-facebook-inactive-40' : 'icon-search-facebook-inactive-32',
   GitHub: isMobile ? 'icon-search-github-inactive-40' : 'icon-search-github-inactive-32',
   'Hacker News': isMobile ? 'icon-search-hacker-news-inactive-40' : 'icon-search-hacker-news-inactive-32',
@@ -96,7 +95,12 @@ const Service = ({service, selected, hovering, onHover, onSelect}) => {
 }
 
 // Holds all the services and keeps track of which one is hovered
-class Filter extends Component<Props, {hoveredService: ?Types.Service}> {
+class Filter extends Component<
+  Props,
+  {
+    hoveredService: Types.Service | null
+  }
+> {
   state = {
     hoveredService: null,
   }

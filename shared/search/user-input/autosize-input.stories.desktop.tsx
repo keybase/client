@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import AutosizeInput from './autosize-input.desktop'
 import {action, storiesOf} from '../../stories/storybook'

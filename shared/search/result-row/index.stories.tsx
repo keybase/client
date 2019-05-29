@@ -1,13 +1,12 @@
-// @flow
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
-import ResultRow, {type Props} from '.'
-import ConnectedResultRow, {type OwnProps} from './container'
-import {type SearchResultId} from '../../constants/types/search'
+import ResultRow, {Props} from '.'
+import ConnectedResultRow, {OwnProps} from './container'
+import {SearchResultId} from '../../constants/types/search'
 import {Box} from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
 
-export type ConnectProps = $Exact<$Diff<Props, OwnProps>>
+export type ConnectProps = Exclude<Props, OwnProps>
 
 const defaultConnectProps = {
   leftFollowingState: 'NoState',
@@ -28,7 +27,7 @@ const defaultConnectProps = {
   userIsSelectable: true,
 }
 
-export type ConnectPropsMap = {[id: SearchResultId]: ?ConnectProps}
+export type ConnectPropsMap = {[K in SearchResultId]: ConnectProps | null}
 
 const defaultConnectPropsMap: ConnectPropsMap = {
   jzila: {
