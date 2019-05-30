@@ -6,7 +6,7 @@ import {debounce} from 'lodash-es'
 const debounceTimeout = 1e3
 
 type OwnProps = {
-  onChangeSearchText: (s: string) => void | null
+  onChangeSearchText: ((s: string) => void) | null
   search: (term: string, service: Types.Service) => void
   selectedService: Types.Service
   searchResultIds: Array<Types.SearchResultId>
