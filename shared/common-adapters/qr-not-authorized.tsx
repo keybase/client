@@ -1,15 +1,17 @@
-// @flow
 import * as React from 'react'
 import * as ConfigGen from '../actions/config-gen'
 import {namedConnect} from '../util/container'
+// @ts-ignore not converted
 import Text from './text'
+// @ts-ignore not converted
 import {Box2} from './box'
+// @ts-ignore not converted
 import Icon from './icon'
 import {styleSheetCreate, globalColors} from '../styles'
 
-type OwnProps = {||}
+type OwnProps = {}
 
-const QRScanNotAuthorized = ({onOpenSettings}: {onOpenSettings: () => void}) => (
+const QRScanNotAuthorized = ({onOpenSettings}: {onOpenSettings: (() => void)}) => (
   <Box2 direction="vertical" style={styles.container} gap="tiny">
     <Icon type="iconfont-camera" color={globalColors.white_40} />
     <Text center={true} type="BodyTiny" style={styles.text}>
@@ -35,7 +37,7 @@ const mapDispatchToProps = dispatch => ({
   onOpenSettings: () => dispatch(ConfigGen.createOpenAppSettings()),
 })
 
-export default namedConnect<OwnProps, _, _, _, _>(
+export default namedConnect(
   () => ({}),
   mapDispatchToProps,
   (stateProps, dispatchProps, ownProps) => ({

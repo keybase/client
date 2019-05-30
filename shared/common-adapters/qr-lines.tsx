@@ -1,5 +1,5 @@
-// @flow
 import * as React from 'react'
+// @ts-ignore not converted
 import {Box} from './box'
 import * as Styles from '../styles'
 
@@ -38,7 +38,7 @@ const GoodLines = ({color}: {color: Styles.Color}) => {
   )
 }
 
-const QRScanLines = ({canScan, color}: {canScan: boolean, color?: Styles.Color}) =>
+const QRScanLines = ({canScan, color}: {canScan: boolean; color?: Styles.Color}) =>
   canScan ? <GoodLines color={color || Styles.globalColors.blue} /> : <BadLines />
 
 const styles = Styles.styleSheetCreate({

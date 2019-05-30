@@ -1,12 +1,13 @@
-// @flow
 import * as React from 'react'
+// @ts-ignore not converted
 import Text from './text'
-import type {Props} from './radio-button'
+import {Props} from './radio-button'
 import {globalStyles, globalColors, transition, desktopStyles, styled} from '../styles'
 
 export const RADIOBUTTON_SIZE = 14
 export const RADIOBUTTON_MARGIN = 8
 
+// @ts-ignore this type is wrong
 const StyledRadio = styled.div(
   {
     ...transition('background'),
@@ -26,11 +27,15 @@ const StyledRadio = styled.div(
 
 const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => (
   <div
+    // @ts-ignore clash between StylesCrossPlatform and React.CSSProperties
     style={{...styleContainer, ...(disabled ? {} : desktopStyles.clickable), ...style}}
     onClick={disabled ? undefined : () => onSelect(!selected)}
   >
     <StyledRadio disabled={disabled} selected={selected}>
-      <div style={styleRadio} />
+      <div
+        // @ts-ignore clash between StylesCrossPlatform and React.CSSProperties
+        style={styleRadio}
+      />
     </StyledRadio>
     <Text type="Body" style={{color: globalColors.black}}>
       {label}

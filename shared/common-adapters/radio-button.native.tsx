@@ -1,9 +1,10 @@
-// @flow
 import React from 'react'
+// @ts-ignore not converted
 import ClickableBox from './clickable-box'
+// @ts-ignore not converted
 import Text from './text'
 import * as Styles from '../styles'
-import type {Props} from './radio-button'
+import {Props} from './radio-button'
 
 export const RADIOBUTTON_SIZE = 22
 export const RADIOBUTTON_MARGIN = 8

@@ -1,6 +1,5 @@
-// @flow
 import React, {Component} from 'react'
-import type {Props} from './progress-indicator'
+import {Props} from './progress-indicator'
 import {NativeActivityIndicator} from './native-wrappers.native'
 import {globalColors, collapseStyles} from '../styles'
 

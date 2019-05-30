@@ -1,12 +1,12 @@
-// @flow
 import * as React from 'react'
+// @ts-ignore not converted
 import Box from './box'
 import {globalColors, isMobile} from '../styles'
 
 type Props = {
-  ratio: number,
-  style?: any,
-  fillStyle?: any,
+  ratio: number
+  style?: any
+  fillStyle?: any
 }
 
 const ProgressBar = ({ratio, style, fillStyle}: Props) => (
