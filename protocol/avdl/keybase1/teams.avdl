@@ -35,6 +35,12 @@ protocol teams {
   @typedef("int")
   record PerTeamKeyGeneration {}
 
+
+  // In the future, there might be bot and admin keys
+  enum PTKType {
+    READER_0
+  }
+
   record TeamApplicationKey {
     TeamApplication application;
     PerTeamKeyGeneration keyGeneration;
@@ -290,14 +296,21 @@ protocol teams {
   }
 
   record HiddenTeamChainLink {
+    // The merkle root at the time the link was generated
     @jsonkey("m") @mpackkey("m")
     MerkleRootV2 merkleRoot;
+
+    // Last known link of the main team chain
     @jsonkey("p") @mpackkey("p")
     LinkTriple parentChain;
+
+    // The signer for this link
     @jsonkey("s") @mpackkey("s")
     Signer signer;
+
+    // The PTK that's getting signed in.
     @jsonkey("k") @mpackkey("k")
-    PerTeamKey ptk;
+    map<PTKType, PerTeamKey>  ptk;
   }
 
   // FastTeamSigChainState is the state computed by doing a fast reply of the

@@ -549,7 +549,7 @@ func (t *Team) rotatePostVisible(ctx context.Context, section SCTeamSection, mr 
 }
 
 func (t *Team) rotatePostHidden(ctx context.Context, section SCTeamSection, mr *libkb.MerkleRoot, payloadArgs sigPayloadArgs) error {
-	return nil
+	return errors.New("Team@rotatePostHidden unimplemented")
 }
 
 func (t *Team) isAdminOrOwner(m keybase1.UserVersion) (res bool, err error) {

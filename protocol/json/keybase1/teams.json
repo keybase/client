@@ -42,6 +42,13 @@
       "typedef": "int"
     },
     {
+      "type": "enum",
+      "name": "PTKType",
+      "symbols": [
+        "READER_0"
+      ]
+    },
+    {
       "type": "record",
       "name": "TeamApplicationKey",
       "fields": [
@@ -693,7 +700,11 @@
           "mpackkey": "s"
         },
         {
-          "type": "PerTeamKey",
+          "type": {
+            "type": "map",
+            "values": "PerTeamKey",
+            "keys": "PTKType"
+          },
           "name": "ptk",
           "jsonkey": "k",
           "mpackkey": "k"

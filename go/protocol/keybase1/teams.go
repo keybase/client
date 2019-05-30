@@ -120,6 +120,29 @@ func (o PerTeamKeyGeneration) DeepCopy() PerTeamKeyGeneration {
 	return o
 }
 
+type PTKType int
+
+const (
+	PTKType_READER PTKType = 0
+)
+
+func (o PTKType) DeepCopy() PTKType { return o }
+
+var PTKTypeMap = map[string]PTKType{
+	"READER": 0,
+}
+
+var PTKTypeRevMap = map[PTKType]string{
+	0: "READER",
+}
+
+func (e PTKType) String() string {
+	if v, ok := PTKTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type TeamApplicationKey struct {
 	Application   TeamApplication      `codec:"application" json:"application"`
 	KeyGeneration PerTeamKeyGeneration `codec:"keyGeneration" json:"keyGeneration"`
@@ -827,10 +850,10 @@ func (o Signer) DeepCopy() Signer {
 }
 
 type HiddenTeamChainLink struct {
-	MerkleRoot  MerkleRootV2 `codec:"m" json:"m"`
-	ParentChain LinkTriple   `codec:"p" json:"p"`
-	Signer      Signer       `codec:"s" json:"s"`
-	Ptk         PerTeamKey   `codec:"k" json:"k"`
+	MerkleRoot  MerkleRootV2           `codec:"m" json:"m"`
+	ParentChain LinkTriple             `codec:"p" json:"p"`
+	Signer      Signer                 `codec:"s" json:"s"`
+	Ptk         map[PTKType]PerTeamKey `codec:"k" json:"k"`
 }
 
 func (o HiddenTeamChainLink) DeepCopy() HiddenTeamChainLink {
@@ -838,7 +861,18 @@ func (o HiddenTeamChainLink) DeepCopy() HiddenTeamChainLink {
 		MerkleRoot:  o.MerkleRoot.DeepCopy(),
 		ParentChain: o.ParentChain.DeepCopy(),
 		Signer:      o.Signer.DeepCopy(),
-		Ptk:         o.Ptk.DeepCopy(),
+		Ptk: (func(x map[PTKType]PerTeamKey) map[PTKType]PerTeamKey {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[PTKType]PerTeamKey, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Ptk),
 	}
 }
 
