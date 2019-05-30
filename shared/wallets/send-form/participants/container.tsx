@@ -168,9 +168,10 @@ const ParticipantsChooser = props => {
       // @ts-ignore not sure what's up here
       return <ConnectedParticipantsKeybaseUser />
     case 'stellarPublicKey':
+      // @ts-ignore not sure what's up here
       return <ConnectedParticipantsStellarPublicKey />
-
     case 'otherAccount':
+      // @ts-ignore not sure what's up here
       return <ConnectedParticipantsOtherAccount />
 
     default:
