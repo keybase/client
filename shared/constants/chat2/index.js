@@ -119,6 +119,8 @@ export const makeAttachmentViewInfo: I.RecordFactory<Types._AttachmentViewInfo> 
   status: 'loading',
 })
 
+export const initialAttachmentViewInfo = makeAttachmentViewInfo()
+
 export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
   if (inboxSearch.selectedIndex < inboxSearch.nameResults.size) {
     const conversationIDKey = inboxSearch.nameResults.get(inboxSearch.selectedIndex)?.conversationIDKey

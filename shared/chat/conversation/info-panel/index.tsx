@@ -243,86 +243,89 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
     let tabsSection = this._tabsSection()
     sections.push(this._headerSection())
     let itemSizeEstimator
-
-    if (this._isSelected('settings')) {
-      tabsSection.renderItem = () => {
-        return (
-          <SettingsPanel
-            canDeleteHistory={this.props.canDeleteHistory}
-            conversationIDKey={this.props.selectedConversationIDKey}
-            entityType={entityType}
-            ignored={this.props.ignored}
-            key="settings"
-            onHideConv={this.props.onHideConv}
-            onUnhideConv={this.props.onUnhideConv}
-            onLeaveConversation={this.props.onLeaveConversation}
-            onShowBlockConversationDialog={this.props.onShowBlockConversationDialog}
-            onShowClearConversationDialog={this.props.onShowClearConversationDialog}
-            spinnerForHide={this.props.spinnerForHide}
-            teamname={this.props.teamname}
-            channelname={this.props.channelname}
-          />
-        )
-      }
-      sections.push(tabsSection)
-    } else if (this._isSelected('members')) {
-      if (!Styles.isMobile) {
-        itemSizeEstimator = () => {
-          return 56
-        }
-      }
-      tabsSection.data = tabsSection.data.concat(this.props.participants)
-      tabsSection.renderItem = ({item}) => {
-        if (!item.username) {
-          return null
-        }
-        return (
-          <Participant
-            fullname={item.fullname}
-            isAdmin={item.isAdmin}
-            isOwner={item.isOwner}
-            username={item.username}
-            onShowProfile={this.props.onShowProfile}
-          />
-        )
-      }
-      sections.push(tabsSection)
-    } else if (this._isSelected('attachments')) {
-      if (!Styles.isMobile) {
-        itemSizeEstimator = () => {
-          return 80
-        }
-      }
-      let attachmentSections
-      switch (this.props.selectedAttachmentView) {
-        case RPCChatTypes.GalleryItemTyp.media:
-          attachmentSections = new MediaView().getSections(
-            this.props.media.thumbs,
-            this.props.media.onLoadMore,
-            this._retryLoad,
-            this.props.media.status
+    switch (this.props.selectedTab) {
+      case 'settings':
+        tabsSection.renderItem = () => {
+          return (
+            <SettingsPanel
+              canDeleteHistory={this.props.canDeleteHistory}
+              conversationIDKey={this.props.selectedConversationIDKey}
+              entityType={entityType}
+              ignored={this.props.ignored}
+              key="settings"
+              onHideConv={this.props.onHideConv}
+              onUnhideConv={this.props.onUnhideConv}
+              onLeaveConversation={this.props.onLeaveConversation}
+              onShowBlockConversationDialog={this.props.onShowBlockConversationDialog}
+              onShowClearConversationDialog={this.props.onShowClearConversationDialog}
+              spinnerForHide={this.props.spinnerForHide}
+              teamname={this.props.teamname}
+              channelname={this.props.channelname}
+            />
           )
-          break
-        case RPCChatTypes.GalleryItemTyp.doc:
-          attachmentSections = new DocView().getSections(
-            this.props.docs.docs,
-            this.props.docs.onLoadMore,
-            this._retryLoad,
-            this.props.docs.status
+        }
+        sections.push(tabsSection)
+        break
+      case 'members':
+        if (!Styles.isMobile) {
+          itemSizeEstimator = () => {
+            return 56
+          }
+        }
+        tabsSection.data = tabsSection.data.concat(this.props.participants)
+        tabsSection.renderItem = ({item}) => {
+          if (!item.username) {
+            return null
+          }
+          return (
+            <Participant
+              fullname={item.fullname}
+              isAdmin={item.isAdmin}
+              isOwner={item.isOwner}
+              username={item.username}
+              onShowProfile={this.props.onShowProfile}
+            />
           )
-          break
-        case RPCChatTypes.GalleryItemTyp.link:
-          attachmentSections = new LinkView().getSections(
-            this.props.links.links,
-            this.props.links.onLoadMore,
-            this._retryLoad,
-            this.props.links.status
-          )
-          break
-      }
-      sections.push(tabsSection)
-      sections.push(this._attachmentViewSelectorSection())
-      sections = sections.concat(attachmentSections)
+        }
+        sections.push(tabsSection)
+        break
+      case 'attachments':
+        if (!Styles.isMobile) {
+          itemSizeEstimator = () => {
+            return 80
+          }
+        }
+        let attachmentSections
+        switch (this.props.selectedAttachmentView) {
+          case RPCChatTypes.GalleryItemTyp.media:
+            attachmentSections = new MediaView().getSections(
+              this.props.media.thumbs,
+              this.props.media.onLoadMore,
+              this._retryLoad,
+              this.props.media.status
+            )
+            break
+          case RPCChatTypes.GalleryItemTyp.doc:
+            attachmentSections = new DocView().getSections(
+              this.props.docs.docs,
+              this.props.docs.onLoadMore,
+              this._retryLoad,
+              this.props.docs.status
+            )
+            break
+          case RPCChatTypes.GalleryItemTyp.link:
+            attachmentSections = new LinkView().getSections(
+              this.props.links.links,
+              this.props.links.onLoadMore,
+              this._retryLoad,
+              this.props.links.status
+            )
+            break
+        }
+        sections.push(tabsSection)
+        sections.push(this._attachmentViewSelectorSection())
+        sections = sections.concat(attachmentSections)
+        break
     }
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>

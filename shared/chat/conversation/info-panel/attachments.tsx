@@ -8,6 +8,7 @@ import {formatTimeForMessages} from '../../../util/timestamp'
 import MessagePopup from '../messages/message-popup'
 // @ts-ignore
 import {Props as HeaderHocProps} from '../../../common-adapters/header-hoc/types'
+import {chunk} from 'lodash-es'
 
 const monthNames = [
   'January',
@@ -24,7 +25,37 @@ const monthNames = [
   'December',
 ]
 
-const getDateInfo = thumb => {
+type Thumb = {
+  ctime: number
+  height: number
+  isVideo: boolean
+  onClick: () => void
+  previewURL: string
+  width: number
+}
+
+type Doc = {
+  author: string
+  ctime: number
+  downloading: boolean
+  message?: Types.Message
+  name: string
+  progress: number
+  onDownload: null | (() => void)
+  onShowInFinder: null | (() => void)
+}
+
+type Link = {
+  author: string
+  ctime: number
+  snippet: string
+  title?: string
+  url?: string
+}
+
+type AttachmentItem = Thumb | Doc | Link
+
+const getDateInfo = (thumb: AttachmentItem) => {
   const date = new Date(thumb.ctime)
   return {
     month: monthNames[date.getMonth()],
@@ -32,15 +63,21 @@ const getDateInfo = thumb => {
   }
 }
 
-const formMonths = thumbs => {
-  if (thumbs.length === 0) {
+type Month = {
+  data: Array<Thumb | Doc | Link>
+  month: string
+  year: number
+}
+
+const formMonths = (items: Array<AttachmentItem>): Array<Month> => {
+  if (items.length === 0) {
     return []
   }
   let curMonth = {
-    ...getDateInfo(thumbs[0]),
+    ...getDateInfo(items[0]),
     data: [],
   }
-  const months = thumbs.reduce((l, t, index) => {
+  const months = items.reduce((l, t, index) => {
     const dateInfo = getDateInfo(t)
     if (dateInfo.month !== curMonth.month || dateInfo.year !== curMonth.year) {
       if (curMonth.data.length > 0) {
@@ -54,7 +91,7 @@ const formMonths = thumbs => {
     } else {
       curMonth.data.push(t)
     }
-    if (index === thumbs.length - 1 && curMonth.data.length > 0) {
+    if (index === items.length - 1 && curMonth.data.length > 0) {
       l.push(curMonth)
     }
     return l
@@ -62,10 +99,20 @@ const formMonths = thumbs => {
   return months
 }
 
-const createLoadMoreSection = (onLoadMore, onRetry, status) => {
+type Section = {
+  data: Array<any>
+  renderItem: ({item: any, index: number}) => void
+  renderSectionHeader: (any) => void
+}
+
+const createLoadMoreSection = (
+  onLoadMore: () => void,
+  onRetry: () => void,
+  status: Types.AttachmentViewStatus
+): Section => {
   return {
     data: ['load more'],
-    renderItem: () => {
+    renderItem: ({item, index}) => {
       if (onLoadMore && status !== 'loading') {
         return (
           <Kb.Button
@@ -91,7 +138,7 @@ const createLoadMoreSection = (onLoadMore, onRetry, status) => {
       }
       return null
     },
-    renderSectionHeader: () => {
+    renderSectionHeader: ({section}) => {
       return null
     },
   }
@@ -110,13 +157,9 @@ type Sizing = {
   }
 }
 
-type Thumb = {
-  ctime: number
-  height: number
-  isVideo: boolean
-  onClick: () => void
-  previewURL: string
-  width: number
+type ThumbSizing = {
+  sizing: Sizing
+  thumb: Thumb
 }
 
 type MediaThumbProps = {
@@ -154,12 +197,12 @@ class MediaThumb extends React.Component<MediaThumbProps, MediaThumbState> {
 const rowSize = 4
 
 export class MediaView {
-  _clamp = (thumb, maxThumbSize) => {
+  _clamp = (thumb: Thumb, maxThumbSize: number) => {
     return thumb.height > thumb.width
       ? {height: (maxThumbSize * thumb.height) / thumb.width, width: maxThumbSize}
       : {height: maxThumbSize, width: (maxThumbSize * thumb.width) / thumb.height}
   }
-  _resize = thumb => {
+  _resize = (thumb: Thumb) => {
     const maxThumbSize = Styles.isMobile ? imgMaxWidthRaw() / rowSize : 80
     const dims = this._clamp(thumb, maxThumbSize)
     const marginHeight = dims.height > maxThumbSize ? (dims.height - maxThumbSize) / 2 : 0
@@ -175,38 +218,20 @@ export class MediaView {
     }
   }
 
-  _formRows = thumbs => {
-    let row = []
-    return thumbs.reduce((l, t, index) => {
-      if (index % rowSize === 0) {
-        if (row.length > 0) {
-          l.push(row)
-        }
-        row = []
-      }
-      row.push({
-        sizing: this._resize(t),
-        thumb: t,
-      })
-      if (index === thumbs.length - 1 && row.length > 0) {
-        l.push(row)
-      }
-      return l
-    }, [])
+  _formRows = (thumbs: Array<Thumb>): Array<Array<ThumbSizing>> => {
+    return chunk(thumbs.map(thumb => ({sizing: this._resize(thumb), thumb})), rowSize)
   }
 
-  _finalizeMonth = month => {
-    month.data = this._formRows(month.data)
-    month.renderSectionHeader = this._renderSectionHeader
-    month.renderItem = this._renderRow
-    return month
-  }
-
-  _renderSectionHeader = ({section}) => {
-    if (!section.month) {
-      return null
+  _monthToSection = (month: Month): Section => {
+    return {
+      data: this._formRows(month.data as Array<Thumb>),
+      renderItem: this._renderRow,
+      renderSectionHeader: ({section}) => this._renderSectionHeader(section, month.month, month.year),
     }
-    const label = `${section.month} ${section.year}`
+  }
+
+  _renderSectionHeader = (section, month: string, year: number) => {
+    const label = `${month} ${year}`
     return <Kb.SectionDivider label={label} />
   }
   _renderRow = ({item, index}) => {
@@ -225,23 +250,12 @@ export class MediaView {
     onRetry: () => void,
     status: Types.AttachmentViewStatus
   ) => {
-    const months = formMonths(thumbs).reduce((l, m) => {
-      l.push(this._finalizeMonth(m))
+    const sections = formMonths(thumbs).reduce((l, m) => {
+      l.push(this._monthToSection(m))
       return l
     }, [])
-    return months.concat(createLoadMoreSection(onLoadMore, onRetry, status))
+    return sections.concat(createLoadMoreSection(onLoadMore, onRetry, status))
   }
-}
-
-type Doc = {
-  author: string
-  ctime: number
-  downloading: boolean
-  message?: Types.Message
-  name: string
-  progress: number
-  onDownload: null | (() => void)
-  onShowInFinder: null | (() => void)
 }
 
 type DocViewRowProps = {
@@ -294,17 +308,16 @@ class _DocViewRow extends React.Component<DocViewRowProps> {
 const DocViewRow = Kb.OverlayParentHOC(_DocViewRow)
 
 export class DocView {
-  _renderSectionHeader = ({section}) => {
-    if (!section.month) {
-      return null
-    }
-    const label = `${section.month} ${section.year}`
+  _renderSectionHeader = (section, month: string, year: number) => {
+    const label = `${month} ${year}`
     return <Kb.SectionDivider label={label} />
   }
-  _finalizeMonth = month => {
-    month.renderSectionHeader = this._renderSectionHeader
-    month.renderItem = this._renderItem
-    return month
+  _monthToSection = (month: Month): Section => {
+    return {
+      data: month.data,
+      renderItem: this._renderItem,
+      renderSectionHeader: ({section}) => this._renderSectionHeader(section, month.month, month.year),
+    }
   }
   _renderItem = ({item}) => {
     return <DocViewRow item={item} />
@@ -315,34 +328,25 @@ export class DocView {
     onRetry: () => void,
     status: Types.AttachmentViewStatus
   ) => {
-    const months = formMonths(docs).reduce((l, m) => {
-      l.push(this._finalizeMonth(m))
+    const sections = formMonths(docs).reduce((l, m) => {
+      l.push(this._monthToSection(m))
       return l
     }, [])
-    return months.concat(createLoadMoreSection(onLoadMore, onRetry, status))
+    return sections.concat(createLoadMoreSection(onLoadMore, onRetry, status))
   }
-}
-
-type Link = {
-  author: string
-  ctime: number
-  snippet: string
-  title?: string
-  url?: string
 }
 
 export class LinkView {
-  _renderSectionHeader = ({section}) => {
-    if (!section.month) {
-      return null
-    }
-    const label = `${section.month} ${section.year}`
+  _renderSectionHeader = (section, month: string, year: number) => {
+    const label = `${month} ${year}`
     return <Kb.SectionDivider label={label} />
   }
-  _finalizeMonth = month => {
-    month.renderSectionHeader = this._renderSectionHeader
-    month.renderItem = this._renderItem
-    return month
+  _monthToSection = (month: Month): Section => {
+    return {
+      data: month.data,
+      renderItem: this._renderItem,
+      renderSectionHeader: ({section}) => this._renderSectionHeader(section, month.month, month.year),
+    }
   }
   _renderItem = ({item}) => {
     return (
@@ -389,11 +393,11 @@ export class LinkView {
     onRetry: () => void,
     status: Types.AttachmentViewStatus
   ) => {
-    const months = formMonths(links).reduce((l, m) => {
-      l.push(this._finalizeMonth(m))
+    const sections = formMonths(links).reduce((l, m) => {
+      l.push(this._monthToSection(m))
       return l
     }, [])
-    return months.concat(createLoadMoreSection(onLoadMore, onRetry, status))
+    return sections.concat(createLoadMoreSection(onLoadMore, onRetry, status))
   }
 }
 

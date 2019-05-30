@@ -22,7 +22,7 @@ type OwnProps = {
   selectedAttachmentView: RPCChatTypes.GalleryItemTyp
 }
 
-const getFromMsgID = info => {
+const getFromMsgID = (info: Types.AttachmentViewInfo): Types.MessageID | null => {
   if (info.last || info.status !== 'success') {
     return null
   }
@@ -45,6 +45,8 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     canSetMinWriterRole = yourOperations.setMinWriterRole
     canSetRetention = yourOperations.setRetentionPolicy
     canDeleteHistory = yourOperations.deleteChatHistory
+  } else {
+    canDeleteHistory = true
   }
   const isPreview = meta.membershipType === 'youArePreviewing'
   const selectedTab = ownProps.selectedTab || (meta.teamname ? 'members' : 'attachments')

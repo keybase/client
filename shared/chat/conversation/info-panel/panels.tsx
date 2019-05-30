@@ -49,7 +49,7 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
           </>
         )}
         <Kb.Divider style={styles.divider} />
-        {(props.canDeleteHistory || props.entityType === 'adhoc') && (
+        {props.canDeleteHistory && (
           <CaptionedDangerIcon
             caption="Clear entire conversation"
             onClick={props.onShowClearConversationDialog}

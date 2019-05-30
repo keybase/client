@@ -1147,7 +1147,7 @@ const rootReducer = (
     case Chat2Gen.loadAttachmentView:
       return state.updateIn(
         ['attachmentViewMap', action.payload.conversationIDKey, action.payload.viewType],
-        (info = Constants.makeAttachmentViewInfo()) => {
+        (info = Constants.initialAttachmentViewInfo) => {
           return info.merge({
             status: 'loading',
           })
@@ -1156,7 +1156,7 @@ const rootReducer = (
     case Chat2Gen.addAttachmentViewMessage:
       return state.updateIn(
         ['attachmentViewMap', action.payload.conversationIDKey, action.payload.viewType],
-        (info = Constants.makeAttachmentViewInfo()) => {
+        (info = Constants.initialAttachmentViewInfo) => {
           return info.merge({
             messages:
               info.messages.findIndex(item => item.id === action.payload.message.id) < 0
@@ -1170,7 +1170,7 @@ const rootReducer = (
     case Chat2Gen.setAttachmentViewStatus:
       return state.updateIn(
         ['attachmentViewMap', action.payload.conversationIDKey, action.payload.viewType],
-        (info = Constants.makeAttachmentViewInfo()) => {
+        (info = Constants.initialAttachmentViewInfo) => {
           return info.merge({
             last: action.payload.last,
             status: action.payload.status,
@@ -1229,7 +1229,7 @@ const rootReducer = (
       }
       nextState = nextState.updateIn(
         ['attachmentViewMap', action.payload.conversationIDKey, RPCChatTypes.GalleryItemTyp.doc],
-        (info = Constants.makeAttachmentViewInfo()) =>
+        (info = Constants.initialAttachmentViewInfo) =>
           info.merge({
             messages: info.messages.update(
               info.messages.findIndex(item => item.id === action.payload.message.id),
@@ -1263,15 +1263,16 @@ const rootReducer = (
       }
       nextState = nextState.updateIn(
         ['attachmentViewMap', message.conversationIDKey, RPCChatTypes.GalleryItemTyp.doc],
-        (info = Constants.makeAttachmentViewInfo()) =>
+        (info = Constants.initiaAttachmentViewInfo) =>
           info.merge({
             messages: info.messages.update(info.messages.findIndex(item => item.id === message.id), item =>
               item
-                ? item
-                    .set('transferState', null)
-                    .set('transferProgress', 0)
-                    .set('downloadPath', action.payload.path)
-                    .set('fileURLCached', true)
+                ? item.merge({
+                    downloadPath: action.payload.path,
+                    fileURLCached: true,
+                    transferProgress: 0,
+                    transferState: null,
+                  })
                 : item
             ),
           })

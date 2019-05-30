@@ -1850,7 +1850,8 @@ function* attachmentFullscreenNext(state, action) {
   if (conversationIDKey === blankMessage.conversationIDKey) {
     return
   }
-  const currentFullscreen = state.chat2.attachmentFullscreenSelection?.message ?? blankMessage
+  const currentSelection = state.chat2.attachmentFullscreenSelection
+  const currentFullscreen = currentSelection ? currentSelection.message : blankMessage
   yield Saga.put(Chat2Gen.createAttachmentFullscreenSelection({autoPlay: false, message: blankMessage}))
   const nextAttachmentRes = yield* Saga.callPromise(
     RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise,
