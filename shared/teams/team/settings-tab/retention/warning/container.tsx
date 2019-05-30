@@ -9,8 +9,8 @@ type OwnProps = Container.RouteProps<
   {
     policy: RetentionPolicy
     entityType: RetentionEntityType
-    onCancel: () => void | null
-    onConfirm: () => void | null
+    onCancel: (() => void) | null
+    onConfirm: (() => void) | null
   },
   {}
 >

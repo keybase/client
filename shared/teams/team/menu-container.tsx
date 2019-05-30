@@ -9,7 +9,7 @@ import {MenuItem} from '../../common-adapters/floating-menu/menu-layout'
 import {FloatingMenu} from '../../common-adapters'
 
 type OwnProps = {
-  attachTo: () => React.Component<any> | null
+  attachTo: (() => React.Component<any>) | null
   onHidden: () => void
   teamname: string
   visible: boolean

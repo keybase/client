@@ -59,9 +59,9 @@ type HeaderTitleProps = {
   teamname: string
   description: string
   members: number
-  onEditAvatar: () => void | null
-  onEditDescription: () => void | null
-  onRename: () => void | null
+  onEditAvatar: (() => void) | null
+  onEditDescription: (() => void) | null
+  onRename: (() => void) | null
   role: string
 }
 
@@ -102,7 +102,7 @@ export const HeaderTitle = (props: HeaderTitleProps) => (
 )
 
 type SubHeaderProps = {
-  onAddSelf: () => void | null
+  onAddSelf: (() => void) | null
 }
 
 export const SubHeader = (props: SubHeaderProps) =>

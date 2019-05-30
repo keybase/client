@@ -29,7 +29,7 @@ type RoleRowProps = {
   icon: React.ReactNode | null
   selected: boolean
   title: React.ReactNode
-  onSelect: () => void | null
+  onSelect: (() => void) | null
 }
 
 const RoleRow = (p: RoleRowProps) => (

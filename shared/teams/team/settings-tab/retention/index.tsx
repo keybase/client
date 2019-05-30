@@ -41,7 +41,7 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
     saving: false,
     selected: retentionPolicies.policyRetain,
   }
-  _timeoutID: number
+  _timeoutID: NodeJS.Timeout | null
   _showSaved: boolean
 
   // We just updated the state with a new selection, do we show the warning

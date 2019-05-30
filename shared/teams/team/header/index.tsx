@@ -25,7 +25,7 @@ export type Props = {
   onEditDescription: () => void
   onEditIcon: (image?: Response) => void
   onFilePickerError: (error: Error) => void
-  onRename: () => void | null
+  onRename: (() => void) | null
 } & Kb.OverlayParentProps
 
 const _TeamHeader = (props: Props) => (
