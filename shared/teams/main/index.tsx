@@ -12,7 +12,7 @@ type DeletedTeam = {
   deletedBy: string
 }
 
-type Props = {
+export type Props = {
   loaded: boolean
   deletedTeams: ReadonlyArray<DeletedTeam>
   newTeams: ReadonlyArray<string>

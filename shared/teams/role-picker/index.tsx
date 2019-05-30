@@ -3,6 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Flow from '../../util/flow'
 import {map, capitalize} from 'lodash-es'
+// @ts-ignore not typed yet
 import {Position} from '../../common-adapters/relative-popup-hoc.types'
 import {TeamRoleType as Role} from '../../constants/types/teams'
 import {StylesCrossPlatform} from '../../styles/css'
@@ -58,15 +59,13 @@ const RoleRow = (p: RoleRowProps) => (
   </Kb.Box2>
 )
 
-const rolesMetaInfo = (
-  infoForRole: Role,
-  selectedRole: Role | null
-): {
+type RolesMetaInfo = {
   cans: Array<string>
   cants: Array<string>
   extra?: Array<string>
   icon: React.ReactNode | null
-} => {
+}
+const rolesMetaInfo = (infoForRole: Role, selectedRole: Role | null): RolesMetaInfo => {
   switch (infoForRole) {
     case 'admin':
       return {
@@ -163,22 +162,26 @@ const roleAbilities = (
 const roleElementHelper = (selectedRole: Role | null) =>
   orderedRoles
     .map(role => [role, rolesMetaInfo(role, selectedRole)])
-    .map(([role, roleInfo]) => ({
-      body:
-        selectedRole === role
-          ? [
-              roleAbilities(roleInfo.cans, true, roleInfo.cants.length === 0, selectedRole === role),
-              roleAbilities(roleInfo.cants, false, true, selectedRole === role),
-            ]
-          : undefined,
-      icon: roleInfo.icon,
-      role,
-      title: (
-        <Kb.Text type="BodyBig" style={styles.text}>
-          {capitalize(role)}
-        </Kb.Text>
-      ),
-    }))
+    .map(([role, info]) => {
+      // Using as to avoid lots of ts-ignore
+      const roleInfo = info as RolesMetaInfo
+      return {
+        body:
+          selectedRole === role
+            ? [
+                roleAbilities(roleInfo.cans, true, roleInfo.cants.length === 0, selectedRole === role),
+                roleAbilities(roleInfo.cants, false, true, selectedRole === role),
+              ]
+            : undefined,
+        icon: roleInfo.icon,
+        role,
+        title: (
+          <Kb.Text type="BodyBig" style={styles.text}>
+            {capitalize(role)}
+          </Kb.Text>
+        ),
+      }
+    })
 
 const disabledTextHelper = (text: string) => (
   <Kb.Text type="BodySmall" style={styles.text}>
@@ -219,10 +222,13 @@ const RolePicker = (props: Props) => {
       {headerTextHelper(props.headerText)}
       {map(
         roleElementHelper(selectedRole),
-        // $FlowIssue, the library type for map is wrong
         ({role, ...nodeMap}: {[K in string]: React.ReactNode}): React.ReactNode => {
+          // Using as to avoid lots of ts-ignore.
+          const disabledRole = role as string
           const onSelect =
-            props.disabledRoles && props.disabledRoles[role] ? undefined : () => props.onSelectRole(role)
+            props.disabledRoles && props.disabledRoles[disabledRole]
+              ? undefined
+              : () => props.onSelectRole(role)
           return (
             <Kb.ClickableBox key={role} onClick={onSelect}>
               <RoleRow
@@ -233,8 +239,8 @@ const RolePicker = (props: Props) => {
                 onSelect={onSelect}
                 disabledReason={
                   props.disabledRoles &&
-                  props.disabledRoles[role] &&
-                  disabledTextHelper(props.disabledRoles[role])
+                  props.disabledRoles[disabledRole] &&
+                  disabledTextHelper(props.disabledRoles[disabledRole])
                 }
               />
             </Kb.ClickableBox>
@@ -348,7 +354,7 @@ const styles = Styles.styleSheetCreate({
 // Helper to use this as a floating box
 export type FloatingProps = {
   position?: Position
-  children?: React.ChildrenArray<any>
+  children?: React.ReactNode
   floatingContainerStyle?: StylesCrossPlatform
   open: boolean
 } & Props

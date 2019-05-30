@@ -1,7 +1,9 @@
 import * as React from 'react'
 import * as Styles from '../../../../styles'
 import * as Kb from '../../../../common-adapters'
+// @ts-ignore not typed yet
 import {MenuItem} from '../../../../common-adapters/floating-menu/menu-layout'
+// @ts-ignore not typed yet
 import {RetentionPolicy} from '../../../../constants/types/retention-policy'
 import {retentionPolicies, baseRetentionPolicies} from '../../../../constants/teams'
 import SaveIndicator from '../../../../common-adapters/save-indicator'
@@ -341,7 +343,7 @@ const policyToLabel = (p: RetentionPolicy, parent: RetentionPolicy | null) => {
   ]
 }
 // Use only for comparing policy durations
-const policyToComparable = (p: RetentionPolicy, parent: RetentionPolicy | null): number => {
+const policyToComparable = (p: RetentionPolicy, parent?: RetentionPolicy): number => {
   let res: number = -1
   switch (p.type) {
     case 'retain':

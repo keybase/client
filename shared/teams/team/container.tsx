@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import Team from '.'
+import Team, {Props} from '.'
 import CustomTitle from './custom-title/container'
 import {HeaderRightActions, HeaderTitle, SubHeader} from './nav-header/container'
 import * as Kb from '../../common-adapters'
@@ -80,11 +80,7 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
-class Reloadable extends React.PureComponent<
-  {} & React.ElementConfig<typeof Team> & {
-      _load: () => void
-    }
-> {
+class Reloadable extends React.PureComponent<Props & {_load: () => void}> {
   componentDidUpdate(prevProps) {
     if (this.props.teamname !== prevProps.teamname) {
       this.props._load()
@@ -115,7 +111,7 @@ type State = {
 }
 
 // We don't use route state anymore
-class TabsState extends React.PureComponent<React.ElementConfig<typeof Team>, State> {
+class TabsState extends React.PureComponent<Props, State> {
   static navigationOptions = ({navigation}: {navigation: any}) => ({
     headerExpandable: true,
     headerHideBorder: true,

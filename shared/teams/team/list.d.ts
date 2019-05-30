@@ -5,4 +5,4 @@ export type Props = {
   renderRow: (row: any) => React.ReactNode
 }
 
-export default (props: Props): React.ReactNode => null
+export default class List extends React.Component<Props> {}

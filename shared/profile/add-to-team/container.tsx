@@ -135,11 +135,13 @@ class AddToTeamStateWrapper extends React.Component<{} & ExtraProps & AddToTeamP
         onConfirmRolePicker={() => {
           this.setState({rolePickerOpen: false})
         }}
-        footerComponent={sendNotificationFooter(
-          'Announce them in team chats',
-          this.state.sendNotification,
-          nextVal => this.setState({sendNotification: nextVal})
-        )}
+        footerComponent={() =>
+          <>
+            {sendNotificationFooter('Announce them in team chats', this.state.sendNotification, nextVal =>
+              this.setState({sendNotification: nextVal})
+            )}
+          </>
+        }
         isRolePickerOpen={this.state.rolePickerOpen}
         onCancelRolePicker={() => {
           this.setState({rolePickerOpen: false})

@@ -6,7 +6,7 @@ import * as FsConstants from '../constants/fs'
 import * as FsTypes from '../constants/types/fs'
 import * as GregorGen from '../actions/gregor-gen'
 import * as TeamsGen from '../actions/teams-gen'
-import Teams from './main'
+import Teams, {Props} from './main'
 import {HeaderRightActions} from './main/header'
 import openURL from '../util/open-url'
 import * as Constants from '../constants/teams'
@@ -82,11 +82,7 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
-class Reloadable extends React.PureComponent<
-  {} & React.ElementProps<typeof Teams> & {
-      _loadTeams: () => void
-    }
-> {
+class Reloadable extends React.PureComponent<Props & {_loadTeams: () => void}> {
   render() {
     const {_loadTeams, ...rest} = this.props
     return (

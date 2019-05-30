@@ -9,6 +9,7 @@ import {
   hasCanPerform,
 } from '../../../../constants/teams'
 import {getConversationRetentionPolicy} from '../../../../constants/chat2/meta'
+// @ts-ignore not typed yet
 import {RetentionPolicy} from '../../../../constants/types/retention-policy'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {ConversationIDKey} from '../../../../constants/types/chat2'
@@ -151,12 +152,7 @@ const mapDispatchToProps = (
 })
 
 export default compose(
-  namedConnect(
-    mapStateToProps,
-    mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d}),
-    'RetentionPicker'
-  ),
+  namedConnect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}), 'RetentionPicker'),
   lifecycle({
     componentDidMount() {
       this.props._loadTeamPolicy()
