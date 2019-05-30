@@ -1,8 +1,8 @@
-// @flow
 import globalColors from './colors'
 import {isMobile, isIOS, isAndroid, isElectron} from '../constants/platform'
-import type {_StylesCrossPlatform, _StylesMobile, _StylesDesktop} from './css'
-import type {Background} from '../common-adapters/text'
+import {_StylesCrossPlatform, _StylesMobile, _StylesDesktop} from './css'
+// @ts-ignore
+import {Background} from '../common-adapters/text'
 
 /* eslint-disable sort-keys */
 export const globalMargins = {
@@ -28,7 +28,9 @@ export const backgroundModeToColor = {
   Terminal: globalColors.darkBlue3,
 }
 
-export const backgroundModeToTextColor = (backgroundMode: Background): $Values<typeof globalColors> => {
+export const backgroundModeToTextColor = (
+  backgroundMode: Background
+): typeof globalColors[keyof typeof globalColors] => {
   switch (backgroundMode) {
     case 'Information':
       return globalColors.brown_75
@@ -41,7 +43,7 @@ export const backgroundModeToTextColor = (backgroundMode: Background): $Values<t
   }
 }
 
-export const util = ({flexCommon}: {flexCommon?: ?Object}) => ({
+export const util = ({flexCommon}: {flexCommon?: Object | null}) => ({
   fillAbsolute: {bottom: 0, left: 0, position: 'absolute', right: 0, top: 0},
   flexBoxCenter: {...flexCommon, alignItems: 'center', justifyContent: 'center'},
   flexBoxColumn: {...flexCommon, flexDirection: 'column'},
@@ -62,13 +64,13 @@ const unifyStyles = s => ({
     : {}),
 })
 
-export const platformStyles = (options: {|
-  common?: ?_StylesCrossPlatform,
-  isIOS?: _StylesMobile,
-  isAndroid?: _StylesMobile,
-  isMobile?: _StylesMobile,
-  isElectron?: _StylesDesktop,
-|}) => ({
+export const platformStyles = (options: {
+  common?: _StylesCrossPlatform | null
+  isIOS?: _StylesMobile
+  isAndroid?: _StylesMobile
+  isMobile?: _StylesMobile
+  isElectron?: _StylesDesktop
+}) => ({
   ...(options.common ? unifyStyles(options.common) : {}),
   ...(isMobile && options.isMobile ? options.isMobile : {}),
   ...(isIOS && options.isIOS ? options.isIOS : {}),
@@ -79,8 +81,8 @@ export const platformStyles = (options: {|
 /* eslint-disable sort-keys */
 export const padding = (top: number, right?: number, bottom?: number, left?: number) => ({
   paddingTop: top,
-  paddingRight: right ?? top,
-  paddingBottom: bottom ?? top,
-  paddingLeft: left ?? right ?? top,
+  paddingRight: right !== undefined ? right : top,
+  paddingBottom: bottom !== undefined ? bottom : top,
+  paddingLeft: left !== undefined ? left : right !== undefined ? right : top,
 })
 /* eslint-enable sort-keys */

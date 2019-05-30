@@ -1,8 +1,7 @@
-// @flow
 import globalColors from './colors'
 import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
 import path from 'path'
-import {type CollapsibleStyle} from './index.types'
+import * as T from './index.types'
 import * as Shared from './shared'
 import {isEmpty} from 'lodash-es'
 
@@ -134,7 +133,7 @@ export const initDesktopStyles = () => {
 
 export const hairlineWidth = 1
 export const styleSheetCreate = (obj: Object) => obj
-export const collapseStyles = (styles: $ReadOnlyArray<CollapsibleStyle>): Object => {
+export const collapseStyles = (styles: ReadonlyArray<T.CollapsibleStyle>): Object => {
   // fast path for a single style that passes. Often we do stuff like
   // collapseStyle([styles.myStyle, this.props.something && {backgroundColor: 'red'}]), so in the false
   // case we can just take styles.myStyle and not render thrash
@@ -146,18 +145,27 @@ export const collapseStyles = (styles: $ReadOnlyArray<CollapsibleStyle>): Object
     }
   }
 
-  const flattenedStyles = styles.reduce((a, e) => a.concat(e), [])
+  const flattenedStyles = styles.reduce(
+    (a: Array<T.CollapsibleStyle>, e: T.CollapsibleStyle) => a.concat(e),
+    []
+  ) as Array<Object | null | false>
   const style = flattenedStyles.reduce((o, e) => (e ? {...o, ...e} : o), {})
   return isEmpty(style) ? undefined : style
 }
 export {isMobile, fileUIName, isIPhoneX, isIOS, isAndroid} from '../constants/platform'
-export {globalMargins, backgroundModeToColor, backgroundModeToTextColor, platformStyles, padding} from './shared'
+export {
+  globalMargins,
+  backgroundModeToColor,
+  backgroundModeToTextColor,
+  platformStyles,
+  padding,
+} from './shared'
 export {css as styledCss, keyframes as styledKeyframes} from '@emotion/core'
 export {default as styled} from '@emotion/styled'
 export {default as globalColors} from './colors'
 export const statusBarHeight = 0
 export const borderRadius = 4
 export {default as classNames} from 'classnames'
-export type {StylesCrossPlatform} from './index.types'
+export type StylesCrossPlatform = T.StylesCrossPlatform
 export const dimensionWidth = 0
 export const dimensionHeight = 0
