@@ -26,7 +26,7 @@ const mapStateToProps = state => ({
 const InboxSwitchConnected = namedConnect(
   mapStateToProps,
   () => ({}),
-  (s, d, o) => ({...o, ...s}),
+  ({searchEnabled}) => ({searchEnabled}),
   'InboxSwitchConnected'
 )(InboxSwitch)
 

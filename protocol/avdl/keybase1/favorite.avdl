@@ -13,8 +13,9 @@ protocol favorite {
   enum FolderConflictType {
     NONE_0,
     IN_CONFLICT_1,
-    IN_CONFLICT_AND_STUCK_2
-  }
+    IN_CONFLICT_AND_STUCK_2,
+    CLEARED_CONFLICT_3
+}
 
   enum ConflictStateType {
     AutomaticResolving_0,
