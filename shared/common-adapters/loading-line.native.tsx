@@ -1,8 +1,7 @@
-// @flow
 import * as React from 'react'
 import {ReAnimated, ReAnimatedEasing} from './mobile.native'
 import {globalColors, styleSheetCreate} from '../styles'
-import type {Props} from './loading-line'
+import {Props} from './loading-line'
 
 const R = ReAnimated
 

@@ -1,4 +1,4 @@
-// @flow
+// @ts-ignore not converted
 import Box from './box'
 import * as React from 'react'
 import * as Styles from '../styles'
@@ -7,7 +7,7 @@ const Kb = {
   Box,
 }
 
-const LoadingLine = React.memo<{||}>(() => {
+const LoadingLine = React.memo<{}>(() => {
   const realCSS = `
     @keyframes fadeIn {
       from { opacity: 0; }
