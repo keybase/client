@@ -314,8 +314,7 @@ function* loadStartupDetails() {
     try {
       const item = JSON.parse(routeState)
       if (item) {
-        startupConversation = // Auto generated from flowToTs. Please clean me!
-          item.param === null || item.param === undefined ? undefined : item.param.selectedConversationIDKey
+        startupConversation = item.param && item.param.selectedConversationIDKey
         startupTab = item.routeName
       }
 
