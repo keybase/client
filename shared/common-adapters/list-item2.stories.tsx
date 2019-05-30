@@ -1,9 +1,11 @@
-// @flow
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import ListItem from './list-item2'
+// @ts-ignore not converted
 import {Box2} from './box'
+// @ts-ignore not converted
 import Text from './text'
+// @ts-ignore not converted
 import Icon from './icon'
 import Button from './button'
 import {globalColors} from '../styles'

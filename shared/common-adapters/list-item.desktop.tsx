@@ -1,8 +1,8 @@
-// @flow
 import React, {Component} from 'react'
+// @ts-ignore not converted
 import Box from './box'
 import {globalStyles, desktopStyles} from '../styles'
-import type {Props} from './list-item'
+import {Props} from './list-item'
 
 class ListItem extends Component<Props> {
   render() {

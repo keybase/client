@@ -1,11 +1,10 @@
-// @flow
 import React, {PureComponent} from 'react'
 import {FlatList, View} from 'react-native'
 import {globalStyles, collapseStyles, styleSheetCreate} from '../styles'
 
-import type {Props} from './list'
+import {Props} from './list'
 
-class List extends PureComponent<Props<any>, void> {
+class List extends PureComponent<Props<any>> {
   static defaultProps = {
     keyboardShouldPersistTaps: 'handled',
   }

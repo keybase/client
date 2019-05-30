@@ -1,11 +1,10 @@
-// @flow
 import React, {PureComponent} from 'react'
 import * as Flow from '../util/flow'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import {FixedSizeList, VariableSizeList} from 'react-window'
-import type {Props} from './list2'
+import {Props} from './list2'
 
-class List2<T> extends PureComponent<Props<T>, void> {
+class List2<T> extends PureComponent<Props<T>> {
   _keyExtractor = index => {
     const item = this.props.items[index]
     if (this.props.indexAsKey || !item) {
@@ -61,9 +60,7 @@ class List2<T> extends PureComponent<Props<T>, void> {
             case 'variable':
               return this._variable({getItemLayout: this.props.itemHeight.getItemLayout, height, width})
             default:
-              Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(
-                this.props.itemHeight.type
-              )
+              Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(this.props.itemHeight)
               return null
           }
         }}
@@ -71,5 +68,7 @@ class List2<T> extends PureComponent<Props<T>, void> {
     )
   }
 }
+
+function shouldBe<T>(arg: T) {}
 
 export default List2

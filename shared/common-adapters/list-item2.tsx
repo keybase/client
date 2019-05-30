@@ -1,7 +1,8 @@
-// @flow
 import * as React from 'react'
 import * as Styles from '../styles'
+// @ts-ignore not converted
 import ClickableBox from './clickable-box'
+// @ts-ignore not converted
 import {Box2} from './box'
 import BoxGrow from './box-grow'
 import Divider from './divider'
@@ -16,14 +17,14 @@ const Kb = {
 // List item following stylesheet specs. TODO deprecate list-item.*.js
 
 type Props = {
-  type: 'Small' | 'Large',
-  icon: React.Node,
-  statusIcon?: React.Node,
-  body: React.Node,
-  firstItem: boolean,
-  action?: React.Node,
-  onlyShowActionOnHover?: ?boolean,
-  onClick?: () => void,
+  type: 'Small' | 'Large'
+  icon: React.ReactNode
+  statusIcon?: React.ReactNode
+  body: React.ReactNode
+  firstItem: boolean
+  action?: React.ReactNode
+  onlyShowActionOnHover?: boolean | null
+  onClick?: () => void
 }
 
 const HoverBox = Styles.isMobile

@@ -1,12 +1,11 @@
-// @flow
 import React, {PureComponent} from 'react'
 import * as Flow from '../util/flow'
 import {FlatList, View} from 'react-native'
 import * as Styles from '../styles'
 
-import type {Props} from './list2'
+import {Props} from './list2'
 
-class List2<T> extends PureComponent<Props<T>, void> {
+class List2<T> extends PureComponent<Props<T>> {
   static defaultProps = {
     keyboardShouldPersistTaps: 'handled',
   }
@@ -22,7 +21,7 @@ class List2<T> extends PureComponent<Props<T>, void> {
       case 'variable':
         return {index, ...this.props.itemHeight.getItemLayout(index, data[index])}
       default:
-        Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(this.props.itemHeight.type)
+        Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(this.props.itemHeight)
         return {height: 0, index, offset: 0}
     }
   }

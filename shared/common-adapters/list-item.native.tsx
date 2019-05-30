@@ -1,7 +1,8 @@
-// @flow
 import React, {Component} from 'react'
-import type {Props} from './list-item'
+import {Props} from './list-item'
+// @ts-ignore not converted
 import Box from './box'
+// @ts-ignore not converted
 import ClickableBox from './clickable-box'
 import {globalStyles} from '../styles'
 

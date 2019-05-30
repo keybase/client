@@ -1,8 +1,10 @@
-// @flow
 import * as React from 'react'
 import Button from './button'
+// @ts-ignore not converted
 import Box, {Box2} from './box'
+// @ts-ignore not converted
 import Text from './text'
+// @ts-ignore not converted
 import List2 from './list2'
 import * as Sb from '../stories/storybook'
 import * as Styles from '../styles'
@@ -68,7 +70,12 @@ const load = () =>
     ))
     .add('fixed - props change ', () => <PropsChangeTester />)
 
-class PropsChangeTester extends React.PureComponent<{||}, {|counter: number|}> {
+class PropsChangeTester extends React.PureComponent<
+  {},
+  {
+    counter: number
+  }
+> {
   state = {
     counter: 0,
   }

@@ -1,14 +1,13 @@
-// @flow
 import React, {PureComponent} from 'react'
 import ReactList from 'react-list'
 import {globalStyles, collapseStyles, styleSheetCreate, platformStyles} from '../styles'
 import logger from '../logger'
 import {throttle, once} from 'lodash-es'
 
-import type {Props} from './list'
+import {Props} from './list'
 
-class List extends PureComponent<Props<any>, void> {
-  _list: ?ReactList
+class List extends PureComponent<Props<any>> {
+  _list: ReactList | null
   _itemRender = index => {
     // ReactList has an issue where it caches the list length into its own state so can ask
     // for indices outside of the items...
@@ -21,9 +20,9 @@ class List extends PureComponent<Props<any>, void> {
     // If we're in dev, let's warn if we're using margins (not supported by react-list)
     if (__DEV__ && !!this.props.itemSizeEstimator) {
       const renderedItem = this.props.renderItem(index, item)
-      // $FlowIssue - Not every rendered item has props
-      if (renderedItem?.props?.style) {
-        // $FlowIssue - Not every rendered item has props
+      // @ts-ignore - Not every rendered item has props
+      if (renderedItem && renderedItem.props && renderedItem.props.style) {
+        // @ts-ignore - Not every rendered item has props
         const hasMargin = Object.keys(renderedItem.props.style).some(styleProp => styleProp.match(/^margin/))
         hasMargin &&
           console.warn(
