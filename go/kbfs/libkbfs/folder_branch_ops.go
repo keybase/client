@@ -9040,8 +9040,13 @@ func (fbo *folderBranchOps) SetSyncConfig(
 	}
 
 	if config.Mode == keybase1.FolderSyncMode_ENABLED {
-		fbo.log.CDebugf(ctx, "Starting full deep sync")
-		_ = fbo.kickOffRootBlockFetch(ctx, md)
+		// Make a new ctx for the root block fetch, since it will
+		// continue after this function returns.
+		rootBlockCtx := fbo.ctxWithFBOID(context.Background())
+		fbo.log.CDebugf(
+			ctx, "Starting full deep sync with a new context: FBOID=%s",
+			rootBlockCtx.Value(CtxFBOIDKey))
+		_ = fbo.kickOffRootBlockFetch(rootBlockCtx, md)
 	}
 
 	// Issue notifications to client when sync mode changes (or is partial).
