@@ -137,6 +137,7 @@ type mdJournal struct {
 	tlfID          tlf.ID
 	mdVer          kbfsmd.MetadataVer
 	dir            string
+	overrideTlfID  tlf.ID
 
 	log      logger.Logger
 	deferLog logger.Logger
@@ -165,7 +166,7 @@ func makeMDJournalWithIDJournal(
 	codec kbfscodec.Codec, crypto cryptoPure, clock Clock,
 	teamMemChecker kbfsmd.TeamMembershipChecker, osg idutil.OfflineStatusGetter,
 	tlfID tlf.ID, mdVer kbfsmd.MetadataVer, dir string, idJournal mdIDJournal,
-	log logger.Logger) (*mdJournal, error) {
+	log logger.Logger, overrideTlfID tlf.ID) (*mdJournal, error) {
 	if uid == keybase1.UID("") {
 		return nil, errors.New("Empty user")
 	}
@@ -185,6 +186,7 @@ func makeMDJournalWithIDJournal(
 		tlfID:          tlfID,
 		mdVer:          mdVer,
 		dir:            dir,
+		overrideTlfID:  overrideTlfID,
 		log:            log,
 		deferLog:       deferLog,
 		j:              idJournal,
@@ -230,7 +232,7 @@ func makeMDJournal(
 	codec kbfscodec.Codec, crypto cryptoPure, clock Clock,
 	teamMemChecker kbfsmd.TeamMembershipChecker, osg idutil.OfflineStatusGetter,
 	tlfID tlf.ID, mdVer kbfsmd.MetadataVer, dir string,
-	log logger.Logger) (*mdJournal, error) {
+	log logger.Logger, overrideTlfID tlf.ID) (*mdJournal, error) {
 	journalDir := mdJournalPath(dir)
 	idJournal, err := makeMdIDJournal(codec, journalDir)
 	if err != nil {
@@ -238,7 +240,7 @@ func makeMDJournal(
 	}
 	return makeMDJournalWithIDJournal(
 		ctx, uid, key, codec, crypto, clock, teamMemChecker, osg, tlfID, mdVer,
-		dir, idJournal, log)
+		dir, idJournal, log, overrideTlfID)
 }
 
 // The functions below are for building various paths.
@@ -490,6 +492,11 @@ func (j mdJournal) getMDAndExtra(ctx context.Context, entry mdIDJournalEntry,
 		return nil, nil, time.Time{}, errors.Errorf(
 			"Branch ID mismatch: expected %s, got %s",
 			j.branchID, rmd.BID())
+	}
+
+	// Local conflict branches will have a different local TLF ID.
+	if j.overrideTlfID != tlf.NullID {
+		rmd.SetTlfID(j.overrideTlfID)
 	}
 
 	return rmd, extra, timestamp, nil
@@ -1493,7 +1500,7 @@ func (j *mdJournal) resolveAndClear(
 
 	otherJournal, err := makeMDJournalWithIDJournal(
 		ctx, j.uid, j.key, j.codec, j.crypto, j.clock, j.teamMemChecker, j.osg,
-		j.tlfID, j.mdVer, j.dir, otherIDJournal, j.log)
+		j.tlfID, j.mdVer, j.dir, otherIDJournal, j.log, j.overrideTlfID)
 	if err != nil {
 		return kbfsmd.ID{}, err
 	}

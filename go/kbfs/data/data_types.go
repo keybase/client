@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
 )
@@ -378,7 +379,8 @@ const (
 	// the master branch.
 	MasterBranch BranchName = ""
 
-	branchRevPrefix = "rev="
+	branchRevPrefix           = "rev="
+	branchLocalConflictPrefix = "localConflict="
 )
 
 // MakeRevBranchName returns a branch name specifying an archive
@@ -387,9 +389,25 @@ func MakeRevBranchName(rev kbfsmd.Revision) BranchName {
 	return BranchName(branchRevPrefix + strconv.FormatInt(int64(rev), 10))
 }
 
+// MakeConflictBranchName returns a branch name specifying a conflict
+// date, if possible.
+func MakeConflictBranchName(h *tlfhandle.Handle) (BranchName, bool) {
+	if !h.IsLocalConflict() {
+		return "", false
+	}
+
+	return BranchName(
+		branchLocalConflictPrefix + h.ConflictInfo().String()), true
+}
+
 // IsArchived returns true if the branch specifies an archived revision.
 func (bn BranchName) IsArchived() bool {
 	return strings.HasPrefix(string(bn), branchRevPrefix)
+}
+
+// IsLocalConflict returns true if the branch specifies a local conflict branch.
+func (bn BranchName) IsLocalConflict() bool {
+	return strings.HasPrefix(string(bn), branchLocalConflictPrefix)
 }
 
 // RevisionIfSpecified returns a valid revision number and true if

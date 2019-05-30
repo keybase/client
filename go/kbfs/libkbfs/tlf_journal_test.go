@@ -286,7 +286,7 @@ func setupTLFJournalTest(
 		math.MaxInt64, math.MaxInt64, math.MaxInt64)
 	tlfJournal, err = makeTLFJournal(ctx, uid, verifyingKey,
 		tempdir, config.tlfID, uid.AsUserOrTeam(), config, delegateBlockServer,
-		bwStatus, delegate, nil, nil, diskLimitSemaphore)
+		bwStatus, delegate, nil, nil, diskLimitSemaphore, tlf.NullID)
 	require.NoError(t, err)
 
 	switch bwStatus {
