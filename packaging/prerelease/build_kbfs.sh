@@ -18,7 +18,7 @@ commit_short=`git log -1 --pretty=format:%h`
 build="$current_date+$commit_short"
 kbfs_build=${KBFS_BUILD:-$build}
 tags=${TAGS:-"prerelease production"}
-ldflags="-X github.com/keybase/client/go/kbfs/libkbfs.PrereleaseBuild=$kbfs_build"
+ldflags="-X github.com/keybase/client/go/kbfs/libkbfs.PrereleaseBuild=$kbfs_build -s -w"
 pkg="github.com/keybase/client/go/kbfs/kbfsfuse"
 git_remote_helper_pkg="github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase"
 redirector_pkg="github.com/keybase/client/go/kbfs/redirector"

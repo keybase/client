@@ -35,31 +35,31 @@ const hits = [
 const initial = {
   ...base,
   hits: [],
-  status: 'initial',
+  status: 'initial' as 'initial',
 }
 
 const started = {
   ...base,
   hits: [],
-  status: 'inprogress',
+  status: 'inprogress' as 'inprogress',
 }
 
 const partial = {
   ...base,
   hits,
-  status: 'inprogress',
+  status: 'inprogress' as 'inprogress',
 }
 
 const complete = {
   ...base,
   hits,
-  status: 'done',
+  status: 'done' as 'done',
 }
 
 const none = {
   ...base,
   hits: [],
-  status: 'done',
+  status: 'done' as 'done',
 }
 
 const load = () => {

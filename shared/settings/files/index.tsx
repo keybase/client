@@ -23,9 +23,9 @@ const EnableSystemFileManagerIntegration = (props: Props) => (
 )
 
 const isPending = (props: Props) =>
-  props.driverStatus.type === 'unknown' ||
-  (props.driverStatus.type === 'enabled' && props.driverStatus.isDisabling) ||
-  (props.driverStatus.type === 'disabled' && props.driverStatus.isEnabling)
+  props.driverStatus.type === Types.DriverStatusType.Unknown ||
+  (props.driverStatus.type === Types.DriverStatusType.Enabled && props.driverStatus.isDisabling) ||
+  (props.driverStatus.type === Types.DriverStatusType.Disabled && props.driverStatus.isEnabling)
 
 export default (props: Props) => (
   <>
@@ -39,18 +39,21 @@ export default (props: Props) => (
               <Kb.Text type="BodySmallSemibold">{fileUIName} integration</Kb.Text>
               <Kb.Icon type="iconfont-finder" fontSize={16} color={Styles.globalColors.black_20} />
               {isPending(props) && <Kb.ProgressIndicator style={styles.spinner} />}
-              {props.driverStatus.type === 'disabled' && props.driverStatus.kextPermissionError && (
-                <Kb.ClickableBox style={styles.actionNeededBox} onClick={props.onShowKextPermissionPopup}>
-                  <Kb.Text style={styles.actionNeededText} type="BodySmallSemibold">
-                    Action needed!
-                  </Kb.Text>
-                </Kb.ClickableBox>
-              )}
+              {props.driverStatus.type === Types.DriverStatusType.Disabled &&
+                props.driverStatus.kextPermissionError && (
+                  <Kb.ClickableBox style={styles.actionNeededBox} onClick={props.onShowKextPermissionPopup}>
+                    <Kb.Text style={styles.actionNeededText} type="BodySmallSemibold">
+                      Action needed!
+                    </Kb.Text>
+                  </Kb.ClickableBox>
+                )}
             </Kb.Box2>
             <Kb.Checkbox
-              onCheck={props.driverStatus.type === 'enabled' ? props.onDisable : props.onEnable}
+              onCheck={
+                props.driverStatus.type === Types.DriverStatusType.Enabled ? props.onDisable : props.onEnable
+              }
               labelComponent={<EnableSystemFileManagerIntegration {...props} />}
-              checked={props.driverStatus.type === 'enabled'}
+              checked={props.driverStatus.type === Types.DriverStatusType.Enabled}
               disabled={isPending(props)}
             />
           </Kb.Box>

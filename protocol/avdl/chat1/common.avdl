@@ -565,6 +565,7 @@
     int maxMessages;
     int beforeContext;
     int afterContext;
+    union { null, Pagination } initialPagination;
     // only used by in inbox search
     ReIndexingMode reindexMode;
     int maxConvsSearched;

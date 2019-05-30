@@ -125,6 +125,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
       }
     }
     default:
+      // @ts-ignore message is type `never` correctly
       throw new Error(`AccountPayment: impossible case encountered: '${ownProps.message.type}'`)
   }
 }

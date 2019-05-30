@@ -115,6 +115,10 @@ func (r DummyChatUI) ChatMaybeMentionUpdate(ctx context.Context, arg chat1.ChatM
 	return nil
 }
 
+func (r DummyChatUI) ChatLoadGalleryHit(ctx context.Context, arg chat1.ChatLoadGalleryHitArg) error {
+	return nil
+}
+
 type DummyChatNotifications struct{}
 
 func (d DummyChatNotifications) NewChatActivity(ctx context.Context, arg chat1.NewChatActivityArg) error {

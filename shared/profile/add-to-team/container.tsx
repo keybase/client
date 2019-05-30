@@ -96,7 +96,7 @@ type State = {
 class AddToTeamStateWrapper extends React.Component<{} & ExtraProps & AddToTeamProps, State> {
   state = {
     rolePickerOpen: false,
-    selectedRole: 'writer',
+    selectedRole: 'writer' as 'writer',
     selectedTeams: I.Set(),
     sendNotification: true,
   }

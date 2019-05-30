@@ -363,11 +363,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
             </Kb.Text>
           </Kb.WithTooltip>
           {props.status !== 'error' && (
-            <TimestampLine
-              error={props.status === 'error' ? props.statusDetail : ''}
-              selectableText={true}
-              timestamp={props.timestamp}
-            />
+            <TimestampLine error="" selectableText={true} timestamp={props.timestamp} />
           )}
           {props.status === 'error' && (
             <Kb.Text type="BodySmallError" selectable={true}>

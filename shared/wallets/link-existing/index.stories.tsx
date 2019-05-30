@@ -9,7 +9,7 @@ const common = {
   linkExistingAccountError: '',
   name: '',
   nameError: '',
-  nameValidationState: 'none',
+  nameValidationState: 'none' as 'none',
   onCancel: action('onCancel'),
   onCheckKey: action('onCheckKey'),
   onCheckName: action('onCheckName'),
@@ -18,7 +18,7 @@ const common = {
   onKeyChange: action('onKeyChange'),
   onNameChange: action('onNameChange'),
   secretKey: '',
-  secretKeyValidationState: 'none',
+  secretKeyValidationState: 'none' as 'none',
   waiting: false,
 }
 
@@ -31,7 +31,7 @@ const keyErrorProps = {
   ...common,
   keyError: 'Error: invalid key',
   secretKey: 'not a key',
-  secretKeyValidationState: 'error',
+  secretKeyValidationState: 'error' as 'error',
 }
 
 const enterNameProps = {
