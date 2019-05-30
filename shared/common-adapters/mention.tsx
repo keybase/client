@@ -1,19 +1,18 @@
-// @flow
 import React from 'react'
+// @ts-ignore not converted
 import Text from './text'
 import * as Styles from '../styles'
 
-export type OwnProps = {|
-  username: string,
-  theme?: 'follow' | 'nonFollow' | 'highlight' | 'none',
-  style?: Styles.StylesCrossPlatform,
-  allowFontScaling?: boolean,
-|}
+export type OwnProps = {
+  username: string
+  theme?: 'follow' | 'nonFollow' | 'highlight' | 'none'
+  style?: Styles.StylesCrossPlatform
+  allowFontScaling?: boolean
+}
 
-export type Props = {|
-  ...OwnProps,
-  onClick: () => void,
-|}
+export type Props = {
+  onClick: () => void
+} & OwnProps
 
 export default ({username, theme, style, allowFontScaling, onClick}: Props) => (
   <Text

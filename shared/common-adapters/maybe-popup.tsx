@@ -1,27 +1,27 @@
-// @flow
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
+// @ts-ignore not converted
 import Box from './box'
+// @ts-ignore not converted
 import PopupDialog from './popup-dialog'
 import {connect} from '../util/container'
 import {collapseStyles, globalColors, isMobile} from '../styles'
 
+type Props = {
+  onClose: () => void
+  onMouseUp?: (e: React.MouseEvent) => void
+  onMouseDown?: (e: React.MouseEvent) => void
+  onMouseMove?: (e: React.MouseEvent) => void
+  children: React.ReactNode
+  cover?: boolean
+  styleCover?: any
+  styleClipContainer?: any
+  styleContainer?: any
+}
+
 const MaybePopup = isMobile
-  ? (props: {onClose: () => void, children: React.Node}) => (
-      <Box style={{height: '100%', width: '100%'}} children={props.children} />
-    )
-  : (props: {
-      onClose: () => void,
-      onMouseUp?: (e: SyntheticMouseEvent<>) => void,
-      onMouseDown?: (e: SyntheticMouseEvent<>) => void,
-      onMouseMove?: (e: SyntheticMouseEvent<>) => void,
-      children: React.Node,
-      cover?: boolean,
-      styleCover?: any,
-      styleClipContainer?: any,
-      styleContainer?: any,
-      styleClipContainer?: any,
-    }) => (
+  ? (props: Props) => <Box style={{height: '100%', width: '100%'}} children={props.children} />
+  : (props: Props) => (
       <PopupDialog
         onClose={props.onClose}
         onMouseUp={props.onMouseUp}
@@ -35,8 +35,9 @@ const MaybePopup = isMobile
     )
 
 // TODO properly type this
-const DispatchNavUpHoc: any = connect<any, _, _, _, _>(
+const DispatchNavUpHoc: any = connect(
   () => ({}),
+  // @ts-ignore codemod issue
   (dispatch, {navigateUp}) => ({
     connectedNavigateUp: () => dispatch(navigateUp ? navigateUp() : RouteTreeGen.createNavigateUp()),
   }),

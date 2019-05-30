@@ -1,6 +1,7 @@
-// @flow
 import * as React from 'react'
+// @ts-ignore not converted
 import Box from './box'
+// @ts-ignore not converted
 import Text from './text'
 import {
   globalColors,
@@ -8,16 +9,16 @@ import {
   platformStyles,
   collapseStyles,
   styleSheetCreate,
-  type StylesCrossPlatform,
+  StylesCrossPlatform,
 } from '../styles'
 
 type Props = {
-  title: string,
-  style?: StylesCrossPlatform,
-  size?: 'Small',
-  color?: string,
-  backgroundColor: string,
-  noUppercase?: boolean,
+  title: string
+  style?: StylesCrossPlatform
+  size?: 'Small'
+  color?: string
+  backgroundColor: string
+  noUppercase?: boolean
 }
 
 const Meta = (props: Props) => (

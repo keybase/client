@@ -1,19 +1,19 @@
-// @flow
 import * as React from 'react'
 import {Animated} from 'react-native'
+// @ts-ignore not converted
 import Box from './box'
 
 type Props = {
-  loading: boolean,
-  style?: Object,
-  doneLoadingComponent: React.Node,
-  loadingComponent: React.Node,
-  duration: number,
+  loading: boolean
+  style?: Object
+  doneLoadingComponent: React.ReactNode
+  loadingComponent: React.ReactNode
+  duration: number
 }
 
 type State = {
-  opacity: any,
-  loadingActive: boolean,
+  opacity: any
+  loadingActive: boolean
 }
 
 class LoadingWrapper extends React.Component<Props, State> {

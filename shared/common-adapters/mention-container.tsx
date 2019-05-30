@@ -1,13 +1,17 @@
-// @flow
 import * as Selectors from '../constants/selectors'
 import * as ProfileGen from '../actions/profile-gen'
 import * as Tracker2Gen from '../actions/tracker2-gen'
-import Mention, {type OwnProps} from './mention'
+import Mention, {OwnProps} from './mention'
 import {isMobile} from '../constants/platform'
 import {isSpecialMention} from '../constants/chat2'
 import {namedConnect} from '../util/container'
 
-const mapStateToProps = (state, {username}: OwnProps): {|theme: $PropertyType<OwnProps, 'theme'>|} => {
+const mapStateToProps = (
+  state,
+  {username}: OwnProps
+): {
+  theme: OwnProps['theme']
+} => {
   if (isSpecialMention(username)) {
     return {theme: 'highlight'}
   }
@@ -35,7 +39,7 @@ const mapDispatchToProps = (dispatch, {username}: OwnProps) => ({
       },
 })
 
-export default namedConnect<OwnProps, _, _, _, _>(
+export default namedConnect(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d}),

@@ -1,5 +1,5 @@
-// @flow
 import * as React from 'react'
+// @ts-ignore not converted
 import {Box2} from './box'
 import Meta from './meta'
 import {storiesOf} from '../stories/storybook'
