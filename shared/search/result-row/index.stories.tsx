@@ -51,7 +51,7 @@ const defaultConnectPropsMap: ConnectPropsMap = {
 } as any
 
 const mockOwnPropsToProps = (connectPropsMap: ConnectPropsMap, ownProps: OwnProps): Props => {
-  const result: any /*ConnectProps*/ = connectPropsMap[ownProps.id] || defaultConnectProps
+  const result: any = connectPropsMap[ownProps.id] || defaultConnectProps
   return {
     ...ownProps,
     ...result,

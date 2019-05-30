@@ -9,7 +9,7 @@ import {
   makeSelectorMap as makeRowSelectorMap,
 } from '../result-row/index.stories'
 
-const defaultConnectPropsMap: any /*RowConnectPropsMap*/ = {
+const defaultConnectPropsMap: any = {
   chris: {
     leftFollowingState: 'Following',
     leftFullname: 'chris on GitHub',
