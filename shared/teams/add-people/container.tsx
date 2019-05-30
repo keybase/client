@@ -96,7 +96,7 @@ type ExtraProps = {
 class AddPeopleStateWrapper extends React.Component<AddPeopleProps & ExtraProps, State> {
   state = {
     rolePickerOpen: false,
-    selectedRole: 'writer',
+    selectedRole: 'writer' as Types.TeamRoleType,
     sendNotification: true,
   }
   _setRef = false

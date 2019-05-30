@@ -125,7 +125,7 @@ const PublicityTeam = (props: SettingProps) =>
     </Box>
   )
 
-const OpenTeam = (props: {} & SettingProps & RolePickerProps) => {
+const OpenTeam = (props: SettingProps & RolePickerProps) => {
   if (!props.yourOperations.changeOpenTeam) {
     return null
   }
@@ -200,6 +200,8 @@ const toRolePickerPropsHelper = (state: State, setState) => ({
   disabledReasonsForRolePicker: {
     admin: `Users can't join open teams as admins.`,
     owner: `Users can't join open teams as owners.`,
+    reader: '',
+    writer: '',
   },
   isRolePickerOpen: state.isRolePickerOpen,
   newOpenTeamRole: state.newOpenTeamRole,

@@ -34,7 +34,7 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
     invitees: '',
     isRolePickerOpen: false,
     malformedEmails: I.Set(),
-    role: 'reader',
+    role: 'reader' as TeamRoleType,
   }
   _input: Kb.Input | null
 

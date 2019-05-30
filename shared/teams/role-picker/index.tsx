@@ -12,7 +12,7 @@ const orderedRoles = ['owner', 'admin', 'writer', 'reader']
 type DisabledReason = string
 
 export type Props = {
-  disabledRoles?: {[K in Role]: DisabledReason}
+  disabledRoles?: {[K in Role]?: DisabledReason}
   headerText?: string
   onCancel?: () => void // If provided, a cancel button will appear
   onConfirm: (selectedRole: Role) => void
@@ -160,7 +160,7 @@ const roleAbilities = (
 
 const roleElementHelper = (selectedRole: Role | null) =>
   orderedRoles
-    .map(role => [role, rolesMetaInfo(role, selectedRole)])
+    .map(role => [role, rolesMetaInfo(role as Role, selectedRole)])
     .map(([role, info]) => {
       // Using as to avoid lots of ts-ignore
       const roleInfo = info as RolesMetaInfo
@@ -223,11 +223,11 @@ const RolePicker = (props: Props) => {
         roleElementHelper(selectedRole),
         ({role, ...nodeMap}: {[K in string]: React.ReactNode}): React.ReactNode => {
           // Using as to avoid lots of ts-ignore.
-          const disabledRole = role as string
+          const disabledRole = role as Role
           const onSelect =
             props.disabledRoles && props.disabledRoles[disabledRole]
               ? undefined
-              : () => props.onSelectRole(role)
+              : () => props.onSelectRole(disabledRole)
           return (
             <Kb.ClickableBox key={role} onClick={onSelect}>
               <RoleRow

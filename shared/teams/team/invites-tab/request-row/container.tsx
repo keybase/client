@@ -64,7 +64,7 @@ type ExtraProps = {
 class RequestRowStateWrapper extends React.Component<RowProps & ExtraProps, State> {
   state = {
     rolePickerOpen: false,
-    selectedRole: 'writer',
+    selectedRole: 'writer' as 'writer',
     sendNotification: true,
   }
   _setRef = false

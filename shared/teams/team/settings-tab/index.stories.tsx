@@ -9,7 +9,7 @@ const commonProps = {
   ignoreAccessRequests: true,
   isBigTeam: true,
   openTeam: true,
-  openTeamRole: 'admin',
+  openTeamRole: 'admin' as 'admin',
   publicityAnyMember: true,
   publicityMember: true,
   publicityTeam: true,
