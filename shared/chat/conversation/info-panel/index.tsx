@@ -11,6 +11,12 @@ import Participant from './participant'
 import {AttachmentTypeSelector, DocView, LinkView, MediaView} from './attachments'
 
 export type Panel = 'settings' | 'members' | 'attachments'
+export type ParticipantTyp = {
+  username: string
+  fullname: string
+  isAdmin: boolean
+  isOwner: boolean
+}
 
 type Thumb = {
   ctime: number
@@ -59,12 +65,7 @@ type LinkProps = {
 
 export type InfoPanelProps = {
   selectedConversationIDKey: Types.ConversationIDKey
-  participants: Array<{
-    username: string
-    fullname: string
-    isAdmin: boolean
-    isOwner: boolean
-  }>
+  participants: Array<ParticipantTyp>
   isPreview: boolean
   teamname: string | null
   channelname: string | null
