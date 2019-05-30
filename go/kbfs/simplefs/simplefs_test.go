@@ -1404,7 +1404,7 @@ func TestFavoriteConflicts(t *testing.T) {
 		ctx, t, sfs, pathAppend(pathPub, `test.txt`), []byte(`foo`))
 	syncFS(ctx, t, sfs, "/public/jdoe")
 
-	t.Log("Make sue we see two favorites with no conflicts")
+	t.Log("Make sure we see two favorites with no conflicts")
 	favs, err := sfs.SimpleFSListFavorites(ctx)
 	require.NoError(t, err)
 	require.Len(t, favs.FavoriteFolders, 2)
@@ -1426,6 +1426,7 @@ func TestFavoriteConflicts(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, keybase1.ConflictStateType_AutomaticResolving,
 				conflictStateType)
+			require.True(t, f.ConflictState.Automaticresolving().IsStuck)
 			stuck++
 		} else {
 			require.Nil(t, f.ConflictState)
@@ -1440,8 +1441,46 @@ func TestFavoriteConflicts(t *testing.T) {
 	require.NoError(t, err)
 	favs, err = sfs.SimpleFSListFavorites(ctx)
 	require.NoError(t, err)
-	require.Len(t, favs.FavoriteFolders, 2)
+	require.Len(t, favs.FavoriteFolders, 3)
+	var pathConflict keybase1.Path
+	var pathLocalView keybase1.Path
 	for _, f := range favs.FavoriteFolders {
-		require.Nil(t, f.ConflictState)
+		if tlf.ContainsLocalConflictExtensionPrefix(f.Name) {
+			require.NotNil(t, f.ConflictState)
+			ct, err := f.ConflictState.ConflictStateType()
+			require.NoError(t, err)
+			require.Equal(
+				t, keybase1.ConflictStateType_ManualResolvingLocalView, ct)
+			mrlv := f.ConflictState.Manualresolvinglocalview()
+			require.Equal(t, pathPub.String(), mrlv.ServerView.String())
+			pathConflict = keybase1.NewPathWithKbfs("/public/" + f.Name)
+		} else if f.Name == "jdoe" && f.FolderType == keybase1.FolderType_PUBLIC {
+			require.NotNil(t, f.ConflictState)
+			ct, err := f.ConflictState.ConflictStateType()
+			require.NoError(t, err)
+			require.Equal(
+				t, keybase1.ConflictStateType_ManualResolvingServerView, ct)
+			mrsv := f.ConflictState.Manualresolvingserverview()
+			require.Len(t, mrsv.LocalViews, 1)
+			pathLocalView = mrsv.LocalViews[0]
+		} else {
+			require.Nil(t, f.ConflictState)
+		}
 	}
+	require.NotEqual(t, "", pathConflict.String())
+	require.Equal(t, pathLocalView.String(), pathConflict.String())
+
+	t.Log("Make sure we see all the conflict files in the local branch")
+	opid, err := sfs.SimpleFSMakeOpid(ctx)
+	require.NoError(t, err)
+	err = sfs.SimpleFSList(ctx, keybase1.SimpleFSListArg{
+		OpID: opid,
+		Path: pathConflict,
+	})
+	require.NoError(t, err)
+	err = sfs.SimpleFSWait(ctx, opid)
+	require.NoError(t, err)
+	listResult, err := sfs.SimpleFSReadList(ctx, opid)
+	require.NoError(t, err)
+	require.Len(t, listResult.Entries, 12)
 }

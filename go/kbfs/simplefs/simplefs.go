@@ -225,6 +225,12 @@ func (k *SimpleFS) branchNameFromPath(
 	}
 	switch pt {
 	case keybase1.PathType_KBFS:
+		if tlfHandle.IsLocalConflict() {
+			b, ok := data.MakeConflictBranchName(tlfHandle)
+			if ok {
+				return b, nil
+			}
+		}
 		return data.MasterBranch, nil
 	case keybase1.PathType_KBFS_ARCHIVED:
 		archivedParam := path.KbfsArchived().ArchivedParam
