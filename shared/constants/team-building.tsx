@@ -21,7 +21,11 @@ function isKeybaseUserId(userId) {
   return userId.indexOf('@') < 0
 }
 
-function followStateHelperWithId(me: string, followingState: I.Set<string>, userId: string = ''): Types.FollowingState {
+function followStateHelperWithId(
+  me: string,
+  followingState: I.Set<string>,
+  userId: string = ''
+): Types.FollowingState {
   if (isKeybaseUserId(userId)) {
     if (userId === me) {
       return 'You'
@@ -40,10 +44,13 @@ const makeSubState = (): Types.TeamBuildingSubState => ({
   teamBuildingSelectedService: 'keybase',
   teamBuildingServiceResultCount: I.Map(),
   teamBuildingTeamSoFar: I.Set(),
-  teamBuildingUserRecs: null
+  teamBuildingUserRecs: null,
 })
 
-const parseRawResultToUser = (result: Types.RawSearchResult, service: Types.ServiceIdWithContact): Types.User | null => {
+const parseRawResultToUser = (
+  result: Types.RawSearchResult,
+  service: Types.ServiceIdWithContact
+): Types.User | null => {
   const serviceMap = Object.keys(result.services_summary || {}).reduce((acc, service_name) => {
     acc[service_name] = result.services_summary[service_name].username
     return acc

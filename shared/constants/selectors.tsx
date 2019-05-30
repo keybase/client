@@ -1,12 +1,12 @@
 // Not use util/container as we have import loops otherwise
-import { TypedState } from './reducer';
-import { SearchQuery } from './types/search';
+import {TypedState} from './reducer'
+import {SearchQuery} from './types/search'
 
 const cachedSearchResults = (
   {
     entities: {
       search: {searchQueryToResult},
-    }
+    },
   }: TypedState,
   searchQuery: SearchQuery
 ) => searchQueryToResult.get(searchQuery)
@@ -15,7 +15,7 @@ const searchResultSelector = (
   {
     entities: {
       search: {searchResults},
-    }
+    },
   }: TypedState,
   username: string
 ) => {

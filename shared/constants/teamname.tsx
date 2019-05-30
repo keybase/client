@@ -1,4 +1,3 @@
-
 // This logic is copied from go/protocol/keybase1/extras.go.
 
 const validTeamnamePart = (s: string): boolean => {

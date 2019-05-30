@@ -1,14 +1,12 @@
 import {capitalize} from 'lodash-es'
 import * as Types from './types/plan-billing'
 
-export function parseAvailablePlan(
-  {
-    plan_name,
-    gigabytes,
-    plan_id,
-    price_pennies
-  }: Types.AvailablePlanAPI
-): Types.AvailablePlan {
+export function parseAvailablePlan({
+  plan_name,
+  gigabytes,
+  plan_id,
+  price_pennies,
+}: Types.AvailablePlanAPI): Types.AvailablePlan {
   return {
     gigabytes,
     planId: plan_id,
@@ -17,13 +15,7 @@ export function parseAvailablePlan(
   }
 }
 
-export function parsePaymentInfo(
-  {
-    last4,
-    name,
-    cvc_check
-  }: Types.PaymentInfoAPI
-): Types.PaymentInfo {
+export function parsePaymentInfo({last4, name, cvc_check}: Types.PaymentInfoAPI): Types.PaymentInfo {
   return {
     name,
     isBroken: cvc_check !== 'pass', // eslint-disable-line
@@ -32,9 +24,11 @@ export function parsePaymentInfo(
 }
 
 // We are expecting the string to be in the format of MM/YYYY
-export function parseExpiration(expirationString: string): {
-  month: string,
-  year: string,
+export function parseExpiration(
+  expirationString: string
+): {
+  month: string
+  year: string
   error?: string
 } {
   if (expirationString.length !== 7) {
@@ -51,12 +45,10 @@ export function parseExpiration(expirationString: string): {
   }
 }
 
-export function billingAndQuotaAPIToOurBillingAndQuota(
-  {
-    plan,
-    usage
-  }: Types.BillingAndQuotaAPI
-): Types.BillingAndQuota {
+export function billingAndQuotaAPIToOurBillingAndQuota({
+  plan,
+  usage,
+}: Types.BillingAndQuotaAPI): Types.BillingAndQuota {
   return {
     plan: {
       gigabytes: plan.gigabytes,

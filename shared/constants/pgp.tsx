@@ -1,4 +1,4 @@
-import { State } from './types/pgp';
+import {State} from './types/pgp'
 
 const initialState: State = {
   open: false,
