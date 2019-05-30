@@ -17,9 +17,9 @@ const provider = Sb.createPropProviderWithCommon({
   // TODO mock out meaningful values once type `OwnProps` is defined
   AssetInput: props => assetInputProps,
 
-  Available: props => {
-    amountErrMsg: ''
-  },
+  Available: props => ({
+    amountErrMsg: '',
+  }),
   Banner: props => ({}),
   ConnectedPublicMemo: props => ({onChangePublicMemo: Sb.action('onChangePublicMemo')}),
   ConnectedRequestBody: props => ({
