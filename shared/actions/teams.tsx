@@ -981,12 +981,8 @@ function* createChannel(_, action: TeamsGen.CreateChannelPayload, logger) {
     }
 
     // Dismiss the create channel dialog.
-    if (
-      // Auto generated from flowToTs. Please clean me!
-      (Router2Constants.getVisibleScreen() === null || Router2Constants.getVisibleScreen() === undefined
-        ? undefined
-        : Router2Constants.getVisibleScreen().routeName) === 'chatCreateChannel'
-    ) {
+    const visibleScreen = Router2Constants.getVisibleScreen()
+    if (visibleScreen && visibleScreen.routeName === 'chatCreateChannel') {
       yield Saga.put(RouteTreeGen.createClearModals())
     }
 
