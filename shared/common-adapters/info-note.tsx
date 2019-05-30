@@ -1,13 +1,14 @@
-// @flow
 import * as React from 'react'
+// @ts-ignore not converted
 import Box, {Box2} from './box'
+// @ts-ignore not converted
 import Icon from './icon'
 import * as Styles from '../styles'
 
 export type Props = {
-  containerStyle?: Styles.StylesCrossPlatform,
-  children?: React.Node,
-  color?: ?string,
+  containerStyle?: Styles.StylesCrossPlatform
+  children?: React.ReactNode
+  color?: string | null
 }
 
 const InfoNote = (props: Props) => (
