@@ -13,7 +13,6 @@ import {initDesktopStyles} from '../../styles/index.desktop'
 
 disableDragDrop()
 
-// @ts-ignore codemode issue
 module.hot && module.hot.accept()
 
 type RemoteComponents = 'unlock-folders' | 'menubar' | 'pinentry' | 'tracker' | 'tracker2'

@@ -12,7 +12,9 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.resetStore:
       return initialState
     case WalletsGen.accountsReceived:
-      const accountMap = I.OrderedMap(action.payload.accounts.map(account => [account.accountID, account]))
+      const accountMap: I.OrderedMap<Types.AccountID, Types.Account> = I.OrderedMap(
+        action.payload.accounts.map(account => [account.accountID, account])
+      )
       return state.merge({accountMap: accountMap})
     case WalletsGen.accountUpdateReceived:
       // accept the updated account if we've loaded it already

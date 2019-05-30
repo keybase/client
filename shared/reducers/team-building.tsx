@@ -12,6 +12,7 @@ export default function<X>(
   switch (action.type) {
     case TeamBuildingGen.resetStore:
     case TeamBuildingGen.cancelTeamBuilding:
+      // @ts-ignore codemod issue
       return state.merge(Constants.makeSubState())
     case TeamBuildingGen.addUsersToTeamSoFar:
       return state.mergeIn(['teamBuildingTeamSoFar'], action.payload.users)
@@ -24,9 +25,10 @@ export default function<X>(
       return state.mergeIn(['teamBuildingSearchResults', query], {[service]: users})
     }
     case TeamBuildingGen.finishedTeamBuilding:
+      // @ts-ignore codemod issue
       return state.merge({
         teamBuildingFinishedTeam: state.teamBuildingTeamSoFar,
-        teamBuildingTeamSoFar: I.Set(),
+        teamBuildingTeamSoFar: I.Set<Types.User>(),
       })
 
     case TeamBuildingGen.fetchedUserRecs:

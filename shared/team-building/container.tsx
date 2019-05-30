@@ -74,7 +74,7 @@ const deriveServiceResultCount: (
   searchResults: SearchResults,
   query: string
 ) => {[K in ServiceIdWithContact]: number | null} = memoize((searchResults: SearchResults, query) =>
-  // $FlowIssue toObject looses typing
+  // @ts-ignore codemod issue
   searchResults
     .get(trim(query), I.Map())
     .map(results => results.length)

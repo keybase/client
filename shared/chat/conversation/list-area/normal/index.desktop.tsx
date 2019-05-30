@@ -23,9 +23,7 @@ import JumpToRecent from './jump-to-recent'
 import ThreadSearch from '../../search/container'
 
 // hot reload isn't supported with debouncing currently so just ignore hot here
-// @ts-ignore
 if (module.hot) {
-  // @ts-ignore
   module.hot.decline()
 }
 

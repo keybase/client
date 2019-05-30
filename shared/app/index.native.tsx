@@ -7,40 +7,30 @@ import {GatewayProvider} from 'react-gateway'
 import {Provider} from 'react-redux'
 import {makeEngine} from '../engine'
 
-// @ts-ignore
 module.hot &&
-  // @ts-ignore
   module.hot.accept(() => {
     console.log('accepted update in shared/index.native')
   })
 
-class Keybase extends Component<any> {
-  store: any
+let store
 
+class Keybase extends Component<any> {
   constructor(props: any) {
     super(props)
 
-    // @ts-ignore
-    if (!global.keybaseLoaded) {
-      // @ts-ignore
-      global.keybaseLoaded = true
-      const {store, runSagas} = configureStore()
-      this.store = store
-      // @ts-ignore
-      global.store = this.store
+    if (!global.DEBUGLoaded) {
+      global.DEBUGLoaded = true
+      const temp = configureStore()
+      store = temp.store
       if (__DEV__) {
-        // @ts-ignore
-        global.DEBUGStore = this.store
+        global.DEBUGStore = temp.store
       }
-      const eng = makeEngine(this.store.dispatch, this.store.getState)
-      runSagas()
+      const eng = makeEngine(temp.store.dispatch, temp.store.getState)
+      temp.runSagas()
       eng.sagasAreReady()
 
       // On mobile there is no installer
-      this.store.dispatch(ConfigGen.createInstallerRan())
-    } else {
-      // @ts-ignore
-      this.store = global.store
+      temp.store.dispatch(ConfigGen.createInstallerRan())
     }
 
     AppState.addEventListener('change', this._handleAppStateChange)
@@ -56,16 +46,16 @@ class Keybase extends Component<any> {
   }
 
   _handleOpenURL(event: {url: string}) {
-    this.store.dispatch(ConfigGen.createLink({link: event.url}))
+    store && store.dispatch(ConfigGen.createLink({link: event.url}))
   }
 
   _handleAppStateChange = (nextAppState: 'active' | 'background' | 'inactive') => {
-    this.store.dispatch(ConfigGen.createMobileAppState({nextAppState}))
+    store && store.dispatch(ConfigGen.createMobileAppState({nextAppState}))
   }
 
   render() {
     return (
-      <Provider store={this.store}>
+      <Provider store={store}>
         <GatewayProvider>
           <Main />
         </GatewayProvider>

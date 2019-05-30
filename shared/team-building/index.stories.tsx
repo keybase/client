@@ -16,7 +16,7 @@ const provider = Sb.createPropProviderWithCommon(
 const generateTeamSofar = (count: number) => {
   const adjs = ['shaky', 'ded', 'smol', 'big', 'breaker of chains,', 'the kind', 'the erudite']
   const nouns = ['dino', 'frog', 'potato', 'dog', 'chris']
-  const services = ['keybase', 'twitter', 'reddit']
+  const services: Array<Types.ServiceIdWithContact> = ['keybase', 'twitter', 'reddit']
   return new Array(count).fill('').map((v, i) => {
     const adj = adjs[i % adjs.length]
     const noun = nouns[Math.floor(i / adjs.length) % nouns.length]
@@ -543,7 +543,14 @@ const load = () => {
     ))
 
   // Add active for every service
-  const servicesToDisplay = ['keybase', 'twitter', 'facebook', 'github', 'reddit', 'hackernews']
+  const servicesToDisplay: Array<Types.ServiceIdWithContact> = [
+    'keybase',
+    'twitter',
+    'facebook',
+    'github',
+    'reddit',
+    'hackernews',
+  ]
   servicesToDisplay.forEach(service => {
     Sb.storiesOf('Team-Building/Service Tab Bar', module).add(`${service} selected`, () => (
       <ServiceTabBar
