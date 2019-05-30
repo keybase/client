@@ -1,4 +1,3 @@
-// @flow
 import {
   ActivityIndicator as NativeActivityIndicator,
   Alert as NativeAlert,

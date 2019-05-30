@@ -1,7 +1,6 @@
-// @flow
 import * as React from 'react'
-import type {Props} from './oriented-image.types'
+import {Props} from './oriented-image.types'
 
 export default class OrientedImage extends React.Component<Props> {
-  _context: ?CanvasRenderingContext2D
+  _context: CanvasRenderingContext2D | null
 }

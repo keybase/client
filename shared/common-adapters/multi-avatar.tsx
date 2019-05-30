@@ -1,20 +1,18 @@
-// @flow
 // Simple control to show multiple avatars. Just used in chat but could be expanded. Keeping this simple for now
 import shallowEqual from 'shallowequal'
 import logger from '../logger'
-import Avatar from './avatar'
+import Avatar, {Props as AvatarProps, AvatarSize} from './avatar'
+// @ts-ignore not converted
 import Box from './box'
 import * as React from 'react'
-import {globalStyles, type StylesCrossPlatform, collapseStyles} from '../styles'
-
-import type {Props as AvatarProps, AvatarSize} from './avatar'
+import {globalStyles, StylesCrossPlatform, collapseStyles} from '../styles'
 
 export type Props = {
-  avatarProps: Array<AvatarProps>,
-  singleSize: AvatarSize,
-  multiSize: AvatarSize,
-  style?: StylesCrossPlatform,
-  multiPadding?: number,
+  avatarProps: Array<AvatarProps>
+  singleSize: AvatarSize
+  multiSize: AvatarSize
+  style?: StylesCrossPlatform
+  multiPadding?: number
 }
 
 class MultiAvatar extends React.Component<Props> {

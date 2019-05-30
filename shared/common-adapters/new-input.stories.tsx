@@ -1,6 +1,7 @@
-// @flow
 import * as React from 'react'
+// @ts-ignore not converted
 import Box from './box'
+// @ts-ignore not converted
 import Icon from './icon'
 import {action, storiesOf} from '../stories/storybook'
 import {globalColors} from '../styles'

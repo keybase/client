@@ -19,7 +19,7 @@ type State = {
 
 class Input extends Component<Props, State> {
   state: State
-  _input: NativeTextInput | null
+  _input: typeof NativeTextInput | null
   _lastNativeText: string | null
   _lastNativeSelection: {
     start: number
@@ -72,7 +72,7 @@ class Input extends Component<Props, State> {
     }))
   }
 
-  _setInputRef = (ref: NativeTextInput | null) => {
+  _setInputRef = (ref: typeof NativeTextInput | null) => {
     this._input = ref
   }
 

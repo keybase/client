@@ -1,11 +1,14 @@
-// @flow
 import * as React from 'react'
-import PlainInput, {type PropsWithInput, type KeyboardType} from './plain-input'
+// @ts-ignore not converted
+import PlainInput, {PropsWithInput, KeyboardType} from './plain-input'
+// @ts-ignore not converted
 import Box, {Box2} from './box'
-import Icon, {type IconType, castPlatformStyles} from './icon'
-import {getStyle as getTextStyle, type TextType} from './text'
+// @ts-ignore not converted
+import Icon, {IconType, castPlatformStyles} from './icon'
+// @ts-ignore not converted
+import {getStyle as getTextStyle, TextType} from './text'
 import {
-  type StylesCrossPlatform,
+  StylesCrossPlatform,
   collapseStyles,
   globalColors,
   globalMargins,
@@ -14,23 +17,24 @@ import {
 } from '../styles'
 
 export type _Props = {
-  containerStyle?: StylesCrossPlatform,
-  decoration?: React.Node,
-  error?: boolean,
-  forwardedRef: React.Ref<typeof PlainInput>,
-  hideBorder?: boolean,
-  icon?: IconType,
+  containerStyle?: StylesCrossPlatform
+  decoration?: React.ReactNode
+  error?: boolean
+  forwardedRef: React.Ref<typeof PlainInput>
+  hideBorder?: boolean
+  icon?: IconType
 }
 
 type DefaultProps = {
-  flexable: boolean,
-  keyboardType: KeyboardType,
-  textType: TextType,
+  flexable: boolean
+  keyboardType: KeyboardType
+  textType: TextType
 }
+
 type Props = PropsWithInput<_Props>
 
 type State = {
-  focused: boolean,
+  focused: boolean
 }
 
 class ReflessNewInput extends React.Component<DefaultProps & Props, State> {
@@ -88,15 +92,17 @@ class ReflessNewInput extends React.Component<DefaultProps & Props, State> {
     )
   }
 }
+type FRefProps = {
+  flexable?: boolean
+  keyboardType?: KeyboardType
+  textType?: TextType
+} & Props
+type Diff<T, U> = T extends U ? never : T
 const NewInput = React.forwardRef<
-  $Diff<
+  Diff<
+    FRefProps,
     {
-      flexable?: boolean,
-      keyboardType?: KeyboardType,
-      textType?: TextType,
-    } & Props,
-    {
-      forwardedRef: React.Ref<typeof PlainInput>,
+      forwardedRef: React.Ref<typeof PlainInput>
     }
   >,
   PlainInput

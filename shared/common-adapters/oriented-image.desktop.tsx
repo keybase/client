@@ -1,14 +1,14 @@
-// @flow
 import * as React from 'react'
 import fs from 'fs'
 import EXIF from 'exif-js'
 import {noop, isNumber} from 'lodash-es'
 import logger from '../logger'
-import type {Props} from './oriented-image.types'
+import {Props} from './oriented-image.types'
 
 type State = {
-  srcTransformed: string,
+  srcTransformed: string
 }
+
 type TransformFn = (
   canvas: HTMLCanvasElement,
   ctx: CanvasRenderingContext2D,
@@ -18,7 +18,7 @@ type TransformFn = (
 
 const uploadedSrc = /https?:\/\/127.0.0.1:.*$/i
 const NO_TRANSFORM = 'notransform'
-const _cacheNoTransforms: {[src: string]: string} = {}
+const _cacheNoTransforms: {[K in string]: string} = {}
 
 // Define transformatin functions to operate on canvas elements
 //
@@ -30,7 +30,7 @@ const _cacheNoTransforms: {[src: string]: string} = {}
 // 6: rotate 90 deg left
 // 7: flip vertically and rotate 90 degrees left
 // 8: rotate 270 deg left
-const transformMap: {[orientation: string]: TransformFn} = {
+const transformMap: {[K in string]: TransformFn} = {
   '1': noop,
   '2': (canvas, ctx, width, height) => {
     ctx.translate(width, 0)
@@ -72,6 +72,7 @@ const transformMap: {[orientation: string]: TransformFn} = {
 }
 
 const ImageRef = React.forwardRef((props, ref) => (
+  // @ts-ignore codemod issue
   <img src={props.src} style={props.style} onDragStart={props.onDragStart} onLoad={props.onLoad} ref={ref} />
 ))
 
@@ -158,6 +159,7 @@ class OrientedImage extends React.Component<Props, State> {
     const {src} = this.props
     return new Promise((resolve, reject) => {
       try {
+        // @ts-ignore codemod issue
         const ret = EXIF.getData({src}, function() {
           const orientation = EXIF.getTag(this, 'Orientation')
           resolve(orientation)
@@ -260,6 +262,7 @@ class OrientedImage extends React.Component<Props, State> {
     return (
       <React.Fragment>
         {this.state.srcTransformed && (
+          // @ts-ignore codemod issue
           <ImageRef
             ref={this.props.forwardedRef}
             src={this.state.srcTransformed}

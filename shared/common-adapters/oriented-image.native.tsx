@@ -1,6 +1,5 @@
-// @flow
 import * as React from 'react'
-import type {Props} from './oriented-image.types'
+import {Props} from './oriented-image.types'
 import Image from '../common-adapters/image'
 
 // OrientedImage will render a NativeImage.
