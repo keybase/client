@@ -41,13 +41,13 @@ const encryptedNote = `Lorem ipsum dolor sit amet consectetur adipisicing elit. 
 Lorem ipsum dolor sit amet, consectetur adipisicing elit.
 `
 const banner = {
-  bannerBackground: 'Announcements',
+  bannerBackground: 'Announcements' as 'Announcements',
   bannerText: 'The conversion rate has changed since you got to this screen.',
 }
 
 const sendFailedBanner = {
   action: Sb.action('onExitFailed'),
-  bannerBackground: 'HighRisk',
+  bannerBackground: 'HighRisk' as 'HighRisk',
   bannerText:
     'The request to the stellar network timed out. Please make sure your payment failed before trying again.',
   sendFailed: true,
