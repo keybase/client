@@ -1,4 +1,3 @@
-// @flow
 import chat2Saga from '../actions/chat2'
 import configSaga from '../actions/config'
 import createSagaMiddleware from 'redux-saga'

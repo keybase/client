@@ -393,7 +393,7 @@ function argToString(arg) {
   return typeof arg === 'function' ? `${arg.name}` : typeof arg === 'string' ? `'${arg}'` : arg
 }
 
-function logResult({status, result, error, duration}, formatter, ignoreResult) {
+function logResult({status, result, error, duration}, formatter, ignoreResult?) {
   if (status === RESOLVED && !ignoreResult) {
     if (is.array(result)) {
       formatter.addValue(' → ')
@@ -521,10 +521,10 @@ const logSagaWithNames = (...namedSagas) => {
 
 // Export the snapshot-logging function to run from the browser console or extensions.
 if (globalScope) {
-  globalScope.$$LogSagas = logSaga
-  globalScope.$$LogSagasWithNames = logSagaWithNames
-  globalScope.$$RootEffects = rootEffects
-  globalScope.$$EffectById = effectsById
+  globalScope.DEBUGLogSagas = logSaga
+  globalScope.DEBUGLogSagasWithNames = logSagaWithNames
+  globalScope.DEBUGRootEffects = rootEffects
+  globalScope.DEBUGEffectById = effectsById
 }
 
 // Export the snapshot-logging function for arbitrary use by external code.

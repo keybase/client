@@ -350,8 +350,11 @@ class FakeEngine {
 }
 
 // don't overwrite this on HMR
-// @ts-ignore codemode issue
-let engine = global._engine
+let engine
+if (__DEV__) {
+  engine = global.DEBUGEngine
+}
+
 const makeEngine = (dispatch: Dispatch, getState: () => TypedState) => {
   if (__DEV__ && engine) {
     logger.warn('makeEngine called multiple times')
@@ -359,8 +362,9 @@ const makeEngine = (dispatch: Dispatch, getState: () => TypedState) => {
 
   if (!engine) {
     engine = process.env.KEYBASE_NO_ENGINE || isTesting ? new FakeEngine() : new Engine(dispatch, getState)
-    // @ts-ignore codemode issue
-    global._engine = engine
+    if (__DEV__) {
+      global.DEBUGEngine = engine
+    }
     initEngine(engine as any)
     initEngineSaga(engineSaga)
   }

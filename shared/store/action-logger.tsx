@@ -1,4 +1,3 @@
-// @flow
 import transformActionForLog from '../logger/action-transformer'
 import logger from '../logger'
 

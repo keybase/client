@@ -1,19 +1,18 @@
-// @flow
 import {run as runSagas, create as createSagaMiddleware} from './configure-sagas'
 import logger from '../logger'
 import rootReducer from '../reducers'
 import {actionLogger} from './action-logger'
 import {convertToError} from '../util/errors'
 import {createLogger} from 'redux-logger'
-import {createStore, applyMiddleware, type Store} from 'redux'
+import {createStore, applyMiddleware, Store} from 'redux'
 import {enableStoreLogging, enableActionLogging, filterActionLogs} from '../local-debug'
 import * as DevGen from '../actions/dev-gen'
 import * as ConfigGen from '../actions/config-gen'
 import {isMobile} from '../constants/platform'
 import * as LocalConsole from '../util/local-console'
-import type {TypedState, TypedDispatch, TypedActions} from '../util/container'
+import {TypedState, TypedDispatch, TypedActions} from '../util/container'
 
-let theStore: Store<any, any, any>
+let theStore: Store<any, any>
 
 const crashHandler = error => {
   if (__DEV__) {
@@ -88,9 +87,11 @@ const errorCatching = store => next => action => {
   }
 }
 
-export const sagaMiddleware = global._sagaMiddleware || createSagaMiddleware(crashHandler)
+export const sagaMiddleware = (__DEV__ && global.DEBUGSagaMiddleware) || createSagaMiddleware(crashHandler)
 // don't overwrite this on HMR
-global._sagaMiddleware = sagaMiddleware
+if (__DEV__) {
+  global.DEBUGSagaMiddleware = sagaMiddleware
+}
 
 const middlewares = [
   errorCatching,
@@ -100,7 +101,7 @@ const middlewares = [
 ]
 
 if (__DEV__ && typeof window !== 'undefined') {
-  window.debugActionLoop = () => {
+  global.DEBUGActionLoop = () => {
     setInterval(() => {
       theStore.dispatch(DevGen.createDebugCount())
     }, 1000)
@@ -108,11 +109,7 @@ if (__DEV__ && typeof window !== 'undefined') {
 }
 
 export default function configureStore() {
-  const store = createStore<TypedState, TypedActions, TypedDispatch>(
-    rootReducer,
-    undefined,
-    applyMiddleware(...middlewares)
-  )
+  const store = createStore(rootReducer, undefined, applyMiddleware(...middlewares))
   theStore = store
 
   if (module.hot && !isMobile) {

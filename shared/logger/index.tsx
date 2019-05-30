@@ -140,7 +140,6 @@ const theOnlyLogger = new AggregateLoggerImpl(logSetup)
 
 if (!isMobile && typeof global !== 'undefined') {
   // So we can easily grab this from the main renderer
-  // @ts-ignore
   global.globalLogger = theOnlyLogger
 }
 
