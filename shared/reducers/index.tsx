@@ -55,5 +55,6 @@ const reducers = {
 const reducer = reducerTimer ? reducerTimer(reducers) : combineReducers(reducers)
 
 export default function(state: TypedState | void, action: any): TypedState {
+  // @ts-ignore codemod issue
   return reducer(state, action)
 }

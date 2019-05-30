@@ -591,7 +591,7 @@ func TestSimpleFSRemoteSrcDir(t *testing.T) {
 		true,
 		tempdir)
 	require.NoError(tc.T, err, "bad path type")
-	assert.Equal(tc.T, filepath.ToSlash(tempdir), destPath.Local())
+	assert.Equal(tc.T, tempdir, destPath.Local())
 
 	pathType, err = destPath.PathType()
 	require.NoError(tc.T, err, "bad path type")

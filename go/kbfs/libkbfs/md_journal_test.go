@@ -77,7 +77,7 @@ func setupMDJournalTest(t testing.TB, ver kbfsmd.MetadataVer) (
 	ctx := context.Background()
 	j, err = makeMDJournal(
 		ctx, uid, verifyingKey, codec, crypto, data.WallClock{}, nil,
-		&testSyncedTlfGetterSetter{}, tlfID, ver, tempdir, log)
+		&testSyncedTlfGetterSetter{}, tlfID, ver, tempdir, log, tlf.NullID)
 	require.NoError(t, err)
 
 	bsplit, err = data.NewBlockSplitterSimpleExact(
@@ -1009,7 +1009,8 @@ func testMDJournalRestart(t *testing.T, ver kbfsmd.MetadataVer) {
 	// Restart journal.
 	ctx := context.Background()
 	j, err := makeMDJournal(ctx, j.uid, j.key, codec, crypto, j.clock,
-		j.teamMemChecker, j.osg, j.tlfID, j.mdVer, j.dir, j.log)
+		j.teamMemChecker, j.osg, j.tlfID, j.mdVer, j.dir, j.log,
+		j.overrideTlfID)
 	require.NoError(t, err)
 
 	require.Equal(t, uint64(mdCount), j.length())
@@ -1051,7 +1052,8 @@ func testMDJournalRestartAfterBranchConversion(t *testing.T, ver kbfsmd.Metadata
 	// Restart journal.
 
 	j, err = makeMDJournal(ctx, j.uid, j.key, codec, crypto, j.clock,
-		j.teamMemChecker, j.osg, j.tlfID, j.mdVer, j.dir, j.log)
+		j.teamMemChecker, j.osg, j.tlfID, j.mdVer, j.dir, j.log,
+		j.overrideTlfID)
 	require.NoError(t, err)
 
 	require.Equal(t, uint64(mdCount), j.length())

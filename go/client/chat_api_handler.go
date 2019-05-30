@@ -507,9 +507,9 @@ func (o loadFlipOptionsV1) Check() error {
 }
 
 type setUnfurlSettingsOptionsV1 struct {
-	Mode      string           `json:"mode"`
-	intMode   chat1.UnfurlMode `json:"-"`
-	Whitelist []string         `json:"whitelist"`
+	Mode      string
+	Whitelist []string
+	intMode   chat1.UnfurlMode
 }
 
 func (o setUnfurlSettingsOptionsV1) Check() error {

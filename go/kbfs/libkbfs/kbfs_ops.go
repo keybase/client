@@ -262,7 +262,30 @@ func (fs *KBFSOpsStandard) GetFavorites(ctx context.Context) (
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
-	return fs.favs.Get(ctx)
+	favs, err := fs.favs.Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Add the conflict status for any folders in a conflict state to
+	// the favorite struct.
+	journalManager, err := GetJournalManager(fs.config)
+	if err != nil {
+		// Journaling not enabled.
+		return favs, nil
+	}
+	_, cleared, err := journalManager.GetJournalsInConflict(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, c := range cleared {
+		favs = append(favs, favorites.Folder{
+			Name: string(c.Name),
+			Type: c.Type,
+		})
+	}
+	return favs, nil
 }
 
 // GetFavoritesAll implements the KBFSOps interface for
@@ -284,14 +307,35 @@ func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (
 		// Journaling not enabled.
 		return favs, nil
 	}
-	conflicts, err := journalManager.GetJournalsInConflict(ctx)
+	conflicts, cleared, err := journalManager.GetJournalsInConflict(ctx)
 	if err != nil {
 		return keybase1.FavoritesResult{}, err
 	}
 
-	if len(conflicts) == 0 {
+	if len(conflicts) == 0 && len(cleared) == 0 {
 		return favs, nil
 	}
+
+	clearedMap := make(map[string][]keybase1.Path)
+	for _, c := range cleared {
+		cs := keybase1.NewConflictStateWithManualresolvinglocalview(
+			keybase1.ConflictManualResolvingLocalView{
+				ServerView: c.ServerViewPath,
+			})
+		favs.FavoriteFolders = append(favs.FavoriteFolders,
+			keybase1.Folder{
+				Name:          string(c.Name),
+				FolderType:    c.Type.FolderType(),
+				Private:       c.Type != tlf.Public,
+				ResetMembers:  []keybase1.User{},
+				ConflictState: &cs,
+			})
+
+		fs.log.CDebugf(ctx, "Server view %s -> local view %s", c.ServerViewPath, c.LocalViewPath)
+		clearedMap[c.ServerViewPath.String()] = append(
+			clearedMap[c.ServerViewPath.String()], c.LocalViewPath)
+	}
+
 	conflictMap := make(map[ConflictJournalRecord]tlf.ID, len(conflicts))
 	for _, c := range conflicts {
 		conflictMap[ConflictJournalRecord{Name: c.Name, Type: c.Type}] = c.ID
@@ -299,34 +343,59 @@ func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (
 
 	found := 0
 	for i, f := range favs.FavoriteFolders {
+		name := tlf.CanonicalName(f.Name)
+		t := tlf.TypeFromFolderType(f.FolderType)
 		c := ConflictJournalRecord{
-			Name: tlf.CanonicalName(f.Name),
-			Type: tlf.TypeFromFolderType(f.FolderType),
-		}
-		tlfID, ok := conflictMap[c]
-		if !ok {
-			continue
+			Name: name,
+			Type: t,
 		}
 
-		fb := data.FolderBranch{Tlf: tlfID, Branch: data.MasterBranch}
-		ops := fs.getOps(ctx, fb, FavoritesOpNoChange)
-		status, err := ops.FolderConflictStatus(ctx)
-		if err != nil {
-			return keybase1.FavoritesResult{}, err
+		// First check for any current automatically-resolving
+		// conflicts, those take precedence in terms of the state we
+		// return.
+		tlfID, ok := conflictMap[c]
+		if ok {
+			fs.log.CDebugf(ctx, "Checking conflict %s/%s", t, name)
+			fb := data.FolderBranch{Tlf: tlfID, Branch: data.MasterBranch}
+			ops := fs.getOps(ctx, fb, FavoritesOpNoChange)
+			s, err := ops.FolderConflictStatus(ctx)
+			if err != nil {
+				return keybase1.FavoritesResult{}, err
+			}
+			if s != keybase1.FolderConflictType_NONE {
+				stk := s == keybase1.FolderConflictType_IN_CONFLICT_AND_STUCK
+				conflictState :=
+					keybase1.NewConflictStateWithAutomaticresolving(
+						keybase1.ConflictAutomaticResolving{IsStuck: stk})
+				favs.FavoriteFolders[i].ConflictState = &conflictState
+				found++
+				fs.log.CDebugf(ctx, "Conflict status for %s: %s", tlfID, s)
+			}
+		} else {
+			// Otherwise, check whether this favorite has any local
+			// conflict views.
+			p := tlfhandle.BuildProtocolPathForTlfName(t, name)
+			fs.log.CDebugf(ctx, "Checking server view path %s", p)
+
+			localViews, ok := clearedMap[p.String()]
+			if ok {
+				cs := keybase1.NewConflictStateWithManualresolvingserverview(
+					keybase1.ConflictManualResolvingServerView{
+						LocalViews: localViews,
+					})
+				favs.FavoriteFolders[i].ConflictState = &cs
+				found++
+				fs.log.CDebugf(
+					ctx, "Conflict status for %s: %v", tlfID, localViews)
+			}
 		}
-		if status != keybase1.FolderConflictType_NONE {
-			stk := status == keybase1.FolderConflictType_IN_CONFLICT_AND_STUCK
-			conflictState := keybase1.NewConflictStateWithAutomaticresolving(
-				keybase1.ConflictAutomaticResolving{IsStuck: stk})
-			favs.FavoriteFolders[i].ConflictState = &conflictState
-		}
-		fs.log.CDebugf(ctx, "Conflict status for %s: %s", tlfID, status)
-		found++
-		if found == len(conflictMap) {
+
+		if found == len(conflictMap)+len(clearedMap) {
 			// Short-circuit the loop if we've already found all the conflicts.
 			break
 		}
 	}
+
 	return favs, nil
 }
 
@@ -447,8 +516,10 @@ func (fs *KBFSOpsStandard) getOpsNoAdd(
 	ops, ok := fs.ops[fb]
 	if !ok {
 		bType := standard
-		if _, isRevBranch := fb.Branch.RevisionIfSpecified(); isRevBranch {
+		if fb.Branch.IsArchived() {
 			bType = archive
+		} else if fb.Branch.IsLocalConflict() {
+			bType = conflict
 		}
 		var quotaUsage *EventuallyConsistentQuotaUsage
 		if fb.Tlf.Type() != tlf.SingleTeam {

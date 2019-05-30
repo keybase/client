@@ -14,6 +14,8 @@ export type State = {
   useNativeFrame: boolean | null
 }
 
-declare class AppState {}
+declare class AppState {
+  state: State
+}
 
 export default AppState
