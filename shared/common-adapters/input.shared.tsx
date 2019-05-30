@@ -1,6 +1,5 @@
-// @flow
 // TODO: PlainInput depends on this file, so migrate it over if/when Input is deprecated.
-import {type TextInfo} from './input'
+import {TextInfo} from './input'
 
 const checkTextInfo = ({text, selection}: TextInfo) => {
   if (selection.end > text.length) {

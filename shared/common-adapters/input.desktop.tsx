@@ -1,14 +1,14 @@
-// @flow
 import * as React from 'react'
+// @ts-ignore not converted
 import Box from './box'
 import Text, {getStyle as getTextStyle} from './text.desktop'
 import {collapseStyles, globalStyles, globalColors, globalMargins, platformStyles} from '../styles'
 
-import type {Props, Selection, TextInfo} from './input'
+import {Props, Selection, TextInfo} from './input'
 import {checkTextInfo} from './input.shared'
 
 type State = {
-  focused: boolean,
+  focused: boolean
 }
 
 class Input extends React.PureComponent<Props, State> {
@@ -79,7 +79,11 @@ class Input extends React.PureComponent<Props, State> {
     this._onChangeTextDone(text)
   }
 
-  _onChange = (event: {target: {value: ?string}}) => {
+  _onChange = (event: {
+    target: {
+      value: string | null
+    }
+  }) => {
     this._onChangeText(event.target.value || '')
   }
 
@@ -144,7 +148,7 @@ class Input extends React.PureComponent<Props, State> {
     n && n.blur()
   }
 
-  _transformText = (fn: TextInfo => TextInfo, reflectChange?: boolean) => {
+  _transformText = (fn: (textInfo: TextInfo) => TextInfo, reflectChange?: boolean) => {
     const n = this._input
     if (n) {
       const textInfo: TextInfo = {
@@ -168,7 +172,7 @@ class Input extends React.PureComponent<Props, State> {
     }
   }
 
-  transformText = (fn: TextInfo => TextInfo, reflectChange?: boolean) => {
+  transformText = (fn: (textInfo: TextInfo) => TextInfo, reflectChange?: boolean) => {
     if (!this.props.uncontrolled) {
       throw new Error('transformText can only be called on uncontrolled components')
     }
@@ -184,7 +188,7 @@ class Input extends React.PureComponent<Props, State> {
     this._isComposingIME = false
   }
 
-  _onKeyDown = (e: SyntheticKeyboardEvent<>) => {
+  _onKeyDown = (e: React.KeyboardEvent) => {
     if (this.props.onKeyDown) {
       this.props.onKeyDown(e, this._isComposingIME)
     }
@@ -208,7 +212,7 @@ class Input extends React.PureComponent<Props, State> {
     }
   }
 
-  _onKeyUp = (e: SyntheticKeyboardEvent<>) => {
+  _onKeyUp = (e: React.KeyboardEvent) => {
     if (this.props.onKeyUp) {
       this.props.onKeyUp(e, this._isComposingIME)
     }
@@ -320,7 +324,7 @@ class Input extends React.PureComponent<Props, State> {
         ? this.props.floatingHintTextOverride
         : this.props.hintText || ' ')
 
-    const commonProps: {value?: string} = {
+    const commonProps = {
       autoFocus: this.props.autoFocus,
       className: this.props.className,
       onBlur: this._onBlur,
@@ -332,12 +336,13 @@ class Input extends React.PureComponent<Props, State> {
       onKeyDown: this._onKeyDown,
       onKeyUp: this._onKeyUp,
       placeholder: this.props.hintText,
-      readOnly: this.props.hasOwnProperty('editable') && !this.props.editable ? 'readonly' : undefined,
+      readOnly: this.props.hasOwnProperty('editable') && !this.props.editable ? true : undefined,
       ref: this._setInputRef,
       ...(this.props.maxLength ? {maxlength: this.props.maxLength} : null),
     }
 
     if (!this.props.uncontrolled) {
+      // @ts-ignore it's ok to add this
       commonProps.value = value
     }
 
@@ -379,7 +384,13 @@ class Input extends React.PureComponent<Props, State> {
             {this.props.smallLabel}
           </Text>
         )}
-        {this.props.multiline ? <textarea {...multilineProps} /> : <input {...singlelineProps} />}
+        {this.props.multiline ? (
+          // @ts-ignore clash between our types and DOM types
+          <textarea {...multilineProps} />
+        ) : (
+          // @ts-ignore clash between our types and DOM types
+          <input {...singlelineProps} />
+        )}
         {!!this.props.errorTextComponent && this.props.errorTextComponent}
         {!!this.props.errorText && !this.props.small && (
           <Text

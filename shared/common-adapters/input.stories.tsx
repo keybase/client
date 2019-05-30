@@ -1,8 +1,8 @@
-// @flow
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import Button from './button'
-import Input, {type Props} from './input'
+import Input, {Props} from './input'
+// @ts-ignore not converted
 import Box from './box'
 import {globalStyles} from '../styles'
 
@@ -21,13 +21,13 @@ const commonProps: Props = {
 }
 
 type TestInputProps = {
-  multiline: boolean,
+  multiline: boolean
 }
 
 class TestInput extends React.Component<TestInputProps> {
-  _input: ?Input
+  _input: Input | null
 
-  _setInput = (ref: ?Input) => {
+  _setInput = (ref: Input | null) => {
     this._input = ref
   }
 
@@ -111,7 +111,7 @@ const load = () => {
       <Input {...commonProps} value="Hello, World!" inputStyle={{backgroundColor: 'red'}} />
     ))
     .add('No underline', () => <Input {...commonProps} hideUnderline={true} />)
-    .add('Hint empty', () => <Input {...commonProps} hint="hint" />)
+    .add('Hint empty', () => <Input {...commonProps} hintText="hint" />)
     .add('Floating label empty', () => <Input {...commonProps} floatingHintTextOverride="floating" />)
     .add('Single line', () => <Input {...commonProps} />)
     .add('Auto cap none', () => <Input {...commonProps} autoCapitalize="none" />)

@@ -1,29 +1,33 @@
-// @flow
 // Known issues:
 // When input gets focus it shifts down 1 pixel when the cursor appears. This happens with a naked TextInput on RN...
 import React, {Component} from 'react'
+// @ts-ignore not converted
 import Box from './box'
+// @ts-ignore not converted
 import Text, {getStyle as getTextStyle} from './text'
 import {NativeTextInput} from './native-wrappers.native'
 import {collapseStyles, globalStyles, globalColors, styleSheetCreate} from '../styles'
 import {isIOS, isAndroid} from '../constants/platform'
 
-import type {KeyboardType, Props, Selection, TextInfo} from './input'
+import {KeyboardType, Props, Selection, TextInfo} from './input'
 import {checkTextInfo} from './input.shared'
 
 type State = {
-  focused: boolean,
-  height: ?number,
+  focused: boolean
+  height: number | null
 }
 
 class Input extends Component<Props, State> {
   state: State
   _input: NativeTextInput | null
-  _lastNativeText: ?string
-  _lastNativeSelection: ?{start: number, end: number}
+  _lastNativeText: string | null
+  _lastNativeSelection: {
+    start: number
+    end: number
+  } | null
 
   // TODO: Remove once we can use HOCTimers.
-  _timeoutIds: Array<TimeoutID>
+  _timeoutIds: Array<NodeJS.Timeout>
 
   // We define _setTimeout instead of using HOCTimers since we'd need
   // to use React.forwardRef with HOCTimers, and it doesn't seem to
@@ -138,7 +142,7 @@ class Input extends Component<Props, State> {
     this._input && this._input.blur()
   }
 
-  transformText = (fn: TextInfo => TextInfo) => {
+  transformText = (fn: (textInfo: TextInfo) => TextInfo) => {
     if (!this.props.uncontrolled) {
       throw new Error('transformText can only be called on uncontrolled components')
     }
@@ -221,7 +225,14 @@ class Input extends Component<Props, State> {
         }
   }
 
-  _onSelectionChange = (event: {nativeEvent: {selection: {start: number, end: number}}}) => {
+  _onSelectionChange = (event: {
+    nativeEvent: {
+      selection: {
+        start: number
+        end: number
+      }
+    }
+  }) => {
     let {start: _start, end: _end} = event.nativeEvent.selection
     // Work around Android bug which sometimes puts end before start:
     // https://github.com/facebook/react-native/issues/18579 .
@@ -287,7 +298,7 @@ class Input extends Component<Props, State> {
         ? this.props.floatingHintTextOverride
         : this.props.hintText || ' ')
 
-    let keyboardType: ?KeyboardType = this.props.keyboardType
+    let keyboardType: KeyboardType | null = this.props.keyboardType
     if (!keyboardType) {
       if (isAndroid && this.props.type === 'passwordVisible') {
         keyboardType = 'visible-password'
@@ -300,7 +311,7 @@ class Input extends Component<Props, State> {
     // We want to be able to set the selection property,
     // too. Unfortunately, that triggers an Android crash:
     // https://github.com/facebook/react-native/issues/18316 .
-    const commonProps: {value?: string} = {
+    const commonProps = {
       autoCapitalize: this.props.autoCapitalize || 'none',
       autoCorrect: this.props.hasOwnProperty('autoCorrect') && this.props.autoCorrect,
       autoFocus: this.props.autoFocus,
@@ -323,6 +334,7 @@ class Input extends Component<Props, State> {
     }
 
     if (!this.props.uncontrolled) {
+      // @ts-ignore it's ok to add this
       commonProps.value = value
     }
 
