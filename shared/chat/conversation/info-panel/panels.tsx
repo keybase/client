@@ -6,11 +6,12 @@ import RetentionPicker from '../../../teams/team/settings-tab/retention/containe
 import MinWriterRole from './min-writer-role/container'
 import Notifications from './notifications/container'
 import {CaptionedDangerIcon} from './channel-utils'
+import {EntityType} from '.'
 
 type SettingsPanelProps = {
   canDeleteHistory: boolean
   conversationIDKey: Types.ConversationIDKey
-  entityType: 'adhoc' | 'channel' | 'small team'
+  entityType: EntityType
   ignored: boolean
   onHideConv: () => void
   onUnhideConv: () => void
