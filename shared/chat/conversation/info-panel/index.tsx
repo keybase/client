@@ -17,6 +17,12 @@ export type ParticipantTyp = {
   isAdmin: boolean
   isOwner: boolean
 }
+export type EntityType = 'adhoc' | 'small team' | 'channel'
+export type Section = {
+  data: Array<any>
+  renderItem: ({item: any, index: number}) => void
+  renderSectionHeader: (any) => void
+}
 
 type Thumb = {
   ctime: number
@@ -124,18 +130,18 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
     this.props.onAttachmentViewChange(this.props.selectedAttachmentView)
   }
 
-  _getEntityType = () => {
+  _getEntityType = (): EntityType => {
     if (this.props.teamname && this.props.channelname) {
       return this.props.smallTeam ? 'small team' : 'channel'
     }
     return 'adhoc'
   }
 
-  _isSelected = s => {
+  _isSelected = (s: Panel) => {
     return s === this.props.selectedTab
   }
 
-  _getTabs = entityType => {
+  _getTabs = (entityType: EntityType) => {
     const res = []
     if (entityType !== 'adhoc') {
       res.push(
@@ -189,7 +195,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
     )
     return header
   }
-  _headerSection = () => {
+  _headerSection = (): Section => {
     return {
       data: ['header'],
       renderItem: this._renderHeader,
@@ -207,7 +213,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
       />
     )
   }
-  _attachmentViewSelectorSection = () => {
+  _attachmentViewSelectorSection = (): Section => {
     return {
       data: ['avselector'],
       renderItem: this._renderAttachmentViewSelector,
@@ -226,7 +232,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
       </Kb.Box2>
     )
   }
-  _tabsSection = () => {
+  _tabsSection = (): Section => {
     return {
       data: ['tabs'],
       renderItem: ({item}) => null,
