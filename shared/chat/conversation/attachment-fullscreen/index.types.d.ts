@@ -11,4 +11,5 @@ export type Props = {
   onShowInFinder: () => void | null
   onToggleZoom: () => void
   isVideo: boolean
+  autoPlay: boolean
 }

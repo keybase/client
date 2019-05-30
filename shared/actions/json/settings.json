@@ -22,7 +22,7 @@
     },
     "invitesSend": {
       "email": "string",
-      "message": "?string"
+      "message": "string | null"
     },
     "invitesSent": {
       "canError": {
@@ -35,11 +35,11 @@
     },
     "loadSettings": {},
     "loadedSettings": {
-      "emails": "?I.List<Types.EmailRow>"
+      "emails": "I.List<Types.EmailRow> | null"
     },
     "loadLockdownMode": {},
     "loadedLockdownMode": {
-      "status": "?boolean"
+      "status": "boolean | null"
     },
     "onChangeLockdownMode": {
       "enabled": "boolean"
@@ -54,7 +54,7 @@
     "notificationsSaved": {},
     "notificationsToggle": {
       "group": "string",
-      "name?": "?string"
+      "name?": "string | null"
     },
     "onChangeNewEmail": {
       "email": "string"
@@ -123,7 +123,7 @@
       "password": "HiddenString"
     },
     "loadedCheckPassword": {
-      "checkPasswordIsCorrect": "?boolean"
+      "checkPasswordIsCorrect": "boolean | null"
     },
     "sendFeedback": {
       "feedback": "string",
@@ -131,7 +131,7 @@
     },
     "feedbackSent": {
       "_description": "An error occurred while trying to send feedback to Keybase",
-      "error": "?Error"
-    },
+      "error": "Error | null"
+    }
   }
 }

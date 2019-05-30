@@ -23,7 +23,7 @@
     "build-dev": "yarn run _helper build-dev",
     "build-emoji": "yarn run _node common-adapters/markdown/generate-emoji-parser.js",
     "build-prod": "yarn run _helper build-prod",
-    "build-actions": "yarn run _node desktop/yarn-helper/action-creator-creator",
+    "build-actions": "yarn run _node --extensions \".tsx\" desktop/yarn-helper/action-creator-creator.tsx",
     "package": "yarn run _helper package",
     "hot-server": "yarn run _helper hot-server",
     "hot-server-dumb": "cross-env-shell DUMB=true yarn run _helper hot-server",

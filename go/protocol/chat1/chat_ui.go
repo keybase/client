@@ -2274,6 +2274,11 @@ type ChatMaybeMentionUpdateArg struct {
 	Info      UIMaybeMentionInfo `codec:"info" json:"info"`
 }
 
+type ChatLoadGalleryHitArg struct {
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	Message   UIMessage `codec:"message" json:"message"`
+}
+
 type ChatUiInterface interface {
 	ChatAttachmentDownloadStart(context.Context, int) error
 	ChatAttachmentDownloadProgress(context.Context, ChatAttachmentDownloadProgressArg) error
@@ -2301,6 +2306,7 @@ type ChatUiInterface interface {
 	ChatCoinFlipStatus(context.Context, ChatCoinFlipStatusArg) error
 	ChatCommandMarkdown(context.Context, ChatCommandMarkdownArg) error
 	ChatMaybeMentionUpdate(context.Context, ChatMaybeMentionUpdateArg) error
+	ChatLoadGalleryHit(context.Context, ChatLoadGalleryHitArg) error
 }
 
 func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
@@ -2697,6 +2703,21 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					return
 				},
 			},
+			"chatLoadGalleryHit": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatLoadGalleryHitArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatLoadGalleryHitArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatLoadGalleryHitArg)(nil), args)
+						return
+					}
+					err = i.ChatLoadGalleryHit(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -2836,5 +2857,10 @@ func (c ChatUiClient) ChatCommandMarkdown(ctx context.Context, __arg ChatCommand
 
 func (c ChatUiClient) ChatMaybeMentionUpdate(ctx context.Context, __arg ChatMaybeMentionUpdateArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatMaybeMentionUpdate", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ChatUiClient) ChatLoadGalleryHit(ctx context.Context, __arg ChatLoadGalleryHitArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatLoadGalleryHit", []interface{}{__arg}, nil)
 	return
 }

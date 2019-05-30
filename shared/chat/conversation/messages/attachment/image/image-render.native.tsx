@@ -76,3 +76,8 @@ export function imgMaxWidth() {
   const {width: maxWidth} = Kb.NativeDimensions.get('window')
   return Math.min(320, maxWidth - 68)
 }
+
+export function imgMaxWidthRaw() {
+  const {width: maxWidth} = Kb.NativeDimensions.get('window')
+  return maxWidth
+}

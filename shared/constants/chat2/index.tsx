@@ -20,7 +20,8 @@ import HiddenString from '../../util/hidden-string'
 
 export const makeState = I.Record<Types._State>({
   accountsInfoMap: I.Map(),
-  attachmentFullscreenMessage: null,
+  attachmentFullscreenSelection: null,
+  attachmentViewMap: I.Map(),
   badgeMap: I.Map(),
   commandMarkdownMap: I.Map(),
   containsLatestMessageMap: I.Map(),
@@ -114,6 +115,14 @@ export const makeInboxSearchTextHit = I.Record<Types._InboxSearchTextHit>({
   teamType: 'small',
   time: 0,
 })
+
+export const makeAttachmentViewInfo = I.Record<Types._AttachmentViewInfo>({
+  last: false,
+  messages: I.List(),
+  status: 'loading',
+})
+
+export const initialAttachmentViewInfo = makeAttachmentViewInfo()
 
 export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
   if (inboxSearch.selectedIndex < inboxSearch.nameResults.size) {

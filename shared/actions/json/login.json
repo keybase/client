@@ -10,6 +10,6 @@
     },
     "launchAccountResetWebPage": {},
     "launchForgotPasswordWebPage": {},
-    "loginError": { "error": "?HiddenString" }
+    "loginError": {"error": "HiddenString | null"}
   }
 }
