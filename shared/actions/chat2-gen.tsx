@@ -13,6 +13,7 @@ import {RetentionPolicy} from '../constants/types/retention-policy'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of chat2 but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'chat2:'
+export const addAttachmentViewMessage = 'chat2:addAttachmentViewMessage'
 export const addUsersToChannel = 'chat2:addUsersToChannel'
 export const attachmentDownload = 'chat2:attachmentDownload'
 export const attachmentDownloaded = 'chat2:attachmentDownloaded'
@@ -29,6 +30,7 @@ export const attachmentsUpload = 'chat2:attachmentsUpload'
 export const badgesUpdated = 'chat2:badgesUpdated'
 export const blockConversation = 'chat2:blockConversation'
 export const changeFocus = 'chat2:changeFocus'
+export const clearAttachmentView = 'chat2:clearAttachmentView'
 export const clearPaymentConfirmInfo = 'chat2:clearPaymentConfirmInfo'
 export const confirmScreenResponse = 'chat2:confirmScreenResponse'
 export const createConversation = 'chat2:createConversation'
@@ -51,6 +53,7 @@ export const inboxSearchTextResult = 'chat2:inboxSearchTextResult'
 export const joinConversation = 'chat2:joinConversation'
 export const jumpToRecent = 'chat2:jumpToRecent'
 export const leaveConversation = 'chat2:leaveConversation'
+export const loadAttachmentView = 'chat2:loadAttachmentView'
 export const loadMessagesCentered = 'chat2:loadMessagesCentered'
 export const loadNewerMessagesDueToScroll = 'chat2:loadNewerMessagesDueToScroll'
 export const loadOlderMessagesDueToScroll = 'chat2:loadOlderMessagesDueToScroll'
@@ -97,6 +100,7 @@ export const resolveMaybeMention = 'chat2:resolveMaybeMention'
 export const saveMinWriterRole = 'chat2:saveMinWriterRole'
 export const selectConversation = 'chat2:selectConversation'
 export const sendTyping = 'chat2:sendTyping'
+export const setAttachmentViewStatus = 'chat2:setAttachmentViewStatus'
 export const setCommandMarkdown = 'chat2:setCommandMarkdown'
 export const setContainsLastMessage = 'chat2:setContainsLastMessage'
 export const setConvExplodingMode = 'chat2:setConvExplodingMode'
@@ -139,6 +143,11 @@ export const updateTeamRetentionPolicy = 'chat2:updateTeamRetentionPolicy'
 export const updateUnreadline = 'chat2:updateUnreadline'
 
 // Payload Types
+type _AddAttachmentViewMessagePayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly viewType: RPCChatTypes.GalleryItemTyp
+  readonly message: Types.Message
+}
 type _AddUsersToChannelPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly usernames: Array<string>
@@ -151,10 +160,10 @@ type _AttachmentFullscreenNextPayload = {
   readonly messageID: Types.MessageID
   readonly backInTime: boolean
 }
-type _AttachmentFullscreenSelectionPayload = {readonly message: Types.Message}
+type _AttachmentFullscreenSelectionPayload = {readonly autoPlay: boolean; readonly message: Types.Message}
 type _AttachmentLoadingPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
-  readonly ordinal: Types.Ordinal
+  readonly message: Types.Message
   readonly ratio: number
   readonly isPreview: boolean
 }
@@ -188,6 +197,7 @@ type _BlockConversationPayload = {
   readonly reportUser: boolean
 }
 type _ChangeFocusPayload = {readonly nextFocus: Types.Focus}
+type _ClearAttachmentViewPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _ClearPaymentConfirmInfoPayload = void
 type _ConfirmScreenResponsePayload = {readonly accept: boolean}
 type _CreateConversationPayload = {readonly participants: Array<string>}
@@ -241,6 +251,11 @@ type _LeaveConversationPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly dontNavigateToInbox?: boolean
 }
+type _LoadAttachmentViewPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly viewType: RPCChatTypes.GalleryItemTyp
+  readonly fromMsgID?: Types.MessageID
+}
 type _LoadMessagesCenteredPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly messageID: Types.MessageID
@@ -253,14 +268,8 @@ type _MarkConversationsStalePayload = {
   readonly updateType: RPCChatTypes.StaleUpdateType
 }
 type _MarkInitiallyLoadedThreadAsReadPayload = {readonly conversationIDKey: Types.ConversationIDKey}
-type _MessageAttachmentNativeSavePayload = {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly ordinal: Types.Ordinal
-}
-type _MessageAttachmentNativeSharePayload = {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly ordinal: Types.Ordinal
-}
+type _MessageAttachmentNativeSavePayload = {readonly message: Types.Message}
+type _MessageAttachmentNativeSharePayload = {readonly message: Types.Message}
 type _MessageAttachmentUploadedPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly placeholderID: RPCChatTypes.MessageID
@@ -463,6 +472,12 @@ type _SelectConversationPayload = {
     | 'teamMention'
 }
 type _SendTypingPayload = {readonly conversationIDKey: Types.ConversationIDKey; readonly typing: boolean}
+type _SetAttachmentViewStatusPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly viewType: RPCChatTypes.GalleryItemTyp
+  readonly status: Types.AttachmentViewStatus
+  readonly last?: boolean
+}
 type _SetCommandMarkdownPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly md: RPCChatTypes.UICommandMarkdown | null
@@ -616,11 +631,23 @@ export const createUnfurlTogglePrompt = (payload: _UnfurlTogglePromptPayload): U
   type: unfurlTogglePrompt,
 })
 /**
+ * Add result for attachment view
+ */
+export const createAddAttachmentViewMessage = (
+  payload: _AddAttachmentViewMessagePayload
+): AddAttachmentViewMessagePayload => ({payload, type: addAttachmentViewMessage})
+/**
  * Change selected index of inbox search
  */
 export const createInboxSearchMoveSelectedIndex = (
   payload: _InboxSearchMoveSelectedIndexPayload
 ): InboxSearchMoveSelectedIndexPayload => ({payload, type: inboxSearchMoveSelectedIndex})
+/**
+ * Clear attachment views
+ */
+export const createClearAttachmentView = (
+  payload: _ClearAttachmentViewPayload
+): ClearAttachmentViewPayload => ({payload, type: clearAttachmentView})
 /**
  * Clear data for payment confirm modal
  */
@@ -702,6 +729,13 @@ export const createJumpToRecent = (payload: _JumpToRecentPayload): JumpToRecentP
   type: jumpToRecent,
 })
 /**
+ * Load attachment view pane
+ */
+export const createLoadAttachmentView = (payload: _LoadAttachmentViewPayload): LoadAttachmentViewPayload => ({
+  payload,
+  type: loadAttachmentView,
+})
+/**
  * Perform a search in a thread
  */
 export const createThreadSearch = (payload: _ThreadSearchPayload): ThreadSearchPayload => ({
@@ -764,6 +798,12 @@ export const createInboxSearchSelect = (
 export const createSetExplodingModeLock = (
   payload: _SetExplodingModeLockPayload
 ): SetExplodingModeLockPayload => ({payload, type: setExplodingModeLock})
+/**
+ * Set attachment view status
+ */
+export const createSetAttachmentViewStatus = (
+  payload: _SetAttachmentViewStatusPayload
+): SetAttachmentViewStatusPayload => ({payload, type: setAttachmentViewStatus})
 /**
  * Set command markdown for a conversation
  */
@@ -1208,6 +1248,10 @@ export const createUpdateNotificationSettings = (
 ): UpdateNotificationSettingsPayload => ({payload, type: updateNotificationSettings})
 
 // Action Payloads
+export type AddAttachmentViewMessagePayload = {
+  readonly payload: _AddAttachmentViewMessagePayload
+  readonly type: 'chat2:addAttachmentViewMessage'
+}
 export type AddUsersToChannelPayload = {
   readonly payload: _AddUsersToChannelPayload
   readonly type: 'chat2:addUsersToChannel'
@@ -1274,6 +1318,10 @@ export type BlockConversationPayload = {
   readonly type: 'chat2:blockConversation'
 }
 export type ChangeFocusPayload = {readonly payload: _ChangeFocusPayload; readonly type: 'chat2:changeFocus'}
+export type ClearAttachmentViewPayload = {
+  readonly payload: _ClearAttachmentViewPayload
+  readonly type: 'chat2:clearAttachmentView'
+}
 export type ClearPaymentConfirmInfoPayload = {
   readonly payload: _ClearPaymentConfirmInfoPayload
   readonly type: 'chat2:clearPaymentConfirmInfo'
@@ -1355,6 +1403,10 @@ export type JumpToRecentPayload = {
 export type LeaveConversationPayload = {
   readonly payload: _LeaveConversationPayload
   readonly type: 'chat2:leaveConversation'
+}
+export type LoadAttachmentViewPayload = {
+  readonly payload: _LoadAttachmentViewPayload
+  readonly type: 'chat2:loadAttachmentView'
 }
 export type LoadMessagesCenteredPayload = {
   readonly payload: _LoadMessagesCenteredPayload
@@ -1519,6 +1571,10 @@ export type SelectConversationPayload = {
   readonly type: 'chat2:selectConversation'
 }
 export type SendTypingPayload = {readonly payload: _SendTypingPayload; readonly type: 'chat2:sendTyping'}
+export type SetAttachmentViewStatusPayload = {
+  readonly payload: _SetAttachmentViewStatusPayload
+  readonly type: 'chat2:setAttachmentViewStatus'
+}
 export type SetCommandMarkdownPayload = {
   readonly payload: _SetCommandMarkdownPayload
   readonly type: 'chat2:setCommandMarkdown'
@@ -1685,6 +1741,7 @@ export type UpdateUnreadlinePayload = {
 // All Actions
 // prettier-ignore
 export type Actions =
+  | AddAttachmentViewMessagePayload
   | AddUsersToChannelPayload
   | AttachmentDownloadPayload
   | AttachmentDownloadedPayload
@@ -1702,6 +1759,7 @@ export type Actions =
   | BadgesUpdatedPayload
   | BlockConversationPayload
   | ChangeFocusPayload
+  | ClearAttachmentViewPayload
   | ClearPaymentConfirmInfoPayload
   | ConfirmScreenResponsePayload
   | CreateConversationPayload
@@ -1724,6 +1782,7 @@ export type Actions =
   | JoinConversationPayload
   | JumpToRecentPayload
   | LeaveConversationPayload
+  | LoadAttachmentViewPayload
   | LoadMessagesCenteredPayload
   | LoadNewerMessagesDueToScrollPayload
   | LoadOlderMessagesDueToScrollPayload
@@ -1770,6 +1829,7 @@ export type Actions =
   | SaveMinWriterRolePayload
   | SelectConversationPayload
   | SendTypingPayload
+  | SetAttachmentViewStatusPayload
   | SetCommandMarkdownPayload
   | SetContainsLastMessagePayload
   | SetConvExplodingModePayload

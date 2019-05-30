@@ -110,14 +110,20 @@ const _rebaseKbfsPathToMountLocation = (kbfsPath: Types.Path, mountLocation: str
       .join(path.sep)
   )
 
-const openPathInSystemFileManager = (state, action: FsGen.OpenPathInSystemFileManagerPayload) =>
-  state.fs.sfmi.driverStatus.type === 'enabled'
+const openPathInSystemFileManager = (
+  state,
+  action: FsGen.OpenPathInSystemFileManagerPayload
+): Promise<Saga.MaybeAction> =>
+  state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Enabled
     ? RPCTypes.kbfsMountGetCurrentMountDirRpcPromise()
         .then(mountLocation =>
           _openPathInSystemFileManagerPromise(
             _rebaseKbfsPathToMountLocation(action.payload.path, mountLocation),
-            !['in-group-tlf', 'in-team-tlf'].includes(Constants.parsePath(action.payload.path).kind) ||
-              state.fs.pathItems.get(action.payload.path, Constants.unknownPathItem).type === 'folder'
+            ![Types.PathKind.InGroupTlf, Types.PathKind.InTeamTlf].includes(
+              Constants.parsePath(action.payload.path).kind
+            ) ||
+              state.fs.pathItems.get(action.payload.path, Constants.unknownPathItem).type ===
+                Types.PathType.Folder
           )
         )
         .catch(err => {
@@ -159,7 +165,7 @@ const fuseStatusToUninstallExecPath = isWindows
     }
   : (status: RPCTypes.FuseStatus | null) => null
 
-const fuseStatusToActions = (previousStatusType: 'enabled' | 'disabled' | 'unknown') => (
+const fuseStatusToActions = (previousStatusType: Types.DriverStatusType) => (
   status: RPCTypes.FuseStatus | null
 ) => {
   if (!status) {
@@ -173,17 +179,22 @@ const fuseStatusToActions = (previousStatusType: 'enabled' | 'disabled' | 'unkno
             dokanUninstallExecPath: fuseStatusToUninstallExecPath(status),
           }),
         }),
-        ...(previousStatusType === 'disabled' || status.installAction === RPCTypes.InstallAction.upgrade
+        ...(previousStatusType === Types.DriverStatusType.Disabled ||
+        status.installAction === RPCTypes.InstallAction.upgrade
           ? [FsGen.createShowSystemFileManagerIntegrationBanner()]
           : []), // show banner for newly enabled
-        ...(previousStatusType === 'disabled'
+        ...(previousStatusType === Types.DriverStatusType.Disabled
           ? [FsGen.createOpenPathInSystemFileManager({path: Types.stringToPath('/keybase')})]
           : []), // open Finder/Explorer/etc for newly enabled
       ]
     : [
         FsGen.createSetDriverStatus({driverStatus: Constants.makeDriverStatusDisabled()}),
-        ...(previousStatusType === 'enabled' ? [FsGen.createHideSystemFileManagerIntegrationBanner()] : []), // hide banner for newly disabled
-        ...(previousStatusType === 'unknown' ? [FsGen.createShowSystemFileManagerIntegrationBanner()] : []), // show banner for disabled on first load
+        ...(previousStatusType === Types.DriverStatusType.Enabled
+          ? [FsGen.createHideSystemFileManagerIntegrationBanner()]
+          : []), // hide banner for newly disabled
+        ...(previousStatusType === Types.DriverStatusType.Unknown
+          ? [FsGen.createShowSystemFileManagerIntegrationBanner()]
+          : []), // show banner for disabled on first load
       ]
 }
 
@@ -208,7 +219,8 @@ const refreshDriverStatus = (
   state,
   action: FsGen.KbfsDaemonRpcStatusChangedPayload | FsGen.RefreshDriverStatusPayload
 ) =>
-  (action.type !== FsGen.kbfsDaemonRpcStatusChanged || action.payload.rpcStatus === 'connected') &&
+  (action.type !== FsGen.kbfsDaemonRpcStatusChanged ||
+    action.payload.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) &&
   RPCTypes.installFuseStatusRpcPromise({bundleVersion: ''})
     .then(status =>
       isWindows && status.installStatus !== RPCTypes.InstallStatus.installed
@@ -217,15 +229,15 @@ const refreshDriverStatus = (
     )
     .then(fuseStatusToActions(state.fs.sfmi.driverStatus.type))
 
-const fuseInstallResultIsKextPermissionError = result =>
+const fuseInstallResultIsKextPermissionError = (result: RPCTypes.InstallResult): boolean =>
   result &&
   result.componentResults &&
   result.componentResults.findIndex(
     c => c.name === 'fuse' && c.exitCode === Constants.ExitCodeFuseKextPermissionError
   ) !== -1
 
-const driverEnableFuse = (state, action: FsGen.DriverEnablePayload) =>
-  RPCTypes.installInstallFuseRpcPromise().then(result =>
+const driverEnableFuse = (state, action: FsGen.DriverEnablePayload): Promise<Saga.MaybeAction> =>
+  RPCTypes.installInstallFuseRpcPromise().then((result: RPCTypes.InstallResult) =>
     fuseInstallResultIsKextPermissionError(result)
       ? [
           FsGen.createDriverKextPermissionError(),
@@ -259,7 +271,7 @@ const uninstallKBFS = () =>
   })
 
 const uninstallDokanConfirm = state => {
-  if (state.fs.sfmi.driverStatus.type !== 'enabled') {
+  if (state.fs.sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) {
     return
   }
   if (!state.fs.sfmi.driverStatus.dokanUninstallExecPath) {
@@ -281,7 +293,7 @@ const uninstallDokanConfirm = state => {
 }
 
 const uninstallDokan = state => {
-  if (state.fs.sfmi.driverStatus.type !== 'enabled') return
+  if (state.fs.sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) return
   const execPath: string = state.fs.sfmi.driverStatus.dokanUninstallExecPath || ''
   logger.info('Invoking dokan uninstaller', execPath)
   return new Promise(resolve => {
@@ -356,12 +368,12 @@ const openAndUploadToPromise = (
         ],
         title: 'Select a file or folder to upload',
       },
-      filePaths => resolve(filePaths || [])
+      (filePaths: Array<string>) => resolve(filePaths || [])
     )
   )
 
 const openAndUpload = (state, action: FsGen.OpenAndUploadPayload) =>
-  openAndUploadToPromise(state, action).then(localPaths =>
+  openAndUploadToPromise(state, action).then((localPaths: Array<string>) =>
     localPaths.map(localPath => FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
   )
 
@@ -369,7 +381,7 @@ const loadUserFileEdits = (
   state,
   action: FsGen.UserFileEditsLoadPayload | FsGen.KbfsDaemonRpcStatusChangedPayload
 ) =>
-  state.fs.kbfsDaemonStatus.rpcStatus === 'connected' &&
+  state.fs.kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected &&
   RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise().then(writerEdits =>
     FsGen.createUserFileEditsLoaded({
       tlfUpdates: Constants.userTlfHistoryRPCToState(writerEdits || []),
@@ -385,7 +397,7 @@ const openFilesFromWidget = (state, {payload: {path, type}}) => [
 
 const changedFocus = (state, action: ConfigGen.ChangedFocusPayload) =>
   action.payload.appFocused &&
-  state.fs.sfmi.driverStatus.type === 'disabled' &&
+  state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Disabled &&
   state.fs.sfmi.driverStatus.kextPermissionError &&
   FsGen.createDriverEnable({isRetry: true})
 

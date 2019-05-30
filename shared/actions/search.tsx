@@ -123,7 +123,7 @@ function _parseThirdPartyRawResult(result: RawResult): Types.SearchResult {
 }
 
 function _parseRawResultToRow(result: RawResult, service: Types.Service) {
-  // $FlowIssue shouldn't accept a '' but this logic exists and i don't want to test removing it
+  // @ts-ignore (old flow issue) shouldn't accept a '' but this logic exists and i don't want to test removing it
   if (service === '' || service === 'Keybase') {
     return _parseKeybaseRawResult(result)
   } else {

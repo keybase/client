@@ -3,6 +3,7 @@ import * as I from 'immutable'
 import * as Constants from '../constants/wallets'
 import * as Types from '../constants/types/wallets'
 import * as WalletsGen from '../actions/wallets-gen'
+import {actionHasError} from '../util/container'
 import HiddenString from '../util/hidden-string'
 
 const initialState: Types.State = Constants.makeState()
@@ -12,7 +13,9 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.resetStore:
       return initialState
     case WalletsGen.accountsReceived:
-      const accountMap = I.OrderedMap(action.payload.accounts.map(account => [account.accountID, account]))
+      const accountMap: I.OrderedMap<Types.AccountID, Types.Account> = I.OrderedMap(
+        action.payload.accounts.map(account => [account.accountID, account])
+      )
       return state.merge({accountMap: accountMap})
     case WalletsGen.accountUpdateReceived:
       // accept the updated account if we've loaded it already
@@ -254,8 +257,8 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       }
       return state.merge({
         accountName: '',
-        accountNameError: (action.error && action.payload.error) || '',
-        accountNameValidationState: action.error ? 'error' : 'valid',
+        accountNameError: actionHasError(action) ? action.payload.error : '',
+        accountNameValidationState: actionHasError(action) ? 'error' : 'valid',
       })
     case WalletsGen.validateSecretKey:
       return state.merge({
@@ -269,8 +272,8 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       }
       return state.merge({
         secretKey: new HiddenString(''),
-        secretKeyError: action.error ? action.payload.error : '',
-        secretKeyValidationState: action.error ? 'error' : 'valid',
+        secretKeyError: actionHasError(action) ? action.payload.error : '',
+        secretKeyValidationState: actionHasError(action) ? 'error' : 'valid',
       })
     case WalletsGen.addNewPayment:
       const {accountID, paymentID} = action.payload
@@ -293,7 +296,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         sentPaymentError: '',
       })
     case WalletsGen.createdNewAccount:
-      return action.error
+      return actionHasError(action)
         ? state.merge({createNewAccountError: action.payload.error})
         : state.merge({
             accountName: '',
@@ -307,7 +310,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
             selectedAccount: action.payload.accountID,
           })
     case WalletsGen.linkedExistingAccount:
-      return action.error
+      return actionHasError(action)
         ? state.merge({linkExistingAccountError: action.payload.error})
         : state.merge({
             accountName: '',
@@ -345,7 +348,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.loadedMobileOnlyMode:
       return state.setIn(['mobileOnlyMap', action.payload.accountID], action.payload.enabled)
     case WalletsGen.inflationDestinationReceived:
-      return action.error
+      return actionHasError(action)
         ? state.merge({inflationDestinationError: action.payload.error})
         : state.merge({
             inflationDestinationError: '',

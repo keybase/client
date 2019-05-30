@@ -799,7 +799,7 @@ func TestBasicCRFailureAndFixing(t *testing.T) {
 	err = jManager.EnableAuto(ctx)
 	require.NoError(t, err)
 
-	clock, _ := clocktest.NewTestClockAndTimeNow()
+	clock, now := clocktest.NewTestClockAndTimeNow()
 	config2.SetClock(clock)
 
 	name := userName1.String() + "," + userName2.String()
@@ -878,9 +878,9 @@ func TestBasicCRFailureAndFixing(t *testing.T) {
 
 	t.Log("Check that there is conflict state in the CR DB.")
 	crdb := config2.GetConflictResolutionDB()
-	data, err := crdb.Get(fbo.id().Bytes(), nil)
+	crData, err := crdb.Get(fbo.id().Bytes(), nil)
 	require.NoError(t, err)
-	require.NotZero(t, len(data))
+	require.NotZero(t, len(crData))
 
 	t.Log("Clear the conflict state and re-enable CR.")
 	err = fbo.clearConflictView(ctx)
@@ -919,6 +919,27 @@ func TestBasicCRFailureAndFixing(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, children2, children1)
+
+	t.Log("Verify we can access the conflict folder through another handle")
+	dateStr := now.UTC().Format("2006-01-02")
+	h, err := tlfhandle.ParseHandle(
+		ctx, config2.KBPKI(), config2.MDOps(), nil,
+		string(name)+" (local conflicted copy "+dateStr+")", tlf.Private)
+	require.NoError(t, err)
+	b, ok := data.MakeConflictBranchName(h)
+	require.True(t, ok)
+
+	rootNodeConflict, _, err := kbfsOps2.GetRootNode(ctx, h, b)
+	require.NoError(t, err)
+	dirAConflict, _, err := kbfsOps2.Lookup(ctx, rootNodeConflict, "a")
+	require.NoError(t, err)
+	fileBConflict, _, err := kbfsOps2.Lookup(ctx, dirAConflict, "b")
+	require.NoError(t, err)
+
+	gotData2 := make([]byte, len(data2))
+	_, err = kbfsOps2.Read(ctx, fileBConflict, gotData2, 0)
+	require.NoError(t, err)
+	require.Equal(t, data2, gotData2)
 }
 
 // Tests that two users can create the same file simultaneously, and

@@ -181,6 +181,7 @@ function* addProof(state, action: ProfileGen.AddProofPayload) {
 
     const actions = []
     _outputInstructionsResponse = response
+    // @ts-ignore propbably a real thing
     if (service === 'dnsOrGenericWebSite') {
       // We don't get this directly (yet) so we parse this out
       try {

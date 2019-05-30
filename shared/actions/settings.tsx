@@ -155,6 +155,7 @@ const refreshInvites = () =>
         created: i.ctime,
         email: i.email,
         id: i.invitation_id,
+        // @ts-ignore for now
         key: i.invitation_id,
         // type will get filled in later
         type: '',
@@ -440,10 +441,11 @@ const setLockdownMode = (state, action: SettingsGen.OnChangeLockdownModePayload)
     .then(() => SettingsGen.createLoadedLockdownMode({status: action.payload.enabled}))
     .catch(() => SettingsGen.createLoadLockdownMode())
 
-const sendFeedback = (state, action: SettingsGen.SendFeedbackPayload) => {
+const sendFeedback = (state, action: SettingsGen.SendFeedbackPayload): Promise<Saga.MaybeAction> => {
   const {feedback, sendLogs} = action.payload
   const maybeDump = sendLogs ? logger.dump().then(writeLogLinesToFile) : Promise.resolve('')
   const status = {version}
+  // @ts-ignore todo investigate
   return maybeDump
     .then(() => {
       logger.info(`Sending ${sendLogs ? 'log' : 'feedback'} to daemon`)

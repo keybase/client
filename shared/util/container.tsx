@@ -42,5 +42,6 @@ export {anyWaiting, anyErrors} from '../constants/waiting'
 export {safeSubmit, safeSubmitPerMount} from './safe-submit'
 export {default as withSafeNavigation} from './safe-navigation'
 export type RouteProps<P, S> = _RouteProps<P, S>
-export {TypedActions, TypedState}
+export type TypedActions = TypedActions
+export type TypedState = TypedState
 export type PropsWithSafeNavigation<P> = _PropsWithSafeNavigation<P>

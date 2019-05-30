@@ -1067,6 +1067,7 @@ const updateAirdropState = (
         })
       )
 
+      // @ts-ignore codemod issue
       return WalletsGen.createUpdatedAirdropState({airdropQualifications, airdropState})
     })
     .catch(e => {

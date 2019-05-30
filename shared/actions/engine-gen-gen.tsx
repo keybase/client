@@ -23,6 +23,7 @@ export const chat1ChatUiChatGiphyToggleResultWindow = 'engine-gen:chat1ChatUiCha
 export const chat1ChatUiChatInboxConversation = 'engine-gen:chat1ChatUiChatInboxConversation'
 export const chat1ChatUiChatInboxFailed = 'engine-gen:chat1ChatUiChatInboxFailed'
 export const chat1ChatUiChatInboxUnverified = 'engine-gen:chat1ChatUiChatInboxUnverified'
+export const chat1ChatUiChatLoadGalleryHit = 'engine-gen:chat1ChatUiChatLoadGalleryHit'
 export const chat1ChatUiChatMaybeMentionUpdate = 'engine-gen:chat1ChatUiChatMaybeMentionUpdate'
 export const chat1ChatUiChatSearchConvHits = 'engine-gen:chat1ChatUiChatSearchConvHits'
 export const chat1ChatUiChatSearchDone = 'engine-gen:chat1ChatUiChatSearchDone'
@@ -310,15 +311,16 @@ type _Chat1ChatUiChatInboxUnverifiedPayload = {
     result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatInboxUnverified']['outParam']) => void
   }
 }
-type _Chat1ChatUiChatMaybeMentionUpdatePayload = {
-  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatMaybeMentionUpdate']['inParam'] & {
+type _Chat1ChatUiChatLoadGalleryHitPayload = {
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['inParam'] & {
     sessionID: number
   }
   response: {
     error: chat1Types.IncomingErrorCallback
-    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatMaybeMentionUpdate']['outParam']) => void
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['outParam']) => void
   }
 }
+type _Chat1ChatUiChatMaybeMentionUpdatePayload = void
 type _Chat1ChatUiChatSearchConvHitsPayload = {
   readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatSearchConvHits']['inParam'] & {
     sessionID: number
@@ -1679,6 +1681,9 @@ export const createChat1ChatUiChatInboxFailed = (
 export const createChat1ChatUiChatInboxUnverified = (
   payload: _Chat1ChatUiChatInboxUnverifiedPayload
 ): Chat1ChatUiChatInboxUnverifiedPayload => ({payload, type: chat1ChatUiChatInboxUnverified})
+export const createChat1ChatUiChatLoadGalleryHit = (
+  payload: _Chat1ChatUiChatLoadGalleryHitPayload
+): Chat1ChatUiChatLoadGalleryHitPayload => ({payload, type: chat1ChatUiChatLoadGalleryHit})
 export const createChat1ChatUiChatMaybeMentionUpdate = (
   payload: _Chat1ChatUiChatMaybeMentionUpdatePayload
 ): Chat1ChatUiChatMaybeMentionUpdatePayload => ({payload, type: chat1ChatUiChatMaybeMentionUpdate})
@@ -2328,6 +2333,10 @@ export type Chat1ChatUiChatInboxFailedPayload = {
 export type Chat1ChatUiChatInboxUnverifiedPayload = {
   readonly payload: _Chat1ChatUiChatInboxUnverifiedPayload
   readonly type: 'engine-gen:chat1ChatUiChatInboxUnverified'
+}
+export type Chat1ChatUiChatLoadGalleryHitPayload = {
+  readonly payload: _Chat1ChatUiChatLoadGalleryHitPayload
+  readonly type: 'engine-gen:chat1ChatUiChatLoadGalleryHit'
 }
 export type Chat1ChatUiChatMaybeMentionUpdatePayload = {
   readonly payload: _Chat1ChatUiChatMaybeMentionUpdatePayload
@@ -3009,6 +3018,7 @@ export type Actions =
   | Chat1ChatUiChatInboxConversationPayload
   | Chat1ChatUiChatInboxFailedPayload
   | Chat1ChatUiChatInboxUnverifiedPayload
+  | Chat1ChatUiChatLoadGalleryHitPayload
   | Chat1ChatUiChatMaybeMentionUpdatePayload
   | Chat1ChatUiChatSearchConvHitsPayload
   | Chat1ChatUiChatSearchDonePayload

@@ -35,7 +35,6 @@ const startReduxSaga = Testing.makeStartReduxSaga(walletsSaga, initialStore, sta
 const buildPaymentRes: RPCStellarTypes.BuildPaymentResLocal = {
   amountAvailable: '',
   amountErrMsg: '',
-  builtBanners: null,
   displayAmountFiat: '$5.00 USD',
   displayAmountXLM: '21.4168160 XLM',
   from: 'fake account ID',
@@ -145,7 +144,6 @@ it('build and send payment', () => {
 
 const buildRequestRes: RPCStellarTypes.BuildRequestResLocal = {
   amountErrMsg: '',
-  builtBanners: null,
   displayAmountFiat: '$5.00 USD',
   displayAmountXLM: '21.4168160 XLM',
   readyToRequest: true,
@@ -227,6 +225,7 @@ it('primes send/request form', () => {
       expect(startPaymentRPC).toHaveBeenCalled()
 
       const state = getState()
+      // @ts-ignore codemod-issue
       const expectedBuildRes = Constants.makeBuilding(buildingRes)
       expect(state.wallets.building).toEqual(expectedBuildRes)
       // build RPC should have been called last with buildRes

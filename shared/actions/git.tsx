@@ -13,6 +13,7 @@ const load = (state: TypedState) =>
   state.config.loggedIn &&
   RPCTypes.gitGetAllGitMetadataRpcPromise(undefined, Constants.loadingWaitingKey)
     .then((results: Array<RPCTypes.GitRepoResult> | null) =>
+      // @ts-ignore codemod-issue
       GitGen.createLoaded(Constants.parseRepos(results || []))
     )
     .catch(() => {})
@@ -73,6 +74,7 @@ const setTeamRepoSettings = (_, action: GitGen.SetTeamRepoSettingsPayload) =>
     channelName: action.payload.channelName,
     chatDisabled: action.payload.chatDisabled,
     folder: {
+      // @ts-ignore codemod-issue
       conflictType: RPCTypes.FolderConflictType.none,
       created: false,
       folderType: RPCTypes.FolderType.team,

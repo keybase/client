@@ -314,7 +314,7 @@
     // Update the loading bars
     "attachmentLoading": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal",
+      "message": "Types.Message",
       "ratio": "number", // 0-1
       "isPreview": "boolean"
     },
@@ -347,6 +347,7 @@
       "data": "Buffer"
     },
     "attachmentFullscreenSelection": {
+      "autoPlay": "boolean",
       "message": "Types.Message"
     },
     "attachmentFullscreenNext": {
@@ -383,13 +384,11 @@
     "navigateToThread": {},
     // Share to external app on mobile
     "messageAttachmentNativeShare": {
-      "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal"
+      "message": "Types.Message"
     },
     // Save on mobile (camera roll)
     "messageAttachmentNativeSave": {
-      "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal"
+      "message": "Types.Message"
     },
     // We're changing the notification settings
     "updateNotificationSettings": {
@@ -676,6 +675,29 @@
       "_description": "Resolve an unknown @ mention",
       "name": "string",
       "channel": "string"
+    },
+    "loadAttachmentView": {
+      "_description": "Load attachment view pane",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "viewType": "RPCChatTypes.GalleryItemTyp",
+      "fromMsgID?": "Types.MessageID"
+    },
+    "addAttachmentViewMessage": {
+      "_description": "Add result for attachment view",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "viewType": "RPCChatTypes.GalleryItemTyp",
+      "message": "Types.Message"
+    },
+    "setAttachmentViewStatus": {
+      "_description": "Set attachment view status",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "viewType": "RPCChatTypes.GalleryItemTyp",
+      "status": "Types.AttachmentViewStatus",
+      "last?": "boolean"
+    },
+    "clearAttachmentView": {
+      "_description": "Clear attachment views",
+      "conversationIDKey": "Types.ConversationIDKey"
     }
   }
 }

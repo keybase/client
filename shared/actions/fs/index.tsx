@@ -15,6 +15,7 @@ import * as Types from '../../constants/types/fs'
 import {TypedActions} from '../typed-actions-gen'
 import logger from '../../logger'
 import platformSpecificSaga from './platform-specific'
+// @ts-ignore
 import {getContentTypeFromURL} from '../platform-specific'
 import * as RouteTreeGen from '../route-tree-gen'
 import {tlfToPreferredOrder} from '../../util/kbfs'
@@ -101,8 +102,7 @@ const getSyncConfigFromRPC = (tlfName, tlfType, config: RPCTypes.FolderSyncConfi
           : I.List(),
       })
     default:
-      // @ts-ignore the const objects aren't flow-friendly.
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(config)
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(config.mode)
       return Constants.tlfSyncDisabled
   }
 }
@@ -145,7 +145,7 @@ const loadTlfSyncConfig = (state, action: FsGen.LoadTlfSyncConfigPayload) => {
   // @ts-ignore probably a real issue
   const tlfPath = action.type === FsGen.loadPathMetadata ? action.payload.path : action.payload.tlfPath
   const parsedPath = Constants.parsePath(tlfPath)
-  if (parsedPath.kind !== 'group-tlf' && parsedPath.kind !== 'team-tlf') {
+  if (parsedPath.kind !== Types.PathKind.GroupTlf && parsedPath.kind !== Types.PathKind.TeamTlf) {
     return null
   }
   return RPCTypes.SimpleFSSimpleFSFolderSyncConfigAndStatusRpcPromise({
@@ -209,7 +209,6 @@ const getPrefetchStatusFromRPC = (
     case RPCTypes.PrefetchStatus.complete:
       return Constants.prefetchComplete
     default:
-      // @ts-ignore the const objects aren't flow-friendly.
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(prefetchStatus)
       return Constants.prefetchNotStarted
   }
@@ -230,7 +229,7 @@ const makeEntry = (d: RPCTypes.Dirent, children?: Set<string>) => {
       return Constants.makeFolder({
         ...direntToMetadata(d),
         children: I.Set(children),
-        progress: children ? 'loaded' : undefined,
+        progress: children ? Types.ProgressType.Loaded : undefined,
       })
     case RPCTypes.DirentType.sym:
       return Constants.makeSymlink({
@@ -322,10 +321,10 @@ function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessP
     const direntToPathAndPathItem = (d: RPCTypes.Dirent) => {
       const path = Types.pathConcat(rootPath, d.name)
       const entry = makeEntry(d, childMap.get(path))
-      if (entry.type === 'folder' && Types.getPathLevel(path) > 3 && d.name.indexOf('/') < 0) {
+      if (entry.type === Types.PathType.Folder && Types.getPathLevel(path) > 3 && d.name.indexOf('/') < 0) {
         // Since we are loading with a depth of 2, first level directories are
         // considered "loaded".
-        return [path, entry.set('progress', 'loaded')]
+        return [path, entry.set('progress', Types.ProgressType.Loaded)]
       }
       return [path, entry]
     }
@@ -334,10 +333,12 @@ function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessP
     // avoid overriding them.
     const state = yield* Saga.selectState()
     const rootPathItem = state.fs.pathItems.get(rootPath, Constants.unknownPathItem)
-    const rootFolder: Types.FolderPathItem = (rootPathItem.type === 'folder'
+    const rootFolder: Types.FolderPathItem = (rootPathItem.type === Types.PathType.Folder
       ? rootPathItem
       : Constants.makeFolder({name: Types.getPathName(rootPath)})
-    ).withMutations(f => f.set('children', I.Set(childMap.get(rootPath))).set('progress', 'loaded'))
+    ).withMutations(f =>
+      f.set('children', I.Set(childMap.get(rootPath))).set('progress', Types.ProgressType.Loaded)
+    )
 
     const pathItems = [
       ...(Types.getPathLevel(rootPath) > 2 ? [[rootPath, rootFolder]] : []),
@@ -386,22 +387,18 @@ function* download(state, action: FsGen.DownloadPayload | FsGen.ShareNativePaylo
   // Figure out the local path we are downloading into.
   let localPath = ''
   switch (intent) {
-    case 'none':
+    case Types.DownloadIntent.None:
       // This adds " (1)" suffix to the base name, if the destination path
       // already exists.
       localPath = yield* Saga.callPromise(Constants.downloadFilePathFromPath, path)
       break
-    case 'camera-roll':
-    case 'share':
+    case Types.DownloadIntent.CameraRoll:
+    case Types.DownloadIntent.Share:
       // For saving to camera roll or sharing to other apps, we are
       // downloading to the app's local storage. So don't bother trying to
       // avoid overriding existing files. Just download over them.
       localPath = Constants.downloadFilePathFromPathNoSearch(path)
       break
-    case 'web-view':
-    case 'web-view-text':
-      // TODO
-      return
     default:
       // @ts-ignore codemod-issue
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(intent)
@@ -453,7 +450,7 @@ function* download(state, action: FsGen.DownloadPayload | FsGen.ShareNativePaylo
     // error we'd show the red bar.
     yield makeRetriableErrorHandler(action, path)(error).map(action => Saga.put(action))
   } finally {
-    if (intent !== 'none') {
+    if (intent !== Types.DownloadIntent.None) {
       // If it's a normal download, we show a red card for the user to dismiss.
       // TODO: when we get rid of download cards on Android, check isMobile
       // here.
@@ -628,6 +625,7 @@ const getMimeTypePromise = (localHTTPServerInfo: Types.LocalHTTPServer, path: Ty
   new Promise((resolve, reject) =>
     getContentTypeFromURL(
       Constants.generateFileURL(path, localHTTPServerInfo),
+      // @ts-ignore TODO fix this when actions/platform-specific is converted
       ({error, statusCode, contentType, disposition}) => {
         if (error) {
           reject(error)
@@ -696,15 +694,15 @@ function* _loadMimeType(path: Types.Path) {
   throw new Error('exceeded max retries')
 }
 
-const commitEdit = (state, action: FsGen.CommitEditPayload) => {
+const commitEdit = (state, action: FsGen.CommitEditPayload): Promise<Saga.MaybeAction> => {
   const {editID} = action.payload
   const edit = state.fs.edits.get(editID)
   if (!edit) {
     return null
   }
-  const {parentPath, name, type} = edit
+  const {parentPath, name, type} = edit as Types.Edit
   switch (type) {
-    case 'new-folder':
+    case Types.EditType.NewFolder:
       return RPCTypes.SimpleFSSimpleFSOpenRpcPromise({
         dest: Constants.pathToRPCPath(Types.pathConcat(parentPath, name)),
         flags: RPCTypes.OpenFlags.directory,
@@ -713,7 +711,6 @@ const commitEdit = (state, action: FsGen.CommitEditPayload) => {
         .then(() => FsGen.createEditSuccess({editID, parentPath}))
         .catch(makeRetriableErrorHandler(action, parentPath))
     default:
-      // @ts-ignore codemod-issue
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(type)
       return new Promise(resolve => resolve([]))
   }
@@ -741,7 +738,7 @@ function* loadPathMetadata(state, action: FsGen.LoadPathMetadataPayload) {
       refreshSubscription: !!refreshTag,
     })
     let pathItem = makeEntry(dirent)
-    if (pathItem.type === 'file') {
+    if (pathItem.type === Types.PathType.File) {
       const mimeType = yield* _loadMimeType(path)
       pathItem = pathItem.set('mimeType', mimeType)
     }
@@ -763,7 +760,7 @@ const updateFsBadge = (state, action: FsGen.FavoritesLoadedPayload) =>
   NotificationsGen.createSetBadgeCounts({
     counts: I.Map({
       [Tabs.fsTab]: Constants.computeBadgeNumberForAll(state.fs.tlfs),
-    }),
+    }) as I.Map<Tabs.Tab, number>,
   })
 
 const deleteFile = (state, action: FsGen.DeleteFilePayload) => {
@@ -778,14 +775,14 @@ const deleteFile = (state, action: FsGen.DeleteFilePayload) => {
 }
 
 const moveOrCopy = (state, action: FsGen.MovePayload | FsGen.CopyPayload) => {
-  if (state.fs.destinationPicker.source.type === 'none') {
+  if (state.fs.destinationPicker.source.type === Types.DestinationPickerSource.None) {
     return
   }
   const params = {
     dest: Constants.pathToRPCPath(
       Types.pathConcat(
         action.payload.destinationParentPath,
-        state.fs.destinationPicker.source.type === 'move-or-copy'
+        state.fs.destinationPicker.source.type === Types.DestinationPickerSource.MoveOrCopy
           ? Types.getPathName(state.fs.destinationPicker.source.path)
           : Types.getLocalPathName(state.fs.destinationPicker.source.localPath)
         // We use the local path name here since we only care about file name.
@@ -793,19 +790,12 @@ const moveOrCopy = (state, action: FsGen.MovePayload | FsGen.CopyPayload) => {
     ),
     opID: Constants.makeUUID(),
     src:
-      state.fs.destinationPicker.source.type === 'move-or-copy'
+      state.fs.destinationPicker.source.type === Types.DestinationPickerSource.MoveOrCopy
         ? Constants.pathToRPCPath(state.fs.destinationPicker.source.path)
-        : state.fs.destinationPicker.source.type === 'incoming-share'
-        ? {
+        : ({
             PathType: RPCTypes.PathType.local,
             local: Types.localPathToString(state.fs.destinationPicker.source.localPath),
-          }
-        : {
-            // This case isn't possible but must be handled for Flow to be
-            // happy.
-            PathType: RPCTypes.PathType.kbfs,
-            kbfs: null,
-          },
+          } as RPCTypes.Path),
   }
   return (
     (action.type === FsGen.move
@@ -834,7 +824,8 @@ const closeDestinationPicker = (state, action: FsGen.CloseDestinationPickerPaylo
     []
   )
   return [
-    FsGen.createClearRefreshTag({refreshTag: 'destination-picker'}),
+    // TODO use as const
+    FsGen.createClearRefreshTag({refreshTag: Types.RefreshTag.DestinationPicker}),
     RouteTreeGen.createNavigateTo({path: newRoute}),
   ]
 }
@@ -966,13 +957,13 @@ const waitForKbfsDaemon = (state, action: ConfigGen.InstallerRanPayload | FsGen.
     .then(connected => {
       waitForKbfsDaemonOnFly = false
       return FsGen.createKbfsDaemonRpcStatusChanged({
-        rpcStatus: connected ? 'connected' : 'wait-timeout',
+        rpcStatus: connected ? Types.KbfsDaemonRpcStatus.Connected : Types.KbfsDaemonRpcStatus.WaitTimeout,
       })
     })
     .catch(() => {
       waitForKbfsDaemonOnFly = false
       return FsGen.createKbfsDaemonRpcStatusChanged({
-        rpcStatus: 'wait-timeout',
+        rpcStatus: Types.KbfsDaemonRpcStatus.WaitTimeout,
       })
     })
 }
@@ -981,7 +972,7 @@ const updateKbfsDaemonOnlineStatus = (
   state,
   action: FsGen.KbfsDaemonRpcStatusChangedPayload | ConfigGen.OsNetworkStatusChangedPayload
 ) =>
-  state.fs.kbfsDaemonStatus.rpcStatus === 'connected' && state.config.osNetworkOnline
+  state.fs.kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected && state.config.osNetworkOnline
     ? RPCTypes.SimpleFSSimpleFSAreWeConnectedToMDServerRpcPromise().then(connectedToMDServer =>
         FsGen.createKbfsDaemonOnlineStatusChanged({online: connectedToMDServer})
       )

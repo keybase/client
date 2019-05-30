@@ -1,17 +1,20 @@
 import logger from '../../logger'
 import * as FsGen from '../fs-gen'
+import * as Types from '../../constants/types/fs'
 import * as Saga from '../../util/saga'
 import * as Flow from '../../util/flow'
 import {TypedState} from '../../constants/reducer'
 // @ts-ignore codemod-issue
-import {showImagePicker} from 'react-native-image-picker'
+import ImagePicker from 'react-native-image-picker'
 import {isIOS} from '../../constants/platform'
 import {makeRetriableErrorHandler} from './shared'
+// @ts-ignore
 import {saveAttachmentDialog, showShareActionSheetFromURL} from '../platform-specific'
+import {types} from '@babel/core'
 
 const pickAndUploadToPromise = (state: TypedState, action: FsGen.PickAndUploadPayload): Promise<any> =>
   new Promise((resolve, reject) =>
-    showImagePicker(
+    ImagePicker.showImagePicker(
       {
         mediaType: action.payload.type,
         quality: 1,
@@ -48,18 +51,18 @@ const downloadSuccess = (state, action: FsGen.DownloadSuccessPayload) => {
     logger.warn('missing download key', key)
     return
   }
-  const {intent, localPath} = download.meta
+  const {intent, localPath} = download.meta as Types.DownloadMeta
   switch (intent) {
-    case 'camera-roll':
+    case Types.DownloadIntent.CameraRoll:
       return saveAttachmentDialog(localPath)
         .then(() => FsGen.createDismissDownload({key}))
         .catch(makeRetriableErrorHandler(action))
-    case 'share':
-      // @ts-ignore codemod-issue
+    case Types.DownloadIntent.Share:
+      // @ts-ignore codemod-issue probably a real issue
       return showShareActionSheetFromURL({mimeType, url: localPath})
         .then(() => FsGen.createDismissDownload({key}))
         .catch(makeRetriableErrorHandler(action))
-    case 'none':
+    case Types.DownloadIntent.None:
       return
     default:
       // @ts-ignore codemod-issue

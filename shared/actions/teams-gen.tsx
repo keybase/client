@@ -107,7 +107,7 @@ type _AddUserToTeamsPayload = {
   readonly user: string
 }
 type _BadgeAppForTeamsPayload = {
-  readonly deletedTeams: I.List<Types.DeletedTeam>
+  readonly deletedTeams: I.List<RPCTypes.DeletedTeamInfo>
   readonly newTeamNames: I.List<string>
   readonly newTeamAccessRequests: I.List<string>
   readonly teamsWithResetUsers: ReadonlyArray<{id: Buffer; teamname: string; username: string; uid: string}>
@@ -205,7 +205,7 @@ type _SetEmailInviteErrorPayload = {readonly message: string; readonly malformed
 type _SetMemberPublicityPayload = {readonly teamname: string; readonly showcase: boolean}
 type _SetMembersPayload = {readonly teamname: string; readonly members: I.Map<string, Types.MemberInfo>}
 type _SetNewTeamInfoPayload = {
-  readonly deletedTeams: I.List<Types.DeletedTeam>
+  readonly deletedTeams: I.List<RPCTypes.DeletedTeamInfo>
   readonly newTeams: I.Set<string>
   readonly newTeamRequests: I.List<string>
   readonly teamNameToResetUsers: I.Map<Types.Teamname, I.Set<Types.ResetUser>>

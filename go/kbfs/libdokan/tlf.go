@@ -81,6 +81,14 @@ func (tlf *TLF) loadDirHelper(ctx context.Context, info string,
 		return nil, false, err
 	}
 
+	if branch == data.MasterBranch {
+		conflictBranch, isLocalConflictBranch :=
+			data.MakeConflictBranchName(handle)
+		if isLocalConflictBranch {
+			branch = conflictBranch
+		}
+	}
+
 	var rootNode libkbfs.Node
 	if filterErr {
 		rootNode, _, err = tlf.folder.fs.config.KBFSOps().GetRootNode(

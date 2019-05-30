@@ -118,6 +118,7 @@ const nowTimestamp = 1534635058000
 
 const loadedStore = {
   ...initialStore,
+  // @ts-ignore codemod issue
   git: initialStore.git.merge({
     idToInfo: gitRepos.reduce((acc, r) => acc.set(r.id, I.Record(r)()), I.Map()),
   }),

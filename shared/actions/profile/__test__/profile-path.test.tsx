@@ -43,6 +43,7 @@ describe('getProfilePath', () => {
     me: string,
     expectedPath: PropsPath<unknown>
   ) {
+    // @ts-ignore codemod issue
     const result = getProfilePath(peopleRouteProps, username, me, state)
     expect(result).toMatchObject(expectedPath)
   }

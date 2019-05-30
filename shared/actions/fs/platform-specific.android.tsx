@@ -1,10 +1,12 @@
 import logger from '../../logger'
 import * as Saga from '../../util/saga'
 import * as FsGen from '../fs-gen'
+import * as Types from '../../constants/types/fs'
 import RNFetchBlob from 'rn-fetch-blob'
 import {copy, unlink} from '../../util/file'
 import {PermissionsAndroid} from 'react-native'
 import nativeSaga from './common.native'
+import {types} from '@babel/core'
 
 function copyToDownloadDir(path: string, mimeType: string) {
   const fileName = path.substring(path.lastIndexOf('/') + 1)
@@ -55,7 +57,7 @@ const downloadSuccessAndroid = (state, action: FsGen.DownloadSuccessPayload) => 
     return
   }
   const {intent, localPath} = download.meta
-  if (intent !== 'none') {
+  if (intent !== Types.DownloadIntent.None) {
     return
   }
   return copyToDownloadDir(localPath, mimeType)

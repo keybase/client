@@ -212,10 +212,10 @@ describe('reply with device type', () => {
     expect(() =>
       makeInit({
         initialStore: {
+          // @ts-ignore codemod issue
           provision: Constants.makeState({
-            // $FlowIssue flow correctly doesnt allow this
             codePageOtherDeviceType: 'backup',
-          }),
+          } as any),
         },
         method: 'keybase.1.provisionUi.chooseDeviceType',
         payload: {},

@@ -66,12 +66,14 @@ function* handleAvatarQueue() {
     const usernames = avatarsToLoad.users.take(maxAvatarsPerLoad).toArray()
     avatarsToLoad.users = avatarsToLoad.users.skip(maxAvatarsPerLoad)
     if (usernames.length) {
+      // @ts-ignore codemod issue
       yield* avatarCallAndHandle(usernames, RPCTypes.avatarsLoadUserAvatarsRpcPromise)
     }
 
     const teamnames = avatarsToLoad.teams.take(maxAvatarsPerLoad).toArray()
     avatarsToLoad.teams = avatarsToLoad.teams.skip(maxAvatarsPerLoad)
     if (teamnames.length) {
+      // @ts-ignore codemod issue
       yield* avatarCallAndHandle(teamnames, RPCTypes.avatarsLoadTeamAvatarsRpcPromise)
     }
 
