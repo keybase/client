@@ -54,6 +54,9 @@
     "modulePaths": [
       "<rootDir>/desktop/node_modules"
     ],
+    "modulePathIgnorePatterns": [
+      "<rootDir>/.tsOut"
+    ],
     "transformIgnorePatterns": [
       "node_modules/(?!universalify|fs-extra|react-redux|@storybook|lodash-es|@react-navigation/.*).+\\.js"
     ],
@@ -63,7 +66,7 @@
     ],
     "testPathIgnorePatterns": [
       "/node_modules/",
-      "/.tsOut/"
+      "<rootDir>/.tsOut/"
     ],
     "snapshotSerializers": [
       "jest-emotion"
@@ -199,7 +202,7 @@
     "@storybook/react-native": "4.1.14",
     "@storybook/theming": "5.0.1",
     "@types/moment": "2.13.0",
-    "@types/react": "16.8.17",
+    "@types/react": "16.8.19",
     "@types/react-dom": "16.8.4",
     "@types/react-redux": "7.0.9",
     "babel-core": "7.0.0-bridge.0",
@@ -245,7 +248,7 @@
     "style-loader": "0.23.1",
     "terser-webpack-plugin": "1.2.1",
     "tls": "git://github.com/keybase/nullModule",
-    "typescript": "3.4.5",
+    "typescript": "3.5.1",
     "webpack": "4.28.2",
     "webpack-cli": "3.2.1",
     "webpack-dashboard": "2.0.0",

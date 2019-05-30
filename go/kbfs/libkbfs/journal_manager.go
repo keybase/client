@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"sync"
 	"time"
 
@@ -58,10 +59,12 @@ func (jsc journalManagerConfig) getEnableAuto(currentUID keybase1.UID) (
 // ConflictJournalRecord contains info for TLF journals that are
 // currently in conflict on the local device.
 type ConflictJournalRecord struct {
-	Name tlf.CanonicalName
-	Type tlf.Type
-	Path string
-	ID   tlf.ID
+	Name           tlf.CanonicalName
+	Type           tlf.Type
+	Path           string
+	ID             tlf.ID
+	ServerViewPath keybase1.Path // for cleared conflicts only
+	LocalViewPath  keybase1.Path // for cleared conflicts only
 }
 
 // JournalManagerStatus represents the overall status of the
@@ -85,6 +88,7 @@ type JournalManagerStatus struct {
 	EndEstimate       *time.Time
 	DiskLimiterStatus interface{}
 	Conflicts         []ConflictJournalRecord `json:",omitempty"`
+	ClearedConflicts  []ConflictJournalRecord `json:",omitempty"`
 }
 
 // branchChangeListener describes a caller that will get updates via
@@ -104,6 +108,17 @@ type branchChangeListener interface {
 // avoid deadlocks.
 type mdFlushListener interface {
 	onMDFlush(tlf.ID, kbfsmd.BranchID, kbfsmd.Revision)
+}
+
+type clearedConflictKey struct {
+	tlfID tlf.ID
+	date  time.Time // the conflict time truncated to be just the date
+	num   uint16
+}
+
+type clearedConflictVal struct {
+	fakeTlfID tlf.ID
+	t         time.Time
 }
 
 // JournalManager is the server that handles write journals. It
@@ -149,6 +164,8 @@ type JournalManager struct {
 	dirtyOps            map[tlf.ID]uint
 	dirtyOpsDone        *sync.Cond
 	serverConfig        journalManagerConfig
+	// Real TLF ID -> time that conflict was cleared -> fake TLF ID
+	clearedConflictTlfs map[clearedConflictKey]clearedConflictVal
 }
 
 func makeJournalManager(
@@ -172,6 +189,7 @@ func makeJournalManager(
 		onMDFlush:               onMDFlush,
 		tlfJournals:             make(map[tlf.ID]*tlfJournal),
 		dirtyOps:                make(map[tlf.ID]uint),
+		clearedConflictTlfs:     make(map[clearedConflictKey]clearedConflictVal),
 	}
 	jManager.dirtyOpsDone = sync.NewCond(&jManager.lock)
 	return &jManager
@@ -227,6 +245,34 @@ func (j *JournalManager) getEnableAutoLocked() (
 	return j.serverConfig.getEnableAuto(j.currentUID)
 }
 
+func (j *JournalManager) getConflictIDForHandle(
+	tlfID tlf.ID, h *tlfhandle.Handle) (tlf.ID, bool) {
+	j.lock.RLock()
+	defer j.lock.RUnlock()
+	// If the handle represents a local conflict, change the
+	// handle's TLF ID to reflect that.
+	ci := h.ConflictInfo()
+	if ci == nil {
+		return tlf.ID{}, false
+	}
+
+	if ci.Type != tlf.HandleExtensionLocalConflict {
+		return tlf.ID{}, false
+	}
+
+	key := clearedConflictKey{
+		tlfID: tlfID,
+		date:  time.Unix(ci.Date, 0).UTC().Round(0),
+		num:   ci.Number,
+	}
+	val, ok := j.clearedConflictTlfs[key]
+	if !ok {
+		return tlf.ID{}, false
+	}
+
+	return val.fakeTlfID, true
+}
+
 func (j *JournalManager) getTLFJournal(
 	tlfID tlf.ID, h *tlfhandle.Handle) (*tlfJournal, bool) {
 	getJournalFn := func() (*tlfJournal, bool, bool, bool) {
@@ -236,6 +282,7 @@ func (j *JournalManager) getTLFJournal(
 		if j.currentUID.IsNil() {
 			return nil, false, false, false
 		}
+
 		tlfJournal, ok := j.tlfJournals[tlfID]
 		enableAuto, enableAutoSetByUser := j.getEnableAutoLocked()
 		return tlfJournal, enableAuto, enableAutoSetByUser, ok
@@ -312,10 +359,9 @@ func (j *JournalManager) getHandleForJournal(
 		return nil, err
 	}
 
-	return tlfhandle.MakeHandle(
+	return tlfhandle.MakeHandleWithTlfID(
 		ctx, headBareHandle, tlfID.Type(), j.config.KBPKI(),
-		j.config.KBPKI(), tlfhandle.ConstIDGetter{ID: tlfID},
-		j.config.OfflineAvailabilityForID(tlfID))
+		j.config.KBPKI(), tlfID, j.config.OfflineAvailabilityForID(tlfID))
 }
 
 func (j *JournalManager) makeFBOForJournal(
@@ -379,6 +425,96 @@ func (j *JournalManager) MakeFBOsForExistingJournals(
 		}()
 	}
 	return &wg
+}
+
+func (j *JournalManager) makeJournalForConflictTlfLocked(
+	ctx context.Context, dir string, tlfID tlf.ID,
+	chargedTo keybase1.UserOrTeamID) (*tlfJournal, tlf.ID, time.Time, error) {
+	// If this is a bak directory representing a
+	// moved-away conflicts branch, we should assign it a
+	// fake TLF ID.
+	matches := tlfJournalBakRegexp.FindStringSubmatch(dir)
+	if len(matches) == 0 {
+		return nil, tlf.ID{}, time.Time{},
+			errors.Errorf("%s is not a backup conflict dir", dir)
+	}
+
+	unixNano, err := strconv.ParseInt(matches[2], 10, 64)
+	if err != nil {
+		return nil, tlf.ID{}, time.Time{}, err
+	}
+
+	fakeTlfID, err := tlf.MakeRandomID(tlfID.Type())
+	if err != nil {
+		return nil, tlf.ID{}, time.Time{}, err
+	}
+
+	tj, err := makeTLFJournal(
+		ctx, j.currentUID, j.currentVerifyingKey, dir,
+		tlfID, chargedTo, tlfJournalConfigAdapter{j.config},
+		j.delegateBlockServer, TLFJournalBackgroundWorkPaused, nil,
+		j.onBranchChange, j.onMDFlush, j.config.DiskLimiter(), fakeTlfID)
+	if err != nil {
+		return nil, tlf.ID{}, time.Time{}, err
+	}
+
+	return tj, fakeTlfID, time.Unix(0, unixNano), nil
+}
+
+func (j *JournalManager) insertConflictJournalLocked(
+	ctx context.Context, tj *tlfJournal, fakeTlfID tlf.ID, t time.Time) {
+	const dateFormat = "2006-01-02"
+	dateStr := t.UTC().Format(dateFormat)
+	date, err := time.Parse(dateFormat, dateStr)
+	if err != nil {
+		panic(err.Error())
+	}
+	date = date.UTC().Round(0)
+
+	key := clearedConflictKey{
+		tlfID: tj.tlfID,
+		date:  date,
+	}
+
+	val := clearedConflictVal{
+		fakeTlfID: fakeTlfID,
+		t:         t,
+	}
+
+	// Figure out what number conflict this should be.
+	num := uint16(1)
+	toDel := make([]clearedConflictKey, 0)
+	toAdd := make(map[clearedConflictKey]clearedConflictVal)
+	for otherKey, otherVal := range j.clearedConflictTlfs {
+		if otherKey.tlfID != tj.tlfID || !otherKey.date.Equal(date) {
+			continue
+		}
+
+		// Increase the number for each conflict that happened before
+		// this one; increase any existing numbers that happened after
+		// it.
+		if otherVal.t.Before(t) {
+			num++
+		} else {
+			toDel = append(toDel, otherKey)
+			otherKey.num++
+			toAdd[otherKey] = otherVal
+		}
+	}
+	key.num = num
+
+	for _, k := range toDel {
+		delete(j.clearedConflictTlfs, k)
+	}
+	for k, v := range toAdd {
+		j.clearedConflictTlfs[k] = v
+	}
+
+	j.clearedConflictTlfs[key] = val
+	j.tlfJournals[fakeTlfID] = tj
+	j.log.CDebugf(ctx, "Made conflict journal for %s, real "+
+		"TLF ID = %s, fake TLF ID = %s, date = %s, num = %d",
+		tj.dir, tj.tlfID, fakeTlfID, date, num)
 }
 
 // EnableExistingJournals turns on the write journal for all TLFs for
@@ -470,6 +606,7 @@ func (j *JournalManager) EnableExistingJournals(
 		journal *tlfJournal
 	}
 	journalCh := make(chan journalRet, len(fileInfos))
+	var conflictLock sync.Mutex
 	worker := func() error {
 		for fi := range fileCh {
 			name := fi.Name()
@@ -502,9 +639,22 @@ func (j *JournalManager) EnableExistingJournals(
 
 			expectedDir := j.tlfJournalPathLocked(tlfID)
 			if dir != expectedDir {
-				j.log.CDebugf(
-					groupCtx, "Skipping misnamed dir %q; expected %q",
-					dir, expectedDir)
+				tj, fakeTlfID, t, err := j.makeJournalForConflictTlfLocked(
+					groupCtx, dir, tlfID, chargedTo)
+				if err != nil {
+					j.log.CDebugf(
+						groupCtx, "Skipping misnamed dir %s: %+v", dir, err)
+					continue
+				}
+
+				// Take a lock while inserting the conflict journal
+				// (even though we already have `journalLock`), since
+				// multiple workers could be running at once and we
+				// need to protect the cleared conflct TLF map from
+				// concurrent access.
+				conflictLock.Lock()
+				j.insertConflictJournalLocked(groupCtx, tj, fakeTlfID, t)
+				conflictLock.Unlock()
 				continue
 			}
 
@@ -634,7 +784,8 @@ func (j *JournalManager) enableLocked(
 		ctx, j.currentUID, j.currentVerifyingKey, tlfDir,
 		tlfID, chargedTo, tlfJournalConfigAdapter{j.config},
 		j.delegateBlockServer,
-		bws, nil, j.onBranchChange, j.onMDFlush, j.config.DiskLimiter())
+		bws, nil, j.onBranchChange, j.onMDFlush, j.config.DiskLimiter(),
+		tlf.NullID)
 	if err != nil {
 		return nil, err
 	}
@@ -922,11 +1073,14 @@ func (j *JournalManager) maybeMakeDiskLimitErrorReportable(
 }
 
 func (j *JournalManager) getJournalsInConflictLocked(ctx context.Context) (
-	records []ConflictJournalRecord, err error) {
+	current, cleared []ConflictJournalRecord, err error) {
 	for _, tlfJournal := range j.tlfJournals {
+		if tlfJournal.overrideTlfID != tlf.NullID {
+			continue
+		}
 		isConflict, err := tlfJournal.isOnConflictBranch()
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		if !isConflict {
 			continue
@@ -934,26 +1088,60 @@ func (j *JournalManager) getJournalsInConflictLocked(ctx context.Context) (
 
 		handle, err := j.getHandleForJournal(ctx, tlfJournal, tlfJournal.tlfID)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		if handle == nil {
 			continue
 		}
 
-		records = append(records, ConflictJournalRecord{
+		current = append(current, ConflictJournalRecord{
 			Name: handle.GetCanonicalName(),
 			Type: handle.Type(),
 			Path: handle.GetCanonicalPath(),
 			ID:   tlfJournal.tlfID,
 		})
 	}
-	return records, nil
+
+	for key, val := range j.clearedConflictTlfs {
+		fakeTlfID := val.fakeTlfID
+		tlfJournal := j.tlfJournals[fakeTlfID]
+
+		handle, err := j.getHandleForJournal(ctx, tlfJournal, tlfJournal.tlfID)
+		if err != nil {
+			return nil, nil, err
+		}
+		if handle == nil {
+			continue
+		}
+		serverViewPath := handle.GetProtocolPath()
+
+		ext, err := tlf.NewHandleExtension(
+			tlf.HandleExtensionLocalConflict, key.num, "", key.date)
+		if err != nil {
+			return nil, nil, err
+		}
+		handle, err = handle.WithUpdatedConflictInfo(j.config.Codec(), ext)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		cleared = append(cleared, ConflictJournalRecord{
+			Name:           handle.GetCanonicalName(),
+			Type:           handle.Type(),
+			Path:           handle.GetCanonicalPath(),
+			ID:             tlfJournal.tlfID,
+			ServerViewPath: serverViewPath,
+			LocalViewPath:  handle.GetProtocolPath(),
+		})
+	}
+
+	return current, cleared, nil
 }
 
 // GetJournalsInConflict returns records for each TLF journal that
 // currently has a conflict.
 func (j *JournalManager) GetJournalsInConflict(ctx context.Context) (
-	records []ConflictJournalRecord, err error) {
+	current, cleared []ConflictJournalRecord, err error) {
 	j.lock.RLock()
 	defer j.lock.RUnlock()
 	return j.getJournalsInConflictLocked(ctx)
@@ -982,10 +1170,12 @@ func (j *JournalManager) Status(
 		tlfIDs = append(tlfIDs, tlfJournal.tlfID)
 	}
 	enableAuto, enableAutoSetByUser := j.getEnableAutoLocked()
-	records, err := j.getJournalsInConflictLocked(ctx)
+	currentConflicts, clearedConflicts, err :=
+		j.getJournalsInConflictLocked(ctx)
 	if err != nil {
 		j.log.CWarningf(ctx, "Couldn't get conflict journals: %+v", err)
-		records = nil
+		currentConflicts = nil
+		clearedConflicts = nil
 	}
 	return JournalManagerStatus{
 		RootDir:             j.rootPath(),
@@ -1000,7 +1190,8 @@ func (j *JournalManager) Status(
 		UnflushedBytes:      totalUnflushedBytes,
 		DiskLimiterStatus: j.config.DiskLimiter().getStatus(
 			ctx, j.currentUID.AsUserOrTeam()),
-		Conflicts: records,
+		Conflicts:        currentConflicts,
+		ClearedConflicts: clearedConflicts,
 	}, tlfIDs
 }
 
@@ -1017,6 +1208,13 @@ func (j *JournalManager) JournalStatus(tlfID tlf.ID) (
 	return tlfJournal.getJournalStatus()
 }
 
+// JournalEnabled returns true if the given TLF ID has a journal
+// enabled for it.
+func (j *JournalManager) JournalEnabled(tlfID tlf.ID) bool {
+	_, ok := j.getTLFJournal(tlfID, nil)
+	return ok
+}
+
 // JournalStatusWithPaths returns a TLFServerStatus object for the
 // given TLF suitable for diagnostics, including paths for all the
 // unflushed entries.
@@ -1029,6 +1227,36 @@ func (j *JournalManager) JournalStatusWithPaths(ctx context.Context,
 	}
 
 	return tlfJournal.getJournalStatusWithPaths(ctx, cpp)
+}
+
+// MoveAway moves the current conflict branch to a new journal
+// directory for the given TLF ID, and exposes it under a different
+// favorite name in the folder list.
+func (j *JournalManager) MoveAway(ctx context.Context, tlfID tlf.ID) error {
+	tlfJournal, ok := j.getTLFJournal(tlfID, nil)
+	if !ok {
+		return errJournalNotAvailable
+	}
+
+	err := tlfJournal.wait(ctx)
+	if err != nil {
+		return err
+	}
+	newDir, err := tlfJournal.moveAway(ctx)
+	if err != nil {
+		return err
+	}
+
+	j.lock.Lock()
+	defer j.lock.Unlock()
+	tj, fakeTlfID, t, err := j.makeJournalForConflictTlfLocked(
+		ctx, newDir, tlfID, tlfJournal.chargedTo)
+	if err != nil {
+		return err
+	}
+	j.insertConflictJournalLocked(ctx, tj, fakeTlfID, t)
+	j.config.KeybaseService().NotifyFavoritesChanged(ctx)
+	return nil
 }
 
 // shutdownExistingJournalsLocked shuts down all write journals, sets

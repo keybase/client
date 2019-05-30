@@ -51,17 +51,17 @@ class Pinentry extends React.Component<Props, State> {
   }
 
   render() {
-    const isPaperKey = this.props.type === RPCTypes.passphraseCommonPassphraseType.paperKey
+    const isPaperKey = this.props.type === RPCTypes.PassphraseType.paperKey
     const typeStyle = {
-      [RPCTypes.passphraseCommonPassphraseType.verifyPassPhrase]: {
+      [RPCTypes.PassphraseType.verifyPassPhrase]: {
         hintText: 'Verify Password',
         style: {marginBottom: 0},
       },
-      [RPCTypes.passphraseCommonPassphraseType.passPhrase]: {
+      [RPCTypes.PassphraseType.passPhrase]: {
         hintText: 'Password',
         style: {marginBottom: 0},
       },
-      [RPCTypes.passphraseCommonPassphraseType.paperKey]: {
+      [RPCTypes.PassphraseType.paperKey]: {
         floatingHintTextOverride: 'Paperkey',
         hintText:
           'elephont sturm cectus opp blezzard tofi pando agg whi pany yaga jocket daubt ruril globil cose',
@@ -71,9 +71,9 @@ class Pinentry extends React.Component<Props, State> {
     }[this.props.type]
 
     const checkboxContainerStyle = {
-      [RPCTypes.passphraseCommonPassphraseType.verifyPassPhrase]: null,
-      [RPCTypes.passphraseCommonPassphraseType.passPhrase]: null,
-      [RPCTypes.passphraseCommonPassphraseType.paperKey]: {bottom: 0},
+      [RPCTypes.PassphraseType.verifyPassPhrase]: null,
+      [RPCTypes.PassphraseType.passPhrase]: null,
+      [RPCTypes.PassphraseType.paperKey]: {bottom: 0},
     }[this.props.type]
 
     return (
