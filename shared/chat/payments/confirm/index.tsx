@@ -125,13 +125,15 @@ const PaymentsConfirm = (props: Props) => {
       onClose={props.onCancel}
       onSendClick={props.onAccept}
       onBack={props.onCancel}
-      participantsComp={() =>
-        props.payments.map(p => (
-          <Kb.Box2 key={p.username} direction="horizontal" fullWidth={true} style={styles.paymentContainer}>
-            <PaymentRow {...p} />
-          </Kb.Box2>
-        ))
-      }
+      participantsComp={() => (
+        <>
+          {props.payments.map(p => (
+            <Kb.Box2 key={p.username} direction="horizontal" fullWidth={true} style={styles.paymentContainer}>
+              <PaymentRow {...p} />
+            </Kb.Box2>
+          ))}
+        </>
+      )}
       sendFailed={false}
       waitingKey=""
       sendingIntentionXLM={true}

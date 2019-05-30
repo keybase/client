@@ -80,7 +80,7 @@ const WhatIsStellar = (props: {onWhatIsStellar: () => void}) => (
   </Kb.ClickableBox>
 )
 
-type Props = {
+export type Props = {
   accountIDs: Array<AccountID>
   airdropSelected: boolean
   style?: Styles.StylesCrossPlatform
@@ -196,5 +196,4 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-export {Props}
 export {WalletList}

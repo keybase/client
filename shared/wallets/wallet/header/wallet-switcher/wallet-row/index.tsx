@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 
-type Props = {
+export type Props = {
   contents: string
   isSelected: boolean
   keybaseUser: string
@@ -81,5 +81,4 @@ const WalletRow = (props: Props) => {
   )
 }
 
-export {Props}
 export {WalletRow}

@@ -4,7 +4,7 @@ import * as Styles from '../../../styles'
 
 // TODO: This is now desktop-only, so remove references to isMobile.
 
-type Props = {
+export type Props = {
   contents: string
   isSelected: boolean
   keybaseUser: string
@@ -125,5 +125,5 @@ const UnreadIcon = (props: {unreadPayments: number}) => (
     )}
   </Kb.Box2>
 )
-export {Props}
+
 export {WalletRow}
