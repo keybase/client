@@ -64,7 +64,7 @@ const getDateInfo = (thumb: AttachmentItem) => {
 }
 
 type Month = {
-  data: Array<Thumb | Doc | Link>
+  data: Array<AttachmentItem>
   month: string
   year: number
 }
