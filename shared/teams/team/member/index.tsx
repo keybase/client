@@ -34,7 +34,7 @@ export type MemberProps = {
   onBack: () => void
 }
 
-export type Props = {} & MemberProps & RolePickerSpecificProps
+export type Props = MemberProps & RolePickerSpecificProps
 
 export const TeamMember = (props: Props) => {
   const {user, you} = props

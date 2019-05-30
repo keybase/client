@@ -70,16 +70,13 @@ const mapDispatchToProps = (dispatch, ownProps): DispatchProps => ({
   _onChat: username => {
     username && dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'memberView'}))
   },
-
   _onEditRole: (teamname, username, role) =>
     dispatch(TeamsGen.createEditMembership({role, teamname, username})),
-
   _onLeaveTeam: (teamname: string) => {
     dispatch(
       RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamReallyLeaveTeam'}]})
     )
   },
-
   _onRemoveMember: (teamname: string, username: string) => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
@@ -87,9 +84,7 @@ const mapDispatchToProps = (dispatch, ownProps): DispatchProps => ({
       })
     )
   },
-
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-
   onOpenProfile: () =>
     dispatch(createShowUserProfile({username: Container.getRouteProps(ownProps, 'username')})),
 })

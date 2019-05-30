@@ -17,7 +17,7 @@ export type Props = {
   policy: RetentionPolicy
   policyIsExploding: boolean
   teamPolicy?: RetentionPolicy
-  loading: boolean
+  loading: boolean // for when we're waiting to fetch the team policy
   showInheritOption: boolean
   showOverrideNotice: boolean
   showSaveIndicator: boolean

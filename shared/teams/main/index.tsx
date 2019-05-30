@@ -152,12 +152,7 @@ class Teams extends React.PureComponent<Props, State> {
             name={name}
             isNew={this.props.newTeams.includes(name)}
             isOpen={this.props.teamNameToIsOpen[name]}
-            newRequests={
-              // Auto generated from flowToTs. Please clean me!
-              this.props.teamToRequest[name] !== null && this.props.teamToRequest[name] !== undefined
-                ? this.props.teamToRequest[name]
-                : 0
-            }
+            newRequests={this.props.teamToRequest[name] || 0}
             membercount={this.props.teammembercounts[name]}
             onOpenFolder={() => this._onOpenFolder(name)}
             onManageChat={this.props.teamNameToCanManageChat[name] ? () => this._onManageChat(name) : null}

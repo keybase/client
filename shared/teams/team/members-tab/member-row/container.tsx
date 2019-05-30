@@ -50,11 +50,9 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps): DispatchProps => ({
       })
     )
   },
-
   _onRemoveFromTeam: (teamname: string, username: string) => {
     dispatch(TeamsGen.createRemoveMemberOrPendingInvite({email: '', inviteID: '', teamname, username}))
   },
-
   _onShowTracker: (username: string) => {
     if (isMobile) {
       dispatch(ProfileGen.createShowUserProfile({username}))
@@ -62,12 +60,10 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps): DispatchProps => ({
       dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
     }
   },
-
   onChat: () => {
     ownProps.username &&
       dispatch(Chat2Gen.createPreviewConversation({participants: [ownProps.username], reason: 'teamMember'}))
   },
-
   onClick: () =>
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: ownProps, selected: 'teamMember'}]})),
 })

@@ -59,9 +59,7 @@ const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
 
 const makeTeamToRequest = memoize(tr =>
   tr.reduce((map, team) => {
-    map[team] =
-      // Auto generated from flowToTs. Please clean me!
-      (map[team] !== null && map[team] !== undefined ? map[team] : 0) + 1
+    map[team] = (map[team] !== null && map[team] !== undefined ? map[team] : 0) + 1
     return map
   }, {})
 )
