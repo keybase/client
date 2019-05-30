@@ -15,6 +15,7 @@ import {spawn, execFile, exec} from 'child_process'
 import path from 'path'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
 import * as RouteTreeGen from '../route-tree-gen'
+import {TypedActions} from 'util/container'
 
 type pathType = 'file' | 'directory'
 
@@ -31,7 +32,7 @@ function pathToURL(p: string): string {
   return encodeURI('file://' + goodPath).replace(/#/g, '%23')
 }
 
-function openInDefaultDirectory(openPath: string) {
+function openInDefaultDirectory(openPath: string): Promise<void> {
   return new Promise((resolve, reject) => {
     // Paths in directories might be symlinks, so resolve using
     // realpath.
@@ -83,7 +84,7 @@ function getPathType(openPath: string): Promise<pathType> {
 // If isFolder is true, it just opens it. Otherwise, it shows it in its parent
 // folder. This function does not check if the file exists, or try to convert
 // KBFS paths. Caller should take care of those.
-const _openPathInSystemFileManagerPromise = (openPath: string, isFolder: boolean) =>
+const _openPathInSystemFileManagerPromise = (openPath: string, isFolder: boolean): Promise<void> =>
   new Promise((resolve, reject) =>
     isFolder
       ? isWindows
@@ -96,7 +97,7 @@ const _openPathInSystemFileManagerPromise = (openPath: string, isFolder: boolean
       : reject(new Error('unable to open item in folder'))
   )
 
-const openLocalPathInSystemFileManager = (state, action) =>
+const openLocalPathInSystemFileManager = (state, action: FsGen.OpenLocalPathInSystemFileManagerPayload) =>
   getPathType(action.payload.localPath)
     .then(pathType => _openPathInSystemFileManagerPromise(action.payload.localPath, pathType === 'directory'))
     .catch(makeUnretriableErrorHandler(action, null))
@@ -109,7 +110,10 @@ const _rebaseKbfsPathToMountLocation = (kbfsPath: Types.Path, mountLocation: str
       .join(path.sep)
   )
 
-const openPathInSystemFileManager = (state, action) =>
+const openPathInSystemFileManager = (
+  state,
+  action: FsGen.OpenPathInSystemFileManagerPayload
+): Promise<Saga.MaybeAction> =>
   state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Enabled
     ? RPCTypes.kbfsMountGetCurrentMountDirRpcPromise()
         .then(mountLocation =>
@@ -211,7 +215,10 @@ const windowsCheckMountFromOtherDokanInstall = status =>
       : status
   )
 
-const refreshDriverStatus = (state, action) =>
+const refreshDriverStatus = (
+  state,
+  action: FsGen.KbfsDaemonRpcStatusChangedPayload | FsGen.RefreshDriverStatusPayload
+) =>
   (action.type !== FsGen.kbfsDaemonRpcStatusChanged ||
     action.payload.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) &&
   RPCTypes.installFuseStatusRpcPromise({bundleVersion: ''})
@@ -222,15 +229,15 @@ const refreshDriverStatus = (state, action) =>
     )
     .then(fuseStatusToActions(state.fs.sfmi.driverStatus.type))
 
-const fuseInstallResultIsKextPermissionError = result =>
+const fuseInstallResultIsKextPermissionError = (result: RPCTypes.InstallResult): boolean =>
   result &&
   result.componentResults &&
   result.componentResults.findIndex(
     c => c.name === 'fuse' && c.exitCode === Constants.ExitCodeFuseKextPermissionError
   ) !== -1
 
-const driverEnableFuse = (state, action) =>
-  RPCTypes.installInstallFuseRpcPromise().then(result =>
+const driverEnableFuse = (state, action: FsGen.DriverEnablePayload): Promise<Saga.MaybeAction> =>
+  RPCTypes.installInstallFuseRpcPromise().then((result: RPCTypes.InstallResult) =>
     fuseInstallResultIsKextPermissionError(result)
       ? [
           FsGen.createDriverKextPermissionError(),
@@ -315,7 +322,7 @@ const openSecurityPreferences = () => {
 // Invoking the cached installer package has to happen from the topmost process
 // or it won't be visible to the user. The service also does this to support command line
 // operations.
-const installCachedDokan = (state, action) =>
+const installCachedDokan = (state, action: FsGen.DriverEnablePayload) =>
   new Promise((resolve, reject) => {
     logger.info('Invoking dokan installer')
     const dokanPath = path.resolve(String(process.env.LOCALAPPDATA), 'Keybase', 'DokanSetup_redist.exe')
@@ -345,12 +352,15 @@ const installCachedDokan = (state, action) =>
     .then(() => FsGen.createRefreshDriverStatus())
     .catch(makeUnretriableErrorHandler(action, null))
 
-const openAndUploadToPromise = (state: TypedState, action: FsGen.OpenAndUploadPayload) =>
+const openAndUploadToPromise = (
+  state: TypedState,
+  action: FsGen.OpenAndUploadPayload
+): Promise<Array<string>> =>
   new Promise((resolve, reject) =>
     SafeElectron.getDialog().showOpenDialog(
       SafeElectron.getCurrentWindowFromRemote(),
       {
-        // @ts-ignore
+        // @ts-ignore codemod-issue
         properties: [
           'multiSelections',
           ...(['file', 'both'].includes(action.payload.type) ? ['openFile'] : []),
@@ -362,12 +372,15 @@ const openAndUploadToPromise = (state: TypedState, action: FsGen.OpenAndUploadPa
     )
   )
 
-const openAndUpload = (state, action) =>
+const openAndUpload = (state, action: FsGen.OpenAndUploadPayload) =>
   openAndUploadToPromise(state, action).then((localPaths: Array<string>) =>
     localPaths.map(localPath => FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
   )
 
-const loadUserFileEdits = (state, action) =>
+const loadUserFileEdits = (
+  state,
+  action: FsGen.UserFileEditsLoadPayload | FsGen.KbfsDaemonRpcStatusChangedPayload
+) =>
   state.fs.kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected &&
   RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise().then(writerEdits =>
     FsGen.createUserFileEditsLoaded({
@@ -382,7 +395,7 @@ const openFilesFromWidget = (state, {payload: {path, type}}) => [
     : [RouteTreeGen.createSwitchTo({path: [Tabs.fsTab]})]),
 ]
 
-const changedFocus = (state, action) =>
+const changedFocus = (state, action: ConfigGen.ChangedFocusPayload) =>
   action.payload.appFocused &&
   state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Disabled &&
   state.fs.sfmi.driverStatus.kextPermissionError &&
@@ -411,10 +424,12 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<FsGen.OpenFilesFromWidgetPayload>(FsGen.openFilesFromWidget, openFilesFromWidget)
   if (isWindows) {
     yield* Saga.chainAction<FsGen.DriverEnablePayload>(FsGen.driverEnable, installCachedDokan)
+    // @ts-ignore codemod-issue
     yield* Saga.chainAction<FsGen.DriverDisablePayload>(FsGen.driverDisable, uninstallDokanConfirm)
     yield* Saga.chainAction<FsGen.DriverDisablingPayload>(FsGen.driverDisabling, uninstallDokan)
   } else {
     yield* Saga.chainAction<FsGen.DriverEnablePayload>(FsGen.driverEnable, driverEnableFuse)
+    // @ts-ignore codemod-issue
     yield* Saga.chainAction<FsGen.DriverDisablePayload>(FsGen.driverDisable, uninstallKBFSConfirm)
     yield* Saga.chainAction<FsGen.DriverDisablePayload>(FsGen.driverDisabling, uninstallKBFS)
   }

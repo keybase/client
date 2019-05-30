@@ -106,7 +106,7 @@ export const unverifiedInboxUIItemToConversationMeta = (
 
 const conversationMetadataToMetaSupersedeInfo = (metas: Array<RPCChatTypes.ConversationMetadata> | null) => {
   const meta: RPCChatTypes.ConversationMetadata | null = (metas || []).find(
-    m => m.idTriple.topicType === RPCChatTypes.TopicType.chat && m.finalizeInfo
+    m => m.idTriple.topicType === RPCChatTypes.TopicType.chat && !!m.finalizeInfo
   )
 
   return meta ? supersededConversationIDToKey(meta.conversationID) : null

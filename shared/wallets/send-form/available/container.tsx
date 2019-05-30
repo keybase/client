@@ -3,7 +3,7 @@ import {namedConnect} from '../../../util/container'
 
 type OwnProps = {}
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state, ownProps: OwnProps) => ({
   amountErrMsg: state.wallets.building.isRequest
     ? state.wallets.builtRequest.amountErrMsg
     : state.wallets.builtPayment.amountErrMsg,

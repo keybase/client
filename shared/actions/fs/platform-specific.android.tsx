@@ -29,7 +29,7 @@ function copyToDownloadDir(path: string, mimeType: string) {
     })
     .then(() => {
       stage = 'addCompleteDownload'
-      // @ts-ignore
+      // @ts-ignore codemod-issue
       return RNFetchBlob.android.addCompleteDownload({
         description: `Keybase downloaded ${fileName}`,
         mime: mimeType,
@@ -49,7 +49,7 @@ function copyToDownloadDir(path: string, mimeType: string) {
     })
 }
 
-const downloadSuccessAndroid = (state, action) => {
+const downloadSuccessAndroid = (state, action: FsGen.DownloadSuccessPayload) => {
   const {key, mimeType} = action.payload
   const download = state.fs.downloads.get(key)
   if (!download) {
