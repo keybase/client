@@ -8,6 +8,7 @@ import {formatTimeForMessages} from '../../../util/timestamp'
 import MessagePopup from '../messages/message-popup'
 import {chunk} from 'lodash-es'
 import {OverlayParentProps} from '../../../common-adapters/overlay/parent-hoc'
+import {Section} from '.'
 
 const monthNames = [
   'January',
@@ -96,12 +97,6 @@ const formMonths = (items: Array<AttachmentItem>): Array<Month> => {
     return l
   }, [])
   return months
-}
-
-type Section = {
-  data: Array<any>
-  renderItem: ({item: any, index: number}) => void
-  renderSectionHeader: (any) => void
 }
 
 const createLoadMoreSection = (
@@ -248,7 +243,7 @@ export class MediaView {
     onLoadMore: null | (() => void),
     onRetry: () => void,
     status: Types.AttachmentViewStatus
-  ) => {
+  ): Array<Section> => {
     const sections = formMonths(thumbs).reduce((l, m) => {
       l.push(this._monthToSection(m))
       return l
@@ -326,7 +321,7 @@ export class DocView {
     onLoadMore: null | (() => void),
     onRetry: () => void,
     status: Types.AttachmentViewStatus
-  ) => {
+  ): Array<Section> => {
     const sections = formMonths(docs).reduce((l, m) => {
       l.push(this._monthToSection(m))
       return l
@@ -391,7 +386,7 @@ export class LinkView {
     onLoadMore: null | (() => void),
     onRetry: () => void,
     status: Types.AttachmentViewStatus
-  ) => {
+  ): Array<Section> => {
     const sections = formMonths(links).reduce((l, m) => {
       l.push(this._monthToSection(m))
       return l

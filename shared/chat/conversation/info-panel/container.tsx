@@ -6,7 +6,7 @@ import * as TeamConstants from '../../../constants/teams'
 import * as React from 'react'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Types from '../../../constants/types/chat2'
-import {InfoPanel} from '.'
+import {InfoPanel, Panel, ParticipantTyp} from '.'
 import {connect, getRouteProps, isMobile, RouteProps} from '../../../util/container'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {Box} from '../../../common-adapters'
@@ -16,8 +16,8 @@ type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
   onBack?: () => void
   onCancel?: () => void
-  onSelectTab: (string) => void
-  selectedTab: string | null
+  onSelectTab: (t: Panel) => void
+  selectedTab: Panel | null
   onSelectAttachmentView: (typ: RPCChatTypes.GalleryItemTyp) => void
   selectedAttachmentView: RPCChatTypes.GalleryItemTyp
 }
@@ -249,6 +249,16 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
         : false,
       username: p,
     }))
+    .sort((l: ParticipantTyp, r: ParticipantTyp) => {
+      const leftIsAdmin = l.isAdmin || l.isOwner
+      const rightIsAdmin = r.isAdmin || r.isOwner
+      if (leftIsAdmin && !rightIsAdmin) {
+        return -1
+      } else if (!leftIsAdmin && rightIsAdmin) {
+        return 1
+      }
+      return l.username.localeCompare(r.username)
+    })
     .toArray(),
   selectedAttachmentView: stateProps.selectedAttachmentView,
   selectedConversationIDKey: stateProps.selectedConversationIDKey,
@@ -289,7 +299,7 @@ const mapDispatchToSelectorProps = (dispatch, {navigation}) => ({
   onBack: () => dispatch(Chat2Gen.createToggleInfoPanel()),
   onGoToInbox: () => dispatch(Chat2Gen.createNavigateToInbox({findNewConversation: true})),
   onSelectAttachmentView: view => navigation.setParams({attachmentview: view}),
-  onSelectTab: tab => navigation.setParams({tab}),
+  onSelectTab: (tab: Panel) => navigation.setParams({tab}),
 })
 
 const mergeSelectorProps = (stateProps, dispatchProps) => ({
@@ -307,8 +317,8 @@ type Props = {
   conversationIDKey: Types.ConversationIDKey
   onBack: () => void
   onGoToInbox: () => void
-  onSelectTab: (t: string) => void
-  selectedTab: string | null
+  onSelectTab: (t: Panel) => void
+  selectedTab: Panel | null
   onSelectAttachmentView: (typ: RPCChatTypes.GalleryItemTyp) => void
   selectedAttachmentView: RPCChatTypes.GalleryItemTyp
   shouldNavigateOut: boolean
