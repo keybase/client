@@ -393,7 +393,6 @@ export type ParticipantType =
   | 3 // SBS_3
   | 4 // OWNACCOUNT_4
 
-export type PartnerUrl = $ReadOnly<{url: String, title: String, description: String, iconFilename: String, adminOnly: Boolean, extra: String}>
 export type PathPaymentPost = $ReadOnly<{fromDeviceID: Keybase1.DeviceID, to?: ?Keybase1.UserVersion, noteB64: String, signedTransaction: String, quickReturn: Boolean, chatConversationID?: ?ChatConversationID}>
 export type PaymentCLILocal = $ReadOnly<{txID: TransactionID, time: TimeMs, status: String, statusDetail: String, amount: String, asset: Asset, displayAmount?: ?String, displayCurrency?: ?String, sourceAmountMax: String, sourceAmountActual: String, sourceAsset: Asset, fromStellar: AccountID, toStellar?: ?AccountID, fromUsername?: ?String, toUsername?: ?String, toAssertion?: ?String, note: String, noteErr: String, unread: Boolean}>
 export type PaymentDetails = $ReadOnly<{summary: PaymentSummary, memo: String, memoType: String, externalTxURL: String}>
@@ -461,7 +460,6 @@ export type SendAssetChoiceLocal = $ReadOnly<{asset: Asset, enabled: Boolean, le
 export type SendBannerLocal = $ReadOnly<{level: String, message: String, proofsChanged: Boolean}>
 export type SendPaymentResLocal = $ReadOnly<{kbTxID: KeybaseTransactionID, pending: Boolean}>
 export type SendResultCLILocal = $ReadOnly<{kbTxID: KeybaseTransactionID, txID: TransactionID}>
-export type SignXdrResult = $ReadOnly<{singedTx: String, accountID: AccountID, submitErr?: ?String, submitTxID?: ?TransactionID}>
 export type StellarServerDefinitions = $ReadOnly<{revision: Int, currencies: {[key: string]: OutsideCurrencyDefinition}}>
 export type SubmitMultiRes = $ReadOnly<{txID: TransactionID}>
 export type TimeMs = Long
@@ -567,8 +565,6 @@ declare export function localValidateSecretKeyLocalRpcPromise(params: $PropertyT
 // 'stellar.1.local.approveTxURILocal'
 // 'stellar.1.local.approvePayURILocal'
 // 'stellar.1.local.approvePathURILocal'
-// 'stellar.1.local.getPartnerUrlsLocal'
-// 'stellar.1.local.signTransactionXdrLocal'
 // 'stellar.1.notify.paymentNotification'
 // 'stellar.1.notify.paymentStatusNotification'
 // 'stellar.1.notify.requestStatusNotification'
@@ -602,5 +598,4 @@ declare export function localValidateSecretKeyLocalRpcPromise(params: $PropertyT
 // 'stellar.1.remote.assetSearch'
 // 'stellar.1.remote.changeTrustline'
 // 'stellar.1.remote.findPaymentPath'
-// 'stellar.1.remote.postAnyTransaction'
 // 'stellar.1.ui.paymentReviewed'
