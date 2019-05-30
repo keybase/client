@@ -55,7 +55,7 @@ export default connect(
       ? [
           {
             action: exchangeRateChanged ? undefined : dispatchProps.onExitFailed,
-            bannerBackground: 'HighRisk',
+            bannerBackground: 'HighRisk' as 'HighRisk',
             bannerText: _sentPaymentError,
             sendFailed: true,
           },

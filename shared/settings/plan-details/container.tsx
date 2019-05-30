@@ -18,10 +18,9 @@ type OwnProps = RouteProps<
 export default connect(
   (state: TypedState, ownProps: OwnProps) => {
     const selectedLevel = ownProps.routeProps.get('selectedLevel')
-    // $FlowIssue
-    const availablePlan: AvailablePlan | null = state.planBilling.availablePlans
-      ? state.planBilling.availablePlans.find(plan => plan.planLevel === selectedLevel)
-      : null
+    const availablePlan = null // AvailablePlan | null = state.planBilling.availablePlans
+    // ? state.planBilling.availablePlans.find(plan => plan.planLevel === selectedLevel)
+    // : null
     if (!availablePlan) {
       throw new Error(`Error loading plan, can't find ${selectedLevel}`)
     }

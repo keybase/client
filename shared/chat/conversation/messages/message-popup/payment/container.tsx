@@ -88,6 +88,7 @@ const getTopLineUser = (paymentInfo, sender, you) => {
 
 const sendMergeProps = (stateProps, dispatchProps, ownProps: SendOwnProps) => {
   if (ownProps.message.type !== 'sendPayment' && ownProps.message.type !== 'text') {
+    // @ts-ignore message is type `never` correctly
     throw new Error(`SendPaymentPopup: impossible case encountered: ${ownProps.message.type}`)
   }
   const {paymentInfo} = stateProps

@@ -5,7 +5,7 @@ import CreateAccount from '.'
 const props = {
   createNewAccountError: '',
   error: '',
-  nameValidationState: 'none',
+  nameValidationState: 'none' as 'none',
   onCancel: Sb.action('onCancel'),
   onClearErrors: Sb.action('onCancel'),
   onCreateAccount: Sb.action('onCreateAccount'),

@@ -71,7 +71,7 @@ const metaMapReducer = (metaMap, action) => {
                 ).toList()
               : I.OrderedSet(error.unverifiedTLFName.split(',')).toList()
 
-            const rekeyers = I.Set(
+            const rekeyers = I.Set<string>(
               error.typ === RPCChatTypes.ConversationErrorType.selfrekeyneeded
                 ? [username || '']
                 : (error.rekeyInfo && error.rekeyInfo.rekeyers) || []
@@ -401,7 +401,7 @@ const rootReducer = (
             // just increment `readMsgID` since that msgID might be a
             // non-visible (edit, delete, reaction...) message so we scan the
             // ordinals for the appropriate value.
-            const messageMap = state.messageMap.get(conversationIDKey, I.Map())
+            const messageMap = state.messageMap.get(conversationIDKey, I.Map<Types.Ordinal, Types.Message>())
             const ordinals = state.messageOrdinals.get(conversationIDKey, I.OrderedSet())
             const ord = ordinals.find(o => {
               const message = messageMap.get(o)
@@ -433,8 +433,7 @@ const rootReducer = (
       const {show, domain} = action.payload
       return state.updateIn(
         ['unfurlPromptMap', action.payload.conversationIDKey, action.payload.messageID],
-        I.Set(),
-        prompts => {
+        (prompts = I.Set<string>()) => {
           return show ? prompts.add(domain) : prompts.delete(domain)
         }
       )
@@ -475,13 +474,13 @@ const rootReducer = (
     case Chat2Gen.clearPaymentConfirmInfo:
       return state.set('paymentConfirmInfo', null)
     case Chat2Gen.badgesUpdated: {
-      const badgeMap = I.Map(
+      const badgeMap = I.Map<Types.ConversationIDKey, number>(
         action.payload.conversations.map(({convID, badgeCounts}) => [
           Types.conversationIDToKey(convID),
           badgeCounts[badgeKey] || 0,
         ])
       )
-      const unreadMap = I.Map(
+      const unreadMap = I.Map<Types.ConversationIDKey, number>(
         action.payload.conversations.map(({convID, unreadMessages}) => [
           Types.conversationIDToKey(convID),
           unreadMessages,
@@ -505,7 +504,7 @@ const rootReducer = (
           return editingMap.delete(conversationIDKey)
         }
 
-        const messageMap = state.messageMap.get(conversationIDKey, I.Map())
+        const messageMap = state.messageMap.get(conversationIDKey, I.Map<Types.Ordinal, Types.Message>())
 
         // editing a specific message
         if (ordinal) {
@@ -726,7 +725,7 @@ const rootReducer = (
           const meta = state.metaMap.get(conversationIDKey, null)
           const ordinals = messageOrdinals.get(conversationIDKey, I.OrderedSet()).toArray()
           let maxMsgID = 0
-          const convMsgMap = messageMap.get(conversationIDKey, I.Map())
+          const convMsgMap = messageMap.get(conversationIDKey, I.Map<Types.Ordinal, Types.Message>())
           for (let i = ordinals.length - 1; i >= 0; i--) {
             const ordinal = ordinals[i]
             const message = convMsgMap.get(ordinal)
@@ -824,7 +823,7 @@ const rootReducer = (
     }
     case EngineGen.chat1NotifyChatChatTypingUpdate: {
       const {typingUpdates} = action.payload.params
-      const typingMap = I.Map(
+      const typingMap = I.Map<string, I.Set<string>>(
         (typingUpdates || []).reduce((arr, u) => {
           arr.push([Types.conversationIDToKey(u.convID), I.Set((u.typers || []).map(t => t.username))])
           return arr
@@ -841,7 +840,7 @@ const rootReducer = (
               return message
             }
             const reactions = message.reactions
-            // $FlowIssue thinks `message` is the inner type
+            // @ts-ignore thinks `message` is the inner type
             return message.set(
               'reactions',
               reactions.withMutations(reactionMap => {
@@ -892,7 +891,7 @@ const rootReducer = (
                 if (!message || message.type === 'deleted' || message.type === 'placeholder') {
                   return message
                 }
-                // $FlowIssue thinks `message` is the inner type
+                // @ts-ignore thinks `message` is the inner type
                 return message.set('reactions', td.reactions)
               })
             })
@@ -911,7 +910,10 @@ const rootReducer = (
 
       let upToOrdinals = []
       if (upToMessageID) {
-        const ordinalToMessage = state.messageMap.get(conversationIDKey, I.Map())
+        const ordinalToMessage = state.messageMap.get(
+          conversationIDKey,
+          I.Map<Types.Ordinal, Types.Message>()
+        )
         ordinalToMessage.reduce((arr, m, ordinal) => {
           if (m.id < upToMessageID && deletableMessageTypes.has(m.type)) {
             arr.push(ordinal)
@@ -973,9 +975,9 @@ const rootReducer = (
       return state.set('explodingModes', I.Map(explodingMap))
     case Chat2Gen.setExplodingModeLock:
       const {conversationIDKey, unset} = action.payload
-      const mode = state.getIn(['explodingModes', conversationIDKey], 0)
+      const mode = state.explodingModes.get(conversationIDKey, 0)
       // we already have the new mode in `explodingModes`, if we've already locked it we shouldn't update
-      const alreadyLocked = state.getIn(['explodingModeLocks', conversationIDKey], null) !== null
+      const alreadyLocked = state.explodingModeLocks.get(conversationIDKey, null) !== null
       if (unset) {
         return state.update('explodingModeLocks', el => el.delete(conversationIDKey))
       }
