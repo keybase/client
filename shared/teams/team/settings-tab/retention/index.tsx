@@ -191,7 +191,7 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
         <Kb.ClickableBox
           onClick={this.props.toggleShowingMenu}
           ref={this.props.setAttachmentRef}
-          style={Styles.collapseStyles([dropdownStyle, this.props.dropdownStyle])}
+          style={Styles.collapseStyles([retentionDropdownStyle, this.props.dropdownStyle])}
           underlayColor={Styles.globalColors.white_40}
         >
           <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" fullWidth={true} style={labelStyle}>
@@ -263,7 +263,18 @@ const displayHeadingStyle = {
   marginBottom: 2,
 }
 
-const dropdownStyle = Styles.platformStyles({
+const labelStyle = {
+  justifyContent: 'center',
+  minHeight: Styles.isMobile ? 40 : 32,
+}
+
+const progressIndicatorStyle = {
+  height: 30,
+  marginTop: Styles.globalMargins.small,
+  width: 30,
+}
+
+const retentionDropdownStyle = Styles.platformStyles({
   common: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
@@ -279,17 +290,6 @@ const dropdownStyle = Styles.platformStyles({
     width: 220,
   },
 })
-
-const labelStyle = {
-  justifyContent: 'center',
-  minHeight: Styles.isMobile ? 40 : 32,
-}
-
-const progressIndicatorStyle = {
-  height: 30,
-  marginTop: Styles.globalMargins.small,
-  width: 30,
-}
 
 const saveStateStyle = Styles.platformStyles({
   common: {
