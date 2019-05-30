@@ -31,10 +31,11 @@ export type NameWithIconProps = {
   // both will fire unless the inner clicks call `event.preventDefault()`
   onClick?: () => void
   clickType?: 'tracker' | 'profile'
-  onEditIcon?: (e?: React.SyntheticEvent) => void | null
+  onEditIcon?: ((e?: React.SyntheticEvent) => void) | null
   selectable?: boolean
   size?: Size
   teamname?: string
+  channelname?: string
   // for non-users
   title?: string | React.ReactElement
   titleStyle?: Styles.StylesCrossPlatform

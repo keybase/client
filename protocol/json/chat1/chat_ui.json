@@ -1900,6 +1900,19 @@
         }
       ],
       "response": null
+    },
+    "chatLoadGalleryHit": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "message",
+          "type": "UIMessage"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"

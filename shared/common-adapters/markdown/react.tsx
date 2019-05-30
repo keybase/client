@@ -391,6 +391,29 @@ const previewOutput = SimpleMarkdown.reactFor(
   }
 )
 
+const serviceOnlyOutput = SimpleMarkdown.reactFor(
+  (ast: SingleASTNode, output: Output<string>, state: State): ReactElements => {
+    // leaf node is just the raw value, so it has no ast.type
+    if (typeof ast !== 'object') {
+      return ast
+    }
+    switch (ast.type) {
+      case 'serviceDecoration':
+        return (
+          <ServiceDecoration
+            json={ast.content}
+            key={state.key}
+            allowFontScaling={state.allowFontScaling}
+            styleOverride={state.styleOverride}
+            styles={markdownStyles}
+          />
+        )
+      default:
+        return output(ast.content, state)
+    }
+  }
+)
+
 const reactOutput = SimpleMarkdown.reactFor(ruleOutput(reactComponentsForMarkdownType))
 
-export {EmojiIfExists, bigEmojiOutput, markdownStyles, previewOutput, reactOutput}
+export {EmojiIfExists, bigEmojiOutput, markdownStyles, previewOutput, reactOutput, serviceOnlyOutput}
