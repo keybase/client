@@ -205,6 +205,8 @@
     "@types/react": "16.8.19",
     "@types/react-dom": "16.8.4",
     "@types/react-redux": "7.0.9",
+    "@typescript-eslint/eslint-plugin": "1.9.1-alpha.15",
+    "@typescript-eslint/parser": "1.9.1-alpha.15",
     "babel-core": "7.0.0-bridge.0",
     "babel-eslint": "11.0.0-beta.0",
     "babel-jest": "24.5.0",

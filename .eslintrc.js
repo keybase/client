@@ -5,7 +5,8 @@ module.exports = {
   overrides: [
     {
       files: ["*.tsx", "*.ts", "*.d.ts"],
-      parser: "babel-eslint",
+      parser: "@typescript-eslint/parser",
+      plugins: ["@typescript-eslint"],
       rules: {
         "no-undef": "off", // ts itself will catch this
         "no-unused-vars": "off" // ts itself will catch this
