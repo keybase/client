@@ -60,11 +60,26 @@ class SectionList extends React.Component<Props, State> {
     }
 
     if (item.type === 'header') {
+      if (
+        this.props.stickySectionHeadersEnabled &&
+        this.props.disableAbsoluteStickyHeader &&
+        !renderingSticky &&
+        item.flatSectionIndex === 0
+      ) {
+        // don't render the first one since its always there
+        return <Box2 direction="vertical" key="stickyPlaceholder" />
+      }
       return (
         <Box2
           direction="vertical"
           key={`${renderingSticky ? 'sticky:' : ''}${item.key}:`}
-          style={this.props.stickySectionHeadersEnabled && renderingSticky ? styles.stickyBox : styles.box}
+          style={
+            this.props.stickySectionHeadersEnabled &&
+            !this.props.disableAbsoluteStickyHeader &&
+            renderingSticky
+              ? styles.stickyBox
+              : styles.box
+          }
           fullWidth={true}
         >
           {this.props.renderSectionHeader({section: section.section})}
@@ -181,6 +196,7 @@ class SectionList extends React.Component<Props, State> {
 
     return (
       <Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+        {this.props.disableAbsoluteStickyHeader && stickyHeader}
         <ScrollView
           style={Styles.collapseStyles([styles.scroll, this.props.style])}
           onScroll={this._onScroll}
@@ -193,7 +209,7 @@ class SectionList extends React.Component<Props, State> {
             type="variable"
           />
         </ScrollView>
-        {stickyHeader}
+        {!this.props.disableAbsoluteStickyHeader && stickyHeader}
       </Box2>
     )
   }
