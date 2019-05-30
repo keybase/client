@@ -47,7 +47,7 @@ class SectionList extends React.Component<Props, State> {
   }
   /* =============================== */
 
-  _itemRenderer = (index, renderingSticky) => {
+  _itemRenderer = (index, key, renderingSticky) => {
     const item = this._flat[index]
     if (!item) {
       // data is switching out from under us. let things settle
@@ -60,12 +60,13 @@ class SectionList extends React.Component<Props, State> {
     }
 
     if (item.type === 'header') {
-      if (this.props.stickySectionHeadersEnabled && !renderingSticky && item.flatSectionIndex === 0) {
-        // don't render the first one since its always there
-        return <Box2 direction="vertical" key="stickyPlaceholder" />
-      }
       return (
-        <Box2 direction="vertical" key={`${renderingSticky ? 'sticky:' : ''}${item.key}:`} style={styles.box}>
+        <Box2
+          direction="vertical"
+          key={`${renderingSticky ? 'sticky:' : ''}${item.key}:`}
+          style={this.props.stickySectionHeadersEnabled && renderingSticky ? styles.stickyBox : styles.box}
+          fullWidth={true}
+        >
           {this.props.renderSectionHeader({section: section.section})}
         </Box2>
       )
@@ -175,11 +176,11 @@ class SectionList extends React.Component<Props, State> {
   render() {
     this._flatten(this.props.sections)
     const stickyHeader =
-      this.props.stickySectionHeadersEnabled && this._itemRenderer(this.state.currentSectionFlatIndex, true)
+      this.props.stickySectionHeadersEnabled &&
+      this._itemRenderer(this.state.currentSectionFlatIndex, this.state.currentSectionFlatIndex, true)
 
     return (
       <Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-        {stickyHeader}
         <ScrollView
           style={Styles.collapseStyles([styles.scroll, this.props.style])}
           onScroll={this._onScroll}
@@ -192,6 +193,7 @@ class SectionList extends React.Component<Props, State> {
             type="variable"
           />
         </ScrollView>
+        {stickyHeader}
       </Box2>
     )
   }
@@ -204,9 +206,15 @@ const styles = Styles.styleSheetCreate({
   },
   container: {
     alignSelf: 'flex-start',
+    position: 'relative',
   },
   scroll: {
     flexGrow: 1,
+  },
+  stickyBox: {
+    left: 0,
+    position: 'absolute',
+    top: 0,
   },
 })
 
