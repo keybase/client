@@ -146,7 +146,10 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
     if (entityType !== 'adhoc') {
       res.push(
         <Kb.Box2 key="members" style={styles.tabTextContainer} direction="horizontal">
-          <TabText selected={this._isSelected('members')} text="Members" />
+          <TabText
+            selected={this._isSelected('members')}
+            text={`Members (${this.props.participants.length})`}
+          />
         </Kb.Box2>
       )
     }
