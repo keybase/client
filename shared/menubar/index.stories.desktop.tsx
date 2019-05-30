@@ -25,11 +25,11 @@ const props = {
   conversations: [
     // TODO: fill in a few.
   ],
-  daemonHandshakeState: 'done',
+  daemonHandshakeState: 'done' as 'done',
   fileName: null,
   files: 0,
   folderProps: null,
-  kbfsDaemonStatus: Constants.makeKbfsDaemonStatus({rpcStatus: 'connected'}),
+  kbfsDaemonStatus: Constants.makeKbfsDaemonStatus({rpcStatus: Types.KbfsDaemonRpcStatus.Connected}),
   kbfsEnabled: true,
   logIn: Storybook.action('logIn'),
   loggedIn: true,
@@ -117,25 +117,25 @@ const load = () => {
       <Kb.Box2 direction="vertical">
         <FileUpdate
           path={Types.stringToPath('/keybase/team/kbkbfstest/foo')}
-          tlfType="private"
+          tlfType={Types.TlfType.Private}
           onClick={Storybook.action('onClick')}
           uploading={false}
         />
         <FileUpdate
           path={Types.stringToPath('/keybase/team/kbkbfstest/bar')}
-          tlfType="private"
+          tlfType={Types.TlfType.Private}
           onClick={Storybook.action('onClick')}
           uploading={true}
         />
         <FileUpdate
           path={Types.stringToPath('/keybase/team/kbkbfstest/cow')}
-          tlfType="private"
+          tlfType={Types.TlfType.Private}
           onClick={Storybook.action('onClick')}
           uploading={true}
         />
         <FileUpdate
           path={Types.stringToPath('/keybase/team/kbkbfstest/poo')}
-          tlfType="private"
+          tlfType={Types.TlfType.Private}
           onClick={Storybook.action('onClick')}
           uploading={false}
         />
@@ -143,7 +143,7 @@ const load = () => {
           path={Types.stringToPath(
             '/keybase/team/kbkbfstest/poo-long-name-long-name-long-name long-name-long-name-long-name-long-name long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name'
           )}
-          tlfType="private"
+          tlfType={Types.TlfType.Private}
           onClick={Storybook.action('onClick')}
           uploading={false}
         />
@@ -151,7 +151,7 @@ const load = () => {
           path={Types.stringToPath(
             '/keybase/team/kbkbfstest/moo_c_windows_system32_drivers_etc_hosts_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name'
           )}
-          tlfType="private"
+          tlfType={Types.TlfType.Private}
           onClick={Storybook.action('onClick')}
           uploading={false}
         />
@@ -159,7 +159,7 @@ const load = () => {
           path={Types.stringToPath(
             '/keybase/team/kbkbfstest/not-quite-so-long-really-not-quite-as-long-but-still-pretty-long-name.desktop.js'
           )}
-          tlfType="private"
+          tlfType={Types.TlfType.Private}
           onClick={Storybook.action('onClick')}
           uploading={false}
         />

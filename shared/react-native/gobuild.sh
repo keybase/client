@@ -90,7 +90,7 @@ vendor_path="$GOPATH/src/github.com/keybase/vendor"
 rsync -pr --ignore-times "$vendor_path/" "$GOPATH/src/"
 package="github.com/keybase/client/go/bind"
 tags=${TAGS:-"prerelease production"}
-ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build"
+ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build -s -w"
 
 gomobileinit ()
 {

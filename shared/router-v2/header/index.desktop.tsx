@@ -13,10 +13,9 @@ import * as ReactIs from 'react-is'
 // Fix this as we figure out what this needs to be
 type Props = any
 
-const initialUseNativeFrame = // Auto generated from flowToTs. Please clean me!
-  new AppState().state.useNativeFrame !== null && new AppState().state.useNativeFrame !== undefined
-    ? new AppState().state.useNativeFrame
-    : Platform.defaultUseNativeFrame
+const useNativeFrame = new AppState().state.useNativeFrame
+const initialUseNativeFrame =
+  useNativeFrame !== null && useNativeFrame !== undefined ? useNativeFrame : Platform.defaultUseNativeFrame
 
 const PlainTitle = ({title}) => (
   <Kb.Box2 direction="horizontal" style={styles.plainContainer}>

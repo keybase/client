@@ -26,7 +26,8 @@ const getFromMsgID = (info: Types.AttachmentViewInfo): Types.MessageID | null =>
   if (info.last || info.status !== 'success') {
     return null
   }
-  return info.messages.size > 0 ? info.messages.last().id : null
+  const lastMessage = info.messages.size > 0 ? info.messages.last<null>() : null
+  return lastMessage ? lastMessage.id : null
 }
 
 const mapStateToProps = (state, ownProps: OwnProps) => {

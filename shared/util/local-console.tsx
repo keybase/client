@@ -2,8 +2,8 @@ import {localLog} from './forward-logs'
 
 const _base = (messageObject, colors, shortLabel?, longerMessage?, optionalSuffix?, ...rest) => (
   shortLabel: string,
-  longerMessage: string | null,
-  optionalSuffix: string | null,
+  longerMessage?: string | null,
+  optionalSuffix?: string | null,
   ...rest: Array<any>
 ) =>
   localLog(

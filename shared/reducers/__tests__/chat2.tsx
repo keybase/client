@@ -22,6 +22,7 @@ describe('chat2 reducer', () => {
       [
         conversationIDKey,
         I.Map([
+          // @ts-ignore codemod issue
           [
             Types.numberToOrdinal(1),
             ConstantsMessage.makeMessageText({
@@ -29,6 +30,7 @@ describe('chat2 reducer', () => {
               text: new HiddenString('one'),
             }),
           ],
+          // @ts-ignore codemod issue
           [
             Types.numberToOrdinal(2),
             ConstantsMessage.makeMessageText({
@@ -36,7 +38,9 @@ describe('chat2 reducer', () => {
               text: new HiddenString('two'),
             }),
           ],
+          // @ts-ignore codemod issue
           [Types.numberToOrdinal(3), ConstantsMessage.makeMessageAttachment({author})],
+          // @ts-ignore codemod issue
           [
             Types.numberToOrdinal(4),
             ConstantsMessage.makeMessageText({

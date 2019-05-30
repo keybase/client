@@ -6,7 +6,7 @@ import * as NotificationsGen from '../actions/notifications-gen'
 const initialState: Types.State = Constants.makeState()
 
 const _updateWidgetBadge = (s: Types.State): Types.State => {
-  let widgetBadge = 'regular'
+  let widgetBadge = 'regular' as Types.BadgeType
   if (s.getIn(['keyState', 'kbfsUploading'])) {
     widgetBadge = 'uploading'
   } else if (s.desktopAppBadgeCount) {

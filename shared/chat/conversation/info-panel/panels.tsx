@@ -9,7 +9,7 @@ import {CaptionedDangerIcon} from './channel-utils'
 
 type SettingsPanelProps = {
   canDeleteHistory: boolean
-  conversationIDKey: Types.ConversationIDToKey
+  conversationIDKey: Types.ConversationIDKey
   entityType: 'adhoc' | 'channel' | 'small team'
   ignored: boolean
   onHideConv: () => void
