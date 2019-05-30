@@ -4,8 +4,8 @@ import {Notifications} from './index'
 
 const defaultProps = {
   channelWide: false,
-  desktop: 'onWhenAtMentioned',
-  mobile: 'never',
+  desktop: 'onWhenAtMentioned' as 'onWhenAtMentioned',
+  mobile: 'never' as 'never',
   muted: false,
   saving: false,
   toggleChannelWide: action('onToggleChannelwide'),

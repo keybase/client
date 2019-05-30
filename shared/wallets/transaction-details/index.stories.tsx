@@ -38,14 +38,14 @@ const props = {
   senderAccountID: stringToAccountID('GCHRPJ4AI54NMJSJWTCA5ZMTKVSDWGDY6KNJOXLYGRHA4FU5OJVRJR3F'),
   sourceAmount: '',
   sourceAsset: '',
-  status: 'completed',
+  status: 'completed' as 'completed',
   statusDetail: '',
   timestamp: yesterday,
   title: 'Details',
   transactionID: '998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591',
   you: 'cjb',
   yourAccountName: '',
-  yourRole: 'senderOnly',
+  yourRole: 'senderOnly' as 'senderOnly',
 }
 
 const load = () => {

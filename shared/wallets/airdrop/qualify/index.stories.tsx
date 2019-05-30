@@ -25,7 +25,7 @@ class Transitions extends React.Component<any, any> {
   state = {
     machineState: 'loading1',
     rows: [],
-    state: 'loading',
+    state: 'loading' as 'loading',
   }
 
   _next = () => {

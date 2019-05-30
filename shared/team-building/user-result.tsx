@@ -13,7 +13,7 @@ export type Props = {
   resultForService: ServiceIdWithContact
   username: string
   prettyName: string
-  services: {[K in ServiceIdWithContact]: string}
+  services: {[K in ServiceIdWithContact]?: string}
   fixedHeight?: number
   inTeam: boolean
   followingState: FollowingState
@@ -136,7 +136,7 @@ const Services = ({
   keybaseUsername,
   followingState,
 }: {
-  services: {[K in ServiceIdWithContact]: string}
+  services: {[K in ServiceIdWithContact]?: string}
   keybaseResult: boolean
   keybaseUsername: string | null
   followingState: FollowingState
@@ -149,7 +149,7 @@ const Services = ({
           .map(service => (
             <Kb.WithTooltip key={service} text={services[service]} position="top center">
               <Kb.Icon
-                type={serviceIdToIconFont(service)}
+                type={serviceIdToIconFont(service as ServiceIdWithContact)}
                 style={Kb.iconCastPlatformStyles(styles.serviceIcon)}
               />
             </Kb.WithTooltip>

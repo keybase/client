@@ -74,7 +74,7 @@ class PaymentStateHolder extends Component<Props, State> {
 export default connect(
   (state: TypedState, ownProps: OwnProps) => {
     const {
-      // $FlowIssue
+      // @ts-ignore doesn't exist
       planBilling: {plan, errorMessage},
     } = state
     if (!plan) {
