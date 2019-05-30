@@ -36,7 +36,7 @@ const mergeProps = (s, d) => {
   return {
     progress: s._syncingFoldersProgress.bytesFetched / s._syncingFoldersProgress.bytesTotal,
     show: s.online,
-    tooltip: Constants.humanizeBytes(
+    tooltip: Constants.humanizeBytesOfTotal(
       s._syncingFoldersProgress.bytesFetched,
       s._syncingFoldersProgress.bytesTotal
     ),
