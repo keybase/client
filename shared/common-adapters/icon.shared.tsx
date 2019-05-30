@@ -148,8 +148,8 @@ export function castPlatformStyles(styles: any) {
   return styles
 }
 
-const makePaddingStyles = () =>
-  Object.keys(Styles.globalMargins).reduce(
+function makePaddingStyles() {
+  return Object.keys(Styles.globalMargins).reduce(
     (styles, paddingName) => ({
       ...styles,
       [paddingName]: Styles.platformStyles({
@@ -158,8 +158,9 @@ const makePaddingStyles = () =>
         },
       }),
     }),
-    {}
+    {} as {[K in keyof typeof Styles.globalMargins]: Styles.StylesCrossPlatform}
   )
+}
 
 export const paddingStyles: {
   [K in keyof typeof Styles.globalMargins]: Styles.StylesCrossPlatform
