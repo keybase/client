@@ -151,6 +151,8 @@ const BigTeamChannelDropdownDesktop = (conversation: BigTeam) => (
     }
     onChanged={(node: React.ReactNode) => {
       if (React.isValidElement(node)) {
+        // @ts-ignore we know this is a string because we made it above.
+        // TODO: do this in a less hacky way
         conversation.selectChannel(ChatTypes.stringToConversationIDKey(node.key))
       }
     }}

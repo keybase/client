@@ -25,7 +25,7 @@ const props = {
   conversations: [
     // TODO: fill in a few.
   ],
-  daemonHandshakeState: 'done',
+  daemonHandshakeState: 'done' as 'done',
   fileName: null,
   files: 0,
   folderProps: null,
