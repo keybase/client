@@ -345,9 +345,11 @@ const setUseNativeFrame = state =>
   SafeElectron.getIpcRenderer().send('setAppState', {useNativeFrame: state.settings.useNativeFrame})
 
 function* initializeUseNativeFrame() {
+  const useNativeFrame = new AppState().state.useNativeFrame
   yield Saga.put(
     SettingsGen.createOnChangeUseNativeFrame({
-      enabled: new AppState().state.useNativeFrame ?? defaultUseNativeFrame,
+      enabled:
+        useNativeFrame !== null && useNativeFrame !== undefined ? useNativeFrame : defaultUseNativeFrame,
     })
   )
 }

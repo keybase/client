@@ -3,86 +3,139 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import InfoPanelMenu from './menu/container'
 import * as ChatTypes from '../../../constants/types/chat2'
+import AddPeople from './add-people'
 
 type SmallProps = {
+  admin: boolean
   teamname: string
+  channelname?: string
   conversationIDKey: ChatTypes.ConversationIDKey
+  description: string | null
   participantCount: number
+  isPreview: boolean
   isSmallTeam: boolean
+  onJoinChannel: () => void
 } & Kb.OverlayParentProps
 
 const gearIconSize = Styles.isMobile ? 24 : 16
 
-const _SmallTeamHeader = (props: SmallProps) => {
+const _TeamHeader = (props: SmallProps) => {
+  let title = props.teamname
+  if (props.channelname && !props.isSmallTeam) {
+    title += '#' + props.channelname
+  }
+  const isGeneralChannel = props.channelname && props.channelname === 'general'
   return (
-    <Kb.Box style={styles.smallContainer}>
-      <InfoPanelMenu
-        attachTo={props.getAttachmentRef}
-        onHidden={props.toggleShowingMenu}
-        isSmallTeam={props.isSmallTeam}
-        teamname={props.teamname}
-        conversationIDKey={props.conversationIDKey}
-        visible={props.showingMenu}
-      />
-      <Kb.ConnectedNameWithIcon
-        containerStyle={styles.flexOne}
-        horizontal={true}
-        teamname={props.teamname}
-        onClick="profile"
-        title={props.teamname}
-        metaOne={props.participantCount.toString() + ' member' + (props.participantCount !== 1 ? 's' : '')}
-      />
-      <Kb.Icon
-        type="iconfont-gear"
-        onClick={props.toggleShowingMenu}
-        ref={props.setAttachmentRef}
-        style={Kb.iconCastPlatformStyles(styles.gear)}
-        fontSize={gearIconSize}
-      />
-    </Kb.Box>
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
+      <Kb.Box2 direction="horizontal" style={styles.smallContainer} fullWidth={true}>
+        <InfoPanelMenu
+          attachTo={props.getAttachmentRef}
+          onHidden={props.toggleShowingMenu}
+          isSmallTeam={props.isSmallTeam}
+          teamname={props.teamname}
+          conversationIDKey={props.conversationIDKey}
+          visible={props.showingMenu}
+        />
+        <Kb.ConnectedNameWithIcon
+          containerStyle={styles.flexOne}
+          horizontal={true}
+          teamname={props.teamname}
+          onClick="profile"
+          title={title}
+          metaOne={props.participantCount.toString() + ' member' + (props.participantCount !== 1 ? 's' : '')}
+        />
+        <Kb.Icon
+          type="iconfont-gear"
+          onClick={props.toggleShowingMenu}
+          ref={props.setAttachmentRef}
+          style={Kb.iconCastPlatformStyles(styles.gear)}
+          fontSize={gearIconSize}
+        />
+      </Kb.Box2>
+      {!!props.description && (
+        <Kb.Box2 direction="horizontal" style={styles.description}>
+          <Kb.Markdown smallStandaloneEmoji={true} selectable={true}>
+            {props.description}
+          </Kb.Markdown>
+        </Kb.Box2>
+      )}
+      {props.isPreview && (
+        <Kb.Button
+          mode="Primary"
+          type="Default"
+          label="Join channel"
+          style={styles.addMembers}
+          onClick={props.onJoinChannel}
+        />
+      )}
+      {!props.isPreview && (props.admin || !isGeneralChannel) && (
+        <AddPeople
+          isAdmin={props.admin}
+          isGeneralChannel={isGeneralChannel}
+          teamname={props.teamname}
+          conversationIDKey={props.conversationIDKey}
+        />
+      )}
+    </Kb.Box2>
   )
 }
-const SmallTeamHeader = Kb.OverlayParentHOC(_SmallTeamHeader)
+const TeamHeader = Kb.OverlayParentHOC(_TeamHeader)
 
-type BigProps = {
-  canEditChannel: boolean
-  channelname: string
-  description: string | null
-  teamname: string
-  onEditChannel: () => void
+type AdhocProps = {
+  onShowNewTeamDialog: () => void
+  participants: Array<{
+    username: string
+    fullname: string
+  }>
 }
 
-type BigTeamHeaderProps = BigProps
-
-const EditBox = Styles.isMobile
-  ? Kb.ClickableBox
-  : Styles.styled(Kb.ClickableBox)({
-      '.header-row:hover &': {
-        opacity: 1,
-      },
-      opacity: 0,
-    })
-
-const BigTeamHeader = (props: BigTeamHeaderProps) => {
+export const AdhocHeader = (props: AdhocProps) => {
   return (
-    <Kb.Box2 direction={'vertical'} fullWidth={true} centerChildren={true} className="header-row">
-      <Kb.Box style={styles.channelnameContainer}>
-        <Kb.Text type="BodyBig">#{props.channelname}</Kb.Text>
-        {props.canEditChannel && (
-          <EditBox style={styles.editBox} onClick={props.onEditChannel}>
-            <Kb.Icon style={Kb.iconCastPlatformStyles(styles.editIcon)} type="iconfont-edit" />
-            <Kb.Text type="BodySmallPrimaryLink" className="hover-underline">
-              Edit
-            </Kb.Text>
-          </EditBox>
-        )}
-      </Kb.Box>
-      {!!props.description && <Kb.Markdown style={styles.description}>{props.description}</Kb.Markdown>}
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+      <Kb.ScrollView style={styles.adhocScrollContainer}>
+        {props.participants.map(p => {
+          return (
+            <Kb.NameWithIcon
+              key={p.username}
+              colorFollowing={true}
+              containerStyle={styles.adhocPartContainer}
+              horizontal={true}
+              username={p.username}
+              metaOne={p.fullname}
+            />
+          )
+        })}
+      </Kb.ScrollView>
+      <Kb.Button
+        mode="Primary"
+        type="Default"
+        label="Turn into a team"
+        style={styles.addMembers}
+        onClick={props.onShowNewTeamDialog}
+      />
+      <Kb.Text type="BodyTiny" center={true}>
+        Add and delete members as you wish.
+      </Kb.Text>
     </Kb.Box2>
   )
 }
 
 const styles = Styles.styleSheetCreate({
+  addMembers: {
+    marginLeft: Styles.globalMargins.small,
+    marginRight: Styles.globalMargins.small,
+  },
+  adhocPartContainer: {
+    padding: Styles.globalMargins.tiny,
+  },
+  adhocScrollContainer: Styles.platformStyles({
+    isElectron: {
+      maxHeight: 230,
+    },
+    isMobile: {
+      maxHeight: 220,
+    },
+  }),
   channelnameContainer: {
     alignSelf: 'center',
     marginBottom: 2,
@@ -92,7 +145,6 @@ const styles = Styles.styleSheetCreate({
   description: {
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
-    textAlign: 'center',
   },
   editBox: {
     ...Styles.globalStyles.flexBoxRow,
@@ -110,15 +162,13 @@ const styles = Styles.styleSheetCreate({
       width: gearIconSize,
     },
     isMobile: {
-      marginRight: 16,
       width: gearIconSize + 32,
     },
   }),
   smallContainer: {
-    ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    marginLeft: Styles.globalMargins.small,
+    paddingLeft: Styles.globalMargins.small,
   },
 })
 
-export {SmallTeamHeader, BigTeamHeader}
+export {TeamHeader}

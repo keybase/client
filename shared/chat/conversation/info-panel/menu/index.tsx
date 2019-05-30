@@ -73,18 +73,21 @@ type TeamHeaderProps = {
   memberCount: number
   teamname: string
 }
-
-const TeamHeader = (props: TeamHeaderProps) => (
-  <Kb.Box2 direction="vertical" gap="tiny" gapStart={false} gapEnd={true} style={styles.headerContainer}>
-    <TeamAvatar teamname={props.teamname} isMuted={props.isMuted} isSelected={false} isHovered={false} />
-    <Kb.Box2 direction="vertical" centerChildren={true}>
-      <Kb.Text type="BodySemibold" style={styles.maybeLongText}>
-        {props.teamname}
-      </Kb.Text>
-      <Kb.Text type="BodySmall">{`${props.memberCount} member${props.memberCount !== 1 ? 's' : ''}`}</Kb.Text>
+const TeamHeader = (props: TeamHeaderProps) => {
+  return (
+    <Kb.Box2 direction="vertical" gap="tiny" gapStart={false} gapEnd={true} style={styles.headerContainer}>
+      <TeamAvatar teamname={props.teamname} isMuted={props.isMuted} isSelected={false} isHovered={false} />
+      <Kb.Box2 direction="vertical" centerChildren={true}>
+        <Kb.Text type="BodySemibold" style={styles.maybeLongText}>
+          {props.teamname}
+        </Kb.Text>
+        <Kb.Text type="BodySmall">{`${props.memberCount} member${
+          props.memberCount !== 1 ? 's' : ''
+        }`}</Kb.Text>
+      </Kb.Box2>
     </Kb.Box2>
-  </Kb.Box2>
-)
+  )
+}
 
 class InfoPanelMenu extends React.Component<Props> {
   componentDidUpdate(prevProps: Props) {

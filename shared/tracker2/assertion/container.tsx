@@ -44,6 +44,7 @@ const mapStateToProps = (state, ownProps) => {
     notAUser = d.state === 'notAUserYet'
     if (notAUser) {
       const parts = ownProps.username.split('@')
+      // @ts-ignore codemod issue
       a = {
         ...notAUserAssertion,
         type: parts[1],
@@ -133,9 +134,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default Container.namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'Assertion'
-)(Assertion)
+export default Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Assertion')(Assertion)

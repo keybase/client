@@ -3,6 +3,8 @@ import * as Kb from '../../../common-adapters/mobile.native'
 import * as Styles from '../../../styles'
 import MessagePopup from '../messages/message-popup/'
 import {Props} from './index.types'
+import RNVideo from 'react-native-video'
+import logger from '../../../logger'
 
 const {width: screenWidth, height: screenHeight} = Kb.NativeDimensions.get('window')
 
@@ -81,7 +83,28 @@ class _Fullscreen extends React.Component<
           Close
         </Kb.Text>
         <Kb.Box style={{...Styles.globalStyles.flexBoxCenter, flex: 1}}>
-          {!!this.props.path && (
+          {!!this.props.path && this.props.isVideo ? (
+            <Kb.Box2
+              direction="vertical"
+              fullWidth={true}
+              centerChildren={true}
+              style={{position: 'relative'}}
+            >
+              <RNVideo
+                source={{uri: `${this.props.path}&contentforce=true`}}
+                onError={e => {
+                  logger.error(`Error loading vid: ${JSON.stringify(e)}`)
+                }}
+                onLoad={this._setLoaded}
+                paused={true}
+                controls={true}
+                style={{
+                  height: this.props.previewHeight,
+                  width: this.props.previewWidth,
+                }}
+              />
+            </Kb.Box2>
+          ) : (
             <AutoMaxSizeImage
               source={{uri: `${this.props.path}`}}
               onLoad={this._setLoaded}

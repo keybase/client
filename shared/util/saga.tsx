@@ -151,6 +151,7 @@ function* callRPCs(e: Effects.CallEffect): Iterable<any> {
 }
 
 function* selectState(): Iterable<TypedState> {
+  // @ts-ignore codemod issue
   const state: TypedState = yield Effects.select()
   return state
 }
