@@ -47,6 +47,7 @@ const (
 	FolderConflictType_NONE                  FolderConflictType = 0
 	FolderConflictType_IN_CONFLICT           FolderConflictType = 1
 	FolderConflictType_IN_CONFLICT_AND_STUCK FolderConflictType = 2
+	FolderConflictType_CLEARED_CONFLICT      FolderConflictType = 3
 )
 
 func (o FolderConflictType) DeepCopy() FolderConflictType { return o }
@@ -55,12 +56,14 @@ var FolderConflictTypeMap = map[string]FolderConflictType{
 	"NONE":                  0,
 	"IN_CONFLICT":           1,
 	"IN_CONFLICT_AND_STUCK": 2,
+	"CLEARED_CONFLICT":      3,
 }
 
 var FolderConflictTypeRevMap = map[FolderConflictType]string{
 	0: "NONE",
 	1: "IN_CONFLICT",
 	2: "IN_CONFLICT_AND_STUCK",
+	3: "CLEARED_CONFLICT",
 }
 
 func (e FolderConflictType) String() string {
