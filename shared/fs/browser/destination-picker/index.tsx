@@ -104,7 +104,7 @@ const DestinationPicker = (props: Props) => (
 )
 
 const HighOrderDestinationPickerDesktop = Kb.HeaderOrPopup(DestinationPicker)
-const HighOrderDestinationPickerMobile = withProps(props => ({
+const HighOrderDestinationPickerMobile = withProps((props: any) => ({
   customComponent: (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
       <Kb.ClickableBox style={styles.mobileHeaderButton} onClick={props.onCancel}>

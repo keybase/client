@@ -38,6 +38,7 @@ export default function<X>(
 
     case TeamBuildingGen.search: {
       const {query, service, limit = state.teamBuildingSearchLimit} = action.payload
+      // @ts-ignore
       return state.merge({
         teamBuildingSearchLimit: limit,
         teamBuildingSearchQuery: trim(query),

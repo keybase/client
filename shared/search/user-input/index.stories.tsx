@@ -36,7 +36,7 @@ const inputCommon = {
   selectedSearchId: null,
 }
 
-const maxUsers = [
+const maxUsers: Array<UserDetails> = [
   {
     followingState: 'You',
     icon: null,
@@ -60,7 +60,7 @@ const maxUsers = [
   },
 ]
 
-const chrisUsers = [
+const chrisUsers: Array<UserDetails> = [
   {
     followingState: 'You',
     icon: null,

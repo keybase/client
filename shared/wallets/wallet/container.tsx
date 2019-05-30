@@ -44,7 +44,7 @@ const mergeProps = (stateProps, dispatchProps) => {
   const paymentsList = stateProps.payments && stateProps.payments.toList().toArray()
   const [_history, _pending] = partition(paymentsList, p => p.section === 'history')
   const mapItem = p => ({paymentID: p.id, timestamp: p.time})
-  let history = _history.map(mapItem)
+  let history: any = _history.map(mapItem)
   const pending = _pending.map(mapItem)
 
   if (history.length) {

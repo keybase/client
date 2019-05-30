@@ -34,5 +34,5 @@ export default compose(
     componentDidMount() {
       this.props.loadPathMetadata(this.props.path)
     },
-  })
-)(Header)
+  } as any)
+)(Header as any)

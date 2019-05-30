@@ -8,9 +8,9 @@ import {isMobile} from '../constants/platform'
 export const defaultNumFollowSuggestions = 10
 export const getPeopleDataWaitingKey = 'getPeopleData'
 
-export const todoTypeEnumToType: {[K in Types.TodoTypeEnum]: Types.TodoType} = invert(
-  RPCTypes.HomeScreenTodoType
-)
+export const todoTypeEnumToType = invert(RPCTypes.HomeScreenTodoType) as {
+  [K in Types.TodoTypeEnum]: Types.TodoType
+}
 
 export const todoTypes: {[K in Types.TodoType]: Types.TodoType} = {
   annoncementPlaceholder: 'annoncementPlaceholder', // misspelled in protocol

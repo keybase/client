@@ -48,14 +48,14 @@ const defaultConnectPropsMap: ConnectPropsMap = {
     userIsInTeam: false,
     userIsSelectable: true,
   },
-}
+} as any
 
 const mockOwnPropsToProps = (connectPropsMap: ConnectPropsMap, ownProps: OwnProps): Props => {
-  const result: ConnectProps = connectPropsMap[ownProps.id] || defaultConnectProps
+  const result: any /*ConnectProps*/ = connectPropsMap[ownProps.id] || defaultConnectProps
   return {
     ...ownProps,
     ...result,
-  }
+  } as any
 }
 
 const defaultOwnProps: OwnProps = {

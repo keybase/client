@@ -88,7 +88,7 @@ const getSearchResultTerm = (
     searchKey: string
   }
 ) => {
-  const searchResultQuery = entities.getIn(['search', 'searchKeyToSearchResultQuery', searchKey], null)
+  const searchResultQuery = entities.getIn(['search', 'searchKeyToSearchResultQuery', searchKey]) || null
   return searchResultQuery && searchResultQuery.text
 }
 
