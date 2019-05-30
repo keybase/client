@@ -17,11 +17,9 @@ type OwnProps = {
 const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const messageOrdinals = Constants.getMessageOrdinals(state, conversationIDKey)
   const lastOrdinal = messageOrdinals.last(null)
-  const centeredOrdinal = // Auto generated from flowToTs. Please clean me!
-    Constants.getMessageCenterOrdinal(state, conversationIDKey) === null ||
-    Constants.getMessageCenterOrdinal(state, conversationIDKey) === undefined
-      ? undefined
-      : Constants.getMessageCenterOrdinal(state, conversationIDKey).ordinal
+  const maybeCenterMessage = Constants.getMessageCenterOrdinal(state, conversationIDKey)
+  const centeredOrdinal =
+    maybeCenterMessage === null || maybeCenterMessage === undefined ? undefined : maybeCenterMessage.ordinal
   const containsLatestMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey, false)
   const showThreadSearch = Constants.getThreadSearchInfo(state, conversationIDKey).visible
   let lastMessageIsOurs = false

@@ -74,30 +74,8 @@ export const unverifiedInboxUIItemToConversationMeta = (
     channelname,
     commands: i.commands,
     conversationIDKey: Types.stringToConversationIDKey(i.convID),
-    // Auto generated from flowToTs. Please clean me!
-    description:
-      // Auto generated from flowToTs. Please clean me!
-      (i.localMetadata === null || i.localMetadata === undefined ? undefined : i.localMetadata.headline) !==
-        null && // Auto generated from flowToTs. Please clean me!
-      (i.localMetadata === null || i.localMetadata === undefined ? undefined : i.localMetadata.headline) !==
-        undefined // Auto generated from flowToTs. Please clean me!
-        ? i.localMetadata === null || i.localMetadata === undefined
-          ? undefined
-          : i.localMetadata.headline
-        : '',
-    // Auto generated from flowToTs. Please clean me!
-    descriptionDecorated:
-      // Auto generated from flowToTs. Please clean me!
-      (i.localMetadata === null || i.localMetadata === undefined
-        ? undefined
-        : i.localMetadata.headlineDecorated) !== null && // Auto generated from flowToTs. Please clean me!
-      (i.localMetadata === null || i.localMetadata === undefined
-        ? undefined
-        : i.localMetadata.headlineDecorated) !== undefined // Auto generated from flowToTs. Please clean me!
-        ? i.localMetadata === null || i.localMetadata === undefined
-          ? undefined
-          : i.localMetadata.headlineDecorated
-        : '',
+    description: (i.localMetadata && i.localMetadata.headline) || '',
+    descriptionDecorated: (i.localMetadata && i.localMetadata.headlineDecorated) || '',
     inboxLocalVersion: i.localVersion,
     inboxVersion: i.version,
     isMuted: i.status === RPCChatTypes.ConversationStatus.muted,
@@ -289,36 +267,16 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
 
   const {retentionPolicy, teamRetentionPolicy} = UIItemToRetentionPolicies(i, isTeam)
 
-  const minWriterRoleEnum = // Auto generated from flowToTs. Please clean me!
-    (i.convSettings === null || i.convSettings === undefined
-      ? undefined
-      : i.convSettings.minWriterRoleInfo) === null ||
-    (i.convSettings === null || i.convSettings === undefined
-      ? undefined
-      : i.convSettings.minWriterRoleInfo) === undefined
-      ? undefined
-      : (i.convSettings === null || i.convSettings === undefined
-          ? undefined
-          : i.convSettings.minWriterRoleInfo
-        ).role
+  const minWriterRoleEnum =
+    i.convSettings && i.convSettings.minWriterRoleInfo ? i.convSettings.minWriterRoleInfo.role : undefined
   let minWriterRole = minWriterRoleEnum ? TeamConstants.teamRoleByEnum[minWriterRoleEnum] : 'reader'
   if (minWriterRole === 'none') {
     // means nothing. set it to reader.
     minWriterRole = 'reader'
   }
 
-  let cannotWrite = // Auto generated from flowToTs. Please clean me!
-    (i.convSettings === null || i.convSettings === undefined
-      ? undefined
-      : i.convSettings.minWriterRoleInfo) === null ||
-    (i.convSettings === null || i.convSettings === undefined
-      ? undefined
-      : i.convSettings.minWriterRoleInfo) === undefined
-      ? undefined
-      : (i.convSettings === null || i.convSettings === undefined
-          ? undefined
-          : i.convSettings.minWriterRoleInfo
-        ).cannotWrite
+  let cannotWrite =
+    i.convSettings && i.convSettings.minWriterRoleInfo ? i.convSettings.minWriterRoleInfo.cannotWrite : false
 
   return makeConversationMeta({
     cannotWrite,

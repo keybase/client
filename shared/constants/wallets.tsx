@@ -59,12 +59,10 @@ export const makeInflationDestination = I.Record<Types._InflationDestination>({
   recommended: false,
 })
 
-export const makeAccountInflationDestination = I.Record<Types._AccountInflationDestination>(
-  {
-    accountID: Types.noAccountID,
-    name: '',
-  }
-)
+export const makeAccountInflationDestination = I.Record<Types._AccountInflationDestination>({
+  accountID: Types.noAccountID,
+  name: '',
+})
 export const noAccountInflationDestination = makeAccountInflationDestination()
 
 export const makeReserve = I.Record<Types._Reserve>({
@@ -503,11 +501,7 @@ export const inflationDestResultToAccountInflationDest = (res: RPCTypes.Inflatio
   }
   return makeAccountInflationDestination({
     accountID: Types.stringToAccountID(res.destination),
-    // Auto generated from flowToTs. Please clean me!
-    name:
-      res.knownDestination === null || res.knownDestination === undefined
-        ? undefined
-        : res.knownDestination.name,
+    name: res.knownDestination ? res.knownDestination.name : undefined,
   })
 }
 

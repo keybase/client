@@ -117,11 +117,11 @@ export const makeInboxSearchTextHit = I.Record<Types._InboxSearchTextHit>({
 
 export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
   if (inboxSearch.selectedIndex < inboxSearch.nameResults.size) {
-    const conversationIDKey = // Auto generated from flowToTs. Please clean me!
-      inboxSearch.nameResults.get(inboxSearch.selectedIndex) === null ||
-      inboxSearch.nameResults.get(inboxSearch.selectedIndex) === undefined
+    const maybeNameResults = inboxSearch.nameResults.get(inboxSearch.selectedIndex)
+    const conversationIDKey =
+      maybeNameResults === null || maybeNameResults === undefined
         ? undefined
-        : inboxSearch.nameResults.get(inboxSearch.selectedIndex).conversationIDKey
+        : maybeNameResults.conversationIDKey
     if (conversationIDKey) {
       return {
         conversationIDKey,
@@ -164,12 +164,8 @@ export const getReplyToOrdinal = (state: TypedState, conversationIDKey: Types.Co
 }
 export const getReplyToMessageID = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
   const ordinal = getReplyToOrdinal(state, conversationIDKey)
-  return ordinal // Auto generated from flowToTs. Please clean me!
-    ? getMessage(state, conversationIDKey, ordinal) === null ||
-      getMessage(state, conversationIDKey, ordinal) === undefined
-      ? undefined
-      : getMessage(state, conversationIDKey, ordinal).id
-    : null
+  const maybeMessage = getMessage(state, conversationIDKey, ordinal)
+  return ordinal ? (maybeMessage === null || maybeMessage === undefined ? undefined : maybeMessage.id) : null
 }
 
 export const getEditInfo = (state: TypedState, id: Types.ConversationIDKey) => {
@@ -214,10 +210,11 @@ export const isUserActivelyLookingAtThisThread = (
   if (isMobile) {
     chatThreadSelected = true // conversationIDKey === selectedConversationIDKey is the only thing that matters in the new router
   } else {
-    chatThreadSelected = // Auto generated from flowToTs. Please clean me!
-      (Router2.getVisibleScreen() === null || Router2.getVisibleScreen() === undefined
+    const maybeVisibleScreen = Router2.getVisibleScreen()
+    chatThreadSelected =
+      (maybeVisibleScreen === null || maybeVisibleScreen === undefined
         ? undefined
-        : Router2.getVisibleScreen().routeName) === 'chatRoot'
+        : maybeVisibleScreen.routeName) === 'chatRoot'
   }
 
   return (
@@ -231,11 +228,14 @@ export const isTeamConversationSelected = (state: TypedState, teamname: string) 
   const meta = getMeta(state, getSelectedConversation(state))
   return meta.teamname === teamname
 }
-export const isInfoPanelOpen = (state: TypedState) =>
-  // Auto generated from flowToTs. Please clean me!
-  (Router2.getVisibleScreen() === null || Router2.getVisibleScreen() === undefined
-    ? undefined
-    : Router2.getVisibleScreen().routeName) === 'chatInfoPanel'
+export const isInfoPanelOpen = (state: TypedState) => {
+  const maybeVisibleScreen = Router2.getVisibleScreen()
+  return (
+    (maybeVisibleScreen === null || maybeVisibleScreen === undefined
+      ? undefined
+      : maybeVisibleScreen.routeName) === 'chatInfoPanel'
+  )
+}
 
 export const inboxSearchNewKey = 'chat:inboxSearchNew'
 export const waitingKeyJoinConversation = 'chat:joinConversation'
