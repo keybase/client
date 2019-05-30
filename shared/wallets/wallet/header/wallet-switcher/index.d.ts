@@ -3,7 +3,7 @@ import * as Types from '../../../../constants/types/wallets'
 
 export type Props = {
   accountIDs: Array<Types.AccountID>
-  getAttachmentRef: () => React.Component<any> | null
+  getAttachmentRef: (() => React.Component<any>) | null
   hideMenu: () => void
   onAddNew: () => void
   onJoinAirdrop: () => void
