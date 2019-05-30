@@ -14,9 +14,9 @@ type DisabledReason = string
 export type Props = {
   disabledRoles?: {[K in Role]: DisabledReason}
   headerText?: string
-  onCancel?: () => void
+  onCancel?: () => void // If provided, a cancel button will appear
   onConfirm: (selectedRole: Role) => void
-  confirmLabel?: string
+  confirmLabel?: string // Defaults to "Make ${selectedRole}"
   onSelectRole: (role: Role) => void
   footerComponent?: React.ReactNode
   presetRole?: Role | null
