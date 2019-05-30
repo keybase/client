@@ -44,20 +44,20 @@ export default compose(
     {
       channelname: null,
       description: null,
-    },
+    } as any,
     {
       onChannelnameChange: () => channelname => ({channelname}),
       onDescriptionChange: () => description => ({description}),
-    }
+    } as any
   ),
   withHandlers({
     onSubmit: ({channelname, description, _onCreateChannel, teamname}) => () => {
       channelname && _onCreateChannel({channelname, description, teamname})
     },
-  }),
+  } as any),
   lifecycle({
     componentDidMount() {
       this.props._onSetChannelCreationError('')
     },
-  })
+  } as any)
 )(CreateChannel)

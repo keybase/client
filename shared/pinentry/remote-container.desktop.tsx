@@ -28,7 +28,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...ownProps,
 })
 export default compose(
-  // @ts-ignore codemode issue
-  remoteConnect<OwnProps, State, _, _, _, _>(state => state, mapDispatchToProps, mergeProps),
-  branch(props => !props.type, renderNothing)
+  remoteConnect(state => state, mapDispatchToProps, mergeProps),
+  branch((props: any) => !props.type, renderNothing)
 )(Pinentry)

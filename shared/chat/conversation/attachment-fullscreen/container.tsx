@@ -80,7 +80,7 @@ export default compose(
       onToggleZoom: ({isZoomed}) => () => ({isZoomed: !isZoomed}),
     }
   ),
-  withProps(props => ({
+  withProps((props: any) => ({
     onHotkey: (cmd: string) => props.onHotkey(cmd),
   }))
 )(Fullscreen)

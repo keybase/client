@@ -93,4 +93,4 @@ export default compose(
       onRequestScrollUp: ({scrollListUpCounter}) => () => ({scrollListUpCounter: scrollListUpCounter + 1}),
     }
   )
-)(KeyHandler(Normal))
+)(KeyHandler(Normal)) as any

@@ -110,6 +110,7 @@ const Connected = Container.compose(
   ),
   Container.lifecycle({
     componentDidMount() {
+      // @ts-ignore NO recompose
       this.props._loadTeams()
     },
   })
@@ -117,14 +118,14 @@ const Connected = Container.compose(
 
 const ConnectedHeaderRightActions = Container.compose(
   Container.withSafeNavigation,
-  Container.connect<OwnProps, _, _, _, _>(
+  Container.connect(
     () => ({}),
     headerActions,
     (s, d, o) => ({...o, ...s, ...d})
   )
 )(HeaderRightActions)
 
-// $FlowIssue lets fix this
+// @ts-ignore TODO fix
 Connected.navigationOptions = {
   header: undefined,
   headerRightActions: () => <ConnectedHeaderRightActions />,

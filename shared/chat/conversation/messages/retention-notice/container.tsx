@@ -72,5 +72,6 @@ export default compose(
         this.props.measure && this.props.measure()
       }
     },
-  })
+  } as any)
+  // @ts-ignore
 )(RetentionNotice)

@@ -95,7 +95,7 @@ const AddPeople = compose(
     })
   ),
   OverlayParentHOC
-)(_AddPeople)
+)(_AddPeople) as any
 
 const styles = Styles.styleSheetCreate({
   addButtonContainer: {marginLeft: Styles.globalMargins.small, marginRight: Styles.globalMargins.small},

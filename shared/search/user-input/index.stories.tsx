@@ -137,7 +137,8 @@ export const makeSelectorMap = (userItems: Array<UserDetails> = maxUsers) => ({
 
 const provider = Sb.createPropProviderWithCommon(makeSelectorMap())
 
-const UserInputEditable = compose(
+const UserInputEditable: any = compose(
+  // @ts-ignore
   withStateHandlers(props => ({userItems: props.userItems, usernameText: ''}), {
     onChangeText: (_, {onChangeText}) => usernameText => {
       onChangeText(usernameText)
@@ -149,7 +150,7 @@ const UserInputEditable = compose(
         userItems: userItems.filter(i => i.id !== id),
       }
     },
-  })
+  } as any)
 )(UserInput)
 
 const defaultBoxStyle = {
