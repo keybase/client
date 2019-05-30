@@ -1,6 +1,7 @@
-// @flow
 import * as React from 'react'
+// @ts-ignore not converted
 import Box from './box'
+// @ts-ignore not converted
 import Text from './text'
 import PopupDialog from './popup-dialog'
 import {action, storiesOf} from '../stories/storybook'

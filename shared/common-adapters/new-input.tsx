@@ -20,24 +20,20 @@ export type _Props = {
   containerStyle?: StylesCrossPlatform
   decoration?: React.ReactNode
   error?: boolean
-  forwardedRef: React.Ref<typeof PlainInput>
   hideBorder?: boolean
   icon?: IconType
 }
 
-type DefaultProps = {
-  flexable: boolean
-  keyboardType: KeyboardType
-  textType: TextType
-}
-
 type Props = PropsWithInput<_Props>
+type RefProps = {
+  forwardedRef: React.Ref<PlainInput>
+}
 
 type State = {
   focused: boolean
 }
 
-class ReflessNewInput extends React.Component<DefaultProps & Props, State> {
+class ReflessNewInput extends React.Component<Props & RefProps, State> {
   static defaultProps = {
     flexable: true,
     keyboardType: 'default',
@@ -97,16 +93,9 @@ type FRefProps = {
   keyboardType?: KeyboardType
   textType?: TextType
 } & Props
-type Diff<T, U> = T extends U ? never : T
-const NewInput = React.forwardRef<
-  Diff<
-    FRefProps,
-    {
-      forwardedRef: React.Ref<typeof PlainInput>
-    }
-  >,
-  PlainInput
->((props, ref) => <ReflessNewInput {...props} forwardedRef={ref} />)
+const NewInput = React.forwardRef<PlainInput, Props>((props, ref) => (
+  <ReflessNewInput {...props} forwardedRef={ref} />
+))
 
 const styles = styleSheetCreate({
   container: platformStyles({

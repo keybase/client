@@ -1,13 +1,13 @@
-// @flow
 import * as React from 'react'
+// @ts-ignore not converted
 import Text from './text'
 import * as Styles from '../styles'
 
 export type HeaderTextProps = {
-  color: string,
-  backgroundColor: string,
-  style?: Object,
-  children?: React.Node,
+  color: string
+  backgroundColor: string
+  style?: Object
+  children?: React.ReactNode
 }
 
 const PopupHeaderText = (props: HeaderTextProps) => (

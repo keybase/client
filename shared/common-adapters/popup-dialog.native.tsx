@@ -1,10 +1,10 @@
-// @flow
 import * as React from 'react'
+// @ts-ignore not converted
 import Box from './box'
 import {NativeTouchableWithoutFeedback} from './native-wrappers.native'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 
-import type {Props} from './popup-dialog'
+import {Props} from './popup-dialog'
 
 export function PopupDialog({children, onClose, fill, styleCover, styleContainer}: Props) {
   return (

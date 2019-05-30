@@ -90,6 +90,15 @@ export type TextInfo = {
 }
 
 declare class Input extends React.Component<Props> {
-  transformText: (fn: (textInfo: TextInfo) => TextInfo) => void
+  blur: () => void
+  focus: () => void
+  select: () => void
+  getValue: () => string
+  selection: () => Selection
+  // transformText must be called only on uncontrolled Input
+  // components. The transformation may be done asynchronously.
+  // @param reflectChange: desktop only. If true, `onChangeText`
+  // will be called after the transform
+  transformText: (fn: (TextInfo) => TextInfo, reflectChange?: boolean) => void
 }
 export default Input

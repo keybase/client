@@ -1,14 +1,13 @@
-// @flow
 import * as React from 'react'
 import PopupDialog from './popup-dialog'
 
 type HocExtractProps = {
-  onClosePopup: () => void,
+  onClosePopup: () => void
 }
 
-function popupDialogHoc<Config: {} & HocExtractProps>(
-  Component: React.AbstractComponent<$Diff<Config, HocExtractProps>>
-): React.AbstractComponent<Config & HocExtractProps> {
+function popupDialogHoc<Config extends HocExtractProps>(
+  Component: React.ComponentType<Pick<Config, Exclude<keyof Config, keyof HocExtractProps>>>
+): React.FunctionComponent<Config & HocExtractProps> {
   return function WrappedPopupDialog(props: Config) {
     const {onClosePopup, ...rest} = props
     return (

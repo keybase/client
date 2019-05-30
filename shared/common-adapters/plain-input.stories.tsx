@@ -1,9 +1,10 @@
-// @flow
 import * as React from 'react'
 import PlainInput from './plain-input'
+// @ts-ignore not converted
 import Box, {Box2} from './box'
 import Button from './button'
 import ButtonBar from './button-bar'
+// @ts-ignore not converted
 import Text from './text'
 import {action, scrollViewDecorator, storiesOf} from '../stories/storybook'
 import {globalColors, globalMargins} from '../styles'
@@ -16,12 +17,20 @@ const commonProps = {
   onFocus: action('onFocus'),
   onKeyDown: action('onKeyDown'),
   onKeyUp: action('onKeyUp'),
-  style: {borderColor: globalColors.black_10, borderStyle: 'solid', borderWidth: 1},
+  style: {borderColor: globalColors.black_10, borderStyle: 'solid' as 'solid', borderWidth: 1},
 }
 
-class TestInput extends React.Component<{maxBytes?: number, multiline: boolean}, {value: string}> {
+class TestInput extends React.Component<
+  {
+    maxBytes?: number
+    multiline: boolean
+  },
+  {
+    value: string
+  }
+> {
   state = {value: ''}
-  _input: {current: React$ElementRef<typeof PlainInput> | null} = React.createRef()
+  _input = React.createRef<PlainInput>()
 
   _insertText = (t: string) => {
     const input = this._input.current
@@ -66,14 +75,23 @@ class TestInput extends React.Component<{maxBytes?: number, multiline: boolean},
   }
 }
 
-type ControlledInputState = {[key: string]: string}
+type ControlledInputState = {value1: string; value2: string; changingValue: string}
+
 class ControlledInputPlayground extends React.Component<
-  {maxBytes?: number, multiline: boolean},
+  {
+    maxBytes?: number
+    multiline: boolean
+  },
   ControlledInputState
 > {
-  state = {}
-  mutationTarget = React.createRef()
-  _onChangeText = (valueKey: string) => (t: string) => this.setState({[valueKey]: t})
+  state = {
+    changingValue: '',
+    value1: '',
+    value2: '',
+  }
+  mutationTarget = React.createRef<PlainInput>()
+  // @ts-ignore not sure
+  _onChangeText = (valueKey: keyof ControlledInputState) => (t: string) => this.setState({[valueKey]: t})
 
   _onChangeChangingValue = (t: string) => this.setState({changingValue: t})
   _testChangingSelection = () => {

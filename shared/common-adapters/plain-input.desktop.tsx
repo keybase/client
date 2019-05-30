@@ -1,12 +1,11 @@
-// @flow
 import * as React from 'react'
 import {getStyle as getTextStyle} from './text.desktop'
 import {collapseStyles, globalColors, styled, styleSheetCreate, platformStyles} from '../styles'
 import {pick} from 'lodash-es'
 import logger from '../logger'
 
-import type {_StylesDesktop} from '../styles/css'
-import type {InternalProps, TextInfo, Selection} from './plain-input'
+import {_StylesDesktop} from '../styles/css'
+import {InternalProps, TextInfo, Selection} from './plain-input'
 import {checkTextInfo} from './input.shared'
 
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
@@ -66,7 +65,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
 
   isFocused = () => !!this._input && document.activeElement === this._input
 
-  transformText = (fn: TextInfo => TextInfo, reflectChange?: boolean) => {
+  transformText = (fn: (textInfo: TextInfo) => TextInfo, reflectChange?: boolean) => {
     if (this._controlled()) {
       const errMsg =
         'Attempted to use transformText on controlled input component. Use props.value and setSelection instead.'
@@ -126,7 +125,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
     this._isComposingIME = false
   }
 
-  _onKeyDown = (e: SyntheticKeyboardEvent<>) => {
+  _onKeyDown = (e: React.KeyboardEvent) => {
     if (this.props.onKeyDown) {
       this.props.onKeyDown(e, this._isComposingIME)
     }
@@ -135,7 +134,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
     }
   }
 
-  _onKeyUp = (e: SyntheticKeyboardEvent<>) => {
+  _onKeyUp = (e: React.KeyboardEvent) => {
     if (this.props.onKeyUp) {
       this.props.onKeyUp(e, this._isComposingIME)
     }
@@ -273,12 +272,14 @@ class PlainInput extends React.PureComponent<InternalProps> {
   }
 }
 
+// @ts-ignore this type is wrong
 const StyledTextArea = styled.textarea(props => ({
   '&::-webkit-inner-spin-button': {WebkitAppearance: 'none', margin: 0},
   '&::-webkit-input-placeholder': {color: props.placeholderColor || globalColors.black_50},
   '&::-webkit-outer-spin-button': {WebkitAppearance: 'none', margin: 0},
 }))
 
+// @ts-ignore this type is wrong
 const StyledInput = styled.input(props => ({
   '&::-webkit-inner-spin-button': {WebkitAppearance: 'none', margin: 0},
   '&::-webkit-input-placeholder': {color: props.placeholderColor || globalColors.black_50},

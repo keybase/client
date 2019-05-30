@@ -1,5 +1,5 @@
-// @flow
 import React, {Component} from 'react'
+// @ts-ignore not converted
 import {getStyle as getTextStyle} from './text'
 import {NativeTextInput} from './native-wrappers.native'
 import {collapseStyles, globalColors, platformStyles, styleSheetCreate} from '../styles'
@@ -8,13 +8,20 @@ import {checkTextInfo} from './input.shared'
 import {pick} from 'lodash-es'
 import logger from '../logger'
 
-import type {InternalProps, TextInfo, Selection} from './plain-input'
+import {InternalProps, TextInfo, Selection} from './plain-input'
 
-type ContentSizeChangeEvent = {nativeEvent: {contentSize: {width: number, height: number}}}
+type ContentSizeChangeEvent = {
+  nativeEvent: {
+    contentSize: {
+      width: number
+      height: number
+    }
+  }
+}
 
 type State = {
-  focused: boolean,
-  height: ?number,
+  focused: boolean
+  height: number | null
 }
 
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
@@ -29,16 +36,16 @@ class PlainInput extends Component<InternalProps, State> {
     focused: false,
     height: null,
   }
-  _input: ?NativeTextInput
-  _lastNativeText: ?string
-  _lastNativeSelection: ?Selection
+  _input: typeof NativeTextInput | null
+  _lastNativeText: string | null
+  _lastNativeSelection: Selection | null
 
   // TODO remove this when we can use forwardRef with react-redux. That'd let us
   // use HOCTimers with this component.
   // https://github.com/reduxjs/react-redux/pull/1000
   _timeoutIDs = []
 
-  _setInputRef = (ref: ?NativeTextInput) => {
+  _setInputRef = (ref: typeof NativeTextInput | null) => {
     this._input = ref
   }
 
@@ -59,7 +66,7 @@ class PlainInput extends Component<InternalProps, State> {
     this._input && this._input.setNativeProps(nativeProps)
   }
 
-  transformText = (fn: TextInfo => TextInfo, reflectChange: boolean) => {
+  transformText = (fn: (textInfo: TextInfo) => TextInfo, reflectChange: boolean) => {
     if (this._controlled()) {
       const errMsg =
         'Attempted to use transformText on controlled input component. Use props.value and setSelection instead.'
@@ -116,7 +123,11 @@ class PlainInput extends Component<InternalProps, State> {
     this.props.onChangeText && this.props.onChangeText(t)
   }
 
-  _onSelectionChange = (event: {nativeEvent: {selection: Selection}}) => {
+  _onSelectionChange = (event: {
+    nativeEvent: {
+      selection: Selection
+    }
+  }) => {
     const {start: _start, end: _end} = event.nativeEvent.selection
     // Work around Android bug which sometimes puts end before start:
     // https://github.com/facebook/react-native/issues/18579 .

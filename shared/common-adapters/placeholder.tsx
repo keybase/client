@@ -1,11 +1,11 @@
-// @flow
 import * as React from 'react'
 import * as Styles from '../styles'
+// @ts-ignore not converted
 import Box from './box'
 
 type PlaceholderProps = {
-  style?: Styles.StylesCrossPlatform,
-  width?: number,
+  style?: Styles.StylesCrossPlatform
+  width?: number
 }
 
 const Placeholder = (props: PlaceholderProps) => (

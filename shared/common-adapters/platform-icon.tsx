@@ -1,21 +1,22 @@
-// @flow
 import * as React from 'react'
-import type {PlatformsExpandedType} from '../constants/types/more'
+import {PlatformsExpandedType} from '../constants/types/more'
+// @ts-ignore not converted
 import Box from './box'
-import Icon, {type IconType} from './icon'
+// @ts-ignore not converted
+import Icon, {IconType} from './icon'
 import {isMobile} from '../constants/platform'
 
 type Props = {
-  platform: PlatformsExpandedType,
-  overlay: IconType,
-  overlayColor?: string,
-  style?: Object,
+  platform: PlatformsExpandedType
+  overlay: IconType
+  overlayColor?: string
+  style?: Object
 }
 
 type IconSpec = {
-  icon: IconType,
-  offsetBottom: number,
-  offsetRight: number,
+  icon: IconType
+  offsetBottom: number
+  offsetRight: number
 }
 
 const standardOffsets = {
@@ -24,7 +25,7 @@ const standardOffsets = {
 }
 
 function _specsForMobileOrDesktop() {
-  return ({
+  return {
     btc: {icon: isMobile ? 'icon-bitcoin-logo-64' : 'icon-bitcoin-logo-48'},
     dns: {icon: isMobile ? 'icon-website-64' : 'icon-website-48'},
     dnsOrGenericWebSite: {icon: isMobile ? 'icon-website-64' : 'icon-website-48'},
@@ -39,7 +40,7 @@ function _specsForMobileOrDesktop() {
     twitter: {icon: isMobile ? 'icon-twitter-logo-64' : 'icon-twitter-logo-48'},
     web: {icon: isMobile ? 'icon-website-64' : 'icon-website-48'},
     zcash: {icon: isMobile ? 'icon-zcash-logo-64' : 'icon-zcash-logo-48'},
-  }: any)
+  } as any
 }
 
 const getSpecForPlatform = (platform: PlatformsExpandedType): IconSpec => {
