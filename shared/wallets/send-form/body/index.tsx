@@ -10,7 +10,7 @@ import {Banner as BannerType} from '../../../constants/types/wallets'
 
 type SendBodyProps = {
   banners: Array<BannerType>
-  onReviewPayments: () => void | null
+  onReviewPayments: (() => void) | null
   isProcessing?: boolean
 }
 

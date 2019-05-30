@@ -9,7 +9,7 @@ type Props = {
   accountID: Types.AccountID
   isDefaultWallet: boolean
   keybaseUser: string
-  onBack: () => void | null
+  onBack: (() => void) | null
   onReceive: () => void
   thisDeviceIsLockedOut: boolean
   unreadPayments: boolean

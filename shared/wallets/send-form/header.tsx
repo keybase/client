@@ -5,7 +5,7 @@ import {WalletBackButton} from '../common'
 
 type Props = {
   isRequest: boolean
-  onBack?: () => void | null
+  onBack?: (() => void) | null
   whiteBackground?: boolean
 }
 

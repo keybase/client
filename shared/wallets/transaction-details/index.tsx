@@ -21,7 +21,7 @@ export type NotLoadingProps = {
   // stellarPublicKey.
   memo: string
   onBack: () => void
-  onCancelPayment: () => void | null
+  onCancelPayment: (() => void) | null
   onCancelPaymentWaitingKey: string
   title: string
   // onChat is used only when counterpartyType === 'keybaseUser'.
@@ -421,6 +421,10 @@ const TransactionDetails = (props: NotLoadingProps) => {
   )
 }
 
+function isNotLoadingProps(props: Props): props is NotLoadingProps {
+  return !props.loading
+}
+
 class LoadTransactionDetails extends React.Component<Props> {
   componentDidMount() {
     this.props.onLoadPaymentDetail()
@@ -428,11 +432,11 @@ class LoadTransactionDetails extends React.Component<Props> {
   componentDidUpdate(prevProps: Props) {
     // An erased transaction ID likely means the payment was updated,
     // which means details need to be retrieved again
-    if (this.props.loading || prevProps.loading) {
+    if (!isNotLoadingProps(this.props) || !isNotLoadingProps(prevProps)) {
       return
     }
-    const props = this.props as NotLoadingProps
-    const prev = prevProps as NotLoadingProps
+    const props = this.props
+    const prev = prevProps
     if (
       (!props.transactionID || !props.senderAccountID) &&
       prev.transactionID &&

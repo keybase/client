@@ -6,7 +6,7 @@ import * as Styles from '../../styles'
 
 type Props = {
   background: Background
-  onAction?: () => void | null
+  onAction?: (() => void) | null
   reviewProofs?: boolean
   sendFailed?: boolean
   text: string

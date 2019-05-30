@@ -106,7 +106,7 @@ class Qualified extends React.PureComponent<Props, State> {
   state = {
     rowIdxLoaded: -1,
   }
-  _loadingTimerID: NodeJS.Timeout
+  _loadingTimerID: NodeJS.Timeout | null
 
   _kickNextLoad = () => {
     if (__STORYSHOT__) {

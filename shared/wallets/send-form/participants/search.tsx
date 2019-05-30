@@ -11,7 +11,7 @@ export type SearchProps = {
   onClickResult: (username: string) => void
   onShowSuggestions: () => void
   onShowTracker: (username: string) => void
-  onScanQRCode: () => void | null
+  onScanQRCode: (() => void) | null
 }
 
 type SearchState = {

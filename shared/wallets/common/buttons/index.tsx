@@ -58,7 +58,7 @@ export const SendButton = Kb.OverlayParentHOC(_SendButton)
 
 type DropdownProps = {
   disabled: boolean
-  onShowSecretKey: () => void | null
+  onShowSecretKey: (() => void) | null
   onSettings: () => void
   small?: boolean
 }

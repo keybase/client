@@ -374,10 +374,10 @@ export type Props = {
   // Ignored if counterpartyType is stellarPublicKey and yourRole is
   // receiverOnly.
   memo: string
-  onCancelPayment: () => void | null
+  onCancelPayment: (() => void) | null
   onCancelPaymentWaitingKey: string
   // onShowProfile is used only when counterpartyType === 'keybaseUser'.
-  onSelectTransaction?: () => void | null
+  onSelectTransaction?: (() => void) | null
   onShowProfile: (username: string) => void
   readState: ReadState
   selectableText: boolean
