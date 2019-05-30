@@ -4,7 +4,6 @@ import * as Types from '../../constants/types/fs'
 import Downloads, {DownloadsProps} from './downloads'
 import {isMobile} from '../../constants/platform'
 import {downloadFolder} from '../../util/file'
-import {types} from '@babel/core'
 
 const mapStateToProps = state => ({
   _downloads: state.fs.downloads,
