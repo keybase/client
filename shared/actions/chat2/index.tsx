@@ -704,7 +704,6 @@ const onChatSetConvRetention = (_, action: EngineGen.Chat1NotifyChatChatSetConvR
 const onChatSetConvSettings = (_, action: EngineGen.Chat1NotifyChatChatSetConvSettingsPayload, logger) => {
   const {conv, convID} = action.payload.params
   const conversationIDKey = Types.conversationIDToKey(convID)
-  // @ts-ignore nullish coalescing
   const newRole =
     (conv &&
       conv.convSettings &&
