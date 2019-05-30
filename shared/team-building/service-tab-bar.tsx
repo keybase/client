@@ -13,7 +13,7 @@ import {ServiceIdWithContact} from '../constants/types/team-building'
 type Props = {
   selectedService: ServiceIdWithContact
   onChangeService: (newService: ServiceIdWithContact) => void
-  serviceResultCount: {[K in ServiceIdWithContact]: number | null}
+  serviceResultCount: {[K in ServiceIdWithContact]?: number | null}
   showServiceResultCount: boolean
 }
 

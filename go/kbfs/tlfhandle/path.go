@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 // PathType describes the types for different paths
@@ -49,7 +50,7 @@ func BuildCanonicalPath(pathType PathType, paths ...string) string {
 }
 
 // BuildCanonicalPathForTlfType is like BuildCanonicalPath, but accepts a
-// tlf.Type instead of PathhType.
+// tlf.Type instead of PathType.
 func BuildCanonicalPathForTlfType(t tlf.Type, paths ...string) string {
 	var pathType PathType
 	switch t {
@@ -76,4 +77,24 @@ func BuildCanonicalPathForTlfName(t tlf.Type, tlfName tlf.CanonicalName) string 
 // does not try to canonicalize TLF names.
 func BuildCanonicalPathForTlf(tlf tlf.ID, paths ...string) string {
 	return BuildCanonicalPathForTlfType(tlf.Type(), paths...)
+}
+
+// BuildProtocolPathForTlfName builds a `keybase1.Path` for the given
+// TLF type and name.
+func BuildProtocolPathForTlfName(
+	t tlf.Type, tlfName tlf.CanonicalName) keybase1.Path {
+	var pathType PathType
+	switch t {
+	case tlf.Private:
+		pathType = PrivatePathType
+	case tlf.Public:
+		pathType = PublicPathType
+	case tlf.SingleTeam:
+		pathType = SingleTeamPathType
+	default:
+		panic(fmt.Sprintf("Unknown tlf path type: %d", t))
+	}
+
+	return keybase1.NewPathWithKbfs(
+		"/" + string(pathType) + "/" + string(tlfName))
 }
