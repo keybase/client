@@ -89,6 +89,21 @@ export type CenterOrdinal = {
   highlightMode: CenterOrdinalHighlightMode
 }
 
+export type AttachmentViewStatus = 'loading' | 'success' | 'error'
+
+export type _AttachmentViewInfo = {
+  status: AttachmentViewStatus
+  messages: I.List<Message.Message>
+  last: boolean
+}
+
+export type AttachmentViewInfo = I.RecordOf<_AttachmentViewInfo>
+
+export type AttachmentFullscreenSelection = {
+  autoPlay: boolean
+  message: Message.Message
+}
+
 export type _State = {
   accountsInfoMap: I.Map<
     Common.ConversationIDKey,
@@ -120,7 +135,7 @@ export type _State = {
   giphyWindowMap: I.Map<Common.ConversationIDKey, boolean>
   giphyResultMap: I.Map<Common.ConversationIDKey, RPCChatTypes.GiphySearchResults | null>
   pendingOutboxToOrdinal: I.Map<Common.ConversationIDKey, I.Map<Message.OutboxID, Message.Ordinal>> // messages waiting to be sent,
-  attachmentFullscreenMessage: Message.Message | null
+  attachmentFullscreenSelection: AttachmentFullscreenSelection | null
   paymentConfirmInfo: PaymentConfirmInfo | null // chat payment confirm screen data,
   paymentStatusMap: I.Map<Wallet.PaymentID, Message.ChatPaymentInfo>
   unsentTextMap: I.Map<Common.ConversationIDKey, HiddenString | null>
@@ -131,6 +146,7 @@ export type _State = {
   threadSearchQueryMap: I.Map<Common.ConversationIDKey, HiddenString | null>
   replyToMap: I.Map<Common.ConversationIDKey, Message.Ordinal>
   maybeMentionMap: I.Map<string, RPCChatTypes.UIMaybeMentionInfo>
+  attachmentViewMap: I.Map<Common.ConversationIDKey, I.Map<RPCChatTypes.GalleryItemTyp, AttachmentViewInfo>>
 } & TeamBuildingTypes.TeamBuildingSubState
 
 export type State = I.RecordOf<_State>

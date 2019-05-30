@@ -86,6 +86,9 @@
         "chat1ChatUiChatMaybeMentionUpdate": {
             "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatMaybeMentionUpdate'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatMaybeMentionUpdate'>, 'outParam'>) => void}"
         },
+        "chat1ChatUiChatLoadGalleryHit": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatLoadGalleryHit'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatLoadGalleryHit'>, 'outParam'>) => void}"
+        },
         "chat1NotifyChatNewChatActivity": {
             "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.NewChatActivity'>, 'inParam'>> & {|sessionID: number|}"
         },

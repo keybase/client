@@ -1287,6 +1287,37 @@ const messageRetry = (state, action) => {
   )
 }
 
+function* loadAttachmentView(state, action, loggger) {
+  const conversationIDKey = action.payload.conversationIDKey
+  const viewType = action.payload.viewType
+
+  const onHit = hit => {
+    const message = Constants.uiMessageToMessage(state, conversationIDKey, hit.message)
+    return message
+      ? Saga.put(Chat2Gen.createAddAttachmentViewMessage({conversationIDKey, message, viewType}))
+      : []
+  }
+  try {
+    const res = yield RPCChatTypes.localLoadGalleryRpcSaga({
+      incomingCallMap: {
+        'chat.1.chatUi.chatLoadGalleryHit': onHit,
+      },
+      params: {
+        convID: Types.keyToConversationID(conversationIDKey),
+        fromMsgID: action.payload.fromMsgID,
+        num: 50,
+        typ: viewType,
+      },
+    })
+    yield Saga.put(
+      Chat2Gen.createSetAttachmentViewStatus({conversationIDKey, last: res.last, status: 'success', viewType})
+    )
+  } catch (e) {
+    logger.error('failed to load attachment view: ' + e.message)
+    yield Saga.put(Chat2Gen.createSetAttachmentViewStatus({conversationIDKey, status: 'error', viewType}))
+  }
+}
+
 const onToggleThreadSearch = (state, action) => {
   const visible = Constants.getThreadSearchInfo(state, action.payload.conversationIDKey).visible
   return visible ? [] : RPCChatTypes.localCancelActiveSearchRpcPromise()
@@ -1755,7 +1786,6 @@ const clearSearchResults = () => SearchGen.createClearSearchResults({searchKey: 
 function* downloadAttachment(fileName: string, message: Types.Message) {
   try {
     const conversationIDKey = message.conversationIDKey
-    const ordinal = message.ordinal
     let lastRatioSent = -1 // force the first update to show no matter what
     const onDownloadProgress = ({bytesComplete, bytesTotal}) => {
       const ratio = bytesComplete / bytesTotal
@@ -1763,7 +1793,7 @@ function* downloadAttachment(fileName: string, message: Types.Message) {
       if (ratio - lastRatioSent > 0.05) {
         lastRatioSent = ratio
         return Saga.put(
-          Chat2Gen.createAttachmentLoading({conversationIDKey, isPreview: false, ordinal, ratio})
+          Chat2Gen.createAttachmentLoading({conversationIDKey, isPreview: false, message, ratio})
         )
       }
     }
@@ -1820,8 +1850,9 @@ function* attachmentFullscreenNext(state, action) {
   if (conversationIDKey === blankMessage.conversationIDKey) {
     return
   }
-  const currentFullscreen = state.chat2.attachmentFullscreenMessage || blankMessage
-  yield Saga.put(Chat2Gen.createAttachmentFullscreenSelection({message: blankMessage}))
+  const currentSelection = state.chat2.attachmentFullscreenSelection
+  const currentFullscreen = currentSelection ? currentSelection.message : blankMessage
+  yield Saga.put(Chat2Gen.createAttachmentFullscreenSelection({autoPlay: false, message: blankMessage}))
   const nextAttachmentRes = yield* Saga.callPromise(
     RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise,
     {
@@ -1840,34 +1871,22 @@ function* attachmentFullscreenNext(state, action) {
       nextMsg = uiMsg
     }
   }
-  yield Saga.put(Chat2Gen.createAttachmentFullscreenSelection({message: nextMsg}))
+  yield Saga.put(Chat2Gen.createAttachmentFullscreenSelection({autoPlay: false, message: nextMsg}))
 }
 
 const attachmentPreviewSelect = (_, action) => {
   const message = action.payload.message
-  if (Constants.isVideoAttachment(message)) {
-    // Start up the fullscreen video view
-    return RouteTreeGen.createNavigateAppend({
+  return [
+    Chat2Gen.createAttachmentFullscreenSelection({autoPlay: true, message}),
+    RouteTreeGen.createNavigateAppend({
       path: [
         {
-          props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
-          selected: 'chatAttachmentVideoFullscreen',
+          props: {},
+          selected: 'chatAttachmentFullscreen',
         },
       ],
-    })
-  } else {
-    return [
-      Chat2Gen.createAttachmentFullscreenSelection({message}),
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {},
-            selected: 'chatAttachmentFullscreen',
-          },
-        ],
-      }),
-    ]
-  }
+    }),
+  ]
 }
 
 // Handle an image pasted into a conversation
@@ -2138,8 +2157,7 @@ const desktopNavigateOnSelect = (state, action) => {
 
 // Native share sheet for attachments
 function* mobileMessageAttachmentShare(state, action, logger) {
-  const {conversationIDKey, ordinal} = action.payload
-  let message = Constants.getMessage(state, conversationIDKey, ordinal)
+  const {message} = action.payload
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
   }
@@ -2153,8 +2171,7 @@ function* mobileMessageAttachmentShare(state, action, logger) {
 
 // Native save to camera roll
 function* mobileMessageAttachmentSave(state, action, logger) {
-  const {conversationIDKey, ordinal} = action.payload
-  let message = Constants.getMessage(state, conversationIDKey, ordinal)
+  const {message} = action.payload
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
   }
@@ -3327,6 +3344,11 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<Chat2Gen.ResolveMaybeMentionPayload>(
     Chat2Gen.resolveMaybeMention,
     resolveMaybeMention
+  )
+
+  yield* Saga.chainGenerator<Chat2Gen.LoadAttachmentViewPayload>(
+    Chat2Gen.loadAttachmentView,
+    loadAttachmentView
   )
 
   yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnect, 'onConnect')

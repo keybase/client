@@ -1479,6 +1479,14 @@ func presentFlipGameID(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	return &ret
 }
 
+func PresentMessagesUnboxed(ctx context.Context, g *globals.Context, msgs []chat1.MessageUnboxed,
+	uid gregor1.UID, convID chat1.ConversationID) (res []chat1.UIMessage) {
+	for _, msg := range msgs {
+		res = append(res, PresentMessageUnboxed(ctx, g, msg, uid, convID))
+	}
+	return res
+}
+
 func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1.MessageUnboxed,
 	uid gregor1.UID, convID chat1.ConversationID) (res chat1.UIMessage) {
 	miscErr := func(err error) chat1.UIMessage {

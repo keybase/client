@@ -203,6 +203,7 @@ class SectionList extends React.Component<Props, State> {
         >
           <ReactList
             itemRenderer={this._itemRenderer}
+            itemSizeEstimator={this.props.itemSizeEstimator}
             length={this._flat.length}
             retrigger={this._flat}
             ref={this._listRef}

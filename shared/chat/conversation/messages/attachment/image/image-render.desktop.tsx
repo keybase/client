@@ -52,3 +52,7 @@ export class ImageRender extends React.Component<Props> {
 export function imgMaxWidth() {
   return 320
 }
+
+export function imgMaxWidthRaw() {
+  return 320
+}
