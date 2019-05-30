@@ -3,7 +3,7 @@ import React, {PureComponent} from 'react'
 import SimpleMarkdown from 'simple-markdown'
 import Text from '../text'
 import logger from '../../logger'
-import { Props as MarkdownProps } from '.';
+import {Props as MarkdownProps} from '.'
 import {emojiIndexByChar, emojiRegex, commonTlds} from './emoji-gen'
 import {reactOutput, previewOutput, bigEmojiOutput, markdownStyles} from './react'
 
@@ -268,9 +268,12 @@ const isAllEmoji = ast => {
   return false
 }
 
-class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {
-  hasError: boolean
-}> {
+class SimpleMarkdownComponent extends PureComponent<
+  MarkdownProps,
+  {
+    hasError: boolean
+  }
+> {
   state = {hasError: false}
 
   static getDerivedStateFromError() {

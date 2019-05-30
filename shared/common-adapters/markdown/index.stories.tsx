@@ -5,7 +5,7 @@ import HiddenString from '../../util/hidden-string'
 import * as Kb from '../index'
 import {escapePath} from '../../constants/fs'
 import {stringToPath} from '../../constants/types/fs'
-import Markdown, { MarkdownMeta } from '.';
+import Markdown, {MarkdownMeta} from '.'
 import {simpleMarkdownParser} from './shared'
 
 const cases = {
@@ -219,12 +219,15 @@ export const provider = Sb.createPropProviderWithCommon({
   }),
 })
 
-class ShowAST extends React.Component<{
-  text: string,
-  meta: MarkdownMeta | null
-}, {
-  visible: boolean
-}> {
+class ShowAST extends React.Component<
+  {
+    text: string
+    meta: MarkdownMeta | null
+  },
+  {
+    visible: boolean
+  }
+> {
   state = {visible: false}
   render = () => {
     let parsed
@@ -268,12 +271,15 @@ class ShowAST extends React.Component<{
   }
 }
 
-class ShowPreview extends React.Component<{
-  text: string,
-  meta: MarkdownMeta | null
-}, {
-  visible: boolean
-}> {
+class ShowPreview extends React.Component<
+  {
+    text: string
+    meta: MarkdownMeta | null
+  },
+  {
+    visible: boolean
+  }
+> {
   state = {visible: false}
   render = () => {
     return (
@@ -295,13 +301,7 @@ class ShowPreview extends React.Component<{
 // Adds the perf decorator and disables showing previews and ast
 const PERF_MODE = false
 
-const MarkdownWithAst = ({
-  children,
-  meta
-}: {
-  children: any,
-  meta?: MarkdownMeta | null
-}) =>
+const MarkdownWithAst = ({children, meta}: {children: any; meta?: MarkdownMeta | null}) =>
   PERF_MODE ? (
     <Markdown meta={meta}>{children}</Markdown>
   ) : (
