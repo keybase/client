@@ -70,7 +70,7 @@ const warning3 = {
 }
 
 const StatefulAssetInput: any = withStateHandlers(
-  props => ({
+  (props: any) => ({
     value: props.value,
   }),
   {
@@ -79,7 +79,7 @@ const StatefulAssetInput: any = withStateHandlers(
       return {value}
     },
   }
-)(AssetInput)
+)(AssetInput) as any
 
 const load = () => {
   Sb.storiesOf('Wallets/SendForm/Asset input', module)

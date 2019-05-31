@@ -1,8 +1,7 @@
-// @flow
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
-import UserInput, {type UserDetails} from '.'
-import ConnectedUserInput, {type OwnProps, type Props} from './container'
+import UserInput, {UserDetails} from '.'
+import ConnectedUserInput, {OwnProps, Props} from './container'
 import {Box, Box2, Text} from '../../common-adapters'
 import {collapseStyles} from '../../styles'
 import {compose, withStateHandlers} from 'recompose'
@@ -37,7 +36,7 @@ const inputCommon = {
   selectedSearchId: null,
 }
 
-const maxUsers = [
+const maxUsers: Array<UserDetails> = [
   {
     followingState: 'You',
     icon: null,
@@ -61,7 +60,7 @@ const maxUsers = [
   },
 ]
 
-const chrisUsers = [
+const chrisUsers: Array<UserDetails> = [
   {
     followingState: 'You',
     icon: null,
@@ -138,7 +137,8 @@ export const makeSelectorMap = (userItems: Array<UserDetails> = maxUsers) => ({
 
 const provider = Sb.createPropProviderWithCommon(makeSelectorMap())
 
-const UserInputEditable = compose(
+const UserInputEditable: any = compose(
+  // @ts-ignore
   withStateHandlers(props => ({userItems: props.userItems, usernameText: ''}), {
     onChangeText: (_, {onChangeText}) => usernameText => {
       onChangeText(usernameText)
@@ -150,7 +150,7 @@ const UserInputEditable = compose(
         userItems: userItems.filter(i => i.id !== id),
       }
     },
-  })
+  } as any)
 )(UserInput)
 
 const defaultBoxStyle = {

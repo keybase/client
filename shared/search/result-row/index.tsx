@@ -1,4 +1,3 @@
-// @flow
 import * as Types from '../../constants/types/search'
 import * as React from 'react'
 import {Box, Icon, ClickableBox, Divider, Text} from '../../common-adapters/index'

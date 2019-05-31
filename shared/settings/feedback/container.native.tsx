@@ -135,7 +135,7 @@ const connected = compose(
   HOCTimers
 )(FeedbackContainer)
 
-// $FlowIssue
+// @ts-ignore TODO fix
 connected.navigationOptions = {
   header: undefined,
   headerHeight: 60,

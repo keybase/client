@@ -100,13 +100,12 @@ class ReloadableDevices extends React.PureComponent<
 }
 
 const Connected = compose(
-  // @ts-ignore codemode issue
-  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'Devices'),
+  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Devices'),
   safeSubmitPerMount(['onBack'])
 )(ReloadableDevices)
 
 if (!isMobile) {
-  // $FlowIssue lets fix this
+  // @ts-ignore fix this
   Connected.navigationOptions = {
     header: undefined,
     headerRightActions: HeaderRightActions,

@@ -54,6 +54,7 @@ export default compose(
       this.props._loadLockdownMode()
       this.props._loadHasRandomPW()
     },
-  }),
+  } as any),
   HeaderHoc
+  // @ts-ignore
 )(Advanced)

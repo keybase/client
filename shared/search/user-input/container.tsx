@@ -1,41 +1,34 @@
-// @flow
 import * as Constants from '../../constants/search'
 import * as HocHelpers from '../helpers'
 import * as SearchGen from '../../actions/search-gen'
 import React from 'react'
 import ServiceFilter from '../services-filter'
-import UserInput, {type Props as _Props} from '.'
+import UserInput, {Props as _Props} from '.'
 import {Box, Text} from '../../common-adapters'
 import {namedConnect} from '../../util/container'
-import {
-  globalStyles,
-  globalMargins,
-  globalColors,
-  collapseStyles,
-  type StylesCrossPlatform,
-} from '../../styles'
+import {globalStyles, globalMargins, globalColors, collapseStyles, StylesCrossPlatform} from '../../styles'
 import {parseUserId, serviceIdToIcon} from '../../util/platforms'
 import {withStateHandlers, withHandlers, withProps, compose, lifecycle} from 'recompose'
 
-import type {TypedState} from '../../constants/reducer'
+import {TypedState} from '../../constants/reducer'
 
-export type OwnProps = {|
-  searchKey: string,
-  autoFocus?: boolean,
-  focusInputCounter?: number,
-  placeholder?: string,
-  onFocus?: () => void,
-  onChangeSearchText?: (searchText: string) => void,
-  onExitSearch: ?() => void,
-  onSelectUser?: (id: string) => void,
-  hideAddButton?: boolean,
-  disableListBuilding?: boolean,
-  showServiceFilter: boolean,
-  style?: StylesCrossPlatform,
+export type OwnProps = {
+  searchKey: string
+  autoFocus?: boolean
+  focusInputCounter?: number
+  placeholder?: string
+  onFocus?: () => void
+  onChangeSearchText?: (searchText: string) => void
+  onExitSearch: (() => void) | null
+  onSelectUser?: (id: string) => void
+  hideAddButton?: boolean
+  disableListBuilding?: boolean
+  showServiceFilter: boolean
+  style?: StylesCrossPlatform
   // Defaults to true. Desktop only, as clearSearch isn't used on mobile.
   // Note that the way that user input is super wonky with all these HOCs. If we ever refactor, we probably won't need this prop.
-  hideClearSearch?: boolean,
-|}
+  hideClearSearch?: boolean
+}
 
 const UserInputWithServiceFilter = props => (
   <Box
@@ -87,8 +80,15 @@ const UserInputWithServiceFilter = props => (
   </Box>
 )
 
-const getSearchResultTerm = ({entities}: TypedState, {searchKey}: {searchKey: string}) => {
-  const searchResultQuery = entities.getIn(['search', 'searchKeyToSearchResultQuery', searchKey], null)
+const getSearchResultTerm = (
+  {entities}: TypedState,
+  {
+    searchKey,
+  }: {
+    searchKey: string
+  }
+) => {
+  const searchResultQuery = entities.getIn(['search', 'searchKeyToSearchResultQuery', searchKey]) || null
   return searchResultQuery && searchResultQuery.text
 }
 
@@ -161,12 +161,12 @@ const mapDispatchToProps = (dispatch, {searchKey}) => ({
 
 export type Props = _Props & {
   // From onChangeSelectedSearchResultHoc.
-  search: Function,
+  search: Function
 }
 
 const noResults = []
-const ConnectedUserInput = compose(
-  namedConnect<OwnProps, _, _, _, _>(
+const ConnectedUserInput: any = compose(
+  namedConnect(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o: OwnProps) => ({
@@ -177,44 +177,43 @@ const ConnectedUserInput = compose(
     }),
     'UserInput'
   ),
-  withStateHandlers(
-    {searchText: '', selectedService: 'Keybase'},
-    {
-      _onSelectService: () => selectedService => ({selectedService}),
-      onChangeSearchText: (_, props) => searchText => {
-        if (props.onChangeSearchText) {
-          props.onChangeSearchText(searchText)
-        }
-        return {searchText}
-      },
-    }
-  ),
+  withStateHandlers({searchText: '', selectedService: 'Keybase'}, {
+    _onSelectService: () => selectedService => ({selectedService}),
+    onChangeSearchText: (_, props) => searchText => {
+      if (props.onChangeSearchText) {
+        props.onChangeSearchText(searchText)
+      }
+      return {searchText}
+    },
+  } as any),
   HocHelpers.onChangeSelectedSearchResultHoc,
   HocHelpers.clearSearchHoc,
   HocHelpers.placeholderServiceHoc,
-  withProps(props => ({
+  withProps((props: any) => ({
     showServiceFilter: (props.showServiceFilterIfInputEmpty || !!props.searchText) && props.showServiceFilter,
   })),
-  withHandlers(() => {
-    let input
-    return {
-      onClickAddButton: props => () => {
-        props.search('', props.selectedService)
-      },
-      onFocusInput: () => () => {
-        input && input.focus()
-      },
-      onSelectService: props => nextService => {
-        props._onSelectService(nextService)
-        props.clearSearchResults()
-        props.search(props.searchText, nextService)
-        input && input.focus()
-      },
-      setInputRef: () => el => {
-        input = el
-      },
+  withHandlers(
+    (): any => {
+      let input
+      return {
+        onClickAddButton: props => () => {
+          props.search('', props.selectedService)
+        },
+        onFocusInput: () => () => {
+          input && input.focus()
+        },
+        onSelectService: props => nextService => {
+          props._onSelectService(nextService)
+          props.clearSearchResults()
+          props.search(props.searchText, nextService)
+          input && input.focus()
+        },
+        setInputRef: () => el => {
+          input = el
+        },
+      }
     }
-  }),
+  ),
   lifecycle({
     componentDidUpdate(prevProps) {
       if (this.props.focusInputCounter !== prevProps.focusInputCounter) {
@@ -233,7 +232,7 @@ const ConnectedUserInput = compose(
         this.props.onChangeSearchText('')
       }
     },
-  })
+  } as any)
 )(UserInputWithServiceFilter)
 
 export default ConnectedUserInput

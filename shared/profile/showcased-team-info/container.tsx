@@ -76,5 +76,6 @@ export default compose(
       this.props._loadTeams()
       this.props._checkRequestedAccess()
     },
-  })
+  } as any)
+  // @ts-ignore
 )(ShowcasedTeamInfo)

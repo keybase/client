@@ -35,11 +35,11 @@ export default compose(
   withStateHandlers({name: ''}, {onNameChange: () => (name: string) => ({name: name.toLowerCase()})}),
   withHandlers({
     onSubmit: ({name, _onJoinTeam}) => () => _onJoinTeam(name),
-  }),
+  } as any),
   lifecycle({
     componentDidMount() {
       this.props._onSetTeamJoinError('')
       this.props._onSetTeamJoinSuccess(false, null)
     },
-  })
-)(JoinTeamDialog)
+  } as any)
+)(JoinTeamDialog as any)

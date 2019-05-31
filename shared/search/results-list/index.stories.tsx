@@ -1,16 +1,15 @@
-// @flow
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as Styles from '../../styles'
 import ResultsList from '.'
-import ConnectedResultsList, {type OwnProps, type Props} from './container'
+import ConnectedResultsList, {OwnProps, Props} from './container'
 import {Box} from '../../common-adapters'
 import {
-  type ConnectPropsMap as RowConnectPropsMap,
+  ConnectPropsMap as RowConnectPropsMap,
   makeSelectorMap as makeRowSelectorMap,
 } from '../result-row/index.stories'
 
-const defaultConnectPropsMap: RowConnectPropsMap = {
+const defaultConnectPropsMap: any = {
   chris: {
     leftFollowingState: 'Following',
     leftFullname: 'chris on GitHub',
@@ -87,7 +86,7 @@ const mockOwnPropsToProps = (rowConnectPropsMap: RowConnectPropsMap, ownProps: O
     pending: false,
     selectedId: null,
     showSearchSuggestions: false,
-  }
+  } as Props
 }
 
 const defaultOwnProps: OwnProps = {
