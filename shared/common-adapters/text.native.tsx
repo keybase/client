@@ -83,10 +83,10 @@ class Text extends Component<Props> {
     const dynamicStyle = this.props.negative
       ? _getStyle(
           this.props.type,
-          !!this.props.underline,
           this.props.negative,
           this.props.lineClamp,
-          !!this.props.onClick
+          !!this.props.onClick,
+          !!this.props.underline
         )
       : {}
 
@@ -132,10 +132,12 @@ class Text extends Component<Props> {
 // external things call this so leave the original alone
 function _getStyle(
   type: TextType,
-  forceUnderline: boolean,
   negative?: boolean,
   lineClampNum?: number | null,
-  clickable?: boolean | null
+  clickable?: boolean | null,
+  // @ts-ignore the order of these parameters because this is used in a lot
+  // of places
+  forceUnderline: boolean
 ) {
   if (!negative) {
     return forceUnderline ? {textDecorationLine: 'underline'} : {}

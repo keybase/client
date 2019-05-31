@@ -39,11 +39,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
 })
 
 export default Container.compose(
-  Container.connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
+  Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
   Container.withStateHandlers(
     // $FlowIssue don't use recompose
     {name: ''},

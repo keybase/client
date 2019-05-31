@@ -54,7 +54,8 @@ declare function getStyle(
   type: TextType,
   backgroundMode?: Background | null,
   lineClamp?: number | null,
-  clickable?: boolean | null
+  clickable?: boolean | null,
+  selectable?: boolean
 ): Object
 
 export {getStyle, allTextTypes}

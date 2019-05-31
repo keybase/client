@@ -114,10 +114,11 @@ function fastGetStyle(
 // Only used by external components
 function externalGetStyle(
   type: TextType,
-  selectable: boolean | null,
   negative?: boolean,
   lineClampNum?: number | null,
-  clickable?: boolean | null
+  clickable?: boolean | null,
+  // @ts-ignore keep these in the old order because they're used elsewhere
+  selectable: boolean | null
 ) {
   const meta = metaData[type]
   const sizeStyle = fontSizeToSizeStyle(meta.fontSize)

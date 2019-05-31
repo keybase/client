@@ -16,7 +16,7 @@ type TextProps = {
   children: React.ReactNode
   color?: Styles.Color
   fontSize?: number
-  onClick?: (event: React.SyntheticEvent) => void | null
+  onClick?: ((event: React.SyntheticEvent) => void) | null
   opacity?: boolean
   sizeType: SizeType
   style?: Styles.StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>
@@ -32,7 +32,7 @@ const _Text = (p: TextProps, ref) => {
 
   const color =
     p.color ||
-    // @ts-ignore flow is correct but we do actually pass in this color
+    // @ts-ignore TS is correct but we do actually pass in this color
     // sometimes. TODO remove this
     (pStyle && p.style.color) ||
     Shared.defaultColor(p.type) ||
