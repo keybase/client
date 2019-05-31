@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
+import * as Types from '../constants/types/team-building'
 import UserBubble from './user-bubble'
 import TeamBuilding from './index'
 import Input from './input'
@@ -15,7 +16,7 @@ const provider = Sb.createPropProviderWithCommon(
 const generateTeamSofar = (count: number) => {
   const adjs = ['shaky', 'ded', 'smol', 'big', 'breaker of chains,', 'the kind', 'the erudite']
   const nouns = ['dino', 'frog', 'potato', 'dog', 'chris']
-  const services = ['keybase', 'twitter', 'reddit']
+  const services: Array<Types.ServiceIdWithContact> = ['keybase', 'twitter', 'reddit']
   return new Array(count).fill('').map((v, i) => {
     const adj = adjs[i % adjs.length]
     const noun = nouns[Math.floor(i / adjs.length) % nouns.length]
@@ -542,7 +543,14 @@ const load = () => {
     ))
 
   // Add active for every service
-  const servicesToDisplay = ['keybase', 'twitter', 'facebook', 'github', 'reddit', 'hackernews']
+  const servicesToDisplay: Array<Types.ServiceIdWithContact> = [
+    'keybase',
+    'twitter',
+    'facebook',
+    'github',
+    'reddit',
+    'hackernews',
+  ]
   servicesToDisplay.forEach(service => {
     Sb.storiesOf('Team-Building/Service Tab Bar', module).add(`${service} selected`, () => (
       <ServiceTabBar
@@ -570,7 +578,7 @@ const load = () => {
           twitter: 'malgorithms on Twitter',
         }}
         inTeam={false}
-        followingState="Following"
+        followingState={'Following'}
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
       />
@@ -589,7 +597,7 @@ const load = () => {
           twitter: 'malgorithms on Twitter',
         }}
         inTeam={true}
-        followingState="Following"
+        followingState={'Following'}
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
       />
@@ -602,7 +610,7 @@ const load = () => {
         highlight={false}
         services={{github: 'marcopolo', keybase: 'marcopolo'}}
         inTeam={true}
-        followingState="Following"
+        followingState={'Following'}
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
       />
@@ -615,7 +623,7 @@ const load = () => {
         highlight={false}
         services={{github: 'marcopolo'}}
         inTeam={true}
-        followingState="NoState"
+        followingState={'NoState'}
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
       />
@@ -632,7 +640,7 @@ const load = () => {
           twitter: 'malgorithms on Twitter',
         }}
         inTeam={true}
-        followingState="Following"
+        followingState={'Following'}
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
         highlight={true}

@@ -39,11 +39,11 @@ export default compose(
       onChange: () => (deviceName: string) => ({deviceName: Constants.cleanDeviceName(deviceName)}),
     }
   ),
-  // @ts-ignore codemode issue
-  connect<OwnProps, _, _, _, _>(
+  connect(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps
   ),
   safeSubmit(['onSubmit', 'onBack'], ['deviceName', 'error'])
+  // @ts-ignore
 )(SetPublicName)

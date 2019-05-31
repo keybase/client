@@ -74,7 +74,7 @@ class PaymentStateHolder extends Component<Props, State> {
 export default connect(
   (state: TypedState, ownProps: OwnProps) => {
     const {
-      // $FlowIssue
+      // @ts-ignore doesn't exist
       planBilling: {plan, errorMessage},
     } = state
     if (!plan) {
@@ -93,12 +93,15 @@ export default connect(
   },
   (dispatch: (a: any) => void, ownProps: OwnProps) => ({
     clearBillingError: () => {
+      // @ts-ignore
       dispatch(actions.clearBillingError())
     },
     onBootstrap: () => {
+      // @ts-ignore
       dispatch(actions.bootstrapData())
     },
     onSubmit: args => {
+      // @ts-ignore
       dispatch(actions.updateBilling(args))
     },
   }),

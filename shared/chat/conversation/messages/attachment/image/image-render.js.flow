@@ -1,5 +1,0 @@
-// @flow
-import * as React from 'react'
-import type {Props} from './image-render.types'
-declare export class ImageRender extends React.Component<Props> {}
-declare export function imgMaxWidth(): number

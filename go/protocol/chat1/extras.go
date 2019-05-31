@@ -1711,6 +1711,14 @@ func (r *GetInboxAndUnboxLocalRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
+func (r *LoadFlipRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *LoadFlipRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
 func (r *GetInboxAndUnboxUILocalRes) GetRateLimit() []RateLimit {
 	return r.RateLimits
 }
@@ -2037,6 +2045,14 @@ func (r *SetRetentionRes) GetRateLimit() (res []RateLimit) {
 
 func (r *SetRetentionRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimit = &rl[0]
+}
+
+func (r *LoadGalleryRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *LoadGalleryRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
 }
 
 func (i EphemeralPurgeInfo) String() string {

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import Pinentry from './index.desktop'
 import {action, storiesOf} from '../stories/storybook'
-import {passphraseCommonPassphraseType} from '../constants/types/rpc-gen'
+import {PassphraseType} from '../constants/types/rpc-gen'
 
 const props = {
   onCancel: action('onCancel'),
@@ -9,14 +9,14 @@ const props = {
   prompt: 'Enter your password to unlock the secret key for home computer.',
   retryLabel: undefined,
   showTyping: {allow: true, defaultValue: false, label: 'Show typing', readonly: false},
-  type: passphraseCommonPassphraseType.passPhrase,
+  type: PassphraseType.passPhrase,
 }
 
 const paperkeyProps = {
   ...props,
   prompt: 'Enter your paper key to continue.',
   showTyping: {allow: true, defaultValue: true, label: 'Show typing', readonly: false},
-  type: passphraseCommonPassphraseType.paperKey,
+  type: PassphraseType.paperKey,
 }
 
 const load = () => {

@@ -13,7 +13,7 @@ type OwnProps = RouteProps<
 
 const mapStateToProps = (state, {routeProps}) => {
   const gitMap = Constants.getIdToGit(state)
-  const git = (gitMap && gitMap.get(routeProps.get('id'))) || {}
+  const git = (gitMap && gitMap.get(routeProps.get('id'))) || Constants.makeGitInfo()
 
   return {
     error: Constants.getError(state),
@@ -44,8 +44,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 
 const NullWrapper = props => (props.name ? <DeleteRepo {...props} /> : null)
 
-// @ts-ignore codemod issue
-export default connect<OwnProps, _, _, _, _>(
+export default connect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

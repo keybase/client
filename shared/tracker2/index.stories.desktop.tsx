@@ -10,7 +10,7 @@ const assertion = {
   proofURL: '',
   siteIcon: [],
   siteURL: '',
-  state: 'valid',
+  state: 'valid' as 'valid',
 }
 
 const github = {
@@ -22,28 +22,28 @@ const twitter = {
   ...assertion,
   assertion: 'twitter:twitteruser',
   color: 'gray',
-  state: 'checking',
+  state: 'checking' as 'checking',
   type: 'twitter',
 }
 const facebook = {
   ...assertion,
   assertion: 'facebook:facebookuser',
   color: 'red',
-  state: 'error',
+  state: 'error' as 'error',
   type: 'facebook',
 }
 const hackernews = {
   ...assertion,
   assertion: 'hackernews:hackernewsuser',
   color: 'yellow',
-  state: 'warning',
+  state: 'warning' as 'warning',
   type: 'hackernews',
 }
 const reddit = {
   ...assertion,
   assertion: 'reddit:reddituser',
   color: 'red',
-  state: 'revoked',
+  state: 'revoked' as 'revoked',
   type: 'reddit',
 }
 const pgp = {...assertion, assertion: 'pgp:DEADBEEFFEEBDAED', type: 'pgp'}
@@ -114,7 +114,7 @@ const trackerOnlyProps = {
   onIgnoreFor24Hours: Sb.action('onIgnoreFor24Hours'),
   onReload: Sb.action('onReload'),
   reason: 'You accessed a private folder with gabrielh.',
-  state: 'valid',
+  state: 'valid' as 'valid',
   teamShowcase: [],
   username: 'darksim905',
 }
@@ -196,7 +196,8 @@ const trackerProps = username => ({
     username === 'longreason'
       ? 'This is a very very very very very very very very very very very very very very very very very very very very very very very very very very very very long reason'
       : props.reason,
-  state: username === 'red' ? 'error' : username === 'green' ? 'valid' : props.state,
+  state:
+    username === 'red' ? ('error' as 'error') : username === 'green' ? ('valid' as 'valid') : props.state,
   teamShowcase: username === 'teams' ? teams : props.teamShowcase,
   username,
 })

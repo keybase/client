@@ -99,6 +99,9 @@ func (p CommandLine) GetPvlKitFilename() string {
 func (p CommandLine) GetParamProofKitFilename() string {
 	return p.GetGString("paramproof-kit")
 }
+func (p CommandLine) GetExternalURLKitFilename() string {
+	return p.GetGString("externalurl-kit")
+}
 func (p CommandLine) GetProveBypass() (bool, bool) {
 	return p.GetBool("prove-bypass", true)
 }

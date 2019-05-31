@@ -30,8 +30,7 @@ func GetJournalManager(config Config) (*JournalManager, error) {
 // given TLF.
 func TLFJournalEnabled(config Config, tlfID tlf.ID) bool {
 	if jManager, err := GetJournalManager(config); err == nil {
-		_, err := jManager.JournalStatus(tlfID)
-		return err == nil
+		return jManager.JournalEnabled(tlfID)
 	}
 	return false
 }

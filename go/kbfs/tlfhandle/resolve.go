@@ -250,9 +250,13 @@ func makeHandleHelper(
 		tlfID:             tlfID,
 	}
 
-	if !isImplicit && h.tlfID == tlf.NullID && idGetter != nil {
+	needIDLookup := (!isImplicit && h.tlfID == tlf.NullID) ||
+		(conflictInfo != nil &&
+			conflictInfo.Type == tlf.HandleExtensionLocalConflict)
+	if needIDLookup && idGetter != nil {
 		// If this isn't an implicit team yet, look up possible
-		// pre-existing TLF ID from the mdserver.
+		// pre-existing TLF ID from the mdserver.  If this is a local
+		// conflict branch, look up the fake TLF ID from the journal.
 		tlfID, err := idGetter.GetIDForHandle(ctx, h)
 		if err != nil {
 			return nil, err
@@ -372,6 +376,29 @@ func MakeHandle(
 	return h, nil
 }
 
+// MakeHandleWithTlfID is like `MakeHandle`, but it ensures the
+// handle's TLF ID is always set to `tlfID`, even if it corresponds to
+// an implicit team for which the iteam settings don't yet contain a
+// TLF ID (due to a cross-device race or certain testing scenarios).
+func MakeHandleWithTlfID(
+	ctx context.Context, bareHandle tlf.Handle, t tlf.Type,
+	resolver idutil.Resolver, nug idutil.NormalizedUsernameGetter,
+	tlfID tlf.ID, offline keybase1.OfflineAvailability) (
+	*Handle, error) {
+	handle, err := MakeHandle(
+		ctx, bareHandle, t, resolver, nug, ConstIDGetter{ID: tlfID}, offline)
+	if err != nil {
+		return nil, err
+	}
+	if handle.TlfID() == tlf.NullID {
+		// In cases (mostly in testing) where the iteam settings don't
+		// yet contain the TLF ID, the idGetter will never even get
+		// called, so we need to set it manually here.
+		handle.SetTlfID(tlfID)
+	}
+	return handle, nil
+}
+
 type resolvableNameUIDPair nameIDPair
 
 func (rp resolvableNameUIDPair) resolve(ctx context.Context) (
@@ -468,7 +495,12 @@ func (h Handle) ResolvesTo(
 	resolvesTo bool, partialResolvedH *Handle, err error) {
 	// Check the conflict extension.
 	var conflictAdded, finalizedAdded bool
-	if !h.IsConflict() && other.IsConflict() {
+	if (h.IsConflict() && other.IsLocalConflict()) ||
+		(h.IsLocalConflict() && other.IsConflict()) {
+		return false, nil, errors.New(
+			"Can't transition between conflict and local conflict")
+	} else if (!h.IsConflict() && other.IsConflict()) ||
+		(!h.IsLocalConflict() && other.IsLocalConflict()) {
 		conflictAdded = true
 		// Ignore the added extension for resolution comparison purposes.
 		other.conflictInfo = nil
@@ -758,9 +790,23 @@ func parseHandleLoose(
 	// that doesn't work, fall through to individual name resolution.
 	var iteamHandle *Handle
 	if doResolveImplicit(ctx, t) {
-		rit := resolvableImplicitTeam{kbpki, name, t, offline}
+		// The service doesn't know about local conflict branches, so
+		// strip those out before resolving if needed.
+		assertions, extensionSuffix, err := tlf.SplitExtension(name)
+		if err != nil {
+			return nil, err
+		}
+
+		iteamName := name
+		var iteamExtensions tlf.HandleExtensionList
+		if tlf.ContainsLocalConflictExtensionPrefix(extensionSuffix) {
+			iteamName = assertions
+			iteamExtensions = tlf.HandleExtensionList(extensions)
+		}
+
+		rit := resolvableImplicitTeam{kbpki, iteamName, t, offline}
 		iteamHandle, err = makeHandleHelper(
-			ctx, t, []resolvableUser{rit}, nil, nil, idGetter)
+			ctx, t, []resolvableUser{rit}, nil, iteamExtensions, idGetter)
 		if err == nil && iteamHandle.tlfID != tlf.NullID {
 			// The iteam already has a TLF ID, let's use it.
 

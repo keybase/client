@@ -49,7 +49,7 @@ const config = (_, {mode}) => {
         use: ['null-loader'],
       },
       {
-        exclude: /((node_modules\/(?!universalify|fs-extra|react-redux))|\/dist\/)/,
+        exclude: /((node_modules\/(?!universalify|fs-extra|react-redux|redux-saga))|\/dist\/)/,
         test: /\.(ts|js)x?$/,
         use: [babelRule],
       },

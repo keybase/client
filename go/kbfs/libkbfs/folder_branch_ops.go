@@ -68,6 +68,7 @@ const (
 	archive                          // an online, read-only branch
 	offline                          // an offline, read-write branch
 	archiveOffline                   // an offline, read-only branch
+	conflict                         // a cleared, local conflict branch
 )
 
 // Constants used in this file.  TODO: Make these configurable?
@@ -407,7 +408,7 @@ func newFolderBranchOps(
 		for _, f := range config.RootNodeWrappers() {
 			nodeCache.AddRootWrapper(f)
 		}
-		if bType == archive {
+		if bType == archive || bType == conflict {
 			nodeCache.AddRootWrapper(readonlyWrapper)
 		}
 	}
@@ -2859,7 +2860,7 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 		fbo.mdWriterLock.Lock(lState)
 		defer fbo.mdWriterLock.Unlock(lState)
 
-		if md.MergedStatus() == kbfsmd.Unmerged {
+		if md.MergedStatus() == kbfsmd.Unmerged && fbo.bType != conflict {
 			mdops := fbo.config.MDOps()
 			mergedMD, err := mdops.GetForTLF(ctx, fbo.id(), nil)
 			if err != nil {
@@ -6918,7 +6919,7 @@ func (fbo *folderBranchOps) undoUnmergedMDUpdatesLocked(
 			for _, ptr := range op.Refs() {
 				if ptr != data.ZeroPtr {
 					unflushed, err := fbo.config.BlockServer().IsUnflushed(
-						ctx, rmd.tlfHandle.TlfID(), ptr.ID)
+						ctx, fbo.id(), ptr.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -6930,7 +6931,7 @@ func (fbo *folderBranchOps) undoUnmergedMDUpdatesLocked(
 			for _, update := range op.allUpdates() {
 				if update.Ref != data.ZeroPtr {
 					unflushed, err := fbo.config.BlockServer().IsUnflushed(
-						ctx, rmd.tlfHandle.TlfID(), update.Ref.ID)
+						ctx, fbo.id(), update.Ref.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -6976,17 +6977,9 @@ func (fbo *folderBranchOps) unstageLocked(ctx context.Context,
 			return err
 		}
 
-		if tlfJournal, ok := jManager.getTLFJournal(fbo.id(), nil); ok {
-			err = tlfJournal.wait(ctx)
-			if err != nil {
-				return err
-			}
-			err = tlfJournal.moveAway(ctx)
-			if err != nil {
-				return err
-			}
-		} else {
-			return errJournalNotAvailable
+		err = jManager.MoveAway(ctx, fbo.id())
+		if err != nil {
+			return err
 		}
 	}
 
@@ -9047,8 +9040,13 @@ func (fbo *folderBranchOps) SetSyncConfig(
 	}
 
 	if config.Mode == keybase1.FolderSyncMode_ENABLED {
-		fbo.log.CDebugf(ctx, "Starting full deep sync")
-		_ = fbo.kickOffRootBlockFetch(ctx, md)
+		// Make a new ctx for the root block fetch, since it will
+		// continue after this function returns.
+		rootBlockCtx := fbo.ctxWithFBOID(context.Background())
+		fbo.log.CDebugf(
+			ctx, "Starting full deep sync with a new context: FBOID=%s",
+			rootBlockCtx.Value(CtxFBOIDKey))
+		_ = fbo.kickOffRootBlockFetch(rootBlockCtx, md)
 	}
 
 	// Issue notifications to client when sync mode changes (or is partial).

@@ -64,8 +64,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 }
 
 export default compose(
-  // @ts-ignore codemod issue
-  connect<OwnProps, _, _, _, _>(
+  connect(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps
@@ -74,8 +73,8 @@ export default compose(
     componentDidMount() {
       this.props.onLoad()
     },
-  }),
-  withStateHandlers(props => ({selected: props._selected}), {
+  } as any),
+  withStateHandlers((props: any): any => ({selected: props._selected}), {
     onSelect: () => (selected: string) => ({selected}),
   }),
   withHandlers({
@@ -83,5 +82,5 @@ export default compose(
       _onSubmit(selected)
       onCancel()
     },
-  })
+  } as any)
 )(HeaderOrPopup(SelectChannel))

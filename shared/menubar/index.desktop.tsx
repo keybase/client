@@ -22,14 +22,14 @@ export type Props = {
   kbfsEnabled: boolean
   updateNow: () => void
   onRekey: (path: string) => void
-  openApp: (tab: string | null) => void
+  openApp: (tab?: string) => void
   outOfDate?: ConfigTypes.OutOfDate
   showInFinder: () => void
   quit: () => void
   refreshUserFileEdits: () => void
   showBug: () => void
   showHelp: () => void
-  showUser: (username: string | null) => void
+  showUser: (username?: string) => void
   username: string | null
   waitForKbfsDaemon: () => void
   badgeInfo: {[K in string]: number}
@@ -48,7 +48,7 @@ class MenubarRender extends React.Component<Props, State> {
 
   _refreshUserFileEditsOrWaitForKbfsDaemon = () =>
     this.props.loggedIn &&
-    (this.props.kbfsDaemonStatus.rpcStatus === 'connected'
+    (this.props.kbfsDaemonStatus.rpcStatus === FsTypes.KbfsDaemonRpcStatus.Connected
       ? this.props.refreshUserFileEdits()
       : this.props.waitForKbfsDaemon())
 
@@ -322,7 +322,7 @@ class MenubarRender extends React.Component<Props, State> {
         <OutOfDate outOfDate={this.props.outOfDate} updateNow={this.props.updateNow} />
         <Kb.ScrollView>
           <ChatContainer convLimit={3} />
-          {this.props.kbfsDaemonStatus.rpcStatus === 'connected' ? (
+          {this.props.kbfsDaemonStatus.rpcStatus === FsTypes.KbfsDaemonRpcStatus.Connected ? (
             <FilesPreview />
           ) : (
             <Kb.Box2 direction="vertical" fullWidth={true} style={{height: 200}}>

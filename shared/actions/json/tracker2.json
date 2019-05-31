@@ -26,7 +26,7 @@
     "updateResult": {
       "guiID": "string",
       "result": "Types.DetailsState",
-      "reason": "?string"
+      "reason": "string | null"
     },
     "closeTracker": {
       "guiID": "string"
@@ -48,12 +48,12 @@
       "followers": "Array<{following: boolean, followsYou: boolean, fullname: string, username: string}>"
     },
     "getProofSuggestions": {},
-    "proofSuggestionsUpdated": {"suggestions": "$ReadOnlyArray<Types.Assertion>"},
+    "proofSuggestionsUpdated": {"suggestions": "ReadonlyArray<Types.Assertion>"},
     "showUser": {
       "_description": "Short term until new nav, a convenience to show a card from inside the app",
       "asTracker": "boolean",
       "username": "string",
-      "skipNav?": "boolean",
+      "skipNav?": "boolean"
     }
   }
 }

@@ -33,6 +33,7 @@ const connectedHeaderHoc = Container.compose(
     (s, d, o) => ({...o, ...s, ...d})
   ),
   HeaderHoc
+  // @ts-ignore
 )(About)
 
 export default connectedHeaderHoc

@@ -113,7 +113,7 @@ type MessageDeliverer interface {
 
 type RegexpSearcher interface {
 	Search(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-		re *regexp.Regexp, uiCh chan chat1.ChatSearchHit, opts chat1.SearchOpts) ([]chat1.ChatSearchHit, error)
+		re *regexp.Regexp, uiCh chan chat1.ChatSearchHit, opts chat1.SearchOpts) ([]chat1.ChatSearchHit, []chat1.MessageUnboxed, error)
 }
 
 type Indexer interface {
@@ -476,7 +476,7 @@ type CoinFlipManager interface {
 	MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1.MessageBoxed, inboxVers chat1.InboxVers,
 		uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType) bool
 	LoadFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID, hostMsgID chat1.MessageID,
-		flipConvID chat1.ConversationID, gameID chat1.FlipGameID)
+		flipConvID chat1.ConversationID, gameID chat1.FlipGameID) (chan chat1.UICoinFlipStatus, chan error)
 	DescribeFlipText(ctx context.Context, text string) string
 	HasActiveGames(ctx context.Context) bool
 	IsFlipConversationCreated(ctx context.Context, outboxID chat1.OutboxID) (chat1.ConversationID, FlipSendStatus)

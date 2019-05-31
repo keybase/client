@@ -114,6 +114,8 @@ type loadGameJob struct {
 	hostMsgID  chat1.MessageID
 	gameID     chat1.FlipGameID
 	flipConvID chat1.ConversationID
+	resCh      chan chat1.UICoinFlipStatus
+	errCh      chan error
 }
 
 type convParticipationsRateLimit struct {
@@ -605,7 +607,7 @@ func (m *FlipManager) formatError(ctx context.Context, rawErr error) chat1.UICoi
 }
 
 func (m *FlipManager) handleSummaryUpdate(ctx context.Context, gameID chat1.FlipGameID,
-	update *flip.GameSummary, convID chat1.ConversationID, force bool) {
+	update *flip.GameSummary, convID chat1.ConversationID, force bool) (status chat1.UICoinFlipStatus) {
 	defer m.queueDirtyGameID(ctx, gameID, force)
 	if update.Err != nil {
 		var parts []chat1.UICoinFlipParticipant
@@ -614,16 +616,17 @@ func (m *FlipManager) handleSummaryUpdate(ctx context.Context, gameID chat1.Flip
 			parts = oldGame.(chat1.UICoinFlipStatus).Participants
 		}
 		formatted := m.formatError(ctx, update.Err)
-		m.games.Add(gameID.String(), chat1.UICoinFlipStatus{
+		status = chat1.UICoinFlipStatus{
 			GameID:       gameID.String(),
 			Phase:        chat1.UICoinFlipPhase_ERROR,
 			ProgressText: fmt.Sprintf("Something went wrong: %s", update.Err),
 			Participants: parts,
 			ErrorInfo:    &formatted,
-		})
-		return
+		}
+		m.games.Add(gameID.String(), status)
+		return status
 	}
-	status := chat1.UICoinFlipStatus{
+	status = chat1.UICoinFlipStatus{
 		GameID: gameID.String(),
 		Phase:  chat1.UICoinFlipPhase_COMPLETE,
 	}
@@ -642,6 +645,7 @@ func (m *FlipManager) handleSummaryUpdate(ctx context.Context, gameID chat1.Flip
 	}
 	status.ProgressText = "Complete"
 	m.games.Add(gameID.String(), status)
+	return status
 }
 
 func (m *FlipManager) handleUpdate(ctx context.Context, update flip.GameStateUpdateMessage, force bool) (err error) {
@@ -1263,6 +1267,11 @@ func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error)
 	defer m.Trace(ctx, func() error { return err },
 		"loadGame: hostConvID: %s flipConvID: %s gameID: %s hostMsgID: %d",
 		job.hostConvID, job.flipConvID, job.gameID, job.hostMsgID)()
+	defer func() {
+		if err != nil {
+			job.errCh <- err
+		}
+	}()
 
 	// Check to make sure the flip conversation aligns with the host message
 	flipConvID := job.flipConvID
@@ -1339,10 +1348,10 @@ func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error)
 				}
 			}
 			m.Debug(ctx, "loadGame: game had no action after pausing, sending error")
-			m.handleSummaryUpdate(ctx, job.gameID, summary, flipConvID, true)
+			job.resCh <- m.handleSummaryUpdate(ctx, job.gameID, summary, flipConvID, true)
 		}(globals.BackgroundChatCtx(ctx, m.G()), summary)
 	} else {
-		m.handleSummaryUpdate(ctx, job.gameID, summary, flipConvID, true)
+		job.resCh <- m.handleSummaryUpdate(ctx, job.gameID, summary, flipConvID, true)
 	}
 	return nil
 }
@@ -1363,7 +1372,7 @@ func (m *FlipManager) loadGameLoop(shutdownCh chan struct{}) {
 
 // LoadFlip implements the types.CoinFlipManager interface
 func (m *FlipManager) LoadFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID,
-	hostMsgID chat1.MessageID, flipConvID chat1.ConversationID, gameID chat1.FlipGameID) {
+	hostMsgID chat1.MessageID, flipConvID chat1.ConversationID, gameID chat1.FlipGameID) (res chan chat1.UICoinFlipStatus, err chan error) {
 	defer m.Trace(ctx, func() error { return nil }, "LoadFlip")()
 	stored, ok := m.games.Get(gameID.String())
 	if ok {
@@ -1372,7 +1381,10 @@ func (m *FlipManager) LoadFlip(ctx context.Context, uid gregor1.UID, hostConvID 
 			// do nothing here, just replay if we are storing an error
 		default:
 			m.queueDirtyGameID(ctx, gameID, true)
-			return
+			res = make(chan chat1.UICoinFlipStatus, 1)
+			res <- stored.(chat1.UICoinFlipStatus)
+			err = make(chan error, 1)
+			return res, err
 		}
 	}
 	// If we miss the in-memory game storage, attempt to replay the game
@@ -1382,6 +1394,8 @@ func (m *FlipManager) LoadFlip(ctx context.Context, uid gregor1.UID, hostConvID 
 		hostMsgID:  hostMsgID,
 		flipConvID: flipConvID,
 		gameID:     gameID,
+		resCh:      make(chan chat1.UICoinFlipStatus, 1),
+		errCh:      make(chan error, 1),
 	}
 	select {
 	case m.loadGameCh <- job:
@@ -1389,6 +1403,7 @@ func (m *FlipManager) LoadFlip(ctx context.Context, uid gregor1.UID, hostConvID 
 		m.Debug(ctx, "LoadFlip: queue full: gameID: %s hostConvID %s flipConvID: %s", gameID, hostConvID,
 			flipConvID)
 	}
+	return job.resCh, job.errCh
 }
 
 func (m *FlipManager) IsFlipConversationCreated(ctx context.Context, outboxID chat1.OutboxID) (convID chat1.ConversationID, status types.FlipSendStatus) {

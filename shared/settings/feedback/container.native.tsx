@@ -55,6 +55,7 @@ class FeedbackContainer extends React.Component<Props, State> {
     this.props.setTimeout(() => {
       const maybeDump = sendLogs ? this._dumpLogs() : Promise.resolve('')
 
+      // @ts-ignore
       maybeDump
         .then(() => {
           const logPath = logFileName
@@ -134,7 +135,7 @@ const connected = compose(
   HOCTimers
 )(FeedbackContainer)
 
-// $FlowIssue
+// @ts-ignore TODO fix
 connected.navigationOptions = {
   header: undefined,
   headerHeight: 60,
