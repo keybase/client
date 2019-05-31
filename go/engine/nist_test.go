@@ -29,6 +29,10 @@ func TestNIST(t *testing.T) {
 
 	fu.LoginOrBust(tc)
 
+	// Initial NIST is consumed by API calls during login hooks, so move clock forward
+	// to reset state
+	fakeClock.Advance(100 * time.Hour)
+
 	// First stab, generate the NIST, and make sure it's a long NIST
 	nist, err = tc.G.ActiveDevice.NIST(ctx)
 	require.NoError(t, err, "no nist error")

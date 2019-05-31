@@ -405,6 +405,14 @@
         },
         {
           "type": "boolean",
+          "name": "frozen"
+        },
+        {
+          "type": "boolean",
+          "name": "tombstoned"
+        },
+        {
+          "type": "boolean",
           "name": "secretless"
         },
         {
@@ -461,6 +469,14 @@
       "type": "record",
       "name": "FastTeamData",
       "fields": [
+        {
+          "type": "boolean",
+          "name": "frozen"
+        },
+        {
+          "type": "boolean",
+          "name": "tombstoned"
+        },
         {
           "type": "TeamName",
           "name": "name"
@@ -1437,7 +1453,7 @@
       "type": "record",
       "name": "SeitanPubKey",
       "fields": [],
-      "typedef": "KID"
+      "typedef": "string"
     },
     {
       "type": "record",
@@ -2400,6 +2416,10 @@
         {
           "type": "boolean",
           "name": "deleteOtherMessages"
+        },
+        {
+          "type": "boolean",
+          "name": "deleteTeam"
         }
       ]
     },

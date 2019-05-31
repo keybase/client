@@ -57,7 +57,7 @@ func displayUnfurlGeneric(ctx context.Context, srv types.AttachmentURLSrv, convI
 }
 
 func displayUnfurlGiphy(ctx context.Context, srv types.AttachmentURLSrv, convID chat1.ConversationID,
-	unfurl chat1.UnfurlGiphy) (res chat1.UnfurlGiphyDisplay) {
+	unfurl chat1.UnfurlGiphy) (res chat1.UnfurlGiphyDisplay, err error) {
 	if unfurl.Image != nil {
 		if img, err := assetToImageDisplay(ctx, convID, *unfurl.Image, srv); err == nil {
 			res.Image = &img
@@ -74,7 +74,10 @@ func displayUnfurlGiphy(ctx context.Context, srv types.AttachmentURLSrv, convID 
 			res.Favicon = &fav
 		}
 	}
-	return res
+	if res.Image == nil && res.Video == nil {
+		return res, errors.New("no image for video for giphy")
+	}
+	return res, nil
 }
 
 func DisplayUnfurl(ctx context.Context, srv types.AttachmentURLSrv, convID chat1.ConversationID,
@@ -88,7 +91,11 @@ func DisplayUnfurl(ctx context.Context, srv types.AttachmentURLSrv, convID chat1
 		return chat1.NewUnfurlDisplayWithGeneric(displayUnfurlGeneric(ctx, srv, convID, unfurl.Generic())),
 			nil
 	case chat1.UnfurlType_GIPHY:
-		return chat1.NewUnfurlDisplayWithGiphy(displayUnfurlGiphy(ctx, srv, convID, unfurl.Giphy())), nil
+		giphy, err := displayUnfurlGiphy(ctx, srv, convID, unfurl.Giphy())
+		if err != nil {
+			return res, err
+		}
+		return chat1.NewUnfurlDisplayWithGiphy(giphy), nil
 	case chat1.UnfurlType_YOUTUBE:
 		return chat1.NewUnfurlDisplayWithYoutube(chat1.UnfurlYoutubeDisplay{}), nil
 	default:

@@ -12,12 +12,8 @@
 /shared/desktop/release/**
 /shared/desktop/renderer/renderer-load.desktop.js
 /shared/fixme/**
-/shared/flow-typed/**
-/shared/libs/flow-interface.js
-/shared/libs/immutable-interface.js
 /shared/markdown/parser.js
 /shared/node_modules
 /shared/test/setupTestFrameworkScriptFile.js
-/shared/flow-typed/**
-/visdiff
 /shared/react-native/react-native-contacts
+*.d.ts

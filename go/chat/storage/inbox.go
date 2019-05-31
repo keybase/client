@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-	"sync"
 	"time"
 
 	"github.com/keybase/client/go/encrypteddb"
@@ -99,8 +98,6 @@ type Inbox struct {
 	flushMode InboxFlushMode
 }
 
-var addInboxMemCacheHookOnce sync.Once
-
 func FlushMode(mode InboxFlushMode) func(*Inbox) {
 	return func(i *Inbox) {
 		i.SetFlushMode(mode)
@@ -108,12 +105,6 @@ func FlushMode(mode InboxFlushMode) func(*Inbox) {
 }
 
 func NewInbox(g *globals.Context, config ...func(*Inbox)) *Inbox {
-	// add a logout hook to clear the in-memory inbox cache, but only add it once:
-	addInboxMemCacheHookOnce.Do(func() {
-		g.ExternalG().AddLogoutHook(inboxMemCache, "chat/storage/inbox")
-		g.ExternalG().AddDbNukeHook(inboxMemCache, "chat/storage/inbox")
-	})
-
 	i := &Inbox{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Inbox", false),
@@ -1674,9 +1665,27 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 		if removedMap[conv.GetConvID().String()] {
 			conv.Conv.ReaderInfo.Status = chat1.ConversationMemberStatus_LEFT
 			conv.Conv.Metadata.Version = vers.ToConvVers()
+			var newAllList []gregor1.UID
+			for _, u := range conv.Conv.Metadata.AllList {
+				if !u.Eq(uid) {
+					newAllList = append(newAllList, u)
+				}
+			}
+			conv.Conv.Metadata.AllList = newAllList
 		} else if resetMap[conv.GetConvID().String()] {
 			conv.Conv.ReaderInfo.Status = chat1.ConversationMemberStatus_RESET
 			conv.Conv.Metadata.Version = vers.ToConvVers()
+			// Double check this user isn't already in here
+			exists := false
+			for _, u := range conv.Conv.Metadata.ResetList {
+				if u.Eq(uid) {
+					exists = true
+					break
+				}
+			}
+			if !exists {
+				conv.Conv.Metadata.ResetList = append(conv.Conv.Metadata.ResetList, uid)
+			}
 		}
 		ibox.Conversations = append(ibox.Conversations, conv)
 	}

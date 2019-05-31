@@ -105,6 +105,12 @@
       "doc": "FSOnlineStatusChangedEvent is called by KBFS when the online status changes.",
       "lint": "ignore"
     },
+    "FSFavoritesChangedEvent": {
+      "request": [],
+      "response": null,
+      "doc": "FSFavoritesChangedEvent is called by KBFS when the favorites list changes.",
+      "lint": "ignore"
+    },
     "createTLF": {
       "request": [
         {

@@ -215,6 +215,8 @@ func makeXDRAsset(assetCode string, issuerID AddressStr) (xdr.Asset, error) {
 func assetCodeToType(code string) (string, error) {
 	x := len(code)
 	switch {
+	case x == 0:
+		return "native", nil
 	case x >= 1 && x <= 4:
 		return "credit_alphanum4", nil
 	case x >= 5 && x <= 12:
@@ -222,10 +224,6 @@ func assetCodeToType(code string) (string, error) {
 	default:
 		return "", errors.New("invalid assetCode length")
 	}
-}
-
-func assetBaseType(a AssetBase) (string, error) {
-	return assetCodeToType(a.CodeString())
 }
 
 func assetBaseIssuer(a AssetBase) (AddressStr, error) {
@@ -259,5 +257,45 @@ func assetBaseToXDR(a AssetBase) (xdr.Asset, error) {
 	default:
 		return xdr.Asset{}, errors.New("invalid asset code length")
 	}
+}
 
+// XDRToAssetMinimal transforms xdr.Asset to AssetMinimal.
+func XDRToAssetMinimal(x xdr.Asset) (AssetMinimal, error) {
+	switch x.Type {
+	case xdr.AssetTypeAssetTypeNative:
+		return AssetMinimal{}, nil
+	case xdr.AssetTypeAssetTypeCreditAlphanum4:
+		a := x.MustAlphaNum4()
+		return AssetMinimal{AssetCode: string(a.AssetCode[:]), AssetIssuer: a.Issuer.Address()}, nil
+	case xdr.AssetTypeAssetTypeCreditAlphanum12:
+		a := x.MustAlphaNum12()
+		return AssetMinimal{AssetCode: string(a.AssetCode[:]), AssetIssuer: a.Issuer.Address()}, nil
+	default:
+		return AssetMinimal{}, errors.New("invalid xdr asset type")
+	}
+}
+
+// AssetBaseSummary returns a string summary of an asset.
+func AssetBaseSummary(a AssetBase) string {
+	if a.TypeString() == "native" {
+		return "XLM"
+	}
+	if a.CodeString() == "" && a.IssuerString() == "" {
+		return "XLM"
+	}
+	return a.CodeString() + "/" + a.IssuerString()
+}
+
+// XDRAssetSummary returns a string summary of an xdr.Asset.
+func XDRAssetSummary(x xdr.Asset) string {
+	a, err := XDRToAssetMinimal(x)
+	if err != nil {
+		return "invalid asset"
+	}
+	return AssetBaseSummary(a)
+}
+
+// XDRAssetAmountSummary returns a summary of an amount and an asset.
+func XDRAssetAmountSummary(amt xdr.Int64, asset xdr.Asset) string {
+	return StringFromStellarXdrAmount(amt) + " " + XDRAssetSummary(asset)
 }

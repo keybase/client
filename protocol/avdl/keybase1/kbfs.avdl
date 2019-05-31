@@ -63,6 +63,12 @@ protocol kbfs {
   void FSOnlineStatusChangedEvent(boolean online);
 
   /**
+    FSFavoritesChangedEvent is called by KBFS when the favorites list changes.
+        */
+  @lint("ignore")
+  void FSFavoritesChangedEvent();
+
+  /**
     createTLF is called by KBFS to associate the tlfID with the given teamID,
     using the v2 Team-based system.
    */

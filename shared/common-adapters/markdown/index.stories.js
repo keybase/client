@@ -103,63 +103,6 @@ a = 1
       /keybase/teamaa/keybase
       /foo
       /keybase`,
-  links: `
-Ignore:
-  a...b,
-  ftp://blah.com,
-  gopher://blah.com,
-  mailto:blah@blah.com
-  nytimes.json
-Include:
-  https://maps.google.com?q=Goddess%20and%20the%20Baker,%20Legacy%20Tower,%20S%20Wabash%20Ave,%20Chicago,%20IL%2060603&ftid=0x880e2ca4623987cb:0x8b9a49f6050a873a&hl=en-US&gl=us
-  http://abc.io
-  http://cbs.io/
-  Http://cbs.io/
-  HTTP://cbs.io/
-  Https://cbs.io/
-  HTTPs://cbs.io/
-  httpS://cbs.io/
-  *http://cnn.io*
-  *http://fox.io/~test*
-  _http://dog.io_
-  ~http://cat.io~
-  \`http://orange.io\`
-  (https://yellow.io)
-  https://green.io
-  HTTP://blue.com
-  http://twitter.com
-  http://t.co
-  t.co
-  10.0.0.24
-  https://10.0.0.24
-  google.com
-  keybase.io/a/user/lookup?one=1&two=2
-  keybase.io/a/user/path_with_underscore
-  keybase.io?blah=true
-  keybase.io/~user/cool
-  http://keybase.io/blah/../up-one/index.html
-  keybase.io/)(,)?=56,78,910@123
-  abc subdomain.domain.com
-  https://www.google.com/maps/place/85+Broad+St,+New+York,+NY+10004/@40.7040702,-74.0133343,17z/data=!3m1!4b1!4m5!3m4!1s0x89c25a141703be89:0x74c637bf3f5d8f7d!8m2!3d40.7040662!4d-74.0111456
-Internationalized Domain Names:
-  the 'a' in http://ebаy.com isn't an ascii 'a'
-  https://www.google.com/search?q=ebаy the params should be allowed
-These should have the trailing punctuation outside the link:
-  amazon.co.uk.
-  keybase.io,
-  keybase.io.
-  http://keybase.io/mikem,
-  http://keybase.io/mikem;
-  http://keybase.io/mikem:
-  http://keybase.io/mikem!
-  keybase.io?
-  *http://keybase.io/*.
-  *http://keybase.io/~_*
-Paranthesis stuff:
-  https://en.wikipedia.org/wiki/J/Z_(New_York_City_Subway_service)
-  (https://keybase.io/)
-`,
-  mailto: `email bob@keybase.io`,
   nonemoji: `:party-parrot:`,
   normal: `I think we should try to use \`if else\` statements \`\`\`
 if (var == "foo")
@@ -181,9 +124,9 @@ this is the one below.`,
   echo "foo";
 else echo "bar";
   // this should be *asterisk* \`\`\``,
-  transparentEmojis: ` 😀 😁 😍 ☝️ `,
-  transparentEmojis2: `these should be solid 😀 😁 😍 ☝️ `,
-  transparentEmojis3: `😶`,
+  transparentEmojis: ' 😀 😁 😍 ☝️ ',
+  transparentEmojis2: 'these should be solid 😀 😁 😍 ☝️ ',
+  transparentEmojis3: '😶',
   underscoreweirdness: `under_score the first, \`under_score the second\``, // <--- end of string
 }
 

@@ -156,7 +156,6 @@ func (p *proofSetT) AddNeededHappensBeforeProof(ctx context.Context, a proofTerm
 	}
 	action = "added"
 	p.proofs[idx] = append(p.proofs[idx], proof{a, b, reason})
-	return
 }
 
 // Set the latest link map for the team

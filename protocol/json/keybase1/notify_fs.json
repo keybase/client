@@ -83,6 +83,12 @@
       "oneway": true,
       "lint": "ignore"
     },
+    "FSFavoritesChanged": {
+      "request": [],
+      "response": null,
+      "oneway": true,
+      "lint": "ignore"
+    },
     "FSOnlineStatusChanged": {
       "request": [
         {

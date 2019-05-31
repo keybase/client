@@ -45,6 +45,8 @@ export type Props = {|
   selectable?: boolean, // desktop - applies to outer container only
   smallStandaloneEmoji?: boolean, // don't increase font size for a standalone emoji
   preview?: boolean, // if true render a simplified version
+  serviceOnly?: boolean, // only render stuff from the service
+
   // Style only styles the top level container.
   // This is only useful in desktop because of cascading styles and there is a top level wrapper.
   // Mobile doesn't have this wrapper (on purpose), so if you want to style the container, do it

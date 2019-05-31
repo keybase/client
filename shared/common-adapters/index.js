@@ -1,9 +1,6 @@
 // @flow
-import flags from '../util/feature-flags'
 import {NavigationEvents as _NavigationEvents} from '@react-navigation/core'
-
-// Just to brige old / new nav, deprecate this when routetree is gone
-export const NavigationEvents = flags.useNewRouter ? _NavigationEvents : (p: any) => p.children || null
+export const NavigationEvents = _NavigationEvents
 
 export {default as Animated} from './animated'
 export {default as Animation} from './animation'
@@ -60,7 +57,7 @@ export {
 export {default as Markdown} from './markdown'
 export {MaybePopup, MaybePopupHoc} from './maybe-popup'
 export type {MenuItem, MenuItems} from './floating-menu/menu-layout'
-export {default as MultiAvatar} from './multi-avatar.js'
+export {default as MultiAvatar} from './multi-avatar'
 export {default as Meta} from './meta'
 export {default as NameWithIcon} from './name-with-icon'
 export {default as ConnectedNameWithIcon} from './name-with-icon/container'

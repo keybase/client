@@ -38,6 +38,9 @@ type ChatServiceHandler interface {
 	ListConvsOnNameV1(context.Context, listConvsOnNameOptionsV1) Reply
 	JoinV1(context.Context, joinOptionsV1) Reply
 	LeaveV1(context.Context, leaveOptionsV1) Reply
+	LoadFlipV1(context.Context, loadFlipOptionsV1) Reply
+	GetUnfurlSettingsV1(context.Context) Reply
+	SetUnfurlSettingsV1(context.Context, setUnfurlSettingsOptionsV1) Reply
 }
 
 // chatServiceHandler implements ChatServiceHandler.
@@ -85,7 +88,7 @@ func (c *chatServiceHandler) exportLocalConv(ctx context.Context, conv chat1.Con
 		convSummary.Error = conv.Error.Message
 		return convSummary
 	}
-	uiconv := utils.PresentConversationLocal(conv, c.G().Env.GetUsername().String())
+	uiconv := utils.PresentConversationLocal(ctx, conv, c.G().Env.GetUsername().String())
 	return c.exportUIConv(ctx, uiconv)
 }
 
@@ -206,6 +209,66 @@ func (c *chatServiceHandler) LeaveV1(ctx context.Context, opts leaveOptionsV1) R
 	return Reply{Result: cres}
 }
 
+func (c *chatServiceHandler) LoadFlipV1(ctx context.Context, opts loadFlipOptionsV1) Reply {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	hostConvID, err := chat1.MakeConvID(opts.ConversationID)
+	if err != nil {
+		return c.errReply(err)
+	}
+	flipConvID, err := chat1.MakeConvID(opts.FlipConversationID)
+	if err != nil {
+		return c.errReply(err)
+	}
+	gameID, err := chat1.MakeFlipGameID(opts.GameID)
+	if err != nil {
+		return c.errReply(err)
+	}
+	res, err := client.LoadFlip(ctx, chat1.LoadFlipArg{
+		HostConvID: hostConvID,
+		HostMsgID:  opts.MsgID,
+		FlipConvID: flipConvID,
+		GameID:     gameID,
+	})
+	if err != nil {
+		return c.errReply(err)
+	}
+	return Reply{Result: res}
+}
+
+func (c *chatServiceHandler) GetUnfurlSettingsV1(ctx context.Context) Reply {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	res, err := client.GetUnfurlSettings(ctx)
+	if err != nil {
+		return c.errReply(err)
+	}
+	return Reply{
+		Result: map[string]interface{}{
+			"mode":      strings.ToLower(chat1.UnfurlModeRevMap[res.Mode]),
+			"whitelist": res.Whitelist,
+		},
+	}
+}
+
+func (c *chatServiceHandler) SetUnfurlSettingsV1(ctx context.Context, opts setUnfurlSettingsOptionsV1) Reply {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	if err := client.SaveUnfurlSettings(ctx, chat1.SaveUnfurlSettingsArg{
+		Mode:      opts.intMode,
+		Whitelist: opts.Whitelist,
+	}); err != nil {
+		return c.errReply(err)
+	}
+	return Reply{Result: true}
+}
+
 func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat1.MessageUnboxed,
 	conv chat1.ConversationLocal, selfUID keybase1.UID, readMsgID chat1.MessageID, unreadOnly bool) (ret []Message, err error) {
 	for _, m := range messages {
@@ -253,7 +316,8 @@ func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat
 		}
 
 		msg := MsgSummary{
-			ID: mv.ServerHeader.MessageID,
+			ID:     mv.ServerHeader.MessageID,
+			ConvID: conv.GetConvID().String(),
 			Channel: ChatChannel{
 				Name:        conv.Info.TlfName,
 				Public:      mv.ClientHeader.TlfPublic,
@@ -1122,6 +1186,19 @@ func (c *chatServiceHandler) getExistingConvs(ctx context.Context, convID chat1.
 	return findRes.Conversations, findRes.RateLimits, nil
 }
 
+func (c *chatServiceHandler) displayFlipBody(flip *chat1.MessageFlip) (res *MsgFlipContent) {
+	if flip == nil {
+		return res
+	}
+	res = new(MsgFlipContent)
+	res.GameID = flip.GameID.String()
+	res.FlipConvID = flip.FlipConvID.String()
+	res.TeamMentions = flip.TeamMentions
+	res.UserMentions = flip.UserMentions
+	res.Text = flip.Text
+	return res
+}
+
 // need this to get message type name
 func (c *chatServiceHandler) convertMsgBody(mb chat1.MessageBody) MsgContent {
 	return MsgContent{
@@ -1138,7 +1215,7 @@ func (c *chatServiceHandler) convertMsgBody(mb chat1.MessageBody) MsgContent {
 		SendPayment:        mb.Sendpayment__,
 		RequestPayment:     mb.Requestpayment__,
 		Unfurl:             mb.Unfurl__,
-		Flip:               mb.Flip__,
+		Flip:               c.displayFlipBody(mb.Flip__),
 	}
 }
 
@@ -1260,6 +1337,14 @@ type MsgSender struct {
 	DeviceName string `json:"device_name,omitempty"`
 }
 
+type MsgFlipContent struct {
+	Text         string
+	GameID       string
+	FlipConvID   string
+	UserMentions []chat1.KnownUserMention
+	TeamMentions []chat1.KnownTeamMention
+}
+
 // MsgContent is used to retrieve the type name in addition to one of Text,
 // Attachment, Edit, Reaction, Delete, Metadata depending on the type of
 // message.
@@ -1278,12 +1363,13 @@ type MsgContent struct {
 	SendPayment        *chat1.MessageSendPayment          `json:"send_payment,omitempty"`
 	RequestPayment     *chat1.MessageRequestPayment       `json:"request_payment,omitempty"`
 	Unfurl             *chat1.MessageUnfurl               `json:"unfurl,omitempty"`
-	Flip               *chat1.MessageFlip                 `json:"flip,omitempty"`
+	Flip               *MsgFlipContent                    `json:"flip,omitempty"`
 }
 
 // MsgSummary is used to display JSON details for a message.
 type MsgSummary struct {
 	ID                  chat1.MessageID                `json:"id"`
+	ConvID              string                         `json:"conversation_id"`
 	Channel             ChatChannel                    `json:"channel"`
 	Sender              MsgSender                      `json:"sender"`
 	SentAt              int64                          `json:"sent_at"`

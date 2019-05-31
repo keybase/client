@@ -233,15 +233,17 @@ func (k *KeybaseDaemonLocal) addTeamWriterForTest(
 	tid keybase1.TeamID, uid keybase1.UID) error {
 	k.lock.Lock()
 	defer k.lock.Unlock()
-	teamName, err := k.DaemonLocal.AddTeamWriterForTest(tid, uid)
+	teamName, isImplicit, err := k.DaemonLocal.AddTeamWriterForTest(tid, uid)
 	if err != nil {
 		return err
 	}
-	f := keybase1.Folder{
-		Name:       string(teamName),
-		FolderType: keybase1.FolderType_TEAM,
+	if !isImplicit {
+		f := keybase1.Folder{
+			Name:       string(teamName),
+			FolderType: keybase1.FolderType_TEAM,
+		}
+		k.favoriteStore.FavoriteAdd(uid, f)
 	}
-	k.favoriteStore.FavoriteAdd(uid, f)
 	return nil
 }
 
@@ -372,6 +374,11 @@ func (k *KeybaseDaemonLocal) DecryptFavorites(ctx context.Context,
 
 // NotifyOnlineStatusChanged implements KeybaseDaemon for KeybaseDeamonLocal.
 func (k *KeybaseDaemonLocal) NotifyOnlineStatusChanged(ctx context.Context, online bool) error {
+	return checkContext(ctx)
+}
+
+// NotifyFavoritesChanged implements KeybaseDaemon for KeybaseDeamonLocal.
+func (k *KeybaseDaemonLocal) NotifyFavoritesChanged(ctx context.Context) error {
 	return checkContext(ctx)
 }
 

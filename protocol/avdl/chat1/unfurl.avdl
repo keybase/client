@@ -34,7 +34,7 @@ protocol unfurl {
   }
 
   record UnfurlGiphyRaw {
-    string imageUrl;
+    union { null, string } imageUrl;
     union { null, UnfurlVideo } video;
     union { null, string } faviconUrl;
   }

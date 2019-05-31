@@ -5,7 +5,7 @@ import ReactList from 'react-list'
 import {Box2} from './box'
 import ScrollView from './scroll-view'
 import type {Props} from './section-list'
-import {throttle, once} from 'lodash-es'
+import {debounce, throttle, once} from 'lodash-es'
 import {memoize} from '../util/memoize'
 
 /*
@@ -47,7 +47,7 @@ class SectionList extends React.Component<Props, State> {
   }
   /* =============================== */
 
-  _itemRenderer = (index, renderingSticky) => {
+  _itemRenderer = (index, key, renderingSticky) => {
     const item = this._flat[index]
     if (!item) {
       // data is switching out from under us. let things settle
@@ -60,14 +60,39 @@ class SectionList extends React.Component<Props, State> {
     }
 
     if (item.type === 'header') {
-      if (this.props.stickySectionHeadersEnabled && !renderingSticky && item.flatSectionIndex === 0) {
+      if (
+        this.props.stickySectionHeadersEnabled &&
+        this.props.disableAbsoluteStickyHeader &&
+        !renderingSticky &&
+        item.flatSectionIndex === 0
+      ) {
         // don't render the first one since its always there
         return <Box2 direction="vertical" key="stickyPlaceholder" />
       }
       return (
-        <Box2 direction="vertical" key={`${renderingSticky ? 'sticky:' : ''}${item.key}:`} style={styles.box}>
+        <Box2
+          direction="vertical"
+          key={`${renderingSticky ? 'sticky:' : ''}${item.key}:`}
+          style={
+            this.props.stickySectionHeadersEnabled &&
+            !this.props.disableAbsoluteStickyHeader &&
+            renderingSticky
+              ? styles.stickyBox
+              : styles.box
+          }
+          fullWidth={true}
+        >
           {this.props.renderSectionHeader({section: section.section})}
         </Box2>
+      )
+    } else if (item.type === 'placeholder') {
+      return (
+        <Box2
+          direction="vertical"
+          key={`blankPlaceholder${item.flatSectionIndex}`}
+          style={{height: 1}}
+          fullWidth={true}
+        />
       )
     } else {
       return (
@@ -92,8 +117,7 @@ class SectionList extends React.Component<Props, State> {
   // This matches the way onEndReached works for sectionlist on RN
   _onEndReached = once(() => this.props.onEndReached && this.props.onEndReached())
 
-  _checkSticky = throttle(() => {
-    // need to defer this as the list itself is changing after scroll
+  _checkSticky = () => {
     if (this._listRef.current) {
       const [firstIndex] = this._listRef.current.getVisibleRange()
       const item = this._flat[firstIndex]
@@ -105,11 +129,20 @@ class SectionList extends React.Component<Props, State> {
         )
       }
     }
-  }, 20)
+  }
+  // We use two "throttled" functions here to check the status of the viewable items in the
+  // list for the purposes of the sticky header feature. A single throttle isn't good enough,
+  // since the last scroll could end up on a throttle border and only be delayed a small amount. If that
+  // happens we can render the header twice, since we will think we are in the wrong section. The debounce
+  // fixes this, since it will always send one last call out on the time interval. We can't just use a
+  // single debounce though, since we need events as the user is scrolling.
+  _checkStickyDebounced = debounce(this._checkSticky, 20)
+  _checkStickyThrottled = throttle(this._checkSticky, 20)
 
   _onScroll = e => {
     e.currentTarget && this._checkOnEndReached(e.currentTarget)
-    this._checkSticky()
+    this._checkStickyDebounced()
+    this._checkStickyThrottled()
   }
 
   _flatten = memoize(sections => {
@@ -124,7 +157,7 @@ class SectionList extends React.Component<Props, State> {
         section,
         type: 'header',
       })
-      section.data.length &&
+      if (section.data.length) {
         arr.push(
           ...section.data.map((item, indexWithinSection) => ({
             flatSectionIndex,
@@ -137,6 +170,20 @@ class SectionList extends React.Component<Props, State> {
             type: 'body',
           }))
         )
+      } else {
+        // These placeholders allow us to get the first section's sticky header back on the screen if
+        // the item has no body items. Since we don't draw it in _itemRenderer (to avoid duplicating it
+        // all the time), we need something in the ReactList to trigger the flatSectionIndex check
+        // to get the sticky header back on the screen.
+        arr.push({
+          flatSectionIndex,
+          key: 1,
+          section: {
+            data: [],
+          },
+          type: 'placeholder',
+        })
+      }
       return arr
     }, [])
   })
@@ -144,23 +191,26 @@ class SectionList extends React.Component<Props, State> {
   render() {
     this._flatten(this.props.sections)
     const stickyHeader =
-      this.props.stickySectionHeadersEnabled && this._itemRenderer(this.state.currentSectionFlatIndex, true)
+      this.props.stickySectionHeadersEnabled &&
+      this._itemRenderer(this.state.currentSectionFlatIndex, this.state.currentSectionFlatIndex, true)
 
     return (
       <Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-        {stickyHeader}
+        {this.props.disableAbsoluteStickyHeader && stickyHeader}
         <ScrollView
           style={Styles.collapseStyles([styles.scroll, this.props.style])}
           onScroll={this._onScroll}
         >
           <ReactList
             itemRenderer={this._itemRenderer}
+            itemSizeEstimator={this.props.itemSizeEstimator}
             length={this._flat.length}
             retrigger={this._flat}
             ref={this._listRef}
             type="variable"
           />
         </ScrollView>
+        {!this.props.disableAbsoluteStickyHeader && stickyHeader}
       </Box2>
     )
   }
@@ -173,9 +223,15 @@ const styles = Styles.styleSheetCreate({
   },
   container: {
     alignSelf: 'flex-start',
+    position: 'relative',
   },
   scroll: {
     flexGrow: 1,
+  },
+  stickyBox: {
+    left: 0,
+    position: 'absolute',
+    top: 0,
   },
 })
 

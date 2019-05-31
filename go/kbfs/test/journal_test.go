@@ -889,3 +889,99 @@ func TestJournalCoalescingConflictingCreates(t *testing.T) {
 func TestJournalCoalescingConflictingCreatesMultiblock(t *testing.T) {
 	testJournalCoalescingConflictingCreates(t, 1024)
 }
+
+func testJournalConflictClearing(
+	t *testing.T, tlfBaseName string, switchTlf func(string) optionOp,
+	lsfavs func([]string) fileOp, isBackedByTeam, expectSelfFav bool) {
+	iteamSuffix := ""
+	if isBackedByTeam {
+		iteamSuffix = " #1"
+	}
+	conflict1 := fmt.Sprintf(
+		"%s (local conflicted copy 2004-12-23%s)", tlfBaseName, iteamSuffix)
+	conflict2 := fmt.Sprintf(
+		"%s (local conflicted copy 2004-12-23 #2)", tlfBaseName)
+	var expectedFavs []string
+	if expectSelfFav {
+		expectedFavs = []string{"bob"}
+	}
+	expectedFavs = append(expectedFavs, tlfBaseName, conflict1, conflict2)
+	iteamOp := func(*opt) {}
+	if isBackedByTeam {
+		iteamOp = implicitTeam("alice,bob", "")
+	}
+	test(t, journal(),
+		users("alice", "bob"),
+		iteamOp,
+		team("ab", "alice,bob", ""),
+		switchTlf(tlfBaseName),
+		as(alice,
+			mkfile("a/b", "hello"),
+		),
+		as(bob,
+			enableJournal(),
+			addTime(35*365*24*time.Hour),
+			lsdir("", m{"a$": "DIR"}),
+			lsdir("a/", m{"b$": "FILE"}),
+			forceConflict(),
+			mkfile("a/c", "foo"),
+			clearConflicts(),
+			lsdir("", m{"a$": "DIR"}),
+			lsdir("a/", m{"b$": "FILE"}),
+		),
+		as(alice,
+			lsdir("", m{"a$": "DIR"}),
+			lsdir("a/", m{"b$": "FILE"}),
+		),
+		as(bob,
+			lsdir("", m{"a$": "DIR"}),
+			lsdir("a/", m{"b$": "FILE"}),
+		),
+		switchTlf(conflict1),
+		as(bob, noSync(),
+			lsdir("a/", m{"b$": "FILE", "c$": "FILE"}),
+			read("a/c", "foo"),
+		),
+		// Add a second conflict for the same date.
+		switchTlf(tlfBaseName),
+		as(bob,
+			addTime(1*time.Minute),
+			lsdir("", m{"a$": "DIR"}),
+			lsdir("a/", m{"b$": "FILE"}),
+			forceConflict(),
+			mkfile("a/d", "foo"),
+			clearConflicts(),
+		),
+		switchTlf(conflict2),
+		as(bob, noSync(),
+			lsdir("a/", m{"b$": "FILE", "d$": "FILE"}),
+			read("a/d", "foo"),
+			lsfavs(expectedFavs),
+		),
+	)
+}
+
+func TestJournalConflictClearingPrivate(t *testing.T) {
+	testJournalConflictClearing(
+		t, "alice,bob", inPrivateTlf, lsprivatefavorites, false, true)
+}
+
+func TestJournalConflictClearingPrivateImplicit(t *testing.T) {
+	testJournalConflictClearing(
+		t, "alice,bob", inPrivateTlf, lsprivatefavorites, true, true)
+}
+
+func TestJournalConflictClearingPublic(t *testing.T) {
+	testJournalConflictClearing(
+		t, "alice,bob", inPublicTlf, lspublicfavorites, false, true)
+}
+
+func TestJournalConflictClearingPublicImplicit(t *testing.T) {
+	testJournalConflictClearing(
+		t, "alice,bob", inPublicTlf, lspublicfavorites, true, true)
+}
+
+func TestJournalConflictClearingTeam(t *testing.T) {
+	testJournalConflictClearing(
+		t, "ab", inSingleTeamTlf, lsteamfavorites, true, false)
+}

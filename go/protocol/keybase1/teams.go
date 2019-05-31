@@ -550,6 +550,8 @@ func (o TeamPlusApplicationKeys) DeepCopy() TeamPlusApplicationKeys {
 
 type TeamData struct {
 	Subversion                int                                                  `codec:"v" json:"v"`
+	Frozen                    bool                                                 `codec:"frozen" json:"frozen"`
+	Tombstoned                bool                                                 `codec:"tombstoned" json:"tombstoned"`
 	Secretless                bool                                                 `codec:"secretless" json:"secretless"`
 	Name                      TeamName                                             `codec:"name" json:"name"`
 	Chain                     TeamSigChainState                                    `codec:"chain" json:"chain"`
@@ -563,6 +565,8 @@ type TeamData struct {
 func (o TeamData) DeepCopy() TeamData {
 	return TeamData{
 		Subversion: o.Subversion,
+		Frozen:     o.Frozen,
+		Tombstoned: o.Tombstoned,
 		Secretless: o.Secretless,
 		Name:       o.Name.DeepCopy(),
 		Chain:      o.Chain.DeepCopy(),
@@ -629,6 +633,8 @@ func (o TeamData) DeepCopy() TeamData {
 }
 
 type FastTeamData struct {
+	Frozen                    bool                                                 `codec:"frozen" json:"frozen"`
+	Tombstoned                bool                                                 `codec:"tombstoned" json:"tombstoned"`
 	Name                      TeamName                                             `codec:"name" json:"name"`
 	Chain                     FastTeamSigChainState                                `codec:"chain" json:"chain"`
 	PerTeamKeySeedsUnverified map[PerTeamKeyGeneration]PerTeamKeySeed              `codec:"perTeamKeySeeds" json:"perTeamKeySeedsUnverified"`
@@ -641,8 +647,10 @@ type FastTeamData struct {
 
 func (o FastTeamData) DeepCopy() FastTeamData {
 	return FastTeamData{
-		Name:  o.Name.DeepCopy(),
-		Chain: o.Chain.DeepCopy(),
+		Frozen:     o.Frozen,
+		Tombstoned: o.Tombstoned,
+		Name:       o.Name.DeepCopy(),
+		Chain:      o.Chain.DeepCopy(),
 		PerTeamKeySeedsUnverified: (func(x map[PerTeamKeyGeneration]PerTeamKeySeed) map[PerTeamKeyGeneration]PerTeamKeySeed {
 			if x == nil {
 				return nil
@@ -1675,10 +1683,10 @@ func (o SeitanIKey) DeepCopy() SeitanIKey {
 	return o
 }
 
-type SeitanPubKey KID
+type SeitanPubKey string
 
 func (o SeitanPubKey) DeepCopy() SeitanPubKey {
-	return o.DeepCopy()
+	return o
 }
 
 type SeitanIKeyV2 string
@@ -2655,6 +2663,7 @@ type TeamOperation struct {
 	ChangeTarsDisabled     bool `codec:"changeTarsDisabled" json:"changeTarsDisabled"`
 	DeleteChatHistory      bool `codec:"deleteChatHistory" json:"deleteChatHistory"`
 	DeleteOtherMessages    bool `codec:"deleteOtherMessages" json:"deleteOtherMessages"`
+	DeleteTeam             bool `codec:"deleteTeam" json:"deleteTeam"`
 }
 
 func (o TeamOperation) DeepCopy() TeamOperation {
@@ -2679,6 +2688,7 @@ func (o TeamOperation) DeepCopy() TeamOperation {
 		ChangeTarsDisabled:     o.ChangeTarsDisabled,
 		DeleteChatHistory:      o.DeleteChatHistory,
 		DeleteOtherMessages:    o.DeleteOtherMessages,
+		DeleteTeam:             o.DeleteTeam,
 	}
 }
 

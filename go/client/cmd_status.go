@@ -79,7 +79,123 @@ func (c *CmdStatus) output(status *keybase1.FullStatus) error {
 	return c.outputTerminal(status)
 }
 
-func (c *CmdStatus) outputJSON(status *keybase1.FullStatus) error {
+// Used when outputting the status as json. Human-readable/legacy format
+// preceding keybase1.FullStatus
+type jsonStatus struct {
+	Username               string
+	UserID                 string
+	Device                 *keybase1.Device
+	LoggedIn               bool
+	PassphraseStreamCached bool
+	TsecCached             bool
+	DeviceSigKeyCached     bool
+	DeviceEncKeyCached     bool
+	PaperSigKeyCached      bool
+	PaperEncKeyCached      bool
+	StoredSecret           bool
+	SecretPromptSkip       bool
+	SessionIsValid         bool
+	ConfigPath             string
+
+	Client struct {
+		Version string
+	}
+	Service struct {
+		Version string
+		Running bool
+		Pid     string
+		Log     string
+		EKLog   string
+	}
+	KBFS struct {
+		Version          string
+		InstalledVersion string
+		Running          bool
+		Pid              string
+		Log              string
+		Mount            string
+	}
+	Desktop struct {
+		Version string
+		Running bool
+		Log     string
+	}
+	Updater struct {
+		Log string
+	}
+	Start struct {
+		Log string
+	}
+	Git struct {
+		Log string
+	}
+
+	DefaultUsername      string
+	ProvisionedUsernames []string
+	Clients              []keybase1.ClientStatus
+	PlatformInfo         keybase1.PlatformInfo
+	OSVersion            string
+	DeviceEKNames        []string
+	LocalDbStats         []string
+	LocalChatDbStats     []string
+	CacheDirSizeInfo     []keybase1.DirSizeInfo
+	UIRouterMapping      map[string]int
+}
+
+func (c *CmdStatus) outputJSON(fstatus *keybase1.FullStatus) error {
+	status := jsonStatus{}
+	status.Username = fstatus.Username
+	status.ConfigPath = fstatus.ConfigPath
+
+	var uid keybase1.UID
+	if fstatus.CurStatus.User != nil {
+		uid = fstatus.CurStatus.User.Uid
+	}
+	status.UserID = uid.String()
+	status.SessionIsValid = fstatus.CurStatus.SessionIsValid
+	status.LoggedIn = fstatus.CurStatus.LoggedIn
+
+	status.Device = fstatus.ExtStatus.Device
+	status.DeviceSigKeyCached = fstatus.ExtStatus.DeviceSigKeyCached
+	status.DeviceEncKeyCached = fstatus.ExtStatus.DeviceEncKeyCached
+	status.PaperSigKeyCached = fstatus.ExtStatus.PaperSigKeyCached
+	status.PaperEncKeyCached = fstatus.ExtStatus.PaperEncKeyCached
+	status.StoredSecret = fstatus.ExtStatus.StoredSecret
+	status.SecretPromptSkip = fstatus.ExtStatus.SecretPromptSkip
+	status.DefaultUsername = fstatus.ExtStatus.DefaultUsername
+	status.ProvisionedUsernames = fstatus.ExtStatus.ProvisionedUsernames
+	status.Clients = fstatus.ExtStatus.Clients
+	status.PlatformInfo = fstatus.ExtStatus.PlatformInfo
+	status.OSVersion = fstatus.ExtStatus.PlatformInfo.OsVersion
+	status.DeviceEKNames = fstatus.ExtStatus.DeviceEkNames
+	status.LocalDbStats = fstatus.ExtStatus.LocalDbStats
+	status.LocalChatDbStats = fstatus.ExtStatus.LocalChatDbStats
+	status.CacheDirSizeInfo = fstatus.ExtStatus.CacheDirSizeInfo
+	status.UIRouterMapping = fstatus.ExtStatus.UiRouterMapping
+
+	status.Client.Version = fstatus.Client.Version
+
+	status.Service.Version = fstatus.Service.Version
+	status.Service.Running = fstatus.Service.Running
+	status.Service.Pid = fstatus.Service.Pid
+	status.Service.Log = fstatus.Service.Log
+	status.Service.EKLog = fstatus.Service.EkLog
+
+	status.KBFS.Version = fstatus.Kbfs.Version
+	status.KBFS.InstalledVersion = fstatus.Kbfs.InstalledVersion
+	status.KBFS.Running = fstatus.Kbfs.Running
+	status.KBFS.Pid = fstatus.Kbfs.Pid
+	status.KBFS.Log = fstatus.Kbfs.Log
+	status.KBFS.Mount = fstatus.Kbfs.Mount
+
+	status.Desktop.Version = fstatus.Desktop.Version
+	status.Desktop.Running = fstatus.Desktop.Running
+	status.Desktop.Log = fstatus.Desktop.Log
+
+	status.Updater.Log = fstatus.Updater.Log
+	status.Start.Log = fstatus.Start.Log
+	status.Git.Log = fstatus.Git.Log
+
 	b, err := json.MarshalIndent(status, "", "    ")
 	if err != nil {
 		return err
@@ -92,7 +208,7 @@ func (c *CmdStatus) outputJSON(status *keybase1.FullStatus) error {
 func (c *CmdStatus) outputTerminal(status *keybase1.FullStatus) error {
 	extStatus := status.ExtStatus
 	dui := c.G().UI.GetDumbOutputUI()
-	dui.Printf("Username:      %s\n", status.CurStatus.User.Username)
+	dui.Printf("Username:      %s\n", status.Username)
 	dui.Printf("Logged in:     %s\n", BoolString(status.CurStatus.LoggedIn, "yes", "no"))
 	if extStatus.Device != nil {
 		dui.Printf("\nDevice:\n")

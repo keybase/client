@@ -17,6 +17,7 @@ type WalletAccountLocal struct {
 	CurrencyLocal       CurrencyLocal `codec:"currencyLocal" json:"currencyLocal"`
 	AccountMode         AccountMode   `codec:"accountMode" json:"accountMode"`
 	AccountModeEditable bool          `codec:"accountModeEditable" json:"accountModeEditable"`
+	DeviceReadOnly      bool          `codec:"deviceReadOnly" json:"deviceReadOnly"`
 	IsFunded            bool          `codec:"isFunded" json:"isFunded"`
 	CanSubmitTx         bool          `codec:"canSubmitTx" json:"canSubmitTx"`
 }
@@ -31,6 +32,7 @@ func (o WalletAccountLocal) DeepCopy() WalletAccountLocal {
 		CurrencyLocal:       o.CurrencyLocal.DeepCopy(),
 		AccountMode:         o.AccountMode.DeepCopy(),
 		AccountModeEditable: o.AccountModeEditable,
+		DeviceReadOnly:      o.DeviceReadOnly,
 		IsFunded:            o.IsFunded,
 		CanSubmitTx:         o.CanSubmitTx,
 	}
@@ -1019,6 +1021,86 @@ func (o BatchPaymentArg) DeepCopy() BatchPaymentArg {
 	}
 }
 
+type TxDisplaySummary struct {
+	Source     AccountID `codec:"source" json:"source"`
+	Fee        int       `codec:"fee" json:"fee"`
+	Memo       string    `codec:"memo" json:"memo"`
+	MemoType   string    `codec:"memoType" json:"memoType"`
+	Operations []string  `codec:"operations" json:"operations"`
+}
+
+func (o TxDisplaySummary) DeepCopy() TxDisplaySummary {
+	return TxDisplaySummary{
+		Source:   o.Source.DeepCopy(),
+		Fee:      o.Fee,
+		Memo:     o.Memo,
+		MemoType: o.MemoType,
+		Operations: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Operations),
+	}
+}
+
+type ValidateStellarURIResultLocal struct {
+	Operation    string           `codec:"operation" json:"operation"`
+	OriginDomain string           `codec:"originDomain" json:"originDomain"`
+	Message      string           `codec:"message" json:"message"`
+	CallbackURL  string           `codec:"callbackURL" json:"callbackURL"`
+	Xdr          string           `codec:"xdr" json:"xdr"`
+	Summary      TxDisplaySummary `codec:"summary" json:"summary"`
+	Recipient    string           `codec:"recipient" json:"recipient"`
+	Amount       string           `codec:"amount" json:"amount"`
+	AssetCode    string           `codec:"assetCode" json:"assetCode"`
+	AssetIssuer  string           `codec:"assetIssuer" json:"assetIssuer"`
+	Memo         string           `codec:"memo" json:"memo"`
+	MemoType     string           `codec:"memoType" json:"memoType"`
+}
+
+func (o ValidateStellarURIResultLocal) DeepCopy() ValidateStellarURIResultLocal {
+	return ValidateStellarURIResultLocal{
+		Operation:    o.Operation,
+		OriginDomain: o.OriginDomain,
+		Message:      o.Message,
+		CallbackURL:  o.CallbackURL,
+		Xdr:          o.Xdr,
+		Summary:      o.Summary.DeepCopy(),
+		Recipient:    o.Recipient,
+		Amount:       o.Amount,
+		AssetCode:    o.AssetCode,
+		AssetIssuer:  o.AssetIssuer,
+		Memo:         o.Memo,
+		MemoType:     o.MemoType,
+	}
+}
+
+type PartnerUrl struct {
+	Url          string `codec:"url" json:"url"`
+	Title        string `codec:"title" json:"title"`
+	Description  string `codec:"description" json:"description"`
+	IconFilename string `codec:"iconFilename" json:"icon_filename"`
+	AdminOnly    bool   `codec:"adminOnly" json:"admin_only"`
+	Extra        string `codec:"extra" json:"extra"`
+}
+
+func (o PartnerUrl) DeepCopy() PartnerUrl {
+	return PartnerUrl{
+		Url:          o.Url,
+		Title:        o.Title,
+		Description:  o.Description,
+		IconFilename: o.IconFilename,
+		AdminOnly:    o.AdminOnly,
+		Extra:        o.Extra,
+	}
+}
+
 type GetWalletAccountsLocalArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -1402,6 +1484,34 @@ type BatchLocalArg struct {
 	UseMulti    bool              `codec:"useMulti" json:"useMulti"`
 }
 
+type ValidateStellarURILocalArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	InputURI  string `codec:"inputURI" json:"inputURI"`
+}
+
+type ApproveTxURILocalArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	InputURI  string `codec:"inputURI" json:"inputURI"`
+}
+
+type ApprovePayURILocalArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	InputURI  string `codec:"inputURI" json:"inputURI"`
+	Amount    string `codec:"amount" json:"amount"`
+	FromCLI   bool   `codec:"fromCLI" json:"fromCLI"`
+}
+
+type ApprovePathURILocalArg struct {
+	SessionID int         `codec:"sessionID" json:"sessionID"`
+	InputURI  string      `codec:"inputURI" json:"inputURI"`
+	FullPath  PaymentPath `codec:"fullPath" json:"fullPath"`
+	FromCLI   bool        `codec:"fromCLI" json:"fromCLI"`
+}
+
+type GetPartnerUrlsLocalArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type LocalInterface interface {
 	GetWalletAccountsLocal(context.Context, int) ([]WalletAccountLocal, error)
 	GetWalletAccountLocal(context.Context, GetWalletAccountLocalArg) (WalletAccountLocal, error)
@@ -1471,6 +1581,11 @@ type LocalInterface interface {
 	MakeRequestCLILocal(context.Context, MakeRequestCLILocalArg) (KeybaseRequestID, error)
 	LookupCLILocal(context.Context, string) (LookupResultCLILocal, error)
 	BatchLocal(context.Context, BatchLocalArg) (BatchResultLocal, error)
+	ValidateStellarURILocal(context.Context, ValidateStellarURILocalArg) (ValidateStellarURIResultLocal, error)
+	ApproveTxURILocal(context.Context, ApproveTxURILocalArg) (TransactionID, error)
+	ApprovePayURILocal(context.Context, ApprovePayURILocalArg) (TransactionID, error)
+	ApprovePathURILocal(context.Context, ApprovePathURILocalArg) (TransactionID, error)
+	GetPartnerUrlsLocal(context.Context, int) ([]PartnerUrl, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -2477,6 +2592,81 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"validateStellarURILocal": {
+				MakeArg: func() interface{} {
+					var ret [1]ValidateStellarURILocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ValidateStellarURILocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ValidateStellarURILocalArg)(nil), args)
+						return
+					}
+					ret, err = i.ValidateStellarURILocal(ctx, typedArgs[0])
+					return
+				},
+			},
+			"approveTxURILocal": {
+				MakeArg: func() interface{} {
+					var ret [1]ApproveTxURILocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ApproveTxURILocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ApproveTxURILocalArg)(nil), args)
+						return
+					}
+					ret, err = i.ApproveTxURILocal(ctx, typedArgs[0])
+					return
+				},
+			},
+			"approvePayURILocal": {
+				MakeArg: func() interface{} {
+					var ret [1]ApprovePayURILocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ApprovePayURILocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ApprovePayURILocalArg)(nil), args)
+						return
+					}
+					ret, err = i.ApprovePayURILocal(ctx, typedArgs[0])
+					return
+				},
+			},
+			"approvePathURILocal": {
+				MakeArg: func() interface{} {
+					var ret [1]ApprovePathURILocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ApprovePathURILocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ApprovePathURILocalArg)(nil), args)
+						return
+					}
+					ret, err = i.ApprovePathURILocal(ctx, typedArgs[0])
+					return
+				},
+			},
+			"getPartnerUrlsLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]GetPartnerUrlsLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetPartnerUrlsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetPartnerUrlsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetPartnerUrlsLocal(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
 		},
 	}
 }
@@ -2837,5 +3027,31 @@ func (c LocalClient) LookupCLILocal(ctx context.Context, name string) (res Looku
 
 func (c LocalClient) BatchLocal(ctx context.Context, __arg BatchLocalArg) (res BatchResultLocal, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.batchLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) ValidateStellarURILocal(ctx context.Context, __arg ValidateStellarURILocalArg) (res ValidateStellarURIResultLocal, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.validateStellarURILocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) ApproveTxURILocal(ctx context.Context, __arg ApproveTxURILocalArg) (res TransactionID, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.approveTxURILocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) ApprovePayURILocal(ctx context.Context, __arg ApprovePayURILocalArg) (res TransactionID, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.approvePayURILocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) ApprovePathURILocal(ctx context.Context, __arg ApprovePathURILocalArg) (res TransactionID, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.approvePathURILocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetPartnerUrlsLocal(ctx context.Context, sessionID int) (res []PartnerUrl, err error) {
+	__arg := GetPartnerUrlsLocalArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "stellar.1.local.getPartnerUrlsLocal", []interface{}{__arg}, &res)
 	return
 }

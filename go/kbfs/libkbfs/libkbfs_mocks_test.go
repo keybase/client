@@ -2322,6 +2322,20 @@ func (mr *MockKeybaseServiceMockRecorder) Notify(arg0, arg1 interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Notify", reflect.TypeOf((*MockKeybaseService)(nil).Notify), arg0, arg1)
 }
 
+// NotifyFavoritesChanged mocks base method
+func (m *MockKeybaseService) NotifyFavoritesChanged(arg0 context.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NotifyFavoritesChanged", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// NotifyFavoritesChanged indicates an expected call of NotifyFavoritesChanged
+func (mr *MockKeybaseServiceMockRecorder) NotifyFavoritesChanged(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyFavoritesChanged", reflect.TypeOf((*MockKeybaseService)(nil).NotifyFavoritesChanged), arg0)
+}
+
 // NotifyOnlineStatusChanged mocks base method
 func (m *MockKeybaseService) NotifyOnlineStatusChanged(arg0 context.Context, arg1 bool) error {
 	m.ctrl.T.Helper()
@@ -3963,6 +3977,18 @@ func (m *MockReporter) Notify(arg0 context.Context, arg1 *keybase1.FSNotificatio
 func (mr *MockReporterMockRecorder) Notify(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Notify", reflect.TypeOf((*MockReporter)(nil).Notify), arg0, arg1)
+}
+
+// NotifyFavoritesChanged mocks base method
+func (m *MockReporter) NotifyFavoritesChanged(arg0 context.Context) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "NotifyFavoritesChanged", arg0)
+}
+
+// NotifyFavoritesChanged indicates an expected call of NotifyFavoritesChanged
+func (mr *MockReporterMockRecorder) NotifyFavoritesChanged(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyFavoritesChanged", reflect.TypeOf((*MockReporter)(nil).NotifyFavoritesChanged), arg0)
 }
 
 // NotifyOverallSyncStatus mocks base method

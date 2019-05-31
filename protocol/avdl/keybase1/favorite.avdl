@@ -13,7 +13,32 @@ protocol favorite {
   enum FolderConflictType {
     NONE_0,
     IN_CONFLICT_1,
-    IN_CONFLICT_AND_STUCK_2
+    IN_CONFLICT_AND_STUCK_2,
+    CLEARED_CONFLICT_3
+}
+
+  enum ConflictStateType {
+    AutomaticResolving_0,
+    ManualResolvingServerView_1,
+    ManualResolvingLocalView_2
+  }
+
+  record ConflictAutomaticResolving {
+    boolean isStuck;
+  }
+
+  record ConflictManualResolvingServerView {
+    array<Path> localViews;
+  }
+
+  record ConflictManualResolvingLocalView {
+    Path serverView;
+  }
+
+  variant ConflictState switch (ConflictStateType conflictStateType) {
+    case AutomaticResolving: ConflictAutomaticResolving;
+    case ManualResolvingServerView: ConflictManualResolvingServerView;
+    case ManualResolvingLocalView: ConflictManualResolvingLocalView;
   }
 
   /**
@@ -39,8 +64,7 @@ protocol favorite {
 
     union { null, Time } mtime;
 
-    // Is the local view of this folder hosed due to stuck CR?
-    FolderConflictType conflictType;
+    union { null, ConflictState } conflictState;
   }
 
   // Each of your TLFs is in one of 3 states with respect to favoriting. Either

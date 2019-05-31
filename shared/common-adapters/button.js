@@ -231,8 +231,8 @@ const containerStyles = Styles.styleSheetCreate({
   PrimaryDefault: {...common, backgroundColor: Styles.globalColors.blue},
   PrimarySuccess: {...common, backgroundColor: Styles.globalColors.green},
   PrimaryDanger: {...common, backgroundColor: Styles.globalColors.red},
-  PrimaryWallet: {...common, backgroundColor: Styles.globalColors.purple2},
-  PrimaryDim: {...common, backgroundColor: Styles.globalColors.lightGrey2},
+  PrimaryWallet: {...common, backgroundColor: Styles.globalColors.purple},
+  PrimaryDim: {...common, backgroundColor: Styles.globalColors.grey},
   SecondaryDefault: commonSecondaryWhiteBg,
   SecondarySuccess: commonSecondaryWhiteBg,
   SecondaryDanger: commonSecondaryWhiteBg,
@@ -253,7 +253,7 @@ const labelStyles = Styles.styleSheetCreate({
   SecondaryDefault: {...commonLabel, color: Styles.globalColors.blue},
   SecondarySuccess: {...commonLabel, color: Styles.globalColors.green},
   SecondaryDanger: {...commonLabel, color: Styles.globalColors.red},
-  SecondaryWallet: {...commonLabel, color: Styles.globalColors.purple},
+  SecondaryWallet: {...commonLabel, color: Styles.globalColors.purpleDark},
   SecondaryDim: {...commonLabel, color: Styles.globalColors.black_50},
 })
 
@@ -270,7 +270,7 @@ const backgroundColorLabelStyles = Styles.styleSheetCreate({
   Primaryblue: {...commonLabel, color: Styles.globalColors.blue},
   Primaryred: {...commonLabel, color: Styles.globalColors.red},
   Primarygreen: {...commonLabel, color: Styles.globalColors.green},
-  Primarypurple: {...commonLabel, color: Styles.globalColors.purple},
+  Primarypurple: {...commonLabel, color: Styles.globalColors.purpleDark},
   Primaryblack: {...commonLabel, color: Styles.globalColors.black},
   Secondary: {...commonLabel, color: Styles.globalColors.white},
 })

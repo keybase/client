@@ -355,3 +355,7 @@ func (c *ChatCLIUI) ChatCommandMarkdown(ctx context.Context, arg chat1.ChatComma
 func (c *ChatCLIUI) ChatMaybeMentionUpdate(ctx context.Context, arg chat1.ChatMaybeMentionUpdateArg) error {
 	return nil
 }
+
+func (c *ChatCLIUI) ChatLoadGalleryHit(ctx context.Context, arg chat1.ChatLoadGalleryHitArg) error {
+	return nil
+}

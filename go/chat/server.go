@@ -53,8 +53,10 @@ type Server struct {
 
 	searchMu            sync.Mutex
 	searchInboxMu       sync.Mutex
+	loadGalleryMu       sync.Mutex
 	searchCancelFn      context.CancelFunc
 	searchInboxCancelFn context.CancelFunc
+	loadGalleryCancelFn context.CancelFunc
 
 	// Only for testing
 	rc                chat1.RemoteInterface
@@ -106,6 +108,13 @@ func (h *Server) shouldSquashError(err error) bool {
 		return true
 	}
 	return false
+}
+
+func (h *Server) squashSquashableErrors(err error) error {
+	if h.shouldSquashError(err) {
+		return nil
+	}
+	return err
 }
 
 func (h *Server) handleOfflineError(ctx context.Context, err error,
@@ -271,7 +280,8 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 							&convRes.Conv.Metadata.IdTriple.Tlfid, InboxLoad))
 				}
 			} else {
-				pconv := utils.PresentConversationLocal(convRes.ConvLocal, h.G().Env.GetUsername().String())
+				pconv := utils.PresentConversationLocal(ctx, convRes.ConvLocal,
+					h.G().Env.GetUsername().String())
 				jbody, err := json.Marshal(pconv)
 				if err != nil {
 					h.Debug(ctx, "GetInboxNonblockLocal: failed to JSON conversation, skipping: %s",
@@ -405,7 +415,7 @@ func (h *Server) GetInboxAndUnboxUILocal(ctx context.Context, arg chat1.GetInbox
 		}
 	}
 	return chat1.GetInboxAndUnboxUILocalRes{
-		Conversations:    utils.PresentConversationLocals(ib.Convs, h.G().Env.GetUsername().String()),
+		Conversations:    utils.PresentConversationLocals(ctx, ib.Convs, h.G().Env.GetUsername().String()),
 		Pagination:       ib.Pagination,
 		IdentifyFailures: identBreaks,
 	}, nil
@@ -869,7 +879,7 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 	}
 
 	res.Conv = conv
-	res.UiConv = utils.PresentConversationLocal(conv, h.G().GetEnv().GetUsername().String())
+	res.UiConv = utils.PresentConversationLocal(ctx, conv, h.G().GetEnv().GetUsername().String())
 	res.IdentifyFailures = identBreaks
 	return res, nil
 }
@@ -1078,7 +1088,7 @@ func (h *Server) GetNextAttachmentMessageLocal(ctx context.Context,
 		return res, err
 	}
 	gallery := attachments.NewGallery(h.G())
-	unboxed, err := gallery.NextMessage(ctx, uid, arg.ConvID, arg.MessageID,
+	unboxed, _, err := gallery.NextMessage(ctx, uid, arg.ConvID, arg.MessageID,
 		attachments.NextMessageOptions{
 			BackInTime: arg.BackInTime,
 			AssetTypes: arg.AssetTypes,
@@ -1738,7 +1748,8 @@ func (h *Server) FindConversationsLocal(ctx context.Context,
 	if err != nil {
 		return res, err
 	}
-	res.UiConversations = utils.PresentConversationLocals(res.Conversations, h.G().Env.GetUsername().String())
+	res.UiConversations = utils.PresentConversationLocals(ctx, res.Conversations,
+		h.G().Env.GetUsername().String())
 	return res, nil
 }
 
@@ -1962,7 +1973,7 @@ func (h *Server) GetTLFConversationsLocal(ctx context.Context, arg chat1.GetTLFC
 	if err != nil {
 		return res, err
 	}
-	res.Convs = utils.PresentConversationLocals(convs, h.G().Env.GetUsername().String())
+	res.Convs = utils.PresentConversationLocals(ctx, convs, h.G().Env.GetUsername().String())
 	res.Offline = h.G().InboxSource.IsOffline(ctx)
 	return res, nil
 }
@@ -2331,7 +2342,7 @@ func (h *Server) SearchRegexp(ctx context.Context, arg chat1.SearchRegexpArg) (r
 		}
 		close(ch)
 	}()
-	hits, err := h.G().RegexpSearcher.Search(ctx, uid, arg.ConvID, re, uiCh, opts)
+	hits, _, err := h.G().RegexpSearcher.Search(ctx, uid, arg.ConvID, re, uiCh, opts)
 	if err != nil {
 		return res, err
 	}
@@ -2404,7 +2415,7 @@ func (h *Server) delegateInboxSearch(ctx context.Context, uid gregor1.UID, query
 			}
 			close(ch)
 		}()
-		hits, err := h.G().RegexpSearcher.Search(ctx, uid, conv.GetConvID(), re, uiCh, opts)
+		hits, _, err := h.G().RegexpSearcher.Search(ctx, uid, conv.GetConvID(), re, uiCh, opts)
 		if err != nil {
 			h.Debug(ctx, "delegateInboxSearch: failed to search conv: %s", err)
 			continue
@@ -2871,4 +2882,95 @@ func (h *Server) ResolveMaybeMention(ctx context.Context, mention chat1.MaybeMen
 	}
 	// Try to load as team
 	return h.G().TeamMentionLoader.LoadTeamMention(ctx, uid, mention, nil, true)
+}
+
+func (h *Server) getLoadGalleryContext(ctx context.Context) context.Context {
+	// enforce a single search happening at a time
+	h.loadGalleryMu.Lock()
+	if h.loadGalleryCancelFn != nil {
+		h.loadGalleryCancelFn()
+		h.loadGalleryCancelFn = nil
+	}
+	ctx, h.loadGalleryCancelFn = context.WithCancel(ctx)
+	h.loadGalleryMu.Unlock()
+	return ctx
+}
+
+func (h *Server) LoadGallery(ctx context.Context, arg chat1.LoadGalleryArg) (res chat1.LoadGalleryRes, err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "LoadGallery")()
+	defer func() { err = h.squashSquashableErrors(err) }()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	defer h.suspendConvLoader(ctx)()
+
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	ctx = h.getLoadGalleryContext(ctx)
+	chatUI := h.getChatUI(arg.SessionID)
+	convID := arg.ConvID
+	var opts attachments.NextMessageOptions
+	opts.BackInTime = true
+	switch arg.Typ {
+	case chat1.GalleryItemTyp_MEDIA:
+		opts.MessageType = chat1.MessageType_ATTACHMENT
+		opts.AssetTypes = []chat1.AssetMetadataType{chat1.AssetMetadataType_IMAGE,
+			chat1.AssetMetadataType_VIDEO}
+	case chat1.GalleryItemTyp_LINK:
+		opts.MessageType = chat1.MessageType_TEXT
+		opts.FilterLinks = true
+	case chat1.GalleryItemTyp_DOC:
+		opts.MessageType = chat1.MessageType_ATTACHMENT
+		opts.AssetTypes = []chat1.AssetMetadataType{chat1.AssetMetadataType_NONE}
+	default:
+		return res, errors.New("invalid gallery type")
+	}
+	var msgID chat1.MessageID
+	if arg.FromMsgID != nil {
+		msgID = *arg.FromMsgID
+	} else {
+		conv, err := utils.GetUnverifiedConv(ctx, h.G(), uid, convID, types.InboxSourceDataSourceAll)
+		if err != nil {
+			return res, err
+		}
+		msgID = conv.Conv.ReaderInfo.MaxMsgid + 1
+	}
+
+	hitCh := make(chan chat1.UIMessage)
+	go func(ctx context.Context) {
+		for msg := range hitCh {
+			chatUI.ChatLoadGalleryHit(ctx, msg)
+		}
+	}(ctx)
+	gallery := attachments.NewGallery(h.G())
+	msgs, last, err := gallery.NextMessages(ctx, uid, convID, msgID, arg.Num, opts, hitCh)
+	if err != nil {
+		return res, err
+	}
+	return chat1.LoadGalleryRes{
+		Last:     last,
+		Messages: utils.PresentMessagesUnboxed(ctx, h.G(), msgs, uid, convID),
+	}, nil
+}
+
+func (h *Server) LoadFlip(ctx context.Context, arg chat1.LoadFlipArg) (res chat1.LoadFlipRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "LoadFlip")()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	statusCh, errCh := h.G().CoinFlipManager.LoadFlip(ctx, uid, arg.HostConvID, arg.HostMsgID,
+		arg.FlipConvID, arg.GameID)
+	select {
+	case status := <-statusCh:
+		res.Status = status
+	case err = <-errCh:
+		return res, err
+	}
+	res.IdentifyFailures = identBreaks
+	return res, nil
 }

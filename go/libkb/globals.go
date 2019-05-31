@@ -95,7 +95,9 @@ type GlobalContext struct {
 	fullSelfer       FullSelfer       // a loader that gets the full self object
 	pvlSource        MerkleStore      // a cache and fetcher for pvl
 	paramProofStore  MerkleStore      // a cache and fetcher for param proofs
+	externalURLStore MerkleStore      // a cache and fetcher for external urls
 	PayloadCache     *PayloadCache    // cache of ChainLink payload json wrappers
+	Pegboard         *Pegboard
 
 	GpgClient        *GpgCLI        // A standard GPG-client (optional)
 	ShutdownHooks    []ShutdownHook // on shutdown, fire these...
@@ -199,6 +201,7 @@ func NewGlobalContext() *GlobalContext {
 		switchUserMu:       NewVerboseLock(VLog0, "switchUserMu"),
 		FeatureFlags:       NewFeatureFlagSet(),
 		switchedUsers:      make(map[NormalizedUsername]bool),
+		Pegboard:           NewPegboard(),
 	}
 	return ret
 }
@@ -343,6 +346,8 @@ func (g *GlobalContext) LogoutWithSecretKill(mctx MetaContext, killSecrets bool)
 	g.Identify3State.OnLogout()
 
 	g.GetUPAKLoader().OnLogout()
+
+	g.Pegboard.OnLogout(mctx)
 
 	return nil
 }
@@ -631,6 +636,10 @@ func (g *GlobalContext) GetParamProofStore() MerkleStore {
 	return g.paramProofStore
 }
 
+func (g *GlobalContext) GetExternalURLStore() MerkleStore {
+	return g.externalURLStore
+}
+
 // to implement ProofContext
 func (g *GlobalContext) GetPvlSource() MerkleStore {
 	return g.pvlSource
@@ -721,6 +730,15 @@ func (u Usage) UseKeyring() bool {
 	return u.KbKeyring || u.GpgKeyring
 }
 
+// If changed, make sure to correct standalone usage in g.Configure below
+var ServiceUsage = Usage{
+	Config:     true,
+	KbKeyring:  true,
+	GpgKeyring: true,
+	API:        true,
+	Socket:     true,
+}
+
 func (g *GlobalContext) ConfigureCommand(line CommandLine, cmd Command) error {
 	usage := cmd.GetUsage()
 	return g.Configure(line, usage)
@@ -730,6 +748,15 @@ func (g *GlobalContext) Configure(line CommandLine, usage Usage) error {
 	g.SetCommandLine(line)
 	if err := g.ConfigureLogging(); err != nil {
 		return err
+	}
+	if g.Env.GetStandalone() {
+		// If standalone, override the usage to be the same as in a service
+		// If changed, make sure to correct ServiceUsage above.
+		usage.Config = ServiceUsage.Config
+		usage.KbKeyring = ServiceUsage.KbKeyring
+		usage.GpgKeyring = ServiceUsage.GpgKeyring
+		usage.API = ServiceUsage.API
+		usage.Socket = ServiceUsage.Socket
 	}
 
 	if err := g.ConfigureUsage(usage); err != nil {
@@ -971,6 +998,10 @@ func (g *GlobalContext) CallLoginHooks(mctx MetaContext) {
 	// Do so outside the lock below
 	g.GetFullSelfer().OnLogin(mctx)
 
+	if _, err := LoadHasRandomPw(mctx, keybase1.LoadHasRandomPwArg{ForceRepoll: true}); err != nil {
+		mctx.Warning("failed to pre-fetch no-password state: %s", err)
+	}
+
 	g.hookMu.RLock()
 	defer g.hookMu.RUnlock()
 	for _, h := range g.loginHooks {
@@ -1125,6 +1156,12 @@ func (g *GlobalContext) SetParamProofStore(s MerkleStore) {
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
 	g.paramProofStore = s
+}
+
+func (g *GlobalContext) SetExternalURLStore(s MerkleStore) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.externalURLStore = s
 }
 
 func (g *GlobalContext) SetPvlSource(s MerkleStore) {

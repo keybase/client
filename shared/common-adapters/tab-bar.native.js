@@ -87,7 +87,7 @@ const TabBarButton = (props: TabBarButtonProps) => {
             title="new"
             size="Small"
             style={{alignSelf: 'center', marginRight: 4}}
-            backgroundColor={globalColors.blue2}
+            backgroundColor={globalColors.blueLight}
           />
         </Box>
       )}

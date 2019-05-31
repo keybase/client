@@ -31,6 +31,7 @@ func (o UIPagination) DeepCopy() UIPagination {
 type UnverifiedInboxUIItemMetadata struct {
 	ChannelName       string   `codec:"channelName" json:"channelName"`
 	Headline          string   `codec:"headline" json:"headline"`
+	HeadlineDecorated string   `codec:"headlineDecorated" json:"headlineDecorated"`
 	Snippet           string   `codec:"snippet" json:"snippet"`
 	SnippetDecoration string   `codec:"snippetDecoration" json:"snippetDecoration"`
 	WriterNames       []string `codec:"writerNames" json:"writerNames"`
@@ -41,6 +42,7 @@ func (o UnverifiedInboxUIItemMetadata) DeepCopy() UnverifiedInboxUIItemMetadata 
 	return UnverifiedInboxUIItemMetadata{
 		ChannelName:       o.ChannelName,
 		Headline:          o.Headline,
+		HeadlineDecorated: o.HeadlineDecorated,
 		Snippet:           o.Snippet,
 		SnippetDecoration: o.SnippetDecoration,
 		WriterNames: (func(x []string) []string {
@@ -212,6 +214,7 @@ type InboxUIItem struct {
 	SnippetDecoration string                        `codec:"snippetDecoration" json:"snippetDecoration"`
 	Channel           string                        `codec:"channel" json:"channel"`
 	Headline          string                        `codec:"headline" json:"headline"`
+	HeadlineDecorated string                        `codec:"headlineDecorated" json:"headlineDecorated"`
 	Visibility        keybase1.TLFVisibility        `codec:"visibility" json:"visibility"`
 	Participants      []string                      `codec:"participants" json:"participants"`
 	FullNames         map[string]string             `codec:"fullNames" json:"fullNames"`
@@ -248,6 +251,7 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 		SnippetDecoration: o.SnippetDecoration,
 		Channel:           o.Channel,
 		Headline:          o.Headline,
+		HeadlineDecorated: o.HeadlineDecorated,
 		Visibility:        o.Visibility.DeepCopy(),
 		Participants: (func(x []string) []string {
 			if x == nil {
@@ -1008,6 +1012,8 @@ const (
 	UITextDecorationTyp_ATMENTION          UITextDecorationTyp = 1
 	UITextDecorationTyp_CHANNELNAMEMENTION UITextDecorationTyp = 2
 	UITextDecorationTyp_MAYBEMENTION       UITextDecorationTyp = 3
+	UITextDecorationTyp_LINK               UITextDecorationTyp = 4
+	UITextDecorationTyp_MAILTO             UITextDecorationTyp = 5
 )
 
 func (o UITextDecorationTyp) DeepCopy() UITextDecorationTyp { return o }
@@ -1017,6 +1023,8 @@ var UITextDecorationTypMap = map[string]UITextDecorationTyp{
 	"ATMENTION":          1,
 	"CHANNELNAMEMENTION": 2,
 	"MAYBEMENTION":       3,
+	"LINK":               4,
+	"MAILTO":             5,
 }
 
 var UITextDecorationTypRevMap = map[UITextDecorationTyp]string{
@@ -1024,6 +1032,8 @@ var UITextDecorationTypRevMap = map[UITextDecorationTyp]string{
 	1: "ATMENTION",
 	2: "CHANNELNAMEMENTION",
 	3: "MAYBEMENTION",
+	4: "LINK",
+	5: "MAILTO",
 }
 
 func (e UITextDecorationTyp) String() string {
@@ -1063,6 +1073,18 @@ func (e UIMaybeMentionStatus) String() string {
 		return v
 	}
 	return ""
+}
+
+type UILinkDecoration struct {
+	Display string `codec:"display" json:"display"`
+	Url     string `codec:"url" json:"url"`
+}
+
+func (o UILinkDecoration) DeepCopy() UILinkDecoration {
+	return UILinkDecoration{
+		Display: o.Display,
+		Url:     o.Url,
+	}
 }
 
 type UIMaybeMentionInfo struct {
@@ -1135,6 +1157,8 @@ type UITextDecoration struct {
 	Atmention__          *string               `codec:"atmention,omitempty" json:"atmention,omitempty"`
 	Channelnamemention__ *UIChannelNameMention `codec:"channelnamemention,omitempty" json:"channelnamemention,omitempty"`
 	Maybemention__       *MaybeMention         `codec:"maybemention,omitempty" json:"maybemention,omitempty"`
+	Link__               *UILinkDecoration     `codec:"link,omitempty" json:"link,omitempty"`
+	Mailto__             *UILinkDecoration     `codec:"mailto,omitempty" json:"mailto,omitempty"`
 }
 
 func (o *UITextDecoration) Typ() (ret UITextDecorationTyp, err error) {
@@ -1157,6 +1181,16 @@ func (o *UITextDecoration) Typ() (ret UITextDecorationTyp, err error) {
 	case UITextDecorationTyp_MAYBEMENTION:
 		if o.Maybemention__ == nil {
 			err = errors.New("unexpected nil value for Maybemention__")
+			return ret, err
+		}
+	case UITextDecorationTyp_LINK:
+		if o.Link__ == nil {
+			err = errors.New("unexpected nil value for Link__")
+			return ret, err
+		}
+	case UITextDecorationTyp_MAILTO:
+		if o.Mailto__ == nil {
+			err = errors.New("unexpected nil value for Mailto__")
 			return ret, err
 		}
 	}
@@ -1203,6 +1237,26 @@ func (o UITextDecoration) Maybemention() (res MaybeMention) {
 	return *o.Maybemention__
 }
 
+func (o UITextDecoration) Link() (res UILinkDecoration) {
+	if o.Typ__ != UITextDecorationTyp_LINK {
+		panic("wrong case accessed")
+	}
+	if o.Link__ == nil {
+		return
+	}
+	return *o.Link__
+}
+
+func (o UITextDecoration) Mailto() (res UILinkDecoration) {
+	if o.Typ__ != UITextDecorationTyp_MAILTO {
+		panic("wrong case accessed")
+	}
+	if o.Mailto__ == nil {
+		return
+	}
+	return *o.Mailto__
+}
+
 func NewUITextDecorationWithPayment(v TextPayment) UITextDecoration {
 	return UITextDecoration{
 		Typ__:     UITextDecorationTyp_PAYMENT,
@@ -1228,6 +1282,20 @@ func NewUITextDecorationWithMaybemention(v MaybeMention) UITextDecoration {
 	return UITextDecoration{
 		Typ__:          UITextDecorationTyp_MAYBEMENTION,
 		Maybemention__: &v,
+	}
+}
+
+func NewUITextDecorationWithLink(v UILinkDecoration) UITextDecoration {
+	return UITextDecoration{
+		Typ__:  UITextDecorationTyp_LINK,
+		Link__: &v,
+	}
+}
+
+func NewUITextDecorationWithMailto(v UILinkDecoration) UITextDecoration {
+	return UITextDecoration{
+		Typ__:    UITextDecorationTyp_MAILTO,
+		Mailto__: &v,
 	}
 }
 
@@ -1262,6 +1330,20 @@ func (o UITextDecoration) DeepCopy() UITextDecoration {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Maybemention__),
+		Link__: (func(x *UILinkDecoration) *UILinkDecoration {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Link__),
+		Mailto__: (func(x *UILinkDecoration) *UILinkDecoration {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Mailto__),
 	}
 }
 
@@ -2192,6 +2274,11 @@ type ChatMaybeMentionUpdateArg struct {
 	Info      UIMaybeMentionInfo `codec:"info" json:"info"`
 }
 
+type ChatLoadGalleryHitArg struct {
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	Message   UIMessage `codec:"message" json:"message"`
+}
+
 type ChatUiInterface interface {
 	ChatAttachmentDownloadStart(context.Context, int) error
 	ChatAttachmentDownloadProgress(context.Context, ChatAttachmentDownloadProgressArg) error
@@ -2219,6 +2306,7 @@ type ChatUiInterface interface {
 	ChatCoinFlipStatus(context.Context, ChatCoinFlipStatusArg) error
 	ChatCommandMarkdown(context.Context, ChatCommandMarkdownArg) error
 	ChatMaybeMentionUpdate(context.Context, ChatMaybeMentionUpdateArg) error
+	ChatLoadGalleryHit(context.Context, ChatLoadGalleryHitArg) error
 }
 
 func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
@@ -2615,6 +2703,21 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					return
 				},
 			},
+			"chatLoadGalleryHit": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatLoadGalleryHitArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatLoadGalleryHitArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatLoadGalleryHitArg)(nil), args)
+						return
+					}
+					err = i.ChatLoadGalleryHit(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -2754,5 +2857,10 @@ func (c ChatUiClient) ChatCommandMarkdown(ctx context.Context, __arg ChatCommand
 
 func (c ChatUiClient) ChatMaybeMentionUpdate(ctx context.Context, __arg ChatMaybeMentionUpdateArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatMaybeMentionUpdate", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ChatUiClient) ChatLoadGalleryHit(ctx context.Context, __arg ChatLoadGalleryHitArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatLoadGalleryHit", []interface{}{__arg}, nil)
 	return
 }

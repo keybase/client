@@ -5,8 +5,8 @@ import SimpleMarkdown from 'simple-markdown'
 import Text from '../text'
 import logger from '../../logger'
 import type {Props as MarkdownProps} from '.'
-import {emojiIndexByChar, emojiRegex, tldExp, commonTlds} from './emoji-gen'
-import {reactOutput, previewOutput, bigEmojiOutput, markdownStyles} from './react'
+import {emojiIndexByChar, emojiRegex, commonTlds} from './emoji-gen'
+import {reactOutput, previewOutput, bigEmojiOutput, markdownStyles, serviceOnlyOutput} from './react'
 
 function createKbfsPathRegex(): ?RegExp {
   const username = `(?:[a-zA-Z0-9]+_?)+` // from go/kbun/username.go
@@ -32,36 +32,7 @@ function createServiceDecorationRegex(): ?RegExp {
 
 const serviceDecorationMatcher = SimpleMarkdown.inlineRegex(createServiceDecorationRegex())
 
-const _makeLinkRegex = () => {
-  const valid = `[:,!]*[\\w=#%~\\-_~&@+\\u00c0-\\uffff]`
-  const paranthesisPaired = `([(]${valid}+[)])`
-  const afterDomain = `(?:\\/|${paranthesisPaired}|${valid}|[.?]+[\\w/=])`
-  return new RegExp(
-    `^( *)(https?:\\/\\/)?([\\w-]+(\\.[\\w-]+)+(:\\d+)?((?:\\/|\\?[\\w=])${afterDomain}*)?)`,
-    'i'
-  )
-}
-
-const _linkRegex = _makeLinkRegex()
-
-// TODO, when named groups are supported on mobile, we can use this instead
-// const linkRegex = /^( *)(https?:\/\/)?([\w-]+(?<tld>\.[\w-]+)+\.?(:\d+)?(\/\S*)?)\b/i
-// This copies the functionality of this named group
-// $FlowIssue treat this like a RegExp
-const linkRegex: RegExp = {
-  exec: source => {
-    const result = _linkRegex.exec(source)
-    if (result) {
-      result.groups = {tld: result[4]}
-      return result
-    }
-    return null
-  },
-}
-
 // Only allow a small set of characters before a url
-const beforeLinkRegex = /[\s/(]/
-const inlineLinkMatch = SimpleMarkdown.inlineRegex(linkRegex)
 const textMatch = SimpleMarkdown.anyScopeRegex(
   new RegExp(
     // [\s\S]+? any char, at least 1 - lazy
@@ -79,19 +50,6 @@ const textMatch = SimpleMarkdown.anyScopeRegex(
     )})|\\n|\\w+:\\S|$)`
   )
 )
-
-const emailRegex = {
-  exec: source => {
-    const r = /^( *)(([\w-_.]*)@([\w-]+(\.[\w-]+)+))\b/i
-    const result = r.exec(source)
-    if (result) {
-      result.groups = {emailAdress: result[2], tld: result[5]}
-      return result
-    }
-    return null
-  },
-}
-const inlineEmailMatch = SimpleMarkdown.inlineRegex(emailRegex)
 
 const wrapInParagraph = (parse, content, state) => [
   {
@@ -220,47 +178,6 @@ const rules = {
       content: capture[1],
       type: 'kbfsPath',
     }),
-  },
-
-  link: {
-    match: (source, state, lookBehind) => {
-      const matches = inlineLinkMatch(source, state, lookBehind)
-      // If there is a match, let's also check if it's a valid tld
-      if (
-        matches &&
-        (!lookBehind.length || beforeLinkRegex.exec(lookBehind)) &&
-        matches.groups &&
-        tldExp.exec(matches.groups.tld)
-      ) {
-        return matches
-      }
-      return null
-    },
-    order: SimpleMarkdown.defaultRules.newline.order + 0.5,
-    parse: function(capture, parse, state) {
-      const ret = {
-        afterProtocol: capture[3],
-        content: undefined,
-        protocol: capture[2] || '',
-        spaceInFront: capture[1],
-      }
-      ret.content = ret.protocol + ret.afterProtocol
-      return ret
-    },
-  },
-  mailto: {
-    match: (source, state, lookBehind) => {
-      const matches = inlineEmailMatch(source, state, lookBehind)
-      // If there is a match, let's also check if it's a valid tld
-      if (matches && matches.groups && tldExp.exec(matches.groups.tld)) {
-        return matches
-      }
-      return null
-    },
-    order: SimpleMarkdown.defaultRules.text.order - 0.4,
-    parse: function(capture, parse, state) {
-      return {content: capture[2], mailto: `mailto:${capture[2]}`, spaceInFront: capture[1]}
-    },
   },
   newline: {
     // handle newlines, keep this to handle \n w/ other matchers
@@ -391,7 +308,9 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
         styleOverride,
       }
 
-      output = this.props.preview
+      output = this.props.serviceOnly
+        ? serviceOnlyOutput(parseTree, state)
+        : this.props.preview
         ? previewOutput(parseTree)
         : isAllEmoji(parseTree) && !this.props.smallStandaloneEmoji
         ? bigEmojiOutput(parseTree, state)
@@ -405,7 +324,11 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
         </Text>
       )
     }
-    const inner = this.props.preview ? (
+    const inner = this.props.serviceOnly ? (
+      <Text type="Body" style={this.props.style}>
+        {output}
+      </Text>
+    ) : this.props.preview ? (
       <Text
         type={Styles.isMobile ? 'Body' : 'BodySmall'}
         style={Styles.collapseStyles([

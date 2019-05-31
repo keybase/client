@@ -43,7 +43,7 @@ type Badger struct {
 func NewBadger(g *libkb.GlobalContext) *Badger {
 	b := &Badger{
 		Contextified:   libkb.NewContextified(g),
-		badgeState:     NewBadgeState(g.Log),
+		badgeState:     NewBadgeState(g),
 		iboxVersSource: nullInboxVersionSource{},
 		notifyCh:       make(chan keybase1.BadgeState, 1000),
 		shutdownCh:     make(chan struct{}),

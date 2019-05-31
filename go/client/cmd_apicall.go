@@ -219,6 +219,8 @@ func (c *CmdAPICall) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	if nargs == 0 {
 		return fmt.Errorf("endpoint is required")
+	} else if nargs != 1 {
+		return fmt.Errorf("expected 1 argument (endpoint), got %d: %v", nargs, ctx.Args())
 	}
 
 	c.endpoint = ctx.Args()[0]

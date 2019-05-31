@@ -397,6 +397,9 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		ExternalTxURL:       details.ExternalTxURL,
 		IsInflation:         summary.IsInflation,
 		InflationSource:     summary.InflationSource,
+		SourceAsset:         summary.SourceAsset,
+		SourceAmountMax:     summary.SourceAmountMax,
+		SourceAmountActual:  summary.SourceAmountActual,
 	}
 
 	return payment, nil
@@ -837,7 +840,7 @@ func (s *Server) SendPathLocal(ctx context.Context, arg stellar1.SendPathLocalAr
 		To:          stellarcommon.RecipientInput(arg.Recipient),
 		Path:        arg.Path,
 		SecretNote:  arg.Note,
-		PublicMemo:  arg.PublicNote,
+		PublicMemo:  stellarnet.NewMemoText(arg.PublicNote),
 		QuickReturn: true,
 	})
 	if err != nil {

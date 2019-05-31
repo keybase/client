@@ -5012,6 +5012,115 @@ func (o UnfurlPromptResult) DeepCopy() UnfurlPromptResult {
 	}
 }
 
+type GalleryItemTyp int
+
+const (
+	GalleryItemTyp_MEDIA GalleryItemTyp = 0
+	GalleryItemTyp_LINK  GalleryItemTyp = 1
+	GalleryItemTyp_DOC   GalleryItemTyp = 2
+)
+
+func (o GalleryItemTyp) DeepCopy() GalleryItemTyp { return o }
+
+var GalleryItemTypMap = map[string]GalleryItemTyp{
+	"MEDIA": 0,
+	"LINK":  1,
+	"DOC":   2,
+}
+
+var GalleryItemTypRevMap = map[GalleryItemTyp]string{
+	0: "MEDIA",
+	1: "LINK",
+	2: "DOC",
+}
+
+func (e GalleryItemTyp) String() string {
+	if v, ok := GalleryItemTypRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type LoadGalleryRes struct {
+	Messages         []UIMessage                   `codec:"messages" json:"messages"`
+	Last             bool                          `codec:"last" json:"last"`
+	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+}
+
+func (o LoadGalleryRes) DeepCopy() LoadGalleryRes {
+	return LoadGalleryRes{
+		Messages: (func(x []UIMessage) []UIMessage {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UIMessage, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Messages),
+		Last: o.Last,
+		RateLimits: (func(x []RateLimit) []RateLimit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]RateLimit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RateLimits),
+		IdentifyFailures: (func(x []keybase1.TLFIdentifyFailure) []keybase1.TLFIdentifyFailure {
+			if x == nil {
+				return nil
+			}
+			ret := make([]keybase1.TLFIdentifyFailure, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.IdentifyFailures),
+	}
+}
+
+type LoadFlipRes struct {
+	Status           UICoinFlipStatus              `codec:"status" json:"status"`
+	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+}
+
+func (o LoadFlipRes) DeepCopy() LoadFlipRes {
+	return LoadFlipRes{
+		Status: o.Status.DeepCopy(),
+		RateLimits: (func(x []RateLimit) []RateLimit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]RateLimit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RateLimits),
+		IdentifyFailures: (func(x []keybase1.TLFIdentifyFailure) []keybase1.TLFIdentifyFailure {
+			if x == nil {
+				return nil
+			}
+			ret := make([]keybase1.TLFIdentifyFailure, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.IdentifyFailures),
+	}
+}
+
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Reason           GetThreadReason              `codec:"reason" json:"reason"`
@@ -5455,6 +5564,21 @@ type ResolveMaybeMentionArg struct {
 	Mention MaybeMention `codec:"mention" json:"mention"`
 }
 
+type LoadGalleryArg struct {
+	SessionID int            `codec:"sessionID" json:"sessionID"`
+	ConvID    ConversationID `codec:"convID" json:"convID"`
+	Typ       GalleryItemTyp `codec:"typ" json:"typ"`
+	Num       int            `codec:"num" json:"num"`
+	FromMsgID *MessageID     `codec:"fromMsgID,omitempty" json:"fromMsgID,omitempty"`
+}
+
+type LoadFlipArg struct {
+	HostConvID ConversationID `codec:"hostConvID" json:"hostConvID"`
+	HostMsgID  MessageID      `codec:"hostMsgID" json:"hostMsgID"`
+	FlipConvID ConversationID `codec:"flipConvID" json:"flipConvID"`
+	GameID     FlipGameID     `codec:"gameID" json:"gameID"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
@@ -5525,6 +5649,8 @@ type LocalInterface interface {
 	BulkAddToConv(context.Context, BulkAddToConvArg) error
 	PutReacjiSkinTone(context.Context, keybase1.ReacjiSkinTone) (keybase1.UserReacjis, error)
 	ResolveMaybeMention(context.Context, MaybeMention) error
+	LoadGallery(context.Context, LoadGalleryArg) (LoadGalleryRes, error)
+	LoadFlip(context.Context, LoadFlipArg) (LoadFlipRes, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -6536,6 +6662,36 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"loadGallery": {
+				MakeArg: func() interface{} {
+					var ret [1]LoadGalleryArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]LoadGalleryArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]LoadGalleryArg)(nil), args)
+						return
+					}
+					ret, err = i.LoadGallery(ctx, typedArgs[0])
+					return
+				},
+			},
+			"loadFlip": {
+				MakeArg: func() interface{} {
+					var ret [1]LoadFlipArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]LoadFlipArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]LoadFlipArg)(nil), args)
+						return
+					}
+					ret, err = i.LoadFlip(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -6898,5 +7054,15 @@ func (c LocalClient) PutReacjiSkinTone(ctx context.Context, skinTone keybase1.Re
 func (c LocalClient) ResolveMaybeMention(ctx context.Context, mention MaybeMention) (err error) {
 	__arg := ResolveMaybeMentionArg{Mention: mention}
 	err = c.Cli.Call(ctx, "chat.1.local.resolveMaybeMention", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) LoadGallery(ctx context.Context, __arg LoadGalleryArg) (res LoadGalleryRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.loadGallery", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) LoadFlip(ctx context.Context, __arg LoadFlipArg) (res LoadFlipRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.loadFlip", []interface{}{__arg}, &res)
 	return
 }

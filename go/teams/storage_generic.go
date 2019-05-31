@@ -69,14 +69,6 @@ func (s *storageGeneric) get(mctx libkb.MetaContext, teamID keybase1.TeamID, pub
 	return nil
 }
 
-func (s *storageGeneric) Delete(mctx libkb.MetaContext, teamID keybase1.TeamID, public bool) error {
-	s.Lock()
-	defer s.Unlock()
-
-	s.mem.delete(mctx, teamID, public)
-	return s.disk.delete(mctx, teamID, public)
-}
-
 // Clear the in-memory storage.
 func (s *storageGeneric) clearMem() {
 	s.mem.clear()

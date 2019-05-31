@@ -33,6 +33,7 @@ func (n NullConfiguration) GetDbFilename() string                               
 func (n NullConfiguration) GetChatDbFilename() string                                      { return "" }
 func (n NullConfiguration) GetPvlKitFilename() string                                      { return "" }
 func (n NullConfiguration) GetParamProofKitFilename() string                               { return "" }
+func (n NullConfiguration) GetExternalURLKitFilename() string                              { return "" }
 func (n NullConfiguration) GetProveBypass() (bool, bool)                                   { return false, false }
 func (n NullConfiguration) GetUsername() NormalizedUsername                                { return NormalizedUsername("") }
 func (n NullConfiguration) GetEmail() string                                               { return "" }
@@ -705,6 +706,16 @@ func (e *Env) GetParamProofKitFilename() string {
 		func() string { return e.cmd.GetParamProofKitFilename() },
 		func() string { return os.Getenv("KEYBASE_PARAM_PROOF_KIT_FILE") },
 		func() string { return e.GetConfig().GetParamProofKitFilename() },
+	)
+}
+
+// GetExternalURLKitFilename gets the path to param proof kit file. Its value
+// is usually "" which means to use the server.
+func (e *Env) GetExternalURLKitFilename() string {
+	return e.GetString(
+		func() string { return e.cmd.GetExternalURLKitFilename() },
+		func() string { return os.Getenv("KEYBASE_EXTERNAL_URL_KIT_FILE") },
+		func() string { return e.GetConfig().GetExternalURLKitFilename() },
 	)
 }
 

@@ -757,8 +757,8 @@ func newBackpressureDiskLimiter(
 	// that the disk cache should consume. Add 0.5 for rounding.
 	diskCacheByteLimit := int64(
 		(float64(params.byteLimit) * params.diskCacheFrac) + 0.5)
-	syncCacheByteLimit := int64(
-		(float64(params.byteLimit) * params.syncCacheFrac) + 0.5)
+	// The byte limit doesn't apply to the sync cache.
+	syncCacheByteLimit := int64(math.MaxInt64)
 	overallByteTracker, err := newBackpressureTracker(
 		1.0, 1.0, 1.0, params.byteLimit, freeBytes)
 	if err != nil {
@@ -771,7 +771,7 @@ func newBackpressureDiskLimiter(
 		return nil, err
 	}
 	syncCacheByteTracker, err := newBackpressureTracker(
-		1.0, 1.0, params.diskCacheFrac, syncCacheByteLimit, freeBytes)
+		1.0, 1.0, params.syncCacheFrac, syncCacheByteLimit, freeBytes)
 	if err != nil {
 		return nil, err
 	}

@@ -24,7 +24,7 @@ const babelRule = {
 
 module.exports = ({config, mode}) => {
   config.resolve = {
-    extensions: ['.desktop.js', '.js', '.jsx', '.json'],
+    extensions: ['.desktop.js', '.desktop.tsx', '.js', '.jsx', '.json', '.flow', '.ts', '.tsx'],
   }
 
   config.plugins = [
@@ -35,11 +35,11 @@ module.exports = ({config, mode}) => {
       __STORYSHOT__: false,
       'process.platform': JSON.stringify('darwin'),
     }),
-    new webpack.NormalModuleReplacementPlugin(/^react-redux$/, __dirname + '/../__mocks__/react-redux.js'),
-    new webpack.NormalModuleReplacementPlugin(/^electron$/, __dirname + '/../__mocks__/electron.js'),
-    new webpack.NormalModuleReplacementPlugin(/engine/, __dirname + '/../__mocks__/engine.js'),
-    new webpack.NormalModuleReplacementPlugin(/util\/saga/, __dirname + '/../__mocks__/saga.js'),
-    new webpack.NormalModuleReplacementPlugin(/feature-flags/, __dirname + '/../__mocks__/feature-flags.js'),
+    new webpack.NormalModuleReplacementPlugin(/^react-redux$/, __dirname + '/../__mocks__/react-redux.tsx'),
+    new webpack.NormalModuleReplacementPlugin(/^electron$/, __dirname + '/../__mocks__/electron.tsx'),
+    new webpack.NormalModuleReplacementPlugin(/engine/, __dirname + '/../__mocks__/engine.tsx'),
+    new webpack.NormalModuleReplacementPlugin(/util\/saga/, __dirname + '/../__mocks__/saga.tsx'),
+    new webpack.NormalModuleReplacementPlugin(/feature-flags/, __dirname + '/../__mocks__/feature-flags.tsx'),
   ]
 
   // Override default ignoring node_modules
@@ -77,6 +77,10 @@ module.exports = ({config, mode}) => {
     {
       test: /\.css$/,
       use: ['style-loader', 'css-loader'],
+    },
+    {
+      test: /\.(ts|tsx)$/,
+      use: ['babel-loader'],
     },
   ]
 

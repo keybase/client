@@ -34,13 +34,16 @@ export const DropdownButton = (props: DropdownButtonProps) => (
 )
 
 type Props<N: React.Node> = {
-  onChanged: (selected: N) => void,
-  selected?: N,
-  items: Array<N>,
-  style?: Styles.StylesCrossPlatform,
-  selectedBoxStyle?: Styles.StylesCrossPlatform,
-  position?: Position,
   disabled?: boolean,
+  itemBoxStyle?: Styles.StylesCrossPlatform,
+  items: Array<N>,
+  onChanged?: (selected: N) => void,
+  onChangedIdx?: (selectedIdx: number) => void,
+  overlayStyle?: Styles.StylesCrossPlatform,
+  position?: Position,
+  selected?: N,
+  selectedBoxStyle?: Styles.StylesCrossPlatform,
+  style?: Styles.StylesCrossPlatform,
 }
 type State = {
   expanded: boolean,
@@ -53,7 +56,9 @@ class Dropdown<N: React.Node> extends React.Component<Props<N> & OverlayParentPr
     disabled: false,
   }
 
-  _toggleOpen = () => {
+  _toggleOpen = (evt?: SyntheticEvent<>) => {
+    evt && evt.stopPropagation && evt.stopPropagation()
+    evt && evt.preventDefault && evt.preventDefault()
     this.setState(prevState => ({
       expanded: !prevState.expanded,
     }))
@@ -74,7 +79,7 @@ class Dropdown<N: React.Node> extends React.Component<Props<N> & OverlayParentPr
           toggleOpen={this._toggleOpen}
         />
         <Overlay
-          style={styles.overlay}
+          style={Styles.collapseStyles([styles.overlay, this.props.overlayStyle])}
           attachTo={this.props.getAttachmentRef}
           visible={this.state.expanded}
           onHidden={this._toggleOpen}
@@ -84,15 +89,18 @@ class Dropdown<N: React.Node> extends React.Component<Props<N> & OverlayParentPr
             {this.props.items.map((i, idx) => (
               <ClickableBox
                 key={idx}
-                onClick={() => {
+                onClick={(evt: SyntheticEvent<>) => {
+                  evt.stopPropagation && evt.stopPropagation()
+                  evt.preventDefault && evt.preventDefault()
                   // Bug in flow that doesn't let us just call this function
                   // this._onSelect(i)
                   this.props.onChanged && this.props.onChanged(i)
+                  this.props.onChangedIdx && this.props.onChangedIdx(idx)
                   this._onSelect()
                 }}
                 style={styles.itemClickBox}
               >
-                <ItemBox>{i}</ItemBox>
+                <ItemBox style={this.props.itemBoxStyle}>{i}</ItemBox>
               </ClickableBox>
             ))}
           </ScrollView>
@@ -192,7 +200,7 @@ const ItemBox = Styles.styled(Box)({
     ? {}
     : {
         ':hover': {
-          backgroundColor: Styles.globalColors.blue4,
+          backgroundColor: Styles.globalColors.blueLighter2,
         },
       }),
   borderBottomWidth: 1,

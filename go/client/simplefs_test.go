@@ -217,6 +217,11 @@ func (s SimpleFSMock) SimpleFSClearConflictState(_ context.Context,
 	return nil
 }
 
+func (s SimpleFSMock) SimpleFSFinishResolvingConflict(_ context.Context,
+	_ keybase1.Path) error {
+	return nil
+}
+
 func (s SimpleFSMock) SimpleFSForceStuckConflict(_ context.Context,
 	_ keybase1.Path) error {
 	return nil
@@ -273,6 +278,16 @@ func (s SimpleFSMock) SimpleFSCheckReachability(
 
 // SimpleFSSetDebugLevel implements the SimpleFSInterface.
 func (s SimpleFSMock) SimpleFSSetDebugLevel(_ context.Context, _ string) error {
+	return nil
+}
+
+// SimpleFSSettings implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSSettings(_ context.Context) (keybase1.FSSettings, error) {
+	return keybase1.FSSettings{}, nil
+}
+
+// SimpleFSSetNotificationThreshold implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSSetNotificationThreshold(_ context.Context, _ int64) error {
 	return nil
 }
 
@@ -570,13 +585,13 @@ func TestSimpleFSRemoteSrcDir(t *testing.T) {
 	destPath, err = makeDestPath(
 		context.TODO(),
 		tc.G,
-		SimpleFSMock{},
+		testStatter,
 		srcPathInitial,
 		destPathInitial,
 		true,
 		tempdir)
 	require.NoError(tc.T, err, "bad path type")
-	assert.Equal(tc.T, filepath.ToSlash(tempdir), destPath.Local())
+	assert.Equal(tc.T, tempdir, destPath.Local())
 
 	pathType, err = destPath.PathType()
 	require.NoError(tc.T, err, "bad path type")

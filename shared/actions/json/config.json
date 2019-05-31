@@ -4,7 +4,7 @@
     "import * as Tabs from '../constants/tabs'",
     "import * as ChatTypes from '../constants/types/chat2'",
     "import * as FsTypes from '../constants/types/fs'",
-    "import {RPCError} from '../util/errors'",
+    "import {RPCError} from '../util/errors'"
   ],
   "actions": {
     "startHandshake": {
@@ -23,7 +23,7 @@
       "name": "string",
       "version": "number",
       "increment": "boolean",
-      "failedReason?": "?string",
+      "failedReason?": "string | null",
       "failedFatal?": "true"
     },
     "daemonHandshakeDone": {
@@ -72,7 +72,7 @@
       "uid": "string",
       "username": "string"
     },
-    "daemonError": {"daemonError": "?Error"},
+    "daemonError": {"daemonError": "Error | null"},
     "setAccounts": {
       "defaultUsername": "string",
       "usernames": "Array<string>"
@@ -81,11 +81,11 @@
     "pushLoaded": {"pushLoaded": "boolean"},
     "setStartupDetails": {
       "startupWasFromPush": "boolean",
-      "startupConversation": "?ChatTypes.ConversationIDKey",
+      "startupConversation": "ChatTypes.ConversationIDKey | null",
       "startupLink": "string",
-      "startupTab": "?Tabs.Tab",
+      "startupTab": "Tabs.Tab | null",
       "startupFollowUser": "string",
-      "startupSharePath": "?FsTypes.LocalPath"
+      "startupSharePath": "FsTypes.LocalPath | null"
     },
     "setOpenAtLogin": {
       "open": "boolean",
@@ -96,11 +96,13 @@
       "writeFile": "boolean"
     },
     "setDeletedSelf": {"deletedUsername": "string"},
-    "swapRouter": {"useNewRouter": "boolean"},
     "persistRoute": {"path": "Array<any>"},
     "setNavigator": {"navigator": "any"},
     "loggedOut": {},
-    "loggedIn": {"causedByStartup": "boolean"},
+    "loggedIn": {
+      "_description": "Used internally to know we were logged in. if you want to react to being logged in likely you want bootstrapStatusLoaded",
+      "causedByStartup": "boolean"
+    },
     "updateMenubarWindowID": {"id": "number"},
     "copyToClipboard": {"text": "string"},
     "checkForUpdate": {},
@@ -112,7 +114,7 @@
     "updateCriticalCheckStatus": {
       "_description": "Save critical check status",
       "status": "'critical' | 'suggested' | 'ok'",
-      "message": "string",
+      "message": "string"
     },
     "osNetworkStatusChanged": {
       "online": "boolean",

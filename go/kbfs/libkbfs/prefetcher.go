@@ -640,7 +640,7 @@ func (p *blockPrefetcher) request(ctx context.Context, priority int,
 	// If this is a new prefetch, or if we need to update the action,
 	// send a new request.
 	newAction := action.Combine(pre.req.action)
-	if !isPrefetchWaiting || pre.req.action != newAction {
+	if !isPrefetchWaiting || pre.req.action != newAction || pre.req.ptr != ptr {
 		// Update the action to prevent any early cancellation of a
 		// previous, non-deeply-synced request, and trigger a new
 		// request in case the previous request has already been
@@ -977,7 +977,7 @@ func (p *blockPrefetcher) handlePrefetchRequest(req *prefetchRequest) {
 		// This request was cancelled while it was waiting.
 		p.vlog.CLogf(context.Background(), libkb.VLog2,
 			"Request not processing because it was canceled already"+
-				": id=%v action=%v", req.ptr.ID, req.action)
+				": ptr=%s action=%v", req.ptr, req.action)
 		return
 	default:
 		p.markQueuedPrefetchDone(req.ptr)
@@ -1221,7 +1221,7 @@ func (p *blockPrefetcher) handlePrefetchRequest(req *prefetchRequest) {
 	}
 	if !isPrefetchWaiting {
 		p.vlog.CLogf(ctx, libkb.VLog2,
-			"adding block %s to the prefetch tree", req.ptr.ID)
+			"adding block %s to the prefetch tree", req.ptr)
 		// This block doesn't appear in the prefetch tree, so it's the
 		// root of a new prefetch tree. Add it to the tree.
 		p.prefetches[req.ptr.ID] = pre
@@ -1419,7 +1419,6 @@ func (p *blockPrefetcher) triggerPrefetch(req *prefetchRequest) {
 		p.log.Warning("Skipping prefetch for block %v since "+
 			"the prefetcher is shutdown", req.ptr.ID)
 	}
-	return
 }
 
 func (p *blockPrefetcher) cacheOrCancelPrefetch(ctx context.Context,

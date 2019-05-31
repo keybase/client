@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"fmt"
+	"io"
 	"math/rand"
 	"os"
 	stdpath "path"
@@ -67,6 +68,7 @@ const (
 	archive                          // an online, read-only branch
 	offline                          // an offline, read-write branch
 	archiveOffline                   // an offline, read-only branch
+	conflict                         // a cleared, local conflict branch
 )
 
 // Constants used in this file.  TODO: Make these configurable?
@@ -260,6 +262,7 @@ type folderBranchOps struct {
 	bType         branchType
 	observers     *observerList
 	serviceStatus *kbfsCurrentStatus
+	favs          *Favorites
 
 	// The leveled locks below, when locked concurrently by the same
 	// goroutine, should only be taken in the following order to avoid
@@ -398,14 +401,14 @@ func newFolderBranchOps(
 	config Config, fb data.FolderBranch,
 	bType branchType,
 	quotaUsage *EventuallyConsistentQuotaUsage,
-	serviceStatus *kbfsCurrentStatus) *folderBranchOps {
+	serviceStatus *kbfsCurrentStatus, favs *Favorites) *folderBranchOps {
 	var nodeCache NodeCache
 	if config.Mode().NodeCacheEnabled() {
 		nodeCache = newNodeCacheStandard(fb)
 		for _, f := range config.RootNodeWrappers() {
 			nodeCache.AddRootWrapper(f)
 		}
-		if bType == archive {
+		if bType == archive || bType == conflict {
 			nodeCache.AddRootWrapper(readonlyWrapper)
 		}
 	}
@@ -452,6 +455,7 @@ func newFolderBranchOps(
 		bType:         bType,
 		observers:     observers,
 		serviceStatus: serviceStatus,
+		favs:          favs,
 		status: newFolderBranchStatusKeeper(
 			config, nodeCache, quotaUsage, fb.Tlf.Bytes()),
 		mdWriterLock: mdWriterLock,
@@ -575,30 +579,29 @@ func (fbo *folderBranchOps) branch() data.BranchName {
 	return fbo.folderBranch.Branch
 }
 
-func (fbo *folderBranchOps) addToFavorites(ctx context.Context,
-	favorites *Favorites, created bool) (err error) {
+func (fbo *folderBranchOps) addToFavorites(
+	ctx context.Context, created bool) (err error) {
 	lState := makeFBOLockState()
 	head := fbo.getTrustedHead(ctx, lState, mdNoCommit)
 	if head == (ImmutableRootMetadata{}) {
 		return OpsCantHandleFavorite{"Can't add a favorite without a handle"}
 	}
 
-	return fbo.addToFavoritesByHandle(ctx, favorites, head.GetTlfHandle(), created)
+	return fbo.addToFavoritesByHandle(ctx, head.GetTlfHandle(), created)
 }
 
-func (fbo *folderBranchOps) addToFavoritesByHandle(ctx context.Context,
-	favorites *Favorites, handle *tlfhandle.Handle, created bool) (err error) {
+func (fbo *folderBranchOps) addToFavoritesByHandle(
+	ctx context.Context, handle *tlfhandle.Handle, created bool) (err error) {
 	if _, err := fbo.config.KBPKI().GetCurrentSession(ctx); err != nil {
 		// Can't favorite while not logged in
 		return nil
 	}
 
-	favorites.AddAsync(ctx, handle.ToFavToAdd(created))
+	fbo.favs.AddAsync(ctx, handle.ToFavToAdd(created))
 	return nil
 }
 
-func (fbo *folderBranchOps) deleteFromFavorites(ctx context.Context,
-	favorites *Favorites) error {
+func (fbo *folderBranchOps) deleteFromFavorites(ctx context.Context) error {
 	if _, err := fbo.config.KBPKI().GetCurrentSession(ctx); err != nil {
 		// Can't unfavorite while not logged in
 		return nil
@@ -612,26 +615,26 @@ func (fbo *folderBranchOps) deleteFromFavorites(ctx context.Context,
 	}
 
 	h := head.GetTlfHandle()
-	return favorites.Delete(ctx, h.ToFavorite())
+	return fbo.favs.Delete(ctx, h.ToFavorite())
 }
 
-func (fbo *folderBranchOps) doFavoritesOp(ctx context.Context,
-	favs *Favorites, fop FavoritesOp, handle *tlfhandle.Handle) error {
+func (fbo *folderBranchOps) doFavoritesOp(
+	ctx context.Context, fop FavoritesOp, handle *tlfhandle.Handle) error {
 	switch fop {
 	case FavoritesOpNoChange:
 		return nil
 	case FavoritesOpAdd:
 		if handle != nil {
-			return fbo.addToFavoritesByHandle(ctx, favs, handle, false)
+			return fbo.addToFavoritesByHandle(ctx, handle, false)
 		}
-		return fbo.addToFavorites(ctx, favs, false)
+		return fbo.addToFavorites(ctx, false)
 	case FavoritesOpAddNewlyCreated:
 		if handle != nil {
-			return fbo.addToFavoritesByHandle(ctx, favs, handle, true)
+			return fbo.addToFavoritesByHandle(ctx, handle, true)
 		}
-		return fbo.addToFavorites(ctx, favs, true)
+		return fbo.addToFavorites(ctx, true)
 	case FavoritesOpRemove:
-		return fbo.deleteFromFavorites(ctx, favs)
+		return fbo.deleteFromFavorites(ctx)
 	default:
 		return InvalidFavoritesOpError{}
 	}
@@ -740,7 +743,7 @@ func (fbo *folderBranchOps) clearConflictView(ctx context.Context) (
 
 	fbo.log.CDebugf(ctx, "Clearing conflict view")
 	defer func() {
-		fbo.log.CDebugf(ctx, "Done with clearConflictView: %+v", err)
+		fbo.deferLog.CDebugf(ctx, "Done with clearConflictView: %+v", err)
 	}()
 
 	lState := makeFBOLockState()
@@ -756,7 +759,7 @@ func (fbo *folderBranchOps) clearConflictView(ctx context.Context) (
 	if err != nil {
 		return err
 	}
-	return fbo.cr.clearConflictRecords()
+	return fbo.cr.clearConflictRecords(ctx)
 }
 
 // forceStuckConflictForTesting forces the TLF into a stuck conflict
@@ -2199,10 +2202,12 @@ func (fbo *folderBranchOps) getMDForWriteOrRekeyLocked(
 	// if this device has any unmerged commits -- take the latest one.
 	mdops := fbo.config.MDOps()
 
-	// get the head of the unmerged branch for this device (if any)
-	md, err = mdops.GetUnmergedForTLF(ctx, fbo.id(), kbfsmd.NullBranchID)
-	if err != nil {
-		return ImmutableRootMetadata{}, err
+	if fbo.config.Mode().UnmergedTLFsEnabled() {
+		// get the head of the unmerged branch for this device (if any)
+		md, err = mdops.GetUnmergedForTLF(ctx, fbo.id(), kbfsmd.NullBranchID)
+		if err != nil {
+			return ImmutableRootMetadata{}, err
+		}
 	}
 
 	mergedMD, err := mdops.GetForTLF(ctx, fbo.id(), nil)
@@ -2855,7 +2860,7 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 		fbo.mdWriterLock.Lock(lState)
 		defer fbo.mdWriterLock.Unlock(lState)
 
-		if md.MergedStatus() == kbfsmd.Unmerged {
+		if md.MergedStatus() == kbfsmd.Unmerged && fbo.bType != conflict {
 			mdops := fbo.config.MDOps()
 			mergedMD, err := mdops.GetForTLF(ctx, fbo.id(), nil)
 			if err != nil {
@@ -5176,6 +5181,12 @@ func (fbo *folderBranchOps) Read(
 		defer fsFile.Close()
 		fbo.vlog.CLogf(ctx, libkb.VLog1, "Reading from an FS file")
 		nInt, err := fsFile.ReadAt(dest, off)
+		if nInt == 0 && errors.Cause(err) == io.EOF {
+			// The billy interfaces requires an EOF when you start
+			// reading past the end of a file, but the libkbfs
+			// interface wants a nil error in that case.
+			err = nil
+		}
 		return int64(nInt), err
 	}
 
@@ -5591,6 +5602,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 
 	dirtyFiles := fbo.blocks.GetDirtyFileBlockRefs(lState)
 	dirtyDirs := fbo.blocks.GetDirtyDirBlockRefs(lState)
+	defer fbo.blocks.GetDirtyDirBlockRefsDone(lState)
 	if len(dirtyFiles) == 0 && len(dirtyDirs) == 0 {
 		return nil
 	}
@@ -6907,7 +6919,7 @@ func (fbo *folderBranchOps) undoUnmergedMDUpdatesLocked(
 			for _, ptr := range op.Refs() {
 				if ptr != data.ZeroPtr {
 					unflushed, err := fbo.config.BlockServer().IsUnflushed(
-						ctx, rmd.tlfHandle.TlfID(), ptr.ID)
+						ctx, fbo.id(), ptr.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -6919,7 +6931,7 @@ func (fbo *folderBranchOps) undoUnmergedMDUpdatesLocked(
 			for _, update := range op.allUpdates() {
 				if update.Ref != data.ZeroPtr {
 					unflushed, err := fbo.config.BlockServer().IsUnflushed(
-						ctx, rmd.tlfHandle.TlfID(), update.Ref.ID)
+						ctx, fbo.id(), update.Ref.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -6965,17 +6977,9 @@ func (fbo *folderBranchOps) unstageLocked(ctx context.Context,
 			return err
 		}
 
-		if tlfJournal, ok := jManager.getTLFJournal(fbo.id(), nil); ok {
-			err = tlfJournal.wait(ctx)
-			if err != nil {
-				return err
-			}
-			err = tlfJournal.moveAway(ctx)
-			if err != nil {
-				return err
-			}
-		} else {
-			return errJournalNotAvailable
+		err = jManager.MoveAway(ctx, fbo.id())
+		if err != nil {
+			return err
 		}
 	}
 
@@ -7365,11 +7369,24 @@ func (fbo *folderBranchOps) SyncFromServer(ctx context.Context,
 		}
 	}
 
-	if err := fbo.fbm.waitForQuotaReclamations(ctx); err != nil {
-		return err
+	// Same with block-related activity, when the bserver might be offline.
+	qrCtx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
+	defer cancel()
+	if err := fbo.fbm.waitForQuotaReclamations(qrCtx); err != nil {
+		if err == context.DeadlineExceeded {
+			fbo.log.CDebugf(ctx, "Couldn't wait for qr activity")
+		} else {
+			return err
+		}
 	}
-	if err := fbo.fbm.waitForDiskCacheCleans(ctx); err != nil {
-		return err
+	cleanCtx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
+	defer cancel()
+	if err := fbo.fbm.waitForDiskCacheCleans(cleanCtx); err != nil {
+		if err == context.DeadlineExceeded {
+			fbo.log.CDebugf(ctx, "Couldn't wait for disk clean activity")
+		} else {
+			return err
+		}
 	}
 	if err := fbo.partialSyncs.Wait(ctx); err != nil {
 		return err
@@ -8307,7 +8324,8 @@ func (fbo *folderBranchOps) MigrateToImplicitTeam(
 
 	fbo.log.CDebugf(ctx, "Starting migration of TLF %s", id)
 	defer func() {
-		fbo.log.CDebugf(ctx, "Finished migration of TLF %s, err=%+v", id, err)
+		fbo.deferLog.CDebugf(
+			ctx, "Finished migration of TLF %s, err=%+v", id, err)
 	}()
 
 	if id.Type() != tlf.Private && id.Type() != tlf.Public {
@@ -9022,9 +9040,21 @@ func (fbo *folderBranchOps) SetSyncConfig(
 	}
 
 	if config.Mode == keybase1.FolderSyncMode_ENABLED {
-		fbo.log.CDebugf(ctx, "Starting full deep sync")
-		_ = fbo.kickOffRootBlockFetch(ctx, md)
+		// Make a new ctx for the root block fetch, since it will
+		// continue after this function returns.
+		rootBlockCtx := fbo.ctxWithFBOID(context.Background())
+		fbo.log.CDebugf(
+			ctx, "Starting full deep sync with a new context: FBOID=%s",
+			rootBlockCtx.Value(CtxFBOIDKey))
+		_ = fbo.kickOffRootBlockFetch(rootBlockCtx, md)
 	}
+
+	// Issue notifications to client when sync mode changes (or is partial).
+	if oldConfig.Mode != config.Mode || config.Mode == keybase1.FolderSyncMode_PARTIAL {
+		fbo.config.Reporter().Notify(ctx, syncConfigChangeNotification(
+			md.GetTlfHandle(), config))
+	}
+
 	return ch, nil
 }
 
@@ -9273,6 +9303,7 @@ func (fbo *folderBranchOps) handleEditActivity(
 		if rmd != (ImmutableRootMetadata{}) {
 			_ = fbo.kickOffEditActivityPartialSync(ctx, lState, rmd)
 		}
+		fbo.favs.RefreshCacheWhenMTimeChanged(ctx)
 		fbo.editActivity.Done()
 	}()
 

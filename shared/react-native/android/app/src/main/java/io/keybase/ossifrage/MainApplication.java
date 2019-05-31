@@ -6,11 +6,13 @@ import android.support.multidex.MultiDex;
 
 import com.reactnativecommunity.netinfo.NetInfoPackage;
 import com.evernote.android.job.JobManager;
+import com.facebook.imagepipeline.core.ImagePipelineConfig;
 import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.shell.MainPackageConfig;
 import com.facebook.react.shell.MainReactPackage;
 import com.dieam.reactnativepushnotification.ReactNativePushNotificationPackage;
 import com.facebook.soloader.SoLoader;
@@ -18,7 +20,7 @@ import com.imagepicker.ImagePickerPackage;
 import com.RNFetchBlob.RNFetchBlobPackage;
 import com.reactnativecommunity.webview.RNCWebViewPackage;
 import com.rt2zz.reactnativecontacts.ReactNativeContacts;
-import com.dylanvann.fastimage.FastImageViewPackage;
+//import com.dylanvann.fastimage.FastImageViewPackage;
 
 import org.reactnative.camera.RNCameraPackage;
 
@@ -74,43 +76,35 @@ public class MainApplication extends Application implements ReactApplication {
 
         @Override
         protected List<ReactPackage> getPackages() {
-            if (BuildConfig.BUILD_TYPE == "storyBook") {
-                return Arrays.<ReactPackage>asList(
-                        new MainReactPackage(),
-                        new KBReactPackage() {
-                            @Override
-                            public List<NativeModule> createNativeModules(ReactApplicationContext reactApplicationContext) {
+            Context context = getApplicationContext();
+            // limit fresco memory
+            ImagePipelineConfig frescoConfig = ImagePipelineConfig
+                    .newBuilder(context)
+                    .setBitmapMemoryCacheParamsSupplier(new CustomBitmapMemoryCacheParamsSupplier(context))
+                    .build();
+
+            MainPackageConfig appConfig = new MainPackageConfig.Builder().setFrescoConfig(frescoConfig).build();
+
+            return Arrays.<ReactPackage>asList(
+                    new MainReactPackage(appConfig),
+                    new KBReactPackage() {
+                        @Override
+                        public List<NativeModule> createNativeModules(ReactApplicationContext reactApplicationContext) {
+                            if (BuildConfig.BUILD_TYPE == "storyBook") {
                                 List<NativeModule> modules = new ArrayList<>();
                                 modules.add(new StorybookConstants(reactApplicationContext));
                                 return modules;
+                            } else {
+                                return super.createNativeModules(reactApplicationContext);
                             }
-                        },
-                        new ReactNativePushNotificationPackage(),
-                        new RNCameraPackage(),
-                        new ImagePickerPackage(),
-                        new RNFetchBlobPackage(),
-                        new ReactNativeContacts(),
-                        new FastImageViewPackage(),
-                        new LottiePackage(),
-                        new RNGestureHandlerPackage(),
-                        new RNScreensPackage(),
-                        new NetInfoPackage(),
-                        new RNCWebViewPackage(),
-                        new ReactVideoPackage(),
-                        new ReanimatedPackage()
-                );
-            }
-
-
-            return Arrays.<ReactPackage>asList(
-                    new MainReactPackage(),
-                    new KBReactPackage(),
+                        }
+                    },
                     new ReactNativePushNotificationPackage(),
                     new RNCameraPackage(),
                     new ImagePickerPackage(),
                     new RNFetchBlobPackage(),
                     new ReactNativeContacts(),
-                    new FastImageViewPackage(),
+                    //new FastImageViewPackage(),
                     new LottiePackage(),
                     new RNGestureHandlerPackage(),
                     new RNScreensPackage(),
@@ -124,7 +118,6 @@ public class MainApplication extends Application implements ReactApplication {
         protected String getJSMainModuleName() {
             return "index";
         }
-
     };
 
     @Override

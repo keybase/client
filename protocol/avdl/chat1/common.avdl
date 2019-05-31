@@ -554,6 +554,8 @@
     // message filters
     string sentBy;
     string sentTo;
+    // only set to true if sentTo is the current user.
+    boolean matchMentions;
     gregor1.Time sentBefore;
     gregor1.Time sentAfter;
 
@@ -563,6 +565,7 @@
     int maxMessages;
     int beforeContext;
     int afterContext;
+    union { null, Pagination } initialPagination;
     // only used by in inbox search
     ReIndexingMode reindexMode;
     int maxConvsSearched;

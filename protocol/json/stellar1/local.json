@@ -45,6 +45,10 @@
         },
         {
           "type": "boolean",
+          "name": "deviceReadOnly"
+        },
+        {
+          "type": "boolean",
           "name": "isFunded"
         },
         {
@@ -1224,6 +1228,122 @@
           "name": "message"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "TxDisplaySummary",
+      "fields": [
+        {
+          "type": "AccountID",
+          "name": "source"
+        },
+        {
+          "type": "int",
+          "name": "fee"
+        },
+        {
+          "type": "string",
+          "name": "memo"
+        },
+        {
+          "type": "string",
+          "name": "memoType"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "operations"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ValidateStellarURIResultLocal",
+      "fields": [
+        {
+          "type": "string",
+          "name": "operation"
+        },
+        {
+          "type": "string",
+          "name": "originDomain"
+        },
+        {
+          "type": "string",
+          "name": "message"
+        },
+        {
+          "type": "string",
+          "name": "callbackURL",
+          "lint": "ignore"
+        },
+        {
+          "type": "string",
+          "name": "xdr"
+        },
+        {
+          "type": "TxDisplaySummary",
+          "name": "summary"
+        },
+        {
+          "type": "string",
+          "name": "recipient"
+        },
+        {
+          "type": "string",
+          "name": "amount"
+        },
+        {
+          "type": "string",
+          "name": "assetCode"
+        },
+        {
+          "type": "string",
+          "name": "assetIssuer"
+        },
+        {
+          "type": "string",
+          "name": "memo"
+        },
+        {
+          "type": "string",
+          "name": "memoType"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PartnerUrl",
+      "fields": [
+        {
+          "type": "string",
+          "name": "url"
+        },
+        {
+          "type": "string",
+          "name": "title"
+        },
+        {
+          "type": "string",
+          "name": "description"
+        },
+        {
+          "type": "string",
+          "name": "iconFilename",
+          "jsonkey": "icon_filename"
+        },
+        {
+          "type": "boolean",
+          "name": "adminOnly",
+          "jsonkey": "admin_only"
+        },
+        {
+          "type": "string",
+          "name": "extra"
+        }
+      ]
     }
   ],
   "messages": {
@@ -2354,6 +2474,86 @@
         }
       ],
       "response": "BatchResultLocal"
+    },
+    "validateStellarURILocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "inputURI",
+          "type": "string"
+        }
+      ],
+      "response": "ValidateStellarURIResultLocal"
+    },
+    "approveTxURILocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "inputURI",
+          "type": "string"
+        }
+      ],
+      "response": "TransactionID"
+    },
+    "approvePayURILocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "inputURI",
+          "type": "string"
+        },
+        {
+          "name": "amount",
+          "type": "string"
+        },
+        {
+          "name": "fromCLI",
+          "type": "boolean"
+        }
+      ],
+      "response": "TransactionID"
+    },
+    "approvePathURILocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "inputURI",
+          "type": "string"
+        },
+        {
+          "name": "fullPath",
+          "type": "PaymentPath"
+        },
+        {
+          "name": "fromCLI",
+          "type": "boolean"
+        }
+      ],
+      "response": "TransactionID"
+    },
+    "getPartnerUrlsLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "PartnerUrl"
+      }
     }
   },
   "namespace": "stellar.1"

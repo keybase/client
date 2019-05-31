@@ -146,6 +146,16 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-dns-48.png'),
   },
+  'icon-email-delete-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-email-delete-48.png'),
+  },
+  'icon-email-delete-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-email-delete-64.png'),
+  },
   'icon-facebook-continue': {
     extension: 'png',
     isFont: false,
@@ -966,6 +976,16 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-nav-settings-selected-40.png'),
   },
+  'icon-number-delete-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-number-delete-48.png'),
+  },
+  'icon-number-delete-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-number-delete-64.png'),
+  },
   'icon-onboarding-chat-32': {
     extension: 'png',
     isFont: false,
@@ -980,6 +1000,31 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-onboarding-computer-48.png'),
+  },
+  'icon-onboarding-email-add-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-onboarding-email-add-32.png'),
+  },
+  'icon-onboarding-email-add-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-onboarding-email-add-48.png'),
+  },
+  'icon-onboarding-email-searchable-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-onboarding-email-searchable-48.png'),
+  },
+  'icon-onboarding-email-verify-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-onboarding-email-verify-32.png'),
+  },
+  'icon-onboarding-email-verify-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-onboarding-email-verify-48.png'),
   },
   'icon-onboarding-folder-32': {
     extension: 'png',
@@ -1011,6 +1056,26 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-onboarding-git-48.png'),
   },
+  'icon-onboarding-number-new-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-onboarding-number-new-32.png'),
+  },
+  'icon-onboarding-number-new-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-onboarding-number-new-48.png'),
+  },
+  'icon-onboarding-number-verify-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-onboarding-number-verify-32.png'),
+  },
+  'icon-onboarding-number-verify-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-onboarding-number-verify-48.png'),
+  },
   'icon-onboarding-paper-key-32': {
     extension: 'png',
     isFont: false,
@@ -1025,6 +1090,11 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-onboarding-phone-32.png'),
+  },
+  'icon-onboarding-phone-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-onboarding-phone-48.png'),
   },
   'icon-onboarding-proofs-32': {
     extension: 'png',
@@ -1595,6 +1665,11 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-stellar-coins-stacked-inflation-64.png'),
+  },
+  'icon-team-delete-28': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-team-delete-28.png'),
   },
   'icon-team-git-16': {
     extension: 'png',

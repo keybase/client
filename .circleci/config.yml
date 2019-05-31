@@ -59,17 +59,3 @@ jobs:
         command: ./gradlew --no-daemon --stacktrace assembleReleaseUnsigned -x bundleReleaseUnsignedJsAndAssets
 
     # TODO: Run device tests (see old versions of this file).
-
-    # Comment out coverage for now, as we're not getting much out of it.
-    # Things to figure out before turning back on:
-    #   - Make coverage failing not fail the build.
-    #   - Make the green checkmark not wait for coverage. Coverage adds
-    #       ~3 minutes!
-    #   - How are the diff numbers calculated? They don't seem to make
-    #     sense...
-    #
-    # Only run coverage if there were changes to the shared folder
-    # - run: mkdir -p /tmp/flow-coverage
-    # - run:
-    #     working_directory: shared
-    #     command: if [ $(git rev-parse HEAD) == $(git log -1 --format=format:%H --full-diff .) ]; then yarn flow-coverage-report -t json -o /tmp/flow-coverage && bash <(curl -s https://codecov.io/bash) -f /tmp/flow-coverage/flow-coverage.json; fi

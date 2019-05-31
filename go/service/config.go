@@ -114,11 +114,13 @@ func (h ConfigHandler) ClearValue(_ context.Context, path string) error {
 
 func (h ConfigHandler) GetClientStatus(ctx context.Context, sessionID int) (res []keybase1.ClientStatus, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("GetClientStatus", func() error { return err })()
 	return libkb.GetClientStatus(mctx), nil
 }
 
-func (h ConfigHandler) GetConfig(ctx context.Context, sessionID int) (keybase1.Config, error) {
+func (h ConfigHandler) GetConfig(ctx context.Context, sessionID int) (res keybase1.Config, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("GetConfig", func() error { return err })()
 	forkType := keybase1.ForkType_NONE
 	if h.svc != nil {
 		forkType = h.svc.ForkType
@@ -128,7 +130,23 @@ func (h ConfigHandler) GetConfig(ctx context.Context, sessionID int) (keybase1.C
 
 func (h ConfigHandler) GetFullStatus(ctx context.Context, sessionID int) (res *keybase1.FullStatus, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("GetFullStatus", func() error { return err })()
 	return status.GetFullStatus(mctx)
+}
+
+func (h ConfigHandler) LogSend(ctx context.Context, arg keybase1.LogSendArg) (res keybase1.LogSendID, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("LogSend", func() error { return err })()
+
+	fstatus, err := status.GetFullStatus(mctx)
+	if err != nil {
+		return "", err
+	}
+	statusJSON := status.MergeStatusJSON(fstatus, "fstatus", arg.StatusJSON)
+
+	logSendContext := status.NewLogSendContext(h.G(), fstatus, statusJSON, arg.Feedback)
+	return logSendContext.LogSend(arg.SendLogs, status.LogSendDefaultBytesDesktop,
+		false /* mergeExtendedStatus */)
 }
 
 func (h ConfigHandler) GetAllProvisionedUsernames(ctx context.Context, sessionID int) (res keybase1.AllProvisionedUsernames, err error) {

@@ -893,7 +893,7 @@ func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *tlfhandle.Han
 	}
 
 	// Check for handle readership, to give a nice error early.
-	if handle.Type() == tlf.Private {
+	if handle.Type() == tlf.Private && !handle.IsBackedByTeam() {
 		session, err := md.config.KBPKI().GetCurrentSession(ctx)
 		if err != nil {
 			return tlf.ID{}, ImmutableRootMetadata{}, err
@@ -929,6 +929,11 @@ func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *tlfhandle.Han
 	bh, err := handle.ToBareHandle()
 	if err != nil {
 		return tlf.ID{}, ImmutableRootMetadata{}, err
+	}
+	if handle.IsLocalConflict() {
+		md.log.CDebugf(ctx, "Stripping out local conflict info from %s "+
+			"before fetching the ID", handle.GetCanonicalPath())
+		bh.ConflictInfo = nil
 	}
 
 	id, rmds, err := mdserv.GetForHandle(ctx, bh, mStatus, lockBeforeGet)
@@ -1006,9 +1011,11 @@ func (md *MDOpsStandard) GetIDForHandle(
 	default:
 		return tlf.NullID, err
 	}
-	err = mdcache.PutIDForHandle(handle, id)
-	if err != nil {
-		return tlf.NullID, err
+	if !handle.IsLocalConflict() {
+		err = mdcache.PutIDForHandle(handle, id)
+		if err != nil {
+			return tlf.NullID, err
+		}
 	}
 	return id, nil
 }
@@ -1047,10 +1054,9 @@ func (md *MDOpsStandard) processSignedMD(
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
-	handle, err := tlfhandle.MakeHandle(
+	handle, err := tlfhandle.MakeHandleWithTlfID(
 		ctx, bareHandle, rmds.MD.TlfID().Type(), md.config.KBPKI(),
-		md.config.KBPKI(), tlfhandle.ConstIDGetter{ID: id},
-		md.config.OfflineAvailabilityForID(id))
+		md.config.KBPKI(), id, md.config.OfflineAvailabilityForID(id))
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -1143,10 +1149,9 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id tlf.ID,
 			if err != nil {
 				return err
 			}
-			handle, err := tlfhandle.MakeHandle(
+			handle, err := tlfhandle.MakeHandleWithTlfID(
 				groupCtx, bareHandle, rmds.MD.TlfID().Type(), md.config.KBPKI(),
-				md.config.KBPKI(), tlfhandle.ConstIDGetter{ID: id},
-				md.config.OfflineAvailabilityForID(id))
+				md.config.KBPKI(), id, md.config.OfflineAvailabilityForID(id))
 			if err != nil {
 				return err
 			}

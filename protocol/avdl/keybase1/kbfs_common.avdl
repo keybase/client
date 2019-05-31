@@ -19,7 +19,8 @@ protocol kbfsCommon {
     FILE_MODIFIED_8,
     FILE_DELETED_9,
     FILE_RENAMED_10,
-    INITIALIZED_11
+    INITIALIZED_11,
+    SYNC_CONFIG_CHANGED_12
   }
 
   enum FSErrorType {

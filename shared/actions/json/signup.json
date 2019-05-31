@@ -5,9 +5,9 @@
     "requestAutoInvite": {},
     "requestedAutoInvite": {
       "inviteCode": "string",
-      "canError": { }
+      "canError": {}
     },
-    "checkInviteCode": { "inviteCode": "string" },
+    "checkInviteCode": {"inviteCode": "string"},
     "checkedInviteCode": {
       "inviteCode": "string",
       "canError": {

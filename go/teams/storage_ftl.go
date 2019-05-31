@@ -51,14 +51,20 @@ func (s *FTLStorage) Put(mctx libkb.MetaContext, state *keybase1.FastTeamData) {
 }
 
 // Can return nil.
-func (s *FTLStorage) Get(mctx libkb.MetaContext, teamID keybase1.TeamID, public bool) *keybase1.FastTeamData {
+func (s *FTLStorage) Get(mctx libkb.MetaContext, teamID keybase1.TeamID, public bool) (data *keybase1.FastTeamData, frozen bool, tombstoned bool) {
 	vp := s.storageGeneric.get(mctx, teamID, public)
 	if vp == nil {
-		return nil
+		return nil, false, false
 	}
 	ret, ok := vp.(*keybase1.FastTeamData)
 	if !ok {
 		mctx.Debug("teams.FTLStorage#Get cast error: %T is wrong type", vp)
 	}
-	return ret
+	if ret.Frozen {
+		mctx.Debug("returning frozen fast team data")
+	}
+	if ret.Tombstoned {
+		mctx.Debug("returning tombstoned fast team data")
+	}
+	return ret, ret.Frozen, ret.Tombstoned
 }

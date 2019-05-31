@@ -98,25 +98,3 @@ func SetVisibilityAllEmail(mctx libkb.MetaContext, visibility keybase1.IdentityV
 func GetEmails(mctx libkb.MetaContext) ([]keybase1.Email, error) {
 	return libkb.LoadUserEmails(mctx)
 }
-
-type emailLookupAPIResult struct {
-	libkb.AppStatusEmbed
-	Resolutions []keybase1.EmailLookupResult `json:"resolutions"`
-}
-
-func BulkLookupEmails(mctx libkb.MetaContext, contactEmails []string) ([]keybase1.EmailLookupResult, error) {
-	payload := make(libkb.JSONPayload)
-	payload["emails"] = contactEmails
-
-	arg := libkb.APIArg{
-		Endpoint:    "email/bulk-lookup",
-		JSONPayload: payload,
-		SessionType: libkb.APISessionTypeREQUIRED,
-	}
-	var resp emailLookupAPIResult
-	err := mctx.G().API.PostDecode(mctx, arg, &resp)
-	if err != nil {
-		return nil, err
-	}
-	return resp.Resolutions, nil
-}

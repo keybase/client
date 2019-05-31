@@ -247,7 +247,12 @@ func (i *UIAdapter) rowPartial(mctx libkb.MetaContext, proof keybase1.RemoteProo
 		row.SiteURL = fmt.Sprintf("https://reddit.com/user/%v", proof.Value)
 		iconKey = "reddit"
 	case keybase1.ProofType_HACKERNEWS:
-		row.SiteURL = fmt.Sprintf("https://news.ycombinator.com/user?id=%v", proof.Value)
+		// hackernews profile urls must have the username in its original casing.
+		username := proof.Value
+		if libkb.Cicmp(proof.Value, proof.DisplayMarkup) {
+			username = proof.DisplayMarkup
+		}
+		row.SiteURL = fmt.Sprintf("https://news.ycombinator.com/user?id=%v", username)
 		iconKey = "hackernews"
 	case keybase1.ProofType_FACEBOOK:
 		row.SiteURL = fmt.Sprintf("https://facebook.com/%v", proof.Value)

@@ -14,7 +14,7 @@ commit_short=`git log -1 --pretty=format:%h`
 build="$current_date+$commit_short"
 kbnm_build=${KBNM_BUILD:-$build}
 tags=${TAGS:-"prerelease production"}
-ldflags="-X main.Version=$kbnm_build"
+ldflags="-X main.Version=$kbnm_build -s -w"
 pkg="github.com/keybase/client/go/kbnm"
 
 echo "Building $build_dir/kbnm ($kbnm_build) with $(go version)"

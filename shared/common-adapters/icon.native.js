@@ -37,7 +37,7 @@ let Text = (p: TextProps, ref) => {
     // $FlowIssue flow is correct but we do actually pass in this color sometimes. TODO remove this
     (pStyle && p.style.color) ||
     Shared.defaultColor(p.type) ||
-    (p.opacity && Styles.globalColors.lightGrey)
+    (p.opacity && Styles.globalColors.greyLight)
   if (color) {
     style.color = color
   }

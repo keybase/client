@@ -182,8 +182,8 @@ func parseExchangeRate(rate string) (*big.Rat, error) {
 	}
 }
 
-// pathPaymentMaxValue returns 105% * amount.
-func pathPaymentMaxValue(amount string) (string, error) {
+// PathPaymentMaxValue returns 105% * amount.
+func PathPaymentMaxValue(amount string) (string, error) {
 	amtInt, err := stellaramount.ParseInt64(amount)
 	if err != nil {
 		return "", err

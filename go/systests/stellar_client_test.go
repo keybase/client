@@ -704,4 +704,24 @@ func (s *stellarRetryClient) SendPathLocal(ctx context.Context, arg stellar1.Sen
 	return stellar1.SendPaymentResLocal{}, err
 }
 
+func (s *stellarRetryClient) ApproveTxURILocal(ctx context.Context, arg stellar1.ApproveTxURILocalArg) (stellar1.TransactionID, error) {
+	return s.cli.ApproveTxURILocal(ctx, arg)
+}
+
+func (s *stellarRetryClient) ApprovePayURILocal(ctx context.Context, arg stellar1.ApprovePayURILocalArg) (stellar1.TransactionID, error) {
+	return s.cli.ApprovePayURILocal(ctx, arg)
+}
+
+func (s *stellarRetryClient) ApprovePathURILocal(ctx context.Context, arg stellar1.ApprovePathURILocalArg) (stellar1.TransactionID, error) {
+	return s.cli.ApprovePathURILocal(ctx, arg)
+}
+
+func (s *stellarRetryClient) ValidateStellarURILocal(ctx context.Context, arg stellar1.ValidateStellarURILocalArg) (stellar1.ValidateStellarURIResultLocal, error) {
+	return s.cli.ValidateStellarURILocal(ctx, arg)
+}
+
+func (s *stellarRetryClient) GetPartnerUrlsLocal(ctx context.Context, sessionID int) ([]stellar1.PartnerUrl, error) {
+	return s.cli.GetPartnerUrlsLocal(ctx, sessionID)
+}
+
 var _ stellar1.LocalInterface = (*stellarRetryClient)(nil)
