@@ -300,8 +300,23 @@ func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (
 		return keybase1.FavoritesResult{}, err
 	}
 
-	// Add the sync config mode to each favorite.
 	tlfIDs := fs.config.GetAllSyncedTlfs()
+
+	// If we have any synced TLFs, create a quick-index map for
+	// favorites based on name+type.
+	type mapKey struct {
+		name string
+		t    keybase1.FolderType
+	}
+	var indexedFavs map[mapKey]int
+	if len(tlfIDs) > 0 {
+		indexedFavs = make(map[mapKey]int, len(favs.FavoriteFolders))
+		for i, fav := range favs.FavoriteFolders {
+			indexedFavs[mapKey{fav.Name, fav.FolderType}] = i
+		}
+	}
+
+	// Add the sync config mode to each favorite.
 	for _, id := range tlfIDs {
 		config, err := fs.GetSyncConfig(ctx, id)
 		if err != nil {
@@ -320,12 +335,9 @@ func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (
 		}
 
 		name := string(h.GetCanonicalName())
-		for i, fav := range favs.FavoriteFolders {
-			if fav.Name != name || fav.FolderType != id.Type().FolderType() {
-				continue
-			}
+		i, ok := indexedFavs[mapKey{name, id.Type().FolderType()}]
+		if ok {
 			favs.FavoriteFolders[i].SyncConfig = &config
-			break
 		}
 	}
 	for i, fav := range favs.FavoriteFolders {
