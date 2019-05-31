@@ -225,10 +225,6 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
-const Connected = Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(Header)
+const Connected = Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(Header)
 
 export default Connected

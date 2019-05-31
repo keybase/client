@@ -38,8 +38,6 @@ const mapDispatchToProps = (dispatch, ownProps) => {
   }
 }
 
-export default Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d})
-)(ReallyLeaveTeam)
+export default Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(
+  ReallyLeaveTeam
+)

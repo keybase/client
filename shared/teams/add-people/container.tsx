@@ -133,8 +133,4 @@ class AddPeopleStateWrapper extends React.Component<AddPeopleProps & ExtraProps,
   }
 }
 
-export default Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(AddPeopleStateWrapper)
+export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(AddPeopleStateWrapper)

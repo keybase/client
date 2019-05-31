@@ -65,11 +65,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
 
 export default Container.compose(
   Container.withSafeNavigation,
-  Container.connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
+  Container.connect(mapStateToProps, mapDispatchToProps, mergeProps),
   // @ts-ignore
   Container.branch(props => !!props.teamName, Container.renderComponent(ChannelHeader))
 )(UsernameHeader) as any

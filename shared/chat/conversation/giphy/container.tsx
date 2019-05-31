@@ -32,9 +32,6 @@ const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => ({
   },
 })
 
-export default namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  (s, d, o) => ({...s, ...d}),
-  'GiphySearch'
-)(GiphySearch)
+export default namedConnect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...s, ...d}), 'GiphySearch')(
+  GiphySearch
+)

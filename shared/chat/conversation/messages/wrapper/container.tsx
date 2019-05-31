@@ -186,9 +186,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 }
 
-export default namedConnect(
-  mapStateToProps,
-  mapDisaptchToProps,
-  mergeProps,
-  'WrapperMessage'
-)(WrapperMessage)
+export default namedConnect(mapStateToProps, mapDisaptchToProps, mergeProps, 'WrapperMessage')(WrapperMessage)
