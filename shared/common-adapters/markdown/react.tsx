@@ -289,20 +289,7 @@ const reactComponentsForMarkdownType = {
       json={node.content}
       key={state.key}
       allowFontScaling={state.allowFontScaling}
-      message={
-        // Auto generated from flowToTs. Please clean me!
-        // Auto generated from flowToTs. Please clean me!
-        (state.markdownMeta === null || state.markdownMeta === undefined
-          ? undefined
-          : state.markdownMeta.message) !== null && // Auto generated from flowToTs. Please clean me!
-        (state.markdownMeta === null || state.markdownMeta === undefined
-          ? undefined
-          : state.markdownMeta.message) !== undefined // Auto generated from flowToTs. Please clean me!
-          ? state.markdownMeta === null || state.markdownMeta === undefined
-            ? undefined
-            : state.markdownMeta.message
-          : undefined
-      }
+      message={(state.markdownMeta && state.markdownMeta.message) || undefined}
       styleOverride={state.styleOverride}
       styles={markdownStyles}
     />
