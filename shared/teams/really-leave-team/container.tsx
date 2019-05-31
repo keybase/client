@@ -50,5 +50,5 @@ export default Container.compose(
     mergeProps
   ),
   Container.safeSubmit(['onLeave'], ['_leaving']),
-  branch(props => props._lastOwner, renderComponent(LastOwnerDialog))
-)(ReallyLeaveTeam)
+  branch((props: any) => props._lastOwner, renderComponent(LastOwnerDialog))
+)(ReallyLeaveTeam as any)

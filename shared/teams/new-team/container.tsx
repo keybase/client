@@ -45,7 +45,7 @@ export default Container.compose(
     mapDispatchToProps,
     mergeProps
   ),
-  Container.withStateHandlers(({joinSubteam}) => ({joinSubteam: false, name: ''}), {
+  Container.withStateHandlers(({joinSubteam}: any) => ({joinSubteam: false, name: ''}), {
     onJoinSubteamChange: () => (checked: boolean) => ({joinSubteam: checked}),
     onNameChange: () => (name: string) => ({name: name.toLowerCase()}),
   }),
@@ -57,5 +57,5 @@ export default Container.compose(
     componentDidMount() {
       this.props.onSetTeamCreationError('')
     },
-  })
-)(NewTeamDialog)
+  } as any)
+)(NewTeamDialog as any)

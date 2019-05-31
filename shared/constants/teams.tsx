@@ -13,7 +13,9 @@ import {TypedState} from './reducer'
 
 export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner']
 
-export const rpcMemberStatusToStatus = invert(RPCTypes.TeamMemberStatus)
+export const rpcMemberStatusToStatus = invert(RPCTypes.TeamMemberStatus) as {
+  [K in RPCTypes.TeamMemberStatus]: keyof typeof RPCTypes.TeamMemberStatus
+}
 
 // Waiting keys
 // Add granularity as necessary

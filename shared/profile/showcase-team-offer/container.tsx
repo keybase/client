@@ -71,5 +71,5 @@ export default Container.compose(
     componentDidMount() {
       this.props.loadTeams()
     },
-  })
+  } as any)
 )(HeaderOrPopup(Render))

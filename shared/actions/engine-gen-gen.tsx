@@ -320,7 +320,15 @@ type _Chat1ChatUiChatLoadGalleryHitPayload = {
     result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['outParam']) => void
   }
 }
-type _Chat1ChatUiChatMaybeMentionUpdatePayload = void
+type _Chat1ChatUiChatMaybeMentionUpdatePayload = {
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatMaybeMentionUpdate']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: chat1Types.IncomingErrorCallback
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatMaybeMentionUpdate']['outParam']) => void
+  }
+}
 type _Chat1ChatUiChatSearchConvHitsPayload = {
   readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatSearchConvHits']['inParam'] & {
     sessionID: number

@@ -9,15 +9,15 @@ import {invert} from 'lodash-es'
 import {TypedState} from './reducer'
 import HiddenString from '../util/hidden-string'
 
-export const balanceDeltaToString: {
+export const balanceDeltaToString = invert(RPCTypes.BalanceDelta) as {
   [K in RPCTypes.BalanceDelta]: keyof typeof RPCTypes.BalanceDelta
-} = invert(RPCTypes.BalanceDelta)
-export const statusSimplifiedToString: {
+}
+export const statusSimplifiedToString = invert(RPCTypes.PaymentStatus) as {
   [K in RPCTypes.PaymentStatus]: keyof typeof RPCTypes.PaymentStatus
-} = invert(RPCTypes.PaymentStatus)
-const partyTypeToString: {[K in RPCTypes.ParticipantType]: keyof typeof RPCTypes.ParticipantType} = invert(
-  RPCTypes.ParticipantType
-)
+}
+const partyTypeToString = invert(RPCTypes.ParticipantType) as {
+  [K in RPCTypes.ParticipantType]: keyof typeof RPCTypes.ParticipantType
+}
 
 export const sendRequestFormRouteKey = 'sendReceiveForm'
 export const chooseAssetFormRouteKey = 'chooseAssetForm'

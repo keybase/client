@@ -353,6 +353,7 @@ function* refreshNotifications() {
 
   yield Saga.put(
     SettingsGen.createNotificationsRefreshed({
+      // @ts-ignore
       notifications: I.Map(notifications),
     })
   )

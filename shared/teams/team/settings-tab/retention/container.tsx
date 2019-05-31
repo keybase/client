@@ -158,9 +158,9 @@ export default compose(
       this.props._loadTeamPolicy()
       !this.props._permissionsLoaded && this.props._loadTeamOperations()
     },
-  }),
+  } as any),
   withHandlers({
     onShowWarning: ({_onShowWarning}) => (policy, onConfirm, onCancel) =>
       _onShowWarning(policy, onConfirm, onCancel),
   })
-)(RetentionPicker)
+)(RetentionPicker as any) as any

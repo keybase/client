@@ -30,11 +30,11 @@ const _InfoIcon = (props: Kb.PropsWithOverlay<InfoIconProps>) => (
     />
   </>
 )
-export const InfoIcon = Container.compose(
+export const InfoIcon: any = Container.compose(
   Container.namedConnect(
     () => ({}),
     () => ({onDocumentation: () => {}, onFeedback: () => {}}),
-    (s, d, o) => ({...o, ...s, ...d}),
+    (s, d, o: InfoIconProps) => ({...o, ...s, ...d}),
     'SignupInfoIcon'
   ),
   Kb.OverlayParentHOC
