@@ -3,6 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {SignupScreen} from '../common'
 import PhoneInput from './phone-input'
+import {ButtonType} from '../../common-adapters/button'
 
 type Props = {
   allowSearch: boolean
@@ -16,8 +17,8 @@ type Props = {
 const EnterPhoneNumber = (props: Props) => (
   <SignupScreen
     buttons={[
-      {label: 'Continue', onClick: props.onContinue, type: 'Success'},
-      ...(Styles.isMobile ? [] : [{label: 'Skip for now', onClick: props.onSkip, type: 'Dim'}]),
+      {label: 'Continue', onClick: props.onContinue, type: 'Success' as ButtonType},
+      ...(Styles.isMobile ? [] : [{label: 'Skip for now', onClick: props.onSkip, type: 'Dim' as ButtonType}]),
     ]}
     rightActionLabel="Skip"
     onRightAction={props.onSkip}

@@ -12,9 +12,10 @@ export type Box2Props = {
   fullHeight?: boolean
   fullWidth?: boolean
   noShrink?: boolean
-  onDragLeave?: (syntheticDragEvent: React.DragEvent<Element>) => void // desktop only,,
-  onDragOver?: (syntheticDragEvent: React.DragEvent<Element>) => void // desktop only,,
-  onDrop?: (syntheticDragEvent: React.DragEvent<Element>) => void // desktop only,,
+  onDragLeave?: (syntheticDragEvent: React.DragEvent<Element>) => void // desktop only
+  onDragOver?: (syntheticDragEvent: React.DragEvent<Element>) => void // desktop only
+  onDrop?: (syntheticDragEvent: React.DragEvent<Element>) => void // desktop
+  // only
   onLayout?: (
     evt: {
       nativeEvent: {
@@ -26,10 +27,10 @@ export type Box2Props = {
         }
       }
     }
-  ) => void // mobile only,,
-  onMouseLeave?: (syntheticEvent: React.SyntheticEvent) => void // desktop only,,
-  onMouseOver?: (syntheticEvent: React.SyntheticEvent) => void // desktop only,,
-  onCopyCapture?: (syntheticEvent: React.SyntheticEvent) => void // desktop only,,
+  ) => void // mobile only,,,,,
+  onMouseLeave?: (syntheticEvent: React.SyntheticEvent) => void // desktop only
+  onMouseOver?: (syntheticEvent: React.SyntheticEvent) => void // desktop only
+  onCopyCapture?: (syntheticEvent: React.SyntheticEvent) => void // desktop only
   pointerEvents?: 'none'
   style?: StylesCrossPlatform
   gap?: keyof typeof globalMargins

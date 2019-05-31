@@ -60,7 +60,7 @@ export const WaitingButton = () => ({
 })
 
 export const Avatar = (following: string[] = defaultFollowing, followers: string[] = defaultFollowers) => ({
-  Avatar: (ownProps: _Avatar.Props) => _Avatar.mockOwnToViewProps(ownProps, following, followers, action),
+  Avatar: (ownProps: _Avatar.OwnProps) => _Avatar.mockOwnToViewProps(ownProps, following, followers, action),
 })
 
 export const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[K in string]: number}) => ({
