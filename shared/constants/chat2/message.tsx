@@ -484,12 +484,16 @@ export const uiMessageEditToMessage = (
   }
 }
 
-const uiMessageToSystemMessage = (minimum, body, reactions): Types.Message | null => {
+const uiMessageToSystemMessage = (
+  minimum,
+  body: RPCChatTypes.MessageSystem,
+  reactions
+): Types.Message | null => {
   switch (body.systemType) {
     case RPCChatTypes.MessageSystemType.addedtoteam: {
       // TODO @mikem admins is always empty?
-      const {adder = '', addee = '', team = '', admins = []} = body.addedtoteam || {}
-      const isAdmin = admins.includes(minimum.author)
+      const {adder = '', addee = '', team = '', admins = null} = body.addedtoteam || {}
+      const isAdmin = (admins || []).includes(minimum.author)
       return makeMessageSystemAddedToTeam({
         ...minimum,
         addee,
@@ -500,7 +504,7 @@ const uiMessageToSystemMessage = (minimum, body, reactions): Types.Message | nul
       })
     }
     case RPCChatTypes.MessageSystemType.inviteaddedtoteam: {
-      const inviteaddedtoteam = body.inviteaddedtoteam || {}
+      const inviteaddedtoteam = body.inviteaddedtoteam || ({} as RPCChatTypes.MessageSystemInviteAddedToTeam)
       const invitee = inviteaddedtoteam.invitee || 'someone'
       const adder = inviteaddedtoteam.adder || 'someone'
       const inviter = inviteaddedtoteam.inviter || 'someone'
@@ -510,9 +514,6 @@ const uiMessageToSystemMessage = (minimum, body, reactions): Types.Message | nul
       switch (iType) {
         case RPCTypes.TeamInviteCategory.unknown:
           inviteType = 'unknown'
-          break
-        case RPCTypes.TeamInviteCategory.none:
-          inviteType = 'none'
           break
         case RPCTypes.TeamInviteCategory.keybase:
           inviteType = 'keybase'
