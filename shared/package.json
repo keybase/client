@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "_helper": "yarn run _node desktop/yarn-helper",
-    "_node": "cross-env-shell BABEL_ENV=yarn babel-node --extensions='.tsx' ",
+    "_node": "cross-env-shell BABEL_ENV=yarn babel-node --extensions='.tsx' --extensions='.js' ",
     "help": "yarn run _helper help",
     "lint": "yarn run lint-specific .",
     "lint-specific": "cd .. && shared/node_modules/.bin/eslint --quiet --ext js --ext ts --ext tsx --ext d.ts",
