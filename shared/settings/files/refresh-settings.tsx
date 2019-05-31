@@ -2,7 +2,7 @@ import React from 'react'
 import {namedConnect} from '../../util/container'
 import * as FsGen from '../../actions/fs-gen'
 
-type OwnProps = {||}
+type OwnProps = {}
 
 const mapStateToProps = state => ({})
 
@@ -15,7 +15,7 @@ const mergeProps = (s, d, o) => ({
 })
 
 type Props = {
-  refresh: () => void,
+  refresh: (() => void)
 }
 
 class Component extends React.PureComponent<Props> {
@@ -27,9 +27,4 @@ class Component extends React.PureComponent<Props> {
   }
 }
 
-export default namedConnect<OwnProps, _, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'RefreshSettings'
-)(Component)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'RefreshSettings')(Component)
