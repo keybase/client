@@ -93,7 +93,7 @@ var redactTests = []struct {
 	in  string
 	out string
 }{
-	{"hello this is my feedback", "hello this is my feedback"},
+	{"hello this is my feedback; with punctuation", "hello this is my feedback; with punctuation"},
 	{"nope agent agent agent alcohol agent agent agent nope more feedback", "nope [REDACTED] [REDACTED] [REDACTED] [REDACTED] [REDACTED] [REDACTED] [REDACTED] nope more feedback"},
 	{"nope agent nope agent agent alcohol agent agent nope more feedback", "nope agent nope [REDACTED] [REDACTED] [REDACTED] [REDACTED] [REDACTED] nope more feedback"},
 	{"four in a row agent agent agent agent four in a row", "four in a row agent agent agent agent four in a row"},
@@ -101,7 +101,8 @@ var redactTests = []struct {
 	{"agent agent agent agent agent offset", "[REDACTED] [REDACTED] [REDACTED] [REDACTED] [REDACTED] offset"},
 	{"offset agent agent agent agent agent", "offset [REDACTED] [REDACTED] [REDACTED] [REDACTED] [REDACTED]"},
 	{"1 2 agent agent agent 3 agent agent 4 agent agent agent agent agent 5 agent agent agent agent agent agent agent agent 6 7 8 9 10", "1 2 agent agent agent 3 agent agent 4 [REDACTED] [REDACTED] [REDACTED] [REDACTED] [REDACTED] 5 [REDACTED] [REDACTED] [REDACTED] [REDACTED] [REDACTED] [REDACTED] [REDACTED] [REDACTED] 6 7 8 9 10"},
-	{`tricky my paper key is in quotes: "agent agent agent agent agent agent" see!`, `tricky my paper key is in quotes: [REDACTED] [REDACTED] [REDACTED] [REDACTED] [REDACTED] [REDACTED] see!`},
+	{`tricky my paper key is in quotes: "agent agent agent agent agent agent" see!`, `tricky my paper key is in quotes   [REDACTED] [REDACTED] [REDACTED] [REDACTED] [REDACTED] [REDACTED]  see `},
+	{`mismatched "agent agent agent agent agent)`, `mismatched  [REDACTED] [REDACTED] [REDACTED] [REDACTED] [REDACTED] `},
 }
 
 func TestRedactPaperKeys(t *testing.T) {

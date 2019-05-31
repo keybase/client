@@ -7,9 +7,9 @@ import (
 	"bytes"
 	"mime/multipart"
 	"os"
+	"regexp"
 	"strings"
 
-	"github.com/google/shlex"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -66,17 +66,10 @@ type LogSendContext struct {
 	processesLog     string
 }
 
+var noncharacterPattern = regexp.MustCompile(`[^\w]`)
+
 func redactPotentialPaperKeys(s string) string {
-	var words []string
-	var err error
-	shlexWords, err := shlex.Split(s)
-	if err != nil {
-		words = strings.Split(s, " ")
-	} else {
-		for _, shlexWord := range shlexWords {
-			words = append(words, strings.Split(shlexWord, " ")...)
-		}
-	}
+	words := strings.Split(noncharacterPattern.ReplaceAllLiteralString(s, " "), " ")
 	threshold := 5
 	redacted := "[REDACTED]"
 	didRedact := false
