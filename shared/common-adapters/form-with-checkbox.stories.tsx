@@ -18,7 +18,6 @@ const commonInputProps: InputProps = {
   onFocus: action('onFocus'),
   onKeyDown: action('onKeyDown'),
   onKeyUp: action('onKeyUp'),
-  onSelectionChange: action('onSelectionChange'),
 }
 
 const load = () => {

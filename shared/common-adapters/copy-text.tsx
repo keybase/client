@@ -124,7 +124,8 @@ const mapDispatchToProps = dispatch => ({
   copyToClipboard: text => dispatch(ConfigGen.createCopyToClipboard({text})),
 })
 
-const CopyText = compose(
+// @ts-ignore HOCTimers typing is wrong
+const CopyText: React.ComponentClass<OwnProps> = compose(
   namedConnect(() => ({}), mapDispatchToProps, (s, d, o: OwnProps) => ({...o, ...s, ...d}), 'CopyText'),
   HOCTimers
 )(_CopyText)
