@@ -119,7 +119,7 @@ const ConnectedHeaderRightActions = Container.compose(
     headerActions,
     (s, d, o) => ({...o, ...s, ...d})
   )
-)(HeaderRightActions)
+)(HeaderRightActions as any)
 
 // @ts-ignore TODO fix
 Connected.navigationOptions = {

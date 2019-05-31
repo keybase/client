@@ -81,4 +81,4 @@ export default compose(
   })),
   HeaderHoc,
   branch((props: Props) => props.success, renderComponent(SuccessComponent))
-)(EntryComponent)
+)(EntryComponent as any)
