@@ -189,14 +189,14 @@ const Tracker = (props: Props) => {
 const avatarSize = 96
 const barHeight = 62
 const reason = {
-  alignSelf: 'center' as 'center',
+  alignSelf: 'center' as const,
   color: Styles.globalColors.white,
   flexShrink: 0,
   paddingBottom: Styles.globalMargins.small,
   paddingLeft: Styles.globalMargins.medium,
   paddingRight: Styles.globalMargins.medium,
   paddingTop: Styles.globalMargins.small,
-  textAlign: 'center' as 'center',
+  textAlign: 'center' as const,
 }
 
 const styles = Styles.styleSheetCreate({

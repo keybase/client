@@ -69,7 +69,7 @@ const stylesIconContainer = {
   maxWidth: 80,
   minHeight: 80,
   minWidth: 80,
-  position: 'relative' as 'relative',
+  position: 'relative' as const,
 }
 const stylesIcon = {
   ...transition('transform'),
@@ -87,7 +87,7 @@ const stylesIconBackground = {
   maxWidth: 80,
   minHeight: 80,
   minWidth: 80,
-  position: 'absolute' as 'absolute',
+  position: 'absolute' as const,
   top: 0,
 }
 

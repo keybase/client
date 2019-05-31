@@ -71,7 +71,7 @@ const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     isElectron: {
       backgroundColor: Styles.globalColors.white,
-      display: 'block' as 'block',
+      display: 'block' as const,
       height: '100%',
       overflow: 'hidden',
       width: '100%',
