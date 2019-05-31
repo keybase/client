@@ -38,25 +38,17 @@
 		661EA79D223ADD1D00471C8C /* keybase-bold-italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 661EA796223ADD1D00471C8C /* keybase-bold-italic.ttf */; };
 		664073EB220A0B70009B2ED7 /* SourceCodePro-Semibold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 664073E9220A0B70009B2ED7 /* SourceCodePro-Semibold.ttf */; };
 		664073EC220A0B70009B2ED7 /* SourceCodePro-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 664073EA220A0B70009B2ED7 /* SourceCodePro-Medium.ttf */; };
-		8A164A079C6C3CC6F962A9B9 /* libPods-Keybase.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AC024A34A307F5688461FEB2 /* libPods-Keybase.a */; };
 		A90CD4A81FCE1D0B00F97901 /* NativeLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = A90CD4A61FCE1D0A00F97901 /* NativeLogger.m */; };
 		A969A40A1CF65C9C00F273F2 /* LogSend.m in Sources */ = {isa = PBXBuildFile; fileRef = A969A4091CF65C9C00F273F2 /* LogSend.m */; };
-		A9BB30DF1E6A274900E713E5 /* libRCTCameraRoll.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A9BB30C51E6A273A00E713E5 /* libRCTCameraRoll.a */; };
 		C3A47BFE1E8B148A00974A63 /* keybasemessage.wav in Resources */ = {isa = PBXBuildFile; fileRef = C3A47BFD1E8B148A00974A63 /* keybasemessage.wav */; };
+		D1FCCAC47E689E1A984FAC43 /* libPods-Keybase.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AC024A34A307F5688461FEB2 /* libPods-Keybase.a */; };
 		DB0846051BA75DC800F54960 /* keybase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB0846041BA75DC800F54960 /* keybase.framework */; };
 		DB27DE571D747A6C003DE8BC /* Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = DB27DE561D747A6C003DE8BC /* Utils.m */; };
-		DB2BD1E51DE7D9A600BB7989 /* libRCTActionSheet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1961DE7D96200BB7989 /* libRCTActionSheet.a */; };
-		DB2BD1E71DE7D9A600BB7989 /* libRCTImage.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1BE1DE7D97900BB7989 /* libRCTImage.a */; };
 		DB2BD1E81DE7D9A600BB7989 /* libRCTLinking.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1C41DE7D97900BB7989 /* libRCTLinking.a */; };
-		DB2BD1E91DE7D9A600BB7989 /* libRCTNetwork.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1CA1DE7D97900BB7989 /* libRCTNetwork.a */; };
 		DB2BD1EA1DE7D9A600BB7989 /* libRCTPushNotification.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1CF1DE7D97900BB7989 /* libRCTPushNotification.a */; };
-		DB2BD1EB1DE7D9A600BB7989 /* libRCTSettings.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1D31DE7D97900BB7989 /* libRCTSettings.a */; };
-		DB2BD1EC1DE7D9A600BB7989 /* libRCTText.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1D91DE7D97900BB7989 /* libRCTText.a */; };
-		DB2BD1EF1DE7D9A600BB7989 /* libReact.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1841DE7D81C00BB7989 /* libReact.a */; };
 		DB346EBC2284673C00262644 /* libRCTVideo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB346EB92284654200262644 /* libRCTVideo.a */; };
 		DB59F9B72238A27E00E271C1 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB59F97B2238A27E00E271C1 /* JavaScriptCore.framework */; };
 		DB61D78F201BA2BD0008C059 /* libRCTWebSocket.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1E21DE7D97900BB7989 /* libRCTWebSocket.a */; };
-		DB6D0B961E5B9ED200410F3C /* libRCTAnimation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB6D0B7A1E5B9EB400410F3C /* libRCTAnimation.a */; };
 		DB7538FD1D776CC400AFA61B /* Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = DB27DE561D747A6C003DE8BC /* Utils.m */; };
 		DB75391B1D776CC400AFA61B /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */; };
 		DB75391D1D776CC400AFA61B /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */; };
@@ -575,17 +567,9 @@
 				3791A8A320C71FE6001C2E86 /* UserNotifications.framework in Frameworks */,
 				DB61D78F201BA2BD0008C059 /* libRCTWebSocket.a in Frameworks */,
 				2746CFFA1E9884BD00E579B0 /* libresolv.tbd in Frameworks */,
-				DB6D0B961E5B9ED200410F3C /* libRCTAnimation.a in Frameworks */,
-				DB2BD1E51DE7D9A600BB7989 /* libRCTActionSheet.a in Frameworks */,
-				DB2BD1E71DE7D9A600BB7989 /* libRCTImage.a in Frameworks */,
 				DB2BD1E81DE7D9A600BB7989 /* libRCTLinking.a in Frameworks */,
-				DB2BD1E91DE7D9A600BB7989 /* libRCTNetwork.a in Frameworks */,
 				DB2BD1EA1DE7D9A600BB7989 /* libRCTPushNotification.a in Frameworks */,
-				DB2BD1EB1DE7D9A600BB7989 /* libRCTSettings.a in Frameworks */,
-				DB2BD1EC1DE7D9A600BB7989 /* libRCTText.a in Frameworks */,
-				DB2BD1EF1DE7D9A600BB7989 /* libReact.a in Frameworks */,
-				A9BB30DF1E6A274900E713E5 /* libRCTCameraRoll.a in Frameworks */,
-				8A164A079C6C3CC6F962A9B9 /* libPods-Keybase.a in Frameworks */,
+				D1FCCAC47E689E1A984FAC43 /* libPods-Keybase.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
