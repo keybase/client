@@ -1,11 +1,4 @@
-import {
-  toISOTimestamp,
-  Logger,
-  LogFn,
-  LogLevel,
-  LogLineWithLevel,
-  LogLineWithLevelISOTimestamp,
-} from './types'
+import {toISOTimestamp, Logger, LogLevel, LogLineWithLevelISOTimestamp} from './types'
 import {requestIdleCallback} from '../util/idle-callback'
 
 type FileWriterFn = (lines: Array<LogLineWithLevelISOTimestamp>) => Promise<void>
@@ -42,7 +35,7 @@ class DumpPeriodicallyLogger implements Logger {
           this._lastTimeoutId = setTimeout(
             () =>
               requestIdleCallback(
-                deadline => {
+                () => {
                   this._periodicallyDump()
                 },
                 {timeout: this._periodInMs}

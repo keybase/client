@@ -10,7 +10,8 @@
     "outDir": "./.tsOut/emit",
     "paths": {
       "rn-fetch-blob": ["custom-d.ts/rn-fetch-blob.d.ts"],
-      "popper": ["custom-d.ts/popper.d.ts"]
+      "popper": ["custom-d.ts/popper.d.ts"],
+      "framed-msgpack-rpc": ["custom-d.ts/framed-msgpack-rpc.d.ts"]
     },
     "sourceMap": true,
     "target": "es2017",

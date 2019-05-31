@@ -33,6 +33,7 @@ function deleteFileIfOlderThanMs(olderThanMs: number, filepath: string): Promise
       if (Date.now() - lastModified > olderThanMs) {
         return unlink(filepath)
       }
+      return null
     })
     .catch(() => {})
 }
