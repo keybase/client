@@ -282,7 +282,7 @@
     "**/@babel/plugin-transform-classes": "7.4.4",
     "**/@babel/plugin-transform-destructuring": "7.4.4",
     "**/@babel/plugin-transform-flow-strip-types": "7.4.4",
-    "**/@babel/plugin-transform-regenerator": "7.3.4",
+    "**/@babel/plugin-transform-regenerator": "7.4.5",
     "**/@babel/preset-env": "7.4.5",
     "**/@babel/preset-react": "7.0.0",
     "**/@babel/runtime": "7.4.5",
