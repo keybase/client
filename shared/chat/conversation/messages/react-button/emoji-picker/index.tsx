@@ -86,7 +86,7 @@ class EmojiPicker extends React.Component<Props, State> {
     const emojisPerLine = Math.floor(this.props.width / emojiWidthWithPadding)
     sections = emojiSections.map(c => ({
       category: c.category,
-      data: chunk(c.data.emojis, emojisPerLine).map(c => ({
+      data: chunk(c.data.emojis, emojisPerLine).map((c: any) => ({
         emojis: c,
         key: c[0].short_name,
       })),

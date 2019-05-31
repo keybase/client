@@ -24,7 +24,7 @@ const common = {
 
 const enterKeyProps = {
   ...common,
-  view: 'key' as 'key',
+  view: 'key' as const,
 }
 
 const keyErrorProps = {
@@ -36,7 +36,7 @@ const keyErrorProps = {
 
 const enterNameProps = {
   ...common,
-  view: 'name' as 'name',
+  view: 'name' as const,
 }
 
 const load = () => {

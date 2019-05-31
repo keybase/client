@@ -62,7 +62,7 @@ const connectPropsMap: RowConnectPropsMap = {
     userIsInTeam: false,
     userIsSelectable: true,
   },
-}
+} as any
 
 const participantProviderProperties = {
   ...makeResultsListSelectorMap(connectPropsMap),

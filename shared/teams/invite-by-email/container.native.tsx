@@ -101,15 +101,12 @@ export default compose(
   ),
   compose(
     // basic state setters
-    withStateHandlers(
-      {contacts: [], hasPermission: true, role: 'writer'},
-      {
-        _setContacts: () => contacts => ({contacts}),
-        _setHasPermission: () => hasPermission => ({hasPermission}),
-        onRoleChange: () => role => ({role}),
-      }
-    ),
-    withProps(props => ({
+    withStateHandlers({contacts: [], hasPermission: true, role: 'writer'}, {
+      _setContacts: () => contacts => ({contacts}),
+      _setHasPermission: () => hasPermission => ({hasPermission}),
+      onRoleChange: () => role => ({role}),
+    } as any),
+    withProps((props: any) => ({
       headerStyle: {borderBottomWidth: 0},
       onBack: () => props.onClose(),
       title: 'Invite contacts',
@@ -129,7 +126,7 @@ export default compose(
           }
         )
       },
-    }),
+    } as any),
     // Checker for whether address is already in invited array
     withHandlers({
       isLoading: ({loadingInvites, _pendingInvites}) => (
@@ -167,7 +164,7 @@ export default compose(
           return false
         })
       },
-    }),
+    } as any),
     // Delegate to add / remove
     withHandlers({
       onSelectContact: ({
@@ -206,9 +203,9 @@ export default compose(
           }
         }
       },
-    }),
+    } as any),
     // If contacts or _pendingInvites changes, recalculate the props on the contact rows.
-    withPropsOnChange(['contacts', 'loadingInvites', '_pendingInvites'], props => {
+    withPropsOnChange(['contacts', 'loadingInvites', '_pendingInvites'], (props: any) => {
       // Create static contact row props here
       const knownIDs = new Set()
       const contactRowProps = props.contacts

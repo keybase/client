@@ -16,7 +16,7 @@ type OnboardingState = {
 }
 
 class Onboarding extends React.Component<OnboardingProps, OnboardingState> {
-  state = {nextScreen: '' as ''}
+  state = {nextScreen: '' as const}
   _setNextScreen = (nextScreen: Types.NextScreenAfterAcceptance) => {
     this.setState({nextScreen})
   }
