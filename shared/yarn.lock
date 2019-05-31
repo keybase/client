@@ -12777,12 +12777,7 @@ react-native-safe-module@^1.1.0:
   dependencies:
     dedent "^0.6.0"
 
-"react-native-screens@^1.0.0 || ^1.0.0-alpha":
-  version "1.0.0-alpha.22"
-  resolved "https://registry.yarnpkg.com/react-native-screens/-/react-native-screens-1.0.0-alpha.22.tgz#7a120377b52aa9bbb94d0b8541a014026be9289b"
-  integrity sha512-kSyAt0AeVU6N7ZonfV6dP6iZF8B7Bce+tk3eujXhzBGsLg0VSLnU7uE9VqJF0xdQrHR91ZjGgVMieo/8df9KTA==
-
-"react-native-screens@git://github.com/keybase/react-native-screens#danny/fix-textinput-blur":
+"react-native-screens@^1.0.0 || ^1.0.0-alpha", "react-native-screens@git://github.com/keybase/react-native-screens#danny/fix-textinput-blur":
   version "1.0.0-alpha.22"
   resolved "git://github.com/keybase/react-native-screens#0465a795e7bb59637a76857f11e71c2882341eb3"
   dependencies:

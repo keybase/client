@@ -286,6 +286,7 @@
     "**/@babel/runtime": "7.3.4",
     "**/@babel/types": "7.3.4",
     "babel-core": "7.0.0-bridge.0",
-    "**/node-gyp/tar": "4.4.8"
+    "**/node-gyp/tar": "4.4.8",
+    "react-native-screens": "git://github.com/keybase/react-native-screens#danny/fix-textinput-blur"
   }
 }
