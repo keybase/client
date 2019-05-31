@@ -4,12 +4,7 @@ if (!__STORYBOOK__) {
 }
 
 type Props = {
-  children: (
-    arg0: {
-      height: number
-      width: number
-    }
-  ) => React.ReactNode
+  children: (arg0: {height: number; width: number}) => React.ReactNode
 }
 
 const mockSize = {height: 300, width: 300}

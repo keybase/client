@@ -18,6 +18,7 @@ import (
 	"math"
 	"math/big"
 	"os"
+	"os/exec"
 	"os/user"
 	"path/filepath"
 	"regexp"
@@ -1009,4 +1010,16 @@ func RuntimeGroup() keybase1.RuntimeGroup {
 	default:
 		return keybase1.RuntimeGroup_UNKNOWN
 	}
+}
+
+// execToString returns the space-trimmed output of a command or an error.
+func execToString(bin string, args []string) (string, error) {
+	result, err := exec.Command(bin, args...).Output()
+	if err != nil {
+		return "", err
+	}
+	if result == nil {
+		return "", fmt.Errorf("Nil result")
+	}
+	return strings.TrimSpace(string(result)), nil
 }

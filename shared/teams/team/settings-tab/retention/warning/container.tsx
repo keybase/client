@@ -40,10 +40,6 @@ const mapDispatchToProps = (dispatch, ownProps) => {
 }
 
 export default Container.compose(
-  Container.connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
+  Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
   Container.withStateHandlers({enabled: false}, {setEnabled: () => (enabled: boolean) => ({enabled})})
 )(RetentionWarning)

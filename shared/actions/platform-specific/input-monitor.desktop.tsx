@@ -1,16 +1,15 @@
-
 const timeToConsiderActiveForAwhile = 300000
 const timeToConsiderInactive = 60000
 
-type NotifyActiveFunction = (isActive: boolean) => void;
+type NotifyActiveFunction = (isActive: boolean) => void
 // 5 minutes after being active, consider us inactive after
 // an additional minute of no input
 // for the purpose of marking chat messages read
 class InputMonitor {
   active = true
-  notifyActive: NotifyActiveFunction;
-  activeTimeoutID: number | null;
-  inactiveTimeoutID: number | null;
+  notifyActive: NotifyActiveFunction
+  activeTimeoutID: number | null
+  inactiveTimeoutID: number | null
 
   constructor(notifyActive: NotifyActiveFunction) {
     this.notifyActive = notifyActive

@@ -54,12 +54,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 }
 
 export default compose(
-  namedConnect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps,
-    'LifecycleNotifications'
-  ),
+  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'LifecycleNotifications'),
   withStateHandlers(
     // don't use recompose
     (props: any): any => ({

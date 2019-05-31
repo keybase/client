@@ -12,9 +12,13 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  _onEnableSyncNotifications: (threshold: number) => dispatch(FsGen.createSetSpaceAvailableNotificationThreshold({spaceAvailableNotificationThreshold: threshold})),
+  _onEnableSyncNotifications: (threshold: number) =>
+    dispatch(
+      FsGen.createSetSpaceAvailableNotificationThreshold({spaceAvailableNotificationThreshold: threshold})
+    ),
   onDisable: () => dispatch(FsGen.createDriverDisable()),
-  onDisableSyncNotifications: () => dispatch(FsGen.createSetSpaceAvailableNotificationThreshold({spaceAvailableNotificationThreshold: 0})),
+  onDisableSyncNotifications: () =>
+    dispatch(FsGen.createSetSpaceAvailableNotificationThreshold({spaceAvailableNotificationThreshold: 0})),
   onEnable: () => dispatch(FsGen.createDriverEnable({})),
   onShowKextPermissionPopup: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['kextPermission']})),
 })
@@ -25,7 +29,8 @@ const SettingsFiles = namedConnect(
   (s, d, o) => ({
     ...s,
     ...o,
-    onChangedSyncNotifications: (selectedIdx: number) => d._onEnableSyncNotifications(allowedNotificationThresholds[selectedIdx]),
+    onChangedSyncNotifications: (selectedIdx: number) =>
+      d._onEnableSyncNotifications(allowedNotificationThresholds[selectedIdx]),
     onDisable: d.onDisable,
     onDisableSyncNotifications: d.onDisableSyncNotifications,
     onEnable: d.onEnable,

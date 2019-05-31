@@ -161,9 +161,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   showCoinsIcon: stateProps.showCoinsIcon,
 })
 
-const ConnectedAccountPayment = Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(AccountPayment)
+const ConnectedAccountPayment = Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(
+  AccountPayment
+)
 export default ConnectedAccountPayment
