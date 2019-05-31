@@ -70,5 +70,6 @@ export default Container.compose(
     mapDispatchToProps,
     mergeProps
   ),
+  // @ts-ignore
   Container.branch(props => !!props.teamName, Container.renderComponent(ChannelHeader))
-)(UsernameHeader)
+)(UsernameHeader) as any

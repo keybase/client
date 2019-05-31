@@ -73,8 +73,8 @@ export default compose(
     componentDidMount() {
       this.props.onLoad()
     },
-  }),
-  withStateHandlers(props => ({selected: props._selected}), {
+  } as any),
+  withStateHandlers((props: any): any => ({selected: props._selected}), {
     onSelect: () => (selected: string) => ({selected}),
   }),
   withHandlers({
@@ -82,5 +82,5 @@ export default compose(
       _onSubmit(selected)
       onCancel()
     },
-  })
+  } as any)
 )(HeaderOrPopup(SelectChannel))

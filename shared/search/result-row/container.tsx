@@ -1,21 +1,20 @@
-// @flow
-import SearchResultRow, {type Props} from '.'
+import SearchResultRow, {Props} from '.'
 import {userIsActiveInTeamHelper} from '../../constants/teams'
 import {followStateHelper, getUserInputItemIds, makeSearchResult} from '../../constants/search'
-import {type SearchResultId} from '../../constants/types/search'
+import {SearchResultId} from '../../constants/types/search'
 import {parseUserId} from '../../util/platforms'
 import {namedConnect} from '../../util/container'
 import {some} from 'lodash-es'
 
-export type OwnProps = {|
-  disableIfInTeamName: ?string,
-  id: SearchResultId,
-  selected: boolean,
-  onClick: () => void,
-  onMouseOver?: () => void,
-  onShowTracker?: () => void,
-  searchKey: string,
-|}
+export type OwnProps = {
+  disableIfInTeamName: string | null
+  id: SearchResultId
+  selected: boolean
+  onClick: () => void
+  onMouseOver?: () => void
+  onShowTracker?: () => void
+  searchKey: string
+}
 
 const emptySearch = makeSearchResult()
 
@@ -81,6 +80,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => {
   }
 }
 
-export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, () => ({}), mergeProps, 'SearchResultRow')(
-  SearchResultRow
-)
+export default namedConnect(mapStateToProps, () => ({}), mergeProps, 'SearchResultRow')(SearchResultRow)

@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import ServicesFilter from '.'
 import {Box} from '../../common-adapters'

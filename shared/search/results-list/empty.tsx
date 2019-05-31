@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import {Box, Text} from '../../common-adapters'
 import {globalStyles, platformStyles} from '../../styles'

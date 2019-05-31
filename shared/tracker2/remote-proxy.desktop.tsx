@@ -85,6 +85,7 @@ type Props = {
 
 class RemoteTracker2s extends React.PureComponent<Props> {
   render() {
+    // @ts-ignore
     return this.props.users.map(username => <RemoteTracker2 username={username} key={username} />)
   }
 }

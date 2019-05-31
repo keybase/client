@@ -1,26 +1,26 @@
-// @flow
 import React, {Component} from 'react'
 import {globalStyles, globalColors} from '../../styles'
+// @ts-ignore
 import {getStyle as getTextStyle} from '../../common-adapters/text'
 
 type Props = {
-  autoFocus?: boolean,
-  value: string,
-  placeholder?: ?string,
-  inputStyle?: Object,
-  onChange: (text: string) => void,
-  onKeyDown?: (ev: SyntheticKeyboardEvent<>) => void,
-  onFocus?: (ev: SyntheticInputEvent<>) => void,
-  onBlur?: (ev: SyntheticInputEvent<>) => void,
+  autoFocus?: boolean
+  value: string
+  placeholder?: string | null
+  inputStyle?: Object
+  onChange: (text: string) => void
+  onKeyDown?: (ev: React.KeyboardEvent) => void
+  onFocus?: (ev: React.FocusEvent) => void
+  onBlur?: (ev: React.FocusEvent) => void
 }
 
 type State = {
-  measuredWidth: ?number,
+  measuredWidth: number | null
 }
 
 class AutosizeInput extends Component<Props, State> {
-  _inputEl: ?HTMLElement
-  _measureEl: ?HTMLElement
+  _inputEl: HTMLElement | null
+  _measureEl: HTMLElement | null
   _raf: number
   _mounted: boolean = false
 

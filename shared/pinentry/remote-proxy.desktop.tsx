@@ -41,6 +41,7 @@ class RemotePinentrys extends React.PureComponent<Props> {
     return this.props.sessionIDToPinentry.keySeq().reduce((arr, id) => {
       const data = this.props.sessionIDToPinentry.get(id)
       if (data) {
+      // @ts-ignore
         arr.push(<RemotePinentry key={String(id)} data={data} />)
       }
       return arr
@@ -53,8 +54,7 @@ const mapStateToProps = state => ({
 })
 
 type OwnProps = {}
-// @ts-ignore codemode issue
-export default connect<OwnProps, _, _, _, _>(
+export default connect(
   mapStateToProps,
   () => ({}),
   (s, d, o) => ({...o, ...s, ...d})

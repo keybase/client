@@ -176,7 +176,7 @@ const roleElementHelper = (selectedRole: Role | null) =>
         role,
         title: (
           <Kb.Text type="BodyBig" style={styles.text}>
-            {capitalize(role)}
+            {capitalize(role as string)}
           </Kb.Text>
         ),
       }
