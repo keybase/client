@@ -233,7 +233,7 @@ update_plist() {(
 sign() {(
   cd "$out_dir"
   code_sign_identity="9FC3A5BC09FA2EE307C04060C918486411869B65" # "Developer ID Application: Keybase, Inc. (99229SGT5K)"
-  codesign --verbose --force --deep --sign --timestamp --options runtime "$code_sign_identity" "$app_name.app"
+  codesign --verbose --force --deep --timestamp --options runtime --sign "$code_sign_identity" "$app_name.app"
 
   echo "Verify codesigning..."
   codesign --verify --verbose=4 "$app_name.app"
