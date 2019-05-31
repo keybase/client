@@ -22,6 +22,12 @@ interface Window {
   DEBUGLogSagas: any
   DEBUGLogSagasWithNames: any
   DEBUGRootEffects: any
+  console: {
+    _log: any
+    _warn: any
+    _error: any
+    _info: any
+  }
 }
 
 declare namespace NodeJS {
