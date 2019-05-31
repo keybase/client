@@ -41,7 +41,7 @@ class RemotePinentrys extends React.PureComponent<Props> {
     return this.props.sessionIDToPinentry.keySeq().reduce((arr, id) => {
       const data = this.props.sessionIDToPinentry.get(id)
       if (data) {
-      // @ts-ignore
+        // @ts-ignore
         arr.push(<RemotePinentry key={String(id)} data={data} />)
       }
       return arr

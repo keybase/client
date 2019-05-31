@@ -33,10 +33,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 })
 
 export default Container.compose(
-  Container.connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
+  Container.connect(mapStateToProps, mapDispatchToProps, mergeProps),
   Container.safeSubmit(['onDelete'], ['_deleting'])
 )(ReallyDeleteTeam)

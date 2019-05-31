@@ -11,7 +11,7 @@ import {styleSheetCreate, globalColors} from '../styles'
 
 type OwnProps = {}
 
-const QRScanNotAuthorized = ({onOpenSettings}: {onOpenSettings: (() => void)}) => (
+const QRScanNotAuthorized = ({onOpenSettings}: {onOpenSettings: () => void}) => (
   <Box2 direction="vertical" style={styles.container} gap="tiny">
     <Icon type="iconfont-camera" color={globalColors.white_40} />
     <Text center={true} type="BodyTiny" style={styles.text}>

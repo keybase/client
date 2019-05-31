@@ -20,10 +20,6 @@ const mergeProps = (stateProps, dispatchProps) => ({
 })
 
 export default Container.compose(
-  Container.connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
+  Container.connect(mapStateToProps, mapDispatchToProps, mergeProps),
   Container.safeSubmitPerMount(['onSubmitCode'])
 )(QRScan)

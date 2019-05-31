@@ -316,13 +316,7 @@ class FakeEngine {
   hasEverConnected() {}
   setIncomingActionCreator(
     method: MethodKey,
-    actionCreator: (
-      arg0: {
-        param: Object
-        response: Object | null
-        state: any
-      }
-    ) => any | null
+    actionCreator: (arg0: {param: Object; response: Object | null; state: any}) => any | null
   ) {}
   createSession(
     incomingCallMap: IncomingCallMapType | null,

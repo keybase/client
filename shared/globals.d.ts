@@ -9,15 +9,15 @@ type RequestIdleCallbackOptions = {
 }
 type RequestIdleCallbackDeadline = {
   readonly didTimeout: boolean
-  timeRemaining: (() => number)
+  timeRemaining: () => number
 }
 
 interface Window {
-  requestIdleCallback: ((
-    callback: ((deadline: RequestIdleCallbackDeadline) => void),
+  requestIdleCallback: (
+    callback: (deadline: RequestIdleCallbackDeadline) => void,
     opts?: RequestIdleCallbackOptions
-  ) => RequestIdleCallbackHandle)
-  cancelIdleCallback: ((handle: RequestIdleCallbackHandle) => void)
+  ) => RequestIdleCallbackHandle
+  cancelIdleCallback: (handle: RequestIdleCallbackHandle) => void
   DEBUGEffectById: any
   DEBUGLogSagas: any
   DEBUGLogSagasWithNames: any
