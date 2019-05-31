@@ -17,7 +17,7 @@ class DumpPeriodicallyLogger implements Logger {
   _innerLogger: Logger
   _periodInMs: number
   _fileWriterFn: FileWriterFn
-  _lastTimeoutId: NodeJS.Timer
+  _lastTimeoutId: NodeJS.Timer | null = null
   _levelPrefix: LogLevel
   _ok: boolean = true
 

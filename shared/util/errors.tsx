@@ -15,11 +15,17 @@ export class RPCError {
   desc: string
   details: string // Details w/ error code & method if it's present
 
-  constructor(message: string, code: number, fields?: any, name?: string | null, method?: string | null) {
+  constructor(
+    message: string,
+    code: number,
+    fields: any = null,
+    name: string | null = null,
+    method: string | null = null
+  ) {
     const err = new Error(paramsToErrorMsg(message, code, fields, name, method))
     this.message = err.message
     this.name = 'RPCError'
-    this.stack = err.stack
+    this.stack = err.stack || ''
 
     this.code = code // Consult type StatusCode in rpc-gen.js for what this means
     this.fields = fields

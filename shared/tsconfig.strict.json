@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "strict": true
+  },
+  "files": [
+    "constants/types/chat2/common.tsx",
+    "constants/types/chat2/index.tsx"
+  ]
+}
