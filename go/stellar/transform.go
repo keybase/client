@@ -137,6 +137,10 @@ func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, 
 	loc.SourceAmountMax = p.SourceAmountMax
 	loc.SourceAmountActual = p.SourceAmountActual
 
+	loc.IsAdvanced = p.IsAdvanced
+	loc.SummaryAdvanced = p.SummaryAdvanced
+	loc.Operations = p.Operations
+
 	return loc, nil
 }
 

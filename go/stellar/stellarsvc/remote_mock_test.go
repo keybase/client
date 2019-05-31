@@ -459,8 +459,8 @@ func (r *RemoteClientMock) NextAutoClaim(ctx context.Context) (*stellar1.AutoCla
 	return r.Backend.NextAutoClaim(ctx, r.Tc)
 }
 
-func (r *RemoteClientMock) RecentPayments(ctx context.Context, accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int, skipPending bool) (stellar1.PaymentsPage, error) {
-	return r.Backend.RecentPayments(ctx, r.Tc, accountID, cursor, limit, skipPending)
+func (r *RemoteClientMock) RecentPayments(ctx context.Context, arg remote.RecentPaymentsArg) (stellar1.PaymentsPage, error) {
+	return r.Backend.RecentPayments(ctx, r.Tc, arg.AccountID, arg.Cursor, arg.Limit, arg.SkipPending)
 }
 
 func (r *RemoteClientMock) PendingPayments(ctx context.Context, accountID stellar1.AccountID, limit int) ([]stellar1.PaymentSummary, error) {
