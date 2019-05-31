@@ -13,7 +13,7 @@ type SearchResult = {
   userId: string
   username: string
   prettyName: string
-  services: {[K in ServiceIdWithContact]: string}
+  services: {[K in ServiceIdWithContact]?: string}
   inTeam: boolean
   followingState: FollowingState
 }
@@ -36,7 +36,7 @@ export type Props = {
   searchResults: Array<SearchResult> | null
   searchString: string
   selectedService: ServiceIdWithContact
-  serviceResultCount: {[K in ServiceIdWithContact]: number | null}
+  serviceResultCount: {[K in ServiceIdWithContact]?: number | null}
   showRecs: boolean
   showServiceResultCount: boolean
   teamSoFar: Array<{

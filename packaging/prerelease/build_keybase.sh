@@ -14,7 +14,7 @@ commit_short=`git log -1 --pretty=format:%h`
 build="$current_date+$commit_short"
 keybase_build=${KEYBASE_BUILD:-$build}
 tags=${TAGS:-"prerelease production"}
-ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build"
+ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build -s -w"
 
 echo "Building $build_dir/keybase ($keybase_build) with $(go version)"
 go build -a -tags "$tags" -ldflags "$ldflags" -o "$build_dir/keybase" "github.com/keybase/client/go/keybase"

@@ -1049,6 +1049,21 @@ protocol local {
 
   void resolveMaybeMention(MaybeMention mention);
 
+  // Gallery support
+  enum GalleryItemTyp {
+    MEDIA_0,
+    LINK_1,
+    DOC_2
+  }
+  record LoadGalleryRes {
+    array<UIMessage> messages;
+    boolean last;
+    array<RateLimit> rateLimits;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+  }
+  LoadGalleryRes loadGallery(int sessionID, ConversationID convID, GalleryItemTyp typ, int num, union { null, MessageID } fromMsgID);
+
+  // Flips in the API
   record LoadFlipRes {
     UICoinFlipStatus status;
     array<RateLimit> rateLimits;

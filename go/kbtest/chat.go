@@ -1176,6 +1176,10 @@ func (c *ChatUI) ChatMaybeMentionUpdate(ctx context.Context, teamName, channel s
 	return nil
 }
 
+func (c *ChatUI) ChatLoadGalleryHit(ctx context.Context, msg chat1.UIMessage) error {
+	return nil
+}
+
 type DummyAssetDeleter struct{}
 
 func NewDummyAssetDeleter() DummyAssetDeleter {

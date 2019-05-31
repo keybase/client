@@ -29,10 +29,14 @@ var ErrNoSettingsDB = errors.New("no settings DB")
 
 var errNoSession = errors.New("no session")
 
+type currentSessionGetter interface {
+	CurrentSessionGetter() idutil.CurrentSessionGetter
+}
+
 // SettingsDB stores KBFS user settings for a given device.
 type SettingsDB struct {
 	*LevelDb
-	sessionGetter idutil.CurrentSessionGetter
+	sessionGetter currentSessionGetter
 
 	cache map[string][]byte
 }
@@ -70,12 +74,16 @@ func openSettingsDB(config Config) *SettingsDB {
 	}
 	return &SettingsDB{
 		LevelDb:       db,
-		sessionGetter: config.CurrentSessionGetter(),
+		sessionGetter: config,
+		cache:         make(map[string][]byte),
 	}
 }
 
 func (db *SettingsDB) getUID(ctx context.Context) keybase1.UID {
-	si, err := db.sessionGetter.GetCurrentSession(ctx)
+	if db.sessionGetter == nil || db.sessionGetter.CurrentSessionGetter() == nil {
+		return keybase1.UID("")
+	}
+	si, err := db.sessionGetter.CurrentSessionGetter().GetCurrentSession(ctx)
 	if err != nil {
 		return keybase1.UID("")
 	}

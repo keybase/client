@@ -6,7 +6,6 @@ import flags from '../../util/feature-flags'
 // normally never do this but this call serves no purpose for users at all
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-// @ts-ignore not typed yet
 import AppState from '../../app/app-state'
 
 type Props = {
@@ -27,12 +26,10 @@ type Props = {
   onChangeUseNativeFrame: (arg0: boolean) => void
 }
 
-const initialUseNativeFrame = // Auto generated from flowToTs. Please clean me!
-  // @ts-ignore not typed yet
-  new AppState().state.useNativeFrame !== null && new AppState().state.useNativeFrame !== undefined
-    ? // eslint-disable-line operator-linebreak
-      // @ts-ignore not typed yet
-      new AppState().state.useNativeFrame
+const stateUseNativeFrame = new AppState().state.useNativeFrame
+const initialUseNativeFrame =
+  stateUseNativeFrame !== null && stateUseNativeFrame !== undefined
+    ? stateUseNativeFrame
     : defaultUseNativeFrame
 
 const UseNativeFrame = (props: Props) => {

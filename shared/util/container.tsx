@@ -5,7 +5,9 @@ import {PropsWithSafeNavigation as _PropsWithSafeNavigation} from './safe-naviga
 import {StatusCode} from '../constants/types/rpc-gen'
 
 export const NullComponent = () => null
-export const actionHasError = (a: Object) => a.hasOwnProperty('error')
+export const actionHasError = <NoError extends {}, HasError extends {error: boolean}>(
+  a: NoError | HasError
+): a is HasError => a.hasOwnProperty('error')
 
 export const networkErrorCodes = [
   StatusCode.scgenericapierror,
@@ -40,5 +42,6 @@ export {anyWaiting, anyErrors} from '../constants/waiting'
 export {safeSubmit, safeSubmitPerMount} from './safe-submit'
 export {default as withSafeNavigation} from './safe-navigation'
 export type RouteProps<P, S> = _RouteProps<P, S>
-export {TypedActions, TypedState}
+export type TypedActions = TypedActions
+export type TypedState = TypedState
 export type PropsWithSafeNavigation<P> = _PropsWithSafeNavigation<P>

@@ -9,7 +9,7 @@ import {TypedActions} from '../actions/typed-actions-gen'
 import put from './typed-put'
 import {isArray} from 'lodash-es'
 
-export type SagaGenerator<Yield, Actions> = Iterable<Yield | Actions>
+export type SagaGenerator<Yield, Actions> = IterableIterator<Yield | Actions>
 
 class SagaLogger {
   error: LogFn
@@ -41,7 +41,7 @@ function* sequentially(effects: Array<any>): Iterable<Array<any>> {
   return results
 }
 
-type MaybeAction = void | boolean | TypedActions | null
+export type MaybeAction = void | boolean | TypedActions | TypedActions[] | null
 function* chainAction<
   Actions extends {
     readonly type: string
@@ -151,6 +151,7 @@ function* callRPCs(e: Effects.CallEffect): Iterable<any> {
 }
 
 function* selectState(): Iterable<TypedState> {
+  // @ts-ignore codemod issue
   const state: TypedState = yield Effects.select()
   return state
 }

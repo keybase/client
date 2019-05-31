@@ -13,7 +13,7 @@ type OwnProps = RouteProps<
 
 const mapStateToProps = (state, {routeProps}) => {
   const gitMap = Constants.getIdToGit(state)
-  const git = (gitMap && gitMap.get(routeProps.get('id'))) || {}
+  const git = (gitMap && gitMap.get(routeProps.get('id'))) || Constants.makeGitInfo()
 
   return {
     error: Constants.getError(state),

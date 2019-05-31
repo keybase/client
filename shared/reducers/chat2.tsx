@@ -71,7 +71,7 @@ const metaMapReducer = (metaMap, action) => {
                 ).toList()
               : I.OrderedSet(error.unverifiedTLFName.split(',')).toList()
 
-            const rekeyers = I.Set(
+            const rekeyers = I.Set<string>(
               error.typ === RPCChatTypes.ConversationErrorType.selfrekeyneeded
                 ? [username || '']
                 : (error.rekeyInfo && error.rekeyInfo.rekeyers) || []
@@ -230,17 +230,20 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         return message.set('transferProgress', action.payload.ratio).set('transferState', 'uploading')
       })
     case Chat2Gen.attachmentLoading:
-      return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
-        if (!message || message.type !== 'attachment') {
-          return message
+      return messageMap.updateIn(
+        [action.payload.conversationIDKey, action.payload.message.ordinal],
+        message => {
+          if (!message || message.type !== 'attachment') {
+            return message
+          }
+          return action.payload.isPreview
+            ? message.set('previewTransferState', 'downloading')
+            : message
+                .set('transferProgress', action.payload.ratio)
+                .set('transferState', 'downloading')
+                .set('transferErrMsg', null)
         }
-        return action.payload.isPreview
-          ? message.set('previewTransferState', 'downloading')
-          : message
-              .set('transferProgress', action.payload.ratio)
-              .set('transferState', 'downloading')
-              .set('transferErrMsg', null)
-      })
+      )
     case Chat2Gen.attachmentUploaded:
       return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
         if (!message || message.type !== 'attachment') {
@@ -401,7 +404,7 @@ const rootReducer = (
             // just increment `readMsgID` since that msgID might be a
             // non-visible (edit, delete, reaction...) message so we scan the
             // ordinals for the appropriate value.
-            const messageMap = state.messageMap.get(conversationIDKey, I.Map())
+            const messageMap = state.messageMap.get(conversationIDKey, I.Map<Types.Ordinal, Types.Message>())
             const ordinals = state.messageOrdinals.get(conversationIDKey, I.OrderedSet())
             const ord = ordinals.find(o => {
               const message = messageMap.get(o)
@@ -433,8 +436,7 @@ const rootReducer = (
       const {show, domain} = action.payload
       return state.updateIn(
         ['unfurlPromptMap', action.payload.conversationIDKey, action.payload.messageID],
-        I.Set(),
-        prompts => {
+        (prompts = I.Set<string>()) => {
           return show ? prompts.add(domain) : prompts.delete(domain)
         }
       )
@@ -469,19 +471,19 @@ const rootReducer = (
     case Chat2Gen.giphyGotSearchResult:
       return state.setIn(['giphyResultMap', action.payload.conversationIDKey], action.payload.results)
     case Chat2Gen.setPaymentConfirmInfo:
-      return action.error
+      return actionHasError(action)
         ? state.set('paymentConfirmInfo', {error: action.payload.error})
         : state.set('paymentConfirmInfo', {summary: action.payload.summary})
     case Chat2Gen.clearPaymentConfirmInfo:
       return state.set('paymentConfirmInfo', null)
     case Chat2Gen.badgesUpdated: {
-      const badgeMap = I.Map(
+      const badgeMap = I.Map<Types.ConversationIDKey, number>(
         action.payload.conversations.map(({convID, badgeCounts}) => [
           Types.conversationIDToKey(convID),
           badgeCounts[badgeKey] || 0,
         ])
       )
-      const unreadMap = I.Map(
+      const unreadMap = I.Map<Types.ConversationIDKey, number>(
         action.payload.conversations.map(({convID, unreadMessages}) => [
           Types.conversationIDToKey(convID),
           unreadMessages,
@@ -505,7 +507,7 @@ const rootReducer = (
           return editingMap.delete(conversationIDKey)
         }
 
-        const messageMap = state.messageMap.get(conversationIDKey, I.Map())
+        const messageMap = state.messageMap.get(conversationIDKey, I.Map<Types.Ordinal, Types.Message>())
 
         // editing a specific message
         if (ordinal) {
@@ -726,7 +728,7 @@ const rootReducer = (
           const meta = state.metaMap.get(conversationIDKey, null)
           const ordinals = messageOrdinals.get(conversationIDKey, I.OrderedSet()).toArray()
           let maxMsgID = 0
-          const convMsgMap = messageMap.get(conversationIDKey, I.Map())
+          const convMsgMap = messageMap.get(conversationIDKey, I.Map<Types.Ordinal, Types.Message>())
           for (let i = ordinals.length - 1; i >= 0; i--) {
             const ordinal = ordinals[i]
             const message = convMsgMap.get(ordinal)
@@ -824,7 +826,7 @@ const rootReducer = (
     }
     case EngineGen.chat1NotifyChatChatTypingUpdate: {
       const {typingUpdates} = action.payload.params
-      const typingMap = I.Map(
+      const typingMap = I.Map<string, I.Set<string>>(
         (typingUpdates || []).reduce((arr, u) => {
           arr.push([Types.conversationIDToKey(u.convID), I.Set((u.typers || []).map(t => t.username))])
           return arr
@@ -841,7 +843,7 @@ const rootReducer = (
               return message
             }
             const reactions = message.reactions
-            // $FlowIssue thinks `message` is the inner type
+            // @ts-ignore thinks `message` is the inner type
             return message.set(
               'reactions',
               reactions.withMutations(reactionMap => {
@@ -892,7 +894,7 @@ const rootReducer = (
                 if (!message || message.type === 'deleted' || message.type === 'placeholder') {
                   return message
                 }
-                // $FlowIssue thinks `message` is the inner type
+                // @ts-ignore thinks `message` is the inner type
                 return message.set('reactions', td.reactions)
               })
             })
@@ -911,7 +913,10 @@ const rootReducer = (
 
       let upToOrdinals = []
       if (upToMessageID) {
-        const ordinalToMessage = state.messageMap.get(conversationIDKey, I.Map())
+        const ordinalToMessage = state.messageMap.get(
+          conversationIDKey,
+          I.Map<Types.Ordinal, Types.Message>()
+        )
         ordinalToMessage.reduce((arr, m, ordinal) => {
           if (m.id < upToMessageID && deletableMessageTypes.has(m.type)) {
             arr.push(ordinal)
@@ -973,9 +978,9 @@ const rootReducer = (
       return state.set('explodingModes', I.Map(explodingMap))
     case Chat2Gen.setExplodingModeLock:
       const {conversationIDKey, unset} = action.payload
-      const mode = state.getIn(['explodingModes', conversationIDKey], 0)
+      const mode = state.explodingModes.get(conversationIDKey, 0)
       // we already have the new mode in `explodingModes`, if we've already locked it we shouldn't update
-      const alreadyLocked = state.getIn(['explodingModeLocks', conversationIDKey], null) !== null
+      const alreadyLocked = state.explodingModeLocks.get(conversationIDKey, null) !== null
       if (unset) {
         return state.update('explodingModeLocks', el => el.delete(conversationIDKey))
       }
@@ -1141,6 +1146,41 @@ const rootReducer = (
           query: action.payload.query,
         })
       })
+    case Chat2Gen.loadAttachmentView:
+      return state.updateIn(
+        ['attachmentViewMap', action.payload.conversationIDKey, action.payload.viewType],
+        (info = Constants.initialAttachmentViewInfo) => {
+          return info.merge({
+            status: 'loading',
+          })
+        }
+      )
+    case Chat2Gen.addAttachmentViewMessage:
+      return state.updateIn(
+        ['attachmentViewMap', action.payload.conversationIDKey, action.payload.viewType],
+        (info = Constants.initialAttachmentViewInfo) => {
+          return info.merge({
+            messages:
+              info.messages.findIndex(item => item.id === action.payload.message.id) < 0
+                ? info.messages.push(action.payload.message).sort((l, r) => {
+                    return r.id - l.id
+                  })
+                : info.messages,
+          })
+        }
+      )
+    case Chat2Gen.setAttachmentViewStatus:
+      return state.updateIn(
+        ['attachmentViewMap', action.payload.conversationIDKey, action.payload.viewType],
+        (info = Constants.initialAttachmentViewInfo) => {
+          return info.merge({
+            last: action.payload.last,
+            status: action.payload.status,
+          })
+        }
+      )
+    case Chat2Gen.clearAttachmentView:
+      return state.deleteIn(['attachmentViewMap', action.payload.conversationIDKey])
     case Chat2Gen.staticConfigLoaded:
       return state.set('staticConfig', action.payload.staticConfig)
     case Chat2Gen.metasReceived: {
@@ -1169,33 +1209,83 @@ const rootReducer = (
       return state.update('accountsInfoMap', old => old.setIn([conversationIDKey, messageID], requestInfo))
     }
     case Chat2Gen.attachmentFullscreenSelection: {
-      const {message} = action.payload
-      return state.set('attachmentFullscreenMessage', message)
+      const {autoPlay, message} = action.payload
+      return state.set('attachmentFullscreenSelection', {autoPlay, message})
     }
     case Chat2Gen.handleSeeingWallets: // fallthrough
     case Chat2Gen.setWalletsOld:
       return state.isWalletsNew ? state.set('isWalletsNew', false) : state
-    case Chat2Gen.attachmentDownloaded:
+    case Chat2Gen.attachmentLoading: {
       const {message} = action.payload
       let nextState = state
-      // check fullscreen attachment message in case we downloaded it
       if (
-        !action.error &&
-        state.attachmentFullscreenMessage &&
-        state.attachmentFullscreenMessage.conversationIDKey === message.conversationIDKey &&
-        state.attachmentFullscreenMessage.id === message.id &&
+        state.attachmentFullscreenSelection &&
+        state.attachmentFullscreenSelection.message.conversationIDKey === message.conversationIDKey &&
+        state.attachmentFullscreenSelection.message.id === message.id &&
         message.type === 'attachment'
       ) {
-        nextState = nextState.set(
-          'attachmentFullscreenMessage',
-          message.set('downloadPath', action.payload.path)
-        )
+        nextState = nextState.set('attachmentFullscreenSelection', {
+          autoPlay: state.attachmentFullscreenSelection.autoPlay,
+          message: message.set('transferState', 'downloading').set('transferProgress', action.payload.ratio),
+        })
       }
+      nextState = nextState.updateIn(
+        ['attachmentViewMap', action.payload.conversationIDKey, RPCChatTypes.GalleryItemTyp.doc],
+        (info = Constants.initialAttachmentViewInfo) =>
+          info.merge({
+            messages: info.messages.update(
+              info.messages.findIndex(item => item.id === action.payload.message.id),
+              item =>
+                item
+                  ? item.set('transferState', 'downloading').set('transferProgress', action.payload.ratio)
+                  : item
+            ),
+          })
+      )
       return nextState.withMutations(s => {
         s.set('metaMap', metaMapReducer(state.metaMap, action))
         s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))
         s.set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
       })
+    }
+    case Chat2Gen.attachmentDownloaded: {
+      const {message} = action.payload
+      let nextState = state
+      if (
+        !actionHasError(action) &&
+        state.attachmentFullscreenSelection &&
+        state.attachmentFullscreenSelection.message.conversationIDKey === message.conversationIDKey &&
+        state.attachmentFullscreenSelection.message.id === message.id &&
+        message.type === 'attachment'
+      ) {
+        nextState = nextState.set('attachmentFullscreenSelection', {
+          autoPlay: state.attachmentFullscreenSelection.autoPlay,
+          message: message.set('downloadPath', action.payload.path),
+        })
+      }
+      nextState = nextState.updateIn(
+        ['attachmentViewMap', message.conversationIDKey, RPCChatTypes.GalleryItemTyp.doc],
+        (info = Constants.initialAttachmentViewInfo) =>
+          info.merge({
+            messages: info.messages.update(info.messages.findIndex(item => item.id === message.id), item =>
+              item
+                ? item.merge({
+                    // @ts-ignore we aren't checking for the errors!
+                    downloadPath: action.payload.path,
+                    fileURLCached: true,
+                    transferProgress: 0,
+                    transferState: null,
+                  })
+                : item
+            ),
+          })
+      )
+      return nextState.withMutations(s => {
+        s.set('metaMap', metaMapReducer(state.metaMap, action))
+        s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))
+        s.set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
+      })
+    }
     // metaMap/messageMap/messageOrdinalsList only actions
     case Chat2Gen.messageDelete:
     case Chat2Gen.messageEdit:
@@ -1204,7 +1294,6 @@ const rootReducer = (
     case Chat2Gen.messageAttachmentUploaded:
     case Chat2Gen.metaReceivedError:
     case Chat2Gen.metaRequestingTrusted:
-    case Chat2Gen.attachmentLoading:
     case Chat2Gen.attachmentUploading:
     case Chat2Gen.attachmentUploaded:
     case Chat2Gen.attachmentMobileSave:
