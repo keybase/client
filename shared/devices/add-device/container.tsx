@@ -13,8 +13,8 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
 })
 
 type OwnProps = RouteProps<{highlight: Array<'computer' | 'phone' | 'paper key'>}, {}>
-// @ts-ignore codemode issue
-export default Container.namedConnect<OwnProps, _, _, _, _>(
+
+export default Container.namedConnect(
   () => ({}),
   mapDispatchToProps,
   (s, d, o) => ({

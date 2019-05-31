@@ -5,8 +5,7 @@ import {HeaderTitle as _HeaderTitle, HeaderRightActions as _HeaderRightActions} 
 
 const mapStateToPropsHeaderTitle = state => Constants.getDeviceCounts(state)
 
-// @ts-ignore codemode issue
-export const HeaderTitle = Container.namedConnect<{}, _, _, _, _>(
+export const HeaderTitle = Container.namedConnect(
   mapStateToPropsHeaderTitle,
   () => ({}),
   (s, d, o) => s,
@@ -17,8 +16,7 @@ const mapDispatchToPropsHeaderRightActions = dispatch => ({
   onAdd: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['deviceAdd']})),
 })
 
-// @ts-ignore codemode issue
-export const HeaderRightActions = Container.namedConnect<{}, _, _, _, _>(
+export const HeaderRightActions = Container.namedConnect(
   () => ({}),
   mapDispatchToPropsHeaderRightActions,
   (s, d, o) => d,

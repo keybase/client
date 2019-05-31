@@ -121,8 +121,7 @@ function SyncAvatarProps(ComposedComponent: any) {
       newAvatars.equals(oldAvatars) && newFollowers.equals(oldFollowers) && newFollowing.equals(oldFollowing)
   )
 
-  // @ts-ignore codemode issue
-  const Connected = connect<OwnProps, _, _, _, _>(
+  const Connected = connect(
     mapStateToProps,
     () => ({}),
     (s, d, o) => ({...o, ...s, ...d})

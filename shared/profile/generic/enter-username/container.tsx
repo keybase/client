@@ -72,8 +72,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
   waiting: stateProps.waiting,
 })
 
-// @ts-ignore codemode issue
-const ConnectedEnterUsername = Container.namedConnect<OwnProps, _, _, _, _>(
+const ConnectedEnterUsername = Container.namedConnect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,
