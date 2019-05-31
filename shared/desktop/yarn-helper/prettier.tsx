@@ -10,7 +10,7 @@ const prettierWriteAll = () => {
     .filter(Boolean)
 
   const blackReg = new RegExp(blacklist.join('|'))
-  const jsFileReg = new RegExp('\\.js(\\.flow)?$')
+  const jsFileReg = new RegExp('\\.\\(js\\|ts\\|tsx\\)?$')
 
   console.log('Using blacklist:', blackReg)
 
