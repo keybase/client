@@ -37,5 +37,13 @@ declare namespace NodeJS {
     DEBUGSagaMiddleware: any
     DEBUGStore: any
     globalLogger: any
+    clearInterval(handle: number): void
+    clearTimeout(handle: number): void
+    setInterval(handler: (...args: any[]) => void, timeout: number): number
+    setInterval(handler: any, timeout?: any, ...args: any[]): number
+    setTimeout(handler: (...args: any[]) => void, timeout: number): number
+    setTimeout(handler: any, timeout?: any, ...args: any[]): number
+    clearImmediate(handle: number): void
+    setImmediate(handler: (...args: any[]) => void): number
   }
 }
