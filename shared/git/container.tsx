@@ -1,4 +1,3 @@
-// @flow
 import * as React from 'react'
 import Git from '.'
 import * as I from 'immutable'
@@ -6,7 +5,7 @@ import * as GitGen from '../actions/git-gen'
 import * as Constants from '../constants/git'
 import * as Kb from '../common-adapters'
 import {anyWaiting} from '../constants/waiting'
-import {compose, connect, isMobile, type RouteProps} from '../util/container'
+import {compose, connect, isMobile, RouteProps} from '../util/container'
 import {sortBy, partition} from 'lodash-es'
 import {memoize} from '../util/memoize'
 import {HeaderTitle, HeaderRightActions} from './nav-header/container'
@@ -72,19 +71,17 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 // keep track in the module
 let _expandedSet = I.Set()
 
-class GitReloadable extends React.PureComponent<
-  {
-    ...{|_loadGit: () => void|},
-    ...$Diff<
+/* TODO
+  {} & {
+    _loadGit: (() => void)
+  } & Exclude<
       React.ElementConfig<typeof Git>,
       {
-        expandedSet: I.Set<string>,
-        onToggleExpand: string => void,
+        expandedSet: I.Set<string>
+        onToggleExpand: ((arg0: string) => void)
       }
-    >,
-  },
-  {expandedSet: I.Set<string>}
-> {
+    > */
+class GitReloadable extends React.PureComponent<any, {expandedSet: I.Set<string>}> {
   state = {expandedSet: _expandedSet}
   _toggleExpand = id => {
     _expandedSet = _expandedSet.has(id) ? _expandedSet.delete(id) : _expandedSet.add(id)
@@ -111,7 +108,7 @@ class GitReloadable extends React.PureComponent<
 }
 
 if (!isMobile) {
-  // $FlowIssue lets fix this
+  // @ts-ignore lets fix this
   GitReloadable.navigationOptions = {
     header: undefined,
     headerRightActions: HeaderRightActions,
@@ -121,7 +118,7 @@ if (!isMobile) {
 }
 
 export default compose(
-  connect<OwnProps, _, _, _, _>(
+  connect(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps
