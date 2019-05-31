@@ -66,32 +66,33 @@ type LogSendContext struct {
 	processesLog     string
 }
 
-var noncharacterPattern = regexp.MustCompile(`[^\w]`)
+var noncharacterRxx = regexp.MustCompile(`[^\w]`)
+
+const redactedReplacer = "[REDACTED]"
+const serialPaperKeyWordThreshold = 5
 
 func redactPotentialPaperKeys(s string) string {
-	words := strings.Split(noncharacterPattern.ReplaceAllLiteralString(s, " "), " ")
-	threshold := 5
-	redacted := "[REDACTED]"
+	words := strings.Split(noncharacterRxx.ReplaceAllLiteralString(s, " "), " ")
 	didRedact := false
 	start := -1
 	for idx, word := range words {
-		if libkb.ValidSecWord(word) {
-			if start == -1 {
-				start = idx
-			} else if idx-start+1 == threshold {
-				for jdx := start; jdx <= idx; jdx++ {
-					words[jdx] = redacted
-				}
-				didRedact = true
-			} else if idx-start >= threshold {
-				words[idx] = redacted
-			}
-		} else {
+		if !libkb.ValidSecWord(word) {
 			start = -1
+			continue
+		}
+		if start == -1 {
+			start = idx
+		} else if idx-start+1 == serialPaperKeyWordThreshold {
+			for jdx := start; jdx <= idx; jdx++ {
+				words[jdx] = redactedReplacer
+			}
+			didRedact = true
+		} else if idx-start+1 > serialPaperKeyWordThreshold {
+			words[idx] = redactedReplacer
 		}
 	}
 	if didRedact {
-		return strings.Join(words, " ")
+		return "[redacted feedback follows] " + strings.Join(words, " ")
 	}
 	return s
 }
