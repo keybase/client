@@ -1,4 +1,3 @@
-// @noflow
 /* eslint-env jest */
 
 import Session from '../session'

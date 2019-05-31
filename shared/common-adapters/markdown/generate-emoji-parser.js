@@ -1,4 +1,3 @@
-// @flow
 import fs from 'fs'
 import path from 'path'
 import emojiData from 'emoji-datasource'
@@ -98,8 +97,7 @@ function genEmojiData() {
 function buildEmojiFile() {
   const p = path.join(__dirname, 'emoji-gen.js')
   const {emojiLiterals, emojiIndexByName, emojiIndexByChar} = genEmojiData()
-  const data = `// @noflow
-/* eslint-disable */
+  const data = `/* eslint-disable */
 export const emojiRegex = /^(${emojiLiterals.join('|')}|${Object.keys(emojiIndexByName)
     .map(escapeRegExp)
     .join('|')})/
