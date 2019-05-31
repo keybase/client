@@ -17,6 +17,7 @@ export const namedConnect = <TOwnProps, TStateProps, TDispatchProps, TMergedProp
   displayName: string,
   options?: Options<State, TStateProps, TOwnProps, TMergedProps>
 ): InferableComponentEnhancerWithProps<TMergedProps, TOwnProps> =>
+  // @ts-ignore
   compose(
     connect(
       mapStateToProps,

@@ -131,4 +131,4 @@ export default compose(
     style: styles.popup,
   })),
   Kb.HeaderOrPopupWithHeader
-)(WalletPopup)
+)(WalletPopup) as any

@@ -3,6 +3,7 @@ import * as I from 'immutable'
 import * as SettingsGen from '../actions/settings-gen'
 import * as Types from '../constants/types/settings'
 import * as Constants from '../constants/settings'
+import {actionHasError} from '../util/container'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -56,7 +57,7 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
         notifications.merge({
           allowEdit: false,
           // @ts-ignore codemod issue
-          groups: state.notifications.groups.merge(I.Map(changed)),
+          groups: state.notifications.groups.merge(I.Map(changed)) as any,
         })
       )
     case SettingsGen.notificationsSaved:
@@ -73,7 +74,7 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
     case SettingsGen.invitesSent:
       // TODO this doesn't do anything with the actual valid payload
       return state.update('invites', invites =>
-        invites.merge({error: action.error ? action.payload.error : undefined})
+        invites.merge({error: actionHasError(action) ? action.payload.error : undefined})
       )
     case SettingsGen.invitesClearError:
       return state.update('invites', invites => invites.merge({error: null}))

@@ -156,6 +156,10 @@ export type MessageTypes = {
     inParam: {readonly inbox: String}
     outParam: void
   }
+  'chat.1.chatUi.chatLoadGalleryHit': {
+    inParam: {readonly message: UIMessage}
+    outParam: void
+  }
   'chat.1.chatUi.chatMaybeMentionUpdate': {
     inParam: {readonly teamName: String; readonly channel: String; readonly info: UIMaybeMentionInfo}
     outParam: void
@@ -311,6 +315,10 @@ export type MessageTypes = {
   'chat.1.local.leaveConversationLocal': {
     inParam: {readonly convID: ConversationID}
     outParam: JoinLeaveConversationLocalRes
+  }
+  'chat.1.local.loadGallery': {
+    inParam: {readonly convID: ConversationID; readonly typ: GalleryItemTyp; readonly num: Int; readonly fromMsgID?: MessageID | null}
+    outParam: LoadGalleryRes
   }
   'chat.1.local.makePreview': {
     inParam: {readonly filename: String; readonly outboxID: OutboxID}
@@ -534,6 +542,12 @@ export enum ConversationStatus {
   blocked = 3,
   muted = 4,
   reported = 5,
+}
+
+export enum GalleryItemTyp {
+  media = 0,
+  link = 1,
+  doc = 2,
 }
 
 export enum GetThreadNonblockCbMode {
@@ -902,6 +916,7 @@ export type KBFSImpteamUpgradeUpdate = {readonly convID: ConversationID; readonl
 export type KnownTeamMention = {readonly name: String; readonly channel: String}
 export type KnownUserMention = {readonly text: String; readonly uid: Gregor1.UID}
 export type LoadFlipRes = {readonly status: UICoinFlipStatus; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
+export type LoadGalleryRes = {readonly messages?: Array<UIMessage> | null; readonly last: Boolean; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type LocalConversationVers = Uint64
 export type MakePreviewRes = {readonly mimeType: String; readonly previewMimeType?: String | null; readonly location?: PreviewLocation | null; readonly metadata?: AssetMetadata | null; readonly baseMetadata?: AssetMetadata | null}
 export type MarkAsReadLocalRes = {readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null}
@@ -985,7 +1000,7 @@ export type RpRetain = {}
 export type S3Params = {readonly bucket: String; readonly objectKey: String; readonly accessKey: String; readonly acl: String; readonly regionName: String; readonly regionEndpoint: String; readonly regionBucketEndpoint: String}
 export type SealedData = {readonly v: Int; readonly e: Bytes; readonly n: Bytes}
 export type SearchInboxRes = {readonly offline: Boolean; readonly res?: ChatSearchInboxResults | null; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
-export type SearchOpts = {readonly isRegex: Boolean; readonly sentBy: String; readonly sentTo: String; readonly matchMentions: Boolean; readonly sentBefore: Gregor1.Time; readonly sentAfter: Gregor1.Time; readonly maxHits: Int; readonly maxMessages: Int; readonly beforeContext: Int; readonly afterContext: Int; readonly reindexMode: ReIndexingMode; readonly maxConvsSearched: Int; readonly maxConvsHit: Int; readonly convID?: ConversationID | null; readonly maxNameConvs: Int}
+export type SearchOpts = {readonly isRegex: Boolean; readonly sentBy: String; readonly sentTo: String; readonly matchMentions: Boolean; readonly sentBefore: Gregor1.Time; readonly sentAfter: Gregor1.Time; readonly maxHits: Int; readonly maxMessages: Int; readonly beforeContext: Int; readonly afterContext: Int; readonly initialPagination?: Pagination | null; readonly reindexMode: ReIndexingMode; readonly maxConvsSearched: Int; readonly maxConvsHit: Int; readonly convID?: ConversationID | null; readonly maxNameConvs: Int}
 export type SearchRegexpRes = {readonly offline: Boolean; readonly hits?: Array<ChatSearchHit> | null; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type SenderPrepareOptions = {readonly skipTopicNameState: Boolean; readonly replyTo?: MessageID | null}
 export type SenderSendOptions = {readonly joinMentionsAs?: ConversationMemberStatus | null}
@@ -1111,6 +1126,7 @@ export type IncomingCallMapType = {
   'chat.1.chatUi.chatCoinFlipStatus'?: (params: MessageTypes['chat.1.chatUi.chatCoinFlipStatus']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatCommandMarkdown'?: (params: MessageTypes['chat.1.chatUi.chatCommandMarkdown']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatMaybeMentionUpdate'?: (params: MessageTypes['chat.1.chatUi.chatMaybeMentionUpdate']['inParam'] & {sessionID: number}) => IncomingReturn
+  'chat.1.chatUi.chatLoadGalleryHit'?: (params: MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.NotifyChat.NewChatActivity'?: (params: MessageTypes['chat.1.NotifyChat.NewChatActivity']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.NotifyChat.ChatIdentifyUpdate'?: (params: MessageTypes['chat.1.NotifyChat.ChatIdentifyUpdate']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.NotifyChat.ChatTLFFinalize'?: (params: MessageTypes['chat.1.NotifyChat.ChatTLFFinalize']['inParam'] & {sessionID: number}) => IncomingReturn
@@ -1162,6 +1178,7 @@ export type CustomResponseIncomingCallMap = {
   'chat.1.chatUi.chatCoinFlipStatus'?: (params: MessageTypes['chat.1.chatUi.chatCoinFlipStatus']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatCoinFlipStatus']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatCommandMarkdown'?: (params: MessageTypes['chat.1.chatUi.chatCommandMarkdown']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatCommandMarkdown']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatMaybeMentionUpdate'?: (params: MessageTypes['chat.1.chatUi.chatMaybeMentionUpdate']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatMaybeMentionUpdate']['outParam']) => void}) => IncomingReturn
+  'chat.1.chatUi.chatLoadGalleryHit'?: (params: MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['outParam']) => void}) => IncomingReturn
 }
 export const localAddTeamMemberAfterResetRpcPromise = (params: MessageTypes['chat.1.local.addTeamMemberAfterReset']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.addTeamMemberAfterReset']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.addTeamMemberAfterReset', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localBulkAddToConvRpcPromise = (params: MessageTypes['chat.1.local.bulkAddToConv']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.bulkAddToConv']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.bulkAddToConv', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -1185,6 +1202,7 @@ export const localGetUnreadlineRpcPromise = (params: MessageTypes['chat.1.local.
 export const localGetUploadTempFileRpcPromise = (params: MessageTypes['chat.1.local.getUploadTempFile']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getUploadTempFile']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getUploadTempFile', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localJoinConversationByIDLocalRpcPromise = (params: MessageTypes['chat.1.local.joinConversationByIDLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.joinConversationByIDLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.joinConversationByIDLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localLeaveConversationLocalRpcPromise = (params: MessageTypes['chat.1.local.leaveConversationLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.leaveConversationLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.leaveConversationLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localLoadGalleryRpcSaga = (p: {params: MessageTypes['chat.1.local.loadGallery']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}) => call(getEngineSaga(), {method: 'chat.1.local.loadGallery', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const localMakePreviewRpcPromise = (params: MessageTypes['chat.1.local.makePreview']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.makePreview']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.makePreview', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localMakeUploadTempFileRpcPromise = (params: MessageTypes['chat.1.local.makeUploadTempFile']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.makeUploadTempFile']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.makeUploadTempFile', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localMarkAsReadLocalRpcPromise = (params: MessageTypes['chat.1.local.markAsReadLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.markAsReadLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.markAsReadLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -1244,6 +1262,7 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.chatUi.chatCoinFlipStatus'
 // 'chat.1.chatUi.chatCommandMarkdown'
 // 'chat.1.chatUi.chatMaybeMentionUpdate'
+// 'chat.1.chatUi.chatLoadGalleryHit'
 // 'chat.1.local.getCachedThread'
 // 'chat.1.local.getInboxAndUnboxLocal'
 // 'chat.1.local.postLocal'

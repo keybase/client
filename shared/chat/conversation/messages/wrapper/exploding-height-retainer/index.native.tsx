@@ -169,7 +169,7 @@ class EmojiTower extends React.Component<
       return
     }
     if (!this.state.running) {
-      this.setState({running: true}, this._update())
+      this.setState({running: true}, this._update)
       return
     }
     this._update()

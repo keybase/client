@@ -42,13 +42,15 @@ const _AddPeople = (props: Props) => {
     directLabel = 'Add members to channel'
   }
   return (
-    <Box2 direction="horizontal" centerChildren={true} style={styles.addButtonContainer}>
+    <Box2 direction="vertical" fullWidth={true}>
       {menu}
       <Button
+        mode="Primary"
+        type="Default"
         onClick={directAction || props.toggleShowingMenu}
         label={directLabel || 'Add someone...'}
         ref={props.setAttachmentRef}
-        fullWidth={true}
+        style={styles.addButtonContainer}
       />
     </Box2>
   )
@@ -95,7 +97,7 @@ const AddPeople = compose(
     })
   ),
   OverlayParentHOC
-)(_AddPeople)
+)(_AddPeople) as any
 
 const styles = Styles.styleSheetCreate({
   addButtonContainer: {marginLeft: Styles.globalMargins.small, marginRight: Styles.globalMargins.small},

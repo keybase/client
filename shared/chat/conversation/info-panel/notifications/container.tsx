@@ -54,15 +54,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 }
 
 export default compose(
-  namedConnect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps,
-    'LifecycleNotifications'
-  ),
+  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'LifecycleNotifications'),
   withStateHandlers(
-    // $FlowIssue don't use recompose
-    props => ({
+    // don't use recompose
+    (props: any): any => ({
       channelWide: props._storeChannelWide,
       desktop: props._storeDesktop,
       mobile: props._storeMobile,
@@ -100,7 +95,7 @@ export default compose(
       },
       updateSaving: ({saving: oldSaving}) => (saving: boolean) =>
         oldSaving === saving ? undefined : {saving},
-    }
+    } as any
   ),
   lifecycle({
     componentDidUpdate(prevProps) {
@@ -139,5 +134,6 @@ export default compose(
         )
       }
     },
-  })
+  } as any)
+  // @ts-ignore
 )(Notifications)

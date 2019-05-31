@@ -50,6 +50,7 @@ class Engine {
   _throttledDispatchWaitingAction = throttle(() => {
     const changes = this._queuedChanges
     this._queuedChanges = []
+    // @ts-ignore codemod-issue
     Engine._dispatch(createBatchChangeWaiting({changes}))
   }, 500)
 
@@ -191,7 +192,7 @@ class Engine {
           .split('.')
           .map((p, idx) => (idx ? capitalize(p) : p))
           .join('')
-        // $ForceType can't really type this easily
+        // @ts-ignore can't really type this easily
         Engine._dispatch({payload: {params: param, ...extra}, type: `engine-gen:${type}`})
       }
     }
@@ -315,13 +316,7 @@ class FakeEngine {
   hasEverConnected() {}
   setIncomingActionCreator(
     method: MethodKey,
-    actionCreator: (
-      arg0: {
-        param: Object
-        response: Object | null
-        state: any
-      }
-    ) => any | null
+    actionCreator: (arg0: {param: Object; response: Object | null; state: any}) => any | null
   ) {}
   createSession(
     incomingCallMap: IncomingCallMapType | null,

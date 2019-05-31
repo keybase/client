@@ -427,6 +427,7 @@ type ChatUI interface {
 	ChatCoinFlipStatus(context.Context, []chat1.UICoinFlipStatus) error
 	ChatCommandMarkdown(context.Context, chat1.ConversationID, *chat1.UICommandMarkdown) error
 	ChatMaybeMentionUpdate(context.Context, string, string, chat1.UIMaybeMentionInfo) error
+	ChatLoadGalleryHit(context.Context, chat1.UIMessage) error
 }
 
 type PromptDefault int

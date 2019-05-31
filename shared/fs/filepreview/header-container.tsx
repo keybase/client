@@ -16,7 +16,8 @@ const mapStateToProps = (state, {path}: OwnProps) => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  loadPathMetadata: (path: Types.Path) => dispatch(FsGen.createLoadPathMetadata({path, refreshTag: 'main'})),
+  loadPathMetadata: (path: Types.Path) =>
+    dispatch(FsGen.createLoadPathMetadata({path, refreshTag: Types.RefreshTag.Main})),
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
@@ -34,5 +35,5 @@ export default compose(
     componentDidMount() {
       this.props.loadPathMetadata(this.props.path)
     },
-  })
-)(Header)
+  } as any)
+)(Header as any)

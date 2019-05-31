@@ -6,14 +6,17 @@ import * as FsGen from '../../../actions/fs-gen'
 import Fullscreen from './'
 import {compose, withStateHandlers, connect, withProps} from '../../../util/container'
 import {RouteProps} from '../../../route-tree/render-route'
+import {imgMaxWidthRaw} from '../messages/attachment/image/image-render'
 
 const blankMessage = Constants.makeMessageAttachment({})
 
 type OwnProps = RouteProps<{}, {}>
 
-const mapStateToProps = state => {
-  const message = state.chat2.attachmentFullscreenMessage || blankMessage
+const mapStateToProps = (state, ownProps: OwnProps) => {
+  const selection = state.chat2.attachmentFullscreenSelection
+  const message = selection ? selection.message : blankMessage
   return {
+    autoPlay: selection ? selection.autoPlay : false,
     message: message.type === 'attachment' ? message : blankMessage,
   }
 }
@@ -51,7 +54,13 @@ const mapDispatchToProps = dispatch => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const message = stateProps.message
+  const {height, width} = Constants.clampImageSize(
+    message.previewWidth,
+    message.previewHeight,
+    imgMaxWidthRaw()
+  )
   return {
+    autoPlay: stateProps.autoPlay,
     hotkeys: ['left', 'right'],
     isVideo: Constants.isVideoAttachment(message),
     message,
@@ -62,6 +71,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onHotkey: (cmd: string) => dispatchProps._onHotkey(message.conversationIDKey, message.id, cmd),
     onShowInFinder: message.downloadPath ? () => dispatchProps._onShowInFinder(message) : undefined,
     path: message.fileURL || message.previewURL,
+    previewHeight: height,
+    previewWidth: width,
     progress: message.transferProgress,
     progressLabel: message.fileURL ? undefined : 'Loading',
     title: message.title,
@@ -80,7 +91,7 @@ export default compose(
       onToggleZoom: ({isZoomed}) => () => ({isZoomed: !isZoomed}),
     }
   ),
-  withProps(props => ({
+  withProps((props: any) => ({
     onHotkey: (cmd: string) => props.onHotkey(cmd),
   }))
 )(Fullscreen)

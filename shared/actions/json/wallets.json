@@ -201,12 +201,12 @@
     },
     "loadDisplayCurrency": {
       "_description": "Load display currency for an account",
-      "accountID": "?Types.AccountID",
+      "accountID": "Types.AccountID | null",
       "setBuildingCurrency?": "boolean"
     },
     "displayCurrencyReceived": {
       "_description": "Update display currency for a certain account",
-      "accountID": "?Types.AccountID",
+      "accountID": "Types.AccountID | null",
       "currency": "Types.Currency",
       "setBuildingCurrency?": "boolean"
     },
@@ -232,7 +232,7 @@
     "paymentsReceived": {
       "_description": "Update our store of payments data",
       "accountID": "Types.AccountID",
-      "paymentCursor": "?StellarRPCTypes.PageCursor",
+      "paymentCursor": "StellarRPCTypes.PageCursor | null",
       "oldestUnread": "Types.PaymentID",
       "payments": "Array<Types.PaymentResult>",
       "pending": "Array<Types.PaymentResult>"
@@ -245,7 +245,7 @@
     "recentPaymentsReceived": {
       "_description": "Received a fresh first page of recent payments",
       "accountID": "Types.AccountID",
-      "paymentCursor": "?StellarRPCTypes.PageCursor",
+      "paymentCursor": "StellarRPCTypes.PageCursor | null",
       "oldestUnread": "Types.PaymentID",
       "payments": "Array<Types.PaymentResult>"
     },
@@ -255,7 +255,7 @@
       "reviewID": "number",
       "seqno": "number",
       "nextButton": "string",
-      "banners?": "?Array<StellarRPCTypes.SendBannerLocal>"
+      "banners?": "Array<StellarRPCTypes.SendBannerLocal> | null"
     },
     "secretKeyReceived": {
       "_description": "Update our store with an exported secret key",
@@ -410,14 +410,14 @@
       "_description": "Turn participation in airdrop on/off",
       "accept": "boolean"
     },
-    "hideAirdropBanner": { },
-    "updateAirdropBannerState": { "show": "boolean" },
-    "updateAirdropState": { },
+    "hideAirdropBanner": {},
+    "updateAirdropBannerState": {"show": "boolean"},
+    "updateAirdropState": {},
     "updatedAirdropState": {
       "airdropQualifications": "Array<Types.AirdropQualification>",
-      "airdropState": "Types.AirdropState",
+      "airdropState": "Types.AirdropState"
     },
     "updateAirdropDetails": {},
-    "updatedAirdropDetails": { "details": "Types.AirdropDetails" },
+    "updatedAirdropDetails": {"details": "Types.AirdropDetails"}
   }
 }

@@ -24,6 +24,7 @@
   "chat.1.local.giphySearch": {"promise": true},
   "chat.1.local.joinConversationByIDLocal": {"promise": true},
   "chat.1.local.leaveConversationLocal": {"promise": true},
+  "chat.1.local.loadGallery": {"engineSaga": true},
   "chat.1.local.makePreview": {"promise": true},
   "chat.1.local.makeUploadTempFile": {"promise": true},
   "chat.1.local.markAsReadLocal": {"promise": true},

@@ -93,12 +93,15 @@ export default connect(
   },
   (dispatch: (a: any) => void, ownProps: OwnProps) => ({
     clearBillingError: () => {
+      // @ts-ignore
       dispatch(actions.clearBillingError())
     },
     onBootstrap: () => {
+      // @ts-ignore
       dispatch(actions.bootstrapData())
     },
     onSubmit: args => {
+      // @ts-ignore
       dispatch(actions.updateBilling(args))
     },
   }),

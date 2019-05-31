@@ -169,3 +169,10 @@ func (r *RemoteChatUI) ChatMaybeMentionUpdate(ctx context.Context, teamName, cha
 		Info:      info,
 	})
 }
+
+func (r *RemoteChatUI) ChatLoadGalleryHit(ctx context.Context, msg chat1.UIMessage) error {
+	return r.cli.ChatLoadGalleryHit(ctx, chat1.ChatLoadGalleryHitArg{
+		SessionID: r.sessionID,
+		Message:   msg,
+	})
+}
