@@ -48,7 +48,6 @@ export const TeamMemberRow = (props: Props) => {
   if (active && props.roleType && showCrown[props.roleType]) {
     crown = (
       <Icon
-        // $FlowIssue "some string with unknown value"
         type={'iconfont-crown-' + props.roleType}
         style={{
           marginRight: globalMargins.xtiny,

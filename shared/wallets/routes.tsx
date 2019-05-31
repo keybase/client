@@ -29,7 +29,6 @@ class WalletsSubNav extends React.PureComponent<any> {
 
     return (
       <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
-        {/* $FlowIssue */}
         <WalletsAndDetails>
           <SceneView
             navigation={childNav}

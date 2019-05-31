@@ -125,7 +125,6 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => [
         {
           onClick: () => {
             props.floatingMenuProps.hideOnce()
-            // $FlowIssue doens't know sendLinkToChat can't be null here
             props.sendLinkToChat()
           },
           subTitle: `The ${
@@ -140,7 +139,6 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => [
         {
           onClick: () => {
             props.floatingMenuProps.hideOnce()
-            // $FlowIssue doens't know sendAttachmentToChat can't be null here
             props.sendAttachmentToChat()
           },
           subTitle: `The ${

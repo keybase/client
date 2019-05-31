@@ -80,7 +80,6 @@ const ConnectedEnterUsername = Container.namedConnect<OwnProps, _, _, _, _>(
   'ConnectedEnterUsername'
 )(EnterUsername)
 
-// $FlowIssue lets fix this
 ConnectedEnterUsername.navigationOptions = {
   gesturesEnabled: false,
 }

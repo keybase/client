@@ -43,7 +43,6 @@ _newRoutes.forEach(({route, tab}) => {
       throw new Error('New route with dupe name, disallowed! ' + name)
     }
     nameToTab[name] = tab
-    // $FlowIssue
     routes[name] = route[name]
   })
 })

@@ -42,7 +42,6 @@ const descStyleOverride = {
 
 const Header = (p: Props) => {
   let description = !!p.desc && (
-    // $FlowIssue not used on mobile
     <Kb.Markdown
       smallStandaloneEmoji={true}
       style={styles.desc}

@@ -1,6 +1,4 @@
 // Used by meta/message/etc
-// @flow strict
-
 export type ConversationIDKey = string;
 export const stringToConversationIDKey = __DEV__
   ? (s: string): ConversationIDKey => {

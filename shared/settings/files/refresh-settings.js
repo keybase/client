@@ -1,4 +1,3 @@
-// @flow
 import React from 'react'
 import {namedConnect} from '../../util/container'
 import * as FsGen from '../../actions/fs-gen'

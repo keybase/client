@@ -110,9 +110,7 @@ function startPack() {
       process.exit(1)
     }
 
-    // $FlowIssue webpack flow-typed doesn't know about this, but it exists
     if (stats.hasErrors()) {
-      // $FlowIssue webpack flow-typed doesn't know about this, but it exists
       console.error(stats.toJson('errors-only').errors)
       process.exit(1)
     }
