@@ -7,7 +7,9 @@ import (
 	"bytes"
 	"mime/multipart"
 	"os"
+	"strings"
 
+	"github.com/google/shlex"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -64,6 +66,45 @@ type LogSendContext struct {
 	processesLog     string
 }
 
+func redactPotentialPaperKeys(s string) string {
+	var words []string
+	var err error
+	shlexWords, err := shlex.Split(s)
+	if err != nil {
+		words = strings.Split(s, " ")
+	} else {
+		for _, shlexWord := range shlexWords {
+			for _, word := range strings.Split(shlexWord, " ") {
+				words = append(words, word)
+			}
+		}
+	}
+	threshold := 5
+	redacted := "[REDACTED]"
+	didRedact := false
+	start := -1
+	for idx, word := range words {
+		if libkb.ValidSecWord(word) {
+			if start == -1 {
+				start = idx
+			} else if idx-start+1 == threshold {
+				for jdx := start; jdx <= idx; jdx++ {
+					words[jdx] = redacted
+				}
+				didRedact = true
+			} else if idx-start >= threshold {
+				words[idx] = redacted
+			}
+		} else {
+			start = -1
+		}
+	}
+	if didRedact {
+		return strings.Join(words, " ")
+	}
+	return s
+}
+
 func NewLogSendContext(g *libkb.GlobalContext, fstatus *keybase1.FullStatus, statusJSON, feedback string) *LogSendContext {
 	logs := logFilesFromStatus(g, fstatus)
 
@@ -76,6 +117,8 @@ func NewLogSendContext(g *libkb.GlobalContext, fstatus *keybase1.FullStatus, sta
 	if uid.IsNil() {
 		g.Log.Info("Not sending up a UID for logged in user; none found")
 	}
+
+	feedback = redactPotentialPaperKeys(feedback)
 
 	return &LogSendContext{
 		Contextified: libkb.NewContextified(g),
