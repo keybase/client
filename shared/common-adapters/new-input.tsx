@@ -88,11 +88,6 @@ class ReflessNewInput extends React.Component<Props & RefProps, State> {
     )
   }
 }
-type FRefProps = {
-  flexable?: boolean
-  keyboardType?: KeyboardType
-  textType?: TextType
-} & Props
 const NewInput = React.forwardRef<PlainInput, Props>((props, ref) => (
   <ReflessNewInput {...props} forwardedRef={ref} />
 ))

@@ -6,16 +6,18 @@ import {TextType} from './text'
 export type KeyboardType =
   | 'default'
   | 'email-address'
-  | 'numeric' // iOS only
+  | 'numeric'
   | 'phone-pad'
+  // iOS only
   | 'ascii-capable'
   | 'numbers-and-punctuation'
   | 'url'
   | 'number-pad'
   | 'name-phone-pad'
   | 'decimal-pad'
-  | 'twitter' // Android Only
+  | 'twitter'
   | 'web-search'
+  // Android Only
   | 'visible-password'
 
 // All iOS only
