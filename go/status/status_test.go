@@ -52,7 +52,7 @@ var redactTests = []struct {
 	in  string
 	out string
 }{
-	// {"hello this is my feedback", "hello this is my feedback"},
+	{"hello this is my feedback", "hello this is my feedback"},
 	{"nope agent agent agent alcohol agent agent agent nope more feedback", "nope [REDACTED] [REDACTED] [REDACTED] [REDACTED] [REDACTED] [REDACTED] [REDACTED] nope more feedback"},
 	{"nope agent nope agent agent alcohol agent agent nope more feedback", "nope agent nope [REDACTED] [REDACTED] [REDACTED] [REDACTED] [REDACTED] nope more feedback"},
 	{"four in a row agent agent agent agent four in a row", "four in a row agent agent agent agent four in a row"},
