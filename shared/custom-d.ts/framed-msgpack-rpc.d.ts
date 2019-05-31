@@ -8,15 +8,15 @@ export const errors: {
 declare namespace transport {
     class RobustTransport {
         constructor(options: Object)
-        invoke: (i: {
+        invoke(i: {
           program: string,
           method: string,
           args: [Object],
           notify: boolean
-        }, cb: (err: any, data: any) => void) => void
-        packetize_data: (d: any) => void
+        }, cb: (err: any, data: any) => void): void;
+        packetize_data(d: any): void;
         needsConnect: boolean
-        connect(b: (err: any) => void): void
+        connect(b: (err?: any) => void): void
     }
 }
 
