@@ -733,28 +733,28 @@ const realCSS = `
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
   // containment hints so we can scroll faster
-  contain: 'strict' as 'strict',
+  contain: 'strict' as const,
   flex: 1,
-  position: 'relative' as 'relative',
+  position: 'relative' as const,
 }
 
 const listStyle = {
   ...globalStyles.fillAbsolute,
   outline: 'none',
-  overflowX: 'hidden' as 'hidden',
-  overflowY: 'auto' as 'auto',
+  overflowX: 'hidden' as const,
+  overflowY: 'auto' as const,
   paddingBottom: globalMargins.small,
   // get our own layer so we can scroll faster
-  willChange: 'transform' as 'transform',
+  willChange: 'transform' as const,
 }
 
 const jumpToRecentStyle = {
   bottom: 0,
-  position: 'absolute' as 'absolute',
+  position: 'absolute' as const,
 }
 
 const threadSearchStyle = {
-  position: 'absolute' as 'absolute',
+  position: 'absolute' as const,
   top: 0,
 }
 

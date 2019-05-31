@@ -168,7 +168,7 @@ const styleImageFit = {
 const styleVideoFit = {
   cursor: 'normal',
   display: 'block',
-  objectFit: 'scale-down' as 'scale-down',
+  objectFit: 'scale-down' as const,
   width: '100%',
 }
 

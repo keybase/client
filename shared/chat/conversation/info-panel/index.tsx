@@ -550,16 +550,16 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           canEditChannel: props.canEditChannel,
           channelname,
           description: props.description,
-          key: 'big team header' as 'big team header',
+          key: 'big team header' as const,
           onEditChannel: props.onEditChannel,
           teamname,
-          type: 'big team header' as 'big team header',
+          type: 'big team header' as const,
         }
         const participantCountRow = {
-          key: 'participant count' as 'participant count',
+          key: 'participant count' as const,
           label: 'In this channel',
           participantCount,
-          type: 'participant count' as 'participant count',
+          type: 'participant count' as const,
         }
 
         if (props.isPreview) {
@@ -683,9 +683,9 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           type: 'divider',
         },
         {
-          key: 'turn into team' as 'turn into team',
+          key: 'turn into team' as const,
           onShowNewTeamDialog: props.onShowNewTeamDialog,
-          type: 'turn into team' as 'turn into team',
+          type: 'turn into team' as const,
         },
         {
           key: nextKey(),
