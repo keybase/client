@@ -8658,7 +8658,7 @@ func (fbo *folderBranchOps) invalidateAllNodes(ctx context.Context) error {
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
 
-	fbo.log.CDebugf(ctx, "Inavlidating all nodes")
+	fbo.log.CDebugf(ctx, "Invalidating all nodes")
 	return fbo.invalidateAllNodesLocked(ctx, lState)
 }
 
