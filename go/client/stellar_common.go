@@ -25,7 +25,20 @@ func printPayment(g *libkb.GlobalContext, p stellar1.PaymentCLILocal, verbose bo
 	if p.Unread {
 		timeStr += " *"
 	}
-	lineUnescaped("%v", ColorString(g, "bold", timeStr))
+	lineUnescaped(ColorString(g, "bold", timeStr))
+
+	if p.IsAdvanced {
+		line("Account: %s", p.FromStellar.String())
+		line("Transaction ID: %v", p.TxID)
+		line(p.SummaryAdvanced)
+		if verbose {
+			line("Operations: %d", len(p.Operations))
+			for _, op := range p.Operations {
+				line("\t%s", op)
+			}
+		}
+		return
+	}
 
 	// if path payment, show the source asset amount
 	if p.SourceAmountActual != "" {
@@ -103,7 +116,7 @@ func printPayment(g *libkb.GlobalContext, p stellar1.PaymentCLILocal, verbose bo
 		}
 	}
 	if verbose {
-		line("Transaction Hash: %v", p.TxID)
+		line("Transaction ID: %v", p.TxID)
 	}
 	switch {
 	case p.Status == "":

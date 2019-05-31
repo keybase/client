@@ -99,13 +99,10 @@ class Reloadable extends React.PureComponent<Props & {_loadTeams: () => void}> {
 
 const Connected = Container.compose(
   Container.withSafeNavigation,
-  Container.connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
+  Container.connect(mapStateToProps, mapDispatchToProps, mergeProps),
   Container.lifecycle({
     componentDidMount() {
+      // @ts-ignore NO recompose
       this.props._loadTeams()
     },
   })
@@ -113,14 +110,10 @@ const Connected = Container.compose(
 
 const ConnectedHeaderRightActions = Container.compose(
   Container.withSafeNavigation,
-  Container.connect(
-    () => ({}),
-    headerActions,
-    (s, d, o) => ({...o, ...s, ...d})
-  )
-)(HeaderRightActions)
+  Container.connect(() => ({}), headerActions, (s, d, o) => ({...o, ...s, ...d}))
+)(HeaderRightActions as any)
 
-// $FlowIssue lets fix this
+// @ts-ignore TODO fix
 Connected.navigationOptions = {
   header: undefined,
   headerRightActions: () => <ConnectedHeaderRightActions />,

@@ -77,12 +77,7 @@ type SuggestorHooks = {
   onKeyDown: (event: React.KeyboardEvent, isComposingIME: boolean) => void
   onBlur: () => void
   onFocus: () => void
-  onSelectionChange: (
-    arg0: {
-      start: number
-      end: number
-    }
-  ) => void
+  onSelectionChange: (arg0: {start: number; end: number}) => void
 }
 
 export type PropsWithSuggestorOuter<P> = {} & P & AddSuggestorsProps

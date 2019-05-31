@@ -471,7 +471,7 @@ const rootReducer = (
     case Chat2Gen.giphyGotSearchResult:
       return state.setIn(['giphyResultMap', action.payload.conversationIDKey], action.payload.results)
     case Chat2Gen.setPaymentConfirmInfo:
-      return action.error
+      return actionHasError(action)
         ? state.set('paymentConfirmInfo', {error: action.payload.error})
         : state.set('paymentConfirmInfo', {summary: action.payload.summary})
     case Chat2Gen.clearPaymentConfirmInfo:
@@ -1252,7 +1252,7 @@ const rootReducer = (
       const {message} = action.payload
       let nextState = state
       if (
-        !action.error &&
+        !actionHasError(action) &&
         state.attachmentFullscreenSelection &&
         state.attachmentFullscreenSelection.message.conversationIDKey === message.conversationIDKey &&
         state.attachmentFullscreenSelection.message.id === message.id &&
@@ -1270,6 +1270,7 @@ const rootReducer = (
             messages: info.messages.update(info.messages.findIndex(item => item.id === message.id), item =>
               item
                 ? item.merge({
+                    // @ts-ignore we aren't checking for the errors!
                     downloadPath: action.payload.path,
                     fileURLCached: true,
                     transferProgress: 0,

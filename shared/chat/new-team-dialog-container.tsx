@@ -39,16 +39,14 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
 })
 
 export default Container.compose(
-  Container.connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
+  Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
   Container.withStateHandlers(
-    // $FlowIssue don't use recompose
+    // @ts-ignore NO recompose
     {name: ''},
     {
+      // @ts-ignore NO recompose
       onNameChange: () => (name: string) => ({name}),
+      // @ts-ignore NO recompose
       onSubmit: (_, {_onCreateNewTeam}) => teamname => {
         _onCreateNewTeam(teamname)
       },
@@ -56,6 +54,7 @@ export default Container.compose(
   ),
   Container.lifecycle({
     componentDidMount() {
+      // @ts-ignore NO recompose
       this.props.onSetTeamCreationError('')
     },
   })

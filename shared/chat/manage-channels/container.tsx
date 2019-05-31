@@ -117,19 +117,15 @@ const mapDispatchToProps = (dispatch, ownProps) => {
 }
 
 export default Container.compose(
-  Container.connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
-  Container.withPropsOnChange(['channels'], props => ({
+  Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  Container.withPropsOnChange(['channels'], (props: any) => ({
     oldChannelState: props.channels.reduce((acc, c) => {
       acc[ChatTypes.conversationIDKeyToString(c.convID)] = c.selected
       return acc
     }, {}),
   })),
   Container.withStateHandlers(
-    props => ({
+    (props: any) => ({
       nextChannelState: props.oldChannelState,
     }),
     {
@@ -149,21 +145,26 @@ export default Container.compose(
           ChatTypes.conversationIDKeyToString(convID)
         ],
       }),
-  }),
+  } as any),
   Container.lifecycle({
     componentDidMount() {
+      // @ts-ignore NO recompose
       this.props._loadChannels()
+      // @ts-ignore NO recompose
       if (!this.props._hasOperations) {
+        // @ts-ignore NO recompose
         this.props._loadOperations()
       }
     },
     componentDidUpdate(prevProps) {
+      // @ts-ignore NO recompose
       if (!isEqual(this.props.oldChannelState, prevProps.oldChannelState)) {
+        // @ts-ignore NO recompose
         this.props.setNextChannelState(this.props.oldChannelState)
       }
     },
   }),
-  Container.withPropsOnChange(['oldChannelState', 'nextChannelState'], props => ({
+  Container.withPropsOnChange(['oldChannelState', 'nextChannelState'], (props: any) => ({
     unsavedSubscriptions: !isEqual(props.oldChannelState, props.nextChannelState),
   }))
 )(ManageChannels)

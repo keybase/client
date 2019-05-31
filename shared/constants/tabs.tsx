@@ -25,17 +25,17 @@ export type Tab =
   | FsTab
   | WalletsTab
 
-const chatTab: Tab = 'tabs.chatTab'
-const devicesTab: Tab = 'tabs.devicesTab'
+const chatTab: Tab & AppTab = 'tabs.chatTab'
+const devicesTab: Tab & AppTab = 'tabs.devicesTab'
 const folderTab: Tab = 'tabs.folderTab'
 const loginTab: Tab = 'tabs.loginTab'
-const peopleTab: Tab = 'tabs.peopleTab'
+const peopleTab: Tab & AppTab = 'tabs.peopleTab'
 const searchTab: Tab = 'tabs.searchTab'
-const settingsTab: Tab = 'tabs.settingsTab'
-const teamsTab: Tab = 'tabs.teamsTab'
-const gitTab: Tab = 'tabs.gitTab'
-const fsTab: Tab = 'tabs.fsTab'
-const walletsTab: Tab = 'tabs.walletsTab'
+const settingsTab: Tab & AppTab = 'tabs.settingsTab'
+const teamsTab: Tab & AppTab = 'tabs.teamsTab'
+const gitTab: Tab & AppTab = 'tabs.gitTab'
+const fsTab: Tab & AppTab = 'tabs.fsTab'
+const walletsTab: Tab & AppTab = 'tabs.walletsTab'
 
 export type AppTab = PeopleTab | ChatTab | FsTab | TeamsTab | WalletsTab | GitTab | DevicesTab | SettingsTab
 
@@ -59,7 +59,7 @@ function isValidInitialTabString(tab: string | null) {
   // Keep this in left-to-right (for mobile) or top-to-bottom (for
   // desktop) order in the app.
   if (isMobile) {
-    return [peopleTab, chatTab, teamsTab, settingsTab, fsTab].includes(tab as Tab)
+    return ([peopleTab, chatTab, teamsTab, settingsTab, fsTab] as Tab[]).includes(tab as Tab)
   } else {
     return [peopleTab, chatTab, folderTab, teamsTab, devicesTab, settingsTab].includes(tab as Tab)
   }

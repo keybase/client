@@ -213,12 +213,12 @@ const generateWebCSS = result => {
 }
 
 ${Object.keys(rules)
-    .map(
-      name => `.icon-${name}:before {
+  .map(
+    name => `.icon-${name}:before {
   content: "\\${rules[name].toString(16)}";
 }`
-    )
-    .join('\n')}
+  )
+  .join('\n')}
 `
 
   try {
@@ -318,12 +318,12 @@ function updateIconConstants() {
 
 /* Icon types */
 ${Object.keys(icons).reduce(
-    (res, name) =>
-      icons[name].isFont
-        ? res + `.icon-gen-${name}::before {content: "\\${icons[name].charCode.toString(16)}";}\n`
-        : res,
-    ''
-  )}
+  (res, name) =>
+    icons[name].isFont
+      ? res + `.icon-gen-${name}::before {content: "\\${icons[name].charCode.toString(16)}";}\n`
+      : res,
+  ''
+)}
 `
 
   try {

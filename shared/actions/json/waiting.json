@@ -1,5 +1,5 @@
 {
-  "prelude": ["import type {RPCError} from '../util/errors'"],
+  "prelude": ["import {RPCError} from '../util/errors'"],
   "actions": {
     "incrementWaiting": {
       "key": ["string", "Array<string>"]

@@ -47,11 +47,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-const WalletsIcon = Container.namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'WalletsIcon'
-)(WalletsIconRender)
+const WalletsIcon = Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'WalletsIcon')(
+  WalletsIconRender
+)
 
 export default WalletsIcon

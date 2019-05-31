@@ -88,4 +88,5 @@ export default Container.compose(
     'PushPrompt'
   ),
   Container.safeSubmitPerMount(['onRequestPermissions', 'onNoPermissions'])
+  // @ts-ignore
 )(PushPrompt)

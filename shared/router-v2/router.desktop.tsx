@@ -202,14 +202,7 @@ const RootStackNavigator = createSwitchNavigator(
   {initialRouteName: 'loggedOut'}
 )
 
-type Subscriber = (
-  data: {
-    action: Object
-    lastState: Object
-    state: any
-    type: string
-  }
-) => void
+type Subscriber = (data: {action: Object; lastState: Object; state: any; type: string}) => void
 
 const createElectronApp = Component => {
   // Based on https://github.com/react-navigation/react-navigation-native/blob/master/src/createAppContainer.js

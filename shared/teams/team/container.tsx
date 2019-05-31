@@ -139,6 +139,6 @@ const Connected = compose(
     mergeProps
   ),
   Kb.HeaderHoc
-)(Reloadable)
+)(Reloadable) as any
 
 export default TabsState

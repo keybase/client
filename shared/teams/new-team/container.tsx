@@ -40,12 +40,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 }
 
 export default Container.compose(
-  Container.connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  Container.withStateHandlers(({joinSubteam}) => ({joinSubteam: false, name: ''}), {
+  Container.connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  Container.withStateHandlers(({joinSubteam}: any) => ({joinSubteam: false, name: ''}), {
     onJoinSubteamChange: () => (checked: boolean) => ({joinSubteam: checked}),
     onNameChange: () => (name: string) => ({name: name.toLowerCase()}),
   }),
@@ -57,5 +53,5 @@ export default Container.compose(
     componentDidMount() {
       this.props.onSetTeamCreationError('')
     },
-  })
-)(NewTeamDialog)
+  } as any)
+)(NewTeamDialog as any)

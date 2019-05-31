@@ -95,17 +95,17 @@ export default compose(
     mergeProps
   ),
   withStateHandlers(
-    // $FlowIssue don't use recompose
+    // @ts-ignore don't use recompose
     {
       _conversationIDKey: Constants.noConversationIDKey,
       _lastLoadMoreOrdinalTime: Date.now(),
       lastLoadMoreOrdinal: null,
-    },
+    } as any,
     {
       // We don't let you try and load more within a second. Used to use the ordinal but maybe we just never want a super quick load
       loadNewerMessages: (state, props) => loadMoreMessages(state, props, props._loadNewerMessages),
       loadOlderMessages: (state, props) => loadMoreMessages(state, props, props._loadOlderMessages),
-    }
+    } as any
   ),
   lifecycle({
     componentDidMount() {
@@ -115,5 +115,5 @@ export default compose(
       markedInitiallyLoaded = true
       this.props.markInitiallyLoadedThreadAsRead()
     },
-  })
+  } as any)
 )(ListComponent)

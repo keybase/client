@@ -23,9 +23,6 @@ const mapDispatchToProps = (dispatch, {conversationIDKey}) => ({
   onCancel: () => dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey})),
 })
 
-export default namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  (s, d) => ({...s, ...d}),
-  'ReplyPreview'
-)(ReplyPreview)
+export default namedConnect(mapStateToProps, mapDispatchToProps, (s, d) => ({...s, ...d}), 'ReplyPreview')(
+  ReplyPreview
+)

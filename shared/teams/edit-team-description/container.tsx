@@ -42,20 +42,16 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 })
 
 const ConnectedEditTeamDescription = Container.compose(
-  Container.connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  Container.withStateHandlers(({origDescription}) => ({description: origDescription}), {
+  Container.connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  Container.withStateHandlers(({origDescription}: any) => ({description: origDescription}), {
     onChangeDescription: () => description => ({description}),
   }),
   Container.withHandlers({
     onSetDescription: ({description, _onSetDescription}) => () => _onSetDescription(description),
-  }),
-  Container.withProps(({teamname}) => ({
+  } as any),
+  Container.withProps(({teamname}: any) => ({
     waitingKey: Constants.teamWaitingKey(teamname),
   }))
-)(EditTeamDescription)
+)(EditTeamDescription as any)
 
 export default ConnectedEditTeamDescription

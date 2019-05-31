@@ -30,15 +30,15 @@ const makeErrorHandler = (action: FsGen.Actions, path: Types.Path | null, retria
     ) {
       const tlfPath = Constants.getTlfPath(path)
       if (tlfPath) {
-        return [FsGen.createSetTlfSoftError({path: tlfPath, softError: 'no-access'})]
+        return [FsGen.createSetTlfSoftError({path: tlfPath, softError: Types.SoftError.NoAccess})]
       }
     }
     if (errorDesc.includes('file does not exist')) {
-      return [FsGen.createSetPathSoftError({path, softError: 'non-existent'})]
+      return [FsGen.createSetPathSoftError({path, softError: Types.SoftError.Nonexistent})]
     }
     if (errorDesc.includes('KBFS client not found.')) {
       return [
-        FsGen.createKbfsDaemonRpcStatusChanged({rpcStatus: 'wait-timeout'}),
+        FsGen.createKbfsDaemonRpcStatusChanged({rpcStatus: Types.KbfsDaemonRpcStatus.WaitTimeout}),
         // We don't retry actions when re-connected, so just route user back
         // to root in case they get confused by orphan loading state.
         //

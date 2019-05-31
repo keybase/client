@@ -27,7 +27,7 @@
     },
     "updateSelectedSearchResult": {
       "searchKey": "string",
-      "id": "?Types.SearchResultId"
+      "id": "Types.SearchResultId | null"
     },
     "searchSuggestions": {
       "maxUsers?": "number",

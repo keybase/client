@@ -45,4 +45,5 @@ export default compose(
     mergeProps
   ),
   safeSubmit(['onSubmit', 'onBack'], ['deviceName', 'error'])
+  // @ts-ignore
 )(SetPublicName)

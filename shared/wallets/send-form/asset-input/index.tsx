@@ -110,7 +110,7 @@ class AssetInput extends React.Component<Props> {
           error={!!this.props.warningAsset}
           value={this.props.value}
         />
-        <Available amountErrMsg="" />
+        <Available />
         {!!this.props.warningPayee && (
           <Kb.Text type="BodySmallError">
             {this.props.warningPayee} doesn't accept{' '}

@@ -431,22 +431,22 @@ func (w *WalletState) PendingPayments(ctx context.Context, accountID stellar1.Ac
 }
 
 // RecentPayments is an override of remoter's RecentPayments that uses stored data.
-func (w *WalletState) RecentPayments(ctx context.Context, accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int, skipPending bool) (stellar1.PaymentsPage, error) {
+func (w *WalletState) RecentPayments(ctx context.Context, arg remote.RecentPaymentsArg) (stellar1.PaymentsPage, error) {
 	useAccountState := true
-	if limit != 0 && limit != 50 {
+	if arg.Limit != 0 && arg.Limit != 50 {
 		useAccountState = false
-	} else if cursor != nil {
+	} else if arg.Cursor != nil {
 		useAccountState = false
-	} else if !skipPending {
+	} else if !arg.SkipPending {
 		useAccountState = false
 	}
 
 	if !useAccountState {
 		w.G().Log.CDebugf(ctx, "WalletState:RecentPayments using remote due to parameters")
-		return w.Remoter.RecentPayments(ctx, accountID, cursor, limit, skipPending)
+		return w.Remoter.RecentPayments(ctx, arg)
 	}
 
-	a, err := w.accountStateRefresh(ctx, accountID, "RecentPayments")
+	a, err := w.accountStateRefresh(ctx, arg.AccountID, "RecentPayments")
 	if err != nil {
 		return stellar1.PaymentsPage{}, err
 	}
