@@ -74,9 +74,7 @@ func redactPotentialPaperKeys(s string) string {
 		words = strings.Split(s, " ")
 	} else {
 		for _, shlexWord := range shlexWords {
-			for _, word := range strings.Split(shlexWord, " ") {
-				words = append(words, word)
-			}
+			words = append(words, strings.Split(shlexWord, " ")...)
 		}
 	}
 	threshold := 5
