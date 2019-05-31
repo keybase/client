@@ -8,6 +8,8 @@ import {_StylesDesktop} from '../styles/css'
 import {InternalProps, TextInfo, Selection} from './plain-input'
 import {checkTextInfo} from './input.shared'
 
+const maybeParseInt = (input: string | number, radix: number): number =>
+  typeof input === 'string' ? parseInt(input, radix) : input
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
 // adds no styling.
 class PlainInput extends React.PureComponent<InternalProps> {
@@ -178,7 +180,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
       minHeight: rows * (textStyle.fontSize || 20),
     }
     if (this.props.rowsMax) {
-      heightStyles.maxHeight = this.props.rowsMax * (parseInt(textStyle.lineHeight, 10) || 20)
+      heightStyles.maxHeight = this.props.rowsMax * (maybeParseInt(textStyle.lineHeight, 10) || 20)
     } else {
       heightStyles.overflowY = 'hidden'
     }
