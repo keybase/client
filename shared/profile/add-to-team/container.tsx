@@ -156,8 +156,6 @@ class AddToTeamStateWrapper extends React.Component<{} & ExtraProps & AddToTeamP
   }
 }
 
-export default Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(HeaderOnMobile(AddToTeamStateWrapper))
+export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(
+  HeaderOnMobile(AddToTeamStateWrapper)
+)

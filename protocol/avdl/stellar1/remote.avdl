@@ -108,6 +108,9 @@ protocol remote {
     string sourceAmountMax;
     string sourceAmountActual;
     Asset sourceAsset;
+    boolean isAdvanced;     // true for non-payment transactions
+    string summaryAdvanced;   // one-line summary of the advanced tx
+    array<string> operations;   // string representations of each operation in the tx
   }
 
   record PaymentSummaryDirect {
@@ -199,7 +202,7 @@ protocol remote {
     string displayCurrency; // user configurable, defaults to "USD"
     union { null, AccountID } inflationDestination;
   }
-  AccountDetails details(keybase1.UserVersion caller, AccountID accountID, boolean includeMulti);
+  AccountDetails details(keybase1.UserVersion caller, AccountID accountID, boolean includeMulti, boolean includeAdvanced);
 
   record PaymentsPage {
     array<PaymentSummary> payments;
@@ -209,7 +212,8 @@ protocol remote {
 
   // skipPending: don't include pending payments in the result
   // includeMulti: include payments from multi-operation txs when possible
-  PaymentsPage recentPayments(keybase1.UserVersion caller, AccountID accountID, union { null, PageCursor } cursor, int limit, boolean skipPending, boolean includeMulti);
+  // includeAdvanced: include advanced tx summaries in results
+  PaymentsPage recentPayments(keybase1.UserVersion caller, AccountID accountID, union { null, PageCursor } cursor, int limit, boolean skipPending, boolean includeMulti, boolean includeAdvanced);
 
   array<PaymentSummary> pendingPayments(keybase1.UserVersion caller, AccountID accountID, int limit);
 

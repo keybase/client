@@ -252,14 +252,15 @@ func (o ConflictState) DeepCopy() ConflictState {
 // This type is likely to change significantly as all the various parts are
 // connected and tested.
 type Folder struct {
-	Name          string         `codec:"name" json:"name"`
-	Private       bool           `codec:"private" json:"private"`
-	Created       bool           `codec:"created" json:"created"`
-	FolderType    FolderType     `codec:"folderType" json:"folderType"`
-	TeamID        *TeamID        `codec:"team_id,omitempty" json:"team_id,omitempty"`
-	ResetMembers  []User         `codec:"reset_members" json:"reset_members"`
-	Mtime         *Time          `codec:"mtime,omitempty" json:"mtime,omitempty"`
-	ConflictState *ConflictState `codec:"conflictState,omitempty" json:"conflictState,omitempty"`
+	Name          string            `codec:"name" json:"name"`
+	Private       bool              `codec:"private" json:"private"`
+	Created       bool              `codec:"created" json:"created"`
+	FolderType    FolderType        `codec:"folderType" json:"folderType"`
+	TeamID        *TeamID           `codec:"team_id,omitempty" json:"team_id,omitempty"`
+	ResetMembers  []User            `codec:"reset_members" json:"reset_members"`
+	Mtime         *Time             `codec:"mtime,omitempty" json:"mtime,omitempty"`
+	ConflictState *ConflictState    `codec:"conflictState,omitempty" json:"conflictState,omitempty"`
+	SyncConfig    *FolderSyncConfig `codec:"syncConfig,omitempty" json:"syncConfig,omitempty"`
 }
 
 func (o Folder) DeepCopy() Folder {
@@ -300,6 +301,13 @@ func (o Folder) DeepCopy() Folder {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ConflictState),
+		SyncConfig: (func(x *FolderSyncConfig) *FolderSyncConfig {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.SyncConfig),
 	}
 }
 

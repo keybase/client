@@ -33,9 +33,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'SelectableBigTeamChannel'
-)(SelectableBigTeamChannel)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'SelectableBigTeamChannel')(
+  SelectableBigTeamChannel
+)

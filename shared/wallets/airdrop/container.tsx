@@ -41,8 +41,4 @@ const mergeProps = (stateProps, dispatchProps) => ({
   title: 'Airdrop',
 })
 
-export default Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(Airdrop)
+export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(Airdrop)

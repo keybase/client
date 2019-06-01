@@ -117,11 +117,7 @@ const mapDispatchToProps = (dispatch, ownProps) => {
 }
 
 export default Container.compose(
-  Container.connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
+  Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
   Container.withPropsOnChange(['channels'], (props: any) => ({
     oldChannelState: props.channels.reduce((acc, c) => {
       acc[ChatTypes.conversationIDKeyToString(c.convID)] = c.selected

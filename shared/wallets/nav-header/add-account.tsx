@@ -4,9 +4,9 @@ import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 type AddAccountProps = {
-  onAddNew: () => void,
+  onAddNew: () => void
   onLinkExisting: () => void
-};
+}
 
 const _AddAccount = (props: Kb.PropsWithOverlay<AddAccountProps>) => (
   <>
@@ -55,9 +55,6 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-export default Container.namedConnect(
-  () => ({}),
-  mapDispatchToProps,
-  (_, d) => d,
-  'WalletAddAccount'
-)(AddAccount)
+export default Container.namedConnect(() => ({}), mapDispatchToProps, (_, d) => d, 'WalletAddAccount')(
+  AddAccount
+)

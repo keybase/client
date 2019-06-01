@@ -517,18 +517,6 @@ func CacheSizeInfo(g *libkb.GlobalContext) (info []keybase1.DirSizeInfo, err err
 	return info, nil
 }
 
-// execToString returns the space-trimmed output of a command or an error.
-func execToString(bin string, args []string) (string, error) {
-	result, err := exec.Command(bin, args...).Output()
-	if err != nil {
-		return "", err
-	}
-	if result == nil {
-		return "", fmt.Errorf("Nil result")
-	}
-	return strings.TrimSpace(string(result)), nil
-}
-
 func GetFirstClient(v []keybase1.ClientStatus, typ keybase1.ClientType) *keybase1.ClientDetails {
 	for _, cli := range v {
 		if cli.Details.ClientType == typ {

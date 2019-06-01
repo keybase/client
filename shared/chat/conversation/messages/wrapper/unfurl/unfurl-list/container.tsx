@@ -45,9 +45,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   return {unfurls}
 }
 
-export default namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'UnfurlList'
-)(UnfurlList)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'UnfurlList')(UnfurlList)

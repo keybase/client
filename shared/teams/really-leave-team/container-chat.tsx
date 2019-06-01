@@ -74,10 +74,6 @@ class Switcher extends React.PureComponent<Props> {
 }
 
 export default Container.compose(
-  Container.connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
+  Container.connect(mapStateToProps, mapDispatchToProps, mergeProps),
   Container.safeSubmit(['onLeave'], ['_leaving'])
 )(Switcher)
