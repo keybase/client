@@ -1,18 +1,7 @@
 import * as React from 'react'
-<<<<<<< HEAD:shared/common-adapters/usernames/index.tsx
 import Text, {TextType, Background} from '../text'
-||||||| merged common ancestors:shared/common-adapters/usernames/index.js
-import Text from '../text'
-=======
->>>>>>> Initial conversion:shared/common-adapters/usernames/index.tsx
 import shallowEqual from 'shallowequal'
 import * as Styles from '../../styles'
-<<<<<<< HEAD:shared/common-adapters/usernames/index.tsx
-||||||| merged common ancestors:shared/common-adapters/usernames/index.js
-import type {TextType, Background} from '../text'
-=======
-import Text, {TextType, Background} from '../text'
->>>>>>> Initial conversion:shared/common-adapters/usernames/index.tsx
 import {backgroundModeIsNegative} from '../text.shared'
 
 export type UserListItem = {
@@ -25,7 +14,6 @@ export type UserListItem = {
 
 export type UserList = Array<UserListItem>
 
-<<<<<<< HEAD:shared/common-adapters/usernames/index.tsx
 export type BaseUsernamesProps = {
   backgroundMode?: Background
   colorBroken?: boolean
@@ -47,66 +35,11 @@ export type BaseUsernamesProps = {
   type: TextType
   underline?: boolean
 }
-||||||| merged common ancestors:shared/common-adapters/usernames/index.js
-export type BaseUsernamesProps = {|
-  backgroundMode?: Background,
-  colorBroken?: boolean,
-  colorFollowing?: boolean,
-  notFollowingColorOverride?: string,
-  colorYou?: boolean | string,
-  commaColor?: string,
-  containerStyle?: Styles.StylesCrossPlatform,
-  inline?: boolean,
-  inlineGrammar?: boolean,
-  joinerStyle?: Styles.StylesCrossPlatform,
-  onUsernameClicked?: (username: string) => void,
-  prefix?: ?string,
-  redColor?: string,
-  selectable?: boolean,
-  showAnd?: boolean,
-  style?: Styles.StylesCrossPlatform,
-  suffix?: ?string,
-  title?: string,
-  type: TextType,
-  underline?: boolean,
-|}
-=======
-export type BaseUsernamesProps = {
-  backgroundMode?: Background
-  colorBroken?: boolean
-  colorFollowing?: boolean
-  notFollowingColorOverride?: string
-  colorYou?: boolean | string
-  commaColor?: string
-  containerStyle?: Styles.StylesCrossPlatform
-  inline?: boolean
-  inlineGrammar?: boolean
-  joinerStyle?: Styles.StylesCrossPlatform
-  onUsernameClicked?: ((username: string) => void)
-  prefix?: string | null
-  redColor?: string
-  selectable?: boolean
-  showAnd?: boolean
-  style?: Styles.StylesCrossPlatform
-  suffix?: string | null
-  title?: string
-  type: TextType
-  underline?: boolean
-}
->>>>>>> Initial conversion:shared/common-adapters/usernames/index.tsx
 
-<<<<<<< HEAD:shared/common-adapters/usernames/index.tsx
 export type Props = {
   onUsernameClicked?: ((username: string) => void)
   users: UserList
 } & BaseUsernamesProps
-||||||| merged common ancestors:shared/common-adapters/usernames/index.js
-export type Props = {|...BaseUsernamesProps, users: UserList|}
-=======
-export type Props = {
-  users: UserList
-} & BaseUsernamesProps
->>>>>>> Initial conversion:shared/common-adapters/usernames/index.tsx
 
 export type PlaintextProps = {
   type: TextType

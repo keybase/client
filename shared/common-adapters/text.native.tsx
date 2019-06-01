@@ -133,21 +133,11 @@ class Text extends Component<Props> {
 function _getStyle(
   type: TextType,
   negative?: boolean,
-<<<<<<< HEAD:shared/common-adapters/text.native.tsx
   lineClampNum?: number | null,
   clickable?: boolean | null,
   // @ts-ignore the order of these parameters because this is used in a lot
   // of places
   forceUnderline: boolean
-||||||| merged common ancestors:shared/common-adapters/text.native.js
-  lineClampNum?: ?number,
-  clickable?: ?boolean,
-  forceUnderline: boolean
-=======
-  lineClampNum?: number | null,
-  clickable?: boolean | null,
-  forceUnderline?: boolean
->>>>>>> Initial conversion:shared/common-adapters/text.native.tsx
 ) {
   if (!negative) {
     return forceUnderline ? {textDecorationLine: 'underline'} : {}
