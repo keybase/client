@@ -34,25 +34,25 @@ const load = () => {
       </Box2>
     ))
     .add('No reload', () => (
-      // $FlowIssue need that helper thats not merged yet
+      // @ts-ignore need that helper thats not merged yet
       <Reloadable {...props} needsReload={false} reason="">
         <Child />
       </Reloadable>
     ))
     .add('Reload', () => (
-      // $FlowIssue need that helper thats not merged yet
+      // @ts-ignore need that helper thats not merged yet
       <Reloadable {...props} needsReload={true} reason="reason field">
         <Child />
       </Reloadable>
     ))
     .add('Reload long', () => (
-      // $FlowIssue need that helper thats not merged yet
+      // @ts-ignore need that helper thats not merged yet
       <Reloadable {...props} needsReload={true} reason={longReason}>
         <Child />
       </Reloadable>
     ))
     .add('Reload with back', () => (
-      // $FlowIssue need that helper thats not merged yet
+      // @ts-ignore need that helper thats not merged yet
       <Reloadable
         {...props}
         onBack={Sb.action('onBack')}

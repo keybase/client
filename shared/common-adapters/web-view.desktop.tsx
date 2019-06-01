@@ -1,6 +1,7 @@
 import * as React from 'react'
 import {WebViewProps} from './web-view'
 
+type WebviewElement = any
 class WebView extends React.PureComponent<WebViewProps> {
   _webviewRef: WebviewElement | null
 

@@ -1,5 +1,6 @@
 import * as React from 'react'
 import Box from './box'
+// @ts-ignore todo
 import ClickableBox from './clickable-box'
 import Divider from './divider'
 import {
@@ -16,7 +17,7 @@ type Props = {
   clickableBoxStyle?: any
   tabs: Array<React.ReactNode>
   selected: React.ReactNode
-  onSelect: ((s: React.ReactNode) => any)
+  onSelect: (s: React.ReactNode) => any
   style?: any
   tabStyle?: any
 }
@@ -25,7 +26,7 @@ const Tabs = ({clickableBoxStyle, tabs, selected, onSelect, style, tabStyle}: Pr
   return (
     <Box style={collapseStyles([styles.container, style])}>
       {tabs.map((t, idx) => {
-        // $FlowIssue
+        // @ts-ignore
         const key: string = (t && t.key) || idx
         return (
           <ClickableBox onClick={() => onSelect(t)} key={key} style={clickableBoxStyle}>

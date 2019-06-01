@@ -3,7 +3,7 @@ import Button from './button'
 import {namedConnect} from '../util/container'
 import * as WaitingConstants from '../constants/waiting'
 
-type ButtonProps = React.ElementConfig<typeof Button>
+type ButtonProps = React.ComponentProps<typeof Button>
 
 export type OwnProps = {
   onlyDisable?: boolean // Must supply waiting key if this is true,
@@ -67,7 +67,7 @@ const mapStateToProps = (state, ownProps) => {
   }
 }
 
-const ConnectedWaitingButton = namedConnect<OwnProps, _, _, _, _>(
+const ConnectedWaitingButton = namedConnect(
   mapStateToProps,
   () => ({}),
   (s, d, o) => ({...o, ...s, ...d}),

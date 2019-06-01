@@ -77,6 +77,8 @@ export default class extends React.PureComponent<Props, State> {
           style={this.props.style}
         >
           <Kb.Box style={getVideoSize(this.state)}>
+            {/*
+              // @ts-ignore style is a valid prop */}
             <Kb.NativeWebView
               source={this._getSource(this.props.url)}
               allowsInlineMediaPlayback={true}

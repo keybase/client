@@ -3,6 +3,7 @@ import {Props} from './toast'
 import FloatingBox from './floating-box'
 import * as Styles from '../styles'
 
+// @ts-ignore codemod-issue
 const FadeBox = Styles.styled.div({
   ...Styles.transition('opacity'),
   '&.active': {opacity: 1},

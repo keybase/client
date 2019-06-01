@@ -5,7 +5,7 @@ export type Props = {
   children?: React.ReactNode
   contentContainerStyle?: StylesCrossPlatform
   style?: StylesCrossPlatform
-  onScroll?: Function | null
+  onScroll?: React.UIEventHandler<any> | null
   className?: string | null
   ref?: React.Ref<any> | null
   // desktop only
@@ -25,17 +25,9 @@ export type Props = {
   showsHorizontalScrollIndicator?: boolean
   horizontal?: boolean
   snapToInterval?: number
-  refreshControl?: React.Element<any>
+  refreshControl?: React.ElementType<any>
 }
 
 export default class ScrollView extends React.Component<Props> {
-  scrollTo:
-    | ((
-        arg0: {
-          x: number
-          y: number
-          animated?: boolean
-        }
-      ) => void)
-    | null
+  scrollTo: ((arg0: {x: number; y: number; animated?: boolean}) => void) | null
 }

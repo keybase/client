@@ -14,6 +14,8 @@ export type Props = {
   theme?: 'light' | 'dark' // defaults to light,
   scrollEnabled?: boolean
   styleBanner?: Object | null
+  onClose?: Function
+  onBack?: Function
 }
 
 export default class StandardScreen extends React.Component<Props> {}

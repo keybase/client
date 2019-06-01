@@ -12,8 +12,8 @@ import {namedConnect} from '../util/container'
 import {RPCError} from '../util/errors'
 
 type ReloadProps = {
-  onBack?: (() => void)
-  onReload: (() => void)
+  onBack?: () => void
+  onReload: () => void
   reason: string
   title?: string
 }
@@ -55,8 +55,8 @@ const ReloadWithHeader = HeaderHoc(Reload)
 export type Props = {
   children: React.ReactNode
   needsReload: boolean
-  onBack?: (() => void)
-  onReload: (() => void)
+  onBack?: () => void
+  onReload: () => void
   reason: string
   reloadOnMount?: boolean
   title?: string
@@ -123,12 +123,12 @@ const styles = Styles.styleSheetCreate({
 
 export type OwnProps = {
   children: React.ReactNode
-  onBack?: (() => void)
-  onReload: (() => void)
+  onBack?: () => void
+  onReload: () => void
   reloadOnMount?: boolean
   title?: string
   waitingKeys: string | Array<string>
-  errorFilter?: ((rPCError: RPCError) => boolean)
+  errorFilter?: (rPCError: RPCError) => boolean
 }
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
@@ -160,9 +160,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   title: ownProps.title,
 })
 
-export default namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'Reloadable'
-)(Reloadable)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Reloadable')(Reloadable)

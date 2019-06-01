@@ -39,4 +39,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) =>
     userDatafromState
   )
 
-export default compose(remoteConnect(mapStateToProps, mapDispatchToProps, mergeProps))(Usernames)
+export default remoteConnect(mapStateToProps, mapDispatchToProps, mergeProps)(Usernames)

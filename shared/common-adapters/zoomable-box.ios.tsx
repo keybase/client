@@ -14,9 +14,13 @@ export const ZoomableBox = (props: Props) => (
     onScroll={e =>
       props.onZoom &&
       props.onZoom({
+        // @ts-ignore misses rn types
         height: e.nativeEvent.contentSize.height,
+        // @ts-ignore misses rn types
         width: e.nativeEvent.contentSize.width,
+        // @ts-ignore misses rn types
         x: e.nativeEvent.contentOffset.x,
+        // @ts-ignore misses rn types
         y: e.nativeEvent.contentOffset.y,
       })
     }

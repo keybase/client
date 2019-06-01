@@ -46,9 +46,9 @@ type CheckURLProps = {
   children: React.ReactNode
 }
 
-export const CheckURL = (props: CheckURLProps) =>
+export const CheckURL: React.FunctionComponent<CheckURLProps> = (props: CheckURLProps) =>
   urlIsOK(props.url) ? (
-    props.children
+    (props.children as any)
   ) : (
     <Box2 direction="horizontal" fullWidth={true} fullHeight={true} centerChildren={true}>
       <Text type="BodySmall">Invalid URL: {props.url}</Text>

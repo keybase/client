@@ -21,7 +21,7 @@ type State = {
 class SectionList extends React.Component<Props, State> {
   _flat = []
   state = {currentSectionFlatIndex: 0}
-  _listRef = React.createRef()
+  _listRef: React.RefObject<any> = React.createRef()
   _mounted = true
 
   componentDidUpdate(prevProps: Props, prevState: State) {

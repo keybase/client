@@ -6,7 +6,7 @@ export type ItemProps = {
   label?: string
   selected: boolean
   selectedColor?: string
-  onClick?: (() => void)
+  onClick?: () => void
   onPress?: void
   style?: Object
   styleContainer?: Object
@@ -22,7 +22,7 @@ export class TabBarItem extends React.Component<ItemProps> {}
 export type Props = {
   style?: Object | null
   styleTabBar?: Object
-  children?: React.ChildrenArray<React.Element<typeof TabBarItem>>
+  children?: Array<React.ReactElement<React.ComponentProps<typeof TabBarItem>>>
   tabBarOnBottom?: boolean
   underlined?: boolean
 }
@@ -49,7 +49,7 @@ export type TabBarButtonProps = {
   isNav?: boolean
   isNew: boolean
   selected: boolean
-  onClick?: (() => void)
+  onClick?: () => void
   source: TabBarButtonSource
   label?: string
   badgeNumber?: number | null

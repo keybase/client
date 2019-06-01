@@ -9,12 +9,11 @@ import {Position} from './relative-popup-hoc.types'
 
 const getModalRoot = () => document.getElementById('modal-root')
 class Modal extends React.Component<{
-  setNode: ((node: HTMLElement) => void)
-  children: React.Element<any>
+  setNode: (node: HTMLElement) => void
 }> {
   el: HTMLElement
-  constructor() {
-    super()
+  constructor(props) {
+    super(props)
     this.el = document.createElement('div')
   }
 
@@ -256,7 +255,7 @@ type ModalPositionRelativeProps<PP> = {
   position: Position
   positionFallbacks?: Position[]
   matchDimension?: boolean
-  onClosePopup: (() => void)
+  onClosePopup: () => void
   propagateOutsideClicks?: boolean
   style?: StylesCrossPlatform
 } & PP
@@ -275,8 +274,8 @@ function ModalPositionRelative<PP>(
     state: {
       style: {}
     }
-    constructor() {
-      super()
+    constructor(props) {
+      super(props)
       this.state = {style: {}}
     }
 

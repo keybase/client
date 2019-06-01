@@ -2,6 +2,7 @@ import * as React from 'react'
 import Box, {Box2} from './box'
 import Text from './text'
 import Icon from './icon'
+// @ts-ignore todo
 import ClickableBox from './clickable-box'
 import Switch from './switch'
 import * as Sb from '../stories/storybook'
@@ -134,7 +135,7 @@ const load = () => {
           color="blue"
           initialEnabled={true}
         />
-        {['blue', 'green'].map(color =>
+        {(['blue', 'green'] as const).map(color =>
           [true, false, 'disabled'].map(i => {
             const initialEnabled = !!i
             const label = `${initialEnabled ? 'on' : 'off'}; ${color}${i === 'disabled' ? '; disabled' : ''}`

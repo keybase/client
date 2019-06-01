@@ -28,19 +28,19 @@ import {collapseStyles, globalColors, globalMargins, globalStyles, StylesCrossPl
 //                                  in the justSaved state.
 type SaveState = 'steady' | 'saving' | 'savingHysteresis' | 'justSaved'
 
-type _Props = {
+export type _Props = {
   saving: boolean
   style?: StylesCrossPlatform
   // Minimum duration to stay in saving or savingHysteresis.
   minSavingTimeMs: number
   // Minimum duration to stay in justSaved.
   savedTimeoutMs: number
-  debugLog?: ((arg0: string) => void)
+  debugLog?: (arg0: string) => void
 }
 
-type Props = PropsWithTimer<_Props>
+export type Props = PropsWithTimer<_Props>
 
-type State = {
+export type State = {
   // Mirrors Props.saving.
   saving: boolean
   // Last time saving went from false to true.
@@ -136,12 +136,16 @@ class SaveIndicator extends React.Component<Props, State> {
     }
 
     const debugLog = this.props.debugLog
-    const newPartialState = {saveState: result, ...(result === 'justSaved' ? {lastJustSaved: now} : {})}
+    const newPartialState: Partial<State> = {
+      saveState: result,
+      ...(result === 'justSaved' ? {lastJustSaved: now} : {}),
+    }
     if (debugLog) {
       debugLog(
         `_runStateMachine: merging ${JSON.stringify(newPartialState)} into ${JSON.stringify(this.state)}`
       )
     }
+    // @ts-ignore problem in react type def. This is protected by the type assertion of : Partial<State> above
     this.setState(newPartialState)
   }
 
@@ -157,6 +161,7 @@ class SaveIndicator extends React.Component<Props, State> {
           `componentDidUpdate: merging ${JSON.stringify(newPartialState)} into ${JSON.stringify(prevState)}`
         )
       }
+      // @ts-ignore problem in react type def. This is protected by the type assertion of : Partial<State> above
       this.setState(newPartialState)
     }
 
@@ -181,8 +186,7 @@ class SaveIndicator extends React.Component<Props, State> {
           </React.Fragment>
         )
       default:
-        declare const ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: ((a: never) => any)
-        ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(saveState)
+        Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(saveState)
         throw new Error(`Unexpected state ${saveState}`)
     }
   }
@@ -192,6 +196,5 @@ class SaveIndicator extends React.Component<Props, State> {
   }
 }
 
-export {_Props, Props, State}
 export {computeNextState}
 export default HOCTimers(SaveIndicator)

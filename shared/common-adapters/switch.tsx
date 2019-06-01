@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Styles from '../styles'
+// @ts-ignore todo
 import ClickableBox from './clickable-box'
 import Box, {Box2} from './box'
 import ProgressIndicator from './progress-indicator'
@@ -25,7 +26,7 @@ type Props = {
   labelSubtitle?: string | null // only effective when label is a string,
   labelTooltip?: string | null // only effective when label is a string,
   on: boolean
-  onClick: (() => void)
+  onClick: () => void
   style?: Styles.StylesCrossPlatform | null
 }
 
@@ -77,7 +78,7 @@ const getStyle = props =>
     props.style,
   ])
 
-const Switch = React.forwardRef<Props, Kb.ClickableBox>((props: Props, ref) =>
+const Switch = React.forwardRef<Props, ClickableBox>((props: Props, ref) =>
   Styles.isMobile || !props.labelTooltip ? (
     <Kb.Box style={getStyle(props)}>{getContent(props, ref)}</Kb.Box>
   ) : (

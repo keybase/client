@@ -19,7 +19,7 @@ const StandardScreen = ({theme = 'light', ...props}: Props) => {
       </Box>
     ),
   ]
-  const topStackCount = topStack.reduce((acc, x) => acc + !!x, 0)
+  const topStackCount = topStack.reduce((acc, x) => acc + (x ? 1 : 0), 0)
   return (
     <Box style={{...styleContainer, ...backgroundColorThemed[theme]}}>
       <Box style={styleTopStack}>{topStack}</Box>

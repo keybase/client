@@ -1,7 +1,9 @@
 import * as React from 'react'
 import {Dimensions, View} from 'react-native'
+// @ts-ignore remove when typed
 import FloatingBox from './floating-box'
 import hOCTimers, {PropsWithTimer} from './hoc-timers'
+// @ts-ignore remove when typed
 import ClickableBox from './clickable-box'
 import Text from './text'
 import Animated from './animated'
@@ -27,7 +29,20 @@ type State = {
   visible: boolean
 }
 
-const measureCb = resolve => (_1, _2, width, height, left, top) => resolve({height, left, top, width})
+type Dims = {
+  height: number
+  left: number
+  top: number
+  width: number
+}
+const measureCb = (resolve: (dims: Dims) => void) => (
+  _1: never,
+  _2: never,
+  width: number,
+  height: number,
+  left: number,
+  top: number
+) => resolve({height, left, top, width})
 
 class WithTooltip extends React.PureComponent<PropsWithTimer<Props>, State> {
   state = {
@@ -52,7 +67,7 @@ class WithTooltip extends React.PureComponent<PropsWithTimer<Props>, State> {
       new Promise(
         resolve => this._tooltipRef.current && this._tooltipRef.current.measure(measureCb(resolve))
       ),
-    ]).then(([c, t]) => {
+    ]).then(([c, t]: [Dims, Dims]) => {
       if (!this._mounted) {
         return
       }

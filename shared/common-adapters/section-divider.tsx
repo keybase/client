@@ -4,6 +4,7 @@ import {Box2} from './box'
 import Text from './text'
 import Icon from './icon'
 import ProgressIndicator from './progress-indicator'
+// @ts-ignore todo
 import ClickableBox from './clickable-box'
 
 const Kb = {
@@ -17,7 +18,7 @@ const Kb = {
 type Props = {
   collapsed?: boolean // if set, render the appropriate caret,
   label: string
-  onToggleCollapsed?: (() => void)
+  onToggleCollapsed?: () => void
   showSpinner?: boolean
 }
 

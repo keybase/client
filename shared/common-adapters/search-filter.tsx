@@ -1,5 +1,6 @@
 import * as React from 'react'
 import Box, {Box2} from './box'
+// @ts-ignore
 import ClickableBox from './clickable-box'
 import NewInput from './new-input'
 import PlainInput from './plain-input'
@@ -27,7 +28,7 @@ type Props = {
   focusOnMount?: boolean
   fullWidth?: boolean
   negative?: boolean
-  onChange: ((text: string) => void)
+  onChange: (text: string) => void
   placeholderText: string
   style?: Styles.StylesCrossPlatform | null
   waiting?: boolean
@@ -39,8 +40,8 @@ type Props = {
   onClick?: (() => void) | null
   // following props are ignored when onClick is provided
   hotkey?: 'f' | 'k' | null // desktop only,
-  onKeyDown?: ((event: React.KeyboardEvent, isComposingIME: boolean) => void)
-  onKeyUp?: ((event: React.KeyboardEvent, isComposingIME: boolean) => void)
+  onKeyDown?: (event: React.KeyboardEvent, isComposingIME: boolean) => void
+  onKeyUp?: (event: React.KeyboardEvent, isComposingIME: boolean) => void
 }
 
 type State = {
@@ -56,7 +57,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
     text: '',
   }
 
-  _inputRef = React.createRef()
+  _inputRef: React.RefObject<any> = React.createRef()
   _onBlur = () => {
     this.setState({focused: false})
     this.props.onBlur && this.props.onBlur()
@@ -77,7 +78,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
   _clear = () => {
     this._update('')
   }
-  _cancel = e => {
+  _cancel = (e?: any) => {
     this._blur()
     this._clear()
     this.props.onCancel && this.props.onCancel()
