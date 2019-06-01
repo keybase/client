@@ -4,7 +4,7 @@ import {Box2, Text} from '../../common-adapters'
 import {Background} from '../../common-adapters/text'
 import * as Styles from '../../styles'
 
-type Props = {
+export type Props = {
   background: Background
   onAction?: (() => void) | null
   reviewProofs?: boolean

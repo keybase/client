@@ -73,7 +73,7 @@ type Props = {
 // manually set dimensions. Not sure why fullHeight doesn't work on
 // mobile, though.
 const boxProps = {
-  direction: 'vertical',
+  direction: 'vertical' as 'vertical',
   fullWidth: isMobile,
   style: platformStyles({
     common: {height: 300, justifyContent: 'flex-end'},
