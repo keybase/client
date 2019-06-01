@@ -152,7 +152,7 @@ class SaveIndicator extends React.Component<Props, State> {
   componentDidUpdate = (prevProps: Props, prevState: State) => {
     if (this.props.saving !== this.state.saving) {
       const debugLog = this.props.debugLog
-      const newPartialState = {
+      const newPartialState: Partial<State> = {
         saving: this.props.saving,
         ...(this.props.saving ? {lastSave: new Date()} : {}),
       }
