@@ -3,6 +3,14 @@ declare var __DEV__: boolean
 declare var __STORYBOOK__: boolean
 declare var __STORYSHOT__: boolean
 
+type Unpacked<T> = T extends (infer U)[]
+  ? U
+  : T extends (...args: any[]) => infer U
+  ? U
+  : T extends Promise<infer U>
+  ? U
+  : T
+
 type RequestIdleCallbackHandle = any
 type RequestIdleCallbackOptions = {
   timeout: number
