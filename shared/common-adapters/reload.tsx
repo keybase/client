@@ -138,15 +138,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
   return {
     needsReload: !!error,
-    // Auto generated from flowToTs. Please clean me!
-    reason:
-      // Auto generated from flowToTs. Please clean me!
-      (error === null || error === undefined ? undefined : error.message) !== null && // Auto generated from flowToTs. Please clean me!
-      (error === null || error === undefined ? undefined : error.message) !== undefined // Auto generated from flowToTs. Please clean me!
-        ? error === null || error === undefined
-          ? undefined
-          : error.message
-        : '',
+    reason: (error && error.message) || '',
   }
 }
 const mapDispatchToProps = dispatch => ({})
