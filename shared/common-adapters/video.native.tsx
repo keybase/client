@@ -22,7 +22,7 @@ const DelayMount = ({children, delay}) => {
   React.useEffect(() => {
     const id = setTimeout(() => setMount(true), delay)
     return () => clearTimeout(id)
-  })
+  }, [])
   return mount && children
 }
 
