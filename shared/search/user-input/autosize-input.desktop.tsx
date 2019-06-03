@@ -106,7 +106,7 @@ class AutosizeInput extends Component<Props, State> {
             ...resetStyle,
             left: -9999,
             ...this.props.inputStyle,
-            position: 'absolute',
+            position: 'absolute' as 'absolute',
             top: -9999,
             whiteSpace: 'pre',
           }}

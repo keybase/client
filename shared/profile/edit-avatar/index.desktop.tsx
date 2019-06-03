@@ -471,4 +471,5 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
+// @ts-ignore HOCTimers typing is wrong
 export default HOCTimers(EditAvatar)

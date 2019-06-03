@@ -93,6 +93,7 @@ export declare const windowStyle: {
   height: number
 }
 
+// TODO: this typing is incomplete
 export declare function styled<T>(Component: T): (...styles: Array<any>) => T
 
 export declare function padding(
