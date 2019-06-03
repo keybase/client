@@ -999,38 +999,22 @@ const updateAirdropDetails = (
       return WalletsGen.createUpdatedAirdropDetails({
         details: Constants.makeAirdropDetails({
           header: Constants.makeAirdropDetailsHeader({
-            // Auto generated from flowToTs. Please clean me!
-            body:
-              ((json === null || json === undefined ? undefined : json.header) === null ||
-              (json === null || json === undefined ? undefined : json.header) === undefined
-                ? undefined
-                : (json === null || json === undefined ? undefined : json.header).body) || '',
-            // Auto generated from flowToTs. Please clean me!
-            title:
-              ((json === null || json === undefined ? undefined : json.header) === null ||
-              (json === null || json === undefined ? undefined : json.header) === undefined
-                ? undefined
-                : (json === null || json === undefined ? undefined : json.header).title) || '',
+            body: (json && json.header && json.header.body) || '',
+            title: (json && json.header && json.header.title) || '',
           }),
           sections: I.List(
-            // Auto generated from flowToTs. Please clean me!
-            ((json === null || json === undefined ? undefined : json.sections) || []).map(section =>
+            ((json && json.sections) || []).map(section =>
               Constants.makeAirdropDetailsSection({
-                // Auto generated from flowToTs. Please clean me!
-                icon: (section === null || section === undefined ? undefined : section.icon) || '',
+                icon: (section && section.icon) || '',
                 lines: I.List(
-                  // Auto generated from flowToTs. Please clean me!
-                  ((section === null || section === undefined ? undefined : section.lines) || []).map(l =>
+                  ((section && section.lines) || []).map(l =>
                     Constants.makeAirdropDetailsLine({
-                      // Auto generated from flowToTs. Please clean me!
-                      bullet: (l === null || l === undefined ? undefined : l.bullet) || false,
-                      // Auto generated from flowToTs. Please clean me!
-                      text: (l === null || l === undefined ? undefined : l.text) || '',
+                      bullet: (l && l.bullet) || false,
+                      text: (l && l.text) || '',
                     })
                   )
                 ),
-                // Auto generated from flowToTs. Please clean me!
-                section: (section === null || section === undefined ? undefined : section.section) || '',
+                section: (section && section.section) || '',
               })
             )
           ),

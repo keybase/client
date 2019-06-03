@@ -30,7 +30,7 @@ class NativeTransport extends TransportShared {
   }
 
   // We're always connected, so call the callback
-  connect(cb: () => void) {
+  connect(cb: (err?: any) => void) {
     cb()
   }
   is_connected() {

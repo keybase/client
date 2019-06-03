@@ -6,9 +6,8 @@ import * as Styles from '../../../styles'
 import {imgMaxWidthRaw} from '../messages/attachment/image/image-render'
 import {formatTimeForMessages} from '../../../util/timestamp'
 import MessagePopup from '../messages/message-popup'
-// @ts-ignore
-import {Props as HeaderHocProps} from '../../../common-adapters/header-hoc/types'
 import {chunk} from 'lodash-es'
+import {OverlayParentProps} from '../../../common-adapters/overlay/parent-hoc'
 import {Section} from '.'
 
 const monthNames = [
@@ -255,7 +254,7 @@ export class MediaView {
 
 type DocViewRowProps = {
   item: Doc
-} & HeaderHocProps
+} & OverlayParentProps
 
 class _DocViewRow extends React.Component<DocViewRowProps> {
   render() {
@@ -289,7 +288,7 @@ class _DocViewRow extends React.Component<DocViewRowProps> {
         {Styles.isMobile && this.props.showingMenu && item.message && (
           <MessagePopup
             attachTo={this.props.getAttachmentRef}
-            message={item.message}
+            message={item.message as Types.DecoratedMessage}
             onHidden={this.props.toggleShowingMenu}
             position="top right"
             visible={this.props.showingMenu}

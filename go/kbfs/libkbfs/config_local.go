@@ -1730,3 +1730,14 @@ func (c *ConfigLocal) VLogLevel() string {
 	defer c.lock.RUnlock()
 	return c.vdebugSetting
 }
+
+// SetDiskCacheMode sets the disk cache mode for this config, after
+// construction.  Mostly useful for tests.
+func (c *ConfigLocal) SetDiskCacheMode(m DiskCacheMode) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.diskCacheMode = m
+	if c.diskCacheMode == DiskCacheModeLocal {
+		c.loadSyncedTlfsLocked()
+	}
+}
