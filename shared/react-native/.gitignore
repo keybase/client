@@ -21,7 +21,6 @@ build/
 npm-debug.log
 project.xcworkspace
 xcuserdata
-Pods
 shared
 fastlane/README.md
 

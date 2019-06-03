@@ -84,10 +84,6 @@ if [ ! "$cache_go_lib" = "1" ]; then
   CHECK_CI="$check_ci" yarn run rn-gobuild-ios
 fi
 
-echo "Running pod install"
-cd "$ios_dir"
-pod install
-
 "$client_dir/packaging/manage_react_native_packager.sh" &
 rn_packager_pid=$!
 echo "Packager running with PID $rn_packager_pid"
