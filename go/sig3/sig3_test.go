@@ -144,7 +144,15 @@ func TestMissingSig(t *testing.T) {
 	ex.Sig = ""
 	_, err := ex.Import()
 	require.Error(t, err)
-	require.Equal(t, err, newParseError("need a sig and an inner, or neither, but not one without the other"))
+	require.Equal(t, err, newParseError("need a sig and an inner, or neither, but not one without the other (sig: true, inner: false)"))
+}
+
+func TestMissingInner(t *testing.T) {
+	_, ex, _, _, _ := genTest(t, 1)
+	ex.Inner = ""
+	_, err := ex.Import()
+	require.Error(t, err)
+	require.Equal(t, err, newParseError("need a sig and an inner, or neither, but not one without the other (sig: false, inner: true)"))
 }
 
 func TestStubbed(t *testing.T) {

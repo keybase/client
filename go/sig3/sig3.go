@@ -107,7 +107,7 @@ func (b *Base) Seqno() Seqno {
 
 func (b Base) verify() error {
 	if (b.sig == nil) != (b.inner == nil) {
-		return newSig3Error("need sig and inner, or neither, but can't have one and not the other")
+		return newSig3Error("need sig and inner, or neither, but can't have one and not the other (sig: %v, inner: %v)", (b.sig != nil), (b.inner != nil))
 	}
 	if b.sig == nil || b.inner == nil {
 		return nil
@@ -241,7 +241,7 @@ func (s *Sig3ExportJSON) parseInner(in Base) (Generic, error) {
 	var out Generic
 
 	if (s.Inner == "") != (in.sig == nil) {
-		return nil, newParseError("need a sig and an inner, or neither, but not one without the other")
+		return nil, newParseError("need a sig and an inner, or neither, but not one without the other (sig: %v, inner: %v)", (s.Inner != ""), (in.sig != nil))
 	}
 
 	if s.Inner == "" {
