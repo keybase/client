@@ -55,7 +55,7 @@ shared/.cache
 
 Keybase.app.dSYM.zip
 
-shared/react-native/ios/fastlane
+# shared/ios/fastlane # already checked in?
 shared/android/keybaselib/keybaselib-sources.jar
 shared/android/app/.idea/
 shared/android/captures
