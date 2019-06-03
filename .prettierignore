@@ -1,3 +1,4 @@
+shared/common-adapters/markdown/emoji-gen.js
 shared/common-adapters/icon.constants.js
 shared/markdown/parser.js
 shared/desktop/build/

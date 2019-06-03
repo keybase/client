@@ -36,6 +36,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 	"golang.org/x/sys/unix"
 )
@@ -2855,7 +2856,6 @@ func (t *testMountObserver) BatchChanges(ctx context.Context,
 
 func (t *testMountObserver) TlfHandleChange(ctx context.Context,
 	newHandle *tlfhandle.Handle) {
-	return
 }
 
 func TestInvalidateAcrossMounts(t *testing.T) {
@@ -3120,40 +3120,36 @@ func TestStatusFile(t *testing.T) {
 	libfs.AddRootWrapper(config)
 
 	jdoe := libkbfs.GetRootNodeOrBust(ctx, t, config, "jdoe", tlf.Public)
+	mydir := path.Join(mnt.Dir, PublicName, "jdoe", "mydir")
+	err := ioutil.Mkdir(mydir, 0755)
+	require.NoError(t, err)
 
 	ops := config.KBFSOps()
 	status, _, err := ops.FolderStatus(ctx, jdoe.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't get KBFS status: %v", err)
-	}
+	require.NoError(t, err)
 
-	// Simply make sure the status in the file matches what we'd
-	// expect.  Checking the exact content should be left for tests
-	// within libkbfs.
-	buf, err := ioutil.ReadFile(path.Join(mnt.Dir, PublicName, "jdoe",
-		libfs.StatusFileName))
-	if err != nil {
-		t.Fatalf("Couldn't read KBFS status file: %v", err)
-	}
+	checkStatus := func(dir string) {
+		// Simply make sure the status in the file matches what we'd
+		// expect.  Checking the exact content should be left for tests
+		// within libkbfs.
+		buf, err := ioutil.ReadFile(path.Join(dir, libfs.StatusFileName))
+		require.NoError(t, err)
 
-	var bufStatus libkbfs.FolderBranchStatus
-	json.Unmarshal(buf, &bufStatus)
+		var bufStatus libkbfs.FolderBranchStatus
+		json.Unmarshal(buf, &bufStatus)
 
-	// Use a fuzzy check on the timestamps, since it could include
-	// monotonic clock stuff.
-	if !timeEqualFuzzy(
-		status.LocalTimestamp, bufStatus.LocalTimestamp, time.Millisecond) {
-		t.Fatalf("Local timestamp (%s) didn't match expected timestamp %v",
-			bufStatus.LocalTimestamp, status.LocalTimestamp)
-	}
-	status.LocalTimestamp = bufStatus.LocalTimestamp
+		// Use a fuzzy check on the timestamps, since it could include
+		// monotonic clock stuff.
+		require.True(t, timeEqualFuzzy(
+			status.LocalTimestamp, bufStatus.LocalTimestamp, time.Millisecond))
+		status.LocalTimestamp = bufStatus.LocalTimestamp
 
-	// It's safe to compare the path slices with DeepEqual since they
-	// will all be null for this test (nothing is dirtied).
-	if !reflect.DeepEqual(status, bufStatus) {
-		t.Fatalf("Status file contents (%s) didn't match expected status %v",
-			buf, status)
+		// It's safe to compare the path slices with DeepEqual since
+		// they will all be null for this test (nothing is dirtied).
+		require.True(t, reflect.DeepEqual(status, bufStatus))
 	}
+	checkStatus(path.Join(mnt.Dir, PublicName, "jdoe"))
+	checkStatus(mydir)
 }
 
 // TODO: remove once we have automatic conflict resolution tests

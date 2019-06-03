@@ -34,6 +34,7 @@ export type NameWithIconProps = {|
   selectable?: boolean,
   size?: Size,
   teamname?: string,
+  channelname?: string,
   // for non-users
   title?: string | React.Node,
   titleStyle?: Styles.StylesCrossPlatform,

@@ -433,6 +433,7 @@ func reAddMemberAfterResetInner(ctx context.Context, g *libkb.GlobalContext, tea
 	if err != nil {
 		return err
 	}
+	_ = g.Pegboard.TrackUPAK(libkb.NewMetaContext(ctx, g), upak.Current)
 	uv := upak.Current.ToUserVersion()
 	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
@@ -1502,9 +1503,9 @@ func GetKBFSTeamSettings(ctx context.Context, g *libkb.GlobalContext, isPublic b
 
 func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string) (ret keybase1.TeamOperation, err error) {
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
-		Name:                      teamname,
-		StaleOK:                   true,
-		Public:                    false, // assume private team
+		Name:    teamname,
+		StaleOK: true,
+		Public:  false, // assume private team
 		AllowNameLookupBurstCache: true,
 	})
 	if err != nil {
@@ -1518,7 +1519,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		return ret, err
 	}
 
-	isImplicitAdmin := func() (bool, error) {
+	getIsImplicitAdmin := func() (bool, error) {
 		if team.ID.IsRootTeam() {
 			return false, nil
 		}
@@ -1543,14 +1544,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		return teamRole.IsOrAbove(role)
 	}
 
-	isWriter := func() bool {
-		return isRoleOrAbove(keybase1.TeamRole_WRITER)
-	}
-
 	canMemberShowcase := func() (bool, error) {
-		if err != nil {
-			return false, err
-		}
 		if teamRole.IsOrAbove(keybase1.TeamRole_ADMIN) {
 			return true, nil
 		} else if teamRole == keybase1.TeamRole_NONE {
@@ -1563,7 +1557,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		return showcase.AnyMemberShowcase, nil
 	}
 
-	hasOtherOwner := func() (bool, error) {
+	getHasOtherOwner := func() (bool, error) {
 		owners, err := team.UsersWithRole(keybase1.TeamRole_OWNER)
 		if err != nil {
 			return false, err
@@ -1580,52 +1574,58 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		return true, nil
 	}
 
-	var implicitAdmin bool
-	implicitAdmin, err = isImplicitAdmin()
+	isReader := isRoleOrAbove(keybase1.TeamRole_READER)
+	isWriter := isRoleOrAbove(keybase1.TeamRole_WRITER)
+	isAdmin := isRoleOrAbove(keybase1.TeamRole_ADMIN)
+	isOwner := isRoleOrAbove(keybase1.TeamRole_OWNER)
+	isImplicitAdmin, err := getIsImplicitAdmin()
 	if err != nil {
 		return ret, err
 	}
-	var admin bool
-	admin = isRoleOrAbove(keybase1.TeamRole_ADMIN)
 
-	ret.ManageMembers = admin || implicitAdmin
-	ret.ManageSubteams = admin || implicitAdmin
-	ret.SetTeamShowcase = admin || implicitAdmin
-	ret.ChangeOpenTeam = admin || implicitAdmin
-	ret.ChangeTarsDisabled = admin || implicitAdmin
-
-	ret.ListFirst = implicitAdmin
-	ret.JoinTeam = teamRole == keybase1.TeamRole_NONE && implicitAdmin
-	ret.SetPublicityAny = admin || implicitAdmin
-
-	if teamRole != keybase1.TeamRole_NONE {
-		leaveTeam := true
-		if teamRole == keybase1.TeamRole_OWNER {
-			leaveTeam, err = hasOtherOwner()
-			if err != nil {
-				return ret, err
-			}
-		}
-		ret.LeaveTeam = leaveTeam
-	}
-
-	writer := isWriter()
-	ret.CreateChannel = writer
-
+	// team settings
+	ret.ListFirst = isImplicitAdmin
+	ret.JoinTeam = teamRole == keybase1.TeamRole_NONE && isImplicitAdmin
+	ret.SetPublicityAny = isAdmin || isImplicitAdmin
+	ret.ManageMembers = isAdmin || isImplicitAdmin
+	ret.ManageSubteams = isAdmin || isImplicitAdmin
+	ret.SetTeamShowcase = isAdmin || isImplicitAdmin
+	ret.ChangeOpenTeam = isAdmin || isImplicitAdmin
+	ret.ChangeTarsDisabled = isAdmin || isImplicitAdmin
+	ret.EditTeamDescription = isAdmin || isImplicitAdmin
 	ret.SetMemberShowcase, err = canMemberShowcase()
 	if err != nil {
 		return ret, err
 	}
+	if team.chain().IsSubteam() {
+		ret.DeleteTeam = isImplicitAdmin
+	} else {
+		ret.DeleteTeam = isOwner
+	}
 
-	ret.DeleteChannel = admin
-	ret.RenameChannel = writer
-	ret.EditChannelDescription = writer
-	ret.EditTeamDescription = admin
-	ret.DeleteChatHistory = admin
-	ret.SetRetentionPolicy = admin
-	ret.SetMinWriterRole = admin
-	ret.DeleteOtherMessages = admin
-	ret.Chat = isRoleOrAbove(keybase1.TeamRole_READER)
+	// only check hasOtherOwner if we have to.
+	if teamRole != keybase1.TeamRole_NONE {
+		leaveTeam := true
+		if isOwner {
+			hasOtherOwner, err := getHasOtherOwner()
+			if err != nil {
+				return ret, err
+			}
+			leaveTeam = hasOtherOwner
+		}
+		ret.LeaveTeam = leaveTeam
+	}
+
+	// chat settings
+	ret.Chat = isReader
+	ret.CreateChannel = isWriter
+	ret.RenameChannel = isWriter
+	ret.EditChannelDescription = isWriter
+	ret.DeleteChannel = isAdmin
+	ret.SetRetentionPolicy = isAdmin
+	ret.SetMinWriterRole = isAdmin
+	ret.DeleteChatHistory = isAdmin
+	ret.DeleteOtherMessages = isAdmin
 
 	return ret, err
 }

@@ -172,7 +172,6 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 		latestKey, err := kcache.GetTLFCryptKey(tlfID, currKeyGen)
 		switch err := err.(type) {
 		case nil:
-			break
 		case KeyCacheMissError:
 			// not cached, look up the params
 			clientHalf, serverHalfID, cryptPublicKey, err2 :=
@@ -186,7 +185,6 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 			if err2 != nil {
 				return kbfscrypto.TLFCryptKey{}, err2
 			}
-			break
 		default:
 			return kbfscrypto.TLFCryptKey{}, err
 		}
@@ -194,6 +192,9 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 		tlfCryptKey, err =
 			kmd.GetHistoricTLFCryptKey(km.config.Codec(), keyGen, latestKey)
 		if err != nil {
+			km.log.CDebugf(
+				ctx, "Can't get historic TLF crypt key for id=%s, keyGen=%d",
+				tlfID, keyGen)
 			return kbfscrypto.TLFCryptKey{}, err
 		}
 	} else if err != nil {

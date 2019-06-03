@@ -374,9 +374,7 @@ func (d DummyIndexer) SearchableConvs(ctx context.Context, uid gregor1.UID, conv
 func (d DummyIndexer) IndexInbox(ctx context.Context, uid gregor1.UID) (map[string]chat1.ProfileSearchConvStats, error) {
 	return nil, nil
 }
-func (d DummyIndexer) ClearCache() {
-	return
-}
+func (d DummyIndexer) ClearCache() {}
 func (d DummyIndexer) OnLogout(mctx libkb.MetaContext) error {
 	return nil
 }
@@ -489,7 +487,8 @@ func (d DummyCoinFlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedM
 }
 
 func (d DummyCoinFlipManager) LoadFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID,
-	hostMsgID chat1.MessageID, flipConvID chat1.ConversationID, gameID chat1.FlipGameID) {
+	hostMsgID chat1.MessageID, flipConvID chat1.ConversationID, gameID chat1.FlipGameID) (chan chat1.UICoinFlipStatus, chan error) {
+	return nil, nil
 }
 
 func (d DummyCoinFlipManager) DescribeFlipText(ctx context.Context, text string) string { return "" }

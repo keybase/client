@@ -39,6 +39,9 @@ var ErrMessageTooLong = errors.New("message is too long")
 // ErrInvalidAmount is for invalid payment amounts.
 var ErrInvalidAmount = errors.New("invalid amount")
 
+// ErrMemoTextTooLong is for lengthy memos.
+var ErrMemoTextTooLong = errors.New("memo text is too long (max 28 characters)")
+
 // walletAPIHandler is a type that can handle all the json api
 // methods for the wallet API.
 type walletAPIHandler struct {
@@ -280,6 +283,7 @@ func (w *walletAPIHandler) send(ctx context.Context, c Call, wr io.Writer) error
 		DisplayAmount:   displayAmount,
 		DisplayCurrency: displayCurrency,
 		FromAccountID:   stellar1.AccountID(opts.FromAccountID),
+		PublicNote:      opts.MemoText,
 	}
 	result, err := w.cli.SendCLILocal(ctx, arg)
 	if err != nil {
@@ -433,6 +437,7 @@ type sendOptions struct {
 	Currency      string `json:"currency"`
 	Message       string `json:"message"`
 	FromAccountID string `json:"from-account-id"`
+	MemoText      string `json:"memo-text"`
 }
 
 // Check makes sure that the send options are valid.
@@ -459,6 +464,9 @@ func (c *sendOptions) Check() error {
 	}
 	if len(c.Message) > libkb.MaxStellarPaymentNoteLength {
 		return ErrMessageTooLong
+	}
+	if len(c.MemoText) > 28 {
+		return ErrMemoTextTooLong
 	}
 
 	return nil

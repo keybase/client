@@ -688,7 +688,8 @@ func (b *Boxer) validatePairwiseMAC(ctx context.Context, boxed chat1.MessageBoxe
 	if !found {
 		// This is an error users will actually see when they've just joined a
 		// team or added a new device.
-		return nil, NewNotAuthenticatedForThisDeviceError()
+		return nil, NewNotAuthenticatedForThisDeviceError(b.G().MetaContext(ctx),
+			boxed.ClientHeader.Conv.Tlfid, boxed.ServerHeader.Ctime)
 	}
 
 	// Second, load the device encryption KID for the sender.

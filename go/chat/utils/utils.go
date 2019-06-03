@@ -1479,6 +1479,14 @@ func presentFlipGameID(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	return &ret
 }
 
+func PresentMessagesUnboxed(ctx context.Context, g *globals.Context, msgs []chat1.MessageUnboxed,
+	uid gregor1.UID, convID chat1.ConversationID) (res []chat1.UIMessage) {
+	for _, msg := range msgs {
+		res = append(res, PresentMessageUnboxed(ctx, g, msg, uid, convID))
+	}
+	return res
+}
+
 func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1.MessageUnboxed,
 	uid gregor1.UID, convID chat1.ConversationID) (res chat1.UIMessage) {
 	miscErr := func(err error) chat1.UIMessage {
@@ -2300,4 +2308,17 @@ func GetVerifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 			inbox.Convs[0].GetConvID(), convID)
 	}
 	return inbox.Convs[0], nil
+}
+
+func DedupStringLists(lists ...[]string) (res []string) {
+	seen := make(map[string]struct{})
+	for _, list := range lists {
+		for _, x := range list {
+			if _, ok := seen[x]; !ok {
+				seen[x] = struct{}{}
+				res = append(res, x)
+			}
+		}
+	}
+	return res
 }

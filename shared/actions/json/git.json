@@ -9,7 +9,7 @@
       "repos": "{\"[key: string]\": Types.GitInfo}",
       "errors": "Array<Error>"
     },
-    "navToGit": {"switchTab": "boolean", "routeState": "?{\"expandedSet\": I.Set<string>}"},
+    "navToGit": {"switchTab": "boolean", "routeState": "{\"expandedSet\": I.Set<string>} | null"},
     "createTeamRepo": {
       "name": "string",
       "teamname": "string",
@@ -29,14 +29,14 @@
       "name": "string"
     },
     "setError": {
-      "error": "?Error"
+      "error": "Error | null"
     },
     "badgeAppForGit": {
       "ids": "Array<string>"
     },
     "setTeamRepoSettings": {
       "chatDisabled": "boolean",
-      "channelName": "?string",
+      "channelName": "string | null",
       "teamname": "string",
       "repoID": "string"
     },
@@ -45,7 +45,7 @@
       "teamname": "string"
     },
     "clearBadges": {
-      "_description": "clears badges in the rows",
+      "_description": "clears badges in the rows"
     }
   }
 }

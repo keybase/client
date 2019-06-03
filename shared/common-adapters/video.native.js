@@ -137,9 +137,9 @@ const getHTML = url => `
     }" controls playsinline muted/>
     <script>
       const post = (data) =>
-         window.postMessage.length !== 1
+         window.ReactNativeWebView.postMessage.length !== 1
            ? setTimeout(() => post(data), 100)
-           : window.postMessage(data)
+           : window.ReactNativeWebView.postMessage(data)
 
       const v = document.getElementById('video')
       v.addEventListener('loadedmetadata', e => {

@@ -17,6 +17,7 @@ type WalletAccountLocal struct {
 	CurrencyLocal       CurrencyLocal `codec:"currencyLocal" json:"currencyLocal"`
 	AccountMode         AccountMode   `codec:"accountMode" json:"accountMode"`
 	AccountModeEditable bool          `codec:"accountModeEditable" json:"accountModeEditable"`
+	DeviceReadOnly      bool          `codec:"deviceReadOnly" json:"deviceReadOnly"`
 	IsFunded            bool          `codec:"isFunded" json:"isFunded"`
 	CanSubmitTx         bool          `codec:"canSubmitTx" json:"canSubmitTx"`
 }
@@ -31,6 +32,7 @@ func (o WalletAccountLocal) DeepCopy() WalletAccountLocal {
 		CurrencyLocal:       o.CurrencyLocal.DeepCopy(),
 		AccountMode:         o.AccountMode.DeepCopy(),
 		AccountModeEditable: o.AccountModeEditable,
+		DeviceReadOnly:      o.DeviceReadOnly,
 		IsFunded:            o.IsFunded,
 		CanSubmitTx:         o.CanSubmitTx,
 	}
@@ -209,6 +211,9 @@ type PaymentLocal struct {
 	SourceAmountMax     string          `codec:"sourceAmountMax" json:"sourceAmountMax"`
 	SourceAmountActual  string          `codec:"sourceAmountActual" json:"sourceAmountActual"`
 	SourceAsset         Asset           `codec:"sourceAsset" json:"sourceAsset"`
+	IsAdvanced          bool            `codec:"isAdvanced" json:"isAdvanced"`
+	SummaryAdvanced     string          `codec:"summaryAdvanced" json:"summaryAdvanced"`
+	Operations          []string        `codec:"operations" json:"operations"`
 	Unread              bool            `codec:"unread" json:"unread"`
 	BatchID             string          `codec:"batchID" json:"batchID"`
 	FromAirdrop         bool            `codec:"fromAirdrop" json:"fromAirdrop"`
@@ -257,10 +262,23 @@ func (o PaymentLocal) DeepCopy() PaymentLocal {
 		SourceAmountMax:     o.SourceAmountMax,
 		SourceAmountActual:  o.SourceAmountActual,
 		SourceAsset:         o.SourceAsset.DeepCopy(),
-		Unread:              o.Unread,
-		BatchID:             o.BatchID,
-		FromAirdrop:         o.FromAirdrop,
-		IsInflation:         o.IsInflation,
+		IsAdvanced:          o.IsAdvanced,
+		SummaryAdvanced:     o.SummaryAdvanced,
+		Operations: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Operations),
+		Unread:      o.Unread,
+		BatchID:     o.BatchID,
+		FromAirdrop: o.FromAirdrop,
+		IsInflation: o.IsInflation,
 		InflationSource: (func(x *string) *string {
 			if x == nil {
 				return nil
@@ -360,6 +378,9 @@ type PaymentDetailsLocal struct {
 	SourceAmountMax     string          `codec:"sourceAmountMax" json:"sourceAmountMax"`
 	SourceAmountActual  string          `codec:"sourceAmountActual" json:"sourceAmountActual"`
 	SourceAsset         Asset           `codec:"sourceAsset" json:"sourceAsset"`
+	IsAdvanced          bool            `codec:"isAdvanced" json:"isAdvanced"`
+	SummaryAdvanced     string          `codec:"summaryAdvanced" json:"summaryAdvanced"`
+	Operations          []string        `codec:"operations" json:"operations"`
 	PublicNote          string          `codec:"publicNote" json:"publicNote"`
 	PublicNoteType      string          `codec:"publicNoteType" json:"publicNoteType"`
 	ExternalTxURL       string          `codec:"externalTxURL" json:"externalTxURL"`
@@ -411,12 +432,25 @@ func (o PaymentDetailsLocal) DeepCopy() PaymentDetailsLocal {
 		SourceAmountMax:     o.SourceAmountMax,
 		SourceAmountActual:  o.SourceAmountActual,
 		SourceAsset:         o.SourceAsset.DeepCopy(),
-		PublicNote:          o.PublicNote,
-		PublicNoteType:      o.PublicNoteType,
-		ExternalTxURL:       o.ExternalTxURL,
-		BatchID:             o.BatchID,
-		FromAirdrop:         o.FromAirdrop,
-		IsInflation:         o.IsInflation,
+		IsAdvanced:          o.IsAdvanced,
+		SummaryAdvanced:     o.SummaryAdvanced,
+		Operations: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Operations),
+		PublicNote:     o.PublicNote,
+		PublicNoteType: o.PublicNoteType,
+		ExternalTxURL:  o.ExternalTxURL,
+		BatchID:        o.BatchID,
+		FromAirdrop:    o.FromAirdrop,
+		IsInflation:    o.IsInflation,
 		InflationSource: (func(x *string) *string {
 			if x == nil {
 				return nil
@@ -779,6 +813,9 @@ type PaymentCLILocal struct {
 	SourceAmountMax    string        `codec:"sourceAmountMax" json:"sourceAmountMax"`
 	SourceAmountActual string        `codec:"sourceAmountActual" json:"sourceAmountActual"`
 	SourceAsset        Asset         `codec:"sourceAsset" json:"sourceAsset"`
+	IsAdvanced         bool          `codec:"isAdvanced" json:"isAdvanced"`
+	SummaryAdvanced    string        `codec:"summaryAdvanced" json:"summaryAdvanced"`
+	Operations         []string      `codec:"operations" json:"operations"`
 	FromStellar        AccountID     `codec:"fromStellar" json:"fromStellar"`
 	ToStellar          *AccountID    `codec:"toStellar,omitempty" json:"toStellar,omitempty"`
 	FromUsername       *string       `codec:"fromUsername,omitempty" json:"fromUsername,omitempty"`
@@ -814,7 +851,20 @@ func (o PaymentCLILocal) DeepCopy() PaymentCLILocal {
 		SourceAmountMax:    o.SourceAmountMax,
 		SourceAmountActual: o.SourceAmountActual,
 		SourceAsset:        o.SourceAsset.DeepCopy(),
-		FromStellar:        o.FromStellar.DeepCopy(),
+		IsAdvanced:         o.IsAdvanced,
+		SummaryAdvanced:    o.SummaryAdvanced,
+		Operations: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Operations),
+		FromStellar: o.FromStellar.DeepCopy(),
 		ToStellar: (func(x *AccountID) *AccountID {
 			if x == nil {
 				return nil
@@ -1076,6 +1126,26 @@ func (o ValidateStellarURIResultLocal) DeepCopy() ValidateStellarURIResultLocal 
 		AssetIssuer:  o.AssetIssuer,
 		Memo:         o.Memo,
 		MemoType:     o.MemoType,
+	}
+}
+
+type PartnerUrl struct {
+	Url          string `codec:"url" json:"url"`
+	Title        string `codec:"title" json:"title"`
+	Description  string `codec:"description" json:"description"`
+	IconFilename string `codec:"iconFilename" json:"icon_filename"`
+	AdminOnly    bool   `codec:"adminOnly" json:"admin_only"`
+	Extra        string `codec:"extra" json:"extra"`
+}
+
+func (o PartnerUrl) DeepCopy() PartnerUrl {
+	return PartnerUrl{
+		Url:          o.Url,
+		Title:        o.Title,
+		Description:  o.Description,
+		IconFilename: o.IconFilename,
+		AdminOnly:    o.AdminOnly,
+		Extra:        o.Extra,
 	}
 }
 
@@ -1486,6 +1556,10 @@ type ApprovePathURILocalArg struct {
 	FromCLI   bool        `codec:"fromCLI" json:"fromCLI"`
 }
 
+type GetPartnerUrlsLocalArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type LocalInterface interface {
 	GetWalletAccountsLocal(context.Context, int) ([]WalletAccountLocal, error)
 	GetWalletAccountLocal(context.Context, GetWalletAccountLocalArg) (WalletAccountLocal, error)
@@ -1559,6 +1633,7 @@ type LocalInterface interface {
 	ApproveTxURILocal(context.Context, ApproveTxURILocalArg) (TransactionID, error)
 	ApprovePayURILocal(context.Context, ApprovePayURILocalArg) (TransactionID, error)
 	ApprovePathURILocal(context.Context, ApprovePathURILocalArg) (TransactionID, error)
+	GetPartnerUrlsLocal(context.Context, int) ([]PartnerUrl, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -2625,6 +2700,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getPartnerUrlsLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]GetPartnerUrlsLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetPartnerUrlsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetPartnerUrlsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetPartnerUrlsLocal(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
 		},
 	}
 }
@@ -3005,5 +3095,11 @@ func (c LocalClient) ApprovePayURILocal(ctx context.Context, __arg ApprovePayURI
 
 func (c LocalClient) ApprovePathURILocal(ctx context.Context, __arg ApprovePathURILocalArg) (res TransactionID, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.approvePathURILocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetPartnerUrlsLocal(ctx context.Context, sessionID int) (res []PartnerUrl, err error) {
+	__arg := GetPartnerUrlsLocalArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "stellar.1.local.getPartnerUrlsLocal", []interface{}{__arg}, &res)
 	return
 }

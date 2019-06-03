@@ -309,7 +309,13 @@ func (s *Server) GetPaymentsLocal(ctx context.Context, arg stellar1.GetPaymentsL
 		return page, ErrAccountIDMissing
 	}
 
-	srvPayments, err := s.remoter.RecentPayments(ctx, arg.AccountID, arg.Cursor, 0, true)
+	rpArg := remote.RecentPaymentsArg{
+		AccountID:       arg.AccountID,
+		Cursor:          arg.Cursor,
+		SkipPending:     true,
+		IncludeAdvanced: false, // TODO: make this true when the frontend is ready for it
+	}
+	srvPayments, err := s.remoter.RecentPayments(ctx, rpArg)
 	if err != nil {
 		return page, err
 	}
@@ -400,6 +406,9 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		SourceAsset:         summary.SourceAsset,
 		SourceAmountMax:     summary.SourceAmountMax,
 		SourceAmountActual:  summary.SourceAmountActual,
+		IsAdvanced:          summary.IsAdvanced,
+		SummaryAdvanced:     summary.SummaryAdvanced,
+		Operations:          summary.Operations,
 	}
 
 	return payment, nil
@@ -840,7 +849,7 @@ func (s *Server) SendPathLocal(ctx context.Context, arg stellar1.SendPathLocalAr
 		To:          stellarcommon.RecipientInput(arg.Recipient),
 		Path:        arg.Path,
 		SecretNote:  arg.Note,
-		PublicMemo:  arg.PublicNote,
+		PublicMemo:  stellarnet.NewMemoText(arg.PublicNote),
 		QuickReturn: true,
 	})
 	if err != nil {

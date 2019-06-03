@@ -84,4 +84,13 @@ Join a team conversation:
 
 Leave a team conversation:
     {"method": "leave", "params": {"options": {"channel": {"name": "treehouse", "members_type": "team", "topic_name": "random"}}}}
+
+Load a flip's result:
+    {"method": "loadflip", "params": {"options": {"conversation_id": "...", "flip_conversation_id": "...", "msg_id": 72, "game_id": "..."}}}
+
+Get unfurl settings:
+    {"method": "getunfurlsettings"}
+
+Set unfurl setings (thumbnails for sent links):
+    {"method": "setunfurlsettings", "params": {"options":{"mode": "always/never/whitelisted", "whitelist":["example.com"]}}}
 `

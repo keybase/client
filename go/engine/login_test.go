@@ -49,8 +49,6 @@ func TestLoginAndSwitchWithLogout(t *testing.T) {
 	Logout(tc)
 	t.Logf("second logging back in")
 	u2.LoginOrBust(tc)
-
-	return
 }
 
 func TestLoginTwiceLogoutOnce(t *testing.T) {
@@ -97,8 +95,6 @@ func TestLoginAndSwitchWithoutLogout(t *testing.T) {
 		swtch(u1)
 		swtch(u2)
 	}
-
-	return
 }
 
 func TestLoginUsernameWhitespace(t *testing.T) {
@@ -3778,6 +3774,154 @@ func TestProvisionAutomatedPaperKey(t *testing.T) {
 
 	require.Equal(t, provLoginUI.CalledGetEmailOrUsername, 0, "expected no calls to GetEmailOrUsername")
 	require.Equal(t, provUI.calledChooseDevice, 0, "expected no calls to ChooseDevice")
+}
+
+// Device X provisions device Y (which has a cached passphrase stream), device X changes the password,
+// device Y provisions device Z (which could break because of the outdated passphrase stream)
+func TestProvisionAfterPasswordChange(t *testing.T) {
+	t.Logf("create 3 contexts")
+
+	// device X (initial provisioner and passphrase changer) context:
+	tcX := SetupEngineTest(t, "kex2race1")
+	defer tcX.Cleanup()
+
+	// device Y (second provisioner and race condition culprit) context:
+	tcY := SetupEngineTest(t, "kex2race2")
+	defer tcY.Cleanup()
+
+	// device Z (provisionee) context:
+	tcZ := SetupEngineTest(t, "kex2race3")
+	defer tcZ.Cleanup()
+
+	// the initial needs to sign up and log in
+	userX := CreateAndSignupFakeUserPaper(tcX, "login")
+	var secretX kex2.Secret
+	if _, err := rand.Read(secretX[:]); err != nil {
+		t.Fatal(err)
+	}
+
+	t.Logf("kex#1 starting")
+
+	secretCh := make(chan kex2.Secret)
+
+	// provisionee calls login:
+	uis := libkb.UIs{
+		ProvisionUI: newTestProvisionUISecretCh(secretCh),
+		LoginUI:     &libkb.TestLoginUI{Username: userX.Username},
+		LogUI:       tcX.G.UI.GetLogUI(),
+		SecretUI:    &libkb.TestSecretUI{},
+		GPGUI:       &gpgtestui{},
+	}
+
+	var wg sync.WaitGroup
+
+	// start provisionee for step #1
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		m := NewMetaContextForTest(tcY).WithUIs(uis)
+		eng := NewLogin(tcY.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+		if err := RunEngine2(m, eng); err != nil {
+			t.Errorf("provisionee login error: %s", err)
+			return
+		}
+	}()
+
+	// start provisioner for step #1
+	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		// We're reusing the m from the PGP key generation
+		m := NewMetaContextForTest(tcX).WithUIs(uis)
+		if err := RunEngine2(m, provisioner); err != nil {
+			t.Errorf("provisioner error: %s", err)
+			return
+		}
+	}()
+	secretFromY := <-secretCh
+	provisioner.AddSecret(secretFromY)
+
+	wg.Wait()
+
+	require.False(t, t.Failed(), "prior failure in a goroutine")
+
+	// 2nd device should be provisioned
+	if err := AssertProvisioned(tcY); err != nil {
+		t.Fatal(err)
+	}
+
+	t.Logf("kex#1 finished")
+
+	// after provisioning, the passphrase stream in device Y should be cached
+	assertPassphraseStreamCache(tcY)
+	assertDeviceKeysCached(tcY)
+
+	// now we have the following:
+	// 1) the initial provisioner
+	// 2) an already provisioned device with a cached passphrase stream
+	// 3) a totally clean device
+	// in order to trigger the race we have to make the cached ppstream in (2) outdated
+
+	// Change the password on device 1 to modify ppgen
+	newPassphrase := "password1234"
+	require.NoError(t, RunEngine2(
+		NewMetaContextForTest(tcX).WithUIs(libkb.UIs{
+			SecretUI: &libkb.TestSecretUI{},
+		}),
+		NewPassphraseChange(tcX.G, &keybase1.PassphraseChangeArg{
+			OldPassphrase: userX.Passphrase,
+			Passphrase:    newPassphrase,
+		}),
+	))
+
+	// Now provision Z from Y
+	t.Logf("kex#2 starting")
+
+	// start provisionee for step #2
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		m := NewMetaContextForTest(tcZ).WithUIs(uis)
+		eng := NewLogin(tcZ.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+		if err := RunEngine2(m, eng); err != nil {
+			t.Errorf("provisionee login error: %s", err)
+			return
+		}
+	}()
+
+	// start provisioner for step #2
+	var secretY kex2.Secret
+	if _, err := rand.Read(secretY[:]); err != nil {
+		t.Fatal(err)
+	}
+	provisioner = NewKex2Provisioner(tcY.G, secretY, nil)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		// We're reusing the m from the PGP key generation
+		m := NewMetaContextForTest(tcY).WithUIs(uis)
+		// m.ActiveDevice().ClearPassphraseStreamCache()
+		if err := RunEngine2(m, provisioner); err != nil {
+			t.Errorf("provisioner error: %s", err)
+			return
+		}
+	}()
+	secretFromZ := <-secretCh
+	provisioner.AddSecret(secretFromZ)
+
+	wg.Wait()
+
+	require.False(t, t.Failed(), "prior failure in a goroutine")
+
+	// 3rd device should be provisioned
+	if err := AssertProvisioned(tcZ); err != nil {
+		t.Fatal(err)
+	}
+
+	t.Logf("kex#2 finished")
 }
 
 type testProvisionUI struct {

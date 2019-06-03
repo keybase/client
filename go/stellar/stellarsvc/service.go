@@ -3,6 +3,7 @@ package stellarsvc
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -208,7 +209,7 @@ func (s *Server) SendCLILocal(ctx context.Context, arg stellar1.SendCLILocalArg)
 		SecretNote:     arg.Note,
 		ForceRelay:     arg.ForceRelay,
 		QuickReturn:    false,
-		PublicMemo:     arg.PublicNote,
+		PublicMemo:     stellarnet.NewMemoText(arg.PublicNote),
 	})
 	if err != nil {
 		return res, err
@@ -240,7 +241,7 @@ func (s *Server) SendPathCLILocal(ctx context.Context, arg stellar1.SendPathCLIL
 		To:          stellarcommon.RecipientInput(arg.Recipient),
 		Path:        arg.Path,
 		SecretNote:  arg.Note,
-		PublicMemo:  arg.PublicNote,
+		PublicMemo:  stellarnet.NewMemoText(arg.PublicNote),
 		QuickReturn: false,
 	})
 	if err != nil {
@@ -618,7 +619,7 @@ func (s *Server) ValidateStellarURILocal(ctx context.Context, arg stellar1.Valid
 
 const zeroSourceAccount = "00000000000000000000000000000000000000000000000000000000"
 
-func (s *Server) validateStellarURI(mctx libkb.MetaContext, uri string, getter stellarnet.HTTPGetter) (*stellar1.ValidateStellarURIResultLocal, *xdr.TransactionEnvelope, error) {
+func (s *Server) validateStellarURI(mctx libkb.MetaContext, uri string, getter stellarnet.HTTPGetter) (*stellar1.ValidateStellarURIResultLocal, *stellarnet.ValidatedStellarURI, error) {
 	validated, err := stellarnet.ValidateStellarURI(uri, getter)
 	if err != nil {
 		return nil, nil, err
@@ -654,7 +655,7 @@ func (s *Server) validateStellarURI(mctx libkb.MetaContext, uri string, getter s
 		}
 	}
 
-	return &local, validated.TxEnv, nil
+	return &local, validated, nil
 }
 
 func (s *Server) ApproveTxURILocal(ctx context.Context, arg stellar1.ApproveTxURILocalArg) (txID stellar1.TransactionID, err error) {
@@ -668,11 +669,12 @@ func (s *Server) ApproveTxURILocal(ctx context.Context, arg stellar1.ApproveTxUR
 	}
 
 	// revalidate the URI
-	vp, txEnv, err := s.validateStellarURI(mctx, arg.InputURI, http.DefaultClient)
+	vp, validated, err := s.validateStellarURI(mctx, arg.InputURI, http.DefaultClient)
 	if err != nil {
 		return "", err
 	}
 
+	txEnv := validated.TxEnv
 	if txEnv == nil {
 		return "", errors.New("no tx envelope in URI")
 	}
@@ -739,13 +741,17 @@ func (s *Server) ApprovePayURILocal(ctx context.Context, arg stellar1.ApprovePay
 	}
 
 	// revalidate the URI
-	vp, _, err := s.validateStellarURI(mctx, arg.InputURI, http.DefaultClient)
+	vp, validated, err := s.validateStellarURI(mctx, arg.InputURI, http.DefaultClient)
 	if err != nil {
 		return "", err
 	}
 
 	if vp.Amount == "" {
 		vp.Amount = arg.Amount
+	}
+	memo, err := validated.MemoExport()
+	if err != nil {
+		return "", err
 	}
 
 	if vp.CallbackURL != "" {
@@ -765,20 +771,13 @@ func (s *Server) ApprovePayURILocal(ctx context.Context, arg stellar1.ApprovePay
 		if err != nil {
 			return "", err
 		}
-		var memoText string
-		if vp.MemoType == "MEMO_TEXT" {
-			memoText = vp.Memo
-		} else if vp.Memo != "" {
-			// CORE-10865 will fix this:
-			return "", errors.New("keybase cannot handle non-text memos currently")
-		}
 
 		sp, unlock := stellar.NewSeqnoProvider(mctx, s.walletState)
 		defer unlock()
 
 		baseFee := s.walletState.BaseFee(mctx)
 
-		sig, err := stellarnet.PaymentXLMTransaction(senderSeed, recipientAddr, vp.Amount, memoText, sp, nil, baseFee)
+		sig, err := stellarnet.PaymentXLMTransactionWithMemo(senderSeed, recipientAddr, vp.Amount, memo, sp, nil, baseFee)
 		if err != nil {
 			return "", err
 		}
@@ -789,11 +788,9 @@ func (s *Server) ApprovePayURILocal(ctx context.Context, arg stellar1.ApprovePay
 	}
 
 	sendArg := stellar.SendPaymentArg{
-		To:     stellarcommon.RecipientInput(vp.Recipient),
-		Amount: vp.Amount,
-	}
-	if vp.MemoType == "MEMO_TEXT" {
-		sendArg.PublicMemo = vp.Memo
+		To:         stellarcommon.RecipientInput(vp.Recipient),
+		Amount:     vp.Amount,
+		PublicMemo: memo,
 	}
 
 	var res stellar.SendPaymentResult
@@ -813,6 +810,39 @@ func (s *Server) ApprovePayURILocal(ctx context.Context, arg stellar1.ApprovePay
 	return res.TxID, nil
 }
 
+func (s *Server) GetPartnerUrlsLocal(ctx context.Context, sessionID int) (res []stellar1.PartnerUrl, err error) {
+	// Pull back all of the external_urls, but only look at the partner_urls.
+	// To ensure we have flexibility in the future, only type check the objects
+	// under the key we care about here.
+	mctx := libkb.NewMetaContext(ctx, s.G())
+	entry, err := s.G().GetExternalURLStore().GetLatestEntry(mctx)
+	if err != nil {
+		return nil, err
+	}
+	b := []byte(entry.Entry)
+	var externalURLs map[string]map[string][]interface{}
+	if err := json.Unmarshal(b, &externalURLs); err != nil {
+		return nil, err
+	}
+	externalURLGroups, ok := externalURLs[libkb.ExternalURLsBaseKey]
+	if !ok {
+		return nil, fmt.Errorf("no external URLs to parse")
+	}
+	for _, asInterface := range externalURLGroups[libkb.ExternalURLsStellarPartners] {
+		asData, err := json.Marshal(asInterface)
+		if err != nil {
+			return nil, err
+		}
+		var s stellar1.PartnerUrl
+		err = json.Unmarshal(asData, &s)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, s)
+	}
+	return res, nil
+}
+
 func (s *Server) ApprovePathURILocal(ctx context.Context, arg stellar1.ApprovePathURILocalArg) (txID stellar1.TransactionID, err error) {
 	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName: "ApprovePathURILocal",
@@ -824,17 +854,20 @@ func (s *Server) ApprovePathURILocal(ctx context.Context, arg stellar1.ApprovePa
 	}
 
 	// revalidate the URI
-	vp, _, err := s.validateStellarURI(mctx, arg.InputURI, http.DefaultClient)
+	vp, validated, err := s.validateStellarURI(mctx, arg.InputURI, http.DefaultClient)
+	if err != nil {
+		return "", err
+	}
+
+	memo, err := validated.MemoExport()
 	if err != nil {
 		return "", err
 	}
 
 	sendArg := stellar.SendPathPaymentArg{
-		To:   stellarcommon.RecipientInput(vp.Recipient),
-		Path: arg.FullPath,
-	}
-	if vp.MemoType == "MEMO_TEXT" {
-		sendArg.PublicMemo = vp.Memo
+		To:         stellarcommon.RecipientInput(vp.Recipient),
+		Path:       arg.FullPath,
+		PublicMemo: memo,
 	}
 
 	if vp.CallbackURL != "" {

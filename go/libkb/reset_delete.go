@@ -18,38 +18,45 @@ func CancelResetPipeline(mctx MetaContext) (err error) {
 
 func ResetAccount(mctx MetaContext, username NormalizedUsername, passphrase string) (err error) {
 	defer mctx.Trace("ResetAccount", func() error { return err })()
-	return resetOrDeleteAccount(mctx, username, passphrase, "nuke")
+	return resetOrDeleteAccount(mctx, username, &passphrase, "nuke")
 }
 
-func DeleteAccount(mctx MetaContext, username NormalizedUsername, passphrase string) (err error) {
+func DeleteAccount(mctx MetaContext, username NormalizedUsername, passphrase *string) (err error) {
 	defer mctx.Trace("DeleteAccount", func() error { return err })()
 	return resetOrDeleteAccount(mctx, username, passphrase, "delete")
 }
 
-func resetOrDeleteAccount(mctx MetaContext, username NormalizedUsername, passphrase string, endpoint string) (err error) {
+func resetOrDeleteAccount(mctx MetaContext, username NormalizedUsername, passphrase *string, endpoint string) (err error) {
 	defer mctx.Trace("resetOrDeleteAccount", func() error { return err })()
-
-	mctx = mctx.WithNewProvisionalLoginContext()
-	err = PassphraseLoginNoPrompt(mctx, username.String(), passphrase)
-	if err != nil {
-		return err
-	}
-	pps := mctx.PassphraseStream()
-	if pps == nil {
-		return errors.New("unexpected nil passphrase stream")
-	}
-
-	pdpka, err := ComputeLoginPackage2(mctx, pps)
-	if err != nil {
-		return err
-	}
 
 	arg := APIArg{
 		Endpoint:    endpoint,
 		SessionType: APISessionTypeREQUIRED,
 		Args:        NewHTTPArgs(),
 	}
-	pdpka.PopulateArgs(&arg.Args)
+
+	if passphrase != nil {
+		// If passphrase is provided, create pdpka to authenticate the request.
+		// Otherwise, NIST authentication can be used (so no extra work for the
+		// client besides providing valid NIST token), but that only works for
+		// deleting random_pw accounts.
+		mctx = mctx.WithNewProvisionalLoginContext()
+		err = PassphraseLoginNoPrompt(mctx, username.String(), *passphrase)
+		if err != nil {
+			return err
+		}
+		pps := mctx.PassphraseStream()
+		if pps == nil {
+			return errors.New("unexpected nil passphrase stream")
+		}
+
+		pdpka, err := ComputeLoginPackage2(mctx, pps)
+		if err != nil {
+			return err
+		}
+
+		pdpka.PopulateArgs(&arg.Args)
+	}
 	_, err = mctx.G().API.Post(mctx, arg)
 	return err
 }

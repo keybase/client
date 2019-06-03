@@ -1474,6 +1474,13 @@
           "name": "afterContext"
         },
         {
+          "type": [
+            null,
+            "Pagination"
+          ],
+          "name": "initialPagination"
+        },
+        {
           "type": "ReIndexingMode",
           "name": "reindexMode"
         },

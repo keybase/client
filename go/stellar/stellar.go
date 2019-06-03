@@ -223,7 +223,12 @@ func ImportSecretKey(mctx libkb.MetaContext, secretKey stellar1.SecretKey, makeP
 		mctx.Debug("ImportSecretKey, failed to parse secret key after import: %s", err)
 		return nil
 	}
-	page, err := remote.RecentPayments(mctx.Ctx(), mctx.G(), accountID, nil, 0, true)
+	arg := remote.RecentPaymentsArg{
+		AccountID:       accountID,
+		SkipPending:     true,
+		IncludeAdvanced: true,
+	}
+	page, err := remote.RecentPayments(mctx.Ctx(), mctx.G(), arg)
 	if err != nil {
 		mctx.Debug("ImportSecretKey, RecentPayments error: %s", err)
 		return nil
@@ -498,8 +503,8 @@ type SendPaymentArg struct {
 	To             stellarcommon.RecipientInput
 	Amount         string // Amount of XLM to send.
 	DisplayBalance DisplayBalance
-	SecretNote     string // Optional.
-	PublicMemo     string // Optional.
+	SecretNote     string           // Optional.
+	PublicMemo     *stellarnet.Memo // Optional.
 	ForceRelay     bool
 	QuickReturn    bool
 }
@@ -612,7 +617,7 @@ func sendPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendP
 	var seqno uint64
 	if !funded {
 		// if no balance, create_account operation
-		sig, err := stellarnet.CreateAccountXLMTransaction(senderSeed2, *recipient.AccountID, sendArg.Amount, sendArg.PublicMemo, sp, tb, baseFee)
+		sig, err := stellarnet.CreateAccountXLMTransactionWithMemo(senderSeed2, *recipient.AccountID, sendArg.Amount, sendArg.PublicMemo, sp, tb, baseFee)
 		if err != nil {
 			return res, err
 		}
@@ -621,7 +626,7 @@ func sendPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendP
 		seqno = sig.Seqno
 	} else {
 		// if balance, payment operation
-		sig, err := stellarnet.PaymentXLMTransaction(senderSeed2, *recipient.AccountID, sendArg.Amount, sendArg.PublicMemo, sp, tb, baseFee)
+		sig, err := stellarnet.PaymentXLMTransactionWithMemo(senderSeed2, *recipient.AccountID, sendArg.Amount, sendArg.PublicMemo, sp, tb, baseFee)
 		if err != nil {
 			return res, err
 		}
@@ -701,7 +706,7 @@ type SendPathPaymentArg struct {
 	To          stellarcommon.RecipientInput
 	Path        stellar1.PaymentPath
 	SecretNote  string
-	PublicMemo  string
+	PublicMemo  *stellarnet.Memo
 	QuickReturn bool
 }
 
@@ -744,7 +749,7 @@ func PathPaymentTx(mctx libkb.MetaContext, walletState *WalletState, sendArg Sen
 	sp, unlock := NewSeqnoProvider(mctx, walletState)
 	defer unlock()
 
-	sig, err := stellarnet.PathPaymentTransaction(senderSeed, to, sendArg.Path.SourceAsset, sendArg.Path.SourceAmountMax, sendArg.Path.DestinationAsset, sendArg.Path.DestinationAmount, AssetSliceToAssetBase(sendArg.Path.Path), sendArg.PublicMemo, sp, nil, baseFee)
+	sig, err := stellarnet.PathPaymentTransactionWithMemo(senderSeed, to, sendArg.Path.SourceAsset, sendArg.Path.SourceAmountMax, sendArg.Path.DestinationAsset, sendArg.Path.DestinationAmount, AssetSliceToAssetBase(sendArg.Path.Path), sendArg.PublicMemo, sp, nil, baseFee)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -1173,7 +1178,7 @@ func prepareMiniChatPaymentRelay(mctx libkb.MetaContext, remoter remote.Remoter,
 // The balance of the relay account can be claimed by either party.
 func sendRelayPayment(mctx libkb.MetaContext, walletState *WalletState,
 	from stellar1.SecretKey, recipient stellarcommon.Recipient, amount string, displayBalance DisplayBalance,
-	secretNote string, publicMemo string, quickReturn bool, senderEntryPrimary bool, baseFee uint64) (res SendPaymentResult, err error) {
+	secretNote string, publicMemo *stellarnet.Memo, quickReturn bool, senderEntryPrimary bool, baseFee uint64) (res SendPaymentResult, err error) {
 	defer mctx.TraceTimed("Stellar.sendRelayPayment", func() error { return err })()
 	appKey, teamID, err := relays.GetKey(mctx, recipient)
 	if err != nil {
@@ -1390,7 +1395,11 @@ func GetOwnPrimaryAccountID(mctx libkb.MetaContext) (res stellar1.AccountID, err
 
 func RecentPaymentsCLILocal(mctx libkb.MetaContext, remoter remote.Remoter, accountID stellar1.AccountID) (res []stellar1.PaymentOrErrorCLILocal, err error) {
 	defer mctx.TraceTimed("Stellar.RecentPaymentsCLILocal", func() error { return err })()
-	page, err := remoter.RecentPayments(mctx.Ctx(), accountID, nil, 0, false)
+	arg := remote.RecentPaymentsArg{
+		AccountID:       accountID,
+		IncludeAdvanced: true,
+	}
+	page, err := remoter.RecentPayments(mctx.Ctx(), arg)
 	if err != nil {
 		return nil, err
 	}
@@ -1437,14 +1446,17 @@ func localizePayment(mctx libkb.MetaContext, p stellar1.PaymentSummary) (res ste
 	case stellar1.PaymentSummaryType_STELLAR:
 		p := p.Stellar()
 		return stellar1.PaymentCLILocal{
-			TxID:        p.TxID,
-			Time:        p.Ctime,
-			Status:      "Completed",
-			Amount:      p.Amount,
-			Asset:       p.Asset,
-			FromStellar: p.From,
-			ToStellar:   &p.To,
-			Unread:      p.Unread,
+			TxID:            p.TxID,
+			Time:            p.Ctime,
+			Status:          "Completed",
+			Amount:          p.Amount,
+			Asset:           p.Asset,
+			FromStellar:     p.From,
+			ToStellar:       &p.To,
+			Unread:          p.Unread,
+			IsAdvanced:      p.IsAdvanced,
+			SummaryAdvanced: p.SummaryAdvanced,
+			Operations:      p.Operations,
 		}, nil
 	case stellar1.PaymentSummaryType_DIRECT:
 		p := p.Direct()

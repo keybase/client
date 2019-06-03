@@ -62,8 +62,8 @@ func (r *RemoteNet) NextAutoClaim(ctx context.Context) (*stellar1.AutoClaim, err
 	return NextAutoClaim(ctx, r.G())
 }
 
-func (r *RemoteNet) RecentPayments(ctx context.Context, accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int, skipPending bool) (stellar1.PaymentsPage, error) {
-	return RecentPayments(ctx, r.G(), accountID, cursor, limit, skipPending)
+func (r *RemoteNet) RecentPayments(ctx context.Context, arg RecentPaymentsArg) (stellar1.PaymentsPage, error) {
+	return RecentPayments(ctx, r.G(), arg)
 }
 
 func (r *RemoteNet) PendingPayments(ctx context.Context, accountID stellar1.AccountID, limit int) ([]stellar1.PaymentSummary, error) {

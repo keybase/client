@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "incremental": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "module": "commonjs",
+    "noImplicitAny": false,
+    "outDir": "./.tsOut/emit",
+    "paths": {
+      "rn-fetch-blob": ["custom-d.ts/rn-fetch-blob.d.ts"],
+      "popper": ["custom-d.ts/popper.d.ts"]
+    },
+    "sourceMap": true,
+    "target": "es2017",
+    "tsBuildInfoFile": "./.tsOut/cache"
+  },
+  "include": ["./**/*"],
+  "exclude": [
+    "node_modules",
+    "node_modules/popper.js/index.d.ts",
+    "react-native",
+    "desktop/dist",
+    "desktop/build"
+  ]
+}

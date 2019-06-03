@@ -15,6 +15,7 @@ protocol local {
     CurrencyLocal currencyLocal;// user configurable, defaults to USD and related details
     AccountMode accountMode;    // mobile only vs all devices
     boolean accountModeEditable;// is this device able to change it
+    boolean deviceReadOnly;     // is account read only for current device (because of mobileOnly mode)
     boolean isFunded;           // does the account have minimum amount of XLM to exist on the network
     boolean canSubmitTx;        // does the account have enough XLM to submit a transaction (enough for the fee)
   }
@@ -109,6 +110,11 @@ protocol local {
     string sourceAmountActual;
     Asset sourceAsset;
 
+    // for non-payment txs, multiple ops:
+    boolean isAdvanced;
+    string summaryAdvanced;         // if isAdvanced is true, just show this string
+    array<string> operations;
+
     boolean unread;                 // true if user hasn't seen the payment yet (sourceType STELLAR only)
 
     string batchID;                 // if payment sent via batch, will contain the batch id
@@ -177,6 +183,11 @@ protocol local {
     string sourceAmountMax;
     string sourceAmountActual;
     Asset sourceAsset;
+    
+    // for non-payment txs, multiple ops:
+    boolean isAdvanced;
+    string summaryAdvanced;         // if isAdvanced is true, just show this string
+    array<string> operations;       // string summary of each operation in the transaction
 
     string publicNote;              // public memo for the payment
     string publicNoteType;          // public memo type: "text", "id", "hash", "return"
@@ -192,10 +203,10 @@ protocol local {
 
   // accountID should be the accountID that you want the details for.
   // This is used for formatting the `amountDescription` to know if it
-  // is a payment that increases or decreases the balance. 
+  // is a payment that increases or decreases the balance.
   PaymentDetailsLocal getPaymentDetailsLocal(int sessionID, AccountID accountID, PaymentID id);
- 
-  // only use getGenericPaymentDetailsLocal if you don't know the account ID. 
+
+  // only use getGenericPaymentDetailsLocal if you don't know the account ID.
   // Without account ID, we can't fill in a variety of information and we
   // can't handle multi-operation transactions.
   PaymentDetailsLocal getGenericPaymentDetailsLocal(int sessionID, PaymentID id);
@@ -305,7 +316,7 @@ protocol local {
 
     // Optional. Error to show with the amount field.
     // Example: "russel doesn't accept *BTC/Stronghold.com*\nPlease pick another asset."
-    // Example: "You have *128.4567890 XLM* available to send."
+    // Example: "You only have *128.4567890 XLM* available to send."
     string amountErrMsg;
 
     // Optional. Error to show with the encrypted note field.
@@ -539,7 +550,7 @@ protocol local {
   array<Balance> getTrustlinesLocal(int sessionID, AccountID accountID);
 
   record PaymentPathLocal {
-    string sourceDisplay;               // for display purposes 
+    string sourceDisplay;               // for display purposes
     string sourceMaxDisplay;
     string destinationDisplay;
     AccountID destinationAccount;
@@ -590,6 +601,11 @@ protocol local {
     string sourceAmountMax;
     string sourceAmountActual;
     Asset sourceAsset;
+
+    // for non-payment txs, multiple ops:
+    boolean isAdvanced;
+    string summaryAdvanced;         // if isAdvanced is true, just show this string
+    array<string> operations;       // string summary of each operation in the transaction
 
     AccountID fromStellar;
     union { null, AccountID } toStellar;
@@ -727,9 +743,22 @@ protocol local {
     string memo;              // optional
     string memoType;          // required if memo exists
   }
-  
+
   ValidateStellarURIResultLocal validateStellarURILocal(int sessionID, string inputURI);
   TransactionID approveTxURILocal(int sessionID, string inputURI);
   TransactionID approvePayURILocal(int sessionID, string inputURI, string amount, boolean fromCLI);
   TransactionID approvePathURILocal(int sessionID, string inputURI, PaymentPath fullPath, boolean fromCLI);
+
+  record PartnerUrl {
+    string url;
+    string title;
+    string description;
+    @jsonkey("icon_filename")
+    string iconFilename;
+    @jsonkey("admin_only")
+    boolean adminOnly;
+    string extra; // extra json tbd
+  }
+
+  array<PartnerUrl> getPartnerUrlsLocal(int sessionID);
 }
