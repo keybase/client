@@ -1,8 +1,7 @@
 // Simple control to show multiple avatars. Just used in chat but could be expanded. Keeping this simple for now
 import shallowEqual from 'shallowequal'
 import logger from '../logger'
-import Avatar, {Props as AvatarProps, AvatarSize} from './avatar'
-// @ts-ignore not converted
+import Avatar, {OwnProps as AvatarProps, AvatarSize} from './avatar'
 import Box from './box'
 import * as React from 'react'
 import {globalStyles, StylesCrossPlatform, collapseStyles} from '../styles'

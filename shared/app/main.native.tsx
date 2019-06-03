@@ -42,7 +42,11 @@ class Main extends React.Component<Props> {
     )
   }
 }
-const ViewForGatewayDest = (props: any) => <View {...props} />
+class ViewForGatewayDest extends React.Component {
+  render() {
+    return <View {...this.props} />
+  }
+}
 
 const styles = Styles.styleSheetCreate({
   gatewayDest: {flexGrow: 1, width: '100%'},

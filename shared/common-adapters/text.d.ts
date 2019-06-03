@@ -1,6 +1,7 @@
 import * as React from 'react'
 import {StylesCrossPlatform} from '../styles'
 import {allTextTypes} from './text.shared'
+import * as CSS from '../styles/css'
 
 type Background =
   | 'Announcements'
@@ -50,13 +51,26 @@ declare class Text extends React.Component<Props> {
   highlightText: () => void
 }
 
+type TextStyle = {
+  fontSize: number
+  color: string
+  cursor: string
+  lineClamp?: number
+  clickable?: CSS._StylesDesktop
+  userSelect?: any
+  textDecoration?: string
+  colorForBackground?: string
+  styleOverride?: any
+  lineHeight?: any
+}
+
 declare function getStyle(
   type: TextType,
   backgroundMode?: Background | null,
   lineClamp?: number | null,
   clickable?: boolean | null,
   selectable?: boolean
-): any // TODO better type here
+): TextStyle
 
 export {getStyle, allTextTypes}
 export {Background, MetaType, Props, TextType}

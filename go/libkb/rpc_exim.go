@@ -1544,10 +1544,6 @@ func ImportKeyGenArg(a keybase1.PGPKeyGenArg) (ret PGPGenArg) {
 
 //=============================================================================
 
-func (t Tracker) Export() keybase1.Tracker { return keybase1.Tracker(t) }
-
-//=============================================================================
-
 func (e BadInvitationCodeError) ToStatus() (s keybase1.Status) {
 	s.Code = SCBadInvitationCode
 	s.Name = "BAD_INVITATION_CODE"

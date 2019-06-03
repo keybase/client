@@ -1,5 +1,4 @@
 /* eslint-disable import/no-extraneous-dependencies, import/no-unresolved, import/extensions */
-// @flow
 import * as React from 'react'
 import * as Sb from './storybook'
 import {addDecorator} from '@storybook/react'
@@ -34,7 +33,6 @@ const rootDecorator = story => (
 const load = () => {
   initDesktopStyles()
   addDecorator(rootDecorator)
-  // $FlowIssue
   addDecorator(Sb.createPropProviderWithCommon())
   Object.keys(filteredStories).forEach(s => filteredStories[s]())
 }

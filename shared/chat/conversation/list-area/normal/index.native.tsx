@@ -147,7 +147,6 @@ class ConversationList extends React.PureComponent<Props> {
     }
     const index = this._getOrdinalIndex(this.props.centeredOrdinal)
     if (index >= 0) {
-      // $FlowIssue
       _debug(`_scrollToCentered: ordinal: ${this.props.centeredOrdinal} index: ${index}`)
       this._scrollCenterTarget = index
       list.scrollToIndex({animated: false, index, viewPosition: 0.5})
@@ -173,9 +172,7 @@ class ConversationList extends React.PureComponent<Props> {
   componentDidUpdate(prevProps: Props) {
     // if the ordinals are the same but something changed, attempt to scroll to centered
     _debug(
-      // $FlowIssue
       `componentDidUpdate: center: ${this.props.centeredOrdinal} oldCenter: ${
-        // $FlowIssue
         prevProps.centeredOrdinal
       } first: ${this.props.messageOrdinals.first()} last: ${this.props.messageOrdinals.last()} oldFirst: ${prevProps.messageOrdinals.first()} oldLast: ${prevProps.messageOrdinals.last()}`
     )

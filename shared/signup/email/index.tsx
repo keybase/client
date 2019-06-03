@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {SignupScreen} from '../common'
+import {ButtonType} from '../../common-adapters/button'
 
 type Props = {
   allowSearch: boolean
@@ -15,7 +16,7 @@ const EnterEmail = (props: Props) => (
   <SignupScreen
     buttons={[
       {label: 'Finish', onClick: props.onFinish, type: 'Success'},
-      ...(Styles.isMobile ? [] : [{label: 'Skip for now', onClick: props.onSkip, type: 'Dim'}]),
+      ...(Styles.isMobile ? [] : [{label: 'Skip for now', onClick: props.onSkip, type: 'Dim' as ButtonType}]),
     ]}
     rightActionLabel="Skip"
     onRightAction={props.onSkip}

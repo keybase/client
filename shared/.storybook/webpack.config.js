@@ -1,4 +1,3 @@
-// @noflow
 const webpack = require('webpack')
 const path = require('path')
 // you can use this file to add your custom webpack plugins, loaders and anything you like.

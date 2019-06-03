@@ -96,7 +96,6 @@ const FileUpdates = (props: FileUpdatesProps & FileUpdatesHocProps) => (
       <FileUpdate key={FsTypes.pathToString(u.path)} {...u} />
     ))}
     {props.updates.length > defaultNumFileOptionsShown && !props.isShowingAll && (
-      // $FlowIssue ¯\_(ツ)_/¯
       <FileUpdatesShowAll
         onShowAll={props.onShowAll}
         isShowingAll={props.isShowingAll}

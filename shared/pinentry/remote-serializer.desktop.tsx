@@ -1,5 +1,3 @@
-// @noflow
-
 export const serialize = {
   cancelLabel: v => v,
   prompt: v => v,

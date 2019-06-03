@@ -82,7 +82,6 @@ const error = {
   commitmentVis: '',
   errorInfo: {
     generic: 'Something went wrong: Somebody pulled the plug',
-    // $FlowIssue variant types with void don't work
     typ: RPCChatTypes.UICoinFlipErrorTyp.generic,
   },
   isSendError: false,
@@ -116,7 +115,6 @@ const absenteeError = {
   ...error,
   errorInfo: {
     absentee,
-    // $FlowIssue variant types with void don't work
     typ: RPCChatTypes.UICoinFlipErrorTyp.absentee,
   },
 } as Props
@@ -124,7 +122,6 @@ const absenteeError = {
 const timeoutError = {
   ...error,
   errorInfo: {
-    // $FlowIssue variant types with void don't work
     typ: RPCChatTypes.UICoinFlipErrorTyp.timeout,
   },
 } as Props
@@ -132,7 +129,6 @@ const timeoutError = {
 const abortedError = {
   ...error,
   errorInfo: {
-    // $FlowIssue variant types with void don't work
     typ: RPCChatTypes.UICoinFlipErrorTyp.aborted,
   },
 } as Props
@@ -144,7 +140,6 @@ const dupRegError = {
       device: 'My IOS Device 2019',
       user: 'mikem',
     },
-    // $FlowIssue variant types with void don't work
     typ: RPCChatTypes.UICoinFlipErrorTyp.dupreg,
   },
 } as Props
@@ -156,7 +151,6 @@ const dupCommitCompleteError = {
       device: 'My IOS Device 2019',
       user: 'mikem',
     },
-    // $FlowIssue variant types with void don't work
     typ: RPCChatTypes.UICoinFlipErrorTyp.dupcommitcomplete,
   },
 } as Props
@@ -168,7 +162,6 @@ const dupRevealError = {
       device: 'My IOS Device 2019',
       user: 'mikem',
     },
-    // $FlowIssue variant types with void don't work
     typ: RPCChatTypes.UICoinFlipErrorTyp.dupreveal,
   },
 } as Props
@@ -180,7 +173,6 @@ const dupCommitMismatchError = {
       device: 'My IOS Device 2019',
       user: 'mikem',
     },
-    // $FlowIssue variant types with void don't work
     typ: RPCChatTypes.UICoinFlipErrorTyp.commitmismatch,
   },
 } as Props

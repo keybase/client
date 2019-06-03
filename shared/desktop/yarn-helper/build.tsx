@@ -30,7 +30,7 @@ const commands = {
   package: {
     env: {BABEL_ENV: 'yarn'},
     help: 'Package up the production js code',
-    shell: `babel-node ${spaceArg} desktop/package.desktop.js`,
+    shell: `yarn _node ${spaceArg} desktop/package.desktop.tsx`,
   },
 }
 

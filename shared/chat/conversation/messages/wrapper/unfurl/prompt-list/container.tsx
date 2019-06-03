@@ -49,35 +49,30 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
         dispatchProps._setPolicy(
           stateProps.messageID,
           domain,
-          // $FlowIssue generated type hard to match
           makeRes(RPCChatTypes.UnfurlPromptAction.accept, domain)
         ),
       onAlways: () =>
         dispatchProps._setPolicy(
           stateProps.messageID,
           domain,
-          // $FlowIssue generated type hard to match
           makeRes(RPCChatTypes.UnfurlPromptAction.always)
         ),
       onNever: () =>
         dispatchProps._setPolicy(
           stateProps.messageID,
           domain,
-          // $FlowIssue generated type hard to match
           makeRes(RPCChatTypes.UnfurlPromptAction.never)
         ),
       onNotnow: () =>
         dispatchProps._setPolicy(
           stateProps.messageID,
           domain,
-          // $FlowIssue generated type hard to match
           makeRes(RPCChatTypes.UnfurlPromptAction.notnow)
         ),
       onOnetime: () =>
         dispatchProps._setPolicy(
           stateProps.messageID,
           domain,
-          // $FlowIssue generated type hard to match
           makeRes(RPCChatTypes.UnfurlPromptAction.onetime, domain)
         ),
     }))
