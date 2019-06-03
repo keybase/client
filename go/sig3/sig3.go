@@ -111,7 +111,6 @@ func (b Base) verify() error {
 	if err != nil {
 		return err
 	}
-	b.verified = true
 	return nil
 }
 
@@ -146,14 +145,14 @@ func (r RotateKey) verifyReverseSig() (err error) {
 	for _, ptk := range r.rkb.PTKs {
 		reverseSigs = append(reverseSigs, ptk.ReverseSig)
 	}
-	innerLink := r.Base.outer.InnerLink
+	innerLinkID := r.Base.outer.InnerLinkID
 
 	// Make sure to replace them on the way out of the function, even in an error.
 	defer func() {
 		for j, rs := range reverseSigs {
 			r.rkb.PTKs[j].ReverseSig = rs
 		}
-		r.Base.outer.InnerLink = innerLink
+		r.Base.outer.InnerLinkID = innerLinkID
 	}()
 
 	// Verify signatures in the reverse order they were signed, nulling them out
@@ -166,7 +165,7 @@ func (r RotateKey) verifyReverseSig() (err error) {
 		}
 
 		ptk.ReverseSig = nil
-		r.Base.outer.InnerLink, err = r.Base.inner.hash()
+		r.Base.outer.InnerLinkID, err = r.Base.inner.hash()
 		if err != nil {
 			return err
 		}
@@ -249,7 +248,7 @@ func (s *Sig3ExportJSON) parseInner(in Base) (Generic, error) {
 		return nil, err
 	}
 
-	if !hash(b).eq(in.outer.InnerLink) {
+	if !hash(b).eq(in.outer.InnerLinkID) {
 		return nil, newSig3Error("inner link hash doesn't match inner")
 	}
 
@@ -357,7 +356,7 @@ func signGeneric(g Generic, privkey kbcrypto.NaclSigningKeyPrivate) (ret *Sig3Bu
 	if i == nil {
 		return nil, newSig3Error("cannot sign without an inner link")
 	}
-	o.InnerLink, err = i.hash()
+	o.InnerLinkID, err = i.hash()
 	if err != nil {
 		return nil, err
 	}

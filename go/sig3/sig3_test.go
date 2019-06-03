@@ -204,7 +204,7 @@ func TestBadPayload(t *testing.T) {
 }
 
 func TestBadInnerLink(t *testing.T) {
-	testMutateOuter(t, func(o *OuterLink) { o.InnerLink[0] ^= 1 }, newSig3Error("inner link hash doesn't match inner"))
+	testMutateOuter(t, func(o *OuterLink) { o.InnerLinkID[0] ^= 1 }, newSig3Error("inner link hash doesn't match inner"))
 }
 
 func TestBadVersion(t *testing.T) {

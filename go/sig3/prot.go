@@ -48,7 +48,7 @@ type OuterLink struct {
 	Version             SigVersion          `codec:"version"` // should be 3
 	Seqno               Seqno               `codec:"seqno"`
 	Prev                *LinkID             `codec:"prev"`
-	InnerLink           LinkID              `codec:"curr"` // hash of the msgpack of the InnerLink
+	InnerLinkID         LinkID              `codec:"curr"` // hash of the msgpack of the InnerLink
 	LinkType            LinkType            `codec:"type"` // hash of the msgpack of the previous OuterLink
 	ChainType           ChainType           `codec:"chaintype"`
 	IgnoreIfUnsupported IgnoreIfUnsupported `codec:"ignore_if_unsupported"`
