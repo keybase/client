@@ -72,32 +72,33 @@ type GlobalContext struct {
 	IdentifyDispatch *IdentifyDispatch    // get notified of identify successes
 	Identify3State   *Identify3State      // keep track of Identify3 sessions
 
-	cacheMu          *sync.RWMutex   // protects all caches
-	ProofCache       *ProofCache     // where to cache proof results
-	trackCache       *TrackCache     // cache of IdentifyOutcomes for tracking purposes
-	identify2Cache   Identify2Cacher // cache of Identify2 results for fast-pathing identify2 RPCS
-	linkCache        *LinkCache      // cache of ChainLinks
-	upakLoader       UPAKLoader      // Load flat users with the ability to hit the cache
-	teamLoader       TeamLoader      // Play back teams for id/name properties
-	fastTeamLoader   FastTeamLoader  // Play back team in "fast" mode for keys and names only
-	IDLocktab        LockTable
-	loadUserLockTab  LockTable
-	teamAuditor      TeamAuditor
-	teamBoxAuditor   TeamBoxAuditor
-	stellar          Stellar          // Stellar related ops
-	deviceEKStorage  DeviceEKStorage  // Store device ephemeral keys
-	userEKBoxStorage UserEKBoxStorage // Store user ephemeral key boxes
-	teamEKBoxStorage TeamEKBoxStorage // Store team ephemeral key boxes
-	ekLib            EKLib            // Wrapper to call ephemeral key methods
-	itciCacher       LRUer            // Cacher for implicit team conflict info
-	iteamCacher      MemLRUer         // In memory cacher for implicit teams
-	cardCache        *UserCardCache   // cache of keybase1.UserCard objects
-	fullSelfer       FullSelfer       // a loader that gets the full self object
-	pvlSource        MerkleStore      // a cache and fetcher for pvl
-	paramProofStore  MerkleStore      // a cache and fetcher for param proofs
-	externalURLStore MerkleStore      // a cache and fetcher for external urls
-	PayloadCache     *PayloadCache    // cache of ChainLink payload json wrappers
-	Pegboard         *Pegboard
+	cacheMu                *sync.RWMutex   // protects all caches
+	ProofCache             *ProofCache     // where to cache proof results
+	trackCache             *TrackCache     // cache of IdentifyOutcomes for tracking purposes
+	identify2Cache         Identify2Cacher // cache of Identify2 results for fast-pathing identify2 RPCS
+	linkCache              *LinkCache      // cache of ChainLinks
+	upakLoader             UPAKLoader      // Load flat users with the ability to hit the cache
+	teamLoader             TeamLoader      // Play back teams for id/name properties
+	fastTeamLoader         FastTeamLoader  // Play back team in "fast" mode for keys and names only
+	hiddenTeamChainManager HiddenTeamChainManager
+	IDLocktab              LockTable
+	loadUserLockTab        LockTable
+	teamAuditor            TeamAuditor
+	teamBoxAuditor         TeamBoxAuditor
+	stellar                Stellar          // Stellar related ops
+	deviceEKStorage        DeviceEKStorage  // Store device ephemeral keys
+	userEKBoxStorage       UserEKBoxStorage // Store user ephemeral key boxes
+	teamEKBoxStorage       TeamEKBoxStorage // Store team ephemeral key boxes
+	ekLib                  EKLib            // Wrapper to call ephemeral key methods
+	itciCacher             LRUer            // Cacher for implicit team conflict info
+	iteamCacher            MemLRUer         // In memory cacher for implicit teams
+	cardCache              *UserCardCache   // cache of keybase1.UserCard objects
+	fullSelfer             FullSelfer       // a loader that gets the full self object
+	pvlSource              MerkleStore      // a cache and fetcher for pvl
+	paramProofStore        MerkleStore      // a cache and fetcher for param proofs
+	externalURLStore       MerkleStore      // a cache and fetcher for external urls
+	PayloadCache           *PayloadCache    // cache of ChainLink payload json wrappers
+	Pegboard               *Pegboard
 
 	GpgClient        *GpgCLI        // A standard GPG-client (optional)
 	ShutdownHooks    []ShutdownHook // on shutdown, fire these...
@@ -227,6 +228,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.upakLoader = NewUncachedUPAKLoader(g)
 	g.teamLoader = newNullTeamLoader(g)
 	g.fastTeamLoader = newNullFastTeamLoader()
+	g.hiddenTeamChainManager = newNullHiddenTeamChainManager()
 	g.teamAuditor = newNullTeamAuditor()
 	g.teamBoxAuditor = newNullTeamBoxAuditor()
 	g.stellar = newNullStellar(g)
@@ -571,6 +573,18 @@ func (g *GlobalContext) GetFastTeamLoader() FastTeamLoader {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
 	return g.fastTeamLoader
+}
+
+func (g *GlobalContext) GetHiddenTeamChainManager() HiddenTeamChainManager {
+	g.cacheMu.RLock()
+	defer g.cacheMu.RUnlock()
+	return g.hiddenTeamChainManager
+}
+
+func (g *GlobalContext) SetHiddenTeamChainManager(h HiddenTeamChainManager) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.hiddenTeamChainManager = h
 }
 
 func (g *GlobalContext) GetTeamAuditor() TeamAuditor {

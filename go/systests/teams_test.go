@@ -1739,7 +1739,7 @@ func TestForceRepollState(t *testing.T) {
 	found := false
 	w := 10 * time.Millisecond
 	for i := 0; i < 10; i++ {
-		found = tt.users[0].tc.G.GetTeamLoader().(*teams.TeamLoader).InForceRepollMode(context.TODO())
+		found = tt.users[0].tc.G.GetTeamLoader().(*teams.TeamLoader).InForceRepollMode(mctx)
 		if found {
 			break
 		}
