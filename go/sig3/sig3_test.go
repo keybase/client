@@ -65,7 +65,7 @@ func randomLinkIDPointer(t *testing.T) *LinkID {
 	return &ret
 }
 
-func genTest(t *testing.T, n int) (bun *Sig3Bundle, ex Sig3ExportJSON, rk *RotateKey, outerKey KeyPair, innerKey []KeyPair) {
+func genTest(t *testing.T, n int) (bun *Sig3Bundle, ex ExportJSON, rk *RotateKey, outerKey KeyPair, innerKey []KeyPair) {
 	inner := InnerLink{
 		Ctime:   keybase1.ToTime(time.Now()),
 		Entropy: randomBytes(t, 16),
@@ -73,7 +73,7 @@ func genTest(t *testing.T, n int) (bun *Sig3Bundle, ex Sig3ExportJSON, rk *Rotat
 			Desc:    "foo",
 			Version: "1.0.0-1",
 		},
-		MerkleRoot: &MerkleRoot{
+		MerkleRoot: MerkleRoot{
 			Ctime: keybase1.ToTime(time.Now()),
 			Seqno: 100,
 			Hash:  randomBytes(t, 32),

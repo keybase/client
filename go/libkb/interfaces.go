@@ -717,14 +717,20 @@ type FastTeamLoader interface {
 type HiddenTeamChainManager interface {
 	// We got gossip about what the latest chain-tail should be, so racthet the
 	// chain forward; the next call to Advance() has to match.
-	Ratchet(MetaContext, keybase1.TeamID, keybase1.LinkTriple) error
+	Ratchet(MetaContext, keybase1.TeamID, keybase1.HiddenTeamChainRatchet) error
 	// We got a bunch of new links downloaded via slow or fast loader, so add them
-	// onto the HiddenTeamChain state.
-	Advance(MetaContext, keybase1.HiddenTeamChainData) error
+	// onto the HiddenTeamChain state. Ensure that the udpated state is at least up to the
+	// given ratchet value.
+	Advance(mctx MetaContext, prev keybase1.LinkTriple, update keybase1.HiddenTeamChainData, ratchet keybase1.Seqno) error
 	// Acceess the previously advanced state; lookup a PerTeamKey given the PerTeamKeyGeneration
 	PerTeamKeyAtGeneration(MetaContext, keybase1.TeamID, keybase1.PerTeamKeyGeneration) (*keybase1.PerTeamKey, error)
 	// Access the tail of the HiddenTeamChain, for embedding into gossip vectors.
 	Tail(MetaContext, keybase1.TeamID) (*keybase1.LinkTriple, error)
+	// LastSeqno returns the last loaded seqno for refresh operations; it also returns the
+	// highest known ratchet, to assert that we're getting all the data down (and that the server isn't
+	// withholding). We have to pass ratchet through, since otherwise there could be a race that
+	// unfairly accuses the server of cheating.
+	LastSeqno(MetaContext, keybase1.TeamID) (loaded keybase1.Seqno, ratcheted keybase1.Seqno, err error)
 }
 
 type TeamAuditor interface {

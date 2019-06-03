@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	storage "github.com/keybase/client/go/teams/storage"
 )
 
 //
@@ -34,7 +35,7 @@ type FastTeamChainLoader struct {
 
 	// Hold onto FastTeamLoad by-products as long as we have room, and store
 	// them persistently to disk.
-	storage *FTLStorage
+	storage *storage.FTLStorage
 
 	// Feature-flagging is powered by the server. If we get feature flagged off, we
 	// won't retry for another hour.
@@ -55,7 +56,7 @@ func NewFastTeamLoader(g *libkb.GlobalContext) *FastTeamChainLoader {
 	ret := &FastTeamChainLoader{
 		world:           NewLoaderContextFromG(g),
 		featureFlagGate: libkb.NewFeatureFlagGate(libkb.FeatureFTL, 2*time.Minute),
-		storage:         NewFTLStorage(g),
+		storage:         storage.NewFTLStorage(g),
 	}
 	return ret
 }
@@ -1269,14 +1270,14 @@ func (f *FastTeamChainLoader) loadLocked(m libkb.MetaContext, arg fastLoadArg) (
 
 // OnLogout is called when the user logs out, which purges the LRU.
 func (f *FastTeamChainLoader) OnLogout(mctx libkb.MetaContext) error {
-	f.storage.clearMem()
+	f.storage.ClearMem()
 	f.featureFlagGate.Clear()
 	return nil
 }
 
 // OnDbNuke is called when the disk cache is cleared, which purges the LRU.
 func (f *FastTeamChainLoader) OnDbNuke(mctx libkb.MetaContext) error {
-	f.storage.clearMem()
+	f.storage.ClearMem()
 	f.featureFlagGate.Clear()
 	return nil
 }

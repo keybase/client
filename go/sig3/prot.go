@@ -17,7 +17,8 @@ type TeamID [16]byte
 type PerTeamKeyGeneration = keybase1.PerTeamKeyGeneration
 type Entropy []byte
 type Sig [64]byte
-type PTKType int
+type PTKType = keybase1.PTKType
+type SeedCheck [32]byte
 
 const (
 	SigVersion3 SigVersion = 3
@@ -34,11 +35,6 @@ const (
 const (
 	ChainTypeUserPrivateHidden ChainType = 16
 	ChainTypeTeamPrivateHidden ChainType = 17
-)
-
-const (
-	// The default, legacy type. All users, including the readers, can access it.
-	PTKTypeReader PTKType = 0
 )
 
 // OuterLink V3 is the third version of Keybase sigchain signatures, it roughly approximates
@@ -61,8 +57,8 @@ type InnerLink struct {
 	Ctime       Time        `codec:"c"` // Seconds since 1970 UTC.
 	Entropy     Entropy     `codec:"e"` // entropy for hiding the value of the inner link
 	ClientInfo  *ClientInfo `codec:"i"` // Optional client type making sig
-	MerkleRoot  *MerkleRoot `codec:"m"` // Optional snapshot of merkle root at time of sig
-	ParentChain *Tail       `codec:"p"` // Optional grab of the most-recent chain tail of the corresponding parent chain
+	MerkleRoot  MerkleRoot  `codec:"m"` // Optional snapshot of merkle root at time of sig
+	ParentChain Tail        `codec:"p"` // grab of the most-recent chain tail of the corresponding parent chain
 	Signer      Signer      `codec:"s"` // Info on the signer, including UID, KID and eldest
 	Team        *Team       `codec:"t"` // for teams, and null otherwise
 }
@@ -110,16 +106,17 @@ type RotateKeyBody struct {
 }
 
 type PerTeamKey struct {
-	AppkeyDerivationVersion int                  `codec:"a"`
-	EncryptionKID           KID                  `codec:"e"`
-	Generation              PerTeamKeyGeneration `codec:"g"`
-	ReverseSig              *Sig                 `codec:"r"` // Can be null if we are checking sigs
-	SigningKID              KID                  `codec:"s"`
-	PTKType                 PTKType              `codec:"t"`
+	AppkeyDerivationVersion int                                `codec:"a"`
+	SeedCheck               keybase1.PerTeamSeedCheckPostImage `codec:"c"` // SHA256(f(i)); see teams.avdl for f(i) definition
+	EncryptionKID           KID                                `codec:"e"`
+	Generation              PerTeamKeyGeneration               `codec:"g"`
+	ReverseSig              *Sig                               `codec:"r"` // Can be null if we are checking sigs
+	SigningKID              KID                                `codec:"s"`
+	PTKType                 PTKType                            `codec:"t"`
 }
 
 // Sig3ExportJSON is for communicating with the API server.
-type Sig3ExportJSON struct {
+type ExportJSON struct {
 	Inner string `json:"i,omitempty"`
 	Outer string `json:"o,omitempty"`
 	Sig   string `json:"s,omitempty"`

@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/sig3"
 )
 
 // Things TeamLoader uses that are mocked out for tests.
@@ -62,9 +63,11 @@ type rawTeam struct {
 	ReaderKeyMasks []keybase1.ReaderKeyMask                               `json:"reader_key_masks"`
 	// Whether the user is only being allowed to view the chain
 	// because they are a member of a descendent team.
-	SubteamReader    bool                               `json:"subteam_reader"`
-	Showcase         keybase1.TeamShowcase              `json:"showcase"`
-	LegacyTLFUpgrade []keybase1.TeamGetLegacyTLFUpgrade `json:"legacy_tlf_upgrade"`
+	SubteamReader      bool                               `json:"subteam_reader"`
+	Showcase           keybase1.TeamShowcase              `json:"showcase"`
+	LegacyTLFUpgrade   []keybase1.TeamGetLegacyTLFUpgrade `json:"legacy_tlf_upgrade"`
+	HiddenChain        []sig3.ExportJSON                  `json:"hidden"`
+	HiddenChainRatchet keybase1.Seqno                     // passed through here for convenience
 }
 
 func (r *rawTeam) GetAppStatus() *libkb.AppStatus {
@@ -141,6 +144,7 @@ func (l *LoaderContextG) getLinksFromServerCommon(ctx context.Context,
 		// At some point to save bandwidth these could be hooked up.
 		// "per_team_key_low":    libkb.I{Val: int(lows.PerTeamKey)},
 		// "reader_key_mask_low": libkb.I{Val: int(lows.PerTeamKey)},
+		arg.Args["hidden_low"] = libkb.I{Val: int(lows.HiddenChainSeqno)}
 	}
 	if len(requestSeqnos) > 0 {
 		arg.Args["seqnos"] = libkb.S{Val: seqnosToString(requestSeqnos)}
@@ -155,6 +159,9 @@ func (l *LoaderContextG) getLinksFromServerCommon(ctx context.Context,
 	}
 	if !rt.ID.Eq(teamID) {
 		return nil, fmt.Errorf("server returned wrong team ID: %v != %v", rt.ID, teamID)
+	}
+	if lows != nil {
+		rt.HiddenChainRatchet = lows.HiddenChainRatchet
 	}
 	return &rt, nil
 }

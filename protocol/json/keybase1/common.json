@@ -109,6 +109,12 @@
     },
     {
       "type": "record",
+      "name": "BinaryLinkID",
+      "fields": [],
+      "typedef": "bytes"
+    },
+    {
+      "type": "record",
       "name": "BinaryKID",
       "fields": [],
       "typedef": "bytes"

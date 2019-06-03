@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams/storage"
 	"github.com/stretchr/testify/require"
 )
 
@@ -1153,7 +1154,7 @@ func randomTlfID(t *testing.T) keybase1.TLFID {
 	return keybase1.TLFID(hex.EncodeToString(idBytes))
 }
 
-func getFastStorageFromG(g *libkb.GlobalContext) *FTLStorage {
+func getFastStorageFromG(g *libkb.GlobalContext) *storage.FTLStorage {
 	tl := g.GetFastTeamLoader().(*FastTeamChainLoader)
 	return tl.storage
 }

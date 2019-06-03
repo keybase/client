@@ -375,6 +375,10 @@ func DeviceIDFromSlice(b []byte) (DeviceID, error) {
 	return DeviceIDFromBytes(x), nil
 }
 
+func LinkIDFromByte32(b [32]byte) LinkID {
+	return LinkID(hex.EncodeToString(b[:]))
+}
+
 func DeviceIDFromString(s string) (DeviceID, error) {
 	if len(s) != hex.EncodedLen(DeviceIDLen) {
 		return "", fmt.Errorf("Bad Device ID length: %d", len(s))
@@ -2671,6 +2675,14 @@ func (d FastTeamData) IsPublic() bool {
 	return d.Chain.Public
 }
 
+func (d HiddenTeamChain) ID() TeamID {
+	return d.Data.ID
+}
+
+func (d HiddenTeamChain) IsPublic() bool {
+	return d.Data.Public
+}
+
 func (f FullName) String() string {
 	return string(f)
 }
@@ -2746,4 +2758,138 @@ func (fct *FolderConflictType) UnmarshalText(text []byte) error {
 		return errors.New(fmt.Sprintf("Unknown conflict type: %s", text))
 	}
 	return nil
+}
+
+func (h *HiddenTeamChainData) Tail() *HiddenTeamChainLink {
+	last := h.Last
+	if last == Seqno(0) {
+		return nil
+	}
+	ret, ok := h.Inner[last]
+	if !ok {
+		return nil
+	}
+	return &ret
+}
+
+func (s Signer) UserVersion() UserVersion {
+	return UserVersion{
+		Uid:         s.U,
+		EldestSeqno: s.E,
+	}
+}
+
+func (p PerTeamSeedCheck) Hash() (*PerTeamSeedCheckPostImage, error) {
+	if p.Version != PerTeamSeedCheckVersion_V1 {
+		return nil, errors.New("can only handle PerTeamKeySeedCheck V1")
+	}
+	ret := sha256.Sum256(p.Value[:])
+	return &PerTeamSeedCheckPostImage{
+		Version: PerTeamSeedCheckVersion_V1,
+		Value:   PerTeamSeedCheckValuePostImage(ret[:]),
+	}, nil
+}
+
+func (p PerTeamSeedCheckPostImage) Eq(p2 PerTeamSeedCheckPostImage) bool {
+	return (p.Version == p2.Version) && hmac.Equal(p.Value[:], p2.Value[:])
+}
+
+func (r HiddenTeamChainRatchet) Flat() []LinkTripleAndTime {
+	var ret []LinkTripleAndTime
+	add := func(p *LinkTripleAndTime) {
+		if p != nil {
+			ret = append(ret, *p)
+		}
+	}
+	add(r.Main)
+	add(r.Blinded)
+	add(r.Self)
+	return ret
+}
+
+func (r HiddenTeamChainRatchet) Max() Seqno {
+	var ret Seqno
+	visit := func(p *LinkTripleAndTime) {
+		if p != nil && p.Triple.Seqno > ret {
+			ret = p.Triple.Seqno
+		}
+	}
+	visit(r.Main)
+	visit(r.Blinded)
+	visit(r.Self)
+	return ret
+}
+
+func (r HiddenTeamChainRatchet) MaxTriple() (ret *LinkTriple) {
+	visit := func(p *LinkTripleAndTime) {
+		if p != nil && (ret == nil || p.Triple.Seqno > ret.Seqno) {
+			ret = &p.Triple
+		}
+	}
+	visit(r.Main)
+	visit(r.Blinded)
+	visit(r.Self)
+	return ret
+}
+
+func (d *HiddenTeamChain) RemoveLink(i Seqno) {
+	inner, ok := d.Data.Inner[i]
+	if ok {
+		ptk, ok := inner.Ptk[PTKType_READER]
+		if ok {
+			delete(d.ReaderPerTeamKeys, ptk.Ptk.Gen)
+		}
+	}
+	delete(d.Data.Inner, i)
+	delete(d.Data.Outer, i)
+	if d.Data.Last == i {
+		d.Data.Last--
+	}
+}
+
+func (r *HiddenTeamChainRatchet) Merge(r2 HiddenTeamChainRatchet) (updated bool) {
+	visit := func(l1 **LinkTripleAndTime, l2 *LinkTripleAndTime) {
+		if l2 != nil && (*l1 == nil || (*l1).Triple.Seqno < l2.Triple.Seqno) {
+			*l1 = l2
+			updated = true
+		}
+	}
+	visit(&r.Main, r2.Main)
+	visit(&r.Blinded, r2.Blinded)
+	visit(&r.Self, r2.Self)
+	return updated
+}
+
+func (r LinkTripleAndTime) Clashes(r2 LinkTripleAndTime) bool {
+	l1 := r.Triple
+	l2 := r2.Triple
+	return (l1.Seqno == l2.Seqno && l1.SeqType == l2.SeqType && !l1.LinkID.Eq(l2.LinkID))
+}
+
+func (d *HiddenTeamChain) Merge(newData HiddenTeamChainData) (updated bool) {
+
+	for i := d.Data.Last; i < newData.Last; i++ {
+		d.Data.Outer[i] = newData.Outer[i]
+		d.Data.Last = i
+		updated = true
+	}
+
+	for q, i := range newData.Inner {
+		_, found := d.Data.Inner[q]
+		if found {
+			continue
+		}
+		d.Data.Inner[q] = i
+		if ptk, ok := i.Ptk[PTKType_READER]; ok {
+			d.ReaderPerTeamKeys[ptk.Ptk.Gen] = q
+		}
+		updated = true
+	}
+
+	return updated
+}
+
+func (h HiddenTeamChainData) HasSeqno(s Seqno) bool {
+	_, found := h.Outer[s]
+	return found
 }

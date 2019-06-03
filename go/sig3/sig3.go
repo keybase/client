@@ -6,10 +6,9 @@ import (
 	"encoding/base64"
 	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/msgpack"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-crypto/ed25519"
 )
-
-//
 
 // Generic sig3 wrapper class, should implement the following interface.
 type Generic interface {
@@ -66,6 +65,15 @@ func NewRotateKey(o OuterLink, i InnerLink, b RotateKeyBody) *RotateKey {
 func (r *RotateKey) rkb() *RotateKeyBody {
 	ret, _ := r.Base.inner.Body.(*RotateKeyBody)
 	return ret
+}
+
+func (r *RotateKey) ReaderKey() *PerTeamKey {
+	for _, k := range r.rkb().PTKs {
+		if k.PTKType == keybase1.PTKType_READER {
+			return &k
+		}
+	}
+	return nil
 }
 
 func (b *Base) setVerifiedBit() {
@@ -126,11 +134,19 @@ func (b Base) verify() error {
 }
 
 func (i InnerLink) hash() (LinkID, error) {
+	return hashInterface(i)
+}
+
+func hashInterface(i interface{}) (LinkID, error) {
 	b, err := msgpack.Encode(i)
 	if err != nil {
 		return LinkID{}, err
 	}
 	return hash(b), nil
+}
+
+func (o OuterLink) Hash() (LinkID, error) {
+	return hashInterface(o)
 }
 
 func (r RotateKey) verify() error {
@@ -201,7 +217,7 @@ func (l LinkID) eq(m LinkID) bool {
 	return hmac.Equal(l[:], m[:])
 }
 
-func (s Sig3ExportJSON) parseSig() (*Base, error) {
+func (s ExportJSON) parseSig() (*Base, error) {
 	var out Base
 	if s.Sig == "" {
 		return &out, nil
@@ -218,7 +234,7 @@ func (s Sig3ExportJSON) parseSig() (*Base, error) {
 	return &out, nil
 }
 
-func (s Sig3ExportJSON) parseOuter(in Base) (*Base, error) {
+func (s ExportJSON) parseOuter(in Base) (*Base, error) {
 	if s.Outer == "" {
 		return nil, newParseError("outer cannot be nil")
 	}
@@ -243,7 +259,7 @@ func (s Sig3ExportJSON) parseOuter(in Base) (*Base, error) {
 	return &in, nil
 }
 
-func (s *Sig3ExportJSON) parseInner(in Base) (Generic, error) {
+func (s *ExportJSON) parseInner(in Base) (Generic, error) {
 	var out Generic
 
 	if (s.Inner == "") != (in.sig == nil) {
@@ -279,7 +295,7 @@ func (s *Sig3ExportJSON) parseInner(in Base) (Generic, error) {
 	return out, nil
 }
 
-func (s Sig3ExportJSON) parse() (out Generic, err error) {
+func (s ExportJSON) parse() (out Generic, err error) {
 	var tmp *Base
 	tmp, err = s.parseSig()
 	if err != nil {
@@ -296,10 +312,10 @@ func (s Sig3ExportJSON) parse() (out Generic, err error) {
 	return out, nil
 }
 
-// Import from Sig3ExportJSON format (as sucked down from the server) into a Generic link type,
+// Import from ExportJSON format (as sucked down from the server) into a Generic link type,
 // that can be casted into the supported link types (like RotateKey). Returns an error if we
 // failed to parse the input data, or if signature validation failed.
-func (s Sig3ExportJSON) Import() (Generic, error) {
+func (s ExportJSON) Import() (Generic, error) {
 	out, err := s.parse()
 	if err != nil {
 		return nil, err
@@ -386,7 +402,7 @@ func signGeneric(g Generic, privkey kbcrypto.NaclSigningKeyPrivate) (ret *Sig3Bu
 }
 
 // Export a sig3 up to the server in base64'ed JSON format, as in a POST request.
-func (s Sig3Bundle) Export() (ret Sig3ExportJSON, err error) {
+func (s Sig3Bundle) Export() (ret ExportJSON, err error) {
 	enc := func(i interface{}) (string, error) {
 		b, err := msgpack.Encode(i)
 		if err != nil {
@@ -408,4 +424,36 @@ func (s Sig3Bundle) Export() (ret Sig3ExportJSON, err error) {
 		ret.Sig = base64.StdEncoding.EncodeToString(s.Sig[:])
 	}
 	return ret, nil
+}
+
+func IsStubbed(g Generic) bool {
+	return g.Inner() == nil
+}
+
+func Hash(g Generic) (LinkID, error) {
+	return g.Outer().Hash()
+}
+
+func CheckLinkSequence(v []Generic) error {
+	if len(v) == 0 {
+		return nil
+	}
+	prev := v[0]
+	for _, link := range v[:] {
+		if prev.Seqno()+keybase1.Seqno(1) != link.Seqno() {
+			return newSequenceError("seqno mismatch at link %d", link.Seqno())
+		}
+		hsh, err := Hash(prev)
+		if err != nil {
+			return newSequenceError("bad prev hash computation at %d: %s", link.Seqno(), err.Error())
+		}
+		if link.Prev() == nil {
+			return newSequenceError("bad nil prev at %d", link.Seqno())
+		}
+		if !hsh.eq(*link.Prev()) {
+			return newSequenceError("prev hash mismatch at %d", link.Seqno())
+		}
+		prev = link
+	}
+	return nil
 }

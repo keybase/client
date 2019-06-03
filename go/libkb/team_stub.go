@@ -154,3 +154,29 @@ func (n nullTeamBoxAuditor) Attempt(m MetaContext, id keybase1.TeamID, rotateBef
 	return *attemptNullBoxAuditor()
 }
 func newNullTeamBoxAuditor() nullTeamBoxAuditor { return nullTeamBoxAuditor{} }
+
+type nullHiddenTeamChainManager struct{}
+
+var _ HiddenTeamChainManager = nullHiddenTeamChainManager{}
+
+func (n nullHiddenTeamChainManager) Tail(mctx MetaContext, id keybase1.TeamID) (*keybase1.LinkTriple, error) {
+	return nil, nil
+}
+
+func (n nullHiddenTeamChainManager) Ratchet(MetaContext, keybase1.TeamID, keybase1.HiddenTeamChainRatchet) error {
+	return nil
+}
+func (n nullHiddenTeamChainManager) Advance(MetaContext, keybase1.LinkTriple, keybase1.HiddenTeamChainData, keybase1.Seqno) error {
+	return nil
+}
+func (n nullHiddenTeamChainManager) PerTeamKeyAtGeneration(MetaContext, keybase1.TeamID, keybase1.PerTeamKeyGeneration) (*keybase1.PerTeamKey, error) {
+	return nil, fmt.Errorf("null hidden team chain manager")
+}
+
+func (n nullHiddenTeamChainManager) LastSeqno(MetaContext, keybase1.TeamID) (keybase1.Seqno, keybase1.Seqno, error) {
+	return keybase1.Seqno(0), keybase1.Seqno(0), nil
+}
+
+func newNullHiddenTeamChainManager() nullHiddenTeamChainManager {
+	return nullHiddenTeamChainManager{}
+}

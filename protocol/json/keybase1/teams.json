@@ -49,6 +49,53 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "PerTeamSeedCheckVersion",
+      "symbols": [
+        "V1_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PerTeamSeedCheck",
+      "fields": [
+        {
+          "type": "PerTeamSeedCheckVersion",
+          "name": "version"
+        },
+        {
+          "type": "PerTeamSeedCheckValue",
+          "name": "value"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PerTeamSeedCheckValue",
+      "fields": [],
+      "typedef": "bytes"
+    },
+    {
+      "type": "record",
+      "name": "PerTeamSeedCheckValuePostImage",
+      "fields": [],
+      "typedef": "bytes"
+    },
+    {
+      "type": "record",
+      "name": "PerTeamSeedCheckPostImage",
+      "fields": [
+        {
+          "type": "PerTeamSeedCheckVersion",
+          "name": "version"
+        },
+        {
+          "type": "PerTeamSeedCheckValuePostImage",
+          "name": "value"
+        }
+      ]
+    },
+    {
       "type": "record",
       "name": "TeamApplicationKey",
       "fields": [
@@ -120,6 +167,21 @@
       "lint": "ignore"
     },
     {
+      "type": "record",
+      "name": "PerTeamKeyAndCheck",
+      "fields": [
+        {
+          "type": "PerTeamKey",
+          "name": "ptk"
+        },
+        {
+          "type": "PerTeamSeedCheckPostImage",
+          "name": "check"
+        }
+      ],
+      "lint": "ignore"
+    },
+    {
       "type": "fixed",
       "name": "PerTeamKeySeed",
       "size": "32"
@@ -139,6 +201,13 @@
         {
           "type": "Seqno",
           "name": "seqno"
+        },
+        {
+          "type": [
+            null,
+            "PerTeamSeedCheck"
+          ],
+          "name": "check"
         }
       ]
     },
@@ -533,6 +602,33 @@
     },
     {
       "type": "record",
+      "name": "HiddenTeamChainRatchet",
+      "fields": [
+        {
+          "type": [
+            null,
+            "LinkTripleAndTime"
+          ],
+          "name": "main"
+        },
+        {
+          "type": [
+            null,
+            "LinkTripleAndTime"
+          ],
+          "name": "blinded"
+        },
+        {
+          "type": [
+            null,
+            "LinkTripleAndTime"
+          ],
+          "name": "self"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "HiddenTeamChainData",
       "fields": [
         {
@@ -577,6 +673,14 @@
           "jsonkey": "v"
         },
         {
+          "type": "boolean",
+          "name": "frozen"
+        },
+        {
+          "type": "boolean",
+          "name": "tombstoned"
+        },
+        {
           "type": "HiddenTeamChainData",
           "name": "data"
         },
@@ -586,13 +690,10 @@
             "values": "Seqno",
             "keys": "PerTeamKeyGeneration"
           },
-          "name": "perTeamKeys"
+          "name": "readerPerTeamKeys"
         },
         {
-          "type": [
-            null,
-            "LinkTriple"
-          ],
+          "type": "HiddenTeamChainRatchet",
           "name": "ratchet"
         },
         {
@@ -616,6 +717,20 @@
         {
           "type": "LinkID",
           "name": "linkID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "LinkTripleAndTime",
+      "fields": [
+        {
+          "type": "LinkTriple",
+          "name": "triple"
+        },
+        {
+          "type": "Time",
+          "name": "time"
         }
       ]
     },
@@ -702,7 +817,7 @@
         {
           "type": {
             "type": "map",
-            "values": "PerTeamKey",
+            "values": "PerTeamKeyAndCheck",
             "keys": "PTKType"
           },
           "name": "ptk",

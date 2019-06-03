@@ -112,6 +112,17 @@ func (o LinkID) DeepCopy() LinkID {
 	return o
 }
 
+type BinaryLinkID []byte
+
+func (o BinaryLinkID) DeepCopy() BinaryLinkID {
+	return (func(x []byte) []byte {
+		if x == nil {
+			return nil
+		}
+		return append([]byte{}, x...)
+	})(o)
+}
+
 type BinaryKID []byte
 
 func (o BinaryKID) DeepCopy() BinaryKID {
