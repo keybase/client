@@ -1,3 +1,4 @@
+# Reference: https://sandstorm.de/de/blog/post/react-native-managing-native-dependencies-using-xcode-and-cocoapods.html
 platform :ios, '9.0'
 
 target 'Keybase' do
@@ -36,6 +37,16 @@ target 'Keybase' do
   pod 'react-native-webview', :path => '../../node_modules/react-native-webview'
   pod 'RNReanimated', :path => '../../node_modules/react-native-reanimated'
 
+end
+
+# The following is needed to ensure the "archive" step works in XCode.
+# It removes React from the Pods project, as it is already included in the main project.
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    if target.name == "React"
+      target.remove_from_project
+    end
+  end
 end
 
 target 'Keybase For Tests' do
