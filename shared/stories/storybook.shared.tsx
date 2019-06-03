@@ -32,7 +32,11 @@ const styleDestBox = Styles.platformStyles({
 
 // we set pointerEvents to 'box-none' so that the wrapping box will not catch
 // touch events and they will be passed down to the child (popup)
-const DestBox = props => <Kb.Box pointerEvents="box-none" style={styleDestBox} {...props} />
+class DestBox extends React.Component {
+  render() {
+    return <Kb.Box pointerEvents="box-none" style={styleDestBox} {...this.props} />
+  }
+}
 
 /**
  * Creates a provider using a faux store of closures that compute derived viewProps

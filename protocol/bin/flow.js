@@ -1,4 +1,3 @@
-// @noflow
 'use strict'
 const prettier = require('prettier')
 const promise = require('bluebird')

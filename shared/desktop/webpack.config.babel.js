@@ -1,4 +1,3 @@
-/* eslint-disable flowtype/require-valid-file-annotation */
 /* Our bundler for the desktop app.
  * We build:
  * Electron main thread / render threads for the main window and remote windows (menubar, trackers, etc)

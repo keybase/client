@@ -1,5 +1,4 @@
 // Message related constants
-// @flow
 import * as DeviceTypes from '../types/devices'
 import * as I from 'immutable'
 import * as MessageTypes from '../types/chat2/message'
@@ -1124,7 +1123,6 @@ export const getClientPrev = (state: TypedState, conversationIDKey: Types.Conver
   if (mm) {
     // find last valid messageid we know about
     const goodOrdinal = state.chat2.messageOrdinals.get(conversationIDKey, I.OrderedSet()).findLast(o =>
-      // $FlowIssue not going to fix this message resolution stuff now, they all have ids that we care about
       mm.getIn([o, 'id'])
     )
 

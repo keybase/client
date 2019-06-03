@@ -1,5 +1,4 @@
 // Types related to a message
-// @flow strict
 import * as Common from './common'
 import * as RPCTypes from '../rpc-gen'
 import * as RPCChatTypes from '../rpc-chat-gen'

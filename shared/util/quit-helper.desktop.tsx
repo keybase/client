@@ -21,7 +21,6 @@ function quitOnContext(context: Context): Array<Action> {
 
 function isMainThread() {
   // the main thread's process.type is browser: https://github.com/electron/electron/blob/master/docs/api/process.md
-  // $FlowIssue
   return process.type === 'browser'
 }
 
@@ -63,7 +62,6 @@ export function setupExecuteActionsListener() {
 }
 
 const crossplatformQuit = (reason: Context) => {
-  // $FlowIssue don't want to really expose this correctly
   executeActionsForContext(reason)
 }
 

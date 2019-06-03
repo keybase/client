@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/kbcrypto"
+	"github.com/keybase/client/go/msgpack"
 )
 
 // UnsafeExternalKeyStore is a simple interface that external clients can implement.
@@ -178,7 +179,7 @@ func (s *secretStoreAndroid) GetUsersWithStoredSecrets(m MetaContext) (users []s
 		return nil, err
 	}
 	ch := kbcrypto.CodecHandle()
-	err = MsgpackDecodeAll(usersMsgPack, ch, &users)
+	err = msgpack.DecodeAll(usersMsgPack, ch, &users)
 	return users, err
 }
 

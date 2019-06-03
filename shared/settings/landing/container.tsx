@@ -90,7 +90,6 @@ const mergeProps = (stateProps, dispatchProps) => {
         onChangeRememberPassword: (checked: boolean) => dispatchProps.onChangeRememberPassword(checked),
       },
       plan: {
-        // $FlowIssue
         ...stateProps.originalProps.plan,
         onInfo: selectedLevel => {
           dispatchProps.onInfo(selectedLevel)

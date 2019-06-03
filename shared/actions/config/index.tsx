@@ -329,7 +329,6 @@ const routeToInitialScreen = state => {
     if (state.config.startupSharePath) {
       return [
         RouteTreeGen.createSwitchRouteDef({loggedIn: true, path: FsConstants.fsRootRouteForNav1}),
-        // $FlowIssue thinks it's undefined
         FsGen.createSetIncomingShareLocalPath({localPath: state.config.startupSharePath}),
         FsGen.createShowIncomingShare({initialDestinationParentPath: FsTypes.stringToPath('/keybase')}),
       ]

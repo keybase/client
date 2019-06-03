@@ -257,7 +257,6 @@ const MobileWithHeader = Kb.HeaderHoc(MobileSendLinkToChat)
 
 export default (Styles.isMobile
   ? (props: Props) => (
-      // $FlowIssue seems HeaderHoc typing is wrong
       <MobileWithHeader customComponent={<MobileHeader {...props} />} {...props} />
     )
   : Kb.HeaderOrPopup(DesktopSendLinkToChat))
