@@ -1,15 +1,15 @@
-// @flow
 import * as React from 'react'
-import type {AvatarSize} from '../common-adapters/avatar'
+import {AvatarSize} from '../common-adapters/avatar'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles/index'
 
-type Props = {|
-  usernames: Array<string>,
-  maxShown: number,
-  size: AvatarSize,
-  layout: 'horizontal' | 'vertical',
-|}
+type Props = {
+  usernames: Array<string>
+  maxShown: number
+  size: AvatarSize
+  layout: 'horizontal' | 'vertical'
+}
+
 // TODO: consider making `diagonal` to replace MultiAvatar, but that's hard.
 
 const AvatarLine = (props: Props) => {

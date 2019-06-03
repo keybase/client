@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Styles from '../styles'
 // @ts-ignore not converted
 import ClickableBox from './clickable-box'
-// @ts-ignore not converted
 import {Box2} from './box'
 import BoxGrow from './box-grow'
 import Divider from './divider'
@@ -66,17 +65,6 @@ const iconStyle = (props: Props) =>
     ? styles.iconLargeWithStatusIcon
     : styles.iconLarge
 
-const getActionClasses = onlyShowActionOnHover => {
-  switch (onlyShowActionOnHover) {
-    case 'animate':
-      return 'hidden-no-hover-animate hidden-no-hover'
-    case 'appear':
-      return 'hidden-no-hover'
-    default:
-      return null
-  }
-}
-
 const ListItem = (props: Props) => (
   <Kb.ClickableBox
     onClick={props.onClick}
@@ -107,7 +95,10 @@ const ListItem = (props: Props) => (
         </Kb.BoxGrow>
         <Kb.Box2
           direction="horizontal"
-          className={getActionClasses(props.onlyShowActionOnHover)}
+          className={Styles.classNames({
+            'hidden-no-hover': props.onlyShowActionOnHover !== null,
+            'hidden-no-hover-animate': props.onlyShowActionOnHover === 'animate',
+          })}
           style={Styles.collapseStyles([
             props.type === 'Small' ? styles.actionSmallContainer : styles.actionLargeContainer,
             props.onlyShowActionOnHover ? styles.hiddenNoHoverAction : {},
