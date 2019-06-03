@@ -107,14 +107,14 @@ func TestAutogitRepoNode(t *testing.T) {
 	repo, err := gogit.Init(dotgitStorage, worktreeFS)
 	require.NoError(t, err)
 	addFileToWorktreeAndCommit(
-		t, ctx, config, h, repo, worktreeFS, "foo", "hello")
+		ctx, t, config, h, repo, worktreeFS, "foo", "hello")
 
 	t.Log("Use autogit to clone it using ReadDir")
 	checkAutogitOneFile(t, rootFS)
 
 	t.Log("Update the source repo and make sure the autogit repos update too")
 	addFileToWorktreeAndCommit(
-		t, ctx, config, h, repo, worktreeFS, "foo2", "hello2")
+		ctx, t, config, h, repo, worktreeFS, "foo2", "hello2")
 
 	t.Log("Force the source repo to update for the user")
 	srcRootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
@@ -143,7 +143,7 @@ func TestAutogitRepoNode(t *testing.T) {
 	})
 	require.NoError(t, err)
 	addFileToWorktreeAndCommit(
-		t, ctx, config, h, repo, worktreeFS, "foo3", "hello3")
+		ctx, t, config, h, repo, worktreeFS, "foo3", "hello3")
 	err = wt.Checkout(&gogit.CheckoutOptions{Branch: "refs/heads/master"})
 	require.NoError(t, err)
 	checkAutogitTwoFiles(t, rootFS)
@@ -209,7 +209,7 @@ func TestAutogitRepoNodeReadonly(t *testing.T) {
 	repo, err := gogit.Init(dotgitStorage, worktreeFS)
 	require.NoError(t, err)
 	addFileToWorktreeAndCommit(
-		t, ctx, config, h, repo, worktreeFS, "foo", "hello")
+		ctx, t, config, h, repo, worktreeFS, "foo", "hello")
 
 	t.Log("Use autogit to open it as another user.")
 	config2 := libkbfs.ConfigAsUser(config, "user2")
@@ -240,7 +240,7 @@ func TestAutogitRepoNodeReadonly(t *testing.T) {
 		}
 	}
 	t.Log("Repacking done")
-	commitWorktree(t, ctx, config, h, worktreeFS)
+	commitWorktree(ctx, t, config, h, worktreeFS)
 
 	t.Log("Force the source repo to update for the second user")
 	srcRootNode2, _, err := config2.KBFSOps().GetOrCreateRootNode(
@@ -297,7 +297,7 @@ func TestAutogitCommitFile(t *testing.T) {
 	time1 := time.Now()
 	hash1 := addFileToWorktreeWithInfo(
 		t, repo, worktreeFS, "foo", "hello", msg1, user1, email1, time1)
-	commitWorktree(t, ctx, config, h, worktreeFS)
+	commitWorktree(ctx, t, config, h, worktreeFS)
 
 	t.Log("Check the first commit -- no diff")
 	headerFormat := "commit %s\nAuthor: %s <%s>\nDate:   %s\n\n    %s\n"
@@ -320,7 +320,7 @@ func TestAutogitCommitFile(t *testing.T) {
 	time2 := time1.Add(1 * time.Minute)
 	hash2 := addFileToWorktreeWithInfo(
 		t, repo, worktreeFS, "foo", "hello world", msg2, user2, email2, time2)
-	commitWorktree(t, ctx, config, h, worktreeFS)
+	commitWorktree(ctx, t, config, h, worktreeFS)
 
 	commit1, err := repo.CommitObject(hash1)
 	require.NoError(t, err)

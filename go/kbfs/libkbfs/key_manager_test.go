@@ -1498,7 +1498,7 @@ func testKeyManagerReaderRekeyAndRevoke(t *testing.T, ver kbfsmd.MetadataVer) {
 }
 
 func keyManagerTestSimulateSelfRekeyBit(
-	t *testing.T, ctx context.Context, config Config, tlfID tlf.ID) {
+	ctx context.Context, t *testing.T, config Config, tlfID tlf.ID) {
 	// Simulate the mdserver sending back this node's own rekey
 	// request.  This shouldn't increase the MD version.  Since this
 	// doesn't kick off a rekey request, we don't need to wait for the
@@ -1608,7 +1608,7 @@ func testKeyManagerRekeyBit(t *testing.T, ver kbfsmd.MetadataVer) {
 	// Do it again, to simulate the mdserver sending back this node's
 	// own rekey request.
 	keyManagerTestSimulateSelfRekeyBit(
-		t, ctx, config2Dev2, rootNode1.GetFolderBranch().Tlf)
+		ctx, t, config2Dev2, rootNode1.GetFolderBranch().Tlf)
 
 	// user 1 syncs from server
 	err = kbfsOps1.SyncFromServer(ctx,
@@ -1939,7 +1939,7 @@ func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver kbfsmd.MetadataVer
 	// Do it again, to simulate the mdserver sending back this node's
 	// own rekey request.
 	keyManagerTestSimulateSelfRekeyBit(
-		t, ctx, config2Dev2, rootNode1.GetFolderBranch().Tlf)
+		ctx, t, config2Dev2, rootNode1.GetFolderBranch().Tlf)
 
 	t.Log("Switching crypto")
 
@@ -2064,7 +2064,7 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver kbfsmd
 	// Do it again, to simulate the mdserver sending back this node's
 	// own rekey request.
 	keyManagerTestSimulateSelfRekeyBit(
-		t, ctx, config2Dev2, rootNode1.GetFolderBranch().Tlf)
+		ctx, t, config2Dev2, rootNode1.GetFolderBranch().Tlf)
 
 	// Simulate a restart after the rekey bit was set
 	ops := getOps(config2Dev2, rootNode1.GetFolderBranch().Tlf)

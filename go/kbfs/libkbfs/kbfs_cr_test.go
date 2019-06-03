@@ -24,7 +24,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-func readAndCompareData(t *testing.T, config Config, ctx context.Context,
+func readAndCompareData(ctx context.Context, t *testing.T, config Config,
 	name string, expectedData []byte, user kbname.NormalizedUsername) {
 	rootNode := GetRootNodeOrBust(ctx, t, config, name, tlf.Private)
 
@@ -59,7 +59,7 @@ func (t *testCRObserver) TlfHandleChange(ctx context.Context,
 	newHandle *tlfhandle.Handle) {
 }
 
-func checkStatus(t *testing.T, ctx context.Context, kbfsOps KBFSOps,
+func checkStatus(ctx context.Context, t *testing.T, kbfsOps KBFSOps,
 	staged bool, headWriter kbname.NormalizedUsername, dirtyPaths []string, fb data.FolderBranch,
 	prefix string) {
 	status, _, err := kbfsOps.FolderStatus(ctx, fb)
@@ -107,9 +107,9 @@ func TestBasicMDUpdate(t *testing.T) {
 	// The status should have fired as well (though in this case the
 	// writer is the same as before)
 	<-statusChan
-	checkStatus(t, ctx, kbfsOps1, false, userName1, nil,
+	checkStatus(ctx, t, kbfsOps1, false, userName1, nil,
 		rootNode1.GetFolderBranch(), "Node 1")
-	checkStatus(t, ctx, kbfsOps2, false, userName1, nil,
+	checkStatus(ctx, t, kbfsOps2, false, userName1, nil,
 		rootNode2.GetFolderBranch(), "Node 2")
 }
 
@@ -228,7 +228,7 @@ func TestGetTLFCryptKeysWhileUnmergedAfterRestart(t *testing.T) {
 	data2 := []byte{2}
 	err = kbfsOps2.Write(ctx, fileNode2, data2, 0)
 	require.NoError(t, err)
-	checkStatus(t, ctx, kbfsOps2, false, userName1, []string{"u1,u2/a"},
+	checkStatus(ctx, t, kbfsOps2, false, userName1, []string{"u1,u2/a"},
 		rootNode2.GetFolderBranch(), "Node 2 (after write)")
 	err = kbfsOps2.SyncAll(ctx, fileNode2.GetFolderBranch())
 	require.NoError(t, err)
@@ -305,7 +305,7 @@ func TestUnmergedAfterRestart(t *testing.T) {
 	data2 := []byte{2}
 	err = kbfsOps2.Write(ctx, fileNode2, data2, 0)
 	require.NoError(t, err)
-	checkStatus(t, ctx, kbfsOps2, false, userName1, []string{"u1,u2/a"},
+	checkStatus(ctx, t, kbfsOps2, false, userName1, []string{"u1,u2/a"},
 		rootNode2.GetFolderBranch(), "Node 2 (after write)")
 	err = kbfsOps2.SyncAll(ctx, fileNode2.GetFolderBranch())
 	require.NoError(t, err)
@@ -318,14 +318,14 @@ func TestUnmergedAfterRestart(t *testing.T) {
 	data1 := []byte{1}
 	err = kbfsOps1.Write(ctx, fileNode1, data1, 0)
 	require.NoError(t, err)
-	checkStatus(t, ctx, kbfsOps1, false, userName1, []string{"u1,u2/a"},
+	checkStatus(ctx, t, kbfsOps1, false, userName1, []string{"u1,u2/a"},
 		rootNode1.GetFolderBranch(), "Node 1 (after write)")
 	err = kbfsOps1.SyncAll(ctx, fileNode1.GetFolderBranch())
 	require.NoError(t, err)
 
-	checkStatus(t, ctx, kbfsOps1, true, userName1, nil,
+	checkStatus(ctx, t, kbfsOps1, true, userName1, nil,
 		rootNode1.GetFolderBranch(), "Node 1")
-	checkStatus(t, ctx, kbfsOps2, false, userName2, nil,
+	checkStatus(ctx, t, kbfsOps2, false, userName2, nil,
 		rootNode2.GetFolderBranch(), "Node 2")
 
 	// now re-login the users, and make sure 1 can see the changes,
@@ -345,12 +345,12 @@ func TestUnmergedAfterRestart(t *testing.T) {
 	fileNode1B, _, err := kbfsOps1B.Lookup(ctx, rootNode1B, "a")
 	require.NoError(t, err)
 
-	readAndCompareData(t, config1B, ctx, name, data1, userName1)
-	readAndCompareData(t, config2B, ctx, name, data2, userName2)
+	readAndCompareData(ctx, t, config1B, name, data1, userName1)
+	readAndCompareData(ctx, t, config2B, name, data2, userName2)
 
-	checkStatus(t, ctx, config1B.KBFSOps(), true, userName1, nil,
+	checkStatus(ctx, t, config1B.KBFSOps(), true, userName1, nil,
 		fileNode1B.GetFolderBranch(), "Node 1")
-	checkStatus(t, ctx, config2B.KBFSOps(), false, userName2, nil,
+	checkStatus(ctx, t, config2B.KBFSOps(), false, userName2, nil,
 		rootNode2.GetFolderBranch(), "Node 2")
 
 	// register as a listener before the unstaging happens
@@ -402,11 +402,11 @@ func TestUnmergedAfterRestart(t *testing.T) {
 			rootNode2.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
-	readAndCompareData(t, config1B, ctx, name, data2, userName2)
-	readAndCompareData(t, config2B, ctx, name, data2, userName2)
-	checkStatus(t, ctx, config1B.KBFSOps(), false, userName1, nil,
+	readAndCompareData(ctx, t, config1B, name, data2, userName2)
+	readAndCompareData(ctx, t, config2B, name, data2, userName2)
+	checkStatus(ctx, t, config1B.KBFSOps(), false, userName1, nil,
 		rootNode1.GetFolderBranch(), "Node 1 (after unstage)")
-	checkStatus(t, ctx, config2B.KBFSOps(), false, userName1, nil,
+	checkStatus(ctx, t, config2B.KBFSOps(), false, userName1, nil,
 		rootNode2.GetFolderBranch(), "Node 2 (after unstage)")
 }
 
@@ -448,7 +448,7 @@ func TestMultiUserWrite(t *testing.T) {
 	require.NoError(t, err)
 	err = kbfsOps2.SyncAll(ctx, fileNode2.GetFolderBranch())
 	require.NoError(t, err)
-	readAndCompareData(t, config2, ctx, name, data2, userName2)
+	readAndCompareData(ctx, t, config2, name, data2, userName2)
 
 	// A second write by the same user
 	data3 := []byte{3}
@@ -457,12 +457,12 @@ func TestMultiUserWrite(t *testing.T) {
 	err = kbfsOps2.SyncAll(ctx, fileNode2.GetFolderBranch())
 	require.NoError(t, err)
 
-	readAndCompareData(t, config2, ctx, name, data3, userName2)
+	readAndCompareData(ctx, t, config2, name, data3, userName2)
 
 	err = kbfsOps1.SyncFromServer(ctx,
 		rootNode1.GetFolderBranch(), nil)
 	require.NoError(t, err)
-	readAndCompareData(t, config1, ctx, name, data3, userName2)
+	readAndCompareData(ctx, t, config1, name, data3, userName2)
 }
 
 func testBasicCRNoConflict(t *testing.T, unembedChanges bool) {

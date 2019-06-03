@@ -104,7 +104,7 @@ func TestReembedBlockChanges(t *testing.T) {
 func TestGetRevisionByTime(t *testing.T) {
 	var u1 kbname.NormalizedUsername = "u1"
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, u1)
-	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
+	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
 
 	clock, t1 := clocktest.NewTestClockAndTimeNow()
 	config.SetClock(clock)

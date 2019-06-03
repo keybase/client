@@ -61,13 +61,13 @@ func kbfsOpsConcurInit(t *testing.T, users ...kbname.NormalizedUsername) (
 
 func kbfsConcurTestShutdown(t *testing.T, config *ConfigLocal,
 	ctx context.Context, cancel context.CancelFunc) {
-	kbfsTestShutdownNoMocks(t, config, ctx, cancel)
+	kbfsTestShutdownNoMocks(ctx, t, config, cancel)
 }
 
 // TODO: Get rid of all users of this.
 func kbfsConcurTestShutdownNoCheck(t *testing.T, config *ConfigLocal,
 	ctx context.Context, cancel context.CancelFunc) {
-	kbfsTestShutdownNoMocksNoCheck(t, config, ctx, cancel)
+	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
 }
 
 // Test that only one of two concurrent GetRootMD requests can end up
@@ -717,7 +717,7 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 // room.  This is a repro for KBFS-1846.
 func TestKBFSOpsTruncateAndOverwriteDeferredWithArchivedBlock(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "test_user")
-	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
+	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
 
 	bsplitter, err := kbfsdata.NewBlockSplitterSimple(
 		kbfsdata.MaxBlockSizeBytesDefault, 8*1024, config.Codec())

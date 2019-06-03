@@ -186,9 +186,8 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	return mockCtrl, config, ctx, cancel
 }
 
-func kbfsTestShutdown(
-	t *testing.T, mockCtrl *gomock.Controller, config *ConfigMock,
-	ctx context.Context, cancel context.CancelFunc) {
+func kbfsTestShutdown(ctx context.Context,
+	t *testing.T, mockCtrl *gomock.Controller, config *ConfigMock, cancel context.CancelFunc) {
 	config.ctr.CheckForFailures()
 	err := config.conflictResolutionDB.Close()
 	require.NoError(t, err)
@@ -258,23 +257,23 @@ func kbfsOpsInitNoMocks(t *testing.T, users ...kbname.NormalizedUsername) (
 	return config, session.UID, ctx, cancel
 }
 
-func kbfsTestShutdownNoMocks(t *testing.T, config *ConfigLocal,
-	ctx context.Context, cancel context.CancelFunc) {
+func kbfsTestShutdownNoMocks(ctx context.Context, t *testing.T,
+	config *ConfigLocal, cancel context.CancelFunc) {
 	CheckConfigAndShutdown(ctx, t, config)
 	cancel()
 	libcontext.CleanupCancellationDelayer(ctx)
 }
 
 // TODO: Get rid of all users of this.
-func kbfsTestShutdownNoMocksNoCheck(t *testing.T, config *ConfigLocal,
-	ctx context.Context, cancel context.CancelFunc) {
+func kbfsTestShutdownNoMocksNoCheck(ctx context.Context, t *testing.T,
+	config *ConfigLocal, cancel context.CancelFunc) {
 	config.Shutdown(ctx)
 	cancel()
 	libcontext.CleanupCancellationDelayer(ctx)
 }
 
 func checkBlockCache(
-	t *testing.T, ctx context.Context, config *ConfigMock, id tlf.ID,
+	ctx context.Context, t *testing.T, config *ConfigMock, id tlf.ID,
 	expectedCleanBlocks []kbfsblock.ID,
 	expectedDirtyBlocks map[data.BlockPointer]data.BranchName) {
 	bcache := config.BlockCache().(*data.BlockCacheStandard)
@@ -326,7 +325,7 @@ func parseTlfHandleOrBust(t logger.TestLogBackend, config Config,
 
 func TestKBFSOpsGetFavoritesSuccess(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "alice", "bob")
-	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
+	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
 
 	handle1 := parseTlfHandleOrBust(t, config, "alice", tlf.Private, tlf.NullID)
 	handle2 := parseTlfHandleOrBust(
@@ -356,7 +355,7 @@ func TestKBFSOpsGetFavoritesSuccess(t *testing.T) {
 
 func TestKBFSOpsGetFavoritesFail(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	err := errors.New("Fake fail")
 
@@ -451,7 +450,7 @@ func injectNewRMD(t *testing.T, config *ConfigMock) (
 
 func TestKBFSOpsGetRootNodeCacheSuccess(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	_, id, rmd := injectNewRMD(t, config)
 	rmd.data.Dir.BlockPointer.ID = kbfsblock.FakeID(1)
@@ -480,7 +479,7 @@ func TestKBFSOpsGetRootNodeCacheSuccess(t *testing.T) {
 
 func TestKBFSOpsGetRootNodeReIdentify(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	_, id, rmd := injectNewRMD(t, config)
 	rmd.data.Dir.BlockPointer.ID = kbfsblock.FakeID(1)
@@ -543,7 +542,7 @@ func (kbpki failIdentifyKBPKI) Identify(
 
 func TestKBFSOpsGetRootNodeCacheIdentifyFail(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	_, id, rmd := injectNewRMD(t, config)
 
@@ -618,7 +617,7 @@ func fillInNewMD(t *testing.T, config *ConfigMock, rmd *RootMetadata) {
 
 func testKBFSOpsGetRootNodeCreateNewSuccess(t *testing.T, ty tlf.Type) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	id, h, rmd := createNewRMD(t, config, "alice", ty)
 	fillInNewMD(t, config, rmd)
@@ -653,7 +652,7 @@ func TestKBFSOpsGetRootNodeCreateNewSuccessPrivate(t *testing.T) {
 
 func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	id, h, rmd := createNewRMD(t, config, "alice", tlf.Private)
 	rmd.data.Dir = data.DirEntry{
@@ -779,7 +778,7 @@ func testPutBlockInCache(
 
 func TestKBFSOpsGetBaseDirChildrenHidesFiles(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	u, id, rmd := injectNewRMD(t, config)
 
@@ -815,7 +814,7 @@ func TestKBFSOpsGetBaseDirChildrenHidesFiles(t *testing.T) {
 
 func TestKBFSOpsGetBaseDirChildrenCacheSuccess(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	u, id, rmd := injectNewRMD(t, config)
 
@@ -851,7 +850,7 @@ func TestKBFSOpsGetBaseDirChildrenCacheSuccess(t *testing.T) {
 
 func TestKBFSOpsGetBaseDirChildrenUncachedSuccess(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	u, id, rmd := injectNewRMD(t, config)
 
@@ -877,7 +876,7 @@ func TestKBFSOpsGetBaseDirChildrenUncachedSuccess(t *testing.T) {
 
 func TestKBFSOpsGetBaseDirChildrenUncachedFailNonReader(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	id := tlf.FakeID(1, tlf.Private)
 
@@ -922,7 +921,7 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailNonReader(t *testing.T) {
 
 func TestKBFSOpsGetBaseDirChildrenUncachedFailMissingBlock(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	u, id, rmd := injectNewRMD(t, config)
 
@@ -952,7 +951,7 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailMissingBlock(t *testing.T) {
 
 func TestKBFSOpsGetNestedDirChildrenCacheSuccess(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	id, h, rmd := createNewRMD(t, config, "alice", tlf.Private)
 
@@ -1000,7 +999,7 @@ func TestKBFSOpsGetNestedDirChildrenCacheSuccess(t *testing.T) {
 func TestKBFSOpsLookupSuccess(t *testing.T) {
 	t.Skip("Broken test since Go 1.12.4 due to extra pending requests after test termination. Panic: unable to shutdown block ops.")
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	id, h, rmd := createNewRMD(t, config, "alice", tlf.Private)
 
@@ -1054,7 +1053,7 @@ func TestKBFSOpsLookupSuccess(t *testing.T) {
 
 func TestKBFSOpsLookupSymlinkSuccess(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	id, h, rmd := createNewRMD(t, config, "alice", tlf.Private)
 
@@ -1104,7 +1103,7 @@ func TestKBFSOpsLookupSymlinkSuccess(t *testing.T) {
 func TestKBFSOpsLookupNoSuchNameFail(t *testing.T) {
 	t.Skip("Broken test since Go 1.12.4 due to extra pending requests after test termination. Panic: unable to shutdown block ops.")
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	id, h, rmd := createNewRMD(t, config, "alice", tlf.Private)
 
@@ -1150,7 +1149,7 @@ func TestKBFSOpsLookupNoSuchNameFail(t *testing.T) {
 
 func TestKBFSOpsReadNewDataVersionFail(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	id, h, rmd := createNewRMD(t, config, "alice", tlf.Private)
 
@@ -1215,7 +1214,7 @@ func TestKBFSOpsReadNewDataVersionFail(t *testing.T) {
 func TestKBFSOpsStatSuccess(t *testing.T) {
 	t.Skip("Broken test since Go 1.12.4 due to extra pending requests after test termination. Panic: unable to shutdown prefetcher.")
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	id, h, rmd := createNewRMD(t, config, "alice", tlf.Private)
 
@@ -1265,7 +1264,7 @@ func TestKBFSOpsStatSuccess(t *testing.T) {
 }
 
 func getBlockFromCache(
-	t *testing.T, ctx context.Context, config Config, id tlf.ID,
+	ctx context.Context, t *testing.T, config Config, id tlf.ID,
 	ptr data.BlockPointer, branch data.BranchName) data.Block {
 	if block, err := config.DirtyBlockCache().Get(
 		ctx, id, ptr, branch); err == nil {
@@ -1281,9 +1280,9 @@ func getBlockFromCache(
 }
 
 func getDirBlockFromCache(
-	t *testing.T, ctx context.Context, config Config, id tlf.ID,
+	ctx context.Context, t *testing.T, config Config, id tlf.ID,
 	ptr data.BlockPointer, branch data.BranchName) *data.DirBlock {
-	block := getBlockFromCache(t, ctx, config, id, ptr, branch)
+	block := getBlockFromCache(ctx, t, config, id, ptr, branch)
 	dblock, ok := block.(*data.DirBlock)
 	if !ok {
 		t.Errorf("Cached block %v, branch %s was not a DirBlock", ptr, branch)
@@ -1292,9 +1291,9 @@ func getDirBlockFromCache(
 }
 
 func getFileBlockFromCache(
-	t *testing.T, ctx context.Context, config Config, id tlf.ID,
+	ctx context.Context, t *testing.T, config Config, id tlf.ID,
 	ptr data.BlockPointer, branch data.BranchName) *data.FileBlock {
-	block := getBlockFromCache(t, ctx, config, id, ptr, branch)
+	block := getBlockFromCache(ctx, t, config, id, ptr, branch)
 	fblock, ok := block.(*data.FileBlock)
 	if !ok {
 		t.Errorf("Cached block %v, branch %s was not a FileBlock", ptr, branch)
@@ -1304,7 +1303,7 @@ func getFileBlockFromCache(
 
 func testCreateEntryFailDupName(t *testing.T, isDir bool) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	u, id, rmd := injectNewRMD(t, config)
 
@@ -1358,7 +1357,7 @@ func TestCreateLinkFailDupName(t *testing.T) {
 
 func testCreateEntryFailNameTooLong(t *testing.T, isDir bool) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	u, id, rmd := injectNewRMD(t, config)
 
@@ -1405,7 +1404,7 @@ func TestCreateLinkFailNameTooLong(t *testing.T) {
 
 func testCreateEntryFailKBFSPrefix(t *testing.T, et data.EntryType) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	u, id, rmd := injectNewRMD(t, config)
 
@@ -1576,7 +1575,7 @@ func makeSym(dir data.Path, parentDirBlock *data.DirBlock, name string) {
 
 func TestRemoveDirFailNonEmpty(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	uid, id, rmd := injectNewRMD(t, config)
 
@@ -1602,7 +1601,7 @@ func testKBFSOpsRemoveFileMissingBlockSuccess(t *testing.T, et data.EntryType) {
 	require.NotEqual(t, et, data.Sym)
 
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "alice")
-	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
+	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
 	config.noBGFlush = true
 
 	// create a file.
@@ -1662,7 +1661,7 @@ func TestKBFSOpsRemoveDirMissingBlockSuccess(t *testing.T) {
 
 func TestRemoveDirFailNoSuchName(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	uid, id, rmd := injectNewRMD(t, config)
 
@@ -1686,7 +1685,7 @@ func TestRemoveDirFailNoSuchName(t *testing.T) {
 
 func TestRenameFailAcrossTopLevelFolders(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	id1 := tlf.FakeID(1, tlf.Private)
 	h1 := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Private, id1)
@@ -1746,7 +1745,7 @@ func TestRenameFailAcrossTopLevelFolders(t *testing.T) {
 
 func TestKBFSOpsCacheReadFullSuccess(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	u, id, rmd := injectNewRMD(t, config)
 
@@ -1784,7 +1783,7 @@ func TestKBFSOpsCacheReadFullSuccess(t *testing.T) {
 
 func TestKBFSOpsCacheReadPartialSuccess(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	u, id, rmd := injectNewRMD(t, config)
 
@@ -1821,7 +1820,7 @@ func TestKBFSOpsCacheReadPartialSuccess(t *testing.T) {
 
 func TestKBFSOpsCacheReadFullMultiBlockSuccess(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	u, id, rmd := injectNewRMD(t, config)
 
@@ -1885,7 +1884,7 @@ func TestKBFSOpsCacheReadFullMultiBlockSuccess(t *testing.T) {
 func TestKBFSOpsCacheReadPartialMultiBlockSuccess(t *testing.T) {
 	t.Skip("Broken test since Go 1.12.4 due to extra pending requests after test termination. Panic: unable to shutdown prefetcher.")
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	u, id, rmd := injectNewRMD(t, config)
 
@@ -1946,7 +1945,7 @@ func TestKBFSOpsCacheReadPartialMultiBlockSuccess(t *testing.T) {
 
 func TestKBFSOpsCacheReadFailPastEnd(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	u, id, rmd := injectNewRMD(t, config)
 
@@ -1981,7 +1980,7 @@ func TestKBFSOpsCacheReadFailPastEnd(t *testing.T) {
 
 func TestKBFSOpsServerReadFullSuccess(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	u, id, rmd := injectNewRMD(t, config)
 
@@ -2018,7 +2017,7 @@ func TestKBFSOpsServerReadFullSuccess(t *testing.T) {
 
 func TestKBFSOpsServerReadFailNoSuchBlock(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	u, id, rmd := injectNewRMD(t, config)
 
@@ -2088,7 +2087,7 @@ func checkSyncOpInCache(t *testing.T, codec kbfscodec.Codec,
 
 func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	uid, id, rmd := injectNewRMD(t, config)
 
@@ -2134,10 +2133,10 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 	}
 
 	newFileBlock := getFileBlockFromCache(
-		t, ctx, config, id, fileNode.BlockPointer,
+		ctx, t, config, id, fileNode.BlockPointer,
 		p.Branch)
 	newRootBlock := getDirBlockFromCache(
-		t, ctx, config, id, node.BlockPointer, p.Branch)
+		ctx, t, config, id, node.BlockPointer, p.Branch)
 
 	if len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
 		len(p.Path) {
@@ -2156,7 +2155,7 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 			newRootBlock.Children["f"].Size)
 	}
 	checkBlockCache(
-		t, ctx, config, id, []kbfsblock.ID{rootID, fileID},
+		ctx, t, config, id, []kbfsblock.ID{rootID, fileID},
 		map[data.BlockPointer]data.BranchName{
 			node.BlockPointer:     p.Branch,
 			fileNode.BlockPointer: p.Branch,
@@ -2167,7 +2166,7 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 
 func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	uid, id, rmd := injectNewRMD(t, config)
 
@@ -2215,7 +2214,7 @@ func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
 	}
 
 	newFileBlock := getFileBlockFromCache(
-		t, ctx, config, id, fileNode.BlockPointer, p.Branch)
+		ctx, t, config, id, fileNode.BlockPointer, p.Branch)
 
 	if len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
 		len(p.Path) {
@@ -2228,7 +2227,7 @@ func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
 		t.Errorf("Wrote bad contents: %v", buf)
 	}
 	checkBlockCache(
-		t, ctx, config, id, []kbfsblock.ID{rootID, fileID},
+		ctx, t, config, id, []kbfsblock.ID{rootID, fileID},
 		map[data.BlockPointer]data.BranchName{
 			node.BlockPointer:     p.Branch,
 			fileNode.BlockPointer: p.Branch,
@@ -2239,7 +2238,7 @@ func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
 
 func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	uid, id, rmd := injectNewRMD(t, config)
 
@@ -2287,7 +2286,7 @@ func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
 	}
 
 	newFileBlock := getFileBlockFromCache(
-		t, ctx, config, id, fileNode.BlockPointer, p.Branch)
+		ctx, t, config, id, fileNode.BlockPointer, p.Branch)
 
 	if len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
 		len(p.Path) {
@@ -2300,7 +2299,7 @@ func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
 		t.Errorf("Wrote bad contents: %v", buf)
 	}
 	checkBlockCache(
-		t, ctx, config, id, []kbfsblock.ID{rootID, fileID},
+		ctx, t, config, id, []kbfsblock.ID{rootID, fileID},
 		map[data.BlockPointer]data.BranchName{
 			node.BlockPointer:     p.Branch,
 			fileNode.BlockPointer: p.Branch,
@@ -2311,7 +2310,7 @@ func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
 
 func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	uid, id, rmd := injectNewRMD(t, config)
 
@@ -2408,7 +2407,7 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 	}
 
 	checkBlockCache(
-		t, ctx, config, id, []kbfsblock.ID{rootID, fileID},
+		ctx, t, config, id, []kbfsblock.ID{rootID, fileID},
 		map[data.BlockPointer]data.BranchName{
 			node.BlockPointer:            p.Branch,
 			fileNode.BlockPointer:        p.Branch,
@@ -2429,7 +2428,7 @@ func mergeUnrefCache(
 
 func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	uid, id, rmd := injectNewRMD(t, config)
 	rootID := kbfsblock.FakeID(42)
@@ -2508,9 +2507,9 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	}
 
 	newBlock1 := getFileBlockFromCache(
-		t, ctx, config, id, fileBlock.IPtrs[0].BlockPointer, p.Branch)
+		ctx, t, config, id, fileBlock.IPtrs[0].BlockPointer, p.Branch)
 	newBlock2 := getFileBlockFromCache(
-		t, ctx, config, id, fileBlock.IPtrs[1].BlockPointer, p.Branch)
+		ctx, t, config, id, fileBlock.IPtrs[1].BlockPointer, p.Branch)
 
 	if len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
 		len(p.Path) {
@@ -2532,7 +2531,7 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 		[]WriteRange{{Off: 2, Len: uint64(len(buf))}})
 	mergeUnrefCache(ops, lState, p, rmd)
 	checkBlockCache(
-		t, ctx, config, id, []kbfsblock.ID{rootID, fileID, id1, id2},
+		ctx, t, config, id, []kbfsblock.ID{rootID, fileID, id1, id2},
 		map[data.BlockPointer]data.BranchName{
 			node.BlockPointer:               p.Branch,
 			fileNode.BlockPointer:           p.Branch,
@@ -2546,7 +2545,7 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 
 func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	uid, id, rmd := injectNewRMD(t, config)
 
@@ -2588,9 +2587,9 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 	}
 
 	newFileBlock := getFileBlockFromCache(
-		t, ctx, config, id, fileNode.BlockPointer, p.Branch)
+		ctx, t, config, id, fileNode.BlockPointer, p.Branch)
 	newRootBlock := getDirBlockFromCache(
-		t, ctx, config, id, node.BlockPointer, p.Branch)
+		ctx, t, config, id, node.BlockPointer, p.Branch)
 
 	if len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
 		len(p.Path) {
@@ -2609,7 +2608,7 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 			newRootBlock.Children["f"].Size)
 	}
 	checkBlockCache(
-		t, ctx, config, id, []kbfsblock.ID{rootID, fileID},
+		ctx, t, config, id, []kbfsblock.ID{rootID, fileID},
 		map[data.BlockPointer]data.BranchName{
 			node.BlockPointer:     p.Branch,
 			fileNode.BlockPointer: p.Branch,
@@ -2620,7 +2619,7 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 
 func TestKBFSOpsTruncateSameSize(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	u, id, rmd := injectNewRMD(t, config)
 
@@ -2662,12 +2661,12 @@ func TestKBFSOpsTruncateSameSize(t *testing.T) {
 	} else if !bytes.Equal(data, fileBlock.Contents) {
 		t.Errorf("Wrote bad contents: %v", data)
 	}
-	checkBlockCache(t, ctx, config, id, []kbfsblock.ID{rootID, fileID}, nil)
+	checkBlockCache(ctx, t, config, id, []kbfsblock.ID{rootID, fileID}, nil)
 }
 
 func TestKBFSOpsTruncateSmallerSuccess(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	uid, id, rmd := injectNewRMD(t, config)
 
@@ -2709,7 +2708,7 @@ func TestKBFSOpsTruncateSmallerSuccess(t *testing.T) {
 	}
 
 	newFileBlock := getFileBlockFromCache(
-		t, ctx, config, id, fileNode.BlockPointer, p.Branch)
+		ctx, t, config, id, fileNode.BlockPointer, p.Branch)
 
 	if len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
 		len(p.Path) {
@@ -2722,7 +2721,7 @@ func TestKBFSOpsTruncateSmallerSuccess(t *testing.T) {
 		t.Errorf("Wrote bad contents: %v", buf)
 	}
 	checkBlockCache(
-		t, ctx, config, id, []kbfsblock.ID{rootID, fileID},
+		ctx, t, config, id, []kbfsblock.ID{rootID, fileID},
 		map[data.BlockPointer]data.BranchName{
 			node.BlockPointer:     p.Branch,
 			fileNode.BlockPointer: p.Branch,
@@ -2733,7 +2732,7 @@ func TestKBFSOpsTruncateSmallerSuccess(t *testing.T) {
 
 func TestKBFSOpsTruncateShortensLastBlock(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	uid, id, rmd := injectNewRMD(t, config)
 
@@ -2788,11 +2787,11 @@ func TestKBFSOpsTruncateShortensLastBlock(t *testing.T) {
 	}
 
 	newPBlock := getFileBlockFromCache(
-		t, ctx, config, id, fileNode.BlockPointer, p.Branch)
+		ctx, t, config, id, fileNode.BlockPointer, p.Branch)
 	newBlock1 := getFileBlockFromCache(
-		t, ctx, config, id, fileBlock.IPtrs[0].BlockPointer, p.Branch)
+		ctx, t, config, id, fileBlock.IPtrs[0].BlockPointer, p.Branch)
 	newBlock2 := getFileBlockFromCache(
-		t, ctx, config, id, fileBlock.IPtrs[1].BlockPointer, p.Branch)
+		ctx, t, config, id, fileBlock.IPtrs[1].BlockPointer, p.Branch)
 
 	lState := makeFBOLockState()
 
@@ -2820,7 +2819,7 @@ func TestKBFSOpsTruncateShortensLastBlock(t *testing.T) {
 			rmd.UnrefBytes())
 	}
 	checkBlockCache(
-		t, ctx, config, id, []kbfsblock.ID{rootID, fileID, id1, id2},
+		ctx, t, config, id, []kbfsblock.ID{rootID, fileID, id1, id2},
 		map[data.BlockPointer]data.BranchName{
 			node.BlockPointer:               p.Branch,
 			fileNode.BlockPointer:           p.Branch,
@@ -2830,7 +2829,7 @@ func TestKBFSOpsTruncateShortensLastBlock(t *testing.T) {
 
 func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	uid, id, rmd := injectNewRMD(t, config)
 
@@ -2885,9 +2884,9 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	}
 
 	newPBlock := getFileBlockFromCache(
-		t, ctx, config, id, fileNode.BlockPointer, p.Branch)
+		ctx, t, config, id, fileNode.BlockPointer, p.Branch)
 	newBlock1 := getFileBlockFromCache(
-		t, ctx, config, id, fileBlock.IPtrs[0].BlockPointer, p.Branch)
+		ctx, t, config, id, fileBlock.IPtrs[0].BlockPointer, p.Branch)
 
 	lState := makeFBOLockState()
 
@@ -2913,7 +2912,7 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 			rmd.UnrefBytes())
 	}
 	checkBlockCache(
-		t, ctx, config, id, []kbfsblock.ID{rootID, fileID, id1, id2},
+		ctx, t, config, id, []kbfsblock.ID{rootID, fileID, id1, id2},
 		map[data.BlockPointer]data.BranchName{
 			node.BlockPointer:               p.Branch,
 			fileNode.BlockPointer:           p.Branch,
@@ -2923,7 +2922,7 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 
 func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	uid, id, rmd := injectNewRMD(t, config)
 
@@ -2970,7 +2969,7 @@ func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 	}
 
 	newFileBlock := getFileBlockFromCache(
-		t, ctx, config, id, fileNode.BlockPointer, p.Branch)
+		ctx, t, config, id, fileNode.BlockPointer, p.Branch)
 
 	if len(ops.nodeCache.PathFromNode(config.observer.localChange).Path) !=
 		len(p.Path) {
@@ -2983,7 +2982,7 @@ func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 		t.Errorf("Wrote bad contents: %v", buf)
 	}
 	checkBlockCache(
-		t, ctx, config, id, []kbfsblock.ID{rootID, fileID},
+		ctx, t, config, id, []kbfsblock.ID{rootID, fileID},
 		map[data.BlockPointer]data.BranchName{
 			node.BlockPointer:     p.Branch,
 			fileNode.BlockPointer: p.Branch,
@@ -2996,7 +2995,7 @@ func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 
 func TestSetExFailNoSuchName(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	u, id, rmd := injectNewRMD(t, config)
 
@@ -3034,7 +3033,7 @@ func TestSetExFailNoSuchName(t *testing.T) {
 
 func TestSetMtimeNull(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	u, id, rmd := injectNewRMD(t, config)
 
@@ -3073,12 +3072,12 @@ func TestSetMtimeNull(t *testing.T) {
 	} else if newP.Path[0].ID != p.Path[0].ID {
 		t.Errorf("Got back a changed path for null setmtime test: %v", newP)
 	}
-	checkBlockCache(t, ctx, config, id, nil, nil)
+	checkBlockCache(ctx, t, config, id, nil, nil)
 }
 
 func TestMtimeFailNoSuchName(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	u, id, rmd := injectNewRMD(t, config)
 
@@ -3134,7 +3133,7 @@ func makeBlockStateDirty(config Config, kmd libkey.KeyMetadata, p data.Path,
 
 func TestSyncCleanSuccess(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	u, id, rmd := injectNewRMD(t, config)
 
@@ -3171,12 +3170,12 @@ func TestSyncCleanSuccess(t *testing.T) {
 			}
 		}
 	}
-	checkBlockCache(t, ctx, config, id, nil, nil)
+	checkBlockCache(ctx, t, config, id, nil, nil)
 }
 
 func TestKBFSOpsStatRootSuccess(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	id, h, rmd := createNewRMD(t, config, "alice", tlf.Private)
 
@@ -3204,7 +3203,7 @@ func TestKBFSOpsStatRootSuccess(t *testing.T) {
 
 func TestKBFSOpsFailingRootOps(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(t, mockCtrl, config, ctx, cancel)
+	defer kbfsTestShutdown(ctx, t, mockCtrl, config, cancel)
 
 	id, h, rmd := createNewRMD(t, config, "alice", tlf.Private)
 
@@ -3264,7 +3263,7 @@ func (t *testBGObserver) TlfHandleChange(ctx context.Context,
 // application does not.
 func TestKBFSOpsBackgroundFlush(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "alice", "bob")
-	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
+	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
 	config.noBGFlush = true
 
 	// create a file.
@@ -3306,7 +3305,7 @@ func TestKBFSOpsBackgroundFlush(t *testing.T) {
 func TestKBFSOpsWriteRenameStat(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "test_user")
 	// TODO: Use kbfsTestShutdownNoMocks.
-	defer kbfsTestShutdownNoMocksNoCheck(t, config, ctx, cancel)
+	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
 
 	// create a file.
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
@@ -3354,7 +3353,7 @@ func TestKBFSOpsWriteRenameStat(t *testing.T) {
 func TestKBFSOpsWriteRenameGetDirChildren(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "test_user")
 	// TODO: Use kbfsTestShutdownNoMocks.
-	defer kbfsTestShutdownNoMocksNoCheck(t, config, ctx, cancel)
+	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
 
 	// create a file.
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
@@ -3402,7 +3401,7 @@ func TestKBFSOpsWriteRenameGetDirChildren(t *testing.T) {
 
 func TestKBFSOpsCreateFileWithArchivedBlock(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "test_user")
-	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
+	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
 
 	// create a file.
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
@@ -3436,7 +3435,7 @@ func TestKBFSOpsCreateFileWithArchivedBlock(t *testing.T) {
 
 func TestKBFSOpsMultiBlockSyncWithArchivedBlock(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "test_user")
-	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
+	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
 
 	// Make the blocks small, with multiple levels of indirection, but
 	// make the unembedded size large, so we don't create thousands of
@@ -3516,7 +3515,7 @@ func (cbs corruptBlockServer) Get(
 
 func TestKBFSOpsFailToReadUnverifiableBlock(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "test_user")
-	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
+	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
 	config.SetBlockServer(&corruptBlockServer{
 		BlockServer: config.BlockServer(),
 	})
@@ -3547,7 +3546,7 @@ func TestKBFSOpsFailToReadUnverifiableBlock(t *testing.T) {
 // test ever fails, consult max or strib before merging.
 func TestKBFSOpsEmptyTlfSize(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "test_user")
-	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
+	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
 
 	// Create a TLF.
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
@@ -3576,7 +3575,7 @@ func (c cryptoFixedTlf) MakeRandomTlfID(t tlf.Type) (tlf.ID, error) {
 func TestKBFSOpsMaliciousMDServerRange(t *testing.T) {
 	config1, _, ctx, cancel := kbfsOpsInitNoMocks(t, "alice", "mallory")
 	// TODO: Use kbfsTestShutdownNoMocks.
-	defer kbfsTestShutdownNoMocksNoCheck(t, config1, ctx, cancel)
+	defer kbfsTestShutdownNoMocks(ctx, t, config1, cancel)
 	// Turn off tlf edit history because it messes with the FBO state
 	// asynchronously.
 	config1.SetMode(modeNoHistory{config1.Mode()})
@@ -3642,7 +3641,7 @@ func TestKBFSOpsMaliciousMDServerRange(t *testing.T) {
 func TestGetTLFCryptKeysAfterFirstError(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "alice")
 	// TODO: Use kbfsTestShutdownNoMocks.
-	defer kbfsTestShutdownNoMocksNoCheck(t, config, ctx, cancel)
+	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
 
 	createErr := errors.New("Cannot create this TLF")
 	mdserver := &shimMDServer{
@@ -3671,7 +3670,7 @@ func TestGetTLFCryptKeysAfterFirstError(t *testing.T) {
 func TestForceFastForwardOnEmptyTLF(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "alice", "bob")
 	// TODO: Use kbfsTestShutdownNoMocks.
-	defer kbfsTestShutdownNoMocksNoCheck(t, config, ctx, cancel)
+	defer kbfsTestShutdownNoMocksNoCheck(ctx, t, config, cancel)
 
 	// Look up bob's public folder.
 	h, err := tlfhandle.ParseHandle(
@@ -3704,7 +3703,7 @@ func TestForceFastForwardOnEmptyTLF(t *testing.T) {
 // Regression test for KBFS-2161.
 func TestDirtyPathsAfterRemoveDir(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "test_user")
-	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
+	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
 
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
 	kbfsOps := config.KBFSOps()
@@ -3772,7 +3771,7 @@ func TestDirtyPathsAfterRemoveDir(t *testing.T) {
 func TestKBFSOpsBasicTeamTLF(t *testing.T) {
 	var u1, u2, u3 kbname.NormalizedUsername = "u1", "u2", "u3"
 	config1, uid1, ctx, cancel := kbfsOpsInitNoMocks(t, u1, u2, u3)
-	defer kbfsTestShutdownNoMocks(t, config1, ctx, cancel)
+	defer kbfsTestShutdownNoMocks(ctx, t, config1, cancel)
 
 	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
@@ -3882,7 +3881,7 @@ func (wrn wrappedReadonlyNode) WrapChild(child Node) Node {
 
 func TestKBFSOpsReadonlyNodes(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "test_user")
-	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
+	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
 
 	config.AddRootNodeWrapper(func(root Node) Node {
 		return wrappedReadonlyNode{root}
@@ -3947,7 +3946,7 @@ func (wan wrappedAutocreateNode) ShouldCreateMissedLookup(
 
 func testKBFSOpsAutocreateNodes(t *testing.T, et data.EntryType, sympath string) {
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "test_user")
-	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
+	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
 
 	config.AddRootNodeWrapper(func(root Node) Node {
 		return wrappedAutocreateNode{root, et, sympath}
@@ -4702,7 +4701,7 @@ func TestKBFSOpsPartialSyncConfig(t *testing.T) {
 }
 
 func waitForPrefetchInTest(
-	t *testing.T, ctx context.Context, config Config, node Node) {
+	ctx context.Context, t *testing.T, config Config, node Node) {
 	t.Helper()
 	md, err := config.KBFSOps().GetNodeMetadata(ctx, node)
 	require.NoError(t, err)
@@ -4717,7 +4716,7 @@ func waitForPrefetchInTest(
 }
 
 func waitForIndirectPtrBlocksInTest(
-	t *testing.T, ctx context.Context, config Config, node Node,
+	ctx context.Context, t *testing.T, config Config, node Node,
 	kmd libkey.KeyMetadata) {
 	t.Helper()
 	md, err := config.KBFSOps().GetNodeMetadata(ctx, node)
@@ -4793,7 +4792,7 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	t.Log("Root block and 'a' block should be synced")
 	checkSyncCache := func(expectedBlocks uint64, nodesToWaitOn ...Node) {
 		for _, node := range nodesToWaitOn {
-			waitForPrefetchInTest(t, ctx, config, node)
+			waitForPrefetchInTest(ctx, t, config, node)
 		}
 
 		// We can't wait for root and `a` to be prefetched, because
@@ -4801,8 +4800,8 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 		// won't necessarily complete in this test.  Instead, wait for
 		// all their indirect pointers to be retrieved and cached, so
 		// the sync cache counts will be correct.
-		waitForIndirectPtrBlocksInTest(t, ctx, config, rootNode, kmd)
-		waitForIndirectPtrBlocksInTest(t, ctx, config, aNode, kmd)
+		waitForIndirectPtrBlocksInTest(ctx, t, config, rootNode, kmd)
+		waitForIndirectPtrBlocksInTest(ctx, t, config, aNode, kmd)
 
 		syncStatusMap := dbc.syncCache.Status(ctx)
 		require.Len(t, syncStatusMap, 1)
@@ -4999,8 +4998,8 @@ func TestKBFSOpsRecentHistorySync(t *testing.T) {
 	require.NoError(t, err)
 
 	checkWorkingSetCache := func(expectedBlocks uint64) {
-		waitForPrefetchInTest(t, ctx, config, rootNode)
-		waitForPrefetchInTest(t, ctx, config, aNode)
+		waitForPrefetchInTest(ctx, t, config, rootNode)
+		waitForPrefetchInTest(ctx, t, config, aNode)
 
 		statusMap := dbc.workingSetCache.Status(ctx)
 		require.Len(t, statusMap, 1)
