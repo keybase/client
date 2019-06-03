@@ -105,7 +105,6 @@ export function writeStream(filepath: string, encoding: string, append?: boolean
 
 export function readFile(filepath: string, encoding: Encoding): Promise<any> {
   return new Promise((resolve, reject) => {
-    // $FlowIssue
     fs.readFile(filepath, {encoding}, (err, data) => {
       if (err) {
         reject(err)

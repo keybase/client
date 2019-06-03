@@ -32,6 +32,13 @@ interface Window {
   DEBUGRootEffects: any
 }
 
+interface Console {
+  _log: any
+  _warn: any
+  _error: any
+  _info: any
+}
+
 declare namespace NodeJS {
   interface Global {
     DEBUGActionLoop: () => void

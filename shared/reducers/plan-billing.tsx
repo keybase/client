@@ -1,4 +1,3 @@
-// @noflow
 import logger from '../logger'
 // @ts-ignore
 import * as CommonConstants from '../constants/common'

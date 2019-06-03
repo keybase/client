@@ -1,6 +1,4 @@
-// @flow
 import del from 'del'
-// $FlowIssue flow-typed assumes there's no default export, but there is
 import fs from 'fs-extra'
 import klawSync from 'klaw-sync'
 import minimist from 'minimist'
@@ -8,6 +6,7 @@ import os from 'os'
 import packager from 'electron-packager'
 import path from 'path'
 import webpack from 'webpack'
+import rootConfig from './webpack.config.babel'
 
 // absolute path relative to this script
 const desktopPath = (...args) => path.join(__dirname, ...args)
@@ -28,7 +27,7 @@ const copySyncFolder = (src, target, onlyExts) => {
   relSrcs.forEach((s, idx) => fs.copySync(path.join(srcRoot, s), dsts[idx]))
 }
 
-const copySync = (src, target, options) => {
+const copySync = (src, target, options?) => {
   fs.copySync(desktopPath(src), desktopPath(target), {...options, dereference: true})
 }
 
@@ -39,7 +38,7 @@ const shouldUseAsar = argv.asar || argv.a || false
 const shouldBuildAll = argv.all || false
 const arch = argv.arch ? argv.arch.toString() : os.arch()
 const platform = argv.platform ? argv.platform.toString() : os.platform()
-const appVersion: string = (argv.appVersion: any) || '0.0.0'
+const appVersion: string = (argv.appVersion as any) || '0.0.0'
 const comment = argv.comment || ''
 const outDir = argv.outDir || ''
 const appCopyright = 'Copyright (c) 2018, Keybase'
@@ -104,16 +103,14 @@ function main() {
 function startPack() {
   console.log('Starting webpack build\nInjecting __VERSION__: ', appVersion)
   process.env.APP_VERSION = appVersion
-  const webpackConfig = require('./webpack.config.babel.js').default(null, {mode: 'production'})
+  const webpackConfig = rootConfig(null, {mode: 'production'})
   webpack(webpackConfig, (err, stats) => {
     if (err) {
       console.error(err)
       process.exit(1)
     }
 
-    // $FlowIssue webpack flow-typed doesn't know about this, but it exists
     if (stats.hasErrors()) {
-      // $FlowIssue webpack flow-typed doesn't know about this, but it exists
       console.error(stats.toJson('errors-only').errors)
       process.exit(1)
     }

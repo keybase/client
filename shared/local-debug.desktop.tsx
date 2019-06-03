@@ -1,4 +1,3 @@
-// @flow
 import {jsonDebugFileName, serverConfigFileName} from './constants/platform.desktop'
 import {noop} from 'lodash-es'
 
