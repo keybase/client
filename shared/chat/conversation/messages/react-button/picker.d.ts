@@ -4,7 +4,7 @@ import * as React from 'react'
 // give it focus.
 
 export type Props = {
-  backgroundImageFn: (set: string, sheetSize: string) => string
+  backgroundImageFn: (set: string, sheetSize: number) => string
   onClick: (
     arg0: {
       colons: string

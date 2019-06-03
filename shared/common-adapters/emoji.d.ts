@@ -7,7 +7,7 @@ export type Props = {
   allowFontScaling?: boolean
 }
 
-declare function backgroundImageFn(set: string, sheetSize: string): string
+declare function backgroundImageFn(set: string, sheetSize: number): string
 
 export {backgroundImageFn}
 
