@@ -859,12 +859,12 @@ func TestDiskBlockCacheHomeDirPriorities(t *testing.T) {
 
 	t.Log("Verify that the non-home TLFs have been reduced in size by about" +
 		" half")
-	// Allow a tolerance of .4, so 30-70% of the original size.
+	// Allow a tolerance of .5, so 25-75% of the original size.
 	for _, tlfID := range otherTlfIds {
 		original := originalSizes[tlfID]
 		current := cache.syncCache.tlfCounts[tlfID]
 		t.Logf("ID: %v, Current: %d, Original: %d", tlfID, current, original)
-		require.InEpsilon(t, original/2, current, 0.4)
+		require.InEpsilon(t, original/2, current, 0.5)
 	}
 	require.Equal(t, homeTLFBlocksEach, cache.syncCache.tlfCounts[homeTLF])
 	require.Equal(t, homeTLFBlocksEach, cache.syncCache.tlfCounts[homePublicTLF])
