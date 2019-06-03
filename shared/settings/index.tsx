@@ -58,13 +58,14 @@ const Connected = compose(
   ),
   lifecycle({
     componentDidMount() {
+      // @ts-ignore NO recompose
       const loadHasRandomPW = this.props._loadHasRandomPW
       requestIdleCallback(loadHasRandomPW)
     },
   })
 )(SettingsContainer)
 
-// $FlowIssue lets fix this
+// @ts-ignore TODO fix
 Connected.navigationOptions = {
   header: null,
 }

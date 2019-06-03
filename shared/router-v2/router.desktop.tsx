@@ -202,11 +202,13 @@ const RootStackNavigator = createSwitchNavigator(
   {initialRouteName: 'loggedOut'}
 )
 
+type Subscriber = (data: {action: Object; lastState: Object; state: any; type: string}) => void
+
 const createElectronApp = Component => {
   // Based on https://github.com/react-navigation/react-navigation-native/blob/master/src/createAppContainer.js
   class ElectronApp extends React.PureComponent<any, any> {
     _navState: any = null // always use this value and not whats in state since thats async
-    _actionEventSubscribers = new Set()
+    _actionEventSubscribers = new Set<Subscriber>()
     _navigation: any
     _initialAction = null
 

@@ -2,6 +2,7 @@ import * as Types from '../constants/types/signup'
 import * as Constants from '../constants/signup'
 import * as SignupGen from '../actions/signup-gen'
 import HiddenString from '../util/hidden-string'
+import {actionHasError} from '../util/container'
 import {trim} from 'lodash-es'
 import {isValidEmail, isValidName, isValidUsername} from '../util/simple-validators'
 
@@ -23,12 +24,12 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
         usernameError: '',
       })
     case SignupGen.requestedAutoInvite:
-      return state.merge({inviteCode: action.error ? '' : action.payload.inviteCode})
+      return state.merge({inviteCode: actionHasError(action) ? '' : action.payload.inviteCode})
     case SignupGen.checkInviteCode:
       return state.merge({inviteCode: action.payload.inviteCode})
     case SignupGen.checkedInviteCode:
       return action.payload.inviteCode === state.inviteCode
-        ? state.merge({inviteCodeError: (action.error && action.payload.error) || ''})
+        ? state.merge({inviteCodeError: actionHasError(action) ? action.payload.error : ''})
         : state
     case SignupGen.checkUsernameEmail: {
       const {email, username} = action.payload
@@ -39,8 +40,8 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
     case SignupGen.checkedUsernameEmail:
       return action.payload.email === state.email && action.payload.username === state.username
         ? state.merge({
-            emailError: (action.error && action.payload.emailError) || '',
-            usernameError: (action.error && action.payload.usernameError) || '',
+            emailError: actionHasError(action) ? action.payload.emailError : '',
+            usernameError: actionHasError(action) ? action.payload.usernameError : '',
           })
         : state
     case SignupGen.requestInvite: {
@@ -57,8 +58,8 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
     case SignupGen.requestedInvite:
       return action.payload.email === state.email && action.payload.name === state.name
         ? state.merge({
-            emailError: (action.error && action.payload.emailError) || '',
-            nameError: (action.error && action.payload.nameError) || '',
+            emailError: actionHasError(action) ? action.payload.emailError : '',
+            nameError: actionHasError(action) ? action.payload.nameError : '',
           })
         : state
     case SignupGen.checkPassword: {
@@ -85,10 +86,10 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
     }
     case SignupGen.checkedDevicename:
       return action.payload.devicename === state.devicename
-        ? state.merge({devicenameError: (action.error && action.payload.error) || ''})
+        ? state.merge({devicenameError: actionHasError(action) ? action.payload.error : ''})
         : state
     case SignupGen.signedup:
-      return state.merge({signupError: (action.error && action.payload.error) || new HiddenString('')})
+      return state.merge({signupError: actionHasError(action) ? action.payload.error : new HiddenString('')})
     // Saga only actions
     case SignupGen.requestAutoInvite:
       return state

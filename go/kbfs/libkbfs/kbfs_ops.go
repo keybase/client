@@ -262,7 +262,30 @@ func (fs *KBFSOpsStandard) GetFavorites(ctx context.Context) (
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
-	return fs.favs.Get(ctx)
+	favs, err := fs.favs.Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Add the conflict status for any folders in a conflict state to
+	// the favorite struct.
+	journalManager, err := GetJournalManager(fs.config)
+	if err != nil {
+		// Journaling not enabled.
+		return favs, nil
+	}
+	_, cleared, err := journalManager.GetJournalsInConflict(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, c := range cleared {
+		favs = append(favs, favorites.Folder{
+			Name: string(c.Name),
+			Type: c.Type,
+		})
+	}
+	return favs, nil
 }
 
 // GetFavoritesAll implements the KBFSOps interface for
@@ -277,6 +300,55 @@ func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (
 		return keybase1.FavoritesResult{}, err
 	}
 
+	tlfIDs := fs.config.GetAllSyncedTlfs()
+
+	// If we have any synced TLFs, create a quick-index map for
+	// favorites based on name+type.
+	type mapKey struct {
+		name string
+		t    keybase1.FolderType
+	}
+	var indexedFavs map[mapKey]int
+	if len(tlfIDs) > 0 {
+		indexedFavs = make(map[mapKey]int, len(favs.FavoriteFolders))
+		for i, fav := range favs.FavoriteFolders {
+			indexedFavs[mapKey{fav.Name, fav.FolderType}] = i
+		}
+	}
+
+	// Add the sync config mode to each favorite.
+	for _, id := range tlfIDs {
+		config, err := fs.GetSyncConfig(ctx, id)
+		if err != nil {
+			return keybase1.FavoritesResult{}, err
+		}
+
+		if config.Mode == keybase1.FolderSyncMode_DISABLED {
+			panic(fmt.Sprintf(
+				"Folder %s has sync unexpectedly disabled", id))
+		}
+
+		fb := data.FolderBranch{Tlf: id, Branch: data.MasterBranch}
+		_, h, err := fs.GetRootNodeMetadata(ctx, fb)
+		if err != nil {
+			return keybase1.FavoritesResult{}, err
+		}
+
+		name := string(h.GetCanonicalName())
+		i, ok := indexedFavs[mapKey{name, id.Type().FolderType()}]
+		if ok {
+			favs.FavoriteFolders[i].SyncConfig = &config
+		}
+	}
+	for i, fav := range favs.FavoriteFolders {
+		if fav.SyncConfig != nil {
+			continue
+		}
+		favs.FavoriteFolders[i].SyncConfig = &keybase1.FolderSyncConfig{
+			Mode: keybase1.FolderSyncMode_DISABLED,
+		}
+	}
+
 	// Add the conflict status for any folders in a conflict state to
 	// the favorite struct.
 	journalManager, err := GetJournalManager(fs.config)
@@ -284,14 +356,34 @@ func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (
 		// Journaling not enabled.
 		return favs, nil
 	}
-	conflicts, err := journalManager.GetJournalsInConflict(ctx)
+	conflicts, cleared, err := journalManager.GetJournalsInConflict(ctx)
 	if err != nil {
 		return keybase1.FavoritesResult{}, err
 	}
 
-	if len(conflicts) == 0 {
+	if len(conflicts) == 0 && len(cleared) == 0 {
 		return favs, nil
 	}
+
+	clearedMap := make(map[string][]keybase1.Path)
+	for _, c := range cleared {
+		cs := keybase1.NewConflictStateWithManualresolvinglocalview(
+			keybase1.ConflictManualResolvingLocalView{
+				ServerView: c.ServerViewPath,
+			})
+		favs.FavoriteFolders = append(favs.FavoriteFolders,
+			keybase1.Folder{
+				Name:          string(c.Name),
+				FolderType:    c.Type.FolderType(),
+				Private:       c.Type != tlf.Public,
+				ResetMembers:  []keybase1.User{},
+				ConflictState: &cs,
+			})
+
+		clearedMap[c.ServerViewPath.String()] = append(
+			clearedMap[c.ServerViewPath.String()], c.LocalViewPath)
+	}
+
 	conflictMap := make(map[ConflictJournalRecord]tlf.ID, len(conflicts))
 	for _, c := range conflicts {
 		conflictMap[ConflictJournalRecord{Name: c.Name, Type: c.Type}] = c.ID
@@ -299,34 +391,54 @@ func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (
 
 	found := 0
 	for i, f := range favs.FavoriteFolders {
+		name := tlf.CanonicalName(f.Name)
+		t := tlf.TypeFromFolderType(f.FolderType)
 		c := ConflictJournalRecord{
-			Name: tlf.CanonicalName(f.Name),
-			Type: tlf.TypeFromFolderType(f.FolderType),
-		}
-		tlfID, ok := conflictMap[c]
-		if !ok {
-			continue
+			Name: name,
+			Type: t,
 		}
 
-		fb := data.FolderBranch{Tlf: tlfID, Branch: data.MasterBranch}
-		ops := fs.getOps(ctx, fb, FavoritesOpNoChange)
-		status, err := ops.FolderConflictStatus(ctx)
-		if err != nil {
-			return keybase1.FavoritesResult{}, err
+		// First check for any current automatically-resolving
+		// conflicts, those take precedence in terms of the state we
+		// return.
+		tlfID, ok := conflictMap[c]
+		if ok {
+			fb := data.FolderBranch{Tlf: tlfID, Branch: data.MasterBranch}
+			ops := fs.getOps(ctx, fb, FavoritesOpNoChange)
+			s, err := ops.FolderConflictStatus(ctx)
+			if err != nil {
+				return keybase1.FavoritesResult{}, err
+			}
+			if s != keybase1.FolderConflictType_NONE {
+				stk := s == keybase1.FolderConflictType_IN_CONFLICT_AND_STUCK
+				conflictState :=
+					keybase1.NewConflictStateWithAutomaticresolving(
+						keybase1.ConflictAutomaticResolving{IsStuck: stk})
+				favs.FavoriteFolders[i].ConflictState = &conflictState
+				found++
+			}
+		} else {
+			// Otherwise, check whether this favorite has any local
+			// conflict views.
+			p := tlfhandle.BuildProtocolPathForTlfName(t, name)
+
+			localViews, ok := clearedMap[p.String()]
+			if ok {
+				cs := keybase1.NewConflictStateWithManualresolvingserverview(
+					keybase1.ConflictManualResolvingServerView{
+						LocalViews: localViews,
+					})
+				favs.FavoriteFolders[i].ConflictState = &cs
+				found++
+			}
 		}
-		if status != keybase1.FolderConflictType_NONE {
-			stk := status == keybase1.FolderConflictType_IN_CONFLICT_AND_STUCK
-			conflictState := keybase1.NewConflictStateWithAutomaticresolving(
-				keybase1.ConflictAutomaticResolving{IsStuck: stk})
-			favs.FavoriteFolders[i].ConflictState = &conflictState
-		}
-		fs.log.CDebugf(ctx, "Conflict status for %s: %s", tlfID, status)
-		found++
-		if found == len(conflictMap) {
+
+		if found == len(conflictMap)+len(clearedMap) {
 			// Short-circuit the loop if we've already found all the conflicts.
 			break
 		}
 	}
+
 	return favs, nil
 }
 
@@ -447,8 +559,10 @@ func (fs *KBFSOpsStandard) getOpsNoAdd(
 	ops, ok := fs.ops[fb]
 	if !ok {
 		bType := standard
-		if _, isRevBranch := fb.Branch.RevisionIfSpecified(); isRevBranch {
+		if fb.Branch.IsArchived() {
 			bType = archive
+		} else if fb.Branch.IsLocalConflict() {
+			bType = conflict
 		}
 		var quotaUsage *EventuallyConsistentQuotaUsage
 		if fb.Tlf.Type() != tlf.SingleTeam {
@@ -1482,7 +1596,7 @@ func (fs *KBFSOpsStandard) Reset(
 	return fs.resetTlfID(ctx, handle)
 }
 
-// ClearConflictView resets a TLF's jounral and conflict DB to a non
+// ClearConflictView resets a TLF's journal and conflict DB to a non
 // -conflicting state.
 func (fs *KBFSOpsStandard) ClearConflictView(ctx context.Context,
 	tlfID tlf.ID) error {
@@ -1491,6 +1605,59 @@ func (fs *KBFSOpsStandard) ClearConflictView(ctx context.Context,
 		Branch: data.MasterBranch,
 	})
 	return fbo.clearConflictView(ctx)
+}
+
+func (fs *KBFSOpsStandard) deleteOps(
+	ctx context.Context, ops *folderBranchOps, fb data.FolderBranch) error {
+	handle, err := ops.GetTLFHandle(ctx, nil)
+	if err != nil {
+		return err
+	}
+	fs.opsLock.Lock()
+	defer fs.opsLock.Unlock()
+	delete(fs.ops, fb)
+	fav := handle.ToFavorite()
+	delete(fs.opsByFav, fav)
+	return nil
+}
+
+// FinishResolvingConflict implements the KBFSOps interface for
+// KBFSOpsStandard.
+func (fs *KBFSOpsStandard) FinishResolvingConflict(
+	ctx context.Context, fb data.FolderBranch) (err error) {
+	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
+	defer timeTrackerDone()
+
+	fs.log.CDebugf(ctx, "FinishResolvingConflict(%v)", fb)
+	defer func() {
+		fs.deferLog.CDebugf(ctx, "Done: %+v", err)
+	}()
+
+	// First invalidate all its nodes and shut down the FBO.
+	ops := fs.getOpsIfExists(ctx, fb)
+	if ops != nil {
+		err := ops.invalidateAllNodes(ctx)
+		if err != nil {
+			return err
+		}
+		err = fs.deleteOps(ctx, ops, fb)
+		if err != nil {
+			return err
+		}
+		err = ops.Shutdown(ctx)
+		if err != nil {
+			return err
+		}
+	}
+
+	jManager, jErr := GetJournalManager(fs.config)
+	if jErr == nil {
+		err := jManager.FinishResolvingConflict(ctx, fb.Tlf)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // ForceStuckConflictForTesting implements the KBFSOps interface for

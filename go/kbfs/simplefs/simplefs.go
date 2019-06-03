@@ -225,6 +225,12 @@ func (k *SimpleFS) branchNameFromPath(
 	}
 	switch pt {
 	case keybase1.PathType_KBFS:
+		if tlfHandle.IsLocalConflict() {
+			b, ok := data.MakeConflictBranchName(tlfHandle)
+			if ok {
+				return b, nil
+			}
+		}
 		return data.MasterBranch, nil
 	case keybase1.PathType_KBFS_ARCHIVED:
 		archivedParam := path.KbfsArchived().ArchivedParam
@@ -2489,7 +2495,29 @@ func (k *SimpleFS) SimpleFSClearConflictState(ctx context.Context,
 // SimpleFSFinishResolvingConflict implements the SimpleFS interface.
 func (k *SimpleFS) SimpleFSFinishResolvingConflict(ctx context.Context,
 	path keybase1.Path) error {
-	return errors.New("not implemented")
+	ctx, err := k.startOpWrapContext(k.makeContext(ctx))
+	if err != nil {
+		return err
+	}
+	defer func() { libcontext.CleanupCancellationDelayer(ctx) }()
+	t, tlfName, _, _, err := remoteTlfAndPath(path)
+	if err != nil {
+		return err
+	}
+	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
+		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, tlfName, t)
+	if err != nil {
+		return err
+	}
+	tlfID := tlfHandle.TlfID()
+	branch, err := k.branchNameFromPath(ctx, tlfHandle, path)
+	if err != nil {
+		return err
+	}
+	return k.config.KBFSOps().FinishResolvingConflict(ctx, data.FolderBranch{
+		Tlf:    tlfID,
+		Branch: branch,
+	})
 }
 
 // SimpleFSForceStuckConflict implements the SimpleFS interface.
@@ -2542,7 +2570,10 @@ func (k *SimpleFS) SimpleFSSetDebugLevel(
 }
 
 // SimpleFSSettings implements the SimpleFSInterface.
-func (k *SimpleFS) SimpleFSSettings(ctx context.Context) (keybase1.FSSettings, error) {
+func (k *SimpleFS) SimpleFSSettings(ctx context.Context) (settings keybase1.FSSettings, err error) {
+	defer func() {
+		k.log.CDebugf(ctx, "SimpleFSSettings settings=%+v err=%+v", settings, err)
+	}()
 	db := k.config.GetSettingsDB()
 	if db == nil {
 		return keybase1.FSSettings{}, libkbfs.ErrNoSettingsDB
@@ -2551,7 +2582,10 @@ func (k *SimpleFS) SimpleFSSettings(ctx context.Context) (keybase1.FSSettings, e
 }
 
 // SimpleFSSetNotificationThreshold implements the SimpleFSInterface.
-func (k *SimpleFS) SimpleFSSetNotificationThreshold(ctx context.Context, threshold int64) error {
+func (k *SimpleFS) SimpleFSSetNotificationThreshold(ctx context.Context, threshold int64) (err error) {
+	defer func() {
+		k.log.CDebugf(ctx, "SimpleFSSetNotificationThreshold threshold=%d err=%+v", threshold, err)
+	}()
 	db := k.config.GetSettingsDB()
 	if db == nil {
 		return libkbfs.ErrNoSettingsDB

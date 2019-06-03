@@ -431,22 +431,22 @@ func (w *WalletState) PendingPayments(ctx context.Context, accountID stellar1.Ac
 }
 
 // RecentPayments is an override of remoter's RecentPayments that uses stored data.
-func (w *WalletState) RecentPayments(ctx context.Context, accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int, skipPending bool) (stellar1.PaymentsPage, error) {
+func (w *WalletState) RecentPayments(ctx context.Context, arg remote.RecentPaymentsArg) (stellar1.PaymentsPage, error) {
 	useAccountState := true
-	if limit != 0 && limit != 50 {
+	if arg.Limit != 0 && arg.Limit != 50 {
 		useAccountState = false
-	} else if cursor != nil {
+	} else if arg.Cursor != nil {
 		useAccountState = false
-	} else if !skipPending {
+	} else if !arg.SkipPending {
 		useAccountState = false
 	}
 
 	if !useAccountState {
 		w.G().Log.CDebugf(ctx, "WalletState:RecentPayments using remote due to parameters")
-		return w.Remoter.RecentPayments(ctx, accountID, cursor, limit, skipPending)
+		return w.Remoter.RecentPayments(ctx, arg)
 	}
 
-	a, err := w.accountStateRefresh(ctx, accountID, "RecentPayments")
+	a, err := w.accountStateRefresh(ctx, arg.AccountID, "RecentPayments")
 	if err != nil {
 		return stellar1.PaymentsPage{}, err
 	}
@@ -797,6 +797,12 @@ func (a *AccountState) ForceSeqnoRefresh(mctx libkb.MetaContext) error {
 	return nil
 }
 
+// SeqnoDebug outputs some information about the seqno state.
+func (a *AccountState) SeqnoDebug(mctx libkb.MetaContext) {
+	mctx.Debug("SEQNO debug for %s: pending txs %d, inuse seqnos: %d", a.accountID, len(a.pendingTxs), len(a.inuseSeqnos))
+	mctx.Debug("SEQNO debug for %s: inuse seqnos: %+v", a.accountID, a.inuseSeqnos)
+}
+
 // AccountSeqno returns the seqno that has already been fetched for
 // this account.
 func (a *AccountState) AccountSeqno(ctx context.Context) (uint64, error) {
@@ -812,13 +818,17 @@ func (a *AccountState) AccountSeqnoAndBump(ctx context.Context) (uint64, error) 
 	defer a.Unlock()
 	result := a.seqno
 
+	a.seqno++
+
 	// need to keep track that we are going to use this seqno
 	// in a tx.  This record keeping avoids a race where
 	// multiple seqno providers rushing to use seqnos before
 	// AddPendingTx is called.
-	a.inuseSeqnos[result] = inuseSeqno{ctime: time.Now()}
+	//
+	// The "in use" seqno is result+1 since the transaction builders
+	// add 1 to result when they make the transaction.
+	a.inuseSeqnos[a.seqno] = inuseSeqno{ctime: time.Now()}
 
-	a.seqno++
 	return result, nil
 }
 

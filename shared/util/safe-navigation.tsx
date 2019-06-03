@@ -12,22 +12,12 @@ type Path = Array<
 >
 
 type NavProps = {
-  navigateAppend: (
-    arg0: {
-      path: Path
-      replace?: boolean
-    }
-  ) => RouteTreeGen.NavigateAppendPayload | void
+  navigateAppend: (arg0: {path: Path; replace?: boolean}) => RouteTreeGen.NavigateAppendPayload | void
   navigateUp: () => RouteTreeGen.NavigateUpPayload | void
 }
 
 export type PropsWithSafeNavigation<P> = {
-  navigateAppend: (
-    arg0: {
-      path: Path
-      replace?: boolean
-    }
-  ) => RouteTreeGen.NavigateAppendPayload
+  navigateAppend: (arg0: {path: Path; replace?: boolean}) => RouteTreeGen.NavigateAppendPayload
   navigateUp: () => RouteTreeGen.NavigateUpPayload
 } & P
 

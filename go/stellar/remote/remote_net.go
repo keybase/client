@@ -62,8 +62,8 @@ func (r *RemoteNet) NextAutoClaim(ctx context.Context) (*stellar1.AutoClaim, err
 	return NextAutoClaim(ctx, r.G())
 }
 
-func (r *RemoteNet) RecentPayments(ctx context.Context, accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int, skipPending bool) (stellar1.PaymentsPage, error) {
-	return RecentPayments(ctx, r.G(), accountID, cursor, limit, skipPending)
+func (r *RemoteNet) RecentPayments(ctx context.Context, arg RecentPaymentsArg) (stellar1.PaymentsPage, error) {
+	return RecentPayments(ctx, r.G(), arg)
 }
 
 func (r *RemoteNet) PendingPayments(ctx context.Context, accountID stellar1.AccountID, limit int) ([]stellar1.PaymentSummary, error) {
@@ -140,4 +140,8 @@ func (r *RemoteNet) ChangeTrustline(ctx context.Context, signedTx string) error 
 
 func (r *RemoteNet) FindPaymentPath(mctx libkb.MetaContext, query stellar1.PaymentPathQuery) (stellar1.PaymentPath, error) {
 	return FindPaymentPath(mctx, query)
+}
+
+func (r *RemoteNet) PostAnyTransaction(mctx libkb.MetaContext, signedTx string) error {
+	return PostAnyTransaction(mctx, signedTx)
 }

@@ -6,7 +6,6 @@ import flags from '../../util/feature-flags'
 // normally never do this but this call serves no purpose for users at all
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-// @ts-ignore not typed yet
 import AppState from '../../app/app-state'
 
 type Props = {
@@ -27,11 +26,10 @@ type Props = {
   onChangeUseNativeFrame: (arg0: boolean) => void
 }
 
-const initialUseNativeFrame = // Auto generated from flowToTs. Please clean me!
-  // @ts-ignore not typed yet
-  new AppState().state.useNativeFrame !== null && new AppState().state.useNativeFrame !== undefined
-  // @ts-ignore not typed yet
-    ? new AppState().state.useNativeFrame
+const stateUseNativeFrame = new AppState().state.useNativeFrame
+const initialUseNativeFrame =
+  stateUseNativeFrame !== null && stateUseNativeFrame !== undefined
+    ? stateUseNativeFrame
     : defaultUseNativeFrame
 
 const UseNativeFrame = (props: Props) => {
@@ -186,7 +184,7 @@ class Developer extends React.Component<Props, State> {
               this.setState({indexTook: -1})
               const start = Date.now()
               RPCChatTypes.localProfileChatSearchRpcPromise({
-                identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+                identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
               }).then(() => this.setState({indexTook: Date.now() - start}))
             }}
           />
@@ -198,7 +196,7 @@ class Developer extends React.Component<Props, State> {
               this.setState({cleanTook: -1})
               const start = Date.now()
               RPCTypes.ctlDbCleanRpcPromise({
-                dbType: RPCTypes.ctlDbType.main, // core db
+                dbType: RPCTypes.DbType.main, // core db
                 force: true,
               }).then(() => this.setState({cleanTook: Date.now() - start}))
             }}

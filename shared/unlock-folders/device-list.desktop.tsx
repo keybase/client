@@ -67,7 +67,7 @@ const styles = Styles.styleSheetCreate({
     alignSelf: 'center',
     backgroundColor: Styles.globalColors.greyLight,
     height: 162,
-    overflowY: 'scroll' as 'scroll',
+    overflowY: 'scroll' as const,
     paddingBottom: Styles.globalMargins.small,
     paddingTop: Styles.globalMargins.small,
     width: 440,

@@ -7,7 +7,7 @@ export type Props = {
   onTabChange: (tab: Tab) => void
   onLogout: () => void
   badgeNotifications?: boolean
-  badgeNumbers: {[K in TabConstants.Tab]: number}
+  badgeNumbers: {[K in TabConstants.Tab]?: number}
   hasRandomPW: boolean | null
 }
 

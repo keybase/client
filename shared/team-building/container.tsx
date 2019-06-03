@@ -74,7 +74,7 @@ const deriveServiceResultCount: (
   searchResults: SearchResults,
   query: string
 ) => {[K in ServiceIdWithContact]: number | null} = memoize((searchResults: SearchResults, query) =>
-  // $FlowIssue toObject looses typing
+  // @ts-ignore codemod issue
   searchResults
     .get(trim(query), I.Map())
     .map(results => results.length)
@@ -202,7 +202,7 @@ const deriveOnDownArrowKeyDown = memoize(
   (maxIndex: number, incHighlightIndex: (maxIndex: number) => void) => () => incHighlightIndex(maxIndex)
 )
 
-const mergeProps = <MergedProps extends {}>(stateProps, dispatchProps, ownProps: OwnProps): MergedProps => {
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const {
     teamSoFar,
     searchResults,
@@ -317,6 +317,7 @@ class StateWrapperForTeamBuilding extends React.Component<{}, LocalState> {
 
   render() {
     return (
+      // @ts-ignore
       <Connected
         onChangeService={this.onChangeService}
         onChangeText={this.onChangeText}

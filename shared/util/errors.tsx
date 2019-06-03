@@ -15,11 +15,17 @@ export class RPCError {
   desc: string
   details: string // Details w/ error code & method if it's present
 
-  constructor(message: string, code: number, fields?: any, name?: string | null, method?: string | null) {
-    const err = new Error(paramsToErrorMsg(message, code, fields, name, method))
+  constructor(
+    message: string,
+    code: number,
+    fields: any = null,
+    name: string | null = null,
+    method: string | null = null
+  ) {
+    const err = new Error(paramsToErrorMsg(message, code, name, method))
     this.message = err.message
     this.name = 'RPCError'
-    this.stack = err.stack
+    this.stack = err.stack || ''
 
     this.code = code // Consult type StatusCode in rpc-gen.js for what this means
     this.fields = fields
@@ -43,7 +49,6 @@ const paramsToErrorDetails = (code: number, name: string | null, method: string 
 const paramsToErrorMsg = (
   message: string,
   code: number,
-  fields: any,
   name: string | null,
   method: string | null
 ): string => {
@@ -97,36 +102,36 @@ export const niceError = (e: RPCError) => {
   }
 
   switch (e.code) {
-    case RPCTypes.constantsStatusCode.scnotfound:
+    case RPCTypes.StatusCode.scnotfound:
       return "Sorry, can't find that username"
-    case RPCTypes.constantsStatusCode.scbadloginusernotfound:
+    case RPCTypes.StatusCode.scbadloginusernotfound:
       return 'Looks like an incorrect user'
-    case RPCTypes.constantsStatusCode.scbadloginpassword:
+    case RPCTypes.StatusCode.scbadloginpassword:
       return 'Looks like a bad password.'
-    case RPCTypes.constantsStatusCode.scdeleted:
+    case RPCTypes.StatusCode.scdeleted:
       return 'This user looks deleted.'
-    case RPCTypes.constantsStatusCode.scalreadyloggedin:
+    case RPCTypes.StatusCode.scalreadyloggedin:
       return 'You seem to be already logged in'
-    case RPCTypes.constantsStatusCode.screloginrequired:
+    case RPCTypes.StatusCode.screloginrequired:
       return 'You need to re-login'
-    case RPCTypes.constantsStatusCode.scnospaceondevice:
+    case RPCTypes.StatusCode.scnospaceondevice:
       return "Spaces aren't allowed in device names"
-    case RPCTypes.constantsStatusCode.scbademail:
+    case RPCTypes.StatusCode.scbademail:
       return "This doesn't seem like a valid email"
-    case RPCTypes.constantsStatusCode.scbadsignupusernametaken:
+    case RPCTypes.StatusCode.scbadsignupusernametaken:
       return 'This username is already taken'
-    case RPCTypes.constantsStatusCode.scbadinvitationcode:
+    case RPCTypes.StatusCode.scbadinvitationcode:
       return "This invite code doesn't look right"
-    case RPCTypes.constantsStatusCode.scdevicebadname:
+    case RPCTypes.StatusCode.scdevicebadname:
       return 'Seems like an invalid device name'
-    case RPCTypes.constantsStatusCode.scdevicenameinuse:
-    case RPCTypes.constantsStatusCode.scgenericapierror:
-    case RPCTypes.constantsStatusCode.sctimeout:
-    case RPCTypes.constantsStatusCode.scapinetworkerror:
+    case RPCTypes.StatusCode.scdevicenameinuse:
+    case RPCTypes.StatusCode.scgenericapierror:
+    case RPCTypes.StatusCode.sctimeout:
+    case RPCTypes.StatusCode.scapinetworkerror:
       return 'Looks like the internet is gone...'
-    case RPCTypes.constantsStatusCode.scbadsignupusernamedeleted:
+    case RPCTypes.StatusCode.scbadsignupusernamedeleted:
       return 'Looks like this user was deleted, or something'
-    case RPCTypes.constantsStatusCode.scstreameof:
+    case RPCTypes.StatusCode.scstreameof:
       return 'Looks like we took too long. Try again, but a little bit quicker maybe'
   }
 
@@ -134,10 +139,16 @@ export const niceError = (e: RPCError) => {
   return caps.endsWith('.') ? caps : `${caps}.`
 }
 
+function isRPCError(error: RPCError | Error): error is RPCError {
+  return error && typeof (error as RPCError).code === 'number'
+}
+
 export function isEOFError(error: RPCError | Error) {
   return (
-    // @ts-ignore codemod-issue
-    error.code && error.code === transportErrors['EOF'] && error.message === transportErrors.msg[error.code]
+    isRPCError(error) &&
+    error.code &&
+    error.code === transportErrors['EOF'] &&
+    error.message === transportErrors.msg[error.code]
   )
 }
 

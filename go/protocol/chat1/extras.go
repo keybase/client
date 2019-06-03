@@ -2047,6 +2047,14 @@ func (r *SetRetentionRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimit = &rl[0]
 }
 
+func (r *LoadGalleryRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *LoadGalleryRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
 func (i EphemeralPurgeInfo) String() string {
 	return fmt.Sprintf("EphemeralPurgeInfo{ ConvID: %v, IsActive: %v, NextPurgeTime: %v, MinUnexplodedID: %v }",
 		i.ConvID, i.IsActive, i.NextPurgeTime.Time(), i.MinUnexplodedID)

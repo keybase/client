@@ -23,7 +23,8 @@
       "symbols": [
         "NONE_0",
         "IN_CONFLICT_1",
-        "IN_CONFLICT_AND_STUCK_2"
+        "IN_CONFLICT_AND_STUCK_2",
+        "CLEARED_CONFLICT_3"
       ]
     },
     {
@@ -150,6 +151,13 @@
             "ConflictState"
           ],
           "name": "conflictState"
+        },
+        {
+          "type": [
+            null,
+            "FolderSyncConfig"
+          ],
+          "name": "syncConfig"
         }
       ],
       "doc": "Folder represents a favorite top-level folder in kbfs.\n    This type is likely to change significantly as all the various parts are\n    connected and tested."

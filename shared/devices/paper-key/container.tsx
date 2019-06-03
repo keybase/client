@@ -22,8 +22,6 @@ const mergeProps = (stateProps, dispatchProps) => ({
 })
 
 // @ts-ignore codemode issue
-export default Container.connect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(PaperKey)
+export default Container.connect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps)(
+  PaperKey
+)

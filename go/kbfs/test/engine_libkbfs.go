@@ -264,6 +264,13 @@ func (k *LibKBFS) getRootDir(
 			expectedCanonicalTlfName, h.GetCanonicalName())
 	}
 
+	if h.IsLocalConflict() {
+		b, ok := data.MakeConflictBranchName(h)
+		if ok {
+			branch = b
+		}
+	}
+
 	if branch == data.MasterBranch {
 		dir, _, err = config.KBFSOps().GetOrCreateRootNode(ctx, h, branch)
 	} else {
@@ -595,6 +602,17 @@ func getRootNode(ctx context.Context, config libkbfs.Config, tlfName string,
 	// TODO: we should cache the root node, to more faithfully
 	// simulate real-world callers and avoid unnecessary work.
 	kbfsOps := config.KBFSOps()
+	if h.IsLocalConflict() {
+		b, ok := data.MakeConflictBranchName(h)
+		if ok {
+			dir, _, err := kbfsOps.GetRootNode(ctx, h, b)
+			if err != nil {
+				return nil, err
+			}
+			return dir, nil
+		}
+	}
+
 	dir, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, data.MasterBranch)
 	if err != nil {
 		return nil, err
@@ -875,6 +893,37 @@ func (k *LibKBFS) TogglePrefetch(u User, enable bool) error {
 
 	_ = config.BlockOps().TogglePrefetcher(enable)
 	return nil
+}
+
+// ForceConflict implements the Engine interface.
+func (k *LibKBFS) ForceConflict(u User, tlfName string, t tlf.Type) error {
+	config := u.(*libkbfs.ConfigLocal)
+
+	ctx, cancel := k.newContext(u)
+	defer cancel()
+
+	root, err := getRootNode(ctx, config, tlfName, t)
+	if err != nil {
+		return err
+	}
+
+	return config.KBFSOps().ForceStuckConflictForTesting(
+		ctx, root.GetFolderBranch().Tlf)
+}
+
+// ClearConflicts implements the Engine interface.
+func (k *LibKBFS) ClearConflicts(u User, tlfName string, t tlf.Type) error {
+	config := u.(*libkbfs.ConfigLocal)
+
+	ctx, cancel := k.newContext(u)
+	defer cancel()
+
+	root, err := getRootNode(ctx, config, tlfName, t)
+	if err != nil {
+		return err
+	}
+
+	return config.KBFSOps().ClearConflictView(ctx, root.GetFolderBranch().Tlf)
 }
 
 // Shutdown implements the Engine interface.

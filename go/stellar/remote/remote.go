@@ -504,27 +504,27 @@ type recentPaymentsResult struct {
 	Result stellar1.PaymentsPage `json:"res"`
 }
 
-func RecentPayments(ctx context.Context, g *libkb.GlobalContext,
-	accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int, skipPending bool) (stellar1.PaymentsPage, error) {
+func RecentPayments(ctx context.Context, g *libkb.GlobalContext, arg RecentPaymentsArg) (stellar1.PaymentsPage, error) {
 	mctx := libkb.NewMetaContext(ctx, g)
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/recentpayments",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
-			"account_id":    libkb.S{Val: accountID.String()},
-			"limit":         libkb.I{Val: limit},
-			"skip_pending":  libkb.B{Val: skipPending},
-			"include_multi": libkb.B{Val: true},
+			"account_id":       libkb.S{Val: arg.AccountID.String()},
+			"limit":            libkb.I{Val: arg.Limit},
+			"skip_pending":     libkb.B{Val: arg.SkipPending},
+			"include_multi":    libkb.B{Val: true},
+			"include_advanced": libkb.B{Val: arg.IncludeAdvanced},
 		},
 		RetryCount:      3,
 		RetryMultiplier: 1.5,
 		InitialTimeout:  10 * time.Second,
 	}
 
-	if cursor != nil {
-		apiArg.Args["horizon_cursor"] = libkb.S{Val: cursor.HorizonCursor}
-		apiArg.Args["direct_cursor"] = libkb.S{Val: cursor.DirectCursor}
-		apiArg.Args["relay_cursor"] = libkb.S{Val: cursor.RelayCursor}
+	if arg.Cursor != nil {
+		apiArg.Args["horizon_cursor"] = libkb.S{Val: arg.Cursor.HorizonCursor}
+		apiArg.Args["direct_cursor"] = libkb.S{Val: arg.Cursor.DirectCursor}
+		apiArg.Args["relay_cursor"] = libkb.S{Val: arg.Cursor.RelayCursor}
 	}
 
 	var apiRes recentPaymentsResult
@@ -1100,4 +1100,16 @@ func SubmitPathPayment(mctx libkb.MetaContext, post stellar1.PathPaymentPost) (s
 		return stellar1.PaymentResult{}, err
 	}
 	return res.PaymentResult, nil
+}
+
+func PostAnyTransaction(mctx libkb.MetaContext, signedTx string) (err error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/postanytransaction",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"sig": libkb.S{Val: signedTx},
+		},
+	}
+	_, err = mctx.G().API.Post(mctx, apiArg)
+	return err
 }

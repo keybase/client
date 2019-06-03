@@ -13,7 +13,13 @@ export declare function createPropProviderWithCommon(
   ...maps: SelectorMap[]
 ): (arg0: () => React.ElementType) => React.ElementType
 export declare function unexpected(name: string): () => void
-export declare class Rnd {}
+export declare class Rnd {
+  constructor(seed: number | string)
+  next(): number
+  randInt(low: number, high: number): number
+  generateString(regex: RegExp): string
+}
+
 export declare function propOverridesForStory(p: any): {}
 
 export {PropProviders}
