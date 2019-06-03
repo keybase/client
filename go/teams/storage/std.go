@@ -1,4 +1,4 @@
-package teams
+package storage
 
 import (
 	"fmt"

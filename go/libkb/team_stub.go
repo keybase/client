@@ -47,8 +47,8 @@ func (n nullTeamLoader) NotifyTeamRename(ctx context.Context, id keybase1.TeamID
 	return nil
 }
 
-func (n nullTeamLoader) Load(context.Context, keybase1.LoadTeamArg) (*keybase1.TeamData, error) {
-	return nil, fmt.Errorf("null team loader")
+func (n nullTeamLoader) Load(context.Context, keybase1.LoadTeamArg) (*keybase1.TeamData, *keybase1.HiddenTeamChain, error) {
+	return nil, nil, fmt.Errorf("null team loader")
 }
 
 func (n nullTeamLoader) Freeze(context.Context, keybase1.TeamID) error {
@@ -154,3 +154,29 @@ func (n nullTeamBoxAuditor) Attempt(m MetaContext, id keybase1.TeamID, rotateBef
 	return *attemptNullBoxAuditor()
 }
 func newNullTeamBoxAuditor() nullTeamBoxAuditor { return nullTeamBoxAuditor{} }
+
+type nullHiddenTeamChainManager struct{}
+
+var _ HiddenTeamChainManager = nullHiddenTeamChainManager{}
+
+func (n nullHiddenTeamChainManager) Tail(mctx MetaContext, id keybase1.TeamID) (*keybase1.LinkTriple, error) {
+	return nil, nil
+}
+
+func (n nullHiddenTeamChainManager) Ratchet(MetaContext, keybase1.TeamID, keybase1.HiddenTeamChainRatchet) error {
+	return nil
+}
+func (n nullHiddenTeamChainManager) Advance(MetaContext, keybase1.HiddenTeamChain) error {
+	return nil
+}
+func (n nullHiddenTeamChainManager) PerTeamKeyAtGeneration(MetaContext, keybase1.TeamID, keybase1.PerTeamKeyGeneration) (*keybase1.PerTeamKey, error) {
+	return nil, fmt.Errorf("null hidden team chain manager")
+}
+
+func (n nullHiddenTeamChainManager) Load(MetaContext, keybase1.TeamID) (*keybase1.HiddenTeamChain, error) {
+	return nil, fmt.Errorf("null hidden team chain manager")
+}
+
+func newNullHiddenTeamChainManager() nullHiddenTeamChainManager {
+	return nullHiddenTeamChainManager{}
+}
