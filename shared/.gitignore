@@ -6,3 +6,4 @@ android/keybaselib/keybaselib.aar
 android/.idea
 android/**/build/
 android/dist
+android/**/*.iml
