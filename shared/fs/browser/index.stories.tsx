@@ -35,7 +35,6 @@ export default () => {
           path={Types.stringToPath('/keybase/private/foo')}
           routePath={I.List([])}
           shouldShowSFMIBanner={false}
-          showPublicReminder={false}
           resetBannerType={Types.ResetBannerNoOthersType.None}
           offline={false}
           username="foo"
@@ -48,8 +47,7 @@ export default () => {
           path={Types.stringToPath('/keybase/public/foo')}
           routePath={I.List([])}
           shouldShowSFMIBanner={false}
-          showPublicReminder={true}
-          resetBannerType="none"
+          resetBannerType={Types.ResetBannerNoOthersType.None}
           offline={false}
           username="foo"
         />
@@ -63,7 +61,6 @@ export default () => {
           shouldShowSFMIBanner={true}
           resetBannerType={Types.ResetBannerNoOthersType.None}
           offline={false}
-          showPublicReminder={false}
           username="foo"
         />
       </Kb.Box2>
@@ -73,7 +70,6 @@ export default () => {
         <Browser
           path={Types.stringToPath('/keybase/private/me,reset')}
           routePath={I.List([])}
-          showPublicReminder={false}
           shouldShowSFMIBanner={false}
           resetBannerType={Types.ResetBannerNoOthersType.Self}
           offline={false}
@@ -86,7 +82,6 @@ export default () => {
         <Browser
           path={Types.stringToPath('/keybase/private/others,reset')}
           routePath={I.List([])}
-          showPublicReminder={false}
           shouldShowSFMIBanner={false}
           resetBannerType={1}
           offline={false}
@@ -99,7 +94,6 @@ export default () => {
         <Browser
           path={Types.stringToPath('/keybase/private/others,reset')}
           routePath={I.List([])}
-          showPublicReminder={false}
           shouldShowSFMIBanner={false}
           resetBannerType={Types.ResetBannerNoOthersType.None}
           offline={true}

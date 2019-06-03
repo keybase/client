@@ -18,14 +18,13 @@ type Props = {
   routePath: I.List<string>
   shouldShowSFMIBanner: boolean
   resetBannerType: Types.ResetBannerType
-  showPublicReminder: boolean,
   offline: boolean
   username: string
 }
 
 const WithContent = (props: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.contentContainer}>
-    {props.showPublicReminder && <PublicReminder path={props.path} />}
+    <PublicReminder path={props.path} />
     {/* this extra box is necessary to avoid Kb.DragAndDrop (which is fullHeight) pushes other stuff over */}
     <Kb.DragAndDrop allowFolders={true} onAttach={props.onAttach}>
       <Rows

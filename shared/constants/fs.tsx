@@ -313,6 +313,7 @@ export const makeState: I.Record.Factory<Types._State> = I.Record({
   errors: I.Map(),
   folderViewFilter: '',
   kbfsDaemonStatus: makeKbfsDaemonStatus(),
+  lastPublicBannerClosedTlf: '',
   loadingPaths: I.Map(),
   localHTTPServerInfo: makeLocalHTTPServer(),
   overallSyncStatus: makeOverallSyncStatus(),
@@ -337,7 +338,7 @@ export const pathToRPCPath = (path: Types.Path): RPCTypes.Path => ({
 })
 
 export const pathTypeToTextType = (type: Types.PathType) =>
-    type === Types.PathType.Folder ? 'BodySemibold' : 'Body'
+  type === Types.PathType.Folder ? 'BodySemibold' : 'Body'
 
 export const splitTlfIntoUsernames = (tlf: string): Array<string> =>
   tlf
@@ -612,17 +613,6 @@ export const getTlfFromTlfs = (tlfs: Types.Tlfs, tlfType: Types.TlfType, name: s
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(tlfType)
       return makeTlf()
-  }
-}
-
-export const isOwnPublic = (p: Types.Path, pathItem: Types.PathItem) => {
-  const parsedPath = parsePath(p)
-  switch (parsedPath.kind) {
-    case 'group-tlf':
-    case 'in-group-tlf':
-      return pathItem.writable && parsedPath.tlfType === 'public'
-    default:
-      return false
   }
 }
 

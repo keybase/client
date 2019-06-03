@@ -171,6 +171,9 @@
     "dismissFsError": {
       "key": "string"
     },
+    "setLastPublicBannerClosedTlf": {
+      "tlf": "string"
+    },
 
     "openFilesFromWidget": {
       "path": "Types.Path",
