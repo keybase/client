@@ -1,8 +1,8 @@
 import * as I from 'immutable'
 import {Tab} from '../tabs'
 
-export type NotificationKeys = 'kbfsUploading'
-export type BadgeType = 'regular' | 'update' | 'badged' | 'uploading'
+export type NotificationKeys = 'kbfsUploading' | 'outOfSpace'
+export type BadgeType = 'regular' | 'update' | 'error' | 'uploading'
 
 export type _State = {
   desktopAppBadgeCount: number

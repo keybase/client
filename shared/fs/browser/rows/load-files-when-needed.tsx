@@ -11,7 +11,7 @@ type StateProps = {
   syncingFoldersProgress: Types.SyncingFoldersProgress
 }
 const mapStateToProps = state => ({
-  syncingFoldersProgress: state.fs.syncingFoldersProgress,
+  syncingFoldersProgress: state.fs.overallSyncStatus.syncingFoldersProgress,
 })
 type DispatchProps = {
   loadFavorites: () => void

@@ -7,11 +7,17 @@ import * as SafeElectron from '../util/safe-electron.desktop'
 import {conversationsToSend} from '../chat/inbox/container/remote'
 import {serialize} from './remote-serializer.desktop'
 import {uploadsToUploadCountdownHOCProps} from '../fs/footer/upload-container'
+import {BadgeType} from '../constants/types/notifications'
+import {isDarwin, isWindows} from '../constants/platform'
+import {resolveImage} from '../desktop/app/resolve-root.desktop'
+import {getMainWindow} from '../desktop/remote/util.desktop'
 
 const windowOpts = {}
 
 type Props = {
+  desktopAppBadgeCount: number
   externalRemoteWindow: SafeElectron.BrowserWindowType
+  widgetBadge: BadgeType
   windowComponent: string
   windowOpts?: Object
   windowParam: string
@@ -19,12 +25,84 @@ type Props = {
   windowTitle: string
 }
 
+const isDarkMode = () => isDarwin && SafeElectron.getSystemPreferences().isDarkMode()
+
+const getIcons = (iconType: BadgeType, isBadged: boolean) => {
+  const devMode = __DEV__ ? '-dev' : ''
+  let color = 'white'
+  const colorSelected = 'white'
+  let platform = ''
+  const badged = isBadged ? 'badged-' : ''
+
+  if (isDarwin) {
+    color = isDarkMode() ? 'white' : 'black'
+  } else if (isWindows) {
+    color = 'black'
+    platform = 'windows-'
+  }
+
+  const size = isWindows ? 16 : 22
+  const icon = `icon-${platform}keybase-menubar-${badged}${iconType}-${color}-${size}${devMode}@2x.png`
+  // Only used on Darwin
+  const iconSelected = `icon-${platform}keybase-menubar-${badged}${iconType}-${colorSelected}-${size}${devMode}@2x.png`
+  return [icon, iconSelected]
+}
+
 // Like RemoteWindow but the browserWindow is handled by the 3rd party menubar class and mostly lets it handle things
 function RemoteMenubarWindow(ComposedComponent: any) {
   class RemoteWindowComponent extends React.PureComponent<Props> {
+    subscriptionId: number | null = null
+    _updateBadges = () => {
+      const [icon, iconSelected] = getIcons(this.props.widgetBadge, this.props.desktopAppBadgeCount > 0)
+      SafeElectron.getIpcRenderer().send('showTray', icon, iconSelected, this.props.desktopAppBadgeCount)
+      // Windows just lets us set (or unset, with null) a single 16x16 icon
+      // to be used as an overlay in the bottom right of the taskbar icon.
+      if (isWindows) {
+        const mw = getMainWindow()
+        const overlay =
+          this.props.desktopAppBadgeCount > 0 ? resolveImage('icons', 'icon-windows-badge.png') : null
+        // @ts-ignore setOverlayIcon docs say null overlay's fine, TS disagrees
+        mw && mw.setOverlayIcon(overlay, 'new activity')
+      }
+    }
+
+    componentDidUpdate(prevProps) {
+      if (
+        this.props.widgetBadge !== prevProps.widgetBadge ||
+        this.props.desktopAppBadgeCount !== prevProps.desktopAppBadgeCount
+      ) {
+        this._updateBadges()
+      }
+    }
+
+    componentDidMount() {
+      this._updateBadges()
+
+      if (isDarwin && SafeElectron.getSystemPreferences().subscribeNotification) {
+        this.subscriptionId = SafeElectron.getSystemPreferences().subscribeNotification(
+          'AppleInterfaceThemeChangedNotification',
+          () => {
+            this._updateBadges()
+          }
+        )
+      }
+    }
+    componentDidUnmount() {
+      if (this.subscriptionId && SafeElectron.getSystemPreferences().unsubscribeNotification) {
+        SafeElectron.getSystemPreferences().unsubscribeNotification(this.subscriptionId || -1)
+      }
+    }
     render() {
-      const {windowOpts, windowPositionBottomRight, windowTitle, externalRemoteWindow, ...props} = this.props
-      return <ComposedComponent {...props} remoteWindow={this.props.externalRemoteWindow} />
+      const {
+        widgetBadge,
+        desktopAppBadgeCount,
+        windowOpts,
+        windowPositionBottomRight,
+        windowTitle,
+        externalRemoteWindow,
+        ...props
+      } = this.props
+      return <ComposedComponent {...props} remoteWindow={externalRemoteWindow} />
     }
   }
 
@@ -41,12 +119,16 @@ const mapStateToProps = state => ({
   _uploads: state.fs.uploads,
   conversationsToSend: conversationsToSend(state),
   daemonHandshakeState: state.config.daemonHandshakeState,
+  desktopAppBadgeCount: state.notifications.get('desktopAppBadgeCount'),
+  diskSpaceBannerHidden: state.fs.overallSyncStatus.diskSpaceBannerHidden,
+  diskSpaceStatus: state.fs.overallSyncStatus.diskSpaceStatus,
   kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
   kbfsEnabled: state.fs.sfmi.driverStatus.type === 'enabled',
   loggedIn: state.config.loggedIn,
   outOfDate: state.config.outOfDate,
   userInfo: state.users.infoMap,
   username: state.config.username,
+  widgetBadge: state.notifications.get('widgetBadge') || 'regular',
 })
 
 let _lastUsername
@@ -63,6 +145,10 @@ const mergeProps = stateProps => {
     conversationIDs: stateProps.conversationsToSend,
     conversationMap: stateProps.conversationsToSend,
     daemonHandshakeState: stateProps.daemonHandshakeState,
+
+    desktopAppBadgeCount: stateProps.desktopAppBadgeCount,
+    diskSpaceBannerHidden: stateProps.diskSpaceBannerHidden,
+    diskSpaceStatus: stateProps.diskSpaceStatus,
     externalRemoteWindow: stateProps._externalRemoteWindowID
       ? SafeElectron.getRemote().BrowserWindow.fromId(stateProps._externalRemoteWindowID)
       : null,
@@ -74,6 +160,7 @@ const mergeProps = stateProps => {
     outOfDate: stateProps.outOfDate,
     userInfo: stateProps.userInfo,
     username: stateProps.username,
+    widgetBadge: stateProps.widgetBadge,
     windowComponent: 'menubar',
     windowOpts,
     windowParam: '',

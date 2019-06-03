@@ -9,7 +9,7 @@ type OwnProps = {}
 const mapStateToProps = state => ({
   _kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
   _name: state.config.username,
-  _overallSyncStatus: null,
+  _overallSyncStatus: state.fs.overallSyncStatus,
 })
 
 const mapDispatchToProps = dispatch => ({
@@ -18,7 +18,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(FsGen.createLoadPathMetadata({path: Types.stringToPath('/keybase/private' + name)})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   bannerType: Constants.getMainBannerType(stateProps._kbfsDaemonStatus, stateProps._overallSyncStatus),
   onRetry: dispatchProps._onRetry(stateProps._name),
 })
