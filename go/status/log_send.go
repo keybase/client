@@ -77,13 +77,11 @@ func redactPotentialPaperKeys(s string) string {
 	})
 	allWords := strings.Split(string(doubleDelimited), "~~~")
 	var checkWords []string
-	wordmap := make(map[int]int)
-	jdx := 0
+	var checkWordLocations []int // keep track of each checkWord's inde in allWords
 	for idx, word := range allWords {
 		if !(len(word) == 1 && noncharacterRxx.MatchString(word)) {
 			checkWords = append(checkWords, word)
-			wordmap[jdx] = idx
-			jdx++
+			checkWordLocations = append(checkWordLocations, idx)
 		}
 	}
 	didRedact := false
@@ -97,11 +95,11 @@ func redactPotentialPaperKeys(s string) string {
 			start = idx
 		} else if idx-start+1 == serialPaperKeyWordThreshold {
 			for jdx := start; jdx <= idx; jdx++ {
-				allWords[wordmap[jdx]] = redactedReplacer
+				allWords[checkWordLocations[jdx]] = redactedReplacer
 			}
 			didRedact = true
 		} else if idx-start+1 > serialPaperKeyWordThreshold {
-			allWords[wordmap[idx]] = redactedReplacer
+			allWords[checkWordLocations[idx]] = redactedReplacer
 		}
 	}
 	if didRedact {
