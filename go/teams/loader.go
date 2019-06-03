@@ -667,56 +667,13 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	suppressLoggingStart := 5
 	suppressLoggingUpto := len(links) - 5
 	for i, link := range links {
-		ctx := ctx // Shadow for log suppression scope
-		if suppressLoggingStart <= i && i < suppressLoggingUpto {
-			if i == suppressLoggingStart {
-				l.G().Log.CDebugf(ctx, "TeamLoader suppressing logs until %v", suppressLoggingUpto)
-			}
-			ctx = WithSuppressLogging(ctx, true)
-		}
-		if !ShouldSuppressLogging(ctx) {
-			l.G().Log.CDebugf(ctx, "TeamLoader processing link seqno:%v", link.Seqno())
-		}
-
-		if link.Seqno() > lastSeqno {
-			// This link came from a point in the chain after when we checked the merkle leaf.
-			// Processing it would require re-checking merkle.
-			// It would be tricky to ignore it because off-chain data is asserted to be in sync with the chain.
-			// So, return an error that the caller will retry.
-			l.G().Log.CDebugf(ctx, "TeamLoader found green link seqno:%v", link.Seqno())
-			return nil, NewGreenLinkError(link.Seqno())
-		}
-
-		if err := l.checkStubbed(ctx, arg, link); err != nil {
-			return nil, err
-		}
-
-		if !link.Prev().Eq(prev) {
-			return nil, NewPrevError("team replay failed: prev chain broken at link %d (%v != %v)",
-				i, link.Prev(), prev)
-		}
-
-		var signer *SignerX
-		signer, err = l.verifyLink(ctx, arg.teamID, ret, arg.me, link, fullVerifyCutoff,
-			readSubteamID, proofSet, lkc, parentsCache)
+		var err error
+		ret, prev, err = l.doOneLink(ctx, arg, ret, link, i, suppressLoggingStart, suppressLoggingUpto, lastSeqno, &parentChildOperations, prev, fullVerifyCutoff, readSubteamID, proofSet, lkc, &parentsCache)
 		if err != nil {
 			return nil, err
 		}
-
-		if l.isParentChildOperation(ctx, link) {
-			pco, err := l.toParentChildOperation(ctx, link)
-			if err != nil {
-				return nil, err
-			}
-			parentChildOperations = append(parentChildOperations, pco)
-		}
-
-		ret, err = l.applyNewLink(ctx, ret, link, signer, arg.me)
-		if err != nil {
-			return nil, err
-		}
-		prev = link.LinkID()
 	}
+
 	preloadCancel()
 	if len(links) > 0 {
 		tbs.Log(ctx, "TeamLoader.verifyLink")
@@ -865,6 +822,61 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		team:      *ret,
 		didRepoll: didRepoll,
 	}, nil
+}
+
+func (l *TeamLoader) doOneLink(ctx context.Context, arg load2ArgT, ret *keybase1.TeamData, link *ChainLinkUnpacked, i int, suppressLoggingStart int, suppressLoggingUpto int, lastSeqno keybase1.Seqno, parentChildOperations *[](*parentChildOperation), prev libkb.LinkID, fullVerifyCutoff keybase1.Seqno, readSubteamID keybase1.TeamID, proofSet *proofSetT, lkc *loadKeyCache, parentsCache *parentChainCache) (*keybase1.TeamData, libkb.LinkID, error) {
+
+	var nilPrev libkb.LinkID
+
+	if suppressLoggingStart <= i && i < suppressLoggingUpto {
+		if i == suppressLoggingStart {
+			l.G().Log.CDebugf(ctx, "TeamLoader suppressing logs until %v", suppressLoggingUpto)
+		}
+		ctx = WithSuppressLogging(ctx, true)
+	}
+	if !ShouldSuppressLogging(ctx) {
+		l.G().Log.CDebugf(ctx, "TeamLoader processing link seqno:%v", link.Seqno())
+	}
+
+	if link.Seqno() > lastSeqno {
+		// This link came from a point in the chain after when we checked the merkle leaf.
+		// Processing it would require re-checking merkle.
+		// It would be tricky to ignore it because off-chain data is asserted to be in sync with the chain.
+		// So, return an error that the caller will retry.
+		l.G().Log.CDebugf(ctx, "TeamLoader found green link seqno:%v", link.Seqno())
+		return nil, nilPrev, NewGreenLinkError(link.Seqno())
+	}
+
+	if err := l.checkStubbed(ctx, arg, link); err != nil {
+		return nil, nilPrev, err
+	}
+
+	if !link.Prev().Eq(prev) {
+		return nil, nilPrev, NewPrevError("team replay failed: prev chain broken at link %d (%v != %v)",
+			i, link.Prev(), prev)
+	}
+
+	var signer *SignerX
+	var err error
+	signer, err = l.verifyLink(ctx, arg.teamID, ret, arg.me, link, fullVerifyCutoff,
+		readSubteamID, proofSet, lkc, *parentsCache)
+	if err != nil {
+		return nil, nilPrev, err
+	}
+
+	if l.isParentChildOperation(ctx, link) {
+		pco, err := l.toParentChildOperation(ctx, link)
+		if err != nil {
+			return nil, nilPrev, err
+		}
+		*parentChildOperations = append(*parentChildOperations, pco)
+	}
+
+	ret, err = l.applyNewLink(ctx, ret, link, signer, arg.me)
+	if err != nil {
+		return nil, nilPrev, err
+	}
+	return ret, link.LinkID(), nil
 }
 
 // userPreload warms the upak cache with users who will probably need to be loaded to verify the chain.

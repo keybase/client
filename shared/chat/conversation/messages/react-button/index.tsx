@@ -11,7 +11,6 @@ import {
 } from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import {Picker} from './picker'
-// @ts-ignore
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
 import DelayInterval from './delay-interval'
 

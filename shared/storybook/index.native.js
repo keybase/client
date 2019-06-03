@@ -1,5 +1,4 @@
 /* eslint-disable import/no-extraneous-dependencies, import/no-unresolved, import/extensions */
-// @flow
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'

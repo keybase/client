@@ -49,7 +49,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): MergedProps 
   // We need the inexact spread here because this is a HOC. As such, it must
   // pass down any OwnProps to composed components, even if the HOC typing
   // itself doesn't know about them.
-  // $FlowIssue thus, ignore the warning here.
   ...ownProps,
 })
 

@@ -11,7 +11,6 @@ export default function(state: Types.State = initialState, action: EntitiesGen.A
     }
     case EntitiesGen.deleteEntity: {
       const {keyPath, ids} = action.payload
-      // $FlowIssue flow can't guarantee the keypath works for all cases
       return state.updateIn(keyPath, map => map.deleteAll(ids))
     }
     case EntitiesGen.mergeEntity: {
@@ -24,7 +23,6 @@ export default function(state: Types.State = initialState, action: EntitiesGen.A
     }
     case EntitiesGen.subtractEntity: {
       const {keyPath, entities} = action.payload
-      // $FlowIssue flow can't guarantee the keypath works for all cases
       return state.updateIn(keyPath, set => set.subtract(entities))
     }
     default:

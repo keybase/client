@@ -80,7 +80,6 @@ describe('provisioningManagerProvisioning', () => {
     const keys = ['keybase.1.gpgUi.selectKey', 'keybase.1.loginUi.getEmailOrUsername']
     keys.forEach(k => {
       const response = {error: jest.fn(), result: jest.fn()}
-      // $FlowIssue flow is correct in complaining here
       callMap[k](undefined as any, response)
       expect(response.result).not.toHaveBeenCalled()
       expect(response.error).toHaveBeenCalledWith({

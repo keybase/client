@@ -10,6 +10,7 @@ export type DisallowedStyles = {
   hoverColor?: never
   fontSize?: never
 }
+export type IconStyle = StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>
 
 export type Props = {
   type: IconType
@@ -19,7 +20,7 @@ export type Props = {
   onPress?: void // Use onClick, not onPress.,,
   onMouseEnter?: () => void | null
   onMouseLeave?: () => void | null
-  style?: StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>
+  style?: IconStyle
   opacity?: boolean
   inheritColor?: boolean
   underlayColor?: string

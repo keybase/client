@@ -7,12 +7,11 @@ const initialState: Types.State = Constants.makeState()
 
 const _updateWidgetBadge = (s: Types.State): Types.State => {
   let widgetBadge = 'regular' as Types.BadgeType
-  if (s.getIn(['keyState', 'kbfsUploading'])) {
+  if (s.getIn(['keyState', 'outOfSpace'])) {
+    widgetBadge = 'error'
+  } else if (s.getIn(['keyState', 'kbfsUploading'])) {
     widgetBadge = 'uploading'
-  } else if (s.desktopAppBadgeCount) {
-    widgetBadge = 'badged'
   }
-
   return s.set('widgetBadge', widgetBadge)
 }
 

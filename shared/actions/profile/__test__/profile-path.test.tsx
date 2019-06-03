@@ -1,4 +1,3 @@
-// @noflow
 /* eslint-env jest */
 import {getProfilePath} from '../../../constants/profile'
 import * as I from 'immutable'

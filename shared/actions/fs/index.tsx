@@ -21,6 +21,7 @@ import * as RouteTreeGen from '../route-tree-gen'
 import {tlfToPreferredOrder} from '../../util/kbfs'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
 import flags from '../../util/feature-flags'
+import {NotifyPopup} from '../../native/notifications'
 
 const rpcFolderTypeToTlfType = (rpcFolderType: RPCTypes.FolderType) => {
   switch (rpcFolderType) {
@@ -271,11 +272,13 @@ function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessP
   }
 
   try {
+    // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
     yield Saga.put(FsGen.createLoadingPath({done: false, id: loadingPathID, path: rootPath}))
 
     const opID = Constants.makeUUID()
     const pathElems = Types.getPathElements(rootPath)
     if (pathElems.length < 3) {
+      // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
       yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSListRpcPromise, {
         filter: RPCTypes.ListFilter.filterSystemHidden,
         opID,
@@ -283,6 +286,7 @@ function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessP
         refreshSubscription: !!refreshTag,
       })
     } else {
+      // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
       yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSListRecursiveToDepthRpcPromise, {
         depth: 1,
         filter: RPCTypes.ListFilter.filterSystemHidden,
@@ -292,8 +296,10 @@ function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessP
       })
     }
 
+    // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
     yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID})
 
+    // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
     const result = yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSReadListRpcPromise, {opID})
     const entries = result.entries || []
     const childMap = entries.reduce((m, d) => {
@@ -356,6 +362,7 @@ function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessP
   } catch (error) {
     yield makeRetriableErrorHandler(action, rootPath)(error).map(action => Saga.put(action))
   } finally {
+    // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
     yield Saga.put(FsGen.createLoadingPath({done: true, id: loadingPathID, path: rootPath}))
   }
 }
@@ -406,17 +413,20 @@ function* download(state, action: FsGen.DownloadPayload | FsGen.ShareNativePaylo
       break
   }
 
+  // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
   yield Saga.put(
     FsGen.createDownloadStarted({
       intent,
       key,
       localPath,
+      // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
       opID,
       path,
       // Omit entryType to let reducer figure out.
     })
   )
 
+  // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
   yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise, {
     dest: {
       PathType: RPCTypes.PathType.local,
@@ -428,7 +438,9 @@ function* download(state, action: FsGen.DownloadPayload | FsGen.ShareNativePaylo
 
   try {
     yield Saga.race({
+      // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
       monitor: Saga.callUntyped(monitorDownloadProgress, key, opID),
+      // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
       wait: Saga.callUntyped(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID}),
     })
 
@@ -467,6 +479,7 @@ function* upload(_, action: FsGen.UploadPayload) {
 
   // TODO: confirm overwrites?
   // TODO: what about directory merges?
+  // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
   yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise, {
     dest: Constants.pathToRPCPath(path),
     opID,
@@ -477,6 +490,7 @@ function* upload(_, action: FsGen.UploadPayload) {
   })
 
   try {
+    // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
     yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID})
     yield Saga.put(FsGen.createUploadWritingSuccess({path}))
   } catch (error) {
@@ -705,6 +719,7 @@ const commitEdit = (state, action: FsGen.CommitEditPayload): Promise<Saga.MaybeA
       return RPCTypes.SimpleFSSimpleFSOpenRpcPromise({
         dest: Constants.pathToRPCPath(Types.pathConcat(parentPath, name)),
         flags: RPCTypes.OpenFlags.directory,
+        // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
         opID: Constants.makeUUID(),
       })
         .then(() => FsGen.createEditSuccess({editID, parentPath}))
@@ -764,13 +779,17 @@ const updateFsBadge = (state, action: FsGen.FavoritesLoadedPayload) =>
 
 const deleteFile = (state, action: FsGen.DeleteFilePayload) => {
   const opID = Constants.makeUUID()
-  return RPCTypes.SimpleFSSimpleFSRemoveRpcPromise({
-    opID,
-    path: Constants.pathToRPCPath(action.payload.path),
-    recursive: true,
-  })
-    .then(() => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}))
-    .catch(makeRetriableErrorHandler(action, action.payload.path))
+  return (
+    RPCTypes.SimpleFSSimpleFSRemoveRpcPromise({
+      // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
+      opID,
+      path: Constants.pathToRPCPath(action.payload.path),
+      recursive: true,
+    })
+      // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
+      .then(() => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}))
+      .catch(makeRetriableErrorHandler(action, action.payload.path))
+  )
 }
 
 const moveOrCopy = (state, action: FsGen.MovePayload | FsGen.CopyPayload) => {
@@ -787,7 +806,8 @@ const moveOrCopy = (state, action: FsGen.MovePayload | FsGen.CopyPayload) => {
         // We use the local path name here since we only care about file name.
       )
     ),
-    opID: Constants.makeUUID(),
+    // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
+    opID: Constants.makeUUID() as string,
     src:
       state.fs.destinationPicker.source.type === Types.DestinationPickerSource.MoveOrCopy
         ? Constants.pathToRPCPath(state.fs.destinationPicker.source.path)
@@ -801,6 +821,7 @@ const moveOrCopy = (state, action: FsGen.MovePayload | FsGen.CopyPayload) => {
       ? RPCTypes.SimpleFSSimpleFSMoveRpcPromise(params)
       : RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise(params)
     )
+      // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
       .then(() => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID: params.opID}))
       // We get source/dest paths from state rather than action, so we can't
       // just retry it. If we do want retry in the future we can include those
@@ -993,8 +1014,38 @@ const onFSOverallSyncSyncStatusChanged = (
   action: EngineGen.Keybase1NotifyFSFSOverallSyncStatusChangedPayload
 ) =>
   FsGen.createOverallSyncStatusChanged({
+    outOfSpace: action.payload.params.status.outOfSyncSpace,
     progress: Constants.makeSyncingFoldersProgress(action.payload.params.status.prefetchProgress),
   })
+
+const notifyDiskSpaceStatus = (diskSpaceStatus: Types.DiskSpaceStatus) => {
+  switch (diskSpaceStatus) {
+    case Types.DiskSpaceStatus.Error:
+      NotifyPopup('Sync Error', {
+        body: 'You are out of disk space. Some folders could not be synced.',
+        sound: true,
+      })
+      break
+    case Types.DiskSpaceStatus.Warning:
+      NotifyPopup('Disk Space Low', {body: 'You have less than 1 GB of storage space left.'})
+      break
+    case Types.DiskSpaceStatus.Ok:
+      break
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(diskSpaceStatus)
+  }
+}
+
+let prevOutOfSpace = false
+const updateMenubarIconOnStuckSync = (state, action) => {
+  const outOfSpace = action.payload.params.status.outOfSyncSpace
+  if (outOfSpace !== prevOutOfSpace) {
+    prevOutOfSpace = outOfSpace
+    // TODO once go side sends info: low on space warning
+    notifyDiskSpaceStatus(outOfSpace ? Types.DiskSpaceStatus.Error : Types.DiskSpaceStatus.Ok)
+    return NotificationsGen.createBadgeApp({key: 'outOfSpace', on: outOfSpace})
+  }
+}
 
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<FsGen.RefreshLocalHTTPServerInfoPayload>(
@@ -1071,6 +1122,10 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSOverallSyncStatusChangedPayload>(
       EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged,
       onFSOverallSyncSyncStatusChanged
+    )
+    yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSOverallSyncStatusChangedPayload>(
+      EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged,
+      updateMenubarIconOnStuckSync
     )
     yield* Saga.chainAction<FsGen.LoadSettingsPayload>(FsGen.loadSettings, loadSettings)
     yield* Saga.chainAction<FsGen.SetSpaceAvailableNotificationThresholdPayload>(

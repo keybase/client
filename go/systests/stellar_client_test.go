@@ -724,4 +724,8 @@ func (s *stellarRetryClient) GetPartnerUrlsLocal(ctx context.Context, sessionID 
 	return s.cli.GetPartnerUrlsLocal(ctx, sessionID)
 }
 
+func (s *stellarRetryClient) SignTransactionXdrLocal(ctx context.Context, arg stellar1.SignTransactionXdrLocalArg) (res stellar1.SignXdrResult, err error) {
+	return s.cli.SignTransactionXdrLocal(ctx, arg)
+}
+
 var _ stellar1.LocalInterface = (*stellarRetryClient)(nil)

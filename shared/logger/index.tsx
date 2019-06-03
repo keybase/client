@@ -23,7 +23,8 @@ import {stat, unlink} from '../util/file'
 // sortFn behaves just like .sort()'s sortFn
 function _mergeSortedArraysHelper<A>(sortFn: (a: A, b: A) => number, ...arrays: Array<Array<A>>): Array<A> {
   // TODO make a more efficient version - doing simple thing for now
-  return [].concat(...arrays).sort(sortFn)
+  const empty: Array<A> = []
+  return empty.concat(...arrays).sort(sortFn)
 }
 
 function deleteFileIfOlderThanMs(olderThanMs: number, filepath: string): Promise<void> {
@@ -32,6 +33,7 @@ function deleteFileIfOlderThanMs(olderThanMs: number, filepath: string): Promise
       if (Date.now() - lastModified > olderThanMs) {
         return unlink(filepath)
       }
+      return undefined
     })
     .catch(() => {})
 }

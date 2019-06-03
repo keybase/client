@@ -18,7 +18,7 @@ class RingLogger implements Logger {
   }
 
   dump(levelPrefix: LogLevel) {
-    const toDump = []
+    const toDump: Array<[LogLevel, number, string]> = []
     for (let i = 0; i < this._ringSize; i++) {
       const idxWrapped = (this._currentWriteIdx + i) % this._ringSize
       const s = this._ringBuffer[idxWrapped]
