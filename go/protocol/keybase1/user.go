@@ -8,20 +8,6 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type Tracker struct {
-	Tracker UID  `codec:"tracker" json:"tracker"`
-	Status  int  `codec:"status" json:"status"`
-	MTime   Time `codec:"mTime" json:"mTime"`
-}
-
-func (o Tracker) DeepCopy() Tracker {
-	return Tracker{
-		Tracker: o.Tracker.DeepCopy(),
-		Status:  o.Status,
-		MTime:   o.MTime.DeepCopy(),
-	}
-}
-
 type TrackProof struct {
 	ProofType string `codec:"proofType" json:"proofType"`
 	ProofName string `codec:"proofName" json:"proofName"`
@@ -334,20 +320,6 @@ func (o CanLogoutRes) DeepCopy() CanLogoutRes {
 	}
 }
 
-type ListTrackersArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
-	Uid       UID `codec:"uid" json:"uid"`
-}
-
-type ListTrackersByNameArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Username  string `codec:"username" json:"username"`
-}
-
-type ListTrackersSelfArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
-}
-
 type LoadUncheckedUserSummariesArg struct {
 	SessionID int   `codec:"sessionID" json:"sessionID"`
 	Uids      []UID `codec:"uids" json:"uids"`
@@ -475,9 +447,6 @@ type UserCardArg struct {
 }
 
 type UserInterface interface {
-	ListTrackers(context.Context, ListTrackersArg) ([]Tracker, error)
-	ListTrackersByName(context.Context, ListTrackersByNameArg) ([]Tracker, error)
-	ListTrackersSelf(context.Context, int) ([]Tracker, error)
 	// Load user summaries for the supplied uids.
 	// They are "unchecked" in that the client is not verifying the info from the server.
 	// If len(uids) > 500, the first 500 will be returned.
@@ -530,51 +499,6 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.user",
 		Methods: map[string]rpc.ServeHandlerDescription{
-			"listTrackers": {
-				MakeArg: func() interface{} {
-					var ret [1]ListTrackersArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]ListTrackersArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]ListTrackersArg)(nil), args)
-						return
-					}
-					ret, err = i.ListTrackers(ctx, typedArgs[0])
-					return
-				},
-			},
-			"listTrackersByName": {
-				MakeArg: func() interface{} {
-					var ret [1]ListTrackersByNameArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]ListTrackersByNameArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]ListTrackersByNameArg)(nil), args)
-						return
-					}
-					ret, err = i.ListTrackersByName(ctx, typedArgs[0])
-					return
-				},
-			},
-			"listTrackersSelf": {
-				MakeArg: func() interface{} {
-					var ret [1]ListTrackersSelfArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]ListTrackersSelfArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]ListTrackersSelfArg)(nil), args)
-						return
-					}
-					ret, err = i.ListTrackersSelf(ctx, typedArgs[0].SessionID)
-					return
-				},
-			},
 			"loadUncheckedUserSummaries": {
 				MakeArg: func() interface{} {
 					var ret [1]LoadUncheckedUserSummariesArg
@@ -941,22 +865,6 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 
 type UserClient struct {
 	Cli rpc.GenericClient
-}
-
-func (c UserClient) ListTrackers(ctx context.Context, __arg ListTrackersArg) (res []Tracker, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.listTrackers", []interface{}{__arg}, &res)
-	return
-}
-
-func (c UserClient) ListTrackersByName(ctx context.Context, __arg ListTrackersByNameArg) (res []Tracker, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.listTrackersByName", []interface{}{__arg}, &res)
-	return
-}
-
-func (c UserClient) ListTrackersSelf(ctx context.Context, sessionID int) (res []Tracker, err error) {
-	__arg := ListTrackersSelfArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.user.listTrackersSelf", []interface{}{__arg}, &res)
-	return
 }
 
 // Load user summaries for the supplied uids.

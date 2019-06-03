@@ -2491,7 +2491,6 @@ export type TrackOptions = {readonly localOnly: Boolean; readonly bypassConfirm:
 export type TrackProof = {readonly proofType: String; readonly proofName: String; readonly idString: String}
 export type TrackSummary = {readonly username: String; readonly time: Time; readonly isRemote: Boolean}
 export type TrackToken = String
-export type Tracker = {readonly tracker: UID; readonly status: Int; readonly mTime: Time}
 export type UID = String
 export type UPAKVersioned = {v: UPAKVersion.v1; v1: UserPlusAllKeys | null} | {v: UPAKVersion.v2; v2: UserPlusKeysV2AllIncarnations | null}
 export type UPKLiteV1 = {readonly uid: UID; readonly username: String; readonly eldestSeqno: Seqno; readonly status: StatusCode; readonly deviceKeys: {[key: string]: PublicKeyV2NaCl}; readonly reset?: ResetSummary | null}
@@ -3290,9 +3289,6 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // 'keybase.1.track.track'
 // 'keybase.1.track.fakeTrackingChanged'
 // 'keybase.1.ui.promptYesNo'
-// 'keybase.1.user.listTrackers'
-// 'keybase.1.user.listTrackersByName'
-// 'keybase.1.user.listTrackersSelf'
 // 'keybase.1.user.loadUncheckedUserSummaries'
 // 'keybase.1.user.loadUser'
 // 'keybase.1.user.loadUserByName'
