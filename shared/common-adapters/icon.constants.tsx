@@ -2,11 +2,11 @@
 /* eslint-disable prettier/prettier */
 
 type IconMeta = {
-  isFont: boolean,
-  gridSize?: number,
-  extension?: string,
-  charCode?: number,
-  require?: string,
+  isFont: boolean
+  gridSize?: number
+  extension?: string
+  charCode?: number
+  require?: string
 }
 
 const iconMeta_ = {
@@ -2602,5 +2602,5 @@ const iconMeta_ = {
   } /* eslint-enable */,
 }
 
-export type IconType = $Keys<typeof iconMeta_>
-export const iconMeta: {[key: IconType]: IconMeta} = iconMeta_
+export type IconType = keyof typeof iconMeta_
+export const iconMeta: {[k in IconType]: IconMeta} = iconMeta_
