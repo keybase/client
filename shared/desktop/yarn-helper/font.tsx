@@ -30,7 +30,7 @@ const paths = {
   fonts: path.resolve(__dirname, '../../fonts'),
   webFonts: path.resolve(__dirname, '../../fonts-for-web'),
   webFontsCss: path.resolve(__dirname, '../../fonts-for-web/fonts_custom.styl'),
-  iconConstants: path.resolve(__dirname, '../../common-adapters/icon.constants.js'),
+  iconConstants: path.resolve(__dirname, '../../common-adapters/icon.constants.tsx'),
   iconCss: path.resolve(__dirname, '../../common-adapters/icon.css'),
 }
 
