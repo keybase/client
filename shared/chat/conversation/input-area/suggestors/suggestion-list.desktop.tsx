@@ -18,6 +18,8 @@ class SuggestionList extends React.Component<Props> {
     }
   }
 
+  _itemRenderer = index => this.props.renderItem(index, this.props.items[index]) as JSX.Element
+
   render() {
     return (
       <Kb.Box2
@@ -28,7 +30,7 @@ class SuggestionList extends React.Component<Props> {
         <Kb.ScrollView style={styles.fullHeight}>
           <ReactList
             ref={this._listRef}
-            itemRenderer={index => this.props.renderItem(index, this.props.items[index])}
+            itemRenderer={this._itemRenderer}
             length={this.props.items.length}
             type="uniform"
           />

@@ -28,7 +28,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
   }
 
   _mounted: boolean = false
-  _list: VariableSizeList<any> | null
+  _list: VariableSizeList | null
   _selectedVisible: boolean = false
 
   // stuff for UnreadShortcut
@@ -49,7 +49,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     }
 
     if (listRowsResized) {
-      this._list && this._list.resetAfterIndex(0)
+      this._list && this._list.resetAfterIndex(0, true)
     }
 
     if (!I.is(this.props.unreadIndices, prevProps.unreadIndices)) {
@@ -160,7 +160,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     this._scrollDiv.current.scrollBy({behavior: 'smooth', top})
   }
 
-  _setRef = (list: VariableSizeList<any> | null) => {
+  _setRef = (list: VariableSizeList | null) => {
     this._list = list
   }
 

@@ -44,14 +44,18 @@ class Picker extends React.Component<Props> {
   }
 
   render() {
+    // @ts-ignore the type definition is actually incorrect
+    const imageFn: any = this.props.backgroundImageFn
+    // @ts-ignore
+    const clickFn: any = this.props.onClick
     return (
       <EmojiPicker
         autoFocus={true}
         emoji="star-struck"
         ref={this._setPicker}
         title="reacjibase"
-        onClick={this.props.onClick}
-        backgroundImageFn={this.props.backgroundImageFn}
+        onClick={clickFn}
+        backgroundImageFn={imageFn}
       />
     )
   }

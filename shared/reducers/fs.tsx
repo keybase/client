@@ -168,6 +168,7 @@ const withFsErrorBar = (state: Types.State, action: FsGen.FsErrorPayload): Types
     return state
   }
   logger.error('error (fs)', fsError.erroredAction.type, fsError.errorMessage)
+  // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
   return state.update('errors', errors => errors.set(Constants.makeUUID(), fsError))
 }
 
