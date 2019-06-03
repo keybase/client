@@ -3,6 +3,7 @@
     "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
     "incremental": true,
+    "isolatedModules": true,
     "jsx": "preserve",
     "module": "commonjs",
     "noImplicitAny": false,
