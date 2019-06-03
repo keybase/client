@@ -48,26 +48,26 @@ export const createUpdatePushToken = (payload: _UpdatePushTokenPayload): UpdateP
 })
 
 // Action Payloads
-export type NotificationPayload = {readonly payload: _NotificationPayload; readonly type: 'push:notification'}
+export type NotificationPayload = {readonly payload: _NotificationPayload; readonly type: typeof notification}
 export type RejectPermissionsPayload = {
   readonly payload: _RejectPermissionsPayload
-  readonly type: 'push:rejectPermissions'
+  readonly type: typeof rejectPermissions
 }
 export type RequestPermissionsPayload = {
   readonly payload: _RequestPermissionsPayload
-  readonly type: 'push:requestPermissions'
+  readonly type: typeof requestPermissions
 }
 export type ShowPermissionsPromptPayload = {
   readonly payload: _ShowPermissionsPromptPayload
-  readonly type: 'push:showPermissionsPrompt'
+  readonly type: typeof showPermissionsPrompt
 }
 export type UpdateHasPermissionsPayload = {
   readonly payload: _UpdateHasPermissionsPayload
-  readonly type: 'push:updateHasPermissions'
+  readonly type: typeof updateHasPermissions
 }
 export type UpdatePushTokenPayload = {
   readonly payload: _UpdatePushTokenPayload
-  readonly type: 'push:updatePushToken'
+  readonly type: typeof updatePushToken
 }
 
 // All Actions

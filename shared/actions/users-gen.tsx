@@ -27,11 +27,11 @@ export const createUpdateFullnames = (payload: _UpdateFullnamesPayload): UpdateF
 // Action Payloads
 export type UpdateBrokenStatePayload = {
   readonly payload: _UpdateBrokenStatePayload
-  readonly type: 'users:updateBrokenState'
+  readonly type: typeof updateBrokenState
 }
 export type UpdateFullnamesPayload = {
   readonly payload: _UpdateFullnamesPayload
-  readonly type: 'users:updateFullnames'
+  readonly type: typeof updateFullnames
 }
 
 // All Actions

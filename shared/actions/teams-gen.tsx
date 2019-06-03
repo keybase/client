@@ -544,237 +544,234 @@ export const createUploadTeamAvatar = (payload: _UploadTeamAvatarPayload): Uploa
 // Action Payloads
 export type AddParticipantPayload = {
   readonly payload: _AddParticipantPayload
-  readonly type: 'teams:addParticipant'
+  readonly type: typeof addParticipant
 }
 export type AddPeopleToTeamPayload = {
   readonly payload: _AddPeopleToTeamPayload
-  readonly type: 'teams:addPeopleToTeam'
+  readonly type: typeof addPeopleToTeam
 }
 export type AddTeamWithChosenChannelsPayload = {
   readonly payload: _AddTeamWithChosenChannelsPayload
-  readonly type: 'teams:addTeamWithChosenChannels'
+  readonly type: typeof addTeamWithChosenChannels
 }
-export type AddToTeamPayload = {readonly payload: _AddToTeamPayload; readonly type: 'teams:addToTeam'}
+export type AddToTeamPayload = {readonly payload: _AddToTeamPayload; readonly type: typeof addToTeam}
 export type AddUserToTeamsPayload = {
   readonly payload: _AddUserToTeamsPayload
-  readonly type: 'teams:addUserToTeams'
+  readonly type: typeof addUserToTeams
 }
 export type BadgeAppForTeamsPayload = {
   readonly payload: _BadgeAppForTeamsPayload
-  readonly type: 'teams:badgeAppForTeams'
+  readonly type: typeof badgeAppForTeams
 }
 export type CheckRequestedAccessPayload = {
   readonly payload: _CheckRequestedAccessPayload
-  readonly type: 'teams:checkRequestedAccess'
+  readonly type: typeof checkRequestedAccess
 }
 export type ClearAddUserToTeamsResultsPayload = {
   readonly payload: _ClearAddUserToTeamsResultsPayload
-  readonly type: 'teams:clearAddUserToTeamsResults'
+  readonly type: typeof clearAddUserToTeamsResults
 }
 export type ClearNavBadgesPayload = {
   readonly payload: _ClearNavBadgesPayload
-  readonly type: 'teams:clearNavBadges'
+  readonly type: typeof clearNavBadges
 }
 export type ClearTeamRequestsPayload = {
   readonly payload: _ClearTeamRequestsPayload
-  readonly type: 'teams:clearTeamRequests'
+  readonly type: typeof clearTeamRequests
 }
 export type CreateChannelPayload = {
   readonly payload: _CreateChannelPayload
-  readonly type: 'teams:createChannel'
+  readonly type: typeof createChannel
 }
 export type CreateNewTeamFromConversationPayload = {
   readonly payload: _CreateNewTeamFromConversationPayload
-  readonly type: 'teams:createNewTeamFromConversation'
+  readonly type: typeof createNewTeamFromConversation
 }
 export type CreateNewTeamPayload = {
   readonly payload: _CreateNewTeamPayload
-  readonly type: 'teams:createNewTeam'
+  readonly type: typeof createNewTeam
 }
 export type DeleteChannelConfirmedPayload = {
   readonly payload: _DeleteChannelConfirmedPayload
-  readonly type: 'teams:deleteChannelConfirmed'
+  readonly type: typeof deleteChannelConfirmed
 }
 export type DeleteChannelInfoPayload = {
   readonly payload: _DeleteChannelInfoPayload
-  readonly type: 'teams:deleteChannelInfo'
+  readonly type: typeof deleteChannelInfo
 }
-export type DeleteTeamPayload = {readonly payload: _DeleteTeamPayload; readonly type: 'teams:deleteTeam'}
+export type DeleteTeamPayload = {readonly payload: _DeleteTeamPayload; readonly type: typeof deleteTeam}
 export type EditMembershipPayload = {
   readonly payload: _EditMembershipPayload
-  readonly type: 'teams:editMembership'
+  readonly type: typeof editMembership
 }
 export type EditTeamDescriptionPayload = {
   readonly payload: _EditTeamDescriptionPayload
-  readonly type: 'teams:editTeamDescription'
+  readonly type: typeof editTeamDescription
 }
 export type GetChannelInfoPayload = {
   readonly payload: _GetChannelInfoPayload
-  readonly type: 'teams:getChannelInfo'
+  readonly type: typeof getChannelInfo
 }
-export type GetChannelsPayload = {readonly payload: _GetChannelsPayload; readonly type: 'teams:getChannels'}
+export type GetChannelsPayload = {readonly payload: _GetChannelsPayload; readonly type: typeof getChannels}
 export type GetDetailsForAllTeamsPayload = {
   readonly payload: _GetDetailsForAllTeamsPayload
-  readonly type: 'teams:getDetailsForAllTeams'
+  readonly type: typeof getDetailsForAllTeams
 }
-export type GetDetailsPayload = {readonly payload: _GetDetailsPayload; readonly type: 'teams:getDetails'}
-export type GetMembersPayload = {readonly payload: _GetMembersPayload; readonly type: 'teams:getMembers'}
+export type GetDetailsPayload = {readonly payload: _GetDetailsPayload; readonly type: typeof getDetails}
+export type GetMembersPayload = {readonly payload: _GetMembersPayload; readonly type: typeof getMembers}
 export type GetTeamOperationsPayload = {
   readonly payload: _GetTeamOperationsPayload
-  readonly type: 'teams:getTeamOperations'
+  readonly type: typeof getTeamOperations
 }
 export type GetTeamProfileAddListPayload = {
   readonly payload: _GetTeamProfileAddListPayload
-  readonly type: 'teams:getTeamProfileAddList'
+  readonly type: typeof getTeamProfileAddList
 }
 export type GetTeamPublicityPayload = {
   readonly payload: _GetTeamPublicityPayload
-  readonly type: 'teams:getTeamPublicity'
+  readonly type: typeof getTeamPublicity
 }
 export type GetTeamRetentionPolicyPayload = {
   readonly payload: _GetTeamRetentionPolicyPayload
-  readonly type: 'teams:getTeamRetentionPolicy'
+  readonly type: typeof getTeamRetentionPolicy
 }
-export type GetTeamsPayload = {readonly payload: _GetTeamsPayload; readonly type: 'teams:getTeams'}
+export type GetTeamsPayload = {readonly payload: _GetTeamsPayload; readonly type: typeof getTeams}
 export type IgnoreRequestPayload = {
   readonly payload: _IgnoreRequestPayload
-  readonly type: 'teams:ignoreRequest'
+  readonly type: typeof ignoreRequest
 }
 export type InviteToTeamByEmailPayload = {
   readonly payload: _InviteToTeamByEmailPayload
-  readonly type: 'teams:inviteToTeamByEmail'
+  readonly type: typeof inviteToTeamByEmail
 }
 export type InviteToTeamByPhonePayload = {
   readonly payload: _InviteToTeamByPhonePayload
-  readonly type: 'teams:inviteToTeamByPhone'
+  readonly type: typeof inviteToTeamByPhone
 }
-export type JoinTeamPayload = {readonly payload: _JoinTeamPayload; readonly type: 'teams:joinTeam'}
-export type LeaveTeamPayload = {readonly payload: _LeaveTeamPayload; readonly type: 'teams:leaveTeam'}
-export type LeftTeamPayload = {readonly payload: _LeftTeamPayload; readonly type: 'teams:leftTeam'}
-export type ReAddToTeamPayload = {readonly payload: _ReAddToTeamPayload; readonly type: 'teams:reAddToTeam'}
+export type JoinTeamPayload = {readonly payload: _JoinTeamPayload; readonly type: typeof joinTeam}
+export type LeaveTeamPayload = {readonly payload: _LeaveTeamPayload; readonly type: typeof leaveTeam}
+export type LeftTeamPayload = {readonly payload: _LeftTeamPayload; readonly type: typeof leftTeam}
+export type ReAddToTeamPayload = {readonly payload: _ReAddToTeamPayload; readonly type: typeof reAddToTeam}
 export type RemoveMemberOrPendingInvitePayload = {
   readonly payload: _RemoveMemberOrPendingInvitePayload
-  readonly type: 'teams:removeMemberOrPendingInvite'
+  readonly type: typeof removeMemberOrPendingInvite
 }
 export type RemoveParticipantPayload = {
   readonly payload: _RemoveParticipantPayload
-  readonly type: 'teams:removeParticipant'
+  readonly type: typeof removeParticipant
 }
-export type RenameTeamPayload = {readonly payload: _RenameTeamPayload; readonly type: 'teams:renameTeam'}
+export type RenameTeamPayload = {readonly payload: _RenameTeamPayload; readonly type: typeof renameTeam}
 export type SaveChannelMembershipPayload = {
   readonly payload: _SaveChannelMembershipPayload
-  readonly type: 'teams:saveChannelMembership'
+  readonly type: typeof saveChannelMembership
 }
 export type SaveTeamRetentionPolicyPayload = {
   readonly payload: _SaveTeamRetentionPolicyPayload
-  readonly type: 'teams:saveTeamRetentionPolicy'
+  readonly type: typeof saveTeamRetentionPolicy
 }
 export type SetAddUserToTeamsResultsPayload = {
   readonly payload: _SetAddUserToTeamsResultsPayload
-  readonly type: 'teams:setAddUserToTeamsResults'
+  readonly type: typeof setAddUserToTeamsResults
 }
 export type SetChannelCreationErrorPayload = {
   readonly payload: _SetChannelCreationErrorPayload
-  readonly type: 'teams:setChannelCreationError'
+  readonly type: typeof setChannelCreationError
 }
 export type SetEmailInviteErrorPayload = {
   readonly payload: _SetEmailInviteErrorPayload
-  readonly type: 'teams:setEmailInviteError'
+  readonly type: typeof setEmailInviteError
 }
 export type SetMemberPublicityPayload = {
   readonly payload: _SetMemberPublicityPayload
-  readonly type: 'teams:setMemberPublicity'
+  readonly type: typeof setMemberPublicity
 }
-export type SetMembersPayload = {readonly payload: _SetMembersPayload; readonly type: 'teams:setMembers'}
+export type SetMembersPayload = {readonly payload: _SetMembersPayload; readonly type: typeof setMembers}
 export type SetNewTeamInfoPayload = {
   readonly payload: _SetNewTeamInfoPayload
-  readonly type: 'teams:setNewTeamInfo'
+  readonly type: typeof setNewTeamInfo
 }
-export type SetPublicityPayload = {
-  readonly payload: _SetPublicityPayload
-  readonly type: 'teams:setPublicity'
-}
+export type SetPublicityPayload = {readonly payload: _SetPublicityPayload; readonly type: typeof setPublicity}
 export type SetTeamAccessRequestsPendingPayload = {
   readonly payload: _SetTeamAccessRequestsPendingPayload
-  readonly type: 'teams:setTeamAccessRequestsPending'
+  readonly type: typeof setTeamAccessRequestsPending
 }
 export type SetTeamCanPerformPayload = {
   readonly payload: _SetTeamCanPerformPayload
-  readonly type: 'teams:setTeamCanPerform'
+  readonly type: typeof setTeamCanPerform
 }
 export type SetTeamChannelInfoPayload = {
   readonly payload: _SetTeamChannelInfoPayload
-  readonly type: 'teams:setTeamChannelInfo'
+  readonly type: typeof setTeamChannelInfo
 }
 export type SetTeamChannelsPayload = {
   readonly payload: _SetTeamChannelsPayload
-  readonly type: 'teams:setTeamChannels'
+  readonly type: typeof setTeamChannels
 }
 export type SetTeamCreationErrorPayload = {
   readonly payload: _SetTeamCreationErrorPayload
-  readonly type: 'teams:setTeamCreationError'
+  readonly type: typeof setTeamCreationError
 }
 export type SetTeamDetailsPayload = {
   readonly payload: _SetTeamDetailsPayload
-  readonly type: 'teams:setTeamDetails'
+  readonly type: typeof setTeamDetails
 }
-export type SetTeamInfoPayload = {readonly payload: _SetTeamInfoPayload; readonly type: 'teams:setTeamInfo'}
+export type SetTeamInfoPayload = {readonly payload: _SetTeamInfoPayload; readonly type: typeof setTeamInfo}
 export type SetTeamInviteErrorPayload = {
   readonly payload: _SetTeamInviteErrorPayload
-  readonly type: 'teams:setTeamInviteError'
+  readonly type: typeof setTeamInviteError
 }
 export type SetTeamJoinErrorPayload = {
   readonly payload: _SetTeamJoinErrorPayload
-  readonly type: 'teams:setTeamJoinError'
+  readonly type: typeof setTeamJoinError
 }
 export type SetTeamJoinSuccessPayload = {
   readonly payload: _SetTeamJoinSuccessPayload
-  readonly type: 'teams:setTeamJoinSuccess'
+  readonly type: typeof setTeamJoinSuccess
 }
 export type SetTeamLoadingInvitesPayload = {
   readonly payload: _SetTeamLoadingInvitesPayload
-  readonly type: 'teams:setTeamLoadingInvites'
+  readonly type: typeof setTeamLoadingInvites
 }
 export type SetTeamProfileAddListPayload = {
   readonly payload: _SetTeamProfileAddListPayload
-  readonly type: 'teams:setTeamProfileAddList'
+  readonly type: typeof setTeamProfileAddList
 }
 export type SetTeamPublicitySettingsPayload = {
   readonly payload: _SetTeamPublicitySettingsPayload
-  readonly type: 'teams:setTeamPublicitySettings'
+  readonly type: typeof setTeamPublicitySettings
 }
 export type SetTeamRetentionPolicyPayload = {
   readonly payload: _SetTeamRetentionPolicyPayload
-  readonly type: 'teams:setTeamRetentionPolicy'
+  readonly type: typeof setTeamRetentionPolicy
 }
 export type SetTeamSawChatBannerPayload = {
   readonly payload: _SetTeamSawChatBannerPayload
-  readonly type: 'teams:setTeamSawChatBanner'
+  readonly type: typeof setTeamSawChatBanner
 }
 export type SetTeamSawSubteamsBannerPayload = {
   readonly payload: _SetTeamSawSubteamsBannerPayload
-  readonly type: 'teams:setTeamSawSubteamsBanner'
+  readonly type: typeof setTeamSawSubteamsBanner
 }
 export type SetTeamsWithChosenChannelsPayload = {
   readonly payload: _SetTeamsWithChosenChannelsPayload
-  readonly type: 'teams:setTeamsWithChosenChannels'
+  readonly type: typeof setTeamsWithChosenChannels
 }
 export type SetUpdatedChannelNamePayload = {
   readonly payload: _SetUpdatedChannelNamePayload
-  readonly type: 'teams:setUpdatedChannelName'
+  readonly type: typeof setUpdatedChannelName
 }
 export type SetUpdatedTopicPayload = {
   readonly payload: _SetUpdatedTopicPayload
-  readonly type: 'teams:setUpdatedTopic'
+  readonly type: typeof setUpdatedTopic
 }
 export type UpdateChannelNamePayload = {
   readonly payload: _UpdateChannelNamePayload
-  readonly type: 'teams:updateChannelName'
+  readonly type: typeof updateChannelName
 }
-export type UpdateTopicPayload = {readonly payload: _UpdateTopicPayload; readonly type: 'teams:updateTopic'}
+export type UpdateTopicPayload = {readonly payload: _UpdateTopicPayload; readonly type: typeof updateTopic}
 export type UploadTeamAvatarPayload = {
   readonly payload: _UploadTeamAvatarPayload
-  readonly type: 'teams:uploadTeamAvatar'
+  readonly type: typeof uploadTeamAvatar
 }
 
 // All Actions

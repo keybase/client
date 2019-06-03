@@ -5,25 +5,28 @@ import {
   MergeProps,
   Options,
   InferableComponentEnhancerWithProps,
-  ResolveThunks,
 } from 'react-redux'
 import {setDisplayName, compose} from 'recompose'
+import {TypedState} from '../constants/reducer'
 export default connect
 
-export const namedConnect = <TOwnProps, TStateProps, TDispatchProps, TMergedProps, State>(
-  mapStateToProps: MapStateToProps<TStateProps, TOwnProps, State>,
+type PassThrough <T> = (t: T) => T
+
+export const namedConnect = <TOwnProps, TStateProps, TDispatchProps, TMergedProps>(
+  mapStateToProps: MapStateToProps<TStateProps, TOwnProps, TypedState>,
   mapDispatchToProps: MapDispatchToProps<TDispatchProps, TOwnProps>,
   mergeProps: MergeProps<TStateProps, TDispatchProps, TOwnProps, TMergedProps>,
   displayName: string,
-  options?: Options<State, TStateProps, TOwnProps, TMergedProps>
-): InferableComponentEnhancerWithProps<TMergedProps, TOwnProps> =>
-  // @ts-ignore
-  compose(
-    connect(
-      mapStateToProps,
-      mapDispatchToProps,
-      mergeProps,
-      options
-    ),
-    setDisplayName(displayName)
-  )
+  options?: Options<TypedState, TStateProps, TOwnProps, TMergedProps>
+): InferableComponentEnhancerWithProps<TMergedProps, TOwnProps> => {
+    // const ignoredSDN: PassThrough =  setDisplayName(displayName)
+    // return compose(
+    return connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps,
+    options
+    )//,
+// ignoredSDN
+    // )
+}

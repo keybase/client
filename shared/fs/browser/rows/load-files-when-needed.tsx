@@ -89,9 +89,9 @@ class LoadFilesWhenNeeded extends React.PureComponent<Props> {
   }
 }
 
-export default namedConnect<OwnProps, StateProps, DispatchProps, Props, {}>(
+export default namedConnect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,
   'LoadFilesWhenNeeded'
-)(LoadFilesWhenNeeded)
+)(LoadFilesWhenNeeded) as any

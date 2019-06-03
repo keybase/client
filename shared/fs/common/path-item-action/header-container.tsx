@@ -55,7 +55,7 @@ const mergeProps = (s: StateProps, d: DispatchProps, o: OwnProps): Props => {
   }
 }
 
-export default namedConnect<OwnProps, StateProps, DispatchProps, Props, {}>(
+export default namedConnect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,

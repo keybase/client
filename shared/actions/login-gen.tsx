@@ -36,14 +36,14 @@ export const createLoginError = (payload: _LoginErrorPayload): LoginErrorPayload
 // Action Payloads
 export type LaunchAccountResetWebPagePayload = {
   readonly payload: _LaunchAccountResetWebPagePayload
-  readonly type: 'login:launchAccountResetWebPage'
+  readonly type: typeof launchAccountResetWebPage
 }
 export type LaunchForgotPasswordWebPagePayload = {
   readonly payload: _LaunchForgotPasswordWebPagePayload
-  readonly type: 'login:launchForgotPasswordWebPage'
+  readonly type: typeof launchForgotPasswordWebPage
 }
-export type LoginErrorPayload = {readonly payload: _LoginErrorPayload; readonly type: 'login:loginError'}
-export type LoginPayload = {readonly payload: _LoginPayload; readonly type: 'login:login'}
+export type LoginErrorPayload = {readonly payload: _LoginErrorPayload; readonly type: typeof loginError}
+export type LoginPayload = {readonly payload: _LoginPayload; readonly type: typeof login}
 
 // All Actions
 // prettier-ignore
