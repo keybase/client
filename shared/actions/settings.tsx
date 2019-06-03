@@ -444,9 +444,8 @@ const setLockdownMode = (state, action: SettingsGen.OnChangeLockdownModePayload)
 
 const sendFeedback = (state, action: SettingsGen.SendFeedbackPayload): Promise<Saga.MaybeAction> => {
   const {feedback, sendLogs} = action.payload
-  const maybeDump = sendLogs ? logger.dump().then(writeLogLinesToFile) : Promise.resolve('')
+  const maybeDump = sendLogs ? logger.dump().then(writeLogLinesToFile) : Promise.resolve()
   const status = {version}
-  // @ts-ignore todo investigate
   return maybeDump
     .then(() => {
       logger.info(`Sending ${sendLogs ? 'log' : 'feedback'} to daemon`)

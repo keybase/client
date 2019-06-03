@@ -19,6 +19,7 @@ export declare class Rnd {
   randInt(low: number, high: number): number
   generateString(regex: RegExp): string
 }
+
 export declare function propOverridesForStory(p: any): {}
 
 export {PropProviders}

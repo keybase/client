@@ -442,8 +442,7 @@ function* download(state, action: FsGen.DownloadPayload | FsGen.ShareNativePaylo
       FsGen.createDownloadSuccess({
         intent,
         key,
-        // Auto generated from flowToTs. Please clean me!
-        mimeType: (mimeType === null || mimeType === undefined ? undefined : mimeType.mimeType) || '',
+        mimeType: (mimeType && mimeType.mimeType) || '',
       })
     )
   } catch (error) {

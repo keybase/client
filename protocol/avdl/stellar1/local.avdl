@@ -761,4 +761,15 @@ protocol local {
   }
 
   array<PartnerUrl> getPartnerUrlsLocal(int sessionID);
+
+  // Signs arbitrary Stellar transaction. If no AccountID is provided, it's derived
+  // from the transaction's source account.
+  record SignXdrResult {
+    string singedTx;
+    AccountID accountID;
+    // If also submitting to the network:
+    union { null, string } submitErr;
+    union { null, TransactionID } submitTxID;
+  }
+  SignXdrResult signTransactionXdrLocal(string envelopeXdr, union { null, AccountID } accountID, boolean submit);
 }

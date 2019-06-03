@@ -1104,6 +1104,9 @@ func (j *JournalManager) getJournalsInConflictLocked(ctx context.Context) (
 
 	for key, val := range j.clearedConflictTlfs {
 		fakeTlfID := val.fakeTlfID
+		if fakeTlfID == tlf.NullID {
+			continue
+		}
 		tlfJournal := j.tlfJournals[fakeTlfID]
 
 		handle, err := j.getHandleForJournal(ctx, tlfJournal, tlfJournal.tlfID)
@@ -1256,6 +1259,54 @@ func (j *JournalManager) MoveAway(ctx context.Context, tlfID tlf.ID) error {
 	}
 	j.insertConflictJournalLocked(ctx, tj, fakeTlfID, t)
 	j.config.KeybaseService().NotifyFavoritesChanged(ctx)
+	return nil
+}
+
+// FinishResolvingConflict shuts down the TLF journal for a cleared
+// conflict, and removes its storage from the local disk.
+func (j *JournalManager) FinishResolvingConflict(
+	ctx context.Context, fakeTlfID tlf.ID) (err error) {
+	var journalDir string
+	defer func() {
+		if err != nil {
+			return
+		}
+		// Remove the journal dir outside of the lock, since it could
+		// take some time if the conflict branch was large.
+		err = ioutil.RemoveAll(journalDir)
+	}()
+
+	j.lock.Lock()
+	defer j.lock.Unlock()
+
+	tlfJournal, ok := j.tlfJournals[fakeTlfID]
+	if !ok {
+		return errJournalNotAvailable
+	}
+
+	found := false
+	for k, v := range j.clearedConflictTlfs {
+		if fakeTlfID != v.fakeTlfID {
+			continue
+		}
+		// Nullify the TLF ID in the cleared conflict map, so we can
+		// preserve the number of the deleted conflict TLF (so that
+		// future conflicts on this same date get a new number), but
+		// without having it show up in the favorites list.
+		v.fakeTlfID = tlf.NullID
+		j.clearedConflictTlfs[k] = v
+		found = true
+		break
+	}
+
+	if !found {
+		return errors.Errorf("%s is not a cleared conflict journal", fakeTlfID)
+	}
+
+	// Shut down the journal and remove from the cleared conflicts map.
+	tlfJournal.shutdown(ctx)
+	delete(j.tlfJournals, fakeTlfID)
+	journalDir = tlfJournal.dir
 	return nil
 }
 
