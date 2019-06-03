@@ -733,13 +733,15 @@ func (u *User) UpdateEmailProof(m MetaContext, key GenericKey, newEmail string) 
 }
 
 type SigMultiItem struct {
-	Sig        string                  `json:"sig"`
+	Sig3       string                  `json:"sig3,omitempty"`
+	Sig        string                  `json:"sig,omitempty"`
 	SigningKID keybase1.KID            `json:"signing_kid"`
 	Type       string                  `json:"type"`
 	SeqType    keybase1.SeqType        `json:"seq_type"`
 	SigInner   string                  `json:"sig_inner"`
 	TeamID     keybase1.TeamID         `json:"team_id"`
 	PublicKeys *SigMultiItemPublicKeys `json:"public_keys,omitempty"`
+	Version    SigVersion              `json:"version"`
 }
 
 type SigMultiItemPublicKeys struct {

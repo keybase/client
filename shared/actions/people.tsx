@@ -41,7 +41,6 @@ const getPeopleData = (state, action: PeopleGen.GetPeopleDataPayload) => {
         .reduce(Constants.reduceRPCItemToPeopleItem, I.List())
 
       if (debugTodo) {
-        // $FlowIssue this is true
         const allTodos: Array<Types.TodoType> = Object.values(Constants.todoTypeEnumToType)
         allTodos.forEach(todoType => {
           if (newItems.some(t => t.type === 'todo' && t.todoType === todoType)) {

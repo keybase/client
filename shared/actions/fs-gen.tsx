@@ -34,6 +34,7 @@ export const favoritesLoaded = 'fs:favoritesLoaded'
 export const folderListLoad = 'fs:folderListLoad'
 export const folderListLoaded = 'fs:folderListLoaded'
 export const fsError = 'fs:fsError'
+export const hideDiskSpaceBanner = 'fs:hideDiskSpaceBanner'
 export const hideSystemFileManagerIntegrationBanner = 'fs:hideSystemFileManagerIntegrationBanner'
 export const initSendAttachmentToChat = 'fs:initSendAttachmentToChat'
 export const initSendLinkToChat = 'fs:initSendLinkToChat'
@@ -144,6 +145,7 @@ type _FolderListLoadedPayload = {
   readonly pathItems: I.Map<Types.Path, Types.PathItem>
 }
 type _FsErrorPayload = {readonly error: Types.FsError; readonly expectedIfOffline: boolean}
+type _HideDiskSpaceBannerPayload = void
 type _HideSystemFileManagerIntegrationBannerPayload = void
 type _InitSendAttachmentToChatPayload = {readonly path: Types.Path}
 type _InitSendLinkToChatPayload = {readonly path: Types.Path}
@@ -169,7 +171,10 @@ type _OpenFilesFromWidgetPayload = {readonly path: Types.Path; readonly type: Ty
 type _OpenLocalPathInSystemFileManagerPayload = {readonly localPath: string}
 type _OpenPathInSystemFileManagerPayload = {readonly path: Types.Path}
 type _OpenSecurityPreferencesPayload = void
-type _OverallSyncStatusChangedPayload = {readonly progress: Types.SyncingFoldersProgress}
+type _OverallSyncStatusChangedPayload = {
+  readonly progress: Types.SyncingFoldersProgress
+  readonly outOfSpace: boolean
+}
 type _PathItemLoadedPayload = {readonly path: Types.Path; readonly pathItem: Types.PathItem}
 type _PickAndUploadPayload = {readonly type: Types.MobilePickType; readonly parentPath: Types.Path}
 type _PlaceholderActionPayload = void
@@ -306,6 +311,9 @@ export const createFolderListLoaded = (payload: _FolderListLoadedPayload): Folde
   type: folderListLoaded,
 })
 export const createFsError = (payload: _FsErrorPayload): FsErrorPayload => ({payload, type: fsError})
+export const createHideDiskSpaceBanner = (
+  payload: _HideDiskSpaceBannerPayload
+): HideDiskSpaceBannerPayload => ({payload, type: hideDiskSpaceBanner})
 export const createHideSystemFileManagerIntegrationBanner = (
   payload: _HideSystemFileManagerIntegrationBannerPayload
 ): HideSystemFileManagerIntegrationBannerPayload => ({payload, type: hideSystemFileManagerIntegrationBanner})
@@ -590,6 +598,10 @@ export type FolderListLoadedPayload = {
   readonly type: 'fs:folderListLoaded'
 }
 export type FsErrorPayload = {readonly payload: _FsErrorPayload; readonly type: 'fs:fsError'}
+export type HideDiskSpaceBannerPayload = {
+  readonly payload: _HideDiskSpaceBannerPayload
+  readonly type: 'fs:hideDiskSpaceBanner'
+}
 export type HideSystemFileManagerIntegrationBannerPayload = {
   readonly payload: _HideSystemFileManagerIntegrationBannerPayload
   readonly type: 'fs:hideSystemFileManagerIntegrationBanner'
@@ -839,6 +851,7 @@ export type Actions =
   | FolderListLoadPayload
   | FolderListLoadedPayload
   | FsErrorPayload
+  | HideDiskSpaceBannerPayload
   | HideSystemFileManagerIntegrationBannerPayload
   | InitSendAttachmentToChatPayload
   | InitSendLinkToChatPayload

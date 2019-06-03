@@ -17,6 +17,7 @@ import (
 	"golang.org/x/net/context"
 
 	libkb "github.com/keybase/client/go/libkb"
+	msgpack "github.com/keybase/client/go/msgpack"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -177,7 +178,7 @@ func (sikey SeitanSIKey) GenerateTeamInviteID() (id SCTeamInviteID, err error) {
 		Stage string `codec:"stage" json:"stage"`
 	}
 
-	payload, err := libkb.MsgpackEncode(InviteStagePayload{Stage: "invite_id"})
+	payload, err := msgpack.Encode(InviteStagePayload{Stage: "invite_id"})
 	if err != nil {
 		return id, err
 	}
@@ -196,7 +197,7 @@ func packAndEncryptKeyWithSecretKey(secretKey keybase1.Bytes32, gen keybase1.Per
 		EncryptedKeyAndLabel: encryptedKeyAndLabel,
 	}
 
-	packed, err := libkb.MsgpackEncode(pkey)
+	packed, err := msgpack.Encode(pkey)
 	if err != nil {
 		return pkey, encoded, err
 	}
@@ -210,7 +211,7 @@ func (ikey SeitanIKey) generatePackedEncryptedKeyWithSecretKey(secretKey keybase
 	keyAndLabel.I = keybase1.SeitanIKey(ikey)
 	keyAndLabel.L = label
 
-	packedKeyAndLabel, err := libkb.MsgpackEncode(keybase1.NewSeitanKeyAndLabelWithV1(keyAndLabel))
+	packedKeyAndLabel, err := msgpack.Encode(keybase1.NewSeitanKeyAndLabelWithV1(keyAndLabel))
 	if err != nil {
 		return pkey, encoded, err
 	}
@@ -237,7 +238,7 @@ func SeitanDecodePKey(base64Buffer string) (pkey SeitanPKey, err error) {
 		return pkey, err
 	}
 
-	err = libkb.MsgpackDecode(&pkey, packed)
+	err = msgpack.Decode(&pkey, packed)
 	return pkey, err
 }
 
@@ -249,7 +250,7 @@ func (pkey SeitanPKey) decryptKeyAndLabelWithSecretKey(secretKey keybase1.Bytes3
 		return ret, errors.New("failed to decrypt seitan plain")
 	}
 
-	err = libkb.MsgpackDecode(&ret, plain)
+	err = msgpack.Decode(&ret, plain)
 	if err != nil {
 		return ret, err
 	}
@@ -277,7 +278,7 @@ func (sikey SeitanSIKey) GenerateAcceptanceKey(uid keybase1.UID, eldestSeqno key
 		CTime       int64          `codec:"ctime" json:"ctime"`
 	}
 
-	payload, err := libkb.MsgpackEncode(AKeyPayload{
+	payload, err := msgpack.Encode(AKeyPayload{
 		Stage:       "accept",
 		UID:         uid,
 		EldestSeqno: eldestSeqno,

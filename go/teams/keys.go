@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/msgpack"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/crypto/nacl/box"
 	"golang.org/x/crypto/nacl/secretbox"
@@ -232,7 +233,7 @@ func (t *TeamKeyManager) recipientBoxes(secret keybase1.PerTeamKeySeed, nonce *n
 			return nil, err
 		}
 
-		encodedArray, err := libkb.MsgpackEncode(boxStruct)
+		encodedArray, err := msgpack.Encode(boxStruct)
 		if err != nil {
 			return nil, err
 		}
@@ -310,7 +311,7 @@ func encodeSealedPrevKey(nonceBytes [24]byte, key []byte) (prevKeySealedEncoded,
 		Nonce:   nonceBytes,
 		Key:     key,
 	}
-	packed, err := libkb.MsgpackEncode(prevKey)
+	packed, err := msgpack.Encode(prevKey)
 	if err != nil {
 		return "", err
 	}
@@ -324,7 +325,7 @@ func decodeSealedPrevKey(e prevKeySealedEncoded) (nonce [24]byte, ctext []byte, 
 		return nonce, nil, err
 	}
 	var tmp prevKeySealedDecoded
-	err = libkb.MsgpackDecode(&tmp, decoded)
+	err = msgpack.Decode(&tmp, decoded)
 	if err != nil {
 		return nonce, nil, err
 	}

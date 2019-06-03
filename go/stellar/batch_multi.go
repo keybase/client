@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/msgpack"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/relays"
@@ -192,7 +193,7 @@ func prepareRelayOp(mctx libkb.MetaContext, payment stellar1.BatchPaymentArg, re
 	if err != nil {
 		return op, err
 	}
-	pack, err := libkb.MsgpackEncode(enc)
+	pack, err := msgpack.Encode(enc)
 	if err != nil {
 		return op, err
 	}

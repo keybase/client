@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/kex2"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/msgpack"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	jsonw "github.com/keybase/go-jsonw"
@@ -250,7 +251,7 @@ func (e *Kex2Provisionee) HandleDidCounterSign2(_ context.Context, arg keybase1.
 		mctx.Debug("| Failed to decrypt pps: %s", err)
 		return err
 	}
-	err = libkb.MsgpackDecode(&e.pps, ppsBytes)
+	err = msgpack.Decode(&e.pps, ppsBytes)
 	if err != nil {
 		mctx.Debug("| Failed to unpack pps: %s", err)
 		return err

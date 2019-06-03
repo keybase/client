@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "_helper": "yarn run _node desktop/yarn-helper",
-    "_node": "cross-env-shell BABEL_ENV=yarn babel-node --extensions='.tsx' ",
+    "_node": "cross-env-shell BABEL_ENV=yarn babel-node --extensions='.tsx' --extensions='.js' ",
     "help": "yarn run _helper help",
     "lint": "yarn run lint-specific .",
     "lint-specific": "cd .. && shared/node_modules/.bin/eslint --quiet --ext js --ext ts --ext tsx --ext d.ts",
@@ -21,7 +21,7 @@
     "unused-assets": "yarn run _helper unused-assets",
     "build-treeshake": "yarn run _helper build-treeshake",
     "build-dev": "yarn run _helper build-dev",
-    "build-emoji": "yarn run _node common-adapters/markdown/generate-emoji-parser.js",
+    "build-emoji": "yarn run _node common-adapters/markdown/generate-emoji-parser",
     "build-prod": "yarn run _helper build-prod",
     "build-actions": "yarn run _node --extensions \".tsx\" desktop/yarn-helper/action-creator-creator.tsx",
     "package": "yarn run _helper package",

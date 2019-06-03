@@ -1,4 +1,3 @@
-// @flow
 export const newRoutes = {
   gitRoot: {getScreen: () => require('./container').default},
   'settingsTabs.gitTab': {getScreen: () => require('./container').default},

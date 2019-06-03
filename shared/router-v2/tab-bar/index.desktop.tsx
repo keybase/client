@@ -211,7 +211,6 @@ const keysMap = Tabs.desktopTabOrder.reduce((map, tab, index) => {
 }, {})
 const hotkeys = Object.keys(keysMap)
 
-// $FlowIssue
 const InsideHotKeyTabBar = KeyHandler(TabBar)
 
 class HotKeyTabBar extends React.Component<Props> {

@@ -1,21 +1,20 @@
-// @flow
 import * as React from 'react'
 import * as I from 'immutable'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import Row from './row/container'
 
-type Props = {|
-  expandedSet: I.Set<string>,
-  clearBadges: () => void,
-  loading: boolean,
-  onShowDelete: (id: string) => void,
-  onNewPersonalRepo: () => void,
-  onNewTeamRepo: () => void,
-  onToggleExpand: (id: string) => void,
-  personals: Array<string>,
-  teams: Array<string>,
-|}
+type Props = {
+  expandedSet: I.Set<string>
+  clearBadges: (() => void)
+  loading: boolean
+  onShowDelete: ((id: string) => void)
+  onNewPersonalRepo: (() => void)
+  onNewTeamRepo: (() => void)
+  onToggleExpand: ((id: string) => void)
+  personals: Array<string>
+  teams: Array<string>
+}
 
 class _Git extends React.Component<Props & Kb.OverlayParentProps, {}> {
   _menuItems = [
