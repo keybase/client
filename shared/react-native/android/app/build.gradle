@@ -1,6 +1,7 @@
 apply plugin: "com.android.application"
 // KB:
 apply plugin: 'com.github.triplet.play'
+apply from: '../../../node_modules/react-native-unimodules/gradle.groovy'
 
 import com.android.build.OutputFile
 
@@ -240,6 +241,8 @@ dependencies {
     implementation project(':react-native-community-netinfo')
     implementation project(':react-native-reanimated')
     implementation project(':react-native-video')
+
+    addUnimodulesDependencies([modulesPaths: ['../../../node_modules']])
 }
 
 // Run this once to be able to run the application with BUCK

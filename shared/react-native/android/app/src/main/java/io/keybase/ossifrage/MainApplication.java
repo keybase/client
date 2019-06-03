@@ -41,8 +41,15 @@ import io.keybase.ossifrage.modules.StorybookConstants;
 import io.keybase.ossifrage.modules.BackgroundJobCreator;
 import io.keybase.ossifrage.modules.BackgroundSyncJob;
 import io.keybase.ossifrage.modules.NativeLogger;
+import io.keybase.ossifrage.generated.BasePackageList;
+
+import org.unimodules.adapters.react.ModuleRegistryAdapter;
+import org.unimodules.adapters.react.ReactModuleRegistryProvider;
+import org.unimodules.core.interfaces.SingletonModule;
 
 public class MainApplication extends Application implements ReactApplication {
+    private final ReactModuleRegistryProvider mModuleRegistryProvider = new ReactModuleRegistryProvider(new BasePackageList().getPackageList(), Arrays.<SingletonModule>asList());
+
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
@@ -111,7 +118,8 @@ public class MainApplication extends Application implements ReactApplication {
                     new NetInfoPackage(),
                     new RNCWebViewPackage(),
                     new ReactVideoPackage(),
-                    new ReanimatedPackage()
+                    new ReanimatedPackage(),
+                    new ModuleRegistryAdapter(mModuleRegistryProvider)
             );
         }
         @Override

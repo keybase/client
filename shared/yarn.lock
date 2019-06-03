@@ -13284,7 +13284,7 @@ react-native-tab-view@^2.2.0:
   resolved "https://registry.yarnpkg.com/react-native-tab-view/-/react-native-tab-view-2.2.0.tgz#30d015b8f33f497d82419b56df7d43ecfcc3f9b1"
   integrity sha512-mhFDRvPH/kmvqfAzTwNptbOM/xXmpqYRsD0PSMJX1nP0LzhU4uRI1QmSW6sWZGLyOwKgVw0ZYkwZ54N8AmoO1A==
 
-react-native-unimodules@^0.4.0:
+react-native-unimodules@0.4.0:
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/react-native-unimodules/-/react-native-unimodules-0.4.0.tgz#34127fe881aa3b3ee8f8eae8280b2720252efa36"
   integrity sha512-GbaBjq/jj7avF7DSQ8GBQp91pO4op6mjKm8JvhsslRv9S5EkHegn/GUbOhDxp0LJ+Yil8YwqXSOc7AW90eNt2g==

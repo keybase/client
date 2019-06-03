@@ -1,5 +1,8 @@
 rootProject.name = 'Keybase'
 
+apply from: '../../node_modules/react-native-unimodules/gradle.groovy'
+includeUnimodulesProjects([modulesPaths: ['../../../node_modules']])
+
 include ':app', ':keybaselib'
 
 include ':react-native-video'
