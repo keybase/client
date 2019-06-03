@@ -1389,6 +1389,34 @@
           "name": "extra"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "SignXdrResult",
+      "fields": [
+        {
+          "type": "string",
+          "name": "singedTx"
+        },
+        {
+          "type": "AccountID",
+          "name": "accountID"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "submitErr"
+        },
+        {
+          "type": [
+            null,
+            "TransactionID"
+          ],
+          "name": "submitTxID"
+        }
+      ]
     }
   ],
   "messages": {
@@ -2599,6 +2627,26 @@
         "type": "array",
         "items": "PartnerUrl"
       }
+    },
+    "signTransactionXdrLocal": {
+      "request": [
+        {
+          "name": "envelopeXdr",
+          "type": "string"
+        },
+        {
+          "name": "accountID",
+          "type": [
+            null,
+            "AccountID"
+          ]
+        },
+        {
+          "name": "submit",
+          "type": "boolean"
+        }
+      ],
+      "response": "SignXdrResult"
     }
   },
   "namespace": "stellar.1"

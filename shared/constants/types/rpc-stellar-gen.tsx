@@ -394,6 +394,7 @@ export type SendAssetChoiceLocal = {readonly asset: Asset; readonly enabled: Boo
 export type SendBannerLocal = {readonly level: String; readonly message: String; readonly proofsChanged: Boolean}
 export type SendPaymentResLocal = {readonly kbTxID: KeybaseTransactionID; readonly pending: Boolean}
 export type SendResultCLILocal = {readonly kbTxID: KeybaseTransactionID; readonly txID: TransactionID}
+export type SignXdrResult = {readonly singedTx: String; readonly accountID: AccountID; readonly submitErr?: String | null; readonly submitTxID?: TransactionID | null}
 export type StellarServerDefinitions = {readonly revision: Int; readonly currencies: {[key: string]: OutsideCurrencyDefinition}}
 export type SubmitMultiRes = {readonly txID: TransactionID}
 export type TimeMs = Long
@@ -493,6 +494,7 @@ export const localValidateSecretKeyLocalRpcPromise = (params: MessageTypes['stel
 // 'stellar.1.local.approvePayURILocal'
 // 'stellar.1.local.approvePathURILocal'
 // 'stellar.1.local.getPartnerUrlsLocal'
+// 'stellar.1.local.signTransactionXdrLocal'
 // 'stellar.1.notify.paymentNotification'
 // 'stellar.1.notify.paymentStatusNotification'
 // 'stellar.1.notify.requestStatusNotification'
@@ -526,4 +528,5 @@ export const localValidateSecretKeyLocalRpcPromise = (params: MessageTypes['stel
 // 'stellar.1.remote.assetSearch'
 // 'stellar.1.remote.changeTrustline'
 // 'stellar.1.remote.findPaymentPath'
+// 'stellar.1.remote.postAnyTransaction'
 // 'stellar.1.ui.paymentReviewed'

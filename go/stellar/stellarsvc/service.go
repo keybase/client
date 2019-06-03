@@ -896,6 +896,67 @@ func (s *Server) ApprovePathURILocal(ctx context.Context, arg stellar1.ApprovePa
 	return res.TxID, nil
 }
 
+func (s *Server) SignTransactionXdrLocal(ctx context.Context, arg stellar1.SignTransactionXdrLocalArg) (res stellar1.SignXdrResult, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName:       "SignTransactionXdrLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return res, err
+	}
+
+	unpackedTx, txIDPrecalc, err := unpackTx(arg.EnvelopeXdr)
+	if err != nil {
+		return res, err
+	}
+
+	var accountID stellar1.AccountID
+	if arg.AccountID == nil {
+		// Derive signer account id from transaction's sourceAccount.
+		accountID = stellar1.AccountID(unpackedTx.Tx.SourceAccount.Address())
+		mctx.Debug("Trying to sign with SourceAccount: %s", accountID.String())
+	} else {
+		// We were provided with specific AccountID we want to sign with.
+		accountID = *arg.AccountID
+		mctx.Debug("Trying to sign with (passed as argument): %s", accountID.String())
+	}
+
+	_, acctBundle, err := stellar.LookupSender(mctx, accountID)
+	if err != nil {
+		return res, err
+	}
+
+	senderSeed, err := stellarnet.NewSeedStr(acctBundle.Signers[0].SecureNoLogString())
+	if err != nil {
+		return res, err
+	}
+
+	signRes, err := stellarnet.SignEnvelope(senderSeed, unpackedTx)
+	if err != nil {
+		return res, err
+	}
+
+	res.SingedTx = signRes.Signed
+	res.AccountID = accountID
+
+	if arg.Submit {
+		submitErr := s.remoter.PostAnyTransaction(mctx, signRes.Signed)
+		if submitErr != nil {
+			errStr := submitErr.Error()
+			mctx.Debug("Submit failed with: %s\n", errStr)
+			res.SubmitErr = &errStr
+		} else {
+			txID := stellar1.TransactionID(txIDPrecalc)
+			mctx.Debug("Submit successful. Tx ID is: %s", txID.String())
+			res.SubmitTxID = &txID
+		}
+	}
+
+	return res, nil
+}
+
 func postXDRToCallback(signed, callbackURL string) error {
 	u, err := url.Parse(callbackURL)
 	if err != nil {
@@ -940,4 +1001,13 @@ func memoStrings(x xdr.Memo) (string, string, error) {
 	default:
 		return "", "", errors.New("invalid memo type")
 	}
+}
+
+func unpackTx(envelopeXdr string) (unpackedTx xdr.TransactionEnvelope, txIDPrecalc string, err error) {
+	err = xdr.SafeUnmarshalBase64(envelopeXdr, &unpackedTx)
+	if err != nil {
+		return unpackedTx, txIDPrecalc, fmt.Errorf("decoding tx: %v", err)
+	}
+	txIDPrecalc, err = stellarnet.HashTx(unpackedTx.Tx)
+	return unpackedTx, txIDPrecalc, err
 }
