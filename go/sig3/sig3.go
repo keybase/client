@@ -21,6 +21,11 @@ type Generic interface {
 
 	// Inner methods for generic decoding of incoming sig3 links
 	outerPointer() *OuterLink
+
+	// setVerifiedBit is called once we've verified the outer signature over the whole
+	// link, and also any inner reverse signatures. If any verification fails, the bit
+	// will not get set. The bit also won't get set for stubbed links, since there isn't
+	// enough information to verify.
 	setVerifiedBit()
 	verify() error
 }
@@ -28,7 +33,7 @@ type Generic interface {
 // Base struct for sig3 links that contains much of the raw material pulled down or off local storage.
 // Most implementations of sig3 links should include this base class.
 type Base struct {
-	verified bool
+	verified bool // see message above for when this bit is set.
 	inner    *InnerLink
 	outerRaw []byte
 	outer    OuterLink
