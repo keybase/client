@@ -21,6 +21,16 @@ const commonSystemFileManagerIntegrationBannerActions = {
 }
 
 export const bannerProvider = {
+  PublicReminder: ({path}: {path: Types.Path}) => {
+    const parsedPath = Constants.parsePath(path)
+    return {
+      hidden: false,
+      onClose: Sb.action('close'),
+      onLoad: () => {},
+      show: parsedPath.kind === Types.PathKind.GroupTlf && parsedPath.tlfType === Types.TlfType.Public,
+      url: parsedPath.kind === Types.PathKind.GroupTlf ? `https://keybase.pub/${parsedPath.tlfName}` : '',
+    }
+  },
   ResetBanner: ({path}: {path: Types.Path}) => ({
     ...resetBannerCommon,
     isUserReset: Types.pathToString(path) === '/keybase/private/me,reset',
