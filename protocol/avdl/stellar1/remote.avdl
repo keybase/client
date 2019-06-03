@@ -334,4 +334,6 @@ protocol remote {
   }
 
   PaymentPath findPaymentPath(keybase1.UserVersion caller, PaymentPathQuery query);
+
+  void postAnyTransaction(keybase1.UserVersion caller, string signedTransaction);
 }
