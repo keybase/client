@@ -1521,6 +1521,10 @@ export enum Outcome {
   ignored = 2,
 }
 
+export enum PTKType {
+  reader = 0,
+}
+
 export enum PassphraseRecoveryPromptType {
   encryptedPgpKeys = 0,
 }
@@ -2192,6 +2196,9 @@ export type HasServerKeysRes = {readonly hasServerKeys: Boolean}
 export type HashMeta = Bytes
 export type Hello2Res = {readonly encryptionKey: KID; readonly sigPayload: HelloRes; readonly deviceEkKID: KID}
 export type HelloRes = String
+export type HiddenTeamChain = {readonly v: /* subversion */ Int; readonly data: HiddenTeamChainData; readonly perTeamKeys: {[key: string]: Seqno}; readonly ratchet?: LinkTriple | null; readonly cachedAt: Time}
+export type HiddenTeamChainData = {readonly ID: TeamID; readonly public: Boolean; readonly last: Seqno; readonly outer: {[key: string]: LinkID}; readonly inner: {[key: string]: HiddenTeamChainLink}}
+export type HiddenTeamChainLink = {readonly m: /* merkleRoot */ MerkleRootV2; readonly p: /* parentChain */ LinkTriple; readonly s: /* signer */ Signer; readonly k: /* ptk */ {[key: string]: PerTeamKey}}
 export type HomeScreen = {readonly lastViewed: Time; readonly version: Int; readonly visits: Int; readonly items?: Array<HomeScreenItem> | null; readonly followSuggestions?: Array<HomeUserSummary> | null; readonly announcementsVersion: Int}
 export type HomeScreenAnnouncement = {readonly id: HomeScreenAnnouncementID; readonly version: HomeScreenAnnouncementVersion; readonly appLink: AppLinkType; readonly confirmLabel: String; readonly dismissable: Boolean; readonly iconUrl: String; readonly text: String; readonly url: String}
 export type HomeScreenAnnouncementID = Int
@@ -2391,6 +2398,7 @@ export type SigListArgs = {readonly sessionID: Int; readonly username: String; r
 export type SigTypes = {readonly track: Boolean; readonly proof: Boolean; readonly cryptocurrency: Boolean; readonly isSelf: Boolean}
 export type SigVersion = Int
 export type SignatureMetadata = {readonly signingKID: KID; readonly prevMerkleRootSigned: MerkleRootV2; readonly firstAppearedUnverified: Seqno; readonly time: Time; readonly sigChainLocation: SigChainLocation}
+export type Signer = {readonly e: Seqno; readonly k: KID; readonly u: UID}
 export type SignupRes = {readonly passphraseOk: Boolean; readonly postOk: Boolean; readonly writeOk: Boolean}
 export type SimpleFSGetHTTPAddressAndTokenResponse = {readonly address: String; readonly token: String}
 export type SimpleFSListResult = {readonly entries?: Array<Dirent> | null; readonly progress: Progress}
