@@ -797,6 +797,12 @@ func (a *AccountState) ForceSeqnoRefresh(mctx libkb.MetaContext) error {
 	return nil
 }
 
+// SeqnoDebug outputs some information about the seqno state.
+func (a *AccountState) SeqnoDebug(mctx libkb.MetaContext) {
+	mctx.Debug("SEQNO debug for %s: pending txs %d, inuse seqnos: %d", a.accountID, len(a.pendingTxs), len(a.inuseSeqnos))
+	mctx.Debug("SEQNO debug for %s: inuse seqnos: %+v", a.accountID, a.inuseSeqnos)
+}
+
 // AccountSeqno returns the seqno that has already been fetched for
 // this account.
 func (a *AccountState) AccountSeqno(ctx context.Context) (uint64, error) {
@@ -812,13 +818,17 @@ func (a *AccountState) AccountSeqnoAndBump(ctx context.Context) (uint64, error) 
 	defer a.Unlock()
 	result := a.seqno
 
+	a.seqno++
+
 	// need to keep track that we are going to use this seqno
 	// in a tx.  This record keeping avoids a race where
 	// multiple seqno providers rushing to use seqnos before
 	// AddPendingTx is called.
-	a.inuseSeqnos[result] = inuseSeqno{ctime: time.Now()}
+	//
+	// The "in use" seqno is result+1 since the transaction builders
+	// add 1 to result when they make the transaction.
+	a.inuseSeqnos[a.seqno] = inuseSeqno{ctime: time.Now()}
 
-	a.seqno++
 	return result, nil
 }
 

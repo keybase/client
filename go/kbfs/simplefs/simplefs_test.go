@@ -1483,4 +1483,72 @@ func TestFavoriteConflicts(t *testing.T) {
 	listResult, err := sfs.SimpleFSReadList(ctx, opid)
 	require.NoError(t, err)
 	require.Len(t, listResult.Entries, 12)
+
+	t.Log("Finish resolving the conflict")
+	err = sfs.SimpleFSFinishResolvingConflict(ctx, pathLocalView)
+	require.NoError(t, err)
+	favs, err = sfs.SimpleFSListFavorites(ctx)
+	require.NoError(t, err)
+	require.Len(t, favs.FavoriteFolders, 2)
+	for _, f := range favs.FavoriteFolders {
+		require.Nil(t, f.ConflictState)
+	}
+}
+
+func TestSyncConfigFavorites(t *testing.T) {
+	ctx := context.Background()
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
+	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_for_simplefs_favs")
+	defer os.RemoveAll(tempdir)
+	err = config.EnableDiskLimiter(tempdir)
+	require.NoError(t, err)
+	config.SetDiskCacheMode(libkbfs.DiskCacheModeLocal)
+	err = config.MakeDiskBlockCacheIfNotExists()
+	require.NoError(t, err)
+	sfs := newSimpleFS(env.EmptyAppStateUpdater{}, config)
+	defer closeSimpleFS(ctx, t, sfs)
+
+	pathPriv := keybase1.NewPathWithKbfs(`/private/jdoe`)
+	pathPub := keybase1.NewPathWithKbfs(`/public/jdoe`)
+
+	t.Log("Add one file in each directory")
+	writeRemoteFile(
+		ctx, t, sfs, pathAppend(pathPriv, `test.txt`), []byte(`foo`))
+	syncFS(ctx, t, sfs, "/private/jdoe")
+	writeRemoteFile(
+		ctx, t, sfs, pathAppend(pathPub, `test.txt`), []byte(`foo`))
+	syncFS(ctx, t, sfs, "/public/jdoe")
+
+	t.Log("Make sure none are marked for syncing")
+	favs, err := sfs.SimpleFSListFavorites(ctx)
+	require.NoError(t, err)
+	require.Len(t, favs.FavoriteFolders, 2)
+	for _, f := range favs.FavoriteFolders {
+		require.Equal(t, keybase1.FolderSyncMode_DISABLED, f.SyncConfig.Mode)
+	}
+
+	t.Log("Start syncing the public folder")
+	setArg := keybase1.SimpleFSSetFolderSyncConfigArg{
+		Path: pathPub,
+		Config: keybase1.FolderSyncConfig{
+			Mode: keybase1.FolderSyncMode_ENABLED,
+		},
+	}
+	err = sfs.SimpleFSSetFolderSyncConfig(ctx, setArg)
+	require.NoError(t, err)
+	favs, err = sfs.SimpleFSListFavorites(ctx)
+	require.NoError(t, err)
+	require.Len(t, favs.FavoriteFolders, 2)
+	numSyncing := 0
+	for _, f := range favs.FavoriteFolders {
+		if f.FolderType == keybase1.FolderType_PUBLIC {
+			numSyncing++
+			require.Equal(
+				t, keybase1.FolderSyncMode_ENABLED, f.SyncConfig.Mode)
+		} else {
+			require.Equal(
+				t, keybase1.FolderSyncMode_DISABLED, f.SyncConfig.Mode)
+		}
+	}
+	require.Equal(t, 1, numSyncing)
 }

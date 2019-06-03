@@ -45,7 +45,8 @@
     "storybook": "cross-env-shell BABEL_ENV=yarn start-storybook -s . -p 6006",
     "storybook-build": "cross-env-shell build-storybook -c .storybook -o .static-storybook",
     "rn-storybook": "cross-env-shell storybook start -p 7007",
-    "tsc-watch": "node --max-old-space-size=4096 ./node_modules/.bin/tsc --watch",
+    "tsc": "node --max-old-space-size=4096 ./node_modules/.bin/tsc ",
+    "tsc-strict": "node --max-old-space-size=4096 ./node_modules/.bin/tsc --project ./tsconfig.strict.json ",
     "build-storybook": "build-storybook",
     "modules": "yarn install --pure-lockfile --ignore-optional",
     "log-to-trace": "node desktop/yarn-helper/log-to-trace.js"
