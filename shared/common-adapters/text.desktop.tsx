@@ -117,8 +117,7 @@ function externalGetStyle(
   negative?: boolean,
   lineClampNum?: number | null,
   clickable?: boolean | null,
-  // @ts-ignore keep these in the old order because they're used elsewhere
-  selectable: boolean | null
+  selectable?: boolean | null
 ) {
   const meta = metaData[type]
   const sizeStyle = fontSizeToSizeStyle(meta.fontSize)

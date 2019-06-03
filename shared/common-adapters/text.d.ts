@@ -56,7 +56,7 @@ declare function getStyle(
   lineClamp?: number | null,
   clickable?: boolean | null,
   selectable?: boolean
-): Object
+): any // TODO better type here
 
 export {getStyle, allTextTypes}
 export {Background, MetaType, Props, TextType}
