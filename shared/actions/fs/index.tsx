@@ -817,10 +817,8 @@ const moveOrCopy = (state, action: FsGen.MovePayload | FsGen.CopyPayload) => {
   }
   return (
     (action.type === FsGen.move
-      ? // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
-        RPCTypes.SimpleFSSimpleFSMoveRpcPromise(params)
-      : // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
-        RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise(params)
+      ? RPCTypes.SimpleFSSimpleFSMoveRpcPromise(params)
+      : RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise(params)
     )
       // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
       .then(() => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID: params.opID}))
