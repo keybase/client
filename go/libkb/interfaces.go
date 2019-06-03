@@ -684,7 +684,7 @@ type TeamLoader interface {
 	ImplicitAdmins(ctx context.Context, teamID keybase1.TeamID) (impAdmins []keybase1.UserVersion, err error)
 	MapTeamAncestors(ctx context.Context, f func(t keybase1.TeamSigChainState) error, teamID keybase1.TeamID, reason string, forceFullReloadOnceToAssert func(t keybase1.TeamSigChainState) bool) error
 	NotifyTeamRename(ctx context.Context, id keybase1.TeamID, newName string) error
-	Load(context.Context, keybase1.LoadTeamArg) (*keybase1.TeamData, error)
+	Load(context.Context, keybase1.LoadTeamArg) (*keybase1.TeamData, *keybase1.HiddenTeamChain, error)
 	// Freezing a team clears most data and forces a full reload when the team
 	// is loaded again. The team loader checks that the previous tail is
 	// contained within the new chain post-freeze. In particular, since we load
@@ -719,14 +719,15 @@ type FastTeamLoader interface {
 type HiddenTeamChainManager interface {
 	// We got gossip about what the latest chain-tail should be, so racthet the
 	// chain forward; the next call to Advance() has to match.
-	Ratchet(MetaContext, keybase1.TeamID, keybase1.LinkTriple) error
+	Ratchet(MetaContext, keybase1.TeamID, keybase1.HiddenTeamChainRatchet) error
 	// We got a bunch of new links downloaded via slow or fast loader, so add them
-	// onto the HiddenTeamChain state.
-	Advance(MetaContext, keybase1.HiddenTeamChainData) error
-	// Acceess the previously advanced state; lookup a PerTeamKey given the PerTeamKeyGeneration
-	PerTeamKeyAtGeneration(MetaContext, keybase1.TeamID, keybase1.PerTeamKeyGeneration) (*keybase1.PerTeamKey, error)
+	// onto the HiddenTeamChain state. Ensure that the udpated state is at least up to the
+	// given ratchet value.
+	Advance(mctx MetaContext, update keybase1.HiddenTeamChain, expectedPrev *keybase1.LinkTriple) error
 	// Access the tail of the HiddenTeamChain, for embedding into gossip vectors.
 	Tail(MetaContext, keybase1.TeamID) (*keybase1.LinkTriple, error)
+	// Load the latest data for the given team ID, and just return it wholesale.
+	Load(MetaContext, keybase1.TeamID) (dat *keybase1.HiddenTeamChain, err error)
 }
 
 type TeamAuditor interface {
