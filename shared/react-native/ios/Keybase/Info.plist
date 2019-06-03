@@ -43,6 +43,16 @@
 	<string>Saving images from chat messages</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Attaching images to chat messages</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string></string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string></string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string></string>
+	<key>NSMotionUsageDescription</key>
+	<string></string>
+	<key>NSRemindersUsageDescription</key>
+	<string></string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>keybase-bold-italic.ttf</string>

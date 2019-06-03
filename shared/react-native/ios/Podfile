@@ -1,5 +1,7 @@
 # Reference: https://sandstorm.de/de/blog/post/react-native-managing-native-dependencies-using-xcode-and-cocoapods.html
-platform :ios, '9.0'
+platform :ios, '10.0'
+
+require_relative '../../node_modules/react-native-unimodules/cocoapods.rb'
 
 target 'Keybase' do
   pod 'React', :path => '../../node_modules/react-native', :subspecs => [
@@ -37,6 +39,8 @@ target 'Keybase' do
   pod 'react-native-webview', :path => '../../node_modules/react-native-webview'
   pod 'RNReanimated', :path => '../../node_modules/react-native-reanimated'
   pod 'react-native-video', :path => '../../node_modules/react-native-video/react-native-video.podspec'
+
+  use_unimodules!(modules_paths: ['../../node_modules'])
 
 end
 
