@@ -78,7 +78,7 @@ const getStyle = props =>
     props.style,
   ])
 
-const Switch = React.forwardRef<Props, ClickableBox>((props: Props, ref) =>
+const Switch = React.forwardRef<ClickableBox, Props>((props: Props, ref) =>
   Styles.isMobile || !props.labelTooltip ? (
     <Kb.Box style={getStyle(props)}>{getContent(props, ref)}</Kb.Box>
   ) : (

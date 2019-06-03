@@ -67,7 +67,7 @@ const load = () => {
           style={styles.dropdown}
           disabled={true}
         />
-        {[
+        {([
           'top left',
           'top right',
           'bottom right',
@@ -77,7 +77,7 @@ const load = () => {
           'top center',
           'bottom center',
           'center center',
-        ].map(pos => (
+        ] as const).map(pos => (
           <Dropdown
             key={pos}
             items={[

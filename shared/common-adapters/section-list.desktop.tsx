@@ -201,8 +201,10 @@ class SectionList extends React.Component<Props, State> {
           style={Styles.collapseStyles([styles.scroll, this.props.style])}
           onScroll={this._onScroll}
         >
+          {/*
+          // @ts-ignore */}
           <ReactList
-            itemRenderer={this._itemRenderer}
+            itemRenderer={this._itemRenderer as any}
             itemSizeEstimator={this.props.itemSizeEstimator}
             length={this._flat.length}
             retrigger={this._flat}

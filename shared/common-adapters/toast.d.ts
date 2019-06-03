@@ -7,7 +7,7 @@ export type Props = {
   className?: string | null
   containerStyle?: StylesCrossPlatform
   visible: boolean
-  attachTo?: (() => React.RefObject<any> | null) | null
+  attachTo?: (() => any | null) | null
   // applies on desktop only. Mobile is always centered in the screen
   position?: Position
 }

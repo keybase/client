@@ -1,30 +1,28 @@
 import * as React from 'react'
 
 type TimerProps = {
-  setTimeout: ((func: () => void, timing: number) => number | void)
-  clearTimeout: ((id: number) => void)
-  setInterval: ((func: () => void, timing: number) => number | void)
-  clearInterval: ((id: number) => void)
+  setTimeout: (func: () => void, timing: number) => number | void
+  clearTimeout: (id: number) => void
+  setInterval: (func: () => void, timing: number) => number | void
+  clearInterval: (id: number) => void
 }
 
 // Use this to mix your props with timer props like type Props = PropsWithTimer<{foo: number}>
-export type PropsWithTimer<P> = {
-  setTimeout: (func: () => void, timing: number) => number
-  clearTimeout: (id: number) => void
-  setInterval: (func: () => void, timing: number) => number
-  clearInterval: (id: number) => void
-} & P
+export type PropsWithTimer<P> = TimerProps & P
+export type PropsWithoutTimer<P> = Exclude<P, TimerProps>
 
 function getDisplayName(Component): string {
   return Component.displayName || Component.name || 'Component'
 }
 
-function hOCTimers<Config, Instance>(
-  Component: React.Component<Config, Instance>
-): React.Component<Exclude<Config, TimerProps>, Instance> {
+function hOCTimers<PropsWithoutTimerProps, RefInstance>(
+  Component: React.ComponentType<PropsWithoutTimerProps & TimerProps>
+): React.ForwardRefExoticComponent<
+  React.PropsWithoutRef<PropsWithoutTimerProps> & React.RefAttributes<RefInstance>
+> {
   type HOCTimersProps = {
-    forwardedRef: React.Ref<React.Component<Config, Instance>>
-  } & Exclude<Config, TimerProps>
+    forwardedRef: React.Ref<RefInstance>
+  } & React.PropsWithChildren<PropsWithoutTimerProps>
 
   class HOCTimers extends React.Component<HOCTimersProps> {
     static displayName = `HOCTimers(${getDisplayName(Component)})`
@@ -77,8 +75,10 @@ function hOCTimers<Config, Instance>(
       )
     }
   }
-  // @ts-ignore this HOC will probably be hook-ified pretty soon
-  return React.forwardRef<Config, Instance>((props, ref) => <HOCTimers {...props} forwardedRef={ref} />)
+
+  return React.forwardRef<RefInstance, PropsWithoutTimerProps>((props, ref) => (
+    <HOCTimers {...props} forwardedRef={ref} />
+  ))
 }
 
 export default hOCTimers

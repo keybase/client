@@ -21,7 +21,7 @@ class TabBarItem extends React.Component<ItemProps> {
 class SimpleTabBarButton extends React.Component<ItemProps> {
   shouldComponentUpdate(nextProps: ItemProps, nextState: any): boolean {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
-      if (['style', 'styleContainer', 'children'].includes(key)) {
+      if (['style', 'styleContainer', 'children'].includes(key as string)) {
         return shallowEqual(obj, oth)
       }
       return undefined
@@ -87,7 +87,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
           'styleBadgeNumber',
           'styleLabel',
           'children',
-        ].includes(key)
+        ].includes(key as string)
       ) {
         return shallowEqual(obj, oth)
       }
@@ -243,7 +243,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
 class TabBar extends React.Component<Props> {
   shouldComponentUpdate(nextProps: Props, nextState: any): boolean {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
-      if (['style', 'styleTabBar', 'children'].includes(key)) {
+      if (['style', 'styleTabBar', 'children'].includes(key as string)) {
         return shallowEqual(obj, oth)
       }
       return undefined

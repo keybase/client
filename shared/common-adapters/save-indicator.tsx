@@ -131,7 +131,7 @@ class SaveIndicator extends React.Component<Props, State> {
     }
 
     if (typeof result === 'number') {
-      this._timeoutID = this.props.setTimeout(this._runStateMachine, result)
+      this._timeoutID = this.props.setTimeout(this._runStateMachine, result) || null
       return
     }
 
