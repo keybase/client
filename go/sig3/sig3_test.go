@@ -241,12 +241,12 @@ func (r RotateKey) badSign(outer KeyPair, inner KeyPair, f func(sig *Sig) *Sig) 
 	r.rkb().PTKs[0].ReverseSig = nil
 	r.rkb().PTKs[0].SigningKID = inner.pub
 	i.Signer.KID = outer.pub
-	tmp, err := signGeneric(r, inner.priv)
+	tmp, err := signGeneric(&r.Base, inner.priv)
 	if err != nil {
 		return nil, err
 	}
 	r.rkb().PTKs[0].ReverseSig = f(tmp.Sig)
-	return signGeneric(r, outer.priv)
+	return signGeneric(&r.Base, outer.priv)
 }
 
 func TestBadReverseSig(t *testing.T) {

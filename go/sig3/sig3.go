@@ -43,9 +43,10 @@ type Base struct {
 // RotateKey is a sig3 link type for a PTK rotation. Handles multiple PTK types being rotated in
 // one link.
 type RotateKey struct {
-	*Base
+	Base
 }
 
+var _ Generic = (*Base)(nil)
 var _ Generic = (*RotateKey)(nil)
 
 // NewRotateKey makes a new rotate key given sig3 skeletons (Outer and Inner) and
@@ -53,7 +54,7 @@ var _ Generic = (*RotateKey)(nil)
 func NewRotateKey(o OuterLink, i InnerLink, b RotateKeyBody) *RotateKey {
 	i.Body = &b
 	return &RotateKey{
-		Base: &Base{
+		Base: Base{
 			inner: &i,
 			outer: o,
 		},
@@ -63,10 +64,7 @@ func NewRotateKey(o OuterLink, i InnerLink, b RotateKeyBody) *RotateKey {
 // rkb returns the RotateKeyBody that we are expecting at r.Base.inner. It should never fail, if it does,
 // the program will crash.
 func (r *RotateKey) rkb() *RotateKeyBody {
-	ret, ok := r.Base.inner.Body.(*RotateKeyBody)
-	if !ok {
-		return nil
-	}
+	ret, _ := r.Base.inner.Body.(*RotateKeyBody)
 	return ret
 }
 
@@ -270,7 +268,7 @@ func (s *Sig3ExportJSON) parseInner(in Base) (Generic, error) {
 	case LinkTypeRotateKey:
 		var rkb RotateKeyBody
 		in.inner.Body = &rkb
-		out = &RotateKey{Base: &in}
+		out = &RotateKey{Base: in}
 	default:
 		return nil, newParseError("unknown link type %d", in.outer.LinkType)
 	}
@@ -354,13 +352,13 @@ func (r RotateKey) Sign(outer KeyPair, inners []KeyPair) (ret *Sig3Bundle, err e
 
 	for j := range r.rkb().PTKs {
 		ptk := &r.rkb().PTKs[j]
-		tmp, err := signGeneric(r, inners[j].priv)
+		tmp, err := signGeneric(&r.Base, inners[j].priv)
 		if err != nil {
 			return nil, err
 		}
 		ptk.ReverseSig = tmp.Sig
 	}
-	return signGeneric(r, outer.priv)
+	return signGeneric(&r.Base, outer.priv)
 }
 
 func signGeneric(g Generic, privkey kbcrypto.NaclSigningKeyPrivate) (ret *Sig3Bundle, err error) {
