@@ -136,7 +136,7 @@ func TestSignAndVerifyHappyPathFourFold(t *testing.T) {
 	require.NotNil(t, rk2.Signer())
 	require.Equal(t, rk2.Signer().KID, outerKey.pub)
 	require.Equal(t, rk2.Signer().UID, rk.Base.inner.Signer.UID)
-	require.Equal(t, len(rk2.rkb.PTKs), 4)
+	require.Equal(t, len(rk2.rkb().PTKs), 4)
 }
 
 func TestMissingSig(t *testing.T) {
@@ -238,14 +238,14 @@ func (r RotateKey) badSign(outer KeyPair, inner KeyPair, f func(sig *Sig) *Sig) 
 	o.LinkType = LinkTypeRotateKey
 	o.ChainType = ChainTypeTeamPrivateHidden
 
-	r.rkb.PTKs[0].ReverseSig = nil
-	r.rkb.PTKs[0].SigningKID = inner.pub
+	r.rkb().PTKs[0].ReverseSig = nil
+	r.rkb().PTKs[0].SigningKID = inner.pub
 	i.Signer.KID = outer.pub
 	tmp, err := signGeneric(r, inner.priv)
 	if err != nil {
 		return nil, err
 	}
-	r.rkb.PTKs[0].ReverseSig = f(tmp.Sig)
+	r.rkb().PTKs[0].ReverseSig = f(tmp.Sig)
 	return signGeneric(r, outer.priv)
 }
 

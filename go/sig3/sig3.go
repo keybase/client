@@ -44,7 +44,6 @@ type Base struct {
 // one link.
 type RotateKey struct {
 	*Base
-	rkb *RotateKeyBody
 }
 
 var _ Generic = (*RotateKey)(nil)
@@ -58,8 +57,17 @@ func NewRotateKey(o OuterLink, i InnerLink, b RotateKeyBody) *RotateKey {
 			inner: &i,
 			outer: o,
 		},
-		rkb: &b,
 	}
+}
+
+// rkb returns the RotateKeyBody that we are expecting at r.Base.inner. It should never fail, if it does,
+// the program will crash.
+func (r *RotateKey) rkb() *RotateKeyBody {
+	ret, ok := r.Base.inner.Body.(*RotateKeyBody)
+	if !ok {
+		return nil
+	}
+	return ret
 }
 
 func (b *Base) setVerifiedBit() {
@@ -147,7 +155,7 @@ func (r RotateKey) verifyReverseSig() (err error) {
 	// First make a checkpoint of all of the previous sigs and the previous inner
 	// link, since we're going to mutate them as we verify
 	var reverseSigs []*Sig
-	for _, ptk := range r.rkb.PTKs {
+	for _, ptk := range r.rkb().PTKs {
 		reverseSigs = append(reverseSigs, ptk.ReverseSig)
 	}
 	innerLinkID := r.Base.outer.InnerLinkID
@@ -155,15 +163,15 @@ func (r RotateKey) verifyReverseSig() (err error) {
 	// Make sure to replace them on the way out of the function, even in an error.
 	defer func() {
 		for j, rs := range reverseSigs {
-			r.rkb.PTKs[j].ReverseSig = rs
+			r.rkb().PTKs[j].ReverseSig = rs
 		}
 		r.Base.outer.InnerLinkID = innerLinkID
 	}()
 
 	// Verify signatures in the reverse order they were signed, nulling them out
 	// from back to front. We are not going middle-out.
-	for i := len(r.rkb.PTKs) - 1; i >= 0; i-- {
-		ptk := &r.rkb.PTKs[i]
+	for i := len(r.rkb().PTKs) - 1; i >= 0; i-- {
+		ptk := &r.rkb().PTKs[i]
 		revSig := ptk.ReverseSig
 		if revSig == nil {
 			return newSig3Error("rotate key link is missing a reverse sig")
@@ -262,7 +270,7 @@ func (s *Sig3ExportJSON) parseInner(in Base) (Generic, error) {
 	case LinkTypeRotateKey:
 		var rkb RotateKeyBody
 		in.inner.Body = &rkb
-		out = &RotateKey{Base: &in, rkb: &rkb}
+		out = &RotateKey{Base: &in}
 	default:
 		return nil, newParseError("unknown link type %d", in.outer.LinkType)
 	}
@@ -338,14 +346,14 @@ func (r RotateKey) Sign(outer KeyPair, inners []KeyPair) (ret *Sig3Bundle, err e
 	o.ChainType = ChainTypeTeamPrivateHidden
 	i.Signer.KID = outer.pub
 
-	for j := range r.rkb.PTKs {
-		ptk := &r.rkb.PTKs[j]
+	for j := range r.rkb().PTKs {
+		ptk := &r.rkb().PTKs[j]
 		ptk.ReverseSig = nil
 		ptk.SigningKID = inners[j].pub
 	}
 
-	for j := range r.rkb.PTKs {
-		ptk := &r.rkb.PTKs[j]
+	for j := range r.rkb().PTKs {
+		ptk := &r.rkb().PTKs[j]
 		tmp, err := signGeneric(r, inners[j].priv)
 		if err != nil {
 			return nil, err
