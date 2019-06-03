@@ -16,18 +16,16 @@ export type Box2Props = {
   onDragOver?: (syntheticDragEvent: React.DragEvent<Element>) => void // desktop only
   onDrop?: (syntheticDragEvent: React.DragEvent<Element>) => void // desktop
   // only
-  onLayout?: (
-    evt: {
-      nativeEvent: {
-        layout: {
-          x: number
-          y: number
-          width: number
-          height: number
-        }
+  onLayout?: (evt: {
+    nativeEvent: {
+      layout: {
+        x: number
+        y: number
+        width: number
+        height: number
       }
     }
-  ) => void // mobile only,,,,,
+  }) => void // mobile only
   onMouseLeave?: (syntheticEvent: React.SyntheticEvent) => void // desktop only
   onMouseOver?: (syntheticEvent: React.SyntheticEvent) => void // desktop only
   onCopyCapture?: (syntheticEvent: React.SyntheticEvent) => void // desktop only

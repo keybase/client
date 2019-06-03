@@ -2495,7 +2495,29 @@ func (k *SimpleFS) SimpleFSClearConflictState(ctx context.Context,
 // SimpleFSFinishResolvingConflict implements the SimpleFS interface.
 func (k *SimpleFS) SimpleFSFinishResolvingConflict(ctx context.Context,
 	path keybase1.Path) error {
-	return errors.New("not implemented")
+	ctx, err := k.startOpWrapContext(k.makeContext(ctx))
+	if err != nil {
+		return err
+	}
+	defer func() { libcontext.CleanupCancellationDelayer(ctx) }()
+	t, tlfName, _, _, err := remoteTlfAndPath(path)
+	if err != nil {
+		return err
+	}
+	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
+		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, tlfName, t)
+	if err != nil {
+		return err
+	}
+	tlfID := tlfHandle.TlfID()
+	branch, err := k.branchNameFromPath(ctx, tlfHandle, path)
+	if err != nil {
+		return err
+	}
+	return k.config.KBFSOps().FinishResolvingConflict(ctx, data.FolderBranch{
+		Tlf:    tlfID,
+		Branch: branch,
+	})
 }
 
 // SimpleFSForceStuckConflict implements the SimpleFS interface.

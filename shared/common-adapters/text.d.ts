@@ -1,8 +1,6 @@
 import * as React from 'react'
 import {StylesCrossPlatform} from '../styles'
 import {allTextTypes} from './text.shared'
-import {fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.desktop'
-import * as Styles from '../styles'
 import * as CSS from '../styles/css'
 
 type Background =

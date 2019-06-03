@@ -141,3 +141,7 @@ func (r *RemoteNet) ChangeTrustline(ctx context.Context, signedTx string) error 
 func (r *RemoteNet) FindPaymentPath(mctx libkb.MetaContext, query stellar1.PaymentPathQuery) (stellar1.PaymentPath, error) {
 	return FindPaymentPath(mctx, query)
 }
+
+func (r *RemoteNet) PostAnyTransaction(mctx libkb.MetaContext, signedTx string) error {
+	return PostAnyTransaction(mctx, signedTx)
+}

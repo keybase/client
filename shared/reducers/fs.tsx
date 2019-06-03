@@ -544,10 +544,23 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         kbfsDaemonStatus.set('online', action.payload.online)
       )
     case FsGen.overallSyncStatusChanged:
-      return state.update('syncingFoldersProgress', syncingFoldersProgress =>
-        action.payload.progress.equals(syncingFoldersProgress)
-          ? syncingFoldersProgress
-          : action.payload.progress
+      return state.update('overallSyncStatus', overallSyncStatus =>
+        overallSyncStatus
+          .update('syncingFoldersProgress', syncingFoldersProgress =>
+            action.payload.progress.equals(syncingFoldersProgress)
+              ? syncingFoldersProgress
+              : action.payload.progress
+          )
+          .set(
+            'diskSpaceStatus',
+            action.payload.outOfSpace ? Types.DiskSpaceStatus.Error : Types.DiskSpaceStatus.Ok
+          )
+          // Unhide the banner if the state we're coming from isn't WARNING.
+          .set(
+            'diskSpaceBannerHidden',
+            overallSyncStatus.diskSpaceBannerHidden &&
+              overallSyncStatus.diskSpaceStatus === Types.DiskSpaceStatus.Warning
+          )
       )
     case FsGen.setDriverStatus:
       return state.update('sfmi', sfmi => sfmi.set('driverStatus', action.payload.driverStatus))
@@ -555,6 +568,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.update('sfmi', sfmi => sfmi.set('showingBanner', true))
     case FsGen.hideSystemFileManagerIntegrationBanner:
       return state.update('sfmi', sfmi => sfmi.set('showingBanner', false))
+    case FsGen.hideDiskSpaceBanner:
+      return state.update('overallSyncStatus', status => status.set('diskSpaceBannerHidden', true))
     case FsGen.driverEnable:
       return state.update('sfmi', sfmi =>
         sfmi.update('driverStatus', driverStatus =>

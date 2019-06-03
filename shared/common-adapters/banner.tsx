@@ -13,6 +13,7 @@ type Props = {
   }>
   color: Color
   inline?: boolean
+  narrow?: boolean
   onClose?: () => void
   text: string
   style?: Styles.StylesCrossPlatform | null
@@ -29,7 +30,12 @@ const Banner = (props: Props) => (
       props.style,
     ])}
   >
-    <Box2 key="textBox" direction="horizontal" style={styles.textContainer} centerChildren={true}>
+    <Box2
+      key="textBox"
+      direction="horizontal"
+      style={props.narrow ? styles.narrowTextContainer : styles.textContainer}
+      centerChildren={true}
+    >
       <Text
         type="BodySmallSemibold"
         style={Styles.collapseStyles([styles.text, colorToTextColorStyles[props.color]])}
@@ -88,6 +94,22 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {
       paddingTop: Styles.globalMargins.tiny,
+    },
+  }),
+  narrowTextContainer: Styles.platformStyles({
+    common: {
+      flex: 1,
+      maxWidth: '100%',
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.tiny,
+    },
+    isElectron: {
+      paddingLeft: Styles.globalMargins.medium,
+      paddingRight: Styles.globalMargins.medium,
+    },
+    isMobile: {
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
     },
   }),
   text: Styles.platformStyles({

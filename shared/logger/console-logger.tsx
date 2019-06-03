@@ -1,4 +1,4 @@
-import {Logger, LogLevel, LogLineWithLevel} from './types'
+import {Logger, LogLineWithLevel} from './types'
 
 type ConsoleLogLevel = 'log' | 'warn' | 'error'
 // Use console.level
@@ -13,9 +13,9 @@ class ConsoleLogger implements Logger {
   }
 
   // Replaced in constructor
-  log = (...s: Array<any>) => {}
+  log = () => {}
 
-  dump(levelPrefix: LogLevel) {
+  dump() {
     const p: Promise<Array<LogLineWithLevel>> = Promise.resolve([])
     return p
   }

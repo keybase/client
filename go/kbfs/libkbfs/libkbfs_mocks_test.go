@@ -1007,6 +1007,20 @@ func (mr *MockKBFSOpsMockRecorder) DeleteFavorite(arg0, arg1 interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFavorite", reflect.TypeOf((*MockKBFSOps)(nil).DeleteFavorite), arg0, arg1)
 }
 
+// FinishResolvingConflict mocks base method
+func (m *MockKBFSOps) FinishResolvingConflict(arg0 context.Context, arg1 data.FolderBranch) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FinishResolvingConflict", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// FinishResolvingConflict indicates an expected call of FinishResolvingConflict
+func (mr *MockKBFSOpsMockRecorder) FinishResolvingConflict(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FinishResolvingConflict", reflect.TypeOf((*MockKBFSOps)(nil).FinishResolvingConflict), arg0, arg1)
+}
+
 // FolderConflictStatus mocks base method
 func (m *MockKBFSOps) FolderConflictStatus(arg0 context.Context, arg1 data.FolderBranch) (keybase1.FolderConflictType, error) {
 	m.ctrl.T.Helper()

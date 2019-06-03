@@ -1219,25 +1219,18 @@ function* addTeamWithChosenChannels(state, action: TeamsGen.AddTeamWithChosenCha
   }
   const item =
     pushState.items &&
-    pushState.items.find(
-      (
-        i // Auto generated from flowToTs. Please clean me!
-      ) =>
-        (i.item === null || i.item === undefined ? undefined : i.item.category) ===
-        Constants.chosenChannelsGregorKey
-    )
+    pushState.items.find(i => i.item && i.item.category === Constants.chosenChannelsGregorKey)
   let teams = []
   let msgID
   if (item && item.item && item.item.body) {
     const body = item.item.body
-    msgID = item.md === null || item.md === undefined ? undefined : item.md.msgID // Auto generated from flowToTs. Please clean me!
+    msgID = item.md && item.md.msgID
     teams = JSON.parse(body.toString())
   } else {
     logger.info(
-      `${logPrefix} No item in gregor state found, making new item. Total # of items: ${
-        // Auto generated from flowToTs. Please clean me!
-        (pushState.items === null || pushState.items === undefined ? undefined : pushState.items.length) || 0
-      }`
+      `${logPrefix} No item in gregor state found, making new item. Total # of items: ${(pushState.items &&
+        pushState.items.length) ||
+        0}`
     )
   }
   if (existingTeams.size > teams.length) {
