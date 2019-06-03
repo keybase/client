@@ -32,6 +32,11 @@ PODS:
     - React
   - react-native-netinfo (1.2.3):
     - React
+  - react-native-video (4.4.1):
+    - React
+    - react-native-video/Video (= 4.4.1)
+  - react-native-video/Video (4.4.1):
+    - React
   - react-native-webview (5.8.2):
     - React
   - React/Core (0.59.8):
@@ -113,6 +118,7 @@ DEPENDENCIES:
   - react-native-fast-image (from `../../node_modules/react-native-fast-image`)
   - react-native-image-picker (from `../../node_modules/react-native-image-picker`)
   - react-native-netinfo (from `../../node_modules/@react-native-community/netinfo`)
+  - react-native-video (from `../../node_modules/react-native-video/react-native-video.podspec`)
   - react-native-webview (from `../../node_modules/react-native-webview`)
   - React/Core (from `../../node_modules/react-native`)
   - React/CxxBridge (from `../../node_modules/react-native`)
@@ -156,6 +162,8 @@ EXTERNAL SOURCES:
     :path: ../../node_modules/react-native-image-picker
   react-native-netinfo:
     :path: ../../node_modules/@react-native-community/netinfo
+  react-native-video:
+    :path: ../../node_modules/react-native-video/react-native-video.podspec
   react-native-webview:
     :path: ../../node_modules/react-native-webview
   rn-fetch-blob:
@@ -183,6 +191,7 @@ SPEC CHECKSUMS:
   react-native-fast-image: cba3d9bf9c2cf8ddb643d887a686c53a5dd90a2c
   react-native-image-picker: f42de90075c5b1af53417af927631d909a1a746e
   react-native-netinfo: f4039dc64d3a55da59d6d03d4bd667d0a9f5450e
+  react-native-video: 44c6befbc1526283ca1919891fcebe4680feade4
   react-native-webview: a42108b827082f8f0333529b0772102031d5960d
   rn-fetch-blob: 76a8f798dae965bbcd146a2438f2e1d381c91ae3
   RNGestureHandler: afde2addc517e85cc97a25bfe119acbee779a7ce
@@ -191,6 +200,6 @@ SPEC CHECKSUMS:
   SDWebImage: 3f3f0c02f09798048c47a5ed0a13f17b063572d8
   yoga: 128daf064cacaede0c3bb27424b6b4c71052e6cd
 
-PODFILE CHECKSUM: e7ef07ecb31c116fdb7eb7d5ae6e37892f85748c
+PODFILE CHECKSUM: 7ef4f2efd0d32c1b5e72a36997b94fdae0e84781
 
 COCOAPODS: 1.4.0

@@ -27,11 +27,7 @@
 		338AE322D1D19D1B68AD9975 /* libPods-KeybaseShare.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1CB354B49777AEAF1FF91BE3 /* libPods-KeybaseShare.a */; };
 		370EFC8E1FB3BDE1004DB3BB /* MessageUIManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 370EFC8D1FB3BDE1004DB3BB /* MessageUIManager.m */; };
 		375CA6651FFD40D300210B11 /* Storybook.m in Sources */ = {isa = PBXBuildFile; fileRef = 375CA6641FFD40D300210B11 /* Storybook.m */; };
-		376A152022A568070022BF5B /* libRCTText.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1D91DE7D97900BB7989 /* libRCTText.a */; };
-		376A152122A5680E0022BF5B /* libRCTImage.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1BE1DE7D97900BB7989 /* libRCTImage.a */; };
-		376A152222A568840022BF5B /* libRCTNetwork.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1CA1DE7D97900BB7989 /* libRCTNetwork.a */; };
 		3791A8A120C71DC0001C2E86 /* PushPrompt.m in Sources */ = {isa = PBXBuildFile; fileRef = 3791A8A020C71DC0001C2E86 /* PushPrompt.m */; };
-		3791A8A320C71FE6001C2E86 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3791A8A220C71FE6001C2E86 /* UserNotifications.framework */; };
 		661EA797223ADD1D00471C8C /* keybase-medium-italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 661EA790223ADD1C00471C8C /* keybase-medium-italic.ttf */; };
 		661EA798223ADD1D00471C8C /* keybase-medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 661EA791223ADD1C00471C8C /* keybase-medium.ttf */; };
 		661EA799223ADD1D00471C8C /* keybase-semibold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 661EA792223ADD1C00471C8C /* keybase-semibold.ttf */; };
@@ -47,11 +43,7 @@
 		D1FCCAC47E689E1A984FAC43 /* libPods-Keybase.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AC024A34A307F5688461FEB2 /* libPods-Keybase.a */; };
 		DB0846051BA75DC800F54960 /* keybase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB0846041BA75DC800F54960 /* keybase.framework */; };
 		DB27DE571D747A6C003DE8BC /* Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = DB27DE561D747A6C003DE8BC /* Utils.m */; };
-		DB2BD1E81DE7D9A600BB7989 /* libRCTLinking.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1C41DE7D97900BB7989 /* libRCTLinking.a */; };
-		DB2BD1EA1DE7D9A600BB7989 /* libRCTPushNotification.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1CF1DE7D97900BB7989 /* libRCTPushNotification.a */; };
-		DB346EBC2284673C00262644 /* libRCTVideo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB346EB92284654200262644 /* libRCTVideo.a */; };
 		DB59F9B72238A27E00E271C1 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB59F97B2238A27E00E271C1 /* JavaScriptCore.framework */; };
-		DB61D78F201BA2BD0008C059 /* libRCTWebSocket.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1E21DE7D97900BB7989 /* libRCTWebSocket.a */; };
 		DB7538FD1D776CC400AFA61B /* Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = DB27DE561D747A6C003DE8BC /* Utils.m */; };
 		DB75391B1D776CC400AFA61B /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */; };
 		DB75391D1D776CC400AFA61B /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */; };
@@ -70,7 +62,6 @@
 		DBEE30851FE8511F0020EBA5 /* LICENSE.txt in Resources */ = {isa = PBXBuildFile; fileRef = DBEE307C1FE8511F0020EBA5 /* LICENSE.txt */; };
 		DBEE30861FE8511F0020EBA5 /* DDFileLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = DBEE307D1FE8511F0020EBA5 /* DDFileLogger.m */; };
 		DBEE30871FE8511F0020EBA5 /* DDASLLogCapture.m in Sources */ = {isa = PBXBuildFile; fileRef = DBEE307F1FE8511F0020EBA5 /* DDASLLogCapture.m */; };
-		DBF65BAF219C7E99001B6ED3 /* Lottie.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DBF65BA8219C7E8E001B6ED3 /* Lottie.framework */; };
 		DBF65BB0219C7E99001B6ED3 /* Lottie.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = DBF65BA8219C7E8E001B6ED3 /* Lottie.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
@@ -563,18 +554,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				376A152222A568840022BF5B /* libRCTNetwork.a in Frameworks */,
-				376A152122A5680E0022BF5B /* libRCTImage.a in Frameworks */,
-				376A152022A568070022BF5B /* libRCTText.a in Frameworks */,
 				DB59F9B72238A27E00E271C1 /* JavaScriptCore.framework in Frameworks */,
-				DB346EBC2284673C00262644 /* libRCTVideo.a in Frameworks */,
 				DB0846051BA75DC800F54960 /* keybase.framework in Frameworks */,
-				DBF65BAF219C7E99001B6ED3 /* Lottie.framework in Frameworks */,
-				3791A8A320C71FE6001C2E86 /* UserNotifications.framework in Frameworks */,
-				DB61D78F201BA2BD0008C059 /* libRCTWebSocket.a in Frameworks */,
 				2746CFFA1E9884BD00E579B0 /* libresolv.tbd in Frameworks */,
-				DB2BD1E81DE7D9A600BB7989 /* libRCTLinking.a in Frameworks */,
-				DB2BD1EA1DE7D9A600BB7989 /* libRCTPushNotification.a in Frameworks */,
 				D1FCCAC47E689E1A984FAC43 /* libPods-Keybase.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1827,15 +1809,7 @@
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/../../node_modules/react-native/React/**",
 					"$(SRCROOT)/KeybaseGo",
-					"$(SRCROOT)/../../node_modules/react-native/Libraries/PushNotificationIOS",
-					"$(SRCROOT)/../../node_modules/react-native-image-picker/ios",
-					"$(SRCROOT)/../../node_modules/react-native-fetch-blob/ios/**",
-					"$(SRCROOT)/../../node_modules/react-native/Libraries/LinkingIOS",
-					"$(SRCROOT)/../../node_modules/react-native-wkwebview-reborn/ios/RCTWKWebView",
-					"$(SRCROOT)/../../node_modules/lottie-ios/lottie-ios/Classes/**",
-					"$(SRCROOT)/../../node_modules/lottie-react-native/src/ios/LottieReactNative",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
@@ -1881,15 +1855,7 @@
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/../../node_modules/react-native/React/**",
 					"$(SRCROOT)/KeybaseGo",
-					"$(SRCROOT)/../../node_modules/react-native/Libraries/PushNotificationIOS",
-					"$(SRCROOT)/../../node_modules/react-native-image-picker/ios",
-					"$(SRCROOT)/../../node_modules/react-native-fetch-blob/ios/**",
-					"$(SRCROOT)/../../node_modules/react-native/Libraries/LinkingIOS",
-					"$(SRCROOT)/../../node_modules/react-native-wkwebview-reborn/ios/RCTWKWebView",
-					"$(SRCROOT)/../../node_modules/lottie-ios/lottie-ios/Classes/**",
-					"$(SRCROOT)/../../node_modules/lottie-react-native/src/ios/LottieReactNative",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;

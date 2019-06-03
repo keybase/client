@@ -36,18 +36,19 @@ target 'Keybase' do
   pod 'react-native-netinfo', :path => '../../node_modules/@react-native-community/netinfo'
   pod 'react-native-webview', :path => '../../node_modules/react-native-webview'
   pod 'RNReanimated', :path => '../../node_modules/react-native-reanimated'
+  pod 'react-native-video', :path => '../../node_modules/react-native-video/react-native-video.podspec'
 
 end
 
-# The following is needed to ensure the "archive" step works in XCode.
-# It removes React from the Pods project, as it is already included in the main project.
-post_install do |installer|
-  installer.pods_project.targets.each do |target|
-    if target.name == "React"
-      target.remove_from_project
-    end
-  end
-end
+# # The following is needed to ensure the "archive" step works in XCode.
+# # It removes React from the Pods project, as it is already included in the main project.
+# post_install do |installer|
+#   installer.pods_project.targets.each do |target|
+#     if target.name == "React"
+#       target.remove_from_project
+#     end
+#   end
+# end
 
 target 'Keybase For Tests' do
   inherit! :search_paths
