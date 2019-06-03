@@ -1,7 +1,7 @@
 apply plugin: "com.android.application"
 // KB:
 apply plugin: 'com.github.triplet.play'
-apply from: '../../../node_modules/react-native-unimodules/gradle.groovy'
+apply from: '../../node_modules/react-native-unimodules/gradle.groovy'
 
 import com.android.build.OutputFile
 
@@ -82,11 +82,11 @@ def VERSION_NAME = "4.0.0"
 project.ext.react = [
     // the root of your project, i.e. where "package.json" lives
     // Extra .. since we're up a level higher than normal
-    root: "../../../",
+    root: "../../",
 ]
 
 
-apply from: "../../../node_modules/react-native/react.gradle"
+apply from: "../../node_modules/react-native/react.gradle"
 
 /**
  * Set this to true to create two separate APKs instead of one:
@@ -242,7 +242,7 @@ dependencies {
     implementation project(':react-native-reanimated')
     implementation project(':react-native-video')
 
-    addUnimodulesDependencies([modulesPaths: ['../../../node_modules']])
+    addUnimodulesDependencies([modulesPaths: ['../../node_modules']])
 }
 
 // Run this once to be able to run the application with BUCK

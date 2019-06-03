@@ -118,7 +118,7 @@ if [ "$arg" = "ios" ]; then
     echo $OUTPUT
   fi
 elif [ "$arg" = "android" ]; then
-  android_dir=${DEST_DIR:-"$dir/android/keybaselib"}
+  android_dir=${DEST_DIR:-"$dir/../android/keybaselib"}
   android_dest="$android_dir/keybaselib.aar"
   echo "Building for Android ($android_dest)..."
   set +e

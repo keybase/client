@@ -28,12 +28,6 @@ keybase.framework
 
 main.jsbundle
 
-# Android
-#
-android/local.properties
-android/.gradle
-android/keybaselib/keybaselib.aar
-android/.idea
 *.iml
 index.bundle
 
@@ -43,4 +37,3 @@ ios/AppStore_keybase.ios.mobileprovision
 
 # Builds
 ios/dist
-android/dist
