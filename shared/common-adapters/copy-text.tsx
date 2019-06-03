@@ -37,7 +37,6 @@ export class _ToastContainer extends React.Component<TProps, TState> {
     )
   }
 }
-// @ts-ignore HOCTimers typing is wrong
 export const ToastContainer = HOCTimers(_ToastContainer)
 
 type OwnProps = {
@@ -86,7 +85,7 @@ class _CopyText extends React.Component<Props, State> {
         direction="horizontal"
         style={Styles.collapseStyles([styles.container, this.props.containerStyle])}
       >
-        <ToastContainer ref={r => (this._toastRef = r)} getAttachmentRef={this._getAttachmentRef} />
+        <ToastContainer ref={(r: any) => (this._toastRef = r)} getAttachmentRef={this._getAttachmentRef} />
         <Text
           lineClamp={lineClamp}
           type="Body"
