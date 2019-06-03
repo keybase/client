@@ -330,7 +330,8 @@ export const makeState: I.Record.Factory<Types._State> = I.Record({
   uploads: makeUploads(),
 } as Types._State)
 
-export const makeUUID = () => uuidv1({}, Buffer.alloc(16), 0)
+// RPC expects a string that's interpreted as [16]byte on Go side.
+export const makeUUID = () => uuidv1({}, Buffer.alloc(16), 0).toString()
 
 export const pathToRPCPath = (path: Types.Path): RPCTypes.Path => ({
   PathType: RPCTypes.PathType.kbfs,
