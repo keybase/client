@@ -29,7 +29,7 @@ export function toStringForLog(a: any): string {
     case 'object':
       // Includes null.
       if (a instanceof Error) {
-        return a.stack
+        return a.stack || ''
       }
       return JSON.stringify(a)
 

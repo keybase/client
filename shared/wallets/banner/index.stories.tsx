@@ -1,9 +1,9 @@
 import * as React from 'react'
 import {storiesOf} from '../../stories/storybook'
 import {Box} from '../../common-adapters'
-import Banner from '.'
+import Banner, {Props} from '.'
 
-const examples = [
+const examples: Props[] = [
   {
     background: 'Announcements',
     text: 'Because it’s russel’s first transaction, you must send at least 2 XLM.',

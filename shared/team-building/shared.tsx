@@ -2,7 +2,7 @@ import * as Styles from '../styles'
 import {ServiceIdWithContact} from '../constants/types/team-building'
 import {IconType} from '../common-adapters/icon.constants'
 
-const services = {
+const services: {[K in ServiceIdWithContact]: {color: string; icon: IconType; label: string}} = {
   contact: {
     color: '#000',
     icon: 'iconfont-identity-twitter',

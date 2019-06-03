@@ -1482,11 +1482,7 @@ const onInboxSearchSelect = (state, action: Chat2Gen.InboxSearchSelectPayload) =
   if (!conversationIDKey) {
     return
   }
-  const query = action.payload.query
-    ? action.payload.query // Auto generated from flowToTs. Please clean me!
-    : selected === null || selected === undefined
-    ? undefined
-    : selected.query
+  const query = action.payload.query ? action.payload.query : selected && selected.query
   const actions: Array<TypedActions> = [
     Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSearch'}),
   ]
@@ -2215,10 +2211,7 @@ const navigateToThreadRoute = conversationIDKey => {
 
   const visible = Router2Constants.getVisibleScreen()
 
-  if (
-    !isMobile && // Auto generated from flowToTs. Please clean me!
-    (visible === null || visible === undefined ? undefined : visible.routeName) === 'chatRoot'
-  ) {
+  if (!isMobile && visible && visible.routeName === 'chatRoot') {
     // Don't append; we don't want to increase the size of the stack on desktop
     return
   }
@@ -2581,13 +2574,7 @@ function* handleSeeingWallets(_, action: Chat2Gen.HandleSeeingWalletsPayload, lo
   const gregorState = yield* Saga.callPromise(RPCTypes.gregorGetStateRpcPromise)
   const seenWallets =
     gregorState.items &&
-    gregorState.items.some(
-      (
-        i // Auto generated from flowToTs. Please clean me!
-      ) =>
-        (i.item === null || i.item === undefined ? undefined : i.item.category) ===
-        Constants.seenWalletsGregorKey
-    )
+    gregorState.items.some(i => i.item && i.item.category === Constants.seenWalletsGregorKey)
   if (seenWallets) {
     logger.info('handleSeeingWallets: gregor state already think wallets is old; skipping update.')
     return

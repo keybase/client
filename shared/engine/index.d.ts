@@ -10,7 +10,7 @@ export declare class Engine {
   rpc(): void
   sagasAreReady(): void
   hasEverConnected(): boolean
-  registerCustomResponse(any): void
+  registerCustomResponse(s: string): void
   createSession(arg0: {
     incomingCallMap?: any
     waitingKey?: WaitingKey
