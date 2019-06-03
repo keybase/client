@@ -72,10 +72,23 @@ const redactedReplacer = "[REDACTED]"
 const serialPaperKeyWordThreshold = 5
 
 func redactPotentialPaperKeys(s string) string {
-	words := strings.Split(noncharacterRxx.ReplaceAllLiteralString(s, " "), " ")
+	doubleDelimited := noncharacterRxx.ReplaceAllFunc([]byte(s), func(x []byte) []byte {
+		return []byte{'~', '~', '~', x[0], '~', '~', '~'} // regexp is single char so we can take first elem
+	})
+	allWords := strings.Split(string(doubleDelimited), "~~~")
+	var checkWords []string
+	wordmap := make(map[int]int)
+	jdx := 0
+	for idx, word := range allWords {
+		if !(len(word) == 1 && noncharacterRxx.MatchString(word)) {
+			checkWords = append(checkWords, word)
+			wordmap[jdx] = idx
+			jdx++
+		}
+	}
 	didRedact := false
 	start := -1
-	for idx, word := range words {
+	for idx, word := range checkWords {
 		if !libkb.ValidSecWord(word) {
 			start = -1
 			continue
@@ -84,15 +97,15 @@ func redactPotentialPaperKeys(s string) string {
 			start = idx
 		} else if idx-start+1 == serialPaperKeyWordThreshold {
 			for jdx := start; jdx <= idx; jdx++ {
-				words[jdx] = redactedReplacer
+				allWords[wordmap[jdx]] = redactedReplacer
 			}
 			didRedact = true
 		} else if idx-start+1 > serialPaperKeyWordThreshold {
-			words[idx] = redactedReplacer
+			allWords[wordmap[idx]] = redactedReplacer
 		}
 	}
 	if didRedact {
-		return "[redacted feedback follows] " + strings.Join(words, " ")
+		return "[redacted feedback follows] " + strings.Join(allWords, "")
 	}
 	return s
 }

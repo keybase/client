@@ -101,8 +101,8 @@ var redactTests = []struct {
 	{"agent agent agent agent agent offset", "[redacted feedback follows] [REDACTED] [REDACTED] [REDACTED] [REDACTED] [REDACTED] offset"},
 	{"offset agent agent agent agent agent", "[redacted feedback follows] offset [REDACTED] [REDACTED] [REDACTED] [REDACTED] [REDACTED]"},
 	{"1 2 agent agent agent 3 agent agent 4 agent agent agent agent agent 5 agent agent agent agent agent agent agent agent 6 7 8 9 10", "[redacted feedback follows] 1 2 agent agent agent 3 agent agent 4 [REDACTED] [REDACTED] [REDACTED] [REDACTED] [REDACTED] 5 [REDACTED] [REDACTED] [REDACTED] [REDACTED] [REDACTED] [REDACTED] [REDACTED] [REDACTED] 6 7 8 9 10"},
-	{`tricky my paper key is in quotes: "agent agent agent agent agent agent" see!`, `[redacted feedback follows] tricky my paper key is in quotes   [REDACTED] [REDACTED] [REDACTED] [REDACTED] [REDACTED] [REDACTED]  see `},
-	{`mismatched "agent agent agent agent agent)`, `[redacted feedback follows] mismatched  [REDACTED] [REDACTED] [REDACTED] [REDACTED] [REDACTED] `},
+	{`tricky my paper key is in quotes: "agent agent agent agent agent agent" see!`, `[redacted feedback follows] tricky my paper key is in quotes: "[REDACTED] [REDACTED] [REDACTED] [REDACTED] [REDACTED] [REDACTED]" see!`},
+	{`mismatched "agent agent agent agent agent)`, `[redacted feedback follows] mismatched "[REDACTED] [REDACTED] [REDACTED] [REDACTED] [REDACTED])`},
 }
 
 func TestRedactPaperKeys(t *testing.T) {
