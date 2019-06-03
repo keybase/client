@@ -13,15 +13,20 @@ import OutOfDate from './out-of-date'
 import Upload from '../fs/footer/upload'
 import UploadCountdownHOC, {UploadCountdownHOCProps} from '../fs/footer/upload-countdown-hoc'
 import {Loading} from '../fs/simple-screens'
+import SpaceWarning from './space-warning'
 
 export type Props = {
   daemonHandshakeState: ConfigTypes.DaemonHandshakeState
+  diskSpaceBannerHidden: boolean
+  diskSpaceStatus: FsTypes.DiskSpaceStatus
   logIn: () => void
   loggedIn: boolean
   kbfsDaemonStatus: FsTypes.KbfsDaemonStatus
   kbfsEnabled: boolean
   updateNow: () => void
+  onHideDiskSpaceBanner: () => void
   onRekey: (path: string) => void
+  onRetrySync: () => void
   openApp: (tab?: string) => void
   outOfDate?: ConfigTypes.OutOfDate
   showInFinder: () => void
@@ -103,6 +108,12 @@ class MenubarRender extends React.Component<Props, State> {
           />
         </Kb.Box>
         <OutOfDate outOfDate={this.props.outOfDate} updateNow={this.props.updateNow} />
+        <SpaceWarning
+          diskSpaceStatus={this.props.diskSpaceStatus}
+          onRetry={this.props.onRetrySync}
+          onClose={this.props.onHideDiskSpaceBanner}
+          hidden={this.props.diskSpaceBannerHidden}
+        />
         <Kb.Box
           style={{
             ...Styles.globalStyles.flexBoxColumn,

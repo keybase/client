@@ -44,7 +44,7 @@ var deviceNameTests = []checkerTest{
 	{input: "foo -- computer", valid: false},
 	{input: "foo - _ - computer", valid: false},
 	{input: "home computer-", valid: false},
-	{input: "home computer+", valid: false},
+	{input: "home computer+", valid: true},
 	{input: "home computer'", valid: false},
 	{input: "home computer_", valid: false},
 	{input: "not😂ascii", valid: false},

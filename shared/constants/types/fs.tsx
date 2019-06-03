@@ -554,6 +554,18 @@ export type _SyncingFoldersProgress = {
 }
 export type SyncingFoldersProgress = I.RecordOf<_SyncingFoldersProgress>
 
+export enum DiskSpaceStatus {
+  Ok = 'ok',
+  Warning = 'warning',
+  Error = 'error',
+}
+export type _OverallSyncStatus = {
+  syncingFoldersProgress: SyncingFoldersProgress
+  diskSpaceStatus: DiskSpaceStatus
+  diskSpaceBannerHidden: boolean
+}
+export type OverallSyncStatus = I.RecordOf<_OverallSyncStatus>
+
 export enum SoftError {
   NoAccess = 'no-access',
   Nonexistent = 'non-existent',
@@ -573,6 +585,7 @@ export type _Settings = {
 export type Settings = I.RecordOf<_Settings>
 
 export type _State = {
+  destinationPicker: DestinationPicker
   downloads: Downloads
   edits: Edits
   errors: I.Map<string, FsError>
@@ -580,19 +593,18 @@ export type _State = {
   kbfsDaemonStatus: KbfsDaemonStatus
   loadingPaths: I.Map<Path, I.Set<string>>
   localHTTPServerInfo: LocalHTTPServer
-  destinationPicker: DestinationPicker
+  overallSyncStatus: OverallSyncStatus
   pathItemActionMenu: PathItemActionMenu
   pathItems: PathItems
   pathUserSettings: I.Map<Path, PathUserSetting>
   sendAttachmentToChat: SendAttachmentToChat
   sendLinkToChat: SendLinkToChat
+  settings: Settings
   sfmi: SystemFileManagerIntegration
   softErrors: SoftErrors
-  syncingFoldersProgress: SyncingFoldersProgress
   tlfUpdates: UserTlfUpdates
   tlfs: Tlfs
   uploads: Uploads
-  settings: Settings
 }
 export type State = I.RecordOf<_State>
 

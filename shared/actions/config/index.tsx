@@ -69,10 +69,8 @@ function* loadDaemonBootstrapStatus(
     const loadedAction = ConfigGen.createBootstrapStatusLoaded({
       deviceID: s.deviceID,
       deviceName: s.deviceName,
-      // Auto generated from flowToTs. Please clean me!
-      followers: s.followers !== null && s.followers !== undefined ? s.followers : [],
-      // Auto generated from flowToTs. Please clean me!
-      following: s.following !== null && s.following !== undefined ? s.following : [],
+      followers: s.followers || [],
+      following: s.following || [],
       fullname: s.fullname || '',
       loggedIn: s.loggedIn,
       registered: s.registered,
@@ -421,8 +419,7 @@ const updateServerConfig = (state: TypedState) =>
         }
       } = JSON.parse(str.body)
       const features = Object.keys(obj.features).reduce((map, key) => {
-        map[key] = // Auto generated from flowToTs. Please clean me!
-          obj.features[key] === null || obj.features[key] === undefined ? undefined : obj.features[key].value
+        map[key] = obj.features[key] && obj.features[key].value
         return map
       }, {}) as {[K in string]: boolean}
 
@@ -465,7 +462,10 @@ function* criticalOutOfDateCheck() {
   // check every hour
   while (true) {
     try {
-      const s = yield* Saga.callPromise(RPCTypes.configGetUpdateInfo2RpcPromise, {})
+      const s: Unpacked<ReturnType<typeof RPCTypes.configGetUpdateInfo2RpcPromise>> = yield* Saga.callPromise(
+        RPCTypes.configGetUpdateInfo2RpcPromise,
+        {}
+      )
       let status: ConfigGen.UpdateCriticalCheckStatusPayload['payload']['status'] = 'ok'
       let message = ''
       switch (s.status) {
@@ -473,15 +473,14 @@ function* criticalOutOfDateCheck() {
           break
         case RPCTypes.UpdateInfoStatus2.suggested:
           status = 'suggested'
-          message = s.suggested === null || s.suggested === undefined ? undefined : s.suggested.message // Auto generated from flowToTs. Please clean me!
+          message = s.suggested && s.suggested.message
           break
         case RPCTypes.UpdateInfoStatus2.critical:
           status = 'critical'
-          message = s.critical === null || s.critical === undefined ? undefined : s.critical.message // Auto generated from flowToTs. Please clean me!
+          message = s.critical && s.critical.message
           break
         default:
-          // @ts-ignore codemod-issue
-          Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(s.status)
+          Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(s)
       }
       yield Saga.put(ConfigGen.createUpdateCriticalCheckStatus({message: message || '', status}))
     } catch (e) {

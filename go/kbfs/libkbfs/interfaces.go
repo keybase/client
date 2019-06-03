@@ -527,6 +527,9 @@ type KBFSOps interface {
 	// ClearConflictView moves the conflict view of the given TLF out of the
 	// way and resets the state of the TLF.
 	ClearConflictView(ctx context.Context, tlfID tlf.ID) error
+	// FinishResolvingConflict removes the local view of a
+	// previously-cleared conflict.
+	FinishResolvingConflict(ctx context.Context, fb data.FolderBranch) error
 	// ForceStuckConflictForTesting forces the local view of the given
 	// TLF into a stuck conflict view, in order to test the above
 	// `ClearConflictView` method and related state changes.

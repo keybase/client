@@ -178,7 +178,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
       minHeight: rows * (textStyle.fontSize || 20),
     }
     if (this.props.rowsMax) {
-      heightStyles.maxHeight = this.props.rowsMax * (parseInt(textStyle.lineHeight, 10) || 20)
+      heightStyles.maxHeight = this.props.rowsMax * (parseInt(String(textStyle.lineHeight), 10) || 20)
     } else {
       heightStyles.overflowY = 'hidden'
     }

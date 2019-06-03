@@ -2576,6 +2576,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-unhide': {
+    charCode: 0xe98c,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-upload': {
     charCode: 0xe967,
     gridSize: 16,

@@ -7,6 +7,7 @@ import (
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/msgpack"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 	"sync"
@@ -42,7 +43,7 @@ func hash(rpcName string, arg interface{}) ([]byte, error) {
 	h := sha256.New()
 	h.Write([]byte(rpcName))
 	h.Write([]byte{0})
-	raw, err := libkb.MsgpackEncode(arg)
+	raw, err := msgpack.Encode(arg)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +96,7 @@ func (c *RPCCache) get(mctx libkb.MetaContext, version Version, rpcName string, 
 		return false, nil
 	}
 
-	err = libkb.MsgpackDecode(res, value.Data)
+	err = msgpack.Decode(res, value.Data)
 	if err != nil {
 		return false, err
 	}
@@ -113,7 +114,7 @@ func (c *RPCCache) put(mctx libkb.MetaContext, version Version, rpcName string, 
 	}
 
 	value := Value{Version: version}
-	value.Data, err = libkb.MsgpackEncode(res)
+	value.Data, err = msgpack.Encode(res)
 	if err != nil {
 		return err
 	}
