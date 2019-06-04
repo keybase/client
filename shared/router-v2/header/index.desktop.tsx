@@ -3,6 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Platform from '../../constants/platform'
 import * as Styles from '../../styles'
 import * as Window from '../../util/window-management'
+import {BrowserWindow} from '../../util/safe-electron.desktop'
 import SyncingFolders from './syncing-folders'
 import flags from '../../util/feature-flags'
 import AppState from '../../app/app-state.desktop'
@@ -70,6 +71,17 @@ const SystemButtons = () => (
 )
 
 class Header extends React.PureComponent<Props> {
+  componentDidMount() {
+    this._registerWindowEvents()
+  }
+  // We need to forceUpdate when maximizing and unmaximizing the window to update the
+  // app icon on Windows and Linux.
+  _registerWindowEvents() {
+    if (Platform.isDarwin) return
+    const win = BrowserWindow.getFocusedWindow()
+    win.on('maximize', () => this.forceUpdate())
+    win.on('unmaximize', () => this.forceUpdate())
+  }
   render() {
     // TODO add more here as we use more options on the mobile side maybe
     const opt = this.props.options
