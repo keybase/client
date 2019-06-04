@@ -43,7 +43,7 @@ const AvatarLine = (props: Props) => {
 
 const getTextSize = size => (size >= 48 ? 'BodySmallBold' : 'BodyTinyBold')
 
-const avatarSizes: Array<AvatarSize> = [128, 96, 64, 48, 32, 24, 16, 12]
+const avatarSizes: Array<AvatarSize> = [128, 96, 64, 48, 32, 24, 16]
 
 const styleMap = avatarSizes.reduce(function(styles, size) {
   styles[size] = {
