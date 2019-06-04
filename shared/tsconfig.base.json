@@ -17,9 +17,7 @@
     "target": "es2017",
     "tsBuildInfoFile": "./.tsOut/cache"
   },
-  "include": [
-    "globals.d.ts",
-  ],
+  "include": ["globals.d.ts"],
   "exclude": [
     "node_modules",
     "node_modules/popper.js/index.d.ts",
