@@ -13,31 +13,32 @@ type OwnProps = {
 type Props = {
   hidden: boolean
   onClose: () => void
-  onLoad: () => void
+  onLoadNonBannerFolder: () => void
   show: boolean
   url: string
 }
 const PublicBanner = (props: Props) => {
-  if (props.show) {
-    return (
-      props.hidden && (
-        <Kb.Banner
-          color="yellow"
-          text="Everything you upload in here can be viewed by everyone at "
-          actions={[
-            {
-              onClick: () => openUrl(props.url),
-              title: props.url + '.',
-            },
-          ]}
-          onClose={props.onClose}
-        />
-      )
+  React.useEffect(() => {
+    if (!props.show) {
+      props.onLoadNonBannerFolder()
+    }
+  })
+  return (
+    props.show &&
+    !props.hidden && (
+      <Kb.Banner
+        color="yellow"
+        text="Everything you upload in here can be viewed by everyone at "
+        actions={[
+          {
+            onClick: () => openUrl(props.url),
+            title: props.url + '.',
+          },
+        ]}
+        onClose={props.onClose}
+      />
     )
-  } else {
-    props.onLoad()
-    return null
-  }
+  )
 }
 
 type StateProps = {_lastClosedTlf: string; _writable: boolean}
@@ -46,9 +47,9 @@ const mapStateToProps = (state, ownProps: OwnProps) => ({
   _writable: state.fs.pathItems.get(ownProps.path, Constants.unknownPathItem).writable,
 })
 
-type DispatchProps = {_onClose: (string) => () => void}
+type DispatchProps = {setLastPublicBannerClosedTlf: (string) => () => void}
 const mapDispatchToProps = dispatch => ({
-  _onClose: tlf => () => dispatch(FsGen.createSetLastPublicBannerClosedTlf({tlf})),
+  setLastPublicBannerClosedTlf: tlf => () => dispatch(FsGen.createSetLastPublicBannerClosedTlf({tlf})),
 })
 
 const mergeProps = (s, d, o: OwnProps) => {
@@ -57,9 +58,9 @@ const mergeProps = (s, d, o: OwnProps) => {
     case Types.PathKind.GroupTlf:
     case Types.PathKind.InGroupTlf:
       return {
-        hidden: s._lastClosedTlf !== parsedPath.tlfName,
-        onClose: d._onClose(parsedPath.tlfName),
-        onLoad: s._lastClosedTlf === '' ? () => {} : d._onClose(''),
+        hidden: s._lastClosedTlf === parsedPath.tlfName,
+        onClose: d.setLastPublicBannerClosedTlf(parsedPath.tlfName),
+        onLoadNonBannerFolder: s._lastClosedTlf === '' ? () => {} : d.setLastPublicBannerClosedTlf(''),
         show: s._writable && parsedPath.tlfType === Types.TlfType.Public,
         url: `https://keybase.pub/${parsedPath.tlfName}`,
       }
@@ -67,7 +68,7 @@ const mergeProps = (s, d, o: OwnProps) => {
       return {
         hidden: false,
         onClose: () => {},
-        onLoad: s._lastClosedTlf === '' ? () => {} : d._onClose(''),
+        onLoadNonBannerFolder: s._lastClosedTlf === '' ? () => {} : d.setLastPublicBannerClosedTlf(''),
         show: false,
         url: '',
       }
