@@ -36,7 +36,7 @@
 	<key>NSContactsUsageDescription</key>
 	<string>Inviting contacts to Keybase</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<string>Keybase does not use this data! Please send feedback if you see this message.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Recording audio when taking a video</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
@@ -44,15 +44,15 @@
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Attaching images to chat messages</string>
 	<key>NSCalendarsUsageDescription</key>
-	<string></string>
+	<string>Keybase does not use this data! Please send feedback if you see this message.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string></string>
+	<string>Keybase does not use this data! Please send feedback if you see this message.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string></string>
+	<string>Keybase does not use this data! Please send feedback if you see this message.</string>
 	<key>NSMotionUsageDescription</key>
-	<string></string>
+	<string>Keybase does not use this data! Please send feedback if you see this message.</string>
 	<key>NSRemindersUsageDescription</key>
-	<string></string>
+	<string>Keybase does not use this data! Please send feedback if you see this message.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>keybase-bold-italic.ttf</string>
