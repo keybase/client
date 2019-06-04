@@ -66,8 +66,9 @@ func kbfsConcurTestShutdown(
 }
 
 // TODO: Get rid of all users of this.
-func kbfsConcurTestShutdownNoCheck(t *testing.T, config *ConfigLocal,
-	ctx context.Context, cancel context.CancelFunc) {
+func kbfsConcurTestShutdownNoCheck(
+	ctx context.Context, t *testing.T,
+	config *ConfigLocal, cancel context.CancelFunc) {
 	kbfsTestShutdownNoMocksNoCheck(ctx, t, config, cancel)
 }
 
@@ -427,7 +428,7 @@ func TestKBFSOpsConcurBlockReadWrite(t *testing.T) {
 	t.Skip("Broken test since Go 1.12.4 due to extra pending requests after test termination. Panic: unable to shutdown block ops.")
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, "test_user")
 	// TODO: Use kbfsConcurTestShutdown.
-	defer kbfsConcurTestShutdownNoCheck(t, config, ctx, cancel)
+	defer kbfsConcurTestShutdownNoCheck(ctx, t, config, cancel)
 
 	// Turn off transient block caching.
 	config.SetBlockCache(kbfsdata.NewBlockCacheStandard(0, 1<<30))
@@ -548,7 +549,7 @@ func (km *mdRecordingKeyManager) Rekey(
 func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, "test_user")
 	// TODO: Use kbfsConcurTestShutdown.
-	defer kbfsConcurTestShutdownNoCheck(t, config, ctx, cancel)
+	defer kbfsConcurTestShutdownNoCheck(ctx, t, config, cancel)
 
 	<-config.BlockOps().TogglePrefetcher(false)
 
