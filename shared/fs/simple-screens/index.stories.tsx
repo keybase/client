@@ -6,7 +6,13 @@ import Oops from './oops'
 import Loading from './loading'
 import {commonProvider} from '../common/index.stories'
 
-export const provider = Sb.createPropProviderWithCommon({...commonProvider})
+export const provider = Sb.createPropProviderWithCommon({
+  ...commonProvider,
+  Oops: o => ({
+    ...o,
+    openParent: Sb.action('openParent'),
+  }),
+})
 
 const load = () => {
   Sb.storiesOf('Files/SimpleScreens/Oops', module)
