@@ -28,7 +28,10 @@ func (s *SecretStoreUpgradeable) RetrieveSecret(mctx MetaContext, username Norma
 
 	mctx.Debug("Failed to find secret in system keyring (%s), falling back to file-based secret store.", err1)
 	secret, err2 := s.b.RetrieveSecret(mctx, username)
-	if !s.shouldUpgradeOpportunistically() {
+	if !s.shouldUpgradeOpportunistically() || s.shouldStoreInFallback(s.options) {
+		// Do not upgrade opportunistically, or we are still in fallback mode
+		// and should exclusively use store B - do not try fall through to try
+		// to store in A.
 		return secret, err2
 	}
 
@@ -36,6 +39,9 @@ func (s *SecretStoreUpgradeable) RetrieveSecret(mctx MetaContext, username Norma
 		storeAErr := s.a.StoreSecret(mctx, username, secret)
 		if storeAErr == nil {
 			mctx.Debug("Upgraded secret for %s to secretstore a", username)
+
+			clearBErr := s.b.ClearSecret(mctx, username)
+			mctx.Debug("After secret upgrade: clearSecret from store B returned: %v", clearBErr)
 		} else {
 			mctx.Debug("Failed to upgrade secret for %s to secretstore a: %s", username, storeAErr)
 		}
@@ -55,9 +61,11 @@ func (s *SecretStoreUpgradeable) StoreSecret(mctx MetaContext, username Normaliz
 
 	err1 := s.a.StoreSecret(mctx, username, secret)
 	if err1 == nil {
+		mctx.Debug("Stored secret for %s in store A, attempting clear for store B", username)
 		clearBErr := s.b.ClearSecret(mctx, username)
 		if clearBErr == nil {
-			mctx.Debug("Cleared secret for %s from secretstore b", username)
+			// Store may also return nil error when there was nothing to clear.
+			mctx.Debug("ClearSecret error=<nil> for %s from store B", username)
 		} else {
 			mctx.Debug("Failed to clear secret for %s from secretstore b: %s", username, clearBErr)
 		}
