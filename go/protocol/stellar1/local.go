@@ -804,28 +804,31 @@ func (o PaymentOrErrorCLILocal) DeepCopy() PaymentOrErrorCLILocal {
 }
 
 type PaymentCLILocal struct {
-	TxID               TransactionID `codec:"txID" json:"txID"`
-	Time               TimeMs        `codec:"time" json:"time"`
-	Status             string        `codec:"status" json:"status"`
-	StatusDetail       string        `codec:"statusDetail" json:"statusDetail"`
-	Amount             string        `codec:"amount" json:"amount"`
-	Asset              Asset         `codec:"asset" json:"asset"`
-	DisplayAmount      *string       `codec:"displayAmount,omitempty" json:"displayAmount,omitempty"`
-	DisplayCurrency    *string       `codec:"displayCurrency,omitempty" json:"displayCurrency,omitempty"`
-	SourceAmountMax    string        `codec:"sourceAmountMax" json:"sourceAmountMax"`
-	SourceAmountActual string        `codec:"sourceAmountActual" json:"sourceAmountActual"`
-	SourceAsset        Asset         `codec:"sourceAsset" json:"sourceAsset"`
-	IsAdvanced         bool          `codec:"isAdvanced" json:"isAdvanced"`
-	SummaryAdvanced    string        `codec:"summaryAdvanced" json:"summaryAdvanced"`
-	Operations         []string      `codec:"operations" json:"operations"`
-	FromStellar        AccountID     `codec:"fromStellar" json:"fromStellar"`
-	ToStellar          *AccountID    `codec:"toStellar,omitempty" json:"toStellar,omitempty"`
-	FromUsername       *string       `codec:"fromUsername,omitempty" json:"fromUsername,omitempty"`
-	ToUsername         *string       `codec:"toUsername,omitempty" json:"toUsername,omitempty"`
-	ToAssertion        *string       `codec:"toAssertion,omitempty" json:"toAssertion,omitempty"`
-	Note               string        `codec:"note" json:"note"`
-	NoteErr            string        `codec:"noteErr" json:"noteErr"`
-	Unread             bool          `codec:"unread" json:"unread"`
+	TxID                  TransactionID `codec:"txID" json:"txID"`
+	Time                  TimeMs        `codec:"time" json:"time"`
+	Status                string        `codec:"status" json:"status"`
+	StatusDetail          string        `codec:"statusDetail" json:"statusDetail"`
+	Amount                string        `codec:"amount" json:"amount"`
+	Asset                 Asset         `codec:"asset" json:"asset"`
+	DisplayAmount         *string       `codec:"displayAmount,omitempty" json:"displayAmount,omitempty"`
+	DisplayCurrency       *string       `codec:"displayCurrency,omitempty" json:"displayCurrency,omitempty"`
+	SourceAmountMax       string        `codec:"sourceAmountMax" json:"sourceAmountMax"`
+	SourceAmountActual    string        `codec:"sourceAmountActual" json:"sourceAmountActual"`
+	SourceAsset           Asset         `codec:"sourceAsset" json:"sourceAsset"`
+	IsAdvanced            bool          `codec:"isAdvanced" json:"isAdvanced"`
+	SummaryAdvanced       string        `codec:"summaryAdvanced" json:"summaryAdvanced"`
+	Operations            []string      `codec:"operations" json:"operations"`
+	FromStellar           AccountID     `codec:"fromStellar" json:"fromStellar"`
+	ToStellar             *AccountID    `codec:"toStellar,omitempty" json:"toStellar,omitempty"`
+	FromUsername          *string       `codec:"fromUsername,omitempty" json:"fromUsername,omitempty"`
+	ToUsername            *string       `codec:"toUsername,omitempty" json:"toUsername,omitempty"`
+	ToAssertion           *string       `codec:"toAssertion,omitempty" json:"toAssertion,omitempty"`
+	Note                  string        `codec:"note" json:"note"`
+	NoteErr               string        `codec:"noteErr" json:"noteErr"`
+	Unread                bool          `codec:"unread" json:"unread"`
+	PublicNote            string        `codec:"publicNote" json:"publicNote"`
+	PublicNoteType        string        `codec:"publicNoteType" json:"publicNoteType"`
+	FeeChargedDescription string        `codec:"feeChargedDescription" json:"feeChargedDescription"`
 }
 
 func (o PaymentCLILocal) DeepCopy() PaymentCLILocal {
@@ -895,9 +898,12 @@ func (o PaymentCLILocal) DeepCopy() PaymentCLILocal {
 			tmp := (*x)
 			return &tmp
 		})(o.ToAssertion),
-		Note:    o.Note,
-		NoteErr: o.NoteErr,
-		Unread:  o.Unread,
+		Note:                  o.Note,
+		NoteErr:               o.NoteErr,
+		Unread:                o.Unread,
+		PublicNote:            o.PublicNote,
+		PublicNoteType:        o.PublicNoteType,
+		FeeChargedDescription: o.FeeChargedDescription,
 	}
 }
 
