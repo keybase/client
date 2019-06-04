@@ -67,7 +67,7 @@ func kbfsConcurTestShutdown(t *testing.T, config *ConfigLocal,
 // TODO: Get rid of all users of this.
 func kbfsConcurTestShutdownNoCheck(t *testing.T, config *ConfigLocal,
 	ctx context.Context, cancel context.CancelFunc) {
-	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
+	kbfsTestShutdownNoMocksNoCheck(ctx, t, config, cancel)
 }
 
 // Test that only one of two concurrent GetRootMD requests can end up

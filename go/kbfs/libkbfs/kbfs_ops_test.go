@@ -3305,7 +3305,7 @@ func TestKBFSOpsBackgroundFlush(t *testing.T) {
 func TestKBFSOpsWriteRenameStat(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "test_user")
 	// TODO: Use kbfsTestShutdownNoMocks.
-	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
+	defer kbfsTestShutdownNoMocksNoCheck(ctx, t, config, cancel)
 
 	// create a file.
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
@@ -3353,7 +3353,7 @@ func TestKBFSOpsWriteRenameStat(t *testing.T) {
 func TestKBFSOpsWriteRenameGetDirChildren(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "test_user")
 	// TODO: Use kbfsTestShutdownNoMocks.
-	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
+	defer kbfsTestShutdownNoMocksNoCheck(ctx, t, config, cancel)
 
 	// create a file.
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
@@ -3575,7 +3575,7 @@ func (c cryptoFixedTlf) MakeRandomTlfID(t tlf.Type) (tlf.ID, error) {
 func TestKBFSOpsMaliciousMDServerRange(t *testing.T) {
 	config1, _, ctx, cancel := kbfsOpsInitNoMocks(t, "alice", "mallory")
 	// TODO: Use kbfsTestShutdownNoMocks.
-	defer kbfsTestShutdownNoMocks(ctx, t, config1, cancel)
+	defer kbfsTestShutdownNoMocksNoCheck(ctx, t, config1, cancel)
 	// Turn off tlf edit history because it messes with the FBO state
 	// asynchronously.
 	config1.SetMode(modeNoHistory{config1.Mode()})
@@ -3640,7 +3640,6 @@ func TestKBFSOpsMaliciousMDServerRange(t *testing.T) {
 // KBFS-1929.
 func TestGetTLFCryptKeysAfterFirstError(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "alice")
-	// TODO: Use kbfsTestShutdownNoMocks.
 	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
 
 	createErr := errors.New("Cannot create this TLF")
