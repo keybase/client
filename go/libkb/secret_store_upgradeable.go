@@ -49,6 +49,7 @@ func (s *SecretStoreUpgradeable) StoreSecret(mctx MetaContext, username Normaliz
 	defer mctx.TraceTimed("SecretStoreUpgradeable.StoreSecret", func() error { return err })()
 
 	if s.shouldStoreInFallback(s.options) {
+		mctx.Debug("shouldStoreInFallback returned true for options %v, storing in store B", s.options)
 		return s.b.StoreSecret(mctx, username, secret)
 	}
 
@@ -63,7 +64,7 @@ func (s *SecretStoreUpgradeable) StoreSecret(mctx MetaContext, username Normaliz
 		return nil
 	}
 
-	mctx.Warning("Failed to reach system keyring (%s), falling back to file-based secret store.", err1)
+	mctx.Warning("Failed to reach system keyring (store A: %s), falling back to file-based secret store (store B).", err1)
 	err2 := s.b.StoreSecret(mctx, username, secret)
 	if err2 == nil {
 		return nil
