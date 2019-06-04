@@ -289,24 +289,20 @@ notarize_dmg() {(
   while :
   do
     fullstatus=`xcrun altool --notarization-info "$uuid" --username "apple-dev@keyba.se" --password "@keychain:notarization" 2>&1`
-    echo "$fullstatus"
     status=`echo "$fullstatus" | grep 'Status\:' | awk '{ print $2 }'`
-    echo "$status"
     if [ "$status" = "success" ]; then
-      echo "Notarization success!"
+      echo "Notarization success"
       xcrun stapler staple "$dmg_name"
       return
     elif [ "$status" = "in" ]; then
       echo "Notarization still in progress, sleeping for 15 seconds and trying again"
       sleep 15
     else
-      echo "Notarization failed! fullstatus below"
+      echo "Notarization failed fullstatus below"
       echo "$fullstatus"
-      sleep 5
       exit 1
     fi
   done
-  echo "Done"
 )}
 
 create_sourcemap_zip() {(
