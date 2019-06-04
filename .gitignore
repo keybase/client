@@ -51,6 +51,7 @@ packaging/prerelease/node_modules
 visdiff/node_modules
 pvl-tools/node_modules
 shared/.tsOut
+shared/.tsOutFast
 # Storybook
 shared/.cache
 
