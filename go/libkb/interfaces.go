@@ -77,6 +77,7 @@ type configGetter interface {
 	GetPinentry() string
 	GetProofCacheSize() (int, bool)
 	GetProxy() string
+	GetProxyType() string
 	GetRunMode() (RunMode, error)
 	GetScraperTimeout() (time.Duration, bool)
 	GetSecretKeyringTemplate() string

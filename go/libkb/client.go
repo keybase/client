@@ -19,8 +19,6 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc/resinit"
 	"golang.org/x/net/context"
-
-	"h12.me/socks"
 )
 
 type ClientConfig struct {
@@ -191,20 +189,14 @@ func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) *Client 
 		return c, nil
 	}
 
-	if (config != nil && config.RootCAs != nil) || env.GetTorMode().Enabled() {
-		if config != nil && config.RootCAs != nil {
-			xprt.TLSClientConfig = &tls.Config{RootCAs: config.RootCAs}
-		}
-		if env.GetTorMode().Enabled() {
-			extraLog(nil, "api.Client:%v tor mode enabled", needCookie)
-			// TODO: should we call res_init on DNS errors here as well?
-			dialSocksProxy := socks.DialSocksProxy(socks.SOCKS5, env.GetTorProxy())
-			xprt.DialContext = func(ctx context.Context, network, addr string) (c net.Conn, err error) {
-				return dialSocksProxy(network, addr)
-			}
-		} else {
-			xprt.Proxy = http.ProxyFromEnvironment
-		}
+	if config != nil && config.RootCAs != nil {
+		xprt.TLSClientConfig = &tls.Config{RootCAs: config.RootCAs}
+	}
+
+	err := env.EnableProxy()
+	if err != nil {
+		// We failed to set an environment variable, something is very wrong
+		panic(err)
 	}
 
 	if !env.GetTorMode().Enabled() && env.GetRunMode() == DevelRunMode {

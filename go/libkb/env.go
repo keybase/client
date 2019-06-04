@@ -39,6 +39,7 @@ func (n NullConfiguration) GetUsername() NormalizedUsername                     
 func (n NullConfiguration) GetEmail() string                                               { return "" }
 func (n NullConfiguration) GetUpgradePerUserKey() (bool, bool)                             { return false, false }
 func (n NullConfiguration) GetProxy() string                                               { return "" }
+func (n NullConfiguration) GetProxyType() string                                           { return "" }
 func (n NullConfiguration) GetGpgHome() string                                             { return "" }
 func (n NullConfiguration) GetBundledCA(h string) string                                   { return "" }
 func (n NullConfiguration) GetUserCacheMaxAge() (time.Duration, bool)                      { return 0, false }
@@ -1035,12 +1036,62 @@ func (e *Env) GetSkipLogoutIfRevokedCheck() bool {
 	return e.Test.SkipLogoutIfRevokedCheck
 }
 
+// Enable the proxy configured by this environment by setting the HTTP_PROXY and HTTPS_PROXY environment variables
+func (e *Env) EnableProxy() error {
+	realProxyAddress := ""
+	if e.GetProxyType() == Socks {
+		realProxyAddress = "socks5://" + e.GetProxy()
+	} else {
+		realProxyAddress = e.GetProxy()
+	}
+
+	e1 := os.Setenv("HTTP_PROXY", realProxyAddress)
+	if e1 != nil {
+		return e1
+	}
+	e2 := os.Setenv("HTTPS_PROXY", realProxyAddress)
+	if e2 != nil {
+		return e2
+	}
+	return nil
+}
+
+// Get the ProxyType based off of the configured proxy and tor settings
+func (e *Env) GetProxyType() ProxyType {
+	if e.GetTorMode() != TorNone {
+		// Tor mode is enabled. Tor mode is implemented via a socks proxy
+		return Socks
+	}
+	var proxyTypeStr = e.GetString(
+		func() string { return e.cmd.GetProxyType() },
+		func() string { return os.Getenv("PROXY_TYPE") },
+		func() string { return e.GetConfig().GetProxyType() },
+	)
+	proxyType, ok := ProxyTypeStrToEnum[proxyTypeStr]
+	if ok {
+		return proxyType
+	}
+	return No_Proxy
+}
+
+// Get the address (optionally including a port) of the currently configured proxy. Returns an empty string if no proxy
+// is configured.
 func (e *Env) GetProxy() string {
 	return e.GetString(
+		func() string {
+			// Only return the tor proxy address if tor mode is enabled to ensure we fall through to the other options
+			if e.GetTorMode() != TorNone {
+				return e.GetTorProxy()
+			}
+			return ""
+		},
+		// Prioritze tor mode over configured proxies
 		func() string { return e.cmd.GetProxy() },
+		func() string { return e.GetConfig().GetProxy() },
+		func() string { return os.Getenv("proxy") },
+		// Prioritize the keybase specific methods of configuring a proxy above the standard unix env variables
 		func() string { return os.Getenv("https_proxy") },
 		func() string { return os.Getenv("http_proxy") },
-		func() string { return e.GetConfig().GetProxy() },
 	)
 }
 

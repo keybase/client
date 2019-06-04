@@ -521,6 +521,9 @@ func (f *JSONConfigFile) GetTorProxy() string {
 func (f *JSONConfigFile) GetProxy() string {
 	return f.GetTopLevelString("proxy")
 }
+func (f *JSONConfigFile) GetProxyType() string {
+	return f.GetTopLevelString("proxy-type")
+}
 func (f *JSONConfigFile) GetDebug() (bool, bool) {
 	return f.GetTopLevelBool("debug")
 }

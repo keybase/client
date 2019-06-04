@@ -165,6 +165,7 @@ func makeServerCommandLine(g *libkb.GlobalContext, cl libkb.CommandLine,
 		"tor-mode",
 		"tor-proxy",
 		"tor-hidden-address",
+		"proxy-type",
 	}
 	args = append(args, arg0)
 

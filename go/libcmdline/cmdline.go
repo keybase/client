@@ -380,6 +380,10 @@ func (p CommandLine) GetTorProxy() string {
 	return p.GetGString("tor-proxy")
 }
 
+func (p CommandLine) GetProxyType() string {
+	return p.GetGString("proxy-type")
+}
+
 func (p CommandLine) GetMountDir() string {
 	return p.GetGString("mountdir")
 }
@@ -613,7 +617,23 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		},
 		cli.StringFlag{
 			Name:  "proxy",
-			Usage: "Specify an HTTP(s) proxy to ship all Web requests over.",
+			Usage: "Specify a proxy to ship all Web requests over; Must be used with --proxy-type; Example: localhost:8080",
+		},
+		cli.StringFlag{
+			Name:  "proxy-type",
+			Usage: fmt.Sprintf("set the proxy type; One of: %s", func() string {
+				// This function retrieves the list of valid proxy types from the dict that tracks them
+				proxyTypes := ""
+				for k := range libkb.ProxyTypeStrToEnum {
+					if proxyTypes != "" {
+						// Add a comma only if it is a non-empty string so that we don't get ", SOCKS, HTTP_Connect"
+						// or "SOCKS, HTTP_Connect, "
+						proxyTypes += ", "
+					}
+					proxyTypes += k
+				}
+				return proxyTypes
+			}()),
 		},
 		cli.BoolFlag{
 			Name:  "push-disabled",
