@@ -42,13 +42,13 @@ const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => (
     style={{...styleContainer, ...style}}
     onClick={disabled ? undefined : () => onSelect(!selected)}
   >
-    {
-      // @ts-ignore styled is more complicated than its typing lets on
-      <RadioOuterCircle disabled={disabled} selected={selected}>
-        // @ts-ignore styled is more complicated than its typing lets on
-        <RadioInnerCircle selected={selected} />
-      </RadioOuterCircle>
-    }
+    {/*
+    // @ts-ignore styled is more complicated than its typing lets on */}
+    <RadioOuterCircle disabled={disabled} selected={selected}>
+      {/*
+      // @ts-ignore styled is more complicated than its typing lets on */}
+      <RadioInnerCircle selected={selected} />
+    </RadioOuterCircle>
     <Text type="Body" style={{color: Styles.globalColors.black}}>
       {label}
     </Text>
