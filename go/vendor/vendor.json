@@ -391,12 +391,6 @@
 			"revisionTime": "2015-06-08T14:53:52-07:00"
 		},
 		{
-			"checksumSHA1": "37mmUDpo8//7mhcLc9rnsD8OfrE=",
-			"path": "github.com/guelfey/go.dbus",
-			"revision": "f6a3a2366cc39b8479cadc499d3c735fb10fbdda",
-			"revisionTime": "2013-11-13T12:16:18Z"
-		},
-		{
 			"checksumSHA1": "degm0JimzEvQjOTMaHOO6QzXNMI=",
 			"path": "github.com/hashicorp/golang-lru",
 			"revision": "995efda3e073b6946b175ed93901d729ad47466a",
@@ -637,12 +631,6 @@
 			"revisionTime": "2018-08-01T17:02:38Z"
 		},
 		{
-			"checksumSHA1": "mzJSAXuGoLPulltCYgqEo9AVuvQ=",
-			"path": "github.com/keybase/go-keychain",
-			"revision": "da9bb486ccd551aeb1929211500fc4a0bcb62a56",
-			"revisionTime": "2019-03-11T21:27:40Z"
-		},
-		{
 			"checksumSHA1": "U4UI9YzOjjzb5wNqyLfGfZBzvcc=",
 			"path": "github.com/keybase/go-keychain/secretservice",
 			"revision": "18419f45091c941bd31260f957523063206554ef",
@@ -713,6 +701,12 @@
 			"path": "github.com/keybase/go-winio",
 			"revision": "b1d96ab97b58dcaf6fd4e4c21cdf73a5bc3a388e",
 			"revisionTime": "2018-09-13T22:10:37Z"
+		},
+		{
+			"checksumSHA1": "e4+s/4oTQwUd2sfvU2bh2fxYnNI=",
+			"path": "github.com/keybase/go.dbus",
+			"revision": "7ce83444282d459dcd3724fa5e2721d1662c5dc0",
+			"revisionTime": "2019-06-04T18:23:40Z"
 		},
 		{
 			"checksumSHA1": "6siKrD8lFPCe0S3OF9E4wuRgUAo=",

@@ -559,6 +559,7 @@ func getTransport(address string) (transport, error) {
 		f := m[v[:i]]
 		if f == nil {
 			err = errors.New("dbus: invalid bus address (invalid or unsupported transport)")
+			continue
 		}
 		t, err = f(v[i+1:])
 		if err == nil {
