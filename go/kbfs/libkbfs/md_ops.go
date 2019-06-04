@@ -375,7 +375,6 @@ func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 	verifyingKey kbfscrypto.VerifyingKey, irmd ImmutableRootMetadata,
 	root keybase1.MerkleRootV2, timeToCheck time.Time) (err error) {
 	ctx = context.WithValue(ctx, ctxMDOpsSkipKeyVerification, struct{}{})
-
 	kbfsRoot, merkleNodes, rootSeqno, err :=
 		md.config.MDCache().GetNextMD(rmds.MD.TlfID(), root.Seqno)
 	switch errors.Cause(err).(type) {
@@ -739,15 +738,19 @@ func (mbtc merkleBasedTeamChecker) IsTeamWriter(
 			"MD was written.", uid, tid)
 	root, err := mbtc.teamMembershipChecker.NoLongerTeamWriter(
 		ctx, tid, mbtc.irmd.TlfID().Type(), uid, verifyingKey, offline)
-	if err != nil {
+	if m, ok := errors.Cause(err).(libkb.MerkleClientError); ok && m.IsOldTree() {
+		mbtc.md.vlog.CLogf(
+			ctx, libkb.VLog1, "Merkle root is too old for checking "+
+				"the revoked key: %+v", err)
+	} else if err != nil {
 		return false, err
-	}
-
-	// TODO(CORE-8199): pass in the time for the writer downgrade.
-	err = mbtc.md.checkRevisionCameBeforeMerkle(
-		ctx, mbtc.rmds, verifyingKey, mbtc.irmd, root, time.Time{})
-	if err != nil {
-		return false, err
+	} else {
+		// TODO(CORE-8199): pass in the time for the writer downgrade.
+		err = mbtc.md.checkRevisionCameBeforeMerkle(
+			ctx, mbtc.rmds, verifyingKey, mbtc.irmd, root, time.Time{})
+		if err != nil {
+			return false, err
+		}
 	}
 
 	return true, nil
