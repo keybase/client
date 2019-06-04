@@ -79,6 +79,7 @@ class Header extends React.PureComponent<Props> {
   _registerWindowEvents() {
     if (Platform.isDarwin) return
     const win = BrowserWindow.getFocusedWindow()
+    if (!win) return
     win.on('maximize', () => this.forceUpdate())
     win.on('unmaximize', () => this.forceUpdate())
   }
